@@ -11,6 +11,136 @@ before(async () => { navigateur = await chromium.launch(); });
 after(async () => { await navigateur?.close(); });
 const html = readFileSync(new URL('../../dist/ui.html', import.meta.url), 'utf8');
 
+test('[UI-39] Harmonisation est indisponible sous deux palettes et les flèches la sautent', async () => {
+  for (const nombre of [0, 1]) {
+    const page = await ouvrir(MINIMALE);
+    try {
+      if (nombre === 1) {
+        const lu = structuredClone(messageDe('harmonisation-arrivee'));
+        lu.classement.recette.palettes = lu.classement.recette.palettes.slice(0, 1);
+        await envoyer(page, lu);
+      }
+      const onglets = page.getByRole('tablist', { name: 'Navigation du plugin', exact: true });
+      const harmonie = onglets.getByRole('tab', { name: 'Harmonisation', exact: true });
+      assert.equal(await harmonie.isDisabled(), true);
+      assert.equal(await harmonie.getAttribute('aria-disabled'), 'true');
+      await onglets.getByRole('tab', { name: 'Vérification', exact: true }).click();
+      await page.keyboard.press('ArrowRight');
+      assert.equal(await onglets.getByRole('tab', { name: 'Gestion', exact: true }).getAttribute('aria-selected'), 'true');
+      assert.equal(await page.locator('#panneau-harmonisation').isVisible(), false);
+    } finally { await page.close(); }
+  }
+});
+
+test('[UI-39] le compteur et la ligne fixe comptent les paires, au singulier, au pluriel et à zéro', async () => {
+  for (const [nombre, attendu] of [[1, 'Toutes vos palettes se distinguent'], [2, '1 paire de palettes trop proches'], [3, '3 paires de palettes trop proches']]) {
+    const page = await ouvrir(MINIMALE);
+    try {
+      const lu = structuredClone(messageDe('harmonisation-arrivee'));
+      const coloree = lu.classement.recette.palettes.find((palette) => palette.nom === 'Sky');
+      const grise = lu.classement.recette.palettes[0];
+      lu.classement.recette.palettes = nombre === 1 ? [coloree, grise]
+        : Array.from({ length: nombre }, (_, rang) => ({ ...coloree, id: `p-0000000${rang}`, nom: 'Même nom' }));
+      await envoyer(page, lu);
+      const onglet = page.locator('#onglet-harmonisation');
+      await onglet.click();
+      const ligne = page.locator('#panneau-harmonisation .ligne-fixe');
+      assert.equal(await ligne.locator('.ligne-fixe-texte').textContent(), attendu);
+      assert.equal(await ligne.getAttribute('data-ton'), nombre === 1 ? 'neutre' : 'avertissement');
+      assert.equal(await ligne.locator('.ligne-fixe-icone').textContent(), nombre === 1 ? '✓' : '!');
+      assert.equal((await ligne.boundingBox()).height, 24);
+      assert.equal(await ligne.getByRole('button').count(), 0);
+      const compteur = onglet.locator('.compteur-de-verification');
+      assert.equal(await compteur.count(), nombre === 1 ? 0 : 1);
+      if (nombre > 1) {
+        assert.equal(await compteur.textContent(), nombre === 2 ? '1' : '3');
+        assert.equal(await compteur.getAttribute('data-ton'), 'avertissement');
+        assert.match(await onglet.getAttribute('aria-label'), new RegExp(attendu));
+        const distinctes = structuredClone(lu);
+        distinctes.empreinte = 'palettes-distinctes';
+        distinctes.classement.recette.palettes = [coloree, grise];
+        await envoyer(page, distinctes);
+        assert.equal(await compteur.count(), 0);
+        assert.equal(await ligne.locator('.ligne-fixe-texte').textContent(), 'Toutes vos palettes se distinguent');
+        assert.equal(await ligne.getAttribute('data-ton'), 'neutre');
+        assert.equal((await ligne.boundingBox()).height, 24);
+        assert.equal(await onglet.getAttribute('aria-label'), 'Harmonisation');
+      }
+    } finally { await page.close(); }
+  }
+});
+
+test('[UI-39] les choix d’Harmonisation survivent au retour et n’envoient aucune demande', async () => {
+  const page = await ouvrir(MINIMALE);
+  try {
+    const lu = structuredClone(messageDe('harmonisation-arrivee'));
+    const coloree = lu.classement.recette.palettes.find((palette) => palette.nom === 'Sky');
+    lu.classement.recette.palettes = [coloree, { ...coloree, id: 'p-00000009' }];
+    await envoyer(page, lu);
+    await page.locator('#onglet-harmonisation').click();
+    const panneau = page.locator('#panneau-harmonisation');
+    assert.deepEqual(await panneau.locator('[aria-pressed="true"]').allTextContents(), ['Vivid', 'Light']);
+    const avant = await demandes(page);
+    await panneau.getByRole('button', { name: 'Soft', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Dark', exact: true }).click();
+    await page.locator('#onglet-creation').click();
+    await page.locator('#onglet-harmonisation').click();
+    assert.deepEqual(await panneau.locator('[aria-pressed="true"]').allTextContents(), ['Soft', 'Dark']);
+    assert.deepEqual(await demandes(page), avant);
+    await page.locator('.icon-button.avec-libelle').click();
+    await page.getByRole('tab', { name: 'Général', exact: true }).click();
+    await page.getByLabel('Langue', { exact: true }).selectOption('en');
+    await page.locator('.header-back-button').click();
+    assert.match(await page.locator('#onglet-harmonisation').getAttribute('aria-label'), /^Harmony/);
+    assert.match(await panneau.locator('.ligne-fixe-texte').textContent(), /pairs? of palettes too close|All your palettes are distinct/);
+    assert.equal(await page.locator('#onglet-harmonisation .compteur-de-verification').count(), 1);
+  } finally { await page.close(); }
+});
+
+test('[UI-39] une synchronisation sous deux palettes quitte Harmonisation et réinitialise ses choix', async () => {
+  const page = await ouvrirSur('harmonisation-arrivee', MINIMALE, { sansPalette: true });
+  try {
+    await page.locator('#onglet-harmonisation').click();
+    await page.locator('#panneau-harmonisation').getByRole('button', { name: 'Dark', exact: true }).click();
+    const lu = structuredClone(messageDe('harmonisation-arrivee'));
+    const une = { ...lu, empreinte: 'une-palette', classement: { ...lu.classement, recette: { ...lu.classement.recette, palettes: lu.classement.recette.palettes.slice(0, 1) } } };
+    await envoyer(page, une);
+    assert.equal(await page.locator('#onglet-harmonisation').isDisabled(), true);
+    assert.equal(await page.locator('#onglet-creation').getAttribute('aria-selected'), 'true');
+    assert.equal(await page.locator('#panneau-harmonisation').isVisible(), false);
+    await envoyer(page, lu);
+    assert.equal(await page.locator('#onglet-harmonisation').isDisabled(), false);
+    await page.locator('#onglet-harmonisation').click();
+    assert.deepEqual(await page.locator('#panneau-harmonisation [aria-pressed="true"]').allTextContents(), ['Vivid', 'Light']);
+  } finally { await page.close(); }
+});
+
+test('[UI-39] la galerie d’arrivée garde son en-tête sur une ligne aux deux tailles, langues et thèmes', async () => {
+  for (const langue of ['fr', 'en']) for (const largeur of [500, 600]) for (const theme of ['clair', 'sombre']) {
+    const page = await navigateur.newPage({ viewport: { width: largeur, height: largeur === 500 ? 520 : 720 } });
+    try {
+      const galerie = `galerie${langue === 'en' ? '-en' : ''}${largeur === 500 ? '-minimale' : ''}`;
+      await page.goto(new URL(`../../dist/${galerie}/${theme}/harmonisation-arrivee.html`, import.meta.url).href);
+      await page.waitForFunction(() => document.documentElement.dataset.galerie === 'pret');
+      const panneau = page.locator('#panneau-harmonisation');
+      assert.equal(await panneau.isVisible(), true);
+      assert.equal(await panneau.getByRole('heading', { name: langue === 'fr' ? 'Harmonisation' : 'Harmony', exact: true }).isVisible(), true);
+      assert.deepEqual(await panneau.locator('.bascule-option').allTextContents(), ['Soft', 'Vivid', 'Light', 'Dark']);
+      assert.equal(await panneau.locator('.choix-libelle:visible').count(), 0);
+      const blocs = await panneau.locator('.tete-de-la-palette > *').evaluateAll((elements) => elements.map((element) => {
+        const { x, y, width, height } = element.getBoundingClientRect();
+        return { x, y, width, height };
+      }));
+      for (let rang = 1; rang < blocs.length; rang += 1) {
+        assert.ok(blocs[rang].x >= blocs[rang - 1].x + blocs[rang - 1].width, 'les choix ne recouvrent pas le titre');
+        assert.ok(Math.abs((blocs[rang].y + blocs[rang].height / 2) - (blocs[0].y + blocs[0].height / 2)) < 1, 'les choix restent alignés');
+      }
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+      await page.screenshot({ path: fileURLToPath(new URL(`../../dist/revue-harmonisation-${langue}-${theme}-${largeur}.png`, import.meta.url)), fullPage: true });
+    } finally { await page.close(); }
+  }
+});
+
 test('[UI-32] une variable absente garde la confirmation des couleurs retouchées dans Figma', async () => {
   const page = await ouvrir();
   try {
@@ -194,7 +324,7 @@ const MINIMALE = { width: 500, height: 520 };
 test('les onglets suivent leur libellé avec le même retrait horizontal', async () => {
   const page = await ouvrir();
   try {
-    const mesures = await page.getByRole('tab').evaluateAll((onglets) => onglets.map((onglet) => {
+    const mesures = await page.getByRole('tablist', { name: 'Navigation du plugin', exact: true }).getByRole('tab').evaluateAll((onglets) => onglets.map((onglet) => {
       const style = getComputedStyle(onglet);
       return {
         largeur: onglet.getBoundingClientRect().width,
@@ -203,10 +333,10 @@ test('les onglets suivent leur libellé avec le même retrait horizontal', async
         retraitDroit: style.paddingRight,
       };
     }));
-    assert.deepEqual(mesures.map(({ retraitGauche, retraitDroit }) => [retraitGauche, retraitDroit]), [['8px', '8px'], ['8px', '8px'], ['8px', '8px']]);
+    assert.deepEqual(mesures.map(({ retraitGauche, retraitDroit }) => [retraitGauche, retraitDroit]), [['8px', '8px'], ['8px', '8px'], ['8px', '8px'], ['8px', '8px']]);
     assert.ok(mesures[1].largeur > mesures[0].largeur, 'Vérification est plus large que Création');
-    assert.ok(mesures[0].largeur > mesures[2].largeur, 'Création est plus large que Gestion');
-    assert.deepEqual(mesures.map(({ texte }) => texte), ['Création', 'Vérification', 'Gestion']);
+    assert.ok(mesures[0].largeur > mesures[3].largeur, 'Création est plus large que Gestion');
+    assert.deepEqual(mesures.map(({ texte }) => texte), ['Création', 'Vérification', 'Harmonisation', 'Gestion']);
   } finally {
     await page.close();
   }
@@ -3162,8 +3292,10 @@ test('E13 : un dessin qui attendait un rangement refusé est abandonné, et l’
     await ouvrirLaPlanche(page);
     await page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_BLEU}"] [data-geste="generer"]`).click();
     assert.equal(await page.locator('#panneau-gestion').evaluate((panneau) => panneau.inert), true);
+    assert.equal(await page.locator('#panneau-harmonisation').evaluate((panneau) => panneau.inert), true);
     await envoyer(page, { type: 'rangement', demande: rangement.demande, issue: { issue: 'modifiee-ailleurs' } });
     assert.equal(await page.locator('#panneau-gestion').evaluate((panneau) => panneau.inert), false);
+    assert.equal(await page.locator('#panneau-harmonisation').evaluate((panneau) => panneau.inert), false);
     assert.equal(await page.locator('#panneau-creation').evaluate((panneau) => panneau.inert), false);
     assert.deepEqual((await demandes(page)).slice(avant).map((demande) => demande.type), ['ranger-recette']);
   } finally {

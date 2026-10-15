@@ -2393,6 +2393,22 @@ Onglet Vérification :
 
 Onglet Harmonisation :
 
+- `[UI-39]` Harmonisation se place entre Vérification et Gestion, indisponible
+  sous deux palettes. Son compteur ambre donne le nombre de paires trop proches
+  et disparaît à zéro. Le titre précède les choix Soft/Vivid et Light/Dark,
+  sans libellé visible. Une ligne fixe de 24 px donne le nombre de paires,
+  avec `!` et le ton avertissement, ou « Toutes vos palettes se distinguent »,
+  avec `✓` et le ton neutre. Cette ligne ne porte aucun bouton. Ces choix
+  d'aperçu restent dans la session, sans rangement dans la recette.
+  La sélection conserve l'ordre de cochage de quatre identifiants au plus ;
+  le cinquième est refusé. La première cochée devient la palette à régler ;
+  décochée, elle cède sa place à la première restante. Un renommage conserve
+  la sélection, y compris pour deux palettes de même nom. Une suppression,
+  un import ou une synchronisation retire les identifiants disparus ; sous
+  deux palettes, tout l'état se vide. Chaque entrée renouvelle les départs
+  de l'annulation. L'état et ses transitions sont dans `src/harmonisation.ts` ;
+  l'en-tête et le compteur sont dans `src/ui/ongletHarmonisation.ts`.
+
 - `[UI-45]` Le socle expose `definirDisponible(id, disponible)`. Un onglet
   indisponible porte `disabled` et `aria-disabled="true"`. Le clic et
   `selectionner` refusent de l'activer ; les flèches, Début et Fin le

@@ -2190,6 +2190,24 @@
   flex-shrink: 0;
 }
 
+.harmonisation .tete-de-la-palette {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.harmonisation .tete-de-la-palette h2 {
+  margin-right: auto;
+}
+
+.harmonisation .choix-libelle:empty {
+  display: none;
+}
+
+.harmonisation .ligne-fixe-texte {
+  cursor: default;
+}
+
 .titre-de-premier-rang {
   min-width: 0;
   margin: 0;

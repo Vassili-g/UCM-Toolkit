@@ -59,6 +59,7 @@ export const TEXTES = {
   // N130. Les clés portent le nom de leur module (Q6.1).
   ongletCreation: 'Création',
   ongletVerification: 'Vérification',
+  ongletHarmonisation: 'Harmonisation',
   ongletGestion: 'Gestion',
   lectureEnCours: 'Chargement des palettes et des réglages…',
   choisirUnePalette: 'Choisir une palette',
@@ -149,6 +150,12 @@ export const TEXTES_DU_PIED = {
   region: 'Bilan de la palette',
   verifier: 'Vérifier',
 } as const;
+
+export const TEXTES_DE_L_HARMONISATION = {
+  intensite: 'Intensité de l’aperçu',
+  bilan: (nombre: number) => nombre === 0 ? 'Toutes vos palettes se distinguent'
+    : `${nombre} ${nombre === 1 ? 'paire' : 'paires'} de palettes trop proches`,
+};
 
 /** Le nom accessible de l'onglet Vérification, complété du bilan de la palette ouverte : « Vérification, 1 garantie manquée ». */
 export function nomDeLOngletVerification(manquees: number, alertes: number): string {

@@ -71,7 +71,7 @@ Règles d'économie, à tenir par l'orchestrateur :
 - Vague 3 (P1 à P8) et H0 faits, vérifiés et poussés le 15 octobre : suite
   complète et trois `test:ui` verts (Palettes 275, Exporter 39,
   explorateur 24).
-- **Prochaine étape** : la vague 4 à partir de H1, confiée à Codex.
+- **Prochaine étape** : la vague 4 à partir de H2 ; H1 est fait (Codex).
 - stone-950 (M4) : le mainteneur garde le comportement ; le test juge
   l'écart de couleur, sous 0,02 ΔEok (`desaturees.test.ts`).
 
@@ -988,7 +988,8 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
     `npm test --workspace ucm-palettes-plugin`, `npm run typecheck`.
   - Fini quand : vert.
 
-- [ ] **H1 · L'onglet, son état et son en-tête** · `implementeur-exigeant`, haut.
+- [x] **H1 · L'onglet, son état et son en-tête** · `implementeur-exigeant`, haut.
+  - Fait par Codex, relu : [note de reprise](./REPRISE-CODEX-H1.md).
   - SPEC, sections 7.1 et 7.2 ; PR6 ; identifiant `[UI-39]`.
   - `PAL/src/ui/index.ts` : l'onglet `harmonisation` entre `verification` et
     `gestion` (liste des onglets, `PANNEAUX`, `travail.append`, inertie

@@ -1,7 +1,7 @@
 /**
  * Point d'entrée de l'interface d'UCM Palettes : l'en-tête du socle, les
- * onglets Création, Vérification et Gestion, et la configuration derrière
- * l'engrenage ([UI-02]).
+ * onglets Création, Vérification, Harmonisation et Gestion, et le panneau
+ * Configuration ([UI-02]).
  */
 import { jsonCanonique, recetteParDefaut, type Recette } from 'ucm-couleur';
 import { montrerConfiguration, montrerTravail, type ElementsDeBascule } from 'ucm-plugin-socle/src/ui/EnTete';
@@ -28,6 +28,7 @@ import { creerVuesGestesDeLaRecette, type DemandesDeLaRecette } from './gestesDe
 import { creerLocalisation, type Localisation } from './localisation';
 import { creerVuesOngletCreation } from './ongletCreation';
 import { creerVuesOngletGestion } from './ongletGestion';
+import { creerVuesOngletHarmonisation } from './ongletHarmonisation';
 import { creerVuesOngletVerification } from './ongletVerification';
 import { creerPaletteOuverte } from './paletteOuverte';
 import { creerVuesPiedDeLaPalette } from './piedDeLaPalette';
@@ -43,6 +44,7 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
   const { createGestesDeLaRecette } = creerVuesGestesDeLaRecette(i18n);
   const { createOngletCreation } = creerVuesOngletCreation(i18n);
   const { createOngletGestion } = creerVuesOngletGestion(i18n);
+  const { createOngletHarmonisation } = creerVuesOngletHarmonisation(i18n);
   const { createOngletVerification } = creerVuesOngletVerification(i18n);
   const { lierLeCompteur, effacerLeCompte } = creerVuesPiedDeLaPalette(i18n);
   const { TEXTES, nomDeLaPalette } = i18n.messages;
@@ -232,6 +234,8 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     versGestion: () => allerA('gestion'),
   });
 
+  const ongletHarmonisation = createOngletHarmonisation(paletteOuverte);
+
   const ongletGestion = createOngletGestion({
     ...gestesDuResultat,
     dessiner: (palettes, noms) => suivi.dessiner(palettes, noms),
@@ -346,10 +350,12 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
   const onglets = createOnglets(TEXTES.etiquetteDesOnglets, [
     { id: 'creation', libelle: TEXTES.ongletCreation, panneau: ongletCreation.element },
     { id: 'verification', libelle: TEXTES.ongletVerification, panneau: ongletVerification.element },
+    { id: 'harmonisation', libelle: TEXTES.ongletHarmonisation, panneau: ongletHarmonisation.element },
     { id: 'gestion', libelle: TEXTES.ongletGestion, panneau: ongletGestion.element },
   ], (id) => {
     if (id === 'creation') ongletCreation.placerLaBarre();
     ongletVerification.montrer(id === 'verification');
+    ongletHarmonisation.montrer(id === 'harmonisation');
     if (id !== 'gestion') return;
     afficherLaPlanche();
     // À l'ouverture du plugin, l'état vient d'être lu : Gestion ne le redemande pas.
@@ -358,11 +364,15 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
 
   // L'onglet Vérification porte le bilan de la palette ouverte dans Création ; sans palette ouverte, il n'a pas de compteur.
   lierLeCompteur(onglets.liste.querySelector<HTMLElement>('#onglet-verification')!, TEXTES.ongletVerification);
+  ongletHarmonisation.lierLeCompteur(onglets.liste.querySelector<HTMLElement>('#onglet-harmonisation')!);
+  const actualiserHarmonisation = (): void => onglets.definirDisponible('harmonisation', (paletteOuverte.recette()?.palettes.length ?? 0) >= 2);
+  paletteOuverte.abonner(actualiserHarmonisation);
+  actualiserHarmonisation();
   paletteOuverte.abonner((etat) => {
     if (!etat.palette()) effacerLeCompte();
   });
 
-  const PANNEAUX = { creation: ongletCreation.element, verification: ongletVerification.element, gestion: ongletGestion.element };
+  const PANNEAUX = { creation: ongletCreation.element, verification: ongletVerification.element, harmonisation: ongletHarmonisation.element, gestion: ongletGestion.element };
 
   /**
    * Change d'onglet par un geste de l'interface, un pied ou un lien : le
@@ -379,7 +389,7 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
 
   travail.className = 'page-stack colonne';
 
-  travail.append(onglets.liste, ongletCreation.element, ongletVerification.element, ongletGestion.element);
+  travail.append(onglets.liste, ongletCreation.element, ongletVerification.element, ongletHarmonisation.element, ongletGestion.element);
 
   // Pendant un dessin, les panneaux se figent et la progression se lit ; l'engrenage reste ouvert, pour la langue.
   suivi.abonner((etat) => {
@@ -387,6 +397,7 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     const enCours = etat.phase === 'en-cours';
     ongletCreation.element.inert = enCours;
     ongletVerification.element.inert = enCours;
+    ongletHarmonisation.element.inert = enCours;
     ongletGestion.element.inert = enCours;
     ongletGestion.afficherDessin(etat, suivi.noms());
   });

@@ -5,6 +5,7 @@
  * case du plan qui le créera.
  */
 const path = require('path');
+const { readFileSync } = require('node:fs');
 
 /**
  * Le moteur et le modèle de planche sont lus à leur source : une recette
@@ -1975,6 +1976,17 @@ ETATS.push({
   existe: true,
   sansPaletteChoisie: true,
   atteinte: [etatDuFichier(rangee(VINGT_PALETTES_CONFORMES.map(([nom, reference], rang) => palette(identifiantDuBilan(rang), nom, reference))))],
+});
+
+const recetteDuMainteneur = readFileSync(path.resolve(__dirname, '../../../docs/notes/Recherches/Plugin Palettes/Recette CRITIQUE de qualité/Mesures/references/recette-mainteneur.json'), 'utf8');
+ETATS.push({
+  id: 'harmonisation-arrivee',
+  titre: 'Arrivée dans Harmonisation',
+  quand: 'Le fichier du mainteneur est chargé ; le designer ouvre Harmonisation sans palette cochée.',
+  regarder: 'Harmonisation entre Vérification et Gestion. Le titre précède Soft et Vivid, puis Light et Dark ; Vivid et Light sont choisis. La ligne fixe suit les paires du moteur ; à zéro, son texte est « Toutes vos palettes se distinguent » et le compteur est absent. Les cartes sont hors du périmètre de cet état.',
+  existe: true,
+  sansPaletteChoisie: true,
+  atteinte: [etatDuFichier(recetteDuMainteneur), { clic: '[role="tab"][aria-controls="panneau-harmonisation"]' }],
 });
 
 module.exports = { ETATS: ETATS.map(avecLaPremierePalette), SAUGE: { palette: (variante) => sauge(variante).palette, recette: recetteDeLaGalerie(), rampesDe } };

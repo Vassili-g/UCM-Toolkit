@@ -62,6 +62,7 @@ export const TEXTES = {
   // N130. Les clés portent le nom de leur module (Q6.1).
   ongletCreation: "Create",
   ongletVerification: "Verify",
+  ongletHarmonisation: 'Harmony',
   ongletGestion: "Manage",
   lectureEnCours: "Loading palettes and settings…",
   choisirUnePalette: "Choose a palette",
@@ -152,6 +153,12 @@ export const TEXTES_DU_PIED = {
   region: "Palette summary",
   verifier: "Verify",
 } as const;
+
+export const TEXTES_DE_L_HARMONISATION = {
+  intensite: 'Preview intensity',
+  bilan: (nombre: number) => nombre === 0 ? 'All your palettes are distinct'
+    : `${nombre} ${nombre === 1 ? 'pair' : 'pairs'} of palettes too close`,
+};
 
 /** Le nom accessible de l'onglet Vérification, complété du bilan de la palette ouverte : « Verify, 1 guarantee unmet ». */
 export function nomDeLOngletVerification(manquees: number, alertes: number): string {
