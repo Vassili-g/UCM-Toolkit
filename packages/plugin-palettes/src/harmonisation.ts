@@ -3,6 +3,7 @@ import { aUneIntensite, arrondir, CHROMA_DES_PALETTES_COLOREES, estLibre, partsD
 
 import { remplacerPalette } from './edition';
 import { GRANDEURS, valeursDesProfils, type Grandeur } from './reglagesParDefaut';
+import type { Vision } from './vision';
 
 export interface EtatHarmonisation {
   readonly cochees: readonly string[];
@@ -11,7 +12,7 @@ export interface EtatHarmonisation {
   readonly intensite: Profil;
   readonly affichage: 'couleurs' | 'gris';
   readonly roue: boolean;
-  readonly vision: 'Normale' | 'Deutéranopie' | 'Protanopie' | 'Tritanopie';
+  readonly vision: Vision;
   /** Les palettes au premier réglage depuis l'entrée, indexées par identifiant. */
   readonly departs: ReadonlyMap<string, Palette>;
   readonly trop: boolean;
@@ -25,7 +26,7 @@ export function harmonisationInitiale(): EtatHarmonisation {
     intensite: 'vivid',
     affichage: 'couleurs',
     roue: false,
-    vision: 'Normale',
+    vision: 'normale',
     departs: new Map(),
     trop: false,
   };
@@ -63,6 +64,30 @@ export function cocherPalette(etat: EtatHarmonisation, recette: Recette, id: str
 /** Le choix de la bascule « Couleurs | Niveaux de gris » de la carte Comparaison. */
 export function choisirAffichage(etat: EtatHarmonisation, affichage: EtatHarmonisation['affichage']): EtatHarmonisation {
   return etat.affichage === affichage ? etat : { ...etat, affichage };
+}
+
+/** La vision des couleurs que la carte Roue des teintes simule. */
+export function choisirLaVision(etat: EtatHarmonisation, vision: Vision): EtatHarmonisation {
+  return etat.vision === vision ? etat : { ...etat, vision };
+}
+
+/** La carte Roue des teintes s'ouvre ou se replie. */
+export function basculerLaRoue(etat: EtatHarmonisation, ouverte: boolean): EtatHarmonisation {
+  return etat.roue === ouverte ? etat : { ...etat, roue: ouverte };
+}
+
+/**
+ * Saisir le point d'une palette sur la roue : elle devient la palette à régler,
+ * et se coche si elle ne l'est pas. Sans place pour une cinquième, rien ne
+ * change que `trop`. Une palette déjà cochée reste cochée (ce n'est pas un
+ * cochage) et ne touche pas à `trop`.
+ */
+export function saisirPalette(etat: EtatHarmonisation, recette: Recette, id: string): EtatHarmonisation {
+  const courant = synchroniserHarmonisation(etat, recette);
+  if (recette.palettes.length < 2 || !recette.palettes.some((palette) => palette.id === id)) return courant;
+  if (courant.cochees.includes(id)) return courant.regler === id ? courant : { ...courant, regler: id };
+  if (courant.cochees.length >= 4) return { ...courant, trop: true };
+  return { ...courant, cochees: [...courant.cochees, id], regler: id, trop: false };
 }
 
 export function toutDecocher(etat: EtatHarmonisation): EtatHarmonisation {

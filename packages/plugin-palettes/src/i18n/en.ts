@@ -42,6 +42,7 @@ import { fondDeLaPromesse } from '../presentation';
 import type { CibleDAction, EtatDeLaFiche, EtatDesTokens, GroupeDePromesses, Verdict } from '../presentation';
 import type { RefusDeDestination } from '../variables/destination';
 import type { FormeGroupee } from '../variables/detection';
+import type { Vision } from '../vision';
 
 const ecrireArrondi = (valeur: number, precision: number): string => arrondiFrancais(valeur, precision).replace(',', '.');
 const ecrireContraste = (valeur: number): string => contrasteFrancais(valeur).replace(',', '.');
@@ -155,6 +156,9 @@ export const TEXTES_DU_PIED = {
   verifier: "Verify",
 } as const;
 
+/** Le nom d'une vision des couleurs. La troisième simule la tritanomalie sévère : les auteurs du modèle excluent la tritanopie (`src/vision.ts`). */
+const NOM_DES_VISIONS: Record<Vision, string> = { normale: 'Normal', deuteranopie: 'Deuteranopia', protanopie: 'Protanopia', tritanomalie: 'Tritanomaly' };
+
 export const TEXTES_DE_L_HARMONISATION = {
   intensite: 'Preview intensity',
   bilan: (nombre: number) => nombre === 0 ? 'All your palettes are distinct'
@@ -221,6 +225,17 @@ export const TEXTES_DE_L_HARMONISATION = {
     annuler: 'Undo changes',
     figee: 'Frozen palette: its colors cannot be adjusted.',
     marque: (nom: string, valeur: string) => `${nom}: ${valeur}`,
+  },
+  /** [UI-43] La carte qui montre la teinte de chaque palette sur un cercle et la règle par un point. */
+  roue: {
+    titre: 'Hue wheel',
+    sousTitre: "Drag a dot to adjust its palette's hue",
+    vision: 'Vision',
+    nomDeLaVision: 'Color vision',
+    visions: NOM_DES_VISIONS,
+    resume: (vision: Vision) => `Vision: ${NOM_DES_VISIONS[vision].toLowerCase()}`,
+    nomDuPoint: (nom: string) => `Hue of ${nom}`,
+    paireTropProche: (a: string, b: string) => `${a} and ${b}: too close`,
   },
 };
 

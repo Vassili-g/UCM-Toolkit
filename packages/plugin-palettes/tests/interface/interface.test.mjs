@@ -712,6 +712,327 @@ test('[UI-42] la carte Réglages se traduit, se replie et tient dans la fenêtre
   } finally { await page.close(); }
 });
 
+const carteRoue = (page, nom = 'Roue des teintes') => page.locator(`#panneau-harmonisation .carte[aria-label="${nom}"]`);
+const pointDeLaRoue = (page, nom, libelle = 'Teinte de') => carteRoue(page, libelle === 'Teinte de' ? 'Roue des teintes' : 'Hue wheel').getByRole('slider', { name: `${libelle} ${nom}`, exact: true });
+/** Déplie la carte « Roue des teintes », repliée à l'arrivée. */
+async function deplierLaRoue(page, nom = 'Roue des teintes') {
+  const carte = carteRoue(page, nom);
+  assert.equal(await carte.getAttribute('data-ouverte'), 'false');
+  await carte.locator('> .carte-tete > .carte-bascule').click();
+  await carte.locator('circle[role="slider"]').first().waitFor();
+}
+/** La place du point `nom` dans la fenêtre, tournée de `degres` autour du centre de la roue : la carte défile d'abord jusqu'à lui. */
+async function placeDuPoint(page, nom, degres = 0) {
+  const point = pointDeLaRoue(page, nom);
+  await point.scrollIntoViewIfNeeded();
+  return point.evaluate((cercle, tour) => {
+    const cadre = cercle.ownerSVGElement.getBoundingClientRect();
+    const [cx, cy] = [Number(cercle.getAttribute('cx')) - 210, Number(cercle.getAttribute('cy')) - 128];
+    const angle = Math.atan2(cy, cx) + (tour * Math.PI) / 180;
+    const rayon = Math.hypot(cx, cy);
+    return { x: cadre.left + ((210 + rayon * Math.cos(angle)) * cadre.width) / 420, y: cadre.top + ((128 + rayon * Math.sin(angle)) * cadre.height) / 256 };
+  }, degres);
+}
+
+test('[UI-43] la carte Roue des teintes est repliée avec son résumé, puis dessine le cercle, ses familles, un point par palette colorée et un arc par paire trop proche', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    await page.locator('#panneau-harmonisation').getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    const carte = carteRoue(page);
+    assert.equal(await carte.locator('.carte-resume').textContent(), 'Vision normale');
+    assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Glissez un point pour régler la teinte de sa palette');
+    assert.equal(await carte.locator('.carte-corps').isVisible(), false);
+    await deplierLaRoue(page);
+    assert.equal(await carte.locator('.carte-resume').isVisible(), false, 'ouverte, la carte montre son choix à la place du résumé');
+    assert.equal(await carte.locator('.choix-libelle').textContent(), 'Vision');
+    assert.deepEqual(await carte.locator('select.input option').allTextContents(), ['Normale', 'Deutéranopie', 'Protanopie', 'Tritanomalie']);
+    assert.equal(await carte.getByRole('combobox', { name: 'Vision des couleurs' }).inputValue(), 'normale');
+    const plaque = carte.locator('svg.roue.plaque');
+    const boite = await plaque.boundingBox();
+    assert.deepEqual([boite.width, boite.height], [420, 256]);
+    assert.deepEqual(await plaque.locator('text.roue-famille').allTextContents(), ['rose', 'rouge', 'orange', 'jaune', 'vert', 'turquoise', 'bleu', 'violet']);
+    const points = plaque.locator('circle[role="slider"]');
+    const noms = await points.evaluateAll((cercles) => cercles.map((cercle) => cercle.getAttribute('aria-label')));
+    assert.ok(noms.includes('Teinte de Indigo') && noms.includes('Teinte de Azur'));
+    assert.equal(noms.includes('Teinte de Ardoise'), false, 'une palette grise reste hors de la roue');
+    assert.ok(noms.length > 8, 'plus de huit palettes colorées : les noms se limitent aux cochées et aux paires');
+    // Les deux cochées ont le gros point ; les autres 5 px.
+    assert.equal(await pointDeLaRoue(page, 'Indigo').getAttribute('r'), '7');
+    assert.equal(await pointDeLaRoue(page, 'Rose').getAttribute('r'), '5');
+    assert.equal(await pointDeLaRoue(page, 'Rose').getAttribute('tabindex'), '0');
+    assert.equal(await pointDeLaRoue(page, 'Indigo').locator('title').textContent(), 'Indigo');
+    assert.equal(await plaque.locator('path[stroke-linecap="round"]').count(), 10);
+    assert.equal(await plaque.locator('path[stroke-linecap="round"] title', { hasText: 'Indigo et Azur : trop proches' }).count(), 1);
+    // La palette à régler montre sa course en gris et la zone trop proche d'Azur en tirets.
+    assert.equal(await plaque.locator('path[opacity="0.12"]').count(), 1);
+    assert.ok((await plaque.locator('path[stroke-dasharray="2 2"]').count()) >= 1);
+    // Au-delà de huit palettes colorées, seules les cochées et celles d'une paire portent un nom.
+    const nommees = await plaque.locator('text:not(.roue-famille)').allTextContents();
+    const attendues = await points.evaluateAll((cercles) => cercles.filter((cercle) => cercle.getAttribute('r') === '7' || cercle.getAttribute('stroke') === '#C77A00').map((cercle) => cercle.querySelector('title').textContent));
+    assert.deepEqual([...nommees].sort(), [...attendues].sort());
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+    await carte.locator('> .carte-tete > .carte-bascule').click();
+    assert.equal(await carte.getAttribute('data-ouverte'), 'false');
+  } finally { await page.close(); }
+});
+
+test('[UI-43] la vision repeint les points, le résumé la nomme, et aucune alerte ne bouge', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    const carte = carteRoue(page);
+    await deplierLaRoue(page);
+    const remplissages = () => carte.locator('circle[role="slider"]').evaluateAll((cercles) => cercles.map((cercle) => cercle.getAttribute('fill')));
+    const avant = await remplissages();
+    const compteur = page.locator('#onglet-harmonisation .compteur-de-verification');
+    assert.equal(await compteur.textContent(), '10');
+    const choix = carte.getByRole('combobox', { name: 'Vision des couleurs' });
+    const vues = {};
+    for (const vision of ['deuteranopie', 'protanopie', 'tritanomalie']) {
+      await choix.selectOption(vision);
+      vues[vision] = await remplissages();
+      assert.notDeepEqual(vues[vision], avant, vision);
+      assert.equal(await compteur.textContent(), '10');
+      assert.equal(await page.locator('#panneau-harmonisation .ligne-fixe-texte').textContent(), '10 paires de palettes trop proches');
+    }
+    assert.notDeepEqual(vues.deuteranopie, vues.protanopie);
+    await choix.selectOption('normale');
+    assert.deepEqual(await remplissages(), avant);
+    await choix.selectOption('tritanomalie');
+    await carte.locator('> .carte-tete > .carte-bascule').click();
+    assert.equal(await carte.locator('.carte-resume').textContent(), 'Vision tritanomalie');
+    await carte.locator('> .carte-tete > .carte-bascule').click();
+    assert.equal(await choix.inputValue(), 'tritanomalie', 'la vision survit au repli');
+  } finally { await page.close(); }
+});
+
+test('[UI-43] glisser un point règle sa palette, la met dans « Régler » et la coche ; tout l’onglet suit, la fin range les deux intensités du même écart', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await deplierLaRoue(page);
+    const reglages = carteReglages(page);
+    await limitesCalculees(reglages);
+    assert.deepEqual(await cochees(page), ['Indigo', 'Azur']);
+    // Rose n'est pas cochée : la saisir la coche et la règle.
+    const avant = await compte(page);
+    const depart = await placeDuPoint(page, 'Rose');
+    await page.mouse.move(depart.x, depart.y);
+    await page.mouse.down();
+    assert.deepEqual(await cochees(page), ['Rose', 'Indigo', 'Azur'], 'la liste suit l’ordre de la recette');
+    assert.deepEqual(await reglages.locator('.carte-choix .bascule-option').allTextContents(), ['Indigo', 'Azur', 'Rose']);
+    assert.deepEqual(await reglages.locator('.carte-choix [aria-pressed="true"]').allTextContents(), ['Rose']);
+    // La troisième palette agrandit les cartes au-dessus de la roue : la roue se pose avant de viser.
+    await page.waitForTimeout(300);
+    const arrivee = await placeDuPoint(page, 'Rose', 5);
+    await page.mouse.move(arrivee.x, arrivee.y, { steps: 6 });
+    // Pendant le glisser : la réglette de teinte lit un écart positif, rien n'est encore rangé. La carte « Comparaison »
+    // change de hauteur avec les constats et déplace la roue sous le pointeur : l'écart exact n'est pas celui du geste visé.
+    await page.waitForFunction(() => /^\+\d+°$/.test(document.querySelector('#panneau-harmonisation .reglage-de-la-palette .champ-nombre')?.value ?? ''));
+    assert.equal(await compte(page), avant);
+    await page.mouse.up();
+    const demande = await prochaine(page, avant);
+    assert.equal(demande.type, 'ranger-recette');
+    const teinteDeRose = demande.recette.palettes.find((palette) => palette.nom === 'Rose').reglages.teinte;
+    assert.ok(teinteDeRose.vivid > 0 && teinteDeRose.vivid <= 30 && teinteDeRose.soft === teinteDeRose.vivid, JSON.stringify(teinteDeRose));
+    await envoyer(page, rangee(demande.demande));
+    // Une cochée se règle aussi, et un pointeur au-delà de la course est borné.
+    const azur = await placeDuPoint(page, 'Azur');
+    const avantAzur = await compte(page);
+    await page.mouse.move(azur.x, azur.y);
+    await page.mouse.down();
+    assert.deepEqual(await reglages.locator('.carte-choix [aria-pressed="true"]').allTextContents(), ['Azur']);
+    const loin = await placeDuPoint(page, 'Azur', 90);
+    await page.mouse.move(loin.x, loin.y, { steps: 6 });
+    await page.mouse.up();
+    const bornee = await prochaine(page, avantAzur);
+    const reglageDAzur = bornee.recette.palettes.find((palette) => palette.nom === 'Azur').reglages.teinte;
+    assert.ok(reglageDAzur.vivid <= 30 && reglageDAzur.vivid > 0 && reglageDAzur.soft === reglageDAzur.vivid, JSON.stringify(reglageDAzur));
+  } finally { await page.close(); }
+});
+
+test('[UI-43] glisser Indigo hors de la zone éteint le constat et le compteur ; Échap rend la palette d’avant', async () => {
+  const page = await ouvrirHarmonisationSurTroisPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await limitesCalculees(carteReglages(page));
+    await deplierLaRoue(page);
+    const compteur = page.locator('#onglet-harmonisation .compteur-de-verification');
+    assert.equal(await compteur.textContent(), '1');
+    const avant = await compte(page);
+    const depart = await placeDuPoint(page, 'Indigo');
+    await page.mouse.move(depart.x, depart.y);
+    await page.mouse.down();
+    const arrivee = await placeDuPoint(page, 'Indigo', 12);
+    await page.mouse.move(arrivee.x, arrivee.y, { steps: 6 });
+    await carteComparaison(page).locator('.constat-de-comparaison[data-ton="succes"]').waitFor();
+    assert.equal(await compteur.count(), 0);
+    assert.equal(await panneau.locator('.ligne-fixe-texte').textContent(), 'Toutes vos palettes se distinguent');
+    await page.keyboard.press('Escape');
+    await page.mouse.up();
+    await carteComparaison(page).locator('.constat-de-comparaison[data-ton="avertissement"]').waitFor();
+    assert.equal(await compteur.textContent(), '1');
+    assert.equal(await pointDeLaRoue(page, 'Indigo').getAttribute('aria-valuenow'), '0');
+    assert.equal(await compte(page), avant, 'rien n’a été rangé');
+  } finally { await page.close(); }
+});
+
+test('[UI-43] sans place pour une cinquième palette rien ne se saisit ; une palette libre paraît sur la roue, une figée ne se saisit pas', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    for (const nom of ['Rose', 'Vert']) await coche(panneau, nom);
+    await deplierLaRoue(page);
+    const avant = await compte(page);
+    const depart = await placeDuPoint(page, 'Jaune');
+    await page.mouse.move(depart.x, depart.y);
+    await page.mouse.down();
+    await page.mouse.up();
+    assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), 'Quatre palettes au plus : décochez-en une.');
+    assert.deepEqual(await cochees(page), ['Rose', 'Indigo', 'Vert', 'Azur']);
+    await pointDeLaRoue(page, 'Jaune').focus();
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await compte(page), avant, 'le clavier ne saisit pas non plus');
+  } finally { await page.close(); }
+  const figee = await ouvrir(MINIMALE);
+  try {
+    const lu = structuredClone(messageDe('harmonisation-paire'));
+    const [azur, indigo] = ['Azur', 'Indigo'].map((nom) => lu.classement.recette.palettes.find((palette) => palette.nom === nom));
+    Object.assign(azur, { intensites: 1, crans: lu.classement.recette.crans, figees: { light: ['#F0F6FF', '#DCE9FF', '#B9D2FF', '#8FB4F5', '#5E90E8', '#3B72D6', '#2259B8', '#1B4690', '#173A73', '#142F5C', '#0E2142'] } });
+    Object.assign(indigo, { crans: [100, 300, 500, 700, 900] });
+    await envoyer(figee, lu);
+    await figee.locator('#onglet-harmonisation').click();
+    for (const nom of ['Indigo', 'Azur']) await coche(figee.locator('#panneau-harmonisation'), nom);
+    await deplierLaRoue(figee);
+    assert.equal(await pointDeLaRoue(figee, 'Indigo').getAttribute('aria-disabled'), 'false', 'une palette libre paraît comme les autres');
+    assert.equal(await pointDeLaRoue(figee, 'Azur').getAttribute('aria-disabled'), 'true');
+    assert.equal(await pointDeLaRoue(figee, 'Azur').getAttribute('tabindex'), '-1');
+    const avantFigee = await compte(figee);
+    const point = await placeDuPoint(figee, 'Azur');
+    await figee.mouse.move(point.x, point.y);
+    await figee.mouse.down();
+    const loin = await placeDuPoint(figee, 'Azur', 15);
+    await figee.mouse.move(loin.x, loin.y, { steps: 4 });
+    await figee.mouse.up();
+    await figee.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await compte(figee), avantFigee);
+    assert.equal(await carteReglages(figee).locator('.carte-choix [aria-pressed="true"]').textContent(), 'Indigo', 'la palette à régler ne change pas');
+  } finally { await figee.close(); }
+});
+
+test('[UI-43] la roue se traduit en anglais et tient dans la fenêtre minimale', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes('en');
+  try {
+    const carte = carteRoue(page, 'Hue wheel');
+    assert.equal(await carte.locator('.carte-sous-titre').textContent(), "Drag a dot to adjust its palette's hue");
+    assert.equal(await carte.locator('.carte-resume').textContent(), 'Vision: normal');
+    await deplierLaRoue(page, 'Hue wheel');
+    assert.equal(await carte.locator('.choix-libelle').textContent(), 'Vision');
+    assert.deepEqual(await carte.locator('select.input option').allTextContents(), ['Normal', 'Deuteranopia', 'Protanopia', 'Tritanomaly']);
+    assert.deepEqual(await carte.locator('text.roue-famille').allTextContents(), ['pink', 'red', 'orange', 'yellow', 'green', 'turquoise', 'blue', 'purple']);
+    assert.equal(await pointDeLaRoue(page, 'Indigo', 'Hue of').getAttribute('aria-label'), 'Hue of Indigo');
+    assert.equal(await carte.locator('path title', { hasText: 'Indigo and Azur: too close' }).count(), 1);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  } finally { await page.close(); }
+});
+
+test('[UI-44] un point se règle au clavier : flèches de 1°, Maj de 10°, nom accessible, focus gardé', async () => {
+  const page = await ouvrirHarmonisationSurTroisPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await limitesCalculees(carteReglages(page));
+    await deplierLaRoue(page);
+    const indigo = pointDeLaRoue(page, 'Indigo');
+    assert.equal(await indigo.getAttribute('role'), 'slider');
+    assert.equal(await indigo.getAttribute('tabindex'), '0');
+    assert.deepEqual([await indigo.getAttribute('aria-valuemin'), await indigo.getAttribute('aria-valuemax'), await indigo.getAttribute('aria-valuenow')], ['-30', '30', '0']);
+    await indigo.focus();
+    /** Une touche sur le point focalisé : la demande de rangement reçoit sa réponse, et le focus reste sur le point. */
+    async function toucher(touche) {
+      const rang = await compte(page);
+      await page.keyboard.press(touche);
+      const demande = await prochaine(page, rang);
+      assert.equal(demande.type, 'ranger-recette');
+      await envoyer(page, rangee(demande.demande));
+      assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Teinte de Indigo', 'le focus reste sur le point');
+      return demande.recette.palettes.find((palette) => palette.nom === 'Indigo').reglages?.teinte;
+    }
+    assert.deepEqual(await toucher('ArrowRight'), { soft: 1, vivid: 1 });
+    assert.equal(await indigo.getAttribute('aria-valuenow'), '1');
+    assert.equal(await indigo.getAttribute('aria-valuetext'), '+1°');
+    assert.deepEqual(await toucher('Shift+ArrowRight'), { soft: 11, vivid: 11 });
+    assert.deepEqual(await toucher('ArrowDown'), { soft: 10, vivid: 10 });
+    assert.equal(await toucher('Shift+ArrowLeft'), undefined, 'revenu à 0°, la palette n’a plus de réglage de teinte');
+    assert.equal(await reglettesDe(carteReglages(page)).first().locator('.champ-nombre').inputValue(), '0°', 'la réglette de teinte suit');
+  } finally { await page.close(); }
+});
+
+test('[UI-44] un point saisi au clavier coche sa palette et la met dans « Régler »', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    await page.locator('#panneau-harmonisation').getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await deplierLaRoue(page);
+    const avant = await compte(page);
+    await pointDeLaRoue(page, 'Rose').focus();
+    await page.keyboard.press('ArrowRight');
+    const demande = await prochaine(page, avant);
+    assert.deepEqual(demande.recette.palettes.find((palette) => palette.nom === 'Rose').reglages.teinte, { soft: 1, vivid: 1 });
+    assert.deepEqual(await cochees(page), ['Rose', 'Indigo', 'Azur']);
+    assert.deepEqual(await carteReglages(page).locator('.carte-choix [aria-pressed="true"]').allTextContents(), ['Rose']);
+  } finally { await page.close(); }
+});
+
+test('[UI-44] l’onglet nomme ses cases par la palette, groupe ses bascules en aria-pressed, annonce ses constats et règle ses réglettes au clavier', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    // Onglets : le motif du socle, les flèches passent d'un onglet à l'autre.
+    const onglets = page.getByRole('tablist', { name: 'Navigation du plugin', exact: true });
+    assert.equal(await onglets.getByRole('tab', { name: /^Harmonisation/ }).getAttribute('aria-selected'), 'true');
+    await onglets.getByRole('tab', { name: /^Harmonisation/ }).focus();
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await onglets.getByRole('tab', { name: 'Gestion', exact: true }).getAttribute('aria-selected'), 'true');
+    await page.keyboard.press('ArrowLeft');
+    assert.equal(await onglets.getByRole('tab', { name: /^Harmonisation/ }).getAttribute('aria-selected'), 'true');
+    // Rangées de « Vos palettes » : la case porte le nom de la palette, la rangée entière est son label.
+    const rangees = panneau.locator('.liste label.ligne-de-palette');
+    assert.equal(await rangees.count(), 20);
+    const noms = await rangees.evaluateAll((lignes) => lignes.map((ligne) => [ligne.querySelector('input').getAttribute('aria-label'), ligne.querySelector('.nom').textContent]));
+    assert.ok(noms.every(([accessible, visible]) => accessible === visible));
+    await rangees.filter({ hasText: 'Rose' }).locator('.nom').click();
+    assert.equal(await panneau.locator('.liste').getByRole('checkbox', { name: 'Rose', exact: true }).isChecked(), true);
+    // Bascules : un seul segment pressé par groupe, annoncé par aria-pressed.
+    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    const groupes = panneau.locator('[role="group"]:visible:has(.bascule-option)');
+    assert.equal(await groupes.count(), 4, 'intensité, thème, affichage et palette à régler');
+    for (const groupe of await groupes.all()) {
+      const pressions = await groupe.locator('.bascule-option').evaluateAll((boutons) => boutons.map((bouton) => bouton.getAttribute('aria-pressed')));
+      assert.ok(pressions.every((valeur) => valeur === 'true' || valeur === 'false'));
+      assert.equal(pressions.filter((valeur) => valeur === 'true').length, 1);
+    }
+    // Constats : la ligne fixe et la liste des constats de la comparaison sont des zones d'état.
+    assert.equal(await panneau.locator('.ligne-fixe').getAttribute('role'), 'status');
+    assert.equal(await carteComparaison(page).locator('.constats-de-comparaison').getAttribute('role'), 'status');
+    // Réglettes : flèches d'un pas, Maj d'un grand pas, Début et Fin aux bornes permises.
+    const curseur = reglettesDe(carteReglages(page)).first().locator('[role="slider"]');
+    await limitesCalculees(carteReglages(page));
+    const toucher = async (touche) => {
+      const rang = await compte(page);
+      await curseur.press(touche);
+      const demande = await prochaine(page, rang);
+      await envoyer(page, rangee(demande.demande));
+      return Number(await curseur.getAttribute('aria-valuenow'));
+    };
+    assert.equal(await toucher('ArrowRight'), 1);
+    assert.equal(await toucher('Shift+ArrowRight'), 6);
+    assert.equal(await toucher('Home'), Number(await curseur.getAttribute('aria-valuemin')));
+    assert.equal(await toucher('End'), Number(await curseur.getAttribute('aria-valuemax')));
+  } finally { await page.close(); }
+});
+
 test('[UI-32] une variable absente garde la confirmation des couleurs retouchées dans Figma', async () => {
   const page = await ouvrir();
   try {

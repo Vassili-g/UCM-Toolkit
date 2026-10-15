@@ -18,7 +18,6 @@ import {
   aUneIntensite,
   balayerLaLimite,
   candidatDeTeinte,
-  courseDeTeinte,
   estFigee,
   estPaletteGrise,
   grilleDe,
@@ -28,7 +27,6 @@ import {
   type Profil,
   type Recette,
   type Refus,
-  zonesTropProches,
 } from 'ucm-couleur';
 
 import { reglerClarte, reglerSaturation, retablirLaSaturation } from '../../edition';
@@ -38,10 +36,12 @@ import { createCalculsDeLimites } from '../calculDesLimites';
 import { createCarte } from '../carte';
 import { creerVuesChoix, type ChoixUi } from '../choix';
 import { outilsDesGrandeurs, peindreLaGrandeur } from '../grandeursDuReglage';
-import { creerVuesReglette, type Intervalle, type MarqueDePalette, type RegletteUi, type ZoneDeReglette } from '../derive/reglette';
+import { creerVuesReglette, type Intervalle, type MarqueDePalette, type RegletteUi } from '../derive/reglette';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from '../localisation';
 import { creerSocleLocalise } from '../socleLocalise';
 import { nuancesVues } from './apercu';
+import { creerVuesCourseEtZones, type CourseEtZones } from './courseEtZones';
+import { creerPrevisualisationParImage } from './previsualisationParImage';
 
 export interface GestesDeLaCarteDesReglages {
   /** Le designer choisit la palette que les réglettes règlent. */
@@ -58,8 +58,12 @@ export interface GestesDeLaCarteDesReglages {
 
 export interface CarteDesReglagesUi {
   readonly element: HTMLElement;
-  /** Repeint la carte : appelé à chaque rendu de l'onglet, et à chaque image d'un glisser. */
-  afficher(recette: Recette, etat: EtatHarmonisation): void;
+  /**
+   * Repeint la carte : appelé à chaque rendu de l'onglet, et à chaque image d'un
+   * glisser. `enGeste` dit qu'un glisser de l'onglet est en cours, sur cette
+   * carte ou sur la roue : la course et les zones gardent alors celles de son départ.
+   */
+  afficher(recette: Recette, etat: EtatHarmonisation, enGeste: boolean): void;
 }
 
 interface Rangee {
@@ -68,19 +72,13 @@ interface Rangee {
   readonly absolu: HTMLSpanElement;
 }
 
-/** Ce qui se calcule au repos : la course de la teinte, bornée par les garanties, et les zones trop proches. */
-interface CourseEtZones {
-  readonly cle: string;
-  readonly permises: Intervalle | null;
-  readonly zones: readonly (ZoneDeReglette & { readonly nom: string })[];
-}
-
 /** Le cran dont la couleur représente une palette sur la piste d'une autre. */
 const CRAN_DU_POINT = 600;
 
 function construireVues(i18n: Localisation) {
   const { createChoix } = creerVuesChoix(i18n);
   const { createReglette } = creerVuesReglette(i18n);
+  const { calculerLaCourseEtLesZones } = creerVuesCourseEtZones(i18n);
   const { createButton } = creerSocleLocalise(i18n);
   const {
     NOM_DU_PROFIL, TEXTES_DES_REGLAGES, TEXTES_DE_L_HARMONISATION: { liste, reglages: TEXTES },
@@ -114,11 +112,12 @@ function construireVues(i18n: Localisation) {
 
     let lue: Recette | null = null;
     let vue: EtatHarmonisation | null = null;
+    /** Un glisser de l'onglet est en cours, sur cette carte ou sur la roue. */
+    let enGesteDeLOnglet = false;
     let courante: Palette | null = null;
     /** La palette d'avant le geste en cours : toutes les valeurs du geste se mesurent depuis elle. */
     let avantLeGeste: Palette | null = null;
-    /** Un aperçu attend l'image suivante : un seul rendu par image pendant un glisser. */
-    let enAttente: { palette: Palette; image: number } | null = null;
+    const apercu = creerPrevisualisationParImage((palette) => gestes.previsualiser(palette));
     let calcule: CourseEtZones | null = null;
     let limites: Record<Grandeur, Limite | null> = { teinte: null, saturation: null, luminosite: null };
     let cleDesLimites: string | null = null;
@@ -174,29 +173,14 @@ function construireVues(i18n: Localisation) {
 
     const signalerLeRefus = (refus: Refus | null): void => signaler(refus ? texteDuRefus(refus) : null);
 
-    function annulerLAttente(): void {
-      if (enAttente) cancelAnimationFrame(enAttente.image);
-      enAttente = null;
-    }
-
     function prevoir(grandeur: Grandeur, valeur: number): void {
       if (!courante || !lue || !vue) return;
       if (!avantLeGeste) avantLeGeste = courante;
-      const suivante = avecLaValeur(grandeur, valeur, lue, avantLeGeste, vue);
-      if (enAttente) {
-        enAttente.palette = suivante;
-        return;
-      }
-      const image = requestAnimationFrame(() => {
-        const attente = enAttente;
-        enAttente = null;
-        if (attente) gestes.previsualiser(attente.palette);
-      });
-      enAttente = { palette: suivante, image };
+      apercu.proposer(avecLaValeur(grandeur, valeur, lue, avantLeGeste, vue));
     }
 
     function valider(suivante: Palette): void {
-      annulerLAttente();
+      apercu.annuler();
       avantLeGeste = null;
       signalerLeRefus(gestes.valider(suivante));
     }
@@ -208,7 +192,7 @@ function construireVues(i18n: Localisation) {
     }
 
     function abandonner(): void {
-      annulerLAttente();
+      apercu.annuler();
       avantLeGeste = null;
       gestes.abandonner();
     }
@@ -229,22 +213,15 @@ function construireVues(i18n: Localisation) {
      * une carte repliée ne calcule rien.
      */
     function courseEtZones(recette: Recette, palette: Palette, autres: readonly Palette[], profil: Profil, valeurTeinte: number): CourseEtZones | null {
-      if (avantLeGeste) return calcule;
+      if (avantLeGeste || enGesteDeLOnglet) return calcule;
       if (!carte.estOuverte()) return null;
-      const cle = JSON.stringify([{ ...recette, palettes: [] }, palette, autres, profil]);
-      if (calcule?.cle === cle) return calcule;
-      const course = courseDeTeinte(recette, palette);
-      const zones = autres.flatMap((autre) => {
-        const nom = nomDeLaPalette(autre);
-        return zonesTropProches(recette, palette, autre, profil).map(({ debut, fin }) => ({ debut, fin, nom, titre: liste.tropProcheDe([nom]) }));
-      });
-      calcule = { cle, permises: { bas: valeurTeinte + course.bas, haut: valeurTeinte + course.haut }, zones };
+      calcule = calculerLaCourseEtLesZones(recette, palette, autres, profil, valeurTeinte);
       return calcule;
     }
 
     /** Lance le calcul des limites de la saturation et de la luminosité quand l'état jugé a changé, carte ouverte, hors d'un geste. */
     function lancerLesLimites(recette: Recette, palette: Palette, valeurs: Record<Grandeur, number>, etat: EtatHarmonisation): void {
-      if (!carte.estOuverte() || avantLeGeste) return;
+      if (!carte.estOuverte() || avantLeGeste || enGesteDeLOnglet) return;
       const cle = JSON.stringify([{ ...recette, palettes: [] }, palette, profilVu(palette, etat)]);
       if (cleDesLimites === cle) return;
       cleDesLimites = cle;
@@ -389,7 +366,8 @@ function construireVues(i18n: Localisation) {
 
     return {
       element: carte.element,
-      afficher(recette, etat) {
+      afficher(recette, etat, enGeste) {
+        enGesteDeLOnglet = enGeste;
         const cochees = etat.cochees.flatMap((id) => recette.palettes.find((palette) => palette.id === id) ?? []);
         carte.element.hidden = cochees.length < 2;
         const choisie = cochees.find(({ id }) => id === etat.regler);
@@ -399,7 +377,7 @@ function construireVues(i18n: Localisation) {
         }
         if (courante?.id !== choisie.id) {
           signaler(null);
-          annulerLAttente();
+          apercu.annuler();
           avantLeGeste = null;
           calculs.abandonner();
           calcule = null;

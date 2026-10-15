@@ -71,9 +71,7 @@ Règles d'économie, à tenir par l'orchestrateur :
 - Vague 3 (P1 à P8) et H0 faits, vérifiés et poussés le 15 octobre : suite
   complète et trois `test:ui` verts (Palettes 275, Exporter 39,
   explorateur 24).
-- **Prochaine étape** : la vague 4 à partir de H5 ; H1 (Codex) à H4 sont
-  faits. L'état `vision` de `PAL/src/harmonisation.ts` range des libellés
-  français : H5 le passe en identifiants.
+- **Prochaine étape** : H6, puis H7 ; H1 (Codex) à H5 sont faits.
 - stone-950 (M4) : le mainteneur garde le comportement ; le test juge
   l'écart de couleur, sous 0,02 ΔEok (`desaturees.test.ts`).
 
@@ -1051,7 +1049,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
     page des auteurs ou l'article). Rendre les trois matrices 3 × 3 et l'URL.
   - Fini quand : trois matrices sourcées.
 
-- [ ] **H5 · Carte « Roue des teintes », clavier** · `implementeur-exigeant`, haut.
+- [x] **H5 · Carte « Roue des teintes », clavier** · `implementeur-exigeant`, haut.
   - SPEC, sections 7.8 et 7.9 ; identifiant `[UI-43]` (roue) et `[UI-44]`
     (clavier et accessibilité de l'onglet). Les matrices viennent de H5a,
     avec leur source en commentaire. Glisser un point passe par
@@ -1071,6 +1069,8 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Fini quand : vert.
 
 - [ ] **H7 · Revue au pixel et fin de vague** · `implementeur`, puis `verificateur`, puis orchestrateur.
+  - À traiter : pendant un glisser sur la roue (H5), la carte Comparaison
+    au-dessus change de hauteur et la roue se déplace sous le pointeur.
   - Préalable fait le 15 octobre : `generer-ensembles.ts` lit la table du
     kit, `pairesTropProches` et les calculs de H0, et les vingt palettes de
     `etats.cjs` ; 880 couleurs égales à celles de la galerie. Le relancer

@@ -4,8 +4,9 @@
  * de la session ; les cartes le reçoivent à chaque rendu et lui rendent leurs
  * gestes.
  *
- * Les réglages de la carte « Réglages » passent par la recette que l'onglet
- * Création porte ([UI-42]) : un glisser la prévisualise, sa fin la range par la
+ * Les réglages de la carte « Réglages » ([UI-42]) et les points de la carte
+ * « Roue des teintes » ([UI-43]) passent par la recette que l'onglet
+ * Création porte : un glisser la prévisualise, sa fin la range par la
  * frontière. L'onglet garde la recette et les départs d'avant un glisser et
  * d'avant les rangements en vol : un refus (de la validation, ou du sandbox
  * qui juge la recette invalide) les rend. Un conflit d'enregistrement ne rend
@@ -14,13 +15,14 @@
 import { pairesTropProches, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus } from 'ucm-couleur';
 
 import { remplacerPalette } from '../edition';
-import { annulerLaPalette, choisirAffichage, choisirPaletteARegler, cocherPalette, comparerLaPaire, entrerEnHarmonisation, harmonisationInitiale, memoriserLeDepart, synchroniserHarmonisation, toutDecocher, type EtatHarmonisation } from '../harmonisation';
+import { annulerLaPalette, basculerLaRoue, choisirAffichage, choisirLaVision, choisirPaletteARegler, cocherPalette, comparerLaPaire, entrerEnHarmonisation, harmonisationInitiale, memoriserLeDepart, saisirPalette, synchroniserHarmonisation, toutDecocher, type EtatHarmonisation } from '../harmonisation';
 import { creerVuesChoix } from './choix';
 import type { StatutDuRangement } from './frontiere';
 import { creerVuesCarteDeComparaison } from './harmonisation/carteComparaison';
 import { creerVuesCarteDeLaListe } from './harmonisation/carteListe';
 import { creerVuesCarteDesPaires } from './harmonisation/cartePaires';
 import { creerVuesCarteDesReglages } from './harmonisation/carteReglages';
+import { creerVuesCarteDeLaRoue } from './harmonisation/carteRoue';
 import { lireTexte, memoriserVues, type Localisation } from './localisation';
 import type { PaletteOuverte } from './paletteOuverte';
 
@@ -46,6 +48,7 @@ function construireVues(i18n: Localisation) {
   const { createCarteDeLaListe } = creerVuesCarteDeLaListe(i18n);
   const { createCarteDeComparaison } = creerVuesCarteDeComparaison(i18n);
   const { createCarteDesReglages } = creerVuesCarteDesReglages(i18n);
+  const { createCarteDeLaRoue } = creerVuesCarteDeLaRoue(i18n);
   const { TEXTES, TEXTES_DE_L_HARMONISATION, NOM_DU_PROFIL } = i18n.messages;
 
   function createOngletHarmonisation(source: PaletteOuverte, gestes: GestesDeLOngletHarmonisation) {
@@ -122,7 +125,26 @@ function construireVues(i18n: Localisation) {
       abandonner,
       annulerLesModifications,
     });
-    element.append(tete, ligne, cartePaires.element, carteListe.element, carteComparaison.element, carteReglages.element);
+    const carteRoue = createCarteDeLaRoue({
+      saisir(id) {
+        if (!recette) return false;
+        etat = saisirPalette(etat, recette, id);
+        rendre();
+        return etat.regler === id;
+      },
+      choisirLaVision(vision) {
+        etat = choisirLaVision(etat, vision);
+        rendre();
+      },
+      basculer(ouverte) {
+        etat = basculerLaRoue(etat, ouverte);
+        rendre();
+      },
+      previsualiser: previsualiserLaPalette,
+      valider: validerLaPalette,
+      abandonner,
+    });
+    element.append(tete, ligne, cartePaires.element, carteListe.element, carteComparaison.element, carteReglages.element, carteRoue.element);
 
     /** Les cartes se repeignent seulement onglet visible : un onglet caché ne calcule pas les rampes. */
     function peindreLesCartes(): void {
@@ -130,7 +152,8 @@ function construireVues(i18n: Localisation) {
       cartePaires.afficher(recette, paires);
       carteListe.afficher(recette, paires, etat);
       carteComparaison.afficher(recette, paires, etat);
-      carteReglages.afficher(recette, etat);
+      carteReglages.afficher(recette, etat, avantLeGeste !== null);
+      carteRoue.afficher(recette, paires, etat, avantLeGeste !== null);
     }
 
     function rendre(): void {

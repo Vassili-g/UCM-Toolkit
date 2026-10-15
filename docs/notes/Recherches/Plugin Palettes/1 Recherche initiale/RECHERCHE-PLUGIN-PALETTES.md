@@ -2479,6 +2479,52 @@ Onglet Harmonisation :
   `modifieeDepuisLeDepart`, `restaurerLesReglages` et `annulerLaPalette` sont
   dans `src/harmonisation.ts`.
 
+- `[UI-43]` La carte « Roue des teintes » est repliée à l'arrivée ; repliée,
+  son résumé dit « Vision » et la vision choisie en minuscules, dépliée elle
+  montre à la place le choix « Vision » : Normale, Deutéranopie, Protanopie,
+  Tritanomalie. La troisième vision porte ce nom parce que la matrice est
+  celle de la tritanomalie sévère de Machado, Oliveira et Fernandes (2009),
+  dont les auteurs excluent la tritanopie ; « sévère » ne paraît pas, pour
+  que la liste tienne à 480 px ; l'état range des identifiants
+  (`normale`, `deuteranopie`, `protanopie`, `tritanomalie`) et les matrices,
+  avec leur source, sont dans `src/vision.ts`. Un SVG de 420 × 256 sur le fond
+  de page de l'aperçu porte un cercle de rayon 70, les huit familles de teinte
+  autour (0° en haut, sens horaire) et un point par palette colorée (chroma de
+  la référence au-dessus de 0,05, palette libre ou figée comprise), à la
+  teinte OKLCH de son cran 700 dans l'intensité et le thème vus, du numéro le
+  plus proche de 700 quand la grille n'a pas ce cran. Le point a pour rayon
+  5 px, 7 px s'il est coché, la couleur de `solid/default` vue par la
+  vision, un contour ambre dans une paire trop proche, de l'encre d'aperçu s'il
+  est coché, du fond sinon. Un arc ambre couvre chaque paire trop proche et
+  déborde de 14° ; la palette à régler montre sa course de ±30° en encre
+  translucide et ses zones trop proches, calculées au repos comme celles de la
+  carte « Réglages », en tirets ambre. Les noms se posent à 11 px du point, tous
+  jusqu'à huit palettes colorées, au-delà les cochées et celles d'une paire, et
+  descendent de 11 px sous un nom voisin du même côté. Saisir un point met sa
+  palette dans « Régler » et la coche ; sans place pour une cinquième, rien ne
+  se saisit et `trop` passe à vrai. La teinte réglée est la teinte rangée plus
+  l'écart le plus court entre le pointeur et le point au départ du glisser,
+  arrondi au degré et borné par la course des garanties tenues, dans `[−30°,
+  +30°]` ; elle passe par `candidatDeTeinte`, se prévisualise une fois par
+  image, se range à la fin et revient à la palette d'avant sur Échap. Le point
+  d'une palette figée ne se saisit pas. La vision ne change ni la recette ni
+  les alertes. La carte est dans `src/ui/harmonisation/carteRoue.ts` ; sa
+  géométrie dans `src/roueDesTeintes.ts`, `saisirPalette`, `choisirLaVision` et
+  `basculerLaRoue` dans `src/harmonisation.ts`.
+
+- `[UI-44]` Au clavier, chaque point de la roue est un `role="slider"`
+  focalisable (`tabindex` 0, −1 et `aria-disabled` pour une palette figée), nommé
+  « Teinte de <nom> », de valeur la teinte réglée de l'intensité vue entre −30 et
+  +30 : une flèche règle de 1°, avec Maj de 10°, dans la course permise ; la
+  touche saisit d'abord la palette comme un clic, et le point garde le focus
+  après le rangement. Dans le reste de l'onglet : les onglets suivent le motif
+  du socle, la case de chaque rangée de « Vos palettes » porte le nom de la
+  palette et la rangée entière est son `label`, chaque bascule marque son segment
+  par `aria-pressed`, la ligne fixe et la liste des constats de la comparaison
+  sont des `role="status"`, et les réglettes suivent `ui/derive/reglette.ts`
+  (flèche d'un pas, Maj d'un grand pas, Début et Fin aux bornes permises ;
+  `aria-valuetext` dit la valeur et « trop proche de <autre> » dans une zone).
+
 - `[UI-45]` Le socle expose `definirDisponible(id, disponible)`. Un onglet
   indisponible porte `disabled` et `aria-disabled="true"`. Le clic et
   `selectionner` refusent de l'activer ; les flèches, Début et Fin le

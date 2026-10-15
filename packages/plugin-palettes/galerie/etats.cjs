@@ -2028,4 +2028,18 @@ ETATS.push({
   ],
 });
 
+ETATS.push({
+  id: 'harmonisation-roue',
+  titre: 'La roue des teintes dans Harmonisation',
+  quand: 'Le fichier porte vingt palettes dont dix paires sont trop proches ; le designer clique « Comparer » sur la paire Indigo et Azur, puis déplie la carte « Roue des teintes » (repliée à l’arrivée, résumé « Vision normale »).',
+  regarder: 'La carte « Roue des teintes », dépliée : à la place du résumé, le choix « Vision » (liste « Normale ») à droite du titre. Un cercle de 140 px dans un SVG de 420 × 256 sur le fond de page Light de l’aperçu, les huit familles de teinte autour (rose en haut, puis rouge, orange, jaune, vert, turquoise, bleu, violet dans le sens horaire), un point par palette colorée à la teinte de son cran 700, plus gros et cerné d’encre pour Indigo et Azur (cochées). Les points des paires trop proches portent un contour ambre et un arc ambre translucide les couvre ; jusqu’à huit palettes colorées chaque point porte son nom, au-delà seules les cochées et celles d’une paire. Indigo, la palette à régler, montre sa course en gris sur le cercle et sa zone trop proche d’Azur en tirets ambre.',
+  existe: true,
+  sansPaletteChoisie: true,
+  atteinte: [
+    etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ONGLET_HARMONISATION,
+    { clic: `.paire[data-paire="${identifiantDuBilan(7)} ${identifiantDuBilan(18)}"] .bilan-verifier` },
+    { clic: '#panneau-harmonisation .carte:has(.plaque) > .carte-tete > .carte-bascule', attendre: '#panneau-harmonisation .carte:has(.plaque) circle[role="slider"]' },
+  ],
+});
+
 module.exports = { ETATS: ETATS.map(avecLaPremierePalette), SAUGE: { palette: (variante) => sauge(variante).palette, recette: recetteDeLaGalerie(), rampesDe } };

@@ -6,7 +6,7 @@ import { candidatDeTeinte, cleDuPorteur, pairesTropProches, recetteParDefaut, ty
 
 import { reglerClarte, reglerSaturation, remplacerPalette } from '../src/edition';
 import { valeursDesProfils } from '../src/reglagesParDefaut';
-import { annulerLaPalette, choisirAffichage, choisirPaletteARegler, cocherPalette, constatsDeLaComparaison, comparerLaPaire, entrerEnHarmonisation, memoriserLeDepart, modifieeDepuisLeDepart, paletteARegler, harmonisationInitiale, restaurerLesReglages, synchroniserHarmonisation, toutDecocher } from '../src/harmonisation';
+import { annulerLaPalette, basculerLaRoue, choisirAffichage, choisirLaVision, choisirPaletteARegler, cocherPalette, constatsDeLaComparaison, comparerLaPaire, entrerEnHarmonisation, memoriserLeDepart, modifieeDepuisLeDepart, paletteARegler, harmonisationInitiale, restaurerLesReglages, saisirPalette, synchroniserHarmonisation, toutDecocher } from '../src/harmonisation';
 import { paletteTailwind, recetteAvec } from '../../couleur/tests/fabrique';
 
 const defaut = recetteParDefaut();
@@ -25,7 +25,7 @@ test('[UI-39] deux palettes de même nom se cochent séparément, dans l’ordre
   assert.equal(etat.intensite, 'vivid');
   assert.equal(etat.affichage, 'couleurs');
   assert.equal(etat.roue, false);
-  assert.equal(etat.vision, 'Normale');
+  assert.equal(etat.vision, 'normale');
 });
 
 test('[UI-39] une cinquième palette est refusée ; un changement des cochées efface le refus', () => {
@@ -65,7 +65,7 @@ test('[UI-39] renommage, import et synchronisation conservent les identifiants p
 });
 
 test('[UI-39] sous deux palettes, tout l’état se vide ; un identifiant disparu ne se coche pas', () => {
-  const plein = { ...selectionner(palettes.slice(0, 4).map(({ id }) => id)), mode: 'dark' as const, intensite: 'soft' as const, affichage: 'gris' as const, roue: true, vision: 'Protanopie' as const, trop: true, departs: new Map([[palettes[0].id, palettes[0]]]) };
+  const plein = { ...selectionner(palettes.slice(0, 4).map(({ id }) => id)), mode: 'dark' as const, intensite: 'soft' as const, affichage: 'gris' as const, roue: true, vision: 'protanopie' as const, trop: true, departs: new Map([[palettes[0].id, palettes[0]]]) };
   for (const lue of [null, { ...recette, palettes: [] }, { ...recette, palettes: [palettes[0]] }]) {
     assert.deepEqual(synchroniserHarmonisation(plein, lue), harmonisationInitiale());
   }
@@ -291,4 +291,31 @@ test('[UI-42] un refus de la recette restaurée laisse la recette, les départs 
   assert.equal(typeof issue.refus.regle, 'string');
   assert.deepEqual(apresB, avant);
   assert.deepEqual(aDepartInvalide.departs, departsAvant);
+});
+
+test('[UI-43] la vision et l’ouverture de la roue se rangent en identifiants, sans toucher le reste', () => {
+  const etat = selectionner([palettes[0].id, palettes[1].id]);
+  const vue = choisirLaVision(etat, 'tritanomalie');
+  assert.equal(vue.vision, 'tritanomalie');
+  assert.deepEqual(vue.cochees, etat.cochees);
+  assert.equal(choisirLaVision(vue, 'tritanomalie'), vue);
+  assert.equal(basculerLaRoue(etat, true).roue, true);
+  assert.equal(basculerLaRoue(etat, false), etat);
+});
+
+test('[UI-43] saisir un point règle la palette et la coche ; sans place, rien ne se saisit et `trop` passe à vrai', () => {
+  const deux = selectionner([palettes[0].id, palettes[1].id]);
+  const cochee = saisirPalette(deux, recette, palettes[1].id);
+  assert.equal(cochee.regler, palettes[1].id);
+  assert.deepEqual(cochee.cochees, deux.cochees);
+  const nouvelle = saisirPalette(deux, recette, palettes[2].id);
+  assert.deepEqual(nouvelle.cochees, [...deux.cochees, palettes[2].id]);
+  assert.equal(nouvelle.regler, palettes[2].id);
+  const quatre = selectionner(palettes.slice(0, 4).map(({ id }) => id));
+  const refusee = saisirPalette(quatre, recette, palettes[4].id);
+  assert.deepEqual(refusee.cochees, quatre.cochees);
+  assert.equal(refusee.regler, quatre.regler);
+  assert.equal(refusee.trop, true);
+  assert.equal(saisirPalette(refusee, recette, palettes[3].id).trop, true, 'saisir une cochée ne lève pas le refus');
+  assert.equal(saisirPalette(harmonisationInitiale(), recette, 'absente').cochees.length, 0);
 });
