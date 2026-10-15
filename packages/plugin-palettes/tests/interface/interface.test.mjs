@@ -5402,6 +5402,28 @@ test('[UI-38] un bout de piste que le libellé « par défaut » chevauche, à 6
   }
 });
 
+test('[UI-37] une liste prend la police de l’interface et 24 px parmi des boutons', async () => {
+  const page = await ouvrirSur('reglages-reference-modifiee', { width: 480, height: 720 });
+  try {
+    await deplierLaCarte(page, CARTE_DE_LA_DERIVE);
+    const liste = carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getByLabel('Préréglage de la teinte');
+    const mesure = await liste.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const bouton = getComputedStyle(document.querySelector('button'));
+      return { hauteur: element.getBoundingClientRect().height, corps: style.fontSize, famille: style.fontFamily, familleDesBoutons: bouton.fontFamily, fleche: style.appearance, chevron: style.backgroundImage };
+    });
+    assert.equal(mesure.hauteur, 24);
+    assert.equal(mesure.corps, '11px');
+    assert.equal(mesure.famille, mesure.familleDesBoutons, 'la liste prend la police des boutons');
+    assert.equal(mesure.fleche, 'none');
+    assert.match(mesure.chevron, /^url\("data:image\/svg\+xml/);
+    await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
+    assert.equal(await page.getByLabel('Langue', { exact: true }).evaluate((element) => element.getBoundingClientRect().height), 32, 'la liste de la langue garde 32 px');
+  } finally {
+    await page.close();
+  }
+});
+
 test('[UI-38] en anglais, la carte dit « Default », « All to default » et les bouts de la piste', async () => {
   const page = await ouvrirSurEn('reglages-reference-modifiee', { width: 480, height: 720 }, 'en');
   try {

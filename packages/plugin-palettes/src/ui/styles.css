@@ -976,7 +976,8 @@
   border-color: var(--bordure-marque);
 }
 
-.champ-prereglage {
+.champ-prereglage,
+.carte-choix select.input {
   width: auto;
   height: var(--hauteur-secondaire);
 }

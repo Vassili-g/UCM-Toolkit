@@ -169,7 +169,8 @@ html {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -368,8 +369,35 @@ p {
   color: var(--texte);
 }
 
-/* L'adresse d'un dépôt enregistré se lit : le fond des blocs la distingue d'une saisie. */
-.input:read-only {
+/*
+ * Une liste déroulante perd sa flèche native pour un chevron de 8 × 5 px, de la
+ * couleur du texte secondaire : un SVG par thème, car une image de fond ne lit
+ * pas les variables.
+ */
+select.input {
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%236b6b6b'/%3E%3C/svg%3E");
+  padding: 0 24px 0 var(--espace-controle);
+  background-image: var(--chevron);
+  background-position: right 9px center;
+  background-repeat: no-repeat;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.figma-dark select.input {
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23b3b3b3'/%3E%3C/svg%3E");
+}
+
+select.input:hover {
+  background-color: var(--fond-survol);
+}
+
+/*
+ * L'adresse d'un dépôt enregistré se lit : le fond des blocs la distingue d'une saisie.
+ * Une liste est toujours en lecture seule pour le navigateur : elle garde son fond.
+ */
+.input:read-only:not(select) {
   background: var(--fond-bloc);
   color: var(--texte-second);
 }

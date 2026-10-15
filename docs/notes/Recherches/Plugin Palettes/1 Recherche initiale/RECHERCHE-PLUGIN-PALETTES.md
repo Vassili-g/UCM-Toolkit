@@ -1754,6 +1754,13 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
   session et propose de réessayer. La recette, le rapport, les empreintes et
   les textes des planches ne dépendent pas de la langue : les planches restent
   en français.
+- `[UI-37]` Une liste déroulante `select.input` prend la police de
+  l'interface, perd sa flèche native pour un chevron de 8 × 5 px de la
+  couleur du texte secondaire, dans les deux thèmes, et prend le fond de
+  survol sous le pointeur. Parmi des boutons, dans `.carte-choix` ou avec
+  `.champ-prereglage` (« Teinte Tailwind »), elle mesure 24 px de haut, sur
+  une largeur automatique ; la liste de la langue garde ses 32 px, sur toute
+  la largeur.
 
 ### 13.2 Écrans
 

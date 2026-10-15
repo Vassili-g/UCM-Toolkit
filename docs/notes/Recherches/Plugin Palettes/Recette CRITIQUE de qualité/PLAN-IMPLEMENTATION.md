@@ -69,7 +69,8 @@ Règles d'économie, à tenir par l'orchestrateur :
   `npm run build` et les trois `test:ui` (Palettes 265, Exporter 39,
   explorateur 24).
 - **Prochaine étape** : la vague 3 dans l'ordre P2, P6, P7, P3, P4, P5, P8 ;
-  P2, P6 et P7 sont faits.
+  P2, P6, P7 et P3 sont faits ; Codex fait H0 en parallèle
+  (`packages/couleur`, `reglerTeinte`).
 - Question au mainteneur : une référence plus sombre que le bout sombre
   (stone-950) prend toute la dérive vers le clair (M4) ; test `todo` dans
   `packages/couleur/tests/desaturees.test.ts`.
@@ -802,7 +803,7 @@ Les tâches sont successives : plusieurs partagent `styles.css`, `i18n` et
   - Fini quand : vert ; `git grep -n "Tout rétablir" -- packages` ne rend
     rien.
 
-- [ ] **P3 · Les listes déroulantes du socle** · `implementeur`, moyen.
+- [x] **P3 · Les listes déroulantes du socle** · `implementeur`, moyen.
   - C10 ; SPEC, section 5, et les quatre dernières règles CSS de la section 9
     (`select`, `select.input`, `:hover`,
     `.champ-prereglage, .carte-choix select.input`). Identifiant réservé :
