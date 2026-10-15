@@ -600,7 +600,7 @@
 }
 
 /*
- * Les Réglages communs (V9) : les cartes de la configuration d'une palette.
+ * La Configuration (V9) : les cartes de la configuration d'une palette.
  * Dans une carte fixe, le compte et « Par défaut » se rangent à droite du titre.
  */
 .carte-de-reglage .carte-resume {
@@ -1380,7 +1380,7 @@
   line-height: 1;
 }
 
-/* Les trois boutons de l'aperçu des Réglages communs : `solid/default`, `hover` et `pressed`, avec le texte des boutons du thème. */
+/* Les trois boutons de l'aperçu de la Configuration : `solid/default`, `hover` et `pressed`, avec le texte des boutons du thème. */
 .fiche-boutons {
   display: grid;
   gap: var(--espace-serre);
@@ -3897,7 +3897,7 @@
   color: var(--texte-second);
 }
 
-/* Les intensités des Réglages communs, un curseur et un champ par profil. */
+/* Les intensités de la Configuration, un curseur et un champ par profil. */
 .intensites-reglages {
   display: grid;
   gap: var(--espace-serre);

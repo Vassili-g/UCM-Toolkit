@@ -2775,7 +2775,7 @@ qui le créera.
 | Référence dans le sélecteur de couleur | La pastille de la référence ouverte, les nuances Vivid de la palette proposées |
 | Configuration de la recette | Les onglets Palettes et Général, puis fonds, intensités, luminosité et groupes repliés, avec le nombre de palettes concernées |
 | Configuration, onglet Général | Le seul champ Langue, sous la phrase de l'onglet |
-| Réglages communs sans palette (titre de l'état de la galerie) | Aucun aperçu en tête, tracé sans ◆, aucune palette concernée |
+| Configuration sans palette (titre de l'état de la galerie) | Aucun aperçu en tête, tracé sans ◆, aucune palette concernée |
 | Courbe hors garantie | Alerte sous la courbe : cran, mode, profil, teinte du pire cas et contraste |
 | Hexa invalide | Le champ de référence refuse la saisie, aperçu inchangé |
 | Conflit de sauvegarde | Enregistrement refusé : consultation et export du brouillon possibles, « Recharger » |

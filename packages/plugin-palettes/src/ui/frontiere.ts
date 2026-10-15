@@ -125,7 +125,7 @@ export interface Frontiere {
   /**
    * Range la recette courante avec cette palette dans son état d'ouverture
    * (D4), par le chemin d'un réglage : un refus [REC-10] reste un refus. Ni
-   * les autres palettes ni les Réglages communs ne bougent. La réponse est
+   * les autres palettes ni la Configuration ne bougent. La réponse est
    * `false` quand rien ne part : la palette n'a pas bougé, ou un conflit est en cours.
    */
   annulerLesModifications(palette: string): boolean;

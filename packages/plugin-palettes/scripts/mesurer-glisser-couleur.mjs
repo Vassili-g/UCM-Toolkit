@@ -2,7 +2,7 @@
 /**
  * Mesure ce qu'un glisser dans le sélecteur de couleur coûte, sur la galerie
  * construite, dans Chromium : dans la zone et le curseur de teinte de la
- * couleur de référence, puis dans la zone d'un fond des Réglages communs.
+ * couleur de référence, puis dans la zone d'un fond de la Configuration.
  *
  * Trois mesures :
  * - le travail d'un `pointermove`, synchrone, et celui de l'image suivante,
@@ -166,7 +166,7 @@ const CAS_SYNTHETIQUES = [
   { nom: 'Référence, zone', etat: 'reference-dans-le-selecteur', gestes: [], commande: '.selecteur-zone', temoin: '.nuancier-surface' },
   { nom: 'Référence, teinte', etat: 'reference-dans-le-selecteur', gestes: [], commande: '.selecteur-teinte', temoin: '.nuancier-surface' },
   { nom: 'Référence, zone, cartes dépliées', etat: 'palette-deux-intensites', gestes: [...DEPLIER, PIPETTE], commande: '.selecteur-zone', temoin: '.nuancier-surface' },
-  { nom: 'Fond des Réglages communs, zone', etat: 'configuration-de-la-recette', gestes: ['[aria-label="Couleurs de fond"] .pipette'], commande: '.selecteur-zone', temoin: '.reglages-apercu' },
+  { nom: 'Fond de la Configuration, zone', etat: 'configuration-de-la-recette', gestes: ['[aria-label="Couleurs de fond"] .pipette'], commande: '.selecteur-zone', temoin: '.reglages-apercu' },
 ];
 for (const { nom, etat, gestes, commande, temoin } of CAS_SYNTHETIQUES) {
   const { onglet } = await ouvrir(navigateur, etat, gestes);
@@ -179,7 +179,7 @@ console.log(`\nImage entière pendant un glisser réel, ${LARGEUR} px :`);
 const CAS_REELS = [
   { nom: 'Référence, cartes repliées', etat: 'reference-dans-le-selecteur', gestes: [], temoin: '.nuancier-surface' },
   { nom: 'Référence, cartes dépliées', etat: 'palette-deux-intensites', gestes: [...DEPLIER, PIPETTE], temoin: '.nuancier-surface' },
-  { nom: 'Fond des Réglages communs', etat: 'configuration-de-la-recette', gestes: ['[aria-label="Couleurs de fond"] .pipette'], temoin: '.reglages-apercu' },
+  { nom: 'Fond de la Configuration', etat: 'configuration-de-la-recette', gestes: ['[aria-label="Couleurs de fond"] .pipette'], temoin: '.reglages-apercu' },
 ];
 for (const ralentissement of RALENTISSEMENTS) {
   for (const { nom, etat, gestes, temoin } of CAS_REELS) {

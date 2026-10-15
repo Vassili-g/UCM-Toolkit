@@ -296,7 +296,7 @@ export const LIBELLES_DES_CIBLES: Record<CibleDAction, string> = {
   'ajuster-reference': 'Ajuster la référence',
 };
 
-/** Les libellés des Réglages communs (section 8.3), dans l'ordre du panneau. */
+/** Les libellés de la Configuration (section 8.3), dans l'ordre du panneau. */
 export const TEXTES_DE_CONFIGURATION = {
   courbes: 'Luminosité des nuances',
   cran: 'Nuance',
@@ -327,7 +327,7 @@ export const TEXTES_DE_CONFIGURATION = {
   aideSeuilTexte: 'Pour le texte des boutons, le texte sur fond teinté et le texte coloré.',
   aideSeuilNonTexte: 'Pour le bouton, les contours et l’anneau de focus.',
   aideProfilsConfondus: 'Mesuré entre les deux profils d’une même nuance.',
-  aidePalettesProches: "Compare les nuances 500, 600 et 700 en Light. Utilise Vivid pour deux palettes à deux intensités, sinon les rampes les plus proches.",
+  aidePalettesProches: "Compare les boutons pleins en Light et en Dark, et le texte sur fond teinté en Light, en Vivid ou dans l’intensité unique.",
   // Les fonds du thème Dark, dans la carte Intensités ([MOT-28], maquette Y2.5).
   fondsSombres: 'Fonds du thème Dark',
   aideFondsSombres: "Intensité conservée à la nuance 50 en Dark. Elle augmente jusqu’à 100 % à la nuance 400. Aucun effet en Light.",
@@ -341,7 +341,7 @@ export const TEXTES_DE_CONFIGURATION = {
 /** Un nombre de calques, les milliers séparés par une espace fine. */
 const milliers = (nombre: number): string => String(nombre).replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f');
 
-/** La carte « Contenu des planches » des Réglages communs ([PLA-28], maquette Y2.3, C1). */
+/** La carte « Contenu des planches » de la Configuration ([PLA-28], maquette Y2.3, C1). */
 export const TEXTES_DU_CONTENU = {
   parties: 'Parties d’un cadre',
   themes: 'Thèmes',
@@ -432,7 +432,7 @@ export function effetEcrit(effet: {
   return `Passer à ${effet.nombre} nuances ${gestes}. ${TEXTES_DU_PREREGLAGE.rolesGardes} ${couleurs}${cadres}`;
 }
 
-/** La tête des Réglages communs : la palette ouverte et le thème de son aperçu (V9.3, N055). */
+/** La tête de la Configuration : la palette ouverte et le thème de son aperçu (V9.3, N055). */
 export function paletteDeLApercu(nom: string, mode: Mode): string {
   return `Palette ouverte : ${nom} · ${mode === 'light' ? 'Thème Light' : 'Thème Dark'}`;
 }

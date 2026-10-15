@@ -61,7 +61,7 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
 
   i18n.lier(titre, 'textContent', TEXTES.titre);
 
-  /** Le groupe des Réglages communs qu'une cible d'action ouvre ([VER-15]). */
+  /** Le groupe de la Configuration qu'une cible d'action ouvre ([VER-15]). */
   const GROUPE_DE_LA_CIBLE: Partial<Record<CibleDAction, GroupeDeConfiguration>> = {
     'luminosite-commune': 'courbes',
     fonds: 'fonds',
@@ -494,8 +494,8 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
   }
 
   /**
-   * Le point de lecture de la vue de travail quand les Réglages communs
-   * s'ouvrent : le retour y ramène le défilement et rend le focus au geste qui
+   * Le point de lecture de la vue de travail quand la Configuration
+   * s'ouvre : le retour y ramène le défilement et rend le focus au geste qui
    * les a ouverts ([VER-15]). La palette, le thème et la nuance choisie restent,
    * leurs éléments n'étant jamais reconstruits.
    */
@@ -517,7 +517,7 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
 
   function ouvrirTravail(): void {
     montrerTravail(bascule());
-    // Une saisie des Réglages communs a laissé l'onglet en aperçu : il se rend, visible, avant que le défilement revienne.
+    // Une saisie de la Configuration a laissé l'onglet en aperçu : il se rend, visible, avant que le défilement revienne.
     ongletCreation.rendreSiDiffere();
     i18n.lier(titre, 'textContent', TEXTES.titre);
     const point = pointDeLecture;

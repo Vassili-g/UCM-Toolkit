@@ -122,7 +122,7 @@ export function palettesModifiees(recette: Recette, groupe: GroupeDeConfiguratio
 }
 
 /**
- * Les cartes des Réglages communs, dans leur ordre (V9.2), et les groupes que
+ * Les cartes de la Configuration, dans leur ordre (V9.2), et les groupes que
  * chacune porte. Deux cartes repliées réunissent les seuils.
  */
 export const CARTES_DES_REGLAGES = {

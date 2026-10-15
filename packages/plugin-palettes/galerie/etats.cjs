@@ -655,7 +655,7 @@ const ETATS = [
   },
   {
     id: 'reglages-sans-palette',
-    titre: 'Réglages communs sans palette',
+    titre: 'Configuration sans palette',
     quand: 'Le designer ouvre l’engrenage sur un fichier qui n’a encore aucune palette.',
     regarder: 'Les cinq cartes sans aperçu en tête, aucune palette inventée, le tracé sans ◆, et « Aucune palette concernée » dans chaque compte.',
     existe: true,
@@ -1748,7 +1748,7 @@ const ETATS = [
   {
     id: 'contenu-des-planches',
     titre: 'Contenu des planches',
-    quand: 'Les grilles ne se dessinent plus ; le designer déplie la carte « Contenu des planches » des Réglages communs.',
+    quand: 'Les grilles ne se dessinent plus ; le designer déplie la carte « Contenu des planches » de la Configuration.',
     regarder: 'Les parties d’un cadre et les thèmes, chacun avec ses calques dans le cadre de Bleu ; « En-tête et rampes » bloqué allumé, les grilles éteintes, « Sans grilles » en résumé, et l’effet sur le cadre de Bleu.',
     existe: true,
     atteinte: [
@@ -1760,7 +1760,7 @@ const ETATS = [
   {
     id: 'fonds-sombres',
     titre: 'Fonds du thème Dark',
-    quand: 'Le designer règle « Fonds du thème Dark » à 0,5 dans la carte Intensités des Réglages communs.',
+    quand: 'Le designer règle « Fonds du thème Dark » à 0,5 dans la carte Intensités de la Configuration.',
     regarder: 'La ligne « Fonds du thème Dark » sous Soft et Vivid, son aide, le compte des palettes, « Par défaut » actif, et l’aperçu compact en tête qui suit.',
     existe: true,
     atteinte: [

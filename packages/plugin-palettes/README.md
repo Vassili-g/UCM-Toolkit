@@ -191,7 +191,7 @@ contribution dans [CONTRIBUTING.md](../../CONTRIBUTING.md).
 ## État du produit
 
 L'interface s'ouvre en anglais, quelle que soit la langue de Figma ou du
-système. Le champ « Language » des Réglages communs propose l'anglais et le
+système. Le champ « Language » de l'onglet Général de la Configuration propose l'anglais et le
 français ; le choix prend effet sans recharger et se range dans
 `figma.clientStorage`, sous la clé `ucm-palettes.langue`, sur le poste du
 designer. Il n'écrit rien dans le document. Les textes des planches dessinées

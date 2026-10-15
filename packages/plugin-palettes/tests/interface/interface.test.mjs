@@ -1648,7 +1648,7 @@ const CARTE_DES_REGLAGES = 'Réglage global';
 /** La carte « Color shift » de l'onglet Création (section 12). */
 const CARTE_DE_LA_DERIVE = 'Color shift';
 
-/** Une carte des Réglages communs, par son titre ([ENT-12]) : le panneau masque l'onglet, qui a lui aussi une carte Intensités. */
+/** Une carte de la Configuration, par son titre ([ENT-12]) : le panneau masque l'onglet, qui a lui aussi une carte Intensités. */
 const reglage = (page, titre) => page.locator(`.carte[aria-label="${titre}"]:visible`);
 
 const dansLaFenetre = async (locator, hauteur = 520) => {
@@ -3352,7 +3352,7 @@ test('[UI-11] [VER-15] un message de Vérification qui mène à la référence d
   }
 });
 
-test('[UI-04] W4.1 la pastille du fond ouvre le sélecteur en Hex avec la mention du fond commun ; une frappe prévisualise, Entrée range, et les Réglages communs le montrent', async () => {
+test('[UI-04] W4.1 la pastille du fond ouvre le sélecteur en Hex avec la mention du fond commun ; une frappe prévisualise, Entrée range, et la Configuration le montre', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
     await page.getByRole('button', { name: 'Modifier le fond de la page, thème Light, actuellement #F7F7F7' }).click();
@@ -3737,7 +3737,7 @@ test('[REC-05] une clarté qui casse la courbe se refuse sous le groupe, et rien
   }
 });
 
-test('[ENT-07] [ENT-12] chaque carte des Réglages communs compte les palettes qu’elle touche ; les cartes repliées, une ligne par seuil', async () => {
+test('[ENT-07] [ENT-12] chaque carte de la Configuration compte les palettes qu’elle touche ; les cartes repliées, une ligne par seuil', async () => {
   const page = await ouvrirSur('configuration-de-la-recette');
   try {
     await page.getByRole('button', { name: 'Configuration', exact: true }).click();
@@ -4789,7 +4789,7 @@ test('T3 [DER-15] : une palette très désaturée n’a pas de ligne d’origine
   }
 });
 
-test('[VER-15] un lien de message ouvre les Réglages communs sur son groupe, et le retour rend le focus au lien', async () => {
+test('[VER-15] un lien de message ouvre la Configuration sur son groupe, et le retour rend le focus au lien', async () => {
   const page = await ouvrirSur('fond-personnalise');
   try {
     await ouvrirLaVerification(page);
@@ -5660,7 +5660,7 @@ test('[UI-22] A2a le fichier sans palette garde son encart « Créez votre premi
   } finally { await page.close(); }
 });
 
-test('Z2.5 [VER-15] les Réglages communs, ouverts sans palette choisie, n’ont pas d’aperçu en tête et ne nomment aucune palette', async () => {
+test('Z2.5 [VER-15] la Configuration, ouverte sans palette choisie, n’a pas d’aperçu en tête et ne nomme aucune palette', async () => {
   const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
   try {
     await page.getByRole('button', { name: 'Configuration', exact: true }).click();
@@ -5946,7 +5946,7 @@ test('Z4.9 [UI-04] pendant un glisser, le nuancier repeint ses pastilles sans cr
   }
 });
 
-test('Z4.9 [UI-02] le glisser d’un fond des Réglages communs ne redessine ni le tracé ni la garantie des courbes avant le relâcher, puis une fois', async () => {
+test('Z4.9 [UI-02] le glisser d’un fond de la Configuration ne redessine ni le tracé ni la garantie des courbes avant le relâcher, puis une fois', async () => {
   const page = await ouvrirSur('configuration-de-la-recette');
   try {
     await page.getByRole('button', { name: 'Configuration', exact: true }).click();

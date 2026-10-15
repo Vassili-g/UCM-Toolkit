@@ -83,7 +83,7 @@ export function verdictDeLaPalette(analyse: AnalyseDePalette): Verdict {
 
 /**
  * Le réglage qu'un message ouvre et focalise ([VER-15]). Les quatre premiers
- * sont dans l'onglet Création, les trois suivants dans les Réglages communs.
+ * sont dans l'onglet Création, les trois suivants dans la Configuration.
  * `saturation-palette` ouvre la carte « Réglage global » sur sa réglette de
  * saturation, `intensites-palette` sur son premier contrôle.
  */
@@ -97,7 +97,7 @@ export type CibleDAction =
   | 'intensites-communes'
   | 'ajuster-reference';
 
-/** Les cibles qui ouvrent les Réglages communs. */
+/** Les cibles qui ouvrent la Configuration. */
 export const CIBLES_COMMUNES: readonly CibleDAction[] = ['luminosite-commune', 'fonds', 'intensites-communes'];
 
 /** Une garantie, un mode et un fond où au moins une intensité manque sa promesse. */
@@ -225,7 +225,7 @@ export function ciblesDeLaPromesse(): CibleDAction[] {
 /**
  * Le réglage qu'une alerte ouvre, selon sa cause. Des profils presque
  * identiques s'écartent par la saturation de la palette, que ses intensités
- * soient les siennes ou celles des Réglages communs.
+ * soient les siennes ou celles de la Configuration.
  */
 export function ciblesDeLAlerte(alerte: Alerte): CibleDAction[] {
   switch (alerte.code) {

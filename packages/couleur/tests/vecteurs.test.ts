@@ -56,7 +56,7 @@ test('vecteur : #1E6FD9 se lit L 0,555, C 0,179, H 257,4', () => {
   assert.ok(Math.abs(lu.H - 257.4367507000842) < 1e-5, `H = ${lu.H}`);
 });
 
-test('vecteur : les gris de clarté 0,975 et 0,180 sont les fonds par défaut', () => {
+test('vecteur : les gris de clarté 0,975 et 0,180 donnent #F7F7F7 et #121212', () => {
   // culori : #f7f7f7 et #121212.
   assert.equal(fabriquerCran(0.975, 0, 0, 'srgb').hexa, '#F7F7F7');
   assert.equal(fabriquerCran(0.18, 0, 0, 'srgb').hexa, '#121212');

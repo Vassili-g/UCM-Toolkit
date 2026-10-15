@@ -111,7 +111,7 @@ export interface DemandesDeLOnglet {
   tirer(): number;
   /** Les gestes de la recette en fichier, que le blocage d'une recette illisible ou future offre ([REC-11]). */
   recetteEnFichier: GestesDeLaRecetteUi;
-  /** Ouvre les Réglages communs sur le groupe qu'un message nomme ([VER-15]). */
+  /** Ouvre la Configuration sur le groupe qu'un message nomme ([VER-15]). */
   ouvrirReglages(cible: CibleDAction): void;
   /** « Vérifier », dans le pied : ouvre l'onglet Vérification sur la palette ouverte ([UI-18]). */
   verifier(): void;
@@ -127,14 +127,14 @@ export interface OngletCreationUi {
   poserStatut(statut: StatutDuRangement, refus: readonly Refus[]): void;
   /** La recette affichée, `null` quand elle ne se lit pas. */
   recette(): Recette | null;
-  /** La palette ouverte et le thème de son aperçu, que les Réglages communs montrent (V9.3) ; `null` sans palette. */
+  /** La palette ouverte et le thème de son aperçu, que la Configuration montre (V9.3) ; `null` sans palette. */
   ouverte(): { readonly id: string; readonly mode: Mode } | null;
   /**
-   * Une recette en cours de saisie dans les Réglages communs, qui couvrent
+   * Une recette en cours de saisie dans la Configuration, qui couvre
    * l'onglet : elle se garde sans se rendre (Z4.8).
    */
   previsualiser(recette: Recette): void;
-  /** Rend l'onglet si une saisie l'a laissé en aperçu : au retour des Réglages communs. */
+  /** Rend l'onglet si une saisie l'a laissé en aperçu : au retour de la Configuration. */
   rendreSiDiffere(): void;
   /** Une recette validée ailleurs : elle s'enregistre. */
   appliquer(recette: Recette): void;
@@ -754,7 +754,7 @@ function construireVues(i18n: Localisation) {
       pied.element,
     );
 
-    /** Ouvre et focalise le réglage qu'un message nomme ([VER-15]) : dans l'onglet, ou dans les Réglages communs. */
+    /** Ouvre et focalise le réglage qu'un message nomme ([VER-15]) : dans l'onglet, ou dans la Configuration. */
     function ouvrir(cible: CibleDAction): void {
       if (CIBLES_COMMUNES.includes(cible)) {
         demandes.ouvrirReglages(cible);
@@ -875,7 +875,7 @@ function construireVues(i18n: Localisation) {
 
     /**
      * Un fond saisi depuis la pastille de l'aperçu : il change le réglage commun
-     * `fonds` par `poserFond`, comme les Réglages communs, qui le relisent.
+     * `fonds` par `poserFond`, comme la Configuration, qui le relit.
      */
     function saisirFond(mode: Mode, hexa: string, fin: boolean): void {
       const recette = etat.recette();
@@ -1211,7 +1211,7 @@ function construireVues(i18n: Localisation) {
         const courante = ouverte();
         return courante ? { id: courante.id, mode: etat.theme() } : null;
       },
-      // Les Réglages communs couvrent l'onglet : leur saisie ne le rend pas, leur fin passe par `appliquer`.
+      // La Configuration couvre l'onglet : sa saisie ne le rend pas, sa fin passe par `appliquer`.
       previsualiser(suivante) {
         etat.poserRecette(suivante);
         renduDiffere = true;

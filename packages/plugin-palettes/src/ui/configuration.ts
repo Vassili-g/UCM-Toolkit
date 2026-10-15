@@ -1,5 +1,5 @@
 /**
- * Les Réglages communs, derrière l'engrenage ([UI-02], section 8.3, lot V9).
+ * La Configuration, derrière l'engrenage ([UI-02], section 8.3, lot V9).
  * En tête, l'aperçu compact de la palette ouverte et le résultat de ses
  * garanties (V9.3). Suivent six cartes, dans l'ordre de V9.2 : Couleurs de
  * fond, Intensités, fonds du thème Dark compris ([MOT-28]), Luminosité des

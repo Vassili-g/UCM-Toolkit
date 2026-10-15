@@ -296,7 +296,7 @@ export const LIBELLES_DES_CIBLES: Record<CibleDAction, string> = {
   'ajuster-reference': "Adjust reference colour",
 };
 
-/** Les libellés des Réglages communs (section 8.3), dans l'ordre du panneau. */
+/** Les libellés de la Configuration (section 8.3), dans l'ordre du panneau. */
 export const TEXTES_DE_CONFIGURATION = {
   courbes: "Shade lightness",
   cran: "Shade",
@@ -327,7 +327,7 @@ export const TEXTES_DE_CONFIGURATION = {
   aideSeuilTexte: "For button text, text on tinted fill and colored text.",
   aideSeuilNonTexte: "For the button, borders and the focus ring.",
   aideProfilsConfondus: "Measured between the two profiles of the same shade.",
-  aidePalettesProches: "Compares shades 500, 600 and 700 in Light. Uses Vivid for two palettes with two intensities, otherwise the closest colour scales.",
+  aidePalettesProches: "Compares filled buttons in Light and Dark, and text on tinted backgrounds in Light, using Vivid or the single intensity.",
   // Les fonds du thème Dark, dans la carte Intensités ([MOT-28], maquette Y2.5).
   fondsSombres: "Dark theme backgrounds",
   aideFondsSombres: "Intensity kept at shade 50 in Dark. It rises to 100% at shade 400. No effect in Light.",
@@ -341,7 +341,7 @@ export const TEXTES_DE_CONFIGURATION = {
 /** Un nombre de calques, les milliers séparés par une espace fine. */
 const milliers = (nombre: number): string => String(nombre).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-/** La carte « Contenu des planches » des Réglages communs ([PLA-28], maquette Y2.3, C1). */
+/** La carte « Contenu des planches » de la Configuration ([PLA-28], maquette Y2.3, C1). */
 export const TEXTES_DU_CONTENU = {
   parties: "Frame sections",
   themes: "Themes",
@@ -432,7 +432,7 @@ export function effetEcrit(effet: {
   return `Switching to ${effet.nombre} shades ${gestes}. ${TEXTES_DU_PREREGLAGE.rolesGardes} ${couleurs}${cadres}`;
 }
 
-/** La tête des Réglages communs : la palette ouverte et le thème de son aperçu (V9.3, N055). */
+/** La tête de la Configuration : la palette ouverte et le thème de son aperçu (V9.3, N055). */
 export function paletteDeLApercu(nom: string, mode: Mode): string {
   return `Open palette: ${nom} · ${mode === 'light' ? "Light theme" : "Dark theme"}`;
 }

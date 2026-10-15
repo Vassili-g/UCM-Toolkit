@@ -320,7 +320,7 @@ test('[REC-06] après trois réglages, l’annulation range la palette de l’ou
   const rangee = repondre(() => assert.equal(frontiere.annulerLesModifications(BLEU.id), true));
   assert.deepEqual(rangee.palettes.find((palette) => palette.id === BLEU.id), BLEU, 'la palette de l’ouverture');
   assert.deepEqual(rangee.palettes.find((palette) => palette.id === AMBRE.id), avecAmbre.palettes[1], 'l’autre palette ne bouge pas');
-  assert.deepEqual(rangee.seuils, avecAmbre.seuils, 'les Réglages communs ne bougent pas');
+  assert.deepEqual(rangee.seuils, avecAmbre.seuils, 'la Configuration ne bouge pas');
   assert.equal(frontiere.differeDeLOuverture(BLEU.id), false);
   assert.equal(frontiere.differeDeLOuverture(AMBRE.id), true);
   assert.equal(frontiere.annulerLesModifications(BLEU.id), false);

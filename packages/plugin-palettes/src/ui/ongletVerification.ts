@@ -27,7 +27,7 @@ import { creerVuesBilanDesPalettes } from './vueDuBilanDesPalettes';
 
 /** Ce que l'onglet demande au reste de l'interface. */
 export interface GestesDeLaVerification {
-  /** Ouvre le réglage qu'un message nomme : dans Création, ou dans les Réglages communs ([VER-15]). */
+  /** Ouvre le réglage qu'un message nomme : dans Création, ou dans la Configuration ([VER-15]). */
   ouvrir(cible: CibleDAction): void;
   /** Ouvre la vérification d'une palette que le bilan nomme, comme le choix dans le sélecteur. */
   choisir(id: string): void;
@@ -45,7 +45,7 @@ export interface OngletVerificationUi {
   choisirGarantie(numero: number): void;
   /** Le rang d'un lien de l'onglet parmi ses liens, -1 pour tout autre élément. */
   rangDuLien(element: Element | null): number;
-  /** Rend le focus au lien de ce rang, au retour des Réglages communs ([VER-15]). */
+  /** Rend le focus au lien de ce rang, au retour de la Configuration ([VER-15]). */
   focaliserLeLien(rang: number): void;
 }
 
