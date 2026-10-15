@@ -164,21 +164,15 @@ export function fondsSombresDe(recette: Recette): FondsSombres {
   };
 }
 
-/** Une part au millième entier : la précision à laquelle une part se range ([MOT-27]). */
-const enMilliemes = (part: number): number => Math.round(part * 1000);
-
 /**
- * Le profil que le classement automatique choisit ([MOT-17]) : celui dont la
- * part **commune** est la plus proche de la part de la référence, comparées
- * au millième. Égalité : `vivid`. Un gris pur, de part nulle, va à `soft`.
- * Les parts propres d'une palette n'y entrent pas : les régler ne fait pas
- * passer la référence d'un profil à l'autre.
+ * Le profil que le classement automatique choisit ([MOT-17]) : toujours
+ * `vivid`. Plus la référence est saturée, plus les palettes le sont, sans
+ * bascule d'un profil à l'autre quand le designer fait glisser la saturation.
+ * Une palette de base, un réglage du porteur et une palette figée passent
+ * avant (`profilPorteur`). Les paramètres gardent la signature des appelants.
  */
-export function profilAutomatique(recette: Recette, palette: Palette): Profil {
-  const part = enMilliemes(partDeLaReference(recette, palette));
-  const versSoft = Math.abs(part - enMilliemes(recette.profils.soft.part));
-  const versVivid = Math.abs(part - enMilliemes(recette.profils.vivid.part));
-  return versSoft < versVivid ? 'soft' : 'vivid';
+export function profilAutomatique(_recette: Recette, _palette: Palette): Profil {
+  return 'vivid';
 }
 
 /**

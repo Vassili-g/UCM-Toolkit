@@ -54,7 +54,7 @@ test('[VER-08] le rapport garde la proximité (distance, rôle, thème) et le mi
   const proches = bleu.alertes.find((alerte) => alerte.code === 'palettes-proches');
   assert.ok(proches && proches.code === 'palettes-proches', JSON.stringify(bleu.alertes));
   assert.ok(proches.proximite.distance < proches.seuil && proches.seuil === VIDE.seuils.palettesProches, JSON.stringify(proches));
-  assert.deepEqual([proches.proximite.role, proches.proximite.mode], ['texte', 'light']);
+  assert.deepEqual([proches.proximite.role, proches.proximite.mode], ['plein', 'light']);
 });
 
 test('[MOT-17] le rapport nomme l’ancrage de chaque palette, le même que l’analyse, et le profil du document', () => {

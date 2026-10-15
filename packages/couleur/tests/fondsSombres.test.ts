@@ -1,7 +1,7 @@
 /**
  * Les fonds du thème Dark ([MOT-28]) : les nuances sous le numéro 400 de la
  * courbe Dark perdent de la part, le thème Light et les accents ne changent
- * pas, et « Profils confondus » se tait sur les nuances atténuées.
+ * pas, et « Profils confondus » compte les nuances atténuées.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -113,19 +113,16 @@ test('[MOT-28] une nuance de fond du thème Dark est moins saturée qu’avant, 
   assert.deepEqual(garantieDesCourbes(recette), []);
 });
 
-test('[MOT-28] [VER-11] « Profils confondus » se tait sur les nuances atténuées du thème Dark, que le repère ≈ garde', () => {
-  // Une référence dont Soft et Vivid se confondent à une nuance d'emploi atténuée du thème Dark, le 100 de surface par exemple.
-  let trouvee: { palette: Palette; recette: Recette; cran: number } | null = null;
-  for (let teinte = 0; teinte < 360 && !trouvee; teinte += 5) {
-    const hexa = `#${[0, 120, 240].map((decalage) => Math.round(128 + 60 * Math.cos(((teinte + decalage) * Math.PI) / 180)).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
-    const palette = paletteTailwind('p-000000d5', hexa);
-    const recette = recetteAuxPartsDe045(palette);
-    const sombre = confusionsDe(recette, palette).find(({ mode, cran }) => mode === 'dark' && [100, 200, 300].includes(cran));
-    if (sombre) trouvee = { palette, recette, cran: sombre.cran };
-  }
-  assert.ok(trouvee, 'aucune référence ne confond ses profils sur un fond du thème Dark');
-  const { palette, recette, cran } = trouvee!;
+test('[MOT-28] [VER-11] « Profils confondus » compte les fonds du thème Dark atténués, comme le repère ≈', () => {
+  // La borne Dark de Soft à 0,15 sépare les fonds atténués : un fond atténué confondu compte pour l'alerte.
+  const palette: Palette = { ...paletteTailwind('p-000000d5', '#14B8A6'), parts: { soft: 0.2, vivid: 0.4, origine: 'designer' } };
+  const recette = recetteAvec(palette);
+  const fonds = fondsSombresDe(recette);
+  const attenues = [300, 400, 500].filter((cran) => facteurSombre(recette.courbes.dark[recette.crans.indexOf(cran)], fonds) < 1);
+  assert.ok(attenues.length > 0, 'au moins un fond Dark est atténué');
+  const confondus = confusionsDe(recette, palette).filter(({ mode }) => mode === 'dark').map(({ cran }) => cran);
+  assert.ok(attenues.some((cran) => confondus.includes(cran)), `${attenues} contre ${confondus}`);
   const alerte = alertesDePalette(recette, palette).find((candidate) => candidate.code === 'profils-confondus');
-  const crans = alerte && alerte.code === 'profils-confondus' ? alerte.crans : [];
-  assert.ok(!crans.some((confusion) => confusion.mode === 'dark' && confusion.cran === cran), `${palette.reference} : ${JSON.stringify(crans)}`);
+  assert.ok(alerte && alerte.code === 'profils-confondus');
+  assert.deepEqual(alerte.crans, confusionsDe(recette, palette));
 });

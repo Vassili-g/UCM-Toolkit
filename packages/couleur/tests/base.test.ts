@@ -44,7 +44,7 @@ const codesDAlerte = (recette: Recette, palette: Palette): string[] => alertesDe
 
 test('[ENT-11] une référence terne forcée en Vivid : Vivid prend son intensité, Soft garde le rapport des parts communes', () => {
   const { recette, palette } = forcee('#A0B599', 'vivid');
-  assert.equal(profilAutomatique(recette, palette), 'soft');
+  assert.equal(profilAutomatique(recette, palette), 'vivid');
   assert.equal(profilPorteur(recette, palette), 'vivid');
   const part = partDe('#A0B599');
   assert.deepEqual(partsDe(recette, palette), { soft: arrondir(part / RAPPORT, 3), vivid: part });
@@ -67,19 +67,42 @@ test('[ENT-11] forcer le profil qu’Auto aurait choisi aligne quand même son i
   assert.deepEqual(partsDe(recette, palette), { soft: 0.45, vivid: partDe('#1E6FD9') });
 });
 
-test('[ENT-11] sans palette de base, le porteur classé prend l’intensité de la référence, l’autre garde la part commune', () => {
+test('[ENT-11] sans palette de base, le porteur automatique est Vivid : il prend l’intensité de la référence, Soft garde la part commune', () => {
   const { recette, palette } = forcee('#1E6FD9');
   assert.equal(profilPorteur(recette, palette), 'vivid');
   assert.deepEqual(partsDe(recette, palette), { soft: 0.45, vivid: partDe('#1E6FD9') });
-  // Au-dessus de la part commune de Soft, Soft porteur prend la part de la référence et Vivid garde la sienne.
+  // Une référence moyenne reste portée par Vivid : Soft garde le plus petit de sa part commune et de la part de la référence.
   const vert = forcee('#559765');
-  assert.equal(profilPorteur(vert.recette, vert.palette), 'soft');
-  assert.deepEqual(partsDe(vert.recette, vert.palette), { soft: partDe('#559765'), vivid: 0.95 });
+  assert.equal(profilPorteur(vert.recette, vert.palette), 'vivid');
+  assert.deepEqual(partsDe(vert.recette, vert.palette), { soft: Math.min(0.45, partDe('#559765')), vivid: partDe('#559765') });
 });
 
-test('[ENT-11] sous la part commune de Soft, Soft porte la référence et Vivid garde le rapport des parts communes', () => {
-  for (const reference of ['#897288', '#7C717B', '#6B7280', '#78716C']) {
+test('[ENT-11] le porteur automatique est Vivid pour une référence terne, moyenne et vive', () => {
+  for (const reference of ['#6B7280', '#897288', '#559765', '#1E6FD9', '#F2A900', '#808080']) {
     const { recette, palette } = forcee(reference);
+    assert.equal(profilAutomatique(recette, palette), 'vivid', reference);
+    assert.equal(profilPorteur(recette, palette), 'vivid', reference);
+  }
+});
+
+test('[ENT-11] une palette de base, un porteur des réglages et une palette figée passent avant le porteur automatique', () => {
+  const { recette, palette } = forcee('#1E6FD9', 'soft');
+  assert.equal(profilPorteur(recette, palette), 'soft');
+  const reglee = paletteTailwind('p-000000b2', '#1E6FD9', { reglages: { porteur: 'soft' } });
+  assert.equal(profilPorteur({ ...recette, palettes: [reglee] }, reglee), 'soft');
+  // Les couleurs de Vivid, rangées sous Soft : la référence ne se lit que dans l'intensité Soft de la palette figée.
+  const figee = paletteTailwind('p-000000b3', '#1E6FD9');
+  const rampes = rampesDe(recette, figee);
+  const lues = (intensite: 'soft' | 'vivid') => ({ light: rampes[intensite]!.light.map((c) => c.hexa), dark: rampes[intensite]!.dark.map((c) => c.hexa) });
+  const figeeSoft: Palette = { ...figee, crans: [...recette.crans], figees: { soft: lues('vivid'), vivid: lues('soft') } };
+  const base = recette;
+  assert.equal(profilAutomatique(base, figeeSoft), 'vivid');
+  assert.equal(profilPorteur({ ...base, palettes: [figeeSoft] }, figeeSoft), 'soft');
+});
+
+test('[ENT-11] sous la part commune de Soft, Soft forcé porte la référence et Vivid garde le rapport des parts communes', () => {
+  for (const reference of ['#897288', '#7C717B', '#6B7280', '#78716C']) {
+    const { recette, palette } = forcee(reference, 'soft');
     const part = partDe(reference);
     assert.ok(part < 0.45, reference);
     assert.equal(profilPorteur(recette, palette), 'soft', reference);

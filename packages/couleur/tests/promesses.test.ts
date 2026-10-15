@@ -355,7 +355,7 @@ test('[VER-03] oracles S8 : sur les quatorze références, G1 n’échoue que su
   }
 });
 
-test('[VER-03] oracles S8 : en Light inversé, cinq références ancrées manquent G1, de 3,90 à 4,43:1 ; hors ancrage, le pire vaut 4,91:1', () => {
+test('[VER-03] oracles S8 : en Light inversé, cinq références ancrées manquent G1, de 3,90 à 4,43:1 ; hors ancrage, le pire vaut 5,05:1', () => {
   const g1 = promessesDesReferences({ light: 'noir', dark: 'noir' }).filter(({ p }) => p.garantie.numero === 1 && p.mode === 'light');
   const manquees = g1.filter(({ p }) => p.verdict === 'manquee');
   assert.deepEqual([...new Set(manquees.map(({ reference }) => reference))], ['#1E6FD9', '#2563EB', '#DC2626', '#9333EA', '#737373']);
@@ -364,7 +364,7 @@ test('[VER-03] oracles S8 : en Light inversé, cinq références ancrées manque
   assert.ok(Math.abs(Math.min(...ratios) - 3.90) <= 0.01, String(Math.min(...ratios)));
   assert.ok(Math.abs(Math.max(...ratios) - 4.43) <= 0.01, String(Math.max(...ratios)));
   const pire = Math.min(...g1.filter(({ p, surLAncre }) => !surLAncre(p.second)).map(({ p }) => p.contraste));
-  assert.ok(Math.abs(pire - 4.91) <= 0.01, String(pire));
+  assert.ok(Math.abs(pire - 5.05) <= 0.01, String(pire));
 });
 
 test('[VER-03] oracles S8 : G2 à G7 ne manquent jamais sur les quatorze références, dans les quatre combinaisons', () => {

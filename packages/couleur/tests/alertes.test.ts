@@ -55,8 +55,67 @@ test('[VER-11] profils confondus : ne regarde que les crans que les variables de
   assert.deepEqual(crans(sans500), [100, 200, 300, 400, 600, 700, 800, 900, 950]);
 });
 
+/** Une palette de cette référence aux parts du designer, dans la recette par défaut. */
+const auxParts = (reference: string, soft: number, vivid: number): Palette => ({ ...paletteTailwind('p-0000000b', reference), parts: { soft, vivid, origine: 'designer' as const } });
+const nuancesConfondues = (palette: Palette) => confusionsDe(recetteAvec(palette), palette).map(({ mode, cran }) => `${mode} ${cran}`);
+
+test('[VER-11] profils confondus : ne juge que les fonds, trois Dark (surface default, hover, pressed) et deux Light (hover, pressed)', () => {
+  // Un bleu aux parts voisines confond tous ses crans : seuls les cinq fonds sont rendus, jamais le fond Light de surface/default (cran 100).
+  assert.deepEqual(nuancesConfondues(auxParts('#1E6FD9', 0.3, 0.31)), ['light 200', 'light 300', 'dark 300', 'dark 400', 'dark 500']);
+  assert.equal(cranDeLaVariable('surface/hover', 'light', 'normal'), 200);
+  assert.equal(cranDeLaVariable('surface/pressed', 'light', 'normal'), 300);
+  assert.deepEqual(['default', 'hover', 'pressed'].map((etat) => cranDeLaVariable(`surface/${etat}` as 'surface/default', 'dark', 'normal')), [300, 400, 500]);
+});
+
+test('[VER-11] profils confondus, thème Light : le repère ≈ marque le fond hover et ne suffit pas à l’alerte', () => {
+  const palette = auxParts('#D92626', 0.95, 0.96);
+  assert.deepEqual(nuancesConfondues(palette), ['light 200']);
+  assert.ok(!codes(dePalette(palette)).includes('profils-confondus'));
+  // Les deux fonds Light de la liste ne font que deux nuances : il en faut trois.
+  const deux = auxParts('#D92626', 0.9, 0.91);
+  assert.deepEqual(nuancesConfondues(deux), ['light 200', 'light 300']);
+  assert.ok(!codes(dePalette(deux)).includes('profils-confondus'));
+});
+
+test('[VER-11] profils confondus, thème Dark : trois fonds Dark confondus suffisent à l’alerte, sans exemption des fonds atténués', () => {
+  const palette = auxParts('#14B8A6', 0.2, 0.4);
+  assert.deepEqual(nuancesConfondues(palette), ['dark 300', 'dark 400', 'dark 500']);
+  const alerte = dePalette(palette).find((a) => a.code === 'profils-confondus');
+  assert.ok(alerte && alerte.code === 'profils-confondus');
+  assert.deepEqual(alerte.crans.map(({ mode, cran }) => `${mode} ${cran}`), nuancesConfondues(palette));
+  // Deux fonds Dark seulement : le repère reste, l’alerte se tait.
+  const deux = paletteTailwind('p-0000000b', '#14B8A6');
+  assert.deepEqual(nuancesConfondues(deux), ['dark 300', 'dark 400']);
+  assert.ok(!codes(dePalette(deux)).includes('profils-confondus'));
+});
+
+test('[VER-11] profils confondus : les deux thèmes se comptent ensemble, avec la mesure et le seuil', () => {
+  const palette = auxParts('#1E6FD9', 0.1, 0.105);
+  const alerte = dePalette(palette).find((a) => a.code === 'profils-confondus');
+  assert.ok(alerte && alerte.code === 'profils-confondus');
+  assert.deepEqual(alerte.crans.map(({ mode, cran }) => `${mode} ${cran}`), ['light 200', 'light 300', 'dark 300', 'dark 400', 'dark 500']);
+  for (const confusion of alerte.crans) assert.ok(confusion.distance < alerte.seuil);
+  // Un Light et deux Dark font trois nuances.
+  const mixte = recetteAuxPartsDe045(paletteTailwind('p-0000000b', '#BC6262'));
+  assert.deepEqual(confusionsDe(mixte, mixte.palettes[0]).map(({ mode, cran }) => `${mode} ${cran}`), ['light 200', 'light 300', 'dark 300']);
+  assert.ok(alertesDePalette(mixte, mixte.palettes[0]).some((a) => a.code === 'profils-confondus'));
+});
+
+test('[VER-11] profils confondus : des pleins et des textes confondus ne déclenchent ni repère ni alerte', () => {
+  // Aux parts 0,90 et 0,91, ce vert confond Soft et Vivid aux crans 500, 700, 800 et 900 du thème Light, hors de tout fond.
+  const palette = auxParts('#16A34A', 0.9, 0.91);
+  const recette = recetteAvec(palette);
+  const rampes = rampesDe(recette, palette);
+  for (const cran of [700, 800]) {
+    const rang = recette.crans.indexOf(cran);
+    assert.ok(distanceOk(rampeDe(rampes, 'soft').light[rang].couleur, rampeDe(rampes, 'vivid').light[rang].couleur) < recette.seuils.profilsConfondus, String(cran));
+  }
+  assert.deepEqual(confusionsDe(recette, palette), []);
+  assert.ok(!codes(dePalette(palette)).includes('profils-confondus'));
+});
+
 test('[ENT-09] profils confondus : se tait pour des profils ternes par construction, sonne pour les mêmes parts du designer', () => {
-  // #78716C, sous la part commune de Soft : ses deux profils se confondent sur dix nuances sur onze.
+  // #78716C, sous la part commune de Soft : ses deux profils se confondent sur presque toute la liste.
   const terne = paletteTailwind('p-0000000c', '#78716C');
   const recette = recetteAvec(terne);
   assert.ok(aDesProfilsTernes(recette, terne));
@@ -65,6 +124,7 @@ test('[ENT-09] profils confondus : se tait pour des profils ternes par construct
   const choisies = { ...terne, parts: { soft: 0.088, vivid: 0.185, origine: 'designer' as const } };
   assert.ok(!aDesProfilsTernes(recetteAvec(choisies), choisies));
   assert.ok(codes(dePalette(choisies)).includes('profils-confondus'));
+  assert.deepEqual(nuancesConfondues(choisies), ['light 200', 'dark 300', 'dark 400', 'dark 500']);
 });
 
 test('[VER-08] aucune alerte pour un gris, un noir, un blanc ou une référence hors de l’étendue', () => {
@@ -125,8 +185,8 @@ const LECTURES: readonly Lecture[] = [['solid/default', 'light'], ['solid/defaul
 test('[VER-22] le plein en Light et en Dark, le texte du fond en Light', () => {
   const cas = [
     { refs: ['#D92626', '#D92926'], role: 'plein', lecture: LECTURES[0] },
-    { refs: ['#AD1F1F', '#AD211F'], role: 'plein', lecture: LECTURES[1] },
-    { refs: ['#AD1F1F', '#AD231F'], role: 'texte', lecture: LECTURES[2] },
+    { refs: ['#AD1F1F', '#AD231F'], role: 'plein', lecture: LECTURES[1] },
+    { refs: ['#AD1F1F', '#AD211F'], role: 'texte', lecture: LECTURES[2] },
   ] as const;
   for (const { refs, role, lecture } of cas) {
     const { recette, pa, pb, proximite } = paire(refs[0], refs[1]);
@@ -161,7 +221,7 @@ test('[VER-22] deux neutres ne se comparent pas', () => {
 });
 
 test('[VER-22] presque identiques sous 0,01', () => {
-  const presque = paire('#1E6FD9', '#2A78D0').proximite;
+  const presque = paire('#1E6FD9', '#2575D6').proximite;
   assert.ok(presque && presque.distance < 0.01 && presque.presqueIdentiques, JSON.stringify(presque));
   const proche = paire('#1E6FD9', '#3A80C8').proximite;
   assert.ok(proche && proche.distance >= 0.01 && proche.distance < 0.05 && !proche.presqueIdentiques, JSON.stringify(proche));
@@ -213,7 +273,7 @@ test('[VER-22] les paires trop proches se rendent par distance croissante, avec 
   ];
   const recette = recetteAvec(a, b, c, ambre);
   const paires = pairesTropProches(recette);
-  assert.deepEqual(paires.map((paire) => paire.palettes), [[a.id, c.id], [a.id, b.id], [b.id, c.id]]);
+  assert.deepEqual(paires.map((paire) => paire.palettes), [[a.id, c.id], [b.id, c.id], [a.id, b.id]]);
   const distances = paires.map((paire) => paire.proximite.distance);
   assert.deepEqual(distances, [...distances].sort((x, y) => x - y));
   assert.deepEqual(alertesDeRecette(recette).flatMap((alerte) => (alerte.code === 'palettes-proches' ? [alerte.palettes] : [])), paires.map((paire) => paire.palettes));

@@ -34,11 +34,11 @@ test('un hexa sans dièse se lit, un hexa incomplet se refuse', () => {
   assert.equal(changerReference(RECETTE, PALETTE, 'bleu'), null);
 });
 
-test('[ENT-09] [MOT-18] une référence terne ne pose pas de parts : Soft prend sa part, Vivid garde le rapport des parts communes', () => {
+test('[ENT-09] [MOT-18] une référence terne ne pose pas de parts : Vivid prend sa part, Soft garde le rapport des parts communes', () => {
   const terne = changerReference(RECETTE, PALETTE, '#6B7280')!;
   assert.equal(terne.parts, undefined);
   const part = arrondir(partDeChroma(lireHexa('#6B7280')!, 'srgb'), 3);
-  assert.deepEqual(partsDe(RECETTE, terne), { soft: part, vivid: arrondir((part * 0.95) / 0.45, 3) });
+  assert.deepEqual(partsDe(RECETTE, terne), { soft: arrondir((part * 0.45) / 0.95, 3), vivid: part });
   // Sa teinte se lit : la dérive Tailwind suit la référence, comme pour une couleur franche.
   assert.deepEqual(terne.derive.soft, { ...prereglage('#6B7280'), origine: 'tailwind' });
   assert.notDeepEqual(prereglage('#6B7280'), { clair: 0, sombre: 0 });

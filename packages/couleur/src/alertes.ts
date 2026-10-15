@@ -8,9 +8,9 @@ import { VARIABLES_DE_PALETTE, cranDeLaVariable, rangDuCranLeger, sensDuTheme } 
 
 import { lireHexa, rgb8VersOklch, type Rgb8 } from './conversions';
 import { distanceOk } from './contraste';
-import { aUneIntensite, fondsSombresDe, partDeLaReference, partsDe, rampesDe } from './palette';
+import { aUneIntensite, partDeLaReference, partsDe, rampesDe } from './palette';
 import { estLibre, grilleDe } from './nuances';
-import { facteurSombre, MODES, rampeDe, type Mode, type Rampes } from './rampe';
+import { MODES, rampeDe, type Mode, type Rampes } from './rampe';
 import type { Palette, Recette } from './recette';
 
 /** Un cran où `soft` et `vivid` se confondent. */
@@ -62,39 +62,49 @@ export function aDesProfilsTernes(recette: Recette, palette: Palette): boolean {
   return !aUneIntensite(palette) && !palette.parts && partDeLaReference(recette, palette) < recette.profils.soft.part;
 }
 
+/** Les fonds que la comparaison des profils lit : en Light `surface/hover` et `surface/pressed`, en Dark `surface/default`, `hover` et `pressed`. */
+const FONDS_COMPARES = [
+  { mode: 'light', variables: ['surface/hover', 'surface/pressed'] },
+  { mode: 'dark', variables: ['surface/default', 'surface/hover', 'surface/pressed'] },
+] as const;
+
 /**
- * Les nuances d'une palette où `soft` et `vivid` se confondent, sur toute sa
- * liste : le repère ≈ de l'aperçu et de la planche ([PLA-15]). Des profils
- * ternes par construction ne se signalent pas (`aDesProfilsTernes`). Une
- * palette à une intensité n'a qu'une rampe ([ENT-14]).
+ * Les nuances d'une palette où `soft` et `vivid` se confondent, sur les seuls
+ * fonds de `FONDS_COMPARES`, lus au cran que la table du sens de chaque thème
+ * leur donne : le repère ≈ de l'aperçu et de la planche ([PLA-15]). Le fond
+ * Light `surface/default` n'y entre pas : au cran 100 l'écart possible entre
+ * deux couleurs aussi pâles est trop faible. Les pleins et les textes n'y
+ * entrent pas non plus. Des profils ternes par construction ne se signalent
+ * pas (`aDesProfilsTernes`). Une palette à une intensité n'a qu'une rampe
+ * ([ENT-14]).
  */
 export function confusionsDe(recette: Recette, palette: Palette): Confusion[] {
   if (aUneIntensite(palette) || aDesProfilsTernes(recette, palette)) return [];
   const rampes = rampesDe(recette, palette);
   const [soft, vivid] = [rampeDe(rampes, 'soft'), rampeDe(rampes, 'vivid')];
   const { crans } = grilleDe(recette, palette);
-  return MODES.flatMap((mode) => crans.flatMap((cran, rang) => {
-    const distance = distanceOk(soft[mode][rang].couleur, vivid[mode][rang].couleur);
-    return distance < recette.seuils.profilsConfondus ? [{ mode, cran, distance }] : [];
-  }));
+  return FONDS_COMPARES.flatMap(({ mode, variables }) => {
+    const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
+    return variables.flatMap((variable) => {
+      const cran = cranDeLaVariable(variable, mode, sens);
+      const rang = typeof cran === 'number' ? crans.indexOf(cran) : -1;
+      if (rang < 0 || typeof cran !== 'number') return [];
+      const distance = distanceOk(soft[mode][rang].couleur, vivid[mode][rang].couleur);
+      return distance < recette.seuils.profilsConfondus ? [{ mode, cran, distance }] : [];
+    });
+  });
 }
 
 /**
- * L'alerte ne vise que les nuances que portent les variables ([VER-11]) : une
- * palette libre n'en a pas. Elle se tait sur les fonds du thème Dark dont la
- * part baisse ([MOT-28]) : les deux profils s'y rapprochent par construction.
- * En dessous de `MINIMUM_DE_NUANCES_CONFONDUES` nuances, la palette passe sans
- * alerte.
+ * L'alerte juge les cinq fonds de `confusionsDe` ([VER-11]) et sonne à partir
+ * de `MINIMUM_DE_NUANCES_CONFONDUES` d'entre eux, les deux thèmes réunis. Une
+ * palette libre n'a pas de variables : elle passe sans alerte.
  */
 const MINIMUM_DE_NUANCES_CONFONDUES = 3;
 
 function profilsConfondus(recette: Recette, palette: Palette): Alerte | null {
   if (estLibre(palette)) return null;
-  const visees = new Set(rangsDesVariables(recette).map((rang) => recette.crans[rang]));
-  const fonds = fondsSombresDe(recette);
-  const attenue = ({ mode, cran }: Confusion): boolean =>
-    mode === 'dark' && facteurSombre(recette.courbes.dark[recette.crans.indexOf(cran)], fonds) < 1;
-  const crans = confusionsDe(recette, palette).filter((confusion) => visees.has(confusion.cran) && !attenue(confusion));
+  const crans = confusionsDe(recette, palette);
   return crans.length >= MINIMUM_DE_NUANCES_CONFONDUES
     ? { code: 'profils-confondus', palette: palette.id, crans, seuil: recette.seuils.profilsConfondus }
     : null;

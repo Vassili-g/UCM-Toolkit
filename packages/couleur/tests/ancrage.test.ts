@@ -41,48 +41,45 @@ function decrire(reference: string, recette?: Recette): string {
   return `${ancrage.profil} ${ancrage.crans.light}/${ancrage.crans.dark}`;
 }
 
-test('[MOT-17] une référence peu intense est portée par soft, une référence intense par vivid', () => {
+test('[MOT-17] une référence peu intense et une référence intense sont portées par vivid', () => {
   // #A0B599 a une part de 0,20 ; #1E6FD9, 0,89. Les parts communes valent 0,45 et 0,95.
-  assert.equal(decrire('#A0B599', recetteAuxPartsDe045()), 'soft 400/800');
+  assert.equal(decrire('#A0B599', recetteAuxPartsDe045()), 'vivid 400/800');
   assert.equal(decrire('#1E6FD9', recetteAuxPartsDe045()), 'vivid 600/600');
 });
 
-test('[MOT-17] à égalité de distance entre les deux parts communes, vivid porte la référence', () => {
+test('[MOT-17] le porteur automatique ne suit pas les parts communes : vivid, même plus près de soft', () => {
   const { recette, palette } = neuve('#1E6FD9');
-  // La part se compare au millième : à 0,1 de part et d'autre, les deux distances valent 100 millièmes.
   const part = Math.round(partDeChroma(lireHexa('#1E6FD9')!) * 1000) / 1000;
-  const egale: Recette = { ...recette, profils: profilsAuxParts(part - 0.1, part + 0.1) };
-  assert.equal(profilPorteur(egale, palette), 'vivid');
-  const plusPresDeSoft: Recette = { ...recette, profils: profilsAuxParts(part - 0.099, part + 0.1) };
-  assert.equal(profilPorteur(plusPresDeSoft, palette), 'soft');
+  const plusPresDeSoft: Recette = { ...recette, profils: profilsAuxParts(part - 0.01, part + 0.3) };
+  assert.equal(profilPorteur(plusPresDeSoft, palette), 'vivid');
 });
 
-test('[MOT-17] une référence terne est portée par soft, noir, blanc et gris compris', () => {
+test('[MOT-17] une référence terne est portée par vivid, noir, blanc et gris compris', () => {
   for (const reference of ['#808080', '#6B7280', '#000000', '#FFFFFF']) {
-    assert.equal(decrire(reference).split(' ')[0], 'soft', reference);
+    assert.equal(decrire(reference).split(' ')[0], 'vivid', reference);
   }
 });
 
-test('[MOT-17] [MOT-18] un quasi-noir de part 0,99 à sa clarté reste porté par soft : sa part se mesure à la clarté bornée', () => {
+test('[MOT-17] [MOT-18] un quasi-noir de part 0,99 est porté par vivid, et sa part se mesure à la clarté bornée', () => {
   // #000102 : chroma 0,013, une part de 0,996 du plafond à sa clarté, minuscule ; à la clarté du 950, sa part est faible.
   const { recette, palette } = neuve('#000102');
   assert.ok(partDeChroma(lireHexa('#000102')!) > 0.95);
   assert.ok(partDeLaReference(recette, palette) < 0.45);
-  assert.equal(profilPorteur(recette, palette), 'soft');
+  assert.equal(profilPorteur(recette, palette), 'vivid');
 });
 
-test('[MOT-17] les parts propres d’une palette ne changent pas son profil porteur, les parts communes si', () => {
+test('[MOT-17] ni les parts propres d’une palette ni les parts communes ne changent son profil porteur', () => {
   const recette = recetteParDefaut();
   const designer = paletteTailwind('p-000000a2', '#A0B599', { parts: { soft: 0.9, vivid: 0.95, origine: 'designer' } });
-  assert.equal(profilPorteur(recetteAvec(designer), designer), 'soft');
+  assert.equal(profilPorteur(recetteAvec(designer), designer), 'vivid');
   const communes: Recette = { ...recette, profils: profilsAuxParts(0.1, 0.25) };
   assert.equal(decrire('#A0B599', communes).split(' ')[0], 'vivid');
 });
 
 test('[MOT-17] le noir et le blanc se posent aux extrémités de chaque courbe', () => {
   // La courbe claire descend de 50 à 950, la courbe sombre monte.
-  assert.equal(decrire('#000000'), 'soft 950/50');
-  assert.equal(decrire('#FFFFFF'), 'soft 50/950');
+  assert.equal(decrire('#000000'), 'vivid 950/50');
+  assert.equal(decrire('#FFFFFF'), 'vivid 50/950');
 });
 
 test('[MOT-17] une référence hors de la courbe prend l’extrémité la plus proche, sans message qui la masque', () => {

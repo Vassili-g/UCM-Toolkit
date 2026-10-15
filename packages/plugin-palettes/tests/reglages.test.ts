@@ -255,7 +255,8 @@ test('G5.3 saturer Vivid d’un gris neutre colore ses nuances : la palette cess
   valide(saturee);
   assert.deepEqual(saturee.parts, { soft: 0, vivid: 0.3, origine: 'designer' });
   assert.equal(estPaletteGrise(RECETTE, saturee), false);
-  assert.equal(saturee.reference, '#808080', 'à deux intensités, la saturation ne déplace pas la référence');
+  assert.notEqual(saturee.reference, '#808080', 'Vivid porte la référence : saturer Vivid la déplace');
+  assert.equal(reglerSaturation(RECETTE, gris, 'soft', 0.3).reference, '#808080', 'saturer Soft ne la déplace pas');
 });
 
 /** Vrai quand la référence est le cran que sa rampe aurait calculé à sa place : même part, à sa clarté. */
@@ -266,18 +267,20 @@ const fondueDansSaRampe = (palette: Palette): boolean => {
 
 test('[ENT-09] à deux intensités, la saturation du porteur récrit la référence à la part de ses voisines', () => {
   const mauve = nouvellePalette(RECETTE, 'p-00000020', '#897288', 2)!;
-  assert.equal(profilPorteur(RECETTE, mauve), 'soft');
-  for (const cible of ['soft', 'deux'] as const) {
+  assert.equal(profilPorteur(RECETTE, mauve), 'vivid');
+  for (const cible of ['vivid', 'deux'] as const) {
     const terne = reglerSaturation(RECETTE, mauve, cible, 0.08);
     valide(terne);
-    assert.equal(partsDesProfils(RECETTE, terne).soft, 0.08, cible);
-    assert.equal(terne.reglages?.part, 0.08, cible);
+    // « Les deux » décale Soft du même écart, que sa part plancher (0,076) borne : Vivid s'arrête à 0,084.
+    const attendue = cible === 'deux' ? 0.084 : 0.08;
+    assert.equal(partsDesProfils(RECETTE, terne).vivid, attendue, cible);
+    assert.equal(terne.reglages?.part, attendue, cible);
     assert.equal(terne.originale, '#897288', cible);
-    assert.equal(profilPorteur(RECETTE, terne), 'soft', `${cible} : le porteur est figé`);
+    assert.equal(profilPorteur(RECETTE, terne), 'vivid', `${cible} : le porteur est figé`);
     assert.ok(fondueDansSaRampe(terne), `${cible} : ${terne.reference}`);
     assert.ok(rgb8VersOklch(lireHexa(terne.reference)!).C < rgb8VersOklch(lireHexa('#897288')!).C / 1.5, cible);
   }
-  const vive = reglerSaturation(RECETTE, mauve, 'vivid', 0.5);
+  const vive = reglerSaturation(RECETTE, mauve, 'soft', 0.5);
   assert.equal(vive.reference, '#897288', 'la saturation de l’autre profil ne déplace pas la référence');
   assert.equal(vive.reglages, undefined);
 });

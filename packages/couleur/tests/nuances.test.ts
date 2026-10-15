@@ -209,8 +209,8 @@ test('W6 : une palette libre suit les courbes communes, garde sa référence exa
   const modele = paletteTailwind('p-0000000b', '#1E6FD9');
   const hexasDuModele = hexasParNuance(recetteAvec(modele), modele);
   for (const [cle, valeur] of hexasParNuance(recette, libre)) if (!cle.endsWith('/600')) assert.equal(valeur, hexasDuModele.get(cle), cle);
-  // Le repère ≈ vaut sur toute nuance : le 100 de ce bleu confond Soft et Vivid.
-  assert.ok(confusionsDe(recette, libre).some(({ cran }) => cran === 100));
+  // Le repère ≈ vaut aussi pour une palette libre, sur les fonds qu'elle porte : le 200 de ce bleu confond Soft et Vivid.
+  assert.deepEqual(confusionsDe(recette, libre).map(({ mode, cran }) => `${mode} ${cran}`), ['light 200']);
 });
 
 test('W6.8 : une palette libre ne se compare à aucune, qu’elle porte ou non les crans des rôles ([VER-22])', () => {

@@ -106,11 +106,16 @@ test('[PLA-10] [MOT-17] les rampes nomment Soft et Vivid ; le ◆ de la référe
   assert.equal(textes(trouver(vivid, 'colonne 600')).find((noeud) => noeud.nom === 'code')?.contenu, '1E6FD9');
 });
 
-test('[PLA-15] une pastille où les deux profils se confondent porte ≈, sur toute nuance, et une note l’explique', () => {
-  const confondu = (nom: string) => trouver(MODELE.racine, nom).enfants.some((enfant) => enfant.nom === 'confondu');
-  assert.equal(confondu('vivid/light/100'), true);
+test('[PLA-15] une pastille de fond où les deux profils se confondent porte ≈, et une note l’explique', () => {
+  // Aux parts 0,30 et 0,31, Soft et Vivid se confondent sur les fonds Light hover et pressed, pas sur le fond default ni sur les pleins.
+  const serree: Palette = { ...BLEU, parts: { soft: 0.3, vivid: 0.31, origine: 'designer' } };
+  const modele = modeleDeCadre(SANS_GRILLES, serree, 'SRGB');
+  const confondu = (nom: string) => trouver(modele.racine, nom).enfants.some((enfant) => enfant.nom === 'confondu');
+  assert.equal(confondu('vivid/light/200'), true);
+  assert.equal(confondu('vivid/light/300'), true);
+  assert.equal(confondu('vivid/light/100'), false);
   assert.equal(confondu('vivid/light/700'), false);
-  assert.match(textes(trouver(trouver(MODELE.racine, 'thème light'), 'les deux rampes')).find((noeud) => noeud.nom === 'note')!.contenu, /≈ : Soft et Vivid presque identiques/);
+  assert.match(textes(trouver(trouver(modele.racine, 'thème light'), 'les deux rampes')).find((noeud) => noeud.nom === 'note')!.contenu, /≈ : Soft et Vivid presque identiques/);
 });
 
 test('[PLA-13] un repère de pastille prend le noir ou le blanc, et s’y lit', () => {
@@ -477,7 +482,7 @@ test('[PLA-28] Y5.5 : chaque partie retirée disparaît du modèle et change l�
 });
 
 test('[PLA-24] Y5.4 : les calques du cadre de Bleu, toutes parties dessinées, à une et à deux intensités', () => {
-  // Trois états par dossier : 1 778 calques à deux intensités, 914 à une.
-  assert.equal(compterCalques(AVEC_GRILLE.racine), 1778);
+  // Trois états par dossier : 1 770 calques à deux intensités, 914 à une.
+  assert.equal(compterCalques(AVEC_GRILLE.racine), 1770);
   assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 914);
 });

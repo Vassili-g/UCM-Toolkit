@@ -53,7 +53,7 @@ test('[MOT-18] #060605 et #7F7F80 donnent des gris purs dans les deux profils et
     assert.deepEqual(partsDe(recette, palette), { soft: 0, vivid: 0 }, reference);
     assert.ok(nuancesCalculees(palette).every(estGris), reference);
     const ancrage = ancrageDe(recette, palette);
-    for (const mode of MODES) assert.equal(rampesDe(recette, palette).soft![mode][ancrage.rangs[mode]].hexa, reference, `${reference} ${mode}`);
+    for (const mode of MODES) assert.equal(rampesDe(recette, palette)[ancrage.profil]![mode][ancrage.rangs[mode]].hexa, reference, `${reference} ${mode}`);
     assert.equal(estPaletteGrise(recette, palette), true, reference);
   }
 });
