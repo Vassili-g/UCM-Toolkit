@@ -71,10 +71,10 @@ Règles d'économie, à tenir par l'orchestrateur :
 - Vague 3 (P1 à P8) et H0 faits, vérifiés et poussés le 15 octobre : suite
   complète et trois `test:ui` verts (Palettes 275, Exporter 39,
   explorateur 24).
-- Vague 4 (S1, H0 à H7) faite et poussée : suite complète et trois `test:ui`
-  verts (Palettes 309, Exporter 39, explorateur 24).
-- **Prochaine étape** : la vague 5, documents (D1 AGENTS.md, D2 SPEC-PAL),
-  puis D4 et la vague 6.
+- Vagues 4 et 5 faites et poussées ; F1 (suite complète et trois `test:ui`
+  verts : Palettes 309, Exporter 39, explorateur 24), F2 (kit publié en vague
+  1, inchangé depuis) et F3 (builds de Palettes et de l'explorateur) faits.
+- **Prochaine étape** : F4, la recette du mainteneur dans Figma.
 - stone-950 (M4) : le mainteneur garde le comportement ; le test juge
   l'écart de couleur, sous 0,02 ΔEok (`desaturees.test.ts`).
 
@@ -1146,14 +1146,14 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Fini quand : plus aucune valeur contraire à DECISIONS.md dans le
     fichier.
 
-- [ ] **D4 · Statuts** · orchestrateur.
+- [x] **D4 · Statuts** · orchestrateur.
   - `D/DECISIONS.md` et `D/README.md` : statut « implémenté, recette Figma à
     faire », avec le dernier commit. Il devient « recetté » après F4.
     Mémoire de la conversation principale.
 
 ### Vague 6 · Vérification, publication, recette
 
-- [ ] **F1 · Suite complète** · `verificateur`.
+- [x] **F1 · Suite complète** · `verificateur`.
   - `npm test`, `npm run typecheck`, `npm run build`, `test:ui` des trois
     plugins. Fini quand : tout est vert.
 
@@ -1173,7 +1173,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
     `gh run watch <id>` ; constater par `npm view <paquet>@<version> version`.
   - Fini quand : les trois versions sont servies.
 
-- [ ] **F3 · Construire pour Figma** · `verificateur`.
+- [x] **F3 · Construire pour Figma** · `verificateur`.
   - `npm run build --workspace ucm-palettes-plugin` et
     `npm run build --workspace ucm-explorateur-plugin`.
 

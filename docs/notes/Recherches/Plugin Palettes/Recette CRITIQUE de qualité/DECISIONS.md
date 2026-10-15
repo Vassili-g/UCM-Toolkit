@@ -5,6 +5,11 @@ mesurent, comparent ou racontent comment on est arrivé ici ; en cas d'écart
 avec eux, ce document l'emporte, et l'écart est un défaut à corriger dans
 l'autre document.
 
+**Statut : implémenté, recette Figma à faire.** Les vagues 0 à 5 du plan sont
+sur `main` (commit 7439bbe) ; la recette du mainteneur dans Figma reste à
+faire. Les défauts du moteur trouvés au premier test dans Figma sont suivis
+dans la [recette du moteur](../Recette%20moteur%20palettes/README.md).
+
 Toutes les décisions sont **arrêtées** : le mainteneur les a choisies au
 banc visuel ou validées dans la [page de synthèse](./SYNTHESE.html). Le
 [plan d'implémentation](./PLAN-IMPLEMENTATION.md) les découpe en tâches et
