@@ -78,10 +78,22 @@ test('[MOT-18] les gris teintés de Tailwind gardent leur teinte', () => {
 
 // Depuis la dérive aux deux bouts ([MOT-36]), une référence plus sombre que le
 // bout sombre prend toute la dérive vers le clair des rampes voisines : la
-// 500 de stone-950 part à 81° pour une référence à 49°. La décision Q10 ne
-// couvre pas ce cas ; il attend le mainteneur.
-test('[MOT-18] stone-950, plus sombre que le bout sombre, garde sa teinte', { todo: true }, () => {
-  garderLaTeinte('#0C0A09');
+// 500 de stone-950 part à 81° pour une référence à 49°. Le mainteneur garde ce
+// comportement : la chroma de ces nuances est si faible que l'écart de teinte
+// ne se voit pas. Le test juge donc l'écart de couleur, pas l'angle.
+test('[MOT-18] stone-950, plus sombre que le bout sombre, reste à moins de 0,02 ΔEok de sa teinte', () => {
+  const reference = '#0C0A09';
+  const palette = paletteTailwind('p-000000d2', reference);
+  const recette = recetteAvec(palette);
+  const teinte = rgb8VersOklch(lireHexa(reference)!).H;
+  for (const mode of MODES) {
+    for (const nuance of rampesDe(recette, palette).soft![mode]) {
+      const { C, H } = rgb8VersOklch(nuance.couleur);
+      // À clarté et chroma égales, deux teintes sont à 2·C·sin(Δh/2) l'une de l'autre en OKLab.
+      const ecart = 2 * C * Math.sin((Math.abs(((H - teinte + 540) % 360) - 180) * Math.PI) / 360);
+      assert.ok(ecart < 0.02, `${nuance.hexa} ${mode} : ${ecart}`);
+    }
+  }
 });
 
 test('[MOT-18] depuis slate-950, la chroma du Soft 500 reste à 0,01 près de celle de slate-500 : la part se mesure à la clarté bornée', () => {

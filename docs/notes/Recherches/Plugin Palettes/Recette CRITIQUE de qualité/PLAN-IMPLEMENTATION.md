@@ -72,9 +72,8 @@ Règles d'économie, à tenir par l'orchestrateur :
   complète et trois `test:ui` verts (Palettes 275, Exporter 39,
   explorateur 24).
 - **Prochaine étape** : la vague 4 à partir de H1, confiée à Codex.
-- Question au mainteneur : une référence plus sombre que le bout sombre
-  (stone-950) prend toute la dérive vers le clair (M4) ; test `todo` dans
-  `packages/couleur/tests/desaturees.test.ts`.
+- stone-950 (M4) : le mainteneur garde le comportement ; le test juge
+  l'écart de couleur, sous 0,02 ΔEok (`desaturees.test.ts`).
 
 ## 3. Ordre des vagues
 
