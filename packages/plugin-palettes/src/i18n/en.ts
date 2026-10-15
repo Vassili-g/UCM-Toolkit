@@ -31,6 +31,7 @@ import {
   type Profil,
   type Recette,
   type Refus,
+  type RoleDeProximite,
   type RegleRecette,
   type TexteDesBoutons,
   type VariableDePalette,
@@ -158,6 +159,31 @@ export const TEXTES_DE_L_HARMONISATION = {
   intensite: 'Preview intensity',
   bilan: (nombre: number) => nombre === 0 ? 'All your palettes are distinct'
     : `${nombre} ${nombre === 1 ? 'pair' : 'pairs'} of palettes too close`,
+  /** Le texte des pastilles d'une paire et des aplats de la liste. */
+  echantillon: 'Aa',
+  /** [UI-40] La carte des paires de palettes trop proches. */
+  paires: {
+    titre: 'Palettes too close',
+    sousTitre: 'Hard to tell apart in your components',
+    resume: (nombre: number) => `${nombre} ${nombre === 1 ? 'pair' : 'pairs'}`,
+    noms: (a: string, b: string) => `${a} and ${b}`,
+    constat: (role: RoleDeProximite, mode: Mode, presqueIdentiques: boolean) =>
+      `${role === 'plein' ? 'Filled buttons' : 'Text on tinted background'} too close, in ${NOM_DU_MODE[mode]}${presqueIdentiques ? ' · nearly identical' : ''}`,
+    comparer: 'Compare',
+    comparerLaPaire: (a: string, b: string) => `Compare ${a} and ${b}`,
+  },
+  /** [UI-40] La carte qui liste les palettes et en fait cocher de deux à quatre. */
+  liste: {
+    titre: 'Your palettes',
+    sousTitre: (premier: number, dernier: number, mode: Mode) => `Shades ${premier} to ${dernier}, in ${NOM_DU_MODE[mode]}`,
+    resume: (nombre: number) => `${nombre} palettes`,
+    aide: 'Check 2 to 4 palettes to compare and adjust them.',
+    aucuneCochee: 'No palette checked',
+    cochees: (nombre: number) => `${nombre} checked, 4 at most`,
+    quatreAuPlus: 'Four palettes at most: uncheck one.',
+    toutDecocher: 'Uncheck all',
+    tropProcheDe: (noms: readonly string[]) => `Too close to ${noms.reduce((texte, nom, rang) => rang === 0 ? nom : `${texte}${rang === noms.length - 1 ? ' and ' : ', '}${nom}`, '')}`,
+  },
 };
 
 /** Le nom accessible de l'onglet Vérification, complété du bilan de la palette ouverte : « Verify, 1 guarantee unmet ». */

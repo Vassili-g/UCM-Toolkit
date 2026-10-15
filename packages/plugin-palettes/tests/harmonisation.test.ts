@@ -2,9 +2,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
+import { candidatDeTeinte, pairesTropProches, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
-import { choisirPaletteARegler, cocherPalette, entrerEnHarmonisation, harmonisationInitiale, synchroniserHarmonisation, toutDecocher } from '../src/harmonisation';
+import { choisirPaletteARegler, cocherPalette, comparerLaPaire, entrerEnHarmonisation, paletteARegler, harmonisationInitiale, synchroniserHarmonisation, toutDecocher } from '../src/harmonisation';
+import { paletteTailwind, recetteAvec } from '../../couleur/tests/fabrique';
 
 const defaut = recetteParDefaut();
 const palettes: Palette[] = Array.from({ length: 5 }, (_, rang) => ({
@@ -87,4 +88,40 @@ test('[UI-39] les palettes libres, figées et à une intensité restent sélecti
   ] };
   const etat = lue.palettes.reduce((precedent, palette) => cocherPalette(precedent, lue, palette.id), harmonisationInitiale());
   assert.deepEqual(etat.cochees, lue.palettes.map(({ id }) => id));
+});
+
+const BLEU = paletteTailwind('p-000000a1', '#1E6FD9');
+const BLEU_DECALE = { ...candidatDeTeinte(recetteAvec(BLEU), paletteTailwind('p-000000a2', '#1E6FD9'), 5) };
+
+test('[UI-40] « Comparer » règle la palette qui sort de la zone par le plus petit écart, A à égalité', () => {
+  const egales = recetteAvec(BLEU, { ...BLEU, id: 'p-000000a2' });
+  assert.deepEqual(paletteARegler(egales, [BLEU.id, 'p-000000a2']), { id: BLEU.id, sansSortie: false });
+  assert.deepEqual(paletteARegler(egales, ['p-000000a2', BLEU.id]), { id: 'p-000000a2', sansSortie: false });
+  // B (0°) sort à −6°, A (+5°) à +11° : B se règle même quand A est la première palette de la paire.
+  const inegales = recetteAvec(BLEU_DECALE, { ...BLEU, id: 'p-000000a3' });
+  assert.deepEqual(paletteARegler(inegales, [BLEU_DECALE.id, 'p-000000a3']), { id: 'p-000000a3', sansSortie: false });
+  assert.deepEqual(paletteARegler(inegales, ['p-000000a3', BLEU_DECALE.id]), { id: 'p-000000a3', sansSortie: false });
+});
+
+test('[UI-40] une paire qu’aucune teinte de la course ne sépare règle la palette A et le dit', () => {
+  const recette = recetteAvec(BLEU, { ...BLEU, id: 'p-000000a2' });
+  const large = { ...recette, seuils: { ...recette.seuils, palettesProches: 2 } };
+  assert.deepEqual(paletteARegler(large, [BLEU.id, 'p-000000a2']), { id: BLEU.id, sansSortie: true });
+  assert.deepEqual(paletteARegler(large, ['p-000000a2', BLEU.id]), { id: 'p-000000a2', sansSortie: true });
+  assert.deepEqual(paletteARegler(large, [BLEU.id, 'absente']), { id: BLEU.id, sansSortie: true });
+});
+
+test('[UI-40] « Comparer » coche la paire seule, passe au thème du constat et garde l’intensité, l’affichage et les réglages', () => {
+  const recette = recetteAvec(BLEU_DECALE, { ...BLEU, id: 'p-000000a3' }, { ...BLEU, id: 'p-000000a4', nom: 'Autre' });
+  const [paire] = pairesTropProches(recette);
+  const avant = { ...cocherPalette(cocherPalette(harmonisationInitiale(), recette, 'p-000000a4'), recette, 'p-000000a3'), trop: true, intensite: 'soft' as const, affichage: 'gris' as const, mode: 'light' as const, departs: new Map([['p-000000a3', recette.palettes[1]]]) };
+  const apres = comparerLaPaire(avant, recette, paire);
+  assert.deepEqual(apres.cochees, [...paire.palettes]);
+  assert.equal(apres.regler, paletteARegler(recette, paire.palettes).id);
+  assert.equal(apres.mode, paire.proximite.mode);
+  assert.equal(apres.trop, false);
+  assert.equal(apres.intensite, 'soft');
+  assert.equal(apres.affichage, 'gris');
+  assert.deepEqual(apres.departs, avant.departs);
+  assert.equal(comparerLaPaire(avant, recette, { ...paire, palettes: [paire.palettes[0], 'absente'] }).cochees.length, 2);
 });

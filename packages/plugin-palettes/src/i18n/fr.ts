@@ -30,6 +30,7 @@ import {
   type Profil,
   type Recette,
   type Refus,
+  type RoleDeProximite,
   type RegleRecette,
   type TexteDesBoutons,
   type VariableDePalette,
@@ -155,6 +156,34 @@ export const TEXTES_DE_L_HARMONISATION = {
   intensite: 'Intensité de l’aperçu',
   bilan: (nombre: number) => nombre === 0 ? 'Toutes vos palettes se distinguent'
     : `${nombre} ${nombre === 1 ? 'paire' : 'paires'} de palettes trop proches`,
+  /** Le texte des pastilles d'une paire et des aplats de la liste. */
+  echantillon: 'Aa',
+  /** [UI-40] La carte des paires de palettes trop proches. */
+  paires: {
+    titre: 'Palettes trop proches',
+    sousTitre: 'Difficiles à distinguer dans vos composants',
+    resume: (nombre: number) => `${nombre} ${nombre === 1 ? 'paire' : 'paires'}`,
+    noms: (a: string, b: string) => `${a} et ${b}`,
+    constat: (role: RoleDeProximite, mode: Mode, presqueIdentiques: boolean) =>
+      `${role === 'plein' ? 'Boutons pleins' : 'Textes sur fond teinté'} trop proches, en ${NOM_DU_MODE[mode]}${presqueIdentiques ? ' · presque identiques' : ''}`,
+    comparer: 'Comparer',
+    comparerLaPaire: (a: string, b: string) => `Comparer ${a} et ${b}`,
+  },
+  /** [UI-40] La carte qui liste les palettes et en fait cocher de deux à quatre. */
+  liste: {
+    titre: 'Vos palettes',
+    sousTitre: (premier: number, dernier: number, mode: Mode) => `Les nuances de ${premier} à ${dernier}, en ${NOM_DU_MODE[mode]}`,
+    resume: (nombre: number) => `${nombre} palettes`,
+    aide: 'Cochez de 2 à 4 palettes pour les comparer et les régler.',
+    aucuneCochee: 'Aucune palette cochée',
+    cochees: (nombre: number) => `${nombre} ${nombre === 1 ? 'cochée' : 'cochées'}, 4 au plus`,
+    quatreAuPlus: 'Quatre palettes au plus : décochez-en une.',
+    toutDecocher: 'Tout décocher',
+    tropProcheDe: (noms: readonly string[]) => {
+      const cible = noms.reduce((texte, nom, rang) => rang === 0 ? nom : `${texte}${rang === noms.length - 1 ? ' et ' : ', '}${nom}`, '');
+      return /^[aeiouyh]/i.test(noms[0].normalize('NFD')) ? `Trop proche d’${cible}` : `Trop proche de ${cible}`;
+    },
+  },
 };
 
 /** Le nom accessible de l'onglet Vérification, complété du bilan de la palette ouverte : « Vérification, 1 garantie manquée ». */

@@ -1,19 +1,31 @@
-/** L'en-tête d'Harmonisation et son bilan lisent la recette entière, sans palette ouverte. */
-import { pairesTropProches, type Mode, type Profil } from 'ucm-couleur';
+/**
+ * L'onglet Harmonisation : son en-tête, son bilan et ses cartes lisent la
+ * recette entière, sans palette ouverte. L'état de l'onglet vit ici, le temps
+ * de la session ; les cartes le reçoivent à chaque rendu et lui rendent leurs
+ * gestes.
+ */
+import { pairesTropProches, type Mode, type PaireTropProche, type Profil, type Recette } from 'ucm-couleur';
 
-import { entrerEnHarmonisation, harmonisationInitiale, synchroniserHarmonisation } from '../harmonisation';
+import { cocherPalette, comparerLaPaire, entrerEnHarmonisation, harmonisationInitiale, synchroniserHarmonisation, toutDecocher } from '../harmonisation';
 import { creerVuesChoix } from './choix';
+import { creerVuesCarteDeLaListe } from './harmonisation/carteListe';
+import { creerVuesCarteDesPaires } from './harmonisation/cartePaires';
 import { lireTexte, memoriserVues, type Localisation } from './localisation';
 import type { PaletteOuverte } from './paletteOuverte';
 
 function construireVues(i18n: Localisation) {
   const { createChoix } = creerVuesChoix(i18n);
+  const { createCarteDesPaires } = creerVuesCarteDesPaires(i18n);
+  const { createCarteDeLaListe } = creerVuesCarteDeLaListe(i18n);
   const { TEXTES, TEXTES_DE_L_HARMONISATION, NOM_DU_PROFIL } = i18n.messages;
 
   function createOngletHarmonisation(source: PaletteOuverte) {
     let etat = harmonisationInitiale();
     let actif = false;
     let nombre = 0;
+    /** Les paires se recalculent quand la recette change, pas à chaque rendu. */
+    let recette: Recette | null = null;
+    let paires: readonly PaireTropProche[] = [];
 
     const element = document.createElement('div');
     element.className = 'page-stack colonne vue-de-la-palette harmonisation';
@@ -43,7 +55,30 @@ function construireVues(i18n: Localisation) {
     const texte = document.createElement('span');
     texte.className = 'ligne-fixe-texte';
     ligne.append(icone, texte);
-    element.append(tete, ligne);
+    const cartePaires = createCarteDesPaires({
+      comparer(paire) {
+        if (recette) etat = comparerLaPaire(etat, recette, paire);
+        rendre();
+      },
+    });
+    const carteListe = createCarteDeLaListe({
+      cocher(id) {
+        if (recette) etat = cocherPalette(etat, recette, id);
+        rendre();
+      },
+      toutDecocher() {
+        etat = toutDecocher(etat);
+        rendre();
+      },
+    });
+    element.append(tete, ligne, cartePaires.element, carteListe.element);
+
+    /** Les cartes se repeignent seulement onglet visible : un onglet caché ne calcule pas les rampes. */
+    function peindreLesCartes(): void {
+      if (!recette) return;
+      cartePaires.afficher(recette, paires);
+      carteListe.afficher(recette, paires, etat);
+    }
 
     function rendre(): void {
       intensite.poser(etat.intensite);
@@ -53,6 +88,7 @@ function construireVues(i18n: Localisation) {
       const bilan = TEXTES_DE_L_HARMONISATION.bilan(nombre);
       i18n.lier(texte, 'textContent', bilan);
       i18n.lier(texte, 'title', bilan);
+      if (actif) peindreLesCartes();
     }
 
     /** Le texte du socle se retraduit dans l'onglet ; le compteur en reste un enfant distinct. */
@@ -66,9 +102,13 @@ function construireVues(i18n: Localisation) {
         : lireTexte(TEXTES.ongletHarmonisation) };
       i18n.lier(onglet, 'aria-label', nom);
       function suivre(): void {
-        const recette = source.recette();
-        etat = synchroniserHarmonisation(etat, recette);
-        nombre = recette ? pairesTropProches(recette).length : 0;
+        const lue = source.recette();
+        etat = synchroniserHarmonisation(etat, lue);
+        if (lue !== recette) {
+          recette = lue;
+          paires = lue ? pairesTropProches(lue) : [];
+        }
+        nombre = paires.length;
         pastille.textContent = String(nombre);
         if (nombre > 0) {
           if (pastille.parentElement !== onglet) onglet.append(pastille);

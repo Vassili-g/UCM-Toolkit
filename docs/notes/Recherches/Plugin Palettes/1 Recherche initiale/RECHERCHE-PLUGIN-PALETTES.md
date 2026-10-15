@@ -2409,6 +2409,23 @@ Onglet Harmonisation :
   de l'annulation. L'état et ses transitions sont dans `src/harmonisation.ts` ;
   l'en-tête et le compteur sont dans `src/ui/ongletHarmonisation.ts`.
 
+- `[UI-40]` La carte « Palettes trop proches » paraît s'il existe une paire :
+  une rangée par paire de `pairesTropProches`, par distance croissante, avec
+  deux pastilles « Aa » sur le fond de page du thème du constat (plein et son
+  texte, ou fond teinté et son texte, en Vivid ou l'unique intensité), les deux
+  noms, le constat et « Comparer ». « Comparer » coche la paire seule, passe
+  l'aperçu au thème du constat et met dans `regler` la palette de plus petite
+  `sortieLaPlusProche` en valeur absolue, la palette A à égalité ou sans sortie
+  de l'une et de l'autre. Il garde l'intensité, l'affichage et les réglages, et
+  remet le refus de la cinquième palette à faux. La carte « Vos palettes » liste
+  les palettes dans l'ordre de la recette : case, nom, nuances dans le thème et
+  l'intensité de l'aperçu, et un rond `!` sur chaque palette d'une paire trop
+  proche, qui nomme ses voisines. La rangée entière est le `label` de sa case.
+  Le pied dit le nombre de palettes cochées et leur refus au-delà de quatre, et
+  « Tout décocher » les décoche. Les cartes sont dans
+  `src/ui/harmonisation/cartePaires.ts` et `carteListe.ts`, le choix de la
+  palette à régler dans `paletteARegler` (`src/harmonisation.ts`).
+
 - `[UI-45]` Le socle expose `definirDisponible(id, disponible)`. Un onglet
   indisponible porte `disabled` et `aria-disabled="true"`. Le clic et
   `selectionner` refusent de l'activer ; les flèches, Début et Fin le

@@ -1988,5 +1988,15 @@ ETATS.push({
   sansPaletteChoisie: true,
   atteinte: [etatDuFichier(recetteDuMainteneur), { clic: '[role="tab"][aria-controls="panneau-harmonisation"]' }],
 });
+const ONGLET_HARMONISATION = { clic: '[role="tab"][aria-controls="panneau-harmonisation"]' };
+ETATS.push({
+  id: 'harmonisation-paire',
+  titre: 'Une paire comparée dans Harmonisation',
+  quand: 'Le fichier porte vingt palettes dont dix paires sont trop proches ; le designer ouvre Harmonisation et clique « Comparer » sur la paire Indigo et Azur.',
+  regarder: 'Le compteur « 10 » sur l’onglet, la ligne fixe « 10 paires de palettes trop proches », puis la carte « Palettes trop proches » : dix rangées par distance croissante, chacune avec ses deux pastilles « Aa » sur le fond de page du thème du constat, ses deux noms, son constat (« Boutons pleins trop proches, en Light », « Textes sur fond teinté trop proches, en Light ») et « Comparer ». Dans « Vos palettes », Indigo et Azur sont cochées et surlignées, le pied dit « 2 cochées, 4 au plus » avec « Tout décocher » à droite ; les vingt palettes portent leurs nuances de 50 à 950 en Light, et un rond ambre « ! » marque les treize palettes qui appartiennent à une paire trop proche.',
+  existe: true,
+  sansPaletteChoisie: true,
+  atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ONGLET_HARMONISATION, { clic: `.paire[data-paire="${identifiantDuBilan(7)} ${identifiantDuBilan(18)}"] .bilan-verifier` }],
+});
 
 module.exports = { ETATS: ETATS.map(avecLaPremierePalette), SAUGE: { palette: (variante) => sauge(variante).palette, recette: recetteDeLaGalerie(), rampesDe } };

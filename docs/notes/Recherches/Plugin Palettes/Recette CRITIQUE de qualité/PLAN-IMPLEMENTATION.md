@@ -71,7 +71,8 @@ Règles d'économie, à tenir par l'orchestrateur :
 - Vague 3 (P1 à P8) et H0 faits, vérifiés et poussés le 15 octobre : suite
   complète et trois `test:ui` verts (Palettes 275, Exporter 39,
   explorateur 24).
-- **Prochaine étape** : la vague 4 à partir de H2 ; H1 est fait (Codex).
+- **Prochaine étape** : la vague 4 à partir de H3 ; H1 (Codex) et H2 sont faits.
+  H2 rend `paletteARegler(...).sansSortie` : H3 affiche le constat de PR6.
 - stone-950 (M4) : le mainteneur garde le comportement ; le test juge
   l'écart de couleur, sous 0,02 ΔEok (`desaturees.test.ts`).
 
@@ -1008,7 +1009,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Vérifier : `npm test --workspace ucm-palettes-plugin`, `test:ui`.
   - Fini quand : vert ; avec une palette, l'onglet est indisponible.
 
-- [ ] **H2 · Cartes « Palettes trop proches » et « Vos palettes »** · `implementeur-exigeant`, haut.
+- [x] **H2 · Cartes « Palettes trop proches » et « Vos palettes »** · `implementeur-exigeant`, haut.
   - SPEC, sections 7.4 et 7.5 ; PR6 (paire sans sortie) ;
     identifiant `[UI-40]`. Le bouton « Comparer » choisit `regler` par
     `sortieLaPlusProche` de H0 ; à égalité ou sans sortie, A.

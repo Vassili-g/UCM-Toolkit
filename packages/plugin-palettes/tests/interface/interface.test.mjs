@@ -141,6 +141,120 @@ test('[UI-39] la galerie d’arrivée garde son en-tête sur une ligne aux deux 
   }
 });
 
+/** Ouvre Harmonisation sur le fichier de vingt palettes de la galerie, dont dix paires sont trop proches. */
+async function ouvrirHarmonisationSurVingtPalettes(langue = 'fr') {
+  const page = await ouvrir(MINIMALE, langue);
+  await page.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), messageDe('harmonisation-paire'));
+  await page.locator('#onglet-harmonisation').click();
+  return page;
+}
+const cochees = (page) => page.locator('#panneau-harmonisation .liste .case-a-cocher:checked').evaluateAll((cases) => cases.map((coche) => coche.getAttribute('aria-label')));
+
+test('[UI-40] la carte des paires range les dix paires par distance, avec leurs pastilles, leur constat et « Comparer »', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    const carte = page.locator('#panneau-harmonisation .carte[aria-label="Palettes trop proches"]');
+    assert.equal(await carte.locator('.carte-resume').textContent(), '10 paires');
+    assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Difficiles à distinguer dans vos composants');
+    const rangees = carte.locator('.paire');
+    assert.equal(await rangees.count(), 10);
+    assert.deepEqual(await rangees.locator('.paire-texte b').allTextContents(), [
+      'Vert et Feuille', 'Bleu et Azur', 'Bleu et Marine', 'Marine et Azur', 'Jaune et Cuivre',
+      'Violet et Pourpre', 'Indigo et Azur', 'Cyan et Teal', 'Bleu et Indigo', 'Rouge et Cuivre',
+    ]);
+    const constats = await rangees.locator('.paire-texte span').allTextContents();
+    assert.equal(constats[0], 'Boutons pleins trop proches, en Light · presque identiques');
+    assert.equal(constats[2], 'Boutons pleins trop proches, en Dark');
+    assert.equal(constats[4], 'Textes sur fond teinté trop proches, en Light');
+    const premiere = rangees.first();
+    assert.equal(await premiere.locator('.paire-couleurs i').count(), 2);
+    assert.equal(await premiere.locator('.paire-couleurs i').first().textContent(), 'Aa');
+    assert.equal(await premiere.locator('.paire-couleurs').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(247, 247, 247)');
+    // Dans le thème du constat : la paire Dark se peint sur le fond Dark de la recette.
+    assert.notEqual(await rangees.nth(2).locator('.paire-couleurs').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(247, 247, 247)');
+    assert.equal(await premiere.locator('.bilan-verifier').textContent(), 'Comparer');
+    assert.equal(await premiere.locator('.bilan-verifier').getAttribute('aria-label'), 'Comparer Vert et Feuille');
+    const pastilles = await premiere.locator('.paire-couleurs i').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().toJSON()));
+    assert.deepEqual(pastilles.map(({ width, height }) => [width, height]), [[26, 22], [26, 22]]);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  } finally { await page.close(); }
+});
+
+test('[UI-40] « Comparer » coche la paire seule, passe au thème du constat et garde l’intensité', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    assert.deepEqual(await cochees(page), []);
+    assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), 'Aucune palette cochée');
+    assert.equal(await panneau.locator('.pied-de-carte .bouton-discret').isVisible(), false);
+    await panneau.getByRole('button', { name: 'Soft', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Marine', exact: true }).click();
+    assert.deepEqual(await cochees(page), ['Bleu', 'Marine']);
+    assert.deepEqual(await panneau.locator('.tete-de-la-palette [aria-pressed="true"]').allTextContents(), ['Soft', 'Dark']);
+    assert.equal(await panneau.locator('.liste-aide').textContent(), 'Cochez de 2 à 4 palettes pour les comparer et les régler.');
+    assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), '2 cochées, 4 au plus');
+    assert.equal(await panneau.locator('.carte[aria-label="Vos palettes"] .carte-sous-titre').textContent(), 'Les nuances de 50 à 950, en Dark');
+    await panneau.getByRole('button', { name: 'Comparer Vert et Feuille', exact: true }).click();
+    assert.deepEqual(await cochees(page), ['Vert', 'Feuille']);
+    assert.deepEqual(await panneau.locator('.tete-de-la-palette [aria-pressed="true"]').allTextContents(), ['Soft', 'Light']);
+    assert.equal(await panneau.locator('.liste .ligne-de-palette[data-cochee="true"]').count(), 2);
+  } finally { await page.close(); }
+});
+
+test('[UI-40] la liste coche par la rangée ou la case, refuse la cinquième et se décoche', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes();
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    const liste = panneau.locator('.liste');
+    assert.equal(await liste.locator('.ligne-de-palette').count(), 20);
+    assert.deepEqual(await liste.locator('.numeros span').allTextContents(), ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']);
+    assert.equal(await liste.locator('.ligne-de-palette').first().locator('.rampe-continue i').count(), 11);
+    // La rangée entière est le label de la case : un clic sur le nom coche.
+    await liste.locator('.ligne-de-palette .nom', { hasText: /^Ardoise$/ }).click();
+    assert.deepEqual(await cochees(page), ['Ardoise']);
+    assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), '1 cochée, 4 au plus');
+    for (const nom of ['Rose', 'Lime', 'Sable']) await liste.getByRole('checkbox', { name: nom, exact: true }).click();
+    assert.deepEqual(await cochees(page), ['Ardoise', 'Rose', 'Lime', 'Sable']);
+    await liste.getByRole('checkbox', { name: 'Grenat', exact: true }).click();
+    assert.deepEqual(await cochees(page), ['Ardoise', 'Rose', 'Lime', 'Sable']);
+    assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), 'Quatre palettes au plus : décochez-en une.');
+    await liste.getByRole('checkbox', { name: 'Rose', exact: true }).click();
+    assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), '3 cochées, 4 au plus');
+    await panneau.getByRole('button', { name: 'Tout décocher', exact: true }).click();
+    assert.deepEqual(await cochees(page), []);
+    assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), 'Aucune palette cochée');
+    // Le rond d'une palette d'une paire la nomme ; plusieurs paires, plusieurs noms.
+    assert.equal(await liste.locator('.signal').count(), 13);
+    const titres = await liste.locator('.signal').evaluateAll((signaux) => signaux.map((signal) => [signal.closest('label').querySelector('.nom').textContent, signal.title]));
+    assert.equal(titres.find(([nom]) => nom === 'Bleu')[1], 'Trop proche d’Azur, Marine et Indigo');
+    assert.equal(titres.find(([nom]) => nom === 'Teal')[1], 'Trop proche de Cyan');
+  } finally { await page.close(); }
+});
+
+test('[UI-40] les deux cartes se replient et se traduisent', async () => {
+  const page = await ouvrirHarmonisationSurVingtPalettes('en');
+  try {
+    const panneau = page.locator('#panneau-harmonisation');
+    const paires = panneau.locator('.carte[aria-label="Palettes too close"]');
+    assert.equal(await paires.locator('.carte-sous-titre').textContent(), 'Hard to tell apart in your components');
+    assert.equal(await paires.locator('.paire-texte b').first().textContent(), 'Vert and Feuille');
+    assert.equal(await paires.locator('.paire-texte span').first().textContent(), 'Filled buttons too close, in Light · nearly identical');
+    assert.equal(await paires.locator('.bilan-verifier').first().textContent(), 'Compare');
+    const liste = panneau.locator('.carte[aria-label="Your palettes"]');
+    assert.equal(await liste.locator('.carte-sous-titre').textContent(), 'Shades 50 to 950, in Light');
+    assert.equal(await liste.locator('.liste-aide').textContent(), 'Check 2 to 4 palettes to compare and adjust them.');
+    assert.equal(await liste.locator('.pied-de-carte .ligne-secondaire').textContent(), 'No palette checked');
+    for (const carte of [paires, liste]) {
+      assert.equal(await carte.getAttribute('data-ouverte'), 'true');
+      await carte.locator('> .carte-tete > .carte-bascule').click();
+      assert.equal(await carte.getAttribute('data-ouverte'), 'false');
+      assert.equal(await carte.locator('.carte-corps').isVisible(), false);
+    }
+    assert.equal(await paires.locator('.carte-resume').textContent(), '10 pairs');
+    assert.equal(await liste.locator('.carte-resume').textContent(), '20 palettes');
+  } finally { await page.close(); }
+});
+
 test('[UI-32] une variable absente garde la confirmation des couleurs retouchées dans Figma', async () => {
   const page = await ouvrir();
   try {
