@@ -342,6 +342,7 @@ function parametresDesRampes(recette: Recette, palette: Palette): (intensite: In
     sombre: mode === 'dark' ? sombre : undefined,
     decalage: decalageDe(palette, intensite),
     enveloppe: enveloppeDe(recette, intensite, mode),
+    clairs: mode === 'light' ? recette.profils[intensite === 'soft' ? 'soft' : 'vivid'].clairs : 1,
   });
 }
 

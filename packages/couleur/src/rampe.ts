@@ -148,22 +148,31 @@ export interface Enveloppe {
   readonly cyans: number;
 }
 
-/** La teinte du jaune que `Enveloppe.jaunes` élargit, et l'écart type de la bosse, en degrés. */
+/** Les teintes que `Enveloppe.jaunes` et `Enveloppe.cyans` élargissent, et l'écart type de chaque bosse, en degrés. */
 const TEINTE_DES_JAUNES = 100;
 const LARGEUR_DES_JAUNES = 12;
+const TEINTE_DES_CYANS = 195;
+const LARGEUR_DES_CYANS = 30;
+
+/** Une bosse gaussienne de hauteur 1 centrée sur `centre`. */
+function bosse(H: number, centre: number, largeur: number): number {
+  return Math.exp(-0.5 * (ecartAngulaire(H, centre) / largeur) ** 2);
+}
 
 /**
  * La couleur visée par un cran, avant tout arrondi ([MOT-35]). La chroma vaut
- * `part × plafond`. Avec une enveloppe, elle ne dépasse pas
- * `p0 × min(a × marge(H) × (1 − L), b × L)` : `p0` ne suit ni le Color shift ni
- * les fonds Dark, que `part` porte déjà.
+ * `part × plafond(L, H)`. Avec une enveloppe, elle ne dépasse pas
+ * `p0 × min(a × marge(H) × (1 − Lenveloppe), b × Lenveloppe)`, avec
+ * `marge(H) = 1 + jaunes × bosse(H, 100°, 12°) + cyans × bosse(H, 195°, 30°)` :
+ * `p0` ne suit ni le Color shift ni les fonds Dark, que `part` porte déjà.
+ * `Lenveloppe`, absente, vaut `L` ; sinon l'enveloppe se lit à cette clarté et
+ * le plafond de l'écran reste lu à `L`.
  */
-export function cranVise(L: number, H: number, part: number, gamut: Gamut, enveloppe?: Enveloppe): Oklch {
+export function cranVise(L: number, H: number, part: number, gamut: Gamut, enveloppe?: Enveloppe, Lenveloppe: number = L): Oklch {
   const C = part * plafond(L, H, gamut);
   if (!enveloppe) return { L, C, H };
-  const ecart = Math.abs(ecartAngulaire(H, TEINTE_DES_JAUNES));
-  const marge = 1 + enveloppe.jaunes * Math.exp(-0.5 * (ecart / LARGEUR_DES_JAUNES) ** 2);
-  return { L, H, C: Math.min(C, enveloppe.p0 * Math.min(enveloppe.a * marge * (1 - L), enveloppe.b * L)) };
+  const marge = 1 + enveloppe.jaunes * bosse(H, TEINTE_DES_JAUNES, LARGEUR_DES_JAUNES) + enveloppe.cyans * bosse(H, TEINTE_DES_CYANS, LARGEUR_DES_CYANS);
+  return { L, H, C: Math.min(C, enveloppe.p0 * Math.min(enveloppe.a * marge * (1 - Lenveloppe), enveloppe.b * Lenveloppe)) };
 }
 
 /**
@@ -202,11 +211,16 @@ export function facteurSombre(L: number, fonds: FondsSombres): number {
   return fonds.depart + (1 - fonds.depart) * t;
 }
 
-/** Fabrique un cran (section 6.3). */
-export function fabriquerCran(L: number, H: number, part: number, gamut: Gamut, enveloppe?: Enveloppe): Cran {
-  const couleur = lineaireVersRgb8(oklchVersLineaire(cranVise(L, H, part, gamut, enveloppe)));
+/** Les octets d'une couleur visée, et sa lecture OKLCH recalculée. */
+function cranDeLaVisee(visee: Oklch): Cran {
+  const couleur = lineaireVersRgb8(oklchVersLineaire(visee));
   const lu = rgb8VersOklch(couleur);
   return { couleur, hexa: ecrireHexa(couleur), L: lu.L, C: lu.C, H: lu.H };
+}
+
+/** Fabrique un cran (section 6.3). */
+export function fabriquerCran(L: number, H: number, part: number, gamut: Gamut, enveloppe?: Enveloppe): Cran {
+  return cranDeLaVisee(cranVise(L, H, part, gamut, enveloppe));
 }
 
 /** Ce qu'une rampe demande : une courbe, un pivot, une dérive, une part, et pour le thème Dark ses fonds. */
@@ -224,7 +238,21 @@ export interface ParametresRampe {
   readonly decalage?: number;
   /** L'enveloppe de chroma du profil dans ce thème ([MOT-35]) ; absente, la chroma vaut `part × plafond`. */
   readonly enveloppe?: Enveloppe;
+  /**
+   * Le facteur de chroma des tons clairs du thème Light, dans `]0 ; 1]` ; absent, 1.
+   * Il agit en entier au-dessus de la clarté de courbe 0,88 et plus du tout sous 0,78.
+   */
+  readonly clairs?: number;
+  /**
+   * Ce que l'enveloppe retire à la clarté d'un cran clair, au poids de son bout ;
+   * absent, 0. L'enveloppe se lit alors plus bas que la clarté fabriquée.
+   */
+  readonly decalageDeClarteGarde?: number;
 }
+
+/** Les clartés de courbe sous lesquelles `clairs` n'agit plus, et au-dessus desquelles il agit en entier. */
+const CLAIRS_PLEIN = 0.88;
+const CLAIRS_NUL = 0.78;
 
 const borner = (x: number): number => Math.min(1, Math.max(0, x));
 
@@ -242,17 +270,32 @@ function clarteDuCran(L: number, { bout, poids }: Poids, parametres: ParametresR
  * décalée, bornées à [0, 1].
  */
 export function fabriquerRampe(parametres: ParametresRampe): Cran[] {
-  const { derive, sombre } = parametres;
+  return couleursViseesDeLaRampe(parametres).map(cranDeLaVisee);
+}
+
+/**
+ * Les couleurs visées par `fabriquerRampe`, avant l'arrondi à 8 bits. Le
+ * facteur `clairs` multiplie la chroma après l'enveloppe, et l'enveloppe d'un
+ * cran clair se lit à la clarté fabriquée moins `decalageDeClarteGarde × poids`.
+ */
+export function couleursViseesDeLaRampe(parametres: ParametresRampe): Oklch[] {
+  const { derive, sombre, clairs = 1, decalageDeClarteGarde = 0 } = parametres;
   return parametres.courbe.map((L) => {
     const poids = poidsA(L, parametres.reference, parametres.bouts);
     const part = borner(parametres.part * (1 + (derive.saturation?.[poids.bout] ?? 0) * poids.poids));
-    return fabriquerCran(
-      clarteDuCran(L, poids, parametres),
+    const clarte = clarteDuCran(L, poids, parametres);
+    const clarteDeLEnveloppe = poids.bout === 'clair' ? borner(clarte - decalageDeClarteGarde * poids.poids) : clarte;
+    const visee = cranVise(
+      clarte,
       teinteA(L, parametres.reference, derive, parametres.bouts),
       sombre ? part * facteurSombre(L, sombre) : part,
       parametres.gamut,
       parametres.enveloppe,
+      clarteDeLEnveloppe,
     );
+    const x = borner((CLAIRS_PLEIN - L) / (CLAIRS_PLEIN - CLAIRS_NUL));
+    const t = 1 - x * x * (3 - 2 * x);
+    return { ...visee, C: visee.C * (1 - (1 - clairs) * t) };
   });
 }
 

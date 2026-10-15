@@ -132,9 +132,9 @@ test('[DER-20] les limites se croisent : la luminosité sombre posée en butée 
   }
   // Mesure du moteur aux garanties G1 à G7, G7 jugée contre la page et la carte : à la butée haute de la luminosité
   // sombre, l'anneau Dark touche le seuil de la carte. Aux parts communes 0,85 et 0,95 et à l'enveloppe par défaut
-  // ([MOT-35]) et à la dérive de [MOT-36], Bleu se resserre entre +4,28° et +6°, Rouge entre −90° et +11°, Jaune ne monte
-  // plus au-dessus de −30°, et Sauge se resserre entre 0° et +3°.
-  assert.deepEqual(teintes, { Bleu: [4.28, 6], Rouge: [-90, 11], Jaune: [-90, -30], Sauge: [0, 3] });
+  // ([MOT-35]) et à la dérive de [MOT-36], Bleu se resserre entre +4,28° et +5°, Rouge entre −90° et 0°, Jaune ne monte
+  // plus au-dessus de −30°, et Sauge garde la plage entière, de −90° à +90°.
+  assert.deepEqual(teintes, { Bleu: [4.28, 5], Rouge: [-90, 0], Jaune: [-90, -30], Sauge: [-90, 90] });
 });
 
 test('[DER-19] une promesse manquée au départ ne borne rien : Bleu, texte des boutons noir, la laisse manquer sur toute la plage de teinte', () => {

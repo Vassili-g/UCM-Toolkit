@@ -7,8 +7,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  boutsDe,
+  couleursViseesDeLaRampe,
   cranVise,
   enveloppeDe,
+  fabriquerRampe,
   plafond,
   rampesDe,
   recetteParDefaut,
@@ -16,6 +19,7 @@ import {
   type Intensite,
   type Mode,
   type Palette,
+  type ParametresRampe,
 } from '../src/index';
 import { paletteTailwind, recetteAvec } from './fabrique';
 
@@ -83,6 +87,85 @@ test('[MOT-35] l’enveloppe d’une intensité est celle de son profil, et l’
   }
 });
 
+test('[MOT-35] la marge des cyans centre sa bosse à 195° et vaut 1 + cyans, aux jaunes près', () => {
+  const proche = (obtenu: number, attendu: number) => assert.ok(Math.abs(obtenu - attendu) < 1e-9, `${obtenu} contre ${attendu}`);
+  const avec = (cyans: number): Enveloppe => ({ p0: 1, a: 0.6, b: 0.38, jaunes: 1, cyans });
+  // L 0,97, H 195, p0 × a × marge × 0,03 ; la part × plafond (0,037) reste plus haute.
+  assert.ok(plafond(0.97, 195, 'srgb') > 0.027);
+  proche(cranVise(0.97, 195, 1, 'srgb', avec(0)).C, 0.6 * 0.03);
+  proche(cranVise(0.97, 195, 1, 'srgb', avec(0.5)).C, 0.6 * 1.5 * 0.03);
+  proche(cranVise(0.97, 195, 1, 'srgb', avec(-0.2)).C, 0.6 * 0.8 * 0.03);
+});
+
+test('[MOT-35] Lenveloppe lit la borne de l’enveloppe à sa clarté et le plafond de l’écran à L ; absente, elle vaut L', () => {
+  const proche = (obtenu: number, attendu: number) => assert.ok(Math.abs(obtenu - attendu) < 1e-9, `${obtenu} contre ${attendu}`);
+  const enveloppe: Enveloppe = { p0: 0.85, a: 0.6, b: 0.38, jaunes: 0, cyans: 0 };
+  for (const H of [30, 100, 195, 260]) {
+    for (const L of [0.2, 0.6, 0.93, 0.97]) assert.deepEqual(cranVise(L, H, 0.85, 'srgb', enveloppe), cranVise(L, H, 0.85, 'srgb', enveloppe, L), `${L} ${H}`);
+  }
+  // L 0,97 et Lenveloppe 0,96 : l'enveloppe vaut 0,85 × 0,6 × 0,04, le plafond 0,85 × plafond(0,97) reste plus haut.
+  assert.ok(0.85 * plafond(0.97, 200, 'srgb') > 0.0204);
+  proche(cranVise(0.97, 200, 0.85, 'srgb', enveloppe, 0.96).C, 0.0204);
+  // L 0,60 et Lenveloppe 0,95 : l'enveloppe monte à 0,85 × 0,6 × 0,05 = 0,0255, sous le plafond de l'écran lu à 0,60.
+  proche(cranVise(0.6, 200, 0.85, 'srgb', enveloppe, 0.95).C, 0.0255);
+  // Sans enveloppe, Lenveloppe est sans effet.
+  assert.deepEqual(cranVise(0.6, 200, 0.85, 'srgb', undefined, 0.95), cranVise(0.6, 200, 0.85, 'srgb'));
+});
+
+/** Une rampe de crans de clarté de courbe donnée, sans Color shift, pivot au milieu. */
+function rampeDeClartes(courbe: number[], reste: Partial<ParametresRampe>): ParametresRampe {
+  const crans = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+  const bouts = boutsDe({ crans, courbes: { light: [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27], dark: [] } });
+  return {
+    courbe,
+    bouts,
+    reference: { L: 0.6, C: 0.1, H: 230 },
+    derive: { clair: 0, sombre: 0 },
+    part: 0.85,
+    gamut: 'srgb',
+    enveloppe: { p0: 10, a: 10, b: 10, jaunes: 0, cyans: 0 },
+    ...reste,
+  };
+}
+
+test('[MOT-35] clairs ne change rien sous la clarté 0,78 et multiplie la chroma en entier au-dessus de 0,88', () => {
+  const courbe = [0.4, 0.7, 0.77, 0.78, 0.88, 0.9, 0.975];
+  const sans = couleursViseesDeLaRampe(rampeDeClartes(courbe, {}));
+  const avec = couleursViseesDeLaRampe(rampeDeClartes(courbe, { clairs: 0.5 }));
+  courbe.forEach((L, rang) => {
+    const rapport = avec[rang].C / sans[rang].C;
+    if (L <= 0.78) assert.equal(avec[rang].C, sans[rang].C, `${L}`);
+    else if (L >= 0.88) assert.ok(Math.abs(rapport - 0.5) < 1e-12, `${L} : ${rapport}`);
+    assert.equal(avec[rang].L, sans[rang].L, `${L}`);
+    assert.equal(avec[rang].H, sans[rang].H, `${L}`);
+  });
+  // Entre 0,78 et 0,88, le facteur descend sans saut.
+  const milieu = couleursViseesDeLaRampe(rampeDeClartes([0.83], { clairs: 0.5 }))[0].C / couleursViseesDeLaRampe(rampeDeClartes([0.83], {}))[0].C;
+  assert.ok(Math.abs(milieu - 0.75) < 1e-12, `${milieu}`);
+});
+
+test('[MOT-35] clairs à 1 et decalageDeClarteGarde à 0 rendent les mêmes octets qu’une rampe sans ces paramètres', () => {
+  const recette = recetteParDefaut();
+  for (const mode of ['light', 'dark'] as const) {
+    const base = rampeDeClartes(recette.courbes[mode].slice(), { enveloppe: enveloppeDe(recette, 'soft', mode) });
+    const hexas = (parametres: ParametresRampe) => fabriquerRampe(parametres).map((cran) => cran.hexa);
+    assert.deepEqual(hexas({ ...base, clairs: 1, decalageDeClarteGarde: 0 }), hexas(base), mode);
+  }
+});
+
+test('[MOT-35] decalageDeClarteGarde lit l’enveloppe des crans du bout clair plus bas et garde la clarté fabriquée', () => {
+  const enveloppe: Enveloppe = { p0: 0.85, a: 0.1, b: 0.38, jaunes: 0, cyans: 0 };
+  const base = rampeDeClartes([0.975, 0.5], { enveloppe, reference: { L: 0.5, C: 0.1, H: 230 } });
+  const gardee = couleursViseesDeLaRampe({ ...base, decalageDeClarteGarde: 0.05 });
+  const normale = couleursViseesDeLaRampe(base);
+  assert.equal(gardee[0].L, normale[0].L);
+  // Bout clair au poids 1 : l'enveloppe se lit à 0,925 (0,85 × 0,1 × 0,075) au lieu de 0,975 (0,85 × 0,1 × 0,025).
+  assert.ok(Math.abs(normale[0].C - 0.002125) < 1e-9, `${normale[0].C}`);
+  assert.ok(Math.abs(gardee[0].C - 0.006375) < 1e-9, `${gardee[0].C}`);
+  // Au pivot, le poids est nul : rien ne change.
+  assert.deepEqual(gardee[1], normale[1]);
+});
+
 type Rampes = Partial<Record<Intensite, Record<Mode, string[]>>>;
 
 /** Les palettes de la recette par défaut dont les rampes sont écrites plus bas. */
@@ -98,13 +181,13 @@ const PALETTES: Record<string, Palette> = {
 /**
  * Les rampes de `rampesDuBanc` avec `REGLE_FINALE` (Mesures/prototype.ts et
  * variantes.ts, dossier de la recette critique de qualité), relevées une fois ; les rampes Soft du thème Dark
- * suivent la borne `b` 0,15 du format 12, relevée sur le moteur.
+ * suivent la borne `b` 0,15 du format 12, et les rampes Light le `clairs` 0,7 de Soft et le `cyans` −0,2 de Vivid, relevés sur le moteur.
  */
 const DU_PROTOTYPE: Record<string, Rampes> = {
   // Bleu #3B82F6
   bleu: {
     soft: {
-      light: ['#F2F7FE', '#E6F0FD', '#CFE1FA', '#B1CEF8', '#87B3F4', '#5A94F0', '#3375E9', '#2E5DBE', '#264796', '#1D3270', '#142250'],
+      light: ['#F4F7FC', '#E8EFF8', '#D4E1F2', '#B7CEEE', '#87B3F4', '#5A94F0', '#3375E9', '#2E5DBE', '#264796', '#1D3270', '#142250'],
       dark: ['#070A12', '#161B29', '#202739', '#2B354B', '#3A4764', '#4E6084', '#617BA6', '#7596CA', '#8AB3EF', '#B3D0F8', '#DBE9FC'],
     },
     vivid: {
@@ -115,22 +198,22 @@ const DU_PROTOTYPE: Record<string, Rampes> = {
   // Jaune #EAB308
   jaune: {
     soft: {
-      light: ['#F9F8E5', '#F6F0C9', '#F2E097', '#EEC856', '#D9A93F', '#BD8B33', '#A17129', '#86581F', '#6C4216', '#522E0E', '#3C1D07'],
+      light: ['#F9F8EA', '#F3F0D5', '#ECE0AE', '#E7CA76', '#D9A93F', '#BD8B33', '#A17129', '#86581F', '#6C4216', '#522E0E', '#3C1D07'],
       dark: ['#0D0907', '#251911', '#352317', '#46301F', '#5C412A', '#785A39', '#957347', '#B28F57', '#CEAC67', '#E8CC78', '#F3E9B7'],
     },
     vivid: {
-      light: ['#FBF9DB', '#FAF1B4', '#FCDF61', '#F6C60A', '#EAB308', '#C38905', '#A76E03', '#8B5502', '#713F01', '#562B01', '#3F1B00'],
+      light: ['#FBF9DB', '#FAF1B4', '#FCDF62', '#F6C60A', '#EAB308', '#C38905', '#A76E03', '#8B5502', '#713F01', '#562B01', '#3F1B00'],
       dark: ['#0E0906', '#27180E', '#392111', '#4D2C10', '#6A3A01', '#885202', '#A66D03', '#C38905', '#EAB308', '#F4C93B', '#F4E9B1'],
     },
   },
   // Vert #16A34A
   vert: {
     soft: {
-      light: ['#F0FAF3', '#E2F4E7', '#C7EAD2', '#A4DCB4', '#71C78A', '#3AAF5F', '#2F924C', '#24753F', '#1A5B31', '#114324', '#092E18'],
+      light: ['#F2F9F4', '#E6F2E9', '#CFE7D6', '#AED9BA', '#71C78A', '#3AAF5F', '#2F924C', '#24753F', '#1A5B31', '#114324', '#092E18'],
       dark: ['#070B08', '#121F16', '#1A2D1F', '#243C2B', '#32503A', '#466B4E', '#5A8763', '#6EA479', '#81C393', '#94E3AD', '#C6F6D5'],
     },
     vivid: {
-      light: ['#EAFCF0', '#D4FAE0', '#AAF4C3', '#69EA9A', '#20D26F', '#19B256', '#16A34A', '#0D7738', '#085D2D', '#044420', '#022F16'],
+      light: ['#EBFCF0', '#D6F9E1', '#AFF2C5', '#75E89E', '#20D26F', '#19B256', '#16A34A', '#0D7738', '#085D2D', '#044420', '#022F16'],
       dark: ['#070B08', '#112015', '#152E1D', '#153F24', '#07572A', '#0D7437', '#139244', '#16A34A', '#20D26F', '#70EB9D', '#C2F7D3'],
     },
   },
@@ -144,7 +227,7 @@ const DU_PROTOTYPE: Record<string, Rampes> = {
   // Bleu #3B82F6, teinte +8° et luminosité −0,02
   reglee: {
     soft: {
-      light: ['#EAF0FD', '#DEE8FC', '#C9DAF9', '#AEC6F7', '#89A9F3', '#6489EF', '#4B6AE0', '#3E53B4', '#323E8C', '#242B66', '#181B47'],
+      light: ['#ECF0F9', '#E1E8F6', '#CEDAF0', '#B3C6EC', '#89A9F3', '#6489EF', '#4B6AE0', '#3E53B4', '#323E8C', '#242B66', '#181B47'],
       dark: ['#05060C', '#141623', '#1E2133', '#2A2F44', '#3A415C', '#4E597D', '#63739F', '#788EC2', '#8FAAE7', '#B0C7F7', '#D5E2FB'],
     },
     vivid: {
@@ -155,11 +238,11 @@ const DU_PROTOTYPE: Record<string, Rampes> = {
   // Jaune #EAB308, parts propres 0,6 et 1
   propres: {
     soft: {
-      light: ['#F9F8E5', '#F6F0C9', '#F2E097', '#E6CA7B', '#CDAC6A', '#B18F58', '#977548', '#7C5C39', '#63462B', '#4B311E', '#362113'],
+      light: ['#F9F8EA', '#F3F0D5', '#ECE0AE', '#E0CB8F', '#CDAC6A', '#B18F58', '#977548', '#7C5C39', '#63462B', '#4B311E', '#362113'],
       dark: ['#0C0908', '#221A14', '#32241B', '#453021', '#5C412A', '#785A39', '#957347', '#B18F58', '#CDAC6A', '#E7CC7C', '#F3E9B7'],
     },
     vivid: {
-      light: ['#FBF9DB', '#FAF1B4', '#FCDF61', '#F7C600', '#EAB308', '#C38900', '#A86E00', '#8B5500', '#713F00', '#562B00', '#3F1B00'],
+      light: ['#FBF9DB', '#FAF1B4', '#FCDF62', '#F7C600', '#EAB308', '#C38900', '#A86E00', '#8B5500', '#713F00', '#562B00', '#3F1B00'],
       dark: ['#0E0906', '#27180E', '#392111', '#4E2C10', '#6A3A00', '#885200', '#A66D00', '#C38900', '#EAB308', '#F4C93B', '#F4E9B1'],
     },
   },

@@ -146,6 +146,7 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
       gamut: r.gamut,
       sombre: mode === 'dark' ? fondsSombresDe(r) : undefined,
       enveloppe: enveloppeDe(r, profil, mode),
+      clairs: mode === 'light' ? r.profils[profil].clairs : 1,
     });
     const L = rgb8VersOklch(octets).L;
     for (const mode of MODES) {

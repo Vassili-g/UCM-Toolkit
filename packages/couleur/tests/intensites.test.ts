@@ -64,10 +64,10 @@ test('[ENT-14] sur cinq cents références, la rampe unique est celle du profil 
     const attendue = rampesDe(recetteAvec(seule), seule).unique!;
     for (const profil of PROFILS) {
       const forcee = { ...paletteTailwind('p-000000c2', hexa), base: profil };
-      // La rampe unique prend l'enveloppe de Vivid ([MOT-35]) : Soft la prend aussi, pour que seul le porteur diffère.
+      // La rampe unique prend l'enveloppe et le `clairs` de Vivid ([MOT-35]) : Soft les prend aussi, pour que seul le porteur diffère.
       const recette = recetteAvec(forcee);
       const jugee = profil === 'soft'
-        ? { ...recette, profils: { ...recette.profils, soft: { ...recette.profils.soft, enveloppe: recette.profils.vivid.enveloppe } } }
+        ? { ...recette, profils: { ...recette.profils, soft: { ...recette.profils.soft, enveloppe: recette.profils.vivid.enveloppe, clairs: recette.profils.vivid.clairs } } }
         : recette;
       const rampe = rampesDe(jugee, forcee)[profil]!;
       for (const mode of MODES) {
