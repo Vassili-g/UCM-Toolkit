@@ -1102,7 +1102,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
 | D2 | D1 |
 | D3 | seule |
 
-- [ ] **D1 · AGENTS.md** · `implementeur`, moyen.
+- [x] **D1 · AGENTS.md** · `implementeur`, moyen.
   - Sections : carte du code (`dossiers.ts`, `garanties.ts`, `recette.ts`,
     `rampe.ts`, `tailwind.ts`, `nuances.ts`, `garantie.ts`, `promesses.ts`,
     `limites.ts`, `alertes.ts`, `harmonisation.ts` du moteur ; l'onglet

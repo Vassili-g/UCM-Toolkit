@@ -127,8 +127,8 @@ packages/kit/            le format et ses lecteurs : @ucm-kit/core, publié
     typography.ts            les graisses et styles DTCG qu'un text style emploie
     index.ts                 ce que le sous-chemin publie
   src/emplois/             sous-chemin SANS dépendance : le vocabulaire qu'UCM Palettes et `ucm check` partagent
-    dossiers.ts              la table des dossiers `solid`, `surface` et `page` dans ses deux sens, le neutre, les crans requis, les trois états, ce que chaque variable peint et ses portées Figma
-    garanties.ts             les sept garanties G1 à G7, jugées contre le seul fond de la page, et leur jugeabilité selon les crans présents
+    dossiers.ts              la table des dossiers `solid`, `surface` et `page` et de `ring`, une par thème et par sens, le neutre, les crans requis, les trois états, ce que chaque variable peint et ses portées Figma
+    garanties.ts             les sept garanties G1 à G7, leurs fonds (une variable de la palette, la page ou la carte) et leur jugeabilité selon les crans présents
     contraste.ts             le contraste WCAG 2 et sa comparaison au seuil à dix décimales
     index.ts                 ce que le sous-chemin publie
   src/lecteurs/            ce qui juge un contrat écrit ; `ajv` et `node:fs`
@@ -193,20 +193,20 @@ packages/adapter-typescript/  l'adaptateur opt-in : parité TS/TSX et types gén
 packages/couleur/        le moteur de couleur d'UCM Palettes : ucm-couleur, privé, lu en source
   src/conversions.ts       hexa, sRGB, linéaire, Oklab, OKLCH et Display P3
   src/plafond.ts           la plus grande chroma que sRGB porte, mémorisée
-  src/rampe.ts             un cran, le poids d'une nuance, la teinte pivotée, le Color shift, le facteur des fonds du thème Dark, les rampes des deux profils
-  src/tailwind.ts          le préréglage Tailwind et son relevé
+  src/rampe.ts             un cran et l'enveloppe de chroma qui le borne (`cranVise`), le poids d'une nuance, la teinte pivotée, le Color shift, le facteur des fonds du thème Dark, les rampes des deux profils
+  src/tailwind.ts          le relevé des dix-sept rampes colorées de Tailwind (teinte et clarté de chaque cran) et le préréglage de dérive lu à la clarté de la référence
   src/contraste.ts         niveaux WCAG, ΔEok, part de chroma, écriture à virgule ; le contraste vient du kit
-  src/recette.ts           la forme de la recette au format 10, sa validation, son classement à la lecture : le format 9 se lit tel quel, le format 8 se lit et reçoit `texteDesBoutons` par défaut, aucun autre format antérieur ne se convertit
+  src/recette.ts           la forme de la recette au format 11 (parts et enveloppe de chroma par profil, relevé `derives`), sa validation, son classement à la lecture : les formats 8 à 10 se lisent en format 11, une étape par format, aucun format antérieur ne se convertit
   src/protocole.ts         l'espace et la clé partagés de la recette, qu'UCM Palettes écrit et que l'explorateur lit
   src/empreinte.ts         JSON canonique, encodeur UTF-8 et FNV-1a
-  src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées, les clartés de leurs crans et les bornes des fonds du thème Dark
+  src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées, l'enveloppe de chroma de chaque intensité, les clartés de leurs crans et les bornes des fonds du thème Dark
   src/reconstruction.ts    les réglages d'une palette figée retrouvés depuis ses couleurs : recherche asynchrone, bornée, interruptible, à écart en hexa
   src/reglages.ts          la référence réglée, tirée du départ par la teinte et la clarté du porteur, et le rangement des réglages d'une palette (`appliquerLesReglages`)
-  src/harmonisation.ts     les candidats de teinte, la course permise, les zones trop proches d'une autre palette et le gris de même clarté
+  src/harmonisation.ts     les candidats de teinte, la course permise, les zones trop proches d'une autre palette, la sortie la plus proche et le gris de même clarté
   src/nuances.ts           les deux préréglages de nuances, 11 et 13, leurs courbes par défaut selon le texte des boutons de chaque thème (`courbesParDefaut`), les nuances 500 à 800 réglées (`nuancesReglees`), le changement de texte des boutons (`recetteAvecTexteDesBoutons`), la luminosité d'un numéro absent de la liste, la liste d'une palette libre
   src/ajustement.ts        la proposition d'un ajustement de la référence, par pas de luminosité
-  src/promesses.ts         les sept garanties du kit, jugées par palette, par mode, dans la table du sens du thème, et par intensité présente
-  src/alertes.ts           les alertes de conception et la notice
+  src/promesses.ts         les sept garanties du kit, jugées par palette, par mode, dans la table du sens du thème, et par intensité présente, contre la page et la carte que le fond de la page détermine (`couleurDeLaCarte`)
+  src/alertes.ts           les alertes de conception, les palettes trop proches (`pairesTropProches`) et la notice
   src/garantie.ts          la garantie des courbes : `page/foreground` et `ring` contre le cran le plus clair, gris, puis `solid/default` contre le texte des boutons, sur 360 teintes
   src/limites.ts           la limite dynamique d'un réglage et la cause de chaque borne, balayée un pas à la fois
   src/constats.ts          les sévérités et leur ordre d'affichage
@@ -224,7 +224,7 @@ packages/plugin-socle/   ce que les plugins partagent : ucm-plugin-socle, privé
   src/fenetre.ts           la taille bornée de la fenêtre, rangée dans clientStorage
   src/cheminsDeTokens.ts   le chemin publié d'un token, collection puis variable : UCM Exporter l'écrit, l'explorateur le recalcule
   src/ui/socle.css         échelle de texte, trame, rôles de couleur et replis sombres, avant la feuille de chaque plugin
-  src/ui/                  bouton, onglets, interrupteur, poignée de redimensionnement, engrenage et bascule de l'en-tête
+  src/ui/                  bouton, onglets dont un peut être indisponible (désactivé, sauté par les flèches), interrupteur, poignée de redimensionnement, bouton « Configuration » (engrenage puis libellé) et bascule de l'en-tête
   galerie/                 le banc de galerie, sa capture et le décalque du thème Figma
   lois/                    les lois des styles, du gabarit, du manifest et de la galerie, que le test de chaque plugin appelle
   tests/                   le build, le manifest, la fenêtre, le banc et la loi des styles, pour un plugin quelconque
@@ -266,12 +266,18 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/i18n/                le registre des langues, les catalogues anglais et français, le traducteur, le séparateur décimal
   src/preferences.ts       la langue de l'interface et la vue de Gestion, lues et rangées dans clientStorage, rangements ordonnés
   src/planche/textes.ts    les textes des planches : le catalogue français, quelle que soit la langue de l'interface
-  src/ui/                  l'en-tête du socle, les onglets Création, Vérification et Gestion, la configuration
+  src/harmonisation.ts     l'état de l'onglet Harmonisation (palettes cochées, palette à régler, thème, intensité, affichage, vision), le départ de chaque palette réglée, l'annulation de ses modifications et les constats de la comparaison, sans DOM
+  src/vision.ts            les trois visions des couleurs que la roue simule, par matrice en sRGB linéaire
+  src/roueDesTeintes.ts    la géométrie de la roue des teintes : position d'une teinte, teinte visée par le pointeur, arc d'une paire, hauteur des noms
+  src/ui/                  l'en-tête du socle, les onglets Création, Vérification, Harmonisation et Gestion, la Configuration à deux onglets, Palettes et Général
   src/ui/paletteOuverte.ts la recette affichée, la palette ouverte, le thème montré, son analyse, l'état du geste et le verdict de chaque palette, sans DOM ; ses abonnés prévenus à chaque rendu complet, et ceux du thème à chaque changement
   src/ui/barreDePalette.ts la barre de la palette ouverte, un bloc ordinaire en un exemplaire que l'onglet actif place dans son panneau : sélecteur, « Nouvelle palette », menu, confirmation de suppression
   src/ui/basculeDuTheme.ts le choix « Aperçu » Light/Dark du thème montré, que la ligne du titre de Création et celle de Vérification rendent chacune
   src/ui/ongletCreation.ts l'onglet Création : la barre, la ligne du titre « Palette [nom] » et de la bascule du thème, l'encart d'une palette reprise du fichier, les cartes, dont la configuration repliée après une création, puis le pied qui compte les messages ; l'état du geste en cours
   src/ui/ongletVerification.ts l'onglet Vérification : la barre, la ligne du titre et de la bascule du thème, le verdict de la palette ouverte, ses messages, la carte des garanties fixe, le pied vers Gestion ou Création ; sans palette ouverte, le bilan des palettes
+  src/ui/ongletHarmonisation.ts l'onglet Harmonisation : l'en-tête avec l'intensité et le thème, le bilan, les cinq cartes, le compteur de l'onglet ; la recette et les départs d'avant un glisser ou un rangement en vol, que Échap et un refus rendent ; les hauteurs des cartes figées pendant un glisser
+  src/ui/harmonisation/    les cinq cartes de l'onglet : palettes trop proches, liste à cocher, comparaison en couleurs ou en gris, réglages d'une palette, roue des teintes ; les couleurs qu'elles peignent, la course et les zones trop proches partagées par la piste et la roue, la prévisualisation d'au plus une palette par image
+  src/ui/grandeursDuReglage.ts  les trois grandeurs d'un réglage, teinte, saturation et luminosité : écriture, lecture d'une saisie, bouts de la piste et piste peinte, communes au Réglage global et aux Réglages d'Harmonisation
   src/ui/bilanDesPalettes.ts le classement de chaque palette, à corriger, à vérifier ou conforme, et son premier constat, sans DOM
   src/ui/vueDuBilanDesPalettes.ts Vérification sans palette ouverte : onglets du bilan, nuancier mis en avant ou atténué, détail, « tout est conforme »
   src/ui/nuancierDesPalettes.ts le nuancier partagé de l'accueil de Création et du bilan : une carte de trois aplats par palette, point d'état, carte atténuée
@@ -1029,28 +1035,41 @@ La spécification en lien porte le raisonnement.
   le temps et rendre la main à l'interface ; son résultat ne dépend du temps
   que si le budget s'épuise.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#6-le-moteur-de-couleur)
-- La table des dossiers `solid`, `surface` et `page`, ses deux sens, les
-  crans requis, les trois états, les sept garanties G1 à G7 et le contraste
-  WCAG 2 ont une seule source, `@ucm-kit/core/emplois`
+- La table des dossiers `solid`, `surface` et `page` et de `ring`, une par
+  thème et par sens, les crans requis, les trois états, les sept garanties
+  G1 à G7 et le contraste WCAG 2 ont une seule source, `@ucm-kit/core/emplois`
   (`packages/kit/src/emplois/`). `ucm-couleur` l'importe et la republie sans
   la recopier, et le kit n'importe rien de `ucm-couleur`.
 - Un thème est normal ou inversé selon son texte des boutons, blanc ou noir :
   Light blanc et Dark noir sont normaux. `sensDuTheme` (`dossiers.ts`) en est
-  l'unique autorité, et chaque lecteur de la table passe par lui. Dans le sens
+  l'unique autorité, et chaque lecteur de la table passe par lui : la table est
+  indexée par thème, puis par sens (`TABLE_DES_DOSSIERS`). Dans le sens
   inversé, `solid/hover` et `solid/pressed` prennent les crans 600 et 500,
-  `surface/foreground`, `surface/border`, `page/foreground` et `page/border`
-  montent d'un cran, et les nuances 500 à 800 prennent la courbe inversée
-  (`courbesParDefaut`). Les crans requis sont 100, 200, 300, 600, 700, 800 et
-  900, plus 500 si un thème est inversé ; 50, 400 et 950 sont facultatifs, et
-  une variable dont le cran manque n'est pas présente. `solid/foreground` vaut
-  `#FFFFFF` ou `#000000`, jamais le fond de la page.
+  `page/foreground` et `page/border` le cran 800 au lieu de 700, `ring` le cran
+  700 au lieu de 600, et les nuances 500 à 800 prennent la courbe inversée
+  (`courbesParDefaut`). En Light inversé, `surface/foreground` et
+  `surface/border` prennent aussi le cran 900 au lieu de 800. En Dark,
+  `surface/default`, `surface/hover` et `surface/pressed` prennent les crans
+  300, 400 et 500, et `surface/foreground` et `surface/border` le cran 950,
+  dans les deux sens. `ring` est une variable à la racine de la palette, à côté
+  des dossiers. Les crans requis sont 100 à 950, réunion des crans de la table
+  de chaque thème dans son sens ; seul 50 est facultatif, et une variable
+  dont le cran manque n'est pas présente. `solid/foreground` vaut `#FFFFFF` ou
+  `#000000`, jamais le fond de la page.
   `packages/kit/tests/dossiers.test.ts` et
   `packages/couleur/tests/nuances.test.ts` le tiennent.
 - Chaque garantie G1 à G7 se juge par palette, dans la table du sens du
-  thème, contre le seul fond de la page, le réglage « Fond » du thème ;
-  aucune ne croise deux palettes, et `elevation/raised` n'est jamais mesuré.
-  Une garantie dont un cran manque n'est pas jugeable. Les seuils viennent de
-  la recette (`texte`, `nonTexte`). La garantie des courbes lit, dans la table
+  thème ; aucune ne croise deux palettes. G2 à G6 se jugent contre la page,
+  le réglage « Fond » du thème (G3 et G4 aussi contre les trois surfaces), et
+  G7 contre la page et contre la carte, `elevation/raised`. Aucun réglage ne
+  porte la carte : `couleurDeLaCarte` (`packages/couleur/src/promesses.ts`) la
+  déduit du fond. En Light, elle est blanche. En Dark, elle prend la teinte
+  et la chroma du fond, à la clarté du cran qui suit, sur la courbe Dark,
+  celui dont la clarté est la plus proche de celle du fond ; le dernier cran,
+  sans suivant, donne sa propre clarté. Une garantie dont un cran manque n'est
+  pas jugeable. Les
+  seuils viennent de la recette (`texte`, `nonTexte`). La garantie des
+  courbes lit, dans la table
   du sens de chaque mode, `page/foreground` au seuil `texte` et `ring`
   au seuil `nonTexte` contre le cran le plus clair, gris, puis `solid/default`
   au seuil `texte` contre le texte des boutons du mode, pour toute teinte et
@@ -1058,12 +1077,21 @@ La spécification en lien porte le raisonnement.
   `verifierPromesses` (`packages/couleur`) en sont l'unique autorité ;
   `packages/kit/tests/garanties.test.ts` et
   `packages/couleur/tests/promesses.test.ts` les tiennent.
-- La recette est au format 10 et porte `texteDesBoutons: { light, dark }`,
+- La recette est au format 11 et porte `texteDesBoutons: { light, dark }`,
   chacun `blanc` ou `noir` ; une autre valeur est refusée par la règle
-  `texte-des-boutons`. Une recette au format 8 se lit, reçoit le texte par
-  défaut et se classe `courante` ; une qui porte déjà `texteDesBoutons` est
-  refusée par la règle `forme`. Aucune lecture n'écrit : le format 10 se range
-  au prochain geste du designer. Changer le texte des boutons d'un thème
+  `texte-des-boutons`. Chaque profil porte sa part et son enveloppe de chroma
+  (voir ci-dessous), et `derives` relève la teinte et la clarté de chaque
+  cran des rampes de Tailwind. `classerRecette` lit les formats 8 à 10 en
+  format 11, une étape par format, et les classe `courante` : le format 8
+  reçoit le texte des boutons par défaut ; le format 10 reçoit les profils et
+  le relevé `derives` par défaut, ce qui remplace les parts qu'il portait, et
+  reçoit aussi les crans 400, 500 et 950 que sa liste ne porte pas, avec la
+  luminosité que `luminositeAuNumero` leur donne. Une forme ancienne qui porte déjà un champ
+  d'un format suivant (`texteDesBoutons` au format 8, `enveloppe` d'un profil,
+  une rampe de `derives` en objet) ou qui n'a ni `crans` ni `courbes` est
+  refusée par la règle `forme`. Un format inférieur à 8 est illisible, un
+  format supérieur à 11 est `future`. Aucune lecture n'écrit : le format 11
+  se range au prochain geste du designer. Changer le texte des boutons d'un thème
   remplace ses nuances 500 à 800 par les valeurs par défaut du sens d'arrivée ;
   `recetteAvecTexteDesBoutons` refuse le passage quand la courbe n'est plus
   strictement monotone, et la recette ne change pas. `classerRecette`
@@ -1071,6 +1099,20 @@ La spécification en lien porte le raisonnement.
   (`nuances.ts`) en sont l'unique autorité ; `packages/couleur/tests/recette.test.ts`
   et `nuances.test.ts` le tiennent.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#112-promesses-des-emplois)
+- La chroma d'un cran vaut `part × plafond(L, H)`, bornée par l'enveloppe du
+  profil dans le thème : `p0 × min(a × marge(H) × (1 − L), b × L)`, avec
+  `marge(H) = 1 + jaunes × exp(−½ × (écart de H à 100° ÷ 12°)²)`. La recette
+  range, par profil, `p0` et les bornes `a`, `b` et `jaunes` de chaque thème ;
+  Soft lit celles de `soft`, Vivid et l'intensité unique celles de `vivid`
+  (`enveloppeDe`). `p0` ne suit ni le Color shift ni les fonds du thème Dark :
+  `part` les porte déjà. Les valeurs par défaut sont `PROFILS_PAR_DEFAUT`
+  (`recette.ts`). Les bornes ne paraissent pas dans l'interface : « Par
+  défaut », sur la carte Intensités de la Configuration, remet les parts et
+  les enveloppes par défaut (`retablir`, `configuration.ts`). La règle `enveloppe` refuse un `p0` hors de `]0 ; 1]`, un
+  `a` ou un `b` hors de `]0 ; 2]` et un `jaunes` hors de `[0 ; 2]`.
+  `cranVise` (`packages/couleur/src/rampe.ts`) en est l'unique autorité ;
+  `fabriquerCran` et la garantie des courbes la lisent, et
+  `packages/couleur/tests/enveloppe.test.ts` la tient.
 - À la clarté de la couleur de référence, la teinte vaut celle de la référence,
   quel que soit le Color shift. `teinteA` (`packages/couleur/src/rampe.ts`) en est
   l'unique autorité, et `proprietes.test.ts` l'éprouve sur vingt mille tirages.
@@ -1414,6 +1456,40 @@ La spécification en lien porte le raisonnement.
   pressent Fin au-delà d'une borne. Borne : une valeur rangée qu'un autre
   réglage a sortie de sa plage reste en place ([DER-23]).
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#123-les-limites)
+- L'onglet Harmonisation vient entre Vérification et Gestion. Sous deux
+  palettes, il est indisponible : le bouton est désactivé et les flèches le
+  sautent ; une recette qui retombe sous deux palettes quitte l'onglet et
+  remet ses choix à zéro (`synchroniserHarmonisation`). Il garde, le temps
+  de la session, les palettes cochées (quatre au plus, `cocherPalette` refuse
+  la cinquième), la palette à régler parmi elles, son propre thème et sa
+  propre intensité, l'affichage en couleurs ou en gris, la vision de la roue
+  et le départ de chaque palette réglée. Rien de cela ne se range ni
+  n'envoie de demande au sandbox. Les réglages de la carte « Réglages » et
+  les points de la roue passent par la recette que Création porte : un
+  glisser la prévisualise au plus une fois par image, sa fin la range par la
+  frontière, Échap rend la palette d'avant, et un rangement que le sandbox
+  refuse rend la recette et les départs d'avant. La teinte décale les deux
+  intensités du même écart, borné à ±30° par profil et par les garanties
+  tenues au départ (`candidatDeTeinte`, `courseDeTeinte`) ; une palette figée
+  ne se règle pas. Le compteur de l'onglet compte les paires que
+  `pairesTropProches` juge sous le seuil `palettesProches`, et le lien
+  « Comparer » de Vérification ouvre l'onglet sur la paire cochée
+  (`comparerLaPaire`). La vision de la roue repeint les points et ne change
+  ni la recette ni les alertes. Pendant un glisser, aucune carte ne change de
+  hauteur : l'onglet les fige jusqu'à la validation ou à Échap.
+  `packages/plugin-palettes/src/harmonisation.ts` et
+  `packages/couleur/src/harmonisation.ts` en sont l'unique autorité ;
+  `packages/plugin-palettes/tests/harmonisation.test.ts`,
+  `packages/plugin-palettes/tests/roueDesTeintes.test.ts`,
+  `packages/couleur/tests/harmonisation.test.ts` et les tests `[UI-39]` à
+  `[UI-44]` et `[VER-23]` de `interface.test.mjs` le tiennent.
+- Le bouton d'en-tête du socle dit « Configuration » et ouvre un panneau à
+  deux onglets : Palettes, les réglages communs, et Général, la langue de
+  l'interface. Chaque ouverture revient sur Palettes ; changer de langue
+  garde l'onglet Général. Pendant un dessin, seul le panneau Palettes est
+  inerte : la langue reste réglable. UCM Token Explorer n'a pas de
+  configuration. Les tests `[ENT-20]` et `[ENT-21]` de `interface.test.mjs`
+  le tiennent.
 
 ### Explorateur de tokens
 
