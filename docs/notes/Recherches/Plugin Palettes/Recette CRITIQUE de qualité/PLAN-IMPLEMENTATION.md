@@ -71,7 +71,8 @@ Règles d'économie, à tenir par l'orchestrateur :
 - Vague 3 (P1 à P8) et H0 faits, vérifiés et poussés le 15 octobre : suite
   complète et trois `test:ui` verts (Palettes 275, Exporter 39,
   explorateur 24).
-- **Prochaine étape** : H6, puis H7 ; H1 (Codex) à H5 sont faits.
+- **Prochaine étape** : H7, la revue au pixel et la fin de vague 4 ; H1
+  (Codex) à H6 sont faits.
 - stone-950 (M4) : le mainteneur garde le comportement ; le test juge
   l'écart de couleur, sous 0,02 ΔEok (`desaturees.test.ts`).
 
@@ -1058,7 +1059,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Fini quand : vert ; un point se règle au clavier (flèches ±1°, Maj
     ±10°), test d'interface.
 
-- [ ] **H6 · Le lien « Comparer » de Vérification** · `implementeur`, moyen.
+- [x] **H6 · Le lien « Comparer » de Vérification** · `implementeur`, moyen.
   - SPEC, section 6, deux premiers points ; identifiant `[VER-23]`, section
     du bilan de Vérification de SPEC-PAL.
   - `PAL/src/ui/vueDuBilanDesPalettes.ts` : sur une ligne de palette trop

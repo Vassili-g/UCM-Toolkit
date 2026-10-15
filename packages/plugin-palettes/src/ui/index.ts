@@ -231,6 +231,11 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     },
     // Le bilan sans palette ouverte : une carte ou « Vérifier » choisit la palette, comme le sélecteur de la barre.
     choisir: (id) => ongletCreation.gestesDeLaBarre.choisir(id),
+    // Le lien d'une palette trop proche : l'onglet s'ouvre, puis la paire se coche ([VER-23]).
+    comparer(paire) {
+      allerA('harmonisation');
+      ongletHarmonisation.comparer(paire);
+    },
     versCreation: () => allerA('creation'),
     versGestion: () => allerA('gestion'),
   });

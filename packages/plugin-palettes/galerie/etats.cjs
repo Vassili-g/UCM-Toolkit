@@ -1953,7 +1953,7 @@ ETATS.push(
     id: 'verification-bilan-a-verifier',
     titre: 'Vérification sans palette ouverte, à vérifier',
     quand: 'Même fichier ; le designer passe à l’onglet « À vérifier ».',
-    regarder: 'L’onglet « À vérifier 11 » actif. Bleu, Jaune, Rouge, Cyan, Rose, Indigo, Teal, Pourpre, Marine, Cuivre et Azur en couleur, les neuf autres atténuées mais toujours cliquables. Le détail compte onze lignes, sans ΔEok : « trop proche d’Azur » pour Bleu et pour Indigo, « trop proche de Cuivre » pour Jaune et pour Rouge, « trop proche de Teal » pour Cyan, « trop proche de Cyan » pour Teal, « trop proche de Violet » pour Pourpre, « trop proche de Bleu » pour Marine et pour Azur, « trop proche de Jaune » pour Cuivre, et pour Rose la phrase « Soft et Vivid sont presque identiques sur ces nuances. ».',
+    regarder: 'L’onglet « À vérifier 11 » actif. Bleu, Jaune, Rouge, Cyan, Rose, Indigo, Teal, Pourpre, Marine, Cuivre et Azur en couleur, les neuf autres atténuées mais toujours cliquables. Le détail compte onze lignes, sans ΔEok : « trop proche d’Azur » pour Bleu et pour Indigo, « trop proche de Cuivre » pour Jaune et pour Rouge, « trop proche de Teal » pour Cyan, « trop proche de Cyan » pour Teal, « trop proche de Violet » pour Pourpre, « trop proche de Bleu » pour Marine et pour Azur, « trop proche de Jaune » pour Cuivre, et pour Rose la phrase « Soft et Vivid sont presque identiques sur ces nuances. ». Le lien des dix lignes de paire dit « Comparer », celui de Rose « Vérifier ».',
     existe: true,
     sansPaletteChoisie: true,
     atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ouvrirLaVerification, { clic: '.bilan-onglets [data-onglet="ambre"]' }],
@@ -1997,6 +1997,21 @@ ETATS.push({
   existe: true,
   sansPaletteChoisie: true,
   atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ONGLET_HARMONISATION, { clic: `.paire[data-paire="${identifiantDuBilan(7)} ${identifiantDuBilan(18)}"] .bilan-verifier` }],
+});
+
+ETATS.push({
+  id: 'harmonisation-depuis-verification',
+  titre: 'Le lien « Comparer » du bilan de Vérification',
+  quand: 'Même fichier de vingt palettes ; dans l’onglet « À vérifier » de Vérification, le designer clique « Comparer » sur la ligne de Bleu, trop proche d’Azur.',
+  regarder: 'Harmonisation s’ouvre avec Bleu et Azur cochées, et eux seuls, dans « Vos palettes » ; la carte Comparaison les montre côte à côte, et la carte Réglages règle la palette que la sortie la plus proche désigne. Le bilan d’avant le clic est l’état « verification-bilan-a-verifier ».',
+  existe: true,
+  sansPaletteChoisie: true,
+  atteinte: [
+    etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)),
+    ouvrirLaVerification,
+    { clic: '.bilan-onglets [data-onglet="ambre"]' },
+    { clic: `.bilan-ligne[data-palette="${identifiantDuBilan(0)}"] .bilan-verifier` },
+  ],
 });
 
 const CASE_DE_HARMONISATION = (rang) => ({ clic: `#panneau-harmonisation .case-a-cocher[data-palette="${identifiantDuBilan(rang)}"]` });

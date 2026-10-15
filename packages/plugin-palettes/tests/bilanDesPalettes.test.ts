@@ -59,6 +59,9 @@ test('les deux palettes d’une paire trop proche sont à vérifier, chacune nom
   assert.ok(premiere && premiere.nature === 'proche' && seconde && seconde.nature === 'proche');
   assert.equal(premiere.avec.id, VOISIN.id);
   assert.equal(seconde.avec.id, CYAN.id);
+  // [VER-23] Le lien « Comparer » reçoit la paire du moteur, la même pour les deux lignes.
+  assert.deepEqual(premiere.paire.palettes, [CYAN.id, VOISIN.id]);
+  assert.equal(seconde.paire, premiere.paire);
   assert.deepEqual(alerte.palettes, [CYAN.id, VOISIN.id]);
   assert.deepEqual(etats(avec(VOISIN, CYAN)), [[VOISIN.id, 'ambre'], [CYAN.id, 'ambre']]);
 });

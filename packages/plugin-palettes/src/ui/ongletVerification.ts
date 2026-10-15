@@ -11,6 +11,8 @@
  * L'onglet lit l'état partagé (`paletteOuverte.ts`) et ne se rend que
  * visible, à la fin d'un geste : un glisser dans Création ne le recalcule pas.
  */
+import type { PaireTropProche } from 'ucm-couleur';
+
 import { verdictDeLaPalette, type CibleDAction } from '../presentation';
 import type { BarreDePaletteUi } from './barreDePalette';
 import { creerVuesBasculeDuTheme } from './basculeDuTheme';
@@ -29,6 +31,8 @@ export interface GestesDeLaVerification {
   ouvrir(cible: CibleDAction): void;
   /** Ouvre la vérification d'une palette que le bilan nomme, comme le choix dans le sélecteur. */
   choisir(id: string): void;
+  /** Ouvre Harmonisation avec la paire trop proche que le bilan nomme cochée ([VER-23]). */
+  comparer(paire: PaireTropProche): void;
   versCreation(): void;
   versGestion(): void;
 }
@@ -63,7 +67,7 @@ function construireVues(i18n: Localisation) {
     choix.className = 'choix-de-palette';
 
     // Sans palette choisie : le bilan de toutes les palettes, nuancier vérifié et onglets à corriger, à vérifier, conformes.
-    const bilanDesPalettes = createBilanDesPalettes({ ouvrir: (id) => gestes.choisir(id) });
+    const bilanDesPalettes = createBilanDesPalettes({ ouvrir: (id) => gestes.choisir(id), comparer: (paire) => gestes.comparer(paire) });
 
     // Sans palette choisie et sans palette dans la recette : l'invitation de Création ([UI-06]).
     const invitation = document.createElement('div');

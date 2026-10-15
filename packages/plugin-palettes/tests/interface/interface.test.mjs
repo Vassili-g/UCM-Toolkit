@@ -8138,6 +8138,25 @@ test('V3a [VER-18] à l’ouverture sans garantie manquée, « À vérifier » e
   } finally { await page.close(); }
 });
 
+test('V3a [VER-23] sur une palette trop proche, le lien dit « Comparer » et ouvre Harmonisation avec la paire la plus proche cochée', async () => {
+  const page = await ouvrirLeBilan('harmonisation-depuis-verification');
+  try {
+    const avant = await compte(page);
+    await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
+    const lignes = page.locator('#panneau-verification .bilan-ligne');
+    // Rose n’a pas de voisine : son constat compare Soft et Vivid, son lien reste « Vérifier ».
+    assert.deepEqual(await lignes.locator('.bilan-verifier').allTextContents(), NOMS_A_VERIFIER.map((nom) => (nom === 'Rose' ? 'Vérifier' : 'Comparer')));
+    // Bleu est trop proche d’Azur et d’Indigo : la paire cochée est la plus proche, celle que le constat nomme.
+    const bleu = lignes.filter({ hasText: 'Bleu' }).first();
+    assert.equal(await bleu.locator('.bilan-ligne-constat').textContent(), 'trop proche d’Azur');
+    await bleu.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
+    assert.equal(await page.locator('#onglet-harmonisation').getAttribute('aria-selected'), 'true');
+    assert.equal(await page.locator('#panneau-harmonisation').isVisible(), true);
+    assert.deepEqual((await cochees(page)).sort(), ['Azur', 'Bleu']);
+    assert.equal((await demandes(page)).slice(avant).some(({ type }) => type === 'ranger-recette'), false, 'comparer ne range rien');
+  } finally { await page.close(); }
+});
+
 test('V3a [VER-18] une carte, au clic ou au clavier, et « Vérifier » ouvrent la vérification de la palette, comme le sélecteur', async () => {
   for (const geste of ['carte', 'clavier', 'verifier']) {
     const page = await ouvrirLeBilan('verification-bilan-a-corriger');

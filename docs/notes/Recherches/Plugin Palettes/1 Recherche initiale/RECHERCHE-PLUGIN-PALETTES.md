@@ -2390,6 +2390,13 @@ Onglet Vérification :
   change le thème de la bascule du titre sans quitter Vérification, et
   « Revenir au thème » ramène au thème d'avant ; ces deux liens ne se
   trouvent que dans la carte.
+- `[VER-23]` Dans le bilan, la ligne d'une palette trop proche d'une autre
+  (constat « trop proche de [nom] ») porte un lien « Comparer » à la place de
+  « Vérifier » : il ouvre Harmonisation avec la paire cochée, comme le bouton
+  « Comparer » de la carte « Palettes trop proches » (`comparerLaPaire`,
+  `[UI-40]`). La paire est la plus proche de la palette, celle que le constat
+  nomme. Une ligne dont le constat est une garantie manquée ou une alerte de
+  la palette garde « Vérifier ».
 
 Onglet Harmonisation :
 

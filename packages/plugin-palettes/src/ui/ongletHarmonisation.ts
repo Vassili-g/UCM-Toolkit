@@ -94,10 +94,7 @@ function construireVues(i18n: Localisation) {
     texte.className = 'ligne-fixe-texte';
     ligne.append(icone, texte);
     const cartePaires = createCarteDesPaires({
-      comparer(paire) {
-        if (recette) etat = comparerLaPaire(etat, recette, paire);
-        rendre();
-      },
+      comparer: comparerLaPaireChoisie,
     });
     const carteListe = createCarteDeLaListe({
       cocher(id) {
@@ -145,6 +142,12 @@ function construireVues(i18n: Localisation) {
       abandonner,
     });
     element.append(tete, ligne, cartePaires.element, carteListe.element, carteComparaison.element, carteReglages.element, carteRoue.element);
+
+    /** Coche la paire et choisit la palette à régler, depuis la carte des paires ou le bilan de Vérification. */
+    function comparerLaPaireChoisie(paire: PaireTropProche): void {
+      if (recette) etat = comparerLaPaire(etat, recette, paire);
+      rendre();
+    }
 
     /** Les cartes se repeignent seulement onglet visible : un onglet caché ne calcule pas les rampes. */
     function peindreLesCartes(): void {
@@ -285,6 +288,7 @@ function construireVues(i18n: Localisation) {
     return {
       element,
       lierLeCompteur,
+      comparer: comparerLaPaireChoisie,
       montrer(suivant: boolean): void {
         if (suivant && !actif) etat = entrerEnHarmonisation(etat);
         actif = suivant;

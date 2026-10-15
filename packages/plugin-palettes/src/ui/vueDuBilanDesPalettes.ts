@@ -9,7 +9,7 @@
  * recette lue : un rendu de la même recette ne le refait pas, et ne redessine
  * pas non plus ce qui n'a pas changé.
  */
-import type { Recette } from 'ucm-couleur';
+import type { PaireTropProche, Recette } from 'ucm-couleur';
 
 import {
   ETATS_DU_BILAN,
@@ -26,6 +26,8 @@ import { aplatsDeLaCarte, creerVuesNuancierDesPalettes } from './nuancierDesPale
 export interface GestesDuBilan {
   /** Ouvre la vérification de la palette, comme le choix dans le sélecteur. */
   ouvrir(id: string): void;
+  /** Compare la paire trop proche que la ligne nomme, dans Harmonisation ([VER-23]). */
+  comparer(paire: PaireTropProche): void;
 }
 
 export interface BilanDesPalettesUi {
@@ -36,7 +38,7 @@ export interface BilanDesPalettesUi {
 
 function construireVues(i18n: Localisation) {
   const { nuancierDesPalettes } = creerVuesNuancierDesPalettes(i18n);
-  const { TEXTES_DU_BILAN_DES_PALETTES, TEXTES_DU_PIED, constatDAlerte, nomDeLaPalette } = i18n.messages;
+  const { TEXTES_DE_L_HARMONISATION, TEXTES_DU_BILAN_DES_PALETTES, TEXTES_DU_PIED, constatDAlerte, nomDeLaPalette } = i18n.messages;
 
   /** Le texte secondaire d'une ligne : la garantie manquée, la paire trop proche ou l'alerte, dans les mots de la vérification. */
   function texteDuConstat(ligne: LigneDuBilan, recette: Recette): Texte {
@@ -157,9 +159,19 @@ function construireVues(i18n: Localisation) {
       const verifier = document.createElement('button');
       verifier.type = 'button';
       verifier.className = 'bilan-verifier';
-      i18n.lier(verifier, 'textContent', TEXTES_DU_PIED.verifier);
-      i18n.lier(verifier, 'aria-label', TEXTES_DU_BILAN_DES_PALETTES.verifier(nom));
-      verifier.addEventListener('click', () => gestes.ouvrir(ligne.palette.id));
+      const { constat: premier } = ligne;
+      if (premier?.nature === 'proche') {
+        // Une palette trop proche d'une autre : le lien compare la paire la plus proche, celle que le constat nomme ([VER-23]).
+        const { paire } = premier;
+        const [a, b] = paire.palettes.map((id) => nomDeLaPalette(recette.palettes.find((palette) => palette.id === id)!));
+        i18n.lier(verifier, 'textContent', TEXTES_DE_L_HARMONISATION.paires.comparer);
+        i18n.lier(verifier, 'aria-label', TEXTES_DE_L_HARMONISATION.paires.comparerLaPaire(a, b));
+        verifier.addEventListener('click', () => gestes.comparer(paire));
+      } else {
+        i18n.lier(verifier, 'textContent', TEXTES_DU_PIED.verifier);
+        i18n.lier(verifier, 'aria-label', TEXTES_DU_BILAN_DES_PALETTES.verifier(nom));
+        verifier.addEventListener('click', () => gestes.ouvrir(ligne.palette.id));
+      }
       rangee.append(mini, nomDeLaLigne, texte, verifier);
       return rangee;
     }
