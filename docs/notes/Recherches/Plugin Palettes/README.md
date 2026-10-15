@@ -27,6 +27,10 @@ décrivent pas le build courant.
 - La [recette critique de qualité](./Recette%20CRITIQUE%20de%20qualit%C3%A9/README.md)
   mesure le rendu des palettes en composants, les crans par rôle et l'onglet
   Comparer ; ses décisions attendent le mainteneur.
+- La [recette du moteur](./Recette%20moteur%20palettes/README.md) reprend
+  les défauts trouvés au test dans Figma après cette recette : Soft et Vivid
+  trop proches, et la référence très saturée qui ressort de sa rampe. Ses
+  valeurs attendent le mainteneur.
 - Les couches `brand`, `theme` et `usage` ne sont pas générées par Palettes.
   Le [plan d'architecture](../Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md)
   reste partiel, même si les emplois et leurs contrôles existent dans le kit.

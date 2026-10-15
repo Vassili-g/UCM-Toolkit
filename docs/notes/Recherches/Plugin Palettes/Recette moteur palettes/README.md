@@ -65,3 +65,35 @@ chroma à son cran ; l'enveloppe borne celle des autres crans.
 Une référence dans l'enveloppe ne se détache pas : `#3B82F6` (600, 0,188)
 a pour voisines 0,161 et 0,225. Le banc visuel n'avait que des références de
 chroma moyenne.
+
+## Une cause commune
+
+Les deux défauts viennent de la règle de chroma (l'enveloppe), appliquée de
+la même façon aux fonds clairs, aux textes et aux voisines de la référence :
+
+- une seule part règle à la fois les fonds et les textes de Soft : des fonds
+  discrets et des textes lisibles demandent deux parts ;
+- l'enveloppe borne les crans voisins de la référence, et pas la référence :
+  la rampe ne la rejoint pas.
+
+La borne sombre de Soft (Dark b 0,38) est une erreur de valeur, à corriger
+quel que soit le reste : avec 0,25, Soft ne dépasse plus Vivid en Dark, sauf
+au cran 600 des références très vives.
+
+## Suite de l'étude
+
+1. Mesurer deux changements de règle, sur les mêmes jeux et sur `#0013FF`,
+   `#FF0076` et `#FFD300` :
+   - une part des textes distincte de la part des fonds pour Soft ;
+   - des crans voisins de la référence qui se rapprochent de sa chroma, pour
+     que la rampe la rejoigne.
+   Pour chacun : alertes Soft et Vivid, palettes ternes, chroma des textes,
+   saut de chroma autour de la référence, garanties G1 à G7.
+2. Maquette sur l'interface réelle du plugin, en thème sombre : Soft et Vivid
+   côte à côte, et la rampe autour des trois références saturées, pour les
+   meilleurs candidats. Le mainteneur choisit à l'œil.
+3. Une fois les valeurs choisies : un plan d'implémentation propre au moteur,
+   séparé de celui de la recette critique.
+
+Le mainteneur décide des valeurs et de la règle. Rien n'est implémenté.
+
