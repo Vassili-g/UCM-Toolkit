@@ -1097,8 +1097,8 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
     case 'profils-confondus': {
       const crans = alerte.crans.map((cran) => `${NOM_DU_MODE[cran.mode]} ${cran.cran}`).join(', ');
       return {
-        ou: `${contexte.nomDe(alerte.palette)} : nuances ${crans}`,
-        quoi: 'Soft et Vivid sont presque identiques sur ces nuances.',
+        ou: `${contexte.nomDe(alerte.palette)} : fonds teintés ${crans}`,
+        quoi: 'Soft et Vivid sont presque identiques sur ces fonds teintés.',
         geste: 'Écartez les saturations de Soft et Vivid dans « Réglage global ».',
       };
     }

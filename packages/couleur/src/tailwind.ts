@@ -117,7 +117,7 @@ function mediane(valeurs: readonly number[]): number {
 }
 
 /**
- * Le décalage de clarté du bout clair que les rampes de Tailwind montrent à
+ * Le décalage de clarté du bout clair ([MOT-38]) que les rampes de Tailwind montrent à
  * la teinte de `reference`. Pour chaque rampe du relevé, l'écart de clarté de
  * son cran 100 à la médiane des rampes ; les deux rampes voisines de la
  * teinte de la référence prêtent leur écart, interpolé comme la dérive de

@@ -4734,7 +4734,7 @@ test('[VER-11] [UI-12] des profils confondus s’annoncent sur la carte repliée
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
     const message = page.locator('.reglages-de-la-palette .ligne-fixe[data-ton="avertissement"]').filter({ hasText: 'Soft et Vivid' });
     // L'alerte ne nomme que les nuances des emplois ; le repère de l'aperçu porte sur toute la liste ([PLA-15]).
-    assert.match(await message.locator('.ligne-fixe-texte').textContent(), /Bleu : nuances .*Soft et Vivid sont presque identiques sur ces nuances\./);
+    assert.match(await message.locator('.ligne-fixe-texte').textContent(), /Bleu : fonds teintés .*Soft et Vivid sont presque identiques sur ces fonds teintés\./);
     assert.equal((await message.boundingBox()).height, 24);
     assert.ok(await page.locator('.pastille[data-confondue="true"]').count() >= 6);
     await message.getByRole('button', { name: 'Ajuster la saturation' }).click();
@@ -8117,7 +8117,7 @@ const NOMS_DES_VINGT = ['Bleu', 'Jaune', 'Rouge', 'Violet', 'Cyan', 'Ardoise', '
 const ETATS_DES_CARTES = { Violet: 'rouge', Vert: 'rouge', Feuille: 'rouge', Bleu: 'ambre', Jaune: 'ambre', Rouge: 'ambre', Cyan: 'ambre', Rose: 'ambre', Indigo: 'ambre', Teal: 'ambre', Pourpre: 'ambre', Marine: 'ambre', Cuivre: 'ambre', Azur: 'ambre' };
 const NOMS_A_VERIFIER = ['Bleu', 'Jaune', 'Rouge', 'Cyan', 'Rose', 'Indigo', 'Teal', 'Pourpre', 'Marine', 'Cuivre', 'Azur'];
 const NOMS_CONFORMES = ['Ardoise', 'Lime', 'Fuchsia', 'Sable', 'Moutarde', 'Grenat'];
-const CONSTATS_A_VERIFIER = ['trop proche d’Azur', 'trop proche de Cuivre', 'trop proche de Cuivre', 'trop proche de Teal', 'Soft et Vivid sont presque identiques sur ces nuances.', 'trop proche d’Azur', 'trop proche de Cyan', 'trop proche de Violet', 'trop proche de Bleu', 'trop proche de Jaune', 'trop proche de Bleu'];
+const CONSTATS_A_VERIFIER = ['trop proche d’Azur', 'trop proche de Cuivre', 'trop proche de Cuivre', 'trop proche de Teal', 'Soft et Vivid sont presque identiques sur ces fonds teintés.', 'trop proche d’Azur', 'trop proche de Cyan', 'trop proche de Violet', 'trop proche de Bleu', 'trop proche de Jaune', 'trop proche de Bleu'];
 const nomsDesCartes = (vue, filtre) => vue.cartes.filter(filtre).map((carte) => carte.nom);
 
 test('V3a [VER-18] sans palette ouverte, Vérification montre le bilan : « À corriger » actif, ses cartes en couleur, les autres atténuées, une ligne de détail par palette à corriger', async () => {
@@ -8318,7 +8318,7 @@ test('V3a [VER-18] le bilan suit la langue : onglets, nom accessible des cartes,
     await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
     vue = await vueDuBilan(page);
     assert.match(vue.detail[0].constat, /^too close to Azur$/);
-    assert.equal(vue.detail[4].constat, 'Soft and Vivid are almost identical at these shades.');
+    assert.equal(vue.detail[4].constat, 'Soft and Vivid are almost identical on these tinted backgrounds.');
     // Le changement de langue en cours de route retraduit sans redessiner.
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await page.getByRole('tab', { name: 'General', exact: true }).click();

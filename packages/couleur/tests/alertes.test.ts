@@ -67,7 +67,7 @@ test('[VER-11] profils confondus : ne juge que les fonds, trois Dark (surface de
   assert.deepEqual(['default', 'hover', 'pressed'].map((etat) => cranDeLaVariable(`surface/${etat}` as 'surface/default', 'dark', 'normal')), [300, 400, 500]);
 });
 
-test('[VER-11] profils confondus, thème Light : le repère ≈ marque le fond hover et ne suffit pas à l’alerte', () => {
+test('[VER-11] [PLA-15] profils confondus, thème Light : le repère ≈ marque le fond hover et ne suffit pas à l’alerte', () => {
   const palette = auxParts('#D92626', 0.9, 0.91);
   assert.deepEqual(nuancesConfondues(palette), ['light 200']);
   assert.ok(!codes(dePalette(palette)).includes('profils-confondus'));

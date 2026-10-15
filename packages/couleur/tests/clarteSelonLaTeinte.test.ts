@@ -38,7 +38,7 @@ const sansDecalage = (recette: Recette): Recette => ({ ...recette, derives: rece
 
 const AVEC_TEXTE_BLANC: Recette = { ...recetteParDefaut(), texteDesBoutons: { light: 'blanc', dark: 'blanc' }, courbes: courbesParDefaut(11, { light: 'blanc', dark: 'blanc' }) };
 
-test('[MOT-36] le décalage de clarté du jaune est positif, celui de l’indigo négatif, celui d’un gris nul', () => {
+test('[MOT-38] le décalage de clarté du jaune est positif, celui de l’indigo négatif, celui d’un gris nul', () => {
   const jaune = neuve('#EAB308');
   assert.deepEqual(clarteSelonLaTeinte(jaune.recette, jaune.palette), { clair: 0.025, sombre: 0 });
   const indigo = neuve('#6366F1');
@@ -49,7 +49,7 @@ test('[MOT-36] le décalage de clarté du jaune est positif, celui de l’indigo
   }
 });
 
-test('[MOT-36] le décalage se borne à ±0,03, se range au millième et vaut 0 quand la liste n’a pas de cran 100', () => {
+test('[MOT-38] le décalage se borne à ±0,03, se range au millième et vaut 0 quand la liste n’a pas de cran 100', () => {
   let plusGrand = 0;
   for (let H = 0; H < 360; H += 3) {
     const hexa = ecrireHexa(lineaireVersRgb8(oklchVersLineaire({ L: 0.6, C: plafond(0.6, H, 'srgb') * 0.7, H })));
@@ -67,7 +67,7 @@ test('[MOT-36] le décalage se borne à ±0,03, se range au millième et vaut 0 
   assert.equal(clarteSelonLaTeinte(sans100, palette).clair, 0);
 });
 
-test('[MOT-36] une palette libre n’a pas de décalage, une palette à une intensité l’a', () => {
+test('[MOT-38] une palette libre n’a pas de décalage, une palette à une intensité l’a', () => {
   const libre = neuve('#EAB308', { crans: [100, 200, 400, 600, 800, 900] });
   assert.equal(clarteSelonLaTeinte(libre.recette, libre.palette).clair, 0);
   assert.deepEqual(clarteSelonLaTeinteGardee(libre.recette, libre.palette), { fraction: 1, decalage: 0 });
@@ -77,7 +77,7 @@ test('[MOT-36] une palette libre n’a pas de décalage, une palette à une inte
   assert.ok(Math.abs(clartesDe(unique.recette, unique.palette).unique!.light[0] - (unique.recette.courbes.light[0] - 0.023)) < 1e-9);
 });
 
-test('[MOT-36] le décalage s’ajoute à la luminosité du Color shift rangée, qui reste telle qu’elle a été rangée', () => {
+test('[MOT-38] le décalage s’ajoute à la luminosité du Color shift rangée, qui reste telle qu’elle a été rangée', () => {
   const { recette, palette } = neuve('#6366F1');
   const reglee: Palette = {
     ...palette,
@@ -100,7 +100,7 @@ test('[MOT-36] le décalage s’ajoute à la luminosité du Color shift rangée,
   assert.equal(palette.derive.vivid.clarte, undefined);
 });
 
-test('[MOT-36] clartesDe et rampesDe lisent la même fraction, mémorisée par recette et par palette', () => {
+test('[MOT-38] clartesDe et rampesDe lisent la même fraction, mémorisée par recette et par palette', () => {
   for (const reference of ['#EAB308', '#6366F1', '#22C55E', '#EF4444']) {
     const { recette, palette } = neuve(reference);
     const gardee = clarteSelonLaTeinteGardee(recette, palette);
@@ -123,7 +123,7 @@ test('[MOT-36] clartesDe et rampesDe lisent la même fraction, mémorisée par r
   }
 });
 
-test('[MOT-36] la garde réduit le décalage d’un vert foncé en Dark avec texte blanc', () => {
+test('[MOT-38] la garde réduit le décalage d’un vert foncé en Dark avec texte blanc', () => {
   const { recette, palette } = neuve('#023816', {}, AVEC_TEXTE_BLANC);
   const voulu = clarteSelonLaTeinte(recette, palette).clair;
   assert.equal(voulu, 0.012);
@@ -133,7 +133,7 @@ test('[MOT-36] la garde réduit le décalage d’un vert foncé en Dark avec tex
   assert.equal(gardee.decalage, 0.002);
 });
 
-test('[MOT-36] sur un balayage de teintes et de clartés, l’ordre des nuances tient et aucune promesse tenue sans le décalage ne manque', () => {
+test('[MOT-38] sur un balayage de teintes et de clartés, l’ordre des nuances tient et aucune promesse tenue sans le décalage ne manque', () => {
   const fautes: string[] = [];
   let reduites = 0;
   for (const recetteDeBase of [recetteParDefaut(), AVEC_TEXTE_BLANC]) {
@@ -156,7 +156,7 @@ test('[MOT-36] sur un balayage de teintes et de clartés, l’ordre des nuances 
   assert.ok(reduites > 0, 'le balayage trouve des décalages que la garde réduit');
 });
 
-test('[MOT-36] [MOT-17] l’ancrage garde ses octets sous le décalage gardé, dans les deux modes', () => {
+test('[MOT-38] [MOT-17] l’ancrage garde ses octets sous le décalage gardé, dans les deux modes', () => {
   for (const reference of ['#EAB308', '#6366F1', '#22C55E', '#023816', '#EF4444', '#0EA5E9']) {
     for (const extra of [{}, { intensites: 1 as const }]) {
       const { recette, palette } = neuve(reference, extra);

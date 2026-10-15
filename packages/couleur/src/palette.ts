@@ -361,7 +361,7 @@ function parametresDesRampes(recette: Recette, palette: Palette, decalageDeClart
 
 /**
  * Le décalage de clarté du bout clair que les rampes de Tailwind montrent à
- * la teinte du départ de la palette ([MOT-36]), lu sur le relevé `derives`
+ * la teinte du départ de la palette ([MOT-38]), lu sur le relevé `derives`
  * de la recette. Il vaut 0 pour un gris, pour une palette figée ou libre et
  * quand la liste n'a pas de cran 100. Le bout sombre vaut 0. Il ne se range
  * pas : `clarteSelonLaTeinteGardee` en retient la part que les promesses et
@@ -415,7 +415,7 @@ function chercherLaClarteGardee(recette: Recette, palette: Palette): ClarteGarde
 const clartesGardees = new WeakMap<Recette, WeakMap<Palette, ClarteGardee>>();
 
 /**
- * La clarté selon la teinte que la palette applique ([MOT-36]) : la fraction
+ * La clarté selon la teinte que la palette applique ([MOT-38]) : la fraction
  * gardée de `clarteSelonLaTeinte`, mémorisée par recette et par palette, que
  * `rampesDe` et `clartesDe` lisent toutes deux. Elle s'ajoute à la
  * luminosité du Color shift des deux profils, rangée ou non, et ne se range
@@ -437,7 +437,7 @@ export function clarteSelonLaTeinteGardee(recette: Recette, palette: Palette): C
 
 /**
  * Les rampes de l'intensité porteuse, la référence ancrée et la bosse de
- * chroma posée ([MOT-17]). La bosse monte les crans de clarté voisine vers la
+ * chroma posée ([MOT-17], [MOT-39]). La bosse monte les crans de clarté voisine vers la
  * référence quand elle est plus vive que la chroma visée à son cran. Elle se
  * garde mode par mode, Light puis Dark : sa force est la plus grande, par
  * dichotomie, qui ne fait manquer à ce mode et à cette intensité aucune

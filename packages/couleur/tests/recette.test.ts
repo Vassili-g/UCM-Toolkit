@@ -194,7 +194,7 @@ test('[REC-12] la recette par défaut porte les profils et le relevé du paquet,
   });
 });
 
-test('[REC-12] une recette 10 se lit en 12, aux profils et au relevé par défaut', () => {
+test('[REC-12] [REC-14] une recette 10 se lit en 12, aux profils et au relevé par défaut', () => {
   const texte = temoin('format-10');
   const ancienne = JSON.parse(texte);
   const lue = classerRecette(texte);
@@ -285,7 +285,7 @@ function enFormat11(profils?: Record<string, unknown>): any {
   return recette;
 }
 
-test('[REC-12] une recette 11 aux profils par défaut prend les profils par défaut du format 12', () => {
+test('[REC-14] une recette 11 aux profils par défaut prend les profils par défaut du format 12', () => {
   const ancienne = enFormat11();
   const lue = classerRecette(JSON.stringify(ancienne));
   assert.ok(lue.etat === 'courante');
@@ -295,7 +295,7 @@ test('[REC-12] une recette 11 aux profils par défaut prend les profils par déf
   assert.deepEqual(lue.recette.palettes, ancienne.palettes);
 });
 
-test('[REC-12] une recette 11 à l’enveloppe modifiée garde ses valeurs, avec cyans 0 et clairs 1', () => {
+test('[REC-14] une recette 11 à l’enveloppe modifiée garde ses valeurs, avec cyans 0 et clairs 1', () => {
   const profils = enFormat11().profils;
   profils.soft.enveloppe.dark.b = 0.25;
   profils.vivid.part = 0.9;
@@ -310,7 +310,7 @@ test('[REC-12] une recette 11 à l’enveloppe modifiée garde ses valeurs, avec
   assert.deepEqual(lue.recette.profils.vivid, { ...PROFILS_PAR_DEFAUT.vivid, part: 0.9 });
 });
 
-test('[REC-12] une recette 11 qui porte un champ du format 12 est refusée par forme', () => {
+test('[REC-14] une recette 11 qui porte un champ du format 12 est refusée par forme', () => {
   const avecClairs = enFormat11();
   avecClairs.profils.vivid.clairs = 1;
   assert.deepEqual(classerRecette(JSON.stringify(avecClairs)), { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'profils.vivid.clairs' }] });

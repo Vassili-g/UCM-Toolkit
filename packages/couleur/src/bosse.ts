@@ -1,5 +1,5 @@
 /**
- * La bosse de chroma d'une rampe porteuse : quand la référence est plus vive
+ * La bosse de chroma d'une rampe porteuse ([MOT-39]) : quand la référence est plus vive
  * que la chroma que sa rampe vise à son cran, les crans de clarté voisine
  * montent vers elle. `palette.ts` la garde contre les promesses.
  */

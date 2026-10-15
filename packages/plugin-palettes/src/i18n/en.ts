@@ -1095,8 +1095,8 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
     case 'profils-confondus': {
       const crans = alerte.crans.map((cran) => `${NOM_DU_MODE[cran.mode]} ${cran.cran}`).join(', ');
       return {
-        ou: `${contexte.nomDe(alerte.palette)}: shades ${crans}`,
-        quoi: "Soft and Vivid are almost identical at these shades.",
+        ou: `${contexte.nomDe(alerte.palette)}: tinted backgrounds ${crans}`,
+        quoi: "Soft and Vivid are almost identical on these tinted backgrounds.",
         geste: "Separate the Soft and Vivid saturation values in “Global adjustment”.",
       };
     }

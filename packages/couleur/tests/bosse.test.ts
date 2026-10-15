@@ -87,7 +87,7 @@ function chaines(recette: Recette, palette: Palette): { commune: Rampes; pleine:
 
 const hexas = (rampes: Rampes, intensite: 'soft' | 'vivid' | 'unique', mode: Mode): string[] => rampes[intensite]![mode].map((cran) => cran.hexa);
 
-test('[bosse] une référence moins vive que sa rampe ne change rien : elle ne lève aucune bosse', () => {
+test('[MOT-39] une référence moins vive que sa rampe ne change rien : elle ne lève aucune bosse', () => {
   const visees: ViseeDeCran[] = [0.9, 0.7, 0.5, 0.3, 0.1].map((L) => ({ L, Lc: L, H: 250, C: 0.1, part: 1, plafond: 0.3 }));
   assert.equal(bosseDeChroma(visees, 2, 'light', { L: 0.5, C: 0.1, H: 250 }, false), null, 'à égalité');
   assert.equal(bosseDeChroma(visees, 2, 'dark', { L: 0.5, C: 0.07, H: 250 }, true), null);
@@ -99,7 +99,7 @@ test('[bosse] une référence moins vive que sa rampe ne change rien : elle ne l
   for (const mode of MODES) assert.deepEqual(hexas(rampes, ancrage.profil, mode), hexas(commune, ancrage.profil, mode));
 });
 
-test('[bosse] une référence plus vive tire ses voisines, plus près d’elle en clarté, sans dépasser sa chroma ni le plafond de leur part', () => {
+test('[MOT-39] une référence plus vive tire ses voisines, plus près d’elle en clarté, sans dépasser sa chroma ni le plafond de leur part', () => {
   // Cinq crans, la référence au milieu : la chroma visée vaut 0,05, la référence 0,15 (ρ = 3).
   const visees: ViseeDeCran[] = [0.7, 0.6, 0.5, 0.4, 0.3].map((L) => ({ L, Lc: L, H: 250, C: 0.05, part: 1, plafond: 0.3 }));
   const bosse = bosseDeChroma(visees, 2, 'light', { L: 0.5, C: 0.15, H: 250 }, false)!;
@@ -117,7 +117,7 @@ test('[bosse] une référence plus vive tire ses voisines, plus près d’elle e
   assert.ok(bosse.every((C) => C >= 0.05));
 });
 
-test('[bosse] les fonds restent calmes : Light au-dessus de 0,88 et Dark sous 0,50 ne bougent pas, sauf quand la référence y est portée par Vivid', () => {
+test('[MOT-39] les fonds restent calmes : Light au-dessus de 0,88 et Dark sous 0,50 ne bougent pas, sauf quand la référence y est portée par Vivid', () => {
   const clairs: ViseeDeCran[] = [0.95, 0.9, 0.85].map((L) => ({ L, Lc: L, H: 250, C: 0.02, part: 1, plafond: 0.3 }));
   const reference = { L: 0.9, C: 0.1, H: 250 };
   // La référence au cran 0,90 : un voisin à 0,95 est un fond. Soft le garde calme, Vivid l'ouvre à proportion de la place de la référence dans la zone.
@@ -134,7 +134,7 @@ test('[bosse] les fonds restent calmes : Light au-dessus de 0,88 et Dark sous 0,
   assert.ok(bosseDeChroma(sombres, 2, 'dark', dedans, true)![1] > 0.02 * 1.5);
 });
 
-test('[bosse] #0013FF, plus vif que sa rampe, tire ses voisines en Light et en Dark ; les crans loin de lui en clarté restent à leur chroma visée', () => {
+test('[MOT-39] #0013FF, plus vif que sa rampe, tire ses voisines en Light et en Dark ; les crans loin de lui en clarté restent à leur chroma visée', () => {
   const { recette, palette } = neuve('#0013FF');
   const { commune, bosses } = chaines(recette, palette);
   const ancrage = ancrageDe(recette, palette);
@@ -154,7 +154,7 @@ test('[bosse] #0013FF, plus vif que sa rampe, tire ses voisines en Light et en D
   }
 });
 
-test('[bosse] les fonds de Soft ne bougent pas quand Soft porte la référence (palette de base Soft)', () => {
+test('[MOT-39] les fonds de Soft ne bougent pas quand Soft porte la référence (palette de base Soft)', () => {
   const { recette, palette } = neuve('#0013FF', { base: 'soft' });
   const ancrage = ancrageDe(recette, palette);
   assert.equal(ancrage.profil, 'soft');
@@ -171,7 +171,7 @@ test('[bosse] les fonds de Soft ne bougent pas quand Soft porte la référence (
   }
 });
 
-test('[bosse] la garde rend une force qui ne fait manquer aucune promesse tenue sans la bosse, et qui reste sous la bosse entière', () => {
+test('[MOT-39] la garde rend une force qui ne fait manquer aucune promesse tenue sans la bosse, et qui reste sous la bosse entière', () => {
   const texte = { light: 'blanc', dark: 'blanc' } as const;
   const { recette, palette } = neuve('#047917', { intensites: 1 }, { ...recetteParDefaut(), texteDesBoutons: texte, courbes: courbesParDefaut(11, texte) });
   const { commune, pleine, bosses } = chaines(recette, palette);
@@ -190,7 +190,7 @@ test('[bosse] la garde rend une force qui ne fait manquer aucune promesse tenue 
   assert.deepEqual(hexas(reelle, 'unique', 'light'), hexas(pleine, 'unique', 'light'));
 });
 
-test('[bosse] [MOT-17] l’ancrage garde ses octets avec la bosse, dans les deux modes et les trois intensités porteuses', () => {
+test('[MOT-39] [MOT-17] l’ancrage garde ses octets avec la bosse, dans les deux modes et les trois intensités porteuses', () => {
   for (const reference of ['#0013FF', '#FF0076', '#FFD300', '#00E676', '#FF6D00']) {
     for (const extra of [{}, { base: 'soft' as const }, { intensites: 1 as const }]) {
       const { recette, palette } = neuve(reference, extra);

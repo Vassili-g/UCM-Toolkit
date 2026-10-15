@@ -189,10 +189,11 @@ Pour une palette, une intensité, un mode et un cran d'indice `i` :
 L  = courbes[mode][i]
 w  = poids(L)                       section 6.4
 H  = teinte(L)                      section 6.4
-Lf = clamp(L + clarte[p] + clarté(w), 0, 1)              [MOT-29], [MOT-30]
+Lf = clamp(L + clarte[p] + clarté(w), 0, 1)              [MOT-29], [MOT-30], [MOT-38]
+Le = Lf sans le décalage de [MOT-38] (cran clair), sinon Lf
 q  = clamp(part(intensité) × (1 + saturation(w)), 0, 1)  [MOT-30]
-C  = min(q × facteur(mode, L) × plafond(Lf, H, gamut),
-         p0 × min(a × marge(H) × (1 − Lf), b × Lf))      [MOT-28], [MOT-35]
+C  = clairs(L) × min(q × facteur(mode, L) × plafond(Lf, H, gamut),
+         p0 × min(a × marge(H) × (1 − Le), b × Le))      [MOT-28], [MOT-35]
 rgbLinéaire = oklchVersSrgbLinéaire(Lf, C, H)
 rgb8 = round(255 × encoder(clamp(rgbLinéaire, 0, 1)))   par canal
 hexa = format(rgb8)
@@ -220,16 +221,31 @@ hexa = format(rgb8)
   400 et au-delà, gardent leur part, et le thème `light` ne change pas.
   `facteurSombre` et `fondsSombresDe` (`packages/couleur`) en sont
   l'autorité.
-- `[MOT-35]` L'enveloppe de chroma plafonne la chroma d'un cran. `p0`, `a` et
-  `b` viennent du profil de l'intensité (`soft` pour Soft, `vivid` pour Vivid et
-  pour l'intensité unique) et du thème du cran, dans `profils.<profil>.enveloppe`
-  (section 7.1). `a × (1 − Lf)` borne les crans clairs, `b × Lf` les crans
-  sombres. `marge(H) = 1 + jaunes × exp(−½ × (écart entre H et 100° / 12°)²)`
-  élargit la borne claire autour du jaune ; `jaunes` vaut 0 en Dark par défaut,
-  la marge y est alors 1. `p0` ne suit ni le Color shift de saturation ni
-  `facteur` : ils agissent sur `q × facteur`, pas sur l'enveloppe. Sans
-  enveloppe, `C = q × facteur × plafond`. `cranVise` et `enveloppeDe`
-  (`packages/couleur`) en sont l'autorité.
+- `[MOT-35]` L'enveloppe de chroma plafonne la chroma d'un cran. `p0`, `a`, `b`,
+  `jaunes` et `cyans` viennent du profil de l'intensité (`soft` pour Soft,
+  `vivid` pour Vivid et pour l'intensité unique) et du thème du cran, dans
+  `profils.<profil>.enveloppe` (section 7.1). `a × (1 − Le)` borne les crans
+  clairs, `b × Le` les crans sombres. `marge(H) = 1 + jaunes × g(100°, 12°) +
+  cyans × g(195°, 30°)`, avec `g(c, s) = exp(−½ × (écart entre H et c / s)²)`.
+  `jaunes` élargit la borne claire autour du jaune. `cyans`, dans `[−1 ; 1]`,
+  ajoute une seconde bosse à la marge autour du cyan, d'écart type 30° ;
+  négatif, il la creuse : Vivid Light le porte à −0,2 par défaut, ce qui calme
+  les teal et les cyans clairs. `jaunes` et `cyans` valent 0 en Dark par
+  défaut, la marge y est alors 1.
+  L'enveloppe se lit à `Le`, la clarté du cran sans le décalage de `[MOT-38]`
+  (`Lenveloppe` dans `cranVise`) ; le plafond de l'écran se lit à `Lf`.
+  `p0` ne suit ni le Color shift de saturation ni `facteur` : ils agissent sur
+  `q × facteur`, pas sur l'enveloppe. Sans enveloppe,
+  `C = q × facteur × plafond`.
+  Le profil porte aussi `clairs`, le facteur de chroma des tons clairs du
+  thème Light, dans `]0 ; 1]`. Il multiplie la chroma après l'enveloppe, en
+  entier pour une clarté de courbe au-dessus de 0,88, pas du tout sous 0,78,
+  avec un passage lissé entre les deux (`t = 1 − x²(3 − 2x)`,
+  `x = clamp((0,88 − L) / 0,10, 0, 1)`). Soft le porte à 0,7 et Vivid à 1 : les
+  fonds Light de Soft se calment, ses pleins et ses textes restent. Le thème
+  Dark n'a pas de `clairs`. Soft porte aussi `dark.b` à 0,15 par défaut, qui
+  calme ses tons foncés et moyens en Dark. `cranVise` et `enveloppeDe`
+  (`packages/couleur`) en sont l'autorité, `viseesDeLaRampe` pour `clairs`.
 
 ### 6.4 La teinte d'un cran
 
@@ -312,13 +328,12 @@ reste l'autorité de la teinte.
   - Une palette de base Soft ou Vivid (`[ENT-11]`) désigne le profil porteur.
     Sans elle, le porteur que `reglages.porteur` a figé au premier réglage
     (`[ENT-15]`) le désigne. Sans l'un ni l'autre, le classement automatique
-    compare la part de la référence (`[MOT-24]`) aux parts **communes** de
-    `soft` et `vivid`, au millième : le plus proche la porte, `vivid` à
-    égalité. Un gris pur (`[MOT-18]`), de part nulle, est donc porté par
-    `soft`. Les parts propres d'une palette
-    n'entrent pas dans ce choix : les régler ne fait pas changer la référence
-    de profil. Changer les parts communes peut le faire, sauf sous une palette
-    de base.
+    désigne toujours `vivid` (`profilAutomatique`), quelle que soit la part de
+    la référence (`[MOT-24]`), gris pur compris (`[MOT-18]`). Une couleur plus
+    saturée donne ainsi toujours des palettes plus saturées, et la palette ne
+    bascule plus d'un profil à l'autre quand le designer fait glisser sa
+    saturation. Sous une référence terne, `vivid` est aussi terne qu'elle et
+    `soft` environ 10 % plus calme (`[ENT-11]`).
   - Dans chaque mode, le cran porteur est celui dont la clarté de la courbe
     est la plus proche de celle du départ (`[MOT-29]`), la référence sans
     réglage, le plus petit numéro à égalité. Un réglage de luminosité ne
@@ -341,6 +356,22 @@ reste l'autorité de la teinte.
     commune ; le noir en `light` 950 fait une marche de 0,341. Une promesse peut
     ne plus être tenue après ancrage : le plugin la montre, et ne touche jamais
     la référence pour la faire tenir.
+- `[MOT-39]` Dans l'intensité porteuse, quand la référence est plus vive que la
+  chroma que sa rampe vise à son cran, les crans voisins montent vers elle : la
+  chroma d'un cran vaut `max(C, min(part × plafond, Cref, C × (1 + (ρ − 1) × w)))`,
+  avec `ρ = Cref / C` au cran de la référence et un poids gaussien
+  `w = exp(−½ × ((L − Lref) / 0,10)²)` sur la clarté (σ 0,10). La bosse laisse
+  les fonds en dehors : elle ne monte pas un cran dont la clarté de courbe est
+  au-dessus de 0,88 en Light ou sous 0,50 en Dark, avec un passage lissé
+  jusqu'à 0,78 et 0,56. Quand Vivid ou l'intensité unique pose la référence dans cette zone,
+  la bosse y entre à proportion de la place qu'y tient la référence ; Soft
+  garde ses fonds calmes même quand il la porte. Elle est gardée mode par mode :
+  sa force est la plus grande, par quatorze dichotomies, qui ne fait manquer à
+  ce mode et à cette intensité aucune promesse que la rampe tient sans elle. Une
+  palette libre, qui n'a pas de promesses, la garde entière. `bosseDeChroma`
+  (`packages/couleur/src/bosse.ts`) calcule la bosse, `rampesDe`
+  (`palette.ts`) la garde, `jugerLesRampes` (`jugement.ts`) juge les
+  promesses.
 
 ### 6.5 Le préréglage Tailwind
 
@@ -401,6 +432,21 @@ trouve, et non la teinte de son cran 50.
   position de la référence, n'existent plus. Une référence qui est le cran 500
   d'une rampe du relevé retrouve la teinte de cette rampe à 12,5° près sur ses
   onze crans.
+- `[MOT-38]` Les tons clairs suivent la clarté que les rampes de Tailwind
+  montrent à la teinte de la référence. Le décalage du bout clair se lit sur
+  le relevé `derives` : pour chaque rampe, l'écart de clarté de son cran 100 à
+  la médiane des crans 100 du relevé ; les deux rampes voisines de la
+  référence prêtent leur écart, interpolé comme la dérive de `[MOT-36]`, et le
+  poids du cran 100 vers le bout clair le divise. Le résultat se borne à
+  ±0,03, se range au millième, et vaut 0 pour un gris, une palette figée ou
+  libre, ou une liste sans cran 100. Il se calcule à la lecture et ne se range
+  jamais. Il s'ajoute à la luminosité du Color shift, au bout clair, des
+  deux profils ; l'enveloppe de `[MOT-35]` se lit sans lui. Il se réduit,
+  par douze dichotomies, jusqu'à garder l'ordre des nuances (`[DER-19]`) et
+  toutes les promesses que la palette tient sans lui. Le décalage gardé est
+  mémorisé par recette et par palette. `clarteSelonLaTeinte` et
+  `clarteSelonLaTeinteGardee` (`packages/couleur/src/palette.ts`) et
+  `clarteSelonLaTeinteDuReleve` (`tailwind.ts`) en sont l'autorité.
 - `[MOT-27]` Un angle et un décalage de saturation se rangent au centième,
   une part de chroma et un décalage de luminosité au millième, arrondis au
   moment où ils sont posés :
@@ -488,9 +534,9 @@ Ces vecteurs portent sur les rampes communes. Sur les rampes ancrées de
 | Entrée | Attendu |
 |---|---|
 | Référence `#1E6FD9`, préréglage Tailwind | profil porteur `vivid`, à la part de la référence, 0,894 (`[ENT-11]`) ; cran 600 en clair et en sombre, où l'hexa vaut `#1E6FD9` ; clair 700 `#185FC0` |
-| Référence `#A0B599` | profil porteur `soft`, cran 400 en clair, 800 en sombre |
+| Référence `#A0B599` | profil porteur `vivid`, à la part de la référence, 0,198, et `soft` à 0,177 ; cran 400 en clair, 800 en sombre |
 | Référence `#B00100` | profil porteur `vivid`, cran 700 en clair, 500 en sombre |
-| Référence `#000000` | profil porteur `soft`, cran 950 en clair, 50 en sombre |
+| Référence `#000000` | profil porteur `vivid`, cran 950 en clair, 50 en sombre |
 
 ## 7. La recette
 
@@ -504,7 +550,7 @@ Deux outils qui la lisent produisent les mêmes hexas.
 | `formatVersion` | Entier positif, version de la forme de la recette | Fichier |
 | `crans` | `[50, 100, …, 950]` : la réunion des crans que la table de chaque thème exige dans son sens (`[VER-05]`, `[REC-13]`), 50 seul facultatif | Toutes les rampes |
 | `courbes` | `light` et `dark`, une clarté par cran | Toutes les rampes |
-| `profils` | `soft` et `vivid`, chacun avec sa `part` commune de chroma et son `enveloppe`, toutes deux obligatoires (`[REC-12]`) | Toutes les palettes, sauf surcharge |
+| `profils` | `soft` et `vivid`, chacun avec sa `part` commune de chroma, son facteur `clairs` des tons clairs du Light et son `enveloppe`, tous obligatoires (`[REC-12]`, `[REC-14]`) | Toutes les palettes, sauf surcharge |
 | `gamut` | `"srgb"` | Fichier |
 | `fonds` | `light` et `dark`, un hexa chacun : le fond de la page de chaque thème | Les garanties |
 | `texteDesBoutons` | `light` et `dark`, chacun `blanc` (`#FFFFFF`) ou `noir` (`#000000`) ; `blanc` en Light et `noir` en Dark par défaut | Thème |
@@ -553,15 +599,15 @@ Color shift. Sa référence est la nuance qui en porte la couleur.
 
 ```json
 {
-  "formatVersion": 11,
+  "formatVersion": 12,
   "crans": [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
   "courbes": {
     "light": [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27],
     "dark": [0.145, 0.225, 0.275, 0.33, 0.4, 0.49, 0.58, 0.67, 0.76, 0.85, 0.93]
   },
   "profils": {
-    "soft": { "part": 0.85, "enveloppe": { "p0": 0.85, "light": { "a": 0.6, "b": 0.38, "jaunes": 1 }, "dark": { "a": 1.1, "b": 0.38, "jaunes": 0 } } },
-    "vivid": { "part": 0.95, "enveloppe": { "p0": 0.95, "light": { "a": 1.1, "b": 0.48, "jaunes": 0.5 }, "dark": { "a": 1.1, "b": 0.3, "jaunes": 0 } } }
+    "soft": { "part": 0.85, "clairs": 0.7, "enveloppe": { "p0": 0.85, "light": { "a": 0.6, "b": 0.38, "jaunes": 1, "cyans": 0 }, "dark": { "a": 1.1, "b": 0.15, "jaunes": 0, "cyans": 0 } } },
+    "vivid": { "part": 0.95, "clairs": 1, "enveloppe": { "p0": 0.95, "light": { "a": 1.1, "b": 0.48, "jaunes": 0.5, "cyans": -0.2 }, "dark": { "a": 1.1, "b": 0.3, "jaunes": 0, "cyans": 0 } } }
   },
   "gamut": "srgb",
   "fonds": { "light": "#F7F7F7", "dark": "#0A0A0A" },
@@ -616,14 +662,14 @@ du paquet porte les dix-sept rampes de onze crans.
   moteur produit ces octets par son propre encodeur : le sandbox n'a pas
   `TextEncoder`.
 - `[REC-03]` La lecture classe la recette avant de l'employer : absente, la
-  recette par défaut du paquet est proposée ; au format 11, lue ; aux formats 8,
-  9 et 10, lue en format 11 par `classerRecette`, une étape par format
-  (`[REC-12]`), et son état est `courante`. Une recette 8 qui porte déjà
+  recette par défaut du paquet est proposée ; au format 12, lue ; aux formats 8
+  à 11, lue en format 12 par `classerRecette`, une étape par format
+  (`[REC-12]`, `[REC-14]`), et son état est `courante`. Une recette 8 qui porte déjà
   `texteDesBoutons` est refusée par la règle `forme`.
   Antérieure à 8, elle est illisible, par le refus de `formatVersion` et sans
-  conversion ; supérieure à 11, refusée avec un message qui demande de mettre
+  conversion ; supérieure à 12, refusée avec un message qui demande de mettre
   le plugin à jour ; illisible, refusée sans écrire. Comme toute lecture, elle
-  n'écrit pas (`[REC-04]`) : la recette rangée passe au format 11 au prochain
+  n'écrit pas (`[REC-04]`) : la recette rangée passe au format 12 au prochain
   rangement que fait un geste du designer.
 - `[REC-04]` Un refus de lecture laisse la recette rangée intacte. Le plugin ne
   dessine rien tant que la recette n'est pas lisible.
@@ -636,9 +682,9 @@ du paquet porte les dix-sept rampes de onze crans.
   `clarte` aux deux valeurs nulles, seuils strictement positifs, hexas valides,
   identifiants uniques, `crans` qui contient les crans requis par la table du
   sens de chaque thème (`[VER-05]`) ; `texteDesBoutons` vaut `blanc` ou
-  `noir` pour chaque thème. Chaque profil a exactement `part` et `enveloppe`, et
+  `noir` pour chaque thème. Chaque profil a exactement `part`, `clairs` et `enveloppe`, et
   l'enveloppe a exactement `p0`, `light` et `dark`, chacun de ceux-ci avec
-  `a`, `b` et `jaunes` (`[REC-12]`). `derives` compte au moins deux rampes, aux
+  `a`, `b`, `jaunes` et `cyans` (`[REC-12]`). `derives` compte au moins deux rampes, aux
   noms non vides et uniques, chacune d'au moins deux crans `[L, H]` dont les `L`
   sont dans `]0, 1[` et strictement décroissants, et les `H` dans `[0, 360)`.
   Le relevé doit compter deux teintes de premier cran distinctes au moins :
@@ -667,7 +713,8 @@ du paquet porte les dix-sept rampes de onze crans.
   version 9 ajoute `texteDesBoutons`. La
   version 10 laisse `figees` porter les couleurs de deux intensités, `{ soft, vivid }`. La
   version 11 range l'enveloppe de chaque profil et le relevé `derives` par
-  rampes (`[REC-12]`). Une recette d'une version antérieure à
+  rampes (`[REC-12]`). La version 12 ajoute `clairs` à chaque profil et
+  `cyans` à chaque thème de l'enveloppe (`[REC-14]`). Une recette d'une version antérieure à
   8 est refusée sans conversion :
   seul le mainteneur en a rangé, pour ses essais. Un changement de forme
   reprendra sa conversion et ses tests le jour où des recettes seront rangées
@@ -690,31 +737,45 @@ du paquet porte les dix-sept rampes de onze crans.
   recette rangée telle quelle, importer une recette, et repartir de la recette
   par défaut après confirmation.
 - `[REC-12]` Le format 11 range, pour chaque profil, sa `part` commune et son
-  `enveloppe` de chroma, toutes deux obligatoires. L'enveloppe porte `p0` dans
-  `]0 ; 1]`, et `light` et `dark`, chacun avec `a` et `b` dans `]0 ; 2]` et
-  `jaunes` dans `[0 ; 2]` ; `p0` ne suit pas la part commune, et une valeur hors
+  `enveloppe` de chroma, toutes deux obligatoires ; le format 12 y ajoute
+  `clairs` (`[REC-14]`). L'enveloppe porte `p0` dans
+  `]0 ; 1]`, et `light` et `dark`, chacun avec `a` et `b` dans `]0 ; 2]`,
+  `jaunes` dans `[0 ; 2]` et, au format 12, `cyans` dans `[−1 ; 1]` ; `clairs`
+  est dans `]0 ; 1]`. `p0` ne suit pas la part commune, et une valeur hors
   bornes est refusée par la règle `enveloppe`, au chemin du champ. Par défaut,
-  `soft` a la part 0,85 et l'enveloppe `p0` 0,85, `light` `a` 0,6, `b` 0,38,
-  `jaunes` 1, `dark` `a` 1,1, `b` 0,38, `jaunes` 0 ; `vivid` a la part 0,95 et
-  l'enveloppe `p0` 0,95, `light` `a` 1,1, `b` 0,48, `jaunes` 0,5, `dark` `a` 1,1,
-  `b` 0,30, `jaunes` 0. `derives` range des rampes `{ nom, crans }` ; la règle
+  `soft` a la part 0,85, `clairs` 0,7 et l'enveloppe `p0` 0,85, `light` `a` 0,6,
+  `b` 0,38, `jaunes` 1, `cyans` 0, `dark` `a` 1,1, `b` 0,15, `jaunes` 0,
+  `cyans` 0 ; `vivid` a la part 0,95, `clairs` 1 et l'enveloppe `p0` 0,95,
+  `light` `a` 1,1, `b` 0,48, `jaunes` 0,5, `cyans` −0,2, `dark` `a` 1,1,
+  `b` 0,30, `jaunes` 0, `cyans` 0. `derives` range des rampes `{ nom, crans }` ; la règle
   `derives-crans` refuse une rampe de moins de deux crans, un `L` hors de
   `]0 ; 1[`, un `H` hors de `[0 ; 360[` et des `L` qui ne décroissent pas
-  strictement. `classerRecette` lit les formats 8, 9 et 10 en format 11, une
+  strictement. `classerRecette` lit les formats 8 à 11 en format 12, une
   étape par format. L'étape du format 10 au format 11 donne aux profils les
-  parts et les enveloppes par défaut, ajoute à la liste les crans 400, 500 et 950
+  parts et les enveloppes par défaut du format 11, ajoute à la liste les crans 400, 500 et 950
   absents (`[REC-13]`) et remplace `derives` par le relevé du paquet : les parts
   de l'ancienne recette ne sont pas conservées, donc les couleurs changent. Les
   courbes, les fonds, le texte des boutons, les seuils et les palettes restent.
   Avant toute étape, une forme ancienne sans `crans` ou sans `courbes`, ou qui
-  porte un champ du format 11 (`enveloppe`, une rampe de `derives` en objet),
-  est `illisible`, sans exception levée.
+  porte un champ d'un format suivant (`enveloppe` ou une rampe de `derives` en
+  objet dans une recette 10 ou plus ancienne, `clairs` ou `cyans` dans une
+  recette 11), est `illisible`, sans exception levée.
+- `[REC-14]` Le format 12 ajoute `clairs` à chaque profil et `cyans` à chaque
+  thème de son enveloppe (`[MOT-35]`). L'étape du format 11 au format 12
+  garde les parts, les courbes, les fonds, les seuils, les palettes et le
+  reste, et traite chaque profil à part : une enveloppe égale à celle du
+  format 11 par défaut prend l'enveloppe et le `clairs` du format 12 par
+  défaut, avec les fonds Dark de Soft à 0,15, les tons clairs de Soft à 0,7 et
+  `cyans` −0,2 en Light de Vivid ; une enveloppe que le designer a modifiée
+  garde ses valeurs, avec `cyans` 0 et `clairs` 1 : ses bornes de chroma ne
+  changent pas à la lecture. `classerRecette` (`packages/couleur/src/recette.ts`) en est
+  l'autorité.
 - `[REC-13]` Les crans requis sont la réunion de ceux que la table de chaque
   thème exige, chacun dans le sens de son texte des boutons ; seul 50 est
   facultatif. Avec les textes par défaut, ce sont 100 à 900 et 950. La lecture
   d'une recette 10 ajoute les crans 400, 500 et 950 absents, avec dans chaque
   thème la clarté que `luminositeAuNumero` donne sur l'ancienne grille, au
-  même rang. Une recette 11 à qui il en manque un est refusée par la règle
+  même rang. Une recette 11 ou 12 à qui il en manque un est refusée par la règle
   `crans-emplois`.
 
 ## 8. Les entrées
@@ -755,7 +816,10 @@ du paquet porte les dix-sept rampes de onze crans.
   l'autorité.
 - `[ENT-11]` Le profil porteur (`[MOT-17]`) prend la part de la référence
   (`[MOT-24]`), qu'une palette de base le force, que `reglages.porteur` le
-  fige ou que le classement automatique le choisisse. On note `p` la part de
+  fige ou que le classement automatique le choisisse. Sans l'un ni l'autre,
+  le classement automatique désigne toujours Vivid : la couleur exacte reste
+  dans Vivid, et Soft en est une version plus calme, même sous une référence
+  terne. On note `p` la part de
   la référence, `s` et `v` les parts communes de `soft` et `vivid`. Quand
   `p < s`, l'autre profil garde le rapport des parts communes : Soft porteur
   donne Vivid à `min(1, p × v / s)`, Vivid porteur donne Soft à `p × s / v`.
@@ -763,10 +827,12 @@ du paquet porte les dix-sept rampes de onze crans.
   l'autre profil garde sa part commune, bornée pour que `soft` ne dépasse pas
   `vivid`. Les deux règles se rejoignent à `p = s`. Ces parts se calculent à
   la lecture, au millième, et ne se rangent pas : un changement de référence
-  ou de part commune les suit. Des parts propres passent avant elles. Quand la
-  référence passe d'un profil à l'autre en Auto, à mi-chemin des parts
-  communes, les deux rampes changent d'un coup ; « Référence exacte dans »
-  l'évite. Choisir Soft ou Vivid retire les parts d'origine `designer`.
+  ou de part commune les suit. Des parts propres passent avant elles. En Auto,
+  la palette ne bascule pas quand la saturation de la référence change :
+  Vivid porte toujours la référence, et Soft saute seulement de la part
+  `p × s / v` à `s` quand `p` franchit `s`. Le designer aligne des palettes avec
+  l'onglet Comparer, « Référence exacte dans : Soft » et le curseur de
+  saturation de Vivid. Choisir Soft ou Vivid retire les parts d'origine `designer`.
   Revenir à Auto retire `base` : le classement automatique désigne de nouveau
   le porteur. `partsDesProfils` (`packages/couleur/src/palette.ts`) en est
   l'autorité. Quand
@@ -1095,9 +1161,11 @@ contrastes nuance par nuance ; la recette dit quelles parties se dessinent
   segments de la clé d'une variable (`[VAR-01]`).
   Aucun autre calque ne porte ce nom : les pastilles des grilles se nomment
   `teinte {cran}`.
-- `[PLA-15]` Une pastille où les deux profils se confondent porte ≈, sur tous
-  les crans. L'alerte « Profils confondus » ne porte que sur les crans de la
-  table en dossiers, dans le sens de chaque thème ([section 11.3](#113-alertes)).
+- `[PLA-15]` Une pastille où les deux profils se confondent porte ≈, sur les
+  cinq fonds que juge l'alerte « Profils confondus » : `surface/hover` et
+  `surface/pressed` en Light, `surface/default`, `hover` et `pressed` en Dark,
+  au cran de la table de chaque thème ([section 11.3](#113-alertes)). Les
+  autres pastilles n'en portent pas.
 - `[PLA-16]` Les textes du cadre sont sélectionnables et copiables : un code
   se copie depuis la planche sans ouvrir le plugin.
 
@@ -1422,7 +1490,7 @@ garantie par ses variables et son libellé, jamais par son numéro.
 
 | Alerte | Mesure | Seuil | Portée |
 |---|---|---|---|
-| Profils confondus | ΔEok entre `soft` et `vivid`, même cran et même mode, sur les crans que visent les variables de dossier, dans le sens de chaque thème, hors des fonds du thème Dark atténués (`[MOT-28]`) | `profilsConfondus` | chaque palette du modèle à deux intensités, sauf des profils ternes par construction (`[ENT-09]`) |
+| Profils confondus | ΔEok entre `soft` et `vivid`, même cran et même mode, sur les cinq fonds que juge `[VER-11]`, dans le sens de chaque thème ; l'alerte sonne à trois | `profilsConfondus` | chaque palette du modèle à deux intensités, sauf des profils ternes par construction (`[ENT-09]`) |
 | Palettes proches | la plus petite des ΔEok entre deux palettes sur le plein en Light, le plein en Dark et le texte du fond teinté en Light (`[VER-22]`) | `palettesProches` | chaque paire de palettes colorées, ni libres ni figées |
 | Référence plus terne que `soft` | part de la référence inférieure à la part de `soft` | sans seuil | chaque palette à deux intensités aux parts du designer |
 | Fond hors de la courbe | [section 8.2](#82-les-fonds-de-référence) | sans seuil | chaque fond |
@@ -1453,17 +1521,25 @@ garantie par ses variables et son libellé, jamais par son numéro.
   piste de saturation de la carte « Réglage global » porte
   un repère qui situe sa part, et le rapport garde la mesure. La référence exacte n'est jamais décrite comme plus terne
   qu'elle-même ; les nuances autour d'elle peuvent l'être.
-- `[VER-11]` « Profils confondus » ne porte que sur les crans que visent les
-  variables de dossier, dans le sens de chaque thème : les crans facultatifs
-  50, 400 et 950 en sont exclus. Les deux profils s'y confondent sur la plupart
-  des teintes claires, et aucun réglage ne les sépare ; sur la planche, la pastille de toute nuance où les deux profils
-  se confondent porte ≈ (`[PLA-15]`). À dérive nulle, sur 360 teintes, l'alerte portée sur tous
-  les crans sonne pour 320 teintes, aux crans 50, 100 et 950. `surface/default`
-  vise le cran 100, qui confond les deux profils sur 216 teintes en clair et 39
-  en sombre.
-  L'interface la montre dans la carte « Réglage global » de la palette, et
-  son lien y focalise la réglette de saturation (`[VER-15]`). Les nuances concernées gardent un indice discret dans
-  l'aperçu.
+- `[VER-11]` « Profils confondus » ne juge que cinq fonds, lus au cran que la
+  table de chaque thème leur donne : en Light `surface/hover` et
+  `surface/pressed`, en Dark `surface/default`, `surface/hover` et
+  `surface/pressed`. L'alerte sonne quand trois des cinq se confondent (écart
+  sous `profilsConfondus`), les deux thèmes réunis. Les pleins et les textes
+  n'y entrent pas : Soft et Vivid les partagent à peu de chose près. Le fond
+  Light `surface/default`, au cran 100, n'y entre pas non plus : l'écart
+  possible entre deux couleurs aussi pâles est trop faible. Les fonds Dark y
+  entrent sans exemption, puisque la borne de Soft à 0,15 les sépare. Les
+  profils ternes par construction (`[ENT-09]`) restent sans alerte. Sur le
+  balayage de 546 palettes jugées (36 teintes, six clartés, trois parts, texte
+  blanc en Light et noir en Dark), l'alerte sonne pour 29. Elle ne sonne ni
+  pour une palette à une intensité ni pour une palette libre.
+  Sur la planche, la pastille d'un des cinq fonds où les deux profils se
+  confondent porte ≈ (`[PLA-15]`) ; `confusionsDe` rend ces fonds, et
+  `alertesDePalette` compte les mêmes. L'interface montre l'alerte dans la
+  carte « Réglage global » de la palette, et son lien y focalise la réglette
+  de saturation (`[VER-15]`). Les nuances concernées gardent un indice discret
+  dans l'aperçu.
 
 ### 11.4 Sévérités et messages
 

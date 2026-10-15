@@ -193,20 +193,23 @@ packages/adapter-typescript/  l'adaptateur opt-in : parité TS/TSX et types gén
 packages/couleur/        le moteur de couleur d'UCM Palettes : ucm-couleur, privé, lu en source
   src/conversions.ts       hexa, sRGB, linéaire, Oklab, OKLCH et Display P3
   src/plafond.ts           la plus grande chroma que sRGB porte, mémorisée
-  src/rampe.ts             un cran et l'enveloppe de chroma qui le borne (`cranVise`), le poids d'une nuance, la teinte pivotée, le Color shift, le facteur des fonds du thème Dark, les rampes des deux profils
-  src/tailwind.ts          le relevé des dix-sept rampes colorées de Tailwind (teinte et clarté de chaque cran) et le préréglage de dérive lu à la clarté de la référence
+  src/rampe.ts             un cran et l'enveloppe de chroma qui le borne (`cranVise`, bosses des jaunes et des cyans), le facteur `clairs` des tons clairs du Light, le poids d'une nuance, la teinte pivotée, le Color shift, le facteur des fonds du thème Dark, les rampes des deux profils
+  src/tailwind.ts          le relevé des dix-sept rampes colorées de Tailwind (teinte et clarté de chaque cran), le préréglage de dérive lu à la clarté de la référence et le décalage de clarté selon la teinte (`clarteSelonLaTeinteDuReleve`)
   src/contraste.ts         niveaux WCAG, ΔEok, part de chroma, écriture à virgule ; le contraste vient du kit
-  src/recette.ts           la forme de la recette au format 11 (parts et enveloppe de chroma par profil, relevé `derives`), sa validation, son classement à la lecture : les formats 8 à 10 se lisent en format 11, une étape par format, aucun format antérieur ne se convertit
+  src/recette.ts           la forme de la recette au format 12 (parts, `clairs` et enveloppe de chroma par profil, relevé `derives`), sa validation, son classement à la lecture : les formats 8 à 11 se lisent en format 12, une étape par format, aucun format antérieur ne se convertit
   src/protocole.ts         l'espace et la clé partagés de la recette, qu'UCM Palettes écrit et que l'explorateur lit
   src/empreinte.ts         JSON canonique, encodeur UTF-8 et FNV-1a
-  src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées, l'enveloppe de chroma de chaque intensité, les clartés de leurs crans et les bornes des fonds du thème Dark
+  src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées, l'enveloppe de chroma de chaque intensité, les clartés de leurs crans, les bornes des fonds du thème Dark, la clarté selon la teinte et sa garde (`clarteSelonLaTeinte`, `clarteSelonLaTeinteGardee`) et la garde de la bosse de chroma
+  src/bosse.ts             la bosse de chroma qui monte les voisines de la référence porteuse (`bosseDeChroma`)
+  src/jugement.ts          le jugement des promesses sur des rampes données (`jugerLesRampes`), que la garde de la clarté et celle de la bosse appellent
+  src/ordre.ts             l'ordre des clartés de la chaîne (`ordreDesClartesTenu`)
   src/reconstruction.ts    les réglages d'une palette figée retrouvés depuis ses couleurs : recherche asynchrone, bornée, interruptible, à écart en hexa
   src/reglages.ts          la référence réglée, tirée du départ par la teinte et la clarté du porteur, et le rangement des réglages d'une palette (`appliquerLesReglages`)
   src/harmonisation.ts     les candidats de teinte, la course permise, les zones trop proches d'une autre palette, la sortie la plus proche et le gris de même clarté
   src/nuances.ts           les deux préréglages de nuances, 11 et 13, leurs courbes par défaut selon le texte des boutons de chaque thème (`courbesParDefaut`), les nuances 500 à 800 réglées (`nuancesReglees`), le changement de texte des boutons (`recetteAvecTexteDesBoutons`), la luminosité d'un numéro absent de la liste, la liste d'une palette libre
   src/ajustement.ts        la proposition d'un ajustement de la référence, par pas de luminosité
   src/promesses.ts         les sept garanties du kit, jugées par palette, par mode, dans la table du sens du thème, et par intensité présente, contre la page et la carte que le fond de la page détermine (`couleurDeLaCarte`)
-  src/alertes.ts           les alertes de conception, les palettes trop proches (`pairesTropProches`) et la notice
+  src/alertes.ts           les alertes de conception, les cinq fonds que « Profils confondus » juge (`confusionsDe`), les palettes trop proches (`pairesTropProches`) et la notice
   src/garantie.ts          la garantie des courbes : `page/foreground` et `ring` contre le cran le plus clair, gris, puis `solid/default` contre le texte des boutons, sur 360 teintes
   src/limites.ts           la limite dynamique d'un réglage et la cause de chaque borne, balayée un pas à la fois
   src/constats.ts          les sévérités et leur ordre d'affichage
@@ -1077,20 +1080,23 @@ La spécification en lien porte le raisonnement.
   `verifierPromesses` (`packages/couleur`) en sont l'unique autorité ;
   `packages/kit/tests/garanties.test.ts` et
   `packages/couleur/tests/promesses.test.ts` les tiennent.
-- La recette est au format 11 et porte `texteDesBoutons: { light, dark }`,
+- La recette est au format 12 et porte `texteDesBoutons: { light, dark }`,
   chacun `blanc` ou `noir` ; une autre valeur est refusée par la règle
-  `texte-des-boutons`. Chaque profil porte sa part et son enveloppe de chroma
-  (voir ci-dessous), et `derives` relève la teinte et la clarté de chaque
-  cran des rampes de Tailwind. `classerRecette` lit les formats 8 à 10 en
-  format 11, une étape par format, et les classe `courante` : le format 8
+  `texte-des-boutons`. Chaque profil porte sa part, son facteur `clairs` et son enveloppe de
+  chroma (voir ci-dessous), et `derives` relève la teinte et la clarté de chaque
+  cran des rampes de Tailwind. `classerRecette` lit les formats 8 à 11 en
+  format 12, une étape par format, et les classe `courante` : le format 8
   reçoit le texte des boutons par défaut ; le format 10 reçoit les profils et
-  le relevé `derives` par défaut, ce qui remplace les parts qu'il portait, et
+  le relevé `derives` par défaut du format 11, ce qui remplace les parts qu'il portait, et
   reçoit aussi les crans 400, 500 et 950 que sa liste ne porte pas, avec la
-  luminosité que `luminositeAuNumero` leur donne. Une forme ancienne qui porte déjà un champ
-  d'un format suivant (`texteDesBoutons` au format 8, `enveloppe` d'un profil,
-  une rampe de `derives` en objet) ou qui n'a ni `crans` ni `courbes` est
+  luminosité que `luminositeAuNumero` leur donne. Le format 11 passe au format 12 profil par profil : une enveloppe égale à
+  celle du format 11 par défaut prend l'enveloppe et le `clairs` du format 12
+  par défaut, une enveloppe modifiée garde ses valeurs avec `cyans` 0 et
+  `clairs` 1. Une forme ancienne qui porte déjà un champ d'un format suivant
+  (`texteDesBoutons` au format 8, `enveloppe` d'un profil, une rampe de
+  `derives` en objet, `clairs` ou `cyans` au format 11) ou qui n'a ni `crans` ni `courbes` est
   refusée par la règle `forme`. Un format inférieur à 8 est illisible, un
-  format supérieur à 11 est `future`. Aucune lecture n'écrit : le format 11
+  format supérieur à 12 est `future`. Aucune lecture n'écrit : le format 12
   se range au prochain geste du designer. Changer le texte des boutons d'un thème
   remplace ses nuances 500 à 800 par les valeurs par défaut du sens d'arrivée ;
   `recetteAvecTexteDesBoutons` refuse le passage quand la courbe n'est plus
@@ -1100,19 +1106,27 @@ La spécification en lien porte le raisonnement.
   et `nuances.test.ts` le tiennent.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#112-promesses-des-emplois)
 - La chroma d'un cran vaut `part × plafond(L, H)`, bornée par l'enveloppe du
-  profil dans le thème : `p0 × min(a × marge(H) × (1 − L), b × L)`, avec
-  `marge(H) = 1 + jaunes × exp(−½ × (écart de H à 100° ÷ 12°)²)`. La recette
-  range, par profil, `p0` et les bornes `a`, `b` et `jaunes` de chaque thème ;
-  Soft lit celles de `soft`, Vivid et l'intensité unique celles de `vivid`
-  (`enveloppeDe`). `p0` ne suit ni le Color shift ni les fonds du thème Dark :
-  `part` les porte déjà. Les valeurs par défaut sont `PROFILS_PAR_DEFAUT`
-  (`recette.ts`). Les bornes ne paraissent pas dans l'interface : « Par
-  défaut », sur la carte Intensités de la Configuration, remet les parts et
-  les enveloppes par défaut (`retablir`, `configuration.ts`). La règle `enveloppe` refuse un `p0` hors de `]0 ; 1]`, un
-  `a` ou un `b` hors de `]0 ; 2]` et un `jaunes` hors de `[0 ; 2]`.
-  `cranVise` (`packages/couleur/src/rampe.ts`) en est l'unique autorité ;
-  `fabriquerCran` et la garantie des courbes la lisent, et
-  `packages/couleur/tests/enveloppe.test.ts` la tient.
+  profil dans le thème : `p0 × min(a × marge(H) × (1 − Le), b × Le)`, avec
+  `marge(H) = 1 + jaunes × g(100°, 12°) + cyans × g(195°, 30°)`, `g` étant une
+  gaussienne de hauteur 1. L'enveloppe se lit à `Le`, la clarté du cran sans le
+  décalage de la clarté selon la teinte ; le plafond de l'écran se lit à la
+  clarté fabriquée. La recette range, par profil, `p0` et les bornes `a`, `b`,
+  `jaunes` et `cyans` de chaque thème ; Soft lit celles de `soft`, Vivid et
+  l'intensité unique celles de `vivid` (`enveloppeDe`). `p0` ne suit ni le
+  Color shift ni les fonds du thème Dark : `part` les porte déjà. Chaque profil
+  porte aussi `clairs`, un facteur de chroma des tons clairs du Light qui
+  multiplie la chroma après l'enveloppe : entier au-dessus de la clarté de
+  courbe 0,88, nul sous 0,78. Les valeurs par défaut sont `PROFILS_PAR_DEFAUT`
+  (`recette.ts`) : Soft a `clairs` 0,7 et `dark.b` 0,15, Vivid a `cyans` −0,2
+  en Light. Les bornes ne paraissent pas dans l'interface : « Par défaut », sur
+  la carte Intensités de la Configuration, remet les parts et les enveloppes
+  par défaut (`retablir`, `configuration.ts`). La règle `enveloppe` refuse un
+  `p0` hors de `]0 ; 1]`, un `a` ou un `b` hors de `]0 ; 2]`, un `jaunes` hors
+  de `[0 ; 2]`, un `cyans` hors de `[−1 ; 1]` et un `clairs` hors de `]0 ; 1]`.
+  `cranVise` (`packages/couleur/src/rampe.ts`) en est l'unique autorité pour
+  l'enveloppe, `viseesDeLaRampe` pour `clairs` ; `fabriquerCran` et la garantie
+  des courbes la lisent, et `packages/couleur/tests/enveloppe.test.ts` la tient.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#63-fabriquer-un-cran)
 - À la clarté de la couleur de référence, la teinte vaut celle de la référence,
   quel que soit le Color shift. `teinteA` (`packages/couleur/src/rampe.ts`) en est
   l'unique autorité, et `proprietes.test.ts` l'éprouve sur vingt mille tirages.
@@ -1143,14 +1157,16 @@ La spécification en lien porte le raisonnement.
 - À deux intensités, le profil porteur prend la part de chroma de la
   référence, qu'une palette de base Soft ou Vivid le force (l'interface
   l'appelle « Référence exacte dans »), que `reglages.porteur` le fige ou que
-  le classement automatique le choisisse. Sous la part commune de soft,
+  le classement automatique le choisisse, et ce dernier désigne toujours
+  Vivid : la couleur exacte reste dans Vivid, et Soft en est une version plus
+  calme, même sous une référence terne. Sous la part commune de soft,
   l'autre profil garde le rapport des parts communes ; au-dessus, il garde sa
   part commune, bornée pour que soft ne dépasse pas vivid. La part de la
   référence se lit à sa clarté bornée à l'étendue de la liste de la palette,
   et vaut 0 pour un gris pur, dont R, G et B ne diffèrent pas de plus d'une
   unité. Ces parts se calculent à la lecture et ne se rangent jamais :
-  `partsDe`, `partDeLaReference` et `profilPorteur`
-  (`packages/couleur/src/palette.ts`) en sont l'unique autorité, et des parts
+  `partsDe`, `partDeLaReference`, `profilAutomatique` et
+  `profilPorteur` (`packages/couleur/src/palette.ts`) en sont l'unique autorité, et des parts
   propres du designer passent avant elles. Sans palette de base, le premier
   réglage de la carte « Réglage global » fige le porteur dans
   `reglages.porteur`, qui passe avant le classement automatique.
@@ -1174,11 +1190,44 @@ La spécification en lien porte le raisonnement.
   se lit sur la clarté que la courbe vise, jamais sur un rang, et la
   référence exacte garde ses octets. `facteurSombre`
   (`packages/couleur/src/rampe.ts`) en est l'unique autorité : `fabriquerRampe`
-  l'applique, et « Profils confondus » le lit pour se taire sur les nuances
-  atténuées. `fabriquerCran`, que la garantie des courbes, l'ajustement et les
+  l'applique. `fabriquerCran`, que la garantie des courbes, l'ajustement et les
   pistes peintes des réglettes appellent, ne l'applique pas. `packages/couleur/tests/fondsSombres.test.ts`
   le tient.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#63-fabriquer-un-cran)
+- Les tons clairs suivent la clarté de Tailwind selon la teinte : le décalage du
+  bout clair se lit sur le relevé `derives` à la teinte du départ de la
+  palette, au cran 100, et se borne à ±0,03. Il se calcule à la lecture et ne
+  se range jamais. Il s'ajoute à la luminosité du Color shift des deux profils,
+  et l'enveloppe de chroma se lit sans lui. Une dichotomie de douze pas le
+  réduit jusqu'à garder l'ordre des nuances et toutes les promesses que la
+  palette tient sans lui ; le résultat est mémorisé par recette et par palette.
+  `clarteSelonLaTeinteDuReleve` (`packages/couleur/src/tailwind.ts`),
+  `clarteSelonLaTeinte` et `clarteSelonLaTeinteGardee` (`palette.ts`) en sont
+  l'unique autorité, et `rampesDe` et `clartesDe` lisent la même fraction.
+  `packages/couleur/tests/clarteSelonLaTeinte.test.ts` le tient.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#65-le-préréglage-tailwind)
+- Dans l'intensité porteuse, les crans voisins de la référence montent vers
+  elle quand elle est plus vive que la chroma que sa rampe vise à son cran : un
+  poids gaussien de σ 0,10 sur la clarté, hors des fonds (Light au-dessus de
+  0,88, Dark sous 0,50). Vivid et l'intensité unique y font entrer la bosse à
+  proportion de la place qu'y tient la référence ; Soft garde des fonds calmes
+  même quand il la porte. `rampesDe` garde la bosse mode par mode, par quatorze
+  dichotomies, contre toute promesse que la rampe tient sans elle ; le
+  jugement est celui de `jugerLesRampes` (`jugement.ts`), l'ordre des clartés
+  celui de `ordre.ts`. `bosseDeChroma` (`packages/couleur/src/bosse.ts`) et
+  `rampesDe` (`palette.ts`) en sont l'unique autorité, et
+  `packages/couleur/tests/bosse.test.ts` la tient.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran)
+- « Profils confondus » et le repère ≈ jugent cinq fonds, lus au cran de la
+  table de chaque thème : `surface/hover` et `surface/pressed` en Light,
+  `surface/default`, `surface/hover` et `surface/pressed` en Dark. L'alerte
+  sonne à trois sur cinq, les deux thèmes réunis, sans exemption des fonds Dark
+  atténués. Les pleins, les textes et le fond Light `surface/default`
+  n'entrent pas dans le jugement ; les profils ternes par construction, une
+  palette libre et une palette à une intensité restent sans alerte.
+  `confusionsDe` et `alertesDePalette` (`packages/couleur/src/alertes.ts`) en
+  sont l'unique autorité, et `packages/couleur/tests/alertes.test.ts` la tient.
+  → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#113-alertes)
 - Chaque valeur de la limite dynamique d'un réglage garde les promesses tenues
   au départ du geste et, pour la luminosité, 0,01 de clarté entre nuances
   voisines. Une promesse manquée au départ ne borne rien. Chaque borne porte
