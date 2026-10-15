@@ -1321,10 +1321,10 @@ const ETATS = [
   {
     id: 'reference-soft',
     titre: 'Référence Soft',
-    quand: 'Une référence peu intense, #A0B599 : Soft la porte, dans les deux thèmes. Le designer déplie le Color shift.',
+    quand: 'Une référence peu intense, #A0B599, que le designer a fait porter par Soft (Vivid porte désormais toute référence en Auto) : Soft la porte, dans les deux thèmes. Le designer déplie le Color shift.',
     regarder: 'La ligne « Référence : Soft · nuance 400 », le ◆ dans la pastille Soft 400, puis dans le Color shift la ligne et les rampes de Soft, et le pivot dans la colonne 400.',
     existe: true,
-    atteinte: [etatDuFichier(rangee([palette('p-6a0b5990', 'Sauge', '#A0B599')])), deplierLaDerive],
+    atteinte: [etatDuFichier(rangee([{ ...palette('p-6a0b5990', 'Sauge', '#A0B599'), base: 'soft' }])), deplierLaDerive],
   },
   {
     id: 'reference-vivid',

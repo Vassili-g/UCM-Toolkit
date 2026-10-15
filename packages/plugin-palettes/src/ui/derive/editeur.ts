@@ -437,7 +437,11 @@ function construireVues(i18n: Localisation) {
         },
         lire: (saisie) => lire(grandeurAffichee(), saisie),
         buter(cote) {
-          butee = { grandeur: grandeurAffichee(), bout, cote };
+          const grandeur = grandeurAffichee();
+          const dite = butee?.grandeur === grandeur && butee.bout === bout && butee.cote === cote;
+          butee = { grandeur, bout, cote };
+          // Un pouce déjà posé sur la borne ne se prévisualise plus : sans ce redessin, la ligne attendrait le relâcher.
+          if (!dite) dessiner();
         },
       });
     }
