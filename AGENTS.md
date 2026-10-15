@@ -201,7 +201,8 @@ packages/couleur/        le moteur de couleur d'UCM Palettes : ucm-couleur, priv
   src/empreinte.ts         JSON canonique, encodeur UTF-8 et FNV-1a
   src/palette.ts           une palette lue contre sa recette : ses intensités, ses parts, le gris pur et la palette grise, le départ et le pivot de ses réglages, l'ancrage de sa référence, ses rampes ancrées, les clartés de leurs crans et les bornes des fonds du thème Dark
   src/reconstruction.ts    les réglages d'une palette figée retrouvés depuis ses couleurs : recherche asynchrone, bornée, interruptible, à écart en hexa
-  src/reglages.ts          la référence réglée, tirée du départ par la teinte et la clarté du porteur
+  src/reglages.ts          la référence réglée, tirée du départ par la teinte et la clarté du porteur, et le rangement des réglages d'une palette (`appliquerLesReglages`)
+  src/harmonisation.ts     les candidats de teinte, la course permise, les zones trop proches d'une autre palette et le gris de même clarté
   src/nuances.ts           les deux préréglages de nuances, 11 et 13, leurs courbes par défaut selon le texte des boutons de chaque thème (`courbesParDefaut`), les nuances 500 à 800 réglées (`nuancesReglees`), le changement de texte des boutons (`recetteAvecTexteDesBoutons`), la luminosité d'un numéro absent de la liste, la liste d'une palette libre
   src/ajustement.ts        la proposition d'un ajustement de la référence, par pas de luminosité
   src/promesses.ts         les sept garanties du kit, jugées par palette, par mode, dans la table du sens du thème, et par intensité présente

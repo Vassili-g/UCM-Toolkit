@@ -7,10 +7,11 @@ import {
   BORNES_DES_REGLAGES,
   BORNES_DU_COLOR_SHIFT,
   PROFILS,
-  aUnReglageDuPorteur,
   aUneIntensite,
+  appliquerLesReglages,
   arrondir,
   boutsDe,
+  candidatDeTeinte,
   cleDuPorteur,
   decalageRange,
   departDe,
@@ -23,7 +24,6 @@ import {
   prereglageTailwind,
   profilAutomatique,
   profilPorteur,
-  referenceReglee,
   rgb8VersOklch,
   type Bout,
   type Derive,
@@ -34,8 +34,8 @@ import {
   type Parts,
   type Profil,
   type Recette,
-  type Reglages,
   type Rgb8,
+  type ValeursReglees,
 } from 'ucm-couleur';
 
 import type { PaletteDuFichier, PaletteGroupee } from './variables/detection';
@@ -88,80 +88,10 @@ export function originaleDe(palette: Palette): string {
   return palette.originale ?? palette.reference;
 }
 
-/** Les valeurs réglables d'une palette : teinte et clarté par profil, et la part de la référence. */
-export interface ValeursReglees {
-  readonly teinte: ParProfil;
-  readonly clarte: ParProfil;
-  readonly part?: number;
-}
-
 /** Les valeurs réglées d'une palette, zéro compris quand rien n'est rangé. */
 export function valeursDe(palette: Palette): ValeursReglees {
   const { teinte = {}, clarte = {}, part } = palette.reglages ?? {};
   return part === undefined ? { teinte, clarte } : { teinte, clarte, part };
-}
-
-/** Une valeur par profil sans zéro ; `null` quand il n'en reste aucune. */
-function sansZero(valeurs: ParProfil): ParProfil | null {
-  const gardees = PROFILS.filter((profil) => valeurs[profil] !== undefined && valeurs[profil] !== 0);
-  return gardees.length === 0 ? null : Object.fromEntries(gardees.map((profil) => [profil, valeurs[profil]]));
-}
-
-/**
- * Pose des valeurs réglées sur une palette (Z10.5, « Les gestes ») : zéros
- * retirés, porteur figé à deux intensités sans palette de base, `originale`
- * et `depart` posés au premier réglage du porteur, la référence tirée du
- * départ par `referenceReglee`.
- * `porteur` remplace le porteur d'avant, quand le geste en change ; `base`
- * est celle de la palette rendue.
- */
-function appliquerLesReglages(
-  recette: Recette,
-  avant: Palette,
-  valeurs: ValeursReglees,
-  options: { porteur?: Profil; base?: Profil } = {},
-): Palette {
-  const porteur = options.porteur ?? cleDuPorteur(recette, avant);
-  // Une base passée à `undefined` la retire : seule une clé absente garde celle d'avant.
-  const base = 'base' in options ? options.base : avant.base;
-  const une = aUneIntensite(avant);
-  const teinte = sansZero(valeurs.teinte);
-  const clarte = sansZero(valeurs.clarte);
-  const part = valeurs.part;
-  const reglages: { -readonly [K in keyof Reglages]: Reglages[K] } = {};
-  if (teinte) reglages.teinte = teinte;
-  if (clarte) reglages.clarte = clarte;
-  if (part !== undefined) reglages.part = part;
-  const aDesReglages = Object.keys(reglages).length > 0;
-  if (aDesReglages && !une && !base) reglages.porteur = porteur;
-
-  const duPorteur = part !== undefined || teinte?.[porteur] !== undefined || clarte?.[porteur] !== undefined;
-  const avaitDuPorteur = aUnReglageDuPorteur(recette, avant);
-  let originale = avant.originale;
-  let depart = avant.reglages?.depart;
-  if (duPorteur && !avaitDuPorteur) {
-    // Une référence ajustée avant la version 5 garde ses octets comme départ, et son originale.
-    if (!originale) originale = avant.reference;
-    else if (originale.toUpperCase() !== avant.reference.toUpperCase()) depart = avant.reference;
-  }
-  const couleurDeDepart = lireHexa(avaitDuPorteur || duPorteur ? (depart ?? originale ?? avant.reference) : avant.reference) ?? departDe(recette, avant);
-  let reference: string;
-  if (duPorteur) {
-    reference = ecrireHexa(referenceReglee(couleurDeDepart, teinte?.[porteur] ?? 0, clarte?.[porteur] ?? 0, part, recette.gamut));
-    if (depart) reglages.depart = depart.toUpperCase();
-  } else {
-    reference = ecrireHexa(couleurDeDepart);
-    if (originale?.toUpperCase() === reference) originale = undefined;
-  }
-
-  const { reglages: _reglages, originale: _originale, base: _base, ...reste } = avant;
-  return {
-    ...reste,
-    reference,
-    ...(base ? { base } : {}),
-    ...(originale ? { originale: originale.toUpperCase() } : {}),
-    ...(aDesReglages ? { reglages } : {}),
-  };
 }
 
 /** Ce qu'un geste de la carte vise : un profil, ou les deux ensemble. Une palette à une intensité se règle sous `vivid`. */
@@ -183,10 +113,11 @@ function poserSurLaCible(valeurs: ParProfil, porteur: Profil, cible: CibleDuRegl
 
 /** La teinte d'un profil, ou des deux, en degrés depuis le départ, bornée à ±30° (Z10.5). */
 export function reglerTeinte(recette: Recette, palette: Palette, cible: CibleDuReglage, valeur: number): Palette {
-  const valeurs = valeursDe(palette);
-  const { teinte } = BORNES_DES_REGLAGES;
-  const suivantes = poserSurLaCible(valeurs.teinte, cleDuPorteur(recette, palette), aUneIntensite(palette) ? 'vivid' : cible, valeur, -teinte, teinte, 2);
-  return appliquerLesReglages(recette, palette, { ...valeurs, teinte: suivantes });
+  const profilPorteur = cleDuPorteur(recette, palette);
+  const profilVise = aUneIntensite(palette) ? 'vivid' : cible === 'deux' ? profilPorteur : cible;
+  const valeurDuProfilVise = palette.reglages?.teinte?.[profilVise] ?? 0;
+  const ecartCommun = valeur - valeurDuProfilVise;
+  return candidatDeTeinte(recette, palette, ecartCommun, cible);
 }
 
 /** Le décalage de clarté d'un profil, ou des deux, borné à [−0,10, +0,10] (Z10.5) ; celui du porteur déplace la référence. */

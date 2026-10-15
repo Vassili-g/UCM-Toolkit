@@ -68,9 +68,10 @@ Règles d'économie, à tenir par l'orchestrateur :
   vérification de fin de vague 2 est verte : `npm test`, `npm run typecheck`,
   `npm run build` et les trois `test:ui` (Palettes 265, Exporter 39,
   explorateur 24).
-- **Prochaine étape** : la vague 3 dans l'ordre P2, P6, P7, P3, P4, P5, P8 ;
-  P2 à P7 sont faits ; Codex fait H0 en parallèle
-  (`packages/couleur`, `reglerTeinte`).
+- Vague 3 (P1 à P8) et H0 faits, vérifiés et poussés le 15 octobre : suite
+  complète et trois `test:ui` verts (Palettes 275, Exporter 39,
+  explorateur 24).
+- **Prochaine étape** : la vague 4 à partir de H1, confiée à Codex.
 - Question au mainteneur : une référence plus sombre que le bout sombre
   (stone-950) prend toute la dérive vers le clair (M4) ; test `todo` dans
   `packages/couleur/tests/desaturees.test.ts`.
@@ -919,7 +920,7 @@ Les tâches sont successives : plusieurs partagent `styles.css`, `i18n` et
   - Fini quand : vert ; le résumé replié dit `Par défaut · synchronisé`
     quand rien n'est réglé.
 
-- [ ] **P8 · Fin de vague** · `verificateur`, puis orchestrateur.
+- [x] **P8 · Fin de vague** · `verificateur`, puis orchestrateur.
   - Suite complète, `test:ui` des trois plugins, commits, push.
 
 ### Vague 4 · L'onglet Harmonisation
@@ -950,7 +951,8 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
     trois plugins.
   - Fini quand : vert.
 
-- [ ] **H0 · Les calculs de l'onglet** · `implementeur-exigeant`, haut.
+- [x] **H0 · Les calculs de l'onglet** · `implementeur-exigeant`, haut.
+  - Fait par Codex, relu et corrigé : [note de reprise](./REPRISE-CODEX-H0.md).
   - SPEC, section 10 ; PR6. Code de référence :
     `D/Mesures/generer-ensembles.ts`, fonctions `distanceMin` et `tourner`
     (à ne pas porter tel quel : `tourner` refuse le retour à la couleur

@@ -10,7 +10,7 @@ import { lireHexa, rgb8VersOklch, type Rgb8 } from './conversions';
 import { distanceOk } from './contraste';
 import { aUneIntensite, fondsSombresDe, partDeLaReference, partsDe, rampesDe } from './palette';
 import { estLibre, grilleDe } from './nuances';
-import { facteurSombre, MODES, rampeDe, type Mode } from './rampe';
+import { facteurSombre, MODES, rampeDe, type Mode, type Rampes } from './rampe';
 import type { Palette, Recette } from './recette';
 
 /** Un cran où `soft` et `vivid` se confondent. */
@@ -141,19 +141,21 @@ const MESURES_DE_PROXIMITE = [
   { role: 'texte', variable: 'surface/foreground', mode: 'light' },
 ] as const;
 
-type NuancesDeProximite = readonly { readonly role: RoleDeProximite; readonly mode: Mode; readonly couleur: Rgb8 }[];
+export type NuancesDeProximite = readonly { readonly role: RoleDeProximite; readonly mode: Mode; readonly couleur: Rgb8 }[];
 
 /**
  * Les trois couleurs d'une palette que la comparaison lit, dans l'intensité
  * Vivid ou l'unique intensité de la palette ; `null` si la palette n'entre pas
  * dans la comparaison : libre ou figée, terne, ou sans l'un de ces crans.
+ * `rampes` remplace les rampes de la palette quand l'appelant les a déjà
+ * calculées.
  */
-function nuancesDeProximite(recette: Recette, palette: Palette): NuancesDeProximite | null {
+export function nuancesDeProximite(recette: Recette, palette: Palette, rampes: Rampes = rampesDe(recette, palette)): NuancesDeProximite | null {
   if (estLibre(palette)) return null;
   const reference = lireHexa(palette.reference);
   if (!reference || rgb8VersOklch(reference).C <= CHROMA_DES_PALETTES_COLOREES) return null;
   const { crans } = grilleDe(recette, palette);
-  const rampe = rampeDe(rampesDe(recette, palette), aUneIntensite(palette) ? 'unique' : 'vivid');
+  const rampe = rampeDe(rampes, aUneIntensite(palette) ? 'unique' : 'vivid');
   const nuances: { role: RoleDeProximite; mode: Mode; couleur: Rgb8 }[] = [];
   for (const { role, variable, mode } of MESURES_DE_PROXIMITE) {
     const cran = cranDeLaVariable(variable, mode, sensDuTheme(mode, recette.texteDesBoutons[mode]));
@@ -164,7 +166,8 @@ function nuancesDeProximite(recette: Recette, palette: Palette): NuancesDeProxim
   return nuances;
 }
 
-function proximiteDeNuances(a: NuancesDeProximite, b: NuancesDeProximite): Proximite {
+/** La plus petite distance entre deux jeux de nuances comparées, avec le rôle et le thème qui la portent. */
+export function proximiteDeNuances(a: NuancesDeProximite, b: NuancesDeProximite): Proximite {
   let plus = { distance: Infinity, rang: 0 };
   a.forEach((nuance, rang) => {
     const distance = distanceOk(nuance.couleur, b[rang].couleur);
