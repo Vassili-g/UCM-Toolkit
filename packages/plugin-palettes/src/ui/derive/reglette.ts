@@ -53,7 +53,7 @@ export interface EtatDeLaReglette {
   readonly desactivee: boolean;
   /** Une valeur rangée hors de sa plage sûre ([DER-23]) : le pouce se lit hachuré. */
   readonly horsDeLaPlage: boolean;
-  /** Le bouton qui ramène la valeur de départ, « Tailwind » ou « Rétablir ». */
+  /** Le bouton qui ramène la valeur de départ, « Tailwind » ou « Par défaut ». */
   readonly bouton: { readonly texte: Texte; readonly etiquette: Texte; readonly inactif: boolean };
 }
 

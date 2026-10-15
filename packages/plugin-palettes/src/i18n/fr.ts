@@ -220,10 +220,10 @@ export const TEXTES_DE_CONFIGURATION = {
   aideCourbes: "Luminosité de 0 à 1, pour toutes les palettes.",
   aideEcarts: "Un seuil plus élevé signale davantage de couleurs proches. L’écart se mesure en ΔEok.",
   aideMinimums: "Ces seuils changent le résultat des garanties, pas les couleurs ni les niveaux WCAG.",
-  retablir: 'Rétablir',
+  retablir: 'Par défaut',
   // N059 : la garantie des courbes ne remplace pas celles des palettes (V9.4).
   garantieCommune: "Vérification sur toutes les teintes. Vérifiez aussi la carte « Garanties de contraste » de chaque palette.",
-  // N060, réécrit en W6.4 : « Rétablir » des courbes, quand la liste des nuances vient d'un import.
+  // N060, réécrit en W6.4 : « Par défaut » des courbes, quand la liste des nuances vient d'un import.
   courbesSansDefaut: "Aucune courbe par défaut pour cette liste de nuances importée.",
   // N091 : le titre de chaque ligne de la table des courbes, et le nom de la table (W4.3).
   courbeDuMode: { light: 'Light', dark: 'Dark' },
@@ -307,7 +307,7 @@ export const TEXTES_DU_TEXTE_DES_BOUTONS = {
     `Vos luminosités des nuances 500 à 800 en ${NOM_DU_MODE[mode]} seront remplacées par celles de la courbe ${sens === 'inverse' ? 'inversée' : 'normale'}. Les autres nuances gardent vos valeurs.`,
   // Les voisines de la plage 500 à 800 présentes dans la liste : 400 et 900 pour les préréglages.
   refus: (voisines: readonly number[], sens: 'normal' | 'inverse') =>
-    `Avec vos valeurs ${voisines.length === 1 ? 'de la nuance' : 'des nuances'} ${voisines.join(' et ')}, la courbe ${sens === 'inverse' ? 'inversée' : 'normale'} ne garde pas l’ordre des nuances. Rétablissez « Luminosité des nuances », puis changez le texte des boutons.`,
+    `Avec vos valeurs ${voisines.length === 1 ? 'de la nuance' : 'des nuances'} ${voisines.join(' et ')}, la courbe ${sens === 'inverse' ? 'inversée' : 'normale'} ne garde pas l’ordre des nuances. Remettez « Luminosité des nuances » par défaut, puis changez le texte des boutons.`,
   resumeDesCourbes: (modes: readonly Mode[]) => `Courbe inversée : ${modes.map((mode) => NOM_DU_MODE[mode]).join(', ')}`,
 } as const;
 
@@ -359,9 +359,9 @@ export function resumeDesEcarts(profilsConfondus: number, palettesProches: numbe
   return `Soft et Vivid ${nombreEcrit(profilsConfondus)} · Deux palettes ${nombreEcrit(palettesProches)}`;
 }
 
-/** Le nom accessible de « Rétablir », qui nomme la carte (V9.5, N058). */
+/** Le nom accessible de « Par défaut », qui nomme la carte (V9.5, N058). */
 export function retablirLaCarte(titre: string): string {
-  return `Rétablir les valeurs par défaut : ${titre}`;
+  return `Remettre par défaut : ${titre}`;
 }
 
 /** La portée d'un groupe de réglages, avant toute saisie ([ENT-07]). */
@@ -448,8 +448,8 @@ export const TEXTES_DES_REGLAGES = {
   lesDeux: 'Les deux',
   deuxProfils: 'Soft et Vivid',
   grandeurs: { teinte: 'Teinte', saturation: 'Saturation', luminosite: 'Luminosité' },
-  retablir: 'Rétablir',
-  retablirLa: (grandeur: string) => `Rétablir la ${grandeur.toLowerCase()}`,
+  retablir: 'Par défaut',
+  retablirLa: (grandeur: string) => `Remettre la ${grandeur.toLowerCase()} par défaut`,
   etiquette: (grandeur: string, profil: string) => `${grandeur} de ${profil}`,
   avertissementAvant: "Ce réglage modifiera votre couleur de référence.",
   avertissementApres: "Votre couleur de référence a été modifiée.",
@@ -527,9 +527,9 @@ export const TEXTES_DE_LA_DERIVE = {
   aligner: 'Aligner',
   annuler: 'Annuler',
   confirmationDuLien: "Remplacer le Color shift de Soft par celui de Vivid ? Teinte, saturation et luminosité seront copiées.",
-  toutRetablir: 'Tout rétablir',
+  toutRetablir: 'Tout par défaut',
   boutonTailwind: 'Tailwind',
-  retablir: 'Rétablir',
+  retablir: 'Par défaut',
   bout: { clair: 'Nuances claires', sombre: 'Nuances sombres' },
   rampeSans: 'sans',
   rampeAvec: 'avec',
@@ -552,7 +552,7 @@ export function grandeurAuBout(grandeur: GrandeurDuColorShift, bout: Bout): stri
 /** Le bouton d'un bout ([DER-09]) : la teinte Tailwind, ou zéro pour la saturation et la luminosité. */
 export function retablirAuBout(grandeur: GrandeurDuColorShift, bout: Bout): string {
   const nuances = TEXTES_DE_LA_DERIVE.bout[bout].toLowerCase();
-  return grandeur === 'teinte' ? `Ramener la teinte Tailwind des ${nuances}` : `Rétablir la ${TEXTES_DE_LA_DERIVE.grandeurs[grandeur].toLowerCase()} des ${nuances}`;
+  return grandeur === 'teinte' ? `Ramener la teinte Tailwind des ${nuances}` : `Remettre la ${TEXTES_DE_LA_DERIVE.grandeurs[grandeur].toLowerCase()} des ${nuances} par défaut`;
 }
 
 /** Une plage sûre : « −0,050 à +0,040 ». */

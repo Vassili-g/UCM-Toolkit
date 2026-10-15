@@ -2,7 +2,7 @@
  * La carte « Réglage global » de la palette ouverte ([UI-12], Z10.6, maquette
  * Z10.4, forme A) : le choix « Régler », Soft, Vivid ou les deux, que la carte
  * pose dans son en-tête, puis trois réglettes peintes par le moteur, chacune avec son champ, sa
- * valeur absolue et « Rétablir ». La lettre de l'autre profil situe sa valeur
+ * valeur absolue et « Par défaut ». La lettre de l'autre profil situe sa valeur
  * sur chaque piste, et un repère situe la saturation de la référence sur
  * celle des deux profils ([VER-10]). Une palette grise n'a pas de teinte à
  * régler ([DER-15]).
@@ -263,7 +263,7 @@ function construireVues(i18n: Localisation) {
       rendre();
     }
 
-    /** « Rétablir » ou un double-clic : la valeur de départ, pour la cible ou pour les deux profils. */
+    /** « Par défaut » ou un double-clic : la valeur de départ, pour la cible ou pour les deux profils. */
     function retablirLaGrandeur(grandeur: Grandeur): void {
       if (!lue || !courante) return;
       calculs.terminer();

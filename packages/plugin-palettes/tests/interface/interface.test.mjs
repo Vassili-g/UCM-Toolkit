@@ -2333,7 +2333,7 @@ test('W4.1 la création ouvre le sélecteur sans pastille, et la couleur choisie
   }
 });
 
-test('W4.3 Luminosité des nuances : chaque champ sous son point du tracé, flèches à 0,005 et 0,05 avec Maj, puis « Rétablir »', async () => {
+test('W4.3 Luminosité des nuances : chaque champ sous son point du tracé, flèches à 0,005 et 0,05 avec Maj, puis « Par défaut »', async () => {
   const page = await ouvrirSur('configuration-de-la-recette', MINIMALE);
   try {
     await page.getByRole('button', { name: 'Ouvrir les réglages communs' }).click();
@@ -2370,7 +2370,7 @@ test('W4.3 Luminosité des nuances : chaque champ sous son point du tracé, flè
     assert.equal(second.recette.courbes.light[7], 0.455);
     await envoyer(page, rangee(second.demande));
 
-    const retablir = carte.getByRole('button', { name: /^Rétablir/ });
+    const retablir = carte.getByRole('button', { name: /^(Par défaut|Remettre par défaut)/ });
     assert.equal(await retablir.isDisabled(), false);
     await retablir.click();
     const retour = await prochaine(page, avant + 2);
@@ -5233,7 +5233,7 @@ test('le libellé du choix du profil se traduit : « Adjust » dans le Réglage 
   }
 });
 
-test('Z10.8 « Les deux » déplace les deux profils du même écart et prévient avant ; « Rétablir » les remet à zéro et rend la référence', async () => {
+test('Z10.8 « Les deux » déplace les deux profils du même écart et prévient avant ; « Par défaut » les remet à zéro et rend la référence', async () => {
   const page = await ouvrirSur('palette-deux-intensites');
   try {
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
@@ -5252,7 +5252,7 @@ test('Z10.8 « Les deux » déplace les deux profils du même écart et prévien
     assert.equal(deux.recette.palettes[0].originale, '#1E6FD9');
     await envoyer(page, rangee(deux.demande));
 
-    await carte.getByRole('button', { name: 'Rétablir la teinte' }).click();
+    await carte.getByRole('button', { name: 'Remettre la teinte par défaut' }).click();
     const retablie = await prochaine(page, avant + 1);
     assert.equal(retablie.recette.palettes[0].reglages, undefined);
     assert.equal(retablie.recette.palettes[0].reference, '#1E6FD9');
@@ -5457,7 +5457,7 @@ test('Z11.6 Échap dans un champ de la carte des réglages rend sa valeur, et le
   }
 });
 
-test('Z11.7 « Rétablir » la saturation de Soft laisse celle de Vivid', async () => {
+test('Z11.7 « Par défaut » la saturation de Soft laisse celle de Vivid', async () => {
   const page = await ouvrirSur('reglages-profil-delie', { width: 600, height: 720 });
   try {
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
@@ -5475,7 +5475,7 @@ test('Z11.7 « Rétablir » la saturation de Soft laisse celle de Vivid', async 
     const soft = await prochaine(page, avant + 1);
     assert.deepEqual(soft.recette.palettes[0].parts, { soft: 0.3, vivid: 0.8, origine: 'designer' });
     await envoyer(page, rangee(soft.demande));
-    await carte.getByRole('button', { name: 'Rétablir la saturation' }).click();
+    await carte.getByRole('button', { name: 'Remettre la saturation par défaut' }).click();
     const retablie = await prochaine(page, avant + 2);
     assert.equal(retablie.recette.palettes[0].parts.vivid, 0.8, 'Vivid garde sa saturation');
     assert.equal(retablie.recette.palettes[0].parts.soft, 0.45, 'Soft reprend celle de la recette');
@@ -6155,11 +6155,11 @@ test('[DER-13] Ctrl+Z défait le dernier réglage du Color shift, quelle que soi
   }
 });
 
-test('[DER-11] « Tout rétablir » rend la teinte Tailwind, la saturation et la luminosité à zéro', async () => {
+test('[DER-11] « Tout par défaut » rend la teinte Tailwind, la saturation et la luminosité à zéro', async () => {
   const page = await editeurSur('color-shift-saturation');
   try {
     const avant = await compte(page);
-    await carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getByRole('button', { name: 'Tout rétablir' }).click();
+    await carteDeLOnglet(page, CARTE_DE_LA_DERIVE).getByRole('button', { name: 'Tout par défaut' }).click();
     const palette = await rangementDe(page, avant);
     assert.deepEqual(palette.derive.vivid, { clair: -7.35, sombre: 4.28, origine: 'tailwind' });
     assert.deepEqual(palette.derive.soft, palette.derive.vivid);

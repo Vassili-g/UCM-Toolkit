@@ -3,7 +3,7 @@
  * grandeur, teinte, saturation ou luminosité, que le graphe et les deux
  * réglettes règlent aux deux bouts ([DER-18]). Le choix « Régler » se pose
  * dans l'en-tête de la carte ; le préréglage de la teinte, la synchronisation
- * des profils et « Tout rétablir » suivent l'aide ([DER-11], [DER-12]).
+ * des profils et « Tout par défaut » suivent l'aide ([DER-11], [DER-12]).
  *
  * Chaque réglage s'arrête à sa limite dynamique ([DER-19]) : la limite se
  * calcule sur l'état du début du geste, à l'ouverture, au changement
@@ -218,7 +218,7 @@ function construireVues(i18n: Localisation) {
       else gestes.previsualiser(suivante);
     }
 
-    // L'aide, puis l'en-tête : préréglage de la teinte, synchronisation, « Tout rétablir ».
+    // L'aide, puis l'en-tête : préréglage de la teinte, synchronisation, « Tout par défaut ».
     const aide = document.createElement('p');
     aide.className = 'ligne-secondaire';
     i18n.lier(aide, 'textContent', TEXTES_DE_LA_DERIVE.aide);

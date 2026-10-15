@@ -224,10 +224,10 @@ export const TEXTES_DE_CONFIGURATION = {
   aideCourbes: "Lightness from 0 to 1, for all palettes.",
   aideEcarts: "A higher threshold flags more similar colours. Differences are measured in ΔEok.",
   aideMinimums: "These thresholds change guarantee results, not colours or WCAG levels.",
-  retablir: "Reset",
+  retablir: "Default",
   // N059 : la garantie des courbes ne remplace pas celles des palettes (V9.4).
   garantieCommune: "Checked across all hues. Also check each palette’s “Contrast guarantees” card.",
-  // N060, réécrit en W6.4 : « Rétablir » des courbes, quand la liste des nuances vient d'un import.
+  // N060, réécrit en W6.4 : « Par défaut » des courbes, quand la liste des nuances vient d'un import.
   courbesSansDefaut: "No default curves for this imported shade list.",
   // N091 : le titre de chaque ligne de la table des courbes, et le nom de la table (W4.3).
   courbeDuMode: { light: 'Light', dark: 'Dark' },
@@ -363,9 +363,9 @@ export function resumeDesEcarts(profilsConfondus: number, palettesProches: numbe
   return `Soft and Vivid ${nombreEcrit(profilsConfondus)} · Two palettes ${nombreEcrit(palettesProches)}`;
 }
 
-/** Le nom accessible de « Rétablir », qui nomme la carte (V9.5, N058). */
+/** Le nom accessible de « Par défaut », qui nomme la carte (V9.5, N058). */
 export function retablirLaCarte(titre: string): string {
-  return `Reset to defaults: ${titre}`;
+  return `Reset to default: ${titre}`;
 }
 
 /** La portée d'un groupe de réglages, avant toute saisie ([ENT-07]). */
@@ -452,8 +452,8 @@ export const TEXTES_DES_REGLAGES = {
   lesDeux: "Both",
   deuxProfils: "Soft and Vivid",
   grandeurs: { teinte: "Hue", saturation: "Saturation", luminosite: "Lightness" },
-  retablir: "Reset",
-  retablirLa: (grandeur: string) => `Reset ${grandeur.toLowerCase()}`,
+  retablir: "Default",
+  retablirLa: (grandeur: string) => `Reset ${grandeur.toLowerCase()} to default`,
   etiquette: (grandeur: string, profil: string) => `${profil} ${grandeur.toLowerCase()}`,
   avertissementAvant: "This adjustment will change your reference colour.",
   avertissementApres: "Your reference colour has changed.",
@@ -531,9 +531,9 @@ export const TEXTES_DE_LA_DERIVE = {
   aligner: "Align",
   annuler: "Cancel",
   confirmationDuLien: "Replace Soft’s Color shift with Vivid’s? Hue, saturation and lightness will be copied.",
-  toutRetablir: "Reset all",
+  toutRetablir: "All to default",
   boutonTailwind: 'Tailwind',
-  retablir: "Reset",
+  retablir: "Default",
   bout: { clair: "Light shades", sombre: "Dark shades" },
   rampeSans: "off",
   rampeAvec: "on",

@@ -58,7 +58,7 @@ test('un contexte ne partage pas ses messages avec un autre contexte', () => {
   const fr = creerLocalisation('fr');
   assert.equal(lireTexte(en.messages.TEXTES.annuler), 'Cancel');
   assert.equal(lireTexte(fr.messages.TEXTES.annuler), 'Annuler');
-  assert.equal(lireTexte(en.messages.retablirLaCarte(en.messages.TEXTES_DE_CONFIGURATION.fonds)), 'Reset to defaults: Background colours');
+  assert.equal(lireTexte(en.messages.retablirLaCarte(en.messages.TEXTES_DE_CONFIGURATION.fonds)), 'Reset to default: Background colours');
 });
 
 test('une lecture absente, invalide ou refusée reprend l’anglais', async () => {

@@ -177,7 +177,7 @@ function construireVues(i18n: Localisation) {
 
     const sansRecette = paragraphe(TEXTES_DE_CONFIGURATION.sansRecette, 'etat-lecture');
 
-    // Les cartes, fixes ou repliées ; chacune a son erreur et son « Rétablir ».
+    // Les cartes, fixes ou repliées ; chacune a son erreur et son « Par défaut ».
     const cartes = {} as Record<CarteDesReglages, { readonly ui: CarteUi; readonly erreur: HTMLParagraphElement; readonly retablir: HTMLButtonElement }>;
     for (const carte of Object.keys(TITRES) as CarteDesReglages[]) {
       const repliee = carte === 'minimums' || carte === 'proches' || carte === 'contenu';
@@ -191,7 +191,7 @@ function construireVues(i18n: Localisation) {
       i18n.lier(bouton, 'textContent', TEXTES_DE_CONFIGURATION.retablir);
       i18n.lier(bouton, 'aria-label', retablirLaCarte(TITRES[carte]));
       bouton.addEventListener('click', () => retablirLaCarteChoisie(carte));
-      // Une carte repliable a pour en-tête un bouton : « Rétablir » va dans son corps.
+      // Une carte repliable a pour en-tête un bouton : « Par défaut » va dans son corps.
       if (repliee) {
         const pied = document.createElement('div');
         pied.className = 'pied-de-reglage';
@@ -775,7 +775,7 @@ function construireVues(i18n: Localisation) {
         recette.previsualiser(suivante);
         return;
       }
-      // La fin d'un geste relit tout : comptes, résumés, « Rétablir », les autres champs et les vues.
+      // La fin d'un geste relit tout : comptes, résumés, « Par défaut », les autres champs et les vues.
       recette.appliquer(suivante);
       afficher();
     }
@@ -950,7 +950,7 @@ function construireVues(i18n: Localisation) {
       const inverses = MODES.filter((mode) => estInverse(lue, mode));
       if (inverses.length > 0) cartes.courbes.ui.poserResume(TEXTES_DU_TEXTE_DES_BOUTONS.resumeDesCourbes(inverses));
       for (const carte of Object.keys(cartes) as CarteDesReglages[]) {
-        // « Rétablir » des fonds rend `null` pour un refus, que son geste dit ; seules les courbes d'une liste importée n'ont pas de défaut.
+        // « Par défaut » des fonds rend `null` pour un refus, que son geste dit ; seules les courbes d'une liste importée n'ont pas de défaut.
         const sansDefaut = carte !== 'fonds' && retablir(lue, carte) === null;
         cartes[carte].retablir.disabled = sansDefaut || estParDefaut(lue, carte);
         i18n.lier(cartes[carte].retablir, 'title', sansDefaut ? TEXTES_DE_CONFIGURATION.courbesSansDefaut : '');

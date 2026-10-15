@@ -74,7 +74,7 @@ test('[REC-05] une grandeur revenue à zéro aux deux bouts quitte la recette, q
   assert.ok('recette' in validerRecette(ajouter(RECETTE, reglerDecalage(RECETTE, reglee, 'vivid', 'saturation', 'clair', 0.3))));
 });
 
-test('[DER-11] un préréglage ne règle que la teinte ; « Tout rétablir » rend la teinte Tailwind, la saturation et la luminosité à zéro', () => {
+test('[DER-11] un préréglage ne règle que la teinte ; « Tout par défaut » rend la teinte Tailwind, la saturation et la luminosité à zéro', () => {
   const reglee = reglerDecalage(RECETTE, reglerDecalage(RECETTE, BLEU, 'vivid', 'saturation', 'clair', -0.4), 'vivid', 'teinte', 'sombre', 20);
   const constante = appliquerPrereglage(RECETTE, reglee, 'vivid', 'constante');
   assert.deepEqual(constante.derive.vivid, { clair: 0, sombre: 0, origine: 'constante', saturation: { clair: -0.4, sombre: 0 } });

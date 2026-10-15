@@ -239,7 +239,7 @@ export function reglerSaturation(recette: Recette, palette: Palette, cible: Cibl
 }
 
 /**
- * « Rétablir » la saturation (Z10.6) : à une intensité, la référence reprend
+ * « Par défaut » de la saturation (Z10.6) : à une intensité, la référence reprend
  * celle de son départ. À deux, la part de la cible reprend celle de la
  * recette, bornée comme un réglage ; l'autre profil garde la sienne. Quand
  * les deux parts sont celles de la recette, la palette les reprend.
@@ -459,7 +459,7 @@ export function appliquerPrereglage(recette: Recette, palette: Palette, profil: 
   return poserDerive(palette, profilsTouches(palette, profil), { ...derive, origine: origineDe(recette, palette, derive) });
 }
 
-/** « Tout rétablir » ([DER-11]) : la teinte Tailwind, la saturation et la luminosité à zéro, aux deux bouts. */
+/** « Tout par défaut » ([DER-11]) : la teinte Tailwind, la saturation et la luminosité à zéro, aux deux bouts. */
 export function toutRetablir(recette: Recette, palette: Palette, profil: Profil): Palette {
   const tailwind = prereglageDe(recette, palette);
   const derive: DeriveRangee = { clair: valeurRangee('teinte', tailwind.clair), sombre: valeurRangee('teinte', tailwind.sombre), origine: 'tailwind' };

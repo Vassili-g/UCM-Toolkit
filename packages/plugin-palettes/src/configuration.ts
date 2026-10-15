@@ -3,7 +3,7 @@
  * du nombre de nuances, les deux courbes, les parts des profils et celle des
  * fonds du thème Dark, les deux fonds et le texte des boutons de chaque thème,
  * les quatre seuils et le contenu des planches, rangés en six cartes que
- * « Rétablir » remet une à une aux valeurs par défaut (V9.5). Le texte des
+ * « Par défaut » remet une à une aux valeurs par défaut (V9.5). Le texte des
  * boutons se range avec les fonds, mais ne se pose pas par `poserValeur` : il
  * remplace les nuances 500 à 800 du thème, et la pose peut être refusée.
  * Une autre liste que les trois préréglages ne vient que d'un import
@@ -200,7 +200,7 @@ function memeProfil(a: ProfilDeRecette, b: ProfilDeRecette): boolean {
     && memesBornes(a.enveloppe.light, b.enveloppe.light) && memesBornes(a.enveloppe.dark, b.enveloppe.dark);
 }
 
-/** Vrai quand la carte porte déjà ses valeurs par défaut : « Rétablir » n'a rien à faire. */
+/** Vrai quand la carte porte déjà ses valeurs par défaut : « Par défaut » n'a rien à faire. */
 export function estParDefaut(recette: Recette, carte: CarteDesReglages): boolean {
   const defaut = recetteParDefaut();
   switch (carte) {

@@ -114,7 +114,7 @@ function recetteReglee(): Recette {
 
 const CARTES = Object.keys(CARTES_DES_REGLAGES) as CarteDesReglages[];
 
-test('V9.5 : « Rétablir » remet une carte aux valeurs par défaut, sans toucher aux autres cartes ni aux palettes', () => {
+test('V9.5 : « Par défaut » remet une carte aux valeurs par défaut, sans toucher aux autres cartes ni aux palettes', () => {
   const reglee = recetteReglee();
   for (const carte of CARTES) {
     const retablie = retablir(reglee, carte)!;
@@ -221,7 +221,7 @@ test('le texte des boutons se pose par thème, et un refus rend la pose telle qu
   assert.deepEqual(poserTexteDesBoutons(DEFAUT, 'dark', 'noir'), { recette: DEFAUT, remplacees: [] });
 });
 
-test('V9.5 : « Rétablir » les fonds remet le texte par défaut et le sens normal des nuances 500 à 800, dans les quatre combinaisons', () => {
+test('V9.5 : « Par défaut » les fonds remet le texte par défaut et le sens normal des nuances 500 à 800, dans les quatre combinaisons', () => {
   for (const nombre of [11, 13] as const) {
     for (const combinaison of COMBINAISONS) {
       const quand = `${nombre} nuances, light ${combinaison.light}, dark ${combinaison.dark}`;
@@ -244,7 +244,7 @@ test('V9.5 : le texte des boutons par défaut est exigé pour que les fonds soie
   assert.equal(estParDefaut(recetteAuTexte(11, COMBINAISONS[0]), 'fonds'), true);
 });
 
-test('V9.5 : « Rétablir » les courbes garde le sens du texte des boutons, dans les quatre combinaisons', () => {
+test('V9.5 : « Par défaut » les courbes garde le sens du texte des boutons, dans les quatre combinaisons', () => {
   for (const nombre of [11, 13] as const) {
     for (const combinaison of COMBINAISONS) {
       const quand = `${nombre} nuances, light ${combinaison.light}, dark ${combinaison.dark}`;
@@ -275,7 +275,7 @@ test('V9.5 : une courbe réglée refuse le passage du texte des boutons quand el
   assert.deepEqual(reglee.texteDesBoutons, DEFAUT.texteDesBoutons);
 });
 
-test('V9.5 : « Rétablir » les fonds rend null quand le retour au sens normal rend une courbe non monotone', () => {
+test('V9.5 : « Par défaut » les fonds rend null quand le retour au sens normal rend une courbe non monotone', () => {
   const inversee = poserTexteDesBoutons(DEFAUT, 'dark', 'blanc');
   assert.ok('recette' in inversee);
   // La 900 à 0,72 suit la 800 inversée (0,70) mais passerait sous la 800 normale (0,76).

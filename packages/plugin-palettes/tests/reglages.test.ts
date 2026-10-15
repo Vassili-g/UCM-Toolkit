@@ -210,7 +210,7 @@ test('Z10.8 après toute suite de gestes, la référence est celle que reference
   assert.ok(juges > 100, `${juges} palettes réglées jugées`);
 });
 
-test('Z11.7 « Rétablir » la saturation d’un profil laisse l’autre, et la palette reprend les parts de la recette quand les deux y reviennent', () => {
+test('Z11.7 « Par défaut » la saturation d’un profil laisse l’autre, et la palette reprend les parts de la recette quand les deux y reviennent', () => {
   const communes = partsDesProfils(RECETTE, BLEU);
   const reglee = reglerSaturation(RECETTE, reglerSaturation(RECETTE, BLEU, 'vivid', 0.8), 'soft', 0.3);
   const soft = retablirLaSaturation(RECETTE, reglee, 'soft');
@@ -230,7 +230,7 @@ test('G5.3 à une intensité, #897288 tournée de +10° puis désaturée à 8 % 
   assert.ok(rgb8VersOklch(lireHexa(terne.reference)!).C < 0.03, 'sous l’ancien seuil de gris');
   assert.equal(estPaletteGrise(RECETTE, terne), false);
   assert.equal(terne.reglages?.teinte?.vivid, 10);
-  // Sans saturation, la palette devient grise, mais la teinte rangée se garde : « Rétablir » la remet à zéro.
+  // Sans saturation, la palette devient grise, mais la teinte rangée se garde : « Par défaut » la remet à zéro.
   const grise = reglerSaturation(RECETTE, terne, 'vivid', 0);
   valide(grise);
   assert.equal(estPaletteGrise(RECETTE, grise), true);
@@ -282,7 +282,7 @@ test('[ENT-09] à deux intensités, la saturation du porteur récrit la référe
   assert.equal(vive.reglages, undefined);
 });
 
-test('[ENT-09] « Rétablir » et « Reprendre » rendent à la référence la saturation de son départ, à l’octet', () => {
+test('[ENT-09] « Par défaut » et « Reprendre » rendent à la référence la saturation de son départ, à l’octet', () => {
   const terne = reglerSaturation(RECETTE, reglerTeinte(RECETTE, BLEU, PORTEUR, 6), PORTEUR, 0.3);
   const tournee = reglerTeinte(RECETTE, BLEU, PORTEUR, 6);
   for (const rendue of [retablirLaSaturation(RECETTE, terne, PORTEUR), retablirLaSaturation(RECETTE, terne, 'deux'), reprendreLesParts(RECETTE, terne)]) {

@@ -601,7 +601,7 @@
 
 /*
  * Les Réglages communs (V9) : les cartes de la configuration d'une palette.
- * Dans une carte fixe, le compte et « Rétablir » se rangent à droite du titre.
+ * Dans une carte fixe, le compte et « Par défaut » se rangent à droite du titre.
  */
 .carte-de-reglage .carte-resume {
   margin-left: auto;
@@ -3502,7 +3502,7 @@
 /*
  * La carte « Réglage global » (Z10.6, maquette Z10.4, forme A) : la cible en
  * segments, puis une réglette par grandeur, libellé, champ, valeur absolue,
- * piste peinte et « Rétablir ».
+ * piste peinte et « Par défaut ».
  */
 .reglages-de-la-palette {
   display: grid;
