@@ -1,0 +1,73 @@
+[
+  {
+    "variante": "A",
+    "fichier": "packages/couleur/tests/recette.test.ts",
+    "tests": 87,
+    "echecs": []
+  },
+  {
+    "variante": "A",
+    "fichier": "packages/couleur/tests/enveloppe.test.ts",
+    "tests": 10,
+    "echecs": []
+  },
+  {
+    "variante": "A",
+    "fichier": "packages/plugin-palettes/tests/configuration.test.ts",
+    "tests": 21,
+    "echecs": []
+  },
+  {
+    "variante": "K65",
+    "fichier": "packages/couleur/tests/recette.test.ts",
+    "tests": 87,
+    "echecs": [
+      {
+        "nom": "[REC-12] la recette par défaut porte les profils et le relevé du paquet, en copies",
+        "erreur": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    enveloppe: {\n      dark: {\n        a: 1.1,\n+       b: 0.3,\n-       b: 0.38,\n        jaunes: 0\n      },\n      light: {\n+       a: 1.1,\n+       b: 0.48,\n+       jaunes: 0.5\n-       a: 0.6,\n-       b: 0.38,\n-       jaunes: 1\n      },\n+     p0: 0.6175\n-     p0: 0.85\n    },\n+   part: 0.6175\n-   part: 0.85\n  }\n"
+      }
+    ]
+  },
+  {
+    "variante": "K65",
+    "fichier": "packages/couleur/tests/enveloppe.test.ts",
+    "tests": 10,
+    "echecs": [
+      {
+        "nom": "[MOT-35] la marge des jaunes ne joue pas en Dark",
+        "erreur": "0.04754749999999998"
+      },
+      {
+        "nom": "[MOT-35] les rampes suivent le prototype : #3B82F6, bleu",
+        "erreur": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    soft: {\n      dark: [\n+       '#070A12',\n+       '#131B2F',\n+       '#1D2641',\n+       '#273455',\n+       '#344670',\n+       '#445F94',\n+       '#557ABA',\n+       '#6C96D8',\n+       '#93B3E2',\n+       '#BBD0EC',\n+       '#DFE9F6'\n-       '#060A14',\n-       '#0E193A',\n-       '#152353',\n-       '#1C306B',\n-       '#24428C',\n-       '#2D5AB9',\n-       '#3274E7',\n-       '#5A94F0',\n-       '#87B3F4',\n-       '#B3D0F8',\n-       '#DBE9FC'\n      ],\n      light: [\n+       '#F3F7FC',\n+       '#E8EFF9',\n+       '#D3E1F3',\n+       '#B8CEEC',\n+       '#93B3E2',\n+       '#6C96D8',\n+       '#497ACE',\n+       '#335EB6',\n+       '#2A48"
+      },
+      {
+        "nom": "[MOT-35] les rampes suivent le prototype : #EAB308, jaune",
+        "erreur": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    soft: {\n      dark: [\n+       '#0C0908',\n+       '#231A14',\n+       '#33241B',\n+       '#453021',\n+       '#5E4026',\n+       '#7A5935',\n+       '#967345',\n+       '#B28F56',\n+       '#CEAC67',\n+       '#E6CC7E',\n+       '#EFE9C5'\n-       '#0D0907',\n-       '#251911',\n-       '#362215',\n-       '#4A2E17',\n-       '#653D14',\n-       '#83551E',\n-       '#A06F28',\n-       '#BD8B33',\n-       '#D9A93F',\n-       '#F0CA55',\n-       '#F3E9B7'\n      ],\n      light: [\n        '#F9F8E5',\n        '#F6F0C9',\n+       '#F2E096',\n+       '#E6CA78',\n+       '#CEAC67',\n+       '#B28F56',\n+       '#987546',\n+       '#7D5C37',\n+       '#6446"
+      },
+      {
+        "nom": "[MOT-35] les rampes suivent le prototype : #16A34A, vert",
+        "erreur": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    soft: {\n      dark: [\n+       '#080B09',\n+       '#151E18',\n+       '#1D2C21',\n+       '#243C2A',\n+       '#2A5236',\n+       '#3B6E48',\n+       '#4C8B5A',\n+       '#5DA96F',\n+       '#70C889',\n+       '#98E2AF',\n+       '#D0F2DA'\n-       '#070B08',\n-       '#121F16',\n-       '#182D1E',\n-       '#1B3E26',\n-       '#18552E',\n-       '#23723D',\n-       '#2E904C',\n-       '#3AAF5F',\n-       '#47CF78',\n-       '#7EE8A3',\n-       '#C6F6D5'\n      ],\n      light: [\n+       '#EEFAF2',\n+       '#DDF6E5',\n+       '#BFEDCD',\n+       '#95E1AC',\n+       '#70C889',\n+       '#5DA96F',\n+       '#4D8C5B',\n+       '#3D714A',\n+       '#2E58"
+      },
+      {
+        "nom": "[MOT-35] les rampes suivent le prototype : #3B82F6, reglee",
+        "erreur": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    soft: {\n      dark: [\n+       '#05060C',\n+       '#121528',\n+       '#1D2039',\n+       '#282E4D',\n+       '#363F68',\n+       '#49578C',\n+       '#5B71B1',\n+       '#708CD5',\n+       '#92AAE0',\n+       '#B7C8EA',\n+       '#D8E2F4'\n-       '#05060E',\n-       '#111430',\n-       '#191C49',\n-       '#232962',\n-       '#2F3982',\n-       '#3D50AF',\n-       '#4A68DD',\n-       '#6489EF',\n-       '#89A9F3',\n-       '#B0C7F7',\n-       '#D5E2FB'\n      ],\n      light: [\n+       '#EBF0F9',\n+       '#E1E8F6',\n+       '#CEDAF1',\n+       '#B5C6E9',\n+       '#92AAE0',\n+       '#708CD5',\n+       '#526FCC',\n+       '#4154AD',\n+       '#3340"
+      },
+      {
+        "nom": "[MOT-35] les rampes suivent le prototype : #EAB308, propres",
+        "erreur": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  {\n    soft: {\n      dark: [\n        '#0C0908',\n        '#221A14',\n...\n        '#CDAC6A',\n+       '#E6CC7E',\n+       '#EFE9C5'\n-       '#E7CC7C',\n-       '#F3E9B7'\n      ],\n      light: [\n        '#F9F8E5',\n        '#F6F0C9',\n+       '#F2E096',\n-       '#F2E097',\n        '#E6CA7B',\n        '#CDAC6A',\n        '#B18F58',\n        '#977548',\n        '#7C5C39',\n"
+      }
+    ]
+  },
+  {
+    "variante": "K65",
+    "fichier": "packages/plugin-palettes/tests/configuration.test.ts",
+    "tests": 21,
+    "echecs": [
+      {
+        "nom": "[REC-12] une saisie de part garde l’enveloppe du profil, et les parts par défaut de Soft et de Vivid sont 0,85 et 0,95",
+        "erreur": "Expected values to be strictly equal:\n\n0.6175 !== 0.85\n"
+      }
+    ]
+  }
+]

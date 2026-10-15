@@ -1,0 +1,743 @@
+{
+ "compteurs": {
+  "C0 le moteur retenu calcule": {
+   "cas": 7237,
+   "ecarts": 0,
+   "aujourdhui": 0
+  },
+  "C1 octets valides": {
+   "cas": 7237,
+   "ecarts": 0,
+   "aujourdhui": 0
+  },
+  "C1 calcul déterministe": {
+   "cas": 7237,
+   "ecarts": 0,
+   "aujourdhui": 0
+  },
+  "C3 référence exacte à son cran": {
+   "cas": 7234,
+   "ecarts": 0,
+   "aujourdhui": 0
+  },
+  "C2 ordre des clartés": {
+   "cas": 28530,
+   "ecarts": 0,
+   "aujourdhui": 128
+  },
+  "C5 creux de chroma": {
+   "cas": 28530,
+   "ecarts": 680,
+   "aujourdhui": 1374
+  },
+  "C7 saut de teinte": {
+   "cas": 28530,
+   "ecarts": 0,
+   "aujourdhui": 0
+  },
+  "C6 Soft pas plus vif que Vivid": {
+   "cas": 12852,
+   "ecarts": 548,
+   "aujourdhui": 2127
+  },
+  "C9 promesse perdue": {
+   "cas": 7234,
+   "ecarts": 360,
+   "aujourdhui": 0,
+   "perdues": 380,
+   "gagnees": 406
+  },
+  "C10 clarté du préréglage bornée": {
+   "cas": 6578,
+   "ecarts": 0,
+   "aujourdhui": 0
+  },
+  "C11 fond Dark contre la carte": {
+   "cas": 14265,
+   "ecarts": 0,
+   "aujourdhui": 552
+  },
+  "C8 référence grise, rampes grises": {
+   "cas": 2352,
+   "ecarts": 0,
+   "aujourdhui": 528
+  },
+  "C10 clarté du designer conservée": {
+   "cas": 403,
+   "ecarts": 0,
+   "aujourdhui": 0
+  },
+  "C4 palette figée intacte": {
+   "cas": 3,
+   "ecarts": 0,
+   "aujourdhui": 0
+  }
+ },
+ "ventilation": {
+  "C5 cause": {
+   "à côté de la référence": 672,
+   "ailleurs": 8
+  },
+  "C5 situation": {
+   "vivid · dark": 652,
+   "vivid · light": 4,
+   "soft · dark": 16,
+   "soft · light": 8
+  },
+  "C5 profondeur": {
+   "moins de 0,01": 336,
+   "0,01 à 0,02": 216,
+   "0,02 à 0,04": 118,
+   "plus de 0,04": 10
+  },
+  "C5 clarté de la référence": {
+   "sous 0,30": 556,
+   "0,30 à 0,50": 116,
+   "0,70 ou plus": 8
+  },
+  "C5 cran du creux": {
+   "dark 100": 108,
+   "dark 200": 378,
+   "dark 300": 174,
+   "light 900": 4,
+   "dark 600": 8,
+   "light 200": 8
+  },
+  "C5 creux d'au moins 0,02": {
+   "vivid · dark · réf. sous 0,30": 120,
+   "soft · dark · réf. 0,30 à 0,50": 8
+  },
+  "C9 cause": {
+   "la référence change de profil": 336,
+   "Dark, autre cause": 40,
+   "Light, autre cause": 4
+  },
+  "C9 situation": {
+   "S1": 179,
+   "S2 · Color shift luminosité −0,15 / +0,15": 54,
+   "S2 · préréglage Tailwind": 24,
+   "S2 · dérive constante": 24,
+   "S2 · dérive non liée": 24,
+   "S2 · Color shift saturation −1 / +1": 24,
+   "S2 · Color shift luminosité +0,15 / −0,15": 34,
+   "S2 · luminosité réglée +0,08": 16,
+   "S3": 1
+  },
+  "C6 ampleur": {
+   "5 à 15 %": 120,
+   "plus de 15 %": 412,
+   "moins de 5 %": 16
+  },
+  "C6 situation": {
+   "S2 · saturation réglée 1": 16,
+   "S2 · luminosité réglée +0,08": 192,
+   "S2 · luminosité réglée −0,08": 236,
+   "S2 · référence dans Soft (base)": 92,
+   "S2 · dérive non liée": 12
+  }
+ },
+ "constats": [
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #0E0205 · vivid · dark",
+   "detail": "0.031 0.014 0.022 0.03 0.047 0.052 0.058 0.066 0.068 0.031 0.014"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #120005 · vivid · dark",
+   "detail": "0.048 0.02 0.031 0.047 0.072 0.081 0.09 0.1 0.107 0.048 0.021"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #211015 · vivid · dark",
+   "detail": "0.006 0.03 0.019 0.029 0.045 0.051 0.056 0.063 0.064 0.029 0.013"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #2F0115 · vivid · dark",
+   "detail": "0.013 0.078 0.053 0.077 0.115 0.129 0.142 0.157 0.171 0.078 0.035"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #3B282D · vivid · dark",
+   "detail": "0.006 0.011 0.03 0.026 0.04 0.044 0.05 0.054 0.057 0.024 0.012"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #4C192C · vivid · dark",
+   "detail": "0.012 0.032 0.08 0.071 0.108 0.121 0.135 0.15 0.156 0.07 0.032"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #90797F",
+   "detail": "dark/inverse/vivid/G1/solid/default 4.917 → 4.017 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #A86C7E",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.061 → 4.109 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #C5547C",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.271 → 4.257 (la référence change de profil)"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #130004 · vivid · dark",
+   "detail": "0.048 0.02 0.032 0.048 0.071 0.083 0.089 0.099 0.1 0.045 0.021"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #211014 · vivid · dark",
+   "detail": "0.006 0.029 0.019 0.029 0.042 0.048 0.055 0.061 0.062 0.026 0.013"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #300111 · vivid · dark",
+   "detail": "0.013 0.078 0.051 0.076 0.114 0.128 0.142 0.157 0.16 0.071 0.032"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #3B282C · vivid · dark",
+   "detail": "0.006 0.011 0.029 0.026 0.039 0.044 0.05 0.054 0.053 0.025 0.011"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #4D1928 · vivid · dark",
+   "detail": "0.011 0.032 0.08 0.072 0.107 0.121 0.135 0.147 0.145 0.064 0.029"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #91797E",
+   "detail": "dark/inverse/vivid/G1/solid/default 4.952 → 4.008 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #A96C7A",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.058 → 4.107 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #C75374",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.276 → 4.27 (la référence change de profil)"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #0F0204 · vivid · dark",
+   "detail": "0.032 0.013 0.022 0.031 0.048 0.053 0.059 0.066 0.063 0.027 0.013"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #130003 · vivid · dark",
+   "detail": "0.048 0.019 0.031 0.048 0.071 0.078 0.087 0.096 0.09 0.041 0.018"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #221013 · vivid · dark",
+   "detail": "0.006 0.031 0.022 0.03 0.046 0.05 0.057 0.062 0.058 0.025 0.012"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #30010E · vivid · dark",
+   "detail": "0.013 0.077 0.052 0.077 0.114 0.128 0.142 0.157 0.147 0.064 0.029"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #3B282A · vivid · dark",
+   "detail": "0.006 0.011 0.029 0.025 0.038 0.042 0.048 0.052 0.047 0.021 0.01"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #4E1924 · vivid · dark",
+   "detail": "0.013 0.031 0.08 0.07 0.106 0.121 0.134 0.146 0.136 0.059 0.028"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #91797C",
+   "detail": "dark/inverse/vivid/G1/solid/default 4.958 → 4.015 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #AA6C75",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.059 → 4.109 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #C8536C",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.278 → 4.277 (la référence change de profil)"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #0F0203 · vivid · dark",
+   "detail": "0.032 0.013 0.022 0.031 0.047 0.052 0.058 0.064 0.06 0.026 0.012"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #130002 · vivid · dark",
+   "detail": "0.047 0.019 0.031 0.048 0.07 0.078 0.086 0.096 0.089 0.039 0.019"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #221012 · vivid · dark",
+   "detail": "0.005 0.03 0.022 0.029 0.045 0.049 0.056 0.062 0.057 0.026 0.012"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #31010A · vivid · dark",
+   "detail": "0.013 0.078 0.052 0.076 0.114 0.128 0.143 0.157 0.145 0.064 0.031"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #3C2829 · vivid · dark",
+   "detail": "0.005 0.011 0.03 0.026 0.041 0.045 0.049 0.055 0.05 0.023 0.011"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #4E1921 · vivid · dark",
+   "detail": "0.013 0.031 0.08 0.072 0.105 0.12 0.133 0.145 0.133 0.059 0.028"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #91797A",
+   "detail": "dark/inverse/vivid/G1/solid/default 4.901 → 4.023 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #AB6C71",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.049 → 4.106 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #C95463",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.254 → 4.258 (la référence change de profil)"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #130001 · vivid · dark",
+   "detail": "0.047 0.02 0.031 0.046 0.07 0.078 0.086 0.095 0.088 0.039 0.019"
+  },
+  {
+   "controle": "C5 creux de chroma",
+   "cas": "S1 11 nuances, texte blanc/blanc · #221010 · vivid · dark",
+   "detail": "0.005 0.031 0.022 0.029 0.045 0.049 0.055 0.061 0.056 0.025 0.012"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #927979",
+   "detail": "dark/inverse/vivid/G1/solid/default 4.954 → 4.013 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #AB6D6C",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.028 → 4.089 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #CA545A",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.257 → 4.262 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #927A77",
+   "detail": "dark/inverse/vivid/G1/solid/default 4.92 → 3.983 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #AB6D68",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.049 → 4.102 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #CA5551",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.226 → 4.26 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #917A76",
+   "detail": "dark/inverse/vivid/G1/solid/default 4.943 → 4 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #AB6E64",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.022 → 4.081 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #CA5747",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.225 → 4.229 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #917A74",
+   "detail": "dark/inverse/vivid/G1/solid/default 4.93 → 4.008 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #AA6F5F",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.021 → 4.079 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #C9593D",
+   "detail": "dark/inverse/vivid/G1/solid/default 5.219 → 4.217 (la référence change de profil)"
+  },
+  {
+   "controle": "C9 promesse perdue",
+   "cas": "S1 11 nuances, texte blanc/blanc · #917B73",
+   "detail": "dark/inverse/vivid/G1/solid/default 4.909 → 3.974 (la référence change de profil)"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · parts 0,9 / 0,95 · soft · light",
+   "detail": "0.008 0.017 0.034 0.062 0.122 0.168 0.189 0.162 0.136 0.11 0"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · parts 0,9 / 0,95 · soft · dark",
+   "detail": "0 0.029 0.036 0.042 0.051 0.057 0.064 0.071 0.089 0.08 0.035"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · parts 0,9 / 0,95 · vivid · light",
+   "detail": "0.013 0.025 0.052 0.087 0.148 0.227 0.225 0.192 0.162 0.131 0.104"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · parts 0,9 / 0,95 · vivid · dark",
+   "detail": "0.018 0.045 0.071 0.094 0.114 0.129 0.143 0.157 0.199 0.085 0.037"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · parts 0 / 1 · vivid · light",
+   "detail": "0.013 0.028 0.053 0.093 0.156 0.239 0.237 0.203 0.171 0.138 0.109"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · parts 0 / 1 · vivid · dark",
+   "detail": "0.018 0.048 0.074 0.094 0.114 0.129 0.143 0.157 0.199 0.088 0.038"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · parts 0,2 / 0,3 · soft · light",
+   "detail": "0.002 0.004 0.007 0.015 0.032 0.049 0.047 0.04 0.035 0.027 0"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · parts 0,2 / 0,3 · soft · dark",
+   "detail": "0 0.01 0.014 0.021 0.032 0.037 0.04 0.044 0.042 0.018 0.008"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · parts 0,2 / 0,3 · vivid · light",
+   "detail": "0.003 0.008 0.016 0.028 0.047 0.072 0.071 0.06 0.051 0.041 0.032"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · parts 0,2 / 0,3 · vivid · dark",
+   "detail": "0.006 0.015 0.022 0.034 0.048 0.056 0.06 0.067 0.064 0.027 0.011"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · saturation réglée 0,3 · soft · light",
+   "detail": "0.002 0.006 0.01 0.021 0.047 0.072 0.071 0.06 0.051 0.041 0"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · saturation réglée 0,3 · soft · dark",
+   "detail": "0 0.015 0.022 0.034 0.048 0.056 0.06 0.067 0.064 0.027 0.011"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · saturation réglée 0,3 · vivid · light",
+   "detail": "0.003 0.009 0.018 0.031 0.052 0.08 0.079 0.067 0.057 0.046 0.036"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · saturation réglée 0,3 · vivid · dark",
+   "detail": "0.006 0.015 0.024 0.035 0.054 0.06 0.067 0.075 0.071 0.03 0.014"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · saturation réglée 1 · soft · light",
+   "detail": "0.009 0.018 0.034 0.062 0.122 0.168 0.189 0.162 0.136 0.11 0"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · saturation réglée 1 · soft · dark",
+   "detail": "0 0.029 0.036 0.042 0.051 0.057 0.064 0.071 0.089 0.088 0.038"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · saturation réglée 1 · vivid · light",
+   "detail": "0.013 0.028 0.053 0.093 0.156 0.239 0.237 0.203 0.171 0.138 0.109"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #000000 · saturation réglée 1 · vivid · dark",
+   "detail": "0.018 0.048 0.074 0.094 0.114 0.129 0.143 0.157 0.199 0.088 0.038"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FFFFFF · parts 0,9 / 0,95 · soft · light",
+   "detail": "0 0.017 0.034 0.062 0.122 0.168 0.189 0.162 0.136 0.11 0.087"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FFFFFF · parts 0,9 / 0,95 · soft · dark",
+   "detail": "0.015 0.029 0.036 0.042 0.051 0.057 0.064 0.071 0.089 0.08 0"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FFFFFF · parts 0,9 / 0,95 · vivid · light",
+   "detail": "0.013 0.025 0.052 0.087 0.148 0.227 0.225 0.192 0.162 0.131 0.104"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FFFFFF · parts 0,9 / 0,95 · vivid · dark",
+   "detail": "0.018 0.045 0.071 0.094 0.114 0.129 0.143 0.157 0.199 0.085 0.037"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FFFFFF · parts 0 / 1 · vivid · light",
+   "detail": "0.013 0.028 0.053 0.093 0.156 0.239 0.237 0.203 0.171 0.138 0.109"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FFFFFF · parts 0 / 1 · vivid · dark",
+   "detail": "0.018 0.048 0.074 0.094 0.114 0.129 0.143 0.157 0.199 0.088 0.038"
+  },
+  {
+   "controle": "C8 référence grise, rampes grises",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FFFFFF · parts 0,2 / 0,3 · soft · light",
+   "detail": "0 0.004 0.007 0.015 0.032 0.049 0.047 0.04 0.035 0.027 0.022"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #808080 · saturation réglée 1 · dark",
+   "detail": "0.018/0.018 0.029/0.048 0.036/0.074 0.042/0.094 0.051/0.114 0.057/0.129 0.064/0.143 0.243/0.157 0.21/0.199 0.088/0.088 0.038/0.038"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FF0000 · luminosité réglée +0,08 · light",
+   "detail": "0.008/0 0.015/0 0.03/0.008 0.057/0.039 0.123/0.089 0.168/0.185 0.189/0.222 0.161/0.238 0.135/0.205 0.11/0.172 0.087/0.143"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FF0000 · luminosité réglée +0,08 · dark",
+   "detail": "0.015/0.027 0.028/0.065 0.035/0.096 0.042/0.117 0.051/0.137 0.057/0.151 0.064/0.164 0.069/0.185 0.089/0.185 0.07/0.035 0.031/0"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FF0000 · luminosité réglée −0,08 · light",
+   "detail": "0.009/0.062 0.018/0.076 0.033/0.105 0.059/0.146 0.122/0.213 0.168/0.225 0.189/0.207 0.161/0.173 0.135/0.139 0.11/0.106 0.087/0.078"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FF0000 · référence dans Soft (base) · dark",
+   "detail": "0.019/0.019 0.028/0.049 0.035/0.074 0.042/0.094 0.051/0.113 0.057/0.128 0.064/0.142 0.16/0.157 0.258/0.194 0.088/0.088 0.041/0.041"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #00FF00 · luminosité réglée −0,08 · light",
+   "detail": "0.008/0.111 0.017/0.138 0.034/0.192 0.062/0.267 0.123/0.23 0.168/0.198 0.166/0.169 0.141/0.14 0.118/0.112 0.096/0.087 0.075/0.062"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #00FF00 · luminosité réglée −0,08 · dark",
+   "detail": "0.012/0 0.028/0.026 0.035/0.043 0.042/0.066 0.051/0.091 0.058/0.106 0.065/0.12 0.069/0.134 0.089/0.186 0.108/0.267 0.066/0.182"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #00FF00 · référence dans Soft (base) · light",
+   "detail": "0.009/0.014 0.017/0.051 0.034/0.095 0.295/0.156 0.257/0.24 0.225/0.225 0.195/0.195 0.163/0.166 0.135/0.14 0.11/0.112 0.086/0.089"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #00FF00 · référence dans Soft (base) · dark",
+   "detail": "0.014/0.014 0.028/0.037 0.035/0.06 0.042/0.087 0.051/0.113 0.058/0.128 0.065/0.143 0.07/0.156 0.127/0.2 0.295/0.157 0.115/0.072"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #0000FF · luminosité réglée +0,08 · light",
+   "detail": "0.008/0 0.014/0 0.027/0.007 0.051/0.036 0.105/0.079 0.149/0.129 0.189/0.178 0.162/0.23 0.135/0.26 0.11/0.207 0.087/0.164"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #0000FF · luminosité réglée +0,08 · dark",
+   "detail": "0.018/0.045 0.028/0.092 0.035/0.116 0.042/0.157 0.052/0.223 0.058/0.26 0.064/0.23 0.07/0.199 0.089/0.112 0.064/0.034 0.03/0"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #0000FF · référence dans Soft (base) · light",
+   "detail": "0.009/0.022 0.018/0.034 0.034/0.056 0.062/0.086 0.124/0.13 0.18/0.18 0.23/0.23 0.254/0.228 0.313/0.192 0.186/0.155 0.109/0.123"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #0000FF · référence dans Soft (base) · dark",
+   "detail": "0.018/0.03 0.028/0.064 0.035/0.08 0.042/0.093 0.052/0.114 0.313/0.128 0.062/0.142 0.252/0.156 0.113/0.163 0.083/0.083 0.043/0.043"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FFFF00 · luminosité réglée −0,08 · light",
+   "detail": "0.016/0.194 0.032/0.189 0.062/0.177 0.12/0.162 0.135/0.142 0.117/0.122 0.102/0.104 0.087/0.086 0.073/0.069 0.059/0.053 0.048/0.039"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FFFF00 · luminosité réglée −0,08 · dark",
+   "detail": "0.008/0 0.02/0.015 0.031/0.026 0.043/0.042 0.051/0.065 0.058/0.076 0.064/0.086 0.07/0.097 0.09/0.128 0.108/0.164 0.065/0.194"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FFFF00 · référence dans Soft (base) · dark",
+   "detail": "0.01/0.01 0.025/0.025 0.035/0.038 0.043/0.055 0.051/0.082 0.058/0.092 0.064/0.102 0.07/0.113 0.095/0.145 0.18/0.157 0.211/0.072"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #00FFFF · luminosité réglée +0,08 · dark",
+   "detail": "0.005/0.008 0.011/0.016 0.017/0.024 0.024/0.034 0.036/0.049 0.04/0.053 0.045/0.058 0.049/0.063 0.062/0.078 0.076/0.06 0.058/0.021"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #00FFFF · luminosité réglée −0,08 · light",
+   "detail": "0.008/0.088 0.018/0.109 0.034/0.141 0.062/0.131 0.11/0.115 0.097/0.1 0.085/0.086 0.073/0.072 0.062/0.059 0.05/0.045 0.04/0.034"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #00FFFF · luminosité réglée −0,08 · dark",
+   "detail": "0.007/0 0.018/0.013 0.027/0.023 0.04/0.035 0.051/0.055 0.057/0.064 0.064/0.072 0.07/0.08 0.089/0.106 0.108/0.131 0.066/0.141"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #FF00FF · luminosité réglée +0,08 · dark",
+   "detail": "0.015/0.031 0.027/0.071 0.035/0.1 0.043/0.116 0.052/0.136 0.058/0.151 0.064/0.165 0.069/0.18 0.088/0.216 0.108/0.062 0.054/0"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #161046 · luminosité réglée +0,08 · light",
+   "detail": "0/0.007 0/0.014 0.003/0.027 0.014/0.044 0.041/0.072 0.067/0.102 0.093/0.132 0.121/0.166 0.149/0.15 0.133/0.12 0.096/0.095"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #161046 · luminosité réglée −0,08 · light",
+   "detail": "0.023/0.014 0.027/0.021 0.036/0.034 0.055/0.052 0.095/0.078 0.124/0.11 0.154/0.141 0.136/0.173 0.109/0.152 0.083/0.123 0.087/0.097"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #161046 · luminosité réglée −0,08 · dark",
+   "detail": "0.008/0.017 0.087/0.043 0.026/0.064 0.032/0.093 0.041/0.114 0.047/0.127 0.054/0.143 0.061/0.154 0.079/0.099 0.068/0.049 0.045/0.025"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #0013FF · luminosité réglée +0,08 · light",
+   "detail": "0.007/0 0.014/0 0.027/0.007 0.051/0.036 0.105/0.079 0.149/0.129 0.19/0.178 0.162/0.23 0.135/0.256 0.109/0.203 0.087/0.163"
+  },
+  {
+   "controle": "C6 Soft pas plus vif que Vivid",
+   "cas": "S2 11 nuances, texte blanc/blanc · #0013FF · luminosité réglée +0,08 · dark",
+   "detail": "0.018/0.045 0.028/0.09 0.035/0.114 0.042/0.151 0.052/0.216 0.058/0.256 0.064/0.23 0.07/0.199 0.089/0.112 0.064/0.034 0.03/0"
+  }
+ ],
+ "continuite": {
+  "saturation 0,60 → 0,99 à 25°": {
+   "A": {
+    "pire": 0.098,
+    "ou": "#F03038 → #F02E38"
+   },
+   "RETENU": {
+    "pire": 0.011,
+    "ou": "#EB3A3E → #EB393D"
+   }
+  },
+  "saturation 0,60 → 0,99 à 145°": {
+   "A": {
+    "pire": 0.075,
+    "ou": "#2AA03A → #29A039"
+   },
+   "RETENU": {
+    "pire": 0.017,
+    "ou": "#349F40 → #339F3F"
+   }
+  },
+  "saturation 0,60 → 0,99 à 270°": {
+   "A": {
+    "pire": 0.076,
+    "ou": "#5D7AF3 → #5C7AF4"
+   },
+   "RETENU": {
+    "pire": 0.018,
+    "ou": "#5F7BED → #5E7BEE"
+   }
+  },
+  "saturation 0,60 → 0,99 à 330°": {
+   "A": {
+    "pire": 0.12,
+    "ou": "#D32ECC → #D32DCC"
+   },
+   "RETENU": {
+    "pire": 0.008,
+    "ou": "#CF38C9 → #D037C9"
+   }
+  },
+  "teinte 0 → 359° à L 0.62, C 0.16": {
+   "A": {
+    "pire": 0.076,
+    "ou": "#5E9921 → #5B9A25"
+   },
+   "RETENU": {
+    "pire": 0.025,
+    "ou": "#4385E4 → #4684E5"
+   }
+  },
+  "teinte 0 → 359° à L 0.8, C 0.12": {
+   "A": {
+    "pire": 0.064,
+    "ou": "#F99DC6 → #FA9DC4"
+   },
+   "RETENU": {
+    "pire": 0.019,
+    "ou": "#F6AB6A → #F5AC69"
+   }
+  },
+  "teinte 0 → 359° à L 0.45, C 0.2": {
+   "A": {
+    "pire": 0.072,
+    "ou": "#7B1CA0 → #7D1B9F"
+   },
+   "RETENU": {
+    "pire": 0.036,
+    "ou": "#1046C1 → #1745C2"
+   }
+  },
+  "teinte 0 → 359° à L 0.9, C 0.08": {
+   "A": {
+    "pire": 0.042,
+    "ou": "#FACCFC → #FBCCFB"
+   },
+   "RETENU": {
+    "pire": 0.028,
+    "ou": "#C8E1FE → #C9E0FE"
+   }
+  },
+  "clarté 0,15 → 0,95 à 60°": {
+   "A": {
+    "pire": 0.085,
+    "ou": "#ECA161 → #EEA363"
+   },
+   "RETENU": {
+    "pire": 0.087,
+    "ou": "#ECA161 → #EEA363"
+   }
+  },
+  "clarté 0,15 → 0,95 à 250°": {
+   "A": {
+    "pire": 0.085,
+    "ou": "#7CBBFB → #7FBDFC"
+   },
+   "RETENU": {
+    "pire": 0.085,
+    "ou": "#7CBBFB → #7FBDFC"
+   }
+  }
+ }
+}

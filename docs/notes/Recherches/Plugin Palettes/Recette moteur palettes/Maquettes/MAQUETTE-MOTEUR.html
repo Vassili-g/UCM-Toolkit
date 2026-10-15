@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recette du moteur</title>
+<style>
+  :root {
+    --fond: #f6f6f6; --surface: #ffffff; --texte: #1e1e1e; --second: #5f5f5f; --discret: #8a8a8a;
+    --filet: #e2e2e2; --grille: #ececec; --lien: #007be5; --accent: #1e1e1e; --sur-accent: #ffffff;
+    --ambre: #b26b00; --vert: #1a7f37; --rouge: #c0392b;
+  }
+  :root[data-theme="dark"] {
+    --fond: #1e1e1e; --surface: #2c2c2c; --texte: #ececec; --second: #b3b3b3; --discret: #8c8c8c;
+    --filet: #3d3d3d; --grille: #353535; --lien: #4ba3ff; --accent: #ececec; --sur-accent: #1e1e1e;
+    --ambre: #f0a640; --vert: #5fd38a; --rouge: #ff8a80;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 0 32px 80px; background: var(--fond); color: var(--texte); font: 13px/1.55 Inter, ui-sans-serif, system-ui, sans-serif; }
+  main { max-width: 1120px; margin: 0 auto; }
+  h1 { margin: 26px 0 4px; font-size: 22px; }
+  h2 { margin: 44px 0 6px; font-size: 18px; }
+  h3 { margin: 22px 0 6px; font-size: 14px; }
+  p, li { max-width: 880px; }
+  a { color: var(--lien); }
+  code { font: 11px ui-monospace, Consolas, monospace; background: var(--surface); border: 1px solid var(--filet); padding: 0 4px; border-radius: 3px; }
+  .chapeau { color: var(--second); }
+  .cadre { background: var(--surface); border: 1px solid var(--filet); border-radius: 10px; padding: 14px 16px; margin: 12px 0; }
+  .cadre > :first-child { margin-top: 0; } .cadre > :last-child { margin-bottom: 0; }
+  details.cadre > summary { cursor: pointer; font-weight: 600; }
+  details.cadre[open] > summary { margin-bottom: 8px; }
+  .note { font-size: 12px; color: var(--second); }
+  nav.sommaire { display: flex; gap: 16px; flex-wrap: wrap; margin: 10px 0 0; font-size: 12.5px; }
+
+  body { padding-top: var(--haut-barre, 120px); }
+  .barre-fixe { position: fixed; top: 0; left: 0; right: 0; z-index: 10; background: color-mix(in srgb, var(--fond) 94%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--filet); }
+  .barre-fixe .interieur { max-width: 1240px; margin: 0 auto; padding: 8px 32px 10px; display: flex; gap: 10px 28px; flex-wrap: wrap; align-items: flex-end; }
+  .bloc { display: flex; gap: 8px 10px; flex-wrap: wrap; align-items: flex-end; }
+  .bloc-titre { width: 100%; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--discret); margin-bottom: -2px; }
+  .champ { display: inline-flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--second); }
+  .champ select { align-self: flex-start; }
+  .bascule button:disabled { cursor: default; }
+  .bascule button:disabled:not([aria-pressed="true"]) { opacity: .4; }
+  #compte-retours { display: inline-block; min-width: 8.5em; font-variant-numeric: tabular-nums; }
+  #etat-copie-haut { display: inline-block; min-width: 13em; }
+  .interrupteur { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--texte); height: 26px; cursor: pointer; user-select: none; }
+  .interrupteur input { appearance: none; width: 28px; height: 16px; border-radius: 999px; background: var(--filet); position: relative; margin: 0; cursor: pointer; }
+  .interrupteur input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); box-shadow: 0 0 0 1px rgba(0,0,0,.15); }
+  .interrupteur input:checked { background: var(--accent); }
+  .interrupteur input:checked::after { left: 14px; }
+
+  .grille-tw { margin: 10px 0; border-radius: 12px; padding: 14px; }
+  .grille-tw .entete, .grille-tw .rang { display: grid; grid-template-columns: 124px repeat(var(--colonnes), minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+  .grille-tw .entete { font-size: 11.5px; font-weight: 600; padding: 6px 0; position: sticky; top: calc(var(--haut-barre, 120px) - 12px); z-index: 2; background: inherit; }
+  .grille-tw .rang + .rang { margin-top: 10px; }
+  .grille-tw .famille { font-size: 12px; font-weight: 600; padding-top: 10px; }
+  .grille-tw .famille span { display: block; font-weight: 400; font-size: 10.5px; opacity: .65; }
+  .cellule { border-radius: 10px; padding: 10px 12px; display: grid; gap: 8px; align-content: start; }
+  .mini { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 1px; border-radius: 4px; overflow: hidden; }
+  .mini > div { height: 10px; position: relative; }
+  .mini > div.ref::after { content: ''; position: absolute; inset: 3px 42%; border-radius: 2px; background: currentColor; }
+  .ligne-composants { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .badge-pg { border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 600; line-height: 16px; }
+  .bouton-pg { border-radius: 6px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; line-height: 18px; }
+  .lien-pg { font-size: 12.5px; text-decoration: underline; text-underline-offset: 2px; }
+  .alerte-pg { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 8px; }
+  .alerte-pg svg { flex: none; margin-top: 1px; }
+  .alerte-pg .corps { display: flex; flex-direction: column; gap: 1px; flex-grow: 1; min-width: 0; }
+  .alerte-pg .titre { font-size: 13px; font-weight: 600; line-height: 18px; }
+  .alerte-pg .desc { font-size: 12.5px; line-height: 18px; opacity: .9; }
+  .alerte-pg .action { font-size: 12.5px; font-weight: 600; line-height: 18px; white-space: nowrap; align-self: center; text-decoration: underline; text-underline-offset: 2px; }
+  .retour { display: grid; gap: 6px; padding: 8px 0 0; border-top: 1px dashed color-mix(in srgb, currentColor 25%, transparent); font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+  .retour .tete { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 11.5px; }
+  .retour .tete b { font-weight: 600; margin-right: 2px; }
+  .retour .choix { display: inline-flex; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: 6px; overflow: hidden; }
+  .retour .choix button { border: 0; background: transparent; color: inherit; padding: 3px 9px; font: inherit; font-size: 11.5px; cursor: pointer; }
+  .retour .choix button + button { border-left: 1px solid color-mix(in srgb, currentColor 30%, transparent); }
+  .retour .choix button[aria-pressed="true"][data-avis="moteur"] { background: #1a7f37; color: #fff; }
+  .retour .choix button[aria-pressed="true"][data-avis="tailwind"] { background: #b26b00; color: #fff; }
+  .retour input { width: 100%; font: inherit; font-size: 12px; color: inherit; background: transparent; border: 1px solid color-mix(in srgb, currentColor 25%, transparent); border-radius: 6px; padding: 4px 7px; }
+  .etat-famille { display: grid; gap: 1px; margin-top: 8px; font-size: 10.5px; font-weight: 400; }
+  .etat-famille .moteur { color: #1a7f37; } .etat-famille .tailwind { color: #b26b00; }
+  :root[data-theme="dark"] .etat-famille .moteur { color: #5fd38a; } :root[data-theme="dark"] .etat-famille .tailwind { color: #f0a640; }
+  .compte-retours { font-size: 12px; color: var(--second); height: 26px; display: inline-flex; align-items: center; gap: 10px; }
+  .compte-retours button { font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--sur-accent); cursor: pointer; }
+  .pied-cellule { font-size: 10.5px; opacity: .7; }
+  .groupe { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .groupe > span { color: var(--second); font-size: 12px; }
+  .bascule { display: inline-flex; border: 1px solid var(--filet); border-radius: 6px; overflow: hidden; background: var(--surface); flex-wrap: wrap; }
+  .bascule button { border: 0; background: transparent; color: var(--texte); padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  .bascule button + button { border-left: 1px solid var(--filet); }
+  .bascule button[aria-pressed="true"] { background: var(--accent); color: var(--sur-accent); }
+  select { font: inherit; font-size: 12px; color: var(--texte); background: var(--surface); border: 1px solid var(--filet); border-radius: 6px; padding: 3px 6px; }
+  .commandes { display: flex; gap: 10px 20px; flex-wrap: wrap; align-items: center; margin: 14px 0 4px; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--filet); vertical-align: top; }
+  th { color: var(--second); font-weight: 500; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.retenu td { background: color-mix(in srgb, var(--vert) 10%, transparent); }
+  .defile { overflow-x: auto; }
+  .ko { color: var(--rouge); } .ok { color: var(--vert); }
+
+  .graphe { position: relative; }
+  .graphe svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .graphe .axe { stroke: var(--filet); }
+  .graphe .grille { stroke: var(--grille); }
+  .graphe text { fill: var(--second); font-size: 10.5px; font-family: inherit; }
+  .legende { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11.5px; color: var(--second); margin: 0 0 4px; }
+  .legende svg { vertical-align: middle; margin-right: 4px; }
+  .infobulle { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--filet); border-radius: 6px; padding: 6px 8px; font-size: 11px; line-height: 1.45; box-shadow: 0 2px 8px rgba(0,0,0,.25); white-space: nowrap; display: none; z-index: 3; }
+  .pastille { display: inline-block; width: 9px; height: 9px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; box-shadow: inset 0 0 0 1px rgba(127,127,127,.4); }
+
+  .scene { border-radius: 12px; padding: 16px; margin: 10px 0; }
+  .carte-ex { border-radius: 10px; padding: 14px 16px; }
+  .deux { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .rampe-ligne { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; align-items: center; margin: 4px 0; }
+  .rampe-ligne > span { font-size: 11.5px; opacity: .8; }
+  .rampe { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 2px; }
+  .rampe > div { height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+  .rampe.etiquettes > div { height: auto; font-size: 10px; opacity: .65; }
+  .rampe.marques > div { height: 16px; font-size: 12px; font-weight: 600; }
+  .marque-alerte { color: var(--ambre); }
+  .composants { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0; }
+  .badge { border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 500; white-space: nowrap; }
+  .bouton { border-radius: 6px; padding: 5px 11px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .alerte { border-radius: 6px; padding: 7px 10px; font-size: 12px; flex: 1 1 220px; }
+  .titre-profil { font-size: 12px; font-weight: 600; margin: 0 0 6px; }
+  .titre-profil span { font-weight: 400; opacity: .7; }
+  .compte { font-size: 11.5px; opacity: .85; margin-top: 6px; }
+
+  .decision { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 8px 16px; padding: 10px 0; border-bottom: 1px solid var(--filet); align-items: start; }
+  .decision label { display: block; margin: 2px 0; }
+  .decision textarea { width: 100%; min-height: 54px; font: inherit; font-size: 12px; background: var(--fond); color: var(--texte); border: 1px solid var(--filet); border-radius: 6px; padding: 4px 6px; }
+  .actions { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+  .actions button { font: inherit; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--sur-accent); cursor: pointer; }
+  textarea#bilan { display: block; width: 100%; height: 150px; margin-top: 8px; font: 11px ui-monospace, Consolas, monospace; background: var(--surface); color: var(--texte); border: 1px solid var(--filet); }
+  textarea#bilan[hidden] { display: none; }
+  @media (max-width: 760px) {
+    body { padding: 0 16px 60px; }
+    .barre-fixe .interieur { padding: 8px 16px 10px; }
+    .grille-tw .entete, .grille-tw .rang { grid-template-columns: minmax(0, 1fr); }
+    .grille-tw .entete { display: none; }
+    .deux { grid-template-columns: minmax(0, 1fr); }
+    .decision { grid-template-columns: minmax(0, 1fr); }
+    .rampe-ligne { grid-template-columns: 64px minmax(0, 1fr); }
+    .rampe > div { font-size: 9px; }
+  }
+</style>
+</head>
+<body>
+<main>
+<h1>Recette du moteur : Soft, Vivid et la référence saturée</h1>
+<p class="chapeau">Les réglages du moteur proposés après trois passes et la revue de Codex. Chaque réglage de la barre du haut se règle seul, et toute la page suit : les rampes, les composants et les verdicts viennent de <code>Mesures/mesurer-troisieme-passe.ts</code>, qui calcule chaque combinaison. Rien n'est décidé ni implémenté.</p>
+<nav class="sommaire">
+  <a href="#comparaison">1. Tailwind et notre moteur</a>
+  <a href="#soft">2. Soft et Vivid</a>
+  <a href="#courbe">3. Les tons clairs selon la teinte</a>
+  <a href="#reference">4. La référence saturée</a>
+  <a href="#ecartees">5. Variantes écartées</a>
+  <a href="#marche">6. Le marché</a>
+  <a href="#bilan">7. Votre bilan</a>
+  <a href="../README.md">Dossier</a>
+</nav>
+
+<header class="barre-fixe" id="barre">
+  <div class="interieur">
+    <div class="bloc">
+      <div class="bloc-titre">Moteur</div>
+      <div class="champ">Préréglage<div class="bascule" id="prereglage"></div></div>
+      <label class="champ">Soft, tons clairs Light<select id="axe-clairs"></select></label>
+      <label class="champ">Soft, fonds Dark<select id="axe-b"></select></label>
+      <label class="interrupteur"><input type="checkbox" id="axe-courbe"> Courbe de teinte</label>
+      <label class="interrupteur"><input type="checkbox" id="axe-bosse"> Bosse</label>
+      <label class="interrupteur"><input type="checkbox" id="axe-porteur"> Référence dans Vivid</label>
+      <label class="interrupteur"><input type="checkbox" id="axe-clarte"> Clarté par teinte</label>
+
+    </div>
+    <div class="bloc">
+      <div class="bloc-titre">Affichage</div>
+      <div class="champ">Thème<div class="bascule" id="theme"></div></div>
+      <label class="champ">Texte des boutons<select id="sens"></select></label>
+      <label class="champ">Profil de notre moteur<select id="profil"></select></label>
+    </div>
+    <div class="bloc">
+      <div class="bloc-titre">Retours</div>
+      <div class="compte-retours"><span id="compte-retours"></span><button type="button" id="copier-haut">Copier le bilan</button><span id="etat-copie-haut"></span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================ 0 -->
+<h2 id="comparaison">1. Tailwind et notre moteur</h2>
+<p>Chaque ligne est une famille de Tailwind 3.4. À gauche, sa palette telle que Tailwind la publie ; à droite, la palette que notre moteur fabrique avec sa couleur 500 comme référence et les réglages de la barre du haut. Les composants prennent les mêmes rôles des deux côtés, selon la table du kit : badge et alerte sur le fond teinté (<code>surface/default</code>) avec son texte (<code>surface/foreground</code>), bouton plein (<code>solid/default</code>), lien (<code>page/foreground</code>). Ils sont posés sur la carte, elle-même sur la page. L'alerte reprend la structure de celle du Playground : icône, titre et description, action.</p>
+<p class="note">Tailwind n'a pas de thème Dark : en Dark, chaque cran de Tailwind est la nuance de sa rampe dont la clarté est la plus proche de notre courbe Dark à ce cran. En Light, Tailwind suit ses propres numéros, un peu plus foncés que les nôtres sur les crans clairs (son 100 vers L 0,93, le nôtre à 0,95).</p>
+<p>Sous chaque palette de notre moteur, dites pour le profil et le thème affichés si le moteur vous convient ou si Tailwind fait mieux, et ajoutez une remarque. Changez de profil et de thème dans la barre du haut pour donner les quatre avis de chaque famille ; la colonne de gauche montre ceux qui sont faits. Chaque avis garde les réglages du moteur sous lesquels vous l'avez donné. « Copier le bilan », en haut à droite, rassemble tous les avis.</p>
+<div class="grille-tw" id="grille"></div>
+
+<!-- ============================================================ 1 -->
+<h2 id="soft">2. Soft et Vivid</h2>
+<p>Soft sert à un élément répété, Vivid à un élément qui doit être remarqué. Après votre jugement sur la comparaison, Soft se distingue de Vivid par ses fonds, dans les deux thèmes ; ses textes et ses pleins restent proches de ceux de Vivid, parce que des textes trop désaturés deviennent ternes.</p>
+<div class="cadre">
+  <p><b>Tons clairs de Soft, Light.</b> Les tons clairs du Light de Soft (clarté au-dessus de 0,78, en entier au-dessus de 0,88) perdent une part de leur chroma : badges, alertes et boutons teintés Soft se détachent de ceux de Vivid.</p>
+  <p><b>Fonds de Soft, Dark.</b> En Dark, les fonds (crans 300 à 500) sont des tons foncés, dont la chroma suit la borne de Soft vers le noir (<code>profils.soft.enveloppe.dark.b</code>). Elle vaut 0,38 aujourd'hui, contre 0,30 pour Vivid : Soft y est plus vif que Vivid. Baisser cette valeur de la recette calme les fonds Dark de Soft sans toucher Vivid ni le code du moteur.</p>
+  <div class="defile"><table>
+    <thead><tr><th>Fonds de Soft, Dark (avec vos autres réglages)</th><th class="n">Soft ÷ Vivid,<br>fonds Dark</th><th class="n">Écart Soft / Vivid, fonds Dark<br>300 · 400 · 500</th><th class="n">Couleurs sous l'écart perceptible<br>(sur 17) au 300 · 400 · 500</th></tr></thead>
+    <tbody>
+      <tr><td>Aujourd'hui, b 0,38 (Soft plus vif que Vivid sur 21 nuances)</td><td class="n">0,90</td><td class="n">0,009 · 0,014 · 0,018</td><td class="n">17 · 17 · 17</td></tr>
+      <tr><td>−40 % sous Vivid, b 0,20</td><td class="n">0,61</td><td class="n">0,029 · 0,044 · 0,056</td><td class="n">8 · 3 · 3</td></tr>
+      <tr class="retenu"><td>−55 % sous Vivid, b 0,15</td><td class="n">0,46</td><td class="n">0,044 · 0,062 · 0,076</td><td class="n">3 · 1 · 0</td></tr>
+      <tr><td>−70 % sous Vivid, b 0,10</td><td class="n">0,31</td><td class="n">0,058 · 0,079 · 0,097</td><td class="n">1 · 0 · 0</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Tailwind 500, texte des boutons blanc dans les deux thèmes. Les promesses manquées ne changent avec aucune valeur (144 sur le balayage). Les textes Dark (950) ne bougent pas : la borne vers le noir ne règle que les tons foncés et moyens, ce qui calme aussi le plein Dark de Soft quand le texte des boutons est blanc.</p>
+  <p><b>Référence vive dans Vivid.</b> Avec la règle d'aujourd'hui, Soft porte toute référence de saturation sous 0,90 : le rouge, le rose, l'indigo, le fuchsia et le pink de Tailwind. Ses fonds Dark calmés, la référence garde seule sa vivacité : en Dark, le bouton plein Soft de l'indigo est vif au repos (<code>#6366F1</code>) et presque gris au survol (<code>#5B6088</code>). Avec ce réglage, Vivid porte toujours la référence, et Soft en est une version plus calme d'un bout à l'autre. Une référence terne donne un Vivid aussi terne qu'elle et un Soft un peu plus calme ; plus la référence est saturée, plus ses deux profils le sont, sans bascule d'un profil à l'autre. La comparaison des trois règles possibles est dans la <a href="DEMO-PORTEUR.html">démo du porteur</a>.</p>
+  <p><b>L'alerte</b> « Soft et Vivid se confondent » juge aujourd'hui les pleins et les textes, que Soft et Vivid partagent désormais. Elle devra juger les seuls fonds ; les lignes d'alerte sous les rampes montrent encore la version actuelle et la version proposée.</p>
+</div>
+
+<div class="commandes"><div class="groupe"><span>Exemple</span><select id="ex1"></select></div></div>
+<div class="cadre">
+  <div class="legende" id="legende1"></div>
+  <div class="graphe" id="graphe1"></div>
+  <p class="note" id="lecture1"></p>
+</div>
+<div class="scene" id="scene1"></div>
+
+<h3>Mesures</h3>
+<div class="defile"><table>
+  <thead><tr><th>Tons clairs de Soft, Light</th><th class="n">Écart Soft / Vivid, Light, médiane<br>fond 100 · 200 · 300</th><th class="n">Couleurs sous l'écart perceptible<br>(sur 17) au fond 100 · 200 · 300</th><th class="n">Uniformité des fonds Soft<br>50 · 100 · 200 · 300</th></tr></thead>
+  <tbody>
+    <tr><td>Inchangés</td><td class="n">0,007 · 0,014 · 0,023</td><td class="n">10 · 10 · 8</td><td class="n">1,24 · 1,18 · 1,15 · 1,10</td></tr>
+    <tr><td>−15 %</td><td class="n">0,010 · 0,020 · 0,031</td><td class="n">10 · 8 · 7</td><td class="n">1,26 · 1,27 · 1,16 · 1,10</td></tr>
+    <tr class="retenu"><td>−20 %</td><td class="n">0,011 · 0,024 · 0,034</td><td class="n">10 · 8 · 6</td><td class="n">1,34 · 1,17 · 1,16 · 1,11</td></tr>
+    <tr><td>−30 % (retiré de la barre)</td><td class="n">0,015 · 0,029 · 0,040</td><td class="n">10 · 7 · 1</td><td class="n">1,23 · 1,31 · 1,15 · 1,12</td></tr>
+    <tr><td>−40 %, jugé trop fade (retiré de la barre)</td><td class="n">0,016 · 0,033 · 0,046</td><td class="n">10 · 5 · 0</td><td class="n">1,20 · 1,23 · 1,18 · 1,12</td></tr>
+  </tbody>
+</table></div>
+<p class="note">Écart perceptible : 0,02 en OKLCH. Au fond 100, les bleus, rouges et violets restent indistincts quel que soit le réglage : l'écran n'y affiche presque pas de chroma, et un Soft entièrement gris n'en serait qu'à 0,022 de Vivid. L'uniformité varie au cran 50 par l'arrondi à 8 bits de chromas minuscules. Les garanties ne changent avec aucun niveau.</p>
+
+<!-- ============================================================ 2 -->
+<h2 id="courbe">3. Les tons clairs selon la teinte</h2>
+<p>Vos retours sur la comparaison (57 « Moteur OK » sur 68) visaient surtout les fonds de Vivid en Light : rouges, roses et indigos trop pâles, jaunes, ambres, limes et verts ternes. Deux réglages y répondent.</p>
+<div class="cadre">
+  <h3>La clarté selon la teinte</h3>
+  <p>Tailwind ne place pas les tons clairs de toutes ses teintes à la même clarté : au cran 100, ses jaunes, ambres, limes et verts sont de 0,01 à 0,02 plus clairs que la médiane, ses rouges, roses, bleus et indigos d'autant plus foncés. Notre courbe les met tous à 0,95. Le préréglage Tailwind, qui lit déjà la dérive de teinte sur les rampes de Tailwind voisines, y lit aussi l'écart de clarté de leur cran 100, et le range dans le Color shift de luminosité, au bout clair seulement, borné à ±0,03.</p>
+  <p><b>La chroma suit, ou est gardée.</b> Assombrir un ton clair lui laisse plus de chroma ; l'éclaircir lui en retire, parce que la borne de l'enveloppe vers le blanc rétrécit avec la clarté. La première version éclaircissait donc les jaunes, limes et verts en les blanchissant : le jaune 100 tombait de 0,078 à 0,045 de chroma, Tailwind en a 0,069. « Chroma gardée » lit la borne de l'enveloppe à la clarté d'avant le décalage ; seul le plafond de l'écran suit la nouvelle clarté.</p>
+  <div class="defile"><table>
+    <thead><tr><th>Cran 100, Vivid Light</th><th class="n">Bout clair</th><th class="n">Clarté sans → avec (Tailwind)</th><th class="n">Chroma sans → suit / gardée (Tailwind)</th></tr></thead>
+    <tbody>
+      <tr><td>Jaune</td><td class="n">+0,025</td><td class="n">0,951 → 0,971 (0,973)</td><td class="n">0,078 → 0,045 / 0,066 (0,069)</td></tr>
+      <tr><td>Lime</td><td class="n">+0,018</td><td class="n">0,949 → 0,967 (0,967)</td><td class="n">0,056 → 0,039 / 0,057 (0,066)</td></tr>
+      <tr><td>Ambre</td><td class="n">+0,012</td><td class="n">0,950 → 0,961 (0,962)</td><td class="n">0,069 → 0,055 / 0,055 (0,058)</td></tr>
+      <tr><td>Vert</td><td class="n">+0,012</td><td class="n">0,951 → 0,961 (0,962)</td><td class="n">0,052 → 0,041 / 0,052 (0,043)</td></tr>
+      <tr><td>Rose</td><td class="n">−0,011</td><td class="n">0,949 → 0,941 (0,941)</td><td class="n">0,024 → 0,029 (0,030)</td></tr>
+      <tr><td>Rouge</td><td class="n">−0,017</td><td class="n">0,951 → 0,935 (0,936)</td><td class="n">0,023 → 0,031 (0,031)</td></tr>
+      <tr><td>Bleu</td><td class="n">−0,021</td><td class="n">0,951 → 0,931 (0,932)</td><td class="n">0,022 → 0,031 (0,032)</td></tr>
+      <tr><td>Indigo</td><td class="n">−0,023</td><td class="n">0,950 → 0,930 (0,930)</td><td class="n">0,022 → 0,032 (0,033)</td></tr>
+      <tr><td>Orange, émeraude, teal, sky, fuchsia</td><td class="n">0 à ±0,005</td><td class="n">inchangés</td><td></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Le bout sombre reste à zéro : éclaircir les tons foncés des jaunes, comme Tailwind, fait passer le texte blanc de leur plein Dark sous 4,5 (13 promesses manquées de plus sur le balayage). Avec le bout clair, aucune promesse perdue, chroma suivie ou gardée, sur aucun jeu ni sur le balayage. L'ordre des nuances tient partout. Les crans de même numéro de deux palettes n'ont plus la même clarté : jusqu'à 0,048 d'écart au cran 50, 0,043 au 100, 0,022 au 300, rien à partir du 600. Les autres effets sur le moteur et le plugin sont dans <a href="../CLARTE-SELON-LA-TEINTE.md">CLARTE-SELON-LA-TEINTE.md</a>.</p>
+</div>
+<div class="cadre">
+  <h3>La courbe de teinte de Vivid, seconde version</h3>
+  <p>Mesurée en vivacité perçue (CAM16-UCS, <code>Mesures/mesurer-vivacite.ts</code>), Vivid exagère l'organisation de Tailwind sur ses tons clairs du Light. La première version de la courbe (marge des jaunes 0,3, retenue −25 % à 190°) ternissait les jaunes, les limes et les verts. La seconde garde la marge des jaunes à 0,5 et resserre la retenue sur l'arc teal-cyan : −20 % centrée sur 195°, écart type 30°. Elle ne touche ni Soft, ni le Dark, ni les rouges, bleus et violets. Le tableau donne les mesures de la première version.</p>
+  <div class="defile"><table>
+    <thead><tr><th>Vivacité perçue Vivid ÷ Tailwind, crans 100 · 200 · 300 (première version)</th><th class="n">Sans la courbe</th><th class="n">Avec la courbe</th></tr></thead>
+    <tbody>
+      <tr><td>Vert</td><td class="n">1,15 · 1,16 · 1,12</td><td class="n">1,01 · 1,03 · 1,01</td></tr>
+      <tr><td>Teal</td><td class="n">1,05 · 1,05 · 1,11</td><td class="n">0,84 · 0,87 · 0,99</td></tr>
+      <tr><td>Cyan</td><td class="n">1,14 · 1,17 · 1,14</td><td class="n">0,93 · 0,99 · 1,06</td></tr>
+      <tr><td>Jaune</td><td class="n">1,10 · 1,16 · 1,06</td><td class="n">0,97 · 1,02 · 1,06</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- ============================================================ 3 -->
+<h2 id="reference">4. La référence saturée</h2>
+<p>La référence est placée telle quelle au cran de clarté la plus proche ([MOT-17]). Quand elle est plus vive que la règle à sa clarté, ses voisines ne la rejoignent pas. La <b>bosse gardée</b> rapproche d'elle la seule rampe qui la porte (poids gaussien σ 0,10 sur la clarté), et se réduit jusqu'à ne faire perdre aucune promesse. Elle ne touche ni les fonds pâles du Light ni la zone des fonds Dark (crans 300 à 500), sauf quand Vivid pose la référence elle-même dans cette zone : ses voisines la rejoignent alors aussi, sans quoi elles formeraient un creux à côté d'elle. Quand la référence est la couleur la plus vive que l'écran affiche à sa teinte, ses voisines ne peuvent pas l'égaler : aucune règle ne corrige ce saut. Cette section compare toujours la même configuration sans la bosse et avec elle.</p>
+<div class="commandes"><div class="groupe"><span>Exemple</span><select id="ex2"></select></div></div>
+<div class="cadre">
+  <div class="legende" id="legende2"></div>
+  <div class="graphe" id="graphe2"></div>
+  <p class="note" id="lecture2"></p>
+</div>
+<div class="scene" id="scene2"></div>
+<div class="defile"><table>
+  <thead><tr><th>Voisines</th><th class="n">Saillie, 5 références saturées<br>médiane · maximum</th><th class="n">Saillie, Tailwind 500<br>médiane · maximum</th><th class="n">Promesses perdues<br>aux bornes · balayage</th><th class="n">Fonds Dark du bleu électrique<br>300 · 400</th></tr></thead>
+  <tbody>
+    <tr><td>Aujourd'hui</td><td class="n">1,46 · 2,91</td><td class="n">1,17 · 2,10</td><td class="n">– · 0</td><td class="n">0,093 · 0,114</td></tr>
+    <tr class="retenu"><td>Bosse gardée hors fonds</td><td class="n">1,26 · 2,72</td><td class="n">1,16 · 1,73</td><td class="n">0 · 0</td><td class="n">0,093 · 0,114</td></tr>
+  </tbody>
+</table></div>
+<p class="note">Saillie : la chroma de la référence divisée par celle de chacune de ses deux voisines. Tailwind 3.4 reste entre 1,00 et 1,07 ; le maximum vient du côté où l'écran borne la voisine.</p>
+
+<!-- ============================================================ 4 -->
+<h2 id="ecartees">5. Variantes écartées</h2>
+<details class="cadre">
+  <summary>Dix variantes mesurées puis écartées, et pourquoi</summary>
+  <div class="defile"><table>
+    <thead><tr><th>Variante</th><th>Ce qu'elle faisait</th><th>Pourquoi elle est écartée</th></tr></thead>
+    <tbody>
+      <tr><td>K65 (deuxième passe)</td><td>Soft prenait l'enveloppe de Vivid, × 0,65</td><td>Uniformité des fonds Soft ×1,24 → ×2,38 (revue de Codex)</td></tr>
+      <tr><td>Plafond partout</td><td>Le plafond × 0,65 jusque sur les fonds pâles</td><td>Uniformité des fonds Soft ×1,24 → ×1,79</td></tr>
+      <tr><td>Soft plafonné × 0,65</td><td>Soft ne dépasse pas 0,65 de Vivid sur ses pleins et ses textes</td><td>Écarté par le mainteneur : des textes Soft trop désaturés deviennent ternes ; Soft se distingue par ses fonds</td></tr>
+      <tr><td>SQ65, porteur du paquet</td><td>Plafond sans changer le profil qui porte la référence</td><td>Vivid intact, mais 12 nuances Soft restent plus vives que Vivid sur Tailwind, et 7 palettes de la galerie en alerte</td></tr>
+      <tr><td>Plafonné × 0,75</td><td>Un plafond plus haut</td><td>11 teintes douces sur 24 encore confondues, alerte proposée comprise</td></tr>
+      <tr><td>Plafonné × 0,50</td><td>Un plafond plus bas, comme Material</td><td>Creux de chroma (3 sur Tailwind, 7 sur le tour vif), 26 promesses déplacées au lieu de 12</td></tr>
+      <tr><td>Tons clairs de Vivid +20 %</td><td>Vivid plus vif sur ses tons clairs</td><td>Invisible sur les bleus (déjà au plafond de l'écran), verts fluo : #6CEA98 → vert 300 à 1,4 fois Tailwind</td></tr>
+      <tr><td>Borne vers le blanc de Vivid à 0,9</td><td>Une seule valeur pour toutes les teintes</td><td>Corrige les verts mais ternit la lime (0,71 de Tailwind) ; remplacée par la courbe de teinte</td></tr>
+      <tr><td>Bosse non gardée, ou gardée avec les fonds</td><td>La bosse sans garde, ou sur les fonds</td><td>Une promesse perdue aux bornes de luminosité ; fonds Dark du bleu électrique 0,114 → 0,229</td></tr>
+      <tr><td>Message vers la saturation</td><td>Renvoyer le designer au Réglage global</td><td>Baisser la saturation garde la saillie ; un constat sans geste qui le corrige contredit [VER-08]</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Les mesures complètes sont dans <code>Mesures/MESURES-TROISIEME-PASSE.json</code> et la <a href="../REVIEW-CODEX.md">revue de Codex</a>.</p>
+</details>
+
+<!-- ============================================================ 5 -->
+<h2 id="marche">6. Ce que fait le marché</h2>
+<div class="defile"><table>
+  <thead><tr><th>Question</th><th>Relevé</th><th>Source</th></tr></thead>
+  <tbody>
+    <tr><td>Une version douce de même teinte</td><td>Material 3 fait sa palette secondaire avec un rapport de chroma de 0,44 (TonalSpot), 0,60 (Expressive), 0,67 (Neutral), max(C − 32 ; C / 2) dans Fidelity et Content.</td><td><a href="https://github.com/material-foundation/material-color-utilities/blob/main/dart/lib/scheme/scheme_tonal_spot.dart">scheme_tonal_spot</a></td></tr>
+    <tr><td>Votre réglage</td><td>Sky, réglée à la main : Soft 0,65, Vivid 0,97, rapport 0,67.</td><td><code>recette-mainteneur.json</code></td></tr>
+    <tr><td>Vivacité selon la teinte</td><td>Tailwind organise la vivacité perçue de ses tons clairs : jaunes, limes, émeraudes et teals 1,2 à 1,4 fois la médiane, rouges et roses 0,8. Il ne l'égalise pas.</td><td><code>Mesures/MESURES-VIVACITE.json</code></td></tr>
+    <tr><td>Discret ou appuyé</td><td>Atlassian, Primer et Radix Themes changent de cran dans une seule rampe ; UCM le fait avec <code>surface</code> et <code>solid</code>.</td><td><a href="https://raw.githubusercontent.com/primer/primitives/main/src/tokens/functional/color/bgColor.json5">Primer</a></td></tr>
+    <tr><td>Écart perceptible</td><td>0,02 en OKLCH, absolu.</td><td><a href="https://www.w3.org/TR/css-color-4/">CSS Color 4</a></td></tr>
+    <tr><td>Couleur saisie hors de sa rampe</td><td>Le générateur de Radix multiplie toute l'échelle par le rapport de chroma de la saisie ; tints.dev garde la saisie exacte sans adapter les voisines.</td><td><a href="https://github.com/radix-ui/website/blob/main/components/generate-radix-colors.tsx">generate-radix-colors</a></td></tr>
+  </tbody>
+</table></div>
+
+<!-- ============================================================ 6 -->
+<h2 id="bilan">7. Votre bilan</h2>
+<p>Le bilan reprend vos avis par teinte et les réglages de la barre du haut tels que vous les avez laissés. Le préréglage « Recommandé » : tons clairs de Soft −30 % en Light, fonds de Soft −55 % sous Vivid en Dark, référence vive dans Vivid, courbe de teinte, bosse gardée hors fonds, clarté selon la teinte avec chroma gardée. Tous changent le moteur ; aucun ne change le total des promesses manquées.</p>
+<div class="cadre">
+  <div class="decision"><b>Réglages retenus</b><div id="bilan-reglages"></div></div>
+  <div class="decision"><b>Alerte « Soft et Vivid se confondent »</b><div id="bilan-alerte"></div></div>
+  <div class="decision"><b>Commentaire</b><div><textarea id="commentaire" placeholder="Ce que vous avez vu, teinte par teinte"></textarea></div></div>
+</div>
+<div class="actions"><button type="button" id="copier">Copier le bilan</button><span class="note" id="etat-copie"></span></div>
+<textarea id="bilan" hidden readonly></textarea>
+</main>
+
+<script src="donnees-troisieme-passe.js"></script>
+<script src="donnees-comparaison.js"></script>
+<script>
+(() => {
+  const D = window.DONNEES;
+  const CRANS = D.crans;
+  const idx = (c) => CRANS.indexOf(c);
+  const virgule = (x, n = 3) => x.toFixed(n).replace('.', ',');
+  const nomTheme = (m) => (m === 'light' ? 'Light' : 'Dark');
+
+  const AXES = {
+    clairs: { titre: 'Tons clairs de Soft, Light', options: [{ id: '1', nom: 'Inchangés' }, { id: '0.85', nom: '−15 %' }, { id: '0.7', nom: '−30 %' }] },
+    b: { titre: 'Fonds de Soft sous Vivid, Dark', options: [{ id: '0.38', nom: "Aujourd'hui" }, { id: '0.2', nom: '−40 % sous Vivid' }, { id: '0.15', nom: '−55 % sous Vivid' }, { id: '0.1', nom: '−70 % sous Vivid' }] },
+    courbe: { titre: 'Courbe de teinte de Vivid', options: [{ id: '0', nom: 'Sans' }, { id: '1', nom: 'Avec' }] },
+    bosse: { titre: 'Voisines de la référence', options: [{ id: '0', nom: "Aujourd'hui" }, { id: '1', nom: 'Bosse gardée' }] },
+    porteur: { titre: 'Référence dans Vivid', options: [{ id: '0', nom: 'Non' }, { id: '1', nom: 'Oui' }] },
+    clarte: { titre: 'Clarté selon la teinte', options: [{ id: '0', nom: 'Sans' }, { id: '2', nom: 'Avec' }] },
+  };
+  const AUJOURDHUI = { clairs: '1', b: '0.38', courbe: '0', bosse: '0', clarte: '0', porteur: '0' };
+  const RECOMMANDE = { clairs: '0.7', b: '0.15', courbe: '1', bosse: '1', clarte: '2', porteur: '1' };
+  const etat = { theme: 'dark', sens: 'blanc-blanc', profil: 'vivid', ...RECOMMANDE, ex1: 2, ex2: 7, alerte: 'proposee', commentaire: '' };
+  try { Object.assign(etat, JSON.parse(localStorage.getItem('maquette-moteur-10')) || {}); } catch { /* stockage indisponible */ }
+  const sauver = () => { try { localStorage.setItem('maquette-moteur-10', JSON.stringify(etat)); } catch { /* stockage indisponible */ } };
+
+  const cle = (bosse = etat.bosse) => `${etat.clairs}|${etat.courbe}|${bosse}|${etat.clarte}|${etat.b}|${etat.porteur}`;
+  const S = () => D.sens[etat.sens];
+  const pal = (c, i) => S().variantes[c][i];
+  const nomOption = (axe) => AXES[axe].options.find((o) => o.id === etat[axe]).nom;
+
+  const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const lum = (h) => { const n = parseInt(h.slice(1), 16); return 0.2126 * lin(n >> 16) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255); };
+  const contraste = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+
+  function bascule(id, options, cleEtat) {
+    const el = document.getElementById(id);
+    el.innerHTML = '';
+    for (const o of options) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = o.nom; b.setAttribute('aria-pressed', String(etat[cleEtat] === o.id));
+      b.addEventListener('click', () => { etat[cleEtat] = o.id; sauver(); tout(); });
+      el.append(b);
+    }
+  }
+  function choixExemple(id, cleEtat, indices) {
+    const el = document.getElementById(id);
+    el.innerHTML = indices.map((i) => `<option value="${i}">${D.exemples[i].nom} ${D.exemples[i].reference}</option>`).join('');
+    el.value = String(etat[cleEtat]);
+    el.addEventListener('change', () => { etat[cleEtat] = Number(el.value); sauver(); tout(); });
+  }
+
+  // ------------------------------------------------ graphique
+  function graphe(conteneur, { series, plafond, rang, colonnes }) {
+    const W = 680, H = 250, g = 42, d = 14, h = 14, bas = 30;
+    const max = Math.max(0.12, ...series.flatMap((s) => s.C), ...plafond) * 1.08;
+    const pas = max > 0.25 ? 0.05 : 0.025;
+    const larg = (W - g - d) / CRANS.length;
+    const x = (i) => g + (i + 0.5) * larg;
+    const y = (c) => h + (1 - c / max) * (H - h - bas);
+    let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Chroma de chaque nuance">`;
+    for (let v = 0; v <= max + 1e-9; v += pas) svg += `<line class="grille" x1="${g}" x2="${W - d}" y1="${y(v)}" y2="${y(v)}"/><text x="${g - 6}" y="${y(v) + 3.5}" text-anchor="end">${virgule(v, pas < 0.05 ? 3 : 2)}</text>`;
+    svg += `<line class="axe" x1="${g}" x2="${W - d}" y1="${y(0)}" y2="${y(0)}"/>`;
+    CRANS.forEach((c, i) => { svg += `<text x="${x(i)}" y="${H - 10}" text-anchor="middle">${c}</text>`; });
+    const chemin = (C) => C.map((c, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(c).toFixed(1)}`).join('');
+    svg += `<path d="${chemin(plafond)}" fill="none" stroke="var(--discret)" stroke-width="1.5" stroke-dasharray="2 3"/>`;
+    for (const s of series) if (s.trait) svg += `<path d="${chemin(s.C)}" fill="none" stroke="${s.trait}" stroke-width="${s.epaisseur ?? 2}" ${s.tirets ? `stroke-dasharray="${s.tirets}"` : ''} opacity="${s.opacite ?? 1}"/>`;
+    for (const s of series) if (s.points) s.C.forEach((c, i) => {
+      const ref = s.porteuse && i === rang;
+      if (ref) svg += `<circle cx="${x(i)}" cy="${y(c)}" r="10" fill="none" stroke="var(--texte)" stroke-width="2"/>`;
+      svg += `<circle cx="${x(i)}" cy="${y(c)}" r="${ref ? 7 : s.creux ? 4 : 5}" fill="${s.creux ? 'none' : s.hexa[i]}" stroke="${s.creux ? 'var(--discret)' : 'var(--surface)'}" stroke-width="2"/>`;
+    });
+    CRANS.forEach((_, i) => { svg += `<rect data-i="${i}" x="${x(i) - larg / 2}" y="${h}" width="${larg}" height="${H - h - bas}" fill="transparent"/>`; });
+    conteneur.innerHTML = `${svg}</svg><div class="infobulle"></div>`;
+    const b = conteneur.querySelector('.infobulle');
+    conteneur.querySelectorAll('rect[data-i]').forEach((r) => {
+      r.addEventListener('mouseenter', () => { b.innerHTML = colonnes(Number(r.dataset.i)); b.style.display = 'block'; });
+      r.addEventListener('mousemove', (e) => {
+        const bord = conteneur.getBoundingClientRect();
+        b.style.left = `${Math.max(0, Math.min(e.clientX - bord.left + 14, bord.width - b.offsetWidth - 4))}px`;
+        b.style.top = `${e.clientY - bord.top + 14}px`;
+      });
+      r.addEventListener('mouseleave', () => { b.style.display = 'none'; });
+    });
+  }
+  const ligneLegende = (style) => `<svg width="26" height="10"><line x1="1" x2="25" y1="5" y2="5" stroke="${style.trait}" stroke-width="${style.epaisseur ?? 2}" ${style.tirets ? `stroke-dasharray="${style.tirets}"` : ''}/></svg>`;
+  const ROND = '<svg width="16" height="16"><circle cx="8" cy="8" r="6.5" fill="none" stroke="var(--texte)" stroke-width="2"/></svg>';
+  const CREUX = '<svg width="12" height="12"><circle cx="6" cy="6" r="4" fill="none" stroke="var(--discret)" stroke-width="2"/></svg>';
+  const STYLES = { vivid: { trait: 'var(--texte)' }, soft: { trait: 'var(--texte)', tirets: '6 4', opacite: 0.75 }, plafond: { trait: 'var(--discret)', tirets: '2 3', epaisseur: 1.5 }, regle: { trait: 'var(--discret)', epaisseur: 1 } };
+
+  // ------------------------------------------------ scènes
+  const fondDe = (m) => S().fonds[m];
+  const carteDe = (m) => S().cartes[m];
+  const encre = (m) => (m === 'light' ? '#1E1E1E' : '#ECECEC');
+  const rampe = (hexas, rangRef) => `<div class="rampe">${hexas.map((h, i) => `<div style="background:${h};color:${contraste(h, '#FFFFFF') > contraste(h, '#000000') ? '#fff' : '#000'}" title="${CRANS[i]} ${h}">${i === rangRef ? '◆' : ''}</div>`).join('')}</div>`;
+  const etiquettes = () => `<div class="rampe-ligne"><span></span><div class="rampe etiquettes">${CRANS.map((c) => `<div>${c}</div>`).join('')}</div></div>`;
+  function specimens(r, m) {
+    const t = S().table[m];
+    const c = (v) => r[m].hexa[idx(t[v])];
+    const sur = S().texteDesBoutons[m];
+    const tx = c('surface/foreground');
+    return `
+      <div class="composants">
+        <span class="badge" style="background:${c('surface/default')};color:${tx}">Payé</span>
+        <span class="badge" style="background:${c('surface/default')};color:${tx}">Envoyé</span>
+        <span class="badge" style="background:${c('surface/default')};color:${tx};box-shadow: inset 0 0 0 1px ${c('page/divider')}">Livré</span>
+        <span class="badge" style="background:${c('solid/default')};color:${sur}">Nouveau</span>
+      </div>
+      <div class="composants">
+        <span class="bouton" style="background:${c('solid/default')};color:${sur}">Repos</span>
+        <span class="bouton" style="background:${c('solid/hover')};color:${sur}">Survol</span>
+        <span class="bouton" style="background:${c('solid/pressed')};color:${sur}">Appui</span>
+        <span class="bouton" style="background:${c('surface/default')};color:${tx}">Teinté</span>
+        <span class="bouton" style="background:${c('surface/hover')};color:${tx}">Survol</span>
+        <span class="bouton" style="background:${c('surface/pressed')};color:${tx}">Appui</span>
+        <span class="bouton" style="background:${carteDe(m)};color:${encre(m)};box-shadow: 0 0 0 2px ${carteDe(m)}, 0 0 0 4px ${c('ring')}">Focus</span>
+      </div>
+      <div class="composants">
+        <div class="alerte" style="background:${c('surface/default')};color:${tx};box-shadow: inset 0 0 0 1px ${c('page/divider')}"><b>Paiement reçu.</b> La facture est envoyée au client.</div>
+        <span style="color:${c('page/foreground')};text-decoration:underline;font-size:12px">Voir la facture</span>
+      </div>`;
+  }
+  const marques = (v) => CRANS.map((_, i) => `<div class="${v && v[i] ? 'marque-alerte' : ''}">${!v || v[i] === null ? '' : v[i] ? '≈' : '·'}</div>`).join('');
+  const total = (v) => (v ? v.light.filter((x) => x === true).length + v.dark.filter((x) => x === true).length : 0);
+  const manquees = (p, m) => {
+    const liste = p.manquees.filter((k) => k.startsWith(`${m}/`));
+    if (!liste.length) return `<span class="ok">Toutes les garanties tenues en ${nomTheme(m)}.</span>`;
+    return `<span class="ko">${liste.length} promesse${liste.length > 1 ? 's' : ''} manquée${liste.length > 1 ? 's' : ''} en ${nomTheme(m)}</span> : ${liste.map((k) => { const [, , prof, g, ...f] = k.split('/'); return `${g} ${prof} contre ${f.join('/')}`; }).join(', ')}.`;
+  };
+  const nomProfil = (p) => (p === 'vivid' ? 'Vivid' : p === 'soft' ? 'Soft' : 'la rampe unique');
+
+  // ------------------------------------------------ section 1
+  function section1() {
+    const m = etat.theme;
+    const ex = D.exemples[etat.ex1];
+    const p = pal(cle(), etat.ex1);
+    const avant = pal('1|0|0|0|0.38|0', etat.ex1);
+    const rang = p.rangs[m];
+    document.getElementById('legende1').innerHTML = [`${ligneLegende(STYLES.vivid)}Vivid`, `${ligneLegende(STYLES.soft)}Soft`, `${ligneLegende(STYLES.plafond)}Plafond de l'écran (sRGB)`, `${ROND}la référence (◆ sur la rampe)`].map((t) => `<span>${t}</span>`).join('');
+    graphe(document.getElementById('graphe1'), {
+      plafond: p.vivid[m].plafond, rang,
+      series: [
+        { ...STYLES.vivid, C: p.vivid[m].C, hexa: p.vivid[m].hexa, points: true, porteuse: p.porteur === 'vivid' },
+        { ...STYLES.soft, C: p.soft[m].C, hexa: p.soft[m].hexa, points: true, porteuse: p.porteur === 'soft' },
+      ],
+      colonnes: (i) => `<b>Nuance ${CRANS[i]}, ${nomTheme(m)}</b><br>`
+        + `<span class="pastille" style="background:${p.vivid[m].hexa[i]}"></span>Vivid ${p.vivid[m].hexa[i]} · C ${virgule(p.vivid[m].C[i])} (aujourd'hui ${virgule(avant.vivid[m].C[i])})<br>`
+        + `<span class="pastille" style="background:${p.soft[m].hexa[i]}"></span>Soft ${p.soft[m].hexa[i]} · C ${virgule(p.soft[m].C[i])} (aujourd'hui ${virgule(avant.soft[m].C[i])})<br>`
+        + `Soft ÷ Vivid ${p.vivid[m].C[i] > 0.004 ? virgule(p.soft[m].C[i] / p.vivid[m].C[i], 2) : '–'}`,
+    });
+    const rapports = CRANS.map((_, i) => (i !== rang && p.vivid[m].C[i] >= 0.03 ? p.soft[m].C[i] / p.vivid[m].C[i] : null)).filter((x) => x !== null);
+    const change = p.porteur !== avant.porteur ? ` Aujourd'hui, ${nomProfil(avant.porteur)} la porte.` : '';
+    document.getElementById('lecture1').textContent = `${ex.nom}, ${nomTheme(m)} : Soft garde de ${virgule(Math.min(...rapports), 2)} à ${virgule(Math.max(...rapports), 2)} de la chroma de Vivid, hors cran de la référence et nuances de chroma Vivid sous 0,03. ${nomProfil(p.porteur)} porte la référence, au cran ${CRANS[rang]}.${change} Survolez une nuance pour lire ses valeurs et celles d'aujourd'hui.`;
+    const [na, np] = [total(p.alerteActuelle), total(p.alerteProposee)];
+    const scene = document.getElementById('scene1');
+    scene.style.background = fondDe(m); scene.style.color = encre(m);
+    scene.innerHTML = `
+      ${etiquettes()}
+      <div class="rampe-ligne"><span>Soft</span><div>${rampe(p.soft[m].hexa, p.porteur === 'soft' ? rang : -1)}</div></div>
+      <div class="rampe-ligne"><span>Vivid</span><div>${rampe(p.vivid[m].hexa, p.porteur === 'vivid' ? rang : -1)}</div></div>
+      <div class="rampe-ligne"><span>Alerte actuelle</span><div class="rampe marques">${marques(p.alerteActuelle && p.alerteActuelle[m])}</div></div>
+      <div class="rampe-ligne"><span>Alerte proposée</span><div class="rampe marques">${marques(p.alerteProposee && p.alerteProposee[m])}</div></div>
+      <p class="compte">${p.ternes ? 'Profils ternes par construction : l\'alerte se tait. ' : ''}≈ : Soft et Vivid à moins de 0,02 ; · : distincts ; vide : nuance non jugée. Les deux thèmes réunis : alerte actuelle ${na} nuance${na > 1 ? 's' : ''} (${na >= 3 ? 'alerte' : 'pas d\'alerte'}), alerte proposée ${np} (${np >= 3 ? 'alerte' : 'pas d\'alerte'}).</p>
+      <p class="compte">${manquees(p, m)}</p>
+      <div class="deux" style="margin-top:12px">
+        <div class="carte-ex" style="background:${carteDe(m)}"><p class="titre-profil">Soft <span>élément répété</span></p>${specimens(p.soft, m)}</div>
+        <div class="carte-ex" style="background:${carteDe(m)}"><p class="titre-profil">Vivid <span>élément à remarquer</span></p>${specimens(p.vivid, m)}</div>
+      </div>`;
+  }
+
+  // ------------------------------------------------ section 3
+  function section3() {
+    const m = etat.theme;
+    const ex = D.exemples[etat.ex2];
+    const avant = pal(cle('0'), etat.ex2);
+    const p = pal(cle('1'), etat.ex2);
+    const porteur = p.porteur;
+    const autre = porteur === 'vivid' ? 'soft' : 'vivid';
+    const rang = p.rangs[m];
+    const r = p[porteur][m];
+    document.getElementById('legende2').innerHTML = [`${ligneLegende(STYLES.vivid)}Avec la bosse`, `${CREUX}Sans la bosse`, `${ligneLegende(STYLES.regle)}Règle de chroma, sans la référence`, `${ligneLegende(STYLES.plafond)}Plafond de l'écran (sRGB)`, `${ROND}la référence`].map((t) => `<span>${t}</span>`).join('');
+    graphe(document.getElementById('graphe2'), {
+      rang, plafond: r.plafond,
+      series: [{ ...STYLES.regle, C: r.regle }, { C: avant[porteur][m].C, points: true, creux: true }, { ...STYLES.vivid, C: r.C, hexa: r.hexa, points: true, porteuse: true }],
+      colonnes: (i) => `<b>Nuance ${CRANS[i]}, ${nomTheme(m)}</b><br><span class="pastille" style="background:${r.hexa[i]}"></span>avec la bosse ${r.hexa[i]} · C ${virgule(r.C[i])}${i === rang ? ' (référence)' : ''}<br>`
+        + `<span class="pastille" style="background:${avant[porteur][m].hexa[i]}"></span>sans la bosse ${avant[porteur][m].hexa[i]} · C ${virgule(avant[porteur][m].C[i])}<br>règle ${virgule(r.regle[i])} · plafond ${virgule(r.plafond[i])}`,
+    });
+    const cote = (C, k) => (C[k] !== undefined ? C[rang] / C[k] : null);
+    const fmt = (x) => (x === null ? '–' : virgule(x, 2));
+    const [g0, d0, g1, d1] = [cote(avant[porteur][m].C, rang - 1), cote(avant[porteur][m].C, rang + 1), cote(r.C, rang - 1), cote(r.C, rang + 1)];
+    const bornees = [rang - 1, rang + 1].filter((k) => r.C[k] !== undefined && r.C[k] >= r.plafond[k] * 0.97 && r.C[k] < r.C[rang] * 0.95).map((k) => CRANS[k]);
+    const force = p.force[m];
+    document.getElementById('lecture2').textContent = `${ex.nom} ${ex.reference}, ${nomTheme(m)}, référence au cran ${CRANS[rang]}, portée par ${nomProfil(porteur)}. Saillie vers ${CRANS[rang - 1] ?? '–'} et vers ${CRANS[rang + 1] ?? '–'} : ${fmt(g0)} et ${fmt(d0)} sans la bosse, ${fmt(g1)} et ${fmt(d1)} avec.`
+      + (force > 0 && force < 1 ? ` La garde a réduit la bosse à ${Math.round(force * 100)} %.` : '')
+      + (bornees.length ? ` Le cran ${bornees.join(' et le cran ')} touche le plafond de l'écran : aucune règle ne le rapproche davantage.` : '')
+      + (r.C[rang] > r.plafond[rang] * 1.02 ? ' La référence dépasse le plafond tracé à son cran : elle y est placée, mais garde sa clarté propre, où l\'écran permet plus de chroma.' : '');
+    const scene = document.getElementById('scene2');
+    scene.style.background = fondDe(m); scene.style.color = encre(m);
+    const bloc = (titre, q) => `<div class="carte-ex" style="background:${carteDe(m)}"><p class="titre-profil">${titre}</p>${etiquettes()}
+        <div class="rampe-ligne"><span>${nomProfil(porteur)}</span><div>${rampe(q[porteur][m].hexa, rang)}</div></div>
+        ${porteur !== 'unique' && q[autre] ? `<div class="rampe-ligne"><span>${nomProfil(autre)}</span><div>${rampe(q[autre][m].hexa, -1)}</div></div>` : ''}
+        ${specimens(q[porteur], m)}<p class="compte">${manquees(q, m)}</p></div>`;
+    scene.innerHTML = `<div class="deux">${bloc('Sans la bosse', avant)}${bloc('Bosse gardée', p)}</div>`;
+  }
+
+  // ------------------------------------------------ bilan
+  function bilan() {
+    document.getElementById('bilan-reglages').innerHTML = Object.keys(AXES).map((a) => `<div>${AXES[a].titre} : <b>${nomOption(a)}</b></div>`).join('') + '<p class="note">Changez-les dans la barre du haut.</p>';
+    const el = document.getElementById('bilan-alerte');
+    el.innerHTML = [['proposee', 'Proposée : chaque thème ses nuances, Vivid au moins 0,06 (recommandé)'], ['autre', 'Proposée, avec un autre seuil de chroma'], ['actuelle', 'Actuelle']]
+      .map(([id, nom]) => `<label><input type="radio" name="alerte" value="${id}" ${etat.alerte === id ? 'checked' : ''}> ${nom}</label>`).join('');
+    el.querySelectorAll('input').forEach((i) => i.addEventListener('change', () => { etat.alerte = i.value; sauver(); }));
+  }
+  const commentaire = document.getElementById('commentaire');
+  commentaire.value = etat.commentaire;
+  commentaire.addEventListener('input', () => { etat.commentaire = commentaire.value; sauver(); });
+  document.getElementById('copier').addEventListener('click', () => copierBilan('bilan', 'etat-copie'));
+
+  // ------------------------------------------------ barre du haut
+  function remplir(id, options, valeur) {
+    const el = document.getElementById(id);
+    el.innerHTML = options.map((o) => `<option value="${o.id}" ${o.id === valeur ? 'selected' : ''}>${o.nom}</option>`).join('');
+  }
+  const egal = (a) => Object.keys(AXES).every((k) => etat[k] === a[k]);
+  function barre() {
+    const pre = egal(AUJOURDHUI) ? 'aujourdhui' : egal(RECOMMANDE) ? 'recommande' : 'perso';
+    const el = document.getElementById('prereglage');
+    el.innerHTML = '';
+    for (const [id, nom, valeurs] of [['aujourdhui', "Aujourd'hui", AUJOURDHUI], ['recommande', 'Recommandé', RECOMMANDE], ['perso', 'Personnalisé', null]]) {
+      // Les trois boutons restent toujours là : « Personnalisé » n'est pas cliquable, il s'allume quand les réglages quittent les préréglages.
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = nom; b.setAttribute('aria-pressed', String(pre === id));
+      if (!valeurs) b.disabled = true;
+      if (valeurs) b.addEventListener('click', () => { Object.assign(etat, valeurs); sauver(); tout(); });
+      el.append(b);
+    }
+    remplir('axe-b', AXES.b.options, etat.b);
+    remplir('axe-clairs', AXES.clairs.options, etat.clairs);
+    document.getElementById('axe-courbe').checked = etat.courbe === '1';
+    document.getElementById('axe-bosse').checked = etat.bosse === '1';
+    document.getElementById('axe-porteur').checked = etat.porteur === '1';
+    document.getElementById('axe-clarte').checked = etat.clarte === '2';
+    bascule('theme', [{ id: 'light', nom: 'Light' }, { id: 'dark', nom: 'Dark' }], 'theme');
+    remplir('sens', [{ id: 'blanc-blanc', nom: 'Blanc dans les deux thèmes' }, { id: 'blanc-noir', nom: 'Blanc en Light, noir en Dark' }, { id: 'noir-blanc', nom: 'Noir en Light, blanc en Dark' }], etat.sens);
+    remplir('profil', [{ id: 'vivid', nom: 'Vivid' }, { id: 'soft', nom: 'Soft' }, { id: 'deux', nom: 'Soft et Vivid' }], etat.profil);
+    document.body.style.setProperty('--haut-barre', `${document.getElementById('barre').offsetHeight + 12}px`);
+  }
+  for (const [id, cleEtat] of [['axe-b', 'b'], ['axe-clairs', 'clairs'], ['sens', 'sens'], ['profil', 'profil']]) {
+    document.getElementById(id).addEventListener('change', (e) => { etat[cleEtat] = e.target.value; sauver(); tout(); });
+  }
+  for (const [id, cleEtat] of [['axe-courbe', 'courbe'], ['axe-bosse', 'bosse'], ['axe-porteur', 'porteur']]) {
+    document.getElementById(id).addEventListener('change', (e) => { etat[cleEtat] = e.target.checked ? '1' : '0'; sauver(); tout(); });
+  }
+  // La clarté par teinte n'a plus que deux valeurs : sans (0) ou avec, chroma gardée (2).
+  document.getElementById('axe-clarte').addEventListener('change', (e) => { etat.clarte = e.target.checked ? '2' : '0'; sauver(); tout(); });
+  window.addEventListener('resize', () => document.body.style.setProperty('--haut-barre', `${document.getElementById('barre').offsetHeight + 12}px`));
+
+  // ------------------------------------------------ retours par famille
+  let retours = {};
+  try { retours = JSON.parse(localStorage.getItem('maquette-moteur-retours')) || {}; } catch { /* stockage indisponible */ }
+  const garderRetours = () => { try { localStorage.setItem('maquette-moteur-retours', JSON.stringify(retours)); } catch { /* stockage indisponible */ } };
+  const PROFILS = [['vivid', 'Vivid'], ['soft', 'Soft']];
+  const MODES_UI = [['light', 'Light'], ['dark', 'Dark']];
+  const AVIS = { moteur: 'Moteur OK', tailwind: 'Tailwind mieux' };
+  const reglagesEnMots = () => {
+    const sens = { 'blanc-blanc': 'texte des boutons blanc', 'blanc-noir': 'texte des boutons blanc en Light, noir en Dark', 'noir-blanc': 'texte des boutons noir en Light, blanc en Dark' }[etat.sens];
+    const mots = [
+      etat.clairs === '1' ? 'tons clairs de Soft inchangés' : `tons clairs de Soft ${nomOption('clairs')} en Light`,
+      etat.b === '0.38' ? "fonds Dark de Soft d'aujourd'hui" : `fonds Dark de Soft ${nomOption('b')}`,
+      etat.courbe === '1' ? 'courbe de teinte de Vivid' : 'sans courbe de teinte',
+      etat.bosse === '1' ? "bosse gardée, hors fonds sauf autour d'une référence de fond" : 'sans bosse',
+      etat.porteur === '1' ? 'référence toujours portée par Vivid' : 'porteur du paquet',
+      etat.clarte === '2' ? 'clarté selon la teinte, chroma gardée' : 'sans clarté selon la teinte',
+      sens,
+    ];
+    return mots.join(' ; ');
+  };
+  const cleRetour = (famille, profil, mode) => `${famille}|${profil}|${mode}`;
+  function blocRetour(famille, profil, mode) {
+    const r = retours[cleRetour(famille, profil, mode)] || {};
+    const libelle = `${profil === 'vivid' ? 'Vivid' : 'Soft'} · ${mode === 'light' ? 'Light' : 'Dark'}`;
+    return `<div class="retour" data-famille="${famille}" data-profil="${profil}" data-mode="${mode}">
+      <div class="tete"><b>Votre avis, ${libelle}</b><span class="choix">${Object.entries(AVIS).map(([id, nom]) => `<button type="button" data-avis="${id}" aria-pressed="${r.avis === id}">${nom}</button>`).join('')}</span></div>
+      <input type="text" placeholder="Remarque, facultative" value="${(r.texte ?? '').replace(/"/g, '&quot;')}">
+    </div>`;
+  }
+  function etatFamille(famille) {
+    return `<div class="etat-famille">${PROFILS.flatMap(([p, np]) => MODES_UI.map(([m, nm]) => {
+      const r = retours[cleRetour(famille, p, m)];
+      return `<span class="${r?.avis ?? ''}">${np} ${nm} : ${r?.avis ? { moteur: 'moteur', tailwind: 'Tailwind' }[r.avis] : '–'}</span>`;
+    })).join('')}</div>`;
+  }
+  function compteRetours() {
+    const total = C.familles.length * 4;
+    const faits = Object.values(retours).filter((r) => r.avis).length;
+    document.getElementById('compte-retours').textContent = `${faits} avis sur ${total}`;
+  }
+  function texteDesRetours() {
+    const lignes = ['Retours par teinte :'];
+    const comptes = { moteur: 0, tailwind: 0 };
+    for (const f of C.familles) for (const [p, np] of PROFILS) for (const [m, nm] of MODES_UI) {
+      const r = retours[cleRetour(f.nom, p, m)];
+      if (!r || (!r.avis && !r.texte)) continue;
+      if (r.avis) comptes[r.avis] += 1;
+      lignes.push(`- ${f.nom} (${f.reference}) · ${np} · ${nm} : ${r.avis ? AVIS[r.avis] : 'sans avis'}${r.texte ? ` ; ${r.texte}` : ''}${r.reglages && r.reglages !== reglagesEnMots() ? ` [réglages : ${r.reglages}]` : ''}`);
+    }
+    lignes.push(`Résumé : ${comptes.moteur} « Moteur OK », ${comptes.tailwind} « Tailwind mieux », ${C.familles.length * 4 - comptes.moteur - comptes.tailwind} sans avis, sur ${C.familles.length * 4}.`);
+    return lignes;
+  }
+  function texteDuBilan() {
+    const alertes = { proposee: 'proposée, seuil 0,06', autre: 'proposée, autre seuil', actuelle: 'actuelle' };
+    return ['Recette du moteur, bilan', `Réglages affichés : ${reglagesEnMots()}.`, ...Object.keys(AXES).map((a) => `- ${AXES[a].titre} : ${nomOption(a)}`), `- Alerte : ${alertes[etat.alerte]}`, ...(etat.commentaire ? [`- Commentaire : ${etat.commentaire}`] : []), '', ...texteDesRetours()].join('\n');
+  }
+  async function copierBilan(zoneId, etatId) {
+    const texte = texteDuBilan();
+    const zone = document.getElementById('bilan');
+    const etatCopie = document.getElementById(etatId);
+    try { await navigator.clipboard.writeText(texte); etatCopie.textContent = 'Bilan copié.'; zone.hidden = true; }
+    catch { zone.hidden = false; zone.value = texte; zone.select(); zone.scrollIntoView({ block: 'center' }); etatCopie.textContent = 'Copie refusée : copiez le texte sélectionné.'; }
+  }
+  document.getElementById('copier-haut').addEventListener('click', () => copierBilan('bilan', 'etat-copie-haut'));
+  const grilleEl = document.getElementById('grille');
+  grilleEl.addEventListener('click', (e) => {
+    const bouton = e.target.closest('.retour .choix button');
+    if (!bouton) return;
+    const bloc = bouton.closest('.retour');
+    const k = cleRetour(bloc.dataset.famille, bloc.dataset.profil, bloc.dataset.mode);
+    const r = retours[k] || {};
+    r.avis = r.avis === bouton.dataset.avis ? undefined : bouton.dataset.avis;
+    r.reglages = reglagesEnMots();
+    retours[k] = r;
+    garderRetours();
+    grille();
+  });
+  grilleEl.addEventListener('input', (e) => {
+    if (!e.target.matches('.retour input')) return;
+    const bloc = e.target.closest('.retour');
+    const k = cleRetour(bloc.dataset.famille, bloc.dataset.profil, bloc.dataset.mode);
+    retours[k] = { ...(retours[k] || {}), texte: e.target.value, reglages: reglagesEnMots() };
+    garderRetours();
+  });
+
+  // ------------------------------------------------ grille de comparaison
+  const C = window.COMPARAISON;
+  const ICONE = (couleur) => `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="${couleur}"/><path d="M4.8 8.2l2.1 2.1 4.3-4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  function cellule(hexas, m, rangRef, pied, retour = '') {
+    const sC = C.sens[etat.sens];
+    const t = sC.table[m];
+    const c = (v) => hexas[CRANS.indexOf(t[v])];
+    const fond = c('surface/default'), texte = c('surface/foreground');
+    return `<div class="cellule" style="background:${sC.cartes[m]}">
+      <div class="mini">${hexas.map((h, i) => `<div class="${i === rangRef ? 'ref' : ''}" style="background:${h};color:${contraste(h, '#FFFFFF') > contraste(h, '#000000') ? '#fff' : '#000'}" title="${CRANS[i]} ${h}"></div>`).join('')}</div>
+      <div class="ligne-composants">
+        <span class="badge-pg" style="background:${fond};color:${texte}">Payé</span>
+        <span class="bouton-pg" style="background:${c('solid/default')};color:${sC.texteDesBoutons[m]}">Valider</span>
+        <span class="lien-pg" style="color:${c('page/foreground')}">Voir la facture</span>
+      </div>
+      <div class="alerte-pg" style="background:${fond};color:${fond}">${ICONE(texte)}<div class="corps"><span class="titre" style="color:${texte}">Paiement reçu</span><span class="desc" style="color:${texte}">La facture est envoyée au client.</span></div><span class="action" style="color:${texte}">Voir</span></div>
+      ${pied ? `<div class="pied-cellule">${pied}</div>` : ''}
+      ${retour}
+    </div>`;
+  }
+  function grille() {
+    const m = etat.theme;
+    const sC = C.sens[etat.sens];
+    const v = sC.variantes[cle(etat.bosse)];
+    const profils = etat.profil === 'deux' ? ['soft', 'vivid'] : [etat.profil];
+    const el = document.getElementById('grille');
+    el.style.background = sC.fonds[m]; el.style.color = encre(m); el.style.setProperty('background-color', sC.fonds[m]);
+    el.style.setProperty('--colonnes', String(1 + profils.length));
+    const titres = ['Tailwind 3.4', ...profils.map((p) => `Notre moteur, ${p === 'vivid' ? 'Vivid' : 'Soft'}`)];
+    el.innerHTML = `<div class="entete"><div></div>${titres.map((t) => `<div>${t}</div>`).join('')}</div>`
+      + C.familles.map((f, k) => {
+        const u = v[k];
+        const tw = sC.tailwind[k][m].split(',').map((h) => `#${h}`);
+        const cellules = profils.map((p) => {
+          const hexas = u[p === 'vivid' ? 'v' : 's'][m].split(',').map((h) => `#${h}`);
+          const porte = u.p === p;
+          const pied = `${porte ? `◆ référence au cran ${CRANS[u.r[m]]}` : `référence portée par ${u.p === 'vivid' ? 'Vivid' : 'Soft'}`}${u.m ? ` · ${u.m} promesse${u.m > 1 ? 's' : ''} manquée${u.m > 1 ? 's' : ''} (deux thèmes)` : ''}`;
+          return cellule(hexas, m, porte ? u.r[m] : -1, pied, blocRetour(f.nom, p, m));
+        });
+        return `<div class="rang"><div class="famille">${f.nom}<span>${f.reference}</span>${etatFamille(f.nom)}</div>${cellule(tw, m, -1, '')}${cellules.join('')}</div>`;
+      }).join('');
+    compteRetours();
+  }
+
+  function tout() {
+    document.documentElement.dataset.theme = etat.theme;
+    barre();
+    bilan();
+    grille();
+    section1();
+    section3();
+  }
+  choixExemple('ex1', 'ex1', D.exemples.map((_, i) => i));
+  choixExemple('ex2', 'ex2', [7, 8, 9, 10, 11, 0, 2]);
+  tout();
+})();
+</script>
+</body>
+</html>

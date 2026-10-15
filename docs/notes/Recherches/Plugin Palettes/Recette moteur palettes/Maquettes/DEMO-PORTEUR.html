@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Démo du porteur</title>
+<style>
+  :root {
+    --fond: #f6f6f6; --surface: #ffffff; --texte: #1e1e1e; --second: #5f5f5f; --discret: #8a8a8a;
+    --filet: #e2e2e2; --grille: #ececec; --lien: #007be5; --accent: #1e1e1e; --sur-accent: #ffffff;
+    --vert: #1a7f37; --rouge: #c0392b;
+  }
+  :root[data-theme="dark"] {
+    --fond: #1e1e1e; --surface: #2c2c2c; --texte: #ececec; --second: #b3b3b3; --discret: #8c8c8c;
+    --filet: #3d3d3d; --grille: #353535; --lien: #4ba3ff; --accent: #ececec; --sur-accent: #1e1e1e;
+    --vert: #5fd38a; --rouge: #ff8a80;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 0 32px 80px; background: var(--fond); color: var(--texte); font: 13px/1.55 Inter, ui-sans-serif, system-ui, sans-serif; }
+  main { max-width: 1240px; margin: 0 auto; }
+  h1 { margin: 26px 0 4px; font-size: 22px; }
+  h2 { margin: 40px 0 6px; font-size: 18px; }
+  h3 { margin: 0 0 6px; font-size: 14px; }
+  p, li { max-width: 880px; }
+  .chapeau { color: var(--second); }
+  .note { font-size: 12px; color: var(--second); }
+  .cadre { background: var(--surface); border: 1px solid var(--filet); border-radius: 10px; padding: 14px 16px; margin: 12px 0; }
+
+  .barre { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--fond) 94%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--filet); margin: 0 -32px; padding: 8px 32px; display: flex; gap: 10px 24px; flex-wrap: wrap; align-items: center; }
+  .groupe { display: inline-flex; align-items: center; gap: 6px; }
+  .groupe > span { color: var(--second); font-size: 12px; }
+  .bascule { display: inline-flex; border: 1px solid var(--filet); border-radius: 6px; overflow: hidden; background: var(--surface); }
+  .bascule button { border: 0; background: transparent; color: var(--texte); padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  .bascule button + button { border-left: 1px solid var(--filet); }
+  .bascule button[aria-pressed="true"] { background: var(--accent); color: var(--sur-accent); }
+
+  .regles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .regles .cadre { margin: 0; }
+  .regles p { margin: 4px 0; font-size: 12.5px; }
+  .graphe svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .graphe text { fill: var(--second); font-size: 10px; font-family: inherit; }
+  .graphe .axe { stroke: var(--filet); }
+  .graphe .grille { stroke: var(--grille); }
+  .legende { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11.5px; color: var(--second); margin: 8px 0 0; }
+  .legende svg { vertical-align: middle; margin-right: 4px; }
+
+  .scene { border-radius: 12px; padding: 14px; margin: 10px 0; }
+  .entete, .rang { display: grid; grid-template-columns: 110px repeat(var(--colonnes, 3), minmax(0, 1fr)); gap: 10px; }
+  .entete { font-size: 11.5px; font-weight: 600; padding: 4px 0 8px; }
+  .rang + .rang { margin-top: 8px; }
+  .rang.change .famille::before { content: '● '; color: #f0a640; }
+  .famille { font-size: 12px; font-weight: 600; padding-top: 8px; }
+  .famille span { display: block; font-weight: 400; font-size: 10.5px; opacity: .65; }
+  .famille .pastille { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
+  .cellule { border-radius: 10px; padding: 8px 10px; display: grid; gap: 6px; align-content: start; }
+  .profil { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  .profil .nom { font-size: 11px; opacity: .75; }
+  .profil .nom b { display: block; font-size: 10.5px; font-weight: 500; opacity: .85; font-variant-numeric: tabular-nums; }
+  .mini { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 1px; border-radius: 4px; overflow: hidden; }
+  .mini > div { height: 14px; position: relative; }
+  .mini > div.ref::after { content: ''; position: absolute; inset: 4px 38%; border-radius: 2px; background: currentColor; }
+  .composants { display: flex; gap: 6px; align-items: center; }
+  .badge { border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 600; line-height: 16px; white-space: nowrap; }
+  .bouton { border-radius: 6px; padding: 3px 9px; font-size: 11.5px; font-weight: 600; line-height: 16px; white-space: nowrap; }
+  .pied { font-size: 10.5px; opacity: .7; }
+
+  .bilan { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .bilan .cadre { margin: 0; }
+  .bilan ul { margin: 6px 0; padding-left: 18px; }
+  .bilan li { margin: 3px 0; }
+  .plus { color: var(--vert); font-weight: 600; } .moins { color: var(--rouge); font-weight: 600; }
+  ol.etapes li { margin: 4px 0; }
+  .constat { display: inline-block; background: var(--surface); border: 1px solid var(--filet); border-radius: 6px; padding: 2px 8px; font-size: 12px; }
+
+  @media (max-width: 900px) {
+    body { padding: 0 16px 60px; }
+    .barre { margin: 0 -16px; padding: 8px 16px; }
+    .regles, .bilan { grid-template-columns: 1fr; }
+    .entete { display: none; }
+    .rang { grid-template-columns: 1fr; }
+    .cellule::before { content: attr(data-regle); font-size: 11px; font-weight: 600; }
+  }
+</style>
+</head>
+<body>
+<main>
+<div class="barre">
+  <div class="groupe"><span>Thème</span><div class="bascule" id="theme"><button type="button" data-v="light">Light</button><button type="button" data-v="dark">Dark</button></div></div>
+  <div class="groupe"><span>Palettes</span><div class="bascule" id="filtre"><button type="button" data-v="toutes">Toutes</button><button type="button" data-v="changent">Celles qui changent</button></div></div>
+</div>
+
+<h1>Qui porte la couleur de référence ?</h1>
+<p class="chapeau">Vous avez retenu « Vivid porte toujours ». Les palettes de la galerie du plugin, calculées avec le moteur que vous avez validé à l'œil, sous trois règles. Seule change la façon de répartir la saturation entre Soft et Vivid. Texte des boutons blanc dans les deux thèmes. Les palettes sont rangées de la plus saturée à la plus terne.</p>
+
+<div class="regles" id="regles"></div>
+
+<h2>1. La saturation de Soft et de Vivid, palette par palette</h2>
+<p>Chaque colonne est une palette, de la plus saturée (à gauche) à la plus terne (à droite). Le cercle vide est Soft, le cercle plein Vivid ; le losange marque le profil qui garde la couleur exacte. Rose et Indigo, dont la saturation est réglée à la main dans la galerie, sont laissées de côté : aucune règle ne les touche.</p>
+<div class="regles" id="graphes"></div>
+<div class="legende">
+  <span><svg width="12" height="12"><circle cx="6" cy="6" r="4" fill="none" stroke="var(--texte)" stroke-width="1.5"/></svg>Soft</span>
+  <span><svg width="12" height="12"><circle cx="6" cy="6" r="4.5" fill="var(--texte)"/></svg>Vivid</span>
+  <span><svg width="12" height="12"><path d="M6 1 L11 6 L6 11 L1 6 Z" fill="none" stroke="var(--texte)" stroke-width="1.3"/></svg>garde la couleur exacte</span>
+</div>
+
+<h2>2. Les palettes</h2>
+<p>Pour chaque règle, la rampe de Soft puis celle de Vivid, avec un bouton plein et un badge. Le point blanc dans la rampe marque la couleur exacte. Le chiffre sous chaque profil est sa saturation. <span style="color:#f0a640">●</span> : la palette change d'une règle à l'autre.</p>
+<div class="scene" id="grille"></div>
+
+<h2>3. Avantages et inconvénients</h2>
+<div class="bilan">
+  <div class="cadre">
+    <h3>Vivid porte toujours la référence</h3>
+    <p class="note">Plus la couleur est saturée, plus ses palettes le sont.</p>
+    <ul>
+      <li><span class="plus">+</span> La couleur exacte est toujours au même endroit, dans Vivid. Le designer sait où la trouver.</li>
+      <li><span class="plus">+</span> Pas de bascule : une couleur un peu plus saturée donne toujours des palettes un peu plus saturées. Rouge et Grenat, presque aussi saturés, restent côte à côte.</li>
+      <li><span class="plus">+</span> Le moteur n'invente pas de couleur : une marque terne reste terne, un gris reste gris.</li>
+      <li><span class="plus">+</span> Soft reste calme d'un bout à l'autre, la couleur vive n'y ressort jamais.</li>
+      <li><span class="moins">−</span> Les Vivid n'ont pas tous la même vivacité : celui de Marine est bien plus terne que celui de Bleu. Le groupe ne s'harmonise pas tout seul.</li>
+      <li><span class="moins">−</span> Avec une couleur terne, Soft et Vivid se ressemblent. C'était déjà le cas avec le seuil, et l'alerte se tait sur ces palettes, comme aujourd'hui.</li>
+      <li><span class="moins">−</span> Vivid porte aussi des couleurs foncées, qui tombent dans ses fonds Dark. La bosse y rejoint alors la couleur exacte ; il reste de petits creux de saturation à côté des couleurs presque noires, où ils se voient à peine.</li>
+    </ul>
+  </div>
+  <div class="cadre">
+    <h3>Niveaux communs</h3>
+    <p class="note">Tous les Vivid aussi vifs, tous les Soft aussi calmes, quelle que soit la couleur choisie.</p>
+    <ul>
+      <li><span class="plus">+</span> Le groupe est harmonisé sans réglage : tous les Vivid montent à 0,95 au moins, et la couleur terne reste dans Soft.</li>
+      <li><span class="plus">+</span> Soft et Vivid restent bien distincts, même avec une couleur terne.</li>
+      <li><span class="moins">−</span> Le moteur invente de la couleur : le Vivid d'Ardoise et de Sable, deux gris, devient franchement coloré ; celui de Marine devient un bleu vif loin de la marque.</li>
+      <li><span class="moins">−</span> Une couleur de saturation 0,78 à 0,90 (Bleu, Azur, Violet, Grenat…) repart dans Soft : c'est le défaut que « Référence dans Vivid » corrigeait. La couleur exacte ressort de la rampe calme de Soft, et Soft s'approche de Vivid.</li>
+      <li><span class="moins">−</span> La couleur exacte change de profil selon sa saturation : dans Soft sous 0,90, dans Vivid au-dessus. Il reste une bascule, plus petite qu'avec le seuil 0,78.</li>
+      <li><span class="moins">−</span> Pour garder une marque terne aussi terne en Vivid, le designer doit baisser la saturation de Vivid à la main.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>4. Harmoniser un groupe avec « Vivid porte toujours »</h2>
+<p>Le designer garde la main : le plugin a déjà les gestes pour aligner ses palettes, palette par palette.</p>
+<ol class="etapes">
+  <li>Dans l'onglet <b>Comparer</b>, il coche les palettes du groupe. Quand leurs saturations s'écartent d'au moins 0,20, le plugin le dit : <span class="constat">En Vivid, Marine est la plus terne et Cyan la plus vive.</span></li>
+  <li>Sur une palette trop terne, il règle <b>Référence exacte dans : Soft</b>. La couleur exacte passe dans Soft.</li>
+  <li>Il monte la <b>Saturation</b> de Vivid au niveau des autres (ici 0,95). La couleur exacte ne bouge pas, puisqu'elle est dans Soft.</li>
+</ol>
+<p>Ces gestes existent déjà ; la règle ne change rien à ce qu'ils font. Avant et après, avec Bleu pour comparer :</p>
+<div class="scene" id="harmonisation"></div>
+<p class="note">Le prix du geste : la couleur exacte, dans Soft, ressort de sa rampe calme (voir Rouge, en Dark surtout). C'est le défaut que « Référence dans Vivid » évite par défaut ; ici, le designer le choisit pour cette palette.</p>
+<p class="note">L'inverse se fait aussi : une palette trop vive par rapport au groupe baisse la saturation de son Soft, qui ne porte pas la couleur exacte. Baisser celle de Vivid, qui la porte, changerait la couleur de marque.</p>
+</main>
+
+<script src="donnees-porteur.js"></script>
+<script>
+(() => {
+  const D = window.PORTEUR;
+  const CRANS = D.crans;
+  const etat = { theme: 'dark', filtre: 'toutes' };
+  try { Object.assign(etat, JSON.parse(localStorage.getItem('demo-porteur') || '{}')); } catch (e) {}
+  const garder = () => { try { localStorage.setItem('demo-porteur', JSON.stringify(etat)); } catch (e) {} };
+
+  const lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  const lum = (h) => { const n = parseInt(h.replace('#', ''), 16); return 0.2126 * lin(n >> 16) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255); };
+  const contraste = (a, b) => { const [x, y] = [lum(a), lum(b)]; return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const virgule = (x) => x.toFixed(2).replace('.', ',');
+  const encre = (m) => (m === 'dark' ? '#ececec' : '#1e1e1e');
+  const DESCRIPTIONS = {
+    seuil: 'Le moteur validé. Vivid garde la couleur exacte quand sa saturation atteint 0,78 ; en dessous, c\'est Soft, et Vivid est un peu plus saturé qu\'elle.',
+    toujours: 'Vivid garde toujours la couleur exacte. Soft en est une version plus calme : au plus 0,85, et environ 10 % sous une couleur plus terne.',
+    commun: 'Soft vise 0,85 et Vivid 0,95 pour toutes les palettes. La couleur exacte va dans le profil dont elle est la plus proche (Soft sous 0,90), et l\'autre garde son niveau.',
+  };
+  document.getElementById('regles').innerHTML = D.regles.map((g) => `<div class="cadre"><h3>${g.titre}</h3><p>${DESCRIPTIONS[g.id]}</p></div>`).join('');
+
+  const change = (p) => {
+    const [a, b, c] = D.regles.map((g) => p.regles[g.id]);
+    return a.s.light !== b.s.light || a.v.light !== b.v.light || a.s.light !== c.s.light || a.v.light !== c.v.light || a.s.dark !== c.s.dark || a.v.dark !== c.v.dark;
+  };
+
+  function graphe(g) {
+    const W = 380, H = 190, g0 = 30, d0 = 8, h0 = 10, b0 = 26;
+    const n = D.palettes.length;
+    const x = (k) => g0 + (k + 0.5) * (W - g0 - d0) / n;
+    const y = (v) => h0 + (1 - v) * (H - h0 - b0);
+    let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Saturation de Soft et de Vivid, ${g.titre}">`;
+    for (const v of [0, 0.25, 0.5, 0.75, 1]) svg += `<line class="grille" x1="${g0}" x2="${W - d0}" y1="${y(v)}" y2="${y(v)}"/><text x="${g0 - 5}" y="${y(v) + 3}" text-anchor="end">${virgule(v)}</text>`;
+    D.palettes.forEach((p, k) => {
+      const u = p.regles[g.id];
+      const couleur = p.reference;
+      const titre = `${p.nom} (couleur ${virgule(p.part)}) · Soft ${virgule(u.ps)} · Vivid ${virgule(u.pv)} · couleur exacte dans ${u.p === 'vivid' ? 'Vivid' : 'Soft'}`;
+      svg += `<g><title>${titre}</title><rect x="${x(k) - 8}" y="${h0}" width="16" height="${H - h0 - b0}" fill="transparent"/>`;
+      svg += `<line x1="${x(k)}" x2="${x(k)}" y1="${y(u.ps)}" y2="${y(u.pv)}" stroke="var(--discret)" stroke-width="1.5"/>`;
+      svg += `<circle cx="${x(k)}" cy="${y(u.ps)}" r="3.5" fill="var(--surface)" stroke="${couleur}" stroke-width="2"/>`;
+      svg += `<circle cx="${x(k)}" cy="${y(u.pv)}" r="4" fill="${couleur}"/>`;
+      const yr = y(u.p === 'vivid' ? u.pv : u.ps);
+      svg += `<path d="M${x(k)} ${yr - 8} L${x(k) + 8} ${yr} L${x(k)} ${yr + 8} L${x(k) - 8} ${yr} Z" fill="none" stroke="var(--texte)" stroke-width="1" opacity=".7"/>`;
+      svg += `<text x="${x(k)}" y="${H - b0 + 12}" text-anchor="end" transform="rotate(-50 ${x(k)} ${H - b0 + 12})" font-size="8.5">${p.nom}</text></g>`;
+    });
+    svg += `<line class="axe" x1="${g0}" x2="${W - d0}" y1="${y(0)}" y2="${y(0)}"/></svg>`;
+    return `<div class="cadre graphe"><h3>${g.titre}</h3>${svg}</div>`;
+  }
+  // Les noms des palettes, en bas, demandent de la place sous l'axe.
+  document.getElementById('graphes').innerHTML = D.regles.map(graphe).join('').replaceAll('viewBox="0 0 380 190"', 'viewBox="0 0 380 230"');
+
+  function profil(nom, hexas, m, rang, part, porte) {
+    const t = D.table[m];
+    const c = (v) => hexas[CRANS.indexOf(t[v])];
+    return `<div class="profil">
+      <span class="nom">${nom}<b>${virgule(part)}${porte ? ' ◆' : ''}</b></span>
+      <div class="mini">${hexas.map((h, i) => `<div class="${porte && i === rang ? 'ref' : ''}" style="background:${h};color:${contraste(h, '#FFFFFF') > contraste(h, '#000000') ? '#fff' : '#000'}" title="${CRANS[i]} ${h}"></div>`).join('')}</div>
+      <span class="composants"><span class="bouton" style="background:${c('solid/default')};color:${D.texteDesBoutons[m]}">Valider</span><span class="badge" style="background:${c('surface/default')};color:${c('surface/foreground')}">Payé</span></span>
+    </div>`;
+  }
+  function cellule(u, m, titre) {
+    const sh = u.s[m].split(',').map((h) => `#${h}`), vh = u.v[m].split(',').map((h) => `#${h}`);
+    return `<div class="cellule" data-regle="${titre}" style="background:${D.cartes[m]}">
+      ${profil('Soft', sh, m, u.r[m], u.ps, u.p === 'soft')}
+      ${profil('Vivid', vh, m, u.r[m], u.pv, u.p === 'vivid')}
+      ${u.m ? `<span class="pied">${u.m} contraste${u.m > 1 ? 's' : ''} manqué${u.m > 1 ? 's' : ''}</span>` : ''}
+    </div>`;
+  }
+  const famille = (nom, reference, part, note = '') => `<div class="famille"><i class="pastille" style="background:${reference}"></i>${nom}<span>${reference} · ${virgule(part)}${note}</span></div>`;
+
+  function grille() {
+    const m = etat.theme;
+    const el = document.getElementById('grille');
+    el.style.background = D.fonds[m]; el.style.color = encre(m);
+    el.style.setProperty('--colonnes', '3');
+    const palettes = D.palettes.filter((p) => etat.filtre === 'toutes' || change(p));
+    el.innerHTML = `<div class="entete"><div></div>${D.regles.map((g) => `<div>${g.titre}</div>`).join('')}</div>`
+      + palettes.map((p) => `<div class="rang${change(p) ? ' change' : ''}">${famille(p.nom, p.reference, p.part)}${D.regles.map((g) => cellule(p.regles[g.id], m, g.titre)).join('')}</div>`).join('');
+  }
+
+  function harmonisation() {
+    const m = etat.theme;
+    const el = document.getElementById('harmonisation');
+    el.style.background = D.fonds[m]; el.style.color = encre(m);
+    el.style.setProperty('--colonnes', '2');
+    const bleu = D.palettes.find((p) => p.nom === 'Bleu');
+    el.innerHTML = `<div class="entete"><div></div><div>Avant : Vivid porte la couleur</div><div>Après : couleur dans Soft, Vivid à 0,95</div></div>`
+      + `<div class="rang">${famille('Bleu', bleu.reference, bleu.part, ' · pour comparer')}${cellule(bleu.regles.toujours, m, 'Avant')}<div></div></div>`
+      + D.harmonisation.map((h) => `<div class="rang">${famille(h.nom, h.reference, h.part)}${cellule(h.avant, m, 'Avant')}${cellule(h.apres, m, 'Après')}</div>`).join('');
+  }
+
+  function bascule(id, cle) {
+    const el = document.getElementById(id);
+    const peindre = () => el.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === etat[cle])));
+    el.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; etat[cle] = b.dataset.v; garder(); peindre(); tout(); });
+    peindre();
+  }
+  function tout() {
+    document.documentElement.dataset.theme = etat.theme;
+    grille(); harmonisation();
+  }
+  bascule('theme', 'theme'); bascule('filtre', 'filtre');
+  tout();
+})();
+</script>
+</body>
+</html>

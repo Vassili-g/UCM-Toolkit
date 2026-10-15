@@ -1,0 +1,6835 @@
+{
+ "regles": [
+  {
+   "id": "A",
+   "nom": "Actuel",
+   "resume": "Soft part et p0 0,85, sa propre enveloppe (a 0,6, Dark b 0,38)",
+   "profils": {
+    "soft": {
+     "part": 0.85,
+     "enveloppe": {
+      "p0": 0.85,
+      "light": {
+       "a": 0.6,
+       "b": 0.38,
+       "jaunes": 1
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.38,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "moteurInchange": true
+  },
+  {
+   "id": "D",
+   "nom": "Part 0,60",
+   "resume": "Soft part et p0 0,60, Dark b 0,25, sa propre enveloppe",
+   "profils": {
+    "soft": {
+     "part": 0.6,
+     "enveloppe": {
+      "p0": 0.6,
+      "light": {
+       "a": 0.6,
+       "b": 0.38,
+       "jaunes": 1
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.25,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "moteurInchange": true
+  },
+  {
+   "id": "K75",
+   "nom": "Soft = Vivid × 0,75",
+   "resume": "Soft prend l'enveloppe de Vivid, part et p0 0,7125",
+   "profils": {
+    "soft": {
+     "part": 0.7125,
+     "enveloppe": {
+      "p0": 0.7125,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "moteurInchange": true
+  },
+  {
+   "id": "K65",
+   "nom": "Soft = Vivid × 0,65",
+   "resume": "Soft prend l'enveloppe de Vivid, part et p0 0,6175",
+   "profils": {
+    "soft": {
+     "part": 0.6175,
+     "enveloppe": {
+      "p0": 0.6175,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "moteurInchange": true
+  },
+  {
+   "id": "Z",
+   "nom": "Soft par zones",
+   "resume": "Soft = Vivid × 0,50 près de la page, × 0,80 loin d'elle",
+   "profils": {
+    "soft": {
+     "part": 0.6175,
+     "enveloppe": {
+      "p0": 0.6175,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    },
+    "vivid": {
+     "part": 0.95,
+     "enveloppe": {
+      "p0": 0.95,
+      "light": {
+       "a": 1.1,
+       "b": 0.48,
+       "jaunes": 0.5
+      },
+      "dark": {
+       "a": 1.1,
+       "b": 0.3,
+       "jaunes": 0
+      }
+     }
+    }
+   },
+   "moteurInchange": false
+  }
+ ],
+ "bosses": [
+  {
+   "id": "B0",
+   "nom": "Aucune",
+   "sigma": null
+  },
+  {
+   "id": "B07",
+   "nom": "Bosse σ 0,07",
+   "sigma": 0.07
+  },
+  {
+   "id": "B10",
+   "nom": "Bosse σ 0,10",
+   "sigma": 0.1
+  },
+  {
+   "id": "BG",
+   "nom": "Toute la rampe",
+   "sigma": 10
+  }
+ ],
+ "chromaJugeable": 0.06,
+ "resultats": {
+  "Tailwind 500": {
+   "A·B0": {
+    "palettes": 17,
+    "alerteActuelle": 14,
+    "alerteProposee": {
+     "auMoins2": 14,
+     "auMoins3": 14
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.472,
+       "mediane": 0.691,
+       "max": 0.953
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.617,
+       "mediane": 0.858,
+       "max": 1.03
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.472,
+       "mediane": 0.855,
+       "max": 1.03
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.803,
+       "mediane": 0.885,
+       "max": 1.153
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.8,
+       "mediane": 0.894,
+       "max": 1.36
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.8,
+       "mediane": 0.891,
+       "max": 1.36
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 38,
+     "pire": 1.36
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.241,
+     "mediane": 0.786,
+     "max": 1.47
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.005,
+      "mediane": 1.118,
+      "max": 1.402
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.11,
+      "max": 1.402
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "A·B07": {
+    "palettes": 17,
+    "alerteActuelle": 14,
+    "alerteProposee": {
+     "auMoins2": 14,
+     "auMoins3": 14
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.472,
+       "mediane": 0.691,
+       "max": 0.953
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.617,
+       "mediane": 0.863,
+       "max": 1.03
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.472,
+       "mediane": 0.858,
+       "max": 1.03
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.803,
+       "mediane": 0.885,
+       "max": 1.153
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.8,
+       "mediane": 0.895,
+       "max": 1.36
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.8,
+       "mediane": 0.891,
+       "max": 1.36
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 38,
+     "pire": 1.36
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.241,
+     "mediane": 0.786,
+     "max": 1.47
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.005,
+      "mediane": 1.11,
+      "max": 1.276
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.088,
+      "max": 1.276
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "A·B10": {
+    "palettes": 17,
+    "alerteActuelle": 14,
+    "alerteProposee": {
+     "auMoins2": 14,
+     "auMoins3": 14
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.472,
+       "mediane": 0.733,
+       "max": 0.953
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.617,
+       "mediane": 0.864,
+       "max": 1.03
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.472,
+       "mediane": 0.858,
+       "max": 1.03
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.803,
+       "mediane": 0.885,
+       "max": 1.153
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.8,
+       "mediane": 0.891,
+       "max": 1.36
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.8,
+       "mediane": 0.89,
+       "max": 1.36
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 38,
+     "pire": 1.36
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.241,
+     "mediane": 0.787,
+     "max": 1.47
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.001,
+      "mediane": 1.11,
+      "max": 1.232
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.082,
+      "max": 1.232
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "A·BG": {
+    "palettes": 17,
+    "alerteActuelle": 14,
+    "alerteProposee": {
+     "auMoins2": 14,
+     "auMoins3": 14
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.479,
+       "mediane": 0.792,
+       "max": 0.953
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.617,
+       "mediane": 0.868,
+       "max": 1.03
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.479,
+       "mediane": 0.865,
+       "max": 1.03
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.803,
+       "mediane": 0.885,
+       "max": 1.134
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.8,
+       "mediane": 0.894,
+       "max": 1.36
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.8,
+       "mediane": 0.89,
+       "max": 1.36
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 34,
+     "pire": 1.36
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.241,
+     "mediane": 0.807,
+     "max": 1.557
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.002,
+      "mediane": 1.11,
+      "max": 1.183
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.076,
+      "max": 1.183
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "D·B0": {
+    "palettes": 17,
+    "alerteActuelle": 7,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.332,
+       "mediane": 0.53,
+       "max": 0.724
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.437,
+       "mediane": 0.608,
+       "max": 0.714
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.332,
+       "mediane": 0.606,
+       "max": 0.724
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.506,
+       "mediane": 0.602,
+       "max": 0.765
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.388,
+       "mediane": 0.6,
+       "max": 0.75
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.388,
+       "mediane": 0.6,
+       "max": 0.765
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.17,
+     "mediane": 0.551,
+     "max": 1.057
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.005,
+      "mediane": 1.113,
+      "max": 1.483
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.088,
+      "max": 1.483
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "K75·B0": {
+    "palettes": 17,
+    "alerteActuelle": 16,
+    "alerteProposee": {
+     "auMoins2": 11,
+     "auMoins3": 3
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.714,
+       "mediane": 0.751,
+       "max": 0.85
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.678,
+       "mediane": 0.741,
+       "max": 0.881
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.678,
+       "mediane": 0.747,
+       "max": 0.881
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.69,
+       "mediane": 0.741,
+       "max": 0.88
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.554,
+       "mediane": 0.74,
+       "max": 1.107
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.554,
+       "mediane": 0.74,
+       "max": 1.107
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 1,
+     "pire": 1.107
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.19,
+     "mediane": 0.715,
+     "max": 1.231
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.005,
+      "mediane": 1.113,
+      "max": 1.558
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.088,
+      "max": 1.558
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "K75·B07": {
+    "palettes": 17,
+    "alerteActuelle": 16,
+    "alerteProposee": {
+     "auMoins2": 11,
+     "auMoins3": 3
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.714,
+       "mediane": 0.75,
+       "max": 0.85
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.678,
+       "mediane": 0.741,
+       "max": 0.881
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.678,
+       "mediane": 0.745,
+       "max": 0.881
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.69,
+       "mediane": 0.741,
+       "max": 0.88
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.554,
+       "mediane": 0.741,
+       "max": 1.107
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.554,
+       "mediane": 0.741,
+       "max": 1.107
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 1,
+     "pire": 1.107
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.19,
+     "mediane": 0.715,
+     "max": 1.231
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.005,
+      "mediane": 1.113,
+      "max": 1.415
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.088,
+      "max": 1.415
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "K75·B10": {
+    "palettes": 17,
+    "alerteActuelle": 15,
+    "alerteProposee": {
+     "auMoins2": 10,
+     "auMoins3": 3
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.714,
+       "mediane": 0.752,
+       "max": 0.85
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.678,
+       "mediane": 0.741,
+       "max": 0.881
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.678,
+       "mediane": 0.745,
+       "max": 0.881
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.69,
+       "mediane": 0.739,
+       "max": 0.88
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.554,
+       "mediane": 0.741,
+       "max": 1.107
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.554,
+       "mediane": 0.741,
+       "max": 1.107
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 1,
+     "pire": 1.107
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.19,
+     "mediane": 0.715,
+     "max": 1.231
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.001,
+      "mediane": 1.113,
+      "max": 1.298
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.088,
+      "max": 1.298
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "K75·BG": {
+    "palettes": 17,
+    "alerteActuelle": 15,
+    "alerteProposee": {
+     "auMoins2": 10,
+     "auMoins3": 3
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.714,
+       "mediane": 0.751,
+       "max": 0.85
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.678,
+       "mediane": 0.741,
+       "max": 0.881
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.678,
+       "mediane": 0.746,
+       "max": 0.881
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.69,
+       "mediane": 0.748,
+       "max": 0.88
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.554,
+       "mediane": 0.74,
+       "max": 1.107
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.554,
+       "mediane": 0.744,
+       "max": 1.107
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 1,
+     "pire": 1.107
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.19,
+     "mediane": 0.715,
+     "max": 1.293
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.002,
+      "mediane": 1.111,
+      "max": 1.183
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.088,
+      "max": 1.183
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "K65·B0": {
+    "palettes": 17,
+    "alerteActuelle": 9,
+    "alerteProposee": {
+     "auMoins2": 2,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.614,
+       "mediane": 0.655,
+       "max": 0.785
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.587,
+       "mediane": 0.644,
+       "max": 0.785
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.587,
+       "mediane": 0.648,
+       "max": 0.785
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.603,
+       "mediane": 0.646,
+       "max": 0.776
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.48,
+       "mediane": 0.64,
+       "max": 0.774
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.48,
+       "mediane": 0.644,
+       "max": 0.776
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.17,
+     "mediane": 0.613,
+     "max": 1.07
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.005,
+      "mediane": 1.113,
+      "max": 1.483
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.088,
+      "max": 1.483
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "K65·B07": {
+    "palettes": 17,
+    "alerteActuelle": 9,
+    "alerteProposee": {
+     "auMoins2": 2,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.614,
+       "mediane": 0.655,
+       "max": 0.785
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.587,
+       "mediane": 0.644,
+       "max": 0.785
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.587,
+       "mediane": 0.647,
+       "max": 0.785
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.603,
+       "mediane": 0.646,
+       "max": 0.776
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.48,
+       "mediane": 0.638,
+       "max": 0.774
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.48,
+       "mediane": 0.644,
+       "max": 0.776
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.17,
+     "mediane": 0.613,
+     "max": 1.07
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.005,
+      "mediane": 1.113,
+      "max": 1.362
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.088,
+      "max": 1.362
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "K65·B10": {
+    "palettes": 17,
+    "alerteActuelle": 9,
+    "alerteProposee": {
+     "auMoins2": 2,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.614,
+       "mediane": 0.651,
+       "max": 0.785
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.587,
+       "mediane": 0.644,
+       "max": 0.785
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.587,
+       "mediane": 0.648,
+       "max": 0.785
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.603,
+       "mediane": 0.645,
+       "max": 0.776
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.48,
+       "mediane": 0.639,
+       "max": 0.774
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.48,
+       "mediane": 0.643,
+       "max": 0.776
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.17,
+     "mediane": 0.613,
+     "max": 1.07
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.001,
+      "mediane": 1.113,
+      "max": 1.267
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.088,
+      "max": 1.267
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "K65·BG": {
+    "palettes": 17,
+    "alerteActuelle": 9,
+    "alerteProposee": {
+     "auMoins2": 2,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.614,
+       "mediane": 0.656,
+       "max": 0.785
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.587,
+       "mediane": 0.644,
+       "max": 0.785
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.587,
+       "mediane": 0.647,
+       "max": 0.785
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.603,
+       "mediane": 0.646,
+       "max": 0.791
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.48,
+       "mediane": 0.639,
+       "max": 0.774
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.48,
+       "mediane": 0.643,
+       "max": 0.791
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.17,
+     "mediane": 0.613,
+     "max": 1.112
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.002,
+      "mediane": 1.111,
+      "max": 1.183
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.088,
+      "max": 1.183
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   },
+   "Z·B0": {
+    "palettes": 17,
+    "alerteActuelle": 17,
+    "alerteProposee": {
+     "auMoins2": 8,
+     "auMoins3": 5
+    },
+    "deuxIntensites": 17,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 43,
+       "min": 0.492,
+       "mediane": 0.52,
+       "max": 0.561
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.59,
+       "mediane": 0.792,
+       "max": 0.861
+      },
+      "tous": {
+       "n": 145,
+       "min": 0.492,
+       "mediane": 0.697,
+       "max": 0.861
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 46,
+       "min": 0.499,
+       "mediane": 0.554,
+       "max": 0.609
+      },
+      "textes": {
+       "n": 102,
+       "min": 0.59,
+       "mediane": 0.784,
+       "max": 0.828
+      },
+      "tous": {
+       "n": 148,
+       "min": 0.499,
+       "mediane": 0.726,
+       "max": 0.828
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 34,
+     "min": 0.2,
+     "mediane": 0.732,
+     "max": 1.293
+    },
+    "saillie": {
+     "rampe": {
+      "n": 34,
+      "min": 1.005,
+      "mediane": 1.113,
+      "max": 1.483
+     },
+     "reference": {
+      "n": 34,
+      "min": 0.837,
+      "mediane": 1.088,
+      "max": 1.483
+     }
+    },
+    "garanties": {
+     "G1": 6
+    },
+    "garantiesTotal": 6
+   }
+  },
+  "Tour #C59735": {
+   "A·B0": {
+    "palettes": 24,
+    "alerteActuelle": 7,
+    "alerteProposee": {
+     "auMoins2": 7,
+     "auMoins3": 7
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 60,
+       "min": 0.467,
+       "mediane": 0.751,
+       "max": 0.93
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.702,
+       "mediane": 0.894,
+       "max": 0.952
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.467,
+       "mediane": 0.891,
+       "max": 0.952
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 55,
+       "min": 0.837,
+       "mediane": 0.895,
+       "max": 1.147
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.777,
+       "mediane": 0.896,
+       "max": 1.136
+      },
+      "tous": {
+       "n": 199,
+       "min": 0.777,
+       "mediane": 0.896,
+       "max": 1.147
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 17,
+     "pire": 1.147
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.678,
+     "max": 1.467
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.002,
+      "mediane": 1.068,
+      "max": 1.185
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.673,
+      "mediane": 0.928,
+      "max": 1.072
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "A·B07": {
+    "palettes": 24,
+    "alerteActuelle": 7,
+    "alerteProposee": {
+     "auMoins2": 7,
+     "auMoins3": 7
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 60,
+       "min": 0.467,
+       "mediane": 0.751,
+       "max": 0.93
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.702,
+       "mediane": 0.894,
+       "max": 0.952
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.467,
+       "mediane": 0.891,
+       "max": 0.952
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 55,
+       "min": 0.837,
+       "mediane": 0.895,
+       "max": 1.147
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.777,
+       "mediane": 0.896,
+       "max": 1.136
+      },
+      "tous": {
+       "n": 199,
+       "min": 0.777,
+       "mediane": 0.896,
+       "max": 1.147
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 17,
+     "pire": 1.147
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.678,
+     "max": 1.467
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1,
+      "mediane": 1.068,
+      "max": 1.185
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.673,
+      "mediane": 0.928,
+      "max": 1.072
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "A·B10": {
+    "palettes": 24,
+    "alerteActuelle": 7,
+    "alerteProposee": {
+     "auMoins2": 7,
+     "auMoins3": 7
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 60,
+       "min": 0.467,
+       "mediane": 0.751,
+       "max": 0.93
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.702,
+       "mediane": 0.894,
+       "max": 0.952
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.467,
+       "mediane": 0.891,
+       "max": 0.952
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 55,
+       "min": 0.837,
+       "mediane": 0.895,
+       "max": 1.147
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.777,
+       "mediane": 0.896,
+       "max": 1.136
+      },
+      "tous": {
+       "n": 199,
+       "min": 0.777,
+       "mediane": 0.896,
+       "max": 1.147
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 17,
+     "pire": 1.147
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.678,
+     "max": 1.467
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1,
+      "mediane": 1.068,
+      "max": 1.185
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.673,
+      "mediane": 0.928,
+      "max": 1.072
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "A·BG": {
+    "palettes": 24,
+    "alerteActuelle": 7,
+    "alerteProposee": {
+     "auMoins2": 7,
+     "auMoins3": 7
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 60,
+       "min": 0.48,
+       "mediane": 0.782,
+       "max": 0.93
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.702,
+       "mediane": 0.894,
+       "max": 0.952
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.48,
+       "mediane": 0.892,
+       "max": 0.952
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 55,
+       "min": 0.837,
+       "mediane": 0.895,
+       "max": 1.147
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.777,
+       "mediane": 0.896,
+       "max": 1.136
+      },
+      "tous": {
+       "n": 199,
+       "min": 0.777,
+       "mediane": 0.896,
+       "max": 1.147
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 17,
+     "pire": 1.147
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.678,
+     "max": 1.546
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1,
+      "mediane": 1.068,
+      "max": 1.185
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.673,
+      "mediane": 0.928,
+      "max": 1.072
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "D·B0": {
+    "palettes": 24,
+    "alerteActuelle": 10,
+    "alerteProposee": {
+     "auMoins2": 2,
+     "auMoins3": 1
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 61,
+       "min": 0.322,
+       "mediane": 0.538,
+       "max": 0.764
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.41,
+       "mediane": 0.637,
+       "max": 0.858
+      },
+      "tous": {
+       "n": 205,
+       "min": 0.322,
+       "mediane": 0.623,
+       "max": 0.858
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 60,
+       "min": 0.515,
+       "mediane": 0.628,
+       "max": 0.791
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.516,
+       "mediane": 0.642,
+       "max": 0.836
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.515,
+       "mediane": 0.631,
+       "max": 0.836
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.549,
+     "max": 1.034
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.117,
+      "max": 1.331
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.679,
+      "mediane": 0.954,
+      "max": 1.331
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·B0": {
+    "palettes": 24,
+    "alerteActuelle": 14,
+    "alerteProposee": {
+     "auMoins2": 13,
+     "auMoins3": 8
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 60,
+       "min": 0.713,
+       "mediane": 0.753,
+       "max": 0.88
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.651,
+       "mediane": 0.752,
+       "max": 0.882
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.651,
+       "mediane": 0.752,
+       "max": 0.882
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 60,
+       "min": 0.668,
+       "mediane": 0.752,
+       "max": 0.874
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.653,
+       "mediane": 0.753,
+       "max": 0.882
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.653,
+       "mediane": 0.753,
+       "max": 0.882
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.665,
+     "max": 1.21
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.056,
+      "max": 1.178
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.679,
+      "mediane": 0.942,
+      "max": 1.072
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·B07": {
+    "palettes": 24,
+    "alerteActuelle": 14,
+    "alerteProposee": {
+     "auMoins2": 13,
+     "auMoins3": 8
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 60,
+       "min": 0.713,
+       "mediane": 0.754,
+       "max": 0.88
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.651,
+       "mediane": 0.752,
+       "max": 0.882
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.651,
+       "mediane": 0.753,
+       "max": 0.882
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 60,
+       "min": 0.668,
+       "mediane": 0.752,
+       "max": 0.874
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.653,
+       "mediane": 0.753,
+       "max": 0.882
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.653,
+       "mediane": 0.753,
+       "max": 0.882
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.665,
+     "max": 1.21
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.056,
+      "max": 1.178
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.679,
+      "mediane": 0.942,
+      "max": 1.072
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·B10": {
+    "palettes": 24,
+    "alerteActuelle": 14,
+    "alerteProposee": {
+     "auMoins2": 13,
+     "auMoins3": 8
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 60,
+       "min": 0.713,
+       "mediane": 0.755,
+       "max": 0.88
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.651,
+       "mediane": 0.752,
+       "max": 0.882
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.651,
+       "mediane": 0.753,
+       "max": 0.882
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 60,
+       "min": 0.668,
+       "mediane": 0.752,
+       "max": 0.874
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.653,
+       "mediane": 0.754,
+       "max": 0.882
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.653,
+       "mediane": 0.753,
+       "max": 0.882
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.665,
+     "max": 1.236
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.056,
+      "max": 1.178
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.679,
+      "mediane": 0.942,
+      "max": 1.072
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·BG": {
+    "palettes": 24,
+    "alerteActuelle": 14,
+    "alerteProposee": {
+     "auMoins2": 13,
+     "auMoins3": 8
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 60,
+       "min": 0.713,
+       "mediane": 0.757,
+       "max": 0.88
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.651,
+       "mediane": 0.752,
+       "max": 0.882
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.651,
+       "mediane": 0.753,
+       "max": 0.882
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 60,
+       "min": 0.668,
+       "mediane": 0.752,
+       "max": 0.874
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.653,
+       "mediane": 0.754,
+       "max": 0.882
+      },
+      "tous": {
+       "n": 204,
+       "min": 0.653,
+       "mediane": 0.753,
+       "max": 0.882
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.665,
+     "max": 1.292
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.056,
+      "max": 1.178
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.679,
+      "mediane": 0.942,
+      "max": 1.072
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·B0": {
+    "palettes": 24,
+    "alerteActuelle": 12,
+    "alerteProposee": {
+     "auMoins2": 5,
+     "auMoins3": 3
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 61,
+       "min": 0.615,
+       "mediane": 0.658,
+       "max": 0.811
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.569,
+       "mediane": 0.681,
+       "max": 0.883
+      },
+      "tous": {
+       "n": 205,
+       "min": 0.569,
+       "mediane": 0.668,
+       "max": 0.883
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 59,
+       "min": 0.598,
+       "mediane": 0.669,
+       "max": 0.791
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.59,
+       "mediane": 0.66,
+       "max": 0.883
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.59,
+       "mediane": 0.664,
+       "max": 0.883
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.586,
+     "max": 1.077
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.117,
+      "max": 1.191
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.679,
+      "mediane": 0.94,
+      "max": 1.173
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·B07": {
+    "palettes": 24,
+    "alerteActuelle": 12,
+    "alerteProposee": {
+     "auMoins2": 5,
+     "auMoins3": 3
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 61,
+       "min": 0.615,
+       "mediane": 0.658,
+       "max": 0.811
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.569,
+       "mediane": 0.681,
+       "max": 0.883
+      },
+      "tous": {
+       "n": 205,
+       "min": 0.569,
+       "mediane": 0.668,
+       "max": 0.883
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 59,
+       "min": 0.598,
+       "mediane": 0.669,
+       "max": 0.791
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.59,
+       "mediane": 0.66,
+       "max": 0.883
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.59,
+       "mediane": 0.664,
+       "max": 0.883
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.586,
+     "max": 1.077
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.117,
+      "max": 1.191
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.679,
+      "mediane": 0.94,
+      "max": 1.169
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·B10": {
+    "palettes": 24,
+    "alerteActuelle": 12,
+    "alerteProposee": {
+     "auMoins2": 5,
+     "auMoins3": 3
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 61,
+       "min": 0.615,
+       "mediane": 0.66,
+       "max": 0.811
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.569,
+       "mediane": 0.681,
+       "max": 0.883
+      },
+      "tous": {
+       "n": 205,
+       "min": 0.569,
+       "mediane": 0.668,
+       "max": 0.883
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 59,
+       "min": 0.598,
+       "mediane": 0.669,
+       "max": 0.791
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.59,
+       "mediane": 0.66,
+       "max": 0.883
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.59,
+       "mediane": 0.664,
+       "max": 0.883
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.586,
+     "max": 1.077
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.117,
+      "max": 1.191
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.679,
+      "mediane": 0.94,
+      "max": 1.169
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·BG": {
+    "palettes": 24,
+    "alerteActuelle": 12,
+    "alerteProposee": {
+     "auMoins2": 5,
+     "auMoins3": 3
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 61,
+       "min": 0.615,
+       "mediane": 0.668,
+       "max": 0.811
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.569,
+       "mediane": 0.681,
+       "max": 0.883
+      },
+      "tous": {
+       "n": 205,
+       "min": 0.569,
+       "mediane": 0.674,
+       "max": 0.883
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 59,
+       "min": 0.598,
+       "mediane": 0.669,
+       "max": 0.793
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.59,
+       "mediane": 0.666,
+       "max": 0.883
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.59,
+       "mediane": 0.667,
+       "max": 0.883
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.186,
+     "mediane": 0.586,
+     "max": 1.098
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.117,
+      "max": 1.191
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.679,
+      "mediane": 0.94,
+      "max": 1.162
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "Z·B0": {
+    "palettes": 24,
+    "alerteActuelle": 19,
+    "alerteProposee": {
+     "auMoins2": 11,
+     "auMoins3": 10
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 61,
+       "min": 0.467,
+       "mediane": 0.517,
+       "max": 0.559
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.569,
+       "mediane": 0.788,
+       "max": 0.836
+      },
+      "tous": {
+       "n": 205,
+       "min": 0.467,
+       "mediane": 0.684,
+       "max": 0.836
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 59,
+       "min": 0.487,
+       "mediane": 0.556,
+       "max": 0.611
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.645,
+       "mediane": 0.782,
+       "max": 0.905
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.487,
+       "mediane": 0.73,
+       "max": 0.905
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.731,
+     "max": 1.292
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.1,
+      "max": 1.32
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.612,
+      "mediane": 0.927,
+      "max": 1.201
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   }
+  },
+  "Tour vif": {
+   "A·B0": {
+    "palettes": 24,
+    "alerteActuelle": 15,
+    "alerteProposee": {
+     "auMoins2": 15,
+     "auMoins3": 15
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 62,
+       "min": 0.469,
+       "mediane": 0.659,
+       "max": 0.918
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.505,
+       "mediane": 0.851,
+       "max": 0.96
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.469,
+       "mediane": 0.85,
+       "max": 0.96
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.821,
+       "mediane": 0.876,
+       "max": 1.147
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.81,
+       "mediane": 0.883,
+       "max": 1.142
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.81,
+       "mediane": 0.879,
+       "max": 1.147
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 38,
+     "pire": 1.147
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.758,
+     "max": 1.474
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.101,
+      "max": 1.144
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.889,
+      "mediane": 0.924,
+      "max": 1.144
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "A·B07": {
+    "palettes": 24,
+    "alerteActuelle": 15,
+    "alerteProposee": {
+     "auMoins2": 15,
+     "auMoins3": 15
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 62,
+       "min": 0.469,
+       "mediane": 0.659,
+       "max": 0.918
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.505,
+       "mediane": 0.851,
+       "max": 0.96
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.469,
+       "mediane": 0.85,
+       "max": 0.96
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.821,
+       "mediane": 0.876,
+       "max": 1.147
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.81,
+       "mediane": 0.883,
+       "max": 1.142
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.81,
+       "mediane": 0.879,
+       "max": 1.147
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 37,
+     "pire": 1.147
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.758,
+     "max": 1.474
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.101,
+      "max": 1.144
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.889,
+      "mediane": 0.924,
+      "max": 1.144
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "A·B10": {
+    "palettes": 24,
+    "alerteActuelle": 15,
+    "alerteProposee": {
+     "auMoins2": 15,
+     "auMoins3": 15
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 62,
+       "min": 0.469,
+       "mediane": 0.659,
+       "max": 0.918
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.505,
+       "mediane": 0.851,
+       "max": 0.96
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.469,
+       "mediane": 0.85,
+       "max": 0.96
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.821,
+       "mediane": 0.876,
+       "max": 1.147
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.81,
+       "mediane": 0.883,
+       "max": 1.142
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.81,
+       "mediane": 0.879,
+       "max": 1.147
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 36,
+     "pire": 1.147
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.758,
+     "max": 1.474
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.101,
+      "max": 1.144
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.889,
+      "mediane": 0.924,
+      "max": 1.144
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "A·BG": {
+    "palettes": 24,
+    "alerteActuelle": 15,
+    "alerteProposee": {
+     "auMoins2": 15,
+     "auMoins3": 15
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 62,
+       "min": 0.467,
+       "mediane": 0.674,
+       "max": 0.918
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.518,
+       "mediane": 0.851,
+       "max": 0.96
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.467,
+       "mediane": 0.85,
+       "max": 0.96
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.821,
+       "mediane": 0.876,
+       "max": 1.147
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.81,
+       "mediane": 0.883,
+       "max": 1.142
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.81,
+       "mediane": 0.879,
+       "max": 1.147
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 30,
+     "pire": 1.147
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.758,
+     "max": 1.514
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.101,
+      "max": 1.144
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.889,
+      "mediane": 0.924,
+      "max": 1.144
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "D·B0": {
+    "palettes": 24,
+    "alerteActuelle": 6,
+    "alerteProposee": {
+     "auMoins2": 2,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 65,
+       "min": 0.322,
+       "mediane": 0.465,
+       "max": 0.742
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.385,
+       "mediane": 0.598,
+       "max": 0.804
+      },
+      "tous": {
+       "n": 209,
+       "min": 0.322,
+       "mediane": 0.594,
+       "max": 0.804
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.514,
+       "mediane": 0.593,
+       "max": 0.776
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.482,
+       "mediane": 0.599,
+       "max": 1.092
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.482,
+       "mediane": 0.597,
+       "max": 1.092
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 7,
+     "pire": 1.092
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.546,
+     "max": 1.051
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.12,
+      "max": 1.801
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.787,
+      "mediane": 0.919,
+      "max": 1.801
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "K75·B0": {
+    "palettes": 24,
+    "alerteActuelle": 20,
+    "alerteProposee": {
+     "auMoins2": 13,
+     "auMoins3": 2
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 64,
+       "min": 0.709,
+       "mediane": 0.752,
+       "max": 0.893
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.686,
+       "mediane": 0.717,
+       "max": 0.877
+      },
+      "tous": {
+       "n": 208,
+       "min": 0.686,
+       "mediane": 0.745,
+       "max": 0.893
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.678,
+       "mediane": 0.738,
+       "max": 0.818
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.685,
+       "mediane": 0.72,
+       "max": 1.092
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.678,
+       "mediane": 0.735,
+       "max": 1.092
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 9,
+     "pire": 1.092
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.705,
+     "max": 1.244
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.106,
+      "max": 1.263
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.889,
+      "mediane": 0.924,
+      "max": 1.263
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "K75·B07": {
+    "palettes": 24,
+    "alerteActuelle": 20,
+    "alerteProposee": {
+     "auMoins2": 14,
+     "auMoins3": 2
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 64,
+       "min": 0.709,
+       "mediane": 0.752,
+       "max": 0.893
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.686,
+       "mediane": 0.717,
+       "max": 0.877
+      },
+      "tous": {
+       "n": 208,
+       "min": 0.686,
+       "mediane": 0.745,
+       "max": 0.893
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.678,
+       "mediane": 0.738,
+       "max": 0.818
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.685,
+       "mediane": 0.72,
+       "max": 1.092
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.678,
+       "mediane": 0.737,
+       "max": 1.092
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 9,
+     "pire": 1.092
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.705,
+     "max": 1.244
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.1,
+      "max": 1.252
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.889,
+      "mediane": 0.924,
+      "max": 1.252
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "K75·B10": {
+    "palettes": 24,
+    "alerteActuelle": 20,
+    "alerteProposee": {
+     "auMoins2": 14,
+     "auMoins3": 2
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 64,
+       "min": 0.709,
+       "mediane": 0.752,
+       "max": 0.893
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.686,
+       "mediane": 0.717,
+       "max": 0.877
+      },
+      "tous": {
+       "n": 208,
+       "min": 0.686,
+       "mediane": 0.745,
+       "max": 0.893
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.678,
+       "mediane": 0.739,
+       "max": 0.818
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.685,
+       "mediane": 0.72,
+       "max": 1.092
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.678,
+       "mediane": 0.738,
+       "max": 1.092
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 9,
+     "pire": 1.092
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.705,
+     "max": 1.244
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.1,
+      "max": 1.252
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.889,
+      "mediane": 0.924,
+      "max": 1.252
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "K75·BG": {
+    "palettes": 24,
+    "alerteActuelle": 20,
+    "alerteProposee": {
+     "auMoins2": 14,
+     "auMoins3": 2
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 64,
+       "min": 0.709,
+       "mediane": 0.753,
+       "max": 0.893
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.686,
+       "mediane": 0.717,
+       "max": 0.877
+      },
+      "tous": {
+       "n": 208,
+       "min": 0.686,
+       "mediane": 0.745,
+       "max": 0.893
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.678,
+       "mediane": 0.741,
+       "max": 0.873
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.685,
+       "mediane": 0.72,
+       "max": 1.092
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.678,
+       "mediane": 0.739,
+       "max": 1.092
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 9,
+     "pire": 1.092
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.705,
+     "max": 1.285
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.1,
+      "max": 1.193
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.889,
+      "mediane": 0.924,
+      "max": 1.193
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "K65·B0": {
+    "palettes": 24,
+    "alerteActuelle": 9,
+    "alerteProposee": {
+     "auMoins2": 5,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 65,
+       "min": 0.61,
+       "mediane": 0.652,
+       "max": 0.837
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.593,
+       "mediane": 0.622,
+       "max": 0.804
+      },
+      "tous": {
+       "n": 209,
+       "min": 0.593,
+       "mediane": 0.646,
+       "max": 0.837
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.573,
+       "mediane": 0.64,
+       "max": 0.776
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.587,
+       "mediane": 0.623,
+       "max": 1.092
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.573,
+       "mediane": 0.636,
+       "max": 1.092
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 7,
+     "pire": 1.092
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.627,
+     "max": 1.071
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.108,
+      "max": 1.464
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.787,
+      "mediane": 0.917,
+      "max": 1.464
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "K65·B07": {
+    "palettes": 24,
+    "alerteActuelle": 9,
+    "alerteProposee": {
+     "auMoins2": 5,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 65,
+       "min": 0.61,
+       "mediane": 0.652,
+       "max": 0.837
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.593,
+       "mediane": 0.622,
+       "max": 0.804
+      },
+      "tous": {
+       "n": 209,
+       "min": 0.593,
+       "mediane": 0.646,
+       "max": 0.837
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.573,
+       "mediane": 0.641,
+       "max": 0.776
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.587,
+       "mediane": 0.623,
+       "max": 1.092
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.573,
+       "mediane": 0.636,
+       "max": 1.092
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 7,
+     "pire": 1.092
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.629,
+     "max": 1.071
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.108,
+      "max": 1.247
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.787,
+      "mediane": 0.917,
+      "max": 1.247
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "K65·B10": {
+    "palettes": 24,
+    "alerteActuelle": 11,
+    "alerteProposee": {
+     "auMoins2": 6,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 65,
+       "min": 0.61,
+       "mediane": 0.652,
+       "max": 0.837
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.593,
+       "mediane": 0.622,
+       "max": 0.804
+      },
+      "tous": {
+       "n": 209,
+       "min": 0.593,
+       "mediane": 0.646,
+       "max": 0.837
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.573,
+       "mediane": 0.64,
+       "max": 0.776
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.587,
+       "mediane": 0.623,
+       "max": 1.092
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.573,
+       "mediane": 0.635,
+       "max": 1.092
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 7,
+     "pire": 1.092
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.629,
+     "max": 1.071
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.103,
+      "max": 1.247
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.787,
+      "mediane": 0.917,
+      "max": 1.247
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "K65·BG": {
+    "palettes": 24,
+    "alerteActuelle": 11,
+    "alerteProposee": {
+     "auMoins2": 6,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 65,
+       "min": 0.61,
+       "mediane": 0.655,
+       "max": 0.837
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.593,
+       "mediane": 0.622,
+       "max": 0.804
+      },
+      "tous": {
+       "n": 209,
+       "min": 0.593,
+       "mediane": 0.65,
+       "max": 0.837
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.573,
+       "mediane": 0.645,
+       "max": 0.799
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.587,
+       "mediane": 0.623,
+       "max": 1.092
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.573,
+       "mediane": 0.635,
+       "max": 1.092
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 7,
+     "pire": 1.092
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.631,
+     "max": 1.091
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.103,
+      "max": 1.196
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.787,
+      "mediane": 0.917,
+      "max": 1.193
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   },
+   "Z·B0": {
+    "palettes": 24,
+    "alerteActuelle": 21,
+    "alerteProposee": {
+     "auMoins2": 13,
+     "auMoins3": 9
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 65,
+       "min": 0.477,
+       "mediane": 0.519,
+       "max": 0.57
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.613,
+       "mediane": 0.789,
+       "max": 0.807
+      },
+      "tous": {
+       "n": 209,
+       "min": 0.477,
+       "mediane": 0.7,
+       "max": 0.807
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 62,
+       "min": 0.498,
+       "mediane": 0.557,
+       "max": 0.609
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.642,
+       "mediane": 0.793,
+       "max": 1.092
+      },
+      "tous": {
+       "n": 206,
+       "min": 0.498,
+       "mediane": 0.731,
+       "max": 1.092
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 7,
+     "pire": 1.092
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.2,
+     "mediane": 0.769,
+     "max": 1.306
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.001,
+      "mediane": 1.108,
+      "max": 1.252
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.787,
+      "mediane": 0.916,
+      "max": 1.252
+     }
+    },
+    "garanties": {
+     "G1": 48
+    },
+    "garantiesTotal": 48
+   }
+  },
+  "Tour doux": {
+   "A·B0": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 45,
+       "min": 0.517,
+       "mediane": 0.886,
+       "max": 0.911
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.805,
+       "mediane": 0.893,
+       "max": 0.956
+      },
+      "tous": {
+       "n": 189,
+       "min": 0.517,
+       "mediane": 0.892,
+       "max": 0.956
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 28,
+       "min": 0.868,
+       "mediane": 0.901,
+       "max": 1
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.865,
+       "mediane": 0.894,
+       "max": 1.134
+      },
+      "tous": {
+       "n": 172,
+       "min": 0.865,
+       "mediane": 0.896,
+       "max": 1.134
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 4,
+     "pire": 1.134
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.271
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.103,
+      "max": 1.227
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.874,
+      "max": 1.09
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "A·B07": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 45,
+       "min": 0.517,
+       "mediane": 0.886,
+       "max": 0.911
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.805,
+       "mediane": 0.893,
+       "max": 0.956
+      },
+      "tous": {
+       "n": 189,
+       "min": 0.517,
+       "mediane": 0.892,
+       "max": 0.956
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 28,
+       "min": 0.868,
+       "mediane": 0.901,
+       "max": 1
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.865,
+       "mediane": 0.894,
+       "max": 1.134
+      },
+      "tous": {
+       "n": 172,
+       "min": 0.865,
+       "mediane": 0.896,
+       "max": 1.134
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 4,
+     "pire": 1.134
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.271
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.103,
+      "max": 1.227
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.874,
+      "max": 1.09
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "A·B10": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 45,
+       "min": 0.517,
+       "mediane": 0.886,
+       "max": 0.911
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.805,
+       "mediane": 0.893,
+       "max": 0.956
+      },
+      "tous": {
+       "n": 189,
+       "min": 0.517,
+       "mediane": 0.892,
+       "max": 0.956
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 28,
+       "min": 0.868,
+       "mediane": 0.901,
+       "max": 1
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.865,
+       "mediane": 0.894,
+       "max": 1.134
+      },
+      "tous": {
+       "n": 172,
+       "min": 0.865,
+       "mediane": 0.896,
+       "max": 1.134
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 4,
+     "pire": 1.134
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.271
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.103,
+      "max": 1.227
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.874,
+      "max": 1.09
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "A·BG": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 45,
+       "min": 0.517,
+       "mediane": 0.886,
+       "max": 0.911
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.805,
+       "mediane": 0.893,
+       "max": 0.956
+      },
+      "tous": {
+       "n": 189,
+       "min": 0.517,
+       "mediane": 0.892,
+       "max": 0.956
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 28,
+       "min": 0.868,
+       "mediane": 0.901,
+       "max": 1
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.865,
+       "mediane": 0.894,
+       "max": 1.134
+      },
+      "tous": {
+       "n": 172,
+       "min": 0.865,
+       "mediane": 0.896,
+       "max": 1.134
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 4,
+     "pire": 1.134
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.271
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.103,
+      "max": 1.227
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.874,
+      "max": 1.09
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "D·B0": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 59,
+       "min": 0.338,
+       "mediane": 0.615,
+       "max": 0.651
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.494,
+       "mediane": 0.63,
+       "max": 0.671
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.338,
+       "mediane": 0.629,
+       "max": 0.671
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 48,
+       "min": 0.515,
+       "mediane": 0.626,
+       "max": 0.667
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.514,
+       "mediane": 0.629,
+       "max": 0.671
+      },
+      "tous": {
+       "n": 192,
+       "min": 0.514,
+       "mediane": 0.628,
+       "max": 0.671
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.056
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.111,
+      "max": 1.172
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.874,
+      "max": 1.139
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·B0": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 59,
+       "min": 0.702,
+       "mediane": 0.749,
+       "max": 0.778
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.723,
+       "mediane": 0.75,
+       "max": 0.794
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.702,
+       "mediane": 0.75,
+       "max": 0.794
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 40,
+       "min": 0.713,
+       "mediane": 0.744,
+       "max": 0.795
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.725,
+       "mediane": 0.75,
+       "max": 0.794
+      },
+      "tous": {
+       "n": 184,
+       "min": 0.713,
+       "mediane": 0.75,
+       "max": 0.795
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.203
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.091,
+      "max": 1.193
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.873,
+      "max": 1.09
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·B07": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 59,
+       "min": 0.702,
+       "mediane": 0.749,
+       "max": 0.778
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.723,
+       "mediane": 0.75,
+       "max": 0.794
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.702,
+       "mediane": 0.75,
+       "max": 0.794
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 40,
+       "min": 0.713,
+       "mediane": 0.744,
+       "max": 0.795
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.725,
+       "mediane": 0.75,
+       "max": 0.794
+      },
+      "tous": {
+       "n": 184,
+       "min": 0.713,
+       "mediane": 0.75,
+       "max": 0.795
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.203
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.091,
+      "max": 1.193
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.873,
+      "max": 1.09
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·B10": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 59,
+       "min": 0.702,
+       "mediane": 0.749,
+       "max": 0.778
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.723,
+       "mediane": 0.75,
+       "max": 0.794
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.702,
+       "mediane": 0.75,
+       "max": 0.794
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 40,
+       "min": 0.713,
+       "mediane": 0.744,
+       "max": 0.795
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.725,
+       "mediane": 0.75,
+       "max": 0.794
+      },
+      "tous": {
+       "n": 184,
+       "min": 0.713,
+       "mediane": 0.75,
+       "max": 0.795
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.203
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.091,
+      "max": 1.193
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.873,
+      "max": 1.09
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·BG": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 59,
+       "min": 0.702,
+       "mediane": 0.749,
+       "max": 0.778
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.723,
+       "mediane": 0.75,
+       "max": 0.794
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.702,
+       "mediane": 0.75,
+       "max": 0.794
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 40,
+       "min": 0.713,
+       "mediane": 0.745,
+       "max": 0.798
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.725,
+       "mediane": 0.75,
+       "max": 0.794
+      },
+      "tous": {
+       "n": 184,
+       "min": 0.713,
+       "mediane": 0.75,
+       "max": 0.798
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.203
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.091,
+      "max": 1.193
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.873,
+      "max": 1.09
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·B0": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 59,
+       "min": 0.616,
+       "mediane": 0.647,
+       "max": 0.673
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.632,
+       "mediane": 0.65,
+       "max": 0.689
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.616,
+       "mediane": 0.649,
+       "max": 0.689
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 48,
+       "min": 0.617,
+       "mediane": 0.652,
+       "max": 0.678
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.633,
+       "mediane": 0.65,
+       "max": 0.689
+      },
+      "tous": {
+       "n": 192,
+       "min": 0.617,
+       "mediane": 0.65,
+       "max": 0.689
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.077
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.107,
+      "max": 1.201
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.873,
+      "max": 1.09
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·B07": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 59,
+       "min": 0.616,
+       "mediane": 0.647,
+       "max": 0.673
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.632,
+       "mediane": 0.65,
+       "max": 0.689
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.616,
+       "mediane": 0.649,
+       "max": 0.689
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 48,
+       "min": 0.617,
+       "mediane": 0.652,
+       "max": 0.678
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.633,
+       "mediane": 0.65,
+       "max": 0.689
+      },
+      "tous": {
+       "n": 192,
+       "min": 0.617,
+       "mediane": 0.65,
+       "max": 0.689
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.077
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.107,
+      "max": 1.201
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.873,
+      "max": 1.09
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·B10": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 59,
+       "min": 0.616,
+       "mediane": 0.647,
+       "max": 0.673
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.632,
+       "mediane": 0.65,
+       "max": 0.689
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.616,
+       "mediane": 0.649,
+       "max": 0.689
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 48,
+       "min": 0.617,
+       "mediane": 0.652,
+       "max": 0.678
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.633,
+       "mediane": 0.65,
+       "max": 0.689
+      },
+      "tous": {
+       "n": 192,
+       "min": 0.617,
+       "mediane": 0.65,
+       "max": 0.689
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.077
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.107,
+      "max": 1.201
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.873,
+      "max": 1.09
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·BG": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 59,
+       "min": 0.616,
+       "mediane": 0.647,
+       "max": 0.673
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.632,
+       "mediane": 0.65,
+       "max": 0.689
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.616,
+       "mediane": 0.649,
+       "max": 0.689
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 48,
+       "min": 0.617,
+       "mediane": 0.655,
+       "max": 0.704
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.633,
+       "mediane": 0.65,
+       "max": 0.689
+      },
+      "tous": {
+       "n": 192,
+       "min": 0.617,
+       "mediane": 0.65,
+       "max": 0.704
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.129,
+     "mediane": 0.424,
+     "max": 1.077
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.022,
+      "mediane": 1.107,
+      "max": 1.201
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.688,
+      "mediane": 0.873,
+      "max": 1.09
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "Z·B0": {
+    "palettes": 24,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 24,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 59,
+       "min": 0.482,
+       "mediane": 0.522,
+       "max": 0.564
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.637,
+       "mediane": 0.78,
+       "max": 0.82
+      },
+      "tous": {
+       "n": 203,
+       "min": 0.482,
+       "mediane": 0.702,
+       "max": 0.82
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 48,
+       "min": 0.476,
+       "mediane": 0.579,
+       "max": 0.634
+      },
+      "textes": {
+       "n": 144,
+       "min": 0.637,
+       "mediane": 0.756,
+       "max": 0.815
+      },
+      "tous": {
+       "n": 192,
+       "min": 0.476,
+       "mediane": 0.707,
+       "max": 0.815
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 48,
+     "min": 0.16,
+     "mediane": 0.522,
+     "max": 1.292
+    },
+    "saillie": {
+     "rampe": {
+      "n": 48,
+      "min": 1.002,
+      "mediane": 1.094,
+      "max": 1.424
+     },
+     "reference": {
+      "n": 48,
+      "min": 0.561,
+      "mediane": 0.714,
+      "max": 1.059
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   }
+  },
+  "Références saturées": {
+   "A·B0": {
+    "palettes": 5,
+    "alerteActuelle": 5,
+    "alerteProposee": {
+     "auMoins2": 5,
+     "auMoins3": 5
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.371,
+       "mediane": 0.761,
+       "max": 0.865
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.439,
+       "mediane": 0.847,
+       "max": 0.863
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.371,
+       "mediane": 0.837,
+       "max": 0.865
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.827,
+       "mediane": 0.852,
+       "max": 1.14
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.516,
+       "mediane": 0.852,
+       "max": 1.145
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.516,
+       "mediane": 0.852,
+       "max": 1.145
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 8,
+     "pire": 1.145
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.333,
+     "mediane": 0.792,
+     "max": 1.031
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "A·B07": {
+    "palettes": 5,
+    "alerteActuelle": 5,
+    "alerteProposee": {
+     "auMoins2": 5,
+     "auMoins3": 5
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.371,
+       "mediane": 0.761,
+       "max": 0.865
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.439,
+       "mediane": 0.848,
+       "max": 0.863
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.371,
+       "mediane": 0.847,
+       "max": 0.865
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.827,
+       "mediane": 0.852,
+       "max": 1.141
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.516,
+       "mediane": 0.852,
+       "max": 1.137
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.516,
+       "mediane": 0.852,
+       "max": 1.141
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 7,
+     "pire": 1.141
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.333,
+     "mediane": 0.792,
+     "max": 1.246
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.349
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.349
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "A·B10": {
+    "palettes": 5,
+    "alerteActuelle": 5,
+    "alerteProposee": {
+     "auMoins2": 5,
+     "auMoins3": 5
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.371,
+       "mediane": 0.761,
+       "max": 0.865
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.439,
+       "mediane": 0.849,
+       "max": 0.863
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.371,
+       "mediane": 0.848,
+       "max": 0.865
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.827,
+       "mediane": 0.852,
+       "max": 1.131
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.516,
+       "mediane": 0.852,
+       "max": 1.133
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.516,
+       "mediane": 0.852,
+       "max": 1.133
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 6,
+     "pire": 1.133
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.333,
+     "mediane": 0.798,
+     "max": 1.308
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.344
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.344
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "A·BG": {
+    "palettes": 5,
+    "alerteActuelle": 5,
+    "alerteProposee": {
+     "auMoins2": 5,
+     "auMoins3": 5
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.371,
+       "mediane": 0.788,
+       "max": 0.865
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.439,
+       "mediane": 0.849,
+       "max": 0.863
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.371,
+       "mediane": 0.848,
+       "max": 0.865
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.827,
+       "mediane": 0.846,
+       "max": 0.867
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.516,
+       "mediane": 0.851,
+       "max": 0.931
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.516,
+       "mediane": 0.85,
+       "max": 0.931
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.333,
+     "mediane": 0.8,
+     "max": 1.407
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.223
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.223
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "D·B0": {
+    "palettes": 5,
+    "alerteActuelle": 1,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.257,
+       "mediane": 0.534,
+       "max": 0.617
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.308,
+       "mediane": 0.597,
+       "max": 0.612
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.257,
+       "mediane": 0.585,
+       "max": 0.617
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.518,
+       "mediane": 0.582,
+       "max": 0.618
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.235,
+       "mediane": 0.568,
+       "max": 0.608
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.235,
+       "mediane": 0.571,
+       "max": 0.618
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.23,
+     "mediane": 0.557,
+     "max": 0.75
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·B0": {
+    "palettes": 5,
+    "alerteActuelle": 3,
+    "alerteProposee": {
+     "auMoins2": 1,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.562,
+       "mediane": 0.712,
+       "max": 0.751
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.463,
+       "mediane": 0.713,
+       "max": 0.752
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.463,
+       "mediane": 0.713,
+       "max": 0.752
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.682,
+       "mediane": 0.72,
+       "max": 0.772
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.342,
+       "mediane": 0.715,
+       "max": 0.76
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.342,
+       "mediane": 0.715,
+       "max": 0.772
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.276,
+     "mediane": 0.685,
+     "max": 0.869
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·B07": {
+    "palettes": 5,
+    "alerteActuelle": 3,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.562,
+       "mediane": 0.712,
+       "max": 0.755
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.463,
+       "mediane": 0.713,
+       "max": 0.746
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.463,
+       "mediane": 0.713,
+       "max": 0.755
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.682,
+       "mediane": 0.72,
+       "max": 0.761
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.342,
+       "mediane": 0.715,
+       "max": 0.76
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.342,
+       "mediane": 0.715,
+       "max": 0.761
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.276,
+     "mediane": 0.685,
+     "max": 1.019
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.349
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.349
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·B10": {
+    "palettes": 5,
+    "alerteActuelle": 3,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.562,
+       "mediane": 0.712,
+       "max": 0.76
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.463,
+       "mediane": 0.713,
+       "max": 0.736
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.463,
+       "mediane": 0.713,
+       "max": 0.76
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.682,
+       "mediane": 0.72,
+       "max": 0.77
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.342,
+       "mediane": 0.715,
+       "max": 0.76
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.342,
+       "mediane": 0.715,
+       "max": 0.77
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.276,
+     "mediane": 0.685,
+     "max": 1.094
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.344
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.344
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·BG": {
+    "palettes": 5,
+    "alerteActuelle": 3,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.562,
+       "mediane": 0.712,
+       "max": 0.75
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.463,
+       "mediane": 0.713,
+       "max": 0.721
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.463,
+       "mediane": 0.713,
+       "max": 0.75
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.682,
+       "mediane": 0.714,
+       "max": 0.727
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.342,
+       "mediane": 0.713,
+       "max": 0.754
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.342,
+       "mediane": 0.714,
+       "max": 0.754
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.276,
+     "mediane": 0.685,
+     "max": 1.183
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.223
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.223
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·B0": {
+    "palettes": 5,
+    "alerteActuelle": 1,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.489,
+       "mediane": 0.617,
+       "max": 0.654
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.403,
+       "mediane": 0.617,
+       "max": 0.646
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.403,
+       "mediane": 0.617,
+       "max": 0.654
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.571,
+       "mediane": 0.615,
+       "max": 0.657
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.295,
+       "mediane": 0.619,
+       "max": 0.665
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.295,
+       "mediane": 0.618,
+       "max": 0.665
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.23,
+     "mediane": 0.591,
+     "max": 0.762
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·B07": {
+    "palettes": 5,
+    "alerteActuelle": 1,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.489,
+       "mediane": 0.617,
+       "max": 0.66
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.403,
+       "mediane": 0.617,
+       "max": 0.648
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.403,
+       "mediane": 0.617,
+       "max": 0.66
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.571,
+       "mediane": 0.615,
+       "max": 0.659
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.295,
+       "mediane": 0.619,
+       "max": 0.659
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.295,
+       "mediane": 0.618,
+       "max": 0.659
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.23,
+     "mediane": 0.591,
+     "max": 0.917
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.349
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.349
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·B10": {
+    "palettes": 5,
+    "alerteActuelle": 1,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.489,
+       "mediane": 0.617,
+       "max": 0.649
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.403,
+       "mediane": 0.617,
+       "max": 0.637
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.403,
+       "mediane": 0.617,
+       "max": 0.649
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.571,
+       "mediane": 0.615,
+       "max": 0.656
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.295,
+       "mediane": 0.619,
+       "max": 0.656
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.295,
+       "mediane": 0.618,
+       "max": 0.656
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.23,
+     "mediane": 0.591,
+     "max": 0.955
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.344
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.344
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·BG": {
+    "palettes": 5,
+    "alerteActuelle": 1,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.489,
+       "mediane": 0.617,
+       "max": 0.654
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.403,
+       "mediane": 0.617,
+       "max": 0.627
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.403,
+       "mediane": 0.617,
+       "max": 0.654
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.571,
+       "mediane": 0.613,
+       "max": 0.622
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.295,
+       "mediane": 0.618,
+       "max": 0.649
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.295,
+       "mediane": 0.615,
+       "max": 0.649
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.23,
+     "mediane": 0.591,
+     "max": 1.019
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.223
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.223
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "Z·B0": {
+    "palettes": 5,
+    "alerteActuelle": 5,
+    "alerteProposee": {
+     "auMoins2": 2,
+     "auMoins3": 1
+    },
+    "deuxIntensites": 5,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 13,
+       "min": 0.418,
+       "mediane": 0.516,
+       "max": 0.552
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.497,
+       "mediane": 0.766,
+       "max": 0.812
+      },
+      "tous": {
+       "n": 43,
+       "min": 0.418,
+       "mediane": 0.698,
+       "max": 0.812
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 15,
+       "min": 0.511,
+       "mediane": 0.54,
+       "max": 0.607
+      },
+      "textes": {
+       "n": 30,
+       "min": 0.328,
+       "mediane": 0.782,
+       "max": 0.804
+      },
+      "tous": {
+       "n": 45,
+       "min": 0.328,
+       "mediane": 0.665,
+       "max": 0.804
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 10,
+     "min": 0.308,
+     "mediane": 0.769,
+     "max": 0.929
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   }
+  },
+  "Références saturées, une intensité": {
+   "A·B0": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "A·B07": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.349
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.349
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "A·B10": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.344
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.344
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "A·BG": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.223
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.223
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "D·B0": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·B0": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·B07": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.349
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.349
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·B10": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.344
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.344
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K75·BG": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.223
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.223
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·B0": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·B07": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.349
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.349
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·B10": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.344
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.344
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "K65·BG": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.223
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.223
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   },
+   "Z·B0": {
+    "palettes": 5,
+    "alerteActuelle": 0,
+    "alerteProposee": {
+     "auMoins2": 0,
+     "auMoins3": 0
+    },
+    "deuxIntensites": 0,
+    "rapportSoftVivid": {
+     "light": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     },
+     "dark": {
+      "fonds": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "textes": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      },
+      "tous": {
+       "n": 0,
+       "min": null,
+       "mediane": null,
+       "max": null
+      }
+     }
+    },
+    "softPlusVifQueVivid": {
+     "nuances": 0,
+     "pire": 0
+    },
+    "textesSoftContreTailwind": {
+     "n": 0,
+     "min": null,
+     "mediane": null,
+     "max": null
+    },
+    "saillie": {
+     "rampe": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     },
+     "reference": {
+      "n": 10,
+      "min": 1.043,
+      "mediane": 1.152,
+      "max": 1.856
+     }
+    },
+    "garanties": {},
+    "garantiesTotal": 0
+   }
+  }
+ },
+ "sailliesTailwind": [
+  {
+   "nom": "red",
+   "saillie": 1.035
+  },
+  {
+   "nom": "orange",
+   "saillie": 1.041
+  },
+  {
+   "nom": "amber",
+   "saillie": 1.001
+  },
+  {
+   "nom": "yellow",
+   "saillie": 1.045
+  },
+  {
+   "nom": "lime",
+   "saillie": 1.014
+  },
+  {
+   "nom": "green",
+   "saillie": 1.055
+  },
+  {
+   "nom": "emerald",
+   "saillie": 1.03
+  },
+  {
+   "nom": "teal",
+   "saillie": 1.06
+  },
+  {
+   "nom": "cyan",
+   "saillie": 1.065
+  },
+  {
+   "nom": "sky",
+   "saillie": 1.064
+  },
+  {
+   "nom": "blue",
+   "saillie": 1.009
+  },
+  {
+   "nom": "indigo",
+   "saillie": 1.072
+  },
+  {
+   "nom": "violet",
+   "saillie": 1.022
+  },
+  {
+   "nom": "purple",
+   "saillie": 1.066
+  },
+  {
+   "nom": "fuchsia",
+   "saillie": 1.009
+  },
+  {
+   "nom": "pink",
+   "saillie": 1.029
+  },
+  {
+   "nom": "rose",
+   "saillie": 1.031
+  }
+ ]
+}
