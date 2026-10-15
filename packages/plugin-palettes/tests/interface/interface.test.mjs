@@ -3712,7 +3712,7 @@ test('L7.7 : exporter la recette, modifier le JSON, l’importer, voir l’écar
     assert.deepEqual(await confirmation.locator('p').allTextContents(), [
       'Remplacer les palettes et les réglages par « palettes-et-reglages.json » ?',
       'Palette à modifier : Bleu roi (nom).',
-      'Réglage commun à modifier : minimum des textes.',
+      'Configuration à modifier : minimum des textes.',
       'Contrastes minimums : les garanties peuvent changer, les couleurs restent identiques.',
       'Sur la planche : 2 cadres passeront « À actualiser » (Bleu roi, Jaune).',
       'L’import remplace les palettes et les réglages. Les cadres Figma restent inchangés.',

@@ -1279,7 +1279,7 @@ export function ligneDEcart(genre: 'ajoutees' | 'retirees' | 'modifiees' | 'para
     ajoutees: noms.length === 1 ? "Palette to add" : "Palettes to add",
     retirees: noms.length === 1 ? "Palette to remove" : "Palettes to remove",
     modifiees: noms.length === 1 ? "Palette to change" : "Palettes to change",
-    parametres: noms.length === 1 ? "Shared setting to change" : "Shared settings to change",
+    parametres: "Settings to change",
   };
   return `${titres[genre]}: ${noms.join(', ')}.`;
 }
