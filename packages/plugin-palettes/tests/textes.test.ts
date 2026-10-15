@@ -272,10 +272,11 @@ test('l’exception de Figma et l’exemple d’écart se lisent dans le détail
   assert.match(ecart.detail ?? '', /soft\/light\/50 : couleur absente dans l’aperçu, #FAF5F5 sur la planche/);
 });
 
-test('[UI-12] une carte repliée se résume par son état, sans valeurs, puis la synchronisation et les points à vérifier (recette v7)', () => {
-  assert.equal(resumeDeLaDerive(false, null, 0), 'Aucun réglage');
-  assert.equal(resumeDeLaDerive(true, false, 0), 'Réglé · désynchronisé');
-  assert.equal(resumeDeLaDerive(true, true, 1), 'Réglé · synchronisé · 1 point à vérifier');
+test('[UI-12] [DER-25] une carte repliée se résume par son état, sans valeurs, puis la synchronisation et les points à vérifier (recette v7)', () => {
+  assert.equal(resumeDeLaDerive([], null, 0), 'Par défaut');
+  assert.equal(resumeDeLaDerive([], true, 0), 'Par défaut · synchronisé');
+  assert.equal(resumeDeLaDerive(['teinte', 'clarte'], false, 0), 'Modifié : teinte, luminosité · désynchronisé');
+  assert.equal(resumeDeLaDerive(['saturation'], true, 1), 'Modifié : saturation · synchronisé · 1 point à vérifier');
 });
 
 test('[UI-38] le résumé du Réglage global dit « Par défaut », ou nomme les réglages modifiés, sans valeurs', () => {

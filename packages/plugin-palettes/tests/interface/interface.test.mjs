@@ -6325,6 +6325,41 @@ test('[DER-11] « Tout par défaut » rend la teinte Tailwind, la saturation et 
   }
 });
 
+test('[DER-25] après « Tout par défaut », chaque pouce est sur sa marque et chaque bouton est inactif', async () => {
+  const page = await editeurSur('color-shift-saturation');
+  try {
+    const carte = carteDeLOnglet(page, CARTE_DE_LA_DERIVE);
+    const avant = await compte(page);
+    await carte.getByRole('button', { name: 'Tout par défaut' }).click();
+    await rangementDe(page, avant);
+    const lire = () => carte.locator('.editeur-derive .reglette').evaluateAll((lignes) => lignes.map((ligne) => {
+      const centre = (element) => { const r = element.getBoundingClientRect(); return r.left + r.width / 2; };
+      const bouton = ligne.querySelector(':scope > .bouton-discret');
+      return {
+        marque: centre(ligne.querySelector('.reglette-defaut')),
+        pouce: centre(ligne.querySelector('.reglette-pouce')),
+        inactif: bouton.disabled,
+        pastille: ligne.querySelector('.pastille-reglee').getClientRects().length > 0,
+        bouts: [...ligne.querySelectorAll('.reglette-bout')].map((bout) => bout.textContent),
+      };
+    }));
+    const attendus = { Teinte: ['plus turquoise', 'plus violet'], Saturation: ['plus terne', 'plus vive'], Luminosité: ['plus foncée', 'plus claire'] };
+    for (const [nom, bouts] of Object.entries(attendus)) {
+      await choisirLOnglet(page, nom);
+      for (const reglette of await lire()) {
+        assert.ok(Math.abs(reglette.marque - reglette.pouce) < 0.6, `${nom} : le pouce est sur la marque (${reglette.marque} contre ${reglette.pouce})`);
+        assert.equal(reglette.inactif, true, `${nom} : « Par défaut » est inactif`);
+        assert.equal(reglette.pastille, false, `${nom} : aucune pastille`);
+        assert.deepEqual(reglette.bouts, bouts, `${nom} : les bouts`);
+      }
+    }
+    await bascule(page, CARTE_DE_LA_DERIVE).click();
+    assert.equal(await carte.locator('.carte-resume').textContent(), 'Par défaut · synchronisé');
+  } finally {
+    await page.close();
+  }
+});
+
 test('[UI-20] glisser une réglette du Color shift sur Bleu, texte des boutons noir, jusqu’à sa butée ne déplace pas le curseur d’un pixel', async () => {
   const page = await ouvrirSur('ajuster-en-modale', SANS_DEFILEMENT(600));
   try {

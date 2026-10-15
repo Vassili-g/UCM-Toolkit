@@ -8,23 +8,26 @@
  */
 import {
   COULEUR_DU_TEXTE_DES_BOUTONS,
+  arrondir,
   DOSSIERS,
   GARANTIES,
   MODES,
   VARIABLES_DE_PALETTE,
   cranDeLaVariable,
   decalageRange,
-  intensitesDe,
   sensDuTheme,
   severiteDeLAlerte,
   variablesDuCran,
   type Alerte,
+  type Bout,
   type FondDeGarantie,
+  type GrandeurDuColorShift,
   type Garantie,
   type Intensite,
   type Mode,
   type Palette,
   type Promesse,
+  type Recette,
   type SensDuTheme,
   type TexteDesBoutons,
   type VariableDePalette,
@@ -32,6 +35,7 @@ import {
 } from 'ucm-couleur';
 
 import type { AnalyseDePalette } from './analyse';
+import { prereglageDe } from './edition';
 import type { EtatDuCadre } from './planche/fraicheur';
 
 /** L'état des tokens d'une palette, dans sa ligne « Tokens Figma » ([VAR-05]). */
@@ -451,33 +455,31 @@ export function gesteDeLaCible(attributs: { readonly token?: string | null; read
   return dossier ? { nature: 'dossier', dossier } : null;
 }
 
-/**
- * Le réglage global d'une palette est réglé (recette v7) : une teinte ou une
- * luminosité non nulle sur l'une de ses rampes, la saturation d'une palette à
- * une intensité, ou des parts propres.
- */
-export function reglageGlobalModifie(palette: Palette): boolean {
-  const { reglages } = palette;
-  const decalee = intensitesDe(palette).some((intensite) => {
-    const profil = intensite === 'unique' ? 'vivid' : intensite;
-    return (reglages?.teinte?.[profil] ?? 0) !== 0 || (reglages?.clarte?.[profil] ?? 0) !== 0;
-  });
-  return decalee || reglages?.part !== undefined || palette.parts !== undefined;
+const BOUTS: readonly Bout[] = ['clair', 'sombre'];
+
+/** La valeur par défaut d'une grandeur du Color shift à un bout ([DER-25]) : la teinte du préréglage Tailwind courant, au centième comme elle se range, zéro pour la saturation et la luminosité. */
+export function departDuColorShift(recette: Recette, palette: Palette, grandeur: GrandeurDuColorShift, bout: Bout): number {
+  return grandeur === 'teinte' ? arrondir(prereglageDe(recette, palette)[bout], 2) : 0;
+}
+
+/** La valeur d'un bout vaut son défaut. Une teinte se range au centième : elle se compare arrondie. */
+export function estAuDepartDuColorShift(grandeur: GrandeurDuColorShift, valeur: number, depart: number): boolean {
+  return grandeur === 'teinte' ? arrondir(valeur, 2) === depart : valeur === depart;
 }
 
 /**
- * Le Color shift d'une palette s'écarte de celui d'une palette neuve (recette
- * v7) : une teinte hors du préréglage Tailwind, ou une saturation ou une
- * luminosité décalée. Liés, les profils se lisent sur Vivid. Une palette
- * grise ne règle que sa luminosité ([DER-15]).
+ * Les grandeurs du Color shift qui s'écartent de leur valeur par défaut
+ * ([DER-25]), dans l'ordre teinte, saturation, luminosité : celle de
+ * `departDuColorShift`, comparée au préréglage courant et non à l'origine
+ * rangée de la dérive, qui peut dater d'un relevé ancien. Liés, les profils
+ * se lisent sur Vivid. Une palette grise ne règle que sa luminosité ([DER-15]).
  */
-export function colorShiftModifie(palette: Palette, grise: boolean): boolean {
+export function grandeursModifieesDuColorShift(recette: Recette, palette: Palette, grise: boolean): GrandeurDuColorShift[] {
   const { lien, soft, vivid } = palette.derive;
   const derives = palette.intensites === 1 || lien ? [vivid] : [soft, vivid];
-  const grandeurs = grise ? (['clarte'] as const) : (['saturation', 'clarte'] as const);
-  return derives.some((derive) => (!grise && derive.origine !== 'tailwind')
-    || grandeurs.some((grandeur) => {
-      const { clair, sombre } = decalageRange(derive, grandeur);
-      return clair !== 0 || sombre !== 0;
-    }));
+  const grandeurs: readonly GrandeurDuColorShift[] = grise ? ['clarte'] : ['teinte', 'saturation', 'clarte'];
+  return grandeurs.filter((grandeur) => derives.some((derive) => BOUTS.some((bout) => {
+    const valeur = grandeur === 'teinte' ? derive[bout] : decalageRange(derive, grandeur)[bout];
+    return !estAuDepartDuColorShift(grandeur, valeur, departDuColorShift(recette, palette, grandeur, bout));
+  })));
 }

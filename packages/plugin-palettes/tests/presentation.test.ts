@@ -4,14 +4,14 @@ import test from 'node:test';
 
 import { recetteParDefaut, sensDuTheme, verifierPromesses, type Alerte, type Mode, type Recette, type SensDuTheme, type TexteDesBoutons, type VariableDuTheme } from 'ucm-couleur';
 
-import { changerReference } from '../src/edition';
+import { changerReference, prereglageDe } from '../src/edition';
 import { TEXTES_DE_L_APERCU as TEXTES_EN } from '../src/i18n/en';
 import { TEXTES_DE_L_APERCU as TEXTES_FR } from '../src/i18n/fr';
 import {
   apercuEnBandes,
   bandesDe,
   ciblesDeLAlerte,
-  colorShiftModifie,
+  grandeursModifieesDuColorShift,
   estLaPaletteNeutre,
   etatDeLaFiche,
   fondDeLaPromesse,
@@ -20,7 +20,6 @@ import {
   groupesManques,
   hauteursDesRayures,
   placeDeLAlerte,
-  reglageGlobalModifie,
   surlignageDe,
   variableDuFond,
   type Bande,
@@ -320,22 +319,26 @@ test('[UI-04] [I13] le choix d’une pastille surligne comme le survol, et le su
 });
 
 
-test('[UI-12] une carte repliée se dit réglée dès qu’une valeur quitte celle d’une palette neuve (recette v7)', () => {
-  assert.equal(reglageGlobalModifie(BLEU), false);
-  assert.equal(reglageGlobalModifie({ ...BLEU, reglages: { teinte: { soft: 8 } } }), true);
-  assert.equal(reglageGlobalModifie({ ...BLEU, reglages: { clarte: { vivid: 0 } } }), false, 'un décalage nul ne compte pas');
-  assert.equal(reglageGlobalModifie({ ...BLEU, parts: { soft: 0.3, vivid: 0.9, origine: 'designer' } }), true);
-  assert.equal(reglageGlobalModifie({ ...BLEU, intensites: 1, reglages: { part: 0.6 } }), true);
-  assert.equal(reglageGlobalModifie({ ...BLEU, intensites: 1, reglages: { teinte: { soft: 8 } } }), false, 'à une intensité, seul Vivid porte les réglages');
-
-  assert.equal(colorShiftModifie(BLEU, false), false, 'le préréglage Tailwind d’une palette neuve');
+test('[UI-12] [DER-25] le Color shift se dit modifié dès qu’une valeur quitte celle d’une palette neuve (recette v7)', () => {
+  assert.deepEqual(grandeursModifieesDuColorShift(DEFAUT, BLEU, false), [], 'le préréglage Tailwind d’une palette neuve');
   const libre = { ...BLEU, derive: { ...BLEU.derive, vivid: { clair: 6, sombre: 0, origine: 'libre' as const } } };
-  assert.equal(colorShiftModifie(libre, false), true);
-  assert.equal(colorShiftModifie(libre, true), false, 'une palette grise ne lit que sa luminosité');
+  assert.deepEqual(grandeursModifieesDuColorShift(DEFAUT, libre, false), ['teinte']);
+  assert.deepEqual(grandeursModifieesDuColorShift(DEFAUT, libre, true), [], 'une palette grise ne lit que sa luminosité');
   const eclaircie = { ...BLEU, derive: { ...BLEU.derive, vivid: { ...BLEU.derive.vivid, clarte: { clair: 0, sombre: 0.02 } } } };
-  assert.equal(colorShiftModifie(eclaircie, true), true);
-  assert.equal(colorShiftModifie({ ...BLEU, derive: { ...libre.derive, lien: true, vivid: BLEU.derive.vivid, soft: libre.derive.vivid } }, false), false, 'liés, les profils se lisent sur Vivid');
-  assert.equal(colorShiftModifie({ ...BLEU, derive: { ...libre.derive, lien: false, vivid: BLEU.derive.vivid, soft: libre.derive.vivid } }, false), true);
+  assert.deepEqual(grandeursModifieesDuColorShift(DEFAUT, eclaircie, true), ['clarte']);
+  const saturee = { ...BLEU, derive: { ...BLEU.derive, vivid: { ...libre.derive.vivid, saturation: { clair: 0.1, sombre: 0 } } } };
+  assert.deepEqual(grandeursModifieesDuColorShift(DEFAUT, saturee, false), ['teinte', 'saturation']);
+  assert.deepEqual(grandeursModifieesDuColorShift(DEFAUT, { ...BLEU, derive: { ...libre.derive, lien: true, vivid: BLEU.derive.vivid, soft: libre.derive.vivid } }, false), [], 'liés, les profils se lisent sur Vivid');
+  assert.deepEqual(grandeursModifieesDuColorShift(DEFAUT, { ...BLEU, derive: { ...libre.derive, lien: false, vivid: BLEU.derive.vivid, soft: libre.derive.vivid } }, false), ['teinte']);
+});
+
+test('[DER-25] une dérive d’origine Tailwind différente du préréglage courant compte comme modifiée', () => {
+  const tailwind = prereglageDe(DEFAUT, BLEU);
+  assert.notEqual(tailwind.clair, 0, 'le bleu a une teinte Tailwind à écarter');
+  const ancienne = { ...BLEU, derive: { ...BLEU.derive, vivid: { clair: tailwind.clair + 4, sombre: tailwind.sombre, origine: 'tailwind' as const } } };
+  assert.deepEqual(grandeursModifieesDuColorShift(DEFAUT, ancienne, false), ['teinte'], 'l’origine rangée ne décide pas : la valeur se compare au préréglage courant');
+  const arrondie = { ...BLEU, derive: { ...BLEU.derive, vivid: { clair: Math.round(tailwind.clair * 100) / 100, sombre: Math.round(tailwind.sombre * 100) / 100, origine: 'libre' as const } } };
+  assert.deepEqual(grandeursModifieesDuColorShift(DEFAUT, arrondie, false), [], 'une teinte rangée au centième vaut le préréglage, quelle que soit son origine');
 });
 
 test('[UI-26] l’état d’une fiche est le plus urgent de ses sorties : modifiée, à mettre à jour, pas encore, synchronisée', () => {

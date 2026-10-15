@@ -63,7 +63,7 @@ import {
   revenirAuModele,
   supprimer,
 } from '../edition';
-import { CIBLES_COMMUNES, carteDuMessage, colorShiftModifie, estLaPaletteNeutre, type CibleDAction } from '../presentation';
+import { CIBLES_COMMUNES, carteDuMessage, grandeursModifieesDuColorShift, estLaPaletteNeutre, type CibleDAction } from '../presentation';
 import { reglagesModifies } from '../reglagesParDefaut';
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import { tokensDeLaPalette, type TokensDUnePalette } from '../variables/gestion';
@@ -1125,7 +1125,7 @@ function construireVues(i18n: Localisation) {
       // Une palette grise ne règle que sa luminosité : la carte reste ouverte, ses onglets Teinte et Saturation se désactivent ([DER-15]).
       const grise = estPaletteGrise(lue, courante);
       const pointsDeDerive = messages.liste.filter((message) => carteDuMessage(message.cibles) === 'derive').length;
-      carteDeLaDerive.poserResume(resumeDeLaDerive(colorShiftModifie(courante, grise), aUneIntensite(courante) ? null : courante.derive.lien, pointsDeDerive));
+      carteDeLaDerive.poserResume(resumeDeLaDerive(grandeursModifieesDuColorShift(lue, courante, grise), aUneIntensite(courante) ? null : courante.derive.lien, pointsDeDerive));
       if (!figee && carteDeLaDerive.estOuverte()) editeur.afficher(lue, courante, analyse.rampes, analyse.ancrage, analyse, etat.theme());
       interfaceDeTest.afficher(lue, analyse, etat.theme(), courante.id);
     }

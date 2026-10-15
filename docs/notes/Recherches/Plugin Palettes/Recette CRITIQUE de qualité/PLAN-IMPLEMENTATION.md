@@ -69,7 +69,7 @@ Règles d'économie, à tenir par l'orchestrateur :
   `npm run build` et les trois `test:ui` (Palettes 265, Exporter 39,
   explorateur 24).
 - **Prochaine étape** : la vague 3 dans l'ordre P2, P6, P7, P3, P4, P5, P8 ;
-  P2 et P6 sont faits.
+  P2, P6 et P7 sont faits.
 - Question au mainteneur : une référence plus sombre que le bout sombre
   (stone-950) prend toute la dérive vers le clair (M4) ; test `todo` dans
   `packages/couleur/tests/desaturees.test.ts`.
@@ -902,7 +902,7 @@ Les tâches sont successives : plusieurs partagent `styles.css`, `i18n` et
     `npm run test:ui --workspace ucm-palettes-plugin`.
   - Fini quand : vert et capture conforme.
 
-- [ ] **P7 · Color shift : la marque par défaut** · `implementeur`, moyen.
+- [x] **P7 · Color shift : la marque par défaut** · `implementeur`, moyen.
   - SPEC, section 3.3 ; proposition PR7. Reprend les options de réglette de
     P6. Identifiant réservé : `[DER-25]`, section de Color shift de SPEC-PAL.
   - Fichiers : `PAL/src/ui/derive/editeur.ts` (`depart` donne déjà la valeur

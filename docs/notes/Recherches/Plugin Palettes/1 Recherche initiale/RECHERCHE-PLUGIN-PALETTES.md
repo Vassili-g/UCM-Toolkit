@@ -1690,6 +1690,16 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
   synchronisation ni choix du profil. Sous des profils déliés, le profil
   réglé se choisit, le graphe trace l'autre en tireté, et la limite ne juge
   que le profil réglé.
+- `[DER-25]` Chaque réglette du Color shift porte sa marque par défaut
+  (`[UI-38]`). Le défaut d'un bout de teinte est la valeur du préréglage
+  Tailwind courant, rangée au centième ; celui de la saturation et de la
+  luminosité est 0. La marque, le bouton « Par défaut », son état désactivé, la
+  pastille de l'onglet, « Tout par défaut » et le résumé de la carte repliée
+  emploient cette valeur. Le résumé (`Par défaut`, ou `Modifié :` et les
+  grandeurs écartées) compare les valeurs au préréglage courant, et non
+  l'origine rangée de la dérive, qui peut dater d'un relevé ancien. Les bouts de
+  piste : familles voisines de la teinte de la référence pour la teinte, `plus
+  terne` et `plus vive`, `plus foncée` et `plus claire`.
 
 ## 13. L'interface
 

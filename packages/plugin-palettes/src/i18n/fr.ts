@@ -731,13 +731,13 @@ function pointsAVerifier(nombre: number): string {
 }
 
 /**
- * Le résumé de la carte Color shift ([UI-12], recette v7) : son état seul,
- * sans les valeurs réglées, la synchronisation des deux intensités, puis les
- * points à vérifier. `lien` vaut `null` à une intensité : rien à synchroniser
- * ([ENT-14]).
+ * Le résumé de la carte Color shift ([UI-12], [DER-25]) : « Par défaut », ou
+ * « Modifié : » suivi des grandeurs écartées de leur défaut, sans valeurs ; la
+ * synchronisation des deux intensités, puis les points à vérifier. `lien` vaut
+ * `null` à une intensité : rien à synchroniser ([ENT-14]).
  */
-export function resumeDeLaDerive(modifie: boolean, lien: boolean | null, points: number): string {
-  const etat = modifie ? 'Réglé' : 'Aucun réglage';
+export function resumeDeLaDerive(modifiees: readonly GrandeurDuColorShift[], lien: boolean | null, points: number): string {
+  const etat = modifiees.length === 0 ? 'Par défaut' : `Modifié : ${modifiees.map((grandeur) => TEXTES_DE_LA_DERIVE.grandeurs[grandeur].toLowerCase()).join(', ')}`;
   return `${lien === null ? etat : `${etat} · ${lien ? 'synchronisé' : 'désynchronisé'}`}${pointsAVerifier(points)}`;
 }
 

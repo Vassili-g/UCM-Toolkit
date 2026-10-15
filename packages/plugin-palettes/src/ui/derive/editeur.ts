@@ -49,6 +49,8 @@ import {
 import type { AnalyseDePalette } from '../../analyse';
 import { lireNombre } from '../../configuration';
 import { appliquerPrereglage, lierLesProfils, prereglageDe, reglerDecalage, toutRetablir } from '../../edition';
+import { departDuColorShift as depart, estAuDepartDuColorShift as estAuDepart } from '../../presentation';
+import { familleVoisine } from '../../familles';
 import { createCalculsDeLimites } from '../calculDesLimites';
 import { creerVuesChoix, type ChoixDuProfilUi } from '../choix';
 import { creerVuesLigneFixe } from '../ligneFixe';
@@ -95,7 +97,7 @@ interface Butee {
 }
 
 function construireVues(i18n: Localisation) {
-  const { TEXTES_DE_LA_DERIVE, buteeDuColorShift, decalageEcrit, grandeurAuBout, horsDeLaPlage, repereTailwind, retablirAuBout, valeurDePoignee } = i18n.messages;
+  const { TEXTES_DE_LA_DERIVE, TEXTES_DES_REGLAGES, buteeDuColorShift, decalageEcrit, grandeurAuBout, horsDeLaPlage, repereTailwind, retablirAuBout, valeurDePoignee } = i18n.messages;
   const { CADRE, HAUTEUR_TOTALE, createGraphe } = creerVuesGraphe(i18n);
   const { createReglette } = creerVuesReglette(i18n);
   const { createChoixDuProfil } = creerVuesChoix(i18n);
@@ -112,10 +114,6 @@ function construireVues(i18n: Localisation) {
   /** La valeur d'une grandeur à un bout : la teinte en degrés, la saturation et la luminosité rangées, zéro absentes. */
   const valeurAuBout = (palette: Palette, profil: Profil, grandeur: GrandeurDuColorShift, bout: Bout): number =>
     (grandeur === 'teinte' ? palette.derive[profil][bout] : decalageRange(palette.derive[profil], grandeur)[bout]);
-
-  /** La valeur de départ d'une grandeur ([DER-18]) : la teinte Tailwind, zéro pour les deux autres. */
-  const depart = (recette: Recette, palette: Palette, grandeur: GrandeurDuColorShift, bout: Bout): number =>
-    (grandeur === 'teinte' ? prereglageDe(recette, palette)[bout] : 0);
 
   /** La valeur d'une saisie : des degrés, un pourcentage pour la saturation, un décalage de clarté. */
   function lire(grandeur: GrandeurDuColorShift, saisie: string): number | null {
@@ -566,7 +564,7 @@ function construireVues(i18n: Localisation) {
         onglet.disabled = grise && valeur !== 'clarte';
         const clair = valeurAuBout(courante, profil, valeur, 'clair');
         const sombre = valeurAuBout(courante, profil, valeur, 'sombre');
-        pastille.hidden = clair === depart(lue, courante, valeur, 'clair') && sombre === depart(lue, courante, valeur, 'sombre');
+        pastille.hidden = estAuDepart(valeur, clair, depart(lue, courante, valeur, 'clair')) && estAuDepart(valeur, sombre, depart(lue, courante, valeur, 'sombre'));
         i18n.lier(valeurs, 'textContent', i18n.composer`${decalageEcrit(valeur, clair)} · ${decalageEcrit(valeur, sombre)}`);
       }
       i18n.lier(panneau, 'aria-label', TEXTES_DE_LA_DERIVE.grandeurs[affichee]);
@@ -588,6 +586,12 @@ function construireVues(i18n: Localisation) {
 
       const fixe = BORNES_DU_COLOR_SHIFT[affichee];
       const tailwind = prereglageDe(lue, courante);
+      // Les mots des bouts de piste ; ceux de la teinte nomment les familles voisines de la teinte de la référence ([UI-38]).
+      const { bouts: motsDesBouts, familles } = TEXTES_DES_REGLAGES;
+      const teinteDeLaReference = Math.round(reference.H) % 360;
+      const boutsDePiste = affichee === 'teinte'
+        ? { gauche: motsDesBouts.teinte(familles[familleVoisine(teinteDeLaReference, -1)]), droite: motsDesBouts.teinte(familles[familleVoisine(teinteDeLaReference, 1)]) }
+        : motsDesBouts[affichee === 'clarte' ? 'luminosite' : 'saturation'];
       for (const bout of BOUTS) {
         const reglette = reglettes[bout];
         // Un bout que la référence dépasse n'a pas de segment à régler ([DER-14]).
@@ -595,7 +599,9 @@ function construireVues(i18n: Localisation) {
         const valeur = valeurAuBout(courante, profil, affichee, bout);
         const permises = permisesDe(bout);
         const teinte = teinteA(bouts[bout], reference, derive, bouts);
-        const auDepart = valeur === depart(lue, courante, affichee, bout);
+        const parDefaut = depart(lue, courante, affichee, bout);
+        const auDepart = estAuDepart(affichee, valeur, parDefaut);
+        const ecrit = decalageEcrit(affichee, parDefaut);
         reglette.poser({
           valeur,
           bornes: { bas: -fixe, haut: fixe },
@@ -608,9 +614,17 @@ function construireVues(i18n: Localisation) {
           annonce: valeurDePoignee(affichee, valeur, teinte, permises),
           // Le repère Tailwind reste visible même quand la teinte est personnalisée ([DER-06]).
           reperes: affichee === 'teinte' ? [{ valeur: tailwind[bout], classe: 'reglette-repere', titre: repereTailwind(tailwind[bout]) }] : [],
+          defaut: { valeur: parDefaut, titre: TEXTES_DES_REGLAGES.valeurParDefaut(ecrit), libelle: TEXTES_DES_REGLAGES.libelleDeLaMarque },
+          bouts: boutsDePiste,
+          modifiee: !auDepart,
           desactivee: false,
           horsDeLaPlage: horsDeLaPlageAuBout[bout],
-          bouton: { texte: affichee === 'teinte' ? TEXTES_DE_LA_DERIVE.boutonTailwind : TEXTES_DE_LA_DERIVE.retablir, etiquette: retablirAuBout(affichee, bout), inactif: auDepart },
+          bouton: {
+            texte: affichee === 'teinte' ? TEXTES_DE_LA_DERIVE.boutonTailwind : TEXTES_DE_LA_DERIVE.retablir,
+            etiquette: retablirAuBout(affichee, bout),
+            inactif: auDepart,
+            titre: auDepart ? undefined : TEXTES_DES_REGLAGES.revenirALaValeurParDefaut(ecrit),
+          },
         });
       }
 
