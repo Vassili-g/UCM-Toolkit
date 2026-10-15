@@ -9,6 +9,8 @@
  * piste, le libellé de la marque quand le pouce s'en éloigne de plus de 4
  * points de la course, deux mots aux bouts de la piste, une pastille après son
  * nom quand la valeur est modifiée. Un bout que le libellé chevauche se masque.
+ * Harmonisation ([UI-42]) y ajoute des zones hachurées, où la palette réglée
+ * est trop proche d'une autre, et un point par autre palette cochée.
  *
  * Le curseur est un élément `role="slider"` : `aria-valuemin` et
  * `aria-valuemax` portent les bornes permises, que le clavier atteint par
@@ -37,6 +39,20 @@ export interface RepereDeReglette {
   readonly nom?: Texte;
 }
 
+/** Une suite de valeurs où la palette réglée est trop proche d'une autre ([UI-42]). */
+export interface ZoneDeReglette {
+  readonly debut: number;
+  readonly fin: number;
+  readonly titre: Texte;
+}
+
+/** La valeur d'une autre palette cochée, et la couleur de son point ([UI-42]). */
+export interface MarqueDePalette {
+  readonly valeur: number;
+  readonly couleur: string;
+  readonly titre: Texte;
+}
+
 /** Ce que la réglette montre ; l'appelant le pose à chaque rendu. */
 export interface EtatDeLaReglette {
   readonly valeur: number;
@@ -55,6 +71,10 @@ export interface EtatDeLaReglette {
   /** Ce que le curseur annonce : la valeur et la plage sûre. */
   readonly annonce: Texte;
   readonly reperes: readonly RepereDeReglette[];
+  /** Les zones trop proches, hachurées sur la piste ; le champ porte un cerne tant que la valeur y tombe, à 0,5 près. */
+  readonly zones?: readonly ZoneDeReglette[];
+  /** Un point au-dessus de la course par autre palette cochée. */
+  readonly marques?: readonly MarqueDePalette[];
   /** La valeur par défaut : sa marque sur la piste, son survol, et le libellé qu'elle porte quand le pouce s'en éloigne. */
   readonly defaut?: { readonly valeur: number; readonly titre: Texte; readonly libelle: Texte };
   /** Les mots des deux bouts de la piste. */
@@ -89,6 +109,9 @@ export interface RegletteUi {
   readonly curseur: HTMLDivElement;
   poser(etat: EtatDeLaReglette): void;
 }
+
+/** Une valeur à 0,5 de la zone en fait encore partie : c'est la largeur dont la zone déborde à chaque bout. */
+const DEBORD_DE_LA_ZONE = 0.5;
 
 /** Le libellé de la marque paraît quand le pouce s'en écarte de plus de 4 points de la course. */
 const ECART_DU_LIBELLE = 4;
@@ -156,6 +179,8 @@ function construireVues(i18n: Localisation) {
     let affichee = 0;
     let titreDuBouton = false;
     let reperes: HTMLSpanElement[] = [];
+    let zones: HTMLSpanElement[] = [];
+    let marques: HTMLSpanElement[] = [];
     /** Le geste en cours : clavier, saisie ou glisser, la valeur et le texte d'avant, et le pointeur du glisser. */
     let geste: { avant: number; texte: Texte; pointeur: number | null } | null = null;
     let abandonne = false;
@@ -184,11 +209,17 @@ function construireVues(i18n: Localisation) {
       return ((Math.min(haut, Math.max(bas, valeur)) - bas) / (haut - bas)) * 100;
     };
 
+    /** Le champ porte un cerne tant que la valeur montrée tombe dans une zone trop proche. */
+    function marquerLeChamp(valeur: number): void {
+      champ.classList.toggle('champ-proche', etat?.zones?.some(({ debut, fin }) => valeur >= debut - DEBORD_DE_LA_ZONE && valeur <= fin + DEBORD_DE_LA_ZONE) ?? false);
+    }
+
     function placerLePouce(valeur: number): void {
       affichee = valeur;
       pouce.style.left = `${position(valeur)}%`;
       curseur.setAttribute('aria-valuenow', String(valeur));
       legende.hidden = !etat?.defaut || Math.abs(position(valeur) - position(etat.defaut.valeur)) <= ECART_DU_LIBELLE;
+      marquerLeChamp(valeur);
     }
 
     /** Masque le bout de piste que le libellé de la marque chevauche, à 6 px près. Sans mise en page, les boîtes sont vides : rien ne se masque. */
@@ -399,6 +430,27 @@ function construireVues(i18n: Localisation) {
           course.insertBefore(marque, pouce);
           return marque;
         });
+        for (const ancienne of [...zones, ...marques]) ancienne.remove();
+        zones = (suivant.zones ?? []).map(({ debut, fin, titre }) => {
+          const zone = document.createElement('span');
+          zone.className = 'reglette-proche';
+          const [de, a] = [position(debut - DEBORD_DE_LA_ZONE), position(fin + DEBORD_DE_LA_ZONE)];
+          zone.style.left = `${de}%`;
+          zone.style.width = `${a - de}%`;
+          i18n.lier(zone, 'title', titre);
+          course.insertBefore(zone, marque);
+          return zone;
+        });
+        marques = (suivant.marques ?? []).map(({ valeur, couleur, titre }) => {
+          const point = document.createElement('span');
+          point.className = 'marque-palette';
+          point.style.left = `${position(valeur)}%`;
+          point.style.background = couleur;
+          i18n.lier(point, 'title', titre);
+          course.insertBefore(point, pouce);
+          return point;
+        });
+        marquerLeChamp(affichee);
       },
     };
   }

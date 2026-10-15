@@ -1,5 +1,8 @@
 /** La sélection d'Harmonisation suit les identifiants de la recette, sans DOM ni rangement. */
-import { aUneIntensite, arrondir, CHROMA_DES_PALETTES_COLOREES, estLibre, partsDe, referenceDe, rgb8VersOklch, sortieLaPlusProche, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type RoleDeProximite } from 'ucm-couleur';
+import { aUneIntensite, arrondir, CHROMA_DES_PALETTES_COLOREES, estLibre, partsDe, referenceDe, rgb8VersOklch, sortieLaPlusProche, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus, type RoleDeProximite } from 'ucm-couleur';
+
+import { remplacerPalette } from './edition';
+import { GRANDEURS, valeursDesProfils, type Grandeur } from './reglagesParDefaut';
 
 export interface EtatHarmonisation {
   readonly cochees: readonly string[];
@@ -74,6 +77,57 @@ export function choisirPaletteARegler(etat: EtatHarmonisation, id: string): Etat
 /** Chaque entrée renouvelle le départ de l'annulation, en conservant les choix de la session. */
 export function entrerEnHarmonisation(etat: EtatHarmonisation): EtatHarmonisation {
   return { ...etat, departs: new Map() };
+}
+
+/** Le premier réglage d'une palette depuis l'entrée garde la palette d'avant lui ; les suivants la laissent. */
+export function memoriserLeDepart(etat: EtatHarmonisation, palette: Palette): EtatHarmonisation {
+  return etat.departs.has(palette.id) ? etat : { ...etat, departs: new Map(etat.departs).set(palette.id, palette) };
+}
+
+/** L'écart à son départ, par grandeur, à partir duquel une palette compte comme modifiée. */
+export const ECARTS_DE_MODIFICATION: Readonly<Record<Grandeur, number>> = { teinte: 0.5, saturation: 0.005, luminosite: 0.0005 };
+
+/** Une valeur de teinte, de saturation ou de luminosité, de l'un des profils, diffère de celle du départ. */
+export function modifieeDepuisLeDepart(recette: Recette, palette: Palette, depart: Palette): boolean {
+  const [courantes, anciennes] = [valeursDesProfils(recette, palette), valeursDesProfils(recette, depart)];
+  const profils: readonly Profil[] = aUneIntensite(palette) ? ['vivid'] : ['soft', 'vivid'];
+  return profils.some((profil) => GRANDEURS.some((grandeur) => arrondir(Math.abs(courantes[profil][grandeur] - anciennes[profil][grandeur]), 6) >= ECARTS_DE_MODIFICATION[grandeur]));
+}
+
+/**
+ * La palette courante avec les réglages du départ : la référence, `originale`,
+ * `base`, `reglages` et `parts` que les gestes de teinte, de saturation et de
+ * luminosité peuvent changer. Le reste (nom, nuances, dérive) est celui de
+ * la palette courante.
+ */
+export function restaurerLesReglages(courante: Palette, depart: Palette): Palette {
+  const { reference: _reference, originale: _originale, base: _base, reglages: _reglages, parts: _parts, ...reste } = courante;
+  return {
+    ...reste,
+    reference: depart.reference,
+    ...(depart.originale === undefined ? {} : { originale: depart.originale }),
+    ...(depart.base === undefined ? {} : { base: depart.base }),
+    ...(depart.reglages === undefined ? {} : { reglages: depart.reglages }),
+    ...(depart.parts === undefined ? {} : { parts: depart.parts }),
+  };
+}
+
+/** Ce que « Annuler les modifications » range : la recette dont la palette a repris son départ, ou le refus qui l'en empêche. */
+export type AnnulationDesModifications = { readonly recette: Recette } | { readonly refus: Refus };
+
+/**
+ * « Annuler les modifications » de la palette `id` : ses réglages reprennent
+ * ceux de son départ, elle seule. `null` quand elle n'a pas de départ, ou
+ * quand elle n'en diffère pas. Un refus laisse l'état tel quel : la recette
+ * et les départs ne changent que par ce que l'appelant adopte.
+ */
+export function annulerLaPalette(recette: Recette, etat: EtatHarmonisation, id: string): AnnulationDesModifications | null {
+  const courante = recette.palettes.find((palette) => palette.id === id);
+  const depart = etat.departs.get(id);
+  if (!courante || !depart || !modifieeDepuisLeDepart(recette, courante, depart)) return null;
+  const suivante = remplacerPalette(recette, restaurerLesReglages(courante, depart));
+  const jugee = validerRecette(suivante);
+  return 'refus' in jugee ? { refus: jugee.refus[0] } : { recette: suivante };
 }
 
 /** La palette des réglettes d'une paire, et vrai quand aucune des deux ne sort de la zone trop proche. */

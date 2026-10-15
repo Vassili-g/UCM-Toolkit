@@ -26,9 +26,7 @@ import {
   aUnReglageDuPorteur,
   aUneIntensite,
   balayerLaLimite,
-  enveloppeDe,
   estPaletteGrise,
-  fabriquerCran,
   partDeLaReference,
   pivotDe,
   profilPorteur,
@@ -39,7 +37,6 @@ import {
   type Recette,
 } from 'ucm-couleur';
 
-import { lireNombre } from '../configuration';
 import {
   reglerClarte,
   reglerSaturation,
@@ -48,11 +45,11 @@ import {
   retablirLaSaturation,
   type CibleDuReglage,
 } from '../edition';
-import { familleVoisine } from '../familles';
 import type { CibleDAction } from '../presentation';
 import { CURSEURS, GRANDEURS, estModifiee, valeursDesProfils, valeursParDefaut, type Grandeur } from '../reglagesParDefaut';
 import { createCalculsDeLimites } from './calculDesLimites';
 import { type Message } from './constats';
+import { outilsDesGrandeurs, peindreLaGrandeur } from './grandeursDuReglage';
 import { creerVuesReglette, type Intervalle, type RegletteUi, type RepereDeReglette } from './derive/reglette';
 import { creerVuesChoix, type ChoixDuProfilUi } from './choix';
 import { creerVuesLigneFixe } from './ligneFixe';
@@ -89,18 +86,9 @@ function construireVues(i18n: Localisation) {
   const { createChoixDuProfil } = creerVuesChoix(i18n);
   const { createLigneFixe } = creerVuesLigneFixe(i18n);
   const { createReglette } = creerVuesReglette(i18n);
-  const { LIBELLES_DES_CIBLES, NOM_DU_PROFIL, TEXTES_DES_INTENSITES, TEXTES_DES_REGLAGES, buteeDuReglage, luminositeReglee, nombreEcrit, nombreInvalide, origineDesParts, plageSureDuReglage, saturationReglee, teinteReglee, texteDuRefus } = i18n.messages;
+  const { LIBELLES_DES_CIBLES, NOM_DU_PROFIL, TEXTES_DES_INTENSITES, TEXTES_DES_REGLAGES, buteeDuReglage, nombreEcrit, nombreInvalide, origineDesParts, plageSureDuReglage, texteDuRefus } = i18n.messages;
 
-  /** Le texte d'un champ : la teinte signée en degrés, la saturation en pour cent, la luminosité signée. */
-  const ecrire = (grandeur: Grandeur, valeur: number): Texte =>
-    grandeur === 'teinte' ? teinteReglee(valeur) : grandeur === 'saturation' ? saturationReglee(valeur) : luminositeReglee(valeur);
-
-  /** La valeur qu'un champ saisi porte, sans signe typographique ni unité ; la saturation se lit en pour cent. */
-  function lire(grandeur: Grandeur, saisie: string): number | null {
-    const nombre = lireNombre(saisie.replace(/[°%\s+]/g, '').replace('−', '-'));
-    if (nombre === null) return null;
-    return grandeur === 'saturation' ? nombre / 100 : nombre;
-  }
+  const { ecrire, lire, boutsDe } = outilsDesGrandeurs(i18n);
 
   function createReglagesDeLaPalette(gestes: GestesDesReglages): ReglagesDeLaPaletteUi {
     const element = document.createElement('div');
@@ -281,31 +269,6 @@ function construireVues(i18n: Localisation) {
       valider(grandeurs.includes('saturation') ? retablirLaSaturation(recette, sansSaturation, cibleDuGeste()) : sansSaturation);
     }
 
-    /** Les mots des deux bouts d'une piste ; ceux de la teinte nomment les familles voisines de la teinte affichée. */
-    function boutsDe(grandeur: Grandeur, teinte: number): { gauche: Texte; droite: Texte } {
-      if (grandeur !== 'teinte') return TEXTES_DES_REGLAGES.bouts[grandeur];
-      const { bouts, familles } = TEXTES_DES_REGLAGES;
-      return { gauche: bouts.teinte(familles[familleVoisine(teinte, -1)]), droite: bouts.teinte(familles[familleVoisine(teinte, 1)]) };
-    }
-
-    /** La piste peinte d'une grandeur : des couleurs fabriquées par le moteur, de la borne basse à la borne haute. */
-    function peindre(recette: Recette, palette: Palette, profil: Profil, grandeur: Grandeur, valeurs: Record<Grandeur, number>): string {
-      const intensite = aUneIntensite(palette) ? 'unique' : profil;
-      const pivot = pivotDe(recette, palette, intensite);
-      // La référence est une couleur du thème Light : la piste en prend l'enveloppe ([MOT-35]).
-      const enveloppe = enveloppeDe(recette, intensite, 'light');
-      const { min, max } = CURSEURS[grandeur];
-      const depart = { L: pivot.L + valeurs.luminosite, H: pivot.H - valeurs.teinte, part: valeurs.saturation };
-      const couleurs = Array.from({ length: 9 }, (_, rang) => {
-        const x = min + ((max - min) * rang) / 8;
-        const L = grandeur === 'luminosite' ? pivot.L + x : depart.L;
-        const H = grandeur === 'teinte' ? depart.H + x : pivot.H;
-        const part = grandeur === 'saturation' ? x : depart.part;
-        return fabriquerCran(Math.min(1, Math.max(0, L)), H, Math.min(1, Math.max(0, part)), recette.gamut, enveloppe).hexa;
-      });
-      return `linear-gradient(to right, ${couleurs.join(', ')})`;
-    }
-
     /** Lance le calcul des trois limites quand l'état jugé ou la cible a changé, carte ouverte, hors d'un geste ([DER-20]). */
     function lancerLesLimites(recette: Recette, palette: Palette, valeurs: Record<Grandeur, number>, grise: boolean): void {
       if (!ouverte || avantLeGeste) return;
@@ -390,7 +353,7 @@ function construireVues(i18n: Localisation) {
           permises,
           pas,
           grandPas,
-          piste: peindre(recette, palette, profil, grandeur, valeurs),
+          piste: peindreLaGrandeur(recette, palette, profil, grandeur, valeurs),
           texte: ecrire(grandeur, valeur),
           etiquette: etiquetteDe(grandeur),
           annonce: permises ? i18n.composer`${ecrire(grandeur, valeur)}, ${plageSureDuReglage([{ grandeur: TEXTES_DES_REGLAGES.grandeurs[grandeur], bas: ecrire(grandeur, permises.bas), haut: ecrire(grandeur, permises.haut) }])}` : ecrire(grandeur, valeur),

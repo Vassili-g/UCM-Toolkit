@@ -1161,6 +1161,55 @@
   vertical-align: middle;
 }
 
+/*
+ * Les ajouts d'Harmonisation à la réglette ([UI-42]) : les zones où la palette
+ * réglée est trop proche d'une autre, le cerne du champ dont la valeur y
+ * tombe, et le point de chaque autre palette cochée, au-dessus de la course.
+ */
+.reglette-proche {
+  position: absolute;
+  top: 5px;
+  height: 12px;
+  background: repeating-linear-gradient(135deg, var(--texte-avertissement) 0 1.5px, transparent 1.5px 4.5px);
+  box-shadow: inset 2px 0 var(--texte-avertissement), inset -2px 0 var(--texte-avertissement);
+  pointer-events: none;
+}
+
+.champ-nombre.champ-proche {
+  box-shadow: inset 0 0 0 1px var(--texte-avertissement);
+}
+
+.marque-palette {
+  position: absolute;
+  top: -9px;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--fond);
+  pointer-events: auto;
+}
+
+.marque-palette::after {
+  position: absolute;
+  top: 9px;
+  left: 3.5px;
+  width: 2px;
+  height: 7px;
+  background: var(--texte-second);
+  content: '';
+}
+
+.reglages-harmonie {
+  display: grid;
+}
+
+.bascule-option .pastille-reglee {
+  display: inline-block;
+  margin-left: 3px;
+  vertical-align: middle;
+}
+
 /* Les onglets de grandeur ([DER-18]) : le nom, sa pastille, et les deux valeurs dessous. */
 .onglets-de-grandeur {
   display: grid;

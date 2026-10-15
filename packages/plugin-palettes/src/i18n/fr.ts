@@ -212,6 +212,16 @@ export const TEXTES_DE_L_HARMONISATION = {
       luminosite: (intensite: Profil, palette: string, sens: 'claire' | 'foncee') => [`En ${NOM_DU_PROFIL[intensite]}, `, palette, ` est plus ${sens === 'claire' ? 'claire' : 'foncée'} que les autres.`],
     },
   },
+  /** [UI-42] La carte qui règle la teinte, la saturation et la luminosité des palettes cochées. */
+  reglages: {
+    titre: 'Réglages',
+    sousTitre: 'Teinte, saturation et luminosité de chaque palette',
+    uneIntensite: 'une intensité',
+    palette: 'Palette à régler',
+    annuler: 'Annuler les modifications',
+    figee: 'Palette figée : ses couleurs ne se règlent pas.',
+    marque: (nom: string, valeur: string) => `${nom} : ${valeur}`,
+  },
 };
 
 /** Le nom accessible de l'onglet Vérification, complété du bilan de la palette ouverte : « Vérification, 1 garantie manquée ». */

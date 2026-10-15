@@ -2449,6 +2449,36 @@ Onglet Harmonisation :
   `src/ui/harmonisation/carteComparaison.ts` ; `constatsDeLaComparaison` et
   `choisirAffichage` sont dans `src/harmonisation.ts`.
 
+- `[UI-42]` La carte « Réglages » paraît dès deux palettes cochées. Sa bascule
+  « Régler » nomme les cochées dans l'ordre de cochage et choisit la palette
+  réglée ; un point suit le nom d'une palette modifiée. Trois réglettes de
+  Création règlent cette palette dans l'intensité vue : la teinte décale les
+  deux intensités du même écart par `candidatDeTeinte`, la saturation et la
+  luminosité ne touchent que l'intensité vue, par `reglerSaturation` et
+  `reglerClarte`. Une palette à une intensité règle sa seule rampe. Sur la
+  piste de teinte, `zonesTropProches` contre chaque autre cochée hachure les
+  valeurs trop proches et le champ porte un cerne tant que la valeur y tombe,
+  et `courseDeTeinte` borne la piste : la course que les garanties refusent se
+  lit comme hors de la piste. Sur les deux autres pistes, un point marque la
+  valeur de chaque autre cochée. La course et les zones se calculent au repos ;
+  un glisser garde celles de son départ, et la recette, les paires, les
+  constats et le compteur se repeignent à chaque image. Un glisser se
+  prévisualise, sa fin range la recette par la frontière, Échap rend la palette
+  d'avant. Une palette figée affiche « Palette figée : ses couleurs ne se
+  règlent pas. » à la place des réglettes. Le départ d'une palette est la
+  palette au premier réglage depuis l'entrée dans l'onglet, par identifiant.
+  « Annuler les modifications » paraît quand la palette réglée en diffère
+  (teinte de 0,5° ou plus, saturation de 0,005, luminosité de 0,0005) et lui
+  rend la référence, `originale`, `base`, `reglages` et `parts` de ce départ,
+  à elle seule, par la frontière, sans appeler `annulerLesModifications` de la
+  session : le changement fait dans Création avant l'entrée et les autres
+  palettes restent. Un refus de la validation, ou un rangement que le sandbox
+  juge invalide, rend la recette et les départs d'avant le geste ; un conflit
+  d'enregistrement ne rend rien. La carte est dans
+  `src/ui/harmonisation/carteReglages.ts` ; `memoriserLeDepart`,
+  `modifieeDepuisLeDepart`, `restaurerLesReglages` et `annulerLaPalette` sont
+  dans `src/harmonisation.ts`.
+
 - `[UI-45]` Le socle expose `definirDisponible(id, disponible)`. Un onglet
   indisponible porte `disabled` et `aria-disabled="true"`. Le clic et
   `selectionner` refusent de l'activer ; les flèches, Début et Fin le

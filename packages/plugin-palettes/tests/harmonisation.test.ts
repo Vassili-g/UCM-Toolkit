@@ -2,9 +2,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { candidatDeTeinte, pairesTropProches, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
+import { candidatDeTeinte, cleDuPorteur, pairesTropProches, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
-import { choisirAffichage, choisirPaletteARegler, cocherPalette, constatsDeLaComparaison, comparerLaPaire, entrerEnHarmonisation, paletteARegler, harmonisationInitiale, synchroniserHarmonisation, toutDecocher } from '../src/harmonisation';
+import { reglerClarte, reglerSaturation, remplacerPalette } from '../src/edition';
+import { valeursDesProfils } from '../src/reglagesParDefaut';
+import { annulerLaPalette, choisirAffichage, choisirPaletteARegler, cocherPalette, constatsDeLaComparaison, comparerLaPaire, entrerEnHarmonisation, memoriserLeDepart, modifieeDepuisLeDepart, paletteARegler, harmonisationInitiale, restaurerLesReglages, synchroniserHarmonisation, toutDecocher } from '../src/harmonisation';
 import { paletteTailwind, recetteAvec } from '../../couleur/tests/fabrique';
 
 const defaut = recetteParDefaut();
@@ -199,4 +201,94 @@ test('[UI-41] une palette à une intensité se lit sous « unique » pour sa sat
     const constats = constatsDeLaComparaison(recette, { ...etat, intensite }, []);
     assert.deepEqual(constats.filter(({ genre }) => genre === 'luminosite'), [{ ton: 'info', genre: 'luminosite', intensite, palette: une.id, sens: 'claire' }]);
   }
+});
+
+const A_REGLER = paletteTailwind('p-000000c1', '#1E6FD9', { nom: 'A' });
+const B_REGLEE = paletteTailwind('p-000000c2', '#DC2626', { nom: 'B' });
+const C_DE_CREATION = paletteTailwind('p-000000c3', '#16A34A', { nom: 'C' });
+
+/** Une session : C réglée dans Création, l'entrée dans l'onglet, puis A et B réglées dans l'onglet. */
+function session() {
+  const initiale = recetteAvec(A_REGLER, B_REGLEE, C_DE_CREATION);
+  const apresCreation = remplacerPalette(initiale, reglerClarte(initiale, C_DE_CREATION, 'vivid', 0.03));
+  let etat = entrerEnHarmonisation(harmonisationInitiale());
+  const regler = (lue: Recette, id: string, vers: (palette: Palette) => Palette): Recette => {
+    const avant = lue.palettes.find((palette) => palette.id === id)!;
+    etat = memoriserLeDepart(etat, avant);
+    return remplacerPalette(lue, vers(avant));
+  };
+  const apresA = regler(apresCreation, A_REGLER.id, (palette) => candidatDeTeinte(apresCreation, palette, 12));
+  const apresB = regler(apresA, B_REGLEE.id, (palette) => reglerSaturation(apresA, palette, 'vivid', 0.5));
+  return { initiale, apresCreation, apresB, etat };
+}
+const de = (lue: Recette, id: string): Palette => lue.palettes.find((palette) => palette.id === id)!;
+
+test('[UI-42] le premier réglage d’une palette garde son départ, les suivants le laissent', () => {
+  const { apresCreation, etat } = session();
+  assert.deepEqual([...etat.departs.keys()], [A_REGLER.id, B_REGLEE.id]);
+  assert.deepEqual(etat.departs.get(A_REGLER.id), de(apresCreation, A_REGLER.id));
+  const deuxFois = memoriserLeDepart(etat, candidatDeTeinte(apresCreation, A_REGLER, 5));
+  assert.equal(deuxFois, etat);
+  assert.equal(entrerEnHarmonisation(etat).departs.size, 0);
+});
+
+test('[UI-42] une palette est modifiée dès 0,5° de teinte, 0,005 de saturation ou 0,0005 de luminosité, et ne l’est plus de retour au départ', () => {
+  const recette = recetteAvec(A_REGLER);
+  const modifiee = (palette: Palette): boolean => modifieeDepuisLeDepart(recette, palette, A_REGLER);
+  assert.equal(modifiee(A_REGLER), false);
+  assert.equal(modifiee({ ...A_REGLER, reglages: { teinte: { vivid: 0.4 } } }), false);
+  assert.equal(modifiee({ ...A_REGLER, reglages: { teinte: { soft: 0.5 } } }), true);
+  assert.equal(modifiee({ ...A_REGLER, reglages: { clarte: { vivid: 0.0004 } } }), false);
+  assert.equal(modifiee({ ...A_REGLER, reglages: { clarte: { soft: 0.0005 } } }), true);
+  assert.equal(modifiee(reglerSaturation(recette, A_REGLER, 'soft', 0.5)), true);
+  const saturationDeDepart = valeursDesProfils(recette, A_REGLER).soft.saturation;
+  assert.equal(modifiee(reglerSaturation(recette, reglerSaturation(recette, A_REGLER, 'soft', 0.5), 'soft', saturationDeDepart)), false);
+  const une = { ...A_REGLER, id: 'p-000000c4', intensites: 1 as const };
+  assert.equal(modifieeDepuisLeDepart(recetteAvec(une), candidatDeTeinte(recetteAvec(une), une, 3), une), true);
+});
+
+test('[UI-42] annuler rend la palette choisie à son départ, sans défaire Création ni la seconde palette', () => {
+  const { initiale, apresCreation, apresB, etat } = session();
+  const issue = annulerLaPalette(apresB, etat, A_REGLER.id);
+  assert.ok(issue && 'recette' in issue);
+  // A reprend son départ : celui d'après Création, qui garde donc le changement de Création.
+  assert.deepEqual(de(issue.recette, A_REGLER.id), de(apresCreation, A_REGLER.id));
+  assert.notDeepEqual(de(apresB, A_REGLER.id), de(apresCreation, A_REGLER.id));
+  // B garde son réglage de l'onglet, C le changement de Création que le départ de l'onglet n'a jamais défait.
+  assert.deepEqual(de(issue.recette, B_REGLEE.id), de(apresB, B_REGLEE.id));
+  assert.deepEqual(de(issue.recette, C_DE_CREATION.id), de(apresCreation, C_DE_CREATION.id));
+  assert.notDeepEqual(de(issue.recette, C_DE_CREATION.id), de(initiale, C_DE_CREATION.id));
+  // Les départs restent : la palette n'est plus modifiée, les autres le sont.
+  assert.equal(etat.departs.size, 2);
+  assert.equal(modifieeDepuisLeDepart(issue.recette, de(issue.recette, A_REGLER.id), etat.departs.get(A_REGLER.id)!), false);
+  assert.equal(modifieeDepuisLeDepart(issue.recette, de(issue.recette, B_REGLEE.id), etat.departs.get(B_REGLEE.id)!), true);
+  assert.equal(annulerLaPalette(issue.recette, etat, A_REGLER.id), null);
+  assert.equal(annulerLaPalette(apresB, etat, C_DE_CREATION.id), null);
+  assert.equal(annulerLaPalette(apresB, harmonisationInitiale(), A_REGLER.id), null);
+});
+
+test('[UI-42] annuler rend aussi la référence que le réglage du profil porteur avait déplacée', () => {
+  const lue = recetteAvec(A_REGLER);
+  const porteur = cleDuPorteur(lue, A_REGLER);
+  const reglee = reglerClarte(lue, A_REGLER, porteur === 'soft' ? 'vivid' : 'soft', 0.05);
+  const porteurRegle = reglerClarte(lue, reglee, porteur, -0.04);
+  const etat = memoriserLeDepart(harmonisationInitiale(), reglee);
+  assert.notEqual(porteurRegle.reference, reglee.reference);
+  const issue = annulerLaPalette(remplacerPalette(lue, porteurRegle), etat, A_REGLER.id);
+  assert.ok(issue && 'recette' in issue);
+  assert.deepEqual(de(issue.recette, A_REGLER.id), reglee);
+  assert.deepEqual(restaurerLesReglages({ ...porteurRegle, nom: 'Renommée' }, reglee), { ...reglee, nom: 'Renommée' });
+});
+
+test('[UI-42] un refus de la recette restaurée laisse la recette, les départs et la palette comme ils étaient', () => {
+  const { apresB, etat } = session();
+  const depart = { ...de(apresB, A_REGLER.id), reglages: { teinte: { vivid: 45 } } };
+  const aDepartInvalide = { ...etat, departs: new Map(etat.departs).set(A_REGLER.id, depart) };
+  const avant = structuredClone(apresB);
+  const departsAvant = new Map(aDepartInvalide.departs);
+  const issue = annulerLaPalette(apresB, aDepartInvalide, A_REGLER.id);
+  assert.ok(issue && 'refus' in issue);
+  assert.equal(typeof issue.refus.regle, 'string');
+  assert.deepEqual(apresB, avant);
+  assert.deepEqual(aDepartInvalide.departs, departsAvant);
 });

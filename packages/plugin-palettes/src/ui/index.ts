@@ -87,6 +87,7 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
 
   const frontiere = createFrontiere(versSandbox, (statut, refus) => {
     ongletCreation.poserStatut(statut, refus);
+    ongletHarmonisation.poserStatut(statut);
     ongletGestion.bloquer(statut === 'refuse' ? TEXTES.conflitEnCours : null);
     // Une recette rangée peut périmer des cadres ([PLA-20]).
     if (statut === 'range') afficherLaPlanche();
@@ -234,7 +235,15 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     versGestion: () => allerA('gestion'),
   });
 
-  const ongletHarmonisation = createOngletHarmonisation(paletteOuverte);
+  // Les réglages d'Harmonisation passent par la recette de Création, qui la montre et la range.
+  const ongletHarmonisation = createOngletHarmonisation(paletteOuverte, {
+    previsualiser: (recette) => ongletCreation.previsualiser(recette),
+    restaurer(recette) {
+      ongletCreation.previsualiser(recette);
+      ongletCreation.rendreSiDiffere();
+    },
+    ranger: (recette) => ongletCreation.appliquer(recette),
+  });
 
   const ongletGestion = createOngletGestion({
     ...gestesDuResultat,

@@ -2014,4 +2014,18 @@ ETATS.push({
   ],
 });
 
+ETATS.push({
+  id: 'harmonisation-distinguee',
+  titre: 'Une paire distinguée par la teinte dans Harmonisation',
+  quand: 'Le fichier porte vingt palettes dont dix paires sont trop proches ; le designer clique « Comparer » sur la paire Indigo et Azur, puis pousse la teinte d’Indigo d’un degré, de 0° à +1°, hors de la zone hachurée.',
+  regarder: 'Le compteur de l’onglet et la ligne fixe sont à 8 paires : Indigo ne forme plus de paire avec Azur ni avec Bleu. Dans « Comparaison », le constat de la paire est devenu vert (« Ces palettes se distinguent, en Light et en Dark. »). La carte « Réglages » (résumé « Vivid ») porte, sous « Régler Indigo | Azur », « Annuler les modifications » à gauche, et un point bleu après « Indigo » dans « Régler ». La réglette Teinte lit « +1° » et 278°, la zone hachurée a disparu de sa piste, la marque « par défaut » est à 0° ; Saturation et Luminosité portent le point d’Azur.',
+  existe: true,
+  sansPaletteChoisie: true,
+  atteinte: [
+    etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ONGLET_HARMONISATION,
+    { clic: `.paire[data-paire="${identifiantDuBilan(7)} ${identifiantDuBilan(18)}"] .bilan-verifier` },
+    { touche: { dans: '#panneau-harmonisation .reglages-harmonie [role="slider"]', cle: 'ArrowRight' }, attendre: '#panneau-harmonisation .reglages-harmonie[data-limites="pretes"]' },
+  ],
+});
+
 module.exports = { ETATS: ETATS.map(avecLaPremierePalette), SAUGE: { palette: (variante) => sauge(variante).palette, recette: recetteDeLaGalerie(), rampesDe } };

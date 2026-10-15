@@ -71,8 +71,9 @@ Règles d'économie, à tenir par l'orchestrateur :
 - Vague 3 (P1 à P8) et H0 faits, vérifiés et poussés le 15 octobre : suite
   complète et trois `test:ui` verts (Palettes 275, Exporter 39,
   explorateur 24).
-- **Prochaine étape** : la vague 4 à partir de H4 ; H1 (Codex), H2 et H3 sont
-  faits.
+- **Prochaine étape** : la vague 4 à partir de H5 ; H1 (Codex) à H4 sont
+  faits. L'état `vision` de `PAL/src/harmonisation.ts` range des libellés
+  français : H5 le passe en identifiants.
 - stone-950 (M4) : le mainteneur garde le comportement ; le test juge
   l'écart de couleur, sous 0,02 ΔEok (`desaturees.test.ts`).
 
@@ -1025,7 +1026,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Galerie : `harmonisation-niveaux-de-gris` (écran H5).
   - Fini quand : vert ; capture conforme à H4 et H5.
 
-- [ ] **H4 · Carte « Réglages »** · `implementeur-exigeant`, haut.
+- [x] **H4 · Carte « Réglages »** · `implementeur-exigeant`, haut.
   - SPEC, section 7.7 ; PR6 (palette figée, annulation) ; identifiant
     `[UI-42]`. Réemploie les réglettes et options de P6 ; la teinte passe par
     `candidatDeTeinte` (H0), saturation et luminosité par les gestes de
