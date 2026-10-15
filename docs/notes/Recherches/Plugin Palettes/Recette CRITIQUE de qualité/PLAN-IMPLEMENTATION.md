@@ -60,16 +60,15 @@ Règles d'économie, à tenir par l'orchestrateur :
    s'arrête et rend la question ; l'orchestrateur tranche d'après
    DECISIONS.md, ou demande au mainteneur si DECISIONS.md ne répond pas.
 
-## Point de reprise (14 octobre 2026, au soir)
+## Point de reprise (15 octobre 2026)
 
-- Poussé : vagues 0 et 1 (kit 0.6.0, cli 0.1.56, adapter 0.1.49 publiés).
-- Commité sur `main`, **pas encore poussé** : M0 à M6, la reprise des états
-  de bilan (e915511), P1, et le travail de Codex sur S1, D3 et H5a
-  ([REPRISE-CODEX-S1-D3-H5A.md](./REPRISE-CODEX-S1-D3-H5A.md)).
-- **Prochaine étape** : la vérification de fin de vague 2, qui couvre aussi
-  S1 (`npm test`, `npm run typecheck`, `npm run build`, les trois `test:ui`).
-  Si elle est verte, cocher S1, D3 et H5a, puis pousser.
-- Ensuite, la vague 3 dans l'ordre P2, P6, P7, P3, P4, P5, P8.
+- Poussé : vagues 0 à 2 (kit 0.6.0, cli 0.1.56, adapter 0.1.49 publiés), P1,
+  et le travail de Codex sur S1, D3 et H5a
+  ([REPRISE-CODEX-S1-D3-H5A.md](./REPRISE-CODEX-S1-D3-H5A.md)). La
+  vérification de fin de vague 2 est verte : `npm test`, `npm run typecheck`,
+  `npm run build` et les trois `test:ui` (Palettes 265, Exporter 39,
+  explorateur 24).
+- **Prochaine étape** : la vague 3 dans l'ordre P2, P6, P7, P3, P4, P5, P8.
 - Question au mainteneur : une référence plus sombre que le bout sombre
   (stone-950) prend toute la dérive vers le clair (M4) ; test `todo` dans
   `packages/couleur/tests/desaturees.test.ts`.
@@ -735,7 +734,7 @@ Les tâches sont successives.
   Mesure faite : le paquet et le mode produit du banc comptent 144 promesses
   manquées, toutes G1 en Dark inversé ; G2 à G7 aucune. Reporté dans
   DECISIONS.md, section 4. Les états de bilan de la galerie suivent le moteur
-  (e915511). Suite complète et push : après le retour de Codex sur S1 et D3.
+  (e915511). Suite complète verte et push le 15 octobre, avec S1 et D3.
   - Protocole, écrit par l'`implementeur` :
     - `D/Mesures/garanties-regles.ts` reçoit un mode « produit » (variable
       d'environnement `MODE=produit`) qui ne juge que les garanties du
@@ -756,7 +755,8 @@ Les tâches sont successives.
 ### Vague 3 · Palettes hors Harmonisation
 
 Ordre suivi : P1, P2, P6 et P7 pendant que Codex fait S1 ; P3, P4 et P5,
-qui touchent le socle et `socleLocalise.ts`, après l'intégration de S1.
+qui touchent le socle et `socleLocalise.ts`, après l'intégration de S1, que
+Codex a terminée.
 
 Les tâches sont successives : plusieurs partagent `styles.css`, `i18n` et
 `tests/interface/interface.test.mjs`.
@@ -935,7 +935,7 @@ Identifiants réservés, section de l'onglet Harmonisation à créer dans
 SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
 (H5 en prend deux) ; H6 prend `[VER-23]` ; S1 prend `[UI-45]`.
 
-- [ ] **S1 · Les onglets indisponibles du socle** · `implementeur`, moyen.
+- [x] **S1 · Les onglets indisponibles du socle** · `implementeur`, moyen.
   - Reprise Codex à relire : [fichiers, résultats et points de raccordement](./REPRISE-CODEX-S1-D3-H5A.md#s1).
   - `SOC/src/ui/Onglets.ts` : chaque onglet peut être déclaré indisponible
     (`definirDisponible(id, disponible)`) ; un onglet indisponible porte
@@ -1037,7 +1037,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Fini quand : vert ; glisser la teinte hors de la zone éteint le constat
     et le compteur (test d'interface).
 
-- [ ] **H5a · Les matrices de vision des couleurs** · `chercheur`.
+- [x] **H5a · Les matrices de vision des couleurs** · `chercheur`.
   - Reprise Codex à relire : [fichiers, résultats et points de raccordement](./REPRISE-CODEX-S1-D3-H5A.md#h5a).
   - Question : les matrices de simulation de la deutéranopie, de la
     protanopie et de la tritanopie de Machado, Oliveira et Fernandes (2009),
@@ -1114,7 +1114,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Fini quand : la liste des identifiants de la section 7 de ce plan est
     entièrement trouvée, chacun dans SPEC-PAL et dans un nom de test.
 
-- [ ] **D3 · L'architecture de référence** · `implementeur`, moyen.
+- [x] **D3 · L'architecture de référence** · `implementeur`, moyen.
   - Reprise Codex à relire : [fichiers, résultats et points de raccordement](./REPRISE-CODEX-S1-D3-H5A.md#d3).
   - Fichier :
     `docs/notes/Recherches/Archi Tokens Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md`.
