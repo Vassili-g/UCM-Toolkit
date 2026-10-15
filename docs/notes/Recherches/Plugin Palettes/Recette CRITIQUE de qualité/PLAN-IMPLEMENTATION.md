@@ -1069,6 +1069,10 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - Fini quand : vert.
 
 - [ ] **H7 · Revue au pixel et fin de vague** · `implementeur`, puis `verificateur`, puis orchestrateur.
+  - Préalable fait le 15 octobre : `generer-ensembles.ts` lit la table du
+    kit, `pairesTropProches` et les calculs de H0, et les vingt palettes de
+    `etats.cjs` ; 880 couleurs égales à celles de la galerie. Le relancer
+    si la galerie ou le moteur changent.
   - Avant les captures, l'`implementeur` régénère les données de la maquette
     avec le moteur de la vague 2 et la recette des états de galerie :
     `npx tsx "D/Mesures/generer-ensembles.ts"`, puis vérifie que les couleurs
@@ -1144,7 +1148,9 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
   - `npm test`, `npm run typecheck`, `npm run build`, `test:ui` des trois
     plugins. Fini quand : tout est vert.
 
-- [ ] **F2 · Publier le kit** · `executant`.
+- [x] **F2 · Publier le kit** · `executant`.
+  - Fait en vague 1 (a5e19bb : kit 0.6.0, cli 0.1.56, adapter 0.1.49) ; le
+    kit n'a pas changé depuis.
   - Le kit ne dépend pas de la recette Figma : sa publication n'attend pas
     F4.
   - Modèle : le commit `65ba56f` (« chore: versions »). `@ucm-kit/core`
