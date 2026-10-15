@@ -28,17 +28,16 @@
  * temps, et le résultat n'en dépend que si le budget s'épuise.
  */
 import { ecrireHexa, encoder, lireHexa, normaliserTeinte, oklchVersLineaire, rgb8VersOklch, type Rgb8 } from './conversions';
+import { bosseDeChroma } from './bosse';
 import { boutsDe, grilleDe } from './nuances';
-import { enveloppeDe, fondsSombresDe, partDeLaReference, partsDe, rangPorteur, rampesDe } from './palette';
+import { clarteSelonLaTeinte, enveloppeDe, fondsSombresDe, partDeLaReference, partsDe, rangPorteur, rampesDe } from './palette';
 import { plafond } from './plafond';
 import {
   MODES,
   PROFILS,
   arrondir,
-  facteurSombre,
-  cranVise,
   fabriquerCran,
-  poidsA,
+  viseesDeLaRampe,
   type Bouts,
   type Derive,
   type FondsSombres,
@@ -139,6 +138,8 @@ type Hexas = { [P in Profil]?: { [M in Mode]?: string[] } };
 interface Cadre {
   readonly recette: Recette;
   readonly crans: readonly number[];
+  /** Vrai quand la liste de la palette figée est celle de la recette : les palettes essayées sont alors communes, sans `crans`. */
+  readonly commune: boolean;
   readonly courbes: { readonly light: readonly number[]; readonly dark: readonly number[] };
   readonly bouts: Bouts;
   readonly sombre: FondsSombres;
@@ -170,6 +171,24 @@ function rampesFigees(figees: PaletteFigee, recette: Recette, unique: boolean) {
     ...(unique ? { intensites: 1 as const } : {}),
   };
   return rampesDe(recette, palette);
+}
+
+/**
+ * La clarté selon la teinte que le moteur ajoute à une palette commune de
+ * départ `depart` (`clarteSelonLaTeinte`), sans la garde que seule la palette
+ * entière permet. Nulle quand les palettes essayées sont libres : le moteur ne
+ * leur ajoute rien.
+ */
+function clarteDuPreregle(c: Cadre, depart: Rgb8): number {
+  if (!c.commune) return 0;
+  const nul = { clair: 0, sombre: 0, origine: 'constante' as const };
+  const sonde: Palette = {
+    id: ID_DE_TRAVAIL,
+    reference: hexa(depart),
+    derive: { lien: true, soft: nul, vivid: nul },
+    ...(c.unique ? { intensites: 1 as const } : {}),
+  };
+  return clarteSelonLaTeinte(c.recette, sonde).clair;
 }
 
 function bati(recette: Recette, figee: PaletteFigee): Cadre | null {
@@ -206,6 +225,7 @@ function bati(recette: Recette, figee: PaletteFigee): Cadre | null {
   return {
     recette,
     crans: figee.crans,
+    commune: figee.crans.length === recette.crans.length && figee.crans.every((numero, rang) => numero === recette.crans[rang]),
     courbes: grille.courbes,
     bouts: boutsDe(recette),
     sombre: fondsSombresDe(recette),
@@ -314,19 +334,37 @@ const NB_PARAMETRES = 1 + 2 * NOMS.length;
 
 const nomDe = (i: number): Nom => NOMS[(i - 1) % NOMS.length];
 
-/** Les rampes du modèle, en canaux flottants 0 à 255, calculées comme `fabriquerRampe` sans l'arrondi final. */
-function rampeFlottante(c: Cadre, x: readonly number[], profil: Profil, mode: Mode): number[][] {
+/**
+ * Les rampes du modèle, en canaux flottants 0 à 255 : les cibles de
+ * `viseesDeLaRampe` sans l'arrondi final, avec la bosse de chroma de
+ * l'intensité porteuse à pleine force. La clarté selon la teinte du candidat
+ * s'ajoute à la luminosité `lc` du bout clair, et l'enveloppe se lit sans elle,
+ * comme dans le moteur. La garde de la bosse et celle de la clarté ne sont pas
+ * modélisées : `rampesDe` les applique à chaque palette essayée.
+ */
+function rampeFlottante(c: Cadre, x: readonly number[], profil: Profil, mode: Mode, k: Candidat): number[][] {
   const lire = (nom: Nom): number => x[indice(profil, nom)];
-  const pivot = { L: x[0], C: 0, H: 0 };
-  return c.courbes[mode].map((L) => {
-    const { bout, poids } = poidsA(L, pivot, c.bouts);
-    const clair = bout === 'clair';
-    const part = borner(lire('p') * (1 + (clair ? lire('sc') : lire('ss')) * poids));
-    const clarte = borner(L + lire('delta') + (clair ? lire('lc') : lire('ls')) * poids);
-    const teinte = normaliserTeinte(lire('Hp') + (clair ? lire('dc') : lire('ds')) * poids);
-    const { C } = cranVise(clarte, teinte, part * (mode === 'dark' ? facteurSombre(L, c.sombre) : 1), 'srgb', enveloppeDe(c.recette, profil, mode));
-    return oklchVersLineaire({ L: clarte, C, H: teinte }).map((v) => 255 * encoder(borner(v)));
+  const visees = viseesDeLaRampe({
+    courbe: c.courbes[mode],
+    bouts: c.bouts,
+    reference: { L: x[0], C: 0, H: lire('Hp') },
+    derive: {
+      clair: lire('dc'),
+      sombre: lire('ds'),
+      saturation: { clair: lire('sc'), sombre: lire('ss') },
+      clarte: { clair: lire('lc') + k.decalage, sombre: lire('ls') },
+    },
+    part: lire('p'),
+    gamut: c.recette.gamut,
+    sombre: mode === 'dark' ? c.sombre : undefined,
+    decalage: lire('delta'),
+    enveloppe: enveloppeDe(c.recette, profil, mode),
+    clairs: mode === 'light' ? c.recette.profils[profil].clairs : 1,
+    decalageDeClarteGarde: k.decalage,
   });
+  const rang = profil === k.cle ? (mode === 'light' ? k.rl : k.rd) : -1;
+  const bosse = rang >= 0 ? bosseDeChroma(visees, rang, mode, k, profil !== 'soft') : null;
+  return visees.map((visee, i) => oklchVersLineaire(bosse ? { ...visee, C: bosse[i] } : visee).map((v) => 255 * encoder(borner(v))));
 }
 
 /** Ce que l'ajustement compare : les nuances observées, hors ancrages. */
@@ -339,6 +377,8 @@ interface Candidat {
   readonly L: number;
   readonly H: number;
   readonly C: number;
+  /** La clarté selon la teinte que le moteur ajoute à la palette essayée ; nulle si elle est libre. */
+  readonly decalage: number;
   readonly ancres: Set<string>;
 }
 
@@ -347,7 +387,7 @@ function residus(c: Cadre, x: readonly number[], k: Candidat): number[] {
   for (const cle of c.cles) {
     for (const mode of MODES) {
       if (!c.presents[cle]![mode]) continue;
-      const modele = rampeFlottante(c, x, cle, mode);
+      const modele = rampeFlottante(c, x, cle, mode, k);
       const lus = c.octets[cle]![mode]!;
       modele.forEach((canaux, rang) => {
         if (k.ancres.has(`${cle}/${mode}/${rang}`)) return;
@@ -465,8 +505,9 @@ function deriveDe(x: readonly number[], cle: Profil): Derive & { origine: 'libre
 
 /**
  * Les paramètres de la recherche en palette du moteur, dans la forme que la
- * recette range : la liste de la palette figée est conservée, donc le porteur
- * se range dans `reglages.porteur`, jamais dans `base` ([ENT-11]). Sans autre
+ * recette range : la palette garde sa liste `crans` sauf si c'est celle de la
+ * recette. Le porteur se range dans `reglages.porteur`, jamais dans `base`
+ * ([ENT-11]), que la liste libre refuse. Sans autre
  * réglage, un réglage de part égal à la part du porteur le range sans rien
  * changer aux rampes.
  */
@@ -483,7 +524,7 @@ function construirePalette(c: Cadre, x: readonly number[], k: Candidat, depart: 
   const base = {
     id: ID_DE_TRAVAIL,
     reference: hexa(k.couleur),
-    crans: c.crans,
+    ...(c.commune ? {} : { crans: c.crans }),
   };
   const reglages: { teinte?: typeof teinte; clarte?: typeof clarte; part?: number; porteur?: Profil } = {};
   if (Object.keys(teinte).length) reglages.teinte = teinte;
@@ -750,7 +791,7 @@ function candidat(c: Cadre, cle: Profil, rl: number, rd: number): Candidat {
   const lu = rgb8VersOklch(couleur);
   const ancres = new Set<string>([`${cle}/light/${rl}`]);
   if (rd >= 0) ancres.add(`${cle}/dark/${rd}`);
-  return { cle, rl, rd, couleur, L: lu.L, H: lu.H, C: lu.C, ancres };
+  return { cle, rl, rd, couleur, L: lu.L, H: lu.H, C: lu.C, decalage: clarteDuPreregle(c, couleur), ancres };
 }
 
 /** Les ancrages possibles, ceux de la référence connue d'abord. */
@@ -820,7 +861,7 @@ function etudier(c: Cadre, s: Suivi, valider: (p: Palette) => boolean, k: Candid
       id: ID_DE_TRAVAIL,
       reference: hexa(k.couleur),
       derive: { lien: true, soft: nul, vivid: nul },
-      crans: c.crans,
+      ...(c.commune ? {} : { crans: c.crans }),
       ...(c.unique ? { intensites: 1 as const } : { reglages: { porteur: k.cle } }),
     };
     const parts = partsDe(c.recette, sonde);
@@ -1075,6 +1116,9 @@ function rendre(c: Cadre, figee: PaletteFigee, palette: Palette): ReglagesRetrou
  * `reglages` remplace `figees` sur la palette : il porte `reference`, `derive`,
  * `parts`, `reglages` et `originale` selon le cas. La palette garde son
  * `id`, son `nom`, sa liste `crans` et, à une intensité, `intensites: 1`.
+ * Quand la liste est celle de la recette, les réglages valent pour la palette
+ * commune, sans `crans` : le moteur y ajoute la clarté selon la teinte et garde
+ * la bosse, ce qu'une palette libre ne reçoit pas.
  */
 export async function reconstruireLesReglages(
   recette: Recette,

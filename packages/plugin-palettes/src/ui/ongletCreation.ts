@@ -64,6 +64,7 @@ import {
   supprimer,
 } from '../edition';
 import { CIBLES_COMMUNES, carteDuMessage, grandeursModifieesDuColorShift, estLaPaletteNeutre, type CibleDAction } from '../presentation';
+import { paletteReglee } from './paletteReglee';
 import { reglagesModifies } from '../reglagesParDefaut';
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import { tokensDeLaPalette, type TokensDUnePalette } from '../variables/gestion';
@@ -161,32 +162,6 @@ const COULEUR_D_EXEMPLE = '#1E6FD9';
 const BUDGET_DE_LA_RECHERCHE_MS = 15000;
 
 type RampesCalculees = ReturnType<typeof rampesDe>;
-
-/** Vrai quand deux jeux de rampes portent les mêmes hexas, intensité par intensité et thème par thème. */
-function memesRampes(a: RampesCalculees, b: RampesCalculees): boolean {
-  const cles = new Set([...Object.keys(a), ...Object.keys(b)] as (keyof RampesCalculees)[]);
-  for (const cle of cles) {
-    const [rampeA, rampeB] = [a[cle], b[cle]];
-    if (!rampeA || !rampeB) return false;
-    for (const mode of ['light', 'dark'] as const) {
-      if (rampeA[mode].length !== rampeB[mode].length || rampeA[mode].some((cran, rang) => cran.hexa !== rampeB[mode][rang].hexa)) return false;
-    }
-  }
-  return true;
-}
-
-/**
- * La palette figée posée sur les réglages trouvés : `figees` part, le reste de
- * son identité demeure. Sa liste de nuances redevient celle de la recette quand
- * les rampes restent identiques à l'hexa près ; sinon elle la garde.
- */
-function paletteReglee(recette: Recette, figee: Palette, reglages: Partial<Palette>): Palette {
-  const { figees: _figees, ...sansFigees } = figee;
-  const reglee: Palette = { ...sansFigees, ...reglages };
-  const { crans, ...sansCrans } = reglee;
-  const communes = crans !== undefined && crans.length === recette.crans.length && crans.every((cran, rang) => cran === recette.crans[rang]);
-  return communes && memesRampes(rampesDe(recette, reglee), rampesDe(recette, sansCrans)) ? sansCrans : reglee;
-}
 
 /** Les jeux de couleurs d'une palette figée, par clé de rampe : `unique`, ou `soft` et `vivid`. */
 function figeesParCle(figees: NonNullable<Palette['figees']>): [keyof RampesCalculees, CouleursFigees][] {

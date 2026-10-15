@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  clarteSelonLaTeinte,
   rampesDe,
   reconstruireLesReglages,
   validerRecette,
@@ -18,9 +19,10 @@ import { RECETTE, figerLaPalette, graineDeRecherche, tirerLesPalettes } from './
 const TIRAGES = tirerLesPalettes(30);
 const tirage = (numero: number) => TIRAGES[numero - 1];
 
-/** La palette figée posée sur les réglages trouvés : `figees` part, le reste de l'identité demeure. */
+/** La palette figée posée sur les réglages trouvés : `figees` part, le reste de l'identité demeure, et la liste de nuances de la recette ne s'écrit pas. */
 function poser(figee: PaletteFigee, reglages: Partial<Palette>, intensites?: 1): Palette {
-  return { id: 'p-0000000a', nom: 'Poppy', crans: figee.crans, ...reglages, ...(intensites ? { intensites } : {}) } as Palette;
+  const commune = figee.crans.length === RECETTE.crans.length && figee.crans.every((numero, rang) => numero === RECETTE.crans[rang]);
+  return { id: 'p-0000000a', nom: 'Poppy', ...(commune ? {} : { crans: figee.crans }), ...reglages, ...(intensites ? { intensites } : {}) } as Palette;
 }
 
 function assertValide(palette: Palette): void {
@@ -38,7 +40,7 @@ function assertMemesRampes(figee: PaletteFigee, palette: Palette): void {
   }
 }
 
-const RAPIDES_SANS_REFERENCE = [6, 11, 17, 20, 21];
+const RAPIDES_SANS_REFERENCE = [6, 7, 11, 17, 20, 21];
 const RAPIDES_AVEC_REFERENCE = [12, 28];
 
 for (const numero of [...RAPIDES_SANS_REFERENCE, ...RAPIDES_AVEC_REFERENCE]) {
@@ -157,4 +159,45 @@ test('reconstruction : sans Dark, le thème Light se retrouve et le Dark recopi�
 test('reconstruction : une liste de nuances qui ne correspond pas aux couleurs rend null', async () => {
   const figee = figerLaPalette(RECETTE, tirage(1).palette);
   assert.equal(await reconstruireLesReglages(RECETTE, { ...figee, crans: figee.crans.slice(1) }), null);
+});
+
+/** Une palette de la mesure à une intensité, et ses couleurs figées. */
+function figeeUnique(numero: number): { palette: Palette; figee: PaletteFigee } {
+  const { palette: tiree } = tirage(numero);
+  const palette: Palette = {
+    id: tiree.id,
+    reference: tiree.reference,
+    derive: { lien: true, soft: tiree.derive.vivid, vivid: tiree.derive.vivid },
+    intensites: 1,
+  };
+  const rampe = rampesDe(RECETTE, palette).unique!;
+  const figee: PaletteFigee = {
+    crans: RECETTE.crans,
+    reference: palette.reference,
+    figees: { light: rampe.light.map((cran) => cran.hexa), dark: rampe.dark.map((cran) => cran.hexa) },
+  };
+  return { palette, figee };
+}
+
+for (const [numero, origine] of [[11, 'tailwind'], [3, 'constante']] as const) {
+  test(`reconstruction : la palette ${numero} reprise garde l'origine ${origine} et ne range pas la clarté selon la teinte`, async () => {
+    const { palette, figee } = figeeUnique(numero);
+    assert.notEqual(clarteSelonLaTeinte(RECETTE, palette).clair, 0, 'le tirage ne montre pas la clarté selon la teinte');
+    const resultat = await reconstruireLesReglages(RECETTE, figee, { graine: graineDeRecherche(numero) });
+    assert.ok(resultat);
+    assert.equal(resultat.ecart, 0);
+    const derive = resultat.reglages.derive!.vivid;
+    assert.equal(derive.origine, origine);
+    assert.equal(derive.clarte, undefined, 'le moteur ajoute la clarté selon la teinte à la lecture');
+  });
+}
+
+test('reconstruction : une palette à deux intensités sans réglage se reprend sans porteur rangé, Vivid portant', async () => {
+  const complete = figerLaPalette(RECETTE, tirage(19).palette);
+  const figee: PaletteFigee = { crans: complete.crans, figees: complete.figees };
+  const resultat = await reconstruireLesReglages(RECETTE, figee, { graine: graineDeRecherche(19) });
+  assert.ok(resultat);
+  assert.equal(resultat.ecart, 0);
+  assert.ok(!('reglages' in resultat.reglages), 'le porteur Vivid est celui du classement automatique');
+  assertMemesRampes(complete, poser(figee, resultat.reglages));
 });
