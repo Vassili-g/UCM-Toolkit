@@ -71,8 +71,10 @@ Règles d'économie, à tenir par l'orchestrateur :
 - Vague 3 (P1 à P8) et H0 faits, vérifiés et poussés le 15 octobre : suite
   complète et trois `test:ui` verts (Palettes 275, Exporter 39,
   explorateur 24).
-- **Prochaine étape** : H7, la revue au pixel et la fin de vague 4 ; H1
-  (Codex) à H6 sont faits.
+- Vague 4 (S1, H0 à H7) faite et poussée : suite complète et trois `test:ui`
+  verts (Palettes 309, Exporter 39, explorateur 24).
+- **Prochaine étape** : la vague 5, documents (D1 AGENTS.md, D2 SPEC-PAL),
+  puis D4 et la vague 6.
 - stone-950 (M4) : le mainteneur garde le comportement ; le test juge
   l'écart de couleur, sous 0,02 ΔEok (`desaturees.test.ts`).
 
@@ -1069,9 +1071,13 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
     palettes de la galerie »).
   - Fini quand : vert.
 
-- [ ] **H7 · Revue au pixel et fin de vague** · `implementeur`, puis `verificateur`, puis orchestrateur.
-  - À traiter : pendant un glisser sur la roue (H5), la carte Comparaison
-    au-dessus change de hauteur et la roue se déplace sous le pointeur.
+- [x] **H7 · Revue au pixel et fin de vague** · `implementeur`, puis `verificateur`, puis orchestrateur.
+  - Fait : les cartes gardent leur hauteur pendant un geste (138b141). Écarts
+    restants admis par la SPEC, section 11, ou propres à la maquette (espace
+    devant la pastille, encre de `.surface` non posée, zone en double, liste
+    « Vision » d'un ancien socle). À voir en recette : saisir le point d'une
+    palette non cochée la coche, et les cartes au-dessus de la roue
+    grandissent avant le premier déplacement.
   - Préalable fait le 15 octobre : `generer-ensembles.ts` lit la table du
     kit, `pairesTropProches` et les calculs de H0, et les vingt palettes de
     `etats.cjs` ; 880 couleurs égales à celles de la galerie. Le relancer
