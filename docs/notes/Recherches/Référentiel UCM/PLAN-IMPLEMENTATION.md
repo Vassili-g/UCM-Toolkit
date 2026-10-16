@@ -171,13 +171,13 @@ calculée ne change, puisque le lot déplace des constantes sans les modifier.
 
 **Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lot 4.
 
-- [ ] Les listes écrites en dur relevées par l'audit (C03, C04,
+- [x] Les listes écrites en dur relevées par l'audit (C03, C04,
   `variables/detection.ts:127`, `harmonisation.ts:140`,
-  `reglagesParDefaut.ts:80`, `ui/…`) lisent le référentiel
-- [ ] La destination par défaut vient d'`architecture.ts`
-- [ ] Les libellés des variables de `theme` viennent du référentiel ; les
-  phrases d'interface restent dans `i18n`
-- [ ] La reconnaissance du neutre passe par la fonction du référentiel
+  `reglagesParDefaut.ts:80`, `ui/…`) lisent le référentiel (e855413)
+- [x] La destination par défaut vient d'`architecture.ts` (e855413)
+- [x] Les libellés des variables de `theme` viennent du référentiel ; les
+  phrases d'interface restent dans `i18n` (e855413)
+- [x] La reconnaissance du neutre passe par la fonction du référentiel (e855413)
 
 Fin : tests unitaires de Palettes, `textes.test.ts` et `npm run build
 --workspace ucm-palettes-plugin` verts ; aucun texte affiché ne change.
