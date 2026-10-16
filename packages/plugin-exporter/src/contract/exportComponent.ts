@@ -378,10 +378,12 @@ async function exporterLeComposant(
   const wrapper = referenceComponent
     ? await findWrapperReference(referenceComponent, warnings, composed)
     : null;
+  const stateNotices: string[] = [];
   const stateModel = buildStateModel(
     matrix.axes,
     matrix.variants.map((entry) => entry.values),
     warnings,
+    stateNotices,
   );
 
   const propertySurface = buildContractPropertySurface(
@@ -405,6 +407,8 @@ async function exporterLeComposant(
   });
   const publicPropertyKeyByFigmaName = propertySurface.publicPropertyKeyByFigmaName;
   markProjectionWarningsSince(warningCursor);
+  warnings.push(...stateNotices);
+  reporterLocalisations(stateNotices, warnings);
   warningCursor = warnings.length;
 
   const { bindings: propertyBindings, applied: appliedByVariant } = extractPropertyBindings(

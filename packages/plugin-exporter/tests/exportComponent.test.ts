@@ -583,6 +583,60 @@ test('les notices de documentation ne rendent pas la projection portable partiel
   }
 });
 
+test('les termes d’état tolérés donnent des notices sans rendre la projection portable partielle', async () => {
+  const figmaFaux = monterFigma({ avecRegles: false });
+  const valeurs = ['default', 'hover', 'hovered', 'focus', 'focused', 'press', 'pressed', 'disable', 'disabled'];
+  const variants = valeurs.map((valeur) => node('COMPONENT', `State=${valeur}`, [], {
+    variantProperties: { State: valeur },
+    layoutMode: 'HORIZONTAL',
+    itemSpacing: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    cornerRadius: 0,
+  }));
+  const componentSet = node('COMPONENT_SET', 'States', variants, {
+    key: 'states-key',
+    componentPropertyDefinitions: {
+      State: { type: 'VARIANT', variantOptions: valeurs, defaultValue: 'default' },
+    },
+    defaultVariant: variants[0],
+  });
+  (globalThis as any).figma.currentPage.selection = [componentSet];
+  try {
+    const resultat = await handleExportComponent();
+    const contrat = JSON.parse(resultat.content);
+    const notices = contrat.meta.diagnostics.filter(
+      (diagnostic: any) => diagnostic.message.includes('dans le vocabulaire UCM'),
+    );
+
+    assert.equal(notices.length, 4);
+    assert.ok(notices.every((diagnostic: any) => diagnostic.code === 'UCM_EXPORT_NOTICE'));
+    assert.equal(contrat.meta.coverage.portable, 'complete');
+    assert.deepEqual(contrat.stateModel, {
+      axis: 'state',
+      states: {
+        default: {},
+        hover: { selector: ':hover' },
+        hovered: { selector: ':hover' },
+        focus: { selector: ':focus-visible' },
+        focused: { selector: ':focus-visible' },
+        press: { selector: ':active' },
+        pressed: { selector: ':active' },
+        disable: { selector: '[disabled]' },
+        disabled: { selector: '[disabled]' },
+      },
+      precedence: ['disable', 'disabled', 'press', 'pressed', 'focus', 'focused', 'hover', 'hovered', 'default'],
+    });
+    for (const notice of notices) {
+      assert.equal(resultat.parties.get(notice.message)?.famille, 'proprietes');
+    }
+  } finally {
+    figmaFaux.restaurer();
+  }
+});
+
 test('une piste FIXED de grille est publiée en pixels, sans un mot au designer', async () => {
   // Le réflexe du designer devant un message est de retourner dans Figma. Ici la
   // valeur est dans le contrat et rien n'y manque : le dire enverrait chercher

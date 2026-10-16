@@ -21,6 +21,7 @@
  * `src/template/ecriture.ts`, seul fichier du moteur qui écrive dans le
  * document.
  */
+import { TAGS_DES_REGLES } from '@ucm-kit/core/referentiel';
 import {
   buildRules,
   iconPolicyFromVisibility,
@@ -577,8 +578,7 @@ export async function extractRules(
       if (nEcritRien(instance)) continue;
       pousserSansNode(warnings, `Une règle de « ${RULES_CONTAINER_NAME} »`, {
         famille: 'regles',
-        manque: 'aucun de ses calques ne porte de tag (@usage, @do, @dont, @pairs, @prop, '
-          + '@boolean, @icons, @default).',
+        manque: `aucun de ses calques ne porte de tag (${TAGS_DES_REGLES.map((tag) => `@${tag}`).join(', ')}).`,
         impact: 'Sa documentation manquera au développeur.',
         action: 'Choisissez son variant dans Figma, puis réexportez.',
       });

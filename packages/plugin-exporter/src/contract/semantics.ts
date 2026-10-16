@@ -11,6 +11,14 @@
  * le nom d'un composant, aucun cas particulier codé en dur.
  */
 import { pousserSansNode } from './localisation';
+import {
+  REGISTRE_ETATS,
+  SIZE_VALUES,
+  STATE_AXIS_NAMES as AXES_ETAT,
+  STATE_PRECEDENCE,
+  STATE_SELECTORS,
+  termeRetenu,
+} from '@ucm-kit/core/referentiel';
 import type {
   RenderingRole,
   RenderingSemantics,
@@ -19,48 +27,11 @@ import type {
 } from '@ucm-kit/core/format';
 
 /**
- * Déclencheurs web connus pour les valeurs d'un axe d'état.
- *
- * `default` n'en a aucun, et c'est une réponse : l'état par défaut est celui
- * qu'aucun sélecteur ne déclenche. Il vaut donc la chaîne vide ici, et le
- * descripteur publié n'a pas de `selector` du tout.
- *
- * Chaque forme en `-ed` prend le sélecteur de sa forme courte. `active` n'en
- * reçoit aucun : beaucoup de design systems nomment ainsi un état sélectionné,
- * et le rendre en `:active` le déclencherait au clic.
- */
-const STATE_SELECTORS: Record<string, string> = {
-  default: '',
-  hover: ':hover',
-  hovered: ':hover',
-  focus: ':focus-visible',
-  focused: ':focus-visible',
-  press: ':active',
-  pressed: ':active',
-  disable: '[disabled]',
-  disabled: '[disabled]',
-};
-
-/** Priorité générique appliquée quand plusieurs états sont simultanés. */
-const STATE_PRECEDENCE = [
-  'disable', 'disabled', 'press', 'pressed', 'focus', 'focused', 'hover', 'hovered', 'default',
-];
-
-/**
  * Les noms, une fois normalisés, d'un axe d'états : `State`, `States` ou
  * `Status` dans Figma. Unique liste : `parsers.ts` en retire l'axe des props,
  * `buildStateModel` le publie, et les deux lectures ne peuvent pas diverger.
  */
-export const STATE_AXIS_NAMES: readonly string[] = ['state', 'states', 'status'];
-
-/**
- * Échelles de tailles connues. Un enum dont toutes les valeurs figurent ici
- * est un axe de tailles, quel que soit son nom Figma.
- */
-const SIZE_VALUES = new Set([
-  'tiny', 'small', 'medium', 'large', 'big', 'huge',
-  '4xs', '3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl', '2xl', '3xl', '4xl',
-]);
+export const STATE_AXIS_NAMES: readonly string[] = AXES_ETAT;
 
 /**
  * Nom sémantique d'un axe enum, ou null pour garder le nom brut.
@@ -108,11 +79,13 @@ export function indexedSlotName(base: string, index: number): string {
  * Construit le modèle d'interaction d'un composant à partir de ses axes et
  * de ses variants. Les états inconnus restent visibles dans le contrat, mais
  * leur déclencheur est nul et un warning demande une convention explicite.
+ * Le canal `notices` distingue les termes tolérés des déclencheurs inconnus.
  */
 export function buildStateModel(
   axes: string[],
   variantValues: Array<Record<string, string>>,
   warnings: string[],
+  notices: string[] = warnings,
 ): StateModel | null {
   const axis = axes.find((candidate) => STATE_AXIS_NAMES.includes(candidate));
   if (!axis) return null;
@@ -139,15 +112,25 @@ export function buildStateModel(
         famille: 'proprietes',
         manque: `l'état « ${value} » n'est pas reconnu.`,
         impact: `Le développeur ne saura pas quand afficher ce variant.`,
-        action: `Renommez cette valeur en default, hover, focus, press ou disable, puis `
+        action: `Renommez cette valeur en default, hover, focus, pressed ou disabled, puis `
           + `réexportez.`,
       });
+    } else {
+      const terme = termeRetenu(REGISTRE_ETATS, value);
+      if (terme && terme.id !== value) {
+        pousserSansNode(notices, `Propriété de variante « ${axis} »`, {
+          famille: 'proprietes',
+          manque: `l’état « ${value} » s’écrit « ${terme.id} » dans le vocabulaire UCM.`,
+          impact: `Le développeur recevra « ${value} » au lieu de « ${terme.id} ».`,
+          action: `Renommez la valeur en « ${terme.id} » dans Figma ou avec UCM Architect, puis réexportez.`,
+        });
+      }
     }
   }
 
   const precedence = [
     ...STATE_PRECEDENCE.filter((value) => values.includes(value)),
-    ...values.filter((value) => !STATE_PRECEDENCE.includes(value)),
+    ...values.filter((value) => !(STATE_PRECEDENCE as readonly string[]).includes(value)),
   ];
 
   return { axis, states: Object.fromEntries(states), precedence };
