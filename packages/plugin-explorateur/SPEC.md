@@ -305,7 +305,7 @@ Intégrations et Relevés.
 
 Dans la disposition large, sous 900 px de large, l'inspecteur passe au-dessus
 de la table et se ferme. Le dessin de la vue composant suit la
-[maquette](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/MAQUETTE-VUE-COMPOSANT.html) ;
+[maquette](./galerie/fixtures/MAQUETTE-VUE-COMPOSANT.html) ;
 `npm run fidelite --workspace ucm-explorateur-plugin` mesure l'écart entre les
 deux.
 

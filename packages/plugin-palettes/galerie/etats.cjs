@@ -1992,7 +1992,7 @@ ETATS.push({
   atteinte: [etatDuFichier(rangee(VINGT_PALETTES_CONFORMES.map(([nom, reference], rang) => palette(identifiantDuBilan(rang), nom, reference))))],
 });
 
-const recetteDuMainteneur = readFileSync(path.resolve(__dirname, '../../../docs/notes/Recherches/Plugin Palettes/Recette CRITIQUE de qualité/Mesures/references/recette-mainteneur.json'), 'utf8');
+const recetteDuMainteneur = readFileSync(path.resolve(__dirname, 'fixtures/recette-mainteneur.json'), 'utf8');
 ETATS.push({
   id: 'harmonisation-arrivee',
   titre: 'Arrivée dans Comparaison',
