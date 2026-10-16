@@ -438,4 +438,5 @@ maquette validée.
 | État `selected` | Le reconnaître demande un sélecteur et une nouvelle version du format du contrat |
 | Déclaration d'un design system | Les familles ajoutées par une équipe, publiées dans `$extensions["com.ucm.declaration"]` de `tokens.json` |
 | UCM Architect, versions suivantes | Le bilan du fichier contre le référentiel, puis l'écriture des alias de `theme`, `color-brands` et `color-utilities` |
+| Reconnaissance des noms propres dans l'Architect | Aujourd'hui fixée : un nom de composant est la racine de la collection `components` ou le nom d'un composant local ; un nom de palette est une palette de la recette, ou le segment qui suit `colors` dans `primitives`. La rendre réglable par fichier quand une équipe range ses collections autrement |
 | Contrôle « full UCM » | `ucm check` confronte un `tokens.json` au référentiel, en option |
