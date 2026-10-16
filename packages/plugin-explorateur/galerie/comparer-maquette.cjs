@@ -25,7 +25,7 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 
 const racine = path.resolve(__dirname, '..');
-const MAQUETTE = path.resolve(racine, '../../docs/notes/Recherches/Plugin Explorateur Tokens/Vue composant/MAQUETTE-VUE-COMPOSANT.html');
+const MAQUETTE = path.resolve(racine, 'galerie/fixtures/MAQUETTE-VUE-COMPOSANT.html');
 const GALERIE = path.join(racine, 'dist', 'galerie-etroite', 'sombre');
 const SORTIE = path.join(racine, 'dist', 'fidelite');
 
