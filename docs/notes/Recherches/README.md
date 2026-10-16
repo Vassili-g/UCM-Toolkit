@@ -1,65 +1,60 @@
 # État des recherches UCM
 
-Ce sommaire classe les sujets d'après les sources présentes dans les dépôts.
-**Implémenté** signifie que le comportement existe dans le code ; une recette
-Figma non consignée reste une validation à faire, sans rouvrir l'implémentation.
+Ce dossier ne garde que les sujets en cours et les pistes de recherche. Les
+sujets implémentés sont rangés dans `docs/notes/Archives/`, en attente de
+suppression ; les liens ci-dessous qui y mènent pointent vers le commit
+`5fc8c75` et restent valides après la suppression.
 
-Les plans anciens servent à retrouver une décision ou une expérience. Pour
-modifier le produit, partez des références de [docs/README.md](../../README.md)
-et du code, pas d'une ancienne liste de tâches.
+Pour modifier le produit, partez des références de
+[docs/README.md](../../README.md) et du code, pas d'un plan archivé.
 
-## Sujets implémentés
+## Sujets en cours
 
-| Sujet | Éléments présents | Référence à conserver |
+| Sujet | État | Prochain geste |
 |---|---|---|
-| Diagnostics de l'exporteur et propriétés visuelles du contrat 14.0 | Regroupement des constats, opacité, styles d'effets, placement des enfants de cadres libres | [Spécification du moteur](../../../packages/plugin-exporter/SPEC.md) et [format du contrat](../../format/FORMAT.md) |
-| Plugin Palettes, ergonomie et réglages | Moteur, planches, modèles de nuances, référence réglable et interface de test | [Bilan Palettes](./Plugin%20Palettes/README.md) ; spécification et mesures conservées |
-| Palettes désaturées et grises | Ancrage dans `palette.ts`, réglages dans `reglages.ts`, tests du moteur | [Spécification, section 6.4](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran) |
-| Color shift et limites | Trois grandeurs, réglage global borné, calcul des limites par tranches dans l'interface | [Spécification, section 12](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#12-le-color-shift) ; l'écriture des couches de marque et la migration du Playground sont des sujets distincts |
-| Langues de Palettes | Catalogues anglais et français, préférence locale, traduction immédiate | [Plan et limites de validation](https://github.com/Vassili-g/UCM-Toolkit/blob/f4a1626/docs/notes/Recherches/Plugin%20Palettes/Textes%20et%20langues/PLAN-INTERNATIONALISATION-PALETTES.md#cases-ouvertes) ; décisions éditoriales et export des validations conservés |
-| Direction simple de Palettes | Création, Vérification, Gestion, variables locales, reprise, copie de bibliothèque, sections repliables et simulation des chemins | [Parcours et recette](./Plugin%20Palettes/Intégration%20du%20marché/README.md) |
-| Explorateur de tokens | Résolution, comparaison, diagnostics, intégrations, relevés et simulation | [Spécification](../../../packages/plugin-explorateur/SPEC.md) et [suivi des preuves](./Plugin%20Explorateur%20Tokens/SUIVI-IMPLEMENTATION.md) |
-| Vue composant de l'explorateur | Sélection, frontières de composition, aperçu, tokens par nature et chaînes | [Suivi](./Plugin%20Explorateur%20Tokens/Vue%20composant/SUIVI-VUE-COMPOSANT.md) et [recette Figma](./Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md) |
-| Thème en dossiers et texte des boutons | Table en dossiers du kit, format 9 de la recette, texte des boutons par thème et courbe inversée, sept garanties, aperçu en bandes, carte des garanties, planche, Interface de test, diagnostic des contrastes et profil de l'explorateur | [Architecture finale](./Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md), sections 4 et 5, et [plan exécuté](https://github.com/Vassili-g/UCM-Toolkit/blob/5d7435d/docs/notes/Recherches/Th%C3%A8me%20en%20dossiers%20et%20texte%20des%20boutons/PLAN-IMPLEMENTATION.md) |
+| [Recette v10 de Palettes](./Plugin%20Palettes/Recette%20v10/README.md) | R2 à R6 implémentés ; R1 attend la décision D1 ; rampes Dark sans ancrage mesurées | Décision D1 du mainteneur, puis recette Figma |
+| [Architecture globale UCM](./Architecture%20globale%20UCM/VERSION-MINIMALE.md) | Version minimale retenue, non implémentée : fichier de conventions, `$description` publiée, onglet Intégrations retiré, état `selected` | Décision de mise en œuvre ; le reste du dossier est une piste |
+| [Architecture multi-marques](./Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md) | Référence de l'architecture cible ; la table en dossiers est implémentée dans `packages/kit/src/emplois` ; le document décrit encore l'état d'avant la recette critique | Mettre le document à jour et le sortir des recherches ; la migration des bibliothèques Figma et des consommateurs revient au mainteneur |
+| [Bouton plein basculable](./Archi%20Tokens%20Multi-marques/Bouton%20plein%20basculable/README.md) | Question ouverte : l'état activé survolé d'un bouton plein ; quatre propositions, aucune décision | Décision du mainteneur |
 
-## Sujets partiellement implémentés
+La [spécification de Palettes](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)
+reste dans ce dossier jusqu'à son déplacement dans `packages/plugin-palettes/` :
+c'est une référence du produit, pas une recherche.
 
-| Sujet | Acquis | Suite distincte |
-|---|---|---|
-| [Performance de l'analyse](https://github.com/Vassili-g/UCM-Toolkit/blob/5d7435d/docs/notes/Recherches/Performance%20de%20l'analyse/PLAN-IMPLEMENTATION-PERFORMANCE-ANALYSE.md) | Maître résolu une fois par analyse, index par page, annulation, traces et avancement dans le build courant | Préchauffage conditionné par les sondes, accélérations après mesure, reprise d'un index modifié ; les sondes et le plan restent dans l'historique Git |
-| [Architecture multi-marques](./Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md) | Table en dossiers `solid`, `surface` et `page` dans `packages/kit/src/emplois`, ses deux sens, ses sept garanties et la mesure des contrastes de `ucm check` | Déployer les collections dans Figma et migrer les consommateurs ; Palettes écrit les palettes primitives, sans générer `color-brands`, `color-utilities` ni `theme` |
+## Pistes conservées
 
-Le Playground et `intencial-library` portent encore l'axe
-`color-brand-tokens`, à deux marques, sans axe de thème dans leurs exports.
-La présence du vocabulaire dans le kit ne prouve donc pas la migration des
-bibliothèques.
-
-## Pistes conservées pour la suite
-
-| Sujet | État et raison de conservation |
+| Sujet | État |
 |---|---|
-| [Bouton plein basculable](./Archi%20Tokens%20Multi-marques/Bouton%20plein%20basculable/README.md) | Question ouverte : l'état activé survolé d'un bouton plein dans la table à trois états ; solutions du marché modélisées, quatre propositions, aucune décision |
-| [Collection `usage`](./Archi%20Tokens%20Multi-marques/Collection%20usage/README.md) | Les propositions successives pour la collection `usage`, de la table des emplois aux dossiers à texte constant ; la dernière est implémentée, les autres restent comme historique |
-| [Direction artistique](./Direction%20artistique/Optique/README.md) | Brief d'exploration des quatre logos UCM : formes optiques abstraites, nuances et interactions en aplats, images carrées sans texte ni dégradé ; dessins à produire et à comparer |
 | [Diff sémantique](./Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md) | Proposé ; aucune commande `ucm diff` dans le CLI |
-| [Architecture globale UCM](./Architecture%20globale%20UCM/ARCHITECTURE-GLOBALE-UCM.md) | Proposition : rôle de chaque produit, référentiel UCM, plugin d'architecture et domicile de la nomenclature ; aucune décision |
-| [Nomenclature des tokens](./Architecture%20globale%20UCM/Recherches/Nomenclature%20initiale/RECHERCHE-NOMENCLATURE.md) | Notes : inventaire des noms du Playground, nomenclatures et outils du marché, lieu possible d'un contrôle des noms ; aucune décision |
-| [Conformité du rendu](./Linter%20Dev/PLAN-CONFORMITE-RENDU.md) | Piste non implémentée ; la parité TypeScript ne compare pas le rendu |
-| [Coût de génération et implémenteur](./Optimisation%20Tokens/README.md) | Mesures et conception d'un compilateur ; aucun paquet d'implémenteur dans le monorepo |
-| [Comparaison des outils de palettes](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md) | Pistes au-delà de l'écriture des variables : vision simulée, Display P3, APCA, sélection et jeu de départ |
-| [Évolutions globales](./Evolutions%20globales/PISTES-EVOLUTION.md) | Catalogue d'options ; confronter chaque option au format courant avant de l'engager |
+| [Conformité du rendu](./Linter%20Dev/PLAN-CONFORMITE-RENDU.md) | Non implémentée ; la parité TypeScript ne compare pas le rendu |
+| [Coût de génération et implémenteur](./Optimisation%20Tokens/README.md) | Mesures et conception d'un compilateur ; aucun paquet d'implémenteur |
+| [Comparaison des outils de palettes](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md) | Vision simulée, Display P3, APCA, sélection et jeu de départ |
+| [Évolutions globales](./Evolutions%20globales/PISTES-EVOLUTION.md) | Catalogue d'options à confronter au format courant |
+| [Plugin d'architecture, référentiel, nomenclature](./Architecture%20globale%20UCM/ARCHITECTURE-GLOBALE-UCM.md) | Pistes pour plus tard ; la [version minimale](./Architecture%20globale%20UCM/VERSION-MINIMALE.md) est la seule direction retenue |
 
-Les comparatifs externes sont des matériaux de recherche. Leurs tarifs,
-versions et fonctions doivent être revérifiés avant une nouvelle décision.
+Les comparatifs externes doivent être revérifiés avant une décision : tarifs,
+versions et fonctions changent.
 
-## Documents anciens conservés pour validation du tri
+## Questions ouvertes reprises des sujets archivés
 
-Un ensemble mêle des propositions remplacées et des choix du mainteneur :
+| Question | Origine |
+|---|---|
+| L'ombre ou le contour de la carte en Dark | [Recette critique, décisions, section 7](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/DECISIONS.md#7-ce-qui-reste-ouvert) |
+| En Dark inversé, l'appui du fond teinté (500) a la couleur de l'appui du bouton plein | Même section |
+| Les seuils des constats de saturation et de luminosité de l'onglet Comparaison, valeurs d'essai | Même section |
+| L'alignement de la luminosité d'un groupe de palettes (D3 à D7) ; la comparaison seule est implémentée | [Dossier Harmonisation, section 8](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Harmonisation%20entre%20palettes/DOSSIER-HARMONISATION.md#8-décisions-attendues-du-mainteneur) |
+| Cinq écarts de la vue composant de l'explorateur avec son plan ou sa maquette | [Suivi de la vue composant](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/SUIVI-VUE-COMPOSANT.md#écarts-avec-le-plan-ou-la-maquette-à-relire) |
+| La gestion des marques, le jeu de départ et la vision simulée dans Palettes | [Parcours 01 à 06](https://github.com/Vassili-g/UCM-Toolkit/tree/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Int%C3%A9gration%20du%20march%C3%A9) |
 
-- `Plugin Palettes/Intégration du marché/01` à `06` : parcours remplacés
-  par la direction simple, mais propositions de gestion des marques, de jeu
-  de départ et de vision simulée encore utiles.
+## Recettes Figma en attente
 
-Cet ensemble reste présent jusqu'à validation de sa suppression.
-La spécification de Palettes, les mesures, les validations éditoriales et les
-maquettes utilisées par une vérification restent des références à conserver.
+Ces fonctions sont implémentées. Leur liste de gestes reste lisible au
+commit `5fc8c75`.
+
+| Fonction | Gestes à vérifier |
+|---|---|
+| Qualité des palettes, onglet Comparaison | [Tâche F4](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/PLAN-IMPLEMENTATION.md) |
+| Moteur retenu, profils Soft et Vivid | [Recette du moteur](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/README.md) |
+| Thème en dossiers et texte des boutons | [Décisions du texte des boutons](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Texte%20des%20boutons/README.md) |
+| Création, Vérification, Gestion | [Recette de la direction simple](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Int%C3%A9gration%20du%20march%C3%A9/07%20Direction%20simple/RECETTE-DIRECTION-SIMPLE.md) |
+| Vue composant de l'explorateur | [Recette de la vue composant](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md) |

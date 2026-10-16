@@ -18,13 +18,18 @@ const racine = path.resolve(__dirname, '..');
  * seul : leurs liens relatifs valaient depuis l'endroit d'où on les a gelés, et
  * les rejuger ici ferait rougir un contrôle sur une adresse que plus personne
  * ne suit.
+ *
+ * `docs/notes/Archives/` porte les recherches closes, en attente de
+ * suppression : les documents gardés y renvoient par un lien vers un commit.
  */
 function fichiersMarkdown(dossier: string): string[] {
   const trouves: string[] = [];
   const dansTests = path.basename(dossier) === 'tests';
+  const dansNotes = path.basename(dossier) === 'notes';
   for (const entree of fs.readdirSync(dossier, { withFileTypes: true })) {
     if (entree.name === 'node_modules' || entree.name === '.git') continue;
     if (entree.name === 'fixtures' && dansTests) continue;
+    if (entree.name === 'Archives' && dansNotes) continue;
     const complet = path.join(dossier, entree.name);
     if (entree.isDirectory()) trouves.push(...fichiersMarkdown(complet));
     else if (entree.name.endsWith('.md')) trouves.push(complet);

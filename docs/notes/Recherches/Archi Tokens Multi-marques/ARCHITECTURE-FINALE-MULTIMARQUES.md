@@ -4,19 +4,19 @@ Ce document propose la forme des tokens du nouveau design system : six marques,
 un thème clair et un thème sombre, deux intensités de couleur, `soft` et
 `vivid`, pour les statuts, et une seule intensité pour les palettes de marque
 et le neutre. Le détail des arguments est dans [la
-recherche](./RECHERCHE-ARCHI-MULTIMARQUES.md) et [la revue
-critique](./SYNTHESE-CRITIQUE-ARCHI-MULTIMARQUES.md), qui emploient encore
+recherche](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Archi%20Tokens%20Multi-marques/RECHERCHE-ARCHI-MULTIMARQUES.md) et [la revue
+critique](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Archi%20Tokens%20Multi-marques/SYNTHESE-CRITIQUE-ARCHI-MULTIMARQUES.md), qui emploient encore
 l'ancien nom `scheme` de la collection `theme`. L'outil qui fabrique les
 palettes fait l'objet d'une [recherche séparée](../Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md).
 
-[VUE-ILLUSTREE-MULTIMARQUES.html](./VUE-ILLUSTREE-MULTIMARQUES.html) montre
+[VUE-ILLUSTREE-MULTIMARQUES.html](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) montre
 la même architecture en schémas, à ouvrir dans un navigateur : le panneau des
 variables de Figma aujourd'hui et demain, et les décisions D1 à D20, chacune
 avec sa raison, l'option écartée et son origine. Ce document cite une décision
 par son numéro. Les valeurs des rampes et les garanties suivent les
-[décisions de la recette critique](../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/DECISIONS.md),
+[décisions de la recette critique](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/DECISIONS.md),
 sections 2 à 4. Les mesures correspondantes sont dans son dossier
-[Mesures](../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/Mesures/).
+[Mesures](https://github.com/Vassili-g/UCM-Toolkit/tree/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/Mesures).
 
 ## 1. Les crans et leurs courbes de clarté
 
@@ -204,7 +204,7 @@ Les deux profils partagent leur courbe de clarté. Leur chroma prend une part
 du plafond sRGB, limitée par une enveloppe propre au profil et au thème.
 La part par défaut vaut 0,85 pour `soft`, 0,95 pour `vivid` et l'intensité
 unique. La formule et ses paramètres sont dans
-[la règle de chroma](../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/DECISIONS.md#q1-et-q2-la-règle-de-chroma-arrêtée).
+[la règle de chroma](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/DECISIONS.md#q1-et-q2-la-règle-de-chroma-arrêtée).
 En Light, l'enveloppe s'élargit autour du jaune ; en Dark, ses bornes gardent
 les textes clairs colorés et limitent les fonds sombres.
 
@@ -423,7 +423,7 @@ en Light, la carte en Dark avec les fonds par défaut. Le balayage de 72
 teintes de la recette critique ne relève que des échecs de G1, sur des
 références ancrées qui ne portent pas le texte blanc au seuil demandé. Les
 conditions et le résultat sont dans
-[GARANTIES-RETENUES.json](../Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/Mesures/GARANTIES-RETENUES.json).
+[GARANTIES-RETENUES.json](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/Mesures/GARANTIES-RETENUES.json).
 
 Les courbes ont leur propre garantie, valable pour toute teinte et les deux
 profils. Dans la table du sens de chaque mode, `page/foreground` tient le seuil
@@ -659,7 +659,7 @@ variables avant de la publier.
   [Bouton plein basculable](./Bouton%20plein%20basculable/README.md).
 
 L'ordre des changements dans le code et la spécification d'UCM Palettes est
-dans [PLAN-INTEGRATION-ARCHITECTURE.md](./PLAN-INTEGRATION-ARCHITECTURE.md).
+dans [PLAN-INTEGRATION-ARCHITECTURE.md](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md).
 
 Avant d'étendre à la bibliothèque, un prototype à six marques éprouve les cas
 limites : un jaune clair, un bleu très sombre, une teinte très vive, une marque
