@@ -51,6 +51,7 @@ function construireVues(i18n: Localisation) {
     surface.className = 'surface';
     const constats = document.createElement('div');
     constats.className = 'constats-de-comparaison';
+    constats.dataset.hauteurTenue = '';
     constats.setAttribute('role', 'status');
     carte.corps.append(surface, constats);
     let dessinee: { readonly recette: Recette; readonly paires: readonly PaireTropProche[]; readonly cochees: string; readonly mode: Mode; readonly intensite: Profil; readonly affichage: AffichageDApercu } | null = null;
@@ -140,6 +141,7 @@ function construireVues(i18n: Localisation) {
     function segments(recette: Recette, constat: ConstatDeComparaison): readonly Texte[] {
       switch (constat.genre) {
         case 'paire': return TEXTES.constats.paire(nom(recette, constat.palettes[0]), nom(recette, constat.palettes[1]), constat.role, constat.mode, constat.sansSortie);
+        case 'separee': return TEXTES.constats.separee(nom(recette, constat.palettes[0]), nom(recette, constat.palettes[1]));
         case 'distinctes': return [TEXTES.constats.distinctes];
         case 'saturation': return TEXTES.constats.saturation(constat.intensite, nom(recette, constat.terne), nom(recette, constat.vive));
         case 'luminosite': return TEXTES.constats.luminosite(constat.intensite, nom(recette, constat.palette), constat.sens);

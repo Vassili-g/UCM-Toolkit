@@ -2322,6 +2322,14 @@
   color: var(--texte-second);
 }
 
+.paire[data-separee] .paire-couleurs {
+  opacity: 0.5;
+}
+
+.paire[data-separee] .paire-texte span {
+  color: var(--texte-succes);
+}
+
 /*
  * La carte « Vos palettes » : une grille de quatre colonnes (case, nom,
  * nuances, signal). La rangée de chaque palette est un `label` sans boîte,

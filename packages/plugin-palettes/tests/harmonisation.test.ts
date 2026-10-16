@@ -6,7 +6,7 @@ import { candidatDeTeinte, cleDuPorteur, pairesTropProches, recetteParDefaut, ty
 
 import { reglerClarte, reglerSaturation, remplacerPalette } from '../src/edition';
 import { valeursDesProfils } from '../src/reglagesParDefaut';
-import { annulerLaPalette, basculerLaRoue, choisirAffichage, choisirLaVision, choisirPaletteARegler, cocherPalette, constatsDeLaComparaison, comparerLaPaire, entrerEnHarmonisation, memoriserLeDepart, modifieeDepuisLeDepart, paletteARegler, harmonisationInitiale, restaurerLesReglages, saisirPalette, synchroniserHarmonisation, toutDecocher } from '../src/harmonisation';
+import { annulerLaPalette, basculerLaRoue, choisirAffichage, choisirLaVision, choisirPaletteARegler, cocherPalette, constatsDeLaComparaison, comparerLaPaire, entrerEnHarmonisation, memoriserLeDepart, modifieeDepuisLeDepart, paletteARegler, harmonisationInitiale, restaurerLesReglages, retenirLesPaires, saisirPalette, synchroniserHarmonisation, toutDecocher } from '../src/harmonisation';
 import { paletteTailwind, recetteAvec } from '../../couleur/tests/fabrique';
 
 const defaut = recetteParDefaut();
@@ -149,6 +149,36 @@ test('[UI-41] une paire cochée trop proche donne une ligne d’avertissement, e
   assert.deepEqual(constatsDeLaComparaison(proches, cochees(proches, BLEU.id, ROUGE.id), paires), [{ ton: 'succes', genre: 'distinctes' }]);
   assert.deepEqual(constatsDeLaComparaison(proches, cochees(proches, BLEU.id), paires), []);
   assert.deepEqual(constatsDeLaComparaison(proches, harmonisationInitiale(), paires), []);
+});
+
+test('[UI-41] retenirLesPaires ajoute à la fin, remplace à sa place et rend le même objet sans changement', () => {
+  const proches = recetteAvec(BLEU, { ...BLEU, id: 'p-000000a2' }, ROUGE);
+  const [paire] = pairesTropProches(proches);
+  const autre = { ...paire, palettes: [ROUGE.id, BLEU.id] as const };
+  const premiere = retenirLesPaires(harmonisationInitiale(), [paire]);
+  assert.deepEqual(premiere.pairesDeLaVisite, [paire]);
+  assert.equal(retenirLesPaires(premiere, [paire]), premiere);
+  const inverse = { ...paire, palettes: [paire.palettes[1], paire.palettes[0]] as const };
+  const remplacee = retenirLesPaires(premiere, [inverse]);
+  assert.deepEqual(remplacee.pairesDeLaVisite, [inverse]);
+  const deux = retenirLesPaires(premiere, [autre]);
+  assert.deepEqual(deux.pairesDeLaVisite, [paire, autre]);
+  assert.deepEqual(retenirLesPaires(deux, [{ ...autre }]).pairesDeLaVisite, [paire, { ...autre }]);
+});
+
+test('[UI-41] une paire séparée donne « separee » ; sans passage par la visite, « distinctes »', () => {
+  const proches = recetteAvec(BLEU, { ...BLEU, id: 'p-000000a2' }, ROUGE);
+  const paires = pairesTropProches(proches);
+  const vue = retenirLesPaires(cochees(proches, BLEU.id, 'p-000000a2'), paires);
+  assert.deepEqual(constatsDeLaComparaison(proches, vue, []), [{ ton: 'succes', genre: 'separee', palettes: [BLEU.id, 'p-000000a2'] }]);
+  assert.deepEqual(constatsDeLaComparaison(proches, cochees(proches, BLEU.id, 'p-000000a2'), []), [{ ton: 'succes', genre: 'distinctes' }]);
+});
+
+test('[UI-41] entrer en Harmonisation vide les paires de la visite', () => {
+  const proches = recetteAvec(BLEU, { ...BLEU, id: 'p-000000a2' }, ROUGE);
+  const vue = retenirLesPaires(harmonisationInitiale(), pairesTropProches(proches));
+  assert.equal(vue.pairesDeLaVisite.length, 1);
+  assert.deepEqual(entrerEnHarmonisation(vue).pairesDeLaVisite, []);
 });
 
 test('[UI-41] une paire qu’aucune teinte de la course ne sépare le dit, parmi les constats de la carte', () => {

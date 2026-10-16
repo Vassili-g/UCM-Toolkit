@@ -20,8 +20,10 @@ export interface GestesDeLaCarteDesPaires {
 export interface CarteDesPairesUi {
   readonly element: HTMLElement;
   /** Repeint les rangées quand la recette ou ses paires changent ; sinon sans effet. */
-  afficher(recette: Recette, paires: readonly PaireTropProche[]): void;
+  afficher(recette: Recette, paires: readonly PaireTropProche[], visite: readonly PaireTropProche[]): void;
 }
+
+const memePaire = (a: PaireTropProche, b: PaireTropProche): boolean => a.palettes.every((id) => b.palettes.includes(id));
 
 function construireVues(i18n: Localisation) {
   const { TEXTES_DE_L_HARMONISATION: { echantillon, paires: TEXTES }, nomDeLaPalette } = i18n.messages;
@@ -30,8 +32,9 @@ function construireVues(i18n: Localisation) {
     const carte = createCarte({ titre: TEXTES.titre, sousTitre: TEXTES.sousTitre, repliable: { ouverte: true, resumeReplie: true } }, i18n);
     const liste = document.createElement('div');
     liste.className = 'paires';
+    liste.dataset.hauteurTenue = '';
     carte.corps.append(liste);
-    let dessinee: { readonly recette: Recette; readonly paires: readonly PaireTropProche[] } | null = null;
+    let dessinee: { readonly recette: Recette; readonly paires: readonly PaireTropProche[]; readonly visite: readonly PaireTropProche[] } | null = null;
 
     /** Les deux pastilles d'une paire : le plein et son texte, ou le fond teinté et son texte, du thème du constat. */
     function pastilles(recette: Recette, paire: PaireTropProche): HTMLSpanElement {
@@ -52,17 +55,18 @@ function construireVues(i18n: Localisation) {
       return element;
     }
 
-    function rangee(recette: Recette, paire: PaireTropProche): HTMLDivElement {
+    function rangee(recette: Recette, paire: PaireTropProche, separee: boolean): HTMLDivElement {
       const [a, b] = paire.palettes.map((id) => nomDeLaPalette(recette.palettes.find((palette) => palette.id === id)!));
       const element = document.createElement('div');
       element.className = 'paire';
       element.dataset.paire = paire.palettes.join(' ');
+      if (separee) element.dataset.separee = '';
       const texte = document.createElement('span');
       texte.className = 'paire-texte';
       const noms = document.createElement('b');
       const constat = document.createElement('span');
       const nomsEcrits = TEXTES.noms(a, b);
-      const constatEcrit = TEXTES.constat(paire.proximite.role, paire.proximite.mode, paire.proximite.presqueIdentiques);
+      const constatEcrit = separee ? TEXTES.separee : TEXTES.constat(paire.proximite.role, paire.proximite.mode, paire.proximite.presqueIdentiques);
       i18n.lier(noms, 'textContent', nomsEcrits);
       i18n.lier(noms, 'title', nomsEcrits);
       i18n.lier(constat, 'textContent', constatEcrit);
@@ -80,12 +84,17 @@ function construireVues(i18n: Localisation) {
 
     return {
       element: carte.element,
-      afficher(recette, paires) {
-        if (dessinee?.recette === recette && dessinee.paires === paires) return;
-        dessinee = { recette, paires };
-        carte.element.hidden = paires.length === 0;
+      afficher(recette, paires, visite) {
+        if (dessinee?.recette === recette && dessinee.paires === paires && dessinee.visite === visite) return;
+        dessinee = { recette, paires, visite };
+        const actuelle = (vue: PaireTropProche) => paires.find((paire) => memePaire(paire, vue));
+        // Une paire de la visite dont une palette a disparu (une annulation, par exemple) perd sa rangée.
+        const existe = (vue: PaireTropProche) => vue.palettes.every((id) => recette.palettes.some((palette) => palette.id === id));
+        const rangees = visite.filter(existe).map((vue) => rangee(recette, actuelle(vue) ?? vue, actuelle(vue) === undefined));
+        const nouvelles = paires.filter((paire) => !visite.some((vue) => memePaire(paire, vue)));
+        carte.element.hidden = rangees.length + nouvelles.length === 0;
         carte.poserResume(TEXTES.resume(paires.length));
-        liste.replaceChildren(...paires.map((paire) => rangee(recette, paire)));
+        liste.replaceChildren(...rangees, ...nouvelles.map((paire) => rangee(recette, paire, false)));
       },
     };
   }
