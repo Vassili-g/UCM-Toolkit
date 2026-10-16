@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recette v10 d'Harmonisation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fond: #161616; --bloc: #222; --bordure: #333; --texte: #eee; --second: #9a9a9a;
+    --ambre: #f3b53f; --vert: #5bc28a; --rouge: #e5484d; --bleu: #4ea1ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 80px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 19px; margin: 48px 0 6px; padding-top: 20px; border-top: 1px solid var(--bordure); }
+  h3 { font-size: 14px; margin: 0 0 8px; color: var(--second); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  p { margin: 6px 0; max-width: 820px; }
+  .intro { color: var(--second); }
+  ol.argu { max-width: 860px; padding-left: 20px; }
+  ol.argu li { margin: 4px 0; }
+  .commandes { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 14px 0; }
+  .bascule { display: inline-flex; border: 1px solid var(--bordure); border-radius: 6px; overflow: hidden; }
+  .bascule button { background: none; border: 0; color: var(--second); font: inherit; font-size: 13px; padding: 5px 12px; cursor: pointer; }
+  .bascule button[aria-pressed='true'] { background: #3a3a3a; color: var(--texte); font-weight: 600; }
+  .colonnes { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+  .colonne { flex: 0 0 auto; width: 400px; max-width: 100%; }
+  .cadre { position: relative; width: 400px; max-width: 100%; border: 1px solid var(--bordure); border-radius: 8px; overflow: hidden; background: #2c2c2c; }
+  .cadre iframe { display: block; width: 400px; border: 0; }
+  .repere { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--rouge); pointer-events: none; }
+  .repere span { position: absolute; right: 6px; top: -22px; background: var(--rouge); color: white; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+  .repere.tenu { border-top-color: var(--vert); }
+  .repere.tenu span { background: var(--vert); color: #0b2a18; }
+  .mesure { font-size: 13px; color: var(--second); margin-top: 8px; min-height: 40px; }
+  .mesure b { color: var(--texte); }
+  .seuil { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .seuil input { width: 220px; }
+  .seuil output { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 48px; }
+  table.fonds { border-collapse: collapse; width: 100%; max-width: 1000px; font-size: 12px; }
+  table.fonds th { text-align: left; color: var(--second); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--bordure); }
+  table.fonds td { padding: 5px 8px; border-bottom: 1px solid #262626; vertical-align: middle; }
+  table.fonds td.n { font-variant-numeric: tabular-nums; color: var(--second); }
+  .duo { display: inline-flex; gap: 4px; padding: 4px; border-radius: 6px; }
+  .duo i { display: grid; place-items: center; width: 76px; height: 30px; border-radius: 5px; font-style: normal; font-weight: 600; font-size: 11px; }
+  .etiquette { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 10px; }
+  .etiquette.fond { background: rgba(243, 181, 63, .18); color: var(--ambre); }
+  .etiquette.plein { background: rgba(78, 161, 255, .15); color: var(--bleu); }
+  tr.hors td { opacity: .45; }
+  .compte { font-size: 13px; color: var(--second); }
+  .compte b { color: var(--texte); }
+  .note { font-size: 12px; color: var(--second); max-width: 860px; }
+  @media (max-width: 860px) { .colonne, .cadre, .cadre iframe { width: 100%; } }
+</style>
+<script src="galerie/etats.js"></script>
+<script src="donnees-paires.js"></script>
+</head>
+<body>
+<main>
+  <h1>Recette v10, onglet Harmonisation</h1>
+  <p class="intro">Les écrans viennent de la galerie sombre du plugin à 400 px de large, figés avec <code>Mesures/extraire-galerie.mjs</code>.
+    Chaque maquette pose l'écran d'aujourd'hui à côté de la proposition. Le constat et les décisions sont dans <code>../DOSSIER-RECETTE-V10.md</code>.</p>
+
+  <!-- ============================================================ 1. Messages -->
+  <h2 id="messages">1. Un message ne déplace plus la page</h2>
+  <p>Le designer règle la teinte d'Indigo dans la carte Réglages jusqu'à ce qu'Indigo et Azur se distinguent. Basculez entre
+    « Avant le réglage » et « Après le réglage » : le trait marque où était le haut de la carte Réglages avant le réglage.</p>
+  <div class="commandes">
+    <div class="bascule" id="moment">
+      <button type="button" aria-pressed="true" data-moment="avant">Avant le réglage</button>
+      <button type="button" aria-pressed="false" data-moment="apres">Après le réglage</button>
+    </div>
+  </div>
+  <div class="colonnes">
+    <div class="colonne">
+      <h3>Aujourd'hui</h3>
+      <div class="cadre" id="cadre-aujourdhui"></div>
+      <div class="mesure" id="mesure-aujourdhui"></div>
+    </div>
+    <div class="colonne">
+      <h3>Proposé</h3>
+      <div class="cadre" id="cadre-propose"></div>
+      <div class="mesure" id="mesure-propose"></div>
+    </div>
+  </div>
+  <ol class="argu">
+    <li><b>Un message change de ton à sa place, il ne disparaît pas.</b> Le constat ambre « Indigo et Azur… » devient la ligne verte
+      « Indigo et Azur se distinguent maintenant. », dans la même zone. La rangée de la paire reste dans « Palettes trop proches » avec une coche
+      et le même texte, jusqu'à ce que le designer quitte l'onglet.</li>
+    <li><b>Une zone de messages ne rétrécit pas pendant la visite.</b> La zone des constats et la liste des paires gardent la plus grande
+      hauteur qu'elles ont prise depuis l'arrivée dans l'onglet. Elles se recalent quand le designer change d'onglet ou de palettes cochées,
+      deux gestes après lesquels il ne regarde plus les réglettes. Aujourd'hui, la hauteur ne tient que pendant le glisser (H7) : elle saute au relâcher.</li>
+    <li><b>« Annuler les modifications » est toujours là.</b> Le bouton reste inactif tant que la palette n'a pas changé, comme
+      « Par défaut » sur chaque réglette. Aujourd'hui il apparaît au premier réglage et pousse les trois réglettes de sa hauteur.</li>
+    <li>Le compteur de l'onglet et la ligne fixe changent de nombre sans changer de hauteur : ils restent tels quels.</li>
+  </ol>
+
+  <!-- ============================================================ 2. Roue -->
+  <h2 id="roue">2. La roue des teintes à la largeur de la carte</h2>
+  <p>Aujourd'hui la roue est un dessin de taille fixe, 420 × 256 px, dont le cercle mesure 140 px et les noms 9,5 px. À 400 px de fenêtre,
+    la carte est plus étroite que le dessin : il déborde à droite et la page défile de côté. Les noms des familles se mêlent à ceux des palettes.</p>
+  <div class="commandes">
+    <div class="bascule" id="largeur-roue">
+      <button type="button" aria-pressed="true" data-largeur="400">Fenêtre de 400 px</button>
+      <button type="button" aria-pressed="false" data-largeur="520">Fenêtre de 520 px</button>
+    </div>
+  </div>
+  <div class="colonnes">
+    <div class="colonne" id="colonne-roue-aujourdhui">
+      <h3>Aujourd'hui</h3>
+      <div class="cadre" id="roue-aujourdhui"></div>
+    </div>
+    <div class="colonne" id="colonne-roue-propose">
+      <h3>Proposé</h3>
+      <div class="cadre" id="roue-propose"></div>
+      <div class="mesure" id="mesure-roue"></div>
+    </div>
+  </div>
+  <ol class="argu">
+    <li><b>Le dessin prend la largeur de la carte</b> au lieu d'une taille fixe : il ne déborde plus, le cercle passe de 140 px à environ
+      195 px à 400 px de fenêtre, et il grandit avec elle.</li>
+    <li><b>Le cercle est un anneau de couleur.</b> Chaque degré est peint à sa teinte, à clarté et chroma moyennes : on voit où est l'orange
+      ou le violet sans lire de mot. Les huit noms de familles disparaissent : l'anneau les remplace, et ils chevauchaient les noms des palettes.</li>
+    <li><b>Les noms ne se chevauchent plus.</b> Ils se rangent en deux colonnes, à droite pour les teintes de 0 à 180°, à gauche pour les
+      autres, espacés d'au moins 13 px, chacun relié à son point par un trait. Ils passent à 11 px, la taille du texte du plugin.</li>
+    <li>Ce qui ne change pas : un point par palette colorée, plus gros et cerné pour les palettes cochées, le contour et l'arc ambre d'une paire
+      trop proche (posé à l'extérieur de l'anneau), la course grise et la zone hachurée de la palette à régler (à l'intérieur), et le glisser d'un point.</li>
+  </ol>
+
+  <!-- ============================================================ 3. Fonds -->
+  <h2 id="fonds">3. Comparer les fonds teintés : où placer le seuil</h2>
+  <p>La proposition compare les pleins (<code>solid/default</code>) en Light et en Dark, comme aujourd'hui, et remplace le texte posé sur le fond
+    teinté par le fond lui-même (<code>surface/default</code>) en Light et en Dark. Au seuil des pleins (0,05), les fonds pâles signaleraient presque
+    toutes les paires voisines : 57 des 136 paires Tailwind. Les fonds ont donc leur propre seuil. Le tableau montre les paires dont un fond tombe
+    sous 0,025. Déplacez le seuil pour voir à partir d'où deux fonds se confondent à vos yeux.</p>
+  <div class="commandes">
+    <div class="bascule" id="jeu">
+      <button type="button" aria-pressed="true" data-jeu="tailwind">Tailwind 3.4, couleurs 500</button>
+      <button type="button" aria-pressed="false" data-jeu="galerie">Les vingt palettes de la galerie</button>
+    </div>
+    <label class="seuil">Seuil des fonds <input type="range" id="seuil" min="0.005" max="0.025" step="0.001" value="0.012"><output id="valeur-seuil">0,012</output></label>
+  </div>
+  <p class="compte" id="compte"></p>
+  <table class="fonds">
+    <thead><tr><th>Paire</th><th>Fonds en Light</th><th>Écart</th><th>Fonds en Dark</th><th>Écart</th><th>Alerte</th></tr></thead>
+    <tbody id="lignes"></tbody>
+  </table>
+  <p class="note">Les fonds sont ceux de la table des rôles (Light 100, Dark 300), en Vivid, avec les réglages par défaut. L'écart est la distance
+    OKLab que l'alerte compare. Le nom est écrit dans le texte coloré de la palette en Light et en blanc en Dark, pour situer la palette seulement :
+    l'alerte ne juge plus le texte. Les paires que les pleins signalent déjà portent l'étiquette « pleins ».</p>
+</main>
+
+<script>
+const G = window.GALERIE;
+
+/** Un écran figé dans un iframe ; `apres(doc)` le modifie une fois chargé. */
+function ecran(etat, hauteur, surPret) {
+  const iframe = document.createElement('iframe');
+  iframe.style.height = `${hauteur}px`;
+  const { corps, classe } = G[etat];
+  iframe.srcdoc = `<!doctype html><html class="${classe}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/socle.css">
+    <style>body{margin:0} html{overflow-anchor:auto}</style></head><body>${corps}</body></html>`;
+  iframe.addEventListener('load', () => surPret(iframe.contentDocument, iframe.contentWindow), { once: true });
+  return iframe;
+}
+
+/* ------------------------------------------------------------------ 1. Messages */
+const PLACE_DES_REGLAGES = 330;
+
+function laPaireIndigoAzur(doc) {
+  return [...doc.querySelectorAll('.paire')].find((p) => p.querySelector('b')?.textContent === 'Indigo et Azur');
+}
+
+function preparer(doc, propose) {
+  const corps = doc.querySelector('.reglages-harmonie');
+  if (propose) {
+    const tete = doc.createElement('div');
+    tete.className = 'tete-des-reglages';
+    tete.innerHTML = '<button type="button" class="btn btn-secondary btn-compact" disabled><span>Annuler les modifications</span></button>';
+    corps.prepend(tete);
+  }
+}
+
+function regler(doc, propose) {
+  const fixe = doc.querySelector('.ligne-fixe-texte');
+  fixe.textContent = '10 paires de palettes trop proches';
+  const compteur = doc.querySelector('#onglet-harmonisation .compteur-de-verification');
+  if (compteur) compteur.textContent = '10';
+  const constats = doc.querySelector('.constats-de-comparaison');
+  const ambre = constats.querySelector('[data-ton="avertissement"]');
+  const ligne = laPaireIndigoAzur(doc);
+  if (!propose) {
+    const vert = doc.createElement('div');
+    vert.className = 'constat-de-comparaison';
+    vert.dataset.ton = 'succes';
+    vert.innerHTML = '<i aria-hidden="true">✓</i><span>Ces palettes se distinguent, en Light et en Dark.</span>';
+    ambre.replaceWith(vert);
+    ligne?.remove();
+    const tete = doc.createElement('div');
+    tete.className = 'tete-des-reglages';
+    tete.innerHTML = '<button type="button" class="btn btn-secondary btn-compact"><span>Annuler les modifications</span></button>';
+    doc.querySelector('.reglages-harmonie').prepend(tete);
+  } else {
+    // La zone garde sa hauteur de la visite ; le constat change de ton à sa place.
+    constats.style.minHeight = `${constats.getBoundingClientRect().height}px`;
+    const vert = doc.createElement('div');
+    vert.className = 'constat-de-comparaison';
+    vert.dataset.ton = 'succes';
+    vert.innerHTML = '<i aria-hidden="true">✓</i><span><b>Indigo et Azur</b> se distinguent maintenant.</span>';
+    ambre.replaceWith(vert);
+    if (ligne) {
+      ligne.querySelector('.paire-texte span').textContent = '✓ Se distinguent maintenant';
+      ligne.querySelector('.paire-texte span').style.color = '#5bc28a';
+      ligne.querySelector('.paire-couleurs').style.opacity = '0.5';
+    }
+    doc.querySelector('.tete-des-reglages button').disabled = false;
+  }
+  // La teinte d'Indigo a bougé de -14° : sa valeur dans le champ.
+  const champ = doc.querySelector('.reglages-harmonie input[aria-label="Teinte"]');
+  if (champ) champ.value = '-14°';
+}
+
+const cadres = {};
+function montrerLesMessages(moment) {
+  for (const cote of ['aujourdhui', 'propose']) {
+    const propose = cote === 'propose';
+    const cadre = document.getElementById(`cadre-${cote}`);
+    cadre.replaceChildren();
+    const iframe = ecran('harmonisation-paire', 640, (doc, fenetre) => {
+      preparer(doc, propose);
+      const haut = () => doc.querySelector('.carte-des-reglages').getBoundingClientRect().top + fenetre.scrollY;
+      const avant = haut();
+      fenetre.scrollTo(0, avant - PLACE_DES_REGLAGES);
+      const repere = document.createElement('div');
+      repere.className = 'repere';
+      repere.style.top = `${PLACE_DES_REGLAGES}px`;
+      cadre.append(repere);
+      const mesure = document.getElementById(`mesure-${cote}`);
+      if (moment === 'apres') {
+        regler(doc, propose);
+        // La page ne défile pas pendant le geste : seul le contenu bouge.
+        const ecart = Math.round(doc.querySelector('.carte-des-reglages').getBoundingClientRect().top - PLACE_DES_REGLAGES);
+        const reglette = Math.round(doc.querySelector('.reglages-harmonie .reglette').getBoundingClientRect().top);
+        const ecartReglette = reglette - cadres[`${cote}-reglette`];
+        repere.classList.toggle('tenu', ecart === 0 && ecartReglette === 0);
+        repere.innerHTML = `<span>${ecart === 0 ? 'carte immobile' : `${ecart > 0 ? '+' : ''}${ecart} px`}</span>`;
+        mesure.innerHTML = ecart === 0 && ecartReglette === 0
+          ? '<b>Rien ne bouge</b> : ni la carte Réglages ni la réglette de teinte sous le pointeur.'
+          : `La carte Réglages a bougé de <b>${ecart} px</b> et la réglette de teinte de <b>${ecartReglette} px</b> au relâcher.`;
+      } else {
+        cadres[`${cote}-reglette`] = Math.round(doc.querySelector('.reglages-harmonie .reglette').getBoundingClientRect().top);
+        repere.innerHTML = '<span>haut de Réglages</span>';
+        repere.classList.add('tenu');
+        mesure.textContent = '';
+      }
+    });
+    cadre.prepend(iframe);
+  }
+}
+
+/* ------------------------------------------------------------------ 2. Roue */
+const CENTRE = { x: 210, y: 128 };
+const teinteDe = (x, y) => (((Math.atan2(y - CENTRE.y, x - CENTRE.x) * 180) / Math.PI + 90) % 360 + 360) % 360;
+
+/** Ce que la roue d'aujourd'hui montre : points, paires, course et zone de la palette à régler. */
+function lireLaRoue(doc) {
+  const svg = doc.querySelector('svg.plaque');
+  const points = [...svg.querySelectorAll('circle[aria-label^="Teinte de"]')].map((c) => ({
+    nom: c.querySelector('title').textContent,
+    teinte: teinteDe(+c.getAttribute('cx'), +c.getAttribute('cy')),
+    couleur: c.getAttribute('fill'),
+    enPaire: (c.getAttribute('stroke') || '').toUpperCase() === '#C77A00',
+    cochee: +c.getAttribute('r') > 5,
+  }));
+  const bouts = (d) => {
+    const n = d.match(/-?\d+(\.\d+)?/g).map(Number);
+    return [teinteDe(n[0], n[1]), teinteDe(n[n.length - 2], n[n.length - 1])];
+  };
+  const paires = [...svg.querySelectorAll('path')].filter((p) => p.querySelector('title')).map((p) => {
+    const [a, b] = p.querySelector('title').textContent.split(' : ')[0].split(' et ');
+    return { a, b, arc: bouts(p.getAttribute('d')) };
+  });
+  const premiers = svg.querySelector('g').querySelectorAll('path');
+  const course = premiers[0] ? bouts(premiers[0].getAttribute('d')) : null;
+  const zone = premiers[1] ? bouts(premiers[1].getAttribute('d')) : null;
+  return { points, paires, course, zone };
+}
+
+function arc(cx, cy, r, de, a) {
+  const p = (t) => { const ang = ((t - 90) * Math.PI) / 180; return [cx + r * Math.cos(ang), cy + r * Math.sin(ang)]; };
+  let span = ((a - de) % 360 + 360) % 360;
+  const [x1, y1] = p(de); const [x2, y2] = p(de + span);
+  return `M${x1.toFixed(2)} ${y1.toFixed(2)} A${r} ${r} 0 ${span > 180 ? 1 : 0} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+}
+
+/** La roue proposée, à la largeur `W` de la carte. */
+function dessinerLaRoue(lue, W) {
+  const R = Math.round(W / 2 - 78);
+  const H = 2 * R + 48;
+  const cx = W / 2, cy = H / 2;
+  const pos = (t, r) => { const ang = ((t - 90) * Math.PI) / 180; return { x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang) }; };
+  const AMBRE = '#C77A00', ENCRE = '#1E1E1E', BANDE = 16;
+  let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" class="roue plaque" style="background: rgb(247, 247, 247); display:block; margin:2px auto 0; border-radius:8px">`;
+  s += `<defs><pattern id="hachures" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="4" fill="${AMBRE}"/></pattern></defs>`;
+  // L'anneau : un arc par pas de 4°, à sa teinte.
+  for (let t = 0; t < 360; t += 4) s += `<path d="${arc(cx, cy, R, t, t + 4.6)}" fill="none" stroke-width="${BANDE}" style="stroke: oklch(0.78 0.12 ${t})"/>`;
+  // La course et la zone de la palette à régler, à l'intérieur.
+  if (lue.course) s += `<path d="${arc(cx, cy, R - BANDE / 2 - 6, lue.course[0], lue.course[1])}" fill="none" stroke="${ENCRE}" stroke-opacity=".18" stroke-width="6" stroke-linecap="round"/>`;
+  if (lue.zone) s += `<path d="${arc(cx, cy, R - BANDE / 2 - 6, lue.zone[0], lue.zone[1])}" fill="none" stroke="url(#hachures)" stroke-width="6"/>`;
+  // Les paires trop proches, à l'extérieur.
+  for (const p of lue.paires) s += `<path d="${arc(cx, cy, R + BANDE / 2 + 5, p.arc[0], p.arc[1])}" fill="none" stroke="${AMBRE}" stroke-opacity=".75" stroke-width="4" stroke-linecap="round"><title>${p.a} et ${p.b} : trop proches</title></path>`;
+  // Les noms en deux colonnes, reliés à leur point.
+  const colonnes = { droite: [], gauche: [] };
+  for (const pt of lue.points) {
+    const coude = pos(pt.teinte, R + BANDE / 2 + 14);
+    (pt.teinte < 180 ? colonnes.droite : colonnes.gauche).push({ ...pt, coude, y: coude.y });
+  }
+  const traits = [], noms = [];
+  for (const [cote, liste] of Object.entries(colonnes)) {
+    // Du haut vers le bas, 13 px au moins entre deux noms, dans la plaque.
+    liste.sort((a, b) => a.coude.y - b.coude.y);
+    if (liste.length) liste[0].y = Math.max(liste[0].y, 12);
+    for (let i = 1; i < liste.length; i += 1) liste[i].y = Math.max(liste[i].y, liste[i - 1].y + 13);
+    const debord = liste.length ? liste[liste.length - 1].y - (H - 8) : 0;
+    if (debord > 0) for (const n of liste) n.y -= debord;
+    for (let i = liste.length - 2; i >= 0; i -= 1) liste[i].y = Math.min(liste[i].y, liste[i + 1].y - 13);
+    for (const n of liste) {
+      // Les noms s'alignent sur le bord de la plaque : aucun ne sort du cadre.
+      const droite = cote === 'droite';
+      const xNom = droite ? W - 6 : 6;
+      const largeurDuNom = n.nom.length * 6.4;
+      const finDuTrait = droite ? Math.max(xNom - largeurDuNom - 4, n.coude.x) : Math.min(xNom + largeurDuNom + 4, n.coude.x);
+      const depart = pos(n.teinte, R + BANDE / 2 + 1);
+      const couleurDuTrait = n.enPaire ? AMBRE : '#A0A0A0';
+      traits.push(`<polyline points="${depart.x.toFixed(1)},${depart.y.toFixed(1)} ${n.coude.x.toFixed(1)},${n.y.toFixed(1)} ${finDuTrait.toFixed(1)},${n.y.toFixed(1)}" fill="none" stroke="${couleurDuTrait}" stroke-width="1"/>`);
+      const couleur = n.enPaire ? AMBRE : n.cochee ? ENCRE : '#5E5E5E';
+      noms.push(`<text x="${xNom.toFixed(1)}" y="${(n.y + 4).toFixed(1)}" text-anchor="${droite ? 'end' : 'start'}" fill="${couleur}" style="font: ${n.cochee ? 700 : 600} 11px Inter, sans-serif">${n.nom}</text>`);
+    }
+  }
+  s += traits.join('');
+  // Les points, sur l'anneau.
+  for (const pt of lue.points) {
+    const { x, y } = pos(pt.teinte, R);
+    const r = pt.cochee ? 9 : 7;
+    const contour = pt.cochee ? ENCRE : pt.enPaire ? AMBRE : 'white';
+    s += `<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${r}" fill="${pt.couleur}" stroke="${contour}" stroke-width="${pt.cochee || pt.enPaire ? 2.5 : 2}"><title>${pt.nom}</title></circle>`;
+  }
+  s += noms.join('') + '</svg>';
+  return { svg: s, R, H };
+}
+
+function montrerLaRoue(largeur) {
+  for (const cote of ['aujourdhui', 'propose']) {
+    const cadre = document.getElementById(`roue-${cote}`);
+    cadre.style.width = cadre.parentElement.style.width = `${largeur}px`;
+    cadre.replaceChildren();
+    const iframe = ecran('harmonisation-roue', 420, (doc, fenetre) => {
+      iframe.style.width = `${largeur}px`;
+      const carte = [...doc.querySelectorAll('section.carte')].find((s) => s.getAttribute('aria-label') === 'Roue des teintes');
+      const svg = carte.querySelector('svg.plaque');
+      if (cote === 'propose') {
+        const lue = lireLaRoue(doc);
+        const largeurUtile = svg.parentElement.clientWidth;
+        const { svg: nouveau, R } = dessinerLaRoue(lue, largeurUtile);
+        svg.outerHTML = nouveau;
+        document.getElementById('mesure-roue').innerHTML = `Cercle de <b>${2 * R} px</b> (aujourd'hui 140 px), noms à <b>11 px</b> (aujourd'hui 9,5 px), dessin de ${largeurUtile} px dans la carte (aujourd'hui 420 px quelle que soit la carte).`;
+      }
+      // Sous la ligne du titre, collée en haut de l'onglet.
+      const titre = doc.querySelector('.harmonisation .tete-de-la-palette');
+      const sousLeTitre = titre ? titre.getBoundingClientRect().height + 8 : 8;
+      iframe.style.height = `${Math.ceil(carte.getBoundingClientRect().height + sousLeTitre) + 8}px`;
+      fenetre.scrollTo(0, carte.getBoundingClientRect().top + fenetre.scrollY - sousLeTitre);
+    });
+    cadre.append(iframe);
+  }
+}
+
+/* ------------------------------------------------------------------ 3. Fonds */
+const virgule = (n, d = 3) => n.toFixed(d).replace('.', ',');
+let jeu = 'tailwind';
+function montrerLesFonds() {
+  const seuil = +document.getElementById('seuil').value;
+  document.getElementById('valeur-seuil').textContent = virgule(seuil);
+  const lignes = window.PAIRES[jeu];
+  let parFonds = 0, dejaPleins = 0;
+  const corps = document.getElementById('lignes');
+  corps.replaceChildren(...lignes.map((p) => {
+    const plus = Math.min(p.fondLight, p.fondDark);
+    const signaleeFonds = plus < seuil;
+    const signaleePleins = p.plein < 0.05;
+    if (signaleeFonds && !signaleePleins) parFonds += 1;
+    if (signaleePleins) dejaPleins += 1;
+    const tr = document.createElement('tr');
+    if (!signaleeFonds && !signaleePleins) tr.className = 'hors';
+    const duo = (fonds, encres) => `<span class="duo">${[0, 1].map((i) => `<i style="background:${fonds[i]};color:${encres[i]}">${[p.a, p.b][i]}</i>`).join('')}</span>`;
+    const etiquettes = [signaleeFonds ? `<span class="etiquette fond">fonds en ${p.fondLight <= p.fondDark ? 'Light' : 'Dark'}</span>` : '', signaleePleins ? '<span class="etiquette plein">pleins</span>' : ''].join(' ');
+    tr.innerHTML = `<td><b>${p.a}</b> et <b>${p.b}</b></td>
+      <td><span style="background:#fff;border-radius:7px;display:inline-block">${duo(p.hexas.fondLight, p.hexas.texteLight)}</span></td><td class="n">${virgule(p.fondLight)}</td>
+      <td><span style="background:#0a0a0b;border-radius:7px;display:inline-block">${duo(p.hexas.fondDark, ['#f2f2f2', '#f2f2f2'])}</span></td><td class="n">${virgule(p.fondDark)}</td>
+      <td>${etiquettes || '<span class="compte">—</span>'}</td>`;
+    return tr;
+  }));
+  document.getElementById('compte').innerHTML = `Au seuil de ${virgule(seuil)}, les fonds ajoutent <b>${parFonds}</b> paire${parFonds > 1 ? 's' : ''} à celles que les pleins signalent déjà parmi ces lignes (${dejaPleins}).`;
+}
+
+/* ------------------------------------------------------------------ Commandes */
+function bascule(id, attribut, surChoix) {
+  const groupe = document.getElementById(id);
+  groupe.addEventListener('click', (e) => {
+    const bouton = e.target.closest('button');
+    if (!bouton) return;
+    groupe.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b === bouton)));
+    surChoix(bouton.dataset[attribut]);
+  });
+}
+bascule('moment', 'moment', montrerLesMessages);
+bascule('largeur-roue', 'largeur', (l) => montrerLaRoue(+l));
+bascule('jeu', 'jeu', (j) => { jeu = j; montrerLesFonds(); });
+document.getElementById('seuil').addEventListener('input', montrerLesFonds);
+montrerLesMessages('avant');
+montrerLaRoue(400);
+montrerLesFonds();
+</script>
+</body>
+</html>
