@@ -5,3 +5,8 @@ export * from './vocabulaire.js';
 export * from './architecture.js';
 export * from './conventions.js';
 export * from './normalisation.js';
+export * from './theme.js';
+export * from './contraste.js';
+export * from './produits.js';
+export * from './regles.js';
+export * from './recommandations.js';
