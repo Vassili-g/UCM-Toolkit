@@ -29,6 +29,8 @@ Le plugin s'ouvre sur **Création** dans un fichier sans palette, sur
 | Vérification | La palette ouverte, le verdict de toutes | Lire le verdict, les messages et les garanties de contraste |
 | Gestion | Le fichier | Écrire chaque palette dans les variables, créer sa planche, suivre leur état |
 
+Pour voir comment le moteur fabrique ses rampes, ouvrez la [planche du moteur](../couleur/planche/PLANCHE-DU-MOTEUR.html), qui les compare à celles de Tailwind 3.4.
+
 ## Composer une palette
 
 Dans **Création**, créez une palette avec un nom, une couleur de référence

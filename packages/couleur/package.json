@@ -10,7 +10,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tests/tsconfig.json",
-    "test": "node scripts/run-tests.cjs"
+    "test": "node scripts/run-tests.cjs",
+    "planche": "tsx planche/generer-planche.ts"
   },
   "dependencies": {
     "@ucm-kit/core": "*"

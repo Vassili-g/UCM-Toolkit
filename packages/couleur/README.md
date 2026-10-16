@@ -54,6 +54,8 @@ node packages/couleur/scripts/mesurer-limites.mjs
 Les tests couvrent des vecteurs figés, les propriétés des rampes et la pureté
 du moteur. Les scripts de mesure s'exécutent séparément des tests.
 
+La [planche du moteur](./planche/PLANCHE-DU-MOTEUR.html) montre les rampes du moteur à côté de celles de Tailwind 3.4 ; `npm run planche --workspace ucm-couleur` la régénère, et `tests/planche.test.ts` refuse une page périmée.
+
 Les [invariants du moteur](../../AGENTS.md#moteur-de-couleur) précisent les
 bornes de chaque calcul et renvoient à la spécification de Palettes.
 

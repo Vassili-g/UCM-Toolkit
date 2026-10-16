@@ -12,6 +12,7 @@ et les recherches encore utiles.
 | Lire les alias ou les tokens d'un composant | [UCM Token Explorer](../packages/plugin-explorateur/README.md) |
 | Ouvrir l'exporteur et choisir sa commande | [UCM Contract Exporter](../packages/plugin-exporter/README.md) |
 | Préparer un composant, exporter et relire sa demande de fusion | [Guide designer](./guides/POUR-LES-DESIGNERS.md) |
+| Comparer les rampes du moteur à celles de Tailwind 3.4 | [Planche du moteur](../packages/couleur/planche/PLANCHE-DU-MOTEUR.html) |
 | Installer les maîtres des règles d'usage | [Kit de règles](./guides/KIT-DE-REGLES.md) |
 | Brancher un dépôt consommateur | [Installation](../README.md#brancher-un-repository), puis [CLI](../packages/cli/README.md) |
 | Implémenter un contrat | `ucm guide <contrat>`, décrit dans le [guide du CLI](../packages/cli/README.md#the-guide-of-a-contract) |
