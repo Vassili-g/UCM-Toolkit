@@ -5,6 +5,16 @@ Ce plan met en œuvre les décisions du mainteneur sur le
 agent : elle nomme les fichiers, les valeurs exactes, les tests et le critère
 de fin. Cocher la case d'une tâche quand son commit est fait.
 
+## Avancement
+
+- [x] M1. Le moteur compare les fonds et calcule les zones quel que soit le départ (fait, relu, commit avec M2)
+- [ ] M2. Les lecteurs du plugin passent au rôle `fond` (en cours)
+- [x] H1. Un message ne déplace plus la page (abf3c88)
+- [ ] R1. La roue des teintes à la largeur de la carte (en cours chez Codex)
+- [x] T1. L'onglet s'appelle « Comparaison » (82434ac)
+- [ ] S1. La spécification et les documents suivent
+- [ ] V1. Vérification finale
+
 ## Décisions
 
 | Point | Décision |
@@ -45,7 +55,7 @@ M1, H1 et R1 touchent des fichiers disjoints, sauf `styles.css` pour H1 et R1
 
 ## M1. Le moteur compare les fonds et calcule les zones quel que soit le départ
 
-- [ ] **Agent** : `implementeur` (Sonnet).
+- [x] **Agent** : `implementeur` (Sonnet). Fait, relu, commit avec M2.
 - **Fichiers** : `packages/couleur/src/alertes.ts`,
   `packages/couleur/src/harmonisation.ts`, `packages/couleur/src/index.ts` si
   un export s'ajoute, `packages/couleur/tests/alertes.test.ts`,
@@ -144,7 +154,7 @@ M2 : les lister dans le compte rendu sans les corriger.
 
 ## M2. Les lecteurs du plugin passent au rôle `fond`
 
-- [ ] **Agent** : `implementeur` (Sonnet). Après M1 et H1.
+- [ ] **Agent** : `implementeur` (Sonnet). Après M1 et H1. En cours.
 - **Fichiers** : `packages/plugin-palettes/src/i18n/fr.ts`, `en.ts`,
   `src/ui/harmonisation/cartePaires.ts`, `galerie/etats.cjs`, les tests de
   `packages/plugin-palettes/tests/` qui cassent,
@@ -187,7 +197,7 @@ ne rend rien hors des libellés de variables `surface/foreground`).
 
 ## H1. Un message ne déplace plus la page
 
-- [ ] **Agent** : `implementeur` (Sonnet).
+- [x] **Agent** : `implementeur` (Sonnet). Fait, commit abf3c88.
 - **Fichiers** : `packages/plugin-palettes/src/harmonisation.ts`,
   `src/ui/ongletHarmonisation.ts`, `src/ui/harmonisation/cartePaires.ts`,
   `src/ui/harmonisation/carteComparaison.ts`,
@@ -305,7 +315,7 @@ vert, `npm run build --workspace ucm-palettes-plugin` vert.
 
 ## R1. La roue des teintes à la largeur de la carte
 
-- [ ] **Agent** : `implementeur-exigeant` (interface à reproduire au pixel). Délégable à Codex.
+- [ ] **Agent** : `implementeur-exigeant` (interface à reproduire au pixel). Délégable à Codex. En cours chez Codex.
 - **Fichiers** : `packages/plugin-palettes/src/roueDesTeintes.ts`,
   `src/ui/harmonisation/carteRoue.ts`, `src/ui/styles.css` (section « Roue des
   teintes » seulement), `tests/roueDesTeintes.test.ts`,
@@ -436,7 +446,7 @@ horizontal : `document.documentElement.scrollWidth <= 400`.
 
 ## T1. L'onglet s'appelle « Comparaison »
 
-- [ ] **Agent** : `executant` (Haiku). Après H1, qui modifie aussi `fr.ts` et `en.ts`.
+- [x] **Agent** : `executant` (Haiku). Après H1, qui modifie aussi `fr.ts` et `en.ts`. Fait, commit 82434ac.
 - **Fichiers** : `packages/plugin-palettes/src/i18n/fr.ts`, `en.ts`,
   `galerie/etats.cjs`, `tests/interface/interface.test.mjs`.
 
