@@ -4,34 +4,37 @@ import test from 'node:test';
 
 import { grisDeMemeClarte, lireHexa, type Rgb8 } from 'ucm-couleur';
 
-import { CENTRE_DE_LA_ROUE, RAYON_DE_LA_ROUE, arcDeLaPaire, arcDeLaRoue, palettesNommees, pointDeLaRoue, poserLesNoms, teinteDuPointeur } from '../src/roueDesTeintes';
+import { colonnesTiennent, couleurDeLAnneau, geometrieDeLaRoue, INTERLIGNE_DES_NOMS, MARGE_DES_NOMS, arcDeLaPaire, arcDeLaRoue, palettesNommees, pointDeLaRoue, poserLesNoms, teinteDuPointeur } from '../src/roueDesTeintes';
 import { simulerLaVision, VISIONS, type Vision } from '../src/vision';
+
+const geometrie = geometrieDeLaRoue(351);
+const { centre, rayon } = geometrie;
 
 const proche = (obtenu: number, attendu: number, quoi: string) => assert.ok(Math.abs(obtenu - attendu) < 1e-9, `${quoi} : ${obtenu} au lieu de ${attendu}`);
 
 test('[UI-43] 0° est en haut du cercle, 90° à droite, 180° en bas, dans le sens horaire', () => {
-  const [haut, droite, bas, gauche] = [0, 90, 180, 270].map((teinte) => pointDeLaRoue(teinte));
-  proche(haut.x, CENTRE_DE_LA_ROUE.x, 'x à 0°');
-  proche(haut.y, CENTRE_DE_LA_ROUE.y - RAYON_DE_LA_ROUE, 'y à 0°');
-  proche(droite.x, CENTRE_DE_LA_ROUE.x + RAYON_DE_LA_ROUE, 'x à 90°');
-  proche(droite.y, CENTRE_DE_LA_ROUE.y, 'y à 90°');
-  proche(bas.y, CENTRE_DE_LA_ROUE.y + RAYON_DE_LA_ROUE, 'y à 180°');
-  proche(gauche.x, CENTRE_DE_LA_ROUE.x - RAYON_DE_LA_ROUE, 'x à 270°');
+  const [haut, droite, bas, gauche] = [0, 90, 180, 270].map((teinte) => pointDeLaRoue(teinte, rayon, centre));
+  proche(haut.x, centre.x, 'x à 0°');
+  proche(haut.y, centre.y - rayon, 'y à 0°');
+  proche(droite.x, centre.x + rayon, 'x à 90°');
+  proche(droite.y, centre.y, 'y à 90°');
+  proche(bas.y, centre.y + rayon, 'y à 180°');
+  proche(gauche.x, centre.x - rayon, 'x à 270°');
 });
 
 test('[UI-43] la teinte du pointeur est l’inverse de la place d’une teinte', () => {
   for (const teinte of [0, 12, 90, 135, 200, 270, 359]) {
-    const { x, y } = pointDeLaRoue(teinte, 40);
-    proche(teinteDuPointeur(x - CENTRE_DE_LA_ROUE.x, y - CENTRE_DE_LA_ROUE.y), teinte, `teinte ${teinte}`);
+    const { x, y } = pointDeLaRoue(teinte, 40, centre);
+    proche(teinteDuPointeur(x - centre.x, y - centre.y), teinte, `teinte ${teinte}`);
   }
 });
 
 test('[UI-43] un arc long de plus de 180° prend le grand arc ; celui d’une paire déborde de 14° par le plus court chemin', () => {
-  assert.match(arcDeLaRoue(0, 90), / 0 0 1 /);
-  assert.match(arcDeLaRoue(0, 200), / 0 1 1 /);
+  assert.match(arcDeLaRoue(0, 90, rayon, centre), / 0 0 1 /);
+  assert.match(arcDeLaRoue(0, 200, rayon, centre), / 0 1 1 /);
   // 350° et 10° sont à 20° l'une de l'autre, de part et d'autre de 0° : l'arc va de 336° à 24°.
-  assert.equal(arcDeLaPaire(350, 10), arcDeLaRoue(336, 384));
-  assert.equal(arcDeLaPaire(10, 350), arcDeLaRoue(336, 384));
+  assert.equal(arcDeLaPaire(350, 10, rayon, centre), arcDeLaRoue(336, 384, rayon, centre));
+  assert.equal(arcDeLaPaire(10, 350, rayon, centre), arcDeLaRoue(336, 384, rayon, centre));
 });
 
 test('[UI-43] huit palettes colorées sont toutes nommées ; au-delà, les cochées et celles d’une paire', () => {
@@ -41,15 +44,45 @@ test('[UI-43] huit palettes colorées sont toutes nommées ; au-delà, les coch�
   assert.deepEqual([...palettesNommees(neuf, ['p1'], new Set(['p5', 'p8']))], ['p1', 'p5', 'p8']);
 });
 
-test('[UI-43] les noms se posent à 11 px du point, à droite du centre ou à gauche, et descendent sous un nom voisin du même côté', () => {
-  const [droite, gauche, voisine, autreCote] = poserLesNoms([{ x: 250, y: 60 }, { x: 150, y: 60 }, { x: 255, y: 66 }, { x: 140, y: 66 }]);
-  const [seule] = poserLesNoms([{ x: 255, y: 66 }]);
-  assert.deepEqual(droite, { x: 261, y: 63, ancre: 'start' });
-  assert.deepEqual(gauche, { x: 139, y: 63, ancre: 'end' });
-  // La ligne de base de la voisine est 69, à 6 px de 63 : elle descend de 11 px, à 80, comme son homologue de gauche. Un nom du côté opposé ne la gêne pas.
-  assert.deepEqual(voisine, { x: 266, y: 80, ancre: 'start' });
-  assert.deepEqual(autreCote, { x: 129, y: 80, ancre: 'end' });
-  assert.equal(seule.y, 69);
+test('[UI-43] la roue suit la largeur utile et garde un rayon minimal de 70 px', () => {
+  assert.deepEqual(geometrie, { largeur: 351, hauteur: 222, centre: { x: 175.5, y: 111 }, rayon: 87 });
+  assert.deepEqual(geometrieDeLaRoue(500), { largeur: 500, hauteur: 372, centre: { x: 250, y: 186 }, rayon: 162 });
+  assert.equal(geometrieDeLaRoue(300).rayon, 70);
+  assert.equal(geometrieDeLaRoue(300).largeur, 316);
+});
+
+test('[UI-43] les noms sont alignés à 15 px des bords, à droite pour 90° et à gauche pour 270°', () => {
+  const poses = poserLesNoms([{ teinte: 90, largeurDuNom: 30 }, { teinte: 270, largeurDuNom: 30 }], geometrie);
+  for (const pose of poses) proche(pose.y, 115, 'ligne de base');
+  assert.deepEqual(poses.map((pose) => ({ ...pose, y: Math.round(pose.y) })), [
+    { x: 336, y: 115, ancre: 'end', trait: '271.5,111.0 284.5,111.0 302.0,111.0' },
+    { x: 15, y: 115, ancre: 'start', trait: '79.5,111.0 66.5,111.0 49.0,111.0' },
+  ]);
+});
+
+test('[UI-43] chaque colonne espace les noms de 13 px et les garde dans les marges verticales', () => {
+  for (const teintes of [[179, 178, 177, 176, 175, 174], [6, 5, 4, 3, 2, 1], [181, 182, 183, 184, 185, 186], [354, 355, 356, 357, 358, 359], [1, 2, 3, 177, 178, 179], [181, 182, 183, 357, 358, 359]]) {
+    const poses = poserLesNoms(teintes.map((teinte) => ({ teinte, largeurDuNom: 40 })), geometrie);
+    const ordonnees = poses.map(({ y }) => y - 4).sort((a, b) => a - b);
+    ordonnees.forEach((y, rang) => {
+      assert.ok(y >= MARGE_DES_NOMS + 6 && y <= geometrie.hauteur - MARGE_DES_NOMS - 6);
+      if (rang) assert.ok(y - ordonnees[rang - 1] >= INTERLIGNE_DES_NOMS);
+    });
+    for (const { x } of poses) assert.ok(x >= MARGE_DES_NOMS && x <= geometrie.largeur - MARGE_DES_NOMS);
+  }
+  assert.equal(colonnesTiennent(14, geometrie), true);
+  assert.equal(colonnesTiennent(15, geometrie), false);
+  assert.equal(colonnesTiennent(0, geometrie), true);
+});
+
+test('[UI-43] la largeur mesurée du nom borne son trait sans dépasser le coude', () => {
+  const [nom] = poserLesNoms([{ teinte: 90, largeurDuNom: 200 }], geometrie);
+  assert.equal(nom.trait, '271.5,111.0 284.5,111.0 284.5,111.0');
+});
+
+test('[UI-43] les couleurs de l’anneau sont stables en Light et en Dark', () => {
+  assert.deepEqual(couleurDeLAnneau(0, 'light'), [246, 150, 180]);
+  assert.deepEqual(couleurDeLAnneau(0, 'dark'), [191, 101, 131]);
 });
 
 test('[UI-43] la vision normale rend la couleur ; le blanc, le noir et les gris restent eux-mêmes', () => {
