@@ -21,7 +21,7 @@ de fin. Cocher la case d'une tâche quand son commit est fait.
 |---|---|
 | R1 nuancier | En attente : le mainteneur n'a pas tranché D1. Aucune tâche. |
 | R2 nom | Onglet « Comparaison » (anglais « Comparison »). La carte « Comparaison » devient « Aperçu » (anglais « Preview »), le mot des bascules « Intensité de l’aperçu » et « Thème de l’aperçu ». Les identifiants de code ne changent pas. |
-| R3 alerte | Pleins (`solid/default`) et fonds (`surface/default`), en Light et en Dark. Les fonds se comparent à 24 % du seuil `palettesProches`, soit 0,012 par défaut. Aucun champ de recette ne s'ajoute. |
+| R3 alerte | Pleins (`solid/default`) et fonds (`surface/default`), en Light et en Dark. Les fonds se comparent à 20 % du seuil `palettesProches`, soit 0,010 par défaut (24 % signalait Terracota et Poppy, fonds Light à 0,0120, sur la recette du mainteneur). Aucun champ de recette ne s'ajoute. |
 | R4 messages | Les trois règles de la maquette, dans l'onglet Harmonisation seulement. Création ne change pas. |
 | R5 zones | Les zones hachurées se calculent quelle que soit la position de départ. |
 | R6 roue | La maquette, avec 15 px au moins entre un nom et le bord de la plaque. Les noms de familles disparaissent de la roue. |
@@ -73,7 +73,7 @@ M1, H1 et R1 touchent des fichiers disjoints, sauf `styles.css` pour H1 et R1
 3. Ajouter et exporter :
    ```ts
    /** Les fonds teintés, pâles, se comparent à cette part du seuil `palettesProches` ([VER-22]). */
-   export const PART_DU_SEUIL_DES_FONDS = 0.24;
+   export const PART_DU_SEUIL_DES_FONDS = 0.2;
    /** Sous cette part du seuil de leur rôle, deux palettes sont presque identiques ([VER-22]). */
    const PART_PRESQUE_IDENTIQUES = 0.2;
    /** Le seuil d'un rôle : `palettesProches` pour le plein, sa part pour le fond. */
@@ -128,7 +128,7 @@ M1, H1 et R1 touchent des fichiers disjoints, sauf `styles.css` pour H1 et R1
 
 **Tests à écrire ou adapter** (préfixe `[VER-22]` ou `[UI-42]` comme les tests voisins) :
 
-- une paire dont seuls les fonds Light sont sous 0,012 est signalée, rôle
+- une paire dont seuls les fonds Light sont sous 0,010 est signalée, rôle
   `fond`, mode `light` (prendre `#a855f7` et `#d946ef`, purple et fuchsia
   Tailwind, réglages par défaut : leur fond Light est à 0,0084, leurs pleins
   au-dessus de 0,05) ;
@@ -136,7 +136,7 @@ M1, H1 et R1 touchent des fichiers disjoints, sauf `styles.css` pour H1 et R1
   ni les fonds, n'est plus signalée (prendre `#14b8a6` et `#06b6d4`, teal et
   cyan Tailwind : texte Light 0,045, fonds 0,018 et 0,032, pleins au-dessus
   de 0,05) ;
-- `seuilDeProximite(0.05, 'fond')` vaut 0,012 à 1e-12 près, et
+- `seuilDeProximite(0.05, 'fond')` vaut 0,010 à 1e-12 près, et
   `seuilDeProximite(0.08, 'plein')` vaut 0,08 ;
 - `zonesTropProches` rend des zones non vides pour une paire séparée à la
   position actuelle dont la course traverse une zone trop proche (construire
@@ -164,10 +164,10 @@ M2 : les lister dans le compte rendu sans les corriger.
    - `paires.constat` : `role === 'plein' ? 'Boutons pleins' : 'Fonds teintés'` ;
    - `comparaison.constats.paire` : `role === 'plein' ? 'boutons pleins' : 'fonds teintés'` ;
    - `SUJET_DE_PROXIMITE = { plein: 'Boutons pleins', fond: 'Fonds teintés' }` ;
-   - `aidePalettesProches` : « Compare les boutons pleins et les fonds teintés, en Light et en Dark, en Vivid ou dans l’intensité unique. Les fonds teintés se comparent à 24 % de ce seuil. »
+   - `aidePalettesProches` : « Compare les boutons pleins et les fonds teintés, en Light et en Dark, en Vivid ou dans l’intensité unique. Les fonds teintés se comparent à 20 % de ce seuil. »
 2. Textes anglais, mêmes clés : « Filled buttons » / « Tinted fills »,
    « filled buttons » / « tinted fills », et
-   `aidePalettesProches` : « Compares filled buttons and tinted fills in Light and Dark, using Vivid or the single intensity. Tinted fills are compared at 24% of this threshold. »
+   `aidePalettesProches` : « Compares filled buttons and tinted fills in Light and Dark, using Vivid or the single intensity. Tinted fills are compared at 20% of this threshold. »
 3. `cartePaires.ts`, fonction `pastilles` : la condition reste
    `paire.proximite.role === 'plein'`, la branche `fond` garde
    `['surface/default', 'surface/foreground']`. Mettre à jour le commentaire
@@ -476,7 +476,7 @@ qu'il ne reste que des identifiants et des commentaires.
   et `README.md` de ce dossier.
 
 1. `[VER-22]` : les quatre couleurs comparées, `PART_DU_SEUIL_DES_FONDS`
-   (0,24), le rapport distance sur seuil qui choisit le rôle dit,
+   (0,2), le rapport distance sur seuil qui choisit le rôle dit,
    « presque identiques » sous 20 % du seuil du rôle.
 2. `[UI-20]` : les zones de messages d'Harmonisation gardent leur plus grande
    hauteur depuis l'entrée dans l'onglet ; elles se recalent à l'entrée.

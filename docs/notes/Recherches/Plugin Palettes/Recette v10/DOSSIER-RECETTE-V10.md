@@ -95,8 +95,10 @@ familles voisines se confondent. Les fonds de red et de rose Tailwind sont à
 
 - Comparer `solid/default` en Light et en Dark au seuil `palettesProches`
   (0,05), et `surface/default` en Light et en Dark à un seuil propre aux
-  fonds. La valeur recommandée est 0,012, à confirmer à l'œil dans la section 3
-  de la maquette.
+  fonds. Le mainteneur a retenu 20 % du seuil, soit 0,010. À 24 % (0,012), sa
+  recette signalait Terracota et Poppy, dont les fonds Light (#F6E6E6 et
+  #FCE2E1) sont à 0,0120 ; à 0,010, elle ne signale plus que Sun et Orange, par
+  leurs pleins Light (0,037).
 - Le rôle de proximité `texte` devient `fond`. Le constat dit « fonds teintés
   trop proches en Light » ou « boutons pleins trop proches en Dark ».
 - Les zones hachurées, la roue, le bilan de Vérification et le compteur de
