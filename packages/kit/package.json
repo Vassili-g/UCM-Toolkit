@@ -30,6 +30,10 @@
       "types": "./dist/emplois/index.d.ts",
       "default": "./dist/emplois/index.js"
     },
+    "./referentiel": {
+      "types": "./dist/referentiel/index.d.ts",
+      "default": "./dist/referentiel/index.js"
+    },
     "./lecteurs": {
       "types": "./src/lecteurs/index.d.mts",
       "default": "./src/lecteurs/index.mjs"
