@@ -40,21 +40,21 @@ const TIRET_CADRATIN = '—';
  * `CONTRACT_VERSION` et `L'` compris.
  */
 export const ACRONYMES = [
-  'AA', 'AAA', 'APCA', 'API', 'ASCII', 'BASE', 'BOM', 'BOOLEAN', 'CI', 'CLI', 'COLOR', 'COMPONENT',
-  'CRLF', 'CSS', 'DOM', 'DS', 'DTCG', 'EAA', 'EACCES', 'EASING', 'EN', 'ENOTDIR', 'ESM',
+  'AA', 'AAA', 'ACM', 'AI', 'ALIN', 'APCA', 'API', 'ASCII', 'BASE', 'BOM', 'BOOLEAN', 'CI', 'CLI', 'COLOR', 'COMA', 'COMPONENT',
+  'CPU', 'CRLF', 'CSS', 'CTI', 'DOLAR', 'DOM', 'DS', 'DTCG', 'EAA', 'EACCES', 'EASING', 'EMSE', 'EN', 'ENOTDIR', 'ESM',
   'FIXED',
   'FLOAT', 'FRAME', 'GET', 'GIT', 'GNU', 'GRID', 'GROUP', 'HSL', 'HTML', 'HTTP',
-  'HTTPS', 'HUG', 'IA', 'ID', 'ISO', 'JND', 'JS', 'JSON', 'JSX', 'JWT', 'LF', 'LGPL',
+  'HTTPS', 'HUG', 'IA', 'IBM', 'ICDE', 'ID', 'ISO', 'ISWC', 'JND', 'JS', 'JSON', 'JSX', 'JWT', 'KER', 'LAPD', 'LF', 'LGPL',
   'LINE', 'LTR', 'MAX', 'MB', 'MCP', 'MD', 'MIN', 'MIT', 'MVP', 'NODE', 'NONE',
-  'NPM', 'OIDC', 'OK', 'OKLAB', 'OKLCH', 'PAT', 'PATH', 'PDF', 'PNG', 'POLYGON', 'POST', 'PR', 'PUT',
+  'MSR', 'NPM', 'OAEI', 'OIDC', 'OK', 'OKLAB', 'OKLCH', 'ONNX', 'PAT', 'PATH', 'PDF', 'PNG', 'POLYGON', 'POST', 'PR', 'PUT', 'RAM',
   'RECTANGLE',
-  'REST', 'RGAA', 'RGB', 'RTL', 'SET', 'SHA', 'SLOT', 'SSH', 'SOLID', 'SPEC', 'STAR', 'STRETCH',
+  'REST', 'RGAA', 'RGB', 'RTL', 'SET', 'SHA', 'SLDS', 'SLOT', 'SMAT', 'SSH', 'SOLID', 'SPEC', 'STAR', 'STRETCH',
   // `TODO(sujet)` est le marqueur conventionnel d'un point à reprendre, que les
   // éditeurs et `grep` retrouvent. Le sujet entre parenthèses nomme la tâche qui
   // le retirera.
   'STRING', 'SVG', 'TAP', 'TAR', 'TEXT', 'TIMING', 'TODO', 'TS', 'UCM', 'UI', 'URI',
-  'URL', 'USD',
-  'UTF', 'UX', 'VECTOR', 'WCAG', 'WRAP', 'YAML', 'ZIP', 'ELLIPSE', 'AUTO',
+  'TUM', 'URL', 'USD', 'UUID',
+  'UTF', 'UX', 'VECTOR', 'VLDB', 'WASM', 'WCAG', 'WCRE', 'WRAP', 'YAML', 'ZIP', 'ELLIPSE', 'AUTO',
   // Les documents du dépôt, cités par leur nom sans extension.
   'AGENTS', 'CONCEPT', 'CONTRIBUTING', 'LICENSE', 'README', 'ROADMAP',
 ];
