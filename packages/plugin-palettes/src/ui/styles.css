@@ -4982,8 +4982,10 @@ html {
 }
 
 /*
- * Le nuancier des palettes : sept cartes de 60 × 80 px par rangée, trois
- * aplats puis la bande blanche du nom. Le point d'état se pose à droite du
+ * Le nuancier des palettes : toute la largeur, des cartes de 80 px de haut
+ * et de 60 px de large au moins, autant par rangée que la largeur en tient ;
+ * elles se partagent la place restante. Trois aplats puis la bande blanche
+ * du nom. Le point d'état se pose à droite du
  * nom ; une carte atténuée reste cliquable.
  */
 .nuancier-des-palettes {
@@ -4992,8 +4994,8 @@ html {
   --point-rouge: rgb(229 72 77);
   --point-ambre: rgb(243 181 63);
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 60px));
-  /* Sept colonnes de 60 px au plus : à 480 px de large elles se resserrent au lieu de déborder. */
+  width: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
   gap: 8px;
 }
 

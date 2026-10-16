@@ -1,6 +1,6 @@
 /**
- * Le nuancier des palettes : une carte par palette, dans l'ordre de la
- * recette. Chaque carte montre trois aplats en Light (la nuance 200, la
+ * Le nuancier des palettes : une carte par palette, dans l'ordre que
+ * l'appelant donne, par teinte dans Création et Vérification. Chaque carte montre trois aplats en Light (la nuance 200, la
  * nuance d'ancrage de la référence, la nuance 800), puis le nom de la palette
  * dans une bande blanche. L'accueil de Création et le bilan de Vérification
  * l'emploient quand aucune palette n'est ouverte.

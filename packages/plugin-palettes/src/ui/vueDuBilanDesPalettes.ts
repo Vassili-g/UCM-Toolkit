@@ -3,7 +3,8 @@
  * nuancier vérifié (`nuancierDesPalettes.ts`), les onglets « À corriger »,
  * « À vérifier » et « Conformes » en forme de bascule Light/Dark, puis une
  * ligne de détail par palette de l'onglet actif. Quand tout est conforme, une
- * phrase à la place des onglets.
+ * phrase à la place des onglets. Cartes et lignes se rangent par teinte, comme
+ * le sélecteur de Création (`ordreParTeinte`).
  *
  * Le classement des palettes (`bilanDesPalettes.ts`) se calcule une fois par
  * recette lue : un rendu de la même recette ne le refait pas, et ne redessine
@@ -19,6 +20,7 @@ import {
   type EtatDuBilan,
   type LigneDuBilan,
 } from './bilanDesPalettes';
+import { ordreParTeinte, rangerSelon } from '../ordreDesPalettes';
 import { memoriserVues, type Localisation, type Texte } from './localisation';
 import { aplatsDeLaCarte, creerVuesNuancierDesPalettes } from './nuancierDesPalettes';
 
@@ -178,7 +180,8 @@ function construireVues(i18n: Localisation) {
 
     function afficher(recette: Recette): void {
       if (lu?.recette !== recette) {
-        lu = { recette, bilan: bilanDesPalettes(recette) };
+        const bilan = bilanDesPalettes(recette);
+        lu = { recette, bilan: { ...bilan, lignes: rangerSelon(bilan.lignes, ordreParTeinte(recette), ({ palette }) => palette.id) } };
         dessine = null;
       }
       const { bilan } = lu;
