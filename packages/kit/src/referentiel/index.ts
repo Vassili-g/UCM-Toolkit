@@ -1,4 +1,8 @@
-/** Point d’entrée du vocabulaire UCM et des emplois de couleur. */
+/**
+ * Point d’entrée du vocabulaire UCM et des emplois de couleur.
+ *
+ * Après une modification : ajouter ici tout nouveau fichier du référentiel, puis relancer `npm test` et changer la version du kit.
+ */
 export * from '../emplois/index.js';
 export * from './termes.js';
 export * from './vocabulaire.js';

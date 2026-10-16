@@ -7,7 +7,7 @@
  * Les clés `soft`, `vivid`, `light`, `dark` et les codes d'emploi restent
  * ceux des données ; seul leur affichage se traduit ici.
  */
-import { libellesDesVariables, type VariableLibellee } from '@ucm-kit/core/referentiel';
+import { libellesDesVariables, MODES as MODES_DU_REFERENTIEL, type VariableLibellee } from '@ucm-kit/core/referentiel';
 import type { ChampDePalette } from '../importation';
 import type { IssueDeLaPage } from '../ecriture/planche';
 import type { EtatDuCadre } from '../planche/fraicheur';
@@ -1732,7 +1732,7 @@ export function nuancesDeLAjustement(
  */
 export function garantiesManqueesDeLaReference(manques: { readonly [M in Mode]: number }): string {
   const total = manques.light + manques.dark;
-  const themes = (['light', 'dark'] as const).filter((mode) => manques[mode] > 0).map((mode) => `in the ${NOM_DU_MODE[mode]} theme`);
+  const themes = MODES_DU_REFERENTIEL.filter((mode) => manques[mode] > 0).map((mode) => `in the ${NOM_DU_MODE[mode]} theme`);
   return `${total} ${total === 1 ? "unmet guarantee" : "unmet guarantees"} ${themes.join(" and ")}`;
 }
 

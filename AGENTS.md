@@ -392,6 +392,9 @@ tests/                   les tests du monorepo lui-même
   versionSuitLeContenu.test.mjs  un numéro publié annonce bien ce qu'il publie
   monorepoCoherent.test.mjs  chaque paquet lit le kit d'à côté, jamais le registre
   pluginsSepares.test.ts  aucun des trois plugins n'importe un autre
+  referentielUnique.test.ts  aucune liste littérale ne recopie une donnée du référentiel
+  vueIllustree.test.ts   la vue illustrée montre le référentiel d'aujourd'hui
+  manifestsDesPlugins.test.ts  chaque plugin a son propre `id` de manifest
 ```
 
 ## Invariants

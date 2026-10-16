@@ -8,7 +8,7 @@
  * teinte ou de l'égalité de deux couleurs.
  */
 import { sensDuTheme, variablesDuCran, type VariableDuTheme } from '@ucm-kit/core/emplois';
-import { estNeutre } from '@ucm-kit/core/referentiel';
+import { estNeutre, PROFILS } from '@ucm-kit/core/referentiel';
 import { classerRecette, type Classement, type Palette, type Recette } from 'ucm-couleur';
 
 import type { Index } from '../indexation';
@@ -36,7 +36,7 @@ export function cransDeLaPalette(recette: Recette, palette: Palette): readonly n
 
 /** Les intensités qu'une palette porte. */
 export function intensitesDeLaPalette(palette: Palette): ReadonlyArray<Intensite | null> {
-  return palette.intensites === 1 ? [null] : ['soft', 'vivid'];
+  return palette.intensites === 1 ? [null] : [...PROFILS];
 }
 
 export type RefusDAssociation = 'type' | 'palette' | 'intensite' | 'cran';

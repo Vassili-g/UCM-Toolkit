@@ -1,4 +1,8 @@
-/** Les libellés et définitions du thème partagent les supports des emplois de couleur. */
+/**
+ * Les libellés et définitions du thème partagent les supports des emplois de couleur.
+ *
+ * Après une modification : relancer `npm test`, régénérer la vue illustrée (`generer-donnees-referentiel.ts`) (elle en tire les définitions des variables), et changer la version du kit.
+ */
 import { SUPPORT_DES_VARIABLES, VARIABLES_DE_PALETTE, type VariableDePalette, type VariableDuTheme, type SupportDeVariable } from '../emplois/dossiers.js';
 import type { Langues, Terme } from './termes.js';
 

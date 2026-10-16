@@ -1,4 +1,8 @@
-/** Les seuils de contraste du thème et les niveaux de texte, comparés à dix décimales. */
+/**
+ * Les seuils de contraste du thème et les niveaux de texte, comparés à dix décimales.
+ *
+ * Après une modification : relancer `npm test`, régénérer la vue illustrée (`generer-donnees-referentiel.ts`) si une garantie change, la planche du moteur (`npm run planche --workspace ucm-couleur`) (les seuils bornent les rampes), et changer la version du kit.
+ */
 import { atteintLeSeuil } from '../emplois/contraste.js';
 
 export const SEUILS_PAR_USAGE = { texte: 4.5, nonTexte: 3 } as const;

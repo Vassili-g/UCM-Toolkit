@@ -1,4 +1,8 @@
-/** Les identifiants retenus et les formes tolérées dans les noms Figma. */
+/**
+ * Les identifiants retenus et les formes tolérées dans les noms Figma.
+ *
+ * Après une modification : relancer `npm test`, régénérer la vue illustrée (`generer-donnees-referentiel.ts`) si un registre qu'elle montre change, la planche du moteur (`npm run planche --workspace ucm-couleur`) si un cran, un mode ou un profil change, et changer la version du kit.
+ */
 import type { Registre } from './termes.js';
 
 export const CRANS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
