@@ -33,6 +33,7 @@ import {
   type VariableDePalette,
   type VariableDuTheme,
 } from 'ucm-couleur';
+import { estNeutre } from '@ucm-kit/core/referentiel';
 
 import type { AnalyseDePalette } from './analyse';
 import { prereglageDe } from './edition';
@@ -382,12 +383,9 @@ export function hauteursDesRayures(intensites: number): { readonly petite: numbe
   return intensites > 1 ? { petite: 3, texteDesBoutons: intensites * 4 - 1 } : { petite: 5, texteDesBoutons: 5 };
 }
 
-/** Le nom qui désigne la palette du neutre : celui que le profil UCM d'UCM Explorateur lit aussi. */
-const PALETTE_NEUTRE = 'neutral';
-
 /** Vrai pour la palette du neutre, qui ajoute `page/foreground-main` et `page/foreground-subtle` à la table. */
 export function estLaPaletteNeutre(palette: { readonly nom?: string }): boolean {
-  return (palette.nom ?? '').trim().toLowerCase() === PALETTE_NEUTRE;
+  return estNeutre(palette.nom ?? '');
 }
 
 /** Ce que le pointeur, le focus ou le choix désignent dans l'aperçu (I13). */

@@ -10,7 +10,7 @@
  * Le composant ne garde pas la valeur choisie : la carte la possède, reçoit
  * `surChoix`, puis la rend avec `poser`.
  */
-import type { Profil } from 'ucm-couleur';
+import { PROFILS, type Profil } from 'ucm-couleur';
 
 import { memoriserVues, type Localisation, type Texte } from './localisation';
 
@@ -18,7 +18,7 @@ export type ValeurDuChoix = Profil | 'deux';
 
 export type PorteeDuChoix = 'regler' | 'afficher';
 
-const ORDRE: readonly ValeurDuChoix[] = ['soft', 'vivid', 'deux'];
+const ORDRE: readonly ValeurDuChoix[] = [...PROFILS, 'deux'];
 
 /**
  * La rangée qui ouvre le corps d'une carte fixe : ses choix, calés à droite.

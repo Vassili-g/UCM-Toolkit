@@ -6,6 +6,7 @@
  * Les clés `soft`, `vivid`, `light`, `dark` et les codes d'emploi restent
  * ceux des données ; seul leur affichage se traduit ici.
  */
+import { libellesDesVariables, type VariableLibellee } from '@ucm-kit/core/referentiel';
 import type { ChampDePalette } from '../importation';
 import type { IssueDeLaPage } from '../ecriture/planche';
 import type { EtatDuCadre } from '../planche/fraicheur';
@@ -837,31 +838,13 @@ export function resumeDeLaDerive(modifiees: readonly GrandeurDuColorShift[], lie
 }
 
 /** Une variable de thème qui a un libellé : celles de la palette, du neutre, et le fond de la page. */
-export type VariableLibellee = VariableDePalette | 'page/foreground-main' | 'page/foreground-subtle' | 'elevation/page' | 'elevation/raised';
+export type { VariableLibellee };
 
 /**
  * Le libellé d'une variable du thème, dans le détail d'une nuance, les
  * messages et les garanties (S9, I1). Le code de la variable se montre à côté.
  */
-export const LIBELLE_DE_LA_VARIABLE: Record<VariableLibellee, string> = {
-  'solid/default': 'bouton',
-  'solid/hover': 'bouton survolé',
-  'solid/pressed': 'bouton appuyé',
-  'solid/foreground': 'texte des boutons',
-  'surface/default': 'fond teinté',
-  'surface/hover': 'fond teinté survolé',
-  'surface/pressed': 'fond teinté appuyé',
-  'surface/foreground': 'texte sur fond teinté',
-  'surface/border': 'contour sur fond teinté',
-  'page/foreground': 'texte coloré',
-  'page/border': 'contour',
-  'page/divider': 'filet',
-  'ring': 'anneau de focus',
-  'page/foreground-main': 'corps de texte',
-  'page/foreground-subtle': 'texte secondaire',
-  'elevation/page': 'fond de la page',
-  'elevation/raised': 'fond de la carte',
-};
+export const LIBELLE_DE_LA_VARIABLE: Record<VariableLibellee, string> = libellesDesVariables('fr');
 
 /**
  * Le résultat d'une intensité (N035) : « Vivid ✓ », « Vivid ✗ 2 », et pour la

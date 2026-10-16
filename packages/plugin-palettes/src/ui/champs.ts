@@ -5,11 +5,14 @@
  * configuration ([ENT-14]), le choix du profil qui porte la référence en
  * trois segments, le choix du modèle et les numéros d'une palette libre (W6.5).
  */
-import { BORNES_DES_CRANS_LIBRES, type Profil } from 'ucm-couleur';
+import { BORNES_DES_CRANS_LIBRES, PROFILS, type Profil } from 'ucm-couleur';
 
 import { memoriserVues, type Localisation, type Texte } from './localisation';
 
 export type ChoixDeBase = 'auto' | Profil;
+
+/** Auto, puis chaque profil du référentiel. */
+const VALEURS_DE_BASE: readonly ChoixDeBase[] = ['auto', ...PROFILS];
 
 export interface ChoixDeBaseUi {
   /** La colonne entière : libellé, segments, puis la ligne d'aide que l'appelant remplit. */
@@ -85,7 +88,7 @@ function construireVues(i18n: Localisation) {
     segments.className = 'bascule bascule-de-base';
     segments.setAttribute('role', 'group');
     i18n.lier(segments, 'aria-label', TEXTES_DE_LA_BASE.libelle);
-    const boutons = (['auto', 'soft', 'vivid'] as const).map((valeur) => {
+    const boutons = VALEURS_DE_BASE.map((valeur) => {
       const bouton = document.createElement('button');
       bouton.type = 'button';
       bouton.className = 'bascule-option';

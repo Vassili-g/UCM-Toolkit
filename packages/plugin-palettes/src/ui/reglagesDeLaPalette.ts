@@ -28,6 +28,7 @@ import {
   balayerLaLimite,
   estPaletteGrise,
   partDeLaReference,
+  PROFILS,
   pivotDe,
   profilPorteur,
   validerRecette,
@@ -97,7 +98,7 @@ function construireVues(i18n: Localisation) {
     // La cible : Soft, Vivid, ou les deux ; le ◆ marque le profil qui porte la référence.
     const cible = createChoixDuProfil({
       portee: 'regler',
-      options: ['soft', 'vivid', 'deux'],
+      options: [...PROFILS, 'deux'],
       surChoix(valeur) {
         if (choisie === valeur) return;
         choisie = valeur;
@@ -261,7 +262,7 @@ function construireVues(i18n: Localisation) {
       const recette = lue;
       calculs.terminer();
       butee = null;
-      const profils: readonly CibleDuReglage[] = cibleDuGeste() === 'deux' ? ['soft', 'vivid'] : [cibleDuGeste()];
+      const profils: readonly CibleDuReglage[] = cibleDuGeste() === 'deux' ? PROFILS : [cibleDuGeste()];
       const sansSaturation = grandeurs.filter((grandeur) => grandeur !== 'saturation').reduce((palette, grandeur) => {
         const regler = grandeur === 'teinte' ? reglerTeinte : reglerClarte;
         return profils.reduce((suivante, profil) => regler(recette, suivante, profil, 0), palette);
@@ -315,7 +316,7 @@ function construireVues(i18n: Localisation) {
       const absolue = pivotDe(recette, palette, uneSeule ? 'unique' : profil).H;
       const teinteAffichee = Math.round(absolue) % 360;
       // Une réglette est modifiée dès qu'un profil visé s'écarte de son défaut : « Par défaut » a alors quelque chose à rendre.
-      const profilsVises: readonly Profil[] = uneSeule ? ['vivid'] : choisie === 'deux' ? ['soft', 'vivid'] : [choisie];
+      const profilsVises: readonly Profil[] = uneSeule ? ['vivid'] : choisie === 'deux' ? PROFILS : [choisie];
       const modifiee = (grandeur: Grandeur): boolean => profilsVises.some((vise) => estModifiee(grandeur, tous[vise][grandeur], defauts[vise][grandeur]));
       toutRetablir.disabled = !GRANDEURS.some(modifiee);
       // Une palette grise ne montre pas de teinte : elle ne se règle pas, comme le Color shift ([DER-15]).

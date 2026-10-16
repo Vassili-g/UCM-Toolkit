@@ -5,6 +5,7 @@
  * variable qui n'a de couleur dans aucun mode n'entre dans aucune palette.
  * Pur : ni Figma, ni DOM.
  */
+import { MODES, PROFILS } from 'ucm-couleur';
 import type { CollectionLue, ModeLu, VariableLue } from './releve';
 
 /** Le nombre de variables à partir duquel un groupe est une palette. */
@@ -124,8 +125,8 @@ export interface PaletteSeule {
 
 export type PaletteRegroupee = PaletteGroupee | PaletteSeule;
 
-const INTENSITES: readonly IntensiteDuChemin[] = ['soft', 'vivid'];
-const THEMES: readonly ThemeDuChemin[] = ['light', 'dark'];
+const INTENSITES: readonly IntensiteDuChemin[] = PROFILS;
+const THEMES: readonly ThemeDuChemin[] = MODES;
 
 interface Candidat {
   readonly rang: number;

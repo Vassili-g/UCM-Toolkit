@@ -1,5 +1,5 @@
 /** La sélection d'Harmonisation suit les identifiants de la recette, sans DOM ni rangement. */
-import { aUneIntensite, arrondir, CHROMA_DES_PALETTES_COLOREES, estLibre, partsDe, referenceDe, rgb8VersOklch, sortieLaPlusProche, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus, type RoleDeProximite } from 'ucm-couleur';
+import { aUneIntensite, arrondir, CHROMA_DES_PALETTES_COLOREES, estLibre, PROFILS, partsDe, referenceDe, rgb8VersOklch, sortieLaPlusProche, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus, type RoleDeProximite } from 'ucm-couleur';
 
 import { remplacerPalette } from './edition';
 import { GRANDEURS, valeursDesProfils, type Grandeur } from './reglagesParDefaut';
@@ -137,7 +137,7 @@ export const ECARTS_DE_MODIFICATION: Readonly<Record<Grandeur, number>> = { tein
 /** Une valeur de teinte, de saturation ou de luminosité, de l'un des profils, diffère de celle du départ. */
 export function modifieeDepuisLeDepart(recette: Recette, palette: Palette, depart: Palette): boolean {
   const [courantes, anciennes] = [valeursDesProfils(recette, palette), valeursDesProfils(recette, depart)];
-  const profils: readonly Profil[] = aUneIntensite(palette) ? ['vivid'] : ['soft', 'vivid'];
+  const profils: readonly Profil[] = aUneIntensite(palette) ? ['vivid'] : PROFILS;
   return profils.some((profil) => GRANDEURS.some((grandeur) => arrondir(Math.abs(courantes[profil][grandeur] - anciennes[profil][grandeur]), 6) >= ECARTS_DE_MODIFICATION[grandeur]));
 }
 

@@ -4,6 +4,7 @@
  * palettes et se range dans le suivi, jamais dans la recette. Pur : ni
  * Figma, ni DOM.
  */
+import { DESTINATION_DES_PALETTES } from '@ucm-kit/core/referentiel';
 
 /** Une collection locale, par son identifiant, ou une collection à créer, par son nom. */
 export type CollectionVisee = { readonly id: string } | { readonly nom: string };
@@ -19,7 +20,11 @@ export interface Destination {
 }
 
 /** La forme de l'architecture (D5) : la collection neuve `primitives`, le groupe `colors`, les thèmes dans le chemin. */
-export const DESTINATION_PAR_DEFAUT: Destination = { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' };
+export const DESTINATION_PAR_DEFAUT: Destination = {
+  collection: { nom: DESTINATION_DES_PALETTES.collection },
+  groupe: DESTINATION_DES_PALETTES.groupe,
+  themes: DESTINATION_DES_PALETTES.themes,
+};
 
 /** Le champ qu'une destination refusée doit corriger. */
 export type RefusDeDestination = 'collection' | 'groupe' | 'themes';
