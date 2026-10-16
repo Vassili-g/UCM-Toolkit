@@ -124,43 +124,41 @@ function avecSegments(chemin: string, categories: readonly (CategorieDeNom | nul
   return { ...nom(chemin, id), categoriesDesSegments: categories };
 }
 
-test('un segment de composant prend l’écriture des composants et le reste celle des variables', () => {
-  const marques = [null, 'composants', null, null, null] as const;
-  const resultat = normaliserLesNoms([avecSegments('Components/button-group/Colors/Primary/press', marques)], { variables: tiret, composants: pascal });
-  assert.deepEqual(resultat.propositions.map((proposition) => proposition.nouveauNom), ['components/ButtonGroup/colors/primary/press']);
-  assert.deepEqual(resultat.propositions[0].raisons, ['casse', 'separateur']);
-  const conforme = normaliserLesNoms([avecSegments('components/Button/colors/primary/press', marques)], { variables: tiret, composants: pascal });
-  assert.deepEqual(conforme.propositions, []);
-  const sansChoix = normaliserLesNoms([avecSegments('components/Button/colors/primary/press', marques)], { variables: tiret });
-  assert.deepEqual(sansChoix.propositions.map((proposition) => proposition.nouveauNom), []);
+const groupes = (chemin: string, id = chemin): NomANormaliser => {
+  const segments = chemin.split('/');
+  return avecSegments(chemin, segments.map((_, rang) => (rang < segments.length - 1 ? 'groupes' : null)), id);
+};
+
+test('les groupes prennent leur écriture et le nom final celle des variables', () => {
+  const resultat = normaliserLesNoms([groupes('button/sizes/medium/Padding-x')], { groupes: pascal, variables: tiret });
+  assert.deepEqual(resultat.propositions.map((proposition) => proposition.nouveauNom), ['Button/Sizes/Medium/padding-x']);
+  assert.deepEqual(normaliserLesNoms([groupes('Button/Sizes/Medium/padding-x')], { groupes: pascal, variables: tiret }).propositions, []);
+  assert.deepEqual(normaliserLesNoms([groupes('Button/Sizes/Medium/padding-x')], { variables: tiret }).propositions, []);
 });
 
-test('la détection compte les segments de palette dans leur catégorie', () => {
-  const noms = ['DeepBlue', 'SkyBlue', 'WarmRed'].map((palette) => avecSegments(`colors/${palette}/light-mode/500`, [null, 'palettes', null, null], palette));
+test('la détection compte les groupes dans leur catégorie', () => {
+  const noms = ['Button/Sizes/Medium/padding-x', 'Alert/Colors/Info/border-width', 'TileLink/Sizes/Large/font-size'].map((chemin) => groupes(chemin));
   const detection = detecterLesConventions(noms);
-  assert.deepEqual(detection.palettes.dominante, pascal);
-  assert.equal(detection.palettes.total, 3);
+  assert.deepEqual(detection.groupes.dominante, pascal);
+  assert.equal(detection.groupes.total, 3);
   assert.deepEqual(detection.variables.dominante, tiret);
   assert.equal(detection.variables.total, 3);
-  assert.equal(detection.composants.total, 0);
-  const seulement = detecterLesConventions([avecSegments('DeepBlue', ['palettes'])]);
+  const seulement = detecterLesConventions([avecSegments('DeepBlue', ['groupes'])]);
   assert.equal(seulement.variables.total, 0);
   assert.equal(seulement.variables.dominante, null);
 });
 
-test('un segment de palette ou de composant reste hors du remplacement des termes UCM', () => {
-  const noms = [avecSegments('colors/Press/light/press', [null, 'palettes', null, null]), avecSegments('Press/disable', ['composants', null])];
-  const resultat = normaliserLesNoms(noms, { variables: tiret, palettes: pascal, composants: pascal }, { termesUcm: true });
-  assert.deepEqual(resultat.propositions.map((proposition) => proposition.nouveauNom), ['colors/Press/light/pressed', 'Press/disabled']);
-  assert.ok(resultat.propositions.every((proposition) => proposition.raisons.includes('terme-tolere')));
-  assert.deepEqual(normaliserLesNoms([avecSegments('colors/press/light', [null, 'palettes', null])], { variables: tiret, palettes: tiret }, { termesUcm: true }).propositions, []);
+test('les termes UCM se remplacent aussi dans les groupes', () => {
+  const resultat = normaliserLesNoms([groupes('Button/Colors/Press/background')], { groupes: pascal, variables: tiret }, { termesUcm: true });
+  assert.deepEqual(resultat.propositions.map((proposition) => proposition.nouveauNom), ['Button/Colors/Pressed/background']);
+  assert.deepEqual(resultat.propositions[0].raisons, ['terme-tolere']);
 });
 
 test('les collisions restent comparées sous la catégorie du nom', () => {
-  const noms = [avecSegments('colors/DeepBlue', [null, 'palettes'], 'a'), avecSegments('colors/deep-blue', [null, 'palettes'], 'b')];
-  const resultat = normaliserLesNoms(noms, { variables: tiret, palettes: pascal });
+  const noms = [groupes('Colors/padding-x', 'a'), groupes('colors/padding-x', 'b')];
+  const resultat = normaliserLesNoms(noms, { groupes: pascal, variables: tiret });
   assert.deepEqual(resultat.propositions, []);
-  assert.deepEqual(resultat.collisions, [{ categorie: 'variables', portee: 'collection', nom: 'colors/DeepBlue', ids: ['a', 'b'] }]);
+  assert.deepEqual(resultat.collisions, [{ categorie: 'variables', portee: 'collection', nom: 'Colors/padding-x', ids: ['a', 'b'] }]);
 });
 
 test('l’instantané propose exactement 60 press et 36 disable sans réécrire les données', () => {

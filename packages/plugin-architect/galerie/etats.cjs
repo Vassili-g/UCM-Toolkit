@@ -38,8 +38,7 @@ const detection = (conformes) => ({
   variables: detecter(tiret, conformes ? 800 : 734, 800),
   proprietes: detecter(espace, conformes ? 24 : 18, 24),
   valeurs: detecter(tiret, conformes ? 96 : 81, 96),
-  palettes: detecter(pascal, 12, 12),
-  composants: detecter(pascal, conformes ? 9 : 8, 9),
+  groupes: detecter(pascal, conformes ? 21 : 20, 21),
 });
 
 const collection = nom('c1', 'collections', 'Color Brands');
@@ -50,13 +49,13 @@ const doublonB = nom('v4', 'variables', 'font-size');
 const propriete = nom('p1', 'proprietes', 'button_state');
 const grande = nom('w1', 'valeurs', 'Extra_Large');
 const defaut = nom('w2', 'valeurs', 'Default');
-// Une variable dont un segment nomme une palette, une autre dont un segment nomme un composant : ils donnent leurs lignes au tableau d'écriture.
-const palette = nom('v5', 'variables', 'colors/Poppy/light/500', [null, 'palettes', null, null]);
-const composant = nom('v6', 'variables', 'components/Button/colors/primary', [null, 'composants', null, null]);
+// Deux variables à groupes : elles donnent sa ligne au tableau d'écriture.
+const palette = nom('v5', 'variables', 'Colors/Poppy/Light/500', ['groupes', 'groupes', 'groupes', null]);
+const composant = nom('v6', 'variables', 'Button/Sizes/Medium/padding-x', ['groupes', 'groupes', 'groupes', null]);
 const entrees = [collection, bleu, taille, doublonA, doublonB, palette, composant, propriete, grande, defaut];
 const inventaire = (liste) => ({ entrees: liste, pages: [{ id: 'page', nom: 'Composants' }] });
 
-const choisies = { collections: tiret, variables: tiret, proprietes: espace, valeurs: tiret, palettes: pascal, composants: pascal };
+const choisies = { collections: tiret, variables: tiret, proprietes: espace, valeurs: tiret, groupes: pascal };
 const propositions = [
   proposition(collection, 'color-brands', casseEtSeparateur),
   proposition(bleu, 'colors/blue/light/500', ['casse']),
@@ -108,7 +107,7 @@ const appliquer = { clic: '#appliquer' };
 module.exports.ETATS = [
   { id: 'initial', titre: 'Avant analyse', quand: 'Le plugin vient de s’ouvrir.', regarder: 'L’en-tête, le bouton d’analyse et la note de bas de page.', existe: true, atteinte: [{ message: { type: 'initial' } }] },
   { id: 'lecture', titre: 'Lecture des pages', quand: 'Une analyse parcourt le fichier.', regarder: 'Le bouton désactivé et l’avancement.', existe: true, atteinte: [analyser, { message: { type: 'lecture', demande: 1, avancement: { phase: 'pages', pagesLues: 2, totalPages: 5 } } }] },
-  { id: 'pret', titre: 'Propositions', quand: 'Le fichier a été lu et des noms sont à harmoniser.', regarder: 'Le titre-bilan, l’écriture détectée par catégorie (dont les noms de palettes et de composants), les deux groupes de renommages et le doublon replié ; le pied désactivé.', existe: true, atteinte: [analyser, pret(1, analyse)] },
+  { id: 'pret', titre: 'Propositions', quand: 'Le fichier a été lu et des noms sont à harmoniser.', regarder: 'Le titre-bilan, l’écriture détectée par catégorie (dont les groupes des variables), les deux groupes de renommages et le doublon replié ; le pied désactivé.', existe: true, atteinte: [analyser, pret(1, analyse)] },
   { id: 'aucune-proposition', titre: 'Aucune proposition', quand: 'Tous les noms suivent déjà l’écriture choisie.', regarder: 'Le titre « Aucun nom à harmoniser », sa phrase d’aide, l’absence de liste et de pied.', existe: true, atteinte: [analyser, pret(1, analyseConforme)] },
   { id: 'ecriture-changee', titre: 'Écriture changée', quand: 'Le designer choisit le camelCase pour les variables.', regarder: 'La proposition recalculée, la liste des variables en camelCase et le doublon à deux noms.', existe: true, atteinte: [analyser, pret(1, analyse), { saisie: { dans: 'select[aria-label="Écriture des variables"]', valeur: 'camelCase|camelCase' } }, pret(2, analyseEnCamelCase)] },
   { id: 'lignes-cochees', titre: 'Lignes cochées', quand: 'Le designer coche un groupe, puis une ligne d’un autre.', regarder: 'La case du premier groupe cochée, celle du second partielle, et le pied qui compte cinq noms.', existe: true, atteinte: [analyser, pret(1, analyse), cocherLeGroupe, { clic: '.groupe:nth-of-type(2) .ligne input' }] },

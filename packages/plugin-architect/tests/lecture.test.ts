@@ -1,7 +1,7 @@
 /** Les doubles refusent un parcours avant le chargement de leur page. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { lireInventaire, nomsDePalettesDeLaRecette, relireInventaireAvantEcriture, type AvancementLecture, type ComposantLu, type PortDeLecture } from '../src/lecture';
+import { lireInventaire, relireInventaireAvantEcriture, type AvancementLecture, type ComposantLu, type PortDeLecture } from '../src/lecture';
 import { creerPortDeLecture } from '../src/lectureFigma';
 
 function composant(id: string, modifications: Partial<ComposantLu> = {}): ComposantLu {
@@ -98,92 +98,14 @@ test('l’adaptateur Figma sélectionne les deux types après chargement de chaq
   assert.deepEqual(appels, ['charge:0', 'parcours:0', 'charge:1', 'parcours:1']);
 });
 
-function portDeVariables(noms: readonly [string, string][], composants: readonly ComposantLu[], recette?: string): PortDeLecture {
-  return {
-    collections: async () => [{ id: 'prim', name: 'primitives', remote: false }, { id: 'comp', name: 'components', remote: false }, { id: 'theme', name: 'theme', remote: false }],
-    variables: async () => noms.map(([nom, collection], rang) => ({ id: `v${rang}`, name: nom, variableCollectionId: collection, remote: false })),
-    pages: () => [{ id: 'p', name: 'Page', charger: async () => {}, composants: () => composants }],
-    ...(recette === undefined ? {} : { recettePalettes: () => recette }),
+test('les segments avant le nom final d’une variable sont ses groupes', async () => {
+  const port: PortDeLecture = {
+    collections: async () => [{ id: 'comp', name: 'components', remote: false }],
+    variables: async () => ['Button/Sizes/Medium/padding-x', 'opacity'].map((name, rang) => ({ id: `v${rang}`, name, variableCollectionId: 'comp', remote: false })),
+    pages: () => [],
   };
-}
-const categoriesDe = (inventaire: Awaited<ReturnType<typeof lireInventaire>>) =>
-  Object.fromEntries(inventaire.entrees.filter((entree) => entree.cible.type === 'variable').map((entree) => [entree.nom.nom, entree.nom.categoriesDesSegments]));
-
-test('un segment qui nomme un ensemble de variantes ou un composant seul est marqué composant', async () => {
-  const composants = [
-    composant('set', { name: 'Button Group', type: 'COMPONENT_SET' }),
-    composant('v', { name: 'Size=Large', parentId: 'set' }),
-    composant('seul', { name: 'Forms/Text field' }),
-    composant('distant', { name: 'Card', remote: true }),
-  ];
-  const inventaire = await lireInventaire(portDeVariables([
-    ['sizes/button-group/large', 'prim'], ['sizes/textField/large', 'prim'],
-    ['sizes/card/large', 'prim'], ['sizes/size=large', 'prim'], ['sizes/forms', 'prim'],
-  ], composants), { pause: async () => {} });
-  assert.deepEqual(categoriesDe(inventaire), {
-    'sizes/button-group/large': [null, 'composants', null],
-    'sizes/textField/large': [null, 'composants', null],
-    'sizes/card/large': undefined,
-    'sizes/size=large': undefined,
-    'sizes/forms': undefined,
-  });
-});
-
-test('la racine de la collection des composants nomme un composant, même absent du fichier', async () => {
-  const inventaire = await lireInventaire(portDeVariables([
-    ['Button/colors/primary/default/background', 'comp'], ['Alert/sizes/medium/gap', 'comp'],
-  ], []), { pause: async () => {} });
-  assert.deepEqual(categoriesDe(inventaire), {
-    'Button/colors/primary/default/background': ['composants', null, null, null, null],
-    'Alert/sizes/medium/gap': ['composants', null, null, null],
-  });
-});
-
-test('la recette nomme les palettes, par identifiant comme par nom d’affichage', async () => {
-  const recette = JSON.stringify({ palettes: [{ id: 'poppy' }, { id: 'sky', nom: 'Deep Blue' }] });
-  const inventaire = await lireInventaire(portDeVariables([
-    ['colors/Poppy/light/500', 'prim'], ['colors/deepBlue/light/500', 'prim'], ['colors/Other/light/500', 'prim'],
-  ], [], recette), { pause: async () => {} });
-  assert.deepEqual(categoriesDe(inventaire), {
-    'colors/Poppy/light/500': [null, 'palettes', null, null],
-    'colors/deepBlue/light/500': [null, 'palettes', null, null],
-    'colors/Other/light/500': undefined,
-  });
-  const relue = await relireInventaireAvantEcriture(portDeVariables([['colors/Poppy/light/500', 'prim']], [], recette));
-  assert.deepEqual(categoriesDe(relue), { 'colors/Poppy/light/500': [null, 'palettes', null, null] });
-});
-
-test('un nom de palette hors de la collection des primitives est un rôle, pas une palette', async () => {
-  const recette = JSON.stringify({ palettes: [{ id: 'neutral' }] });
-  const inventaire = await lireInventaire(portDeVariables([
-    ['colors/neutral/light/500', 'prim'], ['neutral/page/foreground', 'theme'],
-  ], [], recette), { pause: async () => {} });
-  assert.deepEqual(categoriesDe(inventaire), {
-    'colors/neutral/light/500': [null, 'palettes', null, null],
-    'neutral/page/foreground': undefined,
-  });
-});
-
-test('sans recette lisible, une palette est le segment qui suit colors dans primitives', async () => {
-  for (const recette of [undefined, '', 'pas du JSON', '{"palettes":[]}']) {
-    const inventaire = await lireInventaire(portDeVariables([
-      ['colors/Poppy/light/500', 'prim'], ['colors/Poppy/light/500', 'theme'], ['dimensions/base', 'prim'], ['Poppy/colors', 'prim'],
-    ], [], recette), { pause: async () => {} });
-    assert.deepEqual(inventaire.entrees.filter((entree) => entree.cible.type === 'variable').map((entree) => entree.nom.categoriesDesSegments),
-      [[null, 'palettes', null, null], undefined, undefined, undefined], String(recette));
-  }
-  assert.equal(nomsDePalettesDeLaRecette('{"palettes":[{"id":"a"}]}')?.has('a'), true);
-});
-
-test('un segment à la fois palette et composant compte comme palette', async () => {
-  const inventaire = await lireInventaire(portDeVariables([['colors/Button/light/500', 'prim']], [composant('c', { name: 'Button' })]), { pause: async () => {} });
-  assert.deepEqual(categoriesDe(inventaire), { 'colors/Button/light/500': [null, 'palettes', null, null] });
-});
-
-test('l’adaptateur Figma lit la recette à l’adresse partagée', async () => {
-  const lectures: unknown[][] = [];
-  const api = { variables: { getLocalVariableCollectionsAsync: async () => [], getLocalVariablesAsync: async () => [] },
-    root: { children: [], getSharedPluginData: (...args: unknown[]) => { lectures.push(args); return '{}'; } } };
-  assert.equal(creerPortDeLecture(api as unknown as PluginAPI).recettePalettes?.(), '{}');
-  assert.deepEqual(lectures, [['ucm_palettes', 'recette']]);
+  const inventaire = await lireInventaire(port, { pause: async () => {} });
+  const categories = Object.fromEntries(inventaire.entrees.filter((entree) => entree.cible.type === 'variable')
+    .map((entree) => [entree.nom.nom, entree.nom.categoriesDesSegments]));
+  assert.deepEqual(categories, { 'Button/Sizes/Medium/padding-x': ['groupes', 'groupes', 'groupes', null], opacity: undefined });
 });

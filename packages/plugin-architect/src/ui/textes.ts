@@ -26,8 +26,8 @@ export const TEXTES = {
     titre: 'Écriture des noms',
     colonnes: ['Catégorie', 'Écriture détectée', 'Écriture choisie'],
     categories: {
-      collections: 'Collections', variables: 'Variables', proprietes: 'Propriétés', valeurs: 'Valeurs',
-      palettes: 'Noms de palettes', composants: 'Noms de composants',
+      collections: 'Collections', variables: 'Noms des variables', groupes: 'Groupes des variables',
+      proprietes: 'Propriétés', valeurs: 'Valeurs',
     } satisfies Record<CategorieDeNom, string>,
     choix: (categorie: string): string => `Écriture des ${categorie.toLowerCase()}`,
     aucuneDominante: 'Aucune écriture dominante',
@@ -60,8 +60,7 @@ export const TEXTES = {
       variables: ', déjà utilisé dans la même collection.',
       proprietes: ', déjà utilisé dans le même composant.',
       valeurs: ', déjà utilisé dans la même propriété.',
-      palettes: ', déjà utilisé dans la même collection.',
-      composants: ', déjà utilisé dans la même collection.',
+      groupes: ', déjà utilisé dans la même collection.',
     } satisfies Record<CategorieDeNom, string>,
     action: 'Renommez l’un de ces deux éléments dans Figma, puis relancez l’analyse.',
   },
@@ -76,5 +75,5 @@ export const TEXTES = {
     refuse: 'Aucun nom n’a été modifié. Vérifiez le fichier, puis relancez l’analyse.',
     telecharger: 'Télécharger la table des noms',
   },
-  note: 'Les groupes séparés par `/` restent des groupes. Les noms de palettes et de composants peuvent garder leur propre écriture. Les doublons bloquent les lignes concernées. Dans Figma, le lot s’annule en une fois.',
+  note: 'Dans un nom de variable, les parties avant le dernier `/` sont ses groupes : ils peuvent avoir leur propre écriture. Les doublons bloquent les lignes concernées. Dans Figma, le lot s’annule en une fois.',
 } as const;

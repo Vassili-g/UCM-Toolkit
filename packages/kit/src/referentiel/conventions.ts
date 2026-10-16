@@ -4,18 +4,18 @@ import type { Registre } from './termes.js';
 export type Casse = 'minuscules' | 'initiale' | 'camelCase' | 'PascalCase' | 'inchangee';
 export type Separateur = 'tiret' | 'tiret-bas' | 'soude' | 'camelCase' | 'espace' | 'inchange';
 export type Convention = { readonly casse: Casse; readonly separateur: Separateur };
-/** `palettes` et `composants` ne nomment pas d'objet : ils qualifient un segment d'un nom de variable. */
-export const CATEGORIES_DE_NOM = ['collections', 'variables', 'proprietes', 'valeurs', 'palettes', 'composants'] as const;
+/**
+ * `groupes` ne nomme pas d'objet : il qualifie les segments d'un nom de variable
+ * qui précèdent son nom final (`Button/Sizes/Medium` dans `Button/Sizes/Medium/padding-x`).
+ */
+export const CATEGORIES_DE_NOM = ['collections', 'variables', 'groupes', 'proprietes', 'valeurs'] as const;
 export type CategorieDeNom = typeof CATEGORIES_DE_NOM[number];
-/** Un segment de ces catégories est un nom propre : le vocabulaire UCM ne le remplace pas. */
-export const CATEGORIES_DE_SEGMENT = ['palettes', 'composants'] as const;
 export const LIBELLES_DE_CATEGORIE: Readonly<Record<CategorieDeNom, { readonly fr: string; readonly en: string }>> = {
   collections: { fr: 'Collections', en: 'Collections' },
-  variables: { fr: 'Variables', en: 'Variables' },
+  variables: { fr: 'Noms des variables', en: 'Variable names' },
+  groupes: { fr: 'Groupes des variables', en: 'Variable groups' },
   proprietes: { fr: 'Propriétés', en: 'Properties' },
   valeurs: { fr: 'Valeurs', en: 'Values' },
-  palettes: { fr: 'Noms de palettes', en: 'Palette names' },
-  composants: { fr: 'Noms de composants', en: 'Component names' },
 };
 export type NomANormaliser = {
   readonly id: string;
