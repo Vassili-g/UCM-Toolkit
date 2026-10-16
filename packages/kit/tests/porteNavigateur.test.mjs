@@ -36,7 +36,7 @@ function externesDe(fichier, vus = new Set()) {
 }
 
 /** Un module est pur quand sa fermeture n'atteint que les sous-chemins du kit sans dépendance. */
-const estPur = (fichier) => [...externesDe(fichier)].every((cible) => cible === "@ucm-kit/core/format" || cible === "@ucm-kit/core/emplois");
+const estPur = (fichier) => [...externesDe(fichier)].every((cible) => ["@ucm-kit/core/format", "@ucm-kit/core/emplois", "@ucm-kit/core/referentiel"].includes(cible));
 
 test("la porte navigateur n'atteint ni node: ni ajv, à aucune profondeur", () => {
   assert.deepEqual([...externesDe("navigateur.mjs")].filter((cible) => cible.startsWith("node:") || cible === "ajv"), []);
