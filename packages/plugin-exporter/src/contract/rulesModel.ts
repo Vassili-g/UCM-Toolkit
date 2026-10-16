@@ -8,23 +8,15 @@ import { pousserSansNode } from './localisation';
 import { normalizePropKey, normalizePropValue } from './parsers';
 import type { IconPolicy, Intent } from '@ucm-kit/core/format';
 
-/** Tags reconnus une fois normalisés sans `@`. */
-export type RuleTag =
-  | 'usage'
-  | 'prop'
-  | 'boolean'
-  | 'do'
-  | 'dont'
-  | 'pairs'
-  | 'icons'
-  | 'default';
+import { TAGS_DES_REGLES, type RuleTag } from '@ucm-kit/core/referentiel';
+export { TAGS_D_INTENTION, type RuleTag } from '@ucm-kit/core/referentiel';
 
-/** Les tags qui alimentent `intent`. */
-export const TAGS_D_INTENTION: readonly RuleTag[] = ['usage', 'do', 'dont', 'pairs'];
+const tagDeValeur = new RegExp(`^@?(${TAGS_DES_REGLES.join('|')})$`, 'i');
+const tagDeCalque = new RegExp(`^@(${TAGS_DES_REGLES.join('|')})$`, 'i');
 
 /** Reconnaît un tag porté par une valeur de variante Figma. */
 export function ruleTagFromValue(value: string): RuleTag | null {
-  const match = /^@?(usage|prop|boolean|do|dont|pairs|icons|default)$/i.exec(value);
+  const match = tagDeValeur.exec(value);
   return match ? match[1].toLowerCase() as RuleTag : null;
 }
 
@@ -37,7 +29,7 @@ export function ruleTagFromValue(value: string): RuleTag | null {
  * d'une même règle se distinguent sans qu'aucun nom de frame ne les sépare.
  */
 export function ruleTagFromLayerName(name: string): RuleTag | null {
-  const match = /^@(usage|prop|boolean|do|dont|pairs|icons|default)$/i.exec(name.trim());
+  const match = tagDeCalque.exec(name.trim());
   return match ? match[1].toLowerCase() as RuleTag : null;
 }
 
