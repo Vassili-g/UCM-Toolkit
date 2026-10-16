@@ -385,9 +385,9 @@ lots 3 à 13 : c'est elle qui débloque la migration du fichier du mainteneur.
 **Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lots 14
 et 15.
 
-- [ ] `packages/plugin-architect` sur le socle des plugins : manifeste, build,
+- [x] `packages/plugin-architect` sur le socle des plugins (6e1ce31) : manifeste, build,
   galerie, comme `plugin-explorateur`
-- [ ] Lecture des collections, des variables locales, des propriétés et des
+- [x] Lecture des collections, des variables locales, des propriétés et des (6e1ce31)
   valeurs de variantes des composants locaux, de toutes les pages, avec un
   avancement ; propositions par le moteur du lot 15
 - [ ] `tests/pluginsSepares.test.ts` couvre le nouveau plugin ; `produits.ts`
