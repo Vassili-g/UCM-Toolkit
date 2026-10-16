@@ -2,3 +2,4 @@
 export * from '../emplois/index.js';
 export * from './termes.js';
 export * from './vocabulaire.js';
+export * from './architecture.js';
