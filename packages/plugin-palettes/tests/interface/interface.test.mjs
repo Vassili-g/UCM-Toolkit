@@ -21,7 +21,7 @@ test('[UI-39] Harmonisation est indisponible sous deux palettes et les flèches 
         await envoyer(page, lu);
       }
       const onglets = page.getByRole('tablist', { name: 'Navigation du plugin', exact: true });
-      const harmonie = onglets.getByRole('tab', { name: 'Harmonisation', exact: true });
+      const harmonie = onglets.getByRole('tab', { name: 'Comparaison', exact: true });
       assert.equal(await harmonie.isDisabled(), true);
       assert.equal(await harmonie.getAttribute('aria-disabled'), 'true');
       await onglets.getByRole('tab', { name: 'Vérification', exact: true }).click();
@@ -64,7 +64,7 @@ test('[UI-39] le compteur et la ligne fixe comptent les paires, au singulier, au
         assert.equal(await ligne.locator('.ligne-fixe-texte').textContent(), 'Toutes vos palettes se distinguent');
         assert.equal(await ligne.getAttribute('data-ton'), 'neutre');
         assert.equal((await ligne.boundingBox()).height, 24);
-        assert.equal(await onglet.getAttribute('aria-label'), 'Harmonisation');
+        assert.equal(await onglet.getAttribute('aria-label'), 'Comparaison');
       }
     } finally { await page.close(); }
   }
@@ -91,7 +91,7 @@ test('[UI-39] les choix d’Harmonisation survivent au retour et n’envoient au
     await page.getByRole('tab', { name: 'Général', exact: true }).click();
     await page.getByLabel('Langue', { exact: true }).selectOption('en');
     await page.locator('.header-back-button').click();
-    assert.match(await page.locator('#onglet-harmonisation').getAttribute('aria-label'), /^Harmony/);
+    assert.match(await page.locator('#onglet-harmonisation').getAttribute('aria-label'), /^Comparison/);
     assert.match(await panneau.locator('.ligne-fixe-texte').textContent(), /pairs? of palettes too close|All your palettes are distinct/);
     assert.equal(await page.locator('#onglet-harmonisation .compteur-de-verification').count(), 1);
   } finally { await page.close(); }
@@ -124,7 +124,7 @@ test('[UI-39] la galerie d’arrivée garde son en-tête sur une ligne aux deux 
       await page.waitForFunction(() => document.documentElement.dataset.galerie === 'pret');
       const panneau = page.locator('#panneau-harmonisation');
       assert.equal(await panneau.isVisible(), true);
-      assert.equal(await panneau.getByRole('heading', { name: langue === 'fr' ? 'Harmonisation' : 'Harmony', exact: true }).isVisible(), true);
+      assert.equal(await panneau.getByRole('heading', { name: langue === 'fr' ? 'Comparaison' : 'Comparison', exact: true }).isVisible(), true);
       assert.deepEqual(await panneau.locator('.tete-de-la-palette .bascule-option').allTextContents(), ['Soft', 'Vivid', 'Light', 'Dark']);
       assert.equal(await panneau.locator('.choix-libelle:visible').count(), 0);
       const blocs = await panneau.locator('.tete-de-la-palette > *').evaluateAll((elements) => elements.map((element) => {
@@ -265,7 +265,7 @@ function clarteOklab([r, g, b]) {
   return 0.2104542553 * Math.cbrt(l) + 0.793617785 * Math.cbrt(m) - 0.0040720468 * Math.cbrt(s);
 }
 const coche = (panneau, nom) => panneau.locator('.liste').getByRole('checkbox', { name: nom, exact: true }).click();
-const carteComparaison = (page, nom = 'Comparaison') => page.locator(`#panneau-harmonisation .carte[aria-label="${nom}"]`);
+const carteComparaison = (page, nom = 'Aperçu') => page.locator(`#panneau-harmonisation .carte[aria-label="${nom}"]`);
 
 test('[UI-41] la carte Comparaison paraît dès deux palettes cochées et peint les composants des rôles de la table du kit', async () => {
   const page = await ouvrirHarmonisationSurVingtPalettes();
@@ -430,7 +430,7 @@ test('[UI-41] la carte Comparaison se replie, se traduit et tient dans la fenêt
   try {
     const panneau = page.locator('#panneau-harmonisation');
     for (const nom of ['Rose', 'Indigo', 'Vert', 'Feuille']) await coche(panneau, nom);
-    const carte = carteComparaison(page, 'Comparison');
+    const carte = carteComparaison(page, 'Preview');
     assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Checked palettes, side by side');
     assert.equal(await carte.locator('.carte-resume').textContent(), '4 palettes');
     assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Colors', 'Grayscale']);
@@ -927,13 +927,13 @@ test('[UI-44] pendant un glisser de la roue, aucune carte ne change de hauteur ;
     await page.mouse.up();
     const demande = await prochaine(page, avant);
     await envoyer(page, rangee(demande.demande));
-    // Rangée, la hauteur se libère : la carte Comparaison a la hauteur de son nouveau constat, et la roue la suit.
+    // Rangée, la hauteur se libère : la carte Aperçu a la hauteur de son nouveau constat, et la roue la suit.
     const fin = await miseEnPage(page);
     assert.equal(fin.figee, false);
     assert.equal(await carteComparaison(page).evaluate((carte) => carte.style.height), '');
     const succes = await constats.first().evaluate((constat) => constat.getBoundingClientRect().height);
     assert.ok(succes < avertissement, 'le constat de succès est plus court que l’avertissement');
-    assert.ok(fin.roue < repos.roue, 'la roue remonte avec la carte Comparaison');
+    assert.ok(fin.roue < repos.roue, 'la roue remonte avec la carte Aperçu');
     // Échap libère aussi la hauteur.
     const depart2 = await placeDuPoint(page, 'Indigo');
     await page.mouse.move(depart2.x, depart2.y);
@@ -1095,12 +1095,12 @@ test('[UI-44] l’onglet nomme ses cases par la palette, groupe ses bascules en 
     const panneau = page.locator('#panneau-harmonisation');
     // Onglets : le motif du socle, les flèches passent d'un onglet à l'autre.
     const onglets = page.getByRole('tablist', { name: 'Navigation du plugin', exact: true });
-    assert.equal(await onglets.getByRole('tab', { name: /^Harmonisation/ }).getAttribute('aria-selected'), 'true');
-    await onglets.getByRole('tab', { name: /^Harmonisation/ }).focus();
+    assert.equal(await onglets.getByRole('tab', { name: /^Comparaison/ }).getAttribute('aria-selected'), 'true');
+    await onglets.getByRole('tab', { name: /^Comparaison/ }).focus();
     await page.keyboard.press('ArrowRight');
     assert.equal(await onglets.getByRole('tab', { name: 'Gestion', exact: true }).getAttribute('aria-selected'), 'true');
     await page.keyboard.press('ArrowLeft');
-    assert.equal(await onglets.getByRole('tab', { name: /^Harmonisation/ }).getAttribute('aria-selected'), 'true');
+    assert.equal(await onglets.getByRole('tab', { name: /^Comparaison/ }).getAttribute('aria-selected'), 'true');
     // Rangées de « Vos palettes » : la case porte le nom de la palette, la rangée entière est son label.
     const rangees = panneau.locator('.liste label.ligne-de-palette');
     assert.equal(await rangees.count(), 20);
@@ -1332,7 +1332,7 @@ test('les onglets suivent leur libellé avec le même retrait horizontal', async
     assert.deepEqual(mesures.map(({ retraitGauche, retraitDroit }) => [retraitGauche, retraitDroit]), [['8px', '8px'], ['8px', '8px'], ['8px', '8px'], ['8px', '8px']]);
     assert.ok(mesures[1].largeur > mesures[0].largeur, 'Vérification est plus large que Création');
     assert.ok(mesures[0].largeur > mesures[3].largeur, 'Création est plus large que Gestion');
-    assert.deepEqual(mesures.map(({ texte }) => texte), ['Création', 'Vérification', 'Harmonisation', 'Gestion']);
+    assert.deepEqual(mesures.map(({ texte }) => texte), ['Création', 'Vérification', 'Comparaison', 'Gestion']);
   } finally {
     await page.close();
   }
