@@ -92,3 +92,4 @@ Hors de ce chantier : le contrôle « full UCM » d'un `tokens.json` par
 | [Demande d'audit dans Git](https://github.com/Vassili-g/UCM-Toolkit/blob/cbfd4f6/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/PROMPT-AUDIT-CODEX.md) | Les données du concept partagées entre plugins et absentes de la liste proposée |
 | [Audit dans Git](https://github.com/Vassili-g/UCM-Toolkit/blob/cbfd4f6/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/AUDIT-REFERENTIEL.md) | Le rapport de Codex : 60 données classées, contradictions, écarts entre la vue et le kit |
 | [PLAN-IMPLEMENTATION.md](./PLAN-IMPLEMENTATION.md) | Les lots, leurs agents et leurs critères de fin |
+| [EXPLORATION-UX-ARCHITECT.html](./EXPLORATION-UX-ARCHITECT.html) | La suite d'UCM Architect après la v1 : les pistes de la première exploration face à l'existant, six écrans (Bilan, Noms, Architecture), un ordre en versions et quatre questions |
