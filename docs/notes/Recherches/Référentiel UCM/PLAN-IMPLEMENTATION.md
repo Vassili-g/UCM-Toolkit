@@ -214,9 +214,41 @@ export du mainteneur.
 
 Fin : la vue s'ouvre dans un navigateur ; test vert.
 
-## Lot 10 · Les garde-fous
+## Lot 10 · La planche du moteur
 
-**Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 4 à 8.
+**Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 3 et 4.
+
+Une page générée qui montre comment le moteur fabrique ses palettes, à côté
+de Tailwind 3.4 : peu de texte, des pastilles et des composants. Elle vit à
+côté du moteur, dans `packages/couleur/planche/`, et un test la tient à jour.
+
+Modèle : la section 1 de la
+[maquette de la recette du moteur](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/Maquettes/MAQUETTE-MOTEUR.html#comparaison),
+sans le formulaire d'avis ni les variantes de réglages.
+
+- [ ] `planche/generer-planche.ts` importe `packages/couleur/src` et le
+  référentiel, et écrit `planche/PLANCHE-DU-MOTEUR.html`, autonome (données
+  dans la page, aucune ressource externe)
+- [ ] Une ligne par famille chromatique de `planche/tailwind-3.4.17.json` : la
+  rampe Tailwind, puis les rampes du moteur avec sa couleur 500 comme
+  référence, Soft et Vivid, Light et Dark. En Dark, chaque cran de Tailwind
+  est la nuance de sa rampe la plus proche de la courbe Dark
+- [ ] Sous chaque rampe du moteur, les composants qui prennent leurs rôles
+  dans la table du référentiel : badge et alerte sur `surface`, bouton
+  `solid`, lien `page/foreground`, anneau `ring`, posés sur la carte et la page
+- [ ] Commandes : profil, thème, texte des boutons du Dark (noir ou blanc) ;
+  une phrase de légende par section, au plus
+- [ ] `npm run planche --workspace ucm-couleur` régénère la page ;
+  `tests/planche.test.ts` la génère en mémoire, la compare au fichier commité
+  et donne la commande en cas d'écart
+- [ ] Liens depuis `packages/couleur/README.md`,
+  `packages/plugin-palettes/README.md` et `docs/README.md`
+
+Fin : la page s'ouvre sans réseau, pèse moins de 1 Mo, et son test est vert.
+
+## Lot 11 · Les garde-fous
+
+**Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 4 à 8 et 10.
 
 - [ ] `tests/referentielUnique.test.ts` : hors de `packages/kit/src/referentiel`
   et `emplois`, aucune liste littérale de crans, de modes, de profils,
@@ -228,14 +260,15 @@ Fin : la vue s'ouvre dans un navigateur ; test vert.
 
 Fin : `npm test` vert.
 
-## Lot 11 · Les documents
+## Lot 12 · Les documents
 
 **Agent :** `implementeur`, avec `rediger-sans-tics-ia`. **Effort :** moyen.
-**Dépend :** lot 10. Commit séparé du code.
+**Dépend :** lot 11. Commit séparé du code.
 
 - [ ] `AGENTS.md`, section « Avant de modifier » : une définition UCM se
   modifie dans `packages/kit/src/referentiel/`, puis les tests, la vue
-  illustrée et la version du kit suivent
+  illustrée et la version du kit suivent ; un changement du moteur régénère
+  la planche du moteur
 - [ ] `AGENTS.md`, groupe « Moteur de couleur » : la prose qui recopie la table
   devient la règle, sa borne, le fichier et un lien
 - [ ] Spécification de Palettes : les passages qui recopient la table ou les
@@ -249,7 +282,7 @@ Fin : `npm test` vert.
 
 Fin : `docLinks`, contrôle de style et `npm test` verts.
 
-## Lot 12 · Vérification et publication
+## Lot 13 · Vérification et publication
 
 **Agent :** `verificateur`, puis principale. **Effort :** petit.
 
