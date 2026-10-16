@@ -361,22 +361,22 @@ lots 3 à 13 : c'est elle qui débloque la migration du fichier du mainteneur.
 
 **Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 1 et 2.
 
-- [ ] Un registre des conventions dans le référentiel : casses (minuscules,
+- [x] Un registre des conventions dans le référentiel (8d5b340) : casses (minuscules,
   majuscule initiale, camelCase, PascalCase, inchangée) et séparateurs des
   mots d'un segment (tiret, tiret bas, soudé, camelCase)
-- [ ] La découpe d'un segment en mots, quelle que soit sa forme d'origine
+- [x] La découpe d'un segment en mots, quelle que soit sa forme d'origine (8d5b340)
   (`borderRadius`, `border-radius`, `border_radius`, `Border Radius`) ; un
   segment soudé (`fontsize`) reste un mot, sauf si le registre des termes le
   connaît
-- [ ] La détection de la convention dominante, par catégorie de nom
+- [x] La détection de la convention dominante, par catégorie de nom (8d5b340)
   (collections, variables, propriétés, valeurs), avec ses comptes
-- [ ] `referentiel/normalisation.ts`, pur : d'une liste de noms et d'une
+- [x] `referentiel/normalisation.ts`, pur (8d5b340) : d'une liste de noms et d'une
   convention, il rend les renommages proposés, chacun avec l'ancien nom, le
   nouveau et sa raison (casse, séparateur, terme toléré) ; un nom déjà
   conforme n'est pas proposé
-- [ ] Deux noms qui aboutiraient au même nom ne sont pas proposés ; la
+- [x] Deux noms qui aboutiraient au même nom ne sont pas proposés (8d5b340) ; la
   collision est rendue à part
-- [ ] Tests sur les chemins de `donnees-vue-illustree.js` : les 60 segments
+- [x] Tests sur les chemins de `donnees-vue-illustree.js` (8d5b340) : les 60 segments
   `press` et 36 `disable` de `components` sont proposés en `pressed` et
   `disabled`
 
