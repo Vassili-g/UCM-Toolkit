@@ -13,8 +13,8 @@ de fin. Cocher la case d'une tâche quand son commit est fait.
 - [x] R1. La roue des teintes à la largeur de la carte (Codex, 1f54417)
 - [x] T1. L'onglet s'appelle « Comparaison » (82434ac)
 - [ ] I1. Les tests d'interface suivent la paire Bleu et Azur
-- [ ] S1. La spécification et les documents suivent (en cours)
-- [ ] V1. Vérification finale
+- [x] S1. La spécification et les documents suivent (abace70)
+- [x] V1. Vérification finale (typecheck, 375 et 546 tests, galerie, build, style : verts ; test:ui non lancé)
 
 ## Décisions
 
