@@ -56,8 +56,8 @@ lots 3 à 13.
 
 ## Lot 0 · Préparation
 
-- [ ] Commiter l'audit, ce plan et la suppression du dossier « Bouton plein
-  basculable » · principale
+- [x] Commiter l'audit, ce plan et la suppression du dossier « Bouton plein
+  basculable » · principale (cbfd4f6)
 
 ## Lot 1 · Le socle du référentiel
 
@@ -105,21 +105,21 @@ Fin : `npm run build --workspace @ucm-kit/core`, tests du kit et de
 
 **Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lot 1.
 
-- [ ] `architecture.ts` : les sept collections dans l'ordre de la vue
+- [x] `architecture.ts` : les sept collections dans l'ordre de la vue (23ff165)
   (A01), les alias permis entre elles, repris de `CIBLES_DES_COUCHES` de
   `packages/plugin-explorateur/src/integrations/profilUcm.ts` et du texte de
   la vue (A02), les axes de modes marque et thème (A03), les portées vides
   des collections intermédiaires (A10), la destination par défaut
   `primitives`/`colors` (A11)
-- [ ] Les familles de chaque collection, en registres extensibles :
+- [x] Les familles de chaque collection, en registres extensibles (23ff165) :
   `identity`, `primary`, `secondary` pour `color-brands` (A04) ; statuts,
   `neutral`, `elevation` pour `color-utilities` (A05) ; familles de
   `primitives`, `layouts`, `typography` (A06 à A08)
-- [ ] La forme des chemins de chaque collection, sauf `components` : une liste
+- [x] La forme des chemins de chaque collection, sauf `components` : une liste (23ff165)
   de positions, chacune liée à un registre (exemple :
   `color-brands.{famille}.{mode}.{cran}`)
-- [ ] La reconnaissance du neutre : une fonction, `trim` puis minuscules (T07)
-- [ ] Test : les chemins de `theme`, `color-brands`, `color-utilities`,
+- [x] La reconnaissance du neutre : une fonction, `trim` puis minuscules (T07, 23ff165)
+- [x] Test : les chemins de `theme`, `color-brands`, `color-utilities` (23ff165),
   `primitives`, `layouts` et `typography` de l'instantané actuel suivent les
   formes déclarées ; `components` est exclu
 
@@ -341,7 +341,7 @@ lots 3 à 13 : c'est elle qui débloque la migration du fichier du mainteneur.
 
 **Agent :** un `chercheur`, puis principale. **Effort :** moyen.
 
-- [ ] Recherche sur l'API Plugin de Figma · `chercheur` : renommer la valeur
+- [x] Recherche sur l'API Plugin de Figma · `chercheur` (47ac3d6) : renommer la valeur
   d'une variante et une propriété de composant ; ce que deviennent les
   instances du fichier, celles des fichiers qui utilisent la bibliothèque
   publiée, et leurs surcharges ; ce que devient une variable renommée dans
@@ -350,12 +350,12 @@ lots 3 à 13 : c'est elle qui débloque la migration du fichier du mainteneur.
   (`editComponentProperty`) ; le coût sur 800 variables et sur les
   ensembles de variantes de toutes les pages ; où ranger la convention
   choisie dans le document
-- [ ] Maquette de l'écran unique de la v1, dans le style des galeries
+- [x] Maquette de l'écran unique de la v1, dans le style des galeries (47ac3d6)
   existantes, en thème sombre, avec les mots d'un designer débutant : le
   choix de la convention, avec la convention dominante détectée et ses
   comptes ; la liste des renommages proposés, groupés par raison, une case
   par ligne ; un bouton pour appliquer · principale
-- [ ] Validation de la maquette · mainteneur
+- [x] Validation de la maquette · mainteneur (47ac3d6, structure validée)
 
 ## Lot 15 · Le moteur de normalisation
 
