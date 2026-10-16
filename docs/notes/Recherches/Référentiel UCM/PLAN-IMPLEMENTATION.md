@@ -407,22 +407,22 @@ et 15.
   retrouve
 - [x] Une loi d'écriture, sur le modèle de `loiDeLectureSeule.test.ts` de (406d7a1)
   l'explorateur : le plugin n'appelle que ces écritures
-- [ ] Après application, téléchargement de la table ancien nom vers nouveau
-  nom, en JSON, pour le dépôt de code
+- [x] Après application, téléchargement de la table ancien nom vers nouveau
+  nom, en JSON, pour le dépôt de code (dfb83eb)
 
 ## Lot 18 · L'interface
 
 **Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lot 17,
 maquette validée.
 
-- [ ] L'écran de la maquette, avec ses états de galerie
-- [ ] Les textes affichés, écrits par la conversation principale
+- [x] L'écran de la maquette, avec ses états de galerie (dfb83eb)
+- [x] Les textes affichés, écrits par la conversation principale (dfb83eb, relus)
 
 ## Lot 19 · Vérification et recette
 
 **Agent :** `verificateur`, puis mainteneur. **Effort :** petit.
 
-- [ ] Tests, `typecheck` et build du plugin · `verificateur`
+- [x] Tests, `typecheck` et build du plugin · `verificateur` (dfb83eb, 43 tests)
 - [ ] Recette dans Figma sur une copie du fichier, puis sur le fichier ·
   mainteneur
 - [ ] Export des tokens du fichier renommé ; régénérer
