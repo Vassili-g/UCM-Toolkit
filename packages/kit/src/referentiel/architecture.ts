@@ -20,6 +20,8 @@ export const CIBLES_DES_COLLECTIONS: Readonly<Record<Collection, readonly Collec
 export const CIBLES_DES_COULEURS_DE_COMPOSANT = ['theme'] as const;
 export const COLLECTIONS_SANS_PORTEE = ['primitives', 'color-brands', 'color-utilities'] as const;
 export const DESTINATION_DES_PALETTES = { collection: 'primitives', groupe: 'colors', themes: 'chemin' } as const;
+/** La collection dont chaque nom de variable commence par le nom de son composant. */
+export const COLLECTION_DES_COMPOSANTS = 'components' satisfies Collection;
 
 function registre(id: string, extensible: boolean, termes: readonly string[]): Registre {
   return {
