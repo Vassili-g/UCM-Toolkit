@@ -5,6 +5,7 @@
  */
 import type { Bouts, Courbes, Mode } from './rampe';
 import { sensDuTheme, type TexteDesBoutons } from '@ucm-kit/core/emplois';
+import { CRANS } from '@ucm-kit/core/referentiel';
 import type { Palette, Recette } from './recette';
 
 /** Une liste de numéros et une luminosité par numéro, dans chaque thème. */
@@ -16,7 +17,7 @@ export interface Grille {
 export type NombreDeNuances = 11 | 13;
 
 const ONZE: Grille = {
-  crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950],
+  crans: CRANS,
   courbes: {
     light: [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27],
     dark: [0.145, 0.225, 0.275, 0.33, 0.4, 0.49, 0.58, 0.67, 0.76, 0.85, 0.93],
