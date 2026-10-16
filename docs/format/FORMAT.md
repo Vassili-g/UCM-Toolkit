@@ -346,10 +346,15 @@ un padding selon un autre axe, le contrat ne le verrait pas.
 
 Lorsqu'un axe `State`, `States` ou `Status` est présent, le contrat ajoute `stateModel`
 avec le déclencheur et, si une règle `@prop` la déclare, la description de
-chaque état connu : `hover`/`hovered` → `:hover`, `focus`/`focused` →
-`:focus-visible`, `press`/`pressed` → `:active`, `disable`/`disabled` →
-`[disabled]`. La priorité générique est `disable > press > focus > hover >
-default`, et chaque forme en `-ed` prend le rang de sa forme courte. `active`
+chaque état connu : `hover` → `:hover`, `focus` → `:focus-visible`, `pressed`
+→ `:active`, `disabled` → `[disabled]`. `pressed` et `disabled` sont les termes
+UCM. `press`, `disable`, `hovered` et `focused` restent reconnus avec le
+déclencheur de leur terme UCM, et le contrat les publie sous le nom qu'ils ont
+dans Figma ; l'exporteur avertit alors le designer du terme UCM à employer. La
+priorité générique est `disabled > pressed > focus > hover > default`, et
+chaque forme tolérée prend le rang de son terme UCM. Les états reconnus, leurs
+formes tolérées et cette priorité viennent du référentiel UCM
+(`packages/kit/src/referentiel/vocabulaire.ts`). `active`
 n'est pas reconnu : ce nom désigne souvent un état sélectionné, que `:active`
 déclencherait au clic. Un état inconnu reste exporté avec
 un déclencheur `null` et un warning. Les `selector` visent l'implémentation CSS
@@ -1350,10 +1355,10 @@ Button :
       "default": {},
       "hover": { "selector": ":hover", "description": "Le pointeur survole le bouton." },
       "focus": { "selector": ":focus-visible" },
-      "press": { "selector": ":active" },
-      "disable": { "selector": "[disabled]" }
+      "pressed": { "selector": ":active" },
+      "disabled": { "selector": "[disabled]" }
     },
-    "precedence": ["disable", "press", "focus", "hover", "default"]
+    "precedence": ["disabled", "pressed", "focus", "hover", "default"]
   },
   "rendering": {
     "roles": {

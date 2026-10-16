@@ -1191,10 +1191,9 @@ boutons du thème ; sous `surface`, `surface/foreground` et `surface/border`
 avec leur nuance, dites une fois. La palette neutre ajoute sous `page` une note
 sur `page/foreground-main`, corps de texte noir ou blanc purs hors de la
 rampe. Une colonne par état, `default`, `hover` et `pressed`, dans cet ordre
-dans les deux sens du thème : la nuance de `solid/pressed` est la 900 dans le
-sens normal et la 500 dans le sens inversé. Une cellule montre le spécimen d'une
-variable peint de sa nuance, le nom de la variable avec son numéro de nuance,
-puis ses garanties. `page` n'a pas d'états : ses variables
+dans les deux sens du thème ; la nuance de chaque variable vient de la table du
+sens (section 11.2). Une cellule montre le spécimen d'une variable peint de sa
+nuance, le nom de la variable avec son numéro de nuance, puis ses garanties. `page` n'a pas d'états : ses variables
 `page/foreground`, `page/border` et `page/divider` se suivent sous les trois
 colonnes.
 
@@ -1357,54 +1356,26 @@ G1 à G7 se jugent dans la table des dossiers du sens du thème, contre le fond
 de la page, le réglage « Fond » du thème, `elevation/page`. G7 se juge aussi
 contre la carte, `elevation/raised`, qui n'a pas de réglage dans le plugin : le
 moteur la déduit du fond de la page (`[MOT-37]`). L'[architecture, section 4](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
-explique le choix de cette table ; le kit la tient dans
-`packages/kit/src/emplois/dossiers.ts`.
+explique le choix de cette table.
 
 Le sens d'un thème vient de son texte des boutons, blanc (`#FFFFFF`) ou noir
-(`#000000`) :
+(`#000000`) : Light blanc et Dark noir sont normaux, Light noir et Dark blanc
+sont inversés (`sensDuTheme`). Le kit porte la suite :
 
-| Thème | Texte des boutons | Sens |
-|---|---|---|
-| Light | blanc | normal |
-| Light | noir | inversé |
-| Dark | noir | normal |
-| Dark | blanc | inversé |
-
-| Variable | Light normal | Light inversé | Dark normal | Dark inversé |
-|---|---|---|---|---|
-| `solid/default` | 700 | 700 | 700 | 700 |
-| `solid/hover` | 800 | 600 | 800 | 600 |
-| `solid/pressed` | 900 | 500 | 900 | 500 |
-| `solid/foreground` | le texte des boutons | le texte des boutons | le texte des boutons | le texte des boutons |
-| `surface/default` | 100 | 100 | 300 | 300 |
-| `surface/hover` | 200 | 200 | 400 | 400 |
-| `surface/pressed` | 300 | 300 | 500 | 500 |
-| `surface/foreground` | 800 | 900 | 950 | 950 |
-| `surface/border` | 800 | 900 | 950 | 950 |
-| `page/foreground` | 700 | 800 | 700 | 800 |
-| `page/border` | 700 | 800 | 700 | 800 |
-| `page/divider` | 300 | 300 | 300 | 300 |
-| `ring` | 600 | 700 | 600 | 700 |
+- la table des dossiers, un cran par variable, thème et sens, est
+  `TABLE_DES_DOSSIERS` (`packages/kit/src/emplois/dossiers.ts`) ;
+- les libellés et définitions des variables sont dans
+  `packages/kit/src/referentiel/theme.ts` ;
+- le premier membre, les fonds et le seuil de chaque garantie sont dans
+  `GARANTIES` (`packages/kit/src/emplois/garanties.ts`).
 
 `ring` est une variable à la racine de la palette, hors des dossiers `solid`,
-`surface` et `page`. La table est `TABLE_DES_DOSSIERS`
-(`packages/kit/src/emplois/dossiers.ts`).
+`surface` et `page`. `solid/foreground` prend le texte des boutons du thème.
 
 Le neutre ajoute `page/foreground-main` (noir pur en Light, blanc pur en Dark,
 dans les deux sens), `page/foreground-subtle` (le cran de `page/foreground`),
-`scale/0` et `scale/1000` (blanc et noir en Light, échangés en Dark), puis
-`disabled/background` (200), `disabled/foreground` (500) et `disabled/border`
-(500). Aucune de ces variables n'a de garantie.
-
-| N° | Premier membre | Contre | Seuil |
-|---|---|---|---|
-| G1 | `solid/foreground` | `solid/default`, `solid/hover`, `solid/pressed` | `texte` |
-| G2 | `solid/default` | le fond de la page | `nonTexte` |
-| G3 | `surface/foreground` | `surface/default`, `surface/hover`, `surface/pressed`, le fond de la page | `texte` |
-| G4 | `surface/border` | les mêmes fonds | `nonTexte` |
-| G5 | `page/foreground` | le fond de la page | `texte` |
-| G6 | `page/border` | le fond de la page | `nonTexte` |
-| G7 | `ring` | le fond de la page, le fond de la carte | `nonTexte` |
+`scale/0` et `scale/1000` (blanc et noir en Light, échangés en Dark), puis les
+trois variables `disabled/*`. Aucune de ces variables n'a de garantie.
 
 - `[MOT-37]` La carte est le fond qu'une surface élevée pose sur la page. Aucun
   champ de la recette ne la porte : `couleurDeLaCarte(recette, mode)`
@@ -1420,13 +1391,10 @@ dans les deux sens), `page/foreground-subtle` (le cran de `page/foreground`),
   distingue dans sa clé.
 - `[VER-05]` Les seuils `texte` (4,5 par défaut) et `nonTexte` (3) viennent de
   la recette. Chaque garantie se juge par palette ; aucune ne croise deux
-  palettes. Les crans requis sont 100, 200, 300, 600, 700, 800 et 900 dans le
-  sens normal, plus 500 dans le sens inversé. Les crans 50, 400 et 950 sont
-  facultatifs : aucune variable ni garantie ne les vise, et une liste importée
-  qui s'en passe reste lisible. `[REC-05]` refuse une recette dont `crans`
-  n'a pas les crans requis du sens de l'un de ses thèmes : une recette sans 500
-  reste lisible tant que ses deux thèmes sont normaux. Une variable dont le
-  cran manque n'est pas présente, et une garantie qui la nomme n'est pas
+  palettes. Les crans requis d'un thème sont ceux que `cransRequis` tire de la
+  table de son sens ; seul le cran 50 est facultatif. `[REC-05]` refuse une
+  recette dont `crans` n'a pas les crans requis du sens de l'un de ses thèmes.
+  Une variable dont le cran manque n'est pas présente, et une garantie qui la nomme n'est pas
   jugeable, comme un contrôle qui n'a pas lieu.
 
 `solid/foreground` vaut le blanc ou le noir purs du thème, dans
