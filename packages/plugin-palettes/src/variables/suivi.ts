@@ -144,6 +144,36 @@ export function texteDuSuivi(suivi: SuiviDesVariables): string {
 }
 
 /**
+ * Les variables que suivent les autres palettes de la recette, ou leurs
+ * sorties anciennes : une écriture ne les remplace jamais ([VAR-08]). Une
+ * palette que la recette ne porte plus ne protège plus les siennes.
+ */
+export function variablesProtegees(suivi: Pick<SuiviDesVariables, 'palettes'>, presentes: ReadonlySet<string>, palette: string): Set<string> {
+  const ids = new Set<string>();
+  for (const [id, suivie] of Object.entries(suivi.palettes)) {
+    const proprietaire = suivie.sortieAnterieureDe ?? id;
+    if (proprietaire === palette || !presentes.has(proprietaire)) continue;
+    for (const variable of Object.values(suivie.variables)) ids.add(variable.id);
+  }
+  return ids;
+}
+
+/**
+ * Les palettes suivies sans ces variables : une variable remplacée quitte la
+ * palette supprimée ou la sortie ancienne qui la suivait, et une entrée vidée
+ * quitte le suivi ([VAR-08]).
+ */
+export function sansLesVariables(palettes: { readonly [id: string]: PaletteSuivie }, retirees: ReadonlySet<string>): { [id: string]: PaletteSuivie } {
+  const restantes: { [id: string]: PaletteSuivie } = {};
+  for (const [id, suivie] of Object.entries(palettes)) {
+    const variables = Object.fromEntries(Object.entries(suivie.variables).filter(([, variable]) => !retirees.has(variable.id)));
+    if (Object.keys(variables).length === Object.keys(suivie.variables).length) restantes[id] = suivie;
+    else if (Object.keys(variables).length > 0) restantes[id] = { ...suivie, variables };
+  }
+  return restantes;
+}
+
+/**
  * Les identifiants des variables que le plugin tient pour siennes. Les
  * variables qu'il a créées le restent, palette supprimée comprise. Celles
  * d'une palette reprise du fichier ne le sont que tant que la recette porte

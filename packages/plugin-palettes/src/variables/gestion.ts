@@ -11,6 +11,7 @@ import type { Destination } from './destination';
 import { etatDesTokens, type EtatDesTokensDUnePalette } from './etat';
 import { nomsDuPlan, planDesVariables } from './plan';
 import type { VariableLue } from './releve';
+import { variablesProtegees } from './suivi';
 import { cheminCommun, origineDeLaReprise, variableDeLEntree } from './reprise';
 
 export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
@@ -20,6 +21,14 @@ export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
   readonly variables: number;
   /** Les noms des variables qu'une écriture créerait, dans l'ordre du plan. */
   readonly aCreer: readonly string[];
+  /**
+   * Les noms du plan que la collection porte déjà, dans des variables
+   * qu'aucune autre palette ne suit : l'écriture les remplace quand le
+   * designer le confirme ([VAR-08]).
+   */
+  readonly existantes: readonly string[];
+  /** Les identifiants des variables de `existantes`, dans le même ordre. */
+  readonly variablesExistantes: readonly string[];
   /** Le nombre de valeurs déjà écrites qu'une écriture remplacerait. */
   readonly aRemplacer: number;
   /** Le nom de la collection où l'écriture se ferait ; `null` quand la destination désigne une collection que le fichier ne porte plus. */
@@ -66,7 +75,7 @@ export function tokensDeLaPalette(recette: Recette, palette: Palette, fichier: V
     }
     const chemin = origine?.chemin ?? cheminCommun([...presentes].map((id) => lues.get(id)!.nom));
     const themes = !plan.some((entree) => entree.cle.includes('/dark/')) ? 'light-seul' : plan.some((entree) => entree.mode === 'dark') ? 'modes' : 'chemin';
-    return { ...etat, themes, variables: presentes.size + aCreer.size, aCreer: [...aCreer], aRemplacer, collection: collections.get(suivie.collection) ?? null, reprise: true, origine: chemin };
+    return { ...etat, themes, variables: presentes.size + aCreer.size, aCreer: [...aCreer], existantes: [], variablesExistantes: [], aRemplacer, collection: collections.get(suivie.collection) ?? null, reprise: true, origine: chemin };
   }
   const garde = suivie && !etat.destinationChangee && collections.has(suivie.collection) ? suivie : undefined;
 
@@ -87,7 +96,31 @@ export function tokensDeLaPalette(recette: Recette, palette: Palette, fichier: V
   const collection = garde
     ? collections.get(garde.collection)!
     : 'id' in destination.collection ? collections.get(destination.collection.id) ?? null : destination.collection.nom;
-  return { ...etat, themes: destination.themes, variables: noms.length, aCreer: noms.filter((nom) => !resolus.has(nom)), aRemplacer, collection, reprise: false, origine: null };
+  // Les variables du même nom, sans casse, que la collection de l'écriture porte hors des autres palettes de la recette, comme `ecrireLesVariables` les cherche.
+  const cible = garde ? garde.collection : 'id' in destination.collection ? destination.collection.id : undefined;
+  const protegees = variablesProtegees(fichier.suivi, new Set(recette.palettes.map((autre) => autre.id)), palette.id);
+  const prises = new Map<string, string>();
+  for (const variable of fichier.variables) {
+    const cle = variable.nom.toLowerCase();
+    if (variable.collection === cible && !protegees.has(variable.id) && !prises.has(cle)) prises.set(cle, variable.id);
+  }
+  const sansVariable = noms.filter((nom) => !resolus.has(nom));
+  const existantes = sansVariable.filter((nom) => prises.has(nom.toLowerCase()));
+  // Une palette jamais écrite dont la collection porte déjà les variables est à mettre à jour, pas à écrire.
+  const suite = etat.etat === 'jamais-ecrits' && existantes.length > 0 ? 'a-mettre-a-jour' as const : etat.etat;
+  return {
+    ...etat,
+    etat: suite,
+    themes: destination.themes,
+    variables: noms.length,
+    aCreer: sansVariable.filter((nom) => !prises.has(nom.toLowerCase())),
+    existantes,
+    variablesExistantes: existantes.map((nom) => prises.get(nom.toLowerCase())!),
+    aRemplacer,
+    collection,
+    reprise: false,
+    origine: null,
+  };
 }
 
 /** Les variables qu'une palette supprimée de la recette laisse dans le fichier. */
@@ -104,14 +137,18 @@ export interface VariablesOrphelines {
  * Les palettes que le suivi garde et que la recette ne porte plus, quand
  * leurs variables sont encore dans le fichier. Une palette reprise du
  * fichier n'y paraît pas : ses variables d'origine ne sont pas à retirer.
+ * Une variable qu'une palette de la recette remplacera n'y compte pas : la
+ * fiche de cette palette porte la décision ([VAR-08]).
  */
-export function variablesDesPalettesSupprimees(recette: Pick<Recette, 'palettes'>, fichier: VariablesDuFichier): VariablesOrphelines[] {
+export function variablesDesPalettesSupprimees(recette: Recette, fichier: VariablesDuFichier): VariablesOrphelines[] {
   const presentes = new Set(recette.palettes.map((palette) => palette.id));
   const lues = new Map(fichier.variables.map((variable) => [variable.id, variable]));
+  const aRemplacer = new Set(recette.palettes.flatMap((palette) => tokensDeLaPalette(recette, palette, fichier).variablesExistantes));
   const orphelines: VariablesOrphelines[] = [];
   for (const [palette, suivie] of Object.entries(fichier.suivi.palettes)) {
     if (presentes.has(palette) || suivie.liaison !== 'destination') continue;
     const noms = [...new Set(Object.values(suivie.variables).map((variable) => variable.id))]
+      .filter((id) => !aRemplacer.has(id))
       .map((id) => lues.get(id)?.nom)
       .filter((nom): nom is string => nom !== undefined);
     if (noms.length === 0) continue;

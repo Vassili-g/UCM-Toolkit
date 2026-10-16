@@ -9,7 +9,7 @@
  */
 import { choisirLaPage, dessinerLaRecetteRangee, retirerLeCadre } from './ecriture/planche';
 import { rangerRecette } from './ecriture/recette';
-import { copierLaPalette, ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables } from './ecriture/variables';
+import { convertirLaReprise, copierLaPalette, ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables } from './ecriture/variables';
 import { TAILLE_PAR_DEFAUT, creerRedimensionnement, lireTaille } from './fenetre';
 import { lireEtat, lireLaPlanche } from './lecture';
 import { lireLesBibliotheques, lireLesVariablesDuFichier } from './lectureDesVariables';
@@ -118,6 +118,11 @@ async function traiterMessage(message: UiRequest): Promise<void> {
 
   if (message.type === 'copier-palette') {
     versUi({ type: 'copie', demande: message.demande, issue: await copierLaPalette(figma, message) });
+    return;
+  }
+
+  if (message.type === 'convertir-reprise') {
+    versUi({ type: 'reprise-convertie', demande: message.demande, issue: await convertirLaReprise(figma, message) });
     return;
   }
 

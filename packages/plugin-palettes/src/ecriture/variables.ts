@@ -18,13 +18,14 @@ import { CLE_RECETTE, ESPACE_PARTAGE, empreinteDuTexte, lireEtat } from '../lect
 import { ajouter, nouvellePalette, reprendreDuFichier } from '../edition';
 import { collectionLue, lireLeSuiviRange, variableLue, variablesDeLaBibliotheque, type FigmaDesBibliotheques } from '../lectureDesVariables';
 import { variablesDeLaRampe } from '../variables/bibliotheques';
+import { conversionDeLaReprise } from '../variables/conversion';
 import { validerLaDestination, type Destination, type RefusDeDestination } from '../variables/destination';
 import { SEUIL_DE_PALETTE, nuanceDeReference, palettesDuFichier, retrouverLaPaletteGroupee, type PaletteDuFichier, type SourceGroupee } from '../variables/detection';
 import { etatDesTokens } from '../variables/etat';
 import { origineDeLaReprise, suiviDeLaReprise, suiviDeLaRepriseGroupee, variableDeLEntree, type OrigineDeLaReprise } from '../variables/reprise';
 import { cheminDeLaReprise, planDesVariables, type EntreeDuPlan, type ModeDuPlan } from '../variables/plan';
 import { couleurPourFigma, type VariableLue } from '../variables/releve';
-import { CLES_DE_LA_VARIABLE, CLE_VARIABLES, suiviFutur, texteDuSuivi, variablesSuivies, type PaletteSuivie, type SuiviDesVariables, type VariableSuivie } from '../variables/suivi';
+import { CLES_DE_LA_VARIABLE, CLE_VARIABLES, sansLesVariables, suiviFutur, texteDuSuivi, variablesProtegees, variablesSuivies, type PaletteSuivie, type SuiviDesVariables, type VariableSuivie } from '../variables/suivi';
 
 /** L'API que l'écriture des variables emploie. */
 export interface FigmaDesVariablesEcrites {
@@ -43,6 +44,8 @@ export interface DemandeDEcriture {
   readonly empreinteLue: string | null;
   /** Les palettes « Modifiés dans Figma » dont le designer a choisi « Remettre les couleurs du plugin » ([VAR-06]). */
   readonly remettre: readonly string[];
+  /** Les palettes dont le designer remplace les variables du même nom qu'aucune autre palette ne suit ([VAR-08]). */
+  readonly remplacer?: readonly string[];
 }
 
 /** Ce que l'écriture a fait d'une palette. */
@@ -51,7 +54,7 @@ export type IssueDeLaPalette =
   | { readonly palette: string; readonly issue: 'ecrite'; readonly creees: number; readonly ecrites: number }
   /** Des couleurs ont été changées dans Figma, et le designer n'a pas choisi de les remettre : rien n'est écrit ([VAR-06]). */
   | { readonly palette: string; readonly issue: 'modifiee'; readonly couleurs: number }
-  /** Une variable de ce nom existe dans la collection sans être celle du plugin : rien n'est créé ([VAR-08]). */
+  /** Une variable de ce nom existe dans la collection, et le designer n'a pas choisi de la remplacer, ou une autre palette la suit : rien n'est créé ([VAR-08]). */
   | { readonly palette: string; readonly issue: 'nom-pris'; readonly nom: string }
   /** La collection que la destination désigne n'est plus dans le fichier. */
   | { readonly palette: string; readonly issue: 'collection-introuvable' }
@@ -104,6 +107,7 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
     const locales = new Map(variablesLocales.map((variable) => [variable.id, variable]));
     const lues = new Map<string, VariableLue>(variablesLocales.map((variable) => [variable.id, variableLue(variable, profil)]));
     const remettre = new Set(demande.remettre);
+    const remplacer = new Set(demande.remplacer ?? []);
 
     let destination: Destination = rangee.destination;
     const suivies: { [id: string]: PaletteSuivie } = { ...rangee.palettes };
@@ -280,16 +284,34 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
         const variable = connue ? locales.get(connue.id) : undefined;
         if (variable && !variableDuNom.has(entree.nom)) variableDuNom.set(entree.nom, variable);
       }
-      const aCreer = [...new Set(plan.map((entree) => entree.nom))].filter((nom) => !variableDuNom.has(nom));
-      // Avant toute création : un nom déjà pris dans la collection arrête la palette ([VAR-08]).
-      const dansLaCollection = new Set(variablesLocales.filter((variable) => variable.variableCollectionId === collection.id).map((variable) => variable.name.toLowerCase()));
-      const pris = aCreer.find((nom) => dansLaCollection.has(nom.toLowerCase()));
-      if (pris !== undefined) return { palette: id, issue: 'nom-pris', nom: pris };
+      const sansVariable = [...new Set(plan.map((entree) => entree.nom))].filter((nom) => !variableDuNom.has(nom));
+      // Avant toute création : un nom déjà pris dans la collection arrête la palette, sauf quand le designer a choisi
+      // de remplacer les variables de ce nom qu'aucune autre palette de la recette ne suit ([VAR-08]).
+      const dansLaCollection = new Map<string, Variable>();
+      for (const variable of variablesLocales) {
+        const cle = variable.name.toLowerCase();
+        if (variable.variableCollectionId === collection.id && !dansLaCollection.has(cle)) dansLaCollection.set(cle, variable);
+      }
+      const protegees = variablesProtegees({ palettes: suivies }, new Set(recette.palettes.map((palette) => palette.id)), id);
+      const remplacees = new Map<string, Variable>();
+      for (const nom of sansVariable) {
+        const existante = dansLaCollection.get(nom.toLowerCase());
+        if (!existante) continue;
+        if (!remplacer.has(id) || protegees.has(existante.id)) return { palette: id, issue: 'nom-pris', nom };
+        remplacees.set(nom, existante);
+      }
+      const aCreer = sansVariable.filter((nom) => !remplacees.has(nom));
 
       const creees: Variable[] = [];
       const ecrites: { [cle: string]: VariableSuivie } = {};
       let valeurs = 0;
       try {
+        for (const [nom, variable] of remplacees) {
+          // Une variable remplacée prend le nom du plan, à la casse près, et garde sa portée.
+          if (variable.name !== nom) variable.name = nom;
+          variableDuNom.set(nom, variable);
+          ecrit = true;
+        }
         for (const nom of aCreer) {
           const variable = figma.variables.createVariable(nom, collection, 'COLOR');
           // Une primitive ne paraît dans aucun sélecteur de calque (D14).
@@ -315,7 +337,7 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
           }
           ecrites[entree.cle] = { id: variable.id, ecrite: entree.hexa };
         }
-        for (const variable of creees) {
+        for (const variable of [...remplacees.values(), ...creees]) {
           const premiere = plan.find((entree: EntreeDuPlan) => variableDuNom.get(entree.nom) === variable)!;
           variable.setSharedPluginData(ESPACE_PARTAGE, CLES_DE_LA_VARIABLE.palette, id);
           variable.setSharedPluginData(ESPACE_PARTAGE, CLES_DE_LA_VARIABLE.cle, premiere.cle);
@@ -343,6 +365,12 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
           while (suivies[`ancienne:${id}:${rang}`]) rang += 1;
           suivies[`ancienne:${id}:${rang}`] = { ...suivie, variables: anciennes, sortieAnterieureDe: id };
         }
+      }
+      if (remplacees.size > 0) {
+        // Une variable remplacée quitte la palette supprimée ou la sortie ancienne qui la suivait : son retrait ne l'emporte plus.
+        const restantes = sansLesVariables(suivies, new Set([...remplacees.values()].map((variable) => variable.id)));
+        for (const cle of Object.keys(suivies)) if (!(cle in restantes)) delete suivies[cle];
+        Object.assign(suivies, restantes);
       }
       suivies[id] = { collection: collection.id, groupe: destination.groupe, modes, variables: { ...(garde?.variables ?? {}), ...ecrites }, liaison: 'destination' };
       return { palette: id, issue: 'ecrite', creees: creees.length, ecrites: valeurs };
@@ -538,6 +566,88 @@ export async function reprendreLaPalette(figma: FigmaDesVariablesEcrites, demand
     figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES, texteDuSuivi({ ...rangee, palettes: { ...rangee.palettes, [demande.palette]: suivie } }));
     figma.commitUndo();
     return { issue: 'reprise', empreinte: empreinteDuTexte(texte) as string };
+  } catch (erreur) {
+    return { issue: 'interrompue', message: messageDe(erreur) };
+  }
+}
+
+/** Ce que « Passer au format du plugin » demande : la palette reprise, et l'empreinte de la recette lue. */
+export interface DemandeDeConversion {
+  readonly palette: string;
+  readonly empreinteLue: string | null;
+}
+
+/** L'issue de « Passer au format du plugin » ([VAR-13]). */
+export type IssueDeLaConversion =
+  | { readonly issue: 'interrompue'; readonly message: string }
+  /** Le suivi est rangé ; `renommees` variables ont pris le nom de la destination, `enPlace` dit si elles restent celles de la palette. */
+  | { readonly issue: 'convertie'; readonly renommees: number; readonly enPlace: boolean }
+  /** Une autre variable de la collection porte déjà un nom de la destination : rien n'est écrit. */
+  | { readonly issue: 'nom-pris'; readonly nom: string }
+  /** La recette rangée ne porte plus cette palette reprise, ou la porte figée : rien n'est écrit. */
+  | { readonly issue: 'refusee' }
+  | { readonly issue: 'recette-changee' }
+  | { readonly issue: 'suivi-futur' };
+
+/**
+ * Passe une palette reprise au format du plugin, définitivement ([VAR-13]) :
+ * ses variables prennent le nom que la destination leur donne et son suivi
+ * la liaison d'une palette que le plugin a créée, ou elles deviennent une
+ * sortie ancienne quand elles ne sont pas dans la collection et la forme de
+ * la destination. Aucune couleur n'est écrite ; un seul `commitUndo` clôt
+ * le geste. Une palette figée se recalcule d'abord.
+ */
+export async function convertirLaReprise(figma: FigmaDesVariablesEcrites, demande: DemandeDeConversion): Promise<IssueDeLaConversion> {
+  try {
+    const etat = lireEtat(figma.root);
+    if (etat.classement.etat !== 'courante') return { issue: 'refusee' };
+    if (etat.empreinte !== demande.empreinteLue) return { issue: 'recette-changee' };
+    const rangee = lireLeSuiviRange(figma.root);
+    if (suiviFutur(rangee)) return { issue: 'suivi-futur' };
+    const { recette } = etat.classement;
+    const palette = recette.palettes.find((candidate) => candidate.id === demande.palette);
+    const suivie = rangee.palettes[demande.palette];
+    if (!palette || palette.figees !== undefined || suivie?.liaison !== 'reprise') return { issue: 'refusee' };
+
+    const locales = await figma.variables.getLocalVariablesAsync('COLOR');
+    if (lireEtat(figma.root).empreinte !== demande.empreinteLue) return { issue: 'recette-changee' };
+    const profil = figma.root.documentColorProfile;
+    const conversion = conversionDeLaReprise(recette, palette, suivie, rangee.destination, locales.map((variable) => variableLue(variable, profil)));
+    if (conversion.occupe !== null) return { issue: 'nom-pris', nom: conversion.occupe };
+
+    const parId = new Map(locales.map((variable) => [variable.id, variable]));
+    const faits: { variable: Variable; de: string }[] = [];
+    try {
+      for (const { id, de, vers } of conversion.aRenommer) {
+        const variable = parId.get(id);
+        if (!variable) continue;
+        variable.name = vers;
+        faits.push({ variable, de });
+      }
+    } catch (erreur) {
+      // Un renommage refusé rend leur nom aux variables déjà renommées : le suivi reste celui de la reprise.
+      for (const { variable, de } of faits.reverse()) {
+        try {
+          variable.name = de;
+        } catch {
+          // Une variable que Figma refuse de renommer garde le nom de la destination.
+        }
+      }
+      return { issue: 'interrompue', message: messageDe(erreur) };
+    }
+
+    const palettes: { [id: string]: PaletteSuivie } = { ...rangee.palettes };
+    if (conversion.enPlace) palettes[demande.palette] = conversion.suivie;
+    else {
+      // Hors de la collection ou de la forme de la destination : les variables d'origine attendent leur retrait dans Gestion.
+      delete palettes[demande.palette];
+      let rang = 1;
+      while (palettes[`ancienne:${demande.palette}:${rang}`]) rang += 1;
+      palettes[`ancienne:${demande.palette}:${rang}`] = { ...conversion.suivie, sortieAnterieureDe: demande.palette };
+    }
+    figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES, texteDuSuivi({ ...rangee, palettes }));
+    figma.commitUndo();
+    return { issue: 'convertie', renommees: faits.length, enPlace: conversion.enPlace };
   } catch (erreur) {
     return { issue: 'interrompue', message: messageDe(erreur) };
   }

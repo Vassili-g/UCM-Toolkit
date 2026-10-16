@@ -24,6 +24,7 @@ import {
   type PlancheRangee,
   type ProfilDuDocument,
 } from '../lecture';
+import { cadresRepris } from '../planche/fraicheur';
 import { STYLES_DE_TEXTE, modeleDeCadre, type Noeud, type NoeudCadre, type NoeudTexte } from '../planche/modele';
 
 /** Le marqueur que porte chaque calque posé par le plugin (D-H). */
@@ -299,9 +300,12 @@ export async function dessinerLaPlanche(
   if (illisibles.length > 0) return { issue: 'lecture-impossible', palettes: illisibles.map(({ palette }) => palette) };
 
   const possedes = new Map([...resolus.possedes].map(([palette, { noeud }]) => [palette, noeud]));
+  // Une palette sans cadre reprend le cadre de la palette supprimée qui porte son nom : il prend sa place.
+  const repris = cadresRepris([...possedes].map(([palette, noeud]) => ({ palette, nom: noeud.name })), demande.recette);
+  const cadreDe = (palette: string): FrameNode | undefined => possedes.get(palette) ?? possedes.get(repris.get(palette) ?? '');
 
   const etrangers = demande.palettes.flatMap((palette) => {
-    const ancien = possedes.get(palette.id);
+    const ancien = cadreDe(palette.id);
     const calques = ancien ? calquesEtrangers(ancien) : [];
     return calques.length > 0 ? [{ palette: palette.id, calques }] : [];
   });
@@ -339,7 +343,7 @@ export async function dessinerLaPlanche(
   for (const [rang, palette] of demande.palettes.entries()) {
     const modele = modeleDeCadre(demande.recette, palette, demande.profil);
     surProgression(rang, demande.palettes.length, modele.nom);
-    const ancien = possedes.get(palette.id);
+    const ancien = cadreDe(palette.id);
     // Un cadre neuf se range parmi les cadres du premier niveau de la page (E17).
     const pageDuNeuf = ancien ? null : await pageDesNeufs();
     const place = pageDuNeuf ? placeDUnCadreNeuf([...possedes.values()].filter((cadre) => cadre.parent === pageDuNeuf)) : null;
@@ -365,6 +369,8 @@ export async function dessinerLaPlanche(
       return { issue: 'interrompue', palette: palette.id, message: erreur instanceof Error ? erreur.message : String(erreur), dessines: rang };
     }
     ancien?.remove();
+    const orphelin = repris.get(palette.id);
+    if (orphelin !== undefined && !possedes.has(palette.id)) possedes.delete(orphelin);
     possedes.set(palette.id, neuf);
     cadres.push({ palette: palette.id, cadre: neuf.id });
     peints.push(...couleursPeintes(crees, modele.peints, palette.id, demande.profil));

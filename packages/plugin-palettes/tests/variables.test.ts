@@ -211,6 +211,62 @@ test('[VAR-08] un nom déjà pris sous une autre casse arrête aussi la palette'
   assert.equal(lireLeSuiviRange(figma.root).palettes[BLEU.id], undefined);
 });
 
+test('[VAR-08] une palette jamais écrite dont la collection porte déjà les variables est à mettre à jour, et les remplace sur décision', async () => {
+  const figma = fichier();
+  const collection = figma.variables.createVariableCollection('Primitives');
+  const existante = figma.variables.createVariable('colors/bleu/vivid/light/600', collection, 'COLOR');
+  existante.scopes = ['ALL_FILLS'];
+  poserLaDestination(figma, { collection: { id: collection.id }, groupe: 'colors', themes: 'chemin' });
+  const avant = tokensDeLaPalette(RECETTE, BLEU, await lireLesVariablesDuFichier(api(figma)));
+  assert.equal(avant.etat, 'a-mettre-a-jour');
+  assert.deepEqual(avant.existantes, ['colors/Bleu/vivid/light/600']);
+  assert.equal(avant.aCreer.length, 43);
+  figma.journal.length = 0;
+  const resultat = await ecrireLesVariables(api(figma), { palettes: [BLEU.id], empreinteLue: empreinte(RECETTE), remettre: [], remplacer: [BLEU.id] });
+  assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: BLEU.id, issue: 'ecrite', creees: 43, ecrites: 44 }] });
+  // La variable remplacée garde son identifiant et sa portée, prend le nom du plan, et entre dans le suivi.
+  assert.equal(figma.variable('colors/Bleu/vivid/light/600').id, existante.id);
+  assert.deepEqual(existante.scopes, ['ALL_FILLS']);
+  assert.equal(figma.locales.size, 44);
+  assert.equal(commits(figma), 1);
+  assert.equal((await etat(figma, BLEU)).etat, 'a-jour');
+});
+
+test('[VAR-08] une variable qu’une autre palette suit n’est jamais remplacée', async () => {
+  const figma = fichier();
+  const collection = figma.variables.createVariableCollection('Primitives');
+  poserLaDestination(figma, { collection: { id: collection.id }, groupe: 'colors', themes: 'chemin' });
+  await ecrire(figma, [GRIS]);
+  // Gris renommée sous le nom de Bleu : la variable de Gris porte un nom du plan de Bleu.
+  figma.variable('colors/Gris/light/600').name = 'colors/Bleu/vivid/light/600';
+  const lu = tokensDeLaPalette(RECETTE, BLEU, await lireLesVariablesDuFichier(api(figma)));
+  assert.deepEqual(lu.existantes, []);
+  const resultat = await ecrireLesVariables(api(figma), { palettes: [BLEU.id], empreinteLue: empreinte(RECETTE), remettre: [], remplacer: [BLEU.id] });
+  assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: BLEU.id, issue: 'nom-pris', nom: 'colors/Bleu/vivid/light/600' }] });
+});
+
+test('[VAR-08] les variables d’une palette supprimée de la recette se remplacent, et quittent son suivi', async () => {
+  const figma = fichier();
+  await ecrire(figma, [BLEU]);
+  // Bleu supprimée, puis recréée sous un autre identifiant : ses anciennes variables portent les noms de la nouvelle.
+  const NOUVEAU: Palette = { ...BLEU, id: 'p-0000000c' };
+  const recette = [NOUVEAU, GRIS].reduce(ajouter, VIDE);
+  ranger(figma, recette);
+  const lu = await lireLesVariablesDuFichier(api(figma));
+  const avant = tokensDeLaPalette(recette, NOUVEAU, lu);
+  assert.deepEqual([avant.etat, avant.existantes.length, avant.aCreer.length], ['a-mettre-a-jour', 44, 0]);
+  // La palette recréée porte la décision : la palette supprimée ne se montre plus.
+  assert.deepEqual(variablesDesPalettesSupprimees(recette, lu), []);
+  const ancienne = figma.variable('colors/Bleu/vivid/light/600').id;
+  const resultat = await ecrireLesVariables(api(figma), { palettes: [NOUVEAU.id], empreinteLue: empreinte(recette), remettre: [], remplacer: [NOUVEAU.id] });
+  assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: NOUVEAU.id, issue: 'ecrite', creees: 0, ecrites: 0 }] });
+  assert.equal(figma.variable('colors/Bleu/vivid/light/600').id, ancienne);
+  const suivi = lireLeSuiviRange(figma.root);
+  assert.equal(suivi.palettes[BLEU.id], undefined);
+  assert.equal(Object.keys(suivi.palettes[NOUVEAU.id].variables).length, 44);
+  assert.deepEqual(variablesDesPalettesSupprimees(recette, await lireLesVariablesDuFichier(api(figma))), []);
+});
+
 test('[VAR-09] une collection locale du même nom que la destination n’est pas reprise : seul son identifiant la désigne', async () => {
   const figma = fichier();
   const homonyme = figma.variables.createVariableCollection('primitives');

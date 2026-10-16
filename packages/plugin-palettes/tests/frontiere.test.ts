@@ -182,7 +182,7 @@ test('[VAR-16] une écriture de variables suit les règles du dessin : après le
   assert.equal(envoyees.length, 2, 'l’écriture attend le rangement');
   rangee(2, 'bbbbbbbb');
   // Les variables partent avant le dessin.
-  assert.deepEqual(envoyees[2], { type: 'ecrire-variables', demande: 3, palettes: ['p-0000000a'], empreinteLue: 'bbbbbbbb', remettre: ['p-0000000a'] });
+  assert.deepEqual(envoyees[2], { type: 'ecrire-variables', demande: 3, palettes: ['p-0000000a'], empreinteLue: 'bbbbbbbb', remettre: ['p-0000000a'], remplacer: [] });
   assert.equal((envoyees[3] as { type: string }).type, 'dessiner');
   assert.equal(frontiere.accepterVariables({ type: 'variables-ecrites', demande: 3, resultat: { issue: 'ecrites', palettes: [] } }), true);
   assert.equal(frontiere.accepterVariables({ type: 'variables-ecrites', demande: 2, resultat: { issue: 'ecrites', palettes: [] } }), false);

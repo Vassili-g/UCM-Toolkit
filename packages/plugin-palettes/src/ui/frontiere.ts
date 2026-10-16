@@ -42,10 +42,11 @@ export interface DemandeDeDessin {
   readonly etrangersConfirmes: readonly string[];
 }
 
-/** Ce qu'une écriture de variables demande : des palettes, et celles dont le designer remet les couleurs ([VAR-06]). */
+/** Ce qu'une écriture de variables demande : des palettes, celles dont le designer remet les couleurs, et celles dont il remplace les variables du même nom ([VAR-06], [VAR-08]). */
 export interface DemandeDeVariables {
   readonly palettes: readonly string[];
   readonly remettre: readonly string[];
+  readonly remplacer?: readonly string[];
 }
 
 export interface Frontiere {
@@ -117,6 +118,14 @@ export interface Frontiere {
   copier(palette: string, source: { collection: string; chemin: string }): boolean;
   /** Vrai quand l'issue répond à la dernière copie demandée ; réussie, elle apporte l'empreinte de la recette. */
   recevoirCopie(message: Extract<PluginMessage, { type: 'copie' }>): boolean;
+  /**
+   * Passe une palette reprise au format du plugin ([VAR-13]) ; `false` quand
+   * rien ne part : un conflit, ou un rangement en vol dont l'empreinte n'est
+   * pas encore connue.
+   */
+  convertirLaReprise(palette: string): boolean;
+  /** Vrai quand l'issue répond à la dernière conversion demandée. */
+  accepterConversion(message: Extract<PluginMessage, { type: 'reprise-convertie' }>): boolean;
   /** Vrai quand la progression ou le résultat répond au dernier dessin demandé. */
   accepterDessin(message: Extract<PluginMessage, { type: 'progression' | 'dessin' }>): boolean;
   /** Vrai quand l'état répond à la dernière demande : l'interface l'affiche. */
@@ -191,6 +200,7 @@ export function createFrontiere(
   let dernierRetraitDesVariables = 0;
   let derniereReprise = 0;
   let derniereCopie = 0;
+  let derniereConversion = 0;
   let courant: StatutDuRangement = 'lu';
 
   function numeroter(): number {
@@ -215,9 +225,9 @@ export function createFrontiere(
     });
   }
 
-  function envoyerVariables({ palettes, remettre }: DemandeDeVariables): void {
+  function envoyerVariables({ palettes, remettre, remplacer = [] }: DemandeDeVariables): void {
     dernieresVariables = numeroter();
-    envoyer({ type: 'ecrire-variables', demande: dernieresVariables, palettes: [...palettes], empreinteLue: empreinte, remettre: [...remettre] });
+    envoyer({ type: 'ecrire-variables', demande: dernieresVariables, palettes: [...palettes], empreinteLue: empreinte, remettre: [...remettre], remplacer: [...remplacer] });
   }
 
   function poserLAnnulation(suivant: EtatDAnnulation): void {
@@ -383,6 +393,15 @@ export function createFrontiere(
       } else if (message.issue.issue === 'modifiee-ailleurs') poser('refuse');
       revenirAuConfirme();
       return true;
+    },
+    convertirLaReprise(palette) {
+      if (courant === 'refuse' || enVol || enAttente) return false;
+      derniereConversion = numeroter();
+      envoyer({ type: 'convertir-reprise', demande: derniereConversion, empreinteLue: empreinte, palette });
+      return true;
+    },
+    accepterConversion(message) {
+      return message.demande === derniereConversion;
     },
     accepterDessin(message) {
       return message.demande === dernierDessin;

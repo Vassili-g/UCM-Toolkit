@@ -807,6 +807,10 @@ du paquet porte les dix-sept rampes de onze crans.
   supprime pas son cadre de la planche : l'onglet Gestion montre le cadre
   comme celui d'une palette supprimée, que « Supprimer définitivement »
   retire (`[PLA-27]`).
+  Une palette sans cadre qui porte le nom d'une palette supprimée reprend
+  son cadre : sa fiche le dit « À actualiser », la carte de la palette
+  supprimée disparaît, et le dessin remplace ce cadre à sa place. Chaque
+  cadre va à la première palette de ce nom, dans l'ordre de la recette.
 - `[ENT-04]` Une palette se crée depuis un code saisi ou choisi au sélecteur
   de couleur ; le plugin ne lit pas la couleur de la sélection Figma. La
   lecture de la peinture d'un calque sert au dessin, qui relit les pastilles
@@ -2772,8 +2776,12 @@ Onglet Gestion, Bleu dépliée :
   titre : les deux rampes, « Fichier » et « Plugin », la bascule
   « Recalculées · Telles quelles », le nombre de couleurs qui changeront, et
   « Annuler la reprise », qui supprime la palette du plugin. L'encart reste
-  tant que les tokens de la palette ne sont pas « À jour » ; une palette
-  figée le garde, seul endroit où revenir aux couleurs recalculées. Une
+  tant que la palette est reprise : il porte aussi « Passer au format du
+  plugin », absent d'une palette figée, qui se recalcule d'abord. Ce geste
+  ouvre d'abord ce qu'il fera, puis « Annuler » et « Passer au format du
+  plugin » ; il est définitif, et l'encart disparaît avec la liaison de
+  reprise. Une palette figée garde l'encart, seul endroit où revenir aux
+  couleurs recalculées. Une
   palette figée ne montre ni la référence, ni le modèle, ni « Réglage
   global », ni « Color shift » ; une palette reprise ne propose pas deux
   intensités. Dans Gestion, la ligne des tokens d'une palette reprise dit sa
@@ -3210,7 +3218,7 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
 
   | État | Condition, dans cet ordre |
   |---|---|
-  | Pas encore écrits | Le suivi n'a aucune variable pour la palette |
+  | Pas encore écrits | Le suivi n'a aucune variable pour la palette, et la collection de l'écriture ne porte aucune variable des noms du plan (sinon « À mettre à jour », `[VAR-08]`) |
   | Introuvables | Une variable du suivi n'existe plus dans le fichier |
   | Modifiés dans Figma | Une couleur lue diffère de la dernière écrite |
   | À mettre à jour | Une couleur calculée diffère de la dernière écrite, une clé du plan n'est pas dans le suivi, la destination a changé depuis l'écriture, ou une variable d'une palette reprise est à renommer (`[VAR-13]`) |
@@ -3251,9 +3259,18 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   sandbox (`src/fileDuDocument.ts`). Une lecture refusée ou une création
   refusée rend une issue à la demande ; le geste suivant peut s'exécuter.
 - `[VAR-08]` Avant toute création, le sandbox cherche dans la collection une
-  variable du même nom qu'il ne suit pas. S'il en trouve une, il arrête
-  l'écriture de cette palette sans rien créer, et la fiche nomme la
-  variable : le designer renomme la palette ou change de groupe.
+  variable du même nom, sans casse, qu'il ne suit pas pour la palette. La
+  fiche compte d'avance celles qu'aucune autre palette de la recette ne suit,
+  libres ou laissées par une palette supprimée : la ligne
+  dit « À mettre à jour » et « N variables existantes à remplacer », et
+  l'encart de `[UI-31]` les annonce, puis « Remplacer N variables ». Sur
+  cette décision seulement, le sandbox les prend : elles gardent leur
+  identifiant et leur portée, prennent le nom du plan et les couleurs du
+  plugin, et entrent dans le suivi ; la palette supprimée qui les suivait les
+  perd. Sans la décision, ou pour une variable qu'une autre palette de la
+  recette suit, il arrête l'écriture de cette palette sans rien
+  créer, et la fiche nomme la variable : le designer renomme la palette ou
+  change de groupe.
 - `[VAR-09]` La collection d'une palette est celle de son suivi tant que la
   destination n'a pas changé depuis son écriture, sinon celle que la
   destination désigne par identifiant, sinon une collection créée au nom
@@ -3363,6 +3380,20 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   rend ses variables à la liste des palettes du fichier.
   La bascule vers « Telles quelles » relit aussi les variables Dark créées
   dans le chemin, avec leurs retouches éventuelles dans Figma.
+  « Passer au format du plugin » (porte `convertir-reprise`,
+  `conversionDeLaReprise` dans `src/variables/conversion.ts`) rend une
+  palette reprise et recalculée au format d'une palette que le plugin a
+  créée, définitivement, sous un seul `figma.commitUndo()` et sans écrire de
+  couleur. Ses clés rangées sous `unique` reprennent le nom de l'intensité
+  qui porte les variables d'origine. Quand ses variables sont dans la
+  collection de la destination et sous la forme de ses thèmes, elles restent
+  les siennes : chacune prend le nom que la destination lui donne et garde
+  son identifiant, donc ses liaisons, et le suivi prend la liaison
+  `destination` au groupe de la destination. Un nom déjà porté par une autre
+  variable de la collection, sans casse, refuse le geste avant tout
+  renommage. Sinon, ses variables deviennent une sortie ancienne de la
+  palette (`[UI-35]`), et la prochaine mise à jour l'écrit dans la
+  destination comme une palette jamais écrite.
 - `[VAR-14]` Le manifest déclare la permission `teamlibrary`. La lecture
   liste les collections de bibliothèque activées, nom, clé, bibliothèque et
   nombre de variables, et leurs palettes détectées sur les seuls noms

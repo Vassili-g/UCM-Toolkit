@@ -217,6 +217,7 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     },
     verifier: () => allerA('verification'),
     versGestion: () => allerA('gestion'),
+    convertirLaReprise: (palette) => frontiere.convertirLaReprise(palette),
     choisirGarantie(numero) {
       allerA('verification');
       ongletVerification.choisirGarantie(numero);
@@ -266,7 +267,7 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
     choisirLaPage: (page) => frontiere.choisirLaPage(page),
     rangerLesSections: (ouvertes) => versSandbox({ type: 'ranger-sections', sections: ouvertes }),
     // Un rangement refusé abandonne l'écriture qui l'attendait : l'onglet rend ses gestes.
-    ecrireLesVariables: (palettes, remettre) => frontiere.ecrireLesVariables({ palettes, remettre }, () => ongletGestion.recevoirVariables(null)),
+    ecrireLesVariables: (palettes, remettre, remplacer) => frontiere.ecrireLesVariables({ palettes, remettre, remplacer }, () => ongletGestion.recevoirVariables(null)),
     rangerLaDestination: (destination) => frontiere.rangerLaDestination(destination),
     retirerLesVariables: (palette) => frontiere.retirerLesVariables(palette),
     // « Copier dans le plugin » : le sandbox importe les variables et range la recette ; Création s'ouvre sur la copie à l'état relu.
@@ -600,6 +601,10 @@ export function creerVuesIndex(i18n: Localisation, sections: SectionsDeGestion) 
       relireLaPlanche();
     } else if (message.type === 'variables-retirees' && frontiere.accepterRetraitDesVariables(message)) {
       ongletGestion.recevoirRetraitDesVariables(message.issue);
+      relireLaPlanche();
+    } else if (message.type === 'reprise-convertie' && frontiere.accepterConversion(message)) {
+      ongletCreation.recevoirConversion(message.issue);
+      // Le suivi converti se relit : l'encart de la reprise se ferme, et Gestion montre la palette au format du plugin.
       relireLaPlanche();
     }
   };

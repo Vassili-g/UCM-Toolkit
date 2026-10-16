@@ -14,7 +14,7 @@ import type { Langue } from './i18n/langues';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
 import type { IssueDeLaPage, IssueDuRetrait, ResultatDuDessin } from './ecriture/planche';
-import type { IssueDeLaCopie, IssueDeLaDestination, IssueDeLaReprise, IssueDuRetraitDesVariables, ResultatDeLEcriture, SourceDeLaReprise } from './ecriture/variables';
+import type { IssueDeLaConversion, IssueDeLaCopie, IssueDeLaDestination, IssueDeLaReprise, IssueDuRetraitDesVariables, ResultatDeLEcriture, SourceDeLaReprise } from './ecriture/variables';
 import type { IssueDuRangement } from './ecriture/recette';
 import type { EtatDeLaPlanche, ProfilDuDocument } from './lecture';
 import type { VariablesDuFichier } from './lectureDesVariables';
@@ -56,9 +56,10 @@ export type UiRequest =
   /**
    * Cinquième écriture : les variables des palettes nommées, depuis la
    * recette rangée. `remettre` nomme les palettes dont le designer remet les
-   * couleurs que Figma a changées ([VAR-06], [VAR-07]).
+   * couleurs que Figma a changées, `remplacer` celles dont il remplace les
+   * variables du même nom ([VAR-06] à [VAR-08]).
    */
-  | { type: 'ecrire-variables'; demande: number; palettes: string[]; empreinteLue: string | null; remettre: string[] }
+  | { type: 'ecrire-variables'; demande: number; palettes: string[]; empreinteLue: string | null; remettre: string[]; remplacer: string[] }
   /** Sixième écriture : la destination des tokens, rangée dans le suivi et confirmée ([VAR-16]). */
   | { type: 'ranger-destination'; demande: number; destination: Destination }
   /** Septième écriture : le retrait des variables d'une palette supprimée ([VAR-11]). */
@@ -80,9 +81,15 @@ export type UiRequest =
    * ([VAR-14]).
    */
   | { type: 'copier-palette'; demande: number; empreinteLue: string | null; palette: string; source: { collection: string; chemin: string } }
+  /**
+   * Dixième écriture : « Passer au format du plugin ». Le sandbox relit la
+   * recette et le suivi, renomme les variables de la palette reprise et
+   * range son suivi au format du plugin ([VAR-13]).
+   */
+  | { type: 'convertir-reprise'; demande: number; empreinteLue: string | null; palette: string }
   | DemandeDeTaille;
 
-export type { IssueDeLaCopie, IssueDeLaDestination, IssueDeLaPage, IssueDeLaReprise, IssueDuRetrait, IssueDuRetraitDesVariables, ResultatDeLEcriture, ResultatDuDessin };
+export type { IssueDeLaConversion, IssueDeLaCopie, IssueDeLaDestination, IssueDeLaPage, IssueDeLaReprise, IssueDuRetrait, IssueDuRetraitDesVariables, ResultatDeLEcriture, ResultatDuDessin };
 
 /** Ce que le sandbox envoie à l'interface. */
 export type PluginMessage =
@@ -115,4 +122,6 @@ export type PluginMessage =
   /** L'issue de « Modifier dans le plugin », en réponse à `reprendre-palette`. */
   | { type: 'reprise'; demande: number; issue: IssueDeLaReprise }
   /** L'issue de « Copier dans le plugin », en réponse à `copier-palette`. */
-  | { type: 'copie'; demande: number; issue: IssueDeLaCopie };
+  | { type: 'copie'; demande: number; issue: IssueDeLaCopie }
+  /** L'issue de « Passer au format du plugin », en réponse à `convertir-reprise`. */
+  | { type: 'reprise-convertie'; demande: number; issue: IssueDeLaConversion };

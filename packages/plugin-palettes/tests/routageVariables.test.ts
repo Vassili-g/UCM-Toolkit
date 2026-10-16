@@ -20,7 +20,7 @@ test('[VAR-04] les lectures et mutations refusées rendent une réponse numérot
   figma.variables.getLocalVariablesAsync = async () => { throw new Error('lecture refusée'); };
   figma.variables.getLocalVariableCollectionsAsync = async () => { throw new Error('collections refusées'); };
   await recevoir({ type: 'lire-etat', demande: 1 });
-  await recevoir({ type: 'ecrire-variables', demande: 2, empreinteLue: empreinteDuTexte(texte), palettes: ['p-0000000a'], remettre: [] });
+  await recevoir({ type: 'ecrire-variables', demande: 2, empreinteLue: empreinteDuTexte(texte), palettes: ['p-0000000a'], remettre: [], remplacer: [] });
   await recevoir({ type: 'ranger-destination', demande: 3, destination: { collection: { id: 'absente' }, groupe: '', themes: 'chemin' } });
   await recevoir({ type: 'reprendre-palette', demande: 4, empreinteLue: empreinteDuTexte(texte), recette, palette: 'p-0000000a', source: { collection: 'absente', chemin: 'bleu' } });
   await recevoir({ type: 'ranger-destination', demande: 5, destination: { collection: { nom: 'Nouvelle' }, groupe: '', themes: 'chemin' } });

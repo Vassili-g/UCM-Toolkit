@@ -1995,12 +1995,16 @@ export function titreDeLEcriture(nom: string): string {
   return `Écrire ${nom} dans les tokens Figma ?`;
 }
 
-/** Ce que l'écriture crée, où, sous quels noms, et ce qu'elle remplace ([UI-31]). */
-export function texteDeLEcriture(creees: number, collection: string, premier: string, dernier: string, remplacees: number, renommees = 0): string {
+/**
+ * Ce que l'écriture crée, où, sous quels noms, et ce qu'elle remplace
+ * ([UI-31]). `aPart` compte les variables qu'un autre paragraphe de l'encart
+ * décrit, renommées ou remplacées : la phrase ne dit plus qu'aucune ne change.
+ */
+export function texteDeLEcriture(creees: number, collection: string, premier: string, dernier: string, remplacees: number, aPart = 0): string {
   const naissance = creees === 1
     ? `1 variable de couleur sera créée dans la collection « ${collection} » : ${premier}.`
     : `${creees} variables de couleur seront créées dans la collection « ${collection} », de ${premier} à ${dernier}.`;
-  if (remplacees === 0 && renommees > 0) return naissance;
+  if (remplacees === 0 && aPart > 0) return naissance;
   const suite = remplacees === 0
     ? 'Aucune variable existante n’est modifiée.'
     : remplacees === 1 ? '1 couleur déjà écrite sera remplacée.' : `${remplacees} couleurs déjà écrites seront remplacées.`;
@@ -2010,6 +2014,28 @@ export function texteDeLEcriture(creees: number, collection: string, premier: st
 /** Le bouton qui confirme l'écriture ([UI-31]). */
 export function ecrireNVariables(nombre: number): string {
   return `Écrire ${variables(nombre)}`;
+}
+
+/** Le titre de l'encart d'une écriture qui remplace des variables du même nom ([UI-31], [VAR-08]). */
+export function titreDeLaMiseAJour(nom: string): string {
+  return `Mettre à jour ${nom} dans les tokens Figma ?`;
+}
+
+/** Les variables du même nom que la collection porte déjà, et dont l'écriture remplace les couleurs ([UI-31], [VAR-08]). */
+export function texteDesExistantes(nombre: number, collection: string, premier: string, dernier: string): string {
+  return nombre === 1
+    ? `La collection « ${collection} » porte déjà la variable ${premier} : sa couleur sera remplacée par celle du plugin.`
+    : `La collection « ${collection} » porte déjà ${nombre} de ces variables, de ${premier} à ${dernier} : leurs couleurs seront remplacées par celles du plugin.`;
+}
+
+/** Le bouton qui confirme le remplacement des variables du même nom ([UI-31], [VAR-08]). */
+export function remplacerNVariables(nombre: number): string {
+  return `Remplacer ${variables(nombre)}`;
+}
+
+/** Les variables du même nom que la collection porte déjà ([UI-26], [VAR-08]). */
+export function variablesARemplacer(nombre: number): string {
+  return nombre === 1 ? '1 variable existante à remplacer' : `${nombre} variables existantes à remplacer`;
 }
 
 /** Le résumé de la simulation : ce que la destination donne pour une palette ([UI-30]). */
@@ -2057,7 +2083,7 @@ export function confirmationDeLaMiseAJour(compte: { creees: number; ecrites: num
 export function nomDejaPris(palette: string, nom: string): Constat {
   return {
     ou: `Tokens non écrits : ${palette}`,
-    quoi: `La collection porte déjà une variable « ${nom} », que le plugin n’a pas écrite.`,
+    quoi: `La collection porte déjà une variable « ${nom} », qu’une autre palette écrit ou que l’écriture n’a pas prévue.`,
     geste: 'Renommez la palette, ou changez le groupe de la destination des tokens.',
   };
 }
@@ -2186,7 +2212,42 @@ export const TEXTES_DE_LA_REPRISE = {
   retrouves: 'Réglages retrouvés. Aucune couleur ne change.',
   retrouvesEnLight: 'Réglages retrouvés. Les couleurs Light ne changent pas ; le thème Dark est calculé.',
   introuvables: 'Aucun réglage ne reproduit ces couleurs.',
+  convertir: 'Passer au format du plugin',
+  annuler: 'Annuler',
 } as const;
+
+/** Ce que « Passer au format du plugin » fera d'une palette reprise, avant la confirmation ([UI-34], [VAR-13]). */
+export function texteDeLaConversion(
+  nom: string,
+  cas: { readonly enPlace: boolean; readonly renommees: number; readonly de: string; readonly vers: string; readonly occupe: string | null },
+): string {
+  if (cas.occupe !== null) return `La collection porte déjà une variable « ${cas.occupe} » : renommez-la dans Figma, ou changez le groupe de la destination des tokens.`;
+  const devient = `${nom} devient une palette du plugin, comme celles qu’il crée.`;
+  const suite = !cas.enPlace
+    ? 'Ses tokens s’écriront dans la destination des tokens à la prochaine mise à jour ; ses variables actuelles restent dans Figma, et l’onglet Gestion propose de les supprimer.'
+    : cas.renommees === 0
+      ? 'Ses variables gardent leur nom et leurs liaisons.'
+      : cas.renommees === 1
+        ? `1 variable prend le nom du plugin et garde ses liaisons : ${cas.de} devient ${cas.vers}.`
+        : `${cas.renommees} variables prennent le nom du plugin et gardent leurs liaisons, par exemple ${cas.de} devient ${cas.vers}.`;
+  return `${devient} ${suite} Ce choix est définitif.`;
+}
+
+/** Ce que le sandbox a refusé à « Passer au format du plugin » ([VAR-13]). */
+export function conversionRefusee(issue: { readonly issue: 'nom-pris'; readonly nom: string } | { readonly issue: 'refusee' | 'recette-changee' | 'suivi-futur' } | { readonly issue: 'interrompue'; readonly message: string }): string {
+  switch (issue.issue) {
+    case 'nom-pris':
+      return `La collection porte déjà une variable « ${issue.nom} » : rien n’a changé.`;
+    case 'refusee':
+      return 'Cette palette n’est plus une palette reprise du fichier : rien n’a changé.';
+    case 'recette-changee':
+      return 'Les palettes du fichier ont changé entre-temps : rien n’a changé. Réessayez.';
+    case 'suivi-futur':
+      return 'Ce fichier a été écrit par une version plus récente du plugin : rien n’a changé.';
+    case 'interrompue':
+      return `Figma a refusé de renommer une variable : rien n’a changé. ${issue.message}`;
+  }
+}
 
 /** Le résultat d'une recherche de réglages qui n'a pas retrouvé toutes les couleurs ([VAR-13]). */
 export function reglagesApproches(nombre: number): string {

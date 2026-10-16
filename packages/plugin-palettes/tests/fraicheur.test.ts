@@ -203,6 +203,24 @@ test('[ENT-03] [PLA-25] le cadre d’une palette supprimée est orphelin ; une c
   assert.deepEqual(fraicheur.copies.map(({ cadre }) => cadre), [copieDeBleu.id, copieDAmbre.id]);
 });
 
+test('[ENT-03] une palette supprimée puis recréée sous son nom reprend son cadre orphelin, que le dessin remplace à sa place', async () => {
+  const figma = await plancheDessinee();
+  const [, ambre] = figma.page('Palettes').enfants;
+  const recreee: Palette = { ...AMBRE, id: 'p-0000000d' };
+  const recette: Recette = { ...SANS_GRILLES, palettes: [BLEU, recreee, VERT] };
+  const avant = fraicheurDeLaPlanche(recette, 'SRGB', await lireLaPlanche(figma.api()));
+  assert.deepEqual(etats(avant), [`${BLEU.id} perimee`, `${recreee.id} perimee`, `${VERT.id} jamais-dessinee`]);
+  assert.equal(avant.palettes[1].cadre, ambre.id);
+  assert.deepEqual(avant.orphelins, [], 'le cadre repris n’est plus celui d’une palette supprimée');
+
+  const issue = await dessinerLaPlanche(figma.api(), { recette, profil: 'SRGB', palettes: [recreee] });
+  assert.ok(issue.issue === 'dessinee');
+  assert.equal(figma.page('Palettes').enfants.length, 2, 'le cadre neuf remplace l’ancien, sans en ajouter un');
+  const apres = fraicheurDeLaPlanche(recette, 'SRGB', await lireLaPlanche(figma.api()));
+  assert.deepEqual(etats(apres), [`${BLEU.id} perimee`, `${recreee.id} a-jour`, `${VERT.id} jamais-dessinee`]);
+  assert.deepEqual(apres.orphelins, []);
+});
+
 test('L6.14 : les couleurs relues d’un dessin n’ont aucun écart avec l’aperçu ; une couleur changée en a un', async () => {
   const figma = new FauxFigma();
   const issue = await dessinerLaPlanche(figma.api(), { recette: SANS_GRILLES, profil: 'SRGB', palettes: [BLEU, AMBRE] });

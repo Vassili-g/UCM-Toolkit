@@ -1996,12 +1996,16 @@ export function titreDeLEcriture(nom: string): string {
   return `Write ${nom} to Figma tokens?`;
 }
 
-/** Ce que l'écriture crée, où, sous quels noms, et ce qu'elle remplace ([UI-31]). */
-export function texteDeLEcriture(creees: number, collection: string, premier: string, dernier: string, remplacees: number, renommees = 0): string {
+/**
+ * Ce que l'écriture crée, où, sous quels noms, et ce qu'elle remplace
+ * ([UI-31]). `aPart` compte les variables qu'un autre paragraphe de l'encart
+ * décrit, renommées ou remplacées : la phrase ne dit plus qu'aucune ne change.
+ */
+export function texteDeLEcriture(creees: number, collection: string, premier: string, dernier: string, remplacees: number, aPart = 0): string {
   const naissance = creees === 1
     ? `1 color variable will be created in the “${collection}” collection: ${premier}.`
     : `${creees} color variables will be created in the “${collection}” collection, from ${premier} to ${dernier}.`;
-  if (remplacees === 0 && renommees > 0) return naissance;
+  if (remplacees === 0 && aPart > 0) return naissance;
   const suite = remplacees === 0
     ? "No existing variable is changed."
     : remplacees === 1 ? "1 color already written will be replaced." : `${remplacees} colors already written will be replaced.`;
@@ -2011,6 +2015,28 @@ export function texteDeLEcriture(creees: number, collection: string, premier: st
 /** Le bouton qui confirme l'écriture ([UI-31]). */
 export function ecrireNVariables(nombre: number): string {
   return `Write ${variables(nombre)}`;
+}
+
+/** Le titre de l'encart d'une écriture qui remplace des variables du même nom ([UI-31], [VAR-08]). */
+export function titreDeLaMiseAJour(nom: string): string {
+  return `Update ${nom} in Figma tokens?`;
+}
+
+/** Les variables du même nom que la collection porte déjà, et dont l'écriture remplace les couleurs ([UI-31], [VAR-08]). */
+export function texteDesExistantes(nombre: number, collection: string, premier: string, dernier: string): string {
+  return nombre === 1
+    ? `The “${collection}” collection already has the variable ${premier}: its color will be replaced by the plugin’s.`
+    : `The “${collection}” collection already has ${nombre} of these variables, from ${premier} to ${dernier}: their colors will be replaced by the plugin’s.`;
+}
+
+/** Le bouton qui confirme le remplacement des variables du même nom ([UI-31], [VAR-08]). */
+export function remplacerNVariables(nombre: number): string {
+  return `Replace ${variables(nombre)}`;
+}
+
+/** Les variables du même nom que la collection porte déjà ([UI-26], [VAR-08]). */
+export function variablesARemplacer(nombre: number): string {
+  return nombre === 1 ? "1 existing variable to replace" : `${nombre} existing variables to replace`;
 }
 
 /** Le résumé de la simulation : ce que la destination donne pour une palette ([UI-30]). */
@@ -2058,7 +2084,7 @@ export function confirmationDeLaMiseAJour(compte: { creees: number; ecrites: num
 export function nomDejaPris(palette: string, nom: string): Constat {
   return {
     ou: `Tokens not written: ${palette}`,
-    quoi: `The collection already has a variable “${nom}” that the plugin did not write.`,
+    quoi: `The collection already has a variable “${nom}”, written by another palette or not expected by this write.`,
     geste: "Rename the palette, or change the group in the token destination.",
   };
 }
@@ -2187,7 +2213,42 @@ export const TEXTES_DE_LA_REPRISE = {
   retrouves: "Settings recovered. No color changes.",
   retrouvesEnLight: "Settings recovered. Light colors do not change; the Dark theme is computed.",
   introuvables: "No settings reproduce these colors.",
+  convertir: "Switch to plugin format",
+  annuler: "Cancel",
 } as const;
+
+/** Ce que « Passer au format du plugin » fera d'une palette reprise, avant la confirmation ([UI-34], [VAR-13]). */
+export function texteDeLaConversion(
+  nom: string,
+  cas: { readonly enPlace: boolean; readonly renommees: number; readonly de: string; readonly vers: string; readonly occupe: string | null },
+): string {
+  if (cas.occupe !== null) return `The collection already has a variable “${cas.occupe}”: rename it in Figma, or change the group in the token destination.`;
+  const devient = `${nom} becomes a plugin palette, like the ones it creates.`;
+  const suite = !cas.enPlace
+    ? "Its tokens will be written to the token destination on the next update; its current variables stay in Figma, and the Manage tab offers to delete them."
+    : cas.renommees === 0
+      ? "Its variables keep their name and their bindings."
+      : cas.renommees === 1
+        ? `1 variable takes the plugin’s name and keeps its bindings: ${cas.de} becomes ${cas.vers}.`
+        : `${cas.renommees} variables take the plugin’s names and keep their bindings, for example ${cas.de} becomes ${cas.vers}.`;
+  return `${devient} ${suite} This cannot be undone.`;
+}
+
+/** Ce que le sandbox a refusé à « Passer au format du plugin » ([VAR-13]). */
+export function conversionRefusee(issue: { readonly issue: 'nom-pris'; readonly nom: string } | { readonly issue: 'refusee' | 'recette-changee' | 'suivi-futur' } | { readonly issue: 'interrompue'; readonly message: string }): string {
+  switch (issue.issue) {
+    case 'nom-pris':
+      return `The collection already has a variable “${issue.nom}”: nothing changed.`;
+    case 'refusee':
+      return "This palette is no longer taken from the file: nothing changed.";
+    case 'recette-changee':
+      return "The file’s palettes changed in the meantime: nothing changed. Try again.";
+    case 'suivi-futur':
+      return "This file was written by a newer version of the plugin: nothing changed.";
+    case 'interrompue':
+      return `Figma refused to rename a variable: nothing changed. ${issue.message}`;
+  }
+}
 
 /** Le résultat d'une recherche de réglages qui n'a pas retrouvé toutes les couleurs ([VAR-13]). */
 export function reglagesApproches(nombre: number): string {

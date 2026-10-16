@@ -66,7 +66,9 @@ import {
 import { CIBLES_COMMUNES, carteDuMessage, grandeursModifieesDuColorShift, estLaPaletteNeutre, type CibleDAction } from '../presentation';
 import { paletteReglee } from './paletteReglee';
 import { reglagesModifies } from '../reglagesParDefaut';
+import type { IssueDeLaConversion } from '../ecriture/variables';
 import type { VariablesDuFichier } from '../lectureDesVariables';
+import { conversionDeLaReprise } from '../variables/conversion';
 import { tokensDeLaPalette, type TokensDUnePalette } from '../variables/gestion';
 import { palettesDuFichier as lirePalettesDuFichier, retrouverLaPaletteGroupee, type PaletteDuFichier, type PaletteGroupee } from '../variables/detection';
 import { planDesVariables } from '../variables/plan';
@@ -120,6 +122,8 @@ export interface DemandesDeLOnglet {
   choisirGarantie(numero: number): void;
   /** Le lien sous l'encart d'un fichier sans palette : ouvre Gestion sur les palettes de ses variables ([UI-22]). */
   versGestion(): void;
+  /** « Passer au format du plugin » d'une palette reprise ([VAR-13]) ; `false` quand rien ne part. */
+  convertirLaReprise(palette: string): boolean;
 }
 
 export interface OngletCreationUi {
@@ -147,6 +151,8 @@ export interface OngletCreationUi {
   poserLesPalettesDuFichier(nombre: number): void;
   /** Les variables du dernier état lu, avant son rendu : l'encart d'une palette reprise du fichier les lit ([UI-34]). */
   poserLesVariables(fichier: VariablesDuFichier): void;
+  /** L'issue de « Passer au format du plugin » : un refus se lit dans l'encart, une réussite le ferme à l'état relu. */
+  recevoirConversion(issue: IssueDeLaConversion): void;
   /** Ce que la barre de la palette demande ([UI-23]) : l'onglet porte la recette, donc ses gestes. */
   readonly gestesDeLaBarre: GestesDeLaBarre;
   /** Reprend la barre en tête de l'onglet, quand il redevient l'onglet actif. */
@@ -227,7 +233,7 @@ function construireVues(i18n: Localisation) {
   const { messagesDeLaPalette, tousLesMessages } = creerVuesMessagesDePalette(i18n);
   const { createNuancier } = creerVuesNuancier(i18n);
   const { nuancierDesPalettes } = creerVuesNuancierDesPalettes(i18n);
-  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DES_REGLAGES_AVANCES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DES_INTENSITES_DE_PALETTE, TEXTES_DU_MODELE, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, TEXTES_DE_LA_REPRISE, couleursQuiChangeront, originaleRetiree, palettesDansLesVariables, rangementInvalide, reglagesApproches, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
+  const { TEXTES, TEXTES_DES_REGLAGES, TEXTES_DES_REGLAGES_AVANCES, TEXTES_DE_L_AJUSTEMENT, TEXTES_DE_LA_BASE, TEXTES_DE_LA_DERIVE, TEXTES_DE_L_ONGLET, TEXTES_DES_INTENSITES_DE_PALETTE, TEXTES_DU_MODELE, TEXTES_DU_SELECTEUR, garantiesManqueesDeLaReference, hexaInvalide, ligneDeLaReference, nomDeLaCopie, nomDeLaPalette, TEXTES_DE_LA_REPRISE, conversionRefusee, couleursQuiChangeront, texteDeLaConversion, originaleRetiree, palettesDansLesVariables, rangementInvalide, reglagesApproches, recetteFuture, recetteIllisible, recetteModifieeAilleurs, resumeDeLaDerive, resumeDesReglages, voirDansGestion } = i18n.messages;
 
   function ligneDEtat(texte: Texte): HTMLParagraphElement {
     const ligne = document.createElement('p');
@@ -565,7 +571,86 @@ function construireVues(i18n: Localisation) {
     retourDeLaRecherche.className = 'ligne-secondaire';
     retourDeLaRecherche.setAttribute('role', 'status');
     retourDeLaRecherche.hidden = true;
-    encartDeReprise.append(titreDeLaReprise, comparaison, basculeDeReprise, texteDeLaReprise, gestesDeLaRecherche);
+    /*
+     * « Passer au format du plugin » ([VAR-13]) : un geste définitif, donc
+     * confirmé. Le premier bouton ouvre ce que la conversion fera, puis
+     * « Annuler » et le même libellé pour confirmer. Une palette figée se
+     * recalcule d'abord : le geste ne s'y montre pas.
+     */
+    const boutonDeConversion = createButton({ label: TEXTES_DE_LA_REPRISE.convertir, variant: 'secondary', onClick: () => ouvrirLaConversion() });
+    boutonDeConversion.dataset.geste = 'convertir';
+    const texteDeConversion = document.createElement('p');
+    texteDeConversion.className = 'ligne-secondaire';
+    const annulerLaConversion = createButton({ label: TEXTES_DE_LA_REPRISE.annuler, variant: 'secondary', compact: true, onClick: () => fermerLaConversion() });
+    annulerLaConversion.dataset.geste = 'annuler-conversion';
+    const confirmerLaConversion = createButton({ label: TEXTES_DE_LA_REPRISE.convertir, compact: true, onClick: () => convertir() });
+    confirmerLaConversion.dataset.geste = 'confirmer-conversion';
+    const gestesDeConversion = document.createElement('div');
+    gestesDeConversion.className = 'confirmation-gestes';
+    gestesDeConversion.append(annulerLaConversion, confirmerLaConversion);
+    const confirmationDeConversion = document.createElement('div');
+    confirmationDeConversion.dataset.conversion = 'confirmation';
+    confirmationDeConversion.append(texteDeConversion, gestesDeConversion);
+    const retourDeConversion = document.createElement('p');
+    retourDeConversion.className = 'ligne-secondaire';
+    retourDeConversion.setAttribute('role', 'status');
+    retourDeConversion.hidden = true;
+    const blocDeConversion = document.createElement('div');
+    blocDeConversion.dataset.conversion = 'bloc';
+    blocDeConversion.append(boutonDeConversion, confirmationDeConversion, retourDeConversion);
+    encartDeReprise.append(titreDeLaReprise, comparaison, basculeDeReprise, texteDeLaReprise, gestesDeLaRecherche, blocDeConversion);
+
+    /** La palette dont la confirmation de la conversion est ouverte, celle dont la demande est partie, et le dernier refus. */
+    let conversionOuverte: string | null = null;
+    let conversionEnVol: string | null = null;
+    let refusDeConversion: { readonly palette: string; readonly texte: Texte } | null = null;
+
+    function ouvrirLaConversion(): void {
+      const courante = ouverte();
+      if (!courante) return;
+      conversionOuverte = courante.id;
+      refusDeConversion = null;
+      rendreLaConversion(courante);
+      confirmerLaConversion.focus();
+    }
+
+    function fermerLaConversion(): void {
+      const courante = ouverte();
+      conversionOuverte = null;
+      if (courante) rendreLaConversion(courante);
+      boutonDeConversion.focus();
+    }
+
+    function convertir(): void {
+      const courante = ouverte();
+      if (!courante || conversionEnVol !== null || !demandes.convertirLaReprise(courante.id)) return;
+      conversionEnVol = courante.id;
+      rendreLaConversion(courante);
+    }
+
+    /** Le bloc de la conversion d'une palette reprise : le bouton, ou la confirmation ouverte, et le refus de la dernière demande. */
+    function rendreLaConversion(courante: Palette): void {
+      const recette = etat.recette();
+      const suivie = lienDeReprise(courante);
+      blocDeConversion.hidden = !recette || !suivie || !fichier || estFigee(courante);
+      if (blocDeConversion.hidden || !recette || !suivie || !fichier) return;
+      const ouverteIci = conversionOuverte === courante.id;
+      boutonDeConversion.hidden = ouverteIci;
+      confirmationDeConversion.hidden = !ouverteIci;
+      const conversion = conversionDeLaReprise(recette, courante, suivie, fichier.suivi.destination, fichier.variables);
+      const [premiere] = conversion.aRenommer;
+      i18n.lier(texteDeConversion, 'textContent', texteDeLaConversion(nomDeLaPalette(courante), {
+        enPlace: conversion.enPlace,
+        renommees: conversion.aRenommer.length,
+        de: premiere?.de ?? '',
+        vers: premiere?.vers ?? '',
+        occupe: conversion.occupe,
+      }));
+      confirmerLaConversion.disabled = conversion.occupe !== null || conversionEnVol !== null;
+      const refus = refusDeConversion?.palette === courante.id ? refusDeConversion.texte : null;
+      retourDeConversion.hidden = refus === null;
+      if (refus !== null) i18n.lier(retourDeConversion, 'textContent', refus);
+    }
 
     /** La recherche en cours : sa palette, les couleurs qu'elle cherche à régler, et de quoi l'interrompre. */
     let recherche: { readonly id: string; readonly figees: NonNullable<Palette['figees']>; readonly controleur: AbortController } | null = null;
@@ -700,8 +785,11 @@ function construireVues(i18n: Localisation) {
       rendreLesGestesDeLaRecherche();
       // Le geste « Retrouver les réglages » appartient à la palette figée : sans elle, seul le résultat reste lisible.
       gestesDeLaRecherche.hidden = !figee;
-      encartDeReprise.hidden = !suivie || !tokens || !fichier || (!figee && tokens.etat === 'a-jour');
+      // L'encart reste pour toute palette reprise : il porte « Passer au format du plugin ».
+      encartDeReprise.hidden = !suivie || !tokens || !fichier;
       if (encartDeReprise.hidden || !suivie || !tokens || !fichier) return;
+      if (conversionOuverte !== null && conversionOuverte !== courante.id) conversionOuverte = null;
+      rendreLaConversion(courante);
       const lues = new Map(fichier.variables.map((variable) => [variable.id, variable]));
       const clair = planDesVariables(lue, courante, fichier.suivi.destination, suivie).filter((entree) => entree.mode === 'light');
       const nuance = (couleur: string | null | undefined): HTMLSpanElement => {
@@ -1212,6 +1300,17 @@ function construireVues(i18n: Localisation) {
       },
       poserLesVariables(lu) {
         fichier = lu;
+      },
+      recevoirConversion(issue) {
+        const palette = conversionEnVol;
+        conversionEnVol = null;
+        if (palette === null) return;
+        if (issue.issue === 'convertie') {
+          conversionOuverte = null;
+          refusDeConversion = null;
+        } else refusDeConversion = { palette, texte: conversionRefusee(issue) };
+        const courante = ouverte();
+        if (courante) rendreLaConversion(courante);
       },
       poserLesPalettesDuFichier(nombre) {
         palettesDuFichier = nombre;

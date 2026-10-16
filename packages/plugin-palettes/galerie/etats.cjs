@@ -1056,9 +1056,23 @@ const ETATS = [
     id: 'reprise-recalculee',
     titre: 'Reprise recalculée',
     quand: 'Le designer a cliqué « Modifier dans le plugin » sur slate : Création s’ouvre sur la palette reprise.',
-    regarder: 'Sous le titre « Palette slate », l’encart : « Palette reprise des variables du fichier », la rampe « Fichier » et la rampe « Plugin » l’une sous l’autre, la bascule « Recalculées · Telles quelles » avec « Recalculées » pressé et le nombre de couleurs qui changeront. Les cartes de réglage suivent, sans le choix des intensités.',
+    regarder: 'Sous le titre « Palette slate », l’encart : « Palette reprise des variables du fichier », la rampe « Fichier » et la rampe « Plugin » l’une sous l’autre, la bascule « Recalculées · Telles quelles » avec « Recalculées » pressé, le nombre de couleurs qui changeront et « Passer au format du plugin ». Les cartes de réglage suivent, sans le choix des intensités.',
     existe: true,
     atteinte: [((reprise) => etatDuFichier(rangee([reprise.palette, BLEU]), 'SRGB', PLANCHE_VIDE, 1, reprise.fichier))(repriseDeSlate(false))],
+  },
+  {
+    id: 'conversion-de-la-reprise',
+    titre: 'Passage au format du plugin',
+    quand: 'Dans l’encart de slate, reprise et recalculée, le designer clique « Passer au format du plugin », puis le confirme ; une autre variable porte déjà un nom du plugin.',
+    regarder: 'Sous la bascule et le nombre de couleurs qui changeront, la phrase de la conversion qui dit ce que deviennent les variables et « Ce choix est définitif. », puis « Annuler » et « Passer au format du plugin ». Dessous, le refus : « La collection porte déjà une variable « slate/light/50 » : rien n’a changé. »',
+    existe: true,
+    // L'état porte la demande 1 : la conversion porte la demande 2.
+    atteinte: [
+      ((reprise) => etatDuFichier(rangee([reprise.palette, BLEU]), 'SRGB', PLANCHE_VIDE, 1, reprise.fichier))(repriseDeSlate(false)),
+      { clic: '#panneau-creation [data-geste="convertir"]' },
+      { clic: '#panneau-creation [data-geste="confirmer-conversion"]' },
+      { message: { type: 'reprise-convertie', demande: 2, issue: { issue: 'nom-pris', nom: 'slate/light/50' } } },
+    ],
   },
   {
     id: 'reprise-telle-quelle',

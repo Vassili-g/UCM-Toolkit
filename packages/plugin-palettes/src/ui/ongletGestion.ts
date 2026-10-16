@@ -101,8 +101,12 @@ export interface GestesDeLaGestion extends GestesDuResultat {
   rangerLesSections(sections: SectionsDeGestion): void;
   /** Demande le retrait du cadre d'une palette supprimée ; `false` quand rien ne part, pendant un conflit. */
   retirer(palette: string, cadre: string): boolean;
-  /** Écrit les variables des palettes ; `remettre` nomme celles dont le designer remet les couleurs ([VAR-06], [VAR-07]). */
-  ecrireLesVariables(palettes: readonly string[], remettre: readonly string[]): void;
+  /**
+   * Écrit les variables des palettes ; `remettre` nomme celles dont le
+   * designer remet les couleurs, `remplacer` celles dont il remplace les
+   * variables du même nom ([VAR-06] à [VAR-08]).
+   */
+  ecrireLesVariables(palettes: readonly string[], remettre: readonly string[], remplacer: readonly string[]): void;
   /** Demande le rangement de la destination ; `false` quand rien ne part ([VAR-16]). */
   rangerLaDestination(destination: Destination): boolean;
   /** Demande le retrait des variables d'une palette supprimée ; `false` quand rien ne part ([VAR-11]). */
@@ -135,7 +139,7 @@ function construireVues(i18n: Localisation) {
     tokensPartiels, formeDesThemes, modeDisparu, gesteInterrompu, referencesImportees, ancienneSortie,
     bibliothequeIllisible, bibliothequesIllisibles, collectionDeBibliotheque, copieRefusee, copieSansCouleur, couleursDeBibliotheque, texteDeLaCopie, titreDeLaCopie,
     avecLeNom, collectionDisparue, copieDeCadre, couleursChangeesALaMain, couleursChangeesDansLePlugin, couleursDeLaPaletteDuFichier, detailsTechniques,
-    ecrireNVariables, ecritureInterrompue, etNAutres, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris,
+    ecrireNVariables, remplacerNVariables, texteDesExistantes, titreDeLaMiseAJour, variablesARemplacer, ecritureInterrompue, etNAutres, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris,
     nombreDeVariables, noticeDisplayP3, pageDeLaPlanche, progressionDuBouton, progressionDuDessin,recetteFuture, recetteIllisible, suiviFutur,
     suppressionDesVariablesRefusee, suppressionRefusee, texteDeLEcriture, titreDeLEcriture, titreDesModifiees, valeurDansFigma, valeurDansLePlugin,
     variablesACreer, variablesDisparues, variablesSurUneAutreRecette, verifierLaPalette, regroupementDuFichier,
@@ -614,14 +618,14 @@ function construireVues(i18n: Localisation) {
     }
 
     /** Demande l'écriture des variables : une seule est en vol, et la fiche oublie le refus de l'écriture d'avant. */
-    function ecrire(palettes: readonly string[], remettre: readonly string[]): void {
+    function ecrire(palettes: readonly string[], remettre: readonly string[], remplacer: readonly string[] = []): void {
       if (ecritureEnCours || palettes.length === 0) return;
       ecritureEnCours = true;
       for (const id of palettes) refusDesTokens.delete(id);
       zoneDesVariables.replaceChildren();
       zoneDesVariables.hidden = true;
       rendreLesGestes();
-      gestes.ecrireLesVariables(palettes, remettre);
+      gestes.ecrireLesVariables(palettes, remettre, remplacer);
     }
 
     function analyseDe(lue: Recette, id: string): ReturnType<typeof analyserPalette> {
@@ -669,7 +673,7 @@ function construireVues(i18n: Localisation) {
             laissees.delete(id);
             gesteAFocaliser = { palette: id, geste: 'remettre' };
             rendre();
-          } else if (etat.aCreer.length > 0 || etat.aRenommer.length > 0 || (etat.reprise && etat.aRemplacer > 0)) ouvrirLEcriture(id);
+          } else if (etat.aCreer.length > 0 || etat.existantes.length > 0 || etat.aRenommer.length > 0 || (etat.reprise && etat.aRemplacer > 0)) ouvrirLEcriture(id);
           else {
             gesteAFocaliser = { palette: id, geste: 'modifier' };
             ecrire([id], []);
@@ -696,9 +700,13 @@ function construireVues(i18n: Localisation) {
           return { ...ligne, detail: nombreDeVariables(etat.variables), gestes: [] };
         case 'a-mettre-a-jour': {
           const changees = etat.aEcrire.filter((couleur) => couleur.ecrite !== null).length;
+          // Des variables du même nom déjà dans la collection : la ligne les compte, et les variables à créer après elles.
+          const aCreerOuRemplacer: Texte = etat.existantes.length === 0
+            ? variablesACreer(etat.aCreer.length)
+            : etat.aCreer.length === 0 ? variablesARemplacer(etat.existantes.length) : i18n.composer`${variablesARemplacer(etat.existantes.length)} · ${variablesACreer(etat.aCreer.length)}`;
           const detail = etat.destinationChangee
-            ? i18n.composer`${TEXTES_DE_LA_GESTION.destinationChangee} · ${variablesACreer(etat.aCreer.length)}`
-            : changees > 0 ? couleursChangeesDansLePlugin(changees) : variablesACreer(etat.aCreer.length);
+            ? i18n.composer`${TEXTES_DE_LA_GESTION.destinationChangee} · ${aCreerOuRemplacer}`
+            : changees > 0 ? couleursChangeesDansLePlugin(changees) : aCreerOuRemplacer;
           return { ...ligne, detail, gestes: mettreAJour('primary') };
         }
         case 'modifies':
@@ -709,18 +717,31 @@ function construireVues(i18n: Localisation) {
       }
     }
 
-    /** L'encart d'une écriture qui crée des variables : combien, où, sous quels noms, puis « Écrire » ([UI-31]). */
+    /**
+     * L'encart d'une écriture qui crée des variables, ou remplace celles du
+     * même nom que la collection porte déjà : combien, où, sous quels noms,
+     * puis « Écrire » ou « Remplacer » ([UI-31], [VAR-08]).
+     */
     function encartDeLEcriture(id: string, nom: string, etat: TokensDUnePalette): HTMLDivElement {
+      const { aCreer, existantes } = etat;
       const bloc = document.createElement('div');
       bloc.className = 'encart';
       bloc.dataset.encart = 'ecriture';
+      if (existantes.length > 0) bloc.dataset.ton = 'avertissement';
       const titre = document.createElement('p');
       titre.className = 'encart-titre';
-      i18n.lier(titre, 'textContent', titreDeLEcriture(nom));
+      i18n.lier(titre, 'textContent', existantes.length > 0 ? titreDeLaMiseAJour(nom) : titreDeLEcriture(nom));
       const texte = document.createElement('p');
       texte.className = 'ligne-secondaire';
       const collection: Texte = etat.collection ?? TEXTES_DE_LA_GESTION.collectionIntrouvable;
-      i18n.lier(texte, 'textContent', texteDeLEcriture(etat.aCreer.length, collection, etat.aCreer[0] ?? '', etat.aCreer[etat.aCreer.length - 1] ?? '', etat.aRemplacer, etat.aRenommer.length));
+      const remplacees = existantes.length === 0
+        ? ''
+        : texteDesExistantes(existantes.length, collection, existantes[0], existantes[existantes.length - 1]);
+      i18n.lier(texte, 'textContent', aCreer.length === 0
+        ? remplacees
+        : existantes.length === 0
+          ? texteDeLEcriture(aCreer.length, collection, aCreer[0], aCreer[aCreer.length - 1], etat.aRemplacer, etat.aRenommer.length)
+          : i18n.composer`${texteDeLEcriture(aCreer.length, collection, aCreer[0], aCreer[aCreer.length - 1], etat.aRemplacer, etat.aRenommer.length + existantes.length)} ${remplacees}`);
       const choix = document.createElement('div');
       choix.className = 'confirmation-gestes';
       const annuler = createButton({
@@ -734,9 +755,12 @@ function construireVues(i18n: Localisation) {
         },
       });
       annuler.dataset.geste = 'annuler-ecriture';
-      choix.append(annuler, gesteDEcriture(ecrireNVariables(etat.aCreer.length), 'primary', 'confirmer-ecriture', () => {
+      const confirmer = existantes.length === 0
+        ? ecrireNVariables(aCreer.length)
+        : aCreer.length === 0 ? remplacerNVariables(existantes.length) : ecrireNVariables(aCreer.length + existantes.length);
+      choix.append(annuler, gesteDEcriture(confirmer, 'primary', 'confirmer-ecriture', () => {
         gesteAFocaliser = { palette: id, geste: 'modifier' };
-        ecrire([id], []);
+        ecrire([id], [], existantes.length > 0 ? [id] : []);
       }));
       bloc.append(titre, texte, ...paragrapheDuRenommage(etat), choix);
       return bloc;
