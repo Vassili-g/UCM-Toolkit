@@ -282,20 +282,20 @@ Fin : `npm test` vert.
 **Agent :** `implementeur`, avec `rediger-sans-tics-ia`. **Effort :** moyen.
 **Dépend :** lot 11. Commit séparé du code.
 
-- [ ] `AGENTS.md`, section « Avant de modifier » : une définition UCM se
+- [x] `AGENTS.md`, section « Avant de modifier » : une définition UCM se
   modifie dans `packages/kit/src/referentiel/`, puis les tests, la vue
   illustrée et la version du kit suivent ; un changement du moteur régénère
-  la planche du moteur
-- [ ] `AGENTS.md`, groupe « Moteur de couleur » : la prose qui recopie la table
-  devient la règle, sa borne, le fichier et un lien
-- [ ] Spécification de Palettes : les passages qui recopient la table ou les
-  garanties renvoient au référentiel
-- [ ] `CONCEPT.md` : une section courte sur le rôle des produits et les deux
-  périmètres, qui renvoie à `produits.ts`
-- [ ] `README.md` racine : la recette est au format 12 ; les rôles des outils
-  renvoient à CONCEPT
-- [ ] `docs/format/FORMAT.md`, section 4 : les états tolérés et l'avertissement
-  de l'exporteur
+  la planche du moteur (a0f1e63)
+- [x] `AGENTS.md`, groupe « Moteur de couleur » : la prose qui recopie la table
+  devient la règle, sa borne, le fichier et un lien (a0f1e63)
+- [x] Spécification de Palettes : les passages qui recopient la table ou les
+  garanties renvoient au référentiel (a0f1e63)
+- [x] `CONCEPT.md` : une section courte sur le rôle des produits et les deux
+  périmètres, qui renvoie à `produits.ts` (a0f1e63)
+- [x] `README.md` racine : la recette est au format 12 ; les rôles des outils
+  renvoient à CONCEPT (a0f1e63)
+- [x] `docs/format/FORMAT.md`, section 4 : les états tolérés et l'avertissement
+  de l'exporteur (a0f1e63)
 
 Fin : `docLinks`, contrôle de style et `npm test` verts.
 
