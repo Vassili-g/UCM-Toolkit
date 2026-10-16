@@ -23,7 +23,7 @@ Format : ce rapport tient dans la limite de 600 mots de ma consigne de base, pas
 - Knapsack : pas de règle de nommage documentée (« Flexible Token Naming »). [blog](https://www.knapsack.cloud/blog/effortless-design-consistency-february-product-updates)
 - Vus seulement dans des résultats de recherche (pages en 403, non ouvertes) : TokenOps (nommage et préfixes), Renamer, Batch rename variables, Bulk rename variables. Je n'ai ni prix ni date pour eux.
 - Variables Pro : non trouvé.
-- DTCG 2025.10 : un nom ne commence pas par `$` et ne contient ni `{`, `}` ni `.`. Les noms sont sensibles à la casse. Les outils « MAY » avertir quand deux noms ne diffèrent que par la casse. [designtokens.org](https://www.designtokens.org/tr/drafts/format/)
+- DTCG 2025.10 : un nom ne commence pas par `$` et ne contient ni `{`, `}` ni `.`. Les noms sont sensibles à la casse. Les outils peuvent avertir quand deux noms ne diffèrent que par la casse. [designtokens.org](https://www.designtokens.org/tr/drafts/format/)
 
 *Techniques*
 - Cohérence = absence de synonymes et d'homonymes, soit une correspondance 1:1 entre concepts et noms. Outil : un dictionnaire d'identifiants tenu à jour. Deißenböck et Pizka (2006). Source lue par résumé de recherche : le PDF n'a pas pu être décodé. [PDF TUM](https://wwwbroy.in.tum.de/publ/papers/deissenboeck_pizka_identifier_naming.pdf)
@@ -36,7 +36,7 @@ Format : ce rapport tient dans la limite de 600 mots de ma consigne de base, pas
 *API Figma*
 - `name` est une chaîne non marquée en lecture seule. La page ne parle ni des groupes séparés par `/` ni des caractères interdits. [Variable](https://developers.figma.com/docs/plugins/api/Variable/)
 - Renommage : `colorVariable.name = "text-primary"` dans l'exemple officiel. Les alias sont stockés par id, de la forme `{type:"VARIABLE_ALIAS", id}`. [working-with-variables](https://developers.figma.com/docs/plugins/working-with-variables)
-- `codeSyntax` : WEB, ANDROID, iOS, modifié par `setVariableCodeSyntax`. `scopes` : tableau de portées. `remote` et `key` : en lecture seule. `valuesByMode` ne résout pas les alias. [Variable](https://developers.figma.com/docs/plugins/api/Variable/)
+- `codeSyntax` : `WEB`, `ANDROID`, iOS, modifié par `setVariableCodeSyntax`. `scopes` : tableau de portées. `remote` et `key` : en lecture seule. `valuesByMode` ne résout pas les alias. [Variable](https://developers.figma.com/docs/plugins/api/Variable/)
 - Bibliothèque : il faut la permission `teamlibrary`, et les bibliothèques doivent être activées à la main dans l'interface. [teamLibrary](https://developers.figma.com/docs/plugins/api/figma-teamlibrary/)
 - `LibraryVariable` n'a que `name`, `key` et `resolvedType`. [LibraryVariable](https://developers.figma.com/docs/plugins/api/LibraryVariable/)
 - `importVariableByKeyAsync` rejette si aucune variable publiée ne porte cette clé. [page](https://developers.figma.com/docs/plugins/api/properties/figma-variables-importvariablebykeyasync/)
