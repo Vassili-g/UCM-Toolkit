@@ -16,9 +16,8 @@ export interface RampeDeDerive {
  * Le relevé par défaut : les dix-sept rampes colorées de Tailwind 3.4.17, sans
  * `slate`, `gray`, `zinc`, `neutral` ni `stone`. Chaque rampe porte ses onze
  * crans du 50 au 950, convertis de leur hexa par `rgb8VersOklch`, `L` à quatre
- * décimales et `H` à deux. Source : `tailwind-3.4.17.json`, dans les mesures de
- * la recette critique de qualité. La recette le porte sous `derives` : c'est
- * elle qui fait autorité une fois rangée.
+ * décimales et `H` à deux. Source : `packages/couleur/planche/tailwind-3.4.17.json`.
+ * La recette le porte sous `derives` : c'est elle qui fait autorité une fois rangée.
  */
 export const RELEVE_TAILWIND: readonly RampeDeDerive[] = [
   { nom: 'rose', crans: [[0.9694, 12.42], [0.9414, 12.58], [0.8924, 10], [0.8097, 11.64], [0.7192, 13.43], [0.645, 16.44], [0.5858, 17.58], [0.5143, 16.93], [0.4546, 13.7], [0.4103, 10.27], [0.2708, 12.09]] },

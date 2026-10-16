@@ -40,6 +40,7 @@ est l'architecture de référence UCM. Le référentiel en porte les règles.
 | Échange entre plugins | L'adresse `ucm_palettes`/`recette` entre dans le référentiel |
 | Tags et libellés | Les tags des règles d'usage et les libellés des variables de `theme` entrent dans le référentiel |
 | Recommandations de design | Anneau de focus à 2 px de fond puis 2 px de trait ; bouton basculable en `surface` au repos, en `solid` activé |
+| Planche du moteur | Une page générée compare les palettes du moteur à celles de Tailwind 3.4, Soft et Vivid, Light et Dark ; elle vit dans `packages/couleur/planche/` et un test la tient à jour |
 | Rôle des plugins | Une donnée du référentiel |
 
 ## Le contenu proposé
