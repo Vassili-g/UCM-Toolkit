@@ -186,10 +186,10 @@ Fin : tests unitaires de Palettes, `textes.test.ts` et `npm run build
 
 **Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 2 et 3.
 
-- [ ] `COUCHES` et `CIBLES_DES_COUCHES` viennent d'`architecture.ts` ; le
-  profil connaît les sept collections et ne contrôle encore que les couleurs
-- [ ] La reconnaissance du neutre passe par la fonction du référentiel
-- [ ] Les variables de `theme` s'affichent avec leur libellé
+- [x] `COUCHES` et `CIBLES_DES_COUCHES` viennent d'`architecture.ts` ; le
+  profil connaît les sept collections et ne contrôle encore que les couleurs (382953a)
+- [x] La reconnaissance du neutre passe par la fonction du référentiel (382953a)
+- [x] Les variables de `theme` s'affichent avec leur libellé (382953a)
 
 Fin : tests de l'explorateur et build verts.
 
