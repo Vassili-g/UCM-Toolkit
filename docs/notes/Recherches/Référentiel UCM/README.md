@@ -6,8 +6,9 @@ l'importent. Les documents décrivent ces données et y renvoient, sans les
 recopier.
 
 **État :** audit fait ([AUDIT-REFERENTIEL.md](./AUDIT-REFERENTIEL.md)),
-décisions prises, [plan par lots](./PLAN-IMPLEMENTATION.md) prêt. Le plan
-attend l'export des tokens du fichier Figma à jour.
+décisions prises, [plan par lots](./PLAN-IMPLEMENTATION.md) prêt à démarrer
+au lot 1. Le fichier Figma se met à jour avec la v1 d'UCM Architect
+(phase 2 du plan).
 
 ## La demande
 

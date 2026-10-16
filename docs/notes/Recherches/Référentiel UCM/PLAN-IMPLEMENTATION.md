@@ -31,10 +31,15 @@ Cocher une case quand son commit est fait, avec le hash entre parenthèses.
 | `executant` | Petit modèle | Remplacement mécanique listé, numéro de version, renvoi |
 | `verificateur` | Haiku | `npm test`, `typecheck`, `build`, contrôle de style |
 
-## Prérequis du mainteneur
+## Ordre et données
 
-- [ ] Exporter les tokens du fichier Figma à jour (textes du neutre, anneau)
-  et donner le chemin du `tokens.json`. Les lots 2 et 9 en dépendent.
+Aucun nouvel export de tokens n'est requis pour démarrer. Les lots 2, 9 et 15
+lisent l'instantané actuel, `donnees-vue-illustree.js`, dont les composants
+portent encore `press` et `disable`. C'est la v1 de l'Architect qui permet de
+mettre le fichier Figma à jour ; l'export suit le lot 19.
+
+Ordre conseillé : lots 0, 1 et 2, puis la phase 2 (lots 14 à 19), puis les
+lots 3 à 13.
 
 ## Lot 0 · Préparation
 
@@ -85,8 +90,7 @@ Fin : `npm run build --workspace @ucm-kit/core`, tests du kit et de
 
 ## Lot 2 · L'architecture des collections
 
-**Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lot 1, export du
-mainteneur.
+**Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lot 1.
 
 - [ ] `architecture.ts` : les sept collections dans l'ordre de la vue
   (A01), les alias permis entre elles, repris de `CIBLES_DES_COUCHES` de
@@ -103,11 +107,11 @@ mainteneur.
   `color-brands.{famille}.{mode}.{cran}`)
 - [ ] La reconnaissance du neutre : une fonction, `trim` puis minuscules (T07)
 - [ ] Test : les chemins de `theme`, `color-brands`, `color-utilities`,
-  `primitives`, `layouts` et `typography` du nouvel export suivent les formes
-  déclarées ; `components` est exclu
+  `primitives`, `layouts` et `typography` de l'instantané actuel suivent les
+  formes déclarées ; `components` est exclu
 
-Fin : tests du kit verts. Un chemin de l'export qui ne suit pas sa forme est
-rendu à la conversation principale, qui le soumet au mainteneur.
+Fin : tests du kit verts. Un chemin de l'instantané qui ne suit pas sa forme
+est rendu à la conversation principale, qui le soumet au mainteneur.
 
 ## Lot 3 · Thème, contraste, produits, règles d'usage, recommandations
 
@@ -202,12 +206,11 @@ Fin : tests du kit et du CLI verts, rapport de contrastes inchangé.
 
 ## Lot 9 · La vue illustrée suit le référentiel
 
-**Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 2 et 3,
-export du mainteneur.
+**Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 2 et 3.
 
 - [ ] `generer-vue-illustree.ts` lit le référentiel : table des rôles, liste
   des collections, libellés, recommandations ; les données du panneau
-  viennent de l'export
+  restent celles de l'instantané, régénéré après le lot 19
 - [ ] Le texte de la vue qui recopie une table du kit est remplacé par la
   table générée
 - [ ] Un test échoue quand la vue générée diffère du fichier commité
@@ -408,7 +411,8 @@ maquette validée.
 - [ ] Tests, `typecheck` et build du plugin · `verificateur`
 - [ ] Recette dans Figma sur une copie du fichier, puis sur le fichier ·
   mainteneur
-- [ ] Export des tokens après renommage ; les lots 2 et 9 relisent cet export
+- [ ] Export des tokens du fichier renommé ; régénérer
+  `donnees-vue-illustree.js` et relancer les tests des lots 2 et 9
 
 ## Pistes après ce plan
 
