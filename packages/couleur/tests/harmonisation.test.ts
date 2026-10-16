@@ -125,7 +125,7 @@ test('chaque degré de zone suit la proximité des rôles et la sortie est le pl
   const sorties: number[] = [];
   for (let ecartCommun = -30; ecartCommun <= 30; ecartCommun += 1) {
     const candidate = candidatDeTeinte(recette, BLEU, ecartCommun);
-    const proche = proximiteDePalettes(recette, candidate, AUTRE_BLEU)!.distance < recette.seuils.palettesProches;
+    const proche = proximiteDePalettes(recette, candidate, AUTRE_BLEU)!.tropProche;
     assert.equal(zones.some(({ debut, fin }) => ecartCommun >= debut && ecartCommun <= fin), proche, `${ecartCommun}°`);
     if (!proche) sorties.push(ecartCommun);
   }
@@ -133,6 +133,24 @@ test('chaque degré de zone suit la proximité des rôles et la sortie est le pl
   const sortie = sortieLaPlusProche(recette, BLEU, AUTRE_BLEU);
   assert.notEqual(sortie, null);
   assert.equal(Math.abs(sortie!), Math.min(...sorties.map(Math.abs)));
+});
+
+test('[UI-42] les zones se calculent pour une paire séparée à la position actuelle dont la course traverse une zone', () => {
+  const recette = sansLimiteDeContraste(BLEU, AUTRE_BLEU);
+  const sortie = sortieLaPlusProche(recette, BLEU, AUTRE_BLEU);
+  assert.ok(sortie !== null && sortie !== 0);
+  const decalee = candidatDeTeinte(recette, BLEU, sortie);
+  assert.ok(!proximiteDePalettes(recette, decalee, AUTRE_BLEU)!.tropProche, 'la paire est séparée à la position actuelle');
+  const zones = zonesTropProches(recette, decalee, AUTRE_BLEU);
+  assert.ok(zones.length > 0, 'la course traverse encore une zone');
+});
+
+test('[UI-42] sortieLaPlusProche rend 0 pour une paire séparée à la position actuelle', () => {
+  const recette = sansLimiteDeContraste(BLEU, AUTRE_BLEU);
+  const sortie = sortieLaPlusProche(recette, BLEU, AUTRE_BLEU)!;
+  assert.notEqual(sortie, 0);
+  const decalee = candidatDeTeinte(recette, BLEU, sortie);
+  assert.equal(sortieLaPlusProche(recette, decalee, AUTRE_BLEU), 0);
 });
 
 test('une paire sans sortie rend null', () => {

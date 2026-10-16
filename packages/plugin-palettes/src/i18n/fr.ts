@@ -167,7 +167,7 @@ export const TEXTES_DE_L_HARMONISATION = {
     resume: (nombre: number) => `${nombre} ${nombre === 1 ? 'paire' : 'paires'}`,
     noms: (a: string, b: string) => `${a} et ${b}`,
     constat: (role: RoleDeProximite, mode: Mode, presqueIdentiques: boolean) =>
-      `${role === 'plein' ? 'Boutons pleins' : 'Textes sur fond teinté'} trop proches, en ${NOM_DU_MODE[mode]}${presqueIdentiques ? ' · presque identiques' : ''}`,
+      `${role === 'plein' ? 'Boutons pleins' : 'Fonds teintés'} trop proches, en ${NOM_DU_MODE[mode]}${presqueIdentiques ? ' · presque identiques' : ''}`,
     comparer: 'Comparer',
     separee: 'Se distinguent maintenant',
     comparerLaPaire: (a: string, b: string) => `Comparer ${a} et ${b}`,
@@ -206,7 +206,7 @@ export const TEXTES_DE_L_HARMONISATION = {
     constats: {
       paire: (a: string, b: string, role: RoleDeProximite, mode: Mode, sansSortie: boolean) => [
         '', `${a} et ${b}`,
-        ` : ${role === 'plein' ? 'boutons pleins' : 'textes sur fond teinté'} trop proches en ${NOM_DU_MODE[mode]}. ${sansSortie
+        ` : ${role === 'plein' ? 'boutons pleins' : 'fonds teintés'} trop proches en ${NOM_DU_MODE[mode]}. ${sansSortie
           ? 'Aucune teinte de la course ne les sépare : changez la saturation ou la luminosité de l’une d’elles.'
           : 'Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages.'}`,
       ],
@@ -327,7 +327,7 @@ export const TEXTES_DE_CONFIGURATION = {
   aideSeuilTexte: 'Pour le texte des boutons, le texte sur fond teinté et le texte coloré.',
   aideSeuilNonTexte: 'Pour le bouton, les contours et l’anneau de focus.',
   aideProfilsConfondus: 'Mesuré entre les deux profils d’une même nuance.',
-  aidePalettesProches: "Compare les boutons pleins en Light et en Dark, et le texte sur fond teinté en Light, en Vivid ou dans l’intensité unique.",
+  aidePalettesProches: "Compare les boutons pleins et les fonds teintés, en Light et en Dark, en Vivid ou dans l’intensité unique. Les fonds teintés se comparent à 20 % de ce seuil.",
   // Les fonds du thème Dark, dans la carte Intensités ([MOT-28], maquette Y2.5).
   fondsSombres: 'Fonds du thème Dark',
   aideFondsSombres: "Intensité conservée à la nuance 50 en Dark. Elle augmente jusqu’à 100 % à la nuance 400. Aucun effet en Light.",
@@ -1075,7 +1075,7 @@ export function constatDeGroupe(groupe: GroupeDePromesses, nom: string): Constat
 }
 
 /** Ce que deux palettes trop proches ont de semblable, par rôle ([VER-22]). */
-const SUJET_DE_PROXIMITE = { plein: 'Boutons pleins', texte: 'Textes sur fond teinté' } as const;
+const SUJET_DE_PROXIMITE = { plein: 'Boutons pleins', fond: 'Fonds teintés' } as const;
 
 /** Ce que la mise en mots d'une alerte lit de la recette. */
 export interface ContexteDAlerte {

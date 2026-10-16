@@ -170,7 +170,7 @@ export const TEXTES_DE_L_HARMONISATION = {
     resume: (nombre: number) => `${nombre} ${nombre === 1 ? 'pair' : 'pairs'}`,
     noms: (a: string, b: string) => `${a} and ${b}`,
     constat: (role: RoleDeProximite, mode: Mode, presqueIdentiques: boolean) =>
-      `${role === 'plein' ? 'Filled buttons' : 'Text on tinted background'} too close, in ${NOM_DU_MODE[mode]}${presqueIdentiques ? ' · nearly identical' : ''}`,
+      `${role === 'plein' ? 'Filled buttons' : 'Tinted fills'} too close, in ${NOM_DU_MODE[mode]}${presqueIdentiques ? ' · nearly identical' : ''}`,
     comparer: 'Compare',
     separee: 'Now distinct',
     comparerLaPaire: (a: string, b: string) => `Compare ${a} and ${b}`,
@@ -206,7 +206,7 @@ export const TEXTES_DE_L_HARMONISATION = {
     constats: {
       paire: (a: string, b: string, role: RoleDeProximite, mode: Mode, sansSortie: boolean) => [
         '', `${a} and ${b}`,
-        `: ${role === 'plein' ? 'filled buttons' : 'text on tinted background'} too close in ${NOM_DU_MODE[mode]}. ${sansSortie
+        `: ${role === 'plein' ? 'filled buttons' : 'tinted fills'} too close in ${NOM_DU_MODE[mode]}. ${sansSortie
           ? 'No hue in the range separates them: change the saturation or lightness of one of them.'
           : 'Move the hue of one of them out of the hatched zone, in Adjustments.'}`,
       ],
@@ -327,7 +327,7 @@ export const TEXTES_DE_CONFIGURATION = {
   aideSeuilTexte: "For button text, text on tinted fill and colored text.",
   aideSeuilNonTexte: "For the button, borders and the focus ring.",
   aideProfilsConfondus: "Measured between the two profiles of the same shade.",
-  aidePalettesProches: "Compares filled buttons in Light and Dark, and text on tinted backgrounds in Light, using Vivid or the single intensity.",
+  aidePalettesProches: "Compares filled buttons and tinted fills in Light and Dark, using Vivid or the single intensity. Tinted fills are compared at 20% of this threshold.",
   // Les fonds du thème Dark, dans la carte Intensités ([MOT-28], maquette Y2.5).
   fondsSombres: "Dark theme backgrounds",
   aideFondsSombres: "Intensity kept at shade 50 in Dark. It rises to 100% at shade 400. No effect in Light.",
@@ -1073,7 +1073,7 @@ export function constatDeGroupe(groupe: GroupeDePromesses, nom: string): Constat
 }
 
 /** Ce que deux palettes trop proches ont de semblable, par rôle ([VER-22]). */
-const SUJET_DE_PROXIMITE = { plein: 'Solid buttons are', texte: 'Text on tinted fill is' } as const;
+const SUJET_DE_PROXIMITE = { plein: 'Solid buttons are', fond: 'Tinted fills are' } as const;
 
 /** Ce que la mise en mots d'une alerte lit de la recette. */
 export interface ContexteDAlerte {

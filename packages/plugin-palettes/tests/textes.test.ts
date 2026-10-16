@@ -107,7 +107,7 @@ const CONTEXTE = { recette: RECETTE, nomDe: (id: string) => (id === 'p-0000000a'
 /** Une alerte de chaque code : `Record` refuse à la compilation un code oublié. */
 const ALERTES: Record<Alerte['code'], Alerte> = {
   'profils-confondus': { code: 'profils-confondus', palette: 'p-0000000a', crans: [{ mode: 'light', cran: 100, distance: 0.012 }], seuil: 0.02 },
-  'palettes-proches': { code: 'palettes-proches', palettes: ['p-0000000a', 'p-0000000b'], proximite: { distance: 0.03, role: 'plein', mode: 'light', presqueIdentiques: false }, seuil: 0.05 },
+  'palettes-proches': { code: 'palettes-proches', palettes: ['p-0000000a', 'p-0000000b'], proximite: { distance: 0.03, role: 'plein', mode: 'light', seuil: 0.05, tropProche: true, presqueIdentiques: false }, seuil: 0.05 },
   'reference-plus-terne': { code: 'reference-plus-terne', palette: 'p-0000000a', part: 0.226, partSoft: 0.45 },
   'reference-plus-vive': { code: 'reference-plus-vive', palette: 'p-0000000a', part: 0.983, partVivid: 0.95 },
   'fond-hors-courbe': { code: 'fond-hors-courbe', mode: 'light', clarte: 0.949, cran: 0.975 },
@@ -138,17 +138,17 @@ test('[VER-15] le geste d’une alerte cite la carte que son lien ouvre', () => 
 });
 
 test('[VER-22] une paire trop proche nomme le rôle et le thème de sa plus petite distance, sans mesure', () => {
-  const alerte = (role: 'plein' | 'texte', mode: 'light' | 'dark', presqueIdentiques: boolean): Alerte => ({
+  const alerte = (role: 'plein' | 'fond', mode: 'light' | 'dark', presqueIdentiques: boolean): Alerte => ({
     code: 'palettes-proches',
     palettes: ['p-0000000a', 'p-0000000b'],
-    proximite: { distance: presqueIdentiques ? 0.004 : 0.03, role, mode, presqueIdentiques },
+    proximite: { distance: presqueIdentiques ? 0.004 : 0.03, role, mode, seuil: 0.05, tropProche: true, presqueIdentiques },
     seuil: 0.05,
   });
   assert.equal(constatDAlerte(alerte('plein', 'light', false), CONTEXTE).quoi, 'Boutons pleins trop proches, en Light.');
-  assert.equal(constatDAlerte(alerte('texte', 'dark', false), CONTEXTE).quoi, 'Textes sur fond teinté trop proches, en Dark.');
+  assert.equal(constatDAlerte(alerte('fond', 'dark', false), CONTEXTE).quoi, 'Fonds teintés trop proches, en Dark.');
   assert.equal(constatDAlerte(alerte('plein', 'dark', true), CONTEXTE).quoi, 'Boutons pleins presque identiques, en Dark.');
   assert.equal(anglais.constatDAlerte(alerte('plein', 'light', false), CONTEXTE).quoi, 'Solid buttons are too close in Light.');
-  assert.equal(anglais.constatDAlerte(alerte('texte', 'dark', true), CONTEXTE).quoi, 'Text on tinted fill is almost identical in Dark.');
+  assert.equal(anglais.constatDAlerte(alerte('fond', 'dark', true), CONTEXTE).quoi, 'Tinted fills are almost identical in Dark.');
 });
 
 test('[VER-22] le bilan écrit « trop proche de » ou « trop proche d’ » selon l’initiale du nom, sans mesure', () => {

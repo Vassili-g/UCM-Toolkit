@@ -63,7 +63,26 @@ interface PositionDeTeinte {
   readonly rampes: Rampes;
 }
 
-function balayerLaCourse(recette: Recette, palette: Palette, rampesDuDepart: Rampes = rampesDe(recette, palette)): { course: CourseDeTeinte; positions: PositionDeTeinte[] } {
+interface Balayage {
+  readonly course: CourseDeTeinte;
+  readonly positions: PositionDeTeinte[];
+}
+
+/**
+ * `calculerLaCourseEtLesZones` appelle `courseDeTeinte` puis `zonesTropProches`
+ * pour chaque autre palette cochée, sur la même recette et la même palette :
+ * le dernier balayage est rendu tel quel quand les deux objets sont les mêmes.
+ */
+let dernierBalayage: { readonly recette: Recette; readonly palette: Palette; readonly resultat: Balayage } | null = null;
+
+function balayerLaCourse(recette: Recette, palette: Palette): Balayage {
+  if (dernierBalayage?.recette === recette && dernierBalayage.palette === palette) return dernierBalayage.resultat;
+  const resultat = calculerLeBalayage(recette, palette);
+  dernierBalayage = { recette, palette, resultat };
+  return resultat;
+}
+
+function calculerLeBalayage(recette: Recette, palette: Palette, rampesDuDepart: Rampes = rampesDe(recette, palette)): Balayage {
   const bornes = bornesDeLEcartCommun(palette);
   const tenues = verifierPromesses(recette, palette).filter((promesse) => promesse.verdict === 'tenue');
   const positions: PositionDeTeinte[] = [{ ecartCommun: 0, palette, rampes: rampesDuDepart }];
@@ -94,12 +113,19 @@ export function courseDeTeinte(recette: Recette, palette: Palette): CourseDeTein
   return balayerLaCourse(recette, palette).course;
 }
 
-function positionsDeLaPaire(recette: Recette, palette: Palette, autre: Palette): { ecartCommun: number; proche: boolean }[] | null {
+/** Les nuances des deux palettes, ou `null` si l'une n'entre pas dans la comparaison. */
+function nuancesDeLaPaire(recette: Recette, palette: Palette, autre: Palette): { immobiles: NuancesDeProximite; courantes: NuancesDeProximite; separe: (nuances: NuancesDeProximite | null) => boolean } | null {
   const immobiles = nuancesDeProximite(recette, autre);
   const courantes = nuancesDeProximite(recette, palette);
   if (!immobiles || !courantes) return null;
-  const separe = (nuances: NuancesDeProximite | null): boolean => nuances === null || proximiteDeNuances(nuances, immobiles).distance >= recette.seuils.palettesProches;
-  if (separe(courantes)) return [{ ecartCommun: 0, proche: false }];
+  const separe = (nuances: NuancesDeProximite | null): boolean => nuances === null || !proximiteDeNuances(nuances, immobiles, recette.seuils.palettesProches).tropProche;
+  return { immobiles, courantes, separe };
+}
+
+function positionsDeLaPaire(recette: Recette, palette: Palette, autre: Palette): { ecartCommun: number; proche: boolean }[] | null {
+  const paire = nuancesDeLaPaire(recette, palette, autre);
+  if (!paire) return null;
+  const { separe } = paire;
   const { positions } = balayerLaCourse(recette, palette);
   return positions.map((position) => ({
     ecartCommun: position.ecartCommun,
@@ -111,11 +137,13 @@ function positionsDeLaPaire(recette: Recette, palette: Palette, autre: Palette):
  * Les suites de degrés trop proches, en valeurs du `profilAffiche` (le
  * porteur par défaut). L'écart commun reste la coordonnée du balayage.
  * Une palette libre, figée ou terne n'entre pas dans cette alerte de rôles.
- * Les rampes de l'autre palette se calculent une fois par appel.
+ * Les zones se calculent même quand la paire est séparée à la position
+ * actuelle, pour que la réglette les montre avant que le curseur y entre
+ * ([UI-42]). Les rampes de l'autre palette se calculent une fois par appel.
  */
 export function zonesTropProches(recette: Recette, palette: Palette, autre: Palette, profilAffiche: Profil = cleDuPorteur(recette, palette)): ZoneTropProche[] {
   const positions = positionsDeLaPaire(recette, palette, autre);
-  if (!positions?.find((position) => position.ecartCommun === 0)?.proche) return [];
+  if (!positions) return [];
   const valeurDuProfilAffiche = palette.reglages?.teinte?.[aUneIntensite(palette) ? 'vivid' : profilAffiche] ?? 0;
   const zones: ZoneTropProche[] = [];
   for (const position of positions) {
@@ -130,6 +158,8 @@ export function zonesTropProches(recette: Recette, palette: Palette, autre: Pale
 
 /** Le plus petit écart commun permis qui sépare la paire, zéro si elle est séparée, ou `null` sans sortie. À égalité, l'écart négatif. */
 export function sortieLaPlusProche(recette: Recette, palette: Palette, autre: Palette): number | null {
+  const paire = nuancesDeLaPaire(recette, palette, autre);
+  if (paire?.separe(paire.courantes)) return 0;
   const positions = positionsDeLaPaire(recette, palette, autre);
   const sorties = positions?.filter((position) => !position.proche).sort((a, b) => Math.abs(a.ecartCommun) - Math.abs(b.ecartCommun));
   return sorties?.[0]?.ecartCommun ?? null;

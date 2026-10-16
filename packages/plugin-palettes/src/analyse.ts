@@ -66,8 +66,8 @@ function alertesQuiLaConcernent(recette: Recette, palette: Palette): Alerte[] {
   for (const autre of recette.palettes) {
     if (autre.id === palette.id) continue;
     const proximite = proximiteDePalettes(recette, palette, autre);
-    if (proximite && proximite.distance < recette.seuils.palettesProches) {
-      alertes.push({ code: 'palettes-proches', palettes: [palette.id, autre.id], proximite, seuil: recette.seuils.palettesProches });
+    if (proximite && proximite.tropProche) {
+      alertes.push({ code: 'palettes-proches', palettes: [palette.id, autre.id], proximite, seuil: proximite.seuil });
     }
   }
   return alertes;

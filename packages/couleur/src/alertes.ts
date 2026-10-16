@@ -130,31 +130,44 @@ export function alertesDePalette(recette: Recette, palette: Palette): Alerte[] {
 /** La chroma OKLCH que la référence d'une palette dépasse pour que la palette soit colorée ([VER-22]). */
 export const CHROMA_DES_PALETTES_COLOREES = 0.05;
 
-/** Sous cette distance, deux palettes sont presque identiques ([VER-22]). */
-const DISTANCE_DES_PALETTES_PRESQUE_IDENTIQUES = 0.01;
+/** Les fonds teintés, pâles, se comparent à cette part du seuil `palettesProches` ([VER-22]). */
+export const PART_DU_SEUIL_DES_FONDS = 0.2;
 
-/** Le rôle où deux palettes se ressemblent : le plein des boutons, ou le texte posé sur le fond teinté. */
-export type RoleDeProximite = 'plein' | 'texte';
+/** Sous cette part du seuil de leur rôle, deux palettes sont presque identiques ([VER-22]). */
+const PART_PRESQUE_IDENTIQUES = 0.2;
 
-/** La plus petite distance entre deux palettes, avec le rôle et le thème qui la portent ([VER-22]). */
+/** Le rôle où deux palettes se ressemblent : le plein des boutons, ou le fond teinté. */
+export type RoleDeProximite = 'plein' | 'fond';
+
+/** Le seuil d'un rôle : `palettesProches` pour le plein, sa part pour le fond. */
+export function seuilDeProximite(palettesProches: number, role: RoleDeProximite): number {
+  return role === 'plein' ? palettesProches : palettesProches * PART_DU_SEUIL_DES_FONDS;
+}
+
+/** Le plus petit rapport distance sur seuil entre deux palettes, avec le rôle et le thème qui le portent ([VER-22]). */
 export interface Proximite {
   readonly distance: number;
   readonly role: RoleDeProximite;
   readonly mode: Mode;
+  /** Le seuil du rôle retenu. */
+  readonly seuil: number;
+  /** `distance < seuil`. */
+  readonly tropProche: boolean;
   readonly presqueIdentiques: boolean;
 }
 
-/** Les trois couleurs que deux palettes se disputent : le plein dans les deux thèmes, le texte du fond teinté en Light seulement. */
+/** Les quatre couleurs que deux palettes se disputent : le plein et le fond teinté, dans les deux thèmes. */
 const MESURES_DE_PROXIMITE = [
   { role: 'plein', variable: 'solid/default', mode: 'light' },
   { role: 'plein', variable: 'solid/default', mode: 'dark' },
-  { role: 'texte', variable: 'surface/foreground', mode: 'light' },
+  { role: 'fond', variable: 'surface/default', mode: 'light' },
+  { role: 'fond', variable: 'surface/default', mode: 'dark' },
 ] as const;
 
 export type NuancesDeProximite = readonly { readonly role: RoleDeProximite; readonly mode: Mode; readonly couleur: Rgb8 }[];
 
 /**
- * Les trois couleurs d'une palette que la comparaison lit, dans l'intensité
+ * Les quatre couleurs d'une palette que la comparaison lit, dans l'intensité
  * Vivid ou l'unique intensité de la palette ; `null` si la palette n'entre pas
  * dans la comparaison : libre ou figée, terne, ou sans l'un de ces crans.
  * `rampes` remplace les rampes de la palette quand l'appelant les a déjà
@@ -176,27 +189,30 @@ export function nuancesDeProximite(recette: Recette, palette: Palette, rampes: R
   return nuances;
 }
 
-/** La plus petite distance entre deux jeux de nuances comparées, avec le rôle et le thème qui la portent. */
-export function proximiteDeNuances(a: NuancesDeProximite, b: NuancesDeProximite): Proximite {
-  let plus = { distance: Infinity, rang: 0 };
+/** Le plus petit rapport distance sur seuil entre deux jeux de nuances comparées, avec le rôle et le thème qui le portent. */
+export function proximiteDeNuances(a: NuancesDeProximite, b: NuancesDeProximite, palettesProches: number): Proximite {
+  let plus = { distance: Infinity, seuil: 1, rapport: Infinity, rang: 0 };
   a.forEach((nuance, rang) => {
     const distance = distanceOk(nuance.couleur, b[rang].couleur);
-    if (distance < plus.distance) plus = { distance, rang };
+    const seuil = seuilDeProximite(palettesProches, nuance.role);
+    const rapport = distance / seuil;
+    if (rapport < plus.rapport) plus = { distance, seuil, rapport, rang };
   });
   const { role, mode } = a[plus.rang];
-  return { distance: plus.distance, role, mode, presqueIdentiques: plus.distance < DISTANCE_DES_PALETTES_PRESQUE_IDENTIQUES };
+  const { distance, seuil } = plus;
+  return { distance, role, mode, seuil, tropProche: distance < seuil, presqueIdentiques: distance < PART_PRESQUE_IDENTIQUES * seuil };
 }
 
 /**
- * La proximité de deux palettes colorées ([VER-22]) : la plus petite des
- * distances de leur plein en Light, de leur plein en Dark et de leur texte sur
- * fond teinté en Light, chaque couleur lue au cran que la table des rôles lui
- * donne dans la grille de la palette. `null` si l'une des palettes est libre,
- * figée ou terne, ou manque d'un de ces crans.
+ * La proximité de deux palettes colorées ([VER-22]) : le plus petit rapport
+ * distance sur seuil parmi leur plein et leur fond teinté, en Light et en
+ * Dark, chaque couleur lue au cran que la table des rôles lui donne dans la
+ * grille de la palette. `null` si l'une des palettes est libre, figée ou
+ * terne, ou manque d'un de ces crans.
  */
 export function proximiteDePalettes(recette: Recette, a: Palette, b: Palette): Proximite | null {
   const [nuancesA, nuancesB] = [nuancesDeProximite(recette, a), nuancesDeProximite(recette, b)];
-  return nuancesA && nuancesB ? proximiteDeNuances(nuancesA, nuancesB) : null;
+  return nuancesA && nuancesB ? proximiteDeNuances(nuancesA, nuancesB, recette.seuils.palettesProches) : null;
 }
 
 /** Une paire de palettes que le seuil `palettesProches` de la recette juge trop proches. */
@@ -205,7 +221,7 @@ export interface PaireTropProche {
   readonly proximite: Proximite;
 }
 
-/** Toutes les paires de la recette sous le seuil `palettesProches`, par distance croissante ; à distance égale, l'ordre de la recette. */
+/** Toutes les paires de la recette sous le seuil de leur rôle, par rapport distance sur seuil croissant ; à rapport égal, l'ordre de la recette. */
 export function pairesTropProches(recette: Recette): PaireTropProche[] {
   const nuances = recette.palettes.map((palette) => nuancesDeProximite(recette, palette));
   const paires: PaireTropProche[] = [];
@@ -215,11 +231,11 @@ export function pairesTropProches(recette: Recette): PaireTropProche[] {
     for (let autre = rang + 1; autre < recette.palettes.length; autre += 1) {
       const nuancesB = nuances[autre];
       if (!nuancesB) continue;
-      const proximite = proximiteDeNuances(nuancesA, nuancesB);
-      if (proximite.distance < recette.seuils.palettesProches) paires.push({ palettes: [a.id, recette.palettes[autre].id], proximite });
+      const proximite = proximiteDeNuances(nuancesA, nuancesB, recette.seuils.palettesProches);
+      if (proximite.tropProche) paires.push({ palettes: [a.id, recette.palettes[autre].id], proximite });
     }
   });
-  return paires.sort((x, y) => x.proximite.distance - y.proximite.distance);
+  return paires.sort((x, y) => x.proximite.distance / x.proximite.seuil - y.proximite.distance / y.proximite.seuil);
 }
 
 /** Un fond plus sombre que le cran le plus léger de la courbe claire, ou plus clair que celui de la courbe sombre, à 0,005 près ([ENT-06]). */
@@ -238,13 +254,13 @@ export function alertesDesFonds(recette: Recette): Alerte[] {
 
 /**
  * Toutes les alertes d'une recette : ses fonds, chaque palette dans l'ordre de
- * la recette, puis chaque paire de palettes proches, par distance croissante.
+ * la recette, puis chaque paire de palettes proches, par rapport distance sur seuil croissant.
  */
 export function alertesDeRecette(recette: Recette): Alerte[] {
   const alertes = alertesDesFonds(recette);
   for (const palette of recette.palettes) alertes.push(...alertesDePalette(recette, palette));
   for (const { palettes, proximite } of pairesTropProches(recette)) {
-    alertes.push({ code: 'palettes-proches', palettes, proximite, seuil: recette.seuils.palettesProches });
+    alertes.push({ code: 'palettes-proches', palettes, proximite, seuil: proximite.seuil });
   }
   return alertes;
 }
