@@ -222,12 +222,12 @@ Fin : tests du kit et du CLI verts, rapport de contrastes inchangé.
 
 **Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 2 et 3.
 
-- [ ] `generer-vue-illustree.ts` lit le référentiel : table des rôles, liste
+- [x] `generer-vue-illustree.ts` lit le référentiel : table des rôles, liste
   des collections, libellés, recommandations ; les données du panneau
-  restent celles de l'instantané, régénéré après le lot 19
-- [ ] Le texte de la vue qui recopie une table du kit est remplacé par la
-  table générée
-- [ ] Un test échoue quand la vue générée diffère du fichier commité
+  restent celles de l'instantané, régénéré après le lot 19 (b64cb6e)
+- [x] Le texte de la vue qui recopie une table du kit est remplacé par la
+  table générée (b64cb6e)
+- [x] Un test échoue quand la vue générée diffère du fichier commité (b64cb6e)
 
 Fin : la vue s'ouvre dans un navigateur ; test vert.
 
@@ -243,23 +243,23 @@ Modèle : la section 1 de la
 [maquette de la recette du moteur](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/Maquettes/MAQUETTE-MOTEUR.html#comparaison),
 sans le formulaire d'avis ni les variantes de réglages.
 
-- [ ] `planche/generer-planche.ts` importe `packages/couleur/src` et le
+- [x] `planche/generer-planche.ts` importe `packages/couleur/src` et le
   référentiel, et écrit `planche/PLANCHE-DU-MOTEUR.html`, autonome (données
-  dans la page, aucune ressource externe)
-- [ ] Une ligne par famille chromatique de `planche/tailwind-3.4.17.json` : la
+  dans la page, aucune ressource externe) (0f6b015)
+- [x] Une ligne par famille chromatique de `planche/tailwind-3.4.17.json` : la
   rampe Tailwind, puis les rampes du moteur avec sa couleur 500 comme
   référence, Soft et Vivid, Light et Dark. En Dark, chaque cran de Tailwind
-  est la nuance de sa rampe la plus proche de la courbe Dark
-- [ ] Sous chaque rampe du moteur, les composants qui prennent leurs rôles
+  est la nuance de sa rampe la plus proche de la courbe Dark (0f6b015)
+- [x] Sous chaque rampe du moteur, les composants qui prennent leurs rôles
   dans la table du référentiel : badge et alerte sur `surface`, bouton
-  `solid`, lien `page/foreground`, anneau `ring`, posés sur la carte et la page
-- [ ] Commandes : profil, thème, texte des boutons du Dark (noir ou blanc) ;
-  une phrase de légende par section, au plus
-- [ ] `npm run planche --workspace ucm-couleur` régénère la page ;
+  `solid`, lien `page/foreground`, anneau `ring`, posés sur la carte et la page (0f6b015)
+- [x] Commandes : profil, thème, texte des boutons du Dark (noir ou blanc) ;
+  une phrase de légende par section, au plus (0f6b015)
+- [x] `npm run planche --workspace ucm-couleur` régénère la page ;
   `tests/planche.test.ts` la génère en mémoire, la compare au fichier commité
-  et donne la commande en cas d'écart
-- [ ] Liens depuis `packages/couleur/README.md`,
-  `packages/plugin-palettes/README.md` et `docs/README.md`
+  et donne la commande en cas d'écart (0f6b015)
+- [x] Liens depuis `packages/couleur/README.md`,
+  `packages/plugin-palettes/README.md` et `docs/README.md` (0f6b015)
 
 Fin : la page s'ouvre sans réseau, pèse moins de 1 Mo, et son test est vert.
 
@@ -438,5 +438,5 @@ maquette validée.
 | État `selected` | Le reconnaître demande un sélecteur et une nouvelle version du format du contrat |
 | Déclaration d'un design system | Les familles ajoutées par une équipe, publiées dans `$extensions["com.ucm.declaration"]` de `tokens.json` |
 | UCM Architect, versions suivantes | Le bilan du fichier contre le référentiel, puis l'écriture des alias de `theme`, `color-brands` et `color-utilities` |
-| Reconnaissance des noms propres dans l'Architect | Aujourd'hui fixée : un nom de composant est la racine de la collection `components` ou le nom d'un composant local ; un nom de palette est une palette de la recette, ou le segment qui suit `colors` dans `primitives`. La rendre réglable par fichier quand une équipe range ses collections autrement |
+| Écritures par position dans l'Architect | Aujourd'hui, une variable a deux écritures : ses groupes et son nom final (85386a0). Une équipe qui veut une écriture par niveau de groupe, ou par collection, demandera un réglage plus fin |
 | Contrôle « full UCM » | `ucm check` confronte un `tokens.json` au référentiel, en option |
