@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Architecture globale UCM</title>
+<style>
+  :root {
+    --fond: #f8fafc; --carte: #ffffff; --texte: #0f172a; --doux: #475569; --trait: #e2e8f0;
+    --decide: #15803d; --decide-fond: #dcfce7; --propose: #1d4ed8; --propose-fond: #dbeafe;
+    --faire: #b45309; --faire-fond: #fef3c7; --accent: #6d28d9;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { width: 1120px; margin: 0 auto; padding: 48px 0 80px; }
+  h1 { font-size: 30px; margin: 0 0 6px; }
+  h2 { font-size: 20px; margin: 56px 0 6px; }
+  h3 { font-size: 15px; margin: 0 0 6px; }
+  p { margin: 0 0 10px; }
+  .chapeau { color: var(--doux); font-size: 15px; max-width: 820px; }
+  .sous { color: var(--doux); margin-bottom: 18px; max-width: 860px; }
+  code { font: 12px/1.4 "JetBrains Mono", Consolas, monospace; background: #f1f5f9; padding: 1px 4px; border-radius: 3px; }
+  .legende { display: flex; gap: 10px; margin: 18px 0 0; }
+  .statut { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+  .decide { color: var(--decide); background: var(--decide-fond); }
+  .propose { color: var(--propose); background: var(--propose-fond); }
+  .faire { color: var(--faire); background: var(--faire-fond); }
+  .grille { display: grid; gap: 14px; }
+  .g2 { grid-template-columns: 1fr 1fr; } .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); } .g5 { grid-template-columns: repeat(5, 1fr); }
+  .carte { background: var(--carte); border: 1px solid var(--trait); border-radius: 10px; padding: 16px; }
+  .carte .tete { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .verbe { font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+  .petit { font-size: 12px; color: var(--doux); }
+  ul { margin: 6px 0 0; padding-left: 18px; } li { margin: 2px 0; }
+  table { width: 100%; border-collapse: collapse; background: var(--carte); border: 1px solid var(--trait); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--trait); vertical-align: top; }
+  th { background: #f1f5f9; font-size: 12px; color: var(--doux); font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  /* Schéma des produits */
+  .schema { background: var(--carte); border: 1px solid var(--trait); border-radius: 10px; padding: 22px; }
+  .bandeau { text-align: center; border: 2px solid var(--accent); color: var(--accent); border-radius: 8px; padding: 10px; font-weight: 600; }
+  .bandeau span { display: block; font-weight: 400; font-size: 12px; color: var(--doux); }
+  .fleche { text-align: center; color: var(--doux); font-size: 12px; margin: 6px 0; }
+  .boite { border: 1px solid var(--trait); border-radius: 8px; padding: 10px; text-align: center; background: #fbfdff; }
+  .boite b { display: block; }
+  .boite.neuf { border: 2px dashed var(--propose); }
+  .cible { margin-top: 6px; font-size: 12px; color: var(--doux); }
+  .lecteur { margin-top: 14px; padding: 10px; border-radius: 8px; background: #f1f5f9; text-align: center; font-size: 13px; }
+  /* Avant, après */
+  .fleche-h { display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--doux); }
+  /* Barres */
+  .barre { display: grid; grid-template-columns: 150px 1fr 40px; align-items: center; gap: 8px; margin: 4px 0; font-size: 12px; }
+  .barre i { display: block; height: 12px; border-radius: 3px; background: #94a3b8; }
+  .barre i.intrus { background: var(--faire); }
+  .barre i.flexion { background: #dc2626; }
+  /* Étapes */
+  .etapes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .etape { background: var(--carte); border: 1px solid var(--trait); border-top: 4px solid var(--propose); border-radius: 8px; padding: 12px; }
+  .etape .n { font-size: 22px; font-weight: 700; color: var(--propose); }
+  .chiffre { font-size: 26px; font-weight: 700; line-height: 1.1; }
+  .ordre { display: flex; align-items: stretch; gap: 10px; }
+  .ordre .carte { flex: 1; }
+  .ordre .sep { display: flex; align-items: center; color: var(--doux); font-size: 20px; }
+  footer { margin-top: 56px; color: var(--doux); font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Architecture globale UCM</h1>
+<p class="chapeau">Le rôle de chaque produit, le propriétaire de chaque information, et ce que les premières recherches établissent. Page de présentation des documents du dossier ; les documents font autorité.</p>
+<div class="legende">
+  <span class="statut decide">Décidé</span>
+  <span class="statut propose">Proposé</span>
+  <span class="statut faire">À faire</span>
+  <span class="statut propose">Documenté</span>
+</div>
+<p class="petit" style="margin-top:8px">Documenté : sources lues ou mesures faites. Éprouvé : essayé en situation de travail ; aucun sujet ne l'est encore. Décidé : tranché par le mainteneur.</p>
+
+<div class="carte" style="margin-top:22px;border:2px solid var(--decide)"><div class="tete"><h3>Direction retenue : la version minimale</h3><span class="statut decide">Décidé</span></div><p class="petit">Pas de nouveau plugin. Un fichier de conventions facultatif dans le dépôt ; <code>ucm check</code> et l'exporteur signalent les écarts en information ; seuls les relevés de forme fiables, sans détection de synonymes ; l'exporteur publie les descriptions des variables ; l'onglet Intégrations est retiré ; deux corrections de l'exporteur (<code>press</code>/<code>disable</code>, <code>selected</code>). Tout ce qui suit sur cette page devient des pistes pour plus tard (VERSION-MINIMALE.md).</p></div>
+<div class="carte" style="margin-top:22px;border:2px solid var(--accent)"><div class="tete"><h3>Principe directeur : deux périmètres dans chaque outil</h3><span class="statut decide">Orientation du mainteneur</span></div><p class="petit">UCM offre des outils utiles à toute équipe, sur n'importe quelle structure, et un mode full UCM pour l'équipe qui part de zéro et suit toute l'architecture. Chaque outil distingue clairement ces deux périmètres. Cette distinction précède les autres décisions ; ses conséquences sont dans la piste 13.</p></div>
+
+<h2>1. Le rôle de chaque produit</h2>
+<p class="sous">Chaque produit a un geste du designer et une information qu'il possède. Un quatrième plugin, au nom provisoire UCM Architecte, prend les collections au-dessus des primitives, que personne ne possède aujourd'hui.</p>
+<div class="schema">
+  <div class="bandeau">@ucm-kit/core : le référentiel<span>vocabulaire, couches, garanties, nomenclature par défaut ; lu par tous les produits</span></div>
+  <div class="fleche">lu par</div>
+  <div class="grille g4">
+    <div class="boite"><b>UCM Palettes</b><span class="petit">crée les palettes primitives</span><div class="cible">écrit : <code>primitives</code></div></div>
+    <div class="boite neuf"><b>UCM Architecte</b><span class="petit">déclare les noms, vérifie le fichier, pose <code>theme</code></span><div class="cible">écrit : <code>color-brands</code>, <code>color-utilities</code>, <code>theme</code>, <code>components</code>, déclaration</div></div>
+    <div class="boite"><b>UCM Contract Exporter</b><span class="petit">vérifie un composant, publie</span><div class="cible">écrit : <code>.componentRules</code> ; publie contrats, <code>tokens.json</code> et déclaration</div></div>
+    <div class="boite"><b>ucm check</b><span class="petit">applique les règles au dépôt</span><div class="cible">lit ce que l'exporteur a publié, à chaque demande de fusion</div></div>
+  </div>
+  <div class="lecteur"><b>UCM Token Explorer</b> lit tout le document et n'écrit rien. Il comprend une architecture, quelle qu'elle soit, sans opinion.</div>
+</div>
+
+<div class="grille g5" style="margin-top:14px">
+  <div class="carte"><div class="tete"><span class="verbe">Créer</span><span class="statut decide">Existe</span></div><h3>UCM Palettes</h3><p class="petit">Possède la recette, les crans et les garanties de chaque palette. N'écrit que les primitives.</p></div>
+  <div class="carte"><div class="tete"><span class="verbe">Déclarer, vérifier</span><span class="statut propose">Proposé</span></div><h3>UCM Architecte</h3><p class="petit">Possède la nomenclature, l'association des collections aux couches, les alias de <code>theme</code>. Porte le bilan du fichier.</p></div>
+  <div class="carte"><div class="tete"><span class="verbe">Comprendre</span><span class="statut decide">Existe</span></div><h3>UCM Token Explorer</h3><p class="petit">Ne possède aucune information. Variables, chaînes d'alias, vue composant, relevés.</p></div>
+  <div class="carte"><div class="tete"><span class="verbe">Publier</span><span class="statut decide">Existe</span></div><h3>UCM Contract Exporter</h3><p class="petit">Possède le contrat et sa publication. Seul pont entre Figma et le dépôt.</p></div>
+  <div class="carte"><div class="tete"><span class="verbe">Garantir</span><span class="statut decide">Existe</span></div><h3>Kit et CLI</h3><p class="petit">Possèdent le référentiel et son application dans le dépôt : contrôles, guide pour les agents.</p></div>
+</div>
+
+<h2>2. Chaque outil entretient ce qu'il a produit <span class="statut propose">Proposé</span></h2>
+<p class="sous">La responsabilité porte sur un ensemble de données et une opération, pas sur une collection entière : <code>primitives</code> porte aussi des espacements, des durées et la typographie. Aucun outil ne remplace en silence le travail d'un autre.</p>
+<table>
+  <tr><th style="width:40%">Données</th><th style="width:25%">Outil</th><th>Opération</th></tr>
+  <tr><td>Les variables des palettes, reconnues par leur identifiant</td><td>UCM Palettes</td><td>Écrire, mettre à jour, reprendre</td></tr>
+  <tr><td>Les liaisons générées par l'Architecte, et la déclaration</td><td>UCM Architecte</td><td>Générer, régénérer</td></tr>
+  <tr><td>L'instance de <code>.componentRules</code></td><td>UCM Contract Exporter</td><td>Créer les règles d'usage</td></tr>
+  <tr><td>Toute autre variable</td><td>Le designer, à la main</td><td>Toute modification</td></tr>
+  <tr><td>Aucune</td><td>UCM Token Explorer</td><td>Lire</td></tr>
+</table>
+<p class="petit" style="margin-top:8px">Une migration de noms est un geste distinct. Une donnée générée puis modifiée à la main admet trois suites, connues avant une régénération : la conserver, la remettre en conformité, la retirer du périmètre généré.</p>
+
+<h2>3. Le propriétaire de chaque information <span class="statut propose">Proposé</span></h2>
+<table>
+  <tr><th>Information</th><th>Décidée par</th><th>Rangée dans</th><th>Publiée par</th><th>Contrôlée par</th></tr>
+  <tr><td>Vocabulaire UCM : dossiers, états, couches, garanties</td><td>Contributeurs d'UCM</td><td><code>@ucm-kit/core</code></td><td>npm</td><td>Tous les lecteurs</td></tr>
+  <tr><td>Recette et crans des palettes</td><td>Designer, dans Palettes</td><td>Espace partagé <code>ucm_palettes</code></td><td>Non publiée</td><td>Palettes</td></tr>
+  <tr><td>Valeurs primitives de couleur</td><td>Calcul de Palettes</td><td>Variables</td><td>Exporteur</td><td>Palettes, <code>ucm check</code></td></tr>
+  <tr><td>Alias de <code>theme</code> et des couches de marque</td><td>Designer, dans l'Architecte</td><td>Variables</td><td>Exporteur</td><td>Architecte, <code>ucm check</code></td></tr>
+  <tr><td>Nomenclature et association aux couches</td><td>Designer, dans l'Architecte</td><td>Espace partagé de l'Architecte</td><td>Exporteur, dans <code>tokens.json</code></td><td>Architecte, <code>ucm check</code> en information</td></tr>
+  <tr><td>Visuel d'un composant, règles d'usage</td><td>Designer</td><td>Composant, <code>.componentRules</code></td><td>Exporteur, dans le contrat</td><td>Exporteur, <code>ucm check</code></td></tr>
+  <tr><td>Comportement, accessibilité</td><td>Développeur</td><td>Code</td><td>Sans objet</td><td>Adaptateur de parité</td></tr>
+  <tr><td>Glyphe d'un nom d'icône</td><td>Développeur</td><td>Code</td><td>Sans objet</td><td><code>ucm icons</code>, à étendre</td></tr>
+</table>
+
+<h2>4. L'onglet Intégrations de l'explorateur <span class="statut decide">Décidé</span></h2>
+<p class="sous">L'onglet est retiré. Chaque intégration rejoint le produit qui possède son information. Le retrait touche environ 1 160 lignes et libère l'explorateur du moteur de couleur et des lecteurs de contrats. Le moment de chaque retrait reste à fixer : retirer l'onglet avant ses remplaçants prive le fichier du seul contrôle d'architecture existant.</p>
+<div class="grille" style="grid-template-columns: 1fr 50px 1fr">
+  <div class="carte">
+    <h3>Aujourd'hui, dans l'explorateur</h3>
+    <ul>
+      <li><b>Contrats et tokens UCM</b> : fichiers importés à la main, gardés en mémoire, parfois périmés</li>
+      <li><b>Recette UCM Palettes</b> : association manuelle d'une variable à un cran, perdue à la fermeture</li>
+      <li><b>Profil d'architecture UCM</b> : seules règles d'opinion de l'explorateur, liées au nommage</li>
+    </ul>
+  </div>
+  <div class="fleche-h">→</div>
+  <div class="carte">
+    <h3>Demain</h3>
+    <ul>
+      <li><b>Exporteur</b> : aperçu de ce que l'export des tokens change dans le dépôt</li>
+      <li><b>Architecte</b> : la recette lue sans geste, grâce aux marques que Palettes pose sur chaque variable</li>
+      <li><b>Architecte</b> : le profil, à côté de la nomenclature dont il dépend</li>
+    </ul>
+  </div>
+</div>
+
+<h2>5. Ce que les recherches établissent</h2>
+<p class="sous">Mesures sur deux fichiers : C1, le <code>tokens.json</code> du Playground (760 feuilles) ; C2, le fichier multimarque d'un client (2 415 feuilles), dont les noms métier sont omis.</p>
+<div class="grille g4">
+  <div class="carte"><div class="tete"><b>R2 Référentiel</b><span class="statut propose">Documenté</span></div><div class="chiffre">11</div><p class="petit">endroits du code portent une définition UCM ; 5 se contredisent.</p><p class="petit">Le message de l'exporteur recommande <code>press</code> et <code>disable</code> ; le kit écrit <code>pressed</code> et <code>disabled</code>.</p></div>
+  <div class="carte"><div class="tete"><b>R3 Nomenclature</b><span class="statut propose">Documenté</span></div><div class="chiffre">0 sur 7</div><p class="petit">vrais synonymes parmi les candidats de couleur de C1, faute de grammaire déclarée.</p><p class="petit">Le marché s'accorde sur huit termes ; aucun accord sur <code>error</code>/<code>danger</code> ni sur <code>pressed</code>/<code>active</code>.</p></div>
+  <div class="carte"><div class="tete"><b>R4 Déclaration</b><span class="statut propose">Documenté</span></div><div class="chiffre">13 ko</div><p class="petit">pour déclarer les vocabulaires de C2. Elle tient dans <code>tokens.json</code>, sous <code>$extensions</code>.</p><p class="petit">L'exporteur garde un fichier par demande de fusion.</p></div>
+  <div class="carte"><div class="tete"><b>R6 Bilan</b><span class="statut propose">Mesuré</span></div><div class="chiffre">1 443</div><p class="petit">feuilles de C2 écrivent un mode dans leur nom. Une observation, pas un défaut en soi : les primitives UCM portent elles-mêmes <code>light</code> et <code>dark</code>.</p><p class="petit">1 160 feuilles sur 2 127 ont toutes leurs colonnes de modes égales.</p></div>
+</div>
+
+<h3 style="margin-top:22px">Une position déclarée fait ressortir ses intrus</h3>
+<p class="sous">Dans C2, la profondeur 6 de la collection des thèmes porte les états. Une fois cette position déclarée « état », la flexion <code>hovered</code> et les rôles mal rangés se voient sans ambiguïté.</p>
+<div class="carte" style="width:640px">
+  <div class="barre"><span><code>focused</code></span><i style="width:100%"></i><span>122</span></div>
+  <div class="barre"><span><code>default</code></span><i style="width:90%"></i><span>110</span></div>
+  <div class="barre"><span><code>disabled</code></span><i style="width:88%"></i><span>108</span></div>
+  <div class="barre"><span><code>hover</code></span><i style="width:80%"></i><span>98</span></div>
+  <div class="barre"><span><code>pressed</code></span><i style="width:80%"></i><span>98</span></div>
+  <div class="barre"><span><code>surface</code> (rôle)</span><i class="intrus" style="width:44%"></i><span>54</span></div>
+  <div class="barre"><span><code>label</code> (rôle)</span><i class="intrus" style="width:44%"></i><span>54</span></div>
+  <div class="barre"><span><code>hovered</code> (flexion)</span><i class="flexion" style="width:20%"></i><span>24</span></div>
+  <div class="barre"><span><code>hovered-*</code> (flexion)</span><i class="flexion" style="width:20%"></i><span>24</span></div>
+</div>
+
+
+<h2>5 bis. Les termes du marché <span class="statut propose">Documenté</span></h2>
+<p class="sous">Fichiers de tokens publiés de sept design systems. Une case vide n'a pas pu être lue. Aucun choix n'est fait : les termes sans consensus restent des questions ouvertes.</p>
+<table>
+  <tr><th>Concept</th><th>Material 3</th><th>Carbon</th><th>Primer</th><th>Spectrum</th><th>Atlassian</th><th>Polaris</th><th>Fluent 2</th><th>UCM aujourd'hui</th></tr>
+  <tr><td>Erreur</td><td>error</td><td>error</td><td>danger</td><td>negative</td><td>danger</td><td>critical</td><td>danger</td><td><b>error et danger</b></td></tr>
+  <tr><td>Avertissement</td><td>absent</td><td>warning</td><td>attention</td><td>notice</td><td>warning</td><td>warning</td><td>warning</td><td>warning</td></tr>
+  <tr><td>Succès</td><td>absent</td><td>success</td><td>success</td><td>positive</td><td>success</td><td>success</td><td>success</td><td>success</td></tr>
+  <tr><td>Survol</td><td></td><td>hover</td><td></td><td>hover</td><td>hovered</td><td>hover</td><td>hover</td><td>hover</td></tr>
+  <tr><td>Pressé</td><td></td><td>active</td><td></td><td>down</td><td>pressed</td><td>active</td><td>pressed</td><td><b>pressed (kit), press (Playground)</b></td></tr>
+  <tr><td>Désactivé</td><td></td><td>disabled</td><td>disabled</td><td>disabled</td><td>disabled</td><td>disabled</td><td>disabled</td><td><b>disabled (kit), disable (Playground)</b></td></tr>
+  <tr><td>Sélectionné</td><td></td><td>selected</td><td></td><td>selected</td><td>selected</td><td>selected</td><td>selected</td><td><b>aucun terme reconnu</b></td></tr>
+  <tr><td>Contenu sur un fond</td><td>on-*</td><td>text</td><td>fg</td><td>content</td><td>text</td><td>text</td><td>foreground</td><td>foreground</td></tr>
+  <tr><td>Bordure</td><td>outline</td><td>border</td><td>borderColor</td><td>border-color</td><td>border</td><td>border</td><td>stroke</td><td>border</td></tr>
+  <tr><td>Fond plein / teinté</td><td>– / container</td><td></td><td>emphasis / muted</td><td>default / subtle</td><td>bold / subtle</td><td>fill / surface</td><td>rangs</td><td>solid / surface, propres à UCM</td></tr>
+  <tr><td>Tailles</td><td>longues</td><td></td><td>longues</td><td>longues</td><td>numériques</td><td>numériques</td><td>abrégées</td><td><b>longues et abrégées mêlées</b></td></tr>
+  <tr><td>Groupes</td><td>singulier</td><td></td><td>singulier</td><td>singulier</td><td>singulier</td><td>singulier</td><td>singulier</td><td><b>pluriel (colors, sizes)</b></td></tr>
+</table>
+<div class="grille g2" style="margin-top:14px">
+  <div class="carte"><h3>Consensus du marché</h3><p class="petit"><code>warning</code>, <code>success</code>, <code>hover</code>, <code>disabled</code>, <code>selected</code>, <code>background</code>, <code>border</code>, groupes au singulier. UCM suit les sept premiers.</p></div>
+  <div class="carte"><h3>Sans consensus</h3><p class="petit">Erreur (<code>danger</code> 3, <code>error</code> 2), pressé (<code>pressed</code> 2, <code>active</code> 2), contenu sur un fond, fonds plein et teinté. Le kit a déjà choisi <code>pressed</code> et <code>foreground</code>.</p></div>
+</div>
+
+<h3 style="margin-top:22px">Deux corrections de l'exporteur identifiées <span class="statut faire">Non engagées</span></h3>
+<div class="grille g2">
+  <div class="carte"><p class="petit">Reconnaître l'état <code>selected</code> : tous les systèmes lus l'emploient, le fichier client aussi, l'exporteur l'ignore et avertit.</p></div>
+  <div class="carte"><p class="petit">Corriger le message d'un état inconnu, qui demande de renommer en <code>press</code> ou <code>disable</code> : ni le kit ni le marché n'emploient ces formes.</p></div>
+</div>
+
+<h2>5 ter. Les autres résultats</h2>
+<div class="grille g3">
+  <div class="carte"><div class="tete"><b>R4 Données partagées</b><span class="statut propose">Essayé</span></div><p class="petit">Une entrée <code>setSharedPluginData</code> est limitée à 100 ko ; elle se pose aussi sur une variable ou une collection. La déclaration de C2 (13 ko) tient.</p><p class="petit">Essayé : la donnée suit la duplication du fichier ; elle ne se lit pas depuis un fichier qui emploie la bibliothèque. Pas de branche en offre Professional.</p></div>
+  <div class="carte"><div class="tete"><b>R8 Descriptions</b><span class="statut propose">Essayé</span></div><p class="petit">La description s'affiche en infobulle au survol d'une variable, partout dans Figma, sans troncature à 500 caractères. Un designer la lit sans plugin. L'exporteur ne la publie pas encore.</p></div>
+  <div class="carte"><div class="tete"><b>R11 Typographie</b><span class="statut propose">Documenté</span></div><p class="petit">Material 3 : rôle, taille, propriété. Primer : rôle, propriété, taille, sans espacement des lettres. Le Playground suit les rôles de Material 3.</p></div>
+  <div class="carte"><div class="tete"><b>R13 Agents</b><span class="statut propose">Documenté</span></div><p class="petit">Primer seul donne à un agent le sens d'un token : un serveur MCP qui cherche par intention, et une extension <code>usage</code> et <code>rules</code> dans ses tokens. Le serveur MCP de Figma rend noms et valeurs.</p></div>
+  <div class="carte"><div class="tete"><b>R1 Poids des plugins</b><span class="statut propose">Relevé</span></div><p class="petit">Exporteur 64 ko d'interface et 435 ko de code ; Palettes 583 ko et 182 ko ; explorateur 225 ko et 45 ko. Un plugin unique dépasserait 1,5 Mo. Builds à reconstruire avant de conclure.</p></div>
+  <div class="carte"><div class="tete"><b>R10 Icônes</b><span class="statut propose">Documenté</span></div><p class="petit">Le plugin officiel insère des SVG, pas des composants, sans mise à jour. Aucune règle de lint ne vérifie les noms ; les types du paquet du Kit refusent une icône absente.</p></div>
+</div>
+
+
+<h2>5 quater. Ce que les documents d'autorité ajoutent <span class="statut propose">Lu</span></h2>
+<p class="sous">Relecture de CONCEPT, FORMAT, des SPEC de l'exporteur et de l'explorateur, de l'architecture multimarque, de la spécification Palettes et des README. Détail dans Recherches/LECTURE-DES-DOCUMENTS.md.</p>
+<div class="grille g2">
+  <div class="carte"><h3>Confirme</h3><ul class="petit"><li>L'explorateur ne range aucune donnée dans le fichier : il ne peut pas porter la déclaration.</li><li>L'exporteur exclut le multi-composant : le bilan du fichier n'est pas son rôle.</li><li><code>theme</code> ne contient aucun choix du designer : un script peut le vérifier, puis le poser.</li></ul></div>
+  <div class="carte"><h3>Complète</h3><ul class="petit"><li>Règle écrite : chaque propriété d'un composant est liée à une variable de <code>components</code>.</li><li>Règle de code : un composant lit <code>--theme-*</code> ou son token, jamais <code>--primitives-*</code>.</li><li>Grammaire des primitives : palette, intensité, thème, cran.</li><li>Rôles lus sur le dernier segment : <code>background</code>, <code>foreground</code>, <code>icon</code>, <code>border</code>, <code>ring</code>.</li><li>Contrôles demandés, faits par aucun produit : complétude de <code>theme</code> par marque et thème, colonne de marque recopiée, variable posée sur ce qu'elle ne peint pas, état qui ne vise pas sa variable.</li></ul></div>
+  <div class="carte"><h3>Spécification Palettes</h3><ul class="petit"><li>La planche montre déjà, par palette, quelle nuance sert à quelle variable : la définition des crans existe dans Figma, pas dans le dépôt.</li><li>La recette du document fait autorité, le JSON en est une copie : le modèle proposé pour la déclaration.</li><li>Palettes ne nomme jamais une palette <code>primary</code> ou <code>danger</code> : le rôle des palettes manque.</li><li>Palettes reconnaît ses variables par identifiant et voit une modification faite à la main : un modèle pour l'Architecte.</li></ul></div>
+  <div class="carte"><h3>Contraint</h3><ul class="petit"><li>Le format n'exige aucun renommage : la nomenclature reste facultative, jamais bloquante.</li><li>Aucun contrôle ne cite le nom d'un composant : les règles portent sur des positions.</li><li>Les noms de collections restent libres : le profil est une option.</li><li>L'architecture cible écrit <code>danger</code> ; les composants du Playground écrivent <code>error</code>. Question 9 non tranchée.</li></ul></div>
+</div>
+
+<h2>6. La nomenclature, dans cet ordre <span class="statut propose">Proposé</span></h2>
+<p class="sous">Sans grammaire déclarée, la détection de synonymes ne trouve presque rien de juste. Chaque niveau s'active seul, et ses constats restent en information.</p>
+<div class="ordre">
+  <div class="carte"><span class="verbe">1. Forme</span><h3>Casse et séparateurs</h3><p class="petit">Mots soudés, ponctuation, mode dans un nom. Fonctionne sans rien déclarer.</p><p class="petit">Exemple : <code>backgroundhovered</code>, <code>800-[light]</code></p></div>
+  <div class="sep">→</div>
+  <div class="carte"><span class="verbe">2. Grammaire</span><h3>Positions de chaque collection</h3><p class="petit">Quelle position porte l'état, la variante, le rôle ; un vocabulaire fermé par position.</p><p class="petit">Exemple : <code>{composant}/colors/{palette}/{variante}/{état}/{rôle}</code></p></div>
+  <div class="sep">→</div>
+  <div class="carte"><span class="verbe">3. Termes</span><h3>Termes retenus et remplacés</h3><p class="petit">Une table écrite par le designer, nourrie par des candidats qu'il juge.</p><p class="petit">Exemple : <code>danger</code> remplacé par <code>error</code></p></div>
+</div>
+
+<h2>7. Le référentiel UCM <span class="statut propose">Proposé</span></h2>
+<p class="sous">Une source unique des définitions, sur le modèle d'Adobe Spectrum, le seul système public qui publie son vocabulaire comme une donnée. Aucun système ne traduit ses définitions.</p>
+<div class="grille g4">
+  <div class="carte"><h3>Positions</h3><p class="petit">Les champs d'un nom : palette, variante, état, rôle, taille.</p></div>
+  <div class="carte"><h3>Vocabulaires</h3><p class="petit">Les valeurs permises de chaque position : <code>default</code>, <code>hover</code>, <code>pressed</code>.</p></div>
+  <div class="carte"><h3>Règles</h3><p class="petit">Un catalogue : identifiant, sévérité, message, lien vers la spécification.</p></div>
+  <div class="carte"><h3>Entrées</h3><p class="petit"><code>id</code>, libellé, définition, termes refusés, statut, remplaçant.</p></div>
+</div>
+<p class="petit" style="margin-top:10px">Une seule donnée sert au contrôle et à la page lisible par le designer, comme le schéma JSON du contrat dérive de <code>types.ts</code>. La définition d'un cran appartient à la variable de <code>theme</code> qui le vise ; elle arrive dans <code>tokens.json</code> par <code>$description</code>, que l'export ne publie pas encore.</p>
+
+<h2>8. Icônes et typographie</h2>
+<div class="grille g2">
+  <div class="carte"><div class="tete"><h3>Icônes</h3><span class="statut faire">Essais à faire</span></div>
+    <p class="petit">Le Kit Font Awesome est la source ; Figma et le code en sont deux copies. UCM ne synchronise rien et compare trois listes.</p>
+    <ul class="petit">
+      <li>Chaque <code>figmaName</code> des contrats existe dans le jeu : <code>ucm icons</code></li>
+      <li>Chaque calque d'icône du fichier porte un nom du jeu : l'Architecte</li>
+      <li>Le code n'emploie que le jeu : types du paquet du Kit, règle de lint locale</li>
+    </ul>
+  </div>
+  <div class="carte"><div class="tete"><h3>Typographie</h3><span class="statut faire">À rechercher</span></div>
+    <p class="petit">Trois constats possibles dans le bilan :</p>
+    <ul class="petit">
+      <li>un style de texte avec une propriété sans variable</li>
+      <li>un calque de texte de composant sans style</li>
+      <li>un nom hors de l'échelle déclarée</li>
+    </ul>
+    <p class="petit">Un générateur d'échelle sur le modèle de Palettes reste une idée.</p>
+  </div>
+</div>
+
+<h2>9. L'ordre de construction <span class="statut propose">Proposé</span></h2>
+<div class="etapes">
+  <div class="etape"><div class="n">0</div><b>Référentiel</b><p class="petit">Résoudre les cinq contradictions, puis réunir les définitions dans le kit. Aucune interface.</p></div>
+  <div class="etape"><div class="n">1</div><b>Moteur de nomenclature</b><p class="petit">Dans le kit, et lu par <code>ucm check</code> sur option. Aucune interface.</p></div>
+  <div class="etape"><div class="n">2</div><b>Architecte en lecture</b><p class="petit">Bilan, profil repris, boucle de nomenclature.</p></div>
+  <div class="etape"><div class="n">3</div><b>Exporteur</b><p class="petit">Publie la déclaration et <code>$description</code>, montre l'écart avec le dépôt.</p></div>
+  <div class="etape"><div class="n">4</div><b>Architecte en écriture</b><p class="petit">Renommage avec table, descriptions, alias de <code>theme</code>.</p></div>
+  <div class="etape" style="border-top-color:var(--faire)"><div class="n" style="color:var(--faire)">5</div><b>Ensuite</b><p class="petit">Icônes, typographie.</p></div>
+</div>
+
+<h2>10. L'état des recherches</h2>
+<table>
+  <tr><th style="width:34%">Sujet</th><th style="width:14%">État</th><th>Prochain geste</th></tr>
+  <tr><td>R1 Découpage en plugins</td><td><span class="statut propose">Poids relevé</span></td><td>Mesurer l'ouverture dans Figma ; observer des designers</td></tr>
+  <tr><td>R2 Référentiel</td><td><span class="statut propose">Documenté</span></td><td>Détailler le schéma d'une entrée après la question des langues</td></tr>
+  <tr><td>R3 Nomenclature</td><td><span class="statut propose">Documenté</span></td><td>Trancher <code>error</code>/<code>danger</code>, le singulier des groupes, la forme des tailles</td></tr>
+  <tr><td>R4 Déclaration</td><td><span class="statut propose">Documenté, essayé</span></td><td>Donnée sur une collection, non essayée</td></tr>
+  <tr><td>R5 Plugin d'architecture</td><td><span class="statut faire">À faire</span></td><td>Exporter le fichier remappé ; relever comment il a été remappé</td></tr>
+  <tr><td>R6 Bilan</td><td><span class="statut propose">Mesuré sur C1, C2</span></td><td>Complétude de <code>theme</code> et profil sur le fichier remappé</td></tr>
+  <tr><td>R7 Renommage et migration</td><td><span class="statut propose">Figma réglé</span></td><td>Figma garde les liaisons ; reste le code : contrats et CSS qui citent l'ancien nom</td></tr>
+  <tr><td>R8 Descriptions des variables</td><td><span class="statut propose">Documenté, essayé</span></td><td>Le serveur MCP de Figma transmet-il la description ?</td></tr>
+  <tr><td>R9 Retrait de l'onglet Intégrations</td><td><span class="statut propose">Inventaire fait</span></td><td>Choisir l'ordre du retrait</td></tr>
+  <tr><td>R10 Icônes</td><td><span class="statut propose">Documentation faite</span></td><td>Trois essais : API depuis un plugin, calques du plugin officiel, liste du Kit</td></tr>
+  <tr><td>R11 Typographie</td><td><span class="statut propose">Documentation faite</span></td><td>Relever les styles de texte du Playground</td></tr>
+  <tr><td>R12 Règles des composants</td><td><span class="statut faire">À faire</span></td><td>Part des propriétés liées par composant</td></tr>
+  <tr><td>R13 Ce que lisent les agents</td><td><span class="statut propose">Documentation faite</span></td><td>Erreurs de choix de token des reconstructions à froid</td></tr>
+</table>
+
+<h2>11. Les questions ouvertes</h2>
+<p class="sous">Le mainteneur ne tranche aucune question pour l'instant ; elles restent consignées.</p>
+<table>
+  <tr><th style="width:42%">Question</th><th>Proposition</th></tr>
+  <tr><td>Chaque outil entretient ce qu'il a produit, et un rôle d'architecture ?</td><td>Oui ; le plugin séparé attend la comparaison des parcours</td></tr>
+  <tr><td>Le cycle d'un changement : quelle version fait foi ?</td><td>Aucune : quatre situations à distinguer, piste 15</td></tr>
+  <tr><td>Les arbitrages de la revue externe</td><td>Ouverts : promesse, public, méthode, propriétaire, version qui fait foi, bilan, Architecte, plugins, noms, renommages, reports</td></tr>
+  <tr><td>La nomenclature se range-t-elle dans Figma ou dans le dépôt ?</td><td>Dans le document Figma, publiée dans <code>tokens.json</code> par l'exporteur</td></tr>
+  <tr><td>L'onglet Intégrations disparaît-il avant ou après ses remplaçants ?</td><td>À trancher</td></tr>
+  <tr><td>Le référentiel est-il bilingue dès la première version ?</td><td>À trancher ; aucun précédent sur le marché</td></tr>
+  <tr><td>L'Architecte écrit-il la description des variables de <code>theme</code> ?</td><td>Oui, sur demande, sans écraser une description saisie</td></tr>
+  <tr><td>Commencer par les phases 0 et 1, sans interface ?</td><td>Oui</td></tr>
+  <tr><td>Quel nom pour le plugin ?</td><td>UCM Architecte, provisoire</td></tr>
+  <tr><td>UCM est-il une méthode à architecture recommandée, ou une boîte à outils pour toute structure ?</td><td>Aucune : quatre pistes, section 13</td></tr>
+  <tr><td>Le jeu d'icônes se déclare-t-il par une liste générée depuis le Kit ?</td><td>Oui, dans le dépôt</td></tr>
+  <tr><td><code>error</code> ou <code>danger</code> ?</td><td>Aucune : le marché se partage</td></tr>
+  <tr><td>Groupes au singulier ou au pluriel ?</td><td>Aucune : le marché est au singulier, les deux corpus au pluriel</td></tr>
+  <tr><td>Tailles longues ou abrégées ?</td><td>Aucune : les formes longues sont majoritaires</td></tr>
+  <tr><td>Ordre des segments typographiques ?</td><td>Aucune : Material 3 et Primer diffèrent</td></tr>
+  <tr><td>Les deux corrections de l'exporteur avant la phase 0 ?</td><td>Oui</td></tr>
+</table>
+
+<h2>12. La demande initiale, point par point</h2>
+<p class="sous">Ce que les recherches couvrent de la demande d'origine, et ce qui manque encore pour décider de l'architecture.</p>
+<table>
+  <tr><th style="width:28%">Demande</th><th style="width:12%">Couverture</th><th>État</th></tr>
+  <tr><td>Détecter automatiquement les incohérences de nommage</td><td><span class="statut propose">En partie</span></td><td>Relevés mesurés sur deux fichiers : la forme se détecte seule, les synonymes demandent une grammaire déclarée et une table de termes. Aucun prototype dans un plugin.</td></tr>
+  <tr><td>Se mettre d'accord sur une nomenclature de base</td><td><span class="statut faire">Manque</span></td><td>La concordance du marché et les choix du kit sont réunis, mais aucun projet de nomenclature écrit (positions, vocabulaires, termes) n'est soumis au mainteneur.</td></tr>
+  <tr><td>Vérifier ensuite tous les écarts</td><td><span class="statut propose">En conception</span></td><td>Catalogue du bilan avec lieu et sévérité de chaque contrôle. Aucun prototype.</td></tr>
+  <tr><td>Où la fonctionnalité doit vivre</td><td><span class="statut propose">Proposé</span></td><td>UCM Architecte, moteur dans le kit, lecture par ucm check ; quatre domiciles comparés. Le nombre de plugins n'est pas mesuré dans Figma.</td></tr>
+  <tr><td>Qui maîtrise quelle information</td><td><span class="statut propose">Proposé</span></td><td>Tableau des propriétaires ; chaque outil entretient ce qu'il a produit.</td></tr>
+  <tr><td>La définition des crans dans le dépôt</td><td><span class="statut propose">En partie</span></td><td>Proposée sur les variables de theme et dans tokens.json ; l'affichage d'une description dans Figma reste à essayer.</td></tr>
+  <tr><td>L'onglet « UCM » de l'explorateur</td><td><span class="statut decide">Décidé</span></td><td>Il s'agit de l'onglet Intégrations ; retiré.</td></tr>
+  <tr><td>Un plugin de vérification global</td><td><span class="statut propose">Proposé</span></td><td>Le bilan de l'Architecte ; un plugin de contrôle séparé est l'alternative consignée.</td></tr>
+  <tr><td>Où vivent les définitions propres à UCM</td><td><span class="statut propose">En partie</span></td><td>La forme du référentiel est proposée et ses sources sont inventoriées ; son contenu, lisible par un designer qui arrive, n'est pas rédigé.</td></tr>
+  <tr><td>Bonnes pratiques des composants</td><td><span class="statut propose">En partie</span></td><td>Deux règles déjà écrites dans l'architecture multimarque (une variable de <code>components</code> par propriété ; jamais de primitive dans le code) ; R12 reste à mener.</td></tr>
+  <tr><td>Icônes Font Awesome</td><td><span class="statut propose">En partie</span></td><td>Documentation faite, trois contrôles proposés ; essais Figma à faire.</td></tr>
+  <tr><td>Typographie</td><td><span class="statut faire">Faible</span></td><td>Échelles du marché et trois constats possibles ; aucune mesure sur le Playground.</td></tr>
+  <tr><td>Le rôle d'UCM Toolkit, CLI et paquets</td><td><span class="statut propose">En partie</span></td><td>Rôle « garantir » et référentiel proposés ; la frontière entre le kit, le CLI et le référentiel n'est pas écrite en une page.</td></tr>
+  <tr><td>Le workflow global UCM</td><td><span class="statut faire">Manque</span></td><td>Les flux entre produits sont schématisés ; le parcours du designer, de la palette au contrat lu par un agent, n'est pas décrit étape par étape.</td></tr>
+  <tr><td>Relire tous les documents du projet</td><td><span class="statut propose">Lu</span></td><td>CONCEPT, FORMAT (parties utiles), SPEC de l'exporteur et de l'explorateur, architecture multimarque, spécification Palettes (vocabulaire, décisions, périmètre, planche, variables), README, diff sémantique, conformité du rendu.</td></tr>
+</table>
+<div class="carte" style="margin-top:14px"><h3>Pour compléter la réponse</h3><p class="petit">Aucun contenu n'est rédigé à ce stade : ni nomenclature, ni référentiel, ni parcours. Les sujets ouverts reçoivent des pistes de réflexion, section 13.</p></div>
+
+<h2>12 bis. La revue externe <span class="statut propose">Corrections appliquées</span></h2>
+<p class="sous">Une revue conceptuelle et fonctionnelle a relu le dossier (REVUE-CONCEPTUELLE-ET-FONCTIONNELLE.md). Ses corrections sont reportées ; ses arbitrages restent ouverts.</p>
+<div class="grille g2">
+  <div class="carte"><h3>Corrections appliquées</h3><ul class="petit"><li>Le bilan distingue observation, écart à une règle adoptée et hypothèse ; un mode écrit dans un nom n'est plus un défaut en soi.</li><li>Les statuts distinguent documenté, éprouvé et décidé.</li><li>La propriété porte sur des données et des opérations, pas sur des collections.</li><li>Le cycle d'un changement entre Figma et le code devient la piste 15.</li><li>L'ordre des recherches part d'un changement réel de composant.</li></ul></div>
+  <div class="carte"><h3>Ce que la revue recommande</h3><ul class="petit"><li>Présenter UCM comme une méthode outillée pour convenir des décisions visuelles, les publier et suivre leur mise en œuvre.</li><li>Évaluer chaque fonction par les ambiguïtés évitées ou le travail économisé.</li><li>Garder les degrés d'adoption facultatifs, sans étapes obligatoires.</li><li>Valider le rôle d'architecture avant d'en faire un plugin séparé.</li><li>Contrôler les conventions adoptées avant de chercher des synonymes.</li></ul></div>
+</div>
+
+<h2>13. Les pistes de réflexion <span class="statut propose">Pistes</span></h2>
+<p class="sous">Options, questions et essais pour chaque sujet ouvert. Aucun contenu n'est rédigé et aucune option n'est retenue. Source : PISTES-DE-REFLEXION.md.</p>
+<div class="carte" style="margin-bottom:14px"><h3>1. Le parcours du designer
+</h3>
+<p class="petit"><b>La question.</b> Dans quel ordre un designer ouvre-t-il les produits UCM, et le découpage en produits suit-il cet ordre ?</p>
+<p class="petit"><b>Deux situations de départ, à distinguer partout.</b></p>
+<table style="margin:8px 0"><tr><th>Situation</th><th>Exemple</th><th>Ce qu'elle demande</th><th></th></tr><tr><td>Un design system neuf</td><td>Un fichier vide</td><td>Créer dans l'ordre : palettes, architecture, composants, publication</td><td></td></tr><tr><td>Un design system existant à assainir</td><td>Le fichier client C2 : 2 415 tokens, modes écrits dans les noms, grammaires qui varient</td><td>Relever, déclarer, corriger par lots, sans casser les composants publiés</td><td></td></tr></table>
+<p class="petit">Palettes connaît déjà la seconde situation : il reprend une palette du fichier et retrouve ses réglages. L'Architecte devrait-il offrir la même reprise pour <code>theme</code> et la nomenclature ?</p>
+<p class="petit"><b>Pistes.</b></p>
+<ul class="petit"><li>Un parcours par étapes fixes, que chaque plugin rappelle (« étape 2 sur 5 :
+ l'architecture »).</li><li>Un parcours par chantiers indépendants : le designer ouvre le plugin du
+ sujet qu'il traite, sans ordre imposé.</li><li>Un état du fichier lu par chaque plugin : palettes écrites, <code>theme</code> posé,
+ nomenclature déclarée, tokens publiés. Chaque plugin dit ce qui manque en amont de son propre travail.</li></ul>
+<p class="petit"><b>Questions.</b></p>
+<ol class="petit"><li>Le designer revient-il en arrière souvent (une palette modifiée après la
+ pose de <code>theme</code>) ? Le parcours doit alors dire ce que ce retour invalide.</li><li>Le développeur entre-t-il dans le parcours avant la première demande de
+ fusion, par exemple pour relire la nomenclature ?</li></ol>
+<p class="petit"><b>Essai.</b> Rejouer le remappage que le mainteneur a fait à la main (fichier C3) en notant chaque geste et chaque plugin ouvert.</p>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>2. La nomenclature de base
+</h3>
+<p class="petit"><b>La question.</b> D'où vient la nomenclature qu'un design system adopte, et qu'est-ce qu'UCM y met par défaut ?</p>
+<p class="petit"><b>Pistes, de la plus agnostique à la plus prescriptive.</b></p>
+<table style="margin:8px 0"><tr><th>Piste</th><th>Ce qu'UCM fournit</th><th>Ce que le designer fait</th><th></th></tr><tr><td>Aucune nomenclature par défaut</td><td>Le moteur seul</td><td>Il déclare tout depuis le relevé de son fichier</td><td></td></tr><tr><td>Le minimum que les outils lisent déjà</td><td>Les termes dont dépend un comportement : rôles du dernier segment, états reconnus, segment <code>fontweight</code>, dossiers de <code>theme</code></td><td>Il déclare le reste</td><td></td></tr><tr><td>Des profils importables</td><td>Plusieurs nomenclatures prêtes, alignées sur des systèmes publics</td><td>Il en choisit une, puis l'ajuste</td><td></td></tr><tr><td>Une nomenclature UCM complète</td><td>Positions, vocabulaires et termes pour toutes les collections</td><td>Il l'adopte ou déclare ses écarts</td><td></td></tr></table>
+<p class="petit">La contrainte du format s'applique à toutes : aucune nomenclature ne devient obligatoire.</p>
+<p class="petit"><b>Deux précautions de la revue.</b> Deux termes qui visent la même couleur ne nomment pas forcément le même concept : une erreur de saisie et une action destructrice peuvent partager une couleur et demander des usages différents. Une décision de synonymie porte donc sur un contexte défini et reste révisable. Une collection peut aussi porter plusieurs formes de chemin légitimes (un bouton a des états, une alerte n'en a pas) : une grammaire à segments facultatifs plutôt qu'une forme unique. Le contrôle des conventions adoptées passe avant la découverte de synonymes, qui reste une aide.</p>
+<p class="petit"><b>Questions.</b></p>
+<ol class="petit"><li>Une nomenclature se déclare-t-elle par collection, par couche, ou pour
+ tout le fichier ?</li><li>Comment une nomenclature évolue-t-elle sans renommer des centaines de
+ variables d'un coup : par version, par collection, par terme ?</li><li>Le développeur valide-t-il une modification de la nomenclature ? La
+ déclaration publiée dans <code>tokens.json</code> passe par une demande de fusion : cette revue serait le lieu de l'accord designer–développeur que CONCEPT.md décrit.</li></ol>
+<p class="petit"><b>Essai.</b> Faire juger cinquante paires candidates de C2 au mainteneur, et mesurer la part de jugements qui dépendent de la position du terme.</p>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>3. Le référentiel pour un designer qui arrive
+</h3>
+<p class="petit"><b>La question.</b> Par quel canal un designer apprend-il les définitions d'UCM ?</p>
+<p class="petit"><b>Pistes de canal.</b></p>
+<table style="margin:8px 0"><tr><th>Canal</th><th>Où le designer le lit</th><th>Précédent</th><th></th></tr><tr><td>Une page générée depuis les données du kit</td><td>Navigateur</td><td>Le schéma JSON dérivé de <code>types.ts</code></td><td></td></tr><tr><td>Une planche dessinée dans le fichier Figma</td><td>Figma, sur une page dédiée</td><td>Les planches de Palettes</td><td></td></tr><tr><td>Un glossaire au survol d'un terme dans chaque plugin</td><td>Le plugin ouvert</td><td>Les libellés français de l'aperçu de Palettes</td><td></td></tr><tr><td>La description des variables de <code>theme</code></td><td>Le panneau des variables, si Figma l'affiche (R8)</td><td>Aucun dans UCM</td><td></td></tr><tr><td>Le rapport de <code>ucm check</code></td><td>La demande de fusion</td><td>Les messages destinés au designer</td><td></td></tr></table>
+<p class="petit"><b>Questions.</b></p>
+<ol class="petit"><li>Le référentiel s'adresse-t-il au designer, au développeur et à l'agent par
+ le même texte, ou par trois formes tirées de la même donnée ?</li><li>Une définition propre à un design system (un terme qu'il ajoute) rejoint-
+ elle le référentiel, ou reste-t-elle dans sa déclaration ?</li><li>Le référentiel est-il bilingue (question 4 de la proposition) ?
+</li></ol>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>4. Le rôle d'UCM Toolkit
+</h3>
+<p class="petit"><b>La question.</b> Comment définir en une phrase ce que le Toolkit apporte, à côté des plugins ?</p>
+<p class="petit"><b>Pistes de définition.</b></p>
+<ul class="petit"><li>Le Toolkit porte les règles que les plugins appliquent dans Figma et que la
+ CI applique dans le dépôt. Les plugins en sont des lecteurs.</li><li>Le Toolkit est le côté dépôt d'UCM : contrôles, feuille CSS, guide des
+ agents. Le référentiel en sort pour devenir un paquet à part.</li><li>Le Toolkit est le nom de l'ensemble, et chaque paquet porte un rôle :
+ <code>@ucm-kit/core</code> les règles, <code>@ucm-kit/cli</code> le dépôt, les adaptateurs le code.</li></ul>
+<p class="petit"><b>Questions.</b></p>
+<ol class="petit"><li>Le référentiel reste-t-il un sous-chemin de <code>@ucm-kit/core</code> ou devient-il
+ un paquet ?</li><li>Le mot « Toolkit » désigne-t-il le monorepo, les paquets publiés, ou les
+ deux ?</li></ol>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>5. L'exporteur et l'analyse des tokens
+</h3>
+<p class="petit"><b>La question.</b> La demande initiale décrit l'exporteur comme le plugin qui analyse les composants <b>et</b> les tokens. La proposition confie le bilan des tokens à l'Architecte. Que garde l'exporteur ?</p>
+<p class="petit"><b>Pistes.</b></p>
+<ul class="petit"><li>L'exporteur garde un résumé du bilan avant l'export des tokens : les
+ constats que la CI relèvera sur ce qui part. Le bilan détaillé reste dans l'Architecte.</li><li>L'exporteur ne lit aucune règle d'architecture : il publie, la CI juge.
+</li><li>L'exporteur absorbe l'Architecte, et devient le plugin d'architecture et
+ de publication (alternative D de la proposition).</li></ul>
+<p class="petit"><b>Question.</b> Le designer exporte-t-il les tokens au même moment qu'il les corrige, ou à un moment distinct ? La réponse décide si le résumé suffit.</p>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>6. Les règles des composants
+</h3>
+<p class="petit"><b>La question.</b> Quelles règles UCM s'appliquent à la construction d'un composant, et où se contrôlent-elles ?</p>
+<p class="petit"><b>Règles déjà écrites, à situer</b> : une variable de <code>components</code> par propriété ; jamais de primitive dans le code (architecture multimarque, sections 2 et 8). Règle de l'exporteur : une propriété sans variable produit un avertissement.</p>
+<p class="petit"><b>Pistes.</b></p>
+<ul class="petit"><li>Un contrôle « propriété liée à une variable hors de <code>components</code> », dans
+ l'exporteur ou le bilan, sur option.</li><li>Un geste de l'Architecte qui crée la branche <code>components/{composant}</code> à
+ partir des propriétés que l'exporteur relève.</li><li>Une règle de lint dans le dépôt qui refuse <code>--primitives-*</code> dans le code
+ d'un composant.</li></ul>
+<p class="petit"><b>Questions.</b></p>
+<ol class="petit"><li>La grammaire de <code>components</code> est-elle la même pour tous les composants,
+ ou propre à chacun ?</li><li>Un composant composé déclare-t-il des tokens pour ses dépendances, ou les
+ laisse-t-il à leurs propres contrats ?</li></ol>
+<p class="petit"><b>Essai.</b> Mesurer sur le fichier Figma du Playground la part des propriétés liées à une variable de <code>components</code> (R12).</p>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>7. La typographie
+</h3>
+<p class="petit"><b>Pistes.</b></p>
+<ul class="petit"><li>Des constats dans le bilan : style de texte non lié, calque de texte sans
+ style, nom hors de l'échelle déclarée.</li><li>Une grammaire typographique dans le référentiel, avec l'ordre des segments
+ à choisir (question 12).</li><li>Un générateur d'échelle sur le modèle de Palettes, avec des garanties
+ (interligne minimal, écart entre deux niveaux).</li><li>Aucune règle typographique propre à UCM : la typographie suit la
+ nomenclature générale.</li></ul>
+<p class="petit"><b>Question.</b> Les réglages typographiques par marque (<code>color-brands.params.font.*</code> dans l'architecture multimarque) appartiennent-ils à l'Architecte ou à un générateur ?</p>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>8. Les icônes
+</h3>
+<p class="petit"><b>Pistes.</b></p>
+<ul class="petit"><li>Une liste du jeu générée dans le dépôt depuis le Kit Font Awesome, lue par
+ <code>ucm icons</code> et l'Architecte.</li><li>Une bibliothèque Figma d'icônes en composants, régénérée depuis le Kit, et
+ une règle du bilan qui refuse un vecteur posé hors de cette bibliothèque.</li><li>Une règle de lint dans le dépôt qui refuse une classe <code>fa-*</code> absente de la
+ liste.</li></ul>
+<p class="petit"><b>Question.</b> Le jeu d'icônes est-il une donnée du design system (déclarée dans Figma) ou une donnée du dépôt (tirée du Kit) ?</p>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>9. La diffusion des plugins
+</h3>
+<p class="petit"><b>Pistes.</b></p>
+<ul class="petit"><li>Quatre plugins sur la Figma Community, chacun utile seul : l'explorateur
+ touche aussi des équipes qui n'emploient pas UCM.</li><li>Une suite présentée comme telle : un fichier Community qui explique le
+ parcours et renvoie aux quatre plugins.</li><li>Un plugin unique à espaces : plus lourd (plus de 1,5 Mo), une seule
+ installation.</li></ul>
+<p class="petit"><b>Question.</b> L'explorateur reste-t-il un produit UCM, ou devient-il un outil autonome qui ne mentionne pas UCM ?</p>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>10. La gouvernance des définitions
+</h3>
+<p class="petit"><b>Pistes.</b></p>
+<ul class="petit"><li>Les contributeurs d'UCM décident du référentiel ; le designer décide de sa
+ déclaration ; la demande de fusion est le lieu où le développeur l'accepte.</li><li>Chaque terme du référentiel porte un statut et un remplaçant (modèle de
+ Spectrum), pour qu'un terme retiré guide la migration.</li><li>Un terme ajouté par plusieurs design systems remonte dans le référentiel.
+</li></ul>
+<p class="petit"><b>Question.</b> Qui tranche quand la déclaration d'un design system contredit le référentiel : le designer, toujours, puisque la nomenclature reste facultative ?</p>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>11. La recette et la définition des crans dans le dépôt
+</h3>
+<p class="petit"><b>La question.</b> La demande initiale demande si la définition des crans doit rejoindre le dépôt, pour les agents. La planche de Palettes la montre déjà dans Figma ; rien ne la porte jusqu'au code.</p>
+<p class="petit"><b>Pistes.</b></p>
+<table style="margin:8px 0"><tr><th>Piste</th><th>Ce qui arrive dans le dépôt</th><th>Ce qu'elle suppose</th><th></th></tr><tr><td>Rien de plus</td><td>Les noms des variables de <code>theme</code> seuls</td><td>Le référentiel du kit suffit à un agent pour lire <code>solid/hover</code></td><td></td></tr><tr><td>Les descriptions des variables de <code>theme</code></td><td><code>$description</code> dans <code>tokens.json</code></td><td>L'export publie les descriptions ; l'Architecte les écrit (R8)</td><td></td></tr><tr><td>Le rôle de chaque palette et le sens de chaque thème</td><td>Une extension de <code>tokens.json</code> : <code>primary</code>, statut, texte des boutons</td><td>L'Architecte déclare les rôles ; la recette reste dans Figma</td><td></td></tr><tr><td>La recette entière</td><td>Une extension de <code>tokens.json</code> ou un fichier séparé</td><td>L'exporteur lit l'espace partagé <code>ucm_palettes</code> ; le dépôt reçoit des nombres que seul Palettes emploie</td><td></td></tr></table>
+<p class="petit"><b>Questions.</b></p>
+<ol class="petit"><li>Un agent a-t-il besoin des nombres de la recette, ou seulement du rôle de
+ chaque variable ?</li><li>La table du kit dépend du sens de chaque thème : le dépôt doit-il savoir
+ qu'un thème est inversé pour lire correctement <code>solid/hover</code> ?</li></ol>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>12. Un standard UCM, ou des outils agnostiques
+</h3>
+<p class="petit"><b>La question.</b> Le mainteneur la pose ainsi : si un plugin écrit la structure des tokens, UCM devient un standard de structure, à la manière de Material, et le plugin ne sert plus sur une autre structure. Est-ce trop restrictif, ou UCM se présente-t-il comme un écosystème qui fournit toute l'architecture et l'automatise ?</p>
+<p class="petit"><b>Ce que le dépôt fait déjà.</b> Il tient les deux à la fois. L'architecture multimarque est un standard de fait ; les outils restent agnostiques : <code>ucm check</code> n'exige aucun nom de collection, l'explorateur n'en réserve aucun, le profil UCM ne s'applique qu'à la demande, et Palettes écrit dans la destination que le designer choisit.</p>
+<p class="petit"><b>Pistes.</b></p>
+<table style="margin:8px 0"><tr><th>Piste</th><th>Vérifier</th><th>Déclarer les noms</th><th>Construire</th><th>Sur une autre structure</th><th></th></tr><tr><td>Outil agnostique</td><td>Les règles que le designer déclare</td><td>Oui</td><td>Rien</td><td>Tout fonctionne</td><td></td></tr><tr><td>Socle agnostique et profil UCM</td><td>Socle : forme des noms, modes, valeurs manquantes. Profil : couches, table du kit</td><td>Oui</td><td>Seulement avec le profil UCM</td><td>Le socle fonctionne ; la construction non</td><td></td></tr><tr><td>Construction paramétrée</td><td>Les règles déclarées</td><td>Oui</td><td>Selon la structure déclarée : quelle collection joue quel rôle, quel gabarit de chemin</td><td>Tout fonctionne, si la structure est déclarée ; promesse large, que la destination de Palettes ne démontre pas</td><td></td></tr><tr><td>Écosystème UCM</td><td>L'architecture UCM</td><td>Dans le cadre UCM</td><td>L'architecture UCM complète</td><td>Hors du périmètre</td><td></td></tr></table>
+<p class="petit">La destination de Palettes est un précédent limité de construction paramétrée : le designer choisit la collection, le groupe et la forme des thèmes, et le plugin écrit dedans. Choisir une destination ne démontre pas la capacité à générer des règles de thème différentes.</p>
+<p class="petit"><b>Questions.</b></p>
+<ol class="petit"><li>UCM se présente-t-il comme une méthode, avec une architecture
+ recommandée, ou comme une boîte à outils qui s'adapte à toute structure ?</li><li>Les équipes visées partent-elles d'un fichier neuf, où un standard aide,
+ ou d'un fichier existant, où un standard imposé oblige à tout renommer ?</li><li>Le format interdit déjà d'exiger un renommage. Un plugin qui construit
+ une structure UCM respecte-t-il cette règle s'il ne touche jamais aux variables existantes ?</li></ol>
+<p class="petit"><b>Une précision sur la fréquence des questions au designer.</b> Le plugin ne demanderait pas les normes à chaque ouverture : une fois au relevé initial, puis seulement quand un terme inconnu apparaît.</p>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>13. Les deux périmètres : agnostique et full UCM
+</h3>
+<p class="petit"><b>L'orientation.</b> Le mainteneur répond à la question 12 par les deux à la fois : chaque outil sert toute équipe sur sa propre structure, et propose un mode full UCM à l'équipe qui suit toute l'architecture. Chaque outil rend ce choix visible. Les pistes ci-dessous en tirent les conséquences ; aucune n'est retenue.</p>
+<p class="petit"><b>Le dépôt suit déjà ce schéma en partie.</b> <code>ucm check</code> est agnostique et garde le diagnostic des contrastes en information ; le profil d'architecture s'active à la demande ; Palettes écrit dans la destination choisie ; la SPEC de l'explorateur interdit toute alerte d'absence d'UCM.</p>
+<p class="petit"><b>Ce que chaque produit ferait dans chaque périmètre.</b></p>
+<table style="margin:8px 0"><tr><th>Produit</th><th>Agnostique</th><th>Full UCM</th><th></th></tr><tr><td>UCM Palettes</td><td>Rampes, contrastes, palettes libres, destination libre</td><td>Table en dossiers, sept garanties, destination <code>primitives</code>, courbes de l'architecture</td><td></td></tr><tr><td>UCM Architecte</td><td>Vérifier les règles que le designer déclare ; construire dans la structure qu'il déclare</td><td>Vérifier contre l'architecture UCM ; poser <code>color-brands</code>, <code>color-utilities</code>, <code>theme</code>, <code>components</code></td><td></td></tr><tr><td>UCM Token Explorer</td><td>Seul périmètre : la lecture, sans opinion</td><td>Aucun mode propre, ou les libellés du référentiel à côté des noms</td><td></td></tr><tr><td>UCM Contract Exporter</td><td>Export et constats actuels</td><td>Constats en plus : propriété liée hors de <code>components</code>, rôle employé sur le mauvais support ; publication de la déclaration</td><td></td></tr><tr><td><code>ucm check</code></td><td>Contrôles actuels</td><td>Table du kit, nomenclature UCM, aucune primitive citée dans le code</td><td></td></tr></table>
+<p class="petit"><b>Où se règle le périmètre.</b></p>
+<table style="margin:8px 0"><tr><th>Piste</th><th>Effet</th><th>Limite</th><th></th></tr><tr><td>Un réglage par outil</td><td>Chaque plugin a son interrupteur</td><td>Le designer peut activer full UCM dans Palettes et l'oublier dans l'exporteur</td><td></td></tr><tr><td>Une déclaration par fichier</td><td>La déclaration du fichier dit « ce fichier suit UCM » ; chaque plugin la lit, l'exporteur la publie dans <code>tokens.json</code>, <code>ucm check</code> la lit</td><td>La donnée ne voyage pas avec la bibliothèque : un fichier qui l'emploie ne la voit pas (R4)</td><td></td></tr><tr><td>Une déclaration par domaine</td><td>Couleurs en full UCM, nomenclature libre, par exemple</td><td>Plus de combinaisons à expliquer et à tester</td><td></td></tr></table>
+<p class="petit"><b>L'adoption progressive.</b> Une équipe qui part d'un fichier existant (C2) ne bascule pas d'un coup. Pistes : le full UCM comme un ensemble de profils activables un à un, « full » voulant dire tous activés ; un relevé de la distance entre le fichier et l'architecture UCM, sans score, puisque l'exporteur exclut le scoring.</p>
+<p class="petit"><b>La sévérité des constats.</b> En agnostique, tout écart à une règle d'UCM reste une information. En full UCM, le designer a choisi la règle : un écart pourrait-il devenir un avertissement, voire bloquer une demande de fusion sur option du dépôt ?</p>
+<p class="petit"><b>Les risques.</b></p>
+<ul class="petit"><li>Deux périmètres doublent les cas à tester et à documenter dans chaque
+ outil.</li><li>Le mode agnostique doit rester simple : aucune mention d'UCM qui
+ ressemble à un manque.</li><li>Un périmètre mal affiché laisse croire au designer qu'un contrôle tourne
+ alors qu'il est coupé.</li></ul>
+<p class="petit"><b>Réponses du mainteneur.</b></p>
+<ul class="petit"><li>Le périmètre se règle <b>par outil</b>.
+</li><li>Les contrôles deviennent <b>plus stricts en full UCM</b>.
+</li><li>Palettes doit permettre de <b>désactiver ses fonctions propres à UCM</b>, pour
+ générer des palettes sans les contrôles, peut-être sans contraste.</li><li>L'adoption progressive passe par <b>un hub</b> qui montre le niveau
+ d'adoption et les étapes suivantes : piste 14.</li></ul>
+<p class="petit"><b>Le périmètre agnostique de Palettes, pistes.</b></p>
+<table style="margin:8px 0"><tr><th>Fonction</th><th>Propre à UCM ?</th><th>En agnostique</th><th></th></tr><tr><td>Rampes, Color shift, réglage global</td><td>Non</td><td>Gardés</td><td></td></tr><tr><td>Contraste WCAG d'une nuance contre un fond</td><td>Non : règle universelle</td><td>Gardé, ou désactivable à la demande du mainteneur</td><td></td></tr><tr><td>Table en dossiers, bandes <code>solid</code>, <code>surface</code>, <code>page</code> de l'aperçu</td><td>Oui</td><td>Retirés</td><td></td></tr><tr><td>Les sept garanties et leurs alertes</td><td>Oui : elles dépendent de la table</td><td>Retirées</td><td></td></tr><tr><td>Texte des boutons et sens du thème</td><td>Oui</td><td>Retirés</td><td></td></tr><tr><td>Planche « Quelle nuance pour quelle variable »</td><td>Oui</td><td>Planche réduite aux rampes</td><td></td></tr><tr><td>Destination <code>primitives</code> / <code>colors</code></td><td>Défaut UCM</td><td>Destination libre, déjà possible</td><td></td></tr></table>
+<p class="petit">Question : le contraste reste-t-il affiché en agnostique, comme une information universelle, ou disparaît-il avec les garanties ?</p>
+<p class="petit"><b>La sévérité en full UCM, pistes.</b></p>
+<ul class="petit"><li>Un écart à une règle UCM passe d'information à avertissement.
+</li><li>Le dépôt peut rendre bloquants certains écarts, sur option écrite dans
+ <code>ucm.config.json</code>, puisque le périmètre de <code>ucm check</code> se règle là.</li><li>Une règle que le designer a déclarée lui-même (nomenclature) reste-t-elle
+ en avertissement, même en full UCM ?</li></ul>
+<p class="petit"><b>Questions restantes.</b></p>
+<ol class="petit"><li>Le nom des deux périmètres : « libre » et « UCM », « standard » et
+ « full UCM », autre ?</li><li>Où chaque plugin range-t-il son périmètre ? <code>clientStorage</code> est propre à
+ un plugin et à un poste : le hub ne pourrait pas le lire. Une donnée rangée sur le fichier serait lisible par tous les plugins et suivrait le fichier.</li><li>Le référentiel s'adresse-t-il seulement au full UCM, ou aussi aux règles
+ déclarées en agnostique ?</li><li>Le passage de l'agnostique au full UCM est-il un geste réversible ?
+</li></ol>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>14. Le hub UCM : niveau d'adoption et étapes suivantes
+</h3>
+<p class="petit"><b>L'idée du mainteneur.</b> L'Architecte montre le niveau d'adoption d'UCM d'un fichier, les étapes suivantes et les outils à employer : il devient le hub qui guide une équipe vers un design system fiable.</p>
+<p class="petit">### 14.1 Ce que le hub peut lire depuis un fichier Figma</p>
+<table style="margin:8px 0"><tr><th>Signal</th><th>Source</th><th>Lisible par un autre plugin ?</th><th></th></tr><tr><td>Une recette de palettes existe</td><td>Espace partagé <code>ucm_palettes</code>, clé <code>recette</code></td><td>Oui, dans le fichier de la bibliothèque</td><td></td></tr><tr><td>Les palettes sont écrites en variables, à jour ou modifiées à la main</td><td>Suivi <code>ucm_palettes/variables</code>, marques sur chaque variable</td><td>Oui</td><td></td></tr><tr><td>Les collections suivent les couches</td><td>Association des collections aux couches</td><td>Oui, si l'Architecte la range sur le fichier</td><td></td></tr><tr><td><code>theme</code> est complet et vise les bonnes nuances</td><td>Variables, table du kit, recette</td><td>Oui</td><td></td></tr><tr><td>Une nomenclature est déclarée, et ses écarts</td><td>Déclaration de l'Architecte</td><td>Oui</td><td></td></tr><tr><td>Les propriétés des composants sont liées à des variables</td><td>Parcours des composants, page par page</td><td>Oui, au prix du chargement des pages</td><td></td></tr><tr><td>Chaque composant a ses règles d'usage</td><td>Instances de <code>.componentRules</code></td><td>Oui, même coût</td><td></td></tr><tr><td>Le dépôt est configuré, les tokens et contrats publiés</td><td>Réglages de l'exporteur, dans son <code>clientStorage</code></td><td>Non : propres à l'exporteur</td><td></td></tr><tr><td>La CI passe, le code suit les contrats</td><td>Le dépôt</td><td>Non, sans accès réseau</td><td></td></tr></table>
+<p class="petit">Deux limites découlent du tableau. L'exporteur ne range rien dans le document : c'est une loi de son code. Le hub ne voit donc pas l'état de la publication, sauf si cette loi change ou si le hub lit le dépôt lui-même, avec un jeton comme l'exporteur. L'API Plugin ne permet pas, à notre connaissance, d'ouvrir un autre plugin : le hub nomme l'outil, il ne le lance pas. Ce point est à vérifier.</p>
+<p class="petit">### 14.2 La forme du niveau d'adoption</p>
+<table style="margin:8px 0"><tr><th>Piste</th><th>Ce que le designer voit</th><th>Ce qu'elle suppose</th><th></th></tr><tr><td>Une échelle de niveaux</td><td>« Niveau 2 sur 5 »</td><td>Un ordre unique des étapes ; un fichier existant peut avoir des étapes avancées et des manques anciens. La revue recommande que les degrés d'adoption ne deviennent pas des étapes obligatoires</td><td></td></tr><tr><td>Une liste par domaine</td><td>Couleurs, architecture, noms, composants, publication, code : pour chacun, fait, en cours, à faire</td><td>Des domaines indépendants, cohérents avec un périmètre par outil</td><td></td></tr><tr><td>Une carte du parcours</td><td>Les produits UCM en schéma, chacun avec son état</td><td>Le parcours du designer (piste 1)</td><td></td></tr><tr><td>Aucun score</td><td>Des constats et des gestes, sans chiffre global</td><td>La règle de l'exporteur, qui exclut le scoring</td><td></td></tr></table>
+<p class="petit">### 14.3 Ce que chaque étape montrerait</p>
+<p class="petit">Pour une étape : l'état lu dans le fichier, la raison de l'étape pour la fiabilité, l'outil à ouvrir, le geste suivant, et ce que l'étape débloque. La rédaction de ces étapes est un contenu : elle attend les décisions.</p>
+<p class="petit">### 14.4 Le hub et les deux périmètres</p>
+<ul class="petit"><li>En agnostique, le hub montre les étapes génériques (variables liées,
+ noms cohérents, publication) sans jamais présenter l'absence d'UCM comme un manque.</li><li>En full UCM, il montre aussi la distance à l'architecture UCM.
+</li><li>Le périmètre se règle par outil : le hub pourrait montrer le périmètre de
+ chaque outil, s'il est rangé sur le fichier (piste 13, question 2).</li></ul>
+<p class="petit">### 14.5 Où vit le hub</p>
+<table style="margin:8px 0"><tr><th>Piste</th><th>Ce qu'elle apporte</th><th>Ce qu'elle coûte</th><th></th></tr><tr><td>L'écran d'accueil de l'Architecte</td><td>Un plugin de moins ; le bilan et le guide au même endroit</td><td>L'Architecte porte trois rôles : guider, vérifier, construire</td><td></td></tr><tr><td>Un petit plugin hub séparé</td><td>Le premier plugin à installer, léger, qui renvoie aux autres</td><td>Un cinquième plugin</td><td></td></tr><tr><td>Un fichier Community et une page de documentation</td><td>Rien à installer</td><td>Rien de lu dans le fichier : aucun état réel</td><td></td></tr><tr><td>Le rapport de <code>ucm check</code></td><td>L'état du dépôt, que Figma ne voit pas</td><td>Rien de lu dans Figma</td><td></td></tr></table>
+<p class="petit">Une combinaison possible : le hub dans Figma pour ce que le fichier montre, et le rapport de <code>ucm check</code> pour ce que le dépôt montre, chacun renvoyant à l'autre.</p>
+<p class="petit">### 14.6 Axes de recherche</p>
+<ul class="petit"><li>Les modèles de maturité des design systems publiés (Nathan Curtis,
+ Sparkbox) : leurs étapes, leurs critères, ce qu'ils mesurent.</li><li>Les outils qui affichent la santé d'un design system : Supernova,
+ zeroheight, les tableaux de bord d'adoption (Omlet, analytics de bibliothèque Figma).</li><li>L'API Plugin : ouvrir un autre plugin, lire l'analytics de bibliothèque.
+</li></ul>
+<p class="petit">### 14.7 Questions</p>
+<ol class="petit"><li>Le hub mesure-t-il un fichier, ou l'ensemble d'un design system
+ (bibliothèque et fichiers qui l'emploient) ?</li><li>Le hub montre-t-il l'état du dépôt, ce qui lui demande un accès réseau et
+ un jeton ?</li><li>L'exporteur peut-il ranger dans le document une trace de son dernier export
+ pour le hub, malgré sa loi actuelle ?</li></ol>
+</div>
+<div class="carte" style="margin-bottom:14px"><h3>15. Le cycle d'un changement entre Figma et le code
+</h3>
+<p class="petit"><b>La question.</b> La revue relève le manque principal du dossier : la demande de fusion est désignée comme le lieu d'accord, sans dire ce qui se passe en cas de désaccord. Exemple : le designer remplace <code>press</code> par <code>pressed</code> dans Figma ; le développeur refuse la publication tant que le code n'a pas migré. Les deux noms ont alors une fonction légitime.</p>
+<p class="petit"><b>Les quatre situations à distinguer</b>, quelle que soit leur représentation :</p>
+<table style="margin:8px 0"><tr><th>Situation</th><th>Où elle vit</th><th>Qui la fait avancer</th><th></th></tr><tr><td>Le travail en cours</td><td>Le fichier Figma</td><td>Le designer</td><td></td></tr><tr><td>Le changement proposé</td><td>Une demande de fusion ouverte</td><td>Le designer, qui la relit avec le développeur</td><td></td></tr><tr><td>La version acceptée</td><td>La branche principale d'un dépôt</td><td>Le développeur du dépôt</td><td></td></tr><tr><td>La version adoptée</td><td>Le code d'une application qui l'emploie</td><td>L'équipe de cette application</td><td></td></tr></table>
+<p class="petit"><b>Pistes.</b></p>
+<ul class="petit"><li>Le refus d'une proposition laisse trois suites au designer : la corriger,
+ différer la migration, ou garder le changement en préparation sans perdre l'état accepté.</li><li>Un changement cohérent pour le consommateur peut demander plusieurs
+ publications : tokens, contrats, puis code. L'unité de travail ne se règle pas sur la contrainte d'un fichier par export.</li><li>Une table de renommage explique la correspondance ; elle ne décide pas quand
+ l'ancien nom peut disparaître.</li><li>Avec plusieurs dépôts, une publication s'adopte à des moments différents.
+ Le premier périmètre peut se limiter à un dépôt, en l'annonçant.</li></ul>
+<p class="petit"><b>Questions.</b></p>
+<ol class="petit"><li>Quelle version un plugin montre-t-il : le travail en cours, ou la dernière
+ version acceptée ?</li><li>Le hub (piste 14) affiche-t-il ces quatre situations ?
+</li><li>Qui décide qu'un ancien nom peut disparaître ?
+</li></ol>
+<p class="petit"><b>Essai.</b> Un changement réel sur un composant de la bibliothèque Intencial, suivi de Figma jusqu'au code, en notant les désaccords, les informations perdues et les reprises manuelles.</p>
+</div>
+
+<footer>Sources : ARCHITECTURE-GLOBALE-UCM.md, PLAN-DE-RECHERCHE.md, PISTES-DE-REFLEXION.md, Recherches/LECTURE-DES-DOCUMENTS.md, Recherches/R2-REFERENTIEL.md, Recherches/R3-NOMENCLATURE.md, Recherches/R4-R6-DECLARATION-ET-BILAN.md, dans ce dossier.</footer>
+</main>
+</body>
+</html>
