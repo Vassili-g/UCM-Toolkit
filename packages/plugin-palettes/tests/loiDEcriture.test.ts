@@ -54,7 +54,8 @@ const API_DES_VARIABLES: { motif: RegExp; quoi: string }[] = [
 /** Ce qu'aucun fichier de `src/` n'appelle, écriture et interface comprises. */
 const INTERDITS: { motif: RegExp; quoi: string }[] = [
   { motif: /loadAllPagesAsync/, quoi: 'chargement de toutes les pages' },
-  { motif: /\b(get|create|import)\w*Style\w*\s*\(/, quoi: 'API de style' },
+  // `getComputedStyle` lit le style d'un élément de l'interface, pas un style Figma.
+  { motif: /\b(get|create|import)(?!ComputedStyle)\w*Style\w*\s*\(/, quoi: 'API de style' },
   { motif: /\.(fill|stroke|text|effect|grid)StyleId\b|set\w*StyleIdAsync/, quoi: 'API de style' },
 ];
 

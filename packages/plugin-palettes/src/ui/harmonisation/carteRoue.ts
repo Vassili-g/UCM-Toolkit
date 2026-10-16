@@ -11,8 +11,8 @@
  * La palette à régler montre sa course de ±30° et ses zones trop proches
  * (calculées comme celles de la carte « Réglages », au repos : un glisser garde
  * celles de son départ). Un arc ambre couvre les teintes de chaque paire trop
- * proche. La vision choisie repeint les points ; elle ne change ni la recette
- * ni les alertes.
+ * proche. La vision choisie repeint les points et l'anneau ; elle ne change
+ * ni la recette ni les alertes.
  *
  * Un glisser prévisualise une fois par image au plus, sa fin range, Échap rend
  * la palette d'avant. Les points sont des éléments durables, repositionnés à
@@ -37,8 +37,7 @@ import {
   type Refus,
 } from 'ucm-couleur';
 
-import { CENTRE_DE_LA_ROUE, HAUTEUR_DE_LA_ROUE, LARGEUR_DE_LA_ROUE, RAYON_DE_LA_ROUE, RAYON_DES_FAMILLES, arcDeLaPaire, arcDeLaRoue, palettesNommees, pointDeLaRoue, poserLesNoms, teinteDuPointeur, type PointDeLaRoue } from '../../roueDesTeintes';
-import { FAMILLES_DE_TEINTE } from '../../familles';
+import { EPAISSEUR_DE_L_ANNEAU, arcDeLaPaire, arcDeLaRoue, colonnesTiennent, couleurDeLAnneau, geometrieDeLaRoue, palettesNommees, pointDeLaRoue, poserLesNoms, teinteDuPointeur, type PointDeLaRoue } from '../../roueDesTeintes';
 import type { EtatHarmonisation } from '../../harmonisation';
 import { CURSEURS, valeursDesProfils } from '../../reglagesParDefaut';
 import { simulerLaVision, VISIONS, type Vision } from '../../vision';
@@ -78,9 +77,6 @@ const SVG = 'http://www.w3.org/2000/svg';
 /** Le numéro de nuance dont la teinte place le point ; une grille qui ne le porte pas prend le numéro le plus proche. */
 const CRAN_DU_POINT = 700;
 
-/** Les couleurs de la plaque, par thème : le trait du cercle, le nom des familles, l'ambre des paires trop proches. */
-const CERCLE: Readonly<Record<Mode, string>> = { light: '#D9D9D9', dark: '#3A3A3A' };
-const FAMILLES: Readonly<Record<Mode, string>> = { light: '#9A9A9A', dark: '#7A7A7A' };
 const AMBRE: Readonly<Record<Mode, string>> = { light: '#C77A00', dark: '#F3B53F' };
 
 /** Les flèches vers les degrés croissants (+1) et décroissants (−1). */
@@ -123,7 +119,7 @@ interface Glisser {
 function construireVues(i18n: Localisation) {
   const { calculerLaCourseEtLesZones } = creerVuesCourseEtZones(i18n);
   const { ecrire } = outilsDesGrandeurs(i18n);
-  const { TEXTES_DE_L_HARMONISATION: { roue: TEXTES }, TEXTES_DES_REGLAGES, nomDeLaPalette, texteDuRefus } = i18n.messages;
+  const { TEXTES_DE_L_HARMONISATION: { roue: TEXTES }, nomDeLaPalette, texteDuRefus } = i18n.messages;
 
   /** Une palette sur la roue : colorée, comme celles que les paires comparent. Une palette libre y paraît comme les autres. */
   const estSurLaRoue = (palette: Palette): boolean => rgb8VersOklch(referenceDe(palette)).C > CHROMA_DES_PALETTES_COLOREES;
@@ -155,19 +151,18 @@ function construireVues(i18n: Localisation) {
     choix.append(libelle, selection);
     carte.poserLesChoix({ element: choix });
 
-    const plaque = noeud('svg', { width: LARGEUR_DE_LA_ROUE, height: HAUTEUR_DE_LA_ROUE, viewBox: `0 0 ${LARGEUR_DE_LA_ROUE} ${HAUTEUR_DE_LA_ROUE}`, role: 'group' });
+    const plaque = noeud('svg', { role: 'group' });
     plaque.setAttribute('class', 'roue plaque');
     i18n.lier(plaque, 'aria-label', TEXTES.titre);
-    const cercle = noeud('circle', { cx: CENTRE_DE_LA_ROUE.x, cy: CENTRE_DE_LA_ROUE.y, r: RAYON_DE_LA_ROUE, fill: 'none' });
-    const noms = FAMILLES_DE_TEINTE.map(({ famille, centre }) => {
-      const { x, y } = pointDeLaRoue(centre, RAYON_DES_FAMILLES);
-      const texte = noeud('text', { x, y: y + 3, 'text-anchor': 'middle' });
-      texte.setAttribute('class', 'roue-famille');
-      i18n.lier(texte, 'textContent', TEXTES_DES_REGLAGES.familles[famille]);
-      return texte;
-    });
-    const couches = { course: noeud('g'), paires: noeud('g'), points: noeud('g'), noms: noeud('g') };
-    plaque.append(cercle, ...noms, couches.course, couches.paires, couches.points, couches.noms);
+    const definitions = noeud('defs');
+    const hachures = noeud('pattern', { id: 'roue-hachures', width: 4, height: 4, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' });
+    const rayure = noeud('rect', { width: 2, height: 4 });
+    hachures.append(rayure);
+    definitions.append(hachures);
+    const anneau = Array.from({ length: 90 }, () => noeud('path', { fill: 'none', 'stroke-width': EPAISSEUR_DE_L_ANNEAU }));
+    const couches = { anneau: noeud('g'), course: noeud('g'), paires: noeud('g'), traits: noeud('g'), points: noeud('g'), noms: noeud('g') };
+    couches.anneau.append(...anneau);
+    plaque.append(definitions, ...Object.values(couches));
 
     const erreur = document.createElement('p');
     erreur.className = 'field-error';
@@ -179,6 +174,10 @@ function construireVues(i18n: Localisation) {
     let pairesLues: readonly PaireTropProche[] = [];
     let enGesteDeLOnglet = false;
     let glisser: Glisser | null = null;
+    let geometrie = geometrieDeLaRoue(0);
+    let largeurDessinee = 0;
+    let modeDeLAnneau: Mode | null = null;
+    let visionDeLAnneau: Vision | null = null;
     /** La course et les zones du dernier rendu au repos : un glisser garde celles de son départ. */
     let calcule: CourseEtZones | null = null;
     let calculePour: string | null = null;
@@ -186,6 +185,17 @@ function construireVues(i18n: Localisation) {
     const elementsDesPoints = new Map<string, SVGCircleElement>();
     let points: readonly PointCalcule[] = [];
     const apercu = creerPrevisualisationParImage((palette) => gestes.previsualiser(palette));
+
+    function largeurDuCorps(): number {
+      const style = getComputedStyle(carte.corps);
+      return Math.round(carte.corps.clientWidth - Number.parseFloat(style.paddingLeft) - Number.parseFloat(style.paddingRight));
+    }
+
+    new ResizeObserver(() => {
+      if (!lue || !vue || glisser || enGesteDeLOnglet || !carte.estOuverte()) return;
+      const largeur = largeurDuCorps();
+      if (largeur > 0 && largeur !== largeurDessinee) dessiner(lue, vue);
+    }).observe(carte.corps);
 
     function signaler(texte: Texte | null): void {
       i18n.lier(erreur, 'textContent', texte ?? '');
@@ -201,7 +211,7 @@ function construireVues(i18n: Localisation) {
         const teinte = nuances[rangDuPoint(recette, palette)].H;
         const plein = couleurDuRole(recette, palette, 'solid/default', etat.mode, etat.intensite) ?? nuances[rangDuPoint(recette, palette)].hexa;
         const rgb = lireHexa(plein);
-        return { palette, teinte, position: pointDeLaRoue(teinte), couleur: rgb ? ecrireHexa(simulerLaVision(rgb, etat.vision)) : plein };
+        return { palette, teinte, position: pointDeLaRoue(teinte, geometrie.rayon, geometrie.centre), couleur: rgb ? ecrireHexa(simulerLaVision(rgb, etat.vision)) : plein };
       });
     }
 
@@ -219,7 +229,7 @@ function construireVues(i18n: Localisation) {
       return calcule;
     }
 
-    function dessinerLaCourse(recette: Recette, etat: EtatHarmonisation, encre: string, ambre: string): void {
+    function dessinerLaCourse(recette: Recette, etat: EtatHarmonisation, encre: string): void {
       couches.course.replaceChildren();
       const palette = recette.palettes.find(({ id }) => id === etat.regler);
       const point = points.find((candidat) => candidat.palette.id === palette?.id);
@@ -228,11 +238,12 @@ function construireVues(i18n: Localisation) {
       if (!resultat) return;
       const t = valeursDesProfils(recette, palette)[profilVu(palette, etat)].teinte;
       const borne = CURSEURS.teinte.max;
-      couches.course.append(noeud('path', { d: arcDeLaRoue(point.teinte - (t + borne), point.teinte + (borne - t)), fill: 'none', stroke: encre, 'stroke-width': 12, opacity: 0.12 }));
+      const rayon = geometrie.rayon - 14;
+      couches.course.append(noeud('path', { d: arcDeLaRoue(point.teinte - (t + borne), point.teinte + (borne - t), rayon, geometrie.centre), fill: 'none', stroke: encre, 'stroke-width': 6, 'stroke-opacity': 0.18, 'stroke-linecap': 'round' }));
       for (const { debut, fin } of resultat.zones) {
         const de = point.teinte + (Math.max(-borne, debut - 0.5) - t);
         const a = point.teinte + (Math.min(borne, fin + 0.5) - t);
-        couches.course.append(noeud('path', { d: arcDeLaRoue(de, a), fill: 'none', stroke: ambre, 'stroke-width': 12, opacity: 0.9, 'stroke-dasharray': '2 2' }));
+        couches.course.append(noeud('path', { d: arcDeLaRoue(de, a, rayon, geometrie.centre), fill: 'none', stroke: 'url(#roue-hachures)', 'stroke-width': 6 }));
       }
     }
 
@@ -243,7 +254,7 @@ function construireVues(i18n: Localisation) {
         const [a, b] = paire.palettes.map((id) => points.find((point) => point.palette.id === id));
         if (!a || !b) continue;
         paire.palettes.forEach((id) => enPaire.add(id));
-        const arc = noeud('path', { d: arcDeLaPaire(a.teinte, b.teinte), fill: 'none', stroke: ambre, 'stroke-width': 10, 'stroke-linecap': 'round', opacity: 0.5 });
+        const arc = noeud('path', { d: arcDeLaPaire(a.teinte, b.teinte, geometrie.rayon + 13, geometrie.centre), fill: 'none', stroke: ambre, 'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-opacity': 0.75 });
         const titre = noeud('title');
         i18n.lier(titre, 'textContent', TEXTES.paireTropProche(nomDeLaPalette(a.palette), nomDeLaPalette(b.palette)));
         arc.append(titre);
@@ -281,10 +292,10 @@ function construireVues(i18n: Localisation) {
         poser(element, {
           cx: position.x,
           cy: position.y,
-          r: cochee ? 7 : 5,
+          r: cochee ? 9 : 7,
           fill: couleur,
-          stroke: enPaire.has(palette.id) ? ambre : cochee ? encre : fond,
-          'stroke-width': cochee || enPaire.has(palette.id) ? 2 : 1,
+          stroke: cochee ? encre : enPaire.has(palette.id) ? ambre : fond,
+          'stroke-width': cochee || enPaire.has(palette.id) ? 2.5 : 2,
           'aria-valuenow': teinte,
           'aria-disabled': String(figee),
           tabindex: figee ? -1 : 0,
@@ -297,25 +308,47 @@ function construireVues(i18n: Localisation) {
     }
 
     function dessinerLesNoms(etat: EtatHarmonisation, encre: string, ambre: string, enPaire: ReadonlySet<string>): void {
-      const nommees = palettesNommees(points.map(({ palette }) => palette.id), etat.cochees, enPaire);
+      const aDroite = points.filter(({ teinte }) => teinte < 180).length;
+      const nommees = colonnesTiennent(Math.max(aDroite, points.length - aDroite), geometrie)
+        ? new Set(points.map(({ palette }) => palette.id))
+        : palettesNommees(points.map(({ palette }) => palette.id), etat.cochees, enPaire);
       const aNommer = points.filter(({ palette }) => nommees.has(palette.id));
-      const places = poserLesNoms(aNommer.map(({ position }) => position));
-      couches.noms.replaceChildren(...aNommer.map(({ palette }, rang) => {
-        const { x, y, ancre } = places[rang];
-        const texte = noeud('text', { x, y, 'text-anchor': ancre, fill: enPaire.has(palette.id) ? ambre : encre });
+      const textes = aNommer.map(({ palette }) => {
+        const cochee = etat.cochees.includes(palette.id);
+        const texte = noeud('text', { fill: enPaire.has(palette.id) ? ambre : cochee ? encre : etat.mode === 'light' ? '#5E5E5E' : '#A0A0A0' });
+        texte.style.fontWeight = cochee ? '700' : '600';
         texte.textContent = nomDeLaPalette(palette);
         return texte;
+      });
+      couches.noms.replaceChildren(...textes);
+      const places = poserLesNoms(aNommer.map(({ teinte }, rang) => ({ teinte, largeurDuNom: textes[rang].getComputedTextLength() || textes[rang].textContent!.length * 6.4 })), geometrie);
+      couches.traits.replaceChildren(...places.map(({ x, y, ancre, trait }, rang) => {
+        poser(textes[rang], { x, y, 'text-anchor': ancre });
+        return noeud('polyline', { points: trait, fill: 'none', stroke: enPaire.has(aNommer[rang].palette.id) ? ambre : etat.mode === 'light' ? '#A0A0A0' : '#5E5E5E', 'stroke-width': 1 });
       }));
     }
 
     function dessiner(recette: Recette, etat: EtatHarmonisation): void {
       const { mode } = etat;
+      if (!glisser && !enGesteDeLOnglet) {
+        const largeur = largeurDuCorps();
+        if (largeur > 0) {
+          largeurDessinee = largeur;
+          geometrie = geometrieDeLaRoue(largeur);
+        }
+      }
+      poser(plaque, { width: geometrie.largeur, height: geometrie.hauteur, viewBox: `0 0 ${geometrie.largeur} ${geometrie.hauteur}` });
       const [encre, ambre, fond] = [ENCRE_D_APERCU[mode], AMBRE[mode], recette.fonds[mode]];
       plaque.style.background = fond;
-      cercle.setAttribute('stroke', CERCLE[mode]);
-      for (const nom of noms) nom.setAttribute('fill', FAMILLES[mode]);
+      rayure.setAttribute('fill', ambre);
+      anneau.forEach((arc, rang) => {
+        arc.setAttribute('d', arcDeLaRoue(rang * 4, rang * 4 + 4.6, geometrie.rayon, geometrie.centre));
+        if (mode !== modeDeLAnneau || etat.vision !== visionDeLAnneau) arc.setAttribute('stroke', ecrireHexa(simulerLaVision(couleurDeLAnneau(rang * 4, mode), etat.vision)));
+      });
+      modeDeLAnneau = mode;
+      visionDeLAnneau = etat.vision;
       points = calculerLesPoints(recette, etat);
-      dessinerLaCourse(recette, etat, encre, ambre);
+      dessinerLaCourse(recette, etat, encre);
       const enPaire = dessinerLesPaires(ambre);
       dessinerLesPoints(recette, etat, encre, ambre, fond, enPaire);
       dessinerLesNoms(etat, encre, ambre, enPaire);
@@ -337,9 +370,9 @@ function construireVues(i18n: Localisation) {
     /** L'écart de teinte, entier, que le pointeur demande, borné par la course. */
     function ecartVise(en: Glisser, evenement: PointerEvent): number {
       const cadre = plaque.getBoundingClientRect();
-      const [echelleX, echelleY] = [cadre.width / LARGEUR_DE_LA_ROUE, cadre.height / HAUTEUR_DE_LA_ROUE];
-      const dx = evenement.clientX - (cadre.left + CENTRE_DE_LA_ROUE.x * echelleX);
-      const dy = evenement.clientY - (cadre.top + CENTRE_DE_LA_ROUE.y * echelleY);
+      const [echelleX, echelleY] = [cadre.width / geometrie.largeur, cadre.height / geometrie.hauteur];
+      const dx = (evenement.clientX - cadre.left) / echelleX - geometrie.centre.x;
+      const dy = (evenement.clientY - cadre.top) / echelleY - geometrie.centre.y;
       const ecart = Math.round(ecartAngulaire(en.teinteAuDepart, teinteDuPointeur(dx, dy)));
       return Math.min(en.course.haut, Math.max(en.course.bas, ecart));
     }

@@ -2543,9 +2543,8 @@
 }
 
 /*
- * La carte « Roue des teintes » : un SVG de 420 × 256 sur le fond de page de
- * l'aperçu. Les couleurs du cercle, des familles et de l'ambre dépendent du
- * thème de l'aperçu, que la carte pose en attributs.
+ * La carte « Roue des teintes » : un SVG à la largeur de la carte, sur le fond
+ * de page de l'aperçu. La carte pose les couleurs du thème en attributs.
  */
 .plaque {
   display: block;
@@ -2554,11 +2553,7 @@
 }
 
 .roue text {
-  font: 600 9.5px Inter, sans-serif;
-}
-
-.roue .roue-famille {
-  font-weight: 400;
+  font: 600 11px Inter, sans-serif;
 }
 
 .roue-point {
