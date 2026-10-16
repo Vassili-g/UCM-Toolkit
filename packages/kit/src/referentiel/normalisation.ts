@@ -1,4 +1,8 @@
-/** Propose des noms logiques ; le plugin conserve les identifiants techniques des propriétés Figma. */
+/**
+ * Propose des noms logiques ; le plugin conserve les identifiants techniques des propriétés Figma.
+ *
+ * Après une modification : relancer `npm test` et changer la version du kit ; aucune vue ni planche n'en tire de données.
+ */
 import { COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
 import { CATEGORIES_DE_NOM, type Casse, type Separateur, type Convention, type NomANormaliser, type ConventionsParCategorie, type CategorieDeNom } from './conventions.js';
 import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';

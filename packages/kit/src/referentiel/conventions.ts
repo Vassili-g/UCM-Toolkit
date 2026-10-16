@@ -1,4 +1,8 @@
-/** Les conventions de nommage choisies par catégorie, sans dépendance à Figma. */
+/**
+ * Les conventions de nommage choisies par catégorie, sans dépendance à Figma.
+ *
+ * Après une modification : relancer `npm test` et changer la version du kit ; aucune vue ni planche n'en tire de données.
+ */
 import type { Registre } from './termes.js';
 
 export type Casse = 'minuscules' | 'initiale' | 'camelCase' | 'PascalCase' | 'inchangee';

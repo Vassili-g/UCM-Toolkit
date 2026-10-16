@@ -1,4 +1,8 @@
-/** Les conseils d'implémentation ne déclarent aucun champ normatif du contrat. */
+/**
+ * Les conseils d'implémentation ne déclarent aucun champ normatif du contrat.
+ *
+ * Après une modification : relancer `npm test`, régénérer la vue illustrée (`generer-donnees-referentiel.ts`) (elle en tire les recommandations), et changer la version du kit.
+ */
 import type { Langues } from './termes.js';
 
 export type DeclencheurDeRecommandation = 'focus' | 'etats';

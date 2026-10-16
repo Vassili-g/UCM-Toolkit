@@ -1,4 +1,8 @@
-/** Les responsabilités des produits UCM et l'adresse de la recette partagée dans Figma. */
+/**
+ * Les responsabilités des produits UCM et l'adresse de la recette partagée dans Figma.
+ *
+ * Après une modification : relancer `npm test`, régénérer la vue illustrée (`generer-donnees-referentiel.ts`) (elle en tire les produits), et changer la version du kit.
+ */
 import type { Langues } from './termes.js';
 
 /** L'adresse partagée survit à un changement d'identifiant du plugin Palettes. */

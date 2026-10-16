@@ -1,4 +1,8 @@
-/** Les collections UCM et les formes de leurs chemins, hors propriétés propres aux composants. */
+/**
+ * Les collections UCM et les formes de leurs chemins, hors propriétés propres aux composants.
+ *
+ * Après une modification : relancer `npm test`, régénérer la vue illustrée (`generer-donnees-referentiel.ts`) (elle en tire les collections et leurs cibles), et changer la version du kit.
+ */
 import { NIVEAUX_D_ELEVATION_DU_THEME, VARIABLES_DE_PALETTE, VARIABLES_DU_NEUTRE, VARIABLES_GLOBALES } from '../emplois/dossiers.js';
 import type { Registre } from './termes.js';
 import { termeRetenu } from './termes.js';
