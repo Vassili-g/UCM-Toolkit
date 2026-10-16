@@ -34,7 +34,8 @@ test('la fenêtre a sa propre clé et borne les tailles invalides', () => {
   assert.deepEqual(tailleValide({ largeur: 0, hauteur: NaN }), { largeur: 360, hauteur: 720 });
 });
 test('les classes du socle ont leur règle et la feuille ne contient aucune couleur hors des rôles', () => {
-  const source = lire('src/ui/index.ts') + sourcesDuSocle().map((fichier) => fs.readFileSync(fichier, 'utf8')).join('\n');
+  const sourcesUi = fs.readdirSync(path.join(racine, 'src/ui')).filter((nom) => nom.endsWith('.ts')).map((nom) => lire(`src/ui/${nom}`));
+  const source = sourcesUi.join('\n') + sourcesDuSocle().map((fichier) => fs.readFileSync(fichier, 'utf8')).join('\n');
   const feuille = lire('src/ui/styles.css');
   const entrees = { source, feuille: feuilleDuSocle() + feuille, valeursDeGabarit: { variant: () => variantesDeBouton(source) }, poseesParLHote: new Set(['figma-dark']) };
   assert.deepEqual(classesSansRegle(entrees), []);
