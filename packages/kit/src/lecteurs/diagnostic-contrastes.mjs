@@ -15,6 +15,7 @@
  * faux signal reste une information. Le diagnostic ne bloque jamais la fusion.
  */
 import { aDixDecimales, atteintLeSeuil, contraste } from "@ucm-kit/core/emplois";
+import { SEUILS_PAR_ROLE } from "@ucm-kit/core/referentiel";
 
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
 import { axesDeTokens, conesDesAxes, valeurDansLeContexte } from "./modes-tokens.mjs";
@@ -25,7 +26,7 @@ import { vueExacteDuVariant } from "./variant-views.mjs";
 const CONTEXTES_AU_PLUS = 32;
 
 /** Le contraste que chaque rôle de couleur doit atteindre contre son fond. */
-const SEUILS = { foreground: 4.5, icon: 4.5, border: 3, ring: 3 };
+const SEUILS = SEUILS_PAR_ROLE;
 
 const ROLES_DE_PEINTURE = new Set(["background", "foreground", "icon"]);
 const ROLES_DE_CONTOUR = new Set(["border", "ring"]);
