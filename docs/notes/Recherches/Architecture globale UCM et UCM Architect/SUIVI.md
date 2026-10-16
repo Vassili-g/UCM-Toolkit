@@ -37,7 +37,7 @@ chaque intégration reste ouvert (question 3 de la proposition).
 ## Les documents du dossier
 
 ```text
-Architecture globale UCM/
+Architecture globale UCM et UCM Architect/
   VERSION-MINIMALE.md           la direction retenue, à lire en premier
   ARCHITECTURE-GLOBALE-UCM.md   la proposition complète, pistes pour plus tard
   PLAN-DE-RECHERCHE.md          les sujets R1 à R13 et le corpus C1 à C6
