@@ -802,7 +802,7 @@ du paquet porte les dix-sept rampes de onze crans.
   « Dupliquer la palette » et « Supprimer la palette ». Une palette créée ou
   importée s'ajoute à la fin de la recette, dont l'ordre range les cadres de
   la planche (`[PLA-05]`) ; les onglets montrent les palettes par teinte
-  (Création, Harmonisation) ou par nom (Gestion), par `ordreParTeinte` et
+  (Création, Comparaison) ou par nom (Gestion), par `ordreParTeinte` et
   `ordreAlphabetique` (`src/ordreDesPalettes.ts`). Supprimer une palette ne
   supprime pas son cadre de la planche : l'onglet Gestion montre le cadre
   comme celui d'une palette supprimée, que « Supprimer définitivement »
@@ -1501,24 +1501,30 @@ garantie par ses variables et son libellé, jamais par son numéro.
 | Alerte | Mesure | Seuil | Portée |
 |---|---|---|---|
 | Profils confondus | ΔEok entre `soft` et `vivid`, même cran et même mode, sur les cinq fonds que juge `[VER-11]`, dans le sens de chaque thème ; l'alerte sonne à trois | `profilsConfondus` | chaque palette du modèle à deux intensités, sauf des profils ternes par construction (`[ENT-09]`) |
-| Palettes proches | la plus petite des ΔEok entre deux palettes sur le plein en Light, le plein en Dark et le texte du fond teinté en Light (`[VER-22]`) | `palettesProches` | chaque paire de palettes colorées, ni libres ni figées |
+| Palettes proches | le plus petit rapport entre la ΔEok de deux palettes et le seuil de son rôle, sur le plein et le fond teinté, en Light et en Dark (`[VER-22]`) | `palettesProches` | chaque paire de palettes colorées, ni libres ni figées |
 | Référence plus terne que `soft` | part de la référence inférieure à la part de `soft` | sans seuil | chaque palette à deux intensités aux parts du designer |
 | Fond hors de la courbe | [section 8.2](#82-les-fonds-de-référence) | sans seuil | chaque fond |
 
 - `[VER-17]` « Palettes proches » lit une palette à deux intensités dans
   Vivid, et une palette à une intensité dans sa rampe unique (`[VER-22]`).
   Soft n'entre pas dans la comparaison.
-- `[VER-22]` « Palettes proches » compare deux palettes colorées sur trois
-  couleurs : `solid/default` en Light, `solid/default` en Dark et
-  `surface/foreground` en Light. Chaque cran vient de la table des rôles, dans
-  le sens de chaque thème (`cranDeLaVariable`), lu dans la liste de la palette.
-  Le texte des fonds en Dark (cran 950, presque blanc) n'entre pas dans la
-  comparaison. Une palette est colorée quand la chroma OKLCH de sa référence
-  dépasse 0,05 (`CHROMA_DES_PALETTES_COLOREES`). Une paire est comparée seulement
-  si les deux palettes sont colorées, ni libres (liste de numéros propre) ni
-  figées, et portent ces crans. Le constat garde la plus petite des trois
-  distances, avec son rôle (plein ou texte) et son thème ; la paire est trop
-  proche sous `palettesProches`, et presque identique sous 0,01.
+- `[VER-22]` « Palettes proches » compare deux palettes colorées sur quatre
+  couleurs : `solid/default` (rôle `plein`) et `surface/default` (rôle `fond`),
+  chacun en Light et en Dark. Chaque cran vient de la table des rôles, dans le
+  sens de chaque thème (`cranDeLaVariable`), lu dans la liste de la palette.
+  Le texte des fonds teintés n'entre pas dans la comparaison. Une palette est
+  colorée quand la chroma OKLCH de sa référence dépasse 0,05
+  (`CHROMA_DES_PALETTES_COLOREES`). Une paire est comparée seulement si les
+  deux palettes sont colorées, ni libres (liste de numéros propre) ni figées,
+  et portent ces crans. Les fonds teintés, pâles, se comparent à
+  `PART_DU_SEUIL_DES_FONDS` (0,2) du seuil `palettesProches`, soit 0,010 par
+  défaut ; les pleins se comparent au seuil entier (`seuilDeProximite`). Le
+  constat garde, parmi les quatre couleurs, celle dont le rapport distance sur
+  seuil est le plus petit (la première à égalité, dans l'ordre plein Light,
+  plein Dark, fond Light, fond Dark), avec son rôle, son thème et son seuil.
+  La paire est trop proche quand la distance est sous le seuil du rôle retenu
+  (`tropProche`), et presque identique sous 20 % de ce seuil. Le seuil des
+  fonds n'a pas de champ dans la recette.
 - `[VER-08]` Une alerte n'empêche rien. Elle dit ce qui ressemble, manque ou
   change, et mène au réglage qui la lève. Son message ne porte aucune ligne
   de mesure : la valeur et le seuil se lisent dans le rapport
@@ -1822,7 +1828,7 @@ Teinte −7,5° / +5,1° · Saturation −40 % / 0 % · synchronisé ».
   ou à la sortie de la fenêtre quand la capture est perdue ; après lui, un
   survol ne redimensionne rien. Le sandbox n'applique qu'une taille qui
   change, et ne range la taille qu'une fois, à la fin du geste.
-- `[UI-02]` Quatre onglets, **Création**, **Vérification**, **Harmonisation**
+- `[UI-02]` Quatre onglets, **Création**, **Vérification**, **Comparaison**
   et **Gestion**, et un bouton « Configuration » dans l'en-tête, qui ouvre la
   Configuration (section 8.3) comme celui d'UCM Exporter ouvre sa
   configuration. Le
@@ -2275,6 +2281,13 @@ palette » gardent leurs libellés au-dessus des champs.
      se coupe pas ;
   5. les messages s'annoncent au lecteur d'écran une fois, à la fin du geste.
 
+  Dans l'onglet Comparaison, la liste des paires et la liste des constats de
+  la carte « Aperçu » gardent leur plus grande hauteur depuis l'entrée dans
+  l'onglet (`data-hauteur-tenue`, `tenirLesHauteurs`) : un constat qui
+  raccourcit ou une rangée qui se sépare ne remonte pas les réglettes. Une
+  zone qui grandit pour une information nouvelle reste visible. L'entrée dans
+  l'onglet efface ces hauteurs ; une zone dans une carte repliée n'en prend pas.
+
   L'état du geste se pose à un seul endroit, celui où la prévisualisation et
   la validation passent. Un test d'interface Chromium glisse les curseurs de
   la carte « Réglage global », une poignée et une réglette du Color shift sur
@@ -2372,7 +2385,7 @@ palette » gardent leurs libellés au-dessus des champs.
   l'interface, sans requête.
 - `[UI-06]` Le sélecteur de palette liste chaque palette par son nom ou son
   hexa, avec une pastille de sa référence, par teinte comme la liste
-  d'Harmonisation (`[UI-40]`) ; le nuancier de l'accueil suit le même ordre.
+  de Comparaison (`[UI-40]`) ; le nuancier de l'accueil suit le même ordre.
   À l'ouverture du plugin, aucune palette n'est choisie : le sélecteur dit
   « Sélectionner une palette », le menu « … » se cache, et sous le filet se
   lisent le titre de premier rang « Choisissez une palette » et une phrase
@@ -2486,15 +2499,15 @@ Onglet Vérification :
   trouvent que dans la carte.
 - `[VER-23]` Dans le bilan, la ligne d'une palette trop proche d'une autre
   (constat « trop proche de [nom] ») porte un lien « Comparer » à la place de
-  « Vérifier » : il ouvre Harmonisation avec la paire cochée, comme le bouton
+  « Vérifier » : il ouvre Comparaison avec la paire cochée, comme le bouton
   « Comparer » de la carte « Palettes trop proches » (`comparerLaPaire`,
   `[UI-40]`). La paire est la plus proche de la palette, celle que le constat
   nomme. Une ligne dont le constat est une garantie manquée ou une alerte de
   la palette garde « Vérifier ».
 
-Onglet Harmonisation :
+Onglet Comparaison :
 
-- `[UI-39]` Harmonisation se place entre Vérification et Gestion, indisponible
+- `[UI-39]` Comparaison se place entre Vérification et Gestion, indisponible
   sous deux palettes. Son compteur ambre donne le nombre de paires trop proches
   et disparaît à zéro. Le titre précède les choix Soft/Vivid et Light/Dark,
   sans libellé visible. Une ligne fixe de 24 px donne le nombre de paires,
@@ -2511,10 +2524,18 @@ Onglet Harmonisation :
   l'en-tête et le compteur sont dans `src/ui/ongletHarmonisation.ts`.
 
 - `[UI-40]` La carte « Palettes trop proches » paraît s'il existe une paire :
-  une rangée par paire de `pairesTropProches`, par distance croissante, avec
-  deux pastilles « Aa » sur le fond de page du thème du constat (plein et son
-  texte, ou fond teinté et son texte, en Vivid ou l'unique intensité), les deux
-  noms, le constat et « Comparer ». « Comparer » coche la paire seule, passe
+  une rangée par paire de `pairesTropProches`, par rapport distance sur seuil
+  croissant (`[VER-22]`), avec deux pastilles « Aa » sur le fond de page du
+  thème du constat (plein et son texte, ou fond teinté et son texte, en Vivid
+  ou l'unique intensité), les deux noms, le constat (« Boutons pleins trop
+  proches » ou « Fonds teintés trop proches », avec le thème) et « Comparer ».
+  Une paire que le réglage sépare garde sa rangée jusqu'à la sortie de
+  l'onglet : la rangée s'atténue et son texte devient « Se distinguent
+  maintenant », en ton de succès, et « Comparer » reste. Les rangées suivent
+  l'ordre d'apparition des paires depuis l'entrée dans l'onglet
+  (`pairesDeLaVisite`, `retenirLesPaires`), et l'entrée vide cette liste. La
+  carte se cache quand il n'y a ni paire ni rangée gardée ; son résumé compte
+  les paires encore trop proches. « Comparer » coche la paire seule, passe
   l'aperçu au thème du constat et met dans `regler` la palette de plus petite
   `sortieLaPlusProche` en valeur absolue, la palette A à égalité ou sans sortie
   de l'une et de l'autre. Il garde l'intensité, l'affichage et les réglages, et
@@ -2526,7 +2547,7 @@ Onglet Harmonisation :
   s'ouvre à mi-chemin des familles rose et rouge (14,5°). Deux teintes égales
   gardent l'ordre de la recette, et les palettes sans teinte (chroma de la
   référence au plus 0,05) viennent à la fin, dans l'ordre de la recette. Les
-  cartes « Comparaison » et « Réglages » rangent les cochées dans cet ordre.
+  cartes « Aperçu » et « Réglages » rangent les cochées dans cet ordre.
   Un glisser garde l'ordre de son départ : aucune rangée ne change de place
   sous le pointeur, et l'ordre suit la nouvelle teinte à la fin du geste.
   Le pied dit le nombre de palettes cochées et leur refus au-delà de quatre, et
@@ -2534,7 +2555,7 @@ Onglet Harmonisation :
   `src/ui/harmonisation/cartePaires.ts` et `carteListe.ts`, le choix de la
   palette à régler dans `paletteARegler` (`src/harmonisation.ts`).
 
-- `[UI-41]` La carte « Comparaison » paraît dès deux palettes cochées. Une
+- `[UI-41]` La carte « Aperçu » paraît dès deux palettes cochées. Une
   surface au fond de page du thème de l'aperçu, d'encre `#1E1E1E` en Light et
   `#F2F2F2` en Dark, aligne sous les numéros de la recette les nuances de
   chaque cochée, par teinte (`[UI-40]`), dans l'intensité et le thème de
@@ -2547,8 +2568,10 @@ Onglet Harmonisation :
   surface par `grisDeMemeClarte` ; le texte des boutons pleins reste blanc ou
   noir ; la liste, les pastilles des paires et les constats gardent leurs
   couleurs. Les constats, dans l'ordre : une ligne d'avertissement par paire
-  cochée trop proche, ou « Ces palettes se distinguent, en Light et en Dark. »
-  quand aucune ne l'est ; puis, parmi les cochées colorées (ni libres, ni
+  cochée trop proche ; une ligne de succès « … se distinguent maintenant. »
+  (constat `separee`) pour chaque paire cochée qui était trop proche depuis
+  l'entrée dans l'onglet et ne l'est plus ; « Ces palettes se distinguent, en
+  Light et en Dark. » quand il n'y a ni l'une ni l'autre ; puis, parmi les cochées colorées (ni libres, ni
   figées, chroma de la référence au-dessus de 0,05), une ligne d'information
   quand la saturation de l'intensité vue s'étale de 0,20 ou plus, et une quand
   sa luminosité s'étale de 0,01 ou plus. Une paire que `paletteARegler` rend
@@ -2566,7 +2589,9 @@ Onglet Harmonisation :
   luminosité ne touchent que l'intensité vue, par `reglerSaturation` et
   `reglerClarte`. Une palette à une intensité règle sa seule rampe. Sur la
   piste de teinte, `zonesTropProches` contre chaque autre cochée hachure les
-  valeurs trop proches et le champ porte un cerne tant que la valeur y tombe,
+  valeurs trop proches, dès l'arrivée sur la palette et même quand la paire
+  est séparée à sa position actuelle, et le champ porte un cerne tant que la
+  valeur y tombe,
   et `courseDeTeinte` borne la piste : la course que les garanties refusent se
   lit comme hors de la piste. Sur les deux autres pistes, un point marque la
   valeur de chaque autre cochée. La course et les zones se calculent au repos ;
@@ -2576,12 +2601,14 @@ Onglet Harmonisation :
   d'avant. Une palette figée affiche « Palette figée : ses couleurs ne se
   règlent pas. » à la place des réglettes. Le départ d'une palette est la
   palette au premier réglage depuis l'entrée dans l'onglet, par identifiant.
-  « Annuler les modifications » paraît quand la palette réglée en diffère
-  (teinte de 0,5° ou plus, saturation de 0,005, luminosité de 0,0005) et lui
+  « Annuler les modifications » reste affiché, inactif tant que la palette
+  réglée ne diffère pas de son départ (teinte de 0,5° ou plus, saturation de
+  0,005, luminosité de 0,0005) ; une palette figée le cache. Actif, il lui
   rend la référence, `originale`, `base`, `reglages` et `parts` de ce départ,
   à elle seule, par la frontière, sans appeler `annulerLesModifications` de la
   session : le changement fait dans Création avant l'entrée et les autres
-  palettes restent. Un refus de la validation, ou un rangement que le sandbox
+  palettes restent. Quand le clic le rend inactif, le focus passe à la
+  première réglette. Un refus de la validation, ou un rangement que le sandbox
   juge invalide, rend la recette et les départs d'avant le geste ; un conflit
   d'enregistrement ne rend rien. La carte est dans
   `src/ui/harmonisation/carteReglages.ts` ; `memoriserLeDepart`,
@@ -2596,20 +2623,33 @@ Onglet Harmonisation :
   dont les auteurs excluent la tritanopie ; « sévère » ne paraît pas, pour
   que la liste tienne à 480 px ; l'état range des identifiants
   (`normale`, `deuteranopie`, `protanopie`, `tritanomalie`) et les matrices,
-  avec leur source, sont dans `src/vision.ts`. Un SVG de 420 × 256 sur le fond
-  de page de l'aperçu porte un cercle de rayon 70, les huit familles de teinte
-  autour (0° en haut, sens horaire) et un point par palette colorée (chroma de
-  la référence au-dessus de 0,05, palette libre ou figée comprise), à la
-  teinte OKLCH de son cran 700 dans l'intensité et le thème vus, du numéro le
-  plus proche de 700 quand la grille n'a pas ce cran. Le point a pour rayon
-  5 px, 7 px s'il est coché, la couleur de `solid/default` vue par la
-  vision, un contour ambre dans une paire trop proche, de l'encre d'aperçu s'il
-  est coché, du fond sinon. Un arc ambre couvre chaque paire trop proche et
-  déborde de 14° ; la palette à régler montre sa course de ±30° en encre
-  translucide et ses zones trop proches, calculées au repos comme celles de la
-  carte « Réglages », en tirets ambre. Les noms se posent à 11 px du point, tous
-  jusqu'à huit palettes colorées, au-delà les cochées et celles d'une paire, et
-  descendent de 11 px sous un nom voisin du même côté. Saisir un point met sa
+  avec leur source, sont dans `src/vision.ts`. Un SVG à la largeur du corps de la carte,
+  sur le fond de page de l'aperçu, a le rayon `max(70, ⌊largeur / 2 − 88⌋)` et
+  la hauteur `2 × rayon + 48` (`geometrieDeLaRoue`) : à 351 px de carte, dans
+  une fenêtre de 400 px, 351 × 222 px et un rayon de 87. Un `ResizeObserver`
+  le redessine quand la largeur change, hors d'un glisser ; une carte plus
+  étroite que 2 × (70 + 88) px déborde. L'anneau compte 90 arcs de 4,6° posés
+  tous les 4° (0° en haut, sens horaire), épais de 16 px, de couleur OKLCH de
+  clarté 0,78 en Light et 0,62 en Dark, de chroma 0,12 (`couleurDeLAnneau`),
+  vue par la vision. Il n'y a ni cercle gris ni nom de famille de teinte. Un
+  point par palette colorée (chroma de la référence au-dessus de 0,05, palette
+  libre ou figée comprise) se pose sur l'anneau, à la teinte OKLCH de son cran
+  700 dans l'intensité et le thème vus, du numéro le plus proche de 700 quand
+  la grille n'a pas ce cran. Le point a pour rayon 7 px, 9 px s'il est coché,
+  la couleur de `solid/default` vue par la vision, un contour ambre dans une
+  paire trop proche, de l'encre d'aperçu s'il est coché, du fond sinon. Un arc
+  ambre de 4 px, au rayon de l'anneau plus 13 px, couvre chaque paire trop
+  proche et déborde de 14° ; la palette à régler montre à l'intérieur, au rayon
+  de l'anneau moins 14 px, sa course de ±30° en encre translucide et ses zones
+  trop proches, calculées comme celles de la carte « Réglages », hachurées
+  d'ambre. Les noms s'écrivent à 11 px en deux colonnes alignées sur les bords
+  de la plaque, à droite pour une teinte sous 180°, à gauche sinon, à 15 px du
+  bord au moins ; 13 px au moins séparent deux noms d'une colonne, et une ligne
+  brisée relie chaque nom à son point. Tous les noms des palettes colorées se
+  posent quand la colonne la plus chargée tient dans la hauteur
+  (`colonnesTiennent`), sinon les seules cochées et celles d'une paire
+  (`palettesNommees`). Un nom coché est en gras et en encre, celui d'une paire
+  en ambre. Saisir un point met sa
   palette dans « Régler » et la coche ; sans place pour une cinquième, rien ne
   se saisit et `trop` passe à vrai. La teinte réglée est la teinte rangée plus
   l'écart le plus court entre le pointeur et le point au départ du glisser,
