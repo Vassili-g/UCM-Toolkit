@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fr" class="figma-dark">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UCM Architect · Maquette</title>
+<link rel="stylesheet" href="../../../../packages/plugin-socle/src/ui/socle.css">
+<link rel="stylesheet" href="../../../../packages/plugin-socle/galerie/theme-figma.css">
+<style>
+body { margin: 0; background: var(--fond); color: var(--texte); }
+* { box-sizing: border-box; }
+main { max-width: 720px; margin: auto; padding: var(--espace-page); }
+header { display: flex; justify-content: space-between; align-items: center; padding-bottom: var(--espace-bloc); border-bottom: 1px solid var(--bordure); }
+h1 { font-size: var(--titre); line-height: var(--titre-interligne); margin: 0; }
+h2 { font-size: var(--libelle); line-height: var(--libelle-interligne); margin: 0 0 var(--espace-controle); }
+p { margin: var(--espace-controle) 0; }
+.secondaire, small { color: var(--texte-second); }
+.bilan { position: sticky; top: 0; background: var(--fond); padding: var(--espace-bloc) 0; z-index: 1; }
+.bilan p { margin-bottom: 0; }
+.carte { background: var(--fond-bloc); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: var(--espace-bloc); margin-bottom: var(--espace-bloc); }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+th { text-align: left; font-weight: normal; color: var(--texte-second); }
+th, td { padding: var(--espace-controle) var(--espace-serre); border-bottom: 1px solid var(--bordure); vertical-align: top; overflow-wrap: anywhere; }
+th:first-child { width: 25%; }
+select { width: 100%; background: var(--fond); border: 1px solid var(--bordure); border-radius: var(--rayon); color: var(--texte); min-height: var(--hauteur-secondaire); font: inherit; padding: var(--espace-serre); }
+label { cursor: pointer; }
+input { accent-color: var(--fond-marque); vertical-align: middle; }
+.option { display: flex; align-items: start; gap: var(--espace-controle); margin-top: var(--espace-bloc); }
+code { font: inherit; font-family: ui-monospace, monospace; }
+details { border-top: 1px solid var(--bordure); }
+summary { cursor: pointer; padding: var(--espace-bloc) 0; font-weight: 600; }
+.ligne { display: grid; grid-template-columns: 20px 1fr 1fr; gap: var(--espace-controle); padding: var(--espace-controle) 0; }
+.ligne span { overflow-wrap: anywhere; }
+.ligne small { display: block; font-family: Inter, system-ui, sans-serif; }
+.collision { border-left: 2px solid var(--texte-avertissement); padding-left: var(--espace-controle); margin-bottom: var(--espace-bloc); }
+footer { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: var(--espace-controle); background: var(--fond); border-top: 1px solid var(--bordure); padding: var(--espace-bloc) 0; }
+button { font: inherit; border: 0; border-radius: var(--rayon); background: var(--fond-marque); color: var(--texte-sur-marque); padding: var(--espace-controle) var(--espace-bloc); min-height: var(--hauteur-action); cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+a { color: var(--texte-marque); }
+@media (max-width: 440px) { th:first-child { width: 23%; } .ligne { grid-template-columns: 20px 1fr; } .ligne span:last-child { grid-column: 2; } footer { align-items: stretch; flex-direction: column; } }
+</style>
+<main>
+  <header><strong>UCM Architect</strong><span class="secondaire">Maquette · données de démonstration</span></header>
+  <div class="bilan"><h1 id="bilan">6 noms à harmoniser</h1><p class="secondaire">Choisissez une écriture, puis cochez les noms à modifier.</p></div>
+  <section class="carte" aria-labelledby="convention">
+    <h2 id="convention">Écriture des noms</h2>
+    <table>
+      <thead><tr><th>Catégorie</th><th>Écriture détectée</th><th>Écriture choisie</th></tr></thead>
+      <tbody id="conventions"></tbody>
+    </table>
+    <label class="option"><input id="termes" type="checkbox"><span>Employer les termes UCM<small style="display:block">Par exemple, remplacer <code>press</code> par <code>pressed</code> et <code>disable</code> par <code>disabled</code>.</small></span></label>
+  </section>
+  <section aria-label="Renommages proposés">
+    <div class="ligne secondaire" aria-hidden="true"><span></span><span>Nom actuel</span><span>Nouveau nom</span></div>
+    <div id="propositions"></div>
+    <details><summary>1 nom bloqué par un doublon</summary><div class="collision"><code>Font Size</code> deviendrait <code>font-size</code>, déjà utilisé dans la même collection.<p>Renommez l’un de ces deux éléments dans Figma, puis relancez l’analyse.</p></div></details>
+  </section>
+  <footer><span id="selection" aria-live="polite">Aucun nom coché</span><button id="appliquer" disabled>Appliquer les noms cochés</button></footer>
+  <p id="resultat" role="status"></p>
+  <p class="secondaire">Les groupes séparés par <code>/</code> restent des groupes. Les doublons bloquent les lignes concernées. Dans Figma, le lot s’annule en une fois.</p>
+</main>
+<script>
+const categories = [
+  ['Collections', 'Minuscules · tirets', '5 sur 7', 'tiret'],
+  ['Variables', 'Minuscules · tirets', '734 sur 800', 'tiret'],
+  ['Propriétés', 'Majuscule initiale · espaces', '18 sur 24', 'espace'],
+  ['Valeurs', 'Minuscules · tirets', '81 sur 96', 'tiret'],
+];
+const exemples = [
+  ['Collections', 'Color Brands', 'color-brands', 'Casse et séparation des mots'],
+  ['Variables', 'colors/Blue/Light/500', 'colors/blue/light/500', 'Casse'],
+  ['Variables', 'fontSize/bodyLarge', 'font-size/body-large', 'Casse et séparation des mots'],
+  ['Propriétés', 'button_state', 'Button state', 'Casse et séparation des mots'],
+  ['Valeurs', 'Extra_Large', 'extra-large', 'Casse et séparation des mots'],
+  ['Valeurs', 'Default', 'default', 'Casse'],
+];
+const options = [['tiret', 'Minuscules · tirets'], ['bas', 'Minuscules · tirets bas'], ['espace', 'Majuscule initiale · espaces'], ['camel', 'camelCase'], ['pascal', 'PascalCase'], ['inchange', 'Inchangée']];
+const table = document.getElementById('conventions');
+for (const [nom, detectee, compte, choix] of categories) {
+  const ligne = table.insertRow();
+  ligne.insertCell().textContent = nom;
+  const cellule = ligne.insertCell(); cellule.append(document.createTextNode(detectee), document.createElement('br'));
+  const detail = document.createElement('small'); detail.textContent = compte; cellule.append(detail);
+  const select = document.createElement('select'); select.setAttribute('aria-label', 'Écriture des '+nom.toLowerCase());
+  for (const [id, texte] of options) select.add(new Option(texte, id, false, id === choix));
+  select.onchange = afficher; ligne.insertCell().append(select);
+}
+function ecrire(nom, categorie) {
+  const convention = table.rows[categories.findIndex(c => c[0] === categorie)].querySelector('select').value;
+  if (convention === 'inchange') return nom;
+  return nom.split('/').map(segment => {
+    const mots = segment.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[-_\s]+/).map(m => m.toLowerCase());
+    const capitale = mot => mot.charAt(0).toUpperCase() + mot.slice(1);
+    if (convention === 'camel') return mots[0] + mots.slice(1).map(capitale).join('');
+    if (convention === 'pascal') return mots.map(capitale).join('');
+    if (convention === 'espace') return capitale(mots.join(' '));
+    return mots.join(convention === 'bas' ? '_' : '-');
+  }).join('/');
+}
+function compter() {
+  const nombre = document.querySelectorAll('#propositions input:checked').length;
+  document.getElementById('selection').textContent = nombre === 0 ? 'Aucun nom coché' : nombre === 1 ? '1 nom coché' : nombre+' noms cochés';
+  document.getElementById('appliquer').disabled = nombre === 0;
+}
+function afficher() {
+  const liste = exemples.map(([categorie, ancien, , raison]) => [categorie, ancien, ecrire(ancien, categorie), raison]).filter(e => e[1] !== e[2]);
+  if (document.getElementById('termes').checked) liste.push(['Valeurs', 'press', 'pressed', 'Termes UCM'], ['Valeurs', 'disable', 'disabled', 'Termes UCM']);
+  const conteneur = document.getElementById('propositions'); conteneur.replaceChildren();
+  for (const raison of [...new Set(liste.map(e => e[3]))]) {
+    const details = document.createElement('details'); details.open = true;
+    const groupe = liste.filter(e => e[3] === raison);
+    const titre = document.createElement('summary'); titre.textContent = raison+' · '+groupe.length; details.append(titre);
+    for (const [categorie, ancien, nouveau] of groupe) {
+      const ligne = document.createElement('label'); ligne.className = 'ligne';
+      const coche = document.createElement('input'); coche.type = 'checkbox'; coche.onchange = compter;
+      const avant = document.createElement('span'); const code = document.createElement('code'); code.textContent = ancien; avant.append(code);
+      const contexte = document.createElement('small'); contexte.textContent = categorie; avant.append(contexte);
+      const apres = document.createElement('span'); const valeur = document.createElement('code'); valeur.textContent = nouveau; apres.append(valeur);
+      ligne.append(coche, avant, apres); details.append(ligne);
+    }
+    conteneur.append(details);
+  }
+  document.getElementById('bilan').textContent = liste.length === 1 ? '1 nom à harmoniser' : liste.length+' noms à harmoniser';
+  document.getElementById('resultat').replaceChildren(); compter();
+}
+document.getElementById('termes').onchange = afficher;
+document.getElementById('appliquer').onclick = () => {
+  const nombre = document.querySelectorAll('#propositions input:checked').length;
+  const resultat = document.getElementById('resultat');
+  resultat.textContent = 'Démonstration : '+nombre+' noms cochés. Le plugin proposera ici le téléchargement de la table des renommages.';
+};
+afficher();
+</script>
+</html>
