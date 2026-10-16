@@ -15,9 +15,9 @@ spécification.
 
 Les propositions qui placent chaque apport dans le plugin, leurs écrans et
 leurs revues sont rangées dans [le dossier de l'intégration du
-marché](../Int%C3%A9gration%20du%20march%C3%A9/README.md). Les vérifications
+marché](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Int%C3%A9gration%20du%20march%C3%A9/README.md). Les vérifications
 de [la proposition
-finale](../Int%C3%A9gration%20du%20march%C3%A9/03%20Proposition%20finale/PROPOSITION-FINALE.md)
+finale](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Int%C3%A9gration%20du%20march%C3%A9/03%20Proposition%20finale/PROPOSITION-FINALE.md)
 dans le code ont corrigé les sections 1, 3, 7 et 8 de ce document.
 
 Les capacités des concurrents viennent de leurs pages publiques, de leur

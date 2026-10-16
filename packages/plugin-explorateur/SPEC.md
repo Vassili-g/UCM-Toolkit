@@ -3,7 +3,7 @@
 UCM Token Explorer lit les variables d'un fichier Figma et explique leurs
 valeurs : collections, groupes, alias, modes, tokens d'un composant. Ce document
 décrit ce que le plugin lit, comment il résout une chaîne et ce qu'il refuse
-de conclure. Le [plan d'implémentation](../../docs/notes/Recherches/Plugin%20Explorateur%20Tokens/PLAN-IMPLEMENTATION.md)
+de conclure. Le [plan d'implémentation](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/PLAN-IMPLEMENTATION.md)
 porte l'historique des décisions ; les invariants vérifiés sont dans
 [AGENTS.md](../../AGENTS.md#explorateur-de-tokens).
 
@@ -216,7 +216,7 @@ du sujet. Sans image, la zone disparaît ; sans boîte, le calque n'a pas de
 cadre.
 
 Aucune de ces lectures n'a été essayée dans Figma. La
-[recette](../../docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md)
+[recette](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md)
 les reprend une à une.
 
 ## Intégrations facultatives
@@ -305,7 +305,7 @@ Intégrations et Relevés.
 
 Dans la disposition large, sous 900 px de large, l'inspecteur passe au-dessus
 de la table et se ferme. Le dessin de la vue composant suit la
-[maquette](../../docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/MAQUETTE-VUE-COMPOSANT.html) ;
+[maquette](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/MAQUETTE-VUE-COMPOSANT.html) ;
 `npm run fidelite --workspace ucm-explorateur-plugin` mesure l'écart entre les
 deux.
 

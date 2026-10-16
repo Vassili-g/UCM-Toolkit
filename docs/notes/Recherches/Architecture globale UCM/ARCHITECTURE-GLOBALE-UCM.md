@@ -93,7 +93,7 @@ terme que l'autre tolère sans le recommander.
 Palettes écrit les primitives et rien d'autre ; ce périmètre est décidé.
 L'explorateur lit sans écrire. L'exporteur publie toute architecture sans en
 imposer aucune. `color-brands`, `color-utilities`, `theme` et `components` se
-posent donc à la main. [CHANGEMENTS-DU-MOTEUR.md](../Archi%20Tokens%20Multi-marques/Collection%20usage/CHANGEMENTS-DU-MOTEUR.md#hors-ducm-palettes)
+posent donc à la main. [CHANGEMENTS-DU-MOTEUR.md](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Archi%20Tokens%20Multi-marques/Collection%20usage/CHANGEMENTS-DU-MOTEUR.md#hors-ducm-palettes)
 prévoit déjà qu'un autre plugin, lecteur de la table du kit, puisse un jour
 les poser.
 
@@ -227,7 +227,7 @@ nomenclature, et un refus mémorisé ne revient pas.
 
 La pose des alias de `theme` demande le rôle de chaque palette : primaire,
 secondaire, neutre, statut. La recette ne le porte pas
-([CHANGEMENTS-DU-MOTEUR.md](../Archi%20Tokens%20Multi-marques/Collection%20usage/CHANGEMENTS-DU-MOTEUR.md),
+([CHANGEMENTS-DU-MOTEUR.md](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Archi%20Tokens%20Multi-marques/Collection%20usage/CHANGEMENTS-DU-MOTEUR.md),
 P8). Ce rôle se déclarerait dans l'Architecte, qui lit la recette sans
 l'écrire.
 
