@@ -8,7 +8,7 @@ import {
   roleKind,
 } from '../src/contract/semantics';
 
-test('buildStateModel associe les états connus à leurs déclencheurs et à leur priorité', () => {
+test('buildStateModel conserve press et disable et conseille pressed et disabled', () => {
   const warnings: string[] = [];
   const model = buildStateModel(
     ['color', 'state'],
@@ -33,14 +33,17 @@ test('buildStateModel associe les états connus à leurs déclencheurs et à leu
     },
     precedence: ['disable', 'press', 'focus', 'hover', 'default'],
   });
-  assert.deepEqual(warnings, []);
+  assert.deepEqual(warnings, [
+    'Propriété de variante « state » : l’état « press » s’écrit « pressed » dans le vocabulaire UCM. Le développeur recevra « press » au lieu de « pressed ». Renommez la valeur en « pressed » dans Figma ou avec UCM Architect, puis réexportez.',
+    'Propriété de variante « state » : l’état « disable » s’écrit « disabled » dans le vocabulaire UCM. Le développeur recevra « disable » au lieu de « disabled ». Renommez la valeur en « disabled » dans Figma ou avec UCM Architect, puis réexportez.',
+  ]);
 });
 
-test('buildStateModel reconnaît les formes en -ed et les range à côté de leur forme courte', () => {
+test('buildStateModel conserve hovered et focused et les range à côté de leur forme courte', () => {
   const warnings: string[] = [];
   const model = buildStateModel(
     ['state'],
-    ['default', 'hovered', 'focused', 'pressed', 'disabled'].map((state) => ({ state })),
+    ['default', 'hovered', 'focused', 'pressed', 'disabled', 'hover', 'focus'].map((state) => ({ state })),
     warnings,
   );
 
@@ -52,8 +55,35 @@ test('buildStateModel reconnaît les formes en -ed et les range à côté de leu
       focused: { selector: ':focus-visible' },
       pressed: { selector: ':active' },
       disabled: { selector: '[disabled]' },
+      hover: { selector: ':hover' },
+      focus: { selector: ':focus-visible' },
     },
-    precedence: ['disabled', 'pressed', 'focused', 'hovered', 'default'],
+    precedence: ['disabled', 'pressed', 'focus', 'focused', 'hover', 'hovered', 'default'],
+  });
+  assert.deepEqual(warnings, [
+    'Propriété de variante « state » : l’état « hovered » s’écrit « hover » dans le vocabulaire UCM. Le développeur recevra « hovered » au lieu de « hover ». Renommez la valeur en « hover » dans Figma ou avec UCM Architect, puis réexportez.',
+    'Propriété de variante « state » : l’état « focused » s’écrit « focus » dans le vocabulaire UCM. Le développeur recevra « focused » au lieu de « focus ». Renommez la valeur en « focus » dans Figma ou avec UCM Architect, puis réexportez.',
+  ]);
+});
+
+test('buildStateModel publie les termes retenus sans avertissement', () => {
+  const warnings: string[] = [];
+  const model = buildStateModel(
+    ['state'],
+    ['default', 'hover', 'focus', 'pressed', 'disabled'].map((state) => ({ state })),
+    warnings,
+  );
+
+  assert.deepEqual(model, {
+    axis: 'state',
+    states: {
+      default: {},
+      hover: { selector: ':hover' },
+      focus: { selector: ':focus-visible' },
+      pressed: { selector: ':active' },
+      disabled: { selector: '[disabled]' },
+    },
+    precedence: ['disabled', 'pressed', 'focus', 'hover', 'default'],
   });
   assert.deepEqual(warnings, []);
 });
@@ -71,12 +101,12 @@ test('buildStateModel publie un axe states comme un axe state ou status', () => 
     const warnings: string[] = [];
     const model = buildStateModel(
       ['tone', axe],
-      [{ tone: 'a', [axe]: 'default' }, { tone: 'a', [axe]: 'disable' }],
+      [{ tone: 'a', [axe]: 'default' }, { tone: 'a', [axe]: 'disabled' }],
       warnings,
     );
 
     assert.equal(model?.axis, axe);
-    assert.deepEqual(model?.states, { default: {}, disable: { selector: '[disabled]' } });
+    assert.deepEqual(model?.states, { default: {}, disabled: { selector: '[disabled]' } });
     assert.deepEqual(warnings, []);
   }
 });
@@ -88,7 +118,7 @@ test('buildStateModel conserve un état inconnu et avertit sans bloquer', () => 
   assert.equal(model?.states.loading.selector, undefined);
   assert.deepEqual(model?.precedence, ['default', 'loading']);
   assert.deepEqual(warnings, [
-    'Propriété de variante « status » : l\'état « loading » n\'est pas reconnu. Le développeur ne saura pas quand afficher ce variant. Renommez cette valeur en default, hover, focus, press ou disable, puis réexportez.',
+    'Propriété de variante « status » : l\'état « loading » n\'est pas reconnu. Le développeur ne saura pas quand afficher ce variant. Renommez cette valeur en default, hover, focus, pressed ou disabled, puis réexportez.',
   ]);
 });
 

@@ -392,8 +392,8 @@ test('le calque « prop » n’est pas lu comme le tag @prop', async (t) => {
 
   assert.deepEqual(rules.propDescriptions, {});
   assert.deepEqual(rules.warnings, [
-    'Une règle de « .componentRules » : aucun de ses calques ne porte de tag (@usage, @do, '
-    + '@dont, @pairs, @prop, @boolean, @icons, @default). Sa documentation manquera au '
+    'Une règle de « .componentRules » : aucun de ses calques ne porte de tag (@usage, @prop, '
+    + '@boolean, @do, @dont, @pairs, @icons, @default). Sa documentation manquera au '
     + 'développeur. Choisissez son variant dans Figma, puis réexportez.',
     // La seule règle du conteneur ayant été écartée, il n'en reste aucune :
     // le second constat porte sur le conteneur, et non sur cette règle.
