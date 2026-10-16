@@ -18,12 +18,10 @@ npm run build --workspace ucm-explorateur-plugin
 Dans Figma Desktop, ouvrez `Plugins > Development > Import plugin from manifest`
 et choisissez `packages/plugin-explorateur/dist/manifest.json`.
 
-Le manifeste ne porte pas encore d'identifiant attribué par Figma. Si Figma
-refuse l'import pour cette raison, créez un plugin vide par `Plugins >
-Development > New plugin…`, recopiez son `id` dans
-`packages/plugin-explorateur/manifest.json`, puis relancez le build. N'y
-recopiez jamais l'identifiant d'un autre plugin du dépôt : `tests/manifest.test.ts`
-le refuse.
+Le manifeste porte l'`id` que Figma a attribué au plugin de développement,
+sans publication. Figma reconnaît un plugin par cet `id` : n'y recopiez jamais
+celui d'un autre plugin du dépôt, ce que `tests/manifestsDesPlugins.test.ts`
+refuse.
 
 ## Choisir un mode
 
