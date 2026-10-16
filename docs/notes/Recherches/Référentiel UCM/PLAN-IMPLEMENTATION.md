@@ -130,21 +130,21 @@ est rendu à la conversation principale, qui le soumet au mainteneur.
 
 **Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lot 1.
 
-- [ ] `theme` : la règle `scale/{cran}` pour toutes les palettes (T10), les
+- [x] `theme` : la règle `scale/{cran}` pour toutes les palettes (T10, d281def), les
   portées de chaque variable reprises de `SUPPORT_DES_VARIABLES` (T06), les
   textes `foreground-main` et `foreground-subtle` du neutre conservés
-- [ ] Libellés et définitions de chaque variable de `theme`, en deux langues :
+- [x] Libellés et définitions de chaque variable de `theme`, en deux langues (d281def) :
   la conversation principale fournit les textes, repris des catalogues de
   Palettes (`i18n/fr.ts:846`, `i18n/en.ts:844`) et relus
-- [ ] `contraste` : seuils par usage, texte 4,5 (icône comprise, de la couleur
+- [x] `contraste` : seuils par usage, texte 4,5 (d281def, icône comprise, de la couleur
   du texte) et non-texte 3 (G03) ; niveaux AA et AAA déplacés de
   `packages/couleur/src/contraste.ts` (G04)
-- [ ] `produits.ts` : chaque plugin et paquet, ce qu'il écrit et ce qu'il lit
+- [x] `produits.ts` : chaque plugin et paquet, ce qu'il écrit et ce qu'il lit (d281def)
   (P01 à P08) ; l'adresse `ucm_palettes`/`recette` déplacée de
   `packages/couleur/src/protocole.ts` (S01)
-- [ ] `regles.ts` : les huit tags des règles d'usage (R01), déplacés de
+- [x] `regles.ts` : les huit tags des règles d'usage (R01, d281def), déplacés de
   `packages/plugin-exporter/src/contract/rulesModel.ts`
-- [ ] `recommandations.ts` : forme d'une recommandation (identifiant,
+- [x] `recommandations.ts` : forme d'une recommandation (d281def, identifiant,
   déclencheur pris parmi les caractéristiques de contrat, règle en deux
   langues, paramètres, preuve) et deux entrées : l'anneau de focus (2 px de
   fond, puis 2 px de trait) et le bouton basculable (`surface` au repos,
@@ -390,8 +390,8 @@ et 15.
 - [x] Lecture des collections, des variables locales, des propriétés et des (6e1ce31)
   valeurs de variantes des composants locaux, de toutes les pages, avec un
   avancement ; propositions par le moteur du lot 15
-- [ ] `tests/pluginsSepares.test.ts` couvre le nouveau plugin ; `produits.ts`
-  le décrit
+- [x] `tests/pluginsSepares.test.ts` couvre le nouveau plugin ; `produits.ts`
+  le décrit (6e1ce31, d281def)
 
 ## Lot 17 · L'écriture des renommages
 
