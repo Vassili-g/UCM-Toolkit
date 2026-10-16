@@ -1,17 +1,16 @@
 /**
- * Les gestes qui portent sur la palette ouverte ([ENT-03]) : dupliquer, monter,
- * descendre, supprimer. Un menu selon le motif WAI-ARIA « menu button » : ils
+ * Les gestes qui portent sur la palette ouverte ([ENT-03]) : dupliquer et
+ * supprimer. Les onglets rangent les palettes par teinte ou par nom : aucun
+ * geste ne les réordonne. Un menu selon le motif WAI-ARIA « menu button » : ils
  * n'occupent l'écran qu'à la demande, le compte des objets restant sous la
  * douzaine (protocole de relecture, point (e)).
  */
 import { memoriserVues, type Localisation, type Texte } from './localisation';
 
-export type GesteDePalette = 'dupliquer' | 'monter' | 'descendre' | 'supprimer';
+export type GesteDePalette = 'dupliquer' | 'supprimer';
 
 export interface MenuPaletteUi {
   element: HTMLDivElement;
-  /** Désactive « Monter » sur la première palette et « Descendre » sur la dernière. */
-  afficher(rang: number, nombre: number): void;
   /** Rend le focus au bouton du menu, après une confirmation annulée. */
   focaliser(): void;
 }
@@ -21,8 +20,6 @@ function construireVues(i18n: Localisation) {
 
   const GESTES: readonly { geste: GesteDePalette; libelle: Texte }[] = [
     { geste: 'dupliquer', libelle: TEXTES.dupliquer },
-    { geste: 'monter', libelle: TEXTES.monter },
-    { geste: 'descendre', libelle: TEXTES.descendre },
     { geste: 'supprimer', libelle: TEXTES.supprimer },
   ];
 
@@ -55,8 +52,6 @@ function construireVues(i18n: Localisation) {
       return option;
     });
 
-    const actives = () => options.filter((option) => option.getAttribute('aria-disabled') !== 'true');
-
     function fermer(rendreLeFocus: boolean): void {
       liste.hidden = true;
       bouton.setAttribute('aria-expanded', 'false');
@@ -64,7 +59,6 @@ function construireVues(i18n: Localisation) {
     }
 
     function choisir(option: HTMLLIElement): void {
-      if (option.getAttribute('aria-disabled') === 'true') return;
       fermer(true);
       onGeste(option.dataset.geste as GesteDePalette);
     }
@@ -76,16 +70,15 @@ function construireVues(i18n: Localisation) {
       }
       liste.hidden = false;
       bouton.setAttribute('aria-expanded', 'true');
-      actives()[0]?.focus();
+      options[0]?.focus();
     });
     liste.addEventListener('keydown', (evenement) => {
-      const disponibles = actives();
-      const rang = disponibles.indexOf(document.activeElement as HTMLLIElement);
+      const rang = options.indexOf(document.activeElement as HTMLLIElement);
       const gestes: Record<string, () => void> = {
-        ArrowDown: () => disponibles[(rang + 1) % disponibles.length]?.focus(),
-        ArrowUp: () => disponibles[(rang - 1 + disponibles.length) % disponibles.length]?.focus(),
-        Enter: () => { if (disponibles[rang]) choisir(disponibles[rang]); },
-        ' ': () => { if (disponibles[rang]) choisir(disponibles[rang]); },
+        ArrowDown: () => options[(rang + 1) % options.length]?.focus(),
+        ArrowUp: () => options[(rang - 1 + options.length) % options.length]?.focus(),
+        Enter: () => { if (options[rang]) choisir(options[rang]); },
+        ' ': () => { if (options[rang]) choisir(options[rang]); },
         Escape: () => fermer(true),
       };
       const geste = gestes[evenement.key];
@@ -102,13 +95,6 @@ function construireVues(i18n: Localisation) {
     return {
       element,
       focaliser: () => bouton.focus(),
-      afficher(rang, nombre) {
-        for (const option of options) {
-          const bloquee = (option.dataset.geste === 'monter' && rang === 0)
-            || (option.dataset.geste === 'descendre' && rang === nombre - 1);
-          option.setAttribute('aria-disabled', String(bloquee));
-        }
-      },
     };
   }
   return { createMenuPalette };

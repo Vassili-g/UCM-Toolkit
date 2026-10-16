@@ -721,8 +721,8 @@ du paquet porte les dix-sept rampes de onze crans.
   hors de ces essais. La validation rend tous ses refus, chacun avec sa règle
   et le chemin du champ, et ne rédige aucune phrase.
 - `[REC-06]` La recette se range automatiquement à la fin de chaque geste :
-  relâcher une poignée, valider un champ, créer, dupliquer, réordonner ou
-  supprimer une palette. Elle ne se range jamais pendant un glisser. Après
+  relâcher une poignée, valider un champ, créer, dupliquer ou supprimer une
+  palette. Elle ne se range jamais pendant un glisser. Après
   chaque rangement, le plugin appelle `figma.commitUndo()` : un Ctrl+Z dans
   Figma défait ce rangement seul, sans défaire le dessin qui le précède.
 - `[REC-10]` Chaque demande de rangement porte l'empreinte de la recette que
@@ -797,10 +797,16 @@ du paquet porte les dix-sept rampes de onze crans.
   repère.
 - `[ENT-02]` Chaque saisie met l'aperçu à jour sans aller-retour avec le
   sandbox : le moteur est inclus dans l'interface.
-- `[ENT-03]` Une palette se crée, se renomme, se duplique, se réordonne et se
-  supprime dans l'onglet Création. Supprimer une palette ne supprime pas son
-  cadre de la planche : l'onglet Gestion montre le cadre comme celui d'une
-  palette supprimée, que « Supprimer définitivement » retire (`[PLA-27]`).
+- `[ENT-03]` Une palette se crée, se renomme, se duplique et se supprime dans
+  l'onglet Création. Aucun geste ne la réordonne : le menu « … » porte
+  « Dupliquer la palette » et « Supprimer la palette ». Une palette créée ou
+  importée s'ajoute à la fin de la recette, dont l'ordre range les cadres de
+  la planche (`[PLA-05]`) ; les onglets montrent les palettes par teinte
+  (Création, Harmonisation) ou par nom (Gestion), par `ordreParTeinte` et
+  `ordreAlphabetique` (`src/ordreDesPalettes.ts`). Supprimer une palette ne
+  supprime pas son cadre de la planche : l'onglet Gestion montre le cadre
+  comme celui d'une palette supprimée, que « Supprimer définitivement »
+  retire (`[PLA-27]`).
 - `[ENT-04]` Une palette se crée depuis un code saisi ou choisi au sélecteur
   de couleur ; le plugin ne lit pas la couleur de la sélection Figma. La
   lecture de la peinture d'un calque sert au dessin, qui relit les pastilles
@@ -2361,15 +2367,17 @@ palette » gardent leurs libellés au-dessus des champs.
   palettes. La création ne propose aucune pastille. Tout se calcule dans
   l'interface, sans requête.
 - `[UI-06]` Le sélecteur de palette liste chaque palette par son nom ou son
-  hexa, avec une pastille de sa référence. À l'ouverture du plugin, aucune
-  palette n'est choisie : le sélecteur dit « Sélectionner une palette », le
-  menu « … » se cache, et sous le filet se lisent le titre de premier rang
-  « Choisissez une palette » et une phrase qui renvoie à la liste et à
-  « Nouvelle palette », sans geste propre. Un choix dure jusqu'à la
-  fermeture du plugin et ne se range pas. Une palette choisie qui disparaît,
-  par un import ou une autre session, ramène à cet état ; une palette
-  supprimée ouvre la suivante. Un fichier sans palette montre l'encart de
-  `[UI-22]`. Sa liste déroulante prend toute la
+  hexa, avec une pastille de sa référence, par teinte comme la liste
+  d'Harmonisation (`[UI-40]`) ; le nuancier de l'accueil suit le même ordre.
+  À l'ouverture du plugin, aucune palette n'est choisie : le sélecteur dit
+  « Sélectionner une palette », le menu « … » se cache, et sous le filet se
+  lisent le titre de premier rang « Choisissez une palette » et une phrase
+  qui renvoie à la liste et à « Nouvelle palette », sans geste propre. Un
+  choix dure jusqu'à la fermeture du plugin et ne se range pas. Une palette
+  choisie qui disparaît, par un import ou une autre session, ramène à cet
+  état ; une palette supprimée ouvre celle qui suit dans le sélecteur, ou la
+  précédente si elle était la dernière. Un fichier sans palette montre
+  l'encart de `[UI-22]`. Sa liste déroulante prend toute la
   largeur libre de sa ligne, et un nom long s'y coupe par des points de
   suspension. « Nouvelle palette » et « … » gardent leur largeur naturelle
   et prennent la hauteur de la liste. « Nouvelle palette » ouvre la création
@@ -2693,9 +2701,11 @@ Onglet Gestion, Bleu dépliée :
   jour. Une palette qui manque des garanties s'écrit comme une autre : sa
   fiche montre « Soft ✗ ».
 - `[UI-27]` Les palettes forment une liste, sous les en-têtes « Palette »,
-  « Nuances », « Tokens Figma » et « Planche » : une ligne par palette, dans
-  l'ordre de la recette, avec son chevron, sa teinte, son nom, sa rampe en
-  miniature, l'état de ses tokens et l'état de sa planche. Un clic sur la
+  « Nuances », « Tokens Figma » et « Planche » : une ligne par palette, par
+  nom affiché (`ordreAlphabetique` : sans casse ni accents, les nombres à
+  leur valeur, l'ordre de la recette à égalité), avec son chevron, sa
+  teinte, son nom, sa rampe en miniature, l'état de ses tokens et l'état de
+  sa planche. Un clic sur la
   ligne, ou Entrée et Espace sur son nom, la déplie ou la replie ; un geste
   de la ligne ne la bascule pas. Dépliée, la ligne remplace ses deux états
   par « Modifier », et sa fiche (`[UI-26]`) s'ouvre dessous. Plusieurs lignes

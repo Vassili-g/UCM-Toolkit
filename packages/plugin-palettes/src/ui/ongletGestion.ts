@@ -34,6 +34,7 @@ import type { IssueDeLaPage, IssueDuRetrait } from '../ecriture/planche';
 import type { IssueDeLaCopie, IssueDeLaDestination, IssueDeLaReprise, IssueDuRetraitDesVariables, ResultatDeLEcriture } from '../ecriture/variables';
 import { VERSION_DU_SUIVI, type CadreLu, type EtatDeLaPlanche, type ProfilDuDocument } from '../lecture';
 import type { VariablesDuFichier } from '../lectureDesVariables';
+import { ordreAlphabetique, rangerSelon } from '../ordreDesPalettes';
 import { fraicheurDeLaPlanche, type CadreDUnePalette, type FraicheurDeLaPlanche } from '../planche/fraicheur';
 import type { SectionDeGestion, SectionsDeGestion } from '../preferences';
 import { etatDeLaFiche, type EtatDeLaFiche } from '../presentation';
@@ -1361,7 +1362,9 @@ function construireVues(i18n: Localisation) {
         ? { palette: actif.closest<HTMLElement>('.palette-depliable')?.dataset.cle, geste: actif.dataset.geste }
         : null);
       gesteAFocaliser = null;
-      const groupes: HTMLElement[] = etatDesCadres.palettes.map((cadre) => ligneDePalette(lue, cadre.palette, cadre, sansGeneration));
+      // Les palettes du plugin se rangent par nom ; la planche garde l'ordre de la recette ([PLA-05]).
+      const parNom = rangerSelon(etatDesCadres.palettes, ordreAlphabetique(lue, nomDeLaPalette, i18n.langue), ({ palette }) => palette);
+      const groupes: HTMLElement[] = parNom.map((cadre) => ligneDePalette(lue, cadre.palette, cadre, sansGeneration));
       const regroupees = regrouperLesPalettes(duFichier);
       if (regroupees.length > 0) {
         groupes.push(

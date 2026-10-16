@@ -21,7 +21,8 @@
 import { pairesTropProches, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus } from 'ucm-couleur';
 
 import { remplacerPalette } from '../edition';
-import { annulerLaPalette, basculerLaRoue, choisirAffichage, choisirLaVision, choisirPaletteARegler, cocherPalette, comparerLaPaire, entrerEnHarmonisation, harmonisationInitiale, memoriserLeDepart, ordreParTeinte, saisirPalette, synchroniserHarmonisation, toutDecocher, type EtatHarmonisation } from '../harmonisation';
+import { annulerLaPalette, basculerLaRoue, choisirAffichage, choisirLaVision, choisirPaletteARegler, cocherPalette, comparerLaPaire, entrerEnHarmonisation, harmonisationInitiale, memoriserLeDepart, saisirPalette, synchroniserHarmonisation, toutDecocher, type EtatHarmonisation } from '../harmonisation';
+import { ordreParTeinte } from '../ordreDesPalettes';
 import { creerVuesChoix } from './choix';
 import type { StatutDuRangement } from './frontiere';
 import { creerVuesCarteDeComparaison } from './harmonisation/carteComparaison';

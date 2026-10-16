@@ -11,7 +11,8 @@
  */
 import type { Mode, PaireTropProche, Profil, Recette } from 'ucm-couleur';
 
-import { rangerSelon, type EtatHarmonisation } from '../../harmonisation';
+import type { EtatHarmonisation } from '../../harmonisation';
+import { rangerSelon } from '../../ordreDesPalettes';
 import { createCarte } from '../carte';
 import { memoriserVues, type Localisation } from '../localisation';
 import { nuancesVues } from './apercu';
@@ -132,7 +133,7 @@ function construireVues(i18n: Localisation) {
         entete[2].append(numero);
       }
       const proches = voisines(recette, paires);
-      rangees = rangerSelon(recette.palettes, ordre).map((palette, rang) => rangeeDe(recette, proches, palette.id, rang, etat));
+      rangees = rangerSelon(recette.palettes, ordre, ({ id }) => id).map((palette, rang) => rangeeDe(recette, proches, palette.id, rang, etat));
       grille.replaceChildren(...entete, ...rangees.map(({ element }) => element));
     }
 

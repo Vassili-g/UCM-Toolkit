@@ -2607,7 +2607,7 @@ test('« Modifier » d’une fiche de Gestion en Dark ouvre Création en Dark, e
     await envoyer(page, messageDe('gestion-liste'));
     await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
     await page.locator('#panneau-gestion [data-bascule="theme"]').getByRole('button', { name: 'Thème Dark', exact: true }).click();
-    const bleu = page.locator('#panneau-gestion .palette-depliable[data-palette]').first();
+    const bleu = page.locator('#panneau-gestion .palette-depliable[data-palette]').filter({ has: page.locator('.palette-nom', { hasText: /^Bleu$/ }) });
     await bleu.locator('.mini-rampe').click();
     await bleu.locator('[data-geste="modifier"]').click();
     assert.equal(await page.getByRole('tab', { name: 'Création', exact: true }).getAttribute('aria-selected'), 'true');
@@ -2749,7 +2749,7 @@ test('D-D : un nom se range quand le champ est validé, jamais pendant la saisie
   }
 });
 
-test('[ENT-03] dupliquer, monter, puis supprimer après confirmation', async () => {
+test('[ENT-03] dupliquer, puis supprimer après confirmation ; le menu ne réordonne pas', async () => {
   const page = await ouvrirSur('alertes-seules');
   try {
     const geste = async (nom) => {
@@ -2762,9 +2762,9 @@ test('[ENT-03] dupliquer, monter, puis supprimer après confirmation', async () 
     assert.deepEqual(demande.recette.palettes.map((palette) => palette.nom), ['Jaune', 'Copie de Jaune', 'Bleu']);
     assert.equal(await page.locator('.selecteur-nom').textContent(), 'Copie de Jaune');
     await envoyer(page, rangee(demande.demande));
-    demande = await prochaine(page, await geste('Déplacer vers le haut'));
-    assert.deepEqual(demande.recette.palettes.map((palette) => palette.nom), ['Copie de Jaune', 'Jaune', 'Bleu']);
-    await envoyer(page, rangee(demande.demande));
+    await page.getByRole('button', { name: 'Actions sur la palette' }).click();
+    assert.deepEqual(await page.getByRole('menuitem').allTextContents(), ['Dupliquer la palette', 'Supprimer la palette']);
+    await page.keyboard.press('Escape');
     const avant = await geste('Supprimer la palette');
     await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 20)));
     assert.equal(await compte(page), avant, 'la suppression attend sa confirmation');
@@ -4322,13 +4322,14 @@ test('[PLA-20] l’onglet Palettes dit l’état de chaque cadre, et « Actualis
   const page = await ouvrirSur('planche-perimee');
   try {
     await ouvrirLaPlanche(page);
-    assert.deepEqual(await etatsDesLignes(page), ['a-jour', 'perimee', 'jamais-dessinee']);
+    // Les fiches se rangent par nom : Ardoise, Bleu, Jaune.
+    assert.deepEqual(await etatsDesLignes(page), ['jamais-dessinee', 'a-jour', 'perimee']);
     const fiches = page.locator('.palette-depliable[data-palette]');
     // La ligne « Planche » de chaque fiche porte sa pastille d'état, un cadre jamais dessiné compris (Y2.2).
-    assert.deepEqual(await pastilleDeLaPlanche(fiches).allTextContents(), ['À jour', 'À actualiser', 'Pas encore créée']);
+    assert.deepEqual(await pastilleDeLaPlanche(fiches).allTextContents(), ['Pas encore créée', 'À jour', 'À actualiser']);
     // Y1.9 : le geste que le cadre demande, puis « Afficher » pour un cadre localisé.
-    assert.deepEqual(await gestesDeLaPlanche(fiches), [['Afficher'], ['Actualiser', 'Afficher'], ['Créer la planche']]);
-    await fiches.nth(1).getByRole('button', { name: 'Actualiser', exact: true }).click();
+    assert.deepEqual(await gestesDeLaPlanche(fiches), [['Créer la planche'], ['Afficher'], ['Actualiser', 'Afficher']]);
+    await fiches.nth(2).getByRole('button', { name: 'Actualiser', exact: true }).click();
     const demande = await dessinEnvoye(page, 1);
     assert.deepEqual({ ...demande, demande: 0 }, { type: 'dessiner', demande: 0, palettes: [ID_DU_JAUNE], empreinteLue: messageDe('planche-perimee').empreinte, etrangersConfirmes: [] });
   } finally {
@@ -5396,13 +5397,14 @@ test('Y6.3 : la ligne « Planche » de chaque fiche porte son état en pastille 
   try {
     await ouvrirLaPlanche(page);
     const fiches = page.locator('.palette-depliable[data-palette]');
-    assert.deepEqual(await pastilleDeLaPlanche(fiches).allTextContents(), ['À jour', 'À actualiser', 'Pas encore créée']);
+    // Par nom : Ardoise, Bleu, Jaune.
+    assert.deepEqual(await pastilleDeLaPlanche(fiches).allTextContents(), ['Pas encore créée', 'À jour', 'À actualiser']);
     assert.deepEqual(await fiches.evaluateAll((cartes) => cartes.map((fiche) => [...fiche.querySelectorAll('.sortie[data-sortie="planche"] .sortie-gestes button')].map((bouton) => bouton.dataset.geste))), [
+      ['generer'],
       ['voir'],
       ['generer', 'voir'],
-      ['generer'],
     ]);
-    const jaune = fiches.nth(1);
+    const jaune = fiches.nth(2);
     await jaune.getByRole('button', { name: 'Actualiser', exact: true }).click();
     const demande = await dessinEnvoye(page, 1);
     const avant = await compte(page);

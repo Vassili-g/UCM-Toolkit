@@ -99,8 +99,6 @@ export const TEXTES = {
   annuler: "Cancel",
   gestesDeLaPalette: "Palette actions",
   dupliquer: "Duplicate palette",
-  monter: "Move up",
-  descendre: "Move down",
   supprimer: "Delete palette",
   // Lot 4 : la barre rend la palette à son état d'ouverture, puis la rétablit.
   annulerLesModifications: "Revert changes",

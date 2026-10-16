@@ -19,7 +19,7 @@ export interface GestesDeLaBarre {
   choisir(id: string): void;
   /** « Nouvelle palette » : la création s'ouvre dans l'onglet Création. */
   nouvelle(): void;
-  /** Dupliquer, monter ou descendre la palette ouverte ; `supprimer` ouvre la confirmation de la barre. */
+  /** Dupliquer la palette ouverte ; `supprimer` ouvre la confirmation de la barre. */
   agir(geste: GesteDePalette): void;
   /** La suppression que le designer vient de confirmer. */
   supprimer(): void;
@@ -175,7 +175,6 @@ function construireVues(i18n: Localisation) {
       selecteur.afficher(palettes, courante?.id ?? '', verdicts);
       // Le menu porte sur la palette choisie : sans elle, il se cache.
       menu.element.hidden = !courante;
-      if (courante) menu.afficher(palettes.indexOf(courante), palettes.length);
       plus.setAttribute('aria-expanded', String(creationOuverte));
       i18n.lier(texteDeConfirmation, 'textContent', courante ? confirmationDeSuppression(nomDeLaPalette(courante)) : '');
       confirmation.hidden = !suppressionDemandee || !courante;

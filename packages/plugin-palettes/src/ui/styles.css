@@ -120,11 +120,6 @@
   outline: none;
 }
 
-.menu-option[aria-disabled='true'] {
-  color: var(--texte-second);
-  cursor: not-allowed;
-}
-
 /* La confirmation porte le fond des blocs : un geste en cours. */
 .confirmation {
   display: grid;

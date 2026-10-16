@@ -270,6 +270,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/preferences.ts       la langue de l'interface et la vue de Gestion, lues et rangées dans clientStorage, rangements ordonnés
   src/planche/textes.ts    les textes des planches : le catalogue français, quelle que soit la langue de l'interface
   src/harmonisation.ts     l'état de l'onglet Harmonisation (palettes cochées, palette à régler, thème, intensité, affichage, vision), le départ de chaque palette réglée, l'annulation de ses modifications et les constats de la comparaison, sans DOM
+  src/ordreDesPalettes.ts  l'ordre d'affichage des palettes : par teinte (Création, Harmonisation), par nom (Gestion) ; la recette garde le sien
   src/vision.ts            les trois visions des couleurs que la roue simule, par matrice en sRGB linéaire
   src/roueDesTeintes.ts    la géométrie de la roue des teintes : position d'une teinte, teinte visée par le pointeur, arc d'une paire, hauteur des noms
   src/ui/                  l'en-tête du socle, les onglets Création, Vérification, Harmonisation et Gestion, la Configuration à deux onglets, Palettes et Général
@@ -299,7 +300,7 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/ui/specimens.ts      le spécimen d'un rôle : bouton, texte, champ, anneau, trait ou aplat
   src/ui/selecteur.ts      la palette ouverte, en liste déroulante avec la pastille de chaque référence et le verdict de chaque palette
   src/ui/creation.ts       une palette neuve, en carte : nom, référence, modèle, intensités
-  src/ui/menuPalette.ts    dupliquer, monter, descendre, supprimer
+  src/ui/menuPalette.ts    dupliquer, supprimer
   src/ui/frontiere.ts      la numérotation des demandes, un seul rangement en vol, l'écriture des variables et le dessin après lui, un seul choix de page et un seul rangement de destination en vol
   src/ui/ongletGestion.ts  l'onglet Gestion : les sections repliables, la liste dépliable des palettes ; une ligne par palette, et dépliée « Modifier » et sa fiche : rampes, référence, garanties, lignes de sortie, encart d'écriture et encart des couleurs changées dans Figma ; « Déjà dans le fichier » et « Dans les bibliothèques » dans la même liste ; une carte par palette supprimée ; notices, recette repliée
   src/ui/connexion.ts      la section « Connexion à Figma » : destination des tokens et page des planches en résumé ; dépliée, leurs gestes « Changer », l’heure du dernier état lu et « Synchroniser »

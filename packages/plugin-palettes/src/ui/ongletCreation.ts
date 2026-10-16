@@ -40,6 +40,7 @@ import {
 } from 'ucm-couleur';
 
 import { analyserPalette } from '../analyse';
+import { palettesParTeinte } from '../ordreDesPalettes';
 import { poserFond } from '../configuration';
 import {
   reprendreDuFichier,
@@ -51,7 +52,6 @@ import {
   choisirLaBase,
   choisirLesIntensites,
   cransLibresParDefaut,
-  deplacer,
   dupliquer,
   nouvelIdentifiant,
   nouvellePalette,
@@ -873,8 +873,6 @@ function construireVues(i18n: Localisation) {
         const suivante = dupliquer(recette, courante.id, id, nomDeLaCopie(nomDeLaPalette(courante)));
         etat.ouvrir(id);
         valider(suivante);
-      } else if (geste === 'monter' || geste === 'descendre') {
-        valider(deplacer(recette, courante.id, geste === 'monter' ? -1 : 1));
       } else {
         // La barre ouvre sa confirmation : la création lui laisse la place.
         creationOuverte = false;
@@ -886,9 +884,12 @@ function construireVues(i18n: Localisation) {
       const courante = ouverte();
       const recette = etat.recette();
       if (!recette || !courante) return;
-      const rang = recette.palettes.indexOf(courante);
+      // La palette qui prend sa place dans le sélecteur, rangé par teinte, s'ouvre.
+      const affichees = palettesParTeinte(recette);
+      const rang = affichees.indexOf(courante);
+      const restantes = affichees.filter(({ id }) => id !== courante.id);
       const suivante = supprimer(recette, courante.id);
-      etat.ouvrir(suivante.palettes[Math.min(rang, suivante.palettes.length - 1)]?.id ?? '');
+      etat.ouvrir(restantes[Math.min(rang, restantes.length - 1)]?.id ?? '');
       valider(suivante);
       barre.focaliserLeSelecteur();
     }
@@ -1012,7 +1013,7 @@ function construireVues(i18n: Localisation) {
       choix.hidden = surLAccueil && !note;
       if (surLAccueil) {
         compteDeLAccueil.textContent = String(lue.palettes.length);
-        nuancierDeLAccueil.afficher({ recette: lue, palettes: lue.palettes.map((palette) => ({ palette })) });
+        nuancierDeLAccueil.afficher({ recette: lue, palettes: palettesParTeinte(lue).map((palette) => ({ palette })) });
       }
       // Pendant la création, la carte reste seule : la palette affichée, pied compris, se masque.
       teteDeLaPalette.hidden = !courante || creationOuverte;
@@ -1123,7 +1124,8 @@ function construireVues(i18n: Localisation) {
       perimerLaRecherche(ouverte());
       rendreLesZones();
       etat.rendu(apercuSeul ? 'apercu' : 'complet');
-      barre.afficher({ palettes: etat.recette()?.palettes ?? [], idOuvert: etat.id(), verdicts: etat.verdicts(), creationOuverte });
+      const recette = etat.recette();
+      barre.afficher({ palettes: recette ? palettesParTeinte(recette) : [], idOuvert: etat.id(), verdicts: etat.verdicts(), creationOuverte });
     }
 
     function rendreLesZones(): void {

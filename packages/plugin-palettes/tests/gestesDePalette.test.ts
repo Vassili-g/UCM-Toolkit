@@ -1,10 +1,10 @@
-/** Créer, dupliquer, réordonner et supprimer une palette ([ENT-03], D-K). */
+/** Créer, dupliquer et supprimer une palette ([ENT-03], D-K). */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { MOTIF_IDENTIFIANT, recetteParDefaut, validerRecette, type Recette } from 'ucm-couleur';
 
-import { ajouter, deplacer, dupliquer, nouvelIdentifiant, nouvellePalette, supprimer } from '../src/edition';
+import { ajouter, dupliquer, nouvelIdentifiant, nouvellePalette, supprimer } from '../src/edition';
 
 const VIDE = recetteParDefaut();
 
@@ -41,14 +41,6 @@ test('[ENT-03] une copie se place juste après sa palette, sous un autre identif
   assert.equal(recette.palettes[1].nom, 'Bleu (copie)');
   assert.equal(recette.palettes[1].reference, '#1E6FD9');
   assert.ok('recette' in validerRecette(recette));
-});
-
-test('[ENT-03] monter et descendre échangent avec la voisine, et ne font rien aux bouts', () => {
-  const recette = avecTrois();
-  assert.deepEqual(ids(deplacer(recette, 'p-0000000b', -1)), ['p-0000000b', 'p-0000000a', 'p-0000000c']);
-  assert.deepEqual(ids(deplacer(recette, 'p-0000000b', 1)), ['p-0000000a', 'p-0000000c', 'p-0000000b']);
-  assert.equal(deplacer(recette, 'p-0000000a', -1), recette);
-  assert.equal(deplacer(recette, 'p-0000000c', 1), recette);
 });
 
 test('[ENT-03] supprimer retire la palette et garde l’ordre des autres', () => {

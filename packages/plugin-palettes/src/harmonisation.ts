@@ -2,7 +2,6 @@
 import { aUneIntensite, arrondir, CHROMA_DES_PALETTES_COLOREES, estLibre, partsDe, referenceDe, rgb8VersOklch, sortieLaPlusProche, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus, type RoleDeProximite } from 'ucm-couleur';
 
 import { remplacerPalette } from './edition';
-import { FAMILLES_DE_TEINTE } from './familles';
 import { GRANDEURS, valeursDesProfils, type Grandeur } from './reglagesParDefaut';
 import type { Vision } from './vision';
 
@@ -31,34 +30,6 @@ export function harmonisationInitiale(): EtatHarmonisation {
     departs: new Map(),
     trop: false,
   };
-}
-
-/** Le cercle des teintes s'ouvre à mi-chemin des familles rose et rouge : l'ordre va du rouge au rose. */
-const OUVERTURE_DU_CERCLE = (FAMILLES_DE_TEINTE[0].centre + FAMILLES_DE_TEINTE[1].centre) / 2;
-
-/**
- * L'ordre d'affichage des palettes dans l'onglet : par teinte OKLCH de leur
- * référence, du rouge au rose (`OUVERTURE_DU_CERCLE`). Deux teintes égales
- * gardent l'ordre de la recette ; les palettes sans teinte (chroma de la
- * référence au plus `CHROMA_DES_PALETTES_COLOREES`) suivent, dans l'ordre de
- * la recette.
- */
-export function ordreParTeinte(recette: Recette): readonly string[] {
-  const lues = recette.palettes.map((palette) => {
-    const { C, H } = rgb8VersOklch(referenceDe(palette));
-    return { id: palette.id, teinte: C > CHROMA_DES_PALETTES_COLOREES ? (((H - OUVERTURE_DU_CERCLE) % 360) + 360) % 360 : null };
-  });
-  const colorees = lues.filter((lue): lue is { id: string; teinte: number } => lue.teinte !== null).sort((a, b) => a.teinte - b.teinte);
-  return [...colorees, ...lues.filter(({ teinte }) => teinte === null)].map(({ id }) => id);
-}
-
-/** Les palettes dans l'ordre donné ; une palette hors de l'ordre suit, à son rang. */
-export function rangerSelon(palettes: readonly Palette[], ordre: readonly string[]): Palette[] {
-  const rang = (palette: Palette): number => {
-    const trouve = ordre.indexOf(palette.id);
-    return trouve < 0 ? ordre.length : trouve;
-  };
-  return [...palettes].sort((a, b) => rang(a) - rang(b));
 }
 
 /** Une suppression retire l'identifiant ; un import ou une synchronisation conserve ceux encore présents. */

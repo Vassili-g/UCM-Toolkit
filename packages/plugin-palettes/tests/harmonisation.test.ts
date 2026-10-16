@@ -6,7 +6,7 @@ import { candidatDeTeinte, cleDuPorteur, pairesTropProches, recetteParDefaut, ty
 
 import { reglerClarte, reglerSaturation, remplacerPalette } from '../src/edition';
 import { valeursDesProfils } from '../src/reglagesParDefaut';
-import { annulerLaPalette, basculerLaRoue, choisirAffichage, choisirLaVision, choisirPaletteARegler, cocherPalette, constatsDeLaComparaison, comparerLaPaire, entrerEnHarmonisation, memoriserLeDepart, modifieeDepuisLeDepart, ordreParTeinte, paletteARegler, harmonisationInitiale, rangerSelon, restaurerLesReglages, saisirPalette, synchroniserHarmonisation, toutDecocher } from '../src/harmonisation';
+import { annulerLaPalette, basculerLaRoue, choisirAffichage, choisirLaVision, choisirPaletteARegler, cocherPalette, constatsDeLaComparaison, comparerLaPaire, entrerEnHarmonisation, memoriserLeDepart, modifieeDepuisLeDepart, paletteARegler, harmonisationInitiale, restaurerLesReglages, saisirPalette, synchroniserHarmonisation, toutDecocher } from '../src/harmonisation';
 import { paletteTailwind, recetteAvec } from '../../couleur/tests/fabrique';
 
 const defaut = recetteParDefaut();
@@ -90,21 +90,6 @@ test('[UI-39] les palettes libres, figées et à une intensité restent sélecti
   ] };
   const etat = lue.palettes.reduce((precedent, palette) => cocherPalette(precedent, lue, palette.id), harmonisationInitiale());
   assert.deepEqual(etat.cochees, lue.palettes.map(({ id }) => id));
-});
-
-test('[UI-40] l’onglet range les palettes par teinte de leur référence, les neutres à la fin, l’ordre de la recette à égalité', () => {
-  const avec = (rang: number, reference: string): Palette => ({ ...palettes[0], id: `p-0000001${rang}`, nom: reference, reference });
-  const lue = { ...recette, palettes: [
-    avec(0, '#6B7280'), avec(1, '#2563EB'), avec(2, '#DB2777'), avec(3, '#DC2626'), avec(4, '#16A34A'), avec(5, '#2563EB'), avec(6, '#FFFFFF'),
-  ] };
-  const ordre = ordreParTeinte(lue);
-  const noms = (ids: readonly string[]) => ids.map((id) => lue.palettes.find((palette) => palette.id === id)!.nom);
-  // Rouge vers 27°, vert vers 149°, bleu vers 263°, rose vers 1° : le rose ferme le cercle. Le gris et le blanc n'ont pas de teinte.
-  assert.deepEqual(noms(ordre), ['#DC2626', '#16A34A', '#2563EB', '#2563EB', '#DB2777', '#6B7280', '#FFFFFF']);
-  assert.deepEqual(ordre.slice(2, 4), ['p-00000011', 'p-00000015']);
-  const cochees = [lue.palettes[2], lue.palettes[0], lue.palettes[4]];
-  assert.deepEqual(rangerSelon(cochees, ordre).map(({ nom }) => nom), ['#16A34A', '#DB2777', '#6B7280']);
-  assert.deepEqual(rangerSelon(cochees, []).map(({ id }) => id), cochees.map(({ id }) => id), 'hors de l’ordre, chacune garde son rang');
 });
 
 const BLEU = paletteTailwind('p-000000a1', '#1E6FD9');

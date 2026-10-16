@@ -13,7 +13,8 @@
  */
 import { estLibre, type Mode, type Palette, type PaireTropProche, type Profil, type Recette } from 'ucm-couleur';
 
-import { constatsDeLaComparaison, rangerSelon, type ConstatDeComparaison, type EtatHarmonisation } from '../../harmonisation';
+import { constatsDeLaComparaison, type ConstatDeComparaison, type EtatHarmonisation } from '../../harmonisation';
+import { rangerSelon } from '../../ordreDesPalettes';
 import { createCarte } from '../carte';
 import { creerVuesChoix } from '../choix';
 import { memoriserVues, type Localisation, type Texte } from '../localisation';
@@ -165,7 +166,7 @@ function construireVues(i18n: Localisation) {
     return {
       element: carte.element,
       afficher(recette, paires, etat, ordre) {
-        const cochees = rangerSelon(etat.cochees.flatMap((id) => recette.palettes.find((palette) => palette.id === id) ?? []), ordre);
+        const cochees = rangerSelon(etat.cochees.flatMap((id) => recette.palettes.find((palette) => palette.id === id) ?? []), ordre, ({ id }) => id);
         carte.element.hidden = cochees.length < 2;
         if (cochees.length < 2) {
           dessinee = null;

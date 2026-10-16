@@ -30,7 +30,8 @@ import {
 } from 'ucm-couleur';
 
 import { reglerClarte, reglerSaturation, retablirLaSaturation } from '../../edition';
-import { modifieeDepuisLeDepart, rangerSelon, type EtatHarmonisation } from '../../harmonisation';
+import { modifieeDepuisLeDepart, type EtatHarmonisation } from '../../harmonisation';
+import { rangerSelon } from '../../ordreDesPalettes';
 import { CURSEURS, GRANDEURS, estModifiee, valeursDesProfils, valeursParDefaut, type Grandeur } from '../../reglagesParDefaut';
 import { createCalculsDeLimites } from '../calculDesLimites';
 import { createCarte } from '../carte';
@@ -373,7 +374,7 @@ function construireVues(i18n: Localisation) {
       afficher(recette, etat, enGeste, ordre) {
         enGesteDeLOnglet = enGeste;
         // La bascule « Régler » nomme les cochées par teinte, comme la liste.
-        const cochees = rangerSelon(etat.cochees.flatMap((id) => recette.palettes.find((palette) => palette.id === id) ?? []), ordre);
+        const cochees = rangerSelon(etat.cochees.flatMap((id) => recette.palettes.find((palette) => palette.id === id) ?? []), ordre, ({ id }) => id);
         carte.element.hidden = cochees.length < 2;
         const choisie = cochees.find(({ id }) => id === etat.regler);
         if (!choisie) {

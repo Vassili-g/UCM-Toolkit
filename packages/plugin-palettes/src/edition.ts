@@ -294,16 +294,6 @@ export function dupliquer(recette: Recette, id: string, nouvelId: string, nom: s
   return { ...recette, palettes };
 }
 
-/** La palette avancée d'un rang (`1`) ou reculée (`-1`) dans l'ordre d'affichage ; rien aux bouts. */
-export function deplacer(recette: Recette, id: string, sens: -1 | 1): Recette {
-  const rang = recette.palettes.findIndex((palette) => palette.id === id);
-  const cible = rang + sens;
-  if (rang < 0 || cible < 0 || cible >= recette.palettes.length) return recette;
-  const palettes = [...recette.palettes];
-  [palettes[rang], palettes[cible]] = [palettes[cible], palettes[rang]];
-  return { ...recette, palettes };
-}
-
 /**
  * La recette sans la palette. Son cadre reste sur la planche, et la planche le
  * signalera orphelin ([ENT-03]).
