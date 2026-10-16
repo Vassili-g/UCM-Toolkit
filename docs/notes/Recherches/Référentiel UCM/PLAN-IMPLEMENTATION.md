@@ -267,13 +267,13 @@ Fin : la page s'ouvre sans réseau, pèse moins de 1 Mo, et son test est vert.
 
 **Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 4 à 8 et 10.
 
-- [ ] `tests/referentielUnique.test.ts` : hors de `packages/kit/src/referentiel`
+- [x] `tests/referentielUnique.test.ts` : hors de `packages/kit/src/referentiel`
   et `emplois`, aucune liste littérale de crans, de modes, de profils,
   d'états, de collections ni de tags dans `packages/*/src` ; le message
-  d'échec nomme le module à importer. Les catalogues `i18n` sont lus aussi
-- [ ] Un commentaire en tête de chaque fichier du référentiel : ce qu'il porte,
-  et la suite d'une modification (tests, vue illustrée, version du kit)
-- [ ] Les entrées d'`AGENTS.md` nécessaires à `inventaireInvariants.test.ts`
+  d'échec nomme le module à importer. Les catalogues `i18n` sont lus aussi (1999a88)
+- [x] Un commentaire en tête de chaque fichier du référentiel : ce qu'il porte,
+  et la suite d'une modification (tests, vue illustrée, version du kit) (1999a88)
+- [x] Les entrées d'`AGENTS.md` nécessaires à `inventaireInvariants.test.ts` (1999a88)
 
 Fin : `npm test` vert.
 
