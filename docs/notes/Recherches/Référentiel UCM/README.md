@@ -5,9 +5,9 @@ TypeScript pure de `@ucm-kit/core`. Les plugins, le CLI et les pages générées
 l'importent. Les documents décrivent ces données et y renvoient, sans les
 recopier.
 
-**État :** principe et contenu proposés ; audit de complétude confié à Codex
-([PROMPT-AUDIT-CODEX.md](./PROMPT-AUDIT-CODEX.md)) ; plan par lots à écrire
-après l'audit.
+**État :** audit fait ([AUDIT-REFERENTIEL.md](./AUDIT-REFERENTIEL.md)),
+décisions prises, [plan par lots](./PLAN-IMPLEMENTATION.md) prêt. Le plan
+attend l'export des tokens du fichier Figma à jour.
 
 ## La demande
 
@@ -28,6 +28,18 @@ est l'architecture de référence UCM. Le référentiel en porte les règles.
 | Forme des sources | Données TypeScript dans le kit, pas de fichier Markdown |
 | Architecture de référence | La vue illustrée multi-marques |
 | États | `pressed` et `disabled` sont les termes UCM ; `press` et `disable` restent tolérés à la lecture |
+| Export d'un état toléré | L'exporteur publie le nom écrit dans Figma et avertit le designer du terme retenu |
+| Crans | Onze, de 50 à 950 ; 1000 et 1050 restent une option du moteur de Palettes |
+| Familles des collections | Une liste par défaut dans le kit, qu'un design system peut étendre |
+| `scale/{cran}` | Exposé pour toutes les palettes |
+| Textes du neutre | `page/foreground-main` et `page/foreground-subtle` restent dans le référentiel |
+| Icônes | Même seuil que le texte, 4,5 : elles prennent la couleur du texte |
+| Élévation | Le référentiel nomme les niveaux ; le moteur calcule leurs couleurs |
+| `layouts` et `typography` | Catalogués ; leur contrôle viendra avec l'Architect |
+| Grammaire de `components` | Reportée jusqu'à la correction des composants dans Figma |
+| Échange entre plugins | L'adresse `ucm_palettes`/`recette` entre dans le référentiel |
+| Tags et libellés | Les tags des règles d'usage et les libellés des variables de `theme` entrent dans le référentiel |
+| Recommandations de design | Anneau de focus à 2 px de fond puis 2 px de trait ; bouton basculable en `surface` au repos, en `solid` activé |
 | Rôle des plugins | Une donnée du référentiel |
 
 ## Le contenu proposé
@@ -75,4 +87,5 @@ Hors de ce chantier : le contrôle « full UCM » d'un `tokens.json` par
 | Document | Contenu |
 |---|---|
 | [PROMPT-AUDIT-CODEX.md](./PROMPT-AUDIT-CODEX.md) | La demande d'audit : toute donnée du concept partagée entre plugins et absente de la liste proposée |
-| `AUDIT-REFERENTIEL.md` | Le rapport de Codex, à venir |
+| [AUDIT-REFERENTIEL.md](./AUDIT-REFERENTIEL.md) | Le rapport de Codex : 60 données classées, contradictions, écarts entre la vue et le kit |
+| [PLAN-IMPLEMENTATION.md](./PLAN-IMPLEMENTATION.md) | Les lots, leurs agents et leurs critères de fin |
