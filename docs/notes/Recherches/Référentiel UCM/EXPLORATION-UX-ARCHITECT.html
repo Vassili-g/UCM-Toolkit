@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="fr" class="figma-dark">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UCM Architect · Exploration UX</title>
+<link rel="stylesheet" href="../../../../packages/plugin-socle/src/ui/socle.css">
+<link rel="stylesheet" href="../../../../packages/plugin-socle/galerie/theme-figma.css">
+<style>
+body { margin: 0; background: var(--fond); color: var(--texte); font-family: Inter, system-ui, sans-serif; }
+* { box-sizing: border-box; }
+.page { max-width: 1240px; margin: auto; padding: 32px 24px 64px; }
+.page > h1 { font-size: 22px; margin: 0 0 8px; }
+.page > p, .intro p { max-width: 760px; color: var(--texte-second); margin: 0 0 8px; }
+h2.section { font-size: 17px; margin: 40px 0 12px; padding-top: 16px; border-top: 1px solid var(--bordure); }
+table.analyse { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0 16px; }
+table.analyse th, table.analyse td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--bordure); vertical-align: top; }
+table.analyse th { color: var(--texte-second); font-weight: normal; }
+.etat { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 11px; background: var(--fond-bloc); border: 1px solid var(--bordure); white-space: nowrap; }
+.etat.fait { color: var(--texte-succes, #7ad18a); }
+.etat.base { color: var(--texte-marque); }
+.etat.plus-tard { color: var(--texte-second); }
+.ecrans { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+.ecran { width: 380px; }
+.ecran > h3 { font-size: 13px; margin: 0 0 8px; }
+.ecran > ul { font-size: 12px; color: var(--texte-second); padding-left: 18px; margin: 10px 0 0; }
+.cadre { border: 1px solid var(--bordure); border-radius: 8px; background: var(--fond); overflow: hidden; font-size: 12px; }
+.cadre main { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+.cadre h1 { margin: 0; font-size: 15px; }
+.cadre h2 { margin: 0 0 6px; font-size: 12px; }
+.cadre p { margin: 0; }
+.second, .cadre small { color: var(--texte-second); }
+.cadre small { display: block; }
+.barre { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--bordure); }
+.perimetre { display: flex; border: 1px solid var(--bordure); border-radius: 6px; overflow: hidden; }
+.perimetre span { padding: 3px 8px; font-size: 11px; color: var(--texte-second); }
+.perimetre span.actif { background: var(--fond-marque); color: var(--texte-sur-marque); }
+.onglets-m { display: flex; gap: 14px; padding: 0 12px; border-bottom: 1px solid var(--bordure); }
+.onglets-m span { padding: 8px 0; color: var(--texte-second); }
+.onglets-m span.actif { color: var(--texte); box-shadow: inset 0 -2px 0 var(--fond-marque); }
+.carte { padding: 10px; border: 1px solid var(--bordure); border-radius: 6px; background: var(--fond-bloc); }
+.domaine { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 8px 0; border-bottom: 1px solid var(--bordure); }
+.domaine:last-child { border-bottom: 0; }
+.domaine b { font-weight: 600; }
+.domaine .lien { grid-row: span 2; align-self: center; color: var(--texte-marque); }
+.ecritures { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.ecritures th { text-align: left; font-weight: normal; color: var(--texte-second); }
+.ecritures th, .ecritures td { padding: 5px 4px; border-bottom: 1px solid var(--bordure); vertical-align: top; overflow-wrap: anywhere; }
+.select { border: 1px solid var(--bordure); border-radius: 4px; padding: 3px 6px; display: block; }
+.ligne { display: grid; grid-template-columns: 16px 1fr 1fr; gap: 6px; padding: 5px 0; }
+.ligne code, code { font-family: ui-monospace, monospace; font-size: 11px; overflow-wrap: anywhere; }
+.groupe { border-top: 1px solid var(--bordure); padding-top: 6px; }
+.groupe > b { display: block; padding: 4px 0; }
+.alerte { border-left: 2px solid var(--texte-avertissement); padding-left: 8px; }
+.pied { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid var(--bordure); padding-top: 10px; }
+.bouton { display: inline-block; border-radius: 6px; padding: 6px 10px; background: var(--fond-marque); color: var(--texte-sur-marque); }
+.bouton.second-b { background: transparent; border: 1px solid var(--bordure); color: var(--texte); }
+.bouton.off { opacity: .5; }
+.cause { display: grid; gap: 4px; padding: 8px 0; border-bottom: 1px solid var(--bordure); }
+.cause:last-child { border-bottom: 0; }
+.cause .actions { display: flex; gap: 6px; margin-top: 4px; }
+.nouveau { outline: 1px dashed var(--texte-marque); outline-offset: 2px; border-radius: 4px; }
+@media (max-width: 860px) { .ecran { width: 100%; } }
+</style>
+<body>
+<div class="page">
+<h1>UCM Architect : exploration UX/UI après la v1</h1>
+<p>Lecteur : le mainteneur, pour choisir la suite d'UCM Architect. La page part de la v1 telle qu'elle est construite, puis reprend les pistes de la <a href="../Architecture%20globale%20UCM%20et%20UCM%20Architect/Maquettes/MAQUETTE-ARCHITECTE.html">maquette exploratoire à seize écrans</a> que le référentiel UCM rend maintenant faisables. Les zones en pointillés sont nouvelles par rapport à la v1. Les comptes de <code>components</code> (369 variables, 60 <code>press</code>, 36 <code>disable</code>, aucune couleur par <code>theme</code>) viennent du fichier de référence ; les autres comptes sont des exemples.</p>
+
+<h2 class="section">1. Les pistes de la première exploration, face à l'existant</h2>
+<table class="analyse">
+<thead><tr><th>Écran de la maquette exploratoire</th><th>État aujourd'hui</th><th>Ce qui le rend possible ou l'empêche</th></tr></thead>
+<tbody>
+<tr><td>11. Uniformiser la casse</td><td><span class="etat fait">Fait, v1</span></td><td>Écriture par catégorie, convention dominante détectée, doublons bloquants, annulation en un geste. La v1 va plus loin : palettes et composants ont leur propre écriture.</td></tr>
+<tr><td>10. Renommer un terme (<code>press</code> → <code>pressed</code>)</td><td><span class="etat fait">Fait en partie</span></td><td>L'interrupteur « Employer les termes UCM » et la table des noms téléchargée. Manque : dire avant d'écrire ce qui change côté code (contrats, variables CSS).</td></tr>
+<tr><td>1. Premier lancement, choix du périmètre</td><td><span class="etat base">Base prête</span></td><td>L'interrupteur des termes UCM est un premier périmètre. Le référentiel décrit les sept collections et leurs chemins : le plugin peut proposer l'association des collections au lieu de la demander.</td></tr>
+<tr><td>2 et 7. Accueil, un état par domaine</td><td><span class="etat base">Base prête</span></td><td>Noms : moteur de la v1. Architecture : formes des chemins et alias permis dans <code>architecture.ts</code>. Thème : table des rôles. Palettes : recette lue. Composants : non lus, comme prévu.</td></tr>
+<tr><td>3. Vérifier, écarts par cause</td><td><span class="etat base">Base prête</span></td><td>Le profil UCM de l'explorateur lit déjà le référentiel (lot 6). L'onglet Intégrations doit en sortir : décision du 9 octobre.</td></tr>
+<tr><td>12. Ignorer un écart avec un motif</td><td><span class="etat plus-tard">Plus tard</span></td><td>Demande un rangement des exceptions dans le document, comme la convention de la v1.</td></tr>
+<tr><td>4, 5, 9. Paires à juger, grammaire, termes</td><td><span class="etat plus-tard">Plus tard</span></td><td>La grammaire de <code>components</code> attend la correction des composants du fichier. Les paires de synonymes restent bruyantes sans grammaire (recherche R3).</td></tr>
+<tr><td>6 et 15. Construire <code>theme</code>, ajouter une marque</td><td><span class="etat plus-tard">Plus tard</span></td><td>La table des rôles est prête ; il manque le rôle de chaque palette (primaire, secondaire…) et la simulation avant écriture.</td></tr>
+<tr><td>13. Lire les composants</td><td><span class="etat plus-tard">Plus tard</span></td><td>Coûteux : il charge toutes les pages. Le détail reste dans l'exporteur.</td></tr>
+<tr><td>14. Une palette a changé</td><td><span class="etat plus-tard">Plus tard</span></td><td>Demande un relevé daté des valeurs.</td></tr>
+<tr><td>16. Publier les conventions</td><td><span class="etat plus-tard">Plus tard</span></td><td>Passe par l'exporteur, sous <code>$extensions["com.ucm.declaration"]</code> de <code>tokens.json</code>.</td></tr>
+<tr><td>8. Fichier qui emploie la bibliothèque</td><td><span class="etat base">Base prête</span></td><td>La v1 ne lit que les variables locales : un fichier sans variable locale doit le dire au lieu d'afficher « Aucun nom à harmoniser ».</td></tr>
+</tbody>
+</table>
+
+<h2 class="section">2. Proposition : trois onglets, un périmètre</h2>
+<p>La v1 devient l'onglet <b>Noms</b>. Deux onglets s'ajoutent, construits sur ce que le référentiel sait déjà : <b>Bilan</b>, qui dit où en est le fichier et quel geste vient ensuite, et <b>Architecture</b>, qui reprend le profil UCM de l'explorateur. Le périmètre se choisit dans la barre : en « Agnostique », l'onglet Architecture disparaît et les termes UCM ne sont pas proposés.</p>
+
+<div class="ecrans">
+
+<section class="ecran">
+<h3>A. Aujourd'hui : la v1 construite</h3>
+<div class="cadre"><main>
+<div><b>UCM Architect</b></div>
+<span class="bouton second-b">Analyser le fichier</span>
+<div><h1>96 noms à harmoniser</h1><p class="second">Choisissez une écriture, puis cochez les noms à modifier.</p></div>
+<div class="carte"><h2>Écriture des noms</h2>
+<table class="ecritures"><thead><tr><th>Catégorie</th><th>Détectée</th><th>Choisie</th></tr></thead><tbody>
+<tr><td>Variables</td><td>Minuscules · tirets<small>1 204 sur 1 300</small></td><td><span class="select">Minuscules · tirets ▾</span></td></tr>
+<tr><td>Noms de composants</td><td>PascalCase<small>12 noms</small></td><td><span class="select">PascalCase ▾</span></td></tr>
+<tr><td>Noms de palettes</td><td>PascalCase<small>9 noms</small></td><td><span class="select">PascalCase ▾</span></td></tr>
+</tbody></table>
+<p style="margin-top:8px">◉ Employer les termes UCM</p></div>
+<div class="groupe"><b>☐ Termes UCM · 96</b>
+<div class="ligne"><span>☑</span><code>Button/…/press/background</code><code>Button/…/pressed/background</code></div></div>
+<div class="pied"><span>96 noms cochés</span><span class="bouton">Appliquer les noms cochés</span></div>
+</main></div>
+<ul><li>Un seul écran, qui ne fait qu'une chose et la fait sans risque.</li><li>Rien ne dit au designer ce que le renommage change pour le code.</li></ul>
+</section>
+
+<section class="ecran">
+<h3>B. Bilan, à l'ouverture</h3>
+<div class="cadre">
+<div class="barre"><b>UCM Architect</b><div class="perimetre nouveau"><span>Agnostique</span><span class="actif">Full UCM</span></div></div>
+<div class="onglets-m nouveau"><span class="actif">Bilan</span><span>Noms</span><span>Architecture</span></div>
+<main>
+<div><h1>Votre fichier</h1><p class="second">1 300 variables locales, 7 collections reconnues.</p></div>
+<div class="carte nouveau">
+<div class="domaine"><b>Noms</b><span class="lien">Ouvrir</span><small>96 noms à harmoniser, dont 96 termes UCM</small></div>
+<div class="domaine"><b>Architecture</b><span class="lien">Ouvrir</span><small>369 couleurs de composants ne passent pas par <code>theme</code></small></div>
+<div class="domaine"><b>Thème</b><span class="lien">—</span><small>Toutes les variables existent pour 2 marques et 2 thèmes</small></div>
+<div class="domaine"><b>Palettes</b><span class="lien">—</span><small>9 palettes, recette lue</small></div>
+<div class="domaine"><b>Composants</b><span class="lien">Lire</span><small>Non lus</small></div>
+</div>
+<div class="alerte nouveau"><b>Prochain geste</b><p>Harmoniser les noms des états, avant de rebrancher les composants sur <code>theme</code>.</p></div>
+</main></div>
+<ul><li>Un état par domaine, sans score ; ce qui n'est pas lu est dit « non lu ».</li><li>Un seul prochain geste mis en avant : le renommage d'abord, il touche les mêmes variables que le rebranchement.</li><li>Le périmètre se choisit une fois et se range dans le document, comme la convention.</li></ul>
+</section>
+
+<section class="ecran">
+<h3>C. Noms : la v1, plus l'effet sur le code</h3>
+<div class="cadre">
+<div class="barre"><b>UCM Architect</b><div class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></div></div>
+<div class="onglets-m"><span>Bilan</span><span class="actif">Noms</span><span>Architecture</span></div>
+<main>
+<div><h1>96 noms à harmoniser</h1><p class="second">Choisissez une écriture, puis cochez les noms à modifier.</p></div>
+<div class="carte"><h2>Écriture des noms</h2><p class="second">Règle de l'équipe, rangée dans ce fichier · <span style="color:var(--texte-marque)">Modifier</span></p></div>
+<div class="carte nouveau"><h2>Ce que le renommage change</h2>
+<p>Dans Figma : les liaisons suivent, rien ne se casse.</p>
+<p>Dans le code : 96 tokens changent de nom. Les composants qui les citent se réexportent avec UCM Contract Exporter.</p>
+<small>La table des noms se télécharge après l'application.</small></div>
+<div class="groupe"><b>☑ Termes UCM · 96</b>
+<div class="ligne"><span>☑</span><code>Button/…/press/background</code><code>Button/…/pressed/background</code></div>
+<div class="ligne"><span>☑</span><code>Button/…/disable/foreground</code><code>Button/…/disabled/foreground</code></div></div>
+<div class="pied"><span>96 noms cochés</span><span class="bouton">Appliquer les noms cochés</span></div>
+</main></div>
+<ul><li>La carte d'écriture se replie en une ligne une fois la règle choisie : elle est réglée une fois par fichier.</li><li>La carte « Ce que le renommage change » reprend l'écran 10 de la première exploration, sans compter les contrats : l'Architect ne lit pas le dépôt.</li></ul>
+</section>
+
+<section class="ecran">
+<h3>D. Après l'application</h3>
+<div class="cadre">
+<div class="barre"><b>UCM Architect</b><div class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></div></div>
+<div class="onglets-m"><span>Bilan</span><span class="actif">Noms</span><span>Architecture</span></div>
+<main>
+<div><h1>96 noms modifiés</h1><p class="second">Ctrl+Z dans Figma annule tout le lot.</p></div>
+<div class="carte nouveau"><h2>Ensuite</h2>
+<p>1. Téléchargez la table des noms et donnez-la au développeur.</p>
+<p>2. Exportez les tokens avec UCM Contract Exporter.</p>
+<p>3. Réexportez les composants dont les états ont changé.</p></div>
+<span class="bouton">Télécharger la table des noms</span>
+<span class="bouton second-b">Analyser de nouveau</span>
+</main></div>
+<ul><li>Le geste suivant est dit en trois étapes, dans l'ordre où le code les reçoit.</li><li>Rien n'est publié par l'Architect : la publication reste le rôle de l'exporteur.</li></ul>
+</section>
+
+<section class="ecran">
+<h3>E. Architecture, en Full UCM</h3>
+<div class="cadre">
+<div class="barre"><b>UCM Architect</b><div class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></div></div>
+<div class="onglets-m"><span>Bilan</span><span>Noms</span><span class="actif">Architecture</span></div>
+<main>
+<div><h1>3 écarts à l'architecture UCM</h1><p class="second">Chaque écart dit sa cause et le geste qui le corrige.</p></div>
+<div class="carte nouveau">
+<div class="cause"><b>Couleurs de composants hors de <code>theme</code> · 369</b><small>Une couleur de <code>components</code> doit viser une variable de <code>theme</code>, pour suivre la marque et le thème.</small><code>Button/…/default/background → color-brands/primary/light/700</code><div class="actions"><span class="bouton second-b">Voir les 369</span></div></div>
+<div class="cause"><b>Portée trop large · 4</b><small>Les collections intermédiaires n'apparaissent pas dans les sélecteurs de Figma.</small><div class="actions"><span class="bouton second-b">Voir les 4</span></div></div>
+<div class="cause"><b>Chemin hors de la forme · 2</b><small><code>layouts/radius/0,5</code> : la forme attend une taille.</small><div class="actions"><span class="bouton second-b">Voir les 2</span></div></div>
+</div>
+<p class="second">Lecture seule : cet onglet n'écrit rien dans le fichier.</p>
+</main></div>
+<ul><li>Reprend le profil UCM de l'explorateur, qui quitte l'onglet Intégrations.</li><li>Lecture seule dans un premier temps. Le rebranchement des composants sur <code>theme</code> (écran 6 de la première exploration) viendra ensuite, avec une simulation avant l'écriture.</li></ul>
+</section>
+
+<section class="ecran">
+<h3>F. Fichier sans variable locale</h3>
+<div class="cadre">
+<div class="barre"><b>UCM Architect</b><div class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></div></div>
+<main>
+<div><h1>Aucune variable locale</h1><p class="second">Les variables de ce fichier viennent d'une bibliothèque.</p></div>
+<div class="carte nouveau"><p>L'Architect renomme les variables là où elles sont créées. Ouvrez le fichier de la bibliothèque, puis lancez l'Architect.</p><small>214 variables importées, 0 locale.</small></div>
+</main></div>
+<ul><li>Remplace « Aucun nom à harmoniser », qui laisserait croire que tout est en ordre.</li><li>Reprend l'écran 8 de la première exploration.</li></ul>
+</section>
+
+</div>
+
+<h2 class="section">3. Ordre proposé</h2>
+<table class="analyse">
+<thead><tr><th>Version</th><th>Contenu</th><th>Ce qui existe déjà</th></tr></thead>
+<tbody>
+<tr><td>v1.1</td><td>Écrans C, D et F : l'effet sur le code, les étapes suivantes, le fichier sans variable locale. La carte d'écriture repliée une fois réglée.</td><td>Tout : textes et état d'interface seulement</td></tr>
+<tr><td>v1.2</td><td>Écrans B et E, en lecture seule : Bilan et Architecture. Le profil UCM quitte l'onglet Intégrations de l'explorateur.</td><td>Référentiel (<code>architecture.ts</code>, <code>theme.ts</code>), profil de l'explorateur, recette</td></tr>
+<tr><td>v2</td><td>Rebrancher les composants sur <code>theme</code>, construire <code>theme</code> pour une marque, avec simulation avant l'écriture.</td><td>Table des rôles ; manque le rôle de chaque palette</td></tr>
+<tr><td>Plus tard</td><td>Exceptions avec motif, grammaire de <code>components</code>, publication des conventions, lecture des composants, suivi d'une palette modifiée.</td><td>Pistes de la première exploration</td></tr>
+</tbody>
+</table>
+
+<h2 class="section">4. Questions pour le mainteneur</h2>
+<table class="analyse"><tbody>
+<tr><td>1</td><td>Le périmètre Agnostique / Full UCM dans la barre, rangé dans le fichier : oui ? Il remplacerait l'interrupteur « Employer les termes UCM ».</td></tr>
+<tr><td>2</td><td>Bilan comme onglet d'ouverture, ou Noms tant que l'Architect ne fait que renommer ?</td></tr>
+<tr><td>3</td><td>Le profil UCM de l'explorateur passe dans l'onglet Architecture : maintenant (v1.2), ou après la recette de la v1 ?</td></tr>
+<tr><td>4</td><td>Dans « Ce que le renommage change », compter les contrats touchés demanderait de lire le dépôt depuis l'Architect, ce que seul l'exporteur fait. Garder le texte sans compte ?</td></tr>
+</tbody></table>
+</div>
+</body>
+</html>
