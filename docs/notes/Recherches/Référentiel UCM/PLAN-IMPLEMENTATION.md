@@ -294,23 +294,32 @@ Fin : `docLinks`, contrôle de style et `npm test` verts.
 
 ## Phase 2 · UCM Architect v1 : normaliser les noms
 
-La v1 de l'Architect renomme, dans le fichier Figma, ce qui ne suit pas le
-référentiel : un terme toléré devient le terme retenu (`press` en `pressed`,
-`disable` en `disabled`), et la forme des noms suit la convention UCM (casse,
-séparateurs). Elle porte sur les variables locales et sur les valeurs de
-variantes des composants locaux. Elle ne pose aucun alias et n'écrit rien
-d'autre.
+La v1 de l'Architect normalise les noms du fichier Figma selon une convention
+que le designer choisit : casse et séparateur des mots. Le plugin détecte la
+convention dominante du fichier et la propose par défaut. En option, il
+remplace aussi les termes tolérés par les termes retenus du référentiel
+(`press` en `pressed`, `disable` en `disabled`) : la convention sert tout
+projet, le remplacement des termes est le périmètre « full UCM ».
+
+Elle porte sur les noms des collections, des variables (groupes compris), des
+propriétés de composant et des valeurs de variantes. Elle ne pose aucun alias
+et n'écrit rien d'autre.
+
+Rien ne se perd : aucun renommage ne s'applique sans être affiché et coché,
+une collision bloque sa ligne, le lot s'annule en un seul geste, et la table
+ancien nom vers nouveau nom se télécharge.
 
 Cette phase dépend des lots 1 et 2 seulement. Elle peut passer avant les
 lots 3 à 13 : c'est elle qui débloque la migration du fichier du mainteneur.
 
-### Questions au mainteneur, avant le lot 15
+### Décisions du mainteneur
 
-1. La casse : tout en minuscules, y compris les noms de collections ?
-2. Un segment de plusieurs mots : avec tiret (`border-radius`, `font-size`) ou
-   soudé (`fontsize`, comme la collection `typography` actuelle) ?
-3. Les noms des propriétés de composant (`State`, `Size`) : normalisés aussi,
-   ou seulement leurs valeurs ?
+| Sujet | Décision |
+|---|---|
+| Casse | Au choix du designer, selon le projet |
+| Mots d'un segment | Au choix parmi les conventions courantes ; le plugin détecte la convention dominante et la propose |
+| Étendue | Tout : collections, variables, propriétés de composant, valeurs de variantes |
+| Exigence | Normaliser tout le fichier sans rien perdre |
 
 ## Lot 14 · Cadrage de l'Architect
 
@@ -321,25 +330,34 @@ lots 3 à 13 : c'est elle qui débloque la migration du fichier du mainteneur.
   instances du fichier, celles des fichiers qui utilisent la bibliothèque
   publiée, et leurs surcharges ; ce que devient une variable renommée dans
   un fichier consommateur ; un seul pas d'annulation pour un lot de
-  renommages ; le coût sur 800 variables et sur les ensembles de variantes
-  de toutes les pages
+  renommages ; renommer une collection et une propriété de composant
+  (`editComponentProperty`) ; le coût sur 800 variables et sur les
+  ensembles de variantes de toutes les pages ; où ranger la convention
+  choisie dans le document
 - [ ] Maquette de l'écran unique de la v1, dans le style des galeries
-  existantes, en thème sombre, avec les mots d'un designer débutant :
-  la liste des renommages proposés, groupés par raison, une case par ligne,
-  un bouton pour appliquer · principale
+  existantes, en thème sombre, avec les mots d'un designer débutant : le
+  choix de la convention, avec la convention dominante détectée et ses
+  comptes ; la liste des renommages proposés, groupés par raison, une case
+  par ligne ; un bouton pour appliquer · principale
 - [ ] Validation de la maquette · mainteneur
 
 ## Lot 15 · Le moteur de normalisation
 
-**Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 1 et 2,
-réponses aux questions.
+**Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 1 et 2.
 
-- [ ] La forme des noms dans le référentiel : casse et séparateur des
-  segments, selon les réponses du mainteneur
-- [ ] `referentiel/normalisation.ts`, pur : d'une liste de noms (chemins de
-  variables, valeurs de variantes), il rend les renommages proposés, chacun
-  avec l'ancien nom, le nouveau et sa raison (terme toléré, casse,
-  séparateur)
+- [ ] Un registre des conventions dans le référentiel : casses (minuscules,
+  majuscule initiale, camelCase, PascalCase, inchangée) et séparateurs des
+  mots d'un segment (tiret, tiret bas, soudé, camelCase)
+- [ ] La découpe d'un segment en mots, quelle que soit sa forme d'origine
+  (`borderRadius`, `border-radius`, `border_radius`, `Border Radius`) ; un
+  segment soudé (`fontsize`) reste un mot, sauf si le registre des termes le
+  connaît
+- [ ] La détection de la convention dominante, par catégorie de nom
+  (collections, variables, propriétés, valeurs), avec ses comptes
+- [ ] `referentiel/normalisation.ts`, pur : d'une liste de noms et d'une
+  convention, il rend les renommages proposés, chacun avec l'ancien nom, le
+  nouveau et sa raison (casse, séparateur, terme toléré) ; un nom déjà
+  conforme n'est pas proposé
 - [ ] Deux noms qui aboutiraient au même nom ne sont pas proposés ; la
   collision est rendue à part
 - [ ] Tests sur les chemins de `donnees-vue-illustree.js` : les 60 segments
@@ -353,8 +371,9 @@ et 15.
 
 - [ ] `packages/plugin-architect` sur le socle des plugins : manifeste, build,
   galerie, comme `plugin-explorateur`
-- [ ] Lecture des variables locales et des ensembles de variantes locaux, de
-  toutes les pages, avec un avancement ; propositions par le moteur du lot 15
+- [ ] Lecture des collections, des variables locales, des propriétés et des
+  valeurs de variantes des composants locaux, de toutes les pages, avec un
+  avancement ; propositions par le moteur du lot 15
 - [ ] `tests/pluginsSepares.test.ts` couvre le nouveau plugin ; `produits.ts`
   le décrit
 
@@ -362,10 +381,15 @@ et 15.
 
 **Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lot 16.
 
-- [ ] Appliquer les renommages cochés : nom de la variable, valeur de la
-  variante ; un seul pas d'annulation pour le lot
+- [ ] Appliquer les renommages cochés : nom de la collection, de la variable,
+  de la propriété de composant, valeur de la variante ; un seul pas
+  d'annulation pour le lot
+- [ ] Juste avant d'écrire, relire chaque nom : une ligne dont le nom a
+  changé depuis la proposition n'est pas appliquée
+- [ ] La convention choisie se range dans le document, pour que l'équipe la
+  retrouve
 - [ ] Une loi d'écriture, sur le modèle de `loiDeLectureSeule.test.ts` de
-  l'explorateur : le plugin n'appelle que ces deux écritures
+  l'explorateur : le plugin n'appelle que ces écritures
 - [ ] Après application, téléchargement de la table ancien nom vers nouveau
   nom, en JSON, pour le dépôt de code
 
