@@ -7,12 +7,13 @@ de fin. Cocher la case d'une tâche quand son commit est fait.
 
 ## Avancement
 
-- [x] M1. Le moteur compare les fonds et calcule les zones quel que soit le départ (fait, relu, commit avec M2)
-- [ ] M2. Les lecteurs du plugin passent au rôle `fond` (en cours)
+- [x] M1. Le moteur compare les fonds et calcule les zones quel que soit le départ (88097cf)
+- [x] M2. Les lecteurs du plugin passent au rôle `fond` (88097cf)
 - [x] H1. Un message ne déplace plus la page (abf3c88)
-- [ ] R1. La roue des teintes à la largeur de la carte (en cours chez Codex)
+- [x] R1. La roue des teintes à la largeur de la carte (Codex, 1f54417)
 - [x] T1. L'onglet s'appelle « Comparaison » (82434ac)
-- [ ] S1. La spécification et les documents suivent
+- [ ] I1. Les tests d'interface suivent la paire Bleu et Azur
+- [ ] S1. La spécification et les documents suivent (en cours)
 - [ ] V1. Vérification finale
 
 ## Décisions
@@ -55,7 +56,7 @@ M1, H1 et R1 touchent des fichiers disjoints, sauf `styles.css` pour H1 et R1
 
 ## M1. Le moteur compare les fonds et calcule les zones quel que soit le départ
 
-- [x] **Agent** : `implementeur` (Sonnet). Fait, relu, commit avec M2.
+- [x] **Agent** : `implementeur` (Sonnet). Fait, commit 88097cf.
 - **Fichiers** : `packages/couleur/src/alertes.ts`,
   `packages/couleur/src/harmonisation.ts`, `packages/couleur/src/index.ts` si
   un export s'ajoute, `packages/couleur/tests/alertes.test.ts`,
@@ -154,7 +155,7 @@ M2 : les lister dans le compte rendu sans les corriger.
 
 ## M2. Les lecteurs du plugin passent au rôle `fond`
 
-- [ ] **Agent** : `implementeur` (Sonnet). Après M1 et H1. En cours.
+- [x] **Agent** : `implementeur` (Sonnet). Après M1 et H1. Fait, commit 88097cf.
 - **Fichiers** : `packages/plugin-palettes/src/i18n/fr.ts`, `en.ts`,
   `src/ui/harmonisation/cartePaires.ts`, `galerie/etats.cjs`, les tests de
   `packages/plugin-palettes/tests/` qui cassent,
@@ -315,7 +316,7 @@ vert, `npm run build --workspace ucm-palettes-plugin` vert.
 
 ## R1. La roue des teintes à la largeur de la carte
 
-- [ ] **Agent** : `implementeur-exigeant` (interface à reproduire au pixel). Délégable à Codex. En cours chez Codex.
+- [x] **Agent** : `implementeur-exigeant` (interface à reproduire au pixel). Fait par Codex, commit 1f54417.
 - **Fichiers** : `packages/plugin-palettes/src/roueDesTeintes.ts`,
   `src/ui/harmonisation/carteRoue.ts`, `src/ui/styles.css` (section « Roue des
   teintes » seulement), `tests/roueDesTeintes.test.ts`,
@@ -467,6 +468,25 @@ qu'il ne reste que des identifiants et des commentaires.
 
 **Fini quand** : `npm test --workspace ucm-palettes-plugin` vert et
 `npm run build --workspace ucm-palettes-plugin` vert.
+
+## I1. Les tests d'interface suivent la paire Bleu et Azur
+
+- [ ] **Agent** : `implementeur` (Sonnet) ou Codex. Demande de lancer `test:ui`, filtré sur les tests touchés.
+- **Fichier** : `packages/plugin-palettes/tests/interface/interface.test.mjs`.
+
+Avec la règle de M1, Indigo et Azur ne forment plus une paire dans la fixture
+à vingt palettes. M2 a fait viser Bleu et Azur aux états de la galerie
+(`identifiantDuBilan(0)` et `(18)`), et le geste de `harmonisation-distinguee`
+est devenu `End`. Les tests qui cliquent « Comparer Indigo et Azur » et lisent
+des valeurs de cette paire (zones, pourcentages, noms) sont à réécrire pour
+Bleu et Azur, autour des lignes 192, 230, 370-375, 405-414, 452-460, 488-563,
+589, 627-650, 658, 689-710, 745-771, 817-880 et 902-1000. Relever chaque
+valeur attendue sur la galerie reconstruite, jamais par calcul à la main.
+
+**Fini quand** : les tests réécrits passent avec
+`npm run test:ui --workspace ucm-palettes-plugin -- --test-name-pattern "<motif>"`
+(ou la commande filtrée que le script de test accepte), et aucun test ne cite
+plus la paire Indigo et Azur.
 
 ## S1. La spécification et les documents suivent
 
