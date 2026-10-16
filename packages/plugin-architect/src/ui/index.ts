@@ -37,6 +37,9 @@ const frontiere = creerFrontiere(envoyer, (message) => {
   progression.hidden = true;
   bouton.disabled = false;
   if (message.type === 'erreur') bilan.textContent = message.message;
+  else if (message.type === 'application') bilan.textContent = message.resultat.statut === 'applique'
+    ? `${message.resultat.renommages.length} noms modifiés`
+    : 'Certains noms n’ont pas pu être modifiés. Vérifiez le résultat, puis relancez l’analyse.';
   else bilan.textContent = `${message.analyse.inventaire.entrees.length} noms analysés · ${message.analyse.normalisation.propositions.length} propositions · ${message.analyse.normalisation.collisions.length} collisions`;
 });
 app.dataset.etat = 'initial';
