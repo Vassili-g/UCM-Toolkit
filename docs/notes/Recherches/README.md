@@ -13,7 +13,7 @@ Pour modifier le produit, partez des références de
 | Sujet | État | Prochain geste |
 |---|---|---|
 | [Recette v10 de Palettes](./Plugin%20Palettes/Recette%20v10/README.md) | R2 à R6 implémentés ; R1 attend la décision D1 ; rampes Dark sans ancrage mesurées | Décision D1 du mainteneur, puis recette Figma |
-| [Référentiel UCM](./Référentiel%20UCM/README.md) | Audit fait, décisions prises, [plan par lots](./Référentiel%20UCM/PLAN-IMPLEMENTATION.md) | Export des tokens du fichier Figma à jour, puis lot 1 |
+| [Référentiel UCM](./Référentiel%20UCM/README.md) | Audit fait, décisions prises, [plan par lots](./Référentiel%20UCM/PLAN-IMPLEMENTATION.md) | Lot 1 |
 | [Architecture globale UCM](./Architecture%20globale%20UCM%20et%20UCM%20Architect/VERSION-MINIMALE.md) | Version minimale retenue, non implémentée : fichier de conventions, `$description` publiée, onglet Intégrations retiré, état `selected` | Décision de mise en œuvre ; le reste du dossier est une piste |
 | [Architecture multi-marques](Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle : collections, panneau des variables et rôles de `theme` | Actualiser les données du panneau après un export ; les évolutions ouvertes restent séparées dans le dossier |
 
