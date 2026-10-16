@@ -1,0 +1,6 @@
+/* Les dimensions des contrôles et les couleurs viennent du socle. */
+body { margin: 0; background: var(--fond); color: var(--texte); }
+main { display: flex; flex-direction: column; align-items: flex-start; gap: var(--espace-bloc); padding: var(--espace-page); }
+h1 { margin: 0; font-size: var(--titre); line-height: var(--titre-interligne); }
+p { margin: 0; }
+progress { width: 100%; }
