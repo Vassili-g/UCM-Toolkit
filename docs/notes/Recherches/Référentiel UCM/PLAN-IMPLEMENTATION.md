@@ -1,7 +1,7 @@
 # Plan d'implémentation du référentiel UCM
 
 Ce plan crée `@ucm-kit/core/referentiel`, y range les définitions relevées par
-l'[audit](./AUDIT-REFERENTIEL.md), puis branche chaque outil dessus. Le
+l'[audit conservé dans Git](https://github.com/Vassili-g/UCM-Toolkit/blob/cbfd4f6/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/AUDIT-REFERENTIEL.md), puis branche chaque outil dessus. Le
 [README](./README.md) donne le principe et les décisions du mainteneur.
 
 Cocher une case quand son commit est fait, avec le hash entre parenthèses.

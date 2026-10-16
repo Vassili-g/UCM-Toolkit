@@ -5,9 +5,8 @@ TypeScript pure de `@ucm-kit/core`. Les plugins, le CLI et les pages générées
 l'importent. Les documents décrivent ces données et y renvoient, sans les
 recopier.
 
-**État :** audit fait ([AUDIT-REFERENTIEL.md](./AUDIT-REFERENTIEL.md)),
-décisions prises, [plan par lots](./PLAN-IMPLEMENTATION.md) prêt à démarrer
-au lot 1. Le fichier Figma se met à jour avec la v1 d'UCM Architect
+Le [plan par lots](./PLAN-IMPLEMENTATION.md) suit l'implémentation et ses
+vérifications. Le fichier Figma se met à jour avec la v1 d'UCM Architect
 (phase 2 du plan).
 
 ## La demande
@@ -90,6 +89,6 @@ Hors de ce chantier : le contrôle « full UCM » d'un `tokens.json` par
 
 | Document | Contenu |
 |---|---|
-| [PROMPT-AUDIT-CODEX.md](./PROMPT-AUDIT-CODEX.md) | La demande d'audit : toute donnée du concept partagée entre plugins et absente de la liste proposée |
-| [AUDIT-REFERENTIEL.md](./AUDIT-REFERENTIEL.md) | Le rapport de Codex : 60 données classées, contradictions, écarts entre la vue et le kit |
+| [Demande d'audit dans Git](https://github.com/Vassili-g/UCM-Toolkit/blob/cbfd4f6/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/PROMPT-AUDIT-CODEX.md) | Les données du concept partagées entre plugins et absentes de la liste proposée |
+| [Audit dans Git](https://github.com/Vassili-g/UCM-Toolkit/blob/cbfd4f6/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/AUDIT-REFERENTIEL.md) | Le rapport de Codex : 60 données classées, contradictions, écarts entre la vue et le kit |
 | [PLAN-IMPLEMENTATION.md](./PLAN-IMPLEMENTATION.md) | Les lots, leurs agents et leurs critères de fin |
