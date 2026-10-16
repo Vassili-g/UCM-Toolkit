@@ -157,11 +157,12 @@ constantes déplacées pour que leurs lecteurs actuels compilent encore.
 
 **Agent :** `implementeur`. **Effort :** petit. **Dépend :** lots 1 et 3.
 
-- [ ] `packages/couleur` lit crans, modes, profils, niveaux, seuils par défaut
+- [x] `packages/couleur` lit crans, modes, profils, niveaux, seuils par défaut (24eb1ba)
   et adresse de la recette dans le référentiel ; ses types publics restent
   les mêmes
-- [ ] Aucune liste `['light', 'dark']`, `['soft', 'vivid']` ni aucune liste de
-  crans écrite dans `packages/couleur/src`
+- [x] Aucune liste `['light', 'dark']`, `['soft', 'vivid']` ni la liste commune de
+  crans écrite dans `packages/couleur/src` (24eb1ba). Les listes propres aux
+  courbes et aux migrations de recette restent dans le moteur.
 
 Fin : tests de `couleur` verts, dont `architecture.test.ts` ; aucune valeur
 calculée ne change, puisque le lot déplace des constantes sans les modifier.
