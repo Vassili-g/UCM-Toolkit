@@ -7,7 +7,7 @@
     "rootDir": "src",
     "noEmit": false
   },
-  // Seuls les sous-chemins format et emplois se compilent : les lecteurs sont
+  // Seuls les sous-chemins format, emplois et referentiel se compilent : les lecteurs sont
   // du JavaScript pur et se publient tels quels.
-  "include": ["src/format/**/*", "src/emplois/**/*"]
+  "include": ["src/format/**/*", "src/emplois/**/*", "src/referentiel/**/*"]
 }

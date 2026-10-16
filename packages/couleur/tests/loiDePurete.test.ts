@@ -6,7 +6,7 @@
  * Cette loi porte sur ce que le compilateur accepte parce que ES2020 le
  * déclare : `Date`, `Math.random`, `Intl` et `toLocaleString`. `TextEncoder`
  * s'y ajoute, absent du sandbox Figma. Le vocabulaire que le moteur importe de
- * `@ucm-kit/core/emplois` y est soumis aussi. Borne : la lecture est
+ * `@ucm-kit/core/referentiel` y est soumis aussi. Borne : la lecture est
  * textuelle, ligne à ligne, commentaires retirés ; un accès par une chaîne
  * calculée lui échappe.
  */
@@ -20,6 +20,7 @@ const ici = path.dirname(fileURLToPath(import.meta.url));
 const SOURCES = [
   { dossier: path.resolve(ici, '..', 'src'), nom: 'src' },
   { dossier: path.resolve(ici, '..', '..', 'kit', 'src', 'emplois'), nom: 'kit/src/emplois' },
+  { dossier: path.resolve(ici, '..', '..', 'kit', 'src', 'referentiel'), nom: 'kit/src/referentiel' },
 ];
 
 const INTERDITS = ['Date', 'Math.random', 'Intl', 'toLocaleString', 'TextEncoder'];
@@ -34,7 +35,7 @@ test('loi de pureté : aucun fichier du moteur ne lit l’heure, le hasard ou la
   const fautes: string[] = [];
   for (const { dossier, nom: racine } of SOURCES) {
     const fichiers = fs.readdirSync(dossier).filter((nom) => nom.endsWith('.ts'));
-    assert.ok(fichiers.length >= 4, `seuls ${fichiers.length} fichiers trouvés sous ${racine}/`);
+    assert.ok(fichiers.length >= (racine === 'kit/src/referentiel' ? 3 : 4), `seuls ${fichiers.length} fichiers trouvés sous ${racine}/`);
     for (const nom of fichiers) {
       lignesDeCode(fs.readFileSync(path.join(dossier, nom), 'utf8')).forEach((ligne, rang) => {
         for (const interdit of INTERDITS) {
