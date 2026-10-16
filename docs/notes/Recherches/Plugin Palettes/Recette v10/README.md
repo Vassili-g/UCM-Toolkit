@@ -5,8 +5,8 @@ Vérification, et sur l'onglet Harmonisation : nom de l'onglet, alerte des
 palettes trop proches, messages qui déplacent la page, zones hachurées pendant
 un glisser, taille de la roue des teintes.
 
-**État.** Constats et propositions écrits, décisions D1 à D6 attendues. Rien
-n'est implémenté.
+**État.** R2 à R6 sont implémentés, recette Figma à faire. R1 (nom des
+palettes décalé entre Création et Vérification) attend la décision D1.
 
 | Document | Contenu |
 |---|---|

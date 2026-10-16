@@ -269,18 +269,18 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/i18n/                le registre des langues, les catalogues anglais et français, le traducteur, le séparateur décimal
   src/preferences.ts       la langue de l'interface et la vue de Gestion, lues et rangées dans clientStorage, rangements ordonnés
   src/planche/textes.ts    les textes des planches : le catalogue français, quelle que soit la langue de l'interface
-  src/harmonisation.ts     l'état de l'onglet Harmonisation (palettes cochées, palette à régler, thème, intensité, affichage, vision), le départ de chaque palette réglée, l'annulation de ses modifications et les constats de la comparaison, sans DOM
-  src/ordreDesPalettes.ts  l'ordre d'affichage des palettes : par teinte (Création, Harmonisation), par nom (Gestion) ; la recette garde le sien
+  src/harmonisation.ts     l'état de l'onglet Comparaison (palettes cochées, palette à régler, thème, intensité, affichage, vision), le départ de chaque palette réglée, l'annulation de ses modifications et les constats de la comparaison, sans DOM
+  src/ordreDesPalettes.ts  l'ordre d'affichage des palettes : par teinte (Création, Comparaison), par nom (Gestion) ; la recette garde le sien
   src/vision.ts            les trois visions des couleurs que la roue simule, par matrice en sRGB linéaire
   src/roueDesTeintes.ts    la géométrie de la roue des teintes : position d'une teinte, teinte visée par le pointeur, arc d'une paire, hauteur des noms
-  src/ui/                  l'en-tête du socle, les onglets Création, Vérification, Harmonisation et Gestion, la Configuration à deux onglets, Palettes et Général
+  src/ui/                  l'en-tête du socle, les onglets Création, Vérification, Comparaison et Gestion, la Configuration à deux onglets, Palettes et Général
   src/ui/paletteOuverte.ts la recette affichée, la palette ouverte, le thème montré, son analyse, l'état du geste et le verdict de chaque palette, sans DOM ; ses abonnés prévenus à chaque rendu complet, et ceux du thème à chaque changement
   src/ui/barreDePalette.ts la barre de la palette ouverte, un bloc ordinaire en un exemplaire que l'onglet actif place dans son panneau : sélecteur, « Nouvelle palette », menu, confirmation de suppression
   src/ui/basculeDuTheme.ts le choix « Aperçu » Light/Dark du thème montré, que la ligne du titre de Création et celle de Vérification rendent chacune
   src/ui/ongletCreation.ts l'onglet Création : la barre, la ligne du titre « Palette [nom] » et de la bascule du thème, l'encart d'une palette reprise du fichier, les cartes, dont la configuration repliée après une création, puis le pied qui compte les messages ; l'état du geste en cours
   src/ui/ongletVerification.ts l'onglet Vérification : la barre, la ligne du titre et de la bascule du thème, le verdict de la palette ouverte, ses messages, la carte des garanties fixe, le pied vers Gestion ou Création ; sans palette ouverte, le bilan des palettes
-  src/ui/ongletHarmonisation.ts l'onglet Harmonisation : l'en-tête avec l'intensité et le thème, le bilan, les cinq cartes, le compteur de l'onglet ; la recette et les départs d'avant un glisser ou un rangement en vol, que Échap et un refus rendent ; les hauteurs des cartes figées pendant un glisser
-  src/ui/harmonisation/    les cinq cartes de l'onglet : palettes trop proches, liste à cocher, comparaison en couleurs ou en gris, réglages d'une palette, roue des teintes ; les couleurs qu'elles peignent, la course et les zones trop proches partagées par la piste et la roue, la prévisualisation d'au plus une palette par image
+  src/ui/ongletHarmonisation.ts l'onglet Comparaison : l'en-tête avec l'intensité et le thème, le bilan, les cinq cartes, le compteur de l'onglet ; la recette et les départs d'avant un glisser ou un rangement en vol, que Échap et un refus rendent ; les hauteurs des cartes figées pendant un glisser
+  src/ui/harmonisation/    les cinq cartes de l'onglet : palettes trop proches, liste à cocher, aperçu en couleurs ou en gris, réglages d'une palette, roue des teintes ; les couleurs qu'elles peignent, la course et les zones trop proches partagées par la piste et la roue, la prévisualisation d'au plus une palette par image
   src/ui/grandeursDuReglage.ts  les trois grandeurs d'un réglage, teinte, saturation et luminosité : écriture, lecture d'une saisie, bouts de la piste et piste peinte, communes au Réglage global et aux Réglages d'Harmonisation
   src/ui/bilanDesPalettes.ts le classement de chaque palette, à corriger, à vérifier ou conforme, et son premier constat, sans DOM
   src/ui/vueDuBilanDesPalettes.ts Vérification sans palette ouverte : onglets du bilan, nuancier mis en avant ou atténué, détail, « tout est conforme »
@@ -1506,7 +1506,7 @@ La spécification en lien porte le raisonnement.
   pressent Fin au-delà d'une borne. Borne : une valeur rangée qu'un autre
   réglage a sortie de sa plage reste en place ([DER-23]).
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#123-les-limites)
-- L'onglet Harmonisation vient entre Vérification et Gestion. Sous deux
+- L'onglet Comparaison vient entre Vérification et Gestion. Sous deux
   palettes, il est indisponible : le bouton est désactivé et les flèches le
   sautent ; une recette qui retombe sous deux palettes quitte l'onglet et
   remet ses choix à zéro (`synchroniserHarmonisation`). Il garde, le temps
@@ -1522,7 +1522,8 @@ La spécification en lien porte le raisonnement.
   intensités du même écart, borné à ±30° par profil et par les garanties
   tenues au départ (`candidatDeTeinte`, `courseDeTeinte`) ; une palette figée
   ne se règle pas. Le compteur de l'onglet compte les paires que
-  `pairesTropProches` juge sous le seuil `palettesProches`, et le lien
+  `pairesTropProches` juge sous le seuil de leur rôle (`palettesProches`
+  pour les pleins, 20 % de ce seuil pour les fonds teintés), et le lien
   « Comparer » de Vérification ouvre l'onglet sur la paire cochée
   (`comparerLaPaire`). La vision de la roue repeint les points et ne change
   ni la recette ni les alertes. Pendant un glisser, aucune carte ne change de

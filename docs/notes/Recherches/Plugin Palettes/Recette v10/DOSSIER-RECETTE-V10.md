@@ -38,6 +38,8 @@ bouton et sa consigne, Vérification ses onglets ou sa phrase. La constante de
 47 px disparaît, et un test d'interface compare la position du premier nom dans
 les deux onglets.
 
+**État.** En attente de la décision D1.
+
 **Décision D1.** Valider le composant partagé. Si le décalage reste visible
 après `npm run build`, joindre une capture des deux onglets avec la largeur de
 la fenêtre.
@@ -56,6 +58,8 @@ Le compteur, la ligne fixe et les liens « Comparer » de Vérification gardent
 leur texte. Les identifiants de code (`ongletHarmonisation`,
 `harmonisation.ts`) changent dans un lot à part, ou restent : ils ne se voient
 pas.
+
+**État.** Implémenté, recette Figma à faire. Décision : onglet « Comparaison », carte « Aperçu » (anglais « Preview »), identifiants de code inchangés.
 
 **Décision D2.** Valider les deux noms, et dire si le code suit le renommage.
 
@@ -105,6 +109,8 @@ familles voisines se confondent. Les fonds de red et de rose Tailwind sont à
   l'onglet lisent `pairesTropProches` et `zonesTropProches` : ils suivent sans
   autre changement.
 
+**État.** Implémenté, recette Figma à faire. Décision : pleins et fonds teintés, fonds à 20 % du seuil `palettesProches` (0,010 par défaut), sans champ de recette.
+
 **Décision D3.** a) Valider les quatre couleurs comparées. b) Choisir le seuil
 des fonds dans la maquette. c) Dire si ce seuil se règle dans la recette, comme
 `palettesProches`. Ce réglage ajoute un champ `seuils.fondsProches`, donc un
@@ -146,6 +152,8 @@ l'ancrage du défilement.
 Une zone peut encore grandir quand une nouvelle paire se forme. Ce cas reste
 visible : il signale une information nouvelle.
 
+**État.** Implémenté, recette Figma à faire.
+
 **Décision D4.** Valider les trois règles, et dire si elles valent aussi pour
 la carte Réglages de Création, où « Annuler les modifications » paraît de la
 même façon.
@@ -174,6 +182,8 @@ les zones avant que le curseur y entre. Le calcul coûte un balayage de la
 course par palette cochée au lieu d'aucun : `positionsDeLaPaire` refait
 aujourd'hui `balayerLaCourse` pour chaque paire, un balayage par palette suffit.
 
+**État.** Implémenté, recette Figma à faire.
+
 **Décision D5.** Valider l'affichage des zones dès l'arrivée sur une palette,
 même quand aucune paire n'est trop proche.
 
@@ -201,6 +211,8 @@ couronne que les noms des palettes.
    sur les bords, 13 px au moins entre deux noms, chacun relié à son point.
 4. L'arc ambre d'une paire passe à l'extérieur de l'anneau. La course et la
    zone hachurée de la palette à régler passent à l'intérieur.
+
+**État.** Implémenté, recette Figma à faire. Décision : les noms de familles disparaissent de la roue.
 
 **Décision D6.** Valider la roue. Dire si les noms de familles doivent rester,
 par exemple en infobulle sur l'anneau.
