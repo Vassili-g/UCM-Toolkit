@@ -31,6 +31,19 @@ Cocher une case quand son commit est fait, avec le hash entre parenthèses.
 | `executant` | Petit modèle | Remplacement mécanique listé, numéro de version, renvoi |
 | `verificateur` | Haiku | `npm test`, `typecheck`, `build`, contrôle de style |
 
+### Exécution avec Codex
+
+| Rôle du plan | Modèle Codex | Effort |
+|---|---|---|
+| Conversation principale | Modèle de la session | Relecture et décisions de forme |
+| `implementeur`, `chercheur` | GPT-6.1 Sol | Moyen |
+| `implementeur-exigeant` | GPT-6.1 Sol | Élevé |
+| `executant`, `verificateur` | GPT-6 Luna | Faible pour l'exécution, moyen pour une correction |
+
+Deux agents délégués au plus travaillent simultanément. Ils reçoivent un seul
+lot et les sources utiles, sans l'historique de la conversation. La
+conversation principale tient les cases et les commits.
+
 ## Ordre et données
 
 Aucun nouvel export de tokens n'est requis pour démarrer. Les lots 2, 9 et 15
@@ -69,21 +82,21 @@ libellé d'un terme dans une langue.
 
 L'agent fait ensuite :
 
-- [ ] `referentiel/index.ts` republie `../emplois/index.ts` sans le recopier ;
+- [x] `referentiel/index.ts` republie `../emplois/index.ts` sans le recopier (bb0d564) ;
   `emplois` reste exporté tel quel
-- [ ] Sous-chemin `./referentiel` dans `packages/kit/package.json`, inclusion
+- [x] Sous-chemin `./referentiel` dans `packages/kit/package.json`, inclusion (bb0d564)
   dans `tsconfig.build.json`
-- [ ] `vocabulaire.ts` : registres des crans (onze, 50 à 950, C01), des modes
+- [x] `vocabulaire.ts` : registres des crans (onze, 50 à 950, C01), des modes (bb0d564)
   (C03), des profils et de l'intensité unique (C04, C05), des états avec
   `pressed` et `disabled` retenus, `press`, `disable`, `hovered`, `focused`
   tolérés (V01), des noms d'axe d'état (V03), de la priorité entre états
   (V04), des tailles (V02), des statuts, des rôles de peinture (V05)
-- [ ] La loi de pureté (`packages/couleur/tests/loiDePurete.test.ts`) lit aussi
+- [x] La loi de pureté (`packages/couleur/tests/loiDePurete.test.ts`) lit aussi (bb0d564)
   `kit/src/referentiel`
-- [ ] Tests : `packages/kit/tests/referentiel.test.ts`, identifiants uniques,
+- [x] Tests : `packages/kit/tests/referentiel.test.ts`, identifiants uniques (bb0d564),
   aucun toléré en double ni égal à un terme retenu, libellés non vides dans
   les deux langues
-- [ ] `paquetPublie.test.mjs` connaît le nouveau sous-chemin
+- [x] `paquetPublie.test.mjs` connaît le nouveau sous-chemin (bb0d564)
 
 Fin : `npm run build --workspace @ucm-kit/core`, tests du kit et de
 `couleur` verts.
