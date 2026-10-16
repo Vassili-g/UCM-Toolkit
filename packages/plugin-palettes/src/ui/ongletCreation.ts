@@ -29,6 +29,7 @@ import {
   profilAutomatique,
   profilPorteur,
   figeesParIntensite,
+  PROFILS,
   rampesDe,
   reconstruireLesReglages,
   type Classement,
@@ -38,6 +39,7 @@ import {
   type Recette,
   type Refus,
 } from 'ucm-couleur';
+import { INTENSITE_UNIQUE } from '@ucm-kit/core/referentiel';
 
 import { analyserPalette } from '../analyse';
 import { palettesParTeinte } from '../ordreDesPalettes';
@@ -171,7 +173,7 @@ type RampesCalculees = ReturnType<typeof rampesDe>;
 
 /** Les jeux de couleurs d'une palette figée, par clé de rampe : `unique`, ou `soft` et `vivid`. */
 function figeesParCle(figees: NonNullable<Palette['figees']>): [keyof RampesCalculees, CouleursFigees][] {
-  return figeesParIntensite(figees) ? [['soft', figees.soft], ['vivid', figees.vivid]] : [['unique', figees]];
+  return figeesParIntensite(figees) ? PROFILS.map((profil) => [profil, figees[profil]]) : [[INTENSITE_UNIQUE, figees]];
 }
 
 /** Vrai quand aucun jeu de couleurs figées ne porte de thème Dark : il se calcule alors, et seul Light se compare. */

@@ -9,6 +9,9 @@
  * un suivi vide, et un suivi d'une version plus récente refuse toute
  * écriture. Pur : `src/ecriture/variables.ts` le range.
  */
+import { INTENSITE_UNIQUE } from '@ucm-kit/core/referentiel';
+import { MODES } from 'ucm-couleur';
+
 import { DESTINATION_PAR_DEFAUT, validerLaDestination, type Destination } from './destination';
 import type { ModeDuPlan } from './plan';
 
@@ -72,7 +75,7 @@ function lireLaPalette(valeur: unknown): PaletteSuivie | null {
   if (!estUnObjet(valeur) || typeof valeur.collection !== 'string') return null;
   const modes: { [M in ModeDuPlan]?: string } = {};
   if (estUnObjet(valeur.modes)) {
-    for (const mode of ['unique', 'light', 'dark'] as const) {
+    for (const mode of [INTENSITE_UNIQUE, ...MODES]) {
       const id = valeur.modes[mode];
       if (typeof id === 'string') modes[mode] = id;
     }

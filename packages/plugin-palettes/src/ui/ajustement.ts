@@ -14,7 +14,7 @@
  * clic sur le voile la referment, et rendent le focus à l'élément que
  * l'onglet désigne à ce moment.
  */
-import { verifierPromesses, type Intensite, type Mode, type Palette, type Promesse, type Recette, type VariableDePalette } from 'ucm-couleur';
+import { MODES, verifierPromesses, type Intensite, type Mode, type Palette, type Promesse, type Recette, type VariableDePalette } from 'ucm-couleur';
 
 import {
   changementAuPasVoisin,
@@ -282,7 +282,7 @@ function construireVues(i18n: Localisation) {
     /** Pourquoi ajuster : dans chaque thème qui manque une garantie, la variable de la première garantie manquée. */
     function manquesDeLaPalette(lue: Recette, ajustee: Palette): { readonly mode: Mode; readonly variable: VariableDePalette }[] {
       const manquees = verifierPromesses(lue, ajustee).filter((promesse) => promesse.verdict === 'manquee');
-      return (['light', 'dark'] as const).flatMap((mode) => {
+      return MODES.flatMap((mode) => {
         const premiere = manquees.find((promesse) => promesse.mode === mode);
         return premiere ? [{ mode, variable: premiere.garantie.premier.variable }] : [];
       });

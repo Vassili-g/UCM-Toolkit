@@ -5,7 +5,7 @@
  * les renomme sous le segment de leur thème ou de leur intensité, et crée
  * sous leur chemin ce que la palette porte de plus. Pur : ni Figma, ni DOM.
  */
-import { MODES, type CouleursFigees, type Intensite, type Mode, type Palette } from 'ucm-couleur';
+import { MODES, PROFILS, type CouleursFigees, type Intensite, type Mode, type Palette } from 'ucm-couleur';
 
 import { nuanceDeReference, type GroupeRange, type PaletteDuFichier, type PaletteGroupee } from './detection';
 import { cleDuPlan, type EntreeDuPlan } from './plan';
@@ -105,7 +105,7 @@ function couleursFigeesDeLaGroupee(groupee: PaletteGroupee): CouleursDeLaReprise
     return groupe && mode ? groupe.palette.couleurs[mode.id] ?? null : null;
   };
   const lues: { readonly light: readonly (string | null)[]; readonly dark: readonly (string | null)[] | null }[] = [];
-  for (const intensite of groupee.forme === 'themes-chemin' ? [null] : (['soft', 'vivid'] as const)) {
+  for (const intensite of groupee.forme === 'themes-chemin' ? [null] : PROFILS) {
     const light = lire(intensite, 'light');
     if (!light) return null;
     lues.push({ light, dark: lire(intensite, 'dark') });

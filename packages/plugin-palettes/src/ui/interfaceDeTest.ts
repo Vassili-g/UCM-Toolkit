@@ -18,7 +18,7 @@
  * l'ouverture, elle ne se dessine que dépliée ; la vue choisie dure la session.
  */
 import {
-  COULEUR_DU_TEXTE_DES_BOUTONS, ETATS, SUPPORT_DES_VARIABLES, TABLE_DES_DOSSIERS, lireHexa, rampeDe, sensDuTheme,
+  COULEUR_DU_TEXTE_DES_BOUTONS, ETATS, PROFILS, SUPPORT_DES_VARIABLES, TABLE_DES_DOSSIERS, lireHexa, rampeDe, sensDuTheme,
   type Intensite, type Mode, type Profil, type Recette, type SensDuTheme, type SupportDeVariable, type TexteDesBoutons, type VariableDePalette,
 } from 'ucm-couleur';
 
@@ -470,7 +470,7 @@ function construireVues(i18n: Localisation) {
     // Le profil peint, après la vue : seule une palette à deux intensités en a un à choisir ([ENT-14]).
     const choixDuProfil = createChoixDuProfil({
       portee: 'afficher',
-      options: ['soft', 'vivid'],
+      options: PROFILS,
       nom: TEXTES_DE_L_INTERFACE_DE_TEST.profil,
       surChoix(valeur) {
         if (valeur === 'deux') return;

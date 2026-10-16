@@ -19,6 +19,7 @@
 import {
   BORNES_DU_COLOR_SHIFT,
   PAS_DU_COLOR_SHIFT,
+  PROFILS,
   aUneIntensite,
   balayerLaLimite,
   boutsDe,
@@ -262,7 +263,7 @@ function construireVues(i18n: Localisation) {
     });
     const profils = createChoixDuProfil({
       portee: 'regler',
-      options: ['soft', 'vivid'],
+      options: PROFILS,
       nom: TEXTES_DE_LA_DERIVE.profilRegle,
       surChoix(valeur) {
         if (valeur === 'deux') return;
@@ -350,7 +351,7 @@ function construireVues(i18n: Localisation) {
       if (echelleFigee !== null) return echelleFigee;
       const affichee = grandeurAffichee();
       if (!palette) return BORNES_DU_COLOR_SHIFT[affichee];
-      return echelleDe(affichee, (['soft', 'vivid'] as const).flatMap((cible) => BOUTS.map((bout) => valeurAuBout(palette!, cible, affichee, bout))));
+      return echelleDe(affichee, PROFILS.flatMap((cible) => BOUTS.map((bout) => valeurAuBout(palette!, cible, affichee, bout))));
     };
     /** La capture du pointeur fait viser le SVG aux clics suivants : le double-clic lit le bout pressé. */
     let boutPresse: Bout | null = null;

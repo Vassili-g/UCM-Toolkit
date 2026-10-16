@@ -12,6 +12,7 @@ import {
   aUneIntensite,
   partDeLaReference,
   partsDesProfils,
+  PROFILS,
   BORNES_DES_REGLAGES,
   type Palette,
   type Profil,
@@ -77,7 +78,7 @@ export function reglagesModifies(recette: Recette, palette: Palette): ReglageMod
   const valeurs = valeursDesProfils(recette, palette);
   const defauts = valeursParDefaut(recette, palette);
   const une = aUneIntensite(palette);
-  const profils: readonly Profil[] = une ? ['vivid'] : ['soft', 'vivid'];
+  const profils: readonly Profil[] = une ? ['vivid'] : PROFILS;
   return GRANDEURS.flatMap((grandeur) => profils
     .filter((profil) => estModifiee(grandeur, valeurs[profil][grandeur], defauts[profil][grandeur]))
     .map((profil) => ({ grandeur, profil: une ? null : profil })));

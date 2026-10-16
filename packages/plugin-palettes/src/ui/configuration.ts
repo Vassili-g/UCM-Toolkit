@@ -169,7 +169,7 @@ function construireVues(i18n: Localisation) {
   };
 
   /** Les parties d'un cadre que le designer choisit, dans l'ordre de la carte ([PLA-28]). */
-  const PARTIES: readonly (keyof ContenuDesPlanches)[] = ['note', 'usages', 'grilles', 'light', 'dark'];
+  const PARTIES: readonly (keyof ContenuDesPlanches)[] = ['note', 'usages', 'grilles', ...MODES];
 
   function createConfiguration(recette: RecetteDeLaConfiguration): ConfigurationUi {
     const element = document.createElement('div');
