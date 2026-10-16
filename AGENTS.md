@@ -30,6 +30,15 @@ tokens, couleurs, composition, arbre des slots, layout, grilles, diagnostics,
 échantillon de maquette, versionnage, écriture dans le document. Lire le groupe
 que la tâche touche, pas la section entière.
 
+Une définition UCM (crans, modes, profils, états, collections, rôles du thème,
+garanties, rôle des produits, tags des règles d'usage, conventions de noms) se
+modifie dans [`packages/kit/src/referentiel/`](./packages/kit/src/referentiel/),
+jamais dans un paquet ; `tests/referentielUnique.test.ts` refuse la liste qui la
+recopie. Ensuite, relancer les tests, régénérer la vue illustrée
+(`generer-donnees-referentiel.ts`), régénérer la planche du moteur
+(`npm run planche --workspace ucm-couleur`) si le moteur ou ses crans changent,
+et changer la version de `@ucm-kit/core`.
+
 **Avant d'écrire une phrase, dans un document ou dans un commentaire, charger la
 skill [`rediger-sans-tics-ia`](./.agents/skills/rediger-sans-tics-ia/SKILL.md).**
 Un commentaire ne se justifie que par un fait absent du code : une décision, une
@@ -1045,36 +1054,34 @@ La spécification en lien porte le raisonnement.
 - La table des dossiers `solid`, `surface` et `page` et de `ring`, une par
   thème et par sens, les crans requis, les trois états, les sept garanties
   G1 à G7 et le contraste WCAG 2 ont une seule source, `@ucm-kit/core/emplois`
-  (`packages/kit/src/emplois/`). `ucm-couleur` l'importe et la republie sans
-  la recopier, et le kit n'importe rien de `ucm-couleur`.
+  (`packages/kit/src/emplois/`), que `@ucm-kit/core/referentiel` republie.
+  `ucm-couleur` l'importe et la republie sans la recopier, et le kit n'importe
+  rien de `ucm-couleur`. Les crans de la table sont dans `dossiers.ts`
+  (`TABLE_DES_DOSSIERS`), les libellés et définitions des variables dans
+  `packages/kit/src/referentiel/theme.ts` ; `tests/referentielUnique.test.ts`
+  refuse une liste qui les recopie.
 - Un thème est normal ou inversé selon son texte des boutons, blanc ou noir :
-  Light blanc et Dark noir sont normaux. `sensDuTheme` (`dossiers.ts`) en est
-  l'unique autorité, et chaque lecteur de la table passe par lui : la table est
-  indexée par thème, puis par sens (`TABLE_DES_DOSSIERS`). Dans le sens
-  inversé, `solid/hover` et `solid/pressed` prennent les crans 600 et 500,
-  `page/foreground` et `page/border` le cran 800 au lieu de 700, `ring` le cran
-  700 au lieu de 600, et les nuances 500 à 800 prennent la courbe inversée
-  (`courbesParDefaut`). En Light inversé, `surface/foreground` et
-  `surface/border` prennent aussi le cran 900 au lieu de 800. En Dark,
-  `surface/default`, `surface/hover` et `surface/pressed` prennent les crans
-  300, 400 et 500, et `surface/foreground` et `surface/border` le cran 950,
-  dans les deux sens. `ring` est une variable à la racine de la palette, à côté
-  des dossiers. Les crans requis sont 100 à 950, réunion des crans de la table
-  de chaque thème dans son sens ; seul 50 est facultatif, et une variable
-  dont le cran manque n'est pas présente. `solid/foreground` vaut `#FFFFFF` ou
-  `#000000`, jamais le fond de la page.
+  Light blanc et Dark noir sont normaux (`TEXTE_DES_BOUTONS_PAR_DEFAUT`).
+  `sensDuTheme` (`dossiers.ts`) en est l'unique autorité, et chaque lecteur de
+  la table passe par lui : la table est indexée par thème, puis par sens
+  (`TABLE_DES_DOSSIERS`). Dans le sens inversé, les nuances 500 à 800 prennent
+  la courbe inversée (`courbesParDefaut`). `ring` est une variable à la racine
+  de la palette, à côté des dossiers. Les crans requis sont la réunion des
+  crans de la table de chaque thème dans son sens (`cransRequis`) ; seul 50 est
+  facultatif, et une variable dont le cran manque n'est pas présente.
+  `solid/foreground` vaut `#FFFFFF` ou `#000000`, jamais le fond de la page.
   `packages/kit/tests/dossiers.test.ts` et
   `packages/couleur/tests/nuances.test.ts` le tiennent.
 - Chaque garantie G1 à G7 se juge par palette, dans la table du sens du
-  thème ; aucune ne croise deux palettes. G2 à G6 se jugent contre la page,
-  le réglage « Fond » du thème (G3 et G4 aussi contre les trois surfaces), et
-  G7 contre la page et contre la carte, `elevation/raised`. Aucun réglage ne
-  porte la carte : `couleurDeLaCarte` (`packages/couleur/src/promesses.ts`) la
+  thème ; aucune ne croise deux palettes. `GARANTIES` (`garanties.ts`) porte
+  le premier membre, les fonds et le seuil de chacune. La page est le réglage
+  « Fond » du thème ; la carte, `elevation/raised`, n'a aucun réglage :
+  `couleurDeLaCarte` (`packages/couleur/src/promesses.ts`) la
   déduit du fond. En Light, elle est blanche. En Dark, elle prend la teinte
   et la chroma du fond, à la clarté du cran qui suit, sur la courbe Dark,
   celui dont la clarté est la plus proche de celle du fond ; le dernier cran,
   sans suivant, donne sa propre clarté. Une garantie dont un cran manque n'est
-  pas jugeable. Les
+  pas jugeable (`garantieJugeable`). Les
   seuils viennent de la recette (`texte`, `nonTexte`). La garantie des
   courbes lit, dans la table
   du sens de chaque mode, `page/foreground` au seuil `texte` et `ring`

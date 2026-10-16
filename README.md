@@ -1,6 +1,6 @@
 # UCM Toolkit
 
-UCM Toolkit regroupe trois plugins Figma et les outils qui contrôlent les
+UCM Toolkit regroupe quatre plugins Figma et les outils qui contrôlent les
 contrats de composants dans un dépôt de code. Un contrat décrit le visuel
 exporté depuis Figma ; le développeur écrit le comportement du composant.
 
@@ -11,13 +11,17 @@ exporté depuis Figma ; le développeur écrit le comportement du composant.
 | Créer des palettes Light et Dark, vérifier leurs contrastes et écrire leurs variables dans Figma | UCM Palettes | [Utilisation et installation](./packages/plugin-palettes/README.md) |
 | Comprendre la valeur d'un token, ses alias et les tokens d'un composant | UCM Token Explorer | [Utilisation et installation](./packages/plugin-explorateur/README.md) |
 | Exporter un composant et ses règles d'usage, ou les variables du fichier | UCM Contract Exporter | [Ouvrir le plugin](#ouvrir-le-plugin) |
+| Normaliser les noms de collections, de variables, de propriétés et de valeurs | UCM Architect | [Référentiel UCM](./docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/README.md) |
 | Recevoir les exports et les contrôler dans GitHub ou GitLab | `@ucm-kit/cli` | [Brancher un repository](#brancher-un-repository) |
 | Appeler les validateurs depuis du code | `@ucm-kit/core` | [API du kit](./packages/kit/README.md) |
 | Comparer un contrat à une API TypeScript et dériver ses unions | `@ucm-kit/adapter-typescript` | [Adaptateur optionnel](./packages/adapter-typescript/README.md) |
 
 Les plugins s'utilisent séparément. Palettes écrit les couleurs ; l'exporteur
 publie les variables locales en tokens DTCG ; l'explorateur les explique en
-lecture seule. L'explorateur fonctionne aussi sans contrat UCM.
+lecture seule ; Architect normalise les noms. L'explorateur fonctionne aussi
+sans contrat UCM. [CONCEPT.md](./CONCEPT.md#les-produits-et-les-deux-périmètres)
+donne le rôle de chaque produit et distingue le périmètre agnostique, par
+défaut, du périmètre full UCM, en option.
 
 ## Les dépôts UCM
 
@@ -59,7 +63,7 @@ Le [README de l'exporteur](./packages/plugin-exporter/README.md) décrit ses
 commandes et sa connexion à GitHub ou GitLab. Le
 [guide designer](./docs/guides/POUR-LES-DESIGNERS.md) accompagne le premier export.
 
-Pour construire les trois plugins localement, suivez la section
+Pour construire les quatre plugins localement, suivez la section
 [Construction](#construire-le-plugin-depuis-ce-dépôt). Les README de
 [Palettes](./packages/plugin-palettes/README.md#ouvrir-le-plugin) et de
 [l'explorateur](./packages/plugin-explorateur/README.md#ouvrir-le-plugin)
@@ -136,6 +140,7 @@ Dans Figma Desktop, ouvrez `Plugins > Development > Import plugin from manifest`
 | UCM Contract Exporter | `packages/plugin-exporter/dist/manifest.json` |
 | UCM Palettes | `packages/plugin-palettes/dist/manifest.json` |
 | UCM Token Explorer | `packages/plugin-explorateur/dist/manifest.json` |
+| UCM Architect | `packages/plugin-architect/dist/manifest.json` |
 
 L'explorateur demande encore un identifiant Figma propre ; son README décrit
 comment le renseigner.
@@ -144,7 +149,7 @@ comment le renseigner.
 |---|---|
 | `npm test` | Tests des huit paquets et contrôles du monorepo |
 | `npm run typecheck` | Types TypeScript |
-| `npm run build` | Kit et trois plugins |
+| `npm run build` | Kit et quatre plugins |
 | `npm run test:ui --workspace <plugin>` | Interactions dans Chromium |
 | `npm run galerie --workspace <plugin>` | États de l'interface hors de Figma |
 | `npm run schema` | JSON Schema dérivé des types du contrat |
@@ -171,7 +176,7 @@ Pour `<plugin>`, utilisez `ucm-exporter-plugin`, `ucm-palettes-plugin` ou
 
 Le projet reste un prototype avancé ; les API des paquets `@ucm-kit/*` sont en
 0.x. Le build local exporte le contrat **14.0** et les tokens au format **2**.
-Le kit lit les contrats **13.0 et 14.0**. La recette Palettes est au format **8** ;
+Le kit lit les contrats **13.0 et 14.0**. La recette Palettes est au format **12** ;
 ces trois numérotations sont indépendantes.
 
 [ROADMAP.md](./ROADMAP.md) distingue l'implémentation, les validations et la

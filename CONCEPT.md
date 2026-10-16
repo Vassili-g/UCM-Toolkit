@@ -74,6 +74,27 @@ Le développeur écrit le composant **contre** le contrat. Le build peut dérive
 des types et des variables CSS, mais le code de production ne lit pas le JSON
 pour décider dynamiquement de son rendu.
 
+### Les produits et les deux périmètres
+
+Chaque produit a un rôle. Le fichier `packages/kit/src/referentiel/produits.ts`
+porte pour chacun ce qu'il lit, ce qu'il écrit et où.
+
+| Produit | Rôle |
+|---|---|
+| UCM Palettes | Calcule les palettes, puis écrit leur recette, leurs variables primitives et leurs planches dans Figma |
+| UCM Token Explorer | Présente les variables, les composants et la recette des palettes, sans écrire dans le document Figma |
+| UCM Contract Exporter | Publie les contrats de composants et les tokens DTCG ; seule la création des règles d’usage écrit dans Figma |
+| UCM Architect | Normalise les noms de collections, de variables, de propriétés et de valeurs, puis range la convention de nommage choisie |
+| Kit et CLI | Le kit définit le format et les lecteurs ; le CLI installe la configuration manquante, contrôle le repository et produit le CSS des tokens |
+| Adaptateur TypeScript | Contrôle la parité des implémentations TypeScript avec les contrats et dérive les types de leurs variantes |
+
+Un outil s’applique à deux périmètres. Le périmètre **agnostique** est le
+défaut : l’outil accepte n’importe quelle structure de variables et de
+collections. Le périmètre **full UCM** est une option : l’outil suit
+l’architecture de référence UCM, dont les définitions (crans, modes, états,
+collections, rôles des variables du thème) sont écrites une seule fois dans
+`packages/kit/src/referentiel/`. Ce document ne les recopie pas.
+
 ## 4. Les invariants
 
 ### Les tokens restent des références
