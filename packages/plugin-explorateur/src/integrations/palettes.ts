@@ -8,12 +8,10 @@
  * teinte ou de l'égalité de deux couleurs.
  */
 import { sensDuTheme, variablesDuCran, type VariableDuTheme } from '@ucm-kit/core/emplois';
+import { estNeutre } from '@ucm-kit/core/referentiel';
 import { classerRecette, type Classement, type Palette, type Recette } from 'ucm-couleur';
 
 import type { Index } from '../indexation';
-
-/** Le nom de la palette qui porte les variables propres au neutre. */
-const PALETTE_NEUTRE = 'neutral';
 
 export type Intensite = 'soft' | 'vivid';
 export type Theme = 'light' | 'dark';
@@ -61,5 +59,5 @@ export function variablesDeLAssociation(recette: Recette, association: Associati
   const rang = crans.indexOf(association.cran);
   if (rang < 0) return [];
   const sens = sensDuTheme(association.theme, recette.texteDesBoutons[association.theme]);
-  return variablesDuCran(crans, rang, association.theme, sens, (palette.nom ?? '').toLowerCase() === PALETTE_NEUTRE);
+  return variablesDuCran(crans, rang, association.theme, sens, estNeutre(palette.nom ?? ''));
 }

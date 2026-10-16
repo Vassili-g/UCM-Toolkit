@@ -19,26 +19,27 @@ import {
   type SupportDeVariable,
   type VariableDuTheme,
 } from '@ucm-kit/core/emplois';
+import {
+  COLLECTIONS,
+  COLLECTIONS_SANS_PORTEE,
+  CIBLES_DES_COLLECTIONS,
+  DEFINITIONS_DES_VARIABLES,
+  type Collection,
+} from '@ucm-kit/core/referentiel';
 import type { Recette } from 'ucm-couleur';
 
 import type { Index } from '../indexation';
 import type { VariableRelevee } from '../modele';
 
-export const COUCHES = ['primitives', 'color-brands', 'color-utilities', 'theme', 'components'] as const;
+export const COUCHES = COLLECTIONS;
 
-export type Couche = (typeof COUCHES)[number];
+export type Couche = Collection;
 
 /** Les couches qu'un alias de chaque couche peut viser. */
-export const CIBLES_DES_COUCHES: { readonly [C in Couche]: readonly Couche[] } = {
-  components: ['theme'],
-  theme: ['color-brands', 'color-utilities'],
-  'color-brands': ['primitives'],
-  'color-utilities': ['primitives'],
-  primitives: [],
-};
+export const CIBLES_DES_COUCHES: { readonly [C in Couche]: readonly Couche[] } = CIBLES_DES_COLLECTIONS;
 
 /** Les couches dont les variables ne paraissent dans aucun sélecteur de calque : portées vides. */
-const COUCHES_SANS_PORTEE: readonly Couche[] = ['primitives', 'color-brands', 'color-utilities'];
+const COUCHES_SANS_PORTEE: readonly Couche[] = COLLECTIONS_SANS_PORTEE;
 
 export type RegleDuProfil = 'couche' | 'valeur-directe' | 'portee' | 'nuance';
 
@@ -80,6 +81,11 @@ const VARIABLES_DU_THEME: readonly VariableDuTheme[] = [
 export function variableDuNom(nom: string): { variable: VariableDuTheme; support: SupportDeVariable } | null {
   const variable = VARIABLES_DU_THEME.find((candidate) => nom === candidate || nom.endsWith(`/${candidate}`));
   return variable ? { variable, support: SUPPORT_DES_VARIABLES[variable] } : null;
+}
+
+/** Le libellé de la variable de `theme` dans le référentiel, en français par défaut ; `null` sans libellé (les nuances `scale/…` n'en ont pas). */
+export function libelleDeLaVariable(variable: string, langue: 'fr' | 'en' = 'fr'): string | null {
+  return DEFINITIONS_DES_VARIABLES.find((definition) => definition.id === variable)?.libelle[langue] ?? null;
 }
 
 /** La nuance qu'une variable de dossier doit viser dans un mode ; `null` sans nuance à juger. */

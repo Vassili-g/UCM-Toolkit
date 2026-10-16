@@ -16,7 +16,7 @@ import {
   type TokensImportes,
 } from '../../integrations/contrats';
 import { cransDeLaPalette, variablesDeLAssociation, intensitesDeLaPalette, lireLaRecette, validerAssociation, type AssociationDeCran } from '../../integrations/palettes';
-import { COUCHES, controlerLeProfil, coucheRangee, variableDuNom, type AssociationDesCouches, type ConstatDuProfil } from '../../integrations/profilUcm';
+import { COUCHES, controlerLeProfil, coucheRangee, libelleDeLaVariable, variableDuNom, type AssociationDesCouches, type ConstatDuProfil } from '../../integrations/profilUcm';
 import type { Recette } from 'ucm-couleur';
 import type { Application, Composant } from '../application';
 import { versSandbox } from '../pont';
@@ -342,9 +342,15 @@ function sectionPalettesDeLInspecteur(app: Application, variable: string): HTMLE
     bloc.append(note(TEXTES.associationEnMemoire), note(TEXTES.sourceRecette));
     const variables = variablesDeLAssociation(recette, actuelle);
     bloc.append(sousTitre(TEXTES.variablesDuCran(String(actuelle.cran))));
-    bloc.append(note(variables.length === 0 ? TEXTES.aucuneVariableDuCran : variables.join(', ')));
+    bloc.append(note(variables.length === 0 ? TEXTES.aucuneVariableDuCran : variables.map(avecLibelle).join(', ')));
   }
   return bloc;
+}
+
+/** Le nom de la variable suivi de son libellé du référentiel, s'il en a un. */
+function avecLibelle(variable: string): string {
+  const libelle = libelleDeLaVariable(variable);
+  return libelle ? `${variable} (${libelle})` : variable;
 }
 
 function sectionProfilDeLInspecteur(app: Application, variable: string): HTMLElement | null {
@@ -355,7 +361,7 @@ function sectionProfilDeLInspecteur(app: Application, variable: string): HTMLEle
   const lue = variableDuNom(trouvee.nom);
   if (!lue) return null;
   const bloc = section(TEXTES.profilTitre);
-  bloc.append(note(TEXTES.variableDuTheme(lue.variable, lue.support.peint.join(', '), lue.support.portees.join(', '))));
+  bloc.append(note(TEXTES.variableDuTheme(avecLibelle(lue.variable), lue.support.peint.join(', '), lue.support.portees.join(', '))));
   const constats = constatsDuProfil(app).filter((constat) => constat.variable === variable);
   for (const constat of constats) bloc.append(note(texteDuConstatDuProfil(app, constat)));
   return bloc;
