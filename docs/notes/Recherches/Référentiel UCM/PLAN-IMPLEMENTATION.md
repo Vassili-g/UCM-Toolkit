@@ -292,6 +292,100 @@ Fin : `docLinks`, contrôle de style et `npm test` verts.
 - [ ] Push sur `main` · principale
 - [ ] Recette Figma des trois plugins après `npm run build` · mainteneur
 
+## Phase 2 · UCM Architect v1 : normaliser les noms
+
+La v1 de l'Architect renomme, dans le fichier Figma, ce qui ne suit pas le
+référentiel : un terme toléré devient le terme retenu (`press` en `pressed`,
+`disable` en `disabled`), et la forme des noms suit la convention UCM (casse,
+séparateurs). Elle porte sur les variables locales et sur les valeurs de
+variantes des composants locaux. Elle ne pose aucun alias et n'écrit rien
+d'autre.
+
+Cette phase dépend des lots 1 et 2 seulement. Elle peut passer avant les
+lots 3 à 13 : c'est elle qui débloque la migration du fichier du mainteneur.
+
+### Questions au mainteneur, avant le lot 15
+
+1. La casse : tout en minuscules, y compris les noms de collections ?
+2. Un segment de plusieurs mots : avec tiret (`border-radius`, `font-size`) ou
+   soudé (`fontsize`, comme la collection `typography` actuelle) ?
+3. Les noms des propriétés de composant (`State`, `Size`) : normalisés aussi,
+   ou seulement leurs valeurs ?
+
+## Lot 14 · Cadrage de l'Architect
+
+**Agent :** un `chercheur`, puis principale. **Effort :** moyen.
+
+- [ ] Recherche sur l'API Plugin de Figma · `chercheur` : renommer la valeur
+  d'une variante et une propriété de composant ; ce que deviennent les
+  instances du fichier, celles des fichiers qui utilisent la bibliothèque
+  publiée, et leurs surcharges ; ce que devient une variable renommée dans
+  un fichier consommateur ; un seul pas d'annulation pour un lot de
+  renommages ; le coût sur 800 variables et sur les ensembles de variantes
+  de toutes les pages
+- [ ] Maquette de l'écran unique de la v1, dans le style des galeries
+  existantes, en thème sombre, avec les mots d'un designer débutant :
+  la liste des renommages proposés, groupés par raison, une case par ligne,
+  un bouton pour appliquer · principale
+- [ ] Validation de la maquette · mainteneur
+
+## Lot 15 · Le moteur de normalisation
+
+**Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 1 et 2,
+réponses aux questions.
+
+- [ ] La forme des noms dans le référentiel : casse et séparateur des
+  segments, selon les réponses du mainteneur
+- [ ] `referentiel/normalisation.ts`, pur : d'une liste de noms (chemins de
+  variables, valeurs de variantes), il rend les renommages proposés, chacun
+  avec l'ancien nom, le nouveau et sa raison (terme toléré, casse,
+  séparateur)
+- [ ] Deux noms qui aboutiraient au même nom ne sont pas proposés ; la
+  collision est rendue à part
+- [ ] Tests sur les chemins de `donnees-vue-illustree.js` : les 60 segments
+  `press` et 36 `disable` de `components` sont proposés en `pressed` et
+  `disabled`
+
+## Lot 16 · Le plugin et sa lecture
+
+**Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lots 14
+et 15.
+
+- [ ] `packages/plugin-architect` sur le socle des plugins : manifeste, build,
+  galerie, comme `plugin-explorateur`
+- [ ] Lecture des variables locales et des ensembles de variantes locaux, de
+  toutes les pages, avec un avancement ; propositions par le moteur du lot 15
+- [ ] `tests/pluginsSepares.test.ts` couvre le nouveau plugin ; `produits.ts`
+  le décrit
+
+## Lot 17 · L'écriture des renommages
+
+**Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lot 16.
+
+- [ ] Appliquer les renommages cochés : nom de la variable, valeur de la
+  variante ; un seul pas d'annulation pour le lot
+- [ ] Une loi d'écriture, sur le modèle de `loiDeLectureSeule.test.ts` de
+  l'explorateur : le plugin n'appelle que ces deux écritures
+- [ ] Après application, téléchargement de la table ancien nom vers nouveau
+  nom, en JSON, pour le dépôt de code
+
+## Lot 18 · L'interface
+
+**Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lot 17,
+maquette validée.
+
+- [ ] L'écran de la maquette, avec ses états de galerie
+- [ ] Les textes affichés, écrits par la conversation principale
+
+## Lot 19 · Vérification et recette
+
+**Agent :** `verificateur`, puis mainteneur. **Effort :** petit.
+
+- [ ] Tests, `typecheck` et build du plugin · `verificateur`
+- [ ] Recette dans Figma sur une copie du fichier, puis sur le fichier ·
+  mainteneur
+- [ ] Export des tokens après renommage ; les lots 2 et 9 relisent cet export
+
 ## Pistes après ce plan
 
 | Piste | Contenu |
@@ -301,5 +395,5 @@ Fin : `docLinks`, contrôle de style et `npm test` verts.
 | Grammaire de `components` | À écrire quand les composants du fichier Figma passent par `theme` |
 | État `selected` | Le reconnaître demande un sélecteur et une nouvelle version du format du contrat |
 | Déclaration d'un design system | Les familles ajoutées par une équipe, publiées dans `$extensions["com.ucm.declaration"]` de `tokens.json` |
-| UCM Architect | Le bilan du fichier contre le référentiel, puis l'écriture des alias de `theme`, `color-brands` et `color-utilities` |
+| UCM Architect, versions suivantes | Le bilan du fichier contre le référentiel, puis l'écriture des alias de `theme`, `color-brands` et `color-utilities` |
 | Contrôle « full UCM » | `ucm check` confronte un `tokens.json` au référentiel, en option |
