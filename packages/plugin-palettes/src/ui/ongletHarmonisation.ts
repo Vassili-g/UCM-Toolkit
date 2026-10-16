@@ -21,7 +21,7 @@
 import { pairesTropProches, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus } from 'ucm-couleur';
 
 import { remplacerPalette } from '../edition';
-import { annulerLaPalette, basculerLaRoue, choisirAffichage, choisirLaVision, choisirPaletteARegler, cocherPalette, comparerLaPaire, entrerEnHarmonisation, harmonisationInitiale, memoriserLeDepart, saisirPalette, synchroniserHarmonisation, toutDecocher, type EtatHarmonisation } from '../harmonisation';
+import { annulerLaPalette, basculerLaRoue, choisirAffichage, choisirLaVision, choisirPaletteARegler, cocherPalette, comparerLaPaire, entrerEnHarmonisation, harmonisationInitiale, memoriserLeDepart, retenirLesPaires, saisirPalette, synchroniserHarmonisation, toutDecocher, type EtatHarmonisation } from '../harmonisation';
 import { ordreParTeinte } from '../ordreDesPalettes';
 import { creerVuesChoix } from './choix';
 import type { StatutDuRangement } from './frontiere';
@@ -194,12 +194,25 @@ function construireVues(i18n: Localisation) {
     function peindreLesCartes(): void {
       if (!recette) return;
       accorderLesHauteurs();
-      cartePaires.afficher(recette, paires);
+      cartePaires.afficher(recette, paires, etat.pairesDeLaVisite);
       carteListe.afficher(recette, paires, etat, ordre);
       carteComparaison.afficher(recette, paires, etat, ordre);
       carteReglages.afficher(recette, etat, avantLeGeste !== null, ordre);
       carteRoue.afficher(recette, paires, etat, avantLeGeste !== null);
       garderLesCartes();
+      tenirLesHauteurs();
+    }
+
+    /**
+     * Les zones de messages gardent leur plus grande hauteur depuis l'entrée
+     * dans l'onglet ([UI-20]) : un constat qui raccourcit ou une rangée qui se
+     * sépare ne remonte pas les réglettes.
+     */
+    function tenirLesHauteurs(): void {
+      for (const zone of Array.from(element.querySelectorAll<HTMLElement>('[data-hauteur-tenue]'))) {
+        const hauteur = zone.getBoundingClientRect().height;
+        if (hauteur > (Number.parseFloat(zone.style.minHeight) || 0)) zone.style.minHeight = `${hauteur}px`;
+      }
     }
 
     function rendre(): void {
@@ -234,6 +247,7 @@ function construireVues(i18n: Localisation) {
         recette = lue;
         paires = lue ? pairesTropProches(lue) : [];
       }
+      etat = retenirLesPaires(etat, paires);
       if (avantLeGeste === null && lue !== recetteDeLOrdre) {
         recetteDeLOrdre = lue;
         ordre = lue ? ordreParTeinte(lue) : [];
@@ -337,7 +351,10 @@ function construireVues(i18n: Localisation) {
       lierLeCompteur,
       comparer: comparerLaPaireChoisie,
       montrer(suivant: boolean): void {
-        if (suivant && !actif) etat = entrerEnHarmonisation(etat);
+        if (suivant && !actif) {
+          etat = retenirLesPaires(entrerEnHarmonisation(etat), paires);
+          for (const zone of Array.from(element.querySelectorAll<HTMLElement>('[data-hauteur-tenue]'))) zone.style.minHeight = '';
+        }
         actif = suivant;
         if (actif) rendre();
       },

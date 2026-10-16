@@ -169,6 +169,7 @@ export const TEXTES_DE_L_HARMONISATION = {
     constat: (role: RoleDeProximite, mode: Mode, presqueIdentiques: boolean) =>
       `${role === 'plein' ? 'Boutons pleins' : 'Textes sur fond teinté'} trop proches, en ${NOM_DU_MODE[mode]}${presqueIdentiques ? ' · presque identiques' : ''}`,
     comparer: 'Comparer',
+    separee: 'Se distinguent maintenant',
     comparerLaPaire: (a: string, b: string) => `Comparer ${a} et ${b}`,
   },
   /** [UI-40] La carte qui liste les palettes et en fait cocher de deux à quatre. */
@@ -209,6 +210,7 @@ export const TEXTES_DE_L_HARMONISATION = {
           ? 'Aucune teinte de la course ne les sépare : changez la saturation ou la luminosité de l’une d’elles.'
           : 'Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages.'}`,
       ],
+      separee: (a: string, b: string) => ['', `${a} et ${b}`, ' se distinguent maintenant.'],
       distinctes: 'Ces palettes se distinguent, en Light et en Dark.',
       saturation: (intensite: Profil, terne: string, vive: string) => [`En ${NOM_DU_PROFIL[intensite]}, `, terne, ' est la plus terne et ', vive, ' la plus vive.'],
       luminosite: (intensite: Profil, palette: string, sens: 'claire' | 'foncee') => [`En ${NOM_DU_PROFIL[intensite]}, `, palette, ` est plus ${sens === 'claire' ? 'claire' : 'foncée'} que les autres.`],

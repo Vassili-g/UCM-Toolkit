@@ -172,6 +172,7 @@ export const TEXTES_DE_L_HARMONISATION = {
     constat: (role: RoleDeProximite, mode: Mode, presqueIdentiques: boolean) =>
       `${role === 'plein' ? 'Filled buttons' : 'Text on tinted background'} too close, in ${NOM_DU_MODE[mode]}${presqueIdentiques ? ' · nearly identical' : ''}`,
     comparer: 'Compare',
+    separee: 'Now distinct',
     comparerLaPaire: (a: string, b: string) => `Compare ${a} and ${b}`,
   },
   /** [UI-40] La carte qui liste les palettes et en fait cocher de deux à quatre. */
@@ -209,6 +210,7 @@ export const TEXTES_DE_L_HARMONISATION = {
           ? 'No hue in the range separates them: change the saturation or lightness of one of them.'
           : 'Move the hue of one of them out of the hatched zone, in Adjustments.'}`,
       ],
+      separee: (a: string, b: string) => ['', `${a} and ${b}`, ' are now distinct.'],
       distinctes: 'These palettes are distinct, in Light and in Dark.',
       saturation: (intensite: Profil, terne: string, vive: string) => [`In ${NOM_DU_PROFIL[intensite]}, `, terne, ' is the dullest and ', vive, ' the most vivid.'],
       luminosite: (intensite: Profil, palette: string, sens: 'claire' | 'foncee') => [`In ${NOM_DU_PROFIL[intensite]}, `, palette, ` is ${sens === 'claire' ? 'lighter' : 'darker'} than the others.`],

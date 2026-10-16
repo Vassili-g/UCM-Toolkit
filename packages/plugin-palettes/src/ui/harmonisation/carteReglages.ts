@@ -104,8 +104,8 @@ function construireVues(i18n: Localisation) {
       compact: true,
       onClick() {
         signalerLeRefus(gestes.annulerLesModifications());
-        // Le bouton se cache avec la modification : le focus revient à la première réglette.
-        if (tete.hidden) rangees[0].reglette.curseur.focus();
+        // Le bouton devient inactif avec la modification : le focus revient à la première réglette.
+        if (boutonAnnuler.disabled) rangees[0].reglette.curseur.focus();
       },
     });
     tete.append(boutonAnnuler);
@@ -299,8 +299,9 @@ function construireVues(i18n: Localisation) {
       figee.hidden = !rigide;
       for (const { reglette } of rangees) reglette.element.hidden = rigide;
       const depart = etat.departs.get(palette.id);
-      // Pendant un glisser, « Annuler les modifications » garde sa place : le bouton qui paraît ne décale pas les réglettes ([UI-20]).
-      if (!avantLeGeste && !enGesteDeLOnglet) tete.hidden = rigide || !depart || !modifieeDepuisLeDepart(recette, palette, depart);
+      // « Annuler les modifications » reste affiché, inactif tant que la palette n'a pas changé ([UI-42]).
+      tete.hidden = rigide;
+      boutonAnnuler.disabled = !depart || !modifieeDepuisLeDepart(recette, palette, depart);
       if (rigide) {
         signaler(null);
         return;

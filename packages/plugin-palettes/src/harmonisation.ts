@@ -16,6 +16,8 @@ export interface EtatHarmonisation {
   /** Les palettes au premier réglage depuis l'entrée, indexées par identifiant. */
   readonly departs: ReadonlyMap<string, Palette>;
   readonly trop: boolean;
+  /** Les paires trop proches vues depuis l'entrée dans l'onglet, dans l'ordre où elles sont apparues : une paire séparée garde sa rangée jusqu'à la sortie. */
+  readonly pairesDeLaVisite: readonly PaireTropProche[];
 }
 
 export function harmonisationInitiale(): EtatHarmonisation {
@@ -29,6 +31,7 @@ export function harmonisationInitiale(): EtatHarmonisation {
     vision: 'normale',
     departs: new Map(),
     trop: false,
+    pairesDeLaVisite: [],
   };
 }
 
@@ -101,7 +104,26 @@ export function choisirPaletteARegler(etat: EtatHarmonisation, id: string): Etat
 
 /** Chaque entrée renouvelle le départ de l'annulation, en conservant les choix de la session. */
 export function entrerEnHarmonisation(etat: EtatHarmonisation): EtatHarmonisation {
-  return { ...etat, departs: new Map() };
+  return { ...etat, departs: new Map(), pairesDeLaVisite: [] };
+}
+
+const memePaire = (a: PaireTropProche, b: PaireTropProche): boolean => a.palettes.every((id) => b.palettes.includes(id));
+
+/** Ajoute à la visite les paires nouvelles et remplace à leur place les paires connues ; rend `etat` quand rien ne change. */
+export function retenirLesPaires(etat: EtatHarmonisation, paires: readonly PaireTropProche[]): EtatHarmonisation {
+  const visite = [...etat.pairesDeLaVisite];
+  let change = false;
+  for (const paire of paires) {
+    const rang = visite.findIndex((vue) => memePaire(vue, paire));
+    if (rang === -1) {
+      visite.push(paire);
+      change = true;
+    } else if (visite[rang] !== paire) {
+      visite[rang] = paire;
+      change = true;
+    }
+  }
+  return change ? { ...etat, pairesDeLaVisite: visite } : etat;
 }
 
 /** Le premier réglage d'une palette depuis l'entrée garde la palette d'avant lui ; les suivants la laissent. */
@@ -201,6 +223,7 @@ export const ECART_DE_LUMINOSITE_DIT = 0.01;
 /** Ce que la carte Comparaison dit des palettes cochées, avec le ton qui l'affiche. */
 export type ConstatDeComparaison =
   | { readonly ton: 'avertissement'; readonly genre: 'paire'; readonly palettes: readonly [string, string]; readonly role: RoleDeProximite; readonly mode: Mode; readonly sansSortie: boolean }
+  | { readonly ton: 'succes'; readonly genre: 'separee'; readonly palettes: readonly [string, string] }
   | { readonly ton: 'succes'; readonly genre: 'distinctes' }
   | { readonly ton: 'info'; readonly genre: 'saturation'; readonly intensite: Profil; readonly terne: string; readonly vive: string }
   | { readonly ton: 'info'; readonly genre: 'luminosite'; readonly intensite: Profil; readonly palette: string; readonly sens: 'claire' | 'foncee' };
@@ -237,6 +260,7 @@ export function constatsDeLaComparaison(recette: Recette, etat: EtatHarmonisatio
     for (const b of cochees.slice(rang + 1)) {
       const paire = paires.find(({ palettes }) => palettes.includes(a.id) && palettes.includes(b.id));
       if (paire) constats.push({ ton: 'avertissement', genre: 'paire', palettes: paire.palettes, role: paire.proximite.role, mode: paire.proximite.mode, sansSortie: paireSansSortie(recette, paire) });
+      else if (etat.pairesDeLaVisite.some(({ palettes }) => palettes.includes(a.id) && palettes.includes(b.id))) constats.push({ ton: 'succes', genre: 'separee', palettes: [a.id, b.id] });
     }
   });
   if (constats.length === 0 && cochees.length > 1) constats.push({ ton: 'succes', genre: 'distinctes' });
