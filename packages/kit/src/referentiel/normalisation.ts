@@ -1,6 +1,6 @@
 /** Propose des noms logiques ; le plugin conserve les identifiants techniques des propriétés Figma. */
 import { COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
-import { CATEGORIES_DE_NOM, CATEGORIES_DE_SEGMENT, type Casse, type Separateur, type Convention, type NomANormaliser, type ConventionsParCategorie, type CategorieDeNom } from './conventions.js';
+import { CATEGORIES_DE_NOM, type Casse, type Separateur, type Convention, type NomANormaliser, type ConventionsParCategorie, type CategorieDeNom } from './conventions.js';
 import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
 
 export type RaisonDeNormalisation = 'casse' | 'separateur' | 'terme-tolere';
@@ -89,8 +89,7 @@ function proposer(nom: NomANormaliser, conventions: ConventionsParCategorie, ter
     const choix = conventions[categorie] ?? { casse: 'inchangee', separateur: 'inchange' };
     const originaux = decouperSegment(segment);
     if (originaux.length === 0) return segment;
-    const nomPropre = (CATEGORIES_DE_SEGMENT as readonly CategorieDeNom[]).includes(categorie);
-    const mots = termesUcm && !nomPropre ? remplacerLesTermes(originaux, categorie) : originaux;
+    const mots = termesUcm ? remplacerLesTermes(originaux, categorie) : originaux;
     if (mots.some((mot, rang) => mot !== originaux[rang])) raisons.add('terme-tolere');
     const avecCasse = motsAvecCasse(mots, choix.casse);
     if (avecCasse.some((mot, rang) => mot !== mots[rang])) raisons.add('casse');

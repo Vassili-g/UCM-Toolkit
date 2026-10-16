@@ -61,18 +61,17 @@ test('l’écriture détectée porte ses comptes et l’écriture choisie reste 
   assert.equal(collections.compte, 'Aucun nom');
 });
 
-test('les lignes des palettes et des composants n’existent que si le fichier en contient', () => {
+test('la ligne des groupes n’existe que si une variable a des groupes', () => {
   const pascal = { casse: 'PascalCase', separateur: 'camelCase' } as const;
-  const sans = lignesDEcriture(analyserInventaire(inventaire('colors/DeepBlue/light')));
+  const sans = lignesDEcriture(analyserInventaire(inventaire('opacity')));
   assert.deepEqual(sans.map((ligne) => ligne.categorie), ['collections', 'variables', 'proprietes', 'valeurs']);
-  const entree = variable(0, 'colors/DeepBlue/light/500');
-  const marquee = { ...entree, nom: { ...entree.nom, categoriesDesSegments: [null, 'palettes', null, null] as const } };
+  const entree = variable(0, 'DeepBlue/Light/500');
+  const marquee = { ...entree, nom: { ...entree.nom, categoriesDesSegments: ['groupes', 'groupes', null] as const } };
   const avec = lignesDEcriture(analyserInventaire({ entrees: [marquee], pages: [] }));
-  assert.deepEqual(avec.map((ligne) => ligne.nom), ['Collections', 'Variables', 'Propriétés', 'Valeurs', 'Noms de palettes']);
-  const palettes = avec.find((ligne) => ligne.categorie === 'palettes')!;
-  assert.equal(palettes.detectee, 'PascalCase');
-  assert.equal(palettes.choisie, valeurDEcriture(pascal));
-  assert.equal(palettes.compte, '1 sur 1');
+  assert.deepEqual(avec.map((ligne) => ligne.nom), ['Collections', 'Noms des variables', 'Groupes des variables', 'Propriétés', 'Valeurs']);
+  const groupes = avec.find((ligne) => ligne.categorie === 'groupes')!;
+  assert.equal(groupes.detectee, 'PascalCase');
+  assert.equal(groupes.choisie, valeurDEcriture(pascal));
 });
 
 test('une écriture hors du registre reste proposée sous ses deux termes', () => {
