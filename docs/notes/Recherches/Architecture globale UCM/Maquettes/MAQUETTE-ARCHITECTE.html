@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Maquette UCM Architecte</title>
+<style>
+  :root {
+    --corps: 11px; --libelle: 12px; --titre: 15px; --rayon: 6px;
+    --fond: #2c2c2c; --fond-bloc: #383838; --fond-note: #4d4d4d;
+    --fond-marque: #0d99ff; --fond-succes: #1d3a28; --fond-avertissement: #4a3a10;
+    --trait: #444444; --bordure: #5e5e5e;
+    --texte: #ffffff; --texte-second: #b3b3b3; --texte-marque: #7cc4f8;
+    --texte-succes: #85e0a3; --texte-avertissement: #ffc470;
+    --page: #1b1b1d; --page-texte: #e4e4e7; --page-second: #a1a1aa; --accent: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--page-texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { width: 1200px; margin: 0 auto; padding: 40px 0 80px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 18px; margin: 44px 0 14px; }
+  .chapeau { color: var(--page-second); margin: 0 0 10px; }
+  .etiquette { display: inline-block; background: #3f2d0c; color: var(--texte-avertissement); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; }
+  code { font: 10px/1.4 "JetBrains Mono", Consolas, monospace; color: #d4d4d8; }
+
+  /* Flux */
+  .flux { display: flex; align-items: center; gap: 8px; }
+  .etape { flex: 1; background: #26262a; border: 1px solid #3a3a40; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: var(--page-second); }
+  .etape b { display: block; color: var(--page-texte); font-size: 13px; }
+  .etape.ucm { border: 1px dashed var(--accent); }
+  .fleche { color: #52525b; }
+
+  /* Écrans */
+  .ecrans { display: grid; grid-template-columns: repeat(3, 360px); justify-content: space-between; row-gap: 40px; }
+  .titre-ecran { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+  .legende { font-size: 12px; color: var(--page-second); margin: 10px 0 0; padding-left: 16px; }
+  .legende li { margin: 2px 0; }
+  .plugin { width: 360px; height: 600px; background: var(--fond); color: var(--texte); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,.5); overflow: hidden; display: flex; flex-direction: column; font-size: var(--corps); line-height: 16px; }
+  .barre { height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--trait); flex: none; }
+  .barre .nom { font-weight: 600; font-size: var(--libelle); }
+  .perimetre { display: inline-flex; border: 1px solid var(--bordure); border-radius: var(--rayon); overflow: hidden; }
+  .perimetre span { padding: 3px 8px; font-size: 10px; color: var(--texte-second); }
+  .perimetre .actif { background: var(--texte); color: #1e1e1e; }
+  .onglets { display: flex; gap: 14px; padding: 0 12px; border-bottom: 1px solid var(--trait); flex: none; }
+  .onglets span { padding: 9px 0 8px; color: var(--texte-second); }
+  .onglets .actif { color: var(--texte); border-bottom: 2px solid var(--texte); }
+  .corps { flex: 1; overflow: hidden; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .pied { flex: none; border-top: 1px solid var(--trait); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; color: var(--texte-second); }
+  .tag { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 99px; font-weight: 600; white-space: nowrap; }
+  .t-ok { background: var(--fond-succes); color: var(--texte-succes); }
+  .t-av { background: var(--fond-avertissement); color: var(--texte-avertissement); }
+  .t-gris { background: var(--fond-note); color: var(--texte-second); }
+  .t-hyp { background: #3b2a63; color: #d8ccff; }
+  .bouton { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: var(--rayon); border: 1px solid var(--bordure); font-weight: 500; white-space: nowrap; }
+  .bouton.plein { background: var(--fond-marque); border-color: var(--fond-marque); color: #fff; }
+  .lien { color: var(--texte-marque); }
+  .ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .carte { border: 1px solid var(--trait); border-radius: var(--rayon); padding: 10px; }
+  .carte.pleine { background: var(--fond-bloc); border: 0; }
+  .carte.choisie { border: 2px solid var(--fond-marque); }
+  .t { font-weight: 600; font-size: var(--libelle); }
+  .second { color: var(--texte-second); }
+  .section { font-weight: 600; color: var(--texte-second); font-size: 10px; text-transform: uppercase; letter-spacing: .05em; }
+  .domaine { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--trait); }
+  .pastille { width: 8px; height: 8px; border-radius: 50%; }
+  .p-ok { background: #14ae5c; } .p-av { background: #f5a623; } .p-gris { background: #6b6b6b; }
+  .chemin { font: 10px/1.6 "JetBrains Mono", Consolas, monospace; background: var(--fond-bloc); border-radius: 4px; padding: 6px 8px; color: #e4e4e7; }
+  .chemin b { color: var(--texte-avertissement); font-weight: 600; }
+  .seg { display: inline-block; padding: 0 4px; border-radius: 3px; }
+  .s-fixe { background: #4d4d4d; } .s-var { background: #1e3a5f; color: #93c5fd; } .s-opt { border: 1px dashed #d97706; color: #fcd34d; }
+  .champ { border: 1px solid var(--bordure); border-radius: var(--rayon); height: 24px; display: inline-flex; align-items: center; padding: 0 8px; width: 140px; justify-content: space-between; }
+  .choix { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filtres span { padding: 2px 8px; border-radius: 99px; border: 1px solid var(--bordure); font-size: 10px; color: var(--texte-second); }
+  .filtres .actif { background: var(--texte); color: #1e1e1e; border-color: var(--texte); }
+  .diff div { display: flex; gap: 8px; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--trait); }
+  table.couverture { width: 100%; border-collapse: collapse; background: #26262a; border: 1px solid #3a3a40; border-radius: 8px; overflow: hidden; font-size: 13px; }
+  table.couverture th, table.couverture td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #3a3a40; }
+  table.couverture th { color: var(--page-second); font-size: 12px; }
+  .ponctuels { font-size: 12px; color: var(--page-second); margin-top: 10px; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>UCM Architecte, maquette exploratoire</h1>
+<p class="chapeau">Le flux du plugin d'architecture et seize écrans : le parcours principal, puis les autres cas d'usage. La direction retenue reste la version minimale, sans nouveau plugin : cette maquette sert à juger la piste.</p>
+<span class="etiquette">Piste pour plus tard</span>
+
+<h2>Le flux</h2>
+<div class="flux">
+  <div class="etape"><b>1. Premier lancement</b>Choisir le périmètre</div><span class="fleche">→</span>
+  <div class="etape"><b>2. Accueil</b>L'état du fichier</div><span class="fleche">→</span>
+  <div class="etape"><b>3. Vérifier</b>Les écarts par cause</div><span class="fleche">⇄</span>
+  <div class="etape"><b>4. Conventions</b>Les règles de l'équipe</div><span class="fleche">→</span>
+  <div class="etape ucm"><b>5. Construire</b>Full UCM seulement</div><span class="fleche">→</span>
+  <div class="etape"><b>6. Publier</b>Dans l'exporteur</div>
+</div>
+<p class="ponctuels">Gestes ponctuels, depuis ces étapes : renommer un terme, uniformiser la casse, ignorer un écart avec un motif, lire les composants, suivre une palette modifiée, ajouter une marque, publier les conventions.</p>
+
+<h2>Les écrans</h2>
+<div class="ecrans">
+
+<div>
+  <p class="titre-ecran">1. Premier lancement</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span></div>
+    <div class="corps">
+      <div style="font-size:var(--titre);font-weight:600;line-height:20px">Comment travailler sur ce fichier ?</div>
+      <div class="carte choisie"><div class="t">Agnostique</div><p class="second" style="margin:4px 0 0">Vos collections et vos noms restent les vôtres. Le plugin vérifie les règles que vous déclarez.</p></div>
+      <div class="carte"><div class="t">Full UCM</div><p class="second" style="margin:4px 0 0">Le plugin suit l'architecture UCM et peut construire <code>theme</code>.</p></div>
+      <div class="section" style="margin-top:6px">Couches proposées</div>
+      <div class="ligne"><code>primitives</code><span class="champ">Primitives <span class="second">▾</span></span></div>
+      <div class="ligne"><code>color-brands</code><span class="champ">Marques <span class="second">▾</span></span></div>
+      <div class="ligne"><code>components</code><span class="champ">Composants <span class="second">▾</span></span></div>
+      <div class="ligne"><code>tests</code><span class="champ">Ignorée <span class="second">▾</span></span></div>
+      <p class="second" style="margin:0">Proposées depuis les alias. Rien n'est écrit.</p>
+    </div>
+    <div class="pied"><span>760 variables lues</span><span class="bouton plein">Commencer</span></div>
+  </div>
+  <ul class="legende">
+    <li>Le périmètre se choisit une fois, puis reste dans la barre.</li>
+    <li>Les couches sont proposées, le designer confirme.</li>
+    <li>Aucune question de nommage au démarrage.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">2. Accueil</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="onglets"><span class="actif">Accueil</span><span>Vérifier</span><span>Conventions</span><span>Construire</span></div>
+    <div class="corps" style="gap:0">
+      <div class="domaine"><span class="pastille p-ok"></span><div><b>Couleurs</b><div class="second">9 palettes à jour</div></div><span class="tag t-ok">Fait</span></div>
+      <div class="domaine"><span class="pastille p-av"></span><div><b>Architecture</b><div class="second">26 valeurs manquent pour la marque 2</div></div><span class="tag t-av">À faire</span></div>
+      <div class="domaine"><span class="pastille p-av"></span><div><b>Noms</b><div class="second">12 écarts, 7 paires à juger</div></div><span class="tag t-av">À faire</span></div>
+      <div class="domaine"><span class="pastille p-gris"></span><div><b>Composants</b><div class="second">Non lus</div></div><span class="lien">Lire</span></div>
+      <div class="domaine"><span class="pastille p-gris"></span><div><b>Publication</b><div class="second">Visible dans l'exporteur</div></div><span class="tag t-gris">Ailleurs</span></div>
+      <div class="carte pleine" style="margin-top:14px"><div class="t">Prochain geste</div><p style="margin:4px 0 8px">Compléter <code>theme</code> pour la marque 2.</p><span class="bouton plein">Ouvrir Construire</span></div>
+    </div>
+    <div class="pied"><span>Conventions non publiées</span><span class="tag t-av">Brouillon</span></div>
+  </div>
+  <ul class="legende">
+    <li>Un état par domaine, pas de score.</li>
+    <li>Ce qui n'est pas lu est dit « non lu ».</li>
+    <li>Un seul prochain geste mis en avant.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">3. Vérifier</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="onglets"><span>Accueil</span><span class="actif">Vérifier</span><span>Conventions</span><span>Construire</span></div>
+    <div class="corps">
+      <div class="filtres choix"><span class="actif">Écarts 2</span><span>Observations 3</span><span>À juger 7</span></div>
+      <div class="carte"><div class="ligne"><span class="t">Terme remplacé : <code>press</code></span><span class="tag t-av">60</span></div>
+        <p class="second" style="margin:4px 0 6px">La convention retient <code>pressed</code>.</p>
+        <div class="chemin">button/…/primary/<b>press</b>/background</div>
+        <div class="ligne" style="margin-top:8px"><span class="lien">Ignorer</span><span class="bouton plein">Voir les 60</span></div></div>
+      <div class="carte"><div class="ligne"><span class="t">Valeurs manquantes</span><span class="tag t-av">26</span></div>
+        <p class="second" style="margin:4px 0 8px"><code>theme</code> n'a pas de valeur pour la marque 2.</p>
+        <div class="ligne"><span></span><span class="bouton plein">Construire</span></div></div>
+    </div>
+    <div class="pied"><span>Composants non lus</span><span class="lien">Relire</span></div>
+  </div>
+  <ul class="legende">
+    <li>Une carte par cause, avec son action.</li>
+    <li>Écarts, observations et paires à juger séparés.</li>
+    <li>Plus strict en full UCM.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">4. Conventions : paires à juger</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="onglets"><span>Accueil</span><span>Vérifier</span><span class="actif">Conventions</span><span>Construire</span></div>
+    <div class="corps">
+      <div class="filtres choix"><span class="actif">À juger 7</span><span>Grammaire</span><span>Termes 5</span></div>
+      <div class="carte"><div class="ligne"><span class="t"><code>hover</code> ou <code>hovered</code> ?</span><span class="tag t-hyp">Hypothèse</span></div>
+        <p class="second" style="margin:4px 0 6px">Même place « état » · 42 et 12 variables</p>
+        <div class="chemin">button/…/<b>hover</b>/background<br>tilelink/…/<b>hovered</b>/foreground</div>
+        <div class="choix" style="margin-top:8px"><span class="bouton plein">Garder hover</span><span class="bouton">Distincts</span><span class="bouton">Plus tard</span></div></div>
+      <div class="carte"><div class="ligne"><span class="t"><code>error</code> ou <code>danger</code> ?</span><span class="tag t-hyp">Hypothèse</span></div>
+        <div class="choix" style="margin-top:8px"><span class="bouton">Même concept</span><span class="bouton">Distincts</span><span class="bouton">Plus tard</span></div></div>
+    </div>
+    <div class="pied"><span>Un refus n'est plus reproposé</span></div>
+  </div>
+  <ul class="legende">
+    <li>Chaque paire montre ses preuves.</li>
+    <li>Trois réponses, dont « plus tard ».</li>
+    <li>Une réponse devient une convention.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">5. Conventions : grammaire</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="onglets"><span>Accueil</span><span>Vérifier</span><span class="actif">Conventions</span><span>Construire</span></div>
+    <div class="corps">
+      <div class="filtres choix"><span>À juger 7</span><span class="actif">Grammaire</span><span>Termes 5</span></div>
+      <div class="ligne"><span class="t"><code>components</code></span><span class="second">351 sur 369 suivent</span></div>
+      <div class="section">Couleurs</div>
+      <div class="chemin"><span class="seg s-var">composant</span> / <span class="seg s-fixe">colors</span> / <span class="seg s-var">palette</span> / <span class="seg s-opt">variante</span> / <span class="seg s-opt">état</span> / <span class="seg s-var">rôle</span></div>
+      <p class="second" style="margin:0"><code>alert/colors/info/outlined/border</code></p>
+      <div class="section">Tailles</div>
+      <div class="chemin"><span class="seg s-var">composant</span> / <span class="seg s-fixe">sizes</span> / <span class="seg s-opt">taille</span> / <span class="seg s-var">mesure</span></div>
+      <div class="carte pleine"><div class="ligne"><span>État</span><span class="lien">Modifier</span></div><p class="second" style="margin:4px 0 0"><code>default</code> · <code>hover</code> · <code>pressed</code> · <code>focus</code> · <code>disabled</code></p></div>
+    </div>
+    <div class="pied"><span><span class="seg s-fixe">fixe</span> <span class="seg s-var">variable</span> <span class="seg s-opt">facultatif</span></span></div>
+  </div>
+  <ul class="legende">
+    <li>Plusieurs formes de chemin par collection.</li>
+    <li>Segments facultatifs : l'alerte n'a pas d'état.</li>
+    <li>Un exemple réel sous chaque forme.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">6. Construire</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="onglets"><span>Accueil</span><span>Vérifier</span><span>Conventions</span><span class="actif">Construire</span></div>
+    <div class="corps">
+      <div class="section">Marque 2</div>
+      <div class="ligne"><span>Principale</span><span class="champ">deep <span class="second">▾</span></span></div>
+      <div class="ligne"><span>Secondaire</span><span class="champ">sky <span class="second">▾</span></span></div>
+      <div class="section" style="margin-top:6px">Ce que l'écriture ferait</div>
+      <div class="diff">
+        <div><span class="tag t-ok">Créer</span><span>26 alias</span></div>
+        <div><span class="tag t-gris">Garder</span><span>220 alias conformes</span></div>
+        <div><span class="tag t-av">Modifié à la main</span><span>3 alias</span></div>
+      </div>
+      <div class="carte"><div class="chemin" style="margin-bottom:8px">primary.page.focus vise <b>500</b>, la table <b>600</b></div>
+        <div class="choix"><span class="bouton plein">Conserver</span><span class="bouton">Corriger</span><span class="bouton">Retirer</span></div></div>
+    </div>
+    <div class="pied"><span>Garanties : 7 sur 7</span><span class="bouton plein">Écrire 26 alias</span></div>
+  </div>
+  <ul class="legende">
+    <li>Le designer choisit les palettes, le plugin câble.</li>
+    <li>Simulation avant toute écriture.</li>
+    <li>Rien n'est remplacé en silence.</li>
+  </ul>
+</div>
+
+</div>
+
+<h2>Les autres cas d'usage</h2>
+<div class="ecrans">
+
+<div>
+  <p class="titre-ecran">7. Accueil en agnostique</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span class="actif">Agnostique</span><span>Full UCM</span></span></div>
+    <div class="onglets"><span class="actif">Accueil</span><span>Vérifier</span><span>Conventions</span></div>
+    <div class="corps" style="gap:0">
+      <div class="domaine"><span class="pastille p-ok"></span><div><b>Valeurs</b><div class="second">Aucune valeur manquante</div></div><span class="tag t-ok">Fait</span></div>
+      <div class="domaine"><span class="pastille p-av"></span><div><b>Alias</b><div class="second">3 chaînes n'aboutissent pas</div></div><span class="tag t-av">À faire</span></div>
+      <div class="domaine"><span class="pastille p-av"></span><div><b>Noms</b><div class="second">59 mots soudés, 2 flexions</div></div><span class="tag t-av">À faire</span></div>
+      <div class="domaine"><span class="pastille p-gris"></span><div><b>Conventions</b><div class="second">Aucune déclarée : facultatif</div></div><span class="lien">Déclarer</span></div>
+      <div class="carte pleine" style="margin-top:14px"><div class="t">Prochain geste</div><p style="margin:4px 0 8px">Réparer les 3 chaînes d'alias.</p><span class="bouton plein">Voir dans Vérifier</span></div>
+    </div>
+    <div class="pied"><span>Architecture libre : aucune couche exigée</span></div>
+  </div>
+  <ul class="legende">
+    <li>Pas d'onglet Construire, pas de couche UCM.</li>
+    <li>L'absence de conventions n'est pas un manque.</li>
+    <li>Les domaines sont génériques.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">8. Fichier qui emploie la bibliothèque</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="corps" style="justify-content:center;align-items:center;text-align:center;gap:12px">
+      <div style="font-size:var(--titre);font-weight:600;line-height:20px">Les conventions vivent dans la bibliothèque</div>
+      <p class="second" style="margin:0;max-width:280px">Ce fichier n'a aucune variable locale. Ses variables viennent de <b style="color:var(--texte)">Design System Intencial</b>, où se déclarent les conventions.</p>
+      <div class="carte" style="text-align:left;width:100%"><div class="t">Ce que vous pouvez faire ici</div>
+        <p class="second" style="margin:6px 0 0">Lire les conventions publiées avec les tokens, si le dépôt est connecté.</p>
+        <p class="second" style="margin:4px 0 0">Vérifier les composants de ce fichier contre elles.</p></div>
+      <span class="bouton">Ouvrir le fichier de la bibliothèque</span>
+    </div>
+    <div class="pied"><span>0 variable locale · 214 importées</span></div>
+  </div>
+  <ul class="legende">
+    <li>Les conventions ne voyagent pas avec la bibliothèque.</li>
+    <li>Le plugin dit où elles se déclarent.</li>
+    <li>Le designer qui l'emploie garde une consultation.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">9. Conventions : termes</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="onglets"><span>Accueil</span><span>Vérifier</span><span class="actif">Conventions</span><span>Construire</span></div>
+    <div class="corps">
+      <div class="filtres choix"><span>À juger 7</span><span>Grammaire</span><span class="actif">Termes 5</span><span>Couches</span></div>
+      <div class="carte" style="padding:0">
+        <div class="ligne" style="padding:8px 10px;border-bottom:1px solid var(--trait)"><span><b>pressed</b> <span class="second">remplace</span> press</span><span class="second">état</span></div>
+        <div class="ligne" style="padding:8px 10px;border-bottom:1px solid var(--trait)"><span><b>disabled</b> <span class="second">remplace</span> disable</span><span class="second">état</span></div>
+        <div class="ligne" style="padding:8px 10px;border-bottom:1px solid var(--trait)"><span><b>hover</b> <span class="second">remplace</span> hovered</span><span class="second">état</span></div>
+        <div class="ligne" style="padding:8px 10px;border-bottom:1px solid var(--trait)"><span><b>radius</b> <span class="second">remplace</span> border-radius</span><span class="second">mesure</span></div>
+        <div class="ligne" style="padding:8px 10px"><span><b>subtle</b> <span class="second">distinct de</span> subtlest</span><span class="second">refus</span></div>
+      </div>
+      <div class="section">Venu d'UCM</div>
+      <p class="second" style="margin:0">Rôles <code>background</code>, <code>foreground</code>, <code>icon</code>, <code>border</code>, <code>ring</code> : lus par l'exporteur, non modifiables ici.</p>
+      <span class="bouton" style="align-self:flex-start">Ajouter un terme</span>
+    </div>
+    <div class="pied"><span>Brouillon · 2 termes non publiés</span><span class="lien">Publier</span></div>
+  </div>
+  <ul class="legende">
+    <li>Un terme vaut pour une position, pas pour tout le fichier.</li>
+    <li>Les refus restent visibles et révisables.</li>
+    <li>Le sens fixé par UCM se distingue de la convention.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">10. Renommer un terme</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="corps">
+      <div style="font-size:var(--titre);font-weight:600;line-height:20px"><code style="font-size:13px">press</code> devient <code style="font-size:13px">pressed</code></div>
+      <div class="section">Dans Figma</div>
+      <div class="diff">
+        <div><span class="tag t-ok">Renommer</span><span>60 variables de <code>components</code></span></div>
+        <div><span class="tag t-gris">Liaisons</span><span>Gardées : Figma suit l'identifiant</span></div>
+      </div>
+      <div class="section">Dans le code</div>
+      <div class="diff">
+        <div><span class="tag t-av">Contrats</span><span>2 contrats citent l'ancien nom</span></div>
+        <div><span class="tag t-av">CSS</span><span>60 propriétés changent de nom</span></div>
+      </div>
+      <div class="carte pleine"><div class="t">Table de renommage</div><p class="second" style="margin:4px 0 0">Publiée avec les tokens. L'ancien nom reste lisible jusqu'à ce que le développeur le retire.</p></div>
+    </div>
+    <div class="pied"><span>Annulable en un Ctrl+Z</span><span class="bouton plein">Renommer 60 variables</span></div>
+  </div>
+  <ul class="legende">
+    <li>Le renommage est un geste à part, jamais automatique.</li>
+    <li>L'effet sur le code s'annonce avant d'écrire.</li>
+    <li>Le développeur décide quand l'ancien nom disparaît.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">11. Uniformiser la casse</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="onglets"><span>Accueil</span><span>Vérifier</span><span class="actif">Conventions</span><span>Construire</span></div>
+    <div class="corps">
+      <div class="section">Format des noms</div>
+      <div class="choix"><span class="bouton">Capitalisée</span><span class="bouton">minuscules</span><span class="bouton plein">camelCase</span></div>
+      <div class="section">Aperçu · 2 415 variables</div>
+      <div class="carte" style="padding:0">
+        <div class="ligne" style="padding:8px 10px;border-bottom:1px solid var(--trait)"><span><code>components/Primary Button/Background Color</code></span></div>
+        <div class="ligne" style="padding:8px 10px"><span><code>components/primaryButton/backgroundColor</code></span></div>
+      </div>
+      <div class="diff">
+        <div><span class="tag t-ok">2 415</span><span>noms à transformer</span></div>
+        <div><span class="tag t-av">3</span><span>collisions à résoudre avant l'écriture</span></div>
+      </div>
+      <div class="carte pleine"><div class="t">Aperçu seulement</div><p class="second" style="margin:4px 0 0">Aucun nom n'a encore changé dans le document.</p></div>
+    </div>
+    <div class="pied"><span>Les liaisons Figma suivent les identifiants</span><span class="bouton plein">Examiner les collisions</span></div>
+  </div>
+  <ul class="legende">
+    <li>Le designer choisit une casse pour les noms des variables.</li>
+    <li>L'aperçu porte sur tout le fichier avant l'écriture.</li>
+    <li>Les collisions bloquent le renommage tant qu'elles ne sont pas résolues.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">12. Ignorer un écart avec un motif</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="onglets"><span>Accueil</span><span class="actif">Vérifier</span><span>Conventions</span><span>Construire</span></div>
+    <div class="corps">
+      <div class="carte choisie"><div class="t">Ignorer : colonnes de marque identiques</div>
+        <p class="second" style="margin:4px 0 8px">10 variables de <code>color-brands</code></p>
+        <div class="section" style="margin-bottom:4px">Motif</div>
+        <div class="chemin" style="background:var(--fond);border:1px solid var(--bordure)">Les deux marques partagent volontairement leur secondaire.</div>
+        <div class="section" style="margin:8px 0 4px">Portée</div>
+        <div class="choix"><span class="bouton plein">Ces 10 variables</span><span class="bouton">Toute la cause</span></div>
+        <div class="ligne" style="margin-top:10px"><span class="second">Revoir si une convention change</span><span class="bouton plein">Ignorer</span></div></div>
+      <div class="section">Déjà ignorés</div>
+      <div class="ligne"><span>Mode <code>dark</code> dans les primitives</span><span class="second">Architecture UCM</span></div>
+    </div>
+    <div class="pied"><span>2 écarts ignorés</span><span class="lien">Voir</span></div>
+  </div>
+  <ul class="legende">
+    <li>Une exception garde son motif et sa portée.</li>
+    <li>Elle se relit quand une convention change.</li>
+    <li>Une dette connue se distingue d'un nouvel écart.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">13. Lire les composants</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="onglets"><span>Accueil</span><span class="actif">Vérifier</span><span>Conventions</span><span>Construire</span></div>
+    <div class="corps">
+      <div class="ligne"><span class="t">4 composants lus</span><span class="second">6 pages chargées</span></div>
+      <div class="carte" style="padding:0">
+        <div class="ligne" style="padding:8px 10px;border-bottom:1px solid var(--trait)"><span><b>Button</b><br><span class="second">Tout est lié à <code>components</code></span></span><span class="tag t-ok">Conforme</span></div>
+        <div class="ligne" style="padding:8px 10px;border-bottom:1px solid var(--trait)"><span><b>Alert</b><br><span class="second">2 couleurs liées à <code>theme</code> directement</span></span><span class="tag t-av">2</span></div>
+        <div class="ligne" style="padding:8px 10px;border-bottom:1px solid var(--trait)"><span><b>TileLink</b><br><span class="second">1 rayon sans variable</span></span><span class="tag t-av">1</span></div>
+        <div class="ligne" style="padding:8px 10px"><span><b>StressTest</b><br><span class="second">Pas de règles d'usage</span></span><span class="tag t-gris">Info</span></div>
+      </div>
+      <p class="second" style="margin:0">Le détail d'un composant s'ouvre dans l'exporteur, au moment de le publier.</p>
+    </div>
+    <div class="pied"><span>Lu à 14:40</span><span class="lien">Relire</span></div>
+  </div>
+  <ul class="legende">
+    <li>Lecture à la demande : elle charge des pages.</li>
+    <li>Une ligne par composant, sans détail.</li>
+    <li>Le détail reste dans l'exporteur.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">14. Une palette a changé</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="onglets"><span class="actif">Accueil</span><span>Vérifier</span><span>Conventions</span><span>Construire</span></div>
+    <div class="corps">
+      <div class="carte" style="border-color:#f5a623"><div class="ligne"><span class="t">Poppy modifiée dans Palettes</span><span class="tag t-av">Depuis le dernier relevé</span></div>
+        <p class="second" style="margin:4px 0 0">11 nuances ont changé de valeur. Les noms et les liaisons sont intacts.</p></div>
+      <div class="section">Ce qui en dépend</div>
+      <div class="diff">
+        <div><span class="tag t-gris">theme</span><span>13 variables de <code>primary</code>, marque 1</span></div>
+        <div><span class="tag t-ok">Garanties</span><span>7 sur 7, revérifiées dans Palettes</span></div>
+        <div><span class="tag t-gris">Composants</span><span>Button, Alert</span></div>
+      </div>
+      <div class="carte pleine"><div class="t">Prochain geste</div><p style="margin:4px 0 8px">Publier les tokens : les deux composants n'ont pas à être réexportés.</p><span class="bouton">Ouvrir l'exporteur</span></div>
+    </div>
+    <div class="pied"><span>Relevé à 15:02</span></div>
+  </div>
+  <ul class="legende">
+    <li>Un changement de valeur sans renommage.</li>
+    <li>Le plugin montre ce qui en dépend.</li>
+    <li>Il dit ce qui n'a pas à être refait.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">15. Ajouter une marque</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="onglets"><span>Accueil</span><span>Vérifier</span><span>Conventions</span><span class="actif">Construire</span></div>
+    <div class="corps">
+      <div class="section">Nouvelle marque</div>
+      <div class="ligne"><span>Nom</span><span class="champ">marque-3 <span></span></span></div>
+      <div class="ligne"><span>Principale</span><span class="champ">terracota <span class="second">▾</span></span></div>
+      <div class="ligne"><span>Secondaire</span><span class="champ">Comme marque 1 <span class="second">▾</span></span></div>
+      <div class="section" style="margin-top:6px">Ce que l'ajout ferait</div>
+      <div class="diff">
+        <div><span class="tag t-ok">Créer</span><span>Un mode dans <code>color-brands</code>, 44 alias</span></div>
+        <div><span class="tag t-gris">Inchangé</span><span><code>theme</code>, <code>components</code>, les composants</span></div>
+      </div>
+      <div class="carte"><div class="t">Exception de marque</div><p class="second" style="margin:4px 0 8px">Un composant différent dans un seul thème ?</p><span class="bouton">Ajouter une exception</span></div>
+    </div>
+    <div class="pied"><span>Égalité volontaire avec marque 1 notée</span><span class="bouton plein">Créer la marque</span></div>
+  </div>
+  <ul class="legende">
+    <li>Une marque coûte deux choix de palettes.</li>
+    <li>Une égalité voulue n'est pas signalée ensuite.</li>
+    <li>Aucun composant n'est repris.</li>
+  </ul>
+</div>
+
+<div>
+  <p class="titre-ecran">16. Publier les conventions</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architecte</span><span class="perimetre"><span>Agnostique</span><span class="actif">Full UCM</span></span></div>
+    <div class="onglets"><span>Accueil</span><span>Vérifier</span><span class="actif">Conventions</span><span>Construire</span></div>
+    <div class="corps">
+      <div class="section">Où en sont les conventions</div>
+      <div class="diff">
+        <div><span class="tag t-av">Brouillon</span><span>2 termes ajoutés dans ce fichier</span></div>
+        <div><span class="tag t-gris">Proposé</span><span>Demande de fusion ouverte, non relue</span></div>
+        <div><span class="tag t-ok">Accepté</span><span>Version du dépôt : 3 termes</span></div>
+      </div>
+      <div class="carte pleine"><div class="t">Les conventions partent avec les tokens</div><p class="second" style="margin:4px 0 8px">L'exporteur les ajoute à <code>tokens.json</code>, dans la même demande de fusion. Le développeur les relit avant de les accepter.</p><span class="bouton plein">Ouvrir l'exporteur</span></div>
+      <div class="carte"><div class="t">Proposition refusée ?</div><p class="second" style="margin:4px 0 0">Le brouillon reste dans ce fichier : le corriger, ou attendre la migration du code.</p></div>
+    </div>
+    <div class="pied"><span>Le brouillon ne change rien dans le dépôt</span></div>
+  </div>
+  <ul class="legende">
+    <li>Brouillon, proposé, accepté : trois états visibles.</li>
+    <li>La publication passe par l'exporteur.</li>
+    <li>Un refus ne fait rien perdre.</li>
+  </ul>
+</div>
+
+</div>
+
+<h2>Cas d'usage couverts</h2>
+<table class="couverture">
+  <tr><th>Cas d'usage</th><th>Écrans</th></tr>
+  <tr><td>Démarrer sur un fichier neuf ou existant</td><td>1, 7</td></tr>
+  <tr><td>Savoir où en est le fichier et quoi faire ensuite</td><td>2, 7, 13</td></tr>
+  <tr><td>Traiter les écarts par cause</td><td>3, 11</td></tr>
+  <tr><td>Déclarer les conventions : paires, grammaire, termes</td><td>4, 5, 9</td></tr>
+  <tr><td>Renommer un terme sans casser le code</td><td>10</td></tr>
+  <tr><td>Accepter une différence voulue</td><td>11, 14</td></tr>
+  <tr><td>Vérifier les composants du fichier</td><td>12</td></tr>
+  <tr><td>Suivre une palette modifiée après publication</td><td>13</td></tr>
+  <tr><td>Construire <code>theme</code>, ajouter une marque, une exception</td><td>6, 14</td></tr>
+  <tr><td>Publier les conventions, vivre un refus</td><td>15</td></tr>
+  <tr><td>Travailler depuis un fichier qui emploie la bibliothèque</td><td>8</td></tr>
+  <tr><td>Changer de périmètre</td><td>Barre de chaque écran</td></tr>
+</table>
+<p class="chapeau" style="margin-top:12px">Non couverts : les descriptions de variables écrites depuis le référentiel, les icônes, la typographie, un design system réparti sur plusieurs fichiers.</p>
+
+</main>
+</body>
+</html>

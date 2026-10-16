@@ -42,6 +42,8 @@ bibliothèques.
 | [Collection `usage`](./Archi%20Tokens%20Multi-marques/Collection%20usage/README.md) | Les propositions successives pour la collection `usage`, de la table des emplois aux dossiers à texte constant ; la dernière est implémentée, les autres restent comme historique |
 | [Direction artistique](./Direction%20artistique/Optique/README.md) | Brief d'exploration des quatre logos UCM : formes optiques abstraites, nuances et interactions en aplats, images carrées sans texte ni dégradé ; dessins à produire et à comparer |
 | [Diff sémantique](./Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md) | Proposé ; aucune commande `ucm diff` dans le CLI |
+| [Architecture globale UCM](./Architecture%20globale%20UCM/ARCHITECTURE-GLOBALE-UCM.md) | Proposition : rôle de chaque produit, référentiel UCM, plugin d'architecture et domicile de la nomenclature ; aucune décision |
+| [Nomenclature des tokens](./Architecture%20globale%20UCM/Recherches/Nomenclature%20initiale/RECHERCHE-NOMENCLATURE.md) | Notes : inventaire des noms du Playground, nomenclatures et outils du marché, lieu possible d'un contrôle des noms ; aucune décision |
 | [Conformité du rendu](./Linter%20Dev/PLAN-CONFORMITE-RENDU.md) | Piste non implémentée ; la parité TypeScript ne compare pas le rendu |
 | [Coût de génération et implémenteur](./Optimisation%20Tokens/README.md) | Mesures et conception d'un compilateur ; aucun paquet d'implémenteur dans le monorepo |
 | [Comparaison des outils de palettes](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md) | Pistes au-delà de l'écriture des variables : vision simulée, Display P3, APCA, sélection et jeu de départ |
