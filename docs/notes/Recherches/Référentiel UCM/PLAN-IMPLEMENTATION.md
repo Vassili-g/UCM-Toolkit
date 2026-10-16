@@ -398,14 +398,14 @@ et 15.
 
 **Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lot 16.
 
-- [ ] Appliquer les renommages cochés : nom de la collection, de la variable,
+- [x] Appliquer les renommages cochés (406d7a1) : nom de la collection, de la variable,
   de la propriété de composant, valeur de la variante ; un seul pas
   d'annulation pour le lot
-- [ ] Juste avant d'écrire, relire chaque nom : une ligne dont le nom a
+- [x] Juste avant d'écrire, relire chaque nom (406d7a1) : une ligne dont le nom a
   changé depuis la proposition n'est pas appliquée
-- [ ] La convention choisie se range dans le document, pour que l'équipe la
+- [x] La convention choisie se range dans le document, pour que l'équipe la (406d7a1)
   retrouve
-- [ ] Une loi d'écriture, sur le modèle de `loiDeLectureSeule.test.ts` de
+- [x] Une loi d'écriture, sur le modèle de `loiDeLectureSeule.test.ts` de (406d7a1)
   l'explorateur : le plugin n'appelle que ces écritures
 - [ ] Après application, téléchargement de la table ancien nom vers nouveau
   nom, en JSON, pour le dépôt de code
