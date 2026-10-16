@@ -10,7 +10,7 @@ de fin. Cocher la case d'une tâche quand son commit est fait.
 | Point | Décision |
 |---|---|
 | R1 nuancier | En attente : le mainteneur n'a pas tranché D1. Aucune tâche. |
-| R2 nom | Onglet « Comparaison » (anglais « Comparison »). Le nom de la carte « Comparaison » reste à choisir parmi de nouvelles propositions : la tâche T1 attend ce nom. Les identifiants de code ne changent pas. |
+| R2 nom | Onglet « Comparaison » (anglais « Comparison »). La carte « Comparaison » devient « Aperçu » (anglais « Preview »), le mot des bascules « Intensité de l’aperçu » et « Thème de l’aperçu ». Les identifiants de code ne changent pas. |
 | R3 alerte | Pleins (`solid/default`) et fonds (`surface/default`), en Light et en Dark. Les fonds se comparent à 24 % du seuil `palettesProches`, soit 0,012 par défaut. Aucun champ de recette ne s'ajoute. |
 | R4 messages | Les trois règles de la maquette, dans l'onglet Harmonisation seulement. Création ne change pas. |
 | R5 zones | Les zones hachurées se calculent quelle que soit la position de départ. |
@@ -36,7 +36,7 @@ de fin. Cocher la case d'une tâche quand son commit est fait.
 M1 (moteur) ──► M2 (lecteurs du rôle) ──┐
 H1 (messages) ──────────────────────────┼──► S1 (spécification) ──► V1 (vérification)
 R1 (roue) ──────────────────────────────┤
-T1 (nom, attend le choix) ──────────────┘
+T1 (nom) ───────────────────────────────┘
 ```
 
 M1, H1 et R1 touchent des fichiers disjoints, sauf `styles.css` pour H1 et R1
@@ -436,7 +436,7 @@ horizontal : `document.documentElement.scrollWidth <= 400`.
 
 ## T1. L'onglet s'appelle « Comparaison »
 
-- [ ] **Agent** : `executant` (Haiku). Attend le nom de la carte.
+- [ ] **Agent** : `executant` (Haiku). Après H1, qui modifie aussi `fr.ts` et `en.ts`.
 - **Fichiers** : `packages/plugin-palettes/src/i18n/fr.ts`, `en.ts`,
   `galerie/etats.cjs`, `tests/interface/interface.test.mjs`.
 
@@ -444,10 +444,10 @@ horizontal : `document.documentElement.scrollWidth <= 400`.
 |---|---|---|
 | `fr.ts` | `ongletHarmonisation: 'Harmonisation'` | `ongletHarmonisation: 'Comparaison'` |
 | `en.ts` | `ongletHarmonisation: 'Harmony'` | `ongletHarmonisation: 'Comparison'` |
-| `fr.ts` | `comparaison: { titre: 'Comparaison'` | le nom retenu pour la carte |
-| `en.ts` | `comparaison: { titre: 'Comparison'` | sa traduction retenue |
+| `fr.ts` | `comparaison: { titre: 'Comparaison'` | `comparaison: { titre: 'Aperçu'` |
+| `en.ts` | `comparaison: { titre: 'Comparison'` | `comparaison: { titre: 'Preview'` |
 | `etats.cjs` | « dans Harmonisation » dans les `titre`, `quand` et `regarder` | « dans Comparaison » |
-| `etats.cjs` | la carte « Comparaison » dans les `regarder` | la carte sous son nouveau nom |
+| `etats.cjs` | la carte « Comparaison » dans les `regarder` | la carte « Aperçu » |
 | `interface.test.mjs` | `'Harmonisation'` et `'Harmony'` pris comme nom de l'onglet ou de son titre | `'Comparaison'` et `'Comparison'` |
 
 Ne pas renommer les identifiants (`ongletHarmonisation`, `harmonisation.ts`,
@@ -472,7 +472,7 @@ qu'il ne reste que des identifiants et des commentaires.
    hauteur depuis l'entrée dans l'onglet ; elles se recalent à l'entrée.
 3. `[UI-40]` : une paire séparée garde sa rangée jusqu'à la sortie de l'onglet,
    avec « Se distinguent maintenant ».
-4. `[UI-41]` : le constat `separee` ; le nouveau nom de la carte.
+4. `[UI-41]` : le constat `separee` ; la carte s’appelle « Aperçu ».
 5. `[UI-42]` : les zones hachurées se montrent même quand la paire est séparée ;
    « Annuler les modifications » reste affiché, inactif tant que la palette n'a
    pas changé.
