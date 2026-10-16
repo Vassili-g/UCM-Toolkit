@@ -20,7 +20,7 @@ d'implémentation](./PLAN-IMPLEMENTATION.md), sans la planche liée aux tokens
 dans Figma et les essais de la [section 8](#8-les-recherches). La
 [spécification](../../1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)
 reste l'autorité sur le comportement du plugin, et [l'architecture
-multi-marques](../../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)
+multi-marques](../../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 sur la forme des variables. Un lot modifie d'abord la spécification.
 
 **Les maquettes.**

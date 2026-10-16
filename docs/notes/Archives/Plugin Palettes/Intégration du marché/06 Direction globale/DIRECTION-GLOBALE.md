@@ -18,7 +18,7 @@ des décisions validées.
 **Statut.** Ce document ne décide rien. La
 [spécification](../../1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md) reste l'autorité sur le
 comportement du plugin, et [l'architecture
-multi-marques](../../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)
+multi-marques](../../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 sur la forme des variables. Une décision validée les modifie d'abord, selon
 l'inventaire de la [section 8](#8-linventaire-des-modifications).
 

@@ -2,7 +2,7 @@
 
 Cette revue porte sur la première version de
 [RECHERCHE-PLUGIN-PALETTES.md](./RECHERCHE-PLUGIN-PALETTES.md), confrontée à
-[l'architecture multi-marques](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md),
+[l'architecture multi-marques](../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html),
 au script [`verifier-courbes.mjs`](../../Archi%20Tokens%20Multi-marques/verifier-courbes.mjs)
 et aux typages `@figma/plugin-typings` 1.138. Le document a été réécrit en
 spécification ; chaque constat renvoie à la section qui le corrige.

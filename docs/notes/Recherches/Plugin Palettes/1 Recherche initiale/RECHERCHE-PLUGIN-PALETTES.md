@@ -2,7 +2,7 @@
 
 UCM Palettes est un plugin Figma qui fabrique des palettes de couleur selon la
 recette de [l'architecture
-multi-marques](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md),
+multi-marques](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html),
 et les écrit dans les variables ou les dessine dans le fichier Figma. Une
 palette part d'une couleur de référence et produit une ou deux intensités,
 en clair et en sombre, selon sa liste de nuances. La planche montre les
@@ -1356,7 +1356,7 @@ Pour chaque palette, chaque mode et chaque intensité présente, sept garanties
 G1 à G7 se jugent dans la table des dossiers du sens du thème, contre le fond
 de la page, le réglage « Fond » du thème, `elevation/page`. G7 se juge aussi
 contre la carte, `elevation/raised`, qui n'a pas de réglage dans le plugin : le
-moteur la déduit du fond de la page (`[MOT-37]`). L'[architecture, section 4](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md#4-la-table-en-dossiers-et-ses-états)
+moteur la déduit du fond de la page (`[MOT-37]`). L'[architecture, section 4](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 explique le choix de cette table ; le kit la tient dans
 `packages/kit/src/emplois/dossiers.ts`.
 

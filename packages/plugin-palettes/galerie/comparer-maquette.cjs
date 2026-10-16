@@ -1,7 +1,7 @@
 /**
  * Le contrôle de fidélité de l'aperçu en bandes : l'aperçu de l'onglet
  * Création, ouvert dans la galerie, contre le bloc `#pu-v2` de
- * CHANGEMENTS-DU-MOTEUR.html (section « L'aperçu d'UCM Palettes »).
+ * apercu-en-bandes.html (section « L'aperçu d'UCM Palettes »).
  *
  *   npm run galerie --workspace ucm-palettes-plugin
  *   node packages/plugin-palettes/galerie/comparer-maquette.cjs
@@ -32,7 +32,7 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 
 const racine = path.resolve(__dirname, '..');
-const MAQUETTE = path.resolve(racine, '../../docs/notes/Recherches/Archi Tokens Multi-marques/Collection usage/CHANGEMENTS-DU-MOTEUR.html');
+const MAQUETTE = path.resolve(racine, 'galerie/fixtures/apercu-en-bandes.html');
 const GALERIE = path.join(racine, 'dist', 'galerie', 'clair');
 const SORTIE = path.join(racine, 'dist', 'fidelite');
 

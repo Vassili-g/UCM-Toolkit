@@ -94,7 +94,7 @@ garanties prennent pour texte des boutons le fond du thème
 La courbe Dark croît : 0,18 à la 50, 0,67 à la 700, 0,93 à la 950
 ([`nuances.ts`](../../../../../packages/couleur/src/nuances.ts)). Ainsi un même
 numéro donne le même contraste contre la page dans les deux thèmes
-([ARCHITECTURE-FINALE, sections 1 et 4](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)).
+([ARCHITECTURE-FINALE, sections 1 et 4](../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)).
 En Dark, la 700 est claire : son texte doit être sombre. Le comportement suit
 le modèle et ne résulte d'aucune erreur.
 
@@ -434,8 +434,8 @@ la page. La proposition tient 4,5:1 sur tous les états et 3:1 au repos.
 
 ### Dépôt
 
-- [ARCHITECTURE-FINALE-MULTIMARQUES.md](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md),
-  [plan d'intégration](../../Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md)
+- [Vue illustrée multi-marques](../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html),
+  [plan d'intégration](../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
   et [usages indexés](../../Archi%20Tokens%20Multi-marques/Collection%20usage/README.md).
 - [Spécification d'UCM Palettes](../1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md), section 11.2.
 - `emplois.ts`,

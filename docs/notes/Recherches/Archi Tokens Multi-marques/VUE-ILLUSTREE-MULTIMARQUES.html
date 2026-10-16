@@ -1,0 +1,209 @@
+<!doctype html><html lang="fr"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Architecture des tokens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F5F6F8; --surface:#FFFFFF; --ink:#181B22; --muted:#596070; --line:#D9DDE5; --soft:#ECEEF2; --code-bg:#EEF0F4;
+  --add:#17687F; --hl:#FFF3BF;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1115; --surface:#171A20; --ink:#E6E8ED; --muted:#9EA5B2; --line:#2A2F39; --soft:#1D2129; --code-bg:#1B1F27;
+    --add:#5BC0D8; --hl:#3B3413;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1115; --surface:#171A20; --ink:#E6E8ED; --muted:#9EA5B2; --line:#2A2F39; --soft:#1D2129; --code-bg:#1B1F27;
+  --add:#5BC0D8; --hl:#3B3413;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;padding-inline:16px}
+main{max-width:1060px;margin:0 auto;padding-block:40px 80px}
+.narrow{max-width:880px}
+h1,h2{font-family:var(--display);font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(1.9rem,4.4vw,2.6rem);line-height:1.1;margin:0 0 14px}
+h2{font-size:1.45rem;line-height:1.25;margin:60px 0 12px}
+p{margin:0 0 12px}
+a{color:var(--add)}
+:focus-visible{outline:2px solid var(--add);outline-offset:2px}
+code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:1px 5px;border-radius:3px;overflow-wrap:anywhere}
+.lede{font-size:1.08rem;color:var(--muted)}
+
+/* panneau Figma */
+.fx{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.fx-body{display:grid;grid-template-columns:250px 1fr;min-height:460px}
+.fx-cols{border-right:1px solid var(--line);padding:10px 8px;display:flex;flex-direction:column;gap:2px}
+.fx-cols .lab{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:2px 8px 6px}
+.fx-cols button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;font-family:var(--mono);font-size:.84rem}
+.fx-cols button:hover{background:var(--soft)}
+.fx-cols button[aria-current="true"]{background:var(--ink);color:var(--bg)}
+.fx-cols button:focus-visible{outline:2px solid var(--add);outline-offset:-2px}
+.fx-main{min-width:0;padding:12px 14px 16px}
+.fx-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:6px}
+.fx-head b{font-family:var(--mono);font-size:1.05rem}
+.fx-head span{color:var(--muted);font-size:.86rem}
+.fx-note{font-size:.92rem;background:var(--bg);border-radius:6px;padding:9px 12px;margin-bottom:10px}
+.fx-note p{margin:0 0 4px}
+.fx-note p:last-child{margin:0}
+.fx-note a{font-weight:600}
+.fx-tw{overflow:auto;max-height:640px}
+.fx table{border-collapse:collapse;width:100%;font-size:.84rem;min-width:520px}
+.fx th{text-align:left;font-weight:500;color:var(--muted);font-size:.8rem;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.fx td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.fx td.nm{font-family:var(--mono);white-space:nowrap}
+.fx tr.g td{padding:0}
+.fx td.nm{padding-left:calc(23px + var(--prof,0)*16px)}
+.dossier{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;padding:6px 10px 6px calc(10px + var(--prof,0)*16px);font-family:var(--mono);font-size:.82rem;font-weight:600}
+.dossier:hover{background:var(--soft)}
+.dossier:focus-visible{outline:2px solid var(--add);outline-offset:-2px}
+.chev{flex:none;width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .12s}
+.dossier[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.dossier .nb{color:var(--muted);font-weight:400}
+.val.vide{color:var(--muted);font-family:var(--sans);font-style:italic}
+.chip .fin{color:var(--muted)}
+.fx-outils{display:flex;gap:14px;margin-left:auto}
+.fx-outils button{all:unset;cursor:pointer;color:var(--add);font-size:.84rem;text-decoration:underline;text-underline-offset:3px}
+.fx-outils button:focus-visible{outline:2px solid var(--add);outline-offset:2px}
+.fx tr.hl td{background:var(--hl)}
+.val{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.78rem;white-space:nowrap}
+.sq{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);display:inline-block;flex:none}
+.chip{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:1px 7px 1px 3px;font-family:var(--mono);font-size:.76rem;white-space:nowrap}
+.chip:hover{border-color:var(--add)}
+.chip:focus-visible{outline:2px solid var(--add);outline-offset:1px}
+.chip .col{color:var(--muted)}
+.cap{color:var(--muted);font-size:.86rem;margin-top:8px}
+
+.tw{overflow-x:auto;margin:12px 0}
+table.plain{border-collapse:collapse;width:100%;font-size:.92rem}
+table.plain th,table.plain td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+table.plain th{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+table.plain td.n,table.plain th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.plain tfoot td{font-weight:600;border-bottom:none}
+table.plain td:first-child code{white-space:nowrap}
+ul.rules{padding-left:20px}
+ul.rules li{margin-bottom:6px}
+footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+footer ul{padding-left:18px;margin:6px 0 0}
+
+@media (max-width:720px){
+  .fx-body{grid-template-columns:1fr}
+  .fx-cols{border-right:none;border-bottom:1px solid var(--line);flex-direction:row;flex-wrap:wrap}
+  .fx-cols .lab{width:100%}
+}
+.sommaire{display:flex;flex-wrap:wrap;gap:8px 20px;margin:24px 0;font-size:.9rem}
+.logique{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.carte{padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.carte h3{font-size:1rem;margin:0 0 8px}.carte p:last-child{margin:0}
+.chaine{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:16px 0;font-size:.9rem}
+.chaine code{padding:8px 12px}.chaine span{color:var(--muted)}
+@media(max-width:720px){.logique{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main>
+<div class="narrow">
+  <h1>Architecture des tokens multi-marques</h1>
+  <p class="lede">Les collections séparent les palettes, la marque et le thème. Les composants utilisent des rôles de couleur communs, en clair comme en sombre.</p>
+  <nav class="sommaire" aria-label="Dans cette page"><a href="#structure">Structure</a><a href="#variables">Variables</a><a href="#emplois">Rôles et états</a><a href="#utilisation">Utilisation</a></nav>
+  <h2 id="structure">La logique des collections</h2>
+  <p>Une couleur est définie dans <code>primitives</code>. Les collections suivantes la désignent par alias : changer une palette ou une marque conserve les noms utilisés par les composants.</p>
+</div>
+<div class="logique">
+  <section class="carte"><h3>1. Définir les valeurs</h3><p><code>primitives</code> contient les palettes nommées et leurs crans, séparés en <code>light</code> et <code>dark</code>. Les statuts disposent des intensités <code>soft</code> et <code>vivid</code>. Les dimensions et les valeurs typographiques y sont aussi définies.</p></section>
+  <section class="carte"><h3>2. Affecter les palettes</h3><p><code>color-brands</code> affecte une palette à <code>primary</code> et à <code>secondary</code> dans chaque mode de marque. <code>identity</code> expose les couleurs de charte. <code>color-utilities</code> affecte les palettes communes : neutre, statuts et niveaux d’élévation.</p></section>
+  <section class="carte"><h3>3. Choisir le thème</h3><p><code>theme</code> expose les rôles <code>solid</code>, <code>surface</code>, <code>page</code> et <code>ring</code>. Ses modes <code>light</code> et <code>dark</code> choisissent les alias adaptés. La marque se règle séparément dans <code>color-brands</code>.</p></section>
+  <section class="carte"><h3>4. Relier les composants</h3><p><code>components</code> nomme les propriétés des composants. Leurs couleurs utilisent les rôles de <code>theme</code> ; <code>layouts</code> et <code>typography</code> regroupent les dimensions et les réglages de texte par alias vers <code>primitives</code>.</p></section>
+</div>
+<div class="narrow">
+  <p>Pour retrouver la valeur d’un rôle de marque, suivre ses alias :</p>
+  <div class="chaine" aria-label="Chaîne des alias"><code>components</code><span>→</span><code>theme</code><span>→</span><code>color-brands</code><span>→</span><code>primitives</code></div>
+  <p>Un statut ou le neutre passe par <code>color-utilities</code> à la place de <code>color-brands</code>. <code>scale</code> expose les crans pour les besoins que les rôles ne couvrent pas.</p>
+  <h2 id="variables">Le panneau des variables</h2>
+  <p>Choisir une collection, puis déplier ses dossiers. Chaque colonne représente un mode. Cliquer sur un alias ouvre la variable visée ; sa pastille montre la couleur résolue dans le contexte de la colonne. Hors de leur collection, les aperçus utilisent le thème clair et la première marque.</p>
+</div>
+<div class="fx" id="fx"><div class="fx-body">
+  <nav class="fx-cols" id="fx-cols" aria-label="Collections"></nav>
+  <div class="fx-main"><div class="fx-head" id="fx-head"></div><div class="fx-note" id="fx-note"></div><div class="fx-tw"><table><thead id="fx-thead"></thead><tbody id="fx-tbody"></tbody></table></div></div>
+</div></div>
+<p class="cap">Le panneau présente un instantané des variables de référence. <a href="generer-vue-illustree.ts">Le générateur</a> actualise ses données depuis un export <code>tokens.json</code>, sans recalculer les palettes ni modifier les alias.</p>
+<div class="narrow">
+  <h2 id="emplois">La table en dossiers</h2>
+  <p>Les mêmes rôles s’appliquent aux palettes de marque, au neutre et aux deux intensités des statuts. Le sens normal utilise un texte de bouton blanc en clair et noir en sombre ; le sens inversé utilise l’autre couleur.</p>
+  </div><div class="tw"><table class="plain">
+    <thead><tr><th>Variable</th><th>Ce qu’elle peint</th><th class="n">Clair normal</th><th class="n">Clair inversé</th><th class="n">Sombre normal</th><th class="n">Sombre inversé</th><th>Garantie</th></tr></thead>
+    <tbody>
+      <tr><td><code>solid/default</code>, <code>hover</code>, <code>pressed</code></td><td>bouton plein, badge plein ; bordure du bouton outlined</td><td class="n">700 · 800 · 900</td><td class="n">700 · 600 · 500</td><td class="n">700 · 800 · 900</td><td class="n">700 · 600 · 500</td><td>G2</td></tr>
+      <tr><td><code>solid/foreground</code></td><td>texte du plein</td><td class="n">blanc</td><td class="n">noir</td><td class="n">noir</td><td class="n">blanc</td><td>G1</td></tr>
+      <tr><td><code>surface/default</code>, <code>hover</code>, <code>pressed</code></td><td>alerte, badge discret, ligne sélectionnée</td><td class="n">100 · 200 · 300</td><td class="n">100 · 200 · 300</td><td class="n">300 · 400 · 500</td><td class="n">300 · 400 · 500</td><td></td></tr>
+      <tr><td><code>surface/foreground</code>, <code>surface/border</code></td><td>texte et contour du fond teinté</td><td class="n">800</td><td class="n">900</td><td class="n">950</td><td class="n">950</td><td>G3, G4</td></tr>
+      <tr><td><code>page/foreground</code>, <code>page/border</code></td><td>texte coloré, lien, contour sur la page ou la carte</td><td class="n">700</td><td class="n">800</td><td class="n">700</td><td class="n">800</td><td>G5, G6</td></tr>
+      <tr><td><code>page/divider</code></td><td>séparateur, contour discret</td><td class="n">300</td><td class="n">300</td><td class="n">300</td><td class="n">300</td><td>aucun seuil</td></tr>
+      <tr><td><code>ring</code></td><td>anneau de focus, décalé de 2 px</td><td class="n">600</td><td class="n">700</td><td class="n">600</td><td class="n">700</td><td>G7</td></tr>
+      <tr><td><code>neutral/page/foreground-main</code></td><td>corps de texte</td><td class="n">noir</td><td class="n">noir</td><td class="n">blanc</td><td class="n">blanc</td><td></td></tr>
+      <tr><td><code>disabled/background</code>, <code>foreground</code>, <code>border</code></td><td>contrôle désactivé</td><td class="n">200 · 500 · 500</td><td class="n">200 · 500 · 500</td><td class="n">200 · 500 · 500</td><td class="n">200 · 500 · 500</td><td>exempté par WCAG</td></tr>
+      <tr><td><code>elevation/page</code>, <code>raised</code></td><td>page, carte</td><td class="n" colspan="2">neutre 50 · blanc</td><td class="n" colspan="2">neutre 50 · neutre 100</td><td></td></tr>
+    </tbody>
+  </table></div><div class="narrow">
+  <ul class="rules">
+    <li>Choisir le dossier selon le fond derrière le texte. La page ou la carte : <code>page</code>. Une teinte claire : <code>surface</code>. Une couleur forte : <code>solid</code>.</li>
+    <li>Un état change le fond, jamais le texte : <code>surface/foreground</code> sur <code>surface/hover</code>.</li>
+    <li>Une alerte et un badge discret prennent <code>surface/default</code> et <code>surface/foreground</code> ; un bouton teinté les trois états de <code>surface</code> ; un contour discret <code>page/divider</code>, un contour franc <code>surface/border</code>. Le texte courant d’une alerte, coloré ou neutre, est un choix du composant.</li>
+    <li>L’anneau ne touche jamais le composant : 2 px de fond, puis 2 px de trait.</li>
+  </ul>
+
+
+<h3 id="bouton-basculable">Le bouton basculable</h3>
+<p>Un bouton basculable utilise <code>surface</code> quand il n’est pas activé et <code>solid</code> quand il est activé. Chaque état garde le texte de son dossier.</p>
+<div class="tw"><table class="plain">
+  <thead><tr><th>État</th><th>Fond au repos</th><th>Au survol</th><th>À l’appui</th><th>Texte et icône</th></tr></thead>
+  <tbody>
+    <tr><td>Non activé</td><td><code>surface/default</code></td><td><code>surface/hover</code></td><td><code>surface/pressed</code></td><td><code>surface/foreground</code></td></tr>
+    <tr><td>Activé</td><td><code>solid/default</code></td><td><code>solid/hover</code></td><td><code>solid/pressed</code></td><td><code>solid/foreground</code></td></tr>
+  </tbody>
+</table></div>
+<p>Le focus ajoute <code>ring</code>. Un bouton indisponible utilise <code>disabled/*</code> : cet état se distingue du bouton non activé, qui reste cliquable. Cette composition utilise les variables existantes.</p>
+
+<h2 id="utilisation">Utiliser et vérifier les tokens</h2>
+<p>Dans Figma, régler la marque dans <code>color-brands</code> et le thème dans <code>theme</code>. Un cadre peut changer de thème tout en gardant la marque de son parent. À l’ajout d’une marque, renseigner chaque alias de sa colonne.</p>
+<p>Un calque utilise <code>theme</code> ou <code>components</code> pour ses couleurs. Les collections intermédiaires de couleur ont des portées vides ; les portées de <code>theme</code> suivent ce que chaque variable peint.</p>
+<p>Côté code, <code>ucm tokens css</code> produit les propriétés CSS et les sélecteurs des axes. Les attributs par défaut sont <code>data-color-brands</code> et <code>data-theme</code>. Le champ <code>modes</code> de <code>ucm.config.json</code> peut renommer l’attribut de marque.</p>
+<div class="tw"><table class="plain"><thead><tr><th>Outil</th><th>Vérification</th></tr></thead><tbody>
+<tr><td>UCM Palettes</td><td>Calcule les palettes et mesure leurs sept garanties de contraste. Écrit les palettes primitives.</td></tr>
+<tr><td>UCM Explorateur</td><td>Le profil UCM compare les alias de thème et les portées à la table des rôles.</td></tr>
+<tr><td><code>ucm check</code></td><td>Contrôle les références de tokens et mesure les contrastes sur les fonds décrits par les contrats.</td></tr>
+</tbody></table></div>
+<p>La table et les garanties sont définies dans <a href="../../../../packages/kit/src/emplois/dossiers.ts"><code>dossiers.ts</code></a> et <a href="../../../../packages/kit/src/emplois/garanties.ts"><code>garanties.ts</code></a>. Les contrastes se mesurent sur les couleurs calculées ; le numéro d’un cran ne suffit pas à prouver un seuil.</p>
+<footer><a href="README.md">Contenu du dossier et actualisation</a></footer>
+</div></main>
+<script src="donnees-vue-illustree.js"></script>
+<script>
+(function(){
+  var V=window.VUE_DONNEES, C=V.collections;
+  var COLS=["components","theme","color-brands","color-utilities","primitives","layouts","typography"].filter(function(c){return C[c];});
+  var NOTES={components:"Les propriétés des composants, avec leurs alias tels qu’ils figurent dans les données du panneau.",theme:"Les rôles de couleur, les crans de scale, les couleurs désactivées et l’élévation. Un mode par thème.","color-brands":"Les palettes primary et secondary et les couleurs de charte. Un mode par marque.","color-utilities":"Les palettes communes aux marques : neutre, statuts et élévation.",primitives:"Les valeurs des palettes, des dimensions et de la typographie.",layouts:"Les tailles, les rayons et les épaisseurs, en alias vers primitives.",typography:"Les réglages de texte, en alias vers primitives."};
+  var state={col:C.theme?"theme":COLS[0],ouverts:{}};
+  var $=function(id){return document.getElementById(id);};
+  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
+  function modesDe(col){return V.modes[col]||["Valeur"];}
+  function contexte(col,mode){var ctx={};Object.keys(V.modes).forEach(function(c){ctx[c]=V.modes[c][0];});ctx[col]=mode;return ctx;}
+  function valeur(path,ctx){var col=path.split(".")[0],v=C[col]&&C[col][path];return v&&typeof v==="object"?v[ctx[col]]:v;}
+  function estAlias(v){return typeof v==="string"&&v.split(".")[0] in C;}
+  function fin(path,ctx){var vus={};while(!vus[path]){vus[path]=true;var v=valeur(path,ctx);if(!estAlias(v))return v;path=v;}return null;}
+  function couleur(v){return typeof v==="string"&&/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(v);}
+  function sq(v){return couleur(v)?'<span class="sq" style="background:'+v+'"></span>':"";}
+  function cellule(path,ctx){var v=valeur(path,ctx);if(v==null||v==="∅")return '<span class="val vide">sans valeur</span>';if(!estAlias(v))return '<span class="val">'+sq(v)+esc(v)+'</span>';var p=v.split("."),f=fin(path,ctx);return '<button type="button" class="chip" data-path="'+esc(v)+'">'+sq(f)+'<span class="col">'+esc(p[0])+' ›</span> '+esc(p.slice(1).join("/"))+(f!=null&&!couleur(f)&&f!=="∅"?' <span class="fin">'+esc(f)+'</span>':"")+'</button>';}
+  function arbre(col){var racine={enfants:[],index:{}};Object.keys(C[col]).forEach(function(k){var p=k.split(".").slice(1),n=racine;p.slice(0,-1).forEach(function(seg,i){if(!n.index[seg]){var f={id:p.slice(0,i+1).join("/"),nom:seg,enfants:[],index:{},total:0};n.index[seg]=f;n.enfants.push(f);}n=n.index[seg];n.total++;});n.enfants.push({k:k,id:p.join("/"),nom:p[p.length-1]});});return racine;}
+  function dossiers(n,out){n.enfants.forEach(function(e){if(!e.k){out.push(e.id);dossiers(e,out);}});return out;}
+  function lignes(n,prof,hl,out){var modes=modesDe(state.col);n.enfants.forEach(function(e){if(e.k){out.push('<tr'+(hl===e.id?' class="hl"':"")+' data-k="'+esc(e.id)+'"><td class="nm" style="--prof:'+prof+'">'+esc(e.nom)+'</td>'+modes.map(function(m){return '<td>'+cellule(e.k,contexte(state.col,m))+'</td>';}).join("")+'</tr>');return;}var ouvert=!!state.ouverts[e.id];out.push('<tr class="g"><td colspan="'+(modes.length+1)+'"><button type="button" class="dossier" style="--prof:'+prof+'" data-dossier="'+esc(e.id)+'" aria-expanded="'+ouvert+'"><span class="chev" aria-hidden="true"></span>'+esc(e.nom)+'<span class="nb">'+e.total+'</span></button></td></tr>');if(ouvert)lignes(e,prof+1,hl,out);});}
+  function render(hl){var col=state.col,modes=modesDe(col);$('fx-cols').innerHTML='<span class="lab">Collections</span>'+COLS.map(function(c){return '<button type="button" data-col="'+esc(c)+'" aria-current="'+(c===col)+'">'+esc(c)+'</button>';}).join("");$('fx-head').innerHTML='<b>'+esc(col)+'</b><span>'+Object.keys(C[col]).length+' variables · '+modes.length+(modes.length>1?' modes':' colonne')+'</span><span class="fx-outils"><button type="button" data-tout="1">Tout déplier</button><button type="button" data-tout="0">Tout replier</button></span>';$('fx-note').textContent=NOTES[col]||"";$('fx-thead').innerHTML='<tr><th>Nom</th>'+modes.map(function(m){return '<th>'+esc(m)+'</th>';}).join("")+'</tr>';var out=[];lignes(arbre(col),0,hl,out);$('fx-tbody').innerHTML=out.join("");if(hl){var row=Array.from($('fx-tbody').querySelectorAll('[data-k]')).find(function(r){return r.dataset.k===hl;});if(row)row.scrollIntoView({block:"nearest"});}}
+  $('fx').addEventListener('click',function(e){var t=e.target.closest('button');if(!t)return;if(t.hasAttribute('data-col')){state.col=t.dataset.col;state.ouverts={};render();}else if(t.hasAttribute('data-dossier')){var id=t.dataset.dossier;state.ouverts[id]=!state.ouverts[id];render();Array.from($('fx-tbody').querySelectorAll('[data-dossier]')).find(function(b){return b.dataset.dossier===id;}).focus();}else if(t.hasAttribute('data-tout')){state.ouverts={};if(t.dataset.tout==='1')dossiers(arbre(state.col),[]).forEach(function(id){state.ouverts[id]=true;});render();}else if(t.hasAttribute('data-path')){var p=t.dataset.path.split('.');if(!C[p[0]])return;state.col=p[0];state.ouverts={};for(var i=2;i<p.length;i++)state.ouverts[p.slice(1,i).join('/')]=true;render(p.slice(1).join('/'));}});
+  render();
+})();
+</script></body></html>
