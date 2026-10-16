@@ -15,19 +15,19 @@ import {
   type Triplet,
 } from './conversions';
 import { plafond, type Gamut } from './plafond';
+import { INTENSITE_UNIQUE, MODES as MODES_DU_REFERENTIEL, PROFILS as PROFILS_DU_REFERENTIEL } from '@ucm-kit/core/referentiel';
 
-export type Profil = 'soft' | 'vivid';
-export type Mode = 'light' | 'dark';
+export type Profil = (typeof PROFILS_DU_REFERENTIEL)[number];
+export type Mode = (typeof MODES_DU_REFERENTIEL)[number];
+export const MODES: readonly Mode[] = MODES_DU_REFERENTIEL;
+export const PROFILS: readonly Profil[] = PROFILS_DU_REFERENTIEL;
 
 /**
  * Une intensité d'une palette : l'un des deux profils d'une palette à deux
  * intensités, ou la rampe `unique` d'une palette à une intensité, qui n'a pas
  * de nom de profil ([ENT-14]).
  */
-export type Intensite = Profil | 'unique';
-
-export const PROFILS: readonly Profil[] = ['soft', 'vivid'];
-export const MODES: readonly Mode[] = ['light', 'dark'];
+export type Intensite = Profil | typeof INTENSITE_UNIQUE;
 
 /** Un décalage du Color shift à chaque bout de la rampe ([MOT-30]). */
 export interface DecalageAuxBouts {

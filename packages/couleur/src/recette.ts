@@ -7,6 +7,7 @@
  * règle et le chemin du champ fautif ; l'interface les met en mots.
  */
 import { TEXTE_DES_BOUTONS_PAR_DEFAUT, cransRequis, sensDuTheme, type SensDuTheme, type TexteDesBoutons } from '@ucm-kit/core/emplois';
+import { MODES, PROFILS, SEUILS_PAR_USAGE } from '@ucm-kit/core/referentiel';
 
 import { lireHexa } from './conversions';
 import { PREREGLAGES, courbesParDefaut, luminositeAuNumero, type Grille } from './nuances';
@@ -243,7 +244,7 @@ export function recetteParDefaut(): Recette {
     gamut: 'srgb',
     fonds: { light: '#F7F7F7', dark: '#0A0A0A' },
     texteDesBoutons: { ...TEXTE_DES_BOUTONS_PAR_DEFAUT },
-    seuils: { texte: 4.5, nonTexte: 3, profilsConfondus: 0.02, palettesProches: 0.05 },
+    seuils: { ...SEUILS_PAR_USAGE, profilsConfondus: 0.02, palettesProches: 0.05 },
     derives: copierLeReleve(RELEVE_TAILWIND),
     intensiteDesFondsSombres: INTENSITE_DES_FONDS_SOMBRES,
     contenuDesPlanches: { ...CONTENU_COMPLET },
@@ -371,8 +372,8 @@ function validerCrans(releve: Releve, crans: unknown): number[] | null {
 }
 
 function validerCourbes(releve: Releve, courbes: unknown, longueur: number | null): void {
-  if (!releve.objet(courbes, 'courbes', ['light', 'dark'])) return;
-  for (const mode of ['light', 'dark'] as const) {
+  if (!releve.objet(courbes, 'courbes', MODES)) return;
+  for (const mode of MODES) {
     const chemin = `courbes.${mode}`;
     const courbe = courbes[mode];
     if (!releve.nombres(courbe, chemin)) continue;
@@ -427,7 +428,7 @@ function validerEnveloppe(releve: Releve, profil: Objet, cheminDuProfil: string)
     if ((basInclus ? valeur < bas : valeur <= bas) || valeur > haut) releve.refuser('enveloppe', ici, valeur);
   };
   dans(enveloppe.p0, `${chemin}.p0`, 0, 1, false);
-  for (const mode of ['light', 'dark'] as const) {
+  for (const mode of MODES) {
     const ici = `${chemin}.${mode}`;
     const bornes = enveloppe[mode];
     if (!releve.objet(bornes, ici, ['a', 'b', 'jaunes', 'cyans'])) continue;
@@ -495,7 +496,7 @@ function validerCransFiges(releve: Releve, crans: unknown, chemin: string): void
 /** Les couleurs d'une intensité figée : `light`, et `dark` facultatif, un hexa par nuance de la liste. */
 function validerCouleursFigees(releve: Releve, figees: unknown, ici: string, nombre: number | null): void {
   if (!releve.objet(figees, ici, ['light'], ['dark'])) return;
-  for (const mode of ['light', 'dark'] as const) {
+  for (const mode of MODES) {
     if (!(mode in figees)) continue;
     const couleurs = figees[mode];
     if (!Array.isArray(couleurs)) {
@@ -527,8 +528,8 @@ function validerFigees(releve: Releve, palette: Objet, chemin: string): void {
   }
   const nombre = Array.isArray(palette.crans) ? palette.crans.length : null;
   if (parIntensite) {
-    if (!releve.objet(figees, ici, ['soft', 'vivid'])) return;
-    for (const profil of ['soft', 'vivid'] as const) {
+    if (!releve.objet(figees, ici, PROFILS)) return;
+    for (const profil of PROFILS) {
       if (profil in figees) validerCouleursFigees(releve, figees[profil], `${ici}.${profil}`, nombre);
     }
     return;
@@ -618,9 +619,9 @@ function aUnReglageDuPorteur(palette: Objet): boolean {
 }
 
 function validerParProfil(releve: Releve, valeurs: unknown, chemin: string, bas: number, haut: number): void {
-  if (!releve.objet(valeurs, chemin, [], ['soft', 'vivid'])) return;
+  if (!releve.objet(valeurs, chemin, [], PROFILS)) return;
   if (Object.keys(valeurs).length === 0) releve.refuser('reglage-nul', chemin);
-  for (const profil of ['soft', 'vivid'] as const) {
+  for (const profil of PROFILS) {
     if (!(profil in valeurs)) continue;
     const valeur = valeurs[profil];
     if (!releve.nombre(valeur, `${chemin}.${profil}`)) continue;
@@ -760,21 +761,21 @@ export function validerRecette(entree: unknown): { recette: Recette } | { refus:
   // [REC-13]) : seul 50 est facultatif. Un texte illisible est déjà refusé plus bas ; sans texte
   // lisible, le thème se juge dans le sens normal.
   const sens: Record<'light' | 'dark', SensDuTheme> = { light: 'normal', dark: 'normal' };
-  if (releve.objet(entree.texteDesBoutons, 'texteDesBoutons', ['light', 'dark'])) {
-    for (const mode of ['light', 'dark'] as const) {
+  if (releve.objet(entree.texteDesBoutons, 'texteDesBoutons', MODES)) {
+    for (const mode of MODES) {
       const texte = entree.texteDesBoutons[mode];
       if (texte !== 'blanc' && texte !== 'noir') releve.refuser('texte-des-boutons', `texteDesBoutons.${mode}`, texte);
       else sens[mode] = sensDuTheme(mode, texte);
     }
   }
   if (crans !== null) {
-    const requis = [...new Set((['light', 'dark'] as const).flatMap((mode) => cransRequis(mode, sens[mode])))].sort((a, b) => a - b);
+    const requis = [...new Set(MODES.flatMap((mode) => cransRequis(mode, sens[mode])))].sort((a, b) => a - b);
     for (const cran of requis) if (!crans.includes(cran)) releve.refuser('crans-emplois', 'crans', cran);
   }
   validerCourbes(releve, entree.courbes, crans?.length ?? null);
 
   const profils = entree.profils;
-  if (releve.objet(profils, 'profils', ['soft', 'vivid'])) {
+  if (releve.objet(profils, 'profils', PROFILS)) {
     const soft = releve.objet(profils.soft, 'profils.soft', ['part', 'clairs', 'enveloppe']) ? profils.soft : null;
     const vivid = releve.objet(profils.vivid, 'profils.vivid', ['part', 'clairs', 'enveloppe']) ? profils.vivid : null;
     if (soft && vivid) validerParts(releve, soft.part, vivid.part, 'profils', '.part');
@@ -784,7 +785,7 @@ export function validerRecette(entree: unknown): { recette: Recette } | { refus:
 
   if (entree.gamut !== 'srgb') releve.refuser('gamut-inconnu', 'gamut', entree.gamut);
 
-  if (releve.objet(entree.fonds, 'fonds', ['light', 'dark'])) {
+  if (releve.objet(entree.fonds, 'fonds', MODES)) {
     releve.hexa(entree.fonds.light, 'fonds.light');
     releve.hexa(entree.fonds.dark, 'fonds.dark');
   }
@@ -845,13 +846,13 @@ function refusDeLaFormeAncienne(objet: Objet, version: number): Refus | null {
     if (!(cle in objet)) return { regle: 'forme', chemin: cle };
   }
   if (estObjet(objet.profils)) {
-    for (const profil of ['soft', 'vivid']) {
+    for (const profil of PROFILS) {
       const lu = objet.profils[profil];
       if (!estObjet(lu)) continue;
       if (version <= 10 && 'enveloppe' in lu) return { regle: 'forme', chemin: `profils.${profil}.enveloppe` };
       if (version !== 11) continue;
       if ('clairs' in lu) return { regle: 'forme', chemin: `profils.${profil}.clairs` };
-      for (const mode of ['light', 'dark']) {
+      for (const mode of MODES) {
         const bornes = estObjet(lu.enveloppe) ? lu.enveloppe[mode] : undefined;
         if (estObjet(bornes) && 'cyans' in bornes) return { regle: 'forme', chemin: `profils.${profil}.enveloppe.${mode}.cyans` };
       }
@@ -951,7 +952,7 @@ function depuisLeFormat11(objet: Objet): Objet {
   if (!estObjet(objet.profils)) return { ...objet, formatVersion: 12 };
   const lus = objet.profils;
   const profils: Objet = { ...lus };
-  for (const nom of ['soft', 'vivid'] as const) {
+  for (const nom of PROFILS) {
     const profil = lus[nom];
     if (!estObjet(profil) || !estObjet(profil.enveloppe)) continue;
     const { enveloppe } = profil;

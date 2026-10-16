@@ -1,5 +1,6 @@
 /** Les candidats de teinte, leur course permise et les zones de proximité entre palettes. */
 import { atteintLeSeuil, contraste } from '@ucm-kit/core/emplois';
+import { PROFILS } from '@ucm-kit/core/referentiel';
 
 import { nuancesDeProximite, proximiteDeNuances, type NuancesDeProximite } from './alertes';
 import { lineaireVersRgb8, rgb8VersOklch, type Rgb8 } from './conversions';
@@ -29,7 +30,7 @@ export interface ZoneTropProche {
  */
 export function candidatDeTeinte(recette: Recette, palette: Palette, ecartCommun: number, cible: Profil | 'deux' = 'deux'): Palette {
   if (estFigee(palette)) return palette;
-  const profils: readonly Profil[] = aUneIntensite(palette) ? ['vivid'] : cible === 'deux' ? ['soft', 'vivid'] : [cible];
+  const profils: readonly Profil[] = aUneIntensite(palette) ? ['vivid'] : cible === 'deux' ? PROFILS : [cible];
   const avant = palette.reglages?.teinte ?? {};
   const borne = BORNES_DES_REGLAGES.teinte;
   const bas = Math.max(...profils.map((profil) => -borne - (avant[profil] ?? 0)));
@@ -43,7 +44,7 @@ export function candidatDeTeinte(recette: Recette, palette: Palette, ecartCommun
 
 function bornesDeLEcartCommun(palette: Palette): CourseDeTeinte {
   if (estFigee(palette)) return { bas: 0, haut: 0 };
-  const profils: readonly Profil[] = aUneIntensite(palette) ? ['vivid'] : ['soft', 'vivid'];
+  const profils: readonly Profil[] = aUneIntensite(palette) ? ['vivid'] : PROFILS;
   const valeurs = profils.map((profil) => palette.reglages?.teinte?.[profil] ?? 0);
   return {
     bas: -BORNES_DES_REGLAGES.teinte - Math.min(...valeurs),
