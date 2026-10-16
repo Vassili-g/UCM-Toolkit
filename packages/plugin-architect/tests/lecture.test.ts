@@ -100,7 +100,7 @@ test('l’adaptateur Figma sélectionne les deux types après chargement de chaq
 
 function portDeVariables(noms: readonly [string, string][], composants: readonly ComposantLu[], recette?: string): PortDeLecture {
   return {
-    collections: async () => [{ id: 'prim', name: 'primitives', remote: false }, { id: 'comp', name: 'components', remote: false }],
+    collections: async () => [{ id: 'prim', name: 'primitives', remote: false }, { id: 'comp', name: 'components', remote: false }, { id: 'theme', name: 'theme', remote: false }],
     variables: async () => noms.map(([nom, collection], rang) => ({ id: `v${rang}`, name: nom, variableCollectionId: collection, remote: false })),
     pages: () => [{ id: 'p', name: 'Page', charger: async () => {}, composants: () => composants }],
     ...(recette === undefined ? {} : { recettePalettes: () => recette }),
@@ -117,15 +117,25 @@ test('un segment qui nomme un ensemble de variantes ou un composant seul est mar
     composant('distant', { name: 'Card', remote: true }),
   ];
   const inventaire = await lireInventaire(portDeVariables([
-    ['components/button-group/colors/primary', 'comp'], ['components/textField/colors', 'comp'],
-    ['components/card/colors', 'comp'], ['components/size=large/colors', 'comp'], ['components/forms', 'comp'],
+    ['sizes/button-group/large', 'prim'], ['sizes/textField/large', 'prim'],
+    ['sizes/card/large', 'prim'], ['sizes/size=large', 'prim'], ['sizes/forms', 'prim'],
   ], composants), { pause: async () => {} });
   assert.deepEqual(categoriesDe(inventaire), {
-    'components/button-group/colors/primary': [null, 'composants', null, null],
-    'components/textField/colors': [null, 'composants', null],
-    'components/card/colors': undefined,
-    'components/size=large/colors': undefined,
-    'components/forms': undefined,
+    'sizes/button-group/large': [null, 'composants', null],
+    'sizes/textField/large': [null, 'composants', null],
+    'sizes/card/large': undefined,
+    'sizes/size=large': undefined,
+    'sizes/forms': undefined,
+  });
+});
+
+test('la racine de la collection des composants nomme un composant, même absent du fichier', async () => {
+  const inventaire = await lireInventaire(portDeVariables([
+    ['Button/colors/primary/default/background', 'comp'], ['Alert/sizes/medium/gap', 'comp'],
+  ], []), { pause: async () => {} });
+  assert.deepEqual(categoriesDe(inventaire), {
+    'Button/colors/primary/default/background': ['composants', null, null, null, null],
+    'Alert/sizes/medium/gap': ['composants', null, null, null],
   });
 });
 
@@ -146,7 +156,7 @@ test('la recette nomme les palettes, par identifiant comme par nom d’affichage
 test('un nom de palette hors de la collection des primitives est un rôle, pas une palette', async () => {
   const recette = JSON.stringify({ palettes: [{ id: 'neutral' }] });
   const inventaire = await lireInventaire(portDeVariables([
-    ['colors/neutral/light/500', 'prim'], ['neutral/page/foreground', 'comp'],
+    ['colors/neutral/light/500', 'prim'], ['neutral/page/foreground', 'theme'],
   ], [], recette), { pause: async () => {} });
   assert.deepEqual(categoriesDe(inventaire), {
     'colors/neutral/light/500': [null, 'palettes', null, null],
@@ -157,7 +167,7 @@ test('un nom de palette hors de la collection des primitives est un rôle, pas u
 test('sans recette lisible, une palette est le segment qui suit colors dans primitives', async () => {
   for (const recette of [undefined, '', 'pas du JSON', '{"palettes":[]}']) {
     const inventaire = await lireInventaire(portDeVariables([
-      ['colors/Poppy/light/500', 'prim'], ['colors/Poppy/light/500', 'comp'], ['dimensions/base', 'prim'], ['Poppy/colors', 'prim'],
+      ['colors/Poppy/light/500', 'prim'], ['colors/Poppy/light/500', 'theme'], ['dimensions/base', 'prim'], ['Poppy/colors', 'prim'],
     ], [], recette), { pause: async () => {} });
     assert.deepEqual(inventaire.entrees.filter((entree) => entree.cible.type === 'variable').map((entree) => entree.nom.categoriesDesSegments),
       [[null, 'palettes', null, null], undefined, undefined, undefined], String(recette));

@@ -1,5 +1,5 @@
 /** L'inventaire conserve les adresses Figma ; seuls les noms logiques atteignent le moteur. */
-import { decouperSegment, DESTINATION_DES_PALETTES, type CategorieDeNom, type NomANormaliser } from '@ucm-kit/core/referentiel';
+import { decouperSegment, COLLECTION_DES_COMPOSANTS, DESTINATION_DES_PALETTES, type CategorieDeNom, type NomANormaliser } from '@ucm-kit/core/referentiel';
 
 export interface ObjetNomme {
   readonly id: string;
@@ -93,12 +93,16 @@ function categoriesDesSegments(
 ): (CategorieDeNom | null)[] | undefined {
   const segments = nom.split('/');
   const dansLesPrimitives = collection?.toLowerCase() === DESTINATION_DES_PALETTES.collection;
+  // Les variables vivent souvent dans un fichier sans composants : la racine
+  // de la collection des composants nomme alors le composant.
+  const dansLesComposants = collection?.toLowerCase() === COLLECTION_DES_COMPOSANTS;
   const categories = segments.map((segment, rang): CategorieDeNom | null => {
     const mots = motsDuNom(segment);
     if (mots === '') return null;
     const palette = dansLesPrimitives && (palettes ? palettes.has(mots)
       : rang > 0 && segments[rang - 1].toLowerCase() === DESTINATION_DES_PALETTES.groupe);
-    return palette ? 'palettes' : composants.has(mots) ? 'composants' : null;
+    if (palette) return 'palettes';
+    return (dansLesComposants && rang === 0) || composants.has(mots) ? 'composants' : null;
   });
   return categories.some(Boolean) ? categories : undefined;
 }
