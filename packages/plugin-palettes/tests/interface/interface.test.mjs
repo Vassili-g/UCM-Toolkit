@@ -141,7 +141,7 @@ test('[UI-39] la galerie d’arrivée garde son en-tête sur une ligne aux deux 
   }
 });
 
-/** Ouvre Harmonisation sur le fichier de vingt palettes de la galerie, dont onze paires sont trop proches. */
+/** Ouvre Harmonisation sur le fichier de vingt palettes de la galerie, dont huit paires sont trop proches. */
 async function ouvrirHarmonisationSurVingtPalettes(langue = 'fr') {
   const page = await ouvrir(MINIMALE, langue);
   await page.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), messageDe('harmonisation-paire'));
@@ -150,29 +150,30 @@ async function ouvrirHarmonisationSurVingtPalettes(langue = 'fr') {
 }
 const cochees = (page) => page.locator('#panneau-harmonisation .liste .case-a-cocher:checked').evaluateAll((cases) => cases.map((coche) => coche.getAttribute('aria-label')));
 
-test('[UI-40] la carte des paires range les onze paires par distance, avec leurs pastilles, leur constat et « Comparer »', async () => {
+test('[UI-40] la carte des paires range les huit paires par distance, avec leurs pastilles, leur constat et « Comparer »', async () => {
   const page = await ouvrirHarmonisationSurVingtPalettes();
   try {
     const carte = page.locator('#panneau-harmonisation .carte[aria-label="Palettes trop proches"]');
-    assert.equal(await carte.locator('.carte-resume').textContent(), '11 paires');
+    assert.equal(await carte.locator('.carte-resume').textContent(), '8 paires');
     assert.equal(await carte.locator('.carte-resume').isVisible(), false, 'ouverte, la carte ne montre pas son résumé');
     assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Difficiles à distinguer dans vos composants');
     const rangees = carte.locator('.paire');
-    assert.equal(await rangees.count(), 11);
+    assert.equal(await rangees.count(), 8);
     assert.deepEqual(await rangees.locator('.paire-texte b').allTextContents(), [
-      'Vert et Feuille', 'Bleu et Azur', 'Marine et Azur', 'Bleu et Marine', 'Indigo et Marine', 'Jaune et Cuivre',
-      'Violet et Pourpre', 'Indigo et Azur', 'Cyan et Teal', 'Bleu et Indigo', 'Rouge et Cuivre',
+      'Vert et Feuille', 'Bleu et Azur', 'Indigo et Marine', 'Marine et Azur', 'Bleu et Marine', 'Violet et Pourpre',
+      'Fuchsia et Grenat', 'Jaune et Cuivre',
     ]);
     const constats = await rangees.locator('.paire-texte span').allTextContents();
-    assert.equal(constats[0], 'Boutons pleins trop proches, en Light · presque identiques');
-    assert.equal(constats[2], 'Textes sur fond teinté trop proches, en Light');
-    assert.equal(constats[4], 'Boutons pleins trop proches, en Dark');
+    assert.equal(constats[0], 'Fonds teintés trop proches, en Light · presque identiques');
+    assert.equal(constats[1], 'Boutons pleins trop proches, en Light · presque identiques');
+    assert.equal(constats[6], 'Fonds teintés trop proches, en Light');
+    assert.equal(constats[2], 'Boutons pleins trop proches, en Dark');
     const premiere = rangees.first();
     assert.equal(await premiere.locator('.paire-couleurs i').count(), 2);
     assert.equal(await premiere.locator('.paire-couleurs i').first().textContent(), 'Aa');
     assert.equal(await premiere.locator('.paire-couleurs').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(247, 247, 247)');
     // Dans le thème du constat : la paire Dark se peint sur le fond Dark de la recette.
-    assert.notEqual(await rangees.nth(4).locator('.paire-couleurs').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(247, 247, 247)');
+    assert.notEqual(await rangees.nth(2).locator('.paire-couleurs').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(247, 247, 247)');
     assert.equal(await premiere.locator('.bilan-verifier').textContent(), 'Comparer');
     assert.equal(await premiere.locator('.bilan-verifier').getAttribute('aria-label'), 'Comparer Vert et Feuille');
     const pastilles = await premiere.locator('.paire-couleurs i').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().toJSON()));
@@ -225,10 +226,10 @@ test('[UI-40] la liste coche par la rangée ou la case, refuse la cinquième et 
     assert.deepEqual(await cochees(page), []);
     assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), 'Aucune palette cochée');
     // Le rond d'une palette d'une paire la nomme ; plusieurs paires, plusieurs noms.
-    assert.equal(await liste.locator('.signal').count(), 13);
+    assert.equal(await liste.locator('.signal').count(), 12);
     const titres = await liste.locator('.signal').evaluateAll((signaux) => signaux.map((signal) => [signal.closest('label').querySelector('.nom').textContent, signal.title]));
-    assert.equal(titres.find(([nom]) => nom === 'Bleu')[1], 'Trop proche d’Azur, Marine et Indigo');
-    assert.equal(titres.find(([nom]) => nom === 'Teal')[1], 'Trop proche de Cyan');
+    assert.equal(titres.find(([nom]) => nom === 'Bleu')[1], 'Trop proche d’Azur et Marine');
+    assert.equal(titres.find(([nom]) => nom === 'Jaune')[1], 'Trop proche de Cuivre');
   } finally { await page.close(); }
 });
 
@@ -239,7 +240,7 @@ test('[UI-40] les deux cartes se replient et se traduisent', async () => {
     const paires = panneau.locator('.carte[aria-label="Palettes too close"]');
     assert.equal(await paires.locator('.carte-sous-titre').textContent(), 'Hard to tell apart in your components');
     assert.equal(await paires.locator('.paire-texte b').first().textContent(), 'Vert and Feuille');
-    assert.equal(await paires.locator('.paire-texte span').first().textContent(), 'Filled buttons too close, in Light · nearly identical');
+    assert.equal(await paires.locator('.paire-texte span').first().textContent(), 'Tinted fills too close, in Light · nearly identical');
     assert.equal(await paires.locator('.bilan-verifier').first().textContent(), 'Compare');
     const liste = panneau.locator('.carte[aria-label="Your palettes"]');
     assert.equal(await liste.locator('.carte-sous-titre').textContent(), 'Shades 50 to 950, in Light');
@@ -251,7 +252,7 @@ test('[UI-40] les deux cartes se replient et se traduisent', async () => {
       assert.equal(await carte.getAttribute('data-ouverte'), 'false');
       assert.equal(await carte.locator('.carte-corps').isVisible(), false);
     }
-    assert.equal(await paires.locator('.carte-resume').textContent(), '11 pairs');
+    assert.equal(await paires.locator('.carte-resume').textContent(), '8 pairs');
     assert.equal(await liste.locator('.carte-resume').textContent(), '20 palettes');
   } finally { await page.close(); }
 });
@@ -372,7 +373,7 @@ test('[UI-41] les constats disent la paire trop proche, ou que les palettes se d
     // Une paire que des teintes séparent : le constat renvoie à la zone hachurée.
     const [paire] = await constats();
     assert.deepEqual([paire.ton, paire.icone, paire.gras], ['avertissement', '!', ['Indigo et Azur']]);
-    assert.equal(paire.texte, 'Indigo et Azur : textes sur fond teinté trop proches en Light. Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages.');
+    assert.equal(paire.texte, 'Indigo et Azur : fonds teintés trop proches en Light. Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages.');
     // Une paire qu'aucune teinte ne sépare : le constat de PR6.
     await panneau.getByRole('button', { name: 'Comparer Vert et Feuille', exact: true }).click();
     assert.equal((await constats())[0].texte, 'Vert et Feuille : boutons pleins trop proches en Light. Aucune teinte de la course ne les sépare : changez la saturation ou la luminosité de l’une d’elles.');
@@ -797,7 +798,7 @@ test('[UI-43] la vision repeint les points, le résumé la nomme, et aucune aler
       vues[vision] = await remplissages();
       assert.notDeepEqual(vues[vision], avant, vision);
       assert.equal(await compteur.textContent(), '11');
-      assert.equal(await page.locator('#panneau-harmonisation .ligne-fixe-texte').textContent(), '11 paires de palettes trop proches');
+      assert.equal(await page.locator('#panneau-harmonisation .ligne-fixe-texte').textContent(), '8 paires de palettes trop proches');
     }
     assert.notDeepEqual(vues.deuteranopie, vues.protanopie);
     await choix.selectOption('normale');
