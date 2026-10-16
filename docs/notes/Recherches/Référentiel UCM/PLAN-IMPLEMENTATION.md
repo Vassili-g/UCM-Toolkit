@@ -197,14 +197,14 @@ Fin : tests de l'explorateur et build verts.
 
 **Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lots 1 et 3.
 
-- [ ] `STATE_SELECTORS`, `STATE_PRECEDENCE`, `STATE_AXIS_NAMES` et
-  `SIZE_VALUES` viennent du référentiel
-- [ ] Le message d'un état inconnu recommande `pressed` et `disabled`
-- [ ] Un état toléré (`press`, `disable`) reste publié sous son nom Figma ;
+- [x] `STATE_SELECTORS`, `STATE_PRECEDENCE`, `STATE_AXIS_NAMES` et
+  `SIZE_VALUES` viennent du référentiel (ce7989a)
+- [x] Le message d'un état inconnu recommande `pressed` et `disabled` (ce7989a)
+- [x] Un état toléré (`press`, `disable`) reste publié sous son nom Figma ;
   l'analyse avertit le designer que UCM recommande le terme retenu. Texte de
   l'avertissement écrit par la conversation principale
-  (`rediger-diagnostics-ucm`)
-- [ ] Les tags des règles d'usage viennent de `regles.ts`
+  (`rediger-diagnostics-ucm`) (ce7989a)
+- [x] Les tags des règles d'usage viennent de `regles.ts` (ce7989a)
 
 Fin : tests de l'exporteur verts, tests dorés inchangés, build vert.
 
@@ -212,9 +212,9 @@ Fin : tests de l'exporteur verts, tests dorés inchangés, build vert.
 
 **Agent :** `implementeur`. **Effort :** petit. **Dépend :** lot 3.
 
-- [ ] `diagnostic-contrastes.mjs` lit ses seuils par rôle dans le référentiel
-  (G03)
-- [ ] Le CLI ne recode aucune donnée du référentiel
+- [x] `diagnostic-contrastes.mjs` lit ses seuils par rôle dans le référentiel
+  (G03) (ad3b678)
+- [x] Le CLI ne recode aucune donnée du référentiel (vérifié, aucune liste recopiée)
 
 Fin : tests du kit et du CLI verts, rapport de contrastes inchangé.
 
