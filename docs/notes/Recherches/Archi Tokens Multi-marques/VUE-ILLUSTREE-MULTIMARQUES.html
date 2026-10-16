@@ -124,6 +124,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
 <div class="narrow">
   <p>Pour retrouver la valeur d’un rôle de marque, suivre ses alias :</p>
   <div class="chaine" aria-label="Chaîne des alias"><code>components</code><span>→</span><code>theme</code><span>→</span><code>color-brands</code><span>→</span><code>primitives</code></div>
+  <div class="tw"><table class="plain"><thead><tr><th>Collection</th><th>Alias permis vers</th><th>Portées Figma</th></tr></thead><tbody id="table-collections"></tbody></table></div>
   <p>Un statut ou le neutre passe par <code>color-utilities</code> à la place de <code>color-brands</code>. <code>scale</code> expose les crans pour les besoins que les rôles ne couvrent pas.</p>
   <h2 id="variables">Le panneau des variables</h2>
   <p>Choisir une collection, puis déplier ses dossiers. Chaque colonne représente un mode. Cliquer sur un alias ouvre la variable visée ; sa pastille montre la couleur résolue dans le contexte de la colonne. Hors de leur collection, les aperçus utilisent le thème clair et la première marque.</p>
@@ -135,38 +136,27 @@ footer ul{padding-left:18px;margin:6px 0 0}
 <p class="cap">Le panneau présente un instantané des variables de référence. <a href="generer-vue-illustree.ts">Le générateur</a> actualise ses données depuis un export <code>tokens.json</code>, sans recalculer les palettes ni modifier les alias.</p>
 <div class="narrow">
   <h2 id="emplois">La table en dossiers</h2>
-  <p>Les mêmes rôles s’appliquent aux palettes de marque, au neutre et aux deux intensités des statuts. Le sens normal utilise un texte de bouton blanc en clair et noir en sombre ; le sens inversé utilise l’autre couleur.</p>
-  </div><div class="tw"><table class="plain">
+  <p id="sens-intro"></p>
+  </div><div class="tw"><table class="plain" id="table-dossiers">
     <thead><tr><th>Variable</th><th>Ce qu’elle peint</th><th class="n">Clair normal</th><th class="n">Clair inversé</th><th class="n">Sombre normal</th><th class="n">Sombre inversé</th><th>Garantie</th></tr></thead>
-    <tbody>
-      <tr><td><code>solid/default</code>, <code>hover</code>, <code>pressed</code></td><td>bouton plein, badge plein ; bordure du bouton outlined</td><td class="n">700 · 800 · 900</td><td class="n">700 · 600 · 500</td><td class="n">700 · 800 · 900</td><td class="n">700 · 600 · 500</td><td>G2</td></tr>
-      <tr><td><code>solid/foreground</code></td><td>texte du plein</td><td class="n">blanc</td><td class="n">noir</td><td class="n">noir</td><td class="n">blanc</td><td>G1</td></tr>
-      <tr><td><code>surface/default</code>, <code>hover</code>, <code>pressed</code></td><td>alerte, badge discret, ligne sélectionnée</td><td class="n">100 · 200 · 300</td><td class="n">100 · 200 · 300</td><td class="n">300 · 400 · 500</td><td class="n">300 · 400 · 500</td><td></td></tr>
-      <tr><td><code>surface/foreground</code>, <code>surface/border</code></td><td>texte et contour du fond teinté</td><td class="n">800</td><td class="n">900</td><td class="n">950</td><td class="n">950</td><td>G3, G4</td></tr>
-      <tr><td><code>page/foreground</code>, <code>page/border</code></td><td>texte coloré, lien, contour sur la page ou la carte</td><td class="n">700</td><td class="n">800</td><td class="n">700</td><td class="n">800</td><td>G5, G6</td></tr>
-      <tr><td><code>page/divider</code></td><td>séparateur, contour discret</td><td class="n">300</td><td class="n">300</td><td class="n">300</td><td class="n">300</td><td>aucun seuil</td></tr>
-      <tr><td><code>ring</code></td><td>anneau de focus, décalé de 2 px</td><td class="n">600</td><td class="n">700</td><td class="n">600</td><td class="n">700</td><td>G7</td></tr>
-      <tr><td><code>neutral/page/foreground-main</code></td><td>corps de texte</td><td class="n">noir</td><td class="n">noir</td><td class="n">blanc</td><td class="n">blanc</td><td></td></tr>
-      <tr><td><code>disabled/background</code>, <code>foreground</code>, <code>border</code></td><td>contrôle désactivé</td><td class="n">200 · 500 · 500</td><td class="n">200 · 500 · 500</td><td class="n">200 · 500 · 500</td><td class="n">200 · 500 · 500</td><td>exempté par WCAG</td></tr>
-      <tr><td><code>elevation/page</code>, <code>raised</code></td><td>page, carte</td><td class="n" colspan="2">neutre 50 · blanc</td><td class="n" colspan="2">neutre 50 · neutre 100</td><td></td></tr>
-    </tbody>
+    <tbody id="table-dossiers-corps"></tbody>
   </table></div><div class="narrow">
+  <p class="cap">Un tiret signale une variable qui ne vise aucun cran de la table : son libellé dit ce qu’elle porte. Les valeurs de <code>elevation</code> se lisent dans le panneau, collection <code>theme</code>.</p>
   <ul class="rules">
     <li>Choisir le dossier selon le fond derrière le texte. La page ou la carte : <code>page</code>. Une teinte claire : <code>surface</code>. Une couleur forte : <code>solid</code>.</li>
     <li>Un état change le fond, jamais le texte : <code>surface/foreground</code> sur <code>surface/hover</code>.</li>
     <li>Une alerte et un badge discret prennent <code>surface/default</code> et <code>surface/foreground</code> ; un bouton teinté les trois états de <code>surface</code> ; un contour discret <code>page/divider</code>, un contour franc <code>surface/border</code>. Le texte courant d’une alerte, coloré ou neutre, est un choix du composant.</li>
-    <li>L’anneau ne touche jamais le composant : 2 px de fond, puis 2 px de trait.</li>
   </ul>
 
+<h3 id="recommandations">Recommandations de design</h3>
+<p>Ces conseils d’implémentation ne changent pas le contrat d’un composant.</p>
+<ul class="rules" id="recommandations-liste"></ul>
 
 <h3 id="bouton-basculable">Le bouton basculable</h3>
-<p>Un bouton basculable utilise <code>surface</code> quand il n’est pas activé et <code>solid</code> quand il est activé. Chaque état garde le texte de son dossier.</p>
+<p>Un bouton basculable change de dossier selon son état. Chaque état garde le texte de son dossier.</p>
 <div class="tw"><table class="plain">
   <thead><tr><th>État</th><th>Fond au repos</th><th>Au survol</th><th>À l’appui</th><th>Texte et icône</th></tr></thead>
-  <tbody>
-    <tr><td>Non activé</td><td><code>surface/default</code></td><td><code>surface/hover</code></td><td><code>surface/pressed</code></td><td><code>surface/foreground</code></td></tr>
-    <tr><td>Activé</td><td><code>solid/default</code></td><td><code>solid/hover</code></td><td><code>solid/pressed</code></td><td><code>solid/foreground</code></td></tr>
-  </tbody>
+  <tbody id="table-basculable"></tbody>
 </table></div>
 <p>Le focus ajoute <code>ring</code>. Un bouton indisponible utilise <code>disabled/*</code> : cet état se distingue du bouton non activé, qui reste cliquable. Cette composition utilise les variables existantes.</p>
 
@@ -174,19 +164,17 @@ footer ul{padding-left:18px;margin:6px 0 0}
 <p>Dans Figma, régler la marque dans <code>color-brands</code> et le thème dans <code>theme</code>. Un cadre peut changer de thème tout en gardant la marque de son parent. À l’ajout d’une marque, renseigner chaque alias de sa colonne.</p>
 <p>Un calque utilise <code>theme</code> ou <code>components</code> pour ses couleurs. Les collections intermédiaires de couleur ont des portées vides ; les portées de <code>theme</code> suivent ce que chaque variable peint.</p>
 <p>Côté code, <code>ucm tokens css</code> produit les propriétés CSS et les sélecteurs des axes. Les attributs par défaut sont <code>data-color-brands</code> et <code>data-theme</code>. Le champ <code>modes</code> de <code>ucm.config.json</code> peut renommer l’attribut de marque.</p>
-<div class="tw"><table class="plain"><thead><tr><th>Outil</th><th>Vérification</th></tr></thead><tbody>
-<tr><td>UCM Palettes</td><td>Calcule les palettes et mesure leurs sept garanties de contraste. Écrit les palettes primitives.</td></tr>
-<tr><td>UCM Explorateur</td><td>Le profil UCM compare les alias de thème et les portées à la table des rôles.</td></tr>
-<tr><td><code>ucm check</code></td><td>Contrôle les références de tokens et mesure les contrastes sur les fonds décrits par les contrats.</td></tr>
-</tbody></table></div>
+<div class="tw"><table class="plain"><thead><tr><th>Outil</th><th>Rôle</th></tr></thead><tbody id="table-outils"></tbody></table></div>
 <p>La table et les garanties sont définies dans <a href="../../../../packages/kit/src/emplois/dossiers.ts"><code>dossiers.ts</code></a> et <a href="../../../../packages/kit/src/emplois/garanties.ts"><code>garanties.ts</code></a>. Les contrastes se mesurent sur les couleurs calculées ; le numéro d’un cran ne suffit pas à prouver un seuil.</p>
 <footer><a href="README.md">Contenu du dossier et actualisation</a></footer>
 </div></main>
 <script src="donnees-vue-illustree.js"></script>
+<script src="donnees-referentiel.js"></script>
 <script>
 (function(){
   var V=window.VUE_DONNEES, C=V.collections;
-  var COLS=["components","theme","color-brands","color-utilities","primitives","layouts","typography"].filter(function(c){return C[c];});
+  var R=window.REFERENTIEL;
+  var COLS=R.collections.map(function(c){return c.nom;}).filter(function(c){return C[c];});
   var NOTES={components:"Les propriétés des composants, avec leurs alias tels qu’ils figurent dans les données du panneau.",theme:"Les rôles de couleur, les crans de scale, les couleurs désactivées et l’élévation. Un mode par thème.","color-brands":"Les palettes primary et secondary et les couleurs de charte. Un mode par marque.","color-utilities":"Les palettes communes aux marques : neutre, statuts et élévation.",primitives:"Les valeurs des palettes, des dimensions et de la typographie.",layouts:"Les tailles, les rayons et les épaisseurs, en alias vers primitives.",typography:"Les réglages de texte, en alias vers primitives."};
   var state={col:C.theme?"theme":COLS[0],ouverts:{}};
   var $=function(id){return document.getElementById(id);};
@@ -205,5 +193,26 @@ footer ul{padding-left:18px;margin:6px 0 0}
   function render(hl){var col=state.col,modes=modesDe(col);$('fx-cols').innerHTML='<span class="lab">Collections</span>'+COLS.map(function(c){return '<button type="button" data-col="'+esc(c)+'" aria-current="'+(c===col)+'">'+esc(c)+'</button>';}).join("");$('fx-head').innerHTML='<b>'+esc(col)+'</b><span>'+Object.keys(C[col]).length+' variables · '+modes.length+(modes.length>1?' modes':' colonne')+'</span><span class="fx-outils"><button type="button" data-tout="1">Tout déplier</button><button type="button" data-tout="0">Tout replier</button></span>';$('fx-note').textContent=NOTES[col]||"";$('fx-thead').innerHTML='<tr><th>Nom</th>'+modes.map(function(m){return '<th>'+esc(m)+'</th>';}).join("")+'</tr>';var out=[];lignes(arbre(col),0,hl,out);$('fx-tbody').innerHTML=out.join("");if(hl){var row=Array.from($('fx-tbody').querySelectorAll('[data-k]')).find(function(r){return r.dataset.k===hl;});if(row)row.scrollIntoView({block:"nearest"});}}
   $('fx').addEventListener('click',function(e){var t=e.target.closest('button');if(!t)return;if(t.hasAttribute('data-col')){state.col=t.dataset.col;state.ouverts={};render();}else if(t.hasAttribute('data-dossier')){var id=t.dataset.dossier;state.ouverts[id]=!state.ouverts[id];render();Array.from($('fx-tbody').querySelectorAll('[data-dossier]')).find(function(b){return b.dataset.dossier===id;}).focus();}else if(t.hasAttribute('data-tout')){state.ouverts={};if(t.dataset.tout==='1')dossiers(arbre(state.col),[]).forEach(function(id){state.ouverts[id]=true;});render();}else if(t.hasAttribute('data-path')){var p=t.dataset.path.split('.');if(!C[p[0]])return;state.col=p[0];state.ouverts={};for(var i=2;i<p.length;i++)state.ouverts[p.slice(1,i).join('/')]=true;render(p.slice(1).join('/'));}});
   render();
+  function code(t){return '<code>'+esc(t)+'</code>';}
+  function remplir(id,html){$(id).innerHTML=html;}
+  function rendreReferentiel(){
+    var T=R.textesDesBoutonsParDefaut;
+    $('sens-intro').innerHTML='Les mêmes rôles s’appliquent aux palettes de marque, au neutre et aux deux intensités des statuts. Le sens normal utilise un texte de bouton '+esc(T.light)+' en clair et '+esc(T.dark)+' en sombre ; le sens inversé utilise l’autre couleur.';
+    remplir('table-collections',R.collections.map(function(c){return '<tr><td>'+code(c.nom)+'</td><td>'+(c.cibles.length?c.cibles.map(code).join(', '):'aucun : les valeurs sont définies ici')+'</td><td>'+(c.sansPortee?'vides':'selon ce que la variable peint')+'</td></tr>';}).join(''));
+    var sens=['light-normal','light-inverse','dark-normal','dark-inverse'];
+    remplir('table-dossiers-corps',R.variables.map(function(v){
+      var cellules=sens.map(function(k){var c=v.crans[k];return '<td class="n">'+(c===null?'—':esc(c))+'</td>';}).join('');
+      var g=v.garanties.map(function(n){return 'G'+n;}).join(', ');
+      return '<tr><td>'+code(v.id)+'</td><td><b>'+esc(v.libelle)+'</b><br>'+esc(v.definition)+'</td>'+cellules+'<td>'+esc(g)+'</td></tr>';
+    }).join(''));
+    remplir('recommandations-liste',R.recommandations.map(function(r){return '<li>'+esc(r.regle)+' <span class="cap">Vérifier : '+esc(r.preuve)+'</span></li>';}).join(''));
+    var b=R.recommandations.filter(function(r){return r.id==='bouton-basculable';})[0];
+    if(b){
+      var ligne=function(nom,dossier){return '<tr><td>'+esc(nom)+'</td>'+['default','hover','pressed'].map(function(e){return '<td>'+code(dossier+'/'+e)+'</td>';}).join('')+'<td>'+code(dossier+'/foreground')+'</td></tr>';};
+      remplir('table-basculable',ligne('Non activé',b.parametres.repos)+ligne('Activé',b.parametres.active));
+    }
+    remplir('table-outils',R.outils.map(function(o){return '<tr><td>'+esc(o.libelle)+'</td><td>'+esc(o.definition)+'</td></tr>';}).join(''));
+  }
+  rendreReferentiel();
 })();
 </script></body></html>
