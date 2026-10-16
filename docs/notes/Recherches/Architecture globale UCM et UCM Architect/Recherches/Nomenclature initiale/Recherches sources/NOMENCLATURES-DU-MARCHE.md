@@ -69,8 +69,8 @@ Les systèmes publics décrivent presque tous une grammaire de noms (segments or
 - En v4, le type vient de `$type`, plus de la position ([doc](https://styledictionary.com/reference/hooks/transforms/predefined/)).
 
 **DTCG (brouillon, « Do not attempt to implement »)**
-- Impose peu : nom en chaîne JSON valide, sensible à la casse, sans `$` initial, sans `{`, `}` ni `.`. Les outils DOIVENT vérifier l'absence de conflit avec les noms réservés.
-- Aucune grammaire de segments. Les outils PEUVENT avertir si deux noms ne diffèrent que par la casse ([spec](https://www.designtokens.org/tr/drafts/format/)).
+- Impose peu : nom en chaîne JSON valide, sensible à la casse, sans `$` initial, sans `{`, `}` ni `.`. Les outils doivent vérifier l'absence de conflit avec les noms réservés.
+- Aucune grammaire de segments. Les outils peuvent avertir si deux noms ne diffèrent que par la casse ([spec](https://www.designtokens.org/tr/drafts/format/)).
 
 **GitLab Pajamas** (non demandé, très structuré)
 - Dix segments : `[group].[component].[variant].[element].[position].[relationship].[property].[type].[scale].[state]`. Règle : « the same term will never be in two places for a single design token » ([doc](https://design.gitlab.com/product-foundations/design-tokens-reading)). Outil : non vérifié.
@@ -91,7 +91,7 @@ Les systèmes publics décrivent presque tous une grammaire de noms (segments or
   - DTCG : sensible à la casse, avec avertissement facultatif.
 - **États**
   - Curtis liste `default`, `hover`, `press/active`, `focus`, `disabled`, `visited`, `error`.
-  - Primer exige cinq états d'interaction : rest, `:hover`, `:focus-visible`, `:active`, `:disabled` ([GUIDE](https://github.com/primer/primitives/blob/main/DESIGN_TOKENS_GUIDE.md)). Ce sont des états CSS, pas des noms de tokens ; les exemples de noms utilisent `rest` et `hover`.
+  - Primer exige cinq états d'interaction : rest, `:hover`, `:focus-visible`, `:active`, `:disabled` ([guide](https://github.com/primer/primitives/blob/main/DESIGN_TOKENS_GUIDE.md)). Ce sont des états CSS, pas des noms de tokens ; les exemples de noms utilisent `rest` et `hover`.
   - Carbon met l'état en suffixe (`-hover`, `-active`, `-selected`, `-disabled`).
   - SLDS met l'état en dernier segment.
   - Aucun système lu ne tranche `hover` contre `hovered`.

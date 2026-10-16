@@ -274,7 +274,7 @@ variable, donc un lecteur qui résout les alias. L'explorateur le fait déjà
 | `Variable.name` se lit et s'écrit ; l'exemple officiel renomme par une affectation de `name` | [Working with variables](https://developers.figma.com/docs/plugins/working-with-variables) |
 | Un alias et une liaison désignent la variable par son `id`, que le renommage ne change pas | Même page ; effet sur les liaisons à vérifier dans Figma |
 | Une variable de bibliothèque lue par `teamLibrary` n'expose que `name`, `key` et `resolvedType` ; la permission `teamlibrary` est requise | [LibraryVariable](https://developers.figma.com/docs/plugins/api/LibraryVariable/), [teamLibrary](https://developers.figma.com/docs/plugins/api/figma-teamlibrary/) |
-| `codeSyntax` porte un nom par plateforme (WEB, ANDROID, iOS), distinct de `name` | [Variable](https://developers.figma.com/docs/plugins/api/Variable/) |
+| `codeSyntax` porte un nom par plateforme (`WEB`, `ANDROID`, iOS), distinct de `name` | [Variable](https://developers.figma.com/docs/plugins/api/Variable/) |
 | Une collection porte au plus 5 000 variables | [Aide Figma](https://help.figma.com/hc/en-us/articles/15145852043927) |
 
 Un contrôle des noms d'une bibliothèque lit donc ses variables dans le
