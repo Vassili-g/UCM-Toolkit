@@ -1995,9 +1995,9 @@ ETATS.push({
 const recetteDuMainteneur = readFileSync(path.resolve(__dirname, '../../../docs/notes/Recherches/Plugin Palettes/Recette CRITIQUE de qualité/Mesures/references/recette-mainteneur.json'), 'utf8');
 ETATS.push({
   id: 'harmonisation-arrivee',
-  titre: 'Arrivée dans Harmonisation',
-  quand: 'Le fichier du mainteneur est chargé ; le designer ouvre Harmonisation sans palette cochée.',
-  regarder: 'Harmonisation entre Vérification et Gestion. Le titre précède Soft et Vivid, puis Light et Dark ; Vivid et Light sont choisis. La ligne fixe suit les paires du moteur ; à zéro, son texte est « Toutes vos palettes se distinguent » et le compteur est absent. Les cartes sont hors du périmètre de cet état.',
+  titre: 'Arrivée dans Comparaison',
+  quand: 'Le fichier du mainteneur est chargé ; le designer ouvre Comparaison sans palette cochée.',
+  regarder: 'Comparaison entre Vérification et Gestion. Le titre précède Soft et Vivid, puis Light et Dark ; Vivid et Light sont choisis. La ligne fixe suit les paires du moteur ; à zéro, son texte est « Toutes vos palettes se distinguent » et le compteur est absent. Les cartes sont hors du périmètre de cet état.',
   existe: true,
   sansPaletteChoisie: true,
   atteinte: [etatDuFichier(recetteDuMainteneur), { clic: '[role="tab"][aria-controls="panneau-harmonisation"]' }],
@@ -2005,9 +2005,9 @@ ETATS.push({
 const ONGLET_HARMONISATION = { clic: '[role="tab"][aria-controls="panneau-harmonisation"]' };
 ETATS.push({
   id: 'harmonisation-paire',
-  titre: 'Une paire comparée dans Harmonisation',
-  quand: 'Le fichier porte vingt palettes dont dix paires sont trop proches ; le designer ouvre Harmonisation et clique « Comparer » sur la paire Indigo et Azur.',
-  regarder: 'Le compteur « 10 » sur l’onglet, la ligne fixe « 10 paires de palettes trop proches », puis la carte « Palettes trop proches » : dix rangées par distance croissante, chacune avec ses deux pastilles « Aa » sur le fond de page du thème du constat, ses deux noms, son constat (« Boutons pleins trop proches, en Light », « Textes sur fond teinté trop proches, en Light ») et « Comparer ». Dans « Vos palettes », Indigo et Azur sont cochées et surlignées, le pied dit « 2 cochées, 4 au plus » avec « Tout décocher » à droite ; les vingt palettes portent leurs nuances de 50 à 950 en Light, et un rond ambre « ! » marque les treize palettes qui appartiennent à une paire trop proche. Sous elles, la carte « Comparaison » (résumé « 2 palettes », bascule « Couleurs | Niveaux de gris » sur Couleurs) pose Indigo et Azur sur le fond de page Light : les nuances alignées sous les numéros 50 à 950, puis deux colonnes de composants (Valider, Annuler, Message enregistré, En savoir plus) peints des rôles de la table du kit ; en bas, un constat ambre sur la paire (« Indigo et Azur : … trop proches en Light. Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages. »).',
+  titre: 'Une paire comparée dans Comparaison',
+  quand: 'Le fichier porte vingt palettes dont dix paires sont trop proches ; le designer ouvre Comparaison et clique « Comparer » sur la paire Indigo et Azur.',
+  regarder: 'Le compteur « 10 » sur l’onglet, la ligne fixe « 10 paires de palettes trop proches », puis la carte « Palettes trop proches » : dix rangées par distance croissante, chacune avec ses deux pastilles « Aa » sur le fond de page du thème du constat, ses deux noms, son constat (« Boutons pleins trop proches, en Light », « Textes sur fond teinté trop proches, en Light ») et « Comparer ». Dans « Vos palettes », Indigo et Azur sont cochées et surlignées, le pied dit « 2 cochées, 4 au plus » avec « Tout décocher » à droite ; les vingt palettes portent leurs nuances de 50 à 950 en Light, et un rond ambre « ! » marque les treize palettes qui appartiennent à une paire trop proche. Sous elles, la carte « Aperçu » (résumé « 2 palettes », bascule « Couleurs | Niveaux de gris » sur Couleurs) pose Indigo et Azur sur le fond de page Light : les nuances alignées sous les numéros 50 à 950, puis deux colonnes de composants (Valider, Annuler, Message enregistré, En savoir plus) peints des rôles de la table du kit ; en bas, un constat ambre sur la paire (« Indigo et Azur : … trop proches en Light. Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages. »).',
   existe: true,
   sansPaletteChoisie: true,
   atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ONGLET_HARMONISATION, { clic: `.paire[data-paire="${identifiantDuBilan(7)} ${identifiantDuBilan(18)}"] .bilan-verifier` }],
@@ -2017,7 +2017,7 @@ ETATS.push({
   id: 'harmonisation-depuis-verification',
   titre: 'Le lien « Comparer » du bilan de Vérification',
   quand: 'Même fichier de vingt palettes ; dans l’onglet « À vérifier » de Vérification, le designer clique « Comparer » sur la ligne de Bleu, trop proche d’Azur.',
-  regarder: 'Harmonisation s’ouvre avec Bleu et Azur cochées, et eux seuls, dans « Vos palettes » ; la carte Comparaison les montre côte à côte, et la carte Réglages règle la palette que la sortie la plus proche désigne. Le bilan d’avant le clic est l’état « verification-bilan-a-verifier ».',
+  regarder: 'Comparaison s’ouvre avec Bleu et Azur cochées, et eux seuls, dans « Vos palettes » ; la carte Aperçu les montre côte à côte, et la carte Réglages règle la palette que la sortie la plus proche désigne. Le bilan d’avant le clic est l’état « verification-bilan-a-verifier ».',
   existe: true,
   sansPaletteChoisie: true,
   atteinte: [
@@ -2032,8 +2032,8 @@ const CASE_DE_HARMONISATION = (rang) => ({ clic: `#panneau-harmonisation .case-a
 ETATS.push({
   id: 'harmonisation-niveaux-de-gris',
   titre: 'Comparer la clarté de quatre palettes en niveaux de gris',
-  quand: 'Le fichier porte vingt palettes dont dix paires sont trop proches ; le designer ouvre Harmonisation, coche Rose, Indigo, Vert et Feuille, puis choisit « Niveaux de gris » dans la carte « Comparaison », en Vivid et en Light.',
-  regarder: 'La carte « Comparaison » (résumé « 4 palettes ») : les nuances et les composants des quatre palettes sont des gris, un gris par couleur de même clarté OKLab ; le texte des boutons pleins reste blanc. La liste « Vos palettes », au-dessus, garde ses couleurs. Sous la surface, trois constats : celui de la paire Vert et Feuille (ambre, « boutons pleins trop proches en Light »), puis deux d’information (bleu) sur la saturation et la luminosité en Vivid.',
+  quand: 'Le fichier porte vingt palettes dont dix paires sont trop proches ; le designer ouvre Comparaison, coche Rose, Indigo, Vert et Feuille, puis choisit « Niveaux de gris » dans la carte « Aperçu », en Vivid et en Light.',
+  regarder: 'La carte « Aperçu » (résumé « 4 palettes ») : les nuances et les composants des quatre palettes sont des gris, un gris par couleur de même clarté OKLab ; le texte des boutons pleins reste blanc. La liste « Vos palettes », au-dessus, garde ses couleurs. Sous la surface, trois constats : celui de la paire Vert et Feuille (ambre, « boutons pleins trop proches en Light »), puis deux d’information (bleu) sur la saturation et la luminosité en Vivid.',
   existe: true,
   sansPaletteChoisie: true,
   atteinte: [
@@ -2045,9 +2045,9 @@ ETATS.push({
 
 ETATS.push({
   id: 'harmonisation-distinguee',
-  titre: 'Une paire distinguée par la teinte dans Harmonisation',
+  titre: 'Une paire distinguée par la teinte dans Comparaison',
   quand: 'Le fichier porte vingt palettes dont dix paires sont trop proches ; le designer clique « Comparer » sur la paire Indigo et Azur, puis pousse la teinte d’Indigo d’un degré, de 0° à +1°, hors de la zone hachurée.',
-  regarder: 'Le compteur de l’onglet et la ligne fixe sont à 8 paires : Indigo ne forme plus de paire avec Azur ni avec Bleu. Dans « Comparaison », le constat de la paire est devenu vert (« Ces palettes se distinguent, en Light et en Dark. »). La carte « Réglages » (résumé « Vivid ») porte, sous « Régler Indigo | Azur », « Annuler les modifications » à gauche, et un point bleu après « Indigo » dans « Régler ». La réglette Teinte lit « +1° » et 278°, la zone hachurée a disparu de sa piste, la marque « par défaut » est à 0° ; Saturation et Luminosité portent le point d’Azur.',
+  regarder: 'Le compteur de l’onglet et la ligne fixe sont à 8 paires : Indigo ne forme plus de paire avec Azur ni avec Bleu. Dans « Aperçu », le constat de la paire est devenu vert (« Ces palettes se distinguent, en Light et en Dark. »). La carte « Réglages » (résumé « Vivid ») porte, sous « Régler Indigo | Azur », « Annuler les modifications » à gauche, et un point bleu après « Indigo » dans « Régler ». La réglette Teinte lit « +1° » et 278°, la zone hachurée a disparu de sa piste, la marque « par défaut » est à 0° ; Saturation et Luminosité portent le point d’Azur.',
   existe: true,
   sansPaletteChoisie: true,
   atteinte: [
@@ -2059,7 +2059,7 @@ ETATS.push({
 
 ETATS.push({
   id: 'harmonisation-roue',
-  titre: 'La roue des teintes dans Harmonisation',
+  titre: 'La roue des teintes dans Comparaison',
   quand: 'Le fichier porte vingt palettes dont dix paires sont trop proches ; le designer clique « Comparer » sur la paire Indigo et Azur, puis déplie la carte « Roue des teintes » (repliée à l’arrivée, résumé « Vision normale »).',
   regarder: 'La carte « Roue des teintes », dépliée : à la place du résumé, le choix « Vision » (liste « Normale ») à droite du titre. Un cercle de 140 px dans un SVG de 420 × 256 sur le fond de page Light de l’aperçu, les huit familles de teinte autour (rose en haut, puis rouge, orange, jaune, vert, turquoise, bleu, violet dans le sens horaire), un point par palette colorée à la teinte de son cran 700, plus gros et cerné d’encre pour Indigo et Azur (cochées). Les points des paires trop proches portent un contour ambre et un arc ambre translucide les couvre ; jusqu’à huit palettes colorées chaque point porte son nom, au-delà seules les cochées et celles d’une paire. Indigo, la palette à régler, montre sa course en gris sur le cercle et sa zone trop proche d’Azur en tirets ambre.',
   existe: true,

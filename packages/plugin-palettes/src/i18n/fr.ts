@@ -61,7 +61,7 @@ export const TEXTES = {
   // N130. Les clés portent le nom de leur module (Q6.1).
   ongletCreation: 'Création',
   ongletVerification: 'Vérification',
-  ongletHarmonisation: 'Harmonisation',
+  ongletHarmonisation: 'Comparaison',
   ongletGestion: 'Gestion',
   lectureEnCours: 'Chargement des palettes et des réglages…',
   choisirUnePalette: 'Choisir une palette',
@@ -192,7 +192,7 @@ export const TEXTES_DE_L_HARMONISATION = {
    * segments : les rangs impairs s'écrivent en gras (les noms de palettes).
    */
   comparaison: {
-    titre: 'Comparaison',
+    titre: 'Aperçu',
     sousTitre: 'Les palettes cochées, côte à côte',
     resume: (nombre: number) => `${nombre} palettes`,
     affichage: 'Affichage de la comparaison',
