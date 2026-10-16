@@ -119,6 +119,50 @@ test('les détections comptent chaque catégorie et ignorent les noms ambigus', 
   assert.deepEqual(detecterLesConventions([...egalite].reverse()), detecterLesConventions(egalite));
 });
 
+const pascal: Convention = { casse: 'PascalCase', separateur: 'camelCase' };
+function avecSegments(chemin: string, categories: readonly (CategorieDeNom | null)[], id = chemin): NomANormaliser {
+  return { ...nom(chemin, id), categoriesDesSegments: categories };
+}
+
+test('un segment de composant prend l’écriture des composants et le reste celle des variables', () => {
+  const marques = [null, 'composants', null, null, null] as const;
+  const resultat = normaliserLesNoms([avecSegments('Components/button-group/Colors/Primary/press', marques)], { variables: tiret, composants: pascal });
+  assert.deepEqual(resultat.propositions.map((proposition) => proposition.nouveauNom), ['components/ButtonGroup/colors/primary/press']);
+  assert.deepEqual(resultat.propositions[0].raisons, ['casse', 'separateur']);
+  const conforme = normaliserLesNoms([avecSegments('components/Button/colors/primary/press', marques)], { variables: tiret, composants: pascal });
+  assert.deepEqual(conforme.propositions, []);
+  const sansChoix = normaliserLesNoms([avecSegments('components/Button/colors/primary/press', marques)], { variables: tiret });
+  assert.deepEqual(sansChoix.propositions.map((proposition) => proposition.nouveauNom), []);
+});
+
+test('la détection compte les segments de palette dans leur catégorie', () => {
+  const noms = ['DeepBlue', 'SkyBlue', 'WarmRed'].map((palette) => avecSegments(`colors/${palette}/light-mode/500`, [null, 'palettes', null, null], palette));
+  const detection = detecterLesConventions(noms);
+  assert.deepEqual(detection.palettes.dominante, pascal);
+  assert.equal(detection.palettes.total, 3);
+  assert.deepEqual(detection.variables.dominante, tiret);
+  assert.equal(detection.variables.total, 3);
+  assert.equal(detection.composants.total, 0);
+  const seulement = detecterLesConventions([avecSegments('DeepBlue', ['palettes'])]);
+  assert.equal(seulement.variables.total, 0);
+  assert.equal(seulement.variables.dominante, null);
+});
+
+test('un segment de palette ou de composant reste hors du remplacement des termes UCM', () => {
+  const noms = [avecSegments('colors/Press/light/press', [null, 'palettes', null, null]), avecSegments('Press/disable', ['composants', null])];
+  const resultat = normaliserLesNoms(noms, { variables: tiret, palettes: pascal, composants: pascal }, { termesUcm: true });
+  assert.deepEqual(resultat.propositions.map((proposition) => proposition.nouveauNom), ['colors/Press/light/pressed', 'Press/disabled']);
+  assert.ok(resultat.propositions.every((proposition) => proposition.raisons.includes('terme-tolere')));
+  assert.deepEqual(normaliserLesNoms([avecSegments('colors/press/light', [null, 'palettes', null])], { variables: tiret, palettes: tiret }, { termesUcm: true }).propositions, []);
+});
+
+test('les collisions restent comparées sous la catégorie du nom', () => {
+  const noms = [avecSegments('colors/DeepBlue', [null, 'palettes'], 'a'), avecSegments('colors/deep-blue', [null, 'palettes'], 'b')];
+  const resultat = normaliserLesNoms(noms, { variables: tiret, palettes: pascal });
+  assert.deepEqual(resultat.propositions, []);
+  assert.deepEqual(resultat.collisions, [{ categorie: 'variables', portee: 'collection', nom: 'colors/DeepBlue', ids: ['a', 'b'] }]);
+});
+
 test('l’instantané propose exactement 60 press et 36 disable sans réécrire les données', () => {
   const contexte = { window: {} as { VUE_DONNEES?: { collections: Record<string, Record<string, unknown>> } } };
   vm.runInNewContext(readFileSync(new URL('../../../docs/notes/Recherches/Archi Tokens Multi-marques/donnees-vue-illustree.js', import.meta.url), 'utf8'), contexte);

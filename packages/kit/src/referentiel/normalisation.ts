@@ -1,6 +1,6 @@
 /** Propose des noms logiques ; le plugin conserve les identifiants techniques des propriétés Figma. */
 import { COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
-import { CATEGORIES_DE_NOM, type Casse, type Separateur, type Convention, type NomANormaliser, type ConventionsParCategorie, type CategorieDeNom } from './conventions.js';
+import { CATEGORIES_DE_NOM, CATEGORIES_DE_SEGMENT, type Casse, type Separateur, type Convention, type NomANormaliser, type ConventionsParCategorie, type CategorieDeNom } from './conventions.js';
 import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
 
 export type RaisonDeNormalisation = 'casse' | 'separateur' | 'terme-tolere';
@@ -76,14 +76,21 @@ function remplacerLesTermes(mots: readonly string[], categorie: CategorieDeNom):
   });
 }
 
-function proposer(nom: NomANormaliser, convention: Convention | undefined, termesUcm: boolean): PropositionDeNom | undefined {
+/** La catégorie d'un segment : celle que le nom lui assigne, sinon celle du nom. */
+function categorieDuSegment(nom: NomANormaliser, rang: number): CategorieDeNom {
+  return nom.categoriesDesSegments?.[rang] ?? nom.categorie;
+}
+
+function proposer(nom: NomANormaliser, conventions: ConventionsParCategorie, termesUcm: boolean): PropositionDeNom | undefined {
   const raisons = new Set<RaisonDeNormalisation>();
-  const choix = convention ?? { casse: 'inchangee', separateur: 'inchange' };
-  const nouveauNom = nom.nom.split('/').map((segment) => {
+  const nouveauNom = nom.nom.split('/').map((segment, rang) => {
     if (!segment) return segment;
+    const categorie = categorieDuSegment(nom, rang);
+    const choix = conventions[categorie] ?? { casse: 'inchangee', separateur: 'inchange' };
     const originaux = decouperSegment(segment);
     if (originaux.length === 0) return segment;
-    const mots = termesUcm ? remplacerLesTermes(originaux, nom.categorie) : originaux;
+    const nomPropre = (CATEGORIES_DE_SEGMENT as readonly CategorieDeNom[]).includes(categorie);
+    const mots = termesUcm && !nomPropre ? remplacerLesTermes(originaux, categorie) : originaux;
     if (mots.some((mot, rang) => mot !== originaux[rang])) raisons.add('terme-tolere');
     const avecCasse = motsAvecCasse(mots, choix.casse);
     if (avecCasse.some((mot, rang) => mot !== mots[rang])) raisons.add('casse');
@@ -106,7 +113,7 @@ export function normaliserLesNoms(
   const nonRenommables = new Set(options.nonRenommables);
   noms.forEach((nom, rang) => {
     if (nonRenommables.has(nom.id)) return;
-    const proposition = proposer(nom, conventions[nom.categorie], options.termesUcm === true);
+    const proposition = proposer(nom, conventions, options.termesUcm === true);
     if (proposition) propositions.set(rang, proposition);
   });
   const collisions = new Map<string, CollisionDeNoms>();
@@ -155,9 +162,13 @@ export function detecterLesConventions(noms: readonly NomANormaliser[]): Record<
       casse: { minuscules: 0, initiale: 0, camelCase: 0, PascalCase: 0, inchangee: 0 },
       separateur: { tiret: 0, 'tiret-bas': 0, soude: 0, camelCase: 0, espace: 0, inchange: 0 },
     };
-    const selection = noms.filter((nom) => nom.categorie === categorie);
-    for (const nom of selection) {
-      const segments = nom.nom.split('/').filter((segment) => /\p{L}/u.test(segment));
+    // Un nom compte dans la catégorie de chacun de ses segments, et ne vote qu'avec ceux-là.
+    const selection = noms.flatMap((nom) => {
+      const segments = nom.nom.split('/').filter((segment, rang) => categorieDuSegment(nom, rang) === categorie);
+      return segments.length > 0 ? [segments] : [];
+    });
+    for (const tous of selection) {
+      const segments = tous.filter((segment) => /\p{L}/u.test(segment));
       const candidatsCasse: Casse[] = ['minuscules', 'initiale', 'camelCase', 'PascalCase'];
       const compatibles = candidatsCasse.filter((casse) => segments.every((segment) => {
         const mots = decouperSegment(segment);

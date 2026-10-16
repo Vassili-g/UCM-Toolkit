@@ -1,6 +1,6 @@
 /** Ce que l'écran montre d'une analyse, calculé sans DOM pour se tester seul. */
 import {
-  CATEGORIES_DE_NOM, CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS,
+  CATEGORIES_DE_NOM, CATEGORIES_DE_SEGMENT, CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS,
   type CategorieDeNom, type Convention, type RaisonDeNormalisation,
 } from '@ucm-kit/core/referentiel';
 import type { Analyse } from '../analyse';
@@ -57,9 +57,9 @@ function optionsDEcriture(...emplois: readonly (Convention | null)[]): OptionDEc
   return options;
 }
 
-/** Une ligne par catégorie : l'écriture détectée avec ses comptes, et l'écriture que l'analyse applique. */
+/** Une ligne par catégorie : l'écriture détectée avec ses comptes, et l'écriture que l'analyse applique. Les noms de palettes et de composants n'ont de ligne que si le fichier en contient. */
 export function lignesDEcriture(analyse: Analyse): LigneDEcriture[] {
-  return CATEGORIES_DE_NOM.map((categorie) => {
+  return CATEGORIES_DE_NOM.filter((categorie) => !(CATEGORIES_DE_SEGMENT as readonly CategorieDeNom[]).includes(categorie) || analyse.detection[categorie].total > 0).map((categorie) => {
     const detection = analyse.detection[categorie];
     const dominante = detection.dominante;
     const conformes = dominante ? Math.min(detection.comptes.casse[dominante.casse], detection.comptes.separateur[dominante.separateur]) : 0;

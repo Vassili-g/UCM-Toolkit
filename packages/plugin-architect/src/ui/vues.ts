@@ -68,8 +68,10 @@ export function creerCarteDEcriture(surChangement: () => void) {
   const corps = table.createTBody();
   const listes = new Map<CategorieDeNom, HTMLSelectElement>();
   const detectees = new Map<CategorieDeNom, { texte: Text; compte: HTMLElement }>();
+  const rangees = new Map<CategorieDeNom, HTMLTableRowElement>();
   for (const categorie of CATEGORIES_DE_NOM) {
     const ligne = corps.insertRow();
+    rangees.set(categorie, ligne);
     const nom = TEXTES.ecriture.categories[categorie];
     ligne.insertCell().textContent = nom;
     const detection = ligne.insertCell();
@@ -92,6 +94,7 @@ export function creerCarteDEcriture(surChangement: () => void) {
   return {
     element,
     afficher(lignes: readonly LigneDEcriture[], termesUcm: boolean): void {
+      for (const [categorie, rangee] of rangees) rangee.hidden = !lignes.some((ligne) => ligne.categorie === categorie);
       for (const ligne of lignes) {
         const liste = listes.get(ligne.categorie)!;
         liste.replaceChildren(...ligne.options.map((option) => new Option(option.libelle, option.valeur)));
@@ -103,7 +106,9 @@ export function creerCarteDEcriture(surChangement: () => void) {
       termes.poser(termesUcm);
     },
     lire(): { conventions: ConventionsParCategorie; termesUcm: boolean } {
-      const conventions = Object.fromEntries(CATEGORIES_DE_NOM.map((categorie) => [categorie, ecritureDeValeur(listes.get(categorie)!.value)]));
+      // Une ligne masquée n'a pas de choix : sa catégorie retombe sur la détection.
+      const conventions = Object.fromEntries(CATEGORIES_DE_NOM.filter((categorie) => !rangees.get(categorie)!.hidden)
+        .map((categorie) => [categorie, ecritureDeValeur(listes.get(categorie)!.value)]));
       return { conventions, termesUcm: termes.bouton.getAttribute('aria-checked') === 'true' };
     },
     occuper(occupe: boolean): void {

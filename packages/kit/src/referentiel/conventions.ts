@@ -4,13 +4,30 @@ import type { Registre } from './termes.js';
 export type Casse = 'minuscules' | 'initiale' | 'camelCase' | 'PascalCase' | 'inchangee';
 export type Separateur = 'tiret' | 'tiret-bas' | 'soude' | 'camelCase' | 'espace' | 'inchange';
 export type Convention = { readonly casse: Casse; readonly separateur: Separateur };
-export const CATEGORIES_DE_NOM = ['collections', 'variables', 'proprietes', 'valeurs'] as const;
+/** `palettes` et `composants` ne nomment pas d'objet : ils qualifient un segment d'un nom de variable. */
+export const CATEGORIES_DE_NOM = ['collections', 'variables', 'proprietes', 'valeurs', 'palettes', 'composants'] as const;
 export type CategorieDeNom = typeof CATEGORIES_DE_NOM[number];
+/** Un segment de ces catégories est un nom propre : le vocabulaire UCM ne le remplace pas. */
+export const CATEGORIES_DE_SEGMENT = ['palettes', 'composants'] as const;
+export const LIBELLES_DE_CATEGORIE: Readonly<Record<CategorieDeNom, { readonly fr: string; readonly en: string }>> = {
+  collections: { fr: 'Collections', en: 'Collections' },
+  variables: { fr: 'Variables', en: 'Variables' },
+  proprietes: { fr: 'Propriétés', en: 'Properties' },
+  valeurs: { fr: 'Valeurs', en: 'Values' },
+  palettes: { fr: 'Noms de palettes', en: 'Palette names' },
+  composants: { fr: 'Noms de composants', en: 'Component names' },
+};
 export type NomANormaliser = {
   readonly id: string;
   readonly categorie: CategorieDeNom;
   readonly portee: string;
   readonly nom: string;
+  /**
+   * Aligné sur les segments de `nom` découpé sur `/` : une catégorie remplace
+   * celle du nom pour ce segment, `null` la laisse. Les doublons restent
+   * comparés sous `categorie`.
+   */
+  readonly categoriesDesSegments?: readonly (CategorieDeNom | null)[];
 };
 export type ConventionsParCategorie = Readonly<Partial<Record<CategorieDeNom, Convention>>>;
 

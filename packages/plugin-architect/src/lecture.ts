@@ -1,5 +1,5 @@
 /** L'inventaire conserve les adresses Figma ; seuls les noms logiques atteignent le moteur. */
-import type { NomANormaliser } from '@ucm-kit/core/referentiel';
+import { decouperSegment, DESTINATION_DES_PALETTES, type CategorieDeNom, type NomANormaliser } from '@ucm-kit/core/referentiel';
 
 export interface ObjetNomme {
   readonly id: string;
@@ -24,6 +24,8 @@ export interface PortDeLecture {
   collections(): Promise<readonly ObjetNomme[]>;
   variables(): Promise<readonly VariableLue[]>;
   pages(): readonly PageALire[];
+  /** Le texte de la recette d'UCM Palettes, lu à l'adresse partagée ; vide quand le fichier n'en porte pas. */
+  recettePalettes?(): string;
 }
 export type CibleDeNom =
   | { readonly type: 'collection'; readonly collectionId: string }
@@ -57,6 +59,50 @@ export function nomDePropriete(identifiant: string): string {
 function identite(...parties: readonly string[]): string { return JSON.stringify(parties); }
 function syntaxeDeVariante(nom: string): boolean { return nom.length > 0 && !/[=,]/u.test(nom); }
 
+/** Deux noms sont les mêmes quand leurs mots le sont, quelles que soient la casse et la séparation. */
+function motsDuNom(segment: string): string {
+  return decouperSegment(segment).map((mot) => mot.toLowerCase()).join(' ');
+}
+
+/**
+ * Les noms de la recette (identifiant et nom d'affichage), lus sans la valider :
+ * le plugin ne s'en sert que pour reconnaître un segment. Une recette
+ * illisible ou sans palette revient au repli sur la forme des chemins.
+ */
+export function nomsDePalettesDeLaRecette(texte: string): ReadonlySet<string> | undefined {
+  if (!texte) return undefined;
+  try {
+    const palettes: unknown = JSON.parse(texte)?.palettes;
+    if (!Array.isArray(palettes)) return undefined;
+    const noms = new Set(palettes.flatMap((palette: { id?: unknown; nom?: unknown } | null) => [palette?.id, palette?.nom])
+      .filter((nom): nom is string => typeof nom === 'string' && nom !== '').map(motsDuNom));
+    return noms.size > 0 ? noms : undefined;
+  } catch { return undefined; }
+}
+
+/**
+ * La catégorie propre à chaque segment d'un nom de variable, ou `undefined`
+ * quand aucun segment n'en a. Une palette ne se cherche que dans la
+ * collection où Palettes écrit : ailleurs, `theme.neutral` ou
+ * `color-utilities.neutral` sont des rôles, pas des noms de palettes. Sans
+ * recette, une palette est le segment qui suit `colors`. Un segment à la fois
+ * palette et composant compte comme palette.
+ */
+function categoriesDesSegments(
+  nom: string, collection: string | undefined, palettes: ReadonlySet<string> | undefined, composants: ReadonlySet<string>,
+): (CategorieDeNom | null)[] | undefined {
+  const segments = nom.split('/');
+  const dansLesPrimitives = collection?.toLowerCase() === DESTINATION_DES_PALETTES.collection;
+  const categories = segments.map((segment, rang): CategorieDeNom | null => {
+    const mots = motsDuNom(segment);
+    if (mots === '') return null;
+    const palette = dansLesPrimitives && (palettes ? palettes.has(mots)
+      : rang > 0 && segments[rang - 1].toLowerCase() === DESTINATION_DES_PALETTES.groupe);
+    return palette ? 'palettes' : composants.has(mots) ? 'composants' : null;
+  });
+  return categories.some(Boolean) ? categories : undefined;
+}
+
 /** Charge chaque page avant son parcours et rend la main entre les pages et les lots de composants. */
 export async function lireInventaire(
   port: PortDeLecture,
@@ -65,6 +111,7 @@ export async function lireInventaire(
   const pages = [...port.pages()];
   const entrees: EntreeInventaire[] = [];
   const composantsLus: ComposantLu[] = [];
+  const nomsDeComposants = new Set<string>();
   options.avancement?.({ phase: 'variables', pagesLues: 0, totalPages: pages.length });
   const collections = await port.collections();
   const locales = new Set(collections.filter((collection) => !collection.remote).map((collection) => collection.id));
@@ -89,6 +136,11 @@ export async function lireInventaire(
     }));
     composantsLus.push(...composants);
     const sets = new Map(composants.filter((composant) => composant.type === 'COMPONENT_SET').map((set) => [set.id, set]));
+    // Une variante porte le nom de son axe et de sa valeur : seuls l'ensemble ou le composant seul nomment un composant.
+    for (const composant of composants) {
+      if (composant.remote || (composant.type === 'COMPONENT' && composant.parentId && sets.has(composant.parentId))) continue;
+      nomsDeComposants.add(motsDuNom(composant.name.split('/').pop() ?? ''));
+    }
     const valeurs = new Map<string, EntreeInventaire & { cible: Extract<CibleDeNom, { type: 'valeur' }> }>();
     for (const [index, composant] of composants.entries()) {
       if (index > 0 && index % 100 === 0) await options.pause();
@@ -126,7 +178,14 @@ export async function lireInventaire(
     options.avancement?.({ phase: 'pages', pagesLues: rang + 1, totalPages: pages.length, page: page.name });
     await options.pause();
   }
-  return { entrees, composants: composantsLus, pages: pages.map((page) => ({ id: page.id, nom: page.name })) };
+  const palettes = nomsDePalettesDeLaRecette(port.recettePalettes?.() ?? '');
+  nomsDeComposants.delete('');
+  const marquees = entrees.map((entree) => {
+    if (entree.cible.type !== 'variable') return entree;
+    const categories = categoriesDesSegments(entree.nom.nom, entree.contexte?.collection, palettes, nomsDeComposants);
+    return categories ? { ...entree, nom: { ...entree.nom, categoriesDesSegments: categories } } : entree;
+  });
+  return { entrees: marquees, composants: composantsLus, pages: pages.map((page) => ({ id: page.id, nom: page.name })) };
 }
 
 /** Capture les occupants après les chargements ; la construction en mémoire ne cède plus à une tâche Figma. */
@@ -141,5 +200,6 @@ export async function relireInventaireAvantEcriture(port: PortDeLecture): Promis
     collections: async () => collections,
     variables: async () => variables,
     pages: () => copies.map((page) => ({ id: page.id, name: page.name, charger: async () => {}, composants: () => page.composants })),
+    recettePalettes: port.recettePalettes,
   }, { pause: async () => {} });
 }
