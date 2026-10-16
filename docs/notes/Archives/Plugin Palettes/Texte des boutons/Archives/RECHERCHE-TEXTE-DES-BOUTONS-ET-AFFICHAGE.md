@@ -92,7 +92,7 @@ La courbe de luminosité du thème Dark croît : 0,18 à la nuance 50, 0,67 à l
 700, 0,93 à la 950 ([`nuances.ts`](../../../../../../packages/couleur/src/nuances.ts)).
 L'architecture le veut ainsi : un même numéro donne le même contraste contre
 le fond de page dans les deux thèmes, et un état s'éloigne du fond de page
-([ARCHITECTURE-FINALE, sections 1 et 4](../../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)).
+([ARCHITECTURE-FINALE, sections 1 et 4](../../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)).
 En Dark, le bouton 700 est donc plus clair que la page, et son texte doit
 être sombre.
 
@@ -290,7 +290,7 @@ le demandent les [critères des usages indexés](../../../Archi%20Tokens%20Multi
 D2 fait de `theme` le seul endroit où le thème se choisit, par une règle sans
 choix du designer. Sous S2, la règle lit le réglage de la recette, comme
 l'élévation lit ses deux valeurs dans `color-utilities`
-([ARCHITECTURE-FINALE, section 6](../../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)).
+([ARCHITECTURE-FINALE, section 6](../../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)).
 Exemple, un texte clair dans les deux thèmes :
 
 ```text
@@ -441,8 +441,8 @@ Ce qui ferait changer cette recommandation :
 
 - [Notes de recette](./NOTES-RECETTE-MODES-ET-AFFICHAGE.md) et
   [étude préparatoire](./ETUDE-MODES-ET-AFFICHAGE-GLOBAL.md).
-- [ARCHITECTURE-FINALE-MULTIMARQUES.md](../../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md),
-  [plan d'intégration](../../../Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md)
+- [Vue illustrée multi-marques](../../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html),
+  [plan d'intégration](../../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
   et [usages indexés](../../../Archi%20Tokens%20Multi-marques/Collection%20usage/README.md).
 - [Spécification d'UCM Palettes](../../1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md).
 - `emplois.ts`,

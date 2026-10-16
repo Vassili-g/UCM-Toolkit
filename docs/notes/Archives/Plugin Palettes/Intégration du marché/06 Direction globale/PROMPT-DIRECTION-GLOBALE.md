@@ -75,11 +75,11 @@ reste, les sections nommées suffisent.
    D10, sections 5, 6.7, 8, 9, 11, 16, 17 et 18, et toutes les exigences
    `[UI-*]`, `[ENT-*]`, `[PLA-*]`, `[REC-*]` et `[VER-*]`.
 5. [L'architecture
-   multi-marques](../../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md),
+   multi-marques](../../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html),
    sections 1 à 4, puis les décisions D1 à D17 de sa [vue
-   illustrée](../../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html),
+   illustrée](../../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html),
    qui la modifient, et le lot A3 du [plan
-   d'intégration](../../../Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md) :
+   d'intégration](../../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) :
    six collections de couleur au lieu de trois. La section « Le contexte »
    ci-dessous décrit encore l'ancienne forme.
 6. [La comparaison avec le marché](../../1 Recherche initiale/RECHERCHE-CONCURRENCE-PALETTES.md).

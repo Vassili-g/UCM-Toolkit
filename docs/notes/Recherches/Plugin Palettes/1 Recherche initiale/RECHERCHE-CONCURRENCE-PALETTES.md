@@ -9,7 +9,7 @@ retenu.
 
 Ce document ne décide rien. La [spécification](./RECHERCHE-PLUGIN-PALETTES.md)
 reste l'autorité sur le comportement du plugin, et [l'architecture
-multi-marques](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)
+multi-marques](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 sur la forme des tokens. Une proposition retenue modifie d'abord la
 spécification.
 
@@ -65,7 +65,7 @@ chaque marque dans `brand`, et les noms que les composants citent dans
 
 Entre la planche et UCM Exporter, le designer crée les variables à la main.
 Pour six marques, l'architecture compte trois collections ([section
-2](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md#2-les-collections)) :
+2](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)) :
 
 - `primitives` : 198 variables, une valeur chacune ;
 - `brand` : 45 variables, une valeur par marque, soit 270 valeurs ;
@@ -213,7 +213,7 @@ pas : la confirmation la montre avec deux choix, aucun coché d'avance, et
 les garanties que chacun donne. Le plugin relit le fichier au clic final, et
 un écart annule l'écriture. Une retouche adoptée entre dans la recette, sous la liste des crans
 retouchés que [la section 3.5 de
-l'architecture](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md#35-le-fichier-de-recette)
+l'architecture](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 prévoit et que la recette ne porte pas encore. Sans cette liste, la recette
 ne décrit plus le document, et D10 ne tient plus. La planche et le rapport
 montrent alors la couleur retouchée, marquée comme telle.
@@ -232,7 +232,7 @@ Trois décisions complètent ces réponses :
 - **L'identité de la marque.** `brand.identity.{famille}` reçoit la couleur
   que le designer a saisie avant tout ajustement : la couleur de la charte.
   La [section 3.4 de
-  l'architecture](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md#34-la-couleur-exacte-de-la-marque)
+  l'architecture](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
   garde cette couleur hors de la rampe ; le plugin place la référence dans le
   cran porteur. Sans ajustement, les deux sont égales ; après un ajustement,
   l'identité garde la couleur d'origine. Une retouche du cran porteur ne peut
@@ -411,7 +411,7 @@ DTCG 2025.10 accepte `display-p3` et `oklch`.
 ### 6.2 L'état d'UCM
 
 La [section 3.5 de
-l'architecture](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md#35-le-fichier-de-recette)
+l'architecture](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 écarte P3 : il changerait toutes les valeurs, et un écran sRGB ne montre pas
 la différence au designer. La recette n'accepte que `srgb` (Q4). Le plugin
 peint juste dans un document P3 (section 6.7 de la spécification), et la

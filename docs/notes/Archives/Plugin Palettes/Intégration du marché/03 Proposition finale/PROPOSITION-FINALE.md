@@ -19,7 +19,7 @@ plan d'implémentation part des décisions validées.
 
 Ce document ne décide rien. La [spécification](../../1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md)
 reste l'autorité sur le comportement du plugin, et une piste retenue la modifie
-d'abord. L'[architecture multi-marques](../../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)
+d'abord. L'[architecture multi-marques](../../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 reste l'autorité sur la forme des variables.
 
 Les écrans sont dans [MAQUETTES-PROPOSITION-FINALE.html](./MAQUETTES-PROPOSITION-FINALE.html),

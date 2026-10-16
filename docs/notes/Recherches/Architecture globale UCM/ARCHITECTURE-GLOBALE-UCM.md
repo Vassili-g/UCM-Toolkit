@@ -76,7 +76,7 @@ vocabulaire. Chaque définition est écrite là où un produit en a eu besoin.
 | États reconnus et leurs variantes (`hover`/`hovered`, `press`/`pressed`) | `STATE_SELECTORS`, [semantics.ts](../../../../packages/plugin-exporter/src/contract/semantics.ts) | Nulle part |
 | Tailles reconnues (`small` lu comme `sm`) | `SIZE_VALUES`, même fichier | Nulle part |
 | Les cinq couches et les alias permis entre elles | `COUCHES` et `CIBLES_DES_COUCHES`, [profilUcm.ts](../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts) | Onglet Intégrations |
-| Architecture des collections | [ARCHITECTURE-FINALE-MULTIMARQUES.md](../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md), dans les recherches | Document de recherche |
+| Architecture des collections | [Vue illustrée multi-marques](../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle des collections et des rôles |
 | Une variable par propriété de composant | [SPEC de l'exporteur](../../../../packages/plugin-exporter/SPEC.md), section 8 | [Guide designer](../../../guides/POUR-LES-DESIGNERS.md), section 2 |
 | Tags des règles d'usage | [README de l'exporteur](../../../../packages/plugin-exporter/README.md#documenter-les-règles-dusage) | Même document |
 | Sens de chaque caractéristique pour l'implémentation | [packages/cli/aides/](../../../../packages/cli/aides/) | Un agent, par `ucm guide` |

@@ -26,7 +26,7 @@ donné. Il doit retrouver chaque alias, le mode retenu à chaque étape,
 la valeur terminale et les consommateurs qui seraient touchés par un changement.
 
 Le plugin proposé reprend la table de la [vue
-multimarques](../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) :
+multimarques](../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) :
 collections à gauche, variables et modes en colonnes. Un inspecteur latéral
 ajoute la chaîne, la provenance et les usages. Un graphe local peut compléter
 la table lorsque plusieurs branches expliquent un résultat.
@@ -124,14 +124,14 @@ concurrents ne peuvent pas couvrir ces besoins.
 
 ## 3. Les acquis UCM et leur état réel
 
-L'[architecture retenue](../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)
-et son [plan d'intégration](../Archi%20Tokens%20Multi-marques/PLAN-INTEGRATION-ARCHITECTURE.md)
+L'[architecture retenue](../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
+et son [plan d'intégration](../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 séparent les décisions des travaux encore ouverts. Certains constats initiaux
 du plan décrivent un code antérieur ; pour l'état présent, lire les modules.
 
 | Sujet | État constaté | Source et réemploi proposé |
 |---|---|---|
-| Six collections de couleur ; `brand` et `theme` indépendants | Architecture retenue ; écriture des variables encore ouverte dans le plan | [Architecture](../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md). Fournir un profil UCM facultatif ; conserver un explorateur générique pour les autres collections |
+| Six collections de couleur ; `brand` et `theme` indépendants | Architecture retenue ; écriture des variables encore ouverte dans le plan | [Architecture](../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html). Fournir un profil UCM facultatif ; conserver un explorateur générique pour les autres collections |
 | Huit emplois, crans requis dont 400 et 950 | Présents dans le kit | emplois.ts. Montrer les emplois d'un cran sans recopier leur table dans le plugin |
 | Quatre rangs, correspondance des états, dix-neuf paires | Présents dans le kit | rangs.ts, paires.ts. Expliquer `active-hover`, le focus et les usages désactivés |
 | Noms d'usage, cibles et supports de peinture | Présents dans le kit | usages.ts. Distinguer fond, texte, icône, bordure et anneau |

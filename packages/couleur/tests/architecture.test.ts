@@ -1,10 +1,9 @@
 /**
  * Le moteur rend les promesses que l'architecture multi-marques a mesurées.
  *
- * `verifier-courbes.mjs` (dossier « Archi Tokens Multi-marques ») éprouve le
- * câblage par défaut sur les 360 teintes entières, les deux profils et les deux
- * modes, à teinte constante et en virgule flottante, fonds du thème Dark
- * atténués ([MOT-28]). Ses minima sont figés ici : le chemin sans arrondi du
+ * Les minima de référence couvrent les 360 teintes entières, les deux profils
+ * et les deux modes, à teinte constante et en virgule flottante, fonds du
+ * thème Dark atténués. Ces minima sont figés ici : le chemin sans arrondi du
  * moteur doit les rendre à 0,01 près. Le même balayage, arrondi à 8 bits, doit
  * tenir chaque seuil.
  */
@@ -33,7 +32,7 @@ const MODES: Mode[] = ['light', 'dark'];
 /** Un membre de paire : un cran de la rampe, ou le fond de page, le gris du cran 50. */
 type Membre = number | 'fond';
 
-/** Nom, seuil, les deux membres, et le minimum relevé par `verifier-courbes.mjs`. */
+/** Nom, seuil, les deux membres et le minimum de référence. */
 const PROMESSES: [string, number, Membre, Membre, number][] = [
   ['text sur fond de page', 4.5, 700, 'fond', 5.23],
   ['text sur surface au repos', 4.5, 700, 100, 4.95],

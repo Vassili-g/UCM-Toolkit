@@ -220,7 +220,7 @@ theme.elevation.raised
 
 **La page a une seule couleur.** Dans les tokens, `elevation/page` vise le
 neutre 50. Dans le plugin, les garanties se mesurent contre le réglage « Fond
-de la page » ([architecture](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md),
+de la page » ([architecture](../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html),
 section 1). Les deux doivent rester la même couleur : sinon les garanties
 mesurent une page que les tokens n'affichent pas. Par défaut, le réglage vaut
 le cran 50 de la courbe sans teinte : `#F7F7F7` en Light, inchangé, et

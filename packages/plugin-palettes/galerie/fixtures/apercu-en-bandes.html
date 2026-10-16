@@ -157,9 +157,9 @@ footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:v
 
 <main>
   <div class="narrow">
-    <h1>Les changements du moteur, à valider</h1>
-    <p class="lede">Ce que l'<a href="./ARCHITECTURE-PROPOSEE.html">architecture des tokens</a> demande au kit, à UCM Palettes, à <code>ucm check</code> et à UCM Explorateur. UCM Palettes continue d'écrire ses palettes dans <code>primitives</code>, à l'endroit fixé par sa configuration, et rien d'autre : <code>color-brands</code>, <code>color-utilities</code> et <code>theme</code> se posent hors du plugin. Chaque changement porte un état et un bouton de validation ; le bilan se copie en bas de page.</p>
-    <p>Deux familles : les <b>changements profonds</b>, qui touchent le calcul, la table du kit et l'écriture dans Figma, et les <b>changements d'interface</b>, qui touchent ce que le designer lit dans UCM Palettes. La liste de référence est dans <a href="./CHANGEMENTS-DU-MOTEUR.md">CHANGEMENTS-DU-MOTEUR.md</a>.</p>
+    <h1>Maquette de comparaison de l’aperçu en bandes</h1>
+    <p class="lede">Le script <code>comparer-maquette.cjs</code> utilise le bloc <code>#pu-v2</code> de cette page pour comparer les dimensions et les styles de l’aperçu du plugin. Les données et les variantes de cette maquette sont figées pour ce contrôle.</p>
+    <p>L’<a href="../../../../docs/notes/Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html">architecture actuelle des tokens</a> est décrite dans la vue illustrée.</p>
   </div>
 
   <h2>La règle du vocabulaire</h2>
@@ -242,7 +242,7 @@ footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:v
     <li>Ni délai ni animation : le surlignage suit le pointeur et s'efface quand il quitte la cible.</li>
     <li>Tests Chromium : les trois sens, dans un thème normal et un thème inversé, avec une et deux intensités.</li>
   </ul>
-  <p class="cap">Couleurs : rampes calculées par le moteur pour les palettes de la vue illustrée (<a href="./generer-vue-architecture.ts">generer-vue-architecture.ts</a>), courbe inversée du dossier du texte des boutons. La carte des garanties suivra la même méthode : reproduite d'abord, puis modifiée.</p>
+  <p class="cap">Les couleurs de cette maquette sont figées. Le contrôle compare les styles et les alignements de l’aperçu, indépendamment des couleurs de ses palettes.</p>
   </div>
 
   <h2>Changements d'interface</h2>
@@ -274,7 +274,7 @@ footer{margin-top:56px;padding-top:14px;border-top:1px solid var(--line);color:v
   <div class="bilan" id="bilan"></div>
 
   <footer>
-    Sources : <a href="./CHANGEMENTS-DU-MOTEUR.md">CHANGEMENTS-DU-MOTEUR.md</a>, <a href="./RECHERCHE-COLLECTION-USAGE.md">recherche sur la collection usage</a> (sections 4.1, 4.2 et 4.8), <a href="../../Plugin%20Palettes/Texte%20des%20boutons/DOSSIER-TEXTE-DES-BOUTONS.md">dossier du texte des boutons</a>. Mesures des garanties : <a href="./mesurer-dossiers.ts">mesurer-dossiers.ts</a>.
+    Ressource de comparaison de la galerie UCM Palettes. <a href="../../../../docs/notes/Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html">Référence actuelle des collections et des rôles</a>.
   </footer>
 </main>
 

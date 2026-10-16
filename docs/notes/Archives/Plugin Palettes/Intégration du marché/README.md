@@ -36,7 +36,7 @@ leurs chemins. Le plugin ne génère ni couches de marque, ni alias de thème.
 Ces propositions restent conservées jusqu'à validation du tri. Leur ordre ne
 constitue plus un parcours de lecture du produit. La
 [comparaison du marché](../1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md)
-et l'[architecture multi-marques](../../Archi%20Tokens%20Multi-marques/ARCHITECTURE-FINALE-MULTIMARQUES.md)
+et l'[architecture multi-marques](../../../Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 conservent les besoins futurs.
 
 ## Maquettes et générateurs
