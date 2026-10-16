@@ -303,10 +303,10 @@ Fin : `docLinks`, contrôle de style et `npm test` verts.
 
 **Agent :** `verificateur`, puis principale. **Effort :** petit.
 
-- [ ] `npm test`, `npm run typecheck`, `npm run build` · `verificateur`
-- [ ] Version de `@ucm-kit/core` à 0.7.0, et du CLI s'il a changé ;
-  publication · principale
-- [ ] Push sur `main` · principale
+- [x] `npm test`, `npm run typecheck`, `npm run build` · `verificateur` (2 919 tests)
+- [x] Version de `@ucm-kit/core` à 0.7.0, et du CLI s'il a changé ;
+  publication · principale (b2265de ; kit 0.7.0, CLI 0.1.57, adaptateur 0.1.50 publiés)
+- [x] Push sur `main` · principale
 - [ ] Recette Figma des trois plugins après `npm run build` · mainteneur
 
 ## Phase 2 · UCM Architect v1 : normaliser les noms
