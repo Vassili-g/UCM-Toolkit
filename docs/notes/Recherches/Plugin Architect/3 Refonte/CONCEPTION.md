@@ -1,7 +1,7 @@
 # Refonte d'UCM Architect : conception
 
-**Statut :** troisième version, après deux séries de retours du mainteneur ;
-illustrée par les [maquettes](./MAQUETTES-ARCHITECT.html), qui reprennent la
+**Statut :** validée par le mainteneur dans sa troisième version ; illustrée
+par les [maquettes](./MAQUETTES-ARCHITECT.html), qui reprennent la
 feuille de style commune des plugins. Rien n'est implémenté.
 
 Lecteur : le mainteneur.
@@ -317,11 +317,14 @@ Un agent spécialiste de l'UX a relu la première version de ce document :
 | Étiquettes de chemin cliquables | Retirée avec les étiquettes colorées |
 | Proposer l'écriture UCM par défaut | Écartée : le plugin propose l'écriture la plus fréquente du fichier, décision du mainteneur |
 
-## 13. Questions au mainteneur
+## 13. Décisions du mainteneur
 
-1. La confirmation à chaque application vous convient-elle ?
-2. Les palettes qu'écrit UCM Palettes sont protégées, pour que Palettes les
-   retrouve. Faut-il plutôt les renommer et laisser Palettes suivre ?
-3. La piste des composants (section 11) : l'avertissement de l'exporteur et
-   le contrôle de `ucm check` vous suffiraient-ils ?
-4. La planche : chaque carte vous convient-elle ?
+| Sujet | Décision |
+|---|---|
+| Maquettes | Validées dans leur troisième version |
+| Périmètre | Les variables et les collections locales du fichier des tokens |
+| Confirmation | À chaque application |
+| Palettes écrites par UCM Palettes | Protégées : les renommer perturberait Palettes |
+| Composants | La piste de la section 11 convient |
+
+Le [plan d'implémentation](./PLAN-IMPLEMENTATION.md) en découle.
