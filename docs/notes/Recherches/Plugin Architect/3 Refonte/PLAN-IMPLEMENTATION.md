@@ -360,24 +360,24 @@ npm test --workspace ucm-plugin-socle
 
 **Agent :** `implementeur`. **Exécutant :** Codex. **Effort :** petit.
 
-- [ ] `SYNONYMES_COURANTS`, dans `vocabulaire.ts` : des groupes de termes, le
+- [x] (07836c0) `SYNONYMES_COURANTS`, dans `vocabulaire.ts` : des groupes de termes, le
   terme UCM en tête. `danger` avec `error`, `negative`, `critical` ; `warning`
   avec `attention`, `notice` ; `success` avec `positive` ; `info` avec
   `information`, `informative` ; `pressed` avec `active`, `down` ;
   `foreground` avec `fg`, `content` ; `background` avec `bg` ; `border` avec
   `stroke` ; `radius` avec `corner`, `border-radius`
-- [ ] `ABREVIATIONS` : `bg` → `background`, `fg` → `foreground`, `btn` →
+- [x] (07836c0) `ABREVIATIONS` : `bg` → `background`, `fg` → `foreground`, `btn` →
   `button`, `txt` → `text`, `img` → `image`
-- [ ] `ECHELLES_DE_TAILLES` : `sm`/`small`, `md`/`medium`, `lg`/`large` ; un
+- [x] (07836c0) `ECHELLES_DE_TAILLES` : `sm`/`small`, `md`/`medium`, `lg`/`large` ; un
   test vérifie que chaque forme appartient à `SIZE_VALUES`
-- [ ] `collectionUcmReconnue(nom)`, dans `normalisation.ts` : le nom découpé,
+- [x] (07836c0) `collectionUcmReconnue(nom)`, dans `normalisation.ts` : le nom découpé,
   en minuscules, joint par des tirets, comparé à `COLLECTIONS`
-- [ ] Dans `produits.ts` : `CLES_PARTAGEES_DE_PALETTES` (`variables`,
+- [x] (07836c0) Dans `produits.ts` : `CLES_PARTAGEES_DE_PALETTES` (`variables`,
   `palette`, `cle`), déplacées depuis `plugin-palettes/src/variables/suivi.ts`
   qui les importe ; `ESPACE_ARCHITECT = 'ucm_architect'` ; la donnée
   `regles-de-nommage` ; la définition d'`architect` : il lit et écrit les noms
   des collections et des variables, et range ses règles
-- [ ] Fin : tests du kit et de Palettes, `tests/referentielUnique.test.ts`,
+- [x] (07836c0) Fin : tests du kit et de Palettes, `tests/referentielUnique.test.ts`,
   vue illustrée régénérée (`generer-donnees-referentiel.ts`)
 
 ### K2a · Vocabulaire du fichier

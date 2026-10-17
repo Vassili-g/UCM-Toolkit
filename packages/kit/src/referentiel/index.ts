@@ -15,3 +15,4 @@ export * from './produits.js';
 export * from './regles.js';
 export * from './recommandations.js';
 export * from './harmonisation.js';
+export * from './vocabulaire-du-fichier.js';
