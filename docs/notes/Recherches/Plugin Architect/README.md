@@ -28,7 +28,7 @@ noms et l'harmonisation des mots.
 
 | Maquette | Contenu |
 |---|---|
-| [Refonte](./3%20Refonte/MAQUETTES-ARCHITECT.html) | Le flux, treize écrans des onglets Harmoniser et Règles et de la Configuration, la planche de chaque type de carte et des états particuliers |
+| [Refonte](./3%20Refonte/MAQUETTES-ARCHITECT.html) | Deuxième version, sur la feuille de style commune des plugins : le plan de navigation, quatorze écrans des onglets Harmoniser et Règles et de la Configuration, la planche des cartes et des états |
 | [Exploration du plugin d'architecture](./1%20Architecture%20globale/Maquettes/MAQUETTE-ARCHITECTE.html) | La première exploration : le flux en six étapes (premier lancement, accueil, vérifier, conventions, construire, publier) et seize écrans, thème sombre |
 | [Écran de la v1](./2%20Architect%20v1/MAQUETTE-ARCHITECT.html) | L'écran unique validé avant la construction : écriture des noms et liste des renommages à cocher |
 | [Exploration après la v1](./2%20Architect%20v1/EXPLORATION-UX-ARCHITECT.html) | Le parcours de la première exploration confronté au plugin construit : le flux en sept étapes, douze écrans marqués construit, v1.1, v1.2, v2 ou plus tard, les cas d'usage couverts et quatre questions |
