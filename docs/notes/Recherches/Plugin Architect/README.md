@@ -17,15 +17,18 @@ Le référentiel dont l'Architect lit les définitions a son propre dossier,
 | Architect v1 | Construit pendant la phase 2 du [plan du référentiel](../Référentiel%20UCM/PLAN-IMPLEMENTATION.md#phase-2--ucm-architect-v1--normaliser-les-noms), lots 14 à 18 : il normalise la casse et les séparateurs des noms, et remplace en option les termes tolérés (`press` en `pressed`) |
 | Recette de la v1 | Lot 19 : recette dans Figma par le mainteneur, puis export des tokens du fichier renommé |
 | Suite de l'Architect | Explorée sans décision : versions v1.1, v1.2 et v2, quatre questions ouvertes |
+| Refonte | [Conception](./3%20Refonte/CONCEPTION.md) revue par un agent spécialiste de l'UX, et [maquettes](./3%20Refonte/MAQUETTES-ARCHITECT.html) ; attend la validation du mainteneur |
 
 La v1 contredit la version minimale : le mainteneur a demandé l'Architect
 quand les renommages de son fichier sont devenus trop nombreux pour être faits
-à la main. La reprise du sujet tranche ce que le plugin doit devenir.
+à la main. La refonte reprend le plugin depuis ses deux buts : l'écriture des
+noms et l'harmonisation des mots.
 
 ## Les maquettes
 
 | Maquette | Contenu |
 |---|---|
+| [Refonte](./3%20Refonte/MAQUETTES-ARCHITECT.html) | Le flux, treize écrans des onglets Harmoniser et Règles et de la Configuration, la planche de chaque type de carte et des états particuliers |
 | [Exploration du plugin d'architecture](./1%20Architecture%20globale/Maquettes/MAQUETTE-ARCHITECTE.html) | La première exploration : le flux en six étapes (premier lancement, accueil, vérifier, conventions, construire, publier) et seize écrans, thème sombre |
 | [Écran de la v1](./2%20Architect%20v1/MAQUETTE-ARCHITECT.html) | L'écran unique validé avant la construction : écriture des noms et liste des renommages à cocher |
 | [Exploration après la v1](./2%20Architect%20v1/EXPLORATION-UX-ARCHITECT.html) | Le parcours de la première exploration confronté au plugin construit : le flux en sept étapes, douze écrans marqués construit, v1.1, v1.2, v2 ou plus tard, les cas d'usage couverts et quatre questions |

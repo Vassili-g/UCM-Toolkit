@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>UCM Architect · Refonte</title>
+<style>
+  :root {
+    --corps: 11px; --libelle: 12px; --titre: 15px; --rayon: 6px;
+    --fond: #2c2c2c; --fond-bloc: #383838; --fond-note: #4d4d4d;
+    --fond-marque: #0d99ff; --fond-succes: #1d3a28; --fond-avertissement: #4a3a10; --fond-erreur: #4a1d1d;
+    --trait: #444444; --bordure: #5e5e5e;
+    --texte: #ffffff; --texte-second: #b3b3b3; --texte-marque: #7cc4f8;
+    --texte-succes: #85e0a3; --texte-avertissement: #ffc470; --texte-erreur: #fca5a5;
+    --page: #1b1b1d; --page-texte: #e4e4e7; --page-second: #a1a1aa; --accent: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--page-texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { width: 1200px; margin: 0 auto; padding: 40px 0 80px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 18px; margin: 48px 0 6px; }
+  h3 { font-size: 14px; margin: 28px 0 12px; color: var(--page-second); font-weight: 600; }
+  .chapeau { color: var(--page-second); margin: 0 0 14px; max-width: 860px; }
+  .etiquette { display: inline-block; background: #3f2d0c; color: var(--texte-avertissement); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; }
+  code { font: 10px/1.4 "JetBrains Mono", Consolas, monospace; color: #d4d4d8; }
+
+  /* Flux */
+  .flux { display: flex; align-items: stretch; gap: 8px; }
+  .etape { flex: 1; background: #26262a; border: 1px solid #3a3a40; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: var(--page-second); }
+  .etape b { display: block; color: var(--page-texte); font-size: 13px; }
+  .etape.cote { border-style: dashed; }
+  .fleche { color: #52525b; align-self: center; }
+  .lois { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+  .lois div { background: #26262a; border: 1px solid #3a3a40; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: var(--page-second); }
+  .lois b { color: var(--page-texte); }
+
+  /* Légende */
+  .legende-tags { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; background: #26262a; border: 1px solid #3a3a40; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: var(--page-second); }
+
+  /* Écrans */
+  .ecrans { display: grid; grid-template-columns: repeat(3, 360px); justify-content: space-between; row-gap: 40px; }
+  .titre-ecran { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+  .titre-ecran span { color: var(--page-second); font-weight: 400; }
+  .legende { font-size: 12px; color: var(--page-second); margin: 10px 0 0; padding-left: 16px; }
+  .legende li { margin: 2px 0; }
+  .plugin { position: relative; width: 360px; height: 600px; background: var(--fond); color: var(--texte); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,.5); overflow: hidden; display: flex; flex-direction: column; font-size: var(--corps); line-height: 16px; }
+  .barre { height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--trait); flex: none; }
+  .barre .nom { font-weight: 600; font-size: var(--libelle); }
+  .roue { color: var(--texte-second); font-size: 14px; }
+  .onglets { display: flex; gap: 16px; padding: 0 12px; border-bottom: 1px solid var(--trait); flex: none; }
+  .onglets span { padding: 9px 0 8px; color: var(--texte-second); }
+  .onglets .actif { color: var(--texte); border-bottom: 2px solid var(--texte); }
+  .compte { display: inline-block; min-width: 16px; padding: 0 5px; border-radius: 99px; background: var(--fond-note); color: var(--texte); font-size: 10px; line-height: 15px; text-align: center; margin-left: 4px; }
+  .corps { flex: 1; overflow: hidden; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .pied { flex: none; border-top: 1px solid var(--trait); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--texte-second); }
+  .pied .recap b { color: var(--texte); font-weight: 600; }
+
+  /* Étapes d'Harmoniser */
+  .etapes { display: flex; gap: 6px; flex: none; padding: 10px 12px 0; }
+  .etapes div { flex: 1; border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 6px 8px; color: var(--texte-second); display: flex; align-items: center; gap: 6px; }
+  .etapes .actif { border-color: var(--texte); color: var(--texte); background: var(--fond-bloc); }
+  .num { display: inline-flex; width: 16px; height: 16px; border-radius: 50%; background: var(--fond-note); color: var(--texte); font-size: 10px; align-items: center; justify-content: center; flex: none; }
+  .etapes .actif .num { background: var(--texte); color: #1e1e1e; }
+  .etapes .nb { margin-left: auto; font-weight: 600; }
+
+  .tag { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 99px; font-weight: 600; white-space: nowrap; }
+  .t-ok { background: var(--fond-succes); color: var(--texte-succes); }
+  .t-av { background: var(--fond-avertissement); color: var(--texte-avertissement); }
+  .t-gris { background: var(--fond-note); color: var(--texte-second); }
+  .t-ucm { background: #27275a; color: #b4b9ff; }
+  .t-equipe { background: #173b38; color: #7ee0d2; }
+  .t-nouveau { background: var(--fond-marque); color: #fff; }
+  .t-err { background: var(--fond-erreur); color: var(--texte-erreur); }
+  .bouton { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: var(--rayon); border: 1px solid var(--bordure); font-weight: 500; white-space: nowrap; }
+  .bouton.plein { background: var(--fond-marque); border-color: var(--fond-marque); color: #fff; }
+  .bouton.inactif { opacity: .4; }
+  .lien { color: var(--texte-marque); }
+  .ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .carte { border: 1px solid var(--trait); border-radius: var(--rayon); padding: 10px; }
+  .carte.pleine { background: var(--fond-bloc); border: 0; }
+  .carte.attention { border-color: #7a5a1a; }
+  .carte.faite { border-color: #2f6b45; }
+  .t { font-weight: 600; font-size: var(--libelle); line-height: 16px; }
+  .grand { font-size: var(--titre); font-weight: 600; line-height: 20px; }
+  .second { color: var(--texte-second); }
+  .p { margin: 4px 0 0; }
+  .section { font-weight: 600; color: var(--texte-second); font-size: 10px; text-transform: uppercase; letter-spacing: .05em; }
+  .choix { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filtres span { padding: 2px 8px; border-radius: 99px; border: 1px solid var(--bordure); font-size: 10px; color: var(--texte-second); }
+  .filtres .actif { background: var(--texte); color: #1e1e1e; border-color: var(--texte); }
+  .champ { border: 1px solid var(--bordure); border-radius: var(--rayon); height: 24px; display: flex; align-items: center; padding: 0 8px; justify-content: space-between; gap: 6px; }
+  .champ.focus { border-color: var(--fond-marque); }
+  .indice { color: var(--texte-second); font-size: 10px; }
+
+  /* Étiquettes de chemin */
+  .chemin { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+  .chemin i { color: #6b6b6b; font-style: normal; font-size: 10px; }
+  .c { display: inline-block; font: 10px/16px "JetBrains Mono", Consolas, monospace; padding: 0 5px; border-radius: 4px; white-space: nowrap; }
+  .c-col { background: #3b2a63; color: #d8ccff; }
+  .c-grp { background: #1e3a5f; color: #93c5fd; }
+  .c-nom { background: #134e4a; color: #5eead4; }
+  .c-cmp { background: #4d4d4d; color: #e4e4e7; }
+  .c-prop { background: #4a2e10; color: #fdba74; }
+  .c-val { background: #4a1d3a; color: #f9a8d4; }
+  .chg { box-shadow: 0 0 0 1px var(--texte-avertissement); }
+  .chg s { opacity: .55; margin-right: 4px; }
+  .vu { box-shadow: 0 0 0 1px var(--texte-avertissement); }
+  .egal { color: #6b6b6b; font-size: 10px; }
+
+  /* Groupes de renommages */
+  .groupe { border: 1px solid var(--trait); border-radius: var(--rayon); }
+  .groupe .tete { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: start; padding: 8px; }
+  .groupe .rang { display: grid; grid-template-columns: 14px 1fr; gap: 8px; align-items: start; padding: 6px 8px; border-top: 1px solid var(--trait); }
+  .groupe .plus { padding: 6px 8px 6px 30px; border-top: 1px solid var(--trait); }
+  .coche { width: 12px; height: 12px; border-radius: 3px; background: var(--fond-marque); color: #fff; font-size: 9px; line-height: 12px; text-align: center; margin-top: 2px; }
+  .coche::after { content: "✓"; }
+  .coche.vide { background: none; box-shadow: inset 0 0 0 1px #8a8a8a; }
+  .coche.vide::after { content: ""; }
+  .coche.partiel::after { content: "–"; }
+  .chevron { color: var(--texte-second); }
+
+  /* Mots */
+  .mots { border: 1px solid var(--trait); border-radius: var(--rayon); }
+  .mot { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 7px 10px; border-top: 1px solid var(--trait); }
+  .mot:first-child { border-top: 0; }
+  .mot .qui { display: flex; align-items: center; gap: 6px; }
+  .ecriture { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; padding: 7px 0; border-top: 1px solid var(--trait); }
+  .ecriture:first-of-type { border-top: 0; }
+
+  /* Superpositions */
+  .voile { position: absolute; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: flex-end; }
+  .feuille { width: 100%; background: var(--fond-bloc); border-radius: 10px 10px 0 0; padding: 14px 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .faits { margin: 0; padding-left: 16px; }
+  .faits li { margin: 3px 0; }
+  .message { background: var(--fond-succes); color: var(--texte-succes); border-radius: var(--rayon); padding: 8px 10px; }
+  .bandeau { background: var(--fond-avertissement); color: var(--texte-avertissement); padding: 7px 12px; flex: none; display: flex; justify-content: space-between; }
+  .barre-av { height: 4px; border-radius: 2px; background: var(--fond-note); overflow: hidden; }
+  .barre-av div { height: 100%; background: var(--fond-marque); }
+  .vide-centre { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 0 20px; }
+
+  /* Planche des cartes */
+  .planche { display: grid; grid-template-columns: repeat(3, 360px); justify-content: space-between; row-gap: 28px; }
+  .panneau { width: 360px; background: var(--fond); color: var(--texte); border-radius: 8px; padding: 12px; font-size: var(--corps); line-height: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 20px rgba(0,0,0,.5); }
+  .nom-type { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+  .nom-type span { display: block; color: var(--page-second); font-weight: 400; font-size: 12px; }
+
+  table.couverture { width: 100%; border-collapse: collapse; background: #26262a; border: 1px solid #3a3a40; border-radius: 8px; overflow: hidden; font-size: 13px; }
+  table.couverture th, table.couverture td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #3a3a40; vertical-align: top; }
+  table.couverture th { color: var(--page-second); font-size: 12px; }
+  ol.questions { color: var(--page-second); font-size: 13px; }
+  ol.questions li { margin: 6px 0; }
+  ol.questions b { color: var(--page-texte); }
+</style>
+</head>
+<body>
+<main>
+
+<h1>UCM Architect, refonte</h1>
+<p class="chapeau">Le plugin garde cohérents les noms d'un fichier Figma : leur écriture (casse, séparation des mots) et leur vocabulaire (un seul mot par notion). Deux onglets : Harmoniser signale, questionne et applique ; Règles regroupe les choix de l'équipe. La conception et la revue UX sont dans <code>CONCEPTION.md</code>, à côté de cette page.</p>
+<span class="etiquette">Proposition à valider</span>
+
+<h2>Le flux</h2>
+<p class="chapeau">D'abord ce qui est sûr, ensuite ce qui demande votre avis. Une réponse devient un choix ; un choix produit des renommages ; seul Appliquer écrit dans Figma.</p>
+<div class="flux">
+  <div class="etape"><b>Premier lancement</b>Analyser, puis confirmer l'écriture des noms</div><span class="fleche">→</span>
+  <div class="etape"><b>Harmoniser · 1. À appliquer</b>Les renommages sûrs, groupés par choix</div><span class="fleche">⇄</span>
+  <div class="etape"><b>Harmoniser · 2. À trancher</b>Les questions ; chaque réponse ajoute des renommages à l'étape 1</div><span class="fleche">→</span>
+  <div class="etape"><b>Appliquer</b>Un seul bouton, une annulation pour le lot</div>
+  <div class="etape cote"><b>Règles</b>L'écriture et tous les mots du fichier ; chaque mot a sa fiche</div>
+</div>
+<div class="lois">
+  <div><b>Un choix ne modifie pas le fichier.</b> Il ajoute des renommages à l'étape 1.</div>
+  <div><b>Seul Appliquer écrit dans Figma</b>, sur les renommages cochés.</div>
+  <div><b>Une réponse crée un choix</b> et affiche aussitôt son effet.</div>
+  <div><b>Un choix contradictoire est refusé</b>, avec le choix qu'il contredit.</div>
+</div>
+
+<h2>Les étiquettes de chemin</h2>
+<p class="chapeau">Une étiquette par segment, colorée selon la sorte de nom. Toucher une étiquette ouvre la fiche du mot, sur tous les écrans.</p>
+<div class="legende-tags">
+  <span class="c c-col">color-brands</span> Collection
+  <span class="c c-grp">button</span> Groupe de variable
+  <span class="c c-nom">background</span> Nom de variable
+  <span class="c c-cmp">Button</span> Composant
+  <span class="c c-prop">State</span> Propriété
+  <span class="c c-val">pressed</span> Valeur de variante
+  <span class="c c-val chg"><s>press</s>pressed</span> Segment qui change
+  <span class="c c-val vu">outline</span> Mot en question
+</div>
+
+<h2>Le parcours principal</h2>
+<div class="ecrans">
+
+<!-- 1 -->
+<div>
+  <p class="titre-ecran">1. Premier lancement</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architect</span><span class="roue">⚙</span></div>
+    <div class="corps" style="justify-content:center;gap:14px">
+      <div class="grand">Harmoniser les noms du fichier</div>
+      <p class="second" style="margin:0">Le plugin repère les noms écrits de plusieurs façons et les mots différents pour une même chose. Il vous propose des renommages ; rien ne change sans votre accord.</p>
+      <div class="carte pleine">
+        <div class="section" style="margin-bottom:6px">Ce qu'il lit</div>
+        <div class="chemin" style="gap:6px"><span class="c c-col">collections</span><span class="c c-grp">groupes</span><span class="c c-nom">noms de variables</span><span class="c c-prop">propriétés</span><span class="c c-val">valeurs de variantes</span></div>
+        <p class="second p" style="margin-top:8px">Les noms des composants ne sont pas lus.</p>
+      </div>
+      <div class="carte">
+        <div class="ligne"><span>Lecture des pages des composants</span><span class="second">3 / 6</span></div>
+        <div class="barre-av" style="margin-top:8px"><div style="width:50%"></div></div>
+        <p class="second p">812 variables lues · 14 composants</p>
+      </div>
+    </div>
+    <div class="pied"><span>Fichier jamais analysé</span><span class="bouton plein inactif">Analyser le fichier</span></div>
+  </div>
+  <ul class="legende">
+    <li>Deux phrases sur le rôle, puis l'analyse.</li>
+    <li>L'avancement couvre les pages des composants.</li>
+    <li>Ce que le plugin ne lit pas est dit.</li>
+  </ul>
+</div>
+
+<!-- 2 -->
+<div>
+  <p class="titre-ecran">2. Écriture des noms <span>· fin du premier lancement</span></p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architect</span><span class="roue">⚙</span></div>
+    <div class="corps" style="gap:8px">
+      <div class="grand">Comment écrire les noms ?</div>
+      <p class="second" style="margin:0">Le plugin propose l'écriture la plus fréquente de votre fichier. Vous la retrouverez dans Règles.</p>
+      <div>
+        <div class="ecriture"><div><span class="c c-grp">button</span><i class="second"> / </i><span class="c c-grp">primary</span><div class="indice p">Groupes de variables · 612 sur 650 la suivent</div></div><span class="champ" style="width:128px">minuscules-tirets <span class="second">▾</span></span></div>
+        <div class="ecriture"><div><span class="c c-nom">padding-x</span><div class="indice p">Noms de variables · 791 sur 812</div></div><span class="champ" style="width:128px">minuscules-tirets <span class="second">▾</span></span></div>
+        <div class="ecriture"><div><span class="c c-prop">Icon Position</span><div class="indice p">Propriétés · 58 sur 64</div></div><span class="champ" style="width:128px">Majuscule · espaces <span class="second">▾</span></span></div>
+        <div class="ecriture"><div><span class="c c-val">extra-large</span><div class="indice p">Valeurs de variantes · 203 sur 241</div></div><span class="champ" style="width:128px">minuscules-tirets <span class="second">▾</span></span></div>
+        <div class="ecriture"><div><span class="c c-col">color-brands</span><div class="indice p">Collections · noms du référentiel UCM</div></div><span class="tag t-ucm">UCM</span></div>
+      </div>
+      <div class="carte pleine"><div class="t">Vocabulaire UCM</div><p class="second p">Les mots UCM s'appliquent : <code>press</code> devient <code>pressed</code>, <code>disable</code> devient <code>disabled</code>.</p></div>
+    </div>
+    <div class="pied"><span>Rien n'est encore modifié</span><span class="bouton plein">Continuer</span></div>
+  </div>
+  <ul class="legende">
+    <li>Un exemple en étiquette par sorte de nom.</li>
+    <li>Les collections suivent UCM, sans choix.</li>
+    <li>Continuer ouvre Harmoniser, étape 1.</li>
+  </ul>
+</div>
+
+<!-- 3 -->
+<div>
+  <p class="titre-ecran">3. Harmoniser · À appliquer</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architect</span><span class="roue">⚙</span></div>
+    <div class="onglets"><span class="actif">Harmoniser</span><span>Règles</span></div>
+    <div class="etapes"><div class="actif"><span class="num">1</span>À appliquer<span class="nb">156</span></div><div><span class="num">2</span>À trancher<span class="nb">7</span></div></div>
+    <div class="corps" style="gap:8px">
+      <div class="groupe">
+        <div class="tete"><span class="coche"></span><div><div class="t"><code style="font-size:11px">press</code> devient <code style="font-size:11px">pressed</code> <span class="tag t-ucm">UCM</span></div><div class="indice p">40 variables · 20 valeurs de variantes</div></div><span class="chevron">▴ 60</span></div>
+        <div class="rang"><span class="coche"></span><div class="chemin"><span class="c c-col">components</span><i>/</i><span class="c c-grp">button</span><i>/</i><span class="c c-grp">primary</span><i>/</i><span class="c c-grp chg"><s>press</s>pressed</span><i>/</i><span class="c c-nom">background</span></div></div>
+        <div class="rang"><span class="coche"></span><div class="chemin"><span class="c c-col">components</span><i>/</i><span class="c c-grp">chip</span><i>/</i><span class="c c-grp chg"><s>press</s>pressed</span><i>/</i><span class="c c-nom">border</span></div></div>
+        <div class="rang"><span class="coche"></span><div><div class="chemin"><span class="c c-cmp">Button</span><span class="c c-prop">State</span><span class="egal">=</span><span class="c c-val chg"><s>press</s>pressed</span></div><div class="indice p">12 variantes</div></div></div>
+        <div class="plus lien">57 autres noms</div>
+      </div>
+      <div class="groupe"><div class="tete"><span class="coche"></span><div><div class="t"><code style="font-size:11px">disable</code> devient <code style="font-size:11px">disabled</code> <span class="tag t-ucm">UCM</span></div><div class="indice p">24 variables · 12 valeurs de variantes</div></div><span class="chevron">▾ 36</span></div></div>
+      <div class="groupe"><div class="tete"><span class="coche"></span><div><div class="t">Écriture des valeurs de variantes</div><div class="indice p">minuscules-tirets · <code>Default</code> → <code>default</code></div></div><span class="chevron">▾ 38</span></div></div>
+      <div class="groupe"><div class="tete"><span class="coche partiel"></span><div><div class="t">Écriture des noms de variables</div><div class="indice p">mots soudés · <code>fontsize</code> → <code>font-size</code></div></div><span class="chevron">▾ 21</span></div></div>
+      <div class="groupe"><div class="tete"><span class="coche"></span><div><div class="t">Collection UCM</div><div class="indice p"><code>Color Brands</code> → <code>color-brands</code></div></div><span class="chevron">▾ 1</span></div></div>
+      <div class="ligne second"><span>Bloqués · 2 · Protégés · 143</span><span class="lien">Voir</span></div>
+    </div>
+    <div class="pied"><span class="recap"><b>152 noms cochés</b> · 1 collection, 70 valeurs</span><span class="bouton plein">Appliquer</span></div>
+  </div>
+  <ul class="legende">
+    <li>Un groupe par choix, coché d'un geste.</li>
+    <li>Le segment qui change est barré puis remplacé.</li>
+    <li>Une valeur de variante dit combien de variantes elle touche.</li>
+    <li>Le pied dit sur quoi agit Appliquer.</li>
+  </ul>
+</div>
+
+<!-- 4 -->
+<div>
+  <p class="titre-ecran">4. Harmoniser · À trancher</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architect</span><span class="roue">⚙</span></div>
+    <div class="onglets"><span class="actif">Harmoniser</span><span>Règles</span></div>
+    <div class="etapes"><div><span class="num">1</span>À appliquer<span class="nb">156</span></div><div class="actif"><span class="num">2</span>À trancher<span class="nb">7</span></div></div>
+    <div class="corps" style="gap:8px">
+      <div class="ligne second"><span>Question 1 sur 7 · les plus fréquentes d'abord</span></div>
+      <div class="carte">
+        <div class="ligne"><span class="tag t-gris">Même mot, terminaison différente</span></div>
+        <div class="t" style="margin-top:6px"><code style="font-size:12px">outline</code> et <code style="font-size:12px">outlined</code> désignent-ils la même chose ?</div>
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+          <div><div class="chemin"><span class="c c-cmp">Button</span><span class="c c-prop">Variant</span><span class="egal">=</span><span class="c c-val vu">outlined</span></div><div class="indice p">outlined · 3 composants · 24 variantes</div></div>
+          <div><div class="chemin"><span class="c c-cmp">Alert</span><span class="c c-prop">Variant</span><span class="egal">=</span><span class="c c-val vu">outline</span></div><div class="indice p">outline · 1 composant · 8 variantes</div></div>
+        </div>
+        <p class="second p" style="margin-top:8px">Même place : la propriété <code>Variant</code>.</p>
+        <div class="choix" style="margin-top:8px"><span class="bouton plein">Employer outlined</span><span class="bouton">Employer outline</span><span class="bouton">Un autre mot…</span><span class="bouton">Deux choses différentes</span><span class="bouton">Plus tard</span></div>
+      </div>
+      <div class="carte">
+        <div class="ligne"><span class="tag t-gris">Synonyme connu</span><span class="tag t-ucm">danger est un mot UCM</span></div>
+        <div class="t" style="margin-top:6px"><code style="font-size:12px">error</code> et <code style="font-size:12px">danger</code> désignent-ils la même chose ?</div>
+        <div class="chemin" style="margin-top:8px"><span class="c c-col">components</span><i>/</i><span class="c c-grp">alert</span><i>/</i><span class="c c-grp vu">error</span><i>/</i><span class="c c-nom">background</span></div>
+      </div>
+      <div class="ligne second"><span>Autres pistes · 12 · Mises de côté · 0</span><span class="chevron">▾</span></div>
+    </div>
+    <div class="pied"><span class="recap"><b>152 noms cochés</b> · à l'étape 1</span><span class="bouton plein">Appliquer</span></div>
+  </div>
+  <ul class="legende">
+    <li>L'indice qui déclenche la question est nommé.</li>
+    <li>Les preuves : deux chemins, le mot surligné, les comptes.</li>
+    <li>Le mot le plus employé, ou le mot UCM, est proposé en premier.</li>
+    <li>Le pied reste celui de l'étape 1.</li>
+  </ul>
+</div>
+
+<!-- 5 -->
+<div>
+  <p class="titre-ecran">5. Réponse donnée</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architect</span><span class="roue">⚙</span></div>
+    <div class="onglets"><span class="actif">Harmoniser</span><span>Règles</span></div>
+    <div class="etapes"><div><span class="num">1</span>À appliquer<span class="nb">164</span></div><div class="actif"><span class="num">2</span>À trancher<span class="nb">6</span></div></div>
+    <div class="corps" style="gap:8px">
+      <div class="ligne second"><span>Question 2 sur 7</span></div>
+      <div class="carte faite">
+        <div class="ligne"><span class="t">Vous employez <code style="font-size:12px">outlined</code></span><span class="tag t-equipe">Choix de l'équipe</span></div>
+        <div class="chemin" style="margin-top:8px"><span class="c c-cmp">Alert</span><span class="c c-prop">Variant</span><span class="egal">=</span><span class="c c-val chg"><s>outline</s>outlined</span></div>
+        <div class="ligne" style="margin-top:8px"><span class="second">8 variantes changeront · ajoutées à l'étape 1</span><span class="lien">Reprendre</span></div>
+      </div>
+      <div class="carte">
+        <div class="ligne"><span class="tag t-gris">Synonyme connu</span><span class="tag t-ucm">danger est un mot UCM</span></div>
+        <div class="t" style="margin-top:6px"><code style="font-size:12px">error</code> et <code style="font-size:12px">danger</code> désignent-ils la même chose ?</div>
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+          <div><div class="chemin"><span class="c c-col">components</span><i>/</i><span class="c c-grp">alert</span><i>/</i><span class="c c-grp vu">error</span><i>/</i><span class="c c-nom">background</span></div><div class="indice p">error · 18 variables</div></div>
+          <div><div class="chemin"><span class="c c-col">color-utilities</span><i>/</i><span class="c c-grp vu">danger</span><i>/</i><span class="c c-nom">500</span></div><div class="indice p">danger · 40 variables</div></div>
+        </div>
+        <div class="choix" style="margin-top:8px"><span class="bouton plein">Employer danger</span><span class="bouton">Employer error</span><span class="bouton">Un autre mot…</span><span class="bouton">Deux choses différentes</span><span class="bouton">Plus tard</span></div>
+      </div>
+    </div>
+    <div class="pied"><span class="recap"><b>160 noms cochés</b> · à l'étape 1</span><span class="bouton plein">Appliquer</span></div>
+  </div>
+  <ul class="legende">
+    <li>La carte montre l'effet de la réponse, en étiquettes.</li>
+    <li>Reprendre annule le choix ; ses renommages repartent.</li>
+    <li>Le compte de l'étape 1 suit.</li>
+  </ul>
+</div>
+
+<!-- 6 -->
+<div>
+  <p class="titre-ecran">6. Confirmation <span>· lot sensible seulement</span></p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architect</span><span class="roue">⚙</span></div>
+    <div class="onglets"><span class="actif">Harmoniser</span><span>Règles</span></div>
+    <div class="etapes"><div class="actif"><span class="num">1</span>À appliquer<span class="nb">164</span></div><div><span class="num">2</span>À trancher<span class="nb">6</span></div></div>
+    <div class="corps"><div class="groupe"><div class="tete"><span class="coche"></span><div class="t">press devient pressed</div><span class="chevron">60</span></div></div></div>
+    <div class="voile">
+      <div class="feuille">
+        <div class="grand">Renommer 160 noms ?</div>
+        <ul class="faits second">
+          <li><b style="color:var(--texte)">1 collection et 78 valeurs de variantes</b> changent de nom.</li>
+          <li>Les variables gardent leurs liaisons et leurs alias.</li>
+          <li>Au prochain export, les noms des tokens changeront : prévenez le développeur.</li>
+          <li>Ce fichier est une bibliothèque publiée : les autres fichiers verront les nouveaux noms après sa publication.</li>
+        </ul>
+        <p class="second" style="margin:0">Ctrl+Z annule le lot en une fois.</p>
+        <div class="ligne" style="justify-content:flex-end"><span class="bouton">Retour</span><span class="bouton plein">Renommer 160 noms</span></div>
+      </div>
+    </div>
+  </div>
+  <ul class="legende">
+    <li>Seulement si le lot touche une collection, une propriété, une valeur, ou une bibliothèque publiée.</li>
+    <li>Chaque phrase dit un fait de ce lot.</li>
+    <li>Un lot de noms de variables seuls s'applique sans elle.</li>
+  </ul>
+</div>
+
+<!-- 7 -->
+<div>
+  <p class="titre-ecran">7. Après application</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architect</span><span class="roue">⚙</span></div>
+    <div class="onglets"><span class="actif">Harmoniser</span><span>Règles</span></div>
+    <div class="etapes"><div class="actif"><span class="num">1</span>À appliquer<span class="nb">6</span></div><div><span class="num">2</span>À trancher<span class="nb">6</span></div></div>
+    <div class="corps">
+      <div class="message"><div class="ligne"><b>158 noms modifiés</b><span class="lien" style="color:var(--texte-succes);text-decoration:underline">Annuler</span></div><p class="p" style="margin-top:4px">Ctrl+Z annule aussi le lot en une fois.</p></div>
+      <div class="carte attention"><div class="t">2 noms non modifiés</div><p class="second p">Un collègue les a changés depuis l'analyse. Ils restent à l'étape 1 avec leur nom actuel.</p></div>
+      <div class="groupe"><div class="tete"><span class="coche vide"></span><div><div class="t">Écriture des noms de variables</div><div class="indice p">4 noms laissés décochés</div></div><span class="chevron">▾ 4</span></div></div>
+      <div class="carte pleine"><div class="ligne"><span>Il reste 6 questions.</span><span class="lien">Les voir</span></div></div>
+    </div>
+    <div class="pied"><span class="recap">Aucun nom coché</span><span class="bouton plein inactif">Appliquer</span></div>
+  </div>
+  <ul class="legende">
+    <li>Un message, pas un écran : on reste dans Harmoniser.</li>
+    <li>Ce qui n'a pas pu être écrit est dit, avec la raison.</li>
+    <li>Le dernier lot reste annulable depuis la Configuration.</li>
+  </ul>
+</div>
+
+</div>
+
+<h2>Les règles</h2>
+<div class="ecrans">
+
+<!-- 8 -->
+<div>
+  <p class="titre-ecran">8. Règles</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architect</span><span class="roue">⚙</span></div>
+    <div class="onglets"><span>Harmoniser</span><span class="actif">Règles</span></div>
+    <div class="corps" style="gap:8px">
+      <div class="ligne"><span class="section">Écriture</span><span class="lien">Modifier</span></div>
+      <div class="chemin" style="gap:4px"><span class="c c-grp">button</span><i>/</i><span class="c c-nom">padding-x</span><span class="c c-prop">Icon Position</span><span class="c c-val">extra-large</span><span class="c c-col">color-brands</span></div>
+      <div class="ligne" style="margin-top:6px"><span class="section">Mots du fichier · 318</span></div>
+      <div class="champ"><span class="second">Chercher un mot</span><span class="second">⌕</span></div>
+      <div class="filtres choix"><span class="actif">Tous</span><span>Vos choix 9</span><span>UCM 46</span><span>Sans choix 263</span><span>Mises de côté 0</span></div>
+      <div class="mots">
+        <div class="mot"><div><div class="qui"><b>pressed</b><span class="tag t-ucm">UCM</span></div><div class="indice">remplace press</div></div><span class="second">98</span></div>
+        <div class="mot"><div><div class="qui"><b>hover</b><span class="tag t-ucm">UCM</span></div><div class="indice">remplace hovered</div></div><span class="second">98</span></div>
+        <div class="mot"><div><div class="qui"><b>outlined</b><span class="tag t-equipe">Équipe</span><span class="tag t-nouveau">Nouveau</span></div><div class="indice">remplace outline</div></div><span class="second">24</span></div>
+        <div class="mot"><div><div class="qui"><b>error</b><span class="tag t-av">À trancher</span></div><div class="indice">avec danger</div></div><span class="second">18</span></div>
+        <div class="mot"><div><div class="qui"><b>active</b><span class="tag t-gris">Écart assumé</span></div><div class="indice">au lieu de pressed, dans Chip</div></div><span class="second">6</span></div>
+        <div class="mot"><div class="qui"><b>button</b></div><span class="second">86</span></div>
+        <div class="mot"><div class="qui"><b>tile-link</b></div><span class="second">30</span></div>
+      </div>
+    </div>
+    <div class="pied"><span>Choix rangés dans ce fichier</span><span class="lien">Ajouter un mot</span></div>
+  </div>
+  <ul class="legende">
+    <li>Tous les choix au même endroit : l'écriture, puis les mots.</li>
+    <li>Chaque mot du fichier, avec son statut et son nombre de noms.</li>
+    <li>« Sans choix » aide à repérer ce que la détection ne voit pas.</li>
+  </ul>
+</div>
+
+<!-- 9 -->
+<div>
+  <p class="titre-ecran">9. Écriture modifiée</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">UCM Architect</span><span class="roue">⚙</span></div>
+    <div class="onglets"><span>Harmoniser</span><span class="actif">Règles</span></div>
+    <div class="corps" style="gap:8px">
+      <div class="section">Écriture</div>
+      <div>
+        <div class="ecriture"><div><span class="c c-grp">button</span><div class="indice p">Groupes de variables</div></div><span class="champ" style="width:128px">minuscules-tirets <span class="second">▾</span></span></div>
+        <div class="ecriture"><div><span class="c c-nom">padding-x</span><div class="indice p">Noms de variables</div></div><span class="champ" style="width:128px">minuscules-tirets <span class="second">▾</span></span></div>
+        <div class="ecriture"><div><div class="chemin"><span class="c c-prop chg"><s>Icon Position</s>iconPosition</span></div><div class="indice p">Propriétés</div></div><span class="champ focus" style="width:128px">camelCase <span class="second">▾</span></span></div>
+        <div class="ecriture"><div><span class="c c-val">extra-large</span><div class="indice p">Valeurs de variantes</div></div><span class="champ" style="width:128px">minuscules-tirets <span class="second">▾</span></span></div>
+        <div class="ecriture"><div><span class="c c-col">color-brands</span><div class="indice p">Collections</div></div><span class="tag t-ucm">UCM</span></div>
+      </div>
+      <div class="carte pleine">
+        <div class="t">Ce choix renomme 64 propriétés</div>
+        <p class="second p">Elles rejoignent l'étape 1 d'Harmoniser. Rien ne change dans Figma avant Appliquer.</p>
+        <div class="ligne" style="margin-top:8px"><span class="lien">Revenir à Majuscule · espaces</span><span class="bouton plein">Voir les renommages</span></div>
+      </div>
+    </div>
+    <div class="pied"><span>Écriture rangée dans ce fichier</span></div>
+  </div>
+  <ul class="legende">
+    <li>L'exemple de la ligne montre l'effet du nouveau choix.</li>
+    <li>Le bouton mène au seul endroit qui écrit.</li>
+    <li>Revenir en arrière est un lien, sans coût.</li>
+  </ul>
+</div>
+
+<!-- 10 -->
+<div>
+  <p class="titre-ecran">10. Fiche d'un mot de l'équipe</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">‹ Règles</span><span class="roue">⚙</span></div>
+    <div class="corps" style="gap:8px">
+      <div class="ligne"><span class="grand">outlined</span><span class="tag t-equipe">Équipe</span></div>
+      <p class="second" style="margin:0">Choisi en répondant à une question.</p>
+      <div class="section" style="margin-top:4px">Mots à remplacer</div>
+      <div class="mots"><div class="mot"><div class="qui"><span class="c c-val">outline</span><span class="second">8 variantes</span></div><span class="second">✕</span></div></div>
+      <div class="section" style="margin-top:4px">Où il apparaît · 24 variantes</div>
+      <div class="carte">
+        <div class="chemin"><span class="c c-prop">Variant</span><span class="egal">=</span><span class="c c-val vu">outlined</span></div>
+        <p class="second p">Button · 12 variantes &nbsp; Chip · 8 &nbsp; Tag · 4</p>
+      </div>
+      <div class="section" style="margin-top:4px">Définition</div>
+      <div class="champ" style="height:auto;padding:6px 8px"><span class="second">Fond transparent, contour visible.</span></div>
+      <div class="choix" style="margin-top:4px"><span class="bouton">Ajouter un mot à remplacer</span><span class="bouton">Remplacer par…</span></div>
+    </div>
+    <div class="pied"><span class="lien">Proposer à UCM</span><span class="lien" style="color:var(--texte-erreur)">Retirer ce choix</span></div>
+  </div>
+  <ul class="legende">
+    <li>S'ouvre depuis la liste ou une étiquette de chemin.</li>
+    <li>Le mot, ses mots à remplacer, ses places, d'où vient le choix.</li>
+    <li>Proposer à UCM copie le mot au format du référentiel.</li>
+  </ul>
+</div>
+
+<!-- 11 -->
+<div>
+  <p class="titre-ecran">11. Fiche d'un mot UCM</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">‹ Règles</span><span class="roue">⚙</span></div>
+    <div class="corps" style="gap:8px">
+      <div class="ligne"><span class="grand">pressed</span><span class="tag t-ucm">UCM · état</span></div>
+      <p class="second" style="margin:0">État pendant la pression.</p>
+      <div class="section" style="margin-top:4px">Mots à remplacer</div>
+      <div class="mots">
+        <div class="mot"><div class="qui"><span class="c c-val">press</span><span class="tag t-ucm">UCM</span></div><span class="second">60 noms</span></div>
+        <div class="mot"><div class="qui"><span class="c c-val">active</span><span class="tag t-gris">Écart assumé</span></div><span class="second">6 noms</span></div>
+      </div>
+      <div class="section" style="margin-top:4px">Où il apparaît · 98 noms</div>
+      <div class="carte">
+        <div class="chemin"><span class="c c-prop">State</span><span class="egal">=</span><span class="c c-val vu">pressed</span></div>
+        <p class="second p">Button, Chip, Tab, Tile Link · 38 variantes</p>
+        <div class="chemin" style="margin-top:8px"><span class="c c-col">components</span><i>/</i><span class="c c-grp">…</span><i>/</i><span class="c c-grp vu">pressed</span><i>/</i><span class="c c-nom">…</span></div>
+        <p class="second p">60 variables</p>
+      </div>
+      <div class="choix"><span class="bouton">Ajouter un mot à remplacer</span><span class="bouton">Ne pas suivre UCM ici…</span></div>
+    </div>
+    <div class="pied"><span>Référentiel UCM, version du kit 0.7.0</span></div>
+  </div>
+  <ul class="legende">
+    <li>Un mot UCM ne se modifie pas ; on peut lui ajouter des mots à remplacer.</li>
+    <li>« Ne pas suivre UCM ici » crée un écart assumé, compté et visible.</li>
+    <li>L'écart porte sur un mot et une portée, pas nom par nom.</li>
+  </ul>
+</div>
+
+<!-- 12 -->
+<div>
+  <p class="titre-ecran">12. Remplacer par…</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">‹ bg</span><span class="roue">⚙</span></div>
+    <div class="corps" style="gap:8px">
+      <div class="grand">Remplacer <code style="font-size:13px">bg</code> par</div>
+      <div class="champ focus"><span>background</span><span class="second">⌕</span></div>
+      <div class="mots">
+        <div class="mot"><div class="qui"><b>background</b><span class="tag t-ucm">UCM · rôle</span></div><span class="second">212 noms</span></div>
+        <div class="mot"><div class="qui"><b>backdrop</b></div><span class="second">4 noms</span></div>
+      </div>
+      <div class="section" style="margin-top:4px">Où</div>
+      <div class="choix"><span class="bouton plein">Partout</span><span class="bouton">Dans components</span><span class="bouton">Dans une place…</span></div>
+      <div class="section" style="margin-top:4px">Effet · 14 noms changeront</div>
+      <div class="chemin"><span class="c c-col">components</span><i>/</i><span class="c c-grp">tab</span><i>/</i><span class="c c-grp">hover</span><i>/</i><span class="c c-nom chg"><s>bg</s>background</span></div>
+      <div class="chemin"><span class="c c-col">components</span><i>/</i><span class="c c-grp">tooltip</span><i>/</i><span class="c c-nom chg"><s>bg</s>background</span></div>
+      <p class="second" style="margin:0">Rien ne change dans Figma avant Appliquer.</p>
+    </div>
+    <div class="pied"><span class="bouton">Annuler</span><span class="bouton plein">Enregistrer le choix</span></div>
+  </div>
+  <ul class="legende">
+    <li>Le mot à employer se choisit parmi les mots du fichier et d'UCM.</li>
+    <li>La portée par défaut est Partout ; une place se choisit au besoin.</li>
+    <li>L'effet s'affiche avant d'enregistrer.</li>
+  </ul>
+</div>
+
+<!-- 13 -->
+<div>
+  <p class="titre-ecran">13. Configuration</p>
+  <div class="plugin">
+    <div class="barre"><span class="nom">‹ Configuration</span><span class="roue">⚙</span></div>
+    <div class="onglets"><span class="actif">Fichier</span><span>Général</span></div>
+    <div class="corps" style="gap:8px">
+      <div class="section">Collections analysées</div>
+      <div class="mots">
+        <div class="mot"><div class="qui"><span class="coche"></span><span class="c c-col">components</span><span class="tag t-ucm">UCM</span></div><span class="second">412</span></div>
+        <div class="mot"><div class="qui"><span class="coche"></span><span class="c c-col">theme</span><span class="tag t-ucm">UCM</span></div><span class="second">96</span></div>
+        <div class="mot"><div class="qui"><span class="coche"></span><span class="c c-col">primitives</span><span class="tag t-ucm">UCM</span></div><span class="second">palettes protégées</span></div>
+        <div class="mot"><div class="qui"><span class="coche"></span><span class="c c-col">Typo Tokens</span><span class="tag t-av">À trancher</span></div><span class="second">48</span></div>
+        <div class="mot"><div class="qui"><span class="coche vide"></span><span class="c c-col">tests</span></div><span class="second">12</span></div>
+      </div>
+      <div class="ligne second"><span>et 3 autres collections</span><span class="chevron">▾</span></div>
+      <div class="ligne" style="margin-top:4px"><span>Lire les composants<div class="indice">Propriétés et valeurs · 24 composants sur 6 pages</div></span><span class="tag t-ok">Oui</span></div>
+      <div class="section" style="margin-top:4px">Choix de l'équipe</div>
+      <div class="choix"><span class="bouton">Exporter</span><span class="bouton">Importer d'un autre fichier</span></div>
+      <div class="section" style="margin-top:4px">Dernier lot</div>
+      <div class="ligne"><span>158 noms, à 14:42</span><span class="lien">Annuler le dernier lot</span></div>
+    </div>
+    <div class="pied"><span>Ce fichier : réglages partagés</span></div>
+  </div>
+  <ul class="legende">
+    <li>Comme Palettes : Fichier pour ce document, Général pour ce poste.</li>
+    <li>Ni couches ni périmètre : les collections UCM se reconnaissent par leur nom.</li>
+    <li>Le journal du dernier lot permet de l'annuler plus tard.</li>
+  </ul>
+</div>
+
+</div>
+
+<h2>Planche des types de cartes</h2>
+<p class="chapeau">Chaque type à valider, dans le dessin qu'il aurait dans le plugin.</p>
+
+<h3>Renommages · étape 1</h3>
+<div class="planche">
+
+<div>
+  <p class="nom-type">Écriture<span>Casse, séparation, mots soudés reconnus : une carte, un sous-libellé</span></p>
+  <div class="panneau">
+    <div class="groupe">
+      <div class="tete"><span class="coche"></span><div><div class="t">Écriture des valeurs de variantes</div><div class="indice p">minuscules-tirets</div></div><span class="chevron">▴ 38</span></div>
+      <div class="rang"><span class="coche"></span><div><div class="chemin"><span class="c c-cmp">Tag</span><span class="c c-prop">Size</span><span class="egal">=</span><span class="c c-val chg"><s>Extra_Large</s>extra-large</span></div><div class="indice p">casse et séparation · 4 variantes</div></div></div>
+      <div class="rang"><span class="coche"></span><div><div class="chemin"><span class="c c-cmp">Chip</span><span class="c c-prop">State</span><span class="egal">=</span><span class="c c-val chg"><s>Default</s>default</span></div><div class="indice p">casse · 6 variantes</div></div></div>
+      <div class="rang"><span class="coche"></span><div><div class="chemin"><span class="c c-col">primitives</span><i>/</i><span class="c c-grp chg"><s>fontsize</s>font-size</span><i>/</i><span class="c c-nom">body</span></div><div class="indice p">mots soudés reconnus</div></div></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Mot UCM<span>Un mot à remplacer du référentiel</span></p>
+  <div class="panneau">
+    <div class="groupe">
+      <div class="tete"><span class="coche"></span><div><div class="t"><code style="font-size:11px">disable</code> devient <code style="font-size:11px">disabled</code> <span class="tag t-ucm">UCM</span></div><div class="indice p">État indisponible pour une interaction.</div></div><span class="chevron">▴ 36</span></div>
+      <div class="rang"><span class="coche"></span><div class="chemin"><span class="c c-col">components</span><i>/</i><span class="c c-grp">input</span><i>/</i><span class="c c-grp chg"><s>disable</s>disabled</span><i>/</i><span class="c c-nom">border</span></div></div>
+      <div class="plus"><span class="lien">35 autres noms</span> · <span class="lien">Ne pas suivre UCM ici…</span></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Mot de l'équipe<span>Né d'une réponse ou d'un ajout dans Règles</span></p>
+  <div class="panneau">
+    <div class="groupe">
+      <div class="tete"><span class="coche"></span><div><div class="t"><code style="font-size:11px">outline</code> devient <code style="font-size:11px">outlined</code> <span class="tag t-equipe">Équipe</span> <span class="tag t-nouveau">Nouveau</span></div><div class="indice p">Votre réponse à une question</div></div><span class="chevron">▾ 8</span></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Collection UCM<span>Une collection reconnue sous un autre nom</span></p>
+  <div class="panneau">
+    <div class="groupe">
+      <div class="tete"><span class="coche"></span><div><div class="t">Collection UCM</div><div class="chemin" style="margin-top:6px"><span class="c c-col chg"><s>Color Brands</s>color-brands</span></div><div class="indice p">Les noms des collections suivent le référentiel UCM.</div></div><span class="chevron">1</span></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Ligne à plusieurs raisons<span>Une propriété de la ligne, pas un type</span></p>
+  <div class="panneau">
+    <div class="groupe">
+      <div class="rang" style="border-top:0"><span class="coche"></span><div><div class="chemin"><span class="c c-col">components</span><i>/</i><span class="c c-grp">button</span><i>/</i><span class="c c-grp chg"><s>Press_State</s>pressed-state</span></div><div class="choix p"><span class="tag t-gris">Écriture</span><span class="tag t-ucm">press → pressed</span></div></div></div>
+    </div>
+    <p class="second" style="margin:0">La ligne apparaît dans chacun de ses groupes ; la cocher dans l'un la coche partout.</p>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Bloqué : doublon<span>Deux noms, ou deux renommages, donneraient le même nom</span></p>
+  <div class="panneau">
+    <div class="carte attention">
+      <div class="ligne"><span class="t">Deux variables porteraient le même nom</span><span class="tag t-av">Bloqué</span></div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
+        <div class="chemin"><span class="c c-col">primitives</span><i>/</i><span class="c c-grp chg"><s>Font Size</s>font-size</span><i>/</i><span class="c c-nom">body</span></div>
+        <div class="chemin"><span class="c c-col">primitives</span><i>/</i><span class="c c-grp">font-size</span><i>/</i><span class="c c-nom">body</span><span class="indice">existe déjà</span></div>
+      </div>
+      <p class="second p" style="margin-top:8px">Supprimez ou renommez l'une des deux dans Figma, puis relancez l'analyse.</p>
+      <div class="ligne" style="margin-top:6px"><span class="lien">Garder les deux noms</span><span class="lien">Relancer</span></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Bloqué : nom changé depuis l'analyse<span>Un collègue a renommé l'élément entre-temps</span></p>
+  <div class="panneau">
+    <div class="carte attention">
+      <div class="ligne"><span class="t">Ce nom a changé depuis l'analyse</span><span class="tag t-av">Bloqué</span></div>
+      <div class="chemin" style="margin-top:8px"><span class="c c-cmp">Chip</span><span class="c c-prop">State</span><span class="egal">=</span><span class="c c-val">Selected</span><span class="indice">lu</span></div>
+      <div class="chemin" style="margin-top:4px"><span class="c c-cmp">Chip</span><span class="c c-prop">State</span><span class="egal">=</span><span class="c c-val">is-selected</span><span class="indice">actuel</span></div>
+      <div class="ligne" style="margin-top:8px"><span class="second">Relancer l'analyse pour le reprendre.</span><span class="lien">Relancer</span></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Protégé<span>Des noms que le plugin ne renomme pas</span></p>
+  <div class="panneau">
+    <div class="carte">
+      <div class="ligne"><span class="t">143 noms écrits par UCM Palettes</span><span class="tag t-gris">Protégé</span></div>
+      <div class="chemin" style="margin-top:8px"><span class="c c-col">primitives</span><i>/</i><span class="c c-grp">colors</span><i>/</i><span class="c c-grp">Poppy</span><i>/</i><span class="c c-nom">500</span></div>
+      <p class="second p" style="margin-top:6px">Palettes retrouve ses palettes par leur nom. Renommez une palette dans Palettes.</p>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Composant utilisé ailleurs<span>Une valeur ou une propriété d'un composant publié</span></p>
+  <div class="panneau">
+    <div class="groupe">
+      <div class="rang" style="border-top:0"><span class="coche"></span><div><div class="chemin"><span class="c c-cmp">Button</span><span class="c c-prop chg"><s>state</s>State</span></div><div class="indice p">12 variantes · composant de la bibliothèque publiée</div><div class="choix p"><span class="tag t-av">Visible après publication</span></div></div></div>
+    </div>
+    <p class="second" style="margin:0">L'étiquette annonce ce que la confirmation détaillera.</p>
+  </div>
+</div>
+
+</div>
+
+<h3>Questions · étape 2</h3>
+<div class="planche">
+
+<div>
+  <p class="nom-type">Deux mots, une même chose ?<span>Flexion, pluriel, abréviation, synonyme connu, même place : seule l'étiquette d'indice change</span></p>
+  <div class="panneau">
+    <div class="carte">
+      <span class="tag t-gris">Singulier et pluriel</span>
+      <div class="t" style="margin-top:6px"><code style="font-size:12px">color</code> et <code style="font-size:12px">colors</code> désignent-ils la même chose ?</div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+        <div><div class="chemin"><span class="c c-col">components</span><i>/</i><span class="c c-grp">alert</span><i>/</i><span class="c c-grp vu">colors</span><i>/</i><span class="c c-grp">info</span></div><div class="indice p">colors · 212 noms</div></div>
+        <div><div class="chemin"><span class="c c-col">components</span><i>/</i><span class="c c-grp">badge</span><i>/</i><span class="c c-grp vu">color</span><i>/</i><span class="c c-grp">info</span></div><div class="indice p">color · 9 noms</div></div>
+      </div>
+      <div class="choix" style="margin-top:8px"><span class="bouton plein">Employer colors</span><span class="bouton">Employer color</span><span class="bouton">Un autre mot…</span><span class="bouton">Deux choses différentes</span><span class="bouton">Plus tard</span></div>
+    </div>
+    <div class="choix"><span class="tag t-gris">Même mot, terminaison différente</span><span class="tag t-gris">Abréviation</span><span class="tag t-gris">Synonyme connu</span><span class="tag t-gris">Même place, même couleur</span></div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Même place, même couleur<span>L'indice le moins sûr : les preuves sont détaillées</span></p>
+  <div class="panneau">
+    <div class="carte">
+      <span class="tag t-gris">Même place, même couleur</span>
+      <div class="t" style="margin-top:6px"><code style="font-size:12px">contained</code> et <code style="font-size:12px">filled</code> désignent-ils la même chose ?</div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+        <div class="chemin"><span class="c c-col">components</span><i>/</i><span class="c c-grp">button</span><i>/</i><span class="c c-grp vu">contained</span><i>/</i><span class="c c-nom">background</span></div>
+        <div class="chemin"><span class="c c-col">components</span><i>/</i><span class="c c-grp">alert</span><i>/</i><span class="c c-grp vu">filled</span><i>/</i><span class="c c-nom">background</span></div>
+      </div>
+      <ul class="faits second" style="margin-top:8px"><li>Jamais côte à côte dans un même groupe</li><li>Les deux visent <code>theme/primary/solid/default</code></li></ul>
+      <div class="choix" style="margin-top:8px"><span class="bouton">Employer contained</span><span class="bouton">Employer filled</span><span class="bouton">Un autre mot…</span><span class="bouton plein">Deux choses différentes</span><span class="bouton">Plus tard</span></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Un autre mot<span>Ni l'un ni l'autre : les deux vont vers un troisième</span></p>
+  <div class="panneau">
+    <div class="carte">
+      <div class="t"><code style="font-size:12px">contained</code> et <code style="font-size:12px">filled</code> deviennent</div>
+      <div class="champ focus" style="margin-top:8px"><span>solid</span><span class="second">⌕</span></div>
+      <div class="mots" style="margin-top:6px"><div class="mot"><div class="qui"><b>solid</b><span class="tag t-ucm">UCM · dossier de theme</span></div><span class="second">96 noms</span></div></div>
+      <p class="second p" style="margin-top:8px">22 noms changeront.</p>
+      <div class="ligne" style="margin-top:8px;justify-content:flex-end"><span class="bouton">Retour</span><span class="bouton plein">Employer solid</span></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Ce mot est-il mal écrit ?<span>Faute de frappe probable</span></p>
+  <div class="panneau">
+    <div class="carte">
+      <span class="tag t-gris">Une lettre d'écart</span>
+      <div class="t" style="margin-top:6px"><code style="font-size:12px">contrashovered</code> est-il mal écrit ?</div>
+      <div class="chemin" style="margin-top:8px"><span class="c c-col">theme</span><i>/</i><span class="c c-grp">chip</span><i>/</i><span class="c c-nom vu">contrashovered</span></div>
+      <p class="second p">1 nom · <code>contrasthovered</code> en compte 14</p>
+      <div class="choix" style="margin-top:8px"><span class="bouton plein">Corriger en contrasthovered</span><span class="bouton">C'est voulu</span><span class="bouton">Plus tard</span></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Ce mot est-il mal écrit ?<span>Mot soudé inconnu, découpe modifiable</span></p>
+  <div class="panneau">
+    <div class="carte">
+      <span class="tag t-gris">Mots soudés</span>
+      <div class="t" style="margin-top:6px"><code style="font-size:12px">vspacingsmall</code> réunit-il plusieurs mots ?</div>
+      <div class="chemin" style="margin-top:8px;gap:2px"><span class="c c-nom">v</span><span class="egal">|</span><span class="c c-nom">spacing</span><span class="egal">|</span><span class="c c-nom">small</span></div>
+      <p class="second p">Touchez entre deux lettres pour couper ou recoller. Avec votre écriture : <code>v-spacing-small</code>.</p>
+      <div class="choix" style="margin-top:8px"><span class="bouton plein">Séparer</span><span class="bouton">C'est un seul mot</span><span class="bouton">Plus tard</span></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Échelle de tailles mêlée<span>Une réponse pour toute l'échelle</span></p>
+  <div class="panneau">
+    <div class="carte">
+      <span class="tag t-gris">Deux écritures d'une échelle</span>
+      <div class="t" style="margin-top:6px">Vos tailles mêlent deux écritures</div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+        <div><div class="chemin"><span class="c c-val">sm</span><span class="c c-val">md</span><span class="c c-val">lg</span></div><div class="indice p">34 noms · Button, Input, Tag</div></div>
+        <div><div class="chemin"><span class="c c-val">small</span><span class="c c-val">medium</span><span class="c c-val">large</span></div><div class="indice p">12 noms · Chip, Avatar</div></div>
+      </div>
+      <div class="choix" style="margin-top:8px"><span class="bouton plein">Employer sm, md, lg</span><span class="bouton">Employer small, medium, large</span><span class="bouton">Plus tard</span></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Collection non reconnue<span>Remplace les couches du premier lancement</span></p>
+  <div class="panneau">
+    <div class="carte">
+      <span class="tag t-gris">Hors du référentiel UCM</span>
+      <div class="t" style="margin-top:6px">À quelle collection UCM correspond <span class="c c-col vu">Typo Tokens</span> ?</div>
+      <p class="second p">48 variables : <code>display</code>, <code>headline</code>, <code>body</code>…</p>
+      <div class="champ" style="margin-top:8px"><span>typography <span class="second">· proposée</span></span><span class="second">▾</span></div>
+      <div class="choix" style="margin-top:8px"><span class="bouton plein">Renommer en typography</span><span class="bouton">Collection de l'équipe</span><span class="bouton">Plus tard</span></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Choix refusé : conflit<span>À l'enregistrement d'un choix ou d'une réponse</span></p>
+  <div class="panneau">
+    <div class="carte attention">
+      <div class="t">Ce choix contredit un mot UCM</div>
+      <p class="second p">Vous remplacez <code>hover</code> par <code>hovered</code> ; UCM remplace <code>hovered</code> par <code>hover</code>.</p>
+      <div class="ligne" style="margin-top:8px"><span class="lien">Ne pas suivre UCM ici…</span><span class="bouton">Retour</span></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Mises de côté<span>Réversibles, visibles dans Règles</span></p>
+  <div class="panneau">
+    <div class="ligne"><span class="section">Mises de côté · 2</span><span class="chevron">▴</span></div>
+    <div class="mots">
+      <div class="mot"><div><b>bg</b> et <b>background</b><div class="indice">Abréviation · 14 noms</div></div><span class="lien">Reprendre</span></div>
+      <div class="mot"><div><b>Typo Tokens</b><div class="indice">Collection non reconnue</div></div><span class="lien">Reprendre</span></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<h3>États particuliers</h3>
+<div class="planche">
+
+<div>
+  <p class="nom-type">Rien à faire</p>
+  <div class="panneau" style="height:220px">
+    <div class="vide-centre"><div class="grand">Tous les noms suivent vos choix</div><p class="second" style="margin:0">Aucune question en attente. Analysé à 15:10.</p><span class="lien">Relancer l'analyse</span></div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Fichier sans nom local</p>
+  <div class="panneau" style="height:220px">
+    <div class="vide-centre"><div class="grand">Ces variables viennent d'une bibliothèque</div><p class="second" style="margin:0">Figma ne les renomme que dans leur fichier d'origine : ouvrez <b style="color:var(--texte)">Design System Intencial</b>. Les 6 composants de ce fichier restent analysés.</p></div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Fichier modifié depuis l'analyse</p>
+  <div class="panneau" style="padding:0;height:220px;overflow:hidden">
+    <div class="bandeau"><span>Le fichier a changé depuis l'analyse</span><span style="text-decoration:underline">Relancer</span></div>
+    <div style="padding:12px;display:flex;flex-direction:column;gap:8px">
+      <div class="groupe"><div class="tete"><span class="coche"></span><div class="t">press devient pressed</div><span class="chevron">60</span></div></div>
+      <p class="second" style="margin:0">Appliquer reste possible : chaque nom est relu juste avant l'écriture.</p>
+    </div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Nouveautés au retour sur le fichier</p>
+  <div class="panneau">
+    <div class="groupe"><div class="tete"><span class="coche"></span><div><div class="t"><code style="font-size:11px">checked</code> devient <code style="font-size:11px">selected</code> <span class="tag t-ucm">UCM</span> <span class="tag t-nouveau">Nouveau</span></div><div class="indice p">Ajouté par la version 0.8.0 du kit</div></div><span class="chevron">▾ 6</span></div></div>
+    <div class="groupe"><div class="tete"><span class="coche"></span><div><div class="t">Écriture des noms de variables <span class="tag t-nouveau">Nouveau</span></div><div class="indice p">4 variables créées depuis la dernière analyse</div></div><span class="chevron">▾ 4</span></div></div>
+  </div>
+</div>
+
+<div>
+  <p class="nom-type">Analyse en cours, au retour</p>
+  <div class="panneau">
+    <div class="ligne"><span>Relecture du fichier</span><span class="second">pages 5 / 6</span></div>
+    <div class="barre-av"><div style="width:83%"></div></div>
+    <p class="second" style="margin:0">Les choix sont déjà chargés ; les listes se complètent à la fin.</p>
+  </div>
+</div>
+
+</div>
+
+<h2>Retours et écrans</h2>
+<table class="couverture">
+  <tr><th>Retour</th><th>Réponse dans ces maquettes</th></tr>
+  <tr><td>Mode agnostique</td><td>Retiré ; le vocabulaire UCM s'applique d'emblée (écran 2)</td></tr>
+  <tr><td>Couches au premier lancement, puis en configuration</td><td>Retirées : les collections UCM se reconnaissent par leur nom ; une collection inconnue devient une question ; la Configuration choisit les collections analysées (13)</td></tr>
+  <tr><td>Accueil et ses états</td><td>Supprimé ; les comptes sont ceux des deux étapes (3, 4)</td></tr>
+  <tr><td>Pastilles de Vérifier, tous les cas</td><td>Deux étapes numérotées ; planche des types de cartes</td></tr>
+  <tr><td>Paires à juger, algorithme</td><td>Étape À trancher (4, 5) ; l'indice est nommé sur chaque carte ; algorithme dans la conception, section 7</td></tr>
+  <tr><td>Un endroit pour signaler, un autre pour les règles</td><td>Onglets Harmoniser et Règles</td></tr>
+  <tr><td>Format et vocabulaire</td><td>Deux sortes de choix dans Règles (8), qui alimentent la même étape À appliquer (3)</td></tr>
+  <tr><td>Chemins en étiquettes colorées</td><td>Partout ; une étiquette ouvre la fiche du mot</td></tr>
+  <tr><td>Ajouter des termes, mécanique centrale, synchronisation avec UCM</td><td>Liste des mots (8), fiches (10, 11), Remplacer par (12), Proposer à UCM, export et import (13)</td></tr>
+  <tr><td>Écriture : bon endroit, bouton d'action</td><td>Premier lancement (2), puis Règles (9), qui mène au seul bouton Appliquer</td></tr>
+  <tr><td>Chemins peu clairs, ce qui change</td><td>Segment barré puis remplacé (3, planche)</td></tr>
+  <tr><td>Avant d'appliquer, après l'application</td><td>Confirmation pour un lot sensible (6) ; message avec Annuler (7)</td></tr>
+  <tr><td>Construire, marque, palette, publication, lire les composants</td><td>Retirés</td></tr>
+  <tr><td>Fichier qui emploie la bibliothèque</td><td>État particulier « Fichier sans nom local »</td></tr>
+</table>
+
+<h2>Questions au mainteneur</h2>
+<ol class="questions">
+  <li><b>Les noms des onglets</b> : Harmoniser et Règles, ou d'autres mots ?</li>
+  <li><b>La confirmation</b> : la montrer aussi pour un lot de noms de variables seuls, dans un fichier qui n'est pas une bibliothèque ?</li>
+  <li><b>Les palettes de Palettes</b> : les protéger, ou les renommer et laisser Palettes suivre la nouvelle écriture ?</li>
+  <li><b>La planche</b> : chaque type de carte vous convient-il ? Lesquels retirer ou redessiner ?</li>
+</ol>
+
+</main>
+</body>
+</html>
