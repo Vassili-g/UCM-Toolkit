@@ -12,17 +12,17 @@ du référentiel.
 
 | Définition | Source | Langue | Lecteurs |
 |---|---|---|---|
-| Dossiers, états, variables de `theme`, cran de chaque variable dans les deux sens | `DOSSIERS`, `ETATS`, `VARIABLES_DE_PALETTE`, `TABLE_DES_DOSSIERS`, [dossiers.ts](../../../../../packages/kit/src/emplois/dossiers.ts) | Identifiants anglais, sans libellé | Palettes, explorateur, `ucm check` |
+| Dossiers, états, variables de `theme`, cran de chaque variable dans les deux sens | `DOSSIERS`, `ETATS`, `VARIABLES_DE_PALETTE`, `TABLE_DES_DOSSIERS`, [dossiers.ts](../../../../../../packages/kit/src/emplois/dossiers.ts) | Identifiants anglais, sans libellé | Palettes, explorateur, `ucm check` |
 | Ce que chaque variable de `theme` peint, et ses portées Figma | `SUPPORT_DES_VARIABLES`, même fichier | Sans libellé | Palettes, explorateur |
 | L'état du fond selon l'interaction (repos, survol, appui, focus, désactivé) | `ETAT_DU_FOND`, même fichier | Clés françaises, valeurs anglaises | Palettes |
-| Les sept garanties | `GARANTIES`, [garanties.ts](../../../../../packages/kit/src/emplois/garanties.ts) | Sans libellé | Palettes, `ucm check` |
+| Les sept garanties | `GARANTIES`, [garanties.ts](../../../../../../packages/kit/src/emplois/garanties.ts) | Sans libellé | Palettes, `ucm check` |
 | Libellé de chaque variable de `theme` (`solid/default` : « bouton ») | `LIBELLE_DE_LA_VARIABLE`, catalogues `fr.ts` et `en.ts` de Palettes | Français et anglais | Palettes seul |
-| États reconnus dans un composant et leur sélecteur CSS | `STATE_SELECTORS`, [semantics.ts](../../../../../packages/plugin-exporter/src/contract/semantics.ts) | Identifiants anglais | Exporteur seul |
+| États reconnus dans un composant et leur sélecteur CSS | `STATE_SELECTORS`, [semantics.ts](../../../../../../packages/plugin-exporter/src/contract/semantics.ts) | Identifiants anglais | Exporteur seul |
 | Noms d'axe d'état (`state`, `states`, `status`) | `STATE_AXIS_NAMES`, même fichier | Anglais | Exporteur seul |
 | Tailles reconnues | `SIZE_VALUES`, même fichier | Anglais | Exporteur seul |
-| Tags des règles d'usage | `TAGS_D_INTENTION`, [rulesModel.ts](../../../../../packages/plugin-exporter/src/contract/rulesModel.ts) | Anglais | Exporteur seul |
-| Les cinq couches et leurs cibles | `COUCHES`, `CIBLES_DES_COUCHES`, [profilUcm.ts](../../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts) | Anglais | Explorateur seul, dans l'onglet Intégrations retiré |
-| Les caractéristiques d'un contrat et leur aide | `CARACTERISTIQUES`, [caracteristiques.mjs](../../../../../packages/kit/src/lecteurs/caracteristiques.mjs), et [packages/cli/aides/](../../../../../packages/cli/aides/) | Français | `ucm guide`, un agent |
+| Tags des règles d'usage | `TAGS_D_INTENTION`, [rulesModel.ts](../../../../../../packages/plugin-exporter/src/contract/rulesModel.ts) | Anglais | Exporteur seul |
+| Les cinq couches et leurs cibles | `COUCHES`, `CIBLES_DES_COUCHES`, [profilUcm.ts](../../../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts) | Anglais | Explorateur seul, dans l'onglet Intégrations retiré |
+| Les caractéristiques d'un contrat et leur aide | `CARACTERISTIQUES`, [caracteristiques.mjs](../../../../../../packages/kit/src/lecteurs/caracteristiques.mjs), et [packages/cli/aides/](../../../../../../packages/cli/aides/) | Français | `ucm guide`, un agent |
 
 ### 1.1 Les contradictions relevées
 

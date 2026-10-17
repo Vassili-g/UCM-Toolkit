@@ -14,10 +14,10 @@ contrôles le bilan porte.
 | Fait | Source |
 |---|---|
 | La déclaration des vocabulaires par position pèse environ 4 ko pour C1 et 13 ko pour C2, avant les termes et les refus | Estimation tirée de `mesurer-positions.mjs --json` |
-| L'exporteur publie une branche, un fichier et une demande de fusion par export | [ROADMAP.md](../../../../../ROADMAP.md), ligne Forges |
-| `tokens.json` porte déjà des données d'UCM à sa racine : `com.ucm.formatVersion`, `com.ucm.axes` | [FORMAT.md](../../../../format/FORMAT.md#partie-2--export-tokens) |
+| L'exporteur publie une branche, un fichier et une demande de fusion par export | [ROADMAP.md](../../../../../../ROADMAP.md), ligne Forges |
+| `tokens.json` porte déjà des données d'UCM à sa racine : `com.ucm.formatVersion`, `com.ucm.axes` | [FORMAT.md](../../../../../format/FORMAT.md#partie-2--export-tokens) |
 | DTCG admet `$extensions` à la racine et sur un groupe, sous un nom de domaine inversé | Brouillon DTCG, cité dans [R2-REFERENTIEL.md](./R2-REFERENTIEL.md#22-les-autres-systèmes) |
-| La recette de Palettes vit déjà dans l'espace partagé `ucm_palettes` du document, que l'explorateur lit | [protocole.ts](../../../../../packages/couleur/src/protocole.ts) |
+| La recette de Palettes vit déjà dans l'espace partagé `ucm_palettes` du document, que l'explorateur lit | [protocole.ts](../../../../../../packages/couleur/src/protocole.ts) |
 
 ### 1.2 Ce qu'ils établissent
 

@@ -11,7 +11,7 @@ exporté depuis Figma ; le développeur écrit le comportement du composant.
 | Créer des palettes Light et Dark, vérifier leurs contrastes et écrire leurs variables dans Figma | UCM Palettes | [Utilisation et installation](./packages/plugin-palettes/README.md) |
 | Comprendre la valeur d'un token, ses alias et les tokens d'un composant | UCM Token Explorer | [Utilisation et installation](./packages/plugin-explorateur/README.md) |
 | Exporter un composant et ses règles d'usage, ou les variables du fichier | UCM Contract Exporter | [Ouvrir le plugin](#ouvrir-le-plugin) |
-| Normaliser les noms de collections, de variables, de propriétés et de valeurs | UCM Architect | [Référentiel UCM](./docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/README.md) |
+| Normaliser les noms de collections, de variables, de propriétés et de valeurs | UCM Architect | [Recherches sur UCM Architect](./docs/notes/Recherches/Plugin%20Architect/README.md) |
 | Recevoir les exports et les contrôler dans GitHub ou GitLab | `@ucm-kit/cli` | [Brancher un repository](#brancher-un-repository) |
 | Appeler les validateurs depuis du code | `@ucm-kit/core` | [API du kit](./packages/kit/README.md) |
 | Comparer un contrat à une API TypeScript et dériver ses unions | `@ucm-kit/adapter-typescript` | [Adaptateur optionnel](./packages/adapter-typescript/README.md) |
