@@ -27,12 +27,12 @@ Trois questions en découlent :
 
 | Mécanisme | Fichier | Ce qu'il fait |
 |---|---|---|
-| Projection Figma vers token | `normalizeName`, [names.ts](../../../../../../packages/kit/src/format/names.ts) | Met chaque segment en minuscules et remplace les espaces par des tirets |
-| Collision de noms | `VariableIndex.ambiguous`, [variables.ts](../../../../../../packages/plugin-exporter/src/variables.ts) | Signale deux variables dont les noms donnent le même chemin (`Foo Bar` et `foo-bar`) |
-| Synonymes d'états | `STATE_SELECTORS`, [semantics.ts](../../../../../../packages/plugin-exporter/src/contract/semantics.ts) | Accepte `hover` et `hovered`, `press` et `pressed`, `focus` et `focused`, `disable` et `disabled` ; un état inconnu produit un avertissement |
+| Projection Figma vers token | `normalizeName`, [names.ts](../../../../../../../packages/kit/src/format/names.ts) | Met chaque segment en minuscules et remplace les espaces par des tirets |
+| Collision de noms | `VariableIndex.ambiguous`, [variables.ts](../../../../../../../packages/plugin-exporter/src/variables.ts) | Signale deux variables dont les noms donnent le même chemin (`Foo Bar` et `foo-bar`) |
+| Synonymes d'états | `STATE_SELECTORS`, [semantics.ts](../../../../../../../packages/plugin-exporter/src/contract/semantics.ts) | Accepte `hover` et `hovered`, `press` et `pressed`, `focus` et `focused`, `disable` et `disabled` ; un état inconnu produit un avertissement |
 | Synonymes de tailles | `SIZE_VALUES`, même fichier | Reconnaît `small`, `medium`, `large`, `big` comme `sm`, `md`, `lg` |
-| Vocabulaire de la table en dossiers | [dossiers.ts](../../../../../../packages/kit/src/emplois/dossiers.ts) | Fixe les noms `solid`, `surface`, `page`, `default`, `hover`, `pressed`, `foreground`, `border`, `focus`, `disabled` |
-| Profil UCM de l'explorateur | [profilUcm.ts](../../../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts) | Quatre règles d'architecture en information, activées par le designer, avec des exceptions par fichier |
+| Vocabulaire de la table en dossiers | [dossiers.ts](../../../../../../../packages/kit/src/emplois/dossiers.ts) | Fixe les noms `solid`, `surface`, `page`, `default`, `hover`, `pressed`, `foreground`, `border`, `focus`, `disabled` |
+| Profil UCM de l'explorateur | [profilUcm.ts](../../../../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts) | Quatre règles d'architecture en information, activées par le designer, avec des exceptions par fichier |
 
 Le moteur absorbe donc une partie des variantes de nommage au moment de
 l'export. Aucun module ne les relève pour que le designer les réduise à la
@@ -211,7 +211,7 @@ qu'un token disparaisse sans entrée dans `removed.json`, où la valeur est
 Un renommage de nomenclature change le chemin publié dans `tokens.json`, donc
 la référence des contrats et la variable CSS du consommateur. Les quatre
 systèmes gardent une table de l'ancien nom vers le nouveau ; UCM n'en a pas
-aujourd'hui. La [piste du diff sémantique](../../../Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md)
+aujourd'hui. La [piste du diff sémantique](../../../../Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md)
 touche la même question.
 
 ## 5. Les outils et les techniques de détection

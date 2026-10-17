@@ -13,8 +13,8 @@ Pour modifier le produit, partez des références de
 | Sujet | État | Prochain geste |
 |---|---|---|
 | [Recette v10 de Palettes](./Plugin%20Palettes/Recette%20v10/README.md) | R2 à R6 implémentés ; R1 attend la décision D1 ; rampes Dark sans ancrage mesurées | Décision D1 du mainteneur, puis recette Figma |
-| [Référentiel UCM](./Référentiel%20UCM/README.md) | Audit fait, décisions prises, [plan par lots](./Référentiel%20UCM/PLAN-IMPLEMENTATION.md) | Lot 1 |
-| [Architecture globale UCM](./Architecture%20globale%20UCM%20et%20UCM%20Architect/VERSION-MINIMALE.md) | Version minimale retenue, non implémentée : fichier de conventions, `$description` publiée, onglet Intégrations retiré, état `selected` | Décision de mise en œuvre ; le reste du dossier est une piste |
+| [Référentiel UCM](./Référentiel%20UCM/README.md) | Lots 0 à 18 du [plan par lots](./Référentiel%20UCM/PLAN-IMPLEMENTATION.md) faits, kit 0.7.0 publié | Lot 19 : recette d'UCM Architect dans Figma, puis export des tokens |
+| [UCM Architect](./Plugin%20Architect/README.md) | Repris depuis le début. La v1 normalise les noms ; l'architecture globale UCM et les explorations de la suite y sont regroupées | Le mainteneur parcourt les maquettes et les réflexions |
 | [Architecture multi-marques](Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle : collections, panneau des variables et rôles de `theme` | Actualiser les données du panneau après un export ; les évolutions ouvertes restent séparées dans le dossier |
 
 La [spécification de Palettes](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)
@@ -30,8 +30,6 @@ c'est une référence du produit, pas une recherche.
 | [Coût de génération et implémenteur](./Optimisation%20Tokens/README.md) | Mesures et conception d'un compilateur ; aucun paquet d'implémenteur |
 | [Comparaison des outils de palettes](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md) | Vision simulée, Display P3, APCA, sélection et jeu de départ |
 | [Évolutions globales](./Evolutions%20globales/PISTES-EVOLUTION.md) | Catalogue d'options à confronter au format courant |
-| [UCM Architect et nomenclature](./Architecture%20globale%20UCM%20et%20UCM%20Architect/ARCHITECTURE-GLOBALE-UCM.md) | Pistes : le plugin d'architecture intéresse le mainteneur, sans décision ; il lira le référentiel UCM |
-
 Les comparatifs externes doivent être revérifiés avant une décision : tarifs,
 versions et fonctions changent.
 

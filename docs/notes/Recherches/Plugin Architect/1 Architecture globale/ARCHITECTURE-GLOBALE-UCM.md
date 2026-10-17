@@ -16,7 +16,7 @@ définitions propres à UCM.
 Ce document prolonge [RECHERCHE-NOMENCLATURE.md](./Recherches/Nomenclature%20initiale/RECHERCHE-NOMENCLATURE.md),
 qui étudie le contrôle des noms seul et le range provisoirement dans
 l'explorateur. Il part du code et des documents d'autorité listés dans
-[docs/README.md](../../../README.md#quel-document-porte-quelle-règle).
+[docs/README.md](../../../../README.md#quel-document-porte-quelle-règle).
 
 ## Principe directeur : deux périmètres dans chaque outil
 
@@ -56,7 +56,7 @@ onglet « UCM », il vient d'un build antérieur : le reconstruire avec
 | Recette UCM Palettes | Le designer associe à la main une variable à une palette, une intensité, un thème et un cran ; l'onglet liste les variables de `theme` que ce cran porte | L'association disparaît à la fermeture du plugin | Palettes marque chaque variable qu'il écrit avec sa palette et sa clé (`setSharedPluginData` dans `ecriture/variables.ts`) : l'association peut se lire sans geste. L'aperçu de Palettes montre déjà les variables de chaque cran |
 | Profil d'architecture UCM | Le designer associe chaque collection à l'une des cinq couches ; quatre règles relèvent les alias entre couches non permises, les valeurs directes, les portées et la nuance visée par une variable de `theme` | Seules règles d'opinion de l'explorateur. `variableDuNom` reconnaît une variable de `theme` par la fin de son nom : le profil dépend donc du nommage | Le contrôle des noms étudié dans RECHERCHE-NOMENCLATURE.md |
 
-Le [README de l'explorateur](../../../../packages/plugin-explorateur/README.md)
+Le [README de l'explorateur](../../../../../packages/plugin-explorateur/README.md)
 annonce un plugin qui fonctionne sur toute architecture. Les trois
 intégrations sont facultatives et tiennent cette promesse. Elles placent
 pourtant dans l'outil de lecture la seule partie de la suite qui juge une
@@ -71,15 +71,15 @@ vocabulaire. Chaque définition est écrite là où un produit en a eu besoin.
 
 | Définition | Où elle s'écrit | Où un designer la lit |
 |---|---|---|
-| Dossiers `solid`, `surface`, `page`, états `default`, `hover`, `pressed`, variables de `theme` et leur cran | [dossiers.ts](../../../../packages/kit/src/emplois/dossiers.ts) | Aperçu de Palettes, spécification Palettes |
-| Les sept garanties de contraste | [garanties.ts](../../../../packages/kit/src/emplois/garanties.ts) | Carte des garanties de Palettes |
-| États reconnus et leurs variantes (`hover`/`hovered`, `press`/`pressed`) | `STATE_SELECTORS`, [semantics.ts](../../../../packages/plugin-exporter/src/contract/semantics.ts) | Nulle part |
+| Dossiers `solid`, `surface`, `page`, états `default`, `hover`, `pressed`, variables de `theme` et leur cran | [dossiers.ts](../../../../../packages/kit/src/emplois/dossiers.ts) | Aperçu de Palettes, spécification Palettes |
+| Les sept garanties de contraste | [garanties.ts](../../../../../packages/kit/src/emplois/garanties.ts) | Carte des garanties de Palettes |
+| États reconnus et leurs variantes (`hover`/`hovered`, `press`/`pressed`) | `STATE_SELECTORS`, [semantics.ts](../../../../../packages/plugin-exporter/src/contract/semantics.ts) | Nulle part |
 | Tailles reconnues (`small` lu comme `sm`) | `SIZE_VALUES`, même fichier | Nulle part |
-| Les cinq couches et les alias permis entre elles | `COUCHES` et `CIBLES_DES_COUCHES`, [profilUcm.ts](../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts) | Onglet Intégrations |
-| Architecture des collections | [Vue illustrée multi-marques](../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle des collections et des rôles |
-| Une variable par propriété de composant | [SPEC de l'exporteur](../../../../packages/plugin-exporter/SPEC.md), section 8 | [Guide designer](../../../guides/POUR-LES-DESIGNERS.md), section 2 |
-| Tags des règles d'usage | [README de l'exporteur](../../../../packages/plugin-exporter/README.md#documenter-les-règles-dusage) | Même document |
-| Sens de chaque caractéristique pour l'implémentation | [packages/cli/aides/](../../../../packages/cli/aides/) | Un agent, par `ucm guide` |
+| Les cinq couches et les alias permis entre elles | `COUCHES` et `CIBLES_DES_COUCHES`, [profilUcm.ts](../../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts) | Onglet Intégrations |
+| Architecture des collections | [Vue illustrée multi-marques](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle des collections et des rôles |
+| Une variable par propriété de composant | [SPEC de l'exporteur](../../../../../packages/plugin-exporter/SPEC.md), section 8 | [Guide designer](../../../../guides/POUR-LES-DESIGNERS.md), section 2 |
+| Tags des règles d'usage | [README de l'exporteur](../../../../../packages/plugin-exporter/README.md#documenter-les-règles-dusage) | Même document |
+| Sens de chaque caractéristique pour l'implémentation | [packages/cli/aides/](../../../../../packages/cli/aides/) | Un agent, par `ucm guide` |
 | Structure de la collection `components` (`{composant}/colors/...`, `{composant}/sizes/...`) | Nulle part | Nulle part |
 | Nomenclature des noms de tokens | Nulle part | Nulle part |
 
@@ -268,7 +268,7 @@ UCM Token Explorer lit tout le document et n'écrit rien.
 
 ### 5.3 Le propriétaire de chaque information
 
-Ce tableau étend celui de la section 3 de [CONCEPT.md](../../../../CONCEPT.md).
+Ce tableau étend celui de la section 3 de [CONCEPT.md](../../../../../CONCEPT.md).
 
 | Information | Décidée par | Rangée dans | Publiée par | Contrôlée par |
 |---|---|---|---|---|
@@ -374,7 +374,7 @@ là où il paraît, comme l'aperçu de Palettes nomme déjà chaque variable de
 ## 7. Icônes
 
 Le contrat publie `icons.<clé>.figmaName`, le nom du calque d'icône, et ne
-nomme aucun jeu ([FORMAT.md](../../../format/FORMAT.md#ce-que-le-contrat-ne-dit-pas-dune-icône)).
+nomme aucun jeu ([FORMAT.md](../../../../format/FORMAT.md#ce-que-le-contrat-ne-dit-pas-dune-icône)).
 `ucm icons` liste les noms que les contrats réclament, sans juger s'ils sont
 couverts. Le Playground les rend par un Kit Font Awesome (`src/Icone.tsx`,
 classes `fa-kit` et `fa-regular`).
@@ -438,7 +438,7 @@ l'explorateur puis migrer.
 | 4 | L'Architecte écrit : renommage avec table, descriptions de `theme`, alias de `theme` | Architecte |
 | Ensuite | Icônes, typographie | À décider |
 
-La table de renommage de la phase 4 rejoint la piste du [diff sémantique](../Diff%20S%C3%A9mantique/PLAN-DIFF-SEMANTIQUE.md) :
+La table de renommage de la phase 4 rejoint la piste du [diff sémantique](../../Diff%20S%C3%A9mantique/PLAN-DIFF-SEMANTIQUE.md) :
 un renommage change le chemin publié, donc les références des contrats et les
 variables CSS du consommateur.
 

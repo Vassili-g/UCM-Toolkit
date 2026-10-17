@@ -7,18 +7,18 @@ contraint. Aucune décision n'est prise.
 
 Lecteur : le mainteneur, et l'agent qui poursuit la proposition.
 
-Documents relus : [CONCEPT.md](../../../../../CONCEPT.md),
-[FORMAT.md](../../../../format/FORMAT.md) (nommer un token, hypothèses,
+Documents relus : [CONCEPT.md](../../../../../../CONCEPT.md),
+[FORMAT.md](../../../../../format/FORMAT.md) (nommer un token, hypothèses,
 tokens de variantes, export des tokens), la
-[SPEC de l'exporteur](../../../../../packages/plugin-exporter/SPEC.md) (objet,
+[SPEC de l'exporteur](../../../../../../packages/plugin-exporter/SPEC.md) (objet,
 contexte, export des tokens, hors périmètre),
-[l'architecture multimarque](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
-en entier, la [SPEC de l'explorateur](../../../../../packages/plugin-explorateur/SPEC.md)
+[l'architecture multimarque](../../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
+en entier, la [SPEC de l'explorateur](../../../../../../packages/plugin-explorateur/SPEC.md)
 (lecture seule, architecture libre), les README du dépôt, du kit, du CLI, de
 l'adaptateur TypeScript, de Palettes, de l'explorateur, de l'exporteur, du
-moteur de couleur et du socle, le [plan du diff sémantique](../../Diff%20S%C3%A9mantique/PLAN-DIFF-SEMANTIQUE.md)
-et la [conformité du rendu](../../Linter%20Dev/PLAN-CONFORMITE-RENDU.md).
-La [spécification Palettes](../../Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)
+moteur de couleur et du socle, le [plan du diff sémantique](../../../Diff%20S%C3%A9mantique/PLAN-DIFF-SEMANTIQUE.md)
+et la [conformité du rendu](../../../Linter%20Dev/PLAN-CONFORMITE-RENDU.md).
+La [spécification Palettes](../../../Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)
 a été relue pour son vocabulaire, ses décisions, son périmètre, la planche
 (section 9.4) et les variables (section 17). Non relus en entier : le détail
 champ par champ de FORMAT.md et de la SPEC de l'exporteur, l'optimisation des
