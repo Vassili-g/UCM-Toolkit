@@ -1,271 +1,396 @@
-/** Les doubles n'exposent que les écritures permises et simulent les effets d'un renommage d'axe. */
+/** Le banc simule les variables et collections locales de Figma : chaque affectation de nom est tracée, et une panne peut s'y glisser. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { appliquerNoms, creerPortEcriture, type SessionEcriture } from '../src/ecriture';
-import { lireInventaire, nomDePropriete, type ComposantLu, type PortDeLecture } from '../src/lecture';
-import { lireChoix, estConventions } from '../src/conventions';
-import { CATEGORIES_DE_NOM, detecterLesConventions, normaliserLesNoms, type Convention, type ConventionsParCategorie } from '@ucm-kit/core/referentiel';
-import type { Inventaire } from '../src/lecture';
+import {
+  annulerLeDernierRenommage, appliquerLesRenommages, creerPortEcriture,
+  type ObjetModifiable, type PortDeRegles, type RenommageDemande, type SessionEcriture, type VariableModifiable,
+} from '../src/ecriture';
+import { relireInventaireAvantEcriture, type PortDeLecture } from '../src/lecture';
+import { lireLesRegles, lireLeStockage } from '../src/regles';
 
-const convention = { casse: 'minuscules', separateur: 'tiret' } as const;
-const choix = { collections: convention, variables: convention, proprietes: convention, valeurs: convention };
-/** Le calcul que `appliquerNoms` reçoit : conventions fournies ou détectées, cibles gelées occupant leur nom. */
-function analyserInventaire(inventaire: Inventaire, preferences: ConventionsParCategorie = {}, termesUcm = false) {
-  const noms = inventaire.entrees.map((entree) => entree.nom);
-  const detection = detecterLesConventions(noms);
-  const inchangee: Convention = { casse: 'inchangee', separateur: 'inchange' };
-  const conventions = Object.fromEntries(CATEGORIES_DE_NOM.map((categorie) => [categorie, preferences[categorie] ?? detection[categorie].dominante ?? inchangee]));
-  return { inventaire, conventions, termesUcm, normalisation: normaliserLesNoms(noms, conventions, {
-    termesUcm,
-    nonRenommables: inventaire.entrees.filter((entree) => !entree.renommable).map((entree) => entree.nom.id),
-  }) };
-}
-const copier = <T>(valeur: T): T => JSON.parse(JSON.stringify(valeur));
-function banc(noms = ['Brand Color', 'Text Color']) {
-  const collections = [{ id: 'c', name: 'Brand Tokens', remote: false }];
-  const variables = noms.map((name, rang) => ({ id: `v${rang}`, name, variableCollectionId: 'c', remote: false }));
-  const composants: ComposantLu[] = [];
+const HEURE = '2026-10-17T10:00:00.000Z';
+
+type SpecVariable = readonly [id: string, nom: string, collection?: string];
+function banc(options: { variables?: readonly SpecVariable[]; collections?: readonly (readonly [string, string])[]; protegees?: readonly string[] } = {}) {
+  const noms = new Map<string, string>();
+  const ecritures: string[] = [];
   const traces: string[] = [];
-  let conventions = '';
-  const idsEdites: string[] = [];
-  const lecture: PortDeLecture = { collections: async () => copier(collections), variables: async () => copier(variables),
-    pages: () => [{ id: 'page', name: 'Composants', charger: async () => {}, composants: () => copier(composants) }] };
-  const session: SessionEcriture = {
-    collection: (id) => collections.find((node) => node.id === id) ?? null,
-    variable: (id) => variables.find((node) => node.id === id) ?? null,
-    composant: (id) => {
-      const node = composants.find((item) => item.id === id);
-      if (!node) return null;
-      return Object.assign(node, { parent: node.parentId ? { id: node.parentId } : null,
-        editComponentProperty: (ancienId: string, { name }: { name: string }) => {
-          idsEdites.push(ancienId);
-          const definition = node.componentPropertyDefinitions[ancienId];
-          assert.ok(definition);
-          const nouvelId = name + (ancienId.match(/#[^#]+$/u)?.[0] ?? '');
-          const definitions = { ...node.componentPropertyDefinitions, [nouvelId]: definition };
-          delete definitions[ancienId];
-          Object.assign(node, { componentPropertyDefinitions: definitions });
-          if (definition.type === 'VARIANT') for (const enfant of composants.filter((item) => item.parentId === node.id)) {
-            const paires = Object.entries(enfant.variantProperties ?? {}).map(([axe, valeur]) => [axe === nomDePropriete(ancienId) ? name : axe, valeur]);
-            Object.assign(enfant, { variantProperties: Object.fromEntries(paires), name: paires.map(([axe, valeur]) => `${axe}=${valeur}`).join(', ') });
-          }
-          return nouvelId;
-        } });
-    },
-    lireConventions: () => conventions,
-    rangerConventions: (texte) => { traces.push('conventions'); conventions = texte; },
-    commitUndo: () => traces.push('undo'),
+  const stock = new Map<string, string>();
+  const panne = { apres: Infinity, ecritPuisLeve: false };
+  const protegees = [...(options.protegees ?? [])];
+  const creer = <T extends object>(id: string, nom: string, extra: T) => {
+    noms.set(id, nom);
+    return {
+      id, remote: false, ...extra,
+      get name() { return noms.get(id)!; },
+      set name(valeur: string) {
+        if (ecritures.length >= panne.apres) throw new Error('panne');
+        ecritures.push(`${id}=${valeur}`);
+        noms.set(id, valeur);
+        if (panne.ecritPuisLeve && ecritures.length === panne.apres) throw new Error('panne après écriture');
+      },
+    };
   };
-  const lire = () => lireInventaire(lecture, { pause: async () => {} });
-  return { collections, variables, composants, traces, idsEdites, session, lecture, lire,
-    setConventions: (texte: string) => { conventions = texte; } };
-}
-function avecVariants() {
-  const b = banc([]);
-  b.composants.push({ id: 'set', name: 'Button', remote: false, type: 'COMPONENT_SET', parentId: null,
-    componentPropertyDefinitions: { 'State#1:2': { type: 'VARIANT' }, 'Size#1:3': { type: 'VARIANT' }, 'Label#1:4': { type: 'TEXT' } }, variantProperties: null });
-  for (const [id, state, size] of [['a', 'Idle State', 'Small'], ['b', 'Idle State', 'Large'], ['c2', 'Hover State', 'Small']]) b.composants.push({
-    id, name: `State=${state}, Size=${size}`, remote: false, type: 'COMPONENT', parentId: 'set', componentPropertyDefinitions: {}, variantProperties: { State: state, Size: size },
-  });
+  const collections = new Map<string, ObjetModifiable>();
+  const variables = new Map<string, VariableModifiable>();
+  for (const [id, nom] of options.collections ?? [['c', 'Brand']]) collections.set(id, creer(id, nom, {}));
+  for (const [id, nom, collection = 'c'] of options.variables ?? []) variables.set(id, creer(id, nom, { variableCollectionId: collection }));
+  const lecture: PortDeLecture = {
+    collections: async () => [...collections.values()].map((objet) => ({ id: objet.id, name: objet.name, remote: false })),
+    variables: async () => [...variables.values()].map((objet) => ({ id: objet.id, name: objet.name, variableCollectionId: objet.variableCollectionId, remote: false })),
+    cibleAlias: () => undefined,
+    protegee: (variable) => protegees.includes(variable.id),
+  };
+  const session: SessionEcriture = {
+    collection: (id) => collections.get(id) ?? null,
+    variable: (id) => variables.get(id) ?? null,
+    commitUndo: () => { traces.push('undo'); },
+  };
+  const stockage: PortDeRegles = {
+    cles: () => [...stock.keys()],
+    lire: (cle) => stock.get(cle) ?? '',
+    ecrire: (cle, texte) => { traces.push(`ecrire:${cle}`); stock.set(cle, texte); },
+    effacer: (cle) => { traces.push(`effacer:${cle}`); stock.delete(cle); },
+  };
+  const entree = (type: 'variable' | 'collection', id: string) => JSON.stringify([type, id]);
+  const b = {
+    ecritures, traces, panne, protegees, session, stockage, variables, collections,
+    nom: (id: string) => noms.get(id),
+    /** Un renommage modifié hors du plugin : rien n'est tracé. */
+    changer: (id: string, nom: string) => { noms.set(id, nom); },
+    v: (id: string, nouveauNom: string): RenommageDemande => ({
+      type: 'variable', id: entree('variable', id), figmaId: id, collectionId: variables.get(id)!.variableCollectionId, ancienNom: noms.get(id)!, nouveauNom,
+    }),
+    c: (id: string, nouveauNom: string): RenommageDemande => ({ type: 'collection', id: entree('collection', id), figmaId: id, ancienNom: noms.get(id)!, nouveauNom }),
+    entree,
+    appliquer: async (demandes: readonly RenommageDemande[]) => appliquerLesRenommages({
+      demandes, inventaire: await relireInventaireAvantEcriture(lecture), session, stockage, heure: () => HEURE,
+    }),
+    annuler: async () => annulerLeDernierRenommage({ inventaire: await relireInventaireAvantEcriture(lecture), session, stockage }),
+    journal: () => lireLesRegles(lireLeStockage(stockage)).journal,
+    lecture,
+  };
   return b;
 }
+const abc = () => banc({ variables: [['v0', 'a'], ['v1', 'b'], ['v2', 'c']] });
+const compter = (b: { traces: string[] }, trace: string) => b.traces.filter((item) => item === trace).length;
 
-test('seuls les noms cochés sont écrits, puis la convention et un seul point d’annulation', async () => {
-  const b = banc();
-  const analyse = analyserInventaire(await b.lire(), choix);
-  const id = analyse.normalisation.propositions.find((p) => p.categorie === 'variables')!.id;
-  const resultat = appliquerNoms({ analyse, inventaire: await b.lire(), ids: [id], session: b.session, conventionsLues: '' });
-  assert.equal(b.variables[0].name, 'brand-color');
-  assert.equal(b.variables[1].name, 'Text Color');
-  assert.equal(b.collections[0].name, 'Brand Tokens');
+test('un renommage coché s’écrit sur la variable et la collection, journal rangé avant l’unique point d’annulation', async () => {
+  const b = banc({ variables: [['v0', 'Brand Color'], ['v1', 'Text Color']] });
+  const resultat = await b.appliquer([b.v('v0', 'brand-color'), b.c('c', 'brand')]);
+  assert.equal(b.nom('v0'), 'brand-color');
+  assert.equal(b.nom('v1'), 'Text Color');
+  assert.equal(b.nom('c'), 'brand');
   assert.equal(resultat.statut, 'applique');
-  assert.deepEqual(resultat.renommages, [{ type: 'variable', id: 'v0', ancienNom: 'Brand Color', nouveauNom: 'brand-color' }]);
-  assert.deepEqual(b.traces, ['conventions', 'undo']);
-  assert.equal(lireChoix(b.session.lireConventions())?.version, 1);
+  assert.deepEqual(resultat.sautes, []);
+  assert.deepEqual(resultat.renommes, [
+    { id: b.entree('variable', 'v0'), type: 'variable', figmaId: 'v0', ancienNom: 'Brand Color', nouveauNom: 'brand-color' },
+    { id: b.entree('collection', 'c'), type: 'collection', figmaId: 'c', ancienNom: 'Brand', nouveauNom: 'brand' },
+  ]);
+  assert.equal(resultat.annulable, true);
+  assert.deepEqual(b.journal(), { heure: HEURE, renommages: [
+    { type: 'variable', id: 'v0', ancienNom: 'Brand Color', nouveauNom: 'brand-color' },
+    { type: 'collection', id: 'c', ancienNom: 'Brand', nouveauNom: 'brand' },
+  ] });
+  assert.deepEqual(b.traces, ['ecrire:journal:0', 'undo']);
 });
 
-test('un identifiant falsifié ou dupliqué refuse tout le lot sans écriture', async () => {
-  const b = banc();
-  const analyse = analyserInventaire(await b.lire(), choix);
-  const id = analyse.normalisation.propositions[0].id;
-  for (const ids of [[id, 'faux'], [id, id]]) {
-    const resultat = appliquerNoms({ analyse, inventaire: await b.lire(), ids, session: b.session, conventionsLues: '' });
-    assert.equal(resultat.statut, 'refuse');
-    assert.deepEqual(resultat.renommages, []);
-  }
-  assert.deepEqual(b.traces, []);
+test('un nom changé depuis la lecture est sauté, puis relu tel quel', async () => {
+  const b = banc({ variables: [['v0', 'Brand Color'], ['v1', 'Text Color']] });
+  const demandes = [b.v('v0', 'brand-color'), b.v('v1', 'text-color')];
+  b.changer('v0', 'Travail du designer');
+  const resultat = await b.appliquer(demandes);
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('variable', 'v0'), motif: 'fichier-modifie' }]);
+  assert.equal(resultat.statut, 'partiel');
+  assert.equal(b.nom('v0'), 'Travail du designer');
+  assert.equal(b.nom('v1'), 'text-color');
+  assert.deepEqual(resultat.renommes.map((fait) => fait.figmaId), ['v1']);
 });
 
-test('un nom modifié, supprimé ou devenu distant depuis l’aperçu est sauté', async () => {
-  for (const changement of ['modifie', 'supprime', 'remote']) {
-    const b = banc();
-    const analyse = analyserInventaire(await b.lire(), choix);
-    const id = analyse.normalisation.propositions.find((p) => p.categorie === 'variables')!.id;
-    if (changement === 'modifie') b.variables[0].name = 'Travail utilisateur';
-    if (changement === 'supprime') b.variables.shift();
-    if (changement === 'remote') b.variables[0].remote = true;
-    const resultat = appliquerNoms({ analyse, inventaire: await b.lire(), ids: [id], session: b.session, conventionsLues: '' });
-    assert.equal(resultat.ignores[0].motif, 'fichier-modifie');
-    assert.equal(resultat.renommages.length, 0);
-    assert.deepEqual(b.traces, []);
-  }
-});
-
-test('un occupant créé après l’aperçu bloque le nouveau nom', async () => {
-  const b = banc(['Brand Color']);
-  const analyse = analyserInventaire(await b.lire(), choix);
-  const id = analyse.normalisation.propositions.find((p) => p.categorie === 'variables')!.id;
-  b.variables.push({ id: 'nouveau', name: 'brand-color', remote: false, variableCollectionId: 'c' });
-  const resultat = appliquerNoms({ analyse, inventaire: await b.lire(), ids: [id], session: b.session, conventionsLues: '' });
-  assert.deepEqual(resultat.ignores, [{ id, motif: 'collision' }]);
-  assert.equal(b.variables[0].name, 'Brand Color');
-});
-
-test('le moteur garde les propositions non cochées comme occupants', async () => {
-  const b = banc();
-  const analyse = analyserInventaire(await b.lire(), choix);
-  const variables = analyse.normalisation.propositions.filter((p) => p.categorie === 'variables');
-  assert.equal(variables.length, 2);
-  b.variables[1].name = variables[0].nouveauNom;
-  const resultat = appliquerNoms({ analyse, inventaire: await b.lire(), ids: [variables[0].id], session: b.session, conventionsLues: '' });
-  assert.equal(resultat.renommages.length, 0);
-  assert.equal(resultat.ignores[0].motif, 'collision');
-  assert.equal(b.variables[1].name, 'brand-color');
-});
-
-test('axes et valeurs du même lot conservent les autres axes et les suffixes de propriétés', async () => {
-  const b = avecVariants();
-  const analyse = analyserInventaire(await b.lire(), choix);
-  const ids = analyse.normalisation.propositions.filter((p) => p.categorie === 'proprietes' || (p.categorie === 'valeurs' && p.ancienNom === 'Idle State')).map((p) => p.id);
-  const resultat = appliquerNoms({ analyse, inventaire: await b.lire(), ids, session: b.session, conventionsLues: '' });
-  assert.equal(resultat.statut, 'applique');
-  assert.deepEqual(Object.keys(b.composants[0].componentPropertyDefinitions), ['state#1:2', 'size#1:3', 'label#1:4']);
-  assert.deepEqual(b.idsEdites, ['State#1:2', 'Size#1:3', 'Label#1:4']);
-  assert.equal(b.composants[1].name, 'state=idle-state, size=Small');
-  assert.equal(b.composants[2].name, 'state=idle-state, size=Large');
-  assert.equal(b.composants[3].name, 'state=Hover State, size=Small');
-  assert.equal(resultat.renommages.filter((r) => r.type === 'valeur').length, 2);
-  assert.equal(resultat.renommages[0].nouvelId, 'state#1:2');
-  assert.deepEqual(b.traces, ['conventions', 'undo']);
-});
-
-test('un nouveau variant retire le groupe complet de valeurs et son axe de la sélection', async () => {
-  const b = avecVariants();
-  const analyse = analyserInventaire(await b.lire(), choix);
-  const ids = analyse.normalisation.propositions.filter((p) => p.categorie !== 'collections').map((p) => p.id);
-  b.composants.push({ ...copier(b.composants[1]), id: 'nouveau' });
-  const resultat = appliquerNoms({ analyse, inventaire: await b.lire(), ids, session: b.session, conventionsLues: '' });
-  assert.equal(b.composants[1].name, 'State=Idle State, Size=Small');
-  assert.equal(b.composants.at(-1)!.name, 'State=Idle State, Size=Small');
-  assert.equal(resultat.renommages.some((r) => r.type === 'valeur'), false);
-  assert.equal(resultat.renommages.some((r) => r.nouveauNom === 'state'), false);
-});
-
-test('une combinaison finale dupliquée ou une syntaxe ambiguë refuse les variants avant mutation', async () => {
-  for (const cas of ['doublon', 'syntaxe']) {
-    const b = avecVariants();
-    if (cas === 'doublon') b.composants.push({ ...copier(b.composants[1]), id: 'doublon' });
-    else Object.assign(b.composants[2], { variantProperties: { State: 'Idle State', Size: 'a=b,c' } });
-    const analyse = analyserInventaire(await b.lire(), choix);
-    const ids = analyse.normalisation.propositions.filter((p) => p.categorie === 'valeurs').map((p) => p.id);
-    const resultat = appliquerNoms({ analyse, inventaire: await b.lire(), ids, session: b.session, conventionsLues: '' });
-    assert.equal(resultat.renommages.length, 0);
-    assert.deepEqual(b.traces, []);
-  }
-});
-
-test('une convention concurrente refuse toute écriture et garde sa valeur', async () => {
-  const b = banc();
-  const analyse = analyserInventaire(await b.lire(), choix);
-  b.setConventions('concurrente');
-  const resultat = appliquerNoms({ analyse, inventaire: await b.lire(), ids: analyse.normalisation.propositions.map((p) => p.id), session: b.session, conventionsLues: '' });
+test('un nom changé sans autre renommage ne laisse rien à écrire ni au journal ni au point d’annulation', async () => {
+  const b = banc({ variables: [['v0', 'Brand Color']] });
+  const demandes = [b.v('v0', 'brand-color')];
+  b.changer('v0', 'Autre');
+  const resultat = await b.appliquer(demandes);
   assert.equal(resultat.statut, 'refuse');
-  assert.equal(b.session.lireConventions(), 'concurrente');
+  assert.equal(resultat.annulable, false);
+  assert.deepEqual(b.ecritures, []);
+  assert.deepEqual(b.traces, []);
+  assert.equal(b.journal(), undefined);
+});
+
+test('un objet disparu ou passé dans une autre collection est sauté', async () => {
+  const b = banc({ collections: [['c', 'Brand'], ['d', 'Autre'], ['e', 'Troisième']], variables: [['v0', 'a'], ['v1', 'b'], ['v2', 'c']] });
+  const demandes = [b.v('v0', 'a2'), b.v('v1', 'b2'), b.v('v2', 'c2'), b.c('e', 'Troisième2')];
+  b.variables.delete('v0');
+  (b.variables.get('v1') as { variableCollectionId: string }).variableCollectionId = 'd';
+  b.collections.delete('e');
+  const resultat = await b.appliquer(demandes);
+  assert.deepEqual(resultat.sautes.map(({ id, motif }) => [id, motif]), [
+    [b.entree('variable', 'v0'), 'fichier-modifie'], [b.entree('variable', 'v1'), 'fichier-modifie'], [b.entree('collection', 'e'), 'fichier-modifie'],
+  ]);
+  assert.deepEqual(b.ecritures, ['v2=c2']);
+});
+
+test('une variable protégée est sautée même cochée, et occupe son nom', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']], protegees: ['v0'] });
+  const resultat = await b.appliquer([b.v('v0', 'a2'), b.v('v1', 'a')]);
+  assert.deepEqual(resultat.sautes, [
+    { id: b.entree('variable', 'v0'), motif: 'protegee' },
+    { id: b.entree('variable', 'v1'), motif: 'collision' },
+  ]);
+  assert.deepEqual(b.ecritures, []);
+  assert.equal(resultat.statut, 'refuse');
+});
+
+test('une collection portant une variable protégée se renomme', async () => {
+  const b = banc({ variables: [['v0', 'a']], protegees: ['v0'] });
+  const resultat = await b.appliquer([b.c('c', 'Primitives')]);
+  assert.equal(resultat.statut, 'applique');
+  assert.equal(b.nom('c'), 'Primitives');
+});
+
+test('un renommage vers le nom d’un occupant non coché est sauté', async () => {
+  const b = banc({ variables: [['v0', 'Brand Color'], ['v1', 'brand-color']] });
+  const resultat = await b.appliquer([b.v('v0', 'brand-color')]);
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('variable', 'v0'), motif: 'collision' }]);
+  assert.equal(b.nom('v0'), 'Brand Color');
+  assert.equal(b.nom('v1'), 'brand-color');
+  assert.deepEqual(b.ecritures, []);
+});
+
+test('deux renommages vers le même nom sont sautés ensemble', async () => {
+  const b = banc({ variables: [['v0', 'A'], ['v1', 'a'], ['v2', 'x']] });
+  const resultat = await b.appliquer([b.v('v0', 'z'), b.v('v1', 'z'), b.v('v2', 'y')]);
+  assert.deepEqual(resultat.sautes.map(({ motif }) => motif), ['collision', 'collision']);
+  assert.deepEqual(b.ecritures, ['v2=y']);
+});
+
+test('un renommage sauté rend son nom à l’objet, qui peut bloquer un autre : les collisions se propagent', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b'], ['v2', 'z'], ['v3', 'c']] });
+  // v0 vise le nom de v2 (non coché) ; v1 prend l'ancien nom de v0, que v0 garde alors.
+  const resultat = await b.appliquer([b.v('v1', 'a'), b.v('v0', 'z'), b.v('v3', 'd')]);
+  assert.deepEqual(resultat.sautes, [
+    { id: b.entree('variable', 'v0'), motif: 'collision' },
+    { id: b.entree('variable', 'v1'), motif: 'collision' },
+  ]);
+  assert.deepEqual(b.ecritures, ['v3=d']);
+  assert.equal(resultat.statut, 'partiel');
+});
+
+test('le même nom dans deux collections, ou pour une variable et une collection, n’est pas un doublon', async () => {
+  const b = banc({ collections: [['c', 'Brand'], ['d', 'Autre']], variables: [['v0', 'a', 'c'], ['v1', 'b', 'd'], ['v2', 'couleur', 'c']] });
+  const resultat = await b.appliquer([b.v('v0', 'couleur2'), b.v('v1', 'couleur'), b.c('c', 'couleur')]);
+  assert.equal(resultat.statut, 'applique');
+  assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('c')], ['couleur2', 'couleur', 'couleur']);
+});
+
+test('une collection renommée vers le nom d’une autre est sautée', async () => {
+  const b = banc({ collections: [['c', 'Brand'], ['d', 'Autre']] });
+  const resultat = await b.appliquer([b.c('c', 'Autre')]);
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('collection', 'c'), motif: 'collision' }]);
+});
+
+test('une demande répétée ou sans effet ne s’écrit qu’une fois', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  const resultat = await b.appliquer([b.v('v0', 'a2'), b.v('v0', 'a3'), b.v('v1', 'b')]);
+  assert.deepEqual(b.ecritures, ['v0=a2']);
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('variable', 'v0'), motif: 'fichier-modifie' }]);
+});
+
+test('une chaîne s’écrit par la fin, dans l’ordre où elle est demandée', async () => {
+  for (const sens of [false, true]) {
+    const b = abc();
+    const demandes = [b.v('v0', 'b'), b.v('v1', 'c'), b.v('v2', 'd')];
+    const resultat = await b.appliquer(sens ? [...demandes].reverse() : demandes);
+    assert.equal(resultat.statut, 'applique');
+    assert.deepEqual(b.ecritures, ['v2=d', 'v1=c', 'v0=b']);
+    assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('v2')], ['b', 'c', 'd']);
+    assert.equal(compter(b, 'undo'), 1);
+  }
+});
+
+test('un cycle de deux passe par un nom provisoire absent de la portée', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b'], ['occupant', 'a~ucm']] });
+  const resultat = await b.appliquer([b.v('v0', 'b'), b.v('v1', 'a')]);
+  assert.equal(resultat.statut, 'applique');
+  assert.deepEqual(b.ecritures, ['v0=a~ucm-2', 'v1=a', 'v0=b']);
+  assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('occupant')], ['b', 'a', 'a~ucm']);
+  assert.deepEqual(resultat.renommes.map(({ figmaId, ancienNom, nouveauNom }) => [figmaId, ancienNom, nouveauNom]), [['v0', 'a', 'b'], ['v1', 'b', 'a']]);
+  assert.equal(compter(b, 'undo'), 1);
+});
+
+test('un cycle de trois s’écrit avec un seul nom provisoire', async () => {
+  const b = abc();
+  const resultat = await b.appliquer([b.v('v0', 'b'), b.v('v1', 'c'), b.v('v2', 'a')]);
+  assert.equal(resultat.statut, 'applique');
+  assert.equal(b.ecritures.length, 4);
+  assert.equal(b.ecritures.filter((ecriture) => /~ucm/u.test(ecriture)).length, 1);
+  assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('v2')], ['b', 'c', 'a']);
+  assert.deepEqual(b.journal()!.renommages.map(({ id, nouveauNom }) => [id, nouveauNom]), [['v0', 'b'], ['v1', 'c'], ['v2', 'a']]);
+});
+
+test('un cycle et une chaîne du même lot s’écrivent chacun dans leur ordre', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b'], ['v2', 'c'], ['v3', 'd']] });
+  const resultat = await b.appliquer([b.v('v2', 'd'), b.v('v0', 'b'), b.v('v3', 'e'), b.v('v1', 'a')]);
+  assert.equal(resultat.statut, 'applique');
+  assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('v2'), b.nom('v3')], ['b', 'a', 'd', 'e']);
+  assert.deepEqual(b.ecritures.filter((ecriture) => /^v[23]=/u.test(ecriture)), ['v3=e', 'v2=d']);
+  assert.equal(b.ecritures.length, 5);
+  assert.equal(compter(b, 'undo'), 1);
+});
+
+test('une panne après la première écriture rend le relevé exact et un seul point d’annulation', async () => {
+  const b = abc();
+  b.panne.apres = 1;
+  const resultat = await b.appliquer([b.v('v0', 'b'), b.v('v1', 'c'), b.v('v2', 'd')]);
+  assert.equal(resultat.statut, 'partiel');
+  assert.deepEqual(b.ecritures, ['v2=d']);
+  assert.deepEqual(resultat.renommes.map(({ figmaId, nouveauNom }) => [figmaId, nouveauNom]), [['v2', 'd']]);
+  assert.deepEqual(resultat.sautes, [
+    { id: b.entree('variable', 'v0'), motif: 'ecriture-interrompue' },
+    { id: b.entree('variable', 'v1'), motif: 'ecriture-interrompue' },
+  ]);
+  assert.deepEqual(b.journal()!.renommages, [{ type: 'variable', id: 'v2', ancienNom: 'c', nouveauNom: 'd' }]);
+  assert.equal(resultat.annulable, true);
+  assert.equal(compter(b, 'undo'), 1);
+});
+
+test('un setter qui écrit puis lève reste présent dans le relevé', async () => {
+  const b = banc({ variables: [['v0', 'a']] });
+  b.panne.apres = 1;
+  b.panne.ecritPuisLeve = true;
+  const resultat = await b.appliquer([b.v('v0', 'a2')]);
+  assert.equal(resultat.statut, 'partiel');
+  assert.deepEqual(resultat.renommes.map(({ nouveauNom }) => nouveauNom), ['a2']);
+  assert.deepEqual(resultat.sautes, []);
+  assert.deepEqual(b.journal()!.renommages.map(({ nouveauNom }) => nouveauNom), ['a2']);
+});
+
+test('une panne avant toute écriture ne range ni journal ni point d’annulation', async () => {
+  const b = banc({ variables: [['v0', 'a']] });
+  b.panne.apres = 0;
+  const resultat = await b.appliquer([b.v('v0', 'a2')]);
+  assert.equal(resultat.statut, 'refuse');
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('variable', 'v0'), motif: 'ecriture-interrompue' }]);
+  assert.equal(resultat.annulable, false);
   assert.deepEqual(b.traces, []);
 });
 
-test('une panne après une écriture rend son relevé exact et un seul point d’annulation', async () => {
-  const b = banc();
-  const analyse = analyserInventaire(await b.lire(), choix);
-  const ancienneCollection = b.collections[0].name;
-  // La panne survient dans le setter après le contrôle de tous les objets.
-  Object.defineProperty(b.variables[0], 'name', { get: () => 'Brand Color', set: () => { throw new Error('panne'); } });
-  const resultat = appliquerNoms({ analyse, inventaire: await b.lire(), ids: analyse.normalisation.propositions.map((p) => p.id), session: b.session, conventionsLues: '' });
+test('une panne au milieu d’un cycle consigne le nom provisoire que l’objet porte', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  b.panne.apres = 1;
+  const resultat = await b.appliquer([b.v('v0', 'b'), b.v('v1', 'a')]);
   assert.equal(resultat.statut, 'partiel');
-  assert.equal(resultat.erreur, true);
-  assert.deepEqual(resultat.renommages, [{ type: 'collection', id: 'c', ancienNom: ancienneCollection, nouveauNom: 'brand-tokens' }]);
-  assert.equal(resultat.ignores.some((r) => r.id === analyse.normalisation.propositions[0].id), false);
-  assert.deepEqual(b.traces, ['undo']);
-  assert.equal(resultat.annulationPossible, true);
+  const provisoire = b.nom('v0')!;
+  assert.match(provisoire, /~ucm/u);
+  assert.deepEqual(b.journal()!.renommages, [{ type: 'variable', id: 'v0', ancienNom: 'a', nouveauNom: provisoire }]);
+  b.panne.apres = Infinity;
+  const annulation = await b.annuler();
+  assert.equal(annulation.statut, 'applique');
+  assert.equal(b.nom('v0'), 'a');
 });
 
-test('un setter qui écrit puis lève reste présent dans le relevé partiel', async () => {
-  const b = banc(['Brand Color']);
-  const analyse = analyserInventaire(await b.lire(), choix);
-  let nom = b.variables[0].name;
-  Object.defineProperty(b.variables[0], 'name', { get: () => nom, set: (valeur) => { nom = valeur; throw new Error('panne après écriture'); } });
-  const id = analyse.normalisation.propositions.find((p) => p.categorie === 'variables')!.id;
-  const resultat = appliquerNoms({ analyse, inventaire: await b.lire(), ids: [id], session: b.session, conventionsLues: '' });
+test('l’annulation remet les anciens noms, efface le journal et ouvre un seul point d’annulation', async () => {
+  const b = abc();
+  await b.appliquer([b.v('v0', 'b'), b.v('v1', 'c'), b.v('v2', 'a'), b.c('c', 'Primitives')]);
+  b.traces.length = 0;
+  b.ecritures.length = 0;
+  const resultat = await b.annuler();
+  assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('v2'), b.nom('c')], ['a', 'b', 'c', 'Brand']);
+  assert.equal(resultat.statut, 'applique');
+  assert.equal(resultat.renommes.length, 4);
+  assert.equal(resultat.annulable, false);
+  assert.equal(b.journal(), undefined);
+  assert.deepEqual(b.traces, ['effacer:journal:0', 'undo']);
+});
+
+test('l’annulation saute l’objet dont le nom a changé depuis', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  await b.appliquer([b.v('v0', 'a2'), b.v('v1', 'b2')]);
+  b.changer('v1', 'travail du designer');
+  b.traces.length = 0;
+  const resultat = await b.annuler();
+  assert.equal(b.nom('v0'), 'a');
+  assert.equal(b.nom('v1'), 'travail du designer');
   assert.equal(resultat.statut, 'partiel');
-  assert.equal(resultat.renommages[0].nouveauNom, 'brand-color');
-  assert.equal(resultat.ignores.length, 0);
-  assert.deepEqual(b.traces, ['undo']);
+  assert.deepEqual(resultat.sautes, [{ id: 'v1', motif: 'fichier-modifie' }]);
+  assert.deepEqual(resultat.renommes.map(({ figmaId }) => figmaId), ['v0']);
+  assert.equal(b.journal(), undefined);
+  assert.equal(compter(b, 'undo'), 1);
 });
 
-test('une panne au milieu d’un groupe de valeurs ne relève que le variant écrit', async () => {
-  const b = avecVariants();
-  const analyse = analyserInventaire(await b.lire(), choix);
-  const id = analyse.normalisation.propositions.find((p) => p.categorie === 'valeurs' && p.ancienNom === 'Idle State')!.id;
-  const nomRefuse = b.composants[2].name;
-  Object.defineProperty(b.composants[2], 'name', { get: () => nomRefuse, set: () => { throw new Error('refus'); } });
-  const resultat = appliquerNoms({ analyse, inventaire: await b.lire(), ids: [id], session: b.session, conventionsLues: '' });
+test('l’annulation saute un objet disparu', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  await b.appliquer([b.v('v0', 'a2'), b.v('v1', 'b2')]);
+  b.variables.delete('v0');
+  const resultat = await b.annuler();
+  assert.deepEqual(resultat.sautes, [{ id: 'v0', motif: 'fichier-modifie' }]);
+  assert.equal(b.nom('v1'), 'b');
   assert.equal(resultat.statut, 'partiel');
-  assert.deepEqual(resultat.renommages, [{ type: 'valeur', id: 'a', ownerId: 'set', ancienNom: 'State=Idle State, Size=Small', nouveauNom: 'State=idle-state, Size=Small' }]);
-  assert.deepEqual(resultat.ignores, [{ id, motif: 'ecriture-interrompue' }]);
-  assert.deepEqual(b.traces, ['undo']);
 });
 
-test('les records de l’inventaire restent des copies après modification du port', async () => {
-  const b = avecVariants();
-  const lecture = { ...b.lecture, pages: () => [{ id: 'p', name: 'Page', charger: async () => {}, composants: () => b.composants }] };
-  const inventaire = await lireInventaire(lecture, { pause: async () => {} });
-  Object.assign(b.composants[1].variantProperties!, { State: 'Modifie' });
-  Object.assign(b.composants[0].componentPropertyDefinitions['State#1:2'], { type: 'TEXT' });
-  assert.equal(inventaire.composants![1].variantProperties!.State, 'Idle State');
-  assert.equal(inventaire.composants![0].componentPropertyDefinitions['State#1:2'].type, 'VARIANT');
+test('l’annulation saute un objet dont l’ancien nom est devenu occupé', async () => {
+  const b = banc({ variables: [['v0', 'a']] });
+  await b.appliquer([b.v('v0', 'a2')]);
+  b.variables.set('x', { id: 'x', name: 'a', remote: false, variableCollectionId: 'c' });
+  const resultat = await b.annuler();
+  assert.deepEqual(resultat.sautes, [{ id: 'v0', motif: 'collision' }]);
+  assert.equal(b.nom('v0'), 'a2');
+  assert.equal(resultat.statut, 'refuse');
+  assert.equal(compter(b, 'undo'), 1);
 });
 
-test('le contexte lisible associe chaque nom à sa collection ou à son composant', async () => {
-  const b = avecVariants();
-  b.variables.push({ id: 'couleur', name: 'Brand Color', remote: false, variableCollectionId: 'c' });
-  const inventaire = await b.lire();
-  assert.deepEqual(inventaire.entrees.find((e) => e.cible.type === 'variable')!.contexte, { collection: 'Brand Tokens' });
-  assert.deepEqual(inventaire.entrees.find((e) => e.cible.type === 'propriete')!.contexte, { composant: 'Button', page: 'Composants' });
-  assert.deepEqual(inventaire.entrees.find((e) => e.cible.type === 'valeur')!.contexte, { composant: 'Button', page: 'Composants', axe: 'State' });
+test('sans journal, l’annulation ne fait rien', async () => {
+  const b = banc({ variables: [['v0', 'a']] });
+  const resultat = await b.annuler();
+  assert.deepEqual(resultat, { statut: 'refuse', renommes: [], sautes: [], annulable: false });
+  assert.deepEqual(b.traces, []);
 });
 
-test('la validation de la convention suit les registres et refuse les versions inconnues', () => {
-  assert.equal(estConventions({ variables: convention }), true);
-  assert.equal(estConventions({ variables: { casse: 'inventee', separateur: 'tiret' } }), false);
-  assert.equal(estConventions({ inconnue: convention }), false);
-  assert.equal(lireChoix('{'), undefined);
-  assert.equal(lireChoix(JSON.stringify({ version: 2, conventions: choix, termesUcm: false })), undefined);
+test('une panne pendant l’annulation garde au journal les objets non remis', async () => {
+  const b = abc();
+  await b.appliquer([b.v('v0', 'a2'), b.v('v1', 'b2'), b.v('v2', 'c2')]);
+  b.ecritures.length = 0;
+  b.panne.apres = 1;
+  const resultat = await b.annuler();
+  assert.equal(resultat.statut, 'partiel');
+  assert.equal(resultat.annulable, true);
+  assert.equal(resultat.renommes.length, 1);
+  assert.equal(b.journal()!.renommages.length, 2);
+  b.panne.apres = Infinity;
+  const reprise = await b.annuler();
+  assert.equal(reprise.statut, 'applique');
+  assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('v2')], ['a', 'b', 'c']);
 });
 
-test('l’adaptateur résout les composants par l’API asynchrone avant les écritures', async () => {
-  const b = avecVariants();
-  const inventaire = await b.lire();
-  const api = { variables: { getLocalVariableCollectionsAsync: async () => b.collections, getLocalVariablesAsync: async () => b.variables },
-    getNodeByIdAsync: async (id: string) => b.session.composant(id),
-    root: { getSharedPluginData: (espace: string, cle: string) => { assert.equal(espace, 'ucm_architect'); assert.equal(cle, 'conventions'); return ''; },
-      setSharedPluginData: (espace: string, cle: string, texte: string) => { assert.equal(espace, 'ucm_architect'); assert.equal(cle, 'conventions'); b.session.rangerConventions(texte); } },
-    commitUndo: () => b.session.commitUndo(),
+test('un nouveau lot remplace le journal précédent, et un lot sans écriture le laisse', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  await b.appliquer([b.v('v0', 'a2')]);
+  const demandes = [b.v('v1', 'b2')];
+  b.changer('v1', 'autre');
+  await b.appliquer(demandes);
+  assert.deepEqual(b.journal()!.renommages.map(({ id }) => id), ['v0']);
+  await b.appliquer([b.v('v1', 'b3')]);
+  assert.deepEqual(b.journal()!.renommages.map(({ id }) => id), ['v1']);
+});
+
+test('l’adaptateur résout les objets locaux par l’API asynchrone avant les écritures', async () => {
+  const b = banc({ variables: [['v0', 'a']] });
+  const appels: string[] = [];
+  const api = {
+    variables: {
+      getLocalVariableCollectionsAsync: async () => { appels.push('collections'); return [...b.collections.values()]; },
+      getLocalVariablesAsync: async () => { appels.push('variables'); return [...b.variables.values()]; },
+    },
+    commitUndo: () => { appels.push('undo'); },
   };
-  const session = await creerPortEcriture(api as unknown as PluginAPI).ouvrir(inventaire);
-  assert.equal(session.composant('set')?.id, 'set');
-  assert.equal(session.composant('absent'), null);
-  assert.equal(session.lireConventions(), '');
-  session.rangerConventions('convention');
+  const session = await creerPortEcriture(api as unknown as PluginAPI).ouvrir();
+  assert.deepEqual(appels, ['collections', 'variables']);
+  assert.equal(session.variable('v0')?.id, 'v0');
+  assert.equal(session.variable('absente'), null);
+  assert.equal(session.collection('c')?.name, 'Brand');
+  assert.equal(session.collection('absente'), null);
   session.commitUndo();
-  assert.deepEqual(b.traces, ['conventions', 'undo']);
+  assert.deepEqual(appels, ['collections', 'variables', 'undo']);
 });

@@ -16,23 +16,35 @@ const interdits = [
   /setValueForMode|setBoundVariable|setExplicitVariableMode|setVariableCodeSyntax|removeOverride/u,
   /createVariable|createVariableCollection|addMode|renameMode|removeMode/u,
   /import(?:Variable|Component|ComponentSet|Style)ByKeyAsync/u,
-  /loadAllPagesAsync|triggerUndo|setProperties|swapComponent|addComponentProperty|deleteComponentProperty/u,
+  /loadAllPagesAsync|loadAsync|triggerUndo|setProperties|swapComponent|addComponentProperty|deleteComponentProperty|editComponentProperty/u,
   /\.(?:fills|strokes|effects|characters|x|y|opacity|visible|description|scopes|hiddenFromPublishing)\s*[-+*/]?=(?!=)/u,
   /\.selection\s*=(?!=)|setCurrentPageAsync|scrollAndZoomIntoView/u,
 ];
+const sansCommentaires = (texte: string): string => texte.replace(/\/\*[\s\S]*?\*\//gu, '').replace(/\/\/.*$/gmu, '');
 
-test('le document ne reçoit que les renommages, la convention et le point d’annulation dans ecriture.ts', () => {
+test('le document ne reçoit que des noms de variables et de collections, les règles du fichier et le point d’annulation, tous dans ecriture.ts', () => {
   const fautes: string[] = [];
   for (const fichier of fichiers(source)) {
     const relatif = path.relative(source, fichier);
-    const texte = fs.readFileSync(fichier, 'utf8').replace(/\/\*[\s\S]*?\*\//gu, '').replace(/\/\/.*$/gmu, '');
+    const texte = sansCommentaires(fs.readFileSync(fichier, 'utf8'));
     for (const motif of interdits) if (motif.test(texte)) fautes.push(`${relatif}: ${motif}`);
-    if (relatif !== 'ecriture.ts' && /\.name\s*=(?!=)|\.editComponentProperty\s*\(|\.setSharedPluginData\s*\(|\.commitUndo\s*\(/u.test(texte)) fautes.push(relatif);
+    if (relatif !== 'ecriture.ts' && /\.name\s*=(?!=)|\.setSharedPluginData\s*\(|\.commitUndo\s*\(/u.test(texte)) fautes.push(relatif);
     if (!relatif.startsWith(`ui${path.sep}`) && /\.appendChild\s*\(|\.insertChild\s*\(/u.test(texte)) fautes.push(`${relatif}: déplacement`);
   }
   assert.deepEqual(fautes, []);
-  const ecriture = fs.readFileSync(path.join(source, 'ecriture.ts'), 'utf8');
-  assert.match(ecriture, /\.editComponentProperty\(cible\.proprieteId, \{ name: proposition\.nouveauNom \}\)/u);
-  assert.match(ecriture, /setSharedPluginData\('ucm_architect', 'conventions', texte\)/u);
-  assert.doesNotMatch(ecriture, /defaultValue|preferredValues|\.getNodeById\(/u);
+});
+
+test('ecriture.ts affecte `name` d’un seul objet modifiable et ne range que dans l’espace d’Architect', () => {
+  const ecriture = sansCommentaires(fs.readFileSync(path.join(source, 'ecriture.ts'), 'utf8'));
+  assert.equal(ecriture.match(/\.name\s*=(?!=)/gu)?.length, 1);
+  assert.match(ecriture, /etape\.element\.objet\.name = etape\.nom/u);
+  const rangements = [...ecriture.matchAll(/setSharedPluginData\(([^,]+),/gu)].map((trouve) => trouve[1]);
+  assert.deepEqual(rangements, ['ESPACE_ARCHITECT', 'ESPACE_ARCHITECT']);
+  assert.doesNotMatch(ecriture, /getNodeById|getNodeByIdAsync|\.pages\b|findAll|componentPropertyDefinitions|variantProperties/u);
+});
+
+test('les variables et les collections se résolvent par l’API asynchrone des variables locales', () => {
+  const ecriture = sansCommentaires(fs.readFileSync(path.join(source, 'ecriture.ts'), 'utf8'));
+  assert.match(ecriture, /api\.variables\.getLocalVariableCollectionsAsync\(\)/u);
+  assert.match(ecriture, /api\.variables\.getLocalVariablesAsync\(\)/u);
 });

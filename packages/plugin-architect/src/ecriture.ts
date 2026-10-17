@@ -1,234 +1,273 @@
-/** Toutes les mutations du document sont réunies ici ; une erreur peut laisser un résultat partiel. */
-import { ESPACE_ARCHITECT, normaliserLesNoms, type ConventionsParCategorie, type PropositionDeNom, type ResultatDeNormalisation } from '@ucm-kit/core/referentiel';
-import { nomDePropriete, type CibleDeNom, type ComposantLu, type EntreeInventaire, type Inventaire } from './lecture';
-import type { ChoixDeConventions } from './conventions';
+/**
+ * Toutes les mutations du document sont réunies ici : le `name` d'une variable ou d'une collection locale,
+ * les données partagées d'`ESPACE_ARCHITECT` (par `PortDeRegles`) et le point d'annulation.
+ *
+ * Un lot se contrôle sur le document relu avant la première écriture. Figma n'offre pas de transaction :
+ * une exception laisse un lot partiel, et le résultat dit ce qui a vraiment changé.
+ */
+import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
+import type { Inventaire } from './lecture';
+import { effacerLeJournal, lireLesRegles, lireLeStockage, preparerJournal, rangerLesEcritures, type RenommageJournal } from './regles';
 
-/** Les champs d'un calcul que `appliquerNoms` lit. */
-interface Analyse {
-  readonly inventaire: Inventaire;
-  readonly conventions: ConventionsParCategorie;
-  readonly termesUcm: boolean;
-  readonly normalisation: ResultatDeNormalisation;
-}
+export interface ObjetModifiable { readonly id: string; name: string; readonly remote: boolean }
+export interface VariableModifiable extends ObjetModifiable { readonly variableCollectionId: string }
 
-interface ObjetModifiable { readonly id: string; name: string; readonly remote: boolean }
-interface ComposantModifiable extends ObjetModifiable {
-  readonly type: 'COMPONENT' | 'COMPONENT_SET';
-  readonly parent: { readonly id: string } | null;
-  readonly componentPropertyDefinitions: Readonly<Record<string, { readonly type: string }>>;
-  readonly variantProperties?: Readonly<Record<string, string>> | null;
-  editComponentProperty(id: string, choix: { name: string }): string;
-}
+/** Les objets locaux sont résolus avant les écritures, qui sont synchrones. */
 export interface SessionEcriture {
   collection(id: string): ObjetModifiable | null;
-  variable(id: string): (ObjetModifiable & { readonly variableCollectionId: string }) | null;
-  composant(id: string): ComposantModifiable | null;
-  lireConventions(): string;
-  rangerConventions(texte: string): void;
+  variable(id: string): VariableModifiable | null;
   commitUndo(): void;
 }
-export interface PortEcriture { ouvrir(inventaire: Inventaire): Promise<SessionEcriture> }
-export interface RenommageEffectue {
-  readonly type: CibleDeNom['type'];
+export interface PortEcriture { ouvrir(): Promise<SessionEcriture> }
+
+interface DemandeCommune {
+  /** Identifiant de l'entrée de l'inventaire. */
   readonly id: string;
+  /** Identifiant Figma de la variable ou de la collection. */
+  readonly figmaId: string;
   readonly ancienNom: string;
   readonly nouveauNom: string;
-  readonly ownerId?: string;
-  readonly proprieteId?: string;
-  readonly nouvelId?: string;
 }
-export interface RefusDeNom { readonly id: string; readonly motif: 'fichier-modifie' | 'collision' | 'syntaxe-variante' | 'ecriture-interrompue' }
-export interface ResultatApplication {
+/** Un renommage coché, déjà résolu par la session. */
+export type RenommageDemande =
+  | (DemandeCommune & { readonly type: 'collection' })
+  | (DemandeCommune & { readonly type: 'variable'; readonly collectionId: string });
+
+export type MotifSaute = 'fichier-modifie' | 'protegee' | 'collision' | 'ecriture-interrompue';
+export interface RenommageFait {
+  /** L'entrée de l'inventaire pour une application ; l'identifiant Figma pour une annulation. */
+  readonly id: string;
+  readonly type: 'variable' | 'collection';
+  readonly figmaId: string;
+  readonly ancienNom: string;
+  /** Le nom que l'objet porte après l'écriture. */
+  readonly nouveauNom: string;
+}
+export interface RenommageSaute { readonly id: string; readonly motif: MotifSaute }
+export interface ResultatEcriture {
   readonly statut: 'applique' | 'partiel' | 'refuse';
-  readonly renommages: readonly RenommageEffectue[];
-  readonly ignores: readonly RefusDeNom[];
-  readonly conventionRangee: boolean;
-  readonly annulationPossible: boolean;
-  readonly erreur: boolean;
-}
-const egal = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
-const syntaxe = (nom: string): boolean => nom.length > 0 && nom.trim() === nom && !/[=,]/u.test(nom);
-const comparer = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
-const groupe = (inventaire: Inventaire, ownerId: string): readonly ComposantLu[] => (inventaire.composants ?? []).filter((node) => node.parentId === ownerId).sort((a, b) => comparer(a.id, b.id));
-
-/** Prépare les noms finaux de chaque variant depuis les propriétés structurées, sans parser son nom. */
-function variantsFinaux(inventaire: Inventaire, propositions: readonly PropositionDeNom[], entrees: ReadonlyMap<string, EntreeInventaire>) {
-  const proprietes = new Map<string, Map<string, string>>();
-  const valeurs = new Map<string, Map<string, string>>();
-  const owners = new Set<string>();
-  for (const proposition of propositions) {
-    const cible = entrees.get(proposition.id)!.cible;
-    if (cible.type === 'propriete' && cible.typePropriete === 'VARIANT') {
-      owners.add(cible.ownerId);
-      const axes = proprietes.get(cible.ownerId) ?? new Map<string, string>();
-      axes.set(nomDePropriete(cible.proprieteId), proposition.nouveauNom);
-      proprietes.set(cible.ownerId, axes);
-    }
-    if (cible.type === 'valeur') {
-      owners.add(cible.ownerId);
-      const options = valeurs.get(cible.ownerId) ?? new Map<string, string>();
-      options.set(JSON.stringify([nomDePropriete(cible.axe), cible.valeur]), proposition.nouveauNom);
-      valeurs.set(cible.ownerId, options);
-    }
-  }
-  const noms: { node: ComposantLu; nom: string }[] = [];
-  const invalides = new Set<string>();
-  for (const ownerId of owners) {
-    const combinaisons = new Set<string>();
-    const variants = groupe(inventaire, ownerId);
-    if (variants.length === 0) invalides.add(ownerId);
-    for (const node of variants) {
-      const paires = Object.entries(node.variantProperties ?? {}).map(([axe, valeur]) => [
-        proprietes.get(ownerId)?.get(axe) ?? axe,
-        valeurs.get(ownerId)?.get(JSON.stringify([axe, valeur])) ?? valeur,
-      ] as const);
-      const cle = JSON.stringify([...paires].sort(([a], [b]) => comparer(a, b)));
-      if (node.remote || paires.length === 0 || paires.some(([axe, valeur]) => !syntaxe(axe) || !syntaxe(valeur))
-        || new Set(paires.map(([axe]) => axe)).size !== paires.length || combinaisons.has(cle)) invalides.add(ownerId);
-      combinaisons.add(cle);
-      noms.push({ node, nom: paires.map(([axe, valeur]) => `${axe}=${valeur}`).join(', ') });
-    }
-  }
-  return { noms, invalides };
+  readonly renommes: readonly RenommageFait[];
+  readonly sautes: readonly RenommageSaute[];
+  /** Vrai quand le journal garde de quoi remettre les anciens noms. */
+  readonly annulable: boolean;
 }
 
-/** Compare l'aperçu au document relu et ne calcule que les propositions cochées encore sûres. */
-export function appliquerNoms(options: {
-  readonly analyse: Analyse;
-  readonly inventaire: Inventaire;
-  readonly ids: readonly string[];
-  readonly session: SessionEcriture;
-  readonly conventionsLues: string;
-}): ResultatApplication {
-  const { analyse, inventaire, session } = options;
-  const ignores: RefusDeNom[] = [];
-  const renommages: RenommageEffectue[] = [];
-  let conventionRangee = false;
+interface ObjetDuDocument { readonly nom: string; readonly portee: string; readonly collectionId?: string; readonly protegee: boolean }
+interface Element { readonly demande: RenommageDemande; readonly portee: string; readonly objet: ObjetModifiable }
+interface Etape { readonly element: Element; readonly nom: string }
+
+const PORTEE_DU_DOCUMENT = 'document';
+const porteeDeLaCollection = (collectionId: string): string => `collection:${collectionId}`;
+const cleDObjet = (type: string, figmaId: string): string => `${type}:${figmaId}`;
+const cleDeNom = (portee: string, nom: string): string => JSON.stringify([portee, nom]);
+const heureActuelle = (): string => new Date().toISOString();
+
+/** Les noms de l'inventaire relu, par objet. */
+function lireLeDocument(inventaire: Inventaire): Map<string, ObjetDuDocument> {
+  const document = new Map<string, ObjetDuDocument>();
+  for (const entree of inventaire.entrees) {
+    const cible = entree.cible;
+    if (cible.type === 'collection') {
+      document.set(cleDObjet('collection', cible.collectionId), { nom: entree.nom.nom, portee: PORTEE_DU_DOCUMENT, protegee: false });
+    } else {
+      document.set(cleDObjet('variable', cible.variableId),
+        { nom: entree.nom.nom, portee: porteeDeLaCollection(cible.collectionId), collectionId: cible.collectionId, protegee: entree.protegee });
+    }
+  }
+  return document;
+}
+
+/**
+ * Retire les renommages dont le nom final n'est pas unique dans sa portée (la collection pour une variable,
+ * le document pour une collection), puis recommence : un renommage retiré rend son ancien nom à l'objet,
+ * qui peut en bloquer un autre. Tous les renommages en cause à un tour sont retirés ensemble.
+ */
+function retirerLesDoublons(retenus: readonly Element[], document: ReadonlyMap<string, ObjetDuDocument>, sautes: RenommageSaute[]): Element[] {
+  let restants = [...retenus];
+  for (;;) {
+    const nouveaux = new Map(restants.map((element) => [cleDObjet(element.demande.type, element.demande.figmaId), element.demande.nouveauNom]));
+    const comptes = new Map<string, number>();
+    for (const [cle, objet] of document) {
+      const nom = nouveaux.get(cle) ?? objet.nom;
+      comptes.set(cleDeNom(objet.portee, nom), (comptes.get(cleDeNom(objet.portee, nom)) ?? 0) + 1);
+    }
+    const gardes: Element[] = [];
+    let retire = false;
+    for (const element of restants) {
+      if (comptes.get(cleDeNom(element.portee, element.demande.nouveauNom)) === 1) gardes.push(element);
+      else { sautes.push({ id: element.demande.id, motif: 'collision' }); retire = true; }
+    }
+    if (!retire) return gardes;
+    restants = gardes;
+  }
+}
+
+/**
+ * Ordonne les écritures. Une chaîne (`a` devient `b` pendant que `b` devient `c`) s'écrit par la fin.
+ * Un cycle passe par un nom provisoire, absent de la portée, que le dernier maillon remplace par le nom final.
+ */
+function planifier(elements: readonly Element[], document: ReadonlyMap<string, ObjetDuDocument>): Etape[] {
+  const reserves = new Map<string, Set<string>>();
+  const reserver = (portee: string, nom: string): void => {
+    const noms = reserves.get(portee) ?? new Set<string>();
+    noms.add(nom);
+    reserves.set(portee, noms);
+  };
+  for (const objet of document.values()) reserver(objet.portee, objet.nom);
+  for (const element of elements) reserver(element.portee, element.demande.nouveauNom);
+  const provisoire = (element: Element): string => {
+    let rang = 1;
+    let nom: string;
+    do { nom = `${element.demande.ancienNom}~ucm${rang > 1 ? `-${rang}` : ''}`; rang++; } while (reserves.get(element.portee)!.has(nom));
+    reserver(element.portee, nom);
+    return nom;
+  };
+  // Le prédécesseur d'un renommage est celui qui doit libérer le nom visé avant lui.
+  const parAncienNom = new Map(elements.map((element) => [cleDeNom(element.portee, element.demande.ancienNom), element]));
+  const etapes: Etape[] = [];
+  const faits = new Set<Element>();
+  const finale = (element: Element): Etape => ({ element, nom: element.demande.nouveauNom });
+  for (const depart of elements) {
+    if (faits.has(depart)) continue;
+    const chaine = [depart];
+    let cycle: Element | undefined;
+    for (let courant = depart; ;) {
+      const predecesseur = parAncienNom.get(cleDeNom(courant.portee, courant.demande.nouveauNom));
+      if (!predecesseur || faits.has(predecesseur)) break;
+      if (chaine.includes(predecesseur)) { cycle = predecesseur; break; }
+      chaine.push(predecesseur);
+      courant = predecesseur;
+    }
+    const rang = cycle ? chaine.indexOf(cycle) : chaine.length;
+    if (cycle) {
+      etapes.push({ element: cycle, nom: provisoire(cycle) });
+      for (let i = chaine.length - 1; i > rang; i--) etapes.push(finale(chaine[i]!));
+      etapes.push(finale(cycle));
+    }
+    for (let i = rang - 1; i >= 0; i--) etapes.push(finale(chaine[i]!));
+    for (const element of chaine) faits.add(element);
+  }
+  return etapes;
+}
+
+interface Execution { readonly renommes: RenommageFait[]; readonly sautes: RenommageSaute[]; readonly erreur: boolean }
+
+/** Contrôle les renommages sur le document relu, les ordonne et les écrit ; l'état final se lit sur les objets. */
+function executer(demandes: readonly RenommageDemande[], inventaire: Inventaire, session: SessionEcriture): Execution {
+  const document = lireLeDocument(inventaire);
+  const sautes: RenommageSaute[] = [];
+  const retenus: Element[] = [];
+  const vus = new Set<string>();
+  for (const demande of demandes) {
+    if (demande.nouveauNom === demande.ancienNom) continue;
+    const cle = cleDObjet(demande.type, demande.figmaId);
+    const actuel = document.get(cle);
+    const objet = demande.type === 'collection' ? session.collection(demande.figmaId) : session.variable(demande.figmaId);
+    const doublon = vus.has(cle);
+    vus.add(cle);
+    const collectionChangee = demande.type === 'variable'
+      && (actuel?.collectionId !== demande.collectionId || (objet as VariableModifiable | null)?.variableCollectionId !== demande.collectionId);
+    if (doublon || !actuel || !objet || objet.remote || actuel.nom !== demande.ancienNom || objet.name !== demande.ancienNom || collectionChangee) {
+      sautes.push({ id: demande.id, motif: 'fichier-modifie' });
+    } else if (actuel.protegee) sautes.push({ id: demande.id, motif: 'protegee' });
+    else retenus.push({ demande, portee: actuel.portee, objet });
+  }
+  const elements = retirerLesDoublons(retenus, document, sautes);
   let erreur = false;
-  const termines = new Set<string>();
-  const actuelles = new Map(inventaire.entrees.map((entree) => [entree.nom.id, entree]));
-  const apercu = new Map(analyse.inventaire.entrees.map((entree) => [entree.nom.id, entree]));
-  const propositions = new Map(analyse.normalisation.propositions.map((proposition) => [proposition.id, proposition]));
-  const selection = new Set(options.ids);
-  if (selection.size !== options.ids.length || options.ids.some((id) => !propositions.has(id)) || session.lireConventions() !== options.conventionsLues) {
-    return { statut: 'refuse', renommages, ignores: options.ids.map((id) => ({ id, motif: 'fichier-modifie' })), conventionRangee, annulationPossible: false, erreur: false };
-  }
-  for (const id of selection) {
-    const ancien = apercu.get(id)!;
-    const actuel = actuelles.get(id);
-    const cible = ancien.cible;
-    const ownerId = cible.type === 'valeur' || (cible.type === 'propriete' && cible.typePropriete === 'VARIANT') ? cible.ownerId : undefined;
-    const node = cible.type === 'propriete' ? session.composant(cible.ownerId) : undefined;
-    const variable = cible.type === 'variable' ? session.variable(cible.variableId) : undefined;
-    const collection = cible.type === 'collection' ? session.collection(cible.collectionId) : undefined;
-    const composantAncien = cible.type === 'propriete' ? analyse.inventaire.composants?.find((item) => item.id === cible.ownerId) : undefined;
-    if (!actuel?.renommable || !egal(ancien.nom, actuel.nom) || !egal(cible, actuel.cible)
-      || (ownerId && !egal(groupe(analyse.inventaire, ownerId), groupe(inventaire, ownerId)))
-      || (cible.type === 'propriete' && (!node || node.remote || node.componentPropertyDefinitions[cible.proprieteId]?.type !== cible.typePropriete
-        || (composantAncien && (node.name !== composantAncien.name || node.type !== composantAncien.type || node.parent?.id !== (composantAncien.parentId ?? undefined)))))
-      || (cible.type === 'variable' && (!variable || variable.remote || variable.name !== ancien.nom.nom || variable.variableCollectionId !== cible.collectionId))
-      || (cible.type === 'collection' && (!collection || collection.remote || collection.name !== ancien.nom.nom))) {
-      selection.delete(id);
-      ignores.push({ id, motif: 'fichier-modifie' });
-    }
-  }
-  let finales: readonly PropositionDeNom[] = [];
-  let variants = variantsFinaux(inventaire, [], actuelles);
-  let retrait: boolean;
-  do {
-    retrait = false;
-    finales = normaliserLesNoms(inventaire.entrees.map((entree) => entree.nom), analyse.conventions, {
-      termesUcm: analyse.termesUcm,
-      nonRenommables: inventaire.entrees.filter((entree) => !selection.has(entree.nom.id) || !entree.renommable).map((entree) => entree.nom.id),
-    }).propositions;
-    for (const id of selection) if (!finales.some((p) => p.id === id && p.nouveauNom === propositions.get(id)?.nouveauNom)) {
-      selection.delete(id); ignores.push({ id, motif: 'collision' }); retrait = true;
-    }
-    variants = variantsFinaux(inventaire, finales, actuelles);
-    for (const id of selection) {
-      const cible = actuelles.get(id)!.cible;
-      if ((cible.type === 'valeur' || cible.type === 'propriete') && variants.invalides.has(cible.ownerId)) {
-        selection.delete(id); ignores.push({ id, motif: 'syntaxe-variante' }); retrait = true;
-      }
-    }
-  } while (retrait);
-  const composants = variants.noms.map(({ node, nom }) => ({ node, nom, objet: session.composant(node.id) }));
-  if (composants.some(({ node, objet }) => !objet || objet.remote || objet.type !== 'COMPONENT' || objet.parent?.id !== node.parentId
-    || objet.name !== node.name || !egal(objet.variantProperties, node.variantProperties))) {
-    return { statut: 'refuse', renommages, ignores: options.ids.map((id) => ({ id, motif: 'fichier-modifie' })), conventionRangee, annulationPossible: false, erreur: false };
-  }
-  if (session.lireConventions() !== options.conventionsLues) return { statut: 'refuse', renommages, ignores: options.ids.map((id) => ({ id, motif: 'fichier-modifie' })), conventionRangee, annulationPossible: false, erreur: false };
   try {
-    for (const proposition of finales) {
-      const cible = actuelles.get(proposition.id)!.cible;
-      if (cible.type === 'valeur') continue;
-      if (cible.type === 'propriete') {
-        const owner = session.composant(cible.ownerId)!;
-        const avant = new Set(Object.keys(owner.componentPropertyDefinitions));
-        let nouvelId: string | undefined;
-        try { nouvelId = owner.editComponentProperty(cible.proprieteId, { name: proposition.nouveauNom }); }
-        finally {
-          nouvelId ??= Object.keys(owner.componentPropertyDefinitions).find((id) => !avant.has(id) && nomDePropriete(id) === proposition.nouveauNom);
-          if (nouvelId && nomDePropriete(nouvelId) === proposition.nouveauNom) {
-            renommages.push({ type: cible.type, id: proposition.id, ownerId: cible.ownerId,
-              proprieteId: cible.proprieteId, nouvelId, ancienNom: proposition.ancienNom, nouveauNom: proposition.nouveauNom });
-            termines.add(proposition.id);
-          }
-        }
-      } else {
-        const objet = cible.type === 'collection' ? session.collection(cible.collectionId)! : session.variable(cible.variableId)!;
-        try { objet.name = proposition.nouveauNom; }
-        finally {
-          if (objet.name !== proposition.ancienNom) renommages.push({ type: cible.type, id: objet.id, ancienNom: proposition.ancienNom, nouveauNom: objet.name });
-          if (objet.name === proposition.nouveauNom) termines.add(proposition.id);
-        }
-      }
+    for (const etape of planifier(elements, document)) etape.element.objet.name = etape.nom;
+  } catch { erreur = true; }
+  const renommes: RenommageFait[] = [];
+  for (const { demande, objet } of elements) {
+    if (objet.name !== demande.ancienNom) {
+      renommes.push({ id: demande.id, type: demande.type, figmaId: demande.figmaId, ancienNom: demande.ancienNom, nouveauNom: objet.name });
     }
-    for (const { node, nom, objet } of composants) {
-      if (objet!.name === nom) continue;
-      const ancienNom = node.name;
-      try { objet!.name = nom; }
-      finally { if (objet!.name !== ancienNom) renommages.push({ type: 'valeur', id: node.id, ownerId: node.parentId!, ancienNom, nouveauNom: objet!.name }); }
-    }
-    if (finales.length > 0) {
-      const choix: ChoixDeConventions = { version: 1, conventions: analyse.conventions, termesUcm: analyse.termesUcm };
-      const texte = JSON.stringify(choix);
-      if (session.lireConventions() !== options.conventionsLues) throw new Error('conventions-modifiees');
-      if (texte !== options.conventionsLues) {
-        try { session.rangerConventions(texte); }
-        finally { conventionRangee = session.lireConventions() === texte; }
-      }
-    }
-  } catch {
-    erreur = true;
-    for (const proposition of finales) {
-      const cible = actuelles.get(proposition.id)!.cible;
-      if (cible.type === 'valeur' && cible.componentIds.every((id) => {
-        const attendu = composants.find(({ node }) => node.id === id);
-        return attendu?.objet?.name === attendu?.nom;
-      })) termines.add(proposition.id);
-      if (!termines.has(proposition.id)) ignores.push({ id: proposition.id, motif: 'ecriture-interrompue' });
-    }
+    if (objet.name !== demande.nouveauNom) sautes.push({ id: demande.id, motif: 'ecriture-interrompue' });
   }
-  const annulationPossible = renommages.length > 0 || conventionRangee;
-  if (annulationPossible) {
+  return { renommes, sautes, erreur };
+}
+
+function resultat(execution: Execution, annulable: boolean, erreur: boolean): ResultatEcriture {
+  const { renommes, sautes } = execution;
+  const statut = erreur || sautes.length > 0 ? (renommes.length > 0 ? 'partiel' : 'refuse') : 'applique';
+  return { statut, renommes, sautes, annulable };
+}
+
+/**
+ * Applique les renommages cochés sur le document relu par `relireInventaireAvantEcriture`.
+ * Saute ce qui a changé depuis la lecture, les variables protégées et les renommages qui créent un doublon.
+ * Range le journal du lot par `stockage`, puis ouvre un seul point d'annulation. Sans renommage effectif,
+ * le journal précédent reste en place.
+ */
+export function appliquerLesRenommages(options: {
+  readonly demandes: readonly RenommageDemande[];
+  readonly inventaire: Inventaire;
+  readonly session: SessionEcriture;
+  readonly stockage: PortDeRegles;
+  /** Heure du journal ; l'heure courante par défaut. */
+  readonly heure?: () => string;
+}): ResultatEcriture {
+  const { inventaire, session, stockage } = options;
+  const execution = executer(options.demandes, inventaire, session);
+  let erreur = execution.erreur;
+  let annulable = false;
+  if (execution.renommes.length > 0) {
+    const renommages: RenommageJournal[] = execution.renommes.map(({ type, figmaId, ancienNom, nouveauNom }) => ({ type, id: figmaId, ancienNom, nouveauNom }));
+    try {
+      rangerLesEcritures(stockage, preparerJournal({ heure: (options.heure ?? heureActuelle)(), renommages }, stockage.cles()));
+      annulable = true;
+    } catch { erreur = true; }
     try { session.commitUndo(); } catch { erreur = true; }
   }
-  return { statut: erreur || ignores.length > 0 ? (annulationPossible ? 'partiel' : 'refuse') : 'applique', renommages, ignores, conventionRangee, annulationPossible, erreur };
+  return resultat(execution, annulable, erreur);
 }
 
-/** Les objets locaux sont résolus avant les écritures synchrones, sur les pages déjà chargées. */
+/**
+ * Remet l'ancien nom à chaque objet du journal dont le nom est encore celui que le lot a écrit ; saute les autres.
+ * Le journal est effacé, sauf si une exception interrompt l'annulation : il garde alors les objets non remis.
+ * Les identifiants du résultat sont ceux de Figma.
+ */
+export function annulerLeDernierRenommage(options: {
+  readonly inventaire: Inventaire;
+  readonly session: SessionEcriture;
+  readonly stockage: PortDeRegles;
+}): ResultatEcriture {
+  const { inventaire, session, stockage } = options;
+  const journal = lireLesRegles(lireLeStockage(stockage)).journal;
+  if (!journal) return { statut: 'refuse', renommes: [], sautes: [], annulable: false };
+  const document = lireLeDocument(inventaire);
+  const demandes = journal.renommages.map((renommage): RenommageDemande => {
+    const base = { id: renommage.id, figmaId: renommage.id, ancienNom: renommage.nouveauNom, nouveauNom: renommage.ancienNom };
+    return renommage.type === 'collection'
+      ? { ...base, type: 'collection' }
+      : { ...base, type: 'variable', collectionId: document.get(cleDObjet('variable', renommage.id))?.collectionId ?? '' };
+  });
+  const execution = executer(demandes, inventaire, session);
+  let { erreur } = execution;
+  const restants = journal.renommages.filter((renommage) => !execution.renommes.some((fait) =>
+    fait.type === renommage.type && fait.figmaId === renommage.id && fait.nouveauNom === renommage.ancienNom));
+  const garder = erreur && restants.length > 0;
+  if (!erreur || execution.renommes.length > 0) {
+    try {
+      rangerLesEcritures(stockage, garder
+        ? preparerJournal({ heure: journal.heure, renommages: restants }, stockage.cles())
+        : effacerLeJournal(stockage.cles()));
+    } catch { erreur = true; }
+  }
+  if (execution.renommes.length > 0) {
+    try { session.commitUndo(); } catch { erreur = true; }
+  }
+  return resultat(execution, garder, erreur);
+}
+
+/** Les objets locaux sont résolus avant les écritures synchrones. */
 export function creerPortEcriture(api: PluginAPI): PortEcriture {
-  return { ouvrir: async (inventaire) => {
+  return { ouvrir: async () => {
     const collections = new Map((await api.variables.getLocalVariableCollectionsAsync()).map((objet) => [objet.id, objet]));
     const variables = new Map((await api.variables.getLocalVariablesAsync()).map((objet) => [objet.id, objet]));
-    const composants = new Map(await Promise.all((inventaire.composants ?? []).map(async ({ id }) => [id, await api.getNodeByIdAsync(id)] as const)));
     return {
       collection: (id) => collections.get(id) ?? null,
       variable: (id) => variables.get(id) ?? null,
-      composant: (id) => { const node = composants.get(id); return node?.type === 'COMPONENT' || node?.type === 'COMPONENT_SET' ? node : null; },
-      lireConventions: () => api.root.getSharedPluginData('ucm_architect', 'conventions'),
-      rangerConventions: (texte) => api.root.setSharedPluginData('ucm_architect', 'conventions', texte),
       commitUndo: () => api.commitUndo(),
     };
   } };
