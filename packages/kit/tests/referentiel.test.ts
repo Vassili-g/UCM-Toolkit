@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   CRANS, INTENSITE_UNIQUE, MODES, PROFILS, REGISTRES, REGISTRE_ETATS,
-  STATE_AXIS_NAMES, STATE_PRECEDENCE, STATE_SELECTORS, SIZE_VALUES,
+  STATE_AXIS_NAMES, STATE_PRECEDENCE, STATE_SELECTORS, SIZE_VALUES, ECHELLES_DE_TAILLES,
   libelleDuTerme, termeRetenu,
 } from '../src/referentiel/index.js';
 
@@ -64,4 +64,7 @@ test('les tailles connues gardent les deux échelles reconnues par l’exporteur
     'tiny', 'small', 'medium', 'large', 'big', 'huge',
     '4xs', '3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl', '2xl', '3xl', '4xl',
   ]);
+  for (const formes of ECHELLES_DE_TAILLES) {
+    for (const forme of formes) assert.ok(SIZE_VALUES.has(forme), forme);
+  }
 });

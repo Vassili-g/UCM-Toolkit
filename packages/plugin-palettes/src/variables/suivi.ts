@@ -15,13 +15,7 @@ import { MODES } from 'ucm-couleur';
 import { DESTINATION_PAR_DEFAUT, validerLaDestination, type Destination } from './destination';
 import type { ModeDuPlan } from './plan';
 
-/** La clé du suivi des variables, dans l'espace partagé du plugin. */
-export const CLE_VARIABLES = 'variables';
-
 export const VERSION_DU_SUIVI_DES_VARIABLES = 1;
-
-/** Les données partagées qu'une variable écrite porte : sa palette et sa clé du plan. Un repère, jamais une preuve de propriété. */
-export const CLES_DE_LA_VARIABLE = { palette: 'palette', cle: 'cle' } as const;
 
 export interface VariableSuivie {
   readonly id: string;

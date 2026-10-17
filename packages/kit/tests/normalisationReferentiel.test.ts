@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
 import {
-  CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, decouperSegment,
+  CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, collectionUcmReconnue, decouperSegment,
   detecterLesConventions, normaliserLesNoms,
   type CategorieDeNom, type Convention, type NomANormaliser,
 } from '../src/referentiel/index.js';
@@ -33,6 +33,12 @@ test('les frontières des mots gardent acronymes, accents et chiffres', () => {
   assert.deepEqual(decouperSegment('fontsize'), ['fontsize']);
   assert.deepEqual(decouperSegment('colorbrands'), ['color', 'brands']);
   assert.deepEqual(decouperSegment('Colorbrands'), ['Color', 'brands']);
+});
+
+test('une collection reconnue tolère la casse et les séparateurs', () => {
+  assert.equal(collectionUcmReconnue('Color Brands'), 'color-brands');
+  assert.equal(collectionUcmReconnue('COLOR_BRANDS'), 'color-brands');
+  assert.equal(collectionUcmReconnue('inconnue'), undefined);
 });
 
 test('les propositions conservent les groupes et excluent les noms déjà conformes', () => {

@@ -57,6 +57,7 @@ Cocher une case quand son commit est fait, avec le hash entre parenthèses.
 | Lot | Contenu | Agent | Exécutant | Dépend de |
 |---|---|---|---|---|
 | L0 | Contrats et squelette compilable | `implementeur`, relu par la principale | Claude | Ce plan |
+| K0 | Types du moteur dans le kit | `implementeur` | Codex | Ce plan |
 | K1 | Données du référentiel | `implementeur` | Codex | L0 |
 | K2a | Vocabulaire du fichier | `implementeur` | Codex | K1 |
 | K2b | Lexique et normalisation par étapes | `implementeur-exigeant` | Codex | K2a |
@@ -349,6 +350,11 @@ npm test --workspace ucm-plugin-socle
   `PluginMessage`, avec des données factices conformes aux contrats
 - [ ] Fin : `npm run build --workspace @ucm-kit/core`, typecheck du kit et
   d'Architect, `npm test --workspace ucm-architect-plugin` verts
+
+### K0 · Types du moteur
+
+- [x] Types seuls du contrat dans `harmonisation.ts`, en-tête du référentiel,
+  imports de types en `.js` et export depuis `referentiel/index.ts` (cfe90bf)
 
 ### K1 · Données du référentiel
 

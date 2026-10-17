@@ -31,6 +31,26 @@ export const SIZE_VALUES: ReadonlySet<string> = new Set([
   '4xs', '3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl', '2xl', '3xl', '4xl',
 ]);
 
+export const SYNONYMES_COURANTS = [
+  ['danger', 'error', 'negative', 'critical'],
+  ['warning', 'attention', 'notice'],
+  ['success', 'positive'],
+  ['info', 'information', 'informative'],
+  ['pressed', 'active', 'down'],
+  ['foreground', 'fg', 'content'],
+  ['background', 'bg'],
+  ['border', 'stroke'],
+  ['radius', 'corner', 'border-radius'],
+] as const;
+
+export const ABREVIATIONS: Readonly<Record<string, string>> = {
+  bg: 'background', fg: 'foreground', btn: 'button', txt: 'text', img: 'image',
+};
+
+export const ECHELLES_DE_TAILLES = [
+  ['sm', 'small'], ['md', 'medium'], ['lg', 'large'],
+] as const;
+
 export const REGISTRE_CRANS: Registre = {
   id: 'crans', extensible: false,
   termes: CRANS.map((cran) => ({

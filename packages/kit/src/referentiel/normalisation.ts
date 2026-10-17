@@ -3,7 +3,7 @@
  *
  * Après une modification : relancer `npm test` et changer la version du kit ; aucune vue ni planche n'en tire de données.
  */
-import { COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
+import { COLLECTIONS, REGISTRES_ARCHITECTURE, type Collection } from './architecture.js';
 import { CATEGORIES_DE_NOM, type Casse, type Separateur, type Convention, type NomANormaliser, type ConventionsParCategorie, type CategorieDeNom } from './conventions.js';
 import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
 
@@ -23,6 +23,12 @@ export type ResultatDeNormalisation = {
   readonly propositions: readonly PropositionDeNom[];
   readonly collisions: readonly CollisionDeNoms[];
 };
+
+/** Reconnaît une collection après découpage des séparateurs et de la casse. */
+export function collectionUcmReconnue(nom: string): Collection | undefined {
+  const normalise = decouperSegment(nom).map((mot) => mot.toLowerCase()).join('-');
+  return (COLLECTIONS as readonly string[]).includes(normalise) ? normalise as Collection : undefined;
+}
 
 function frontieres(segment: string): string {
   return segment.replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu, '$1\0$2').replace(/([\p{Ll}\p{N}])(\p{Lu})/gu, '$1\0$2');

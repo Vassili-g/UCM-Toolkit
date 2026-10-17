@@ -15,7 +15,8 @@ import { ESPACE_PARTAGE } from 'ucm-couleur';
 import type { ProfilDuDocument } from './lecture';
 import { SANS_BIBLIOTHEQUE, palettesDeLaCollection, type Bibliotheques, type CollectionDeBibliotheque, type VariableDeBibliotheque } from './variables/bibliotheques';
 import { RELEVE_VIDE, hexaLu, type CollectionLue, type ReleveDesVariables, type VariableLue } from './variables/releve';
-import { CLE_VARIABLES, SUIVI_VIDE, lireLeSuivi, type SuiviDesVariables } from './variables/suivi';
+import { CLES_PARTAGEES_DE_PALETTES } from '@ucm-kit/core/referentiel';
+import { SUIVI_VIDE, lireLeSuivi, type SuiviDesVariables } from './variables/suivi';
 
 /** Ce que la lecture demande à Figma. */
 export interface FigmaDesVariables {
@@ -67,7 +68,7 @@ export async function lireLesBibliotheques(figma: FigmaDesBibliotheques): Promis
 
 /** Le suivi des variables, rangé à la racine du document. */
 export function lireLeSuiviRange(racine: { getSharedPluginData(espace: string, cle: string): string }): SuiviDesVariables {
-  return lireLeSuivi(racine.getSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES));
+  return lireLeSuivi(racine.getSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.variables));
 }
 
 /** La valeur d'un mode : une couleur en hexa, ou `null` pour un alias, que la lecture ne suit pas. */

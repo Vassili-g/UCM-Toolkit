@@ -5,6 +5,7 @@ import {
   SUPPORT_DES_VARIABLES, VARIABLES_DE_PALETTE, DEFINITIONS_DES_VARIABLES, REGISTRE_VARIABLES_THEME,
   REGLE_SCALE, libellesDesVariables, niveauxWcag, SEUILS_PAR_USAGE, SEUILS_PAR_ROLE,
   TAGS_DES_REGLES, TAGS_D_INTENTION, RECOMMANDATIONS, PRODUITS, ESPACE_PARTAGE, CLE_RECETTE,
+  CLES_PARTAGEES_DE_PALETTES, ESPACE_ARCHITECT,
   type VariableLibellee,
 } from '../src/referentiel/index.js';
 
@@ -81,6 +82,13 @@ test('les neuf produits décrivent leurs responsabilités et leurs destinations'
   assert.deepEqual(PRODUITS.find(({ id }) => id === 'explorateur')?.ecrit, []);
   assert.deepEqual(PRODUITS.find(({ id }) => id === 'exporter')?.ecrit.find(({ destination }) => destination === 'document-figma')?.donnees, ['regles-usage']);
   assert.deepEqual(PRODUITS.find(({ id }) => id === 'adapter-typescript')?.ecrit.find(({ destination }) => destination === 'repository')?.donnees, ['types']);
+  assert.deepEqual(PRODUITS.find(({ id }) => id === 'architect')?.lit, ['noms-collections', 'noms-variables', 'regles-de-nommage']);
+  assert.deepEqual(PRODUITS.find(({ id }) => id === 'architect')?.ecrit, [
+    { donnees: ['noms-collections', 'noms-variables'], destination: 'document-figma' },
+    { donnees: ['regles-de-nommage'], destination: 'donnees-partagees-figma' },
+  ]);
   assert.equal(ESPACE_PARTAGE, 'ucm_palettes');
   assert.equal(CLE_RECETTE, 'recette');
+  assert.deepEqual(CLES_PARTAGEES_DE_PALETTES, { variables: 'variables', palette: 'palette', cle: 'cle' });
+  assert.equal(ESPACE_ARCHITECT, 'ucm_architect');
 });

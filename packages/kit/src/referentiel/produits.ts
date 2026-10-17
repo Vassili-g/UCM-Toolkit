@@ -5,11 +5,14 @@
  */
 import type { Langues } from './termes.js';
 
+export const CLES_PARTAGEES_DE_PALETTES = { variables: 'variables', palette: 'palette', cle: 'cle' } as const;
+export const ESPACE_ARCHITECT = 'ucm_architect';
+
 /** L'adresse partagée survit à un changement d'identifiant du plugin Palettes. */
 export const ESPACE_PARTAGE = 'ucm_palettes';
 export const CLE_RECETTE = 'recette';
 
-export type DonneeDeProduit = 'composants' | 'variables' | 'recette' | 'planches' | 'regles-usage' | 'contrats' | 'tokens-dtcg' | 'configuration' | 'implementation' | 'rapports' | 'css' | 'types' | 'couleurs' | 'sources-plugin' | 'bundle-plugin' | 'conventions' | 'noms-collections' | 'noms-variables' | 'noms-proprietes' | 'valeurs-proprietes';
+export type DonneeDeProduit = 'composants' | 'variables' | 'recette' | 'planches' | 'regles-usage' | 'regles-de-nommage' | 'contrats' | 'tokens-dtcg' | 'configuration' | 'implementation' | 'rapports' | 'css' | 'types' | 'couleurs' | 'sources-plugin' | 'bundle-plugin' | 'conventions' | 'noms-collections' | 'noms-variables' | 'noms-proprietes' | 'valeurs-proprietes';
 export type DestinationDeProduit = 'document-figma' | 'donnees-partagees-figma' | 'repository' | 'memoire' | 'distribution-plugin';
 export type SortieDeProduit = { readonly donnees: readonly DonneeDeProduit[]; readonly destination: DestinationDeProduit };
 export type Produit = {
@@ -69,8 +72,8 @@ export const PRODUITS: readonly Produit[] = [
   },
   {
     id: 'architect', libelle: { fr: 'UCM Architect', en: 'UCM Architect' },
-    definition: { fr: 'Normalise les noms de collections, variables, propriétés et valeurs, puis range la convention de nommage choisie.', en: 'Normalizes collection, variable, property and value names, then stores the chosen naming convention.' },
-    lit: ['noms-collections', 'noms-variables', 'noms-proprietes', 'valeurs-proprietes', 'conventions'], execution: 'figma',
-    ecrit: [{ donnees: ['noms-collections', 'noms-variables', 'noms-proprietes', 'valeurs-proprietes'], destination: 'document-figma' }, { donnees: ['conventions'], destination: 'donnees-partagees-figma' }],
+    definition: { fr: 'Normalise les noms de collections et de variables, puis range les règles de nommage choisies.', en: 'Normalizes collection and variable names, then stores the chosen naming rules.' },
+    lit: ['noms-collections', 'noms-variables', 'regles-de-nommage'], execution: 'figma',
+    ecrit: [{ donnees: ['noms-collections', 'noms-variables'], destination: 'document-figma' }, { donnees: ['regles-de-nommage'], destination: 'donnees-partagees-figma' }],
   },
 ];

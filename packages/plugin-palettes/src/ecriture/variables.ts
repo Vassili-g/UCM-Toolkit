@@ -13,6 +13,7 @@
  * Elle seule renomme des variables ([VAR-13]).
  */
 import { aUneIntensite, jsonCanonique, profilPorteur, validerRecette, type Recette, type Refus } from 'ucm-couleur';
+import { CLES_PARTAGEES_DE_PALETTES } from '@ucm-kit/core/referentiel';
 
 import { CLE_RECETTE, ESPACE_PARTAGE, empreinteDuTexte, lireEtat } from '../lecture';
 import { ajouter, nouvellePalette, reprendreDuFichier } from '../edition';
@@ -25,7 +26,7 @@ import { etatDesTokens } from '../variables/etat';
 import { origineDeLaReprise, suiviDeLaReprise, suiviDeLaRepriseGroupee, variableDeLEntree, type OrigineDeLaReprise } from '../variables/reprise';
 import { cheminDeLaReprise, planDesVariables, type EntreeDuPlan, type ModeDuPlan } from '../variables/plan';
 import { couleurPourFigma, type VariableLue } from '../variables/releve';
-import { CLES_DE_LA_VARIABLE, CLE_VARIABLES, sansLesVariables, suiviFutur, texteDuSuivi, variablesProtegees, variablesSuivies, type PaletteSuivie, type SuiviDesVariables, type VariableSuivie } from '../variables/suivi';
+import { sansLesVariables, suiviFutur, texteDuSuivi, variablesProtegees, variablesSuivies, type PaletteSuivie, type SuiviDesVariables, type VariableSuivie } from '../variables/suivi';
 
 /** L'API que l'écriture des variables emploie. */
 export interface FigmaDesVariablesEcrites {
@@ -202,8 +203,8 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
         }
         for (const variable of creees) {
           const premiere = plan.find((entree) => variableDuNom.get(entree.nom) === variable)!;
-          variable.setSharedPluginData(ESPACE_PARTAGE, CLES_DE_LA_VARIABLE.palette, id);
-          variable.setSharedPluginData(ESPACE_PARTAGE, CLES_DE_LA_VARIABLE.cle, premiere.cle);
+          variable.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.palette, id);
+          variable.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.cle, premiere.cle);
         }
       } catch (erreur) {
         for (const variable of creees) {
@@ -339,8 +340,8 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
         }
         for (const variable of [...remplacees.values(), ...creees]) {
           const premiere = plan.find((entree: EntreeDuPlan) => variableDuNom.get(entree.nom) === variable)!;
-          variable.setSharedPluginData(ESPACE_PARTAGE, CLES_DE_LA_VARIABLE.palette, id);
-          variable.setSharedPluginData(ESPACE_PARTAGE, CLES_DE_LA_VARIABLE.cle, premiere.cle);
+          variable.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.palette, id);
+          variable.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.cle, premiere.cle);
         }
       } catch (erreur) {
         for (const variable of creees) {
@@ -388,7 +389,7 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
 
     const suivant: SuiviDesVariables = { ...rangee, destination, palettes: suivies };
     if (ecrit || texteDuSuivi(suivant) !== texteDuSuivi(rangee)) {
-      figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES, texteDuSuivi(suivant));
+      figma.root.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.variables, texteDuSuivi(suivant));
       figma.commitUndo();
     }
     return { issue: 'ecrites', palettes };
@@ -421,7 +422,7 @@ export async function rangerLaDestination(figma: FigmaDesVariablesEcrites, valeu
       const locales = await figma.variables.getLocalVariableCollectionsAsync();
       if (!locales.some((collection) => collection.id === visee)) return { issue: 'invalide', refus: 'collection' };
     }
-    figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES, texteDuSuivi({ ...rangee, destination, confirmee: true }));
+    figma.root.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.variables, texteDuSuivi({ ...rangee, destination, confirmee: true }));
     figma.commitUndo();
     return { issue: 'rangee', destination };
   } catch (erreur) {
@@ -476,7 +477,7 @@ export async function retirerLesVariables(figma: FigmaDesVariablesEcrites, deman
     }
     const palettes = Object.fromEntries(Object.entries(rangee.palettes).filter(([id]) => id !== demande.palette));
     if (interruption !== undefined) palettes[demande.palette] = { ...suivie, variables: restantes };
-    figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES, texteDuSuivi({ ...rangee, palettes }));
+    figma.root.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.variables, texteDuSuivi({ ...rangee, palettes }));
     figma.commitUndo();
     return interruption !== undefined ? { issue: 'interrompue', retirees, message: messageDe(interruption) } : { issue: 'retirees', retirees };
   } catch (erreur) {
@@ -563,7 +564,7 @@ export async function reprendreLaPalette(figma: FigmaDesVariablesEcrites, demand
 
     const texte = jsonCanonique(recette);
     figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_RECETTE, texte);
-    figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES, texteDuSuivi({ ...rangee, palettes: { ...rangee.palettes, [demande.palette]: suivie } }));
+    figma.root.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.variables, texteDuSuivi({ ...rangee, palettes: { ...rangee.palettes, [demande.palette]: suivie } }));
     figma.commitUndo();
     return { issue: 'reprise', empreinte: empreinteDuTexte(texte) as string };
   } catch (erreur) {
@@ -645,7 +646,7 @@ export async function convertirLaReprise(figma: FigmaDesVariablesEcrites, demand
       while (palettes[`ancienne:${demande.palette}:${rang}`]) rang += 1;
       palettes[`ancienne:${demande.palette}:${rang}`] = { ...conversion.suivie, sortieAnterieureDe: demande.palette };
     }
-    figma.root.setSharedPluginData(ESPACE_PARTAGE, CLE_VARIABLES, texteDuSuivi({ ...rangee, palettes }));
+    figma.root.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.variables, texteDuSuivi({ ...rangee, palettes }));
     figma.commitUndo();
     return { issue: 'convertie', renommees: faits.length, enPlace: conversion.enPlace };
   } catch (erreur) {
