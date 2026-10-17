@@ -1,4 +1,108 @@
-/* Les dimensions des contrôles et les couleurs viennent du socle. */
-body { margin: 0; background: var(--fond); color: var(--texte); }
-main { display: flex; flex-direction: column; gap: var(--espace-bloc); padding: var(--espace-page); }
-h1 { margin: 0; font-size: var(--titre); line-height: var(--titre-interligne); }
+/*
+ * Les rôles de couleur propres à UCM Architect. Ils vivent ici, avant toute
+ * règle, comme ceux du socle : aucune couleur ne s'écrit plus bas.
+ *
+ * Le terme en cause d'un nom lit les rôles d'avertissement du socle (voir la
+ * règle `mark`). Les pastilles d'origine n'ont pas d'équivalent dans l'éditeur :
+ * chacune reçoit une valeur claire et une valeur sombre.
+ */
+:root {
+  --fond-pastille-ucm: rgb(228 229 255);
+  --texte-pastille-ucm: rgb(59 63 158);
+  --fond-pastille-personnalise: rgb(213 242 238);
+  --texte-pastille-personnalise: rgb(15 98 88);
+}
+
+.figma-dark {
+  --fond-pastille-ucm: rgb(39 39 90);
+  --texte-pastille-ucm: rgb(180 185 255);
+  --fond-pastille-personnalise: rgb(23 59 56);
+  --texte-pastille-personnalise: rgb(126 224 210);
+}
+
+/* Le terme en cause dans un chemin : la seule couleur d'accent des listes de noms. */
+mark {
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--fond-avertissement);
+  color: var(--texte-avertissement);
+}
+
+/* Les onglets portent un compte : ils s'élargissent à leur libellé. */
+.onglet { width: auto; }
+
+.compte {
+  display: inline-block;
+  min-width: 16px;
+  margin-left: var(--espace-controle);
+  padding: 0 var(--espace-serre);
+  border-radius: 99px;
+  background: var(--fond-note);
+  color: var(--texte);
+  text-align: center;
+}
+
+/* Un état particulier prend la place du contenu d'un panneau ou de l'écran. */
+.etat {
+  display: flex;
+  min-height: 200px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espace-bloc);
+  padding: var(--espace-page) 0;
+  text-align: center;
+}
+
+.etat-titre {
+  font-size: var(--titre);
+  font-weight: 600;
+  line-height: var(--titre-interligne);
+}
+
+.etat-texte {
+  max-width: 360px;
+  color: var(--texte-second);
+}
+
+.avancement {
+  width: 260px;
+  max-width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--fond-note);
+}
+
+.avancement-rempli {
+  height: 100%;
+  background: var(--fond-marque);
+}
+
+/* Le fichier a changé pendant que le plugin est ouvert. */
+.bandeau {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-radius: var(--rayon);
+  background: var(--fond-avertissement);
+  color: var(--texte-avertissement);
+}
+
+.bandeau-action {
+  height: var(--hauteur-secondaire);
+  padding: 0 var(--espace-serre);
+  border: 0;
+  background: none;
+  color: var(--texte-avertissement);
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.bandeau-action:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
