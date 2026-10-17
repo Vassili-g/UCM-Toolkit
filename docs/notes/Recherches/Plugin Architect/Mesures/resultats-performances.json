@@ -1,0 +1,82 @@
+{
+  "environnement": {
+    "node": "v24.19.0",
+    "plateforme": "win32",
+    "architecture": "x64",
+    "cpu": "Intel(R) Core(TM) i7-7820X CPU @ 3.60GHz",
+    "revision": "3b4d7ae6d2d025eb7815ec8411e9e7a1ca122598",
+    "repetitions": 7,
+    "echauffements": 2
+  },
+  "limites": [
+    "Objets synthétiques, sans appel Figma, sans DOM, sans transfert réel sandbox/interface.",
+    "Les pauses de lecture sont des promesses résolues ; leur coût réel est exclu.",
+    "structuredClone Node mesure une copie locale ; il ne mesure pas figma.ui.postMessage.",
+    "Les variantes partagent State=Default et portent chacune une valeur Size distincte ; leurs combinaisons sont uniques.",
+    "La projection complète garde toutes les lignes ; une fenêtre de résultats réduirait encore le message."
+  ],
+  "variables": [
+    {
+      "nombre": 800,
+      "propositions": 800,
+      "detectionMs": 32.625,
+      "normalisationMs": 19.045,
+      "analyseMs": 48.981,
+      "analyseSansTermesMs": 39.143,
+      "presentationMs": 0.594,
+      "cloneNodeMs": 4.293,
+      "jsonOctets": 415439,
+      "projectionCompleteJsonOctets": 136642,
+      "elementsDeLignesDeduits": 5600
+    },
+    {
+      "nombre": 8000,
+      "propositions": 8000,
+      "detectionMs": 313.973,
+      "normalisationMs": 162.899,
+      "analyseMs": 486.111,
+      "analyseSansTermesMs": 389.379,
+      "presentationMs": 4.513,
+      "cloneNodeMs": 47.659,
+      "jsonOctets": 4208645,
+      "projectionCompleteJsonOctets": 1376846,
+      "elementsDeLignesDeduits": 56000
+    },
+    {
+      "nombre": 32000,
+      "propositions": 32000,
+      "detectionMs": 1238.09,
+      "normalisationMs": 661.582,
+      "analyseMs": 1941.013,
+      "analyseSansTermesMs": 1601.901,
+      "presentationMs": 26.042,
+      "cloneNodeMs": 212.096,
+      "jsonOctets": 17012651,
+      "projectionCompleteJsonOctets": 5594850,
+      "elementsDeLignesDeduits": 224000
+    }
+  ],
+  "variantes": [
+    {
+      "nombre": 1000,
+      "entrees": 1003,
+      "lecturePureMs": 4.2,
+      "referencesAnterieuresRecopiees": 499500,
+      "analyseJsonOctets": 538312
+    },
+    {
+      "nombre": 4000,
+      "entrees": 4003,
+      "lecturePureMs": 33.657,
+      "referencesAnterieuresRecopiees": 7998000,
+      "analyseJsonOctets": 2170312
+    },
+    {
+      "nombre": 12000,
+      "entrees": 12003,
+      "lecturePureMs": 272.128,
+      "referencesAnterieuresRecopiees": 71994000,
+      "analyseJsonOctets": 6538313
+    }
+  ]
+}

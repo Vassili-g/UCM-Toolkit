@@ -54,6 +54,7 @@ La galerie du plugin construit montre ses états réels :
 
 | Document | Contenu |
 |---|---|
+| [Optimisation de la lecture et de l'affichage](./OPTIMISATION-LECTURE-ET-AFFICHAGE.md) | Revue du code de la v1, mesures reproductibles et proposition de réduction du calcul, des copies, des messages et du rendu |
 | [R2-REFERENTIEL.md](./1%20Architecture%20globale/Recherches/R2-REFERENTIEL.md) | Les définitions UCM dans le code, leurs contradictions, le marché |
 | [R3-NOMENCLATURE.md](./1%20Architecture%20globale/Recherches/R3-NOMENCLATURE.md) | Les relevés de forme et de synonymie mesurés sur deux fichiers réels |
 | [R4-R6-DECLARATION-ET-BILAN.md](./1%20Architecture%20globale/Recherches/R4-R6-DECLARATION-ET-BILAN.md) | Où ranger la déclaration d'un design system, le catalogue des contrôles du bilan |
