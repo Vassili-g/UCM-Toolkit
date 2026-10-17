@@ -76,14 +76,18 @@ L'en-tête, le bouton Configuration, les onglets, les boutons, les champs et
 les interrupteurs viennent de la feuille de style commune
 (`packages/plugin-socle/src/ui/socle.css`), comme dans Palettes : le titre
 du plugin à gauche, le bouton « Configuration » à droite, qui devient
-« Retour » pendant la configuration ; les onglets en pastilles sous le titre ;
-un choix segmenté, comme Soft et Vivid, pour les deux listes d'Harmoniser.
+« Retour » pendant la configuration ; les onglets en pastilles sous le titre.
+
+Un onglet mène à une autre vue ; un choix segmenté, comme Soft et Vivid dans
+Palettes, change l'affichage d'une même vue. À appliquer et À trancher sont
+deux vues : ce sont deux onglets.
 
 ### Les lieux
 
 | Lieu | Rôle | Contenu |
 |---|---|---|
-| Onglet Harmoniser | Signaler, questionner, appliquer | Un choix segmenté entre À appliquer (les renommages, groupés par règle) et À trancher (les questions) ; en bas, le nombre de noms cochés et Appliquer |
+| Onglet À appliquer | Montrer ce qui changera, puis l'écrire | Les renommages, groupés par règle ; en bas, le nombre de noms cochés et Appliquer |
+| Onglet À trancher | Questionner | Les questions ; chaque réponse ajoute des renommages à À appliquer et met son compte à jour |
 | Onglet Règles | Regrouper les règles | L'écriture, résumée avec Modifier ; tous les termes du fichier, avec leur statut ; une fiche par terme |
 | Configuration | Régler le plugin | Collections analysées, lecture des composants, export et import des règles, annulation du dernier renommage, langue |
 
@@ -98,8 +102,8 @@ questions au plus, les plus fréquentes d'abord, et range les autres sous
 |---|---|
 | Premier lancement | L'ouverture d'un fichier jamais analysé |
 | Écriture des noms | La fin de la première analyse |
-| À appliquer | L'onglet Harmoniser, ouvert par défaut ; Continuer, au premier lancement |
-| À trancher | Le choix segmenté d'Harmoniser |
+| À appliquer | L'onglet À appliquer, ouvert par défaut ; Continuer, au premier lancement |
+| À trancher | L'onglet À trancher |
 | Confirmation | Appliquer, quand le lot est sensible |
 | Règles | L'onglet Règles |
 | Écriture modifiée | Modifier, sur le résumé de l'écriture, dans Règles |
@@ -275,7 +279,7 @@ préservation des surcharges d'instances : la recette dans Figma doit les
 | 2 | Propriété, nom de variable, valeur : quelle différence ? | Section 1, « Variables et composants » ; deux cartes avec un exemple réel |
 | 2 | À quoi sert l'encart Vocabulaire UCM ? | Il annonçait que les termes UCM s'appliquent ; retiré, ses renommages portent la pastille UCM |
 | 2 | Bouton de configuration différent des autres plugins | Les maquettes chargent la feuille de style commune |
-| 3 | Les chiffres 1 et 2 | Retirés ; choix segmenté |
+| 3 | Les chiffres 1 et 2 | Retirés ; À appliquer et À trancher deviennent deux onglets, puisque ce sont deux vues |
 | 3 | `press` et `pressed` trop petits, UCM collé | Avant → après en 13 px, de même taille ; pastille à droite |
 | 3 | Chemins chargés | Seul le terme en cause est coloré, sans bordure |
 | 3 | « Button State » ressemble à un token inventé | Les composants sont séparés des variables et s'écrivent comme dans le panneau de Figma |
@@ -296,9 +300,9 @@ préservation des surcharges d'instances : la recette dans Figma doit les
 | Mode agnostique | Retiré |
 | Couches au premier lancement : complètes ? à quoi servent-elles ? | Elles citaient trois des sept collections et servaient au contrôle de l'architecture et à Construire, deux rôles retirés. Une collection inconnue devient la question « Collection non reconnue » ; la Configuration garde le choix des collections analysées |
 | Accueil et ses états | Supprimé |
-| Pastilles de Vérifier ; tous les cas | Choix segmenté entre À appliquer et À trancher ; planche des cartes |
+| Pastilles de Vérifier ; tous les cas | Onglets À appliquer et À trancher ; planche des cartes |
 | Algorithme de détection | Section 7 |
-| Un endroit qui signale, un autre qui regroupe les règles | Onglets Harmoniser et Règles |
+| Un endroit qui signale, un autre qui regroupe les règles | Onglets À appliquer et À trancher d'un côté, Règles de l'autre |
 | Format et conventions | Deux sortes de règles, une même liste de renommages |
 | Termes : où ils vivent, comment en ajouter, synchronisation | Section 8 ; fiches des termes |
 | Construire, marque, palette modifiée, publication, lire les composants | Retirés |
@@ -314,7 +318,7 @@ qu'elle a changé :
 |---|---|
 | Le sûr d'abord, les questions ensuite, plafonnées à dix | Retenue |
 | Afficher l'effet d'une réponse ; refuser une règle en conflit | Retenue |
-| Deux onglets : Harmoniser en deux listes avec un pied unique, et Règles | Retenue |
+| Deux onglets : Harmoniser en deux listes avec un pied unique, et Règles | Remplacée par trois onglets, À appliquer, À trancher et Règles : le mainteneur réserve le choix segmenté aux changements d'affichage d'une même vue |
 | Tous les termes du fichier au cœur de Règles | Retenue |
 | Quatre formes de question, « Autre terme », « Plus tard » réversible | Retenue, ramenée à deux dessins de carte |
 | Confirmation seulement pour un lot sensible ; journal du dernier lot | Retenue |

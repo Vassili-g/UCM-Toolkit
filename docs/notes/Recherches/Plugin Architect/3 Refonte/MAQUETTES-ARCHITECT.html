@@ -37,12 +37,8 @@
   .icone svg { width: 12px; height: 12px; fill: currentColor; display: block; }
   input[type=checkbox] { accent-color: #0d99ff; margin: 0; width: 12px; height: 12px; }
 
-  /* Choix segmenté, comme Soft et Vivid dans Palettes. */
-  .segment { display: inline-flex; border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 1px; gap: 1px; }
-  .segment span { padding: 3px 9px; border-radius: 5px; color: var(--texte-second); font-weight: 600; }
-  .segment .actif { background: var(--fond-note); color: var(--texte); }
-  .segment b { font-weight: 600; margin-left: 4px; color: var(--texte-second); }
-  .segment .actif b { color: var(--texte); }
+  /* Le compte d'un onglet. */
+  .onglet .compte { display: inline-block; min-width: 16px; margin-left: 6px; padding: 0 5px; border-radius: 99px; background: var(--fond-note); color: var(--texte); font-size: 10px; line-height: 15px; text-align: center; }
 
   /* Cartes, comme les cartes repliables de Palettes. */
   .carte { border: 1px solid var(--figma-color-border); border-radius: 8px; background: #323232; }
@@ -156,8 +152,8 @@
 <h2>Plan de navigation</h2>
 <p class="chapeau">Chaque écran a une seule porte d'entrée visible.</p>
 <div class="plan">
-  <div class="bloc"><b>À l'ouverture</b><ul><li>Fichier jamais analysé : <em>Premier lancement</em>, puis <em>Écriture des noms</em>, puis Harmoniser</li><li>Sinon : Harmoniser, À appliquer</li></ul></div>
-  <div class="bloc"><b>Onglet Harmoniser</b><ul><li>Le choix <em>À appliquer · À trancher</em> bascule entre les deux listes</li><li><em>Appliquer</em>, en bas : la confirmation si le lot est sensible, puis le message de fin</li></ul></div>
+  <div class="bloc"><b>À l'ouverture</b><ul><li>Fichier jamais analysé : <em>Premier lancement</em>, puis <em>Écriture des noms</em>, puis À appliquer</li><li>Sinon : l'onglet À appliquer</li></ul></div>
+  <div class="bloc"><b>Onglets À appliquer et À trancher</b><ul><li>Une réponse, dans <em>À trancher</em>, ajoute des renommages à <em>À appliquer</em> et met son compte à jour</li><li><em>Appliquer</em>, en bas : la confirmation si le lot est sensible, puis le message de fin</li></ul></div>
   <div class="bloc"><b>Onglet Règles</b><ul><li><em>Modifier</em> sur l'écriture : les sélecteurs s'ouvrent sur place</li><li>Une ligne de terme, avec son chevron : la <em>fiche du terme</em></li><li>Dans une fiche : <em>Remplacer par…</em> ou <em>Ajouter un terme à remplacer</em></li></ul></div>
   <div class="bloc"><b>Bouton Configuration</b><ul><li>En haut à droite, comme dans Palettes</li><li>Il devient <em>Retour</em> pendant la configuration</li></ul></div>
 </div>
@@ -231,14 +227,13 @@
 
 <!-- 3 -->
 <div>
-  <p class="titre-ecran">3. Harmoniser · À appliquer</p>
+  <p class="titre-ecran">3. À appliquer</p>
   <div class="cadre figma-dark">
     <div class="entete">
       <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
-      <div class="onglets"><button class="onglet" aria-selected="true">Harmoniser</button><button class="onglet">Règles</button></div>
+      <div class="onglets"><button class="onglet" aria-selected="true">À appliquer<span class="compte">156</span></button><button class="onglet">À trancher<span class="compte">7</span></button><button class="onglet">Règles</button></div>
     </div>
     <div class="defile">
-      <div class="ligne"><span class="titre-section">Harmoniser</span><span class="segment"><span class="actif">À appliquer<b>156</b></span><span>À trancher<b>7</b></span></span></div>
       <div class="carte">
         <div class="tete"><input type="checkbox" checked><div><div class="change"><code class="avant">press</code><span class="fl">→</span><code class="apres">pressed</code></div><div class="petit">40 variables · 20 variantes de 5 composants</div></div><div class="ligne"><span class="pastille p-ucm">UCM</span><span class="chevron">⌄</span></div></div>
         <div class="corps">
@@ -268,14 +263,13 @@
 
 <!-- 4 -->
 <div>
-  <p class="titre-ecran">4. Harmoniser · À trancher</p>
+  <p class="titre-ecran">4. À trancher</p>
   <div class="cadre figma-dark">
     <div class="entete">
       <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
-      <div class="onglets"><button class="onglet" aria-selected="true">Harmoniser</button><button class="onglet">Règles</button></div>
+      <div class="onglets"><button class="onglet">À appliquer<span class="compte">156</span></button><button class="onglet" aria-selected="true">À trancher<span class="compte">7</span></button><button class="onglet">Règles</button></div>
     </div>
     <div class="defile">
-      <div class="ligne"><span class="titre-section">Harmoniser</span><span class="segment"><span>À appliquer<b>156</b></span><span class="actif">À trancher<b>7</b></span></span></div>
       <div class="carte question">
         <div class="ligne"><span class="titre">Ces termes désignent-ils la même chose ?</span><span class="indice">même terme, terminaison différente</span></div>
         <div class="face">
@@ -310,7 +304,6 @@
         </div>
       </div>
     </div>
-    <div class="bas"><span class="resume"><b>152 noms</b> prêts dans À appliquer</span><button class="btn btn-primary">Appliquer</button></div>
   </div>
   <ul class="legende">
     <li>Une question générique, les deux termes face à face, leurs exemples dessous.</li>
@@ -325,10 +318,9 @@
   <div class="cadre figma-dark">
     <div class="entete">
       <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
-      <div class="onglets"><button class="onglet" aria-selected="true">Harmoniser</button><button class="onglet">Règles</button></div>
+      <div class="onglets"><button class="onglet">À appliquer<span class="compte">164</span></button><button class="onglet" aria-selected="true">À trancher<span class="compte">6</span></button><button class="onglet">Règles</button></div>
     </div>
     <div class="defile">
-      <div class="ligne"><span class="titre-section">Harmoniser</span><span class="segment"><span>À appliquer<b>164</b></span><span class="actif">À trancher<b>6</b></span></span></div>
       <div class="faite"><span>✓ <code>outline</code> → <code>outlined</code> · 8 variantes ajoutées à À appliquer</span><span class="lien" style="color:var(--texte-succes);text-decoration:underline">Annuler</span></div>
       <div class="carte question">
         <div class="ligne"><span class="titre">Ces termes désignent-ils la même chose ?</span><span class="indice">synonymes courants</span></div>
@@ -349,7 +341,6 @@
         <div class="actions-second"><button class="btn btn-secondary btn-compact">Termes différents</button><button class="btn btn-secondary btn-compact">Autre terme…</button><button class="btn btn-secondary btn-compact">Plus tard</button></div>
       </div>
     </div>
-    <div class="bas"><span class="resume"><b>160 noms</b> prêts dans À appliquer</span><button class="btn btn-primary">Appliquer</button></div>
   </div>
   <ul class="legende">
     <li>La carte répondue se réduit à une ligne : ce qui changera, et Annuler.</li>
@@ -364,9 +355,9 @@
   <div class="cadre figma-dark">
     <div class="entete">
       <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
-      <div class="onglets"><button class="onglet" aria-selected="true">Harmoniser</button><button class="onglet">Règles</button></div>
+      <div class="onglets"><button class="onglet" aria-selected="true">À appliquer<span class="compte">164</span></button><button class="onglet">À trancher<span class="compte">6</span></button><button class="onglet">Règles</button></div>
     </div>
-    <div class="defile"><div class="ligne"><span class="titre-section">Harmoniser</span></div></div>
+    <div class="defile"></div>
     <div class="voile">
       <div class="feuille">
         <div class="titre-section">Renommer 160 noms ?</div>
@@ -392,17 +383,16 @@
   <div class="cadre figma-dark">
     <div class="entete">
       <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
-      <div class="onglets"><button class="onglet" aria-selected="true">Harmoniser</button><button class="onglet">Règles</button></div>
+      <div class="onglets"><button class="onglet" aria-selected="true">À appliquer<span class="compte">4</span></button><button class="onglet">À trancher<span class="compte">6</span></button><button class="onglet">Règles</button></div>
     </div>
     <div class="defile">
-      <div class="ligne"><span class="titre-section">Harmoniser</span><span class="segment"><span class="actif">À appliquer<b>4</b></span><span>À trancher<b>6</b></span></span></div>
       <div class="message"><span>160 noms renommés</span><span style="text-decoration:underline">Annuler</span></div>
       <div class="carte"><div class="tete"><input type="checkbox"><div><div class="change"><code class="avant">fontsize</code><span class="fl">→</span><code class="apres">font-size</code><span class="plus">+ 3</span></div><div class="petit">Noms de variables en minuscules-tirets · non cochés</div></div><span class="chevron">›</span></div></div>
     </div>
     <div class="bas"><span class="resume">Aucun nom coché</span><button class="btn btn-primary" disabled>Appliquer</button></div>
   </div>
   <ul class="legende">
-    <li>Un message et Annuler ; on reste dans Harmoniser.</li>
+    <li>Un message et Annuler ; on reste dans À appliquer.</li>
     <li>Le plugin relit le fichier : ne reste que ce qui n'a pas été coché.</li>
   </ul>
 </div>
@@ -418,7 +408,7 @@
   <div class="cadre figma-dark">
     <div class="entete">
       <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
-      <div class="onglets"><button class="onglet">Harmoniser</button><button class="onglet" aria-selected="true">Règles</button></div>
+      <div class="onglets"><button class="onglet">À appliquer<span class="compte">156</span></button><button class="onglet">À trancher<span class="compte">7</span></button><button class="onglet" aria-selected="true">Règles</button></div>
     </div>
     <div class="defile">
       <div class="carte"><div class="tete sans-coche"><div><div class="gras" style="font-size:12px">Écriture</div><div class="petit">Groupes Majuscule initiale · noms minuscules-tirets · propriétés Majuscule initiale · valeurs minuscules-tirets</div></div><button class="btn btn-secondary btn-compact">Modifier</button></div></div>
@@ -447,7 +437,7 @@
   <div class="cadre figma-dark">
     <div class="entete">
       <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
-      <div class="onglets"><button class="onglet">Harmoniser</button><button class="onglet" aria-selected="true">Règles</button></div>
+      <div class="onglets"><button class="onglet">À appliquer<span class="compte">156</span></button><button class="onglet">À trancher<span class="compte">7</span></button><button class="onglet" aria-selected="true">Règles</button></div>
     </div>
     <div class="defile">
       <div class="carte" style="padding:12px">
@@ -746,7 +736,7 @@
   <tr><td>2. Propriété, nom de variable, valeur de variante : la différence</td><td>Section « Variables et composants » ; l'écran 2 groupe les choix en deux cartes avec un exemple réel</td></tr>
   <tr><td>2. Encart Vocabulaire UCM</td><td>Retiré : les termes UCM apparaissent dans À appliquer avec leur pastille</td></tr>
   <tr><td>2. Bouton de configuration</td><td>Celui de Palettes, tiré de la feuille de style commune</td></tr>
-  <tr><td>3. Les chiffres 1 et 2</td><td>Retirés ; un choix segmenté comme Soft et Vivid</td></tr>
+  <tr><td>3. Les chiffres 1 et 2</td><td>Retirés ; À appliquer et À trancher deviennent deux onglets, puisque ce sont deux vues</td></tr>
   <tr><td>3. press devient pressed, UCM collé</td><td>Avant → après en grand et de même taille ; pastille séparée à droite</td></tr>
   <tr><td>3. Chemins trop chargés</td><td>Texte simple, seul le terme en cause coloré, sans bordure</td></tr>
   <tr><td>3. « Button State » inventé</td><td>Un composant s'écrit comme le panneau de Figma, sous un titre Composants distinct des variables</td></tr>
