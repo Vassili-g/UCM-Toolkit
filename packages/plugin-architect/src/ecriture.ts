@@ -1,5 +1,5 @@
 /** Toutes les mutations du document sont réunies ici ; une erreur peut laisser un résultat partiel. */
-import { normaliserLesNoms, type ConventionsParCategorie, type PropositionDeNom, type ResultatDeNormalisation } from '@ucm-kit/core/referentiel';
+import { ESPACE_ARCHITECT, normaliserLesNoms, type ConventionsParCategorie, type PropositionDeNom, type ResultatDeNormalisation } from '@ucm-kit/core/referentiel';
 import { nomDePropriete, type CibleDeNom, type ComposantLu, type EntreeInventaire, type Inventaire } from './lecture';
 import type { ChoixDeConventions } from './conventions';
 
@@ -232,4 +232,21 @@ export function creerPortEcriture(api: PluginAPI): PortEcriture {
       commitUndo: () => api.commitUndo(),
     };
   } };
+}
+
+/** Le stockage des règles du fichier : une clé par règle, dans l'espace d'Architect. Une écriture de règle n'ouvre pas de point d'annulation. */
+export interface PortDeRegles {
+  cles(): readonly string[];
+  lire(cle: string): string;
+  ecrire(cle: string, texte: string): void;
+  effacer(cle: string): void;
+}
+
+export function creerPortDeRegles(api: PluginAPI): PortDeRegles {
+  return {
+    cles: () => api.root.getSharedPluginDataKeys(ESPACE_ARCHITECT),
+    lire: (cle) => api.root.getSharedPluginData(ESPACE_ARCHITECT, cle),
+    ecrire: (cle, texte) => api.root.setSharedPluginData(ESPACE_ARCHITECT, cle, texte),
+    effacer: (cle) => api.root.setSharedPluginData(ESPACE_ARCHITECT, cle, ''),
+  };
 }
