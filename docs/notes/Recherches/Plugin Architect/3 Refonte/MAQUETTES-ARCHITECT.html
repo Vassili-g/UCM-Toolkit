@@ -10,135 +10,164 @@
   html, body { background: #1b1b1d; color: #e4e4e7; font-size: 14px; line-height: 1.5; }
   main { width: 1200px; margin: 0 auto; padding: 40px 0 80px; font-family: Inter, system-ui, sans-serif; }
   main > h1 { font-size: 26px; margin: 0 0 6px; }
-  main > h2 { font-size: 18px; margin: 52px 0 6px; }
-  main > h3 { font-size: 14px; margin: 30px 0 12px; color: #a1a1aa; }
+  main > h2 { font-size: 18px; margin: 56px 0 6px; }
+  main > h3 { font-size: 14px; margin: 32px 0 12px; color: #a1a1aa; }
   .chapeau { color: #a1a1aa; margin: 0 0 16px; max-width: 900px; }
   .etiquette { display: inline-block; background: #3f2d0c; color: #ffc470; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; }
-  .ecrans { display: grid; grid-template-columns: repeat(2, 500px); justify-content: space-between; row-gap: 44px; }
-  .titre-ecran { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+  .ecrans, .planche { display: grid; grid-template-columns: repeat(2, 500px); justify-content: space-between; row-gap: 44px; }
+  .planche { row-gap: 28px; }
+  .titre-ecran, .nom-type { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
   .titre-ecran span { color: #a1a1aa; font-weight: 400; }
+  .nom-type span { display: block; color: #a1a1aa; font-weight: 400; font-size: 12px; }
   .legende { font-size: 12px; color: #a1a1aa; margin: 10px 0 0; padding-left: 16px; }
   .legende li { margin: 2px 0; }
-
-  /* Le cadre du plugin : les classes du socle font le reste. */
-  .cadre { position: relative; width: 500px; height: 720px; background: var(--fond); color: var(--texte); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,.5); overflow: hidden; display: flex; flex-direction: column; font-size: var(--corps); line-height: var(--corps-interligne); }
-  .cadre.court { height: auto; }
-  .entete { flex: none; display: grid; gap: var(--espace-controle); padding: var(--espace-page) var(--espace-page) 0; }
-  .onglet { width: auto; }
-  .defile { flex: 1; overflow: hidden; padding: var(--espace-bloc) var(--espace-page); display: flex; flex-direction: column; gap: var(--espace-controle); }
-  .bas { flex: none; border-top: 1px solid var(--figma-color-border); padding: 10px var(--espace-page); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .bas .resume { color: var(--texte-second); }
-  .bas .resume b { color: var(--texte); }
-  .ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .titre-section { font-size: var(--titre); font-weight: 600; line-height: var(--titre-interligne); }
-  .second { color: var(--texte-second); }
-  .petit { font-size: 10px; color: var(--texte-second); }
-  .gras { font-weight: 600; }
-  .icone svg { width: 12px; height: 12px; fill: currentColor; display: block; }
-  input[type=checkbox] { accent-color: #0d99ff; margin: 0; width: 12px; height: 12px; }
-
-  /* Le compte d'un onglet. */
-  .onglet .compte { display: inline-block; min-width: 16px; margin-left: 6px; padding: 0 5px; border-radius: 99px; background: var(--fond-note); color: var(--texte); font-size: 10px; line-height: 15px; text-align: center; }
-
-  /* Cartes, comme les cartes repliables de Palettes. */
-  .carte { border: 1px solid var(--figma-color-border); border-radius: 8px; background: #323232; }
-  .carte .tete { display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; }
-  .carte .tete.sans-coche { grid-template-columns: 1fr auto; }
-  .carte .corps { border-top: 1px solid var(--figma-color-border); padding: 4px 12px 8px; }
-  .chevron { color: var(--texte-second); font-size: 12px; }
-  .sous-titre { font-size: 10px; font-weight: 600; color: var(--texte-second); text-transform: uppercase; letter-spacing: .04em; margin: 8px 0 2px; }
-  .rang { display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: center; padding: 4px 0; }
-
-  /* Avant, après : la forme commune de tout ce qui change. */
-  .change { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-  .change code { font: 600 13px/18px "JetBrains Mono", Consolas, monospace; }
-  .change .avant { color: var(--texte-second); font-weight: 500; }
-  .change .apres { color: var(--texte); }
-  .change .fl { color: var(--texte-second); font-size: 12px; }
-  .change .plus { font: 600 10px/16px Inter, sans-serif; color: var(--texte-second); background: var(--fond-note); border-radius: 99px; padding: 0 6px; }
-
-  /* Un chemin : texte simple, seul le segment en cause est coloré. */
-  .chemin { font: 11px/16px "JetBrains Mono", Consolas, monospace; color: var(--texte-second); word-break: break-word; }
-  .chemin mark, .variante mark { background: #4a3a10; color: #ffc470; padding: 0 3px; border-radius: 3px; }
-  .variante { font: 11px/16px "JetBrains Mono", Consolas, monospace; color: var(--texte-second); }
-  .variante .cmp { color: var(--texte); font-family: Inter, sans-serif; font-weight: 600; margin-right: 6px; }
-  .variante .cmp::before { content: "❖ "; color: #a78bfa; }
-
-  /* Pastilles d'origine et d'état. */
-  .pastille { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 99px; white-space: nowrap; }
-  .p-ucm { background: #27275a; color: #b4b9ff; }
-  .p-perso { background: #173b38; color: #7ee0d2; }
-  .p-nouveau { background: var(--fond-marque); color: #fff; }
-  .p-gris { background: var(--fond-note); color: var(--texte-second); }
-  .p-av { background: var(--fond-avertissement); color: var(--texte-avertissement); }
-
-  /* Question : deux termes face à face. */
-  .question { padding: 12px; display: grid; gap: 10px; }
-  .question .titre { font-size: var(--libelle); font-weight: 600; }
-  .face { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .terme { border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 10px; display: grid; gap: 6px; align-content: start; background: var(--fond); }
-  .terme .mot { font: 600 14px/18px "JetBrains Mono", Consolas, monospace; }
-  .terme .btn { width: 100%; margin-top: 2px; }
-  .actions-second { display: flex; gap: 6px; flex-wrap: wrap; }
-  .indice { font-size: 10px; color: var(--texte-second); }
-  .faite { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; background: var(--fond-succes); color: var(--texte-succes); border-radius: 8px; }
-  .faite code { color: var(--texte); font: 600 12px "JetBrains Mono", Consolas, monospace; }
-
-  /* Écriture : exemple et sélecteur. */
-  .ecr { display: grid; grid-template-columns: 1fr 170px; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--figma-color-border); }
-  .ecr:first-of-type { border-top: 0; }
-  .ecr .input { height: 28px; }
-  .exemple-var { font: 12px/18px "JetBrains Mono", Consolas, monospace; }
-  .exemple-var .g { color: #93c5fd; }
-  .exemple-var .n { color: #5eead4; }
-  .panneau-figma { border: 1px solid var(--figma-color-border); border-radius: var(--rayon); padding: 8px 10px; display: grid; grid-template-columns: 90px 1fr; row-gap: 6px; background: var(--fond); }
-  .panneau-figma .p { color: #fdba74; }
-  .panneau-figma .v { color: #f9a8d4; border: 1px solid var(--bordure); border-radius: 4px; padding: 0 6px; justify-self: start; }
-
-  /* Termes de Règles. */
-  .liste { border: 1px solid var(--figma-color-border); border-radius: 8px; }
-  .terme-ligne { display: grid; grid-template-columns: 1fr auto 12px; gap: 10px; align-items: center; padding: 8px 12px; border-top: 1px solid var(--figma-color-border); }
-  .terme-ligne:first-child { border-top: 0; }
-  .terme-ligne .nom { font: 600 12px "JetBrains Mono", Consolas, monospace; margin-right: 6px; }
-  .filtres { display: flex; gap: 6px; }
-  .filtres span { padding: 2px 9px; border-radius: 99px; border: 1px solid var(--bordure); font-size: 10px; color: var(--texte-second); font-weight: 600; }
-  .filtres .actif { background: var(--texte); color: #1e1e1e; border-color: var(--texte); }
-  .remplace { display: flex; flex-wrap: wrap; gap: 6px; }
-  .remplace span { font: 600 11px/22px "JetBrains Mono", Consolas, monospace; border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 0 8px; }
-  .remplace span i { font-style: normal; color: var(--texte-second); margin-left: 6px; font-family: Inter, sans-serif; font-weight: 400; }
-
-  /* Superposition. */
-  .voile { position: absolute; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: flex-end; }
-  .feuille { width: 100%; background: var(--fond-bloc); border-radius: 10px 10px 0 0; padding: 16px; display: grid; gap: 10px; }
-  .faits { margin: 0; padding-left: 16px; color: var(--texte-second); }
-  .faits li { margin: 3px 0; }
-  .message { display: flex; justify-content: space-between; align-items: center; background: var(--fond-succes); color: var(--texte-succes); border-radius: 8px; padding: 10px 12px; font-weight: 600; }
-  .bandeau { background: var(--fond-avertissement); color: var(--texte-avertissement); padding: 8px var(--espace-page); display: flex; justify-content: space-between; }
-  .avancement { height: 4px; border-radius: 2px; background: var(--fond-note); overflow: hidden; }
-  .avancement div { height: 100%; background: var(--fond-marque); }
-  .centre { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; }
-  .lien { color: var(--texte-marque); }
-
-  /* Plan de navigation. */
   .plan { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-  .plan .bloc { background: #26262a; border: 1px solid #3a3a40; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #a1a1aa; }
-  .plan .bloc b { display: block; color: #e4e4e7; font-size: 13px; margin-bottom: 6px; }
-  .plan .bloc ul { margin: 0; padding-left: 16px; }
-  .plan .bloc li { margin: 3px 0; }
-  .plan .bloc li em { color: #e4e4e7; font-style: normal; }
-
-  /* Planche. */
-  .planche { display: grid; grid-template-columns: repeat(2, 500px); justify-content: space-between; row-gap: 28px; }
-  .echantillon { width: 500px; background: var(--fond); color: var(--texte); border-radius: 8px; padding: var(--espace-page); font-size: var(--corps); line-height: var(--corps-interligne); display: grid; gap: 8px; box-shadow: 0 4px 20px rgba(0,0,0,.5); }
-  .nom-type { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
-  .nom-type span { display: block; color: #a1a1aa; font-weight: 400; font-size: 12px; }
-
+  .plan div { background: #26262a; border: 1px solid #3a3a40; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #a1a1aa; }
+  .plan b { display: block; color: #e4e4e7; font-size: 13px; margin-bottom: 6px; }
+  .plan ul { margin: 0; padding-left: 16px; }
+  .plan li { margin: 3px 0; }
+  .plan em { color: #e4e4e7; font-style: normal; }
+  .anatomie { display: flex; gap: 0; font: 13px/20px "JetBrains Mono", Consolas, monospace; }
+  .anatomie div { display: grid; gap: 4px; }
+  .anatomie span:last-child { font: 11px Inter, sans-serif; color: #a1a1aa; border-top: 2px solid #52525b; padding-top: 4px; margin-right: 6px; }
   table.couverture { width: 100%; border-collapse: collapse; background: #26262a; border: 1px solid #3a3a40; border-radius: 8px; overflow: hidden; font-size: 13px; }
   table.couverture th, table.couverture td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #3a3a40; vertical-align: top; }
   table.couverture th { color: #a1a1aa; font-size: 12px; }
   ol.questions { color: #a1a1aa; font-size: 13px; }
   ol.questions li { margin: 6px 0; }
   ol.questions b { color: #e4e4e7; }
+
+  /* Le cadre du plugin ; le socle donne en-tête, onglets, boutons et champs. */
+  .cadre { position: relative; width: 500px; height: 720px; background: var(--fond); color: var(--texte); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,.5); overflow: hidden; display: flex; flex-direction: column; font-size: var(--corps); line-height: var(--corps-interligne); }
+  .echantillon { width: 500px; background: var(--fond); color: var(--texte); border-radius: 8px; padding: 16px; font-size: var(--corps); line-height: var(--corps-interligne); display: grid; gap: 8px; box-shadow: 0 4px 20px rgba(0,0,0,.5); }
+  .entete { flex: none; display: grid; gap: 12px; padding: 16px 16px 0; }
+  .onglet { width: auto; padding: 0 10px; }
+  .onglet .compte { display: inline-block; min-width: 16px; margin-left: 6px; padding: 0 5px; border-radius: 99px; background: var(--fond-note); color: var(--texte); font-size: 10px; line-height: 15px; text-align: center; }
+  .defile { flex: 1; overflow: hidden; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .bas { flex: none; border-top: 1px solid var(--figma-color-border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .resume { color: var(--texte-second); }
+  .resume b { color: var(--texte); }
+
+  /* Typographie et petites pièces. */
+  .intertitre { display: flex; justify-content: space-between; align-items: center; min-height: 24px; margin-top: 8px; }
+  .intertitre:first-child { margin-top: 0; }
+  .intertitre h2 { margin: 0; font-size: var(--libelle); font-weight: 600; }
+  .titre-section { font-size: var(--titre); font-weight: 600; line-height: var(--titre-interligne); }
+  .second { color: var(--texte-second); }
+  .meta { font-size: var(--corps); color: var(--texte-second); }
+  .gras { font-weight: 600; }
+  .lien { color: var(--texte-marque); }
+  .fl { color: var(--texte-second); }
+  .pile { display: grid; gap: 2px; min-width: 0; }
+  .ligne { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .ligne.serre { justify-content: flex-start; gap: 6px; }
+  .chevron { color: var(--texte-second); width: 12px; text-align: center; }
+  input[type=checkbox] { accent-color: #0d99ff; margin: 0; width: 12px; height: 12px; }
+  .coche-partielle { position: relative; width: 12px; height: 12px; border-radius: 2px; background: #0d99ff; }
+  .coche-partielle::after { content: ""; position: absolute; left: 3px; right: 3px; top: 5px; height: 2px; background: #fff; }
+  .btn-texte { background: none; border: 0; padding: 0 4px; height: 24px; color: var(--texte-second); font: 600 var(--corps) Inter, sans-serif; cursor: pointer; }
+  .btn-texte.ok { color: var(--texte-succes); text-decoration: underline; }
+  .btn-texte.av { color: var(--texte-avertissement); text-decoration: underline; }
+
+  /* La seule couleur d'accent : ce qui est en cause. */
+  .chemin { font: 11px/16px "JetBrains Mono", Consolas, monospace; color: var(--texte-second); word-break: break-all; }
+  .chemin mark { background: #4a3a10; color: #ffc470; padding: 0 3px; border-radius: 3px; }
+
+  /* Avant → après. */
+  .change { display: inline-flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .change code { font: 600 13px/18px "JetBrains Mono", Consolas, monospace; }
+  .change .avant { color: var(--texte-second); }
+  .change .apres { color: var(--texte); }
+  .change .plus { font: 600 10px/16px Inter, sans-serif; color: var(--texte-second); background: var(--fond-note); border-radius: 99px; padding: 0 6px; }
+  .mot-seul { font: 600 13px/18px "JetBrains Mono", Consolas, monospace; }
+
+  /* Pastilles d'origine. */
+  .pastille { display: inline-block; font-size: 10px; font-weight: 600; line-height: 16px; padding: 0 7px; border-radius: 99px; white-space: nowrap; }
+  .p-ucm { background: #27275a; color: #b4b9ff; }
+  .p-perso { background: #173b38; color: #7ee0d2; }
+  .p-nouveau { background: var(--fond-marque); color: #fff; }
+  .p-gris { background: var(--fond-note); color: var(--texte-second); }
+  .p-av { background: var(--fond-avertissement); color: var(--texte-avertissement); }
+
+  /* Cartes. */
+  .carte { border: 1px solid var(--figma-color-border); border-radius: 8px; background: rgba(255,255,255,.025); }
+  .carte.bloc { padding: 10px 12px; }
+  .carte .tete { display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; }
+  .carte .tete.sans-coche { grid-template-columns: 1fr auto; }
+  .droite { display: flex; align-items: center; gap: 8px; }
+  .carte .corps { border-top: 1px solid var(--figma-color-border); padding: 6px 12px 8px; display: grid; }
+  .rang { display: grid; grid-template-columns: 14px 1fr; gap: 10px; align-items: center; padding: 4px 0; }
+  .rang.large { grid-template-columns: 1fr auto; }
+  .carte.muette { background: none; border-style: dashed; color: var(--texte-second); }
+
+  /* Questions : deux termes face à face. */
+  .carte.q { padding: 12px; display: grid; gap: 10px; }
+  .carte.q.alerte { border-color: #7a5a1a; }
+  .q-titre { font-size: var(--libelle); font-weight: 600; }
+  .face { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .colonne { border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 10px; display: grid; gap: 6px; align-content: start; background: var(--fond); }
+  .colonne.propose { border-color: var(--bordure-marque); }
+  .colonne .btn { width: 100%; margin-top: 4px; }
+  .colonne .mot, .ligne-terme .mot { font: 600 14px/18px "JetBrains Mono", Consolas, monospace; }
+  .q-pied { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .faite { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; background: var(--fond-succes); color: var(--texte-succes); border-radius: 8px; font-weight: 600; }
+  .faite .change .avant { color: var(--texte-succes); }
+  .faite .meta-ok { font-weight: 400; }
+
+  /* Règles. */
+  .resume-ecriture { display: grid; grid-template-columns: 1fr auto; row-gap: 6px; padding: 10px 12px; }
+  .resume-ecriture span:nth-child(odd) { color: var(--texte-second); }
+  .resume-ecriture span:nth-child(even) { font: 11px/16px "JetBrains Mono", Consolas, monospace; }
+  .input.recherche { width: 190px; height: 24px; }
+  .filtres { display: flex; gap: 6px; }
+  .filtres span { padding: 2px 9px; border-radius: 99px; border: 1px solid var(--bordure); font-size: 10px; font-weight: 600; color: var(--texte-second); }
+  .filtres .actif { background: var(--texte); color: #1e1e1e; border-color: var(--texte); }
+  .liste { border: 1px solid var(--figma-color-border); border-radius: 8px; overflow: hidden; }
+  .ligne-terme { display: grid; grid-template-columns: 1fr auto 56px 12px; gap: 10px; align-items: center; padding: 8px 12px; border-top: 1px solid var(--figma-color-border); }
+  .ligne-terme:first-child { border-top: 0; }
+  .ligne-terme .mot { font-size: 12px; }
+  .ligne-terme .meta:nth-child(3) { text-align: right; }
+  .ligne-terme.choisie { background: var(--fond-survol); }
+  .ligne-terme.deux { grid-template-columns: 1fr auto; }
+  .ligne-terme.case { grid-template-columns: 14px 1fr auto; }
+  .mot.normal { font-weight: 400; }
+
+  /* Écriture. */
+  .ecr { display: grid; grid-template-columns: 1fr 170px; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--figma-color-border); }
+  .ecr:first-child { border-top: 0; padding-top: 2px; }
+  .ecr:last-child { padding-bottom: 2px; }
+  .ecr .input { height: 28px; }
+  .ecr-nom { font-size: var(--libelle); font-weight: 600; }
+  .ecr-nom .meta { font-weight: 400; }
+  .fixe { font: 11px "JetBrains Mono", Consolas, monospace; padding-left: 8px; }
+  .input.visee { border-color: var(--bordure-marque); box-shadow: 0 0 0 1px var(--bordure-marque); }
+  .effet { display: grid; gap: 4px; padding: 10px 12px; border-radius: 8px; background: var(--fond-bloc); }
+
+  /* Feuille : elle monte du bas sur un fond assombri. */
+  .voile { position: absolute; inset: 0; background: rgba(0,0,0,.6); display: flex; flex-direction: column; justify-content: flex-end; }
+  .feuille { background: var(--fond); border-radius: 12px 12px 0 0; box-shadow: 0 -8px 24px rgba(0,0,0,.45); display: flex; flex-direction: column; max-height: 84%; }
+  .poignee { width: 36px; height: 4px; border-radius: 2px; background: var(--fond-note); margin: 8px auto 0; flex: none; }
+  .feuille-tete { flex: none; display: flex; justify-content: space-between; align-items: center; padding: 8px 16px 12px; border-bottom: 1px solid var(--figma-color-border); }
+  .feuille-titre { font-size: var(--titre); font-weight: 600; line-height: var(--titre-interligne); }
+  .feuille-titre code { font: 600 14px "JetBrains Mono", Consolas, monospace; }
+  .feuille-mot { font: 600 16px/20px "JetBrains Mono", Consolas, monospace; }
+  .feuille-corps { padding: 14px 16px; display: grid; gap: 14px; overflow: hidden; }
+  .feuille-pied { flex: none; border-top: 1px solid var(--figma-color-border); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .faits { margin: 0; padding-left: 16px; color: var(--texte-second); }
+  .faits li { margin: 4px 0; }
+  .faits b { color: var(--texte); }
+  .remplace { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .remplace span { display: inline-flex; gap: 6px; align-items: center; font: 600 12px/24px "JetBrains Mono", Consolas, monospace; border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 0 8px; }
+  .remplace i { font: 400 var(--corps) Inter, sans-serif; font-style: normal; color: var(--texte-second); }
+  .remplace b { font-weight: 400; color: var(--texte-second); }
+  .exemples { display: grid; gap: 4px; }
+
+  /* États. */
+  .centre { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; }
+  .petit-centre { height: 150px; }
+  .avancement { width: 260px; height: 4px; border-radius: 2px; background: var(--fond-note); overflow: hidden; }
+  .avancement div { height: 100%; background: var(--fond-marque); }
+  .bandeau { display: flex; justify-content: space-between; align-items: center; background: var(--fond-avertissement); color: var(--texte-avertissement); padding: 8px 12px; border-radius: var(--rayon); }
 </style>
 </head>
 <body>
@@ -146,86 +175,60 @@
 <main>
 
 <h1>UCM Architect, refonte</h1>
-<p class="chapeau">Les écrans reprennent la feuille de style commune des plugins UCM : en-tête, bouton Configuration, onglets, boutons et champs sont ceux de Palettes. Le plugin harmonise l'écriture des noms et les termes employés, dans les variables et dans les composants.</p>
-<span class="etiquette">Deuxième version, après les retours</span>
+<p class="chapeau">Le plugin harmonise les noms des variables du fichier des tokens : leur écriture et les termes qu'elles emploient. Les écrans reprennent la feuille de style commune des plugins UCM.</p>
+<span class="etiquette">Troisième version : variables seulement, fiches en feuilles</span>
 
-<h2>Plan de navigation</h2>
-<p class="chapeau">Chaque écran a une seule porte d'entrée visible.</p>
-<div class="plan">
-  <div class="bloc"><b>À l'ouverture</b><ul><li>Fichier jamais analysé : <em>Premier lancement</em>, puis <em>Écriture des noms</em>, puis À appliquer</li><li>Sinon : l'onglet À appliquer</li></ul></div>
-  <div class="bloc"><b>Onglets À appliquer et À trancher</b><ul><li>Une réponse, dans <em>À trancher</em>, ajoute des renommages à <em>À appliquer</em> et met son compte à jour</li><li><em>Appliquer</em>, en bas : la confirmation si le lot est sensible, puis le message de fin</li></ul></div>
-  <div class="bloc"><b>Onglet Règles</b><ul><li><em>Modifier</em> sur l'écriture : les sélecteurs s'ouvrent sur place</li><li>Une ligne de terme, avec son chevron : la <em>fiche du terme</em></li><li>Dans une fiche : <em>Remplacer par…</em> ou <em>Ajouter un terme à remplacer</em></li></ul></div>
-  <div class="bloc"><b>Bouton Configuration</b><ul><li>En haut à droite, comme dans Palettes</li><li>Il devient <em>Retour</em> pendant la configuration</li></ul></div>
+<h2>Ce que le plugin renomme</h2>
+<p class="chapeau">Les variables locales du fichier ouvert. Une variable se lit en trois parties ; l'écriture se règle pour les groupes et pour le nom, les collections suivent les noms UCM.</p>
+<div class="anatomie">
+  <div><span>components /</span><span>collection</span></div>
+  <div><span>button/sizes/medium /</span><span>groupes</span></div>
+  <div><span>padding-x</span><span>nom</span></div>
 </div>
 
-<h2>Variables et composants</h2>
-<p class="chapeau">Le plugin lit deux familles de noms. Les variables sont les tokens : un chemin de groupes, puis un nom. Les composants ont des propriétés, et chaque propriété propose des valeurs, comme le panneau de droite de Figma les montre quand on sélectionne une instance. Un même terme peut vivre dans les deux familles : <code>pressed</code> dans le chemin d'une variable et comme valeur de la propriété <code>State</code>.</p>
-<div class="ecrans">
-  <div class="echantillon figma-dark">
-    <div class="gras">Une variable</div>
-    <div class="exemple-var"><span class="g">button/primary/pressed/</span><span class="n">background</span></div>
-    <div class="petit"><span style="color:#93c5fd">groupes</span> · <span style="color:#5eead4">nom</span></div>
-  </div>
-  <div class="echantillon figma-dark">
-    <div class="gras">Un composant</div>
-    <div class="panneau-figma"><span class="gras" style="grid-column:1/-1">❖ Button</span><span class="p">State</span><span class="v">pressed ▾</span><span class="p">Size</span><span class="v">medium ▾</span></div>
-    <div class="petit"><span style="color:#fdba74">propriétés</span> · <span style="color:#f9a8d4">valeurs</span>. Dans le panneau des calques, Figma nomme cette variante <code>State=pressed, Size=medium</code>.</div>
-  </div>
+<h2>Plan de navigation</h2>
+<div class="plan">
+  <div><b>À l'ouverture</b><ul><li>Fichier jamais analysé : <em>Premier lancement</em>, puis <em>Écriture des noms</em></li><li>Sinon : l'onglet <em>À appliquer</em></li></ul></div>
+  <div><b>À appliquer et À trancher</b><ul><li>Deux onglets ; une réponse dans <em>À trancher</em> ajoute des renommages à <em>À appliquer</em></li><li><em>Appliquer</em>, en bas : la feuille de confirmation</li></ul></div>
+  <div><b>Règles</b><ul><li><em>Modifier</em>, sur l'écriture : sa feuille</li><li>Une ligne de terme : la feuille du terme</li><li><em>Remplacer par…</em> : l'étape suivante, dans la même feuille</li><li>✕, ou un clic sur le fond : la feuille se ferme</li></ul></div>
+  <div><b>Configuration</b><ul><li>Le bouton en haut à droite, comme dans Palettes</li><li>Il devient <em>Retour</em> pendant la configuration</li></ul></div>
 </div>
 
 <h2>Le parcours</h2>
 <div class="ecrans">
-
-<!-- 1 -->
 <div>
   <p class="titre-ecran">1. Premier lancement</p>
   <div class="cadre figma-dark">
-    <div class="entete"><div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div></div>
+    <div class="entete">
+      <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
+    </div>
     <div class="defile"><div class="centre">
-      <div class="titre-section">Harmoniser les noms du fichier</div>
-      <p class="second">Écriture et termes des variables et des composants.</p>
+      <div class="titre-section">Harmoniser les noms des variables</div>
+      <p class="second">Leur écriture et les termes qu'elles emploient.</p>
       <button class="btn btn-primary">Analyser le fichier</button>
     </div></div>
   </div>
-  <ul class="legende">
-    <li>Un titre, une ligne, un bouton.</li>
-    <li>Pendant l'analyse, le bouton laisse place à l'avancement (planche des états).</li>
-  </ul>
+  <ul class="legende"><li>Un titre, une ligne, un bouton.</li><li>Pendant l'analyse, l'avancement remplace le bouton (planche des états).</li></ul>
 </div>
-
-<!-- 2 -->
 <div>
   <p class="titre-ecran">2. Écriture des noms <span>· après la première analyse</span></p>
   <div class="cadre figma-dark">
-    <div class="entete"><div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div></div>
-    <div class="defile">
-      <div class="titre-section">Écriture des noms</div>
-      <p class="second">Proposée d'après votre fichier.</p>
-      <div class="carte" style="padding:12px">
-        <div class="ligne"><span class="gras" style="font-size:12px">Variables</span><span class="exemple-var"><span class="g">Button/Sizes/Medium/</span><span class="n">padding-x</span></span></div>
-        <div style="margin-top:8px">
-          <div class="ecr"><div><div class="gras" style="color:#93c5fd">Groupes</div><div class="petit">612 sur 650 suivent cette écriture</div></div><select class="input"><option>Majuscule initiale</option></select></div>
-          <div class="ecr"><div><div class="gras" style="color:#5eead4">Nom</div><div class="petit">791 sur 812</div></div><select class="input"><option>minuscules-tirets</option></select></div>
-        </div>
-      </div>
-      <div class="carte" style="padding:12px">
-        <div class="ligne"><span class="gras" style="font-size:12px">Composants</span><span class="variante"><span class="cmp">Button</span>State <span style="color:var(--texte-second)">:</span> pressed</span></div>
-        <div style="margin-top:8px">
-          <div class="ecr"><div><div class="gras" style="color:#fdba74">Propriétés</div><div class="petit">State, Size, Icon position · 58 sur 64</div></div><select class="input"><option>Majuscule initiale</option></select></div>
-          <div class="ecr"><div><div class="gras" style="color:#f9a8d4">Valeurs</div><div class="petit">pressed, medium, extra-large · 203 sur 241</div></div><select class="input"><option>minuscules-tirets</option></select></div>
-        </div>
-      </div>
+    <div class="entete">
+      <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
     </div>
-    <div class="bas"><span class="resume">Vous pourrez la changer dans Règles.</span><button class="btn btn-primary">Continuer</button></div>
+    <div class="defile">
+      <div class="pile"><div class="titre-section">Écriture des noms</div><p class="second">Proposée d'après votre fichier ; modifiable ensuite dans Règles.</p></div>
+      
+        <div class="carte bloc">
+          <div class="ecr"><div class="pile"><span class="ecr-nom">Groupes <span class="meta">· 612 sur 650</span></span><span class="chemin"><mark>button/sizes/medium</mark>/padding-x</span></div><select class="input"><option>minuscules-tirets</option></select></div>
+          <div class="ecr"><div class="pile"><span class="ecr-nom">Noms <span class="meta">· 791 sur 812</span></span><span class="chemin">button/sizes/medium/<mark>padding-x</mark></span></div><select class="input"><option>minuscules-tirets</option></select></div>
+          <div class="ecr"><div class="pile"><span class="ecr-nom">Collections</span><span class="meta">Elles portent les noms du référentiel UCM.</span></div><span class="meta fixe">noms UCM</span></div>
+        </div>
+    </div>
+    <div class="bas"><span></span><button class="btn btn-primary">Continuer</button></div>
   </div>
-  <ul class="legende">
-    <li>Deux cartes, une par famille, chacune avec un exemple réel en couleurs.</li>
-    <li>Les collections suivent les noms UCM : pas de choix ici.</li>
-    <li>Le bouton Configuration est celui de Palettes.</li>
-  </ul>
+  <ul class="legende"><li>Une carte : les groupes, puis le nom, sur un chemin réel où la partie concernée est surlignée.</li><li>Le compte dit combien de noms suivent déjà l'écriture proposée.</li><li>Les collections suivent UCM : pas de choix.</li></ul>
 </div>
-
-<!-- 3 -->
 <div>
   <p class="titre-ecran">3. À appliquer</p>
   <div class="cadre figma-dark">
@@ -234,34 +237,41 @@
       <div class="onglets"><button class="onglet" aria-selected="true">À appliquer<span class="compte">156</span></button><button class="onglet">À trancher<span class="compte">7</span></button><button class="onglet">Règles</button></div>
     </div>
     <div class="defile">
+      <div class="intertitre"><h2>Termes</h2></div>
+      
       <div class="carte">
-        <div class="tete"><input type="checkbox" checked><div><div class="change"><code class="avant">press</code><span class="fl">→</span><code class="apres">pressed</code></div><div class="petit">40 variables · 20 variantes de 5 composants</div></div><div class="ligne"><span class="pastille p-ucm">UCM</span><span class="chevron">⌄</span></div></div>
+        <div class="tete"><input type="checkbox" checked><div class="pile"><span class="change"><code class="avant">press</code><span class="fl">→</span><code class="apres">pressed</code></span><span class="meta">60 variables</span></div><span class="droite"><span class="pastille p-ucm">UCM</span><span class="chevron">⌃</span></span></div>
         <div class="corps">
-          <div class="sous-titre">Variables</div>
-          <div class="rang"><input type="checkbox" checked><span class="chemin">components/button/primary/<mark>pressed</mark>/background</span><span></span></div>
-          <div class="rang"><input type="checkbox" checked><span class="chemin">components/chip/<mark>pressed</mark>/border</span><span></span></div>
-          <div class="rang"><span></span><span class="lien">38 autres variables</span><span></span></div>
-          <div class="sous-titre">Composants</div>
-          <div class="rang"><input type="checkbox" checked><span class="variante"><span class="cmp">Button</span>State : <mark>pressed</mark></span><span class="petit">12 variantes</span></div>
-          <div class="rang"><span></span><span class="lien">4 autres composants</span><span></span></div>
+          <div class="rang"><input type="checkbox" checked><span class="chemin">components/button/primary/<mark>pressed</mark>/background</span></div>
+          <div class="rang"><input type="checkbox" checked><span class="chemin">components/button/secondary/<mark>pressed</mark>/border</span></div>
+          <div class="rang"><input type="checkbox" checked><span class="chemin">components/chip/<mark>pressed</mark>/foreground</span></div>
+          <div class="rang"><span></span><span class="lien">57 autres variables</span></div>
         </div>
       </div>
-      <div class="carte"><div class="tete"><input type="checkbox" checked><div><div class="change"><code class="avant">disable</code><span class="fl">→</span><code class="apres">disabled</code></div><div class="petit">24 variables · 12 variantes de 3 composants</div></div><div class="ligne"><span class="pastille p-ucm">UCM</span><span class="chevron">›</span></div></div></div>
-      <div class="carte"><div class="tete"><input type="checkbox" checked><div><div class="change"><code class="avant">Default</code><span class="fl">→</span><code class="apres">default</code><span class="plus">+ 37</span></div><div class="petit">Valeurs de composants en minuscules-tirets</div></div><span class="chevron">›</span></div></div>
-      <div class="carte"><div class="tete"><input type="checkbox" checked><div><div class="change"><code class="avant">fontsize</code><span class="fl">→</span><code class="apres">font-size</code><span class="plus">+ 20</span></div><div class="petit">Noms de variables en minuscules-tirets · 17 sur 21 cochés</div></div><span class="chevron">›</span></div></div>
-      <div class="carte"><div class="tete"><input type="checkbox" checked><div><div class="change"><code class="avant">Color Brands</code><span class="fl">→</span><code class="apres">color-brands</code></div><div class="petit">Collection UCM</div></div><span class="chevron">›</span></div></div>
-      <div class="ligne second" style="padding:2px 2px 0"><span>2 bloqués · 143 protégés</span><span class="lien">Voir</span></div>
+      
+      <div class="carte">
+        <div class="tete"><input type="checkbox" checked><div class="pile"><span class="change"><code class="avant">disable</code><span class="fl">→</span><code class="apres">disabled</code></span><span class="meta">36 variables</span></div><span class="droite"><span class="pastille p-ucm">UCM</span><span class="chevron">⌄</span></span></div>
+      </div>
+      <div class="intertitre"><h2>Écriture</h2></div>
+      
+      <div class="carte">
+        <div class="tete"><input type="checkbox" checked><div class="pile"><span class="change"><code class="avant">Primary Button</code><span class="fl">→</span><code class="apres">primary-button</code><span class="plus">+37</span></span><span class="meta">Groupes · minuscules-tirets</span></div><span class="droite"><span class="chevron">⌄</span></span></div>
+      </div>
+      
+      <div class="carte">
+        <div class="tete"><span class="coche-partielle"></span><div class="pile"><span class="change"><code class="avant">fontSize</code><span class="fl">→</span><code class="apres">font-size</code><span class="plus">+20</span></span><span class="meta">Noms · minuscules-tirets · 17 sur 21 cochés</span></div><span class="droite"><span class="chevron">⌄</span></span></div>
+      </div>
+      <div class="intertitre"><h2>Collections</h2></div>
+      
+      <div class="carte">
+        <div class="tete"><input type="checkbox" checked><div class="pile"><span class="change"><code class="avant">Color Brands</code><span class="fl">→</span><code class="apres">color-brands</code></span><span class="meta">Collection UCM · 44 variables</span></div><span class="droite"><span class="chevron">⌄</span></span></div>
+      </div>
+      <div class="carte muette"><div class="tete sans-coche"><span>Non renommés : 2 bloqués, 143 protégés</span><span class="chevron">⌄</span></div></div>
     </div>
-    <div class="bas"><span class="resume"><b>152 noms</b> · dont 1 collection et 70 valeurs</span><button class="btn btn-primary">Appliquer</button></div>
+    <div class="bas"><span class="resume"><b>152 noms</b> cochés</span><button class="btn btn-primary">Appliquer</button></div>
   </div>
-  <ul class="legende">
-    <li>Chaque carte : ce qui change, en grand ; ce que cela touche, en petit ; l'origine à droite.</li>
-    <li>Dans un chemin, seul le terme qui change est coloré.</li>
-    <li>Variables et composants séparés ; un composant se lit comme dans le panneau de Figma.</li>
-  </ul>
+  <ul class="legende"><li>Trois intertitres : Termes, Écriture, Collections.</li><li>Chaque carte : avant → après, le nombre de variables, l'origine à droite.</li><li>Dépliée, une variable par ligne ; seul le terme qui change est surligné.</li></ul>
 </div>
-
-<!-- 4 -->
 <div>
   <p class="titre-ecran">4. À trancher</p>
   <div class="cadre figma-dark">
@@ -270,49 +280,44 @@
       <div class="onglets"><button class="onglet">À appliquer<span class="compte">156</span></button><button class="onglet" aria-selected="true">À trancher<span class="compte">7</span></button><button class="onglet">Règles</button></div>
     </div>
     <div class="defile">
-      <div class="carte question">
-        <div class="ligne"><span class="titre">Ces termes désignent-ils la même chose ?</span><span class="indice">même terme, terminaison différente</span></div>
+      <div class="carte q">
+        <div class="ligne"><span class="q-titre">Ces termes désignent-ils la même chose ?</span><span class="pastille p-gris">Terminaison</span></div>
         <div class="face">
-          <div class="terme">
-            <span class="mot">outlined</span>
-            <span class="petit">24 variantes · Button, Chip, Tag</span>
-            <span class="variante"><span class="cmp">Button</span>Variant : <mark>outlined</mark></span>
+          <div class="colonne propose">
+            <div class="ligne"><code class="mot">outlined</code></div>
+            <span class="meta">24 variables</span>
+            <span class="chemin">components/button/<mark>outlined</mark>/border</span>
             <button class="btn btn-primary btn-compact">Garder outlined</button>
           </div>
-          <div class="terme">
-            <span class="mot">outline</span>
-            <span class="petit">8 variantes · Alert</span>
-            <span class="variante"><span class="cmp">Alert</span>Variant : <mark>outline</mark></span>
+          <div class="colonne">
+            <div class="ligne"><code class="mot">outline</code></div>
+            <span class="meta">8 variables</span>
+            <span class="chemin">components/alert/<mark>outline</mark>/border</span>
             <button class="btn btn-secondary btn-compact">Garder outline</button>
-          </div>
-        </div>
-        <div class="actions-second"><button class="btn btn-secondary btn-compact">Termes différents</button><button class="btn btn-secondary btn-compact">Autre terme…</button><button class="btn btn-secondary btn-compact">Plus tard</button></div>
+          </div></div>
+        <div class="q-pied"><span class="ligne serre"><button class="btn btn-secondary btn-compact">Termes différents</button><button class="btn btn-secondary btn-compact">Autre terme…</button></span><button class="btn-texte">Plus tard</button></div>
       </div>
-      <div class="carte question">
-        <div class="ligne"><span class="titre">Ces termes désignent-ils la même chose ?</span><span class="indice">synonymes courants</span></div>
+      <div class="carte q">
+        <div class="ligne"><span class="q-titre">Ces termes désignent-ils la même chose ?</span><span class="pastille p-gris">Synonymes</span></div>
         <div class="face">
-          <div class="terme">
-            <div class="ligne"><span class="mot">danger</span><span class="pastille p-ucm">UCM</span></div>
-            <span class="petit">40 variables</span>
+          <div class="colonne propose">
+            <div class="ligne"><code class="mot">danger</code><span class="pastille p-ucm">UCM</span></div>
+            <span class="meta">40 variables</span>
             <span class="chemin">color-utilities/<mark>danger</mark>/500</span>
+            <button class="btn btn-primary btn-compact">Garder danger</button>
           </div>
-          <div class="terme">
-            <span class="mot">error</span>
-            <span class="petit">18 variables</span>
+          <div class="colonne">
+            <div class="ligne"><code class="mot">error</code></div>
+            <span class="meta">18 variables</span>
             <span class="chemin">components/alert/<mark>error</mark>/background</span>
-          </div>
-        </div>
+            <button class="btn btn-secondary btn-compact">Garder error</button>
+          </div></div>
+        <div class="q-pied"><span class="ligne serre"><button class="btn btn-secondary btn-compact">Termes différents</button><button class="btn btn-secondary btn-compact">Autre terme…</button></span><button class="btn-texte">Plus tard</button></div>
       </div>
     </div>
   </div>
-  <ul class="legende">
-    <li>Une question générique, les deux termes face à face, leurs exemples dessous.</li>
-    <li>Le choix principal est dans la colonne du terme gardé ; le plus employé, ou le terme UCM, est en bleu.</li>
-    <li>Trois actions secondaires alignées en dessous.</li>
-  </ul>
+  <ul class="legende"><li>Une question, deux termes face à face, un exemple sous chacun.</li><li>La colonne proposée est bordée de bleu, avec son bouton Garder en bleu.</li><li>Termes différents et Autre terme… à gauche, Plus tard à droite.</li></ul>
 </div>
-
-<!-- 5 -->
 <div>
   <p class="titre-ecran">5. Réponse donnée</p>
   <div class="cadre figma-dark">
@@ -321,63 +326,79 @@
       <div class="onglets"><button class="onglet">À appliquer<span class="compte">164</span></button><button class="onglet" aria-selected="true">À trancher<span class="compte">6</span></button><button class="onglet">Règles</button></div>
     </div>
     <div class="defile">
-      <div class="faite"><span>✓ <code>outline</code> → <code>outlined</code> · 8 variantes ajoutées à À appliquer</span><span class="lien" style="color:var(--texte-succes);text-decoration:underline">Annuler</span></div>
-      <div class="carte question">
-        <div class="ligne"><span class="titre">Ces termes désignent-ils la même chose ?</span><span class="indice">synonymes courants</span></div>
+      <div class="faite"><span class="ligne serre">✓ <span class="change"><code class="avant">outline</code><span class="fl">→</span><code class="apres">outlined</code></span><span class="meta-ok">8 variables ajoutées à À appliquer</span></span><button class="btn-texte ok">Annuler</button></div>
+      <div class="carte q">
+        <div class="ligne"><span class="q-titre">Ces termes désignent-ils la même chose ?</span><span class="pastille p-gris">Synonymes</span></div>
         <div class="face">
-          <div class="terme">
-            <div class="ligne"><span class="mot">danger</span><span class="pastille p-ucm">UCM</span></div>
-            <span class="petit">40 variables</span>
+          <div class="colonne propose">
+            <div class="ligne"><code class="mot">danger</code><span class="pastille p-ucm">UCM</span></div>
+            <span class="meta">40 variables</span>
             <span class="chemin">color-utilities/<mark>danger</mark>/500</span>
             <button class="btn btn-primary btn-compact">Garder danger</button>
           </div>
-          <div class="terme">
-            <span class="mot">error</span>
-            <span class="petit">18 variables</span>
+          <div class="colonne">
+            <div class="ligne"><code class="mot">error</code></div>
+            <span class="meta">18 variables</span>
             <span class="chemin">components/alert/<mark>error</mark>/background</span>
             <button class="btn btn-secondary btn-compact">Garder error</button>
-          </div>
-        </div>
-        <div class="actions-second"><button class="btn btn-secondary btn-compact">Termes différents</button><button class="btn btn-secondary btn-compact">Autre terme…</button><button class="btn btn-secondary btn-compact">Plus tard</button></div>
+          </div></div>
+        <div class="q-pied"><span class="ligne serre"><button class="btn btn-secondary btn-compact">Termes différents</button><button class="btn btn-secondary btn-compact">Autre terme…</button></span><button class="btn-texte">Plus tard</button></div>
       </div>
     </div>
   </div>
-  <ul class="legende">
-    <li>La carte répondue se réduit à une ligne : ce qui changera, et Annuler.</li>
-    <li>Le même format avant → après que dans À appliquer.</li>
-    <li>La ligne disparaît quand on quitte l'onglet.</li>
-  </ul>
+  <ul class="legende"><li>La carte répondue se réduit à une ligne.</li><li>Le compte de l'onglet À appliquer passe à 164.</li></ul>
 </div>
-
-<!-- 6 -->
 <div>
-  <p class="titre-ecran">6. Confirmation <span>· lot sensible seulement</span></p>
+  <p class="titre-ecran">6. Confirmation <span>· à chaque application</span></p>
   <div class="cadre figma-dark">
     <div class="entete">
       <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
       <div class="onglets"><button class="onglet" aria-selected="true">À appliquer<span class="compte">164</span></button><button class="onglet">À trancher<span class="compte">6</span></button><button class="onglet">Règles</button></div>
     </div>
-    <div class="defile"></div>
+    <div class="defile">
+      <div class="intertitre"><h2>Termes</h2></div>
+      
+      <div class="carte">
+        <div class="tete"><input type="checkbox" checked><div class="pile"><span class="change"><code class="avant">press</code><span class="fl">→</span><code class="apres">pressed</code></span><span class="meta">60 variables</span></div><span class="droite"><span class="pastille p-ucm">UCM</span><span class="chevron">⌄</span></span></div>
+      </div>
+      
+      <div class="carte">
+        <div class="tete"><input type="checkbox" checked><div class="pile"><span class="change"><code class="avant">disable</code><span class="fl">→</span><code class="apres">disabled</code></span><span class="meta">36 variables</span></div><span class="droite"><span class="pastille p-ucm">UCM</span><span class="chevron">⌄</span></span></div>
+      </div>
+      <div class="intertitre"><h2>Écriture</h2></div>
+      
+      <div class="carte">
+        <div class="tete"><input type="checkbox" checked><div class="pile"><span class="change"><code class="avant">Primary Button</code><span class="fl">→</span><code class="apres">primary-button</code><span class="plus">+37</span></span><span class="meta">Groupes · minuscules-tirets</span></div><span class="droite"><span class="chevron">⌄</span></span></div>
+      </div>
+      
+      <div class="carte">
+        <div class="tete"><span class="coche-partielle"></span><div class="pile"><span class="change"><code class="avant">fontSize</code><span class="fl">→</span><code class="apres">font-size</code><span class="plus">+20</span></span><span class="meta">Noms · minuscules-tirets · 17 sur 21 cochés</span></div><span class="droite"><span class="chevron">⌄</span></span></div>
+      </div>
+      <div class="intertitre"><h2>Collections</h2></div>
+      
+      <div class="carte">
+        <div class="tete"><input type="checkbox" checked><div class="pile"><span class="change"><code class="avant">Color Brands</code><span class="fl">→</span><code class="apres">color-brands</code></span><span class="meta">Collection UCM · 44 variables</span></div><span class="droite"><span class="chevron">⌄</span></span></div>
+      </div>
+      <div class="carte muette"><div class="tete sans-coche"><span>Non renommés : 2 bloqués, 143 protégés</span><span class="chevron">⌄</span></div></div>
+    </div>
     <div class="voile">
       <div class="feuille">
-        <div class="titre-section">Renommer 160 noms ?</div>
-        <ul class="faits">
-          <li><b style="color:var(--texte)">1 collection et 78 valeurs de composants</b> changent de nom.</li>
-          <li>Les variables gardent leurs liaisons et leurs alias.</li>
-          <li>Au prochain export, les noms des tokens changeront : prévenez le développeur.</li>
-          <li>Ce fichier est une bibliothèque publiée : les autres fichiers verront les nouveaux noms après sa publication.</li>
-        </ul>
-        <div class="ligne" style="justify-content:flex-end"><button class="btn btn-secondary">Retour</button><button class="btn btn-primary">Renommer 160 noms</button></div>
+        <div class="poignee"></div>
+        <div class="feuille-tete"><span class="ligne serre"><span class="feuille-titre">Renommer 160 noms ?</span></span><button class="icon-button" aria-label="Fermer">✕</button></div>
+        <div class="feuille-corps">
+          <ul class="faits">
+            <li><b>159 variables et 1 collection</b> changent de nom.</li>
+            <li>Les liaisons et les alias suivent : composants et styles restent branchés.</li>
+            <li>Les fichiers qui utilisent la bibliothèque verront les nouveaux noms après sa publication.</li>
+            <li>Au prochain export, les noms des tokens changeront : prévenez le développeur.</li>
+          </ul>
+        </div>
+        <div class="feuille-pied"><span></span><span class="ligne serre"><button class="btn btn-secondary">Retour</button><button class="btn btn-primary">Renommer 160 noms</button></span></div>
       </div>
     </div>
   </div>
-  <ul class="legende">
-    <li>Validée telle quelle.</li>
-    <li>Seulement si le lot touche une collection, des composants, ou une bibliothèque publiée.</li>
-  </ul>
+  <ul class="legende"><li>Validée ; elle prend la forme commune des feuilles.</li><li>Le fichier des tokens est une bibliothèque : chaque renommage touche ses utilisateurs et le code, d'où une confirmation à chaque fois.</li></ul>
 </div>
-
-<!-- 7 -->
 <div>
   <p class="titre-ecran">7. Après application</p>
   <div class="cadre figma-dark">
@@ -386,23 +407,22 @@
       <div class="onglets"><button class="onglet" aria-selected="true">À appliquer<span class="compte">4</span></button><button class="onglet">À trancher<span class="compte">6</span></button><button class="onglet">Règles</button></div>
     </div>
     <div class="defile">
-      <div class="message"><span>160 noms renommés</span><span style="text-decoration:underline">Annuler</span></div>
-      <div class="carte"><div class="tete"><input type="checkbox"><div><div class="change"><code class="avant">fontsize</code><span class="fl">→</span><code class="apres">font-size</code><span class="plus">+ 3</span></div><div class="petit">Noms de variables en minuscules-tirets · non cochés</div></div><span class="chevron">›</span></div></div>
+      <div class="faite"><span>✓ 160 noms renommés</span><button class="btn-texte ok">Annuler</button></div>
+      <div class="intertitre"><h2>Écriture</h2></div>
+      
+      <div class="carte">
+        <div class="tete"><input type="checkbox"><div class="pile"><span class="change"><code class="avant">fontSize</code><span class="fl">→</span><code class="apres">font-size</code><span class="plus">+3</span></span><span class="meta">Noms · non cochés</span></div><span class="droite"><span class="chevron">⌄</span></span></div>
+      </div>
     </div>
     <div class="bas"><span class="resume">Aucun nom coché</span><button class="btn btn-primary" disabled>Appliquer</button></div>
   </div>
-  <ul class="legende">
-    <li>Un message et Annuler ; on reste dans À appliquer.</li>
-    <li>Le plugin relit le fichier : ne reste que ce qui n'a pas été coché.</li>
-  </ul>
+  <ul class="legende"><li>Un message et Annuler.</li><li>Le plugin relit le fichier : ne reste que ce qui n'était pas coché.</li></ul>
 </div>
-
 </div>
 
 <h2>Les règles</h2>
+<p class="chapeau">L'onglet Règles est une liste ; tout ce qui se consulte ou se modifie s'ouvre dans une feuille qui monte du bas, sans quitter la liste.</p>
 <div class="ecrans">
-
-<!-- 8 -->
 <div>
   <p class="titre-ecran">8. Règles</p>
   <div class="cadre figma-dark">
@@ -411,166 +431,242 @@
       <div class="onglets"><button class="onglet">À appliquer<span class="compte">156</span></button><button class="onglet">À trancher<span class="compte">7</span></button><button class="onglet" aria-selected="true">Règles</button></div>
     </div>
     <div class="defile">
-      <div class="carte"><div class="tete sans-coche"><div><div class="gras" style="font-size:12px">Écriture</div><div class="petit">Groupes Majuscule initiale · noms minuscules-tirets · propriétés Majuscule initiale · valeurs minuscules-tirets</div></div><button class="btn btn-secondary btn-compact">Modifier</button></div></div>
-      <div class="ligne" style="margin-top:4px"><span class="titre-section">Termes</span><input class="input" style="width:180px;height:24px" placeholder="Chercher un terme"></div>
+      
+      <div class="intertitre"><h2>Écriture</h2><button class="btn btn-secondary btn-compact">Modifier</button></div>
+      <div class="carte"><div class="resume-ecriture">
+        <span>Groupes</span><span>minuscules-tirets</span>
+        <span>Noms</span><span>minuscules-tirets</span>
+        <span>Collections</span><span>noms UCM</span>
+      </div></div>
+      <div class="intertitre"><h2>Termes</h2><input class="input recherche" placeholder="Chercher un terme"></div>
       <div class="filtres"><span class="actif">Tous 318</span><span>Avec règle 55</span><span>Sans règle 263</span></div>
       <div class="liste">
-        <div class="terme-ligne"><div><span class="nom">pressed</span><span class="pastille p-ucm">UCM</span><div class="petit">remplace press</div></div><span class="second">98 noms</span><span class="chevron">›</span></div>
-        <div class="terme-ligne"><div><span class="nom">disabled</span><span class="pastille p-ucm">UCM</span><div class="petit">remplace disable</div></div><span class="second">64 noms</span><span class="chevron">›</span></div>
-        <div class="terme-ligne"><div><span class="nom">outlined</span><span class="pastille p-perso">Personnalisé</span><div class="petit">remplace outline</div></div><span class="second">24 noms</span><span class="chevron">›</span></div>
-        <div class="terme-ligne"><div><span class="nom">error</span><span class="pastille p-av">À trancher</span><div class="petit">avec danger</div></div><span class="second">18 noms</span><span class="chevron">›</span></div>
-        <div class="terme-ligne"><div><span class="nom">bg</span></div><span class="second">14 noms</span><span class="chevron">›</span></div>
-        <div class="terme-ligne"><div><span class="nom">button</span></div><span class="second">86 noms</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">pressed</code><span class="pastille p-ucm">UCM</span></span><span class="meta">remplace press</span><span class="meta">38</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">disabled</code><span class="pastille p-ucm">UCM</span></span><span class="meta">remplace disable</span><span class="meta">28</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">outlined</code><span class="pastille p-perso">Personnalisé</span></span><span class="meta">remplace outline</span><span class="meta">24</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">danger</code><span class="pastille p-ucm">UCM</span></span><span class="meta">à trancher avec error</span><span class="meta">40</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">bg</code></span><span class="meta"></span><span class="meta">14</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">button</code></span><span class="meta"></span><span class="meta">86</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">tile-link</code></span><span class="meta"></span><span class="meta">30</span><span class="chevron">›</span></div>
       </div>
     </div>
   </div>
-  <ul class="legende">
-    <li>L'écriture en résumé, Modifier l'ouvre sur place (écran 9).</li>
-    <li>Tous les termes du fichier ; le chevron ouvre la fiche (écrans 10 à 12).</li>
-    <li>UCM : défini par UCM. Personnalisé : défini dans ce fichier.</li>
-  </ul>
+  <ul class="legende"><li>L'écriture résumée ; Modifier ouvre sa feuille (écran 9).</li><li>Tous les termes du fichier ; une ligne ouvre la feuille du terme (écrans 10 à 13).</li><li>UCM : défini par UCM. Personnalisé : défini dans ce fichier.</li></ul>
 </div>
-
-<!-- 9 -->
 <div>
-  <p class="titre-ecran">9. Écriture modifiée</p>
+  <p class="titre-ecran">9. Feuille de l'écriture <span>· Modifier, dans Règles</span></p>
   <div class="cadre figma-dark">
     <div class="entete">
       <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
       <div class="onglets"><button class="onglet">À appliquer<span class="compte">156</span></button><button class="onglet">À trancher<span class="compte">7</span></button><button class="onglet" aria-selected="true">Règles</button></div>
     </div>
     <div class="defile">
-      <div class="carte" style="padding:12px">
-        <div class="ligne"><span class="gras" style="font-size:12px">Variables</span><span class="exemple-var"><span class="g">Button/Sizes/Medium/</span><span class="n">padding-x</span></span></div>
-        <div style="margin-top:8px">
-          <div class="ecr"><div class="gras" style="color:#93c5fd">Groupes</div><select class="input"><option>Majuscule initiale</option></select></div>
-          <div class="ecr"><div class="gras" style="color:#5eead4">Nom</div><select class="input"><option>minuscules-tirets</option></select></div>
-        </div>
-      </div>
-      <div class="carte" style="padding:12px">
-        <div class="ligne"><span class="gras" style="font-size:12px">Composants</span><span class="variante"><span class="cmp">Button</span>iconPosition : left</span></div>
-        <div style="margin-top:8px">
-          <div class="ecr"><div class="gras" style="color:#fdba74">Propriétés</div><select class="input" style="border-color:var(--bordure-marque)"><option>camelCase</option></select></div>
-          <div class="ecr"><div class="gras" style="color:#f9a8d4">Valeurs</div><select class="input"><option>minuscules-tirets</option></select></div>
-        </div>
-      </div>
-      <div class="carte" style="padding:12px;display:grid;gap:8px">
-        <div class="change"><code class="avant">Icon position</code><span class="fl">→</span><code class="apres">iconPosition</code><span class="plus">+ 63</span></div>
-        <div class="petit">Ces 64 propriétés rejoignent À appliquer. Rien ne change avant Appliquer.</div>
-        <div class="ligne"><button class="btn btn-secondary btn-compact">Annuler ce changement</button><button class="btn btn-primary btn-compact">Voir dans À appliquer</button></div>
-      </div>
-    </div>
-  </div>
-  <ul class="legende">
-    <li>Validé ; mis à la forme des cartes de l'écran 2.</li>
-    <li>L'effet suit le format avant → après.</li>
-  </ul>
-</div>
-
-<!-- 10 -->
-<div>
-  <p class="titre-ecran">10. Fiche d'un terme UCM <span>· chevron d'une ligne de Règles</span></p>
-  <div class="cadre figma-dark">
-    <div class="entete"><div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="header-back-button">Retour</button></div></div>
-    <div class="defile">
-      <div class="ligne"><span class="change"><code class="apres" style="font-size:16px">pressed</code></span><span class="pastille p-ucm">UCM · état</span></div>
-      <p class="second">État pendant la pression. Défini par UCM.</p>
-      <div class="sous-titre">Remplace</div>
-      <div class="remplace"><span>press<i>60 noms</i></span></div>
-      <button class="btn btn-secondary btn-compact" style="justify-self:start;width:max-content">Ajouter un terme à remplacer</button>
-      <div class="sous-titre">Présent dans</div>
-      <div class="carte" style="padding:10px 12px;display:grid;gap:6px">
-        <div class="ligne"><span>Variables</span><span class="second">60</span></div>
-        <div class="chemin">components/button/primary/<mark>pressed</mark>/background</div>
-        <div class="ligne" style="margin-top:4px"><span>Composants</span><span class="second">Button, Chip, Tab, Tile Link · 38 variantes</span></div>
-        <div class="variante"><span class="cmp">Button</span>State : <mark>pressed</mark></div>
-      </div>
-    </div>
-    <div class="bas"><span class="resume">Un terme UCM ne se modifie pas.</span><button class="btn btn-secondary btn-compact">Ne pas l'appliquer dans ce fichier</button></div>
-  </div>
-  <ul class="legende">
-    <li>Trois parties dans toutes les fiches : le terme, ce qu'il remplace, où il est employé.</li>
-    <li>On peut lui ajouter un terme à remplacer, ou ne pas l'appliquer dans ce fichier.</li>
-  </ul>
-</div>
-
-<!-- 11 -->
-<div>
-  <p class="titre-ecran">11. Fiche d'un terme personnalisé</p>
-  <div class="cadre figma-dark">
-    <div class="entete"><div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="header-back-button">Retour</button></div></div>
-    <div class="defile">
-      <div class="ligne"><span class="change"><code class="apres" style="font-size:16px">outlined</code></span><span class="pastille p-perso">Personnalisé</span></div>
-      <p class="second">Défini dans ce fichier, en répondant à une question.</p>
-      <div class="sous-titre">Remplace</div>
-      <div class="remplace"><span>outline<i>8 variantes · ✕</i></span></div>
-      <button class="btn btn-secondary btn-compact" style="justify-self:start;width:max-content">Ajouter un terme à remplacer</button>
-      <div class="sous-titre">Présent dans</div>
-      <div class="carte" style="padding:10px 12px;display:grid;gap:6px">
-        <div class="ligne"><span>Composants</span><span class="second">Button, Chip, Tag · 24 variantes</span></div>
-        <div class="variante"><span class="cmp">Button</span>Variant : <mark>outlined</mark></div>
-      </div>
-    </div>
-    <div class="bas"><span class="lien">Proposer à UCM</span><button class="btn btn-secondary btn-compact">Supprimer la règle</button></div>
-  </div>
-  <ul class="legende">
-    <li>Même forme que la fiche UCM.</li>
-    <li>✕ retire un terme remplacé ; Supprimer la règle retire tout.</li>
-    <li>Proposer à UCM copie le terme pour l'ajouter au kit.</li>
-  </ul>
-</div>
-
-<!-- 12 -->
-<div>
-  <p class="titre-ecran">12. Fiche d'un terme sans règle</p>
-  <div class="cadre figma-dark">
-    <div class="entete"><div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="header-back-button">Retour</button></div></div>
-    <div class="defile">
-      <div class="ligne"><span class="change"><code class="apres" style="font-size:16px">bg</code></span><span class="pastille p-gris">Sans règle</span></div>
-      <p class="second">Aucune règle ne concerne ce terme.</p>
-      <div class="sous-titre">Présent dans</div>
-      <div class="carte" style="padding:10px 12px;display:grid;gap:6px">
-        <div class="ligne"><span>Variables</span><span class="second">14</span></div>
-        <div class="chemin">components/tab/hover/<mark>bg</mark></div>
-        <div class="chemin">components/tooltip/<mark>bg</mark></div>
-      </div>
-      <div class="ligne" style="justify-content:flex-start;gap:8px;margin-top:4px"><button class="btn btn-primary btn-compact">Remplacer par…</button><button class="btn btn-secondary btn-compact">Remplace d'autres termes…</button></div>
-    </div>
-  </div>
-  <ul class="legende">
-    <li>La fiche d'un terme sans règle propose de lui en donner une.</li>
-    <li>Remplacer par… : ce terme disparaît au profit d'un autre (écran 13).</li>
-    <li>Remplace d'autres termes… : ce terme devient celui qu'on garde.</li>
-  </ul>
-</div>
-
-<!-- 13 -->
-<div>
-  <p class="titre-ecran">13. Remplacer par… <span>· depuis la fiche de bg</span></p>
-  <div class="cadre figma-dark">
-    <div class="entete"><div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="header-back-button">Retour</button></div></div>
-    <div class="defile">
-      <div class="titre-section">Remplacer <code style="font-size:14px">bg</code> par</div>
-      <input class="input" value="background">
+      
+      <div class="intertitre"><h2>Écriture</h2><button class="btn btn-secondary btn-compact">Modifier</button></div>
+      <div class="carte"><div class="resume-ecriture">
+        <span>Groupes</span><span>minuscules-tirets</span>
+        <span>Noms</span><span>minuscules-tirets</span>
+        <span>Collections</span><span>noms UCM</span>
+      </div></div>
+      <div class="intertitre"><h2>Termes</h2><input class="input recherche" placeholder="Chercher un terme"></div>
+      <div class="filtres"><span class="actif">Tous 318</span><span>Avec règle 55</span><span>Sans règle 263</span></div>
       <div class="liste">
-        <div class="terme-ligne" style="grid-template-columns:1fr auto"><div><span class="nom">background</span><span class="pastille p-ucm">UCM · rôle</span></div><span class="second">212 noms</span></div>
-        <div class="terme-ligne" style="grid-template-columns:1fr auto"><div><span class="nom">backdrop</span></div><span class="second">4 noms</span></div>
-      </div>
-      <div class="carte" style="padding:12px;display:grid;gap:6px;margin-top:4px">
-        <div class="change"><code class="avant">bg</code><span class="fl">→</span><code class="apres">background</code></div>
-        <div class="petit">14 variables rejoindront À appliquer</div>
-        <div class="chemin">components/tab/hover/<mark>background</mark></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">pressed</code><span class="pastille p-ucm">UCM</span></span><span class="meta">remplace press</span><span class="meta">38</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">disabled</code><span class="pastille p-ucm">UCM</span></span><span class="meta">remplace disable</span><span class="meta">28</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">outlined</code><span class="pastille p-perso">Personnalisé</span></span><span class="meta">remplace outline</span><span class="meta">24</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">danger</code><span class="pastille p-ucm">UCM</span></span><span class="meta">à trancher avec error</span><span class="meta">40</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">bg</code></span><span class="meta"></span><span class="meta">14</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">button</code></span><span class="meta"></span><span class="meta">86</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">tile-link</code></span><span class="meta"></span><span class="meta">30</span><span class="chevron">›</span></div>
       </div>
     </div>
-    <div class="bas"><span class="resume">Rien ne change avant Appliquer.</span><button class="btn btn-primary">Enregistrer</button></div>
+    <div class="voile">
+      <div class="feuille">
+        <div class="poignee"></div>
+        <div class="feuille-tete"><span class="ligne serre"><span class="feuille-titre">Écriture des noms</span></span><button class="icon-button" aria-label="Fermer">✕</button></div>
+        <div class="feuille-corps">
+        <div class="carte bloc">
+          <div class="ecr"><div class="pile"><span class="ecr-nom">Groupes <span class="meta">· 612 sur 650</span></span><span class="chemin"><mark>button/sizes/medium</mark>/padding-x</span></div><select class="input"><option>minuscules-tirets</option></select></div>
+          <div class="ecr"><div class="pile"><span class="ecr-nom">Noms <span class="meta">· 791 sur 812</span></span><span class="chemin">button/sizes/medium/<mark>paddingX</mark></span></div><select class="input visee"><option>camelCase</option></select></div>
+          <div class="ecr"><div class="pile"><span class="ecr-nom">Collections</span><span class="meta">Elles portent les noms du référentiel UCM.</span></div><span class="meta fixe">noms UCM</span></div>
+        </div>
+          <div class="effet"><span class="change"><code class="avant">padding-x</code><span class="fl">→</span><code class="apres">paddingX</code><span class="plus">+811</span></span><span class="meta">812 variables rejoindront À appliquer</span></div>
+        </div>
+        <div class="feuille-pied"><span></span><span class="ligne serre"><button class="btn btn-secondary">Annuler</button><button class="btn btn-primary">Enregistrer</button></span></div>
+      </div>
+    </div>
   </div>
-  <ul class="legende">
-    <li>On choisit le terme gardé parmi ceux du fichier et d'UCM.</li>
-    <li>L'effet s'affiche avant d'enregistrer.</li>
-  </ul>
+  <ul class="legende"><li>La même carte qu'au premier lancement.</li><li>L'effet s'affiche avant d'enregistrer ; rien ne change dans Figma avant Appliquer.</li></ul>
 </div>
-
-<!-- 14 -->
+<div>
+  <p class="titre-ecran">10. Feuille d'un terme UCM <span>· une ligne de Règles</span></p>
+  <div class="cadre figma-dark">
+    <div class="entete">
+      <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
+      <div class="onglets"><button class="onglet">À appliquer<span class="compte">156</span></button><button class="onglet">À trancher<span class="compte">7</span></button><button class="onglet" aria-selected="true">Règles</button></div>
+    </div>
+    <div class="defile">
+      
+      <div class="intertitre"><h2>Écriture</h2><button class="btn btn-secondary btn-compact">Modifier</button></div>
+      <div class="carte"><div class="resume-ecriture">
+        <span>Groupes</span><span>minuscules-tirets</span>
+        <span>Noms</span><span>minuscules-tirets</span>
+        <span>Collections</span><span>noms UCM</span>
+      </div></div>
+      <div class="intertitre"><h2>Termes</h2><input class="input recherche" placeholder="Chercher un terme"></div>
+      <div class="filtres"><span class="actif">Tous 318</span><span>Avec règle 55</span><span>Sans règle 263</span></div>
+      <div class="liste">
+        <div class="ligne-terme choisie"><span class="ligne serre"><code class="mot">pressed</code><span class="pastille p-ucm">UCM</span></span><span class="meta">remplace press</span><span class="meta">38</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">disabled</code><span class="pastille p-ucm">UCM</span></span><span class="meta">remplace disable</span><span class="meta">28</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">outlined</code><span class="pastille p-perso">Personnalisé</span></span><span class="meta">remplace outline</span><span class="meta">24</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">danger</code><span class="pastille p-ucm">UCM</span></span><span class="meta">à trancher avec error</span><span class="meta">40</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">bg</code></span><span class="meta"></span><span class="meta">14</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">button</code></span><span class="meta"></span><span class="meta">86</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">tile-link</code></span><span class="meta"></span><span class="meta">30</span><span class="chevron">›</span></div>
+      </div>
+    </div>
+    <div class="voile">
+      <div class="feuille">
+        <div class="poignee"></div>
+        <div class="feuille-tete"><span class="ligne serre"><code class="feuille-mot">pressed</code><span class="pastille p-ucm">UCM · état</span></span><button class="icon-button" aria-label="Fermer">✕</button></div>
+        <div class="feuille-corps">
+          <p class="second">État pendant la pression.</p>
+          <div class="pile"><span class="ecr-nom">Remplace</span><div class="remplace"><span>press<i>60 variables</i></span><button class="btn btn-secondary btn-compact">+ Ajouter</button></div></div>
+          <div class="pile"><div class="ligne"><span class="ecr-nom">Employé dans</span><span class="meta">38 variables</span></div><div class="carte bloc exemples"><div><span class="chemin">components/button/primary/<mark>pressed</mark>/background</span></div><div><span class="chemin">components/tab/<mark>pressed</mark>/foreground</span></div></div></div>
+        </div>
+        <div class="feuille-pied"><button class="btn-texte">Ne pas l'appliquer dans ce fichier</button><button class="btn btn-secondary">Fermer</button></div>
+      </div>
+    </div>
+  </div>
+  <ul class="legende"><li>La feuille monte du bas ; la liste reste visible, assombrie.</li><li>Trois parties : le terme, ce qu'il remplace, où il est employé.</li><li>Un terme UCM ne se modifie pas ; on peut lui ajouter un terme à remplacer.</li></ul>
+</div>
+<div>
+  <p class="titre-ecran">11. Feuille d'un terme personnalisé</p>
+  <div class="cadre figma-dark">
+    <div class="entete">
+      <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
+      <div class="onglets"><button class="onglet">À appliquer<span class="compte">156</span></button><button class="onglet">À trancher<span class="compte">7</span></button><button class="onglet" aria-selected="true">Règles</button></div>
+    </div>
+    <div class="defile">
+      
+      <div class="intertitre"><h2>Écriture</h2><button class="btn btn-secondary btn-compact">Modifier</button></div>
+      <div class="carte"><div class="resume-ecriture">
+        <span>Groupes</span><span>minuscules-tirets</span>
+        <span>Noms</span><span>minuscules-tirets</span>
+        <span>Collections</span><span>noms UCM</span>
+      </div></div>
+      <div class="intertitre"><h2>Termes</h2><input class="input recherche" placeholder="Chercher un terme"></div>
+      <div class="filtres"><span class="actif">Tous 318</span><span>Avec règle 55</span><span>Sans règle 263</span></div>
+      <div class="liste">
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">pressed</code><span class="pastille p-ucm">UCM</span></span><span class="meta">remplace press</span><span class="meta">38</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">disabled</code><span class="pastille p-ucm">UCM</span></span><span class="meta">remplace disable</span><span class="meta">28</span><span class="chevron">›</span></div>
+        <div class="ligne-terme choisie"><span class="ligne serre"><code class="mot">outlined</code><span class="pastille p-perso">Personnalisé</span></span><span class="meta">remplace outline</span><span class="meta">24</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">danger</code><span class="pastille p-ucm">UCM</span></span><span class="meta">à trancher avec error</span><span class="meta">40</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">bg</code></span><span class="meta"></span><span class="meta">14</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">button</code></span><span class="meta"></span><span class="meta">86</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">tile-link</code></span><span class="meta"></span><span class="meta">30</span><span class="chevron">›</span></div>
+      </div>
+    </div>
+    <div class="voile">
+      <div class="feuille">
+        <div class="poignee"></div>
+        <div class="feuille-tete"><span class="ligne serre"><code class="feuille-mot">outlined</code><span class="pastille p-perso">Personnalisé</span></span><button class="icon-button" aria-label="Fermer">✕</button></div>
+        <div class="feuille-corps">
+          <p class="second">Défini dans ce fichier.</p>
+          <div class="pile"><span class="ecr-nom">Remplace</span><div class="remplace"><span>outline<i>8 variables</i><b>✕</b></span><button class="btn btn-secondary btn-compact">+ Ajouter</button></div></div>
+          <div class="pile"><div class="ligne"><span class="ecr-nom">Employé dans</span><span class="meta">24 variables</span></div><div class="carte bloc exemples"><div><span class="chemin">components/button/<mark>outlined</mark>/border</span></div></div></div>
+        </div>
+        <div class="feuille-pied"><button class="btn-texte">Proposer à UCM</button><button class="btn btn-secondary">Supprimer la règle</button></div>
+      </div>
+    </div>
+  </div>
+  <ul class="legende"><li>Même forme que la feuille UCM.</li><li>✕ retire un terme remplacé ; Supprimer la règle retire tout.</li></ul>
+</div>
+<div>
+  <p class="titre-ecran">12. Feuille d'un terme sans règle</p>
+  <div class="cadre figma-dark">
+    <div class="entete">
+      <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
+      <div class="onglets"><button class="onglet">À appliquer<span class="compte">156</span></button><button class="onglet">À trancher<span class="compte">7</span></button><button class="onglet" aria-selected="true">Règles</button></div>
+    </div>
+    <div class="defile">
+      
+      <div class="intertitre"><h2>Écriture</h2><button class="btn btn-secondary btn-compact">Modifier</button></div>
+      <div class="carte"><div class="resume-ecriture">
+        <span>Groupes</span><span>minuscules-tirets</span>
+        <span>Noms</span><span>minuscules-tirets</span>
+        <span>Collections</span><span>noms UCM</span>
+      </div></div>
+      <div class="intertitre"><h2>Termes</h2><input class="input recherche" placeholder="Chercher un terme"></div>
+      <div class="filtres"><span class="actif">Tous 318</span><span>Avec règle 55</span><span>Sans règle 263</span></div>
+      <div class="liste">
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">pressed</code><span class="pastille p-ucm">UCM</span></span><span class="meta">remplace press</span><span class="meta">38</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">disabled</code><span class="pastille p-ucm">UCM</span></span><span class="meta">remplace disable</span><span class="meta">28</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">outlined</code><span class="pastille p-perso">Personnalisé</span></span><span class="meta">remplace outline</span><span class="meta">24</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">danger</code><span class="pastille p-ucm">UCM</span></span><span class="meta">à trancher avec error</span><span class="meta">40</span><span class="chevron">›</span></div>
+        <div class="ligne-terme choisie"><span class="ligne serre"><code class="mot">bg</code></span><span class="meta"></span><span class="meta">14</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">button</code></span><span class="meta"></span><span class="meta">86</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">tile-link</code></span><span class="meta"></span><span class="meta">30</span><span class="chevron">›</span></div>
+      </div>
+    </div>
+    <div class="voile">
+      <div class="feuille">
+        <div class="poignee"></div>
+        <div class="feuille-tete"><span class="ligne serre"><code class="feuille-mot">bg</code><span class="pastille p-gris">Sans règle</span></span><button class="icon-button" aria-label="Fermer">✕</button></div>
+        <div class="feuille-corps">
+          <div class="pile"><div class="ligne"><span class="ecr-nom">Employé dans</span><span class="meta">14 variables</span></div><div class="carte bloc exemples"><div><span class="chemin">components/tab/hover/<mark>bg</mark></span></div><div><span class="chemin">components/tooltip/<mark>bg</mark></span></div></div></div>
+        </div>
+        <div class="feuille-pied"><button class="btn btn-secondary">Remplace d'autres termes…</button><button class="btn btn-primary">Remplacer par…</button></div>
+      </div>
+    </div>
+  </div>
+  <ul class="legende"><li>Sans règle, la feuille propose d'en créer une.</li><li>Remplacer par… : bg disparaît au profit d'un autre terme (écran 13).</li><li>Remplace d'autres termes… : bg devient le terme gardé.</li></ul>
+</div>
+<div>
+  <p class="titre-ecran">13. Remplacer par… <span>· dans la même feuille</span></p>
+  <div class="cadre figma-dark">
+    <div class="entete">
+      <div class="header-topline"><h1 class="page-title">UCM Architect</h1><button class="icon-button avec-libelle"><svg><use href="#engrenage"/></svg><span>Configuration</span></button></div>
+      <div class="onglets"><button class="onglet">À appliquer<span class="compte">156</span></button><button class="onglet">À trancher<span class="compte">7</span></button><button class="onglet" aria-selected="true">Règles</button></div>
+    </div>
+    <div class="defile">
+      
+      <div class="intertitre"><h2>Écriture</h2><button class="btn btn-secondary btn-compact">Modifier</button></div>
+      <div class="carte"><div class="resume-ecriture">
+        <span>Groupes</span><span>minuscules-tirets</span>
+        <span>Noms</span><span>minuscules-tirets</span>
+        <span>Collections</span><span>noms UCM</span>
+      </div></div>
+      <div class="intertitre"><h2>Termes</h2><input class="input recherche" placeholder="Chercher un terme"></div>
+      <div class="filtres"><span class="actif">Tous 318</span><span>Avec règle 55</span><span>Sans règle 263</span></div>
+      <div class="liste">
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">pressed</code><span class="pastille p-ucm">UCM</span></span><span class="meta">remplace press</span><span class="meta">38</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">disabled</code><span class="pastille p-ucm">UCM</span></span><span class="meta">remplace disable</span><span class="meta">28</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">outlined</code><span class="pastille p-perso">Personnalisé</span></span><span class="meta">remplace outline</span><span class="meta">24</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">danger</code><span class="pastille p-ucm">UCM</span></span><span class="meta">à trancher avec error</span><span class="meta">40</span><span class="chevron">›</span></div>
+        <div class="ligne-terme choisie"><span class="ligne serre"><code class="mot">bg</code></span><span class="meta"></span><span class="meta">14</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">button</code></span><span class="meta"></span><span class="meta">86</span><span class="chevron">›</span></div>
+        <div class="ligne-terme"><span class="ligne serre"><code class="mot">tile-link</code></span><span class="meta"></span><span class="meta">30</span><span class="chevron">›</span></div>
+      </div>
+    </div>
+    <div class="voile">
+      <div class="feuille">
+        <div class="poignee"></div>
+        <div class="feuille-tete"><span class="ligne serre"><button class="icon-button" aria-label="Revenir">‹</button><span class="feuille-titre">Remplacer <code>bg</code> par</span></span><button class="icon-button" aria-label="Fermer">✕</button></div>
+        <div class="feuille-corps">
+          <input class="input" value="background">
+          <div class="liste">
+            <div class="ligne-terme choisie deux"><span class="ligne serre"><code class="mot">background</code><span class="pastille p-ucm">UCM · rôle</span></span><span class="meta">212 variables</span></div>
+            <div class="ligne-terme deux"><span class="ligne serre"><code class="mot">backdrop</code></span><span class="meta">4 variables</span></div>
+          </div>
+          <div class="effet"><span class="change"><code class="avant">bg</code><span class="fl">→</span><code class="apres">background</code></span><span class="meta">14 variables rejoindront À appliquer</span><span class="chemin">components/tab/hover/<mark>background</mark></span></div>
+        </div>
+        <div class="feuille-pied"><span></span><button class="btn btn-primary">Enregistrer</button></div>
+      </div>
+    </div>
+  </div>
+  <ul class="legende"><li>La feuille passe à l'étape suivante ; ‹ revient à la fiche.</li><li>L'effet s'affiche avant d'enregistrer.</li></ul>
+</div>
 <div>
   <p class="titre-ecran">14. Configuration <span>· bouton Configuration</span></p>
   <div class="cadre figma-dark">
@@ -579,180 +675,189 @@
       <div class="onglets"><button class="onglet" aria-selected="true">Fichier</button><button class="onglet">Général</button></div>
     </div>
     <div class="defile">
-      <div class="field-label">Collections analysées</div>
+      <div class="intertitre"><h2>Collections analysées</h2></div>
       <div class="liste">
-        <div class="terme-ligne" style="grid-template-columns:14px 1fr auto"><input type="checkbox" checked><span class="nom" style="font-weight:400">components</span><span class="second">412</span></div>
-        <div class="terme-ligne" style="grid-template-columns:14px 1fr auto"><input type="checkbox" checked><span class="nom" style="font-weight:400">theme</span><span class="second">96</span></div>
-        <div class="terme-ligne" style="grid-template-columns:14px 1fr auto"><input type="checkbox" checked><span class="nom" style="font-weight:400">primitives</span><span class="second">palettes protégées</span></div>
-        <div class="terme-ligne" style="grid-template-columns:14px 1fr auto"><input type="checkbox"><span class="nom" style="font-weight:400">tests</span><span class="second">12</span></div>
+        <div class="ligne-terme case"><input type="checkbox" checked><code class="mot normal">components</code><span class="meta">412 variables</span></div>
+        <div class="ligne-terme case"><input type="checkbox" checked><code class="mot normal">theme</code><span class="meta">96 variables</span></div>
+        <div class="ligne-terme case"><input type="checkbox" checked><code class="mot normal">primitives</code><span class="meta">palettes protégées</span></div>
+        <div class="ligne-terme case"><input type="checkbox"><code class="mot normal">tests</code><span class="meta">12 variables</span></div>
       </div>
-      <div class="reglage-ligne" style="margin-top:6px"><div><div class="field-label">Lire les composants</div><div class="petit">24 composants sur 6 pages</div></div><button class="interrupteur" aria-checked="true"><span class="interrupteur-curseur"></span></button></div>
-      <div class="field-label" style="margin-top:6px">Règles de ce fichier</div>
-      <div class="ligne" style="justify-content:flex-start"><button class="btn btn-secondary btn-compact">Exporter</button><button class="btn btn-secondary btn-compact">Importer d'un autre fichier</button></div>
-      <div class="field-label" style="margin-top:6px">Dernier renommage</div>
+      <div class="intertitre"><h2>Règles de ce fichier</h2></div>
+      <div class="ligne serre"><button class="btn btn-secondary btn-compact">Exporter</button><button class="btn btn-secondary btn-compact">Importer</button></div>
+      <div class="intertitre"><h2>Dernier renommage</h2></div>
       <div class="ligne"><span class="second">160 noms, à 14:42</span><button class="btn btn-secondary btn-compact">Annuler</button></div>
     </div>
   </div>
-  <ul class="legende">
-    <li>Le bouton Configuration devient Retour, comme dans Palettes.</li>
-    <li>Fichier : réglages partagés de ce document. Général : ce poste (langue).</li>
-  </ul>
+  <ul class="legende"><li>Comme dans Palettes : le bouton Configuration devient Retour.</li><li>Fichier : réglages partagés de ce document. Général : ce poste.</li></ul>
 </div>
-
 </div>
 
 <h2>Planche des cartes</h2>
-<p class="chapeau">Chaque type, dans le dessin qu'il aurait dans le plugin. Toutes suivent deux formes : avant → après pour ce qui change, deux termes face à face pour ce qui se tranche.</p>
+<p class="chapeau">Deux dessins : avant → après pour ce qui change, deux termes face à face pour ce qui se tranche.</p>
 
 <h3>À appliquer</h3>
 <div class="planche">
-
-<div><p class="nom-type">Terme UCM<span>Un terme remplacé par le terme qu'UCM retient</span></p>
-<div class="echantillon figma-dark"><div class="carte"><div class="tete"><input type="checkbox" checked><div><div class="change"><code class="avant">disable</code><span class="fl">→</span><code class="apres">disabled</code></div><div class="petit">24 variables · 12 variantes de 3 composants</div></div><div class="ligne"><span class="pastille p-ucm">UCM</span><span class="chevron">›</span></div></div></div></div></div>
-
-<div><p class="nom-type">Terme personnalisé<span>Né d'une réponse ou d'une règle ajoutée dans Règles</span></p>
-<div class="echantillon figma-dark"><div class="carte"><div class="tete"><input type="checkbox" checked><div><div class="change"><code class="avant">outline</code><span class="fl">→</span><code class="apres">outlined</code></div><div class="petit">8 variantes de Alert</div></div><div class="ligne"><span class="pastille p-perso">Personnalisé</span><span class="pastille p-nouveau">Nouveau</span><span class="chevron">›</span></div></div></div></div></div>
-
-<div><p class="nom-type">Écriture<span>Le premier nom concerné, et le nombre des autres</span></p>
-<div class="echantillon figma-dark"><div class="carte"><div class="tete"><input type="checkbox" checked><div><div class="change"><code class="avant">Extra_Large</code><span class="fl">→</span><code class="apres">extra-large</code><span class="plus">+ 37</span></div><div class="petit">Valeurs de composants en minuscules-tirets</div></div><span class="chevron">⌄</span></div>
-<div class="corps"><div class="rang"><input type="checkbox" checked><span class="variante"><span class="cmp">Tag</span>Size : <mark>extra-large</mark></span><span class="petit">4 variantes</span></div><div class="rang"><input type="checkbox" checked><span class="variante"><span class="cmp">Chip</span>State : <mark>default</mark></span><span class="petit">6 variantes</span></div></div></div></div></div>
-
-<div><p class="nom-type">Collection UCM<span>Une collection reconnue sous un autre nom</span></p>
-<div class="echantillon figma-dark"><div class="carte"><div class="tete"><input type="checkbox" checked><div><div class="change"><code class="avant">Color Brands</code><span class="fl">→</span><code class="apres">color-brands</code></div><div class="petit">Collection UCM · 44 variables</div></div><span class="chevron">›</span></div></div></div></div>
-
-<div><p class="nom-type">Nom changé par deux règles<span>Il apparaît dans les deux cartes ; le cocher dans l'une le coche dans l'autre</span></p>
-<div class="echantillon figma-dark"><div class="rang" style="grid-template-columns:14px 1fr auto"><input type="checkbox" checked><span class="chemin">components/button/<mark>pressed-state</mark>/background</span><span class="petit">écriture + UCM</span></div></div></div>
-
-<div><p class="nom-type">Bloqué<span>Deux noms deviendraient identiques</span></p>
-<div class="echantillon figma-dark"><div class="carte"><div class="tete sans-coche"><div><div class="change"><code class="avant">Font Size</code><span class="fl">→</span><code class="apres">font-size</code><span class="pastille p-av">Bloqué</span></div><div class="petit">primitives contient déjà font-size. Supprimez ou renommez l'une des deux dans Figma.</div></div><button class="btn btn-secondary btn-compact">Garder les deux</button></div></div></div></div>
-
-<div><p class="nom-type">Protégé<span>Des noms que le plugin ne renomme pas</span></p>
-<div class="echantillon figma-dark"><div class="carte"><div class="tete sans-coche"><div><div class="gras" style="font-size:12px">143 noms écrits par UCM Palettes</div><div class="petit">Palettes retrouve ses palettes par leur nom : renommez une palette dans Palettes.</div></div><span class="pastille p-gris">Protégé</span></div></div></div></div>
-
+<div><p class="nom-type">Terme UCM</p><div class="echantillon figma-dark">
+      <div class="carte">
+        <div class="tete"><input type="checkbox" checked><div class="pile"><span class="change"><code class="avant">disable</code><span class="fl">→</span><code class="apres">disabled</code></span><span class="meta">36 variables</span></div><span class="droite"><span class="pastille p-ucm">UCM</span><span class="chevron">⌄</span></span></div>
+      </div>
+</div></div>
+<div><p class="nom-type">Terme personnalisé<span>Né d'une réponse ou d'une règle ajoutée</span></p><div class="echantillon figma-dark">
+      <div class="carte">
+        <div class="tete"><input type="checkbox" checked><div class="pile"><span class="change"><code class="avant">outline</code><span class="fl">→</span><code class="apres">outlined</code></span><span class="meta">8 variables</span></div><span class="droite"><span class="pastille p-perso">Personnalisé</span><span class="pastille p-nouveau">Nouveau</span><span class="chevron">⌄</span></span></div>
+      </div>
+</div></div>
+<div><p class="nom-type">Écriture<span>Le premier nom concerné et le nombre des autres</span></p><div class="echantillon figma-dark">
+      <div class="carte">
+        <div class="tete"><input type="checkbox" checked><div class="pile"><span class="change"><code class="avant">fontSize</code><span class="fl">→</span><code class="apres">font-size</code><span class="plus">+20</span></span><span class="meta">Noms · minuscules-tirets</span></div><span class="droite"><span class="chevron">⌃</span></span></div>
+        <div class="corps">
+          <div class="rang"><input type="checkbox" checked><span class="chemin">primitives/typography/<mark>font-size</mark>/body</span></div>
+          <div class="rang"><input type="checkbox" checked><span class="chemin">primitives/typography/<mark>line-height</mark>/body</span></div>
+        </div>
+      </div>
+</div></div>
+<div><p class="nom-type">Collection UCM</p><div class="echantillon figma-dark">
+      <div class="carte">
+        <div class="tete"><input type="checkbox" checked><div class="pile"><span class="change"><code class="avant">Color Brands</code><span class="fl">→</span><code class="apres">color-brands</code></span><span class="meta">Collection UCM · 44 variables</span></div><span class="droite"><span class="chevron">⌄</span></span></div>
+      </div>
+</div></div>
+<div><p class="nom-type">Bloqué<span>Deux noms deviendraient identiques</span></p><div class="echantillon figma-dark">
+      <div class="carte"><div class="tete sans-coche"><div class="pile"><span class="change"><code class="avant">Font Size</code><span class="fl">→</span><code class="apres">font-size</code></span><span class="meta">primitives contient déjà font-size : supprimez ou renommez l'une des deux dans Figma.</span></div><span class="droite"><span class="pastille p-av">Bloqué</span></span></div></div>
+</div></div>
+<div><p class="nom-type">Protégé<span>Des noms que le plugin ne renomme pas</span></p><div class="echantillon figma-dark">
+      <div class="carte"><div class="tete sans-coche"><div class="pile"><span class="gras">143 noms écrits par UCM Palettes</span><span class="meta">Renommez une palette dans Palettes, qui la retrouve par son nom.</span></div><span class="droite"><span class="pastille p-gris">Protégé</span></span></div></div>
+</div></div>
 </div>
-
 <h3>À trancher</h3>
 <div class="planche">
-
-<div><p class="nom-type">Deux termes, une même chose ?<span>L'indice en haut à droite change : terminaison, singulier et pluriel, abréviation, synonymes courants, même place</span></p>
-<div class="echantillon figma-dark"><div class="carte question">
-  <div class="ligne"><span class="titre">Ces termes désignent-ils la même chose ?</span><span class="indice">singulier et pluriel</span></div>
-  <div class="face">
-    <div class="terme"><span class="mot">colors</span><span class="petit">212 variables</span><span class="chemin">components/alert/<mark>colors</mark>/info</span><button class="btn btn-primary btn-compact">Garder colors</button></div>
-    <div class="terme"><span class="mot">color</span><span class="petit">9 variables</span><span class="chemin">components/badge/<mark>color</mark>/info</span><button class="btn btn-secondary btn-compact">Garder color</button></div>
-  </div>
-  <div class="actions-second"><button class="btn btn-secondary btn-compact">Termes différents</button><button class="btn btn-secondary btn-compact">Autre terme…</button><button class="btn btn-secondary btn-compact">Plus tard</button></div>
-</div></div></div>
-
-<div><p class="nom-type">Même place, même couleur<span>L'indice le moins sûr : la preuve est écrite sous les termes</span></p>
-<div class="echantillon figma-dark"><div class="carte question">
-  <div class="ligne"><span class="titre">Ces termes désignent-ils la même chose ?</span><span class="indice">même place</span></div>
-  <div class="face">
-    <div class="terme"><span class="mot">contained</span><span class="petit">16 variables</span><span class="chemin">components/button/<mark>contained</mark>/background</span><button class="btn btn-secondary btn-compact">Garder contained</button></div>
-    <div class="terme"><span class="mot">filled</span><span class="petit">6 variables</span><span class="chemin">components/alert/<mark>filled</mark>/background</span><button class="btn btn-secondary btn-compact">Garder filled</button></div>
-  </div>
-  <div class="petit">Les deux visent theme/primary/solid/default.</div>
-  <div class="actions-second"><button class="btn btn-secondary btn-compact">Termes différents</button><button class="btn btn-secondary btn-compact">Autre terme…</button><button class="btn btn-secondary btn-compact">Plus tard</button></div>
-</div></div></div>
-
-<div><p class="nom-type">Autre terme<span>Ni l'un ni l'autre : la carte s'ouvre sur un champ</span></p>
-<div class="echantillon figma-dark"><div class="carte question">
-  <span class="titre">Remplacer contained et filled par</span>
-  <input class="input" value="solid">
-  <div class="change"><code class="avant">contained, filled</code><span class="fl">→</span><code class="apres">solid</code><span class="pastille p-ucm">UCM</span></div>
-  <div class="ligne"><span class="petit">22 variables rejoindront À appliquer</span><span class="ligne"><button class="btn btn-secondary btn-compact">Retour</button><button class="btn btn-primary btn-compact">Enregistrer</button></span></div>
-</div></div></div>
-
-<div><p class="nom-type">Terme mal écrit<span>Une lettre d'écart avec un terme plus employé</span></p>
-<div class="echantillon figma-dark"><div class="carte question">
-  <div class="ligne"><span class="titre">Ce terme est-il mal écrit ?</span><span class="indice">une lettre d'écart</span></div>
-  <div class="change"><code class="avant">contrashovered</code><span class="fl">→</span><code class="apres">contrasthovered</code></div>
-  <div class="petit">1 variable · contrasthovered en compte 14</div>
-  <div class="actions-second"><button class="btn btn-primary btn-compact">Corriger</button><button class="btn btn-secondary btn-compact">C'est voulu</button><button class="btn btn-secondary btn-compact">Plus tard</button></div>
-</div></div></div>
-
-<div><p class="nom-type">Mots collés<span>La coupure proposée se corrige en touchant entre deux lettres</span></p>
-<div class="echantillon figma-dark"><div class="carte question">
-  <div class="ligne"><span class="titre">Ce terme réunit-il plusieurs mots ?</span><span class="indice">mots collés</span></div>
-  <div class="change"><code class="avant">vspacingsmall</code><span class="fl">→</span><code class="apres">v-spacing-small</code></div>
-  <div class="petit">3 variables</div>
-  <div class="actions-second"><button class="btn btn-primary btn-compact">Séparer</button><button class="btn btn-secondary btn-compact">C'est un seul mot</button><button class="btn btn-secondary btn-compact">Plus tard</button></div>
-</div></div></div>
-
-<div><p class="nom-type">Tailles écrites de deux façons<span>Une réponse pour toute l'échelle</span></p>
-<div class="echantillon figma-dark"><div class="carte question">
-  <div class="ligne"><span class="titre">Quelle écriture garder pour les tailles ?</span><span class="indice">deux écritures</span></div>
-  <div class="face">
-    <div class="terme"><span class="mot">sm md lg</span><span class="petit">34 noms · Button, Input, Tag</span><button class="btn btn-primary btn-compact">Garder celle-ci</button></div>
-    <div class="terme"><span class="mot">small medium large</span><span class="petit">12 noms · Chip, Avatar</span><button class="btn btn-secondary btn-compact">Garder celle-ci</button></div>
-  </div>
-  <div class="actions-second"><button class="btn btn-secondary btn-compact">Plus tard</button></div>
-</div></div></div>
-
-<div><p class="nom-type">Collection non reconnue<span>Elle prend le nom d'une collection UCM, ou reste personnalisée</span></p>
-<div class="echantillon figma-dark"><div class="carte question">
-  <div class="ligne"><span class="titre">À quelle collection UCM correspond Typo Tokens ?</span><span class="indice">48 variables</span></div>
-  <div class="ligne"><code class="change" style="font:600 13px 'JetBrains Mono',monospace">Typo Tokens</code><span class="fl second">→</span><select class="input" style="width:200px;height:28px"><option>typography</option></select></div>
-  <div class="actions-second"><button class="btn btn-primary btn-compact">Renommer</button><button class="btn btn-secondary btn-compact">Garder ce nom</button><button class="btn btn-secondary btn-compact">Plus tard</button></div>
-</div></div></div>
-
-<div><p class="nom-type">Règle refusée<span>Une réponse ou une règle qui contredit un terme UCM</span></p>
-<div class="echantillon figma-dark"><div class="carte question" style="border-color:#7a5a1a">
-  <span class="titre">Cette règle contredit UCM</span>
-  <div class="change"><code class="avant">hover</code><span class="fl">→</span><code class="apres">hovered</code></div>
-  <div class="petit">UCM remplace hovered par hover.</div>
-  <div class="actions-second"><button class="btn btn-secondary btn-compact">Retour</button><button class="btn btn-secondary btn-compact">Ne pas appliquer hover dans ce fichier</button></div>
-</div></div></div>
-
-<div><p class="nom-type">Plus tard<span>En bas de À trancher, repliée</span></p>
-<div class="echantillon figma-dark">
-  <div class="carte"><div class="tete sans-coche"><div class="gras" style="font-size:12px">Plus tard · 2</div><span class="chevron">⌄</span></div>
-  <div class="corps"><div class="rang" style="grid-template-columns:1fr auto"><div class="change"><code class="avant">bg</code><span class="fl">·</span><code class="apres">background</code></div><button class="btn btn-secondary btn-compact">Reprendre</button></div><div class="rang" style="grid-template-columns:1fr auto"><code class="change" style="font:600 13px 'JetBrains Mono',monospace">Typo Tokens</code><button class="btn btn-secondary btn-compact">Reprendre</button></div></div></div>
+<div><p class="nom-type">Deux termes, une même chose ?<span>L'indice change : Terminaison, Singulier et pluriel, Abréviation, Synonymes, Même place</span></p><div class="echantillon figma-dark">
+      <div class="carte q">
+        <div class="ligne"><span class="q-titre">Ces termes désignent-ils la même chose ?</span><span class="pastille p-gris">Singulier et pluriel</span></div>
+        <div class="face">
+          <div class="colonne propose">
+            <div class="ligne"><code class="mot">colors</code></div>
+            <span class="meta">212 variables</span>
+            <span class="chemin">components/alert/<mark>colors</mark>/info</span>
+            <button class="btn btn-primary btn-compact">Garder colors</button>
+          </div>
+          <div class="colonne">
+            <div class="ligne"><code class="mot">color</code></div>
+            <span class="meta">9 variables</span>
+            <span class="chemin">components/badge/<mark>color</mark>/info</span>
+            <button class="btn btn-secondary btn-compact">Garder color</button>
+          </div></div>
+        <div class="q-pied"><span class="ligne serre"><button class="btn btn-secondary btn-compact">Termes différents</button><button class="btn btn-secondary btn-compact">Autre terme…</button></span><button class="btn-texte">Plus tard</button></div>
+      </div>
 </div></div>
-
+<div><p class="nom-type">Même place<span>L'indice le moins sûr : la preuve s'écrit sous les colonnes</span></p><div class="echantillon figma-dark">
+      <div class="carte q">
+        <div class="ligne"><span class="q-titre">Ces termes désignent-ils la même chose ?</span><span class="pastille p-gris">Même place</span></div>
+        <div class="face">
+          <div class="colonne">
+            <div class="ligne"><code class="mot">contained</code></div>
+            <span class="meta">16 variables</span>
+            <span class="chemin">components/button/<mark>contained</mark>/background</span>
+            <button class="btn btn-secondary btn-compact">Garder contained</button>
+          </div>
+          <div class="colonne">
+            <div class="ligne"><code class="mot">filled</code></div>
+            <span class="meta">6 variables</span>
+            <span class="chemin">components/alert/<mark>filled</mark>/background</span>
+            <button class="btn btn-secondary btn-compact">Garder filled</button>
+          </div></div>
+        <span class="meta">Les deux visent theme/primary/solid/default.</span>
+        <div class="q-pied"><span class="ligne serre"><button class="btn btn-secondary btn-compact">Termes différents</button><button class="btn btn-secondary btn-compact">Autre terme…</button></span><button class="btn-texte">Plus tard</button></div>
+      </div>
+</div></div>
+<div><p class="nom-type">Autre terme<span>La carte s'ouvre sur un champ</span></p><div class="echantillon figma-dark">
+      <div class="carte q">
+        <span class="q-titre">Remplacer contained et filled par</span>
+        <input class="input" value="solid">
+        <div class="effet"><span class="change"><code class="avant">contained, filled</code><span class="fl">→</span><code class="apres">solid</code></span><span class="meta">22 variables rejoindront À appliquer</span></div>
+        <div class="q-pied"><span></span><span class="ligne serre"><button class="btn btn-secondary btn-compact">Retour</button><button class="btn btn-primary btn-compact">Enregistrer</button></span></div>
+      </div>
+</div></div>
+<div><p class="nom-type">Terme mal écrit</p><div class="echantillon figma-dark">
+      <div class="carte q">
+        <div class="ligne"><span class="q-titre">Ce terme est-il mal écrit ?</span><span class="pastille p-gris">Une lettre d'écart</span></div>
+        <div class="effet"><span class="change"><code class="avant">contrashovered</code><span class="fl">→</span><code class="apres">contrasthovered</code></span><span class="meta">1 variable ; contrasthovered en compte 14</span></div>
+        <div class="q-pied"><span class="ligne serre"><button class="btn btn-primary btn-compact">Corriger</button><button class="btn btn-secondary btn-compact">C'est voulu</button></span><button class="btn-texte">Plus tard</button></div>
+      </div>
+</div></div>
+<div><p class="nom-type">Mots collés<span>La coupure se corrige en touchant entre deux lettres</span></p><div class="echantillon figma-dark">
+      <div class="carte q">
+        <div class="ligne"><span class="q-titre">Ce terme réunit-il plusieurs mots ?</span><span class="pastille p-gris">Mots collés</span></div>
+        <div class="effet"><span class="change"><code class="avant">vspacingsmall</code><span class="fl">→</span><code class="apres">v-spacing-small</code></span><span class="meta">3 variables</span></div>
+        <div class="q-pied"><span class="ligne serre"><button class="btn btn-primary btn-compact">Séparer</button><button class="btn btn-secondary btn-compact">C'est un seul mot</button></span><button class="btn-texte">Plus tard</button></div>
+      </div>
+</div></div>
+<div><p class="nom-type">Tailles écrites de deux façons<span>Une réponse pour toute l'échelle</span></p><div class="echantillon figma-dark">
+      <div class="carte q">
+        <div class="ligne"><span class="q-titre">Quelle écriture garder pour les tailles ?</span><span class="pastille p-gris">Deux écritures</span></div>
+        <div class="face">
+          <div class="colonne propose">
+            <div class="ligne"><code class="mot">sm md lg</code></div>
+            <span class="meta">34 variables</span>
+            <span class="chemin">components/button/sizes/<mark>md</mark>/height</span>
+            <button class="btn btn-primary btn-compact">Garder sm md lg</button>
+          </div>
+          <div class="colonne">
+            <div class="ligne"><code class="mot">small medium large</code></div>
+            <span class="meta">12 variables</span>
+            <span class="chemin">components/chip/sizes/<mark>medium</mark>/height</span>
+            <button class="btn btn-secondary btn-compact">Garder small medium large</button>
+          </div></div>
+        <div class="q-pied"><span class="ligne serre"></span><button class="btn-texte">Plus tard</button></div>
+      </div>
+</div></div>
+<div><p class="nom-type">Collection non reconnue</p><div class="echantillon figma-dark">
+      <div class="carte q">
+        <div class="ligne"><span class="q-titre">À quelle collection UCM correspond Typo Tokens ?</span><span class="pastille p-gris">48 variables</span></div>
+        <div class="ligne"><code class="mot-seul">Typo Tokens</code><span class="fl">→</span><select class="input" style="width:220px;height:28px"><option>typography</option></select></div>
+        <div class="q-pied"><span class="ligne serre"><button class="btn btn-primary btn-compact">Renommer</button><button class="btn btn-secondary btn-compact">Garder ce nom</button></span><button class="btn-texte">Plus tard</button></div>
+      </div>
+</div></div>
+<div><p class="nom-type">Règle refusée<span>Une réponse ou une règle qui contredit un terme UCM</span></p><div class="echantillon figma-dark">
+      <div class="carte q alerte">
+        <span class="q-titre">Cette règle contredit UCM</span>
+        <div class="effet"><span class="change"><code class="avant">hover</code><span class="fl">→</span><code class="apres">hovered</code></span><span class="meta">UCM remplace hovered par hover.</span></div>
+        <div class="q-pied"><button class="btn-texte">Ne pas appliquer hover dans ce fichier</button><button class="btn btn-secondary btn-compact">Retour</button></div>
+      </div>
+</div></div>
+<div><p class="nom-type">Plus tard<span>En bas de l'onglet, repliée</span></p><div class="echantillon figma-dark">
+      <div class="carte"><div class="tete sans-coche"><span class="gras">Plus tard · 2</span><span class="chevron">⌃</span></div>
+        <div class="corps">
+          <div class="rang large"><span class="change"><code class="avant">bg</code><span class="fl">→</span><code class="apres">background</code></span><button class="btn btn-secondary btn-compact">Reprendre</button></div>
+          <div class="rang large"><code class="mot-seul">Typo Tokens</code><button class="btn btn-secondary btn-compact">Reprendre</button></div>
+        </div></div>
+</div></div>
 </div>
-
 <h3>États</h3>
 <div class="planche">
-
-<div><p class="nom-type">Analyse en cours</p>
-<div class="echantillon figma-dark" style="height:180px"><div class="centre"><div class="titre-section">Lecture du fichier</div><div class="avancement" style="width:260px"><div style="width:60%"></div></div><span class="petit">Pages des composants · 4 sur 6</span></div></div></div>
-
-<div><p class="nom-type">Rien à faire</p>
-<div class="echantillon figma-dark" style="height:180px"><div class="centre"><div class="titre-section">Tous les noms suivent vos règles</div><button class="btn btn-secondary btn-compact">Relancer l'analyse</button></div></div></div>
-
-<div><p class="nom-type">Fichier sans variable locale</p>
-<div class="echantillon figma-dark" style="height:180px"><div class="centre"><div class="titre-section">Ces variables viennent d'une bibliothèque</div><p class="second" style="max-width:360px">Ouvrez <b style="color:var(--texte)">Design System Intencial</b> pour les renommer. Les composants de ce fichier sont analysés.</p></div></div></div>
-
-<div><p class="nom-type">Fichier modifié pendant que le plugin est ouvert</p>
-<div class="echantillon figma-dark" style="padding:0;overflow:hidden"><div class="bandeau"><span>Le fichier a changé</span><span style="text-decoration:underline">Relancer l'analyse</span></div><div style="padding:12px 16px" class="second">Les listes datent d'avant ce changement.</div></div></div>
-
+<div><p class="nom-type">Analyse en cours</p><div class="echantillon figma-dark"><div class="centre petit-centre"><div class="titre-section">Lecture des variables</div><div class="avancement"><div style="width:60%"></div></div><span class="meta">512 sur 812</span></div>
+</div></div>
+<div><p class="nom-type">Rien à faire</p><div class="echantillon figma-dark"><div class="centre petit-centre"><div class="titre-section">Tous les noms suivent vos règles</div><button class="btn btn-secondary btn-compact">Relancer l'analyse</button></div>
+</div></div>
+<div><p class="nom-type">Fichier sans variable locale<span>Par exemple le fichier des composants</span></p><div class="echantillon figma-dark"><div class="centre petit-centre"><div class="titre-section">Aucune variable à harmoniser ici</div><p class="second" style="max-width:360px">Les variables de ce fichier viennent d'une bibliothèque. Ouvrez le plugin dans le fichier des tokens.</p></div>
+</div></div>
+<div><p class="nom-type">Fichier modifié pendant que le plugin est ouvert</p><div class="echantillon figma-dark"><div class="bandeau"><span>Le fichier a changé</span><button class="btn-texte av">Relancer l'analyse</button></div>
+</div></div>
 </div>
 
-<h2>Retours sur la première version</h2>
+<h2>Retours sur la version précédente</h2>
 <table class="couverture">
   <tr><th>Retour</th><th>Réponse</th></tr>
-  <tr><td>1. Premier lancement trop bavard</td><td>Un titre, une ligne, un bouton</td></tr>
-  <tr><td>2. Propriété, nom de variable, valeur de variante : la différence</td><td>Section « Variables et composants » ; l'écran 2 groupe les choix en deux cartes avec un exemple réel</td></tr>
-  <tr><td>2. Encart Vocabulaire UCM</td><td>Retiré : les termes UCM apparaissent dans À appliquer avec leur pastille</td></tr>
-  <tr><td>2. Bouton de configuration</td><td>Celui de Palettes, tiré de la feuille de style commune</td></tr>
-  <tr><td>3. Les chiffres 1 et 2</td><td>Retirés ; À appliquer et À trancher deviennent deux onglets, puisque ce sont deux vues</td></tr>
-  <tr><td>3. press devient pressed, UCM collé</td><td>Avant → après en grand et de même taille ; pastille séparée à droite</td></tr>
-  <tr><td>3. Chemins trop chargés</td><td>Texte simple, seul le terme en cause coloré, sans bordure</td></tr>
-  <tr><td>3. « Button State » inventé</td><td>Un composant s'écrit comme le panneau de Figma, sous un titre Composants distinct des variables</td></tr>
-  <tr><td>3. Écriture mal mise en avant</td><td>Même forme avant → après, avec le premier nom et le nombre des autres</td></tr>
-  <tr><td>4. Question trop précise, preuves floues, boutons en vrac</td><td>Question générique ; deux termes face à face avec leurs exemples ; le choix principal dans chaque colonne, trois actions secondaires alignées</td></tr>
-  <tr><td>5. Réponse donnée</td><td>Une ligne : ce qui changera, et Annuler</td></tr>
-  <tr><td>7. Ctrl+Z, noms changés par un collègue</td><td>Retirés ; un nom changé entre-temps revient simplement dans la liste après la relecture</td></tr>
-  <tr><td>8. « Équipe »</td><td>Renommé Personnalisé : défini dans ce fichier</td></tr>
-  <tr><td>10 à 13. Accès aux écrans</td><td>Plan de navigation ; chevron sur chaque ligne de Règles ; Retour en haut de chaque fiche ; bouton Configuration</td></tr>
+  <tr><td>Les composants : on n'en avait jamais parlé ; tokens et composants vivent dans deux fichiers</td><td>Retirés : le plugin harmonise les variables seulement. La divergence des noms des composants devient une piste à part (conception, section 11)</td></tr>
+  <tr><td>Les fiches de règle sur une page à part</td><td>Des feuilles qui montent du bas sur un fond assombri ; la liste des termes reste derrière</td></tr>
+  <tr><td>Un choix segmenté pour À appliquer et À trancher</td><td>Deux onglets, puisque ce sont deux vues</td></tr>
+  <tr><td>Conception des pages pas assez claire</td><td>Une seule couleur d'accent, le surlignage de ce qui est en cause ; des intertitres dans À appliquer ; la même anatomie pour toutes les cartes et toutes les feuilles ; moins de texte secondaire</td></tr>
 </table>
 
 <h2>Questions au mainteneur</h2>
 <ol class="questions">
-  <li><b>Les composants</b> : le plugin les harmonise, comme la v1. Faut-il les garder dans le même outil que les variables ?</li>
-  <li><b>La confirmation</b> : la montrer aussi pour un lot de variables seules, dans un fichier qui n'est pas une bibliothèque ?</li>
+  <li><b>La confirmation</b> : le fichier des tokens est une bibliothèque, chaque renommage touche ses utilisateurs et le code. La montrer à chaque application vous convient-il ?</li>
   <li><b>Les palettes de Palettes</b> : les protéger, ou les renommer et laisser Palettes suivre ?</li>
+  <li><b>Les composants</b> : l'avertissement de l'exporteur et le contrôle de <code>ucm check</code> vous suffiraient-ils (conception, section 11) ?</li>
   <li><b>La planche</b> : chaque carte vous convient-elle ?</li>
 </ol>
 
