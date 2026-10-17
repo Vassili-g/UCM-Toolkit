@@ -66,7 +66,7 @@ Cocher une case quand son commit est fait, avec le hash entre parenthèses.
 | S1 | Feuille et onglets renommables du socle | `implementeur` | Codex | L0 |
 | P1 | Lecture des variables seules | `implementeur` | Claude | L0, K1 |
 | P2 | Règles du fichier, journal et port de stockage | `implementeur` | Claude | L0 |
-| P3 | Écriture des variables et des collections | `implementeur-exigeant` | Claude | P1, P2, K2b |
+| P3 | Écriture des variables et des collections | `implementeur-exigeant` | Claude | P1, P2 |
 | P5 | Projection vers l'écran | `implementeur-exigeant` | Claude | K2b, K3 |
 | P4 | Session de calcul et protocole | `implementeur-exigeant` | Claude | P3, P5 |
 | U1a | Coquille : en-tête, onglets, frontière, états | `implementeur-exigeant` | Claude | L0 |
@@ -332,23 +332,23 @@ npm test --workspace ucm-plugin-socle
 
 **Agent :** `implementeur`, relu par la principale. **Effort :** moyen.
 
-- [ ] `packages/kit/src/referentiel/harmonisation.ts`, types seuls, exporté par
+- [x] (cfe90bf) `packages/kit/src/referentiel/harmonisation.ts`, types seuls, exporté par
   `referentiel/index.ts`
-- [ ] `packages/plugin-architect/src/messages.ts` : les types et
+- [x] (6e48bbf) `packages/plugin-architect/src/messages.ts` : les types et
   `estUiMessage`, qui refuse une demande hors contrat (rang, `debut` négatif,
   filtre inconnu, doublons d'une sélection, texte d'import de plus d'un
   million de caractères) ; `tests/messages.test.ts`, une demande valide et un
   refus par type
-- [ ] Supprimer `routage.ts`, `analyse.ts`, `ui/presentation.ts`,
+- [x] (6e48bbf) Supprimer `routage.ts`, `analyse.ts`, `ui/presentation.ts`,
   `ui/vues.ts`, `ui/frontiere.ts`, les tests `presentation`, `frontiere` ; ne
   garder de `ui/telechargement.ts` que `telecharger`
-- [ ] `ecriture.ts` remplace l'import d'`Analyse` par une interface locale de
+- [x] (6e48bbf) `ecriture.ts` remplace l'import d'`Analyse` par une interface locale de
   même forme, pour compiler jusqu'à P3
-- [ ] `code.ts` : la fenêtre, la poignée et le message `initial` ;
+- [x] (6e48bbf) `code.ts` : la fenêtre, la poignée et le message `initial` ;
   `ui/index.ts` : un écran vide monté par le socle
-- [ ] `galerie/donnees.cjs` et `galerie/etats.cjs` : un état minimal par type de
+- [x] (6e48bbf) `galerie/donnees.cjs` et `galerie/etats.cjs` : un état minimal par type de
   `PluginMessage`, avec des données factices conformes aux contrats
-- [ ] Fin : `npm run build --workspace @ucm-kit/core`, typecheck du kit et
+- [x] (6e48bbf) Fin : `npm run build --workspace @ucm-kit/core`, typecheck du kit et
   d'Architect, `npm test --workspace ucm-architect-plugin` verts
 
 ### K0 · Types du moteur
@@ -386,15 +386,15 @@ npm test --workspace ucm-plugin-socle
 **Fichiers :** `packages/kit/src/referentiel/vocabulaire-du-fichier.ts`, son
 test, `referentiel/index.ts`.
 
-- [ ] `indexerVocabulaire()` : une `Map` des suites de mots à remplacer, termes
+- [x] (0fa038d) `indexerVocabulaire()` : une `Map` des suites de mots à remplacer, termes
   UCM des registres sauf `ecartsUcm`, puis termes personnalisés ;
   `remplacements()` apparie les suites de mots, la plus longue d'abord, sans
   chevauchement, en respectant la restriction par catégorie de la v1
   (`REGISTRE_AXES_ETAT` réservé aux propriétés)
-- [ ] Conflits : un terme personnalisé qui remplace un terme gardé par UCM
+- [x] (0fa038d) Conflits : un terme personnalisé qui remplace un terme gardé par UCM
   (`contredit-ucm`), une forme remplacée par deux termes (`deja-remplace`), un
   cycle
-- [ ] Fin : son test, typecheck du kit
+- [x] (0fa038d) Fin : son test, typecheck du kit
 
 ### K2b · Lexique et normalisation par étapes
 
@@ -505,26 +505,26 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `src/regles.ts` (nouveau, pur), `src/conventions.ts`,
 `src/ecriture.ts` (port de stockage seulement), `tests/regles.test.ts`.
 
-- [ ] Le modèle pur : écriture des groupes et des noms, termes personnalisés,
+- [x] (43a7d1c) Le modèle pur : écriture des groupes et des noms, termes personnalisés,
   écarts UCM, paires distinctes, termes voulus, questions mises de côté,
   collections gardées, collections exclues, réponses, groupes déjà vus, journal
-- [ ] Une entrée de données partagées par règle, dans `ESPACE_ARCHITECT` :
+- [x] (43a7d1c) Une entrée de données partagées par règle, dans `ESPACE_ARCHITECT` :
   `ecriture`, `terme:<mots>`, `ecart:<id>`, `distinct:<a>|<b>`, `voulu:<mots>`,
   `plus-tard:<cle>`, `collection:<id>`, `exclues`, `reponse:<cle>`, `vus`,
   `journal:<n>` ; chaque entrée porte `version: 1` ; une entrée illisible se
   lit comme absente et n'est jamais réécrite par une lecture
-- [ ] `reponse:<cle>` garde les entrées qu'une réponse a créées ou changées,
+- [x] (43a7d1c) `reponse:<cle>` garde les entrées qu'une réponse a créées ou changées,
   avec leur valeur d'avant : « Annuler » la défait exactement
-- [ ] Le journal se découpe en entrées de 90 000 caractères au plus ; un test
+- [x] (43a7d1c) Le journal se découpe en entrées de 90 000 caractères au plus ; un test
   range 8 000 renommages
-- [ ] Reprise de la v1 : `lireChoix` et la clé `conventions` fournissent
+- [x] (43a7d1c) Reprise de la v1 : `lireChoix` et la clé `conventions` fournissent
   l'écriture quand `ecriture` manque ; tester l'absence et la donnée corrompue
-- [ ] Export et import : un JSON versionné de toutes les règles ; l'import
+- [x] (43a7d1c) Export et import : un JSON versionné de toutes les règles ; l'import
   valide tout avant d'écrire et rend les conflits de `indexerVocabulaire`
-- [ ] Le port de stockage (lire les clés, lire, écrire, effacer) vit dans
+- [x] (43a7d1c) Le port de stockage (lire les clés, lire, écrire, effacer) vit dans
   `ecriture.ts`, seul fichier autorisé à appeler `setSharedPluginData` ;
   aucune écriture de règle n'appelle `commitUndo`
-- [ ] Fin : `tests/regles.test.ts`, `tests/loiDEcriture.test.ts`, typecheck
+- [x] (43a7d1c) Fin : `tests/regles.test.ts`, `tests/loiDEcriture.test.ts`, typecheck
 
 ### P3 · Écriture des variables et des collections
 
@@ -534,7 +534,8 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 
 - [ ] Retirer tout ce qui touche les composants, les propriétés et les valeurs
 - [ ] Garder la relecture de chaque nom avant l'écriture, le contrôle des
-  doublons sur le document relu avec `normaliserLeLexique`, un seul
+  doublons sur le document relu, portée par portée, sans nouvelle
+  normalisation : le nom final de chaque objet y reste unique ; un seul
   `commitUndo` pour le lot
 - [ ] Refuser toute variable protégée, même cochée
 - [ ] Ordonner les écritures : une chaîne (`a` devient `b`, `b` devient `c`)
