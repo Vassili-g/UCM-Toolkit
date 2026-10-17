@@ -16,3 +16,4 @@ export * from './regles.js';
 export * from './recommandations.js';
 export * from './harmonisation.js';
 export * from './vocabulaire-du-fichier.js';
+export * from './lexique.js';
