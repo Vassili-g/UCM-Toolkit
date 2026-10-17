@@ -487,16 +487,16 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Agent :** `implementeur`. **Effort :** moyen.
 **Fichiers :** `src/lecture.ts`, `src/lectureFigma.ts`, `tests/lecture.test.ts`.
 
-- [ ] Le port lit collections et variables par `Promise.all`, sans aucune
+- [x] (702faea) Le port lit collections et variables par `Promise.all`, sans aucune
   page ; une `Map` des collections ; toutes les collections locales sont lues,
   l'exclusion se fait dans la session
-- [ ] Chaque variable porte l'identifiant visé par l'alias de son premier mode
+- [x] (702faea) Chaque variable porte l'identifiant visé par l'alias de son premier mode
   et sa protection : la donnée partagée `palette` de l'espace de Palettes
   (`ESPACE_PARTAGE`, `CLES_PARTAGEES_DE_PALETTES`) n'est pas vide ; ces
   lectures se font par lots de cinq cents, avec une pause entre deux
-- [ ] L'inventaire rend des `NomLu` ; `relireInventaireAvantEcriture` relit
+- [x] (702faea) L'inventaire rend des `NomLu` ; `relireInventaireAvantEcriture` relit
   les seules variables et collections
-- [ ] Fin : `tests/lecture.test.ts` réécrit (variables distantes ignorées,
+- [x] (702faea) Fin : `tests/lecture.test.ts` réécrit (variables distantes ignorées,
   protection, alias), typecheck d'Architect
 
 ### P2 · Règles du fichier, journal et port de stockage
@@ -532,21 +532,21 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `src/ecriture.ts`, `tests/ecriture.test.ts`,
 `tests/loiDEcriture.test.ts`.
 
-- [ ] Retirer tout ce qui touche les composants, les propriétés et les valeurs
-- [ ] Garder la relecture de chaque nom avant l'écriture, le contrôle des
+- [x] (702faea) Retirer tout ce qui touche les composants, les propriétés et les valeurs
+- [x] (702faea) Garder la relecture de chaque nom avant l'écriture, le contrôle des
   doublons sur le document relu, portée par portée, sans nouvelle
   normalisation : le nom final de chaque objet y reste unique ; un seul
   `commitUndo` pour le lot
-- [ ] Refuser toute variable protégée, même cochée
-- [ ] Ordonner les écritures : une chaîne (`a` devient `b`, `b` devient `c`)
+- [x] (702faea) Refuser toute variable protégée, même cochée
+- [x] (702faea) Ordonner les écritures : une chaîne (`a` devient `b`, `b` devient `c`)
   commence par la fin ; un cycle passe par des noms provisoires uniques
-- [ ] Écrire le journal du lot ; « Annuler le dernier renommage » remet
+- [x] (702faea) Écrire le journal du lot ; « Annuler le dernier renommage » remet
   l'ancien nom à chaque objet dont le nom actuel est encore le nouveau, et
   saute les autres
-- [ ] La loi d'écriture : seuls `name` d'une variable ou d'une collection
+- [x] (702faea) La loi d'écriture : seuls `name` d'une variable ou d'une collection
   locale et les données partagées d'`ESPACE_ARCHITECT` ; ni
   `editComponentProperty`, ni `loadAsync`, ni `loadAllPagesAsync`
-- [ ] Fin : tests `ecriture` (chaîne, cycle, protection, journal, annulation
+- [x] (702faea) Fin : tests `ecriture` (chaîne, cycle, protection, journal, annulation
   partielle) et `loiDEcriture`, typecheck
 
 ### P5 · Projection vers l'écran
@@ -594,18 +594,18 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 `tests/frontiereUi.test.ts`.
 **Référence :** maquettes, plan de navigation et planche des états.
 
-- [ ] En-tête du socle : « UCM Architect », bouton Configuration avec texte
+- [x] (fa54057) En-tête du socle : « UCM Architect », bouton Configuration avec texte
   (`createSettingsButton`, comme Palettes), `Retour` dans la Configuration
-- [ ] Onglets du socle : À appliquer, À trancher, Règles ; les comptes des deux
+- [x] (fa54057) Onglets du socle : À appliquer, À trancher, Règles ; les comptes des deux
   premiers
-- [ ] La frontière : numérotation, génération courante, réponses périmées
+- [x] (fa54057) La frontière : numérotation, génération courante, réponses périmées
   ignorées
-- [ ] États : analyse en cours, rien à faire, aucune variable à harmoniser
+- [x] (fa54057) États : analyse en cours, rien à faire, aucune variable à harmoniser
   ici, fichier modifié
-- [ ] Rôles de couleur en tête de `styles.css` : surlignage du terme en cause
+- [x] (fa54057) Rôles de couleur en tête de `styles.css` : surlignage du terme en cause
   sur `--fond-avertissement` et `--texte-avertissement`, pastille UCM,
   pastille Personnalisé
-- [ ] Fin : `tests/frontiereUi.test.ts`, typecheck, `build:ui`,
+- [x] (fa54057) Fin : `tests/frontiereUi.test.ts`, typecheck, `build:ui`,
   `npm test --workspace ucm-architect-plugin`
 
 ### U1b · Premier lancement, écriture, Configuration
