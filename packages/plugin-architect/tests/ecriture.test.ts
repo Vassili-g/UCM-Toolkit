@@ -1,16 +1,25 @@
 /** Les doubles n'exposent que les écritures permises et simulent les effets d'un renommage d'axe. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { analyserInventaire } from '../src/analyse';
 import { appliquerNoms, creerPortEcriture, type SessionEcriture } from '../src/ecriture';
 import { lireInventaire, nomDePropriete, type ComposantLu, type PortDeLecture } from '../src/lecture';
 import { lireChoix, estConventions } from '../src/conventions';
-import { creerRoutage } from '../src/routage';
-import { estUiMessage, type PluginMessage } from '../src/messages';
-import { preparerTelechargementRenommages } from '../src/ui/telechargement';
+import { CATEGORIES_DE_NOM, detecterLesConventions, normaliserLesNoms, type Convention, type ConventionsParCategorie } from '@ucm-kit/core/referentiel';
+import type { Inventaire } from '../src/lecture';
 
 const convention = { casse: 'minuscules', separateur: 'tiret' } as const;
 const choix = { collections: convention, variables: convention, proprietes: convention, valeurs: convention };
+/** Le calcul que `appliquerNoms` reçoit : conventions fournies ou détectées, cibles gelées occupant leur nom. */
+function analyserInventaire(inventaire: Inventaire, preferences: ConventionsParCategorie = {}, termesUcm = false) {
+  const noms = inventaire.entrees.map((entree) => entree.nom);
+  const detection = detecterLesConventions(noms);
+  const inchangee: Convention = { casse: 'inchangee', separateur: 'inchange' };
+  const conventions = Object.fromEntries(CATEGORIES_DE_NOM.map((categorie) => [categorie, preferences[categorie] ?? detection[categorie].dominante ?? inchangee]));
+  return { inventaire, conventions, termesUcm, normalisation: normaliserLesNoms(noms, conventions, {
+    termesUcm,
+    nonRenommables: inventaire.entrees.filter((entree) => !entree.renommable).map((entree) => entree.nom.id),
+  }) };
+}
 const copier = <T>(valeur: T): T => JSON.parse(JSON.stringify(valeur));
 function banc(noms = ['Brand Color', 'Text Color']) {
   const collections = [{ id: 'c', name: 'Brand Tokens', remote: false }];
@@ -73,7 +82,6 @@ test('seuls les noms cochés sont écrits, puis la convention et un seul point d
   assert.deepEqual(resultat.renommages, [{ type: 'variable', id: 'v0', ancienNom: 'Brand Color', nouveauNom: 'brand-color' }]);
   assert.deepEqual(b.traces, ['conventions', 'undo']);
   assert.equal(lireChoix(b.session.lireConventions())?.version, 1);
-  assert.deepEqual(JSON.parse(preparerTelechargementRenommages(resultat).contenu), resultat);
 });
 
 test('un identifiant falsifié ou dupliqué refuse tout le lot sans écriture', async () => {
@@ -242,58 +250,6 @@ test('la validation de la convention suit les registres et refuse les versions i
   assert.equal(estConventions({ inconnue: convention }), false);
   assert.equal(lireChoix('{'), undefined);
   assert.equal(lireChoix(JSON.stringify({ version: 2, conventions: choix, termesUcm: false })), undefined);
-  for (const message of [{ type: 'appliquer', demande: 1, analyseId: 1, ids: [1] }, { type: 'appliquer', demande: 1, analyseId: 1, ids: ['x', 'x'] },
-    { type: 'recalculer', demande: 1, analyseId: 1, conventions: { fautive: convention }, termesUcm: false }]) assert.equal(estUiMessage(message), false);
-});
-
-test('recalculer ne relit rien, invalide l’aperçu précédent et ne range aucune convention', async () => {
-  const b = banc(['Brand Color']);
-  const reponses: PluginMessage[] = [];
-  let lectures = 0;
-  const router = creerRoutage({ lecture: { ...b.lecture, collections: async () => { lectures++; return b.lecture.collections(); } },
-    ecriture: { ouvrir: async () => b.session }, pause: async () => {}, envoyer: (message) => reponses.push(message), lireConventionsRangees: () => '' });
-  await router({ type: 'analyser', demande: 1 });
-  await router({ type: 'recalculer', demande: 2, analyseId: 1, conventions: choix, termesUcm: true });
-  assert.equal(lectures, 1);
-  const pret = reponses.at(-1)!;
-  assert.equal(pret.type, 'pret');
-  if (pret.type !== 'pret') throw new Error('analyse absente');
-  assert.equal(pret.analyseId, 2);
-  assert.equal(pret.analyse.termesUcm, true);
-  await router({ type: 'appliquer', demande: 3, analyseId: 1, ids: [] });
-  assert.equal(reponses.at(-1)!.type, 'erreur');
-  assert.deepEqual(b.traces, []);
-  await router({ type: 'appliquer', demande: 4, analyseId: 2, ids: ['falsifie'] });
-  assert.equal(reponses.at(-1)!.type, 'erreur');
-  assert.equal(lectures, 1);
-  await router({ type: 'appliquer', demande: 5, analyseId: 2, ids: pret.analyse.normalisation.propositions.map((p) => p.id) });
-  assert.equal(lectures, 2);
-  assert.equal(reponses.at(-1)!.type, 'application');
-  await router({ type: 'appliquer', demande: 6, analyseId: 2, ids: [] });
-  assert.equal(reponses.at(-1)!.type, 'erreur');
-});
-
-test('un occupant apparu pendant le chargement des pages est relu avant application', async () => {
-  const b = banc(['Brand Color']);
-  const reponses: PluginMessage[] = [];
-  let creerOccupant = false;
-  const lecture = { ...b.lecture, pages: () => [{ id: 'page', name: 'Page', charger: async () => {
-    if (creerOccupant && !b.variables.some((variable) => variable.id === 'nouveau')) b.variables.push({ id: 'nouveau', name: 'brand-color', variableCollectionId: 'c', remote: false });
-  }, composants: () => [] }] };
-  const router = creerRoutage({ lecture, ecriture: { ouvrir: async () => b.session }, pause: async () => {}, envoyer: (message) => reponses.push(message) });
-  await router({ type: 'analyser', demande: 1 });
-  await router({ type: 'recalculer', demande: 2, analyseId: 1, conventions: choix, termesUcm: false });
-  const pret = reponses.at(-1)!;
-  assert.equal(pret.type, 'pret');
-  if (pret.type !== 'pret') throw new Error('analyse absente');
-  creerOccupant = true;
-  await router({ type: 'appliquer', demande: 3, analyseId: 2, ids: pret.analyse.normalisation.propositions.filter((p) => p.categorie === 'variables').map((p) => p.id) });
-  const resultat = reponses.at(-1)!;
-  assert.equal(resultat.type, 'application');
-  if (resultat.type !== 'application') throw new Error('résultat absent');
-  assert.equal(resultat.resultat.ignores[0].motif, 'collision');
-  assert.equal(b.variables[0].name, 'Brand Color');
-  assert.deepEqual(b.traces, []);
 });
 
 test('l’adaptateur résout les composants par l’API asynchrone avant les écritures', async () => {

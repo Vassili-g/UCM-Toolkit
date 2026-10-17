@@ -1,8 +1,15 @@
 /** Toutes les mutations du document sont réunies ici ; une erreur peut laisser un résultat partiel. */
-import { normaliserLesNoms, type PropositionDeNom } from '@ucm-kit/core/referentiel';
-import type { Analyse } from './analyse';
+import { normaliserLesNoms, type ConventionsParCategorie, type PropositionDeNom, type ResultatDeNormalisation } from '@ucm-kit/core/referentiel';
 import { nomDePropriete, type CibleDeNom, type ComposantLu, type EntreeInventaire, type Inventaire } from './lecture';
 import type { ChoixDeConventions } from './conventions';
+
+/** Les champs d'un calcul que `appliquerNoms` lit. */
+interface Analyse {
+  readonly inventaire: Inventaire;
+  readonly conventions: ConventionsParCategorie;
+  readonly termesUcm: boolean;
+  readonly normalisation: ResultatDeNormalisation;
+}
 
 interface ObjetModifiable { readonly id: string; name: string; readonly remote: boolean }
 interface ComposantModifiable extends ObjetModifiable {
