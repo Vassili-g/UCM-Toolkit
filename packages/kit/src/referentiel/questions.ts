@@ -13,7 +13,9 @@ const lettres = /\p{L}/u;
 const termesUcm = new Set([...REGISTRES, ...REGISTRES_ARCHITECTURE]
   .flatMap((registre) => registre.termes.map((terme) => terme.id.toLowerCase())));
 
-type MotObserve = { readonly mot: string; readonly noms: Set<string>; readonly lieux: Map<string, string | null>; readonly exemples: string[] };
+type MotObserve = { readonly mot: string; readonly noms: Set<string>; readonly lieux: Map<string, string | null>; readonly exemples: string[];
+  /** Variable (dernier segment d'un nom de variable) ou groupe : un pluriel ne se compare qu'à un mot du même type (décision S06). */
+  readonly types: Set<'variable' | 'groupe'> };
 type PaireCandidate = { readonly mots: readonly [string, string]; readonly indices: Set<IndiceDePaire> };
 
 function clePaire(a: string, b: string): string {
@@ -166,7 +168,8 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
       if (mots.length === 1 && segment.toLowerCase() === mots[0] && positionsCouvertes.size === 0) segmentsSoudes.add(mots[0]);
       let places: string[] | undefined;
       function observer(mot: string): void {
-        const entree = observes.get(mot) ?? { mot, noms: new Set<string>(), lieux: new Map<string, string | null>(), exemples: [] };
+        const entree = observes.get(mot) ?? { mot, noms: new Set<string>(), lieux: new Map<string, string | null>(), exemples: [], types: new Set<'variable' | 'groupe'>() };
+        entree.types.add(categorie === 'variables' && rang === segments.length - 1 ? 'variable' : 'groupe');
         entree.noms.add(nom.id);
         if (entree.exemples.length < 2 && !entree.exemples.includes(nom.id)) entree.exemples.push(nom.id);
         places ??= contexte(nom, segments, rang, cacheContextes);
@@ -207,6 +210,7 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     const cle = clePaire(a, b);
     if (distincts.has(cle) || voulus.has(a) || voulus.has(b)) return;
     if (indice === 'synonymes' && !(yield* partagentUnePlace(observes.get(a)!, observes.get(b)!))) return;
+    if ((indice === 'pluriel' || indice === 'terminaison') && ![...observes.get(a)!.types].some((type) => observes.get(b)!.types.has(type))) return;
     const precedente = paires.get(cle) ?? { mots: [a, b].sort(comparer) as [string, string], indices: new Set<IndiceDePaire>() };
     precedente.indices.add(indice);
     paires.set(cle, precedente);
@@ -230,7 +234,7 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     if (distincts.has(cle) || voulus.has(motJuge(a)) || voulus.has(motJuge(b))) continue;
     branches.mots.forEach((mot, rang) => {
       const noms = branches.nomsDuMot[rang];
-      segmentsObserves.set(mot, { mot, noms: new Set(noms), lieux: new Map(), exemples: [...noms].slice(0, 2) });
+      segmentsObserves.set(mot, { mot, noms: new Set(noms), lieux: new Map(), exemples: [...noms].slice(0, 2), types: new Set() });
     });
     const precedente = paires.get(cle) ?? { mots: [a, b] as [string, string], indices: new Set<IndiceDePaire>() };
     precedente.indices.add('branches-paralleles');

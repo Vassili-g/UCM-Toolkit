@@ -122,7 +122,6 @@ export function* detecterBranchesParalleles(lexique: Lexique): Generator<void, r
     if (meilleurA.egalite || meilleurB.egalite || meilleurA.partenaire !== b || meilleurB.partenaire !== a) continue;
     if (chiffresOuCran.test(a) || chiffresOuCran.test(b)) continue;
     if (opposes(a, b)) continue;
-    if (termeConnu(a) !== termeConnu(b) && !memeConcept(a, b)) continue;
     if (termeConnu(a) && termeConnu(b) && !memeConcept(a, b)) continue;
     const connu = [a, b].some((mot) => mot.split('-').some(termeOuVarianteConnu));
     if (candidat.couples.size < NOMS_MINIMAUX_SANS_TERME_CONNU && !connu) continue;

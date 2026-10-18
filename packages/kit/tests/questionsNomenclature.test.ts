@@ -135,11 +135,11 @@ test('les branches parallèles écartent les crans, les concepts distincts et le
   assert.deepEqual(paires(disperse).filter((cle) => cle.includes('ledger')), []);
 });
 
-test('un terme connu face à un mot inconnu, et les ex aequo, ne sortent pas en branches parallèles', () => {
+test('un terme connu face à un mot inconnu sort en branches parallèles (décision M08) ; les ex aequo, non', () => {
   const base = arbre().filter((n) => !/ledger|registre|tick/u.test(n.nom));
   const avec = (a: string, b: string) => [...base, nom('x1', `theme/light/card/${a}/fill`), nom('x2', `theme/dark/card/${b}/fill`),
     nom('x3', `theme/light/chip/${a}/fill`), nom('x4', `theme/dark/chip/${b}/fill`)];
-  assert.deepEqual(paires(avec('hover', 'survol')), []);
+  assert.deepEqual(paires(avec('hover', 'survol')), ['paire:hover|survol']);
   const cles = paires(arbre());
   assert.equal(cles.includes('paire:tick-true|untick'), false);
   const egalite = [...arbre().filter((n) => !/tick/u.test(n.nom))];

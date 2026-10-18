@@ -57,10 +57,13 @@ test('les formes d’un même mot sortent sans mot connu et sans voisin commun',
   assert.deepEqual(paires([nom('a', 'button/selected/solid'), nom('b', 'card/unselected/outline')]), []);
   assert.deepEqual(paires([nom('a', 'button/active/solid'), nom('b', 'card/inactive/outline')]), []);
   assert.deepEqual(paires([nom('a', 'button/paint/solid'), nom('b', 'button/painted/solid', 'collection-2')]), ['paire:paint|painted']);
+  // Une variable et un groupe ne se comparent pas (décision S06) : `loading` est une variable, `load` un groupe.
   assert.deepEqual(paires([
     { ...nom('a', 'control/loading'), categoriesDesSegments: ['groupes', null] },
     { ...nom('b', 'control/load/value'), categoriesDesSegments: ['groupes', 'groupes', null] },
-  ]), ['paire:load|loading']);
+  ]), []);
+  assert.deepEqual(paires([nom('a', 'control/loading/value'), nom('b', 'field/load/value')]), ['paire:load|loading']);
+  assert.deepEqual(paires([nom('a', 'background/paper'), nom('b', 'papers/card/gap')]), []);
 });
 
 test('deux variables qui visent la même cible ne font plus une question', () => {
