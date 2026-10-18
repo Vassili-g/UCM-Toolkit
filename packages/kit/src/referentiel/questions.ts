@@ -228,7 +228,9 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     if (++operations % TAILLE_D_UN_LOT === 0) yield;
   }
   const segmentsObserves = new Map<string, MotObserve>();
-  for (const branches of yield* detecterBranchesParalleles(lexique)) {
+  // QuickJS refuse un yield dans l'expression parcourue par for…of, dès la compilation du plugin.
+  const branchesParalleles = yield* detecterBranchesParalleles(lexique);
+  for (const branches of branchesParalleles) {
     const [a, b] = branches.mots;
     const cle = clePaire(a, b);
     if (distincts.has(cle) || voulus.has(motJuge(a)) || voulus.has(motJuge(b))) continue;
