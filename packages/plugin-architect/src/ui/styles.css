@@ -11,6 +11,9 @@
   --texte-pastille-ucm: rgb(59 63 158);
   --fond-pastille-personnalise: rgb(213 242 238);
   --texte-pastille-personnalise: rgb(15 98 88);
+  /* Le fond de la confirmation, en attendant la feuille du socle (TODO(S1) de `aAppliquer.ts`). */
+  --fond-voile-confirmation: rgb(0 0 0 / 40%);
+  --police-code: "JetBrains Mono", Consolas, monospace;
 }
 
 .figma-dark {
@@ -105,4 +108,740 @@ mark {
 .bandeau-action:focus-visible {
   outline: 2px solid var(--bordure-marque);
   outline-offset: 2px;
+}
+
+/* Lot U1b : premier lancement, écriture des noms, Configuration. */
+.etat-erreur {
+  display: grid;
+  gap: var(--espace-serre);
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-radius: var(--rayon);
+  background: var(--fond-danger);
+  color: var(--texte-danger);
+}
+
+.ecriture-entete {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+.ecriture {
+  padding: var(--espace-controle) var(--espace-bloc);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.ecriture-rangee {
+  display: grid;
+  grid-template-columns: 1fr 170px;
+  align-items: center;
+  gap: var(--espace-bloc);
+  padding: var(--espace-controle) 0;
+  border-top: 1px solid var(--bordure);
+}
+
+.ecriture-rangee:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.ecriture-rangee:last-child {
+  padding-bottom: 0;
+}
+
+.ecriture-pile {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.ecriture-meta {
+  color: var(--texte-second);
+  font-weight: 400;
+}
+
+.ecriture-chemin {
+  color: var(--texte-second);
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
+.ecriture-liste {
+  min-width: 0;
+}
+
+.ecriture-fixe {
+  padding-left: var(--espace-controle);
+  color: var(--texte-second);
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+}
+
+.ecriture-pied {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.config-section {
+  display: grid;
+  gap: var(--espace-controle);
+}
+
+.config-titre {
+  margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.config-liste {
+  overflow: hidden;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.config-ligne {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-top: 1px solid var(--bordure);
+  cursor: pointer;
+}
+
+.config-ligne:first-child {
+  border-top: 0;
+}
+
+.config-ligne input {
+  margin: 0;
+  accent-color: var(--fond-marque);
+}
+
+.config-nom {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: var(--libelle);
+  overflow-wrap: anywhere;
+}
+
+.config-detail,
+.config-renommage {
+  color: var(--texte-second);
+}
+
+.config-boutons {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.config-ecartes {
+  justify-content: space-between;
+}
+
+/* L'onglet À appliquer : des cartes sous trois intertitres, un pied qui compte les noms cochés. */
+.liste {
+  display: grid;
+  gap: var(--espace-controle);
+}
+
+.intertitre {
+  display: flex;
+  min-height: var(--hauteur-secondaire);
+  align-items: center;
+  margin-top: var(--espace-controle);
+}
+
+.intertitre:first-child {
+  margin-top: 0;
+}
+
+.intertitre h2 {
+  margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.carte {
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.carte.muette {
+  border-style: dashed;
+  color: var(--texte-second);
+}
+
+.tete {
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc);
+}
+
+.tete.sans-coche {
+  grid-template-columns: 1fr;
+}
+
+.tete-bouton {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+
+button.tete-bouton {
+  cursor: pointer;
+}
+
+.tete-bouton:focus-visible,
+.autres:focus-visible,
+.resultat-action:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.case {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  accent-color: var(--fond-marque);
+}
+
+.pile {
+  display: grid;
+  min-width: 0;
+  gap: var(--espace-serre);
+}
+
+.change {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espace-controle);
+}
+
+.change code {
+  font-family: var(--police-code);
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+  overflow-wrap: anywhere;
+}
+
+.avant,
+.fleche {
+  color: var(--texte-second);
+}
+
+.apres {
+  color: var(--texte);
+}
+
+.plus {
+  padding: 0 var(--espace-controle);
+  border-radius: 99px;
+  background: var(--fond-note);
+  color: var(--texte-second);
+  font-weight: 600;
+}
+
+.meta {
+  color: var(--texte-second);
+}
+
+.droite {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.chevron {
+  width: 12px;
+  color: var(--texte-second);
+  text-align: center;
+}
+
+.pastille {
+  display: inline-block;
+  padding: 0 var(--espace-controle);
+  border-radius: 99px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pastille-ucm {
+  background: var(--fond-pastille-ucm);
+  color: var(--texte-pastille-ucm);
+}
+
+.pastille-personnalise {
+  background: var(--fond-pastille-personnalise);
+  color: var(--texte-pastille-personnalise);
+}
+
+.pastille-nouveau {
+  background: var(--fond-marque);
+  color: var(--texte-sur-marque);
+}
+
+.pastille-bloque {
+  background: var(--fond-avertissement);
+  color: var(--texte-avertissement);
+}
+
+.pastille-protege {
+  background: var(--fond-note);
+  color: var(--texte-second);
+}
+
+.corps {
+  display: grid;
+  padding: var(--espace-serre) var(--espace-bloc) var(--espace-controle);
+  border-top: 1px solid var(--bordure);
+}
+
+.rang {
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-serre) 0;
+}
+
+.chemin {
+  color: var(--texte-second);
+  font-family: var(--police-code);
+  overflow-wrap: anywhere;
+}
+
+.autres {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--texte-marque);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.autres:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.info {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-serre) 0;
+}
+
+/* Ce qui vient de se passer, au-dessus de la liste. */
+.resultat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-radius: var(--rayon);
+  background: var(--fond-succes);
+  color: var(--texte-succes);
+  font-weight: 600;
+}
+
+.resultat-avertissement {
+  background: var(--fond-avertissement);
+  color: var(--texte-avertissement);
+}
+
+.resultat .meta {
+  color: inherit;
+  font-weight: 400;
+}
+
+.resultat-action {
+  height: var(--hauteur-secondaire);
+  flex: none;
+  padding: 0 var(--espace-serre);
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.resultat-action:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+/* Le pied suit le défilement. Il annule la marge basse de la page pour ne pas la doubler. */
+.pied {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  margin-bottom: calc(-1 * var(--espace-page));
+  padding: var(--espace-bloc) 0 var(--espace-page);
+  border-top: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+.resume {
+  color: var(--texte-second);
+}
+
+.resume b {
+  color: var(--texte);
+  font-weight: 600;
+}
+
+/* La confirmation monte du bas sur un fond assombri. */
+.confirmation-voile {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  background: var(--fond-voile-confirmation);
+}
+
+.confirmation {
+  display: flex;
+  width: 100%;
+  max-height: 92vh;
+  flex-direction: column;
+  border: 1px solid var(--bordure);
+  border-bottom: 0;
+  border-radius: var(--rayon) var(--rayon) 0 0;
+  background: var(--fond);
+}
+
+.confirmation-poignee {
+  width: 32px;
+  height: 4px;
+  flex: none;
+  align-self: center;
+  margin: var(--espace-serre) 0;
+  border-radius: 2px;
+  background: var(--texte-second);
+}
+
+.confirmation-entete {
+  flex: none;
+  padding: 0 var(--espace-page) var(--espace-controle);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.confirmation-titre {
+  margin: 0;
+  font-size: var(--titre);
+  font-weight: 600;
+  line-height: var(--titre-interligne);
+}
+
+.confirmation-corps {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  padding: var(--espace-page);
+}
+
+.confirmation-pied {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-page) var(--espace-page);
+  border-top: 1px solid var(--bordure);
+}
+
+.faits {
+  margin: 0;
+  padding-left: var(--espace-page);
+  color: var(--texte-second);
+}
+
+.faits li {
+  margin: var(--espace-serre) 0;
+}
+
+.faits b {
+  color: var(--texte);
+}
+
+/* Lot U4a : onglet Règles, résumé de l'écriture et liste des termes. */
+.intertitre-avec-action {
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.resume-ecriture {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  row-gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc);
+}
+
+.resume-ecriture span:nth-child(odd) {
+  color: var(--texte-second);
+}
+
+.resume-ecriture span:nth-child(even) {
+  font-family: var(--police-code);
+}
+
+.input.recherche {
+  width: 190px;
+  height: var(--hauteur-secondaire);
+}
+
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-controle);
+}
+
+.filtre {
+  padding: 0 var(--espace-bloc);
+  border: 1px solid var(--bordure);
+  border-radius: 99px;
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.filtre[aria-pressed="true"] {
+  border-color: var(--texte);
+  background: var(--texte);
+  color: var(--fond);
+}
+
+.filtre:focus-visible,
+.ligne-terme:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.liste-termes {
+  overflow: hidden;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.ligne-terme {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr auto 56px 12px;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc);
+  border: 0;
+  border-top: 1px solid var(--bordure);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.ligne-terme:first-child {
+  border-top: 0;
+}
+
+.ligne-terme:hover,
+.ligne-terme.choisie {
+  background: var(--fond-survol);
+}
+
+.terme-identite {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.mot {
+  font-family: var(--police-code);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.terme-nombre {
+  text-align: right;
+}
+
+.afficher-plus {
+  justify-self: center;
+}
+
+.aucun-terme {
+  margin: 0;
+  text-align: center;
+}
+
+/* Lot U3 : onglet À trancher, cartes de question, ligne de réussite, sections repliées. */
+.question {
+  display: grid;
+  gap: var(--espace-controle);
+  padding: var(--espace-bloc);
+}
+
+.question-alerte {
+  border-color: var(--texte-avertissement);
+}
+
+.question-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.question-titre {
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.pastille-indice {
+  background: var(--fond-note);
+  color: var(--texte-second);
+}
+
+.face {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espace-controle);
+}
+
+.colonne {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--espace-serre);
+  padding: var(--espace-controle);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.colonne.propose {
+  border-color: var(--bordure-marque);
+}
+
+.colonne-entete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-serre) var(--espace-controle);
+}
+
+.colonne .mot {
+  font-size: var(--libelle);
+}
+
+.colonne .btn {
+  width: 100%;
+  margin-top: var(--espace-serre);
+}
+
+.question-pied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.question-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-serre) var(--espace-controle);
+}
+
+.btn-texte {
+  height: var(--hauteur-secondaire);
+  padding: 0 var(--espace-serre);
+  border: 0;
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-texte:hover:not(:disabled) {
+  color: var(--texte);
+}
+
+.btn-texte:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.btn-texte:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.effet {
+  display: grid;
+  gap: var(--espace-serre);
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-radius: var(--rayon);
+  background: var(--fond-bloc);
+}
+
+.question-collection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.choix-collection {
+  width: 200px;
+  height: var(--hauteur-secondaire);
+}
+
+/* La ligne de réussite reprend le fond de `.resultat` : l'avant → après garde la couleur du texte. */
+.faite-texte {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espace-serre) var(--espace-controle);
+}
+
+.resultat .avant,
+.resultat .fleche {
+  color: inherit;
+}
+
+.plus-tard-titre {
+  font-weight: 600;
+}
+
+.plus-tard-rang {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: var(--espace-serre) 0;
 }
