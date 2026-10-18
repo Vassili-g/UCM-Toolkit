@@ -1,106 +1,68 @@
 # Nomenclature d'UCM : corpus des design systems et questions à trancher
 
-Statut : plan relu par un agent externe, en cours d'exécution.
+Statut : plan réordonné d'après la [revue critique](./REVUE-CRITIQUE-PLAN-IMPLEMENTATION.md). Les lots A0 à A8 remplacent N2 à N6 ; N0 et N1 restent comme socle déjà livré.
 
 ## Pourquoi
 
-La liste Q1 de questions sur C1 et C2 était inutilisable. Trois défauts du moteur l'expliquent :
+La liste Q1 de questions sur C1 et C2 était inutilisable. Trois défauts du moteur l'expliquaient :
 
-1. L'indice « même place » rapprochait deux variables différentes dont les alias visent la même cible. Il produisait `badge / scale` ou `foreground / scale`.
-2. Le lexique coupait tout segment à la casse. `ScaleWrap` donnait `scale` + `wrap`, et `LineHeight` donnait `line` + `height`.
-3. Rien ne distinguait un mot de nomenclature d'un nom propre à un composant, comme `scalewrap`.
+1. L'indice « même place » rapprochait deux variables différentes dont les alias visent la même cible (`badge / scale`).
+2. Le lexique coupait tout segment à la casse (`ScaleWrap` donnait `scale`).
+3. Rien ne distinguait un mot de nomenclature d'un nom propre à un composant.
 
-Les mesures sur C2 montrent où sont les vraies questions. Le fichier n'a aucun alias cassé ; ses défauts sont des écarts de nom entre branches qui devraient être identiques. Le clair et le sombre ont chacun 624 feuilles, dont 66 n'existent que d'un côté. La collection des modes renomme aussi ce qu'elle référence. On y trouve sept paires de ce genre, qui touchent de 1 à 30 noms : un état écrit de deux façons, un mot français et son équivalent anglais, un mot et sa faute de frappe. Ces paires ne sortent ni d'un dictionnaire ni d'une proximité d'écriture : elles sortent de la structure. Le moteur doit les trouver ; il doit taire `badge / scale`. Le détail reste dans `_local/`, hors du dépôt.
+Sur C2, les vrais écarts sont des noms qui diffèrent entre branches censées être identiques (le clair et le sombre, une collection de modes et sa cible). Le détail reste dans `_local/`, hors du dépôt.
 
-Pour fixer la nomenclature d'UCM, il faut aussi savoir ce que les design systems publiés emploient. Les relevés déjà faits portent surtout sur les couleurs. Ce plan les complète, les analyse avec C2, C1 et l'architecture UCM, puis rend au mainteneur une page de questions.
+La revue a montré que corriger le bruit ne suffit pas. Il faut garantir qu'une réponse produit le renommage attendu, qu'elle ne fusionne pas deux sens différents, et mesurer les cas manqués autant que le bruit.
 
-## Décisions de cadrage
+## Deux fins distinctes
 
-- **Dossier de référence** : `docs/references/design-systems/`, un sous-dossier par système. Le `README.md` porte le tableau des systèmes et `sources.json` porte, pour chaque fichier, l'URL, la version figée, le SHA-256 et la licence. `docs/README.md` et la carte d'`AGENTS.md` y renvoient.
-- **Anciennes collectes** : elles restent dans `docs/notes/Archives/Plugin Palettes/Recette CRITIQUE de qualité/Collecte/`, en lecture seule ; les déplacer casserait leurs scripts et une vingtaine de renvois. Le `README.md` de référence pointe vers elles par système.
-- **C2** est un fichier client et le dépôt est public. Son historique a été purgé (`ff13b30`). Le fichier et tout ce qui en dérive vivent sous un dossier `_local/` ignoré par git. Les fichiers commités ne contiennent que des comptes et des noms inventés.
-- **Couche analysée** : la couche sémantique (couleur, espacement, typographie). La couche composant est justement la dénomination propre que la détection doit ignorer ; elle est conservée dans le corpus mais pas analysée. Les primitives ne servent qu'au vocabulaire des échelles.
-- **Analyse par concept** : un mot a un concept (« fond », « survol ») et plusieurs rôles possibles selon sa place (`text` est une propriété ou un élément). On compare les formes concurrentes d'un même concept.
+- **Dossier d'arbitrage** (objectif de cette passe) : méthode adoptée, jeu de référence annoté, décisions de termes prises par le mainteneur dans `decisions.json`.
+- **Moteur livré** (passe suivante) : décisions intégrées au kit, renommages simulés et vérifiés, recette Figma.
 
-## Systèmes couverts
+## Règles retenues
 
-Première vague, 13 systèmes, ceux qui publient des tokens lisibles et déjà relevés en partie : Atlassian, IBM Carbon, Adobe Spectrum, GitHub Primer, Shopify Polaris, Material 3, Microsoft Fluent 2, Figma SDS, Radix Themes, Tailwind, shadcn/ui, MUI, Untitled UI.
+- **Relation lexicale et équivalence sont deux choses.** Une faute, un pluriel ou une terminaison justifient une question, pas un remplacement. Une négation (`selected` / `unselected`, `active` / `inactive`) est une opposition : jamais une question de fusion.
+- **Une question n'est posée que si sa réponse s'applique** au découpage employé par le renommage. Sinon elle disparaîtrait sans rien renommer.
+- **Les noms propres à un composant ne donnent pas de question**, mais les états, rôles et propriétés d'un token de composant (`components/Badge/background/hover`) restent comparables.
+- **Les comptes du marché sont des usages observés**, avec leur dénominateur. Ils éclairent une décision ; ils ne prouvent pas une synonymie.
+- **C2 et ses dérivés restent locaux.** Les tests et documents commités n'emploient que des noms inventés.
 
-Seconde vague, seulement si l'analyse montre un trou : Ant Design, Bootstrap, Chakra UI, Mantine, Flowbite, GOV.UK Frontend, Tremor, Salesforce SLDS, GitLab Pajamas.
+## Socle déjà livré
 
-Corpus du projet : UCM (registres du kit et C1, `UCM-Playground/src/tokens/tokens.json`) et C2 (local).
+### N0 · Détection corrigée
 
-## Règles de détection
+- [x] « Même place » supprimé ; indice `branches-paralleles` avec appariement un à un, recouvrement d'au moins 80 %, crans ignorés (`9e4c240`).
+- [x] Découpage pour les questions gardé par le vocabulaire : morceaux de 3 lettres, un morceau exact, faute à une lettre avec la même initiale (`9e4c240`).
+- [x] Négation retirée des fusions ; faute seulement vers un terme connu ; garde-fou d'applicabilité (`9e4c240`).
+- [x] Mesure : C1 passe de 47 à 8 questions, C2 de 230 à 14, aucune hors sujet sur ces 14. Sur l'inventaire local de sept paires de C2, trois sont retrouvées ; les quatre autres sont manquées par opposition, par ex aequo, par double écart ou par renommage d'alias (`9e4c240`).
 
-**Sources de questions.**
+### N1 · Corpus de référence
 
-1. **Formes d'un même mot**, observées toutes les deux dans le fichier : faute de frappe, pluriel, terminaison (`-ed`, `-ing`), abréviation, négation (`un-`, `non-`). Aucun des deux mots n'a besoin d'être connu.
-2. **Branches parallèles** : deux noms à la même place dans deux branches de même structure (clair et sombre, deux marques, un alias et sa cible) qui ne diffèrent que d'un segment, appariés un à un.
-3. **Synonymes** du kit (`SYNONYMES_COURANTS`) : seulement si les deux mots sont observés.
-
-L'ancien « même place » est supprimé.
-
-**Découpage d'un segment.** Coupe aux séparateurs explicites. À la casse ou dans un bloc soudé, coupe seulement si :
-
-- chaque morceau fait au moins 3 lettres ;
-- un morceau au moins est exact ;
-- un morceau approximatif fait au moins 5 lettres et reste à une lettre ou une transposition d'un terme connu.
-
-Chiffres et sigles sont coupés à part. Un terme composé de la liste des propriétés CSS (`line-height`, `font-size`, `border-radius`…) reste un seul terme.
-
-| Segment | Résultat |
-|---|---|
-| `LineHeight` | `line-height` |
-| `bordrewidth` (inventé) | `bordre` + `width`, faute de `border` |
-| `ScaleWrap` | entier |
-| `Gray100` | `gray` + `100` |
-
-**Tranché sans question** : faute ou pluriel d'un terme connu ; forme employée par au moins 70 % des systèmes qui ont le concept (cinq au moins), qui est aussi la forme d'UCM.
-
-**Question au mainteneur** : deux formes employées chacune par au moins trois systèmes ; ou UCM qui s'écarte de la forme majoritaire ; ou une paire de C2 trouvée par les branches parallèles sur un concept qu'UCM n'a pas encore nommé.
+- [x] `docs/references/design-systems/` : 13 systèmes, sources figées par SHA-256, extracteurs, UCM au même format (`c93b939`).
 
 ## Lots
 
-### N0 · Corriger la détection (moteur du kit)
+| Lot | Travail | Qui | Dépend de | Preuve de fin |
+|---|---|---|---|---|
+| A0 | Adopter la méthode et les catégories de jugement | Mainteneur, sur la page | — | Section « Méthode » de la page répondue, reportée dans `decisions.json` |
+| A1 | Annoter le jeu de référence : chaque paire est équivalente, distincte ou indéterminée | Mainteneur, sur la page ; contributeur prépare | A0 | Annotations dans `_local/annotations-c2.json` ; un tiers tenu à l'écart pour la recette |
+| A2 | Représentation commune des occurrences, de la détection au renommage | Contributeur | A1 | Test de session : répondre, constater le renommage, annuler, retrouver l'état initial ; recalcul partiel égal au complet ; `textsucccess` corrigeable |
+| A3 | Branches parallèles : score de confiance, motifs d'abstention, portée de la règle créée | Contributeur | A2 | Cas obligatoires du jeu retrouvés, contre-exemples préservés, aucun remplacement hors du périmètre validé, budgets de calcul mesurés (32 000 noms, tranches de 8 ms) |
+| A4 | Auditer les extractions : provenance par occurrence, matrice système × famille × couche, `REGISTRES_ARCHITECTURE`, réglages MUI | Contributeur | — | Couches inconnues visibles ; chaque extracteur vérifié sur un extrait connu |
+| A5 | Analyse par concept sur occurrences annotées | Contributeur | A4 | Dénominateurs explicites ; conclusions sensibles au classement signalées |
+| A6 | Décisions de termes | Mainteneur, sur la page | A0, A5 | `decisions.json` : identifiant, version des données, choix, portée, raison, état |
+| A7 | Intégrer les décisions au kit, simuler les renommages, traiter les consommateurs | Contributeur | A3, A6 | Tests, versions, vues générées ; impact des chemins publiés documenté |
+| A8 | Recette Figma sur copie et nouveau jugement de Q1 | Mainteneur | A7 | Effets conformes aux simulations, retour arrière vérifié |
 
-- [ ] N0.1 Supprimer « même place » (boucle des alias) et ajouter l'indice `branches-paralleles` avec appariement un à un.
-- [ ] N0.2 Ajouter la négation aux formes ; les formes ne demandent pas de mot connu, les synonymes si.
-- [ ] N0.3 Découpage gardé par le vocabulaire, selon les règles ci-dessus.
-- [ ] N0.4 Jeu d'essai synthétique commité : les erreurs types de C2 sous des noms inventés, et des négatifs (`ScaleWrap`, `LineHeight`, `Gray100`, `onSurface`, `URLBase`, `H1`, `2xl`, `badge / scale`).
-- [ ] N0.5 Remesurer C1 et C2. Juger les 40 premières questions de C2 : moins de 10 % hors sujet, sinon le lot n'est pas fini. Comptes dans `MESURES.md`, questions de C2 dans `_local/`.
+A4 peut avancer en parallèle d'A2 et A3. La page de questions sert A0, A1 et une première passe d'A6 sur les décisions qui ne dépendent pas d'A5.
 
-Fichiers : `packages/kit/src/referentiel/questions.ts`, `lexique.ts`, `ecriture-des-mots.ts`, `harmonisation.ts`, `packages/kit/tests/`, lecteurs éventuels dans `packages/plugin-architect`.
+## Format des décisions
 
-### N1 · Dossier de référence et données de la première vague
+`decisions.json`, commité, ne contient aucun nom de C2. Une entrée par question :
 
-- [ ] N1.1 `docs/references/design-systems/README.md` : rôle, tableau des systèmes (dossier, version, date, licence, nombre de noms, collectes d'archive), règles d'ajout.
-- [ ] N1.2 `_outils/recuperer.mjs` lit `sources.json`, télécharge les fichiers figés dans `<système>/sources/` et vérifie leur SHA-256. Il réutilise `lib.mjs` des anciennes collectes s'il convient.
-- [ ] N1.3 `_outils/extraire.mjs` écrit `<système>/noms.json` : nom d'origine, type, couche si la source la donne.
-- [ ] N1.4 UCM au même format : registres du kit et C1.
-- [ ] N1.5 Garde-fou : un script, lancé en local seulement, échoue si un fichier suivi par git contient un segment distinctif de C2. Il saute si C2 est absent.
-- [ ] N1.6 Renvois dans `docs/README.md` et `AGENTS.md`.
+```json
+{ "id": "T03", "donnees": "c93b939", "question": 1, "choix": "A",
+  "portee": "partout | contexte | distinction", "raison": "…", "etat": "adopte | distinct | differe | a-examiner" }
+```
 
-### N2 · Normaliser et analyser
-
-- [ ] N2.1 `_outils/normaliser.mjs` : segments et mots selon le découpage du kit, concept et rôle selon `concepts.json`.
-- [ ] N2.2 `concepts.json` : les mots présents dans au moins trois systèmes ou sur vingt noms, rangés par concept, environ 300 mots. Le reste est listé (cent premiers), sans objectif de zéro.
-- [ ] N2.3 `ANALYSE.md` et `donnees-questions.json` :
-  - formes concurrentes par concept, avec le nombre de systèmes et deux exemples ;
-  - termes composés et leur écriture ;
-  - ordre des segments par système ;
-  - écarts d'UCM à la majorité ;
-  - diagnostic de C1 ; celui de C2 reste dans `_local/` ;
-  - tableau concept → terme UCM proposé → formes remplacées sans question → cas à trancher.
-
-### N3 · Page de questions pour le mainteneur
-
-- [ ] N3.1 Page HTML publiée, en français simple : au plus vingt-cinq questions, classées par nombre de variables touchées dans UCM et C2. Chacune donne la réponse recommandée, les choix (A, B, autre), les formes du marché avec leurs comptes et des exemples. La page est privée ; elle peut citer C2 au mainteneur.
-- [ ] N3.2 Une section courte reprend les décisions de méthode à valider : périmètre, couche sémantique seule, règles de « tranché sans question ».
-- [ ] N3.3 Les réponses sont enregistrées dans la base de la page, avec l'identifiant de chaque question, pour être relues sans recopie.
-
-### Après les réponses (hors de cette passe)
-
-- N4 Entrer les décisions dans les registres du kit, avec leurs sources.
-- N5 Nourrir les mots connus du découpage avec le corpus, remesurer, refaire Q1.
-- N6 Seconde vague de systèmes si l'analyse a montré un trou.
-- F4 Recette dans Figma par le mainteneur.
+Les annotations des paires de C2 vont dans `_local/annotations-c2.json`, au même format.
