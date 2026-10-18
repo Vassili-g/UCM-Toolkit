@@ -732,7 +732,7 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 - [x] (b41e85f) Monter la version mineure de `@ucm-kit/core`, les pins du CLI et de
   l'adaptateur et leurs versions, les pins de la documentation ; tests verts,
   `versionSuitLeContenu` compris
-- [ ] Commiter, pousser la série, puis publier par `gh workflow run
+- [x] (b7674ff) Commiter, pousser la série, puis publier par `gh workflow run
   publish.yml`, le noyau d'abord ; la principale lance et suit les exécutions
 
 ### F4 · Recette dans Figma
