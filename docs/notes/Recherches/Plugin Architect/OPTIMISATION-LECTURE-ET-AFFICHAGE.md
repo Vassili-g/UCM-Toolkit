@@ -61,10 +61,10 @@ Sources : [API des variables](https://developers.figma.com/docs/plugins/api/figm
 | Lecture des variables | [`lectureFigma.ts`](../../../../packages/plugin-architect/src/lectureFigma.ts), `creerPortDeLecture` ; [`lecture.ts`](../../../../packages/plugin-architect/src/lecture.ts), `lireInventaire` | Attend les collections puis les variables, filtre les objets locaux, relève les noms |
 | Lecture des composants | Mêmes modules | Charge chaque page, appelle `findAllWithCriteria` pour `COMPONENT_SET` et `COMPONENT`, copie leurs propriétés et variantes |
 | Inventaire logique | `lireInventaire` | Déduplique les propriétés héritées et regroupe les valeurs par propriétaire et axe ; conserve aussi les composants pour l'écriture |
-| Calcul | [`analyse.ts`](../../../../packages/plugin-architect/src/analyse.ts), `analyserInventaire` | Relève tous les noms, détecte les conventions, normalise les noms, retire les propositions en collision |
-| Transmission | [`routage.ts`](../../../../packages/plugin-architect/src/routage.ts), réponse `pret` | Envoie l'objet `Analyse`, inventaire et composants compris |
-| Présentation | [`ui/presentation.ts`](../../../../packages/plugin-architect/src/ui/presentation.ts) | Recrée des index et groupe les propositions par raison |
-| Rendu | [`ui/vues.ts`](../../../../packages/plugin-architect/src/ui/vues.ts) | Recrée toutes les options et toutes les lignes, y compris le détail des collisions repliées |
+| Calcul | [`analyse.ts`](https://github.com/Vassili-g/UCM-Toolkit/blob/c025995e72969860fd535191623706d5e407fb01/packages/plugin-architect/src/analyse.ts), `analyserInventaire` | Relève tous les noms, détecte les conventions, normalise les noms, retire les propositions en collision |
+| Transmission | [`routage.ts`](https://github.com/Vassili-g/UCM-Toolkit/blob/c025995e72969860fd535191623706d5e407fb01/packages/plugin-architect/src/routage.ts), réponse `pret` | Envoie l'objet `Analyse`, inventaire et composants compris |
+| Présentation | [`ui/presentation.ts`](https://github.com/Vassili-g/UCM-Toolkit/blob/c025995e72969860fd535191623706d5e407fb01/packages/plugin-architect/src/ui/presentation.ts) | Recrée des index et groupe les propositions par raison |
+| Rendu | [`ui/vues.ts`](https://github.com/Vassili-g/UCM-Toolkit/blob/c025995e72969860fd535191623706d5e407fb01/packages/plugin-architect/src/ui/vues.ts) | Recrée toutes les options et toutes les lignes, y compris le détail des collisions repliées |
 
 Le parcours des composants utilise déjà un filtre de type natif. Les pages
 sont chargées successivement. Des pauses existent entre les pages et tous les
