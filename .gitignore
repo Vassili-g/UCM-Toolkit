@@ -5,3 +5,4 @@ dist/
 
 # Fichier client Slice (C2) : local seulement, jamais commité
 **/tokens-slice-exemple.json
+**/_local/
