@@ -50,48 +50,38 @@ test('abréviations et synonymes utilisent les tables du référentiel', () => {
     { ...vide, voulus: ['border radius'] }), []);
 });
 
-test('même place demande un alias commun et des mots jamais voisins', () => {
-  const noms = [nom('a', 'button/shared/shape/filled', 'collection-1', 'token-1'),
-    nom('b', 'card/shared/form/filled', 'collection-1', 'token-1')];
-  const paire = questions(noms).find((q) => q.type === 'paire');
-  assert.equal(paire?.type === 'paire' && paire.indice, 'meme-place');
-  assert.equal(paire?.type === 'paire' && paire.cibleAlias, 'token-1');
-  assert.deepEqual(paires([nom('a', 'button/shape/filled', 'collection-1', 'token-1'),
-    nom('b', 'button/form/filled', 'collection-1', 'token-1')]), []);
-  assert.deepEqual(paires([noms[0], { ...noms[1], cibleAlias: 'token-2' }]), []);
-  assert.deepEqual(paires([...noms, nom('c', 'button/shape-form/filled', 'collection-1', 'token-1')]), []);
-  assert.deepEqual(paires([nom('seul', 'button/shape-middle-form/filled', 'collection-1', 'token-1')]), []);
-});
-
-test('un alias partagé par dix-sept termes garde ses 136 paires', () => {
-  const noms = Array.from({ length: 17 }, (_, i) => nom(`n-${i}`, `colors/branch${i}/word${i}/solid`, 'collection-1', 'token-1'));
-  const resultat = detecterLesQuestions(lexique(noms), index, vide);
-  assert.equal(resultat.questions.length, 10);
-  assert.equal([...resultat.questions, ...resultat.autres].filter((q) => q.type === 'paire').length, 136);
-});
-
-test('une absence commune de voisin ne fait pas une même place', () => {
-  assert.deepEqual(paires([nom('a', 'button/paint'), nom('b', 'chip/painted')]), []);
-  assert.deepEqual(paires([nom('a', 'button/paint/solid'), nom('b', 'button/painted/solid', 'collection-2')]), []);
-  assert.deepEqual(paires([nom('a', 'button/paint/solid'), nom('b', 'card/painted/outline/solid')]), []);
-  assert.deepEqual(paires([nom('a', 'button/paint/solid'), nom('b', 'button/painted/outline/solid')]), ['paire:paint|painted']);
+test('les formes d’un même mot sortent sans mot connu et sans voisin commun', () => {
+  assert.deepEqual(paires([nom('a', 'button/paint'), nom('b', 'chip/painted')]), ['paire:paint|painted']);
+  assert.deepEqual(paires([nom('a', 'button/default/solid'), nom('b', 'card/defaults/outline')]), ['paire:default|defaults']);
+  // Une négation nomme l'état opposé : jamais une fusion.
+  assert.deepEqual(paires([nom('a', 'button/selected/solid'), nom('b', 'card/unselected/outline')]), []);
+  assert.deepEqual(paires([nom('a', 'button/active/solid'), nom('b', 'card/inactive/outline')]), []);
+  assert.deepEqual(paires([nom('a', 'button/paint/solid'), nom('b', 'button/painted/solid', 'collection-2')]), ['paire:paint|painted']);
   assert.deepEqual(paires([
     { ...nom('a', 'control/loading'), categoriesDesSegments: ['groupes', null] },
     { ...nom('b', 'control/load/value'), categoriesDesSegments: ['groupes', 'groupes', null] },
   ]), ['paire:load|loading']);
 });
 
+test('deux variables qui visent la même cible ne font plus une question', () => {
+  const noms = [nom('a', 'button/shared/shape/filled', 'collection-1', 'token-1'),
+    nom('b', 'card/shared/form/filled', 'collection-1', 'token-1')];
+  assert.deepEqual(paires(noms), []);
+  const dix = Array.from({ length: 17 }, (_, i) => nom(`n-${i}`, `colors/branch${i}/word${i}/solid`, 'collection-1', 'token-1'));
+  assert.deepEqual(paires(dix), []);
+});
+
 test('une faute rare se compare par une seule édition à une forme fréquente', () => {
-  const noms = [nom('rare', 'colors/contrashovered/bg'),
-    ...Array.from({ length: 5 }, (_, i) => nom(`ref-${i}`, `colors/contrashovered${i}/bg`)),
-    ...Array.from({ length: 5 }, (_, i) => nom(`bon-${i}`, 'colors/contrasthovered/bg'))];
-  const faute = questions(noms).find((q) => q.type === 'ecriture-du-terme' && q.indice === 'faute' && q.terme.mot === 'contrashovered');
-  assert.equal(faute?.type === 'ecriture-du-terme' && faute.proposition[0], 'contrasthovered');
+  const noms = [nom('rare', 'colors/sucess/bg'),
+    ...Array.from({ length: 5 }, (_, i) => nom(`ref-${i}`, `colors/sucess${'abcde'[i]}/bg`)),
+    ...Array.from({ length: 5 }, (_, i) => nom(`bon-${i}`, 'colors/success/bg'))];
+  const faute = questions(noms).find((q) => q.type === 'ecriture-du-terme' && q.indice === 'faute' && q.terme.mot === 'sucess');
+  assert.equal(faute?.type === 'ecriture-du-terme' && faute.proposition[0], 'success');
   assert.equal(faute?.type === 'ecriture-du-terme' && faute.reference?.nombre, 5);
 });
 
 test('faute courte : insertion, suppression et substitution dans les deux sens', () => {
-  for (const [rare, courant] of [['cats', 'cat'], ['cat', 'cats'], ['cot', 'cat']]) {
+  for (const [rare, courant] of [['rings', 'ring'], ['rin', 'ring'], ['rong', 'ring']]) {
     const noms = [nom('rare', `set/${rare}/value`), ...Array.from({ length: 5 }, (_, i) => nom(`ref-${i}`, `set/${courant}/value`))];
     const faute = questions(noms).find((q) => q.type === 'ecriture-du-terme' && q.indice === 'faute' && q.terme.mot === rare);
     assert.deepEqual(faute?.type === 'ecriture-du-terme' && faute.proposition, [courant]);
@@ -116,12 +106,13 @@ test('mots collés exige une segmentation en mots du lexique', () => {
   assert.equal(questions([nom('colle', 'colors/contrasttext/bg'), nom('a', 'other/contrast/fg'), nom('b', 'other/text/fg')]
     ).some((q) => q.type === 'ecriture-du-terme' && q.indice === 'mots-colles'), false);
   const court = questions([nom('colle', 'parts/atone/value'), nom('a', 'parts/a/value'), nom('b', 'parts/tone/value')]);
-  assert.deepEqual(court.find((q) => q.type === 'ecriture-du-terme' && q.indice === 'mots-colles')?.type === 'ecriture-du-terme'
-    && (court.find((q) => q.type === 'ecriture-du-terme' && q.indice === 'mots-colles') as Extract<Question, { type: 'ecriture-du-terme' }>).proposition, ['a', 'tone']);
-  const autreDecoupage = questions([nom('colle', 'colors/foobar/bg'), nom('faux', 'other/fo/fg'),
-    nom('suite', 'colors/obar/bg'), nom('vrai-a', 'colors/foo/bg'), nom('vrai-b', 'colors/bar/bg')]);
+  assert.equal(court.some((q) => q.type === 'ecriture-du-terme' && q.indice === 'mots-colles'), false);
+  const sansMotExact = questions([nom('colle', 'colors/foobar/bg'), nom('a', 'colors/foo/bg'), nom('b', 'colors/bar/bg')]);
+  assert.equal(sansMotExact.some((q) => q.type === 'ecriture-du-terme' && q.indice === 'mots-colles'), false);
+  const autreDecoupage = questions([nom('colle', 'colors/texttone/bg'), nom('faux', 'other/tex/fg'),
+    nom('suite', 'colors/ttone/bg'), nom('vrai-a', 'colors/text/bg'), nom('vrai-b', 'colors/tone/bg')]);
   const choix = autreDecoupage.find((q) => q.type === 'ecriture-du-terme' && q.indice === 'mots-colles');
-  assert.deepEqual(choix?.type === 'ecriture-du-terme' && choix.proposition, ['foo', 'bar']);
+  assert.deepEqual(choix?.type === 'ecriture-du-terme' && choix.proposition, ['text', 'tone']);
 });
 
 test('échelle de tailles et collection inconnue donnent leurs questions propres', () => {

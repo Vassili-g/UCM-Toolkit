@@ -3,6 +3,8 @@ import { COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
 import { categorieDuSegment } from './ecriture-des-mots.js';
 import type { DejaJuge, IndexDuVocabulaire, Lexique, Mots, NomLu, Question, ResultatDesQuestions, TermeEnQuestion, IndiceDePaire } from './harmonisation.js';
 import { collectionUcmReconnue } from './normalisation.js';
+import { detecterBranchesParalleles } from './branches-paralleles.js';
+import { decouperPourQuestions, distanceUn, termeOuFormeConnu } from './termes-connus.js';
 import { ABREVIATIONS, ECHELLES_DE_TAILLES, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
 
 const TAILLE_D_UN_LOT = 200;
@@ -10,10 +12,9 @@ const comparer = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
 const lettres = /\p{L}/u;
 const termesUcm = new Set([...REGISTRES, ...REGISTRES_ARCHITECTURE]
   .flatMap((registre) => registre.termes.map((terme) => terme.id.toLowerCase())));
-const synonymesComposes = new Set<string>(SYNONYMES_COURANTS.flatMap((groupe) => groupe.filter((mot) => mot.includes('-'))));
 
-type MotObserve = { readonly mot: string; readonly noms: Set<string>; readonly lieux: Map<string, string | null>; readonly parents: Map<string, string | null>; readonly exemples: string[] };
-type PaireCandidate = { readonly mots: readonly [string, string]; readonly indices: Set<IndiceDePaire>; cibleAlias?: string };
+type MotObserve = { readonly mot: string; readonly noms: Set<string>; readonly lieux: Map<string, string | null>; readonly exemples: string[] };
+type PaireCandidate = { readonly mots: readonly [string, string]; readonly indices: Set<IndiceDePaire> };
 
 function clePaire(a: string, b: string): string {
   return `paire:${[a, b].sort(comparer).join('|')}`;
@@ -61,17 +62,6 @@ function nomsDistincts(a: string | null, b: string | null): boolean {
   return a === null || b === null || a !== b;
 }
 
-function* sontFreres(a: MotObserve, b: MotObserve): Generator<void, boolean> {
-  const petit = a.parents.size <= b.parents.size ? a.parents : b.parents;
-  const grand = petit === a.parents ? b.parents : a.parents;
-  let lus = 0;
-  for (const [parent, segment] of petit) {
-    if (grand.has(parent) && nomsDistincts(segment, grand.get(parent)!)) return true;
-    if (++lus % TAILLE_D_UN_LOT === 0) yield;
-  }
-  return false;
-}
-
 function terme(observe: MotObserve): TermeEnQuestion {
   return { mot: observe.mot, nombre: observe.noms.size, exemples: observe.exemples, ucm: termesUcm.has(observe.mot) };
 }
@@ -85,19 +75,6 @@ function suppressions(mot: string): Set<string> {
     debut = fin;
   }
   return cles;
-}
-
-function distanceUn(a: string, b: string): boolean {
-  const x = [...a], y = [...b];
-  if (Math.abs(x.length - y.length) > 1 || a === b) return false;
-  let i = 0, j = 0, ecarts = 0;
-  while (i < x.length && j < y.length) {
-    if (x[i] === y[j]) { i++; j++; continue; }
-    if (++ecarts > 1) return false;
-    if (x.length >= y.length) i++;
-    if (y.length >= x.length) j++;
-  }
-  return ecarts + Number(i < x.length || j < y.length) === 1;
 }
 
 function* decoupageAtteste(mot: string, source: MotObserve, connus: ReadonlyMap<string, MotObserve>): Generator<void, Mots | undefined> {
@@ -163,8 +140,6 @@ function* trierQuestions(questions: Question[]): Generator<void, Question[]> {
 export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, dejaJuge: DejaJuge,
   options: { readonly seuil?: number; readonly maximum?: number } = {}): Generator<void, ResultatDesQuestions> {
   const observes = new Map<string, MotObserve>();
-  const voisins = new Set<string>();
-  const alias = new Map<string, Map<string, string | null>>();
   const collections: NomLu[] = [];
   const segmentsSoudes = new Set<string>();
   const cacheRemplacements = new Map<string, readonly { debut: number; fin: number }[]>();
@@ -174,12 +149,13 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     if (nom.categorie === 'collections') { collections.push(nom); if (++operations % TAILLE_D_UN_LOT === 0) yield; continue; }
     const segments = nom.nom.split('/');
     for (const [rang, segment] of segments.entries()) {
-      const mots = lexique.mots.get(segment) ?? [];
+      const mots = decouperPourQuestions(segment);
+      const motsPlats = mots.flatMap((mot) => mot.split('-'));
       const categorie = categorieDuSegment(nom, rang);
       const cleCache = JSON.stringify([segment, categorie]);
       let remplacements = cacheRemplacements.get(cleCache);
       if (!remplacements) {
-        remplacements = index.remplacements(mots, categorie);
+        remplacements = index.remplacements(motsPlats, categorie);
         cacheRemplacements.set(cleCache, remplacements);
       }
       const positionsCouvertes = new Set<number>();
@@ -187,58 +163,52 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
         positionsCouvertes.add(i);
         if (++operations % TAILLE_D_UN_LOT === 0) yield;
       }
-      if (mots.length === 1 && segment.toLowerCase() === mots[0].toLowerCase() && positionsCouvertes.size === 0) segmentsSoudes.add(mots[0].toLowerCase());
+      if (mots.length === 1 && segment.toLowerCase() === mots[0] && positionsCouvertes.size === 0) segmentsSoudes.add(mots[0]);
       let places: string[] | undefined;
-      let parent: string | undefined;
       function observer(mot: string): void {
-        const entree = observes.get(mot) ?? { mot, noms: new Set<string>(), lieux: new Map<string, string | null>(), parents: new Map<string, string | null>(), exemples: [] };
+        const entree = observes.get(mot) ?? { mot, noms: new Set<string>(), lieux: new Map<string, string | null>(), exemples: [] };
         entree.noms.add(nom.id);
-        parent ??= JSON.stringify([nom.portee, ...segments.slice(0, rang).map((partie) => partie.toLowerCase())]);
-        const enfant = segment.toLowerCase();
-        if (!entree.parents.has(parent)) entree.parents.set(parent, enfant);
-        else if (entree.parents.get(parent) !== enfant) entree.parents.set(parent, null);
         if (entree.exemples.length < 2 && !entree.exemples.includes(nom.id)) entree.exemples.push(nom.id);
         places ??= contexte(nom, segments, rang, cacheContextes);
         for (const place of places) {
           if (!entree.lieux.has(place)) entree.lieux.set(place, nom.id);
           else if (entree.lieux.get(place) !== nom.id) entree.lieux.set(place, null);
-          if (nom.cibleAlias) {
-            const cle = JSON.stringify([place, nom.cibleAlias]);
-            const bucket = alias.get(cle) ?? new Map<string, string | null>();
-            if (!bucket.has(mot)) bucket.set(mot, nom.id);
-            else if (bucket.get(mot) !== nom.id) bucket.set(mot, null);
-            alias.set(cle, bucket);
-          }
         }
         observes.set(mot, entree);
       }
-      for (let i = 0; i < mots.length; i++) {
-        const mot = mots[i].toLowerCase();
-        if (positionsCouvertes.has(i)) continue;
-        if (!lettres.test(mot)) continue;
+      let plat = 0;
+      for (const unite of mots) {
+        const largeur = unite.split('-').length;
+        let couverte = false;
+        for (let i = plat; i < plat + largeur; i++) if (positionsCouvertes.has(i)) couverte = true;
+        plat += largeur;
+        const mot = unite.toLowerCase();
+        if (couverte || !lettres.test(mot)) continue;
         observer(mot);
-        if (i > 0 && lettres.test(mots[i - 1])) voisins.add(clePaire(mots[i - 1].toLowerCase(), mot));
         if (++operations % TAILLE_D_UN_LOT === 0) yield;
       }
-      const compose = mots.join('-').toLowerCase();
-      if (mots.length > 1 && synonymesComposes.has(compose) && positionsCouvertes.size === 0) observer(compose);
-      const suivants = segments[rang + 1] && lexique.mots.get(segments[rang + 1]);
-      if (mots.length && suivants?.length) voisins.add(clePaire(mots[mots.length - 1].toLowerCase(), suivants[0].toLowerCase()));
       if (++operations % TAILLE_D_UN_LOT === 0) yield;
     }
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
+  }
+  // Une réponse ne s'applique qu'aux mots que le renommage découpe de la même façon (lexique.ts) ; sans ce filtre, une question répondue disparaîtrait sans rien renommer.
+  const motsApplicables = new Set<string>();
+  for (const decoupe of lexique.mots.values()) {
+    const bas = decoupe.map((mot) => mot.toLowerCase());
+    for (let i = 0; i < bas.length; i++) for (let j = i + 1; j <= Math.min(bas.length, i + 3); j++) motsApplicables.add(bas.slice(i, j).join('-'));
     if (++operations % TAILLE_D_UN_LOT === 0) yield;
   }
   const distincts = new Set(dejaJuge.distincts.map(([a, b]) => clePaire(motJuge(a), motJuge(b))));
   const voulus = new Set(dejaJuge.voulus.map(motJuge));
   const plusTard = new Set(dejaJuge.plusTard);
   const paires = new Map<string, PaireCandidate>();
-  function* ajouterPaire(a: string, b: string, indice: IndiceDePaire, cibleAlias?: string): Generator<void> {
+  function* ajouterPaire(a: string, b: string, indice: IndiceDePaire): Generator<void> {
     if (a === b || !observes.has(a) || !observes.has(b)) return;
     const cle = clePaire(a, b);
-    if (distincts.has(cle) || voulus.has(a) || voulus.has(b) || !(yield* partagentUnePlace(observes.get(a)!, observes.get(b)!))) return;
+    if (distincts.has(cle) || voulus.has(a) || voulus.has(b)) return;
+    if (indice === 'synonymes' && !(yield* partagentUnePlace(observes.get(a)!, observes.get(b)!))) return;
     const precedente = paires.get(cle) ?? { mots: [a, b].sort(comparer) as [string, string], indices: new Set<IndiceDePaire>() };
     precedente.indices.add(indice);
-    if (cibleAlias && (!precedente.cibleAlias || comparer(cibleAlias, precedente.cibleAlias) < 0)) precedente.cibleAlias = cibleAlias;
     paires.set(cle, precedente);
   }
   const motsLibres = [...observes.keys()];
@@ -253,28 +223,31 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     yield* ajouterPaire(groupe[i], groupe[j], 'synonymes');
     if (++operations % TAILLE_D_UN_LOT === 0) yield;
   }
-  for (const [cle, bucket] of alias) {
-    const mots = [...bucket.keys()].filter((mot) => observes.has(mot));
-    const cible = (JSON.parse(cle) as string[])[1];
-    for (let i = 0; i < mots.length; i++) for (let j = i + 1; j < mots.length; j++) {
-      if (!voisins.has(clePaire(mots[i], mots[j])) && nomsDistincts(bucket.get(mots[i])!, bucket.get(mots[j])!)
-        && !(yield* sontFreres(observes.get(mots[i])!, observes.get(mots[j])!)))
-        yield* ajouterPaire(mots[i], mots[j], 'meme-place', cible);
-      if (++operations % TAILLE_D_UN_LOT === 0) yield;
-    }
-    if (++operations % TAILLE_D_UN_LOT === 0) yield;
+  const segmentsObserves = new Map<string, MotObserve>();
+  for (const branches of yield* detecterBranchesParalleles(lexique)) {
+    const [a, b] = branches.mots;
+    const cle = clePaire(a, b);
+    if (distincts.has(cle) || voulus.has(motJuge(a)) || voulus.has(motJuge(b))) continue;
+    branches.mots.forEach((mot, rang) => {
+      const noms = branches.nomsDuMot[rang];
+      segmentsObserves.set(mot, { mot, noms: new Set(noms), lieux: new Map(), exemples: [...noms].slice(0, 2) });
+    });
+    const precedente = paires.get(cle) ?? { mots: [a, b] as [string, string], indices: new Set<IndiceDePaire>() };
+    precedente.indices.add('branches-paralleles');
+    paires.set(cle, precedente);
   }
+  const observe = (mot: string): MotObserve => observes.get(mot) ?? segmentsObserves.get(mot)!;
 
   const questions: Question[] = [];
-  const ordreIndices: readonly IndiceDePaire[] = ['synonymes', 'abreviation', 'terminaison', 'pluriel', 'meme-place'];
+  const ordreIndices: readonly IndiceDePaire[] = ['synonymes', 'abreviation', 'terminaison', 'pluriel', 'branches-paralleles'];
   for (const [cle, candidate] of paires) {
-    if (plusTard.has(cle)) continue;
-    const [a, b] = candidate.mots.map((mot) => observes.get(mot)!) as [MotObserve, MotObserve];
+    if (plusTard.has(cle) || !candidate.mots.every((mot) => motsApplicables.has(mot))) continue;
+    const [a, b] = candidate.mots.map(observe) as [MotObserve, MotObserve];
     const propose: 0 | 1 = terme(a).ucm !== terme(b).ucm ? (terme(a).ucm ? 0 : 1)
       : a.noms.size >= b.noms.size ? 0 : 1;
     const indice = ordreIndices.find((valeur) => candidate.indices.has(valeur))!;
     questions.push({ type: 'paire', cle, indice, termes: [terme(a), terme(b)], propose,
-      score: yield* scoreDesNoms(a, b, candidate.indices.size), ...(candidate.cibleAlias ? { cibleAlias: candidate.cibleAlias } : {}) });
+      score: yield* scoreDesNoms(a, b, candidate.indices.size) });
     if (++operations % TAILLE_D_UN_LOT === 0) yield;
   }
 
@@ -309,7 +282,7 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
             && (autre.noms.size > reference.noms.size || (autre.noms.size === reference.noms.size && comparer(autre.mot, reference.mot) < 0))))) reference = autre;
       if (++operations % TAILLE_D_UN_LOT === 0) yield;
     }
-    if (!reference) continue;
+    if (!reference || !termeOuFormeConnu(reference.mot) || !motsApplicables.has(observe.mot)) continue;
     const cle = `ecriture-du-terme:faute:${[observe.mot, reference.mot].sort(comparer).join('|')}`;
     if (!plusTard.has(cle)) questions.push({ type: 'ecriture-du-terme', cle, indice: 'faute', terme: terme(observe),
       proposition: [reference.mot], reference: { mot: reference.mot, nombre: reference.noms.size }, score: yield* scoreDesNoms(observe, reference) });
@@ -318,9 +291,9 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
   for (const mot of segmentsSoudes) {
     if (++operations % TAILLE_D_UN_LOT === 0) yield;
     const observe = observes.get(mot);
-    if (!observe || voulus.has(mot) || termesUcm.has(mot)) continue;
+    if (!observe || voulus.has(mot) || termesUcm.has(mot) || !motsApplicables.has(mot)) continue;
     const proposition = yield* decoupageAtteste(mot, observe, observes);
-    if (proposition?.some((partie) => voulus.has(partie))) continue;
+    if (proposition?.some((partie) => voulus.has(partie) || [...partie].length < 3) || (proposition && !proposition.some(termeOuFormeConnu))) continue;
     const cle = `ecriture-du-terme:mots-colles:${[mot, ...(proposition ?? [])].sort(comparer).join('|')}`;
     if (proposition && !plusTard.has(cle)) questions.push({ type: 'ecriture-du-terme', cle, indice: 'mots-colles',
       terme: terme(observe), proposition, score: observe.noms.size });

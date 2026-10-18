@@ -189,7 +189,7 @@ export const TEXTES = {
     pluriel: 'Singulier et pluriel',
     abreviation: 'Abréviation',
     synonymes: 'Synonymes',
-    'meme-place': 'Même place',
+    'branches-paralleles': 'Branches parallèles',
   } satisfies Record<IndiceDePaire, string>,
   indiceDEchelle: 'Deux écritures',
   indiceDeFaute: 'Une lettre d’écart',

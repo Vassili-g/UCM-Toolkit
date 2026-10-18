@@ -61,8 +61,8 @@ test('une paire pose la question, l’indice et deux colonnes dont la proposée 
 });
 
 test('chaque indice de paire a son texte, et sans cible commune la carte n’a pas de preuve', () => {
-  const textes = (['terminaison', 'pluriel', 'abreviation', 'synonymes', 'meme-place'] as const).map((indice) => carteDeQuestion(paire(indice)).indice);
-  assert.deepEqual(textes, ['Terminaison', 'Singulier et pluriel', 'Abréviation', 'Synonymes', 'Même place']);
+  const textes = (['terminaison', 'pluriel', 'abreviation', 'synonymes', 'branches-paralleles'] as const).map((indice) => carteDeQuestion(paire(indice)).indice);
+  assert.deepEqual(textes, ['Terminaison', 'Singulier et pluriel', 'Abréviation', 'Synonymes', 'Branches parallèles']);
   const carte = carteDeQuestion(paire());
   assert.equal(carte.forme === 'face-a-face' ? carte.preuve : 'autre forme', null);
 });

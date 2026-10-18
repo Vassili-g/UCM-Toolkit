@@ -59,7 +59,7 @@ export interface ResultatDuLexique { readonly renommages: readonly Renommage[]; 
 
 /** `exemples` : des identifiants de noms, deux au plus. */
 export interface TermeEnQuestion { readonly mot: string; readonly nombre: number; readonly exemples: readonly string[]; readonly ucm: boolean }
-export type IndiceDePaire = 'terminaison' | 'pluriel' | 'abreviation' | 'synonymes' | 'meme-place';
+export type IndiceDePaire = 'terminaison' | 'pluriel' | 'abreviation' | 'synonymes' | 'branches-paralleles';
 export type Question =
   | { readonly type: 'paire'; readonly cle: string; readonly indice: IndiceDePaire; readonly termes: readonly [TermeEnQuestion, TermeEnQuestion]; readonly propose: 0 | 1; readonly score: number; readonly cibleAlias?: string }
   | { readonly type: 'ecriture-du-terme'; readonly cle: string; readonly indice: 'faute' | 'mots-colles'; readonly terme: TermeEnQuestion; readonly proposition: Mots; readonly reference?: { readonly mot: string; readonly nombre: number }; readonly score: number }

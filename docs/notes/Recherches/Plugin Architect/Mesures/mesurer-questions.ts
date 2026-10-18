@@ -43,7 +43,7 @@ const resultat = detecterLesQuestions(etape.value, index,
   { distincts: [], plusTard: [], voulus: [], collectionsGardees: [] }, { maximum: 20 });
 const toutes = [...resultat.questions, ...resultat.autres].sort((a, b) => b.score - a.score || (a.cle < b.cle ? -1 : a.cle > b.cle ? 1 : 0));
 const parDetecteur: Record<string, number> = Object.fromEntries([
-  'terminaison', 'pluriel', 'abreviation', 'synonymes', 'meme-place', 'faute', 'mots-colles', 'echelle', 'collection',
+  'terminaison', 'pluriel', 'abreviation', 'synonymes', 'branches-paralleles', 'faute', 'mots-colles', 'echelle', 'collection',
 ].map((nom) => [nom, 0]));
 for (const question of toutes) parDetecteur['indice' in question ? question.indice : question.type]++;
 
@@ -64,12 +64,12 @@ process.stdout.write(`${JSON.stringify({
   sha256: createHash('sha256').update(octets).digest('hex'),
   variables: tokens.size, collections: collections.size,
   seuil: 2, maximum: 20, total: toutes.length, retenues: resultat.questions.length, autres: resultat.autres.length,
-  parDetecteur, premieres: toutes.slice(0, 20).map(resumer),
+  parDetecteur, premieres: toutes.slice(0, 40).map(resumer),
   limites: [
     'La racine DTCG représente la collection ; le reste du chemin représente le nom de variable.',
     'Seul un alias direct de $value est relevé ; les autres modes et les valeurs identiques ne sont pas des indices.',
     'Les noms exportés ont déjà été normalisés ; la casse et les séparateurs originaux de Figma sont perdus.',
     'Le comptage par détecteur porte sur les questions dédupliquées et inclut les pistes sous le seuil ou au-delà du plafond.',
-    'Les vingt premières sont triées avant seuil et plafond pour leur jugement par le mainteneur.',
+    'Les quarante premières sont triées avant seuil et plafond pour leur jugement par le mainteneur.',
   ],
 }, null, 2)}\n`);

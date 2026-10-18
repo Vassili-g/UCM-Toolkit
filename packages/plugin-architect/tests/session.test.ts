@@ -172,8 +172,8 @@ test('répondre à une paire : autre terme, termes différents, plus tard', asyn
 
 test('répondre à une faute : corriger écrit le terme corrigé ; c\'est voulu écrit le terme voulu', async () => {
   const noms: [string, string][] = [];
-  for (let i = 0; i < 5; i++) noms.push([`a${i}`, `box${i}/outlined/bg`]);
-  noms.push(['b0', 'box0/outlinad/fg']);
+  for (let i = 0; i < 5; i++) noms.push([`a${i}`, `box${i}/border/bg`]);
+  noms.push(['b0', 'box0/bordr/fg']);
   const b = banc(noms, { ecriture });
   await b.envoyer({ type: 'analyser' });
   const question = b.bilan().questions.find((q) => q.type === 'ecriture-du-terme');
