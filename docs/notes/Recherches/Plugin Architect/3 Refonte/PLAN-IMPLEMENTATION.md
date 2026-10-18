@@ -693,11 +693,11 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `galerie/etats.cjs`, `galerie/donnees.cjs`,
 `galerie/build-galerie.cjs`.
 
-- [ ] Un état par écran des maquettes, feuilles comprises, et par type de
+- [x] (0721a21) Un état par écran des maquettes, feuilles comprises, et par type de
   `PluginMessage`, à la taille par défaut et à la taille minimale si le banc
   du socle le permet
-- [ ] Aucune capture Chromium : le mainteneur ouvre la galerie
-- [ ] Fin : `npm run galerie --workspace ucm-architect-plugin`,
+- [x] (0721a21) Aucune capture Chromium : le mainteneur ouvre la galerie
+- [x] (0721a21) Fin : `npm run galerie --workspace ucm-architect-plugin`,
   `tests/socle.test.ts`
 
 ### Q1 · Seuil des questions
