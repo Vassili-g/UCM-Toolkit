@@ -368,6 +368,22 @@ packages/plugin-explorateur/  le plugin UCM Token Explorer : ucm-explorateur-plu
   scripts/mesurer.mjs      la mesure sur 10 000 variables, hors des tests
   SPEC.md                  ce que le plugin lit, résout et refuse de conclure
 
+packages/plugin-architect/  le plugin UCM Architect : ucm-architect-plugin, privé ; renomme les variables et les collections locales
+  src/code.ts              la fenêtre, sa taille, et les demandes de l'écran confiées à la session
+  src/messages.ts          les deux sens de la frontière sandbox ↔ écran, numérotés par demande et par génération
+  src/session.ts           l'inventaire, le lexique, les règles et le résultat, gardés dans le sandbox ; la file des calculs
+  src/tranches.ts          un générateur du kit mené par tranches de huit millisecondes, abandonné par une demande plus récente
+  src/lecture.ts           l'inventaire des noms lus ; la relecture avant d'écrire
+  src/lectureFigma.ts      collections et variables locales, et les variables qu'UCM Palettes a écrites
+  src/regles.ts            les règles du fichier, une entrée de données partagées par règle, le journal, l'export et l'import
+  src/projection.ts        du résultat du kit aux vues de l'écran : bilan, groupes, pages, questions, fiches, effets
+  src/ecriture.ts          le seul fichier qui écrive dans le document : noms, règles, journal et point d'annulation
+  src/conventions.ts       l'écriture des noms choisie par le fichier, validée par les registres du kit
+  src/fenetre.ts           les bornes et la clé de la fenêtre
+  src/ui/                  la coquille et sa frontière, les onglets À appliquer, À trancher et Règles, les feuilles, la Configuration ; les textes dans textes.ts
+  galerie/                 les états de l'écran, à 640 × 720 et à 360 × 420
+  tests/                   dont la loi d'écriture et le protocole avec une session sur un port factice
+
 docs/                    la documentation classée par sujet
   README.md              le sommaire par profil de lecteur, et la table des autorités
   format/                la forme publiée, sa compatibilité et son historique
@@ -1641,6 +1657,30 @@ La spécification en lien porte le raisonnement.
   deux bundles, et `packages/kit/tests/porteNavigateur.test.mjs` la tient
   dans le kit.
   → [spec](./packages/plugin-explorateur/SPEC.md#intégrations-facultatives)
+
+### UCM Architect
+
+- Architect ne change dans le document que le `name` d'une variable ou d'une
+  collection locale, ses données partagées dans `ESPACE_ARCHITECT` et le point
+  d'annulation, et seul `src/ecriture.ts` le fait. Il ne lit ni page ni
+  composant. `tests/loiDEcriture.test.ts` refuse ailleurs toute création,
+  suppression, setter de valeur, import, chargement de page et `.remove(`,
+  interface comprise.
+- Une variable qu'UCM Palettes a écrite n'est jamais renommée, même cochée ;
+  la collection qui la porte peut l'être, Palettes la suit par son
+  identifiant. Avant d'écrire, chaque nom est relu : un objet changé, disparu
+  ou dont le nouveau nom est occupé est sauté, et un lot s'annule en un seul
+  pas. `tests/ecriture.test.ts` le tient.
+- Le moteur (vocabulaire, lexique, normalisation, questions) et les données
+  UCM viennent de `@ucm-kit/core/referentiel` ; le plugin n'en recopie
+  aucune, ce que `tests/referentielUnique.test.ts` vérifie.
+- Le sandbox garde l'inventaire et le résultat et n'envoie à l'écran que le
+  `Bilan` et les pages demandées. Chaque réponse porte le numéro de sa
+  demande et la génération du calcul ; l'écran ignore une réponse périmée.
+  `appliquer` relit les règles et refuse si elles ont changé depuis le bilan.
+  `tests/protocole.test.ts` et `tests/frontiereUi.test.ts` le tiennent.
+- Le sandbox n'envoie que des données et des codes ; les textes destinés au
+  designer vivent dans `src/ui/textes.ts`.
 
 ## Vérification
 

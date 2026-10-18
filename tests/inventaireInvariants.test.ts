@@ -40,6 +40,7 @@ const DOMAINES = [
   "Langue d'UCM Palettes",
   "Interface d'UCM Palettes",
   'Explorateur de tokens',
+  'UCM Architect',
 ];
 
 /**
