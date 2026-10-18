@@ -1,3 +1,9 @@
+
+
+Formule à respecter pour tous les agents:
+"Time matters here: do not spend time that can be avoided, and the earlier a correct result is obtained, the better."
+
+
 # Plan d'implémentation de la refonte d'UCM Architect
 
 Ce plan construit la refonte décrite dans la [conception](./CONCEPTION.md) et
@@ -312,6 +318,11 @@ export type PluginMessage =
 - Une page de `lignes` ou de `termes` porte cinquante entrées.
 - Un renommage appartient au groupe de sa première règle ; il apparaît dans
   les autres groupes par `aussi`, sans être compté deux fois.
+- `bilan.groupes` suit l'ordre de priorité des règles : terme UCM, terme
+  personnalisé, collection, écriture.
+- `GroupeVue.variables` et `GroupeVue.collections` comptent les seuls noms
+  renommés : un groupe de collection a zéro variable. `autres` vaut le total
+  du groupe moins son aperçu.
 
 ## Lots
 
@@ -403,23 +414,23 @@ test, `referentiel/index.ts`.
 non exporté pour les fonctions d'écriture des mots partagées avec
 `normalisation.ts`, leurs tests, `referentiel/index.ts`.
 
-- [ ] `commencerLexique()` : découpe chaque texte de segment une fois, indexe
+- [x] (ea60fef) `commencerLexique()` : découpe chaque texte de segment une fois, indexe
   les occurrences et les portées, calcule `detection` dans `terminer()`, par
   étapes
-- [ ] `normaliserParEtapes()` : réutilise les découpes et l'index ; chaque
+- [x] (ea60fef) `normaliserParEtapes()` : réutilise les découpes et l'index ; chaque
   renommage porte ses règles rangées par priorité ; une collection n'est
   renommée que si `collectionUcmReconnue` la reconnaît sous une autre écriture ;
   `portees` limite le calcul aux portées touchées, avec tous leurs occupants
-- [ ] `porteesTouchees()` : les portées où apparaît l'un des termes
-- [ ] `normaliserLesNoms` et `detecterLesConventions` gardent leur signature et
+- [x] (ea60fef) `porteesTouchees()` : les portées où apparaît l'un des termes
+- [x] (ea60fef) `normaliserLesNoms` et `detecterLesConventions` gardent leur signature et
   leurs résultats ; `normalisation.ts` n'importe pas `lexique.ts`
-- [ ] Test d'équivalence : sur les noms de `donnees-vue-illustree.js` et sur un
+- [x] (ea60fef) Test d'équivalence : sur les noms de `donnees-vue-illustree.js` et sur un
   jeu généré de 8 000 noms avec collisions en cascade, sans terme
   personnalisé, mêmes renommages et mêmes collisions que `normaliserLesNoms`
   avec les termes UCM
-- [ ] Test : un recalcul d'écriture ne refait pas la détection ; un recalcul
+- [x] (ea60fef) Test : un recalcul d'écriture ne refait pas la détection ; un recalcul
   par portée rend, sur ces portées, le résultat du calcul global
-- [ ] Fin : tests du référentiel, typecheck du kit ; 32 000 noms préparés et
+- [x] (ea60fef) Fin : tests du référentiel, typecheck du kit ; 32 000 noms préparés et
   normalisés en moins d'une seconde sous Node, aucune étape de plus de deux
   cents noms
 
@@ -615,11 +626,11 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 `src/ui/configuration.ts` (nouveaux), `textes.ts`.
 **Référence :** écrans 1, 2 et 14.
 
-- [ ] Premier lancement, avancement, carte de l'écriture (groupes, noms,
+- [x] (7d76bf2) Premier lancement, avancement, carte de l'écriture (groupes, noms,
   collections), Continuer
-- [ ] Configuration : collections analysées, export (`telecharger`) et import
+- [x] (7d76bf2) Configuration : collections analysées, export (`telecharger`) et import
   des règles, dernier renommage avec Annuler
-- [ ] Fin : typecheck, `build:ui`, galerie construite
+- [x] (7d76bf2) Fin : typecheck, `build:ui`, galerie construite
 
 ### U2 · Onglet À appliquer
 
@@ -627,40 +638,40 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `src/ui/aAppliquer.ts`, `src/ui/selection.ts` (pur),
 `tests/selection.test.ts`. **Référence :** écrans 3, 6, 7.
 
-- [ ] Intertitres Termes, Écriture, Collections ; une carte par `GroupeVue` :
+- [x] (7d76bf2) Intertitres Termes, Écriture, Collections ; une carte par `GroupeVue` :
   case, avant → après, détail tiré de `RegleVue`, pastille, chevron
-- [ ] Dépliée : l'aperçu, puis « N autres » qui demande une page de
+- [x] (7d76bf2) Dépliée : l'aperçu, puis « N autres » qui demande une page de
   cinquante lignes
-- [ ] `selection.ts` : groupes cochés, exclus, inclus ; compte sans parcourir le
+- [x] (7d76bf2) `selection.ts` : groupes cochés, exclus, inclus ; compte sans parcourir le
   DOM ; case partielle ; à chaque `bilan`, les clés disparues sortent et les
   exclus orphelins sont oubliés
-- [ ] Bloqués et protégés dans une carte repliée en bas ; Appliquer ouvre la
+- [x] (7d76bf2) Bloqués et protégés dans une carte repliée en bas ; Appliquer ouvre la
   feuille de confirmation ; le résultat devient la ligne « N noms renommés »
   avec Annuler
-- [ ] Fin : `tests/selection.test.ts`, typecheck, `build:ui`
+- [x] (7d76bf2) Fin : `tests/selection.test.ts`, typecheck, `build:ui`
 
 ### U3 · Onglet À trancher
 
 **Agent :** `implementeur-exigeant`. **Effort :** élevé.
 **Fichiers :** `src/ui/aTrancher.ts`. **Référence :** écrans 4, 5.
 
-- [ ] Carte face à face pour une paire et une échelle, carte avant → après pour
+- [x] (7d76bf2) Carte face à face pour une paire et une échelle, carte avant → après pour
   une écriture du terme, carte de collection, carte de conflit
-- [ ] Colonne proposée bordée de bleu, Garder dans chaque colonne, actions
+- [x] (7d76bf2) Colonne proposée bordée de bleu, Garder dans chaque colonne, actions
   secondaires à gauche, Plus tard à droite ; Autre terme… ouvre un champ dans
   la carte
-- [ ] Une réponse réduit la carte à une ligne avec Annuler ; la section Plus
+- [x] (7d76bf2) Une réponse réduit la carte à une ligne avec Annuler ; la section Plus
   tard repliée, avec Reprendre
-- [ ] Fin : typecheck, `build:ui`
+- [x] (7d76bf2) Fin : typecheck, `build:ui`
 
 ### U4a · Onglet Règles : liste des termes
 
 **Agent :** `implementeur`. **Effort :** moyen.
 **Fichiers :** `src/ui/regles.ts`. **Référence :** écran 8.
 
-- [ ] Résumé de l'écriture avec Modifier ; recherche, filtres, liste par pages
+- [x] (7d76bf2) Résumé de l'écriture avec Modifier ; recherche, filtres, liste par pages
   de cinquante, Afficher plus
-- [ ] Fin : typecheck, `build:ui`
+- [x] (7d76bf2) Fin : typecheck, `build:ui`
 
 ### U4b · Feuilles de l'écriture et des termes
 
