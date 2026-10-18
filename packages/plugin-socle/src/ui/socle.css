@@ -68,6 +68,7 @@
    * recevrait alors des replis sombres.
    */
   --fond: var(--figma-color-bg, #ffffff);
+  --fond-voile: rgb(0 0 0 / 40%);
   --fond-survol: var(--figma-color-bg-hover, #f5f5f5);
   --fond-bloc: var(--figma-color-bg-secondary, #f5f5f5);
   --fond-note: var(--figma-color-bg-tertiary, #ebebeb);
@@ -113,6 +114,7 @@
 
 .figma-dark {
   --fond: var(--figma-color-bg, #2c2c2c);
+  --fond-voile: rgb(0 0 0 / 40%);
   --fond-survol: var(--figma-color-bg-hover, #383838);
   --fond-bloc: var(--figma-color-bg-secondary, #383838);
   --fond-note: var(--figma-color-bg-tertiary, #4d4d4d);
@@ -483,6 +485,111 @@ select.input:hover {
 .interrupteur:focus-visible {
   outline: 2px solid var(--bordure-marque);
   outline-offset: 2px;
+}
+
+.feuille-voile {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  background: var(--fond-voile);
+}
+
+.feuille {
+  display: flex;
+  width: 100%;
+  max-height: 92vh;
+  flex-direction: column;
+  border: 1px solid var(--bordure);
+  border-bottom: 0;
+  border-radius: var(--rayon) var(--rayon) 0 0;
+  outline: none;
+  background: var(--fond);
+  box-shadow: 0 -8px 24px color-mix(in srgb, var(--texte) 16%, transparent);
+  animation: feuille-entree 160ms ease-out;
+}
+
+.feuille-poignee {
+  width: 32px;
+  height: 4px;
+  flex: none;
+  align-self: center;
+  margin: var(--espace-serre) 0;
+  border-radius: 2px;
+  background: var(--texte-second);
+}
+
+.feuille-entete {
+  display: flex;
+  min-height: var(--hauteur-action);
+  flex: none;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: 0 var(--espace-page) var(--espace-serre);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.feuille-titre {
+  min-width: 0;
+  flex: 1;
+  font-size: var(--titre);
+  font-weight: 600;
+  line-height: var(--titre-interligne);
+}
+
+.feuille-retour,
+.feuille-fermer {
+  display: inline-flex;
+  width: var(--hauteur-secondaire);
+  height: var(--hauteur-secondaire);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--rayon);
+  background: transparent;
+  color: var(--texte);
+  cursor: pointer;
+  font-size: var(--titre);
+}
+
+.feuille-retour:hover,
+.feuille-fermer:hover {
+  background: var(--fond-survol);
+}
+
+.feuille-retour:focus-visible,
+.feuille-fermer:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.feuille-corps {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  padding: var(--espace-page);
+}
+
+.feuille-pied {
+  display: flex;
+  flex: none;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-page) var(--espace-page);
+  border-top: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+@keyframes feuille-entree {
+  from { transform: translateY(12px); }
+  to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feuille {
+    animation: none;
+  }
 }
 
 .reglage {

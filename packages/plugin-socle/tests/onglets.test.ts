@@ -10,6 +10,7 @@ class ElementDeTest extends EventTarget {
   disabled = false;
   hidden = false;
   tabIndex = 0;
+  textContent = '';
   setAttribute(nom: string, valeur: string): void { this.attributs.set(nom, valeur); }
   getAttribute(nom: string): string | null { return this.attributs.get(nom) ?? null; }
   appendChild(enfant: ElementDeTest): void { this.children.push(enfant); }
@@ -27,7 +28,7 @@ function creer() {
   const ids = ['creation', 'verification', 'harmonisation', 'gestion'] as const;
   const panneaux = ids.map(() => new ElementDeTest());
   const selections: string[] = [];
-  const ui = createOnglets('Navigation', ids.map((id, index) => ({
+  const ui = createOnglets<string>('Navigation', ids.map((id, index) => ({
     id, libelle: id, panneau: panneaux[index] as unknown as HTMLElement,
   })), (id) => selections.push(id));
   const liste = ui.liste as unknown as ElementDeTest;
@@ -138,4 +139,13 @@ test('[UI-45] une liste vide et un identifiant inconnu ne créent aucune sélect
   ui.definirDisponible('absent', true);
   assert.equal(ui.actif(), undefined);
   assert.deepEqual(selections, []);
+});
+
+test('[UI-45] nommer change le libellé sans remplacer le bouton', () => {
+  const { ui, boutons } = creer();
+  const onglet = boutons[1];
+  ui.nommer('verification', 'À trancher');
+  ui.nommer('absent', 'Ignoré');
+  assert.equal(boutons[1], onglet);
+  assert.equal(onglet.textContent, 'À trancher');
 });

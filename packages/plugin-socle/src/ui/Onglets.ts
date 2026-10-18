@@ -17,6 +17,7 @@ export interface DefinitionOnglet<Id extends string> {
 export interface OngletsUi<Id extends string> {
   liste: HTMLDivElement;
   selectionner(id: Id): void;
+  nommer(id: Id, libelle: string): void;
   /** Si l'actif devient indisponible, le premier disponible s'active. */
   definirDisponible(id: Id, disponible: boolean): void;
   /** Sans onglet disponible, aucun panneau n'est affiché. */
@@ -72,6 +73,11 @@ export function createOnglets<Id extends string>(
     onSelection(id);
   }
 
+  function nommer(id: Id, libelle: string) {
+    const cible = onglets.find((candidat) => candidat.id === id);
+    if (cible) cible.onglet.textContent = libelle;
+  }
+
   function definirDisponible(id: Id, disponible: boolean) {
     const cible = onglets.find((candidat) => candidat.id === id);
     if (!cible || cible.onglet.disabled === !disponible) return;
@@ -106,5 +112,5 @@ export function createOnglets<Id extends string>(
   });
 
   if (definitions[0]) selectionner(definitions[0].id);
-  return { liste, selectionner, definirDisponible, actif: () => courant };
+  return { liste, selectionner, nommer, definirDisponible, actif: () => courant };
 }
