@@ -3,7 +3,7 @@
 UCM Token Explorer lit les variables d'un fichier Figma et explique leurs
 valeurs : collections, groupes, alias, modes, tokens d'un composant. Ce document
 décrit ce que le plugin lit, comment il résout une chaîne et ce qu'il refuse
-de conclure. Le [plan d'implémentation](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/PLAN-IMPLEMENTATION.md)
+de conclure. Le [plan d'implémentation](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/PLAN-IMPLEMENTATION.md)
 porte l'historique des décisions ; les invariants vérifiés sont dans
 [AGENTS.md](../../AGENTS.md#explorateur-de-tokens).
 
@@ -216,7 +216,7 @@ du sujet. Sans image, la zone disparaît ; sans boîte, le calque n'a pas de
 cadre.
 
 Aucune de ces lectures n'a été essayée dans Figma. La
-[recette](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md)
+[recette](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md)
 les reprend une à une.
 
 ## Intégrations facultatives

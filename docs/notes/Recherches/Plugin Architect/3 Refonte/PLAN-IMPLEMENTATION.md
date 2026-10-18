@@ -343,52 +343,52 @@ npm test --workspace ucm-plugin-socle
 
 **Agent :** `implementeur`, relu par la principale. **Effort :** moyen.
 
-- [x] (cfe90bf) `packages/kit/src/referentiel/harmonisation.ts`, types seuls, exporté par
+- [x] (8349a73) `packages/kit/src/referentiel/harmonisation.ts`, types seuls, exporté par
   `referentiel/index.ts`
-- [x] (6e48bbf) `packages/plugin-architect/src/messages.ts` : les types et
+- [x] (79ff9ee) `packages/plugin-architect/src/messages.ts` : les types et
   `estUiMessage`, qui refuse une demande hors contrat (rang, `debut` négatif,
   filtre inconnu, doublons d'une sélection, texte d'import de plus d'un
   million de caractères) ; `tests/messages.test.ts`, une demande valide et un
   refus par type
-- [x] (6e48bbf) Supprimer `routage.ts`, `analyse.ts`, `ui/presentation.ts`,
+- [x] (79ff9ee) Supprimer `routage.ts`, `analyse.ts`, `ui/presentation.ts`,
   `ui/vues.ts`, `ui/frontiere.ts`, les tests `presentation`, `frontiere` ; ne
   garder de `ui/telechargement.ts` que `telecharger`
-- [x] (6e48bbf) `ecriture.ts` remplace l'import d'`Analyse` par une interface locale de
+- [x] (79ff9ee) `ecriture.ts` remplace l'import d'`Analyse` par une interface locale de
   même forme, pour compiler jusqu'à P3
-- [x] (6e48bbf) `code.ts` : la fenêtre, la poignée et le message `initial` ;
+- [x] (79ff9ee) `code.ts` : la fenêtre, la poignée et le message `initial` ;
   `ui/index.ts` : un écran vide monté par le socle
-- [x] (6e48bbf) `galerie/donnees.cjs` et `galerie/etats.cjs` : un état minimal par type de
+- [x] (79ff9ee) `galerie/donnees.cjs` et `galerie/etats.cjs` : un état minimal par type de
   `PluginMessage`, avec des données factices conformes aux contrats
-- [x] (6e48bbf) Fin : `npm run build --workspace @ucm-kit/core`, typecheck du kit et
+- [x] (79ff9ee) Fin : `npm run build --workspace @ucm-kit/core`, typecheck du kit et
   d'Architect, `npm test --workspace ucm-architect-plugin` verts
 
 ### K0 · Types du moteur
 
-- [x] (cfe90bf) Types seuls du contrat dans `harmonisation.ts`, en-tête du référentiel,
-  imports de types en `.js` et export depuis `referentiel/index.ts` (cfe90bf)
+- [x] (8349a73) Types seuls du contrat dans `harmonisation.ts`, en-tête du référentiel,
+  imports de types en `.js` et export depuis `referentiel/index.ts` (8349a73)
 
 ### K1 · Données du référentiel
 
 **Agent :** `implementeur`. **Exécutant :** Codex. **Effort :** petit.
 
-- [x] (07836c0) `SYNONYMES_COURANTS`, dans `vocabulaire.ts` : des groupes de termes, le
+- [x] (ecb62bd) `SYNONYMES_COURANTS`, dans `vocabulaire.ts` : des groupes de termes, le
   terme UCM en tête. `danger` avec `error`, `negative`, `critical` ; `warning`
   avec `attention`, `notice` ; `success` avec `positive` ; `info` avec
   `information`, `informative` ; `pressed` avec `active`, `down` ;
   `foreground` avec `fg`, `content` ; `background` avec `bg` ; `border` avec
   `stroke` ; `radius` avec `corner`, `border-radius`
-- [x] (07836c0) `ABREVIATIONS` : `bg` → `background`, `fg` → `foreground`, `btn` →
+- [x] (ecb62bd) `ABREVIATIONS` : `bg` → `background`, `fg` → `foreground`, `btn` →
   `button`, `txt` → `text`, `img` → `image`
-- [x] (07836c0) `ECHELLES_DE_TAILLES` : `sm`/`small`, `md`/`medium`, `lg`/`large` ; un
+- [x] (ecb62bd) `ECHELLES_DE_TAILLES` : `sm`/`small`, `md`/`medium`, `lg`/`large` ; un
   test vérifie que chaque forme appartient à `SIZE_VALUES`
-- [x] (07836c0) `collectionUcmReconnue(nom)`, dans `normalisation.ts` : le nom découpé,
+- [x] (ecb62bd) `collectionUcmReconnue(nom)`, dans `normalisation.ts` : le nom découpé,
   en minuscules, joint par des tirets, comparé à `COLLECTIONS`
-- [x] (07836c0) Dans `produits.ts` : `CLES_PARTAGEES_DE_PALETTES` (`variables`,
+- [x] (ecb62bd) Dans `produits.ts` : `CLES_PARTAGEES_DE_PALETTES` (`variables`,
   `palette`, `cle`), déplacées depuis `plugin-palettes/src/variables/suivi.ts`
   qui les importe ; `ESPACE_ARCHITECT = 'ucm_architect'` ; la donnée
   `regles-de-nommage` ; la définition d'`architect` : il lit et écrit les noms
   des collections et des variables, et range ses règles
-- [x] (07836c0) Fin : tests du kit et de Palettes, `tests/referentielUnique.test.ts`,
+- [x] (ecb62bd) Fin : tests du kit et de Palettes, `tests/referentielUnique.test.ts`,
   vue illustrée régénérée (`generer-donnees-referentiel.ts`)
 
 ### K2a · Vocabulaire du fichier
@@ -397,15 +397,15 @@ npm test --workspace ucm-plugin-socle
 **Fichiers :** `packages/kit/src/referentiel/vocabulaire-du-fichier.ts`, son
 test, `referentiel/index.ts`.
 
-- [x] (0fa038d) `indexerVocabulaire()` : une `Map` des suites de mots à remplacer, termes
+- [x] (f0d683a) `indexerVocabulaire()` : une `Map` des suites de mots à remplacer, termes
   UCM des registres sauf `ecartsUcm`, puis termes personnalisés ;
   `remplacements()` apparie les suites de mots, la plus longue d'abord, sans
   chevauchement, en respectant la restriction par catégorie de la v1
   (`REGISTRE_AXES_ETAT` réservé aux propriétés)
-- [x] (0fa038d) Conflits : un terme personnalisé qui remplace un terme gardé par UCM
+- [x] (f0d683a) Conflits : un terme personnalisé qui remplace un terme gardé par UCM
   (`contredit-ucm`), une forme remplacée par deux termes (`deja-remplace`), un
   cycle
-- [x] (0fa038d) Fin : son test, typecheck du kit
+- [x] (f0d683a) Fin : son test, typecheck du kit
 
 ### K2b · Lexique et normalisation par étapes
 
@@ -414,23 +414,23 @@ test, `referentiel/index.ts`.
 non exporté pour les fonctions d'écriture des mots partagées avec
 `normalisation.ts`, leurs tests, `referentiel/index.ts`.
 
-- [x] (ea60fef) `commencerLexique()` : découpe chaque texte de segment une fois, indexe
+- [x] (74a7c50) `commencerLexique()` : découpe chaque texte de segment une fois, indexe
   les occurrences et les portées, calcule `detection` dans `terminer()`, par
   étapes
-- [x] (ea60fef) `normaliserParEtapes()` : réutilise les découpes et l'index ; chaque
+- [x] (74a7c50) `normaliserParEtapes()` : réutilise les découpes et l'index ; chaque
   renommage porte ses règles rangées par priorité ; une collection n'est
   renommée que si `collectionUcmReconnue` la reconnaît sous une autre écriture ;
   `portees` limite le calcul aux portées touchées, avec tous leurs occupants
-- [x] (ea60fef) `porteesTouchees()` : les portées où apparaît l'un des termes
-- [x] (ea60fef) `normaliserLesNoms` et `detecterLesConventions` gardent leur signature et
+- [x] (74a7c50) `porteesTouchees()` : les portées où apparaît l'un des termes
+- [x] (74a7c50) `normaliserLesNoms` et `detecterLesConventions` gardent leur signature et
   leurs résultats ; `normalisation.ts` n'importe pas `lexique.ts`
-- [x] (ea60fef) Test d'équivalence : sur les noms de `donnees-vue-illustree.js` et sur un
+- [x] (74a7c50) Test d'équivalence : sur les noms de `donnees-vue-illustree.js` et sur un
   jeu généré de 8 000 noms avec collisions en cascade, sans terme
   personnalisé, mêmes renommages et mêmes collisions que `normaliserLesNoms`
   avec les termes UCM
-- [x] (ea60fef) Test : un recalcul d'écriture ne refait pas la détection ; un recalcul
+- [x] (74a7c50) Test : un recalcul d'écriture ne refait pas la détection ; un recalcul
   par portée rend, sur ces portées, le résultat du calcul global
-- [x] (ea60fef) Fin : tests du référentiel, typecheck du kit ; 32 000 noms préparés et
+- [x] (74a7c50) Fin : tests du référentiel, typecheck du kit ; 32 000 noms préparés et
   normalisés en moins d'une seconde sous Node, aucune étape de plus de deux
   cents noms
 
@@ -440,23 +440,23 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `packages/kit/src/referentiel/questions.ts`, son test,
 `referentiel/index.ts`.
 
-- [x] (9d36840, 850e1c0) Les détecteurs portent sur les mots qu'aucune règle ne couvre, à la même
+- [x] (db6b3a2, d872d90) Les détecteurs portent sur les mots qu'aucune règle ne couvre, à la même
   place seulement : même collection, même profondeur, et même segment avant ou
   même segment après
-- [x] (9d36840, 850e1c0) Terminaison (`-ed`, `-d`, `-ing`), pluriel (`-s`, `-es`), abréviation,
+- [x] (db6b3a2, d872d90) Terminaison (`-ed`, `-d`, `-ing`), pluriel (`-s`, `-es`), abréviation,
   synonymes, même place (deux mots jamais voisins dont une variable de chaque
   côté vise la même cible d'alias), faute (une lettre d'écart par un index des
   suppressions, l'un employé au plus deux fois, l'autre au moins cinq fois),
   mots collés (un mot sans séparateur qui se découpe en mots du lexique),
   échelle, collection hors de `COLLECTIONS` et non reconnue
-- [x] (9d36840, 850e1c0) Le terme proposé est le terme UCM, sinon le plus employé ; une paire dont
+- [x] (db6b3a2, d872d90) Le terme proposé est le terme UCM, sinon le plus employé ; une paire dont
   un mot est déjà remplacé par une règle n'est pas une question
-- [x] (9d36840, 850e1c0) Clé stable : type, puis mots triés ; `dejaJuge` retire ce qui est déjà
+- [x] (db6b3a2, d872d90) Clé stable : type, puis mots triés ; `dejaJuge` retire ce qui est déjà
   jugé
-- [x] (9d36840, 850e1c0) Score : nombre de noms touchés, majoré quand deux indices concordent ;
+- [x] (db6b3a2, d872d90) Score : nombre de noms touchés, majoré quand deux indices concordent ;
   sous `seuil`, la question va dans `autres` ; dix questions au plus par
   défaut
-- [x] (9d36840, 850e1c0) Fin : un jeu écrit à la main par détecteur, un jeu sans question ; 32 000
+- [x] (db6b3a2, d872d90) Fin : un jeu écrit à la main par détecteur, un jeu sans question ; 32 000
   noms en moins d'une seconde sous Node
 
 ### K4 · Mesures
@@ -464,16 +464,16 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Agent :** `implementeur`. **Exécutant :** Codex. **Effort :** moyen.
 **Fichiers :** `docs/notes/Recherches/Plugin Architect/Mesures/`.
 
-- [x] (0910d0f) `mesurer-performances.ts` n'importe que le kit : préparation, détection,
+- [x] (892bd18) `mesurer-performances.ts` n'importe que le kit : préparation, détection,
   normalisation initiale, recalcul d'écriture, recalcul après une règle de
   terme, sur 800, 8 000 et 32 000 noms ; résultats dans
   `resultats-performances.json`
-- [x] (0910d0f) `mesurer-questions.ts` : les questions sur C1
+- [x] (892bd18) `mesurer-questions.ts` : les questions sur C1
   (`UCM-Playground/src/tokens/tokens.json`) et sur C2
   (`1 Architecture globale/Mesures/tokens-slice-exemple.json`), nombre par
   détecteur et vingt premières, avec leur score ; les résultats de C2 restent
   hors du dépôt
-- [x] (0910d0f) Une section « Mesures de la refonte » dans
+- [x] (892bd18) Une section « Mesures de la refonte » dans
   `OPTIMISATION-LECTURE-ET-AFFICHAGE.md`, avec les chiffres de C1 seulement
 
 ### S1 · Feuille et onglets renommables du socle
@@ -482,32 +482,32 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `packages/plugin-socle/src/ui/Feuille.ts`, `Onglets.ts`,
 `socle.css`, `packages/plugin-socle/tests/feuille.test.ts`, `onglets.test.ts`.
 
-- [x] (265f0ab) `createFeuille({ titre, retour?, corps, pied, onFermer })` : un voile
+- [x] (7d3b01f) `createFeuille({ titre, retour?, corps, pied, onFermer })` : un voile
   sombre sur la fenêtre, une feuille qui monte du bas, une poignée, un en-tête
   (‹ facultatif, titre, ✕), un corps qui défile, un pied ; Échap, ✕ et un clic
   sur le voile ferment ; le focus reste dans la feuille et revient à
   l'élément qui l'a ouverte ; `remplacer({ titre, retour, corps, pied })`
   passe à l'étape suivante
-- [x] (265f0ab) `OngletsUi.nommer(id, libelle)` : le libellé d'un onglet change sans
+- [x] (7d3b01f) `OngletsUi.nommer(id, libelle)` : le libellé d'un onglet change sans
   recréer la liste
-- [x] (265f0ab) Classes et rôles dans `socle.css` ; la loi des styles reste verte
-- [x] (265f0ab) Fin : `npm test --workspace ucm-plugin-socle`
+- [x] (7d3b01f) Classes et rôles dans `socle.css` ; la loi des styles reste verte
+- [x] (7d3b01f) Fin : `npm test --workspace ucm-plugin-socle`
 
 ### P1 · Lecture des variables seules
 
 **Agent :** `implementeur`. **Effort :** moyen.
 **Fichiers :** `src/lecture.ts`, `src/lectureFigma.ts`, `tests/lecture.test.ts`.
 
-- [x] (702faea) Le port lit collections et variables par `Promise.all`, sans aucune
+- [x] (d3d506f) Le port lit collections et variables par `Promise.all`, sans aucune
   page ; une `Map` des collections ; toutes les collections locales sont lues,
   l'exclusion se fait dans la session
-- [x] (702faea) Chaque variable porte l'identifiant visé par l'alias de son premier mode
+- [x] (d3d506f) Chaque variable porte l'identifiant visé par l'alias de son premier mode
   et sa protection : la donnée partagée `palette` de l'espace de Palettes
   (`ESPACE_PARTAGE`, `CLES_PARTAGEES_DE_PALETTES`) n'est pas vide ; ces
   lectures se font par lots de cinq cents, avec une pause entre deux
-- [x] (702faea) L'inventaire rend des `NomLu` ; `relireInventaireAvantEcriture` relit
+- [x] (d3d506f) L'inventaire rend des `NomLu` ; `relireInventaireAvantEcriture` relit
   les seules variables et collections
-- [x] (702faea) Fin : `tests/lecture.test.ts` réécrit (variables distantes ignorées,
+- [x] (d3d506f) Fin : `tests/lecture.test.ts` réécrit (variables distantes ignorées,
   protection, alias), typecheck d'Architect
 
 ### P2 · Règles du fichier, journal et port de stockage
@@ -516,26 +516,26 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `src/regles.ts` (nouveau, pur), `src/conventions.ts`,
 `src/ecriture.ts` (port de stockage seulement), `tests/regles.test.ts`.
 
-- [x] (43a7d1c) Le modèle pur : écriture des groupes et des noms, termes personnalisés,
+- [x] (0e43811) Le modèle pur : écriture des groupes et des noms, termes personnalisés,
   écarts UCM, paires distinctes, termes voulus, questions mises de côté,
   collections gardées, collections exclues, réponses, groupes déjà vus, journal
-- [x] (43a7d1c) Une entrée de données partagées par règle, dans `ESPACE_ARCHITECT` :
+- [x] (0e43811) Une entrée de données partagées par règle, dans `ESPACE_ARCHITECT` :
   `ecriture`, `terme:<mots>`, `ecart:<id>`, `distinct:<a>|<b>`, `voulu:<mots>`,
   `plus-tard:<cle>`, `collection:<id>`, `exclues`, `reponse:<cle>`, `vus`,
   `journal:<n>` ; chaque entrée porte `version: 1` ; une entrée illisible se
   lit comme absente et n'est jamais réécrite par une lecture
-- [x] (43a7d1c) `reponse:<cle>` garde les entrées qu'une réponse a créées ou changées,
+- [x] (0e43811) `reponse:<cle>` garde les entrées qu'une réponse a créées ou changées,
   avec leur valeur d'avant : « Annuler » la défait exactement
-- [x] (43a7d1c) Le journal se découpe en entrées de 90 000 caractères au plus ; un test
+- [x] (0e43811) Le journal se découpe en entrées de 90 000 caractères au plus ; un test
   range 8 000 renommages
-- [x] (43a7d1c) Reprise de la v1 : `lireChoix` et la clé `conventions` fournissent
+- [x] (0e43811) Reprise de la v1 : `lireChoix` et la clé `conventions` fournissent
   l'écriture quand `ecriture` manque ; tester l'absence et la donnée corrompue
-- [x] (43a7d1c) Export et import : un JSON versionné de toutes les règles ; l'import
+- [x] (0e43811) Export et import : un JSON versionné de toutes les règles ; l'import
   valide tout avant d'écrire et rend les conflits de `indexerVocabulaire`
-- [x] (43a7d1c) Le port de stockage (lire les clés, lire, écrire, effacer) vit dans
+- [x] (0e43811) Le port de stockage (lire les clés, lire, écrire, effacer) vit dans
   `ecriture.ts`, seul fichier autorisé à appeler `setSharedPluginData` ;
   aucune écriture de règle n'appelle `commitUndo`
-- [x] (43a7d1c) Fin : `tests/regles.test.ts`, `tests/loiDEcriture.test.ts`, typecheck
+- [x] (0e43811) Fin : `tests/regles.test.ts`, `tests/loiDEcriture.test.ts`, typecheck
 
 ### P3 · Écriture des variables et des collections
 
@@ -543,21 +543,21 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `src/ecriture.ts`, `tests/ecriture.test.ts`,
 `tests/loiDEcriture.test.ts`.
 
-- [x] (702faea) Retirer tout ce qui touche les composants, les propriétés et les valeurs
-- [x] (702faea) Garder la relecture de chaque nom avant l'écriture, le contrôle des
+- [x] (d3d506f) Retirer tout ce qui touche les composants, les propriétés et les valeurs
+- [x] (d3d506f) Garder la relecture de chaque nom avant l'écriture, le contrôle des
   doublons sur le document relu, portée par portée, sans nouvelle
   normalisation : le nom final de chaque objet y reste unique ; un seul
   `commitUndo` pour le lot
-- [x] (702faea) Refuser toute variable protégée, même cochée
-- [x] (702faea) Ordonner les écritures : une chaîne (`a` devient `b`, `b` devient `c`)
+- [x] (d3d506f) Refuser toute variable protégée, même cochée
+- [x] (d3d506f) Ordonner les écritures : une chaîne (`a` devient `b`, `b` devient `c`)
   commence par la fin ; un cycle passe par des noms provisoires uniques
-- [x] (702faea) Écrire le journal du lot ; « Annuler le dernier renommage » remet
+- [x] (d3d506f) Écrire le journal du lot ; « Annuler le dernier renommage » remet
   l'ancien nom à chaque objet dont le nom actuel est encore le nouveau, et
   saute les autres
-- [x] (702faea) La loi d'écriture : seuls `name` d'une variable ou d'une collection
+- [x] (d3d506f) La loi d'écriture : seuls `name` d'une variable ou d'une collection
   locale et les données partagées d'`ESPACE_ARCHITECT` ; ni
   `editComponentProperty`, ni `loadAsync`, ni `loadAllPagesAsync`
-- [x] (702faea) Fin : tests `ecriture` (chaîne, cycle, protection, journal, annulation
+- [x] (d3d506f) Fin : tests `ecriture` (chaîne, cycle, protection, journal, annulation
   partielle) et `loiDEcriture`, typecheck
 
 ### P5 · Projection vers l'écran
@@ -565,14 +565,14 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Agent :** `implementeur-exigeant`. **Effort :** élevé.
 **Fichiers :** `src/projection.ts` (nouveau, pur), `tests/projection.test.ts`.
 
-- [x] (1b243d3) Du `ResultatDuLexique`, des questions et des règles vers `Bilan`,
+- [x] (9ef9340) Du `ResultatDuLexique`, des questions et des règles vers `Bilan`,
   `GroupeVue` (groupe principal, `aussi`, `nouveau` d'après les groupes déjà
   vus), `LigneVue` (chemin découpé autour du segment en cause), `QuestionVue`,
   `TermeDeListe`, `FicheVue`, `EffetVue`, `ConflitVue`
-- [x] (1b243d3) La résolution d'une `Selection` en identifiants : groupe principal coché
+- [x] (9ef9340) La résolution d'une `Selection` en identifiants : groupe principal coché
   sans exclusion, plus les inclus
-- [x] (1b243d3) Pages de cinquante pour `lignes` et `termes`, recherche et filtres
-- [x] (1b243d3) Fin : `tests/projection.test.ts`, typecheck
+- [x] (9ef9340) Pages de cinquante pour `lignes` et `termes`, recherche et filtres
+- [x] (9ef9340) Fin : `tests/projection.test.ts`, typecheck
 
 ### P4 · Session de calcul et protocole
 
@@ -580,22 +580,22 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `src/session.ts` (nouveau), `src/tranches.ts` (nouveau),
 `src/code.ts`, `tests/session.test.ts`, `tests/protocole.test.ts`.
 
-- [x] (f66fa59) Le sandbox garde l'inventaire, le lexique, le vocabulaire indexé, le
+- [x] (2562214) Le sandbox garde l'inventaire, le lexique, le vocabulaire indexé, le
   résultat et les règles ; il ne transmet que le `Bilan` et les pages demandées
-- [x] (f66fa59) `tranches.ts` : mène un générateur du kit par tranches de huit
+- [x] (2562214) `tranches.ts` : mène un générateur du kit par tranches de huit
   millisecondes, avec une pause entre deux, et l'abandonne quand une demande
   plus récente arrive
-- [x] (f66fa59) Les règles du protocole de ce plan : file des calculs, lectures sur la
+- [x] (2562214) Les règles du protocole de ce plan : file des calculs, lectures sur la
   génération courante, dernière intention, codes d'erreur
-- [x] (f66fa59) Un geste écrit sa règle par le port, recalcule les portées touchées
+- [x] (2562214) Un geste écrit sa règle par le port, recalcule les portées touchées
   (`porteesTouchees`), fusionne le résultat ; `configurer` refait le lexique
   depuis l'inventaire en mémoire, sans relire Figma
-- [x] (f66fa59) `appliquer` relit les règles et refuse si elles ont changé ; après
+- [x] (2562214) `appliquer` relit les règles et refuse si elles ont changé ; après
   l'écriture, la session relit Figma et envoie un `bilan`
-- [x] (f66fa59) `tests/protocole.test.ts` : la session avec un port factice, de
+- [x] (2562214) `tests/protocole.test.ts` : la session avec un port factice, de
   `analyser` à `application`, réponses périmées ignorées, conflit refusé,
   recalcul sans lecture de Figma ni nouvelle détection
-- [x] (f66fa59) Fin : ces tests, typecheck, `npm run build --workspace ucm-architect-plugin`
+- [x] (2562214) Fin : ces tests, typecheck, `npm run build --workspace ucm-architect-plugin`
 
 ### U1a · Coquille
 
@@ -605,18 +605,18 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 `tests/frontiereUi.test.ts`.
 **Référence :** maquettes, plan de navigation et planche des états.
 
-- [x] (fa54057) En-tête du socle : « UCM Architect », bouton Configuration avec texte
+- [x] (41fad59) En-tête du socle : « UCM Architect », bouton Configuration avec texte
   (`createSettingsButton`, comme Palettes), `Retour` dans la Configuration
-- [x] (fa54057) Onglets du socle : À appliquer, À trancher, Règles ; les comptes des deux
+- [x] (41fad59) Onglets du socle : À appliquer, À trancher, Règles ; les comptes des deux
   premiers
-- [x] (fa54057) La frontière : numérotation, génération courante, réponses périmées
+- [x] (41fad59) La frontière : numérotation, génération courante, réponses périmées
   ignorées
-- [x] (fa54057) États : analyse en cours, rien à faire, aucune variable à harmoniser
+- [x] (41fad59) États : analyse en cours, rien à faire, aucune variable à harmoniser
   ici, fichier modifié
-- [x] (fa54057) Rôles de couleur en tête de `styles.css` : surlignage du terme en cause
+- [x] (41fad59) Rôles de couleur en tête de `styles.css` : surlignage du terme en cause
   sur `--fond-avertissement` et `--texte-avertissement`, pastille UCM,
   pastille Personnalisé
-- [x] (fa54057) Fin : `tests/frontiereUi.test.ts`, typecheck, `build:ui`,
+- [x] (41fad59) Fin : `tests/frontiereUi.test.ts`, typecheck, `build:ui`,
   `npm test --workspace ucm-architect-plugin`
 
 ### U1b · Premier lancement, écriture, Configuration
@@ -626,11 +626,11 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 `src/ui/configuration.ts` (nouveaux), `textes.ts`.
 **Référence :** écrans 1, 2 et 14.
 
-- [x] (7d76bf2) Premier lancement, avancement, carte de l'écriture (groupes, noms,
+- [x] (e167264) Premier lancement, avancement, carte de l'écriture (groupes, noms,
   collections), Continuer
-- [x] (7d76bf2) Configuration : collections analysées, export (`telecharger`) et import
+- [x] (e167264) Configuration : collections analysées, export (`telecharger`) et import
   des règles, dernier renommage avec Annuler
-- [x] (7d76bf2) Fin : typecheck, `build:ui`, galerie construite
+- [x] (e167264) Fin : typecheck, `build:ui`, galerie construite
 
 ### U2 · Onglet À appliquer
 
@@ -638,54 +638,54 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `src/ui/aAppliquer.ts`, `src/ui/selection.ts` (pur),
 `tests/selection.test.ts`. **Référence :** écrans 3, 6, 7.
 
-- [x] (7d76bf2) Intertitres Termes, Écriture, Collections ; une carte par `GroupeVue` :
+- [x] (e167264) Intertitres Termes, Écriture, Collections ; une carte par `GroupeVue` :
   case, avant → après, détail tiré de `RegleVue`, pastille, chevron
-- [x] (7d76bf2) Dépliée : l'aperçu, puis « N autres » qui demande une page de
+- [x] (e167264) Dépliée : l'aperçu, puis « N autres » qui demande une page de
   cinquante lignes
-- [x] (7d76bf2) `selection.ts` : groupes cochés, exclus, inclus ; compte sans parcourir le
+- [x] (e167264) `selection.ts` : groupes cochés, exclus, inclus ; compte sans parcourir le
   DOM ; case partielle ; à chaque `bilan`, les clés disparues sortent et les
   exclus orphelins sont oubliés
-- [x] (7d76bf2) Bloqués et protégés dans une carte repliée en bas ; Appliquer ouvre la
+- [x] (e167264) Bloqués et protégés dans une carte repliée en bas ; Appliquer ouvre la
   feuille de confirmation ; le résultat devient la ligne « N noms renommés »
   avec Annuler
-- [x] (7d76bf2) Fin : `tests/selection.test.ts`, typecheck, `build:ui`
+- [x] (e167264) Fin : `tests/selection.test.ts`, typecheck, `build:ui`
 
 ### U3 · Onglet À trancher
 
 **Agent :** `implementeur-exigeant`. **Effort :** élevé.
 **Fichiers :** `src/ui/aTrancher.ts`. **Référence :** écrans 4, 5.
 
-- [x] (7d76bf2) Carte face à face pour une paire et une échelle, carte avant → après pour
+- [x] (e167264) Carte face à face pour une paire et une échelle, carte avant → après pour
   une écriture du terme, carte de collection, carte de conflit
-- [x] (7d76bf2) Colonne proposée bordée de bleu, Garder dans chaque colonne, actions
+- [x] (e167264) Colonne proposée bordée de bleu, Garder dans chaque colonne, actions
   secondaires à gauche, Plus tard à droite ; Autre terme… ouvre un champ dans
   la carte
-- [x] (7d76bf2) Une réponse réduit la carte à une ligne avec Annuler ; la section Plus
+- [x] (e167264) Une réponse réduit la carte à une ligne avec Annuler ; la section Plus
   tard repliée, avec Reprendre
-- [x] (7d76bf2) Fin : typecheck, `build:ui`
+- [x] (e167264) Fin : typecheck, `build:ui`
 
 ### U4a · Onglet Règles : liste des termes
 
 **Agent :** `implementeur`. **Effort :** moyen.
 **Fichiers :** `src/ui/regles.ts`. **Référence :** écran 8.
 
-- [x] (7d76bf2) Résumé de l'écriture avec Modifier ; recherche, filtres, liste par pages
+- [x] (e167264) Résumé de l'écriture avec Modifier ; recherche, filtres, liste par pages
   de cinquante, Afficher plus
-- [x] (7d76bf2) Fin : typecheck, `build:ui`
+- [x] (e167264) Fin : typecheck, `build:ui`
 
 ### U4b · Feuilles de l'écriture et des termes
 
 **Agent :** `implementeur-exigeant`. **Effort :** élevé.
 **Fichiers :** `src/ui/feuilles.ts`. **Référence :** écrans 9 à 13.
 
-- [x] (7d46a89) Feuille du socle pour l'écriture (effet simulé avant Enregistrer), le
+- [x] (0312581) Feuille du socle pour l'écriture (effet simulé avant Enregistrer), le
   terme UCM, le terme personnalisé, le terme sans règle, et Remplacer par…
   comme étape suivante de la même feuille
-- [x] (7d46a89) Une fiche montre aussi les paires distinctes et le terme voulu, avec
+- [x] (0312581) Une fiche montre aussi les paires distinctes et le terme voulu, avec
   Retirer
-- [x] (7d46a89) Proposer à UCM copie le terme, sa définition et ses termes remplacés au
+- [x] (0312581) Proposer à UCM copie le terme, sa définition et ses termes remplacés au
   format d'un `Terme` du référentiel
-- [x] (7d46a89) Fin : typecheck, `build:ui`
+- [x] (0312581) Fin : typecheck, `build:ui`
 
 ### U5 · Galerie des états
 
@@ -693,11 +693,11 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `galerie/etats.cjs`, `galerie/donnees.cjs`,
 `galerie/build-galerie.cjs`.
 
-- [x] (0721a21) Un état par écran des maquettes, feuilles comprises, et par type de
+- [x] (897a35c) Un état par écran des maquettes, feuilles comprises, et par type de
   `PluginMessage`, à la taille par défaut et à la taille minimale si le banc
   du socle le permet
-- [x] (0721a21) Aucune capture Chromium : le mainteneur ouvre la galerie
-- [x] (0721a21) Fin : `npm run galerie --workspace ucm-architect-plugin`,
+- [x] (897a35c) Aucune capture Chromium : le mainteneur ouvre la galerie
+- [x] (897a35c) Fin : `npm run galerie --workspace ucm-architect-plugin`,
   `tests/socle.test.ts`
 
 ### Q1 · Seuil des questions
@@ -711,17 +711,17 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 
 **Agent :** principale. **Effort :** petit.
 
-- [x] (45e59b4) `AGENTS.md` : l'entrée de `packages/plugin-architect/` dans la carte du
+- [x] (52f9640) `AGENTS.md` : l'entrée de `packages/plugin-architect/` dans la carte du
   code, et un domaine d'invariants « UCM Architect » ; ajouter ce domaine à
   `DOMAINES` de `tests/inventaireInvariants.test.ts`
-- [x] (45e59b4) `README.md` racine : la ligne d'Architect parle des variables
-- [x] (29fd819) La conception renvoie aux écarts constatés pendant l'implémentation
+- [x] (52f9640) `README.md` racine : la ligne d'Architect parle des variables
+- [x] (f9e3cff) La conception renvoie aux écarts constatés pendant l'implémentation
 
 ### F2 · Vérification d'ensemble
 
 **Agent :** `verificateur`. **Effort :** petit.
 
-- [x] (29c54ea) `npm test` à la racine, typecheck et build du kit, d'Architect et de
+- [x] (3d1aeaf) `npm test` à la racine, typecheck et build du kit, d'Architect et de
   Palettes, `controle-style` ; sans `test:ui` ; seul
   `versionSuitLeContenu` peut être rouge
 
@@ -729,10 +729,10 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 
 **Agent :** `executant`, puis principale. **Effort :** petit.
 
-- [x] (b41e85f) Monter la version mineure de `@ucm-kit/core`, les pins du CLI et de
+- [x] (6fa1b0c) Monter la version mineure de `@ucm-kit/core`, les pins du CLI et de
   l'adaptateur et leurs versions, les pins de la documentation ; tests verts,
   `versionSuitLeContenu` compris
-- [x] (b7674ff) Commiter, pousser la série, puis publier par `gh workflow run
+- [x] (5f501bf) Commiter, pousser la série, puis publier par `gh workflow run
   publish.yml`, le noyau d'abord ; la principale lance et suit les exécutions
 
 ### F4 · Recette dans Figma

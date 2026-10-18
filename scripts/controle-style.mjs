@@ -46,9 +46,9 @@ export const ACRONYMES = [
   'FLOAT', 'FRAME', 'GET', 'GIT', 'GNU', 'GRID', 'GROUP', 'HSL', 'HTML', 'HTTP',
   'HTTPS', 'HUG', 'IA', 'IBM', 'ICDE', 'ID', 'ISO', 'ISWC', 'JND', 'JS', 'JSON', 'JSX', 'JWT', 'KER', 'LAPD', 'LF', 'LGPL',
   'LINE', 'LTR', 'MAX', 'MB', 'MCP', 'MD', 'MIN', 'MIT', 'MVP', 'NODE', 'NONE',
-  'MSR', 'NPM', 'OAEI', 'OIDC', 'OK', 'OKLAB', 'OKLCH', 'ONNX', 'PAT', 'PATH', 'PDF', 'PNG', 'POLYGON', 'POST', 'PR', 'PUT', 'RAM',
+  'MSR', 'MUI', 'NPM', 'OAEI', 'OIDC', 'OK', 'OKLAB', 'OKLCH', 'ONNX', 'PAT', 'PATH', 'PDF', 'PNG', 'POLYGON', 'POST', 'PR', 'PUT', 'RAM',
   'RECTANGLE',
-  'REST', 'RGAA', 'RGB', 'RTL', 'SET', 'SHA', 'SLDS', 'SLOT', 'SMAT', 'SSH', 'SOLID', 'SPEC', 'STAR', 'STRETCH',
+  'REST', 'RGAA', 'RGB', 'RTL', 'SDS', 'SET', 'SHA', 'SLDS', 'SLOT', 'SMAT', 'SSH', 'SOLID', 'SPEC', 'STAR', 'STRETCH',
   // `TODO(sujet)` est le marqueur conventionnel d'un point à reprendre, que les
   // éditeurs et `grep` retrouvent. Le sujet entre parenthèses nomme la tâche qui
   // le retirera.

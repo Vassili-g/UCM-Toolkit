@@ -89,7 +89,7 @@ Hors de ce chantier : le contrôle « full UCM » d'un `tokens.json` par
 
 | Document | Contenu |
 |---|---|
-| [Demande d'audit dans Git](https://github.com/Vassili-g/UCM-Toolkit/blob/cbfd4f6/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/PROMPT-AUDIT-CODEX.md) | Les données du concept partagées entre plugins et absentes de la liste proposée |
-| [Audit dans Git](https://github.com/Vassili-g/UCM-Toolkit/blob/cbfd4f6/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/AUDIT-REFERENTIEL.md) | Le rapport de Codex : 60 données classées, contradictions, écarts entre la vue et le kit |
+| [Demande d'audit dans Git](https://github.com/Vassili-g/UCM-Toolkit/blob/7c42927/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/PROMPT-AUDIT-CODEX.md) | Les données du concept partagées entre plugins et absentes de la liste proposée |
+| [Audit dans Git](https://github.com/Vassili-g/UCM-Toolkit/blob/7c42927/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/AUDIT-REFERENTIEL.md) | Le rapport de Codex : 60 données classées, contradictions, écarts entre la vue et le kit |
 | [PLAN-IMPLEMENTATION.md](./PLAN-IMPLEMENTATION.md) | Les lots, leurs agents et leurs critères de fin |
 | [Plugin Architect](../Plugin%20Architect/README.md) | Les recherches, les maquettes et les réflexions sur UCM Architect, dont celles de la phase 2 du plan |

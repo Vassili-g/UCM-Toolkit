@@ -516,7 +516,7 @@ référence n'entre pas dans les dépendances du paquet.
 | gris de clarté 0,975 et 0,180 | `#F7F7F7` et `#121212` |
 | tout Color shift, toute référence dans `[Ls, Lc]` | à la clarté `La`, la teinte vaut `Ha`, la part celle du profil et la clarté celle de la courbe |
 
-Un second jeu vient de cette spécification. [`mesurer-recette.mjs`](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/mesurer-recette.mjs)
+Un second jeu vient de cette spécification. [`mesurer-recette.mjs`](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/mesurer-recette.mjs)
 le calcule, angles arrondis au centième (`[MOT-27]`) et contrastes tronqués
 (`[MOT-22]`) ; le lot 1 le recalcule avec le moteur avant de le figer :
 
@@ -3121,7 +3121,7 @@ test qui la tient.
 
 ## 15. Les lots
 
-Le [plan de développement](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/PLAN-PLUGIN-PALETTES.md) détaille chaque lot en
+Le [plan de développement](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/PLAN-PLUGIN-PALETTES.md) détaille chaque lot en
 cases et donne son critère de sortie. Chaque lot se termine par `npm test`,
 `npm run typecheck` et `npm run build` verts, et par un commit sur `main`. Un
 lot qui touche l'interface passe le protocole de relecture de
@@ -3455,7 +3455,7 @@ autres, sans changement de son moteur.
 ## 19. Consignes pour l'agent
 
 Les règles de conduite de chaque lot sont dans [le
-plan](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/PLAN-PLUGIN-PALETTES.md#règles-de-conduite). Trois d'entre elles
+plan](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/PLAN-PLUGIN-PALETTES.md#règles-de-conduite). Trois d'entre elles
 touchent à cette spécification :
 
 - lire ce document section par section, au lot qui la concerne ;

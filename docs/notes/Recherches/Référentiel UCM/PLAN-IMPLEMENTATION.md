@@ -1,7 +1,7 @@
 # Plan d'implémentation du référentiel UCM
 
 Ce plan crée `@ucm-kit/core/referentiel`, y range les définitions relevées par
-l'[audit conservé dans Git](https://github.com/Vassili-g/UCM-Toolkit/blob/cbfd4f6/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/AUDIT-REFERENTIEL.md), puis branche chaque outil dessus. Le
+l'[audit conservé dans Git](https://github.com/Vassili-g/UCM-Toolkit/blob/7c42927/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/AUDIT-REFERENTIEL.md), puis branche chaque outil dessus. Le
 [README](./README.md) donne le principe et les décisions du mainteneur.
 
 Cocher une case quand son commit est fait, avec le hash entre parenthèses.
@@ -57,7 +57,7 @@ lots 3 à 13.
 ## Lot 0 · Préparation
 
 - [x] Commiter l'audit, ce plan et la suppression du dossier « Bouton plein
-  basculable » · principale (cbfd4f6)
+  basculable » · principale (7c42927)
 
 ## Lot 1 · Le socle du référentiel
 
@@ -82,21 +82,21 @@ libellé d'un terme dans une langue.
 
 L'agent fait ensuite :
 
-- [x] `referentiel/index.ts` republie `../emplois/index.ts` sans le recopier (bb0d564) ;
+- [x] `referentiel/index.ts` republie `../emplois/index.ts` sans le recopier (0054ebd) ;
   `emplois` reste exporté tel quel
-- [x] Sous-chemin `./referentiel` dans `packages/kit/package.json`, inclusion (bb0d564)
+- [x] Sous-chemin `./referentiel` dans `packages/kit/package.json`, inclusion (0054ebd)
   dans `tsconfig.build.json`
-- [x] `vocabulaire.ts` : registres des crans (onze, 50 à 950, C01), des modes (bb0d564)
+- [x] `vocabulaire.ts` : registres des crans (onze, 50 à 950, C01), des modes (0054ebd)
   (C03), des profils et de l'intensité unique (C04, C05), des états avec
   `pressed` et `disabled` retenus, `press`, `disable`, `hovered`, `focused`
   tolérés (V01), des noms d'axe d'état (V03), de la priorité entre états
   (V04), des tailles (V02), des statuts, des rôles de peinture (V05)
-- [x] La loi de pureté (`packages/couleur/tests/loiDePurete.test.ts`) lit aussi (bb0d564)
+- [x] La loi de pureté (`packages/couleur/tests/loiDePurete.test.ts`) lit aussi (0054ebd)
   `kit/src/referentiel`
-- [x] Tests : `packages/kit/tests/referentiel.test.ts`, identifiants uniques (bb0d564),
+- [x] Tests : `packages/kit/tests/referentiel.test.ts`, identifiants uniques (0054ebd),
   aucun toléré en double ni égal à un terme retenu, libellés non vides dans
   les deux langues
-- [x] `paquetPublie.test.mjs` connaît le nouveau sous-chemin (bb0d564)
+- [x] `paquetPublie.test.mjs` connaît le nouveau sous-chemin (0054ebd)
 
 Fin : `npm run build --workspace @ucm-kit/core`, tests du kit et de
 `couleur` verts.
@@ -105,21 +105,21 @@ Fin : `npm run build --workspace @ucm-kit/core`, tests du kit et de
 
 **Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lot 1.
 
-- [x] `architecture.ts` : les sept collections dans l'ordre de la vue (23ff165)
+- [x] `architecture.ts` : les sept collections dans l'ordre de la vue (a1dd153)
   (A01), les alias permis entre elles, repris de `CIBLES_DES_COUCHES` de
   `packages/plugin-explorateur/src/integrations/profilUcm.ts` et du texte de
   la vue (A02), les axes de modes marque et thème (A03), les portées vides
   des collections intermédiaires (A10), la destination par défaut
   `primitives`/`colors` (A11)
-- [x] Les familles de chaque collection, en registres extensibles (23ff165) :
+- [x] Les familles de chaque collection, en registres extensibles (a1dd153) :
   `identity`, `primary`, `secondary` pour `color-brands` (A04) ; statuts,
   `neutral`, `elevation` pour `color-utilities` (A05) ; familles de
   `primitives`, `layouts`, `typography` (A06 à A08)
-- [x] La forme des chemins de chaque collection, sauf `components` : une liste (23ff165)
+- [x] La forme des chemins de chaque collection, sauf `components` : une liste (a1dd153)
   de positions, chacune liée à un registre (exemple :
   `color-brands.{famille}.{mode}.{cran}`)
-- [x] La reconnaissance du neutre : une fonction, `trim` puis minuscules (T07, 23ff165)
-- [x] Test : les chemins de `theme`, `color-brands`, `color-utilities` (23ff165),
+- [x] La reconnaissance du neutre : une fonction, `trim` puis minuscules (T07, a1dd153)
+- [x] Test : les chemins de `theme`, `color-brands`, `color-utilities` (a1dd153),
   `primitives`, `layouts` et `typography` de l'instantané actuel suivent les
   formes déclarées ; `components` est exclu
 
@@ -130,21 +130,21 @@ est rendu à la conversation principale, qui le soumet au mainteneur.
 
 **Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lot 1.
 
-- [x] `theme` : la règle `scale/{cran}` pour toutes les palettes (T10, d281def), les
+- [x] `theme` : la règle `scale/{cran}` pour toutes les palettes (T10, efdb2a4), les
   portées de chaque variable reprises de `SUPPORT_DES_VARIABLES` (T06), les
   textes `foreground-main` et `foreground-subtle` du neutre conservés
-- [x] Libellés et définitions de chaque variable de `theme`, en deux langues (d281def) :
+- [x] Libellés et définitions de chaque variable de `theme`, en deux langues (efdb2a4) :
   la conversation principale fournit les textes, repris des catalogues de
   Palettes (`i18n/fr.ts:846`, `i18n/en.ts:844`) et relus
-- [x] `contraste` : seuils par usage, texte 4,5 (d281def, icône comprise, de la couleur
+- [x] `contraste` : seuils par usage, texte 4,5 (efdb2a4, icône comprise, de la couleur
   du texte) et non-texte 3 (G03) ; niveaux AA et AAA déplacés de
   `packages/couleur/src/contraste.ts` (G04)
-- [x] `produits.ts` : chaque plugin et paquet, ce qu'il écrit et ce qu'il lit (d281def)
+- [x] `produits.ts` : chaque plugin et paquet, ce qu'il écrit et ce qu'il lit (efdb2a4)
   (P01 à P08) ; l'adresse `ucm_palettes`/`recette` déplacée de
   `packages/couleur/src/protocole.ts` (S01)
-- [x] `regles.ts` : les huit tags des règles d'usage (R01, d281def), déplacés de
+- [x] `regles.ts` : les huit tags des règles d'usage (R01, efdb2a4), déplacés de
   `packages/plugin-exporter/src/contract/rulesModel.ts`
-- [x] `recommandations.ts` : forme d'une recommandation (d281def, identifiant,
+- [x] `recommandations.ts` : forme d'une recommandation (efdb2a4, identifiant,
   déclencheur pris parmi les caractéristiques de contrat, règle en deux
   langues, paramètres, preuve) et deux entrées : l'anneau de focus (2 px de
   fond, puis 2 px de trait) et le bouton basculable (`surface` au repos,
@@ -157,11 +157,11 @@ constantes déplacées pour que leurs lecteurs actuels compilent encore.
 
 **Agent :** `implementeur`. **Effort :** petit. **Dépend :** lots 1 et 3.
 
-- [x] `packages/couleur` lit crans, modes, profils, niveaux, seuils par défaut (24eb1ba)
+- [x] `packages/couleur` lit crans, modes, profils, niveaux, seuils par défaut (a6cadd1)
   et adresse de la recette dans le référentiel ; ses types publics restent
   les mêmes
 - [x] Aucune liste `['light', 'dark']`, `['soft', 'vivid']` ni la liste commune de
-  crans écrite dans `packages/couleur/src` (24eb1ba). Les listes propres aux
+  crans écrite dans `packages/couleur/src` (a6cadd1). Les listes propres aux
   courbes et aux migrations de recette restent dans le moteur.
 
 Fin : tests de `couleur` verts, dont `architecture.test.ts` ; aucune valeur
@@ -173,11 +173,11 @@ calculée ne change, puisque le lot déplace des constantes sans les modifier.
 
 - [x] Les listes écrites en dur relevées par l'audit (C03, C04,
   `variables/detection.ts:127`, `harmonisation.ts:140`,
-  `reglagesParDefaut.ts:80`, `ui/…`) lisent le référentiel (e855413)
-- [x] La destination par défaut vient d'`architecture.ts` (e855413)
+  `reglagesParDefaut.ts:80`, `ui/…`) lisent le référentiel (a8be791)
+- [x] La destination par défaut vient d'`architecture.ts` (a8be791)
 - [x] Les libellés des variables de `theme` viennent du référentiel ; les
-  phrases d'interface restent dans `i18n` (e855413)
-- [x] La reconnaissance du neutre passe par la fonction du référentiel (e855413)
+  phrases d'interface restent dans `i18n` (a8be791)
+- [x] La reconnaissance du neutre passe par la fonction du référentiel (a8be791)
 
 Fin : tests unitaires de Palettes, `textes.test.ts` et `npm run build
 --workspace ucm-palettes-plugin` verts ; aucun texte affiché ne change.
@@ -187,9 +187,9 @@ Fin : tests unitaires de Palettes, `textes.test.ts` et `npm run build
 **Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 2 et 3.
 
 - [x] `COUCHES` et `CIBLES_DES_COUCHES` viennent d'`architecture.ts` ; le
-  profil connaît les sept collections et ne contrôle encore que les couleurs (382953a)
-- [x] La reconnaissance du neutre passe par la fonction du référentiel (382953a)
-- [x] Les variables de `theme` s'affichent avec leur libellé (382953a)
+  profil connaît les sept collections et ne contrôle encore que les couleurs (b8c0941)
+- [x] La reconnaissance du neutre passe par la fonction du référentiel (b8c0941)
+- [x] Les variables de `theme` s'affichent avec leur libellé (b8c0941)
 
 Fin : tests de l'explorateur et build verts.
 
@@ -198,13 +198,13 @@ Fin : tests de l'explorateur et build verts.
 **Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lots 1 et 3.
 
 - [x] `STATE_SELECTORS`, `STATE_PRECEDENCE`, `STATE_AXIS_NAMES` et
-  `SIZE_VALUES` viennent du référentiel (ce7989a)
-- [x] Le message d'un état inconnu recommande `pressed` et `disabled` (ce7989a)
+  `SIZE_VALUES` viennent du référentiel (1e511b3)
+- [x] Le message d'un état inconnu recommande `pressed` et `disabled` (1e511b3)
 - [x] Un état toléré (`press`, `disable`) reste publié sous son nom Figma ;
   l'analyse avertit le designer que UCM recommande le terme retenu. Texte de
   l'avertissement écrit par la conversation principale
-  (`rediger-diagnostics-ucm`) (ce7989a)
-- [x] Les tags des règles d'usage viennent de `regles.ts` (ce7989a)
+  (`rediger-diagnostics-ucm`) (1e511b3)
+- [x] Les tags des règles d'usage viennent de `regles.ts` (1e511b3)
 
 Fin : tests de l'exporteur verts, tests dorés inchangés, build vert.
 
@@ -213,7 +213,7 @@ Fin : tests de l'exporteur verts, tests dorés inchangés, build vert.
 **Agent :** `implementeur`. **Effort :** petit. **Dépend :** lot 3.
 
 - [x] `diagnostic-contrastes.mjs` lit ses seuils par rôle dans le référentiel
-  (G03) (ad3b678)
+  (G03) (90c05d4)
 - [x] Le CLI ne recode aucune donnée du référentiel (vérifié, aucune liste recopiée)
 
 Fin : tests du kit et du CLI verts, rapport de contrastes inchangé.
@@ -224,10 +224,10 @@ Fin : tests du kit et du CLI verts, rapport de contrastes inchangé.
 
 - [x] `generer-vue-illustree.ts` lit le référentiel : table des rôles, liste
   des collections, libellés, recommandations ; les données du panneau
-  restent celles de l'instantané, régénéré après le lot 19 (b64cb6e)
+  restent celles de l'instantané, régénéré après le lot 19 (812b0c3)
 - [x] Le texte de la vue qui recopie une table du kit est remplacé par la
-  table générée (b64cb6e)
-- [x] Un test échoue quand la vue générée diffère du fichier commité (b64cb6e)
+  table générée (812b0c3)
+- [x] Un test échoue quand la vue générée diffère du fichier commité (812b0c3)
 
 Fin : la vue s'ouvre dans un navigateur ; test vert.
 
@@ -240,26 +240,26 @@ de Tailwind 3.4 : peu de texte, des pastilles et des composants. Elle vit à
 côté du moteur, dans `packages/couleur/planche/`, et un test la tient à jour.
 
 Modèle : la section 1 de la
-[maquette de la recette du moteur](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/Maquettes/MAQUETTE-MOTEUR.html#comparaison),
+[maquette de la recette du moteur](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/Maquettes/MAQUETTE-MOTEUR.html#comparaison),
 sans le formulaire d'avis ni les variantes de réglages.
 
 - [x] `planche/generer-planche.ts` importe `packages/couleur/src` et le
   référentiel, et écrit `planche/PLANCHE-DU-MOTEUR.html`, autonome (données
-  dans la page, aucune ressource externe) (0f6b015)
+  dans la page, aucune ressource externe) (abd3a65)
 - [x] Une ligne par famille chromatique de `planche/tailwind-3.4.17.json` : la
   rampe Tailwind, puis les rampes du moteur avec sa couleur 500 comme
   référence, Soft et Vivid, Light et Dark. En Dark, chaque cran de Tailwind
-  est la nuance de sa rampe la plus proche de la courbe Dark (0f6b015)
+  est la nuance de sa rampe la plus proche de la courbe Dark (abd3a65)
 - [x] Sous chaque rampe du moteur, les composants qui prennent leurs rôles
   dans la table du référentiel : badge et alerte sur `surface`, bouton
-  `solid`, lien `page/foreground`, anneau `ring`, posés sur la carte et la page (0f6b015)
+  `solid`, lien `page/foreground`, anneau `ring`, posés sur la carte et la page (abd3a65)
 - [x] Commandes : profil, thème, texte des boutons du Dark (noir ou blanc) ;
-  une phrase de légende par section, au plus (0f6b015)
+  une phrase de légende par section, au plus (abd3a65)
 - [x] `npm run planche --workspace ucm-couleur` régénère la page ;
   `tests/planche.test.ts` la génère en mémoire, la compare au fichier commité
-  et donne la commande en cas d'écart (0f6b015)
+  et donne la commande en cas d'écart (abd3a65)
 - [x] Liens depuis `packages/couleur/README.md`,
-  `packages/plugin-palettes/README.md` et `docs/README.md` (0f6b015)
+  `packages/plugin-palettes/README.md` et `docs/README.md` (abd3a65)
 
 Fin : la page s'ouvre sans réseau, pèse moins de 1 Mo, et son test est vert.
 
@@ -270,10 +270,10 @@ Fin : la page s'ouvre sans réseau, pèse moins de 1 Mo, et son test est vert.
 - [x] `tests/referentielUnique.test.ts` : hors de `packages/kit/src/referentiel`
   et `emplois`, aucune liste littérale de crans, de modes, de profils,
   d'états, de collections ni de tags dans `packages/*/src` ; le message
-  d'échec nomme le module à importer. Les catalogues `i18n` sont lus aussi (1999a88)
+  d'échec nomme le module à importer. Les catalogues `i18n` sont lus aussi (38b8351)
 - [x] Un commentaire en tête de chaque fichier du référentiel : ce qu'il porte,
-  et la suite d'une modification (tests, vue illustrée, version du kit) (1999a88)
-- [x] Les entrées d'`AGENTS.md` nécessaires à `inventaireInvariants.test.ts` (1999a88)
+  et la suite d'une modification (tests, vue illustrée, version du kit) (38b8351)
+- [x] Les entrées d'`AGENTS.md` nécessaires à `inventaireInvariants.test.ts` (38b8351)
 
 Fin : `npm test` vert.
 
@@ -285,17 +285,17 @@ Fin : `npm test` vert.
 - [x] `AGENTS.md`, section « Avant de modifier » : une définition UCM se
   modifie dans `packages/kit/src/referentiel/`, puis les tests, la vue
   illustrée et la version du kit suivent ; un changement du moteur régénère
-  la planche du moteur (a0f1e63)
+  la planche du moteur (2ebca50)
 - [x] `AGENTS.md`, groupe « Moteur de couleur » : la prose qui recopie la table
-  devient la règle, sa borne, le fichier et un lien (a0f1e63)
+  devient la règle, sa borne, le fichier et un lien (2ebca50)
 - [x] Spécification de Palettes : les passages qui recopient la table ou les
-  garanties renvoient au référentiel (a0f1e63)
+  garanties renvoient au référentiel (2ebca50)
 - [x] `CONCEPT.md` : une section courte sur le rôle des produits et les deux
-  périmètres, qui renvoie à `produits.ts` (a0f1e63)
+  périmètres, qui renvoie à `produits.ts` (2ebca50)
 - [x] `README.md` racine : la recette est au format 12 ; les rôles des outils
-  renvoient à CONCEPT (a0f1e63)
+  renvoient à CONCEPT (2ebca50)
 - [x] `docs/format/FORMAT.md`, section 4 : les états tolérés et l'avertissement
-  de l'exporteur (a0f1e63)
+  de l'exporteur (2ebca50)
 
 Fin : `docLinks`, contrôle de style et `npm test` verts.
 
@@ -305,7 +305,7 @@ Fin : `docLinks`, contrôle de style et `npm test` verts.
 
 - [x] `npm test`, `npm run typecheck`, `npm run build` · `verificateur` (2 919 tests)
 - [x] Version de `@ucm-kit/core` à 0.7.0, et du CLI s'il a changé ;
-  publication · principale (b2265de ; kit 0.7.0, CLI 0.1.57, adaptateur 0.1.50 publiés)
+  publication · principale (2d8c93e ; kit 0.7.0, CLI 0.1.57, adaptateur 0.1.50 publiés)
 - [x] Push sur `main` · principale
 - [ ] Recette Figma des trois plugins après `npm run build` · mainteneur
 
@@ -342,7 +342,7 @@ lots 3 à 13 : c'est elle qui débloque la migration du fichier du mainteneur.
 
 **Agent :** un `chercheur`, puis principale. **Effort :** moyen.
 
-- [x] Recherche sur l'API Plugin de Figma · `chercheur` (47ac3d6) : renommer la valeur
+- [x] Recherche sur l'API Plugin de Figma · `chercheur` (ebe6e0f) : renommer la valeur
   d'une variante et une propriété de composant ; ce que deviennent les
   instances du fichier, celles des fichiers qui utilisent la bibliothèque
   publiée, et leurs surcharges ; ce que devient une variable renommée dans
@@ -351,33 +351,33 @@ lots 3 à 13 : c'est elle qui débloque la migration du fichier du mainteneur.
   (`editComponentProperty`) ; le coût sur 800 variables et sur les
   ensembles de variantes de toutes les pages ; où ranger la convention
   choisie dans le document
-- [x] Maquette de l'écran unique de la v1, dans le style des galeries (47ac3d6)
+- [x] Maquette de l'écran unique de la v1, dans le style des galeries (ebe6e0f)
   existantes, en thème sombre, avec les mots d'un designer débutant : le
   choix de la convention, avec la convention dominante détectée et ses
   comptes ; la liste des renommages proposés, groupés par raison, une case
   par ligne ; un bouton pour appliquer · principale
-- [x] Validation de la maquette · mainteneur (47ac3d6, structure validée)
+- [x] Validation de la maquette · mainteneur (ebe6e0f, structure validée)
 
 ## Lot 15 · Le moteur de normalisation
 
 **Agent :** `implementeur`. **Effort :** moyen. **Dépend :** lots 1 et 2.
 
-- [x] Un registre des conventions dans le référentiel (8d5b340) : casses (minuscules,
+- [x] Un registre des conventions dans le référentiel (9d1e337) : casses (minuscules,
   majuscule initiale, camelCase, PascalCase, inchangée) et séparateurs des
   mots d'un segment (tiret, tiret bas, soudé, camelCase)
-- [x] La découpe d'un segment en mots, quelle que soit sa forme d'origine (8d5b340)
+- [x] La découpe d'un segment en mots, quelle que soit sa forme d'origine (9d1e337)
   (`borderRadius`, `border-radius`, `border_radius`, `Border Radius`) ; un
   segment soudé (`fontsize`) reste un mot, sauf si le registre des termes le
   connaît
-- [x] La détection de la convention dominante, par catégorie de nom (8d5b340)
+- [x] La détection de la convention dominante, par catégorie de nom (9d1e337)
   (collections, variables, propriétés, valeurs), avec ses comptes
-- [x] `referentiel/normalisation.ts`, pur (8d5b340) : d'une liste de noms et d'une
+- [x] `referentiel/normalisation.ts`, pur (9d1e337) : d'une liste de noms et d'une
   convention, il rend les renommages proposés, chacun avec l'ancien nom, le
   nouveau et sa raison (casse, séparateur, terme toléré) ; un nom déjà
   conforme n'est pas proposé
-- [x] Deux noms qui aboutiraient au même nom ne sont pas proposés (8d5b340) ; la
+- [x] Deux noms qui aboutiraient au même nom ne sont pas proposés (9d1e337) ; la
   collision est rendue à part
-- [x] Tests sur les chemins de `donnees-vue-illustree.js` (8d5b340) : les 60 segments
+- [x] Tests sur les chemins de `donnees-vue-illustree.js` (9d1e337) : les 60 segments
   `press` et 36 `disable` de `components` sont proposés en `pressed` et
   `disabled`
 
@@ -386,43 +386,43 @@ lots 3 à 13 : c'est elle qui débloque la migration du fichier du mainteneur.
 **Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lots 14
 et 15.
 
-- [x] `packages/plugin-architect` sur le socle des plugins (6e1ce31) : manifeste, build,
+- [x] `packages/plugin-architect` sur le socle des plugins (557bf0a) : manifeste, build,
   galerie, comme `plugin-explorateur`
-- [x] Lecture des collections, des variables locales, des propriétés et des (6e1ce31)
+- [x] Lecture des collections, des variables locales, des propriétés et des (557bf0a)
   valeurs de variantes des composants locaux, de toutes les pages, avec un
   avancement ; propositions par le moteur du lot 15
 - [x] `tests/pluginsSepares.test.ts` couvre le nouveau plugin ; `produits.ts`
-  le décrit (6e1ce31, d281def)
+  le décrit (557bf0a, efdb2a4)
 
 ## Lot 17 · L'écriture des renommages
 
 **Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lot 16.
 
-- [x] Appliquer les renommages cochés (406d7a1) : nom de la collection, de la variable,
+- [x] Appliquer les renommages cochés (6e1f8b5) : nom de la collection, de la variable,
   de la propriété de composant, valeur de la variante ; un seul pas
   d'annulation pour le lot
-- [x] Juste avant d'écrire, relire chaque nom (406d7a1) : une ligne dont le nom a
+- [x] Juste avant d'écrire, relire chaque nom (6e1f8b5) : une ligne dont le nom a
   changé depuis la proposition n'est pas appliquée
-- [x] La convention choisie se range dans le document, pour que l'équipe la (406d7a1)
+- [x] La convention choisie se range dans le document, pour que l'équipe la (6e1f8b5)
   retrouve
-- [x] Une loi d'écriture, sur le modèle de `loiDeLectureSeule.test.ts` de (406d7a1)
+- [x] Une loi d'écriture, sur le modèle de `loiDeLectureSeule.test.ts` de (6e1f8b5)
   l'explorateur : le plugin n'appelle que ces écritures
 - [x] Après application, téléchargement de la table ancien nom vers nouveau
-  nom, en JSON, pour le dépôt de code (dfb83eb)
+  nom, en JSON, pour le dépôt de code (6e57cfb)
 
 ## Lot 18 · L'interface
 
 **Agent :** `implementeur-exigeant`. **Effort :** élevé. **Dépend :** lot 17,
 maquette validée.
 
-- [x] L'écran de la maquette, avec ses états de galerie (dfb83eb)
-- [x] Les textes affichés, écrits par la conversation principale (dfb83eb, relus)
+- [x] L'écran de la maquette, avec ses états de galerie (6e57cfb)
+- [x] Les textes affichés, écrits par la conversation principale (6e57cfb, relus)
 
 ## Lot 19 · Vérification et recette
 
 **Agent :** `verificateur`, puis mainteneur. **Effort :** petit.
 
-- [x] Tests, `typecheck` et build du plugin · `verificateur` (dfb83eb, 43 tests)
+- [x] Tests, `typecheck` et build du plugin · `verificateur` (6e57cfb, 43 tests)
 - [ ] Recette dans Figma sur une copie du fichier, puis sur le fichier ·
   mainteneur
 - [ ] Export des tokens du fichier renommé ; régénérer
@@ -438,5 +438,5 @@ maquette validée.
 | État `selected` | Le reconnaître demande un sélecteur et une nouvelle version du format du contrat |
 | Déclaration d'un design system | Les familles ajoutées par une équipe, publiées dans `$extensions["com.ucm.declaration"]` de `tokens.json` |
 | UCM Architect, versions suivantes | Le bilan du fichier contre le référentiel, puis l'écriture des alias de `theme`, `color-brands` et `color-utilities` |
-| Écritures par position dans l'Architect | Aujourd'hui, une variable a deux écritures : ses groupes et son nom final (85386a0). Une équipe qui veut une écriture par niveau de groupe, ou par collection, demandera un réglage plus fin |
+| Écritures par position dans l'Architect | Aujourd'hui, une variable a deux écritures : ses groupes et son nom final (8af1ce5). Une équipe qui veut une écriture par niveau de groupe, ou par collection, demandera un réglage plus fin |
 | Contrôle « full UCM » | `ucm check` confronte un `tokens.json` au référentiel, en option |

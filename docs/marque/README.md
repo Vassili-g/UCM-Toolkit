@@ -53,5 +53,5 @@ Toolkit peut alors reprendre sa couleur.
 ## Origine
 
 La recherche qui a conduit à ces logos est dans
-[Direction artistique, optique](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Direction%20artistique/Optique/README.md),
+[Direction artistique, optique](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Direction%20artistique/Optique/README.md),
 avec les mises en situation sur GitHub, dans Figma et en cartes.

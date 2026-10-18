@@ -62,7 +62,7 @@ Le dernier segment du nom reste clair ; son chemin prend la couleur secondaire.
 | **Intégrations** | Relier les variables aux exports UCM, aux crans d'UCM Palettes ou au profil d'architecture UCM | Chaque intégration demande un import ou une activation explicite |
 | **Relevés** | Exporter, comparer un relevé importé et simuler une valeur avec ses effets | La simulation reste en mémoire ; **Réinitialiser** rend le relevé d'origine |
 
-La [maquette de la navigation](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Recette%201/MAQUETTE-RECETTE-1.html)
+La [maquette de la navigation](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Recette%201/MAQUETTE-RECETTE-1.html)
 montre la bascule des deux modes et la recherche dans l'arbre.
 
 ## Lire les tokens d'un composant
@@ -118,7 +118,7 @@ Le détail de chaque lecture et de ses limites est dans la
   pied compte les calques non lus. Elle ne se relit pas seule après une
   modification : désélectionnez le composant, puis sélectionnez-le de nouveau.
 - La vue composant n'a pas été essayée dans Figma. Sa
-  [recette](https://github.com/Vassili-g/UCM-Toolkit/blob/5fc8c75/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md)
+  [recette](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md)
   liste ce qui reste à y vérifier.
 
 ## Vérifier
