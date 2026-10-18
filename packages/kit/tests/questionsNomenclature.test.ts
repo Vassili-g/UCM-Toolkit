@@ -58,7 +58,7 @@ test('les formes d’un même mot sortent : faute, pluriel, terminaison, abrévi
   assert.deepEqual(paires([nom('a', 'x/succes/y'), nom('b', 'x/success/y')]), ['paire:succes|success']);
   assert.deepEqual(paires([nom('a', 'x/enable/y'), nom('b', 'z/enabled/w')]), ['paire:enable|enabled']);
   assert.deepEqual(paires([nom('a', 'x/hovers/y'), nom('b', 'x/hover/y')]), ['paire:hover|hovers']);
-  assert.deepEqual(paires([nom('a', 'x/bg/y'), nom('b', 'x/background/y')]), ['paire:background|bg']);
+  assert.deepEqual(paires([nom('a', 'x/fg/y'), nom('b', 'x/foreground/y')]), ['paire:fg|foreground']);
   assert.deepEqual(paires([nom('a', 'x/selected/y'), nom('b', 'z/unselected/w')]), []);
   assert.deepEqual(paires([nom('a', 'x/default/y'), nom('b', 'z/defaults/w')]), ['paire:default|defaults']);
 });

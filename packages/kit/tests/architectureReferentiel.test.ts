@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import {
   AXES_DES_COLLECTIONS, CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT,
   COLLECTIONS, COLLECTIONS_SANS_PORTEE, DESTINATION_DES_PALETTES, FORMES_DES_CHEMINS,
-  REGISTRES_ARCHITECTURE, cheminConforme, estNeutre, type Collection,
+  REGISTRES, REGISTRES_ARCHITECTURE, cheminConforme, estNeutre, type Collection,
 } from '../src/referentiel/index.js';
 
 test('les collections suivent l’ordre de la vue et séparent les cibles de couleur des composants', () => {
@@ -19,10 +19,12 @@ test('les collections suivent l’ordre de la vue et séparent les cibles de cou
   assert.equal(AXES_DES_COLLECTIONS.marque.collection, 'color-brands');
   assert.equal(AXES_DES_COLLECTIONS.theme.collection, 'theme');
   assert.deepEqual(COLLECTIONS_SANS_PORTEE, ['primitives', 'color-brands', 'color-utilities']);
-  assert.deepEqual(DESTINATION_DES_PALETTES, { collection: 'primitives', groupe: 'colors', themes: 'chemin' });
+  assert.deepEqual(DESTINATION_DES_PALETTES, { collection: 'primitives', groupe: 'color', themes: 'chemin' });
 });
 
-test('chaque chemin de l’instantané hors components respecte une forme du référentiel', () => {
+// L'instantané est un export d'avant les décisions de nomenclature : chaque chemin doit devenir conforme une fois ses formes tolérées remplacées.
+test('chaque chemin de l’instantané hors components respecte une forme du référentiel après ses renommages UCM', () => {
+  const retenus = new Map([...REGISTRES, ...REGISTRES_ARCHITECTURE].flatMap((registre) => registre.termes.flatMap((terme) => (terme.toleres ?? []).map((forme) => [forme, terme.id] as const))));
   const contexte = { window: {} as { VUE_DONNEES?: { collections: Record<string, Record<string, unknown>> } } };
   vm.runInNewContext(readFileSync(new URL('../../../docs/notes/Recherches/Archi Tokens Multi-marques/donnees-vue-illustree.js', import.meta.url), 'utf8'), contexte);
   const collections = contexte.window.VUE_DONNEES!.collections;
@@ -33,7 +35,7 @@ test('chaque chemin de l’instantané hors components respecte une forme du ré
     for (const chemin of Object.keys(variables)) {
       const [prefixe, ...segments] = chemin.split('.');
       assert.equal(prefixe, collection);
-      assert.ok(cheminConforme(collection as Collection, segments), chemin);
+      assert.ok(cheminConforme(collection as Collection, segments.map((segment) => retenus.get(segment) ?? segment)), chemin);
     }
   }
   assert.ok(!('components' in FORMES_DES_CHEMINS));
@@ -41,11 +43,11 @@ test('chaque chemin de l’instantané hors components respecte une forme du ré
 
 test('les positions extensibles acceptent d’autres palettes, marques et tailles', () => {
   for (const [collection, chemin] of [
-    ['primitives', 'colors.nouvelle-palette.light.500'],
-    ['primitives', 'colors.nouvelle-palette.soft.dark.700'],
+    ['primitives', 'color.nouvelle-palette.light.500'],
+    ['primitives', 'color.nouvelle-palette.soft.dark.700'],
     ['color-brands', 'tertiary.dark.500'],
     ['layouts', 'sizing.format-special'],
-    ['typography', 'body.format-special.fontsize'],
+    ['typography', 'body.format-special.font-size'],
   ] as const) assert.ok(cheminConforme(collection, chemin.split('.')), chemin);
   const marques = REGISTRES_ARCHITECTURE.find((registre) => registre.id === 'marques')!;
   assert.equal(marques.extensible, true);
@@ -54,10 +56,10 @@ test('les positions extensibles acceptent d’autres palettes, marques et taille
 
 test('les formes refusent les chemins incomplets, les positions déplacées et les croisements de familles', () => {
   for (const [collection, chemin] of [
-    ['primitives', 'colors.palette.500'],
-    ['primitives', 'colors.palette.light.soft.500'],
-    ['primitives', 'colors.palette.soft.dark.0'],
-    ['primitives', 'colors.palette.soft.dark.500.suite'],
+    ['primitives', 'color.palette.500'],
+    ['primitives', 'color.palette.light.soft.500'],
+    ['primitives', 'color.palette.soft.dark.0'],
+    ['primitives', 'color.palette.soft.dark.500.suite'],
     ['primitives', 'inconnue.valeur'],
     ['color-brands', 'identity.light.500'],
     ['color-utilities', 'neutral.soft.light.500'],

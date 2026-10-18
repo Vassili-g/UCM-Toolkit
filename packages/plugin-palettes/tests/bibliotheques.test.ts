@@ -140,7 +140,7 @@ test('[VAR-14] la copie s’écrit dans la destination des tokens, jamais dans l
   assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: 'p-000000b1', issue: 'ecrite', creees: 22, ecrites: 22 }] });
   const [locale] = [...figma.collections.values()];
   assert.equal(locale.name, 'primitives');
-  assert.equal(figma.variablesDe(locale)[0].name, 'colors/gray/light/50');
+  assert.equal(figma.variablesDe(locale)[0].name, 'color/gray/light/50');
   assert.deepEqual(collection.publiees.map((variable) => JSON.stringify(variable.valuesByMode)), origine);
   assert.equal(classement.etat, 'courante');
 });

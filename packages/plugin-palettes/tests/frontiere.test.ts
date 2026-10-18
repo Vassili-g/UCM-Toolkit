@@ -199,7 +199,7 @@ test('[VAR-16] un rangement refusé abandonne l’écriture de variables qui l�
   assert.equal(abandons, 1);
   frontiere.ecrireLesVariables({ palettes: ['p-0000000a'], remettre: [] }, () => { abandons += 1; });
   assert.equal(abandons, 2);
-  assert.equal(frontiere.rangerLaDestination({ collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' }), false);
+  assert.equal(frontiere.rangerLaDestination({ collection: { nom: 'primitives' }, groupe: 'color', themes: 'chemin' }), false);
   assert.equal(frontiere.retirerLesVariables('p-0000000a'), false);
   assert.deepEqual(envoyees.map((demande) => (demande as { type: string }).type), ['lire-etat', 'ranger-recette']);
 });
@@ -208,7 +208,7 @@ test('[VAR-16] un seul rangement de destination est en vol, et le retrait des va
   const { frontiere, envoyees, etat } = banc();
   frontiere.lireLEtat();
   etat(1, 'aaaaaaaa');
-  const destination = { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' } as const;
+  const destination = { collection: { nom: 'primitives' }, groupe: 'color', themes: 'chemin' } as const;
   assert.equal(frontiere.rangerLaDestination(destination), true);
   assert.equal(frontiere.rangerLaDestination(destination), false);
   assert.deepEqual(envoyees[1], { type: 'ranger-destination', demande: 2, destination });

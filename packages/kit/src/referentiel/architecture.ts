@@ -23,13 +23,17 @@ export const CIBLES_DES_COLLECTIONS: Readonly<Record<Collection, readonly Collec
 
 export const CIBLES_DES_COULEURS_DE_COMPOSANT = ['theme'] as const;
 export const COLLECTIONS_SANS_PORTEE = ['primitives', 'color-brands', 'color-utilities'] as const;
-export const DESTINATION_DES_PALETTES = { collection: 'primitives', groupe: 'colors', themes: 'chemin' } as const;
+export const DESTINATION_DES_PALETTES = { collection: 'primitives', groupe: 'color', themes: 'chemin' } as const;
 
-function registre(id: string, extensible: boolean, termes: readonly string[]): Registre {
+/** Un terme s'écrit seul, ou avec ses formes tolérées que le renommage ramène vers lui. */
+type TermeDeRegistre = string | readonly [string, readonly string[]];
+
+function registre(id: string, extensible: boolean, termes: readonly TermeDeRegistre[]): Registre {
   return {
     id, extensible,
-    termes: termes.map((terme) => ({
+    termes: termes.map((entree) => typeof entree === 'string' ? [entree, []] as const : entree).map(([terme, toleres]) => ({
       id: terme,
+      ...(toleres.length ? { toleres } : {}),
       libelle: { fr: terme, en: terme },
       definition: { fr: `Segment ${terme} du registre ${id}.`, en: `${terme} segment in the ${id} registry.` },
     })),
@@ -38,14 +42,19 @@ function registre(id: string, extensible: boolean, termes: readonly string[]): R
 
 export const FAMILLES_COLOR_BRANDS = registre('familles-color-brands', true, ['identity', 'primary', 'secondary']);
 export const FAMILLES_COLOR_UTILITIES = registre('familles-color-utilities', true, [...REGISTRE_STATUTS.termes.map((terme) => terme.id), 'neutral', 'elevation']);
-export const FAMILLES_PRIMITIVES = registre('familles-primitives', true, ['colors', 'dimensions', 'fontfamily', 'fontweight', 'fontsize', 'lineheight', 'letterspacing']);
+/** Décisions T04, T05 et T13 de la nomenclature : singulier, propriétés de texte écrites avec un tiret. */
+const PROPRIETES_DE_TEXTE: readonly TermeDeRegistre[] = [
+  ['font-family', ['fontfamily']], ['font-weight', ['fontweight']], ['font-size', ['fontsize']],
+  ['line-height', ['lineheight']], ['letter-spacing', ['letterspacing']],
+];
+export const FAMILLES_PRIMITIVES = registre('familles-primitives', true, [['color', ['colors', 'colour']], ['dimension', ['dimensions']], ...PROPRIETES_DE_TEXTE]);
 export const FAMILLES_LAYOUTS = registre('familles-layouts', true, ['sizing', 'radius', 'stroke']);
 export const FAMILLES_TYPOGRAPHY = registre('familles-typography', true, ['display', 'headline', 'title', 'body', 'label']);
 export const REGISTRE_PALETTES = registre('palettes', true, []);
 export const REGISTRE_MARQUES = registre('marques', true, []);
 export const REGISTRE_VALEURS_DIMENSIONNELLES = registre('valeurs-dimensionnelles', true, ['none', 'full']);
 export const REGISTRE_VALEURS_TYPOGRAPHIQUES = registre('valeurs-typographiques', true, ['base']);
-export const REGISTRE_PROPRIETES_TYPOGRAPHIQUES = registre('proprietes-typographiques', false, ['fontfamily', 'fontweight', 'fontsize', 'lineheight', 'letterspacing']);
+export const REGISTRE_PROPRIETES_TYPOGRAPHIQUES = registre('proprietes-typographiques', false, PROPRIETES_DE_TEXTE);
 export const REGISTRE_COULEURS_ABSOLUES = registre('couleurs-absolues', false, ['white', 'black']);
 export const REGISTRE_ELEVATIONS = registre('elevations', false, NIVEAUX_D_ELEVATION_DU_THEME);
 export const REGISTRE_DOSSIERS_THEME = registre('dossiers-theme', false, ['solid', 'surface', 'page', 'ring', 'scale', 'disabled', 'elevation']);
@@ -81,7 +90,7 @@ const profil = position(REGISTRE_PROFILS);
 const mode = position(REGISTRE_MODES);
 const cran = position(REGISTRE_CRANS);
 const palette = position(REGISTRE_PALETTES);
-const colors = position(FAMILLES_PRIMITIVES, ['colors']);
+const colors = position(FAMILLES_PRIMITIVES, ['color']);
 const neutre = position(FAMILLES_COLOR_UTILITIES, ['neutral']);
 const elevation = position(FAMILLES_COLOR_UTILITIES, ['elevation']);
 
@@ -110,8 +119,8 @@ export const FORMES_DES_CHEMINS: Readonly<Record<Exclude<Collection, 'components
     [colors, palette, mode, cran],
     [colors, palette, profil, mode, cran],
     [colors, palette, position(REGISTRE_COULEURS_ABSOLUES)],
-    [position(FAMILLES_PRIMITIVES, ['dimensions']), position(REGISTRE_VALEURS_DIMENSIONNELLES)],
-    [position(FAMILLES_PRIMITIVES, ['fontfamily', 'fontweight', 'fontsize', 'lineheight', 'letterspacing']), position(REGISTRE_VALEURS_TYPOGRAPHIQUES)],
+    [position(FAMILLES_PRIMITIVES, ['dimension']), position(REGISTRE_VALEURS_DIMENSIONNELLES)],
+    [position(FAMILLES_PRIMITIVES, ['font-family', 'font-weight', 'font-size', 'line-height', 'letter-spacing']), position(REGISTRE_VALEURS_TYPOGRAPHIQUES)],
   ],
   layouts: [[position(FAMILLES_LAYOUTS), position(REGISTRE_VALEURS_DIMENSIONNELLES)]],
   typography: [[position(FAMILLES_TYPOGRAPHY), position(REGISTRE_TAILLES), position(REGISTRE_PROPRIETES_TYPOGRAPHIQUES)]],

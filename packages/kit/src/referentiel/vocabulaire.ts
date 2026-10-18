@@ -20,10 +20,19 @@ export const STATE_SELECTORS: Readonly<Record<string, string>> = {
   pressed: ':active',
   disable: '[disabled]',
   disabled: '[disabled]',
+  // Décisions S01, T12 et S05 de la nomenclature : `selected` est un état ; ses formes booléennes et l'état non sélectionné reviennent à `selected` ou `default`.
+  selected: '[aria-selected="true"]',
+  'selected-true': '[aria-selected="true"]',
+  'selected-false': '',
+  unselected: '',
+  rest: '',
+  resting: '',
+  normal: '',
 };
 
 export const STATE_PRECEDENCE = [
-  'disable', 'disabled', 'press', 'pressed', 'focus', 'focused', 'hover', 'hovered', 'default',
+  'disable', 'disabled', 'press', 'pressed', 'selected-true', 'selected', 'focus', 'focused', 'hover', 'hovered',
+  'default', 'rest', 'resting', 'normal', 'selected-false', 'unselected',
 ] as const;
 export const STATE_AXIS_NAMES = ['state', 'states', 'status'] as const;
 export const SIZE_VALUES: ReadonlySet<string> = new Set([
@@ -89,11 +98,12 @@ export const REGISTRE_INTENSITES: Registre = {
 export const REGISTRE_ETATS: Registre = {
   id: 'etats', extensible: true,
   termes: [
-    { id: 'default', libelle: { fr: 'Par défaut', en: 'Default' }, definition: { fr: 'État sans interaction en cours.', en: 'State without an ongoing interaction.' } },
+    { id: 'default', toleres: ['rest', 'resting', 'normal', 'selected-false', 'unselected'], libelle: { fr: 'Par défaut', en: 'Default' }, definition: { fr: 'État sans interaction en cours.', en: 'State without an ongoing interaction.' } },
     { id: 'hover', toleres: ['hovered'], libelle: { fr: 'Survol', en: 'Hover' }, definition: { fr: 'État sous le pointeur.', en: 'State under the pointer.' } },
     { id: 'focus', toleres: ['focused'], libelle: { fr: 'Focus', en: 'Focus' }, definition: { fr: 'État avec le focus visible.', en: 'State with visible focus.' } },
     { id: 'pressed', toleres: ['press'], libelle: { fr: 'Pressé', en: 'Pressed' }, definition: { fr: 'État pendant la pression.', en: 'State while being pressed.' } },
     { id: 'disabled', toleres: ['disable'], libelle: { fr: 'Désactivé', en: 'Disabled' }, definition: { fr: 'État indisponible pour une interaction.', en: 'State unavailable for interaction.' } },
+    { id: 'selected', toleres: ['selected-true'], libelle: { fr: 'Sélectionné', en: 'Selected' }, definition: { fr: 'État choisi dans un groupe d’options.', en: 'State chosen among a group of options.' } },
   ],
 };
 
@@ -104,10 +114,17 @@ export const REGISTRE_AXES_ETAT: Registre = {
   ],
 };
 
+/** Décisions T06 et S02 : l'échelle de Tailwind ; les mots entiers et `big` en sont des formes tolérées. */
+const TAILLES_RETENUES: readonly (readonly [string, readonly string[]])[] = [
+  ['4xs', []], ['3xs', []], ['2xs', []], ['xs', []], ['sm', ['small']], ['md', ['medium']], ['lg', ['large', 'big']],
+  ['xl', []], ['2xl', ['xxl']], ['3xl', ['xxxl']], ['4xl', []],
+];
+
 export const REGISTRE_TAILLES: Registre = {
   id: 'tailles', extensible: true,
-  termes: [...SIZE_VALUES].map((taille) => ({
+  termes: TAILLES_RETENUES.map(([taille, toleres]) => ({
     id: taille,
+    ...(toleres.length ? { toleres } : {}),
     libelle: { fr: taille, en: taille },
     definition: { fr: `Valeur de taille ${taille}.`, en: `Size value ${taille}.` },
   })),
@@ -116,26 +133,38 @@ export const REGISTRE_TAILLES: Registre = {
 export const REGISTRE_STATUTS: Registre = {
   id: 'statuts', extensible: true,
   termes: [
-    { id: 'success', libelle: { fr: 'Succès', en: 'Success' }, definition: { fr: 'Résultat réussi.', en: 'Successful outcome.' } },
-    { id: 'warning', libelle: { fr: 'Avertissement', en: 'Warning' }, definition: { fr: 'Situation qui demande une vérification.', en: 'Situation requiring review.' } },
-    { id: 'info', libelle: { fr: 'Information', en: 'Information' }, definition: { fr: 'Information sans erreur signalée.', en: 'Information without a reported error.' } },
-    { id: 'danger', libelle: { fr: 'Danger', en: 'Danger' }, definition: { fr: 'Erreur ou action destructive.', en: 'Error or destructive action.' } },
+    { id: 'success', toleres: ['positive'], libelle: { fr: 'Succès', en: 'Success' }, definition: { fr: 'Résultat réussi.', en: 'Successful outcome.' } },
+    { id: 'warning', toleres: ['caution', 'attention', 'notice'], libelle: { fr: 'Avertissement', en: 'Warning' }, definition: { fr: 'Situation qui demande une vérification.', en: 'Situation requiring review.' } },
+    { id: 'info', toleres: ['information', 'informative'], libelle: { fr: 'Information', en: 'Information' }, definition: { fr: 'Information sans erreur signalée.', en: 'Information without a reported error.' } },
+    { id: 'danger', toleres: ['error', 'critical'], libelle: { fr: 'Danger', en: 'Danger' }, definition: { fr: 'Erreur ou action destructive.', en: 'Error or destructive action.' } },
   ],
 };
 
 export const REGISTRE_ROLES: Registre = {
   id: 'roles', extensible: true,
   termes: [
-    { id: 'background', libelle: { fr: 'Fond', en: 'Background' }, definition: { fr: 'Couleur du fond.', en: 'Background color.' } },
-    { id: 'foreground', libelle: { fr: 'Premier plan', en: 'Foreground' }, definition: { fr: 'Couleur du contenu posé sur un fond.', en: 'Color of content placed on a background.' } },
-    { id: 'icon', libelle: { fr: 'Icône', en: 'Icon' }, definition: { fr: 'Couleur d’une icône.', en: 'Color of an icon.' } },
+    { id: 'background', toleres: ['bg'], libelle: { fr: 'Fond', en: 'Background' }, definition: { fr: 'Couleur du fond.', en: 'Background color.' } },
+    { id: 'foreground', libelle: { fr: 'Premier plan', en: 'Foreground' }, definition: { fr: 'Couleur commune au texte, à l’icône et à la bordure posés sur un fond.', en: 'Color shared by the text, icon and border placed on a background.' } },
+    { id: 'text', libelle: { fr: 'Texte', en: 'Text' }, definition: { fr: 'Couleur d’un texte seul, quand l’icône et la bordure ont la leur.', en: 'Color of text alone, when the icon and border have their own.' } },
+    { id: 'icon', toleres: ['icons'], libelle: { fr: 'Icône', en: 'Icon' }, definition: { fr: 'Couleur d’une icône.', en: 'Color of an icon.' } },
     { id: 'border', libelle: { fr: 'Bordure', en: 'Border' }, definition: { fr: 'Couleur du contour d’un élément.', en: 'Color of an element outline.' } },
-    { id: 'divider', libelle: { fr: 'Séparateur', en: 'Divider' }, definition: { fr: 'Couleur d’un trait de séparation.', en: 'Color of a dividing line.' } },
-    { id: 'ring', libelle: { fr: 'Anneau de focus', en: 'Focus ring' }, definition: { fr: 'Couleur de l’anneau qui indique le focus.', en: 'Color of the ring indicating focus.' } },
+    { id: 'divider', toleres: ['separator'], libelle: { fr: 'Séparateur', en: 'Divider' }, definition: { fr: 'Couleur d’un trait de séparation.', en: 'Color of a dividing line.' } },
+    { id: 'ring', toleres: ['focus-ring'], libelle: { fr: 'Anneau de focus', en: 'Focus ring' }, definition: { fr: 'Couleur de l’anneau qui indique le focus.', en: 'Color of the ring indicating focus.' } },
+    { id: 'inverse', libelle: { fr: 'Inversé', en: 'Inverse' }, definition: { fr: 'Variante posée sur un fond inversé.', en: 'Variant placed on an inverted background.' } },
+  ],
+};
+
+/** Noms communs des groupes et des propriétés, valables dans toutes les collections : singulier (T05, T13), `radius` (T07). */
+export const REGISTRE_GROUPES: Registre = {
+  id: 'noms-communs', extensible: true,
+  termes: [
+    { id: 'color', toleres: ['colors', 'colour', 'colours'], libelle: { fr: 'Couleur', en: 'Color' }, definition: { fr: 'Groupe des couleurs.', en: 'Group of colors.' } },
+    { id: 'size', toleres: ['sizes'], libelle: { fr: 'Taille', en: 'Size' }, definition: { fr: 'Groupe des tailles d’un élément.', en: 'Group of an element’s sizes.' } },
+    { id: 'radius', toleres: ['border-radius'], libelle: { fr: 'Arrondi', en: 'Radius' }, definition: { fr: 'Arrondi des coins.', en: 'Corner rounding.' } },
   ],
 };
 
 export const REGISTRES: readonly Registre[] = [
   REGISTRE_CRANS, REGISTRE_MODES, REGISTRE_PROFILS, REGISTRE_INTENSITES,
-  REGISTRE_ETATS, REGISTRE_AXES_ETAT, REGISTRE_TAILLES, REGISTRE_STATUTS, REGISTRE_ROLES,
+  REGISTRE_ETATS, REGISTRE_AXES_ETAT, REGISTRE_TAILLES, REGISTRE_STATUTS, REGISTRE_ROLES, REGISTRE_GROUPES,
 ];

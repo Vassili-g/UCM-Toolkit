@@ -98,7 +98,7 @@ function banc(variables: readonly (readonly [string, string])[], regles: Record<
 type DistributiveOmit<T, K extends keyof never> = T extends unknown ? Omit<T, K> : never;
 
 const ecriture = JSON.stringify({ version: 1, groupes: { casse: 'minuscules', separateur: 'tiret' }, variables: { casse: 'minuscules', separateur: 'tiret' } });
-const PAIRES: readonly (readonly [string, string])[] = [['v1', 'tile/quux/bg'], ['v2', 'tile/quux/fg'], ['v3', 'tile/quuxed/text'], ['v4', 'tile/quuxed/line']];
+const PAIRES: readonly (readonly [string, string])[] = [['v1', 'tile/quux/fill'], ['v2', 'tile/quux/fg'], ['v3', 'tile/quuxed/text'], ['v4', 'tile/quuxed/line']];
 
 test('remplace-termes pose exactement la liste reçue ; une liste vide supprime la règle', async () => {
   const b = banc(PAIRES, { ecriture });
@@ -129,7 +129,7 @@ test('remplacer-par ajoute à la règle du terme gardé ; retirer-remplace et su
 });
 
 test('ecart-ucm écrit et retire l\'écart ; retirer-distinct et retirer-voulu effacent leur entrée', async () => {
-  const b = banc([['v1', 'tile/hovered/bg'], ['v2', 'tile/hovered/fg']], { ecriture, 'distinct:a|b': '{"version":1}', 'voulu:foo bar': '{"version":1}' });
+  const b = banc([['v1', 'tile/hovered/fill'], ['v2', 'tile/hovered/fg']], { ecriture, 'distinct:a|b': '{"version":1}', 'voulu:foo bar': '{"version":1}' });
   await b.envoyer({ type: 'analyser' });
   assert.equal(b.bilan().groupes.some((g) => g.regle.sorte === 'terme'), true, 'hovered devient hover');
   await b.regle({ type: 'ecart-ucm', terme: 'hover', actif: true });
@@ -214,7 +214,7 @@ test('une réponse qui ne convient pas à la question, ou à une question dispar
 });
 
 test('une collection de deux variables ou plus pose la question ; garder le nom la classe', async () => {
-  const b = banc([['v1', 'bg/main'], ['v2', 'bg/alt'], ['v3', 'fg/main']], { ecriture }, 'Zorglub');
+  const b = banc([['v1', 'fill/main'], ['v2', 'fill/alt'], ['v3', 'fg/main']], { ecriture }, 'Zorglub');
   await b.envoyer({ type: 'analyser' });
   const question = b.bilan().questions.find((q) => q.type === 'collection');
   assert.ok(question && question.type === 'collection');
@@ -227,7 +227,7 @@ test('une collection de deux variables ou plus pose la question ; garder le nom 
 });
 
 test('renommer vers un nom qui n’est pas une collection UCM répond echec et n’écrit rien', async () => {
-  const b = banc([['v1', 'bg/main'], ['v2', 'bg/alt']], { ecriture }, 'Zorglub');
+  const b = banc([['v1', 'fill/main'], ['v2', 'fill/alt']], { ecriture }, 'Zorglub');
   await b.envoyer({ type: 'analyser' });
   const question = b.bilan().questions.find((q) => q.type === 'collection');
   assert.ok(question);

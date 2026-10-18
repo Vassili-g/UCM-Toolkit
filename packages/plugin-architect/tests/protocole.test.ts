@@ -278,7 +278,7 @@ test('un geste de terme recalcule les seules portées touchées, sans lire Figma
 });
 
 test('mettre une question de côté agrandit le plafond des questions de sa place', async () => {
-  const b = banc({ variables: [['v1', 'tile/quux/bg'], ['v2', 'tile/quux/fg'], ['v3', 'tile/quuxed/text'], ['v4', 'tile/quuxed/line']] });
+  const b = banc({ variables: [['v1', 'tile/quux/fill'], ['v2', 'tile/quux/fg'], ['v3', 'tile/quuxed/text'], ['v4', 'tile/quuxed/line']] });
   await b.envoyer({ type: 'analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const question = b.dernierBilan().questions[0];
@@ -295,7 +295,7 @@ test('mettre une question de côté agrandit le plafond des questions de sa plac
 });
 
 test('répondre garde un terme, ajoute ses renommages ; Annuler défait la réponse', async () => {
-  const b = banc({ variables: [['v1', 'tile/quux/bg'], ['v2', 'tile/quux/fg'], ['v3', 'tile/quuxed/text'], ['v4', 'tile/quuxed/line']] });
+  const b = banc({ variables: [['v1', 'tile/quux/fill'], ['v2', 'tile/quux/fg'], ['v3', 'tile/quuxed/text'], ['v4', 'tile/quuxed/line']] });
   await b.envoyer({ type: 'analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const question = b.dernierBilan().questions[0];
@@ -393,7 +393,7 @@ test('la frontière de l\'écran et la session ensemble : une réponse périmée
 
 const COLLECTION_INCONNUE: OptionsDuBanc = {
   collections: [['c', 'Zorglub']],
-  variables: [['v1', 'bg/main'], ['v2', 'bg/alt'], ['v3', 'fg/main']],
+  variables: [['v1', 'fill/main'], ['v2', 'fill/alt'], ['v3', 'fg/main']],
 };
 
 test('renommer une collection : une carte dans À appliquer, l\'application la renomme, Annuler défait la réponse', async () => {
@@ -423,12 +423,12 @@ test('renommer une collection : une carte dans À appliquer, l\'application la r
   b.vider();
   await b.envoyer({ type: 'appliquer', generation: avecRegle.generation, selection: { groupes: avecRegle.groupes.map((g) => g.cle), exclus: [], inclus: [] } });
   assert.equal(b.noms.get('c'), 'color-brands');
-  assert.equal(b.noms.get('v1'), 'bg/main');
+  assert.equal(b.noms.get('v1'), 'fill/main');
   assert.equal(b.dernierBilan().groupes.some((g) => g.regle.sorte === 'collection'), false);
 });
 
 test('renommer une collection vers un nom déjà pris est un blocage, pas un renommage', async () => {
-  const b = banc({ collections: [['c', 'Zorglub'], ['d', 'color-brands']], variables: [['v1', 'bg/main', 'c'], ['v2', 'bg/alt', 'c'], ['v3', 'fg/main', 'd']] });
+  const b = banc({ collections: [['c', 'Zorglub'], ['d', 'color-brands']], variables: [['v1', 'fill/main', 'c'], ['v2', 'fill/alt', 'c'], ['v3', 'fg/main', 'd']] });
   await b.envoyer({ type: 'analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const question = b.dernierBilan().questions.find((q) => q.type === 'collection');

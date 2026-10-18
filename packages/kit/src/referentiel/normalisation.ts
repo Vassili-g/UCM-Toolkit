@@ -3,7 +3,7 @@
  *
  * Après une modification : relancer `npm test` et changer la version du kit ; aucune vue ni planche n'en tire de données.
  */
-import { COLLECTIONS, type Collection } from './architecture.js';
+import { COLLECTIONS, REGISTRES_ARCHITECTURE, type Collection } from './architecture.js';
 import { type Casse, type Separateur, type Convention, type NomANormaliser, type ConventionsParCategorie, type CategorieDeNom } from './conventions.js';
 import { assembler, capitale, categorieDuSegment, commencerDetectionDesConventions, decouperSegment, motsAvecCasse } from './ecriture-des-mots.js';
 import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
@@ -34,14 +34,21 @@ export function collectionUcmReconnue(nom: string): Collection | undefined {
 }
 
 
+/** Remplace les formes tolérées, y compris une suite de mots (`border-radius` → `radius`), comme le moteur d'Architect. */
 function remplacerLesTermes(mots: readonly string[], categorie: CategorieDeNom): string[] {
-  const registres = REGISTRES.filter((registre) => registre !== REGISTRE_AXES_ETAT || categorie === 'proprietes');
-  return mots.map((mot) => {
-    const terme = registres.flatMap((registre) => registre.termes).find((terme) => terme.toleres?.includes(mot.toLowerCase()));
-    if (!terme) return mot;
-    if (mot === mot.toUpperCase()) return terme.id.toUpperCase();
-    return /^\p{Lu}/u.test(mot) ? capitale(terme.id) : terme.id;
-  });
+  const registres = [...REGISTRES, ...REGISTRES_ARCHITECTURE].filter((registre) => registre !== REGISTRE_AXES_ETAT || categorie === 'proprietes');
+  const formes = registres.flatMap((registre) => registre.termes).flatMap((terme) => (terme.toleres ?? [])
+    .map((tolere) => ({ source: decouperSegment(tolere).map((mot) => mot.toLowerCase()), id: terme.id })))
+    .sort((a, b) => b.source.length - a.source.length);
+  const resultat: string[] = [];
+  for (let rang = 0; rang < mots.length;) {
+    const forme = formes.find(({ source }) => source.every((mot, decalage) => mots[rang + decalage]?.toLowerCase() === mot));
+    if (!forme) { resultat.push(mots[rang++]); continue; }
+    const mot = mots[rang];
+    resultat.push(mot === mot.toUpperCase() ? forme.id.toUpperCase() : /^\p{Lu}/u.test(mot) ? capitale(forme.id) : forme.id);
+    rang += forme.source.length;
+  }
+  return resultat;
 }
 
 function proposer(nom: NomANormaliser, conventions: ConventionsParCategorie, termesUcm: boolean): PropositionDeNom | undefined {

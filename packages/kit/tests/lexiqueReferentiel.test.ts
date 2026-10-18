@@ -69,7 +69,7 @@ test('les collections inconnues restent inchangées et les reconnues prennent le
 
 test('les règles sont rangées UCM, personnalisée, puis écriture', () => {
   const index = indexerVocabulaire({ personnalises: [{ terme: ['outlined'], remplace: [['outline']] }], ecartsUcm: [] }).index;
-  const resultat = normaliserLeLexique(preparer([variable('a', 'disable/outline/BigValue')]), conventions, index);
+  const resultat = normaliserLeLexique(preparer([variable('a', 'disable/outline/BoldValue')]), conventions, index);
   assert.deepEqual(resultat.renommages[0].regles, ['terme:disabled', 'terme:outlined', 'ecriture:variables']);
   assert.deepEqual(resultat.renommages[0].termes.map(({ avant, apres }) => [avant, apres]), [
     [['disable'], ['disabled']], [['outline'], ['outlined']],

@@ -48,12 +48,12 @@ const VARIABLES_VIDES = {
   bibliotheques: { collections: [], palettes: [], lisibles: true },
   collections: [],
   variables: [],
-  suivi: { version: 1, destination: { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' }, confirmee: false, palettes: {} },
+  suivi: { version: 1, destination: { collection: { nom: 'primitives' }, groupe: 'color', themes: 'chemin' }, confirmee: false, palettes: {} },
 };
 
 /** La collection où les états de la galerie écrivent leurs palettes, et la destination qui la désigne. */
 const COLLECTION_DES_TOKENS = { id: 'VariableCollectionId:7:1', nom: 'primitives', modes: [{ id: '7:0', nom: 'Mode 1' }], variables: 0 };
-const DESTINATION_DES_TOKENS = { collection: { id: COLLECTION_DES_TOKENS.id }, groupe: 'colors', themes: 'chemin' };
+const DESTINATION_DES_TOKENS = { collection: { id: COLLECTION_DES_TOKENS.id }, groupe: 'color', themes: 'chemin' };
 
 /**
  * Les variables d'un fichier où les palettes `ecrites` portent leurs tokens,
@@ -75,7 +75,7 @@ function tokensEcrits(texte, ecrites, { lue = (hexa) => hexa, ecrite = (hexa) =>
       suivies[entree.cle] = { id, ecrite: ecrite(entree.hexa, entree, palette) };
       if (!disparue(entree, palette)) variables.push({ id, nom: entree.nom, collection: COLLECTION_DES_TOKENS.id, valeurs: { '7:0': lue(ecrite(entree.hexa, entree, palette), entree, palette) } });
     });
-    palettes[palette.id] = { collection: COLLECTION_DES_TOKENS.id, groupe: 'colors', modes: { unique: '7:0' }, variables: suivies, liaison: 'destination' };
+    palettes[palette.id] = { collection: COLLECTION_DES_TOKENS.id, groupe: 'color', modes: { unique: '7:0' }, variables: suivies, liaison: 'destination' };
   }
   return {
     collections: [{ ...COLLECTION_DES_TOKENS, variables: variables.length }, { id: 'VariableCollectionId:8:1', nom: 'Brand', modes: [{ id: '8:0', nom: 'Light' }, { id: '8:1', nom: 'Dark' }], variables: 48 }],
@@ -155,7 +155,7 @@ function avecAncienneSortie(fichier, palette) {
   const ids = new Set(Object.values(suivie.variables).map((variable) => variable.id));
   return {
     ...fichier,
-    variables: [...fichier.variables, ...fichier.variables.filter((variable) => ids.has(variable.id)).map((variable) => ({ ...variable, id: `${variable.id}:ancienne`, nom: variable.nom.replace(/^colors\//, 'anciens/') }))],
+    variables: [...fichier.variables, ...fichier.variables.filter((variable) => ids.has(variable.id)).map((variable) => ({ ...variable, id: `${variable.id}:ancienne`, nom: variable.nom.replace(/^color\//, 'anciens/') }))],
     suivi: { ...fichier.suivi, palettes: { ...fichier.suivi.palettes, [`ancienne:${palette.id}:1`]: { ...suivie, sortieAnterieureDe: palette.id, variables: Object.fromEntries(Object.entries(suivie.variables).map(([cle, variable]) => [cle, { ...variable, id: `${variable.id}:ancienne` }])) } } },
   };
 }
@@ -976,7 +976,7 @@ const ETATS = [
   {
     id: 'destination-refusee',
     titre: 'Destination refusée',
-    quand: 'Le designer saisit le groupe « colors.brand », puis enregistre : Figma refuse le point dans un nom de variable.',
+    quand: 'Le designer saisit le groupe « color.brand », puis enregistre : Figma refuse le point dans un nom de variable.',
     regarder: 'La carte restée ouverte, et sous la simulation le message « Groupe », qui nomme les caractères refusés et demande de les retirer.',
     existe: true,
     // L'ouverture de l'onglet relit l'état (demande 2) : le rangement de la destination porte la demande 3.
@@ -986,7 +986,7 @@ const ETATS = [
       { clic: '[data-section="connexion"] .section-bascule' },
 
       { clic: '#panneau-gestion [data-geste="changer-la-destination"]' },
-      { saisie: { dans: '#panneau-gestion .colonnes-de-base .input', valeur: 'colors.brand' } },
+      { saisie: { dans: '#panneau-gestion .colonnes-de-base .input', valeur: 'color.brand' } },
       { clic: '#panneau-gestion .carte-ouverte [data-geste="enregistrer"]' },
       { message: { type: 'destination-rangee', demande: 3, issue: { issue: 'invalide', refus: 'groupe' } } },
     ],
@@ -994,7 +994,7 @@ const ETATS = [
   {
     id: 'nom-deja-pris',
     titre: 'Nom de variable déjà pris',
-    quand: 'Le designer écrit Ardoise ; la collection porte déjà une variable « colors/ardoise/soft/light/50 » que le plugin n’a pas écrite.',
+    quand: 'Le designer écrit Ardoise ; la collection porte déjà une variable « color/ardoise/soft/light/50 » que le plugin n’a pas écrite.',
     regarder: 'Sous l’encart d’Ardoise, resté ouvert, le message « Tokens non écrits : Ardoise », qui nomme la variable et propose de renommer la palette ou de changer le groupe.',
     existe: true,
     atteinte: [
@@ -1003,7 +1003,7 @@ const ETATS = [
       deplier(TROIS_PALETTES[2]),
       { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="ecrire"]' },
       { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="confirmer-ecriture"]' },
-      { message: { type: 'variables-ecrites', demande: 3, resultat: { issue: 'ecrites', palettes: [{ palette: 'p-5c1d0e77', issue: 'nom-pris', nom: 'colors/ardoise/soft/light/50' }] } } },
+      { message: { type: 'variables-ecrites', demande: 3, resultat: { issue: 'ecrites', palettes: [{ palette: 'p-5c1d0e77', issue: 'nom-pris', nom: 'color/ardoise/soft/light/50' }] } } },
     ],
   },
   {

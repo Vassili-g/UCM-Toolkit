@@ -21,28 +21,28 @@ const BLEU: Palette = { ...nouvellePalette(VIDE, 'p-0000000a', '#1E6FD9', 2)!, n
 const GRIS: Palette = { ...nouvellePalette(VIDE, 'p-0000000b', '#6B7280', 1)!, nom: 'Gris' };
 const LIBRE: Palette = { ...BLEU, id: 'p-0000000c', nom: 'Libre', crans: [100, 300, 500, 700, 900] };
 const RECETTE: Recette = [BLEU, GRIS, LIBRE].reduce(ajouter, VIDE);
-const EN_MODES: Destination = { collection: { id: 'VariableCollectionId:1:2' }, groupe: 'colors', themes: 'modes' };
+const EN_MODES: Destination = { collection: { id: 'VariableCollectionId:1:2' }, groupe: 'color', themes: 'modes' };
 
 // ------------------------------------------------------------ la destination
 
-test('[VAR-02] la destination par défaut vise une collection neuve « primitives », le groupe « colors », les thèmes dans le chemin', () => {
-  assert.deepEqual(DESTINATION_PAR_DEFAUT, { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'chemin' });
+test('[VAR-02] la destination par défaut vise une collection neuve « primitives », le groupe « color », les thèmes dans le chemin', () => {
+  assert.deepEqual(DESTINATION_PAR_DEFAUT, { collection: { nom: 'primitives' }, groupe: 'color', themes: 'chemin' });
   assert.deepEqual(validerLaDestination(DESTINATION_PAR_DEFAUT), { destination: DESTINATION_PAR_DEFAUT });
 });
 
 test('[VAR-02] la validation range un groupe sans espaces ni « / » de trop, accepte un groupe vide, et refuse le champ fautif', () => {
-  assert.deepEqual(validerLaDestination({ collection: { nom: '  Primitives ' }, groupe: ' /colors / brand/ ', themes: 'modes' }), {
-    destination: { collection: { nom: 'Primitives' }, groupe: 'colors/brand', themes: 'modes' },
+  assert.deepEqual(validerLaDestination({ collection: { nom: '  Primitives ' }, groupe: ' /color / brand/ ', themes: 'modes' }), {
+    destination: { collection: { nom: 'Primitives' }, groupe: 'color/brand', themes: 'modes' },
   });
   assert.deepEqual(validerLaDestination({ collection: { id: '1:2' }, groupe: '', themes: 'chemin' }), { destination: { collection: { id: '1:2' }, groupe: '', themes: 'chemin' } });
   assert.deepEqual(validerLaDestination(null), { refus: 'collection' });
-  assert.deepEqual(validerLaDestination({ collection: { nom: '   ' }, groupe: 'colors', themes: 'chemin' }), { refus: 'collection' });
-  assert.deepEqual(validerLaDestination({ collection: { id: '' }, groupe: 'colors', themes: 'chemin' }), { refus: 'collection' });
+  assert.deepEqual(validerLaDestination({ collection: { nom: '   ' }, groupe: 'color', themes: 'chemin' }), { refus: 'collection' });
+  assert.deepEqual(validerLaDestination({ collection: { id: '' }, groupe: 'color', themes: 'chemin' }), { refus: 'collection' });
   assert.deepEqual(validerLaDestination({ collection: { id: '1:2' }, groupe: 12, themes: 'chemin' }), { refus: 'groupe' });
-  for (const groupe of ['colors.brand', 'colors/{brand}', '$colors', 'colors/$brand']) {
+  for (const groupe of ['color.brand', 'color/{brand}', '$color', 'color/$brand']) {
     assert.deepEqual(validerLaDestination({ collection: { id: '1:2' }, groupe, themes: 'chemin' }), { refus: 'groupe' }, groupe);
   }
-  assert.deepEqual(validerLaDestination({ collection: { id: '1:2' }, groupe: 'colors', themes: 'colonnes' }), { refus: 'themes' });
+  assert.deepEqual(validerLaDestination({ collection: { id: '1:2' }, groupe: 'color', themes: 'colonnes' }), { refus: 'themes' });
 });
 
 test('[VAR-02] deux destinations sont les mêmes par leur collection, leur groupe et leurs thèmes', () => {
@@ -94,8 +94,8 @@ test('[VAR-01] deux intensités, thèmes dans le chemin : 44 entrées et 44 vari
   const plan = planDesVariables(RECETTE, BLEU, DESTINATION_PAR_DEFAUT);
   assert.equal(plan.length, 44);
   assert.equal(nomsDuPlan(plan).length, 44);
-  assert.deepEqual(plan[0], { cle: 'soft/light/50', nom: 'colors/Bleu/soft/light/50', mode: 'unique', hexa: plan[0].hexa });
-  assert.deepEqual([plan[11].nom, plan[22].nom, plan[43].nom], ['colors/Bleu/soft/dark/50', 'colors/Bleu/vivid/light/50', 'colors/Bleu/vivid/dark/950']);
+  assert.deepEqual(plan[0], { cle: 'soft/light/50', nom: 'color/Bleu/soft/light/50', mode: 'unique', hexa: plan[0].hexa });
+  assert.deepEqual([plan[11].nom, plan[22].nom, plan[43].nom], ['color/Bleu/soft/dark/50', 'color/Bleu/vivid/light/50', 'color/Bleu/vivid/dark/950']);
   assert.ok(plan.every((entree) => entree.mode === 'unique' && /^#[0-9A-F]{6}$/.test(entree.hexa)));
   assert.equal(new Set(plan.map((entree) => entree.cle)).size, 44);
 });
@@ -113,7 +113,7 @@ test('[VAR-01] thèmes en modes : 44 entrées pour 22 variables, chaque nom port
   assert.equal(plan.length, 44);
   const noms = nomsDuPlan(plan);
   assert.equal(noms.length, 22);
-  assert.deepEqual([noms[0], noms[21]], ['colors/Bleu/soft/50', 'colors/Bleu/vivid/950']);
+  assert.deepEqual([noms[0], noms[21]], ['color/Bleu/soft/50', 'color/Bleu/vivid/950']);
   for (const nom of noms) assert.deepEqual(plan.filter((entree) => entree.nom === nom).map((entree) => entree.mode), ['light', 'dark']);
   // Les clés ne dépendent pas de la destination : le suivi retrouve ses variables après un changement.
   assert.deepEqual(plan.map((entree) => entree.cle), planDesVariables(RECETTE, BLEU, DESTINATION_PAR_DEFAUT).map((entree) => entree.cle));
@@ -129,14 +129,14 @@ test('[VAR-01] une palette à une intensité n’a pas de segment d’intensité
 test('[VAR-01] une palette libre écrit ses seules nuances', () => {
   const plan = planDesVariables(RECETTE, LIBRE, DESTINATION_PAR_DEFAUT);
   assert.equal(plan.length, 20);
-  assert.deepEqual(plan.slice(0, 5).map((entree) => entree.nom), [100, 300, 500, 700, 900].map((nuance) => `colors/Libre/soft/light/${nuance}`));
+  assert.deepEqual(plan.slice(0, 5).map((entree) => entree.nom), [100, 300, 500, 700, 900].map((nuance) => `color/Libre/soft/light/${nuance}`));
 });
 
 // ------------------------------------------------------------ le suivi
 
 const SUIVI_DE_BLEU: PaletteSuivie = {
   collection: 'VariableCollectionId:1:2',
-  groupe: 'colors',
+  groupe: 'color',
   modes: { unique: '1:0' },
   variables: { 'soft/light/50': { id: 'VariableID:1:3', ecrite: '#F5F8FE' }, 'soft/light/100': { id: 'VariableID:1:4', ecrite: '#E8F0FD' } },
   liaison: 'destination',
@@ -151,7 +151,7 @@ test('[VAR-04] un suivi rangé se relit tel quel ; un texte vide, cassé ou d’
 
 test('[VAR-04] la lecture ignore un champ inattendu sans écarter les autres, et une destination illisible revient au défaut, à confirmer', () => {
   const texte = JSON.stringify({
-    destination: { collection: {}, groupe: 'colors', themes: 'chemin' },
+    destination: { collection: {}, groupe: 'color', themes: 'chemin' },
     confirmee: true,
     palettes: {
       'p-1': { collection: '1:2', modes: { light: '1:0', dark: 7 }, variables: { a: { id: '1:3', ecrite: '#abcdef' }, b: { id: 4, ecrite: '#000000' }, c: 'non' }, liaison: 'reprise' },
@@ -181,14 +181,14 @@ test('[VAR-04] les variables suivies sont celles de toutes les palettes', () => 
 
 // ------------------------------------------------------------ l'état
 
-const DESTINATION: Destination = { collection: { id: 'C' }, groupe: 'colors', themes: 'chemin' };
+const DESTINATION: Destination = { collection: { id: 'C' }, groupe: 'color', themes: 'chemin' };
 const PLAN: EntreeDuPlan[] = [
-  { cle: 'unique/light/50', nom: 'colors/Gris/light/50', mode: 'unique', hexa: '#F0F0F0' },
-  { cle: 'unique/light/100', nom: 'colors/Gris/light/100', mode: 'unique', hexa: '#E0E0E0' },
+  { cle: 'unique/light/50', nom: 'color/Gris/light/50', mode: 'unique', hexa: '#F0F0F0' },
+  { cle: 'unique/light/100', nom: 'color/Gris/light/100', mode: 'unique', hexa: '#E0E0E0' },
 ];
 const ecrit = (ecrites: readonly string[]): PaletteSuivie => ({
   collection: 'C',
-  groupe: 'colors',
+  groupe: 'color',
   modes: { unique: 'm' },
   variables: Object.fromEntries(ecrites.map((hexa, rang) => [PLAN[rang].cle, { id: `v${rang}`, ecrite: hexa }])),
   liaison: 'destination',
@@ -201,8 +201,8 @@ test('[VAR-05] sans suivi, ou sans variable suivie, les tokens ne sont pas encor
     const etat = etatDesTokens(PLAN, suivi, new Map(), DESTINATION);
     assert.equal(etat.etat, 'jamais-ecrits');
     assert.deepEqual(etat.aEcrire, [
-      { cle: 'unique/light/50', nom: 'colors/Gris/light/50', ecrite: null, plugin: '#F0F0F0' },
-      { cle: 'unique/light/100', nom: 'colors/Gris/light/100', ecrite: null, plugin: '#E0E0E0' },
+      { cle: 'unique/light/50', nom: 'color/Gris/light/50', ecrite: null, plugin: '#F0F0F0' },
+      { cle: 'unique/light/100', nom: 'color/Gris/light/100', ecrite: null, plugin: '#E0E0E0' },
     ]);
   }
 });
@@ -235,7 +235,7 @@ test('[VAR-05] une variable suivie qui a disparu rend les tokens introuvables, a
 test('[VAR-05] une clé du plan absente du suivi est à mettre à jour ; une clé du suivi absente du plan ne compte pas', () => {
   const partiel = etatDesTokens(PLAN, ecrit(['#F0F0F0']), lues(['#F0F0F0']), DESTINATION);
   assert.equal(partiel.etat, 'a-mettre-a-jour');
-  assert.deepEqual(partiel.aEcrire, [{ cle: 'unique/light/100', nom: 'colors/Gris/light/100', ecrite: null, plugin: '#E0E0E0' }]);
+  assert.deepEqual(partiel.aEcrire, [{ cle: 'unique/light/100', nom: 'color/Gris/light/100', ecrite: null, plugin: '#E0E0E0' }]);
   const ancien: PaletteSuivie = { ...ecrit(['#F0F0F0', '#E0E0E0']), variables: { ...ecrit(['#F0F0F0', '#E0E0E0']).variables, 'soft/light/50': { id: 'disparue', ecrite: '#000000' } } };
   assert.equal(etatDesTokens(PLAN, ancien, lues(['#F0F0F0', '#E0E0E0']), DESTINATION).etat, 'a-jour');
 });
@@ -244,7 +244,7 @@ test('[VAR-05] passer le Dark au texte blanc met à actualiser les variables Dar
   const ecrites = planDesVariables(RECETTE, BLEU, DESTINATION);
   const suivi: PaletteSuivie = {
     collection: 'C',
-    groupe: 'colors',
+    groupe: 'color',
     modes: { unique: 'm' },
     variables: Object.fromEntries(ecrites.map((entree, rang) => [entree.cle, { id: `v${rang}`, ecrite: entree.hexa }])),
     liaison: 'destination',
@@ -283,12 +283,12 @@ test('[VAR-05] une destination changée depuis l’écriture demande une mise à
 
 test('[VAR-05] un groupe renommé dans Figma et dans la destination reste à jour si les variables suivies y sont déjà', () => {
   const suivi = ecrit(['#F0F0F0', '#E0E0E0']);
-  const plan = PLAN.map((entree) => ({ ...entree, nom: entree.nom.replace('colors/', 'Colors/') }));
+  const plan = PLAN.map((entree) => ({ ...entree, nom: entree.nom.replace('color/', 'Colors/') }));
   const variables = new Map([
     ['v0', { id: 'v0', nom: 'Colors/Gris/light/50', collection: suivi.collection, valeurs: { m: '#F0F0F0' } }],
     ['v1', { id: 'v1', nom: 'Colors/Gris/light/100', collection: suivi.collection, valeurs: { m: '#E0E0E0' } }],
   ]);
-  const etat = etatDesTokens(plan, { ...suivi, groupe: 'colors' }, variables, { ...DESTINATION, groupe: 'Colors' });
+  const etat = etatDesTokens(plan, { ...suivi, groupe: 'color' }, variables, { ...DESTINATION, groupe: 'Colors' });
   assert.deepEqual([etat.etat, etat.destinationChangee, etat.aEcrire.length], ['a-jour', false, 0]);
 });
 
@@ -339,7 +339,7 @@ test('[VAR-12] une même palette dans deux collections en fait deux ; les variab
   const locale = collection('C1', 'Primitives');
   const marque = collection('C3', 'Brand');
   const variables = [
-    ...variablesDe(locale, TAILWIND.map((nuance) => `colors/Bleu/soft/light/${nuance}`)),
+    ...variablesDe(locale, TAILWIND.map((nuance) => `color/Bleu/soft/light/${nuance}`)),
     ...variablesDe(locale, TAILWIND.map((nuance) => `slate/${nuance}`)),
     ...variablesDe(marque, TAILWIND.map((nuance) => `slate/${nuance}`)),
     // Une rampe d'alias : aucune couleur à lire.
@@ -347,7 +347,7 @@ test('[VAR-12] une même palette dans deux collections en fait deux ; les variab
     // Deux écritures de la même nuance : la première lue la garde.
     ...variablesDe(marque, ['zinc/050', 'zinc/50', 'zinc/100', 'zinc/200', 'zinc/300', 'zinc/400']),
   ];
-  const possedees = new Set(TAILWIND.map((nuance) => `C1/colors/Bleu/soft/light/${nuance}`));
+  const possedees = new Set(TAILWIND.map((nuance) => `C1/color/Bleu/soft/light/${nuance}`));
   const palettes = palettesDuFichier(variables, [locale, marque], possedees);
   assert.deepEqual(palettes.map((palette) => `${palette.nomDeLaCollection} ${palette.chemin} ${palette.nuances.length}`), ['Primitives slate 11', 'Brand slate 11', 'Brand zinc 5']);
   assert.equal(palettes[2].variables[0], 'C3/zinc/050');
@@ -384,18 +384,18 @@ test('[VAR-12] les chemins de la bibliothèque Intencial : chaque rampe de coule
 
 test('[REC-V8] les variables écrites pour une palette à deux intensités, thèmes dans le chemin, donnent une seule palette', () => {
   const primitives = collection('C1', 'Primitives');
-  const noms = ['soft', 'vivid'].flatMap((intensite) => ['light', 'dark'].flatMap((theme) => TAILWIND.map((nuance) => `colors/Poppy/${intensite}/${theme}/${nuance}`)));
+  const noms = ['soft', 'vivid'].flatMap((intensite) => ['light', 'dark'].flatMap((theme) => TAILWIND.map((nuance) => `color/Poppy/${intensite}/${theme}/${nuance}`)));
   const regroupees = regrouperLesPalettes(palettesDuFichier(variablesDe(primitives, noms), [primitives]));
   assert.equal(regroupees.length, 1);
   const palette = regroupees[0];
   assert.equal(palette.type, 'groupee');
   if (palette.type !== 'groupee') return;
-  assert.deepEqual([palette.racine, palette.forme], ['colors/Poppy', 'intensites-themes-chemin']);
+  assert.deepEqual([palette.racine, palette.forme], ['color/Poppy', 'intensites-themes-chemin']);
   assert.deepEqual(palette.groupes.map((groupe) => [groupe.intensite, groupe.theme, groupe.palette.chemin]), [
-    ['soft', 'light', 'colors/Poppy/soft/light'],
-    ['soft', 'dark', 'colors/Poppy/soft/dark'],
-    ['vivid', 'light', 'colors/Poppy/vivid/light'],
-    ['vivid', 'dark', 'colors/Poppy/vivid/dark'],
+    ['soft', 'light', 'color/Poppy/soft/light'],
+    ['soft', 'dark', 'color/Poppy/soft/dark'],
+    ['vivid', 'light', 'color/Poppy/vivid/light'],
+    ['vivid', 'dark', 'color/Poppy/vivid/dark'],
   ]);
 });
 
@@ -451,5 +451,5 @@ test('[VAR-13] une palette figée s’analyse sans garantie, et son plan écrit 
   assert.equal(analyse.ancrage.crans.light, 200);
   const plan = planDesVariables(recette, figee, DESTINATION_PAR_DEFAUT);
   assert.deepEqual(plan.map((entree) => entree.hexa), [...light, ...dark]);
-  assert.deepEqual([plan[0].nom, plan[9].nom], ['colors/slate/light/50', 'colors/slate/dark/400']);
+  assert.deepEqual([plan[0].nom, plan[9].nom], ['color/slate/light/50', 'color/slate/dark/400']);
 });

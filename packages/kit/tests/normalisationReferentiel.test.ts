@@ -30,7 +30,8 @@ test('les frontières des mots gardent acronymes, accents et chiffres', () => {
   }
   assert.deepEqual(decouperSegment('HTTPServer'), ['HTTP', 'Server']);
   assert.deepEqual(decouperSegment('HTTPServer2Éléments'), ['HTTP', 'Server2', 'Éléments']);
-  assert.deepEqual(decouperSegment('fontsize'), ['fontsize']);
+  // Décision T04 : `font-size` est un terme du référentiel ; sa forme soudée se découpe.
+  assert.deepEqual(decouperSegment('fontsize'), ['font', 'size']);
   assert.deepEqual(decouperSegment('colorbrands'), ['color', 'brands']);
   assert.deepEqual(decouperSegment('Colorbrands'), ['Color', 'brands']);
 });
@@ -45,7 +46,7 @@ test('les propositions conservent les groupes et excluent les noms déjà confor
   const noms = [nom('colors/Blue/HTTPServer2Éléments'), nom('fontSize/bodyLarge'), nom('fontsize/base')];
   const avant = JSON.stringify(noms);
   const resultat = normaliserLesNoms(noms, { variables: tiret });
-  assert.deepEqual(resultat.propositions.map((proposition) => proposition.nouveauNom), ['colors/blue/http-server2-éléments', 'font-size/body-large']);
+  assert.deepEqual(resultat.propositions.map((proposition) => proposition.nouveauNom), ['colors/blue/http-server2-éléments', 'font-size/body-large', 'font-size/base']);
   assert.deepEqual(resultat.propositions[0].raisons, ['casse', 'separateur']);
   assert.equal(JSON.stringify(noms), avant);
   assert.deepEqual(normaliserLesNoms(noms, { variables: inchange }).propositions, []);
@@ -156,7 +157,7 @@ test('la détection compte les groupes dans leur catégorie', () => {
 
 test('les termes UCM se remplacent aussi dans les groupes', () => {
   const resultat = normaliserLesNoms([groupes('Button/Colors/Press/background')], { groupes: pascal, variables: tiret }, { termesUcm: true });
-  assert.deepEqual(resultat.propositions.map((proposition) => proposition.nouveauNom), ['Button/Colors/Pressed/background']);
+  assert.deepEqual(resultat.propositions.map((proposition) => proposition.nouveauNom), ['Button/Color/Pressed/background']);
   assert.deepEqual(resultat.propositions[0].raisons, ['terme-tolere']);
 });
 
@@ -174,7 +175,10 @@ test('l’instantané propose exactement 60 press et 36 disable sans réécrire 
   assert.deepEqual(normaliserLesNoms(noms, { variables: tiret }).propositions, []);
   const resultat = normaliserLesNoms(noms, { variables: tiret }, { termesUcm: true });
   assert.deepEqual(resultat.collisions, []);
-  assert.equal(resultat.propositions.length, 96);
+  // Décisions de nomenclature : colors → color, sizes → size, error → danger, tailles en sm, md, lg.
+  assert.equal(resultat.propositions.length, 369);
+  assert.equal(resultat.propositions.filter((proposition) => proposition.ancienNom.split('/').includes('colors') && proposition.nouveauNom.split('/').includes('color')).length, 306);
+  assert.equal(resultat.propositions.filter((proposition) => proposition.ancienNom.split('/').includes('error') && proposition.nouveauNom.split('/').includes('danger')).length, 48);
   assert.equal(resultat.propositions.filter((proposition) => proposition.ancienNom.split('/').includes('press') && proposition.nouveauNom.split('/').includes('pressed')).length, 60);
   assert.equal(resultat.propositions.filter((proposition) => proposition.ancienNom.split('/').includes('disable') && proposition.nouveauNom.split('/').includes('disabled')).length, 36);
 });

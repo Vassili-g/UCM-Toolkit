@@ -134,7 +134,7 @@ test('[VAR-13] une palette reprise porte une intensité, le nom de son dernier s
 test('[VAR-13] le nom vient du dernier segment non numérique du chemin, ou de la collection pour des variables à la racine', () => {
   const source = { chemin: 'brand/emerald', nomDeLaCollection: 'Brand' } as PaletteDuFichier;
   assert.equal(nomDeLaReprise(source), 'emerald');
-  assert.equal(nomDeLaReprise({ ...source, chemin: 'colors/2024/100' }), 'colors');
+  assert.equal(nomDeLaReprise({ ...source, chemin: 'color/2024/100' }), 'color');
   assert.equal(nomDeLaReprise({ ...source, chemin: '' }), 'Brand');
 });
 
@@ -327,24 +327,24 @@ test('[VAR-13] une reprise renomme les variables sous le groupe configuré sans 
   const [source] = await duFichier(figma);
   const { recette, palette } = await reprendre(figma, source, 'recalculees');
 
-  await rangerLaDestination(api(figma), { collection: { id: collection.id }, groupe: 'colors', themes: 'modes' });
+  await rangerLaDestination(api(figma), { collection: { id: collection.id }, groupe: 'color', themes: 'modes' });
   const avant = await tokens(figma, recette, palette);
   assert.equal(avant.aCreer.length, 0);
   assert.equal(avant.aRenommer.length, 11);
-  assert.ok(avant.aRenommer.every(({ vers }) => vers.startsWith('colors/Deep/')));
+  assert.ok(avant.aRenommer.every(({ vers }) => vers.startsWith('color/Deep/')));
 
   const ids = figma.variablesDe(collection).map((variable) => variable.id);
   const resultat = await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
   assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'ecrite', creees: 0, ecrites: 22 }] });
-  assert.deepEqual(figma.variablesDe(collection).map((variable) => [variable.id, variable.name]), ids.map((id, rang) => [id, `colors/Deep/${TAILWIND[rang]}`]));
+  assert.deepEqual(figma.variablesDe(collection).map((variable) => [variable.id, variable.name]), ids.map((id, rang) => [id, `color/Deep/${TAILWIND[rang]}`]));
   assert.equal(figma.collections.size, 1);
   assert.equal(figma.variablesDe(collection).filter((variable) => variable.name.startsWith('Colors/Deep/')).length, 0);
-  assert.equal(figma.variablesDe(collection).filter((variable) => variable.name.startsWith('colors/Deep/')).length, 11);
+  assert.equal(figma.variablesDe(collection).filter((variable) => variable.name.startsWith('color/Deep/')).length, 11);
   assert.equal(collection.modes.some((mode) => mode.name === 'Dark'), true);
   assert.deepEqual([(await tokens(figma, recette, palette)).etat, (await tokens(figma, recette, palette)).aCreer.length], ['a-jour', 0]);
 });
 
-test('[VAR-13] Deep sous colors respecte les deux destinations, les identifiants et le compte de Gestion après deux écritures', async () => {
+test('[VAR-13] Deep sous color respecte les deux destinations, les identifiants et le compte de Gestion après deux écritures', async () => {
   for (const themes of ['chemin', 'modes'] as const) {
     const figma = new FauxFigma();
     const collection = figma.variables.createVariableCollection('primitives');
@@ -352,7 +352,7 @@ test('[VAR-13] Deep sous colors respecte les deux destinations, les identifiants
     const ids = figma.variablesDe(collection).map((variable) => variable.id);
     const [source] = await duFichier(figma);
     const { recette, palette } = await reprendre(figma, source, 'recalculees');
-    const destination = { collection: { id: collection.id }, groupe: 'colors', themes };
+    const destination = { collection: { id: collection.id }, groupe: 'color', themes };
     await rangerLaDestination(api(figma), destination);
     const avant = await tokens(figma, recette, palette);
     assert.equal(avant.variables, themes === 'chemin' ? 22 : 11);
@@ -362,7 +362,7 @@ test('[VAR-13] Deep sous colors respecte les deux destinations, les identifiants
     assert.equal(resultat.issue === 'ecrites' && resultat.palettes[0].issue, 'ecrite');
     const attendu = planDesVariables(recette, palette, destination);
     assert.deepEqual(figma.variablesDe(collection).map((variable) => variable.name), [...new Set(attendu.map((entree) => entree.nom))]);
-    TAILWIND.forEach((nuance, rang) => assert.equal(figma.variable(`colors/Deep/${themes === 'chemin' ? 'light/' : ''}${nuance}`).id, ids[rang]));
+    TAILWIND.forEach((nuance, rang) => assert.equal(figma.variable(`color/Deep/${themes === 'chemin' ? 'light/' : ''}${nuance}`).id, ids[rang]));
     const suivi = lireLeSuiviRange(figma.root).palettes[palette.id];
     for (const entree of attendu) {
       const mode = entree.mode === 'unique' ? suivi.modes.light : suivi.modes[entree.mode];
@@ -486,7 +486,7 @@ test('[VAR-13] un suivi sans chemin, dont le thème Dark est déjà sous `dark` 
 
 test('[VAR-13] [VAR-10] avec les thèmes en modes, une palette reprise trouve ou crée le mode Dark de sa collection, et n’y crée aucune variable', async () => {
   const { figma, collection } = fichierAvecSlate();
-  figma.root.setSharedPluginData('ucm_palettes', 'variables', JSON.stringify({ version: 1, destination: { collection: { nom: 'primitives' }, groupe: 'colors', themes: 'modes' }, confirmee: true, palettes: {} }));
+  figma.root.setSharedPluginData('ucm_palettes', 'variables', JSON.stringify({ version: 1, destination: { collection: { nom: 'primitives' }, groupe: 'color', themes: 'modes' }, confirmee: true, palettes: {} }));
   const [source] = await duFichier(figma);
   const { recette, palette } = await reprendre(figma, source, 'recalculees');
   const avant = await tokens(figma, recette, palette);
@@ -496,7 +496,7 @@ test('[VAR-13] [VAR-10] avec les thèmes en modes, une palette reprise trouve ou
   assert.deepEqual(collection.modes.map((mode) => mode.name), ['Mode 1', 'Dark']);
   assert.equal(figma.journal.filter((ligne) => ligne.startsWith('créer variable')).length, 0);
   const plan = planDesVariables(recette, palette, lireLeSuiviRange(figma.root).destination);
-  assert.equal(hexa(figma, 'colors/slate/50', collection.modes[1].modeId), plan.find((entree) => entree.cle === 'unique/dark/50')!.hexa);
+  assert.equal(hexa(figma, 'color/slate/50', collection.modes[1].modeId), plan.find((entree) => entree.cle === 'unique/dark/50')!.hexa);
   assert.equal((await tokens(figma, recette, palette)).etat, 'a-jour');
 
   // Une offre limitée à un mode refuse le mode Dark : la palette s'arrête, sans rien écrire.
@@ -545,12 +545,12 @@ test('[VAR-13] sans variable restante, une reprise recrée les deux thèmes dans
       variable.setValueForMode(dark, composantes(NUIT[rang]));
     }
     const { recette, palette } = await reprendre(figma, (await duFichier(figma))[0], forme);
-    await rangerLaDestination(api(figma), { collection: { id: collection.id }, groupe: 'colors', themes: 'chemin' });
+    await rangerLaDestination(api(figma), { collection: { id: collection.id }, groupe: 'color', themes: 'chemin' });
     for (const variable of [...figma.locales.values()]) variable.remove();
     const avant = await tokens(figma, recette, palette);
     assert.equal(avant.aCreer.length, 22);
-    assert.ok(avant.aCreer.includes('colors/slate/light/50'));
-    assert.ok(avant.aCreer.includes('colors/slate/dark/950'));
+    assert.ok(avant.aCreer.includes('color/slate/light/50'));
+    assert.ok(avant.aCreer.includes('color/slate/dark/950'));
     const resultat = await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
     assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'ecrite', creees: 22, ecrites: 22 }] });
     const apres = await tokens(figma, recette, palette);

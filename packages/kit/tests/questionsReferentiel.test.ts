@@ -36,18 +36,23 @@ test('terminaison et pluriel ne rapprochent que des mots à la même place', () 
 });
 
 test('abréviations et synonymes utilisent les tables du référentiel', () => {
-  const noms = [nom('a', 'palette/bg/solid'), nom('b', 'palette/background/solid'),
-    nom('c', 'states/danger/solid'), nom('d', 'states/error/solid')];
-  assert.deepEqual(paires(noms), ['paire:background|bg', 'paire:danger|error']);
-  const fond = questions(noms).find((q) => q.type === 'paire' && q.cle === 'paire:background|bg');
-  assert.equal(fond?.type === 'paire' && fond.termes[fond.propose].mot, 'background');
-  assert.equal(fond?.score, 4);
-  assert.deepEqual(paires([nom('unique', 'colors/border-radius/default')]), []);
-  assert.deepEqual(paires([nom('a', 'colors/radius/default'), nom('b', 'colors/border-radius/default')]), ['paire:border-radius|radius']);
-  assert.deepEqual(paires([nom('a', 'colors/radius/default'), nom('b', 'colors/border-radius/default')],
-    { ...vide, distincts: [['border radius', 'radius']] }), []);
-  assert.deepEqual(paires([nom('a', 'colors/radius/default'), nom('b', 'colors/border-radius/default')],
-    { ...vide, voulus: ['border radius'] }), []);
+  const noms = [nom('a', 'palette/fg/solid'), nom('b', 'palette/foreground/solid'),
+    nom('c', 'states/pressed/solid'), nom('d', 'states/active/solid')];
+  assert.deepEqual(paires(noms).sort(), ['paire:active|pressed', 'paire:fg|foreground']);
+  const contenu = questions(noms).find((q) => q.type === 'paire' && q.cle === 'paire:fg|foreground');
+  assert.equal(contenu?.type === 'paire' && contenu.termes[contenu.propose].mot, 'foreground');
+  assert.equal(contenu?.score, 4);
+  // Formes tolérées du référentiel (décisions C01 et T03) : remplacées sans question.
+  assert.deepEqual(paires([nom('a', 'palette/bg/solid'), nom('b', 'palette/background/solid'),
+    nom('c', 'states/danger/solid'), nom('d', 'states/error/solid')]), []);
+  assert.deepEqual(paires([nom('unique', 'colors/corner/default')]), []);
+  assert.deepEqual(paires([nom('a', 'colors/radius/default'), nom('b', 'colors/corner/default')]), ['paire:corner|radius']);
+  assert.deepEqual(paires([nom('a', 'colors/radius/default'), nom('b', 'colors/corner/default')],
+    { ...vide, distincts: [['corner', 'radius']] }), []);
+  assert.deepEqual(paires([nom('a', 'colors/radius/default'), nom('b', 'colors/corner/default')],
+    { ...vide, voulus: ['corner'] }), []);
+  // Décision T07 : `border-radius` est une forme tolérée de `radius`.
+  assert.deepEqual(paires([nom('a', 'colors/radius/default'), nom('b', 'colors/border-radius/default')]), []);
 });
 
 test('les formes d’un même mot sortent sans mot connu et sans voisin commun', () => {
@@ -122,9 +127,9 @@ test('échelle de tailles et collection inconnue donnent leurs questions propres
   const noms = [nom('sm', 'sizes/sm/value'), nom('small', 'sizes/small/value'),
     { id: JSON.stringify(['collection', 'custom-id']), nom: 'Custom Colors', categorie: 'collections' as const, portee: 'document' }];
   const resultat = questions(noms);
-  const echelle = resultat.find((q) => q.type === 'echelle');
   const collection = resultat.find((q) => q.type === 'collection');
-  assert.equal(echelle?.type === 'echelle' && echelle.nombres[0], 1);
+  // Décision T06 : `small` est une forme tolérée de `sm`, remplacée sans question d'échelle.
+  assert.equal(resultat.some((q) => q.type === 'echelle'), false);
   assert.equal(collection?.type === 'collection' && collection.collectionId, JSON.stringify(['collection', 'custom-id']));
   assert.equal(questions([{ id: 'standard', nom: 'Color Brands', categorie: 'collections', portee: 'document' }]).length, 0);
 });
@@ -166,11 +171,9 @@ test('une réponse voulue ou reportée écarte aussi écriture et échelle', () 
   assert.equal(questions(noms, { ...vide, plusTard: [colle.cle] }).some((q) => q.cle === colle.cle), false);
 });
 
-test('l’échelle compte chaque nom une fois même s’il porte les deux formes', () => {
+test('les tailles en mots entiers ne font plus de question d’échelle (décision T06)', () => {
   const noms = [nom('a', 'sizes/sm/small'), nom('b', 'sizes/small/sm')];
-  const echelle = questions(noms).find((q) => q.type === 'echelle');
-  assert.deepEqual(echelle?.type === 'echelle' && echelle.nombres, [2, 2]);
-  assert.equal(echelle?.score, 2);
+  assert.equal(questions(noms).some((q) => q.type === 'echelle'), false);
 });
 
 test('l’ordre des noms ne change ni les clés ni les propositions', () => {
@@ -183,10 +186,10 @@ test('l’ordre des noms ne change ni les clés ni les propositions', () => {
 });
 
 test('score, seuil et plafond classent les noms distincts puis gardent les autres pistes', () => {
-  const noms = [nom('a', 'states/error/solid'), nom('b', 'states/danger/solid'),
-    nom('c', 'states/danger/solid'), nom('d', 'colors/paint/bg'), nom('e', 'colors/painted/bg')];
+  const noms = [nom('a', 'states/active/solid'), nom('b', 'states/pressed/solid'),
+    nom('c', 'states/pressed/solid'), nom('d', 'colors/paint/bg'), nom('e', 'colors/painted/bg')];
   const resultat = detecterLesQuestions(lexique(noms), index, vide, { seuil: 3, maximum: 1 });
-  assert.deepEqual(resultat.questions.map((q) => q.cle), ['paire:danger|error']);
+  assert.deepEqual(resultat.questions.map((q) => q.cle), ['paire:active|pressed']);
   assert.ok(resultat.autres.some((q) => q.cle === 'paire:paint|painted'));
 });
 
@@ -223,11 +226,8 @@ test('une règle personnalisée retire ses occurrences des détecteurs', () => {
   assert.deepEqual(resultat, { questions: [], autres: [] });
 });
 
-test('l’échelle rapproche les deux écritures même sur des tailles différentes', () => {
-  const resultat = questions([nom('a', 'sizes/sm/value'), nom('b', 'sizes/large/value')]);
-  const echelle = resultat.find((q) => q.type === 'echelle');
-  assert.deepEqual(echelle?.type === 'echelle' && echelle.nombres, [1, 1]);
-  assert.equal(questions([nom('a', 'sizes/sm/value'), nom('b', 'other/large/solid')]).some((q) => q.type === 'echelle'), false);
+test('deux écritures de taille sur des tailles différentes ne font pas de question (décision T06)', () => {
+  assert.equal(questions([nom('a', 'sizes/sm/value'), nom('b', 'sizes/large/value')]).some((q) => q.type === 'echelle'), false);
 });
 
 test('32 000 noms conservent les comptes et le plafond de questions', (t) => {

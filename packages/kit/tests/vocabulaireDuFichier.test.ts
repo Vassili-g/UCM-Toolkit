@@ -59,12 +59,12 @@ test('les remplacements conservent les capitales, la majuscule initiale et les e
 
 test('remplacer un identifiant ou un alias UCM retenu contredit sa cible', () => {
   const { conflits } = indexerVocabulaire({ ...vide, personnalises: [
-    { terme: ['custom'], remplace: [['pressed'], ['press'], ['fontfamily']] },
+    { terme: ['custom'], remplace: [['pressed'], ['press'], ['font', 'family']] },
   ] });
   assert.deepEqual(conflits, [
     { type: 'contredit-ucm', terme: ['custom'], remplace: ['pressed'], termeUcm: ['pressed'] },
     { type: 'contredit-ucm', terme: ['custom'], remplace: ['press'], termeUcm: ['pressed'] },
-    { type: 'contredit-ucm', terme: ['custom'], remplace: ['fontfamily'], termeUcm: ['fontfamily'] },
+    { type: 'contredit-ucm', terme: ['custom'], remplace: ['font', 'family'], termeUcm: ['font', 'family'] },
   ]);
 });
 
