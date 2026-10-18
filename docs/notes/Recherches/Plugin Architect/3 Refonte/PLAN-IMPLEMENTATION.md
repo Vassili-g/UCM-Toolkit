@@ -711,11 +711,11 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 
 **Agent :** principale. **Effort :** petit.
 
-- [ ] `AGENTS.md` : l'entrée de `packages/plugin-architect/` dans la carte du
+- [x] (45e59b4) `AGENTS.md` : l'entrée de `packages/plugin-architect/` dans la carte du
   code, et un domaine d'invariants « UCM Architect » ; ajouter ce domaine à
   `DOMAINES` de `tests/inventaireInvariants.test.ts`
-- [ ] `README.md` racine : la ligne d'Architect parle des variables
-- [ ] La conception renvoie aux écarts constatés pendant l'implémentation
+- [x] (45e59b4) `README.md` racine : la ligne d'Architect parle des variables
+- [x] (29fd819) La conception renvoie aux écarts constatés pendant l'implémentation
 
 ### F2 · Vérification d'ensemble
 
