@@ -5,8 +5,8 @@ l'affichage des écritures, la ligne d'un terme, la question des tailles,
 l'avant et l'après d'À appliquer, les cartes de À trancher, les sections de
 Règles, la fiche d'un terme et le langage visuel commun.
 
-**État.** Dossier et maquettes à valider ; les lots L0 à L9 attendent les
-décisions D1 à D10.
+**État.** Second tour des maquettes à valider ; les lots L0 à L9 attendent
+les décisions D1 à D10.
 
 | Document | Contenu |
 |---|---|
@@ -15,6 +15,7 @@ décisions D1 à D10.
 | [Maquettes/propose.css](./Maquettes/propose.css) | Les règles de style proposées, posées après la feuille réelle du plugin |
 | [Mesures/extraire-galerie.mjs](./Mesures/extraire-galerie.mjs) | Fige les écrans de la galerie sombre dans `Maquettes/galerie/`, après `npm run galerie -w ucm-architect-plugin` |
 | [Mesures/verifier-maquette.mjs](./Mesures/verifier-maquette.mjs) | Contrôle la maquette sans la capturer : erreurs, débordements, hauteur des cartes |
+| [Mesures/auditer-maquette.mjs](./Mesures/auditer-maquette.mjs) | Cherche les défauts visuels sans capture : chevauchements, textes qui débordent, jetons coupés, chemins écrasés |
 
 Les deux scripts se lancent depuis la racine du dépôt, par exemple
 `node "docs/notes/Recherches/Plugin Architect/5 Recette/Mesures/extraire-galerie.mjs"`.

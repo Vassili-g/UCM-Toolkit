@@ -13,6 +13,9 @@ page.on('pageerror', (erreur) => erreurs.push(erreur.message));
 page.on('console', (message) => { if (message.type() === 'error') erreurs.push(message.text()); });
 await page.goto(pathToFileURL(maquette).href);
 await page.waitForTimeout(1500);
+// Le tour 1 est replié : on l'ouvre pour le mesurer aussi.
+await page.evaluate(() => document.querySelectorAll('details').forEach((d) => { d.open = true; }));
+await page.waitForTimeout(500);
 
 const cadres = await page.evaluate(() => [...document.querySelectorAll('.cadre')].map((hote) => {
   const iframe = hote.querySelector('iframe');

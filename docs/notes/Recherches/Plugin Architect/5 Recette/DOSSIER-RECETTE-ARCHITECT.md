@@ -44,6 +44,43 @@ aujourd'hui, la droite pour après.
 | R10 | Langage visuel global | Principe | D10 |
 | R11 | Galerie : les états de Règles ne se jouent plus | Outil | Aucune |
 
+## Second tour
+
+Le mainteneur a jugé le premier tour « dans la bonne direction » et demandé
+d'affiner. Il a aussi relevé un défaut de la maquette : dans la planche,
+`colors/Neutral/light/700` était écrasé sur une seule colonne de 12 px. La
+ligne avant → après sans case gardait la colonne de la case. C'est corrigé, et
+[`Mesures/auditer-maquette.mjs`](./Mesures/auditer-maquette.mjs) détecte
+désormais un chemin écrasé.
+
+Le second tour garde les propositions du premier et les affine en trois
+points, qui valent pour tout le plugin :
+
+1. **Le fond teinté est réservé au terme isolé**, le jeton : tête d'une carte,
+   règle d'une fiche. Dans une ligne de texte ou un chemin, la couleur seule.
+2. **Un renommage se lit sur deux lignes** : l'ancien nom, puis le nouveau
+   dessous, précédé d'une flèche dans sa propre colonne, au même bord. Dans
+   l'ancien nom, le segment qui change est rouge et barré ; dans le nouveau,
+   vert et en gras. Le même dessin sert à toutes les largeurs, dans
+   À appliquer, À trancher et la fiche. Il remplace les deux colonnes et leur
+   bascule sous 520 px (R4) : un chemin a toute la largeur, et
+   `Button/Colors/Primary/Filled/Hover/Background` tient sur une ligne à 640 px
+   au lieu de deux.
+3. **Une règle s'écrit toujours de gauche à droite**, ce qui disparaît → ce
+   qui reste.
+
+Ce que ces trois points changent, écran par écran :
+
+| Écran | Tour 2 | Décision |
+|---|---|---|
+| Règles | Chaque ligne de terme écrit sa règle : `bg`, `back` → **`background`** ; **`colors`** → `color` ; **`stroke`** ou `border`. Le terme de la ligne est en gras, dans la couleur de sa puce ; les termes cités en texte coloré, sans fond | D2 |
+| À appliquer | Deux lignes par renommage, sans intitulés de colonnes ; têtes de carte inchangées | D4 |
+| À trancher | La question est la proposition : « Remplacer `bg` par `background` ? », seule ligne en gras de la carte ; l'indice et les nombres sur une ligne grise ; un nom réel sur deux lignes ; un bouton bordé Remplacer, les autres réponses en texte. Toutes les cartes mesurent 150 px | D6 |
+| Fiche d'un terme | La règle se modifie dans sa ligne : chaque terme remplacé est un jeton avec son nombre de variables et un ×, « + Terme » en ajoute. La section « Termes remplacés » disparaît ; restent la règle, À renommer et Déjà employé. Les deux fiches tiennent sans défilement | D9 |
+
+Les décisions D1 à D10 portent désormais sur le second tour. Le premier reste
+dans la maquette, replié sous chaque section, pour comparer.
+
 ## R1. Afficher les écritures par leur format
 
 **Demande.** « Afficher les règles avec leur format : PascalCase,

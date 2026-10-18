@@ -275,9 +275,8 @@
   display: none;
 }
 
-.aussi {
-  grid-column: 2 / -1;
-  color: var(--texte-second);
+.diff.sans-case {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 /* Sous 520 px, l'après passe sous l'avant. */
@@ -291,8 +290,12 @@
     row-gap: 0;
   }
 
+  .diff.sans-case {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .diff .chemin-apres {
-    grid-column: 2;
+    grid-column: -2;
   }
 
   .diff .fleche-ligne {
@@ -558,4 +561,134 @@
 
 .planche-ligne .meta {
   display: block;
+}
+
+/*
+ * Tour 2. Le fond teinté est réservé aux jetons, un terme isolé. Dans un
+ * chemin, le segment changé est seulement coloré : rouge et barré dans l'ancien
+ * nom, vert et en gras dans le nouveau. Un renommage se lit sur deux lignes,
+ * l'ancien nom puis le nouveau, au même bord, quelle que soit la largeur.
+ */
+.seg-ancien {
+  color: var(--texte-danger);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.seg-nouveau {
+  color: var(--texte-succes);
+  font-weight: 600;
+}
+
+.renommage {
+  display: grid;
+  grid-template-columns: 12px 12px minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: var(--espace-controle);
+  padding: var(--espace-serre) 0;
+  font-family: var(--police-code);
+}
+
+.renommage.sans-case {
+  grid-template-columns: 12px minmax(0, 1fr);
+}
+
+.renommage .case {
+  align-self: center;
+}
+
+.renommage .ancien {
+  color: var(--texte-second);
+  overflow-wrap: anywhere;
+}
+
+.renommage .nouveau {
+  color: var(--texte);
+  overflow-wrap: anywhere;
+}
+
+.renommage .fleche {
+  color: var(--texte-second);
+  font-family: inherit;
+}
+
+.corps.t2 {
+  padding-top: var(--espace-controle);
+}
+
+/* Un terme cité dans une ligne : la couleur seule, sans fond. */
+.mot-cite {
+  font-family: var(--police-code);
+}
+
+.mot-retire { color: var(--texte-danger); }
+.mot-retenu { color: var(--texte-succes); }
+.mot-doute { color: var(--texte-avertissement); }
+
+.ligne-terme .regle-ligne {
+  min-width: 0;
+  gap: var(--espace-serre) 6px;
+}
+
+.ligne-terme .regle-ligne .mot-cite + .mot-cite::before {
+  content: ", ";
+  color: var(--texte-second);
+}
+
+/* À trancher, tour 2 : la question est la proposition. */
+.question.t2 {
+  gap: var(--espace-serre);
+}
+
+.question.t2 .question-titre code {
+  font-family: var(--police-code);
+}
+
+.question.t2 .renommage {
+  margin: var(--espace-serre) 0;
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-radius: var(--rayon);
+  background: var(--fond-bloc);
+}
+
+/* La fiche, tour 2 : la règle se modifie là où elle s'écrit. */
+.fiche-regle-tete {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.jeton .compte-jeton {
+  margin-left: var(--espace-serre);
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.jeton .retirer-jeton {
+  margin-left: 2px;
+  padding: 0 0 0 2px;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.jeton-ajout {
+  border: 1px dashed var(--bordure);
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+}
+
+.fiche-liste .renommage,
+.fiche-liste .chemin {
+  padding: var(--espace-controle) var(--espace-bloc);
+}
+
+.titre-regle {
+  margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
 }
