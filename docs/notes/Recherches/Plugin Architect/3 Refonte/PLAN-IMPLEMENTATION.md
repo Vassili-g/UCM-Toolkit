@@ -364,7 +364,7 @@ npm test --workspace ucm-plugin-socle
 
 ### K0 · Types du moteur
 
-- [x] Types seuls du contrat dans `harmonisation.ts`, en-tête du référentiel,
+- [x] (cfe90bf) Types seuls du contrat dans `harmonisation.ts`, en-tête du référentiel,
   imports de types en `.js` et export depuis `referentiel/index.ts` (cfe90bf)
 
 ### K1 · Données du référentiel
@@ -440,23 +440,23 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `packages/kit/src/referentiel/questions.ts`, son test,
 `referentiel/index.ts`.
 
-- [ ] Les détecteurs portent sur les mots qu'aucune règle ne couvre, à la même
+- [x] (9d36840, 850e1c0) Les détecteurs portent sur les mots qu'aucune règle ne couvre, à la même
   place seulement : même collection, même profondeur, et même segment avant ou
   même segment après
-- [ ] Terminaison (`-ed`, `-d`, `-ing`), pluriel (`-s`, `-es`), abréviation,
+- [x] (9d36840, 850e1c0) Terminaison (`-ed`, `-d`, `-ing`), pluriel (`-s`, `-es`), abréviation,
   synonymes, même place (deux mots jamais voisins dont une variable de chaque
   côté vise la même cible d'alias), faute (une lettre d'écart par un index des
   suppressions, l'un employé au plus deux fois, l'autre au moins cinq fois),
   mots collés (un mot sans séparateur qui se découpe en mots du lexique),
   échelle, collection hors de `COLLECTIONS` et non reconnue
-- [ ] Le terme proposé est le terme UCM, sinon le plus employé ; une paire dont
+- [x] (9d36840, 850e1c0) Le terme proposé est le terme UCM, sinon le plus employé ; une paire dont
   un mot est déjà remplacé par une règle n'est pas une question
-- [ ] Clé stable : type, puis mots triés ; `dejaJuge` retire ce qui est déjà
+- [x] (9d36840, 850e1c0) Clé stable : type, puis mots triés ; `dejaJuge` retire ce qui est déjà
   jugé
-- [ ] Score : nombre de noms touchés, majoré quand deux indices concordent ;
+- [x] (9d36840, 850e1c0) Score : nombre de noms touchés, majoré quand deux indices concordent ;
   sous `seuil`, la question va dans `autres` ; dix questions au plus par
   défaut
-- [ ] Fin : un jeu écrit à la main par détecteur, un jeu sans question ; 32 000
+- [x] (9d36840, 850e1c0) Fin : un jeu écrit à la main par détecteur, un jeu sans question ; 32 000
   noms en moins d'une seconde sous Node
 
 ### K4 · Mesures
@@ -464,16 +464,16 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Agent :** `implementeur`. **Exécutant :** Codex. **Effort :** moyen.
 **Fichiers :** `docs/notes/Recherches/Plugin Architect/Mesures/`.
 
-- [ ] `mesurer-performances.ts` n'importe que le kit : préparation, détection,
+- [x] (0910d0f) `mesurer-performances.ts` n'importe que le kit : préparation, détection,
   normalisation initiale, recalcul d'écriture, recalcul après une règle de
   terme, sur 800, 8 000 et 32 000 noms ; résultats dans
   `resultats-performances.json`
-- [ ] `mesurer-questions.ts` : les questions sur C1
+- [x] (0910d0f) `mesurer-questions.ts` : les questions sur C1
   (`UCM-Playground/src/tokens/tokens.json`) et sur C2
   (`1 Architecture globale/Mesures/tokens-slice-exemple.json`), nombre par
   détecteur et vingt premières, avec leur score ; les résultats de C2 restent
   hors du dépôt
-- [ ] Une section « Mesures de la refonte » dans
+- [x] (0910d0f) Une section « Mesures de la refonte » dans
   `OPTIMISATION-LECTURE-ET-AFFICHAGE.md`, avec les chiffres de C1 seulement
 
 ### S1 · Feuille et onglets renommables du socle
@@ -482,16 +482,16 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `packages/plugin-socle/src/ui/Feuille.ts`, `Onglets.ts`,
 `socle.css`, `packages/plugin-socle/tests/feuille.test.ts`, `onglets.test.ts`.
 
-- [ ] `createFeuille({ titre, retour?, corps, pied, onFermer })` : un voile
+- [x] (265f0ab) `createFeuille({ titre, retour?, corps, pied, onFermer })` : un voile
   sombre sur la fenêtre, une feuille qui monte du bas, une poignée, un en-tête
   (‹ facultatif, titre, ✕), un corps qui défile, un pied ; Échap, ✕ et un clic
   sur le voile ferment ; le focus reste dans la feuille et revient à
   l'élément qui l'a ouverte ; `remplacer({ titre, retour, corps, pied })`
   passe à l'étape suivante
-- [ ] `OngletsUi.nommer(id, libelle)` : le libellé d'un onglet change sans
+- [x] (265f0ab) `OngletsUi.nommer(id, libelle)` : le libellé d'un onglet change sans
   recréer la liste
-- [ ] Classes et rôles dans `socle.css` ; la loi des styles reste verte
-- [ ] Fin : `npm test --workspace ucm-plugin-socle`
+- [x] (265f0ab) Classes et rôles dans `socle.css` ; la loi des styles reste verte
+- [x] (265f0ab) Fin : `npm test --workspace ucm-plugin-socle`
 
 ### P1 · Lecture des variables seules
 
