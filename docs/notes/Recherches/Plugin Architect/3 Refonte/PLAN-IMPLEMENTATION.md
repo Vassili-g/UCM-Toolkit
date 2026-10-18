@@ -580,22 +580,22 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Fichiers :** `src/session.ts` (nouveau), `src/tranches.ts` (nouveau),
 `src/code.ts`, `tests/session.test.ts`, `tests/protocole.test.ts`.
 
-- [ ] Le sandbox garde l'inventaire, le lexique, le vocabulaire indexé, le
+- [x] (f66fa59) Le sandbox garde l'inventaire, le lexique, le vocabulaire indexé, le
   résultat et les règles ; il ne transmet que le `Bilan` et les pages demandées
-- [ ] `tranches.ts` : mène un générateur du kit par tranches de huit
+- [x] (f66fa59) `tranches.ts` : mène un générateur du kit par tranches de huit
   millisecondes, avec une pause entre deux, et l'abandonne quand une demande
   plus récente arrive
-- [ ] Les règles du protocole de ce plan : file des calculs, lectures sur la
+- [x] (f66fa59) Les règles du protocole de ce plan : file des calculs, lectures sur la
   génération courante, dernière intention, codes d'erreur
-- [ ] Un geste écrit sa règle par le port, recalcule les portées touchées
+- [x] (f66fa59) Un geste écrit sa règle par le port, recalcule les portées touchées
   (`porteesTouchees`), fusionne le résultat ; `configurer` refait le lexique
   depuis l'inventaire en mémoire, sans relire Figma
-- [ ] `appliquer` relit les règles et refuse si elles ont changé ; après
+- [x] (f66fa59) `appliquer` relit les règles et refuse si elles ont changé ; après
   l'écriture, la session relit Figma et envoie un `bilan`
-- [ ] `tests/protocole.test.ts` : la session avec un port factice, de
+- [x] (f66fa59) `tests/protocole.test.ts` : la session avec un port factice, de
   `analyser` à `application`, réponses périmées ignorées, conflit refusé,
   recalcul sans lecture de Figma ni nouvelle détection
-- [ ] Fin : ces tests, typecheck, `npm run build --workspace ucm-architect-plugin`
+- [x] (f66fa59) Fin : ces tests, typecheck, `npm run build --workspace ucm-architect-plugin`
 
 ### U1a · Coquille
 
