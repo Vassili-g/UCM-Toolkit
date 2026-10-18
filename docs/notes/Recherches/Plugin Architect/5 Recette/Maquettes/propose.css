@@ -1,0 +1,561 @@
+/*
+ * Les règles proposées par la recette, posées après la feuille réelle du
+ * plugin (galerie/plugin.css). Aucune couleur nouvelle : chaque marque lit un
+ * rôle du socle.
+ *
+ * Le langage visuel :
+ *   rouge  (danger)        ce qui disparaîtra : la forme remplacée, le segment qui change dans le nom actuel ;
+ *   vert   (succès)        la forme retenue : le terme gardé, le segment écrit dans le nouveau nom ;
+ *   ambre  (avertissement) ce qui attend une décision ;
+ *   bleu   (marque)        une action, et rien d'autre ;
+ *   gris                   ce qui ne change pas.
+ */
+
+/* Les segments d'un chemin et les jetons de terme. */
+.seg-retire,
+.seg-retenu,
+.seg-doute {
+  padding: 0 2px;
+  border-radius: 3px;
+}
+
+.seg-retire {
+  background: var(--fond-danger);
+  color: var(--texte-danger);
+}
+
+.seg-retenu {
+  background: var(--fond-succes);
+  color: var(--texte-succes);
+}
+
+.seg-doute {
+  background: var(--fond-avertissement);
+  color: var(--texte-avertissement);
+}
+
+.jeton {
+  display: inline-block;
+  padding: 0 var(--espace-serre);
+  border-radius: 4px;
+  font-family: var(--police-code);
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+  white-space: nowrap;
+}
+
+.jeton-retire {
+  background: var(--fond-danger);
+  color: var(--texte-danger);
+}
+
+.jeton-retenu {
+  background: var(--fond-succes);
+  color: var(--texte-succes);
+}
+
+.jeton-doute {
+  background: var(--fond-avertissement);
+  color: var(--texte-avertissement);
+}
+
+.jeton-neutre {
+  background: var(--fond-note);
+  color: var(--texte);
+}
+
+.jeton.petit {
+  font-size: var(--corps);
+  line-height: var(--corps-interligne);
+}
+
+.regle-ligne {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-serre) var(--espace-controle);
+}
+
+.regle-ligne .fleche {
+  color: var(--texte-second);
+}
+
+/* La puce d'état d'un terme, à gauche de sa ligne. */
+.puce {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.puce-retenu { background: var(--texte-succes); }
+.puce-retire { background: var(--texte-danger); }
+.puce-doute { background: var(--texte-avertissement); }
+.puce-sans-regle { box-shadow: inset 0 0 0 1px var(--texte-second); }
+.puce-ecarte { background: var(--fond-note); }
+
+/* Variante B : l'étiquette d'état au lieu de la puce. */
+.etat-terme {
+  display: inline-block;
+  min-width: 64px;
+  padding: 0 var(--espace-serre);
+  border-radius: 4px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.etat-terme.retenu { background: var(--fond-succes); color: var(--texte-succes); }
+.etat-terme.retire { background: var(--fond-danger); color: var(--texte-danger); }
+.etat-terme.doute { background: var(--fond-avertissement); color: var(--texte-avertissement); }
+.etat-terme.sans-regle { box-shadow: inset 0 0 0 1px var(--bordure); color: var(--texte-second); }
+
+/* Règles : la ligne d'un terme, puce à gauche, origine à droite. */
+.ligne-terme.v2 {
+  grid-template-columns: 8px minmax(0, 1fr) auto 40px 12px;
+}
+
+.ligne-terme.v2.etiquette {
+  grid-template-columns: 72px minmax(0, 1fr) auto 40px 12px;
+}
+
+.terme-resume {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espace-serre) var(--espace-controle);
+}
+
+.terme-resume .meta {
+  white-space: nowrap;
+}
+
+/* Règles : deux sections, chacune avec sa phrase. */
+.section-regles {
+  display: grid;
+  gap: var(--espace-controle);
+}
+
+.section-regles + .section-regles {
+  margin-top: var(--espace-bloc);
+  padding-top: var(--espace-page);
+  border-top: 1px solid var(--bordure);
+}
+
+.section-tete {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.section-tete h2 {
+  margin: 0;
+  font-size: var(--titre);
+  font-weight: 600;
+  line-height: var(--titre-interligne);
+}
+
+.section-tete p {
+  margin: 2px 0 0;
+  color: var(--texte-second);
+}
+
+.ecriture-v2 {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.ecriture-v2-ligne {
+  display: grid;
+  grid-template-columns: 96px auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-top: 1px solid var(--bordure);
+}
+
+.ecriture-v2-ligne:first-child {
+  border-top: 0;
+}
+
+.ecriture-v2-ligne .exemple {
+  justify-self: end;
+  color: var(--texte-second);
+  font-family: var(--police-code);
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.ecriture-v2-ligne .exemple .partie {
+  color: var(--texte);
+}
+
+.outils-termes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+/* Variante B : sous-onglets de Règles. */
+.sous-onglets {
+  display: flex;
+  gap: var(--espace-page);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.sous-onglet {
+  height: var(--hauteur-secondaire);
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.sous-onglet[aria-selected="true"] {
+  border-bottom-color: var(--texte);
+  color: var(--texte);
+}
+
+/* À appliquer : la tête d'une carte et ses deux colonnes. */
+.tete-regle {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-serre) var(--espace-controle);
+}
+
+.tete-regle .nom-regle {
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.colonnes-tete,
+.diff {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--espace-controle);
+}
+
+.colonnes-tete {
+  padding: var(--espace-controle) 0 var(--espace-serre);
+  color: var(--texte-second);
+  font-weight: 600;
+}
+
+.diff {
+  padding: var(--espace-serre) 0;
+}
+
+.diff .case {
+  align-self: center;
+}
+
+.diff .chemin-apres {
+  color: var(--texte);
+  font-family: var(--police-code);
+  overflow-wrap: anywhere;
+}
+
+.diff .fleche-ligne {
+  display: none;
+}
+
+.aussi {
+  grid-column: 2 / -1;
+  color: var(--texte-second);
+}
+
+/* Sous 520 px, l'après passe sous l'avant. */
+@media (max-width: 519px) {
+  .colonnes-tete {
+    display: none;
+  }
+
+  .diff {
+    grid-template-columns: 12px minmax(0, 1fr);
+    row-gap: 0;
+  }
+
+  .diff .chemin-apres {
+    grid-column: 2;
+  }
+
+  .diff .fleche-ligne {
+    display: inline;
+    color: var(--texte-second);
+  }
+}
+
+/* À trancher, proposition 1 : face à face calme. */
+.question.calme {
+  gap: var(--espace-controle);
+}
+
+.question.calme .question-entete .indice {
+  color: var(--texte-second);
+}
+
+.face.calme {
+  gap: 0;
+  border-top: 1px solid var(--bordure);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.face.calme .colonne {
+  padding: var(--espace-controle) var(--espace-controle) var(--espace-controle) 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.face.calme .colonne + .colonne {
+  padding-left: var(--espace-bloc);
+  border-left: 1px solid var(--bordure);
+}
+
+.face.calme .colonne .btn {
+  width: auto;
+  justify-self: start;
+}
+
+.propose-par {
+  color: var(--texte-second);
+  font-weight: 600;
+}
+
+/* À trancher, proposition 2 : la proposition en tête. */
+.question.tete-proposee {
+  gap: var(--espace-serre);
+}
+
+.question.tete-proposee .regle-ligne {
+  margin-top: var(--espace-serre);
+}
+
+.question.tete-proposee .exemple-diff {
+  color: var(--texte-second);
+  font-family: var(--police-code);
+  overflow-wrap: anywhere;
+}
+
+.question.tete-proposee .question-pied {
+  margin-top: var(--espace-serre);
+}
+
+.question .meta.indice {
+  white-space: nowrap;
+}
+
+/* À trancher, proposition 3 : choisir, puis valider. */
+.choix-liste {
+  display: grid;
+  border-top: 1px solid var(--bordure);
+}
+
+.choix {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) 0;
+  border-bottom: 1px solid var(--bordure);
+  cursor: pointer;
+}
+
+.choix input {
+  margin: 0;
+  accent-color: var(--fond-marque);
+}
+
+.choix .pile .chemin {
+  font-size: var(--corps);
+}
+
+/* La fiche d'un terme. */
+.feuille-voile.v2 .feuille-poignee {
+  display: none;
+}
+
+.feuille-voile.v2 .feuille-entete {
+  min-height: 48px;
+  padding-top: var(--espace-controle);
+}
+
+.feuille-voile.v2 .feuille-fermer {
+  background: var(--fond-bloc);
+  color: var(--texte);
+  font-size: 16px;
+}
+
+.feuille-voile.v2 .feuille-fermer:hover {
+  background: var(--fond-note);
+}
+
+.fiche-titre-ligne {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.fiche-titre-ligne .feuille-titre {
+  flex: none;
+  font-family: var(--police-code);
+}
+
+.fiche-regle {
+  display: grid;
+  gap: var(--espace-controle);
+  padding: var(--espace-bloc);
+  border-radius: var(--rayon);
+  background: var(--fond-bloc);
+}
+
+.fiche-regle .chiffres {
+  color: var(--texte-second);
+}
+
+.fiche-regle .chiffres b {
+  color: var(--texte);
+  font-weight: 600;
+}
+
+.fiche-bloc {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+.fiche-bloc-tete {
+  display: flex;
+  min-height: var(--hauteur-secondaire);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.fiche-bloc-tete h3 {
+  margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.fiche-bloc-tete .lien {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--texte-marque);
+  cursor: pointer;
+  font: inherit;
+}
+
+.fiche-liste {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.fiche-liste > * {
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-top: 1px solid var(--bordure);
+}
+
+.fiche-liste > :first-child {
+  border-top: 0;
+}
+
+.fiche-liste .diff {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.fiche-liste .remplace-rang {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.fiche-liste .remplace-rang > span {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espace-controle);
+}
+
+.btn-texte.danger {
+  color: var(--texte-danger);
+}
+
+/* L'entrée et la sortie de la feuille. */
+.feuille-voile.v2 {
+  animation: voile-entree 200ms ease-out both;
+}
+
+.feuille-voile.v2 .feuille {
+  animation: feuille-glisse 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.feuille-voile.v2.sortante {
+  animation: voile-sortie 200ms ease-in both;
+}
+
+.feuille-voile.v2.sortante .feuille {
+  animation: feuille-sort 200ms ease-in both;
+}
+
+@keyframes voile-entree { from { background: transparent; } to { background: var(--fond-voile); } }
+@keyframes voile-sortie { from { background: var(--fond-voile); } to { background: transparent; } }
+@keyframes feuille-glisse { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes feuille-sort { from { transform: translateY(0); } to { transform: translateY(100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .feuille-voile.v2 .feuille,
+  .feuille-voile.v2.sortante .feuille {
+    animation: fondu 120ms linear both;
+  }
+
+  .feuille-voile.v2.sortante .feuille {
+    animation-direction: reverse;
+  }
+}
+
+@keyframes fondu { from { opacity: 0; } to { opacity: 1; } }
+
+/* La planche du langage visuel. */
+.planche {
+  display: grid;
+  gap: var(--espace-bloc);
+  padding: var(--espace-page);
+}
+
+.planche-ligne {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--espace-bloc);
+  padding-bottom: var(--espace-bloc);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.planche-ligne:last-child {
+  border-bottom: 0;
+}
+
+.planche-ligne .meta {
+  display: block;
+}

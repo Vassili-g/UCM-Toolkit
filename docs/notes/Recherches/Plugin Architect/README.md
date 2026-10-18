@@ -18,6 +18,7 @@ Le référentiel dont l'Architect lit les définitions a son propre dossier,
 | Recette de la v1 | Lot 19 : recette dans Figma par le mainteneur, puis export des tokens du fichier renommé |
 | Suite de l'Architect | Explorée sans décision : versions v1.1, v1.2 et v2, quatre questions ouvertes |
 | Refonte | [Conception](./3%20Refonte/CONCEPTION.md) revue par un agent spécialiste de l'UX, et [maquettes](./3%20Refonte/MAQUETTES-ARCHITECT.html) ; attend la validation du mainteneur |
+| Recette de la refonte | [Dossier](./5%20Recette/DOSSIER-RECETTE-ARCHITECT.md) et [maquettes](./5%20Recette/Maquettes/MAQUETTE-RECETTE-ARCHITECT.html) : langage visuel commun, avant et après dans À appliquer, cartes de À trancher, fiche d'un terme, question des tailles retirée ; attend les décisions D1 à D10 |
 
 La v1 contredit la version minimale : le mainteneur a demandé l'Architect
 quand les renommages de son fichier sont devenus trop nombreux pour être faits
@@ -28,6 +29,7 @@ noms et l'harmonisation des mots.
 
 | Maquette | Contenu |
 |---|---|
+| [Recette de la refonte](./5%20Recette/Maquettes/MAQUETTE-RECETTE-ARCHITECT.html) | Les écrans réels figés, puis les propositions : langage visuel, Règles, À appliquer en deux colonnes, trois formes de cartes pour À trancher, fiche d'un terme animée |
 | [Refonte](./3%20Refonte/MAQUETTES-ARCHITECT.html) | Troisième version, variables seulement, sur la feuille de style commune des plugins : le plan de navigation, quatorze écrans dont les feuilles des termes, la planche des cartes et des états |
 | [Exploration du plugin d'architecture](./1%20Architecture%20globale/Maquettes/MAQUETTE-ARCHITECTE.html) | La première exploration : le flux en six étapes (premier lancement, accueil, vérifier, conventions, construire, publier) et seize écrans, thème sombre |
 | [Écran de la v1](./2%20Architect%20v1/MAQUETTE-ARCHITECT.html) | L'écran unique validé avant la construction : écriture des noms et liste des renommages à cocher |

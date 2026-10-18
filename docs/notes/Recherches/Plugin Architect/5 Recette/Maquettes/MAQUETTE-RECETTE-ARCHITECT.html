@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recette d'UCM Architect</title>
+<style>
+  :root {
+    --fond: #161616; --bloc: #222; --bordure: #333; --texte: #eee; --second: #9a9a9a;
+    --ambre: #f3b53f; --vert: #85e0a3; --rouge: #ffafa3; --bleu: #4ea1ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 1340px; margin: 0 auto; padding: 32px 16px 96px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 19px; margin: 56px 0 6px; padding-top: 24px; border-top: 1px solid var(--bordure); }
+  h3 { font-size: 13px; margin: 0 0 8px; color: var(--second); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  p { margin: 6px 0; max-width: 860px; }
+  .intro { color: var(--second); }
+  code { font-family: Consolas, monospace; font-size: 13px; background: #2a2a2a; padding: 0 4px; border-radius: 3px; }
+  nav.sommaire { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 16px 0 0; font-size: 13px; }
+  nav.sommaire a { color: var(--bleu); text-decoration: none; }
+  .colonnes { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; margin-top: 16px; }
+  .colonne { flex: 0 0 auto; width: 640px; max-width: 100%; }
+  .colonne.etroite { width: 360px; }
+  .cadre { position: relative; max-width: 100%; border: 1px solid var(--bordure); border-radius: 8px; overflow: hidden; background: #2c2c2c; }
+  .cadre iframe { display: block; border: 0; max-width: 100%; }
+  .etiquette { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 4px; margin-bottom: 6px; }
+  .etiquette.aujourdhui { background: #3a3a3a; color: var(--texte); }
+  .etiquette.propose { background: #16314d; color: #9fcfff; }
+  .etiquette.variante { background: #3b2f12; color: var(--ambre); }
+  ol.argu { padding-left: 20px; margin: 10px 0 0; font-size: 13px; color: #cfcfcf; }
+  ol.argu li { margin: 4px 0; }
+  ol.argu b { color: var(--texte); }
+  .commandes { display: flex; gap: 8px; margin: 8px 0; }
+  .commandes button { background: #2a2a2a; color: var(--texte); border: 1px solid var(--bordure); border-radius: 6px; font: inherit; font-size: 13px; padding: 4px 10px; cursor: pointer; }
+  .commandes button:hover { background: #333; }
+  table.legende { border-collapse: collapse; font-size: 13px; margin-top: 12px; max-width: 980px; }
+  table.legende th, table.legende td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--bordure); vertical-align: top; }
+  table.legende th { color: var(--second); font-weight: 600; }
+  .r { color: var(--rouge); } .v { color: var(--vert); } .a { color: var(--ambre); } .b { color: var(--bleu); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Recette d'UCM Architect</h1>
+  <p class="intro">Les écrans « Aujourd'hui » sont les états réels de la galerie du plugin, figés en thème sombre
+  (<code>Mesures/extraire-galerie.mjs</code>), à la taille par défaut de la fenêtre (640 × 720). Les écrans « Proposé »
+  partent du même DOM et de la même feuille de style, avec les règles de <code>propose.css</code> en plus. Les noms de
+  variables sont inventés ; ils reproduisent les cas relevés pendant la recette. Le dossier
+  <a href="../DOSSIER-RECETTE-ARCHITECT.md" style="color:var(--bleu)">DOSSIER-RECETTE-ARCHITECT.md</a> donne, pour chaque
+  point, le constat dans le code et la décision attendue.</p>
+  <nav class="sommaire">
+    <a href="#langage">0. Le langage visuel</a>
+    <a href="#regles">1. Règles : écriture et termes</a>
+    <a href="#appliquer">2. À appliquer : avant et après</a>
+    <a href="#trancher">3. À trancher : les cartes</a>
+    <a href="#fiche">4. La fiche d'un terme</a>
+  </nav>
+
+  <h2 id="langage">0. Le langage visuel</h2>
+  <p>Une seule grammaire pour tout le plugin : ce qui est ciblé, ce qui sera écrit, ce qui attend une décision. Elle
+  remplace l'ambre unique d'aujourd'hui, qui marquait à la fois le terme à remplacer, le terme gardé et le terme en
+  question. Chaque marque lit un rôle de couleur du socle ; aucune couleur n'est ajoutée.</p>
+  <table class="legende">
+    <tr><th>Marque</th><th>Sens</th><th>Rôle du socle</th><th>Où elle paraît</th></tr>
+    <tr><td class="r">Rouge</td><td>La forme qui disparaîtra</td><td><code>--fond-danger</code>, <code>--texte-danger</code></td><td>Le terme remplacé ; le segment qui change, dans le nom actuel</td></tr>
+    <tr><td class="v">Vert</td><td>La forme retenue</td><td><code>--fond-succes</code>, <code>--texte-succes</code></td><td>Le terme gardé ; le segment écrit, dans le nouveau nom ; l'écriture retenue</td></tr>
+    <tr><td class="a">Ambre</td><td>Une décision attendue</td><td><code>--fond-avertissement</code>, <code>--texte-avertissement</code></td><td>À trancher seulement : le terme en question, la puce d'un terme à trancher</td></tr>
+    <tr><td class="b">Bleu</td><td>Une action</td><td><code>--fond-marque</code></td><td>Le bouton principal d'un écran (Appliquer, Enregistrer) ; plus aucune bordure ni colonne bleue</td></tr>
+    <tr><td>Gris</td><td>Ce qui ne change pas</td><td><code>--texte-second</code></td><td>Les segments inchangés, un terme sans règle</td></tr>
+  </table>
+  <p>Deux lectures fixes accompagnent les couleurs, pour qu'elles ne portent jamais seules le sens : la gauche est
+  toujours « aujourd'hui », la droite « après » ; et une flèche sépare toujours ce qui disparaît de ce qui reste.</p>
+  <div class="colonnes"><div class="colonne"><span class="etiquette propose">Planche</span><div class="cadre" id="planche"></div></div></div>
+
+  <h2 id="regles">1. Règles : écriture et termes</h2>
+  <p>Points de la recette : afficher les écritures par leur format ; dans Termes, l'origine à droite et l'état à gauche ;
+  séparer clairement les deux sections, avec une phrase courte chacune.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette aujourdhui">Aujourd'hui</span><div class="cadre" id="regles-aujourdhui"></div>
+      <ol class="argu">
+        <li>« PascalCase » s'écrit dans son format, « Minuscules · tirets » non : deux écritures se lisent de deux façons.</li>
+        <li>Écriture et Termes ont le même intertitre de 12 px et rien ne dit ce que fait chacun.</li>
+        <li>La pastille UCM suit le mot, à gauche ; l'état (remplace, à trancher) est un texte gris au milieu de la ligne.</li>
+      </ol>
+    </div>
+    <div class="colonne"><span class="etiquette propose">Proposé A</span><div class="cadre" id="regles-a"></div>
+      <ol class="argu">
+        <li><b>Chaque écriture s'écrit dans son format</b> : <code>PascalCase</code>, <code>minuscules-tirets</code>, <code>minuscules_tirets_bas</code>, <code>camelCase</code>, <code>Majuscule initiale</code>, <code>minusculessoudées</code>. Un exemple réel du fichier suit à droite, la partie concernée en clair.</li>
+        <li><b>Deux sections titrées en 15 px</b>, chacune avec sa phrase, séparées par un filet pleine largeur.</li>
+        <li><b>Une puce d'état à gauche</b> : verte, le terme est retenu et remplace d'autres termes ; rouge, il sera remplacé ; ambre, il attend une réponse ; cercle vide, aucune règle ; grise, terme UCM non appliqué ici.</li>
+        <li><b>Les termes cités prennent leur couleur</b> : « remplace <span class="r">bg</span> <span class="r">back</span> », « remplacé par <span class="v">color</span> ».</li>
+        <li><b>L'origine passe à droite</b>, dans sa propre colonne, avant le nombre de variables.</li>
+        <li>La recherche passe à droite des filtres : elle filtre la liste qu'elle précède.</li>
+      </ol>
+    </div>
+    <div class="colonne"><span class="etiquette variante">Variante B</span><div class="cadre" id="regles-b"></div>
+      <ol class="argu">
+        <li><b>Sous-onglets Écriture | Termes</b> au lieu de deux sections empilées. Ils séparent mieux les deux fonctions, mais ajoutent un niveau de navigation dans un onglet ; à retenir seulement si la liste des termes devient très longue.</li>
+        <li><b>Étiquette d'état au lieu de la puce</b> : « Remplace 2 », « Remplacé », « À trancher », « Sans règle ». Plus lisible sans légende, plus large de 64 px.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h2 id="appliquer">2. À appliquer : avant et après</h2>
+  <p>Points de la recette : voir à la fois les chemins problématiques et les chemins renommés ; <code>colors → color</code>
+  ne montrait pas le passage des dossiers en PascalCase ; <code>danger → Danger</code> illustrait des lignes sans rapport ;
+  la question des tailles opposait dossiers et variables.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette aujourdhui">Aujourd'hui</span><div class="cadre" id="appliquer-aujourdhui"></div>
+      <ol class="argu">
+        <li>La carte <code>colors → color</code> renomme <code>colors/Neutral/light/700</code> en <code>Color/Neutral/Light/700</code> : le terme <b>et</b> l'écriture des groupes. L'écran ne montre que l'ancien nom, le terme surligné.</li>
+        <li>La carte d'écriture prend pour tête la paire de segments la plus fréquente (<code>danger → Danger</code>) ; ses lignes surlignent le premier segment changé (<code>primary</code>). Les deux ne se rapportent pas l'un à l'autre, et <code>light → Light</code> ne se voit pas.</li>
+        <li>L'ambre marque le terme remplacé : la même couleur que les questions d'À trancher.</li>
+      </ol>
+    </div>
+    <div class="colonne"><span class="etiquette propose">Proposé, 640 px</span><div class="cadre" id="appliquer-640"></div>
+      <ol class="argu">
+        <li><b>Deux colonnes, Aujourd'hui | Après l'application</b>, sur chaque ligne dépliée. Le nom de droite est le nom que Figma recevra, toutes règles comprises.</li>
+        <li><b>Chaque segment qui change</b> est rouge à gauche et vert à droite ; le reste du chemin reste gris.</li>
+        <li><b>La tête d'une carte de terme</b> se dit en jetons : <span class="r">colors</span> → <span class="v">color</span>. Sa ligne de détail dit ce que la carte entraîne aussi : « 280 changent aussi d'écriture ».</li>
+        <li><b>La tête d'une carte d'écriture dit la règle</b>, plus un exemple : « Groupes → <span class="v">PascalCase</span> ».</li>
+        <li><b>Les tailles</b> ne posent plus de question : deux cartes UCM, « Dans les noms » et « Dans les dossiers ».</li>
+      </ol>
+    </div>
+    <div class="colonne etroite"><span class="etiquette propose">Proposé, 360 px</span><div class="cadre" id="appliquer-360"></div>
+      <ol class="argu">
+        <li>Sous 520 px, la fenêtre n'a plus la place de deux chemins : l'après passe sous l'avant, précédé d'une flèche.</li>
+        <li>Les intitulés de colonnes disparaissent ; la flèche et les couleurs disent l'ordre.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h2 id="trancher">3. À trancher : les cartes</h2>
+  <p>Point de la recette : quand les cartes sont nombreuses, on ne sait pas où regarder ; le bouton bleu attire l'œil
+  plus que la question ; trop de contours. Cinq questions par écran, comme sur un fichier réel. La question des tailles
+  disparaît (section 2).</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette aujourdhui">Aujourd'hui</span><div class="cadre" id="trancher-aujourdhui"></div>
+      <ol class="argu">
+        <li>Trois contours par carte de paire (la carte, puis chaque colonne), plus le contour bleu de la colonne proposée.</li>
+        <li>Un bouton bleu plein par carte : cinq cartes, cinq boutons bleus, le seul élément qu'on voit en défilant.</li>
+        <li>Quatre à cinq boutons bordés par carte, de même poids que la décision.</li>
+      </ol>
+    </div>
+    <div class="colonne"><span class="etiquette propose">Proposition 1 : face à face, sans bruit</span><div class="cadre" id="trancher-p1"></div>
+      <ol class="argu">
+        <li>Garde le face à face validé ; <b>un seul contour par carte</b>, les colonnes séparées par un filet.</li>
+        <li><b>Plus de bleu</b> : « Garder » est bordé dans les deux colonnes ; « proposé » s'écrit à côté du terme.</li>
+        <li>L'indice (Abréviation, Synonymes) devient un texte gris, et Termes différents, Autre terme… des boutons texte.</li>
+      </ol>
+    </div>
+    <div class="colonne"><span class="etiquette propose">Proposition 2 : la proposition en tête (recommandée)</span><div class="cadre" id="trancher-p2"></div>
+      <ol class="argu">
+        <li><b>La carte se lit comme une carte d'À appliquer</b> : la proposition en jetons <span class="r">bg</span> → <span class="v">background</span>, puis un nom réel avant → après. On voit l'effet de « oui » avant de répondre.</li>
+        <li><b>Un seul bouton bordé</b>, celui qui accepte la proposition ; les autres réponses sont des boutons texte.</li>
+        <li>Toutes les cartes ont la même forme et la même hauteur : 118 px, contre 134 à 188 px aujourd'hui. Les cinq questions tiennent en 777 px au lieu de 1 019.</li>
+      </ol>
+    </div>
+    <div class="colonne"><span class="etiquette propose">Proposition 3 : choisir, puis valider</span><div class="cadre" id="trancher-p3"></div>
+      <ol class="argu">
+        <li>Les réponses deviennent une liste à cocher, la proposition déjà choisie ; chaque option dit son effet.</li>
+        <li>Un seul bouton Valider par carte. Une réponse demande deux clics au lieu d'un, et une carte mesure 169 à 222 px : la plus haute des trois propositions.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h2 id="fiche">4. La fiche d'un terme</h2>
+  <p>Points de la recette : éléments flottants, lien entre eux mal compris ; quelles informations, quelles actions,
+  quelles données et pourquoi ; animation d'entrée ; retirer la poignée factice et le bouton Fermer redondant ; un fond
+  sous le ✕.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette aujourdhui">Aujourd'hui</span><div class="cadre" id="fiche-aujourdhui"></div>
+      <ol class="argu">
+        <li>La poignée (barre grise en haut) n'attrape rien : la feuille ne se tire pas.</li>
+        <li>✕ en haut et Fermer en bas font la même chose ; le ✕ n'a pas de fond.</li>
+        <li>« Remplace » et « Employé dans » sont deux listes au même niveau ; rien ne dit que la première produit des renommages et que la seconde montre les noms déjà justes.</li>
+        <li>La feuille monte de 12 px en 160 ms : on ne la voit pas arriver.</li>
+      </ol>
+    </div>
+    <div class="colonne"><span class="etiquette propose">Proposé : terme UCM</span>
+      <div class="commandes"><button type="button" data-rejouer="fiche-ucm">Rejouer l'ouverture</button><button type="button" data-fermer="fiche-ucm">Jouer la fermeture</button></div>
+      <div class="cadre" id="fiche-ucm"></div>
+      <ol class="argu">
+        <li><b>En-tête</b> : le terme, son origine juste à côté, le ✕ sur un fond gris de 24 px. Ni poignée, ni Fermer.</li>
+        <li><b>La règle, en une ligne</b>, dans un bloc gris : <span class="r">bg</span> <span class="r">back</span> → <span class="v">background</span>, puis deux nombres : à renommer, déjà écrites ainsi.</li>
+        <li><b>À renommer</b> : les noms que la règle change, avant → après, comme dans À appliquer, avec un lien vers leur carte.</li>
+        <li><b>Termes remplacés</b> : ce que l'on modifie, avec + Ajouter ; une forme fixée par UCM le dit au lieu de Retirer.</li>
+        <li><b>Déjà employé</b> : la preuve, en dernier, le terme retenu en vert.</li>
+        <li>Tout tient sans défilement dans la fenêtre de 720 px.</li>
+        <li>Le pied ne porte que le geste qui change la règle. La feuille glisse depuis le bas en 280 ms sur un voile qui s'assombrit, et repart vers le bas à la fermeture ; avec « réduire les animations », un fondu de 120 ms.</li>
+      </ol>
+    </div>
+    <div class="colonne"><span class="etiquette propose">Proposé : terme personnalisé</span>
+      <div class="commandes"><button type="button" data-rejouer="fiche-perso">Rejouer l'ouverture</button><button type="button" data-fermer="fiche-perso">Jouer la fermeture</button></div>
+      <div class="cadre" id="fiche-perso"></div>
+      <ol class="argu">
+        <li>Même ordre que la fiche UCM : identité, règle, effet, ce que l'on modifie, preuve.</li>
+        <li>Un terme remplacé ajouté par le fichier porte Retirer ; Supprimer la règle est un bouton texte rouge, Proposer à UCM un bouton bordé.</li>
+      </ol>
+    </div>
+  </div>
+</main>
+
+<script src="galerie/etats.js"></script>
+<script>
+const esc = (texte) => String(texte).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* Les morceaux d'aujourd'hui, tels que le plugin les dessine (aAppliquer.ts, aTrancher.ts, regles.ts). */
+function cheminActuel(nom, mot) {
+  const segments = nom.split('/');
+  const rang = segments.findIndex((segment) => segment.toLowerCase().includes(mot.toLowerCase()));
+  return `<span class="chemin">${segments.map((s, i) => (i === rang ? `<mark>${esc(s)}</mark>` : esc(s))).join('/')}</span>`;
+}
+function changeActuel(avant, apres, plus) {
+  return `<span class="change"><code class="avant">${esc(avant)}</code><span class="fleche">→</span><code class="apres">${esc(apres)}</code>${plus ? `<span class="plus">+${plus}</span>` : ''}</span>`;
+}
+
+/* Les morceaux proposés. */
+function cotes(avant, apres) {
+  const a = avant.split('/');
+  const b = apres.split('/');
+  return [
+    a.map((s, i) => (s !== b[i] ? `<span class="seg-retire">${esc(s)}</span>` : esc(s))).join('/'),
+    b.map((s, i) => (s !== a[i] ? `<span class="seg-retenu">${esc(s)}</span>` : esc(s))).join('/'),
+  ];
+}
+const jeton = (texte, sorte, petit = false) => `<span class="jeton jeton-${sorte}${petit ? ' petit' : ''}">${esc(texte)}</span>`;
+function ligneDiff(avant, apres, avecCase = true) {
+  const [gauche, droite] = cotes(avant, apres);
+  return `<div class="diff">${avecCase ? '<input type="checkbox" class="case" checked>' : ''}<span class="chemin">${gauche}</span><span class="chemin-apres"><span class="fleche-ligne">→ </span>${droite}</span></div>`;
+}
+const pastille = (origine) => (origine === 'ucm' ? '<span class="pastille pastille-ucm">UCM</span>' : origine === 'perso' ? '<span class="pastille pastille-personnalise">Personnalisé</span>' : '');
+
+/* Les données de la recette, en noms inventés. */
+const CARTES = [
+  { section: 'Termes', sorte: 'terme', avant: 'colors', apres: 'color', origine: 'ucm', variables: 313, detail: '313 variables · 280 changent aussi d’écriture', deplie: true,
+    lignes: [['colors/Neutral/light/700', 'Color/Neutral/Light/700'], ['colors/Neutral/light/400', 'Color/Neutral/Light/400'], ['Button/Colors/Primary/Filled/Hover/Background', 'Button/Color/Primary/Filled/Hover/Background']] },
+  { section: 'Termes', sorte: 'terme', avant: 'small', apres: 'sm', origine: 'ucm', variables: 12, detail: 'Dans les noms · 12 variables',
+    lignes: [['Radius/small', 'Radius/sm']] },
+  { section: 'Termes', sorte: 'terme', avant: 'sm', apres: 'small', origine: 'ucm', variables: 6, detail: 'Dans les dossiers · 6 variables',
+    lignes: [['Button/Size/Sm/padding-y', 'Button/Size/Small/padding-y']] },
+  { section: 'Écriture', sorte: 'ecriture', categorie: 'Groupes', convention: 'PascalCase', avantActuel: 'danger', apresActuel: 'Danger', variables: 568, deplie: true,
+    lignes: [['primary/light/500', 'Primary/Light/500'], ['primary/light/200', 'Primary/Light/200'], ['success/vivid/light/400', 'Success/Vivid/Light/400']] },
+  { section: 'Collections', sorte: 'collection', avant: 'Couleurs', apres: 'color-brands', variables: 0, lignes: [] },
+];
+const TOTAL = 313 + 12 + 6 + 568 + 1;
+
+function carteActuelle(carte) {
+  const deplie = !!carte.deplie;
+  const total = carte.variables || 1;
+  const apercu = carte.lignes.slice(0, 3);
+  const autres = Math.max(0, total - apercu.length);
+  let change;
+  let meta;
+  if (carte.sorte === 'terme') { change = changeActuel(carte.avant, carte.apres, autres); meta = `${carte.variables} variables`; }
+  else if (carte.sorte === 'ecriture') { change = changeActuel(carte.avantActuel, carte.apresActuel, autres); meta = `${carte.categorie} · ${carte.convention}`; }
+  else { change = changeActuel(carte.avant, carte.apres, 0); meta = 'Collection UCM'; }
+  const lignes = apercu.map(([avant]) => {
+    const mot = carte.sorte === 'ecriture' ? avant.split('/')[0] : carte.avant;
+    return `<div class="rang"><input type="checkbox" class="case" checked>${cheminActuel(avant, mot)}</div>`;
+  }).join('');
+  const droite = `${carte.sorte === 'terme' ? pastille(carte.origine) : ''}${carte.lignes.length ? `<span class="chevron">${deplie ? '⌃' : '⌄'}</span>` : ''}`;
+  const corps = deplie ? `<div class="corps">${lignes}${autres ? `<div class="rang"><span></span><button type="button" class="autres">${autres} autres noms</button></div>` : ''}</div>` : '';
+  return `<div class="carte"><div class="tete"><input type="checkbox" class="case" checked><button class="tete-bouton" type="button"><div class="pile">${change}<span class="meta">${meta}</span></div><span class="droite">${droite}</span></button></div>${corps}</div>`;
+}
+
+function carteProposee(carte) {
+  const deplie = !!carte.deplie;
+  const total = carte.variables || 1;
+  const autres = Math.max(0, total - carte.lignes.length);
+  let tete;
+  let meta;
+  if (carte.sorte === 'terme') { tete = `<span class="regle-ligne">${jeton(carte.avant, 'retire')}<span class="fleche">→</span>${jeton(carte.apres, 'retenu')}</span>`; meta = carte.detail; }
+  else if (carte.sorte === 'ecriture') { tete = `<span class="regle-ligne"><span class="nom-regle">${carte.categorie}</span><span class="fleche">→</span>${jeton(carte.convention, 'retenu')}</span>`; meta = `${carte.variables} variables`; }
+  else { tete = `<span class="regle-ligne">${jeton(carte.avant, 'retire')}<span class="fleche">→</span>${jeton(carte.apres, 'retenu')}</span>`; meta = 'Collection UCM'; }
+  const droite = `${carte.sorte === 'terme' ? pastille(carte.origine) : ''}${carte.lignes.length ? `<span class="chevron">${deplie ? '⌃' : '⌄'}</span>` : ''}`;
+  const corps = deplie
+    ? `<div class="corps"><div class="colonnes-tete"><span></span><span>Aujourd’hui</span><span>Après l’application</span></div>${carte.lignes.map(([a, b]) => ligneDiff(a, b)).join('')}${autres ? `<div class="rang"><span></span><button type="button" class="autres">${autres} autres noms</button></div>` : ''}</div>`
+    : '';
+  return `<div class="carte"><div class="tete"><input type="checkbox" class="case" checked><button class="tete-bouton" type="button"><div class="pile">${tete}<span class="meta">${meta}</span></div><span class="droite">${droite}</span></button></div>${corps}</div>`;
+}
+
+function listeAAppliquer(fabriquer, cartes) {
+  const sections = ['Termes', 'Écriture', 'Collections'];
+  const enfants = sections.flatMap((section) => {
+    const dedans = cartes.filter((carte) => carte.section === section);
+    return dedans.length ? [`<div class="intertitre"><h2>${section}</h2></div>`, ...dedans.map(fabriquer)] : [];
+  }).join('');
+  return `<div class="liste">${enfants}</div><div class="pied"><span class="resume"><b>${TOTAL} noms</b> cochés</span><button type="button" class="btn btn-primary"><span>Appliquer</span></button></div>`;
+}
+const CARTES_ACTUELLES = CARTES.filter((carte) => !(carte.avant === 'sm' && carte.apres === 'small') && !(carte.avant === 'small'));
+
+/* À trancher. */
+const QUESTIONS = [
+  { type: 'paire', indice: 'Abréviation', termes: [['bg', 12, 'Button/bg/hover', false], ['background', 40, 'Button/background/hover', true]], propose: 1 },
+  { type: 'paire', indice: 'Synonymes', termes: [['stroke', 14, 'Input/stroke/default', false], ['border', 52, 'Card/border/default', true]], propose: 1 },
+  { type: 'faute', avant: 'backgrond', apres: 'background', detail: '2 variables ; background est employé dans 40 variables', exemple: ['Modal/backgrond/default', 'Modal/background/default'] },
+  { type: 'colles', avant: 'contrasthovered', apres: 'contrast-hovered', detail: '1 variable', exemple: ['Link/contrasthovered/text', 'Link/contrast-hovered/text'] },
+  { type: 'paire', indice: 'Synonymes', termes: [['radius', 9, 'Button/radius/default', false], ['corner', 3, 'Card/corner/default', false]], propose: 0 },
+];
+
+function piedActuel(gauche) {
+  return `<div class="question-pied"><span class="question-actions">${gauche}</span><span class="question-actions"><button type="button" class="btn-texte">Plus tard</button></span></div>`;
+}
+const bouton = (libelle, poids) => `<button type="button" class="btn btn-${poids} btn-compact"><span>${esc(libelle)}</span></button>`;
+const boutonTexte = (libelle, classe = '') => `<button type="button" class="btn-texte ${classe}">${esc(libelle)}</button>`;
+
+function questionActuelle(q) {
+  if (q.type === 'paire') {
+    const colonnes = q.termes.map(([mot, nombre, exemple, ucm], rang) => {
+      const propose = rang === q.propose;
+      return `<div class="colonne${propose ? ' propose' : ''}"><div class="colonne-entete"><code class="mot">${mot}</code>${ucm ? pastille('ucm') : ''}</div><span class="meta">${nombre} variables</span>${cheminActuel(exemple, mot)}${bouton(`Garder ${mot}`, propose ? 'primary' : 'secondary')}</div>`;
+    }).join('');
+    return `<div class="carte question"><div class="question-entete"><span class="question-titre">Ces termes désignent-ils la même chose ?</span><span class="pastille pastille-indice">${q.indice}</span></div><div class="face">${colonnes}</div>${piedActuel(bouton('Termes différents', 'secondary') + bouton('Autre terme…', 'secondary'))}</div>`;
+  }
+  const faute = q.type === 'faute';
+  return `<div class="carte question"><div class="question-entete"><span class="question-titre">${faute ? 'Ce terme est-il mal écrit ?' : 'Ce terme réunit-il plusieurs mots ?'}</span><span class="pastille pastille-indice">${faute ? 'Une lettre d’écart' : 'Mots collés'}</span></div><div class="effet">${changeActuel(q.avant, q.apres)}<span class="meta">${q.detail}</span></div>${piedActuel(bouton(faute ? 'Corriger' : 'Séparer', 'primary') + bouton(faute ? 'C’est voulu' : 'C’est un seul mot', 'secondary'))}</div>`;
+}
+
+function questionCalme(q) {
+  if (q.type === 'paire') {
+    const colonnes = q.termes.map(([mot, nombre, exemple, ucm], rang) => {
+      const propose = rang === q.propose;
+      return `<div class="colonne"><div class="colonne-entete"><code class="mot">${mot}</code>${ucm ? pastille('ucm') : ''}${propose ? '<span class="propose-par">proposé</span>' : ''}</div><span class="meta">${nombre} variables</span>${cheminActuel(exemple, mot)}${bouton(`Garder ${mot}`, 'secondary')}</div>`;
+    }).join('');
+    return `<div class="carte question calme"><div class="question-entete"><span class="question-titre">Ces termes désignent-ils la même chose ?</span><span class="meta indice">${q.indice}</span></div><div class="face calme">${colonnes}</div>${piedActuel(boutonTexte('Termes différents') + boutonTexte('Autre terme…'))}</div>`;
+  }
+  const faute = q.type === 'faute';
+  return `<div class="carte question calme"><div class="question-entete"><span class="question-titre">${faute ? 'Ce terme est-il mal écrit ?' : 'Ce terme réunit-il plusieurs mots ?'}</span><span class="meta indice">${faute ? 'Une lettre d’écart' : 'Mots collés'}</span></div><div class="effet">${changeActuel(q.avant, q.apres)}<span class="meta">${q.detail}</span></div>${piedActuel(bouton(faute ? 'Corriger' : 'Séparer', 'secondary') + boutonTexte(faute ? 'C’est voulu' : 'C’est un seul mot'))}</div>`;
+}
+
+function questionEnTete(q) {
+  let titre, indice, avant, apres, detail, exemple, accepter, autres;
+  let ucm = false;
+  if (q.type === 'paire') {
+    const garde = q.termes[q.propose];
+    const remplace = q.termes[q.propose === 0 ? 1 : 0];
+    titre = 'Ces termes désignent-ils la même chose ?';
+    indice = q.indice;
+    avant = remplace[0]; apres = garde[0];
+    detail = `${remplace[1]} variables à renommer · ${garde[0]} est employé dans ${garde[1]}`;
+    exemple = [remplace[2], remplace[2].replace(remplace[0], garde[0])];
+    accepter = `Remplacer ${remplace[0]}`;
+    autres = boutonTexte(`Garder ${remplace[0]}`) + boutonTexte('Termes différents') + boutonTexte('Autre terme…');
+    ucm = garde[3];
+  } else {
+    const faute = q.type === 'faute';
+    titre = faute ? 'Ce terme est-il mal écrit ?' : 'Ce terme réunit-il plusieurs mots ?';
+    indice = faute ? 'Une lettre d’écart' : 'Mots collés';
+    avant = q.avant; apres = q.apres; detail = q.detail; exemple = q.exemple;
+    accepter = faute ? 'Corriger' : 'Séparer';
+    autres = boutonTexte(faute ? 'C’est voulu' : 'C’est un seul mot');
+  }
+  const [gauche, droite] = cotes(exemple[0], exemple[1]);
+  return `<div class="carte question tete-proposee"><div class="question-entete"><span class="question-titre">${titre}</span><span class="meta indice">${indice}</span></div>`
+    + `<span class="regle-ligne">${jeton(avant, 'retire')}<span class="fleche">→</span>${jeton(apres, 'retenu')}${ucm ? pastille('ucm') : ''}<span class="meta">${detail}</span></span>`
+    + `<span class="exemple-diff">${gauche} <span class="fleche">→</span> ${droite}</span>`
+    + `<div class="question-pied"><span class="question-actions">${bouton(accepter, 'secondary')}${autres}</span><span class="question-actions"><button type="button" class="btn-texte">Plus tard</button></span></div></div>`;
+}
+
+function questionAChoisir(q, rang) {
+  const nom = `q${rang}`;
+  if (q.type === 'paire') {
+    const options = [q.propose, q.propose === 0 ? 1 : 0].map((i, ordre) => {
+      const [mot, nombre, exemple, ucm] = q.termes[i];
+      const autre = q.termes[i === 0 ? 1 : 0];
+      return `<label class="choix"><input type="radio" name="${nom}"${ordre === 0 ? ' checked' : ''}><span class="pile"><span class="regle-ligne">Garder ${jeton(mot, ordre === 0 ? 'retenu' : 'neutre')}${ucm ? pastille('ucm') : ''}</span><span class="meta">${esc(autre[0])} → ${esc(mot)} dans ${autre[1]} variables</span></span><span class="meta">${nombre} variables</span></label>`;
+    }).join('');
+    return `<div class="carte question"><div class="question-entete"><span class="question-titre">Ces termes désignent-ils la même chose ?</span><span class="meta indice">${q.indice}</span></div><div class="choix-liste">${options}<label class="choix"><input type="radio" name="${nom}"><span>Ce sont deux termes différents</span><span></span></label></div><div class="question-pied"><span class="question-actions">${boutonTexte('Autre terme…')}${boutonTexte('Plus tard')}</span><span class="question-actions">${bouton('Valider', 'secondary')}</span></div></div>`;
+  }
+  const faute = q.type === 'faute';
+  return `<div class="carte question"><div class="question-entete"><span class="question-titre">${faute ? 'Ce terme est-il mal écrit ?' : 'Ce terme réunit-il plusieurs mots ?'}</span><span class="meta indice">${faute ? 'Une lettre d’écart' : 'Mots collés'}</span></div><div class="choix-liste"><label class="choix"><input type="radio" name="${nom}" checked><span class="pile"><span class="regle-ligne">${faute ? 'Corriger en' : 'Séparer en'} ${jeton(q.apres, 'retenu')}</span><span class="meta">${q.detail}</span></span><span></span></label><label class="choix"><input type="radio" name="${nom}"><span>${faute ? 'C’est voulu' : 'C’est un seul mot'}</span><span></span></label></div><div class="question-pied"><span class="question-actions">${boutonTexte('Plus tard')}</span><span class="question-actions">${bouton('Valider', 'secondary')}</span></div></div>`;
+}
+
+/* Règles. */
+const TERMES = [
+  { mot: 'background', origine: 'ucm', etat: 'retenu', remplace: ['bg', 'back'], nombre: 40 },
+  { mot: 'color', origine: 'ucm', etat: 'retenu', remplace: ['colors', 'colour'], nombre: 120 },
+  { mot: 'hover', origine: 'perso', etat: 'retenu', remplace: ['hovered'], nombre: 8 },
+  { mot: 'colors', origine: 'ucm', etat: 'retire', par: 'color', nombre: 313 },
+  { mot: 'stroke', origine: null, etat: 'doute', avec: 'border', nombre: 14 },
+  { mot: 'radius', origine: null, etat: 'sans-regle', nombre: 9 },
+  { mot: 'surface', origine: 'ucm', etat: 'ecarte', nombre: 6 },
+];
+function resumeActuel(t) {
+  if (t.etat === 'retenu') return `remplace ${t.remplace.join(', ')}`;
+  if (t.etat === 'retire') return '';
+  if (t.etat === 'doute') return `à trancher avec ${t.avec}`;
+  if (t.etat === 'ecarte') return 'non appliqué dans ce fichier';
+  return '';
+}
+function ligneTermeActuelle(t) {
+  return `<button type="button" class="ligne-terme"><span class="terme-identite"><code class="mot">${t.mot}</code>${pastille(t.origine)}</span><span class="meta">${resumeActuel(t)}</span><span class="meta terme-nombre">${t.nombre}</span><span class="chevron">›</span></button>`;
+}
+function resumePropose(t) {
+  if (t.etat === 'retenu') return `<span class="meta">remplace</span>${t.remplace.map((m) => jeton(m, 'retire', true)).join('')}`;
+  if (t.etat === 'retire') return `<span class="meta">remplacé par</span>${jeton(t.par, 'retenu', true)}`;
+  if (t.etat === 'doute') return `<span class="meta">à trancher avec</span>${jeton(t.avec, 'doute', true)}`;
+  if (t.etat === 'ecarte') return '<span class="meta">non appliqué dans ce fichier</span>';
+  return '';
+}
+function ligneTermeProposee(t, etiquette = false) {
+  const marque = etiquette
+    ? `<span class="etat-terme ${t.etat === 'ecarte' ? 'sans-regle' : t.etat}">${{ retenu: `Remplace ${t.remplace?.length}`, retire: 'Remplacé', doute: 'À trancher', 'sans-regle': 'Sans règle', ecarte: 'Écarté' }[t.etat]}</span>`
+    : `<span class="puce puce-${t.etat}"></span>`;
+  return `<button type="button" class="ligne-terme v2${etiquette ? ' etiquette' : ''}">${marque}<span class="terme-resume"><code class="mot">${t.mot}</code>${resumePropose(t)}</span>${pastille(t.origine) || '<span></span>'}<span class="meta terme-nombre">${t.nombre}</span><span class="chevron">›</span></button>`;
+}
+const FILTRES = '<div class="filtres" role="group"><button type="button" class="filtre" aria-pressed="true">Tous 7</button><button type="button" class="filtre" aria-pressed="false">Avec règle 5</button><button type="button" class="filtre" aria-pressed="false">Sans règle 2</button></div>';
+const RECHERCHE = '<input type="search" class="input recherche" placeholder="Chercher un terme">';
+
+function reglesActuelles() {
+  return `<div class="intertitre intertitre-avec-action"><h2>Écriture</h2>${bouton('Modifier', 'secondary')}</div>`
+    + '<div class="carte"><div class="resume-ecriture"><span>Groupes</span><span>PascalCase</span><span>Noms</span><span>Minuscules · tirets</span><span>Collections</span><span>noms UCM</span></div></div>'
+    + `<div class="intertitre intertitre-avec-action"><h2>Termes</h2>${RECHERCHE}</div>${FILTRES}`
+    + `<div class="liste-termes">${TERMES.map(ligneTermeActuelle).join('')}</div>`;
+}
+const ECRITURE_V2 = '<div class="ecriture-v2">'
+  + `<div class="ecriture-v2-ligne"><span class="meta">Groupes</span>${jeton('PascalCase', 'neutre')}<span class="exemple"><span class="partie">Button/Color/Primary</span>/padding-y</span></div>`
+  + `<div class="ecriture-v2-ligne"><span class="meta">Noms</span>${jeton('minuscules-tirets', 'neutre')}<span class="exemple">Button/Size/Small/<span class="partie">padding-y</span></span></div>`
+  + `<div class="ecriture-v2-ligne"><span class="meta">Collections</span>${jeton('noms UCM', 'neutre')}<span class="exemple"><span class="partie">color-brands</span></span></div>`
+  + '</div>';
+function reglesA() {
+  return '<section class="section-regles"><div class="section-tete"><div><h2>Écriture</h2><p>Comment chaque nom s’écrit : majuscules et séparateurs.</p></div>'
+    + `${bouton('Modifier', 'secondary')}</div>${ECRITURE_V2}</section>`
+    + '<section class="section-regles"><div class="section-tete"><div><h2>Termes</h2><p>Quels mots employer : un terme retenu remplace ses variantes.</p></div></div>'
+    + `<div class="outils-termes">${FILTRES}${RECHERCHE}</div><div class="liste-termes">${TERMES.map((t) => ligneTermeProposee(t)).join('')}</div></section>`;
+}
+function reglesB() {
+  return '<div class="sous-onglets" role="tablist"><button type="button" class="sous-onglet" aria-selected="false">Écriture</button><button type="button" class="sous-onglet" aria-selected="true">Termes 7</button></div>'
+    + '<p class="meta" style="margin:0">Quels mots employer : un terme retenu remplace ses variantes.</p>'
+    + `<div class="outils-termes">${FILTRES}${RECHERCHE}</div><div class="liste-termes">${TERMES.map((t) => ligneTermeProposee(t, true)).join('')}</div>`;
+}
+
+/* La fiche d'un terme. */
+function ficheProposee({ mot, origine, categorie, definition, remplace, aRenommer, deja, exemplesDeja, pied }) {
+  const regle = `<span class="regle-ligne">${remplace.map(([m]) => jeton(m, 'retire')).join('')}<span class="fleche">→</span>${jeton(mot, 'retenu')}</span>`;
+  const renommer = aRenommer.lignes.map(([a, b]) => ligneDiff(a, b, false)).join('');
+  const remplaces = remplace.map(([m, n, fixe]) => `<div class="remplace-rang"><span>${jeton(m, 'retire', true)}<span class="meta">${n} variables</span></span>${fixe ? '<span class="meta">Fixé par UCM</span>' : boutonTexte('Retirer')}</div>`).join('');
+  const preuves = exemplesDeja.map((nom) => {
+    const s = nom.split('/');
+    return `<span class="chemin">${s.map((x) => (x === mot ? `<span class="seg-retenu">${x}</span>` : esc(x))).join('/')}</span>`;
+  }).join('');
+  const origineHtml = origine === 'ucm' ? `<span class="pastille pastille-ucm">UCM · ${categorie}</span>` : pastille('perso');
+  return `<div class="feuille-voile feuille-terme v2"><section class="feuille" role="dialog" aria-modal="true">`
+    + `<header class="feuille-entete"><div class="fiche-titre-ligne"><h2 class="feuille-titre">${mot}</h2>${origineHtml}</div><button type="button" class="feuille-fermer" aria-label="Fermer">×</button></header>`
+    + '<div class="feuille-corps"><div class="feuille-contenu">'
+    + `<p class="meta" style="margin:0">${definition}</p>`
+    + `<div class="fiche-regle">${regle}<span class="chiffres"><b>${aRenommer.nombre} variables</b> à renommer · <b>${deja}</b> déjà écrites ainsi</span></div>`
+    + `<div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>À renommer · ${aRenommer.nombre}</h3><button type="button" class="lien">Voir dans À appliquer</button></div><div class="fiche-liste">${renommer}</div></div>`
+    + `<div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>Termes remplacés</h3>${bouton('+ Ajouter', 'secondary')}</div><div class="fiche-liste">${remplaces}</div></div>`
+    + `<div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>Déjà employé · ${deja}</h3></div><div class="fiche-liste">${preuves}</div></div>`
+    + `</div></div><footer class="feuille-pied"><div class="feuille-actions">${pied}</div></footer></section></div>`;
+}
+const FICHE_UCM = ficheProposee({
+  mot: 'background', origine: 'ucm', categorie: 'rôle', definition: 'La couleur de fond d’un élément.',
+  remplace: [['bg', 12, true], ['back', 3, true]],
+  aRenommer: { nombre: 15, lignes: [['Button/bg/hover', 'Button/background/hover'], ['Card/bg/default', 'Card/background/default'], ['Modal/back/default', 'Modal/background/default']] },
+  deja: 40, exemplesDeja: ['Button/background/hover', 'Card/background/default', 'Page/background/default'],
+  pied: `${boutonTexte('Ne pas appliquer ce terme dans ce fichier')}<span></span>`,
+});
+const FICHE_PERSO = ficheProposee({
+  mot: 'hover', origine: 'perso', definition: 'Défini dans ce fichier.',
+  remplace: [['hovered', 8, false]],
+  aRenommer: { nombre: 8, lignes: [['Link/hovered/text', 'Link/hover/text'], ['Button/hovered/border', 'Button/hover/border']] },
+  deja: 8, exemplesDeja: ['Link/hover/text', 'Button/hover/border'],
+  pied: `${boutonTexte('Supprimer la règle', 'danger')}<span class="feuille-groupe">${bouton('Proposer à UCM', 'secondary').replace(' btn-compact', '')}</span>`,
+});
+
+const PLANCHE = '<div class="planche">'
+  + `<div class="planche-ligne"><span><b>Forme qui disparaît</b><span class="meta">rouge</span></span><span class="regle-ligne">${jeton('bg', 'retire')}<span class="chemin">Button/<span class="seg-retire">bg</span>/hover</span></span></div>`
+  + `<div class="planche-ligne"><span><b>Forme retenue</b><span class="meta">vert</span></span><span class="regle-ligne">${jeton('background', 'retenu')}<span class="chemin">Button/<span class="seg-retenu">background</span>/hover</span></span></div>`
+  + `<div class="planche-ligne"><span><b>Un renommage</b><span class="meta">gauche aujourd’hui, droite après</span></span><span class="pile"><span class="regle-ligne">${jeton('colors', 'retire')}<span class="fleche">→</span>${jeton('color', 'retenu')}</span>${ligneDiff('colors/Neutral/light/700', 'Color/Neutral/Light/700', false)}</span></div>`
+  + `<div class="planche-ligne"><span><b>Une écriture</b><span class="meta">écrite dans son format</span></span><span class="regle-ligne">${jeton('PascalCase', 'neutre')}${jeton('minuscules-tirets', 'neutre')}${jeton('minuscules_tirets_bas', 'neutre')}${jeton('camelCase', 'neutre')}${jeton('Majuscule initiale', 'neutre')}</span></div>`
+  + `<div class="planche-ligne"><span><b>Décision attendue</b><span class="meta">ambre, À trancher seulement</span></span><span class="regle-ligne">${jeton('stroke', 'doute')}<span class="chemin">Input/<mark>stroke</mark>/default</span></span></div>`
+  + '<div class="planche-ligne"><span><b>État d’un terme</b><span class="meta">puce à gauche de sa ligne</span></span><span class="regle-ligne"><span class="puce puce-retenu"></span>retenu<span class="puce puce-retire"></span>remplacé<span class="puce puce-doute"></span>à trancher<span class="puce puce-sans-regle"></span>sans règle<span class="puce puce-ecarte"></span>non appliqué</span></div>'
+  + `<div class="planche-ligne"><span><b>Origine</b><span class="meta">toujours à droite</span></span><span class="regle-ligne">${pastille('ucm')}${pastille('perso')}</span></div>`
+  + '<div class="planche-ligne"><span><b>Action</b><span class="meta">seul le bleu agit</span></span><span class="regle-ligne"><button type="button" class="btn btn-primary"><span>Appliquer</span></button><button type="button" class="btn btn-secondary btn-compact"><span>Remplacer bg</span></button><button type="button" class="btn-texte">Plus tard</button></span></div>'
+  + '</div>';
+
+/* Les cadres. */
+function cadre(id, { etat, largeur = 640, hauteur = 720, propose = true, panneau, compte, feuille, sansCoquille, apres }) {
+  const hote = document.getElementById(id);
+  const g = window.GALERIE[etat];
+  const iframe = document.createElement('iframe');
+  iframe.width = largeur;
+  iframe.height = hauteur;
+  iframe.style.width = `${largeur}px`;
+  iframe.style.height = `${hauteur}px`;
+  const feuilles = `<link rel="stylesheet" href="galerie/plugin.css">${propose ? '<link rel="stylesheet" href="propose.css">' : ''}`;
+  iframe.srcdoc = `<!doctype html><html lang="fr" class="${g.classe}"><head><meta charset="utf-8">${feuilles}</head><body>${sansCoquille ? '' : g.corps}</body></html>`;
+  iframe.addEventListener('load', () => {
+    const doc = iframe.contentDocument;
+    if (sansCoquille) doc.body.innerHTML = sansCoquille;
+    if (panneau) {
+      const pile = doc.querySelector('[role="tabpanel"] > .page-stack');
+      if (pile) pile.innerHTML = panneau;
+    }
+    if (compte) for (const [onglet, nombre] of Object.entries(compte)) {
+      const element = doc.querySelector(`#${onglet} .compte`);
+      if (element) element.textContent = nombre;
+    }
+    if (feuille !== undefined) {
+      doc.querySelectorAll('.feuille-voile').forEach((voile) => voile.replaceWith());
+      if (feuille) doc.body.insertAdjacentHTML('beforeend', feuille);
+    }
+    apres?.(doc, iframe);
+  });
+  hote.append(iframe);
+  return iframe;
+}
+
+const COMPTES = { 'onglet-a-appliquer': TOTAL, 'onglet-a-trancher': QUESTIONS.length };
+
+cadre('planche', { etat: 'regles', hauteur: 880, sansCoquille: PLANCHE });
+
+cadre('regles-aujourdhui', { etat: 'regles', propose: false, panneau: reglesActuelles(), compte: COMPTES });
+cadre('regles-a', { etat: 'regles', panneau: reglesA(), compte: COMPTES });
+cadre('regles-b', { etat: 'regles', panneau: reglesB(), compte: COMPTES });
+
+cadre('appliquer-aujourdhui', { etat: 'a-appliquer-depliee', propose: false, panneau: listeAAppliquer(carteActuelle, CARTES_ACTUELLES), compte: COMPTES });
+cadre('appliquer-640', { etat: 'a-appliquer-depliee', panneau: listeAAppliquer(carteProposee, CARTES), compte: COMPTES });
+cadre('appliquer-360', { etat: 'a-appliquer-depliee', largeur: 360, hauteur: 720, panneau: listeAAppliquer(carteProposee, CARTES), compte: COMPTES });
+
+const TRANCHER_FIN = '<div><div class="carte"><div class="tete sans-coche"><button type="button" class="tete-bouton"><span class="plus-tard-titre">Plus tard · 1</span><span class="chevron">⌄</span></button></div></div></div>';
+const trancher = (fabriquer) => `<div class="liste">${QUESTIONS.map(fabriquer).join('')}</div>${TRANCHER_FIN}`;
+cadre('trancher-aujourdhui', { etat: 'a-trancher', propose: false, panneau: trancher(questionActuelle), compte: COMPTES });
+cadre('trancher-p1', { etat: 'a-trancher', panneau: trancher(questionCalme), compte: COMPTES });
+cadre('trancher-p2', { etat: 'a-trancher', panneau: trancher(questionEnTete), compte: COMPTES });
+cadre('trancher-p3', { etat: 'a-trancher', panneau: trancher(questionAChoisir), compte: COMPTES });
+
+cadre('fiche-aujourdhui', { etat: 'feuille-terme-ucm', propose: false });
+const fiches = {
+  'fiche-ucm': cadre('fiche-ucm', { etat: 'feuille-terme-ucm', feuille: FICHE_UCM }),
+  'fiche-perso': cadre('fiche-perso', { etat: 'feuille-terme-personnalise', feuille: FICHE_PERSO }),
+};
+const contenus = { 'fiche-ucm': FICHE_UCM, 'fiche-perso': FICHE_PERSO };
+
+function rejouer(id) {
+  const doc = fiches[id].contentDocument;
+  doc.querySelectorAll('.feuille-voile').forEach((voile) => voile.replaceWith());
+  doc.body.insertAdjacentHTML('beforeend', contenus[id]);
+  brancherLaFermeture(id);
+}
+function fermer(id) {
+  const voile = fiches[id].contentDocument.querySelector('.feuille-voile');
+  if (!voile || voile.classList.contains('sortante')) return;
+  voile.classList.add('sortante');
+  setTimeout(() => { voile.replaceWith(); setTimeout(() => rejouer(id), 700); }, 220);
+}
+function brancherLaFermeture(id) {
+  const doc = fiches[id].contentDocument;
+  doc.querySelector('.feuille-fermer')?.addEventListener('click', () => fermer(id));
+  doc.querySelector('.feuille-voile')?.addEventListener('click', (evenement) => { if (evenement.target.classList.contains('feuille-voile')) fermer(id); });
+}
+for (const id of Object.keys(fiches)) fiches[id].addEventListener('load', () => brancherLaFermeture(id));
+document.querySelectorAll('[data-rejouer]').forEach((b) => b.addEventListener('click', () => rejouer(b.dataset.rejouer)));
+document.querySelectorAll('[data-fermer]').forEach((b) => b.addEventListener('click', () => fermer(b.dataset.fermer)));
+</script>
+</body>
+</html>
