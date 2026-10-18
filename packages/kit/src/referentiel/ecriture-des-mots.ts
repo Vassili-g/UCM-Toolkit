@@ -2,6 +2,7 @@
 import { COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
 import { CATEGORIES_DE_NOM, type Casse, type CategorieDeNom, type NomANormaliser, type Separateur } from './conventions.js';
 import type { ConventionDetectee } from './normalisation.js';
+import { decouperUnBloc } from './termes-connus.js';
 import { REGISTRES } from './vocabulaire.js';
 
 export function frontieres(segment: string): string {
@@ -18,13 +19,22 @@ const decompositions = new Map([...termesDecomposables, ...COLLECTIONS].flatMap(
 export function decouperSegment(segment: string): string[] {
   const mots = frontieres(segment).split(/[-_\s\0]+/u).filter(Boolean);
   const decomposition = mots.length === 1 ? decompositions.get(segment.toLowerCase()) : undefined;
-  if (!decomposition) return mots;
+  if (!decomposition) return mots.flatMap(trancherUnBlocSoude);
   let debut = 0;
   return decomposition.map((mot) => {
     const morceau = segment.slice(debut, debut + mot.length);
     debut += mot.length;
     return morceau;
   });
+}
+
+/** Coupe un mot soudé en tranches du mot d'origine quand chaque morceau est connu (`textdefault`). Les questions et le renommage voient ainsi les mêmes mots. */
+function trancherUnBlocSoude(mot: string): string[] {
+  if (!/^\p{L}+$/u.test(mot)) return [mot];
+  const morceaux = decouperUnBloc(mot);
+  if (morceaux.length < 2 || morceaux.join('') !== mot.toLowerCase()) return [mot];
+  let debut = 0;
+  return morceaux.map((morceau) => mot.slice(debut, (debut += morceau.length)));
 }
 
 export function capitale(mot: string): string {

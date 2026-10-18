@@ -3,6 +3,7 @@ import test from 'node:test';
 import { commencerLexique, detecterLesQuestions, indexerVocabulaire,
   type DejaJuge, type NomLu, type Question } from '../src/referentiel/index.js';
 import { decouperPourQuestions } from '../src/referentiel/termes-connus.js';
+import { decouperSegment } from '../src/referentiel/ecriture-des-mots.js';
 
 const index = indexerVocabulaire({ personnalises: [], ecartsUcm: [] }).index;
 const vide: DejaJuge = { distincts: [], plusTard: [], voulus: [], collectionsGardees: [] };
@@ -62,11 +63,14 @@ test('les formes d’un même mot sortent : faute, pluriel, terminaison, abrévi
   assert.deepEqual(paires([nom('a', 'x/default/y'), nom('b', 'z/defaults/w')]), ['paire:default|defaults']);
 });
 
-// Le renommage découpe encore ce segment d’un bloc : une réponse ne renommerait rien. Il faut d’abord un découpage commun (lot A2).
-test('une faute dans un bloc collé ne sort pas tant que le renommage ne sait pas l’appliquer', () => {
+// Le renommage découpe ce bloc comme les questions : la réponse s’applique au milieu du mot collé.
+test('une faute dans un bloc collé sort, et le renommage voit les mêmes mots', () => {
   const noms = [nom('rare', 'x/textsucccess/y'), ...Array.from({ length: 5 }, (_, i) => nom(`ref-${i}`, `x/success/${'abcde'[i]}`))];
   const faute = questions(noms).find((q) => q.type === 'ecriture-du-terme' && q.indice === 'faute');
-  assert.equal(faute, undefined);
+  assert.deepEqual(faute?.type === 'ecriture-du-terme' && [faute.terme.mot, ...faute.proposition], ['succcess', 'success']);
+  assert.deepEqual(decouperSegment('textsucccess'), ['text', 'succcess']);
+  assert.deepEqual(decouperSegment('TextSucccess'), ['Text', 'Succcess']);
+  assert.deepEqual(decouperSegment('scalewrap'), ['scalewrap']);
 });
 
 function arbre(): NomLu[] {

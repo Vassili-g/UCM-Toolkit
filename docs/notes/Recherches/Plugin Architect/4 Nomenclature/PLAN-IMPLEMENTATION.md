@@ -42,19 +42,28 @@ La revue a montré que corriger le bruit ne suffit pas. Il faut garantir qu'une 
 
 ## Lots
 
-| Lot | Travail | Qui | Dépend de | Preuve de fin |
-|---|---|---|---|---|
-| A0 | Adopter la méthode et les catégories de jugement | Mainteneur, sur la page | — | Section « Méthode » de la page répondue, reportée dans `decisions.json` |
-| A1 | Annoter le jeu de référence : chaque paire est équivalente, distincte ou indéterminée | Mainteneur, sur la page ; contributeur prépare | A0 | Annotations dans `_local/annotations-c2.json` ; un tiers tenu à l'écart pour la recette |
-| A2 | Représentation commune des occurrences, de la détection au renommage | Contributeur | A1 | Test de session : répondre, constater le renommage, annuler, retrouver l'état initial ; recalcul partiel égal au complet ; `textsucccess` corrigeable |
-| A3 | Branches parallèles : score de confiance, motifs d'abstention, portée de la règle créée | Contributeur | A2 | Cas obligatoires du jeu retrouvés, contre-exemples préservés, aucun remplacement hors du périmètre validé, budgets de calcul mesurés (32 000 noms, tranches de 8 ms) |
-| A4 | Auditer les extractions : provenance par occurrence, matrice système × famille × couche, `REGISTRES_ARCHITECTURE`, réglages MUI | Contributeur | — | Couches inconnues visibles ; chaque extracteur vérifié sur un extrait connu |
-| A5 | Analyse par concept sur occurrences annotées | Contributeur | A4 | Dénominateurs explicites ; conclusions sensibles au classement signalées |
-| A6 | Décisions de termes | Mainteneur, sur la page | A0, A5 | `decisions.json` : identifiant, version des données, choix, portée, raison, état |
-| A7 | Intégrer les décisions au kit, simuler les renommages, traiter les consommateurs | Contributeur | A3, A6 | Tests, versions, vues générées ; impact des chemins publiés documenté |
-| A8 | Recette Figma sur copie et nouveau jugement de Q1 | Mainteneur | A7 | Effets conformes aux simulations, retour arrière vérifié |
-
-A4 peut avancer en parallèle d'A2 et A3. La page de questions sert A0, A1 et une première passe d'A6 sur les décisions qui ne dépendent pas d'A5.
+- [x] **A0 · Méthode adoptée.** Les règles M01 à M13 sont tranchées dans `decisions.json` ; M08 et M09 sont refusées, ce qui ajoute deux corrections à A2 et A3.
+- [x] **A1 · Jeu de référence annoté.** 17 paires de C2 classées : 10 équivalentes, 5 distinctes, 2 indéterminées, dans `_local/annotations-c2.json`.
+- [x] **A6 · Décisions de termes.** Toutes les questions sont tranchées, T09 et T10 annulées (tirées d’un ancien export) ; voir `decisions.json`. L’architecture de référence est la [vue illustrée multimarques](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html), pas l’export d’UCM-Playground.
+- [ ] **A2 · Même découpage pour les questions et le renommage.**
+  - [ ] `decouperSegment` coupe un bloc soudé comme les questions, en tranches du mot d’origine (`textsucccess` → `text` + `succcess`) ; un nom sans règle reste identique.
+  - [ ] Test de session : la réponse à la faute renomme, l’annulation rend l’état initial.
+- [ ] **A3 · Branches parallèles et formes, d’après les décisions.**
+  - [ ] M08 : un mot connu face à un mot inconnu donne une question (`hover` / `survol`).
+  - [ ] S06 : un singulier et un pluriel ne sont comparés que s’ils sont du même type, deux variables ou deux groupes.
+  - [ ] T01 et S04 : `foreground` et `text` ne sont jamais proposés comme le même mot.
+  - [ ] Remesurer C1 et C2 ; comparer les questions de C2 aux 17 paires annotées.
+- [ ] **A7 · Décisions dans les registres du kit.** Chaque changement renvoie à son identifiant de décision.
+  - [ ] États (S01, T02, T12, S05, C03) : `default` (tolère `rest`, `resting`, `normal`, `selected-false`, `unselected`), `hover` (`hovered`), `focus` (`focused`), `pressed` (`press`), `disabled` (`disable`), `selected` (`selected-true`).
+  - [ ] Tailles (T06, S02) : `xs`, `sm`, `md`, `lg`, `xl`, `2xl`… ; `sm` tolère `small`, `md` tolère `medium`, `lg` tolère `large` et `big`.
+  - [ ] Statuts (T03, C04 à C06) : `danger` tolère `error`, `critical`, `negative` ; `success` tolère `positive` ; `warning` tolère `caution`, `attention`, `notice` ; `info` tolère `information`, `informative`.
+  - [ ] Rôles (T01, T14, T15, C01, C08) : `text` et `inverse` ajoutés ; `background` tolère `bg` ; `ring` tolère `focus-ring` ; `divider` tolère `separator`.
+  - [ ] Propriétés (T04, T05, T07, T13) : `font-size`, `line-height`, `letter-spacing`, `font-weight`, `font-family` ; `radius` tolère `border-radius` ; `color` tolère `colors` et `colour` ; `size`, `icon`, `dimension` tolèrent leur pluriel.
+  - [ ] Hors registre, faute de portée par type : `stroke` → `border` (C02), `grey` → `neutral` (C07), `elevation` → `shadow` (C09) restent des questions au cas par cas.
+  - [ ] Simulation des renommages sur l’architecture de référence, tests, vues générées, version du kit.
+- [ ] **A4 · Corpus UCM refait sur l’architecture de référence**, puis audit des extractions (provenance, couches, réglages MUI).
+- [ ] **A5 · Analyse par concept** sur occurrences annotées, si une décision reste à justifier.
+- [ ] **A8 · Recette Figma** sur une copie et nouveau jugement de Q1, par le mainteneur.
 
 ## Format des décisions
 

@@ -186,6 +186,22 @@ test('répondre à une faute : corriger écrit le terme corrigé ; c\'est voulu 
   assert.deepEqual(b.terme(`terme:${question.proposition.join(' ')}`)?.remplace, [[question.terme.mot]]);
 });
 
+test('une faute au milieu d\'un mot collé : la réponse renomme, l\'annulation rend l\'état initial', async () => {
+  const neutre = JSON.stringify({ version: 1, groupes: { casse: 'inchangee', separateur: 'inchange' }, variables: { casse: 'inchangee', separateur: 'inchange' } });
+  const noms: [string, string][] = [['rare', 'x/textsucccess/y'], ...['a', 'b', 'c', 'd', 'e'].map((l): [string, string] => [`ref-${l}`, `x/success/${l}`])];
+  const b = banc(noms, { ecriture: neutre });
+  await b.envoyer({ type: 'analyser' });
+  const termes = () => b.bilan().groupes.filter((g) => g.regle.sorte === 'terme').reduce((total, g) => total + g.variables, 0);
+  assert.equal(termes(), 0);
+  const question = b.bilan().questions.find((q) => q.type === 'ecriture-du-terme' && q.terme.mot === 'succcess');
+  assert.ok(question && question.type === 'ecriture-du-terme', `une faute était attendue : ${JSON.stringify(b.bilan().questions.map((q) => q.cle))}`);
+  await b.repondre(question.cle, { type: 'corriger', mots: question.proposition });
+  assert.equal(termes(), 1, 'textsucccess devient textsuccess');
+  await b.regle({ type: 'annuler-reponse', question: question.cle });
+  assert.equal(termes(), 0);
+  assert.ok(b.bilan().questions.some((q) => q.cle === question.cle));
+});
+
 test('une réponse qui ne convient pas à la question, ou à une question disparue, répond echec', async () => {
   const b = banc(PAIRES, { ecriture });
   await b.envoyer({ type: 'analyser' });

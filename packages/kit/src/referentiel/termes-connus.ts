@@ -110,7 +110,7 @@ export function termeOuVarianteConnu(mot: string): boolean {
 type Decoupe = { readonly morceaux: readonly string[]; readonly approximatifs: number; readonly exacts: number };
 
 /** Coupe un bloc de lettres en morceaux d'au moins trois lettres, dont un au moins exact et les autres connus ou fautifs. */
-function decouperUnBloc(bloc: string): string[] {
+export function decouperUnBloc(bloc: string): string[] {
   const minuscule = bloc.toLowerCase();
   if (termeConnu(minuscule) || bloc.length > LONGUEUR_MAXIMALE_D_UN_BLOC || bloc.length < LONGUEUR_MINIMALE_D_UN_MORCEAU * 2) return [bloc];
   const solutions = new Map<number, Decoupe | null>();
