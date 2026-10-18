@@ -242,4 +242,57 @@ export const TEXTES = {
   reprendre: 'Reprendre',
   reprendreLaQuestion: (avant: string, apres: string | null): string => `Reprendre : ${apres === null ? avant : `${avant} → ${apres}`}`,
   autresPistes: (nombre: number): string => `Autres pistes · ${nombre}`,
+
+  // U4b : feuilles de l'écriture et des termes.
+  fermer: 'Fermer',
+  aucunNomNeChange: 'Aucun nom ne change avec ce choix.',
+  pastilleUcmDeCategorie: (categorie: string): string => `UCM · ${categorie}`,
+  /** Le nom que le designer donne à la famille d'un terme UCM ; une famille inconnue garde son identifiant. */
+  categorieDuTermeUcm: (identifiant: string): string => {
+    const connues: Readonly<Record<string, string>> = {
+      crans: 'cran',
+      modes: 'mode',
+      profils: 'profil',
+      intensites: 'intensité',
+      etats: 'état',
+      'axes-etat': 'axe d’état',
+      tailles: 'taille',
+      statuts: 'statut',
+      roles: 'rôle',
+    };
+    return connues[identifiant] ?? identifiant;
+  },
+  pastilleSansRegle: 'Sans règle',
+  pastilleATrancherDuTerme: 'À trancher',
+  lectureDuTerme: 'Lecture du terme…',
+  definitionPersonnalisee: 'Défini dans ce fichier.',
+  termeEcarte: 'Ce terme n’est pas appliqué dans ce fichier.',
+  termeRemplacePar: (par: string): string => `Remplacé par \`${par}\`.`,
+  questionSurLeTerme: 'Une question à trancher porte sur ce terme.',
+
+  sectionRemplace: 'Remplace',
+  ajouterUnTerme: '+ Ajouter',
+  retirer: 'Retirer',
+  retirerLeTermeRemplace: (mot: string): string => `Retirer ${mot} des termes remplacés`,
+  sectionEmploi: 'Employé dans',
+  sectionGardeSepare: 'Gardé séparé de',
+  retirerLaSeparation: (mot: string, autre: string): string => `Ne plus garder ${mot} séparé de ${autre}`,
+  ecritureVoulue: 'Ce terme est gardé tel qu’il est écrit.',
+  retirerLEcritureVoulue: (mot: string): string => `Ne plus garder ${mot} tel qu’il est écrit`,
+
+  nePasLAppliquer: 'Ne pas l’appliquer dans ce fichier',
+  appliquerDeNouveau: 'Appliquer de nouveau dans ce fichier',
+  supprimerLaRegle: 'Supprimer la règle',
+  retirerCeRemplacement: 'Retirer ce remplacement',
+  proposerAUcm: 'Proposer à UCM',
+  proposerAUcmCopie: 'Copié, à transmettre à UCM',
+  copieRefusee: 'La copie a été refusée. Sélectionnez ce texte, copiez-le, puis transmettez-le à UCM.',
+
+  remplacerParPoints: 'Remplacer par…',
+  remplaceDAutresTermes: 'Remplace d’autres termes…',
+  titreRemplacerPar: (mot: string): string => `Remplacer ${mot} par`,
+  titreRemplaceDAutres: (mot: string): string => `Termes que ${mot} remplace`,
+  termesRemplaces: 'Termes remplacés, séparés par une virgule',
+  termesDUcm: 'Termes d’UCM',
+  unSeulTerme: 'Saisissez un seul terme.',
 } as const;

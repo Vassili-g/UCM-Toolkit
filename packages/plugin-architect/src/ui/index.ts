@@ -4,6 +4,7 @@ import { monterAAppliquer } from './aAppliquer';
 import { monterATrancher } from './aTrancher';
 import { monterConfiguration } from './configuration';
 import { creerCoquille } from './coquille';
+import { monterFeuilles } from './feuilles';
 import { monterPremierLancement } from './premierLancement';
 import { monterRegles } from './regles';
 
@@ -15,7 +16,7 @@ monterPremierLancement(coquille);
 monterAAppliquer(coquille);
 monterATrancher(coquille);
 monterConfiguration(coquille);
-monterRegles(coquille);
+monterFeuilles(coquille, monterRegles(coquille));
 
 window.addEventListener('message', (event: MessageEvent<{ pluginMessage?: PluginMessage }>) => {
   const message = event.data?.pluginMessage;

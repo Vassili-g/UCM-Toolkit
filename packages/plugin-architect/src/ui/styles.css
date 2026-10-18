@@ -11,8 +11,6 @@
   --texte-pastille-ucm: rgb(59 63 158);
   --fond-pastille-personnalise: rgb(213 242 238);
   --texte-pastille-personnalise: rgb(15 98 88);
-  /* Le fond de la confirmation, en attendant la feuille du socle (TODO(S1) de `aAppliquer.ts`). */
-  --fond-voile-confirmation: rgb(0 0 0 / 40%);
   --police-code: "JetBrains Mono", Consolas, monospace;
 }
 
@@ -511,66 +509,6 @@ button.tete-bouton {
   font-weight: 600;
 }
 
-/* La confirmation monte du bas sur un fond assombri. */
-.confirmation-voile {
-  position: fixed;
-  z-index: 10;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  background: var(--fond-voile-confirmation);
-}
-
-.confirmation {
-  display: flex;
-  width: 100%;
-  max-height: 92vh;
-  flex-direction: column;
-  border: 1px solid var(--bordure);
-  border-bottom: 0;
-  border-radius: var(--rayon) var(--rayon) 0 0;
-  background: var(--fond);
-}
-
-.confirmation-poignee {
-  width: 32px;
-  height: 4px;
-  flex: none;
-  align-self: center;
-  margin: var(--espace-serre) 0;
-  border-radius: 2px;
-  background: var(--texte-second);
-}
-
-.confirmation-entete {
-  flex: none;
-  padding: 0 var(--espace-page) var(--espace-controle);
-  border-bottom: 1px solid var(--bordure);
-}
-
-.confirmation-titre {
-  margin: 0;
-  font-size: var(--titre);
-  font-weight: 600;
-  line-height: var(--titre-interligne);
-}
-
-.confirmation-corps {
-  min-height: 0;
-  flex: 1;
-  overflow: auto;
-  padding: var(--espace-page);
-}
-
-.confirmation-pied {
-  display: flex;
-  flex: none;
-  justify-content: flex-end;
-  gap: var(--espace-controle);
-  padding: var(--espace-controle) var(--espace-page) var(--espace-page);
-  border-top: 1px solid var(--bordure);
-}
-
 .faits {
   margin: 0;
   padding-left: var(--espace-page);
@@ -844,4 +782,86 @@ button.tete-bouton {
   justify-content: space-between;
   gap: var(--espace-controle);
   padding: var(--espace-serre) 0;
+}
+
+/* Lot U4b : contenu des feuilles de l'écriture et des termes. */
+.feuille-terme .feuille-titre {
+  font-family: var(--police-code);
+}
+
+.feuille-contenu {
+  display: grid;
+  gap: var(--espace-bloc);
+}
+
+.feuille-actions {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.feuille-groupe {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.fiche-entete {
+  display: grid;
+  justify-items: start;
+  gap: var(--espace-controle);
+}
+
+.fiche-section {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+.fiche-section-titre {
+  display: flex;
+  min-height: var(--hauteur-secondaire);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  font-weight: 600;
+}
+
+.fiche-rang {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: var(--espace-serre) 0;
+}
+
+.fiche-terme {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espace-serre) var(--espace-controle);
+}
+
+.fiche-exemples {
+  display: grid;
+  gap: var(--espace-serre);
+  padding: var(--espace-controle) var(--espace-bloc);
+}
+
+.fiche-copie {
+  width: 100%;
+  font-family: var(--police-code);
+}
+
+.zone-hors-champ {
+  position: fixed;
+  top: 0;
+  left: -9999px;
+}
+
+.fiche-conflit {
+  border: 1px solid var(--texte-avertissement);
 }

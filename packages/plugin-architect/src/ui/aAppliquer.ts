@@ -7,6 +7,7 @@
  */
 import { CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, libelleDuTerme, termeRetenu, type Convention } from '@ucm-kit/core/referentiel';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
+import { createFeuille } from 'ucm-plugin-socle/src/ui/Feuille';
 import type { Bilan, BloqueVue, GroupeVue, LigneVue, PluginMessage, ResultatVue } from '../messages';
 import type { Coquille } from './coquille';
 import {
@@ -165,37 +166,11 @@ export interface DemandeDeConfirmation {
 }
 
 /**
- * La confirmation qui précède chaque application. Le focus arrive sur Retour et
- * revient au bouton qui a ouvert la feuille à sa fermeture.
- *
- * TODO(S1) : passer sur `createFeuille` (`ucm-plugin-socle/src/ui/Feuille`) dès
- * que S1 est commité ; elle apporte la poignée, le piège de focus et la
- * fermeture au clavier que cette feuille écrit à la main, et le rôle
- * `--fond-voile-confirmation` de `styles.css` disparaît avec elle.
+ * La confirmation qui précède chaque application, dans une feuille du socle. Le
+ * focus arrive sur Retour et revient au bouton qui a ouvert la feuille à sa
+ * fermeture.
  */
 export function ouvrirConfirmation({ variables, collections, renommer, auRetour }: DemandeDeConfirmation): { fermer(): void } {
-  const declencheur = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-
-  const voile = document.createElement('div');
-  voile.className = 'confirmation-voile';
-  const feuille = document.createElement('section');
-  feuille.className = 'confirmation';
-  feuille.setAttribute('role', 'dialog');
-  feuille.setAttribute('aria-modal', 'true');
-  const poignee = document.createElement('div');
-  poignee.className = 'confirmation-poignee';
-  poignee.setAttribute('aria-hidden', 'true');
-  const entete = document.createElement('div');
-  entete.className = 'confirmation-entete';
-  const titre = document.createElement('h2');
-  titre.className = 'confirmation-titre';
-  titre.id = 'confirmation-titre';
-  titre.textContent = TEXTES.titreDeLaConfirmation(variables + collections);
-  feuille.setAttribute('aria-labelledby', titre.id);
-  entete.append(titre);
-
-  const corps = document.createElement('div');
-  corps.className = 'confirmation-corps';
   const faits = document.createElement('ul');
   faits.className = 'faits';
   const changement = TEXTES.nomsQuiChangent(variables, collections);
@@ -209,49 +184,30 @@ export function ouvrirConfirmation({ variables, collections, renommer, auRetour 
     return fait;
   });
   faits.append(premier, ...suivants);
-  corps.append(faits);
 
-  let ouverte = true;
-  function fermer(): void {
-    if (!ouverte) return;
-    ouverte = false;
-    // `replaceWith()` sans argument détache le voile : la loi d'écriture refuse tout `.remove(`.
-    voile.replaceWith();
-    if (declencheur?.isConnected) declencheur.focus();
-    auRetour?.();
-  }
-  const retour = createButton({ label: TEXTES.retour, variant: 'secondary', onClick: fermer });
+  const retour = createButton({ label: TEXTES.retour, variant: 'secondary', onClick: () => feuille.fermer() });
   const confirmer = createButton({
     label: TEXTES.renommer,
     onClick: () => {
-      fermer();
+      feuille.fermer();
       renommer();
     },
   });
   const pied = document.createElement('div');
-  pied.className = 'confirmation-pied';
-  pied.append(retour, confirmer);
+  pied.className = 'feuille-actions';
+  const groupe = document.createElement('span');
+  groupe.className = 'feuille-groupe';
+  groupe.append(retour, confirmer);
+  pied.append(document.createElement('span'), groupe);
 
-  voile.addEventListener('click', (evenement) => {
-    if (evenement.target === voile) fermer();
+  const feuille = createFeuille({
+    titre: TEXTES.titreDeLaConfirmation(variables + collections),
+    corps: faits,
+    pied,
+    onFermer: () => auRetour?.(),
   });
-  voile.addEventListener('keydown', (evenement) => {
-    if (evenement.key === 'Escape') {
-      evenement.preventDefault();
-      fermer();
-    } else if (evenement.key === 'Tab') {
-      const sortie = evenement.shiftKey ? document.activeElement === retour : document.activeElement === confirmer;
-      if (!sortie) return;
-      evenement.preventDefault();
-      (evenement.shiftKey ? confirmer : retour).focus();
-    }
-  });
-
-  feuille.append(poignee, entete, corps, pied);
-  voile.append(feuille);
-  document.body.append(voile);
   retour.focus();
-  return { fermer };
+  return { fermer: () => feuille.fermer() };
 }
 
 interface CarteDeGroupe {
