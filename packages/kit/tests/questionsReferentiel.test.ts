@@ -51,18 +51,20 @@ test('abréviations et synonymes utilisent les tables du référentiel', () => {
 });
 
 test('même place demande un alias commun et des mots jamais voisins', () => {
-  const noms = [nom('a', 'button/shape/filled', 'collection-1', 'token-1'),
-    nom('b', 'button/form/filled', 'collection-1', 'token-1')];
+  const noms = [nom('a', 'button/shared/shape/filled', 'collection-1', 'token-1'),
+    nom('b', 'card/shared/form/filled', 'collection-1', 'token-1')];
   const paire = questions(noms).find((q) => q.type === 'paire');
   assert.equal(paire?.type === 'paire' && paire.indice, 'meme-place');
   assert.equal(paire?.type === 'paire' && paire.cibleAlias, 'token-1');
+  assert.deepEqual(paires([nom('a', 'button/shape/filled', 'collection-1', 'token-1'),
+    nom('b', 'button/form/filled', 'collection-1', 'token-1')]), []);
   assert.deepEqual(paires([noms[0], { ...noms[1], cibleAlias: 'token-2' }]), []);
   assert.deepEqual(paires([...noms, nom('c', 'button/shape-form/filled', 'collection-1', 'token-1')]), []);
   assert.deepEqual(paires([nom('seul', 'button/shape-middle-form/filled', 'collection-1', 'token-1')]), []);
 });
 
 test('un alias partagé par dix-sept termes garde ses 136 paires', () => {
-  const noms = Array.from({ length: 17 }, (_, i) => nom(`n-${i}`, `colors/word${i}/solid`, 'collection-1', 'token-1'));
+  const noms = Array.from({ length: 17 }, (_, i) => nom(`n-${i}`, `colors/branch${i}/word${i}/solid`, 'collection-1', 'token-1'));
   const resultat = detecterLesQuestions(lexique(noms), index, vide);
   assert.equal(resultat.questions.length, 10);
   assert.equal([...resultat.questions, ...resultat.autres].filter((q) => q.type === 'paire').length, 136);

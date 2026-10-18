@@ -12,7 +12,7 @@ const termesUcm = new Set([...REGISTRES, ...REGISTRES_ARCHITECTURE]
   .flatMap((registre) => registre.termes.map((terme) => terme.id.toLowerCase())));
 const synonymesComposes = new Set<string>(SYNONYMES_COURANTS.flatMap((groupe) => groupe.filter((mot) => mot.includes('-'))));
 
-type MotObserve = { readonly mot: string; readonly noms: Set<string>; readonly lieux: Map<string, string | null>; readonly exemples: string[] };
+type MotObserve = { readonly mot: string; readonly noms: Set<string>; readonly lieux: Map<string, string | null>; readonly parents: Map<string, string | null>; readonly exemples: string[] };
 type PaireCandidate = { readonly mots: readonly [string, string]; readonly indices: Set<IndiceDePaire>; cibleAlias?: string };
 
 function clePaire(a: string, b: string): string {
@@ -59,6 +59,17 @@ function* partagentUnePlace(a: MotObserve, b: MotObserve): Generator<void, boole
 
 function nomsDistincts(a: string | null, b: string | null): boolean {
   return a === null || b === null || a !== b;
+}
+
+function* sontFreres(a: MotObserve, b: MotObserve): Generator<void, boolean> {
+  const petit = a.parents.size <= b.parents.size ? a.parents : b.parents;
+  const grand = petit === a.parents ? b.parents : a.parents;
+  let lus = 0;
+  for (const [parent, segment] of petit) {
+    if (grand.has(parent) && nomsDistincts(segment, grand.get(parent)!)) return true;
+    if (++lus % TAILLE_D_UN_LOT === 0) yield;
+  }
+  return false;
 }
 
 function terme(observe: MotObserve): TermeEnQuestion {
@@ -178,9 +189,14 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
       }
       if (mots.length === 1 && segment.toLowerCase() === mots[0].toLowerCase() && positionsCouvertes.size === 0) segmentsSoudes.add(mots[0].toLowerCase());
       let places: string[] | undefined;
+      let parent: string | undefined;
       function observer(mot: string): void {
-        const entree = observes.get(mot) ?? { mot, noms: new Set<string>(), lieux: new Map<string, string | null>(), exemples: [] };
+        const entree = observes.get(mot) ?? { mot, noms: new Set<string>(), lieux: new Map<string, string | null>(), parents: new Map<string, string | null>(), exemples: [] };
         entree.noms.add(nom.id);
+        parent ??= JSON.stringify([nom.portee, ...segments.slice(0, rang).map((partie) => partie.toLowerCase())]);
+        const enfant = segment.toLowerCase();
+        if (!entree.parents.has(parent)) entree.parents.set(parent, enfant);
+        else if (entree.parents.get(parent) !== enfant) entree.parents.set(parent, null);
         if (entree.exemples.length < 2 && !entree.exemples.includes(nom.id)) entree.exemples.push(nom.id);
         places ??= contexte(nom, segments, rang, cacheContextes);
         for (const place of places) {
@@ -241,7 +257,8 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     const mots = [...bucket.keys()].filter((mot) => observes.has(mot));
     const cible = (JSON.parse(cle) as string[])[1];
     for (let i = 0; i < mots.length; i++) for (let j = i + 1; j < mots.length; j++) {
-      if (!voisins.has(clePaire(mots[i], mots[j])) && nomsDistincts(bucket.get(mots[i])!, bucket.get(mots[j])!))
+      if (!voisins.has(clePaire(mots[i], mots[j])) && nomsDistincts(bucket.get(mots[i])!, bucket.get(mots[j])!)
+        && !(yield* sontFreres(observes.get(mots[i])!, observes.get(mots[j])!)))
         yield* ajouterPaire(mots[i], mots[j], 'meme-place', cible);
       if (++operations % TAILLE_D_UN_LOT === 0) yield;
     }
