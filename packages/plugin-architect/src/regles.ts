@@ -5,7 +5,7 @@
  * une entrée illisible ou d'une autre version se lit comme absente, et une lecture ne réécrit rien.
  * Toute écriture sort sous forme d'`Ecriture` (`texte: null` efface la clé) : la session les range par le port d'`ecriture.ts`.
  */
-import type { ConflitDeVocabulaire, DejaJuge, Mots, TermePersonnalise, VocabulaireDuFichier } from '@ucm-kit/core/referentiel';
+import { COLLECTIONS, type Collection, type ConflitDeVocabulaire, type DejaJuge, type Mots, type TermePersonnalise, type VocabulaireDuFichier } from '@ucm-kit/core/referentiel';
 import { estConventions, lireChoix } from './conventions';
 import type { EcritureChoisie } from './messages';
 
@@ -39,7 +39,10 @@ export interface ReglesDuFichier {
   readonly distincts: readonly (readonly [string, string])[];
   readonly voulus: readonly string[];
   readonly plusTard: readonly string[];
+  /** Collections dont le designer garde le nom. */
   readonly collectionsGardees: readonly string[];
+  /** Identifiant de la collection vers la collection UCM qu'elle prend pour nom ; propre au fichier, comme `collectionsGardees`. */
+  readonly collectionsRenommees: Readonly<Record<string, Collection>>;
   readonly collectionsExclues: readonly string[];
   readonly reponses: Readonly<Record<string, ReponseRangee>>;
   readonly vus: readonly string[];
@@ -53,7 +56,7 @@ export type Regle =
   | { readonly type: 'distinct'; readonly termes: readonly [string, string] }
   | { readonly type: 'voulu'; readonly mots: Mots }
   | { readonly type: 'plus-tard'; readonly cle: string }
-  | { readonly type: 'collection'; readonly id: string }
+  | { readonly type: 'collection'; readonly id: string; readonly cible?: Collection }
   | { readonly type: 'exclues'; readonly ids: readonly string[] }
   | { readonly type: 'vus'; readonly groupes: readonly string[] };
 
@@ -153,6 +156,7 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
   const voulus: string[] = [];
   const plusTard: string[] = [];
   const gardees: string[] = [];
+  const renommees: Record<string, Collection> = {};
   let exclues: string[] = [];
   const reponses: Record<string, ReponseRangee> = {};
   let vus: string[] = [];
@@ -176,7 +180,11 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
       }
     } else if ((reste = apres(cle, 'voulu:')) !== undefined) { if (motsDe(reste)) voulus.push(reste); }
     else if ((reste = apres(cle, 'plus-tard:')) !== undefined) plusTard.push(reste);
-    else if ((reste = apres(cle, 'collection:')) !== undefined) gardees.push(reste);
+    else if ((reste = apres(cle, 'collection:')) !== undefined) {
+      const cible = (COLLECTIONS as readonly unknown[]).includes(brut.cible) ? brut.cible as Collection : undefined;
+      if (cible) renommees[reste] = cible;
+      else gardees.push(reste);
+    }
     else if ((reste = apres(cle, 'reponse:')) !== undefined) {
       const avant = lireAvant(brut.avant);
       if (avant) reponses[reste] = { avant };
@@ -195,6 +203,7 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
     voulus: trier(voulus),
     plusTard: trier(plusTard),
     collectionsGardees: trier(gardees),
+    collectionsRenommees: Object.fromEntries(Object.entries(renommees).sort(([a], [b]) => comparer(a, b))),
     collectionsExclues: exclues,
     reponses,
     vus,
@@ -210,8 +219,11 @@ export function vocabulaireDuFichier(regles: Pick<ReglesDuFichier, 'termes' | 'e
 }
 
 /** Ce que les détecteurs de questions de `detecterParEtapes` ne reposent pas. */
-export function dejaJugeDuFichier(regles: Pick<ReglesDuFichier, 'distincts' | 'plusTard' | 'voulus' | 'collectionsGardees'>): DejaJuge {
-  return { distincts: regles.distincts, plusTard: regles.plusTard, voulus: regles.voulus, collectionsGardees: regles.collectionsGardees };
+export function dejaJugeDuFichier(regles: Pick<ReglesDuFichier, 'distincts' | 'plusTard' | 'voulus' | 'collectionsGardees' | 'collectionsRenommees'>): DejaJuge {
+  return {
+    distincts: regles.distincts, plusTard: regles.plusTard, voulus: regles.voulus,
+    collectionsGardees: trier([...regles.collectionsGardees, ...Object.keys(regles.collectionsRenommees)]),
+  };
 }
 
 // La sérialisation
@@ -227,7 +239,7 @@ export function serialiserRegle(regle: Regle): Ecriture {
     case 'distinct': return { cle: cleDistinct(regle.termes[0], regle.termes[1]), texte: JSON.stringify({ version: v }) };
     case 'voulu': return { cle: cleVoulu(regle.mots), texte: JSON.stringify({ version: v }) };
     case 'plus-tard': return { cle: clePlusTard(regle.cle), texte: JSON.stringify({ version: v }) };
-    case 'collection': return { cle: cleCollection(regle.id), texte: JSON.stringify({ version: v }) };
+    case 'collection': return { cle: cleCollection(regle.id), texte: JSON.stringify({ version: v, ...(regle.cible ? { cible: regle.cible } : {}) }) };
     case 'exclues': return { cle: CLE_EXCLUES, texte: JSON.stringify({ version: v, ids: trier(regle.ids) }) };
     case 'vus': return { cle: CLE_VUS, texte: JSON.stringify({ version: v, groupes: trier(regle.groupes) }) };
   }
@@ -243,6 +255,7 @@ export function ecrituresDesRegles(regles: ReglesDuFichier): Ecriture[] {
     ...regles.voulus.map((voulu) => ({ type: 'voulu', mots: voulu.split(' ') }) as const),
     ...regles.plusTard.map((cle) => ({ type: 'plus-tard', cle }) as const),
     ...regles.collectionsGardees.map((id) => ({ type: 'collection', id }) as const),
+    ...Object.entries(regles.collectionsRenommees).sort(([a], [b]) => comparer(a, b)).map(([id, cible]) => ({ type: 'collection', id, cible }) as const),
     ...(regles.collectionsExclues.length > 0 ? [{ type: 'exclues', ids: regles.collectionsExclues } as const] : []),
     ...(regles.vus.length > 0 ? [{ type: 'vus', groupes: regles.vus } as const] : []),
   ];

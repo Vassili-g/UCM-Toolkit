@@ -70,7 +70,7 @@ export async function lireInventaire(
       const cibleAlias = port.cibleAlias(variable);
       const categories = categoriesDesSegments(variable.name);
       entrees.push({
-        nom: { id: identite('variable', variable.id), categorie: 'variables', portee: variable.variableCollectionId, nom: variable.name,
+        nom: { id: identite('variable', variable.id), categorie: 'variables', portee: identite('collection', variable.variableCollectionId), nom: variable.name,
           ...(categories ? { categoriesDesSegments: categories } : {}), ...(cibleAlias ? { cibleAlias } : {}) },
         contexte: { collection: collections.get(variable.variableCollectionId)?.name },
         cible: { type: 'variable', variableId: variable.id, collectionId: variable.variableCollectionId },

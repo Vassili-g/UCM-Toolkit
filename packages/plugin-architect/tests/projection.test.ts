@@ -35,7 +35,7 @@ function inventaireDe(fichier: Fichier): { readonly inventaire: Inventaire; read
     const segments = variable.nom.split('/');
     entrees.push({
       nom: {
-        id: variable.id, categorie: 'variables', portee: collectionId, nom: variable.nom,
+        id: variable.id, categorie: 'variables', portee: `c:${collectionId}`, nom: variable.nom,
         ...(segments.length > 1 ? { categoriesDesSegments: segments.map((_, rang) => (rang < segments.length - 1 ? 'groupes' as const : null)) } : {}),
         ...(variable.alias ? { cibleAlias: variable.alias } : {}),
       },

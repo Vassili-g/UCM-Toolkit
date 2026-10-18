@@ -24,7 +24,7 @@ test('les variables et collections distantes sont ignorées', async () => {
   ]);
   const nom = inventaire.entrees[1].nom;
   assert.equal(nom.categorie, 'variables');
-  assert.equal(nom.portee, 'local');
+  assert.equal(nom.portee, inventaire.entrees[0].nom.id, 'la portée d\'une variable est l\'identifiant du nom de sa collection');
   assert.equal(inventaire.entrees[0].nom.categorie, 'collections');
   assert.deepEqual(JSON.parse(JSON.stringify(inventaire)), inventaire);
 });

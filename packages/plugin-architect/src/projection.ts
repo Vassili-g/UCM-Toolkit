@@ -446,7 +446,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
   const premierLancement = (): boolean => regles.ecriture === undefined || regles.ecritureDeLaV1;
 
   function bloques(): BloqueVue[] {
-    const collections = new Map(entree.inventaire.entrees.filter((e) => e.cible.type === 'collection').map((e) => [(e.cible as { collectionId: string }).collectionId, e.nom.nom]));
+    const collections = new Map(entree.inventaire.entrees.filter((e) => e.cible.type === 'collection').map((e) => [e.nom.id, e.nom.nom]));
     return entree.resultat.collisions.flatMap((collision) => collision.ids.flatMap((id) => {
       const nom = lexique.noms.get(id);
       if (!nom || nom.nom === collision.nom) return [];

@@ -214,3 +214,27 @@ test('le port de stockage lit, écrit et efface dans l’espace d’Architect sa
   assert.ok(traces.length > 0 && traces.every((t) => t === 'ucm_architect'));
   assert.equal(cleReponse('q'), 'reponse:q');
 });
+
+test('une collection renommée garde sa cible dans l’entrée `collection:<id>` et compte comme déjà jugée', () => {
+  const regles: ReglesDuFichier = { ...reglesVides, collectionsGardees: ['c1'], collectionsRenommees: { c3: 'theme', c2: 'color-brands' } };
+  const ecritures = ecrituresDesRegles(regles);
+  assert.deepEqual(ecritures.map((e) => e.cle), ['collection:c1', 'collection:c2', 'collection:c3']);
+  assert.deepEqual(JSON.parse(ecritures[1].texte!), { version: 1, cible: 'color-brands' });
+  assert.deepEqual(JSON.parse(ecritures[0].texte!), { version: 1 });
+  const lues = lireLesRegles(dans(ecritures));
+  assert.deepEqual(lues.collectionsGardees, ['c1']);
+  assert.deepEqual(lues.collectionsRenommees, { c2: 'color-brands', c3: 'theme' });
+  assert.deepEqual(dejaJugeDuFichier(lues).collectionsGardees, ['c1', 'c2', 'c3']);
+  assert.deepEqual(serialiserRegle({ type: 'collection', id: 'c2', cible: 'theme' }), { cle: 'collection:c2', texte: JSON.stringify({ version: 1, cible: 'theme' }) });
+});
+
+test('une cible inconnue se lit comme « nom gardé » ; l’export et l’import ne portent pas les renommages', () => {
+  const lues = lireLesRegles([['collection:c1', JSON.stringify({ version: 1, cible: 'pas-une-collection' })]]);
+  assert.deepEqual([lues.collectionsGardees, lues.collectionsRenommees], [['c1'], {}]);
+  const dejaLa: ReglesDuFichier = { ...reglesVides, collectionsRenommees: { c1: 'theme' } };
+  const texte = exporterLesRegles(dejaLa);
+  assert.equal(texte.includes('theme'), false);
+  const resultat = importerLesRegles(texte, dejaLa, () => []);
+  assert.equal(resultat.statut, 'valide');
+  if (resultat.statut === 'valide') assert.deepEqual(resultat.regles.collectionsRenommees, { c1: 'theme' });
+});
