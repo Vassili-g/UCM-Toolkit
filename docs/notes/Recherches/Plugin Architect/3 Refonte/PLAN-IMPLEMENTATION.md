@@ -721,7 +721,7 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 
 **Agent :** `verificateur`. **Effort :** petit.
 
-- [ ] `npm test` à la racine, typecheck et build du kit, d'Architect et de
+- [x] (29c54ea) `npm test` à la racine, typecheck et build du kit, d'Architect et de
   Palettes, `controle-style` ; sans `test:ui` ; seul
   `versionSuitLeContenu` peut être rouge
 
@@ -729,7 +729,7 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 
 **Agent :** `executant`, puis principale. **Effort :** petit.
 
-- [ ] Monter la version mineure de `@ucm-kit/core`, les pins du CLI et de
+- [x] (b41e85f) Monter la version mineure de `@ucm-kit/core`, les pins du CLI et de
   l'adaptateur et leurs versions, les pins de la documentation ; tests verts,
   `versionSuitLeContenu` compris
 - [ ] Commiter, pousser la série, puis publier par `gh workflow run
