@@ -1,0 +1,271 @@
+[
+ {
+  "id": "crans",
+  "extensible": false,
+  "termes": [
+   {
+    "id": "50",
+    "toleres": []
+   },
+   {
+    "id": "100",
+    "toleres": []
+   },
+   {
+    "id": "200",
+    "toleres": []
+   },
+   {
+    "id": "300",
+    "toleres": []
+   },
+   {
+    "id": "400",
+    "toleres": []
+   },
+   {
+    "id": "500",
+    "toleres": []
+   },
+   {
+    "id": "600",
+    "toleres": []
+   },
+   {
+    "id": "700",
+    "toleres": []
+   },
+   {
+    "id": "800",
+    "toleres": []
+   },
+   {
+    "id": "900",
+    "toleres": []
+   },
+   {
+    "id": "950",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "modes",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "light",
+    "toleres": []
+   },
+   {
+    "id": "dark",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "profils",
+  "extensible": false,
+  "termes": [
+   {
+    "id": "soft",
+    "toleres": []
+   },
+   {
+    "id": "vivid",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "intensites",
+  "extensible": false,
+  "termes": [
+   {
+    "id": "unique",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "etats",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "default",
+    "toleres": []
+   },
+   {
+    "id": "hover",
+    "toleres": [
+     "hovered"
+    ]
+   },
+   {
+    "id": "focus",
+    "toleres": [
+     "focused"
+    ]
+   },
+   {
+    "id": "pressed",
+    "toleres": [
+     "press"
+    ]
+   },
+   {
+    "id": "disabled",
+    "toleres": [
+     "disable"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "axes-etat",
+  "extensible": false,
+  "termes": [
+   {
+    "id": "state",
+    "toleres": [
+     "states",
+     "status"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "tailles",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "tiny",
+    "toleres": []
+   },
+   {
+    "id": "small",
+    "toleres": []
+   },
+   {
+    "id": "medium",
+    "toleres": []
+   },
+   {
+    "id": "large",
+    "toleres": []
+   },
+   {
+    "id": "big",
+    "toleres": []
+   },
+   {
+    "id": "huge",
+    "toleres": []
+   },
+   {
+    "id": "4xs",
+    "toleres": []
+   },
+   {
+    "id": "3xs",
+    "toleres": []
+   },
+   {
+    "id": "2xs",
+    "toleres": []
+   },
+   {
+    "id": "xs",
+    "toleres": []
+   },
+   {
+    "id": "sm",
+    "toleres": []
+   },
+   {
+    "id": "md",
+    "toleres": []
+   },
+   {
+    "id": "lg",
+    "toleres": []
+   },
+   {
+    "id": "xl",
+    "toleres": []
+   },
+   {
+    "id": "xxl",
+    "toleres": []
+   },
+   {
+    "id": "xxxl",
+    "toleres": []
+   },
+   {
+    "id": "2xl",
+    "toleres": []
+   },
+   {
+    "id": "3xl",
+    "toleres": []
+   },
+   {
+    "id": "4xl",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "statuts",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "success",
+    "toleres": []
+   },
+   {
+    "id": "warning",
+    "toleres": []
+   },
+   {
+    "id": "info",
+    "toleres": []
+   },
+   {
+    "id": "danger",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "roles",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "background",
+    "toleres": []
+   },
+   {
+    "id": "foreground",
+    "toleres": []
+   },
+   {
+    "id": "icon",
+    "toleres": []
+   },
+   {
+    "id": "border",
+    "toleres": []
+   },
+   {
+    "id": "divider",
+    "toleres": []
+   },
+   {
+    "id": "ring",
+    "toleres": []
+   }
+  ]
+ }
+]

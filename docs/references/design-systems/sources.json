@@ -1,0 +1,1407 @@
+[
+  {
+    "systeme": "atlassian",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.6.1/LICENSE",
+    "version": "@atlaskit/tokens@20.6.1",
+    "originalPath": "LICENSE",
+    "localFile": "atlassian/sources/LICENSE.txt",
+    "sha256": "10c2833305d17f4bd40203cdfc8125c36d58bd1cb5fb51fd1b3f62b59029b4e8",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "atlassian",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.6.1/dist/cjs/artifacts/token-names.js",
+    "version": "@atlaskit/tokens@20.6.1",
+    "originalPath": "dist/cjs/artifacts/token-names.js",
+    "localFile": "atlassian/sources/dist__cjs__artifacts__token-names.js.txt",
+    "sha256": "0a14cbb441853bdd04e127c918d263c37640b0261c280fca3be3d2460fc65bdd",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/LICENSE",
+    "version": "@carbon/themes@11.83.0",
+    "originalPath": "LICENSE",
+    "localFile": "carbon/sources/LICENSE.txt",
+    "sha256": "037b3e9eaff51477b270e9082f54b99175e4dd893548654f00995045b68294b8",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/src/dtcg/color-palette.json",
+    "version": "@carbon/themes@11.83.0",
+    "originalPath": "src/dtcg/color-palette.json",
+    "localFile": "carbon/sources/src__dtcg__color-palette.json.txt",
+    "sha256": "dd9a7a418519f13672f81d31fc590bd134fef37b5571e91845b5eaf56399ce9f",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/src/dtcg/components/button.json",
+    "version": "@carbon/themes@11.83.0",
+    "originalPath": "src/dtcg/components/button.json",
+    "localFile": "carbon/sources/src__dtcg__components__button.json.txt",
+    "sha256": "56d85c6538f45449901b98da4358169c7b01a2d5b2e6f6f496ac268a1831ea36",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/src/dtcg/components/content-switcher.json",
+    "version": "@carbon/themes@11.83.0",
+    "originalPath": "src/dtcg/components/content-switcher.json",
+    "localFile": "carbon/sources/src__dtcg__components__content-switcher.json.txt",
+    "sha256": "d59cef2983afa950597fa90d9fd5160ff05c66c61e94ec8f79fbb5094f95be04",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/src/dtcg/components/notification.json",
+    "version": "@carbon/themes@11.83.0",
+    "originalPath": "src/dtcg/components/notification.json",
+    "localFile": "carbon/sources/src__dtcg__components__notification.json.txt",
+    "sha256": "09f95be25989c52e596b16883aa5fa8351f27de3fbff303e6ba0b626bd6e99ae",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/src/dtcg/components/status.json",
+    "version": "@carbon/themes@11.83.0",
+    "originalPath": "src/dtcg/components/status.json",
+    "localFile": "carbon/sources/src__dtcg__components__status.json.txt",
+    "sha256": "95699d206fa12399b061f84f95c01acf78ae07c2ed5d49432fd562f788c50548",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/src/dtcg/components/tag.json",
+    "version": "@carbon/themes@11.83.0",
+    "originalPath": "src/dtcg/components/tag.json",
+    "localFile": "carbon/sources/src__dtcg__components__tag.json.txt",
+    "sha256": "79bb8b3e623a136181a8bdf0a1f962f6f8e35d4dfb483f0cec2160e7b298cd0e",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/themes@11.83.0/src/dtcg/themes.json",
+    "version": "@carbon/themes@11.83.0",
+    "originalPath": "src/dtcg/themes.json",
+    "localFile": "carbon/sources/src__dtcg__themes.json.txt",
+    "sha256": "7f1febe786830b88b26db78e3e573b1cfe2ca9af546ecac54708719df1330ac8",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/layout@11.61.0/scss/generated/_border-radius.scss",
+    "version": "@carbon/layout@11.61.0",
+    "originalPath": "scss/generated/_border-radius.scss",
+    "localFile": "carbon/sources/scss__generated___border-radius.scss.txt",
+    "sha256": "62bcd9b27e2f6af926e299082178a0600c61d6c2e923543bc16c15e7c91c6edc",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/layout@11.61.0/scss/generated/_container.scss",
+    "version": "@carbon/layout@11.61.0",
+    "originalPath": "scss/generated/_container.scss",
+    "localFile": "carbon/sources/scss__generated___container.scss.txt",
+    "sha256": "df9b87ee1b3c454a1cc9ea3026df01b50c1d860f4115e02c6cccc1dad892ccba",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/layout@11.61.0/scss/generated/_fluid-spacing.scss",
+    "version": "@carbon/layout@11.61.0",
+    "originalPath": "scss/generated/_fluid-spacing.scss",
+    "localFile": "carbon/sources/scss__generated___fluid-spacing.scss.txt",
+    "sha256": "fd45dd6a7ca7090400a57c187dae2abcf4067d2d1576651cb15383bd2a0b39c8",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/layout@11.61.0/scss/generated/_icon-size.scss",
+    "version": "@carbon/layout@11.61.0",
+    "originalPath": "scss/generated/_icon-size.scss",
+    "localFile": "carbon/sources/scss__generated___icon-size.scss.txt",
+    "sha256": "70ad4c67899da9299b7e0c3d33166fa372b34129f1f2637db9cca7bac264566d",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/layout@11.61.0/scss/generated/_layout.scss",
+    "version": "@carbon/layout@11.61.0",
+    "originalPath": "scss/generated/_layout.scss",
+    "localFile": "carbon/sources/scss__generated___layout.scss.txt",
+    "sha256": "38dc1097ad4067d6febc8c7502b0a11e27f666d3d6a7776148a18af8f5930845",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/layout@11.61.0/scss/generated/_size.scss",
+    "version": "@carbon/layout@11.61.0",
+    "originalPath": "scss/generated/_size.scss",
+    "localFile": "carbon/sources/scss__generated___size.scss.txt",
+    "sha256": "d966f2bbf5b8f43f2eb44701da75b204e20e7a45f65a144b82fa7be1e550f590",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/layout@11.61.0/scss/generated/_spacing.scss",
+    "version": "@carbon/layout@11.61.0",
+    "originalPath": "scss/generated/_spacing.scss",
+    "localFile": "carbon/sources/scss__generated___spacing.scss.txt",
+    "sha256": "2121128c8a571e226f8ab9878b94de4793c1a1dbb37affa7fa0b05d70ee31edd",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "carbon",
+    "url": "https://cdn.jsdelivr.net/npm/@carbon/type@11.69.0/scss/_styles.scss",
+    "version": "@carbon/type@11.69.0",
+    "originalPath": "scss/_styles.scss",
+    "localFile": "carbon/sources/scss___styles.scss.txt",
+    "sha256": "bdeca748e8ce2c8d4c9cd9e6e906bff0c9e59205021989ca9f7a27c92a130498",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "spectrum",
+    "url": "https://cdn.jsdelivr.net/npm/@adobe/spectrum-tokens@15.6.0/LICENSE",
+    "version": "@adobe/spectrum-tokens@15.6.0",
+    "originalPath": "LICENSE",
+    "localFile": "spectrum/sources/LICENSE.txt",
+    "sha256": "981250df8283f951cb49f9cdcaa405d49e0313b0d4f3cd174d25f709f802cfba",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "spectrum",
+    "url": "https://cdn.jsdelivr.net/npm/@adobe/spectrum-tokens@15.6.0/dist/json/variables.json",
+    "version": "@adobe/spectrum-tokens@15.6.0",
+    "originalPath": "dist/json/variables.json",
+    "localFile": "spectrum/sources/dist__json__variables.json.txt",
+    "sha256": "184d5e648c75d8b1fea2706fbb2bf0b2a15438bb09a6d1aeec42857f883b03a6",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/LICENSE",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "LICENSE",
+    "localFile": "primer/sources/LICENSE.txt",
+    "sha256": "e63582a78dddebe610b6cb59f0e7f5f761c1bb6a1c9551443beddc64fe525c3a",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/base/motion/motion.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/base/motion/motion.css",
+    "localFile": "primer/sources/dist__css__base__motion__motion.css.txt",
+    "sha256": "355acaae09bcb0cd0ec2a0d09c3ed3e966047ca0c410e82222a20245a5a9f342",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/base/size/size.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/base/size/size.css",
+    "localFile": "primer/sources/dist__css__base__size__size.css.txt",
+    "sha256": "84139b5ef4e09da469e360a928f23d62479a8b37e9ebbeabd5c9c3795b3fea60",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/base/size/z-index.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/base/size/z-index.css",
+    "localFile": "primer/sources/dist__css__base__size__z-index.css.txt",
+    "sha256": "ed87a6f02276f13c20cb2260e82a88766f2b74d68c7922c73b6f23303e021b40",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/base/typography/typography.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/base/typography/typography.css",
+    "localFile": "primer/sources/dist__css__base__typography__typography.css.txt",
+    "sha256": "0564da8953da95586772ac617378280464f2bb59f880753f56d46f3ef92f9cf0",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/motion/motion.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/motion/motion.css",
+    "localFile": "primer/sources/dist__css__functional__motion__motion.css.txt",
+    "sha256": "024532fe32dcdeb551921824dc1d870bc88e5f5577dc4d1510ed9a5fff4bc52a",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/size/border.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/size/border.css",
+    "localFile": "primer/sources/dist__css__functional__size__border.css.txt",
+    "sha256": "223a01cf4a8ff2fdf6c87e6eae88144406e082f019f43d1a18c712287de3ec2a",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/size/breakpoints.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/size/breakpoints.css",
+    "localFile": "primer/sources/dist__css__functional__size__breakpoints.css.txt",
+    "sha256": "8d32038de12300b417b3cfc492ac546de31c30be8f799192c6b91d4f5e3578c3",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/size/radius.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/size/radius.css",
+    "localFile": "primer/sources/dist__css__functional__size__radius.css.txt",
+    "sha256": "b0b77f22244ebff700ae01032abc16378bf19f713a7e56a880655f967d00e860",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/size/size-coarse.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/size/size-coarse.css",
+    "localFile": "primer/sources/dist__css__functional__size__size-coarse.css.txt",
+    "sha256": "c042a689af05baff3c55c629ae9da5bf224a0fcdd6580fee34625a05424d66f0",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/size/size-fine.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/size/size-fine.css",
+    "localFile": "primer/sources/dist__css__functional__size__size-fine.css.txt",
+    "sha256": "d4277415058f75fd8fe51169fa30099dea0b791d5cda61cbb3de79f74a607e7a",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/size/size.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/size/size.css",
+    "localFile": "primer/sources/dist__css__functional__size__size.css.txt",
+    "sha256": "98c0a8cc23c939e100fba0a0e37299249d534f979d6da64629ad228416f5be64",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/size/viewport.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/size/viewport.css",
+    "localFile": "primer/sources/dist__css__functional__size__viewport.css.txt",
+    "sha256": "eb9bc7a5b7b75ac1a089fed78ee9c43fef89d3bab19d56582043aed54b8ea14f",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/size/z-index.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/size/z-index.css",
+    "localFile": "primer/sources/dist__css__functional__size__z-index.css.txt",
+    "sha256": "ec6d466443a4e4ff64b986496c212c275b59c58c9d78b7de8c2e20f6a06dd129",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/spacing/space.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/spacing/space.css",
+    "localFile": "primer/sources/dist__css__functional__spacing__space.css.txt",
+    "sha256": "4e9e6cdfd8f471af6fa26760ca82e4503d2f502ec23b465f4337c9f11926bd10",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/themes/light.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/themes/light.css",
+    "localFile": "primer/sources/dist__css__functional__themes__light.css.txt",
+    "sha256": "86468bdfa1761f189d7bed7c1a13c6183f67ec132d689dacc63acc9eec986496",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/typography/typography.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/typography/typography.css",
+    "localFile": "primer/sources/dist__css__functional__typography__typography.css.txt",
+    "sha256": "62646c35ab2c5f73e7e8127307b1f8834a67a5f7e5cdfb3701cec70c0a147b82",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "polaris",
+    "url": "https://cdn.jsdelivr.net/npm/@shopify/polaris-tokens@9.4.2/LICENSE.md",
+    "version": "@shopify/polaris-tokens@9.4.2",
+    "originalPath": "LICENSE.md",
+    "localFile": "polaris/sources/LICENSE.md.txt",
+    "sha256": "172d300fa7873e23b0aef00408b1429541e0bd33794e998296742fcfc44540ac",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "polaris",
+    "url": "https://cdn.jsdelivr.net/npm/@shopify/polaris-tokens@9.4.2/dist/css/styles.css",
+    "version": "@shopify/polaris-tokens@9.4.2",
+    "originalPath": "dist/css/styles.css",
+    "localFile": "polaris/sources/dist__css__styles.css.txt",
+    "sha256": "469aa82a3dcb223ff763f5ace3bcc9a68b14fc585dab86beae12bed94b3910c9",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/LICENSE",
+    "version": "@material/web@2.5.0",
+    "originalPath": "LICENSE",
+    "localFile": "material-3/sources/LICENSE.txt",
+    "sha256": "295cdb4364b782931c914f5ca8c47fac87c732fa7e448b788a47aa5b25728212",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-assist-chip.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-assist-chip.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-assist-chip.scss.txt",
+    "sha256": "d49ab8c83bb0ea02d108b0ca0e7e955a7dc966c7bd8659cefe3a3b79c7f1f59b",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-badge.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-badge.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-badge.scss.txt",
+    "sha256": "c79c334a8bb92b5b1b6ab89c6502123a05c8d3fb9d6c93e20ba8017baa7d5e1c",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-banner.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-banner.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-banner.scss.txt",
+    "sha256": "26c5a5d7325c2df60dcd37be4c04c90672aa1ce48bf9d6143c1667a151a83867",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-bottom-app-bar.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-bottom-app-bar.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-bottom-app-bar.scss.txt",
+    "sha256": "3dce5654510c3819dd5b6c0a4a466f7b8c80d7a2f15e8821ba121bb18f98b570",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-carousel-item.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-carousel-item.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-carousel-item.scss.txt",
+    "sha256": "c27feda846a1e151a5beec86b5582979a1b76b49ce5818e87706c90200c318a6",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-checkbox.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-checkbox.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-checkbox.scss.txt",
+    "sha256": "7739f7fa7664544b5fe732956f57b78fd0d5ea96a55b4a597732cb7418742270",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-circular-progress-indicator.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-circular-progress-indicator.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-circular-progress-indicator.scss.txt",
+    "sha256": "ef6e4f6fd77fe80428f44d719f2393bc8d16deed4e3b28c846d64b99b4b890e5",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-data-table.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-data-table.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-data-table.scss.txt",
+    "sha256": "9949a164d8fcd7c9cf267c35cda6a25da8dc94ee943834457bad2adc0fa9f36b",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-date-input-modal.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-date-input-modal.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-date-input-modal.scss.txt",
+    "sha256": "01594a4e85735ff8ec6d0ae70c11dc795269ed35d137a4b1c27b63828005432c",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-date-picker-docked.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-date-picker-docked.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-date-picker-docked.scss.txt",
+    "sha256": "984b26f543b7ff5f387d4a435e5a57a47e0a29157d765b3cccb37031e0cee178",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-date-picker-modal.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-date-picker-modal.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-date-picker-modal.scss.txt",
+    "sha256": "f7c75cc4d483d60a038ebd8ddffe12842fb47bf3b9ec7d221cfbe50f55770eb7",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-dialog.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-dialog.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-dialog.scss.txt",
+    "sha256": "d6382d5fb185db5380a467e302308259168ae9b0d95fe7f737d133321dc7376f",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-divider.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-divider.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-divider.scss.txt",
+    "sha256": "de302f3e66ae847f5aff5669154404ecc8a1770bd66dc04b2a631f38fa62d2fe",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-elevated-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-elevated-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-elevated-button.scss.txt",
+    "sha256": "f6215b2e38ecbe0cfa0768ee8bbc02c0d96abc5570df34baf3594de69a0b1560",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-elevated-card.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-elevated-card.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-elevated-card.scss.txt",
+    "sha256": "e37530710e66b98ca03f0347c49c85782664bebc10f30d4fd20591f12be45cc7",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-extended-fab-branded.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-extended-fab-branded.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-extended-fab-branded.scss.txt",
+    "sha256": "258f081b4718d0942e3b9fe7a5524a37471bbfb77891bd5b15ce74e2c4dfb0b0",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-extended-fab-primary.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-extended-fab-primary.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-extended-fab-primary.scss.txt",
+    "sha256": "4b49274334ba55a7311680c3c6d50d07127c8df22fc692df9d920eb3857d1dac",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-extended-fab-secondary.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-extended-fab-secondary.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-extended-fab-secondary.scss.txt",
+    "sha256": "39b8bae1db20c52a299f38cc0e6c99ee11f5e283723a1c1eb9c69f9775f9d21e",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-extended-fab-surface.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-extended-fab-surface.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-extended-fab-surface.scss.txt",
+    "sha256": "1142040240261c7e9ae124141c0af858d9faa053a174e5bd2dd020e67b722ca6",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-extended-fab-tertiary.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-extended-fab-tertiary.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-extended-fab-tertiary.scss.txt",
+    "sha256": "27aff5627bb16c444edf32bbda6594ddf99f0943694b9320f21183251eaf5b07",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-branded-large.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-branded-large.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-branded-large.scss.txt",
+    "sha256": "fa6a7f80d797026b8e00d300dbf22a80c15d2f45d97ca18a5978985d02314fce",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-branded.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-branded.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-branded.scss.txt",
+    "sha256": "8fe4c7a35900b36776513e5b078c380e1cf59d1947d12453a092ed1244d98be6",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-primary-large.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-primary-large.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-primary-large.scss.txt",
+    "sha256": "5c2fff99639fcfb2fa80789ebb1716412e0ed7b07ad5e95fb4fbca52812cafb1",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-primary-small.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-primary-small.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-primary-small.scss.txt",
+    "sha256": "62d2d4fc386f9b09ca8d53c783dcf4eb6193867b0a05555db4991b44167c43bc",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-primary.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-primary.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-primary.scss.txt",
+    "sha256": "00963ccffa1dfdb4450217bc31507eba0e0612d513f9be94cd2f4dc38151f1f6",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-secondary-large.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-secondary-large.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-secondary-large.scss.txt",
+    "sha256": "5f85873dca5aff80ce5fdd6d9866511f4d74f06a2f8e7dcf520c6049a0d67916",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-secondary-small.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-secondary-small.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-secondary-small.scss.txt",
+    "sha256": "94b23fcc5553ff4d98b7552bc536ce1bc8f9e1a672578d9b8252a7736e61ad37",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-secondary.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-secondary.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-secondary.scss.txt",
+    "sha256": "71e1ef444c674d7ef1db5c4de076d57cec45129ae0f22203b07be41604ed7574",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-surface-large.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-surface-large.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-surface-large.scss.txt",
+    "sha256": "17c9fcf412b14f833ac9fbfab0e5d1744f303f98c7caa87a3fab13566bdee14d",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-surface-small.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-surface-small.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-surface-small.scss.txt",
+    "sha256": "10136b1146fa667033a1a9df13fd28f610a0f60698f2231b0758c644aa8157ee",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-surface.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-surface.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-surface.scss.txt",
+    "sha256": "a30c91a50be8f1cb11ad778a90af7c68bfca28bdfeb2d67b0a702756490bab61",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-tertiary-large.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-tertiary-large.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-tertiary-large.scss.txt",
+    "sha256": "d22cdae6a3e5bf45285f41495cc624fb0401e535c3d595696b0f86a6d2dbea0d",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-tertiary-small.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-tertiary-small.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-tertiary-small.scss.txt",
+    "sha256": "ffdbc1e92fa814e0495e8f4410562858d8a47ed7365fbdb37a069c9b9e8c9011",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-fab-tertiary.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-fab-tertiary.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-fab-tertiary.scss.txt",
+    "sha256": "07acf530dfe95196ff4e2f597c50015603030dfe361ff6d1cf9ee2771aa893d5",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filled-autocomplete.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filled-autocomplete.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-filled-autocomplete.scss.txt",
+    "sha256": "f0bca14c878adc20382a959a882f23a6b77fa8b6fa0642e5dde1686875aa3a53",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filled-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filled-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-filled-button.scss.txt",
+    "sha256": "15542bd5ba06432cd747f6a21abb604435f3bd177b2c49c559f840857694df23",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filled-card.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filled-card.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-filled-card.scss.txt",
+    "sha256": "f9a1416362ede3e8b54266f33590ad09f6307d8f9550f3945a4b4a5c0371ef42",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filled-icon-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filled-icon-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-filled-icon-button.scss.txt",
+    "sha256": "c92e990c415b7808e7e83541e6a113b729b1b418132148e68d0196540edd138b",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filled-menu-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filled-menu-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-filled-menu-button.scss.txt",
+    "sha256": "d029ef2a87ec0f50cf3946368835b894eb2be257ca1daf1a602276003d5eb97b",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filled-select.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filled-select.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-filled-select.scss.txt",
+    "sha256": "bb066eb66927221ec02618dea0c4d8615cc8fd2b869627f58b2b378d6ff74fef",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filled-text-field.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filled-text-field.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-filled-text-field.scss.txt",
+    "sha256": "19da7023154330c83288200b77203769e1d4db073ba24aa786cd69ae3a2ea90e",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filled-tonal-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filled-tonal-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-filled-tonal-button.scss.txt",
+    "sha256": "1c658bb5e4ef29d140941951c23af6b74108a510469c42c0fd7f27cd3ebe042c",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filled-tonal-icon-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filled-tonal-icon-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-filled-tonal-icon-button.scss.txt",
+    "sha256": "ad25133c9bf36d532c68265893fdb1df5202593f01fd9070dc3d48df4680c4ab",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-filter-chip.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-filter-chip.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-filter-chip.scss.txt",
+    "sha256": "6a12e724c92da8adacc160e0a98cdbd8211229a7c37f488905151086bcd42094",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-full-screen-dialog.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-full-screen-dialog.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-full-screen-dialog.scss.txt",
+    "sha256": "a52862bb1803d375805c7b3b1160110198eef7c00e1bb7b57457cde01d2c3864",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-icon-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-icon-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-icon-button.scss.txt",
+    "sha256": "a49ee16a7f2edcb77709bf62756f25cae710f21b1dd7d2faeb739ba301f6561b",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-input-chip.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-input-chip.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-input-chip.scss.txt",
+    "sha256": "89e7bccfbc388f124838b76c3681dc41bab90f4341554fff60467d7c66462e75",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-linear-progress-indicator.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-linear-progress-indicator.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-linear-progress-indicator.scss.txt",
+    "sha256": "e71c7794a3e5a229aa430fc9426d7c9eae1a5a02a4b99c67d1390728c965b67d",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-list.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-list.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-list.scss.txt",
+    "sha256": "a32100dc4ff0565c58e3748f912c3e50ad666dedc1ac2e03d1fd4831f31aabe0",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-menu.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-menu.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-menu.scss.txt",
+    "sha256": "d32db0c611db7f7b8d58e33e4316e0ee424079354ce17086279fbbb9ef8451cc",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-navigation-bar.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-navigation-bar.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-navigation-bar.scss.txt",
+    "sha256": "26ca93ec80e6dc1c374c8364b730cb95b8965385cbe311d5e694dfe51eefff7d",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-navigation-drawer.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-navigation-drawer.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-navigation-drawer.scss.txt",
+    "sha256": "4c0e95cf88e6f914aaae0f5afbf857d780814f8afac33f8139053ca9b4527308",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-navigation-rail.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-navigation-rail.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-navigation-rail.scss.txt",
+    "sha256": "4fb6691a2adc9410547be4d819746ec7f864a6c389673186995f5c0f01cce590",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-outlined-autocomplete.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-outlined-autocomplete.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-outlined-autocomplete.scss.txt",
+    "sha256": "c2fdcc90df6820881f13a39a57b7968d12f287302f59d8ffb3ebc61d1fe4a891",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-outlined-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-outlined-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-outlined-button.scss.txt",
+    "sha256": "de55b292d7a7f861f9b3c0affd94ff82b05b20d51eb653cd6a0b3eddcdc7fcd3",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-outlined-card.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-outlined-card.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-outlined-card.scss.txt",
+    "sha256": "29f016b453ed60b215787dc6313991e06033d9e67038f33c5d193df92cbd02cf",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-outlined-icon-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-outlined-icon-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-outlined-icon-button.scss.txt",
+    "sha256": "85cf8028aa41fde1b5c120a6f2759f8484ede17c2b6cd9ae21b01bc91a3e2297",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-outlined-menu-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-outlined-menu-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-outlined-menu-button.scss.txt",
+    "sha256": "3c63dde51bd295f80eb2f0fef93bcdbeccfe62fd50d53a19c4fe2ee3ba27414a",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-outlined-segmented-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-outlined-segmented-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-outlined-segmented-button.scss.txt",
+    "sha256": "ee35aa8e12159113645cfff2f736b7255af93511f5ebebb0e35d1b0f7d8c9d77",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-outlined-select.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-outlined-select.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-outlined-select.scss.txt",
+    "sha256": "a5b93f2437d68cdab28c721aa82bca7a2fc0a1bedf6f6f7edf8a006dcbaa037a",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-outlined-text-field.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-outlined-text-field.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-outlined-text-field.scss.txt",
+    "sha256": "2c8063c2b8d60055e03ba29b13e126d6e7d2e679a3079e38ce2323346ffba666",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-plain-tooltip.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-plain-tooltip.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-plain-tooltip.scss.txt",
+    "sha256": "483098391d74c47bf70bc8d1d718973292388dc68f73bebbd9d023b1cd09b227",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-primary-navigation-tab.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-primary-navigation-tab.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-primary-navigation-tab.scss.txt",
+    "sha256": "9911e6eb7187c1f93646cb72ce8ba9dd200f3a928f7b527d833ea33aa35f8385",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-radio-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-radio-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-radio-button.scss.txt",
+    "sha256": "4fd56a457afdff5c0220c639cb20d403ffc0e57a1ca661bc8f25f9d9cb70fd47",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-rich-tooltip.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-rich-tooltip.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-rich-tooltip.scss.txt",
+    "sha256": "31daeca7e251671c99ac8b45780a190dfa9e2e34186a58d9c1faa7fd5b5e189e",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-scrim.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-scrim.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-scrim.scss.txt",
+    "sha256": "1a163c5482781b9b8d4fec5c1ee43f1d071a7b2d663c541f088b06c9705900b3",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-search-bar.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-search-bar.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-search-bar.scss.txt",
+    "sha256": "e7f1c2abe64ad9421b6db81bfb9e5eb32c6d992b6d7f6a8fa1d3eb2112bd51e8",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-search-view.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-search-view.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-search-view.scss.txt",
+    "sha256": "64e84fb1c4c815afed9fbaa59fa8e901f42a74c3c4f976b75b42e994a5a583e4",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-secondary-navigation-tab.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-secondary-navigation-tab.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-secondary-navigation-tab.scss.txt",
+    "sha256": "46fd7d91d7b3895a04d4accca6a720932c1475b76ab93df2fa7d8f6f511e4ee2",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-sheet-bottom.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-sheet-bottom.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-sheet-bottom.scss.txt",
+    "sha256": "e1098f1cd56cd4a2dc4737c64f139109d2b5ba34af823b9a5d3f58e1adc7b427",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-sheet-floating.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-sheet-floating.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-sheet-floating.scss.txt",
+    "sha256": "dec64254cdd8e028e5edbce6fab87109369be49067f621722335873f53c9e130",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-sheet-side.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-sheet-side.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-sheet-side.scss.txt",
+    "sha256": "a298fadca194ed0841b99e08597ad45fbc0e8502d72ac11a2b42275bfef98a2b",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-slider.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-slider.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-slider.scss.txt",
+    "sha256": "e04df7d3ec4ee117b3e14311b9a65ad480f3c6bbad131f73fa473e08101874db",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-snackbar.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-snackbar.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-snackbar.scss.txt",
+    "sha256": "ff2b6238ac175b71d385fd66808d79c8c70af29c24c5bdbf2e476e486d9250a8",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-standard-menu-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-standard-menu-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-standard-menu-button.scss.txt",
+    "sha256": "2d9d7053e4da53e381056f03664809f597fe036b84d8922d5355968ae62f4a43",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-suggestion-chip.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-suggestion-chip.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-suggestion-chip.scss.txt",
+    "sha256": "25f0cdc8e14ddc7de3e9f875cc920533a10ca998bd38dbfb600a1754877aeed7",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-switch.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-switch.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-switch.scss.txt",
+    "sha256": "d1ea6d345157b729e529af21c13edd47004f0cf0184ca8d885032f27fbe68697",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-text-button.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-text-button.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-text-button.scss.txt",
+    "sha256": "8d01677268bcfd265ef6db57c0ea0d7a58ec9bef00cb9df2e511d1a86ec55988",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-time-input.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-time-input.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-time-input.scss.txt",
+    "sha256": "f826fc7285cfaf57ec64cde2146ce123cfa71fb613431ab6a7db1206eb08e4ef",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-time-picker.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-time-picker.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-time-picker.scss.txt",
+    "sha256": "06e48e79acc2fc9c4dcd91f75034ed64f5f56df71a4bf0abc45fabdf8c6fde6e",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-top-app-bar-large.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-top-app-bar-large.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-top-app-bar-large.scss.txt",
+    "sha256": "9cda6c974e05325e887442f50abc41ada96648f80a24670d40b249cc7109f19e",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-top-app-bar-medium.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-top-app-bar-medium.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-top-app-bar-medium.scss.txt",
+    "sha256": "13056716845796d0bc29ec85b924fa83dc53c3934e85e5860054c4e28a471a4b",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-top-app-bar-small-centered.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-top-app-bar-small-centered.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-top-app-bar-small-centered.scss.txt",
+    "sha256": "eabc1779706cfd822aa5a1a3033c10acb341928e150c9a649f7fea4eca743fc5",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-comp-top-app-bar-small.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-comp-top-app-bar-small.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-comp-top-app-bar-small.scss.txt",
+    "sha256": "71bb2b97ada3ec4f561b6dfc1f7614bb4afce48c1ccdc4696544877f406d663a",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-ref-palette.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-ref-palette.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-ref-palette.scss.txt",
+    "sha256": "9208b47a2e67a9060a6d3440428a8ff0265e747d96477ae1b56dc7931d69f0d3",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-ref-typeface.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-ref-typeface.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-ref-typeface.scss.txt",
+    "sha256": "b5055798c322a39f4664f04afe6e09f5126145cd0fd005a71426f8a630434c93",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-sys-color.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-sys-color.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-sys-color.scss.txt",
+    "sha256": "aa0c2dc244989edcb1bb2af169a87d290e5303a7e945720cd2c21c8bdb103670",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-sys-elevation.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-sys-elevation.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-sys-elevation.scss.txt",
+    "sha256": "658319c50ce8f33f08d567493dfe52106e9ef177f43b4d6a38526ee339e24972",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-sys-motion.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-sys-motion.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-sys-motion.scss.txt",
+    "sha256": "5a29bda5a3677ccab74954dc957c1d76346e3470849378e47b0de57aafdbacee",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-sys-shape.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-sys-shape.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-sys-shape.scss.txt",
+    "sha256": "2ffa44f85591cde7f501aafb8e26c422d341b1eae56b3e2fab7ab6034a3ee6eb",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-sys-state.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-sys-state.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-sys-state.scss.txt",
+    "sha256": "d410dd5d47c1bc25b25b6fa82901bdf8d555360cbd35716bc73ed8d6a61ea6f8",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "material-3",
+    "url": "https://cdn.jsdelivr.net/npm/@material/web@2.5.0/tokens/versions/v0_192/_md-sys-typescale.scss",
+    "version": "@material/web@2.5.0",
+    "originalPath": "tokens/versions/v0_192/_md-sys-typescale.scss",
+    "localFile": "material-3/sources/tokens__versions__v0_192___md-sys-typescale.scss.txt",
+    "sha256": "7c8cbd48c99465a6924eff73d7809c764f528a81933206d548e1a88b33dbe8d9",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/LICENSE",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "LICENSE",
+    "localFile": "fluent-2/sources/LICENSE.txt",
+    "sha256": "8189edb8b17032b0fa631dc776cc363080a51e8650821c8faad43ec22a303685",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/lightColor.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/alias/lightColor.js",
+    "localFile": "fluent-2/sources/lib__alias__lightColor.js.txt",
+    "sha256": "95c25a2fbfc3b465be4b0130bf40dbc0a2bfddd432b2551619055f64f165a6e6",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/lightColorPalette.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/alias/lightColorPalette.js",
+    "localFile": "fluent-2/sources/lib__alias__lightColorPalette.js.txt",
+    "sha256": "3633cee2b5d8156920da3bdc7fd03c4a3b5799f75e9842512a147c830fde7660",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/borderRadius.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/borderRadius.js",
+    "localFile": "fluent-2/sources/lib__global__borderRadius.js.txt",
+    "sha256": "9cb0d0f62ab38c303e23d33b0d7c7daedc4bea7c8496353717a96684fddcb267",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/brandColors.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/brandColors.js",
+    "localFile": "fluent-2/sources/lib__global__brandColors.js.txt",
+    "sha256": "fab5b54dfb45a10c20b54fbcf70c7c1f1fc4a336283117f2009bd8c5de40ac47",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/colorPalette.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/colorPalette.js",
+    "localFile": "fluent-2/sources/lib__global__colorPalette.js.txt",
+    "sha256": "e5e94346b57cda0b72f7b8296672e53110a6a6265a6e7a7da9153f2c162ad5f2",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/colors.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/colors.js",
+    "localFile": "fluent-2/sources/lib__global__colors.js.txt",
+    "sha256": "890345372ce466bc174aca2334f898d5299319509fffb57d115820bc6c7975cf",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/curves.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/curves.js",
+    "localFile": "fluent-2/sources/lib__global__curves.js.txt",
+    "sha256": "eb0ef0cd756e1c1ae2b9505b2230083d63c66fafc0c2ee6d8ae0aa6f8daf6552",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/durations.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/durations.js",
+    "localFile": "fluent-2/sources/lib__global__durations.js.txt",
+    "sha256": "9c76c14097283703c9451999fd57597ea379b931e03cc1903acd7ac69a1f0e53",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/fonts.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/fonts.js",
+    "localFile": "fluent-2/sources/lib__global__fonts.js.txt",
+    "sha256": "1d5a8484bcb056352a1d4b742be285e6c0b2e0614dd4cc52008d4f5faf408814",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/spacings.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/spacings.js",
+    "localFile": "fluent-2/sources/lib__global__spacings.js.txt",
+    "sha256": "fe0173312fb47831ae8a5473cb5ae5dac331463a51aa5a4693008aa01269297e",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/strokeWidths.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/strokeWidths.js",
+    "localFile": "fluent-2/sources/lib__global__strokeWidths.js.txt",
+    "sha256": "fecfdcc9ed462301eda53155fc3b87993c83973a7484dcb003ea1d81d42f5460",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/global/typographyStyles.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/global/typographyStyles.js",
+    "localFile": "fluent-2/sources/lib__global__typographyStyles.js.txt",
+    "sha256": "52f9dc6c5b0600870b544b1560afcd1e1baab96c25848f4c1998abf166f98951",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "figma-sds",
+    "url": "https://raw.githubusercontent.com/figma/sds/05525f75192a3aa5d5690c5e41277ebd19d2efe1/src/theme.css",
+    "version": "figma/sds@05525f75192a3aa5d5690c5e41277ebd19d2efe1",
+    "originalPath": "src/theme.css",
+    "localFile": "figma-sds/sources/src__theme.css.txt",
+    "sha256": "7648a2dcf995b091c06bf36fdd6f5fc15b684831ca73d09b24521350cac7bab8",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "figma-sds",
+    "url": "https://raw.githubusercontent.com/figma/sds/05525f75192a3aa5d5690c5e41277ebd19d2efe1/LICENSE",
+    "version": "figma/sds@05525f75192a3aa5d5690c5e41277ebd19d2efe1",
+    "originalPath": "LICENSE",
+    "localFile": "figma-sds/sources/LICENSE.txt",
+    "sha256": "570f1f1c07d32e2cdc7da3eea40f9c772e584782db15cbf455a72a19de36b7bc",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "radix",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/LICENSE",
+    "version": "@radix-ui/themes@3.3.0",
+    "originalPath": "LICENSE",
+    "localFile": "radix/sources/LICENSE.txt",
+    "sha256": "89e4ae7d91c640c6e8a3ca90ba578d799eb2491b766ed65e0725ba36499d56ba",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "radix",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/tokens.css",
+    "version": "@radix-ui/themes@3.3.0",
+    "originalPath": "tokens.css",
+    "localFile": "radix/sources/tokens.css.txt",
+    "sha256": "0d081df2e6d4f2d25041aebe546d90a81bce81d26017f62a81bebcd4be1c5248",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "tailwind",
+    "url": "https://cdn.jsdelivr.net/npm/tailwindcss@4.3.3/LICENSE",
+    "version": "tailwindcss@4.3.3",
+    "originalPath": "LICENSE",
+    "localFile": "tailwind/sources/LICENSE.txt",
+    "sha256": "60e0b68c0f35c078eef3a5d29419d0b03ff84ec1df9c3f9d6e39a519a5ae7985",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "tailwind",
+    "url": "https://cdn.jsdelivr.net/npm/tailwindcss@4.3.3/theme.css",
+    "version": "tailwindcss@4.3.3",
+    "originalPath": "theme.css",
+    "localFile": "tailwind/sources/theme.css.txt",
+    "sha256": "443d7af364200f8ec8352dc78e39485a118a1840d498c97967bf0ae402b39167",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "shadcn",
+    "url": "https://raw.githubusercontent.com/shadcn-ui/ui/30a58d4498f270af1c1e981a7d78a15cf5740841/apps/v4/public/r/themes/neutral.json",
+    "version": "shadcn-ui/ui@30a58d4498f270af1c1e981a7d78a15cf5740841",
+    "originalPath": "apps/v4/public/r/themes/neutral.json",
+    "localFile": "shadcn/sources/apps__v4__public__r__themes__neutral.json.txt",
+    "sha256": "f895f5848b74f800282fb1a1d2cea25ed646b663881769a992fd164939a5fc00",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "shadcn",
+    "url": "https://raw.githubusercontent.com/shadcn-ui/ui/30a58d4498f270af1c1e981a7d78a15cf5740841/LICENSE.md",
+    "version": "shadcn-ui/ui@30a58d4498f270af1c1e981a7d78a15cf5740841",
+    "originalPath": "LICENSE.md",
+    "localFile": "shadcn/sources/LICENSE.md.txt",
+    "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "untitled-ui",
+    "url": "https://raw.githubusercontent.com/untitleduico/react/1d410cb8facde8d50869e7bbb5f3d048e2267466/styles/theme.css",
+    "version": "untitleduico/react@1d410cb8facde8d50869e7bbb5f3d048e2267466",
+    "originalPath": "styles/theme.css",
+    "localFile": "untitled-ui/sources/styles__theme.css.txt",
+    "sha256": "52241a7d0d28f7022b59f11006d5f4b6b38e8173ef1ef2d81fb62cde520e344c",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "untitled-ui",
+    "url": "https://raw.githubusercontent.com/untitleduico/react/1d410cb8facde8d50869e7bbb5f3d048e2267466/LICENSE",
+    "version": "untitleduico/react@1d410cb8facde8d50869e7bbb5f3d048e2267466",
+    "originalPath": "LICENSE",
+    "localFile": "untitled-ui/sources/LICENSE.txt",
+    "sha256": "c4b824495f1d48ee0b257606dccdb9b0a442d565ce155fc1eb86f497172534e1",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "mui",
+    "url": "npm:@mui/material@9.5.0#createTheme()",
+    "version": "@mui/material@9.5.0",
+    "originalPath": "createTheme() : chemins de clés du thème par défaut",
+    "localFile": "mui/sources/theme-par-defaut.json.txt",
+    "sha256": "e392d51367af8675e5f240222504d925cddaaa0652e0c8542f327a304448edea",
+    "licence": "MIT",
+    "genere": true
+  }
+]

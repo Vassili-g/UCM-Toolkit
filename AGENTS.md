@@ -388,6 +388,7 @@ docs/                    la documentation classée par sujet
   README.md              le sommaire par profil de lecteur, et la table des autorités
   format/                la forme publiée, sa compatibilité et son historique
   guides/                le geste du designer et la recette externe
+  references/design-systems/  les noms de tokens de 13 systèmes du marché, figés par SHA-256, et ceux d'UCM
   notes/
     modes-et-aides/      le plan et les tâches des modes et des aides
     produit/             les pistes d'évolution et le coût de génération
