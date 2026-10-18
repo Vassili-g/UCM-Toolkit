@@ -45,22 +45,23 @@ La revue a montré que corriger le bruit ne suffit pas. Il faut garantir qu'une 
 - [x] **A0 · Méthode adoptée.** Les règles M01 à M13 sont tranchées dans `decisions.json` ; M08 et M09 sont refusées, ce qui ajoute deux corrections à A2 et A3.
 - [x] **A1 · Jeu de référence annoté.** 17 paires de C2 classées : 10 équivalentes, 5 distinctes, 2 indéterminées, dans `_local/annotations-c2.json`.
 - [x] **A6 · Décisions de termes.** Toutes les questions sont tranchées, T09 et T10 annulées (tirées d’un ancien export) ; voir `decisions.json`. L’architecture de référence est la [vue illustrée multimarques](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html), pas l’export d’UCM-Playground.
-- [ ] **A2 · Même découpage pour les questions et le renommage.**
-  - [ ] `decouperSegment` coupe un bloc soudé comme les questions, en tranches du mot d’origine (`textsucccess` → `text` + `succcess`) ; un nom sans règle reste identique.
-  - [ ] Test de session : la réponse à la faute renomme, l’annulation rend l’état initial.
-- [ ] **A3 · Branches parallèles et formes, d’après les décisions.**
-  - [ ] M08 : un mot connu face à un mot inconnu donne une question (`hover` / `survol`).
-  - [ ] S06 : un singulier et un pluriel ne sont comparés que s’ils sont du même type, deux variables ou deux groupes.
-  - [ ] T01 et S04 : `foreground` et `text` ne sont jamais proposés comme le même mot.
-  - [ ] Remesurer C1 et C2 ; comparer les questions de C2 aux 17 paires annotées.
-- [ ] **A7 · Décisions dans les registres du kit.** Chaque changement renvoie à son identifiant de décision.
-  - [ ] États (S01, T02, T12, S05, C03) : `default` (tolère `rest`, `resting`, `normal`, `selected-false`, `unselected`), `hover` (`hovered`), `focus` (`focused`), `pressed` (`press`), `disabled` (`disable`), `selected` (`selected-true`).
-  - [ ] Tailles (T06, S02) : `xs`, `sm`, `md`, `lg`, `xl`, `2xl`… ; `sm` tolère `small`, `md` tolère `medium`, `lg` tolère `large` et `big`.
-  - [ ] Statuts (T03, C04 à C06) : `danger` tolère `error`, `critical`, `negative` ; `success` tolère `positive` ; `warning` tolère `caution`, `attention`, `notice` ; `info` tolère `information`, `informative`.
-  - [ ] Rôles (T01, T14, T15, C01, C08) : `text` et `inverse` ajoutés ; `background` tolère `bg` ; `ring` tolère `focus-ring` ; `divider` tolère `separator`.
-  - [ ] Propriétés (T04, T05, T07, T13) : `font-size`, `line-height`, `letter-spacing`, `font-weight`, `font-family` ; `radius` tolère `border-radius` ; `color` tolère `colors` et `colour` ; `size`, `icon`, `dimension` tolèrent leur pluriel.
-  - [ ] Hors registre, faute de portée par type : `stroke` → `border` (C02), `grey` → `neutral` (C07), `elevation` → `shadow` (C09) restent des questions au cas par cas.
-  - [ ] Simulation des renommages sur l’architecture de référence, tests, vues générées, version du kit.
+- [x] **A2 · Même découpage pour les questions et le renommage.** (`f067a52`).
+  - [x] `decouperSegment` coupe un bloc soudé comme les questions, en tranches du mot d’origine (`textsucccess` → `text` + `succcess`) ; un nom sans règle reste identique (`f067a52`).
+  - [x] Test de session : la réponse à la faute renomme, l’annulation rend l’état initial (`f067a52`).
+- [x] **A3 · Branches parallèles et formes, d’après les décisions.** (`620d0e6`).
+  - [x] M08 : un mot connu face à un mot inconnu donne une question (`hover` / `survol`) (`620d0e6`).
+  - [x] S06 : un singulier et un pluriel ne sont comparés que s’ils sont du même type, deux variables ou deux groupes (`620d0e6`) ; dans C2, `paper` et `action` sont aussi des groupes, leur paire reste donc posée.
+  - [x] T01 et S04 : `foreground` et `text` ne sont jamais proposés comme le même mot (`8a08f82`) : `text` devient un rôle connu, deux rôles connus non synonymes ne se rapprochent pas.
+  - [x] Remesurer C1 et C2 ; comparer les questions de C2 aux 17 paires annotées (`620d0e6`) : C2 donne 15 questions.
+- [x] **A7 · Décisions dans les registres du kit.** Chaque changement renvoie à son identifiant de décision (`8a08f82`).
+  - [x] États (S01, T02, T12, S05, C03) : `default` (tolère `rest`, `resting`, `normal`, `selected-false`, `unselected`), `hover` (`hovered`), `focus` (`focused`), `pressed` (`press`), `disabled` (`disable`), `selected` (`selected-true`) (`8a08f82`).
+  - [x] Tailles (T06, S02) : `xs`, `sm`, `md`, `lg`, `xl`, `2xl`… ; `sm` tolère `small`, `md` tolère `medium`, `lg` tolère `large` et `big` (`8a08f82`).
+  - [x] Statuts (T03, C04 à C06) : `danger` tolère `error`, `critical`, `negative` ; `success` tolère `positive` ; `warning` tolère `caution`, `attention`, `notice` ; `info` tolère `information`, `informative` (`8a08f82`).
+  - [x] Rôles (T01, T14, T15, C01, C08) : `text` et `inverse` ajoutés ; `background` tolère `bg` ; `ring` tolère `focus-ring` ; `divider` tolère `separator` (`8a08f82`).
+  - [x] Propriétés (T04, T05, T07, T13) : `font-size`, `line-height`, `letter-spacing`, `font-weight`, `font-family` ; `radius` tolère `border-radius` ; `color` tolère `colors` et `colour` ; `size`, `icon`, `dimension` tolèrent leur pluriel (`8a08f82`).
+  - [x] Hors registre, faute de portée par type : `stroke` → `border` (C02), `grey` → `neutral` (C07), `elevation` → `shadow` (C09) restent des questions au cas par cas (`8a08f82`) ; `negative` reste aussi une question, car il nomme un espacement négatif chez Atlassian.
+  - [x] Simulation des renommages sur l’architecture de référence, tests, vues générées, version du kit (`c883ec7`) : 369 renommages sur l’instantané de la vue illustrée, dont 306 `colors` → `color`, 60 `press` → `pressed`, 48 `error` → `danger` ; kit 0.9.0.
+- [ ] **Migration du fichier Figma** (mainteneur) : renommer avec Architect avant d’écrire avec Palettes, qui vise désormais `primitives/color`.
 - [ ] **A4 · Corpus UCM refait sur l’architecture de référence**, puis audit des extractions (provenance, couches, réglages MUI).
 - [ ] **A5 · Analyse par concept** sur occurrences annotées, si une décision reste à justifier.
 - [ ] **A8 · Recette Figma** sur une copie et nouveau jugement de Q1, par le mainteneur.
