@@ -1,43 +1,100 @@
-/**
- * Écrit `ucm/noms.json` (feuilles `$value` de C1, chemins joints par `/`) et
- * `ucm/registres.json` (identifiants et formes tolérées des registres du kit).
- *
- *   node _outils/ucm.mjs [chemin/vers/tokens.json]
- *
- * Par défaut, C1 est `../UCM-Playground/src/tokens/tokens.json`, frère du dépôt.
- * Les registres viennent du kit compilé : lancer `npm run build` avant si
- * `packages/kit/src/referentiel/vocabulaire.ts` a changé.
- */
+/** Extrait les noms de la vue illustrée et les registres du kit compilé, sans exécuter la source. */
+import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { resolve } from 'node:path';
+import { COLLECTIONS, REGISTRES, REGISTRES_ARCHITECTURE } from '@ucm-kit/core/referentiel';
 
 const racine = new URL('../', import.meta.url);
 const depot = new URL('../../../', racine);
-const c1 = resolve(process.argv[2] ?? fileURLToPath(new URL('../UCM-Playground/src/tokens/tokens.json', depot)));
-mkdirSync(new URL('ucm/', racine), { recursive: true });
+const sourceParDefaut = new URL('docs/notes/Recherches/Archi Tokens Multi-marques/donnees-vue-illustree.js', depot);
+const sha256 = (contenu) => createHash('sha256').update(contenu).digest('hex');
+const serialiser = (noms) => `[\n${noms.map((nom) => `  ${JSON.stringify(nom)}`).join(',\n')}\n]\n`;
 
-const COUCHES = { primitives: 'primitive', components: 'composant' };
-const arbre = JSON.parse(readFileSync(c1, 'utf8'));
-const noms = [];
-const aller = (n, chemin, typeHerite) => {
-  if (!n || typeof n !== 'object') return;
-  if ('$value' in n) {
-    noms.push({ nom: chemin.join('/'), type: n.$type ?? typeHerite ?? null, couche: COUCHES[chemin[0]] ?? null });
-    return;
+/** Le générateur écrit une affectation de JSON ; aucun JavaScript de la source n'est exécuté. */
+export function lireDonnees(texte) {
+  const affectation = texte.match(/^(?:\/\/[^\n]*\n)*\s*window\.VUE_DONNEES\s*=\s*([\s\S]*?);?\s*$/);
+  if (!affectation) throw new Error('Affectation window.VUE_DONNEES absente.');
+  const donnees = JSON.parse(affectation[1]);
+  if (!donnees.collections || typeof donnees.collections !== 'object' || Array.isArray(donnees.collections)) {
+    throw new Error('Collections de la vue illustrée absentes.');
   }
-  const type = n.$type ?? typeHerite ?? null;
-  for (const [k, v] of Object.entries(n)) if (!k.startsWith('$')) aller(v, [...chemin, k], type);
-};
-aller(arbre, [], null);
-const uniques = [...new Map(noms.map((n) => [n.nom, n])).values()].sort((a, b) => (a.nom < b.nom ? -1 : a.nom > b.nom ? 1 : 0));
-writeFileSync(new URL('ucm/noms.json', racine), `[\n${uniques.map((n) => `  ${JSON.stringify(n)}`).join(',\n')}\n]\n`);
+  return donnees;
+}
 
-const { REGISTRES } = await import(pathToFileURL(fileURLToPath(new URL('packages/kit/dist/referentiel/vocabulaire.js', depot))).href);
-const registres = REGISTRES.map((r) => ({
-  id: r.id,
-  extensible: r.extensible,
-  termes: r.termes.map((t) => ({ id: t.id, toleres: [...(t.toleres ?? [])] })),
-}));
-writeFileSync(new URL('ucm/registres.json', racine), JSON.stringify(registres, null, 1) + '\n');
-console.log(`${uniques.length} noms C1, ${registres.length} registres`);
+/** Une entrée par variable, même si plusieurs modes la renseignent ; les noms restent ceux de l'instantané. */
+export function extraireNoms(donnees) {
+  const entrees = new Map();
+  for (const [collection, variables] of Object.entries(donnees.collections)) {
+    if (!COLLECTIONS.includes(collection)) throw new Error(`Collection UCM inconnue : ${collection}`);
+    for (const [chemin, valeur] of Object.entries(variables)) {
+      if (!chemin.startsWith(`${collection}.`)) throw new Error(`Chemin hors de sa collection : ${chemin}`);
+      entrees.set(chemin, { collection, valeur });
+    }
+  }
+  const types = new Map();
+  function typeDuChemin(chemin, visites = new Set()) {
+    if (types.has(chemin)) return types.get(chemin);
+    if (visites.has(chemin)) throw new Error(`Cycle d'alias : ${[...visites, chemin].join(' → ')}`);
+    const entree = entrees.get(chemin);
+    if (!entree) throw new Error(`Cible d'alias absente : ${chemin}`);
+    const suivants = new Set([...visites, chemin]);
+    const valeurs = typeof entree.valeur === 'object' && entree.valeur !== null
+      ? Object.values(entree.valeur) : [entree.valeur];
+    const typesDesModes = new Set(valeurs.map((valeur) => {
+      if (typeof valeur !== 'string' || valeur === '∅') return null;
+      if (/^[a-z-]+\./.test(valeur)) return typeDuChemin(valeur, suivants);
+      if (/^#[\da-f]{6}(?:[\da-f]{2})?$/i.test(valeur)) return 'color';
+      if (/^-?(?:\d+(?:\.\d+)?|\.\d+)px$/.test(valeur)) return 'dimension';
+      if (/\.font-?weight\./.test(chemin) && /^\d+$/.test(valeur)) return 'fontWeight';
+      if (/\.font-?family\./.test(chemin) && valeur.trim()) return 'fontFamily';
+      if (/^-?\d+(?:\.\d+)?$/.test(valeur)) return 'number';
+      return null;
+    }));
+    // L'instantané ne porte plus les types DTCG : un mode absent ou contradictoire reste indéterminé.
+    const type = typesDesModes.size === 1 ? [...typesDesModes][0] : null;
+    types.set(chemin, type);
+    return type;
+  }
+  return [...entrees].map(([chemin, { collection }]) => ({
+    nom: chemin.split('.').join('/'),
+    type: typeDuChemin(chemin),
+    couche: collection === 'primitives' ? 'primitive' : collection === 'components' ? 'composant' : 'semantique',
+  })).sort((a, b) => a.nom < b.nom ? -1 : a.nom > b.nom ? 1 : 0);
+}
+
+function ecrireCorpus(source) {
+  const contenu = readFileSync(source, 'utf8');
+  const donnees = lireDonnees(contenu);
+  const noms = extraireNoms(donnees);
+  const registres = [...REGISTRES, ...REGISTRES_ARCHITECTURE].map((registre) => ({
+    id: registre.id,
+    extensible: registre.extensible,
+    termes: registre.termes.map((terme) => ({ id: terme.id, toleres: [...(terme.toleres ?? [])] })),
+  }));
+  const contenuDesRegistres = JSON.stringify(registres, null, 1) + '\n';
+  const cheminDansLeDepot = (chemin) => relative(fileURLToPath(depot), fileURLToPath(chemin)).replace(/\\/g, '/');
+  const provenance = {
+    source: { fichier: cheminDansLeDepot(source), sha256: sha256(contenu), modes: donnees.modes },
+    extracteur: { fichier: cheminDansLeDepot(import.meta.url), sha256: sha256(readFileSync(fileURLToPath(import.meta.url))) },
+    kit: {
+      version: JSON.parse(readFileSync(new URL('packages/kit/package.json', depot), 'utf8')).version,
+      sha256Registres: sha256(contenuDesRegistres),
+    },
+    comptes: {
+      noms: noms.length,
+      parCollection: Object.fromEntries(Object.entries(donnees.collections).map(([collection, variables]) => [collection, Object.keys(variables).length])),
+      sansType: noms.filter((nom) => nom.type === null).length,
+      registres: registres.length,
+    },
+  };
+  mkdirSync(new URL('ucm/', racine), { recursive: true });
+  writeFileSync(new URL('ucm/noms.json', racine), serialiser(noms));
+  writeFileSync(new URL('ucm/registres.json', racine), contenuDesRegistres);
+  writeFileSync(new URL('ucm/sources.json', racine), JSON.stringify(provenance, null, 2) + '\n');
+  console.log(`${noms.length} noms UCM, ${provenance.comptes.sansType} sans type, ${registres.length} registres`);
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  ecrireCorpus(process.argv[2] ? pathToFileURL(resolve(process.argv[2])) : sourceParDefaut);
+}

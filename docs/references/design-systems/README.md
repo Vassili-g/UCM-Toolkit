@@ -33,9 +33,18 @@ Trois outils servent plus rarement :
   relève les chemins de clés de `createTheme()`. MUI ne publie pas ses tokens
   dans un fichier, et ce script exécute le code du paquet : on le lance à la
   main.
-- `ucm.mjs` écrit `ucm/noms.json` depuis le fichier de tokens C1 du dépôt
-  UCM Playground, et `ucm/registres.json` depuis le kit compilé
-  (`npm run build` d'abord si le vocabulaire a changé).
+- `ucm.mjs` écrit `ucm/noms.json` depuis l’instantané de la
+  [vue illustrée multimarques](../../notes/Recherches/Archi%20Tokens%20Multi-marques/donnees-vue-illustree.js).
+  Il relève les registres de vocabulaire et d’architecture du kit compilé dans
+  `ucm/registres.json`. Depuis la racine du dépôt :
+
+  ```sh
+  npm run build --workspace @ucm-kit/core
+  node docs/references/design-systems/_outils/ucm.mjs
+  ```
+
+  `ucm/sources.json` donne les empreintes de l’instantané, de l’extracteur et
+  des registres, la version du kit et les comptes par collection.
 
 ## Lire un `noms.json`
 
@@ -68,10 +77,16 @@ Trois outils servent plus rarement :
 | `shadcn` | `shadcn-ui/ui` au commit `30a58d4`, `themes/neutral.json` | MIT | 24 | non | [Surfaces](../../notes/Archives/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/Collecte/Surfaces/sources) |
 | `mui` | `@mui/material` 9.5.0, clés de `createTheme()` | MIT | 163 | non | [MUI](../../notes/Archives/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/Collecte/MUI) |
 | `untitled-ui` | `untitleduico/react` au commit `1d410cb`, `styles/theme.css` | MIT | 379 | non | aucune |
-| `ucm` | C1 (`tokens.json` d'UCM Playground) et registres du kit | propre au projet | 760 | primitives et composants | aucune |
+| `ucm` | Instantané de la vue illustrée multimarques et registres du kit | propre au projet | 1 300 | primitives, sémantiques et composants | aucune |
 
 Limites de ce qui est relevé :
 
+- `ucm` garde les noms de l’instantané, y compris les formes antérieures aux
+  registres actuels. La couche vient de la collection : `primitives`,
+  `components`, ou sémantique pour les cinq autres. Le type est déduit des
+  valeurs et des cibles d’alias dans chaque mode ; 24 valeurs absentes restent
+  sans type. Les registres contiennent les formes retenues, sans renommer ces
+  observations.
 - `shadcn` ne compte que les variables du thème de base : les noms propres aux
   composants n'y sont pas.
 - `mui` n'a pas de valeurs ni de couche. Les indices de tableaux sont retirés

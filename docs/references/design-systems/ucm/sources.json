@@ -1,0 +1,38 @@
+{
+  "source": {
+    "fichier": "docs/notes/Recherches/Archi Tokens Multi-marques/donnees-vue-illustree.js",
+    "sha256": "18d6c5c0201dba60975158d0e1d5ae760e734ece0f8be05292cbd61a774d5bdd",
+    "modes": {
+      "theme": [
+        "light",
+        "dark"
+      ],
+      "color-brands": [
+        "intencial",
+        "marque-2"
+      ]
+    }
+  },
+  "extracteur": {
+    "fichier": "docs/references/design-systems/_outils/ucm.mjs",
+    "sha256": "cb343bf4af6ae72a1fb67f390cee0f585b093e5ffce1ff729e5a322291a6efd5"
+  },
+  "kit": {
+    "version": "0.9.1",
+    "sha256Registres": "e7f7d7429073be1bf50601b50e66b676e5d6eb8b4aee1a91220dbce3ae01458c"
+  },
+  "comptes": {
+    "noms": 1300,
+    "parCollection": {
+      "components": 369,
+      "color-brands": 46,
+      "color-utilities": 206,
+      "layouts": 31,
+      "typography": 60,
+      "theme": 271,
+      "primitives": 317
+    },
+    "sansType": 24,
+    "registres": 24
+  }
+}

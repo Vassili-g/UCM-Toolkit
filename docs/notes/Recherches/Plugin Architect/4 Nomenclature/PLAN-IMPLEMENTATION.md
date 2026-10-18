@@ -62,7 +62,9 @@ La revue a montré que corriger le bruit ne suffit pas. Il faut garantir qu'une 
   - [x] Hors registre, faute de portée par type : `stroke` → `border` (C02), `grey` → `neutral` (C07), `elevation` → `shadow` (C09) restent des questions au cas par cas (`8a08f82`) ; `negative` reste aussi une question, car il nomme un espacement négatif chez Atlassian.
   - [x] Simulation des renommages sur l’architecture de référence, tests, vues générées, version du kit (`c883ec7`) : 369 renommages sur l’instantané de la vue illustrée, dont 306 `colors` → `color`, 60 `press` → `pressed`, 48 `error` → `danger` ; kit 0.9.0.
 - [ ] **Migration du fichier Figma** (mainteneur) : renommer avec Architect avant d’écrire avec Palettes, qui vise désormais `primitives/color`.
-- [ ] **A4 · Corpus UCM refait sur l’architecture de référence**, puis audit des extractions (provenance, couches, réglages MUI).
+- [ ] **A4 · Corpus UCM et audit des extractions.**
+  - [x] Corpus UCM tiré de l’instantané de la vue illustrée : 1 300 noms dans les sept collections, couches renseignées, types suivis par alias et par mode ; 24 valeurs absentes restent sans type. Les 24 registres du kit, architecture comprise, et les empreintes des entrées sont relevés dans `docs/references/design-systems/ucm/`.
+  - [ ] Audit des extractions externes : provenance des occurrences, couches inconnues et réglages MUI.
 - [ ] **A5 · Analyse par concept** sur occurrences annotées, si une décision reste à justifier.
 - [ ] **A8 · Recette Figma** sur une copie et nouveau jugement de Q1, par le mainteneur.
 

@@ -420,6 +420,7 @@ tests/                   les tests du monorepo lui-même
   pluginsSepares.test.ts  aucun des trois plugins n'importe un autre
   referentielUnique.test.ts  aucune liste littérale ne recopie une donnée du référentiel
   vueIllustree.test.ts   la vue illustrée montre le référentiel d'aujourd'hui
+  corpusUcm.test.ts      les noms, les registres et les empreintes du corpus UCM suivent leurs sources
   manifestsDesPlugins.test.ts  chaque plugin a son propre `id` de manifest
 ```
 

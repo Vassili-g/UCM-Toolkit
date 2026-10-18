@@ -93,7 +93,13 @@
   "termes": [
    {
     "id": "default",
-    "toleres": []
+    "toleres": [
+     "rest",
+     "resting",
+     "normal",
+     "selected-false",
+     "unselected"
+    ]
    },
    {
     "id": "hover",
@@ -118,6 +124,12 @@
     "toleres": [
      "disable"
     ]
+   },
+   {
+    "id": "selected",
+    "toleres": [
+     "selected-true"
+    ]
    }
   ]
  },
@@ -139,30 +151,6 @@
   "extensible": true,
   "termes": [
    {
-    "id": "tiny",
-    "toleres": []
-   },
-   {
-    "id": "small",
-    "toleres": []
-   },
-   {
-    "id": "medium",
-    "toleres": []
-   },
-   {
-    "id": "large",
-    "toleres": []
-   },
-   {
-    "id": "big",
-    "toleres": []
-   },
-   {
-    "id": "huge",
-    "toleres": []
-   },
-   {
     "id": "4xs",
     "toleres": []
    },
@@ -180,35 +168,38 @@
    },
    {
     "id": "sm",
-    "toleres": []
+    "toleres": [
+     "small"
+    ]
    },
    {
     "id": "md",
-    "toleres": []
+    "toleres": [
+     "medium"
+    ]
    },
    {
     "id": "lg",
-    "toleres": []
+    "toleres": [
+     "large",
+     "big"
+    ]
    },
    {
     "id": "xl",
     "toleres": []
    },
    {
-    "id": "xxl",
-    "toleres": []
-   },
-   {
-    "id": "xxxl",
-    "toleres": []
-   },
-   {
     "id": "2xl",
-    "toleres": []
+    "toleres": [
+     "xxl"
+    ]
    },
    {
     "id": "3xl",
-    "toleres": []
+    "toleres": [
+     "xxxl"
+    ]
    },
    {
     "id": "4xl",
@@ -218,6 +209,130 @@
  },
  {
   "id": "statuts",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "success",
+    "toleres": [
+     "positive"
+    ]
+   },
+   {
+    "id": "warning",
+    "toleres": [
+     "caution",
+     "attention",
+     "notice"
+    ]
+   },
+   {
+    "id": "info",
+    "toleres": [
+     "information",
+     "informative"
+    ]
+   },
+   {
+    "id": "danger",
+    "toleres": [
+     "error",
+     "critical"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "roles",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "background",
+    "toleres": [
+     "bg"
+    ]
+   },
+   {
+    "id": "foreground",
+    "toleres": []
+   },
+   {
+    "id": "text",
+    "toleres": []
+   },
+   {
+    "id": "icon",
+    "toleres": [
+     "icons"
+    ]
+   },
+   {
+    "id": "border",
+    "toleres": []
+   },
+   {
+    "id": "divider",
+    "toleres": [
+     "separator"
+    ]
+   },
+   {
+    "id": "ring",
+    "toleres": [
+     "focus-ring"
+    ]
+   },
+   {
+    "id": "inverse",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "noms-communs",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "color",
+    "toleres": [
+     "colors",
+     "colour",
+     "colours"
+    ]
+   },
+   {
+    "id": "size",
+    "toleres": [
+     "sizes"
+    ]
+   },
+   {
+    "id": "radius",
+    "toleres": [
+     "border-radius"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "familles-color-brands",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "identity",
+    "toleres": []
+   },
+   {
+    "id": "primary",
+    "toleres": []
+   },
+   {
+    "id": "secondary",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "familles-color-utilities",
   "extensible": true,
   "termes": [
    {
@@ -235,23 +350,260 @@
    {
     "id": "danger",
     "toleres": []
+   },
+   {
+    "id": "neutral",
+    "toleres": []
+   },
+   {
+    "id": "elevation",
+    "toleres": []
    }
   ]
  },
  {
-  "id": "roles",
+  "id": "familles-primitives",
   "extensible": true,
   "termes": [
    {
-    "id": "background",
+    "id": "color",
+    "toleres": [
+     "colors",
+     "colour"
+    ]
+   },
+   {
+    "id": "dimension",
+    "toleres": [
+     "dimensions"
+    ]
+   },
+   {
+    "id": "font-family",
+    "toleres": [
+     "fontfamily"
+    ]
+   },
+   {
+    "id": "font-weight",
+    "toleres": [
+     "fontweight"
+    ]
+   },
+   {
+    "id": "font-size",
+    "toleres": [
+     "fontsize"
+    ]
+   },
+   {
+    "id": "line-height",
+    "toleres": [
+     "lineheight"
+    ]
+   },
+   {
+    "id": "letter-spacing",
+    "toleres": [
+     "letterspacing"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "familles-layouts",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "sizing",
+    "toleres": []
+   },
+   {
+    "id": "radius",
+    "toleres": []
+   },
+   {
+    "id": "stroke",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "familles-typography",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "display",
+    "toleres": []
+   },
+   {
+    "id": "headline",
+    "toleres": []
+   },
+   {
+    "id": "title",
+    "toleres": []
+   },
+   {
+    "id": "body",
+    "toleres": []
+   },
+   {
+    "id": "label",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "palettes",
+  "extensible": true,
+  "termes": []
+ },
+ {
+  "id": "marques",
+  "extensible": true,
+  "termes": []
+ },
+ {
+  "id": "valeurs-dimensionnelles",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "none",
+    "toleres": []
+   },
+   {
+    "id": "full",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "valeurs-typographiques",
+  "extensible": true,
+  "termes": [
+   {
+    "id": "base",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "proprietes-typographiques",
+  "extensible": false,
+  "termes": [
+   {
+    "id": "font-family",
+    "toleres": [
+     "fontfamily"
+    ]
+   },
+   {
+    "id": "font-weight",
+    "toleres": [
+     "fontweight"
+    ]
+   },
+   {
+    "id": "font-size",
+    "toleres": [
+     "fontsize"
+    ]
+   },
+   {
+    "id": "line-height",
+    "toleres": [
+     "lineheight"
+    ]
+   },
+   {
+    "id": "letter-spacing",
+    "toleres": [
+     "letterspacing"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "couleurs-absolues",
+  "extensible": false,
+  "termes": [
+   {
+    "id": "white",
+    "toleres": []
+   },
+   {
+    "id": "black",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "elevations",
+  "extensible": false,
+  "termes": [
+   {
+    "id": "page",
+    "toleres": []
+   },
+   {
+    "id": "raised",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "dossiers-theme",
+  "extensible": false,
+  "termes": [
+   {
+    "id": "solid",
+    "toleres": []
+   },
+   {
+    "id": "surface",
+    "toleres": []
+   },
+   {
+    "id": "page",
+    "toleres": []
+   },
+   {
+    "id": "ring",
+    "toleres": []
+   },
+   {
+    "id": "scale",
+    "toleres": []
+   },
+   {
+    "id": "disabled",
+    "toleres": []
+   },
+   {
+    "id": "elevation",
+    "toleres": []
+   }
+  ]
+ },
+ {
+  "id": "valeurs-theme",
+  "extensible": false,
+  "termes": [
+   {
+    "id": "default",
+    "toleres": []
+   },
+   {
+    "id": "hover",
+    "toleres": []
+   },
+   {
+    "id": "pressed",
     "toleres": []
    },
    {
     "id": "foreground",
-    "toleres": []
-   },
-   {
-    "id": "icon",
     "toleres": []
    },
    {
@@ -263,7 +615,23 @@
     "toleres": []
    },
    {
-    "id": "ring",
+    "id": "foreground-main",
+    "toleres": []
+   },
+   {
+    "id": "foreground-subtle",
+    "toleres": []
+   },
+   {
+    "id": "0",
+    "toleres": []
+   },
+   {
+    "id": "1000",
+    "toleres": []
+   },
+   {
+    "id": "background",
     "toleres": []
    }
   ]
