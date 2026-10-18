@@ -328,3 +328,17 @@ Un agent spécialiste de l'UX a relu la première version de ce document :
 | Composants | La piste de la section 11 convient |
 
 Le [plan d'implémentation](./PLAN-IMPLEMENTATION.md) en découle.
+
+## 14. Écarts constatés pendant l'implémentation
+
+| Sujet | Ce que fait le plugin | Lot |
+|---|---|---|
+| Groupe d'un renommage | Un renommage appartient au groupe de sa règle la plus prioritaire ; entre deux règles de même sorte, au groupe qui renomme le plus de noms. L'écran et le sandbox rangent ainsi chaque nom dans le même groupe | P5 |
+| Portée d'une variable | L'identifiant de sa collection dans l'inventaire, pour que la question d'une collection non reconnue compte ses variables | P4 |
+| Renommer une collection | La réponse se range dans l'entrée `collection:<id>` de la collection, avec sa cible ; la collection rejoint À appliquer sous Collections. Ni l'export ni l'import ne la portent | P4 |
+| Questions mises de côté | Elles ne prennent pas de place parmi les dix questions affichées | P4 |
+| Bandeau « fichier modifié » | Jamais montré : un nom changé depuis la lecture est sauté, et l'application rend un résultat partiel ou refusé | P4 |
+| Titre d'une fiche | Le terme s'écrit en texte simple dans l'en-tête de la feuille du socle ; sa pastille passe dans le corps | U4b |
+| Remplacer par… | La saisie propose les termes du référentiel UCM, sans le nombre de variables de chacun : la liste de Règles occupe la lecture des termes | U4b |
+| Terme remplacé | Il a sa propre fiche, « Remplacé par X », avec Retirer ce remplacement quand la règle vient du fichier | U4b |
+| Galerie | L'effet simulé de la feuille de l'écriture n'y est pas atteignable : le pilote de la galerie ne déclenche pas le changement d'une liste déroulante | U5 |
