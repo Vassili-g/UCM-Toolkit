@@ -24,6 +24,7 @@
   --fond-selection: var(--sombre-selection);
   --fond-succes: var(--sombre-succes);
   --fond-avertissement: var(--sombre-avertissement);
+  --fond-voile: var(--sombre-voile);
   --fond-danger: var(--sombre-danger);
   --fond-danger-plein: var(--sombre-danger-plein);
   --fond-danger-plein-survol: var(--sombre-danger-plein-survol);
