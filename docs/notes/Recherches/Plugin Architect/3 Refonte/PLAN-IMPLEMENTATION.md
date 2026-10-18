@@ -678,14 +678,14 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Agent :** `implementeur-exigeant`. **Effort :** élevé.
 **Fichiers :** `src/ui/feuilles.ts`. **Référence :** écrans 9 à 13.
 
-- [ ] Feuille du socle pour l'écriture (effet simulé avant Enregistrer), le
+- [x] (7d46a89) Feuille du socle pour l'écriture (effet simulé avant Enregistrer), le
   terme UCM, le terme personnalisé, le terme sans règle, et Remplacer par…
   comme étape suivante de la même feuille
-- [ ] Une fiche montre aussi les paires distinctes et le terme voulu, avec
+- [x] (7d46a89) Une fiche montre aussi les paires distinctes et le terme voulu, avec
   Retirer
-- [ ] Proposer à UCM copie le terme, sa définition et ses termes remplacés au
+- [x] (7d46a89) Proposer à UCM copie le terme, sa définition et ses termes remplacés au
   format d'un `Terme` du référentiel
-- [ ] Fin : typecheck, `build:ui`
+- [x] (7d46a89) Fin : typecheck, `build:ui`
 
 ### U5 · Galerie des états
 
