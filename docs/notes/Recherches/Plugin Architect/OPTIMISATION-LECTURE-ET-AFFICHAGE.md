@@ -547,3 +547,87 @@ l'annulation doivent rester. Leurs limites sont décrites dans la
 [recherche API de la v1](./2%20Architect%20v1/RECHERCHE-API-ARCHITECT.md).
 Un cache de prévisualisation ne constitue pas une preuve de fraîcheur du
 document au moment d'appliquer.
+
+## Mesures de la refonte
+
+Les scripts de [Mesures](./Mesures/) appellent le moteur du kit. Les tableaux
+de la section 4 portent sur la v1 ; leur
+[script d'origine](https://github.com/Vassili-g/UCM-Toolkit/blob/850e1c01a56052b8b0d78dba26873cb230e7d024/docs/notes/Recherches/Plugin%20Architect/Mesures/mesurer-performances.ts)
+reste accessible dans Git.
+
+Depuis la racine du dépôt :
+
+```sh
+npm run build --workspace @ucm-kit/core
+node --import tsx "docs/notes/Recherches/Plugin Architect/Mesures/mesurer-performances.ts"
+node --import tsx "docs/notes/Recherches/Plugin Architect/Mesures/mesurer-questions.ts" C1
+node --import tsx "docs/notes/Recherches/Plugin Architect/Mesures/mesurer-questions.ts" C2
+```
+
+Le premier script écrit `resultats-performances.json`. Le second écrit sur la
+sortie standard ; le [relevé conservé](./Mesures/resultats-questions-c1.json)
+porte sur C1. Les résultats de C2 restent hors du dépôt.
+
+### Durées du moteur
+
+Les [résultats bruts](./Mesures/resultats-performances.json) indiquent Node
+24.19.0, Windows x64 et un Intel Core i7-7820X à 3,60 GHz. Chaque durée est la
+médiane de sept exécutions après deux échauffements.
+
+| Noms | Préparation (ms) | Questions (ms) | Normalisation initiale (ms) | Recalcul d'écriture (ms) | Recalcul de terme (ms) |
+|---|---|---|---|---|---|
+| 800 | 30,850 | 14,581 | 3,775 | 6,614 | 1,153 |
+| 8 000 | 286,219 | 135,144 | 49,967 | 69,390 | 7,945 |
+| 32 000 | 1 189,725 | 520,637 | 213,916 | 292,655 | 41,732 |
+
+Les noms synthétiques ont trois segments et huit portées. La préparation
+comprend le découpage, les index et la détection des conventions.
+La normalisation et les recalculs réutilisent le lexique préparé.
+Le choix d'écriture passe les noms de variables en PascalCase.
+La règle `outline` vers `outlined` touche une seule portée : 100, 1 000 ou
+4 000 noms selon le jeu. Sa mesure comprend l'index du vocabulaire et la
+recherche des portées touchées. Le script compare son résultat partiel au
+résultat global sur ces portées, collisions comprises.
+
+La détection des 32 000 noms prend 521 ms sur ce jeu sans question. La
+préparation complète prend 1,19 s. Ces durées sous Node excluent les API Figma,
+les attentes entre les étapes, le pont et le rendu. Elles ne mesurent pas la
+plus longue tranche entre deux pauses.
+
+### Questions sur C1
+
+C1 est `UCM-Playground/src/tokens/tokens.json` : 760 variables réparties sur
+huit racines de collection. Le relevé contient l'empreinte SHA-256 du fichier
+et la révision du moteur.
+
+La racine DTCG représente la collection et le reste du chemin représente le
+nom de variable. Le script relève seulement l'alias direct de `$value`.
+L'export a déjà normalisé les noms : leur casse et leurs séparateurs Figma ne
+peuvent plus être mesurés.
+
+| Détecteur | Questions |
+|---|---|
+| Terminaison | 0 |
+| Pluriel | 0 |
+| Abréviation | 0 |
+| Synonymes | 1 |
+| Même place | 42 |
+| Faute | 1 |
+| Mots collés | 0 |
+| Échelle | 1 |
+| Collection | 2 |
+| Total | 47 |
+
+Ces comptes portent sur les questions dédupliquées, toutes pistes comprises.
+La priorité d'un indice détermine sa ligne de comptage quand plusieurs indices
+concordent. Les règles UCM actives retirent leurs formes déjà remplacées.
+Le détecteur « Même place » exclut les termes frères sous un même parent et
+les mots contigus dans un nom.
+
+Le seuil reste à 2. Le relevé élargit le plafond à vingt questions pour leur
+relecture ; le moteur en retient dix par défaut. Les vingt premières, avec
+leur score et leur proposition, sont dans le relevé C1. Le score compte les
+noms distincts touchés et ajoute deux points par indice supplémentaire.
+La première paire est `foreground` / `scale`, score 119 : sa fréquence ne
+suffit pas à établir une synonymie. Le mainteneur doit juger ces propositions
+avant de fixer le seuil.

@@ -1,0 +1,366 @@
+{
+  "corpus": "C1",
+  "environnement": {
+    "node": "v24.19.0",
+    "revision": "850e1c01a56052b8b0d78dba26873cb230e7d024"
+  },
+  "sha256": "b0171e0256939144995643b5986c418a81ca87c9e7f487a9e6b7cffdd05f38a5",
+  "variables": 760,
+  "collections": 8,
+  "seuil": 2,
+  "maximum": 20,
+  "total": 47,
+  "retenues": 20,
+  "autres": 27,
+  "parDetecteur": {
+    "terminaison": 0,
+    "pluriel": 0,
+    "abreviation": 0,
+    "synonymes": 1,
+    "meme-place": 42,
+    "faute": 1,
+    "mots-colles": 0,
+    "echelle": 1,
+    "collection": 2
+  },
+  "premieres": [
+    {
+      "cle": "paire:foreground|scale",
+      "score": 119,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "foreground",
+          "nombre": 107
+        },
+        {
+          "mot": "scale",
+          "nombre": 12
+        }
+      ],
+      "proposition": "foreground"
+    },
+    {
+      "cle": "paire:background|tile",
+      "score": 98,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "background",
+          "nombre": 95
+        },
+        {
+          "mot": "tile",
+          "nombre": 3
+        }
+      ],
+      "proposition": "background"
+    },
+    {
+      "cle": "paire:contained|filled",
+      "score": 84,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "contained",
+          "nombre": 72
+        },
+        {
+          "mot": "filled",
+          "nombre": 12
+        }
+      ],
+      "proposition": "contained"
+    },
+    {
+      "cle": "paire:contained|standard",
+      "score": 84,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "contained",
+          "nombre": 72
+        },
+        {
+          "mot": "standard",
+          "nombre": 12
+        }
+      ],
+      "proposition": "contained"
+    },
+    {
+      "cle": "paire:text|title",
+      "score": 75,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "text",
+          "nombre": 62
+        },
+        {
+          "mot": "title",
+          "nombre": 13
+        }
+      ],
+      "proposition": "title"
+    },
+    {
+      "cle": "paire:filled|text",
+      "score": 74,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "filled",
+          "nombre": 12
+        },
+        {
+          "mot": "text",
+          "nombre": 62
+        }
+      ],
+      "proposition": "text"
+    },
+    {
+      "cle": "paire:focus|icon",
+      "score": 74,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "focus",
+          "nombre": 60
+        },
+        {
+          "mot": "icon",
+          "nombre": 14
+        }
+      ],
+      "proposition": "focus"
+    },
+    {
+      "cle": "paire:standard|text",
+      "score": 74,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "standard",
+          "nombre": 12
+        },
+        {
+          "mot": "text",
+          "nombre": 62
+        }
+      ],
+      "proposition": "text"
+    },
+    {
+      "cle": "echelle:sm,md,lg|small,medium,large",
+      "score": 58,
+      "detecteur": "echelle",
+      "formes": [
+        [
+          "sm",
+          "md",
+          "lg"
+        ],
+        [
+          "small",
+          "medium",
+          "large"
+        ]
+      ],
+      "nombres": [
+        10,
+        48
+      ],
+      "proposition": [
+        "small",
+        "medium",
+        "large"
+      ]
+    },
+    {
+      "cle": "paire:default|icon",
+      "score": 56,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "default",
+          "nombre": 42
+        },
+        {
+          "mot": "icon",
+          "nombre": 14
+        }
+      ],
+      "proposition": "default"
+    },
+    {
+      "cle": "paire:default|filled",
+      "score": 54,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "default",
+          "nombre": 42
+        },
+        {
+          "mot": "filled",
+          "nombre": 12
+        }
+      ],
+      "proposition": "default"
+    },
+    {
+      "cle": "paire:default|standard",
+      "score": 54,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "default",
+          "nombre": 42
+        },
+        {
+          "mot": "standard",
+          "nombre": 12
+        }
+      ],
+      "proposition": "default"
+    },
+    {
+      "cle": "paire:border|height",
+      "score": 50,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "border",
+          "nombre": 46
+        },
+        {
+          "mot": "height",
+          "nombre": 4
+        }
+      ],
+      "proposition": "border"
+    },
+    {
+      "cle": "paire:medium|radius",
+      "score": 49,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "medium",
+          "nombre": 24
+        },
+        {
+          "mot": "radius",
+          "nombre": 26
+        }
+      ],
+      "proposition": "radius"
+    },
+    {
+      "cle": "paire:radius|small",
+      "score": 49,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "radius",
+          "nombre": 26
+        },
+        {
+          "mot": "small",
+          "nombre": 24
+        }
+      ],
+      "proposition": "radius"
+    },
+    {
+      "cle": "paire:big|radius",
+      "score": 29,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "big",
+          "nombre": 4
+        },
+        {
+          "mot": "radius",
+          "nombre": 26
+        }
+      ],
+      "proposition": "radius"
+    },
+    {
+      "cle": "paire:border-radius|medium",
+      "score": 29,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "border-radius",
+          "nombre": 6
+        },
+        {
+          "mot": "medium",
+          "nombre": 24
+        }
+      ],
+      "proposition": "medium"
+    },
+    {
+      "cle": "paire:border-radius|small",
+      "score": 29,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "border-radius",
+          "nombre": 6
+        },
+        {
+          "mot": "small",
+          "nombre": 24
+        }
+      ],
+      "proposition": "small"
+    },
+    {
+      "cle": "paire:medium|x",
+      "score": 29,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "medium",
+          "nombre": 24
+        },
+        {
+          "mot": "x",
+          "nombre": 6
+        }
+      ],
+      "proposition": "medium"
+    },
+    {
+      "cle": "paire:small|x",
+      "score": 29,
+      "detecteur": "meme-place",
+      "termes": [
+        {
+          "mot": "small",
+          "nombre": 24
+        },
+        {
+          "mot": "x",
+          "nombre": 6
+        }
+      ],
+      "proposition": "small"
+    }
+  ],
+  "limites": [
+    "La racine DTCG représente la collection ; le reste du chemin représente le nom de variable.",
+    "Seul un alias direct de $value est relevé ; les autres modes et les valeurs identiques ne sont pas des indices.",
+    "Les noms exportés ont déjà été normalisés ; la casse et les séparateurs originaux de Figma sont perdus.",
+    "Le comptage par détecteur porte sur les questions dédupliquées et inclut les pistes sous le seuil ou au-delà du plafond.",
+    "Les vingt premières sont triées avant seuil et plafond pour leur jugement par le mainteneur."
+  ]
+}
+

@@ -4,79 +4,56 @@
     "plateforme": "win32",
     "architecture": "x64",
     "cpu": "Intel(R) Core(TM) i7-7820X CPU @ 3.60GHz",
-    "revision": "3b4d7ae6d2d025eb7815ec8411e9e7a1ca122598",
+    "revision": "850e1c01a56052b8b0d78dba26873cb230e7d024",
     "repetitions": 7,
     "echauffements": 2
   },
   "limites": [
-    "Objets synthétiques, sans appel Figma, sans DOM, sans transfert réel sandbox/interface.",
-    "Les pauses de lecture sont des promesses résolues ; leur coût réel est exclu.",
-    "structuredClone Node mesure une copie locale ; il ne mesure pas figma.ui.postMessage.",
-    "Les variantes partagent State=Default et portent chacune une valeur Size distincte ; leurs combinaisons sont uniques.",
-    "La projection complète garde toutes les lignes ; une fenêtre de résultats réduirait encore le message."
+    "Moteur du kit sous Node, sans API Figma, DOM, transfert sandbox/interface ni attente entre les étapes.",
+    "Préparation : ajout, découpage, index et détection des conventions ; les noms sont générés hors mesure.",
+    "Détection : questions sur le lexique préparé. Normalisation et recalculs réutilisent ce lexique.",
+    "Le recalcul de terme comprend son index et la recherche des portées ; la règle outline vers outlined touche une collection sur huit.",
+    "Les durées sont des médianes ; elles ne mesurent pas la plus longue tranche entre deux pauses."
   ],
   "variables": [
     {
       "nombre": 800,
-      "propositions": 800,
-      "detectionMs": 32.625,
-      "normalisationMs": 19.045,
-      "analyseMs": 48.981,
-      "analyseSansTermesMs": 39.143,
-      "presentationMs": 0.594,
-      "cloneNodeMs": 4.293,
-      "jsonOctets": 415439,
-      "projectionCompleteJsonOctets": 136642,
-      "elementsDeLignesDeduits": 5600
+      "portees": 8,
+      "porteesTouchees": 1,
+      "nomsDansLesPorteesTouchees": 100,
+      "renommagesInitiaux": 800,
+      "questions": 0,
+      "preparationMs": 30.85,
+      "detectionMs": 14.581,
+      "normalisationInitialeMs": 3.775,
+      "recalculEcritureMs": 6.614,
+      "recalculTermeMs": 1.153
     },
     {
       "nombre": 8000,
-      "propositions": 8000,
-      "detectionMs": 313.973,
-      "normalisationMs": 162.899,
-      "analyseMs": 486.111,
-      "analyseSansTermesMs": 389.379,
-      "presentationMs": 4.513,
-      "cloneNodeMs": 47.659,
-      "jsonOctets": 4208645,
-      "projectionCompleteJsonOctets": 1376846,
-      "elementsDeLignesDeduits": 56000
+      "portees": 8,
+      "porteesTouchees": 1,
+      "nomsDansLesPorteesTouchees": 1000,
+      "renommagesInitiaux": 8000,
+      "questions": 0,
+      "preparationMs": 286.219,
+      "detectionMs": 135.144,
+      "normalisationInitialeMs": 49.967,
+      "recalculEcritureMs": 69.39,
+      "recalculTermeMs": 7.945
     },
     {
       "nombre": 32000,
-      "propositions": 32000,
-      "detectionMs": 1238.09,
-      "normalisationMs": 661.582,
-      "analyseMs": 1941.013,
-      "analyseSansTermesMs": 1601.901,
-      "presentationMs": 26.042,
-      "cloneNodeMs": 212.096,
-      "jsonOctets": 17012651,
-      "projectionCompleteJsonOctets": 5594850,
-      "elementsDeLignesDeduits": 224000
-    }
-  ],
-  "variantes": [
-    {
-      "nombre": 1000,
-      "entrees": 1003,
-      "lecturePureMs": 4.2,
-      "referencesAnterieuresRecopiees": 499500,
-      "analyseJsonOctets": 538312
-    },
-    {
-      "nombre": 4000,
-      "entrees": 4003,
-      "lecturePureMs": 33.657,
-      "referencesAnterieuresRecopiees": 7998000,
-      "analyseJsonOctets": 2170312
-    },
-    {
-      "nombre": 12000,
-      "entrees": 12003,
-      "lecturePureMs": 272.128,
-      "referencesAnterieuresRecopiees": 71994000,
-      "analyseJsonOctets": 6538313
+      "portees": 8,
+      "porteesTouchees": 1,
+      "nomsDansLesPorteesTouchees": 4000,
+      "renommagesInitiaux": 32000,
+      "questions": 0,
+      "preparationMs": 1189.725,
+      "detectionMs": 520.637,
+      "normalisationInitialeMs": 213.916,
+      "recalculEcritureMs": 292.655,
+      "recalculTermeMs": 41.732
     }
   ]
 }
