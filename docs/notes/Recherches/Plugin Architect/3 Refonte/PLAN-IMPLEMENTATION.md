@@ -565,14 +565,14 @@ non exporté pour les fonctions d'écriture des mots partagées avec
 **Agent :** `implementeur-exigeant`. **Effort :** élevé.
 **Fichiers :** `src/projection.ts` (nouveau, pur), `tests/projection.test.ts`.
 
-- [ ] Du `ResultatDuLexique`, des questions et des règles vers `Bilan`,
+- [x] (1b243d3) Du `ResultatDuLexique`, des questions et des règles vers `Bilan`,
   `GroupeVue` (groupe principal, `aussi`, `nouveau` d'après les groupes déjà
   vus), `LigneVue` (chemin découpé autour du segment en cause), `QuestionVue`,
   `TermeDeListe`, `FicheVue`, `EffetVue`, `ConflitVue`
-- [ ] La résolution d'une `Selection` en identifiants : groupe principal coché
+- [x] (1b243d3) La résolution d'une `Selection` en identifiants : groupe principal coché
   sans exclusion, plus les inclus
-- [ ] Pages de cinquante pour `lignes` et `termes`, recherche et filtres
-- [ ] Fin : `tests/projection.test.ts`, typecheck
+- [x] (1b243d3) Pages de cinquante pour `lignes` et `termes`, recherche et filtres
+- [x] (1b243d3) Fin : `tests/projection.test.ts`, typecheck
 
 ### P4 · Session de calcul et protocole
 
