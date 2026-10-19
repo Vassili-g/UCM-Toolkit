@@ -38,23 +38,30 @@ export type DemandeArchitect =
   | { readonly type: 'configurer'; readonly demande: number; readonly collectionsExclues: readonly string[] };
 export type UiMessage = DemandeArchitect | DemandeDeTaille;
 
-/** Un chemin découpé autour du segment en cause. */
-export interface LigneVue { readonly id: string; readonly avant: string; readonly terme: string; readonly apres: string; readonly aussi: readonly string[] }
+/**
+ * Un nom avant et après le renommage. `ancien` et `nouveau` sont les noms complets, de même nombre de segments séparés par `/` ;
+ * `marques` donne les rangs (à partir de 0) des segments que la règle de la carte change. Un nom qui ne change pas a `nouveau === ancien`.
+ */
+export interface LigneVue { readonly id: string; readonly ancien: string; readonly nouveau: string; readonly marques: readonly number[]; readonly aussi: readonly string[] }
 export type RegleVue =
-  | { readonly sorte: 'terme'; readonly origine: OrigineDuTerme }
+  /** `categorie` : la place du terme quand sa forme en dépend (les tailles), sinon `null`. */
+  | { readonly sorte: 'terme'; readonly origine: OrigineDuTerme; readonly categorie: 'variables' | 'groupes' | null }
   | { readonly sorte: 'ecriture'; readonly categorie: CategorieDeNom; readonly convention: Convention }
   | { readonly sorte: 'collection' };
 export interface GroupeVue {
   readonly cle: string; readonly regle: RegleVue;
   readonly avant: string; readonly apres: string; readonly autres: number;
   readonly variables: number; readonly collections: number;
+  /** Pour un terme, le nombre de ses renommages qui changent aussi d'écriture ; 0 pour les autres règles. */
+  readonly aussiDEcriture: number;
   readonly nouveau: boolean; readonly apercu: readonly LigneVue[];
 }
 export interface BloqueVue { readonly avant: string; readonly apres: string; readonly collection: string }
 export interface TermeVue { readonly mot: string; readonly nombre: number; readonly exemples: readonly LigneVue[]; readonly ucm: boolean }
+/** `effet` : un nom réel du terme remplacé et ce même nom après le oui, `null` si aucun exemple ne l'emploie. */
 export type QuestionVue =
-  | { readonly type: 'paire'; readonly cle: string; readonly indice: IndiceDePaire; readonly termes: readonly [TermeVue, TermeVue]; readonly propose: 0 | 1; readonly cibleCommune: string | null }
-  | { readonly type: 'ecriture-du-terme'; readonly cle: string; readonly indice: 'faute' | 'mots-colles'; readonly terme: TermeVue; readonly proposition: readonly string[]; readonly reference: { readonly mot: string; readonly nombre: number } | null }
+  | { readonly type: 'paire'; readonly cle: string; readonly indice: IndiceDePaire; readonly termes: readonly [TermeVue, TermeVue]; readonly propose: 0 | 1; readonly cibleCommune: string | null; readonly effet: LigneVue | null }
+  | { readonly type: 'ecriture-du-terme'; readonly cle: string; readonly indice: 'faute' | 'mots-colles'; readonly terme: TermeVue; readonly proposition: readonly string[]; readonly reference: { readonly mot: string; readonly nombre: number } | null; readonly effet: LigneVue | null }
   | { readonly type: 'collection'; readonly cle: string; readonly nom: string; readonly nombre: number; readonly proposee: string | null };
 export interface LigneDEcriture { readonly convention: Convention; readonly suivent: number; readonly total: number; readonly exemple: LigneVue | null }
 export interface CollectionVue { readonly id: string; readonly nom: string; readonly nombre: number; readonly analysee: boolean; readonly palettes: boolean }
@@ -78,6 +85,8 @@ export interface FicheVue {
   readonly mot: string; readonly origine: OrigineDuTerme | null; readonly categorieUcm: string | null; readonly definition: string | null;
   readonly remplace: readonly { readonly mot: string; readonly nombre: number; readonly ucm: boolean }[];
   readonly emploi: { readonly nombre: number; readonly exemples: readonly LigneVue[] };
+  /** Les renommages dus au terme, où l'une de ses variantes est remplacée par lui. */
+  readonly aRenommer: { readonly nombre: number; readonly exemples: readonly LigneVue[] };
   readonly ecart: boolean; readonly voulu: boolean; readonly distincts: readonly string[]; readonly question: string | null;
 }
 export type EffetVue =

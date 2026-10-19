@@ -91,7 +91,7 @@ test('les groupes suivent l’ordre terme UCM, terme personnalisé, collection, 
   const cles = bilan.groupes.map((groupe) => groupe.cle);
   assert.deepEqual(cles, ['terme:pressed', 'terme:disabled', 'terme:outlined', 'collection:c:c2', 'ecriture:groupes', 'ecriture:variables']);
   assert.deepEqual(bilan.groupes.map((groupe) => groupe.regle), [
-    { sorte: 'terme', origine: 'ucm' }, { sorte: 'terme', origine: 'ucm' }, { sorte: 'terme', origine: 'personnalise' },
+    { sorte: 'terme', origine: 'ucm', categorie: null }, { sorte: 'terme', origine: 'ucm', categorie: null }, { sorte: 'terme', origine: 'personnalise', categorie: null },
     { sorte: 'collection' },
     { sorte: 'ecriture', categorie: 'groupes', convention: minusculesTirets },
     { sorte: 'ecriture', categorie: 'variables', convention: minusculesTirets },
@@ -110,9 +110,9 @@ test('un renommage compte dans le groupe de sa première règle et apparaît ail
   assert.equal(total, new Set(calculer(fichierDeBase, { termes: [outlined] }).resultat.renommages.map((renommage) => renommage.id)).size);
 
   const v1 = pressed.apercu.find((ligne) => ligne.id === 'v1')!;
-  assert.deepEqual(v1, { id: 'v1', avant: 'Button/', terme: 'press', apres: '/fontSize', aussi: ['ecriture:groupes', 'ecriture:variables'] });
+  assert.deepEqual(v1, { id: 'v1', ancien: 'Button/press/fontSize', nouveau: 'button/pressed/font-size', marques: [1], aussi: ['ecriture:groupes', 'ecriture:variables'] });
   const dansLEcriture = projection.lignes('ecriture:variables', 0).lignes.find((ligne) => ligne.id === 'v1')!;
-  assert.deepEqual(dansLEcriture, { id: 'v1', avant: 'Button/press/', terme: 'fontSize', apres: '', aussi: ['terme:pressed', 'ecriture:groupes'] });
+  assert.deepEqual(dansLEcriture, { id: 'v1', ancien: 'Button/press/fontSize', nouveau: 'button/pressed/font-size', marques: [2], aussi: ['terme:pressed', 'ecriture:groupes'] });
 });
 
 test('un groupe sans renommage propre n’est pas un groupe', () => {
@@ -133,14 +133,14 @@ test('une collection reconnue forme un groupe sans variable', () => {
   assert.equal(groupe.variables, 0);
   assert.equal(groupe.collections, 1);
   assert.deepEqual([groupe.avant, groupe.apres], ['Color Brands', 'color-brands']);
-  assert.deepEqual(groupe.apercu, [{ id: 'c:c2', avant: '', terme: 'Color Brands', apres: '', aussi: [] }]);
+  assert.deepEqual(groupe.apercu, [{ id: 'c:c2', ancien: 'Color Brands', nouveau: 'color-brands', marques: [0], aussi: [] }]);
   assert.equal(groupe.autres, 0);
 });
 
 test('un groupe d’écriture montre le segment réécrit', () => {
   const groupe = projeter(calculer(fichierDeBase)).bilan().groupes.find((autre) => autre.cle === 'ecriture:variables')!;
   assert.deepEqual([groupe.avant, groupe.apres], ['fontSize', 'font-size']);
-  assert.deepEqual(groupe.apercu[0], { id: 'v13', avant: 'tile/hover/', terme: 'fontSize', apres: '', aussi: [] });
+  assert.deepEqual(groupe.apercu[0], { id: 'v13', ancien: 'tile/hover/fontSize', nouveau: 'tile/hover/font-size', marques: [2], aussi: [] });
 });
 
 test('nouveau suit les groupes déjà vus, sauf au premier lancement', () => {
@@ -165,7 +165,7 @@ test('une page de lignes porte cinquante entrées, les renommages propres d’ab
   assert.ok(pages.every((page) => page.total === 120));
   assert.equal(TAILLE_DE_PAGE, 50);
   assert.equal(new Set(pages.flatMap((page) => page.lignes.map((ligne) => ligne.id))).size, 120);
-  assert.deepEqual(pages[0].lignes[0], { id: 'n0', avant: 'x0/', terme: 'press', apres: '/gap', aussi: [] });
+  assert.deepEqual(pages[0].lignes[0], { id: 'n0', ancien: 'x0/press/gap', nouveau: 'x0/pressed/gap', marques: [1], aussi: [] });
 });
 
 test('la sélection coche le groupe principal sans exclusion, plus les inclus', () => {
@@ -223,10 +223,10 @@ test('les lignes d’écriture comptent les noms qui suivent déjà l’écritur
   const { ecriture } = projeter(calculer(fichier)).bilan();
   assert.equal(ecriture.groupes.total, 3);
   assert.equal(ecriture.groupes.suivent, 2);
-  assert.deepEqual(ecriture.groupes.exemple, { id: 'a', avant: 'button/', terme: 'Sizes', apres: '/fontSize', aussi: [] });
+  assert.deepEqual(ecriture.groupes.exemple, { id: 'a', ancien: 'button/Sizes/fontSize', nouveau: 'button/size/font-size', marques: [1], aussi: [] });
   assert.equal(ecriture.variables.total, 4);
   assert.equal(ecriture.variables.suivent, 3);
-  assert.deepEqual(ecriture.variables.exemple, { id: 'a', avant: 'button/Sizes/', terme: 'fontSize', apres: '', aussi: [] });
+  assert.deepEqual(ecriture.variables.exemple, { id: 'a', ancien: 'button/Sizes/fontSize', nouveau: 'button/size/font-size', marques: [2], aussi: [] });
   assert.deepEqual(ecriture.variables.convention, minusculesTirets);
 });
 
@@ -255,11 +255,13 @@ test('les questions deviennent des vues, les questions mises de côté vont à p
   assert.deepEqual(paire, {
     type: 'paire', cle: 'paire:gap|space', indice: 'synonymes', propose: 1, cibleCommune: 'theme/surface',
     termes: [
-      { mot: 'gap', nombre: 3, ucm: false, exemples: [{ id: 'v4', avant: 'card/hover/', terme: 'gap', apres: '', aussi: [] }, { id: 'v5', avant: 'card/outline/', terme: 'gap', apres: '', aussi: [] }] },
-      { mot: 'space', nombre: 1, ucm: true, exemples: [{ id: 'v6', avant: 'Tile/hover/', terme: 'space', apres: '', aussi: [] }] },
+      { mot: 'gap', nombre: 3, ucm: false, exemples: [{ id: 'v4', ancien: 'card/hover/gap', nouveau: 'card/hover/gap', marques: [2], aussi: [] }, { id: 'v5', ancien: 'card/outline/gap', nouveau: 'card/outline/gap', marques: [2], aussi: [] }] },
+      { mot: 'space', nombre: 1, ucm: true, exemples: [{ id: 'v6', ancien: 'Tile/hover/space', nouveau: 'Tile/hover/space', marques: [2], aussi: [] }] },
     ],
+    effet: { id: 'v4', ancien: 'card/hover/gap', nouveau: 'card/hover/space', marques: [2], aussi: [] },
   } satisfies typeof paire);
-  assert.equal(faute.type === 'ecriture-du-terme' && faute.terme.exemples[0].terme, 'colour');
+  assert.deepEqual(faute.type === 'ecriture-du-terme' && [faute.terme.exemples[0].ancien, faute.terme.exemples[0].marques], ['link/press/colour', [2]]);
+  assert.deepEqual(faute.type === 'ecriture-du-terme' && faute.effet, { id: 'v9', ancien: 'link/press/colour', nouveau: 'link/press/color', marques: [2], aussi: [] });
   assert.deepEqual(faute.type === 'ecriture-du-terme' && [faute.proposition, faute.reference], [['color'], { mot: 'color', nombre: 3 }]);
   assert.deepEqual(collection, { type: 'collection', cle: 'collection:c1', nom: 'Couleurs', nombre: 34, proposee: 'color-brands' });
   assert.equal(bilan.plusTard[0].type === 'collection' && bilan.plusTard[0].proposee, null);
@@ -332,7 +334,8 @@ test('la fiche d’un terme UCM garde sa définition, ses formes remplacées et 
   assert.equal(typeof fiche.categorieUcm, 'string');
   assert.ok(fiche.definition && fiche.definition.length > 0);
   assert.deepEqual(fiche.remplace, [{ mot: 'press', nombre: 1, ucm: true }]);
-  assert.deepEqual(fiche.emploi, { nombre: 1, exemples: [{ id: 'b', avant: 'button/', terme: 'pressed', apres: '/gap', aussi: [] }] });
+  assert.deepEqual(fiche.emploi, { nombre: 1, exemples: [{ id: 'b', ancien: 'button/pressed/gap', nouveau: 'button/pressed/gap', marques: [1], aussi: [] }] });
+  assert.deepEqual(fiche.aRenommer, { nombre: 0, exemples: [] }, 'button/press/gap entre en collision avec button/pressed/gap : il n’est pas renommé');
   assert.deepEqual([fiche.ecart, fiche.voulu, fiche.distincts, fiche.question], [false, false, [], null]);
 });
 
@@ -376,7 +379,7 @@ test('l’effet d’un terme compte les noms dont le nouveau nom change', () => 
   const courante = calculer(fichierDesTermes);
   const simulee = calculer(fichierDesTermes, { termes: [outlined], lexique: courante.lexique });
   const effet = effetDeTerme(courante, simulee, { avant: 'outline', apres: 'outlined' });
-  assert.deepEqual(effet, { sorte: 'terme', avant: 'outline', apres: 'outlined', nombre: 1, exemple: { id: 'd', avant: 'button/', terme: 'outline', apres: '/space', aussi: [] } });
+  assert.deepEqual(effet, { sorte: 'terme', avant: 'outline', apres: 'outlined', nombre: 1, exemple: { id: 'd', ancien: 'button/outline/space', nouveau: 'button/outlined/space', marques: [1], aussi: [] } });
   const retrait = effetDeTerme(simulee, courante, { avant: 'outline', apres: 'outlined' });
   assert.equal(retrait.sorte === 'terme' && retrait.nombre, 1);
   assert.deepEqual(effetDeTerme(courante, courante, { avant: 'x', apres: 'y' }), { sorte: 'terme', avant: 'x', apres: 'y', nombre: 0, exemple: null });
@@ -395,4 +398,90 @@ test('l’effet d’une écriture donne les comptes du calcul simulé et ses ren
   assert.deepEqual(effet.exemple, { avant: 'Button/fontSize', apres: 'Button/font-size' });
   const rien = effetDEcriture(calculer({ collections: [['c1', 'components']], variables: variables(['a', 'button/gap']) }));
   assert.deepEqual(rien.sorte === 'ecriture' && [rien.renommages, rien.exemple], [0, null]);
+});
+
+// Les lignes avant → après
+
+test('un renommage garde son nombre de segments, ses marques désignent des segments qui changent', () => {
+  const projection = projeter(calculer(fichierDeBase, { termes: [outlined] }));
+  const bilan = projection.bilan();
+  const lignes = bilan.groupes.flatMap((groupe) => projection.lignes(groupe.cle, 0).lignes);
+  assert.ok(lignes.length > 10);
+  for (const ligne of lignes) {
+    const [avant, apres] = [ligne.ancien.split('/'), ligne.nouveau.split('/')];
+    assert.equal(avant.length, apres.length, ligne.id);
+    assert.ok(ligne.marques.length > 0 && ligne.marques.every((rang) => rang < avant.length), ligne.id);
+  }
+  const collection = lignes.find((ligne) => ligne.id === 'c:c2')!;
+  assert.deepEqual([collection.ancien, collection.nouveau, collection.marques], ['Color Brands', 'color-brands', [0]]);
+});
+
+test('les marques d’une carte de terme suivent la règle du terme, pas l’écriture', () => {
+  const fichier: Fichier = { collections: [['c1', 'components']], variables: variables(['a', 'colors/Neutral/light/700'], ['b', 'Brand/Primary/light']) };
+  const projection = projeter(calculer(fichier, { termes: [{ terme: ['color'], remplace: [['colors']] }] }));
+  const [terme, ...autres] = projection.bilan().groupes;
+  assert.equal(terme.cle, 'terme:color');
+  assert.deepEqual(terme.apercu[0], {
+    id: 'a', ancien: 'colors/Neutral/light/700', nouveau: 'color/neutral/light/700', marques: [0], aussi: ['ecriture:groupes'],
+  });
+  assert.equal(terme.aussiDEcriture, 1);
+  const ecriture = autres.find((groupe) => groupe.cle === 'ecriture:groupes');
+  assert.ok(ecriture);
+  assert.deepEqual(projection.lignes('ecriture:groupes', 0).lignes[0].marques, [0, 1]);
+});
+
+test('aussiDEcriture compte les renommages d’un terme qui changent aussi d’écriture, 0 hors des termes', () => {
+  const bilan = projeter(calculer(fichierDeBase)).bilan();
+  const parCle = new Map(bilan.groupes.map((groupe) => [groupe.cle, groupe]));
+  assert.equal(parCle.get('terme:pressed')!.aussiDEcriture, 3, 'v1, v2 et v12 changent aussi de casse ; les autres noms de press sont déjà écrits ainsi');
+  assert.equal(parCle.get('ecriture:variables')!.aussiDEcriture, 0);
+  assert.equal(parCle.get('collection:c:c2')!.aussiDEcriture, 0);
+});
+
+test('une taille qui s’écrit autrement dans les noms et dans les groupes donne deux cartes UCM de catégories différentes', () => {
+  const fichier: Fichier = { collections: [['c1', 'components']], variables: variables(['a', 'Radius/small'], ['b', 'Button/Size/Sm/padding-y']) };
+  const bilan = projeter(calculer(fichier)).bilan();
+  const cartes = bilan.groupes.filter((groupe) => groupe.regle.sorte === 'terme');
+  const carte = (cle: string) => cartes.find((groupe) => groupe.cle === cle)!;
+  assert.deepEqual(cartes.map((groupe) => groupe.cle).sort(), ['terme:sm', 'terme:small']);
+  assert.deepEqual([carte('terme:sm').avant, carte('terme:sm').apres, carte('terme:sm').regle], ['small', 'sm', { sorte: 'terme', origine: 'ucm', categorie: 'variables' }]);
+  assert.deepEqual([carte('terme:small').avant, carte('terme:small').apres, carte('terme:small').regle], ['sm', 'small', { sorte: 'terme', origine: 'ucm', categorie: 'groupes' }]);
+});
+
+test('la fiche d’un terme liste les renommages qu’il provoque, trois exemples au plus', () => {
+  const fichier: Fichier = {
+    collections: [['c1', 'components']],
+    variables: variables(['a', 'Button/press/gap'], ['b', 'Card/press/gap'], ['c', 'Tile/press/gap'], ['d', 'Chip/press/gap'], ['e', 'Chip/pressed/size']),
+  };
+  const projection = projeter(calculer(fichier));
+  const fiche = projection.fiche('pressed');
+  assert.equal(fiche.aRenommer.nombre, 4);
+  assert.equal(fiche.aRenommer.exemples.length, 3);
+  assert.deepEqual(fiche.aRenommer.exemples[0], { id: 'a', ancien: 'Button/press/gap', nouveau: 'button/pressed/gap', marques: [1], aussi: ['ecriture:groupes'] });
+  assert.equal(fiche.emploi.nombre, 1);
+  assert.deepEqual(projection.fiche('gap').aRenommer, { nombre: 0, exemples: [] });
+});
+
+test('l’effet d’une question réécrit le terme remplacé dans l’écriture de son segment', () => {
+  const fichier: Fichier = {
+    collections: [['c1', 'components']],
+    variables: variables(['a', 'Button/bg/hover'], ['b', 'Card/Bg/hover'], ['c', 'Page/background/default'], ['d', 'link/contrasthovered/text'], ['e', 'Link/ButtonBg/text']),
+  };
+  const background = termeEnQuestion('background', 1, ['c'], true);
+  const paireDe = (cle: string, termes: readonly [ReturnType<typeof termeEnQuestion>, ReturnType<typeof termeEnQuestion>], propose: 0 | 1): Question =>
+    ({ type: 'paire', cle, indice: 'abreviation', termes, propose, score: 5 });
+  const effets = (...questions: Question[]) => projeter(calculer(fichier, { questions: { questions, autres: [] } })).bilan().questions
+    .map((question) => (question.type === 'paire' || question.type === 'ecriture-du-terme' ? question.effet : undefined));
+  const [direct, inverse, majuscule] = effets(
+    paireDe('p1', [termeEnQuestion('bg', 2, ['a', 'b']), background], 1),
+    paireDe('p2', [background, termeEnQuestion('bg', 2, ['a', 'b'])], 0),
+    paireDe('p3', [termeEnQuestion('bg', 1, ['b']), background], 1),
+  );
+  assert.deepEqual(direct, { id: 'a', ancien: 'Button/bg/hover', nouveau: 'Button/background/hover', marques: [1], aussi: [] });
+  assert.deepEqual(inverse, direct, 'le terme remplacé est celui que la question ne propose pas');
+  assert.deepEqual(majuscule, { id: 'b', ancien: 'Card/Bg/hover', nouveau: 'Card/Background/hover', marques: [1], aussi: [] });
+  const colles: Question = { type: 'ecriture-du-terme', cle: 'colles', indice: 'mots-colles', terme: termeEnQuestion('contrasthovered', 1, ['d']), proposition: ['contrast', 'hovered'], score: 1 };
+  assert.deepEqual(effets(colles)[0], { id: 'd', ancien: 'link/contrasthovered/text', nouveau: 'link/contrast-hovered/text', marques: [1], aussi: [] });
+  assert.equal(effets(paireDe('p4', [termeEnQuestion('bg', 1, ['e']), background], 1))[0]?.nouveau, 'Link/ButtonBackground/text');
+  assert.equal(effets(paireDe('p5', [termeEnQuestion('bg', 1, []), background], 1))[0], null);
 });

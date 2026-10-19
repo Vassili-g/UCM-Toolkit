@@ -17,9 +17,9 @@ import {
 } from '../src/ui/selection';
 
 const groupe = (cle: string, variables: number, collections = 0): GroupeVue => ({
-  cle, regle: { sorte: 'terme', origine: 'ucm' }, avant: cle, apres: `${cle}-ok`, autres: 0, variables, collections, nouveau: false, apercu: [],
+  cle, regle: { sorte: 'terme', origine: 'ucm', categorie: null }, avant: cle, apres: `${cle}-ok`, autres: 0, variables, collections, aussiDEcriture: 0, nouveau: false, apercu: [],
 });
-const ligne = (id: string, aussi: readonly string[] = []): LigneVue => ({ id, avant: 'a/', terme: id, apres: '/b', aussi });
+const ligne = (id: string, aussi: readonly string[] = []): LigneVue => ({ id, ancien: `a/${id}/b`, nouveau: `a/${id}/b`, marques: [1], aussi });
 
 const GROUPES = [groupe('press', 3), groupe('disable', 2), groupe('font-size', 4), groupe('Color Brands', 0, 1)];
 

@@ -52,13 +52,14 @@ function poserLeTexte(element: HTMLElement, texte: string): void {
 function fabriquerChemin(ligne: LigneVue): HTMLElement {
   const chemin = document.createElement('span');
   chemin.className = 'chemin';
-  chemin.append(document.createTextNode(ligne.avant));
-  if (ligne.terme !== '') {
-    const terme = document.createElement('mark');
-    terme.textContent = ligne.terme;
-    chemin.append(terme);
-  }
-  chemin.append(document.createTextNode(ligne.apres));
+  ligne.ancien.split('/').forEach((segment, rang) => {
+    if (rang > 0) chemin.append(document.createTextNode('/'));
+    if (ligne.marques.includes(rang)) {
+      const marque = document.createElement('mark');
+      marque.textContent = segment;
+      chemin.append(marque);
+    } else chemin.append(document.createTextNode(segment));
+  });
   return chemin;
 }
 

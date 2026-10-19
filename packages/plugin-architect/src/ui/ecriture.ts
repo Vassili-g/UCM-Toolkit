@@ -52,9 +52,13 @@ function poserLeChemin(chemin: HTMLElement, exemple: LigneVue | null): void {
     chemin.replaceChildren();
     return;
   }
-  const concerne = document.createElement('mark');
-  concerne.textContent = exemple.terme;
-  chemin.replaceChildren(exemple.avant, concerne, exemple.apres);
+  chemin.replaceChildren(...exemple.ancien.split('/').flatMap((segment, rang): (string | HTMLElement)[] => {
+    const separateur = rang > 0 ? ['/'] : [];
+    if (!exemple.marques.includes(rang)) return [...separateur, segment];
+    const concerne = document.createElement('mark');
+    concerne.textContent = segment;
+    return [...separateur, concerne];
+  }));
 }
 
 function creerNom(titre: string, compte: HTMLElement): HTMLElement {

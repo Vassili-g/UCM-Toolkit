@@ -14,17 +14,20 @@ import {
   type CarteDeQuestion,
 } from '../src/ui/questions';
 
-const chemin = (avant: string, terme: string, apres: string): LigneVue => ({ id: terme, avant, terme, apres, aussi: [] });
+const chemin = (avant: string, terme: string, apres: string): LigneVue => {
+  const nom = `${avant}${terme}${apres}`;
+  return { id: terme, ancien: nom, nouveau: nom, marques: [avant.split('/').length - 1], aussi: [] };
+};
 const terme = (mot: string, nombre: number, ucm = false): TermeVue => ({ mot, nombre, ucm, exemples: [chemin('components/button/', mot, '/border')] });
 
 const paire = (indice: IndiceDePaire = 'terminaison', cibleCommune: string | null = null): Extract<QuestionVue, { type: 'paire' }> => ({
-  type: 'paire', cle: 'paire:outline', indice, termes: [terme('outline', 8), terme('outlined', 24)], propose: 1, cibleCommune,
+  type: 'paire', cle: 'paire:outline', indice, termes: [terme('outline', 8), terme('outlined', 24)], propose: 1, cibleCommune, effet: null,
 });
 const faute: Extract<QuestionVue, { type: 'ecriture-du-terme' }> = {
-  type: 'ecriture-du-terme', cle: 'faute', indice: 'faute', terme: terme('contrashovered', 1), proposition: ['contrasthovered'], reference: { mot: 'contrasthovered', nombre: 14 },
+  type: 'ecriture-du-terme', cle: 'faute', indice: 'faute', terme: terme('contrashovered', 1), proposition: ['contrasthovered'], reference: { mot: 'contrasthovered', nombre: 14 }, effet: null,
 };
 const colles: Extract<QuestionVue, { type: 'ecriture-du-terme' }> = {
-  type: 'ecriture-du-terme', cle: 'colles', indice: 'mots-colles', terme: terme('vspacingsmall', 3), proposition: ['v', 'spacing', 'small'], reference: null,
+  type: 'ecriture-du-terme', cle: 'colles', indice: 'mots-colles', terme: terme('vspacingsmall', 3), proposition: ['v', 'spacing', 'small'], reference: null, effet: null,
 };
 const collection = (proposee: string | null): Extract<QuestionVue, { type: 'collection' }> => ({ type: 'collection', cle: 'collection', nom: 'Typo Tokens', nombre: 48, proposee });
 
@@ -52,7 +55,8 @@ test('une paire pose la question, l’indice et deux colonnes dont la proposée 
   assert.deepEqual(carte.colonnes.map(({ terme: mot, detail, propose }) => [mot, detail, propose]), [['outline', '8 variables', false], ['outlined', '24 variables', true]]);
   assert.deepEqual(carte.colonnes.map((colonne) => colonne.garder.poids), ['secondaire', 'principal']);
   assert.deepEqual(carte.colonnes.map((colonne) => colonne.garder.libelle), ['Garder outline', 'Garder outlined']);
-  assert.equal(carte.colonnes[1].exemple?.terme, 'outlined');
+  assert.equal(carte.colonnes[1].exemple?.ancien, 'components/button/outlined/border');
+  assert.deepEqual(carte.colonnes[1].exemple?.marques, [2]);
   assert.equal(carte.preuve, 'Les deux visent theme/primary/solid/default.');
 });
 

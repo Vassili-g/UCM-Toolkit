@@ -6,56 +6,65 @@
  * lecture du bilan est la demande 1, la première lecture des termes la
  * demande 2, puis chaque geste du scénario prend le numéro suivant.
  */
-const ligne = (id, avant, terme, apres, aussi = []) => ({ id, avant, terme, apres, aussi });
+// Un renommage : le nom complet avant et après, et les rangs des segments que la règle de la carte change.
+const renom = (id, ancien, nouveau, marques, aussi = []) => ({ id, ancien, nouveau, marques, aussi });
+// Un nom qui emploie déjà le terme : il ne change pas, le segment du terme est marqué.
+const employe = (id, nom, marques) => renom(id, nom, nom, marques);
 const terme = (mot, nombre, exemples, ucm = false) => ({ mot, nombre, exemples, ucm });
 
-const boutonFond = ligne('v1', 'Button/', 'bg', '/hover');
-const carteFond = ligne('v2', 'Card/', 'bg', '/default');
-const pageFond = ligne('v3', 'Page/', 'bg', '/default');
-const boutonFondPlein = ligne('v4', 'Button/', 'background', '/hover');
-const survol = ligne('v7', 'Link/', 'hovered', '/text');
-const survolBouton = ligne('v8', 'Button/', 'hovered', '/border');
-const police = ligne('v9', '', 'fontSize', '/bodyLarge', ['terme:background']);
-const rayon = ligne('v10', 'Button/', 'radius', '/default');
-const rayonCarte = ligne('v11', 'Card/', 'radius', '/default');
+const boutonFond = renom('v1', 'Button/bg/hover', 'Button/background/hover', [1]);
+const carteFond = renom('v2', 'Card/bg/default', 'Card/background/default', [1]);
+const pageFond = renom('v3', 'Page/bg/default', 'Page/background/default', [1]);
+const survol = renom('v7', 'Link/hovered/text', 'Link/hover/text', [1]);
+const survolBouton = renom('v8', 'Button/hovered/border', 'Button/hover/border', [1]);
+const police = renom('v9', 'fontSize/bodyLarge', 'font-size/body-large', [0, 1], ['terme:background']);
+const boutonFondEmploye = employe('v4', 'Button/background/hover', [1]);
+const boutonFondAbrege = employe('v1', 'Button/bg/hover', [1]);
+const rayon = employe('v10', 'Button/radius/default', [1]);
+const rayonCarte = employe('v11', 'Card/radius/default', [1]);
+const coinCarte = employe('v21', 'Card/corner/default', [1]);
 
 const minusculesEtTirets = { casse: 'minuscules', separateur: 'tiret' };
-const ecritureDesGroupes = { convention: minusculesEtTirets, suivent: 18, total: 21, exemple: ligne('g1', 'colors/', 'brand-colors', '/primary') };
-const ecritureDesVariables = { convention: minusculesEtTirets, suivent: 734, total: 800, exemple: ligne('g2', 'color/brand/primary/', 'default', '') };
+const ecritureDesGroupes = { convention: minusculesEtTirets, suivent: 18, total: 21, exemple: employe('g1', 'colors/brand-colors/primary', [1]) };
+const ecritureDesVariables = { convention: minusculesEtTirets, suivent: 734, total: 800, exemple: employe('g2', 'color/brand/primary/default', [3]) };
 
 const groupeBackground = {
-  cle: 'terme:background', regle: { sorte: 'terme', origine: 'ucm' },
-  avant: 'bg', apres: 'background', autres: 0, variables: 12, collections: 0, nouveau: true, apercu: [boutonFond, carteFond],
+  cle: 'terme:background', regle: { sorte: 'terme', origine: 'ucm', categorie: null },
+  avant: 'bg', apres: 'background', autres: 0, variables: 12, collections: 0, aussiDEcriture: 4, nouveau: true, apercu: [boutonFond, carteFond],
 };
 const groupeHover = {
-  cle: 'terme:hover', regle: { sorte: 'terme', origine: 'personnalise' },
-  avant: 'hovered', apres: 'hover', autres: 0, variables: 8, collections: 0, nouveau: false, apercu: [survol, survolBouton],
+  cle: 'terme:hover', regle: { sorte: 'terme', origine: 'personnalise', categorie: null },
+  avant: 'hovered', apres: 'hover', autres: 0, variables: 8, collections: 0, aussiDEcriture: 0, nouveau: false, apercu: [survol, survolBouton],
 };
 const groupeEcriture = {
   cle: 'ecriture:variables', regle: { sorte: 'ecriture', categorie: 'variables', convention: minusculesEtTirets },
-  avant: 'fontSize/bodyLarge', apres: 'font-size/body-large', autres: 0, variables: 66, collections: 0, nouveau: false, apercu: [police],
+  avant: 'fontSize/bodyLarge', apres: 'font-size/body-large', autres: 0, variables: 66, collections: 0, aussiDEcriture: 0, nouveau: false, apercu: [police],
 };
 const groupeCollection = {
   cle: 'collection:c2', regle: { sorte: 'collection' },
-  avant: 'Couleurs', apres: 'color-brands', autres: 0, variables: 0, collections: 1, nouveau: false, apercu: [],
+  avant: 'Couleurs', apres: 'color-brands', autres: 0, variables: 0, collections: 1, aussiDEcriture: 0, nouveau: false, apercu: [],
 };
 
 const paire = {
   type: 'paire', cle: 'paire:bg|background', indice: 'abreviation',
-  termes: [terme('bg', 12, [boutonFond]), terme('background', 40, [boutonFondPlein], true)], propose: 1, cibleCommune: null,
+  termes: [terme('bg', 12, [boutonFondAbrege]), terme('background', 40, [boutonFondEmploye], true)], propose: 1, cibleCommune: null,
+  effet: boutonFond,
 };
 const faute = {
-  type: 'ecriture-du-terme', cle: 'ecriture:backgrond', indice: 'faute', terme: terme('backgrond', 2, [ligne('v12', 'Modal/', 'backgrond', '/default')]),
+  type: 'ecriture-du-terme', cle: 'ecriture:backgrond', indice: 'faute', terme: terme('backgrond', 2, [employe('v12', 'Modal/backgrond/default', [1])]),
   proposition: ['background'], reference: { mot: 'background', nombre: 40 },
+  effet: renom('v12', 'Modal/backgrond/default', 'Modal/background/default', [1]),
 };
 const motsColles = {
-  type: 'ecriture-du-terme', cle: 'ecriture:contrasthovered', indice: 'mots-colles', terme: terme('contrasthovered', 1, [ligne('v13', 'Link/', 'contrasthovered', '/text')]),
+  type: 'ecriture-du-terme', cle: 'ecriture:contrasthovered', indice: 'mots-colles', terme: terme('contrasthovered', 1, [employe('v13', 'Link/contrasthovered/text', [1])]),
   proposition: ['contrast', 'hovered'], reference: null,
+  effet: renom('v13', 'Link/contrasthovered/text', 'Link/contrast-hovered/text', [1]),
 };
 const collection = { type: 'collection', cle: 'collection:c2', nom: 'Couleurs', nombre: 34, proposee: 'color-brands' };
 const paireDeTailles = {
   type: 'paire', cle: 'paire:radius|corner', indice: 'synonymes',
-  termes: [terme('radius', 9, [rayon]), terme('corner', 3, [rayonCarte])], propose: 0, cibleCommune: null,
+  termes: [terme('radius', 9, [rayon]), terme('corner', 3, [coinCarte])], propose: 0, cibleCommune: null,
+  effet: renom('v21', 'Card/corner/default', 'Card/radius/default', [1]),
 };
 
 const collections = [
@@ -107,25 +116,28 @@ const fiches = {
   ucm: {
     mot: 'background', origine: 'ucm', categorieUcm: 'roles', definition: 'La couleur de fond d’un élément.',
     remplace: [{ mot: 'bg', nombre: 12, ucm: true }, { mot: 'back', nombre: 3, ucm: true }],
-    emploi: { nombre: 40, exemples: [boutonFondPlein, ligne('v14', 'Card/', 'background', '/default'), ligne('v15', 'Page/', 'background', '/default')] },
+    emploi: { nombre: 40, exemples: [boutonFondEmploye, employe('v14', 'Card/background/default', [1]), employe('v15', 'Page/background/default', [1])] },
+    aRenommer: { nombre: 12, exemples: [boutonFond, carteFond, pageFond] },
     ecart: false, voulu: false, distincts: [], question: null,
   },
   personnalise: {
     mot: 'hover', origine: 'personnalise', categorieUcm: null, definition: null,
     remplace: [{ mot: 'hovered', nombre: 8, ucm: false }],
-    emploi: { nombre: 8, exemples: [ligne('v16', 'Link/', 'hover', '/text'), ligne('v17', 'Button/', 'hover', '/border')] },
+    emploi: { nombre: 8, exemples: [employe('v16', 'Link/hover/text', [1]), employe('v17', 'Button/hover/border', [1])] },
+    aRenommer: { nombre: 8, exemples: [survol, survolBouton] },
     ecart: false, voulu: false, distincts: [], question: null,
   },
   sansRegle: {
     mot: 'radius', origine: null, categorieUcm: null, definition: null, remplace: [],
     emploi: { nombre: 9, exemples: [rayon, rayonCarte] },
+    aRenommer: { nombre: 0, exemples: [] },
     ecart: false, voulu: false, distincts: [], question: 'paire:radius|corner',
   },
 };
 
-const lignesSupplementaires = [pageFond, ligne('v18', 'Input/', 'bg', '/default'), ligne('v19', 'Tooltip/', 'bg', '/default')];
+const lignesSupplementaires = [pageFond, renom('v18', 'Input/bg/default', 'Input/background/default', [1]), renom('v19', 'Tooltip/bg/default', 'Tooltip/background/default', [1])];
 
-const effetDeTerme = { sorte: 'terme', avant: 'radius', apres: 'corner', nombre: 9, exemple: rayon };
+const effetDeTerme = { sorte: 'terme', avant: 'radius', apres: 'corner', nombre: 9, exemple: renom('v10', 'Button/radius/default', 'Button/corner/default', [1]) };
 
 const conflitDeFichier = { type: 'contredit-ucm', terme: 'surface', remplace: 'bg', termeUcm: 'background' };
 const conflitDeCycle = { type: 'cycle', termes: ['bg', 'back', 'bg'] };

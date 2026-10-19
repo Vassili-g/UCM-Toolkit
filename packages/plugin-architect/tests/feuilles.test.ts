@@ -14,6 +14,7 @@ const FICHE: FicheVue = {
     { mot: 'stroked', nombre: 2, ucm: false },
   ],
   emploi: { nombre: 24, exemples: [] },
+  aRenommer: { nombre: 0, exemples: [] },
   ecart: false,
   voulu: false,
   distincts: [],

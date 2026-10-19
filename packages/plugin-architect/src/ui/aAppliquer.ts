@@ -121,13 +121,14 @@ function fabriquerPastille(variante: Pastille): HTMLElement {
 function fabriquerChemin(ligne: LigneVue): HTMLElement {
   const chemin = document.createElement('span');
   chemin.className = 'chemin';
-  chemin.append(document.createTextNode(ligne.avant));
-  if (ligne.terme !== '') {
-    const terme = document.createElement('mark');
-    terme.textContent = ligne.terme;
-    chemin.append(terme);
-  }
-  chemin.append(document.createTextNode(ligne.apres));
+  ligne.ancien.split('/').forEach((segment, rang) => {
+    if (rang > 0) chemin.append(document.createTextNode('/'));
+    if (ligne.marques.includes(rang)) {
+      const marque = document.createElement('mark');
+      marque.textContent = segment;
+      chemin.append(marque);
+    } else chemin.append(document.createTextNode(segment));
+  });
   return chemin;
 }
 
@@ -321,7 +322,7 @@ export function monterAAppliquer(coquille: Coquille): void {
     function ajouterUneLigne(ligne: LigneVue): void {
       const rang = document.createElement('div');
       rang.className = 'rang';
-      const caseACocher = fabriquerCase(ligne.avant + ligne.terme + ligne.apres, (coche) => {
+      const caseACocher = fabriquerCase(ligne.ancien, (coche) => {
         modele = cocherLigne(modele, ligne, cle, coche);
         synchroniser();
       });

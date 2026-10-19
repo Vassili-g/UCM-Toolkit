@@ -141,10 +141,13 @@ test('une lecture d\'une génération périmée reçoit generation-perimee ; une
   const reponse = b.messages[0];
   assert.ok(reponse.type === 'lignes' && reponse.demande === courante && reponse.generation === bilan.generation);
   assert.ok(reponse.total > 0 && reponse.lignes.length === Math.min(reponse.total, 50));
+  assert.ok(reponse.lignes.every((ligne) => ligne.ancien.split('/').length === ligne.nouveau.split('/').length && ligne.marques.length > 0), 'chaque ligne porte l’ancien et le nouveau nom complets, de même nombre de segments');
   b.vider();
   await b.envoyer({ type: 'termes', generation: bilan.generation, recherche: '', filtre: 'tous', debut: 0 });
   await b.envoyer({ type: 'fiche', generation: bilan.generation, terme: 'fill' });
   assert.deepEqual(b.messages.map((m) => m.type), ['termes', 'fiche']);
+  const fiche = b.messages[1];
+  assert.ok(fiche.type === 'fiche' && fiche.fiche.aRenommer.exemples.length <= 3 && fiche.fiche.aRenommer.nombre >= fiche.fiche.aRenommer.exemples.length);
 });
 
 test('une lecture avant toute analyse reçoit generation-perimee, ou analyse-en-cours pendant l\'analyse', async () => {

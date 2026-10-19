@@ -115,9 +115,10 @@ function poserLeTexte(element: HTMLElement, texte: string): void {
 
 function creerChemin(ligne: LigneVue): HTMLElement {
   const chemin = el('span', 'chemin');
-  chemin.append(document.createTextNode(ligne.avant));
-  if (ligne.terme !== '') chemin.append(el('mark', '', ligne.terme));
-  chemin.append(document.createTextNode(ligne.apres));
+  ligne.ancien.split('/').forEach((segment, rang) => {
+    if (rang > 0) chemin.append(document.createTextNode('/'));
+    chemin.append(ligne.marques.includes(rang) ? el('mark', '', segment) : document.createTextNode(segment));
+  });
   return chemin;
 }
 

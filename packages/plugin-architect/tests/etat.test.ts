@@ -6,7 +6,7 @@ import { ETAT_INITIAL, comptesDuBilan, etatSuivant, type EtatDeLEcran, type Even
 
 const LIGNE = { convention: { casse: 'minuscules', separateur: 'tiret' }, suivent: 1, total: 1, exemple: null } as const;
 const groupe = (cle: string, variables: number, collections = 0): GroupeVue => ({
-  cle, regle: { sorte: 'collection' }, avant: 'a', apres: 'b', autres: 0, variables, collections, nouveau: false, apercu: [],
+  cle, regle: { sorte: 'collection' }, avant: 'a', apres: 'b', autres: 0, variables, collections, aussiDEcriture: 0, nouveau: false, apercu: [],
 });
 const question = (cle: string): QuestionVue => ({ type: 'collection', cle, nom: 'Couleurs', nombre: 3, proposee: null });
 const bilan = (reste: Partial<Bilan> = {}): Bilan => ({
