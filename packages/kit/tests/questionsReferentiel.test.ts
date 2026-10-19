@@ -123,13 +123,12 @@ test('mots collés exige une segmentation en mots du lexique', () => {
   assert.deepEqual(choix?.type === 'ecriture-du-terme' && choix.proposition, ['text', 'tone']);
 });
 
-test('échelle de tailles et collection inconnue donnent leurs questions propres', () => {
+test('une collection inconnue donne sa question', () => {
   const noms = [nom('sm', 'sizes/sm/value'), nom('small', 'sizes/small/value'),
     { id: JSON.stringify(['collection', 'custom-id']), nom: 'Custom Colors', categorie: 'collections' as const, portee: 'document' }];
   const resultat = questions(noms);
   const collection = resultat.find((q) => q.type === 'collection');
-  // Décision T06 : `small` est une forme tolérée de `sm`, remplacée sans question d'échelle.
-  assert.equal(resultat.some((q) => q.type === 'echelle'), false);
+  // Décision T06 : `small` est une forme tolérée de `sm`, remplacée sans question.
   assert.equal(collection?.type === 'collection' && collection.collectionId, JSON.stringify(['collection', 'custom-id']));
   assert.equal(questions([{ id: 'standard', nom: 'Color Brands', categorie: 'collections', portee: 'document' }]).length, 0);
 });
@@ -161,19 +160,22 @@ test('un remplacement dans une catégorie ne couvre pas les occurrences d’une 
   assert.deepEqual(paires(noms), ['paire:status|statuses']);
 });
 
-test('une réponse voulue ou reportée écarte aussi écriture et échelle', () => {
+test('une réponse voulue ou reportée écarte aussi l’écriture', () => {
   const noms = [nom('a', 'sizes/sm/value'), nom('b', 'sizes/small/value'),
     nom('c', 'colors/contrasttext/bg'), nom('d', 'colors/contrast/bg'), nom('e', 'colors/text/bg')];
-  assert.equal(questions(noms, { ...vide, voulus: ['sm'] }).some((q) => q.type === 'echelle'), false);
   assert.equal(questions(noms, { ...vide, voulus: ['contrast'] }).some((q) => q.type === 'ecriture-du-terme' && q.indice === 'mots-colles'), false);
   const colle = questions(noms).find((q) => q.type === 'ecriture-du-terme' && q.indice === 'mots-colles');
   assert.ok(colle);
   assert.equal(questions(noms, { ...vide, plusTard: [colle.cle] }).some((q) => q.cle === colle.cle), false);
 });
 
-test('les tailles en mots entiers ne font plus de question d’échelle (décision T06)', () => {
-  const noms = [nom('a', 'sizes/sm/small'), nom('b', 'sizes/small/sm')];
-  assert.equal(questions(noms).some((q) => q.type === 'echelle'), false);
+test('Radius/sm et Button/Size/Small/padding-y ne produisent aucune question', () => {
+  const noms = [nom('a', 'Radius/sm'), nom('b', 'Button/Size/Small/padding-y')];
+  assert.deepEqual(questions(noms), []);
+  const parCategorie = [nom('a', 'Radius/sm'), { ...nom('b', 'Button/Size/Small/padding-y'), categoriesDesSegments: [null, null, 'groupes', null] as const },
+    nom('c', 'Radius/md'), { ...nom('d', 'Button/Size/Medium/padding-y'), categoriesDesSegments: [null, null, 'groupes', null] as const }];
+  assert.deepEqual(questions(parCategorie), []);
+  assert.deepEqual(questions([nom('a', 'Size/sm'), nom('b', 'Size/Small'), nom('c', 'Size/md'), nom('d', 'Size/Medium')]), []);
 });
 
 test('l’ordre des noms ne change ni les clés ni les propositions', () => {
@@ -224,10 +226,6 @@ test('une règle personnalisée retire ses occurrences des détecteurs', () => {
   const personnalise = indexerVocabulaire({ personnalises: [{ terme: ['paint'], remplace: [['painted']] }], ecartsUcm: [] }).index;
   const resultat = detecterLesQuestions(lexique([nom('a', 'set/paint/value'), nom('b', 'set/painted/value')]), personnalise, vide);
   assert.deepEqual(resultat, { questions: [], autres: [] });
-});
-
-test('deux écritures de taille sur des tailles différentes ne font pas de question (décision T06)', () => {
-  assert.equal(questions([nom('a', 'sizes/sm/value'), nom('b', 'sizes/large/value')]).some((q) => q.type === 'echelle'), false);
 });
 
 test('32 000 noms conservent les comptes et le plafond de questions', (t) => {

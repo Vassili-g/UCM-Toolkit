@@ -63,7 +63,6 @@ export type IndiceDePaire = 'terminaison' | 'pluriel' | 'abreviation' | 'synonym
 export type Question =
   | { readonly type: 'paire'; readonly cle: string; readonly indice: IndiceDePaire; readonly termes: readonly [TermeEnQuestion, TermeEnQuestion]; readonly propose: 0 | 1; readonly score: number; readonly cibleAlias?: string }
   | { readonly type: 'ecriture-du-terme'; readonly cle: string; readonly indice: 'faute' | 'mots-colles'; readonly terme: TermeEnQuestion; readonly proposition: Mots; readonly reference?: { readonly mot: string; readonly nombre: number }; readonly score: number }
-  | { readonly type: 'echelle'; readonly cle: string; readonly formes: readonly [readonly string[], readonly string[]]; readonly nombres: readonly [number, number]; readonly exemples: readonly [string | null, string | null]; readonly propose: 0 | 1; readonly score: number }
   | { readonly type: 'collection'; readonly cle: string; readonly collectionId: string; readonly nom: string; readonly nombre: number; readonly proposee?: Collection; readonly score: number };
 export interface DejaJuge {
   readonly distincts: readonly (readonly [string, string])[];

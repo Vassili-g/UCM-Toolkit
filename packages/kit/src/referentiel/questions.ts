@@ -5,7 +5,7 @@ import type { DejaJuge, IndexDuVocabulaire, Lexique, Mots, NomLu, Question, Resu
 import { collectionUcmReconnue } from './normalisation.js';
 import { detecterBranchesParalleles } from './branches-paralleles.js';
 import { decouperPourQuestions, distanceUn, termeOuFormeConnu } from './termes-connus.js';
-import { ABREVIATIONS, ECHELLES_DE_TAILLES, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
+import { ABREVIATIONS, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
 
 const TAILLE_D_UN_LOT = 200;
 const comparer = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
@@ -305,23 +305,6 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
       terme: terme(observe), proposition, score: observe.noms.size });
     if (++operations % TAILLE_D_UN_LOT === 0) yield;
   }
-
-  const formes = [ECHELLES_DE_TAILLES.map(([court]) => court), ECHELLES_DE_TAILLES.map(([, long]) => long)] as const;
-  const exemples: [string | null, string | null] = [null, null];
-  const nomsDesFormes: [Set<string>, Set<string>] = [new Set(), new Set()];
-  for (const court of formes[0]) for (const long of formes[1]) {
-    const a = observes.get(court), b = observes.get(long);
-    if (!a || !b || voulus.has(court) || voulus.has(long) || !(yield* partagentUnePlace(a, b)) || distincts.has(clePaire(court, long))) continue;
-    for (const id of a.noms) { nomsDesFormes[0].add(id); if (++operations % TAILLE_D_UN_LOT === 0) yield; }
-    for (const id of b.noms) { nomsDesFormes[1].add(id); if (++operations % TAILLE_D_UN_LOT === 0) yield; }
-    exemples[0] ??= a.exemples[0] ?? null; exemples[1] ??= b.exemples[0] ?? null;
-  }
-  const nombres: [number, number] = [nomsDesFormes[0].size, nomsDesFormes[1].size];
-  const cleEchelle = `echelle:${formes.map((forme) => forme.join(',')).sort(comparer).join('|')}`;
-  let scoreEchelle = nombres[0];
-  for (const id of nomsDesFormes[1]) { if (!nomsDesFormes[0].has(id)) scoreEchelle++; if (++operations % TAILLE_D_UN_LOT === 0) yield; }
-  if (nombres[0] > 0 && nombres[1] > 0 && !plusTard.has(cleEchelle)) questions.push({ type: 'echelle', cle: cleEchelle,
-    formes, nombres, exemples, propose: nombres[0] > nombres[1] ? 0 : 1, score: scoreEchelle });
 
   for (const nom of collections) {
     if (++operations % TAILLE_D_UN_LOT === 0) yield;

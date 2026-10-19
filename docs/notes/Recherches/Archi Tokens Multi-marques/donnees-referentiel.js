@@ -410,7 +410,7 @@ window.REFERENTIEL = {
   },
   {
    "id": "architect",
-   "libelle": "UCM Architect",
+   "libelle": "UCM Nomenclature",
    "definition": "Normalise les noms de collections et de variables, puis range les règles de nommage choisies."
   },
   {

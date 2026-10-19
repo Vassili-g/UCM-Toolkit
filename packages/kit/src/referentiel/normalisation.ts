@@ -35,7 +35,7 @@ export function collectionUcmReconnue(nom: string): Collection | undefined {
 }
 
 
-/** Remplace les formes tolérées, y compris une suite de mots (`border-radius` → `radius`), comme le moteur d'Architect. */
+/** Remplace les formes tolérées, y compris une suite de mots (`border-radius` → `radius`), comme le moteur d'UCM Nomenclature. */
 function remplacerLesTermes(mots: readonly string[], categorie: CategorieDeNom): string[] {
   const registres = [...REGISTRES, ...REGISTRES_ARCHITECTURE].filter((registre) => registre !== REGISTRE_AXES_ETAT || categorie === 'proprietes');
   const formes = registres.flatMap((registre) => registre.termes).map((terme) => termePourCategorie(terme, categorie)).flatMap((terme) => (terme.toleres ?? [])

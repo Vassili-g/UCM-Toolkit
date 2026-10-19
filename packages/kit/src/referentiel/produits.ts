@@ -71,7 +71,7 @@ export const PRODUITS: readonly Produit[] = [
     lit: ['sources-plugin'], execution: 'pur-et-node', ecrit: [{ donnees: ['bundle-plugin'], destination: 'distribution-plugin' }],
   },
   {
-    id: 'architect', libelle: { fr: 'UCM Architect', en: 'UCM Architect' },
+    id: 'architect', libelle: { fr: 'UCM Nomenclature', en: 'UCM Nomenclature' },
     definition: { fr: 'Normalise les noms de collections et de variables, puis range les règles de nommage choisies.', en: 'Normalizes collection and variable names, then stores the chosen naming rules.' },
     lit: ['noms-collections', 'noms-variables', 'regles-de-nommage'], execution: 'figma',
     ecrit: [{ donnees: ['noms-collections', 'noms-variables'], destination: 'document-figma' }, { donnees: ['regles-de-nommage'], destination: 'donnees-partagees-figma' }],

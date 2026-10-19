@@ -58,12 +58,12 @@ export const REGISTRE_SEPARATEURS: Registre = {
   ],
 };
 
-export const CONVENTIONS: readonly { readonly id: string; readonly libelle: { readonly fr: string; readonly en: string }; readonly convention: Convention }[] = [
-  { id: 'tiret', libelle: { fr: 'Minuscules · tirets', en: 'Lowercase · hyphens' }, convention: { casse: 'minuscules', separateur: 'tiret' } },
-  { id: 'bas', libelle: { fr: 'Minuscules · tirets bas', en: 'Lowercase · underscores' }, convention: { casse: 'minuscules', separateur: 'tiret-bas' } },
-  { id: 'espace', libelle: { fr: 'Majuscule initiale · espaces', en: 'Sentence case · spaces' }, convention: { casse: 'initiale', separateur: 'espace' } },
-  { id: 'camel', libelle: { fr: 'camelCase', en: 'camelCase' }, convention: { casse: 'camelCase', separateur: 'camelCase' } },
-  { id: 'pascal', libelle: { fr: 'PascalCase', en: 'PascalCase' }, convention: { casse: 'PascalCase', separateur: 'camelCase' } },
-  { id: 'soude', libelle: { fr: 'Minuscules · soudé', en: 'Lowercase · joined' }, convention: { casse: 'minuscules', separateur: 'soude' } },
-  { id: 'inchange', libelle: { fr: 'Inchangée', en: 'Unchanged' }, convention: { casse: 'inchangee', separateur: 'inchange' } },
+export const CONVENTIONS: readonly { readonly id: string; readonly libelle: { readonly fr: string; readonly en: string }; readonly specimen: { readonly fr: string; readonly en: string }; readonly convention: Convention }[] = [
+  { id: 'tiret', libelle: { fr: 'Minuscules · tirets', en: 'Lowercase · hyphens' }, specimen: { fr: 'minuscules-tirets', en: 'kebab-case' }, convention: { casse: 'minuscules', separateur: 'tiret' } },
+  { id: 'bas', libelle: { fr: 'Minuscules · tirets bas', en: 'Lowercase · underscores' }, specimen: { fr: 'minuscules_tirets_bas', en: 'snake_case' }, convention: { casse: 'minuscules', separateur: 'tiret-bas' } },
+  { id: 'espace', libelle: { fr: 'Majuscule initiale · espaces', en: 'Sentence case · spaces' }, specimen: { fr: 'Majuscule initiale', en: 'Sentence case' }, convention: { casse: 'initiale', separateur: 'espace' } },
+  { id: 'camel', libelle: { fr: 'camelCase', en: 'camelCase' }, specimen: { fr: 'camelCase', en: 'camelCase' }, convention: { casse: 'camelCase', separateur: 'camelCase' } },
+  { id: 'pascal', libelle: { fr: 'PascalCase', en: 'PascalCase' }, specimen: { fr: 'PascalCase', en: 'PascalCase' }, convention: { casse: 'PascalCase', separateur: 'camelCase' } },
+  { id: 'soude', libelle: { fr: 'Minuscules · soudé', en: 'Lowercase · joined' }, specimen: { fr: 'minusculessoudées', en: 'flatcase' }, convention: { casse: 'minuscules', separateur: 'soude' } },
+  { id: 'inchange', libelle: { fr: 'Inchangée', en: 'Unchanged' }, specimen: { fr: 'inchangée', en: 'unchanged' }, convention: { casse: 'inchangee', separateur: 'inchange' } },
 ];

@@ -182,3 +182,10 @@ test('l’instantané propose exactement 60 press et 36 disable sans réécrire 
   assert.equal(resultat.propositions.filter((proposition) => proposition.ancienNom.split('/').includes('press') && proposition.nouveauNom.split('/').includes('pressed')).length, 60);
   assert.equal(resultat.propositions.filter((proposition) => proposition.ancienNom.split('/').includes('disable') && proposition.nouveauNom.split('/').includes('disabled')).length, 36);
 });
+
+test('chaque convention a un spécimen non vide en français et en anglais', () => {
+  for (const choix of CONVENTIONS) {
+    assert.ok(choix.specimen.fr.trim().length > 0, `${choix.id} fr`);
+    assert.ok(choix.specimen.en.trim().length > 0, `${choix.id} en`);
+  }
+});
