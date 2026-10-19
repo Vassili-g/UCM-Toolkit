@@ -465,27 +465,27 @@ Fin : commandes du plugin, `npm run galerie -w ucm-architect-plugin`.
 
 Agent : `implementeur`.
 
-- [ ] `git mv packages/plugin-architect packages/plugin-nomenclature`, puis
+- [x] `git mv packages/plugin-architect packages/plugin-nomenclature`, puis
   vérifier qu'aucun dossier `packages/plugin-architect/` ne reste (`dist`,
   `node_modules` ignorés) : `tests/monorepoCoherent.test.mjs` lit tout
   sous-dossier de `packages/`. Paquet `ucm-nomenclature-plugin` ; script
   `build` de la racine ; `npm install --package-lock-only`, et le diff du
-  lock se limite aux entrées renommées.
-- [ ] `manifest.json` : `"name": "UCM Nomenclature"`, même `id`.
-- [ ] Le nom dans le plugin : `ui/index.html:6`, `scripts/run-tests.cjs:4`,
+  lock se limite aux entrées renommées. (647fcdc)
+- [x] `manifest.json` : `"name": "UCM Nomenclature"`, même `id`. (647fcdc)
+- [x] Le nom dans le plugin : `ui/index.html:6`, `scripts/run-tests.cjs:4`,
   `ui/textes.ts` (19, 25, 71, 86), commentaires de `galerie/etats.cjs:2`,
   `ui/styles.css:2`, `ui/index.ts:1`, `ui/coquille.ts:2` ; le fichier
   d'export `regles-ucm-nomenclature.json` et l'état de galerie qui l'importe
-  (`galerie/etats.cjs:105`).
-- [ ] Garder `ESPACE_ARCHITECT`, sa valeur et la clé
+  (`galerie/etats.cjs:105`). (647fcdc)
+- [x] Garder `ESPACE_ARCHITECT`, sa valeur et la clé
   `ucm-architect/tailleFenetre` (`src/fenetre.ts:3`), avec un commentaire qui
-  dit pourquoi.
-- [ ] Tests de la racine : `tests/pluginsSepares.test.ts:22`,
+  dit pourquoi. (647fcdc)
+- [x] Tests de la racine : `tests/pluginsSepares.test.ts:22`,
   `tests/inventaireInvariants.test.ts:43` (le titre de domaine suit la section
-  d'`AGENTS.md`).
-- [ ] L'Exporter : `plugin-exporter/src/contract/semantics.ts:125` et les
-  attendus de `plugin-exporter/tests/semantics.test.ts` (37, 38, 64, 65).
-- [ ] Documentation : `AGENTS.md` (ligne 371 de la carte du code, section
+  d'`AGENTS.md`). (647fcdc)
+- [x] L'Exporter : `plugin-exporter/src/contract/semantics.ts:125` et les
+  attendus de `plugin-exporter/tests/semantics.test.ts` (37, 38, 64, 65). (647fcdc)
+- [x] Documentation : `AGENTS.md` (ligne 371 de la carte du code, section
   `### UCM Architect` et son corps), `README.md` (14, 21, 143 : le chemin du
   manifeste à importer dans Figma), `CONCEPT.md:87`. Les liens relatifs des
   notes vers `packages/plugin-architect/` prennent la nouvelle cible, texte
@@ -494,9 +494,9 @@ Agent : `implementeur`.
   `4 Nomenclature/REVUE-CRITIQUE-PLAN-IMPLEMENTATION.md:82`,
   `5 Recette/DOSSIER-RECETTE-ARCHITECT.md` (172, 210, 214, 543),
   `5 Recette/Mesures/extraire-galerie.mjs` (4, 11). Les notes gardent leur
-  nom ; `Plugin Architect/README.md` dit le nouveau nom en tête.
-- [ ] `git grep -n "ucm-architect-plugin\|packages/plugin-architect\|UCM Architect"`
-  ne rend plus que des notes historiques et les clés gardées.
+  nom ; `Plugin Architect/README.md` dit le nouveau nom en tête. (647fcdc)
+- [x] `git grep -n "ucm-architect-plugin\|packages/plugin-architect\|UCM Architect"`
+  ne rend plus que des notes historiques et les clés gardées. (647fcdc)
 
 Fin : commandes de la racine (`tests/docLinks.test.ts` compris).
 
