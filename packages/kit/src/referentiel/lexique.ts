@@ -74,8 +74,12 @@ function normaliserSegment(segment: string, categorie: CategorieDeNom, conventio
   };
 }
 
+function cheminDeGroupe(portee: string, segments: readonly string[], rang: number): string {
+  return `${portee}\0${segments.slice(0, rang + 1).join('/')}`;
+}
+
 function proposer(nom: NomLu, lexique: Lexique, conventions: ConventionsParCategorie,
-  index: IndexDuVocabulaire, cache: Map<string, SegmentNormalise>): Renommage | undefined {
+  index: IndexDuVocabulaire, cache: Map<string, SegmentNormalise>, groupesFiges: ReadonlySet<string>): Renommage | undefined {
   if (nom.categorie === 'collections') {
     const canonique = collectionUcmReconnue(nom.nom);
     if (!canonique || canonique === nom.nom) return undefined;
@@ -84,8 +88,11 @@ function proposer(nom: NomLu, lexique: Lexique, conventions: ConventionsParCateg
   }
   const regles: { readonly cle: CleDeRegle; readonly priorite: number }[] = [];
   const termes: ChangementDeTerme[] = [];
-  const nouveauNom = nom.nom.split('/').map((segment, rang) => {
+  const segments = nom.nom.split('/');
+  const nouveauNom = segments.map((segment, rang) => {
     if (!segment) return segment;
+    // Un dossier partagé avec un nom non renommable garde son texte : le renommer couperait le dossier en deux.
+    if (rang < segments.length - 1 && groupesFiges.has(cheminDeGroupe(nom.portee, segments, rang))) return segment;
     const categorie = categorieDuSegment(nom, rang);
     const choix = conventions[categorie];
     const cle = JSON.stringify([segment, categorie, choix?.casse, choix?.separateur]);
@@ -130,7 +137,10 @@ function* trierParEtapes<T>(entrees: T[], valeur: (entree: T) => number): Genera
   return source;
 }
 
-/** Calcule les destinations d'une portée avec tous ses occupants et retire les renommages bloqués jusqu'à stabilité. */
+/**
+ * Calcule les destinations d'une portée avec tous ses occupants et retire les renommages bloqués jusqu'à stabilité.
+ * Un segment de groupe dont le chemin est partagé avec un nom non renommable de la même portée garde son texte.
+ */
 export function* normaliserParEtapes(lexique: Lexique, conventions: ConventionsParCategorie, index: IndexDuVocabulaire,
   options: { readonly nonRenommables?: readonly string[]; readonly portees?: readonly string[] } = {}): Generator<void, ResultatDuLexique> {
   const portees = options.portees && new Set(options.portees);
@@ -138,6 +148,13 @@ export function* normaliserParEtapes(lexique: Lexique, conventions: ConventionsP
   const cache = new Map<string, SegmentNormalise>();
   const noms: NomLu[] = [];
   const propositions = new Map<number, Renommage>();
+  const groupesFiges = new Set<string>();
+  for (const id of nonRenommables) {
+    const protege = lexique.noms.get(id);
+    if (!protege || (portees && !portees.has(protege.portee))) continue;
+    const segments = protege.nom.split('/');
+    for (let rang = 0; rang < segments.length - 1; rang++) groupesFiges.add(cheminDeGroupe(protege.portee, segments, rang));
+  }
   const destinations = new Map<string, Set<number>>();
   let examines = 0;
   for (const nom of lexique.noms.values()) {
@@ -148,7 +165,7 @@ export function* normaliserParEtapes(lexique: Lexique, conventions: ConventionsP
     const rang = noms.length;
     noms.push(nom);
     if (!nonRenommables.has(nom.id)) {
-      const proposition = proposer(nom, lexique, conventions, index, cache);
+      const proposition = proposer(nom, lexique, conventions, index, cache, groupesFiges);
       if (proposition) propositions.set(rang, proposition);
     }
     const cle = cleDestination(nom, propositions.get(rang)?.nouveauNom ?? nom.nom);

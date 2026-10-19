@@ -218,6 +218,41 @@ test('un terme de longueur différente garde le séparateur du segment sous la c
   assert.equal(renommer('text/foo-qux-x', retour), 'text/foo-bar-baz-x');
 });
 
+function primitive(id: string, nom: string, portee = 'primitives'): NomLu {
+  const segments = nom.split('/');
+  return variable(id, nom, portee, segments.map((_, rang) => rang < segments.length - 1 ? 'groupes' as const : null));
+}
+
+function nomsApres(noms: readonly NomLu[], nonRenommables: readonly string[], portees?: readonly string[]): Record<string, string> {
+  const resultat = normaliserLeLexique(preparer(noms), conventions, indexUcm, { nonRenommables, ...(portees ? { portees } : {}) });
+  return Object.fromEntries(resultat.renommages.map((renommage) => [renommage.id, renommage.nouveauNom]));
+}
+
+test('un groupe partagé avec un nom non renommable garde son écriture pour tout son chemin', () => {
+  const noms = [primitive('l50', 'colors/Titanium/light/50'), primitive('d950', 'colors/Titanium/dark/950'),
+    primitive('blanc', 'colors/Titanium/white'), primitive('noir', 'colors/Titanium/black')];
+  assert.deepEqual(nomsApres(noms, ['l50', 'd950']), {});
+  // Sans protection, la règle UCM renomme le dossier : c'est le défaut que la règle évite.
+  assert.equal(nomsApres(noms, [])['blanc'], 'Color/Titanium/white');
+});
+
+test('un groupe sans nom protégé dans sa portée est renommé comme avant', () => {
+  assert.equal(nomsApres([primitive('a', 'colors/Grass/white')], [])['a'], 'Color/Grass/white');
+  // Le premier segment est partagé avec le nom protégé : il garde `colors`, rien d'autre ne change.
+  assert.deepEqual(nomsApres([primitive('a', 'colors/Titanium/light/50'), primitive('b', 'colors/Grass/white')], ['a']), {});
+});
+
+test('un chemin partagé seulement jusqu\'à son premier segment ne fige que ce segment', () => {
+  const noms = [primitive('l50', 'colors/Titanium/light/50'), primitive('ciel', 'colors/sky/white')];
+  assert.deepEqual(nomsApres(noms, ['l50']), { ciel: 'colors/Sky/white' });
+});
+
+test('une portée hors du calcul ne fige rien', () => {
+  const noms = [primitive('l50', 'colors/Titanium/light/50', 'autre'), primitive('blanc', 'colors/Titanium/white')];
+  assert.equal(nomsApres(noms, ['l50'], ['primitives'])['blanc'], 'Color/Titanium/white');
+  assert.deepEqual(nomsApres(noms, ['l50'], ['autre']), {});
+});
+
 test('assembler joint par le premier séparateur du segment quand le nombre de mots change', () => {
   assert.equal(assembler('foo-bar-baz', ['foo', 'qux'], 'inchange'), 'foo-qux');
   assert.equal(assembler('foo_bar_baz', ['foo', 'qux'], 'inchange'), 'foo_qux');
