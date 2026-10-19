@@ -11,6 +11,7 @@ const valides: Record<string, unknown> = {
   lignes: { type: 'lignes', demande: 2, generation: 1, groupe: 'g', debut: 0 },
   termes: { type: 'termes', demande: 3, generation: 1, recherche: 'bg', filtre: 'tous', debut: 50 },
   fiche: { type: 'fiche', demande: 4, generation: 1, terme: 'bg' },
+  diagnostic: { type: 'diagnostic', demande: 13, generation: 1 },
   simuler: { type: 'simuler', demande: 5, generation: 1, geste: { type: 'supprimer', terme: 'bg' } },
   repondre: { type: 'repondre', demande: 6, question: 'q', reponse: { type: 'garder', rang: 1 } },
   regle: { type: 'regle', demande: 7, geste: { type: 'ecriture', ecriture } },
@@ -26,6 +27,7 @@ const refuses: Record<string, readonly unknown[]> = {
   lignes: [{ ...(valides.lignes as object), debut: -1 }, { ...(valides.lignes as object), generation: 0 }, { ...(valides.lignes as object), groupe: 3 }],
   termes: [{ ...(valides.termes as object), filtre: 'autre' }, { ...(valides.termes as object), debut: -1 }, { ...(valides.termes as object), recherche: null }],
   fiche: [{ ...(valides.fiche as object), terme: 3 }, { type: 'fiche', demande: 4, terme: 'bg' }],
+  diagnostic: [{ type: 'diagnostic', demande: 13 }, { type: 'diagnostic', demande: 13, generation: 0 }],
   simuler: [{ ...(valides.simuler as object), geste: { type: 'inconnu' } }, { ...(valides.simuler as object), geste: null }],
   repondre: [{ ...(valides.repondre as object), reponse: { type: 'garder', rang: 2 } }, { ...(valides.repondre as object), reponse: { type: 'echelle', forme: 0 } }],
   regle: [

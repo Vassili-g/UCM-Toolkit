@@ -86,16 +86,17 @@ test('une lecture part pendant un calcul, sur la génération courante, et sa r�
   assert.equal(regle, 2);
 });
 
-test('les quatre lectures portent la génération du dernier bilan', () => {
+test('les cinq lectures portent la génération du dernier bilan', () => {
   const { frontiere, envoyees, analyser } = creer();
   analyser(7);
   frontiere.lignes('g', 0);
   frontiere.termes('bg', 'tous', 0);
   frontiere.fiche('bg');
   frontiere.simuler(GESTE);
+  frontiere.diagnostic();
   const lectures = envoyees.slice(1);
-  assert.deepEqual(lectures.map((demande) => demande.type), ['lignes', 'termes', 'fiche', 'simuler']);
-  assert.deepEqual(lectures.map((demande) => ('generation' in demande ? demande.generation : null)), [7, 7, 7, 7]);
+  assert.deepEqual(lectures.map((demande) => demande.type), ['lignes', 'termes', 'fiche', 'simuler', 'diagnostic']);
+  assert.deepEqual(lectures.map((demande) => ('generation' in demande ? demande.generation : null)), [7, 7, 7, 7, 7]);
 });
 
 test('sans bilan, une lecture ou appliquer ne part pas', () => {
@@ -104,6 +105,7 @@ test('sans bilan, une lecture ou appliquer ne part pas', () => {
   assert.equal(frontiere.termes('', 'tous', 0), null);
   assert.equal(frontiere.fiche('bg'), null);
   assert.equal(frontiere.simuler(GESTE), null);
+  assert.equal(frontiere.diagnostic(), null);
   assert.equal(frontiere.appliquer(SELECTION), null);
   assert.deepEqual(envoyees, []);
 });
@@ -148,6 +150,11 @@ test("l'écho d'une demande de lecture est ignoré, puis la vraie réponse est a
       ouvrir: (f) => f.fiche('bg') as number,
       echo: (demande) => ({ type: 'fiche', demande, generation: 1, mot: 'bg' }),
       reponse: (demande) => ({ type: 'fiche', demande, generation: 1, fiche: ficheVide }),
+    },
+    {
+      ouvrir: (f) => f.diagnostic() as number,
+      echo: (demande) => ({ type: 'diagnostic', demande, generation: 1 }),
+      reponse: (demande) => ({ type: 'diagnostic', demande, generation: 1, texte: '{}' }),
     },
     {
       ouvrir: (f) => f.lignes('g', 0) as number,

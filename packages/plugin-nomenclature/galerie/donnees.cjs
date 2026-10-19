@@ -163,6 +163,7 @@ const messages = {
   simulation: (demande) => m('simulation', demande, { generation: 1, effet: effetDeTerme, conflit: null }),
   refus: (demande, conflits) => m('refus', demande, { conflits }),
   application: (demande) => m('application', demande, { resultat: { sorte: 'application', statut: 'applique', renommes: 87, sautes: 0, annulable: true } }),
+  diagnostic: (demande) => m('diagnostic', demande, { generation: 1, texte: '{"version":1,"termes":[],"noms":[]}' }),
   reglesExportees: (demande) => m('regles-exportees', demande, { texte: '{"version":1,"termes":{"hover":{"remplace":["hovered"]}}}' }),
   erreur: (demande, code) => m('erreur', demande, { code }),
 };

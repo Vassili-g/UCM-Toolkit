@@ -158,6 +158,25 @@ test('une lecture d\'une génération périmée reçoit generation-perimee ; une
   assert.ok(fiche.type === 'fiche' && fiche.fiche.aRenommer.exemples.length <= 3 && fiche.fiche.aRenommer.nombre >= fiche.fiche.aRenommer.exemples.length);
 });
 
+test('le détail du vocabulaire donne chaque terme de la liste avec ses segments, et chaque nom avec ses mots', async () => {
+  const b = banc(FICHIER);
+  await b.envoyer({ type: 'analyser' });
+  const bilan = b.dernierBilan();
+  b.vider();
+  await b.envoyer({ type: 'termes', generation: bilan.generation, recherche: '', filtre: 'tous', debut: 0 });
+  const demande = await b.envoyer({ type: 'diagnostic', generation: bilan.generation });
+  const [page, reponse] = b.messages;
+  assert.ok(page.type === 'termes' && reponse.type === 'diagnostic' && reponse.demande === demande);
+  const detail = JSON.parse(reponse.texte);
+  assert.equal(detail.version, 1);
+  assert.equal(detail.termes.length, page.comptes.tous);
+  const fill = detail.termes.find((terme: { mot: string }) => terme.mot === 'fill');
+  assert.ok(fill && fill.segments.length > 0 && fill.segments.every((segment: { segment: string; mots: string[]; exemple: string }) =>
+    segment.mots.some((mot) => mot.toLowerCase() === 'fill') && segment.exemple.split('/').includes(segment.segment)));
+  assert.ok(detail.noms.every((nom: { nom: string; mots: string[][] }) => nom.mots.length === nom.nom.split('/').length));
+  assert.ok(Array.isArray(detail.regles.termes));
+});
+
 test('une lecture avant toute analyse reçoit generation-perimee, ou analyse-en-cours pendant l\'analyse', async () => {
   const b = banc(FICHIER);
   const seule = await b.envoyer({ type: 'lignes', generation: 1, groupe: 'x', debut: 0 });

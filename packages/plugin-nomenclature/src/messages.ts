@@ -28,6 +28,7 @@ export type DemandeArchitect =
   | { readonly type: 'lignes'; readonly demande: number; readonly generation: number; readonly groupe: string; readonly debut: number }
   | { readonly type: 'termes'; readonly demande: number; readonly generation: number; readonly recherche: string; readonly filtre: 'tous' | 'avec-regle' | 'sans-regle'; readonly debut: number }
   | { readonly type: 'fiche'; readonly demande: number; readonly generation: number; readonly terme: string }
+  | { readonly type: 'diagnostic'; readonly demande: number; readonly generation: number }
   | { readonly type: 'simuler'; readonly demande: number; readonly generation: number; readonly geste: GesteSurLesRegles }
   | { readonly type: 'repondre'; readonly demande: number; readonly question: string; readonly reponse: Reponse }
   | { readonly type: 'regle'; readonly demande: number; readonly geste: GesteSurLesRegles }
@@ -120,6 +121,7 @@ export type PluginMessage =
   | { readonly type: 'lignes'; readonly demande: number; readonly generation: number; readonly groupe: string; readonly debut: number; readonly lignes: readonly LigneVue[]; readonly total: number }
   | { readonly type: 'termes'; readonly demande: number; readonly generation: number; readonly debut: number; readonly termes: readonly TermeDeListe[]; readonly total: number; readonly comptes: { readonly tous: number; readonly avecRegle: number; readonly sansRegle: number } }
   | { readonly type: 'fiche'; readonly demande: number; readonly generation: number; readonly fiche: FicheVue }
+  | { readonly type: 'diagnostic'; readonly demande: number; readonly generation: number; readonly texte: string }
   | { readonly type: 'simulation'; readonly demande: number; readonly generation: number; readonly effet: EffetVue | null; readonly conflit: ConflitVue | null }
   | { readonly type: 'refus'; readonly demande: number; readonly conflits: readonly ConflitVue[] }
   | { readonly type: 'application'; readonly demande: number; readonly resultat: ResultatVue }
@@ -187,6 +189,7 @@ export function estUiMessage(brut: unknown): brut is UiMessage {
     case 'lignes': return genere && chaine(brut.groupe) && entierNonNegatif(brut.debut);
     case 'termes': return genere && chaine(brut.recherche) && FILTRES.includes(brut.filtre as string) && entierNonNegatif(brut.debut);
     case 'fiche': return genere && chaine(brut.terme);
+    case 'diagnostic': return genere;
     case 'simuler': return genere && estGeste(brut.geste);
     case 'repondre': return chaine(brut.question) && estReponse(brut.reponse);
     case 'regle': return estGeste(brut.geste);

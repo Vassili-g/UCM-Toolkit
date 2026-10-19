@@ -661,6 +661,13 @@ export function creerSession(options: OptionsDeSession): Session {
         envoyer({ type: 'fiche', demande: demande.demande, generation: courant.generation, fiche: courant.projection.fiche(demande.terme) });
         return;
       }
+      case 'diagnostic': {
+        const courant = etatDeLaGeneration(demande.demande, demande.generation);
+        if (!courant) return;
+        const texte = JSON.stringify({ version: 1, ...courant.projection.diagnostic(), regles: JSON.parse(exporterLesRegles(courant.regles)) }, null, 2);
+        envoyer({ type: 'diagnostic', demande: demande.demande, generation: courant.generation, texte });
+        return;
+      }
       case 'simuler':
         return simuler(demande);
       case 'exporter':

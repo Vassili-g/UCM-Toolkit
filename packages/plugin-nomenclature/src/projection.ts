@@ -52,8 +52,23 @@ export interface PageDeTermes {
   readonly comptes: { readonly tous: number; readonly avecRegle: number; readonly sansRegle: number };
 }
 
+/** Un segment du fichier où le terme se lit, avec les mots que le découpage y a vus. */
+export interface SegmentDuTerme { readonly segment: string; readonly mots: Mots; readonly noms: number; readonly exemple: string }
+/** Un nom analysé : les mots de chacun de ses segments, et son nom après le renommage proposé. */
+export interface NomDuDiagnostic {
+  readonly nom: string; readonly collection: string | null; readonly categorie: CategorieDeNom;
+  readonly mots: readonly Mots[]; readonly nouveau: string | null;
+}
+/** L'export du vocabulaire pour l'analyser hors du plugin : chaque terme de la liste et d'où il vient, chaque nom et son découpage. */
+export interface DiagnosticDuVocabulaire {
+  readonly ecriture: EcritureChoisie;
+  readonly termes: readonly (Omit<TermeDeListe, 'trouve'> & { readonly question: string | null; readonly segments: readonly SegmentDuTerme[] })[];
+  readonly noms: readonly NomDuDiagnostic[];
+}
+
 export interface Projection {
   bilan(): Bilan;
+  diagnostic(): DiagnosticDuVocabulaire;
   /** Les lignes d'un groupe : ses renommages propres d'abord, puis ceux qui n'y figurent que par `aussi`. */
   lignes(groupe: string, debut: number): PageDeLignes;
   termes(requete: RequeteDeTermes): PageDeTermes;
@@ -688,6 +703,39 @@ export function projeter(entree: EntreeDeProjection): Projection {
     };
   }
 
+  function segmentsDuTerme(cle: string): SegmentDuTerme[] {
+    const suite = motsDeLaCle(cle);
+    const parSegment = new Map<string, { mots: Mots; noms: Set<string>; exemple: string }>();
+    for (const occurrence of suite.length > 0 ? lexique.occurrences.get(suite[0]) ?? [] : []) {
+      const nom = lexique.noms.get(occurrence.nomId);
+      if (!nom) continue;
+      const segment = nom.nom.split('/')[occurrence.rangSegment] ?? '';
+      const mots = motsDuSegment(lexique, segment);
+      if (suite.length > 1 && !contientLaSuite(mots, suite, occurrence.rangMot)) continue;
+      const vu = parSegment.get(segment) ?? { mots, noms: new Set<string>(), exemple: nom.nom };
+      vu.noms.add(nom.id);
+      parSegment.set(segment, vu);
+    }
+    return [...parSegment].map(([segment, vu]) => ({ segment, mots: vu.mots, noms: vu.noms.size, exemple: vu.exemple }))
+      .sort((a, b) => b.noms - a.noms || comparer(a.segment, b.segment));
+  }
+
+  function diagnostic(): DiagnosticDuVocabulaire {
+    const collections = new Map(entree.inventaire.entrees.map((dedans) => [dedans.nom.id, dedans.contexte?.collection ?? null]));
+    const nouveaux = new Map(entree.resultat.renommages.map((renommage) => [renommage.id, renommage.nouveauNom]));
+    const enQuestion = termesEnQuestion();
+    return {
+      ecriture: entree.ecriture,
+      termes: listeDesTermes().map(({ trouve: _trouve, ...terme }) => ({
+        ...terme, question: enQuestion.get(terme.mot)?.question ?? null, segments: segmentsDuTerme(terme.mot),
+      })),
+      noms: [...lexique.noms.values()].map((nom) => ({
+        nom: nom.nom, collection: collections.get(nom.id) ?? null, categorie: nom.categorie,
+        mots: nom.nom.split('/').map((segment) => motsDuSegment(lexique, segment)), nouveau: nouveaux.get(nom.id) ?? null,
+      })),
+    };
+  }
+
   function identifiants(selection: Selection): readonly string[] {
     const { principal } = analyse();
     const groupes = new Set(selection.groupes);
@@ -698,7 +746,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
       .map((renommage) => renommage.id);
   }
 
-  return { bilan, lignes, termes, fiche, identifiants };
+  return { bilan, diagnostic, lignes, termes, fiche, identifiants };
 }
 
 // Les conflits et les effets

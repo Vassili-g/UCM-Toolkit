@@ -3,7 +3,8 @@
  * son bouton Modifier, puis la section du vocabulaire, liste des termes du
  * fichier avec sa recherche et ses filtres. La liste se lit par pages de cinquante (demande `termes`) ; l'état
  * qu'elle suit vit dans `listeDesTermes.ts`. Les feuilles de l'écriture et d'un
- * terme (lot U4b) se branchent sur les deux rappels que `monterRegles` rend.
+ * terme (lot U4b) se branchent sur les deux rappels que `monterRegles` rend. En bas de page, un lien discret
+ * télécharge le détail du vocabulaire (demande `diagnostic`).
  */
 import { CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, collectionUcmReconnue, libelleDuTerme, termeRetenu, type Convention } from '@ucm-kit/core/referentiel';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
@@ -25,6 +26,7 @@ import {
   type EtatDeLaListe,
   type FiltreDesTermes,
 } from './listeDesTermes';
+import { telecharger } from './telechargement';
 import { TEXTES } from './textes';
 
 /** Le délai après lequel une saisie calme déclenche la recherche. */
@@ -184,6 +186,8 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
   let liste: EtatDeLaListe = LISTE_INITIALE;
   /** Le numéro de la demande de page dont la réponse est attendue. */
   let enCours: number | null = null;
+  /** La dernière demande du détail du vocabulaire : un nouveau clic la remplace. */
+  let demandeDuDetail: number | null = null;
   let minuteur: ReturnType<typeof setTimeout> | null = null;
   let modifierLEcriture: () => void = () => {};
   let choisirUnTerme: (terme: TermeDeListe) => void = () => {};
@@ -242,7 +246,15 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
 
   const sectionDuVocabulaire = creerSection(TEXTES.intertitreVocabulaire, TEXTES.phraseDuVocabulaire);
   sectionDuVocabulaire.append(outils, resultat, lignes, aucun, afficherPlus);
-  coquille.panneaux.regles.contenu.append(sectionDesConventions, sectionDuVocabulaire);
+  // En bas de page, l'export qui sert à étudier le découpage des noms hors du plugin.
+  const exporterLeDetail = document.createElement('button');
+  exporterLeDetail.type = 'button';
+  exporterLeDetail.className = 'lien export-du-detail';
+  exporterLeDetail.textContent = TEXTES.exporterLeDetailDuVocabulaire;
+  exporterLeDetail.addEventListener('click', () => {
+    demandeDuDetail = frontiere.diagnostic();
+  });
+  coquille.panneaux.regles.contenu.append(sectionDesConventions, sectionDuVocabulaire, exporterLeDetail);
 
   function rendreLEcriture(bilan: Bilan | null): void {
     poserLeSpecimen(groupes, bilan ? textesDeConvention(bilan.ecriture.groupes.convention) : null);
@@ -251,6 +263,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
     poserLExemple(noms, bilan?.ecriture.variables.exemple ?? null);
     poserLExemple(collections, bilan ? exempleDeCollection(bilan) : null);
     modifier.disabled = bilan === null;
+    exporterLeDetail.disabled = bilan === null;
   }
 
   function rendre(): void {
@@ -318,6 +331,11 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
         rendreLEcriture(message.bilan);
         demander(0);
         break;
+      case 'diagnostic':
+        if (message.demande !== demandeDuDetail) break;
+        demandeDuDetail = null;
+        telecharger(TEXTES.nomDuFichierDuVocabulaire, message.texte, 'application/json');
+        break;
       case 'termes':
         if (message.demande !== enCours) break;
         enCours = null;
@@ -325,6 +343,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
         rendre();
         break;
       case 'erreur':
+        if (message.demande === demandeDuDetail) demandeDuDetail = null;
         if (message.demande !== enCours) break;
         enCours = null;
         rendre();

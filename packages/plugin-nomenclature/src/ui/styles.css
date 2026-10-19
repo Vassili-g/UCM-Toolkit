@@ -811,6 +811,11 @@ button.tete-bouton {
   justify-self: center;
 }
 
+.export-du-detail {
+  justify-self: end;
+  color: var(--texte-second);
+}
+
 .aucun-terme {
   margin: 0;
   text-align: center;

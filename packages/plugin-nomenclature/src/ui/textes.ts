@@ -189,6 +189,8 @@ export const TEXTES = {
   filtreSansRegle: (nombre: number | null): string => (nombre === null ? 'Sans règle' : `Sans règle ${nombre}`),
   listeDesTermes: 'Termes du fichier',
   afficherPlus: 'Afficher plus',
+  exporterLeDetailDuVocabulaire: 'Exporter le détail du vocabulaire',
+  nomDuFichierDuVocabulaire: 'vocabulaire-ucm-nomenclature.json',
   aucunTerme: 'Aucun terme ne correspond.',
   termeRemplace: (remplaces: readonly string[]): string => `remplace ${remplaces.join(', ')}`,
   termeATrancher: (avec: string | null): string => (avec ? `à trancher avec ${avec}` : 'à trancher'),
