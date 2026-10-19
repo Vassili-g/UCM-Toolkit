@@ -1,12 +1,22 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import test, { mock } from 'node:test';
 
+import { creerChevron } from '../src/ui/Chevron';
 import { createFeuille } from '../src/ui/Feuille';
+
+// Le retrait du DOM attend 220 ms : les tests avancent l'horloge au lieu d'attendre.
+mock.timers.enable({ apis: ['setTimeout'] });
+const REPLI_DE_SORTIE_MS = 220;
 
 class ElementDeTest extends EventTarget {
   children: ElementDeTest[] = [];
   attributs = new Map<string, string>();
   className = '';
+  classes = new Set<string>();
+  classList = {
+    add: (...noms: string[]) => noms.forEach((nom) => this.classes.add(nom)),
+    contains: (nom: string) => this.classes.has(nom),
+  };
   textContent = '';
   type = '';
   hidden = false;
@@ -16,10 +26,11 @@ class ElementDeTest extends EventTarget {
   onclick: ((event: Event) => void) | null = null;
   parent: ElementDeTest | null = null;
   tagName: string;
+  espace: string | null = null;
   get parentElement(): ElementDeTest | null { return this.parent; }
   get isConnected(): boolean { return this === documentDeTest.body || this.parent?.isConnected === true; }
 
-  constructor(tagName = 'div') { super(); this.tagName = tagName; }
+  constructor(tagName = 'div', espace: string | null = null) { super(); this.tagName = tagName; this.espace = espace; }
   setAttribute(nom: string, valeur: string): void { this.attributs.set(nom, valeur); }
   getAttribute(nom: string): string | null { return this.attributs.get(nom) ?? null; }
   append(...enfants: ElementDeTest[]): void { enfants.forEach((enfant) => this.appendChild(enfant)); }
@@ -48,6 +59,7 @@ const documentDeTest = {
   activeElement: null as ElementDeTest | null,
   body: new ElementDeTest('body'),
   createElement: (tagName: string) => new ElementDeTest(tagName),
+  createElementNS: (espace: string, tagName: string) => new ElementDeTest(tagName, espace),
   addEventListener: (type: string, listener: EventListenerOrEventListenerObject) => {
     if (type === 'focusin' && typeof listener === 'function') focusListeners.add(listener as (event: FocusEvent) => void);
   },
@@ -82,8 +94,8 @@ test('[UI-45] la feuille ouvre le focus, remplace son étape et revient à son d
     pied: pied(),
     libelles: { retour: 'Back', fermer: 'Close' },
   });
-  const retour = dialogue.children[1].children[0];
-  const fermer = dialogue.children[1].children[2];
+  const retour = dialogue.children[0].children[0];
+  const fermer = dialogue.children[0].children[2];
   assert.equal(retour.getAttribute('aria-label'), 'Back');
   assert.equal(fermer.getAttribute('aria-label'), 'Close');
   retour.dispatchEvent(new Event('click'));
@@ -97,6 +109,9 @@ test('[UI-45] la feuille ouvre le focus, remplace son étape et revient à son d
   const escape = Object.assign(new Event('keydown', { cancelable: true }), { key: 'Escape' });
   feuille.element.dispatchEvent(escape);
   assert.equal(escape.defaultPrevented, true);
+  assert.equal(documentDeTest.activeElement, declencheur);
+  assert.equal(fermetures, 1);
+  mock.timers.tick(REPLI_DE_SORTIE_MS);
   assert.deepEqual(documentDeTest.body.children, [declencheur]);
   assert.equal(documentDeTest.activeElement, declencheur);
   assert.equal(fermetures, 1);
@@ -112,6 +127,7 @@ test('[UI-45] un clic sur le voile ferme la feuille', () => {
   let fermetures = 0;
   const feuille = createFeuille({ titre: 'Terme', corps: corps(), pied: pied(), onFermer: () => fermetures++ });
   feuille.element.dispatchEvent(new Event('click'));
+  mock.timers.tick(REPLI_DE_SORTIE_MS);
   assert.deepEqual(documentDeTest.body.children, [declencheur]);
   assert.equal(documentDeTest.activeElement, declencheur);
   assert.equal(fermetures, 1);
@@ -204,4 +220,108 @@ test('[UI-45] Tab boucle au premier contrôle ; seul le voile ou la croix fermen
   croix.dispatchEvent(new Event('click'));
   assert.equal(fermetures, 1);
   assert.equal(documentDeTest.activeElement, declencheur);
+});
+
+test('[UI-45] la feuille n’a plus de poignée et son retour porte un chevron nommé', () => {
+  documentDeTest.body.children = [];
+  const feuille = createFeuille({
+    titre: 'Terme',
+    retour: () => {},
+    corps: corps(),
+    pied: pied(),
+    onFermer: () => {},
+    libelles: { retour: 'Back' },
+  });
+  const dialogue = (feuille.element as unknown as ElementDeTest).children[0];
+  const classes = (element: ElementDeTest): string[] => [element.className, ...element.children.flatMap(classes)];
+  assert.equal(classes(dialogue).includes('feuille-poignee'), false);
+  assert.equal(dialogue.children.length, 3);
+
+  const retour = dialogue.children[0].children[0];
+  assert.equal(retour.textContent, '');
+  assert.equal(retour.getAttribute('aria-label'), 'Back');
+  const chevron = retour.children[0];
+  assert.equal(chevron.getAttribute('class'), 'chevron-svg');
+  assert.equal(chevron.classList.contains('retour'), true);
+  assert.equal(dialogue.children[0].children[2].textContent, '×');
+  feuille.fermer();
+  mock.timers.tick(REPLI_DE_SORTIE_MS);
+});
+
+test('[UI-45] fermer() appelle onFermer et rend le focus tout de suite ; le DOM attend le minuteur de repli', () => {
+  documentDeTest.body.children = [];
+  const declencheur = new ElementDeTest('button');
+  documentDeTest.body.appendChild(declencheur);
+  declencheur.focus();
+  let fermetures = 0;
+  const feuille = createFeuille({ titre: 'Terme', corps: corps(), pied: pied(), onFermer: () => fermetures++ });
+  const voile = feuille.element as unknown as ElementDeTest;
+
+  feuille.fermer();
+  assert.equal(fermetures, 1);
+  assert.equal(documentDeTest.activeElement, declencheur);
+  assert.equal(voile.classList.contains('sortante'), true);
+  assert.equal(voile.inert, true);
+  assert.equal(voile.isConnected, true);
+  assert.equal(focusListeners.size, 0);
+
+  mock.timers.tick(REPLI_DE_SORTIE_MS - 1);
+  assert.equal(voile.isConnected, true);
+  mock.timers.tick(1);
+  assert.equal(voile.isConnected, false);
+  assert.deepEqual(documentDeTest.body.children, [declencheur]);
+});
+
+test('[UI-45] la fin de l’animation de la feuille retire le voile avant le minuteur', () => {
+  documentDeTest.body.children = [];
+  const feuille = createFeuille({ titre: 'Terme', corps: corps(), pied: pied(), onFermer: () => {} });
+  const voile = feuille.element as unknown as ElementDeTest;
+  feuille.fermer();
+  voile.children[0].dispatchEvent(new Event('animationend'));
+  assert.equal(voile.isConnected, false);
+  mock.timers.tick(REPLI_DE_SORTIE_MS);
+});
+
+test('[UI-45] une feuille ouverte pendant la sortie d’une autre reste seule à garder le focus', () => {
+  documentDeTest.body.children = [];
+  const declencheur = new ElementDeTest('button');
+  documentDeTest.body.appendChild(declencheur);
+  declencheur.focus();
+  const premiere = createFeuille({ titre: 'Avant', corps: corps(), pied: pied(), onFermer: () => {} });
+  let fermetures = 0;
+  premiere.fermer();
+  const seconde = createFeuille({ titre: 'Après', corps: corps(), pied: pied(), onFermer: () => fermetures++ });
+  const croixSeconde = documentDeTest.activeElement!;
+  assert.equal((seconde.element as unknown as ElementDeTest).contains(croixSeconde), true);
+  assert.equal(focusListeners.size, 1);
+
+  // Le focus qui sort de la seconde revient dans la seconde, jamais dans la première.
+  declencheur.focus();
+  assert.equal(documentDeTest.activeElement, croixSeconde);
+
+  mock.timers.tick(REPLI_DE_SORTIE_MS);
+  assert.equal(premiere.element.isConnected, false);
+  assert.equal(seconde.element.isConnected, true);
+  assert.equal(documentDeTest.activeElement, croixSeconde);
+  assert.equal(fermetures, 0);
+
+  seconde.fermer();
+  assert.equal(documentDeTest.activeElement, declencheur);
+  mock.timers.tick(REPLI_DE_SORTIE_MS);
+  assert.deepEqual(documentDeTest.body.children, [declencheur]);
+});
+
+test('le chevron est un SVG décoratif de 12 px, posé par setAttribute', () => {
+  const chevron = creerChevron() as unknown as ElementDeTest;
+  assert.equal(chevron.espace, 'http://www.w3.org/2000/svg');
+  assert.equal(chevron.getAttribute('class'), 'chevron-svg');
+  assert.equal(chevron.getAttribute('aria-hidden'), 'true');
+  assert.equal(chevron.getAttribute('viewBox'), '0 0 12 12');
+  assert.equal(chevron.getAttribute('width'), '12');
+  assert.equal(chevron.getAttribute('height'), '12');
+  assert.equal(chevron.children[0].getAttribute('d'), 'M3 4.5 6 7.5 9 4.5');
+  assert.equal(chevron.classList.contains('retour'), false);
+  for (const sens of ['ouvert', 'suivant', 'retour'] as const) {
+    assert.equal((creerChevron(sens) as unknown as ElementDeTest).classList.contains(sens), true);
+  }
 });

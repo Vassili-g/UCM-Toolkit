@@ -507,26 +507,15 @@ select.input:hover {
   outline: none;
   background: var(--fond);
   box-shadow: 0 -8px 24px color-mix(in srgb, var(--texte) 16%, transparent);
-  animation: feuille-entree 160ms ease-out;
-}
-
-.feuille-poignee {
-  width: 32px;
-  height: 4px;
-  flex: none;
-  align-self: center;
-  margin: var(--espace-serre) 0;
-  border-radius: 2px;
-  background: var(--texte-second);
 }
 
 .feuille-entete {
   display: flex;
-  min-height: var(--hauteur-action);
+  min-height: 48px;
   flex: none;
   align-items: center;
   gap: var(--espace-controle);
-  padding: 0 var(--espace-page) var(--espace-serre);
+  padding: var(--espace-controle) var(--espace-page) var(--espace-serre);
   border-bottom: 1px solid var(--bordure);
 }
 
@@ -554,9 +543,18 @@ select.input:hover {
   font-size: var(--titre);
 }
 
-.feuille-retour:hover,
-.feuille-fermer:hover {
+.feuille-retour:hover {
   background: var(--fond-survol);
+}
+
+/* Le ✕ se repère sur un fond de bloc, que le survol assombrit. */
+.feuille-fermer {
+  background: var(--fond-bloc);
+  font-size: 16px;
+}
+
+.feuille-fermer:hover {
+  background: var(--fond-note);
 }
 
 .feuille-retour:focus-visible,
@@ -581,14 +579,82 @@ select.input:hover {
   background: var(--fond);
 }
 
-@keyframes feuille-entree {
-  from { transform: translateY(12px); }
-  to { transform: translateY(0); }
+/*
+ * L'entrée : le voile passe de transparent à `--fond-voile` pendant que la
+ * feuille glisse de toute sa hauteur. La sortie rejoue le mouvement à l'envers,
+ * sur un voile devenu inerte (`Feuille.ts` pose `sortante`).
+ */
+.feuille-voile {
+  animation: voile-entree 200ms ease-out both;
+}
+
+.feuille {
+  animation: feuille-glisse 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.feuille-voile.sortante {
+  pointer-events: none;
+  animation: voile-sortie 200ms ease-in both;
+}
+
+.feuille-voile.sortante .feuille {
+  animation: feuille-sort 200ms ease-in both;
+}
+
+@keyframes voile-entree { from { background: transparent; } to { background: var(--fond-voile); } }
+@keyframes voile-sortie { from { background: var(--fond-voile); } to { background: transparent; } }
+@keyframes feuille-glisse { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes feuille-sort { from { transform: translateY(0); } to { transform: translateY(100%); } }
+@keyframes fondu { from { opacity: 0; } to { opacity: 1; } }
+
+/* Sans mouvement, la feuille apparaît et disparaît en fondu de 120 ms. */
+@media (prefers-reduced-motion: reduce) {
+  .feuille,
+  .feuille-voile.sortante .feuille {
+    animation: fondu 120ms linear both;
+  }
+
+  .feuille-voile.sortante .feuille {
+    animation-direction: reverse;
+  }
+}
+
+/*
+ * Le chevron : pointe en bas, tourne de 180° à l'ouverture. `suivant` et `retour`
+ * sont déclarés après et l'emportent sur `aria-expanded`.
+ */
+.chevron-svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+  color: var(--texte-second);
+  transition: transform 150ms ease-out;
+}
+
+.chevron-svg path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+[aria-expanded="true"] .chevron-svg,
+.chevron-svg.ouvert {
+  transform: rotate(180deg);
+}
+
+svg.chevron-svg.suivant {
+  transform: rotate(-90deg);
+}
+
+svg.chevron-svg.retour {
+  transform: rotate(90deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .feuille {
-    animation: none;
+  .chevron-svg {
+    transition: none;
   }
 }
 

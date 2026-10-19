@@ -236,7 +236,7 @@ packages/plugin-socle/   ce que les plugins partagent : ucm-plugin-socle, privé
   src/fenetre.ts           la taille bornée de la fenêtre, rangée dans clientStorage
   src/cheminsDeTokens.ts   le chemin publié d'un token, collection puis variable : UCM Exporter l'écrit, l'explorateur le recalcule
   src/ui/socle.css         échelle de texte, trame, rôles de couleur et replis sombres, avant la feuille de chaque plugin
-  src/ui/                  bouton, onglets dont un peut être indisponible (désactivé, sauté par les flèches), interrupteur, poignée de redimensionnement, bouton « Configuration » (engrenage puis libellé) et bascule de l'en-tête
+  src/ui/                  bouton, onglets dont un peut être indisponible (désactivé, sauté par les flèches), interrupteur, chevron `Chevron.ts` (SVG qui tourne par CSS), feuille modale, poignée de redimensionnement, bouton « Configuration » (engrenage puis libellé) et bascule de l'en-tête
   galerie/                 le banc de galerie, sa capture et le décalque du thème Figma
   lois/                    les lois des styles, du gabarit, du manifest et de la galerie, que le test de chaque plugin appelle
   tests/                   le build, le manifest, la fenêtre, le banc et la loi des styles, pour un plugin quelconque

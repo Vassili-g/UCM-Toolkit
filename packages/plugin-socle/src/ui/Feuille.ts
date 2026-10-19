@@ -1,4 +1,6 @@
-/** La feuille modale commune : étapes, focus clavier et fermeture. */
+/** La feuille modale commune : étapes, focus clavier, entrée et sortie animées. */
+
+import { creerChevron } from './Chevron';
 
 export interface LibellesDeFeuille {
   retour: string;
@@ -22,13 +24,24 @@ export interface ContenuFeuille {
   libelles?: Partial<LibellesDeFeuille>;
 }
 
+/**
+ * Le minuteur de repli du retrait : un peu plus que les 200 ms de la sortie.
+ * Sans animation jouée, `animationend` n'arrive pas et la feuille resterait dans le DOM.
+ */
+const REPLI_DE_SORTIE_MS = 220;
+
 export interface FeuilleUi {
   element: HTMLDivElement;
   remplacer(contenu: ContenuFeuille): void;
   fermer(): void;
 }
 
-/** Crée une feuille modale qui garde le focus et le rend à son ouvreur. */
+/**
+ * Crée une feuille modale qui garde le focus et le rend à son ouvreur.
+ * `fermer()` appelle `onFermer` et rend le focus tout de suite ; le voile ne
+ * quitte le DOM qu'après la sortie animée. Pendant ce délai il est inerte : une
+ * feuille ouverte entre-temps reste seule à garder le focus.
+ */
 export function createFeuille(options: OptionsFeuille): FeuilleUi {
   const element = document.createElement('div');
   element.className = 'feuille-voile';
@@ -37,10 +50,6 @@ export function createFeuille(options: OptionsFeuille): FeuilleUi {
   dialogue.className = 'feuille';
   dialogue.setAttribute('role', 'dialog');
   dialogue.setAttribute('aria-modal', 'true');
-
-  const poignee = document.createElement('div');
-  poignee.className = 'feuille-poignee';
-  poignee.setAttribute('aria-hidden', 'true');
 
   const entete = document.createElement('header');
   entete.className = 'feuille-entete';
@@ -53,7 +62,7 @@ export function createFeuille(options: OptionsFeuille): FeuilleUi {
   boutonRetour.type = 'button';
   boutonRetour.className = 'feuille-retour';
   boutonRetour.setAttribute('aria-label', options.libelles?.retour ?? 'Retour');
-  boutonRetour.textContent = '‹';
+  boutonRetour.append(creerChevron('retour'));
 
   const boutonFermer = document.createElement('button');
   boutonFermer.type = 'button';
@@ -77,9 +86,18 @@ export function createFeuille(options: OptionsFeuille): FeuilleUi {
     if (fermee) return;
     fermee = true;
     document.removeEventListener('focusin', garderFocusDansLaFeuille, true);
-    element.remove();
+    element.classList.add('sortante');
+    element.inert = true;
     if (declencheur?.isConnected) declencheur.focus();
     options.onFermer();
+    const minuteur = setTimeout(retirer, REPLI_DE_SORTIE_MS);
+    function retirer() {
+      clearTimeout(minuteur);
+      element.remove();
+    }
+    dialogue.addEventListener('animationend', (evenement) => {
+      if (evenement.target === dialogue) retirer();
+    });
   }
 
   function garderFocusDansLaFeuille(evenement: FocusEvent) {
@@ -146,7 +164,7 @@ export function createFeuille(options: OptionsFeuille): FeuilleUi {
 
   dialogue.tabIndex = -1;
   entete.append(boutonRetour, titre, boutonFermer);
-  dialogue.append(poignee, entete, corps, pied);
+  dialogue.append(entete, corps, pied);
   element.append(dialogue);
   afficher(options);
   document.body.append(element);
