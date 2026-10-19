@@ -7,6 +7,7 @@
  */
 import { CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, libelleDuTerme, termeRetenu, type Convention } from '@ucm-kit/core/referentiel';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
+import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import { createFeuille } from 'ucm-plugin-socle/src/ui/Feuille';
 import type { Bilan, BloqueVue, GroupeVue, LigneVue, PluginMessage, ResultatVue } from '../messages';
 import type { Coquille } from './coquille';
@@ -24,6 +25,7 @@ import {
   versSelection,
   type ModeleDeSelection,
 } from './selection';
+import { apresUnePage, creerLaFile, nomsRestants, prochainDebut, sectionsDansLOrdre, segmentsDeNom, type SorteDeRegle } from './lignes';
 import { TEXTES } from './textes';
 
 type Pastille = 'ucm' | 'personnalise' | 'nouveau' | 'bloque' | 'protege';
@@ -55,14 +57,22 @@ function libelleDeConvention(convention: Convention): string {
   return `${casse ? libelleDuTerme(casse, 'fr') : convention.casse} · ${(separateur ? libelleDuTerme(separateur, 'fr') : convention.separateur).toLowerCase()}`;
 }
 
-/** Le détail d'une carte sous son avant → après, d'après la règle du groupe. */
+/** L'écriture d'une convention dans la tête d'une carte : son spécimen du kit, ou son libellé quand la convention n'y figure pas. */
+function specimenDeConvention(convention: Convention): string {
+  const connue = CONVENTIONS.find(({ convention: autre }) => autre.casse === convention.casse && autre.separateur === convention.separateur);
+  return connue ? connue.specimen.fr : libelleDeConvention(convention);
+}
+
+/** Le détail d'une carte sous sa tête, d'après la règle du groupe. */
 function detailDuGroupe(groupe: GroupeVue): string {
   const { regle } = groupe;
   switch (regle.sorte) {
     case 'terme':
-      return TEXTES.nombreDeNoms(groupe.variables, groupe.collections);
+      return regle.categorie === null
+        ? TEXTES.detailDeTerme(groupe.variables, groupe.collections, groupe.aussiDEcriture)
+        : TEXTES.detailDeTaille(regle.categorie, groupe.variables);
     case 'ecriture':
-      return `${TEXTES.categorieDEcriture[regle.categorie]} · ${libelleDeConvention(regle.convention)}`;
+      return TEXTES.nombreDeNoms(groupe.variables, groupe.collections);
     case 'collection':
       return groupe.variables > 0 ? `${TEXTES.collectionUcm} · ${TEXTES.nombreDeNoms(groupe.variables, 0)}` : TEXTES.collectionUcm;
   }
@@ -118,18 +128,86 @@ function fabriquerPastille(variante: Pastille): HTMLElement {
   return pastille;
 }
 
-function fabriquerChemin(ligne: LigneVue): HTMLElement {
-  const chemin = document.createElement('span');
-  chemin.className = 'chemin';
-  ligne.ancien.split('/').forEach((segment, rang) => {
-    if (rang > 0) chemin.append(document.createTextNode('/'));
-    if (ligne.marques.includes(rang)) {
-      const marque = document.createElement('mark');
-      marque.textContent = segment;
-      chemin.append(marque);
-    } else chemin.append(document.createTextNode(segment));
+function fabriquerJeton(texte: string, variante: 'retire' | 'retenu' | 'neutre'): HTMLElement {
+  const jeton = document.createElement('span');
+  switch (variante) {
+    case 'retire':
+      jeton.className = 'jeton jeton-retire';
+      break;
+    case 'retenu':
+      jeton.className = 'jeton jeton-retenu';
+      break;
+    case 'neutre':
+      jeton.className = 'jeton jeton-neutre';
+      break;
+  }
+  jeton.textContent = texte;
+  return jeton;
+}
+
+/** Terme et collection : la forme qui disparaît, puis celle qui la remplace. Écriture : la phrase, puis le spécimen. */
+function fabriquerLaTete(groupe: GroupeVue): HTMLElement {
+  const tete = document.createElement('span');
+  tete.className = 'regle-ligne';
+  const { regle } = groupe;
+  if (regle.sorte === 'ecriture') {
+    const phrase = document.createElement('span');
+    phrase.className = 'phrase-regle';
+    phrase.textContent = TEXTES.ecrireEn[regle.categorie];
+    tete.append(phrase, fabriquerJeton(specimenDeConvention(regle.convention), 'neutre'));
+    return tete;
+  }
+  const fleche = document.createElement('span');
+  fleche.className = 'fleche';
+  fleche.textContent = '→';
+  tete.append(fabriquerJeton(groupe.avant, 'retire'), fleche, fabriquerJeton(groupe.apres, 'retenu'));
+  return tete;
+}
+
+/** Un nom découpé en segments : seuls ceux de `marques` prennent la couleur de leur colonne. */
+function poserLesSegments(parent: HTMLElement, nom: string, marques: readonly number[], colonne: 'ancien' | 'nouveau'): void {
+  segmentsDeNom(nom, marques).forEach((segment, rang) => {
+    if (rang > 0) parent.append(document.createTextNode('/'));
+    if (!segment.marque) {
+      parent.append(document.createTextNode(segment.texte));
+      return;
+    }
+    const marque = document.createElement('span');
+    if (colonne === 'ancien') marque.className = 'seg-ancien';
+    else marque.className = 'seg-nouveau';
+    marque.textContent = segment.texte;
+    parent.append(marque);
   });
-  return chemin;
+}
+
+/** La ligne d'un nom : le nom actuel, puis le nom après l'application. Sous 520 px, le second passe sous le premier, précédé de « → ». */
+function fabriquerLaLigne(ligne: LigneVue, caseACocher: HTMLInputElement): HTMLElement {
+  const diff = document.createElement('div');
+  diff.className = 'diff';
+  const avant = document.createElement('span');
+  avant.className = 'chemin';
+  poserLesSegments(avant, ligne.ancien, ligne.marques, 'ancien');
+  const apres = document.createElement('span');
+  apres.className = 'chemin-apres';
+  const fleche = document.createElement('span');
+  fleche.className = 'fleche-ligne';
+  fleche.textContent = '→ ';
+  apres.append(fleche);
+  poserLesSegments(apres, ligne.nouveau, ligne.marques, 'nouveau');
+  diff.append(caseACocher, avant, apres);
+  return diff;
+}
+
+/** La légende des deux colonnes, une fois par carte dépliée. */
+function fabriquerLaLegende(): HTMLElement {
+  const legende = document.createElement('div');
+  legende.className = 'colonnes-tete';
+  const avant = document.createElement('span');
+  avant.textContent = TEXTES.legendeAujourdhui;
+  const apres = document.createElement('span');
+  apres.textContent = TEXTES.legendeApres;
+  legende.append(document.createElement('span'), avant, apres);
+  return legende;
 }
 
 function fabriquerCase(libelle: string, auChangement: (coche: boolean) => void): HTMLInputElement {
@@ -148,13 +226,6 @@ function fabriquerIntertitre(texte: string): HTMLElement {
   titre.textContent = texte;
   intertitre.append(titre);
   return intertitre;
-}
-
-function fabriquerChevron(): HTMLElement {
-  const chevron = document.createElement('span');
-  chevron.className = 'chevron';
-  chevron.setAttribute('aria-hidden', 'true');
-  return chevron;
 }
 
 export interface DemandeDeConfirmation {
@@ -272,14 +343,15 @@ export function monterAAppliquer(coquille: Coquille): void {
     synchroniserLePied();
   }
 
-  function creerCarte(groupe: GroupeVue): CarteDeGroupe {
+  function creerCarte(groupe: GroupeVue, generation: number): CarteDeGroupe {
     const { cle } = groupe;
     const total = groupe.variables + groupe.collections;
-    const supplementaires: LigneVue[] = [];
     const connues = new Set(groupe.apercu.map((ligne) => ligne.id));
     const rangs: { readonly ligne: LigneVue; readonly caseACocher: HTMLInputElement }[] = [];
+    let file = creerLaFile(generation, total, groupe.apercu.length);
+    /** Vrai tant que la file enchaîne les pages après le clic sur le bouton des autres noms. */
+    let enChargement = false;
     let demandee: { readonly debut: number; readonly demande: number } | null = null;
-    let epuisee = false;
 
     const element = document.createElement('div');
     element.className = 'carte';
@@ -290,8 +362,7 @@ export function monterAAppliquer(coquille: Coquille): void {
       synchroniser();
     });
 
-    const restantes = (): number => (epuisee ? 0 : Math.max(0, total - groupe.apercu.length - supplementaires.length));
-    const peutSeDeplier = groupe.apercu.length > 0 || restantes() > 0;
+    const peutSeDeplier = groupe.apercu.length > 0 || nomsRestants(file) > 0;
     const bouton = document.createElement(peutSeDeplier ? 'button' : 'div');
     bouton.className = 'tete-bouton';
     if (bouton instanceof HTMLButtonElement) bouton.type = 'button';
@@ -299,36 +370,38 @@ export function monterAAppliquer(coquille: Coquille): void {
     pile.className = 'pile';
     const detail = document.createElement('span');
     detail.className = 'meta';
-    pile.append(fabriquerChange(groupe.avant, groupe.apres, groupe.autres), detail);
+    pile.append(fabriquerLaTete(groupe), detail);
     const droite = document.createElement('span');
     droite.className = 'droite';
     if (groupe.regle.sorte === 'terme') droite.append(fabriquerPastille(groupe.regle.origine === 'ucm' ? 'ucm' : 'personnalise'));
     if (groupe.nouveau) droite.append(fabriquerPastille('nouveau'));
-    const chevron = fabriquerChevron();
-    if (peutSeDeplier) droite.append(chevron);
+    if (peutSeDeplier) droite.append(creerChevron());
     bouton.append(pile, droite);
     tete.append(caseDuGroupe, bouton);
 
     const corps = document.createElement('div');
     corps.className = 'corps';
+    const legende = fabriquerLaLegende();
+    legende.hidden = groupe.apercu.length === 0;
     const ligneDesAutres = document.createElement('div');
     ligneDesAutres.className = 'rang';
     const boutonDesAutres = document.createElement('button');
     boutonDesAutres.type = 'button';
     boutonDesAutres.className = 'autres';
-    ligneDesAutres.append(document.createElement('span'), boutonDesAutres);
-    corps.append(ligneDesAutres);
+    const chargement = document.createElement('span');
+    chargement.className = 'meta';
+    chargement.textContent = TEXTES.chargementDesNoms;
+    ligneDesAutres.append(document.createElement('span'), boutonDesAutres, chargement);
+    corps.append(legende, ligneDesAutres);
 
     function ajouterUneLigne(ligne: LigneVue): void {
-      const rang = document.createElement('div');
-      rang.className = 'rang';
       const caseACocher = fabriquerCase(ligne.ancien, (coche) => {
         modele = cocherLigne(modele, ligne, cle, coche);
         synchroniser();
       });
-      rang.append(caseACocher, fabriquerChemin(ligne));
       rangs.push({ ligne, caseACocher });
-      ligneDesAutres.before(rang);
+      legende.hidden = false;
+      ligneDesAutres.before(fabriquerLaLigne(ligne, caseACocher));
     }
     groupe.apercu.forEach(ajouterUneLigne);
 
@@ -337,24 +410,37 @@ export function monterAAppliquer(coquille: Coquille): void {
       else deplies.delete(cle);
       corps.hidden = !deplie;
       if (peutSeDeplier) bouton.setAttribute('aria-expanded', String(deplie));
-      chevron.textContent = deplie ? '⌃' : '⌄';
     }
     regler(peutSeDeplier && deplies.has(cle));
     if (peutSeDeplier) bouton.addEventListener('click', () => regler(corps.hidden));
 
     function rafraichirLesAutres(): void {
-      const nombre = restantes();
+      const nombre = nomsRestants(file);
       ligneDesAutres.hidden = nombre === 0;
-      boutonDesAutres.textContent = TEXTES.autresNoms(nombre);
-      boutonDesAutres.disabled = demandee !== null;
+      boutonDesAutres.hidden = enChargement;
+      chargement.hidden = !enChargement;
+      boutonDesAutres.textContent = TEXTES.afficherLesAutresNoms(nombre);
     }
-    boutonDesAutres.addEventListener('click', () => {
-      if (demandee) return;
-      const debut = groupe.apercu.length + supplementaires.length;
-      const demande = frontiere.lignes(cle, debut);
-      if (demande === null) return;
+    /** Rend la main au bouton : la file a fini, la génération a changé ou une lecture a échoué. */
+    function arreterLaFile(): void {
+      demandee = null;
+      enChargement = false;
+      rafraichirLesAutres();
+    }
+    function demanderLaPageSuivante(): void {
+      const debut = prochainDebut(file, frontiere.generation());
+      const demande = debut === null ? null : frontiere.lignes(cle, debut);
+      if (debut === null || demande === null) {
+        arreterLaFile();
+        return;
+      }
       demandee = { debut, demande };
       rafraichirLesAutres();
+    }
+    boutonDesAutres.addEventListener('click', () => {
+      if (enChargement) return;
+      enChargement = true;
+      demanderLaPageSuivante();
     });
 
     function rafraichir(): void {
@@ -378,20 +464,30 @@ export function monterAAppliquer(coquille: Coquille): void {
       recevoirLesLignes(message) {
         if (message.groupe !== cle || !demandee || message.debut !== demandee.debut) return;
         demandee = null;
-        if (message.lignes.length === 0) epuisee = true;
+        const nouvelles: LigneVue[] = [];
+        const vues = new Set(connues);
         for (const ligne of message.lignes) {
-          if (connues.has(ligne.id)) continue;
+          if (vues.has(ligne.id)) continue;
+          vues.add(ligne.id);
+          nouvelles.push(ligne);
+        }
+        const suite = apresUnePage(file, { generation: message.generation, nouveaux: nouvelles.length });
+        if (suite === null) {
+          arreterLaFile();
+          return;
+        }
+        file = suite;
+        for (const ligne of nouvelles) {
           connues.add(ligne.id);
-          supplementaires.push(ligne);
           ajouterUneLigne(ligne);
         }
-        rafraichirLesAutres();
         rafraichir();
+        if (enChargement) demanderLaPageSuivante();
+        else rafraichirLesAutres();
       },
       recevoirUneErreur(demande) {
         if (demandee?.demande !== demande) return;
-        demandee = null;
-        rafraichirLesAutres();
+        arreterLaFile();
       },
     };
   }
@@ -407,8 +503,7 @@ export function monterAAppliquer(coquille: Coquille): void {
     bouton.className = 'tete-bouton';
     const titre = document.createElement('span');
     titre.textContent = TEXTES.nonRenommes(bloques.length, proteges);
-    const chevron = fabriquerChevron();
-    bouton.append(titre, chevron);
+    bouton.append(titre, creerChevron());
     tete.append(bouton);
 
     const corps = document.createElement('div');
@@ -444,7 +539,6 @@ export function monterAAppliquer(coquille: Coquille): void {
       nonRenommesDeplie = deplie;
       corps.hidden = !deplie;
       bouton.setAttribute('aria-expanded', String(deplie));
-      chevron.textContent = deplie ? '⌃' : '⌄';
     }
     regler(nonRenommesDeplie);
     bouton.addEventListener('click', () => regler(corps.hidden));
@@ -452,19 +546,19 @@ export function monterAAppliquer(coquille: Coquille): void {
     return element;
   }
 
-  const SECTIONS = [
-    { titre: TEXTES.intertitreTermes, sorte: 'terme' },
-    { titre: TEXTES.intertitreEcriture, sorte: 'ecriture' },
-    { titre: TEXTES.intertitreCollections, sorte: 'collection' },
-  ] as const;
+  const TITRES_DES_SECTIONS: Readonly<Record<SorteDeRegle, string>> = {
+    ecriture: TEXTES.intertitreConventions,
+    terme: TEXTES.intertitreVocabulaire,
+    collection: TEXTES.intertitreCollections,
+  };
 
   function reconstruire(): void {
     const groupes = bilan?.groupes ?? [];
-    cartes = groupes.map(creerCarte);
+    const generation = bilan?.generation ?? 0;
+    cartes = groupes.map((groupe) => creerCarte(groupe, generation));
     const enfants: HTMLElement[] = [];
-    for (const { titre, sorte } of SECTIONS) {
-      const dedans = cartes.filter((carte) => carte.groupe.regle.sorte === sorte);
-      if (dedans.length > 0) enfants.push(fabriquerIntertitre(titre), ...dedans.map((carte) => carte.element));
+    for (const { sorte, groupes: dedans } of sectionsDansLOrdre(cartes.map((carte) => ({ carte, regle: carte.groupe.regle })))) {
+      enfants.push(fabriquerIntertitre(TITRES_DES_SECTIONS[sorte]), ...dedans.map(({ carte }) => carte.element));
     }
     const nonRenommes = bilan ? creerNonRenommes(bilan.bloques, bilan.proteges) : null;
     if (nonRenommes) enfants.push(nonRenommes);

@@ -402,10 +402,119 @@ button.tete-bouton {
   color: var(--texte-second);
 }
 
+/*
+ * Le langage visuel des renommages. Le rouge et le vert ne marquent que les
+ * conséquences : la forme qui disparaît et celle qui la remplace. Le gris
+ * marque la forme d'une écriture et ce qui ne change pas.
+ */
+.jeton {
+  display: inline-block;
+  padding: 0 var(--espace-serre);
+  border-radius: 4px;
+  font-family: var(--police-code);
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+  white-space: nowrap;
+}
+
+.jeton-retire {
+  background: var(--fond-danger);
+  color: var(--texte-danger);
+}
+
+.jeton-retenu {
+  background: var(--fond-succes);
+  color: var(--texte-succes);
+}
+
+.jeton-neutre {
+  background: var(--fond-note);
+  color: var(--texte);
+}
+
+.seg-ancien {
+  color: var(--texte-danger);
+  font-weight: 600;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.seg-nouveau {
+  color: var(--texte-succes);
+  font-weight: 600;
+}
+
+.regle-ligne {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-serre) var(--espace-controle);
+}
+
+.phrase-regle {
+  font-size: var(--libelle);
+  line-height: var(--libelle-interligne);
+}
+
 .corps {
   display: grid;
   padding: var(--espace-serre) var(--espace-bloc) var(--espace-controle);
   border-top: 1px solid var(--bordure);
+}
+
+/* Une ligne dépliée : la case, le nom actuel, le nom après l'application. */
+.colonnes-tete,
+.diff {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--espace-controle);
+}
+
+.colonnes-tete {
+  padding: var(--espace-controle) 0 var(--espace-serre);
+  color: var(--texte-second);
+  font-weight: 600;
+}
+
+.diff {
+  padding: var(--espace-serre) 0;
+}
+
+.diff .case {
+  align-self: center;
+}
+
+.diff .chemin-apres {
+  color: var(--texte);
+  font-family: var(--police-code);
+  overflow-wrap: anywhere;
+}
+
+.diff .fleche-ligne {
+  display: none;
+}
+
+/* Sous 520 px, le nom après passe sous le nom actuel et la légende disparaît. */
+@media (max-width: 519px) {
+  .colonnes-tete {
+    display: none;
+  }
+
+  .diff {
+    grid-template-columns: 12px minmax(0, 1fr);
+    row-gap: 0;
+  }
+
+  .diff .chemin-apres {
+    grid-column: -2;
+  }
+
+  .diff .fleche-ligne {
+    display: inline;
+    color: var(--texte-second);
+  }
 }
 
 .rang {
@@ -431,11 +540,6 @@ button.tete-bouton {
   cursor: pointer;
   font: inherit;
   text-align: left;
-}
-
-.autres:disabled {
-  cursor: wait;
-  opacity: 0.5;
 }
 
 .info {

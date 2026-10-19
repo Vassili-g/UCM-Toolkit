@@ -102,17 +102,31 @@ export const TEXTES = {
 
   intertitreTermes: 'Termes',
   intertitreEcriture: 'Écriture',
+  intertitreConventions: 'Conventions d’écriture',
+  intertitreVocabulaire: 'Vocabulaire',
   intertitreCollections: 'Collections',
 
+  legendeAujourdhui: 'Aujourd’hui',
+  legendeApres: 'Après l’application',
+
   nombreDeNoms,
-  /** Ce que la catégorie d'une règle d'écriture nomme dans la carte. */
-  categorieDEcriture: {
-    collections: 'Collections',
-    variables: 'Noms',
-    groupes: 'Groupes',
-    proprietes: 'Propriétés',
-    valeurs: 'Valeurs',
+  /** La phrase qui précède le spécimen d'une écriture dans la tête d'une carte. */
+  ecrireEn: {
+    groupes: 'Écrire les groupes en',
+    variables: 'Écrire les noms en',
+    collections: 'Écrire les collections en',
+    proprietes: 'Écrire les propriétés en',
+    valeurs: 'Écrire les valeurs en',
   },
+  /** « 313 variables · 280 changent aussi d’écriture » : le détail d'une carte de terme. */
+  detailDeTerme: (variables: number, collections: number, aussiDEcriture: number): string => {
+    const nombre = nombreDeNoms(variables, collections);
+    if (aussiDEcriture === 0) return nombre;
+    return `${nombre} · ${aussiDEcriture} ${aussiDEcriture === 1 ? 'change' : 'changent'} aussi d’écriture`;
+  },
+  /** Le détail d'une carte de terme dont la forme dépend de sa place. */
+  detailDeTaille: (categorie: 'variables' | 'groupes', variables: number): string =>
+    `${categorie === 'variables' ? 'Dans les noms' : 'Dans les groupes'} · ${nombreDeNoms(variables, 0)}`,
   collectionUcm: 'Collection UCM',
   nomsCochesDansLeGroupe: (coches: number, total: number): string => `${coches} sur ${total} cochés`,
   nomsNonCoches: (total: number): string => (total === 1 ? 'non coché' : 'non cochés'),
@@ -124,7 +138,8 @@ export const TEXTES = {
   pastilleBloque: 'Bloqué',
   pastilleProtege: 'Protégé',
 
-  autresNoms: (nombre: number): string => (nombre === 1 ? '1 autre nom' : `${nombre} autres noms`),
+  afficherLesAutresNoms: (nombre: number): string => (nombre === 1 ? 'Afficher l’autre nom' : `Afficher les ${nombre} autres noms`),
+  chargementDesNoms: 'Chargement des noms…',
 
   nonRenommes: (bloques: number, proteges: number): string => {
     const parties = [

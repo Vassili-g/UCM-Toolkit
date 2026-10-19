@@ -135,7 +135,8 @@ const fiches = {
   },
 };
 
-const lignesSupplementaires = [pageFond, renom('v18', 'Input/bg/default', 'Input/background/default', [1]), renom('v19', 'Tooltip/bg/default', 'Tooltip/background/default', [1])];
+// Les dix noms que le groupe ne montre pas encore (12 en tout, deux en aperçu).
+const lignesSupplementaires = [pageFond, ...['Input', 'Tooltip', 'Modal', 'Menu', 'Badge', 'Tab', 'Toast', 'Chip', 'Table'].map((composant, rang) => renom(`vb${rang}`, `${composant}/bg/default`, `${composant}/background/default`, [1]))];
 
 const effetDeTerme = { sorte: 'terme', avant: 'radius', apres: 'corner', nombre: 9, exemple: renom('v10', 'Button/radius/default', 'Button/corner/default', [1]) };
 
@@ -148,7 +149,7 @@ const messages = {
   initial: (dejaAnalyse) => ({ type: 'initial', dejaAnalyse }),
   lecture: (lues, total) => m('lecture', 1, { lues, total }),
   bilan: (demande, bilan) => m('bilan', demande, { bilan }),
-  lignes: (demande, debut) => m('lignes', demande, { generation: 1, groupe: groupeBackground.cle, debut, lignes: lignesSupplementaires, total: 12 }),
+  lignes: (demande, debut) => m('lignes', demande, { generation: 1, groupe: groupeBackground.cle, debut, lignes: lignesSupplementaires.slice(debut - groupeBackground.apercu.length, debut - groupeBackground.apercu.length + 50), total: 12 }),
   termes: (demande) => m('termes', demande, {
     generation: 1, debut: 0, termes, total: termes.length,
     comptes: { tous: termes.length, avecRegle: 3, sansRegle: 3 },
