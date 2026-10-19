@@ -145,28 +145,28 @@ kit 0.9.2, cli 0.1.61, adapter 0.1.54. Le diff de
 `Plugin Palettes/Recette v10/PLAN-IMPLEMENTATION-RECETTE-V10.md` n'en fait pas
 partie et reste hors du commit.
 
-- [ ] Lancer les commandes du kit, puis les tests et le typage du plugin, puis
-  `npm test` à la racine.
-- [ ] Commiter, s'ils passent : `packages/kit/src/referentiel/{normalisation,termes,vocabulaire,vocabulaire-du-fichier}.ts`,
+- [x] Lancer les commandes du kit, puis les tests et le typage du plugin, puis
+  `npm test` à la racine. (d62d593)
+- [x] Commiter, s'ils passent : `packages/kit/src/referentiel/{normalisation,termes,vocabulaire,vocabulaire-du-fichier}.ts`,
   `packages/kit/tests/{lexiqueReferentiel,vocabulaireDuFichier}.test.ts`,
   les `package.json` et `README.md` du kit, du cli et de l'adapter,
   `package-lock.json`, `README.md`, `docs/references/design-systems/ucm/sources.json`,
-  `Plugin Architect/4 Nomenclature/PLAN-IMPLEMENTATION.md` ; ce plan aussi.
-- [ ] Pousser. La publication attend K3 : 0.9.2 ne sera pas publié, le
-  registre passera de 0.9.1 à 0.9.3.
+  `Plugin Architect/4 Nomenclature/PLAN-IMPLEMENTATION.md` ; ce plan aussi. (d62d593)
+- [x] Pousser. La publication attend K3 : 0.9.2 ne sera pas publié, le
+  registre passera de 0.9.1 à 0.9.3. (d62d593)
 
 ### F1 · La frontière refuse une réponse mal formée (R11)
 
 Agent : `implementeur`. Fichiers : `packages/plugin-architect/src/ui/frontiere.ts`,
 `packages/plugin-architect/tests/frontiereUi.test.ts`.
 
-- [ ] Dans `recevoirUneLecture` (`frontiere.ts:125-129`), refuser un message
+- [x] Dans `recevoirUneLecture` (`frontiere.ts:125-129`), refuser un message
   `termes` sans liste, `fiche` sans fiche, `lignes` sans lignes, **avant**
   `oublierUneLecture(message.demande)` : l'écho d'une demande ne doit pas
-  consommer la lecture en attente.
-- [ ] Un test par forme : l'écho (même `demande`, même `generation`, sans
-  liste) est ignoré, puis la vraie réponse est affichée.
-- [ ] Les autres messages et leur ordre de traitement ne changent pas.
+  consommer la lecture en attente. (caef760)
+- [x] Un test par forme : l'écho (même `demande`, même `generation`, sans
+  liste) est ignoré, puis la vraie réponse est affichée. (caef760)
+- [x] Les autres messages et leur ordre de traitement ne changent pas. (caef760)
 
 Fin : commandes du plugin.
 
@@ -178,28 +178,28 @@ Agent : `implementeur-exigeant`. Fichiers : `packages/plugin-socle/src/ui/`
 carte du code). Modèle : `Maquettes/propose.css`, lignes 393-540 (feuille
 `.feuille-voile.v2`, `.sortante`, keyframes) et 698-748 (chevron).
 
-- [ ] `creerChevron()` rend un SVG de 12 × 12, `aria-hidden`, un trait de
+- [x] `creerChevron()` rend un SVG de 12 × 12, `aria-hidden`, un trait de
   1,5 px en `currentColor` (`M3 4.5 6 7.5 9 4.5`), classe `chevron-svg`. Il
   pointe vers le bas. Il tourne de 180° sous `[aria-expanded="true"]` ou avec
   la classe `ouvert`, de −90° avec `suivant`, de 90° avec `retour`, en 150 ms,
   sans transition sous `prefers-reduced-motion`. `suivant` et `retour`
   l'emportent toujours sur `aria-expanded` : sélecteurs `svg.chevron-svg.suivant`
-  et `svg.chevron-svg.retour`, déclarés après.
-- [ ] La feuille perd sa poignée ; le ✕ garde son texte et prend un fond
+  et `svg.chevron-svg.retour`, déclarés après. (9008091)
+- [x] La feuille perd sa poignée ; le ✕ garde son texte et prend un fond
   `--fond-bloc` de 24 × 24 px, `--fond-note` au survol ; le bouton retour
-  emploie le chevron `retour` au lieu de `‹`, avec le même nom accessible.
-- [ ] Entrée : voile de transparent à `--fond-voile` en 200 ms, feuille
+  emploie le chevron `retour` au lieu de `‹`, avec le même nom accessible. (9008091)
+- [x] Entrée : voile de transparent à `--fond-voile` en 200 ms, feuille
   glissant de toute sa hauteur en 280 ms (`cubic-bezier(0.2, 0.8, 0.2, 1)`).
-  Sous `prefers-reduced-motion`, un fondu de 120 ms.
-- [ ] Sortie : `fermer()` appelle `onFermer` tout de suite, pose `fermee` et
+  Sous `prefers-reduced-motion`, un fondu de 120 ms. (9008091)
+- [x] Sortie : `fermer()` appelle `onFermer` tout de suite, pose `fermee` et
   retire le piège du focus ; seul le retrait du DOM attend la fin du mouvement
   inverse (200 ms, `ease-in`), avec un minuteur de repli de 220 ms. Le focus
-  revient à l'élément qui avait ouvert la feuille.
-- [ ] Tests (faux DOM de `tests/feuille.test.ts`) : chevron (classe,
+  revient à l'élément qui avait ouvert la feuille. (9008091)
+- [x] Tests (faux DOM de `tests/feuille.test.ts`) : chevron (classe,
   `aria-hidden`), feuille sans poignée, retrait après le minuteur, retour du
   focus, une feuille ouverte pendant la sortie d'une autre (Architect le fait,
   `aAppliquer.ts:553`, `:587`, `feuilles.ts:619-631`, `:666`) : la nouvelle
-  reste seule active.
+  reste seule active. (9008091)
 
 Fin : commandes du socle, puis `npm test` d'Architect, de l'Explorateur, de
 Palettes et de l'Exporter (leurs lois de style lisent `socle.css`).
@@ -211,22 +211,22 @@ Agent : `implementeur`. Fichiers : `packages/kit/src/referentiel/conventions.ts`
 `packages/kit/tests/normalisationReferentiel.test.ts`,
 `packages/kit/tests/questionsReferentiel.test.ts`.
 
-- [ ] Ajouter `specimen: { fr, en }` à chaque entrée de `CONVENTIONS` :
+- [x] Ajouter `specimen: { fr, en }` à chaque entrée de `CONVENTIONS` :
   `tiret` `minuscules-tirets` / `kebab-case` ; `bas` `minuscules_tirets_bas` /
   `snake_case` ; `espace` `Majuscule initiale` / `Sentence case` ; `camel`
   `camelCase` / `camelCase` ; `pascal` `PascalCase` / `PascalCase` ; `soude`
   `minusculessoudées` / `flatcase` ; `inchange` `inchangée` / `unchanged`.
   Un test dans `normalisationReferentiel.test.ts` : chaque convention a un
-  spécimen dans les deux langues. Il n'y a pas de vue générée à refaire.
-- [ ] Question des tailles : d'abord écrire le test du cas du dossier
+  spécimen dans les deux langues. Il n'y a pas de vue générée à refaire. (581b650)
+- [x] Question des tailles : d'abord écrire le test du cas du dossier
   (`Radius/sm` et `Button/Size/Small/padding-y` dans le même fichier ne
   produisent aucune question) et le voir échouer ; puis retirer la détection
   `echelle` (`questions.ts:309-324`) et sa variante du type `Question`
-  (`harmonisation.ts:66`), et les tests qui la fabriquaient.
-- [ ] `produits.ts:74` : `libelle` du produit `UCM Nomenclature` en français
+  (`harmonisation.ts:66`), et les tests qui la fabriquaient. (581b650)
+- [x] `produits.ts:74` : `libelle` du produit `UCM Nomenclature` en français
   et en anglais ; garder `id: 'architect'` et `ESPACE_ARCHITECT`.
   `normalisation.ts:38` : « comme le moteur d'UCM Nomenclature ». Aucun autre
-  changement dans ces deux fichiers.
+  changement dans ces deux fichiers. (581b650)
 
 Fin : commandes du kit, puis `npm test` à la racine, où seul
 `versionSuitLeContenu` est toléré rouge. Le typage du plugin casse jusqu'à P1 :
@@ -241,15 +241,15 @@ Agent : `implementeur`. Fichiers : `src/messages.ts` (13, 58, 131),
 `tests/projection.test.ts`, `tests/questions.test.ts`, `tests/session.test.ts`,
 `tests/regles.test.ts`, `galerie/donnees.cjs` (57-58, 79, 89, 95).
 
-- [ ] Retirer `QuestionVue` `echelle`, `Reponse` `echelle`, son contrôle dans
+- [x] Retirer `QuestionVue` `echelle`, `Reponse` `echelle`, son contrôle dans
   `estReponse`, `case 'echelle'` de la projection et de la session,
   `carteDEchelle`, les textes `questionDEchelle`, `indiceDEchelle`,
   `garderCelleCi`, leurs tests et leurs données de galerie. Vérifier qu'aucun
-  état de galerie ne se vide (`tests/socle.test.ts` les fait tourner).
-- [ ] Une clé `plus-tard:echelle:…` est écartée à la lecture des règles et à
+  état de galerie ne se vide (`tests/socle.test.ts` les fait tourner). (2bc65ef)
+- [x] Une clé `plus-tard:echelle:…` est écartée à la lecture des règles et à
   l'import (`regles.ts`), pour qu'elle ne compte ni dans les mises de côté ni
   dans le plafond des questions (`session.ts:140`, `:281`). Un test compte
-  `plusTard` après lecture d'une telle clé.
+  `plusTard` après lecture d'une telle clé. (2bc65ef)
 
 Fin : commandes du plugin, après le build du kit.
 
@@ -269,11 +269,11 @@ lisent un glyphe.
 | `content: '›'` qui tourne à l'ouverture | Palettes, `styles.css:2022` (`.palette-chevron`), `:2755` (`.carte-chevron`) ; Exporter, `styles.css:600` | Même dessin en `mask-image` sur `currentColor`, pointe en bas fermé, 180° ouvert ; adapter les règles de rotation existantes |
 | `›` séparateur | Explorateur `miette` (`vues/composant.ts:246`), Palettes `connexion.ts:74` | Inchangé |
 
-- [ ] Remplacer chaque glyphe selon le tableau. Toute classe nouvelle a sa
-  règle et son usage (`reglesMortes`).
-- [ ] Mettre à jour l'attendu de `interface.test.mjs:499`
+- [x] Remplacer chaque glyphe selon le tableau. Toute classe nouvelle a sa
+  règle et son usage (`reglesMortes`). (3e56ef6)
+- [x] Mettre à jour l'attendu de `interface.test.mjs:499`
   (`'▸Couleur18 false'` devient `'Couleur18 false'`) sans le lancer : il tourne
-  dans Chromium, le mainteneur le lance.
+  dans Chromium, le mainteneur le lance. (3e56ef6)
 
 Fin : commandes des trois autres plugins.
 
@@ -281,18 +281,17 @@ Fin : commandes des trois autres plugins.
 
 Agent : `executant`, puis la conversation principale.
 
-- [ ] Kit 0.9.3, cli 0.1.62, adapter 0.1.55 : `package.json`, épingles de
+- [x] Kit 0.9.3, cli 0.1.62, adapter 0.1.55 : `package.json`, épingles de
   `@ucm-kit/core` dans le cli et l'adapter, `package-lock.json`
   (`npm install --package-lock-only`), et chaque version épinglée dans la
   documentation (`README.md` racine et des trois paquets,
-  `docs/references/design-systems/ucm/sources.json`).
-- [ ] Racine verte (`npm test`, `npm run typecheck`), `versionSuitLeContenu`
-  compris ; commit, push de la série.
-- [ ] Publier `@ucm-kit/core`, `@ucm-kit/cli`, `@ucm-kit/adapter-typescript`
+  `docs/references/design-systems/ucm/sources.json`). (c7c1f89)
+- [x] Racine verte (`npm test`, `npm run typecheck`), `versionSuitLeContenu`
+  compris ; commit, push de la série. (c7c1f89)
+- [x] Publier `@ucm-kit/core`, `@ucm-kit/cli`, `@ucm-kit/adapter-typescript`
   dans cet ordre, `gh run watch` entre chaque. Seule la dernière exécution
   finit verte (`pins-servis`) ; chaque paquet se constate par
-  `npm view <paquet>@<version> version`.
-
+  `npm view <paquet>@<version> version`. (c7c1f89)
 ### P2 · Les lignes avant → après et les comptes (D4, D7, D9, R5)
 
 Agent : `implementeur-exigeant`. Fichiers : `src/messages.ts`,
@@ -303,30 +302,30 @@ pour que le typage passe : `ui/aAppliquer.ts` (121-130, 324),
 `projection`, `protocole`, `messages`, `questions`, `selection` ;
 `galerie/donnees.cjs` (9-26, 50, 59, 134).
 
-- [ ] `LigneVue` devient `{ id, ancien, nouveau, marques, aussi }` : les deux
+- [x] `LigneVue` devient `{ id, ancien, nouveau, marques, aussi }` : les deux
   noms complets et les rangs des segments à colorer. Un nom qui ne change pas
   a `nouveau === ancien`. Un test tient qu'un renommage garde le nombre de
-  segments.
-- [ ] Les marques suivent la règle de la carte : pour un terme, le ou les
+  segments. (0b3584b)
+- [x] Les marques suivent la règle de la carte : pour un terme, le ou les
   segments où le terme a changé (`colors/Neutral/light/700` →
   `Color/Neutral/Light/700` marque le rang 0 seulement) ; pour une écriture,
   les segments de sa catégorie dont l'écriture change ; pour une collection,
   le rang 0. Pour un nom qui emploie déjà un terme (Déjà employé, exemples des
-  questions), le segment du terme.
-- [ ] Une question de paire, de faute ou de mots collés porte `effet:
+  questions), le segment du terme. (0b3584b)
+- [x] Une question de paire, de faute ou de mots collés porte `effet:
   LigneVue | null` : un nom réel du terme remplacé et ce nom après le oui, le
   terme réécrit dans l'écriture de son segment (`Button/bg/hover` →
-  `Button/background/hover`, `Card/Bg/hover` → `Card/Background/hover`).
-- [ ] `GroupeVue` d'un terme porte `aussiDEcriture` : le nombre de ses
-  renommages qui changent aussi d'écriture.
-- [ ] `RegleVue` d'un terme porte `categorie: 'variables' | 'groupes' | null`
+  `Button/background/hover`, `Card/Bg/hover` → `Card/Background/hover`). (0b3584b)
+- [x] `GroupeVue` d'un terme porte `aussiDEcriture` : le nombre de ses
+  renommages qui changent aussi d'écriture. (0b3584b)
+- [x] `RegleVue` d'un terme porte `categorie: 'variables' | 'groupes' | null`
   quand sa forme dépend de la place (déduite de `categorieDuSegment`). Un test :
   `Radius/small` et `Button/Size/Sm/padding-y` donnent deux cartes UCM,
-  `small → sm` dans les noms et `sm → small` dans les groupes.
-- [ ] `FicheVue` porte `aRenommer: { nombre, exemples: LigneVue[] }` : les
-  renommages dus à ce terme, trois au plus.
-- [ ] L'écran lit les nouveaux champs sans changer de dessin (le dessin vient
-  en P4 à P7) ; la galerie fabrique ses lignes à la nouvelle forme.
+  `small → sm` dans les noms et `sm → small` dans les groupes. (0b3584b)
+- [x] `FicheVue` porte `aRenommer: { nombre, exemples: LigneVue[] }` : les
+  renommages dus à ce terme, trois au plus. (0b3584b)
+- [x] L'écran lit les nouveaux champs sans changer de dessin (le dessin vient
+  en P4 à P7) ; la galerie fabrique ses lignes à la nouvelle forme. (0b3584b)
 
 Fin : commandes du plugin.
 
@@ -336,12 +335,12 @@ Agent : `implementeur`. Fichiers : `src/messages.ts`, `src/projection.ts`,
 `src/session.ts`, `tests/projection.test.ts`, `tests/protocole.test.ts`,
 `galerie/donnees.cjs`.
 
-- [ ] `listeDesTermes` ne garde plus un terme remplacé (statut `regle` avec
-  `avec`) ; la référence le porte dans `remplace`.
-- [ ] La recherche trouve une référence par son mot ou par l'une de ses
+- [x] `listeDesTermes` ne garde plus un terme remplacé (statut `regle` avec
+  `avec`) ; la référence le porte dans `remplace`. (4c9a2da)
+- [x] La recherche trouve une référence par son mot ou par l'une de ses
   variantes ; la ligne porte alors `trouve: string | null`, la variante
-  cherchée. Chercher `colors` rend la ligne `color` avec `trouve: 'colors'`.
-- [ ] Les comptes des filtres suivent la nouvelle liste. Un test par point.
+  cherchée. Chercher `colors` rend la ligne `color` avec `trouve: 'colors'`. (4c9a2da)
+- [x] Les comptes des filtres suivent la nouvelle liste. Un test par point. (4c9a2da)
 
 Fin : commandes du plugin.
 
@@ -353,24 +352,24 @@ exemple `src/ui/lignes.ts`) et son test, `src/ui/styles.css`,
 `src/ui/textes.ts`. Modèle : cadres `appliquer-t3` et `appliquer-t3-360` de la
 maquette, bloc « Tour 3 » de `propose.css`.
 
-- [ ] Les règles communes dans `styles.css` : `.jeton` (retiré, retenu,
+- [x] Les règles communes dans `styles.css` : `.jeton` (retiré, retenu,
   neutre, variante, petit), `.seg-ancien` (rouge, barré, 600),
   `.seg-nouveau` (vert, 600), `.mot-cite` et `.variante` (600). L'ambre
-  (`mark`) quitte les renommages ; sa règle part si plus rien ne l'emploie.
-- [ ] Une ligne dépliée : case, nom actuel, nom après ; légende
+  (`mark`) quitte les renommages ; sa règle part si plus rien ne l'emploie. (da63c47)
+- [x] Une ligne dépliée : case, nom actuel, nom après ; légende
   `Aujourd’hui | Après l’application` ; sous 520 px de fenêtre, l'après sous
   l'avant précédé de `→`, sans légende. Seuls les segments de `marques` sont
-  colorés.
-- [ ] Têtes : terme et collection en jetons rouge → vert ; écriture
+  colorés. (da63c47)
+- [x] Têtes : terme et collection en jetons rouge → vert ; écriture
   `Écrire les groupes en` + spécimen en pastille grise. Détail selon la
-  section « Textes ».
-- [ ] Ordre des sections : Conventions d'écriture, Vocabulaire, Collections.
-- [ ] `Afficher les n autres noms` demande les pages l'une après l'autre
+  section « Textes ». (da63c47)
+- [x] Ordre des sections : Conventions d'écriture, Vocabulaire, Collections. (da63c47)
+- [x] `Afficher les n autres noms` demande les pages l'une après l'autre
   jusqu'au total, sans nouveau clic, et s'arrête si la génération change ; le
-  bouton laisse place à `Chargement des noms…`, puis disparaît.
-- [ ] Le chevron du socle dans la tête de chaque carte, avec `aria-expanded`.
-- [ ] Tests du module pur : segments marqués, ordre des sections, file de
-  chargement (arrêt au total et au changement de génération).
+  bouton laisse place à `Chargement des noms…`, puis disparaît. (da63c47)
+- [x] Le chevron du socle dans la tête de chaque carte, avec `aria-expanded`. (da63c47)
+- [x] Tests du module pur : segments marqués, ordre des sections, file de
+  chargement (arrêt au total et au changement de génération). (da63c47)
 
 Fin : commandes du plugin, `npm run galerie -w ucm-architect-plugin`.
 
@@ -381,14 +380,14 @@ Agent : `implementeur-exigeant`. Fichiers : `src/ui/questions.ts`,
 `tests/questions.test.ts`. Modèle : cadre `trancher-t2` de la maquette
 (fonction `questionT2`).
 
-- [ ] Titre = la proposition, seule ligne en 600 ; détail gris dessous ;
+- [x] Titre = la proposition, seule ligne en 600 ; détail gris dessous ;
   `effet` sur deux lignes dans un bloc `--fond-bloc` ; un bouton bordé, les
   autres réponses en texte, `Plus tard` à droite ; aucun bleu ; une pastille
-  UCM après le titre quand le terme gardé est UCM.
-- [ ] La question de collection garde son contenu, avec le même dessin de
-  pied.
-- [ ] La section repliée « Plus tard » prend le chevron du socle.
-- [ ] Les règles CSS du face à face et du bouton bleu partent avec leur usage.
+  UCM après le titre quand le terme gardé est UCM. (acfa3a5)
+- [x] La question de collection garde son contenu, avec le même dessin de
+  pied. (acfa3a5)
+- [x] La section repliée « Plus tard » prend le chevron du socle. (acfa3a5)
+- [x] Les règles CSS du face à face et du bouton bleu partent avec leur usage. (acfa3a5)
 
 Fin : commandes du plugin, galerie.
 
@@ -400,20 +399,20 @@ Agent : `implementeur`. Fichiers : `src/ui/regles.ts`,
 `tests/listeDesTermes.test.ts`. Modèle : cadres `regles-t3` et
 `regles-t3-recherche`.
 
-- [ ] Deux sections titrées (titre 15 px, phrase grise, filet entre elles) ;
-  Modifier à droite du titre de la première.
-- [ ] Chaque écriture par son spécimen en pastille grise, avec l'exemple
+- [x] Deux sections titrées (titre 15 px, phrase grise, filet entre elles) ;
+  Modifier à droite du titre de la première. (c5663a0)
+- [x] Chaque écriture par son spécimen en pastille grise, avec l'exemple
   réel à droite, la partie concernée en clair et en 600. Le spécimen remplace
   le libellé dans la feuille de l'écriture et au premier lancement ; le
-  libellé reste le nom accessible.
-- [ ] Ligne d'un terme : référence en pastille grise, `remplace`, variantes
+  libellé reste le nom accessible. (c5663a0)
+- [x] Ligne d'un terme : référence en pastille grise, `remplace`, variantes
   en gris séparées par des virgules ; règle en attente : terme, `ou`, terme,
   pastille `À trancher` à la place de l'origine ; terme écarté : texte gris ;
-  terme sans règle : le mot seul. Plus de puce. Chevron `suivant` à droite.
-- [ ] Recherche d'une variante (`trouve`) : la variante passe en blanc dans la
+  terme sans règle : le mot seul. Plus de puce. Chevron `suivant` à droite. (c5663a0)
+- [x] Recherche d'une variante (`trouve`) : la variante passe en blanc dans la
   ligne, et la phrase `{variante} est remplacé par` + pastille sous la
-  recherche.
-- [ ] Les filtres et la recherche restent à leur place.
+  recherche. (c5663a0)
+- [x] Les filtres et la recherche restent à leur place. (c5663a0)
 
 Fin : commandes du plugin, galerie.
 
@@ -426,23 +425,23 @@ passe, `src/ui/styles.css`, `src/ui/textes.ts`, `tests/feuilles.test.ts`,
 `tests/etat.test.ts`. Modèle : cadres `fiche-t3-ucm` et `fiche-t3-perso`
 (fonction `ficheT3`).
 
-- [ ] En-tête : le terme en police de code, l'origine à côté (`UCM · rôle`,
-  `Personnalisé`), le ✕ du socle.
-- [ ] Bloc gris `Règle` : référence en pastille grise, `remplace`, chaque
+- [x] En-tête : le terme en police de code, l'origine à côté (`UCM · rôle`,
+  `Personnalisé`), le ✕ du socle. (058c508)
+- [x] Bloc gris `Règle` : référence en pastille grise, `remplace`, chaque
   terme remplacé en jeton bordé avec son nombre et un × (sauf une forme UCM),
   `+ Terme` ; `Formes fixées par UCM` quand toutes le sont ; la ligne des
-  nombres.
-- [ ] `À renommer · n` : deux colonnes et leur légende, segments colorés
+  nombres. (058c508)
+- [x] `À renommer · n` : deux colonnes et leur légende, segments colorés
   (`aRenommer`), et `Voir dans Renommages`, qui ouvre l'onglet et déplie la
   carte du terme ; si la carte n'est pas dans le bilan, l'onglet s'ouvre
-  seulement.
-- [ ] `Déjà employé · n` : le terme en blanc et en 600, sans couleur.
-- [ ] Pied selon la section « Textes » ; plus de Fermer. La feuille de
-  l'écriture garde Annuler, la confirmation garde Retour.
-- [ ] Un terme sans règle : la preuve, puis Remplacer par… et Remplace
+  seulement. (058c508)
+- [x] `Déjà employé · n` : le terme en blanc et en 600, sans couleur. (058c508)
+- [x] Pied selon la section « Textes » ; plus de Fermer. La feuille de
+  l'écriture garde Annuler, la confirmation garde Retour. (058c508)
+- [x] Un terme sans règle : la preuve, puis Remplacer par… et Remplace
   d'autres termes… en pied. Un terme en attente : sa question, comme
   aujourd'hui. Un terme remplacé n'a plus de fiche (P3) : le code qui la
-  dessinait part, avec ses règles CSS.
+  dessinait part, avec ses règles CSS. (058c508)
 
 Fin : commandes du plugin, galerie.
 
@@ -452,13 +451,13 @@ Agent : `implementeur`. Fichiers : `src/ui/textes.ts`, `src/ui/coquille.ts`,
 `src/ui/premierLancement.ts`, `tests/`, `galerie/etats.cjs`,
 `galerie/donnees.cjs`.
 
-- [ ] Onglets `Renommages`, `Questions`, `Règles`, et leurs noms pour les
+- [x] Onglets `Renommages`, `Questions`, `Règles`, et leurs noms pour les
   lecteurs d'écran. Chaque texte qui cite l'onglet par son ancien nom prend le
-  nouveau. La pastille `À trancher` d'une règle en attente ne change pas.
-- [ ] États de galerie : Renommages déplié, Règles avec une recherche de
+  nouveau. La pastille `À trancher` d'une règle en attente ne change pas. (4bf785d)
+- [x] États de galerie : Renommages déplié, Règles avec une recherche de
   variante, fiche UCM et personnalisée, questions. Chaque état est déjà rendu
   à 640 × 720 et à 360 × 420 (`galerie/build-galerie.cjs`). Les états de
-  Règles atteignent `data-galerie="pret"` (F1).
+  Règles atteignent `data-galerie="pret"` (F1). (4bf785d)
 
 Fin : commandes du plugin, `npm run galerie -w ucm-architect-plugin`.
 
