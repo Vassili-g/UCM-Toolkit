@@ -7,8 +7,9 @@
  * Le journal du lot est donc rangé avant le premier nom : si le fichier ne peut pas le garder, aucun nom ne change.
  */
 import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
+import { lireReglesDeNommage } from 'ucm-plugin-socle/src/reglesDeNommage';
 import { cheminsEnConflit, inventairePublie } from './cheminsPublies';
-import { inventaireDeLectures, type EntreeInventaire, type Inventaire } from './lecture';
+import { estProtegee, inventaireDeLectures, palettesLibres, type EntreeInventaire, type Inventaire } from './lecture';
 import { lecteurDeVariablesFigma } from './lectureFigma';
 import type { CauseDeRefus } from './messages';
 import { CLE_JOURNAL, effacerLeJournal, lireLesRegles, lireLeStockage, preparerJournal, rangerLesEcritures, type Journal, type RenommageJournal } from './regles';
@@ -74,8 +75,17 @@ const cleDeEntree = (entree: EntreeInventaire): string =>
 const cleDeNom = (portee: string, nom: string): string => JSON.stringify([portee, nom]);
 const heureActuelle = (): string => new Date().toISOString();
 
+/**
+ * Les variables de Palettes sont libres quand l'inventaire relu porte la marque de Palettes et que les règles rangées dans le
+ * fichier à ce moment ont une écriture en v2 : le même jugement que le calcul de la session (`palettesLibres`), refait au moment
+ * d'écrire parce que les règles ont pu changer depuis. Un stockage illisible laisse la protection.
+ */
+function palettesLibresMaintenant(inventaire: Inventaire, stockage: PortDeRegles): boolean {
+  try { return palettesLibres(inventaire, lireReglesDeNommage(lireLeStockage(stockage)) !== null); } catch { return false; }
+}
+
 /** Les noms de l'inventaire relu, par objet. */
-function lireLeDocument(inventaire: Inventaire): Map<string, ObjetDuDocument> {
+function lireLeDocument(inventaire: Inventaire, libres: boolean): Map<string, ObjetDuDocument> {
   const document = new Map<string, ObjetDuDocument>();
   for (const entree of inventaire.entrees) {
     const cible = entree.cible;
@@ -83,7 +93,7 @@ function lireLeDocument(inventaire: Inventaire): Map<string, ObjetDuDocument> {
       document.set(cleDObjet('collection', cible.collectionId), { nom: entree.nom.nom, portee: PORTEE_DU_DOCUMENT, protegee: false });
     } else {
       document.set(cleDObjet('variable', cible.variableId),
-        { nom: entree.nom.nom, portee: porteeDeLaCollection(cible.collectionId), collectionId: cible.collectionId, protegee: entree.protegee });
+        { nom: entree.nom.nom, portee: porteeDeLaCollection(cible.collectionId), collectionId: cible.collectionId, protegee: estProtegee(entree, { palettesLibres: libres }) });
     }
   }
   return document;
@@ -197,8 +207,8 @@ interface Execution { readonly renommes: RenommageFait[]; readonly sautes: Renom
  * `nomFinal` ajoute le contrôle du nom (`nom-invalide`) et celui des chemins de `tokens.json` ; une annulation rend des noms
  * que le document a déjà portés et ne les refait pas.
  */
-function controler(demandes: readonly RenommageDemande[], inventaire: Inventaire, session: SessionEcriture, nomFinal: boolean): Controle {
-  const document = lireLeDocument(inventaire);
+function controler(demandes: readonly RenommageDemande[], inventaire: Inventaire, session: SessionEcriture, nomFinal: boolean, libres: boolean): Controle {
+  const document = lireLeDocument(inventaire, libres);
   const sautes: RenommageSaute[] = [];
   const retenus: Element[] = [];
   const vus = new Set<string>();
@@ -295,7 +305,8 @@ const lignesDuJournal = (renommages: readonly { readonly type: 'variable' | 'col
 /**
  * Applique les renommages cochés sur le document que `session.inventaire` décrit.
  * Saute ce qui a changé depuis la lecture, les variables protégées, les noms que Figma refuse, et les renommages qui créent
- * un doublon de nom ou de chemin dans `tokens.json`.
+ * un doublon de nom ou de chemin dans `tokens.json`. Une variable de Palettes n'est protégée que si le fichier ne dit pas
+ * qu'elle suit les règles (`palettesLibresMaintenant`).
  * Range d'abord le journal prévu du lot par `stockage` : s'il ne tient pas ou ne s'écrit pas, aucun nom ne change
  * et le résultat est `refuse` avec la cause `journal-impossible`. Les noms écrits, le journal est réécrit
  * avec les noms constatés (noms provisoires compris), puis un seul point d'annulation s'ouvre.
@@ -313,7 +324,7 @@ export function appliquerLesRenommages(options: {
   const { session, stockage } = options;
   const inventaire = session.inventaire;
   const nouveauLot = options.lot ?? identifiantDeLot;
-  const controle = controler(options.demandes, inventaire, session, true);
+  const controle = controler(options.demandes, inventaire, session, true, palettesLibresMaintenant(inventaire, stockage));
   const heure = (options.heure ?? heureActuelle)();
   const prevu = lignesDuJournal(controle.elements.map(({ demande }) => demande));
   const lotPrevu = controle.elements.length > 0 ? ranger(stockage, { heure, renommages: prevu }, nouveauLot()) : undefined;
@@ -358,7 +369,8 @@ export function annulerLeDernierRenommage(options: {
   const inventaire = session.inventaire;
   const journal = lireLesRegles(lireLeStockage(stockage)).journal;
   if (!journal) return { statut: 'refuse', renommes: [], sautes: [], annulable: false };
-  const document = lireLeDocument(inventaire);
+  const libres = palettesLibresMaintenant(inventaire, stockage);
+  const document = lireLeDocument(inventaire, libres);
   const objetDe = (renommage: RenommageJournal): ObjetModifiable | null => renommage.type === 'collection' ? session.collection(renommage.id) : session.variable(renommage.id);
   const demandes: RenommageDemande[] = [];
   const horsDuLot: RenommageSaute[] = [];
@@ -371,7 +383,7 @@ export function annulerLeDernierRenommage(options: {
       ? { ...base, type: 'collection' }
       : { ...base, type: 'variable', collectionId: document.get(cleDObjet('variable', renommage.id))?.collectionId ?? '' });
   }
-  const fait = ecrire(controler(demandes, inventaire, session, false));
+  const fait = ecrire(controler(demandes, inventaire, session, false, libres));
   const execution: Execution = { ...fait, sautes: [...horsDuLot, ...fait.sautes] };
   let erreur = execution.erreur;
   const restants: RenommageJournal[] = [];

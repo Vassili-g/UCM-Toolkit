@@ -1,16 +1,19 @@
 /** L'adaptateur ne conserve aucun nœud dans l'inventaire envoyé à l'interface. */
-import { CLES_PARTAGEES_DE_PALETTES, ESPACE_PARTAGE } from '@ucm-kit/core/referentiel';
-import { variablesSuiviesParPalettes, type LecteurDeVariable, type PortDeLecture } from './lecture';
+import { CLES_PARTAGEES_DE_PALETTES, CLE_NOMMAGE_DE_PALETTES, ESPACE_PARTAGE } from '@ucm-kit/core/referentiel';
+import { marqueDeNommageLue, variablesSuiviesParPalettes, type LecteurDeVariable, type PortDeLecture } from './lecture';
 
 /**
  * Lit alias, protection et palette sur des variables déjà rendues par Figma, sans attente. Une variable est protégée quand sa donnée
  * partagée `palette` n'est pas vide (variable créée par Palettes) ou quand le suivi racine `variables` de Palettes la liste
  * (variable reprise). La donnée racine se lit une fois, à la création du lecteur ; la donnée de chaque variable se lit une fois aussi.
+ * La marque `nommage` de Palettes (racine de `ESPACE_PARTAGE`) se lit une fois aussi : une marque absente ou illisible se lit comme absente.
  */
 export function lecteurDeVariablesFigma(api: PluginAPI, variables: readonly Variable[]): LecteurDeVariable {
   const lues = new Map(variables.map((variable) => [variable.id, variable]));
   let suivies: ReadonlySet<string>;
   try { suivies = variablesSuiviesParPalettes(api.root.getSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.variables)); } catch { suivies = new Set(); }
+  let marque: boolean;
+  try { marque = marqueDeNommageLue(api.root.getSharedPluginData(ESPACE_PARTAGE, CLE_NOMMAGE_DE_PALETTES)); } catch { marque = false; }
   const palettes = new Map<string, string>();
   const palette = (variable: { readonly id: string }): string => {
     let lue = palettes.get(variable.id);
@@ -27,6 +30,7 @@ export function lecteurDeVariablesFigma(api: PluginAPI, variables: readonly Vari
     },
     protegee: (variable) => suivies.has(variable.id) || palette(variable) !== '',
     palette: (variable) => palette(variable) || undefined,
+    palettesSuiventLesRegles: () => marque,
   };
 }
 
@@ -43,5 +47,6 @@ export function creerPortDeLecture(api: PluginAPI): PortDeLecture {
     cibleAlias: (variable) => lecteur?.cibleAlias(variable),
     protegee: (variable) => lecteur?.protegee(variable) ?? false,
     palette: (variable) => lecteur?.palette(variable),
+    palettesSuiventLesRegles: () => lecteur?.palettesSuiventLesRegles?.() ?? false,
   };
 }

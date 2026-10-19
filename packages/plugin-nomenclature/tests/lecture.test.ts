@@ -111,5 +111,5 @@ test('AC7 : l’analyse ne propose pas une variable reprise que Palettes suit, e
     root: { getSharedPluginData: (espace: string, cle: string) => { racine.push(`${espace}/${cle}`); return suivi; } } };
   const inventaire = await lireInventaire(creerPortDeLecture(api as unknown as PluginAPI), { pause: async () => {} });
   assert.deepEqual(inventaire.entrees.filter((entree) => entree.protegee).map((entree) => entree.cible.type === 'variable' ? entree.cible.variableId : ''), ['b']);
-  assert.deepEqual(racine, ['ucm_palettes/variables']);
+  assert.deepEqual(racine, ['ucm_palettes/variables', 'ucm_palettes/nommage'], 'le suivi et la marque de Palettes, chacun une fois');
 });

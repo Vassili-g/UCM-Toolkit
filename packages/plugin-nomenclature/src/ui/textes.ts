@@ -162,7 +162,7 @@ export const TEXTES = {
   /** `apres` est un token et le groupe de `autre`. */
   tokenEtGroupe: (apres: string, autre: string): string => `\`${apres}\` serait à la fois un token et le groupe de \`${autre}\` dans tokens.json : renommez l’une des deux dans Figma.`,
   nomsProteges: (nombre: number): string => (nombre === 1 ? '1 nom écrit par UCM Palettes' : `${nombre} noms écrits par UCM Palettes`),
-  nomsProtegesExplication: 'Renommez une palette dans Palettes, qui la retrouve par son nom.',
+  nomsProtegesExplication: 'UCM Palettes écrit ces noms, et leur dossier garde son nom. Ouvrez UCM Palettes une fois dans ce fichier pour qu’il suive les règles, puis revenez ici.',
 
   aucunNomCoche: 'Aucun nom coché',
   /** Le compte du pied, en deux morceaux : le nombre s'écrit en gras. */

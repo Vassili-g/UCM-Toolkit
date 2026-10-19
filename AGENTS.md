@@ -235,10 +235,10 @@ packages/plugin-socle/   ce que les plugins partagent : ucm-plugin-socle, privé
   build/run-tests.cjs      le découvreur de tests, que chaque plugin appelle
   src/fenetre.ts           la taille bornée de la fenêtre, rangée dans clientStorage
   src/cheminsDeTokens.ts   le chemin publié d'un token, collection puis variable : UCM Exporter l'écrit, l'explorateur le recalcule
-  src/inventaireDeNoms.ts  l'inventaire des collections et variables locales, tel que le calcul de renommage le lit
+  src/inventaireDeNoms.ts  l'inventaire des collections et variables locales, tel que le calcul de renommage le lit ; `estProtegee` et `palettesLibres` disent seuls si une variable de Palettes est protégée
   src/cheminsPublies.ts    les renommages qui feraient disparaître un token de `tokens.json`
   src/reglesDeNommage.ts   les entrées de règles qui changent un nom (écriture, termes, écarts, ordinaires, exclues), lues par un seul analyseur
-  src/nomsSelonLesRegles.ts  le calcul de renommage qu'UCM Nomenclature et UCM Palettes appellent : lexique du kit, puis contrôle des chemins publiés
+  src/nomsSelonLesRegles.ts  le calcul de renommage qu'UCM Nomenclature et UCM Palettes appellent : lexique du kit, puis contrôle des chemins publiés ; `idsNonRenommables` en tire les noms figés
   src/ui/socle.css         échelle de texte, trame, rôles de couleur et replis sombres, avant la feuille de chaque plugin
   src/ui/                  bouton, onglets dont un peut être indisponible (désactivé, sauté par les flèches), interrupteur, chevron `Chevron.ts` (SVG qui tourne par CSS), feuille modale, poignée de redimensionnement, bouton « Configuration » (engrenage puis libellé) et bascule de l'en-tête
   galerie/                 le banc de galerie, sa capture et le décalque du thème Figma
@@ -258,6 +258,8 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/configuration.ts     les champs de la configuration, fonds et seuils compris, les palettes que chacun touche, et « Par défaut » par carte
   src/importation.ts       un fichier importé, classé comme la recette rangée, son écart avec elle, champ par champ, et la nature de cet écart
   src/rapport.ts           le rapport de vérification : crans, promesses, alertes, empreinte et écarts du dernier dessin
+  src/variables/nommeur.ts  les noms du plan passés par le calcul de renommage du socle, sur l'inventaire du fichier entier ; sans règles rangées ou dans une collection exclue, ils restent bruts
+  src/ecriture/marque.ts   la marque `nommage` que Palettes range à la racine de `ESPACE_PARTAGE` : il y nomme ses variables selon les règles, et UCM Nomenclature cesse alors de les protéger
   src/presentation.ts      les promesses manquées groupées, la place de chaque alerte, le réglage que chaque message ouvre, les bandes `solid`, `surface`, `page` de l'aperçu et son survol lié, le verdict d'une palette, l'état d'une fiche de Gestion
   src/planche/modele.ts    le modèle pur d'un cadre de planche : par thème, rampes, variables de dossier de chaque intensité et leurs garanties avec leur niveau WCAG, grilles, selon les parties choisies ; styles nommés, empreinte
   src/planche/fraicheur.ts chaque cadre à jour, périmé, jamais dessiné, introuvable ou illisible, les cadres orphelins et copiés, et l'effet d'un import
@@ -378,7 +380,7 @@ packages/plugin-nomenclature/  le plugin UCM Nomenclature : ucm-nomenclature-plu
   src/session.ts           l'inventaire, le lexique, les règles et le résultat, gardés dans le sandbox ; la file des calculs
   src/tranches.ts          un générateur du kit mené par tranches de huit millisecondes, abandonné par une demande plus récente
   src/lecture.ts           republie l'inventaire des noms du socle
-  src/lectureFigma.ts      collections et variables locales, et les variables qu'UCM Palettes a écrites
+  src/lectureFigma.ts      collections et variables locales, les variables qu'UCM Palettes a écrites et sa marque `nommage`
   src/regles.ts            les règles du fichier, une entrée de données partagées par règle, le journal, l'export et l'import ; les clés qui changent un nom sont lues par le socle
   src/projection.ts        du résultat du kit aux vues de l'écran : bilan, groupes, pages, questions, fiches, effets
   src/ecriture.ts          le seul fichier qui écrive dans le document : noms, règles, journal et point d'annulation
@@ -426,6 +428,7 @@ tests/                   les tests du monorepo lui-même
   vueIllustree.test.ts   la vue illustrée montre le référentiel d'aujourd'hui
   corpusUcm.test.ts      les noms, les registres et les empreintes du corpus UCM suivent leurs sources
   manifestsDesPlugins.test.ts  chaque plugin a son propre `id` de manifest
+  nomsDePalettes.test.ts  l'aller-retour : Nomenclature renomme les palettes que Palettes a écrites, et le plan de Palettes ne renomme plus rien
 ```
 
 ## Invariants
@@ -1672,11 +1675,17 @@ La spécification en lien porte le raisonnement.
   composant. `tests/loiDEcriture.test.ts` refuse ailleurs toute création,
   suppression, setter de valeur, import, chargement de page et `.remove(`,
   interface comprise.
-- Une variable qu'UCM Palettes a écrite ou reprise n'est jamais renommée, même cochée ;
-  la collection qui la porte peut l'être, Palettes la suit par son
+- Une variable qu'UCM Palettes a écrite ou reprise n'est renommée que si le fichier
+  porte la marque `nommage` de Palettes (JSON `version: 1` à la racine de
+  `ESPACE_PARTAGE`) et que l'écriture est rangée en v2, relue au moment
+  d'écrire. Sinon elle n'est jamais renommée, même cochée, et son dossier
+  garde son nom. Une collection exclue n'est pas touchée. La collection qui
+  porte la variable peut être renommée, Palettes la suit par son
   identifiant. Avant d'écrire, chaque nom est relu : un objet changé, disparu
   ou dont le nouveau nom est occupé est sauté, et un lot s'annule en un seul
-  pas. `tests/ecriture.test.ts` le tient.
+  pas. `tests/ecriture.test.ts` et `tests/nomsDePalettes.test.ts` du paquet, et
+  `tests/nomsDePalettes.test.ts` à la racine (l'aller-retour avec Palettes),
+  le tiennent.
 - Le moteur (vocabulaire, lexique, normalisation, questions) et les données
   UCM viennent de `@ucm-kit/core/referentiel` ; le plugin n'en recopie
   aucune, ce que `tests/referentielUnique.test.ts` vérifie.

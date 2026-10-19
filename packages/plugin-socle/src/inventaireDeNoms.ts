@@ -21,6 +21,8 @@ export interface PortDeLecture {
   protegee(variable: VariableLue): boolean;
   /** L'identifiant de palette que Palettes écrit dans la donnée partagée `palette` de la variable ; `undefined` quand elle est vide. */
   palette(variable: VariableLue): string | undefined;
+  /** Vrai quand le fichier porte la marque par laquelle Palettes déclare qu'il y nomme ses variables selon les règles. Absent : faux. */
+  palettesSuiventLesRegles?(): boolean;
 }
 
 export type CibleDeNom =
@@ -37,6 +39,11 @@ export interface EntreeInventaire {
 }
 export interface Inventaire {
   readonly entrees: readonly EntreeInventaire[];
+  /**
+   * Vrai quand le fichier porte la marque de Palettes. Absent : faux. Avec des règles rangées, les variables de Palettes
+   * se renomment alors comme les autres (`palettesLibres`).
+   */
+  readonly palettesSuiventLesRegles?: boolean;
 }
 /** Variables lues sur le total des variables locales. */
 export interface AvancementLecture { readonly lues: number; readonly total: number }
@@ -55,8 +62,8 @@ function categoriesDesSegments(nom: string): (CategorieDeNom | null)[] | undefin
   return segments.length > 1 ? segments.map((_, rang) => (rang < segments.length - 1 ? 'groupes' : null)) : undefined;
 }
 
-/** Ce que la lecture d'une variable demande à Figma, sans attente : l'alias, la protection et la palette. */
-export type LecteurDeVariable = Pick<PortDeLecture, 'cibleAlias' | 'protegee' | 'palette'>;
+/** Ce que la lecture d'une variable demande à Figma, sans attente : l'alias, la protection, la palette et la marque de Palettes. */
+export type LecteurDeVariable = Pick<PortDeLecture, 'cibleAlias' | 'protegee' | 'palette' | 'palettesSuiventLesRegles'>;
 
 function lesLocales(toutesLesCollections: readonly ObjetNomme[], toutesLesVariables: readonly VariableLue[]) {
   const collections = new Map(toutesLesCollections.filter((collection) => !collection.remote).map((collection) => [collection.id, collection]));
@@ -98,7 +105,7 @@ export async function lireInventaire(
     }
     options.avancement?.({ lues: Math.min(debut + TAILLE_DU_LOT, variables.length), total: variables.length });
   }
-  return { entrees };
+  return { entrees, palettesSuiventLesRegles: port.palettesSuiventLesRegles?.() ?? false };
 }
 
 /** Construit l'inventaire de lectures déjà faites, sans attente : le même modèle que `lireInventaire`. */
@@ -108,10 +115,46 @@ export function inventaireDeLectures(
   lecteur: LecteurDeVariable,
 ): Inventaire {
   const { collections, variables } = lesLocales(toutesLesCollections, toutesLesVariables);
-  return { entrees: [
-    ...[...collections.values()].map(entreeDeCollection),
-    ...variables.map((variable) => entreeDeVariable(variable, collections.get(variable.variableCollectionId)?.name, lecteur)),
-  ] };
+  return {
+    entrees: [
+      ...[...collections.values()].map(entreeDeCollection),
+      ...variables.map((variable) => entreeDeVariable(variable, collections.get(variable.variableCollectionId)?.name, lecteur)),
+    ],
+    palettesSuiventLesRegles: lecteur.palettesSuiventLesRegles?.() ?? false,
+  };
+}
+
+/** Le texte de la marque que Palettes range à la racine de `ESPACE_PARTAGE` : un JSON objet qui porte `version: 1`. */
+export function marqueDeNommageLue(texte: string): boolean {
+  if (!texte) return false;
+  try {
+    const brut: unknown = JSON.parse(texte);
+    return typeof brut === 'object' && brut !== null && !Array.isArray(brut) && (brut as { version?: unknown }).version === 1;
+  } catch { return false; }
+}
+
+export interface OptionsDeProtection {
+  /** Les variables de Palettes se renomment comme les autres. Absent : faux, la protection reste. */
+  readonly palettesLibres?: boolean;
+}
+
+/**
+ * Les variables de Palettes sont libres quand le fichier porte la marque de Palettes et que l'écriture est rangée en v2
+ * (`reglesRangees` : `lireReglesDeNommage` ne rend pas `null`). Sans l'un des deux, Palettes réécrirait ses noms bruts.
+ */
+export function palettesLibres(inventaire: Pick<Inventaire, 'palettesSuiventLesRegles'>, reglesRangees: boolean): boolean {
+  return inventaire.palettesSuiventLesRegles === true && reglesRangees;
+}
+
+/** Le seul endroit où une entrée est dite protégée : `protegee` est le fait lu dans Figma, les options disent s'il compte. */
+export function estProtegee(entree: Pick<EntreeInventaire, 'protegee'>, options: OptionsDeProtection = {}): boolean {
+  return entree.protegee && options.palettesLibres !== true;
+}
+
+/** L'inventaire où `protegee` dit la protection effective ; le même objet quand rien ne change. */
+export function inventaireSelonLaProtection(inventaire: Inventaire, options: OptionsDeProtection = {}): Inventaire {
+  if (options.palettesLibres !== true || !inventaire.entrees.some((entree) => entree.protegee)) return inventaire;
+  return { ...inventaire, entrees: inventaire.entrees.map((entree) => (entree.protegee ? { ...entree, protegee: false } : entree)) };
 }
 
 /**

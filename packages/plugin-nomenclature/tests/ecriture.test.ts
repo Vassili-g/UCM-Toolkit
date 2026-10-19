@@ -441,7 +441,7 @@ test('l’adaptateur résout les objets locaux par l’API asynchrone avant les 
     commitUndo: () => { appels.push('undo'); },
   };
   const session = await creerPortEcriture(api as unknown as PluginAPI).ouvrir();
-  assert.deepEqual(appels, ['collections', 'variables', 'racine:ucm_palettes/variables']);
+  assert.deepEqual(appels, ['collections', 'variables', 'racine:ucm_palettes/variables', 'racine:ucm_palettes/nommage']);
   assert.equal(session.inventaire.entrees.length, 2, 'la collection et la variable');
   assert.equal(session.variable('v0')?.id, 'v0');
   assert.equal(session.variable('absente'), null);

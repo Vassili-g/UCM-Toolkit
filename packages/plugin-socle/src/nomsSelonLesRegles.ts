@@ -14,7 +14,7 @@ import {
   type ConflitDeVocabulaire, type ConventionsParCategorie, type Convention, type IndexDuVocabulaire, type Lexique, type ResultatDuLexique,
 } from '@ucm-kit/core/referentiel';
 import { cheminsEnConflit, inventairePublie, type CollisionDeChemin } from './cheminsPublies';
-import type { Inventaire } from './inventaireDeNoms';
+import { estProtegee, type Inventaire, type OptionsDeProtection } from './inventaireDeNoms';
 import type { EcritureChoisie, ReglesPourLeCalcul } from './reglesDeNommage';
 
 export interface MoteurDeNommage {
@@ -40,9 +40,12 @@ export function entreesRetenues(inventaire: Inventaire, collectionsExclues: read
   return inventaire.entrees.filter((entree) => !exclues.has(entree.cible.collectionId));
 }
 
-/** Les identifiants des noms que le calcul ne renomme pas : les entrées non renommables et celles qu'UCM Palettes protège. */
-export function idsNonRenommables(inventaire: Inventaire, collectionsExclues: readonly string[]): string[] {
-  return entreesRetenues(inventaire, collectionsExclues).filter((entree) => !entree.renommable || entree.protegee).map((entree) => entree.nom.id);
+/**
+ * Les identifiants des noms que le calcul ne renomme pas : les entrées non renommables et celles qu'UCM Palettes protège
+ * (`estProtegee`). Sans `palettesLibres`, la protection de Palettes reste.
+ */
+export function idsNonRenommables(inventaire: Inventaire, collectionsExclues: readonly string[], protection: OptionsDeProtection = {}): string[] {
+  return entreesRetenues(inventaire, collectionsExclues).filter((entree) => !entree.renommable || estProtegee(entree, protection)).map((entree) => entree.nom.id);
 }
 
 /**
