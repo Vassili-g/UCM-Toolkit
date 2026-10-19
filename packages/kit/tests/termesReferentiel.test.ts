@@ -112,10 +112,12 @@ test('le lexique porte la nature et les plages de chaque segment, alignées sur 
   assert.deepEqual(lexique.termes.get(hauteur.id), [[[0, 2]], [[0, 1]]]);
 });
 
-test('une clé de ordinaires rend ses mots au vocabulaire', () => {
+test('un nom traité comme un terme perd sa nature et reste un seul terme', () => {
   const lexique = preparer(extrait(), new Set(['stress-test']));
-  assert.ok(!lexique.occurrencesDesTermes.has('stress-test'));
-  assert.ok(lexique.occurrencesDesTermes.has('stress') && lexique.occurrencesDesTermes.has('test'));
+  assert.ok(lexique.occurrencesDesTermes.has('stress-test'));
+  assert.ok(!lexique.occurrencesDesTermes.has('stress') && !lexique.occurrencesDesTermes.has('test'));
+  const stressTest = [...lexique.noms.values()].filter((nom) => nom.nom.startsWith('StressTest/'));
+  assert.ok(stressTest.length > 0 && stressTest.every((nom) => lexique.natures.get(nom.id)?.[0] === null));
   assert.ok(lexique.occurrencesDesTermes.has('text-columns'));
 });
 

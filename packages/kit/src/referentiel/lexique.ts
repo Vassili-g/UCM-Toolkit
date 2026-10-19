@@ -2,7 +2,7 @@
 import type { CategorieDeNom, ConventionsParCategorie } from './conventions.js';
 import { assembler, categorieDuSegment, commencerDetectionDesConventions, decouperSegment, motsAvecCasse, termesDuSegment } from './ecriture-des-mots.js';
 import type { ChangementDeTerme, CleDeRegle, Collision, IndexDuVocabulaire, Lexique, Mots, NomLu, Occurrence, OccurrenceDeTerme, PlageDeTerme, PreparationDuLexique, Renommage, ResultatDuLexique } from './harmonisation.js';
-import { naturesDesNoms, type NatureDeSegment } from './natures.js';
+import { naturesDesNoms } from './natures.js';
 import { collectionUcmReconnue } from './normalisation.js';
 
 const TAILLE_D_UN_LOT = 200;
@@ -33,6 +33,12 @@ export function commencerLexique(options: { readonly ordinaires?: ReadonlySet<st
         if (++traites % TAILLE_D_UN_LOT === 0) yield;
       }
       const natures = naturesDesNoms(lus, { ordinaires: options.ordinaires });
+      const ordinaires = options.ordinaires ?? new Set<string>();
+      const estOrdinaire = (decoupe: Mots): boolean => {
+        if (decoupe.length < 2 || ordinaires.size === 0) return false;
+        const minuscules = decoupe.map((mot) => mot.toLowerCase());
+        return ordinaires.has(minuscules.join('-')) || ordinaires.has(minuscules.join(''));
+      };
       traites = 0;
       for (const nom of recus) {
         noms.set(nom.id, nom);
@@ -57,7 +63,8 @@ export function commencerLexique(options: { readonly ordinaires?: ReadonlySet<st
           const cleDePlages = `${nature}\0${segment}`;
           let plages = plagesParSegment.get(cleDePlages);
           if (!plages) {
-            plages = termesDuSegment(decoupe, nature);
+            // Un nom que le fichier traite comme un terme reste entier : il perd sa nature, pas son unité.
+            plages = !nature && estOrdinaire(decoupe) ? [[0, decoupe.length] as const] : termesDuSegment(decoupe, nature);
             plagesParSegment.set(cleDePlages, plages);
           }
           plagesDuNom.push(plages);
@@ -85,11 +92,11 @@ type SegmentNormalise = {
 };
 
 function normaliserSegment(segment: string, categorie: CategorieDeNom, conventions: ConventionsParCategorie,
-  index: IndexDuVocabulaire, decoupe: Mots, nature: NatureDeSegment | null): SegmentNormalise {
+  index: IndexDuVocabulaire, decoupe: Mots, plages: readonly PlageDeTerme[]): SegmentNormalise {
   if (decoupe.length === 0) return { nouveau: segment, regles: [], termes: [] };
   const choix = conventions[categorie] ?? { casse: 'inchangee', separateur: 'inchange' };
   // Un remplacement ne coupe pas un terme : `wrap` ne touche pas `ScaleWrap` (un élément), `radius` remplace `Border-radius` en entier.
-  const frontieres = new Set([...termesDuSegment(decoupe, nature).map(([debut]) => debut), decoupe.length]);
+  const frontieres = new Set([...plages.map(([debut]) => debut), decoupe.length]);
   const remplacements = index.remplacements(decoupe, categorie, frontieres);
   const termes: ChangementDeTerme[] = [];
   const regles: { cle: CleDeRegle; priorite: number }[] = [];
@@ -131,11 +138,12 @@ function proposer(nom: NomLu, lexique: Lexique, conventions: ConventionsParCateg
     if (rang < segments.length - 1 && groupesFiges.has(cheminDeGroupe(nom.portee, segments, rang))) return segment;
     const categorie = categorieDuSegment(nom, rang);
     const choix = conventions[categorie];
-    const nature = lexique.natures.get(nom.id)?.[rang] ?? null;
-    const cle = JSON.stringify([segment, categorie, choix?.casse, choix?.separateur, nature]);
+    const decoupe = lexique.mots.get(segment) ?? decouperSegment(segment);
+    const plages = lexique.termes.get(nom.id)?.[rang] ?? termesDuSegment(decoupe, lexique.natures.get(nom.id)?.[rang] ?? null);
+    const cle = JSON.stringify([segment, categorie, choix?.casse, choix?.separateur, plages]);
     let resultat = cache.get(cle);
     if (!resultat) {
-      resultat = normaliserSegment(segment, categorie, conventions, index, lexique.mots.get(segment) ?? decouperSegment(segment), nature);
+      resultat = normaliserSegment(segment, categorie, conventions, index, decoupe, plages);
       cache.set(cle, resultat);
     }
     regles.push(...resultat.regles);
