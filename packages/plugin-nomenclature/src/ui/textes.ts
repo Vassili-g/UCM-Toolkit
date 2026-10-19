@@ -75,7 +75,14 @@ export const TEXTES = {
   annulerLeRenommage: 'Annuler',
   annulationDuRenommageRefusee: 'L’annulation a été refusée. Relancez l’analyse, puis annulez de nouveau.',
   annulationDuRenommagePartielle: (retablis: number, sautes: number): string =>
-    `${noms(retablis)} rétablis, ${sautes} n’ont pas pu l’être. Relancez l’analyse pour voir ce qui reste.`,
+    `${noms(retablis)} rétablis, ${sautes} n’ont pas pu l’être : un autre nom occupe leur place ou ils ont changé depuis. Le plugin les garde ; annulez de nouveau après avoir corrigé.`,
+  confirmerLAnnulation: (nombre: number, heure: string): string =>
+    `Annuler le renommage de ${heure} ? ${nombre === 1 ? '1 nom reprend son' : `${nombre} noms reprennent leur`} ancien nom.`,
+  remettreLesAnciensNoms: 'Remettre les anciens noms',
+  garderLesNoms: 'Garder',
+  dernierImport: 'Dernier import',
+  importALHeure: (heure: string): string => `Règles importées à ${heure}`,
+  annulerLImport: 'Annuler l’import',
 
   /** Ce qui s'est passé et ce que le designer fait ensuite, pour chaque erreur du sandbox. */
   erreur: {
@@ -177,6 +184,8 @@ export const TEXTES = {
   nomsSautes: (nombre: number): string => (nombre === 1 ? '1 nom n’a pas été renommé.' : `${nombre} noms n’ont pas été renommés.`),
   annuler: 'Annuler',
   rienNAEteRenomme: 'Rien n’a été renommé.',
+  journalImpossible: 'Rien n’a été renommé : le fichier ne peut pas garder de quoi remettre ces noms. Cochez moins de noms, puis appliquez de nouveau.',
+  bilanIllisible: 'Les noms sont changés, mais le plugin n’a pas pu relire le fichier. Relancez l’analyse.',
   nomsNonRetablis: (nombre: number): string =>
     nombre === 1 ? '1 nom n’a pas retrouvé son ancien nom : il a changé depuis le renommage.' : `${nombre} noms n’ont pas retrouvé leur ancien nom : ils ont changé depuis le renommage.`,
   annulationRefusee: 'Le dernier renommage n’a pas pu être annulé.',

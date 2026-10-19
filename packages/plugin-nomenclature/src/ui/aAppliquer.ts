@@ -26,16 +26,10 @@ import {
   type ModeleDeSelection,
 } from './selection';
 import { apresUnePage, creerLaFile, nomsRestants, prochainDebut, sectionsDansLOrdre, segmentsDeNom, type SorteDeRegle } from './lignes';
+import { annonceApresUneErreur, annonceDUneApplication, type Annonce, type Attente } from './annonce';
 import { TEXTES } from './textes';
 
 type Pastille = 'ucm' | 'personnalise' | 'nouveau' | 'bloque' | 'protege';
-
-/** Ce que la ligne au-dessus de la liste annonce. */
-type Annonce =
-  | { readonly type: 'renomme'; readonly renommes: number; readonly sautes: number; readonly annulable: boolean }
-  | { readonly type: 'refuse' }
-  | { readonly type: 'annulation-partielle'; readonly sautes: number }
-  | { readonly type: 'annulation-refusee' };
 
 /** Un texte entre accents graves met ces mots en code (voir `textes.ts`). */
 function poserLeTexte(element: HTMLElement, texte: string): void {
@@ -237,11 +231,44 @@ export interface DemandeDeConfirmation {
   readonly auRetour?: () => void;
 }
 
+interface DemandeDeFeuille {
+  readonly titre: string;
+  readonly corps: HTMLElement;
+  readonly libelleDuRetour: string;
+  readonly libelleDeLaConfirmation: string;
+  /** Appelée après la fermeture de la feuille, quand le designer confirme. */
+  readonly confirmer: () => void;
+  /** Appelée à chaque fermeture, confirmation comprise. */
+  readonly auRetour?: () => void;
+}
+
 /**
- * La confirmation qui précède chaque application, dans une feuille du socle. Le
- * focus arrive sur Retour et revient au bouton qui a ouvert la feuille à sa
- * fermeture.
+ * La feuille de confirmation du socle, commune à l'application et à l'annulation
+ * d'un renommage. Le focus arrive sur le bouton de retour et revient au bouton
+ * qui a ouvert la feuille à sa fermeture.
  */
+export function ouvrirUneFeuilleDeConfirmation({ titre, corps, libelleDuRetour, libelleDeLaConfirmation, confirmer, auRetour }: DemandeDeFeuille): { fermer(): void } {
+  const retour = createButton({ label: libelleDuRetour, variant: 'secondary', onClick: () => feuille.fermer() });
+  const valider = createButton({
+    label: libelleDeLaConfirmation,
+    onClick: () => {
+      feuille.fermer();
+      confirmer();
+    },
+  });
+  const pied = document.createElement('div');
+  pied.className = 'feuille-actions';
+  const groupe = document.createElement('span');
+  groupe.className = 'feuille-groupe';
+  groupe.append(retour, valider);
+  pied.append(document.createElement('span'), groupe);
+
+  const feuille = createFeuille({ titre, corps, pied, onFermer: () => auRetour?.() });
+  retour.focus();
+  return { fermer: () => feuille.fermer() };
+}
+
+/** La confirmation qui précède chaque application. */
 export function ouvrirConfirmation({ variables, collections, renommer, auRetour }: DemandeDeConfirmation): { fermer(): void } {
   const faits = document.createElement('ul');
   faits.className = 'faits';
@@ -256,30 +283,14 @@ export function ouvrirConfirmation({ variables, collections, renommer, auRetour 
     return fait;
   });
   faits.append(premier, ...suivants);
-
-  const retour = createButton({ label: TEXTES.retour, variant: 'secondary', onClick: () => feuille.fermer() });
-  const confirmer = createButton({
-    label: TEXTES.renommer,
-    onClick: () => {
-      feuille.fermer();
-      renommer();
-    },
-  });
-  const pied = document.createElement('div');
-  pied.className = 'feuille-actions';
-  const groupe = document.createElement('span');
-  groupe.className = 'feuille-groupe';
-  groupe.append(retour, confirmer);
-  pied.append(document.createElement('span'), groupe);
-
-  const feuille = createFeuille({
+  return ouvrirUneFeuilleDeConfirmation({
     titre: TEXTES.titreDeLaConfirmation(variables + collections),
     corps: faits,
-    pied,
-    onFermer: () => auRetour?.(),
+    libelleDuRetour: TEXTES.retour,
+    libelleDeLaConfirmation: TEXTES.renommer,
+    confirmer: renommer,
+    auRetour,
   });
-  retour.focus();
-  return { fermer: () => feuille.fermer() };
 }
 
 interface CarteDeGroupe {
@@ -306,7 +317,7 @@ export function monterAAppliquer(coquille: Coquille): void {
   let cartes: CarteDeGroupe[] = [];
   let annonce: Annonce | null = null;
   /** Ce que le designer a demandé en dernier et dont la réponse n'est pas revenue. */
-  let attente: { readonly sorte: 'application' | 'annulation'; readonly demande: number } | null = null;
+  let attente: Attente | null = null;
   let confirmation: { fermer(): void } | null = null;
   const deplies = new Set<string>();
   let nonRenommesDeplie = false;
@@ -596,7 +607,7 @@ export function monterAAppliquer(coquille: Coquille): void {
         coche.setAttribute('aria-hidden', 'true');
         coche.textContent = '✓ ';
         titre.append(coche, TEXTES.nomsRenommes(annonce.renommes));
-        if (annonce.sautes > 0) note.textContent = TEXTES.nomsSautes(annonce.sautes);
+        note.textContent = [annonce.sautes > 0 ? TEXTES.nomsSautes(annonce.sautes) : '', annonce.bilanIllisible ? TEXTES.bilanIllisible : ''].filter(Boolean).join(' ');
         if (annonce.annulable) {
           action = fabriquerAction(TEXTES.annuler, () => {
             const demande = frontiere.annulerLeDernier();
@@ -609,7 +620,7 @@ export function monterAAppliquer(coquille: Coquille): void {
       }
       case 'refuse':
       case 'annulation-refusee':
-        titre.textContent = annonce.type === 'refuse' ? TEXTES.rienNAEteRenomme : TEXTES.annulationRefusee;
+        titre.textContent = annonce.type === 'refuse' ? (annonce.cause === 'journal-impossible' ? TEXTES.journalImpossible : TEXTES.rienNAEteRenomme) : TEXTES.annulationRefusee;
         action = fabriquerAction(TEXTES.relancerLAnalyse, () => {
           frontiere.analyser();
         });
@@ -664,14 +675,13 @@ export function monterAAppliquer(coquille: Coquille): void {
     rendreLaLigneDuResultat();
   }
 
-  function traiterLeResultat(resultat: ResultatVue): void {
+  function traiterLeResultat(resultat: ResultatVue, demande: number): void {
     if (resultat.sorte === 'annulation' && attente?.sorte !== 'annulation') return;
     if (resultat.sorte === 'application') {
-      if (resultat.statut === 'refuse') annonce = { type: 'refuse' };
-      else {
-        modele = oublierLesInclus(modele);
-        annonce = { type: 'renomme', renommes: resultat.renommes, sautes: resultat.statut === 'partiel' ? resultat.sautes : 0, annulable: resultat.annulable };
-      }
+      if (resultat.statut !== 'refuse') modele = oublierLesInclus(modele);
+      annonce = annonceDUneApplication(resultat);
+      // Les noms ont changé : une erreur de la relecture qui suit ne doit pas l'effacer.
+      if (attente?.sorte === 'application' && attente.demande === demande) attente = { ...attente, recue: true };
     } else if (resultat.statut === 'applique') {
       annonce = null;
     } else {
@@ -699,12 +709,12 @@ export function monterAAppliquer(coquille: Coquille): void {
         for (const carte of cartes) carte.recevoirLesLignes(message);
         break;
       case 'application':
-        traiterLeResultat(message.resultat);
+        traiterLeResultat(message.resultat, message.demande);
         break;
       case 'erreur':
         for (const carte of cartes) carte.recevoirUneErreur(message.demande);
         if (attente?.demande === message.demande) {
-          annonce = attente.sorte === 'application' ? { type: 'refuse' } : { type: 'annulation-refusee' };
+          annonce = annonceApresUneErreur(attente, annonce);
           attente = null;
           synchroniser();
           rendreLaLigneDuResultat();

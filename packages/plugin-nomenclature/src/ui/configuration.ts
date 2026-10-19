@@ -1,6 +1,6 @@
 /**
  * La page Configuration : les collections analysées, l'export et l'import des
- * règles du fichier, le dernier renommage et son annulation. Elle se met à
+ * règles du fichier, le dernier renommage et le dernier import avec leur annulation. Elle se met à
  * jour à chaque bilan, qu'elle soit ouverte ou non.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
@@ -8,6 +8,7 @@ import type { Bilan, CollectionVue } from '../messages';
 import type { Coquille } from './coquille';
 import type { MessageAAfficher } from './frontiere';
 import { telecharger } from './telechargement';
+import { ouvrirUneFeuilleDeConfirmation } from './aAppliquer';
 import { TEXTES } from './textes';
 
 /** La taille d'import que `estUiMessage` accepte (`src/messages.ts`) : au-delà, le sandbox ignore la demande. */
@@ -56,6 +57,9 @@ export function monterConfiguration(coquille: Coquille): void {
   let demandeDExport: number | null = null;
   let demandeDAnnulation: number | null = null;
   let demandeDImport: number | null = null;
+  let demandeDAnnulationDImport: number | null = null;
+  let dernierRenommage: Bilan['dernierRenommage'] = null;
+  let confirmation: { fermer(): void } | null = null;
 
   const message = document.createElement('div');
   message.className = 'etat-erreur';
@@ -143,8 +147,22 @@ export function monterConfiguration(coquille: Coquille): void {
     variant: 'secondary',
     compact: true,
     onClick: () => {
-      dire();
-      demandeDAnnulation = suivre(frontiere.annulerLeDernier());
+      if (!dernierRenommage || confirmation) return;
+      const { nombre, heure } = dernierRenommage;
+      confirmation = ouvrirUneFeuilleDeConfirmation({
+        titre: TEXTES.confirmerLAnnulation(nombre, heure),
+        corps: document.createElement('div'),
+        libelleDuRetour: TEXTES.garderLesNoms,
+        libelleDeLaConfirmation: TEXTES.remettreLesAnciensNoms,
+        auRetour: () => {
+          confirmation = null;
+        },
+        confirmer: () => {
+          dire();
+          demandeDAnnulation = suivre(frontiere.annulerLeDernier());
+          synchroniserLesBoutons();
+        },
+      });
     },
   });
   const ligneDuRenommage = document.createElement('div');
@@ -156,8 +174,40 @@ export function monterConfiguration(coquille: Coquille): void {
   sectionDuRenommage.append(titreDuRenommage, ligneDuRenommage);
 
   function poserLeRenommage(dernier: Bilan['dernierRenommage']): void {
+    dernierRenommage = dernier;
     sectionDuRenommage.hidden = dernier === null;
     if (dernier) renommage.textContent = TEXTES.renommagesALHeure(dernier.nombre, dernier.heure);
+  }
+
+  // Dernier import.
+  const texteDeLImport = document.createElement('p');
+  texteDeLImport.className = 'config-renommage';
+  const annulerImport = createButton({
+    label: TEXTES.annulerLImport,
+    variant: 'secondary',
+    compact: true,
+    onClick: () => {
+      dire();
+      demandeDAnnulationDImport = suivre(frontiere.regle({ type: 'annuler-import' }));
+      synchroniserLesBoutons();
+    },
+  });
+  const ligneDeLImport = document.createElement('div');
+  ligneDeLImport.className = 'config-boutons config-ecartes';
+  ligneDeLImport.append(texteDeLImport, annulerImport);
+  const sectionDeLImport = document.createElement('div');
+  sectionDeLImport.className = 'config-section';
+  sectionDeLImport.append(creerIntertitre(TEXTES.dernierImport), ligneDeLImport);
+
+  function poserLImport(dernier: Bilan['dernierImport']): void {
+    sectionDeLImport.hidden = dernier === null;
+    if (dernier) texteDeLImport.textContent = TEXTES.importALHeure(dernier.heure);
+  }
+
+  /** Un bouton d'annulation reste inactif tant que la réponse à sa demande n'est pas arrivée. */
+  function synchroniserLesBoutons(): void {
+    annuler.disabled = demandeDAnnulation !== null;
+    annulerImport.disabled = demandeDAnnulationDImport !== null;
   }
 
   function section(...enfants: HTMLElement[]): HTMLElement {
@@ -172,16 +222,21 @@ export function monterConfiguration(coquille: Coquille): void {
     section(creerIntertitre(TEXTES.collectionsAnalysees), sansCollection, liste),
     section(creerIntertitre(TEXTES.reglesDeCeFichier), reglesBoutons),
     sectionDuRenommage,
+    sectionDeLImport,
   );
 
   function lireLeBilan(bilan: Bilan | null): void {
     poserLesCollections(bilan?.collections ?? []);
     poserLeRenommage(bilan?.dernierRenommage ?? null);
+    poserLImport(bilan?.dernierImport ?? null);
+    synchroniserLesBoutons();
   }
 
   coquille.abonner((recu: MessageAAfficher, etat) => {
     switch (recu.type) {
       case 'bilan':
+        if (recu.demande === demandeDAnnulation) demandeDAnnulation = null;
+        if (recu.demande === demandeDAnnulationDImport) demandeDAnnulationDImport = null;
         if (demandes.delete(recu.demande)) dire();
         lireLeBilan(etat.bilan);
         break;
@@ -192,6 +247,11 @@ export function monterConfiguration(coquille: Coquille): void {
         }
         break;
       case 'refus':
+        if (recu.demande === demandeDAnnulationDImport) {
+          demandeDAnnulationDImport = null;
+          demandes.delete(recu.demande);
+          synchroniserLesBoutons();
+        }
         if (recu.demande === demandeDImport) {
           demandeDImport = null;
           demandes.delete(recu.demande);
@@ -205,10 +265,14 @@ export function monterConfiguration(coquille: Coquille): void {
           const { statut, renommes, sautes } = recu.resultat;
           if (statut === 'refuse') dire(TEXTES.annulationDuRenommageRefusee);
           else if (statut === 'partiel') dire(TEXTES.annulationDuRenommagePartielle(renommes, sautes));
+          synchroniserLesBoutons();
         }
         break;
       case 'erreur':
+        if (recu.demande === demandeDAnnulation) demandeDAnnulation = null;
+        if (recu.demande === demandeDAnnulationDImport) demandeDAnnulationDImport = null;
         if (demandes.delete(recu.demande)) dire(TEXTES.erreur[recu.code]);
+        synchroniserLesBoutons();
         break;
     }
   });

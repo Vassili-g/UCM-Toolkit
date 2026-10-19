@@ -84,6 +84,7 @@ const bilanDeBase = {
   plusTard: [collection],
   collections,
   dernierRenommage: { nombre: 12, heure: '14:32' },
+  dernierImport: null,
 };
 
 const bilans = {
@@ -92,6 +93,7 @@ const bilans = {
   collectionsEtPlusTard: { ...bilanDeBase, questions: [collection, motsColles], plusTard: [paireDeTailles] },
   rienAFaire: { ...bilanDeBase, groupes: [], bloques: [], questions: [], plusTard: [], autresPistes: 0 },
   sansVariableLocale: { ...bilanDeBase, sansVariableLocale: true, groupes: [], bloques: [], questions: [], plusTard: [], autresPistes: 0, collections: [], dernierRenommage: null },
+  avecUnImport: { ...bilanDeBase, dernierImport: { heure: '14:35' } },
   apresUneReponse: {
     ...bilanDeBase, generation: 2,
     groupes: [{ ...groupeBackground, variables: 52, nouveau: false }, groupeHover, groupeEcriture, groupeCollection],
@@ -163,6 +165,7 @@ const messages = {
   simulation: (demande) => m('simulation', demande, { generation: 1, effet: effetDeTerme, conflit: null }),
   refus: (demande, conflits) => m('refus', demande, { conflits }),
   application: (demande) => m('application', demande, { resultat: { sorte: 'application', statut: 'applique', renommes: 87, sautes: 0, annulable: true } }),
+  applicationRefusee: (demande, cause) => m('application', demande, { resultat: { sorte: 'application', statut: 'refuse', renommes: 0, sautes: 0, annulable: false, cause } }),
   diagnostic: (demande) => m('diagnostic', demande, { generation: 1, texte: '{"version":1,"termes":[],"noms":[]}' }),
   reglesExportees: (demande) => m('regles-exportees', demande, { texte: '{"version":1,"termes":{"hover":{"remplace":["hovered"]}}}' }),
   erreur: (demande, code) => m('erreur', demande, { code }),
