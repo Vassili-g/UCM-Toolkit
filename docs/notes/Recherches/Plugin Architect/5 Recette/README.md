@@ -5,8 +5,9 @@ l'affichage des écritures, la ligne d'un terme, la question des tailles,
 l'avant et l'après d'À appliquer, les cartes de À trancher, les sections de
 Règles, la fiche d'un terme et le langage visuel commun.
 
-**État.** Second tour des maquettes à valider ; les lots L0 à L9 attendent
-les décisions D1 à D10.
+**État.** Troisième tour des maquettes à valider ; les lots L0 à L10
+attendent les décisions D1 à D13 (D11 : noms des onglets, D12 : nom du
+plugin, D13 : chevron commun).
 
 | Document | Contenu |
 |---|---|

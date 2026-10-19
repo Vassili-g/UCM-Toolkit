@@ -52,8 +52,8 @@
   variables sont inventés ; ils reproduisent les cas relevés pendant la recette. Le dossier
   <a href="../DOSSIER-RECETTE-ARCHITECT.md" style="color:var(--bleu)">DOSSIER-RECETTE-ARCHITECT.md</a> donne, pour chaque
   point, le constat dans le code et la décision attendue.</p>
-  <p class="intro">Chaque section montre l'écran d'aujourd'hui, puis le <b>tour 2</b>, qui affine le premier tour d'après
-  ton retour. Le tour 1 reste en dessous, replié, pour comparer.</p>
+  <p class="intro">Chaque section montre l'écran d'aujourd'hui, puis le <b>tour 3</b>, qui reprend ton retour sur le
+  tour 2. Les tours précédents restent en dessous, repliés, pour comparer.</p>
   <nav class="sommaire">
     <a href="#langage">0. Le langage visuel</a>
     <a href="#regles">1. Règles : écriture et termes</a>
@@ -68,24 +68,33 @@
   question. Chaque marque lit un rôle de couleur du socle ; aucune couleur n'est ajoutée.</p>
   <table class="legende">
     <tr><th>Marque</th><th>Sens</th><th>Rôle du socle</th><th>Où elle paraît</th></tr>
-    <tr><td class="r">Rouge</td><td>La forme qui disparaîtra</td><td><code>--fond-danger</code>, <code>--texte-danger</code></td><td>Le terme remplacé ; le segment qui change, dans le nom actuel</td></tr>
-    <tr><td class="v">Vert</td><td>La forme retenue</td><td><code>--fond-succes</code>, <code>--texte-succes</code></td><td>Le terme gardé ; le segment écrit, dans le nouveau nom ; l'écriture retenue</td></tr>
-    <tr><td class="a">Ambre</td><td>Une décision attendue</td><td><code>--fond-avertissement</code>, <code>--texte-avertissement</code></td><td>À trancher seulement : le terme en question, la puce d'un terme à trancher</td></tr>
+    <tr><td class="r">Rouge</td><td>La forme qui disparaîtra</td><td><code>--fond-danger</code>, <code>--texte-danger</code></td><td>Dans une conséquence seulement : le terme remplacé, le segment qui change dans le nom actuel</td></tr>
+    <tr><td class="v">Vert</td><td>La forme retenue</td><td><code>--fond-succes</code>, <code>--texte-succes</code></td><td>Dans une conséquence seulement : le terme gardé, le segment écrit dans le nouveau nom</td></tr>
+    <tr><td>Pastille grise</td><td>La forme de référence <span class="etiquette propose">tour 3</span></td><td><code>--fond-note</code></td><td>Dans une règle : le terme de référence, l'écriture retenue (Règles, fiche, tête d'une carte d'écriture)</td></tr>
+    <tr><td class="a">Ambre</td><td>Une décision attendue</td><td><code>--fond-avertissement</code>, <code>--texte-avertissement</code></td><td>À trancher, et la pastille d'une règle en attente dans Règles</td></tr>
     <tr><td class="b">Bleu</td><td>Une action</td><td><code>--fond-marque</code></td><td>Le bouton principal d'un écran (Appliquer, Enregistrer) ; plus aucune bordure ni colonne bleue</td></tr>
     <tr><td>Gris</td><td>Ce qui ne change pas</td><td><code>--texte-second</code></td><td>Les segments inchangés, un terme sans règle</td></tr>
   </table>
-  <p>Le tour 2 affine la grammaire en trois points :</p>
+  <p>Le tour 3 garde la grammaire et la resserre en cinq points :</p>
   <ol class="argu">
-    <li><b>Le fond teinté est réservé au terme isolé</b> (le jeton) : tête d'une carte, règle d'une fiche. Dans une ligne de
-    texte ou un chemin, la couleur seule. Une liste de 300 noms n'est plus une suite de blocs colorés.</li>
-    <li><b>Un renommage se lit toujours sur deux lignes</b> : l'ancien nom, puis le nouveau sous lui, précédé d'une flèche,
-    au même bord. Dans l'ancien nom, le segment qui change est rouge et barré ; dans le nouveau, vert et en gras. Le barré
-    dit « disparaît » même sans la couleur. Même dessin à 360 et à 640 px, dans À appliquer, À trancher et la fiche.</li>
-    <li><b>Une règle s'écrit toujours de gauche à droite</b>, ce qui disparaît → ce qui reste : tête de carte, question,
-    ligne de Règles, fiche.</li>
+    <li><b>Les termes clés sont en semi-gras, partout</b> : un terme, un segment qui change, une écriture, un nom de
+    collection. Le texte qui les accompagne reste en regular. Au tour 2, <code>bg</code> était en gras dans une fiche et
+    en regular dans une ligne de Règles ; « Groupes » en regular dans une tête de carte.</li>
+    <li><b>La couleur montre une conséquence, jamais une règle</b>. Le rouge et le vert ne paraissent que là où l'on voit ce
+    qui va changer : À appliquer, À trancher, la liste À renommer d'une fiche. Une règle se lit en gris : la forme de
+    référence dans une <b>pastille grise</b>, ce qu'elle remplace en texte gris. C'est le dessin des écritures depuis le
+    tour 1 (<code>PascalCase</code> en pastille grise) ; il vaut désormais aussi pour les termes.</li>
+    <li><b>Une liste de renommages revient aux deux colonnes</b>, Aujourd'hui | Après l'application, avec leur légende ;
+    sous 520 px, l'après passe sous l'avant. Le dessin du tour 2 reste dans les colonnes : le segment qui change est rouge
+    et barré à gauche, vert à droite, sans fond. Un exemple seul, dans une carte d'À trancher, garde ses deux lignes.</li>
+    <li><b>Un chevron SVG qui tourne</b> remplace les glyphes ⌃ ⌄ › : pointe en bas, la carte est fermée ; en haut, ouverte ;
+    à droite, la ligne ouvre une fiche. Le même composant du socle servira aux quatre plugins.</li>
+    <li><b>Une règle en attente est la seule à porter un état</b> : la pastille ambre « À trancher ». Les puces vertes,
+    rouges et grises du tour 2 disparaissent.</li>
   </ol>
+  <div class="colonnes"><div class="colonne"><span class="etiquette propose">Planche, tour 3</span><div class="cadre" id="planche-t3"></div></div></div>
+  <details class="tour1"><summary>Tours précédents : la planche du tour 2, puis celle du tour 1</summary>
   <div class="colonnes"><div class="colonne"><span class="etiquette propose">Planche, tour 2</span><div class="cadre" id="planche"></div></div></div>
-  <details class="tour1"><summary>Tour 1 : la planche, avec l'avant et l'après en deux colonnes</summary>
   <div class="colonnes"><div class="colonne"><span class="etiquette propose">Planche, tour 1</span><div class="cadre" id="planche-t1"></div></div></div>
   </details>
 
@@ -100,7 +109,31 @@
         <li>La pastille UCM suit le mot, à gauche ; l'état (remplace, à trancher) est un texte gris au milieu de la ligne.</li>
       </ol>
     </div>
-    <div class="colonne"><span class="etiquette propose">Tour 2 (recommandé)</span><div class="cadre" id="regles-t2"></div>
+    <div class="colonne"><span class="etiquette propose">Tour 3 (recommandé)</span><div class="cadre" id="regles-t3"></div>
+      <ol class="argu">
+        <li><b>Une ligne par règle</b> : le terme de référence dans une pastille grise, puis « remplace » et ses variantes en
+        gris. Pas de rouge ni de vert : une règle ne change rien tant qu'on ne l'applique pas.</li>
+        <li><b>Un terme remplacé n'a plus sa propre ligne</b>. Au tour 2, <code>colors → color</code> répétait la ligne de
+        <code>color</code>, avec une autre puce ; la liste disait deux fois la même règle. Il se trouve par la recherche
+        (écran de droite).</li>
+        <li><b>Plus de puce d'état</b>. Une règle en attente porte seule une marque, la pastille ambre « À trancher », à la
+        place de l'origine : elle n'en a pas encore. Une règle UCM écartée de ce fichier le dit en gris.</li>
+        <li><b>Conventions d'écriture</b> : « Comment s'écrivent les groupes, les noms et les collections. »</li>
+        <li><b>Vocabulaire</b> : « Le terme de référence de chaque notion, et les variantes qu'il remplace. » Le mot répond à
+        « Conventions d'écriture » : l'une dit comment écrire, l'autre quels mots employer. Autres noms possibles :
+        Termes de référence, Lexique.</li>
+      </ol>
+    </div>
+    <div class="colonne"><span class="etiquette propose">Tour 3 : chercher un terme remplacé</span><div class="cadre" id="regles-t3-recherche"></div>
+      <ol class="argu">
+        <li>Chercher <code>colors</code> trouve la règle de <code>color</code> : la variante cherchée passe en blanc, et une
+        phrase sous la recherche dit par quoi elle est remplacée.</li>
+      </ol>
+    </div>
+  </div>
+  <details class="tour1"><summary>Tours précédents : le tour 2 en règles colorées et puces, le tour 1 en jetons, la variante en sous-onglets</summary>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette propose">Tour 2</span><div class="cadre" id="regles-t2"></div>
       <ol class="argu">
         <li><b>Chaque ligne écrit sa règle</b>, comme partout ailleurs : <span class="r">bg</span>, <span class="r">back</span> → <span class="v">background</span> ; <span class="r">colors</span> → <span class="v">color</span> ; <span class="a">stroke</span> ou <span class="a">border</span>. Le terme de la ligne est en gras, dans la couleur de sa puce.</li>
         <li><b>Les termes cités sont en texte coloré, sans fond</b> : une liste de cent termes reste calme.</li>
@@ -108,7 +141,6 @@
       </ol>
     </div>
   </div>
-  <details class="tour1"><summary>Tour 1 : la ligne « remplace bg back » en jetons, et la variante en sous-onglets</summary>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette propose">Tour 1 · A</span><div class="cadre" id="regles-a"></div>
       <ol class="argu">
@@ -141,7 +173,34 @@
         <li>L'ambre marque le terme remplacé : la même couleur que les questions d'À trancher.</li>
       </ol>
     </div>
-    <div class="colonne"><span class="etiquette propose">Tour 2, 640 px (recommandé)</span><div class="cadre" id="appliquer-t2"></div>
+    <div class="colonne"><span class="etiquette propose">Tour 3, 640 px (recommandé)</span><div class="cadre" id="appliquer-t3"></div>
+      <ol class="argu">
+        <li><b>Les deux colonnes du tour 1 reviennent</b>, avec leur légende Aujourd'hui | Après l'application : une ligne par
+        nom, deux fois moins de hauteur qu'au tour 2.</li>
+        <li><b>Le dessin des segments reste celui du tour 2</b> : rouge, barré et en semi-gras à gauche ; vert et en semi-gras à
+        droite ; sans fond.</li>
+        <li><b>Une carte ne met en avant que le segment de sa règle</b>. Dans la carte <code>colors → color</code>,
+        <code>colors</code> devient <code>Color</code> en couleur ; <code>light</code> devient <code>Light</code> sans
+        couleur, car ce changement vient de la carte d'écriture. La droite reste le nom complet que Figma recevra, et la ligne
+        de détail le dit : « 280 changent aussi d'écriture ».</li>
+        <li><b>Les conventions d'écriture passent en tête</b>, avant le vocabulaire : elles touchent le plus de noms, et une
+        carte de terme y renvoie (« changent aussi d'écriture »).</li>
+        <li><b>La carte d'écriture se lit comme une phrase</b> : « Écrire les groupes en <code>PascalCase</code> », l'écriture
+        dans une pastille grise. Au tour 2, « Groupes → PascalCase » en vert disait que les groupes devenaient
+        « PascalCase ».</li>
+        <li><b>« Afficher les 310 autres noms » montre tous les noms</b> (clique-le). Aujourd'hui, le bouton en ajoute 50 par
+        clic et reste affiché. La carte se replie par sa tête (clique-la aussi).</li>
+        <li><b>Un chevron SVG</b> pointe en bas, carte fermée ; il tourne vers le haut à l'ouverture, en 150 ms.</li>
+        <li>Les intertitres prennent les noms des sections de Règles : Conventions d'écriture, Vocabulaire, Collections.</li>
+      </ol>
+    </div>
+    <div class="colonne etroite"><span class="etiquette propose">Tour 3, 360 px</span><div class="cadre" id="appliquer-t3-360"></div>
+      <ol class="argu"><li>Sous 520 px, l'après passe sous l'avant, précédé d'une flèche ; la légende disparaît.</li></ol>
+    </div>
+  </div>
+  <details class="tour1"><summary>Tours précédents : le tour 2 sur deux lignes, le tour 1 en deux colonnes à fonds teintés</summary>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette propose">Tour 2, 640 px</span><div class="cadre" id="appliquer-t2"></div>
       <ol class="argu">
         <li><b>Deux lignes au lieu de deux colonnes</b> : l'ancien nom, puis le nouveau sous lui. Chaque chemin a toute la largeur ; <code>Button/Colors/Primary/Filled/Hover/Background</code> tient sur une ligne, alors qu'il se coupait en deux colonnes.</li>
         <li><b>La flèche a sa propre colonne</b> : les deux noms commencent au même bord, les segments se comparent de haut en bas.</li>
@@ -154,7 +213,6 @@
       <ol class="argu"><li>Le même dessin qu'à 640 px ; seuls les chemins longs passent à la ligne.</li></ol>
     </div>
   </div>
-  <details class="tour1"><summary>Tour 1 : deux colonnes Aujourd'hui | Après, empilées sous 520 px</summary>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette propose">Tour 1, 640 px</span><div class="cadre" id="appliquer-640"></div>
       <ol class="argu">
@@ -186,8 +244,10 @@
         <li>Quatre à cinq boutons bordés par carte, de même poids que la décision.</li>
       </ol>
     </div>
-    <div class="colonne"><span class="etiquette propose">Tour 2 (recommandé)</span><div class="cadre" id="trancher-t2"></div>
+    <div class="colonne"><span class="etiquette propose">Tour 3 (recommandé)</span><div class="cadre" id="trancher-t2"></div>
       <ol class="argu">
+        <li><b>Le tour 2, que tu as validé</b>, avec les deux règles communes du tour 3 : le segment qui disparaît en semi-gras,
+        le chevron SVG de « Plus tard ». Un exemple seul garde ses deux lignes.</li>
         <li><b>La question est la proposition</b> : « Remplacer <span class="r">bg</span> par <span class="v">background</span> ? ». C'est la seule ligne en gras de la carte : l'œil va droit à elle.</li>
         <li>L'indice et les nombres sur une ligne grise dessous.</li>
         <li><b>Un nom réel sur deux lignes</b>, sur fond gris, dessiné comme dans À appliquer : l'effet du oui.</li>
@@ -234,7 +294,26 @@
         <li>La feuille monte de 12 px en 160 ms : on ne la voit pas arriver.</li>
       </ol>
     </div>
-    <div class="colonne"><span class="etiquette propose">Tour 2 : terme UCM (recommandé)</span>
+    <div class="colonne"><span class="etiquette propose">Tour 3 : terme UCM (recommandé)</span>
+      <div class="commandes"><button type="button" data-rejouer="fiche-t3-ucm">Rejouer l'ouverture</button><button type="button" data-fermer="fiche-t3-ucm">Jouer la fermeture</button></div>
+      <div class="cadre" id="fiche-t3-ucm"></div>
+      <ol class="argu">
+        <li><b>La règle se lit comme dans Règles</b> : <code>background</code> dans une pastille grise, les termes qu'il
+        remplace en jetons bordés, sans rouge ni vert. On y modifie la règle ; on n'y voit pas encore de conséquence.</li>
+        <li><b>À renommer garde le rouge et le vert</b> : c'est la conséquence de la règle. Ses noms passent en deux colonnes,
+        comme toute liste de renommages.</li>
+        <li><b>Déjà employé</b> : le terme en blanc et en semi-gras, sans vert ; ces noms ne changent pas.</li>
+        <li>Le reste ne bouge pas depuis le tour 2 : la règle modifiable dans sa ligne, ✕ sur fond gris, glissement de 280 ms.</li>
+      </ol>
+    </div>
+    <div class="colonne"><span class="etiquette propose">Tour 3 : terme personnalisé</span>
+      <div class="commandes"><button type="button" data-rejouer="fiche-t3-perso">Rejouer l'ouverture</button><button type="button" data-fermer="fiche-t3-perso">Jouer la fermeture</button></div>
+      <div class="cadre" id="fiche-t3-perso"></div>
+    </div>
+  </div>
+  <details class="tour1"><summary>Tours précédents : le tour 2 aux jetons rouges, le tour 1 avec la liste « Termes remplacés »</summary>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette propose">Tour 2 : terme UCM</span>
       <div class="commandes"><button type="button" data-rejouer="fiche-t2-ucm">Rejouer l'ouverture</button><button type="button" data-fermer="fiche-t2-ucm">Jouer la fermeture</button></div>
       <div class="cadre" id="fiche-t2-ucm"></div>
       <ol class="argu">
@@ -254,7 +333,6 @@
       </ol>
     </div>
   </div>
-  <details class="tour1"><summary>Tour 1 : la règle en une ligne, puis la liste « Termes remplacés » à part</summary>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette propose">Tour 1 : terme UCM</span>
       <div class="commandes"><button type="button" data-rejouer="fiche-ucm">Rejouer l'ouverture</button><button type="button" data-fermer="fiche-ucm">Jouer la fermeture</button></div>
@@ -360,11 +438,10 @@ function carteProposee(carte) {
   return `<div class="carte"><div class="tete"><input type="checkbox" class="case" checked><button class="tete-bouton" type="button"><div class="pile">${tete}<span class="meta">${meta}</span></div><span class="droite">${droite}</span></button></div>${corps}</div>`;
 }
 
-function listeAAppliquer(fabriquer, cartes) {
-  const sections = ['Termes', 'Écriture', 'Collections'];
+function listeAAppliquer(fabriquer, cartes, sections = ['Termes', 'Écriture', 'Collections'], titres = {}) {
   const enfants = sections.flatMap((section) => {
     const dedans = cartes.filter((carte) => carte.section === section);
-    return dedans.length ? [`<div class="intertitre"><h2>${section}</h2></div>`, ...dedans.map(fabriquer)] : [];
+    return dedans.length ? [`<div class="intertitre"><h2>${titres[section] ?? section}</h2></div>`, ...dedans.map((carte) => fabriquer(carte))] : [];
   }).join('');
   return `<div class="liste">${enfants}</div><div class="pied"><span class="resume"><b>${TOTAL} noms</b> cochés</span><button type="button" class="btn btn-primary"><span>Appliquer</span></button></div>`;
 }
@@ -674,8 +751,152 @@ const PLANCHE_T2 = '<div class="planche">'
   + '<div class="planche-ligne"><span><b>Action</b><span class="meta">seul le bleu agit</span></span><span class="regle-ligne"><button type="button" class="btn btn-primary"><span>Appliquer</span></button><button type="button" class="btn btn-secondary btn-compact"><span>Remplacer</span></button><button type="button" class="btn-texte">Plus tard</button></span></div>'
   + '</div>';
 
+/* Tour 3. */
+const chevron = (classe = '') => `<span class="chevron"><svg class="chevron-svg${classe ? ` ${classe}` : ''}" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg></span>`;
+
+/* Deux colonnes ; seuls les segments que la règle de la carte change sont colorés. */
+function ligneDiffT3(avant, apres, { avecCase = true, cible = null } = {}) {
+  const a = avant.split('/');
+  const b = apres.split('/');
+  const marque = (i) => a[i] !== b[i] && (!cible || cible(a[i]));
+  const gauche = a.map((s, i) => (marque(i) ? `<span class="seg-ancien">${esc(s)}</span>` : esc(s))).join('/');
+  const droite = b.map((s, i) => (marque(i) ? `<span class="seg-nouveau">${esc(s)}</span>` : esc(s))).join('/');
+  return `<div class="diff${avecCase ? '' : ' sans-case'}">${avecCase ? '<input type="checkbox" class="case" checked>' : ''}<span class="chemin">${gauche}</span><span class="chemin-apres"><span class="fleche-ligne">→ </span>${droite}</span></div>`;
+}
+const LEGENDE_DIFF = (avecCase = true) => `<div class="colonnes-tete${avecCase ? '' : ' sans-case'}">${avecCase ? '<span></span>' : ''}<span>Aujourd’hui</span><span>Après l’application</span></div>`;
+const cibleDe = (carte) => (carte.sorte === 'terme' ? (segment) => segment.toLowerCase() === carte.avant.toLowerCase() : null);
+
+/* Les noms derrière « Afficher les N autres noms », inventés comme le reste. */
+const capitale = (s) => (/^\d/.test(s) ? s : s[0].toUpperCase() + s.slice(1));
+const PALIERS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+const GENERATEURS = {
+  colors() {
+    const noms = [];
+    for (const g of ['Neutral', 'Brand', 'Accent', 'Success', 'Warning', 'Danger', 'Info', 'Primary']) for (const m of ['light', 'dark']) for (const p of PALIERS) noms.push([`colors/${g}/${m}/${p}`, `Color/${g}/${capitale(m)}/${p}`]);
+    for (const c of ['Button', 'Input', 'Card', 'Badge', 'Link', 'Tab', 'Toggle', 'Chip']) for (const v of ['Primary', 'Secondary']) for (const f of ['Filled', 'Outline']) for (const e of ['Default', 'Hover', 'Pressed']) for (const r of ['Background', 'Text', 'Border']) noms.push([`${c}/Colors/${v}/${f}/${e}/${r}`, `${c}/Color/${v}/${f}/${e}/${r}`]);
+    return noms;
+  },
+  Groupes() {
+    const noms = [];
+    for (const g of ['primary', 'secondary', 'success', 'warning', 'danger', 'info', 'neutral', 'accent', 'brand', 'surface']) for (const v of ['', 'vivid/', 'soft/']) for (const m of ['light', 'dark']) for (const p of PALIERS) {
+      const avant = `${g}/${v}${m}/${p}`;
+      noms.push([avant, avant.split('/').map(capitale).join('/')]);
+    }
+    return noms;
+  },
+  small: () => ['Spacing', 'Gap', 'Padding', 'Margin', 'Border-width', 'Shadow', 'Font-size', 'Line-height', 'Icon', 'Gutter', 'Inset'].map((x) => [`${x}/small`, `${x}/sm`]),
+  sm: () => ['Input', 'Tag', 'Chip', 'Badge', 'Avatar'].map((x) => [`${x}/Size/Sm/padding-y`, `${x}/Size/Small/padding-y`]),
+};
+function autresNoms(carte) {
+  const deja = new Set(carte.lignes.map(([a]) => a));
+  const tous = GENERATEURS[carte.sorte === 'ecriture' ? carte.categorie : carte.avant]?.() ?? [];
+  return tous.filter(([a]) => !deja.has(a)).slice(0, carte.variables - carte.lignes.length);
+}
+
+function carteT3(carte) {
+  const deplie = !!carte.deplie;
+  const autres = Math.max(0, (carte.variables || 1) - carte.lignes.length);
+  let tete;
+  let meta;
+  if (carte.sorte === 'ecriture') { tete = `<span class="regle-ligne"><span class="phrase-regle">Écrire les ${carte.categorie.toLowerCase()} en</span>${jeton(carte.convention, 'neutre')}</span>`; meta = `${carte.variables} variables`; }
+  else { tete = `<span class="regle-ligne">${jeton(carte.avant, 'retire')}<span class="fleche">→</span>${jeton(carte.apres, 'retenu')}</span>`; meta = carte.sorte === 'terme' ? carte.detail : 'Collection UCM'; }
+  const repliable = carte.lignes.length > 0;
+  const droite = `${carte.sorte === 'terme' ? pastille(carte.origine) : ''}${repliable ? chevron() : ''}`;
+  const cible = cibleDe(carte);
+  const corps = repliable
+    ? `<div class="corps"${deplie ? '' : ' hidden'}>${LEGENDE_DIFF()}${carte.lignes.map(([a, b]) => ligneDiffT3(a, b, { cible })).join('')}${autres ? `<div class="rang"><span></span><button type="button" class="autres">Afficher les ${autres} autres noms</button></div>` : ''}</div>`
+    : '';
+  return `<div class="carte" data-carte="${CARTES.indexOf(carte)}"><div class="tete"><input type="checkbox" class="case" checked><button class="tete-bouton" type="button"${repliable ? ` aria-expanded="${deplie}"` : ''}><div class="pile">${tete}<span class="meta">${meta}</span></div><span class="droite">${droite}</span></button></div>${corps}</div>`;
+}
+const LISTE_T3 = listeAAppliquer(carteT3, CARTES, ['Écriture', 'Termes', 'Collections'], { 'Écriture': 'Conventions d’écriture', Termes: 'Vocabulaire' });
+
+/* La carte se replie par sa tête ; le bouton des autres noms les montre tous. */
+function brancherAAppliquer(doc) {
+  doc.querySelectorAll('.carte[data-carte]').forEach((element) => {
+    const carte = CARTES[Number(element.dataset.carte)];
+    const bouton = element.querySelector('.tete-bouton');
+    const corps = element.querySelector('.corps');
+    if (corps) bouton.addEventListener('click', () => {
+      const ouvrir = corps.hidden;
+      corps.hidden = !ouvrir;
+      bouton.setAttribute('aria-expanded', String(ouvrir));
+    });
+    element.querySelector('.autres')?.addEventListener('click', (evenement) => {
+      const rang = evenement.currentTarget.closest('.rang');
+      const cible = cibleDe(carte);
+      rang.insertAdjacentHTML('beforebegin', autresNoms(carte).map(([a, b]) => ligneDiffT3(a, b, { cible })).join(''));
+      rang.remove();
+    });
+  });
+}
+
+/* Règles : une ligne par règle, la référence en pastille grise. */
+const TERMES_T3 = [
+  { mot: 'background', origine: 'ucm', remplace: ['bg', 'back'], nombre: 55 },
+  { mot: 'color', origine: 'ucm', remplace: ['colors', 'colour'], nombre: 435 },
+  { mot: 'hover', origine: 'perso', remplace: ['hovered'], nombre: 16 },
+  { mot: 'stroke', attente: 'border', nombre: 14 },
+  { mot: 'surface', origine: 'ucm', ecarte: true, nombre: 6 },
+  { mot: 'radius', nombre: 9 },
+];
+function ligneTermeT3(t, cherche = '') {
+  let regle;
+  let droite = pastille(t.origine);
+  if (t.remplace) regle = `${jeton(t.mot, 'neutre', true)}<span class="variantes">remplace</span><span>${t.remplace.map((m) => `<code class="variante${m === cherche ? ' trouvee' : ''}">${esc(m)}</code>`).join('')}</span>`;
+  else if (t.attente) { regle = `<code class="mot">${t.mot}</code><span class="variantes">ou</span><code class="variante">${esc(t.attente)}</code>`; droite = '<span class="pastille pastille-bloque">À trancher</span>'; }
+  else if (t.ecarte) regle = `<code class="mot">${t.mot}</code><span class="variantes">règle UCM non appliquée dans ce fichier</span>`;
+  else regle = `<code class="mot">${t.mot}</code>`;
+  return `<button type="button" class="ligne-terme t3"><span class="terme-regle">${regle}</span>${droite || '<span></span>'}<span class="meta terme-nombre">${t.nombre}</span>${chevron('suivant')}</button>`;
+}
+const FILTRES_T3 = '<div class="filtres" role="group"><button type="button" class="filtre" aria-pressed="true">Tous 6</button><button type="button" class="filtre" aria-pressed="false">Avec règle 4</button><button type="button" class="filtre" aria-pressed="false">Sans règle 2</button></div>';
+function reglesT3(cherche = '') {
+  const termes = cherche ? TERMES_T3.filter((t) => t.mot === cherche || t.remplace?.includes(cherche)) : TERMES_T3;
+  const reference = TERMES_T3.find((t) => t.remplace?.includes(cherche));
+  const champ = `<input type="search" class="input recherche" placeholder="Chercher un terme"${cherche ? ` value="${esc(cherche)}"` : ''}>`;
+  return '<section class="section-regles"><div class="section-tete"><div><h2>Conventions d’écriture</h2><p>Comment s’écrivent les groupes, les noms et les collections.</p></div>'
+    + `${bouton('Modifier', 'secondary')}</div>${ECRITURE_V2}</section>`
+    + '<section class="section-regles"><div class="section-tete"><div><h2>Vocabulaire</h2><p>Le terme de référence de chaque notion, et les variantes qu’il remplace.</p></div></div>'
+    + `<div class="outils-termes">${FILTRES_T3}${champ}</div>`
+    + (reference ? `<p class="resultat-recherche"><code class="variante trouvee">${esc(cherche)}</code> est remplacé par ${jeton(reference.mot, 'neutre', true)}</p>` : '')
+    + `<div class="liste-termes">${termes.map((t) => ligneTermeT3(t, cherche)).join('')}</div></section>`;
+}
+
+/* La fiche : la règle en gris, la conséquence en couleur. */
+function ficheT3({ mot, origine, categorie, definition, remplace, aRenommer, deja, exemplesDeja, pied }) {
+  const fixe = remplace.every(([, , f]) => f);
+  const jetons = remplace.map(([m, n, f]) => `<span class="jeton jeton-variante">${esc(m)}<span class="compte-jeton">${n}</span>${f ? '' : `<button type="button" class="retirer-jeton" aria-label="Retirer ${esc(m)}">×</button>`}</span>`).join('');
+  const regle = `<span class="regle-ligne">${jeton(mot, 'neutre')}<span class="variantes">remplace</span>${jetons}<button type="button" class="jeton jeton-ajout">+ Terme</button></span>`;
+  const variantes = new Set(remplace.map(([m]) => m));
+  const renommer = aRenommer.lignes.map(([a, b]) => ligneDiffT3(a, b, { avecCase: false, cible: (s) => variantes.has(s) })).join('');
+  const preuves = exemplesDeja.map((nom) => `<span class="chemin preuve">${nom.split('/').map((x) => (x === mot ? `<span class="terme-employe">${x}</span>` : esc(x))).join('/')}</span>`).join('');
+  const origineHtml = origine === 'ucm' ? `<span class="pastille pastille-ucm">UCM · ${categorie}</span>` : pastille('perso');
+  return '<div class="feuille-voile feuille-terme v2"><section class="feuille" role="dialog" aria-modal="true">'
+    + `<header class="feuille-entete"><div class="fiche-titre-ligne"><h2 class="feuille-titre">${mot}</h2>${origineHtml}</div><button type="button" class="feuille-fermer" aria-label="Fermer">×</button></header>`
+    + '<div class="feuille-corps"><div class="feuille-contenu">'
+    + `<p class="meta" style="margin:0">${definition}</p>`
+    + `<div class="fiche-regle"><div class="fiche-regle-tete"><h3 class="titre-regle">Règle</h3>${fixe ? '<span class="meta">Formes fixées par UCM</span>' : ''}</div>${regle}<span class="chiffres"><b>${aRenommer.nombre} variables</b> à renommer · <b>${deja}</b> déjà écrites ainsi</span></div>`
+    + `<div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>À renommer · ${aRenommer.nombre}</h3><button type="button" class="lien">Voir dans À appliquer</button></div><div class="fiche-liste">${LEGENDE_DIFF(false)}${renommer}</div></div>`
+    + `<div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>Déjà employé · ${deja}</h3></div><div class="fiche-liste">${preuves}</div></div>`
+    + `</div></div><footer class="feuille-pied"><div class="feuille-actions">${pied}</div></footer></section></div>`;
+}
+const FICHE_T3_UCM = ficheT3({ ...DONNEES_UCM, pied: `${boutonTexte('Ne pas appliquer ce terme dans ce fichier')}<span></span>` });
+const FICHE_T3_PERSO = ficheT3({ ...DONNEES_PERSO, pied: `${boutonTexte('Supprimer la règle', 'danger')}<span class="feuille-groupe">${bouton('Proposer à UCM', 'secondary').replace(' btn-compact', '')}</span>` });
+
+const PLANCHE_T3 = '<div class="planche">'
+  + `<div class="planche-ligne"><span><b>Un terme clé</b><span class="meta">toujours en semi-gras</span></span><span class="regle-ligne"><span>Remplacer <code class="mot-cite">bg</code> par <code class="mot-cite">background</code> ; écrire en <code class="mot-cite">PascalCase</code></span></span></div>`
+  + `<div class="planche-ligne"><span><b>Une règle</b><span class="meta">Règles, fiche : en gris</span></span><span class="regle-ligne">${jeton('background', 'neutre', true)}<span class="variantes">remplace</span><span><code class="variante">bg</code><code class="variante">back</code></span></span></div>`
+  + `<div class="planche-ligne"><span><b>Une écriture</b><span class="meta">pastille grise, dans son format</span></span><span class="regle-ligne">${jeton('PascalCase', 'neutre')}${jeton('minuscules-tirets', 'neutre')}${jeton('camelCase', 'neutre')}${jeton('Majuscule initiale', 'neutre')}</span></div>`
+  + `<div class="planche-ligne"><span><b>Une conséquence</b><span class="meta">À appliquer, À trancher : rouge et vert</span></span><span class="regle-ligne">${jeton('colors', 'retire')}<span class="fleche">→</span>${jeton('color', 'retenu')}</span></div>`
+  + `<div class="planche-ligne"><span><b>Une liste de renommages</b><span class="meta">deux colonnes ; seul le segment de la règle en couleur</span></span><span class="pile">${LEGENDE_DIFF(false)}${ligneDiffT3('colors/Neutral/light/700', 'Color/Neutral/Light/700', { avecCase: false, cible: (s) => s === 'colors' })}</span></div>`
+  + `<div class="planche-ligne"><span><b>Un exemple seul</b><span class="meta">dans une carte : deux lignes</span></span><span class="pile">${renommage('Button/bg/hover', 'Button/background/hover', false)}</span></div>`
+  + '<div class="planche-ligne"><span><b>Une décision attendue</b><span class="meta">ambre</span></span><span class="regle-ligne"><span class="pastille pastille-bloque">À trancher</span><code class="mot">stroke</code><span class="variantes">ou</span><code class="variante">border</code></span></div>'
+  + `<div class="planche-ligne"><span><b>Ouvrir, fermer, aller</b><span class="meta">un chevron SVG qui tourne</span></span><span class="regle-ligne">${chevron()}<span class="meta">fermé</span>${chevron('ouvert')}<span class="meta">ouvert</span>${chevron('suivant')}<span class="meta">ouvre une fiche</span></span></div>`
+  + `<div class="planche-ligne"><span><b>Origine</b><span class="meta">toujours à droite</span></span><span class="regle-ligne">${pastille('ucm')}${pastille('perso')}</span></div>`
+  + '<div class="planche-ligne"><span><b>Action</b><span class="meta">seul le bleu agit</span></span><span class="regle-ligne"><button type="button" class="btn btn-primary"><span>Appliquer</span></button><button type="button" class="btn btn-secondary btn-compact"><span>Remplacer</span></button><button type="button" class="btn-texte">Plus tard</button></span></div>'
+  + '</div>';
+
 /* Les cadres. */
-function cadre(id, { etat, largeur = 640, hauteur = 720, propose = true, panneau, compte, feuille, sansCoquille, apres }) {
+function cadre(id, { etat, largeur = 640, hauteur = 720, propose = true, tour3 = false, panneau, compte, feuille, sansCoquille, apres }) {
   const hote = document.getElementById(id);
   const g = window.GALERIE[etat];
   const iframe = document.createElement('iframe');
@@ -684,7 +905,7 @@ function cadre(id, { etat, largeur = 640, hauteur = 720, propose = true, panneau
   iframe.style.width = `${largeur}px`;
   iframe.style.height = `${hauteur}px`;
   const feuilles = `<link rel="stylesheet" href="galerie/plugin.css">${propose ? '<link rel="stylesheet" href="propose.css">' : ''}`;
-  iframe.srcdoc = `<!doctype html><html lang="fr" class="${g.classe}"><head><meta charset="utf-8">${feuilles}</head><body>${sansCoquille ? '' : g.corps}</body></html>`;
+  iframe.srcdoc = `<!doctype html><html lang="fr" class="${g.classe}${tour3 ? ' t3' : ''}"><head><meta charset="utf-8">${feuilles}</head><body>${sansCoquille ? '' : g.corps}</body></html>`;
   iframe.addEventListener('load', () => {
     const doc = iframe.contentDocument;
     if (sansCoquille) doc.body.innerHTML = sansCoquille;
@@ -708,6 +929,11 @@ function cadre(id, { etat, largeur = 640, hauteur = 720, propose = true, panneau
 
 const COMPTES = { 'onglet-a-appliquer': TOTAL, 'onglet-a-trancher': QUESTIONS.length };
 
+cadre('planche-t3', { etat: 'regles', hauteur: 820, tour3: true, sansCoquille: PLANCHE_T3 });
+cadre('regles-t3', { etat: 'regles', tour3: true, panneau: reglesT3(), compte: COMPTES });
+cadre('regles-t3-recherche', { etat: 'regles', tour3: true, panneau: reglesT3('colors'), compte: COMPTES });
+cadre('appliquer-t3', { etat: 'a-appliquer-depliee', tour3: true, panneau: LISTE_T3, compte: COMPTES, apres: brancherAAppliquer });
+cadre('appliquer-t3-360', { etat: 'a-appliquer-depliee', largeur: 360, tour3: true, panneau: LISTE_T3, compte: COMPTES, apres: brancherAAppliquer });
 cadre('planche', { etat: 'regles', hauteur: 600, sansCoquille: PLANCHE_T2 });
 cadre('planche-t1', { etat: 'regles', hauteur: 880, sansCoquille: PLANCHE });
 cadre('regles-t2', { etat: 'regles', panneau: reglesT2(), compte: COMPTES });
@@ -728,7 +954,8 @@ cadre('trancher-aujourdhui', { etat: 'a-trancher', propose: false, panneau: tran
 cadre('trancher-p1', { etat: 'a-trancher', panneau: trancher(questionCalme), compte: COMPTES });
 cadre('trancher-p2', { etat: 'a-trancher', panneau: trancher(questionEnTete), compte: COMPTES });
 cadre('trancher-p3', { etat: 'a-trancher', panneau: trancher(questionAChoisir), compte: COMPTES });
-cadre('trancher-t2', { etat: 'a-trancher', panneau: trancher(questionT2), compte: COMPTES });
+const TRANCHER_FIN_T3 = `<div><div class="carte"><div class="tete sans-coche"><button type="button" class="tete-bouton" aria-expanded="false"><span class="plus-tard-titre">Plus tard · 1</span>${chevron()}</button></div></div></div>`;
+cadre('trancher-t2', { etat: 'a-trancher', tour3: true, panneau: `<div class="liste">${QUESTIONS.map(questionT2).join('')}</div>${TRANCHER_FIN_T3}`, compte: COMPTES });
 
 cadre('fiche-aujourdhui', { etat: 'feuille-terme-ucm', propose: false });
 const fiches = {
@@ -736,8 +963,10 @@ const fiches = {
   'fiche-perso': cadre('fiche-perso', { etat: 'feuille-terme-personnalise', feuille: FICHE_PERSO }),
   'fiche-t2-ucm': cadre('fiche-t2-ucm', { etat: 'feuille-terme-ucm', feuille: FICHE_T2_UCM }),
   'fiche-t2-perso': cadre('fiche-t2-perso', { etat: 'feuille-terme-personnalise', feuille: FICHE_T2_PERSO }),
+  'fiche-t3-ucm': cadre('fiche-t3-ucm', { etat: 'feuille-terme-ucm', tour3: true, feuille: FICHE_T3_UCM }),
+  'fiche-t3-perso': cadre('fiche-t3-perso', { etat: 'feuille-terme-personnalise', tour3: true, feuille: FICHE_T3_PERSO }),
 };
-const contenus = { 'fiche-ucm': FICHE_UCM, 'fiche-perso': FICHE_PERSO, 'fiche-t2-ucm': FICHE_T2_UCM, 'fiche-t2-perso': FICHE_T2_PERSO };
+const contenus = { 'fiche-ucm': FICHE_UCM, 'fiche-perso': FICHE_PERSO, 'fiche-t2-ucm': FICHE_T2_UCM, 'fiche-t2-perso': FICHE_T2_PERSO, 'fiche-t3-ucm': FICHE_T3_UCM, 'fiche-t3-perso': FICHE_T3_PERSO };
 
 function rejouer(id) {
   const doc = fiches[id].contentDocument;

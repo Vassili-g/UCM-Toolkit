@@ -81,6 +81,88 @@ Ce que ces trois points changent, écran par écran :
 Les décisions D1 à D10 portent désormais sur le second tour. Le premier reste
 dans la maquette, replié sous chaque section, pour comparer.
 
+## Troisième tour
+
+Le retour du mainteneur sur le second tour, point par point, et ce que la
+maquette en fait. Les décisions D1 à D10 portent désormais sur le troisième
+tour ; les deux premiers restent repliés sous chaque section.
+
+| Retour | Réponse du tour 3 | Décision |
+|---|---|---|
+| Les termes clés sont tantôt en regular, tantôt en semi-gras | Tout terme, segment qui change, écriture ou nom de collection cité est en semi-gras, partout ; le texte qui l'accompagne reste en regular | D10 |
+| Règles : le statut coloré et la couleur des termes remplacés se contredisent ; les puces ne se comprennent pas | La couleur ne montre plus qu'une conséquence (À appliquer, À trancher, À renommer d'une fiche). Une règle se lit en gris : la forme de référence dans une pastille grise, ses variantes en texte gris. Une ligne par règle : un terme remplacé n'a plus sa ligne, il se trouve par la recherche, qui dit « colors est remplacé par color ». Plus de puce ; seule une règle en attente porte la pastille ambre « À trancher » | D2 |
+| « Écriture » devient « Conventions d'écriture » ; sous-titre à réécrire | « Comment s'écrivent les groupes, les noms et les collections. » | D8 |
+| Un meilleur nom pour « Termes » | **Vocabulaire** : « Le terme de référence de chaque notion, et les variantes qu'il remplace. » Il répond à « Conventions d'écriture » : comment écrire, quels mots employer. Autres choix : Termes de référence, Lexique | D8 |
+| « 310 autres noms » doit tout afficher | « Afficher les 310 autres noms » montre tous les noms de la carte et disparaît. Aujourd'hui, le bouton en charge 50 par clic (`TAILLE_DE_PAGE`, `projection.ts`) | D4 |
+| Les deux colonnes du tour 1 se lisaient mieux | Retour aux deux colonnes Aujourd'hui \| Après l'application, avec leur légende, empilées sous 520 px. Le dessin des segments du tour 2 reste : rouge barré à gauche, vert à droite, sans fond. La liste À renommer de la fiche prend le même dessin. Un exemple seul, dans une carte d'À trancher, garde ses deux lignes | D4, D9 |
+| Le glyphe ⌃ ⌄ est laid ; une icône SVG qui tourne, dans tous les plugins | Un chevron SVG de 12 px : en bas, fermé ; tourné de 180°, ouvert, en 150 ms ; tourné de −90°, la ligne ouvre une fiche (R12) | D13 |
+| « Groupes → PascalCase » en vert dit que les groupes deviennent « PascalCase » | « Écrire les groupes en `PascalCase` », l'écriture dans une pastille grise | D7 |
+| À appliquer : l'écriture avant les termes | Ordre Conventions d'écriture, Vocabulaire, Collections | D4 |
+| Une carte de terme ne doit mettre en avant que ce que sa règle change | Dans la carte `colors → color`, seul `colors` → `Color` est coloré ; `light` → `Light` reste sans couleur, car il vient de la carte d'écriture. La colonne de droite reste le nom complet que Figma recevra, et la ligne de détail dit « 280 changent aussi d'écriture » | D4 |
+| À trancher : parfait | Inchangé, avec les deux règles communes : semi-gras, chevron SVG | D6 |
+| Les noms d'onglets « À appliquer · À trancher » décrivent mal les onglets | Voir D11 | D11 |
+| « UCM Architect » est-il le bon nom ? | Voir D12 | D12 |
+
+### R12. Un chevron commun aux quatre plugins
+
+Chaque plugin dessine aujourd'hui ses chevrons avec un caractère :
+`⌃ ⌄` dans Architect (`ui/aAppliquer.ts:339`, `:446`, `ui/aTrancher.ts:497`),
+`›` dans ses lignes de Règles (`ui/regles.ts:98`) ; `▸ ▾ ▴ ›` dans
+l'Explorateur (`ui/arbre.ts:94`, `ui/textes.ts:385-396`) ; `▾ ›` dans Palettes
+(`ui/selecteur.ts:138`, `ui/connexion.ts:74`, `ui/styles.css:2022`, `:2755`) ;
+`›` dans l'Exporter (`ui/styles.css:600`) ; `‹` dans le bouton retour de la
+feuille du socle (`plugin-socle/src/ui/Feuille.ts:56`). Leur taille et leur
+graisse suivent la police, et ils ne tournent pas : on remplace un caractère
+par un autre.
+
+**Proposition.** Un seul chevron SVG dans le socle : un trait de 1,5 px dans
+un carré de 12 px, couleur `currentColor`. Il pointe vers le bas ; une
+classe le tourne de 180° (ouvert) ou de −90° (vers la droite : la ligne ouvre
+une vue), de 90° pour un retour. La rotation dure 150 ms, et rien avec
+« réduire les animations ».
+
+**Décision D13.** Valider le chevron commun et son remplacement dans les
+quatre plugins.
+
+### D11. Les noms des onglets
+
+« À trancher » ne dit pas que ses réponses seront appliquées elles aussi :
+une réponse crée une règle, dont les renommages rejoignent le premier onglet.
+Les deux onglets se distinguent par ce qu'ils contiennent, pas par ce qu'on
+en fera. Des noms qui décrivent le contenu :
+
+| Proposition | Onglets | Pour | Contre |
+|---|---|---|---|
+| **A (recommandée)** | **Renommages · Questions · Règles** | Chaque nom dit ce qu'on trouve dans l'onglet ; le compte se lit naturellement (« Renommages 900 », « Questions 5 ») ; le bouton Appliquer du premier onglet applique les renommages | « Renommages » est long : 10 lettres contre 11 pour « À appliquer », la largeur ne change pas |
+| B | Changements · Questions · Règles | « Changements » couvre aussi une collection renommée | Plus vague : on ne sait pas ce qui change |
+| C | Corrections · Doutes · Règles | Dit que le fichier a des défauts | « Corrections » juge le fichier ; « Doutes » est moins clair qu'une question |
+| D | Prêts · Questions · Règles | Court | Un adjectif seul : « Prêts » à quoi ? |
+
+**Décision D11.** Choisir les noms des onglets.
+
+### D12. Le nom du plugin
+
+« Architect » date de la v1, qui construisait l'architecture du fichier :
+collections, palettes, publication. Depuis la refonte, le plugin ne fait plus
+que les noms des variables : leur vocabulaire et leur écriture. Le nom promet
+une construction qu'il ne fait plus. Les autres plugins portent un nom qui
+dit leur objet (Palettes, Exporter, Explorateur).
+
+| Proposition | Pour | Contre |
+|---|---|---|
+| **UCM Nomenclature (recommandée)** | Le mot exact : l'ensemble des règles qui fixent les noms, vocabulaire et écriture compris. Le même mot en français et en anglais. Le plugin applique la nomenclature UCM que le kit publie | Long (12 lettres) ; un mot plus administratif que les autres |
+| UCM Noms | Court, simple pour un débutant | Illisible en anglais ; très général |
+| UCM Nommage | Dit l'action, couvre termes et écriture | Illisible en anglais |
+| UCM Lexique | Court, joli | Ne couvre que le vocabulaire, pas l'écriture |
+| UCM Harmonie | Reprend le titre « Harmoniser les noms des variables » | Palettes a déjà son Harmonisation entre palettes : deux sens pour un mot |
+| UCM Naming | Clair en anglais | Seul nom anglais à côté de Palettes et d'Explorateur |
+
+Changer le nom touche le manifeste Figma (le nom affiché, pas l'identifiant),
+le nom du paquet `ucm-architect-plugin`, le logo de la famille A
+(`docs/marque/`), les textes et la documentation.
+
+**Décision D12.** Garder « UCM Architect » ou choisir un autre nom.
+
 ## R1. Afficher les écritures par leur format
 
 **Demande.** « Afficher les règles avec leur format : PascalCase,
@@ -473,7 +555,7 @@ galerie : la garde protège aussi le plugin.
 
 ## Lots qui suivent les décisions
 
-Les lots attendent les décisions D1 à D10. Le lot L0 attend aussi que le
+Les lots attendent les décisions D1 à D13. Le lot L0 attend aussi que le
 renommage des tailles par catégorie, en cours dans la copie de travail, soit
 commité.
 
@@ -482,10 +564,11 @@ commité.
 | L0 | Retirer la question des tailles (D3) | kit `questions.ts`, `harmonisation.ts`, `questionsReferentiel.test.ts` ; Architect `messages.ts`, `projection.ts`, `session.ts`, `ui/questions.ts`, `ui/textes.ts`, tests, galerie | `implementeur` |
 | L1 | Spécimens des écritures (D1) | kit `conventions.ts`, ses tests, vues générées, version du kit | `implementeur` |
 | L2 | Lignes avant → après, tête des cartes d'écriture, comptes « aussi », effet d'un terme dans la fiche (D4, D7, D9) | `messages.ts`, `projection.ts`, `projection.test.ts`, `protocole.test.ts` | `implementeur-exigeant` |
-| L3 | Langage visuel : jetons, segments, puces ; l'ambre réservé à À trancher (D10) | `ui/styles.css`, `ui/aAppliquer.ts`, `ui/aTrancher.ts`, `ui/feuilles.ts`, `ui/regles.ts` | `implementeur` |
-| L4 | À appliquer en deux colonnes, empilées sous 520 px (D4) | `ui/aAppliquer.ts`, `ui/styles.css`, tests d'interface | `implementeur-exigeant` |
+| L3 | Langage visuel du tour 3 : termes clés en semi-gras, rouge et vert pour les seules conséquences, pastille grise pour la référence d'une règle, l'ambre réservé à ce qui attend une décision (D10) | `ui/styles.css`, `ui/aAppliquer.ts`, `ui/aTrancher.ts`, `ui/feuilles.ts`, `ui/regles.ts` | `implementeur` |
+| L4 | À appliquer en deux colonnes avec légende, empilées sous 520 px ; seul le segment de la règle de la carte en couleur ; Conventions d'écriture avant Vocabulaire ; « Afficher les N autres noms » montre tout (D4) | `ui/aAppliquer.ts`, `ui/styles.css`, tests d'interface | `implementeur-exigeant` |
 | L5 | Cartes de À trancher dans la forme choisie (D6) | `ui/questions.ts`, `ui/aTrancher.ts`, `ui/styles.css`, `ui/textes.ts`, tests | `implementeur` |
-| L6 | Règles : deux sections ou sous-onglets, ligne d'un terme (D2, D8) | `ui/regles.ts`, `ui/listeDesTermes.ts`, `ui/styles.css`, `ui/textes.ts`, tests | `implementeur` |
+| L6 | Règles : Conventions d'écriture et Vocabulaire, une ligne par règle sans puce, recherche d'une variante (D2, D8) ; noms des onglets (D11) | `ui/regles.ts`, `ui/listeDesTermes.ts`, `ui/styles.css`, `ui/textes.ts`, tests | `implementeur` |
 | L7 | Feuille du socle : sans poignée, ✕ sur fond, entrée et sortie animées ; fiche d'un terme réordonnée, sans Fermer (D9) | `plugin-socle/src/ui/Feuille.ts`, `socle.css`, `plugin-socle/tests/feuille.test.ts`, `ui/feuilles.ts` | `implementeur-exigeant` |
 | L8 | Frontière : refuser un message qui n'a pas la forme d'une réponse (R11) ; nouveaux états de galerie (deux colonnes, 360 px, fiche) | `ui/frontiere.ts`, `tests/frontiereUi.test.ts`, `galerie/etats.cjs`, `galerie/donnees.cjs` | `implementeur` |
+| L10 | Chevron SVG du socle, remplaçant les glyphes dans Architect, l'Explorateur, Palettes, l'Exporter et la feuille du socle (D13) | `plugin-socle/src/ui/`, `socle.css`, fichiers cités en R12, tests d'interface | `implementeur` |
 | L9 | Vérifications : typecheck, tests, build du plugin, puis recette Figma par le mainteneur | — | `verificateur`, puis le mainteneur |
