@@ -11,7 +11,10 @@ plugin, D13 : chevron commun).
 
 | Document | Contenu |
 |---|---|
+| [AUDIT-COMPLET-ARCHITECT.md](./AUDIT-COMPLET-ARCHITECT.md) | Les défauts AC1 à AC13 qui peuvent abîmer les variables ou `tokens.json`, rejoués sur le code, et ce qui tient |
+| [AUDIT-INTEGRITE-TOKENS.md](./AUDIT-INTEGRITE-TOKENS.md) | Les risques de perte de noms, de restauration et de tokens à l’export, avec les reproductions et les corrections attendues |
 | [DOSSIER-RECETTE-ARCHITECT.md](./DOSSIER-RECETTE-ARCHITECT.md) | Les points R1 à R11 : demande, constat dans le code, proposition, décision ; les lots qui suivent les décisions |
+| [PLAN-FIABILITE.md](./PLAN-FIABILITE.md) | La lecture croisée des deux audits, les décisions, les textes et les lots J à P répartis par agent |
 | [Maquettes/MAQUETTE-RECETTE-ARCHITECT.html](./Maquettes/MAQUETTE-RECETTE-ARCHITECT.html) | Le langage visuel, puis Règles, À appliquer, À trancher et la fiche d'un terme, chacun « Aujourd'hui » puis « Proposé », sur les écrans figés de la galerie |
 | [Maquettes/propose.css](./Maquettes/propose.css) | Les règles de style proposées, posées après la feuille réelle du plugin |
 | [Mesures/extraire-galerie.mjs](./Mesures/extraire-galerie.mjs) | Fige les écrans de la galerie sombre dans `Maquettes/galerie/`, après `npm run galerie -w ucm-architect-plugin` |
