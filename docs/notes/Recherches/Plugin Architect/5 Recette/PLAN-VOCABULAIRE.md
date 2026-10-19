@@ -161,25 +161,27 @@ Agent : `implementeur-exigeant`. Fichiers : `referentiel/ecriture-des-mots.ts`,
 `referentiel/harmonisation.ts`, `referentiel/vocabulaire-du-fichier.ts`,
 `referentiel/questions.ts`, leurs tests.
 
-- [ ] `termesDuSegment(mots, nature)` rend les plages `[début, fin[` des mots
+- [x] `termesDuSegment(mots, nature)` rend les plages `[début, fin[` des mots
   de `decouperSegment` : une seule plage pour un segment qui a une nature ;
   sinon une plage par propriété composée (`TERMES_COMPOSES`, terme de
   plusieurs mots d'un registre), la plus longue d'abord ; sinon une plage
   par mot.
-- [ ] `commencerLexique({ ordinaires })` calcule les natures dans `terminer`
+- [x] `commencerLexique({ ordinaires })` calcule les natures dans `terminer`
   et ajoute au lexique `natures` (par nom), `termes` (plages par nom et par
   segment) et `occurrencesDesTermes` (clé jointe par des tirets vers ses
   occurrences, avec la longueur). `occurrences` par mot ne change pas.
-- [ ] `index.remplacements(mots, categorie, frontieres?)` ne garde qu'un
+- [x] `index.remplacements(mots, categorie, frontieres?)` ne garde qu'un
   remplacement qui commence et finit sur une frontière de terme ; la
   normalisation passe les frontières. Une règle sur `wrap` ne touche plus
   `ScaleWrap` ; `radius` remplace toujours `Border-radius`, `bg` toujours
   `primaryBg`.
-- [ ] `detecterParEtapes` saute un segment qui a une nature.
-- [ ] `decouperPourQuestions` garde entière une taille (`5xl`).
-- [ ] Tests : les 21 segments relevés, dont `lineheight` et `LineHeight` (un
+- [x] `detecterParEtapes` saute un segment qui a une nature.
+- [x] `decouperPourQuestions` garde entière une taille (`5xl`).
+- [x] Tests : les 21 segments relevés, dont `lineheight` et `LineHeight` (un
   terme `line-height`), `TextColumns` (un terme, aucune règle `text`),
   `Text-color-Tag` (trois termes), `primaryBg` (deux termes).
+  Fait en 043f949b. `foreground-main` et `foreground-subtle`, valeurs du
+  thème UCM, restent un seul terme.
 
 ### K3 · Les registres (kit, en parallèle de K1)
 
@@ -195,9 +197,11 @@ référentiel, la vue illustrée (`generer-donnees-referentiel.ts`).
 
 ### K4 · La version du kit (après K1 à K3)
 
-Agent : conversation principale. Changer la version de `@ucm-kit/core` (API
-du lexique changée : version mineure), publier, mettre à jour la dépendance
-du plugin.
+Agent : conversation principale. Les champs ajoutés au lexique ne retirent
+rien : version de correctif.
+
+- [x] Kit 0.9.5, cli 0.1.64, adapter 0.1.57, corpus UCM régénéré pour les
+  nouveaux registres (a0a93bcd) ; les trois paquets sont publiés.
 
 ### P1 · La liste lit les termes et leur nature (plugin, après K4)
 
