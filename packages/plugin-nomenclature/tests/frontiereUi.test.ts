@@ -115,7 +115,7 @@ test('une réponse dont la génération est périmée est ignorée', () => {
   analyser(2);
   const demande = frontiere.fiche('bg') as number;
   const base = { type: 'fiche' as const, demande };
-  const fiche = { mot: 'bg', forme: 'bg', nature: null, origine: null, categorieUcm: null, definition: null, remplace: [], emploi: { nombre: 0, exemples: [] }, aRenommer: { nombre: 0, exemples: [] }, ecart: false, voulu: false, distincts: [], question: null };
+  const fiche = { mot: 'bg', forme: 'bg', nature: null, origine: null, categorieUcm: null, definition: null, remplace: [], emploi: { nombre: 0, exemples: [] }, aRenommer: { nombre: 0, exemples: [] }, ecart: false, voulu: false, ordinaire: false, distincts: [], question: null };
   const avant = affichees.length;
   frontiere.recevoir({ ...base, generation: 1, fiche });
   assert.equal(affichees.length, avant, 'une génération plus ancienne est ignorée');
@@ -139,7 +139,7 @@ test('un nouveau bilan rend caduques les lectures en attente, même leur erreur'
 });
 
 test("l'écho d'une demande de lecture est ignoré, puis la vraie réponse est affichée", () => {
-  const ficheVide = { mot: 'bg', forme: 'bg', nature: null, origine: null, categorieUcm: null, definition: null, remplace: [], emploi: { nombre: 0, exemples: [] }, aRenommer: { nombre: 0, exemples: [] }, ecart: false, voulu: false, distincts: [], question: null };
+  const ficheVide = { mot: 'bg', forme: 'bg', nature: null, origine: null, categorieUcm: null, definition: null, remplace: [], emploi: { nombre: 0, exemples: [] }, aRenommer: { nombre: 0, exemples: [] }, ecart: false, voulu: false, ordinaire: false, distincts: [], question: null };
   const formes: Array<{ ouvrir: (f: ReturnType<typeof creer>['frontiere']) => number; echo: (demande: number) => unknown; reponse: (demande: number) => PluginMessage }> = [
     {
       ouvrir: (f) => f.termes('', 'tous', 0) as number,

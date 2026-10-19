@@ -775,6 +775,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
       aRenommer: { nombre: dues.length, exemples: dues.slice(0, EXEMPLES_D_EMPLOI) },
       ecart: ecartes.has(cle),
       voulu: regles.voulus.includes(voulu),
+      ordinaire: regles.ordinaires.includes(motsDeLaCle(cle).join('-')),
       distincts: regles.distincts.flatMap(([a, b]) => (a.toLowerCase() === cle ? [b] : b.toLowerCase() === cle ? [a] : [])),
       question: questionDuTerme(cle)?.question ?? null,
     };

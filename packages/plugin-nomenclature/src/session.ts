@@ -28,7 +28,7 @@ import type {
 } from './messages';
 import { conflitVue, effetDEcriture, effetDeTerme, projeter, type EntreeDeProjection, type Projection } from './projection';
 import {
-  CLE_EXCLUES, cleEcart, clePlusTard, cleReponse, cleTerme, cleVoulu, cleDistinct, dejaJugeDuFichier, defaireReponse,
+  CLE_EXCLUES, cleDuTermeOrdinaire, cleEcart, cleOrdinaire, clePlusTard, cleReponse, cleTerme, cleVoulu, cleDistinct, dejaJugeDuFichier, defaireReponse,
   defaireLImport, estMot, exporterLesRegles, importerLesRegles, lireLesRegles, lireLeStockage, preparerImport, preparerReponse, rangerLesEcritures,
   serialiserRegle,
   vocabulaireDuFichier,
@@ -196,6 +196,10 @@ function ecrituresDuGeste(geste: GesteSurLesRegles, regles: ReglesDuFichier, cou
       const id = identifiantUcm(geste.terme);
       return geste.actif ? [serialiserRegle({ type: 'ecart', id })] : [{ cle: cleEcart(id), texte: null }];
     }
+    case 'terme-ordinaire': {
+      const cle = cleDuTermeOrdinaire(motsRetenus(geste.terme));
+      return geste.actif ? [serialiserRegle({ type: 'ordinaire', cle })] : [{ cle: cleOrdinaire(cle), texte: null }];
+    }
     case 'retirer-distinct':
       return [{ cle: cleDistinct(geste.termes[0], geste.termes[1]), texte: null }];
     case 'retirer-voulu':
@@ -346,7 +350,7 @@ function dansLOrdre(lexique: Lexique, parId: ReadonlyMap<string, Renommage>): Re
 function* calculerTout(moteur: Moteur, inventaire: Inventaire, regles: ReglesDuFichier): Generator<void, Calcul> {
   const exclues = new Set(regles.collectionsExclues);
   const retenues = inventaire.entrees.filter((entree) => !exclues.has(entree.cible.collectionId));
-  const preparation = moteur.commencerLexique();
+  const preparation = moteur.commencerLexique({ ordinaires: new Set(regles.ordinaires) });
   preparation.ajouter(retenues.map((entree) => entree.nom));
   const lexique = yield* preparation.terminer();
   const nonRenommables = retenues.filter((entree) => !entree.renommable || entree.protegee).map((entree) => entree.nom.id);
@@ -375,7 +379,8 @@ function fusionner(lexique: Lexique, precedent: ResultatDuLexique, partiel: Resu
  * sont détectées de nouveau que si une règle qui les touche a changé.
  */
 function* recalculer(moteur: Moteur, base: Etat, regles: ReglesDuFichier, avecQuestions: boolean): Generator<void, Calcul> {
-  if (!memes(base.regles.collectionsExclues, regles.collectionsExclues)) return yield* calculerTout(moteur, base.inventaire, regles);
+  // Une collection exclue, ou un terme ordinaire, en plus ou en moins change les noms ou leur nature : tout le lexique se refait.
+  if (!memes(base.regles.collectionsExclues, regles.collectionsExclues) || !memes(base.regles.ordinaires, regles.ordinaires)) return yield* calculerTout(moteur, base.inventaire, regles);
   const termes = termesChanges(base.regles, regles);
   const indexation = termes.length > 0 ? moteur.indexerVocabulaire(vocabulaireDuFichier(regles)) : base.indexation;
   const ecriture = ecritureEffective(regles, base.lexique);

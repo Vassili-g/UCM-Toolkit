@@ -51,6 +51,8 @@ export interface ReglesDuFichier {
   readonly ecartsUcm: readonly string[];
   readonly distincts: readonly (readonly [string, string])[];
   readonly voulus: readonly string[];
+  /** Les termes (mots en minuscules joints par `-`) que le fichier traite comme des mots ordinaires, jamais comme des noms. */
+  readonly ordinaires: readonly string[];
   readonly plusTard: readonly string[];
   /** Collections dont le designer garde le nom. */
   readonly collectionsGardees: readonly string[];
@@ -69,6 +71,7 @@ export type Regle =
   | { readonly type: 'ecart'; readonly id: string }
   | { readonly type: 'distinct'; readonly termes: readonly [string, string] }
   | { readonly type: 'voulu'; readonly mots: Mots }
+  | { readonly type: 'ordinaire'; readonly cle: string }
   | { readonly type: 'plus-tard'; readonly cle: string }
   | { readonly type: 'collection'; readonly id: string; readonly cible?: Collection }
   | { readonly type: 'exclues'; readonly ids: readonly string[] }
@@ -90,6 +93,9 @@ export const cleEcart = (id: string): string => `ecart:${id}`;
 /** Une paire distincte s'écrit dans l'ordre trié. */
 export const cleDistinct = (a: string, b: string): string => a <= b ? `distinct:${a}|${b}` : `distinct:${b}|${a}`;
 export const cleVoulu = (mots: Mots): string => `voulu:${mots.join(' ')}`;
+/** La clé d'un terme ordinaire joint ses mots par `-`, comme `ordinaires` du lexique. */
+export const cleDuTermeOrdinaire = (mots: Mots): string => mots.map((mot) => mot.toLowerCase()).join('-');
+export const cleOrdinaire = (cle: string): string => `ordinaire:${cle}`;
 /** Les questions d'échelle ont quitté le plugin : leur clé déjà rangée n'est plus lue, pour ne compter ni parmi les mises de côté ni dans le plafond. */
 const PREFIXE_RETIRE = 'echelle:';
 export const clePlusTard = (cle: string): string => `plus-tard:${cle}`;
@@ -215,6 +221,7 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
   const ecartsUcm: string[] = [];
   const distincts = new Map<string, readonly [string, string]>();
   const voulus: string[] = [];
+  const ordinaires: string[] = [];
   const plusTard: string[] = [];
   const gardees: string[] = [];
   const renommees: Record<string, Collection> = {};
@@ -241,6 +248,7 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
         distincts.set(paire.join('|'), paire);
       }
     } else if ((reste = apres(cle, 'voulu:')) !== undefined) { if (motsDe(reste)) voulus.push(reste); }
+    else if ((reste = apres(cle, 'ordinaire:')) !== undefined) { if (estMot(reste)) ordinaires.push(reste); }
     else if ((reste = apres(cle, 'plus-tard:')) !== undefined) { if (!reste.startsWith(PREFIXE_RETIRE)) plusTard.push(reste); }
     else if ((reste = apres(cle, 'collection:')) !== undefined) {
       const cible = (COLLECTIONS as readonly unknown[]).includes(brut.cible) ? brut.cible as Collection : undefined;
@@ -265,6 +273,7 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
     ecartsUcm: trier(ecartsUcm),
     distincts: [...distincts.values()].sort((a, b) => comparer(a.join('|'), b.join('|'))),
     voulus: trier(voulus),
+    ordinaires: trier(ordinaires),
     plusTard: trier(plusTard),
     collectionsGardees: trier(gardees),
     collectionsRenommees: Object.fromEntries(Object.entries(renommees).sort(([a], [b]) => comparer(a, b))),
@@ -303,6 +312,7 @@ export function serialiserRegle(regle: Regle): Ecriture {
     case 'ecart': return { cle: cleEcart(regle.id), texte: JSON.stringify({ version: v }) };
     case 'distinct': return { cle: cleDistinct(regle.termes[0], regle.termes[1]), texte: JSON.stringify({ version: v }) };
     case 'voulu': return { cle: cleVoulu(regle.mots), texte: JSON.stringify({ version: v }) };
+    case 'ordinaire': return { cle: cleOrdinaire(regle.cle), texte: JSON.stringify({ version: v }) };
     case 'plus-tard': return { cle: clePlusTard(regle.cle), texte: JSON.stringify({ version: v }) };
     case 'collection': return { cle: cleCollection(regle.id), texte: JSON.stringify({ version: v, ...(regle.cible ? { cible: regle.cible } : {}) }) };
     case 'exclues': return { cle: CLE_EXCLUES, texte: JSON.stringify({ version: v, ids: trier(regle.ids) }) };
@@ -318,6 +328,7 @@ export function ecrituresDesRegles(regles: ReglesDuFichier): Ecriture[] {
     ...regles.ecartsUcm.map((id) => ({ type: 'ecart', id }) as const),
     ...regles.distincts.map((termes) => ({ type: 'distinct', termes }) as const),
     ...regles.voulus.map((voulu) => ({ type: 'voulu', mots: voulu.split(' ') }) as const),
+    ...regles.ordinaires.map((cle) => ({ type: 'ordinaire', cle }) as const),
     ...regles.plusTard.map((cle) => ({ type: 'plus-tard', cle }) as const),
     ...regles.collectionsGardees.map((id) => ({ type: 'collection', id }) as const),
     ...Object.entries(regles.collectionsRenommees).sort(([a], [b]) => comparer(a, b)).map(([id, cible]) => ({ type: 'collection', id, cible }) as const),
@@ -463,6 +474,8 @@ export interface ExportDesRegles {
   readonly ecartsUcm: readonly string[];
   readonly distincts: readonly (readonly [string, string])[];
   readonly voulus: readonly string[];
+  /** Absent d'un export plus ancien : il se lit comme une liste vide. */
+  readonly ordinaires?: readonly string[];
   readonly plusTard: readonly string[];
 }
 
@@ -472,7 +485,7 @@ export function exporterLesRegles(regles: ReglesDuFichier): string {
     version: VERSION_DES_REGLES,
     ...(regles.ecriture ? { ecriture: regles.ecriture } : {}),
     termes: regles.termes, ecartsUcm: regles.ecartsUcm, distincts: regles.distincts, voulus: regles.voulus,
-    plusTard: regles.plusTard,
+    ordinaires: regles.ordinaires, plusTard: regles.plusTard,
   };
   return JSON.stringify(sortie, null, 2);
 }
@@ -484,8 +497,8 @@ function lireExport(texte: string): ReglesDuFichier | undefined {
   if (!estObjet(brut) || brut.version !== VERSION_DES_REGLES) return undefined;
   const liste = (valeur: unknown): unknown[] | undefined => valeur === undefined ? [] : Array.isArray(valeur) ? valeur : undefined;
   const termesBruts = liste(brut.termes), distinctsBruts = liste(brut.distincts);
-  const ecarts = liste(brut.ecartsUcm), voulus = liste(brut.voulus), plusTard = liste(brut.plusTard);
-  if (!termesBruts || !distinctsBruts || !ecarts || !voulus || !plusTard) return undefined;
+  const ecarts = liste(brut.ecartsUcm), voulus = liste(brut.voulus), plusTard = liste(brut.plusTard), ordinaires = liste(brut.ordinaires);
+  if (!termesBruts || !distinctsBruts || !ecarts || !voulus || !plusTard || !ordinaires) return undefined;
   const ecriture = brut.ecriture === undefined ? undefined : estObjet(brut.ecriture) ? lireEcriture({ version: 1, ...brut.ecriture }) : undefined;
   if (brut.ecriture !== undefined && !ecriture) return undefined;
   const termes: TermePersonnalise[] = [];
@@ -500,11 +513,11 @@ function lireExport(texte: string): ReglesDuFichier | undefined {
     distincts.push(item[0] < item[1] ? [item[0], item[1]] : [item[1], item[0]]);
   }
   if (!estListeDeTextes(ecarts) || !estListeDeTextes(plusTard)
-    || !voulus.every((v) => estTexte(v) && !!motsDe(v))) return undefined;
+    || !voulus.every((v) => estTexte(v) && !!motsDe(v)) || !ordinaires.every(estMot)) return undefined;
   return {
     ...reglesVides,
     ...(ecriture ? { ecriture } : {}),
-    termes, ecartsUcm: trier(ecarts), distincts, voulus: trier(voulus as string[]), plusTard: trier((plusTard as string[]).filter((cle) => !cle.startsWith(PREFIXE_RETIRE))),
+    termes, ecartsUcm: trier(ecarts), distincts, voulus: trier(voulus as string[]), ordinaires: trier(ordinaires as string[]), plusTard: trier((plusTard as string[]).filter((cle) => !cle.startsWith(PREFIXE_RETIRE))),
   };
 }
 
@@ -519,6 +532,7 @@ function fusionner(actuelles: ReglesDuFichier, importees: ReglesDuFichier): Regl
     ecartsUcm: trier([...actuelles.ecartsUcm, ...importees.ecartsUcm]),
     distincts: [...paires.values()].sort((a, b) => comparer(a.join('|'), b.join('|'))),
     voulus: trier([...actuelles.voulus, ...importees.voulus]),
+    ordinaires: trier([...actuelles.ordinaires, ...importees.ordinaires]),
     plusTard: trier([...actuelles.plusTard, ...importees.plusTard]),
   };
 }

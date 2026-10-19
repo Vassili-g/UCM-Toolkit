@@ -65,7 +65,7 @@ function banc(options: OptionsDuBanc = {}) {
   };
   const moteur: Moteur = {
     ...moteurDuKit,
-    commencerLexique: () => { compteurs.commencerLexique++; return moteurDuKit.commencerLexique(); },
+    commencerLexique: (opts) => { compteurs.commencerLexique++; return moteurDuKit.commencerLexique(opts); },
     normaliserParEtapes: (lexique, conventions, index, opts) => { compteurs.normaliser++; portees.push(opts?.portees); return moteurDuKit.normaliserParEtapes(lexique, conventions, index, opts); },
     detecterParEtapes: (...args) => { compteurs.detecter++; maximums.push(args[3]?.maximum); return moteurDuKit.detecterParEtapes(...args); },
   };
@@ -592,4 +592,61 @@ test('le vocabulaire du Playground : la fiche et le détail portent la forme et 
   const terme = detail.termes.find((autre: { mot: string }) => autre.mot === 'stress-test');
   assert.deepEqual([terme.forme, terme.nature], ['StressTest', 'composant']);
   assert.equal(detail.noms.find((autre: { nom: string }) => autre.nom === 'components').termes.every((formes: string[]) => formes.length === 0), true);
+});
+
+test('terme-ordinaire range le nom dans les règles, relance le lexique et se défait par le geste inverse', async () => {
+  const b = banc(PLAYGROUND);
+  await b.envoyer({ type: 'analyser' });
+  let generation = b.dernierBilan().generation;
+  const lire = async (filtre: 'tous' | 'composants' | 'sans-regle') => {
+    b.vider();
+    await b.envoyer({ type: 'termes', generation, recherche: '', filtre, debut: 0 });
+    const message = b.messages[0];
+    assert.ok(message.type === 'termes');
+    return message.termes;
+  };
+  const fiche = async (terme: string) => {
+    b.vider();
+    await b.envoyer({ type: 'fiche', generation, terme });
+    const message = b.messages[0];
+    assert.ok(message.type === 'fiche');
+    return message.fiche;
+  };
+  assert.equal((await fiche('stress-test')).ordinaire, false);
+  const lexiques = b.compteurs.commencerLexique;
+
+  b.vider();
+  await b.envoyer({ type: 'regle', geste: { type: 'terme-ordinaire', terme: 'stress-test', actif: true } });
+  generation = b.dernierBilan().generation;
+  assert.ok(b.stock.has('ordinaire:stress-test'));
+  assert.equal(b.compteurs.commencerLexique, lexiques + 1, 'le lexique est refait depuis l’inventaire, sans relire Figma');
+  const apres = await lire('tous');
+  // `StressTest` n'est plus un nom mais reste un seul terme, que le designer peut rouvrir pour annuler.
+  assert.deepEqual(apres.filter((terme) => ['stress-test', 'stress', 'test'].includes(terme.mot)).map((terme) => [terme.mot, terme.forme, terme.nature, terme.statut, terme.nombre]),
+    [['stress-test', 'StressTest', null, 'sans-regle', 3]]);
+  assert.equal((await lire('composants')).some((terme) => terme.mot === 'stress-test'), false);
+  assert.equal((await fiche('stress-test')).ordinaire, true);
+
+  await b.envoyer({ type: 'regle', geste: { type: 'terme-ordinaire', terme: 'stress-test', actif: false } });
+  generation = b.dernierBilan().generation;
+  assert.equal(b.stock.has('ordinaire:stress-test'), false);
+  const retour = (await lire('composants')).find((terme) => terme.mot === 'stress-test');
+  assert.equal(retour?.nature, 'composant');
+  assert.equal((await fiche('stress-test')).ordinaire, false);
+});
+
+test('terme-ordinaire : une simulation rend effet null sans erreur, et un terme refusé arrête le geste', async () => {
+  const b = banc(PLAYGROUND);
+  await b.envoyer({ type: 'analyser' });
+  const { generation } = b.dernierBilan();
+  b.vider();
+  await b.envoyer({ type: 'simuler', generation, geste: { type: 'terme-ordinaire', terme: 'stress-test', actif: true } });
+  const simulation = b.messages.find((message) => message.type === 'simulation');
+  assert.ok(simulation && simulation.type === 'simulation');
+  assert.deepEqual([simulation.effet, simulation.conflit], [null, null]);
+  assert.equal(b.messages.some((message) => message.type === 'erreur'), false);
+  assert.equal(b.stock.has('ordinaire:stress-test'), false, 'une simulation n’écrit rien');
+  b.vider();
+  await b.envoyer({ type: 'regle', geste: { type: 'terme-ordinaire', terme: 'a/b', actif: true } });
+  assert.ok(b.messages.some((message) => message.type === 'erreur' && message.code === 'mot-refuse'));
 });

@@ -28,6 +28,7 @@ const completes: ReglesDuFichier = {
   ecartsUcm: ['ucm-etat-hover'],
   distincts: [['large', 'larger']],
   voulus: ['extra small'],
+  ordinaires: ['stress-test'],
   plusTard: ['paire:a|b'],
   collectionsGardees: ['VariableCollectionId:1:2'],
   collectionsExclues: ['VariableCollectionId:3:4'],
@@ -36,7 +37,7 @@ const completes: ReglesDuFichier = {
 
 test('chaque règle a la clé du plan et une version', () => {
   const clesAttendues = ['ecriture', 'terme:extra small', 'terme:gap', 'ecart:ucm-etat-hover', 'distinct:large|larger', 'voulu:extra small',
-    'plus-tard:paire:a|b', 'collection:VariableCollectionId:1:2', 'exclues', 'vus'];
+    'ordinaire:stress-test', 'plus-tard:paire:a|b', 'collection:VariableCollectionId:1:2', 'exclues', 'vus'];
   const ecritures = ecrituresDesRegles(completes);
   assert.deepEqual(ecritures.map((e) => e.cle), clesAttendues);
   for (const e of ecritures) assert.equal(JSON.parse(e.texte!).version, 1);
@@ -52,6 +53,7 @@ test('relire les entrées rend les règles, le vocabulaire et le déjà jugé du
   assert.deepEqual(vocabulaireDuFichier(lues), { personnalises: completes.termes, ecartsUcm: ['ucm-etat-hover'] });
   assert.deepEqual(dejaJugeDuFichier(lues), { distincts: [['large', 'larger']], plusTard: ['paire:a|b'], voulus: ['extra small'], collectionsGardees: ['VariableCollectionId:1:2'] });
   assert.deepEqual(lues.collectionsExclues, ['VariableCollectionId:3:4']);
+  assert.deepEqual(lues.ordinaires, ['stress-test']);
   assert.deepEqual(lues.vus, ['g1', 'g2']);
 });
 
@@ -270,7 +272,7 @@ test('l’import valide tout avant de rendre une écriture', () => {
   for (const abime of [
     'pas du json', '[]', JSON.stringify({ ...bon, version: 2 }), JSON.stringify({ ...bon, termes: [...bon.termes, { terme: ['x y'], remplace: [] }] }),
     JSON.stringify({ ...bon, distincts: [['a']] }), JSON.stringify({ ...bon, plusTard: [3] }), JSON.stringify({ ...bon, ecriture: { groupes: {}, variables: {} } }),
-    JSON.stringify({ ...bon, voulus: [''] }),
+    JSON.stringify({ ...bon, voulus: [''] }), JSON.stringify({ ...bon, ordinaires: ['a b'] }), JSON.stringify({ ...bon, ordinaires: 'x' }),
   ]) assert.deepEqual(importerLesRegles(abime, reglesVides, controler), { statut: 'illisible' }, abime);
   assert.equal(appels, 0);
 });
@@ -386,4 +388,19 @@ test('un rangement interrompu rétablit chaque clé déjà touchée et relance l
   const stockage = { ...stockageDe(table), ecrire: (cle: string, texte: string) => { if (++appels === 3) throw new Error('plein'); table.set(cle, texte); } };
   assert.throws(() => rangerLesEcritures(stockage, [{ cle: 'a', texte: 'A1' }, { cle: 'b', texte: 'B1' }, { cle: 'c', texte: 'C1' }]), /plein/u);
   assert.deepEqual([...table], [['a', 'A0']]);
+});
+
+test('un export sans ordinaires se lit comme une liste vide, et la fusion des ordinaires les réunit', () => {
+  const ancien = JSON.stringify({ version: 1, termes: [] });
+  const lu = importerLesRegles(ancien, reglesVides, () => []);
+  assert.equal(lu.statut, 'valide');
+  if (lu.statut !== 'valide') return;
+  assert.deepEqual(lu.regles.ordinaires, []);
+  const dejaLa: ReglesDuFichier = { ...reglesVides, ordinaires: ['head'] };
+  const fusion = importerLesRegles(exporterLesRegles(completes), dejaLa, () => []);
+  assert.equal(fusion.statut, 'valide');
+  if (fusion.statut !== 'valide') return;
+  assert.deepEqual(fusion.regles.ordinaires, ['head', 'stress-test']);
+  assert.deepEqual(lireLesRegles(dans(fusion.ecritures)).ordinaires, ['stress-test']);
+  assert.deepEqual(lireLesRegles(dans([{ cle: 'ordinaire:a b', texte: '{"version":1}' }, { cle: 'ordinaire:', texte: '{"version":1}' }])).ordinaires, []);
 });

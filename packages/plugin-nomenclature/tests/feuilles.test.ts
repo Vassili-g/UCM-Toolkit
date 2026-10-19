@@ -32,6 +32,7 @@ const FICHE: FicheVue = {
   aRenommer: { nombre: 0, exemples: [] },
   ecart: false,
   voulu: false,
+  ordinaire: false,
   distincts: [],
   question: null,
 };

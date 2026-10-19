@@ -18,6 +18,7 @@ export type GesteSurLesRegles =
   | { readonly type: 'retirer-remplace'; readonly terme: string; readonly remplace: string }
   | { readonly type: 'supprimer'; readonly terme: string }
   | { readonly type: 'ecart-ucm'; readonly terme: string; readonly actif: boolean }
+  | { readonly type: 'terme-ordinaire'; readonly terme: string; readonly actif: boolean }
   | { readonly type: 'retirer-distinct'; readonly termes: readonly [string, string] }
   | { readonly type: 'retirer-voulu'; readonly terme: string }
   | { readonly type: 'reprendre'; readonly question: string }
@@ -109,7 +110,9 @@ export interface FicheVue {
   readonly emploi: { readonly nombre: number; readonly exemples: readonly LigneVue[] };
   /** Les renommages dus au terme, où l'une de ses variantes est remplacée par lui. */
   readonly aRenommer: { readonly nombre: number; readonly exemples: readonly LigneVue[] };
-  readonly ecart: boolean; readonly voulu: boolean; readonly distincts: readonly string[]; readonly question: string | null;
+  readonly ecart: boolean; readonly voulu: boolean;
+  /** Vrai quand le fichier traite ce terme comme un mot du vocabulaire et non comme un nom. */
+  readonly ordinaire: boolean; readonly distincts: readonly string[]; readonly question: string | null;
 }
 export type EffetVue =
   | { readonly sorte: 'terme'; readonly avant: string; readonly apres: string; readonly nombre: number; readonly exemple: LigneVue | null }
@@ -177,7 +180,7 @@ function estGeste(brut: unknown): boolean {
     case 'remplace-termes': return chaine(brut.terme) && chaines(brut.termes);
     case 'retirer-remplace': return chaine(brut.terme) && chaine(brut.remplace);
     case 'supprimer': case 'retirer-voulu': return chaine(brut.terme);
-    case 'ecart-ucm': return chaine(brut.terme) && typeof brut.actif === 'boolean';
+    case 'ecart-ucm': case 'terme-ordinaire': return chaine(brut.terme) && typeof brut.actif === 'boolean';
     case 'retirer-distinct': return Array.isArray(brut.termes) && brut.termes.length === 2 && brut.termes.every(chaine);
     case 'reprendre': case 'annuler-reponse': return chaine(brut.question);
     case 'annuler-import': return true;

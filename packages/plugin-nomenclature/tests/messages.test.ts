@@ -67,6 +67,14 @@ test('une réponse sans paramètre et une collection sans cible sont acceptées'
     assert.equal(estUiMessage({ type: 'repondre', demande: 1, question: 'q', reponse }), true);
   }
 });
+test('terme-ordinaire demande un terme et un booléen, dans une règle comme dans une simulation', () => {
+  for (const type of ['regle', 'simuler']) {
+    assert.equal(estUiMessage({ type, demande: 1, generation: 1, geste: { type: 'terme-ordinaire', terme: 'stress-test', actif: true } }), true, type);
+    for (const geste of [{ type: 'terme-ordinaire', terme: 'stress-test' }, { type: 'terme-ordinaire', terme: 3, actif: true }, { type: 'terme-ordinaire', terme: 'x', actif: 'oui' }]) {
+      assert.equal(estUiMessage({ type, demande: 1, generation: 1, geste }), false, JSON.stringify(geste));
+    }
+  }
+});
 test('annuler-import est un geste sans paramètre, valide dans une règle et une simulation', () => {
   for (const type of ['regle', 'simuler']) {
     assert.equal(estUiMessage({ type, demande: 1, generation: 1, geste: { type: 'annuler-import' } }), true, type);
