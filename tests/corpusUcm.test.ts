@@ -62,7 +62,11 @@ test('le corpus relève aussi les registres d’architecture du kit', () => {
   const registres = lireJson(`${corpus}registres.json`);
   assert.deepEqual(registres, [...REGISTRES, ...REGISTRES_ARCHITECTURE].map((registre) => ({
     id: registre.id, extensible: registre.extensible,
-    termes: registre.termes.map((terme) => ({ id: terme.id, toleres: [...(terme.toleres ?? [])] })),
+    termes: registre.termes.map((terme) => ({
+      id: terme.id, toleres: [...(terme.toleres ?? [])],
+      // La forme propre à une catégorie (les tailles des dossiers en mots entiers) fait partie de la règle.
+      ...(terme.identifiantParCategorie ? { identifiantParCategorie: { ...terme.identifiantParCategorie } } : {}),
+    })),
   })));
   const provenance = lireJson(`${corpus}sources.json`);
   assert.equal(provenance.kit.sha256Registres, createHash('sha256').update(lire(`${corpus}registres.json`)).digest('hex'));

@@ -36,7 +36,9 @@ Trois outils servent plus rarement :
 - `ucm.mjs` écrit `ucm/noms.json` depuis l’instantané de la
   [vue illustrée multimarques](../../notes/Recherches/Archi%20Tokens%20Multi-marques/donnees-vue-illustree.js).
   Il relève les registres de vocabulaire et d’architecture du kit compilé dans
-  `ucm/registres.json`. Depuis la racine du dépôt :
+  `ucm/registres.json`, avec la forme qu’un terme prend dans une catégorie
+  (`identifiantParCategorie` : `large` dans un dossier, `lg` ailleurs). Depuis
+  la racine du dépôt :
 
   ```sh
   npm run build --workspace @ucm-kit/core

@@ -70,7 +70,11 @@ function ecrireCorpus(source) {
   const registres = [...REGISTRES, ...REGISTRES_ARCHITECTURE].map((registre) => ({
     id: registre.id,
     extensible: registre.extensible,
-    termes: registre.termes.map((terme) => ({ id: terme.id, toleres: [...(terme.toleres ?? [])] })),
+    termes: registre.termes.map((terme) => ({
+      id: terme.id, toleres: [...(terme.toleres ?? [])],
+      // La forme propre à une catégorie (les tailles des dossiers en mots entiers) fait partie de la règle.
+      ...(terme.identifiantParCategorie ? { identifiantParCategorie: { ...terme.identifiantParCategorie } } : {}),
+    })),
   }));
   const contenuDesRegistres = JSON.stringify(registres, null, 1) + '\n';
   const cheminDansLeDepot = (chemin) => relative(fileURLToPath(depot), fileURLToPath(chemin)).replace(/\\/g, '/');

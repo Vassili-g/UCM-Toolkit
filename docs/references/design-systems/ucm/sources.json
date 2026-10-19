@@ -15,11 +15,11 @@
   },
   "extracteur": {
     "fichier": "docs/references/design-systems/_outils/ucm.mjs",
-    "sha256": "cb343bf4af6ae72a1fb67f390cee0f585b093e5ffce1ff729e5a322291a6efd5"
+    "sha256": "30aa2103669f13e23ec9d24276dc30e0c310b26cfc7408fcaaf95aaa15b5b463"
   },
   "kit": {
     "version": "0.9.7",
-    "sha256Registres": "9c01fc48a7edd640faf7377ced628c0a238d0d3065bd51e4a9efbca2500b4d0f"
+    "sha256Registres": "6445f220695610f3c38d008117011aff3cbec01bb890ad7da0fac6d3499b1e3e"
   },
   "comptes": {
     "noms": 1300,

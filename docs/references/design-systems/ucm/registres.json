@@ -190,20 +190,29 @@
     "id": "sm",
     "toleres": [
      "small"
-    ]
+    ],
+    "identifiantParCategorie": {
+     "groupes": "small"
+    }
    },
    {
     "id": "md",
     "toleres": [
      "medium"
-    ]
+    ],
+    "identifiantParCategorie": {
+     "groupes": "medium"
+    }
    },
    {
     "id": "lg",
     "toleres": [
      "large",
      "big"
-    ]
+    ],
+    "identifiantParCategorie": {
+     "groupes": "large"
+    }
    },
    {
     "id": "xl",
