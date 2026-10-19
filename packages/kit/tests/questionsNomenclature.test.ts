@@ -37,7 +37,10 @@ test('le découpage garde la casse et les blocs soudés entiers si un morceau es
 test('le découpage coupe les chiffres et les sigles, et accepte une faute proche d’un terme connu', () => {
   assert.deepEqual(decouperPourQuestions('Gray100'), ['Gray', '100']);
   assert.deepEqual(decouperPourQuestions('H1'), ['H', '1']);
-  assert.deepEqual(decouperPourQuestions('2xl'), ['2', 'xl']);
+  assert.deepEqual(decouperPourQuestions('2xl'), ['2xl']);
+  assert.deepEqual(decouperPourQuestions('Gap-5xl'), ['Gap', '5xl']);
+  assert.deepEqual(decouperPourQuestions('2xs'), ['2xs']);
+  assert.deepEqual(decouperPourQuestions('3xlarge'), ['3', 'xlarge']);
   assert.deepEqual(decouperPourQuestions('URLBase'), ['URL', 'Base']);
   assert.deepEqual(decouperPourQuestions('textsucccess'), ['text', 'succcess']);
   assert.deepEqual(decouperPourQuestions('searchfilter'), ['search', 'filter']);

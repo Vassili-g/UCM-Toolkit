@@ -55,7 +55,7 @@ function cyclesDesRemplacements(entrees: ReadonlyMap<string, Entree>): ConflitDe
 export function indexerVocabulaire(vocabulaire: VocabulaireDuFichier): { readonly index: IndexDuVocabulaire; readonly conflits: readonly ConflitDeVocabulaire[] } {
   const parCategorie = new Map(CATEGORIES_DE_NOM.map((categorie) => [categorie, indexerPourCategorie(vocabulaire, categorie)]));
   return {
-    index: { remplacements: (mots, categorie) => parCategorie.get(categorie)!.index.remplacements(mots, categorie) },
+    index: { remplacements: (mots, categorie, frontieres) => parCategorie.get(categorie)!.index.remplacements(mots, categorie, frontieres) },
     conflits: [...new Map([...parCategorie.values()].flatMap(({ conflits }) => conflits).map((conflit) => [JSON.stringify(conflit), conflit])).values()],
   };
 }
@@ -113,7 +113,7 @@ function indexerPourCategorie(vocabulaire: VocabulaireDuFichier, categorie: Cate
   const candidats = [...entrees.values()].sort((a, b) => b.source.length - a.source.length);
   return {
     index: {
-      remplacements(mots: Mots, categorie: CategorieDeNom): readonly Remplacement[] {
+      remplacements(mots: Mots, categorie: CategorieDeNom, frontieres?: ReadonlySet<number>): readonly Remplacement[] {
         const prises = new Set<number>();
         const resultats: Remplacement[] = [];
         for (const entree of candidats) {
@@ -121,6 +121,7 @@ function indexerPourCategorie(vocabulaire: VocabulaireDuFichier, categorie: Cate
           for (let debut = 0; debut <= mots.length - entree.source.length; debut++) {
             if (entree.source.some((mot, rang) => prises.has(debut + rang) || mot.toLowerCase() !== mots[debut + rang].toLowerCase())) continue;
             const fin = debut + entree.source.length;
+            if (frontieres && !(frontieres.has(debut) && frontieres.has(fin))) continue;
             for (let rang = debut; rang < fin; rang++) prises.add(rang);
             resultats.push({ debut, fin, par: conserverLaCasse(mots.slice(debut, fin), entree.par), origine: entree.origine, cle: entree.cle });
           }

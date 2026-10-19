@@ -135,16 +135,28 @@ export function decouperUnBloc(bloc: string): string[] {
   return decoupe && decoupe.morceaux.length > 1 && decoupe.exacts > 0 ? [...decoupe.morceaux] : [bloc];
 }
 
+/** Recolle un nombre et le `xs` ou `xl` qui le suit : `5xl` est une taille, pas `5` et `xl`. */
+function rassemblerLesTailles(morceaux: readonly string[]): string[] {
+  const resultat: string[] = [];
+  for (const morceau of morceaux) {
+    const precedent = resultat[resultat.length - 1];
+    if (precedent !== undefined && /^\p{N}+$/u.test(precedent) && /^x[sl]$/iu.test(morceau)) resultat[resultat.length - 1] = precedent + morceau;
+    else resultat.push(morceau);
+  }
+  return resultat;
+}
+
 /**
  * Découpe un segment pour la détection des questions. Les séparateurs explicites, les chiffres et les sigles
  * coupent toujours ; la casse et les blocs soudés ne coupent que si chaque morceau est un terme connu
- * ou une faute proche. Un segment qui forme une propriété CSS usuelle devient ce terme composé.
+ * ou une faute proche. Un segment qui forme une propriété CSS usuelle devient ce terme composé,
+ * et une taille (`5xl`, `2xs`) reste entière.
  */
 export function decouperPourQuestions(segment: string): string[] {
   const compose = segment.replace(/(\p{Ll}|\p{N})(\p{Lu})/gu, '$1-$2').split(/[-_\s]+/u).filter(Boolean).join('-').toLowerCase();
   const termeCompose = TERMES_COMPOSES.includes(compose) ? compose : composesSoudes.get(compose.replace(/-/g, ''));
   if (termeCompose) return [termeCompose];
   const blocs = segment.split(/[-_\s]+/u).filter(Boolean)
-    .flatMap((bloc) => bloc.replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu, '$1\0$2').replace(/(\p{L})(\p{N})|(\p{N})(\p{L})/gu, '$1$3\0$2$4').split('\0'));
+    .flatMap((bloc) => rassemblerLesTailles(bloc.replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu, '$1\0$2').replace(/(\p{L})(\p{N})|(\p{N})(\p{L})/gu, '$1$3\0$2$4').split('\0')));
   return blocs.flatMap((bloc) => /\p{N}/u.test(bloc) || !/\p{L}/u.test(bloc) ? [bloc] : decouperUnBloc(bloc));
 }

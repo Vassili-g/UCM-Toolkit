@@ -1,13 +1,17 @@
 /** Préparation des noms et normalisation par lots, sans accès au document Figma. */
 import type { CategorieDeNom, ConventionsParCategorie } from './conventions.js';
-import { assembler, categorieDuSegment, commencerDetectionDesConventions, decouperSegment, motsAvecCasse } from './ecriture-des-mots.js';
-import type { ChangementDeTerme, CleDeRegle, Collision, IndexDuVocabulaire, Lexique, Mots, NomLu, Occurrence, PreparationDuLexique, Renommage, ResultatDuLexique } from './harmonisation.js';
+import { assembler, categorieDuSegment, commencerDetectionDesConventions, decouperSegment, motsAvecCasse, termesDuSegment } from './ecriture-des-mots.js';
+import type { ChangementDeTerme, CleDeRegle, Collision, IndexDuVocabulaire, Lexique, Mots, NomLu, Occurrence, OccurrenceDeTerme, PlageDeTerme, PreparationDuLexique, Renommage, ResultatDuLexique } from './harmonisation.js';
+import { naturesDesNoms, type NatureDeSegment } from './natures.js';
 import { collectionUcmReconnue } from './normalisation.js';
 
 const TAILLE_D_UN_LOT = 200;
 
-/** Ajoute les noms sans analyse ; `terminer` indexe et détecte par lots de deux cents noms. */
-export function commencerLexique(): PreparationDuLexique {
+/**
+ * Ajoute les noms sans analyse ; `terminer` indexe et détecte par lots de deux cents noms.
+ * `ordinaires` : les termes que le fichier traite comme des mots ordinaires, jamais comme des noms (voir `naturesDesNoms`).
+ */
+export function commencerLexique(options: { readonly ordinaires?: ReadonlySet<string> } = {}): PreparationDuLexique {
   const recus: NomLu[] = [];
   return {
     ajouter(noms) { for (const nom of noms) recus.push(nom); },
@@ -15,14 +19,28 @@ export function commencerLexique(): PreparationDuLexique {
       const noms = new Map<string, NomLu>();
       const mots = new Map<string, Mots>();
       const occurrences = new Map<string, Occurrence[]>();
+      const occurrencesDesTermes = new Map<string, OccurrenceDeTerme[]>();
+      const termes = new Map<string, (readonly PlageDeTerme[])[]>();
+      const plagesParSegment = new Map<string, readonly PlageDeTerme[]>();
       const portees = new Map<string, string[]>();
       const detection = commencerDetectionDesConventions();
       let traites = 0;
+      // La nature d'un segment dépend de tous les noms du fichier : elle se calcule avant le premier lot,
+      // en un seul pas (`naturesDesNoms` ne cède pas). Les noms sont lus par lots avant ce calcul.
+      const lus: NomLu[] = [];
+      for (const nom of recus) {
+        lus.push({ ...nom });
+        if (++traites % TAILLE_D_UN_LOT === 0) yield;
+      }
+      const natures = naturesDesNoms(lus, { ordinaires: options.ordinaires });
+      traites = 0;
       for (const nom of recus) {
         noms.set(nom.id, nom);
         const ids = portees.get(nom.portee) ?? [];
         ids.push(nom.id);
         portees.set(nom.portee, ids);
+        const naturesDuNom = natures.get(nom.id);
+        const plagesDuNom: (readonly PlageDeTerme[])[] = [];
         nom.nom.split('/').forEach((segment, rangSegment) => {
           let decoupe = mots.get(segment);
           if (!decoupe) {
@@ -35,11 +53,27 @@ export function commencerLexique(): PreparationDuLexique {
             places.push({ nomId: nom.id, rangSegment, rangMot });
             occurrences.set(cle, places);
           });
+          const nature = naturesDuNom?.[rangSegment] ?? null;
+          const cleDePlages = `${nature}\0${segment}`;
+          let plages = plagesParSegment.get(cleDePlages);
+          if (!plages) {
+            plages = termesDuSegment(decoupe, nature);
+            plagesParSegment.set(cleDePlages, plages);
+          }
+          plagesDuNom.push(plages);
+          if (nom.categorie === 'collections') return;
+          for (const [debut, fin] of plages) {
+            const cle = decoupe.slice(debut, fin).map((mot) => mot.toLowerCase()).join('-');
+            const places = occurrencesDesTermes.get(cle) ?? [];
+            places.push({ nomId: nom.id, rangSegment, rangMot: debut, longueur: fin - debut });
+            occurrencesDesTermes.set(cle, places);
+          }
         });
+        termes.set(nom.id, plagesDuNom);
         detection.ajouter(nom, mots);
         if (++traites % TAILLE_D_UN_LOT === 0) yield;
       }
-      return { noms, mots, occurrences, portees, detection: detection.resultat() };
+      return { noms, mots, occurrences, natures, termes, occurrencesDesTermes, portees, detection: detection.resultat() };
     },
   };
 }
@@ -51,10 +85,12 @@ type SegmentNormalise = {
 };
 
 function normaliserSegment(segment: string, categorie: CategorieDeNom, conventions: ConventionsParCategorie,
-  index: IndexDuVocabulaire, decoupe: Mots): SegmentNormalise {
+  index: IndexDuVocabulaire, decoupe: Mots, nature: NatureDeSegment | null): SegmentNormalise {
   if (decoupe.length === 0) return { nouveau: segment, regles: [], termes: [] };
   const choix = conventions[categorie] ?? { casse: 'inchangee', separateur: 'inchange' };
-  const remplacements = index.remplacements(decoupe, categorie);
+  // Un remplacement ne coupe pas un terme : `wrap` ne touche pas `ScaleWrap` (un élément), `radius` remplace `Border-radius` en entier.
+  const frontieres = new Set([...termesDuSegment(decoupe, nature).map(([debut]) => debut), decoupe.length]);
+  const remplacements = index.remplacements(decoupe, categorie, frontieres);
   const termes: ChangementDeTerme[] = [];
   const regles: { cle: CleDeRegle; priorite: number }[] = [];
   const remplaces: string[] = [];
@@ -95,10 +131,11 @@ function proposer(nom: NomLu, lexique: Lexique, conventions: ConventionsParCateg
     if (rang < segments.length - 1 && groupesFiges.has(cheminDeGroupe(nom.portee, segments, rang))) return segment;
     const categorie = categorieDuSegment(nom, rang);
     const choix = conventions[categorie];
-    const cle = JSON.stringify([segment, categorie, choix?.casse, choix?.separateur]);
+    const nature = lexique.natures.get(nom.id)?.[rang] ?? null;
+    const cle = JSON.stringify([segment, categorie, choix?.casse, choix?.separateur, nature]);
     let resultat = cache.get(cle);
     if (!resultat) {
-      resultat = normaliserSegment(segment, categorie, conventions, index, lexique.mots.get(segment) ?? decouperSegment(segment));
+      resultat = normaliserSegment(segment, categorie, conventions, index, lexique.mots.get(segment) ?? decouperSegment(segment), nature);
       cache.set(cle, resultat);
     }
     regles.push(...resultat.regles);

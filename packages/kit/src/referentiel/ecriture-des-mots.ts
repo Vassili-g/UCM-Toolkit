@@ -1,8 +1,9 @@
 /** Découpage et écriture des segments employés par les deux moteurs de normalisation. */
 import { COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
 import { CATEGORIES_DE_NOM, type Casse, type CategorieDeNom, type NomANormaliser, type Separateur } from './conventions.js';
+import type { NatureDeSegment } from './natures.js';
 import type { ConventionDetectee } from './normalisation.js';
-import { decouperUnBloc } from './termes-connus.js';
+import { decouperUnBloc, TERMES_COMPOSES } from './termes-connus.js';
 import { REGISTRES } from './vocabulaire.js';
 
 export function frontieres(segment: string): string {
@@ -35,6 +36,50 @@ function trancherUnBlocSoude(mot: string): string[] {
   if (morceaux.length < 2 || morceaux.join('') !== mot.toLowerCase()) return [mot];
   let debut = 0;
   return morceaux.map((morceau) => mot.slice(debut, (debut += morceau.length)));
+}
+
+/**
+ * Termes de plusieurs mots, en minuscules et joints par `-` : les propriétés composées, les identifiants et les formes tolérées des registres,
+ * dont les valeurs du thème (`foreground-main`).
+ */
+const termesDePlusieursMots = new Set([
+  ...TERMES_COMPOSES,
+  ...[...REGISTRES, ...REGISTRES_ARCHITECTURE].flatMap((registre) => registre.termes)
+    .flatMap((terme) => [terme.id, ...(terme.toleres ?? [])])
+    .map((forme) => decouperSegment(forme).map((mot) => mot.toLowerCase()))
+    .filter((mots) => mots.length > 1).map((mots) => mots.join('-')),
+]);
+const MOTS_DU_PLUS_LONG_TERME = Math.max(...[...termesDePlusieursMots].map((terme) => terme.split('-').length));
+
+/**
+ * Plages `[début, fin[` des termes d'un segment découpé par `decouperSegment`, qui couvrent tous ses mots.
+ * Un segment qui a une nature (composant, élément, palette) est un seul terme. Sinon, une suite de mots
+ * qui forme un terme de plusieurs mots (`line-height`, `border-radius`) est un terme, la plus longue d'abord ;
+ * tout autre mot est un terme à lui seul, pour que `primaryBg` reste deux termes.
+ */
+export function termesDuSegment(mots: readonly string[], nature: NatureDeSegment | null): readonly (readonly [number, number])[] {
+  if (mots.length === 0) return [];
+  if (nature) return [[0, mots.length]];
+  const minuscules = mots.map((mot) => mot.toLowerCase());
+  const debuts = new Map<number, number>();
+  const prises = new Set<number>();
+  for (let longueur = Math.min(MOTS_DU_PLUS_LONG_TERME, mots.length); longueur >= 2; longueur--) {
+    for (let debut = 0; debut + longueur <= mots.length; debut++) {
+      if (!termesDePlusieursMots.has(minuscules.slice(debut, debut + longueur).join('-'))) continue;
+      let libre = true;
+      for (let rang = debut; rang < debut + longueur; rang++) if (prises.has(rang)) libre = false;
+      if (!libre) continue;
+      for (let rang = debut; rang < debut + longueur; rang++) prises.add(rang);
+      debuts.set(debut, longueur);
+    }
+  }
+  const plages: [number, number][] = [];
+  for (let rang = 0; rang < mots.length;) {
+    const fin = rang + (debuts.get(rang) ?? 1);
+    plages.push([rang, fin]);
+    rang = fin;
+  }
+  return plages;
 }
 
 export function capitale(mot: string): string {

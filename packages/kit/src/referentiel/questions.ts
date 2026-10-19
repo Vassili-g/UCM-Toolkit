@@ -150,7 +150,10 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
   for (const nom of lexique.noms.values()) {
     if (nom.categorie === 'collections') { collections.push(nom); if (++operations % TAILLE_D_UN_LOT === 0) yield; continue; }
     const segments = nom.nom.split('/');
+    const natures = lexique.natures.get(nom.id);
     for (const [rang, segment] of segments.entries()) {
+      // Un nom de composant, d'élément ou de palette n'est pas un mot du vocabulaire : aucune question ne le porte.
+      if (natures?.[rang]) continue;
       const mots = decouperPourQuestions(segment);
       const motsPlats = mots.flatMap((mot) => mot.split('-'));
       const categorie = categorieDuSegment(nom, rang);

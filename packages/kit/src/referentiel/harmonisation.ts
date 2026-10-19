@@ -4,6 +4,7 @@
  * Après une modification : relancer `npm test` et changer la version du kit ; aucune vue ni planche n'en tire de données.
  */
 import type { CategorieDeNom, ConventionsParCategorie, NomANormaliser } from './conventions.js';
+import type { NatureDeSegment } from './natures.js';
 import type { ConventionDetectee } from './normalisation.js';
 import type { Collection } from './architecture.js';
 
@@ -16,6 +17,10 @@ export type Mots = readonly string[];
  */
 export interface NomLu extends NomANormaliser { readonly cibleAlias?: string; readonly palette?: string }
 export interface Occurrence { readonly nomId: string; readonly rangSegment: number; readonly rangMot: number }
+/** Plage `[début, fin[` des mots d'un segment qui forment un terme. */
+export type PlageDeTerme = readonly [number, number];
+/** Un terme dans un segment : `rangMot` est son premier mot, `longueur` le nombre de ses mots. */
+export type OccurrenceDeTerme = Occurrence & { readonly longueur: number };
 
 export interface Lexique {
   readonly noms: ReadonlyMap<string, NomLu>;
@@ -23,6 +28,12 @@ export interface Lexique {
   readonly mots: ReadonlyMap<string, Mots>;
   /** Mot en minuscules vers ses occurrences. */
   readonly occurrences: ReadonlyMap<string, readonly Occurrence[]>;
+  /** Identifiant d'un nom vers la nature de chacun de ses segments, alignée sur `nom.split('/')`. */
+  readonly natures: ReadonlyMap<string, readonly (NatureDeSegment | null)[]>;
+  /** Identifiant d'un nom vers, pour chaque segment, les plages de mots de ses termes. */
+  readonly termes: ReadonlyMap<string, readonly (readonly PlageDeTerme[])[]>;
+  /** Terme en minuscules, mots joints par `-` (`stress-test`, `line-height`), vers ses occurrences ; les collections n'en ont pas. */
+  readonly occurrencesDesTermes: ReadonlyMap<string, readonly OccurrenceDeTerme[]>;
   /** Portée vers les identifiants de ses noms, occupants inchangés compris. */
   readonly portees: ReadonlyMap<string, readonly string[]>;
   /** Calculée une fois par lexique ; un changement de règle ne la refait pas. */
@@ -40,9 +51,12 @@ export interface VocabulaireDuFichier {
 export type OrigineDuTerme = 'ucm' | 'personnalise';
 export interface Remplacement { readonly debut: number; readonly fin: number; readonly par: Mots; readonly origine: OrigineDuTerme; readonly cle: string }
 export interface IndexDuVocabulaire {
-  /** Les remplacements d'une suite de mots, le plus long terme d'abord, sans chevauchement. */
-  remplacements(mots: Mots, categorie: CategorieDeNom): readonly Remplacement[];
-}
+  /**
+   * Les remplacements d'une suite de mots, le plus long terme d'abord, sans chevauchement.
+   * Avec `frontieres` (indices de mot où un terme commence, plus le nombre de mots), un remplacement
+   * qui ne commence pas et ne finit pas sur une frontière est écarté.
+   */
+  remplacements(mots: Mots, categorie: CategorieDeNom, frontieres?: ReadonlySet<number>): readonly Remplacement[];}
 export type ConflitDeVocabulaire =
   | { readonly type: 'contredit-ucm'; readonly terme: Mots; readonly remplace: Mots; readonly termeUcm: Mots }
   | { readonly type: 'deja-remplace'; readonly remplace: Mots; readonly par: Mots }
