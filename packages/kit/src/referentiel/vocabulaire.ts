@@ -114,7 +114,7 @@ export const REGISTRE_AXES_ETAT: Registre = {
   ],
 };
 
-/** Décisions T06 et S02 : l'échelle de Tailwind ; les mots entiers et `big` en sont des formes tolérées. */
+/** Les dossiers gardent les tailles en mots entiers ; les variables emploient les abréviations. */
 const TAILLES_RETENUES: readonly (readonly [string, readonly string[]])[] = [
   ['4xs', []], ['3xs', []], ['2xs', []], ['xs', []], ['sm', ['small']], ['md', ['medium']], ['lg', ['large', 'big']],
   ['xl', []], ['2xl', ['xxl']], ['3xl', ['xxxl']], ['4xl', []],
@@ -122,12 +122,16 @@ const TAILLES_RETENUES: readonly (readonly [string, readonly string[]])[] = [
 
 export const REGISTRE_TAILLES: Registre = {
   id: 'tailles', extensible: true,
-  termes: TAILLES_RETENUES.map(([taille, toleres]) => ({
-    id: taille,
-    ...(toleres.length ? { toleres } : {}),
-    libelle: { fr: taille, en: taille },
-    definition: { fr: `Valeur de taille ${taille}.`, en: `Size value ${taille}.` },
-  })),
+  termes: TAILLES_RETENUES.map(([taille, toleres]) => {
+    const echelle = ECHELLES_DE_TAILLES.find(([court]) => court === taille);
+    return {
+      id: taille,
+      ...(echelle ? { identifiantParCategorie: { groupes: echelle[1] } } : {}),
+      ...(toleres.length ? { toleres } : {}),
+      libelle: { fr: taille, en: taille },
+      definition: { fr: `Valeur de taille ${taille}.`, en: `Size value ${taille}.` },
+    };
+  }),
 };
 
 export const REGISTRE_STATUTS: Registre = {

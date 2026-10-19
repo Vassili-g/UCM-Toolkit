@@ -1,4 +1,6 @@
 /** Le vocabulaire bilingue partagé. Toute modification demande les tests du référentiel, les vues générées et la revue de version du kit. */
+import type { CategorieDeNom } from './conventions.js';
+
 export type Langues = { readonly fr: string; readonly en: string };
 
 export type Terme = {
@@ -6,7 +8,15 @@ export type Terme = {
   readonly libelle: Langues;
   readonly definition: Langues;
   readonly toleres?: readonly string[];
+  readonly identifiantParCategorie?: Readonly<Partial<Record<CategorieDeNom, string>>>;
 };
+
+/** Une forme retenue dans une catégorie devient une forme tolérée dans les autres. */
+export function termePourCategorie(terme: Terme, categorie: CategorieDeNom): Terme {
+  const id = terme.identifiantParCategorie?.[categorie] ?? terme.id;
+  const formes = [terme.id, ...(terme.toleres ?? []), ...Object.values(terme.identifiantParCategorie ?? {})];
+  return { ...terme, id, toleres: [...new Set(formes)].filter((forme) => forme !== id) };
+}
 
 export type Registre = {
   readonly id: string;

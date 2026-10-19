@@ -1,9 +1,10 @@
 /** Index des termes UCM et des termes propres au fichier pour normaliser ses noms. */
 import { REGISTRES_ARCHITECTURE } from './architecture.js';
-import type { CategorieDeNom } from './conventions.js';
+import { CATEGORIES_DE_NOM, type CategorieDeNom } from './conventions.js';
 import type { ConflitDeVocabulaire, IndexDuVocabulaire, Mots, OrigineDuTerme, Remplacement, VocabulaireDuFichier } from './harmonisation.js';
 import { decouperSegment } from './normalisation.js';
 import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
+import { termePourCategorie } from './termes.js';
 
 type Entree = {
   readonly source: Mots;
@@ -52,14 +53,23 @@ function cyclesDesRemplacements(entrees: ReadonlyMap<string, Entree>): ConflitDe
 
 /** Indexe les formes tolérées par UCM, puis les remplacements du fichier ; signale les règles incompatibles. */
 export function indexerVocabulaire(vocabulaire: VocabulaireDuFichier): { readonly index: IndexDuVocabulaire; readonly conflits: readonly ConflitDeVocabulaire[] } {
+  const parCategorie = new Map(CATEGORIES_DE_NOM.map((categorie) => [categorie, indexerPourCategorie(vocabulaire, categorie)]));
+  return {
+    index: { remplacements: (mots, categorie) => parCategorie.get(categorie)!.index.remplacements(mots, categorie) },
+    conflits: [...new Map([...parCategorie.values()].flatMap(({ conflits }) => conflits).map((conflit) => [JSON.stringify(conflit), conflit])).values()],
+  };
+}
+
+function indexerPourCategorie(vocabulaire: VocabulaireDuFichier, categorie: CategorieDeNom): { readonly index: IndexDuVocabulaire; readonly conflits: readonly ConflitDeVocabulaire[] } {
   const ecarts = new Set(vocabulaire.ecartsUcm.map((id) => id.toLowerCase()));
   const canoniquesUcm = new Map<string, Mots>();
   const entrees = new Map<string, Entree>();
   const conflits: ConflitDeVocabulaire[] = [];
 
   for (const registre of [...REGISTRES, ...REGISTRES_ARCHITECTURE]) {
-    for (const terme of registre.termes) {
-      if (ecarts.has(terme.id.toLowerCase())) continue;
+    for (const original of registre.termes) {
+      if (ecarts.has(original.id.toLowerCase())) continue;
+      const terme = termePourCategorie(original, categorie);
       const canonique = decouperSegment(terme.id);
       canoniquesUcm.set(cleDesMots(canonique), canonique);
       for (const tolere of terme.toleres ?? []) {
@@ -67,7 +77,7 @@ export function indexerVocabulaire(vocabulaire: VocabulaireDuFichier): { readonl
         const cle = cleDesMots(source);
         if (cle === cleDesMots(canonique)) continue;
         const entree: Entree = {
-          source, par: canonique, origine: 'ucm', cle: `terme:${terme.id}`,
+          source, par: canonique, origine: 'ucm', cle: `terme:${original.id}`,
           proprietesSeulement: registre === REGISTRE_AXES_ETAT,
         };
         if (!entrees.has(cle)) entrees.set(cle, entree);

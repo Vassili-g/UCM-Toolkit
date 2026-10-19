@@ -7,6 +7,7 @@ import { COLLECTIONS, REGISTRES_ARCHITECTURE, type Collection } from './architec
 import { type Casse, type Separateur, type Convention, type NomANormaliser, type ConventionsParCategorie, type CategorieDeNom } from './conventions.js';
 import { assembler, capitale, categorieDuSegment, commencerDetectionDesConventions, decouperSegment, motsAvecCasse } from './ecriture-des-mots.js';
 import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
+import { termePourCategorie } from './termes.js';
 
 export { decouperSegment } from './ecriture-des-mots.js';
 
@@ -37,7 +38,7 @@ export function collectionUcmReconnue(nom: string): Collection | undefined {
 /** Remplace les formes tolérées, y compris une suite de mots (`border-radius` → `radius`), comme le moteur d'Architect. */
 function remplacerLesTermes(mots: readonly string[], categorie: CategorieDeNom): string[] {
   const registres = [...REGISTRES, ...REGISTRES_ARCHITECTURE].filter((registre) => registre !== REGISTRE_AXES_ETAT || categorie === 'proprietes');
-  const formes = registres.flatMap((registre) => registre.termes).flatMap((terme) => (terme.toleres ?? [])
+  const formes = registres.flatMap((registre) => registre.termes).map((terme) => termePourCategorie(terme, categorie)).flatMap((terme) => (terme.toleres ?? [])
     .map((tolere) => ({ source: decouperSegment(tolere).map((mot) => mot.toLowerCase()), id: terme.id })))
     .sort((a, b) => b.source.length - a.source.length);
   const resultat: string[] = [];

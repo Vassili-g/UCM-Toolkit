@@ -55,7 +55,7 @@ La revue a montré que corriger le bruit ne suffit pas. Il faut garantir qu'une 
   - [x] Remesurer C1 et C2 ; comparer les questions de C2 aux 17 paires annotées (`620d0e6`) : C2 donne 15 questions.
 - [x] **A7 · Décisions dans les registres du kit.** Chaque changement renvoie à son identifiant de décision (`8a08f82`).
   - [x] États (S01, T02, T12, S05, C03) : `default` (tolère `rest`, `resting`, `normal`, `selected-false`, `unselected`), `hover` (`hovered`), `focus` (`focused`), `pressed` (`press`), `disabled` (`disable`), `selected` (`selected-true`) (`8a08f82`).
-  - [x] Tailles (T06, S02) : `xs`, `sm`, `md`, `lg`, `xl`, `2xl`… ; `sm` tolère `small`, `md` tolère `medium`, `lg` tolère `large` et `big` (`8a08f82`).
+  - [x] Tailles (T06, S02) : dans le nom final des variables, `small` devient `sm`, `medium` devient `md`, `large` et `big` deviennent `lg`. Dans les dossiers, `sm` devient `small`, `md` devient `medium`, `lg` et `big` deviennent `large`. Les autres tailles (`xs`, `xl`, `2xl`…) gardent leur règle.
   - [x] Statuts (T03, C04 à C06) : `danger` tolère `error`, `critical`, `negative` ; `success` tolère `positive` ; `warning` tolère `caution`, `attention`, `notice` ; `info` tolère `information`, `informative` (`8a08f82`).
   - [x] Rôles (T01, T14, T15, C01, C08) : `text` et `inverse` ajoutés ; `background` tolère `bg` ; `ring` tolère `focus-ring` ; `divider` tolère `separator` (`8a08f82`).
   - [x] Propriétés (T04, T05, T07, T13) : `font-size`, `line-height`, `letter-spacing`, `font-weight`, `font-family` ; `radius` tolère `border-radius` ; `color` tolère `colors` et `colour` ; `size`, `icon`, `dimension` tolèrent leur pluriel (`8a08f82`).

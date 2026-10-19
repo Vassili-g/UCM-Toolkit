@@ -35,6 +35,37 @@ function equivalenceV1(noms: readonly NomLu[]): void {
   assert.deepEqual(nouveau.collisions, ancien.collisions);
 }
 
+test('les dossiers développent les tailles et les variables les abrègent', () => {
+  const cas = [
+    ['Display/Large/FontSize', 'Display/Large/font-size'],
+    ['Button/Sizes/Big/Border-radius', 'Button/Size/Large/radius'],
+    ['Display/lg/large', 'Display/Large/lg'],
+    ['Display/md/medium', 'Display/Medium/md'],
+    ['Display/sm/small', 'Display/Small/sm'],
+    ['Display/Medium/md', 'Display/Medium/md'],
+    ['Display/Small/sm', 'Display/Small/sm'],
+    ['Display/Large/lg', 'Display/Large/lg'],
+    ['Display/big/big', 'Display/Large/lg'],
+  ];
+  for (const [source, cible] of cas) {
+    const categories = source.split('/').map((_, rang, segments) => rang < segments.length - 1 ? 'groupes' as const : null);
+    const noms = [variable(source, source, 'components', categories)];
+    equivalenceV1(noms);
+    const resultat = normaliserLeLexique(preparer(noms), conventions, indexUcm);
+    assert.equal(resultat.renommages[0]?.nouveauNom ?? source, cible);
+    assert.deepEqual(normaliserLeLexique(preparer([variable(source, cible, 'components', categories)]), conventions, indexUcm).renommages, []);
+  }
+});
+
+test('un dossier de taille et son abréviation produisent une collision', () => {
+  const noms = [variable('a', 'Display/lg/font-size', 'type', ['groupes', 'groupes', null]),
+    variable('b', 'Display/Large/font-size', 'type', ['groupes', 'groupes', null])];
+  equivalenceV1(noms);
+  const resultat = normaliserLeLexique(preparer(noms), conventions, indexUcm);
+  assert.deepEqual(resultat.renommages, []);
+  assert.equal(resultat.collisions[0]?.nom, 'Display/Large/font-size');
+});
+
 test('la vue illustrée rend les renommages et collisions de la v1', () => {
   const contexte = { window: {} as { VUE_DONNEES?: { collections: Record<string, Record<string, unknown>> } } };
   vm.runInNewContext(readFileSync(new URL('../../../docs/notes/Recherches/Archi Tokens Multi-marques/donnees-vue-illustree.js', import.meta.url), 'utf8'), contexte);

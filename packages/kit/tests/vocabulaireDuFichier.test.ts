@@ -4,6 +4,17 @@ import { indexerVocabulaire, type VocabulaireDuFichier } from '../src/referentie
 
 const vide: VocabulaireDuFichier = { personnalises: [], ecartsUcm: [] };
 
+test('les tailles changent de forme selon la catégorie et gardent le même écart UCM', () => {
+  const { index, conflits } = indexerVocabulaire(vide);
+  assert.deepEqual(conflits, []);
+  const mots = ['SM', 'Md', 'lg', 'big', 'small', 'medium', 'large'];
+  assert.deepEqual(index.remplacements(mots, 'groupes').map(({ par }) => par), [['SMALL'], ['Medium'], ['large'], ['large']]);
+  assert.deepEqual(index.remplacements(mots, 'variables').map(({ par }) => par), [['lg'], ['sm'], ['md'], ['lg']]);
+  const sansLarge = indexerVocabulaire({ ...vide, ecartsUcm: ['lg'] }).index;
+  assert.deepEqual(sansLarge.remplacements(['lg', 'large', 'big'], 'groupes'), []);
+  assert.deepEqual(sansLarge.remplacements(['lg', 'large', 'big'], 'variables'), []);
+});
+
 test('les formes tolérées UCM se remplacent, sans réécrire un identifiant retenu', () => {
   const { index, conflits } = indexerVocabulaire(vide);
   assert.deepEqual(conflits, []);
