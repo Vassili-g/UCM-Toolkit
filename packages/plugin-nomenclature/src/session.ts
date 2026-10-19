@@ -22,7 +22,7 @@ import {
   annulerLeDernierRenommage, appliquerLesRenommages,
   type PortDeRegles, type PortEcriture, type RenommageDemande, type ResultatEcriture,
 } from './ecriture';
-import { lireInventaire, relireInventaireAvantEcriture, type Inventaire, type PortDeLecture } from './lecture';
+import { lireInventaire, type Inventaire, type PortDeLecture } from './lecture';
 import type {
   CodeDErreur, DemandeArchitect, EcritureChoisie, EffetVue, GesteSurLesRegles, PluginMessage, Reponse, ResultatVue,
 } from './messages';
@@ -534,18 +534,17 @@ export function creerSession(options: OptionsDeSession): Session {
   async function appliquer(passage: Passage, demande: Extract<DemandeArchitect, { type: 'appliquer' }>): Promise<void> {
     const base = exiger();
     if (demande.generation !== base.generation) throw new ErreurDeProtocole('generation-perimee');
-    if (signatureDuCalcul(lireRegles()) !== signatureDuCalcul(base.regles)) throw new ErreurDeProtocole('regles-modifiees');
     const demandes = demandesDeRenommage(base, base.projection.identifiants(demande.selection));
-    const inventaire = await relireInventaireAvantEcriture(port.lecture);
     const session = await port.ecriture.ouvrir();
-    const resultat = appliquerLesRenommages({ demandes, inventaire, session, stockage: port.regles, heure: options.heure });
+    // Aucune attente après `ouvrir` : la signature se compare juste avant l'écriture synchrone.
+    if (signatureDuCalcul(lireRegles()) !== signatureDuCalcul(base.regles)) throw new ErreurDeProtocole('regles-modifiees');
+    const resultat = appliquerLesRenommages({ demandes, session, stockage: port.regles, heure: options.heure });
     await conclureUneEcriture(passage, 'application', resultat);
   }
 
   async function annulerLeDernier(passage: Passage): Promise<void> {
-    const inventaire = await relireInventaireAvantEcriture(port.lecture);
     const session = await port.ecriture.ouvrir();
-    const resultat = annulerLeDernierRenommage({ inventaire, session, stockage: port.regles });
+    const resultat = annulerLeDernierRenommage({ session, stockage: port.regles });
     await conclureUneEcriture(passage, 'annulation', resultat);
   }
 

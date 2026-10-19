@@ -5,7 +5,7 @@ import {
   annulerLeDernierRenommage, appliquerLesRenommages, creerPortEcriture,
   type ObjetModifiable, type PortDeRegles, type RenommageDemande, type SessionEcriture, type VariableModifiable,
 } from '../src/ecriture';
-import { relireInventaireAvantEcriture, type PortDeLecture } from '../src/lecture';
+import { inventaireDeLectures, type LecteurDeVariable, type ObjetNomme, type VariableLue } from '../src/lecture';
 import { lireLesRegles, lireLeStockage } from '../src/regles';
 
 const HEURE = '2026-10-17T10:00:00.000Z';
@@ -38,13 +38,16 @@ function banc(options: { variables?: readonly SpecVariable[]; collections?: read
   const variables = new Map<string, VariableModifiable>();
   for (const [id, nom] of options.collections ?? [['c', 'Brand']]) collections.set(id, creer(id, nom, {}));
   for (const [id, nom, collection = 'c'] of options.variables ?? []) variables.set(id, creer(id, nom, { variableCollectionId: collection }));
-  const lecture: PortDeLecture = {
-    collections: async () => [...collections.values()].map((objet) => ({ id: objet.id, name: objet.name, remote: false })),
-    variables: async () => [...variables.values()].map((objet) => ({ id: objet.id, name: objet.name, variableCollectionId: objet.variableCollectionId, remote: false })),
+  const lectures = (): [readonly ObjetNomme[], readonly VariableLue[]] => [
+    [...collections.values()].map((objet) => ({ id: objet.id, name: objet.name, remote: false })),
+    [...variables.values()].map((objet) => ({ id: objet.id, name: objet.name, variableCollectionId: objet.variableCollectionId, remote: false })),
+  ];
+  const lecture: LecteurDeVariable = {
     cibleAlias: () => undefined,
     protegee: (variable) => protegees.includes(variable.id),
   };
   const session: SessionEcriture = {
+    get inventaire() { return inventaireDeLectures(...lectures(), lecture); },
     collection: (id) => collections.get(id) ?? null,
     variable: (id) => variables.get(id) ?? null,
     commitUndo: () => { traces.push('undo'); },
@@ -73,11 +76,11 @@ function banc(options: { variables?: readonly SpecVariable[]; collections?: read
     c: (id: string, nouveauNom: string): RenommageDemande => ({ type: 'collection', id: entree('collection', id), figmaId: id, ancienNom: noms.get(id)!, nouveauNom }),
     entree,
     appliquer: async (demandes: readonly RenommageDemande[]) => appliquerLesRenommages({
-      demandes, inventaire: await relireInventaireAvantEcriture(lecture), session, stockage, heure: () => HEURE,
+      demandes, session, stockage, heure: () => HEURE,
       ...(lots.injecte ? { lot: () => `l${++lots.numero}` } : {}),
     }),
     annuler: async () => annulerLeDernierRenommage({
-      inventaire: await relireInventaireAvantEcriture(lecture), session, stockage,
+      session, stockage,
       ...(lots.injecte ? { lot: () => `l${++lots.numero}` } : {}),
     }),
     journal: () => lireLesRegles(lireLeStockage(stockage)).journal,
@@ -431,18 +434,63 @@ test('l’adaptateur résout les objets locaux par l’API asynchrone avant les 
   const api = {
     variables: {
       getLocalVariableCollectionsAsync: async () => { appels.push('collections'); return [...b.collections.values()]; },
-      getLocalVariablesAsync: async () => { appels.push('variables'); return [...b.variables.values()]; },
+      getLocalVariablesAsync: async () => { appels.push('variables'); return [...b.variables.values()].map((objet) => Object.assign(objet, { getSharedPluginData: () => '' })); },
     },
+    root: { getSharedPluginData: (espace: string, cle: string) => { appels.push(`racine:${espace}/${cle}`); return ''; } },
     commitUndo: () => { appels.push('undo'); },
   };
   const session = await creerPortEcriture(api as unknown as PluginAPI).ouvrir();
-  assert.deepEqual(appels, ['collections', 'variables']);
+  assert.deepEqual(appels, ['collections', 'variables', 'racine:ucm_palettes/variables']);
+  assert.equal(session.inventaire.entrees.length, 2, 'la collection et la variable');
   assert.equal(session.variable('v0')?.id, 'v0');
   assert.equal(session.variable('absente'), null);
   assert.equal(session.collection('c')?.name, 'Brand');
   assert.equal(session.collection('absente'), null);
   session.commitUndo();
-  assert.deepEqual(appels, ['collections', 'variables', 'undo']);
+  assert.deepEqual(appels.slice(-1), ['undo']);
+});
+
+/** Une API factice dont les variables portent la donnée `palette` voulue et dont la racine rend `suivi`. */
+function apiAvecSuivi(b: ReturnType<typeof banc>, suivi: string, palettes: Record<string, string> = {}) {
+  return {
+    variables: {
+      getLocalVariableCollectionsAsync: async () => [...b.collections.values()],
+      getLocalVariablesAsync: async () => [...b.variables.values()].map((objet) => Object.assign(objet, { getSharedPluginData: () => palettes[objet.id] ?? '' })),
+    },
+    root: { getSharedPluginData: () => suivi },
+    commitUndo: () => {},
+  } as unknown as PluginAPI;
+}
+const suiviDe = (...ids: string[]): string => JSON.stringify({ version: 2, palettes: { p1: { collection: 'c', variables: Object.fromEntries(ids.map((id, rang) => [`cle${rang}`, { id, ecrite: true }])) } } });
+
+test('AC7 : une variable listée seulement dans le suivi racine de Palettes est protégée à l’écriture', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  const session = await creerPortEcriture(apiAvecSuivi(b, suiviDe('v0'))).ouvrir();
+  const protegees = session.inventaire.entrees.filter((entree) => entree.protegee).map((entree) => entree.cible.type === 'variable' ? entree.cible.variableId : 'collection');
+  assert.deepEqual(protegees, ['v0']);
+  const resultat = appliquerLesRenommages({ demandes: [b.v('v0', 'a2'), b.v('v1', 'b2')], session, stockage: b.stockage });
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('variable', 'v0'), motif: 'protegee' }]);
+  assert.deepEqual(b.ecritures, ['v1=b2']);
+});
+
+test('AC7 : la donnée palette de la variable protège toujours, avec ou sans suivi racine', async () => {
+  const b = banc({ variables: [['v0', 'a']] });
+  const session = await creerPortEcriture(apiAvecSuivi(b, '', { v0: 'Brand' })).ouvrir();
+  const resultat = appliquerLesRenommages({ demandes: [b.v('v0', 'a2')], session, stockage: b.stockage });
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('variable', 'v0'), motif: 'protegee' }]);
+  assert.deepEqual(b.ecritures, []);
+});
+
+test('AC7 : un suivi racine illisible ou d’une autre forme ne lève pas et n’ajoute aucune protection', async () => {
+  const b = banc({ variables: [['v0', 'a']] });
+  const textes = ['{pas du json', 'null', '[]', '"v0"', '{"palettes":"v0"}', '{"palettes":{"p":null}}', '{"palettes":{"p":{"variables":[1,null,{"id":3}]}}}', '{"palettes":{"p":{"variables":{"k":null}}}}'];
+  for (const texte of textes) {
+    const session = await creerPortEcriture(apiAvecSuivi(b, texte)).ouvrir();
+    assert.deepEqual(session.inventaire.entrees.filter((entree) => entree.protegee), [], texte);
+  }
+  const sansLecture = apiAvecSuivi(b, '');
+  (sansLecture.root as unknown as { getSharedPluginData: () => string }).getSharedPluginData = () => { throw new Error('refus'); };
+  assert.deepEqual((await creerPortEcriture(sansLecture).ouvrir()).inventaire.entrees.filter((entree) => entree.protegee), []);
 });
 
 // Le journal durable : reprises des cas AI1 à AI5 du banc d'intégrité, avec l'attente inverse.

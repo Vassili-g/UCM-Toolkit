@@ -8,15 +8,20 @@
  */
 import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
 import { cheminsEnConflit, inventairePublie } from './cheminsPublies';
-import type { EntreeInventaire, Inventaire } from './lecture';
+import { inventaireDeLectures, type EntreeInventaire, type Inventaire } from './lecture';
+import { lecteurDeVariablesFigma } from './lectureFigma';
 import type { CauseDeRefus } from './messages';
 import { CLE_JOURNAL, effacerLeJournal, lireLesRegles, lireLeStockage, preparerJournal, rangerLesEcritures, type Journal, type RenommageJournal } from './regles';
 
 export interface ObjetModifiable { readonly id: string; name: string; readonly remote: boolean }
 export interface VariableModifiable extends ObjetModifiable { readonly variableCollectionId: string }
 
-/** Les objets locaux sont résolus avant les écritures, qui sont synchrones. */
+/**
+ * Les objets locaux sont résolus avant les écritures, qui sont synchrones.
+ * `inventaire` vient de la même lecture que les objets, protection comprise : aucune attente ne les sépare.
+ */
 export interface SessionEcriture {
+  readonly inventaire: Inventaire;
   collection(id: string): ObjetModifiable | null;
   variable(id: string): VariableModifiable | null;
   commitUndo(): void;
@@ -288,7 +293,7 @@ const lignesDuJournal = (renommages: readonly { readonly type: 'variable' | 'col
   renommages.map(({ type, figmaId, ancienNom, nouveauNom }) => ({ type, id: figmaId, ancienNom, nouveauNom }));
 
 /**
- * Applique les renommages cochés sur le document relu par `relireInventaireAvantEcriture`.
+ * Applique les renommages cochés sur le document que `session.inventaire` décrit.
  * Saute ce qui a changé depuis la lecture, les variables protégées, les noms que Figma refuse, et les renommages qui créent
  * un doublon de nom ou de chemin dans `tokens.json`.
  * Range d'abord le journal prévu du lot par `stockage` : s'il ne tient pas ou ne s'écrit pas, aucun nom ne change
@@ -298,7 +303,6 @@ const lignesDuJournal = (renommages: readonly { readonly type: 'variable' | 'col
  */
 export function appliquerLesRenommages(options: {
   readonly demandes: readonly RenommageDemande[];
-  readonly inventaire: Inventaire;
   readonly session: SessionEcriture;
   readonly stockage: PortDeRegles;
   /** Heure du journal ; l'heure courante par défaut. */
@@ -306,7 +310,8 @@ export function appliquerLesRenommages(options: {
   /** Identifiant de lot, sans `:` ; un identifiant neuf à chaque appel par défaut. */
   readonly lot?: () => string;
 }): ResultatEcriture {
-  const { inventaire, session, stockage } = options;
+  const { session, stockage } = options;
+  const inventaire = session.inventaire;
   const nouveauLot = options.lot ?? identifiantDeLot;
   const controle = controler(options.demandes, inventaire, session, true);
   const heure = (options.heure ?? heureActuelle)();
@@ -344,13 +349,13 @@ const nomDuLot = (nom: string, renommage: RenommageJournal): boolean =>
  * Les identifiants du résultat sont ceux de Figma.
  */
 export function annulerLeDernierRenommage(options: {
-  readonly inventaire: Inventaire;
   readonly session: SessionEcriture;
   readonly stockage: PortDeRegles;
   /** Identifiant du lot qui garde les entrées non rétablies ; voir `appliquerLesRenommages`. */
   readonly lot?: () => string;
 }): ResultatEcriture {
-  const { inventaire, session, stockage } = options;
+  const { session, stockage } = options;
+  const inventaire = session.inventaire;
   const journal = lireLesRegles(lireLeStockage(stockage)).journal;
   if (!journal) return { statut: 'refuse', renommes: [], sautes: [], annulable: false };
   const document = lireLeDocument(inventaire);
@@ -390,9 +395,13 @@ export function annulerLeDernierRenommage(options: {
 /** Les objets locaux sont résolus avant les écritures synchrones. */
 export function creerPortEcriture(api: PluginAPI): PortEcriture {
   return { ouvrir: async () => {
-    const collections = new Map((await api.variables.getLocalVariableCollectionsAsync()).map((objet) => [objet.id, objet]));
-    const variables = new Map((await api.variables.getLocalVariablesAsync()).map((objet) => [objet.id, objet]));
+    const lesCollections = await api.variables.getLocalVariableCollectionsAsync();
+    const lesVariables = await api.variables.getLocalVariablesAsync();
+    // Plus d'attente après ces deux lectures : l'inventaire et les objets décrivent le même état.
+    const collections = new Map(lesCollections.map((objet) => [objet.id, objet]));
+    const variables = new Map(lesVariables.map((objet) => [objet.id, objet]));
     return {
+      inventaire: inventaireDeLectures(lesCollections, lesVariables, lecteurDeVariablesFigma(api, lesVariables)),
       collection: (id) => collections.get(id) ?? null,
       variable: (id) => variables.get(id) ?? null,
       commitUndo: () => api.commitUndo(),

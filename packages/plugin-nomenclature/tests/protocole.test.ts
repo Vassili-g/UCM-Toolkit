@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { ObjetModifiable, PortDeRegles, SessionEcriture, VariableModifiable } from '../src/ecriture';
-import type { PortDeLecture } from '../src/lecture';
+import { inventaireDeLectures, type PortDeLecture } from '../src/lecture';
 import type { Bilan, DemandeArchitect, GesteSurLesRegles, PluginMessage } from '../src/messages';
 import { creerSession, moteurDuKit, type Moteur } from '../src/session';
 import { creerFrontiere } from '../src/ui/frontiere';
@@ -35,17 +35,25 @@ function banc(options: OptionsDuBanc = {}) {
   };
   for (const [id, nom] of options.collections ?? [['c', 'components']]) collections.set(id, creer(id, nom, {}));
   for (const [id, nom, collection = 'c'] of options.variables ?? []) variables.set(id, creer(id, nom, { variableCollectionId: collection }));
+  const protegees = [...(options.protegees ?? [])];
   const lecture: PortDeLecture = {
     collections: async () => { lectures.collections++; return [...collections.values()].map((o) => ({ id: o.id, name: o.name, remote: false })); },
     variables: async () => { lectures.variables++; return [...variables.values()].map((o) => ({ id: o.id, name: o.name, variableCollectionId: o.variableCollectionId, remote: false })); },
     cibleAlias: () => undefined,
-    protegee: (variable) => (options.protegees ?? []).includes(variable.id),
+    protegee: (variable) => protegees.includes(variable.id),
   };
-  const session: SessionEcriture = {
+  /** Ce qui arrive dans Figma pendant `ouvrir`, avant que la lecture d'écriture ne s'achève. */
+  const pendantOuvrir = { action: undefined as (() => void) | undefined };
+  const session = (): SessionEcriture => ({
+    inventaire: inventaireDeLectures(
+      [...collections.values()].map((o) => ({ id: o.id, name: o.name, remote: false })),
+      [...variables.values()].map((o) => ({ id: o.id, name: o.name, variableCollectionId: o.variableCollectionId, remote: false })),
+      lecture,
+    ),
     collection: (id) => collections.get(id) ?? null,
     variable: (id) => variables.get(id) ?? null,
     commitUndo: () => {},
-  };
+  });
   const regles: PortDeRegles = {
     cles: () => [...stock.keys()],
     lire: (cle) => stock.get(cle) ?? '',
@@ -59,7 +67,7 @@ function banc(options: OptionsDuBanc = {}) {
     detecterParEtapes: (...args) => { compteurs.detecter++; maximums.push(args[3]?.maximum); return moteurDuKit.detecterParEtapes(...args); },
   };
   const instance = creerSession({
-    port: { lecture, ecriture: { ouvrir: async () => session }, regles },
+    port: { lecture, ecriture: { ouvrir: async () => { await Promise.resolve(); pendantOuvrir.action?.(); return session(); } }, regles },
     envoyer: (message) => { messages.push(message); },
     moteur, heure: () => HEURE,
     tranches: { pause: async () => {} },
@@ -72,7 +80,7 @@ function banc(options: OptionsDuBanc = {}) {
   };
   const bilans = () => messages.filter((m): m is Extract<PluginMessage, { type: 'bilan' }> => m.type === 'bilan');
   return {
-    noms, lectures, compteurs, portees, maximums, stock, messages, instance, envoyer, bilans,
+    noms, lectures, protegees, pendantOuvrir, compteurs, portees, maximums, stock, messages, instance, envoyer, bilans,
     dernierBilan: (): Bilan => bilans().at(-1)!.bilan,
     vider: () => { messages.length = 0; },
     /** Une modification faite hors du plugin. */
@@ -440,4 +448,61 @@ test('renommer une collection vers un nom déjà pris est un blocage, pas un ren
   const bilan = b.dernierBilan();
   assert.equal(bilan.groupes.some((g) => g.regle.sorte === 'collection'), false);
   assert.deepEqual(bilan.bloques.map((x) => [x.avant, x.apres]), [['Zorglub', 'color-brands']]);
+});
+
+// Les courses pendant `ouvrir` (AI6, AI7, AC13) : la lecture d'écriture se termine après les contrôles de la session.
+
+async function pretAAppliquer(options: OptionsDuBanc) {
+  const b = banc(options);
+  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'regle', geste: regleEcriture });
+  const bilan = b.dernierBilan();
+  b.vider();
+  const appliquer = () => b.envoyer({ type: 'appliquer', generation: bilan.generation, selection: { groupes: bilan.groupes.map((g) => g.cle), exclus: [], inclus: [] } });
+  return { b, appliquer };
+}
+
+test('AI6 : une variable qui devient protégée pendant ouvrir n’est pas renommée', async () => {
+  const { b, appliquer } = await pretAAppliquer(FICHIER);
+  b.pendantOuvrir.action = () => { b.protegees.push('v1'); };
+  await appliquer();
+  const application = b.messages.find((m) => m.type === 'application');
+  assert.ok(application && application.type === 'application');
+  assert.equal(b.noms.get('v1'), 'Button/Fill Hover');
+  assert.equal(b.noms.get('v2'), 'button/fill-pressed');
+  assert.equal(application.resultat.statut, 'partiel');
+  assert.equal(application.resultat.sautes, 1);
+});
+
+test('AI6 : un autre objet qui prend le nom visé pendant ouvrir fait sauter le renommage en collision', async () => {
+  const { b, appliquer } = await pretAAppliquer({ ...FICHIER, variables: [...FICHIER.variables!, ['v4', 'Autre']] });
+  b.pendantOuvrir.action = () => { b.changer('v4', 'button/fill-hover'); };
+  await appliquer();
+  const application = b.messages.find((m) => m.type === 'application');
+  assert.ok(application && application.type === 'application');
+  assert.equal(b.noms.get('v1'), 'Button/Fill Hover', 'le doublon exact est évité');
+  assert.equal(b.noms.get('v4'), 'button/fill-hover');
+  assert.equal(b.noms.get('v2'), 'button/fill-pressed');
+  assert.ok(application.resultat.sautes >= 1);
+});
+
+test('AI7 : une règle écrite pendant ouvrir refuse le lot en regles-modifiees, sans rien écrire', async () => {
+  const { b, appliquer } = await pretAAppliquer(FICHIER);
+  b.pendantOuvrir.action = () => { b.stock.set('terme:quux', JSON.stringify({ version: 1, terme: ['quux'], remplace: [['quuxed']] })); };
+  const demande = await appliquer();
+  assert.deepEqual(b.messages, [{ type: 'erreur', demande, code: 'regles-modifiees' }]);
+  assert.equal(b.noms.get('v1'), 'Button/Fill Hover');
+  assert.equal(b.noms.get('v3'), 'fontSize/Body');
+  assert.equal(b.stock.has('journal'), false, 'aucun journal rangé');
+});
+
+test('AC13 : une annulation lit la protection pendant ouvrir et saute la variable devenue protégée', async () => {
+  const { b, appliquer } = await pretAAppliquer(FICHIER);
+  await appliquer();
+  assert.equal(b.noms.get('v1'), 'button/fill-hover');
+  b.vider();
+  b.pendantOuvrir.action = () => { b.protegees.push('v1'); };
+  await b.envoyer({ type: 'annuler-dernier' });
+  assert.equal(b.noms.get('v1'), 'button/fill-hover');
+  assert.equal(b.noms.get('v2'), 'Button/Fill Pressed');
 });

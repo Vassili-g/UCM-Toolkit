@@ -1668,7 +1668,7 @@ La spécification en lien porte le raisonnement.
   composant. `tests/loiDEcriture.test.ts` refuse ailleurs toute création,
   suppression, setter de valeur, import, chargement de page et `.remove(`,
   interface comprise.
-- Une variable qu'UCM Palettes a écrite n'est jamais renommée, même cochée ;
+- Une variable qu'UCM Palettes a écrite ou reprise n'est jamais renommée, même cochée ;
   la collection qui la porte peut l'être, Palettes la suit par son
   identifiant. Avant d'écrire, chaque nom est relu : un objet changé, disparu
   ou dont le nouveau nom est occupé est sauté, et un lot s'annule en un seul
