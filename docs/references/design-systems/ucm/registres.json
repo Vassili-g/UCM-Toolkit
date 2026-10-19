@@ -151,6 +151,26 @@
   "extensible": true,
   "termes": [
    {
+    "id": "9xs",
+    "toleres": []
+   },
+   {
+    "id": "8xs",
+    "toleres": []
+   },
+   {
+    "id": "7xs",
+    "toleres": []
+   },
+   {
+    "id": "6xs",
+    "toleres": []
+   },
+   {
+    "id": "5xs",
+    "toleres": []
+   },
+   {
     "id": "4xs",
     "toleres": []
    },
@@ -203,6 +223,26 @@
    },
    {
     "id": "4xl",
+    "toleres": []
+   },
+   {
+    "id": "5xl",
+    "toleres": []
+   },
+   {
+    "id": "6xl",
+    "toleres": []
+   },
+   {
+    "id": "7xl",
+    "toleres": []
+   },
+   {
+    "id": "8xl",
+    "toleres": []
+   },
+   {
+    "id": "9xl",
     "toleres": []
    }
   ]
@@ -310,6 +350,36 @@
     "toleres": [
      "border-radius"
     ]
+   }
+  ]
+ },
+ {
+  "id": "cotes",
+  "extensible": false,
+  "termes": [
+   {
+    "id": "x",
+    "toleres": []
+   },
+   {
+    "id": "y",
+    "toleres": []
+   },
+   {
+    "id": "top",
+    "toleres": []
+   },
+   {
+    "id": "right",
+    "toleres": []
+   },
+   {
+    "id": "bottom",
+    "toleres": []
+   },
+   {
+    "id": "left",
+    "toleres": []
    }
   ]
  },

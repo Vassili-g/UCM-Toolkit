@@ -18,8 +18,8 @@
     "sha256": "cb343bf4af6ae72a1fb67f390cee0f585b093e5ffce1ff729e5a322291a6efd5"
   },
   "kit": {
-    "version": "0.9.4",
-    "sha256Registres": "e7f7d7429073be1bf50601b50e66b676e5d6eb8b4aee1a91220dbce3ae01458c"
+    "version": "0.9.5",
+    "sha256Registres": "9c01fc48a7edd640faf7377ced628c0a238d0d3065bd51e4a9efbca2500b4d0f"
   },
   "comptes": {
     "noms": 1300,
@@ -33,6 +33,6 @@
       "primitives": 317
     },
     "sansType": 24,
-    "registres": 24
+    "registres": 25
   }
 }
