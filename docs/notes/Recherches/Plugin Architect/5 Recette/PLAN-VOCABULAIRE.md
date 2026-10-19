@@ -292,12 +292,59 @@ Retour du mainteneur après la première implémentation.
   `wrap` ne ressorte pas de `TileLinksWrap`. Fait en 6714152e, kit 0.9.7
   (d9022034). Conséquence : une règle personnalisée sur un mot inconnu ne
   s'applique plus à l'intérieur d'un tel bloc.
-- [ ] Le terme de référence s'écrit dans la convention de la catégorie qui
-  l'emploie le plus (`Color` pour un dossier en PascalCase) ; les variantes
-  gardent leur forme du fichier.
-- [ ] La fiche place la définition sous le nom, dans l'en-tête ; le jeton du
-  terme se détache du bloc gris de la règle.
-- [ ] La vue Vocabulaire : choix entre les trois propositions de la
-  [maquette du tour 2](./Maquettes/vocabulaire-2/MAQUETTE-VOCABULAIRE-2.html),
-  un menu « Filtrer » à cases à cocher et un tri par type puis par ordre
-  alphabétique.
+Décisions du tour 2 : forme A de la
+[maquette du tour 2](./Maquettes/vocabulaire-2/MAQUETTE-VOCABULAIRE-2.html),
+sections par type, avec la section Palettes visible comme les autres ; la
+fiche proposée ; le terme écrit selon la convention du projet.
+
+### T-S · Le sandbox du tour 2 (plugin)
+
+Agent : `implementeur-exigeant` (protocole entre le sandbox et l'écran).
+Fichiers : `src/messages.ts`, `src/projection.ts`, `src/session.ts` (lecture
+`termes`), `src/ui/frontiere.ts` (la demande seulement), leurs tests.
+
+- [ ] Écriture : la `forme` d'un terme avec règle est son terme de référence
+  écrit dans la convention de la catégorie qui l'emploie le plus
+  (`entree.ecriture.groupes` ou `.variables` ; `Color` pour un dossier en
+  PascalCase, `line-height` pour une variable). `remplace` porte les formes du
+  fichier de chaque variante (`Colors`, `colors`).
+- [ ] Type d'un terme : `a-trancher`, `remplace` (règle avec des variantes
+  dans le fichier), `conforme` (règle sans variante), `sans-regle` (y compris
+  une règle UCM écartée), `composant`, `palette` (la nature passe avant la
+  règle).
+- [ ] Demande `termes` : `recherche`, `types` (vide = tous), `origines`
+  (`ucm`, `personnalise` ; vide = toutes ; ne filtre que `remplace` et
+  `conforme`), `tri` (`alpha` ou `nombre`), `section` (un type ou `null`),
+  `debut`.
+- [ ] Réponse : les sections non vides dans l'ordre des types, chacune avec
+  son total et ses cinq premières lignes ; avec `section`, une page de
+  cinquante lignes de ce seul type. `comptes` par type et par origine, sans
+  tenir compte des filtres.
+- [ ] Tri `alpha` : sur la forme affichée, sans tenir compte des majuscules,
+  les nombres par valeur, les tailles dans l'ordre de `REGISTRE_TAILLES`. Tri
+  `nombre` : nombre de noms décroissant, puis `alpha`. Pas d'`Intl` : le
+  sandbox de Figma ne le garantit pas.
+- [ ] Tests sur l'extrait du Playground.
+
+### T-U · L'écran du tour 2 (plugin, après T-S)
+
+Agent : `implementeur-exigeant` (reproduire la maquette). Fichiers :
+`src/ui/regles.ts`, `src/ui/listeDesTermes.ts`, `src/ui/feuilles.ts`,
+`src/ui/textes.ts`, `src/ui/styles.css`, `src/ui/icones.ts` (nouveau),
+`galerie/`, leurs tests.
+
+- [ ] Une section par type, repliable, ouverte par défaut, palettes
+  comprises ; une icône grise par type, ambre pour « À trancher » ;
+  « Afficher les N autres » demande la page de la section.
+- [ ] Barre : « Filtrer » ouvre un menu de cases à cocher (types, origine de
+  la règle) ; les filtres actifs en jetons retirables ; la recherche ; le
+  tri.
+- [ ] La ligne affiche la `forme` ; une règle garde son jeton gris et sa
+  pastille d'origine.
+- [ ] Fiche : la définition sous le nom, dans l'en-tête ; dans le bloc de la
+  règle, le jeton du terme prend le fond de la page et une bordure.
+- [ ] Galerie : la vue en sections, le menu ouvert, la fiche d'un cran UCM.
+
+### T-F · Fin
+
+- [ ] `npm test` à la racine, build du plugin, galerie ; plan coché.
