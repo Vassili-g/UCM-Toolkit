@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dossiers et variables</title>
+<style>
+  :root { --fond: #161616; --bordure: #333; --texte: #eee; --second: #9a9a9a; --bleu: #4ea1ff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 2040px; margin: 0 auto; padding: 32px 16px 96px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  p { margin: 6px 0; max-width: 900px; }
+  .intro { color: var(--second); }
+  code { font-family: Consolas, monospace; font-size: 13px; background: #2a2a2a; padding: 0 4px; border-radius: 3px; }
+  .colonnes { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; margin-top: 16px; }
+  .colonne { flex: 0 0 auto; width: 640px; max-width: 100%; }
+  .cadre { border: 1px solid var(--bordure); border-radius: 8px; overflow: hidden; background: #2c2c2c; }
+  .cadre iframe { display: block; border: 0; max-width: 100%; }
+  .etiquette { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 4px; margin-bottom: 6px; background: #16314d; color: #9fcfff; }
+  ol.argu { padding-left: 20px; margin: 10px 0 0; font-size: 13px; color: #cfcfcf; }
+  ol.argu li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Distinguer les dossiers et les variables</h1>
+  <p class="intro">L'onglet Règles réel, avec la vue en sections du tour 2 et les termes du Playground. Un dossier est un segment
+  de groupe (<code>Button/<b>Colors</b>/…</code>) ; une variable est le dernier segment d'un nom (<code>…/Sizes/<b>Gap</b></code>).
+  Les deux places ont chacune leur convention d'écriture, et UCM y retient parfois une forme différente (<code>small</code> en
+  dossier, <code>sm</code> en variable). Trois façons de le montrer.</p>
+  <div class="colonnes">
+    <div class="colonne">
+      <span class="etiquette">1 · La place écrite par la barre oblique</span>
+      <div class="cadre" id="p1"></div>
+      <ol class="argu">
+        <li>Un dossier se lit <code>Color/</code>, une variable <code>/radius</code> : la barre dit où le mot se trouve dans un chemin, sans ajouter de mot.</li>
+        <li>Un terme employé aux deux places a une ligne par place, chacune dans sa convention : <code>LineHeight/</code> et <code>/line-height</code>.</li>
+        <li>Le menu « Filtrer » reçoit un groupe « Place » : Dossiers, Variables.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette">2 · Une étiquette grise de place</span>
+      <div class="cadre" id="p2"></div>
+      <ol class="argu">
+        <li>« Dossier » ou « Variable » en petit gris après le terme, avant l'origine de la règle.</li>
+        <li>Même séparation des lignes par place qu'en 1, et même filtre.</li>
+        <li>Plus explicite pour un designer qui ne pense pas en chemins, mais chaque ligne porte un mot de plus.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette">3 · Un choix Dossiers ou Variables</span>
+      <div class="cadre" id="p3"></div>
+      <ol class="argu">
+        <li>Un choix segmenté en tête du vocabulaire montre une place à la fois ; il ne change que l'affichage de la même vue.</li>
+        <li>Chaque vue écrit tout dans la convention de sa place ; aucun marqueur par ligne.</li>
+        <li>Les comptes de chaque place se lisent dans le choix ; un terme des deux places apparaît dans les deux vues.</li>
+      </ol>
+    </div>
+  </div>
+</main>
+
+<script src="galerie/etats.js"></script>
+<script>
+const esc = (texte) => String(texte).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const CHEVRON = '<svg class="chevron-svg suivant" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"></path></svg>';
+const CHEVRON_BAS = '<svg class="chevron-svg" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"></path></svg>';
+const svg = (corps) => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${corps}</svg>`;
+const ICONES = {
+  remplace: svg('<path d="M2.5 4.5h7M2.5 11.5h7M9.5 4.5 13 8l-3.5 3.5M13 8H6"/>'),
+  conforme: svg('<path d="m3.5 8.5 3 3 6-7"/>'),
+  sans: svg('<circle cx="8" cy="8" r="5.5" stroke-dasharray="2.2 2"/>'),
+};
+const UCM = '<span class="pastille pastille-ucm">UCM</span>';
+const icone = (type) => `<span class="icone-type">${ICONES[type]}</span>`;
+
+/* Le Playground, une ligne par terme et par place. `d` : dossier, `v` : variable. */
+const REMPLACE = [
+  { d: 'Color', remplace: ['Colors', 'colors'], n: 540, p: 'd' },
+  { d: 'Danger', remplace: ['Error'], n: 49, p: 'd' },
+  { d: 'Disabled', remplace: ['Disable'], n: 46, p: 'd' },
+  { v: 'radius', remplace: ['Border-radius'], n: 9, p: 'v' },
+  { d: 'Size', remplace: ['Sizes'], n: 59, p: 'd' },
+];
+const CONFORME = [
+  { v: '200', n: 59, p: 'v' }, { v: 'background', n: 92, p: 'v' }, { d: 'Info', n: 185, p: 'd' },
+  { d: 'LineHeight', n: 16, p: 'd' }, { v: 'line-height', n: 15, p: 'v' }, { d: 'Small', n: 5, p: 'd' },
+];
+const SANS = [
+  { d: 'Contained', n: 71, p: 'd' }, { v: 'Gap', n: 12, p: 'v' }, { d: 'Outlined', n: 106, p: 'd' }, { v: 'Padding', n: 15, p: 'v' }, { d: 'ScaleWrap', n: 22, p: 'd' },
+];
+const mot = (t) => t.d ?? t.v;
+
+function ligne(type, t, marquer) {
+  const regle = type === 'sans' ? `<code class="mot">${marquer(esc(mot(t)), t)}</code>` : `<span class="jeton jeton-neutre petit">${marquer(esc(mot(t)), t)}</span>`;
+  const variantes = t.remplace ? `<span class="variantes">remplace</span><span>${t.remplace.map((v) => `<code class="variante">${esc(v)}</code>`).join('')}</span>` : '';
+  const etiquette = marquer.etiquette ? `<span class="meta place">${t.p === 'd' ? 'Dossier' : 'Variable'}</span>` : '';
+  return `<button type="button" class="ligne-v2">${icone(type)}<span class="terme-regle">${regle}${variantes}${etiquette}</span>${type === 'sans' ? '<span></span>' : UCM}<span class="meta terme-nombre">${t.n}</span>${CHEVRON}</button>`;
+}
+const section = (type, titre, total, lignes, marquer) =>
+  `<div class="section-type"><div class="section-type-tete">${icone(type)}<h3>${titre}</h3><span class="meta">${total}</span>${CHEVRON_BAS}</div><div class="liste-v2">${lignes.map((t) => ligne(type, t, marquer)).join('')}</div></div>`;
+const RECHERCHE = '<input type="search" class="input recherche" placeholder="Chercher un terme" value="">';
+const TRI = '<select class="tri"><option>Trier : A → Z</option></select>';
+const tete = '<div class="section-tete"><div><h2>Vocabulaire</h2><p>Le terme de référence de chaque notion, et les variantes qu’il remplace.</p></div></div>';
+const sections = (marquer, filtre = () => true) =>
+  section('remplace', 'Remplace', 9, REMPLACE.filter(filtre), marquer)
+  + section('conforme', 'Conforme', 37, CONFORME.filter(filtre), marquer)
+  + section('sans', 'Sans règle', 22, SANS.filter(filtre), marquer);
+
+/* 1 : la barre oblique, le côté du chemin où le mot se trouve. */
+const barre = (texte, t) => (t.p === 'd' ? `${texte}<span class="barre-place">/</span>` : `<span class="barre-place">/</span>${texte}`);
+/* 2 : l'étiquette. */
+const neutre = (texte) => texte;
+neutre.etiquette = true;
+
+const P1 = `<section class="section-regles">${tete}<div class="barre-v2"><button type="button" class="btn btn-secondary btn-compact"><span>Filtrer</span></button>${RECHERCHE}${TRI}</div>${sections(barre)}</section>`;
+const P2 = `<section class="section-regles">${tete}<div class="barre-v2"><button type="button" class="btn btn-secondary btn-compact"><span>Filtrer</span></button>${RECHERCHE}${TRI}</div>${sections(neutre)}</section>`;
+const P3 = `<section class="section-regles">${tete}<div class="choix-place" role="radiogroup"><button type="button" aria-pressed="true">Dossiers <span class="meta">58</span></button><button type="button" aria-pressed="false">Variables <span class="meta">71</span></button></div>`
+  + `<div class="barre-v2"><button type="button" class="btn btn-secondary btn-compact"><span>Filtrer</span></button>${RECHERCHE}${TRI}</div>${sections((texte) => texte, (t) => t.p === 'd')}</section>`;
+
+const STYLE = `<style>
+  .barre-place { color: var(--texte-second); font-weight: 400; }
+  .place { font-size: var(--libelle); }
+  .choix-place { display: inline-flex; justify-self: start; padding: 2px; border-radius: var(--rayon); background: var(--fond-bloc); }
+  .choix-place button { padding: 2px 12px; border: 0; border-radius: calc(var(--rayon) - 2px); background: none; color: var(--texte-second); font: inherit; font-weight: 600; }
+  .choix-place button[aria-pressed="true"] { background: var(--fond); color: var(--texte); box-shadow: inset 0 0 0 1px var(--bordure); }
+</style>`;
+
+function cadre(id, vocabulaire) {
+  const g = window.GALERIE['regles-noms'];
+  const iframe = document.createElement('iframe');
+  iframe.width = 640;
+  iframe.height = 860;
+  iframe.style.width = '640px';
+  iframe.style.height = '860px';
+  iframe.srcdoc = `<!doctype html><html lang="fr" class="${g.classe}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/plugin.css"><link rel="stylesheet" href="propose.css">${STYLE}</head><body>${g.corps}</body></html>`;
+  iframe.addEventListener('load', () => {
+    const doc = iframe.contentDocument;
+    const toutes = doc.querySelectorAll('[role="tabpanel"] > .page-stack .section-regles');
+    toutes[toutes.length - 1].outerHTML = vocabulaire;
+  });
+  document.getElementById(id).append(iframe);
+}
+cadre('p1', P1);
+cadre('p2', P2);
+cadre('p3', P3);
+</script>
+</body>
+</html>
