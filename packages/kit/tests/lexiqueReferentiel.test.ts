@@ -6,6 +6,7 @@ import {
   commencerLexique, indexerVocabulaire, normaliserLeLexique, normaliserLesNoms, normaliserParEtapes, porteesTouchees,
   type ConventionsParCategorie, type Lexique, type NomLu,
 } from '../src/referentiel/index.js';
+import { assembler } from '../src/referentiel/ecriture-des-mots.js';
 
 const conventions: ConventionsParCategorie = {
   variables: { casse: 'minuscules', separateur: 'tiret' },
@@ -202,4 +203,26 @@ test('un grand groupe de collision cède aussi pendant la lecture de ses identif
   assert.ok(lus.size <= 200);
   assert.ok(cessions > 15);
   assert.equal(etape.value.collisions[0].ids.length, 1000);
+});
+
+test('un terme de longueur différente garde le séparateur du segment sous la convention inchangée', () => {
+  const inchange: ConventionsParCategorie = { ...conventions, variables: { casse: 'inchangee', separateur: 'inchange' } };
+  const vers = indexerVocabulaire({ personnalises: [{ terme: ['qux'], remplace: [['bar', 'baz']] }], ecartsUcm: [] }).index;
+  const retour = indexerVocabulaire({ personnalises: [{ terme: ['bar', 'baz'], remplace: [['qux']] }], ecartsUcm: [] }).index;
+  const renommer = (nom: string, index: typeof vers) =>
+    normaliserLeLexique(preparer([variable('a', nom)]), inchange, index).renommages[0]?.nouveauNom ?? nom;
+  assert.equal(renommer('text/foo-bar-baz', vers), 'text/foo-qux');
+  assert.equal(renommer('text/foo_bar_baz', vers), 'text/foo_qux');
+  assert.equal(renommer('text/foo bar baz', vers), 'text/foo qux');
+  assert.equal(renommer('text/fooBarBaz', vers), 'text/fooQux');
+  assert.equal(renommer('text/foo-qux-x', retour), 'text/foo-bar-baz-x');
+});
+
+test('assembler joint par le premier séparateur du segment quand le nombre de mots change', () => {
+  assert.equal(assembler('foo-bar-baz', ['foo', 'qux'], 'inchange'), 'foo-qux');
+  assert.equal(assembler('foo_bar_baz', ['foo', 'qux'], 'inchange'), 'foo_qux');
+  assert.equal(assembler('foo bar baz', ['foo', 'qux'], 'inchange'), 'foo qux');
+  assert.equal(assembler('foo-qux-x', ['foo', 'bar', 'baz', 'x'], 'inchange'), 'foo-bar-baz-x');
+  assert.equal(assembler('fooBarBaz', ['foo', 'Qux'], 'inchange'), 'fooQux');
+  assert.equal(assembler('foo-bar-baz', ['foo', 'qux'], 'tiret-bas'), 'foo_qux');
 });

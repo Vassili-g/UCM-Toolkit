@@ -52,7 +52,8 @@ export function motsAvecCasse(mots: readonly string[], casse: Casse): string[] {
 
 export function assembler(segment: string, mots: readonly string[], separateur: Separateur): string {
   if (separateur === 'inchange') {
-    if (frontieres(segment).split(/[-_\s\0]+/u).filter(Boolean).length !== mots.length) return mots.join('');
+    // Le nombre de mots change : la jonction reprend le premier séparateur du segment, ou soude les mots s'il n'en a pas.
+    if (frontieres(segment).split(/[-_\s\0]+/u).filter(Boolean).length !== mots.length) return mots.join(/[-_\s]/u.exec(segment)?.[0] ?? '');
     let rang = 0;
     return frontieres(segment).replace(/[^-_\s\0]+/gu, () => mots[rang++] ?? '').replace(/\0/g, '');
   }
