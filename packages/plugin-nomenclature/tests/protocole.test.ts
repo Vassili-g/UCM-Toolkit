@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { ObjetModifiable, PortDeRegles, SessionEcriture, VariableModifiable } from '../src/ecriture';
 import { inventaireDeLectures, type PortDeLecture } from '../src/lecture';
-import type { Bilan, DemandeArchitect, GesteSurLesRegles, PluginMessage } from '../src/messages';
+import { TYPES_DE_TERMES, type Bilan, type DemandeArchitect, type GesteSurLesRegles, type PluginMessage, type TermeDeListe, type TypeDeTerme } from '../src/messages';
 import { creerSession, moteurDuKit, type Moteur } from '../src/session';
 import { creerFrontiere } from '../src/ui/frontiere';
 
@@ -93,6 +93,20 @@ function banc(options: OptionsDuBanc = {}) {
 type DistributiveOmit<T, K extends keyof never> = T extends unknown ? Omit<T, K> : never;
 
 const regleEcriture: GesteSurLesRegles = { type: 'ecriture', ecriture };
+const TOUS = { recherche: '', types: [], origines: [], tri: 'alpha', section: null, debut: 0 } as const;
+
+/** Les termes de chaque type demandé, lus section par section : la première page de cinquante lignes de chacune. */
+async function lireLesTermes(b: ReturnType<typeof banc>, generation: number, types: readonly TypeDeTerme[] = TYPES_DE_TERMES): Promise<TermeDeListe[]> {
+  const termes: TermeDeListe[] = [];
+  for (const section of types) {
+    b.vider();
+    await b.envoyer({ type: 'termes', generation, ...TOUS, section });
+    const message = b.messages[0];
+    assert.ok(message.type === 'termes' && message.section === section && message.sections.length === 1);
+    termes.push(...message.sections[0].termes);
+  }
+  return termes;
+}
 const FICHIER: OptionsDuBanc = {
   collections: [['c', 'Brand']],
   variables: [['v1', 'Button/Fill Hover'], ['v2', 'Button/Fill Pressed'], ['v3', 'fontSize/Body']],
@@ -154,7 +168,7 @@ test('une lecture d\'une génération périmée reçoit generation-perimee ; une
   assert.ok(reponse.total > 0 && reponse.lignes.length === Math.min(reponse.total, 50));
   assert.ok(reponse.lignes.every((ligne) => ligne.ancien.split('/').length === ligne.nouveau.split('/').length && ligne.marques.length > 0), 'chaque ligne porte l’ancien et le nouveau nom complets, de même nombre de segments');
   b.vider();
-  await b.envoyer({ type: 'termes', generation: bilan.generation, recherche: '', filtre: 'tous', debut: 0 });
+  await b.envoyer({ type: 'termes', generation: bilan.generation, ...TOUS });
   await b.envoyer({ type: 'fiche', generation: bilan.generation, terme: 'fill' });
   assert.deepEqual(b.messages.map((m) => m.type), ['termes', 'fiche']);
   const fiche = b.messages[1];
@@ -166,13 +180,14 @@ test('le détail du vocabulaire donne chaque terme de la liste avec ses segments
   await b.envoyer({ type: 'analyser' });
   const bilan = b.dernierBilan();
   b.vider();
-  await b.envoyer({ type: 'termes', generation: bilan.generation, recherche: '', filtre: 'tous', debut: 0 });
+  await b.envoyer({ type: 'termes', generation: bilan.generation, ...TOUS });
   const demande = await b.envoyer({ type: 'diagnostic', generation: bilan.generation });
   const [page, reponse] = b.messages;
   assert.ok(page.type === 'termes' && reponse.type === 'diagnostic' && reponse.demande === demande);
   const detail = JSON.parse(reponse.texte);
   assert.equal(detail.version, 1);
-  assert.equal(detail.termes.length, page.comptes.tous);
+  assert.equal(detail.termes.length, Object.values(page.comptes.types).reduce((somme, nombre) => somme + nombre, 0));
+  assert.ok(detail.termes.every((terme: { type: string }) => TYPES_DE_TERMES.includes(terme.type as TypeDeTerme)), 'le détail porte le type de chaque terme');
   const fill = detail.termes.find((terme: { mot: string }) => terme.mot === 'fill');
   assert.ok(fill && fill.segments.length > 0 && fill.segments.every((segment: { segment: string; mots: string[]; exemple: string }) =>
     segment.mots.some((mot) => mot.toLowerCase() === 'fill') && segment.exemple.split('/').includes(segment.segment)));
@@ -544,35 +559,73 @@ const PLAYGROUND: OptionsDuBanc = {
   palettes: { sky: 'palette-sky' },
 };
 
-test('le vocabulaire du Playground : noms et mots se séparent, les cinq filtres et leurs comptes répondent', async () => {
+test('le vocabulaire du Playground : noms et mots se séparent, les sections et leurs comptes répondent', async () => {
   const b = banc(PLAYGROUND);
   await b.envoyer({ type: 'analyser' });
-  const bilan = b.dernierBilan();
-  const lire = async (filtre: 'tous' | 'avec-regle' | 'sans-regle' | 'composants' | 'palettes') => {
-    b.vider();
-    await b.envoyer({ type: 'termes', generation: bilan.generation, recherche: '', filtre, debut: 0 });
-    const message = b.messages[0];
-    assert.ok(message.type === 'termes');
-    return message;
-  };
-  const tous = await lire('tous');
-  const mots = tous.termes.map((terme) => terme.mot);
+  const { generation } = b.dernierBilan();
+  b.vider();
+  await b.envoyer({ type: 'termes', generation, ...TOUS });
+  const resume = b.messages[0];
+  assert.ok(resume.type === 'termes' && resume.generation === generation);
+  assert.deepEqual([resume.section, resume.debut], [null, 0]);
+  const ordre = resume.sections.map((section) => section.type);
+  assert.deepEqual(ordre, TYPES_DE_TERMES.filter((type) => ordre.includes(type)), 'les sections suivent l’ordre des types');
+  assert.ok(resume.sections.every((section) => section.total > 0 && section.termes.length === Math.min(section.total, 5)), 'au plus cinq lignes par section, avec le total');
+  const termes = await lireLesTermes(b, generation);
+  const mots = termes.map((terme) => terme.mot);
   for (const absent of ['line', 'height', 'stress', 'test', 'wrap', 'columns', 'components', 'primitives', 'typography', 'theme']) assert.equal(mots.includes(absent), false, absent);
-  const stress = tous.termes.find((terme) => terme.mot === 'stress-test');
-  assert.deepEqual([stress?.forme, stress?.nature, stress?.nombre], ['StressTest', 'composant', 3]);
-  const hauteur = tous.termes.find((terme) => terme.mot === 'line-height');
-  assert.deepEqual([hauteur?.forme, hauteur?.nombre], ['lineheight', 3]);
+  const stress = termes.find((terme) => terme.mot === 'stress-test');
+  assert.deepEqual([stress?.forme, stress?.nature, stress?.type, stress?.nombre], ['StressTest', 'composant', 'composant', 3]);
+  const hauteur = termes.find((terme) => terme.mot === 'line-height');
+  assert.deepEqual([hauteur?.type, hauteur?.nombre], ['conforme', 3]);
 
-  assert.deepEqual((await lire('composants')).termes.map((terme) => terme.mot).sort(), ['button', 'stress-test']);
-  assert.deepEqual((await lire('palettes')).termes.map((terme) => terme.mot).sort(), ['poppy', 'sky'], 'sky n’a qu’un cran : l’identifiant de palette lu dans Figma suffit');
-  const sans = await lire('sans-regle');
-  assert.equal(sans.termes.some((terme) => ['button', 'poppy', 'sky'].includes(terme.mot)), false);
-  assert.ok(sans.termes.every((terme) => terme.nature === null));
-  const { comptes } = tous;
-  assert.deepEqual([comptes.tous, comptes.composants, comptes.palettes], [tous.total, 2, 2]);
-  assert.equal(comptes.avecRegle, (await lire('avec-regle')).total);
-  assert.equal(comptes.sansRegle, sans.total);
-  assert.equal(comptes.tous, comptes.avecRegle + comptes.sansRegle + comptes.composants + comptes.palettes);
+  assert.deepEqual(termes.filter((terme) => terme.type === 'composant').map((terme) => terme.mot).sort(), ['button', 'stress-test']);
+  assert.deepEqual(termes.filter((terme) => terme.type === 'palette').map((terme) => terme.mot).sort(), ['poppy', 'sky'], 'sky n’a qu’un cran : l’identifiant de palette lu dans Figma suffit');
+  assert.equal(termes.filter((terme) => terme.type === 'sans-regle').some((terme) => ['button', 'poppy', 'sky'].includes(terme.mot)), false);
+  const { comptes } = resume;
+  assert.deepEqual([comptes.types.composant, comptes.types.palette], [2, 2]);
+  assert.equal(TYPES_DE_TERMES.reduce((somme, type) => somme + comptes.types[type], 0), termes.length);
+  for (const section of resume.sections) assert.equal(section.total, comptes.types[section.type], section.type);
+});
+
+test('le vocabulaire du Playground : un terme réglé s’écrit dans la convention choisie pour les groupes', async () => {
+  const b = banc(PLAYGROUND);
+  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'regle', geste: { type: 'ecriture', ecriture: { groupes: { casse: 'PascalCase', separateur: 'camelCase' }, variables: minusculesTirets } } });
+  const pascal = await lireLesTermes(b, b.dernierBilan().generation, ['conforme', 'remplace']);
+  assert.deepEqual([pascal.find((terme) => terme.mot === 'line-height')?.forme, pascal.find((terme) => terme.mot === 'color')?.forme], ['LineHeight', 'Color']);
+  await b.envoyer({ type: 'regle', geste: regleEcriture });
+  const minuscules = await lireLesTermes(b, b.dernierBilan().generation, ['conforme', 'remplace']);
+  assert.deepEqual([minuscules.find((terme) => terme.mot === 'line-height')?.forme, minuscules.find((terme) => terme.mot === 'color')?.forme], ['line-height', 'color']);
+  const couleur = minuscules.find((terme) => terme.mot === 'color');
+  assert.deepEqual([couleur?.type, couleur?.remplace], ['remplace', ['colors', 'Colors']]);
+});
+
+test('termes : une section se lit par pages, les filtres réduisent les sections et les comptes restent ceux du fichier', async () => {
+  const b = banc(PLAYGROUND);
+  await b.envoyer({ type: 'analyser' });
+  const { generation } = b.dernierBilan();
+  b.vider();
+  await b.envoyer({ type: 'termes', generation, ...TOUS });
+  const resume = b.messages[0];
+  assert.ok(resume.type === 'termes');
+  b.vider();
+  await b.envoyer({ type: 'termes', generation, ...TOUS, types: ['palette', 'composant'], recherche: 's', tri: 'nombre' });
+  const filtre = b.messages[0];
+  assert.ok(filtre.type === 'termes');
+  assert.deepEqual(filtre.sections.map((section) => section.type), ['composant', 'palette']);
+  assert.deepEqual(filtre.comptes, resume.comptes);
+  b.vider();
+  await b.envoyer({ type: 'termes', generation, ...TOUS, section: 'palette', debut: 1 });
+  const page = b.messages[0];
+  assert.ok(page.type === 'termes');
+  assert.deepEqual([page.section, page.debut, page.sections.map((section) => [section.type, section.total, section.termes.length])], ['palette', 1, [['palette', 2, 1]]]);
+  b.vider();
+  await b.envoyer({ type: 'termes', generation, ...TOUS, origines: ['personnalise'] });
+  const personnalise = b.messages[0];
+  assert.ok(personnalise.type === 'termes');
+  assert.equal(personnalise.sections.some((section) => section.type === 'remplace' || section.type === 'conforme'), false, 'aucune règle personnalisée dans ce fichier');
+  assert.deepEqual(personnalise.comptes, resume.comptes);
 });
 
 test('le vocabulaire du Playground : la fiche et le détail portent la forme et la nature', async () => {
@@ -598,13 +651,7 @@ test('terme-ordinaire range le nom dans les règles, relance le lexique et se d�
   const b = banc(PLAYGROUND);
   await b.envoyer({ type: 'analyser' });
   let generation = b.dernierBilan().generation;
-  const lire = async (filtre: 'tous' | 'composants' | 'sans-regle') => {
-    b.vider();
-    await b.envoyer({ type: 'termes', generation, recherche: '', filtre, debut: 0 });
-    const message = b.messages[0];
-    assert.ok(message.type === 'termes');
-    return message.termes;
-  };
+  const lire = (...types: TypeDeTerme[]) => lireLesTermes(b, generation, types.length > 0 ? types : TYPES_DE_TERMES);
   const fiche = async (terme: string) => {
     b.vider();
     await b.envoyer({ type: 'fiche', generation, terme });
@@ -620,17 +667,17 @@ test('terme-ordinaire range le nom dans les règles, relance le lexique et se d�
   generation = b.dernierBilan().generation;
   assert.ok(b.stock.has('ordinaire:stress-test'));
   assert.equal(b.compteurs.commencerLexique, lexiques + 1, 'le lexique est refait depuis l’inventaire, sans relire Figma');
-  const apres = await lire('tous');
+  const apres = await lire();
   // `StressTest` n'est plus un nom mais reste un seul terme, que le designer peut rouvrir pour annuler.
   assert.deepEqual(apres.filter((terme) => ['stress-test', 'stress', 'test'].includes(terme.mot)).map((terme) => [terme.mot, terme.forme, terme.nature, terme.statut, terme.nombre]),
     [['stress-test', 'StressTest', null, 'sans-regle', 3]]);
-  assert.equal((await lire('composants')).some((terme) => terme.mot === 'stress-test'), false);
+  assert.equal((await lire('composant')).some((terme) => terme.mot === 'stress-test'), false);
   assert.equal((await fiche('stress-test')).ordinaire, true);
 
   await b.envoyer({ type: 'regle', geste: { type: 'terme-ordinaire', terme: 'stress-test', actif: false } });
   generation = b.dernierBilan().generation;
   assert.equal(b.stock.has('ordinaire:stress-test'), false);
-  const retour = (await lire('composants')).find((terme) => terme.mot === 'stress-test');
+  const retour = (await lire('composant')).find((terme) => terme.mot === 'stress-test');
   assert.equal(retour?.nature, 'composant');
   assert.equal((await fiche('stress-test')).ordinaire, false);
 });

@@ -9,7 +9,7 @@ const selection = { groupes: ['a'], exclus: ['b'], inclus: ['c'] };
 const valides: Record<string, unknown> = {
   analyser: { type: 'analyser', demande: 1 },
   lignes: { type: 'lignes', demande: 2, generation: 1, groupe: 'g', debut: 0 },
-  termes: { type: 'termes', demande: 3, generation: 1, recherche: 'bg', filtre: 'tous', debut: 50 },
+  termes: { type: 'termes', demande: 3, generation: 1, recherche: 'bg', types: ['remplace', 'conforme'], origines: ['ucm'], tri: 'nombre', section: 'remplace', debut: 50 },
   fiche: { type: 'fiche', demande: 4, generation: 1, terme: 'bg' },
   diagnostic: { type: 'diagnostic', demande: 13, generation: 1 },
   simuler: { type: 'simuler', demande: 5, generation: 1, geste: { type: 'supprimer', terme: 'bg' } },
@@ -25,7 +25,7 @@ const valides: Record<string, unknown> = {
 const refuses: Record<string, readonly unknown[]> = {
   analyser: [{ type: 'analyser' }, { type: 'analyser', demande: 0 }, { type: 'analyser', demande: 1.5 }],
   lignes: [{ ...(valides.lignes as object), debut: -1 }, { ...(valides.lignes as object), generation: 0 }, { ...(valides.lignes as object), groupe: 3 }],
-  termes: [{ ...(valides.termes as object), filtre: 'autre' }, { ...(valides.termes as object), debut: -1 }, { ...(valides.termes as object), recherche: null }],
+  termes: [{ ...(valides.termes as object), types: ['autre'] }, { ...(valides.termes as object), debut: -1 }, { ...(valides.termes as object), recherche: null }],
   fiche: [{ ...(valides.fiche as object), terme: 3 }, { type: 'fiche', demande: 4, terme: 'bg' }],
   diagnostic: [{ type: 'diagnostic', demande: 13 }, { type: 'diagnostic', demande: 13, generation: 0 }],
   simuler: [{ ...(valides.simuler as object), geste: { type: 'inconnu' } }, { ...(valides.simuler as object), geste: null }],
@@ -51,13 +51,22 @@ for (const [type, messages] of Object.entries(refuses)) {
     for (const message of messages) assert.equal(estUiMessage(message), false, JSON.stringify(message).slice(0, 120));
   });
 }
-test('termes accepte les cinq filtres de la liste et refuse les autres', () => {
-  for (const filtre of ['tous', 'avec-regle', 'sans-regle', 'composants', 'palettes']) {
-    assert.equal(estUiMessage({ ...(valides.termes as object), filtre }), true, filtre);
+test('termes accepte chaque type, origine, tri et section, et refuse le reste', () => {
+  const termes = valides.termes as object;
+  for (const type of ['a-trancher', 'remplace', 'conforme', 'sans-regle', 'composant', 'palette']) {
+    assert.equal(estUiMessage({ ...termes, types: [type], section: type }), true, type);
   }
-  for (const filtre of ['composant', 'palette', 'Composants', '', null, 3]) {
-    assert.equal(estUiMessage({ ...(valides.termes as object), filtre }), false, String(filtre));
-  }
+  assert.equal(estUiMessage({ ...termes, types: [], origines: [], section: null }), true, 'vide = tous');
+  for (const origines of [['ucm'], ['personnalise'], ['ucm', 'personnalise']]) assert.equal(estUiMessage({ ...termes, origines }), true, origines.join());
+  for (const tri of ['alpha', 'nombre']) assert.equal(estUiMessage({ ...termes, tri }), true, tri);
+  const refus: Record<string, unknown> = {
+    'ancien filtre': { type: 'termes', demande: 3, generation: 1, recherche: '', filtre: 'tous', debut: 0 },
+    'types absent': { ...termes, types: undefined }, 'types en chaîne': { ...termes, types: 'remplace' }, 'type inconnu': { ...termes, types: ['composants'] },
+    'origine inconnue': { ...termes, origines: ['perso'] }, 'origines absent': { ...termes, origines: undefined },
+    'tri inconnu': { ...termes, tri: 'nom' }, 'tri absent': { ...termes, tri: undefined },
+    'section inconnue': { ...termes, section: 'palettes' }, 'section absente': { ...termes, section: undefined },
+  };
+  for (const [nom, message] of Object.entries(refus)) assert.equal(estUiMessage(message), false, nom);
 });
 test('une valeur qui n’est pas un objet, ou de type inconnu, est refusée', () => {
   for (const brut of [null, undefined, 'analyser', 3, [], { type: 'inconnu', demande: 1 }]) assert.equal(estUiMessage(brut), false);

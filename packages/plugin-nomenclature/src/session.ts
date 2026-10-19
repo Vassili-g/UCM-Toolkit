@@ -650,8 +650,9 @@ export function creerSession(options: OptionsDeSession): Session {
       case 'termes': {
         const courant = etatDeLaGeneration(demande.demande, demande.generation);
         if (!courant) return;
-        const page = courant.projection.termes({ recherche: demande.recherche, filtre: demande.filtre, debut: demande.debut });
-        envoyer({ type: 'termes', demande: demande.demande, generation: courant.generation, debut: demande.debut, ...page });
+        const { recherche, types, origines, tri, section, debut } = demande;
+        const page = courant.projection.termes({ recherche, types, origines, tri, section, debut });
+        envoyer({ type: 'termes', demande: demande.demande, generation: courant.generation, ...page });
         return;
       }
       case 'fiche': {

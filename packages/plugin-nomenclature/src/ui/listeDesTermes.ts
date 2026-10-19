@@ -3,11 +3,15 @@
  * les pages reçues et le terme choisi. Le module est pur ; `regles.ts` lit cet
  * état pour le DOM et envoie les demandes.
  */
-import type { FiltreDeTermes, PluginMessage, TermeDeListe } from '../messages';
+import type { PluginMessage, RequeteDeTermes, TermeDeListe, TypeDeTerme } from '../messages';
 import { TEXTES } from './textes';
 
-export type FiltreDesTermes = FiltreDeTermes;
+/** Les cinq filtres de l'écran actuel ; le lot de l'écran des sections les remplace par les types et les origines de la demande. */
+export type FiltreDesTermes = 'tous' | 'avec-regle' | 'sans-regle' | 'composants' | 'palettes';
+export interface ComptesDeLaListe { readonly tous: number; readonly avecRegle: number; readonly sansRegle: number; readonly composants: number; readonly palettes: number }
 type ReponseDesTermes = Extract<PluginMessage, { type: 'termes' }>;
+/** Une page de termes à plat, telle que l'écran actuel la lit. */
+export interface PageDeLaListe { readonly debut: number; readonly termes: readonly TermeDeListe[]; readonly total: number; readonly comptes: ComptesDeLaListe }
 
 /** Le nombre de termes que le sandbox rend par page. */
 export const TAILLE_DE_PAGE = 50;
@@ -20,7 +24,7 @@ export interface EtatDeLaListe {
   /** Le nombre de termes que la recherche et le filtre retiennent, `null` avant la première page. */
   readonly total: number | null;
   /** Les comptes des cinq filtres, conservés d'une recherche à l'autre. */
-  readonly comptes: ReponseDesTermes['comptes'] | null;
+  readonly comptes: ComptesDeLaListe | null;
   /** Le mot du terme dont la feuille est ouverte. */
   readonly choisi: string | null;
 }
@@ -44,7 +48,7 @@ export function filtrer(etat: EtatDeLaListe, filtre: FiltreDesTermes): EtatDeLaL
  * Ajoute une page. La première page remplace tout ; la suivante s'ajoute si
  * elle commence où la liste s'arrête, sinon elle est ignorée.
  */
-export function recevoir(etat: EtatDeLaListe, reponse: Pick<ReponseDesTermes, 'debut' | 'termes' | 'total' | 'comptes'>): EtatDeLaListe {
+export function recevoir(etat: EtatDeLaListe, reponse: PageDeLaListe): EtatDeLaListe {
   const { debut, termes, total, comptes } = reponse;
   if (debut === 0) return { ...etat, termes, total, comptes };
   if (debut !== etat.termes.length) return etat;
@@ -59,6 +63,34 @@ export function resteAAfficher(etat: EtatDeLaListe): boolean {
 /** Le rang de la prochaine page à demander. */
 export function debutSuivant(etat: EtatDeLaListe): number {
   return etat.termes.length;
+}
+
+const TYPES_DU_FILTRE: Readonly<Record<FiltreDesTermes, readonly TypeDeTerme[]>> = {
+  tous: [], 'avec-regle': ['remplace', 'conforme'], 'sans-regle': ['a-trancher', 'sans-regle'], composants: ['composant'], palettes: ['palette'],
+};
+
+/**
+ * La demande que fait l'écran actuel, en attendant l'écran par sections. Un filtre qui vise un seul type demande la page de sa section ;
+ * les autres reçoivent les premières lignes de chaque section, sans page suivante.
+ */
+export function requeteDeLaListe(etat: EtatDeLaListe, debut: number): RequeteDeTermes {
+  const types = TYPES_DU_FILTRE[etat.filtre];
+  return { recherche: etat.recherche, types, origines: [], tri: 'nombre', section: types.length === 1 ? types[0] : null, debut };
+}
+
+/** La réponse du sandbox mise à plat pour l'écran actuel : les lignes de toutes les sections, bout à bout. */
+export function pageDeLaReponse(reponse: ReponseDesTermes): PageDeLaListe {
+  const termes = reponse.sections.flatMap((section) => section.termes);
+  const { types } = reponse.comptes;
+  return {
+    debut: reponse.debut,
+    termes,
+    total: reponse.section === null ? termes.length : reponse.sections.reduce((somme, section) => somme + section.total, 0),
+    comptes: {
+      tous: Object.values(types).reduce((somme, nombre) => somme + nombre, 0), avecRegle: types.remplace + types.conforme,
+      sansRegle: types['a-trancher'] + types['sans-regle'], composants: types.composant, palettes: types.palette,
+    },
+  };
 }
 
 export function choisir(etat: EtatDeLaListe, mot: string | null): EtatDeLaListe {

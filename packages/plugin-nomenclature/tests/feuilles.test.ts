@@ -30,8 +30,8 @@ const FICHE: FicheVue = {
   categorieUcm: null,
   definition: 'Bordure sans fond.',
   remplace: [
-    { mot: 'outline', nombre: 8, ucm: false },
-    { mot: 'stroked', nombre: 2, ucm: false },
+    { mot: 'outline', forme: 'outline', nombre: 8, ucm: false },
+    { mot: 'stroked', forme: 'stroked', nombre: 2, ucm: false },
   ],
   emploi: { nombre: 24, exemples: [] },
   aRenommer: { nombre: 0, exemples: [] },
@@ -48,7 +48,7 @@ const FICHE_UCM: FicheVue = {
   mot: 'background',
   origine: 'ucm',
   categorieUcm: 'roles',
-  remplace: [{ mot: 'bg', nombre: 12, ucm: true }, { mot: 'back', nombre: 3, ucm: true }],
+  remplace: [{ mot: 'bg', forme: 'bg', nombre: 12, ucm: true }, { mot: 'back', forme: 'back', nombre: 3, ucm: true }],
   emploi: { nombre: 40, exemples: [LIGNE] },
   aRenommer: { nombre: 12, exemples: [LIGNE] },
 };
@@ -106,7 +106,7 @@ test('un terme sans règle montre sa question, puis la preuve : ni règle ni À 
 test('le × d’un terme remplacé manque sur une forme UCM, et « Formes fixées par UCM » demande qu’elles le soient toutes', () => {
   assert.deepEqual(formesDeLaRegle(FICHE_UCM), [{ mot: 'bg', nombre: 12, retirable: false }, { mot: 'back', nombre: 3, retirable: false }]);
   assert.deepEqual(formesDeLaRegle(FICHE).map(({ retirable }) => retirable), [true, true]);
-  const mixte = { remplace: [{ mot: 'bg', nombre: 12, ucm: true }, { mot: 'bgcolor', nombre: 1, ucm: false }] };
+  const mixte = { remplace: [{ mot: 'bg', forme: 'bg', nombre: 12, ucm: true }, { mot: 'bgcolor', forme: 'bgcolor', nombre: 1, ucm: false }] };
   assert.deepEqual(formesDeLaRegle(mixte).map(({ retirable }) => retirable), [false, true]);
   assert.equal(formesToutesFixeesParUcm(FICHE_UCM), true);
   assert.equal(formesToutesFixeesParUcm(mixte), false);
@@ -140,7 +140,7 @@ test('la saisie se découpe en termes en minuscules, sans doublon', () => {
 });
 
 test('les termes envoyés gardent ceux que le fichier a ajoutés et laissent ceux d’UCM', () => {
-  const ucm = { remplace: [{ mot: 'press', nombre: 60, ucm: true }, { mot: 'tapped', nombre: 1, ucm: false }] };
+  const ucm = { remplace: [{ mot: 'press', forme: 'press', nombre: 60, ucm: true }, { mot: 'tapped', forme: 'tapped', nombre: 1, ucm: false }] };
   assert.deepEqual(termesRemplaces(ucm, ['pressing', 'tapped']), ['tapped', 'pressing']);
   assert.deepEqual(termesRemplaces({ remplace: [] }, ['bg']), ['bg']);
 });

@@ -13,13 +13,12 @@
  * calcul, sur la génération courante. Une nouvelle lecture de même clé rend la
  * précédente caduque, et un nouveau `bilan` rend caduques toutes les lectures.
  */
-import type { DemandeArchitect, GesteSurLesRegles, PluginMessage, Reponse, Selection } from '../messages';
+import type { DemandeArchitect, GesteSurLesRegles, PluginMessage, Reponse, RequeteDeTermes, Selection } from '../messages';
 
 /** Ce que l'écran affiche en plus des messages du sandbox : l'analyse que le designer vient de demander. */
 export type MessageAAfficher = PluginMessage | { readonly type: 'analyse-demandee' };
 
 type TypeDeDemande = DemandeArchitect['type'];
-type FiltreDesTermes = Extract<DemandeArchitect, { type: 'termes' }>['filtre'];
 
 /** Pour ces calculs, la demande en attente est remplacée par la plus récente. */
 const DERNIERE_INTENTION: ReadonlySet<TypeDeDemande> = new Set<TypeDeDemande>(['analyser', 'configurer']);
@@ -43,7 +42,7 @@ export interface Frontiere {
   appliquer(selection: Selection): number | null;
   annulerLeDernier(): number;
   lignes(groupe: string, debut: number): number | null;
-  termes(recherche: string, filtre: FiltreDesTermes, debut: number): number | null;
+  termes(requete: RequeteDeTermes): number | null;
   fiche(terme: string): number | null;
   simuler(geste: GesteSurLesRegles): number | null;
   diagnostic(): number | null;
@@ -127,7 +126,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     const contenu = message as unknown as Record<string, unknown>;
     switch (message.type) {
       case 'termes':
-        return Array.isArray(contenu.termes);
+        return Array.isArray(contenu.sections);
       case 'lignes':
         return Array.isArray(contenu.lignes);
       case 'fiche':
@@ -215,7 +214,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     },
     annulerLeDernier: () => calculer({ type: 'annuler-dernier', demande: numeroSuivant() }),
     lignes: (groupe, debut) => lire(`lignes:${groupe}:${debut}`, (demande, courante) => ({ type: 'lignes', demande, generation: courante, groupe, debut })),
-    termes: (recherche, filtre, debut) => lire('termes', (demande, courante) => ({ type: 'termes', demande, generation: courante, recherche, filtre, debut })),
+    termes: (requete) => lire('termes', (demande, courante) => ({ type: 'termes', demande, generation: courante, ...requete })),
     fiche: (terme) => lire('fiche', (demande, courante) => ({ type: 'fiche', demande, generation: courante, terme })),
     simuler: (geste) => lire('simuler', (demande, courante) => ({ type: 'simuler', demande, generation: courante, geste })),
     diagnostic: () => lire('diagnostic', (demande, courante) => ({ type: 'diagnostic', demande, generation: courante })),

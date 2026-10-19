@@ -18,9 +18,11 @@ import {
   filtrer,
   morceauxDuTerme,
   nomAccessibleDuTerme,
+  pageDeLaReponse,
   pastilleDeLaLigne,
   phraseDeRecherche,
   recevoir,
+  requeteDeLaListe,
   resteAAfficher,
   saisir,
   termeATrancher,
@@ -299,7 +301,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
       clearTimeout(minuteur);
       minuteur = null;
     }
-    enCours = frontiere.termes(liste.recherche, liste.filtre, debut);
+    enCours = frontiere.termes(requeteDeLaListe(liste, debut));
     rendre();
   }
 
@@ -339,7 +341,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
       case 'termes':
         if (message.demande !== enCours) break;
         enCours = null;
-        liste = recevoir(liste, message);
+        liste = recevoir(liste, pageDeLaReponse(message));
         rendre();
         break;
       case 'erreur':

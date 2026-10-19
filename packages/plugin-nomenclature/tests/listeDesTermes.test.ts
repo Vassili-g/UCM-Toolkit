@@ -2,12 +2,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { TermeDeListe } from '../src/messages';
-import { LISTE_INITIALE, choisir, debutSuivant, filtrer, recevoir, resteAAfficher, saisir, morceauxDuTerme, motAffiche, nomAccessibleDuTerme, pastilleDeLaLigne, phraseDeRecherche } from '../src/ui/listeDesTermes';
+import { LISTE_INITIALE, choisir, debutSuivant, filtrer, pageDeLaReponse, recevoir, requeteDeLaListe, resteAAfficher, saisir, morceauxDuTerme, motAffiche, nomAccessibleDuTerme, pastilleDeLaLigne, phraseDeRecherche } from '../src/ui/listeDesTermes';
 
 const COMPTES = { tous: 120, avecRegle: 20, sansRegle: 100, composants: 0, palettes: 0 };
 
 function termes(depart: number, nombre: number): TermeDeListe[] {
-  return Array.from({ length: nombre }, (_, rang) => ({ mot: `terme-${depart + rang}`, forme: `terme-${depart + rang}`, nature: null, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 1, trouve: null }));
+  return Array.from({ length: nombre }, (_, rang) => ({ mot: `terme-${depart + rang}`, forme: `terme-${depart + rang}`, type: 'sans-regle', nature: null, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 1, trouve: null }));
 }
 
 test('les pages successives s’ajoutent bout à bout', () => {
@@ -66,7 +66,7 @@ test('le terme choisi survit à une page et à une recherche', () => {
 });
 
 test('les morceaux d’une ligne suivent le statut du terme', () => {
-  const base: TermeDeListe = { mot: 'pressed', forme: 'pressed', nature: null, origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: null };
+  const base: TermeDeListe = { mot: 'pressed', forme: 'pressed', type: 'remplace', nature: null, origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: null };
   assert.deepEqual(morceauxDuTerme(base), [
     { sorte: 'reference', texte: 'pressed' },
     { sorte: 'gris', texte: 'remplace' },
@@ -88,28 +88,28 @@ test('les morceaux d’une ligne suivent le statut du terme', () => {
 });
 
 test('la variante cherchée est marquée dans la ligne de sa référence', () => {
-  const ligne: TermeDeListe = { mot: 'pressed', forme: 'pressed', nature: null, origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: 'push' };
+  const ligne: TermeDeListe = { mot: 'pressed', forme: 'pressed', type: 'remplace', nature: null, origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: 'push' };
   const variantes = morceauxDuTerme(ligne).filter((morceau) => morceau.sorte === 'variante');
   assert.deepEqual(variantes.map((morceau) => morceau.sorte === 'variante' && morceau.trouvee), [false, true]);
 });
 
 test('la phrase de recherche nomme la variante et la référence de la première ligne trouvée', () => {
-  const sans: TermeDeListe = { mot: 'radius', forme: 'radius', nature: null, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 9, trouve: null };
-  const trouvee: TermeDeListe = { mot: 'color', forme: 'color', nature: null, origine: 'ucm', statut: 'regle', remplace: ['colors'], avec: null, nombre: 435, trouve: 'colors' };
+  const sans: TermeDeListe = { mot: 'radius', forme: 'radius', type: 'sans-regle', nature: null, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 9, trouve: null };
+  const trouvee: TermeDeListe = { mot: 'color', forme: 'color', type: 'remplace', nature: null, origine: 'ucm', statut: 'regle', remplace: ['colors'], avec: null, nombre: 435, trouve: 'colors' };
   assert.equal(phraseDeRecherche([sans]), null);
   assert.equal(phraseDeRecherche([]), null);
   assert.deepEqual(phraseDeRecherche([sans, trouvee, { ...trouvee, mot: 'colour' }]), { variante: 'colors', reference: 'color' });
 });
 
 test('le nom accessible d’une ligne dit la règle, l’origine et le nombre', () => {
-  const base: TermeDeListe = { mot: 'pressed', forme: 'pressed', nature: null, origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: null };
+  const base: TermeDeListe = { mot: 'pressed', forme: 'pressed', type: 'remplace', nature: null, origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: null };
   assert.equal(nomAccessibleDuTerme(base), 'pressed, remplace press, push, UCM, 38 noms');
   assert.equal(nomAccessibleDuTerme({ ...base, origine: null, statut: 'a-trancher', remplace: [], avec: 'error' }), 'pressed, à trancher avec error, À trancher, 38 noms');
   assert.equal(nomAccessibleDuTerme({ ...base, statut: 'ecart', remplace: [] }), 'pressed, règle UCM non appliquée dans ce fichier, UCM, 38 noms');
   assert.equal(nomAccessibleDuTerme({ ...base, origine: null, statut: 'sans-regle', remplace: [] }), 'pressed, 38 noms');
 });
 
-const NOM: TermeDeListe = { mot: 'button', forme: 'Button', nature: 'composant', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 245, trouve: null };
+const NOM: TermeDeListe = { mot: 'button', forme: 'Button', type: 'composant', nature: 'composant', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 245, trouve: null };
 
 test('chacun des cinq filtres repart de la première page', () => {
   const liste = recevoir(LISTE_INITIALE, { debut: 0, termes: termes(0, 50), total: 120, comptes: COMPTES });
@@ -147,4 +147,24 @@ test('la pastille de nature passe avant À trancher et l’origine', () => {
 test('le nom accessible d’un nom dit sa forme et sa nature', () => {
   assert.equal(nomAccessibleDuTerme(NOM), 'Button, Composant, 245 noms');
   assert.equal(nomAccessibleDuTerme({ ...NOM, nature: 'palette', mot: 'poppy', forme: 'Poppy', nombre: 44 }), 'Poppy, Palette, 44 noms');
+});
+
+test('un filtre qui vise un seul type demande la page de sa section, les autres les premières lignes de chaque section', () => {
+  const repartie = (filtre: Parameters<typeof filtrer>[1]) => requeteDeLaListe({ ...LISTE_INITIALE, filtre, recherche: 'bg' }, 50);
+  assert.deepEqual(repartie('composants'), { recherche: 'bg', types: ['composant'], origines: [], tri: 'nombre', section: 'composant', debut: 50 });
+  assert.deepEqual(repartie('palettes').section, 'palette');
+  assert.deepEqual([repartie('tous').section, repartie('tous').types], [null, []]);
+  assert.deepEqual([repartie('avec-regle').section, repartie('avec-regle').types], [null, ['remplace', 'conforme']]);
+  assert.deepEqual([repartie('sans-regle').section, repartie('sans-regle').types], [null, ['a-trancher', 'sans-regle']]);
+});
+
+test('la réponse par sections se met à plat pour l’écran actuel', () => {
+  const comptes = { types: { 'a-trancher': 1, remplace: 4, conforme: 10, 'sans-regle': 20, composant: 3, palette: 2 }, origines: { ucm: 12, personnalise: 2 } };
+  const base = { type: 'termes', demande: 1, generation: 1, comptes } as const;
+  const sections = [{ type: 'remplace', total: 4, termes: termes(0, 2) }, { type: 'conforme', total: 10, termes: termes(2, 3) }] as const;
+  const sansSection = pageDeLaReponse({ ...base, section: null, debut: 0, sections });
+  assert.deepEqual([sansSection.termes.length, sansSection.total, resteAAfficher(recevoir(LISTE_INITIALE, sansSection))], [5, 5, false], 'sans section, pas de page suivante');
+  assert.deepEqual(sansSection.comptes, { tous: 40, avecRegle: 14, sansRegle: 21, composants: 3, palettes: 2 });
+  const page = pageDeLaReponse({ ...base, section: 'conforme', debut: 50, sections: [{ type: 'conforme', total: 80, termes: termes(50, 30) }] });
+  assert.deepEqual([page.debut, page.termes.length, page.total], [50, 30, 80]);
 });

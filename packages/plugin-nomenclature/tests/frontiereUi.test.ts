@@ -1,7 +1,7 @@
 /** La frontière de l'écran : numérotation, calculs un à un, lectures sur la génération courante. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { Bilan, DemandeArchitect, PluginMessage } from '../src/messages';
+import type { Bilan, DemandeArchitect, PluginMessage, RequeteDeTermes } from '../src/messages';
 import { creerFrontiere, type MessageAAfficher } from '../src/ui/frontiere';
 
 const ECRITURE = { convention: { casse: 'minuscules', separateur: 'tiret' }, suivent: 1, total: 1, exemple: null } as const;
@@ -12,6 +12,10 @@ const bilan = (generation: number): Bilan => ({
 });
 const GESTE = { type: 'supprimer', terme: 'bg' } as const;
 const SELECTION = { groupes: ['g'], exclus: [], inclus: [] };
+const requete = (recherche: string, reste: Partial<RequeteDeTermes> = {}): RequeteDeTermes =>
+  ({ recherche, types: [], origines: [], tri: 'alpha', section: null, debut: 0, ...reste });
+const COMPTES = { types: { 'a-trancher': 0, remplace: 0, conforme: 0, 'sans-regle': 0, composant: 0, palette: 0 }, origines: { ucm: 0, personnalise: 0 } };
+const reponseDesTermes = (demande: number): PluginMessage => ({ type: 'termes', demande, generation: 1, section: null, debut: 0, sections: [], comptes: COMPTES });
 
 function creer() {
   const envoyees: DemandeArchitect[] = [];
@@ -90,7 +94,7 @@ test('les cinq lectures portent la génération du dernier bilan', () => {
   const { frontiere, envoyees, analyser } = creer();
   analyser(7);
   frontiere.lignes('g', 0);
-  frontiere.termes('bg', 'tous', 0);
+  frontiere.termes(requete('bg'));
   frontiere.fiche('bg');
   frontiere.simuler(GESTE);
   frontiere.diagnostic();
@@ -99,10 +103,18 @@ test('les cinq lectures portent la génération du dernier bilan', () => {
   assert.deepEqual(lectures.map((demande) => ('generation' in demande ? demande.generation : null)), [7, 7, 7, 7, 7]);
 });
 
+test('la demande de termes part avec tous ses critères et la génération courante', () => {
+  const { frontiere, envoyees, analyser } = creer();
+  analyser(5);
+  const complete = requete('bg', { types: ['remplace', 'conforme'], origines: ['ucm'], tri: 'nombre', section: 'remplace', debut: 50 });
+  const demande = frontiere.termes(complete) as number;
+  assert.deepEqual(envoyees[envoyees.length - 1], { type: 'termes', demande, generation: 5, ...complete });
+});
+
 test('sans bilan, une lecture ou appliquer ne part pas', () => {
   const { frontiere, envoyees } = creer();
   assert.equal(frontiere.lignes('g', 0), null);
-  assert.equal(frontiere.termes('', 'tous', 0), null);
+  assert.equal(frontiere.termes(requete('')), null);
   assert.equal(frontiere.fiche('bg'), null);
   assert.equal(frontiere.simuler(GESTE), null);
   assert.equal(frontiere.diagnostic(), null);
@@ -129,7 +141,7 @@ test('un nouveau bilan rend caduques les lectures en attente, même leur erreur'
   const { frontiere, affichees, analyser } = creer();
   analyser(1);
   const lignes = frontiere.lignes('g', 0) as number;
-  const termes = frontiere.termes('', 'tous', 0) as number;
+  const termes = frontiere.termes(requete('')) as number;
   const calcul = frontiere.regle(GESTE);
   frontiere.recevoir({ type: 'bilan', demande: calcul, bilan: bilan(2) });
   const avant = affichees.length;
@@ -142,9 +154,9 @@ test("l'écho d'une demande de lecture est ignoré, puis la vraie réponse est a
   const ficheVide = { mot: 'bg', forme: 'bg', nature: null, origine: null, categorieUcm: null, definition: null, remplace: [], emploi: { nombre: 0, exemples: [] }, aRenommer: { nombre: 0, exemples: [] }, ecart: false, voulu: false, ordinaire: false, distincts: [], question: null };
   const formes: Array<{ ouvrir: (f: ReturnType<typeof creer>['frontiere']) => number; echo: (demande: number) => unknown; reponse: (demande: number) => PluginMessage }> = [
     {
-      ouvrir: (f) => f.termes('', 'tous', 0) as number,
+      ouvrir: (f) => f.termes(requete('')) as number,
       echo: (demande) => ({ type: 'termes', demande, generation: 1, debut: 0, requete: '' }),
-      reponse: (demande) => ({ type: 'termes', demande, generation: 1, debut: 0, termes: [], total: 0, comptes: { tous: 0, avecRegle: 0, sansRegle: 0, composants: 0, palettes: 0 } }),
+      reponse: reponseDesTermes,
     },
     {
       ouvrir: (f) => f.fiche('bg') as number,
@@ -190,10 +202,10 @@ test('un bilan qui garde la même génération ne rend pas les lectures caduques
 test('une lecture plus récente de même clé rend l’ancienne caduque, une autre clé non', () => {
   const { frontiere, affichees, analyser } = creer();
   analyser(1);
-  const premiere = frontiere.termes('b', 'tous', 0) as number;
-  const seconde = frontiere.termes('bg', 'tous', 0) as number;
+  const premiere = frontiere.termes(requete('b')) as number;
+  const seconde = frontiere.termes(requete('bg')) as number;
   const autre = frontiere.fiche('bg') as number;
-  const termes = (demande: number): PluginMessage => ({ type: 'termes', demande, generation: 1, debut: 0, termes: [], total: 0, comptes: { tous: 0, avecRegle: 0, sansRegle: 0, composants: 0, palettes: 0 } });
+  const termes = reponseDesTermes;
   const avant = affichees.length;
   frontiere.recevoir(termes(premiere));
   assert.equal(affichees.length, avant);

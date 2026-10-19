@@ -28,15 +28,39 @@ export type GesteSurLesRegles =
   | { readonly type: 'annuler-reponse'; readonly question: string }
   | { readonly type: 'annuler-import' };
 
-/** Les filtres de la liste du vocabulaire : `composants` montre les composants et les éléments, `palettes` les palettes. */
-export type FiltreDeTermes = 'tous' | 'avec-regle' | 'sans-regle' | 'composants' | 'palettes';
-/** Le nombre de termes de chaque filtre, sans recherche. */
-export interface ComptesDeTermes { readonly tous: number; readonly avecRegle: number; readonly sansRegle: number; readonly composants: number; readonly palettes: number }
+/**
+ * Le type d'un terme de la liste du vocabulaire, qui fixe sa section. La nature d'un nom passe avant la règle : `composant` et `palette` ;
+ * puis `a-trancher` ; un terme réglé est `remplace` quand le fichier emploie au moins une de ses variantes, sinon `conforme` ;
+ * `sans-regle` couvre aussi une règle UCM écartée (son statut reste `ecart`).
+ */
+export type TypeDeTerme = 'a-trancher' | 'remplace' | 'conforme' | 'sans-regle' | 'composant' | 'palette';
+/** Les types dans l'ordre des sections. */
+export const TYPES_DE_TERMES: readonly TypeDeTerme[] = ['a-trancher', 'remplace', 'conforme', 'sans-regle', 'composant', 'palette'];
+/** Qui a posé la règle d'un terme : le référentiel UCM ou le fichier. */
+export type OrigineDeFiltre = 'ucm' | 'personnalise';
+export const ORIGINES_DE_FILTRE: readonly OrigineDeFiltre[] = ['ucm', 'personnalise'];
+export type TriDeTermes = 'alpha' | 'nombre';
+export const TRIS_DE_TERMES: readonly TriDeTermes[] = ['alpha', 'nombre'];
+/**
+ * Ce que l'écran demande à la liste. `types` et `origines` vides ne filtrent rien ; `origines` ne retient que parmi `remplace` et `conforme`.
+ * Sans `section`, la réponse donne les premières lignes de chaque section ; avec `section`, une page de cette seule section, à partir de `debut`.
+ */
+export interface RequeteDeTermes {
+  readonly recherche: string; readonly types: readonly TypeDeTerme[]; readonly origines: readonly OrigineDeFiltre[];
+  readonly tri: TriDeTermes; readonly section: TypeDeTerme | null; readonly debut: number;
+}
+/** Le total d'une section, après recherche et filtres, et ses lignes : les premières, ou la page demandée. */
+export interface SectionDeTermes { readonly type: TypeDeTerme; readonly total: number; readonly termes: readonly TermeDeListe[] }
+/** Le nombre de termes de chaque type et de chaque origine, hors recherche et hors filtres : il alimente le menu des filtres. */
+export interface ComptesDeTermes {
+  readonly types: Readonly<Record<TypeDeTerme, number>>;
+  readonly origines: Readonly<Record<OrigineDeFiltre, number>>;
+}
 
 export type DemandeArchitect =
   | { readonly type: 'analyser'; readonly demande: number }
   | { readonly type: 'lignes'; readonly demande: number; readonly generation: number; readonly groupe: string; readonly debut: number }
-  | { readonly type: 'termes'; readonly demande: number; readonly generation: number; readonly recherche: string; readonly filtre: FiltreDeTermes; readonly debut: number }
+  | ({ readonly type: 'termes'; readonly demande: number; readonly generation: number } & RequeteDeTermes)
   | { readonly type: 'fiche'; readonly demande: number; readonly generation: number; readonly terme: string }
   | { readonly type: 'diagnostic'; readonly demande: number; readonly generation: number }
   | { readonly type: 'simuler'; readonly demande: number; readonly generation: number; readonly geste: GesteSurLesRegles }
@@ -100,14 +124,21 @@ export interface Bilan {
   readonly dernierImport: { readonly heure: string } | null;
 }
 /**
- * Le filtre `avec-regle` montre `regle` et `ecart` ; `sans-regle` montre `sans-regle` et `a-trancher` quand `nature` est `null`.
- * `mot` est la clé du terme (`stress-test`), `forme` son écriture la plus fréquente dans le fichier (`StressTest`).
- * `nature` vaut `composant` ou `palette` pour un nom, `null` pour un mot.
+ * `mot` est la clé du terme (`stress-test`). `forme` est son écriture affichée : pour un terme réglé, le terme de référence écrit dans la
+ * convention de la catégorie qui l'emploie le plus (`Color` en dossier, `line-height` en variable) ; pour un nom ou un mot sans règle,
+ * son écriture la plus fréquente dans le fichier (`StressTest`). `nature` vaut `composant` ou `palette` pour un nom, `null` pour un mot.
+ * `remplace` liste les formes du fichier des variantes du terme (`Colors`, `colors`), les plus fréquentes d'abord ; une variante que le fichier
+ * n'emploie pas n'y figure pas. `trouve`, quand la recherche a trouvé le terme par une variante, en est un élément : si le fichier n'emploie
+ * pas cette variante, la ligne trouvée la porte sous sa clé.
  */
-export interface TermeDeListe { readonly mot: string; readonly forme: string; readonly nature: NatureDeSegment | null; readonly origine: OrigineDuTerme | null; readonly statut: 'regle' | 'ecart' | 'a-trancher' | 'sans-regle'; readonly remplace: readonly string[]; readonly avec: string | null; readonly nombre: number; readonly trouve: string | null }
+export interface TermeDeListe {
+  readonly mot: string; readonly forme: string; readonly type: TypeDeTerme; readonly nature: NatureDeSegment | null; readonly origine: OrigineDuTerme | null;
+  readonly statut: 'regle' | 'ecart' | 'a-trancher' | 'sans-regle'; readonly remplace: readonly string[]; readonly avec: string | null; readonly nombre: number; readonly trouve: string | null;
+}
 export interface FicheVue {
   readonly mot: string; readonly forme: string; readonly nature: NatureDeSegment | null; readonly origine: OrigineDuTerme | null; readonly categorieUcm: string | null; readonly definition: string | null;
-  readonly remplace: readonly { readonly mot: string; readonly nombre: number; readonly ucm: boolean }[];
+  /** `mot` est la clé de la variante, que les gestes sur les règles envoient ; `forme` son écriture dans le fichier, la clé si le fichier ne l'emploie pas. */
+  readonly remplace: readonly { readonly mot: string; readonly forme: string; readonly nombre: number; readonly ucm: boolean }[];
   readonly emploi: { readonly nombre: number; readonly exemples: readonly LigneVue[] };
   /** Les renommages dus au terme, où l'une de ses variantes est remplacée par lui. */
   readonly aRenommer: { readonly nombre: number; readonly exemples: readonly LigneVue[] };
@@ -135,7 +166,8 @@ export type PluginMessage =
   | { readonly type: 'lecture'; readonly demande: number; readonly lues: number; readonly total: number }
   | { readonly type: 'bilan'; readonly demande: number; readonly bilan: Bilan }
   | { readonly type: 'lignes'; readonly demande: number; readonly generation: number; readonly groupe: string; readonly debut: number; readonly lignes: readonly LigneVue[]; readonly total: number }
-  | { readonly type: 'termes'; readonly demande: number; readonly generation: number; readonly debut: number; readonly termes: readonly TermeDeListe[]; readonly total: number; readonly comptes: ComptesDeTermes }
+  /** `section` et `debut` répètent la demande. Sans section, `sections` ne garde que les types qui ont au moins un terme. */
+  | { readonly type: 'termes'; readonly demande: number; readonly generation: number; readonly section: TypeDeTerme | null; readonly debut: number; readonly sections: readonly SectionDeTermes[]; readonly comptes: ComptesDeTermes }
   | { readonly type: 'fiche'; readonly demande: number; readonly generation: number; readonly fiche: FicheVue }
   | { readonly type: 'diagnostic'; readonly demande: number; readonly generation: number; readonly texte: string }
   | { readonly type: 'simulation'; readonly demande: number; readonly generation: number; readonly effet: EffetVue | null; readonly conflit: ConflitVue | null }
@@ -155,7 +187,7 @@ const objet = (valeur: unknown): valeur is Objet => !!valeur && typeof valeur ==
 const nombreFini = (valeur: unknown): boolean => typeof valeur === 'number' && Number.isFinite(valeur);
 
 const LIMITE_D_IMPORT = 1_000_000;
-const FILTRES: readonly FiltreDeTermes[] = ['tous', 'avec-regle', 'sans-regle', 'composants', 'palettes'];
+const membres = (valeur: unknown, permis: readonly string[]): boolean => Array.isArray(valeur) && valeur.every((element) => permis.includes(element as string));
 
 function estEcriture(brut: unknown): boolean {
   return objet(brut) && Object.keys(brut).length === 2 && 'groupes' in brut && 'variables' in brut && estConventions(brut);
@@ -193,7 +225,7 @@ function estSelection(brut: unknown): boolean {
   return objet(brut) && sansDoublon(brut.groupes) && sansDoublon(brut.exclus) && sansDoublon(brut.inclus);
 }
 
-/** Refuse toute demande hors contrat : demande ou génération non numérotée, rang, filtre ou geste inconnu, sélection à doublons, import de plus d'un million de caractères, coordonnées de fenêtre non finies. */
+/** Refuse toute demande hors contrat : demande ou génération non numérotée, rang, type, origine, tri, section ou geste inconnu, sélection à doublons, import de plus d'un million de caractères, coordonnées de fenêtre non finies. */
 export function estUiMessage(brut: unknown): brut is UiMessage {
   if (!objet(brut)) return false;
   if (brut.type === 'resize') {
@@ -204,7 +236,9 @@ export function estUiMessage(brut: unknown): brut is UiMessage {
   switch (brut.type) {
     case 'analyser': case 'annuler-dernier': case 'exporter': return true;
     case 'lignes': return genere && chaine(brut.groupe) && entierNonNegatif(brut.debut);
-    case 'termes': return genere && chaine(brut.recherche) && FILTRES.includes(brut.filtre as FiltreDeTermes) && entierNonNegatif(brut.debut);
+    case 'termes':
+      return genere && chaine(brut.recherche) && membres(brut.types, TYPES_DE_TERMES) && membres(brut.origines, ORIGINES_DE_FILTRE)
+        && TRIS_DE_TERMES.includes(brut.tri as TriDeTermes) && (brut.section === null || TYPES_DE_TERMES.includes(brut.section as TypeDeTerme)) && entierNonNegatif(brut.debut);
     case 'fiche': return genere && chaine(brut.terme);
     case 'diagnostic': return genere;
     case 'simuler': return genere && estGeste(brut.geste);
