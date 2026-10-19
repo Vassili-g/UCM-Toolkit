@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vocabulaire d'UCM Nomenclature</title>
+<style>
+  :root {
+    --fond: #161616; --bloc: #222; --bordure: #333; --texte: #eee; --second: #9a9a9a;
+    --ambre: #f3b53f; --bleu: #4ea1ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 1340px; margin: 0 auto; padding: 32px 16px 96px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 19px; margin: 56px 0 6px; padding-top: 24px; border-top: 1px solid var(--bordure); }
+  p { margin: 6px 0; max-width: 860px; }
+  .intro { color: var(--second); }
+  code { font-family: Consolas, monospace; font-size: 13px; background: #2a2a2a; padding: 0 4px; border-radius: 3px; }
+  .colonnes { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; margin-top: 16px; }
+  .colonne { flex: 0 0 auto; width: 640px; max-width: 100%; }
+  .cadre { position: relative; max-width: 100%; border: 1px solid var(--bordure); border-radius: 8px; overflow: hidden; background: #2c2c2c; }
+  .cadre iframe { display: block; border: 0; max-width: 100%; }
+  .etiquette { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 4px; margin-bottom: 6px; }
+  .etiquette.aujourdhui { background: #3a3a3a; color: var(--texte); }
+  .etiquette.propose { background: #16314d; color: #9fcfff; }
+  .etiquette.variante { background: #3b2f12; color: var(--ambre); }
+  ol.argu { padding-left: 20px; margin: 10px 0 0; font-size: 13px; color: #cfcfcf; }
+  ol.argu li { margin: 4px 0; }
+  ol.argu b { color: var(--texte); }
+  table.legende { border-collapse: collapse; font-size: 13px; margin-top: 12px; max-width: 1100px; }
+  table.legende th, table.legende td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--bordure); vertical-align: top; }
+  table.legende th { color: var(--second); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Vocabulaire d'UCM Nomenclature</h1>
+  <p class="intro">Les écrans partent de l'onglet Règles réel, figé depuis la galerie sombre du plugin
+  (<code>Mesures/extraire-galerie.mjs</code>) à 640 × 720 ou plus haut. Les lignes reprennent l'export du détail du
+  vocabulaire du Playground. Les écrans proposés supposent les lots V1 et V2 du
+  <a href="../../PLAN-VOCABULAIRE.md" style="color:var(--bleu)">plan du vocabulaire</a> faits : un terme n'est plus coupé
+  à la casse, les noms de collections sortent de la liste, un terme sans règle s'affiche sous sa forme du fichier
+  (décision DV1). La section « Conventions d’écriture » reste celle de la galerie.</p>
+
+  <h2 id="detection">1. Ce que le plugin repère</h2>
+  <p>Un nom se repère à sa place dans le chemin, sans lire les composants Figma. Un mot du référentiel UCM n'est jamais
+  un nom : <code>Icons</code> garde sa règle <code>icon</code>, <code>primary</code> et <code>success</code> restent des
+  termes. Un mot qui apparaît aussi ailleurs (<code>Base</code> est un élément et une taille) reste un terme.</p>
+  <table class="legende">
+    <tr><th>Nature</th><th>Règle de repérage</th><th>Trouvés dans le Playground</th></tr>
+    <tr><td>Composant</td><td>Premier segment de la collection UCM <code>components</code>, ou premier segment suivi d'un groupe <code>color</code>, <code>size</code> ou de leurs formes (<code>Colors</code>, <code>Sizes</code>) dans une autre collection.</td><td>Button 245, StressTest 66, Alert 16, TileLink 11</td></tr>
+    <tr><td>Élément de composant</td><td>Segment suivant, lui aussi suivi d'un groupe <code>Colors</code> ou <code>Sizes</code>.</td><td>ScaleWrap 22, UserInput 13, TilesGrid 6, Badge 6, TextColumns 5, Head 2, TileLinksWrap 2</td></tr>
+    <tr><td>Palette</td><td>Segment dont chaque variable descendante finit par un cran (50 à 950, <code>white</code>, <code>black</code>), avec ou sans mode et profil entre les deux. Les variables écrites par UCM Palettes portent l'identifiant de leur palette dans leurs données partagées ; le plugin s'en sert quand il est présent.</td><td>Poppy, Grass, Orange, Sky, Sun 44 ; Titanium 24 ; Terracota, Deep 22</td></tr>
+  </table>
+
+  <h2 id="aujourdhui">2. La liste aujourd'hui</h2>
+  <div class="colonnes">
+    <div class="colonne">
+      <span class="etiquette aujourdhui">Aujourd'hui · Sans règle</span>
+      <div class="cadre" id="aujourdhui-sans-regle"></div>
+      <ol class="argu">
+        <li>Les noms de composants et de palettes se mêlent aux mots à régler : <code>button</code>, <code>grass</code>, <code>poppy</code>.</li>
+        <li>Des morceaux de noms passent pour des termes : <code>stress</code>, <code>test</code>, <code>font</code>, <code>height</code>.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h2 id="propositions">3. Deux façons de montrer les noms</h2>
+  <p>La nature d'un nom s'écrit dans une pastille grise, celle de « Sans règle » dans la fiche. Le gris dit ce qu'est
+  un mot. L'indigo et le vert d'eau restent l'origine d'une règle (UCM, Personnalisé), l'ambre reste « À trancher ».</p>
+  <div class="colonnes">
+    <div class="colonne">
+      <span class="etiquette propose">A · Une liste, deux filtres de plus</span>
+      <div class="cadre" id="a-tous"></div>
+      <ol class="argu">
+        <li>Les noms gardent leur rang dans la liste. Leur pastille grise les distingue des termes.</li>
+        <li>« Composants » regroupe les composants et leurs éléments, « Palettes » les palettes.</li>
+        <li>Cinq filtres ne tiennent plus sur la ligne de la recherche : celle-ci passe dessous.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette propose">A · Filtre Palettes</span>
+      <div class="cadre" id="a-palettes"></div>
+    </div>
+  </div>
+  <div class="colonnes">
+    <div class="colonne">
+      <span class="etiquette propose">B · Une section à part, recommandée</span>
+      <div class="cadre" id="b"></div>
+      <ol class="argu">
+        <li>Le vocabulaire ne montre que des mots à régler. « Sans règle 30 » compte des mots sur lesquels le designer peut agir.</li>
+        <li>La section « Composants et palettes » dit une fois pour toutes ce que ces noms sont et pourquoi aucune question ne porte sur eux. Ses intertitres remplacent les pastilles.</li>
+        <li>Les trois filtres et la recherche restent sur une ligne. La recherche filtre aussi cette section.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette propose">B · Fiche d'un composant</span>
+      <div class="cadre" id="b-fiche"></div>
+      <ol class="argu">
+        <li>La pastille grise « Composant » remplace « Sans règle ».</li>
+        <li>Le designer garde « Remplacer par… » : renommer un composant partout reste possible.</li>
+        <li>« Traiter comme un terme » corrige un repérage faux ; le nom revient dans le vocabulaire.</li>
+      </ol>
+    </div>
+  </div>
+</main>
+
+<script src="galerie/etats.js"></script>
+<script>
+const esc = (texte) => String(texte).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const CHEVRON = '<svg class="chevron-svg suivant" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"></path></svg>';
+const ORIGINES = { ucm: '<span class="pastille pastille-ucm">UCM</span>', perso: '<span class="pastille pastille-personnalise">Personnalisé</span>' };
+
+/* Une ligne comme creerLigneDeTerme (src/ui/regles.ts) : la règle en jeton gris, un mot sans règle en code. */
+function ligne({ mot, nombre, origine, remplace, nature }) {
+  const regle = remplace
+    ? `<span class="jeton jeton-neutre petit">${esc(mot)}</span><span class="variantes">remplace</span><span>${remplace.map((v) => `<code class="variante">${esc(v)}</code>`).join('')}</span>`
+    : origine ? `<span class="jeton jeton-neutre petit">${esc(mot)}</span>` : `<code class="mot">${esc(mot)}</code>`;
+  const droite = nature ? `<span class="pastille pastille-indice">${nature}</span>` : origine ? ORIGINES[origine] : '<span></span>';
+  return `<button type="button" class="ligne-terme" aria-pressed="false"><span class="terme-regle">${regle}</span>${droite}<span class="meta terme-nombre">${nombre}</span>${CHEVRON}</button>`;
+}
+const filtres = (liste, presse) => `<div class="filtres" role="group">${liste.map(([libelle, nombre]) => `<button type="button" class="filtre" aria-pressed="${libelle === presse}">${libelle} ${nombre}</button>`).join('')}</div>`;
+const RECHERCHE = '<input type="search" class="input recherche" placeholder="Chercher un terme" value="">';
+const PLUS = '<button type="button" class="btn btn-secondary btn-compact afficher-plus"><span>Afficher plus</span></button>';
+const EXPORT = '<button type="button" class="lien export-du-detail">Exporter le détail du vocabulaire</button>';
+
+/* Aujourd'hui : les douze premières lignes « Sans règle » de l'export. */
+const AUJOURDHUI = [
+  ['button', 245], ['outlined', 106], ['contained', 71], ['stress', 66], ['test', 66], ['font', 50],
+  ['grass', 44], ['orange', 44], ['poppy', 44], ['sky', 44], ['sun', 44], ['height', 35],
+].map(([mot, nombre]) => ({ mot, nombre }));
+
+/* Après V1 et V2 : les termes avec règle en tête de « Tous », les noms à leur rang. */
+const TOUS_A = [
+  { mot: 'soft', nombre: 294, origine: 'ucm' }, { mot: 'vivid', nombre: 294, origine: 'ucm' },
+  { mot: 'dark', nombre: 268, origine: 'ucm' }, { mot: 'light', nombre: 268, origine: 'ucm' },
+  { mot: 'Button', nombre: 245, nature: 'Composant' },
+  { mot: 'info', nombre: 185, origine: 'ucm', remplace: ['information', 'informative'] },
+  { mot: 'success', nombre: 150, origine: 'ucm', remplace: ['positive'] },
+  { mot: 'warning', nombre: 141, origine: 'ucm', remplace: ['caution', 'attention', 'notice'] },
+  { mot: 'foreground', nombre: 138, origine: 'ucm' }, { mot: 'scale', nombre: 123, origine: 'ucm' },
+  { mot: 'Outlined', nombre: 106 }, { mot: 'background', nombre: 92, origine: 'ucm', remplace: ['bg'] },
+];
+const PALETTES = [['Poppy', 44], ['Grass', 44], ['Orange', 44], ['Sky', 44], ['Sun', 44], ['Titanium', 24], ['Terracota', 22], ['Deep', 22]]
+  .map(([mot, nombre]) => ({ mot, nombre, nature: 'Palette' }));
+const SANS_REGLE = [
+  ['Outlined', 106], ['Contained', 71], ['Padding', 15], ['Gap', 12], ['Standard', 8], ['x', 6], ['y', 6],
+  ['Tag', 5], ['top', 5], ['bottom', 5],
+].map(([mot, nombre]) => ({ mot, nombre }));
+const COMPOSANTS = [['Button', 245], ['StressTest', 66], ['Alert', 16], ['TileLink', 11]].map(([mot, nombre]) => ({ mot, nombre }));
+const ELEMENTS = [['ScaleWrap', 22], ['UserInput', 13], ['TilesGrid', 6], ['Badge', 6], ['TextColumns', 5], ['Head', 2], ['TileLinksWrap', 2]].map(([mot, nombre]) => ({ mot, nombre }));
+const PALETTES_B = PALETTES.map(({ mot, nombre }) => ({ mot, nombre }));
+
+const tete = (titre, phrase) => `<div class="section-tete"><div><h2>${titre}</h2><p>${phrase}</p></div></div>`;
+const VOCABULAIRE = (outils, lignes, plus = true) => `<section class="section-regles">${tete('Vocabulaire', 'Le terme de référence de chaque notion, et les variantes qu’il remplace.')}`
+  + `<div class="outils-termes">${outils}</div><div class="liste-termes" role="group">${lignes.map(ligne).join('')}</div>${plus ? PLUS : ''}</section>`;
+const groupe = (titre, lignes) => `<div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>${titre} · ${lignes.length}</h3></div><div class="liste-termes" role="group">${lignes.map(ligne).join('')}</div></div>`;
+const NOMS = '<section class="section-regles">'
+  + tete('Composants et palettes', 'Ces noms désignent un composant, un élément de composant ou une palette du fichier. Ils gardent leur forme : aucune question ne porte sur eux.')
+  + groupe('Composants', COMPOSANTS) + groupe('Éléments de composant', ELEMENTS) + groupe('Palettes', PALETTES_B) + '</section>';
+
+const FILTRES_AUJOURDHUI = [['Tous', 140], ['Avec règle', 77], ['Sans règle', 63]];
+const FILTRES_A = [['Tous', 126], ['Avec règle', 77], ['Sans règle', 30], ['Composants', 11], ['Palettes', 8]];
+const FILTRES_B = [['Tous', 107], ['Avec règle', 77], ['Sans règle', 30]];
+
+const FICHE_BUTTON = '<div class="feuille-voile feuille-terme"><section class="feuille" role="dialog" aria-modal="true">'
+  + '<header class="feuille-entete"><h2 class="feuille-titre">Button</h2><span class="pastille pastille-indice">Composant</span><button type="button" class="feuille-fermer" aria-label="Fermer">×</button></header>'
+  + '<div class="feuille-corps"><div class="feuille-contenu"><div class="fiche-entete"><p class="meta">Le premier segment de 245 noms de la collection components. Aucune question ne porte sur un nom de composant.</p>'
+  + '<button type="button" class="lien">Traiter comme un terme</button></div>'
+  + '<div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>Déjà employé · 245</h3></div><div class="fiche-liste">'
+  + ['Colors/Secondary/Contained/Disable/Foreground', 'Colors/Primary/Text/Press/Foreground', 'Sizes/Medium/Padding-x']
+    .map((reste) => `<span class="chemin"><span class="terme-employe">Button</span>/${reste}</span>`).join('')
+  + '</div></div></div></div>'
+  + '<footer class="feuille-pied"><div class="feuille-actions"><button type="button" class="btn btn-secondary"><span>Remplace d’autres termes…</span></button>'
+  + '<span class="feuille-groupe"><button type="button" class="btn btn-primary"><span>Remplacer par…</span></button></span></div></footer></section></div>';
+
+function cadre(id, { etat, hauteur = 720, vocabulaire, apres, feuille }) {
+  const g = window.GALERIE[etat];
+  const iframe = document.createElement('iframe');
+  iframe.width = 640;
+  iframe.height = hauteur;
+  iframe.style.width = '640px';
+  iframe.style.height = `${hauteur}px`;
+  iframe.srcdoc = `<!doctype html><html lang="fr" class="${g.classe}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/plugin.css"></head><body>${g.corps}</body></html>`;
+  iframe.addEventListener('load', () => {
+    const doc = iframe.contentDocument;
+    if (vocabulaire) {
+      const pile = doc.querySelector('[role="tabpanel"] > .page-stack');
+      const sections = pile.querySelectorAll('.section-regles');
+      sections[1].outerHTML = vocabulaire;
+      pile.querySelector('.export-du-detail')?.remove();
+      pile.insertAdjacentHTML('beforeend', `${apres ?? ''}${EXPORT}`);
+    }
+    if (feuille) {
+      doc.querySelectorAll('.feuille-voile').forEach((voile) => voile.remove());
+      doc.body.insertAdjacentHTML('beforeend', feuille);
+    }
+  });
+  document.getElementById(id).append(iframe);
+}
+
+cadre('aujourdhui-sans-regle', { etat: 'regles', hauteur: 980, vocabulaire: VOCABULAIRE(filtres(FILTRES_AUJOURDHUI, 'Sans règle') + RECHERCHE, AUJOURDHUI) });
+cadre('a-tous', { etat: 'regles', hauteur: 1010, vocabulaire: VOCABULAIRE(filtres(FILTRES_A, 'Tous') + RECHERCHE, TOUS_A) });
+cadre('a-palettes', { etat: 'regles', hauteur: 1010, vocabulaire: VOCABULAIRE(filtres(FILTRES_A, 'Palettes') + RECHERCHE, PALETTES, false) });
+cadre('b', { etat: 'regles', hauteur: 1660, vocabulaire: VOCABULAIRE(filtres(FILTRES_B, 'Sans règle') + RECHERCHE, SANS_REGLE), apres: NOMS });
+cadre('b-fiche', { etat: 'feuille-terme-sans-regle', vocabulaire: VOCABULAIRE(filtres(FILTRES_B, 'Sans règle') + RECHERCHE, SANS_REGLE), apres: NOMS, feuille: FICHE_BUTTON });
+</script>
+</body>
+</html>

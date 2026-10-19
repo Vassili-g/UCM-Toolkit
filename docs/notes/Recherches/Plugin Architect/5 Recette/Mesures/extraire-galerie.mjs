@@ -2,15 +2,16 @@
 // Les maquettes modifient ces écrans réels au lieu de les redessiner.
 // Préalable : `npm run galerie -w ucm-nomenclature-plugin`. Lancer depuis la racine du dépôt :
 // `node "docs/notes/Recherches/Plugin Architect/5 Recette/Mesures/extraire-galerie.mjs"`.
+// Une autre maquette passe sa galerie, son dossier de sortie et ses états par `GALERIE`, `SORTIE` et `ETATS` (séparés par des virgules).
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const ici = path.dirname(fileURLToPath(import.meta.url));
-const galerie = path.resolve(ici, '../../../../../../packages/plugin-nomenclature/dist/galerie/sombre');
-const sortie = path.resolve(ici, '../Maquettes/galerie');
-const ETATS = [
+const galerie = process.env.GALERIE ?? path.resolve(ici, '../../../../../../packages/plugin-nomenclature/dist/galerie/sombre');
+const sortie = process.env.SORTIE ?? path.resolve(ici, '../Maquettes/galerie');
+const ETATS = process.env.ETATS?.split(',') ?? [
   'a-appliquer-depliee',
   'a-trancher',
   'regles',

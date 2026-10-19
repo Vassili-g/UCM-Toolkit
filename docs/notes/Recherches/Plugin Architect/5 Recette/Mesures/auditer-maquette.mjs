@@ -6,7 +6,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const ici = path.dirname(fileURLToPath(import.meta.url));
-const maquette = path.resolve(ici, '../Maquettes/MAQUETTE-RECETTE-ARCHITECT.html');
+// `MAQUETTE` désigne une autre maquette, par un chemin depuis la racine du dépôt.
+const maquette = process.env.MAQUETTE ? path.resolve(process.env.MAQUETTE) : path.resolve(ici, '../Maquettes/MAQUETTE-RECETTE-ARCHITECT.html');
 const navigateur = await chromium.launch();
 const page = await navigateur.newPage({ viewport: { width: 1400, height: 900 } });
 await page.goto(pathToFileURL(maquette).href);

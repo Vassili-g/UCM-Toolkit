@@ -71,18 +71,26 @@ Palettes. S'il persiste, le lot V5 le corrige.
 
 ## Décisions à prendre
 
-- **DV1, forme affichée d'un terme de plusieurs mots.** Recommandé : la forme
-  la plus fréquente dans le fichier (`StressTest`, `lineheight`), la clé
-  `stress-test` restant interne. Autre choix : la clé.
-- **DV2, place des noms dans la liste.** Recommandé : un filtre « Noms » à côté
-  de « Avec règle » et « Sans règle » ; un nom ne compte plus dans « Sans
-  règle ». Pastilles « Composant », « Élément », « Palette ». À maquetter
-  d'abord sur la galerie réelle.
-- **DV3, registres du kit.** Étendre `REGISTRE_TAILLES` aux crans `5xs` et
-  au-delà, `5xl` à `9xl`. Créer un registre des côtés et des axes (`x`, `y`,
-  `top`, `right`, `bottom`, `left`). Les valeurs de variante (`contained`,
-  `outlined`, `text`) restent hors du référentiel tant que la nomenclature
-  UCM ne les nomme pas.
+- **DV1, forme affichée d'un terme sans règle.** Décidé : la forme la plus
+  fréquente dans le fichier (`StressTest`, `lineheight`, `Outlined`). La clé
+  `stress-test` reste interne. Un terme avec règle montre son terme de
+  référence.
+- **DV2, place des noms.** La [maquette](./Maquettes/vocabulaire/MAQUETTE-VOCABULAIRE.html)
+  compare deux formes. A garde une seule liste, avec une pastille grise
+  « Composant », « Élément » ou « Palette » et deux filtres de plus. B, recommandée,
+  sort les noms du vocabulaire dans une section « Composants et palettes »
+  rangée par intertitres. Dans les deux, la fiche d'un nom porte la pastille
+  grise et le lien « Traiter comme un terme ».
+- **DV3, deux ajouts au référentiel du kit.** Les tailles `5xs` et `5xl` à
+  `9xl` du Playground sortent de « Sans règle » et prennent la pastille UCM,
+  comme `4xl`. Les côtés et les axes (`x`, `y`, `top`, `right`, `bottom`,
+  `left`) deviennent des mots connus d'UCM : ils sortent de « Sans règle », et
+  une faute de frappe sur l'un d'eux devient une question. Deux oui ou non.
+
+Le plugin ne lit pas les contrats publiés pour repérer les composants. Son
+manifeste n'ouvre aucun domaine réseau, et `socle.test.ts` le vérifie ; un
+dépôt privé demanderait un jeton. La règle de position trouve les quatre
+composants du Playground sans réseau.
 
 ## Lots
 
@@ -128,16 +136,20 @@ Agent : `implementeur`. Fichiers : `src/projection.ts`, `tests/projection.test.t
 
 ### V3 · La nature d'un terme (kit, puis plugin)
 
-Agent : `implementeur`, après DV2 et la maquette. Fichiers :
+Agent : `implementeur`, après le choix entre A et B de DV2. Fichiers :
 `referentiel/` (nouvelle fonction), `src/projection.ts`, `src/messages.ts`,
 `src/ui/regles.ts`, `src/ui/listeDesTermes.ts`, `src/ui/textes.ts`,
 `src/ui/feuilles.ts`.
 
 - [ ] Le kit rend la nature d'un segment : `composant` au rang 0 de la
-  collection reconnue `components` ; `element` pour un segment de cette
-  collection suivi d'un groupe de propriétés (`color`, `size` et leurs formes
-  tolérées) ; `palette` pour un segment dont chaque variable descendante
-  finit par un cran. Hors de ces positions, aucune nature.
+  collection reconnue `components`, ou au rang 0 suivi d'un groupe de
+  propriétés (`color`, `size` et leurs formes tolérées) ; `element` à un rang
+  suivant, suivi d'un tel groupe ; `palette` pour un segment dont chaque
+  variable descendante finit par un cran, ou que l'identifiant de palette
+  d'UCM Palettes désigne. Un mot du référentiel, ou employé aussi hors de ces
+  positions, n'a pas de nature.
+- [ ] « Traiter comme un terme » range le nom dans les règles du fichier ; il
+  revient dans le vocabulaire.
 - [ ] Un nom n'entre dans aucune question de paire, de faute ou de mots
   collés.
 - [ ] La liste et la fiche portent la pastille ; le filtre suit DV2.
