@@ -29,6 +29,7 @@ import {
   type Nature,
   type SectionDeComposant,
 } from '../../composant';
+import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import { indexer, type Index } from '../../indexation';
 import type { PluginMessage, SujetSelectionne } from '../../messages';
 import { hexaDeCouleur, texteDeValeur, type Couleur } from '../../modele';
@@ -319,7 +320,7 @@ export function creerVueComposant(app: Application): VueComposant {
     tout.dataset.focus = 'outil:tout';
     tout.setAttribute('aria-label', T.toutDeplier);
     tout.title = T.toutDeplier;
-    tout.textContent = lignes.length > SEUIL_DE_REPLI ? T.glyphes.sectionOuverte : T.glyphes.toutReplier;
+    tout.append(creerChevron(lignes.length > SEUIL_DE_REPLI ? undefined : 'ouvert'));
     tout.addEventListener('click', () => {
       const toutes = sectionsDe(lignes);
       if (toutes.some((section) => !sectionOuverte(section.nature))) for (const section of toutes) sections.set(section.nature, true);
@@ -665,14 +666,11 @@ export function creerVueComposant(app: Application): VueComposant {
       tete.dataset.section = section.nature;
       tete.dataset.focus = `section:${section.nature}`;
       tete.setAttribute('aria-expanded', String(ouverte));
-      const chevron = document.createElement('i');
-      chevron.setAttribute('aria-hidden', 'true');
-      chevron.textContent = ouverte ? T.glyphes.sectionOuverte : T.glyphes.sectionFermee;
       const nom = document.createElement('span');
       nom.textContent = T.natures[section.nature];
       const compte = document.createElement('b');
       compte.textContent = String(gardees.lignes.length);
-      tete.append(chevron, nom, compte);
+      tete.append(creerChevron(), nom, compte);
       tete.addEventListener('click', () => {
         sections.set(section.nature, !ouverte);
         focusAttendu = `section:${section.nature}`;

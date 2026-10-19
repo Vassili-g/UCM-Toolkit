@@ -382,9 +382,6 @@ export const TEXTES = {
     glyphes: {
       composant: '◇',
       calque: '#',
-      sectionFermee: '▸',
-      sectionOuverte: '▾',
-      toutReplier: '▴',
       forme: '◜',
       espacement: '↔',
       taille: '⤢',

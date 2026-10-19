@@ -496,7 +496,7 @@ test('un composant complexe replié tient sans défilement à 364 × 724 ; une p
   const page = await ouvrirComposant(composantComplexe());
   try {
     assert.equal(await page.locator('.vc-ligne').count(), 0);
-    assert.deepEqual(await page.locator('.vc-section-tete').evaluateAll((titres) => titres.map((titre) => `${titre.textContent} ${titre.getAttribute('aria-expanded')}`)), ['▸Couleur18 false', '▸Forme10 false', '▸Espacement15 false', '▸Taille4 false', '▸Texte5 false']);
+    assert.deepEqual(await page.locator('.vc-section-tete').evaluateAll((titres) => titres.map((titre) => `${titre.textContent} ${titre.getAttribute('aria-expanded')}`)), ['Couleur18 false', 'Forme10 false', 'Espacement15 false', 'Taille4 false', 'Texte5 false']);
     assert.equal(await page.locator('.vc-pied').textContent(), '52 tokens · 91 liaisons');
     const [contenu, visible] = await page.locator('.vc-corps').evaluate((corps) => [corps.scrollHeight, corps.clientHeight]);
     assert.ok(contenu <= visible, `${contenu} px de contenu pour ${visible} px visibles`);

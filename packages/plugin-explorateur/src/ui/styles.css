@@ -325,6 +325,8 @@ textarea {
 
 .chevron,
 .chevron-vide {
+  display: grid;
+  place-items: center;
   flex: none;
   width: 20px;
   height: 24px;
@@ -1506,11 +1508,8 @@ textarea {
   color: var(--texte);
 }
 
-.vc-section-tete i {
-  width: 9px;
-  color: var(--noeud);
-  font-size: 10px;
-  font-style: normal;
+.vc-section-tete .chevron-svg {
+  flex: none;
 }
 
 .vc-section-tete b {

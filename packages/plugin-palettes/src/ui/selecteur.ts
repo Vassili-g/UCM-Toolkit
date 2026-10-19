@@ -7,6 +7,7 @@
  * la liste suit le motif WAI-ARIA « listbox » derrière un bouton. Flèches et
  * Entrée choisissent, Échap referme.
  */
+import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import type { Palette } from 'ucm-couleur';
 
 import type { Verdict } from '../presentation';
@@ -134,8 +135,7 @@ function construireVues(i18n: Localisation) {
       nomDuBouton.classList.toggle('selecteur-invite', !courante);
       const fleche = document.createElement('span');
       fleche.className = 'selecteur-fleche';
-      fleche.setAttribute('aria-hidden', 'true');
-      i18n.lier(fleche, 'textContent', '▾');
+      fleche.append(creerChevron());
       pastilleDuBouton = courante ? pastilleDe(courante) : null;
       bouton.replaceChildren(...(pastilleDuBouton ? [pastilleDuBouton] : []), nomDuBouton, verdictDuBouton, fleche);
 

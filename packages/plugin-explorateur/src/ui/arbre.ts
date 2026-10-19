@@ -5,6 +5,7 @@
  * ne change pas la table. Les lignes sont virtualisées ; Haut et Bas déplacent
  * le focus d'un libellé à l'autre, Droite déplie et Gauche replie.
  */
+import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import { lignesVisibles, type LigneDArbre } from '../groupes';
 import type { Application, Composant } from './application';
 import { creerPoignee } from './poignee';
@@ -91,7 +92,7 @@ export function creerArbre(app: Application): Composant {
       const chevron = document.createElement('button');
       chevron.type = 'button';
       chevron.className = 'chevron';
-      chevron.textContent = ligne.deplie ? '▾' : '▸';
+      chevron.append(creerChevron());
       chevron.setAttribute('aria-expanded', String(ligne.deplie));
       chevron.setAttribute('aria-label', ligne.deplie ? TEXTES.replier(cheminLisible(ligne)) : TEXTES.deplier(cheminLisible(ligne)));
       chevron.dataset.focus = `chevron:${ligne.noeud.cle}`;
