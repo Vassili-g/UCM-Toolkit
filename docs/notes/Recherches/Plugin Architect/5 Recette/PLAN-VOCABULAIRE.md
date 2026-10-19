@@ -69,107 +69,193 @@ deux dossiers. À revérifier sur un build qui contient le lot S du
 [plan de fiabilité](./PLAN-FIABILITE.md), qui étend la protection au suivi de
 Palettes. S'il persiste, le lot V5 le corrige.
 
-## Décisions à prendre
+## Décisions
 
-- **DV1, forme affichée d'un terme sans règle.** Décidé : la forme la plus
-  fréquente dans le fichier (`StressTest`, `lineheight`, `Outlined`). La clé
+- **DV1, forme affichée d'un terme sans règle.** La forme la plus fréquente
+  dans le fichier (`StressTest`, `lineheight`, `Outlined`). La clé
   `stress-test` reste interne. Un terme avec règle montre son terme de
   référence.
-- **DV2, place des noms.** La [maquette](./Maquettes/vocabulaire/MAQUETTE-VOCABULAIRE.html)
-  compare deux formes. A garde une seule liste, avec une pastille grise
-  « Composant », « Élément » ou « Palette » et deux filtres de plus. B, recommandée,
-  sort les noms du vocabulaire dans une section « Composants et palettes »
-  rangée par intertitres. Dans les deux, la fiche d'un nom porte la pastille
-  grise et le lien « Traiter comme un terme ».
-- **DV3, deux ajouts au référentiel du kit.** Les tailles `5xs` et `5xl` à
-  `9xl` du Playground sortent de « Sans règle » et prennent la pastille UCM,
-  comme `4xl`. Les côtés et les axes (`x`, `y`, `top`, `right`, `bottom`,
-  `left`) deviennent des mots connus d'UCM : ils sortent de « Sans règle », et
-  une faute de frappe sur l'un d'eux devient une question. Deux oui ou non.
+- **DV2, place des noms.** Forme A de la
+  [maquette](./Maquettes/vocabulaire/MAQUETTE-VOCABULAIRE.html) : une seule
+  liste, une pastille grise « Composant », « Élément » ou « Palette », deux
+  filtres de plus, « Composants » (composants et éléments) et « Palettes ». Un
+  nom ne compte jamais dans « Sans règle ». La fiche d'un nom suit la
+  maquette : pastille grise, phrase, lien « Traiter comme un terme ».
+- **DV3.** `REGISTRE_TAILLES` reçoit `5xs` à `9xs` et `5xl` à `9xl`. Un
+  registre des côtés et des axes reçoit `x`, `y`, `top`, `right`, `bottom`,
+  `left`.
 
 Le plugin ne lit pas les contrats publiés pour repérer les composants. Son
 manifeste n'ouvre aucun domaine réseau, et `socle.test.ts` le vérifie ; un
 dépôt privé demanderait un jeton. La règle de position trouve les quatre
 composants du Playground sans réseau.
 
+## Revue du plan
+
+La première version des lots (ee2aa3e) a été relue contre le code. Cinq
+points changent l'implémentation.
+
+1. Garder entier tout bloc à la casse dont un morceau est inconnu ferait
+   régresser le renommage d'un nom en camelCase : `primaryBg` resterait un
+   seul terme et `bg` ne deviendrait plus `background`. Un segment reste donc
+   entier seulement quand il est un nom (composant, élément, palette). Une
+   propriété composée se groupe. Les autres mots restent ceux d'aujourd'hui.
+2. La nature d'un segment dépend de sa place et de tous les noms du fichier,
+   car un mot employé ailleurs n'est pas un nom. Le lexique la calcule dans
+   `terminer`, après avoir reçu tous les noms.
+3. Les questions excluent les segments qui ont une nature. Elles gardent
+   `decouperPourQuestions`, dont les clés des propriétés composées
+   (`line-height`) sont déjà celles de la liste.
+4. Le repérage des palettes par la forme attraperait `primary/light/500` et
+   `success/vivid/light/400`. Un mot du référentiel n'a jamais de nature, ce
+   qui les écarte.
+5. « Traiter comme un terme » change les natures, donc le lexique : le geste
+   relance le calcul depuis l'inventaire, comme `configurer`, et non depuis
+   les règles seules.
+
 ## Lots
 
-Chaque lot passe `npm test` à la racine, `tsc` et le build du plugin. Les
-tests emploient les noms du Playground déjà présents dans le dépôt.
+Chaque lot passe `tsc`, les tests du paquet touché, puis `npm test` à la
+racine et le build du plugin. Les tests emploient les noms du Playground déjà
+présents dans le dépôt. Un texte destiné au designer se rédige avec la skill
+`rediger-diagnostics-ucm`. La conversation principale relit chaque diff,
+commite par chemins explicites et coche ici avec le hash.
 
-### V1 · Les termes d'un segment (kit)
+### K1 · La nature d'un segment (kit)
 
-Agent : `implementeur-exigeant`, car le lexique, les questions et le
-renommage lisent la même règle. Fichiers : `referentiel/ecriture-des-mots.ts`,
+Agent : `implementeur-exigeant`. Fichiers : `referentiel/natures.ts` (nouveau),
+`referentiel/harmonisation.ts` (`NomLu.palette`), `referentiel/index.ts`,
+`tests/naturesReferentiel.test.ts` (nouveau).
+
+- [ ] `NomLu` reçoit `palette?: string`, l'identifiant de palette qu'UCM
+  Palettes écrit dans les données partagées de la variable.
+- [ ] `naturesDesNoms(noms, options)` rend, pour chaque nom, la nature de
+  chaque segment : `composant`, `element`, `palette` ou `null`.
+  - `composant` : rang 0, dans la collection dont le nom est reconnu
+    `components` (la portée d'une variable est l'identifiant du nom de sa
+    collection), ou suivi d'un groupe de propriétés.
+  - `element` : rang suivant, suivi d'un groupe de propriétés.
+  - Groupe de propriétés : une forme des termes `color` et `size` de
+    `REGISTRE_GROUPES` (`Colors`, `Sizes`).
+  - `palette` : segment qui précède les modes, profils et crans d'une
+    variable dont le dernier segment est un cran de `CRANS`, `white` ou
+    `black`, quand ce segment porte au moins 5 crans différents, le seuil
+    `SEUIL_DE_PALETTE` d'UCM Palettes. Les variables qui portent un
+    identifiant de palette désignent la leur sans seuil.
+  - Aucune nature pour un mot connu du référentiel ou pour son pluriel
+    (`termeOuFormeConnu`, sans les fautes à une lettre près),
+    pour un mot employé aussi à une place sans nature, ni pour une clé de
+    `options.ordinaires`.
+- [ ] Tests sur un extrait du Playground : Button, StressTest, Alert, TileLink
+  composants ; ScaleWrap, UserInput, TilesGrid, Badge, TextColumns, Head,
+  TileLinksWrap éléments ; les huit palettes ; `Icons`, `Base`, `Divider`,
+  `primary`, `success`, `scale` sans nature ; un nom ordinaire sans nature.
+
+### K2 · Les termes d'un segment (kit, après K1)
+
+Agent : `implementeur-exigeant`. Fichiers : `referentiel/ecriture-des-mots.ts`,
 `referentiel/termes-connus.ts`, `referentiel/lexique.ts`,
-`referentiel/harmonisation.ts`, et leurs tests.
+`referentiel/harmonisation.ts`, `referentiel/vocabulaire-du-fichier.ts`,
+`referentiel/questions.ts`, leurs tests.
 
-- [ ] `termesDuSegment(segment)` rend les plages `[début, fin[` des mots de
-  `decouperSegment` qui forment chaque terme de `decouperPourQuestions`. Les
-  deux découpages s'alignent sur les lettres sans séparateur ; un écart
-  retombe sur un terme par mot.
-- [ ] `decouperPourQuestions` garde entière une taille (`5xl`, `2xs`) : la
-  coupe lettre/chiffre la sépare aujourd'hui en `5` et `xl`.
-- [ ] Le lexique indexe les occurrences par terme, la clé jointe par des
-  tirets (`stress-test`), en plus des mots.
-- [ ] `index.remplacements` ne retient qu'un remplacement qui couvre des
-  termes entiers : une règle sur `wrap` ne touche plus `ScaleWrap`, la règle
-  UCM `radius` remplace toujours `Border-radius`.
-- [ ] Tests : les 21 segments du tableau de la cause commune et de l'export,
-  dont `TextColumns` (aucune règle `text`), `Text-color-Tag` (trois termes),
-  `foreground-main` (deux termes).
-- [ ] Changer la version de `@ucm-kit/core`.
+- [ ] `termesDuSegment(mots, nature)` rend les plages `[début, fin[` des mots
+  de `decouperSegment` : une seule plage pour un segment qui a une nature ;
+  sinon une plage par propriété composée (`TERMES_COMPOSES`, terme de
+  plusieurs mots d'un registre), la plus longue d'abord ; sinon une plage
+  par mot.
+- [ ] `commencerLexique({ ordinaires })` calcule les natures dans `terminer`
+  et ajoute au lexique `natures` (par nom), `termes` (plages par nom et par
+  segment) et `occurrencesDesTermes` (clé jointe par des tirets vers ses
+  occurrences, avec la longueur). `occurrences` par mot ne change pas.
+- [ ] `index.remplacements(mots, categorie, frontieres?)` ne garde qu'un
+  remplacement qui commence et finit sur une frontière de terme ; la
+  normalisation passe les frontières. Une règle sur `wrap` ne touche plus
+  `ScaleWrap` ; `radius` remplace toujours `Border-radius`, `bg` toujours
+  `primaryBg`.
+- [ ] `detecterParEtapes` saute un segment qui a une nature.
+- [ ] `decouperPourQuestions` garde entière une taille (`5xl`).
+- [ ] Tests : les 21 segments relevés, dont `lineheight` et `LineHeight` (un
+  terme `line-height`), `TextColumns` (un terme, aucune règle `text`),
+  `Text-color-Tag` (trois termes), `primaryBg` (deux termes).
 
-### V2 · La liste lit les termes (plugin)
+### K3 · Les registres (kit, en parallèle de K1)
 
-Agent : `implementeur`. Fichiers : `src/projection.ts`, `tests/projection.test.ts`,
-`tests/protocole.test.ts`.
+Agent : `implementeur`. Fichiers : `referentiel/vocabulaire.ts`, les tests du
+référentiel, la vue illustrée (`generer-donnees-referentiel.ts`).
 
-- [ ] `listeDesTermes` et `nomsEmployant` lisent les occurrences par terme.
-- [ ] Un nom de collection n'a plus de ligne.
-- [ ] La fiche marque le segment du terme entier.
-- [ ] Le détail du vocabulaire porte les termes de chaque segment à côté de
-  ses mots.
-- [ ] Test sur un extrait du Playground : `line`, `height` (31), `stress`,
-  `wrap` et `components` disparaissent ; `StressTest` et `line-height`
-  comptent chacun leurs noms une fois.
+- [ ] `TAILLES_RETENUES` et `SIZE_VALUES` reçoivent `5xs` à `9xs` et `5xl` à
+  `9xl`, dans l'ordre de l'échelle.
+- [ ] `REGISTRE_COTES` (`x`, `y`, `top`, `right`, `bottom`, `left`, libellés
+  bilingues), ajouté à `REGISTRES`.
+- [ ] Vue illustrée régénérée ; `referentielUnique.test.ts` passe.
 
-### V3 · La nature d'un terme (kit, puis plugin)
+### K4 · La version du kit (après K1 à K3)
 
-Agent : `implementeur`, après le choix entre A et B de DV2. Fichiers :
-`referentiel/` (nouvelle fonction), `src/projection.ts`, `src/messages.ts`,
-`src/ui/regles.ts`, `src/ui/listeDesTermes.ts`, `src/ui/textes.ts`,
-`src/ui/feuilles.ts`.
+Agent : conversation principale. Changer la version de `@ucm-kit/core` (API
+du lexique changée : version mineure), publier, mettre à jour la dépendance
+du plugin.
 
-- [ ] Le kit rend la nature d'un segment : `composant` au rang 0 de la
-  collection reconnue `components`, ou au rang 0 suivi d'un groupe de
-  propriétés (`color`, `size` et leurs formes tolérées) ; `element` à un rang
-  suivant, suivi d'un tel groupe ; `palette` pour un segment dont chaque
-  variable descendante finit par un cran, ou que l'identifiant de palette
-  d'UCM Palettes désigne. Un mot du référentiel, ou employé aussi hors de ces
-  positions, n'a pas de nature.
-- [ ] « Traiter comme un terme » range le nom dans les règles du fichier ; il
-  revient dans le vocabulaire.
-- [ ] Un nom n'entre dans aucune question de paire, de faute ou de mots
-  collés.
-- [ ] La liste et la fiche portent la pastille ; le filtre suit DV2.
+### P1 · La liste lit les termes et leur nature (plugin, après K4)
 
-### V4 · Les registres (kit)
+Agent : `implementeur-exigeant`. Fichiers : `src/lecture.ts`,
+`src/lectureFigma.ts`, `src/session.ts`, `src/projection.ts`,
+`src/messages.ts`, leurs tests.
 
-Agent : `executant`, après DV3. Fichiers : `referentiel/vocabulaire.ts`, la
-vue illustrée (`generer-donnees-referentiel.ts`), la version du kit.
+- [ ] La lecture passe l'identifiant de palette de chaque variable.
+- [ ] `TermeDeListe` et `FicheVue` reçoivent `forme` (forme la plus fréquente
+  dans le fichier) et `nature` (`composant`, `element`, `palette` ou `null`).
+- [ ] `listeDesTermes` et `nomsEmployant` lisent `occurrencesDesTermes`. Un
+  nom de collection n'a plus de ligne.
+- [ ] Filtres `tous`, `avec-regle`, `sans-regle`, `composants` (composants et
+  éléments), `palettes` ; `comptes` les cinq. Un nom ne compte jamais dans
+  `sans-regle`. La recherche lit la clé et la forme.
+- [ ] La fiche et ses exemples marquent le terme entier.
+- [ ] Le détail du vocabulaire porte les natures et les termes de chaque nom.
+- [ ] Test du Playground : `line`, `height` (31), `stress`, `wrap`,
+  `components` disparaissent ; `StressTest` compte 66 noms une fois ;
+  « Sans règle » ne contient ni Button ni Poppy.
 
-### V5 · Un groupe protégé ne se coupe pas (plugin)
+### P2 · Traiter comme un terme (plugin, après P1)
 
-Agent : `implementeur-exigeant`, seulement si le défaut persiste après le
-lot S. Fichiers : `src/session.ts`, `tests/session.test.ts`.
+Agent : `implementeur`. Fichiers : `src/regles.ts`, `src/session.ts`,
+`src/messages.ts`, leurs tests.
 
-- [ ] Un segment de groupe partagé avec une variable protégée garde son
-  écriture pour toutes les variables du même chemin parent.
-- [ ] Test : `colors/Titanium/white` reste à côté de
-  `colors/Titanium/light/50` protégé.
+- [ ] Règle `ordinaire:<clé>` dans `ESPACE_ARCHITECT` ;
+  `ReglesDuFichier.ordinaires` ; export et import comme `voulus`.
+- [ ] Gestes `traiter-comme-terme` et `traiter-comme-nom` ; ils relancent le
+  calcul depuis l'inventaire.
+- [ ] Tests : le nom revient dans le vocabulaire, puis redevient un nom.
+
+### P3 · L'écran (plugin, après P2)
+
+Agent : `implementeur`. Fichiers : `src/ui/listeDesTermes.ts`,
+`src/ui/regles.ts`, `src/ui/feuilles.ts`, `src/ui/textes.ts`,
+`src/ui/styles.css`, `galerie/`, leurs tests.
+
+- [ ] Cinq filtres ; la ligne affiche la forme ; la pastille grise
+  `pastille-indice` dit la nature et passe avant celle de l'origine.
+- [ ] La fiche d'un nom : pastille grise, phrase de la maquette, lien
+  « Traiter comme un terme ». La fiche d'un terme ordinaire dont la nature
+  est repérée offre « Traiter comme un nom ».
+- [ ] Galerie : la liste avec des noms, la fiche d'un composant.
+
+### P4 · Un groupe protégé ne se coupe pas (plugin, pendant K2)
+
+Agent : `implementeur-exigeant`. Fichiers : `src/session.ts`,
+`tests/session.test.ts`.
+
+- [ ] Test : `colors/Titanium/white` non protégé, à côté de
+  `colors/Titanium/light/50` protégé, garde `colors/Titanium`.
+- [ ] Si le test échoue : un segment de groupe partagé avec une variable
+  protégée garde son écriture pour toutes les variables du même chemin
+  parent.
+
+### F · Fin
+
+- [ ] `AGENTS.md`, section UCM Nomenclature : la nature d'un segment vient du
+  kit, un nom n'entre dans aucune question.
+- [ ] `npm test` à la racine, build du plugin, export du Playground relu.
 
 ## Ordre
 
-V1, puis V2. V3 attend DV2 et sa maquette, V4 attend DV3. V5 se décide après
-l'essai du lot S dans Figma.
+K1 et K3 en parallèle, puis K2, K4, P1, P2, P3. P4 tourne pendant K2.
