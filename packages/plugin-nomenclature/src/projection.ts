@@ -7,6 +7,7 @@
  */
 import {
   REGISTRES, REGISTRES_ARCHITECTURE, REGISTRE_AXES_ETAT, REGISTRE_TAILLES, assembler, categorieDuSegment, collectionUcmReconnue, decouperSegment, motsAvecCasse,
+  termePourCategorie, type Terme,
   type CategorieDeNom, type ChangementDeTerme, type ConflitDeVocabulaire, type Convention, type Lexique, type Mots, type NatureDeSegment,
   type OccurrenceDeTerme, type OrigineDuTerme, type Question, type Renommage, type ResultatDesQuestions, type ResultatDuLexique, type TermeEnQuestion,
 } from '@ucm-kit/core/referentiel';
@@ -30,6 +31,10 @@ export const LIGNES_PAR_SECTION = 5;
 export const TAILLE_DE_L_APERCU = 3;
 const EXEMPLES_D_EMPLOI = 3;
 /** Les termes du référentiel dont la forme change avec la place (les tailles) : leur identifiant et chacune de leurs formes. */
+/** Le terme du registre dont la forme dépend de la place (les tailles), retrouvé par chacune de ses formes en minuscules. */
+const TERME_SELON_LA_PLACE: ReadonlyMap<string, Terme> = new Map([...REGISTRES, ...REGISTRES_ARCHITECTURE].flatMap((registre) => registre.termes)
+  .filter((terme) => terme.identifiantParCategorie !== undefined)
+  .flatMap((terme) => [terme.id, ...Object.values(terme.identifiantParCategorie ?? {})].map((forme) => [forme.toLowerCase(), terme] as const)));
 const TERMES_SELON_LA_PLACE: ReadonlySet<string> = new Set([...REGISTRES, ...REGISTRES_ARCHITECTURE].flatMap((registre) => registre.termes)
   .filter((terme) => terme.identifiantParCategorie !== undefined)
   .flatMap((terme) => [terme.id, ...Object.values(terme.identifiantParCategorie ?? {})].map((forme) => forme.toLowerCase())));
@@ -757,21 +762,22 @@ export function projeter(entree: EntreeDeProjection): Projection {
     return { origine: null, statut: 'sans-regle', variantes: [], avec: null };
   }
 
-  const formesDe = (cle: string): ReadonlyMap<string, number> => unique(`formes:${cle}`, () => formesDuFichier(lexique, occurrences(cle)));
-  const estEmployee = (cle: string): boolean => occurrences(cle).length > 0;
 
   /** La catégorie où le fichier emploie le plus le terme et ses variantes ; les variables, à égalité ou sans emploi. */
   function categorieDEmploi(cles: readonly string[]): 'groupes' | 'variables' {
+    return categorieDesOccurrences(cles.flatMap((cle) => occurrences(cle)));
+  }
+
+  /** La catégorie la plus fréquente parmi des occurrences ; les variables, à égalité ou sans occurrence. */
+  function categorieDesOccurrences(liste: readonly OccurrenceDeTerme[]): 'groupes' | 'variables' {
     let groupes = 0;
     let variables = 0;
-    for (const cle of cles) {
-      for (const occurrence of occurrences(cle)) {
-        const nom = lexique.noms.get(occurrence.nomId);
-        if (!nom) continue;
-        const categorie = categorieDuSegment(nom, occurrence.rangSegment);
-        if (categorie === 'groupes') groupes++;
-        else if (categorie === 'variables') variables++;
-      }
+    for (const occurrence of liste) {
+      const nom = lexique.noms.get(occurrence.nomId);
+      if (!nom) continue;
+      const categorie = categorieDuSegment(nom, occurrence.rangSegment);
+      if (categorie === 'groupes') groupes++;
+      else if (categorie === 'variables') variables++;
     }
     return groupes > variables ? 'groupes' : 'variables';
   }
@@ -780,22 +786,44 @@ export function projeter(entree: EntreeDeProjection): Projection {
    * L'écriture d'un terme dans la liste. Un terme réglé s'écrit dans la convention de la catégorie qui l'emploie le plus, lui ou l'une de ses
    * variantes (`Color` en dossier, `line-height` en variable). Un nom (composant, palette) et un mot sans règle gardent leur écriture du fichier.
    */
+  /**
+   * Les occurrences d'une variante que la règle de `cle` remplace vraiment. Pour un terme dont la forme dépend de la place, la forme retenue à la
+   * place de l'occurrence n'est pas une variante : `Small` reste dans un dossier, seul `small` dans un nom de variable devient `sm`.
+   */
+  function occurrencesRemplacees(cle: string, variante: string): readonly OccurrenceDeTerme[] {
+    const terme = TERME_SELON_LA_PLACE.get(cle);
+    if (!terme) return occurrences(variante);
+    return occurrences(variante).filter((occurrence) => {
+      const nom = lexique.noms.get(occurrence.nomId);
+      return !nom || termePourCategorie(terme, categorieDuSegment(nom, occurrence.rangSegment)).id.toLowerCase() !== variante;
+    });
+  }
+
   function formeAffichee(cle: string, nature: NatureDeSegment | null, statut: TermeDeListe['statut'], variantes: readonly string[]): string {
     const mots = motsDeLaCle(cle);
     if (nature !== null || (statut !== 'regle' && statut !== 'ecart') || mots.length === 0) return presence(cle).forme;
-    const convention = conventionDe(categorieDEmploi([cle, ...variantes]));
-    return assembler(cle, motsAvecCasse(mots, convention.casse), convention.separateur);
+    const terme = TERME_SELON_LA_PLACE.get(cle);
+    // Un terme dont la forme dépend de la place s'écrit à la place où il remplace des variantes, sinon à celle qui l'emploie le plus,
+    // avec l'identifiant de cette place : `sm remplace small` pour une variable, `Small` en dossier.
+    const remplacees = terme ? variantes.flatMap((variante) => occurrencesRemplacees(cle, variante)) : [];
+    const categorie = remplacees.length > 0 ? categorieDesOccurrences(remplacees) : categorieDEmploi([cle, ...variantes]);
+    const convention = conventionDe(categorie);
+    const retenus = terme ? motsDeLaCle(termePourCategorie(terme, categorie).id.toLowerCase()) : mots;
+    return assembler(retenus.join('-'), motsAvecCasse(retenus, convention.casse), convention.separateur);
   }
 
-  /** Les formes du fichier des variantes du terme, de la plus fréquente à la moins fréquente ; une variante absente du fichier n'en a pas. */
-  function formesDesVariantes(variantes: readonly string[]): string[] {
+  /** Les formes du fichier des variantes que le terme remplace vraiment, de la plus fréquente à la moins fréquente. */
+  function formesDesVariantes(cle: string, variantes: readonly string[]): string[] {
     const comptes = new Map<string, number>();
-    for (const cle of variantes) for (const [forme, nombre] of formesDe(cle)) comptes.set(forme, (comptes.get(forme) ?? 0) + nombre);
+    for (const variante of variantes) {
+      for (const [forme, nombre] of formesDuFichier(lexique, occurrencesRemplacees(cle, variante))) comptes.set(forme, (comptes.get(forme) ?? 0) + nombre);
+    }
     return formesParFrequence(comptes);
   }
 
-  const typeDuTerme = (nature: NatureDeSegment | null, statut: TermeDeListe['statut'], variantes: readonly string[]): TypeDeTerme =>
-    nature !== null ? nature : statut === 'a-trancher' ? 'a-trancher' : statut === 'regle' ? (variantes.some(estEmployee) ? 'remplace' : 'conforme') : 'sans-regle';
+  const typeDuTerme = (cle: string, nature: NatureDeSegment | null, statut: TermeDeListe['statut'], variantes: readonly string[]): TypeDeTerme =>
+    nature !== null ? nature : statut === 'a-trancher' ? 'a-trancher'
+      : statut === 'regle' ? (variantes.some((variante) => occurrencesRemplacees(cle, variante).length > 0) ? 'remplace' : 'conforme') : 'sans-regle';
 
   /** Un terme de la liste, avec l'écriture du fichier de lui-même et de chacune de ses variantes, que la recherche lit aussi. */
   interface EntreeDeListe {
@@ -821,9 +849,9 @@ export function projeter(entree: EntreeDeProjection): Projection {
       if (reste.statut === 'regle' && reste.avec !== null) return [];
       const { nature, forme: fichier } = presence(cle);
       const terme: TermeDeListe = {
-        mot: cle, forme: formeAffichee(cle, nature, reste.statut, variantes), type: typeDuTerme(nature, reste.statut, variantes), nature,
+        mot: cle, forme: formeAffichee(cle, nature, reste.statut, variantes), type: typeDuTerme(cle, nature, reste.statut, variantes), nature,
         // Une règle compte les noms du terme et ceux de ses variantes : `Color`, que seuls `Colors` et `colors` emploient, ne vaut pas 0.
-        ...reste, remplace: formesDesVariantes(variantes), nombre: new Set([...emploi(cle), ...variantes.flatMap((variante) => emploi(variante))]).size, trouve: null,
+        ...reste, remplace: formesDesVariantes(cle, variantes), nombre: new Set([...emploi(cle), ...variantes.flatMap((variante) => emploi(variante))]).size, trouve: null,
       };
       return [{ terme, fichier, variantes: variantes.map((variante) => ({ cle: variante, forme: presence(variante).forme })) }];
     }).sort((a, b) => b.terme.nombre - a.terme.nombre || comparer(a.terme.mot, b.terme.mot));

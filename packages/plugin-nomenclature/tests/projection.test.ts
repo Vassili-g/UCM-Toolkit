@@ -805,3 +805,12 @@ test('le détail du vocabulaire porte le type, la forme et la nature de chaque t
   assert.deepEqual([collection.categorie, collection.natures, collection.termes], ['collections', [null], [[]]]);
   assert.equal(detail.termes.length, toutLeVocabulaire(projection).length);
 });
+
+test('une taille s’écrit à sa place : Small reste en dossier, small devient sm dans un nom de variable', () => {
+  const enDossier: Fichier = { collections: [['c1', 'components']], variables: variables(['v1', 'Button/Sizes/Small/Gap'], ['v2', 'Display/Small/FontSize']) };
+  const seul = toutLeVocabulaire(projeter(calculer(enDossier, { ecriture: pascalEtMinuscules }))).find((terme) => terme.mot === 'sm')!;
+  assert.deepEqual([seul.forme, seul.type, seul.remplace], ['Small', 'conforme', []], 'en dossier, small est la forme retenue');
+  const avecVariable: Fichier = { ...enDossier, variables: [...enDossier.variables, ...variables(['v3', 'spacing/small'])] };
+  const mixte = toutLeVocabulaire(projeter(calculer(avecVariable, { ecriture: pascalEtMinuscules }))).find((terme) => terme.mot === 'sm')!;
+  assert.deepEqual([mixte.forme, mixte.type, mixte.remplace], ['sm', 'remplace', ['small']], 'seul le nom de variable est remplacé');
+});
