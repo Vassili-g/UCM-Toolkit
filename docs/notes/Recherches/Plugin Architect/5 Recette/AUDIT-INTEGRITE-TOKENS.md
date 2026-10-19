@@ -45,15 +45,12 @@ dans des ports en mémoire. Un résultat reproduit sur ce banc prouve le
 comportement du code avec ces entrées ; il ne mesure pas la fréquence d’une
 panne dans Figma.
 
-Le [banc de reproduction](./Mesures/auditer-integrite.ts) exécute dix-huit
-contrôles. Quatorze reproduisent les douze défauts ; quatre contrôlent les
-bornes de l’export des règles, les protections connues, les données conservées
-et les permutations de noms. Les
-[résultats bruts](./Mesures/resultats-audit-integrite.tap) en gardent la sortie.
-
-Ces contrôles passent **parce qu’ils constatent les défauts présents**. Ils
-devront être remplacés par des attentes de conservation lors des corrections.
-Ils ne font pas partie de `npm test` et ne valent pas certification de sûreté.
+Le banc de reproduction exécutait dix-huit contrôles. Quatorze reproduisaient
+les douze défauts ; quatre contrôlaient les bornes de l’export des règles, les
+protections connues, les données conservées et les permutations de noms. Les
+lots du [plan de fiabilité](./PLAN-FIABILITE.md) ont repris ces cas comme tests
+de régression du plugin, avec l’attente inverse, dans
+`packages/plugin-nomenclature/tests/`, puis ont retiré le banc.
 
 ## Carte des lectures et des écritures
 
@@ -488,7 +485,6 @@ journal antérieur encore nécessaire.
 npm test --workspace ucm-nomenclature-plugin
 npm run typecheck --workspace ucm-nomenclature-plugin
 npm run build --workspace ucm-nomenclature-plugin
-npx tsx --test 'docs/notes/Recherches/Plugin Architect/5 Recette/Mesures/auditer-integrite.ts'
 ```
 
 | Contrôle | Résultat |
