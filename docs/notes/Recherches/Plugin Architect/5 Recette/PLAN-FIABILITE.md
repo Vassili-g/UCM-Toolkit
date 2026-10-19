@@ -94,8 +94,11 @@ arrête le lot et remonte à la conversation principale.
 | `annulationDuRenommagePartielle(retablis, sautes)` | {N noms} rétablis, {sautes} n'ont pas pu l'être : un autre nom occupe leur place ou ils ont changé depuis. Le plugin les garde ; annulez de nouveau après avoir corrigé. |
 | `memeToken(apres, autre)` | `{apres}` et `{autre}` donneraient le même token dans tokens.json : renommez l'une des deux dans Figma. |
 | `tokenEtGroupe(apres, autre)` | `{apres}` serait à la fois un token et le groupe de `{autre}` dans tokens.json : renommez l'une des deux dans Figma. |
-| `motRefuse(mot)` | « {mot} » ne peut pas être un terme : retirez les espaces et les caractères / \| . { } $. |
-| `importPartiel` | L'import s'est arrêté en route : les règles du fichier sont revenues à leur état d'avant. |
+| `erreur['mot-refuse']` | Ce terme ne peut pas s'écrire ainsi : retirez les espaces et les caractères / \| . { } $. |
+| `dernierImport` | Dernier import |
+| `importALHeure(heure)` | Règles importées à {heure} |
+| `annulerLImport` | Annuler l'import |
+| `erreur['import-partiel']` | L'import s'est arrêté en route : les règles du fichier sont revenues à leur état d'avant. |
 
 ## Règles d'exécution
 
@@ -133,27 +136,27 @@ Agent : `implementeur-exigeant`. Fichiers : `src/ecriture.ts`,
 `src/regles.ts`, `tests/ecriture.test.ts`, `tests/regles.test.ts`,
 `src/messages.ts` pour le motif de refus.
 
-- [ ] Compter les octets UTF-8 d'un texte par une fonction pure ;
+- [x] Compter les octets UTF-8 d'un texte par une fonction pure ;
   `preparerJournal` découpe sur ce compte et refuse un renommage qui ne tient
-  pas seul dans une entrée.
-- [ ] Clés du lot : `journal:<lot>:<rang>`, puis la référence `journal` qui
+  pas seul dans une entrée. (ba62041)
+- [x] Clés du lot : `journal:<lot>:<rang>`, puis la référence `journal` qui
   porte le lot et le nombre d'entrées, écrite en dernier. `lireJournal`
   exige que chaque entrée porte le même lot et son rang ; une incohérence
   rend le journal illisible et l'annulation refusée, journal conservé. Lire
-  aussi l'ancienne forme `journal:<n>` tant qu'aucune référence n'existe.
-- [ ] `appliquerLesRenommages` écrit le journal prévu avant le premier
+  aussi l'ancienne forme `journal:<n>` tant qu'aucune référence n'existe. (ba62041)
+- [x] `appliquerLesRenommages` écrit le journal prévu avant le premier
   setter. Une exception à cette étape efface les clés neuves, ne change
   aucun nom et répond `refuse` avec le motif `journal-impossible`. Après les
   setters, réécrire le journal avec les noms constatés. Les clés de l'ancien
-  lot s'effacent après la publication de la nouvelle référence.
-- [ ] L'annulation garde chaque entrée non rétablie, avec son nom courant
+  lot s'effacent après la publication de la nouvelle référence. (ba62041)
+- [x] L'annulation garde chaque entrée non rétablie, avec son nom courant
   relu (nom provisoire compris), et n'efface que les entrées rétablies. Une
   entrée dont l'objet porte déjà son ancien nom compte comme rétablie : c'est
-  le cas d'un renommage prévu que le lot n'a pas écrit.
-- [ ] Tests : panne de chaque entrée du journal et de la référence ; panne
+  le cas d'un renommage prévu que le lot n'a pas écrit. Le nom attendu d'une entrée gardée ne prend le nom courant que si celui-ci est le nom du lot ou un nom provisoire : un nom donné depuis par le designer n'est jamais écrasé par une seconde annulation. (ba62041)
+- [x] Tests : panne de chaque entrée du journal et de la référence ; panne
   de chaque setter d'un cycle, à l'application et à l'annulation ; noms en
   `é`, en idéogrammes et en emoji contre un port qui refuse au-delà de
-  102 400 octets ; deux lots dont le second échoue en route.
+  102 400 octets ; deux lots dont le second échoue en route. (ba62041)
 
 Fin : commandes du plugin.
 
@@ -162,13 +165,13 @@ Fin : commandes du plugin.
 Agent : `implementeur`. Fichiers :
 `packages/kit/src/referentiel/ecriture-des-mots.ts` et ses tests.
 
-- [ ] Quand le séparateur est « inchangé » et que le remplacement change le
+- [x] Quand le séparateur est « inchangé » et que le remplacement change le
   nombre de mots, `assembler` joint les mots par le premier séparateur du
   segment d'origine (`-`, `_` ou espace) ; un segment sans séparateur garde
-  les mots soudés, avec la casse de leur frontière.
-- [ ] Tests : `foo-bar-baz` avec `qux` pour `bar baz` donne `foo-qux` ;
+  les mots soudés, avec la casse de leur frontière. (6e6e2e8)
+- [x] Tests : `foo-bar-baz` avec `qux` pour `bar baz` donne `foo-qux` ;
   `foo_bar_baz` donne `foo_qux` ; `foo-qux-x` dans l'autre sens donne
-  `foo-bar-baz-x` ; `fooBarBaz` donne toujours `fooQux`.
+  `foo-bar-baz-x` ; `fooBarBaz` donne toujours `fooQux`. (6e6e2e8)
 
 Fin : `npm test -w @ucm-kit/core`, `npm run typecheck -w @ucm-kit/core`,
 puis la conversation principale lance `npm run build -w @ucm-kit/core`.
@@ -180,20 +183,20 @@ Agent : `implementeur-exigeant`. Fichiers : `src/session.ts`,
 et `src/messages.ts` pour le motif d'un nom bloqué, `src/ui/textes.ts` pour
 `memeToken` et `tokenEtGroupe`, leurs tests.
 
-- [ ] `src/cheminsPublies.ts` projette tout l'inventaire en chemins par
+- [x] `src/cheminsPublies.ts` projette tout l'inventaire en chemins par
   `joinTokenPath` du socle, avant et après les renommages retenus, et rend
   les renommages qui créent un chemin égal à un autre ou un chemin qui est le
-  groupe d'un autre. Un doublon déjà présent avant le lot ne bloque rien.
-- [ ] La session applique ce contrôle après le kit et après
+  groupe d'un autre. Un doublon déjà présent avant le lot ne bloque rien. (937b82f)
+- [x] La session applique ce contrôle après le kit et après
   `avecLesCollectionsRenommees` : les renommages en cause deviennent des
   collisions, avec leur motif (`meme-token` ou `token-et-groupe`). L'écran
-  les montre bloqués avec le texte de leur motif.
-- [ ] `executer` refait le même contrôle sur le document relu, et refuse un
+  les montre bloqués avec le texte de leur motif. (937b82f)
+- [x] `executer` refait le même contrôle sur le document relu, et refuse un
   nom final vide, qui commence ou finit par `/`, contient `//`, `.`, `{`,
-  `}` ou un segment qui commence par `$`.
-- [ ] Tests : les deux parcours de AI10, `bg/primary` à côté de
+  `}` ou un segment qui commence par `$`. Pour une collection, seul le nom vide est refusé : Figma accepte `Brand 2.0`. L'annulation ne passe pas par ce contrôle, car elle rend des noms que le fichier a déjà portés. (937b82f)
+- [x] Tests : les deux parcours de AI10, `bg/primary` à côté de
   `Background/primary`, `colors` à côté de `color/primary`, une collection
-  renommée dont les variables convergent avec celles d'une autre.
+  renommée dont les variables convergent avec celles d'une autre. (937b82f)
 
 Fin : commandes du plugin.
 
@@ -203,18 +206,18 @@ Agent : `implementeur`. Fichiers : `src/session.ts` (`appliquer`,
 `annulerLeDernier`), `src/lecture.ts`, `src/lectureFigma.ts`,
 `src/ecriture.ts` (`creerPortEcriture`), leurs tests.
 
-- [ ] `port.ecriture.ouvrir()` rend les objets et l'inventaire tirés de la
+- [x] `port.ecriture.ouvrir()` rend les objets et l'inventaire tirés de la
   même lecture ; `relireInventaireAvantEcriture` disparaît de ce chemin.
-  Aucun `await` entre cette lecture et le dernier setter.
-- [ ] La signature des règles se compare après cette lecture, juste avant
-  d'écrire.
-- [ ] `protegee` lit aussi le suivi de Palettes : la donnée `variables` de
+  Aucun `await` entre cette lecture et le dernier setter. (04c1145)
+- [x] La signature des règles se compare après cette lecture, juste avant
+  d'écrire. (04c1145)
+- [x] `protegee` lit aussi le suivi de Palettes : la donnée `variables` de
   la racine, dans `ESPACE_PARTAGE`, dont chaque palette liste les
   identifiants suivis. Un suivi illisible ne protège rien de plus et ne
-  bloque pas la lecture.
-- [ ] Tests : les deux courses de AI6 et celle de AI7 refusent le lot ou
+  bloque pas la lecture. (04c1145)
+- [x] Tests : les deux courses de AI6 et celle de AI7 refusent le lot ou
   suivent l'état final ; une variable d'origine d'une palette reprise n'est
-  pas proposée.
+  pas proposée. (04c1145)
 
 Fin : commandes du plugin.
 
@@ -231,20 +234,20 @@ Agent : `implementeur`. Fichiers : `src/regles.ts`, `src/session.ts`
 (`ecrituresDuGeste`, `ecrituresDeLaReponse`, `importer`, `modifierLesRegles`),
 `src/messages.ts` si un code d'erreur s'ajoute, leurs tests.
 
-- [ ] `estMot` refuse les caractères de la décision « Mots d'un terme ». Un
+- [x] `estMot` refuse les caractères de la décision « Mots d'un terme ». Un
   geste ou une réponse dont un mot est refusé répond par l'erreur
-  `mot-refuse`, sans rien écrire ; un terme vide aussi.
-- [ ] Les écritures d'un geste, d'une réponse ou d'un import se rangent avec
+  `mot-refuse`, sans rien écrire ; un terme vide aussi. (7f433f7)
+- [x] Les écritures d'un geste, d'une réponse ou d'un import se rangent avec
   leur texte d'avant ; une exception remet chaque clé déjà écrite et répond
-  `import-partiel` pour un import.
-- [ ] `preparerReponse` garde aussi le texte écrit ; `defaireReponse` ne
+  `import-partiel` pour un import. (7f433f7)
+- [x] `preparerReponse` garde aussi le texte écrit ; `defaireReponse` ne
   remet une clé que si son texte courant est encore celui-là, et retire
-  sinon les seules formes que la réponse a ajoutées.
-- [ ] Un import qui change l'écriture ou un terme existant range une entrée
+  sinon les seules formes que la réponse a ajoutées. (7f433f7)
+- [x] Un import qui change l'écriture ou un terme existant range une entrée
   `reponse:import:<heure>` avec les textes d'avant, que l'écran de Règles
-  propose d'annuler comme une réponse.
-- [ ] Tests : les cas AI9, AI11 et AI12 du banc ; `a/b` refusé au geste et à
-  l'import ; `par` blanc refusé.
+  propose d'annuler comme une réponse. (7f433f7)
+- [x] Tests : les cas AI9, AI11 et AI12 du banc ; `a/b` refusé au geste et à
+  l'import ; `par` blanc refusé. (7f433f7)
 
 Fin : commandes du plugin.
 
@@ -255,15 +258,15 @@ Agent : `implementeur`. Fichiers : `src/ui/aAppliquer.ts`,
 `src/ui/regles.ts` pour `motRefuse`, la logique pure dans un module testé,
 `galerie/etats.cjs` et `galerie/donnees.cjs`.
 
-- [ ] Une `application` reçue est gardée ; une `erreur` qui la suit pour la
-  même demande ajoute `bilanIllisible` au lieu de `rienNAEteRenomme`.
-- [ ] « Annuler » de la Configuration ouvre la confirmation du socle déjà
+- [x] Une `application` reçue est gardée ; une `erreur` qui la suit pour la
+  même demande ajoute `bilanIllisible` au lieu de `rienNAEteRenomme`. (a1bb373)
+- [x] « Annuler » de la Configuration ouvre la confirmation du socle déjà
   employée par Appliquer, avec `confirmerLAnnulation`,
   `remettreLesAnciensNoms` et `garderLesNoms`, et se désactive jusqu'à la
-  réponse.
-- [ ] Les codes `journal-impossible`, `mot-refuse` et `import-partiel` ont
-  leur texte ; `annulationDuRenommagePartielle` prend le nouveau texte.
-- [ ] Un état de galerie par nouveau texte.
+  réponse. (a1bb373)
+- [x] Les codes `journal-impossible`, `mot-refuse` et `import-partiel` ont
+  leur texte ; `annulationDuRenommagePartielle` prend le nouveau texte. (a1bb373)
+- [x] Un état de galerie par nouveau texte. (a1bb373)
 
 Fin : commandes du plugin, `npm run galerie -w ucm-nomenclature-plugin`.
 
@@ -278,10 +281,10 @@ plugin. Fin : `tests/docLinks.test.ts`.
 
 Conversation principale, puis `verificateur`.
 
-- [ ] Monter `@ucm-kit/core` (K), puis `@ucm-kit/cli` et
-  `@ucm-kit/adapter-typescript` qui en dépendent ; publier.
-- [ ] Racine : `npm test`, `npm run typecheck`, `npm run build`.
-- [ ] Cocher chaque case avec son hash, puis pousser.
+- [x] Monter `@ucm-kit/core` (K), puis `@ucm-kit/cli` et
+  `@ucm-kit/adapter-typescript` qui en dépendent ; publier. (ce7efda)
+- [x] Racine : `npm test`, `npm run typecheck`, `npm run build`. (ee2aa3e)
+- [x] Cocher chaque case avec son hash, puis pousser. (ee2aa3e)
 - [ ] Recette Figma par le mainteneur : un lot de noms accentués, une
   annulation, un export après renommage sans token perdu.
 
