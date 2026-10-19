@@ -1,33 +1,40 @@
 /**
  * Le contenu de l'onglet Règles : la section des conventions d'écriture avec
- * son bouton Modifier, puis la section du vocabulaire, liste des termes du
- * fichier avec sa recherche et ses filtres. La liste se lit par pages de cinquante (demande `termes`) ; l'état
- * qu'elle suit vit dans `listeDesTermes.ts`. Les feuilles de l'écriture et d'un
+ * son bouton Modifier, puis la section du vocabulaire : une section par type de
+ * terme, sous une barre qui porte le menu Filtrer, la recherche et le tri. Chaque
+ * section arrive avec ses premières lignes, puis se lit par pages (demande
+ * `termes`) ; l'état qu'elle suit vit dans `listeDesTermes.ts`. Les feuilles de l'écriture et d'un
  * terme (lot U4b) se branchent sur les deux rappels que `monterRegles` rend. En bas de page, un lien discret
  * télécharge le détail du vocabulaire (demande `diagnostic`).
  */
 import { CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, collectionUcmReconnue, libelleDuTerme, termeRetenu, type Convention } from '@ucm-kit/core/referentiel';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
-import type { Bilan, LigneVue, TermeDeListe } from '../messages';
+import { ORIGINES_DE_FILTRE, TRIS_DE_TERMES, TYPES_DE_TERMES } from '../messages';
+import type { Bilan, LigneVue, OrigineDeFiltre, SectionDeTermes, TermeDeListe, TriDeTermes, TypeDeTerme } from '../messages';
 import type { Coquille } from './coquille';
+import { creerIconeDeType } from './icones';
 import {
   LISTE_INITIALE,
+  basculerLePli,
+  basculerUneOrigine,
+  basculerUnType,
   choisir,
-  debutSuivant,
-  filtrer,
+  estRepliee,
+  filtresActifs,
   morceauxDuTerme,
   nomAccessibleDuTerme,
-  pageDeLaReponse,
   pastilleDeLaLigne,
   phraseDeRecherche,
   recevoir,
   requeteDeLaListe,
-  resteAAfficher,
+  resteDansLaSection,
+  retirerUnFiltre,
   saisir,
-  termeATrancher,
+  termesRecus,
+  trier,
   type EtatDeLaListe,
-  type FiltreDesTermes,
+  type FiltreActif,
 } from './listeDesTermes';
 import { telecharger } from './telechargement';
 import { TEXTES } from './textes';
@@ -118,14 +125,6 @@ function exempleDeCollection(bilan: Bilan): LigneVue | null {
   return reconnue ? { id: reconnue.id, ancien: reconnue.nom, nouveau: reconnue.nom, marques: [0], aussi: [] } : null;
 }
 
-const FILTRES: readonly { readonly filtre: FiltreDesTermes; readonly libelle: (nombre: number | null) => string; readonly compte: (comptes: NonNullable<EtatDeLaListe['comptes']>) => number }[] = [
-  { filtre: 'tous', libelle: TEXTES.filtreTous, compte: (comptes) => comptes.tous },
-  { filtre: 'avec-regle', libelle: TEXTES.filtreAvecRegle, compte: (comptes) => comptes.avecRegle },
-  { filtre: 'sans-regle', libelle: TEXTES.filtreSansRegle, compte: (comptes) => comptes.sansRegle },
-  { filtre: 'composants', libelle: TEXTES.filtreComposants, compte: (comptes) => comptes.composants },
-  { filtre: 'palettes', libelle: TEXTES.filtrePalettes, compte: (comptes) => comptes.palettes },
-];
-
 function creerPastilleDeReference(texte: string): HTMLElement {
   const reference = document.createElement('span');
   reference.className = 'jeton jeton-neutre petit';
@@ -137,6 +136,7 @@ function creerLigneDeTerme(terme: TermeDeListe, choisie: boolean, auClic: () => 
   const ligne = document.createElement('button');
   ligne.type = 'button';
   ligne.className = 'ligne-terme';
+  ligne.dataset.mot = terme.mot;
   ligne.classList.toggle('choisie', choisie);
   ligne.setAttribute('aria-pressed', String(choisie));
 
@@ -177,9 +177,50 @@ function creerLigneDeTerme(terme: TermeDeListe, choisie: boolean, auClic: () => 
   nombre.textContent = String(terme.nombre);
 
   ligne.setAttribute('aria-label', nomAccessibleDuTerme(terme));
-  ligne.append(regle, droite, nombre, creerChevron('suivant'));
+  ligne.append(creerIconeDeType(terme.type, TEXTES.typeDeTermeAuSingulier[terme.type]), regle, droite, nombre, creerChevron('suivant'));
   ligne.addEventListener('click', auClic);
   return ligne;
+}
+
+/** Une case du menu Filtrer : l'icône du type si elle existe, le libellé et le compte du fichier. */
+interface CaseDuMenu {
+  readonly ligne: HTMLElement;
+  readonly caseACocher: HTMLInputElement;
+  readonly compte: HTMLElement;
+}
+
+function creerCaseDuMenu(libelle: string, icone: HTMLElement | null, auChangement: () => void): CaseDuMenu {
+  const caseACocher = document.createElement('input');
+  caseACocher.type = 'checkbox';
+  caseACocher.className = 'case';
+  caseACocher.addEventListener('change', auChangement);
+  const texte = document.createElement('span');
+  texte.textContent = libelle;
+  const compte = document.createElement('span');
+  compte.className = 'meta';
+  const ligne = document.createElement('label');
+  ligne.append(caseACocher, icone ?? document.createElement('span'), texte, compte);
+  return { ligne, caseACocher, compte };
+}
+
+function creerIntituleDuMenu(texte: string): HTMLElement {
+  const intitule = document.createElement('h4');
+  intitule.textContent = texte;
+  return intitule;
+}
+
+/** Un jeton de filtre actif, avec le × qui le retire. */
+function creerJetonDeFiltre(filtre: FiltreActif, auRetrait: () => void): HTMLElement {
+  const retirer = document.createElement('button');
+  retirer.type = 'button';
+  retirer.className = 'retirer-jeton';
+  retirer.textContent = '×';
+  retirer.setAttribute('aria-label', TEXTES.retirerLeFiltre(filtre.libelle));
+  retirer.addEventListener('click', auRetrait);
+  const jeton = document.createElement('span');
+  jeton.className = 'filtre-actif';
+  jeton.append(filtre.libelle, retirer);
+  return jeton;
 }
 
 /** Monte l'onglet dans `coquille.panneaux.regles.contenu`. */
@@ -188,6 +229,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
   let liste: EtatDeLaListe = LISTE_INITIALE;
   /** Le numéro de la demande de page dont la réponse est attendue. */
   let enCours: number | null = null;
+  let menuOuvert = false;
   /** La dernière demande du détail du vocabulaire : un nouveau clic la remplace. */
   let demandeDuDetail: number | null = null;
   let minuteur: ReturnType<typeof setTimeout> | null = null;
@@ -207,47 +249,74 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
   const sectionDesConventions = creerSection(TEXTES.intertitreConventions, TEXTES.phraseDesConventions, modifier);
   sectionDesConventions.append(lignesDeLEcriture);
 
-  // La recherche, les filtres et la liste.
+  // La barre : le menu Filtrer, les jetons des filtres actifs, la recherche et le tri.
+  const boutonFiltrer = createButton({ label: TEXTES.filtrer, variant: 'secondary', compact: true, onClick: () => poserLeMenu(!menuOuvert) });
+  boutonFiltrer.setAttribute('aria-expanded', 'false');
+  boutonFiltrer.setAttribute('aria-controls', 'menu-filtres');
+  const casesDeTypes = new Map<TypeDeTerme, CaseDuMenu>(
+    TYPES_DE_TERMES.map((type) => [type, creerCaseDuMenu(TEXTES.typeDeTermeAuSingulier[type], creerIconeDeType(type), () => {
+      liste = basculerUnType(liste, type);
+      demander(null);
+    })]),
+  );
+  const casesDOrigine = new Map<OrigineDeFiltre, CaseDuMenu>(
+    ORIGINES_DE_FILTRE.map((origine) => [origine, creerCaseDuMenu(TEXTES.origineDeFiltre[origine], null, () => {
+      liste = basculerUneOrigine(liste, origine);
+      demander(null);
+    })]),
+  );
+  const menu = document.createElement('div');
+  menu.className = 'menu-filtres';
+  menu.id = 'menu-filtres';
+  menu.hidden = true;
+  menu.setAttribute('role', 'group');
+  menu.setAttribute('aria-label', TEXTES.filtrer);
+  menu.append(
+    creerIntituleDuMenu(TEXTES.titreDesTypes), ...[...casesDeTypes.values()].map(({ ligne }) => ligne),
+    creerIntituleDuMenu(TEXTES.titreDesOrigines), ...[...casesDOrigine.values()].map(({ ligne }) => ligne),
+  );
+  const ancreDuMenu = document.createElement('span');
+  ancreDuMenu.className = 'ancre-menu';
+  ancreDuMenu.append(boutonFiltrer, menu);
+  const jetons = document.createElement('span');
+  jetons.className = 'filtres-actifs';
   const recherche = document.createElement('input');
   recherche.type = 'search';
   recherche.className = 'input recherche';
   recherche.placeholder = TEXTES.chercherUnTerme;
   recherche.setAttribute('aria-label', TEXTES.chercherUnTerme);
-  const barreDeFiltres = document.createElement('div');
-  barreDeFiltres.className = 'filtres';
-  barreDeFiltres.setAttribute('role', 'group');
-  barreDeFiltres.setAttribute('aria-label', TEXTES.filtresDesTermes);
-  const boutonsDeFiltre = FILTRES.map(({ filtre }) => {
-    const bouton = document.createElement('button');
-    bouton.type = 'button';
-    bouton.className = 'filtre';
-    bouton.addEventListener('click', () => {
-      const suivante = filtrer(liste, filtre);
-      if (suivante === liste) return;
-      liste = suivante;
-      demander(0);
-    });
-    return bouton;
+  const choixDuTri = document.createElement('select');
+  choixDuTri.className = 'input tri';
+  choixDuTri.setAttribute('aria-label', TEXTES.trier);
+  const libellesDuTri: Readonly<Record<TriDeTermes, string>> = { alpha: TEXTES.trierAlpha, nombre: TEXTES.trierNombre };
+  for (const tri of TRIS_DE_TERMES) {
+    const option = document.createElement('option');
+    option.value = tri;
+    option.textContent = libellesDuTri[tri];
+    choixDuTri.append(option);
+  }
+  choixDuTri.addEventListener('change', () => {
+    const choisi = TRIS_DE_TERMES.find((tri) => tri === choixDuTri.value);
+    if (choisi === undefined) return;
+    liste = trier(liste, choisi);
+    demander(null);
   });
-  barreDeFiltres.append(...boutonsDeFiltre);
-  const lignes = document.createElement('div');
-  lignes.className = 'liste-termes';
-  lignes.setAttribute('role', 'group');
-  lignes.setAttribute('aria-label', TEXTES.listeDesTermes);
   const outils = document.createElement('div');
   outils.className = 'outils-termes';
-  outils.append(barreDeFiltres, recherche);
+  outils.append(ancreDuMenu, jetons, recherche, choixDuTri);
+  const sections = document.createElement('div');
+  sections.className = 'sections-termes';
+  sections.setAttribute('role', 'group');
+  sections.setAttribute('aria-label', TEXTES.listeDesTermes);
   const resultat = document.createElement('p');
   resultat.className = 'resultat-recherche';
   resultat.hidden = true;
   const aucun = document.createElement('p');
   aucun.className = 'aucun-terme meta';
   aucun.textContent = TEXTES.aucunTerme;
-  const afficherPlus = createButton({ label: TEXTES.afficherPlus, variant: 'secondary', compact: true, onClick: () => demander(debutSuivant(liste)) });
-  afficherPlus.classList.add('afficher-plus');
 
   const sectionDuVocabulaire = creerSection(TEXTES.intertitreVocabulaire, TEXTES.phraseDuVocabulaire);
-  sectionDuVocabulaire.append(outils, resultat, lignes, aucun, afficherPlus);
+  sectionDuVocabulaire.append(outils, resultat, sections, aucun);
   // En bas de page, l'export qui sert à étudier le découpage des noms hors du plugin.
   const exporterLeDetail = document.createElement('button');
   exporterLeDetail.type = 'button';
@@ -268,20 +337,117 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
     exporterLeDetail.disabled = bilan === null;
   }
 
-  function rendre(): void {
-    FILTRES.forEach(({ filtre, libelle, compte }, rang) => {
-      const bouton = boutonsDeFiltre[rang];
-      bouton.textContent = libelle(liste.comptes ? compte(liste.comptes) : null);
-      bouton.setAttribute('aria-pressed', String(liste.filtre === filtre));
+  /** Ouvre ou ferme le menu Filtrer. Ouvert, il se ferme par Échap et par un clic hors de lui, comme par son bouton. */
+  function poserLeMenu(ouvert: boolean): void {
+    if (ouvert === menuOuvert) return;
+    menuOuvert = ouvert;
+    menu.hidden = !ouvert;
+    boutonFiltrer.setAttribute('aria-expanded', String(ouvert));
+    if (ouvert) {
+      document.addEventListener('click', clicHorsDuMenu);
+      document.addEventListener('keydown', toucheDuMenu);
+    } else {
+      document.removeEventListener('click', clicHorsDuMenu);
+      document.removeEventListener('keydown', toucheDuMenu);
+    }
+  }
+
+  function clicHorsDuMenu(evenement: MouseEvent): void {
+    if (!(evenement.target instanceof Node) || !ancreDuMenu.contains(evenement.target)) poserLeMenu(false);
+  }
+
+  function toucheDuMenu(evenement: KeyboardEvent): void {
+    if (evenement.key !== 'Escape') return;
+    poserLeMenu(false);
+    boutonFiltrer.focus();
+  }
+
+  /** Une section : sa tête qui la replie, ses lignes, et de quoi demander la suite. */
+  function creerLaSection(section: SectionDeTermes): HTMLElement {
+    const type = section.type;
+    const titre = TEXTES.typeDeTerme[type];
+    const repliee = estRepliee(liste, type);
+    const entete = document.createElement('button');
+    entete.type = 'button';
+    entete.className = 'section-type-tete';
+    entete.dataset.cle = `entete:${type}`;
+    entete.setAttribute('aria-expanded', String(!repliee));
+    entete.setAttribute('aria-label', repliee ? TEXTES.deplierLaSection(titre) : TEXTES.replierLaSection(titre));
+    entete.addEventListener('click', () => {
+      liste = basculerLePli(liste, type);
+      rendre();
     });
-    lignes.replaceChildren(
-      ...liste.termes.map((terme) =>
-        creerLigneDeTerme(terme, terme.mot === liste.choisi, () => {
-          choisirUnTerme(terme);
-        }),
-      ),
+    const nom = document.createElement('span');
+    nom.textContent = titre;
+    const total = document.createElement('span');
+    total.className = 'meta section-type-total';
+    total.textContent = String(section.total);
+    entete.append(creerIconeDeType(type), nom, total, creerChevron());
+    const intitule = document.createElement('h3');
+    intitule.className = 'section-type-titre';
+    intitule.append(entete);
+
+    const element = document.createElement('div');
+    element.className = 'section-type';
+    element.append(intitule);
+    if (repliee) return element;
+
+    const lignes = document.createElement('div');
+    lignes.className = 'liste-termes';
+    lignes.setAttribute('role', 'group');
+    lignes.setAttribute('aria-label', titre);
+    lignes.append(...section.termes.map((terme) => creerLigneDeTerme(terme, terme.mot === liste.choisi, () => choisirUnTerme(terme))));
+    const reste = resteDansLaSection(section);
+    if (reste > 0) {
+      const afficherLaSuite = document.createElement('button');
+      afficherLaSuite.type = 'button';
+      afficherLaSuite.className = 'lien';
+      afficherLaSuite.dataset.cle = `plus:${type}`;
+      afficherLaSuite.textContent = TEXTES.afficherLesAutres(reste);
+      afficherLaSuite.disabled = enCours !== null;
+      afficherLaSuite.addEventListener('click', () => demander(type));
+      const pied = document.createElement('div');
+      pied.className = 'plus-dans-section';
+      pied.append(afficherLaSuite);
+      lignes.append(pied);
+    }
+    element.append(lignes);
+    return element;
+  }
+
+  /** Les sections se reconstruisent à chaque rendu : la clé de l'élément qui avait le focus permet de le retrouver. */
+  function cleDuFocusDansLesSections(): string | undefined {
+    const actif = document.activeElement;
+    return actif instanceof HTMLElement && sections.contains(actif) ? actif.dataset.cle : undefined;
+  }
+
+  function rendre(): void {
+    const actifs = filtresActifs(liste);
+    boutonFiltrer.setLabel(actifs.length === 0 ? TEXTES.filtrer : TEXTES.filtrerAvecNombre(actifs.length));
+    jetons.replaceChildren(
+      ...actifs.map((filtre) => creerJetonDeFiltre(filtre, () => {
+        liste = retirerUnFiltre(liste, filtre);
+        demander(null);
+        boutonFiltrer.focus();
+      })),
     );
-    const phrase = phraseDeRecherche(liste.termes);
+    for (const [type, { caseACocher, compte }] of casesDeTypes) {
+      caseACocher.checked = liste.types.includes(type);
+      compte.textContent = liste.comptes ? String(liste.comptes.types[type]) : '';
+    }
+    for (const [origine, { caseACocher, compte }] of casesDOrigine) {
+      caseACocher.checked = liste.origines.includes(origine);
+      compte.textContent = liste.comptes ? String(liste.comptes.origines[origine]) : '';
+    }
+    choixDuTri.value = liste.tri;
+
+    const cle = cleDuFocusDansLesSections();
+    sections.replaceChildren(...(liste.sections ?? []).map(creerLaSection));
+    if (cle !== undefined) {
+      const retrouve = sections.querySelector<HTMLElement>(`[data-cle="${cle}"]`) ?? sections.querySelector<HTMLElement>(`[data-cle="entete:${cle.slice(cle.indexOf(':') + 1)}"]`);
+      retrouve?.focus();
+    }
+    const phrase = phraseDeRecherche(termesRecus(liste));
     resultat.hidden = phrase === null;
     if (phrase) {
       const variante = document.createElement('code');
@@ -289,19 +455,20 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
       variante.textContent = phrase.variante;
       resultat.replaceChildren(variante, ` ${TEXTES.estRemplacePar} `, creerPastilleDeReference(phrase.reference));
     }
-    lignes.hidden = liste.termes.length === 0;
-    aucun.hidden = liste.total !== 0;
-    afficherPlus.hidden = !resteAAfficher(liste);
-    afficherPlus.disabled = enCours !== null;
+    sections.hidden = liste.sections === null || liste.sections.length === 0;
+    aucun.hidden = liste.sections === null || liste.sections.length > 0;
   }
 
-  /** Une demande de même clé rend la précédente caduque côté frontière : seul `enCours` fait foi. */
-  function demander(debut: number): void {
+  /**
+   * Demande les premières lignes de chaque section (`section` à `null`), ou la page suivante d'une section. Une demande de même
+   * clé rend la précédente caduque côté frontière : seul `enCours` fait foi.
+   */
+  function demander(section: TypeDeTerme | null): void {
     if (minuteur !== null) {
       clearTimeout(minuteur);
       minuteur = null;
     }
-    enCours = frontiere.termes(requeteDeLaListe(liste, debut));
+    enCours = frontiere.termes(requeteDeLaListe(liste, section));
     rendre();
   }
 
@@ -310,7 +477,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
     if (suivante === liste) return;
     liste = suivante;
     if (minuteur !== null) clearTimeout(minuteur);
-    minuteur = setTimeout(() => demander(0), DELAI_DE_SAISIE);
+    minuteur = setTimeout(() => demander(null), DELAI_DE_SAISIE);
     rendre();
   });
 
@@ -319,7 +486,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
   let etaitMasque = panneau.hidden;
   new MutationObserver(() => {
     const masque = panneau.hidden;
-    if (etaitMasque && !masque && coquille.etat().bilan) demander(0);
+    if (etaitMasque && !masque && coquille.etat().bilan) demander(null);
     etaitMasque = masque;
   }).observe(panneau, { attributes: true, attributeFilter: ['hidden'] });
 
@@ -331,7 +498,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
         break;
       case 'bilan':
         rendreLEcriture(message.bilan);
-        demander(0);
+        demander(null);
         break;
       case 'diagnostic':
         if (message.demande !== demandeDuDetail) break;
@@ -341,7 +508,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
       case 'termes':
         if (message.demande !== enCours) break;
         enCours = null;
-        liste = recevoir(liste, pageDeLaReponse(message));
+        liste = recevoir(liste, message);
         rendre();
         break;
       case 'erreur':
@@ -357,7 +524,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
 
   const dejaLu = coquille.etat().bilan;
   rendreLEcriture(dejaLu);
-  if (dejaLu) demander(0);
+  if (dejaLu) demander(null);
   else rendre();
 
   return {

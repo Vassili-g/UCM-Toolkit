@@ -105,24 +105,55 @@ const bilans = {
   },
 };
 
-const termes = [
-  { mot: 'background', forme: 'background', nature: null, origine: 'ucm', statut: 'regle', remplace: ['bg', 'back'], avec: null, nombre: 40, trouve: null },
-  { mot: 'hover', forme: 'hover', nature: null, origine: 'personnalise', statut: 'regle', remplace: ['hovered'], avec: null, nombre: 8, trouve: null },
-  { mot: 'bg', forme: 'bg', nature: null, origine: null, statut: 'a-trancher', remplace: [], avec: 'background', nombre: 12, trouve: null },
-  { mot: 'sm', forme: 'sm', nature: null, origine: null, statut: 'a-trancher', remplace: [], avec: null, nombre: 20, trouve: null },
-  { mot: 'radius', forme: 'radius', nature: null, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 9, trouve: null },
-  { mot: 'surface', forme: 'surface', nature: null, origine: 'ucm', statut: 'ecart', remplace: [], avec: null, nombre: 6, trouve: null },
-];
+// Les lignes de la liste de l'onglet Règles, une fabrique par statut. `forme` est le terme écrit selon la convention du projet.
+const termeRegle = (type, mot, forme, origine, remplace, nombre) => ({ mot, forme, type, nature: null, origine, statut: 'regle', remplace, avec: null, nombre, trouve: null });
+const termeATrancher = (mot, avec, nombre) => ({ mot, forme: mot, type: 'a-trancher', nature: null, origine: null, statut: 'a-trancher', remplace: [], avec, nombre, trouve: null });
+const termeSansRegle = (mot, forme, nombre, statut = 'sans-regle', origine = null) => ({ mot, forme, type: 'sans-regle', nature: null, origine, statut, remplace: [], avec: null, nombre, trouve: null });
+const nomDeLaListe = (type, mot, forme, nombre) => ({ mot, forme, type, nature: type, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre, trouve: null });
 
-// La liste de l'onglet Règles quand le fichier a des noms : un composant, une palette, des termes avec règle.
-const termesAvecNoms = [
-  termes[0],
-  { mot: 'button', forme: 'Button', nature: 'composant', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 245, trouve: null },
-  termes[1],
-  { mot: 'poppy', forme: 'Poppy', nature: 'palette', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 44, trouve: null },
-  { mot: 'stress-test', forme: 'StressTest', nature: null, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 66, trouve: null },
-  termes[5],
+const background = termeRegle('remplace', 'background', 'background', 'ucm', ['bg', 'back'], 40);
+const hover = termeRegle('remplace', 'hover', 'hover', 'personnalise', ['hovered'], 8);
+const bg = termeATrancher('bg', 'background', 12);
+const sm = termeATrancher('sm', null, 20);
+const radius = termeSansRegle('radius', 'radius', 9);
+const surface = termeSansRegle('surface', 'surface', 6, 'ecart', 'ucm');
+const button = nomDeLaListe('composant', 'button', 'Button', 245);
+const stressTest = nomDeLaListe('composant', 'stress-test', 'StressTest', 66);
+const poppy = nomDeLaListe('palette', 'poppy', 'Poppy', 44);
+
+const section = (type, total, termes) => ({ type, total, termes });
+const comptesVides = { 'a-trancher': 0, remplace: 0, conforme: 0, 'sans-regle': 0, composant: 0, palette: 0 };
+
+// Le fichier de base : des termes à trancher, deux règles, deux mots sans règle.
+const sectionsDeBase = [section('a-trancher', 2, [bg, sm]), section('remplace', 2, [background, hover]), section('sans-regle', 2, [radius, surface])];
+const comptesDeBase = { types: { ...comptesVides, 'a-trancher': 2, remplace: 2, 'sans-regle': 2 }, origines: { ucm: 1, personnalise: 1 } };
+
+// Un fichier qui a des noms : un composant, un autre nom de composant et une palette.
+const sectionsAvecNoms = [section('remplace', 2, [background, hover]), section('sans-regle', 1, [surface]), section('composant', 2, [button, stressTest]), section('palette', 1, [poppy])];
+const comptesAvecNoms = { types: { ...comptesVides, remplace: 2, 'sans-regle': 1, composant: 2, palette: 1 }, origines: { ucm: 1, personnalise: 1 } };
+
+// Le Playground : chaque type a plus de lignes que la section n'en montre, sauf les composants, qui tiennent en quatre.
+const remplaceDuPlayground = [
+  background, termeRegle('remplace', 'dimension', 'dimension', 'ucm', ['dimensions'], 30), termeRegle('remplace', 'disabled', 'disabled', 'ucm', ['disable'], 49), hover,
+  termeRegle('remplace', 'icon', 'icon', 'ucm', ['icons'], 6),
 ];
+const remplaceSuivant = [
+  termeRegle('remplace', 'large', 'large', 'ucm', ['big'], 5), termeRegle('remplace', 'pressed', 'pressed', 'ucm', ['press', 'push'], 38),
+  termeRegle('remplace', 'radius', 'radius', 'ucm', ['border-radius'], 26), termeRegle('remplace', 'size', 'size', 'ucm', ['sizes'], 81),
+];
+const conformes = [['50', 59], ['100', 59], ['200', 59], ['300', 59], ['400', 60]].map(([mot, nombre]) => termeRegle('conforme', mot, mot, 'ucm', [], nombre));
+const sectionsDuPlayground = [
+  section('a-trancher', 2, [bg, sm]),
+  section('remplace', 9, remplaceDuPlayground),
+  section('conforme', 37, conformes),
+  section('sans-regle', 22, [termeSansRegle('gap', 'gap', 12), termeSansRegle('padding', 'padding', 15), radius, termeSansRegle('scale-wrap', 'ScaleWrap', 22), surface]),
+  section('composant', 4, [nomDeLaListe('composant', 'alert', 'Alert', 16), button, stressTest, nomDeLaListe('composant', 'tile-link', 'TileLink', 11)]),
+  section('palette', 8, ['Deep', 'Grass', 'Orange', 'Poppy', 'Sky'].map((forme, rang) => nomDeLaListe('palette', forme.toLowerCase(), forme, rang === 0 ? 22 : 44))),
+];
+const comptesDuPlayground = {
+  types: { 'a-trancher': 2, remplace: 9, conforme: 37, 'sans-regle': 22, composant: 4, palette: 8 },
+  origines: { ucm: 45, personnalise: 1 },
+};
 
 const fiches = {
   ucm: {
@@ -164,24 +195,23 @@ const conflitDeCycle = { type: 'cycle', termes: ['bg', 'back', 'bg'] };
 
 const m = (type, demande, reste) => ({ type, demande, ...reste });
 
+const reponseDeTermes = (demande, sections, comptes, reste = {}) => m('termes', demande, { generation: 1, section: null, debut: 0, sections, comptes, ...reste });
+
 const messages = {
   initial: (dejaAnalyse) => ({ type: 'initial', dejaAnalyse }),
   lecture: (lues, total) => m('lecture', 1, { lues, total }),
   bilan: (demande, bilan) => m('bilan', demande, { bilan }),
   lignes: (demande, debut) => m('lignes', demande, { generation: 1, groupe: groupeBackground.cle, debut, lignes: lignesSupplementaires.slice(debut - groupeBackground.apercu.length, debut - groupeBackground.apercu.length + 50), total: 12 }),
-  termes: (demande) => m('termes', demande, {
-    generation: 1, debut: 0, termes, total: termes.length,
-    comptes: { tous: termes.length, avecRegle: 3, sansRegle: 3, composants: 0, palettes: 0 },
-  }),
-  termesAvecNoms: (demande) => m('termes', demande, {
-    generation: 1, debut: 0, termes: termesAvecNoms, total: termesAvecNoms.length,
-    comptes: { tous: termesAvecNoms.length, avecRegle: 3, sansRegle: 1, composants: 1, palettes: 1 },
-  }),
+  // Une réponse de la liste : sans `section`, les premières lignes de chaque section ; avec `section`, la page qui commence à `debut`.
+  termes: (demande) => reponseDeTermes(demande, sectionsDeBase, comptesDeBase),
+  termesAvecNoms: (demande) => reponseDeTermes(demande, sectionsAvecNoms, comptesAvecNoms),
+  termesDuPlayground: (demande) => reponseDeTermes(demande, sectionsDuPlayground, comptesDuPlayground),
+  /** Le menu Filtrer avec Remplace et Sans règle cochés : seules ces deux sections reviennent, les comptes restent ceux du fichier. */
+  termesFiltres: (demande) => reponseDeTermes(demande, [sectionsDuPlayground[1], sectionsDuPlayground[3]], comptesDuPlayground),
+  /** « Afficher les 4 autres » de la section Remplace : les quatre lignes qui suivent les cinq premières. */
+  termesPage: (demande) => reponseDeTermes(demande, [section('remplace', 9, remplaceSuivant)], comptesDuPlayground, { section: 'remplace', debut: 5 }),
   /** La recherche d'une variante : la ligne de sa référence porte la variante trouvée. */
-  termesTrouves: (demande) => m('termes', demande, {
-    generation: 1, debut: 0, termes: [{ ...termes[0], trouve: 'bg' }], total: 1,
-    comptes: { tous: termes.length, avecRegle: 3, sansRegle: 3, composants: 0, palettes: 0 },
-  }),
+  termesTrouves: (demande) => reponseDeTermes(demande, [section('remplace', 1, [{ ...background, trouve: 'bg' }])], comptesDeBase),
   fiche: (demande, fiche) => m('fiche', demande, { generation: 1, fiche }),
   simulation: (demande) => m('simulation', demande, { generation: 1, effet: effetDeTerme, conflit: null }),
   refus: (demande, conflits) => m('refus', demande, { conflits }),

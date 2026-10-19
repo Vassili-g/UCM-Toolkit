@@ -173,7 +173,7 @@ const FICHE_ORDINAIRE: FicheVue = { ...FICHE_SANS_REGLE, mot: 'button', forme: '
 
 test('le titre est la forme du fichier quand le terme n’a pas de règle, sinon sa clé', () => {
   assert.equal(titreDeLaFiche('sans-regle', FICHE_NOM), 'Button');
-  assert.equal(titreDeLaFiche('ucm', { mot: 'background', forme: 'Background' }), 'background');
+  assert.equal(titreDeLaFiche('ucm', { forme: 'Background' }), 'Background', 'une règle s’écrit selon la convention du projet, comme sa ligne');
   assert.equal(titreDeLaFiche('personnalise', FICHE), 'outlined');
 });
 

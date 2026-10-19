@@ -194,14 +194,7 @@ export const TEXTES = {
   modifier: 'Modifier',
   modifierLEcriture: 'Modifier l’écriture des noms',
   chercherUnTerme: 'Chercher un terme',
-  filtresDesTermes: 'Filtrer les termes',
-  filtreTous: (nombre: number | null): string => (nombre === null ? 'Tous' : `Tous ${nombre}`),
-  filtreAvecRegle: (nombre: number | null): string => (nombre === null ? 'Avec règle' : `Avec règle ${nombre}`),
-  filtreSansRegle: (nombre: number | null): string => (nombre === null ? 'Sans règle' : `Sans règle ${nombre}`),
-  filtreComposants: (nombre: number | null): string => (nombre === null ? 'Composants' : `Composants ${nombre}`),
-  filtrePalettes: (nombre: number | null): string => (nombre === null ? 'Palettes' : `Palettes ${nombre}`),
   listeDesTermes: 'Termes du fichier',
-  afficherPlus: 'Afficher plus',
   exporterLeDetailDuVocabulaire: 'Exporter le détail du vocabulaire',
   nomDuFichierDuVocabulaire: 'vocabulaire-ucm-nomenclature.json',
   aucunTerme: 'Aucun terme ne correspond.',
@@ -214,6 +207,23 @@ export const TEXTES = {
   motOu: 'ou',
   estRemplacePar: 'est remplacé par',
   nomsDuTerme: noms,
+
+  // Tour 2, T-U : la liste en sections par type, le menu Filtrer et le tri.
+  typeDeTerme: { 'a-trancher': 'À trancher', remplace: 'Remplace', conforme: 'Conforme', 'sans-regle': 'Sans règle', composant: 'Composants', palette: 'Palettes' },
+  typeDeTermeAuSingulier: { 'a-trancher': 'À trancher', remplace: 'Remplace', conforme: 'Conforme', 'sans-regle': 'Sans règle', composant: 'Composant', palette: 'Palette' },
+  filtrer: 'Filtrer',
+  filtrerAvecNombre: (n: number): string => `Filtrer · ${n}`,
+  titreDesTypes: 'Types',
+  titreDesOrigines: 'Origine de la règle',
+  origineDeFiltre: { ucm: 'UCM', personnalise: 'Personnalisé' },
+  /** Le nom accessible du × d'un jeton de filtre. */
+  retirerLeFiltre: (libelle: string): string => `Retirer le filtre ${libelle}`,
+  trierAlpha: 'Trier : A → Z',
+  trierNombre: 'Trier : nombre de noms',
+  trier: 'Trier',
+  afficherLesAutres: (n: number): string => (n === 1 ? 'Afficher l’autre' : `Afficher les ${n} autres`),
+  replierLaSection: (titre: string): string => `Replier ${titre}`,
+  deplierLaSection: (titre: string): string => `Déplier ${titre}`,
 
   // U3 : onglet À trancher.
   /** Le titre d'une proposition : `{avant} {a} {entre} {b} ?`, avec a et b cités en couleur. */

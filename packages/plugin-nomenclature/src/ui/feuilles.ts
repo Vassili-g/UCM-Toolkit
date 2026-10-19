@@ -34,8 +34,8 @@ export function sorteDeFiche(fiche: Pick<FicheVue, 'origine'>): SorteDeFiche {
 }
 
 /** Le titre de la feuille : la forme du fichier (`StressTest`) quand le terme n'a pas de règle, sinon la clé du terme. */
-export function titreDeLaFiche(sorte: SorteDeFiche, fiche: Pick<FicheVue, 'mot' | 'forme'>): string {
-  return sorte === 'sans-regle' ? fiche.forme : fiche.mot;
+export function titreDeLaFiche(_sorte: SorteDeFiche, fiche: Pick<FicheVue, 'forme'>): string {
+  return fiche.forme;
 }
 
 /** Le lien de l'en-tête : un nom se traite comme un terme, un terme ordinaire se traite comme un nom ; `null` pour un terme sans nature. */
@@ -394,7 +394,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
         regles.designerLeTerme(null);
         // La liste se redessine pour effacer la ligne choisie : le focus revient à la ligne du terme.
         const lignes = Array.from(coquille.panneaux.regles.contenu.querySelectorAll<HTMLElement>('.ligne-terme'));
-        lignes.find((ligne) => ligne.querySelector('.mot')?.textContent === motAffiche(entree))?.focus();
+        lignes.find((ligne) => ligne.dataset.mot === entree.mot)?.focus();
       },
     });
     feuille.element.classList.add('feuille-terme');

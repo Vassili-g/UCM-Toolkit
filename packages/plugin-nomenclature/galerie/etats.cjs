@@ -20,10 +20,14 @@ const ouvert = (bilan) => [msg(messages.initial(true)), msg(messages.bilan(1, bi
 const reglesOuvertes = () => [...ouvert(bilans.travail), clic('#onglet-regles'), msg(messages.termes(3), '.ligne-terme')];
 /** L'onglet Règles d'un fichier qui a des noms : la liste porte un composant et une palette. */
 const reglesAvecNoms = () => [...ouvert(bilans.travail), clic('#onglet-regles'), msg(messages.termesAvecNoms(3), '.ligne-terme')];
-/** La feuille d'un terme : la ligne `rang` de la liste, puis sa fiche (demande 4). */
-const termeOuvert = (rang, fiche) => [
+/** L'onglet Règles sur le Playground : toutes les sections, avec les cinq premières lignes de chacune. */
+const reglesDuPlayground = () => [...ouvert(bilans.travail), clic('#onglet-regles'), msg(messages.termesDuPlayground(3), '.ligne-terme')];
+/** La ligne d'un terme dans la liste, retrouvée par le début de son nom accessible. */
+const ligneDe = (mot) => `.ligne-terme[aria-label^="${mot},"]`;
+/** La feuille d'un terme : sa ligne dans la liste, puis sa fiche (demande 4). */
+const termeOuvert = (mot, fiche) => [
   ...reglesOuvertes(),
-  clic(`.liste-termes .ligne-terme:nth-child(${rang})`, '.feuille'),
+  clic(ligneDe(mot), '.feuille'),
   msg(messages.fiche(4, fiche), '.fiche-bloc, .fiche-regle'),
 ];
 /** Le délai de la simulation d'une saisie : l'écran attend 250 ms avant de demander. */
@@ -83,11 +87,24 @@ module.exports.ETATS = [
     [...ouvert(bilans.travail), clic('#onglet-a-trancher', '.carte.question'), clic(repondreAuPremier),
       msg(messages.refus(3, [conflitDeFichier]))]),
   etat('regles', 'Règles', 'Le designer ouvre l’onglet des règles.',
-    'L’écriture résumée avec Modifier, la recherche, les filtres avec leur compte, les termes avec leur origine et leur état.',
+    'L’écriture résumée avec Modifier ; sous le vocabulaire, la barre (Filtrer, recherche, tri) puis une section par type non vide : À trancher, Remplace, Sans règle, chacune avec son icône, son total et ses lignes.',
     reglesOuvertes()),
   etat('regles-noms', 'Règles, avec des noms', 'Le fichier a un composant et une palette : la liste les reconnaît.',
-    'Cinq filtres dont Composants et Palettes ; Button et Poppy portent une pastille grise Composant et Palette, StressTest garde sa forme du fichier, background et hover gardent leur origine.',
+    'Les sections Composants (Button, StressTest sous sa forme du fichier) et Palettes (Poppy), sans pastille de nature : l’icône et le titre de la section disent le type. Les lignes de background et de hover gardent leur origine.',
     reglesAvecNoms()),
+  etat('regles-sections', 'Règles, toutes les sections', 'Le fichier a des lignes de chaque type : le Playground.',
+    'Six sections ouvertes, de À trancher à Palettes, dans cet ordre ; une icône grise par type et ambre pour À trancher ; cinq lignes au plus par section et « Afficher les 4 autres » sous Remplace ; le jeton gris d’une règle et « remplace » avec ses variantes ; les pastilles UCM et À trancher à droite.',
+    reglesDuPlayground()),
+  etat('regles-section-suite', 'Règles, la suite d’une section', 'Le designer appuie sur « Afficher les 4 autres », sous Remplace.',
+    'La section Remplace passe de cinq à neuf lignes et perd son lien ; les autres sections ne bougent pas.',
+    [...reglesDuPlayground(), clic('[data-cle="plus:remplace"]'), msg(messages.termesPage(4), ligneDe('size'))]),
+  etat('regles-section-repliee', 'Règles, une section repliée', 'Le designer replie la section Palettes.',
+    'La tête de Palettes garde son icône, son titre et son total, le chevron tourné vers la droite ; ses lignes ont disparu.',
+    [...reglesDuPlayground(), clic('[data-cle="entete:palette"]')]),
+  etat('regles-menu-filtrer', 'Règles, menu Filtrer ouvert', 'Le designer ouvre Filtrer et coche Remplace et Sans règle.',
+    'Le bouton « Filtrer · 2 », le menu avec les six types (icône, libellé, compte) puis les deux origines, deux cases cochées ; les jetons Remplace et Sans règle avec leur × ; seules les deux sections correspondantes restent.',
+    [...reglesDuPlayground(), clic('.ancre-menu .btn'), clic('.menu-filtres label:nth-of-type(2) input'), clic('.menu-filtres label:nth-of-type(4) input'),
+      msg(messages.termesFiltres(5), '.filtre-actif')]),
   etat('regles-recherche', 'Règles, variante cherchée', 'Le designer cherche bg dans Règles.',
     'La phrase « bg est remplacé par background » sous la recherche ; bg en blanc dans la ligne de background.',
     [...reglesOuvertes(), { saisie: { dans: '.recherche', valeur: 'bg' } }, ...delai(), msg(messages.termesTrouves(4), '.resultat-recherche:not([hidden])')]),
@@ -99,19 +116,19 @@ module.exports.ETATS = [
     [...reglesOuvertes(), clic('.btn[aria-label="Modifier l’écriture des noms"]', '.feuille')]),
   etat('feuille-terme-ucm', 'Feuille d’un terme UCM', 'Le designer ouvre un terme défini par UCM.',
     'Le terme et UCM · rôle dans l’en-tête, la définition, le bloc gris Règle avec Formes fixées par UCM et des jetons sans ×, À renommer en deux colonnes avec Voir dans Renommages, Déjà employé ; Ne pas appliquer ce terme dans ce fichier en bas, sans Fermer.',
-    termeOuvert(1, fiches.ucm)),
+    termeOuvert('background', fiches.ucm)),
   etat('feuille-terme-personnalise', 'Feuille d’un terme personnalisé', 'Le designer ouvre un terme défini dans ce fichier.',
     'Le terme et Personnalisé dans l’en-tête, le bloc gris Règle avec des jetons à × et + Terme, À renommer, Déjà employé ; Supprimer la règle (rouge) à gauche et Proposer à UCM à droite.',
-    termeOuvert(2, fiches.personnalise)),
+    termeOuvert('hover', fiches.personnalise)),
   etat('feuille-terme-sans-regle', 'Feuille d’un terme sans règle', 'Le designer ouvre un terme qu’aucune règle ne couvre.',
     'Sans règle dans l’en-tête, la question qui porte sur le terme, Déjà employé ; Remplace d’autres termes… et Remplacer par… en bas, sans Fermer.',
-    termeOuvert(5, fiches.sansRegle)),
+    termeOuvert('radius', fiches.sansRegle)),
   etat('feuille-composant', 'Feuille d’un composant', 'Le designer ouvre Button, nom d’un composant du fichier.',
     'Button et la pastille grise Composant dans l’en-tête, la phrase « Nom d’un composant du fichier… » et le lien Traiter comme un terme, Déjà employé ; Remplace d’autres termes… et Remplacer par… en bas.',
-    [...reglesAvecNoms(), clic('.liste-termes .ligne-terme:nth-child(2)', '.feuille'), msg(messages.fiche(4, fiches.composant), '.fiche-bloc, .fiche-regle')]),
+    [...reglesAvecNoms(), clic(ligneDe('Button'), '.feuille'), msg(messages.fiche(4, fiches.composant), '.fiche-bloc, .fiche-regle')]),
   etat('feuille-remplacer-par', 'Remplacer par…', 'Le designer choisit le terme qui remplacera radius.',
     'L’étape dans la même feuille : le champ, le retour ‹, l’effet « 9 variables rejoindront les renommages » avec un chemin réel.',
-    [...termeOuvert(5, fiches.sansRegle), clic('.feuille-groupe .btn-primary', '#feuille-saisie'),
+    [...termeOuvert('radius', fiches.sansRegle), clic('.feuille-groupe .btn-primary', '#feuille-saisie'),
       { saisie: { dans: '#feuille-saisie', valeur: 'corner' } }, ...delai(), msg(messages.simulation(5), '.feuille .effet')]),
   etat('configuration', 'Configuration', 'Le designer appuie sur le bouton Configuration.',
     'Le titre Configuration et Retour ; les collections analysées, les règles du fichier, le dernier renommage.',

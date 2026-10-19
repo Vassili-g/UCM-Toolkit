@@ -692,46 +692,152 @@ button.tete-bouton {
   font-weight: 600;
 }
 
+/* La barre : un bouton qui ouvre le menu Filtrer, les filtres actifs en jetons retirables, la recherche, le tri. */
 .outils-termes {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: var(--espace-controle);
 }
 
 .input.recherche {
-  width: 190px;
+  min-width: 160px;
+  height: var(--hauteur-secondaire);
+  flex: 1;
+  width: auto;
+}
+
+.input.tri {
+  width: auto;
   height: var(--hauteur-secondaire);
 }
 
-.filtres {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espace-controle);
+.filtres-actifs {
+  display: contents;
 }
 
-.filtre {
-  padding: 0 var(--espace-bloc);
+.filtre-actif {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-serre);
+  padding: 0 var(--espace-controle);
   border: 1px solid var(--bordure);
-  border-radius: 99px;
-  background: none;
-  color: var(--texte-second);
-  cursor: pointer;
-  font: inherit;
+  border-radius: 4px;
+  color: var(--texte);
   font-weight: 600;
 }
 
-.filtre[aria-pressed="true"] {
-  border-color: var(--texte);
-  background: var(--texte);
-  color: var(--fond);
+.filtre-actif .retirer-jeton {
+  color: var(--texte-second);
 }
 
-.filtre:focus-visible,
-.ligne-terme:focus-visible {
+.ancre-menu {
+  position: relative;
+}
+
+.menu-filtres {
+  position: absolute;
+  z-index: 5;
+  top: 100%;
+  left: 0;
+  display: grid;
+  width: 260px;
+  gap: var(--espace-serre);
+  margin-top: var(--espace-serre);
+  padding: var(--espace-bloc);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+  box-shadow: 0 8px 24px var(--fond-voile);
+}
+
+.menu-filtres h4 {
+  margin: var(--espace-serre) 0 0;
+  color: var(--texte-second);
+  font-size: var(--libelle);
+  font-weight: 600;
+}
+
+.menu-filtres label {
+  display: grid;
+  min-height: 24px;
+  grid-template-columns: 16px 16px 1fr auto;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.ligne-terme:focus-visible,
+.section-type-tete:focus-visible {
   outline: 2px solid var(--bordure-marque);
   outline-offset: 2px;
+}
+
+/* Une section par type, repliable : l'icône, le titre, le total et le chevron, qui pointe vers le bas quand la section est ouverte. */
+.sections-termes {
+  display: grid;
+  gap: var(--espace-controle);
+}
+
+.section-type {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+.section-type-titre {
+  margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.section-type-tete {
+  display: flex;
+  width: 100%;
+  min-height: 28px;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font-weight: inherit;
+  text-align: left;
+}
+
+.section-type-total {
+  flex: 1;
+  font-weight: 400;
+}
+
+.section-type-tete[aria-expanded="true"] .chevron-svg {
+  transform: none;
+}
+
+.section-type-tete[aria-expanded="false"] .chevron-svg {
+  transform: rotate(-90deg);
+}
+
+.plus-dans-section {
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-top: 1px solid var(--bordure);
+}
+
+/* Le type d'une ligne : une icône grise en tête, ambre pour « À trancher » seulement. */
+.icone-type {
+  display: flex;
+  width: 16px;
+  height: 16px;
+  color: var(--texte-second);
+}
+
+.icone-type.ambre {
+  color: var(--texte-avertissement);
+}
+
+.icone-type svg {
+  width: 16px;
+  height: 16px;
 }
 
 .liste-termes {
@@ -743,7 +849,7 @@ button.tete-bouton {
 .ligne-terme {
   display: grid;
   width: 100%;
-  grid-template-columns: minmax(0, 1fr) auto 40px 12px;
+  grid-template-columns: 16px minmax(0, 1fr) auto 40px 12px;
   align-items: center;
   gap: var(--espace-controle);
   padding: var(--espace-controle) var(--espace-bloc);
@@ -805,10 +911,6 @@ button.tete-bouton {
 
 .terme-nombre {
   text-align: right;
-}
-
-.afficher-plus {
-  justify-self: center;
 }
 
 .export-du-detail {
