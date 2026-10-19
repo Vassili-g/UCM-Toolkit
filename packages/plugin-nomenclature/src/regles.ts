@@ -5,7 +5,7 @@
  * une entrée illisible ou d'une autre version se lit comme absente, et une lecture ne réécrit rien.
  * Toute écriture sort sous forme d'`Ecriture` (`texte: null` efface la clé) : la session les range par le port d'`ecriture.ts`.
  */
-import { COLLECTIONS, type Collection, type ConflitDeVocabulaire, type DejaJuge, type Mots, type TermePersonnalise, type VocabulaireDuFichier } from '@ucm-kit/core/referentiel';
+import { COLLECTIONS, ESPACE_ARCHITECT, type Collection, type ConflitDeVocabulaire, type DejaJuge, type Mots, type TermePersonnalise, type VocabulaireDuFichier } from '@ucm-kit/core/referentiel';
 import { estConventions, lireChoix } from './conventions';
 import type { EcritureChoisie } from './messages';
 
@@ -15,8 +15,13 @@ export const CLE_EXCLUES = 'exclues';
 export const CLE_VUS = 'vus';
 /** Clé de la convention de la v1, lue seulement quand `ecriture` manque. */
 export const CLE_CONVENTIONS_V1 = 'conventions';
-/** Taille maximale d'une entrée du journal ; Figma limite une entrée à 100 ko, clé et espace compris. */
-export const TAILLE_MAX_D_UNE_ENTREE_DU_JOURNAL = 90_000;
+/** Clé de la référence du journal : elle nomme le lot courant et le nombre de ses entrées. */
+export const CLE_JOURNAL = 'journal';
+/** Figma limite une entrée à 100 ko : espace, clé et valeur comptés en octets UTF-8. */
+const LIMITE_D_UNE_ENTREE = 100_000;
+const MARGE_D_UNE_ENTREE = 1_000;
+const ENTREE_ANCIENNE = /^journal:\d+$/u;
+const ENTREE_DU_LOT = /^journal:[^:]+:\d+$/u;
 
 export interface Ecriture { readonly cle: string; readonly texte: string | null }
 
@@ -80,7 +85,27 @@ const PREFIXE_RETIRE = 'echelle:';
 export const clePlusTard = (cle: string): string => `plus-tard:${cle}`;
 export const cleCollection = (id: string): string => `collection:${id}`;
 export const cleReponse = (cle: string): string => `reponse:${cle}`;
-export const cleJournal = (rang: number): string => `journal:${rang}`;
+/** Entrée d'un lot du journal. */
+export const cleJournal = (lot: string, rang: number): string => `journal:${lot}:${rang}`;
+/** Entrée de l'ancienne forme, dont la tête `journal:0` porte l'heure et le nombre d'entrées. */
+export const cleJournalAncienne = (rang: number): string => `journal:${rang}`;
+export const estCleDuJournal = (cle: string): boolean => cle === CLE_JOURNAL || ENTREE_ANCIENNE.test(cle) || ENTREE_DU_LOT.test(cle);
+
+/**
+ * Le nombre d'octets UTF-8 d'un texte. `TextEncoder` n'est pas garanti dans le bac à sable de Figma.
+ * Une paire de substituts compte 4 octets ; un substitut isolé, 3.
+ */
+export function octetsUtf8(texte: string): number {
+  let octets = 0;
+  for (let i = 0; i < texte.length; i++) {
+    const code = texte.charCodeAt(i);
+    if (code < 0x80) octets += 1;
+    else if (code < 0x800) octets += 2;
+    else if (code >= 0xd800 && code < 0xdc00 && i + 1 < texte.length && (texte.charCodeAt(i + 1) & 0xfc00) === 0xdc00) { octets += 4; i++; }
+    else octets += 3;
+  }
+  return octets;
+}
 
 function apres(cle: string, prefixe: string): string | undefined {
   return cle.startsWith(prefixe) && cle.length > prefixe.length ? cle.slice(prefixe.length) : undefined;
@@ -134,18 +159,37 @@ function lireRenommages(brut: unknown): RenommageJournal[] | undefined {
   return sortie;
 }
 
-/** Le journal n'est lu que complet : une entrée manquante ou illisible le rend absent. */
+/**
+ * Le journal n'est lu que complet. La référence `journal` nomme le lot ; chaque entrée du lot porte ce lot et son rang.
+ * Une entrée manquante, illisible ou d'un autre lot rend le journal illisible, et la lecture ne l'efface pas.
+ * Sans référence, la forme ancienne `journal:<n>` (tête en `journal:0`) reste lue.
+ */
 function lireJournal(entrees: ReadonlyMap<string, string>): Journal | undefined {
-  const tete = lireEntree(entrees.get(cleJournal(0)) ?? '');
+  if (entrees.get(CLE_JOURNAL)) return lireJournalDuLot(entrees);
+  const tete = lireEntree(entrees.get(cleJournalAncienne(0)) ?? '');
   if (!tete || !Number.isInteger(tete.morceaux) || (tete.morceaux as number) < 1 || typeof tete.heure !== 'string') return undefined;
   const renommages: RenommageJournal[] = [];
   for (let rang = 0; rang < (tete.morceaux as number); rang++) {
-    const morceau = rang === 0 ? tete : lireEntree(entrees.get(cleJournal(rang)) ?? '');
+    const morceau = rang === 0 ? tete : lireEntree(entrees.get(cleJournalAncienne(rang)) ?? '');
     const lus = morceau && lireRenommages(morceau.renommages);
     if (!lus) return undefined;
     renommages.push(...lus);
   }
   return { heure: tete.heure, renommages };
+}
+
+function lireJournalDuLot(entrees: ReadonlyMap<string, string>): Journal | undefined {
+  const reference = lireEntree(entrees.get(CLE_JOURNAL) ?? '');
+  if (!reference || typeof reference.lot !== 'string' || !reference.lot || reference.lot.includes(':')
+    || !Number.isInteger(reference.morceaux) || (reference.morceaux as number) < 1 || typeof reference.heure !== 'string') return undefined;
+  const renommages: RenommageJournal[] = [];
+  for (let rang = 0; rang < (reference.morceaux as number); rang++) {
+    const entree = lireEntree(entrees.get(cleJournal(reference.lot, rang)) ?? '');
+    const lus = entree && entree.lot === reference.lot && entree.rang === rang && lireRenommages(entree.renommages);
+    if (!lus) return undefined;
+    renommages.push(...lus);
+  }
+  return { heure: reference.heure, renommages };
 }
 
 /** Lit toutes les règles depuis les couples (clé, texte) de l'espace ; les clés inconnues sont ignorées. */
@@ -287,37 +331,49 @@ export function defaireReponse(cle: string, courant: ReadonlyMap<string, string>
 
 // Le journal
 
+/** Un lot du journal : ses entrées, puis la référence qui le publie. Le rangeur écrit la référence en dernier. */
+export interface JournalPrepare {
+  readonly entrees: readonly { readonly cle: string; readonly texte: string }[];
+  readonly reference: { readonly cle: string; readonly texte: string };
+}
+
+/** Le budget en octets de la valeur d'une entrée du lot : la clé la plus longue possible et la marge sont déjà retirées. */
+export function budgetDUneEntree(lot: string): number {
+  return LIMITE_D_UNE_ENTREE - octetsUtf8(ESPACE_ARCHITECT) - octetsUtf8(cleJournal(lot, 999_999_999)) - MARGE_D_UNE_ENTREE;
+}
+
 /**
- * Découpe le journal en entrées de `max` caractères au plus. L'entrée 0 porte l'heure et le nombre d'entrées.
- * Les entrées `journal:<n>` d'un journal plus long que celui-ci sont effacées : `clesExistantes` les nomme.
+ * Découpe le journal en entrées `journal:<lot>:<rang>` dont la valeur pèse `max` octets UTF-8 au plus,
+ * puis prépare la référence `journal` (lot, heure, nombre d'entrées).
+ * Rend `undefined` quand un renommage ne tient pas seul dans une entrée : le journal ne peut pas être écrit.
  */
-export function preparerJournal(journal: Journal, clesExistantes: Iterable<string> = [], max: number = TAILLE_MAX_D_UNE_ENTREE_DU_JOURNAL): Ecriture[] {
-  const reserve = JSON.stringify({ version: VERSION_DES_REGLES, heure: journal.heure, morceaux: 999_999_999, renommages: [] }).length;
+export function preparerJournal(journal: Journal, lot: string, max: number = budgetDUneEntree(lot)): JournalPrepare | undefined {
+  const reserve = octetsUtf8(JSON.stringify({ version: VERSION_DES_REGLES, lot, rang: 999_999_999, renommages: [] }));
   const morceaux: RenommageJournal[][] = [[]];
   let taille = reserve;
   for (const renommage of journal.renommages) {
-    const longueur = JSON.stringify(renommage).length + 1;
-    const courant = morceaux[morceaux.length - 1]!;
-    if (courant.length > 0 && taille + longueur > max) { morceaux.push([]); taille = reserve; }
+    const longueur = octetsUtf8(JSON.stringify(renommage)) + 1;
+    if (reserve + longueur > max) return undefined;
+    if (morceaux[morceaux.length - 1]!.length > 0 && taille + longueur > max) { morceaux.push([]); taille = reserve; }
     morceaux[morceaux.length - 1]!.push(renommage);
     taille += longueur;
   }
-  const ecritures: Ecriture[] = morceaux.map((renommages, rang) => ({
-    cle: cleJournal(rang),
-    texte: JSON.stringify(rang === 0
-      ? { version: VERSION_DES_REGLES, heure: journal.heure, morceaux: morceaux.length, renommages }
-      : { version: VERSION_DES_REGLES, renommages }),
-  }));
-  for (const cle of clesExistantes) {
-    const rang = /^journal:(\d+)$/u.exec(cle)?.[1];
-    if (rang !== undefined && Number(rang) >= morceaux.length) ecritures.push({ cle, texte: null });
-  }
-  return ecritures;
+  return {
+    entrees: morceaux.map((renommages, rang) => ({
+      cle: cleJournal(lot, rang), texte: JSON.stringify({ version: VERSION_DES_REGLES, lot, rang, renommages }),
+    })),
+    reference: { cle: CLE_JOURNAL, texte: JSON.stringify({ version: VERSION_DES_REGLES, lot, heure: journal.heure, morceaux: morceaux.length }) },
+  };
 }
 
-/** Les écritures qui effacent le journal. */
-export function effacerLeJournal(clesExistantes: Iterable<string>): Ecriture[] {
-  return [...clesExistantes].filter((cle) => /^journal:\d+$/u.test(cle)).map((cle) => ({ cle, texte: null }));
+/**
+ * Les écritures qui effacent les clés du journal, de la forme ancienne et du lot, sauf celles de `garder`.
+ * Les entrées de l'ancienne forme partent d'abord, puis la référence, puis les entrées des lots.
+ */
+export function effacerLeJournal(clesExistantes: Iterable<string>, garder: ReadonlySet<string> = new Set()): Ecriture[] {
+  const rang = (cle: string): number => ENTREE_ANCIENNE.test(cle) ? 0 : cle === CLE_JOURNAL ? 1 : 2;
+  return [...clesExistantes].filter((cle) => estCleDuJournal(cle) && !garder.has(cle))
+    .sort((a, b) => rang(a) - rang(b)).map((cle) => ({ cle, texte: null }));
 }
 
 // L'export et l'import

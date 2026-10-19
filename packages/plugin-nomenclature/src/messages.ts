@@ -96,7 +96,12 @@ export type ConflitVue =
   | { readonly type: 'contredit-ucm'; readonly terme: string; readonly remplace: string; readonly termeUcm: string }
   | { readonly type: 'deja-remplace'; readonly remplace: string; readonly par: string }
   | { readonly type: 'cycle'; readonly termes: readonly string[] };
-export interface ResultatVue { readonly sorte: 'application' | 'annulation'; readonly statut: 'applique' | 'partiel' | 'refuse'; readonly renommes: number; readonly sautes: number; readonly annulable: boolean }
+/** `journal-impossible` : le fichier ne peut pas garder le journal du lot, qui est refusé avant tout renommage. */
+export type CauseDeRefus = 'journal-impossible';
+export interface ResultatVue {
+  readonly sorte: 'application' | 'annulation'; readonly statut: 'applique' | 'partiel' | 'refuse'; readonly renommes: number; readonly sautes: number; readonly annulable: boolean;
+  readonly cause?: CauseDeRefus;
+}
 export type CodeDErreur = 'analyse-en-cours' | 'fichier-modifie' | 'generation-perimee' | 'regles-modifiees' | 'import-illisible' | 'echec';
 
 export type PluginMessage =

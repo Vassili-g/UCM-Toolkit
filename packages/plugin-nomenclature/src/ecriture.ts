@@ -4,10 +4,12 @@
  *
  * Un lot se contrôle sur le document relu avant la première écriture. Figma n'offre pas de transaction :
  * une exception laisse un lot partiel, et le résultat dit ce qui a vraiment changé.
+ * Le journal du lot est donc rangé avant le premier nom : si le fichier ne peut pas le garder, aucun nom ne change.
  */
 import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
 import type { Inventaire } from './lecture';
-import { effacerLeJournal, lireLesRegles, lireLeStockage, preparerJournal, rangerLesEcritures, type RenommageJournal } from './regles';
+import type { CauseDeRefus } from './messages';
+import { CLE_JOURNAL, effacerLeJournal, lireLesRegles, lireLeStockage, preparerJournal, rangerLesEcritures, type Journal, type RenommageJournal } from './regles';
 
 export interface ObjetModifiable { readonly id: string; name: string; readonly remote: boolean }
 export interface VariableModifiable extends ObjetModifiable { readonly variableCollectionId: string }
@@ -50,6 +52,8 @@ export interface ResultatEcriture {
   readonly sautes: readonly RenommageSaute[];
   /** Vrai quand le journal garde de quoi remettre les anciens noms. */
   readonly annulable: boolean;
+  /** Pourquoi le lot est refusé avant tout renommage, quand ce n'est pas un contrôle sur un objet. */
+  readonly cause?: CauseDeRefus;
 }
 
 interface ObjetDuDocument { readonly nom: string; readonly portee: string; readonly collectionId?: string; readonly protegee: boolean }
@@ -150,10 +154,11 @@ function planifier(elements: readonly Element[], document: ReadonlyMap<string, O
   return etapes;
 }
 
+interface Controle { readonly elements: readonly Element[]; readonly sautes: readonly RenommageSaute[]; readonly document: ReadonlyMap<string, ObjetDuDocument> }
 interface Execution { readonly renommes: RenommageFait[]; readonly sautes: RenommageSaute[]; readonly erreur: boolean }
 
-/** Contrôle les renommages sur le document relu, les ordonne et les écrit ; l'état final se lit sur les objets. */
-function executer(demandes: readonly RenommageDemande[], inventaire: Inventaire, session: SessionEcriture): Execution {
+/** Contrôle les renommages sur le document relu : ce qui reste est à écrire. */
+function controler(demandes: readonly RenommageDemande[], inventaire: Inventaire, session: SessionEcriture): Controle {
   const document = lireLeDocument(inventaire);
   const sautes: RenommageSaute[] = [];
   const retenus: Element[] = [];
@@ -172,7 +177,12 @@ function executer(demandes: readonly RenommageDemande[], inventaire: Inventaire,
     } else if (actuel.protegee) sautes.push({ id: demande.id, motif: 'protegee' });
     else retenus.push({ demande, portee: actuel.portee, objet });
   }
-  const elements = retirerLesDoublons(retenus, document, sautes);
+  return { elements: retirerLesDoublons(retenus, document, sautes), sautes, document };
+}
+
+/** Ordonne et écrit les renommages contrôlés ; l'état final se lit sur les objets. */
+function ecrire({ elements, sautes: sautesDuControle, document }: Controle): Execution {
+  const sautes = [...sautesDuControle];
   let erreur = false;
   try {
     for (const etape of planifier(elements, document)) etape.element.objet.name = etape.nom;
@@ -193,11 +203,62 @@ function resultat(execution: Execution, annulable: boolean, erreur: boolean): Re
   return { statut, renommes, sautes, annulable };
 }
 
+// Le journal
+
+let compteurDeLots = 0;
+/** Un identifiant de lot unique : heure, compteur du processus et hasard, en base 36. */
+const identifiantDeLot = (): string => `${Date.now().toString(36)}${(compteurDeLots++).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+
+/** Les clés d'un lot rangé, et le texte de la référence qu'il a remplacée (vide : aucune). */
+interface LotRange { readonly cles: ReadonlySet<string>; readonly entrees: readonly string[]; readonly referenceAvant: string }
+
+/**
+ * Range un lot du journal : ses entrées, puis la référence en dernier. Rend `undefined` quand le lot ne tient pas
+ * ou qu'une écriture échoue ; il efface alors les clés neuves et remet la référence d'avant.
+ */
+function ranger(stockage: PortDeRegles, journal: Journal, lot: string): LotRange | undefined {
+  const prepare = preparerJournal(journal, lot);
+  if (!prepare) return undefined;
+  const referenceAvant = stockage.lire(CLE_JOURNAL);
+  try {
+    for (const { cle, texte } of [...prepare.entrees, prepare.reference]) stockage.ecrire(cle, texte);
+  } catch {
+    // Une clé qui lève a pu être écrite : toutes celles du lot s'effacent.
+    for (const { cle } of prepare.entrees) { try { stockage.effacer(cle); } catch { /* orpheline, effacée au lot suivant */ } }
+    try {
+      if (stockage.lire(CLE_JOURNAL) !== referenceAvant) { if (referenceAvant) stockage.ecrire(CLE_JOURNAL, referenceAvant); else stockage.effacer(CLE_JOURNAL); }
+    } catch { /* la référence reste celle du lot raté, dont les entrées sont effacées */ }
+    return undefined;
+  }
+  const entrees = prepare.entrees.map(({ cle }) => cle);
+  return { cles: new Set([...entrees, CLE_JOURNAL]), entrees, referenceAvant };
+}
+
+/** Efface les clés du journal qui ne sont pas à `garder` ; une clé qui résiste reste orpheline, sans effet sur la lecture. */
+function nettoyer(stockage: PortDeRegles, garder: ReadonlySet<string>): void {
+  try {
+    for (const { cle } of effacerLeJournal(stockage.cles(), garder)) { try { stockage.effacer(cle); } catch { /* effacée au lot suivant */ } }
+  } catch { /* idem */ }
+}
+
+/** Un lot sans renommage effectif rend le journal d'avant : la référence reprend son texte, puis les entrées du lot partent. */
+function retirer(stockage: PortDeRegles, lot: LotRange): void {
+  try {
+    if (lot.referenceAvant) stockage.ecrire(CLE_JOURNAL, lot.referenceAvant); else stockage.effacer(CLE_JOURNAL);
+  } catch { return; }
+  for (const cle of lot.entrees) { try { stockage.effacer(cle); } catch { /* orpheline */ } }
+}
+
+const lignesDuJournal = (renommages: readonly { readonly type: 'variable' | 'collection'; readonly figmaId: string; readonly ancienNom: string; readonly nouveauNom: string }[]): RenommageJournal[] =>
+  renommages.map(({ type, figmaId, ancienNom, nouveauNom }) => ({ type, id: figmaId, ancienNom, nouveauNom }));
+
 /**
  * Applique les renommages cochés sur le document relu par `relireInventaireAvantEcriture`.
  * Saute ce qui a changé depuis la lecture, les variables protégées et les renommages qui créent un doublon.
- * Range le journal du lot par `stockage`, puis ouvre un seul point d'annulation. Sans renommage effectif,
- * le journal précédent reste en place.
+ * Range d'abord le journal prévu du lot par `stockage` : s'il ne tient pas ou ne s'écrit pas, aucun nom ne change
+ * et le résultat est `refuse` avec la cause `journal-impossible`. Les noms écrits, le journal est réécrit
+ * avec les noms constatés (noms provisoires compris), puis un seul point d'annulation s'ouvre.
+ * Sans renommage effectif, le journal précédent reste en place.
  */
 export function appliquerLesRenommages(options: {
   readonly demandes: readonly RenommageDemande[];
@@ -206,58 +267,88 @@ export function appliquerLesRenommages(options: {
   readonly stockage: PortDeRegles;
   /** Heure du journal ; l'heure courante par défaut. */
   readonly heure?: () => string;
+  /** Identifiant de lot, sans `:` ; un identifiant neuf à chaque appel par défaut. */
+  readonly lot?: () => string;
 }): ResultatEcriture {
   const { inventaire, session, stockage } = options;
-  const execution = executer(options.demandes, inventaire, session);
+  const nouveauLot = options.lot ?? identifiantDeLot;
+  const controle = controler(options.demandes, inventaire, session);
+  const heure = (options.heure ?? heureActuelle)();
+  const prevu = lignesDuJournal(controle.elements.map(({ demande }) => demande));
+  const lotPrevu = controle.elements.length > 0 ? ranger(stockage, { heure, renommages: prevu }, nouveauLot()) : undefined;
+  if (controle.elements.length > 0 && !lotPrevu) {
+    return { statut: 'refuse', renommes: [], sautes: [...controle.sautes], annulable: false, cause: 'journal-impossible' };
+  }
+  const execution = ecrire(controle);
   let erreur = execution.erreur;
   let annulable = false;
-  if (execution.renommes.length > 0) {
-    const renommages: RenommageJournal[] = execution.renommes.map(({ type, figmaId, ancienNom, nouveauNom }) => ({ type, id: figmaId, ancienNom, nouveauNom }));
-    try {
-      rangerLesEcritures(stockage, preparerJournal({ heure: (options.heure ?? heureActuelle)(), renommages }, stockage.cles()));
-      annulable = true;
-    } catch { erreur = true; }
+  if (lotPrevu && execution.renommes.length === 0) retirer(stockage, lotPrevu);
+  else if (lotPrevu) {
+    const constate = lignesDuJournal(execution.renommes);
+    const reecrit = JSON.stringify(constate) === JSON.stringify(prevu) ? undefined : ranger(stockage, { heure, renommages: constate }, nouveauLot());
+    // Si la réécriture échoue, le journal prévu reste valide : l'annulation reconnaît aussi un nom provisoire.
+    nettoyer(stockage, (reecrit ?? lotPrevu).cles);
+    annulable = true;
     try { session.commitUndo(); } catch { erreur = true; }
   }
   return resultat(execution, annulable, erreur);
 }
 
+/** Les noms provisoires de `planifier` : `base~ucm`, `base~ucm-2`, et leurs suites après une annulation interrompue. */
+const estProvisoire = (nom: string, base: string): boolean => nom.length > base.length && nom.startsWith(base) && /^(~ucm(-\d+)?)+$/u.test(nom.slice(base.length));
+/** Le nom que le lot a écrit, ou un nom provisoire laissé par une écriture interrompue (à l'application ou à l'annulation). */
+const nomDuLot = (nom: string, renommage: RenommageJournal): boolean =>
+  nom === renommage.nouveauNom || estProvisoire(nom, renommage.nouveauNom) || estProvisoire(nom, renommage.ancienNom);
+
 /**
- * Remet l'ancien nom à chaque objet du journal dont le nom est encore celui que le lot a écrit ; saute les autres.
- * Le journal est effacé, sauf si une exception interrompt l'annulation : il garde alors les objets non remis.
+ * Remet l'ancien nom à chaque objet du journal dont le nom est celui que le lot a écrit (ou un nom provisoire) ;
+ * saute les autres. Un objet qui porte déjà son ancien nom compte comme rétabli.
+ * Le journal garde chaque entrée non rétablie, avec le nom provisoire que l'objet porte s'il en porte un ;
+ * il n'est effacé que quand toutes le sont. Un journal illisible refuse l'annulation sans être touché.
  * Les identifiants du résultat sont ceux de Figma.
  */
 export function annulerLeDernierRenommage(options: {
   readonly inventaire: Inventaire;
   readonly session: SessionEcriture;
   readonly stockage: PortDeRegles;
+  /** Identifiant du lot qui garde les entrées non rétablies ; voir `appliquerLesRenommages`. */
+  readonly lot?: () => string;
 }): ResultatEcriture {
   const { inventaire, session, stockage } = options;
   const journal = lireLesRegles(lireLeStockage(stockage)).journal;
   if (!journal) return { statut: 'refuse', renommes: [], sautes: [], annulable: false };
   const document = lireLeDocument(inventaire);
-  const demandes = journal.renommages.map((renommage): RenommageDemande => {
-    const base = { id: renommage.id, figmaId: renommage.id, ancienNom: renommage.nouveauNom, nouveauNom: renommage.ancienNom };
-    return renommage.type === 'collection'
+  const objetDe = (renommage: RenommageJournal): ObjetModifiable | null => renommage.type === 'collection' ? session.collection(renommage.id) : session.variable(renommage.id);
+  const demandes: RenommageDemande[] = [];
+  const horsDuLot: RenommageSaute[] = [];
+  for (const renommage of journal.renommages) {
+    const objet = objetDe(renommage);
+    if (objet?.name === renommage.ancienNom) continue;
+    if (!objet || objet.remote || !nomDuLot(objet.name, renommage)) { horsDuLot.push({ id: renommage.id, motif: 'fichier-modifie' }); continue; }
+    const base = { id: renommage.id, figmaId: renommage.id, ancienNom: objet.name, nouveauNom: renommage.ancienNom };
+    demandes.push(renommage.type === 'collection'
       ? { ...base, type: 'collection' }
-      : { ...base, type: 'variable', collectionId: document.get(cleDObjet('variable', renommage.id))?.collectionId ?? '' };
-  });
-  const execution = executer(demandes, inventaire, session);
-  let { erreur } = execution;
-  const restants = journal.renommages.filter((renommage) => !execution.renommes.some((fait) =>
-    fait.type === renommage.type && fait.figmaId === renommage.id && fait.nouveauNom === renommage.ancienNom));
-  const garder = erreur && restants.length > 0;
-  if (!erreur || execution.renommes.length > 0) {
-    try {
-      rangerLesEcritures(stockage, garder
-        ? preparerJournal({ heure: journal.heure, renommages: restants }, stockage.cles())
-        : effacerLeJournal(stockage.cles()));
-    } catch { erreur = true; }
+      : { ...base, type: 'variable', collectionId: document.get(cleDObjet('variable', renommage.id))?.collectionId ?? '' });
+  }
+  const fait = ecrire(controler(demandes, inventaire, session));
+  const execution: Execution = { ...fait, sautes: [...horsDuLot, ...fait.sautes] };
+  let erreur = execution.erreur;
+  const restants: RenommageJournal[] = [];
+  for (const renommage of journal.renommages) {
+    const objet = objetDe(renommage);
+    if (objet?.name === renommage.ancienNom) continue;
+    restants.push(objet && nomDuLot(objet.name, renommage) ? { ...renommage, nouveauNom: objet.name } : renommage);
+  }
+  if (restants.length === 0) {
+    try { rangerLesEcritures(stockage, effacerLeJournal(stockage.cles())); } catch { erreur = true; }
+  } else if (JSON.stringify(restants) !== JSON.stringify(journal.renommages)) {
+    const lot = ranger(stockage, { heure: journal.heure, renommages: restants }, (options.lot ?? identifiantDeLot)());
+    if (lot) nettoyer(stockage, lot.cles); else erreur = true;
   }
   if (execution.renommes.length > 0) {
     try { session.commitUndo(); } catch { erreur = true; }
   }
-  return resultat(execution, garder, erreur);
+  return resultat(execution, restants.length > 0, erreur);
 }
 
 /** Les objets locaux sont résolus avant les écritures synchrones. */

@@ -4,8 +4,8 @@ import test from 'node:test';
 import type { ConflitDeVocabulaire } from '@ucm-kit/core/referentiel';
 import { creerPortDeRegles } from '../src/ecriture';
 import {
-  cleDistinct, cleJournal, cleReponse, cleTerme, defaireReponse, dejaJugeDuFichier, ecrituresDesRegles, exporterLesRegles,
-  importerLesRegles, lireLeStockage, lireLesRegles, preparerJournal, preparerReponse, rangerLesEcritures, reglesVides,
+  budgetDUneEntree, cleDistinct, cleJournal, cleReponse, cleTerme, defaireReponse, dejaJugeDuFichier, ecrituresDesRegles, effacerLeJournal, exporterLesRegles,
+  importerLesRegles, lireLeStockage, lireLesRegles, octetsUtf8, preparerJournal, preparerReponse, rangerLesEcritures, reglesVides,
   serialiserRegle, vocabulaireDuFichier, type Ecriture, type Journal, type ReglesDuFichier, type RenommageJournal,
 } from '../src/regles';
 
@@ -137,27 +137,91 @@ test('répondre deux fois à la même question garde le premier avant', () => {
   assert.equal(seconde.length, 2, 'le changement identique n’est pas réécrit');
 });
 
-test('8 000 renommages se découpent en entrées de 90 000 caractères au plus, puis se relisent à l’identique', () => {
+/** Les écritures d'un lot, la référence en dernier. */
+const ecritureDuLot = (journal: Journal, lot: string, max?: number): Ecriture[] => {
+  const prepare = preparerJournal(journal, lot, max)!;
+  return [...prepare.entrees, prepare.reference];
+};
+const uneVariable = (i: number, ancienNom: string, nouveauNom: string): RenommageJournal => ({ type: 'variable', id: `v${i}`, ancienNom, nouveauNom });
+
+test('octetsUtf8 compte 1, 2, 3 octets, et 4 pour une paire de substituts', () => {
+  assert.equal(octetsUtf8('abc'), 3);
+  assert.equal(octetsUtf8('é'), 2);
+  assert.equal(octetsUtf8('漢'), 3);
+  assert.equal(octetsUtf8('😀'), 4);
+  assert.equal(octetsUtf8('\ud83d'), 3, 'un substitut isolé');
+  for (const texte of ['Brand/été', '色彩/前景', 'a😀b😀', '\u0000\u007f\u0080߿ࠀ￿']) {
+    assert.equal(octetsUtf8(texte), Buffer.byteLength(texte, 'utf8'), texte);
+  }
+});
+
+test('le budget d’une entrée retire l’espace, la clé la plus longue et 1 000 octets de marge', () => {
+  assert.equal(budgetDUneEntree('l1'), 100_000 - octetsUtf8('ucm_architect') - octetsUtf8('journal:l1:999999999') - 1_000);
+});
+
+test('8 000 renommages se découpent sous le budget en octets, puis se relisent à l’identique', () => {
   const renommages: RenommageJournal[] = Array.from({ length: 8000 }, (_, i) => ({
     type: i % 10 === 0 ? 'collection' : 'variable', id: `VariableID:${i}:${i * 7}`, ancienNom: `Brand Color/Texte ${i}/été`, nouveauNom: `brand-color/texte-${i}/ete`,
   }));
   const journal: Journal = { heure: '2026-10-17T10:00:00.000Z', renommages };
-  const ecritures = preparerJournal(journal);
-  assert.ok(ecritures.length > 1);
-  for (const e of ecritures) assert.ok(e.texte!.length <= 90_000, `${e.cle} : ${e.texte!.length}`);
-  assert.deepEqual(ecritures.map((e) => e.cle), ecritures.map((_, i) => cleJournal(i)));
+  const ecritures = ecritureDuLot(journal, 'l1');
+  assert.ok(ecritures.length > 2);
+  for (const e of ecritures) assert.ok(octetsUtf8('ucm_architect') + octetsUtf8(e.cle) + Buffer.byteLength(e.texte!, 'utf8') <= 100_000 - 1_000, `${e.cle} : ${Buffer.byteLength(e.texte!, 'utf8')}`);
+  assert.deepEqual(ecritures.map((e) => e.cle), [...ecritures.slice(0, -1).map((_, i) => cleJournal('l1', i)), 'journal']);
   assert.deepEqual(lireLesRegles(dans(ecritures)).journal, journal);
 });
 
-test('un journal incomplet se lit absent, et un journal plus court efface les entrées en trop', () => {
-  const renommages: RenommageJournal[] = Array.from({ length: 30 }, (_, i) => ({ type: 'variable', id: `v${i}`, ancienNom: 'a'.repeat(40), nouveauNom: 'b' }));
-  const long = preparerJournal({ heure: 'h', renommages }, [], 600);
-  assert.ok(long.length > 2);
-  assert.equal(lireLesRegles(dans(long.slice(0, -1))).journal, undefined);
-  assert.equal(lireLesRegles(dans(long.filter((e) => e.cle !== 'journal:1'))).journal, undefined);
-  const court = preparerJournal({ heure: 'h2', renommages: [] }, long.map((e) => e.cle));
-  assert.deepEqual(court.map((e) => [e.cle, e.texte === null]), [['journal:0', false], ...long.slice(1).map((e) => [e.cle, true])]);
-  assert.deepEqual(lireLesRegles(dans(court)).journal, { heure: 'h2', renommages: [] });
+test('des noms en é, idéogrammes et emoji se découpent sur les octets, pas sur les caractères', () => {
+  const renommages = Array.from({ length: 700 }, (_, i) => uneVariable(i, `${'漢字色彩背景前景'.repeat(3)}${i}`, `新${'😀é'.repeat(8)}${i}`));
+  const journal: Journal = { heure: 'h', renommages };
+  const ecritures = ecritureDuLot(journal, 'l1');
+  assert.ok(ecritures.length > 2);
+  for (const e of ecritures) {
+    assert.ok(Buffer.byteLength(e.texte!, 'utf8') + Buffer.byteLength(`ucm_architect${e.cle}`, 'utf8') <= 102_400, e.cle);
+    assert.ok(e.texte!.length < 90_000, 'le compte en caractères ne suffit pas à tenir sous la limite');
+  }
+  assert.deepEqual(lireLesRegles(dans(ecritures)).journal, journal);
+});
+
+test('un renommage qui ne tient pas seul dans une entrée rend un journal impossible', () => {
+  const trop = uneVariable(0, '😀'.repeat(30_000), 'b');
+  assert.equal(preparerJournal({ heure: 'h', renommages: [trop] }, 'l1'), undefined);
+  assert.equal(preparerJournal({ heure: 'h', renommages: [uneVariable(1, 'a', 'b'), trop] }, 'l1'), undefined);
+  assert.ok(preparerJournal({ heure: 'h', renommages: [uneVariable(1, 'a', 'b')] }, 'l1'));
+});
+
+test('la référence se range en dernier et nomme le lot ; une entrée manquante, d’un autre lot ou d’un autre rang rend le journal illisible', () => {
+  const renommages: RenommageJournal[] = Array.from({ length: 30 }, (_, i) => uneVariable(i, 'a'.repeat(40), 'b'));
+  const long = ecritureDuLot({ heure: 'h', renommages }, 'l1', 600);
+  assert.ok(long.length > 3);
+  assert.equal(long.at(-1)!.cle, 'journal');
+  assert.deepEqual(lireLesRegles(dans(long)).journal, { heure: 'h', renommages });
+  assert.equal(lireLesRegles(dans(long.slice(0, -1))).journal, undefined, 'sans référence');
+  assert.equal(lireLesRegles(dans(long.filter((e) => e.cle !== 'journal:l1:1'))).journal, undefined, 'une entrée manque');
+  const autreLot = ecritureDuLot({ heure: 'h', renommages: renommages.slice().reverse() }, 'l2', 600);
+  const melange = dans([...long.filter((e) => e.cle !== 'journal:l1:1'), ...autreLot.filter((e) => e.cle === 'journal:l2:1').map((e) => ({ cle: 'journal:l1:1', texte: e.texte }))]);
+  assert.equal(lireLesRegles(melange).journal, undefined, 'une entrée d’un autre lot sous la clé du lot');
+  const permutee = dans(long.map((e) => e.cle === 'journal:l1:1' ? { cle: e.cle, texte: long.find((x) => x.cle === 'journal:l1:2')!.texte } : e));
+  assert.equal(lireLesRegles(permutee).journal, undefined, 'une entrée d’un autre rang');
+  const referenceCorrompue = new Map(dans(long)).set('journal', '{casse');
+  assert.equal(lireLesRegles(referenceCorrompue).journal, undefined, 'une référence illisible ne retombe pas sur la forme ancienne');
+});
+
+test('la forme ancienne journal:<n> reste lue tant qu’aucune référence n’existe', () => {
+  const tete = JSON.stringify({ version: 1, heure: 'h', morceaux: 2, renommages: [uneVariable(0, 'a', 'b')] });
+  const queue = JSON.stringify({ version: 1, renommages: [uneVariable(1, 'c', 'd')] });
+  const ancien = new Map([['journal:0', tete], ['journal:1', queue]]);
+  assert.deepEqual(lireLesRegles(ancien).journal, { heure: 'h', renommages: [uneVariable(0, 'a', 'b'), uneVariable(1, 'c', 'd')] });
+  assert.equal(lireLesRegles(new Map([['journal:0', tete]])).journal, undefined, 'une entrée manque');
+  const neuf = dans(ecritureDuLot({ heure: 'h2', renommages: [] }, 'l1'));
+  assert.deepEqual(lireLesRegles(new Map([...ancien, ...neuf])).journal, { heure: 'h2', renommages: [] }, 'la référence prime');
+});
+
+test('effacerLeJournal couvre la forme ancienne, la référence et les lots, et épargne les clés gardées', () => {
+  const cles = ['ecriture', 'journal:0', 'journal:1', 'journal', 'journal:l1:0', 'journal:l2:0', 'terme:a'];
+  assert.deepEqual(effacerLeJournal(cles).map((e) => e.cle), ['journal:0', 'journal:1', 'journal', 'journal:l1:0', 'journal:l2:0']);
+  assert.deepEqual(effacerLeJournal(cles, new Set(['journal', 'journal:l2:0'])).map((e) => e.cle), ['journal:0', 'journal:1', 'journal:l1:0']);
+  assert.ok(effacerLeJournal(cles).every((e) => e.texte === null));
 });
 
 test('l’export se relit à l’identique par l’import', () => {

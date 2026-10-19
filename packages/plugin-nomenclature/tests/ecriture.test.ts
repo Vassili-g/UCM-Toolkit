@@ -17,6 +17,9 @@ function banc(options: { variables?: readonly SpecVariable[]; collections?: read
   const traces: string[] = [];
   const stock = new Map<string, string>();
   const panne = { apres: Infinity, ecritPuisLeve: false };
+  /** Une panne du stockage : une clé refusée, ou une taille au-delà de laquelle (espace, clé, valeur en octets UTF-8) l'écriture lève. */
+  const panneStock = { si: (_cle: string): boolean => false, taille: Infinity, ecritPuisLeve: false };
+  const lots = { injecte: true, numero: 0 };
   const protegees = [...(options.protegees ?? [])];
   const creer = <T extends object>(id: string, nom: string, extra: T) => {
     noms.set(id, nom);
@@ -49,12 +52,18 @@ function banc(options: { variables?: readonly SpecVariable[]; collections?: read
   const stockage: PortDeRegles = {
     cles: () => [...stock.keys()],
     lire: (cle) => stock.get(cle) ?? '',
-    ecrire: (cle, texte) => { traces.push(`ecrire:${cle}`); stock.set(cle, texte); },
+    ecrire: (cle, texte) => {
+      traces.push(`ecrire:${cle}`);
+      const trop = Buffer.byteLength(`ucm_architect${cle}${texte}`, 'utf8') > panneStock.taille;
+      if (trop || (panneStock.si(cle) && !panneStock.ecritPuisLeve)) throw new Error('stockage interrompu');
+      stock.set(cle, texte);
+      if (panneStock.si(cle)) throw new Error('stockage interrompu après écriture');
+    },
     effacer: (cle) => { traces.push(`effacer:${cle}`); stock.delete(cle); },
   };
   const entree = (type: 'variable' | 'collection', id: string) => JSON.stringify([type, id]);
   const b = {
-    ecritures, traces, panne, protegees, session, stockage, variables, collections,
+    ecritures, traces, panne, panneStock, lots, stock, protegees, session, stockage, variables, collections,
     nom: (id: string) => noms.get(id),
     /** Un renommage modifié hors du plugin : rien n'est tracé. */
     changer: (id: string, nom: string) => { noms.set(id, nom); },
@@ -65,8 +74,12 @@ function banc(options: { variables?: readonly SpecVariable[]; collections?: read
     entree,
     appliquer: async (demandes: readonly RenommageDemande[]) => appliquerLesRenommages({
       demandes, inventaire: await relireInventaireAvantEcriture(lecture), session, stockage, heure: () => HEURE,
+      ...(lots.injecte ? { lot: () => `l${++lots.numero}` } : {}),
     }),
-    annuler: async () => annulerLeDernierRenommage({ inventaire: await relireInventaireAvantEcriture(lecture), session, stockage }),
+    annuler: async () => annulerLeDernierRenommage({
+      inventaire: await relireInventaireAvantEcriture(lecture), session, stockage,
+      ...(lots.injecte ? { lot: () => `l${++lots.numero}` } : {}),
+    }),
     journal: () => lireLesRegles(lireLeStockage(stockage)).journal,
     lecture,
   };
@@ -92,7 +105,7 @@ test('un renommage coché s’écrit sur la variable et la collection, journal r
     { type: 'variable', id: 'v0', ancienNom: 'Brand Color', nouveauNom: 'brand-color' },
     { type: 'collection', id: 'c', ancienNom: 'Brand', nouveauNom: 'brand' },
   ] });
-  assert.deepEqual(b.traces, ['ecrire:journal:0', 'undo']);
+  assert.deepEqual(b.traces, ['ecrire:journal:l1:0', 'ecrire:journal', 'undo']);
 });
 
 test('un nom changé depuis la lecture est sauté, puis relu tel quel', async () => {
@@ -267,14 +280,27 @@ test('un setter qui écrit puis lève reste présent dans le relevé', async () 
   assert.deepEqual(b.journal()!.renommages.map(({ nouveauNom }) => nouveauNom), ['a2']);
 });
 
-test('une panne avant toute écriture ne range ni journal ni point d’annulation', async () => {
-  const b = banc({ variables: [['v0', 'a']] });
+test('une panne avant toute écriture ne garde ni journal ni point d’annulation, et laisse le journal précédent', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  const resultat = await b.appliquer([b.v('v1', 'b2')]);
+  assert.equal(resultat.statut, 'applique');
+  const cles = [...b.stock.keys()].sort();
+  const journalAvant = b.journal();
+  b.traces.length = 0;
   b.panne.apres = 0;
-  const resultat = await b.appliquer([b.v('v0', 'a2')]);
-  assert.equal(resultat.statut, 'refuse');
-  assert.deepEqual(resultat.sautes, [{ id: b.entree('variable', 'v0'), motif: 'ecriture-interrompue' }]);
-  assert.equal(resultat.annulable, false);
-  assert.deepEqual(b.traces, []);
+  const refus = await b.appliquer([b.v('v0', 'a2')]);
+  assert.equal(refus.statut, 'refuse');
+  assert.equal(refus.cause, undefined);
+  assert.deepEqual(refus.sautes, [{ id: b.entree('variable', 'v0'), motif: 'ecriture-interrompue' }]);
+  assert.equal(refus.annulable, false);
+  assert.equal(compter(b, 'undo'), 0);
+  assert.deepEqual([...b.stock.keys()].sort(), cles);
+  assert.deepEqual(b.journal(), journalAvant);
+  const seul = banc({ variables: [['v0', 'a']] });
+  seul.panne.apres = 0;
+  await seul.appliquer([seul.v('v0', 'a2')]);
+  assert.equal(seul.stock.size, 0);
+  assert.equal(seul.journal(), undefined);
 });
 
 test('une panne au milieu d’un cycle consigne le nom provisoire que l’objet porte', async () => {
@@ -302,7 +328,7 @@ test('l’annulation remet les anciens noms, efface le journal et ouvre un seul 
   assert.equal(resultat.renommes.length, 4);
   assert.equal(resultat.annulable, false);
   assert.equal(b.journal(), undefined);
-  assert.deepEqual(b.traces, ['effacer:journal:0', 'undo']);
+  assert.deepEqual(b.traces, ['effacer:journal', 'effacer:journal:l1:0', 'undo']);
 });
 
 test('l’annulation saute l’objet dont le nom a changé depuis', async () => {
@@ -316,8 +342,14 @@ test('l’annulation saute l’objet dont le nom a changé depuis', async () => 
   assert.equal(resultat.statut, 'partiel');
   assert.deepEqual(resultat.sautes, [{ id: 'v1', motif: 'fichier-modifie' }]);
   assert.deepEqual(resultat.renommes.map(({ figmaId }) => figmaId), ['v0']);
-  assert.equal(b.journal(), undefined);
+  assert.equal(resultat.annulable, true);
+  assert.deepEqual(b.journal()!.renommages, [{ type: 'variable', id: 'v1', ancienNom: 'b', nouveauNom: 'b2' }], 'l’entrée sautée reste, avec le nom attendu d’origine');
   assert.equal(compter(b, 'undo'), 1);
+  b.changer('v1', 'b2');
+  const reprise = await b.annuler();
+  assert.equal(reprise.statut, 'applique');
+  assert.equal(b.nom('v1'), 'b');
+  assert.equal(b.journal(), undefined);
 });
 
 test('l’annulation saute un objet disparu', async () => {
@@ -339,6 +371,24 @@ test('l’annulation saute un objet dont l’ancien nom est devenu occupé', asy
   assert.equal(b.nom('v0'), 'a2');
   assert.equal(resultat.statut, 'refuse');
   assert.equal(compter(b, 'undo'), 1);
+});
+
+test('AI4 : une annulation bloquée par une collision garde l’entrée, qui se rétablit une fois le nom libéré', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['occupant', 'libre']] });
+  await b.appliquer([b.v('v0', 'b')]);
+  b.changer('occupant', 'a');
+  const bloquee = await b.annuler();
+  assert.equal(bloquee.statut, 'refuse');
+  assert.equal(bloquee.annulable, true);
+  assert.equal(b.nom('v0'), 'b');
+  assert.deepEqual(b.journal()!.renommages, [{ type: 'variable', id: 'v0', ancienNom: 'a', nouveauNom: 'b' }]);
+  b.changer('occupant', 'libre');
+  const reprise = await b.annuler();
+  assert.equal(reprise.statut, 'applique');
+  assert.equal(reprise.annulable, false);
+  assert.equal(b.nom('v0'), 'a');
+  assert.equal(b.journal(), undefined);
+  assert.equal(b.stock.size, 0);
 });
 
 test('sans journal, l’annulation ne fait rien', async () => {
@@ -393,4 +443,244 @@ test('l’adaptateur résout les objets locaux par l’API asynchrone avant les 
   assert.equal(session.collection('absente'), null);
   session.commitUndo();
   assert.deepEqual(appels, ['collections', 'variables', 'undo']);
+});
+
+// Le journal durable : reprises des cas AI1 à AI5 du banc d'intégrité, avec l'attente inverse.
+
+const gros = (i: number): string => `${'x'.repeat(40_000)}${i}`;
+const lotDeGros = (n: number): SpecVariable[] => Array.from({ length: n }, (_, i) => [`g${i}`, gros(i)] as const);
+const cles = (b: { stock: Map<string, string> }): string[] => [...b.stock.keys()].sort();
+
+test('AI1 : un journal qui ne s’écrit pas arrête le lot avant le premier nom, pour chaque entrée et pour la référence', async () => {
+  for (const ecritPuisLeve of [false, true]) {
+    for (const cible of ['journal:l2:0', 'journal:l2:1', 'journal:l2:2', 'journal']) {
+      const b = banc({ variables: [['z', 'z'], ...lotDeGros(5)] });
+      await b.appliquer([b.v('z', 'z2')]);
+      const clesAvant = cles(b);
+      const journalAvant = b.journal();
+      b.ecritures.length = 0;
+      b.traces.length = 0;
+      b.panneStock.si = (cle) => cle === cible;
+      b.panneStock.ecritPuisLeve = ecritPuisLeve;
+      const resultat = await b.appliquer(lotDeGros(5).map(([id]) => b.v(id, `court-${id}`)));
+      const contexte = `${cible}${ecritPuisLeve ? ' (écrit puis lève)' : ''}`;
+      assert.equal(resultat.statut, 'refuse', contexte);
+      assert.equal(resultat.cause, 'journal-impossible', contexte);
+      assert.equal(resultat.annulable, false, contexte);
+      assert.deepEqual(resultat.renommes, [], contexte);
+      assert.deepEqual(b.ecritures, [], `${contexte} : aucun nom n’a changé`);
+      assert.equal(compter(b, 'undo'), 0, contexte);
+      assert.deepEqual(cles(b), clesAvant, `${contexte} : les clés du lot raté sont effacées`);
+      assert.deepEqual(b.journal(), journalAvant, contexte);
+      b.panneStock.si = () => false;
+      const annulation = await b.annuler();
+      assert.equal(annulation.statut, 'applique', contexte);
+      assert.equal(b.nom('z'), 'z', contexte);
+    }
+  }
+});
+
+test('AI1 : sans journal précédent, une écriture du journal qui échoue ne laisse aucune clé', async () => {
+  const b = banc({ variables: [['v0', 'a']] });
+  b.panneStock.si = (cle) => cle === 'journal';
+  const resultat = await b.appliquer([b.v('v0', 'a2')]);
+  assert.equal(resultat.cause, 'journal-impossible');
+  assert.equal(b.nom('v0'), 'a');
+  assert.equal(b.stock.size, 0);
+});
+
+test('AI1 : les renommages sautés par les contrôles restent dans le résultat d’un lot refusé faute de journal', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  const demandes = [b.v('v0', 'a2'), b.v('v1', 'b2')];
+  b.changer('v1', 'autre');
+  b.panneStock.si = () => true;
+  const resultat = await b.appliquer(demandes);
+  assert.equal(resultat.cause, 'journal-impossible');
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('variable', 'v1'), motif: 'fichier-modifie' }]);
+});
+
+test('AI1 : une panne de chaque setter d’un cycle laisse un journal qui remet tous les noms d’origine', async () => {
+  for (const apres of [0, 1, 2, 3]) {
+    const b = abc();
+    b.panne.apres = apres;
+    const resultat = await b.appliquer([b.v('v0', 'b'), b.v('v1', 'c'), b.v('v2', 'a')]);
+    assert.equal(resultat.statut, apres === 0 ? 'refuse' : 'partiel', `panne après ${apres}`);
+    b.panne.apres = Infinity;
+    if (apres === 0) { assert.equal(b.stock.size, 0); continue; }
+    const annulation = await b.annuler();
+    assert.equal(annulation.statut, 'applique', `panne après ${apres}`);
+    assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('v2')], ['a', 'b', 'c'], `panne après ${apres}`);
+    assert.equal(b.stock.size, 0);
+  }
+});
+
+test('AI1 : si la réécriture du journal échoue après les noms, le journal prévu reste valide et l’annulation le suit', async () => {
+  for (const apres of [1, 2, Infinity]) {
+    const b = abc();
+    b.panneStock.si = (cle) => cle.startsWith('journal:l2:');
+    b.panne.apres = apres;
+    const resultat = await b.appliquer([b.v('v0', 'b'), b.v('v1', 'c'), b.v('v2', 'a')]);
+    assert.ok(resultat.renommes.length > 0, `panne après ${apres}`);
+    assert.equal(resultat.annulable, true);
+    assert.deepEqual(b.journal()!.renommages.map(({ id }) => id), ['v0', 'v1', 'v2'], 'le journal prévu est resté');
+    assert.deepEqual(cles(b), ['journal', 'journal:l1:0'], 'les clés du lot de réécriture sont effacées');
+    b.panne.apres = Infinity;
+    b.panneStock.si = () => false;
+    const annulation = await b.annuler();
+    assert.equal(annulation.statut, 'applique', `panne après ${apres}`);
+    assert.deepEqual(annulation.sautes, []);
+    assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('v2')], ['a', 'b', 'c'], `panne après ${apres}`);
+    assert.equal(b.stock.size, 0);
+  }
+});
+
+test('AI5 : une annulation de cycle interrompue à chaque setter se reprend, nom provisoire compris', async () => {
+  for (const apres of [1, 2]) {
+    const b = abc();
+    await b.appliquer([b.v('v0', 'b'), b.v('v1', 'c'), b.v('v2', 'a')]);
+    b.ecritures.length = 0;
+    b.panne.apres = apres;
+    const interrompue = await b.annuler();
+    assert.equal(interrompue.statut, 'partiel', `panne après ${apres}`);
+    assert.equal(interrompue.annulable, true);
+    assert.ok([b.nom('v0'), b.nom('v1'), b.nom('v2')].some((nom) => /~ucm/u.test(nom!)), 'un objet porte son nom provisoire');
+    assert.ok(b.journal()!.renommages.some(({ nouveauNom }) => /~ucm/u.test(nouveauNom)), 'le journal note le nom provisoire lu');
+    b.panne.apres = Infinity;
+    const reprise = await b.annuler();
+    assert.equal(reprise.statut, 'applique', `panne après ${apres}`);
+    assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('v2')], ['a', 'b', 'c'], `panne après ${apres}`);
+    assert.equal(b.journal(), undefined);
+    assert.equal(b.stock.size, 0);
+  }
+});
+
+test('AI5 : si le journal d’une annulation interrompue ne se réécrit pas, une seconde annulation reconnaît encore le nom provisoire', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  await b.appliquer([b.v('v0', 'b'), b.v('v1', 'a')]);
+  b.ecritures.length = 0;
+  b.panne.apres = 1;
+  b.panneStock.si = (cle) => cle.startsWith('journal:l');
+  const interrompue = await b.annuler();
+  assert.equal(interrompue.statut, 'partiel');
+  assert.match(b.nom('v0')!, /~ucm/u);
+  b.panne.apres = Infinity;
+  b.panneStock.si = () => false;
+  assert.equal((await b.annuler()).statut, 'applique');
+  assert.deepEqual([b.nom('v0'), b.nom('v1')], ['a', 'b']);
+});
+
+test('AI2 : des noms en é, en idéogrammes et en emoji se rangent sans dépasser 102 400 octets par entrée', async () => {
+  const alphabets = { 'é': 'éèêëàâîïôûùç', 'idéogrammes': '漢字色彩背景前景', 'emoji': '😀🎨🌈🔥' };
+  for (const [nom, lettres] of Object.entries(alphabets)) {
+    const specs = Array.from({ length: 700 }, (_, i) => [`v${i}`, `${lettres.repeat(Math.ceil(24 / lettres.length) * 2)}${i}`] as const);
+    const b = banc({ variables: specs });
+    b.panneStock.taille = 102_400;
+    const resultat = await b.appliquer(specs.map(([id, ancien]) => b.v(id, `新${ancien}`)));
+    assert.equal(resultat.statut, 'applique', nom);
+    assert.equal(resultat.annulable, true, nom);
+    assert.equal(b.journal()!.renommages.length, 700, nom);
+    assert.ok(cles(b).length > 2, `${nom} : le journal tient en plusieurs entrées`);
+    for (const [cle, texte] of b.stock) assert.ok(Buffer.byteLength(`ucm_architect${cle}${texte}`, 'utf8') <= 102_400, `${nom} ${cle}`);
+    const annulation = await b.annuler();
+    assert.equal(annulation.statut, 'applique', nom);
+    assert.deepEqual(specs.map(([id]) => b.nom(id)), specs.map(([, ancien]) => ancien), nom);
+  }
+});
+
+test('AI2 : un renommage trop gros pour une entrée refuse tout le lot avant le premier nom', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', '😀'.repeat(30_000)]] });
+  b.panneStock.taille = 102_400;
+  const resultat = await b.appliquer([b.v('v0', 'a2'), b.v('v1', 'b')]);
+  assert.equal(resultat.statut, 'refuse');
+  assert.equal(resultat.cause, 'journal-impossible');
+  assert.deepEqual(b.ecritures, []);
+  assert.equal(b.nom('v0'), 'a');
+  assert.equal(b.stock.size, 0);
+  assert.equal(compter(b, 'undo'), 0);
+});
+
+test('AI3 : un second lot qui échoue en route laisse le journal du premier intact, sans mélange', async () => {
+  for (const cible of ['journal:l2:0', 'journal:l2:1', 'journal:l2:2', 'journal']) {
+    const b = banc({ variables: [...lotDeGros(5), ['z0', 'z0'], ['z1', 'z1']] });
+    const premier = await b.appliquer(lotDeGros(5).map(([id]) => b.v(id, `court-${id}`)));
+    assert.equal(premier.statut, 'applique');
+    const clesAvant = cles(b);
+    const journalAvant = b.journal()!;
+    assert.deepEqual(journalAvant.renommages.map(({ id }) => id), ['g0', 'g1', 'g2', 'g3', 'g4']);
+    b.panneStock.si = (cle) => cle === cible;
+    const second = await b.appliquer([b.v('z0', gros(1)), b.v('z1', gros(2)), b.v('g0', gros(3)), b.v('g1', gros(4)), b.v('g2', gros(5)), b.v('g3', gros(6))]);
+    assert.equal(second.statut, 'refuse', cible);
+    assert.equal(second.cause, 'journal-impossible', cible);
+    assert.deepEqual(cles(b), clesAvant, cible);
+    assert.deepEqual(b.journal(), journalAvant, cible);
+    assert.deepEqual([b.nom('z0'), b.nom('z1'), b.nom('g0')], ['z0', 'z1', 'court-g0'], cible);
+    b.panneStock.si = () => false;
+    const annulation = await b.annuler();
+    assert.equal(annulation.statut, 'applique', cible);
+    assert.deepEqual(lotDeGros(5).map(([id]) => b.nom(id)), lotDeGros(5).map(([, nom]) => nom), cible);
+  }
+});
+
+test('un lot par défaut reçoit un identifiant neuf et efface les clés du précédent', async () => {
+  const b = banc({ variables: [['v0', 'a']] });
+  b.lots.injecte = false;
+  await b.appliquer([b.v('v0', 'b')]);
+  const premieres = cles(b);
+  await b.appliquer([b.v('v0', 'c')]);
+  const secondes = cles(b);
+  assert.equal(secondes.length, premieres.length);
+  assert.notDeepEqual(secondes, premieres);
+  assert.ok(secondes.every((cle) => /^journal(:[0-9a-z]+:\d+)?$/u.test(cle)), secondes.join());
+  assert.deepEqual(b.journal()!.renommages, [{ type: 'variable', id: 'v0', ancienNom: 'b', nouveauNom: 'c' }]);
+});
+
+test('un journal de l’ancienne forme se lit et s’annule, puis ses clés partent', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  b.changer('v0', 'a2');
+  b.stock.set('journal:0', JSON.stringify({ version: 1, heure: HEURE, morceaux: 2, renommages: [{ type: 'variable', id: 'v0', ancienNom: 'a', nouveauNom: 'a2' }] }));
+  b.stock.set('journal:1', JSON.stringify({ version: 1, renommages: [{ type: 'variable', id: 'v1', ancienNom: 'b0', nouveauNom: 'b' }] }));
+  assert.equal(b.journal()!.renommages.length, 2);
+  const annulation = await b.annuler();
+  assert.equal(annulation.statut, 'applique');
+  assert.deepEqual([b.nom('v0'), b.nom('v1')], ['a', 'b0']);
+  assert.equal(b.stock.size, 0);
+});
+
+test('un nouveau lot efface les clés de l’ancienne forme après avoir publié sa référence', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  b.stock.set('journal:0', JSON.stringify({ version: 1, heure: HEURE, morceaux: 1, renommages: [] }));
+  await b.appliquer([b.v('v1', 'b2')]);
+  assert.deepEqual(cles(b), ['journal', 'journal:l1:0']);
+  const ordre = b.traces.filter((trace) => /^(ecrire|effacer):/u.test(trace));
+  assert.ok(ordre.indexOf('ecrire:journal') < ordre.indexOf('effacer:journal:0'));
+});
+
+test('un journal illisible refuse l’annulation sans rien effacer', async () => {
+  const b = banc({ variables: [['v0', 'a']] });
+  await b.appliquer([b.v('v0', 'b')]);
+  b.stock.delete('journal:l1:0');
+  const clesAvant = cles(b);
+  b.traces.length = 0;
+  const resultat = await b.annuler();
+  assert.deepEqual(resultat, { statut: 'refuse', renommes: [], sautes: [], annulable: false });
+  assert.equal(b.nom('v0'), 'b');
+  assert.deepEqual(cles(b), clesAvant);
+  assert.deepEqual(b.traces, []);
+});
+
+test('un renommage prévu que le lot n’a pas écrit compte comme rétabli à l’annulation', async () => {
+  const b = abc();
+  b.panne.apres = 1;
+  b.panneStock.si = (cle) => cle.startsWith('journal:l2:');
+  await b.appliquer([b.v('v0', 'b'), b.v('v1', 'c'), b.v('v2', 'd')]);
+  assert.equal(b.nom('v2'), 'd');
+  assert.deepEqual(b.journal()!.renommages.map(({ id }) => id), ['v0', 'v1', 'v2'], 'le journal prévu garde deux renommages jamais écrits');
+  b.panne.apres = Infinity;
+  b.panneStock.si = () => false;
+  const annulation = await b.annuler();
+  assert.equal(annulation.statut, 'applique');
+  assert.deepEqual(annulation.sautes, []);
+  assert.deepEqual(annulation.renommes.map(({ figmaId }) => figmaId), ['v2']);
+  assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('v2')], ['a', 'b', 'c']);
+  assert.equal(b.stock.size, 0);
 });

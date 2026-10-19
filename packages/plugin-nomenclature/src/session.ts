@@ -503,6 +503,7 @@ export function creerSession(options: OptionsDeSession): Session {
 
   const resultatVue = (sorte: ResultatVue['sorte'], resultat: ResultatEcriture): ResultatVue => ({
     sorte, statut: resultat.statut, renommes: resultat.renommes.length, sautes: resultat.sautes.length, annulable: resultat.annulable,
+    ...(resultat.cause ? { cause: resultat.cause } : {}),
   });
 
   /** Après une écriture : `application`, puis un `bilan` neuf lu dans Figma, sauf si tout a été refusé. */
