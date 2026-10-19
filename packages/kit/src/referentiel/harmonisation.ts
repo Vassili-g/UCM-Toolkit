@@ -10,8 +10,11 @@ import type { Collection } from './architecture.js';
 /** Un terme est une suite de mots : `extra-small` vaut `['extra', 'small']`. */
 export type Mots = readonly string[];
 
-/** Un nom lu ; pour une variable, l'identifiant visé par l'alias de son premier mode. */
-export interface NomLu extends NomANormaliser { readonly cibleAlias?: string }
+/**
+ * Un nom lu ; pour une variable, l'identifiant visé par l'alias de son premier mode
+ * et l'identifiant de palette qu'UCM Palettes écrit dans sa donnée partagée `palette`.
+ */
+export interface NomLu extends NomANormaliser { readonly cibleAlias?: string; readonly palette?: string }
 export interface Occurrence { readonly nomId: string; readonly rangSegment: number; readonly rangMot: number }
 
 export interface Lexique {
