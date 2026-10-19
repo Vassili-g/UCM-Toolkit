@@ -123,6 +123,7 @@ function session(collections: Collections, variables: readonly Spec[]) {
     variables: async () => variables.map(([id, name, variableCollectionId = collections[0][0]]) => ({ id, name, variableCollectionId, remote: false })),
     cibleAlias: () => undefined,
     protegee: () => false,
+    palette: () => undefined,
   };
   const regles: PortDeRegles = {
     cles: () => [...stock.keys()], lire: (cle) => stock.get(cle) ?? '',

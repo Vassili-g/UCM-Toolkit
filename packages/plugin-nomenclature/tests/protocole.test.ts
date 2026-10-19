@@ -16,6 +16,8 @@ interface OptionsDuBanc {
   readonly collections?: readonly (readonly [string, string])[];
   readonly variables?: readonly SpecVariable[];
   readonly protegees?: readonly string[];
+  /** L'identifiant de palette que Palettes écrit dans la donnée partagée d'une variable, par identifiant de variable. */
+  readonly palettes?: Readonly<Record<string, string>>;
 }
 
 /** Un fichier Figma factice : il compte ses lectures et trace les noms écrits. */
@@ -41,6 +43,7 @@ function banc(options: OptionsDuBanc = {}) {
     variables: async () => { lectures.variables++; return [...variables.values()].map((o) => ({ id: o.id, name: o.name, variableCollectionId: o.variableCollectionId, remote: false })); },
     cibleAlias: () => undefined,
     protegee: (variable) => protegees.includes(variable.id),
+    palette: (variable) => options.palettes?.[variable.id],
   };
   /** Ce qui arrive dans Figma pendant `ouvrir`, avant que la lecture d'écriture ne s'achève. */
   const pendantOuvrir = { action: undefined as (() => void) | undefined };
@@ -524,4 +527,69 @@ test('AC13 : une annulation lit la protection pendant ouvrir et saute la variabl
   await b.envoyer({ type: 'annuler-dernier' });
   assert.equal(b.noms.get('v1'), 'button/fill-hover');
   assert.equal(b.noms.get('v2'), 'Button/Fill Pressed');
+});
+
+// Le vocabulaire sur un extrait du Playground
+
+const CRANS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+const PLAYGROUND: OptionsDuBanc = {
+  collections: [['c1', 'components'], ['c2', 'primitives'], ['c3', 'typography'], ['c4', 'theme']],
+  variables: [
+    ['s1', 'StressTest/Info/ScaleWrap/Colors/Scale-1', 'c1'], ['s2', 'StressTest/Info/ScaleWrap/Colors/Scale-2', 'c1'], ['s3', 'StressTest/Info/TextColumns/Colors/Title', 'c1'],
+    ['b1', 'Button/Colors/Primary/Outlined/Default/Background', 'c1'], ['b2', 'Button/Colors/Primary/Outlined/Hover/Background', 'c1'], ['b3', 'Button/Sizes/Medium/Padding-x', 'c1'],
+    ...CRANS.map((cran): SpecVariable => [`p${cran}`, `colors/Poppy/soft/light/${cran}`, 'c2']),
+    ['sky', 'colors/Sky/500', 'c2'],
+    ['l1', 'lineheight/3xl', 'c3'], ['l2', 'lineheight/xl', 'c3'], ['f1', 'fontsize/base', 'c3'], ['d1', 'Display/Large/LineHeight', 'c4'],
+  ],
+  palettes: { sky: 'palette-sky' },
+};
+
+test('le vocabulaire du Playground : noms et mots se séparent, les cinq filtres et leurs comptes répondent', async () => {
+  const b = banc(PLAYGROUND);
+  await b.envoyer({ type: 'analyser' });
+  const bilan = b.dernierBilan();
+  const lire = async (filtre: 'tous' | 'avec-regle' | 'sans-regle' | 'composants' | 'palettes') => {
+    b.vider();
+    await b.envoyer({ type: 'termes', generation: bilan.generation, recherche: '', filtre, debut: 0 });
+    const message = b.messages[0];
+    assert.ok(message.type === 'termes');
+    return message;
+  };
+  const tous = await lire('tous');
+  const mots = tous.termes.map((terme) => terme.mot);
+  for (const absent of ['line', 'height', 'stress', 'test', 'wrap', 'columns', 'components', 'primitives', 'typography', 'theme']) assert.equal(mots.includes(absent), false, absent);
+  const stress = tous.termes.find((terme) => terme.mot === 'stress-test');
+  assert.deepEqual([stress?.forme, stress?.nature, stress?.nombre], ['StressTest', 'composant', 3]);
+  const hauteur = tous.termes.find((terme) => terme.mot === 'line-height');
+  assert.deepEqual([hauteur?.forme, hauteur?.nombre], ['lineheight', 3]);
+
+  assert.deepEqual((await lire('composants')).termes.map((terme) => terme.mot).sort(), ['button', 'scale-wrap', 'stress-test', 'text-columns']);
+  assert.deepEqual((await lire('palettes')).termes.map((terme) => terme.mot).sort(), ['poppy', 'sky'], 'sky n’a qu’un cran : l’identifiant de palette lu dans Figma suffit');
+  const sans = await lire('sans-regle');
+  assert.equal(sans.termes.some((terme) => ['button', 'poppy', 'sky'].includes(terme.mot)), false);
+  assert.ok(sans.termes.every((terme) => terme.nature === null));
+  const { comptes } = tous;
+  assert.deepEqual([comptes.tous, comptes.composants, comptes.palettes], [tous.total, 4, 2]);
+  assert.equal(comptes.avecRegle, (await lire('avec-regle')).total);
+  assert.equal(comptes.sansRegle, sans.total);
+  assert.equal(comptes.tous, comptes.avecRegle + comptes.sansRegle + comptes.composants + comptes.palettes);
+});
+
+test('le vocabulaire du Playground : la fiche et le détail portent la forme et la nature', async () => {
+  const b = banc(PLAYGROUND);
+  await b.envoyer({ type: 'analyser' });
+  const { generation } = b.dernierBilan();
+  b.vider();
+  await b.envoyer({ type: 'fiche', generation, terme: 'stress-test' });
+  await b.envoyer({ type: 'diagnostic', generation });
+  const [fiche, diagnostic] = b.messages;
+  assert.ok(fiche.type === 'fiche' && diagnostic.type === 'diagnostic');
+  assert.deepEqual([fiche.fiche.forme, fiche.fiche.nature, fiche.fiche.emploi.nombre, fiche.fiche.emploi.exemples[0].marques], ['StressTest', 'composant', 3, [0]]);
+  const detail = JSON.parse(diagnostic.texte);
+  const nom = detail.noms.find((autre: { nom: string }) => autre.nom === 'StressTest/Info/ScaleWrap/Colors/Scale-1');
+  assert.deepEqual(nom.natures, ['composant', null, 'element', null, null]);
+  assert.deepEqual(nom.termes, [['StressTest'], ['Info'], ['ScaleWrap'], ['Colors'], ['Scale', '1']]);
+  const terme = detail.termes.find((autre: { mot: string }) => autre.mot === 'stress-test');
+  assert.deepEqual([terme.forme, terme.nature], ['StressTest', 'composant']);
+  assert.equal(detail.noms.find((autre: { nom: string }) => autre.nom === 'components').termes.every((formes: string[]) => formes.length === 0), true);
 });

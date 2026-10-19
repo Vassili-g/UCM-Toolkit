@@ -1,5 +1,5 @@
 /** Contrat des messages entre l'écran et le sandbox : les demandes de l'écran, les réponses numérotées du sandbox et le contrôle de forme des demandes. */
-import type { Convention, OrigineDuTerme, IndiceDePaire, CategorieDeNom } from '@ucm-kit/core/referentiel';
+import type { Convention, OrigineDuTerme, IndiceDePaire, CategorieDeNom, NatureDeSegment } from '@ucm-kit/core/referentiel';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 import { estConventions } from './conventions';
 
@@ -24,10 +24,15 @@ export type GesteSurLesRegles =
   | { readonly type: 'annuler-reponse'; readonly question: string }
   | { readonly type: 'annuler-import' };
 
+/** Les filtres de la liste du vocabulaire : `composants` montre les composants et les éléments, `palettes` les palettes. */
+export type FiltreDeTermes = 'tous' | 'avec-regle' | 'sans-regle' | 'composants' | 'palettes';
+/** Le nombre de termes de chaque filtre, sans recherche. */
+export interface ComptesDeTermes { readonly tous: number; readonly avecRegle: number; readonly sansRegle: number; readonly composants: number; readonly palettes: number }
+
 export type DemandeArchitect =
   | { readonly type: 'analyser'; readonly demande: number }
   | { readonly type: 'lignes'; readonly demande: number; readonly generation: number; readonly groupe: string; readonly debut: number }
-  | { readonly type: 'termes'; readonly demande: number; readonly generation: number; readonly recherche: string; readonly filtre: 'tous' | 'avec-regle' | 'sans-regle'; readonly debut: number }
+  | { readonly type: 'termes'; readonly demande: number; readonly generation: number; readonly recherche: string; readonly filtre: FiltreDeTermes; readonly debut: number }
   | { readonly type: 'fiche'; readonly demande: number; readonly generation: number; readonly terme: string }
   | { readonly type: 'diagnostic'; readonly demande: number; readonly generation: number }
   | { readonly type: 'simuler'; readonly demande: number; readonly generation: number; readonly geste: GesteSurLesRegles }
@@ -92,10 +97,14 @@ export interface Bilan {
   /** Le dernier import qui a écrasé l'écriture ou un terme, que `annuler-import` défait. */
   readonly dernierImport: { readonly heure: string } | null;
 }
-/** Le filtre `avec-regle` montre `regle` et `ecart` ; `sans-regle` montre `sans-regle` et `a-trancher`. */
-export interface TermeDeListe { readonly mot: string; readonly origine: OrigineDuTerme | null; readonly statut: 'regle' | 'ecart' | 'a-trancher' | 'sans-regle'; readonly remplace: readonly string[]; readonly avec: string | null; readonly nombre: number; readonly trouve: string | null }
+/**
+ * Le filtre `avec-regle` montre `regle` et `ecart` ; `sans-regle` montre `sans-regle` et `a-trancher` quand `nature` est `null`.
+ * `mot` est la clé du terme (`stress-test`), `forme` son écriture la plus fréquente dans le fichier (`StressTest`).
+ * `nature` vaut `composant`, `element` ou `palette` pour un nom, `null` pour un mot.
+ */
+export interface TermeDeListe { readonly mot: string; readonly forme: string; readonly nature: NatureDeSegment | null; readonly origine: OrigineDuTerme | null; readonly statut: 'regle' | 'ecart' | 'a-trancher' | 'sans-regle'; readonly remplace: readonly string[]; readonly avec: string | null; readonly nombre: number; readonly trouve: string | null }
 export interface FicheVue {
-  readonly mot: string; readonly origine: OrigineDuTerme | null; readonly categorieUcm: string | null; readonly definition: string | null;
+  readonly mot: string; readonly forme: string; readonly nature: NatureDeSegment | null; readonly origine: OrigineDuTerme | null; readonly categorieUcm: string | null; readonly definition: string | null;
   readonly remplace: readonly { readonly mot: string; readonly nombre: number; readonly ucm: boolean }[];
   readonly emploi: { readonly nombre: number; readonly exemples: readonly LigneVue[] };
   /** Les renommages dus au terme, où l'une de ses variantes est remplacée par lui. */
@@ -122,7 +131,7 @@ export type PluginMessage =
   | { readonly type: 'lecture'; readonly demande: number; readonly lues: number; readonly total: number }
   | { readonly type: 'bilan'; readonly demande: number; readonly bilan: Bilan }
   | { readonly type: 'lignes'; readonly demande: number; readonly generation: number; readonly groupe: string; readonly debut: number; readonly lignes: readonly LigneVue[]; readonly total: number }
-  | { readonly type: 'termes'; readonly demande: number; readonly generation: number; readonly debut: number; readonly termes: readonly TermeDeListe[]; readonly total: number; readonly comptes: { readonly tous: number; readonly avecRegle: number; readonly sansRegle: number } }
+  | { readonly type: 'termes'; readonly demande: number; readonly generation: number; readonly debut: number; readonly termes: readonly TermeDeListe[]; readonly total: number; readonly comptes: ComptesDeTermes }
   | { readonly type: 'fiche'; readonly demande: number; readonly generation: number; readonly fiche: FicheVue }
   | { readonly type: 'diagnostic'; readonly demande: number; readonly generation: number; readonly texte: string }
   | { readonly type: 'simulation'; readonly demande: number; readonly generation: number; readonly effet: EffetVue | null; readonly conflit: ConflitVue | null }
@@ -142,7 +151,7 @@ const objet = (valeur: unknown): valeur is Objet => !!valeur && typeof valeur ==
 const nombreFini = (valeur: unknown): boolean => typeof valeur === 'number' && Number.isFinite(valeur);
 
 const LIMITE_D_IMPORT = 1_000_000;
-const FILTRES = ['tous', 'avec-regle', 'sans-regle'];
+const FILTRES: readonly FiltreDeTermes[] = ['tous', 'avec-regle', 'sans-regle', 'composants', 'palettes'];
 
 function estEcriture(brut: unknown): boolean {
   return objet(brut) && Object.keys(brut).length === 2 && 'groupes' in brut && 'variables' in brut && estConventions(brut);
@@ -191,7 +200,7 @@ export function estUiMessage(brut: unknown): brut is UiMessage {
   switch (brut.type) {
     case 'analyser': case 'annuler-dernier': case 'exporter': return true;
     case 'lignes': return genere && chaine(brut.groupe) && entierNonNegatif(brut.debut);
-    case 'termes': return genere && chaine(brut.recherche) && FILTRES.includes(brut.filtre as string) && entierNonNegatif(brut.debut);
+    case 'termes': return genere && chaine(brut.recherche) && FILTRES.includes(brut.filtre as FiltreDeTermes) && entierNonNegatif(brut.debut);
     case 'fiche': return genere && chaine(brut.terme);
     case 'diagnostic': return genere;
     case 'simuler': return genere && estGeste(brut.geste);

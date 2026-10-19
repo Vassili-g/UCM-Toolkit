@@ -4,10 +4,10 @@ import test from 'node:test';
 import type { TermeDeListe } from '../src/messages';
 import { LISTE_INITIALE, choisir, debutSuivant, filtrer, recevoir, resteAAfficher, saisir, morceauxDuTerme, nomAccessibleDuTerme, phraseDeRecherche } from '../src/ui/listeDesTermes';
 
-const COMPTES = { tous: 120, avecRegle: 20, sansRegle: 100 };
+const COMPTES = { tous: 120, avecRegle: 20, sansRegle: 100, composants: 0, palettes: 0 };
 
 function termes(depart: number, nombre: number): TermeDeListe[] {
-  return Array.from({ length: nombre }, (_, rang) => ({ mot: `terme-${depart + rang}`, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 1, trouve: null }));
+  return Array.from({ length: nombre }, (_, rang) => ({ mot: `terme-${depart + rang}`, forme: `terme-${depart + rang}`, nature: null, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 1, trouve: null }));
 }
 
 test('les pages successives s’ajoutent bout à bout', () => {
@@ -66,7 +66,7 @@ test('le terme choisi survit à une page et à une recherche', () => {
 });
 
 test('les morceaux d’une ligne suivent le statut du terme', () => {
-  const base: TermeDeListe = { mot: 'pressed', origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: null };
+  const base: TermeDeListe = { mot: 'pressed', forme: 'pressed', nature: null, origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: null };
   assert.deepEqual(morceauxDuTerme(base), [
     { sorte: 'reference', texte: 'pressed' },
     { sorte: 'gris', texte: 'remplace' },
@@ -88,21 +88,21 @@ test('les morceaux d’une ligne suivent le statut du terme', () => {
 });
 
 test('la variante cherchée est marquée dans la ligne de sa référence', () => {
-  const ligne: TermeDeListe = { mot: 'pressed', origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: 'push' };
+  const ligne: TermeDeListe = { mot: 'pressed', forme: 'pressed', nature: null, origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: 'push' };
   const variantes = morceauxDuTerme(ligne).filter((morceau) => morceau.sorte === 'variante');
   assert.deepEqual(variantes.map((morceau) => morceau.sorte === 'variante' && morceau.trouvee), [false, true]);
 });
 
 test('la phrase de recherche nomme la variante et la référence de la première ligne trouvée', () => {
-  const sans: TermeDeListe = { mot: 'radius', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 9, trouve: null };
-  const trouvee: TermeDeListe = { mot: 'color', origine: 'ucm', statut: 'regle', remplace: ['colors'], avec: null, nombre: 435, trouve: 'colors' };
+  const sans: TermeDeListe = { mot: 'radius', forme: 'radius', nature: null, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 9, trouve: null };
+  const trouvee: TermeDeListe = { mot: 'color', forme: 'color', nature: null, origine: 'ucm', statut: 'regle', remplace: ['colors'], avec: null, nombre: 435, trouve: 'colors' };
   assert.equal(phraseDeRecherche([sans]), null);
   assert.equal(phraseDeRecherche([]), null);
   assert.deepEqual(phraseDeRecherche([sans, trouvee, { ...trouvee, mot: 'colour' }]), { variante: 'colors', reference: 'color' });
 });
 
 test('le nom accessible d’une ligne dit la règle, l’origine et le nombre', () => {
-  const base: TermeDeListe = { mot: 'pressed', origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: null };
+  const base: TermeDeListe = { mot: 'pressed', forme: 'pressed', nature: null, origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: null };
   assert.equal(nomAccessibleDuTerme(base), 'pressed, remplace press, push, UCM, 38 noms');
   assert.equal(nomAccessibleDuTerme({ ...base, origine: null, statut: 'a-trancher', remplace: [], avec: 'error' }), 'pressed, à trancher avec error, À trancher, 38 noms');
   assert.equal(nomAccessibleDuTerme({ ...base, statut: 'ecart', remplace: [] }), 'pressed, règle UCM non appliquée dans ce fichier, UCM, 38 noms');

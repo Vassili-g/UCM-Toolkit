@@ -115,7 +115,7 @@ test('une réponse dont la génération est périmée est ignorée', () => {
   analyser(2);
   const demande = frontiere.fiche('bg') as number;
   const base = { type: 'fiche' as const, demande };
-  const fiche = { mot: 'bg', origine: null, categorieUcm: null, definition: null, remplace: [], emploi: { nombre: 0, exemples: [] }, aRenommer: { nombre: 0, exemples: [] }, ecart: false, voulu: false, distincts: [], question: null };
+  const fiche = { mot: 'bg', forme: 'bg', nature: null, origine: null, categorieUcm: null, definition: null, remplace: [], emploi: { nombre: 0, exemples: [] }, aRenommer: { nombre: 0, exemples: [] }, ecart: false, voulu: false, distincts: [], question: null };
   const avant = affichees.length;
   frontiere.recevoir({ ...base, generation: 1, fiche });
   assert.equal(affichees.length, avant, 'une génération plus ancienne est ignorée');
@@ -139,12 +139,12 @@ test('un nouveau bilan rend caduques les lectures en attente, même leur erreur'
 });
 
 test("l'écho d'une demande de lecture est ignoré, puis la vraie réponse est affichée", () => {
-  const ficheVide = { mot: 'bg', origine: null, categorieUcm: null, definition: null, remplace: [], emploi: { nombre: 0, exemples: [] }, aRenommer: { nombre: 0, exemples: [] }, ecart: false, voulu: false, distincts: [], question: null };
+  const ficheVide = { mot: 'bg', forme: 'bg', nature: null, origine: null, categorieUcm: null, definition: null, remplace: [], emploi: { nombre: 0, exemples: [] }, aRenommer: { nombre: 0, exemples: [] }, ecart: false, voulu: false, distincts: [], question: null };
   const formes: Array<{ ouvrir: (f: ReturnType<typeof creer>['frontiere']) => number; echo: (demande: number) => unknown; reponse: (demande: number) => PluginMessage }> = [
     {
       ouvrir: (f) => f.termes('', 'tous', 0) as number,
       echo: (demande) => ({ type: 'termes', demande, generation: 1, debut: 0, requete: '' }),
-      reponse: (demande) => ({ type: 'termes', demande, generation: 1, debut: 0, termes: [], total: 0, comptes: { tous: 0, avecRegle: 0, sansRegle: 0 } }),
+      reponse: (demande) => ({ type: 'termes', demande, generation: 1, debut: 0, termes: [], total: 0, comptes: { tous: 0, avecRegle: 0, sansRegle: 0, composants: 0, palettes: 0 } }),
     },
     {
       ouvrir: (f) => f.fiche('bg') as number,
@@ -193,7 +193,7 @@ test('une lecture plus récente de même clé rend l’ancienne caduque, une aut
   const premiere = frontiere.termes('b', 'tous', 0) as number;
   const seconde = frontiere.termes('bg', 'tous', 0) as number;
   const autre = frontiere.fiche('bg') as number;
-  const termes = (demande: number): PluginMessage => ({ type: 'termes', demande, generation: 1, debut: 0, termes: [], total: 0, comptes: { tous: 0, avecRegle: 0, sansRegle: 0 } });
+  const termes = (demande: number): PluginMessage => ({ type: 'termes', demande, generation: 1, debut: 0, termes: [], total: 0, comptes: { tous: 0, avecRegle: 0, sansRegle: 0, composants: 0, palettes: 0 } });
   const avant = affichees.length;
   frontiere.recevoir(termes(premiere));
   assert.equal(affichees.length, avant);

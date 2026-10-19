@@ -16,6 +16,8 @@ export interface PortDeLecture {
   cibleAlias(variable: VariableLue): string | undefined;
   /** Vrai quand la donnée partagée `palette` de la variable n'est pas vide. */
   protegee(variable: VariableLue): boolean;
+  /** L'identifiant de palette que Palettes écrit dans la donnée partagée `palette` de la variable ; `undefined` quand elle est vide. */
+  palette(variable: VariableLue): string | undefined;
 }
 
 export type CibleDeNom =
@@ -50,8 +52,8 @@ function categoriesDesSegments(nom: string): (CategorieDeNom | null)[] | undefin
   return segments.length > 1 ? segments.map((_, rang) => (rang < segments.length - 1 ? 'groupes' : null)) : undefined;
 }
 
-/** Ce que la lecture d'une variable demande à Figma, sans attente : l'alias et la protection. */
-export type LecteurDeVariable = Pick<PortDeLecture, 'cibleAlias' | 'protegee'>;
+/** Ce que la lecture d'une variable demande à Figma, sans attente : l'alias, la protection et la palette. */
+export type LecteurDeVariable = Pick<PortDeLecture, 'cibleAlias' | 'protegee' | 'palette'>;
 
 function lesLocales(toutesLesCollections: readonly ObjetNomme[], toutesLesVariables: readonly VariableLue[]) {
   const collections = new Map(toutesLesCollections.filter((collection) => !collection.remote).map((collection) => [collection.id, collection]));
@@ -66,10 +68,11 @@ function entreeDeCollection(collection: ObjetNomme): EntreeInventaire {
 
 function entreeDeVariable(variable: VariableLue, collectionNom: string | undefined, lecteur: LecteurDeVariable): EntreeInventaire {
   const cibleAlias = lecteur.cibleAlias(variable);
+  const palette = lecteur.palette(variable);
   const categories = categoriesDesSegments(variable.name);
   return {
     nom: { id: identite('variable', variable.id), categorie: 'variables', portee: identite('collection', variable.variableCollectionId), nom: variable.name,
-      ...(categories ? { categoriesDesSegments: categories } : {}), ...(cibleAlias ? { cibleAlias } : {}) },
+      ...(categories ? { categoriesDesSegments: categories } : {}), ...(cibleAlias ? { cibleAlias } : {}), ...(palette ? { palette } : {}) },
     contexte: { collection: collectionNom },
     cible: { type: 'variable', variableId: variable.id, collectionId: variable.variableCollectionId },
     renommable: true, protegee: lecteur.protegee(variable),

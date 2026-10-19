@@ -7,13 +7,13 @@
  */
 import {
   REGISTRES, REGISTRES_ARCHITECTURE, REGISTRE_AXES_ETAT, collectionUcmReconnue, decouperSegment,
-  type CategorieDeNom, type ChangementDeTerme, type ConflitDeVocabulaire, type Convention, type Lexique, type Mots,
-  type OrigineDuTerme, type Question, type Renommage, type ResultatDesQuestions, type ResultatDuLexique, type TermeEnQuestion,
+  type CategorieDeNom, type ChangementDeTerme, type ConflitDeVocabulaire, type Convention, type Lexique, type Mots, type NatureDeSegment,
+  type OccurrenceDeTerme, type OrigineDuTerme, type Question, type Renommage, type ResultatDesQuestions, type ResultatDuLexique, type TermeEnQuestion,
 } from '@ucm-kit/core/referentiel';
 import { estCollisionDeChemin } from './cheminsPublies';
 import type { Inventaire } from './lecture';
 import type {
-  Bilan, BloqueVue, CollectionVue, ConflitVue, EcritureChoisie, EffetVue, FicheVue, GroupeVue, LigneDEcriture, LigneVue,
+  Bilan, BloqueVue, CollectionVue, ComptesDeTermes, ConflitVue, EcritureChoisie, EffetVue, FicheVue, FiltreDeTermes, GroupeVue, LigneDEcriture, LigneVue,
   QuestionVue, RegleVue, Selection, TermeDeListe, TermeVue,
 } from './messages';
 import type { ReglesDuFichier } from './regles';
@@ -44,20 +44,24 @@ export interface EntreeDeProjection {
   readonly nomDeLaCible?: (identifiant: string) => string | undefined;
 }
 
-export interface RequeteDeTermes { readonly recherche: string; readonly filtre: 'tous' | 'avec-regle' | 'sans-regle'; readonly debut: number }
+export interface RequeteDeTermes { readonly recherche: string; readonly filtre: FiltreDeTermes; readonly debut: number }
 export interface PageDeLignes { readonly lignes: readonly LigneVue[]; readonly total: number }
 export interface PageDeTermes {
   readonly termes: readonly TermeDeListe[];
   readonly total: number;
-  readonly comptes: { readonly tous: number; readonly avecRegle: number; readonly sansRegle: number };
+  readonly comptes: ComptesDeTermes;
 }
 
 /** Un segment du fichier où le terme se lit, avec les mots que le découpage y a vus. */
 export interface SegmentDuTerme { readonly segment: string; readonly mots: Mots; readonly noms: number; readonly exemple: string }
-/** Un nom analysé : les mots de chacun de ses segments, et son nom après le renommage proposé. */
+/**
+ * Un nom analysé : les mots de chacun de ses segments, sa nature par segment, les formes des termes de chaque segment
+ * (la liste est vide pour une collection, qui n'a pas de terme) et son nom après le renommage proposé.
+ */
 export interface NomDuDiagnostic {
   readonly nom: string; readonly collection: string | null; readonly categorie: CategorieDeNom;
-  readonly mots: readonly Mots[]; readonly nouveau: string | null;
+  readonly mots: readonly Mots[]; readonly natures: readonly (NatureDeSegment | null)[]; readonly termes: readonly (readonly string[])[];
+  readonly nouveau: string | null;
 }
 /** L'export du vocabulaire pour l'analyser hors du plugin : chaque terme de la liste et d'où il vient, chaque nom et son découpage. */
 export interface DiagnosticDuVocabulaire {
@@ -107,6 +111,23 @@ function placeDeLaSuite(segment: Mots, suite: readonly string[]): readonly [numb
     }
   }
   return null;
+}
+
+/**
+ * Le texte du segment qui porte les mots `[debut, fin[` : le segment entier si la plage le couvre, sinon le morceau qui porte ces mots,
+ * séparateurs d'origine compris. Les mots sont des tranches du segment, dans l'ordre, séparées seulement par `-`, `_` ou une espace.
+ */
+function formeDeLaPlage(segment: string, mots: Mots, debut: number, fin: number): string {
+  if (debut === 0 && fin >= mots.length) return segment;
+  let position = 0;
+  let depart = 0;
+  for (let rang = 0; rang < fin; rang++) {
+    const place = segment.indexOf(mots[rang], position);
+    if (place < 0) return mots.slice(debut, fin).join('-');
+    if (rang === debut) depart = place;
+    position = place + mots[rang].length;
+  }
+  return segment.slice(depart, position);
 }
 
 /** Les rangs des segments du nom qui contiennent la suite de mots. */
@@ -321,21 +342,47 @@ function construireLaTable(regles: ReglesDuFichier): Table {
   return { ucm, ecartes, remplaceesParUcm, personnalises, remplaceesParPerso };
 }
 
-/** Les noms (identifiants) où la suite de mots apparaît, chacun une fois. */
-function nomsEmployant(lexique: Lexique, cle: string): string[] {
+/**
+ * Les occurrences du terme `cle` (mots en minuscules joints par `-`) : un terme du lexique, jamais un morceau de terme ni un nom de collection.
+ * Le lexique ne connaît pas le terme de plusieurs mots qu'une règle du fichier ajoute (`extra-small`) : à défaut, la suite de ses mots se
+ * cherche dans les segments sans nature.
+ */
+function occurrencesDuTerme(lexique: Lexique, cle: string): readonly OccurrenceDeTerme[] {
+  const connues = lexique.occurrencesDesTermes.get(cle);
+  if (connues) return connues;
   const suite = motsDeLaCle(cle);
-  if (suite.length === 0) return [];
-  const ids = new Set<string>();
-  for (const occurrence of lexique.occurrences.get(suite[0]) ?? []) {
-    if (suite.length > 1) {
-      const nom = lexique.noms.get(occurrence.nomId);
-      if (!nom) continue;
-      const mots = motsDuSegment(lexique, nom.nom.split('/')[occurrence.rangSegment] ?? '');
-      if (!contientLaSuite(mots, suite, occurrence.rangMot)) continue;
-    }
-    ids.add(occurrence.nomId);
+  if (suite.length < 2) return [];
+  return (lexique.occurrences.get(suite[0]) ?? []).flatMap((occurrence): OccurrenceDeTerme[] => {
+    const nom = lexique.noms.get(occurrence.nomId);
+    if (!nom || nom.categorie === 'collections' || lexique.natures.get(occurrence.nomId)?.[occurrence.rangSegment]) return [];
+    const mots = motsDuSegment(lexique, nom.nom.split('/')[occurrence.rangSegment] ?? '');
+    return contientLaSuite(mots, suite, occurrence.rangMot) ? [{ ...occurrence, longueur: suite.length }] : [];
+  });
+}
+
+/** Les noms (identifiants) où le terme apparaît, chacun une fois. */
+const nomsEmployant = (occurrences: readonly OccurrenceDeTerme[]): string[] => [...new Set(occurrences.map((occurrence) => occurrence.nomId))];
+
+/** Quand les occurrences d'un terme n'ont pas la même nature : composant, puis élément, puis palette. */
+const ORDRE_DES_NATURES: readonly NatureDeSegment[] = ['composant', 'element', 'palette'];
+const natureLaPlusHaute = (a: NatureDeSegment | null, b: NatureDeSegment | null): NatureDeSegment | null =>
+  a === null ? b : b === null ? a : ORDRE_DES_NATURES.indexOf(b) < ORDRE_DES_NATURES.indexOf(a) ? b : a;
+
+/** Ce que le fichier montre d'un terme : sa forme la plus fréquente (à égalité, la première rencontrée) et la nature de son segment. */
+function presenceDuTerme(lexique: Lexique, cle: string, occurrences: readonly OccurrenceDeTerme[]): { readonly forme: string; readonly nature: NatureDeSegment | null } {
+  const formes = new Map<string, number>();
+  let nature: NatureDeSegment | null = null;
+  for (const occurrence of occurrences) {
+    const segment = lexique.noms.get(occurrence.nomId)?.nom.split('/')[occurrence.rangSegment];
+    if (segment === undefined) continue;
+    const forme = formeDeLaPlage(segment, motsDuSegment(lexique, segment), occurrence.rangMot, occurrence.rangMot + occurrence.longueur);
+    formes.set(forme, (formes.get(forme) ?? 0) + 1);
+    nature = natureLaPlusHaute(nature, lexique.natures.get(occurrence.nomId)?.[occurrence.rangSegment] ?? null);
   }
-  return [...ids];
+  let forme = cle;
+  let plusFrequente = 0;
+  for (const [candidate, nombre] of formes) if (nombre > plusFrequente) { forme = candidate; plusFrequente = nombre; }
+  return { forme, nature };
 }
 
 // La projection
@@ -349,7 +396,11 @@ export function projeter(entree: EntreeDeProjection): Projection {
   };
   const analyse = (): Analyse => unique('analyse', () => analyser(entree));
   const table = (): Table => unique('table', () => construireLaTable(regles));
-  const emploi = (cle: string): readonly string[] => unique(`emploi:${cle}`, () => nomsEmployant(lexique, cle));
+  const occurrences = (cle: string): readonly OccurrenceDeTerme[] => unique(`occurrences:${cle}`, () => occurrencesDuTerme(lexique, cle));
+  const emploi = (cle: string): readonly string[] => unique(`emploi:${cle}`, () => nomsEmployant(occurrences(cle)));
+  const presence = (cle: string) => unique(`presence:${cle}`, () => presenceDuTerme(lexique, cle, occurrences(cle)));
+  /** La question qui porte le terme ; un nom (composant, élément, palette) n'en a jamais. */
+  const questionDuTerme = (cle: string) => (presence(cle).nature === null ? termesEnQuestion().get(cle) : undefined);
 
   const conventionDe = (categorie: CategorieDeNom): Convention =>
     categorie === 'groupes' ? entree.ecriture.groupes : categorie === 'variables' ? entree.ecriture.variables : DEFAUT;
@@ -375,7 +426,21 @@ export function projeter(entree: EntreeDeProjection): Projection {
     return ligneDuNom(renommage, marquesDeLaRegle(renommage, cle), aussi);
   }
 
-  /** Un nom qui emploie déjà le terme : il ne change pas, le segment du terme est marqué. */
+  /** Les noms qui emploient le terme, sans changement : le segment entier du terme est marqué dans chacun. */
+  function exemplesDEmploi(cle: string): LigneVue[] {
+    const rangsParNom = new Map<string, Set<number>>();
+    for (const occurrence of occurrences(cle)) {
+      const rangs = rangsParNom.get(occurrence.nomId) ?? new Set<number>();
+      rangs.add(occurrence.rangSegment);
+      rangsParNom.set(occurrence.nomId, rangs);
+    }
+    return [...rangsParNom].slice(0, EXEMPLES_D_EMPLOI).flatMap(([id, rangs]): LigneVue[] => {
+      const nom = lexique.noms.get(id);
+      return nom ? [{ id, ancien: nom.nom, nouveau: nom.nom, marques: [...rangs].sort((a, b) => a - b), aussi: [] }] : [];
+    });
+  }
+
+  /** Un nom qui emploie déjà le terme d'une question : il ne change pas, le segment du terme est marqué. */
   function ligneDeNom(id: string, mots: readonly string[]): LigneVue | null {
     const nom = lexique.noms.get(id);
     if (!nom) return null;
@@ -618,7 +683,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
   // La liste des termes et la fiche
 
   /** Le statut d'un terme et ce qu'il remplace, d'après les règles du fichier. */
-  function entreeDuTerme(cle: string): Omit<TermeDeListe, 'mot' | 'nombre' | 'trouve'> {
+  function entreeDuTerme(cle: string): Omit<TermeDeListe, 'mot' | 'forme' | 'nature' | 'nombre' | 'trouve'> {
     const { ucm, ecartes, remplaceesParUcm, personnalises, remplaceesParPerso } = table();
     const perso = personnalises.get(cle);
     const gardeParUcm = ucm.get(cle);
@@ -629,7 +694,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
     if (parUcm) return { origine: 'ucm', statut: 'regle', remplace: [], avec: parUcm };
     const parPerso = remplaceesParPerso.get(cle);
     if (parPerso) return { origine: 'personnalise', statut: 'regle', remplace: [], avec: parPerso };
-    const enQuestion = termesEnQuestion().get(cle);
+    const enQuestion = questionDuTerme(cle);
     if (enQuestion) return { origine: null, statut: 'a-trancher', remplace: [], avec: enQuestion.avec };
     return { origine: null, statut: 'sans-regle', remplace: [], avec: null };
   }
@@ -637,7 +702,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
   const listeDesTermes = (): readonly TermeDeListe[] => unique('liste', () => {
     const { ucm, ecartes, remplaceesParUcm, personnalises, remplaceesParPerso } = table();
     const cles = new Set<string>();
-    for (const mot of lexique.occurrences.keys()) if (/\p{L}/u.test(mot)) cles.add(mot);
+    for (const cle of lexique.occurrencesDesTermes.keys()) if (/\p{L}/u.test(cle)) cles.add(cle);
     for (const cle of [...personnalises.keys(), ...ecartes.keys()]) cles.add(cle);
     for (const cle of [...ucm.keys(), ...remplaceesParUcm.keys(), ...remplaceesParPerso.keys()]) {
       if (!cles.has(cle) && emploi(cle).length > 0) cles.add(cle);
@@ -646,28 +711,38 @@ export function projeter(entree: EntreeDeProjection): Projection {
       if (!cles.has(terme.cle) && terme.formes.some((forme) => emploi(forme).length > 0)) cles.add(terme.cle);
     }
     // Un terme remplacé n'a pas de ligne : sa référence le porte dans `remplace`.
-    return [...cles].map((cle): TermeDeListe => ({ mot: cle, nombre: emploi(cle).length, ...entreeDuTerme(cle), trouve: null }))
+    return [...cles].map((cle): TermeDeListe => ({ mot: cle, ...presence(cle), nombre: emploi(cle).length, ...entreeDuTerme(cle), trouve: null }))
       .filter((terme) => !(terme.statut === 'regle' && terme.avec !== null))
       .sort((a, b) => b.nombre - a.nombre || comparer(a.mot, b.mot));
   });
 
   const aUneRegle = (terme: TermeDeListe): boolean => terme.statut === 'regle' || terme.statut === 'ecart';
+  /** Un nom ne compte jamais dans « Sans règle » : il n'a pas de règle à écrire. */
+  const sansRegle = (terme: TermeDeListe): boolean => !aUneRegle(terme) && terme.nature === null;
+  const estUnComposant = (terme: TermeDeListe): boolean => terme.nature === 'composant' || terme.nature === 'element';
+  const estUnePalette = (terme: TermeDeListe): boolean => terme.nature === 'palette';
+  const DANS_LE_FILTRE: Readonly<Record<FiltreDeTermes, (terme: TermeDeListe) => boolean>> = {
+    tous: () => true, 'avec-regle': aUneRegle, 'sans-regle': sansRegle, composants: estUnComposant, palettes: estUnePalette,
+  };
 
   function termes(requete: RequeteDeTermes): PageDeTermes {
     const toutes = listeDesTermes();
     const recherche = requete.recherche.trim().toLowerCase();
+    const dansLeFiltre = DANS_LE_FILTRE[requete.filtre];
     const retenues: TermeDeListe[] = [];
     for (const terme of toutes) {
-      if (requete.filtre !== 'tous' && aUneRegle(terme) !== (requete.filtre === 'avec-regle')) continue;
-      if (recherche === '' || terme.mot.includes(recherche)) { retenues.push(terme); continue; }
+      if (!dansLeFiltre(terme)) continue;
+      if (recherche === '' || terme.mot.includes(recherche) || terme.forme.toLowerCase().includes(recherche)) { retenues.push(terme); continue; }
       const variante = terme.remplace.find((forme) => forme.includes(recherche));
       if (variante !== undefined) retenues.push({ ...terme, trouve: variante });
     }
-    const avecRegle = toutes.filter(aUneRegle).length;
     return {
       termes: retenues.slice(requete.debut, requete.debut + TAILLE_DE_PAGE),
       total: retenues.length,
-      comptes: { tous: toutes.length, avecRegle, sansRegle: toutes.length - avecRegle },
+      comptes: {
+        tous: toutes.length, avecRegle: toutes.filter(aUneRegle).length, sansRegle: toutes.filter(sansRegle).length,
+        composants: toutes.filter(estUnComposant).length, palettes: toutes.filter(estUnePalette).length,
+      },
     };
   }
 
@@ -688,31 +763,30 @@ export function projeter(entree: EntreeDeProjection): Projection {
     });
     return {
       mot: cle,
+      ...presence(cle),
       origine: dedans.origine,
       categorieUcm: ucmDuTerme && ucmDuTerme.registre !== '' ? ucmDuTerme.registre : null,
       definition: ucmDuTerme?.definition ?? perso?.definition ?? null,
       remplace: formes.map(({ forme, ucm: deLUcm }) => ({ mot: forme, nombre: emploi(forme).length, ucm: deLUcm })),
       emploi: {
         nombre: ids.length,
-        exemples: ids.slice(0, EXEMPLES_D_EMPLOI).map((id) => ligneDeNom(id, motsDeLaCle(cle))).filter((ligne): ligne is LigneVue => ligne !== null),
+        exemples: exemplesDEmploi(cle),
       },
       aRenommer: { nombre: dues.length, exemples: dues.slice(0, EXEMPLES_D_EMPLOI) },
       ecart: ecartes.has(cle),
       voulu: regles.voulus.includes(voulu),
       distincts: regles.distincts.flatMap(([a, b]) => (a.toLowerCase() === cle ? [b] : b.toLowerCase() === cle ? [a] : [])),
-      question: termesEnQuestion().get(cle)?.question ?? null,
+      question: questionDuTerme(cle)?.question ?? null,
     };
   }
 
   function segmentsDuTerme(cle: string): SegmentDuTerme[] {
-    const suite = motsDeLaCle(cle);
     const parSegment = new Map<string, { mots: Mots; noms: Set<string>; exemple: string }>();
-    for (const occurrence of suite.length > 0 ? lexique.occurrences.get(suite[0]) ?? [] : []) {
+    for (const occurrence of occurrences(cle)) {
       const nom = lexique.noms.get(occurrence.nomId);
       if (!nom) continue;
       const segment = nom.nom.split('/')[occurrence.rangSegment] ?? '';
       const mots = motsDuSegment(lexique, segment);
-      if (suite.length > 1 && !contientLaSuite(mots, suite, occurrence.rangMot)) continue;
       const vu = parSegment.get(segment) ?? { mots, noms: new Set<string>(), exemple: nom.nom };
       vu.noms.add(nom.id);
       parSegment.set(segment, vu);
@@ -724,16 +798,23 @@ export function projeter(entree: EntreeDeProjection): Projection {
   function diagnostic(): DiagnosticDuVocabulaire {
     const collections = new Map(entree.inventaire.entrees.map((dedans) => [dedans.nom.id, dedans.contexte?.collection ?? null]));
     const nouveaux = new Map(entree.resultat.renommages.map((renommage) => [renommage.id, renommage.nouveauNom]));
-    const enQuestion = termesEnQuestion();
     return {
       ecriture: entree.ecriture,
       termes: listeDesTermes().map(({ trouve: _trouve, ...terme }) => ({
-        ...terme, question: enQuestion.get(terme.mot)?.question ?? null, segments: segmentsDuTerme(terme.mot),
+        ...terme, question: questionDuTerme(terme.mot)?.question ?? null, segments: segmentsDuTerme(terme.mot),
       })),
-      noms: [...lexique.noms.values()].map((nom) => ({
-        nom: nom.nom, collection: collections.get(nom.id) ?? null, categorie: nom.categorie,
-        mots: nom.nom.split('/').map((segment) => motsDuSegment(lexique, segment)), nouveau: nouveaux.get(nom.id) ?? null,
-      })),
+      noms: [...lexique.noms.values()].map((nom) => {
+        const segments = nom.nom.split('/');
+        const plages = lexique.termes.get(nom.id) ?? [];
+        return {
+          nom: nom.nom, collection: collections.get(nom.id) ?? null, categorie: nom.categorie,
+          mots: segments.map((segment) => motsDuSegment(lexique, segment)),
+          natures: lexique.natures.get(nom.id) ?? segments.map(() => null),
+          termes: segments.map((segment, rang) => nom.categorie === 'collections' ? []
+            : (plages[rang] ?? []).map(([debut, fin]) => formeDeLaPlage(segment, motsDuSegment(lexique, segment), debut, fin))),
+          nouveau: nouveaux.get(nom.id) ?? null,
+        };
+      }),
     };
   }
 

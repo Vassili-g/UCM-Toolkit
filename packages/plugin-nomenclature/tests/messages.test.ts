@@ -51,6 +51,14 @@ for (const [type, messages] of Object.entries(refuses)) {
     for (const message of messages) assert.equal(estUiMessage(message), false, JSON.stringify(message).slice(0, 120));
   });
 }
+test('termes accepte les cinq filtres de la liste et refuse les autres', () => {
+  for (const filtre of ['tous', 'avec-regle', 'sans-regle', 'composants', 'palettes']) {
+    assert.equal(estUiMessage({ ...(valides.termes as object), filtre }), true, filtre);
+  }
+  for (const filtre of ['composant', 'palette', 'Composants', '', null, 3]) {
+    assert.equal(estUiMessage({ ...(valides.termes as object), filtre }), false, String(filtre));
+  }
+});
 test('une valeur qui n’est pas un objet, ou de type inconnu, est refusée', () => {
   for (const brut of [null, undefined, 'analyser', 3, [], { type: 'inconnu', demande: 1 }]) assert.equal(estUiMessage(brut), false);
 });

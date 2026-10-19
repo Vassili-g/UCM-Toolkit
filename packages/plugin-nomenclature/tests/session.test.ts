@@ -67,6 +67,7 @@ function banc(variables: readonly (readonly [string, string])[], regles: Record<
     variables: async () => [...noms].map(([id, name]) => ({ id, name, variableCollectionId: 'c', remote: false })),
     cibleAlias: () => undefined,
     protegee: () => false,
+    palette: () => undefined,
   };
   const port: PortDeRegles = {
     cles: () => [...stock.keys()],

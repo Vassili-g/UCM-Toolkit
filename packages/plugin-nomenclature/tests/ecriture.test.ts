@@ -45,6 +45,7 @@ function banc(options: { variables?: readonly SpecVariable[]; collections?: read
   const lecture: LecteurDeVariable = {
     cibleAlias: () => undefined,
     protegee: (variable) => protegees.includes(variable.id),
+    palette: () => undefined,
   };
   const session: SessionEcriture = {
     get inventaire() { return inventaireDeLectures(...lectures(), lecture); },

@@ -19,6 +19,8 @@ import {
 
 const FICHE: FicheVue = {
   mot: 'outlined',
+  forme: 'outlined',
+  nature: null,
   origine: 'personnalise',
   categorieUcm: null,
   definition: 'Bordure sans fond.',

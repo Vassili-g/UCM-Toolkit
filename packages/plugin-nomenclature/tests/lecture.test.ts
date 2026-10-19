@@ -4,12 +4,13 @@ import test from 'node:test';
 import { inventaireDeLectures, lireInventaire, TAILLE_DU_LOT, variablesSuiviesParPalettes, type AvancementLecture, type PortDeLecture, type VariableLue } from '../src/lecture';
 import { creerPortDeLecture } from '../src/lectureFigma';
 
-function portDeTest(variables: readonly VariableLue[], extras: { alias?: Record<string, string>; protegees?: readonly string[]; traces?: string[] } = {}): PortDeLecture {
+function portDeTest(variables: readonly VariableLue[], extras: { alias?: Record<string, string>; protegees?: readonly string[]; palettes?: Record<string, string>; traces?: string[] } = {}): PortDeLecture {
   return {
     collections: async () => [{ id: 'local', name: 'Local', remote: false }, { id: 'remote', name: 'Remote', remote: true }],
     variables: async () => variables,
     cibleAlias: (variable) => { extras.traces?.push(`alias:${variable.id}`); return extras.alias?.[variable.id]; },
     protegee: (variable) => extras.protegees?.includes(variable.id) ?? false,
+    palette: (variable) => extras.palettes?.[variable.id],
   };
 }
 const variable = (id: string, name = id, variableCollectionId = 'local', remote = false): VariableLue => ({ id, name, variableCollectionId, remote });
@@ -37,6 +38,14 @@ test('la protection et l’alias du premier mode se lisent sur chaque variable',
   assert.equal(parNom.b.nom.cibleAlias, 'VariableID:1:2');
   assert.equal(parNom.c.protegee, true);
   assert.equal(inventaire.entrees.find((entree) => entree.cible.type === 'collection')?.protegee, false);
+});
+
+test('l’identifiant de palette d’une variable entre dans son nom lu, et seulement quand il n’est pas vide', async () => {
+  const inventaire = await lireInventaire(portDeTest([variable('a', 'colors/Poppy/50'), variable('b', 'colors/Poppy/100')], { palettes: { a: 'poppy-id' } }), { pause: async () => {} });
+  const [a, b] = inventaire.entrees.filter((entree) => entree.cible.type === 'variable');
+  assert.equal(a.nom.palette, 'poppy-id');
+  assert.equal('palette' in b.nom, false);
+  assert.equal(inventaire.entrees[0].nom.palette, undefined);
 });
 
 test('les segments avant le nom final d’une variable sont ses groupes', async () => {
@@ -90,7 +99,8 @@ test('l’adaptateur Figma lit l’alias du premier mode et la donnée partagée
   const inventaire = await lireInventaire(creerPortDeLecture(api as unknown as PluginAPI), { pause: async () => {} });
   const variablesLues = inventaire.entrees.filter((entree) => entree.cible.type === 'variable');
   assert.deepEqual(variablesLues.map((entree) => [entree.nom.cibleAlias, entree.protegee]), [['VariableID:1:2', false], [undefined, true], [undefined, false]]);
-  assert.ok(lectures.length === 3 && lectures.every((lecture) => lecture === 'ucm_palettes/palette'));
+  assert.deepEqual(variablesLues.map((entree) => entree.nom.palette), [undefined, 'Brand', undefined]);
+  assert.ok(lectures.length === 3 && lectures.every((lecture) => lecture === 'ucm_palettes/palette'), 'la donnée de chaque variable se lit une seule fois');
 });
 
 test('AC7 : l’analyse ne propose pas une variable reprise que Palettes suit, et lit la racine une fois', async () => {

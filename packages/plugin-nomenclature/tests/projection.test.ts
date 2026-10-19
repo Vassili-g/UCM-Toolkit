@@ -7,7 +7,7 @@ import {
 } from '@ucm-kit/core/referentiel';
 import type { EntreeInventaire, Inventaire } from '../src/lecture';
 import type { EcritureChoisie } from '../src/messages';
-import { conflitVue, effetDEcriture, effetDeTerme, projeter, TAILLE_DE_L_APERCU, TAILLE_DE_PAGE, type EntreeDeProjection } from '../src/projection';
+import { conflitVue, effetDEcriture, effetDeTerme, projeter, TAILLE_DE_L_APERCU, TAILLE_DE_PAGE, type EntreeDeProjection, type RequeteDeTermes } from '../src/projection';
 import { reglesVides, type ReglesDuFichier } from '../src/regles';
 
 const minusculesTirets = { casse: 'minuscules', separateur: 'tiret' } as const;
@@ -289,16 +289,19 @@ test('la liste des termes dit le statut, l’origine et ce que chaque terme remp
   }));
   const liste = projection.termes({ recherche: '', filtre: 'tous', debut: 0 });
   const parMot = new Map(liste.termes.map((terme) => [terme.mot, terme]));
-  assert.deepEqual(parMot.get('pressed'), { mot: 'pressed', origine: 'ucm', statut: 'regle', remplace: ['press'], avec: null, nombre: 1, trouve: null });
+  assert.deepEqual(parMot.get('pressed'), { mot: 'pressed', forme: 'pressed', nature: null, origine: 'ucm', statut: 'regle', remplace: ['press'], avec: null, nombre: 1, trouve: null });
   assert.equal(parMot.has('press'), false);
-  assert.deepEqual(parMot.get('outlined'), { mot: 'outlined', origine: 'personnalise', statut: 'regle', remplace: ['outline'], avec: null, nombre: 0, trouve: null });
+  assert.deepEqual(parMot.get('outlined'), { mot: 'outlined', forme: 'outlined', nature: null, origine: 'personnalise', statut: 'regle', remplace: ['outline'], avec: null, nombre: 0, trouve: null });
   assert.equal(parMot.has('outline'), false);
-  assert.deepEqual(parMot.get('disabled'), { mot: 'disabled', origine: 'ucm', statut: 'ecart', remplace: [], avec: null, nombre: 0, trouve: null });
-  assert.deepEqual(parMot.get('gap'), { mot: 'gap', origine: null, statut: 'a-trancher', remplace: [], avec: 'space', nombre: 3, trouve: null });
-  assert.deepEqual(parMot.get('button'), { mot: 'button', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 6, trouve: null });
+  assert.deepEqual(parMot.get('disabled'), { mot: 'disabled', forme: 'disabled', nature: null, origine: 'ucm', statut: 'ecart', remplace: [], avec: null, nombre: 0, trouve: null });
+  assert.deepEqual(parMot.get('gap'), { mot: 'gap', forme: 'gap', nature: null, origine: null, statut: 'a-trancher', remplace: [], avec: 'space', nombre: 3, trouve: null });
+  assert.deepEqual(parMot.get('button'), { mot: 'button', forme: 'button', nature: 'composant', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 6, trouve: null });
   assert.equal(parMot.has('extra-small'), false);
   assert.equal(parMot.has('hover'), true);
-  assert.deepEqual(liste.comptes, { tous: liste.total, avecRegle: liste.termes.filter((t) => t.statut === 'regle' || t.statut === 'ecart').length, sansRegle: liste.termes.filter((t) => t.statut === 'a-trancher' || t.statut === 'sans-regle').length });
+  assert.deepEqual(liste.comptes, {
+    tous: liste.total, avecRegle: liste.termes.filter((t) => t.statut === 'regle' || t.statut === 'ecart').length,
+    sansRegle: liste.termes.filter((t) => (t.statut === 'a-trancher' || t.statut === 'sans-regle') && t.nature === null).length, composants: 1, palettes: 0,
+  });
   assert.deepEqual(liste.termes.slice(0, 2).map((terme) => terme.mot), ['button', 'gap']);
 });
 
@@ -318,9 +321,11 @@ test('les filtres et la recherche réduisent la liste sans changer les comptes',
   const tous = projection.termes({ recherche: '', filtre: 'tous', debut: 0 });
   const avec = projection.termes({ recherche: '', filtre: 'avec-regle', debut: 0 });
   const sans = projection.termes({ recherche: '', filtre: 'sans-regle', debut: 0 });
-  assert.equal(avec.total + sans.total, tous.total);
+  const composants = projection.termes({ recherche: '', filtre: 'composants', debut: 0 });
+  assert.deepEqual(composants.termes.map((terme) => terme.mot), ['button']);
+  assert.equal(avec.total + sans.total + composants.total, tous.total, 'un nom n’est ni avec règle ni sans règle');
   assert.ok(avec.termes.every((terme) => terme.statut === 'regle' || terme.statut === 'ecart'));
-  assert.ok(sans.termes.every((terme) => terme.statut === 'sans-regle' || terme.statut === 'a-trancher'));
+  assert.ok(sans.termes.every((terme) => (terme.statut === 'sans-regle' || terme.statut === 'a-trancher') && terme.nature === null));
   assert.deepEqual(avec.comptes, tous.comptes);
   const recherche = projection.termes({ recherche: '  PRESS ', filtre: 'tous', debut: 0 });
   assert.deepEqual(recherche.termes.map((terme) => [terme.mot, terme.trouve]), [['pressed', null]]);
@@ -374,7 +379,7 @@ test('un terme de plusieurs mots se compte par la suite de ses mots', () => {
   const projection = projeter(calculer(fichierDesTermes, { termes: [{ terme: ['extra', 'small'], remplace: [['xs']] }] }));
   assert.equal(projection.fiche('extra-small').emploi.nombre, 1);
   const terme = projection.termes({ recherche: 'extra-small', filtre: 'tous', debut: 0 }).termes[0];
-  assert.deepEqual(terme, { mot: 'extra-small', origine: 'personnalise', statut: 'regle', remplace: ['xs'], avec: null, nombre: 1, trouve: null });
+  assert.deepEqual(terme, { mot: 'extra-small', forme: 'extra-small', nature: null, origine: 'personnalise', statut: 'regle', remplace: ['xs'], avec: null, nombre: 1, trouve: null });
 });
 
 // Les conflits et les effets
@@ -495,4 +500,159 @@ test('l’effet d’une question réécrit le terme remplacé dans l’écriture
   assert.deepEqual(effets(colles)[0], { id: 'd', ancien: 'link/contrasthovered/text', nouveau: 'link/contrast-hovered/text', marques: [1], aussi: [] });
   assert.equal(effets(paireDe('p4', [termeEnQuestion('bg', 1, ['e']), background], 1))[0]?.nouveau, 'Link/ButtonBackground/text');
   assert.equal(effets(paireDe('p5', [termeEnQuestion('bg', 1, []), background], 1))[0], null);
+});
+
+// Le vocabulaire sur un extrait du Playground
+
+const crans = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+const playground: Fichier = {
+  collections: [['c1', 'components'], ['c2', 'primitives'], ['c3', 'typography'], ['c4', 'theme']],
+  variables: [
+    ...variables(
+      ['s1', 'StressTest/Info/ScaleWrap/Colors/Scale-1'], ['s2', 'StressTest/Info/ScaleWrap/Colors/Scale-2'], ['s3', 'StressTest/Info/TextColumns/Colors/Title'],
+      ['b1', 'Button/Colors/Primary/Outlined/Default/Background'], ['b2', 'Button/Colors/Primary/Outlined/Hover/Background'], ['b3', 'Button/Sizes/Medium/Padding-x'],
+    ),
+    ...crans.map((cran) => ({ id: `p${cran}`, nom: `colors/Poppy/soft/light/${cran}`, collection: 'c2' })),
+    ...['3xl', 'xl', 'base'].map((taille) => ({ id: `l${taille}`, nom: `lineheight/${taille}`, collection: 'c3' })),
+    ...['base', 'lg'].map((taille) => ({ id: `f${taille}`, nom: `fontsize/${taille}`, collection: 'c3' })),
+    { id: 'd1', nom: 'Display/Large/LineHeight', collection: 'c4' },
+  ],
+};
+
+/** Toutes les pages d'un filtre, du premier terme au dernier. */
+function listeComplete(projection: ReturnType<typeof projeter>, filtre: RequeteDeTermes['filtre']) {
+  const termes = [];
+  for (let debut = 0; ; debut += TAILLE_DE_PAGE) {
+    const page = projection.termes({ recherche: '', filtre, debut });
+    termes.push(...page.termes);
+    if (termes.length >= page.total) return { termes, comptes: page.comptes };
+  }
+}
+
+test('les morceaux de termes et les noms de collections n’ont plus de ligne', () => {
+  const { termes } = listeComplete(projeter(calculer(playground)), 'tous');
+  const mots = new Set(termes.map((terme) => terme.mot));
+  for (const absent of ['line', 'height', 'stress', 'test', 'wrap', 'columns', 'text', 'components', 'primitives', 'typography', 'theme']) {
+    assert.equal(mots.has(absent), false, absent);
+  }
+  for (const present of ['stress-test', 'scale-wrap', 'text-columns', 'line-height', 'font-size', 'button', 'poppy']) assert.equal(mots.has(present), true, present);
+});
+
+test('un nom de composant se compte une fois par nom et porte sa forme et sa nature', () => {
+  const projection = projeter(calculer(playground));
+  const { termes } = listeComplete(projection, 'tous');
+  const terme = (mot: string) => termes.find((autre) => autre.mot === mot)!;
+  assert.deepEqual(terme('stress-test'), { mot: 'stress-test', forme: 'StressTest', nature: 'composant', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 3, trouve: null });
+  assert.deepEqual([terme('button').forme, terme('button').nature, terme('button').nombre], ['Button', 'composant', 3]);
+  assert.deepEqual([terme('scale-wrap').forme, terme('scale-wrap').nature, terme('scale-wrap').nombre], ['ScaleWrap', 'element', 2]);
+  assert.deepEqual([terme('text-columns').forme, terme('text-columns').nature], ['TextColumns', 'element']);
+  assert.deepEqual([terme('poppy').forme, terme('poppy').nature, terme('poppy').nombre], ['Poppy', 'palette', crans.length]);
+  assert.equal(terme('info').nature, null);
+});
+
+test('line-height compte lineheight et LineHeight, et garde la forme la plus fréquente', () => {
+  const projection = projeter(calculer(playground));
+  const { termes } = listeComplete(projection, 'tous');
+  const lineHeight = termes.find((terme) => terme.mot === 'line-height')!;
+  assert.deepEqual([lineHeight.forme, lineHeight.nature, lineHeight.nombre], ['lineheight', null, 4]);
+  assert.deepEqual(projection.fiche('line-height').emploi.exemples.map((ligne) => [ligne.ancien, ligne.marques]), [
+    ['lineheight/3xl', [0]], ['lineheight/xl', [0]], ['lineheight/base', [0]],
+  ]);
+  assert.equal(projection.fiche('line-height').emploi.nombre, 4);
+});
+
+test('à égalité, la forme est la première rencontrée ; une forme partielle garde ses séparateurs d’origine', () => {
+  const egalite: Fichier = { collections: [['c', 'theme']], variables: variables(['a', 'lineHeight/a'], ['b', 'lineheight/b']) };
+  assert.equal(projeter(calculer(egalite)).fiche('line-height').forme, 'lineHeight');
+  const partielles: Fichier = {
+    collections: [['c', 'theme']],
+    variables: variables(['a', 'Card/max-width-large'], ['b', 'Card/Max-Width-xl'], ['c', 'Card/max-width-sm'], ['d', 'Card/primaryBg']),
+  };
+  const projection = projeter(calculer(partielles));
+  assert.equal(projection.fiche('max-width').forme, 'max-width');
+  assert.equal(projection.fiche('max-width').emploi.nombre, 3);
+  assert.equal(projection.fiche('bg').forme, 'Bg');
+  assert.equal(projection.fiche('primary').forme, 'primary');
+  assert.equal(projection.fiche('inconnu').forme, 'inconnu', 'sans occurrence, la forme est la clé');
+});
+
+test('Sans règle ne contient ni composant, ni élément, ni palette ; Composants et Palettes les séparent', () => {
+  const projection = projeter(calculer(playground));
+  const sans = listeComplete(projection, 'sans-regle').termes.map((terme) => terme.mot);
+  for (const nom of ['button', 'stress-test', 'scale-wrap', 'text-columns', 'poppy']) assert.equal(sans.includes(nom), false, nom);
+  assert.deepEqual(sans, ['outlined', 'padding'], 'les mots du fichier que ni le référentiel ni une règle ne couvrent');
+  const composants = listeComplete(projection, 'composants').termes.map((terme) => terme.mot).sort();
+  assert.deepEqual(composants, ['button', 'scale-wrap', 'stress-test', 'text-columns']);
+  assert.deepEqual(listeComplete(projection, 'palettes').termes.map((terme) => terme.mot), ['poppy']);
+});
+
+test('les cinq comptes sont ceux des cinq filtres et ne changent pas avec la recherche', () => {
+  const projection = projeter(calculer(playground));
+  const { termes, comptes } = listeComplete(projection, 'tous');
+  assert.equal(comptes.tous, termes.length);
+  assert.equal(comptes.avecRegle, listeComplete(projection, 'avec-regle').termes.length);
+  assert.equal(comptes.sansRegle, listeComplete(projection, 'sans-regle').termes.length);
+  assert.equal(comptes.composants, 4);
+  assert.equal(comptes.palettes, 1);
+  assert.equal(comptes.tous, comptes.avecRegle + comptes.sansRegle + comptes.composants + comptes.palettes, 'aucun nom n’a de règle ici : chaque terme est dans un seul groupe');
+  assert.deepEqual(projection.termes({ recherche: 'xyz', filtre: 'palettes', debut: 0 }), { termes: [], total: 0, comptes });
+});
+
+test('la recherche lit la clé, la forme et les variantes', () => {
+  const projection = projeter(calculer(playground));
+  const cherche = (recherche: string) => projection.termes({ recherche, filtre: 'tous', debut: 0 }).termes.map((terme) => terme.mot);
+  assert.deepEqual(cherche('stress-t'), ['stress-test']);
+  assert.deepEqual(cherche('STRESSTEST'), ['stress-test'], 'la forme, sans le tiret de la clé');
+  assert.deepEqual(cherche('lineheight'), ['line-height']);
+  assert.deepEqual(cherche('line-height'), ['line-height']);
+});
+
+test('la fiche d’un nom rend sa forme et sa nature, et marque le segment entier du nom', () => {
+  const projection = projeter(calculer(playground));
+  const fiche = projection.fiche('scale-wrap');
+  assert.deepEqual([fiche.mot, fiche.forme, fiche.nature, fiche.origine, fiche.question], ['scale-wrap', 'ScaleWrap', 'element', null, null]);
+  assert.deepEqual(fiche.emploi.exemples, [
+    { id: 's1', ancien: 'StressTest/Info/ScaleWrap/Colors/Scale-1', nouveau: 'StressTest/Info/ScaleWrap/Colors/Scale-1', marques: [2], aussi: [] },
+    { id: 's2', ancien: 'StressTest/Info/ScaleWrap/Colors/Scale-2', nouveau: 'StressTest/Info/ScaleWrap/Colors/Scale-2', marques: [2], aussi: [] },
+  ]);
+  assert.equal(fiche.emploi.nombre, 2);
+  const composant = projection.fiche('Stress-Test');
+  assert.deepEqual([composant.forme, composant.nature, composant.emploi.nombre, composant.emploi.exemples[0].marques], ['StressTest', 'composant', 3, [0]]);
+  assert.deepEqual([projection.fiche('poppy').nature, projection.fiche('info').nature, projection.fiche('info').forme], ['palette', null, 'Info']);
+});
+
+test('un terme règle ne perd pas sa nature, et une question ne rend jamais un nom « à trancher »', () => {
+  const entree = calculer(playground, {
+    termes: [{ terme: ['button'], remplace: [['btn']] }],
+    questions: { questions: [{ type: 'paire', cle: 'paire:outlined|stress-test', indice: 'synonymes', termes: [termeEnQuestion('outlined', 2, ['b1']), termeEnQuestion('stress-test', 3, ['s1'])], propose: 0, score: 5 }], autres: [] },
+  });
+  const projection = projeter(entree);
+  const { termes } = listeComplete(projection, 'tous');
+  const button = termes.find((terme) => terme.mot === 'button')!;
+  assert.deepEqual([button.statut, button.nature, button.avec], ['regle', 'composant', null]);
+  assert.equal(termes.find((terme) => terme.mot === 'stress-test')!.statut, 'sans-regle');
+  assert.deepEqual(termes.find((terme) => terme.mot === 'outlined')!.statut, 'a-trancher');
+  assert.equal(projection.fiche('stress-test').question, null);
+  assert.equal(projection.fiche('outlined').question, 'paire:outlined|stress-test');
+  assert.equal(listeComplete(projection, 'avec-regle').termes.some((terme) => terme.mot === 'button'), true);
+  assert.equal(listeComplete(projection, 'composants').termes.some((terme) => terme.mot === 'button'), true);
+  assert.equal(listeComplete(projection, 'sans-regle').termes.some((terme) => terme.mot === 'outlined'), true);
+});
+
+test('le détail du vocabulaire porte la forme et la nature de chaque terme, et les natures et termes de chaque nom', () => {
+  const projection = projeter(calculer(playground));
+  const detail = projection.diagnostic();
+  const terme = detail.termes.find((autre) => autre.mot === 'stress-test')!;
+  assert.deepEqual([terme.forme, terme.nature, terme.nombre], ['StressTest', 'composant', 3]);
+  assert.deepEqual(terme.segments, [{ segment: 'StressTest', mots: ['Stress', 'Test'], noms: 3, exemple: 'StressTest/Info/ScaleWrap/Colors/Scale-1' }]);
+  const nom = (texte: string) => detail.noms.find((autre) => autre.nom === texte)!;
+  const scale = nom('StressTest/Info/ScaleWrap/Colors/Scale-1');
+  assert.deepEqual(scale.natures, ['composant', null, 'element', null, null]);
+  assert.deepEqual(scale.termes, [['StressTest'], ['Info'], ['ScaleWrap'], ['Colors'], ['Scale', '1']]);
+  assert.deepEqual(nom('Display/Large/LineHeight').termes, [['Display'], ['Large'], ['LineHeight']]);
+  assert.deepEqual(nom('lineheight/3xl').termes, [['lineheight'], ['3xl']]);
+  assert.deepEqual(nom('colors/Poppy/soft/light/50').natures, [null, 'palette', null, null, null]);
+  const collection = nom('components');
+  assert.deepEqual([collection.categorie, collection.natures, collection.termes], ['collections', [null], [[]]]);
+  assert.equal(detail.termes.length, listeComplete(projection, 'tous').termes.length);
 });
