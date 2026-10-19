@@ -973,8 +973,14 @@ button.tete-bouton {
 }
 
 /* Lot U4b : contenu des feuilles de l'écriture et des termes. */
+/* Le terme garde sa largeur, la pastille d'origine se pose à côté et le ✕ reste au bord. */
 .feuille-terme .feuille-titre {
+  flex: 0 1 auto;
   font-family: var(--police-code);
+}
+
+.feuille-terme .feuille-fermer {
+  margin-left: auto;
 }
 
 .feuille-contenu {
@@ -1033,10 +1039,150 @@ button.tete-bouton {
   gap: var(--espace-serre) var(--espace-controle);
 }
 
-.fiche-exemples {
+/*
+ * La fiche d'un terme : la règle dans un bloc gris, sans rouge ni vert, puis les
+ * noms qu'elle change et les noms qui l'emploient déjà dans des listes bordées.
+ */
+.fiche-regle {
+  display: grid;
+  gap: var(--espace-controle);
+  padding: var(--espace-bloc);
+  border-radius: var(--rayon);
+  background: var(--fond-bloc);
+}
+
+.fiche-regle-tete {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.titre-regle {
+  margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.chiffres {
+  color: var(--texte-second);
+}
+
+.chiffres b {
+  color: var(--texte);
+  font-weight: 600;
+}
+
+.jeton-variante {
+  box-shadow: inset 0 0 0 1px var(--bordure);
+  color: var(--texte);
+}
+
+.compte-jeton {
+  margin-left: var(--espace-serre);
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.retirer-jeton {
+  margin-left: 2px;
+  padding: 0 0 0 2px;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.jeton-ajout {
+  border: 1px dashed var(--bordure);
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+}
+
+.retirer-jeton:disabled,
+.jeton-ajout:disabled,
+.lien:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.retirer-jeton:focus-visible,
+.jeton-ajout:focus-visible,
+.lien:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.fiche-bloc {
   display: grid;
   gap: var(--espace-serre);
+}
+
+.fiche-bloc-tete {
+  display: flex;
+  min-height: var(--hauteur-secondaire);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.fiche-bloc-tete h3 {
+  margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.lien {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--texte-marque);
+  cursor: pointer;
+  font: inherit;
+}
+
+.fiche-liste {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.fiche-liste > * {
   padding: var(--espace-controle) var(--espace-bloc);
+  border-top: 1px solid var(--bordure);
+}
+
+.fiche-liste > :first-child {
+  border-top: 0;
+}
+
+.fiche-liste .colonnes-tete,
+.fiche-liste .diff {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.fiche-liste .colonnes-tete {
+  padding-bottom: 0;
+}
+
+.terme-employe {
+  color: var(--texte);
+  font-weight: 600;
+}
+
+.btn-texte.danger,
+.btn-texte.danger:hover:not(:disabled) {
+  color: var(--texte-danger);
+}
+
+@media (max-width: 519px) {
+  .fiche-liste .diff {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .fiche-copie {

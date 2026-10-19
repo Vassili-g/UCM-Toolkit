@@ -124,6 +124,20 @@ test('l’onglet choisi se retient ; choisir le même onglet ne change rien', ()
   assert.equal(etatSuivant(regles, recu()).onglet, 'regles');
 });
 
+test('une carte demandée ouvre À appliquer et retient sa clé jusqu’au prochain onglet ou bilan', () => {
+  const regles = jouer(recu(), { type: 'onglet-choisi', onglet: 'regles' });
+  assert.equal(regles.carteDemandee, null);
+  const demandee = etatSuivant(regles, { type: 'carte-demandee', cle: 'terme:background' });
+  assert.equal(demandee.onglet, 'a-appliquer');
+  assert.equal(demandee.carteDemandee, 'terme:background');
+  assert.equal(demandee.ecran, 'travail');
+  assert.equal(etatSuivant(demandee, { type: 'carte-demandee', cle: 'terme:background' }), demandee);
+  assert.equal(etatSuivant(demandee, { type: 'carte-demandee', cle: 'terme:hover' }).carteDemandee, 'terme:hover');
+  assert.equal(etatSuivant(demandee, { type: 'onglet-choisi', onglet: 'a-appliquer' }).carteDemandee, null);
+  assert.equal(etatSuivant(demandee, { type: 'onglet-choisi', onglet: 'regles' }).carteDemandee, null);
+  assert.equal(etatSuivant(demandee, recu()).carteDemandee, null);
+});
+
 test('les messages de lecture, de simulation et de résultat ne changent pas l’état', () => {
   const travail = jouer(recu());
   const sansEffet: Evenement[] = [

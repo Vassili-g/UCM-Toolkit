@@ -33,17 +33,21 @@ export interface EtatDeLEcran {
   /** Vrai de l'erreur `fichier-modifie` jusqu'au bilan suivant. */
   readonly fichierModifie: boolean;
   readonly configurationOuverte: boolean;
+  /** La clé du groupe que la fiche d'un terme a demandé de déplier dans À appliquer ; `null` dès que l'onglet change ou qu'un bilan arrive. */
+  readonly carteDemandee: string | null;
 }
 
 /** Les gestes locaux, qui ne passent pas par le sandbox. */
 export type EvenementLocal =
   | { readonly type: 'configuration-ouverte' }
   | { readonly type: 'configuration-fermee' }
-  | { readonly type: 'onglet-choisi'; readonly onglet: Onglet };
+  | { readonly type: 'onglet-choisi'; readonly onglet: Onglet }
+  /** Ouvre l'onglet À appliquer et retient la clé du groupe à déplier. */
+  | { readonly type: 'carte-demandee'; readonly cle: string };
 
 export type Evenement = MessageAAfficher | EvenementLocal;
 
-type Brut = Pick<EtatDeLEcran, 'onglet' | 'bilan' | 'analyse' | 'fichierModifie' | 'configurationOuverte'>;
+type Brut = Pick<EtatDeLEcran, 'onglet' | 'bilan' | 'analyse' | 'fichierModifie' | 'configurationOuverte' | 'carteDemandee'>;
 
 /** Les noms que le bilan propose de renommer, collections comprises, et les questions à trancher. */
 export function comptesDuBilan(bilan: Bilan | null): EtatDeLEcran['comptes'] {
@@ -87,10 +91,11 @@ function composer(brut: Brut): EtatDeLEcran {
     particulier: particulierDe(ecranDeTravail, brut),
     fichierModifie: brut.fichierModifie,
     configurationOuverte: brut.configurationOuverte,
+    carteDemandee: brut.carteDemandee,
   };
 }
 
-export const ETAT_INITIAL: EtatDeLEcran = composer({ onglet: 'a-appliquer', bilan: null, analyse: null, fichierModifie: false, configurationOuverte: false });
+export const ETAT_INITIAL: EtatDeLEcran = composer({ onglet: 'a-appliquer', bilan: null, analyse: null, fichierModifie: false, configurationOuverte: false, carteDemandee: null });
 
 /**
  * Les messages qui ne changent pas l'écran (`lignes`, `termes`, `fiche`,
@@ -102,11 +107,11 @@ export function etatSuivant(etat: EtatDeLEcran, evenement: Evenement): EtatDeLEc
     case 'initial':
       return composer({ ...ETAT_INITIAL, analyse: evenement.dejaAnalyse ? { lues: 0, total: 0 } : null });
     case 'analyse-demandee':
-      return composer({ ...etat, analyse: { lues: 0, total: 0 }, fichierModifie: false });
+      return composer({ ...etat, analyse: { lues: 0, total: 0 }, fichierModifie: false, carteDemandee: null });
     case 'lecture':
       return composer({ ...etat, analyse: { lues: evenement.lues, total: evenement.total } });
     case 'bilan':
-      return composer({ ...etat, bilan: evenement.bilan, analyse: null, fichierModifie: false });
+      return composer({ ...etat, bilan: evenement.bilan, analyse: null, fichierModifie: false, carteDemandee: null });
     case 'erreur': {
       const fichierModifie = etat.fichierModifie || evenement.code === 'fichier-modifie';
       return etat.analyse === null && fichierModifie === etat.fichierModifie ? etat : composer({ ...etat, analyse: null, fichierModifie });
@@ -116,7 +121,9 @@ export function etatSuivant(etat: EtatDeLEcran, evenement: Evenement): EtatDeLEc
     case 'configuration-fermee':
       return etat.configurationOuverte ? composer({ ...etat, configurationOuverte: false }) : etat;
     case 'onglet-choisi':
-      return evenement.onglet === etat.onglet ? etat : composer({ ...etat, onglet: evenement.onglet });
+      return evenement.onglet === etat.onglet && etat.carteDemandee === null ? etat : composer({ ...etat, onglet: evenement.onglet, carteDemandee: null });
+    case 'carte-demandee':
+      return evenement.cle === etat.carteDemandee && etat.onglet === 'a-appliquer' ? etat : composer({ ...etat, onglet: 'a-appliquer', carteDemandee: evenement.cle });
     default:
       return etat;
   }

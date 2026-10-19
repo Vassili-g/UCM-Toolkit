@@ -28,6 +28,10 @@ export interface Coquille {
   /** Rend la fonction qui retire l'écouteur. */
   abonner(ecouteur: Ecouteur): () => void;
   choisirOnglet(onglet: Onglet): void;
+  /** Ouvre l'onglet À appliquer, puis appelle le rappel de `surCarteDemandee` avec la clé du groupe à déplier. */
+  demanderUneCarte(cle: string): void;
+  /** Branche le dépliage d'une carte de À appliquer. */
+  surCarteDemandee(rappel: (cle: string) => void): void;
 }
 
 interface CompteDOnglet {
@@ -43,6 +47,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   let etat = ETAT_INITIAL;
   let prete = false;
   const ecouteurs = new Set<Ecouteur>();
+  let deplierUneCarte: (cle: string) => void = () => {};
 
   function appliquerLEtat(suivant: EtatDeLEcran): boolean {
     if (suivant === etat) return false;
@@ -181,6 +186,13 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     },
     choisirOnglet: (onglet) => {
       appliquerLEtat(etatSuivant(etat, { type: 'onglet-choisi', onglet }));
+    },
+    demanderUneCarte(cle) {
+      appliquerLEtat(etatSuivant(etat, { type: 'carte-demandee', cle }));
+      deplierUneCarte(cle);
+    },
+    surCarteDemandee(rappel) {
+      deplierUneCarte = rappel;
     },
   };
 }

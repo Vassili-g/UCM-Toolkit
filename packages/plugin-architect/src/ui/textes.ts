@@ -266,7 +266,6 @@ export const TEXTES = {
   autresPistes: (nombre: number): string => `Autres pistes · ${nombre}`,
 
   // U4b : feuilles de l'écriture et des termes.
-  fermer: 'Fermer',
   aucunNomNeChange: 'Aucun nom ne change avec ce choix.',
   pastilleUcmDeCategorie: (categorie: string): string => `UCM · ${categorie}`,
   /** Le nom que le designer donne à la famille d'un terme UCM ; une famille inconnue garde son identifiant. */
@@ -289,23 +288,32 @@ export const TEXTES = {
   lectureDuTerme: 'Lecture du terme…',
   definitionPersonnalisee: 'Défini dans ce fichier.',
   termeEcarte: 'Ce terme n’est pas appliqué dans ce fichier.',
-  termeRemplacePar: (par: string): string => `Remplacé par \`${par}\`.`,
   questionSurLeTerme: 'Une question à trancher porte sur ce terme.',
 
-  sectionRemplace: 'Remplace',
-  ajouterUnTerme: '+ Ajouter',
+  regle: 'Règle',
+  formesFixeesParUcm: 'Formes fixées par UCM',
+  ajouterUnTerme: '+ Terme',
+  /** Le nom accessible du × d'un terme remplacé. */
+  retirerLeTerme: (terme: string): string => `Retirer ${terme}`,
+  /** « 12 variables à renommer · 40 déjà écrites ainsi » : le morceau en gras est marqué `gras`. */
+  chiffresDeLaRegle: (aRenommer: number, dejaEcrites: number): readonly { readonly texte: string; readonly gras: boolean }[] => [
+    { texte: nombreDeNoms(aRenommer, 0), gras: true },
+    { texte: ' à renommer · ', gras: false },
+    { texte: String(dejaEcrites), gras: true },
+    { texte: dejaEcrites === 1 ? ' déjà écrite ainsi' : ' déjà écrites ainsi', gras: false },
+  ],
+  titreARenommer: (nombre: number): string => `À renommer · ${nombre}`,
+  voirDansRenommages: 'Voir dans Renommages',
+  titreDejaEmploye: (nombre: number): string => `Déjà employé · ${nombre}`,
   retirer: 'Retirer',
-  retirerLeTermeRemplace: (mot: string): string => `Retirer ${mot} des termes remplacés`,
-  sectionEmploi: 'Employé dans',
   sectionGardeSepare: 'Gardé séparé de',
   retirerLaSeparation: (mot: string, autre: string): string => `Ne plus garder ${mot} séparé de ${autre}`,
   ecritureVoulue: 'Ce terme est gardé tel qu’il est écrit.',
   retirerLEcritureVoulue: (mot: string): string => `Ne plus garder ${mot} tel qu’il est écrit`,
 
-  nePasLAppliquer: 'Ne pas l’appliquer dans ce fichier',
+  nePasLAppliquer: 'Ne pas appliquer ce terme dans ce fichier',
   appliquerDeNouveau: 'Appliquer de nouveau dans ce fichier',
   supprimerLaRegle: 'Supprimer la règle',
-  retirerCeRemplacement: 'Retirer ce remplacement',
   proposerAUcm: 'Proposer à UCM',
   proposerAUcmCopie: 'Copié, à transmettre à UCM',
   copieRefusee: 'La copie a été refusée. Sélectionnez ce texte, copiez-le, puis transmettez-le à UCM.',

@@ -165,7 +165,7 @@ function fabriquerLaTete(groupe: GroupeVue): HTMLElement {
 }
 
 /** Un nom découpé en segments : seuls ceux de `marques` prennent la couleur de leur colonne. */
-function poserLesSegments(parent: HTMLElement, nom: string, marques: readonly number[], colonne: 'ancien' | 'nouveau'): void {
+export function poserLesSegments(parent: HTMLElement, nom: string, marques: readonly number[], colonne: 'ancien' | 'nouveau'): void {
   segmentsDeNom(nom, marques).forEach((segment, rang) => {
     if (rang > 0) parent.append(document.createTextNode('/'));
     if (!segment.marque) {
@@ -285,6 +285,8 @@ export function ouvrirConfirmation({ variables, collections, renommer, auRetour 
 interface CarteDeGroupe {
   readonly groupe: GroupeVue;
   readonly element: HTMLElement;
+  /** Déplie la carte, la montre et y pose le focus ; sans effet quand elle n'a rien à déplier. */
+  deplier(): void;
   /** Remet les cases, le détail et le bouton des autres noms d'accord avec le modèle. */
   rafraichir(): void;
   recevoirLesLignes(message: Extract<PluginMessage, { type: 'lignes' }>): void;
@@ -460,6 +462,12 @@ export function monterAAppliquer(coquille: Coquille): void {
     return {
       groupe,
       element,
+      deplier() {
+        if (!peutSeDeplier) return;
+        regler(true);
+        element.scrollIntoView({ block: 'nearest' });
+        bouton.focus();
+      },
       rafraichir,
       recevoirLesLignes(message) {
         if (message.groupe !== cle || !demandee || message.debut !== demandee.debut) return;
@@ -704,6 +712,8 @@ export function monterAAppliquer(coquille: Coquille): void {
         break;
     }
   });
+
+  coquille.surCarteDemandee((cle) => cartes.find((carte) => carte.groupe.cle === cle)?.deplier());
 
   const dejaLu = coquille.etat().bilan;
   if (dejaLu) traiterLeBilan(dejaLu);

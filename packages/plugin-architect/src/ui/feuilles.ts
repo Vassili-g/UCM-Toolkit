@@ -1,19 +1,22 @@
 /**
  * Les feuilles de l'onglet Règles : l'écriture des noms, la fiche d'un terme
- * (UCM, personnalisé, remplacé par un autre ou sans règle) et les deux étapes
- * « Remplacer par… » et « Remplace d'autres termes… », qui prennent la place de
- * la fiche dans la même feuille. Une seule feuille est ouverte à la fois.
+ * (UCM, personnalisé ou sans règle) et les deux étapes « Remplacer par… » et
+ * « Remplace d'autres termes… », qui prennent la place de la fiche dans la même
+ * feuille. Une seule feuille est ouverte à la fois. Un terme remplacé n'a pas de
+ * fiche : la liste ne le montre pas, sa référence porte la règle.
  *
  * Chaque changement part par `coquille.frontiere.regle` et la feuille attend le
  * `bilan` de sa demande ; l'effet d'un choix se lit avant, par `simuler`.
  */
 import { REGISTRES, type Terme } from '@ucm-kit/core/referentiel';
-import { createButton } from 'ucm-plugin-socle/src/ui/Button';
+import { createButton, type BoutonUi } from 'ucm-plugin-socle/src/ui/Button';
 import { createFeuille } from 'ucm-plugin-socle/src/ui/Feuille';
 import type { ConflitVue, EffetVue, FicheVue, GesteSurLesRegles, LigneVue, PluginMessage, TermeDeListe } from '../messages';
+import { poserLesSegments } from './aAppliquer';
 import type { Coquille } from './coquille';
 import { creerCarteDEcriture } from './ecriture';
 import type { MessageAAfficher } from './frontiere';
+import { segmentsDeNom } from './lignes';
 import { carteDeConflit } from './questions';
 import type { ReglesMontees } from './regles';
 import { TEXTES } from './textes';
@@ -21,16 +24,95 @@ import { TEXTES } from './textes';
 /** Le délai après lequel une saisie calme demande sa simulation. */
 const DELAI_DE_SIMULATION = 250;
 
-export type SorteDeFiche = 'ucm' | 'personnalise' | 'remplace' | 'sans-regle';
+export type SorteDeFiche = 'ucm' | 'personnalise' | 'sans-regle';
 
-/**
- * La fiche qu'une ligne de la liste ouvre. Un terme que la liste dit remplacé
- * par un autre ne se modifie pas ici : le terme qui le remplace porte la règle.
- */
-export function sorteDeFiche(terme: Pick<TermeDeListe, 'avec'>, fiche: Pick<FicheVue, 'origine'>): SorteDeFiche {
-  if (terme.avec !== null) return 'remplace';
+/** La fiche qu'une ligne de la liste ouvre, selon l'origine du terme. */
+export function sorteDeFiche(fiche: Pick<FicheVue, 'origine'>): SorteDeFiche {
   if (fiche.origine === 'ucm') return 'ucm';
   return fiche.origine === 'personnalise' ? 'personnalise' : 'sans-regle';
+}
+
+/** Les textes de gris sous le titre : la définition, puis l'écart ou la question qui porte sur le terme. */
+export function lignesDIdentite(sorte: SorteDeFiche, fiche: Pick<FicheVue, 'definition' | 'ecart' | 'question'>): string[] {
+  const lignes = [
+    fiche.definition ?? (sorte === 'personnalise' ? TEXTES.definitionPersonnalisee : null),
+    fiche.ecart ? TEXTES.termeEcarte : null,
+    sorte === 'sans-regle' && fiche.question !== null ? TEXTES.questionSurLeTerme : null,
+  ];
+  return lignes.filter((texte): texte is string => texte !== null);
+}
+
+/** La pastille d'origine à côté du terme, dans l'en-tête de la feuille. */
+export function pastilleDeLaFiche(
+  sorte: SorteDeFiche,
+  fiche: Pick<FicheVue, 'categorieUcm'>,
+  enAttente: boolean,
+): { readonly texte: string; readonly variante: 'ucm' | 'personnalise' | 'indice' } {
+  if (sorte === 'sans-regle') return { texte: enAttente ? TEXTES.pastilleATrancherDuTerme : TEXTES.pastilleSansRegle, variante: 'indice' };
+  if (sorte === 'personnalise') return { texte: TEXTES.pastillePersonnalise, variante: 'personnalise' };
+  return { texte: fiche.categorieUcm ? TEXTES.pastilleUcmDeCategorie(TEXTES.categorieDuTermeUcm(fiche.categorieUcm)) : TEXTES.pastilleUcm, variante: 'ucm' };
+}
+
+export type BlocDeFiche = 'identite' | 'regle' | 'gardes-separes' | 'ecriture-gardee' | 'a-renommer' | 'deja-employe';
+
+/**
+ * Les blocs du corps d'une fiche, dans l'ordre. La règle n'existe que pour un terme
+ * UCM ou personnalisé. À renommer disparaît quand aucun nom ne change, Déjà employé
+ * quand aucun nom n'emploie le terme.
+ */
+export function blocsDeLaFiche(
+  sorte: SorteDeFiche,
+  fiche: Pick<FicheVue, 'definition' | 'ecart' | 'question' | 'distincts' | 'voulu' | 'aRenommer' | 'emploi'>,
+): BlocDeFiche[] {
+  return [
+    ...(lignesDIdentite(sorte, fiche).length > 0 ? (['identite'] as const) : []),
+    ...(sorte === 'sans-regle' ? [] : (['regle'] as const)),
+    ...(fiche.distincts.length > 0 ? (['gardes-separes'] as const) : []),
+    ...(fiche.voulu ? (['ecriture-gardee'] as const) : []),
+    ...(sorte !== 'sans-regle' && fiche.aRenommer.nombre > 0 ? (['a-renommer'] as const) : []),
+    ...(fiche.emploi.exemples.length > 0 ? (['deja-employe'] as const) : []),
+  ];
+}
+
+export interface FormeDeLaRegle { readonly mot: string; readonly nombre: number; readonly retirable: boolean }
+
+/** Les termes remplacés d'une règle. Seul un terme que le fichier a ajouté se retire : UCM fixe les autres. */
+export function formesDeLaRegle(fiche: Pick<FicheVue, 'remplace'>): FormeDeLaRegle[] {
+  return fiche.remplace.map(({ mot, nombre, ucm }) => ({ mot, nombre, retirable: !ucm }));
+}
+
+/** Vrai quand la règle remplace des termes et qu'UCM les fixe tous. */
+export function formesToutesFixeesParUcm(fiche: Pick<FicheVue, 'remplace'>): boolean {
+  return fiche.remplace.length > 0 && fiche.remplace.every(({ ucm }) => ucm);
+}
+
+export type ActionDuPied =
+  | 'ne-pas-appliquer'
+  | 'appliquer-de-nouveau'
+  | 'supprimer-la-regle'
+  | 'proposer-a-ucm'
+  | 'remplace-d-autres-termes'
+  | 'remplacer-par';
+
+/** Le texte de chaque action du pied. */
+export function libelleDeLAction(action: ActionDuPied): string {
+  switch (action) {
+    case 'ne-pas-appliquer': return TEXTES.nePasLAppliquer;
+    case 'appliquer-de-nouveau': return TEXTES.appliquerDeNouveau;
+    case 'supprimer-la-regle': return TEXTES.supprimerLaRegle;
+    case 'proposer-a-ucm': return TEXTES.proposerAUcm;
+    case 'remplace-d-autres-termes': return TEXTES.remplaceDAutresTermes;
+    case 'remplacer-par': return TEXTES.remplacerParPoints;
+  }
+}
+
+/** Le pied d'une fiche : une action à gauche, ou aucune, puis les actions à droite. Aucune fiche de terme n'a de bouton Fermer : le ✕ du socle ferme. */
+export function piedDeLaFiche(sorte: SorteDeFiche, fiche: Pick<FicheVue, 'ecart'>): { readonly gauche: ActionDuPied | null; readonly droite: readonly ActionDuPied[] } {
+  switch (sorte) {
+    case 'ucm': return { gauche: fiche.ecart ? 'appliquer-de-nouveau' : 'ne-pas-appliquer', droite: [] };
+    case 'personnalise': return { gauche: 'supprimer-la-regle', droite: ['proposer-a-ucm'] };
+    case 'sans-regle': return { gauche: 'remplace-d-autres-termes', droite: ['remplacer-par'] };
+  }
 }
 
 /** Les termes d'une saisie, séparés par des espaces, des virgules ou des points-virgules, en minuscules et sans doublon. */
@@ -281,13 +363,12 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
     let zone = el('div');
     zone.setAttribute('aria-live', 'polite');
 
-    const fermer = createButton({ label: TEXTES.fermer, variant: 'secondary', onClick: () => feuille.fermer() });
     const attendre = creerLeContenu();
     attendre.append(zone, demandeDeFiche === null ? creerErreur(TEXTES.erreur.echec) : el('p', 'meta', TEXTES.lectureDuTerme));
     const feuille = createFeuille({
       titre: entree.mot,
       corps: attendre,
-      pied: creerLePied(null, fermer),
+      pied: creerLePied(null),
       onFermer: () => {
         if (minuteur !== null) clearTimeout(minuteur);
         ouverte = null;
@@ -305,16 +386,24 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
       return bouton;
     }
 
-    function actionTexte(libelle: string, auClic: () => void, etiquette?: string): HTMLButtonElement {
-      const bouton = el('button', 'btn-texte', libelle);
+    /** Un bouton sans classe : l'appelant pose la sienne, en littéral, pour que la loi des styles la voie. */
+    function creerUnBoutonNu(libelle: string, auClic: () => void, etiquette?: string): HTMLButtonElement {
+      const bouton = el('button', '', libelle);
       bouton.type = 'button';
       if (etiquette) bouton.setAttribute('aria-label', etiquette);
       bouton.addEventListener('click', auClic);
       return enregistrerLeBouton(bouton);
     }
 
-    function creerUnBouton(libelle: string, variante: 'primary' | 'secondary', auClic: () => void, compact = false): HTMLButtonElement {
-      return enregistrerLeBouton(createButton({ label: libelle, variant: variante, compact, onClick: auClic }));
+    function actionTexte(libelle: string, auClic: () => void, etiquette?: string, danger = false): HTMLButtonElement {
+      const bouton = creerUnBoutonNu(libelle, auClic, etiquette);
+      bouton.className = 'btn-texte';
+      if (danger) bouton.classList.add('danger');
+      return bouton;
+    }
+
+    function creerUnBouton(libelle: string, variante: 'primary' | 'secondary', auClic: () => void): BoutonUi {
+      return enregistrerLeBouton(createButton({ label: libelle, variant: variante, onClick: auClic }));
     }
 
     function figer(oui: boolean): void {
@@ -373,58 +462,152 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
       return terme;
     }
 
-    function creerEntete(donnees: FicheVue, sorte: SorteDeFiche): HTMLElement {
-      const entete = el('div');
-      entete.className = 'fiche-entete';
-      const ucm = donnees.origine === 'ucm';
-      if (sorte === 'sans-regle') entete.append(creerPastille(entree.statut === 'a-trancher' ? TEXTES.pastilleATrancherDuTerme : TEXTES.pastilleSansRegle, 'indice'));
-      else if (ucm) entete.append(creerPastille(donnees.categorieUcm ? TEXTES.pastilleUcmDeCategorie(TEXTES.categorieDuTermeUcm(donnees.categorieUcm)) : TEXTES.pastilleUcm, 'ucm'));
-      else entete.append(creerPastille(TEXTES.pastillePersonnalise, 'personnalise'));
-      const lignes: (string | null)[] = [
-        donnees.definition ?? (sorte === 'personnalise' ? TEXTES.definitionPersonnalisee : null),
-        donnees.ecart ? TEXTES.termeEcarte : null,
-        sorte === 'remplace' && entree.avec !== null ? TEXTES.termeRemplacePar(entree.avec) : null,
-        sorte === 'sans-regle' && donnees.question !== null ? TEXTES.questionSurLeTerme : null,
-      ];
-      for (const texte of lignes) {
-        if (texte === null) continue;
+    /** La pastille d'origine se pose dans l'en-tête du socle, à côté du terme ; `null` la retire. */
+    function poserLOrigine(origine: ReturnType<typeof pastilleDeLaFiche> | null): void {
+      feuille.element.querySelector('.feuille-entete .pastille')?.replaceWith();
+      if (origine !== null) feuille.element.querySelector('.feuille-titre')?.after(creerPastille(origine.texte, origine.variante));
+    }
+
+    function creerLIdentite(sorte: SorteDeFiche, donnees: FicheVue): HTMLElement {
+      const identite = el('div');
+      identite.className = 'fiche-entete';
+      for (const texte of lignesDIdentite(sorte, donnees)) {
         const ligne = el('p', 'meta');
         poserLeTexte(ligne, texte);
-        entete.append(ligne);
+        identite.append(ligne);
       }
-      return entete;
+      return identite;
     }
 
-    function creerLaSectionRemplace(donnees: FicheVue): HTMLElement {
-      const rangs = donnees.remplace.map(({ mot, nombre, ucm }) =>
-        creerUnRang(
-          creerLeTerme(mot, TEXTES.variablesDeLaCollection(nombre)),
-          ucm ? null : actionTexte(TEXTES.retirer, () => envoyer({ type: 'retirer-remplace', terme: donnees.mot, remplace: mot }, 'relire'), TEXTES.retirerLeTermeRemplace(mot)),
+    /** Le bloc gris : la référence, les termes qu'elle remplace, `+ Terme`, puis les nombres. Aucune couleur de conséquence. */
+    function creerLaRegle(donnees: FicheVue): HTMLElement {
+      const titre = el('h3', '', TEXTES.regle);
+      titre.className = 'titre-regle';
+      const tete = el('div');
+      tete.className = 'fiche-regle-tete';
+      tete.append(titre);
+      if (formesToutesFixeesParUcm(donnees)) tete.append(el('span', 'meta', TEXTES.formesFixeesParUcm));
+
+      const ligne = el('span');
+      ligne.className = 'regle-ligne';
+      const reference = el('span', '', donnees.mot);
+      reference.className = 'jeton jeton-neutre';
+      ligne.append(reference, el('span', 'variantes', TEXTES.motRemplace));
+      for (const { mot, nombre, retirable } of formesDeLaRegle(donnees)) {
+        const jeton = el('span', '', mot);
+        jeton.className = 'jeton jeton-variante';
+        const compte = el('span', '', String(nombre));
+        compte.className = 'compte-jeton';
+        jeton.append(compte);
+        if (retirable) {
+          const retirer = creerUnBoutonNu('×', () => envoyer({ type: 'retirer-remplace', terme: donnees.mot, remplace: mot }, 'relire'), TEXTES.retirerLeTerme(mot));
+          retirer.className = 'retirer-jeton';
+          jeton.append(retirer);
+        }
+        ligne.append(jeton);
+      }
+      const ajouter = creerUnBoutonNu(TEXTES.ajouterUnTerme, () => montrerUneEtape('remplace-termes'));
+      ajouter.className = 'jeton jeton-ajout';
+      ligne.append(ajouter);
+
+      const chiffres = el('span');
+      chiffres.className = 'chiffres';
+      for (const { texte, gras } of TEXTES.chiffresDeLaRegle(donnees.aRenommer.nombre, donnees.emploi.nombre)) {
+        chiffres.append(gras ? el('b', '', texte) : document.createTextNode(texte));
+      }
+      const regle = el('div');
+      regle.className = 'fiche-regle';
+      regle.append(tete, ligne, chiffres);
+      return regle;
+    }
+
+    /** Un bloc titré dont le corps est une liste bordée, avec un lien à droite du titre si `lien` est donné. */
+    function creerLeBloc(titre: string, lignes: readonly HTMLElement[], lien: HTMLElement | null = null): HTMLElement {
+      const tete = el('div');
+      tete.className = 'fiche-bloc-tete';
+      tete.append(el('h3', '', titre));
+      if (lien) tete.append(lien);
+      const liste = el('div');
+      liste.className = 'fiche-liste';
+      liste.append(...lignes);
+      const bloc = el('div');
+      bloc.className = 'fiche-bloc';
+      bloc.append(tete, liste);
+      return bloc;
+    }
+
+    /** Les noms que la règle change, sur deux colonnes sans case : le nom actuel, puis le nom après l'application. */
+    function creerARenommer(donnees: FicheVue): HTMLElement {
+      const legende = el('div');
+      legende.className = 'colonnes-tete';
+      legende.append(el('span', '', TEXTES.legendeAujourdhui), el('span', '', TEXTES.legendeApres));
+      const lignes = donnees.aRenommer.exemples.map((ligne) => {
+        const diff = el('div');
+        diff.className = 'diff';
+        const avant = el('span');
+        avant.className = 'chemin';
+        poserLesSegments(avant, ligne.ancien, ligne.marques, 'ancien');
+        const apres = el('span');
+        apres.className = 'chemin-apres';
+        const fleche = el('span', '', '→ ');
+        fleche.className = 'fleche-ligne';
+        apres.append(fleche);
+        poserLesSegments(apres, ligne.nouveau, ligne.marques, 'nouveau');
+        diff.append(avant, apres);
+        return diff;
+      });
+      // Sans carte dans le bilan, `demanderUneCarte` ouvre seulement l'onglet.
+      const voir = creerUnBoutonNu(TEXTES.voirDansRenommages, () => {
+        feuille.fermer();
+        coquille.demanderUneCarte(`terme:${donnees.mot}`);
+      });
+      voir.className = 'lien';
+      return creerLeBloc(TEXTES.titreARenommer(donnees.aRenommer.nombre), [legende, ...lignes], voir);
+    }
+
+    /** Les noms qui emploient déjà le terme : le segment du terme en blanc et en 600, le reste en gris. */
+    function creerDejaEmploye(donnees: FicheVue): HTMLElement {
+      const lignes = donnees.emploi.exemples.map((ligne) => {
+        const chemin = el('span');
+        chemin.className = 'chemin';
+        segmentsDeNom(ligne.ancien, ligne.marques).forEach((segment, rang) => {
+          if (rang > 0) chemin.append(document.createTextNode('/'));
+          if (!segment.marque) {
+            chemin.append(document.createTextNode(segment.texte));
+            return;
+          }
+          const employe = el('span', '', segment.texte);
+          employe.className = 'terme-employe';
+          chemin.append(employe);
+        });
+        return chemin;
+      });
+      return creerLeBloc(TEXTES.titreDejaEmploye(donnees.emploi.nombre), lignes);
+    }
+
+    function creerGardesSepares(donnees: FicheVue): HTMLElement {
+      return creerLaSection(
+        TEXTES.sectionGardeSepare,
+        ...donnees.distincts.map((autre) =>
+          creerUnRang(
+            creerLeTerme(autre, null),
+            actionTexte(TEXTES.retirer, () => envoyer({ type: 'retirer-distinct', termes: [donnees.mot, autre] }, 'relire'), TEXTES.retirerLaSeparation(donnees.mot, autre)),
+          ),
         ),
       );
-      const section = creerLaSection(TEXTES.sectionRemplace, ...rangs);
-      section.firstElementChild?.append(creerUnBouton(TEXTES.ajouterUnTerme, 'secondary', () => montrerUneEtape('remplace-termes'), true));
-      return section;
     }
 
-    function creerLaSectionEmploi(donnees: FicheVue): HTMLElement {
-      const section = creerLaSection(TEXTES.sectionEmploi);
-      section.firstElementChild?.append(el('span', 'meta', TEXTES.variablesDeLaCollection(donnees.emploi.nombre)));
-      if (donnees.emploi.exemples.length > 0) {
-        const exemples = el('div');
-        exemples.className = 'carte fiche-exemples';
-        exemples.append(...donnees.emploi.exemples.map(creerChemin));
-        section.append(exemples);
-      }
-      return section;
+    function creerEcritureGardee(donnees: FicheVue): HTMLElement {
+      const texte = el('span', 'meta', TEXTES.ecritureVoulue);
+      return creerLaSection(TEXTES.ecritureGardee, creerUnRang(texte, actionTexte(TEXTES.retirer, () => envoyer({ type: 'retirer-voulu', terme: donnees.mot }, 'relire'), TEXTES.retirerLEcritureVoulue(donnees.mot))));
     }
 
-    function proposerAUcm(donnees: FicheVue, bouton: HTMLButtonElement): void {
+    function proposerAUcm(donnees: FicheVue, bouton: BoutonUi): void {
       const texte = texteDeLaProposition(donnees);
       void copierTexte(texte).then((issue) => {
         if (ouverte === null || !bouton.isConnected) return;
         if (issue === 'copie') {
-          bouton.textContent = TEXTES.proposerAUcmCopie;
+          bouton.setLabel(TEXTES.proposerAUcmCopie);
           return;
         }
         const copie = el('textarea');
@@ -438,37 +621,45 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
       });
     }
 
+    function creerLAction(action: ActionDuPied, donnees: FicheVue): HTMLButtonElement {
+      const libelle = libelleDeLAction(action);
+      switch (action) {
+        case 'ne-pas-appliquer':
+        case 'appliquer-de-nouveau':
+          return actionTexte(libelle, () => envoyer({ type: 'ecart-ucm', terme: donnees.mot, actif: !donnees.ecart }, 'relire'));
+        case 'supprimer-la-regle':
+          return actionTexte(libelle, () => envoyer({ type: 'supprimer', terme: donnees.mot }, 'fermer'), undefined, true);
+        case 'proposer-a-ucm': {
+          const proposer = creerUnBouton(libelle, 'secondary', () => proposerAUcm(donnees, proposer));
+          return proposer;
+        }
+        case 'remplace-d-autres-termes':
+          return creerUnBouton(libelle, 'secondary', () => montrerUneEtape('remplace-termes'));
+        case 'remplacer-par':
+          return creerUnBouton(libelle, 'primary', () => montrerUneEtape('remplacer-par'));
+      }
+    }
+
     function creerLePiedDeLaFiche(donnees: FicheVue, sorte: SorteDeFiche): HTMLElement {
-      const fermerLaFiche = creerUnBouton(TEXTES.fermer, 'secondary', () => feuille.fermer());
-      switch (sorte) {
-        case 'ucm':
-          return creerLePied(
-            actionTexte(donnees.ecart ? TEXTES.appliquerDeNouveau : TEXTES.nePasLAppliquer, () => envoyer({ type: 'ecart-ucm', terme: donnees.mot, actif: !donnees.ecart }, 'relire')),
-            fermerLaFiche,
-          );
-        case 'personnalise': {
-          const proposer = actionTexte(TEXTES.proposerAUcm, () => proposerAUcm(donnees, proposer));
-          return creerLePied(proposer, creerUnBouton(TEXTES.supprimerLaRegle, 'secondary', () => envoyer({ type: 'supprimer', terme: donnees.mot }, 'fermer')));
-        }
-        case 'sans-regle':
-          return creerLePied(
-            creerUnBouton(TEXTES.remplaceDAutresTermes, 'secondary', () => montrerUneEtape('remplace-termes')),
-            creerUnBouton(TEXTES.remplacerParPoints, 'primary', () => montrerUneEtape('remplacer-par')),
-          );
-        case 'remplace': {
-          const parTerme = entree.avec;
-          const retirer = donnees.origine === 'personnalise' && parTerme !== null
-            ? actionTexte(TEXTES.retirerCeRemplacement, () => envoyer({ type: 'retirer-remplace', terme: parTerme, remplace: donnees.mot }, 'fermer'))
-            : null;
-          return creerLePied(retirer, fermerLaFiche);
-        }
+      const { gauche, droite } = piedDeLaFiche(sorte, donnees);
+      return creerLePied(gauche === null ? null : creerLAction(gauche, donnees), ...droite.map((action) => creerLAction(action, donnees)));
+    }
+
+    function creerLeBlocDeFiche(bloc: BlocDeFiche, sorte: SorteDeFiche, donnees: FicheVue): HTMLElement {
+      switch (bloc) {
+        case 'identite': return creerLIdentite(sorte, donnees);
+        case 'regle': return creerLaRegle(donnees);
+        case 'gardes-separes': return creerGardesSepares(donnees);
+        case 'ecriture-gardee': return creerEcritureGardee(donnees);
+        case 'a-renommer': return creerARenommer(donnees);
+        case 'deja-employe': return creerDejaEmploye(donnees);
       }
     }
 
     function montrerLaFiche(): void {
       if (!fiche) return;
       const donnees = fiche;
-      const sorte = sorteDeFiche(entree, donnees);
+      const sorte = sorteDeFiche(donnees);
       etape = null;
       simulation = null;
       boutons = [];
@@ -476,29 +667,9 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
       zone.setAttribute('aria-live', 'polite');
 
       const corps = creerLeContenu();
-      corps.append(zone, creerEntete(donnees, sorte));
-      if (sorte === 'ucm' || sorte === 'personnalise') corps.append(creerLaSectionRemplace(donnees));
-      if (donnees.distincts.length > 0) {
-        corps.append(
-          creerLaSection(
-            TEXTES.sectionGardeSepare,
-            ...donnees.distincts.map((autre) =>
-              creerUnRang(
-                creerLeTerme(autre, null),
-                actionTexte(TEXTES.retirer, () => envoyer({ type: 'retirer-distinct', termes: [donnees.mot, autre] }, 'relire'), TEXTES.retirerLaSeparation(donnees.mot, autre)),
-              ),
-            ),
-          ),
-        );
-      }
-      if (donnees.voulu) {
-        const texte = el('span', 'meta', TEXTES.ecritureVoulue);
-        corps.append(
-          creerLaSection(TEXTES.ecritureGardee, creerUnRang(texte, actionTexte(TEXTES.retirer, () => envoyer({ type: 'retirer-voulu', terme: donnees.mot }, 'relire'), TEXTES.retirerLEcritureVoulue(donnees.mot)))),
-        );
-      }
-      corps.append(creerLaSectionEmploi(donnees));
+      corps.append(zone, ...blocsDeLaFiche(sorte, donnees).map((bloc) => creerLeBlocDeFiche(bloc, sorte, donnees)));
       feuille.remplacer({ titre: donnees.mot, corps, pied: creerLePiedDeLaFiche(donnees, sorte) });
+      poserLOrigine(pastilleDeLaFiche(sorte, donnees, entree.statut === 'a-trancher'));
     }
 
     function montrerUneEtape(genre: 'remplacer-par' | 'remplace-termes'): void {
@@ -597,6 +768,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
         corps,
         pied: creerLePied(null, enregistrer),
       });
+      poserLOrigine(null);
       saisie.focus();
     }
 
