@@ -136,6 +136,39 @@ test('un nouveau bilan rend caduques les lectures en attente, même leur erreur'
   assert.equal(affichees.length, avant);
 });
 
+test("l'écho d'une demande de lecture est ignoré, puis la vraie réponse est affichée", () => {
+  const ficheVide = { mot: 'bg', origine: null, categorieUcm: null, definition: null, remplace: [], emploi: { nombre: 0, exemples: [] }, ecart: false, voulu: false, distincts: [], question: null };
+  const formes: Array<{ ouvrir: (f: ReturnType<typeof creer>['frontiere']) => number; echo: (demande: number) => unknown; reponse: (demande: number) => PluginMessage }> = [
+    {
+      ouvrir: (f) => f.termes('', 'tous', 0) as number,
+      echo: (demande) => ({ type: 'termes', demande, generation: 1, debut: 0, requete: '' }),
+      reponse: (demande) => ({ type: 'termes', demande, generation: 1, debut: 0, termes: [], total: 0, comptes: { tous: 0, avecRegle: 0, sansRegle: 0 } }),
+    },
+    {
+      ouvrir: (f) => f.fiche('bg') as number,
+      echo: (demande) => ({ type: 'fiche', demande, generation: 1, mot: 'bg' }),
+      reponse: (demande) => ({ type: 'fiche', demande, generation: 1, fiche: ficheVide }),
+    },
+    {
+      ouvrir: (f) => f.lignes('g', 0) as number,
+      echo: (demande) => ({ type: 'lignes', demande, generation: 1, groupe: 'g', debut: 0 }),
+      reponse: (demande) => ({ type: 'lignes', demande, generation: 1, groupe: 'g', debut: 0, lignes: [], total: 0 }),
+    },
+  ];
+  for (const forme of formes) {
+    const { frontiere, affichees, analyser } = creer();
+    analyser(1);
+    const demande = forme.ouvrir(frontiere);
+    const avant = affichees.length;
+    frontiere.recevoir(forme.echo(demande) as PluginMessage);
+    assert.equal(affichees.length, avant, "l'écho est ignoré");
+    const reponse = forme.reponse(demande);
+    frontiere.recevoir(reponse);
+    assert.equal(affichees.length, avant + 1, 'la vraie réponse est affichée');
+    assert.equal(affichees[affichees.length - 1], reponse);
+  }
+});
+
 test('un bilan qui garde la même génération ne rend pas les lectures caduques', () => {
   const { frontiere, affichees, analyser } = creer();
   analyser(1);

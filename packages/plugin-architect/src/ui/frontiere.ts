@@ -122,8 +122,25 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     terminerLeCalcul();
   }
 
+  function aSonContenu(message: Extract<PluginMessage, { type: 'lignes' | 'termes' | 'fiche' | 'simulation' }>): boolean {
+    const contenu = message as unknown as Record<string, unknown>;
+    switch (message.type) {
+      case 'termes':
+        return Array.isArray(contenu.termes);
+      case 'lignes':
+        return Array.isArray(contenu.lignes);
+      case 'fiche':
+        return typeof contenu.fiche === 'object' && contenu.fiche !== null;
+      default:
+        return true;
+    }
+  }
+
   function recevoirUneLecture(message: Extract<PluginMessage, { type: 'lignes' | 'termes' | 'fiche' | 'simulation' }>): void {
     if (!lectures.has(message.demande) || message.generation !== generation) return;
+    // Hors Figma l'écran reçoit ses propres demandes : l'écho porte le même numéro
+    // mais pas de contenu. Il ne doit pas consommer la lecture en attente.
+    if (!aSonContenu(message)) return;
     oublierUneLecture(message.demande);
     options.afficher(message);
   }
