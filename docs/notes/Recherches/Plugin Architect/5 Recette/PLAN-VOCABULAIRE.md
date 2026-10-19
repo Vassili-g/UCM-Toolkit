@@ -303,28 +303,31 @@ Agent : `implementeur-exigeant` (protocole entre le sandbox et l'écran).
 Fichiers : `src/messages.ts`, `src/projection.ts`, `src/session.ts` (lecture
 `termes`), `src/ui/frontiere.ts` (la demande seulement), leurs tests.
 
-- [ ] Écriture : la `forme` d'un terme avec règle est son terme de référence
+- [x] Écriture : la `forme` d'un terme avec règle est son terme de référence
   écrit dans la convention de la catégorie qui l'emploie le plus
   (`entree.ecriture.groupes` ou `.variables` ; `Color` pour un dossier en
   PascalCase, `line-height` pour une variable). `remplace` porte les formes du
   fichier de chaque variante (`Colors`, `colors`).
-- [ ] Type d'un terme : `a-trancher`, `remplace` (règle avec des variantes
+- [x] Type d'un terme : `a-trancher`, `remplace` (règle avec des variantes
   dans le fichier), `conforme` (règle sans variante), `sans-regle` (y compris
   une règle UCM écartée), `composant`, `palette` (la nature passe avant la
   règle).
-- [ ] Demande `termes` : `recherche`, `types` (vide = tous), `origines`
+- [x] Demande `termes` : `recherche`, `types` (vide = tous), `origines`
   (`ucm`, `personnalise` ; vide = toutes ; ne filtre que `remplace` et
   `conforme`), `tri` (`alpha` ou `nombre`), `section` (un type ou `null`),
   `debut`.
-- [ ] Réponse : les sections non vides dans l'ordre des types, chacune avec
+- [x] Réponse : les sections non vides dans l'ordre des types, chacune avec
   son total et ses cinq premières lignes ; avec `section`, une page de
   cinquante lignes de ce seul type. `comptes` par type et par origine, sans
   tenir compte des filtres.
-- [ ] Tri `alpha` : sur la forme affichée, sans tenir compte des majuscules,
+- [x] Tri `alpha` : sur la forme affichée, sans tenir compte des majuscules,
   les nombres par valeur, les tailles dans l'ordre de `REGISTRE_TAILLES`. Tri
   `nombre` : nombre de noms décroissant, puis `alpha`. Pas d'`Intl` : le
   sandbox de Figma ne le garantit pas.
-- [ ] Tests sur l'extrait du Playground.
+- [x] Tests sur l'extrait du Playground.
+  Fait en 559dbc61 ; le kit exporte les fonctions d'écriture (ee39eda7). Un
+  terme réglé compte aussi les noms de ses variantes ; un nom garde sa forme
+  du fichier ; les tailles se trient entre elles, après les autres termes.
 
 ### T-U · L'écran du tour 2 (plugin, après T-S)
 
@@ -333,18 +336,22 @@ Agent : `implementeur-exigeant` (reproduire la maquette). Fichiers :
 `src/ui/textes.ts`, `src/ui/styles.css`, `src/ui/icones.ts` (nouveau),
 `galerie/`, leurs tests.
 
-- [ ] Une section par type, repliable, ouverte par défaut, palettes
+- [x] Une section par type, repliable, ouverte par défaut, palettes
   comprises ; une icône grise par type, ambre pour « À trancher » ;
   « Afficher les N autres » demande la page de la section.
-- [ ] Barre : « Filtrer » ouvre un menu de cases à cocher (types, origine de
+- [x] Barre : « Filtrer » ouvre un menu de cases à cocher (types, origine de
   la règle) ; les filtres actifs en jetons retirables ; la recherche ; le
   tri.
-- [ ] La ligne affiche la `forme` ; une règle garde son jeton gris et sa
+- [x] La ligne affiche la `forme` ; une règle garde son jeton gris et sa
   pastille d'origine.
-- [ ] Fiche : la définition sous le nom, dans l'en-tête ; dans le bloc de la
+- [x] Fiche : la définition sous le nom, dans l'en-tête ; dans le bloc de la
   règle, le jeton du terme prend le fond de la page et une bordure.
-- [ ] Galerie : la vue en sections, le menu ouvert, la fiche d'un cran UCM.
+- [x] Galerie : la vue en sections, le menu ouvert, la fiche d'un cran UCM.
+  Fait en c0c4e7fe (fiche) et 93c19449 (sections, menu, tri, galerie). Le
+  titre de la fiche écrit la forme, comme la ligne.
 
 ### T-F · Fin
 
-- [ ] `npm test` à la racine, build du plugin, galerie ; plan coché.
+- [x] `npm test` à la racine, build du plugin, galerie ; plan coché.
+  Dix paquets, aucun échec ; kit 0.9.8, cli 0.1.67, adapter 0.1.60
+  (d032c79f), montée commune avec le plan des noms de palettes.
