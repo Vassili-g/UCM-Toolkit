@@ -24,7 +24,7 @@ const reglesAvecNoms = () => [...ouvert(bilans.travail), clic('#onglet-regles'),
 const termeOuvert = (rang, fiche) => [
   ...reglesOuvertes(),
   clic(`.liste-termes .ligne-terme:nth-child(${rang})`, '.feuille'),
-  msg(messages.fiche(4, fiche), '.fiche-entete'),
+  msg(messages.fiche(4, fiche), '.fiche-bloc, .fiche-regle'),
 ];
 /** Le délai de la simulation d'une saisie : l'écran attend 250 ms avant de demander. */
 const delai = () => Array.from({ length: 60 }, () => ({ survol: 'body' }));
@@ -108,7 +108,7 @@ module.exports.ETATS = [
     termeOuvert(5, fiches.sansRegle)),
   etat('feuille-composant', 'Feuille d’un composant', 'Le designer ouvre Button, nom d’un composant du fichier.',
     'Button et la pastille grise Composant dans l’en-tête, la phrase « Nom d’un composant du fichier… » et le lien Traiter comme un terme, Déjà employé ; Remplace d’autres termes… et Remplacer par… en bas.',
-    [...reglesAvecNoms(), clic('.liste-termes .ligne-terme:nth-child(2)', '.feuille'), msg(messages.fiche(4, fiches.composant), '.fiche-entete')]),
+    [...reglesAvecNoms(), clic('.liste-termes .ligne-terme:nth-child(2)', '.feuille'), msg(messages.fiche(4, fiches.composant), '.fiche-bloc, .fiche-regle')]),
   etat('feuille-remplacer-par', 'Remplacer par…', 'Le designer choisit le terme qui remplacera radius.',
     'L’étape dans la même feuille : le champ, le retour ‹, l’effet « 9 variables rejoindront les renommages » avec un chemin réel.',
     [...termeOuvert(5, fiches.sansRegle), clic('.feuille-groupe .btn-primary', '#feuille-saisie'),

@@ -1,9 +1,11 @@
 /** Les choix de la fiche d'un terme : sa forme, les termes envoyés et la proposition faite à UCM. */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import type { FicheVue } from '../src/messages';
 import {
   blocsDeLaFiche,
+  definitionDeLaFiche,
   formesDeLaRegle,
   formesToutesFixeesParUcm,
   libelleDeLAction,
@@ -66,17 +68,35 @@ test('la pastille de l’en-tête dit la famille UCM, Personnalisé, Sans règle
   assert.deepEqual(pastilleDeLaFiche('sans-regle', FICHE_SANS_REGLE, true), { texte: 'À trancher', variante: 'indice' });
 });
 
-test('une fiche de terme montre l’identité, la règle, À renommer puis Déjà employé, dans cet ordre', () => {
-  assert.deepEqual(blocsDeLaFiche('ucm', FICHE_UCM), ['identite', 'regle', 'a-renommer', 'deja-employe']);
-  assert.deepEqual(blocsDeLaFiche('personnalise', { ...FICHE_UCM, definition: null, distincts: ['pressed'], voulu: true }), [
+test('la définition est dans l’en-tête de la feuille, plus dans le corps', () => {
+  assert.equal(definitionDeLaFiche('ucm', FICHE_UCM), 'Bordure sans fond.');
+  assert.ok(definitionDeLaFiche('personnalise', { definition: null })?.length);
+  assert.equal(definitionDeLaFiche('ucm', { definition: null }), null);
+  assert.deepEqual(lignesDIdentite('ucm', FICHE_UCM), []);
+  assert.ok(!blocsDeLaFiche('ucm', FICHE_UCM).includes('identite'));
+  const source = readFileSync(new URL('../src/ui/feuilles.ts', import.meta.url), 'utf8');
+  assert.match(source, /'titre-et-definition'/);
+  assert.match(source, /'avec-definition'/);
+  assert.match(source, /'titre-ligne'/);
+});
+
+test('le jeton du terme prend le fond de la page et une bordure dans le bloc gris de la règle', () => {
+  const css = readFileSync(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+  assert.match(css, /\.fiche-regle \.jeton-neutre \{\s*background: var\(--fond\);\s*box-shadow: inset 0 0 0 1px var\(--bordure\);/);
+  assert.match(css, /\.feuille-entete\.avec-definition \{/);
+});
+
+test('une fiche de terme montre la règle, À renommer puis Déjà employé, dans cet ordre', () => {
+  assert.deepEqual(blocsDeLaFiche('ucm', FICHE_UCM), ['regle', 'a-renommer', 'deja-employe']);
+  assert.deepEqual(blocsDeLaFiche('personnalise', { ...FICHE_UCM, ecart: true, distincts: ['pressed'], voulu: true }), [
     'identite', 'regle', 'gardes-separes', 'ecriture-gardee', 'a-renommer', 'deja-employe',
   ]);
 });
 
 test('le bloc À renommer disparaît quand aucun nom ne change, Déjà employé quand aucun nom n’emploie le terme', () => {
   const rien = { aRenommer: { nombre: 0, exemples: [] }, emploi: { nombre: 0, exemples: [] } };
-  assert.deepEqual(blocsDeLaFiche('ucm', { ...FICHE_UCM, ...rien }), ['identite', 'regle']);
-  assert.deepEqual(blocsDeLaFiche('ucm', { ...FICHE_UCM, aRenommer: rien.aRenommer }), ['identite', 'regle', 'deja-employe']);
+  assert.deepEqual(blocsDeLaFiche('ucm', { ...FICHE_UCM, ...rien }), ['regle']);
+  assert.deepEqual(blocsDeLaFiche('ucm', { ...FICHE_UCM, aRenommer: rien.aRenommer }), ['regle', 'deja-employe']);
 });
 
 test('un terme sans règle montre sa question, puis la preuve : ni règle ni À renommer', () => {

@@ -988,6 +988,30 @@ button.tete-bouton {
   margin-left: auto;
 }
 
+/* La définition sous le titre, dans l'en-tête de la feuille. */
+.feuille-entete.avec-definition {
+  align-items: flex-start;
+  padding-top: var(--espace-bloc);
+  padding-bottom: var(--espace-bloc);
+}
+
+.titre-et-definition {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 2px;
+}
+
+.titre-ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.titre-et-definition .meta {
+  margin: 0;
+}
+
 .feuille-contenu {
   display: grid;
   gap: var(--espace-bloc);
@@ -1054,6 +1078,12 @@ button.tete-bouton {
   padding: var(--espace-bloc);
   border-radius: var(--rayon);
   background: var(--fond-bloc);
+}
+
+/* Le jeton du terme se détache du bloc gris : le fond de la page et une bordure. */
+.fiche-regle .jeton-neutre {
+  background: var(--fond);
+  box-shadow: inset 0 0 0 1px var(--bordure);
 }
 
 .fiche-regle-tete {

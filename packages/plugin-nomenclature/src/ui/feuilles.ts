@@ -45,11 +45,15 @@ export function lienDeLaFiche(fiche: Pick<FicheVue, 'mot' | 'nature' | 'ordinair
   return null;
 }
 
-/** Les textes de gris sous le titre : la phrase du nom ou du terme ordinaire, la définition, puis l'écart ou la question qui porte sur le terme. */
-export function lignesDIdentite(sorte: SorteDeFiche, fiche: Pick<FicheVue, 'definition' | 'ecart' | 'question' | 'nature' | 'ordinaire'>): string[] {
-  const lignes = [
+/** La définition du terme, que l'en-tête de la feuille porte sous le titre ; un terme personnalisé sans définition dit qu'il n'en a pas. */
+export function definitionDeLaFiche(sorte: SorteDeFiche, fiche: Pick<FicheVue, 'definition'>): string | null {
+  return fiche.definition ?? (sorte === 'personnalise' ? TEXTES.definitionPersonnalisee : null);
+}
+
+/** Les textes de gris sous l'en-tête, dans le corps : la phrase du nom ou du terme ordinaire, puis l'écart ou la question qui porte sur le terme. */
+export function lignesDIdentite(sorte: SorteDeFiche, fiche: Pick<FicheVue, 'ecart' | 'question' | 'nature' | 'ordinaire'>): string[] {
+  const lignes: (string | null)[] = [
     fiche.ordinaire ? TEXTES.phraseOrdinaire : fiche.nature !== null ? TEXTES.phraseDeNature[fiche.nature] : null,
-    fiche.definition ?? (sorte === 'personnalise' ? TEXTES.definitionPersonnalisee : null),
     fiche.ecart ? TEXTES.termeEcarte : null,
     sorte === 'sans-regle' && fiche.question !== null ? TEXTES.questionSurLeTerme : null,
   ];
@@ -77,7 +81,7 @@ export type BlocDeFiche = 'identite' | 'regle' | 'gardes-separes' | 'ecriture-ga
  */
 export function blocsDeLaFiche(
   sorte: SorteDeFiche,
-  fiche: Pick<FicheVue, 'definition' | 'ecart' | 'question' | 'nature' | 'ordinaire' | 'distincts' | 'voulu' | 'aRenommer' | 'emploi'>,
+  fiche: Pick<FicheVue, 'ecart' | 'question' | 'nature' | 'ordinaire' | 'distincts' | 'voulu' | 'aRenommer' | 'emploi'>,
 ): BlocDeFiche[] {
   return [
     ...(lignesDIdentite(sorte, fiche).length > 0 ? (['identite'] as const) : []),
@@ -477,10 +481,33 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
       return terme;
     }
 
-    /** La pastille d'origine se pose dans l'en-tête du socle, à côté du terme ; `null` la retire. */
-    function poserLOrigine(origine: ReturnType<typeof pastilleDeLaFiche> | null): void {
-      feuille.element.querySelector('.feuille-entete .pastille')?.replaceWith();
-      if (origine !== null) feuille.element.querySelector('.feuille-titre')?.after(creerPastille(origine.texte, origine.variante));
+    /**
+     * La pastille d'origine et la définition se posent dans l'en-tête du socle : le titre et la pastille sur une ligne, la définition dessous,
+     * le bouton de fermeture à droite. `null` et `null` rendent l'en-tête tel que le socle l'a fait.
+     */
+    function poserLEntete(origine: ReturnType<typeof pastilleDeLaFiche> | null, definition: string | null): void {
+      const entete = feuille.element.querySelector('.feuille-entete');
+      const titre = entete?.querySelector('.feuille-titre');
+      if (!entete || !titre) return;
+      const ancien = entete.querySelector('.titre-et-definition');
+      if (ancien) {
+        ancien.replaceWith(titre);
+      }
+      entete.querySelector('.pastille')?.replaceWith();
+      entete.classList.toggle('avec-definition', definition !== null);
+      const pastille = origine === null ? null : creerPastille(origine.texte, origine.variante);
+      if (definition === null) {
+        if (pastille) titre.after(pastille);
+        return;
+      }
+      const ligne = el('div');
+      ligne.className = 'titre-ligne';
+      ligne.append(titre);
+      if (pastille) ligne.append(pastille);
+      const bloc = el('div');
+      bloc.className = 'titre-et-definition';
+      bloc.append(ligne, el('p', 'meta', definition));
+      entete.querySelector('.feuille-fermer')?.before(bloc);
     }
 
     function creerLIdentite(sorte: SorteDeFiche, donnees: FicheVue): HTMLElement {
@@ -690,7 +717,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
       const corps = creerLeContenu();
       corps.append(zone, ...blocsDeLaFiche(sorte, donnees).map((bloc) => creerLeBlocDeFiche(bloc, sorte, donnees)));
       feuille.remplacer({ titre: titreDeLaFiche(sorte, donnees), corps, pied: creerLePiedDeLaFiche(donnees, sorte) });
-      poserLOrigine(pastilleDeLaFiche(sorte, donnees, entree.statut === 'a-trancher'));
+      poserLEntete(pastilleDeLaFiche(sorte, donnees, entree.statut === 'a-trancher'), definitionDeLaFiche(sorte, donnees));
     }
 
     function montrerUneEtape(genre: 'remplacer-par' | 'remplace-termes'): void {
@@ -789,7 +816,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
         corps,
         pied: creerLePied(null, enregistrer),
       });
-      poserLOrigine(null);
+      poserLEntete(null, null);
       saisie.focus();
     }
 
