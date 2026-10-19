@@ -23,12 +23,12 @@ export const TEXTES = {
   retour: 'Retour',
 
   etiquetteDesOnglets: 'Sections d’UCM Architect',
-  ongletAAppliquer: 'À appliquer',
-  ongletATrancher: 'À trancher',
+  ongletAAppliquer: 'Renommages',
+  ongletATrancher: 'Questions',
   ongletRegles: 'Règles',
   /** Le nom que les lecteurs d'écran donnent à l'onglet quand son compte s'affiche. */
-  nomDeLOngletAAppliquer: (nombre: number): string => `À appliquer, ${noms(nombre)}`,
-  nomDeLOngletATrancher: (nombre: number): string => `À trancher, ${questions(nombre)}`,
+  nomDeLOngletAAppliquer: (nombre: number): string => `Renommages, ${noms(nombre)}`,
+  nomDeLOngletATrancher: (nombre: number): string => `Questions, ${questions(nombre)}`,
 
   analyseEnCours: 'Lecture des variables',
   avancementDeLAnalyse: 'Avancement de la lecture',
@@ -238,11 +238,11 @@ export const TEXTES = {
   remplacerPar: (premier: string, second: string): string => `Remplacer ${premier} et ${second} par`,
   termeAEmployer: 'Terme à employer',
   enregistrer: 'Enregistrer',
-  rejoindrontAAppliquer: (nombre: number): string => (nombre === 1 ? '1 variable rejoindra À appliquer' : `${nombre} variables rejoindront À appliquer`),
+  rejoindrontAAppliquer: (nombre: number): string => (nombre === 1 ? '1 variable rejoindra les renommages' : `${nombre} variables rejoindront les renommages`),
 
   /** Le détail de la ligne qui remplace une carte répondue. */
   ajouteesAAppliquer: (variables: number, collections: number): string =>
-    `${nombreDeNoms(variables, collections)} ${variables + collections === 1 ? 'ajoutée' : 'ajoutées'} à À appliquer`,
+    `${nombreDeNoms(variables, collections)} ${variables + collections === 1 ? 'ajoutée' : 'ajoutées'} aux renommages`,
   gardesSepares: 'Gardés séparés',
   remisAPlusTard: 'Remis à plus tard',
   ecritureGardee: 'Écriture gardée',

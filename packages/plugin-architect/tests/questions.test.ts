@@ -1,4 +1,4 @@
-/** Ce que l'onglet À trancher affiche d'une question et la réponse de chaque bouton. */
+/** Ce que l'onglet Questions affiche d'une question et la réponse de chaque bouton. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { COLLECTIONS, type IndiceDePaire } from '@ucm-kit/core/referentiel';
@@ -146,26 +146,26 @@ test('« Renommer » répond avec la collection choisie, « Garder ce nom » ave
 test('« Autre terme… » montre l’avant → après de la saisie et n’enregistre pas une saisie vide', () => {
   const champ = champAutreTerme({ ...paire(), termes: [terme('contained', 16), terme('filled', 6)] });
   assert.equal(champ.question, 'Remplacer contained et filled par');
-  assert.deepEqual(champ.effet(' solid '), { avant: 'contained, filled', apres: 'solid', detail: '22 variables rejoindront À appliquer' });
+  assert.deepEqual(champ.effet(' solid '), { avant: 'contained, filled', apres: 'solid', detail: '22 variables rejoindront les renommages' });
   assert.deepEqual(champ.reponse(' solid '), { type: 'autre', terme: 'solid' });
   assert.equal(champ.reponse('   '), null);
-  assert.equal(champAutreTerme({ ...paire(), termes: [terme('a', 1), terme('b', 0)] }).effet('c').detail, '1 variable rejoindra À appliquer');
+  assert.equal(champAutreTerme({ ...paire(), termes: [terme('a', 1), terme('b', 0)] }).effet('c').detail, '1 variable rejoindra les renommages');
 });
 
-test('la ligne de réussite d’une paire dit ce qui change et ce que À appliquer reçoit', () => {
-  assert.deepEqual(ligneFaite(paire(), { type: 'garder', rang: 1 }), { avant: 'outline', separateur: '→', apres: 'outlined', detail: '8 variables ajoutées à À appliquer' });
-  assert.deepEqual(ligneFaite(paire(), { type: 'garder', rang: 0 }), { avant: 'outlined', separateur: '→', apres: 'outline', detail: '24 variables ajoutées à À appliquer' });
-  assert.deepEqual(ligneFaite(paire(), { type: 'autre', terme: 'solid' }), { avant: 'outline, outlined', separateur: '→', apres: 'solid', detail: '32 variables ajoutées à À appliquer' });
+test('la ligne de réussite d’une paire dit ce qui change et ce que Renommages reçoit', () => {
+  assert.deepEqual(ligneFaite(paire(), { type: 'garder', rang: 1 }), { avant: 'outline', separateur: '→', apres: 'outlined', detail: '8 variables ajoutées aux renommages' });
+  assert.deepEqual(ligneFaite(paire(), { type: 'garder', rang: 0 }), { avant: 'outlined', separateur: '→', apres: 'outline', detail: '24 variables ajoutées aux renommages' });
+  assert.deepEqual(ligneFaite(paire(), { type: 'autre', terme: 'solid' }), { avant: 'outline, outlined', separateur: '→', apres: 'solid', detail: '32 variables ajoutées aux renommages' });
   assert.deepEqual(ligneFaite(paire(), { type: 'distincts' }), { avant: 'outline', separateur: '≠', apres: 'outlined', detail: 'Gardés séparés' });
   assert.deepEqual(ligneFaite(paire(), { type: 'plus-tard' }), { avant: 'outline, outlined', separateur: null, apres: null, detail: 'Remis à plus tard' });
   assert.equal(ligneFaite(paire(), { type: 'voulu' }), null);
 });
 
 test('la ligne de réussite des autres questions', () => {
-  assert.deepEqual(ligneFaite(faute, { type: 'corriger', mots: ['contrasthovered'] }), { avant: 'contrashovered', separateur: '→', apres: 'contrasthovered', detail: '1 variable ajoutée à À appliquer' });
-  assert.deepEqual(ligneFaite(colles, { type: 'corriger', mots: ['v', 'spacing', 'small'] }), { avant: 'vspacingsmall', separateur: '→', apres: 'v-spacing-small', detail: '3 variables ajoutées à À appliquer' });
+  assert.deepEqual(ligneFaite(faute, { type: 'corriger', mots: ['contrasthovered'] }), { avant: 'contrashovered', separateur: '→', apres: 'contrasthovered', detail: '1 variable ajoutée aux renommages' });
+  assert.deepEqual(ligneFaite(colles, { type: 'corriger', mots: ['v', 'spacing', 'small'] }), { avant: 'vspacingsmall', separateur: '→', apres: 'v-spacing-small', detail: '3 variables ajoutées aux renommages' });
   assert.deepEqual(ligneFaite(faute, { type: 'voulu' }), { avant: 'contrashovered', separateur: null, apres: null, detail: 'Écriture gardée' });
-  assert.deepEqual(ligneFaite(collection(null), { type: 'collection', cible: 'typography' }), { avant: 'Typo Tokens', separateur: '→', apres: 'typography', detail: '1 collection ajoutée à À appliquer' });
+  assert.deepEqual(ligneFaite(collection(null), { type: 'collection', cible: 'typography' }), { avant: 'Typo Tokens', separateur: '→', apres: 'typography', detail: '1 collection ajoutée aux renommages' });
   assert.deepEqual(ligneFaite(collection(null), { type: 'collection', cible: null }), { avant: 'Typo Tokens', separateur: null, apres: null, detail: 'Nom gardé' });
   assert.equal(ligneFaite(collection(null), { type: 'distincts' }), null);
 });

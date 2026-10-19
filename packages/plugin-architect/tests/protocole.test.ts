@@ -399,7 +399,7 @@ const COLLECTION_INCONNUE: OptionsDuBanc = {
   variables: [['v1', 'fill/main'], ['v2', 'fill/alt'], ['v3', 'fg/main']],
 };
 
-test('renommer une collection : une carte dans À appliquer, l\'application la renomme, Annuler défait la réponse', async () => {
+test('renommer une collection : une carte dans Renommages, l\'application la renomme, Annuler défait la réponse', async () => {
   const b = banc(COLLECTION_INCONNUE);
   await b.envoyer({ type: 'analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });

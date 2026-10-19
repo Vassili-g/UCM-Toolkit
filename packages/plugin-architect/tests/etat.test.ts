@@ -18,7 +18,7 @@ const bilan = (reste: Partial<Bilan> = {}): Bilan => ({
 const jouer = (...evenements: Evenement[]): EtatDeLEcran => evenements.reduce(etatSuivant, ETAT_INITIAL);
 const recu = (reste?: Partial<Bilan>): Evenement => ({ type: 'bilan', demande: 1, bilan: bilan(reste) });
 
-test('avant tout message, l’écran attend le premier lancement sur l’onglet À appliquer', () => {
+test('avant tout message, l’écran attend le premier lancement sur l’onglet Renommages', () => {
   assert.equal(ETAT_INITIAL.ecran, 'premier-lancement');
   assert.equal(ETAT_INITIAL.onglet, 'a-appliquer');
   assert.deepEqual(ETAT_INITIAL.comptes, { aAppliquer: 0, aTrancher: 0 });
@@ -124,7 +124,7 @@ test('l’onglet choisi se retient ; choisir le même onglet ne change rien', ()
   assert.equal(etatSuivant(regles, recu()).onglet, 'regles');
 });
 
-test('une carte demandée ouvre À appliquer et retient sa clé jusqu’au prochain onglet ou bilan', () => {
+test('une carte demandée ouvre Renommages et retient sa clé jusqu’au prochain onglet ou bilan', () => {
   const regles = jouer(recu(), { type: 'onglet-choisi', onglet: 'regles' });
   assert.equal(regles.carteDemandee, null);
   const demandee = etatSuivant(regles, { type: 'carte-demandee', cle: 'terme:background' });

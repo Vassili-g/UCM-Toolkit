@@ -1,4 +1,4 @@
-/** Le modèle de sélection de l'onglet À appliquer : cases, compte, réconciliation. */
+/** Le modèle de sélection de l'onglet Renommages : cases, compte, réconciliation. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { GroupeVue, LigneVue } from '../src/messages';
