@@ -37,7 +37,8 @@ export const STATE_PRECEDENCE = [
 export const STATE_AXIS_NAMES = ['state', 'states', 'status'] as const;
 export const SIZE_VALUES: ReadonlySet<string> = new Set([
   'tiny', 'small', 'medium', 'large', 'big', 'huge',
-  '4xs', '3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl', '2xl', '3xl', '4xl',
+  '9xs', '8xs', '7xs', '6xs', '5xs', '4xs', '3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl', '2xl', '3xl', '4xl',
+  '5xl', '6xl', '7xl', '8xl', '9xl',
 ]);
 
 export const SYNONYMES_COURANTS = [
@@ -116,8 +117,10 @@ export const REGISTRE_AXES_ETAT: Registre = {
 
 /** Les dossiers gardent les tailles en mots entiers ; les variables emploient les abréviations. */
 const TAILLES_RETENUES: readonly (readonly [string, readonly string[]])[] = [
+  ['9xs', []], ['8xs', []], ['7xs', []], ['6xs', []], ['5xs', []],
   ['4xs', []], ['3xs', []], ['2xs', []], ['xs', []], ['sm', ['small']], ['md', ['medium']], ['lg', ['large', 'big']],
   ['xl', []], ['2xl', ['xxl']], ['3xl', ['xxxl']], ['4xl', []],
+  ['5xl', []], ['6xl', []], ['7xl', []], ['8xl', []], ['9xl', []],
 ];
 
 export const REGISTRE_TAILLES: Registre = {
@@ -168,7 +171,20 @@ export const REGISTRE_GROUPES: Registre = {
   ],
 };
 
+/** Les axes et les côtés d'un espacement ou d'une bordure. */
+export const REGISTRE_COTES: Registre = {
+  id: 'cotes', extensible: false,
+  termes: [
+    { id: 'x', libelle: { fr: 'Horizontal', en: 'Horizontal' }, definition: { fr: 'Axe horizontal d’un espacement.', en: 'Horizontal axis of a spacing.' } },
+    { id: 'y', libelle: { fr: 'Vertical', en: 'Vertical' }, definition: { fr: 'Axe vertical d’un espacement.', en: 'Vertical axis of a spacing.' } },
+    { id: 'top', libelle: { fr: 'Haut', en: 'Top' }, definition: { fr: 'Côté haut d’un élément.', en: 'Top side of an element.' } },
+    { id: 'right', libelle: { fr: 'Droite', en: 'Right' }, definition: { fr: 'Côté droit d’un élément.', en: 'Right side of an element.' } },
+    { id: 'bottom', libelle: { fr: 'Bas', en: 'Bottom' }, definition: { fr: 'Côté bas d’un élément.', en: 'Bottom side of an element.' } },
+    { id: 'left', libelle: { fr: 'Gauche', en: 'Left' }, definition: { fr: 'Côté gauche d’un élément.', en: 'Left side of an element.' } },
+  ],
+};
+
 export const REGISTRES: readonly Registre[] = [
   REGISTRE_CRANS, REGISTRE_MODES, REGISTRE_PROFILS, REGISTRE_INTENSITES,
-  REGISTRE_ETATS, REGISTRE_AXES_ETAT, REGISTRE_TAILLES, REGISTRE_STATUTS, REGISTRE_ROLES, REGISTRE_GROUPES,
+  REGISTRE_ETATS, REGISTRE_AXES_ETAT, REGISTRE_TAILLES, REGISTRE_STATUTS, REGISTRE_ROLES, REGISTRE_GROUPES, REGISTRE_COTES,
 ];

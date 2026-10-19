@@ -65,7 +65,8 @@ test('les états tolérés gardent le déclencheur et la priorité de l’export
 test('les tailles connues gardent les deux échelles reconnues par l’exporteur', () => {
   assert.deepEqual([...SIZE_VALUES], [
     'tiny', 'small', 'medium', 'large', 'big', 'huge',
-    '4xs', '3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl', '2xl', '3xl', '4xl',
+    '9xs', '8xs', '7xs', '6xs', '5xs', '4xs', '3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl', '2xl', '3xl', '4xl',
+    '5xl', '6xl', '7xl', '8xl', '9xl',
   ]);
   for (const formes of ECHELLES_DE_TAILLES) {
     for (const forme of formes) assert.ok(SIZE_VALUES.has(forme), forme);
