@@ -12,6 +12,7 @@ import {
   ligneFaite,
   type ActionDeCarte,
   type CarteDeQuestion,
+  texteDuTitre,
 } from '../src/ui/questions';
 
 const chemin = (avant: string, terme: string, apres: string): LigneVue => {
@@ -33,74 +34,85 @@ const collection = (proposee: string | null): Extract<QuestionVue, { type: 'coll
 
 /** Les réponses que les boutons d'une carte envoient, par identifiant d'action. */
 function reponses(carte: CarteDeQuestion): Record<string, Reponse | 'champ' | 'choix'> {
-  const actions: ActionDeCarte[] = [
-    ...(carte.forme === 'face-a-face' ? carte.colonnes.map((colonne) => colonne.garder) : []),
-    ...carte.pied.actions,
-    carte.pied.plusTard,
-  ];
-  return Object.fromEntries(
-    actions.map((action, rang) => [
-      carte.forme === 'face-a-face' && action.id === 'garder' ? `garder-${rang}` : action.id,
-      action.suite.sorte === 'repondre' ? action.suite.reponse : action.suite.sorte === 'saisir' ? 'champ' : 'choix',
-    ]),
-  );
+  const actions: ActionDeCarte[] = [...carte.pied.actions, carte.pied.plusTard];
+  return Object.fromEntries(actions.map((action) => [action.id, action.suite.sorte === 'repondre' ? action.suite.reponse : action.suite.sorte === 'saisir' ? 'champ' : 'choix']));
 }
 
-test('une paire pose la question, l’indice et deux colonnes dont la proposée porte le bouton plein', () => {
+const poidsDuPied = (carte: CarteDeQuestion): string[] => [...carte.pied.actions, carte.pied.plusTard].map((action) => action.poids as string);
+
+test('une paire pose la proposition en titre, le terme écarté en rouge et le terme proposé en vert', () => {
   const carte = carteDeQuestion(paire('pluriel', 'theme/primary/solid/default'));
-  assert.equal(carte.forme, 'face-a-face');
-  if (carte.forme !== 'face-a-face') return;
-  assert.equal(carte.question, 'Ces termes désignent-ils la même chose ?');
-  assert.equal(carte.indice, 'Singulier et pluriel');
-  assert.deepEqual(carte.colonnes.map(({ terme: mot, detail, propose }) => [mot, detail, propose]), [['outline', '8 variables', false], ['outlined', '24 variables', true]]);
-  assert.deepEqual(carte.colonnes.map((colonne) => colonne.garder.poids), ['secondaire', 'principal']);
-  assert.deepEqual(carte.colonnes.map((colonne) => colonne.garder.libelle), ['Garder outline', 'Garder outlined']);
-  assert.equal(carte.colonnes[1].exemple?.ancien, 'components/button/outlined/border');
-  assert.deepEqual(carte.colonnes[1].exemple?.marques, [2]);
-  assert.equal(carte.preuve, 'Les deux visent theme/primary/solid/default.');
+  assert.equal(carte.forme, 'proposition');
+  if (carte.forme !== 'proposition') return;
+  assert.equal(texteDuTitre(carte.titre), 'Remplacer outline par outlined ?');
+  assert.deepEqual([carte.titre.ancien, carte.titre.nouveau], ['outline', 'outlined']);
+  assert.equal(carte.detail, 'Singulier et pluriel · 8 variables à renommer · outlined déjà dans 24. Les deux visent theme/primary/solid/default.');
+  assert.equal(carte.effet, null);
 });
 
-test('chaque indice de paire a son texte, et sans cible commune la carte n’a pas de preuve', () => {
-  const textes = (['terminaison', 'pluriel', 'abreviation', 'synonymes', 'branches-paralleles'] as const).map((indice) => carteDeQuestion(paire(indice)).indice);
-  assert.deepEqual(textes, ['Terminaison', 'Singulier et pluriel', 'Abréviation', 'Synonymes', 'Branches parallèles']);
+test('l’effet de la carte est celui du bilan', () => {
+  const effet = chemin('components/button/', 'outlined', '/border');
+  const carte = carteDeQuestion({ ...paire(), effet });
+  assert.equal(carte.forme === 'proposition' ? carte.effet : 'autre forme', effet);
+});
+
+test('chaque indice de paire a son texte, et sans cible commune le détail s’arrête au terme proposé', () => {
+  const details = (['terminaison', 'pluriel', 'abreviation', 'synonymes', 'branches-paralleles'] as const).map((indice) => {
+    const carte = carteDeQuestion(paire(indice));
+    return carte.forme === 'proposition' ? carte.detail.split(' · ')[0] : 'autre forme';
+  });
+  assert.deepEqual(details, ['Terminaison', 'Singulier et pluriel', 'Abréviation', 'Synonymes', 'Branches parallèles']);
   const carte = carteDeQuestion(paire());
-  assert.equal(carte.forme === 'face-a-face' ? carte.preuve : 'autre forme', null);
+  assert.equal(carte.forme === 'proposition' ? carte.detail : 'autre forme', 'Terminaison · 8 variables à renommer · outlined déjà dans 24');
 });
 
-test('la colonne proposée suit `propose`, et la pastille UCM suit le terme', () => {
+test('le titre suit `propose`, et la pastille UCM suit le terme proposé', () => {
   const question = { ...paire('synonymes'), propose: 0 as const, termes: [terme('danger', 40, true), terme('error', 18)] as const };
   const carte = carteDeQuestion(question);
-  if (carte.forme !== 'face-a-face') throw new Error('forme inattendue');
-  assert.deepEqual(carte.colonnes.map((colonne) => [colonne.propose, colonne.ucm]), [[true, true], [false, false]]);
-  assert.deepEqual(carte.colonnes.map((colonne) => colonne.garder.poids), ['principal', 'secondaire']);
+  if (carte.forme !== 'proposition') throw new Error('forme inattendue');
+  assert.equal(texteDuTitre(carte.titre), 'Remplacer error par danger ?');
+  assert.equal(carte.ucm, true);
+  assert.equal(carte.detail, 'Synonymes · 18 variables à renommer · danger déjà dans 40');
+  const sansUcm = carteDeQuestion({ ...question, propose: 1 });
+  assert.equal(sansUcm.forme === 'proposition' ? sansUcm.ucm : 'autre forme', false);
 });
 
-test('les boutons d’une paire envoient garder, termes différents, plus tard, et « Autre terme… » ouvre le champ', () => {
-  assert.deepEqual(reponses(carteDeQuestion(paire())), {
-    'garder-0': { type: 'garder', rang: 0 },
-    'garder-1': { type: 'garder', rang: 1 },
+test('les boutons d’une paire : Remplacer garde le proposé, Garder le terme écarté, Termes différents, Autre terme… ouvre le champ', () => {
+  const carte = carteDeQuestion(paire());
+  assert.deepEqual(reponses(carte), {
+    remplacer: { type: 'garder', rang: 1 },
+    garder: { type: 'garder', rang: 0 },
     'termes-differents': { type: 'distincts' },
     'autre-terme': 'champ',
     'plus-tard': { type: 'plus-tard' },
   });
-  assert.deepEqual(carteDeQuestion(paire()).pied.actions.map((action) => action.libelle), ['Termes différents', 'Autre terme…']);
-  assert.equal(carteDeQuestion(paire()).pied.plusTard.libelle, 'Plus tard');
+  assert.deepEqual(carte.pied.actions.map((action) => action.libelle), ['Remplacer', 'Garder outline', 'Termes différents', 'Autre terme…']);
+  assert.equal(carte.pied.plusTard.libelle, 'Plus tard');
+});
+
+test('la carte de paire n’a qu’un bouton bordé et aucun bouton principal', () => {
+  const carte = carteDeQuestion(paire());
+  assert.deepEqual(poidsDuPied(carte), ['borde', 'texte', 'texte', 'texte', 'texte']);
+  assert.equal(poidsDuPied(carte).includes('principal'), false);
+  assert.equal(carte.pied.actions[0].libelle, 'Remplacer');
 });
 
 test('un terme mal écrit propose de corriger, avec le nombre et la référence', () => {
   const carte = carteDeQuestion(faute);
-  if (carte.forme !== 'avant-apres') throw new Error('forme inattendue');
-  assert.deepEqual([carte.question, carte.indice, carte.avant, carte.apres], ['Ce terme est-il mal écrit ?', 'Une lettre d’écart', 'contrashovered', 'contrasthovered']);
-  assert.equal(carte.detail, '1 variable ; contrasthovered est employé dans 14 variables');
-  assert.deepEqual(carte.pied.actions.map((action) => [action.libelle, action.poids]), [['Corriger', 'principal'], ['C’est voulu', 'secondaire']]);
+  if (carte.forme !== 'proposition') throw new Error('forme inattendue');
+  assert.equal(texteDuTitre(carte.titre), 'Corriger contrashovered en contrasthovered ?');
+  assert.equal(carte.detail, 'Une lettre d’écart · 1 variable ; contrasthovered est employé dans 14 variables');
+  assert.deepEqual(carte.pied.actions.map((action) => [action.libelle, action.poids]), [['Corriger', 'borde'], ['C’est voulu', 'texte']]);
   assert.deepEqual(reponses(carte), { corriger: { type: 'corriger', mots: ['contrasthovered'] }, voulu: { type: 'voulu' }, 'plus-tard': { type: 'plus-tard' } });
+  assert.equal(poidsDuPied(carte).filter((poids) => poids === 'borde').length, 1);
 });
 
 test('des mots collés se séparent par des tirets, sans référence', () => {
   const carte = carteDeQuestion(colles);
-  if (carte.forme !== 'avant-apres') throw new Error('forme inattendue');
-  assert.deepEqual([carte.question, carte.indice, carte.apres, carte.detail], ['Ce terme réunit-il plusieurs mots ?', 'Mots collés', 'v-spacing-small', '3 variables']);
-  assert.deepEqual(carte.pied.actions.map((action) => action.libelle), ['Séparer', 'C’est un seul mot']);
+  if (carte.forme !== 'proposition') throw new Error('forme inattendue');
+  assert.equal(texteDuTitre(carte.titre), 'Séparer vspacingsmall en v-spacing-small ?');
+  assert.equal(carte.detail, 'Mots collés · 3 variables');
+  assert.deepEqual(carte.pied.actions.map((action) => [action.libelle, action.poids]), [['Séparer', 'borde'], ['C’est un seul mot', 'texte']]);
   assert.deepEqual(reponses(carte), { separer: { type: 'corriger', mots: ['v', 'spacing', 'small'] }, 'seul-mot': { type: 'voulu' }, 'plus-tard': { type: 'plus-tard' } });
 });
 
@@ -127,6 +139,7 @@ test('« Renommer » répond avec la collection choisie, « Garder ce nom » ave
   assert.equal(renommer.suite.sorte, 'choisir');
   if (renommer.suite.sorte === 'choisir') assert.deepEqual(renommer.suite.reponse('layouts'), { type: 'collection', cible: 'layouts' });
   assert.deepEqual([renommer.libelle, garder.libelle], ['Renommer', 'Garder ce nom']);
+  assert.deepEqual(poidsDuPied(carte), ['borde', 'texte', 'texte']);
   assert.deepEqual(garder.suite, { sorte: 'repondre', reponse: { type: 'collection', cible: null } });
 });
 

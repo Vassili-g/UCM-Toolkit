@@ -1,10 +1,10 @@
 /**
- * Ce que l'onglet À trancher affiche d'une question : le texte, les colonnes,
- * les boutons et la réponse que chacun envoie. Le module est pur ; `aTrancher.ts`
+ * Ce que l'onglet À trancher affiche d'une question : le titre, le détail,
+ * l'effet, les boutons et la réponse que chacun envoie. Le module est pur ; `aTrancher.ts`
  * en fait du DOM.
  */
 import { COLLECTIONS } from '@ucm-kit/core/referentiel';
-import type { ConflitVue, LigneVue, QuestionVue, Reponse, TermeVue } from '../messages';
+import type { ConflitVue, LigneVue, QuestionVue, Reponse } from '../messages';
 import { TEXTES } from './textes';
 
 type QuestionDePaire = Extract<QuestionVue, { type: 'paire' }>;
@@ -18,10 +18,10 @@ export type Suite =
   | { readonly sorte: 'choisir'; readonly reponse: (cible: string) => Reponse };
 
 export interface ActionDeCarte {
-  readonly id: 'garder' | 'termes-differents' | 'autre-terme' | 'corriger' | 'separer' | 'voulu' | 'seul-mot' | 'renommer' | 'garder-ce-nom' | 'plus-tard';
+  readonly id: 'remplacer' | 'garder' | 'termes-differents' | 'autre-terme' | 'corriger' | 'separer' | 'voulu' | 'seul-mot' | 'renommer' | 'garder-ce-nom' | 'plus-tard';
   readonly libelle: string;
-  /** Un bouton `principal` est plein, un bouton `secondaire` est bordé. */
-  readonly poids: 'principal' | 'secondaire';
+  /** Un bouton `borde` a un contour, un bouton `texte` n'en a pas. Une carte n'a qu'un bouton bordé. */
+  readonly poids: 'borde' | 'texte';
   readonly suite: Suite;
 }
 
@@ -31,35 +31,29 @@ export interface PiedDeCarte {
   readonly plusTard: ActionDeCarte;
 }
 
-export interface ColonneDeCarte {
-  readonly rang: 0 | 1;
-  readonly terme: string;
-  readonly ucm: boolean;
-  readonly detail: string;
-  readonly exemple: LigneVue | null;
-  readonly propose: boolean;
-  readonly garder: ActionDeCarte;
+/** Le titre d'une proposition : `{avant} {ancien} {entre} {nouveau} ?`. */
+export interface TitreDeProposition {
+  readonly avant: string;
+  readonly ancien: string;
+  readonly entre: string;
+  readonly nouveau: string;
+}
+
+export function texteDuTitre(titre: TitreDeProposition): string {
+  return `${titre.avant} ${titre.ancien} ${titre.entre} ${titre.nouveau} ?`;
 }
 
 export type CarteDeQuestion =
   | {
-      readonly forme: 'face-a-face';
+      /** Une paire, une faute ou des mots collés : la question est la proposition. */
+      readonly forme: 'proposition';
       readonly cle: string;
-      readonly question: string;
-      readonly indice: string;
-      readonly colonnes: readonly [ColonneDeCarte, ColonneDeCarte];
-      /** La cible que les deux termes partagent, quand la question en a une. */
-      readonly preuve: string | null;
-      readonly pied: PiedDeCarte;
-    }
-  | {
-      readonly forme: 'avant-apres';
-      readonly cle: string;
-      readonly question: string;
-      readonly indice: string;
-      readonly avant: string;
-      readonly apres: string;
+      readonly titre: TitreDeProposition;
+      /** Vrai quand le terme proposé est un terme UCM. */
+      readonly ucm: boolean;
       readonly detail: string;
+      /** Un nom réel avant → après ; `null` quand le bilan n'en donne pas. */
+      readonly effet: LigneVue | null;
       readonly pied: PiedDeCarte;
     }
   | {
@@ -76,33 +70,26 @@ export type CarteDeQuestion =
     };
 
 const repondre = (reponse: Reponse): Suite => ({ sorte: 'repondre', reponse });
-const plusTard: ActionDeCarte = { id: 'plus-tard', libelle: TEXTES.plusTard, poids: 'secondaire', suite: repondre({ type: 'plus-tard' }) };
-
-function colonneDeTerme(rang: 0 | 1, terme: TermeVue, propose: boolean): ColonneDeCarte {
-  return {
-    rang,
-    terme: terme.mot,
-    ucm: terme.ucm,
-    detail: TEXTES.nombreDeNoms(terme.nombre, 0),
-    exemple: terme.exemples[0] ?? null,
-    propose,
-    garder: { id: 'garder', libelle: TEXTES.garderLeTerme(terme.mot), poids: propose ? 'principal' : 'secondaire', suite: repondre({ type: 'garder', rang }) },
-  };
-}
+const plusTard: ActionDeCarte = { id: 'plus-tard', libelle: TEXTES.plusTard, poids: 'texte', suite: repondre({ type: 'plus-tard' }) };
 
 function carteDePaire(question: QuestionDePaire): CarteDeQuestion {
-  const [premier, second] = question.termes;
+  const propose = question.termes[question.propose];
+  const ecarte = question.termes[question.propose === 0 ? 1 : 0];
+  const rangEcarte = question.propose === 0 ? 1 : 0;
+  const detail = TEXTES.detailDePaire(TEXTES.indiceDePaire[question.indice], ecarte.nombre, propose.mot, propose.nombre);
   return {
-    forme: 'face-a-face',
+    forme: 'proposition',
     cle: question.cle,
-    question: TEXTES.questionDePaire,
-    indice: TEXTES.indiceDePaire[question.indice],
-    colonnes: [colonneDeTerme(0, premier, question.propose === 0), colonneDeTerme(1, second, question.propose === 1)],
-    preuve: question.cibleCommune === null ? null : TEXTES.lesDeuxVisent(question.cibleCommune),
+    titre: { avant: TEXTES.titreDePaire.avant, ancien: ecarte.mot, entre: TEXTES.titreDePaire.entre, nouveau: propose.mot },
+    ucm: propose.ucm,
+    detail: question.cibleCommune === null ? detail : `${detail}. ${TEXTES.lesDeuxVisent(question.cibleCommune)}`,
+    effet: question.effet,
     pied: {
       actions: [
-        { id: 'termes-differents', libelle: TEXTES.termesDifferents, poids: 'secondaire', suite: repondre({ type: 'distincts' }) },
-        { id: 'autre-terme', libelle: TEXTES.autreTerme, poids: 'secondaire', suite: { sorte: 'saisir' } },
+        { id: 'remplacer', libelle: TEXTES.remplacer, poids: 'borde', suite: repondre({ type: 'garder', rang: question.propose }) },
+        { id: 'garder', libelle: TEXTES.garderLeTerme(ecarte.mot), poids: 'texte', suite: repondre({ type: 'garder', rang: rangEcarte }) },
+        { id: 'termes-differents', libelle: TEXTES.termesDifferents, poids: 'texte', suite: repondre({ type: 'distincts' }) },
+        { id: 'autre-terme', libelle: TEXTES.autreTerme, poids: 'texte', suite: { sorte: 'saisir' } },
       ],
       plusTard,
     },
@@ -111,18 +98,18 @@ function carteDePaire(question: QuestionDePaire): CarteDeQuestion {
 
 function carteDEcriture(question: QuestionDEcriture): CarteDeQuestion {
   const faute = question.indice === 'faute';
+  const titre = faute ? TEXTES.titreDeFaute : TEXTES.titreDeMotsColles;
   return {
-    forme: 'avant-apres',
+    forme: 'proposition',
     cle: question.cle,
-    question: faute ? TEXTES.questionDeFaute : TEXTES.questionDeMotsColles,
-    indice: faute ? TEXTES.indiceDeFaute : TEXTES.indiceDeMotsColles,
-    avant: question.terme.mot,
-    apres: question.proposition.join('-'),
-    detail: TEXTES.detailDuTerme(question.terme.nombre, question.reference),
+    titre: { avant: titre.avant, ancien: question.terme.mot, entre: titre.entre, nouveau: question.proposition.join('-') },
+    ucm: false,
+    detail: TEXTES.detailAvecIndice(faute ? TEXTES.indiceDeFaute : TEXTES.indiceDeMotsColles, TEXTES.detailDuTerme(question.terme.nombre, question.reference)),
+    effet: question.effet,
     pied: {
       actions: [
-        { id: faute ? 'corriger' : 'separer', libelle: faute ? TEXTES.corriger : TEXTES.separer, poids: 'principal', suite: repondre({ type: 'corriger', mots: question.proposition }) },
-        { id: faute ? 'voulu' : 'seul-mot', libelle: faute ? TEXTES.cEstVoulu : TEXTES.cEstUnSeulMot, poids: 'secondaire', suite: repondre({ type: 'voulu' }) },
+        { id: faute ? 'corriger' : 'separer', libelle: faute ? TEXTES.corriger : TEXTES.separer, poids: 'borde', suite: repondre({ type: 'corriger', mots: question.proposition }) },
+        { id: faute ? 'voulu' : 'seul-mot', libelle: faute ? TEXTES.cEstVoulu : TEXTES.cEstUnSeulMot, poids: 'texte', suite: repondre({ type: 'voulu' }) },
       ],
       plusTard,
     },
@@ -140,8 +127,8 @@ function carteDeCollection(question: QuestionDeCollection): CarteDeQuestion {
     choix: COLLECTIONS.find((collection) => collection === question.proposee) ?? null,
     pied: {
       actions: [
-        { id: 'renommer', libelle: TEXTES.renommer, poids: 'principal', suite: { sorte: 'choisir', reponse: (cible) => ({ type: 'collection', cible }) } },
-        { id: 'garder-ce-nom', libelle: TEXTES.garderCeNom, poids: 'secondaire', suite: repondre({ type: 'collection', cible: null }) },
+        { id: 'renommer', libelle: TEXTES.renommer, poids: 'borde', suite: { sorte: 'choisir', reponse: (cible) => ({ type: 'collection', cible }) } },
+        { id: 'garder-ce-nom', libelle: TEXTES.garderCeNom, poids: 'texte', suite: repondre({ type: 'collection', cible: null }) },
       ],
       plusTard,
     },

@@ -768,40 +768,47 @@ button.tete-bouton {
   color: var(--texte-second);
 }
 
-.face {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--espace-controle);
-}
-
-.colonne {
-  display: grid;
-  min-width: 0;
-  align-content: start;
+/* Une proposition : le titre cite les deux termes, l'effet montre un nom réel sur deux lignes. */
+.question-proposition {
   gap: var(--espace-serre);
-  padding: var(--espace-controle);
-  border: 1px solid var(--bordure);
+}
+
+.mot-cite {
+  font-family: var(--police-code);
+}
+
+.mot-retire {
+  color: var(--texte-danger);
+}
+
+.mot-retenu {
+  color: var(--texte-succes);
+}
+
+.renommage {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: var(--espace-controle);
+  padding: var(--espace-serre) 0;
+  font-family: var(--police-code);
+}
+
+.renommage .ancien {
+  color: var(--texte-second);
+  overflow-wrap: anywhere;
+}
+
+.renommage .nouveau {
+  color: var(--texte);
+  overflow-wrap: anywhere;
+}
+
+.question-proposition .renommage {
+  margin: var(--espace-serre) 0;
+  padding: var(--espace-controle) var(--espace-bloc);
   border-radius: var(--rayon);
-}
-
-.colonne.propose {
-  border-color: var(--bordure-marque);
-}
-
-.colonne-entete {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--espace-serre) var(--espace-controle);
-}
-
-.colonne .mot {
-  font-size: var(--libelle);
-}
-
-.colonne .btn {
-  width: 100%;
-  margin-top: var(--espace-serre);
+  background: var(--fond-bloc);
 }
 
 .question-pied {

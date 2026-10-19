@@ -194,9 +194,10 @@ export const TEXTES = {
   nomsDuTerme: noms,
 
   // U3 : onglet À trancher.
-  questionDePaire: 'Ces termes désignent-ils la même chose ?',
-  questionDeFaute: 'Ce terme est-il mal écrit ?',
-  questionDeMotsColles: 'Ce terme réunit-il plusieurs mots ?',
+  /** Le titre d'une proposition : `{avant} {a} {entre} {b} ?`, avec a et b cités en couleur. */
+  titreDePaire: { avant: 'Remplacer', entre: 'par' },
+  titreDeFaute: { avant: 'Corriger', entre: 'en' },
+  titreDeMotsColles: { avant: 'Séparer', entre: 'en' },
   questionDeCollection: (nom: string): string => `À quelle collection UCM correspond ${nom} ?`,
   indiceDePaire: {
     terminaison: 'Terminaison',
@@ -214,6 +215,12 @@ export const TEXTES = {
     return reference ? `${lesVariables(nombre)} ; ${reference.mot} est employé dans ${lesVariables(reference.nombre)}` : lesVariables(nombre);
   },
 
+  /** « Abréviation · 12 variables à renommer · background déjà dans 40 » : l'indice, le nombre du terme écarté, puis celui du terme proposé. */
+  detailDePaire: (indice: string, aRenommer: number, propose: string, dejaDans: number): string =>
+    `${indice} · ${nombreDeNoms(aRenommer, 0)} à renommer · ${propose} déjà dans ${dejaDans}`,
+  /** L'indice d'une faute ou de mots collés, devant le détail du terme. */
+  detailAvecIndice: (indice: string, detail: string): string => `${indice} · ${detail}`,
+  remplacer: 'Remplacer',
   garderLeTerme: (terme: string): string => `Garder ${terme}`,
   termesDifferents: 'Termes différents',
   autreTerme: 'Autre terme…',

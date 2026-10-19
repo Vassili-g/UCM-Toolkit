@@ -5,8 +5,10 @@
  * et la réponse de chaque bouton viennent de `questions.ts`.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
+import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import type { Bilan, ConflitVue, GesteSurLesRegles, LigneVue, QuestionVue, Reponse } from '../messages';
 import type { Coquille } from './coquille';
+import { segmentsDeNom } from './lignes';
 import {
   carteDeConflit,
   carteDeQuestion,
@@ -15,9 +17,9 @@ import {
   ligneDeReprise,
   ligneFaite,
   type ActionDeCarte,
-  type ColonneDeCarte,
   type LigneFaite,
   type PiedDeCarte,
+  type TitreDeProposition,
 } from './questions';
 import { TEXTES } from './textes';
 
@@ -49,18 +51,46 @@ function poserLeTexte(element: HTMLElement, texte: string): void {
   );
 }
 
-function fabriquerChemin(ligne: LigneVue): HTMLElement {
-  const chemin = document.createElement('span');
-  chemin.className = 'chemin';
-  ligne.ancien.split('/').forEach((segment, rang) => {
-    if (rang > 0) chemin.append(document.createTextNode('/'));
-    if (ligne.marques.includes(rang)) {
-      const marque = document.createElement('mark');
-      marque.textContent = segment;
-      chemin.append(marque);
-    } else chemin.append(document.createTextNode(segment));
+/** Un nom découpé aux `/` : seuls les segments de `marques` prennent la couleur de leur ligne. */
+function poserLesSegments(parent: HTMLElement, nom: string, marques: readonly number[], classe: 'seg-ancien' | 'seg-nouveau'): void {
+  segmentsDeNom(nom, marques).forEach((segment, rang) => {
+    if (rang > 0) parent.append(document.createTextNode('/'));
+    if (!segment.marque) {
+      parent.append(document.createTextNode(segment.texte));
+      return;
+    }
+    const marque = document.createElement('span');
+    marque.className = classe;
+    marque.textContent = segment.texte;
+    parent.append(marque);
   });
-  return chemin;
+}
+
+/** L'effet d'une proposition : le nom actuel, puis `→` et le nom après, au même bord. */
+function fabriquerRenommage(ligne: LigneVue): HTMLElement {
+  const element = document.createElement('div');
+  element.className = 'renommage';
+  const ancien = document.createElement('span');
+  ancien.className = 'ancien';
+  poserLesSegments(ancien, ligne.ancien, ligne.marques, 'seg-ancien');
+  const fleche = document.createElement('span');
+  fleche.className = 'fleche';
+  fleche.setAttribute('aria-hidden', 'true');
+  fleche.textContent = '→';
+  const nouveau = document.createElement('span');
+  nouveau.className = 'nouveau';
+  poserLesSegments(nouveau, ligne.nouveau, ligne.marques, 'seg-nouveau');
+  element.append(document.createElement('span'), ancien, fleche, nouveau);
+  return element;
+}
+
+/** Le terme cité dans un titre : en code, rouge s'il disparaît, vert s'il reste. */
+function fabriquerMotCite(mot: string, sorte: 'retire' | 'retenu'): HTMLElement {
+  const code = document.createElement('code');
+  if (sorte === 'retire') code.className = 'mot-cite mot-retire';
+  else code.className = 'mot-cite mot-retenu';
+  code.textContent = mot;
+  return code;
 }
 
 /** « avant → après », ou le seul terme quand la réponse n'en remplace aucun. */
@@ -91,8 +121,9 @@ function fabriquerPastille(texte: string, ucm = false): HTMLElement {
   return pastille;
 }
 
-function fabriquerBouton(libelle: string, poids: ActionDeCarte['poids'], auClic: () => void): HTMLButtonElement {
-  return createButton({ label: libelle, variant: poids === 'principal' ? 'primary' : 'secondary', compact: true, onClick: auClic });
+/** Le bouton bordé : une carte n'en porte qu'un. */
+function fabriquerBouton(libelle: string, auClic: () => void): HTMLButtonElement {
+  return createButton({ label: libelle, variant: 'secondary', compact: true, onClick: auClic });
 }
 
 function fabriquerBoutonTexte(libelle: string, auClic: () => void): HTMLButtonElement {
@@ -142,26 +173,18 @@ function fabriquerEffet(avant: string, apres: string, detail: string): { readonl
   return { element, poser };
 }
 
-function fabriquerColonne(colonne: ColonneDeCarte, agir: (action: ActionDeCarte) => void, boutons: HTMLButtonElement[]): HTMLElement {
-  const element = document.createElement('div');
-  element.className = 'colonne';
-  if (colonne.propose) element.classList.add('propose');
-  const entete = document.createElement('div');
-  entete.className = 'colonne-entete';
-  const mot = document.createElement('code');
-  mot.className = 'mot';
-  mot.textContent = colonne.terme;
-  entete.append(mot);
-  if (colonne.ucm) entete.append(fabriquerPastille(TEXTES.pastilleUcm, true));
-  const detail = document.createElement('span');
-  detail.className = 'meta';
-  detail.textContent = colonne.detail;
-  const garder = fabriquerBouton(colonne.garder.libelle, colonne.garder.poids, () => agir(colonne.garder));
-  boutons.push(garder);
-  element.append(entete, detail);
-  if (colonne.exemple) element.append(fabriquerChemin(colonne.exemple));
-  element.append(garder);
-  return element;
+/** Le titre d'une proposition : `Remplacer {a} par {b} ?`, a en rouge et b en vert. */
+function fabriquerTitreDeProposition(titre: TitreDeProposition): HTMLElement {
+  const intitule = document.createElement('span');
+  intitule.className = 'question-titre';
+  intitule.append(
+    document.createTextNode(`${titre.avant} `),
+    fabriquerMotCite(titre.ancien, 'retire'),
+    document.createTextNode(` ${titre.entre} `),
+    fabriquerMotCite(titre.nouveau, 'retenu'),
+    document.createTextNode(' ?'),
+  );
+  return intitule;
 }
 
 /**
@@ -245,7 +268,7 @@ export function monterATrancher(coquille: Coquille): void {
     }
     function fabriquerLePied(pied: PiedDeCarte): HTMLElement {
       const gauche = pied.actions.map((action) => {
-        const bouton = fabriquerBouton(action.libelle, action.poids, () => agir(action));
+        const bouton = action.poids === 'borde' ? fabriquerBouton(action.libelle, () => agir(action)) : fabriquerBoutonTexte(action.libelle, () => agir(action));
         boutons.push(bouton);
         parId.set(action.id, bouton);
         return bouton;
@@ -255,21 +278,19 @@ export function monterATrancher(coquille: Coquille): void {
       return fabriquerPied(gauche, [plusTardDeLaCarte]);
     }
 
-    element.append(fabriquerEntete(carte.question, carte.indice));
-    if (carte.forme === 'face-a-face') {
-      const face = document.createElement('div');
-      face.className = 'face';
-      face.append(...carte.colonnes.map((colonne) => fabriquerColonne(colonne, agir, boutons)));
-      element.append(face);
-      if (carte.preuve !== null) {
-        const preuve = document.createElement('span');
-        preuve.className = 'meta';
-        preuve.textContent = carte.preuve;
-        element.append(preuve);
-      }
-    } else if (carte.forme === 'avant-apres') {
-      element.append(fabriquerEffet(carte.avant, carte.apres, carte.detail).element);
+    if (carte.forme === 'proposition') {
+      element.classList.add('question-proposition');
+      const entete = document.createElement('div');
+      entete.className = 'question-entete';
+      entete.append(fabriquerTitreDeProposition(carte.titre));
+      if (carte.ucm) entete.append(fabriquerPastille(TEXTES.pastilleUcm, true));
+      const detail = document.createElement('span');
+      detail.className = 'meta';
+      detail.textContent = carte.detail;
+      element.append(entete, detail);
+      if (carte.effet) element.append(fabriquerRenommage(carte.effet));
     } else {
+      element.append(fabriquerEntete(carte.question, carte.indice));
       const ligne = document.createElement('div');
       ligne.className = 'question-collection';
       const nom = document.createElement('code');
@@ -336,12 +357,12 @@ export function monterATrancher(coquille: Coquille): void {
     const effet = fabriquerEffet(initial.avant, initial.apres, initial.detail);
     effet.element.hidden = saisie.value.trim() === '';
 
-    const retour = fabriquerBouton(TEXTES.retour, 'secondaire', () => {
+    const retour = fabriquerBoutonTexte(TEXTES.retour, () => {
       saisies.delete(question.cle);
       aFocaliser = { cle: question.cle, sur: 'autre-terme' };
       rendre();
     });
-    const enregistrer = fabriquerBouton(TEXTES.enregistrer, 'principal', enregistrerLaSaisie);
+    const enregistrer = fabriquerBouton(TEXTES.enregistrer, enregistrerLaSaisie);
     enregistrer.disabled = champ.reponse(saisie.value) === null;
 
     function enregistrerLaSaisie(): void {
@@ -405,7 +426,7 @@ export function monterATrancher(coquille: Coquille): void {
         boutons.push(ecart);
       }
     }
-    const retour = fabriquerBouton(TEXTES.retour, 'secondaire', () => {
+    const retour = fabriquerBouton(TEXTES.retour, () => {
       conflits.delete(cle);
       aFocaliser = { cle };
       rendre();
@@ -471,10 +492,7 @@ export function monterATrancher(coquille: Coquille): void {
     const titre = document.createElement('span');
     titre.className = 'plus-tard-titre';
     titre.textContent = TEXTES.sectionPlusTard(plusTard.length);
-    const chevron = document.createElement('span');
-    chevron.className = 'chevron';
-    chevron.setAttribute('aria-hidden', 'true');
-    bouton.append(titre, chevron);
+    bouton.append(titre, creerChevron());
     tete.append(bouton);
 
     const corps = document.createElement('div');
@@ -483,7 +501,7 @@ export function monterATrancher(coquille: Coquille): void {
       const reprise = ligneDeReprise(question);
       const rang = document.createElement('div');
       rang.className = 'plus-tard-rang';
-      const reprendre = fabriquerBouton(TEXTES.reprendre, 'secondaire', () => {
+      const reprendre = fabriquerBouton(TEXTES.reprendre, () => {
         if (demanderUnGeste(reprise.cle, { type: 'reprendre', question: reprise.cle }, 'reprendre')) reprendre.disabled = true;
       });
       reprendre.setAttribute('aria-label', TEXTES.reprendreLaQuestion(reprise.avant, reprise.apres));
@@ -495,7 +513,6 @@ export function monterATrancher(coquille: Coquille): void {
       plusTardOuvert = ouvert;
       corps.hidden = !ouvert;
       bouton.setAttribute('aria-expanded', String(ouvert));
-      chevron.textContent = ouvert ? '⌃' : '⌄';
     }
     regler(plusTardOuvert);
     bouton.addEventListener('click', () => regler(corps.hidden));
