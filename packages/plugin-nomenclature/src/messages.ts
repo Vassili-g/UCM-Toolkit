@@ -56,7 +56,16 @@ export interface GroupeVue {
   readonly aussiDEcriture: number;
   readonly nouveau: boolean; readonly apercu: readonly LigneVue[];
 }
-export interface BloqueVue { readonly avant: string; readonly apres: string; readonly collection: string }
+/** Pourquoi deux variables donneraient le même chemin dans `tokens.json` : le même chemin, ou un token qui est aussi le groupe d'un autre. */
+export type MotifDeChemin = 'meme-token' | 'token-et-groupe';
+/**
+ * Un nom qui n'est pas renommé. `chemin` est posé quand deux chemins de `tokens.json` se rejoignent : `apres` est le nom, avec sa collection, du token
+ * (qui est aussi le groupe de `autre` pour `token-et-groupe`), et `autre` celui de l'autre variable.
+ */
+export interface BloqueVue {
+  readonly avant: string; readonly apres: string; readonly collection: string;
+  readonly chemin?: { readonly motif: MotifDeChemin; readonly apres: string; readonly autre: string };
+}
 export interface TermeVue { readonly mot: string; readonly nombre: number; readonly exemples: readonly LigneVue[]; readonly ucm: boolean }
 /** `effet` : un nom réel du terme remplacé et ce même nom après le oui, `null` si aucun exemple ne l'emploie. */
 export type QuestionVue =

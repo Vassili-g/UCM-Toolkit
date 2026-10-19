@@ -148,6 +148,10 @@ export const TEXTES = {
   },
   /** Le nom bloqué et la collection qui contient déjà le nom visé. */
   nomBloque: (collection: string, apres: string): string => `\`${collection}\` contient déjà \`${apres}\` : supprimez ou renommez l’une des deux dans Figma.`,
+  /** Deux variables dont le chemin dans `tokens.json` est le même ; `apres` et `autre` portent leur collection. */
+  memeToken: (apres: string, autre: string): string => `\`${apres}\` et \`${autre}\` donneraient le même token dans tokens.json : renommez l’une des deux dans Figma.`,
+  /** `apres` est un token et le groupe de `autre`. */
+  tokenEtGroupe: (apres: string, autre: string): string => `\`${apres}\` serait à la fois un token et le groupe de \`${autre}\` dans tokens.json : renommez l’une des deux dans Figma.`,
   nomsProteges: (nombre: number): string => (nombre === 1 ? '1 nom écrit par UCM Palettes' : `${nombre} noms écrits par UCM Palettes`),
   nomsProtegesExplication: 'Renommez une palette dans Palettes, qui la retrouve par son nom.',
 

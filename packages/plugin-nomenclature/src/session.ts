@@ -17,6 +17,7 @@ import {
   type ConflitDeVocabulaire, type Convention, type ConventionsParCategorie, type IndexDuVocabulaire, type Lexique, type Mots,
   type Collection, type Collision, type Question, type Renommage, type ResultatDesQuestions, type ResultatDuLexique,
 } from '@ucm-kit/core/referentiel';
+import { cheminsEnConflit, inventairePublie, type CollisionDeChemin } from './cheminsPublies';
 import {
   annulerLeDernierRenommage, appliquerLesRenommages,
   type PortDeRegles, type PortEcriture, type RenommageDemande, type ResultatEcriture,
@@ -301,6 +302,24 @@ function avecLesCollectionsRenommees(lexique: Lexique, brut: ResultatDuLexique, 
   return { renommages: dansLOrdre(lexique, parId), collisions: [...brut.collisions, ...collisions] };
 }
 
+/**
+ * Retire des renommages ceux qui feraient disparaître un token de `tokens.json` : un chemin égal à celui d'une autre variable,
+ * ou le groupe d'un autre chemin. Le contrôle porte sur tout l'inventaire, collections exclues comprises. Chaque renommage retiré
+ * devient une collision qui garde son motif ; les collisions du kit restent telles quelles.
+ */
+function avecLesCheminsPublies(inventaire: Inventaire, resultat: ResultatDuLexique): ResultatDuLexique {
+  if (resultat.renommages.length === 0) return resultat;
+  const enCause = cheminsEnConflit(inventairePublie(inventaire, (entree) => entree.nom.id), new Map(resultat.renommages.map((renommage) => [renommage.id, renommage.nouveauNom])));
+  if (enCause.length === 0) return resultat;
+  const renommages = new Map(resultat.renommages.map((renommage) => [renommage.id, renommage]));
+  const collisions: CollisionDeChemin[] = enCause.map(({ id, motif, apres, autre }) => {
+    const renommage = renommages.get(id)!;
+    return { categorie: renommage.categorie, portee: renommage.portee, nom: renommage.nouveauNom, ids: [id], motif, apres, autre };
+  });
+  const retires = new Set(enCause.map(({ id }) => id));
+  return { renommages: resultat.renommages.filter((renommage) => !retires.has(renommage.id)), collisions: [...resultat.collisions, ...collisions] };
+}
+
 function dansLOrdre(lexique: Lexique, parId: ReadonlyMap<string, Renommage>): Renommage[] {
   const renommages: Renommage[] = [];
   for (const id of lexique.noms.keys()) {
@@ -322,7 +341,7 @@ function* calculerTout(moteur: Moteur, inventaire: Inventaire, regles: ReglesDuF
   const ecriture = ecritureEffective(regles, lexique);
   const brut = yield* moteur.normaliserParEtapes(lexique, conventionsDe(ecriture), indexation.index, { nonRenommables });
   const questions = yield* detecter(moteur, lexique, indexation, regles);
-  return { lexique, nonRenommables, indexation, ecriture, brut, resultat: avecLesCollectionsRenommees(lexique, brut, regles), questions };
+  return { lexique, nonRenommables, indexation, ecriture, brut, resultat: avecLesCheminsPublies(inventaire, avecLesCollectionsRenommees(lexique, brut, regles)), questions };
 }
 
 /** Les renommages précédents hors des portées recalculées, plus ceux du recalcul, dans l'ordre du lexique. */
@@ -361,7 +380,7 @@ function* recalculer(moteur: Moteur, base: Etat, regles: ReglesDuFichier, avecQu
   const redetecter = avecQuestions && (termes.length > 0 || !memes(jugementsDuFichier(base.regles), jugementsDuFichier(regles)));
   const questions = redetecter ? yield* detecter(moteur, base.lexique, indexation, regles) : base.questions;
   const resultat = brut !== base.brut || !memes(base.regles.collectionsRenommees, regles.collectionsRenommees)
-    ? avecLesCollectionsRenommees(base.lexique, brut, regles) : base.resultat;
+    ? avecLesCheminsPublies(base.inventaire, avecLesCollectionsRenommees(base.lexique, brut, regles)) : base.resultat;
   return { lexique: base.lexique, nonRenommables: base.nonRenommables, indexation, ecriture, brut, resultat, questions };
 }
 

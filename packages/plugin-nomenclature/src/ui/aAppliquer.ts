@@ -523,7 +523,9 @@ export function monterAAppliquer(coquille: Coquille): void {
       pile.className = 'pile';
       const explication = document.createElement('span');
       explication.className = 'meta';
-      poserLeTexte(explication, TEXTES.nomBloque(bloque.collection, bloque.apres));
+      poserLeTexte(explication, bloque.chemin
+        ? (bloque.chemin.motif === 'meme-token' ? TEXTES.memeToken : TEXTES.tokenEtGroupe)(bloque.chemin.apres, bloque.chemin.autre)
+        : TEXTES.nomBloque(bloque.collection, bloque.apres));
       pile.append(fabriquerChange(bloque.avant, bloque.apres, 0), explication);
       info.append(pile, fabriquerPastille('bloque'));
       corps.append(info);

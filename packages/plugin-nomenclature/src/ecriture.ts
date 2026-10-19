@@ -7,7 +7,8 @@
  * Le journal du lot est donc rangé avant le premier nom : si le fichier ne peut pas le garder, aucun nom ne change.
  */
 import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
-import type { Inventaire } from './lecture';
+import { cheminsEnConflit, inventairePublie } from './cheminsPublies';
+import type { EntreeInventaire, Inventaire } from './lecture';
 import type { CauseDeRefus } from './messages';
 import { CLE_JOURNAL, effacerLeJournal, lireLesRegles, lireLeStockage, preparerJournal, rangerLesEcritures, type Journal, type RenommageJournal } from './regles';
 
@@ -35,7 +36,7 @@ export type RenommageDemande =
   | (DemandeCommune & { readonly type: 'collection' })
   | (DemandeCommune & { readonly type: 'variable'; readonly collectionId: string });
 
-export type MotifSaute = 'fichier-modifie' | 'protegee' | 'collision' | 'ecriture-interrompue';
+export type MotifSaute = 'fichier-modifie' | 'protegee' | 'collision' | 'nom-invalide' | 'ecriture-interrompue';
 export interface RenommageFait {
   /** L'entrée de l'inventaire pour une application ; l'identifiant Figma pour une annulation. */
   readonly id: string;
@@ -63,6 +64,8 @@ interface Etape { readonly element: Element; readonly nom: string }
 const PORTEE_DU_DOCUMENT = 'document';
 const porteeDeLaCollection = (collectionId: string): string => `collection:${collectionId}`;
 const cleDObjet = (type: string, figmaId: string): string => `${type}:${figmaId}`;
+const cleDeEntree = (entree: EntreeInventaire): string =>
+  entree.cible.type === 'collection' ? cleDObjet('collection', entree.cible.collectionId) : cleDObjet('variable', entree.cible.variableId);
 const cleDeNom = (portee: string, nom: string): string => JSON.stringify([portee, nom]);
 const heureActuelle = (): string => new Date().toISOString();
 
@@ -103,6 +106,33 @@ function retirerLesDoublons(retenus: readonly Element[], document: ReadonlyMap<s
     }
     if (!retire) return gardes;
     restants = gardes;
+  }
+}
+
+/**
+ * Figma refuse `.`, `{` et `}` dans le nom d'une variable, et `$` en tête d'un segment ; un nom vide, un `/` de tête ou de fin
+ * et un `//` ne désignent aucun segment. Une collection n'a pas de segments, et Figma accepte `Brand 2.0` : seul le nom vide y est refusé.
+ */
+const nomInvalide = (nom: string, type: RenommageDemande['type']): boolean =>
+  nom.trim() === '' || (type === 'variable'
+    && (nom.startsWith('/') || nom.endsWith('/') || nom.includes('//') || /[.{}]/u.test(nom) || nom.split('/').some((segment) => segment.startsWith('$'))));
+
+/**
+ * Retire les renommages qui feraient disparaître un token de `tokens.json` (voir `cheminsEnConflit`), puis les doublons
+ * que ce retrait fait naître, jusqu'à ce que plus rien ne bouge.
+ */
+function retirerLesConflitsDeChemin(retenus: readonly Element[], document: ReadonlyMap<string, ObjetDuDocument>, inventaire: Inventaire, sautes: RenommageSaute[]): Element[] {
+  const publie = inventairePublie(inventaire, cleDeEntree);
+  let elements = retirerLesDoublons(retenus, document, sautes);
+  for (;;) {
+    const enCause = new Set(cheminsEnConflit(publie, new Map(elements.map((element) => [cleDObjet(element.demande.type, element.demande.figmaId), element.demande.nouveauNom]))).map(({ id }) => id));
+    if (enCause.size === 0) return elements;
+    const gardes = elements.filter((element) => {
+      if (!enCause.has(cleDObjet(element.demande.type, element.demande.figmaId))) return true;
+      sautes.push({ id: element.demande.id, motif: 'collision' });
+      return false;
+    });
+    elements = retirerLesDoublons(gardes, document, sautes);
   }
 }
 
@@ -157,8 +187,12 @@ function planifier(elements: readonly Element[], document: ReadonlyMap<string, O
 interface Controle { readonly elements: readonly Element[]; readonly sautes: readonly RenommageSaute[]; readonly document: ReadonlyMap<string, ObjetDuDocument> }
 interface Execution { readonly renommes: RenommageFait[]; readonly sautes: RenommageSaute[]; readonly erreur: boolean }
 
-/** Contrôle les renommages sur le document relu : ce qui reste est à écrire. */
-function controler(demandes: readonly RenommageDemande[], inventaire: Inventaire, session: SessionEcriture): Controle {
+/**
+ * Contrôle les renommages sur le document relu : ce qui reste est à écrire.
+ * `nomFinal` ajoute le contrôle du nom (`nom-invalide`) et celui des chemins de `tokens.json` ; une annulation rend des noms
+ * que le document a déjà portés et ne les refait pas.
+ */
+function controler(demandes: readonly RenommageDemande[], inventaire: Inventaire, session: SessionEcriture, nomFinal: boolean): Controle {
   const document = lireLeDocument(inventaire);
   const sautes: RenommageSaute[] = [];
   const retenus: Element[] = [];
@@ -175,9 +209,10 @@ function controler(demandes: readonly RenommageDemande[], inventaire: Inventaire
     if (doublon || !actuel || !objet || objet.remote || actuel.nom !== demande.ancienNom || objet.name !== demande.ancienNom || collectionChangee) {
       sautes.push({ id: demande.id, motif: 'fichier-modifie' });
     } else if (actuel.protegee) sautes.push({ id: demande.id, motif: 'protegee' });
+    else if (nomFinal && nomInvalide(demande.nouveauNom, demande.type)) sautes.push({ id: demande.id, motif: 'nom-invalide' });
     else retenus.push({ demande, portee: actuel.portee, objet });
   }
-  return { elements: retirerLesDoublons(retenus, document, sautes), sautes, document };
+  return { elements: nomFinal ? retirerLesConflitsDeChemin(retenus, document, inventaire, sautes) : retirerLesDoublons(retenus, document, sautes), sautes, document };
 }
 
 /** Ordonne et écrit les renommages contrôlés ; l'état final se lit sur les objets. */
@@ -254,7 +289,8 @@ const lignesDuJournal = (renommages: readonly { readonly type: 'variable' | 'col
 
 /**
  * Applique les renommages cochés sur le document relu par `relireInventaireAvantEcriture`.
- * Saute ce qui a changé depuis la lecture, les variables protégées et les renommages qui créent un doublon.
+ * Saute ce qui a changé depuis la lecture, les variables protégées, les noms que Figma refuse, et les renommages qui créent
+ * un doublon de nom ou de chemin dans `tokens.json`.
  * Range d'abord le journal prévu du lot par `stockage` : s'il ne tient pas ou ne s'écrit pas, aucun nom ne change
  * et le résultat est `refuse` avec la cause `journal-impossible`. Les noms écrits, le journal est réécrit
  * avec les noms constatés (noms provisoires compris), puis un seul point d'annulation s'ouvre.
@@ -272,7 +308,7 @@ export function appliquerLesRenommages(options: {
 }): ResultatEcriture {
   const { inventaire, session, stockage } = options;
   const nouveauLot = options.lot ?? identifiantDeLot;
-  const controle = controler(options.demandes, inventaire, session);
+  const controle = controler(options.demandes, inventaire, session, true);
   const heure = (options.heure ?? heureActuelle)();
   const prevu = lignesDuJournal(controle.elements.map(({ demande }) => demande));
   const lotPrevu = controle.elements.length > 0 ? ranger(stockage, { heure, renommages: prevu }, nouveauLot()) : undefined;
@@ -330,7 +366,7 @@ export function annulerLeDernierRenommage(options: {
       ? { ...base, type: 'collection' }
       : { ...base, type: 'variable', collectionId: document.get(cleDObjet('variable', renommage.id))?.collectionId ?? '' });
   }
-  const fait = ecrire(controler(demandes, inventaire, session));
+  const fait = ecrire(controler(demandes, inventaire, session, false));
   const execution: Execution = { ...fait, sautes: [...horsDuLot, ...fait.sautes] };
   let erreur = execution.erreur;
   const restants: RenommageJournal[] = [];

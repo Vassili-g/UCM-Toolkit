@@ -192,7 +192,7 @@ test('un renommage sauté rend son nom à l’objet, qui peut bloquer un autre :
 });
 
 test('le même nom dans deux collections, ou pour une variable et une collection, n’est pas un doublon', async () => {
-  const b = banc({ collections: [['c', 'Brand'], ['d', 'Autre']], variables: [['v0', 'a', 'c'], ['v1', 'b', 'd'], ['v2', 'couleur', 'c']] });
+  const b = banc({ collections: [['c', 'Brand'], ['d', 'Autre']], variables: [['v0', 'a', 'd'], ['v1', 'b', 'd'], ['v2', 'couleur', 'c']] });
   const resultat = await b.appliquer([b.v('v0', 'couleur2'), b.v('v1', 'couleur'), b.c('c', 'couleur')]);
   assert.equal(resultat.statut, 'applique');
   assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('c')], ['couleur2', 'couleur', 'couleur']);
@@ -683,4 +683,82 @@ test('un renommage prévu que le lot n’a pas écrit compte comme rétabli à l
   assert.deepEqual(annulation.renommes.map(({ figmaId }) => figmaId), ['v2']);
   assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('v2')], ['a', 'b', 'c']);
   assert.equal(b.stock.size, 0);
+});
+
+// Le nom final : chemins de tokens.json et noms que Figma refuse
+
+test('AC1 : un chemin qui ne se rejoint que dans le document relu est sauté, et rien ne s’écrit pour lui', async () => {
+  const b = banc({ variables: [['v0', 'bg/primary'], ['v1', 'Libre'], ['v2', 'colors'], ['v3', 'Autre']] });
+  const demandes = [b.v('v0', 'background/primary'), b.v('v2', 'color'), b.v('v3', 'Autre bis')];
+  b.changer('v1', 'Background/primary');
+  const resultat = await b.appliquer(demandes);
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('variable', 'v0'), motif: 'collision' }]);
+  assert.equal(b.nom('v0'), 'bg/primary');
+  assert.deepEqual(b.ecritures, ['v2=color', 'v3=Autre bis']);
+  assert.equal(resultat.statut, 'partiel');
+});
+
+test('AC2 : un token qui devient le groupe d’un autre, vu seulement dans le document relu, est sauté', async () => {
+  const b = banc({ variables: [['v0', 'colors'], ['v1', 'Libre']] });
+  const demandes = [b.v('v0', 'color')];
+  b.changer('v1', 'color/primary');
+  const resultat = await b.appliquer(demandes);
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('variable', 'v0'), motif: 'collision' }]);
+  assert.deepEqual(b.ecritures, []);
+  assert.equal(resultat.statut, 'refuse');
+  assert.equal(b.journal(), undefined);
+});
+
+test('AI10 : une collection renommée dont les variables rejoignent les chemins d’une autre est sautée', async () => {
+  const b = banc({ collections: [['c', 'Colors'], ['d', 'Theme']], variables: [['v0', 'foo', 'c'], ['v1', 'foo', 'd']] });
+  const resultat = await b.appliquer([b.c('c', 'theme')]);
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('collection', 'c'), motif: 'collision' }]);
+  assert.equal(b.nom('c'), 'Colors');
+  assert.deepEqual(b.ecritures, []);
+});
+
+test('un renommage sauté pour son chemin rend son nom à l’objet, qui peut bloquer un doublon de nom', async () => {
+  const b = banc({ variables: [['v0', 'x'], ['v1', 'b'], ['v2', 'c'], ['v3', 'y']] });
+  // v0 vise le chemin de v3 et est sauté ; v2 vise alors le nom `x` que v0 garde.
+  const resultat = await b.appliquer([b.v('v0', 'Y'), b.v('v1', 'b2'), b.v('v2', 'x')]);
+  assert.deepEqual(b.ecritures, ['v1=b2']);
+  assert.deepEqual(resultat.sautes, [
+    { id: b.entree('variable', 'v0'), motif: 'collision' },
+    { id: b.entree('variable', 'v2'), motif: 'collision' },
+  ]);
+});
+
+test('un nom que Figma refuse est sauté en nom-invalide, chaque forme, sans rien écrire pour lui', async () => {
+  const noms = ['', '/a', 'a/', 'a//b', 'a.b', 'a{b', 'a}b', '$a', 'x/$a'];
+  const b = banc({ variables: [...noms.map((_, rang): SpecVariable => [`v${rang}`, `ancien ${rang}`]), ['ok', 'ancien ok']] });
+  const demandes = [...noms.map((nom, rang) => b.v(`v${rang}`, nom)), b.v('ok', 'nouveau/ok')];
+  const resultat = await b.appliquer(demandes);
+  assert.deepEqual(resultat.sautes, noms.map((_, rang) => ({ id: b.entree('variable', `v${rang}`), motif: 'nom-invalide' })));
+  assert.deepEqual(b.ecritures, ['ok=nouveau/ok']);
+  assert.deepEqual(b.journal()?.renommages.map(({ id }) => id), ['ok']);
+});
+
+test('un nom de collection vide est sauté en nom-invalide ; un point y reste permis', async () => {
+  const vide = banc();
+  const refuse = await vide.appliquer([vide.c('c', ' ')]);
+  assert.deepEqual(refuse.sautes, [{ id: vide.entree('collection', 'c'), motif: 'nom-invalide' }]);
+  const point = banc();
+  const accepte = await point.appliquer([point.c('c', 'Brand 2.0')]);
+  assert.deepEqual(accepte.renommes.map(({ nouveauNom }) => nouveauNom), ['Brand 2.0']);
+});
+
+test('le `$` qui n’est pas en tête d’un segment, et les noms à plusieurs segments, restent permis', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  const resultat = await b.appliquer([b.v('v0', 'prix$/net'), b.v('v1', 'x y/z')]);
+  assert.deepEqual(resultat.sautes, []);
+  assert.deepEqual(b.ecritures, ['v0=prix$/net', 'v1=x y/z']);
+});
+
+test('une annulation ne refait ni le contrôle du nom ni celui des chemins', async () => {
+  const b = banc({ variables: [['v0', 'Foo'], ['v1', 'foo/bar']] });
+  const applique = await b.appliquer([b.v('v0', 'baz')]);
+  assert.equal(applique.statut, 'applique');
+  const annule = await b.annuler();
+  assert.equal(annule.statut, 'applique', 'Foo et foo/bar se rejoignaient déjà avant le lot');
+  assert.equal(b.nom('v0'), 'Foo');
 });

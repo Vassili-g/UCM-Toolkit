@@ -10,6 +10,7 @@ import {
   type CategorieDeNom, type ChangementDeTerme, type ConflitDeVocabulaire, type Convention, type Lexique, type Mots,
   type OrigineDuTerme, type Question, type Renommage, type ResultatDesQuestions, type ResultatDuLexique, type TermeEnQuestion,
 } from '@ucm-kit/core/referentiel';
+import { estCollisionDeChemin } from './cheminsPublies';
 import type { Inventaire } from './lecture';
 import type {
   Bilan, BloqueVue, CollectionVue, ConflitVue, EcritureChoisie, EffetVue, FicheVue, GroupeVue, LigneDEcriture, LigneVue,
@@ -533,10 +534,11 @@ export function projeter(entree: EntreeDeProjection): Projection {
 
   function bloques(): BloqueVue[] {
     const collections = new Map(entree.inventaire.entrees.filter((e) => e.cible.type === 'collection').map((e) => [e.nom.id, e.nom.nom]));
-    return entree.resultat.collisions.flatMap((collision) => collision.ids.flatMap((id) => {
+    return entree.resultat.collisions.flatMap((collision) => collision.ids.flatMap((id): BloqueVue[] => {
       const nom = lexique.noms.get(id);
       if (!nom || nom.nom === collision.nom) return [];
-      return [{ avant: nom.nom, apres: collision.nom, collection: collision.categorie === 'collections' ? '' : collections.get(collision.portee) ?? '' }];
+      const bloque = { avant: nom.nom, apres: collision.nom, collection: collision.categorie === 'collections' ? '' : collections.get(collision.portee) ?? '' };
+      return [estCollisionDeChemin(collision) ? { ...bloque, chemin: { motif: collision.motif, apres: collision.apres, autre: collision.autre } } : bloque];
     }));
   }
 
