@@ -18,6 +18,8 @@ const clic = (selecteur, attendre) => (attendre ? { clic: selecteur, attendre } 
 const ouvert = (bilan) => [msg(messages.initial(true)), msg(messages.bilan(1, bilan), '.liste')];
 /** L'onglet Règles : le clic relit les termes (demande 3), dont la réponse remplit la liste. */
 const reglesOuvertes = () => [...ouvert(bilans.travail), clic('#onglet-regles'), msg(messages.termes(3), '.ligne-terme')];
+/** L'onglet Règles d'un fichier qui a des noms : la liste porte un composant et une palette. */
+const reglesAvecNoms = () => [...ouvert(bilans.travail), clic('#onglet-regles'), msg(messages.termesAvecNoms(3), '.ligne-terme')];
 /** La feuille d'un terme : la ligne `rang` de la liste, puis sa fiche (demande 4). */
 const termeOuvert = (rang, fiche) => [
   ...reglesOuvertes(),
@@ -83,6 +85,9 @@ module.exports.ETATS = [
   etat('regles', 'Règles', 'Le designer ouvre l’onglet des règles.',
     'L’écriture résumée avec Modifier, la recherche, les filtres avec leur compte, les termes avec leur origine et leur état.',
     reglesOuvertes()),
+  etat('regles-noms', 'Règles, avec des noms', 'Le fichier a un composant et une palette : la liste les reconnaît.',
+    'Cinq filtres dont Composants et Palettes ; Button et Poppy portent une pastille grise Composant et Palette, StressTest garde sa forme du fichier, background et hover gardent leur origine.',
+    reglesAvecNoms()),
   etat('regles-recherche', 'Règles, variante cherchée', 'Le designer cherche bg dans Règles.',
     'La phrase « bg est remplacé par background » sous la recherche ; bg en blanc dans la ligne de background.',
     [...reglesOuvertes(), { saisie: { dans: '.recherche', valeur: 'bg' } }, ...delai(), msg(messages.termesTrouves(4), '.resultat-recherche:not([hidden])')]),
@@ -101,6 +106,9 @@ module.exports.ETATS = [
   etat('feuille-terme-sans-regle', 'Feuille d’un terme sans règle', 'Le designer ouvre un terme qu’aucune règle ne couvre.',
     'Sans règle dans l’en-tête, la question qui porte sur le terme, Déjà employé ; Remplace d’autres termes… et Remplacer par… en bas, sans Fermer.',
     termeOuvert(5, fiches.sansRegle)),
+  etat('feuille-composant', 'Feuille d’un composant', 'Le designer ouvre Button, nom d’un composant du fichier.',
+    'Button et la pastille grise Composant dans l’en-tête, la phrase « Nom d’un composant du fichier… » et le lien Traiter comme un terme, Déjà employé ; Remplace d’autres termes… et Remplacer par… en bas.',
+    [...reglesAvecNoms(), clic('.liste-termes .ligne-terme:nth-child(2)', '.feuille'), msg(messages.fiche(4, fiches.composant), '.fiche-entete')]),
   etat('feuille-remplacer-par', 'Remplacer par…', 'Le designer choisit le terme qui remplacera radius.',
     'L’étape dans la même feuille : le champ, le retour ‹, l’effet « 9 variables rejoindront les renommages » avec un chemin réel.',
     [...termeOuvert(5, fiches.sansRegle), clic('.feuille-groupe .btn-primary', '#feuille-saisie'),

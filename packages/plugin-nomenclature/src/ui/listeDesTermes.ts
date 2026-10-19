@@ -3,10 +3,10 @@
  * les pages reçues et le terme choisi. Le module est pur ; `regles.ts` lit cet
  * état pour le DOM et envoie les demandes.
  */
-import type { PluginMessage, TermeDeListe } from '../messages';
+import type { FiltreDeTermes, PluginMessage, TermeDeListe } from '../messages';
 import { TEXTES } from './textes';
 
-export type FiltreDesTermes = 'tous' | 'avec-regle' | 'sans-regle';
+export type FiltreDesTermes = FiltreDeTermes;
 type ReponseDesTermes = Extract<PluginMessage, { type: 'termes' }>;
 
 /** Le nombre de termes que le sandbox rend par page. */
@@ -19,7 +19,7 @@ export interface EtatDeLaListe {
   readonly termes: readonly TermeDeListe[];
   /** Le nombre de termes que la recherche et le filtre retiennent, `null` avant la première page. */
   readonly total: number | null;
-  /** Les comptes des trois filtres, conservés d'une recherche à l'autre. */
+  /** Les comptes des cinq filtres, conservés d'une recherche à l'autre. */
   readonly comptes: ReponseDesTermes['comptes'] | null;
   /** Le mot du terme dont la feuille est ouverte. */
   readonly choisi: string | null;
@@ -74,8 +74,14 @@ export type MorceauDeLigne =
   | { readonly sorte: 'reference' | 'mot' | 'gris'; readonly texte: string }
   | { readonly sorte: 'variante'; readonly texte: string; readonly trouvee: boolean };
 
+/** Le mot que la ligne ou le titre de la fiche écrit : la forme du fichier (`StressTest`) pour un terme sans règle, sinon la clé. */
+export function motAffiche(terme: Pick<TermeDeListe, 'mot' | 'forme' | 'statut'>): string {
+  return terme.statut === 'sans-regle' || terme.statut === 'a-trancher' ? terme.forme : terme.mot;
+}
+
 /** Les morceaux d'une ligne selon le statut du terme, dans l'ordre d'affichage. */
 export function morceauxDuTerme(terme: TermeDeListe): readonly MorceauDeLigne[] {
+  const mot = motAffiche(terme);
   switch (terme.statut) {
     case 'regle':
       return terme.remplace.length === 0
@@ -87,12 +93,12 @@ export function morceauxDuTerme(terme: TermeDeListe): readonly MorceauDeLigne[] 
           ];
     case 'a-trancher':
       return terme.avec === null
-        ? [{ sorte: 'mot', texte: terme.mot }]
-        : [{ sorte: 'mot', texte: terme.mot }, { sorte: 'gris', texte: TEXTES.motOu }, { sorte: 'variante', texte: terme.avec, trouvee: false }];
+        ? [{ sorte: 'mot', texte: mot }]
+        : [{ sorte: 'mot', texte: mot }, { sorte: 'gris', texte: TEXTES.motOu }, { sorte: 'variante', texte: terme.avec, trouvee: false }];
     case 'ecart':
-      return [{ sorte: 'mot', texte: terme.mot }, { sorte: 'gris', texte: TEXTES.termeNonApplique }];
+      return [{ sorte: 'mot', texte: mot }, { sorte: 'gris', texte: TEXTES.termeNonApplique }];
     case 'sans-regle':
-      return [{ sorte: 'mot', texte: terme.mot }];
+      return [{ sorte: 'mot', texte: mot }];
   }
 }
 
@@ -101,7 +107,15 @@ export function termeATrancher(terme: TermeDeListe): boolean {
   return terme.statut === 'a-trancher';
 }
 
-/** Le nom accessible d'une ligne : le terme, sa règle, son origine ou `À trancher`, son nombre. */
+/** La pastille à droite d'une ligne : la nature d'un nom d'abord, puis `À trancher`, puis l'origine ; `null` si la ligne n'en a aucune. */
+export function pastilleDeLaLigne(terme: TermeDeListe): { readonly texte: string; readonly classe: 'pastille-indice' | 'pastille-bloque' | 'pastille-ucm' | 'pastille-personnalise' } | null {
+  if (terme.nature !== null) return { texte: TEXTES.natureDuTerme[terme.nature], classe: 'pastille-indice' };
+  if (termeATrancher(terme)) return { texte: TEXTES.pastilleATrancherDuTerme, classe: 'pastille-bloque' };
+  if (terme.origine === null) return null;
+  return terme.origine === 'ucm' ? { texte: TEXTES.pastilleUcm, classe: 'pastille-ucm' } : { texte: TEXTES.pastillePersonnalise, classe: 'pastille-personnalise' };
+}
+
+/** Le nom accessible d'une ligne : le terme, sa règle, sa nature, son origine ou `À trancher`, son nombre. */
 export function nomAccessibleDuTerme(terme: TermeDeListe): string {
   const regle =
     terme.statut === 'regle' && terme.remplace.length > 0
@@ -111,6 +125,7 @@ export function nomAccessibleDuTerme(terme: TermeDeListe): string {
         : terme.statut === 'ecart'
           ? TEXTES.termeNonApplique
           : '';
+  const nature = terme.nature === null ? '' : TEXTES.natureDuTerme[terme.nature];
   const origine = termeATrancher(terme)
     ? TEXTES.pastilleATrancherDuTerme
     : terme.origine === 'ucm'
@@ -118,7 +133,7 @@ export function nomAccessibleDuTerme(terme: TermeDeListe): string {
       : terme.origine === 'personnalise'
         ? TEXTES.pastillePersonnalise
         : '';
-  return [terme.mot, regle, origine, TEXTES.nomsDuTerme(terme.nombre)].filter((partie) => partie !== '').join(', ');
+  return [motAffiche(terme), regle, nature, origine, TEXTES.nomsDuTerme(terme.nombre)].filter((partie) => partie !== '').join(', ');
 }
 
 /**

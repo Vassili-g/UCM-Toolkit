@@ -106,34 +106,51 @@ const bilans = {
 };
 
 const termes = [
-  { mot: 'background', origine: 'ucm', statut: 'regle', remplace: ['bg', 'back'], avec: null, nombre: 40, trouve: null },
-  { mot: 'hover', origine: 'personnalise', statut: 'regle', remplace: ['hovered'], avec: null, nombre: 8, trouve: null },
-  { mot: 'bg', origine: null, statut: 'a-trancher', remplace: [], avec: 'background', nombre: 12, trouve: null },
-  { mot: 'sm', origine: null, statut: 'a-trancher', remplace: [], avec: null, nombre: 20, trouve: null },
-  { mot: 'radius', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 9, trouve: null },
-  { mot: 'surface', origine: 'ucm', statut: 'ecart', remplace: [], avec: null, nombre: 6, trouve: null },
+  { mot: 'background', forme: 'background', nature: null, origine: 'ucm', statut: 'regle', remplace: ['bg', 'back'], avec: null, nombre: 40, trouve: null },
+  { mot: 'hover', forme: 'hover', nature: null, origine: 'personnalise', statut: 'regle', remplace: ['hovered'], avec: null, nombre: 8, trouve: null },
+  { mot: 'bg', forme: 'bg', nature: null, origine: null, statut: 'a-trancher', remplace: [], avec: 'background', nombre: 12, trouve: null },
+  { mot: 'sm', forme: 'sm', nature: null, origine: null, statut: 'a-trancher', remplace: [], avec: null, nombre: 20, trouve: null },
+  { mot: 'radius', forme: 'radius', nature: null, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 9, trouve: null },
+  { mot: 'surface', forme: 'surface', nature: null, origine: 'ucm', statut: 'ecart', remplace: [], avec: null, nombre: 6, trouve: null },
+];
+
+// La liste de l'onglet Règles quand le fichier a des noms : un composant, une palette, des termes avec règle.
+const termesAvecNoms = [
+  termes[0],
+  { mot: 'button', forme: 'Button', nature: 'composant', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 245, trouve: null },
+  termes[1],
+  { mot: 'poppy', forme: 'Poppy', nature: 'palette', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 44, trouve: null },
+  { mot: 'stress-test', forme: 'StressTest', nature: null, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 66, trouve: null },
+  termes[5],
 ];
 
 const fiches = {
   ucm: {
-    mot: 'background', origine: 'ucm', categorieUcm: 'roles', definition: 'La couleur de fond d’un élément.',
+    mot: 'background', forme: 'background', nature: null, origine: 'ucm', categorieUcm: 'roles', definition: 'La couleur de fond d’un élément.',
     remplace: [{ mot: 'bg', nombre: 12, ucm: true }, { mot: 'back', nombre: 3, ucm: true }],
     emploi: { nombre: 40, exemples: [boutonFondEmploye, employe('v14', 'Card/background/default', [1]), employe('v15', 'Page/background/default', [1])] },
     aRenommer: { nombre: 12, exemples: [boutonFond, carteFond, pageFond] },
-    ecart: false, voulu: false, distincts: [], question: null,
+    ecart: false, voulu: false, ordinaire: false, distincts: [], question: null,
   },
   personnalise: {
-    mot: 'hover', origine: 'personnalise', categorieUcm: null, definition: null,
+    mot: 'hover', forme: 'hover', nature: null, origine: 'personnalise', categorieUcm: null, definition: null,
     remplace: [{ mot: 'hovered', nombre: 8, ucm: false }],
     emploi: { nombre: 8, exemples: [employe('v16', 'Link/hover/text', [1]), employe('v17', 'Button/hover/border', [1])] },
     aRenommer: { nombre: 8, exemples: [survol, survolBouton] },
-    ecart: false, voulu: false, distincts: [], question: null,
+    ecart: false, voulu: false, ordinaire: false, distincts: [], question: null,
   },
   sansRegle: {
-    mot: 'radius', origine: null, categorieUcm: null, definition: null, remplace: [],
+    mot: 'radius', forme: 'radius', nature: null, origine: null, categorieUcm: null, definition: null, remplace: [],
     emploi: { nombre: 9, exemples: [rayon, rayonCarte] },
     aRenommer: { nombre: 0, exemples: [] },
-    ecart: false, voulu: false, distincts: [], question: 'paire:radius|corner',
+    ecart: false, voulu: false, ordinaire: false, distincts: [], question: 'paire:radius|corner',
+  },
+  // Un nom : le premier segment de 245 noms, que le sandbox lit comme un composant.
+  composant: {
+    mot: 'button', forme: 'Button', nature: 'composant', origine: null, categorieUcm: null, definition: null, remplace: [],
+    emploi: { nombre: 245, exemples: [employe('v30', 'Button/Colors/Primary/Text/Press/Foreground', [0]), employe('v31', 'Button/Sizes/Medium/Padding-x', [0]), employe('v32', 'Button/Colors/Secondary/Outlined/Default/Border', [0])] },
+    aRenommer: { nombre: 0, exemples: [] },
+    ecart: false, voulu: false, ordinaire: false, distincts: [], question: null,
   },
 };
 
@@ -154,12 +171,16 @@ const messages = {
   lignes: (demande, debut) => m('lignes', demande, { generation: 1, groupe: groupeBackground.cle, debut, lignes: lignesSupplementaires.slice(debut - groupeBackground.apercu.length, debut - groupeBackground.apercu.length + 50), total: 12 }),
   termes: (demande) => m('termes', demande, {
     generation: 1, debut: 0, termes, total: termes.length,
-    comptes: { tous: termes.length, avecRegle: 3, sansRegle: 3 },
+    comptes: { tous: termes.length, avecRegle: 3, sansRegle: 3, composants: 0, palettes: 0 },
+  }),
+  termesAvecNoms: (demande) => m('termes', demande, {
+    generation: 1, debut: 0, termes: termesAvecNoms, total: termesAvecNoms.length,
+    comptes: { tous: termesAvecNoms.length, avecRegle: 3, sansRegle: 1, composants: 1, palettes: 1 },
   }),
   /** La recherche d'une variante : la ligne de sa référence porte la variante trouvée. */
   termesTrouves: (demande) => m('termes', demande, {
     generation: 1, debut: 0, termes: [{ ...termes[0], trouve: 'bg' }], total: 1,
-    comptes: { tous: termes.length, avecRegle: 3, sansRegle: 3 },
+    comptes: { tous: termes.length, avecRegle: 3, sansRegle: 3, composants: 0, palettes: 0 },
   }),
   fiche: (demande, fiche) => m('fiche', demande, { generation: 1, fiche }),
   simulation: (demande) => m('simulation', demande, { generation: 1, effet: effetDeTerme, conflit: null }),

@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { TermeDeListe } from '../src/messages';
-import { LISTE_INITIALE, choisir, debutSuivant, filtrer, recevoir, resteAAfficher, saisir, morceauxDuTerme, nomAccessibleDuTerme, phraseDeRecherche } from '../src/ui/listeDesTermes';
+import { LISTE_INITIALE, choisir, debutSuivant, filtrer, recevoir, resteAAfficher, saisir, morceauxDuTerme, motAffiche, nomAccessibleDuTerme, pastilleDeLaLigne, phraseDeRecherche } from '../src/ui/listeDesTermes';
 
 const COMPTES = { tous: 120, avecRegle: 20, sansRegle: 100, composants: 0, palettes: 0 };
 
@@ -107,4 +107,45 @@ test('le nom accessible d’une ligne dit la règle, l’origine et le nombre', 
   assert.equal(nomAccessibleDuTerme({ ...base, origine: null, statut: 'a-trancher', remplace: [], avec: 'error' }), 'pressed, à trancher avec error, À trancher, 38 noms');
   assert.equal(nomAccessibleDuTerme({ ...base, statut: 'ecart', remplace: [] }), 'pressed, règle UCM non appliquée dans ce fichier, UCM, 38 noms');
   assert.equal(nomAccessibleDuTerme({ ...base, origine: null, statut: 'sans-regle', remplace: [] }), 'pressed, 38 noms');
+});
+
+const NOM: TermeDeListe = { mot: 'button', forme: 'Button', nature: 'composant', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 245, trouve: null };
+
+test('chacun des cinq filtres repart de la première page', () => {
+  const liste = recevoir(LISTE_INITIALE, { debut: 0, termes: termes(0, 50), total: 120, comptes: COMPTES });
+  for (const filtre of ['tous', 'avec-regle', 'sans-regle', 'composants', 'palettes'] as const) {
+    const suivante = filtrer({ ...liste, filtre: filtre === 'tous' ? 'palettes' : 'tous' }, filtre);
+    assert.equal(suivante.filtre, filtre);
+    assert.deepEqual(suivante.termes, []);
+    assert.equal(suivante.total, null);
+  }
+});
+
+test('un terme sans règle montre la forme du fichier, un terme avec règle sa clé', () => {
+  assert.equal(motAffiche({ ...NOM, mot: 'stress-test', forme: 'StressTest' }), 'StressTest');
+  assert.deepEqual(morceauxDuTerme({ ...NOM, mot: 'outlined', forme: 'Outlined', nature: null }), [{ sorte: 'mot', texte: 'Outlined' }]);
+  assert.deepEqual(morceauxDuTerme({ ...NOM, nature: null, statut: 'a-trancher', avec: 'btn' }), [
+    { sorte: 'mot', texte: 'Button' },
+    { sorte: 'gris', texte: 'ou' },
+    { sorte: 'variante', texte: 'btn', trouvee: false },
+  ]);
+  const regle: TermeDeListe = { ...NOM, mot: 'info', forme: 'Info', nature: null, origine: 'ucm', statut: 'regle', remplace: ['information'] };
+  assert.equal(motAffiche(regle), 'info');
+  assert.deepEqual(morceauxDuTerme(regle)[0], { sorte: 'reference', texte: 'info' });
+});
+
+test('la pastille de nature passe avant À trancher et l’origine', () => {
+  assert.deepEqual(pastilleDeLaLigne(NOM), { texte: 'Composant', classe: 'pastille-indice' });
+  assert.deepEqual(pastilleDeLaLigne({ ...NOM, nature: 'element' }), { texte: 'Élément', classe: 'pastille-indice' });
+  assert.deepEqual(pastilleDeLaLigne({ ...NOM, nature: 'palette' }), { texte: 'Palette', classe: 'pastille-indice' });
+  assert.deepEqual(pastilleDeLaLigne({ ...NOM, statut: 'a-trancher', origine: 'ucm' }), { texte: 'Composant', classe: 'pastille-indice' });
+  assert.deepEqual(pastilleDeLaLigne({ ...NOM, nature: null, statut: 'a-trancher' }), { texte: 'À trancher', classe: 'pastille-bloque' });
+  assert.deepEqual(pastilleDeLaLigne({ ...NOM, nature: null, origine: 'ucm', statut: 'regle' }), { texte: 'UCM', classe: 'pastille-ucm' });
+  assert.deepEqual(pastilleDeLaLigne({ ...NOM, nature: null, origine: 'personnalise', statut: 'regle' }), { texte: 'Personnalisé', classe: 'pastille-personnalise' });
+  assert.equal(pastilleDeLaLigne({ ...NOM, nature: null }), null);
+});
+
+test('le nom accessible d’un nom dit sa forme et sa nature', () => {
+  assert.equal(nomAccessibleDuTerme(NOM), 'Button, Composant, 245 noms');
+  assert.equal(nomAccessibleDuTerme({ ...NOM, nature: 'palette', mot: 'poppy', forme: 'Poppy', nombre: 44 }), 'Poppy, Palette, 44 noms');
 });

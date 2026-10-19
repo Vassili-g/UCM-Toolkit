@@ -18,6 +18,7 @@ import {
   filtrer,
   morceauxDuTerme,
   nomAccessibleDuTerme,
+  pastilleDeLaLigne,
   phraseDeRecherche,
   recevoir,
   resteAAfficher,
@@ -119,6 +120,8 @@ const FILTRES: readonly { readonly filtre: FiltreDesTermes; readonly libelle: (n
   { filtre: 'tous', libelle: TEXTES.filtreTous, compte: (comptes) => comptes.tous },
   { filtre: 'avec-regle', libelle: TEXTES.filtreAvecRegle, compte: (comptes) => comptes.avecRegle },
   { filtre: 'sans-regle', libelle: TEXTES.filtreSansRegle, compte: (comptes) => comptes.sansRegle },
+  { filtre: 'composants', libelle: TEXTES.filtreComposants, compte: (comptes) => comptes.composants },
+  { filtre: 'palettes', libelle: TEXTES.filtrePalettes, compte: (comptes) => comptes.palettes },
 ];
 
 function creerPastilleDeReference(texte: string): HTMLElement {
@@ -162,13 +165,10 @@ function creerLigneDeTerme(terme: TermeDeListe, choisie: boolean, auClic: () => 
   if (variantes.childElementCount > 0) regle.append(variantes);
 
   const droite = document.createElement('span');
-  if (termeATrancher(terme)) {
-    droite.className = 'pastille pastille-bloque';
-    droite.textContent = TEXTES.pastilleATrancherDuTerme;
-  } else if (terme.origine !== null) {
-    const ucm = terme.origine === 'ucm';
-    droite.classList.add('pastille', ucm ? 'pastille-ucm' : 'pastille-personnalise');
-    droite.textContent = ucm ? TEXTES.pastilleUcm : TEXTES.pastillePersonnalise;
+  const pastille = pastilleDeLaLigne(terme);
+  if (pastille) {
+    droite.classList.add('pastille', pastille.classe);
+    droite.textContent = pastille.texte;
   }
   const nombre = document.createElement('span');
   nombre.className = 'meta terme-nombre';

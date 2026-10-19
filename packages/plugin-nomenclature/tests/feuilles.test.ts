@@ -10,8 +10,11 @@ import {
   motsSaisis,
   pastilleDeLaFiche,
   piedDeLaFiche,
+  lienDeLaFiche,
+  lignesDIdentite,
   sorteDeFiche,
   termeProposeAUcm,
+  titreDeLaFiche,
   termesDuReferentiel,
   termesRemplaces,
   texteDeLaProposition,
@@ -57,7 +60,7 @@ test('la fiche suit l’origine du terme', () => {
 
 test('la pastille de l’en-tête dit la famille UCM, Personnalisé, Sans règle ou À trancher', () => {
   assert.deepEqual(pastilleDeLaFiche('ucm', FICHE_UCM, false), { texte: 'UCM · rôle', variante: 'ucm' });
-  assert.deepEqual(pastilleDeLaFiche('ucm', { categorieUcm: null }, false), { texte: 'UCM', variante: 'ucm' });
+  assert.deepEqual(pastilleDeLaFiche('ucm', { categorieUcm: null, nature: null }, false), { texte: 'UCM', variante: 'ucm' });
   assert.deepEqual(pastilleDeLaFiche('personnalise', FICHE, false), { texte: 'Personnalisé', variante: 'personnalise' });
   assert.deepEqual(pastilleDeLaFiche('sans-regle', FICHE_SANS_REGLE, false), { texte: 'Sans règle', variante: 'indice' });
   assert.deepEqual(pastilleDeLaFiche('sans-regle', FICHE_SANS_REGLE, true), { texte: 'À trancher', variante: 'indice' });
@@ -143,4 +146,39 @@ test('les suggestions de « Remplacer par… » sont les termes du référentiel
   assert.ok(termes.includes('pressed') && termes.includes('background'));
   assert.ok(!termes.includes('500'));
   assert.deepEqual(termes, [...new Set(termes)].sort());
+});
+
+const FICHE_NOM: FicheVue = { ...FICHE_SANS_REGLE, mot: 'button', forme: 'Button', nature: 'composant', question: null, emploi: { nombre: 245, exemples: [LIGNE] } };
+const FICHE_ORDINAIRE: FicheVue = { ...FICHE_SANS_REGLE, mot: 'button', forme: 'Button', ordinaire: true, question: null };
+
+test('le titre est la forme du fichier quand le terme n’a pas de règle, sinon sa clé', () => {
+  assert.equal(titreDeLaFiche('sans-regle', FICHE_NOM), 'Button');
+  assert.equal(titreDeLaFiche('ucm', { mot: 'background', forme: 'Background' }), 'background');
+  assert.equal(titreDeLaFiche('personnalise', FICHE), 'outlined');
+});
+
+test('la pastille grise de la nature remplace Sans règle, même quand une question attend', () => {
+  assert.deepEqual(pastilleDeLaFiche('sans-regle', FICHE_NOM, false), { texte: 'Composant', variante: 'indice' });
+  assert.deepEqual(pastilleDeLaFiche('sans-regle', { ...FICHE_NOM, nature: 'element' }, true), { texte: 'Élément', variante: 'indice' });
+  assert.deepEqual(pastilleDeLaFiche('sans-regle', { ...FICHE_NOM, nature: 'palette' }, false), { texte: 'Palette', variante: 'indice' });
+});
+
+test('l’en-tête d’un nom dit sa nature ; celui d’un terme ordinaire dit qu’il est traité comme un terme', () => {
+  assert.deepEqual(lignesDIdentite('sans-regle', FICHE_NOM), ['Nom d’un composant du fichier. Aucune question ne porte sur un nom.']);
+  assert.deepEqual(lignesDIdentite('sans-regle', { ...FICHE_NOM, nature: 'palette' }), ['Nom d’une palette du fichier. Aucune question ne porte sur un nom.']);
+  assert.deepEqual(lignesDIdentite('sans-regle', FICHE_ORDINAIRE), ['Ce nom est traité comme un terme du vocabulaire.']);
+  assert.deepEqual(blocsDeLaFiche('sans-regle', FICHE_NOM), ['identite', 'deja-employe']);
+  assert.deepEqual(blocsDeLaFiche('sans-regle', { ...FICHE_NOM, emploi: { nombre: 0, exemples: [] } }), ['identite']);
+  assert.deepEqual(lignesDIdentite('sans-regle', FICHE_SANS_REGLE), ['Une question à trancher porte sur ce terme.']);
+});
+
+test('le lien de l’en-tête envoie terme-ordinaire : actif pour un nom, inactif pour un terme ordinaire, absent sinon', () => {
+  assert.deepEqual(lienDeLaFiche(FICHE_NOM), { libelle: 'Traiter comme un terme', geste: { type: 'terme-ordinaire', terme: 'button', actif: true } });
+  assert.deepEqual(lienDeLaFiche(FICHE_ORDINAIRE), { libelle: 'Traiter comme un nom', geste: { type: 'terme-ordinaire', terme: 'button', actif: false } });
+  assert.equal(lienDeLaFiche(FICHE_SANS_REGLE), null);
+  assert.equal(lienDeLaFiche(FICHE_UCM), null);
+});
+
+test('la fiche d’un nom garde les actions du pied d’un terme sans règle', () => {
+  assert.deepEqual(piedDeLaFiche(sorteDeFiche(FICHE_NOM), FICHE_NOM), { gauche: 'remplace-d-autres-termes', droite: ['remplacer-par'] });
 });

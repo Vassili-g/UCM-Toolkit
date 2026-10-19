@@ -17,6 +17,7 @@ import type { Coquille } from './coquille';
 import { creerCarteDEcriture } from './ecriture';
 import type { MessageAAfficher } from './frontiere';
 import { segmentsDeNom } from './lignes';
+import { motAffiche } from './listeDesTermes';
 import { carteDeConflit } from './questions';
 import type { ReglesMontees } from './regles';
 import { TEXTES } from './textes';
@@ -32,9 +33,22 @@ export function sorteDeFiche(fiche: Pick<FicheVue, 'origine'>): SorteDeFiche {
   return fiche.origine === 'personnalise' ? 'personnalise' : 'sans-regle';
 }
 
-/** Les textes de gris sous le titre : la définition, puis l'écart ou la question qui porte sur le terme. */
-export function lignesDIdentite(sorte: SorteDeFiche, fiche: Pick<FicheVue, 'definition' | 'ecart' | 'question'>): string[] {
+/** Le titre de la feuille : la forme du fichier (`StressTest`) quand le terme n'a pas de règle, sinon la clé du terme. */
+export function titreDeLaFiche(sorte: SorteDeFiche, fiche: Pick<FicheVue, 'mot' | 'forme'>): string {
+  return sorte === 'sans-regle' ? fiche.forme : fiche.mot;
+}
+
+/** Le lien de l'en-tête : un nom se traite comme un terme, un terme ordinaire se traite comme un nom ; `null` pour un terme sans nature. */
+export function lienDeLaFiche(fiche: Pick<FicheVue, 'mot' | 'nature' | 'ordinaire'>): { readonly libelle: string; readonly geste: GesteSurLesRegles } | null {
+  if (fiche.ordinaire) return { libelle: TEXTES.traiterCommeUnNom, geste: { type: 'terme-ordinaire', terme: fiche.mot, actif: false } };
+  if (fiche.nature !== null) return { libelle: TEXTES.traiterCommeUnTerme, geste: { type: 'terme-ordinaire', terme: fiche.mot, actif: true } };
+  return null;
+}
+
+/** Les textes de gris sous le titre : la phrase du nom ou du terme ordinaire, la définition, puis l'écart ou la question qui porte sur le terme. */
+export function lignesDIdentite(sorte: SorteDeFiche, fiche: Pick<FicheVue, 'definition' | 'ecart' | 'question' | 'nature' | 'ordinaire'>): string[] {
   const lignes = [
+    fiche.ordinaire ? TEXTES.phraseOrdinaire : fiche.nature !== null ? TEXTES.phraseDeNature[fiche.nature] : null,
     fiche.definition ?? (sorte === 'personnalise' ? TEXTES.definitionPersonnalisee : null),
     fiche.ecart ? TEXTES.termeEcarte : null,
     sorte === 'sans-regle' && fiche.question !== null ? TEXTES.questionSurLeTerme : null,
@@ -42,12 +56,13 @@ export function lignesDIdentite(sorte: SorteDeFiche, fiche: Pick<FicheVue, 'defi
   return lignes.filter((texte): texte is string => texte !== null);
 }
 
-/** La pastille d'origine à côté du terme, dans l'en-tête de la feuille. */
+/** La pastille à côté du terme, dans l'en-tête de la feuille : la nature d'un nom, sinon l'origine. */
 export function pastilleDeLaFiche(
   sorte: SorteDeFiche,
-  fiche: Pick<FicheVue, 'categorieUcm'>,
+  fiche: Pick<FicheVue, 'categorieUcm' | 'nature'>,
   enAttente: boolean,
 ): { readonly texte: string; readonly variante: 'ucm' | 'personnalise' | 'indice' } {
+  if (fiche.nature !== null) return { texte: TEXTES.natureDuTerme[fiche.nature], variante: 'indice' };
   if (sorte === 'sans-regle') return { texte: enAttente ? TEXTES.pastilleATrancherDuTerme : TEXTES.pastilleSansRegle, variante: 'indice' };
   if (sorte === 'personnalise') return { texte: TEXTES.pastillePersonnalise, variante: 'personnalise' };
   return { texte: fiche.categorieUcm ? TEXTES.pastilleUcmDeCategorie(TEXTES.categorieDuTermeUcm(fiche.categorieUcm)) : TEXTES.pastilleUcm, variante: 'ucm' };
@@ -62,7 +77,7 @@ export type BlocDeFiche = 'identite' | 'regle' | 'gardes-separes' | 'ecriture-ga
  */
 export function blocsDeLaFiche(
   sorte: SorteDeFiche,
-  fiche: Pick<FicheVue, 'definition' | 'ecart' | 'question' | 'distincts' | 'voulu' | 'aRenommer' | 'emploi'>,
+  fiche: Pick<FicheVue, 'definition' | 'ecart' | 'question' | 'nature' | 'ordinaire' | 'distincts' | 'voulu' | 'aRenommer' | 'emploi'>,
 ): BlocDeFiche[] {
   return [
     ...(lignesDIdentite(sorte, fiche).length > 0 ? (['identite'] as const) : []),
@@ -366,7 +381,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
     const attendre = creerLeContenu();
     attendre.append(zone, demandeDeFiche === null ? creerErreur(TEXTES.erreur.echec) : el('p', 'meta', TEXTES.lectureDuTerme));
     const feuille = createFeuille({
-      titre: entree.mot,
+      titre: motAffiche(entree),
       corps: attendre,
       pied: creerLePied(null),
       onFermer: () => {
@@ -375,7 +390,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
         regles.designerLeTerme(null);
         // La liste se redessine pour effacer la ligne choisie : le focus revient à la ligne du terme.
         const lignes = Array.from(coquille.panneaux.regles.contenu.querySelectorAll<HTMLElement>('.ligne-terme'));
-        lignes.find((ligne) => ligne.querySelector('.mot')?.textContent === entree.mot)?.focus();
+        lignes.find((ligne) => ligne.querySelector('.mot')?.textContent === motAffiche(entree))?.focus();
       },
     });
     feuille.element.classList.add('feuille-terme');
@@ -475,6 +490,12 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
         const ligne = el('p', 'meta');
         poserLeTexte(ligne, texte);
         identite.append(ligne);
+      }
+      const lien = lienDeLaFiche(donnees);
+      if (lien) {
+        const traiter = creerUnBoutonNu(lien.libelle, () => envoyer(lien.geste, 'relire'));
+        traiter.className = 'lien';
+        identite.append(traiter);
       }
       return identite;
     }
@@ -668,7 +689,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
 
       const corps = creerLeContenu();
       corps.append(zone, ...blocsDeLaFiche(sorte, donnees).map((bloc) => creerLeBlocDeFiche(bloc, sorte, donnees)));
-      feuille.remplacer({ titre: donnees.mot, corps, pied: creerLePiedDeLaFiche(donnees, sorte) });
+      feuille.remplacer({ titre: titreDeLaFiche(sorte, donnees), corps, pied: creerLePiedDeLaFiche(donnees, sorte) });
       poserLOrigine(pastilleDeLaFiche(sorte, donnees, entree.statut === 'a-trancher'));
     }
 
