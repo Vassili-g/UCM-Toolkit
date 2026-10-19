@@ -6,15 +6,16 @@
  * Toute écriture sort sous forme d'`Ecriture` (`texte: null` efface la clé) : la session les range par le port d'`ecriture.ts`.
  */
 import { COLLECTIONS, ESPACE_ARCHITECT, type Collection, type ConflitDeVocabulaire, type DejaJuge, type Mots, type TermePersonnalise, type VocabulaireDuFichier } from '@ucm-kit/core/referentiel';
-import { estConventions, lireChoix } from './conventions';
+import {
+  CLE_CONVENTIONS_V1, CLE_ECRITURE, CLE_EXCLUES, VERSION_DES_REGLES,
+  apres, comparer, estCleDeNommage, estListeDeTextes, estMot, estMots, estObjet, estTexte, lireEcriture, lireEntree, lireLesEntreesDeNommage, lireTerme, motsDe, trier,
+  vocabulaireDeNommage,
+} from 'ucm-plugin-socle/src/reglesDeNommage';
 import type { EcritureChoisie } from './messages';
 
-export const VERSION_DES_REGLES = 1;
-export const CLE_ECRITURE = 'ecriture';
-export const CLE_EXCLUES = 'exclues';
+// Les clés qui changent un nom et leur analyseur vivent dans le socle, où UCM Palettes les lit aussi.
+export { CLE_CONVENTIONS_V1, CLE_ECRITURE, CLE_EXCLUES, VERSION_DES_REGLES, estMot };
 export const CLE_VUS = 'vus';
-/** Clé de la convention de la v1, lue seulement quand `ecriture` manque. */
-export const CLE_CONVENTIONS_V1 = 'conventions';
 /** Clé de la référence du journal : elle nomme le lot courant et le nombre de ses entrées. */
 export const CLE_JOURNAL = 'journal';
 /** Clé du dernier import qui a écrasé l'écriture ou un terme ; elle ne répond à aucune question. */
@@ -77,15 +78,6 @@ export type Regle =
   | { readonly type: 'exclues'; readonly ids: readonly string[] }
   | { readonly type: 'vus'; readonly groupes: readonly string[] };
 
-const comparer = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
-const trier = (liste: readonly string[]): string[] => [...new Set(liste)].sort(comparer);
-const estTexte = (valeur: unknown): valeur is string => typeof valeur === 'string' && valeur.length > 0;
-/** Un mot de terme refuse les espaces et les caractères qui séparent un chemin, une paire ou une clé : / | . { } $. */
-export const estMot = (valeur: unknown): valeur is string => estTexte(valeur) && !/[\s/|.{}$]/u.test(valeur);
-const estMots = (valeur: unknown): valeur is Mots => Array.isArray(valeur) && valeur.length > 0 && valeur.every(estMot);
-const estListeDeTextes = (valeur: unknown): valeur is string[] => Array.isArray(valeur) && valeur.every(estTexte);
-const estObjet = (valeur: unknown): valeur is Record<string, unknown> => !!valeur && typeof valeur === 'object' && !Array.isArray(valeur);
-
 // Les clés
 
 export const cleTerme = (mots: Mots): string => `terme:${mots.join(' ')}`;
@@ -123,36 +115,7 @@ export function octetsUtf8(texte: string): number {
   return octets;
 }
 
-function apres(cle: string, prefixe: string): string | undefined {
-  return cle.startsWith(prefixe) && cle.length > prefixe.length ? cle.slice(prefixe.length) : undefined;
-}
-function motsDe(texte: string): Mots | undefined {
-  const mots = texte.split(' ');
-  return estMots(mots) ? mots : undefined;
-}
-
 // La lecture
-
-/** Un JSON objet portant `version: 1`, sinon rien. */
-function lireEntree(texte: string): Record<string, unknown> | undefined {
-  if (!texte) return undefined;
-  try {
-    const brut: unknown = JSON.parse(texte);
-    return estObjet(brut) && brut.version === VERSION_DES_REGLES ? brut : undefined;
-  } catch { return undefined; }
-}
-
-function lireEcriture(brut: Record<string, unknown>): EcritureChoisie | undefined {
-  const { groupes, variables } = brut;
-  return estConventions({ groupes }) && estConventions({ variables }) ? { groupes, variables } as EcritureChoisie : undefined;
-}
-
-function lireTerme(mots: Mots, brut: Record<string, unknown>): TermePersonnalise | undefined {
-  if (!estMots(brut.terme) || brut.terme.join(' ') !== mots.join(' ')) return undefined;
-  if (!Array.isArray(brut.remplace) || !brut.remplace.every(estMots)) return undefined;
-  if (brut.definition !== undefined && typeof brut.definition !== 'string') return undefined;
-  return { terme: mots, remplace: brut.remplace, ...(brut.definition ? { definition: brut.definition } : {}) };
-}
 
 function lireAvant(brut: unknown): Record<string, string | null> | undefined {
   if (!estObjet(brut)) return undefined;
@@ -213,34 +176,27 @@ function lireJournalDuLot(entrees: ReadonlyMap<string, string>): Journal | undef
   return { heure: reference.heure, renommages };
 }
 
-/** Lit toutes les règles depuis les couples (clé, texte) de l'espace ; les clés inconnues sont ignorées. */
+/**
+ * Lit toutes les règles depuis les couples (clé, texte) de l'espace ; les clés inconnues sont ignorées.
+ * Les clés qui changent un nom passent par `lireLesEntreesDeNommage` du socle ; ici restent les autres.
+ */
 export function lireLesRegles(couples: Iterable<readonly [string, string]>): ReglesDuFichier {
   const entrees = new Map(couples);
-  let ecriture: EcritureChoisie | undefined;
-  const termes: TermePersonnalise[] = [];
-  const ecartsUcm: string[] = [];
+  const nommage = lireLesEntreesDeNommage(entrees);
   const distincts = new Map<string, readonly [string, string]>();
   const voulus: string[] = [];
-  const ordinaires: string[] = [];
   const plusTard: string[] = [];
   const gardees: string[] = [];
   const renommees: Record<string, Collection> = {};
-  let exclues: string[] = [];
   const reponses: Record<string, ReponseRangee> = {};
   let vus: string[] = [];
   let dernierImport: ImportRange | undefined;
   for (const [cle, texte] of entrees) {
+    if (estCleDeNommage(cle)) continue;
     const brut = lireEntree(texte);
     if (!brut) continue;
     let reste: string | undefined;
-    if (cle === CLE_ECRITURE) ecriture = lireEcriture(brut);
-    else if (cle === CLE_EXCLUES) { if (estListeDeTextes(brut.ids)) exclues = trier(brut.ids); }
-    else if (cle === CLE_VUS) { if (estListeDeTextes(brut.groupes)) vus = trier(brut.groupes); }
-    else if ((reste = apres(cle, 'terme:')) !== undefined) {
-      const mots = motsDe(reste);
-      const terme = mots && lireTerme(mots, brut);
-      if (terme) termes.push(terme);
-    } else if ((reste = apres(cle, 'ecart:')) !== undefined) ecartsUcm.push(reste);
+    if (cle === CLE_VUS) { if (estListeDeTextes(brut.groupes)) vus = trier(brut.groupes); }
     else if ((reste = apres(cle, 'distinct:')) !== undefined) {
       const [a, b, ...autres] = reste.split('|');
       if (estTexte(a) && estTexte(b) && autres.length === 0 && a !== b) {
@@ -248,7 +204,6 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
         distincts.set(paire.join('|'), paire);
       }
     } else if ((reste = apres(cle, 'voulu:')) !== undefined) { if (motsDe(reste)) voulus.push(reste); }
-    else if ((reste = apres(cle, 'ordinaire:')) !== undefined) { if (estMot(reste)) ordinaires.push(reste); }
     else if ((reste = apres(cle, 'plus-tard:')) !== undefined) { if (!reste.startsWith(PREFIXE_RETIRE)) plusTard.push(reste); }
     else if ((reste = apres(cle, 'collection:')) !== undefined) {
       const cible = (COLLECTIONS as readonly unknown[]).includes(brut.cible) ? brut.cible as Collection : undefined;
@@ -262,22 +217,19 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
       if (avant && (brut.apres === undefined || ecrit)) reponses[reste] = { avant, ...(ecrit ? { apres: ecrit } : {}) };
     }
   }
-  const v1 = ecriture ? undefined : lireChoix(entrees.get(CLE_CONVENTIONS_V1) ?? '');
-  const reprise: EcritureChoisie | undefined = v1?.conventions.groupes && v1.conventions.variables
-    ? { groupes: v1.conventions.groupes, variables: v1.conventions.variables } : undefined;
   const journal = lireJournal(entrees);
   return {
-    ...(ecriture ?? reprise ? { ecriture: ecriture ?? reprise } : {}),
-    ecritureDeLaV1: !ecriture && !!reprise,
-    termes: termes.sort((a, b) => comparer(a.terme.join(' '), b.terme.join(' '))),
-    ecartsUcm: trier(ecartsUcm),
+    ...(nommage.ecriture ? { ecriture: nommage.ecriture } : {}),
+    ecritureDeLaV1: nommage.ecritureDeLaV1,
+    termes: nommage.termes,
+    ecartsUcm: nommage.ecartsUcm,
     distincts: [...distincts.values()].sort((a, b) => comparer(a.join('|'), b.join('|'))),
     voulus: trier(voulus),
-    ordinaires: trier(ordinaires),
+    ordinaires: nommage.ordinaires,
     plusTard: trier(plusTard),
     collectionsGardees: trier(gardees),
     collectionsRenommees: Object.fromEntries(Object.entries(renommees).sort(([a], [b]) => comparer(a, b))),
-    collectionsExclues: exclues,
+    collectionsExclues: nommage.collectionsExclues,
     reponses,
     vus,
     ...(journal ? { journal } : {}),
@@ -289,7 +241,7 @@ export const reglesVides: ReglesDuFichier = lireLesRegles([]);
 
 /** Le vocabulaire que `indexerVocabulaire` du kit reçoit. */
 export function vocabulaireDuFichier(regles: Pick<ReglesDuFichier, 'termes' | 'ecartsUcm'>): VocabulaireDuFichier {
-  return { personnalises: regles.termes, ecartsUcm: regles.ecartsUcm };
+  return vocabulaireDeNommage(regles);
 }
 
 /** Ce que les détecteurs de questions de `detecterParEtapes` ne reposent pas. */

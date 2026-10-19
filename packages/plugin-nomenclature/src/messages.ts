@@ -1,11 +1,14 @@
 /** Contrat des messages entre l'écran et le sandbox : les demandes de l'écran, les réponses numérotées du sandbox et le contrôle de forme des demandes. */
 import type { Convention, OrigineDuTerme, IndiceDePaire, CategorieDeNom, NatureDeSegment } from '@ucm-kit/core/referentiel';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
+import type { EcritureChoisie } from 'ucm-plugin-socle/src/reglesDeNommage';
+import type { MotifDeChemin } from 'ucm-plugin-socle/src/cheminsPublies';
 import { estConventions } from './conventions';
+
+export type { EcritureChoisie, MotifDeChemin };
 
 /** Un nom est coché si son groupe principal l'est et qu'il n'est pas exclu, ou s'il est inclus. */
 export interface Selection { readonly groupes: readonly string[]; readonly exclus: readonly string[]; readonly inclus: readonly string[] }
-export interface EcritureChoisie { readonly groupes: Convention; readonly variables: Convention }
 export type Reponse =
   | { readonly type: 'garder'; readonly rang: 0 | 1 } | { readonly type: 'autre'; readonly terme: string }
   | { readonly type: 'distincts' } | { readonly type: 'plus-tard' }
@@ -64,8 +67,6 @@ export interface GroupeVue {
   readonly aussiDEcriture: number;
   readonly nouveau: boolean; readonly apercu: readonly LigneVue[];
 }
-/** Pourquoi deux variables donneraient le même chemin dans `tokens.json` : le même chemin, ou un token qui est aussi le groupe d'un autre. */
-export type MotifDeChemin = 'meme-token' | 'token-et-groupe';
 /**
  * Un nom qui n'est pas renommé. `chemin` est posé quand deux chemins de `tokens.json` se rejoignent : `apres` est le nom, avec sa collection, du token
  * (qui est aussi le groupe de `autre` pour `token-et-groupe`), et `autre` celui de l'autre variable.

@@ -235,6 +235,10 @@ packages/plugin-socle/   ce que les plugins partagent : ucm-plugin-socle, privé
   build/run-tests.cjs      le découvreur de tests, que chaque plugin appelle
   src/fenetre.ts           la taille bornée de la fenêtre, rangée dans clientStorage
   src/cheminsDeTokens.ts   le chemin publié d'un token, collection puis variable : UCM Exporter l'écrit, l'explorateur le recalcule
+  src/inventaireDeNoms.ts  l'inventaire des collections et variables locales, tel que le calcul de renommage le lit
+  src/cheminsPublies.ts    les renommages qui feraient disparaître un token de `tokens.json`
+  src/reglesDeNommage.ts   les entrées de règles qui changent un nom (écriture, termes, écarts, ordinaires, exclues), lues par un seul analyseur
+  src/nomsSelonLesRegles.ts  le calcul de renommage qu'UCM Nomenclature et UCM Palettes appellent : lexique du kit, puis contrôle des chemins publiés
   src/ui/socle.css         échelle de texte, trame, rôles de couleur et replis sombres, avant la feuille de chaque plugin
   src/ui/                  bouton, onglets dont un peut être indisponible (désactivé, sauté par les flèches), interrupteur, chevron `Chevron.ts` (SVG qui tourne par CSS), feuille modale, poignée de redimensionnement, bouton « Configuration » (engrenage puis libellé) et bascule de l'en-tête
   galerie/                 le banc de galerie, sa capture et le décalque du thème Figma
@@ -373,9 +377,9 @@ packages/plugin-nomenclature/  le plugin UCM Nomenclature : ucm-nomenclature-plu
   src/messages.ts          les deux sens de la frontière sandbox ↔ écran, numérotés par demande et par génération
   src/session.ts           l'inventaire, le lexique, les règles et le résultat, gardés dans le sandbox ; la file des calculs
   src/tranches.ts          un générateur du kit mené par tranches de huit millisecondes, abandonné par une demande plus récente
-  src/lecture.ts           l'inventaire des noms lus ; la relecture avant d'écrire
+  src/lecture.ts           republie l'inventaire des noms du socle
   src/lectureFigma.ts      collections et variables locales, et les variables qu'UCM Palettes a écrites
-  src/regles.ts            les règles du fichier, une entrée de données partagées par règle, le journal, l'export et l'import
+  src/regles.ts            les règles du fichier, une entrée de données partagées par règle, le journal, l'export et l'import ; les clés qui changent un nom sont lues par le socle
   src/projection.ts        du résultat du kit aux vues de l'écran : bilan, groupes, pages, questions, fiches, effets
   src/ecriture.ts          le seul fichier qui écrive dans le document : noms, règles, journal et point d'annulation
   src/conventions.ts       l'écriture des noms choisie par le fichier, validée par les registres du kit

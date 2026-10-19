@@ -14,10 +14,10 @@
 import {
   COLLECTIONS, REGISTRES, REGISTRES_ARCHITECTURE, commencerLexique, decouperSegment, detecterParEtapes, indexerVocabulaire,
   normaliserParEtapes, porteesTouchees,
-  type ConflitDeVocabulaire, type Convention, type ConventionsParCategorie, type IndexDuVocabulaire, type Lexique, type Mots,
+  type ConflitDeVocabulaire, type IndexDuVocabulaire, type Lexique, type Mots,
   type Collection, type Collision, type Question, type Renommage, type ResultatDesQuestions, type ResultatDuLexique,
 } from '@ucm-kit/core/referentiel';
-import { cheminsEnConflit, inventairePublie, type CollisionDeChemin } from './cheminsPublies';
+import { avecLesCheminsPublies, conventionsDe, ecritureEffective, idsNonRenommables, nomsSelonLesRegles } from 'ucm-plugin-socle/src/nomsSelonLesRegles';
 import {
   annulerLeDernierRenommage, appliquerLesRenommages,
   type PortDeRegles, type PortEcriture, type RenommageDemande, type ResultatEcriture,
@@ -74,8 +74,6 @@ class ErreurDeProtocole extends Error {
   constructor(readonly code: CodeDErreur) { super(code); }
 }
 
-const CONVENTION_NEUTRE: Convention = { casse: 'inchangee', separateur: 'inchange' };
-
 // Les règles qui comptent pour le calcul
 
 const premierLancement = (regles: ReglesDuFichier): boolean => regles.ecriture === undefined || regles.ecritureDeLaV1;
@@ -84,13 +82,6 @@ const memes = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.st
 /** Ce qu'`appliquer` compare : les règles qui changent les renommages proposés. */
 const signatureDuCalcul = (regles: ReglesDuFichier): string =>
   JSON.stringify([regles.ecriture ?? null, regles.termes, regles.ecartsUcm, regles.collectionsExclues, regles.collectionsRenommees]);
-
-const ecritureEffective = (regles: ReglesDuFichier, lexique: Lexique): EcritureChoisie =>
-  regles.ecriture ?? {
-    groupes: lexique.detection.groupes.dominante ?? CONVENTION_NEUTRE,
-    variables: lexique.detection.variables.dominante ?? CONVENTION_NEUTRE,
-  };
-const conventionsDe = (ecriture: EcritureChoisie): ConventionsParCategorie => ({ groupes: ecriture.groupes, variables: ecriture.variables });
 
 const motsDe = (texte: string): Mots => texte.trim().toLowerCase().split(/[\s-]+/u).filter((mot) => mot !== '');
 const jointure = (mots: Mots): string => mots.map((mot) => mot.toLowerCase()).join(' ');
@@ -319,24 +310,6 @@ function avecLesCollectionsRenommees(lexique: Lexique, brut: ResultatDuLexique, 
   return { renommages: dansLOrdre(lexique, parId), collisions: [...brut.collisions, ...collisions] };
 }
 
-/**
- * Retire des renommages ceux qui feraient disparaître un token de `tokens.json` : un chemin égal à celui d'une autre variable,
- * ou le groupe d'un autre chemin. Le contrôle porte sur tout l'inventaire, collections exclues comprises. Chaque renommage retiré
- * devient une collision qui garde son motif ; les collisions du kit restent telles quelles.
- */
-function avecLesCheminsPublies(inventaire: Inventaire, resultat: ResultatDuLexique): ResultatDuLexique {
-  if (resultat.renommages.length === 0) return resultat;
-  const enCause = cheminsEnConflit(inventairePublie(inventaire, (entree) => entree.nom.id), new Map(resultat.renommages.map((renommage) => [renommage.id, renommage.nouveauNom])));
-  if (enCause.length === 0) return resultat;
-  const renommages = new Map(resultat.renommages.map((renommage) => [renommage.id, renommage]));
-  const collisions: CollisionDeChemin[] = enCause.map(({ id, motif, apres, autre }) => {
-    const renommage = renommages.get(id)!;
-    return { categorie: renommage.categorie, portee: renommage.portee, nom: renommage.nouveauNom, ids: [id], motif, apres, autre };
-  });
-  const retires = new Set(enCause.map(({ id }) => id));
-  return { renommages: resultat.renommages.filter((renommage) => !retires.has(renommage.id)), collisions: [...resultat.collisions, ...collisions] };
-}
-
 function dansLOrdre(lexique: Lexique, parId: ReadonlyMap<string, Renommage>): Renommage[] {
   const renommages: Renommage[] = [];
   for (const id of lexique.noms.keys()) {
@@ -346,19 +319,21 @@ function dansLOrdre(lexique: Lexique, parId: ReadonlyMap<string, Renommage>): Re
   return renommages;
 }
 
-/** Le calcul complet depuis l'inventaire : lexique, vocabulaire, renommages, questions. Les collections exclues n'y entrent pas. */
+/**
+ * Le calcul complet depuis l'inventaire : lexique, vocabulaire, renommages, questions. Les collections exclues n'y entrent pas.
+ * Les renommages viennent de `nomsSelonLesRegles` du socle, que UCM Palettes appelle aussi ; ici s'ajoutent les collections
+ * que le fichier renomme, avant le contrôle des chemins publiés.
+ */
 function* calculerTout(moteur: Moteur, inventaire: Inventaire, regles: ReglesDuFichier): Generator<void, Calcul> {
-  const exclues = new Set(regles.collectionsExclues);
-  const retenues = inventaire.entrees.filter((entree) => !exclues.has(entree.cible.collectionId));
-  const preparation = moteur.commencerLexique({ ordinaires: new Set(regles.ordinaires) });
-  preparation.ajouter(retenues.map((entree) => entree.nom));
-  const lexique = yield* preparation.terminer();
-  const nonRenommables = retenues.filter((entree) => !entree.renommable || entree.protegee).map((entree) => entree.nom.id);
-  const indexation = moteur.indexerVocabulaire(vocabulaireDuFichier(regles));
-  const ecriture = ecritureEffective(regles, lexique);
-  const brut = yield* moteur.normaliserParEtapes(lexique, conventionsDe(ecriture), indexation.index, { nonRenommables });
+  const nonRenommables = idsNonRenommables(inventaire, regles.collectionsExclues);
+  const { lexique, indexation, ecriture, brut, resultat } = yield* nomsSelonLesRegles(
+    inventaire,
+    { ecriture: regles.ecriture, vocabulaire: vocabulaireDuFichier(regles), ordinaires: regles.ordinaires, collectionsExclues: regles.collectionsExclues },
+    nonRenommables,
+    { moteur, ajuster: (lexiqueCalcule, resultatDuKit) => avecLesCollectionsRenommees(lexiqueCalcule, resultatDuKit, regles) },
+  );
   const questions = yield* detecter(moteur, lexique, indexation, regles);
-  return { lexique, nonRenommables, indexation, ecriture, brut, resultat: avecLesCheminsPublies(inventaire, avecLesCollectionsRenommees(lexique, brut, regles)), questions };
+  return { lexique, nonRenommables, indexation, ecriture, brut, resultat, questions };
 }
 
 /** Les renommages précédents hors des portées recalculées, plus ceux du recalcul, dans l'ordre du lexique. */
