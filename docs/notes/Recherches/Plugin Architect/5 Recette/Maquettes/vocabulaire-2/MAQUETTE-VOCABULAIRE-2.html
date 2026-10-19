@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vocabulaire, tour 2</title>
+<style>
+  :root { --fond: #161616; --bordure: #333; --texte: #eee; --second: #9a9a9a; --ambre: #f3b53f; --bleu: #4ea1ff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 1340px; margin: 0 auto; padding: 32px 16px 96px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 19px; margin: 56px 0 6px; padding-top: 24px; border-top: 1px solid var(--bordure); }
+  p { margin: 6px 0; max-width: 900px; }
+  .intro { color: var(--second); }
+  code { font-family: Consolas, monospace; font-size: 13px; background: #2a2a2a; padding: 0 4px; border-radius: 3px; }
+  nav.sommaire { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 16px 0 0; font-size: 13px; }
+  nav.sommaire a { color: var(--bleu); text-decoration: none; }
+  .colonnes { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; margin-top: 16px; }
+  .colonne { flex: 0 0 auto; width: 640px; max-width: 100%; }
+  .cadre { position: relative; max-width: 100%; border: 1px solid var(--bordure); border-radius: 8px; overflow: hidden; background: #2c2c2c; }
+  .cadre iframe { display: block; border: 0; max-width: 100%; }
+  .etiquette { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 4px; margin-bottom: 6px; }
+  .etiquette.aujourdhui { background: #3a3a3a; color: var(--texte); }
+  .etiquette.propose { background: #16314d; color: #9fcfff; }
+  ol.argu { padding-left: 20px; margin: 10px 0 0; font-size: 13px; color: #cfcfcf; }
+  ol.argu li { margin: 4px 0; }
+  ol.argu b { color: var(--texte); }
+  table.legende { border-collapse: collapse; font-size: 13px; margin-top: 12px; max-width: 1100px; }
+  table.legende th, table.legende td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--bordure); vertical-align: top; }
+  table.legende th { color: var(--second); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Vocabulaire, tour 2</h1>
+  <p class="intro">Les écrans partent de l'onglet Règles et de la fiche réels, figés depuis la galerie sombre du plugin
+  (<code>Mesures/extraire-galerie.mjs</code>), avec les règles de <code>propose.css</code> en plus. Les lignes reprennent
+  le Playground avec la règle des composants corrigée : seul un nom à la racine de la collection ou d'un dossier
+  <code>components</code> est un composant ; <code>ScaleWrap</code>, <code>UserInput</code> ou <code>TilesGrid</code> sont des
+  noms de groupe, gardés entiers. Les comptes sont ceux de l'export du Playground, arrondis quand l'export ne les donne pas. La section « Conventions
+  d’écriture » reste celle de la galerie.</p>
+  <nav class="sommaire">
+    <a href="#types">1. Les types et leur ordre</a>
+    <a href="#vocabulaire">2. La vue Vocabulaire : trois propositions</a>
+    <a href="#forme">3. Le terme écrit selon le projet</a>
+    <a href="#fiche">4. La fiche d'une règle</a>
+  </nav>
+
+  <h2 id="types">1. Les types et leur ordre</h2>
+  <p>Chaque ligne a un type, montré par une icône grise en tête de ligne ; seule « À trancher » est ambre. L'origine
+  d'une règle (UCM, Personnalisé) reste une pastille à droite. Le tri par défaut suit l'ordre du tableau, puis
+  l'ordre alphabétique à l'intérieur d'un type : sans tenir compte des majuscules, les nombres dans l'ordre des
+  valeurs (<code>50</code> avant <code>100</code>, <code>2xs</code> avant <code>xs</code> avant <code>2xl</code> pour les tailles).</p>
+  <table class="legende">
+    <tr><th>Ordre</th><th>Type</th><th>Ce que la ligne dit</th><th>Exemples du Playground</th></tr>
+    <tr><td>1</td><td>À trancher</td><td>Une question attend le designer.</td><td>Outline ou Outlined</td></tr>
+    <tr><td>2</td><td>Remplace</td><td>Le terme de référence d'une règle, que des variantes du fichier rejoindront.</td><td>Color remplace Colors et colors ; Danger remplace Error</td></tr>
+    <tr><td>3</td><td>Remplacé</td><td>Une variante du fichier qui sera renommée (proposition B : une ligne à part).</td><td>Colors, Error, Disable, Press</td></tr>
+    <tr><td>4</td><td>Conforme</td><td>Un terme réglé, déjà écrit comme la règle le veut.</td><td>soft, dark, 200, line-height, top</td></tr>
+    <tr><td>5</td><td>Sans règle</td><td>Un mot du fichier qu'aucune règle ne couvre.</td><td>Outlined, Padding, ScaleWrap</td></tr>
+    <tr><td>6</td><td>Composant</td><td>Un nom à la racine de <code>components</code>.</td><td>Alert, Button, StressTest, TileLink</td></tr>
+    <tr><td>7</td><td>Palette</td><td>Le nom d'une palette.</td><td>Deep, Grass, Poppy, Titanium</td></tr>
+  </table>
+
+  <h2 id="vocabulaire">2. La vue Vocabulaire : trois propositions</h2>
+  <div class="colonnes">
+    <div class="colonne">
+      <span class="etiquette aujourdhui">Aujourd'hui</span>
+      <div class="cadre" id="aujourdhui"></div>
+      <ol class="argu">
+        <li>Les cinq pastilles se lisent comme des onglets, et un seul filtre s'applique à la fois.</li>
+        <li>Rien ne distingue une règle qui remplace d'une règle déjà respectée ; le tri par nombre d'emplois mêle les types.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="colonnes">
+    <div class="colonne">
+      <span class="etiquette propose">A · Sections par type</span>
+      <div class="cadre" id="a"></div>
+      <ol class="argu">
+        <li>Une section par type, dans l'ordre du tableau ; chaque section se replie et montre ses cinq premières lignes.</li>
+        <li>« Filtrer » ouvre un menu de cases à cocher : plusieurs types à la fois, et l'origine. Les filtres actifs restent visibles en jetons qu'un × retire.</li>
+        <li>« Trier » choisit l'ordre à l'intérieur d'une section : A → Z ou nombre d'emplois.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette propose">A · Menu Filtrer ouvert</span>
+      <div class="cadre" id="a-menu"></div>
+    </div>
+  </div>
+  <div class="colonnes">
+    <div class="colonne">
+      <span class="etiquette propose">B · Tableau trié</span>
+      <div class="cadre" id="b"></div>
+      <ol class="argu">
+        <li>Une seule liste en trois colonnes : terme, type, nombre de noms. Un clic sur un en-tête trie par cette colonne ; la flèche dit le sens.</li>
+        <li>Une variante remplacée a sa ligne, « Colors → Color », et se cherche par son propre nom.</li>
+        <li>Même menu « Filtrer » qu'en A.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette propose">C · Remplacements en arbre, le reste en jetons</span>
+      <div class="cadre" id="c"></div>
+      <ol class="argu">
+        <li>Les remplacements gardent une ligne chacun, leurs variantes en dessous, décalées.</li>
+        <li>Les conformes, les composants et les palettes tiennent en nuages de jetons : 60 termes conformes sur quelques lignes au lieu de 60 lignes.</li>
+        <li>« Sans règle » reste une liste, puisque c'est là que le designer agit.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h2 id="forme">3. Le terme écrit selon le projet</h2>
+  <p>Le terme de référence s'écrit dans la convention de la catégorie où le fichier l'emploie le plus : <code>Color</code>
+  pour un dossier, puisque les groupes du Playground sont en PascalCase ; <code>line-height</code> pour une variable,
+  écrite en minuscules et tirets. Les variantes gardent leur forme du fichier (<code>Colors</code>, <code>colors</code>). Les
+  trois propositions ci-dessus l'appliquent déjà ; la fiche ci-dessous aussi.</p>
+
+  <h2 id="fiche">4. La fiche d'une règle</h2>
+  <div class="colonnes">
+    <div class="colonne">
+      <span class="etiquette aujourdhui">Aujourd'hui</span>
+      <div class="cadre" id="fiche-aujourdhui"></div>
+    </div>
+    <div class="colonne">
+      <span class="etiquette propose">Proposé</span>
+      <div class="cadre" id="fiche-propose"></div>
+      <ol class="argu">
+        <li>La définition passe sous le nom, dans l'en-tête : elle dit ce qu'est le terme avant la règle.</li>
+        <li>Dans le bloc gris de la règle, le jeton du terme prend le fond de la page et une bordure, comme les variantes : <code>200</code> se lit sur le gris.</li>
+      </ol>
+    </div>
+  </div>
+</main>
+
+<script src="galerie/etats.js"></script>
+<script>
+const esc = (texte) => String(texte).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const CHEVRON = '<svg class="chevron-svg suivant" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"></path></svg>';
+const CHEVRON_BAS = '<svg class="chevron-svg" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"></path></svg>';
+const svg = (corps) => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${corps}</svg>`;
+const ICONES = {
+  trancher: svg('<circle cx="8" cy="8" r="6.2"/><path d="M6.3 6.2a1.8 1.8 0 1 1 2.4 1.7c-.5.2-.7.6-.7 1.1v.4"/><circle cx="8" cy="11.6" r=".4" fill="currentColor"/>'),
+  remplace: svg('<path d="M2.5 4.5h7M2.5 11.5h7M9.5 4.5 13 8l-3.5 3.5M13 8H6"/>'),
+  remplacee: svg('<path d="M3 8h9M9 5l3 3-3 3"/>'),
+  conforme: svg('<path d="m3.5 8.5 3 3 6-7"/>'),
+  sans: svg('<circle cx="8" cy="8" r="5.5" stroke-dasharray="2.2 2"/>'),
+  composant: svg('<path d="M8 1.8 10.2 4 8 6.2 5.8 4zM4 5.8 6.2 8 4 10.2 1.8 8zM12 5.8 14.2 8 12 10.2 9.8 8zM8 9.8 10.2 12 8 14.2 5.8 12z"/>'),
+  palette: svg('<circle cx="8" cy="8" r="6.2"/><path d="M8 1.8v12.4M1.8 8h12.4"/>'),
+};
+const LIBELLES = { trancher: 'À trancher', remplace: 'Remplace', remplacee: 'Remplacé', conforme: 'Conforme', sans: 'Sans règle', composant: 'Composant', palette: 'Palette' };
+const ORIGINE = { ucm: '<span class="pastille pastille-ucm">UCM</span>', perso: '<span class="pastille pastille-personnalise">Personnalisé</span>' };
+const icone = (type) => `<span class="icone-type${type === 'trancher' ? ' ambre' : ''}" title="${LIBELLES[type]}">${ICONES[type]}</span>`;
+const jeton = (mot) => `<span class="jeton jeton-neutre petit">${esc(mot)}</span>`;
+const variantes = (liste) => `<span class="variantes">remplace</span><span>${liste.map((v) => `<code class="variante">${esc(v)}</code>`).join('')}</span>`;
+
+/* Le Playground, après la règle des composants corrigée ; forme écrite selon la catégorie qui emploie le terme. */
+const TRANCHER = [{ mot: 'Outline', avec: 'Outlined', nombre: 107 }];
+const REMPLACE = [
+  { mot: 'Color', remplace: ['Colors', 'colors'], nombre: 540, origine: 'ucm' },
+  { mot: 'Danger', remplace: ['Error'], nombre: 141, origine: 'ucm' },
+  { mot: 'Dimension', remplace: ['dimensions'], nombre: 30, origine: 'ucm' },
+  { mot: 'Disabled', remplace: ['Disable'], nombre: 49, origine: 'ucm' },
+  { mot: 'Icon', remplace: ['Icons'], nombre: 6, origine: 'ucm' },
+  { mot: 'Large', remplace: ['Big'], nombre: 5, origine: 'ucm' },
+  { mot: 'Pressed', remplace: ['Press'], nombre: 68, origine: 'ucm' },
+  { mot: 'radius', remplace: ['Border-radius'], nombre: 26, origine: 'ucm' },
+  { mot: 'Size', remplace: ['Sizes'], nombre: 81, origine: 'ucm' },
+];
+const CONFORMES = [['50', 59], ['100', 59], ['200', 59], ['300', 59], ['400', 60], ['500', 59], ['600', 60], ['700', 60], ['800', 59], ['900', 59], ['950', 59],
+  ['background', 92], ['bottom', 5], ['dark', 268], ['default', 62], ['focus', 60], ['font-size', 31], ['foreground', 138], ['hover', 68], ['info', 185],
+  ['left', 5], ['light', 268], ['line-height', 31], ['primary', 85], ['ring', 47], ['scale', 123], ['secondary', 86], ['soft', 294], ['solid', 44], ['success', 150],
+  ['surface', 55], ['text', 61], ['top', 5], ['vivid', 294], ['warning', 141], ['x', 6], ['y', 6]];
+const SANS = [['Badge', 6], ['Border-width', 2], ['col', 2], ['Contained', 71], ['Description', 1], ['Gap', 12], ['Head', 2], ['Height', 4], ['Link', 1],
+  ['Max-width', 2], ['Outlined', 106], ['Padding', 15], ['rows', 1], ['ScaleWrap', 22], ['Standard', 8], ['Tag', 5], ['TextColumns', 5], ['Tile', 3],
+  ['TileLinksWrap', 2], ['TilesGrid', 6], ['UserInput', 13], ['Width', 1]];
+const COMPOSANTS = [['Alert', 16], ['Button', 245], ['StressTest', 66], ['TileLink', 11]];
+const PALETTES = [['Deep', 22], ['Grass', 44], ['Orange', 44], ['Poppy', 44], ['Sky', 44], ['Sun', 44], ['Terracota', 22], ['Titanium', 24]];
+
+function ligne(type, { mot, remplace, nombre, origine, avec, enfant }) {
+  let regle;
+  if (type === 'remplace') regle = `${jeton(mot)}${variantes(remplace)}`;
+  else if (type === 'conforme') regle = jeton(mot);
+  else if (type === 'trancher') regle = `<code class="mot">${esc(mot)}</code><span class="variantes">ou</span><code class="variante">${esc(avec)}</code>`;
+  else regle = `<code class="mot">${esc(mot)}</code>`;
+  const droite = type === 'trancher' ? '<span class="pastille pastille-bloque">À trancher</span>' : origine ? ORIGINE[origine] : '<span></span>';
+  return `<button type="button" class="ligne-v2${enfant ? ' enfant' : ''}">${icone(type)}<span class="terme-regle">${regle}</span>${droite}<span class="meta terme-nombre">${nombre}</span>${CHEVRON}</button>`;
+}
+const vers = (liste, type) => liste.map(([mot, nombre]) => ({ mot, nombre, origine: type === 'conforme' ? 'ucm' : null }));
+
+/* A : une section par type. */
+function section(type, titre, lignes, total, ouverte = true) {
+  const plus = total > lignes.length ? `<div class="plus-dans-section"><button type="button" class="lien">Afficher les ${total - lignes.length} autres</button></div>` : '';
+  return `<div class="section-type"><div class="section-type-tete">${icone(type)}<h3>${titre}</h3><span class="meta">${total}</span>${ouverte ? CHEVRON_BAS : CHEVRON}</div>`
+    + (ouverte ? `<div class="liste-v2">${lignes.map((l) => ligne(type, l)).join('')}${plus}</div>` : '') + '</div>';
+}
+const RECHERCHE = '<input type="search" class="input recherche" placeholder="Chercher un terme" value="">';
+const TRI = '<select class="tri" aria-label="Trier"><option>Trier : A → Z</option><option>Trier : nombre de noms</option></select>';
+const filtrer = (actifs) => `<span class="ancre-menu"><button type="button" class="btn btn-secondary btn-compact"><span>Filtrer${actifs ? ` · ${actifs}` : ''}</span></button></span>`;
+const MENU = '<div class="menu-filtres"><h4>Types</h4>'
+  + [['trancher', 1], ['remplace', 9], ['conforme', 37], ['sans', 22], ['composant', 4], ['palette', 8]]
+    .map(([type, n]) => `<label><input type="checkbox"${['sans', 'remplace'].includes(type) ? ' checked' : ''}>${icone(type)}<span>${LIBELLES[type]}</span><span class="meta">${n}</span></label>`).join('')
+  + '<h4>Origine de la règle</h4><label><input type="checkbox" checked><span></span><span>UCM</span><span class="meta">46</span></label><label><input type="checkbox" checked><span></span><span>Personnalisé</span><span class="meta">0</span></label></div>';
+const ACTIFS = `<span class="filtre-actif">Remplace <span class="retirer">×</span></span><span class="filtre-actif">Sans règle <span class="retirer">×</span></span>`;
+const tete = '<div class="section-tete"><div><h2>Vocabulaire</h2><p>Le terme de référence de chaque notion, et les variantes qu’il remplace.</p></div></div>';
+
+const A = `<section class="section-regles">${tete}<div class="barre-v2">${filtrer()}${RECHERCHE}${TRI}</div>`
+  + section('trancher', 'À trancher', TRANCHER.map((t) => ({ ...t })), 1)
+  + section('remplace', 'Remplace', REMPLACE.slice(0, 5), REMPLACE.length)
+  + section('conforme', 'Conforme', vers(CONFORMES, 'conforme').slice(0, 5), CONFORMES.length)
+  + section('sans', 'Sans règle', vers(SANS, 'sans').slice(0, 5), SANS.length)
+  + section('composant', 'Composants', vers(COMPOSANTS, 'composant'), COMPOSANTS.length)
+  + section('palette', 'Palettes', vers(PALETTES, 'palette'), PALETTES.length, false)
+  + '</section>';
+const A_MENU = `<section class="section-regles">${tete}<div class="barre-v2">${filtrer(2).replace('</span>', '</span>').replace('</button></span>', `</button>${MENU}</span>`)}${ACTIFS}${RECHERCHE}${TRI}</div>`
+  + section('remplace', 'Remplace', REMPLACE.slice(0, 5), REMPLACE.length)
+  + section('sans', 'Sans règle', vers(SANS, 'sans').slice(0, 5), SANS.length)
+  + '</section>';
+
+/* B : un tableau trié par type puis par nom. */
+function rangee(type, { mot, nombre, origine, vers: cible }) {
+  const terme = type === 'remplacee'
+    ? `<code class="mot">${esc(mot)}</code><span class="fleche-remplace">→</span>${jeton(cible)}`
+    : type === 'remplace' || type === 'conforme' ? `${jeton(mot)}${origine ? ORIGINE[origine] : ''}` : `<code class="mot">${esc(mot)}</code>`;
+  const typeHtml = type === 'trancher' ? '<span class="pastille pastille-bloque">À trancher</span>' : `<span class="type-texte">${LIBELLES[type]}</span>`;
+  return `<div class="tableau-ligne"><span class="terme-cellule">${terme}</span><span class="type-cellule">${icone(type)}${typeHtml}</span><span class="meta terme-nombre">${nombre}</span>${CHEVRON}</div>`;
+}
+const LIGNES_B = [
+  rangee('trancher', { mot: 'Outline', nombre: 1 }),
+  ...REMPLACE.slice(0, 3).map((r) => rangee('remplace', r)),
+  rangee('remplacee', { mot: 'Colors', nombre: 243, vers: 'Color' }),
+  rangee('remplacee', { mot: 'colors', nombre: 297, vers: 'Color' }),
+  rangee('remplacee', { mot: 'Error', nombre: 49, vers: 'Danger' }),
+  ...vers(CONFORMES, 'conforme').slice(0, 4).map((c) => rangee('conforme', c)),
+  ...vers(SANS, 'sans').slice(0, 4).map((c) => rangee('sans', c)),
+  ...vers(COMPOSANTS, 'composant').slice(0, 2).map((c) => rangee('composant', c)),
+];
+const B = `<section class="section-regles">${tete}<div class="barre-v2">${filtrer()}${RECHERCHE}</div>`
+  + '<div class="tableau-v2"><div class="tableau-tete"><span>Terme</span><span class="trie">Type ↑</span><span>Noms</span><span></span></div>'
+  + LIGNES_B.join('') + '</div><button type="button" class="btn btn-secondary btn-compact afficher-plus"><span>Afficher plus</span></button></section>';
+
+/* C : les remplacements en arbre, le reste en jetons. */
+const nuage = (liste, avecOrigine = false) => `<div class="nuage">${liste.map(([mot, n]) => `<span class="jeton jeton-cadre petit">${esc(mot)}<span class="compte-jeton">${n}</span></span>`).join('')}</div>${avecOrigine ? '' : ''}`;
+const titreC = (type, titre, total, suite = '') => `<div class="section-type-tete">${icone(type)}<h3>${titre}</h3><span class="meta">${total}${suite}</span>${CHEVRON_BAS}</div>`;
+const ARBRE = REMPLACE.slice(0, 4).flatMap((r) => [ligne('remplace', { ...r, remplace: [] }).replace('<span class="variantes">remplace</span><span></span>', ''),
+  ...r.remplace.map((v) => ligne('remplacee', { mot: v, nombre: v === 'colors' ? 297 : v === 'Colors' ? 243 : r.nombre, enfant: true }))]);
+const C = `<section class="section-regles">${tete}<div class="barre-v2">${filtrer()}${RECHERCHE}</div>`
+  + `<div class="section-type">${titreC('remplace', 'Remplace', REMPLACE.length)}<div class="liste-v2">${ARBRE.join('')}<div class="plus-dans-section"><button type="button" class="lien">Afficher les 5 autres</button></div></div></div>`
+  + `<div class="section-type">${titreC('sans', 'Sans règle', SANS.length)}<div class="liste-v2">${vers(SANS, 'sans').slice(0, 4).map((l) => ligne('sans', l)).join('')}<div class="plus-dans-section"><button type="button" class="lien">Afficher les 18 autres</button></div></div></div>`
+  + `<div class="section-type">${titreC('conforme', 'Conforme', CONFORMES.length, ' · UCM')}${nuage(CONFORMES)}</div>`
+  + `<div class="section-type">${titreC('composant', 'Composants', COMPOSANTS.length)}${nuage(COMPOSANTS)}</div>`
+  + `<div class="section-type">${titreC('palette', 'Palettes', PALETTES.length)}${nuage(PALETTES)}</div>`
+  + '</section>';
+
+/* Aujourd'hui, avec les lignes du Playground. */
+const AUJOURDHUI_FILTRES = '<div class="filtres" role="group">' + [['Tous', 81, true], ['Avec règle', 46], ['Sans règle', 23], ['Composants', 4], ['Palettes', 8]]
+  .map(([l, n, p]) => `<button type="button" class="filtre" aria-pressed="${!!p}">${l} ${n}</button>`).join('') + '</div>';
+const ligneAujourdhui = (mot, nombre, droite, regle) => `<button type="button" class="ligne-terme"><span class="terme-regle">${regle ?? `<code class="mot">${mot}</code>`}</span>${droite}<span class="meta terme-nombre">${nombre}</span>${CHEVRON}</button>`;
+const AUJOURDHUI = `<section class="section-regles">${tete}<div class="outils-termes">${AUJOURDHUI_FILTRES}${RECHERCHE}</div><div class="liste-termes">`
+  + [['soft', 294], ['vivid', 294], ['dark', 268], ['light', 268]].map(([m, n]) => ligneAujourdhui(m, n, ORIGINE.ucm, jeton(m))).join('')
+  + ligneAujourdhui('Button', 245, '<span class="pastille pastille-indice">Composant</span>')
+  + ligneAujourdhui('info', 185, ORIGINE.ucm, `${jeton('info')}${variantes(['information', 'informative'])}`)
+  + ligneAujourdhui('success', 150, ORIGINE.ucm, `${jeton('success')}${variantes(['positive'])}`)
+  + ligneAujourdhui('Outlined', 106, '<span></span>')
+  + ligneAujourdhui('Contained', 71, '<span></span>')
+  + '</div></section>';
+
+/* La fiche d'un cran UCM. */
+const FICHE_CORPS = (proposee) => '<div class="feuille-corps"><div class="feuille-contenu">'
+  + (proposee ? '' : '<div class="fiche-entete"><p class="meta">Cran 200 de la rampe de couleur.</p></div>')
+  + `<div class="fiche-regle${proposee ? ' contraste' : ''}"><div class="fiche-regle-tete"><h3 class="titre-regle">Règle</h3><span class="meta">Formes fixées par UCM</span></div>`
+  + '<span class="regle-ligne"><span class="jeton jeton-neutre">200</span></span><span class="chiffres"><b>0 variable</b> à renommer · <b>59</b> déjà écrites ainsi</span></div>'
+  + '<div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>Déjà employé · 59</h3></div><div class="fiche-liste">'
+  + ['colors/Titanium/light/', 'colors/Poppy/soft/light/', 'primary/light/'].map((d) => `<span class="chemin">${d}<span class="terme-employe">200</span></span>`).join('')
+  + '</div></div></div></div>';
+const ENTETE_AUJOURDHUI = '<header class="feuille-entete"><h2 class="feuille-titre">200</h2><span class="pastille pastille-ucm">UCM · crans</span><button type="button" class="feuille-fermer" aria-label="Fermer">×</button></header>';
+const ENTETE_PROPOSE = '<header class="feuille-entete avec-definition"><div class="titre-et-definition"><div class="titre-ligne"><h2 class="feuille-titre">200</h2><span class="pastille pastille-ucm">UCM · crans</span></div><p class="meta">Cran 200 de la rampe de couleur.</p></div><button type="button" class="feuille-fermer" aria-label="Fermer">×</button></header>';
+const PIED = '<footer class="feuille-pied"><div class="feuille-actions"><button type="button" class="btn-texte">Ne pas appliquer ce terme dans ce fichier</button><span class="feuille-groupe"></span></div></footer>';
+const fiche = (entete, proposee) => `<div class="feuille-voile feuille-terme"><section class="feuille" role="dialog" aria-modal="true">${entete}${FICHE_CORPS(proposee)}${PIED}</section></div>`;
+
+function cadre(id, { etat, hauteur = 720, vocabulaire, feuille }) {
+  const g = window.GALERIE[etat];
+  const iframe = document.createElement('iframe');
+  iframe.width = 640;
+  iframe.height = hauteur;
+  iframe.style.width = '640px';
+  iframe.style.height = `${hauteur}px`;
+  iframe.srcdoc = `<!doctype html><html lang="fr" class="${g.classe}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/plugin.css"><link rel="stylesheet" href="propose.css"></head><body>${g.corps}</body></html>`;
+  iframe.addEventListener('load', () => {
+    const doc = iframe.contentDocument;
+    if (vocabulaire) {
+      const sections = doc.querySelectorAll('[role="tabpanel"] > .page-stack .section-regles');
+      sections[sections.length - 1].outerHTML = vocabulaire;
+    }
+    if (feuille) {
+      doc.querySelectorAll('.feuille-voile').forEach((voile) => voile.remove());
+      doc.body.insertAdjacentHTML('beforeend', feuille);
+    }
+  });
+  document.getElementById(id).append(iframe);
+}
+
+cadre('aujourdhui', { etat: 'regles-noms', hauteur: 820, vocabulaire: AUJOURDHUI });
+cadre('a', { etat: 'regles-noms', hauteur: 1500, vocabulaire: A });
+cadre('a-menu', { etat: 'regles-noms', hauteur: 980, vocabulaire: A_MENU });
+cadre('b', { etat: 'regles-noms', hauteur: 1080, vocabulaire: B });
+cadre('c', { etat: 'regles-noms', hauteur: 1240, vocabulaire: C });
+cadre('fiche-aujourdhui', { etat: 'feuille-terme-ucm', hauteur: 720, feuille: fiche(ENTETE_AUJOURDHUI, false) });
+cadre('fiche-propose', { etat: 'feuille-terme-ucm', hauteur: 720, feuille: fiche(ENTETE_PROPOSE, true) });
+</script>
+</body>
+</html>
