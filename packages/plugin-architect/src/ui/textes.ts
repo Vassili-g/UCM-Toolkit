@@ -100,8 +100,6 @@ export const TEXTES = {
     }
   },
 
-  intertitreTermes: 'Termes',
-  intertitreEcriture: 'Écriture',
   intertitreConventions: 'Conventions d’écriture',
   intertitreVocabulaire: 'Vocabulaire',
   intertitreCollections: 'Collections',
@@ -190,7 +188,12 @@ export const TEXTES = {
   aucunTerme: 'Aucun terme ne correspond.',
   termeRemplace: (remplaces: readonly string[]): string => `remplace ${remplaces.join(', ')}`,
   termeATrancher: (avec: string | null): string => (avec ? `à trancher avec ${avec}` : 'à trancher'),
-  termeNonApplique: 'non appliqué dans ce fichier',
+  termeNonApplique: 'règle UCM non appliquée dans ce fichier',
+  phraseDesConventions: 'Comment s’écrivent les groupes, les noms et les collections.',
+  phraseDuVocabulaire: 'Le terme de référence de chaque notion, et les variantes qu’il remplace.',
+  motRemplace: 'remplace',
+  motOu: 'ou',
+  estRemplacePar: 'est remplacé par',
   nomsDuTerme: noms,
 
   // U3 : onglet À trancher.

@@ -65,16 +65,67 @@ export function choisir(etat: EtatDeLaListe, mot: string | null): EtatDeLaListe 
   return mot === etat.choisi ? etat : { ...etat, choisi: mot };
 }
 
-/** Le résumé de règle d'une ligne ; vide pour un terme sans règle. */
-export function resumeDuTerme(terme: TermeDeListe): string {
+/**
+ * Un morceau de la partie gauche d'une ligne : `reference` en pastille grise,
+ * `mot` en police de code, `gris` en texte gris, `variante` en police de code
+ * grise (blanche quand c'est la variante cherchée).
+ */
+export type MorceauDeLigne =
+  | { readonly sorte: 'reference' | 'mot' | 'gris'; readonly texte: string }
+  | { readonly sorte: 'variante'; readonly texte: string; readonly trouvee: boolean };
+
+/** Les morceaux d'une ligne selon le statut du terme, dans l'ordre d'affichage. */
+export function morceauxDuTerme(terme: TermeDeListe): readonly MorceauDeLigne[] {
   switch (terme.statut) {
     case 'regle':
-      return terme.remplace.length > 0 ? TEXTES.termeRemplace(terme.remplace) : '';
+      return terme.remplace.length === 0
+        ? [{ sorte: 'mot', texte: terme.mot }]
+        : [
+            { sorte: 'reference', texte: terme.mot },
+            { sorte: 'gris', texte: TEXTES.motRemplace },
+            ...terme.remplace.map((texte): MorceauDeLigne => ({ sorte: 'variante', texte, trouvee: texte === terme.trouve })),
+          ];
     case 'a-trancher':
-      return TEXTES.termeATrancher(terme.avec);
+      return terme.avec === null
+        ? [{ sorte: 'mot', texte: terme.mot }]
+        : [{ sorte: 'mot', texte: terme.mot }, { sorte: 'gris', texte: TEXTES.motOu }, { sorte: 'variante', texte: terme.avec, trouvee: false }];
     case 'ecart':
-      return TEXTES.termeNonApplique;
+      return [{ sorte: 'mot', texte: terme.mot }, { sorte: 'gris', texte: TEXTES.termeNonApplique }];
     case 'sans-regle':
-      return '';
+      return [{ sorte: 'mot', texte: terme.mot }];
   }
+}
+
+/** Vrai quand la pastille `À trancher` prend la place de l'origine. */
+export function termeATrancher(terme: TermeDeListe): boolean {
+  return terme.statut === 'a-trancher';
+}
+
+/** Le nom accessible d'une ligne : le terme, sa règle, son origine ou `À trancher`, son nombre. */
+export function nomAccessibleDuTerme(terme: TermeDeListe): string {
+  const regle =
+    terme.statut === 'regle' && terme.remplace.length > 0
+      ? TEXTES.termeRemplace(terme.remplace)
+      : terme.statut === 'a-trancher'
+        ? TEXTES.termeATrancher(terme.avec)
+        : terme.statut === 'ecart'
+          ? TEXTES.termeNonApplique
+          : '';
+  const origine = termeATrancher(terme)
+    ? TEXTES.pastilleATrancherDuTerme
+    : terme.origine === 'ucm'
+      ? TEXTES.pastilleUcm
+      : terme.origine === 'personnalise'
+        ? TEXTES.pastillePersonnalise
+        : '';
+  return [terme.mot, regle, origine, TEXTES.nomsDuTerme(terme.nombre)].filter((partie) => partie !== '').join(', ');
+}
+
+/**
+ * La phrase sous la recherche d'une variante : la première ligne trouvée par
+ * une variante donne la variante et sa référence ; `null` si aucune.
+ */
+export function phraseDeRecherche(termes: readonly TermeDeListe[]): { readonly variante: string; readonly reference: string } | null {
+  const trouve = termes.find((terme) => terme.trouve !== null);
+  return trouve && trouve.trouve !== null ? { variante: trouve.trouve, reference: trouve.mot } : null;
 }

@@ -26,15 +26,16 @@ interface RangeeChoisie {
   readonly liste: HTMLSelectElement;
 }
 
-/** La liste d'une rangée : les libellés français du registre du kit, dans son ordre. */
+/** La liste d'une rangée : les spécimens français du registre du kit, dans son ordre ; le libellé nomme l'option. */
 function creerListe(etiquette: string, auChangement: () => void): HTMLSelectElement {
   const liste = document.createElement('select');
   liste.className = 'input ecriture-liste';
   liste.setAttribute('aria-label', etiquette);
-  for (const { id, libelle } of CONVENTIONS) {
+  for (const { id, libelle, specimen } of CONVENTIONS) {
     const option = document.createElement('option');
     option.value = id;
-    option.textContent = libelle.fr;
+    option.textContent = specimen.fr;
+    option.setAttribute('aria-label', libelle.fr);
     liste.append(option);
   }
   liste.addEventListener('change', auChangement);

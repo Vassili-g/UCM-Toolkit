@@ -154,6 +154,11 @@ const messages = {
     generation: 1, debut: 0, termes, total: termes.length,
     comptes: { tous: termes.length, avecRegle: 3, sansRegle: 3 },
   }),
+  /** La recherche d'une variante : la ligne de sa référence porte la variante trouvée. */
+  termesTrouves: (demande) => m('termes', demande, {
+    generation: 1, debut: 0, termes: [{ ...termes[0], trouve: 'bg' }], total: 1,
+    comptes: { tous: termes.length, avecRegle: 3, sansRegle: 3 },
+  }),
   fiche: (demande, fiche) => m('fiche', demande, { generation: 1, fiche }),
   simulation: (demande) => m('simulation', demande, { generation: 1, effet: effetDeTerme, conflit: null }),
   refus: (demande, conflits) => m('refus', demande, { conflits }),

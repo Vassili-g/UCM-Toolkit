@@ -363,12 +363,6 @@ button.tete-bouton {
   gap: var(--espace-controle);
 }
 
-.chevron {
-  width: 12px;
-  color: var(--texte-second);
-  text-align: center;
-}
-
 .pastille {
   display: inline-block;
   padding: 0 var(--espace-controle);
@@ -431,6 +425,11 @@ button.tete-bouton {
 .jeton-neutre {
   background: var(--fond-note);
   color: var(--texte);
+}
+
+.jeton.petit {
+  font-size: var(--corps);
+  line-height: var(--corps-interligne);
 }
 
 .seg-ancien {
@@ -628,24 +627,77 @@ button.tete-bouton {
 }
 
 /* Lot U4a : onglet Règles, résumé de l'écriture et liste des termes. */
-.intertitre-avec-action {
+/* Deux sections titrées, chacune avec sa phrase, séparées par un filet pleine largeur. */
+.section-regles {
+  display: grid;
+  gap: var(--espace-controle);
+}
+
+.section-regles + .section-regles {
+  margin-top: var(--espace-bloc);
+  padding-top: var(--espace-page);
+  border-top: 1px solid var(--bordure);
+}
+
+.section-tete {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--espace-controle);
 }
 
-.resume-ecriture {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  row-gap: var(--espace-controle);
-  padding: var(--espace-controle) var(--espace-bloc);
+.section-tete h2 {
+  margin: 0;
+  font-size: var(--titre);
+  font-weight: 600;
+  line-height: var(--titre-interligne);
 }
 
-.resume-ecriture span:nth-child(odd) {
+.section-tete p {
+  margin: 2px 0 0;
   color: var(--texte-second);
 }
 
-.resume-ecriture span:nth-child(even) {
+/* Une ligne par écriture : la catégorie, le spécimen en pastille, un exemple réel. */
+.ecriture-regles {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.ecriture-regle {
+  display: grid;
+  grid-template-columns: 96px auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-top: 1px solid var(--bordure);
+}
+
+.ecriture-regle:first-child {
+  border-top: 0;
+}
+
+.ecriture-exemple {
+  justify-self: end;
+  color: var(--texte-second);
   font-family: var(--police-code);
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.ecriture-partie {
+  color: var(--texte);
+  font-weight: 600;
+}
+
+.outils-termes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
 }
 
 .input.recherche {
@@ -691,7 +743,7 @@ button.tete-bouton {
 .ligne-terme {
   display: grid;
   width: 100%;
-  grid-template-columns: 1fr auto 56px 12px;
+  grid-template-columns: minmax(0, 1fr) auto 40px 12px;
   align-items: center;
   gap: var(--espace-controle);
   padding: var(--espace-controle) var(--espace-bloc);
@@ -713,11 +765,36 @@ button.tete-bouton {
   background: var(--fond-survol);
 }
 
-.terme-identite {
+.terme-regle {
   display: flex;
   min-width: 0;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--espace-controle);
+  gap: var(--espace-serre) var(--espace-controle);
+}
+
+.variantes {
+  color: var(--texte-second);
+}
+
+.variante {
+  color: var(--texte-second);
+  font-family: var(--police-code);
+  font-weight: 600;
+}
+
+.variante + .variante::before {
+  content: ", ";
+  font-weight: 400;
+}
+
+.variante.trouvee {
+  color: var(--texte);
+}
+
+.resultat-recherche {
+  margin: 0;
+  color: var(--texte-second);
 }
 
 .mot {

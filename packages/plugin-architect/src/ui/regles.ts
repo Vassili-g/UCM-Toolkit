@@ -1,23 +1,27 @@
 /**
- * Le contenu de l'onglet Règles : le résumé de l'écriture avec son bouton
- * Modifier, puis la liste des termes du fichier avec sa recherche et ses
- * filtres. La liste se lit par pages de cinquante (demande `termes`) ; l'état
+ * Le contenu de l'onglet Règles : la section des conventions d'écriture avec
+ * son bouton Modifier, puis la section du vocabulaire, liste des termes du
+ * fichier avec sa recherche et ses filtres. La liste se lit par pages de cinquante (demande `termes`) ; l'état
  * qu'elle suit vit dans `listeDesTermes.ts`. Les feuilles de l'écriture et d'un
  * terme (lot U4b) se branchent sur les deux rappels que `monterRegles` rend.
  */
-import { CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, libelleDuTerme, termeRetenu, type Convention } from '@ucm-kit/core/referentiel';
+import { CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, collectionUcmReconnue, libelleDuTerme, termeRetenu, type Convention } from '@ucm-kit/core/referentiel';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
-import type { Bilan, TermeDeListe } from '../messages';
+import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
+import type { Bilan, LigneVue, TermeDeListe } from '../messages';
 import type { Coquille } from './coquille';
 import {
   LISTE_INITIALE,
   choisir,
   debutSuivant,
   filtrer,
+  morceauxDuTerme,
+  nomAccessibleDuTerme,
+  phraseDeRecherche,
   recevoir,
   resteAAfficher,
-  resumeDuTerme,
   saisir,
+  termeATrancher,
   type EtatDeLaListe,
   type FiltreDesTermes,
 } from './listeDesTermes';
@@ -35,26 +39,78 @@ export interface ReglesMontees {
   designerLeTerme(mot: string | null): void;
 }
 
-/** Le libellé français du registre du kit ; une convention hors registre se dit par sa casse et son séparateur. */
-function libelleDeConvention(convention: Convention): string {
+/** Le spécimen et le libellé français d'une convention ; hors registre, la casse et le séparateur disent les deux. */
+function textesDeConvention(convention: Convention): { readonly specimen: string; readonly libelle: string } {
   const connue = CONVENTIONS.find(({ convention: autre }) => autre.casse === convention.casse && autre.separateur === convention.separateur);
-  if (connue) return connue.libelle.fr;
+  if (connue) return { specimen: connue.specimen.fr, libelle: connue.libelle.fr };
   const casse = termeRetenu(REGISTRE_CASSES, convention.casse);
   const separateur = termeRetenu(REGISTRE_SEPARATEURS, convention.separateur);
-  return `${casse ? libelleDuTerme(casse, 'fr') : convention.casse} · ${(separateur ? libelleDuTerme(separateur, 'fr') : convention.separateur).toLowerCase()}`;
+  const texte = `${casse ? libelleDuTerme(casse, 'fr') : convention.casse} · ${(separateur ? libelleDuTerme(separateur, 'fr') : convention.separateur).toLowerCase()}`;
+  return { specimen: texte, libelle: texte };
 }
 
-function creerIntertitre(texte: string, ...actions: HTMLElement[]): HTMLElement {
-  const intertitre = document.createElement('div');
-  intertitre.className = 'intertitre intertitre-avec-action';
-  const titre = document.createElement('h2');
-  titre.textContent = texte;
-  intertitre.append(titre, ...actions);
-  return intertitre;
+/** Une section titrée : le titre et sa phrase, une action à droite du titre si elle existe. */
+function creerSection(titre: string, phrase: string, action?: HTMLElement): HTMLElement {
+  const intitule = document.createElement('h2');
+  intitule.textContent = titre;
+  const explication = document.createElement('p');
+  explication.textContent = phrase;
+  const texte = document.createElement('div');
+  texte.append(intitule, explication);
+  const tete = document.createElement('div');
+  tete.className = 'section-tete';
+  tete.append(texte);
+  if (action) tete.append(action);
+  const section = document.createElement('section');
+  section.className = 'section-regles';
+  section.append(tete);
+  return section;
 }
 
-function creerLigneDuResume(): { readonly nom: HTMLElement; readonly valeur: HTMLElement } {
-  return { nom: document.createElement('span'), valeur: document.createElement('span') };
+interface LigneDuResume {
+  readonly ligne: HTMLElement;
+  readonly specimen: HTMLElement;
+  readonly exemple: HTMLElement;
+}
+
+function creerLigneDuResume(nom: string): LigneDuResume {
+  const categorie = document.createElement('span');
+  categorie.className = 'meta';
+  categorie.textContent = nom;
+  const specimen = document.createElement('span');
+  specimen.className = 'jeton jeton-neutre';
+  specimen.setAttribute('role', 'img');
+  const exemple = document.createElement('span');
+  exemple.className = 'ecriture-exemple';
+  const ligne = document.createElement('div');
+  ligne.className = 'ecriture-regle';
+  ligne.append(categorie, specimen, exemple);
+  return { ligne, specimen, exemple };
+}
+
+/** Le spécimen en pastille ; le libellé de la convention reste le nom accessible de la pastille. */
+function poserLeSpecimen(cible: LigneDuResume, textes: { readonly specimen: string; readonly libelle: string } | null): void {
+  cible.specimen.textContent = textes?.specimen ?? '';
+  if (textes) cible.specimen.setAttribute('aria-label', textes.libelle);
+  else cible.specimen.removeAttribute('aria-label');
+}
+
+/** L'exemple d'une ligne : le nom réel, la partie concernée dans un `span`, le reste en gris. */
+function poserLExemple(cible: LigneDuResume, exemple: LigneVue | null): void {
+  cible.exemple.replaceChildren(...(exemple?.ancien.split('/') ?? []).flatMap((segment, rang): (string | HTMLElement)[] => {
+    const separateur = rang > 0 ? ['/'] : [];
+    if (!exemple?.marques.includes(rang)) return [...separateur, segment];
+    const concerne = document.createElement('span');
+    concerne.className = 'ecriture-partie';
+    concerne.textContent = segment;
+    return [...separateur, concerne];
+  }));
+}
+
+/** Le premier nom de collection que le kit reconnaît, tout entier concerné ; `null` si aucune. */
+function exempleDeCollection(bilan: Bilan): LigneVue | null {
+  const reconnue = bilan.collections.find(({ nom }) => collectionUcmReconnue(nom) !== undefined);
+  return reconnue ? { id: reconnue.id, ancien: reconnue.nom, nouveau: reconnue.nom, marques: [0], aussi: [] } : null;
 }
 
 const FILTRES: readonly { readonly filtre: FiltreDesTermes; readonly libelle: (nombre: number | null) => string; readonly compte: (comptes: NonNullable<EtatDeLaListe['comptes']>) => number }[] = [
@@ -63,6 +119,13 @@ const FILTRES: readonly { readonly filtre: FiltreDesTermes; readonly libelle: (n
   { filtre: 'sans-regle', libelle: TEXTES.filtreSansRegle, compte: (comptes) => comptes.sansRegle },
 ];
 
+function creerPastilleDeReference(texte: string): HTMLElement {
+  const reference = document.createElement('span');
+  reference.className = 'jeton jeton-neutre petit';
+  reference.textContent = texte;
+  return reference;
+}
+
 function creerLigneDeTerme(terme: TermeDeListe, choisie: boolean, auClic: () => void): HTMLElement {
   const ligne = document.createElement('button');
   ligne.type = 'button';
@@ -70,37 +133,47 @@ function creerLigneDeTerme(terme: TermeDeListe, choisie: boolean, auClic: () => 
   ligne.classList.toggle('choisie', choisie);
   ligne.setAttribute('aria-pressed', String(choisie));
 
-  const identite = document.createElement('span');
-  identite.className = 'terme-identite';
-  const mot = document.createElement('code');
-  mot.className = 'mot';
-  mot.textContent = terme.mot;
-  identite.append(mot);
-  const parties: string[] = [terme.mot];
-  if (terme.origine !== null) {
-    const pastille = document.createElement('span');
-    const ucm = terme.origine === 'ucm';
-    pastille.classList.add('pastille', ucm ? 'pastille-ucm' : 'pastille-personnalise');
-    pastille.textContent = ucm ? TEXTES.pastilleUcm : TEXTES.pastillePersonnalise;
-    identite.append(pastille);
-    parties.push(pastille.textContent);
+  const regle = document.createElement('span');
+  regle.className = 'terme-regle';
+  const variantes = document.createElement('span');
+  for (const morceau of morceauxDuTerme(terme)) {
+    if (morceau.sorte === 'reference') {
+      regle.append(creerPastilleDeReference(morceau.texte));
+    } else if (morceau.sorte === 'mot') {
+      const mot = document.createElement('code');
+      mot.className = 'mot';
+      mot.textContent = morceau.texte;
+      regle.append(mot);
+    } else if (morceau.sorte === 'gris') {
+      const gris = document.createElement('span');
+      gris.className = 'variantes';
+      gris.textContent = morceau.texte;
+      regle.append(gris);
+    } else if (morceau.sorte === 'variante') {
+      const variante = document.createElement('code');
+      variante.className = 'variante';
+      variante.classList.toggle('trouvee', morceau.trouvee);
+      variante.textContent = morceau.texte;
+      variantes.append(variante);
+    }
   }
+  if (variantes.childElementCount > 0) regle.append(variantes);
 
-  const resume = document.createElement('span');
-  resume.className = 'meta';
-  resume.textContent = resumeDuTerme(terme);
+  const droite = document.createElement('span');
+  if (termeATrancher(terme)) {
+    droite.className = 'pastille pastille-bloque';
+    droite.textContent = TEXTES.pastilleATrancherDuTerme;
+  } else if (terme.origine !== null) {
+    const ucm = terme.origine === 'ucm';
+    droite.classList.add('pastille', ucm ? 'pastille-ucm' : 'pastille-personnalise');
+    droite.textContent = ucm ? TEXTES.pastilleUcm : TEXTES.pastillePersonnalise;
+  }
   const nombre = document.createElement('span');
   nombre.className = 'meta terme-nombre';
   nombre.textContent = String(terme.nombre);
-  const chevron = document.createElement('span');
-  chevron.className = 'chevron';
-  chevron.setAttribute('aria-hidden', 'true');
-  chevron.textContent = '›';
 
-  if (resume.textContent) parties.push(resume.textContent);
-  parties.push(TEXTES.nomsDuTerme(terme.nombre));
-  ligne.setAttribute('aria-label', parties.join(', '));
-  ligne.append(identite, resume, nombre, chevron);
+  ligne.setAttribute('aria-label', nomAccessibleDuTerme(terme));
+  ligne.append(regle, droite, nombre, creerChevron('suivant'));
   ligne.addEventListener('click', auClic);
   return ligne;
 }
@@ -115,22 +188,18 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
   let modifierLEcriture: () => void = () => {};
   let choisirUnTerme: (terme: TermeDeListe) => void = () => {};
 
-  // Le résumé de l'écriture.
+  // Les conventions d'écriture.
   const modifier = createButton({ label: TEXTES.modifier, variant: 'secondary', compact: true, onClick: () => modifierLEcriture() });
   modifier.setAttribute('aria-label', TEXTES.modifierLEcriture);
-  const groupes = creerLigneDuResume();
-  const noms = creerLigneDuResume();
-  const collections = creerLigneDuResume();
-  groupes.nom.textContent = TEXTES.ecritureDesGroupes;
-  noms.nom.textContent = TEXTES.ecritureDesNoms;
-  collections.nom.textContent = TEXTES.ecritureDesCollections;
-  collections.valeur.textContent = TEXTES.nomsUcm;
-  const resumeDeLEcriture = document.createElement('div');
-  resumeDeLEcriture.className = 'resume-ecriture';
-  resumeDeLEcriture.append(groupes.nom, groupes.valeur, noms.nom, noms.valeur, collections.nom, collections.valeur);
-  const carteDeLEcriture = document.createElement('div');
-  carteDeLEcriture.className = 'carte';
-  carteDeLEcriture.append(resumeDeLEcriture);
+  const groupes = creerLigneDuResume(TEXTES.ecritureDesGroupes);
+  const noms = creerLigneDuResume(TEXTES.ecritureDesNoms);
+  const collections = creerLigneDuResume(TEXTES.ecritureDesCollections);
+  poserLeSpecimen(collections, { specimen: TEXTES.nomsUcm, libelle: TEXTES.nomsUcm });
+  const lignesDeLEcriture = document.createElement('div');
+  lignesDeLEcriture.className = 'ecriture-regles';
+  lignesDeLEcriture.append(groupes.ligne, noms.ligne, collections.ligne);
+  const sectionDesConventions = creerSection(TEXTES.intertitreConventions, TEXTES.phraseDesConventions, modifier);
+  sectionDesConventions.append(lignesDeLEcriture);
 
   // La recherche, les filtres et la liste.
   const recherche = document.createElement('input');
@@ -159,27 +228,29 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
   lignes.className = 'liste-termes';
   lignes.setAttribute('role', 'group');
   lignes.setAttribute('aria-label', TEXTES.listeDesTermes);
+  const outils = document.createElement('div');
+  outils.className = 'outils-termes';
+  outils.append(barreDeFiltres, recherche);
+  const resultat = document.createElement('p');
+  resultat.className = 'resultat-recherche';
+  resultat.hidden = true;
   const aucun = document.createElement('p');
   aucun.className = 'aucun-terme meta';
   aucun.textContent = TEXTES.aucunTerme;
   const afficherPlus = createButton({ label: TEXTES.afficherPlus, variant: 'secondary', compact: true, onClick: () => demander(debutSuivant(liste)) });
   afficherPlus.classList.add('afficher-plus');
 
-  coquille.panneaux.regles.contenu.append(
-    creerIntertitre(TEXTES.intertitreEcriture, modifier),
-    carteDeLEcriture,
-    creerIntertitre(TEXTES.intertitreTermes, recherche),
-    barreDeFiltres,
-    lignes,
-    aucun,
-    afficherPlus,
-  );
+  const sectionDuVocabulaire = creerSection(TEXTES.intertitreVocabulaire, TEXTES.phraseDuVocabulaire);
+  sectionDuVocabulaire.append(outils, resultat, lignes, aucun, afficherPlus);
+  coquille.panneaux.regles.contenu.append(sectionDesConventions, sectionDuVocabulaire);
 
   function rendreLEcriture(bilan: Bilan | null): void {
-    const connue = bilan !== null;
-    groupes.valeur.textContent = bilan ? libelleDeConvention(bilan.ecriture.groupes.convention) : '';
-    noms.valeur.textContent = bilan ? libelleDeConvention(bilan.ecriture.variables.convention) : '';
-    modifier.disabled = !connue;
+    poserLeSpecimen(groupes, bilan ? textesDeConvention(bilan.ecriture.groupes.convention) : null);
+    poserLeSpecimen(noms, bilan ? textesDeConvention(bilan.ecriture.variables.convention) : null);
+    poserLExemple(groupes, bilan?.ecriture.groupes.exemple ?? null);
+    poserLExemple(noms, bilan?.ecriture.variables.exemple ?? null);
+    poserLExemple(collections, bilan ? exempleDeCollection(bilan) : null);
+    modifier.disabled = bilan === null;
   }
 
   function rendre(): void {
@@ -195,6 +266,14 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
         }),
       ),
     );
+    const phrase = phraseDeRecherche(liste.termes);
+    resultat.hidden = phrase === null;
+    if (phrase) {
+      const variante = document.createElement('code');
+      variante.className = 'variante trouvee';
+      variante.textContent = phrase.variante;
+      resultat.replaceChildren(variante, ` ${TEXTES.estRemplacePar} `, creerPastilleDeReference(phrase.reference));
+    }
     lignes.hidden = liste.termes.length === 0;
     aucun.hidden = liste.total !== 0;
     afficherPlus.hidden = !resteAAfficher(liste);
