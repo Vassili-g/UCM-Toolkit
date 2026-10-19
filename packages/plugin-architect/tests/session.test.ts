@@ -206,7 +206,7 @@ test('une réponse qui ne convient pas à la question, ou à une question dispar
   const b = banc(PAIRES, { ecriture });
   await b.envoyer({ type: 'analyser' });
   const cle = b.bilan().questions[0].cle;
-  await b.repondre(cle, { type: 'echelle', forme: 0 });
+  await b.repondre(cle, { type: 'voulu' });
   assert.deepEqual(b.messages.map((m) => m.type === 'erreur' ? m.code : m.type), ['echec']);
   await b.repondre('paire:absente', { type: 'plus-tard' });
   assert.deepEqual(b.messages.map((m) => m.type === 'erreur' ? m.code : m.type), ['echec']);

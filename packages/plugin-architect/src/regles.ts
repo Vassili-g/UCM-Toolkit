@@ -75,6 +75,8 @@ export const cleEcart = (id: string): string => `ecart:${id}`;
 /** Une paire distincte s'écrit dans l'ordre trié. */
 export const cleDistinct = (a: string, b: string): string => a <= b ? `distinct:${a}|${b}` : `distinct:${b}|${a}`;
 export const cleVoulu = (mots: Mots): string => `voulu:${mots.join(' ')}`;
+/** Les questions d'échelle ont quitté le plugin : leur clé déjà rangée n'est plus lue, pour ne compter ni parmi les mises de côté ni dans le plafond. */
+const PREFIXE_RETIRE = 'echelle:';
 export const clePlusTard = (cle: string): string => `plus-tard:${cle}`;
 export const cleCollection = (id: string): string => `collection:${id}`;
 export const cleReponse = (cle: string): string => `reponse:${cle}`;
@@ -179,7 +181,7 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
         distincts.set(paire.join('|'), paire);
       }
     } else if ((reste = apres(cle, 'voulu:')) !== undefined) { if (motsDe(reste)) voulus.push(reste); }
-    else if ((reste = apres(cle, 'plus-tard:')) !== undefined) plusTard.push(reste);
+    else if ((reste = apres(cle, 'plus-tard:')) !== undefined) { if (!reste.startsWith(PREFIXE_RETIRE)) plusTard.push(reste); }
     else if ((reste = apres(cle, 'collection:')) !== undefined) {
       const cible = (COLLECTIONS as readonly unknown[]).includes(brut.cible) ? brut.cible as Collection : undefined;
       if (cible) renommees[reste] = cible;
@@ -368,7 +370,7 @@ function lireExport(texte: string): ReglesDuFichier | undefined {
   return {
     ...reglesVides,
     ...(ecriture ? { ecriture } : {}),
-    termes, ecartsUcm: trier(ecarts), distincts, voulus: trier(voulus as string[]), plusTard: trier(plusTard),
+    termes, ecartsUcm: trier(ecarts), distincts, voulus: trier(voulus as string[]), plusTard: trier((plusTard as string[]).filter((cle) => !cle.startsWith(PREFIXE_RETIRE))),
   };
 }
 

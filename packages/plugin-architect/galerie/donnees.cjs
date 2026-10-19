@@ -13,8 +13,6 @@ const boutonFond = ligne('v1', 'Button/', 'bg', '/hover');
 const carteFond = ligne('v2', 'Card/', 'bg', '/default');
 const pageFond = ligne('v3', 'Page/', 'bg', '/default');
 const boutonFondPlein = ligne('v4', 'Button/', 'background', '/hover');
-const tailleCourte = ligne('v5', 'spacing/', 'sm', '');
-const tailleLongue = ligne('v6', 'spacing/', 'small', '');
 const survol = ligne('v7', 'Link/', 'hovered', '/text');
 const survolBouton = ligne('v8', 'Button/', 'hovered', '/border');
 const police = ligne('v9', '', 'fontSize', '/bodyLarge', ['terme:background']);
@@ -54,10 +52,6 @@ const motsColles = {
   type: 'ecriture-du-terme', cle: 'ecriture:contrasthovered', indice: 'mots-colles', terme: terme('contrasthovered', 1, [ligne('v13', 'Link/', 'contrasthovered', '/text')]),
   proposition: ['contrast', 'hovered'], reference: null,
 };
-const echelle = {
-  type: 'echelle', cle: 'echelle:sm|small', formes: [['sm', 'md', 'lg'], ['small', 'medium', 'large']], nombres: [20, 8],
-  exemples: [tailleCourte, tailleLongue], propose: 0,
-};
 const collection = { type: 'collection', cle: 'collection:c2', nom: 'Couleurs', nombre: 34, proposee: 'color-brands' };
 const paireDeTailles = {
   type: 'paire', cle: 'paire:radius|corner', indice: 'synonymes',
@@ -76,7 +70,7 @@ const bilanDeBase = {
   groupes: [groupeBackground, groupeHover, groupeEcriture, groupeCollection],
   bloques: [{ avant: 'Font Size', apres: 'font-size', collection: 'Typographie' }],
   proteges: 3,
-  questions: [paire, faute, echelle],
+  questions: [paire, faute, motsColles],
   autresPistes: 2,
   plusTard: [collection],
   collections,
@@ -86,13 +80,13 @@ const bilanDeBase = {
 const bilans = {
   travail: bilanDeBase,
   premierLancement: { ...bilanDeBase, premierLancement: true, groupes: [], questions: [], plusTard: [], bloques: [], proteges: 0, autresPistes: 0, dernierRenommage: null },
-  collectionsEtPlusTard: { ...bilanDeBase, questions: [collection, motsColles], plusTard: [paireDeTailles, echelle] },
+  collectionsEtPlusTard: { ...bilanDeBase, questions: [collection, motsColles], plusTard: [paireDeTailles] },
   rienAFaire: { ...bilanDeBase, groupes: [], bloques: [], questions: [], plusTard: [], autresPistes: 0 },
   sansVariableLocale: { ...bilanDeBase, sansVariableLocale: true, groupes: [], bloques: [], questions: [], plusTard: [], autresPistes: 0, collections: [], dernierRenommage: null },
   apresUneReponse: {
     ...bilanDeBase, generation: 2,
     groupes: [{ ...groupeBackground, variables: 52, nouveau: false }, groupeHover, groupeEcriture, groupeCollection],
-    questions: [faute, echelle],
+    questions: [faute, motsColles],
   },
   apresLApplication: {
     ...bilanDeBase, generation: 2, groupes: [], bloques: [{ avant: 'Font Size', apres: 'font-size', collection: 'Typographie' }],

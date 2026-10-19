@@ -8,7 +8,6 @@ import type { ConflitVue, LigneVue, QuestionVue, Reponse, TermeVue } from '../me
 import { TEXTES } from './textes';
 
 type QuestionDePaire = Extract<QuestionVue, { type: 'paire' }>;
-type QuestionDEchelle = Extract<QuestionVue, { type: 'echelle' }>;
 type QuestionDEcriture = Extract<QuestionVue, { type: 'ecriture-du-terme' }>;
 type QuestionDeCollection = Extract<QuestionVue, { type: 'collection' }>;
 
@@ -110,27 +109,6 @@ function carteDePaire(question: QuestionDePaire): CarteDeQuestion {
   };
 }
 
-function carteDEchelle(question: QuestionDEchelle): CarteDeQuestion {
-  const colonne = (rang: 0 | 1): ColonneDeCarte => ({
-    rang,
-    terme: question.formes[rang].join(' '),
-    ucm: false,
-    detail: TEXTES.nombreDeNoms(question.nombres[rang], 0),
-    exemple: question.exemples[rang],
-    propose: question.propose === rang,
-    garder: { id: 'garder', libelle: TEXTES.garderCelleCi, poids: question.propose === rang ? 'principal' : 'secondaire', suite: repondre({ type: 'echelle', forme: rang }) },
-  });
-  return {
-    forme: 'face-a-face',
-    cle: question.cle,
-    question: TEXTES.questionDEchelle,
-    indice: TEXTES.indiceDEchelle,
-    colonnes: [colonne(0), colonne(1)],
-    preuve: null,
-    pied: { actions: [], plusTard },
-  };
-}
-
 function carteDEcriture(question: QuestionDEcriture): CarteDeQuestion {
   const faute = question.indice === 'faute';
   return {
@@ -174,8 +152,6 @@ export function carteDeQuestion(question: QuestionVue): CarteDeQuestion {
   switch (question.type) {
     case 'paire':
       return carteDePaire(question);
-    case 'echelle':
-      return carteDEchelle(question);
     case 'ecriture-du-terme':
       return carteDEcriture(question);
     case 'collection':
@@ -211,8 +187,6 @@ export interface LigneFaite {
   readonly detail: string;
 }
 
-const lesFormes = (formes: readonly string[]): string => formes.join(' ');
-
 /** La ligne qui remplace la carte une fois `reponse` acceptée ; `null` quand la réponse ne va pas avec la question. */
 export function ligneFaite(question: QuestionVue, reponse: Reponse): LigneFaite | null {
   switch (question.type) {
@@ -231,21 +205,6 @@ export function ligneFaite(question: QuestionVue, reponse: Reponse): LigneFaite 
           return { avant: premier.mot, separateur: '≠', apres: second.mot, detail: TEXTES.gardesSepares };
         case 'plus-tard':
           return { avant: mots, separateur: null, apres: null, detail: TEXTES.remisAPlusTard };
-        default:
-          return null;
-      }
-    }
-    case 'echelle': {
-      const [premiere, seconde] = question.formes;
-      switch (reponse.type) {
-        case 'echelle': {
-          const gardee = question.formes[reponse.forme];
-          const remplacee = question.formes[reponse.forme === 0 ? 1 : 0];
-          const nombre = question.nombres[reponse.forme === 0 ? 1 : 0];
-          return { avant: lesFormes(remplacee), separateur: '→', apres: lesFormes(gardee), detail: TEXTES.ajouteesAAppliquer(nombre, 0) };
-        }
-        case 'plus-tard':
-          return { avant: `${lesFormes(premiere)}, ${lesFormes(seconde)}`, separateur: null, apres: null, detail: TEXTES.remisAPlusTard };
         default:
           return null;
       }
@@ -288,10 +247,6 @@ export function ligneDeReprise(question: QuestionVue): LigneDeReprise {
       const gardee = question.termes[question.propose];
       const remplacee = question.termes[question.propose === 0 ? 1 : 0];
       return { cle: question.cle, avant: remplacee.mot, apres: gardee.mot };
-    }
-    case 'echelle': {
-      const autre = question.propose === 0 ? 1 : 0;
-      return { cle: question.cle, avant: lesFormes(question.formes[autre]), apres: lesFormes(question.formes[question.propose]) };
     }
     case 'ecriture-du-terme':
       return { cle: question.cle, avant: question.terme.mot, apres: question.proposition.join('-') };

@@ -180,7 +180,6 @@ export const TEXTES = {
 
   // U3 : onglet À trancher.
   questionDePaire: 'Ces termes désignent-ils la même chose ?',
-  questionDEchelle: 'Quelle écriture garder pour les tailles ?',
   questionDeFaute: 'Ce terme est-il mal écrit ?',
   questionDeMotsColles: 'Ce terme réunit-il plusieurs mots ?',
   questionDeCollection: (nom: string): string => `À quelle collection UCM correspond ${nom} ?`,
@@ -191,7 +190,6 @@ export const TEXTES = {
     synonymes: 'Synonymes',
     'branches-paralleles': 'Branches parallèles',
   } satisfies Record<IndiceDePaire, string>,
-  indiceDEchelle: 'Deux écritures',
   indiceDeFaute: 'Une lettre d’écart',
   indiceDeMotsColles: 'Mots collés',
   lesDeuxVisent: (cible: string): string => `Les deux visent ${cible}.`,
@@ -202,7 +200,6 @@ export const TEXTES = {
   },
 
   garderLeTerme: (terme: string): string => `Garder ${terme}`,
-  garderCelleCi: 'Garder celle-ci',
   termesDifferents: 'Termes différents',
   autreTerme: 'Autre terme…',
   plusTard: 'Plus tard',

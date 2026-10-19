@@ -27,7 +27,7 @@ const refuses: Record<string, readonly unknown[]> = {
   termes: [{ ...(valides.termes as object), filtre: 'autre' }, { ...(valides.termes as object), debut: -1 }, { ...(valides.termes as object), recherche: null }],
   fiche: [{ ...(valides.fiche as object), terme: 3 }, { type: 'fiche', demande: 4, terme: 'bg' }],
   simuler: [{ ...(valides.simuler as object), geste: { type: 'inconnu' } }, { ...(valides.simuler as object), geste: null }],
-  repondre: [{ ...(valides.repondre as object), reponse: { type: 'garder', rang: 2 } }, { ...(valides.repondre as object), reponse: { type: 'echelle', forme: -1 } }],
+  repondre: [{ ...(valides.repondre as object), reponse: { type: 'garder', rang: 2 } }, { ...(valides.repondre as object), reponse: { type: 'echelle', forme: 0 } }],
   regle: [
     { ...(valides.regle as object), geste: { type: 'ecriture', ecriture: { groupes: ecriture.groupes } } },
     { ...(valides.regle as object), geste: { type: 'ecriture', ecriture: { ...ecriture, variables: { casse: 'x', separateur: 'tiret' } } } },

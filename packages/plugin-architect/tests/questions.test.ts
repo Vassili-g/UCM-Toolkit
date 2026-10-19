@@ -20,10 +20,6 @@ const terme = (mot: string, nombre: number, ucm = false): TermeVue => ({ mot, no
 const paire = (indice: IndiceDePaire = 'terminaison', cibleCommune: string | null = null): Extract<QuestionVue, { type: 'paire' }> => ({
   type: 'paire', cle: 'paire:outline', indice, termes: [terme('outline', 8), terme('outlined', 24)], propose: 1, cibleCommune,
 });
-const echelle: Extract<QuestionVue, { type: 'echelle' }> = {
-  type: 'echelle', cle: 'echelle', formes: [['small', 'medium', 'large'], ['sm', 'md', 'lg']], nombres: [12, 34],
-  exemples: [chemin('components/chip/sizes/', 'medium', '/height'), null], propose: 1,
-};
 const faute: Extract<QuestionVue, { type: 'ecriture-du-terme' }> = {
   type: 'ecriture-du-terme', cle: 'faute', indice: 'faute', terme: terme('contrashovered', 1), proposition: ['contrasthovered'], reference: { mot: 'contrasthovered', nombre: 14 },
 };
@@ -85,21 +81,6 @@ test('les boutons d’une paire envoient garder, termes différents, plus tard, 
   });
   assert.deepEqual(carteDeQuestion(paire()).pied.actions.map((action) => action.libelle), ['Termes différents', 'Autre terme…']);
   assert.equal(carteDeQuestion(paire()).pied.plusTard.libelle, 'Plus tard');
-});
-
-test('une échelle garde la forme choisie, avec « Garder celle-ci » dans chaque colonne et seulement « Plus tard » au pied', () => {
-  const carte = carteDeQuestion(echelle);
-  if (carte.forme !== 'face-a-face') throw new Error('forme inattendue');
-  assert.equal(carte.question, 'Quelle écriture garder pour les tailles ?');
-  assert.equal(carte.indice, 'Deux écritures');
-  assert.deepEqual(carte.colonnes.map((colonne) => [colonne.terme, colonne.detail, colonne.propose]), [['small medium large', '12 variables', false], ['sm md lg', '34 variables', true]]);
-  assert.deepEqual(carte.colonnes.map((colonne) => colonne.garder.libelle), ['Garder celle-ci', 'Garder celle-ci']);
-  assert.deepEqual(carte.colonnes.map((colonne) => colonne.exemple?.terme ?? null), ['medium', null]);
-  assert.deepEqual(reponses(carte), {
-    'garder-0': { type: 'echelle', forme: 0 },
-    'garder-1': { type: 'echelle', forme: 1 },
-    'plus-tard': { type: 'plus-tard' },
-  });
 });
 
 test('un terme mal écrit propose de corriger, avec le nombre et la référence', () => {
@@ -164,7 +145,6 @@ test('la ligne de réussite d’une paire dit ce qui change et ce que À appliqu
 });
 
 test('la ligne de réussite des autres questions', () => {
-  assert.deepEqual(ligneFaite(echelle, { type: 'echelle', forme: 1 }), { avant: 'small medium large', separateur: '→', apres: 'sm md lg', detail: '12 variables ajoutées à À appliquer' });
   assert.deepEqual(ligneFaite(faute, { type: 'corriger', mots: ['contrasthovered'] }), { avant: 'contrashovered', separateur: '→', apres: 'contrasthovered', detail: '1 variable ajoutée à À appliquer' });
   assert.deepEqual(ligneFaite(colles, { type: 'corriger', mots: ['v', 'spacing', 'small'] }), { avant: 'vspacingsmall', separateur: '→', apres: 'v-spacing-small', detail: '3 variables ajoutées à À appliquer' });
   assert.deepEqual(ligneFaite(faute, { type: 'voulu' }), { avant: 'contrashovered', separateur: null, apres: null, detail: 'Écriture gardée' });
@@ -175,7 +155,6 @@ test('la ligne de réussite des autres questions', () => {
 
 test('une question remise à plus tard se reprend avec sa proposition', () => {
   assert.deepEqual(ligneDeReprise(paire()), { cle: 'paire:outline', avant: 'outline', apres: 'outlined' });
-  assert.deepEqual(ligneDeReprise(echelle), { cle: 'echelle', avant: 'small medium large', apres: 'sm md lg' });
   assert.deepEqual(ligneDeReprise(colles), { cle: 'colles', avant: 'vspacingsmall', apres: 'v-spacing-small' });
   assert.deepEqual(ligneDeReprise(collection(null)), { cle: 'collection', avant: 'Typo Tokens', apres: null });
 });

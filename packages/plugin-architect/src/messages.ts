@@ -10,7 +10,7 @@ export type Reponse =
   | { readonly type: 'garder'; readonly rang: 0 | 1 } | { readonly type: 'autre'; readonly terme: string }
   | { readonly type: 'distincts' } | { readonly type: 'plus-tard' }
   | { readonly type: 'corriger'; readonly mots: readonly string[] } | { readonly type: 'voulu' }
-  | { readonly type: 'echelle'; readonly forme: 0 | 1 } | { readonly type: 'collection'; readonly cible: string | null };
+  | { readonly type: 'collection'; readonly cible: string | null };
 export type GesteSurLesRegles =
   | { readonly type: 'ecriture'; readonly ecriture: EcritureChoisie }
   | { readonly type: 'remplacer-par'; readonly terme: string; readonly par: string }
@@ -55,7 +55,6 @@ export interface TermeVue { readonly mot: string; readonly nombre: number; reado
 export type QuestionVue =
   | { readonly type: 'paire'; readonly cle: string; readonly indice: IndiceDePaire; readonly termes: readonly [TermeVue, TermeVue]; readonly propose: 0 | 1; readonly cibleCommune: string | null }
   | { readonly type: 'ecriture-du-terme'; readonly cle: string; readonly indice: 'faute' | 'mots-colles'; readonly terme: TermeVue; readonly proposition: readonly string[]; readonly reference: { readonly mot: string; readonly nombre: number } | null }
-  | { readonly type: 'echelle'; readonly cle: string; readonly formes: readonly [readonly string[], readonly string[]]; readonly nombres: readonly [number, number]; readonly exemples: readonly [LigneVue | null, LigneVue | null]; readonly propose: 0 | 1 }
   | { readonly type: 'collection'; readonly cle: string; readonly nom: string; readonly nombre: number; readonly proposee: string | null };
 export interface LigneDEcriture { readonly convention: Convention; readonly suivent: number; readonly total: number; readonly exemple: LigneVue | null }
 export interface CollectionVue { readonly id: string; readonly nom: string; readonly nombre: number; readonly analysee: boolean; readonly palettes: boolean }
@@ -128,7 +127,6 @@ function estReponse(brut: unknown): boolean {
     case 'autre': return chaine(brut.terme);
     case 'distincts': case 'plus-tard': case 'voulu': return true;
     case 'corriger': return chaines(brut.mots);
-    case 'echelle': return zeroOuUn(brut.forme);
     case 'collection': return brut.cible === null || chaine(brut.cible);
     default: return false;
   }

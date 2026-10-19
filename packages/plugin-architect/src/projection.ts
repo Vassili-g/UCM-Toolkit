@@ -327,14 +327,6 @@ export function projeter(entree: EntreeDeProjection): Projection {
           type: 'ecriture-du-terme', cle: question.cle, indice: question.indice, terme: termeVue(question.terme),
           proposition: [...question.proposition], reference: question.reference ?? null,
         };
-      case 'echelle':
-        return {
-          type: 'echelle', cle: question.cle, formes: question.formes, nombres: question.nombres, propose: question.propose,
-          exemples: [
-            question.exemples[0] === null ? null : ligneDeNom(question.exemples[0], question.formes[0], true),
-            question.exemples[1] === null ? null : ligneDeNom(question.exemples[1], question.formes[1], true),
-          ],
-        };
       case 'collection':
         return { type: 'collection', cle: question.cle, nom: question.nom, nombre: question.nombre, proposee: question.proposee ?? null };
     }
@@ -364,12 +356,6 @@ export function projeter(entree: EntreeDeProjection): Projection {
         poser(question.termes[1].mot, question.cle, question.termes[0].mot);
       } else if (question.type === 'ecriture-du-terme') {
         poser(question.terme.mot, question.cle, null);
-      } else if (question.type === 'echelle') {
-        question.formes[0].forEach((forme, rang) => {
-          const autre = question.formes[1][rang] ?? null;
-          poser(forme, question.cle, autre);
-          if (autre !== null) poser(autre, question.cle, forme);
-        });
       }
     }
     return liste;

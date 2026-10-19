@@ -236,7 +236,6 @@ const termeEnQuestion = (mot: string, nombre: number, exemples: readonly string[
 const questionsDeTest: readonly Question[] = [
   { type: 'paire', cle: 'paire:gap|space', indice: 'synonymes', termes: [termeEnQuestion('gap', 3, ['v4', 'v5']), termeEnQuestion('space', 1, ['v6'], true)], propose: 1, score: 5, cibleAlias: 'ALIAS' },
   { type: 'ecriture-du-terme', cle: 'ecriture-du-terme:faute:color|colour', indice: 'faute', terme: termeEnQuestion('colour', 1, ['v9']), proposition: ['color'], reference: { mot: 'color', nombre: 3 }, score: 3 },
-  { type: 'echelle', cle: 'echelle:a', formes: [['sm', 'gap'], ['small', 'medium']], nombres: [2, 1], exemples: ['v4', null], propose: 0, score: 2 },
   { type: 'collection', cle: 'collection:c1', collectionId: 'c1', nom: 'Couleurs', nombre: 34, proposee: 'color-brands', score: 4 },
   { type: 'collection', cle: 'collection:c2', collectionId: 'c2', nom: 'Typo', nombre: 3, score: 4 },
 ];
@@ -244,15 +243,15 @@ const questionsDeTest: readonly Question[] = [
 test('les questions deviennent des vues, les questions mises de côté vont à plusTard', () => {
   const questions: ResultatDesQuestions = {
     questions: questionsDeTest,
-    autres: [{ ...questionsDeTest[4], cle: 'collection:c3' } as Question, { ...questionsDeTest[4], cle: 'collection:c4' } as Question],
+    autres: [{ ...questionsDeTest[3], cle: 'collection:c3' } as Question, { ...questionsDeTest[3], cle: 'collection:c4' } as Question],
   };
   const entree = { ...calculer(fichierDeBase, { questions, regles: { plusTard: ['collection:c2', 'collection:c4'] } }), nomDeLaCible: (id: string) => (id === 'ALIAS' ? 'theme/surface' : undefined) };
   const bilan = projeter(entree).bilan();
   assert.equal(bilan.autresPistes, 1);
   assert.deepEqual(bilan.plusTard.map((question) => question.cle), ['collection:c2']);
-  assert.deepEqual(bilan.questions.map((question) => question.cle), ['paire:gap|space', 'ecriture-du-terme:faute:color|colour', 'echelle:a', 'collection:c1']);
+  assert.deepEqual(bilan.questions.map((question) => question.cle), ['paire:gap|space', 'ecriture-du-terme:faute:color|colour', 'collection:c1']);
 
-  const [paire, faute, echelle, collection] = bilan.questions;
+  const [paire, faute, collection] = bilan.questions;
   assert.deepEqual(paire, {
     type: 'paire', cle: 'paire:gap|space', indice: 'synonymes', propose: 1, cibleCommune: 'theme/surface',
     termes: [
@@ -262,7 +261,6 @@ test('les questions deviennent des vues, les questions mises de côté vont à p
   } satisfies typeof paire);
   assert.equal(faute.type === 'ecriture-du-terme' && faute.terme.exemples[0].terme, 'colour');
   assert.deepEqual(faute.type === 'ecriture-du-terme' && [faute.proposition, faute.reference], [['color'], { mot: 'color', nombre: 3 }]);
-  assert.deepEqual(echelle.type === 'echelle' && echelle.exemples, [{ id: 'v4', avant: 'card/hover/', terme: 'gap', apres: '', aussi: [] }, null]);
   assert.deepEqual(collection, { type: 'collection', cle: 'collection:c1', nom: 'Couleurs', nombre: 34, proposee: 'color-brands' });
   assert.equal(bilan.plusTard[0].type === 'collection' && bilan.plusTard[0].proposee, null);
 });

@@ -218,16 +218,6 @@ function ecrituresDeLaReponse(question: Question, reponse: Reponse, regles: Regl
       const mots = reponse.type === 'corriger' ? reponse.mots.flatMap(motsDe) : echec();
       return mots.length === 0 ? echec() : [termeAvec(regles, mots, [motsDe(question.terme.mot)])];
     }
-    case 'echelle': {
-      if (reponse.type !== 'echelle') return echec();
-      const gardee = question.formes[reponse.forme];
-      const remplacee = question.formes[reponse.forme === 0 ? 1 : 0];
-      const ecritures = gardee.flatMap((forme, rang): Ecriture[] => {
-        const autre = remplacee[rang];
-        return autre !== undefined && employe(lexique, autre) ? [termeAvec(regles, motsDe(forme), [motsDe(autre)])] : [];
-      });
-      return ecritures.length === 0 ? echec() : ecritures;
-    }
     case 'collection':
       if (reponse.type !== 'collection') return echec();
       if (reponse.cible === null) return [serialiserRegle({ type: 'collection', id: question.collectionId })];

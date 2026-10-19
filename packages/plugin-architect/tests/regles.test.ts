@@ -55,6 +55,19 @@ test('relire les entrées rend les règles, le vocabulaire et le déjà jugé du
   assert.deepEqual(lues.vus, ['g1', 'g2']);
 });
 
+test('une clé plus-tard:echelle:… déjà rangée n’est ni lue ni importée, donc ne compte pas dans plusTard', () => {
+  const lues = lireLesRegles(new Map([
+    ['plus-tard:echelle:sm|small', JSON.stringify({ version: 1 })],
+    ['plus-tard:paire:a|b', JSON.stringify({ version: 1 })],
+  ]));
+  assert.deepEqual(lues.plusTard, ['paire:a|b']);
+  assert.equal(lues.plusTard.length, 1);
+  const texte = JSON.stringify({ version: 1, plusTard: ['echelle:sm|small', 'paire:c|d'] });
+  const resultat = importerLesRegles(texte, reglesVides, () => []);
+  assert.equal(resultat.statut, 'valide');
+  if (resultat.statut === 'valide') assert.deepEqual(resultat.regles.plusTard, ['paire:c|d']);
+});
+
 test('une entrée illisible, d’une autre version ou incohérente se lit comme absente', () => {
   const lues = lireLesRegles([
     ['ecriture', '{pas du json'],
