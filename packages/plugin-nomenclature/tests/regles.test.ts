@@ -4,7 +4,7 @@ import test from 'node:test';
 import type { ConflitDeVocabulaire } from '@ucm-kit/core/referentiel';
 import { creerPortDeRegles } from '../src/ecriture';
 import {
-  budgetDUneEntree, cleDistinct, cleJournal, cleReponse, cleTerme, defaireReponse, dejaJugeDuFichier, ecrituresDesRegles, effacerLeJournal, exporterLesRegles,
+  budgetDUneEntree, cleDistinct, cleJournal, cleReponse, cleTerme, defaireLImport, defaireReponse, preparerImport, dejaJugeDuFichier, ecrituresDesRegles, effacerLeJournal, exporterLesRegles,
   importerLesRegles, lireLeStockage, lireLesRegles, octetsUtf8, preparerJournal, preparerReponse, rangerLesEcritures, reglesVides,
   serialiserRegle, vocabulaireDuFichier, type Ecriture, type Journal, type ReglesDuFichier, type RenommageJournal,
 } from '../src/regles';
@@ -314,4 +314,76 @@ test('une cible inconnue se lit comme « nom gardé » ; l’export et l’impor
   const resultat = importerLesRegles(texte, dejaLa, () => []);
   assert.equal(resultat.statut, 'valide');
   if (resultat.statut === 'valide') assert.deepEqual(resultat.regles.collectionsRenommees, { c1: 'theme' });
+});
+
+// Les mots, les réponses défaites et l'import annulable
+
+test('un mot de terme refuse les espaces et les caractères / | . { } $, à la lecture comme à l’import', () => {
+  for (const mot of ['a/b', 'a|b', 'a.b', 'a{b', 'a}b', 'a$b', 'a b']) {
+    const lues = lireLesRegles([[`terme:${mot}`, JSON.stringify({ version: 1, terme: [mot], remplace: [] })]]);
+    assert.deepEqual(lues.termes, [], mot);
+    const texte = JSON.stringify({ version: 1, termes: [{ terme: ['gap'], remplace: [[mot]] }] });
+    assert.deepEqual(importerLesRegles(texte, reglesVides, () => []), { statut: 'illisible' }, mot);
+  }
+  assert.equal(importerLesRegles(JSON.stringify({ version: 1, termes: [{ terme: ['text/quux'], remplace: [['quux']] }] }), reglesVides, () => []).statut, 'illisible');
+});
+
+test('annuler une réponse garde les formes qu’un autre geste a ajoutées au même terme depuis', () => {
+  const peinture = serialiserRegle({ type: 'terme', terme: { terme: ['ink'], remplace: [['paint']] } });
+  const table = new Map(dans([peinture]));
+  rangerLesEcritures(stockageDe(table), preparerReponse('q', [serialiserRegle({ type: 'terme', terme: { terme: ['ink'], remplace: [['paint'], ['dye']] } })], table));
+  // Un autre geste ajoute « pigment » après la réponse.
+  rangerLesEcritures(stockageDe(table), [serialiserRegle({ type: 'terme', terme: { terme: ['ink'], remplace: [['paint'], ['dye'], ['pigment']] } })]);
+  rangerLesEcritures(stockageDe(table), defaireReponse('q', table)!);
+  assert.deepEqual(lireLesRegles(table).termes, [{ terme: ['ink'], remplace: [['paint'], ['pigment']] }]);
+  assert.ok(!table.has('reponse:q'));
+});
+
+test('annuler une réponse laisse en l’état une clé changée depuis qui n’est pas un terme, et efface un terme sans reste', () => {
+  const table = new Map<string, string>();
+  const ecritures = preparerReponse('q', [serialiserRegle({ type: 'terme', terme: { terme: ['ink'], remplace: [['dye']] } }), serialiserRegle({ type: 'voulu', mots: ['x'] })], table);
+  rangerLesEcritures(stockageDe(table), ecritures);
+  table.set('voulu:x', JSON.stringify({ version: 1, change: true }));
+  rangerLesEcritures(stockageDe(table), defaireReponse('q', table)!);
+  assert.ok(!table.has('terme:ink'), 'le terme que la réponse a créé et qui ne garde rien disparaît');
+  assert.equal(JSON.parse(table.get('voulu:x')!).change, true);
+});
+
+test('une réponse rangée avant l’ajout de « apres » se défait comme avant', () => {
+  const table = new Map([['voulu:a', JSON.stringify({ version: 1 })], ['reponse:q', JSON.stringify({ version: 1, avant: { 'voulu:a': null } })]]);
+  assert.deepEqual(defaireReponse('q', table), [{ cle: 'voulu:a', texte: null }, { cle: 'reponse:q', texte: null }]);
+});
+
+test('reponse:import n’est pas lue comme une réponse ; l’import qui écrase l’écriture et un terme se défait', () => {
+  const nouvelle = { groupes: autre, variables: autre };
+  const table = new Map(dans([serialiserRegle({ type: 'ecriture', ecriture }), serialiserRegle({ type: 'terme', terme: { terme: ['gap'], remplace: [['ancien']] } })]));
+  const depart = new Map(table);
+  const texte = JSON.stringify({ version: 1, ecriture: nouvelle, termes: [{ terme: ['gap'], remplace: [['nouveau']] }, { terme: ['pad'], remplace: [] }] });
+  const resultat = importerLesRegles(texte, lireLesRegles(table), () => []);
+  assert.equal(resultat.statut, 'valide');
+  if (resultat.statut !== 'valide') return;
+  const rangee = preparerImport(resultat.ecritures, table, '14:32')!;
+  assert.equal(rangee.cle, 'reponse:import');
+  rangerLesEcritures(stockageDe(table), [...resultat.ecritures, rangee]);
+  const lues = lireLesRegles(table);
+  assert.deepEqual(lues.reponses, {});
+  assert.equal(lues.dernierImport?.heure, '14:32');
+  assert.deepEqual(lues.ecriture, nouvelle);
+  rangerLesEcritures(stockageDe(table), defaireLImport(table));
+  assert.deepEqual([...table].sort(), [...depart].sort());
+  assert.deepEqual(defaireLImport(table), []);
+});
+
+test('un import qui n’écrase rien ne range pas reponse:import', () => {
+  const resultat = importerLesRegles(JSON.stringify({ version: 1, termes: [{ terme: ['pad'], remplace: [] }] }), reglesVides, () => []);
+  assert.equal(resultat.statut, 'valide');
+  if (resultat.statut === 'valide') assert.equal(preparerImport(resultat.ecritures, new Map(), 'h'), undefined);
+});
+
+test('un rangement interrompu rétablit chaque clé déjà touchée et relance l’erreur', () => {
+  const table = new Map([['a', 'A0']]);
+  let appels = 0;
+  const stockage = { ...stockageDe(table), ecrire: (cle: string, texte: string) => { if (++appels === 3) throw new Error('plein'); table.set(cle, texte); } };
+  assert.throws(() => rangerLesEcritures(stockage, [{ cle: 'a', texte: 'A1' }, { cle: 'b', texte: 'B1' }, { cle: 'c', texte: 'C1' }]), /plein/u);
+  assert.deepEqual([...table], [['a', 'A0']]);
 });

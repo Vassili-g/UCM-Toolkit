@@ -599,6 +599,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
         plusTard: misesDeCote.map(questionVue),
         collections,
         dernierRenommage: journal && journal.renommages.length > 0 ? { nombre: journal.renommages.length, heure: journal.heure } : null,
+        dernierImport: regles.dernierImport ? { heure: regles.dernierImport.heure } : null,
       };
     });
   }

@@ -21,7 +21,8 @@ export type GesteSurLesRegles =
   | { readonly type: 'retirer-distinct'; readonly termes: readonly [string, string] }
   | { readonly type: 'retirer-voulu'; readonly terme: string }
   | { readonly type: 'reprendre'; readonly question: string }
-  | { readonly type: 'annuler-reponse'; readonly question: string };
+  | { readonly type: 'annuler-reponse'; readonly question: string }
+  | { readonly type: 'annuler-import' };
 
 export type DemandeArchitect =
   | { readonly type: 'analyser'; readonly demande: number }
@@ -88,6 +89,8 @@ export interface Bilan {
   readonly plusTard: readonly QuestionVue[];
   readonly collections: readonly CollectionVue[];
   readonly dernierRenommage: { readonly nombre: number; readonly heure: string } | null;
+  /** Le dernier import qui a écrasé l'écriture ou un terme, que `annuler-import` défait. */
+  readonly dernierImport: { readonly heure: string } | null;
 }
 /** Le filtre `avec-regle` montre `regle` et `ecart` ; `sans-regle` montre `sans-regle` et `a-trancher`. */
 export interface TermeDeListe { readonly mot: string; readonly origine: OrigineDuTerme | null; readonly statut: 'regle' | 'ecart' | 'a-trancher' | 'sans-regle'; readonly remplace: readonly string[]; readonly avec: string | null; readonly nombre: number; readonly trouve: string | null }
@@ -112,7 +115,7 @@ export interface ResultatVue {
   readonly sorte: 'application' | 'annulation'; readonly statut: 'applique' | 'partiel' | 'refuse'; readonly renommes: number; readonly sautes: number; readonly annulable: boolean;
   readonly cause?: CauseDeRefus;
 }
-export type CodeDErreur = 'analyse-en-cours' | 'fichier-modifie' | 'generation-perimee' | 'regles-modifiees' | 'import-illisible' | 'echec';
+export type CodeDErreur = 'analyse-en-cours' | 'fichier-modifie' | 'generation-perimee' | 'regles-modifiees' | 'import-illisible' | 'mot-refuse' | 'import-partiel' | 'echec';
 
 export type PluginMessage =
   | { readonly type: 'initial'; readonly dejaAnalyse: boolean }
@@ -168,6 +171,7 @@ function estGeste(brut: unknown): boolean {
     case 'ecart-ucm': return chaine(brut.terme) && typeof brut.actif === 'boolean';
     case 'retirer-distinct': return Array.isArray(brut.termes) && brut.termes.length === 2 && brut.termes.every(chaine);
     case 'reprendre': case 'annuler-reponse': return chaine(brut.question);
+    case 'annuler-import': return true;
     default: return false;
   }
 }

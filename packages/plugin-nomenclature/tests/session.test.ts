@@ -241,3 +241,80 @@ test('fichierDejaAnalyse vaut vrai quand l\'écriture est rangée, faux sinon ou
   assert.equal(fichierDejaAnalyse(banc([], { ecriture }).port), true);
   assert.equal(fichierDejaAnalyse(banc([], { conventions: 'illisible' }).port), false);
 });
+
+// Les mots refusés, l'import interrompu et l'import annulable
+
+const codes = (b: ReturnType<typeof banc>) => b.messages.map((m) => m.type === 'erreur' ? m.code : m.type);
+
+test('un terme avec / | . { } $ ou vide est refusé au geste, sans rien écrire', async () => {
+  const b = banc(PAIRES, { ecriture });
+  await b.envoyer({ type: 'analyser' });
+  for (const geste of [
+    { type: 'remplacer-par', terme: 'text/quux', par: 'a/b' },
+    { type: 'remplacer-par', terme: 'quuxed', par: 'a.b' },
+    { type: 'remplacer-par', terme: 'quuxed', par: '   ' },
+    { type: 'remplacer-par', terme: '', par: 'quux' },
+    { type: 'remplace-termes', terme: '  ', termes: ['quuxed'] },
+    { type: 'remplace-termes', terme: 'quux', termes: ['a|b'] },
+  ] as const) {
+    await b.regle(geste);
+    assert.deepEqual(codes(b), ['mot-refuse'], JSON.stringify(geste));
+  }
+  assert.deepEqual([...b.stock.keys()], ['ecriture']);
+});
+
+test('une réponse à un terme refusé, ou à une paire avec « | », n’écrit rien', async () => {
+  const b = banc(PAIRES, { ecriture });
+  await b.envoyer({ type: 'analyser' });
+  const cle = b.bilan().questions[0].cle;
+  await b.repondre(cle, { type: 'autre', terme: 'a/b' });
+  assert.deepEqual(codes(b), ['mot-refuse']);
+  await b.repondre(cle, { type: 'autre', terme: ' ' });
+  assert.deepEqual(codes(b), ['mot-refuse']);
+  assert.deepEqual([...b.stock.keys()], ['ecriture']);
+});
+
+test('une paire dont un terme contient « | » ne peut pas être jugée distincte', async () => {
+  const b = banc([['v1', 'tile/qu|x/fill'], ['v2', 'tile/qu|x/fg'], ['v3', 'tile/qu|xed/text'], ['v4', 'tile/qu|xed/line']], { ecriture });
+  await b.envoyer({ type: 'analyser' });
+  const paire = b.bilan().questions.find((q) => q.type === 'paire');
+  assert.ok(paire, 'la paire de mots proches est posée');
+  await b.repondre(paire.cle, { type: 'distincts' });
+  assert.deepEqual(codes(b), ['mot-refuse']);
+  assert.deepEqual([...b.stock.keys()], ['ecriture']);
+});
+
+test('un import refuse un terme avec « / » sans rien écrire', async () => {
+  const b = banc(PAIRES, { ecriture });
+  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'importer', texte: JSON.stringify({ version: 1, termes: [{ terme: ['text/quux'], remplace: [['a/b']] }] }) });
+  assert.deepEqual(codes(b), ['import-illisible']);
+  assert.deepEqual([...b.stock.keys()], ['ecriture']);
+});
+
+test('un stockage qui échoue à la deuxième clé d’un import rétablit toutes les clés et répond import-partiel', async () => {
+  const b = banc(PAIRES, { ecriture });
+  await b.envoyer({ type: 'analyser' });
+  const avant = new Map(b.stock);
+  const ecrire = b.port.ecrire;
+  let appels = 0;
+  (b.port as { ecrire: PortDeRegles['ecrire'] }).ecrire = (cle, texte) => { if (++appels === 2) throw new Error('plein'); ecrire(cle, texte); };
+  await b.envoyer({ type: 'importer', texte: JSON.stringify({ version: 1, ecartsUcm: ['x'], voulus: ['aa bb'], termes: [{ terme: ['quux'], remplace: [['quuxed']] }] }) });
+  assert.deepEqual(codes(b), ['import-partiel']);
+  assert.deepEqual([...b.stock].sort(), [...avant].sort());
+});
+
+test('annuler-import rétablit l’écriture et le terme qu’un import avait écrasés', async () => {
+  const ancien = JSON.stringify({ version: 1, terme: ['quux'], remplace: [['quuxed']] });
+  const b = banc(PAIRES, { ecriture, 'terme:quux': ancien });
+  await b.envoyer({ type: 'analyser' });
+  assert.equal(b.bilan().dernierImport, null);
+  const autreEcriture = { groupes: { casse: 'PascalCase', separateur: 'inchange' }, variables: { casse: 'PascalCase', separateur: 'inchange' } };
+  const depart = new Map(b.stock);
+  await b.envoyer({ type: 'importer', texte: JSON.stringify({ version: 1, ecriture: autreEcriture, termes: [{ terme: ['quux'], remplace: [['quuxy']] }] }) });
+  assert.ok(b.bilan().dernierImport);
+  assert.deepEqual(b.terme('terme:quux')?.remplace, [['quuxy']]);
+  await b.regle({ type: 'annuler-import' });
+  assert.equal(b.bilan().dernierImport, null);
+  assert.deepEqual([...b.stock].sort(), [...depart].sort());
+});

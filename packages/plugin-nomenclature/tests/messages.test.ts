@@ -59,3 +59,9 @@ test('une réponse sans paramètre et une collection sans cible sont acceptées'
     assert.equal(estUiMessage({ type: 'repondre', demande: 1, question: 'q', reponse }), true);
   }
 });
+test('annuler-import est un geste sans paramètre, valide dans une règle et une simulation', () => {
+  for (const type of ['regle', 'simuler']) {
+    assert.equal(estUiMessage({ type, demande: 1, generation: 1, geste: { type: 'annuler-import' } }), true, type);
+  }
+  assert.equal(estUiMessage({ type: 'regle', demande: 1, geste: { type: 'annuler-imports' } }), false);
+});

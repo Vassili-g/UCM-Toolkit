@@ -29,7 +29,8 @@ import type {
 import { conflitVue, effetDEcriture, effetDeTerme, projeter, type EntreeDeProjection, type Projection } from './projection';
 import {
   CLE_EXCLUES, cleEcart, clePlusTard, cleReponse, cleTerme, cleVoulu, cleDistinct, dejaJugeDuFichier, defaireReponse,
-  exporterLesRegles, importerLesRegles, lireLesRegles, lireLeStockage, preparerReponse, rangerLesEcritures, serialiserRegle,
+  defaireLImport, estMot, exporterLesRegles, importerLesRegles, lireLesRegles, lireLeStockage, preparerImport, preparerReponse, rangerLesEcritures,
+  serialiserRegle,
   vocabulaireDuFichier,
   type Ecriture, type ReglesDuFichier,
 } from './regles';
@@ -144,6 +145,13 @@ const jugementsDuFichier = (regles: ReglesDuFichier) => {
 
 // Les règles qu'un geste ou une réponse écrit
 
+/** Les mots d'un terme que le fichier va garder : vide ou refusé par `estMot`, le terme arrête le geste ou la réponse. */
+function motsRetenus(texte: string): Mots {
+  const mots = motsDe(texte);
+  if (mots.length === 0 || !mots.every(estMot)) throw new ErreurDeProtocole('mot-refuse');
+  return mots;
+}
+
 function termeAvec(regles: ReglesDuFichier, mots: Mots, ajouts: readonly Mots[]): Ecriture {
   const existant = regles.termes.find((terme) => jointure(terme.terme) === jointure(mots));
   const remplace = new Map((existant?.remplace ?? []).map((forme) => [jointure(forme), forme]));
@@ -159,12 +167,14 @@ function ecrituresDuGeste(geste: GesteSurLesRegles, regles: ReglesDuFichier, cou
     case 'ecriture':
       return [serialiserRegle({ type: 'ecriture', ecriture: geste.ecriture })];
     case 'remplacer-par':
-      return [termeAvec(regles, motsDe(geste.par), [motsDe(geste.terme)])];
+      return [termeAvec(regles, motsRetenus(geste.par), [motsRetenus(geste.terme)])];
     case 'remplace-termes': {
       // La liste de l'écran remplace celle du fichier ; une liste vide supprime la règle si elle ne porte pas de définition.
-      const mots = motsDe(geste.terme);
+      const mots = motsRetenus(geste.terme);
       const existant = regles.termes.find((terme) => jointure(terme.terme) === jointure(mots));
-      const liste = new Map(geste.termes.map(motsDe).filter((forme) => forme.length > 0 && jointure(forme) !== jointure(mots)).map((forme) => [jointure(forme), forme]));
+      const formes = geste.termes.map(motsDe).filter((forme) => forme.length > 0);
+      if (formes.some((forme) => !forme.every(estMot))) throw new ErreurDeProtocole('mot-refuse');
+      const liste = new Map(formes.filter((forme) => jointure(forme) !== jointure(mots)).map((forme) => [jointure(forme), forme]));
       if (liste.size === 0 && !existant?.definition) return existant ? [{ cle: cleTerme(existant.terme), texte: null }] : [];
       return [serialiserRegle({
         type: 'terme',
@@ -194,6 +204,8 @@ function ecrituresDuGeste(geste: GesteSurLesRegles, regles: ReglesDuFichier, cou
       return [{ cle: clePlusTard(geste.question), texte: null }, ...(courant.has(cleReponse(geste.question)) ? [{ cle: cleReponse(geste.question), texte: null }] : [])];
     case 'annuler-reponse':
       return defaireReponse(geste.question, courant) ?? [];
+    case 'annuler-import':
+      return defaireLImport(courant);
   }
 }
 
@@ -206,18 +218,19 @@ function ecrituresDeLaReponse(question: Question, reponse: Reponse, regles: Regl
   switch (question.type) {
     case 'paire': {
       const [a, b] = [question.termes[0].mot, question.termes[1].mot];
-      if (reponse.type === 'garder') return [termeAvec(regles, motsDe(question.termes[reponse.rang].mot), [motsDe(question.termes[reponse.rang === 0 ? 1 : 0].mot)])];
-      if (reponse.type === 'autre') {
-        const terme = motsDe(reponse.terme);
-        return terme.length === 0 ? echec() : [termeAvec(regles, terme, [motsDe(a), motsDe(b)])];
+      if (reponse.type === 'garder') return [termeAvec(regles, motsRetenus(question.termes[reponse.rang].mot), [motsRetenus(question.termes[reponse.rang === 0 ? 1 : 0].mot)])];
+      if (reponse.type === 'autre') return [termeAvec(regles, motsRetenus(reponse.terme), [motsRetenus(a), motsRetenus(b)])];
+      if (reponse.type === 'distincts') {
+        // La clé d'une paire joint ses termes par `|`.
+        if (a.includes('|') || b.includes('|')) throw new ErreurDeProtocole('mot-refuse');
+        return [serialiserRegle({ type: 'distinct', termes: [a, b] })];
       }
-      if (reponse.type === 'distincts') return [serialiserRegle({ type: 'distinct', termes: [a, b] })];
       return echec();
     }
     case 'ecriture-du-terme': {
-      if (reponse.type === 'voulu') return [serialiserRegle({ type: 'voulu', mots: motsDe(question.terme.mot) })];
-      const mots = reponse.type === 'corriger' ? reponse.mots.flatMap(motsDe) : echec();
-      return mots.length === 0 ? echec() : [termeAvec(regles, mots, [motsDe(question.terme.mot)])];
+      if (reponse.type === 'voulu') return [serialiserRegle({ type: 'voulu', mots: motsRetenus(question.terme.mot) })];
+      const corrige = reponse.type === 'corriger' ? reponse.mots.join(' ') : echec();
+      return [termeAvec(regles, motsRetenus(corrige), [motsRetenus(question.terme.mot)])];
     }
     case 'collection':
       if (reponse.type !== 'collection') return echec();
@@ -498,10 +511,16 @@ export function creerSession(options: OptionsDeSession): Session {
 
   async function importer(passage: Passage, texte: string): Promise<void> {
     const demande = passage.demande.demande;
-    const resultat = importerLesRegles(texte, lireRegles(), (vocabulaire) => moteur.indexerVocabulaire(vocabulaire).conflits);
+    const courant = lireLeStockage(port.regles);
+    const resultat = importerLesRegles(texte, lireLesRegles(courant), (vocabulaire) => moteur.indexerVocabulaire(vocabulaire).conflits);
     if (resultat.statut === 'illisible') return erreur(demande, 'import-illisible');
     if (resultat.statut === 'conflits') return envoyer({ type: 'refus', demande, conflits: resultat.conflits.map(conflitVue) });
-    rangerLesEcritures(port.regles, resultat.ecritures);
+    const rangee = preparerImport(resultat.ecritures, courant, (options.heure ?? (() => new Date().toISOString()))());
+    try {
+      rangerLesEcritures(port.regles, rangee ? [...resultat.ecritures, rangee] : resultat.ecritures);
+    } catch {
+      throw new ErreurDeProtocole('import-partiel');
+    }
     if (!etat) return rafraichir(passage, false);
     return recalculerDepuisLesRegles(passage, etat, lireRegles());
   }

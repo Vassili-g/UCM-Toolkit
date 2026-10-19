@@ -8,7 +8,7 @@ const ECRITURE = { convention: { casse: 'minuscules', separateur: 'tiret' }, sui
 const bilan = (generation: number): Bilan => ({
   generation, premierLancement: false, sansVariableLocale: false,
   ecriture: { groupes: ECRITURE, variables: ECRITURE, collections: { reconnues: 0, total: 0 } },
-  groupes: [], bloques: [], proteges: 0, questions: [], autresPistes: 0, plusTard: [], collections: [], dernierRenommage: null,
+  groupes: [], bloques: [], proteges: 0, questions: [], autresPistes: 0, plusTard: [], collections: [], dernierRenommage: null, dernierImport: null,
 });
 const GESTE = { type: 'supprimer', terme: 'bg' } as const;
 const SELECTION = { groupes: ['g'], exclus: [], inclus: [] };

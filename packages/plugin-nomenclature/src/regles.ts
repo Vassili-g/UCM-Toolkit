@@ -17,6 +17,8 @@ export const CLE_VUS = 'vus';
 export const CLE_CONVENTIONS_V1 = 'conventions';
 /** Clé de la référence du journal : elle nomme le lot courant et le nombre de ses entrées. */
 export const CLE_JOURNAL = 'journal';
+/** Clé du dernier import qui a écrasé l'écriture ou un terme ; elle ne répond à aucune question. */
+export const CLE_IMPORT = 'reponse:import';
 /** Figma limite une entrée à 100 ko : espace, clé et valeur comptés en octets UTF-8. */
 const LIMITE_D_UNE_ENTREE = 100_000;
 const MARGE_D_UNE_ENTREE = 1_000;
@@ -33,7 +35,13 @@ export interface RenommageJournal {
 }
 export interface Journal { readonly heure: string; readonly renommages: readonly RenommageJournal[] }
 /** Les entrées qu'une réponse a créées ou changées, avec leur texte d'avant (`null` : l'entrée n'existait pas). */
-export interface ReponseRangee { readonly avant: Readonly<Record<string, string | null>> }
+export interface ReponseRangee {
+  readonly avant: Readonly<Record<string, string | null>>;
+  /** Le texte que la réponse a écrit par clé ; absent des réponses rangées avant son ajout. */
+  readonly apres?: Readonly<Record<string, string | null>>;
+}
+/** Un import qui a écrasé l'écriture ou un terme : `avant` et `apres` valent pour chaque clé qu'il a changée. */
+export interface ImportRange { readonly heure: string; readonly avant: Readonly<Record<string, string | null>>; readonly apres: Readonly<Record<string, string | null>> }
 
 export interface ReglesDuFichier {
   readonly ecriture?: EcritureChoisie;
@@ -52,6 +60,7 @@ export interface ReglesDuFichier {
   readonly reponses: Readonly<Record<string, ReponseRangee>>;
   readonly vus: readonly string[];
   readonly journal?: Journal;
+  readonly dernierImport?: ImportRange;
 }
 
 export type Regle =
@@ -68,7 +77,8 @@ export type Regle =
 const comparer = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
 const trier = (liste: readonly string[]): string[] => [...new Set(liste)].sort(comparer);
 const estTexte = (valeur: unknown): valeur is string => typeof valeur === 'string' && valeur.length > 0;
-const estMot = (valeur: unknown): valeur is string => estTexte(valeur) && !/\s/u.test(valeur);
+/** Un mot de terme refuse les espaces et les caractères qui séparent un chemin, une paire ou une clé : / | . { } $. */
+export const estMot = (valeur: unknown): valeur is string => estTexte(valeur) && !/[\s/|.{}$]/u.test(valeur);
 const estMots = (valeur: unknown): valeur is Mots => Array.isArray(valeur) && valeur.length > 0 && valeur.every(estMot);
 const estListeDeTextes = (valeur: unknown): valeur is string[] => Array.isArray(valeur) && valeur.every(estTexte);
 const estObjet = (valeur: unknown): valeur is Record<string, unknown> => !!valeur && typeof valeur === 'object' && !Array.isArray(valeur);
@@ -148,6 +158,11 @@ function lireAvant(brut: unknown): Record<string, string | null> | undefined {
   return sortie;
 }
 
+function lireImport(brut: Record<string, unknown>): ImportRange | undefined {
+  const avant = lireAvant(brut.avant), ecrit = lireAvant(brut.apres);
+  return avant && ecrit && typeof brut.heure === 'string' ? { heure: brut.heure, avant, apres: ecrit } : undefined;
+}
+
 function lireRenommages(brut: unknown): RenommageJournal[] | undefined {
   if (!Array.isArray(brut)) return undefined;
   const sortie: RenommageJournal[] = [];
@@ -206,6 +221,7 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
   let exclues: string[] = [];
   const reponses: Record<string, ReponseRangee> = {};
   let vus: string[] = [];
+  let dernierImport: ImportRange | undefined;
   for (const [cle, texte] of entrees) {
     const brut = lireEntree(texte);
     if (!brut) continue;
@@ -231,9 +247,11 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
       if (cible) renommees[reste] = cible;
       else gardees.push(reste);
     }
+    else if (cle === CLE_IMPORT) dernierImport = lireImport(brut);
     else if ((reste = apres(cle, 'reponse:')) !== undefined) {
       const avant = lireAvant(brut.avant);
-      if (avant) reponses[reste] = { avant };
+      const ecrit = brut.apres === undefined ? undefined : lireAvant(brut.apres);
+      if (avant && (brut.apres === undefined || ecrit)) reponses[reste] = { avant, ...(ecrit ? { apres: ecrit } : {}) };
     }
   }
   const v1 = ecriture ? undefined : lireChoix(entrees.get(CLE_CONVENTIONS_V1) ?? '');
@@ -254,6 +272,7 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
     reponses,
     vus,
     ...(journal ? { journal } : {}),
+    ...(dernierImport ? { dernierImport } : {}),
   };
 }
 
@@ -312,21 +331,80 @@ export function ecrituresDesRegles(regles: ReglesDuFichier): Ecriture[] {
 
 /**
  * Les écritures d'une réponse : ses changements, qui n'écrivent que ce qui diffère de `courant`, puis `reponse:<cle>`
- * qui garde le texte d'avant de chaque clé touchée. Une réponse déjà rangée garde son premier « avant ».
+ * qui garde, par clé touchée, le texte d'avant et le texte écrit. Une réponse déjà rangée garde son premier « avant ».
  */
 export function preparerReponse(cle: string, changements: readonly Ecriture[], courant: ReadonlyMap<string, string>): Ecriture[] {
-  const dejaRangee = lireAvant(lireEntree(courant.get(cleReponse(cle)) ?? '')?.avant) ?? {};
+  const rangee = lireEntree(courant.get(cleReponse(cle)) ?? '');
+  const avant: Record<string, string | null> = { ...lireAvant(rangee?.avant) };
+  const ecrit: Record<string, string | null> = { ...(rangee?.apres === undefined ? undefined : lireAvant(rangee.apres)) };
   const utiles = changements.filter((c) => (c.texte ?? '') !== (courant.get(c.cle) ?? ''));
-  const avant: Record<string, string | null> = { ...dejaRangee };
-  for (const { cle: touchee } of utiles) if (!(touchee in avant)) avant[touchee] = courant.get(touchee) ?? null;
-  return [...utiles, { cle: cleReponse(cle), texte: JSON.stringify({ version: VERSION_DES_REGLES, avant }) }];
+  for (const { cle: touchee, texte } of utiles) {
+    if (!(touchee in avant)) avant[touchee] = courant.get(touchee) ?? null;
+    ecrit[touchee] = texte === '' ? null : texte;
+  }
+  return [...utiles, { cle: cleReponse(cle), texte: JSON.stringify({ version: VERSION_DES_REGLES, avant, apres: ecrit }) }];
 }
 
-/** Rétablit chaque clé touchée à son texte d'avant, puis efface `reponse:<cle>` ; rien si la réponse n'est pas rangée. */
+/** Les formes remplacées d'une entrée `terme:` ; vide si l'entrée est absente ou illisible. */
+function formesDe(texte: string | null | undefined): string[] {
+  const brut = texte ? lireEntree(texte) : undefined;
+  return brut && Array.isArray(brut.remplace) && brut.remplace.every(estMots) ? brut.remplace.map((forme) => forme.join(' ')) : [];
+}
+
+/**
+ * Rétablit `avant` pour les clés dont le texte courant est encore celui que `ecrit` a écrit. Pour un `terme:` changé depuis,
+ * retire seulement les formes que l'écriture a ajoutées ; une autre clé changée depuis reste telle quelle.
+ * Sans `ecrit` (entrée ancienne), chaque clé revient à son texte d'avant.
+ */
+function retablir(
+  avant: Readonly<Record<string, string | null>>, ecrit: Readonly<Record<string, string | null>> | undefined, courant: ReadonlyMap<string, string>,
+): Ecriture[] {
+  const sortie: Ecriture[] = [];
+  for (const [touchee, texte] of Object.entries(avant)) {
+    if (!ecrit || !(touchee in ecrit) || (courant.get(touchee) || null) === ecrit[touchee]) { sortie.push({ cle: touchee, texte }); continue; }
+    const reste = apres(touchee, 'terme:');
+    const actuel = courant.get(touchee);
+    const mots = reste === undefined ? undefined : motsDe(reste);
+    const entree = actuel ? lireEntree(actuel) : undefined;
+    const terme = mots && entree && lireTerme(mots, entree);
+    if (!terme) continue;
+    const dejaLa = formesDe(texte);
+    const ajoutees = new Set(formesDe(ecrit[touchee]).filter((forme) => !dejaLa.includes(forme)));
+    const gardees = terme.remplace.filter((forme) => !ajoutees.has(forme.join(' ')));
+    if (gardees.length === terme.remplace.length) continue;
+    sortie.push(gardees.length === 0 && !terme.definition ? { cle: touchee, texte: null } : serialiserRegle({ type: 'terme', terme: { ...terme, remplace: gardees } }));
+  }
+  return sortie;
+}
+
+/** Défait la réponse rangée (voir `retablir`), puis efface `reponse:<cle>` ; rien si la réponse n'est pas rangée. */
 export function defaireReponse(cle: string, courant: ReadonlyMap<string, string>): Ecriture[] | undefined {
-  const avant = lireAvant(lireEntree(courant.get(cleReponse(cle)) ?? '')?.avant);
+  const rangee = lireEntree(courant.get(cleReponse(cle)) ?? '');
+  const avant = lireAvant(rangee?.avant);
   if (!avant) return undefined;
-  return [...Object.entries(avant).map(([touchee, texte]) => ({ cle: touchee, texte })), { cle: cleReponse(cle), texte: null }];
+  const ecrit = rangee?.apres === undefined ? undefined : lireAvant(rangee.apres);
+  return [...retablir(avant, ecrit, courant), { cle: cleReponse(cle), texte: null }];
+}
+
+/** Défait le dernier import qui a écrasé l'écriture ou un terme, comme `defaireReponse`, puis efface `reponse:import`. */
+export function defaireLImport(courant: ReadonlyMap<string, string>): Ecriture[] {
+  const rangee = lireEntree(courant.get(CLE_IMPORT) ?? '');
+  const lu = rangee && lireImport(rangee);
+  return lu ? [...retablir(lu.avant, lu.apres, courant), { cle: CLE_IMPORT, texte: null }] : [];
+}
+
+/**
+ * L'entrée `reponse:import` d'un import qui écrase l'écriture ou un terme déjà rangé sous un autre texte : elle garde
+ * le texte d'avant et d'après des clés changées. `undefined` si l'import n'écrase rien.
+ */
+export function preparerImport(ecritures: readonly Ecriture[], courant: ReadonlyMap<string, string>, heure: string): Ecriture | undefined {
+  const changees = ecritures.filter((e) => (e.texte ?? '') !== (courant.get(e.cle) ?? ''));
+  const ecrase = changees.some((e) => (e.cle === CLE_ECRITURE || e.cle.startsWith('terme:')) && courant.has(e.cle));
+  if (!ecrase) return undefined;
+  const avant: Record<string, string | null> = {};
+  const ecrit: Record<string, string | null> = {};
+  for (const { cle, texte } of changees) { avant[cle] = courant.get(cle) ?? null; ecrit[cle] = texte; }
+  return { cle: CLE_IMPORT, texte: JSON.stringify({ version: VERSION_DES_REGLES, heure, avant, apres: ecrit }) };
 }
 
 // Le journal
@@ -483,9 +561,25 @@ export function lireLeStockage(stockage: StockageDeRegles): Map<string, string> 
   return new Map(stockage.cles().map((cle) => [cle, stockage.lire(cle)] as const));
 }
 
+/**
+ * Range les écritures dans l'ordre. Si l'une échoue, chaque clé déjà touchée (celle qui échoue comprise) retrouve son texte
+ * d'avant, au mieux : chaque retour a son `try`. L'erreur d'origine est relancée.
+ */
 export function rangerLesEcritures(stockage: StockageDeRegles, ecritures: readonly Ecriture[]): void {
-  for (const { cle, texte } of ecritures) {
-    if (texte === null || texte === '') stockage.effacer(cle);
-    else stockage.ecrire(cle, texte);
+  const touchees = new Map<string, string>();
+  try {
+    for (const { cle, texte } of ecritures) {
+      if (!touchees.has(cle)) touchees.set(cle, stockage.lire(cle));
+      if (texte === null || texte === '') stockage.effacer(cle);
+      else stockage.ecrire(cle, texte);
+    }
+  } catch (cause) {
+    for (const [cle, avant] of touchees) {
+      try {
+        if (avant === '') stockage.effacer(cle);
+        else stockage.ecrire(cle, avant);
+      } catch { /* retour au mieux */ }
+    }
+    throw cause;
   }
 }

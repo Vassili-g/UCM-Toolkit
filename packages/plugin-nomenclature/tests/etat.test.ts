@@ -12,7 +12,7 @@ const question = (cle: string): QuestionVue => ({ type: 'collection', cle, nom: 
 const bilan = (reste: Partial<Bilan> = {}): Bilan => ({
   generation: 1, premierLancement: false, sansVariableLocale: false,
   ecriture: { groupes: LIGNE, variables: LIGNE, collections: { reconnues: 0, total: 0 } },
-  groupes: [groupe('g1', 10)], bloques: [], proteges: 0, questions: [], autresPistes: 0, plusTard: [], collections: [], dernierRenommage: null,
+  groupes: [groupe('g1', 10)], bloques: [], proteges: 0, questions: [], autresPistes: 0, plusTard: [], collections: [], dernierRenommage: null, dernierImport: null,
   ...reste,
 });
 const jouer = (...evenements: Evenement[]): EtatDeLEcran => evenements.reduce(etatSuivant, ETAT_INITIAL);

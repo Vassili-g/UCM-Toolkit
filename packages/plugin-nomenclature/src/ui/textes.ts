@@ -84,6 +84,8 @@ export const TEXTES = {
     'generation-perimee': 'Les noms affichés ne correspondent plus au fichier. Relancez l’analyse, puis recommencez.',
     'regles-modifiees': 'Les règles ont changé depuis le calcul de cette liste. Relisez la liste, puis recommencez.',
     'import-illisible': 'Ce fichier de règles est illisible. Choisissez un fichier exporté depuis la Configuration d’UCM Nomenclature.',
+    'mot-refuse': 'Ce terme ne peut pas s’écrire ainsi : retirez les espaces et les caractères / | . { } $.',
+    'import-partiel': 'L’import s’est arrêté en route : les règles du fichier sont revenues à leur état d’avant.',
     echec: 'L’opération a échoué. Relancez l’analyse ; si le message revient, rouvrez le plugin.',
   } satisfies Record<CodeDErreur, string>,
 
