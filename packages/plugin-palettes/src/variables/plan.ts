@@ -9,6 +9,7 @@ import { MODES, grilleDe, intensitePorteuse, intensitesDe, rampeDe, rampesDe, ty
 import { segmentsDuGroupe, type Destination } from './destination';
 import { segmentDeLaPalette } from './noms';
 import type { OrigineDeLaReprise } from './reprise';
+import type { VariableLue } from './releve';
 import type { PaletteSuivie } from './suivi';
 
 /** Le mode qu'une entrée écrit : le seul mode suivi quand les thèmes sont dans le chemin, sinon son thème. */
@@ -22,6 +23,25 @@ export interface EntreeDuPlan {
   readonly mode: ModeDuPlan;
   /** La couleur que le plugin calcule, en hexa majuscule. */
   readonly hexa: string;
+}
+
+/** Ce que le nommeur reçoit d'une entrée : sa clé, son nom brut, et la variable que le fichier porte déjà pour elle. */
+export interface EntreeANommer {
+  readonly cle: string;
+  readonly nom: string;
+  readonly id?: string;
+}
+
+/** Les noms que les règles de nommage du fichier donnent à ces entrées, dans leur ordre. */
+export type Nommer = (entrees: readonly EntreeANommer[]) => string[];
+
+/**
+ * Le plan sous les noms de `nommer`. `id` donne la variable que le fichier
+ * porte pour une clé ; une entrée sans nom reste telle quelle.
+ */
+export function nommerLePlan(plan: readonly EntreeDuPlan[], nommer: Nommer, id: (cle: string) => string | undefined): EntreeDuPlan[] {
+  const noms = nommer(plan.map((entree) => ({ cle: entree.cle, nom: entree.nom, id: id(entree.cle) })));
+  return plan.map((entree, rang) => (entree.nom === '' || noms[rang] === entree.nom ? entree : { ...entree, nom: noms[rang] }));
 }
 
 /** La clé d'une entrée du plan. */
@@ -78,8 +98,14 @@ function suffixeDeNuance(nom: string | undefined, nuance: number): string {
  * Une palette figée garde les noms d'origine tant qu'une variable suivie
  * subsiste. Sans variable restante, le chemin rangé et la destination actuelle
  * déterminent les variables à recréer.
+ *
+ * Sans `nommer`, le plan porte les noms bruts. Avec lui (les règles de nommage
+ * du fichier, voir `nommeur.ts`), il porte les noms finaux, et la reprise
+ * compare ces noms-là à ceux du fichier : l'occupant d'un nom et la variable à
+ * renommer se cherchent sur le nom final, que le fichier porte déjà quand
+ * UCM Nomenclature l'a appliqué. Le plan reste pur : `nommer` est injecté.
  */
-export function planDesVariables(recette: Recette, palette: Palette, destination: Destination, suivie?: PaletteSuivie, origine?: OrigineDeLaReprise | null, nomsOccupes: string[] = []): EntreeDuPlan[] {
+export function planDesVariables(recette: Recette, palette: Palette, destination: Destination, suivie?: PaletteSuivie, origine?: OrigineDeLaReprise | null, nomsOccupes: string[] = [], nommer?: Nommer): EntreeDuPlan[] {
   if (suivie?.liaison === 'reprise') {
     const rampes = rampesDe(recette, palette);
     const nuances = grilleDe(recette, palette).crans;
@@ -109,6 +135,8 @@ export function planDesVariables(recette: Recette, palette: Palette, destination
       const connue = suivie.variables[cle];
       return connue ? origine.suivies.get(connue.id) : undefined;
     };
+    /** Une entrée avant le choix du nom : le nom brut qu'elle voudrait, et la variable que le fichier porte pour elle. */
+    const candidats: { readonly entree: Omit<EntreeDuPlan, 'nom'>; readonly lue: VariableLue | undefined; readonly voulu: string }[] = [];
     for (const intensite of intensitesDe(palette)) {
       const rampe = rampeDe(rampes, intensite);
       const dOrigine = intensite === (intensite === 'unique' ? 'unique' : suivie.intensite ?? porteuse);
@@ -121,22 +149,29 @@ export function planDesVariables(recette: Recette, palette: Palette, destination
           const propre = designee(cle);
           // Les deux thèmes d'une nuance en modes écrivent la même variable : la clé de l'autre thème la désigne aussi.
           const lue = propre ?? (darkEnMode ? designee(cleDuPlan(dOrigine ? 'unique' : intensite, mode === 'light' ? 'dark' : 'light', nuance)) : undefined);
-          const voulu = `${[chemin, ...segment, ...(darkEnMode ? [] : [mode]), String(nuance)].filter((partie) => partie !== '').join('/')}${suffixeDeNuance(lue?.nom, nuance)}`;
-          const occupant = origine.parNom.get(voulu);
           const cible = suivie.modes[entree.mode];
-          if (!lue) {
-            // Sans variable, l'entrée en crée une, ou reprend celle de ce nom que la palette suit sous une autre clé.
-            const libre = !occupant || (origine.suivies.has(occupant.id) && !(cible !== undefined && occupant.valeurs[cible] === null));
-            if (libre) reprises.push({ ...entree, nom: voulu });
-            else if (occupant && !origine.suivies.has(occupant.id)) nomsOccupes.push(voulu);
-            return;
-          }
-          if (!propre && cible !== undefined && lue.valeurs[cible] === null) return;
-          // Une variable garde son nom quand une autre porte déjà celui que le plan lui donne.
-          reprises.push({ ...entree, nom: occupant && occupant.id !== lue.id ? lue.nom : voulu });
+          if (lue && !propre && cible !== undefined && lue.valeurs[cible] === null) return;
+          const voulu = `${[chemin, ...segment, ...(darkEnMode ? [] : [mode]), String(nuance)].filter((partie) => partie !== '').join('/')}${suffixeDeNuance(lue?.nom, nuance)}`;
+          candidats.push({ entree, lue, voulu });
         });
       }
     }
+    // Les noms se choisissent ensemble : les règles de nommage lisent tout le fichier, et l'occupant d'un nom se cherche sur le nom final.
+    const finals = nommer ? nommer(candidats.map(({ entree, lue, voulu }) => ({ cle: entree.cle, nom: voulu, id: lue?.id }))) : candidats.map(({ voulu }) => voulu);
+    candidats.forEach(({ entree, lue }, rang) => {
+      const voulu = finals[rang];
+      const occupant = origine.parNom.get(voulu);
+      const cible = suivie.modes[entree.mode];
+      if (!lue) {
+        // Sans variable, l'entrée en crée une, ou reprend celle de ce nom que la palette suit sous une autre clé.
+        const libre = !occupant || (origine.suivies.has(occupant.id) && !(cible !== undefined && occupant.valeurs[cible] === null));
+        if (libre) reprises.push({ ...entree, nom: voulu });
+        else if (occupant && !origine.suivies.has(occupant.id)) nomsOccupes.push(voulu);
+        return;
+      }
+      // Une variable garde son nom quand une autre porte déjà celui que le plan lui donne.
+      reprises.push({ ...entree, nom: occupant && occupant.id !== lue.id ? lue.nom : voulu });
+    });
     return reprises;
   }
   const groupe = segmentsDuGroupe(destination.groupe) ?? [];
@@ -154,7 +189,7 @@ export function planDesVariables(recette: Recette, palette: Palette, destination
       });
     }
   }
-  return plan;
+  return nommer ? nommerLePlan(plan, nommer, (cle) => (suivie?.liaison === 'destination' ? suivie.variables[cle]?.id : undefined)) : plan;
 }
 
 /** Les noms de variable d'un plan, sans doublon, dans son ordre : 44 avec les thèmes dans le chemin, 22 en modes. */

@@ -10,6 +10,11 @@ export const ESPACE_ARCHITECT = 'ucm_architect';
 
 /** L'adresse partagée survit à un changement d'identifiant du plugin Palettes. */
 export const ESPACE_PARTAGE = 'ucm_palettes';
+/**
+ * La marque que Palettes range à la racine de `ESPACE_PARTAGE` : dans ce fichier, il nomme ses variables selon les règles
+ * d'UCM Nomenclature. UCM Nomenclature la lit pour cesser de protéger les variables de Palettes.
+ */
+export const CLE_NOMMAGE_DE_PALETTES = 'nommage';
 export const CLE_RECETTE = 'recette';
 
 export type DonneeDeProduit = 'composants' | 'variables' | 'recette' | 'planches' | 'regles-usage' | 'regles-de-nommage' | 'contrats' | 'tokens-dtcg' | 'configuration' | 'implementation' | 'rapports' | 'css' | 'types' | 'couleurs' | 'sources-plugin' | 'bundle-plugin' | 'conventions' | 'noms-collections' | 'noms-variables' | 'noms-proprietes' | 'valeurs-proprietes';

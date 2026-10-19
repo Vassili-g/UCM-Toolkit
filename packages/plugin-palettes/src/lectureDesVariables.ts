@@ -11,11 +11,13 @@
  * tant qu'un calque la cite, et ne sert donc pas à cette lecture.
  */
 import { ESPACE_PARTAGE } from 'ucm-couleur';
+import { estCleDeNommage, lireReglesDeNommage } from 'ucm-plugin-socle/src/reglesDeNommage';
 
 import type { ProfilDuDocument } from './lecture';
 import { SANS_BIBLIOTHEQUE, palettesDeLaCollection, type Bibliotheques, type CollectionDeBibliotheque, type VariableDeBibliotheque } from './variables/bibliotheques';
 import { RELEVE_VIDE, hexaLu, type CollectionLue, type ReleveDesVariables, type VariableLue } from './variables/releve';
-import { CLES_PARTAGEES_DE_PALETTES } from '@ucm-kit/core/referentiel';
+import { CLES_PARTAGEES_DE_PALETTES, ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
+import type { DonneesDeNommage, VariableNommee } from './variables/nommeur';
 import { SUIVI_VIDE, lireLeSuivi, type SuiviDesVariables } from './variables/suivi';
 
 /** Ce que la lecture demande à Figma. */
@@ -28,6 +30,8 @@ export interface VariablesDuFichier extends ReleveDesVariables {
   readonly suivi: SuiviDesVariables;
   /** Les collections des bibliothèques activées et leurs palettes ; absent d'un état qui ne les a pas lues. */
   readonly bibliotheques?: Bibliotheques;
+  /** Ce que les règles de nommage du fichier lisent ; absent sans règles enregistrées, et de l'état d'un fichier qui ne les porte pas. */
+  readonly nommage?: DonneesDeNommage;
 }
 
 /** Un fichier sans variable ni suivi. */
@@ -96,26 +100,73 @@ export function variableLue(variable: Variable, profil: ProfilDuDocument): Varia
   };
 }
 
-/** Le relevé du fichier : ses collections locales et ses variables locales de couleur, lues ensemble. */
-export async function lireLesVariables(figma: FigmaDesVariables, profil: ProfilDuDocument): Promise<ReleveDesVariables> {
+/** Ce que le calcul des noms lit d'une variable : son alias et sa donnée partagée `palette`. */
+export type LecturesDeNommage = Map<string, { readonly alias?: string; readonly palette?: string }>;
+
+/**
+ * Ce que les règles de nommage du fichier lisent : leurs couples (clé, texte) dans `ESPACE_ARCHITECT`, les collections et
+ * toutes les variables locales, de tous types. `undefined` quand aucune écriture n'est rangée en v2 : Palettes garde ses
+ * noms bruts. `memo` garde l'alias et la palette d'une variable d'une lecture à l'autre.
+ */
+export function lireLesDonneesDeNommage(
+  racine: { getSharedPluginDataKeys(espace: string): string[]; getSharedPluginData(espace: string, cle: string): string },
+  collections: readonly VariableCollection[],
+  variables: readonly Variable[],
+  memo: LecturesDeNommage = new Map(),
+): DonneesDeNommage | undefined {
+  const couples = racine.getSharedPluginDataKeys(ESPACE_ARCHITECT).filter(estCleDeNommage).map((cle) => [cle, racine.getSharedPluginData(ESPACE_ARCHITECT, cle)] as const);
+  if (!lireReglesDeNommage(couples)) return undefined;
+  const lecture = (variable: Variable) => {
+    let lue = memo.get(variable.id);
+    if (!lue) {
+      const premier = Object.values(variable.valuesByMode)[0];
+      const alias = typeof premier === 'object' && premier !== null && 'type' in premier && premier.type === 'VARIABLE_ALIAS' ? premier.id : undefined;
+      const palette = variable.getSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.palette);
+      lue = { ...(alias ? { alias } : {}), ...(palette ? { palette } : {}) };
+      memo.set(variable.id, lue);
+    }
+    return lue;
+  };
+  const locales = collections.filter((collection) => !collection.remote);
+  return {
+    couples,
+    collections: locales.map((collection) => ({ id: collection.id, nom: collection.name })),
+    variables: variables.filter((variable) => !variable.remote).map((variable): VariableNommee => ({ id: variable.id, nom: variable.name, collection: variable.variableCollectionId, ...lecture(variable) })),
+  };
+}
+
+/** Les collections et les variables locales, de tous types : le relevé en garde les couleurs, le calcul des noms les lit toutes. */
+async function lireLesObjets(figma: FigmaDesVariables): Promise<{ collections: VariableCollection[]; variables: Variable[] }> {
   const [collections, variables] = await Promise.all([
     figma.variables.getLocalVariableCollectionsAsync(),
-    figma.variables.getLocalVariablesAsync('COLOR'),
+    figma.variables.getLocalVariablesAsync(),
   ]);
-  return {
-    collections: collections.map(collectionLue),
-    variables: variables.map((variable) => variableLue(variable, profil)),
-  };
+  return { collections, variables };
+}
+
+const releveDe = (collections: readonly VariableCollection[], variables: readonly Variable[], profil: ProfilDuDocument): ReleveDesVariables => ({
+  collections: collections.map(collectionLue),
+  variables: variables.filter((variable) => variable.resolvedType === 'COLOR').map((variable) => variableLue(variable, profil)),
+});
+
+/** Le relevé du fichier : ses collections locales et ses variables locales de couleur, lues ensemble. */
+export async function lireLesVariables(figma: FigmaDesVariables, profil: ProfilDuDocument): Promise<ReleveDesVariables> {
+  const { collections, variables } = await lireLesObjets(figma);
+  return releveDe(collections, variables, profil);
 }
 
 /**
  * Ce que `lire-etat` ajoute à l'état : le relevé, le suivi, et les
- * bibliothèques que l'appelant a lues. Les bibliothèques ne se relisent pas
+ * bibliothèques que l'appelant a lues, et de quoi calculer les noms que
+ * les règles de nommage donnent (toutes les variables, de tous types, avec
+ * leurs noms). Les bibliothèques ne se relisent pas
  * à chaque état : le sandbox les garde, et les relit à « Synchroniser ».
  */
 export async function lireLesVariablesDuFichier(
-  figma: FigmaDesVariables & { readonly root: { getSharedPluginData(espace: string, cle: string): string; readonly documentColorProfile: ProfilDuDocument } },
+  figma: FigmaDesVariables & { readonly root: { getSharedPluginDataKeys(espace: string): string[]; getSharedPluginData(espace: string, cle: string): string; readonly documentColorProfile: ProfilDuDocument } },
   bibliotheques: Bibliotheques = SANS_BIBLIOTHEQUE,
 ): Promise<VariablesDuFichier> {
-  return { ...(await lireLesVariables(figma, figma.root.documentColorProfile)), suivi: lireLeSuiviRange(figma.root), bibliotheques };
+  const { collections, variables } = await lireLesObjets(figma);
+  const nommage = lireLesDonneesDeNommage(figma.root, collections, variables);
+  return { ...releveDe(collections, variables, figma.root.documentColorProfile), suivi: lireLeSuiviRange(figma.root), bibliotheques, ...(nommage ? { nommage } : {}) };
 }

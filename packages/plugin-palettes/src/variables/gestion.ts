@@ -9,7 +9,8 @@ import type { Palette, Recette } from 'ucm-couleur';
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import type { Destination } from './destination';
 import { etatDesTokens, type EtatDesTokensDUnePalette } from './etat';
-import { nomsDuPlan, planDesVariables } from './plan';
+import { nomsDuPlan, nommerLePlan, planDesVariables } from './plan';
+import { nommeurDuFichier, planDeLaPalette } from './nommeur';
 import type { VariableLue } from './releve';
 import { variablesProtegees } from './suivi';
 import { cheminCommun, origineDeLaReprise, variableDeLEntree } from './reprise';
@@ -50,11 +51,12 @@ export function tokensDeLaPalette(recette: Recette, palette: Palette, fichier: V
   const suivie = fichier.suivi.palettes[palette.id];
   const origine = suivie?.liaison === 'reprise' ? origineDeLaReprise(suivie, fichier.variables) : null;
   const nomsOccupes: string[] = [];
-  const plan = planDesVariables(recette, palette, destination, suivie, origine, nomsOccupes);
   const lues = new Map<string, VariableLue>(fichier.variables.map((variable) => [variable.id, variable]));
+  const collections = new Map(fichier.collections.map((collection) => [collection.id, collection.nom]));
+  // Les noms sont ceux que l'écriture donnerait : les règles de nommage du fichier, quand il en a.
+  const plan = planDeLaPalette(nommeurDuFichier(fichier), recette, palette, destination, suivie, origine, lues, collections, nomsOccupes);
   const lu = etatDesTokens(plan, suivie, lues, destination);
   const etat = { ...lu, etat: lu.etat === 'a-jour' && nomsOccupes.length > 0 ? 'a-mettre-a-jour' as const : lu.etat, nomsOccupes };
-  const collections = new Map(fichier.collections.map((collection) => [collection.id, collection.nom]));
   if (suivie?.liaison === 'reprise') {
     // Ce que la palette porte de plus que ses variables d'origine se crée sous le chemin du plan.
     const presentes = new Set<string>();
@@ -173,12 +175,15 @@ export interface Simulation {
 /**
  * Les chemins qu'une destination crée dans la collection, pour la première
  * palette de la recette ([UI-30]) : un groupe par rampe, dans l'ordre du
- * plan. `null` sans palette.
+ * plan. `null` sans palette. Avec les règles de nommage du fichier, les
+ * chemins sont ceux que l'écriture créerait.
  */
-export function simulationDeLaDestination(recette: Recette, destination: Destination): Simulation | null {
+export function simulationDeLaDestination(recette: Recette, destination: Destination, fichier?: Pick<VariablesDuFichier, 'nommage'>): Simulation | null {
   const [palette] = recette.palettes;
   if (!palette) return null;
-  const plan = planDesVariables(recette, palette, destination);
+  const brut = planDesVariables(recette, palette, destination);
+  const nommer = fichier ? nommeurDuFichier(fichier)?.pour('id' in destination.collection ? { id: destination.collection.id } : { nom: destination.collection.nom }) : undefined;
+  const plan = nommer ? nommerLePlan(brut, nommer, () => undefined) : brut;
   const groupes = new Map<string, Set<string>>();
   for (const entree of plan) {
     const coupe = entree.nom.lastIndexOf('/');

@@ -10,7 +10,7 @@
 import { intensitePorteuse, intensitesDe, type Palette, type Recette } from 'ucm-couleur';
 
 import type { Destination } from './destination';
-import { planDesVariables } from './plan';
+import { nommerLePlan, planDesVariables, type Nommer } from './plan';
 import type { VariableLue } from './releve';
 import type { PaletteSuivie, VariableSuivie } from './suivi';
 
@@ -28,7 +28,8 @@ export interface ConversionDeLaReprise {
 /**
  * Ce que le passage au format du plugin ferait d'une palette reprise. Une
  * palette à deux intensités range sous `unique` l'intensité qui porte les
- * variables d'origine : ses clés reprennent le nom de cette intensité.
+ * variables d'origine : ses clés reprennent le nom de cette intensité. Avec
+ * `nommer`, les noms de la destination sont les noms finaux des règles de nommage du fichier.
  */
 export function conversionDeLaReprise(
   recette: Recette,
@@ -36,6 +37,7 @@ export function conversionDeLaReprise(
   suivie: PaletteSuivie,
   destination: Destination,
   variables: readonly VariableLue[],
+  nommer?: Nommer,
 ): ConversionDeLaReprise {
   const deuxIntensites = !intensitesDe(palette).includes('unique');
   const porteuse = suivie.intensite ?? intensitePorteuse(recette, palette);
@@ -58,7 +60,8 @@ export function conversionDeLaReprise(
 
   const lues = new Map(variables.map((variable) => [variable.id, variable]));
   const aRenommer = new Map<string, { id: string; de: string; vers: string }>();
-  for (const entree of planDesVariables(recette, palette, destination)) {
+  const brut = planDesVariables(recette, palette, destination);
+  for (const entree of nommer ? nommerLePlan(brut, nommer, (cle) => cles[cle]?.id) : brut) {
     const lue = lues.get(cles[entree.cle]?.id ?? '');
     if (lue && lue.nom !== entree.nom && !aRenommer.has(lue.id)) aRenommer.set(lue.id, { id: lue.id, de: lue.nom, vers: entree.nom });
   }

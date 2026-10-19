@@ -11,26 +11,33 @@
  * sa collection d'origine, sous le groupe configuré s'il diffère de son
  * groupe de référence, puis sous le dernier segment de son chemin d'origine.
  * Elle seule renomme des variables ([VAR-13]).
+ *
+ * Quand le fichier porte les règles de nommage d'UCM Nomenclature, chaque
+ * palette s'écrit sous les noms que ces règles donnent (`variables/nommeur.ts`),
+ * calculés sur les variables du fichier telles qu'elles sont au moment de
+ * cette palette. Sans règles, les noms restent ceux du plan.
  */
 import { aUneIntensite, jsonCanonique, profilPorteur, validerRecette, type Recette, type Refus } from 'ucm-couleur';
 import { CLES_PARTAGEES_DE_PALETTES } from '@ucm-kit/core/referentiel';
 
 import { CLE_RECETTE, ESPACE_PARTAGE, empreinteDuTexte, lireEtat } from '../lecture';
 import { ajouter, nouvellePalette, reprendreDuFichier } from '../edition';
-import { collectionLue, lireLeSuiviRange, variableLue, variablesDeLaBibliotheque, type FigmaDesBibliotheques } from '../lectureDesVariables';
+import { collectionLue, lireLeSuiviRange, lireLesDonneesDeNommage, variableLue, variablesDeLaBibliotheque, type FigmaDesBibliotheques, type LecturesDeNommage } from '../lectureDesVariables';
 import { variablesDeLaRampe } from '../variables/bibliotheques';
 import { conversionDeLaReprise } from '../variables/conversion';
+import { creerNommeur, planDeLaPalette } from '../variables/nommeur';
 import { validerLaDestination, type Destination, type RefusDeDestination } from '../variables/destination';
 import { SEUIL_DE_PALETTE, nuanceDeReference, palettesDuFichier, retrouverLaPaletteGroupee, type PaletteDuFichier, type SourceGroupee } from '../variables/detection';
 import { etatDesTokens } from '../variables/etat';
 import { origineDeLaReprise, suiviDeLaReprise, suiviDeLaRepriseGroupee, variableDeLEntree, type OrigineDeLaReprise } from '../variables/reprise';
-import { cheminDeLaReprise, planDesVariables, type EntreeDuPlan, type ModeDuPlan } from '../variables/plan';
+import { cheminDeLaReprise, type EntreeDuPlan, type ModeDuPlan } from '../variables/plan';
 import { couleurPourFigma, type VariableLue } from '../variables/releve';
 import { sansLesVariables, suiviFutur, texteDuSuivi, variablesProtegees, variablesSuivies, type PaletteSuivie, type SuiviDesVariables, type VariableSuivie } from '../variables/suivi';
 
 /** L'API que l'écriture des variables emploie. */
 export interface FigmaDesVariablesEcrites {
   readonly root: {
+    getSharedPluginDataKeys(espace: string): string[];
     getSharedPluginData(espace: string, cle: string): string;
     setSharedPluginData(espace: string, cle: string, valeur: string): void;
     readonly documentColorProfile: DocumentNode['documentColorProfile'];
@@ -98,10 +105,12 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
     const rangee = lireLeSuiviRange(figma.root);
     if (suiviFutur(rangee)) return { issue: 'suivi-futur' };
 
-    const [collectionsLocales, variablesLocales] = await Promise.all([
+    // Les règles de nommage lisent les variables de tous types : seules les couleurs se suivent et s'écrivent.
+    const [collectionsLocales, toutesLesVariables] = await Promise.all([
       figma.variables.getLocalVariableCollectionsAsync(),
-      figma.variables.getLocalVariablesAsync('COLOR'),
+      figma.variables.getLocalVariablesAsync(),
     ]);
+    const variablesLocales = toutesLesVariables.filter((variable) => variable.resolvedType === 'COLOR');
     if (lireEtat(figma.root).empreinte !== demande.empreinteLue) return { issue: 'recette-changee' };
     const profil = figma.root.documentColorProfile;
     const collections = new Map(collectionsLocales.map((collection) => [collection.id, collection]));
@@ -109,6 +118,12 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
     const lues = new Map<string, VariableLue>(variablesLocales.map((variable) => [variable.id, variableLue(variable, profil)]));
     const remettre = new Set(demande.remettre);
     const remplacer = new Set(demande.remplacer ?? []);
+    const lecturesDeNommage: LecturesDeNommage = new Map();
+    /** Le nommeur du fichier tel qu'il est maintenant : les palettes déjà écrites ont changé ses variables et ses noms. */
+    const nommeurActuel = () => {
+      const donnees = lireLesDonneesDeNommage(figma.root, [...collections.values()], toutesLesVariables, lecturesDeNommage);
+      return donnees ? creerNommeur(donnees) : undefined;
+    };
 
     let destination: Destination = rangee.destination;
     const suivies: { [id: string]: PaletteSuivie } = { ...rangee.palettes };
@@ -182,6 +197,7 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
             // Une primitive ne paraît dans aucun sélecteur de calque (D14).
             variable.scopes = [];
             creees.push(variable);
+            toutesLesVariables.push(variable);
             // Une variable neuve porte sa couleur dans tous les modes de la collection, avant ce que le plan écrit dans chacun.
             for (const cible of collection.modes) variable.setValueForMode(cible.modeId, couleur);
             valeurs += 1;
@@ -228,7 +244,8 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
       if (!palette) return { palette: id, issue: 'absente' };
       const suivie = suivies[id];
       const origine = suivie?.liaison === 'reprise' ? origineDeLaReprise(suivie, [...lues.values()]) : null;
-      const plan = planDesVariables(recette, palette, destination, suivie, origine);
+      // Les noms du plan sont les noms finaux des règles de nommage du fichier, quand il en a ; sinon les noms bruts.
+      const plan = planDeLaPalette(nommeurActuel(), recette, palette, destination, suivie, origine, lues, collections);
       const tokens = etatDesTokens(plan, suivie, lues, destination);
       if (tokens.modifiees.length > 0 && !remettre.has(id)) return { palette: id, issue: 'modifiee', couleurs: tokens.modifiees.length };
       if (suivie?.liaison === 'reprise') return ecrireLaReprise(id, suivie, plan, origine, destination, palette, suivie.intensite ?? (aUneIntensite(palette) ? undefined : profilPorteur(recette, palette)));
@@ -318,6 +335,7 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
           // Une primitive ne paraît dans aucun sélecteur de calque (D14).
           variable.scopes = [];
           creees.push(variable);
+          toutesLesVariables.push(variable);
           variableDuNom.set(nom, variable);
           ecrit = true;
         }
@@ -610,10 +628,14 @@ export async function convertirLaReprise(figma: FigmaDesVariablesEcrites, demand
     const suivie = rangee.palettes[demande.palette];
     if (!palette || palette.figees !== undefined || suivie?.liaison !== 'reprise') return { issue: 'refusee' };
 
-    const locales = await figma.variables.getLocalVariablesAsync('COLOR');
+    const [collections, toutes] = await Promise.all([figma.variables.getLocalVariableCollectionsAsync(), figma.variables.getLocalVariablesAsync()]);
+    const locales = toutes.filter((variable) => variable.resolvedType === 'COLOR');
     if (lireEtat(figma.root).empreinte !== demande.empreinteLue) return { issue: 'recette-changee' };
     const profil = figma.root.documentColorProfile;
-    const conversion = conversionDeLaReprise(recette, palette, suivie, rangee.destination, locales.map((variable) => variableLue(variable, profil)));
+    // Les variables prennent les noms que l'écriture leur donnerait : ceux des règles de nommage du fichier, quand il en a.
+    const donnees = lireLesDonneesDeNommage(figma.root, collections, toutes);
+    const nommer = (donnees ? creerNommeur(donnees) : undefined)?.pour({ id: suivie.collection });
+    const conversion = conversionDeLaReprise(recette, palette, suivie, rangee.destination, locales.map((variable) => variableLue(variable, profil)), nommer);
     if (conversion.occupe !== null) return { issue: 'nom-pris', nom: conversion.occupe };
 
     const parId = new Map(locales.map((variable) => [variable.id, variable]));

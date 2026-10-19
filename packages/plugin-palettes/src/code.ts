@@ -7,6 +7,7 @@
  * « écrire les variables », « ranger la destination », « retirer les
  * variables », « reprendre une palette » et « copier une palette ».
  */
+import { rangerLaMarqueDeNommage } from './ecriture/marque';
 import { choisirLaPage, dessinerLaRecetteRangee, retirerLeCadre } from './ecriture/planche';
 import { rangerRecette } from './ecriture/recette';
 import { convertirLaReprise, copierLaPalette, ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables } from './ecriture/variables';
@@ -18,6 +19,8 @@ import { voirSurLaPlanche } from './navigation';
 import { creerPreferences } from './preferences';
 import { creerFileDuDocument } from './fileDuDocument';
 import type { Bibliotheques } from './variables/bibliotheques';
+
+rangerLaMarqueDeNommage(figma);
 
 const preferences = creerPreferences(figma.clientStorage);
 const dansLeDocument = creerFileDuDocument();

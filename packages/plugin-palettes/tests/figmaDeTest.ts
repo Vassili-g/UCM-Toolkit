@@ -37,6 +37,11 @@ class Noeud {
     this.donnees.set(`${espace}/${cle}`, valeur);
   }
 
+  getSharedPluginDataKeys(espace: string): string[] {
+    // Figma retire une clé dont on range le texte vide.
+    return [...this.donnees].filter(([cle, valeur]) => valeur !== '' && cle.startsWith(`${espace}/`)).map(([cle]) => cle.slice(espace.length + 1));
+  }
+
   get children(): Noeud[] {
     return this.enfants;
   }
