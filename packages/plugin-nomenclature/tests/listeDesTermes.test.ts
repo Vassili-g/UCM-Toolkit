@@ -136,7 +136,6 @@ test('un terme sans règle montre la forme du fichier, un terme avec règle sa c
 
 test('la pastille de nature passe avant À trancher et l’origine', () => {
   assert.deepEqual(pastilleDeLaLigne(NOM), { texte: 'Composant', classe: 'pastille-indice' });
-  assert.deepEqual(pastilleDeLaLigne({ ...NOM, nature: 'element' }), { texte: 'Élément', classe: 'pastille-indice' });
   assert.deepEqual(pastilleDeLaLigne({ ...NOM, nature: 'palette' }), { texte: 'Palette', classe: 'pastille-indice' });
   assert.deepEqual(pastilleDeLaLigne({ ...NOM, statut: 'a-trancher', origine: 'ucm' }), { texte: 'Composant', classe: 'pastille-indice' });
   assert.deepEqual(pastilleDeLaLigne({ ...NOM, nature: null, statut: 'a-trancher' }), { texte: 'À trancher', classe: 'pastille-bloque' });

@@ -159,7 +159,6 @@ test('le titre est la forme du fichier quand le terme n’a pas de règle, sinon
 
 test('la pastille grise de la nature remplace Sans règle, même quand une question attend', () => {
   assert.deepEqual(pastilleDeLaFiche('sans-regle', FICHE_NOM, false), { texte: 'Composant', variante: 'indice' });
-  assert.deepEqual(pastilleDeLaFiche('sans-regle', { ...FICHE_NOM, nature: 'element' }, true), { texte: 'Élément', variante: 'indice' });
   assert.deepEqual(pastilleDeLaFiche('sans-regle', { ...FICHE_NOM, nature: 'palette' }, false), { texte: 'Palette', variante: 'indice' });
 });
 

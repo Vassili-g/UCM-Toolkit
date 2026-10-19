@@ -544,8 +544,8 @@ test('un nom de composant se compte une fois par nom et porte sa forme et sa nat
   const terme = (mot: string) => termes.find((autre) => autre.mot === mot)!;
   assert.deepEqual(terme('stress-test'), { mot: 'stress-test', forme: 'StressTest', nature: 'composant', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 3, trouve: null });
   assert.deepEqual([terme('button').forme, terme('button').nature, terme('button').nombre], ['Button', 'composant', 3]);
-  assert.deepEqual([terme('scale-wrap').forme, terme('scale-wrap').nature, terme('scale-wrap').nombre], ['ScaleWrap', 'element', 2]);
-  assert.deepEqual([terme('text-columns').forme, terme('text-columns').nature], ['TextColumns', 'element']);
+  assert.deepEqual([terme('scale-wrap').forme, terme('scale-wrap').nature, terme('scale-wrap').nombre], ['ScaleWrap', null, 2]);
+  assert.deepEqual([terme('text-columns').forme, terme('text-columns').nature], ['TextColumns', null]);
   assert.deepEqual([terme('poppy').forme, terme('poppy').nature, terme('poppy').nombre], ['Poppy', 'palette', crans.length]);
   assert.equal(terme('info').nature, null);
 });
@@ -576,13 +576,13 @@ test('à égalité, la forme est la première rencontrée ; une forme partielle 
   assert.equal(projection.fiche('inconnu').forme, 'inconnu', 'sans occurrence, la forme est la clé');
 });
 
-test('Sans règle ne contient ni composant, ni élément, ni palette ; Composants et Palettes les séparent', () => {
+test('Sans règle ne contient ni composant ni palette, mais les noms de groupe ; Composants et Palettes séparent les noms', () => {
   const projection = projeter(calculer(playground));
   const sans = listeComplete(projection, 'sans-regle').termes.map((terme) => terme.mot);
-  for (const nom of ['button', 'stress-test', 'scale-wrap', 'text-columns', 'poppy']) assert.equal(sans.includes(nom), false, nom);
-  assert.deepEqual(sans, ['outlined', 'padding'], 'les mots du fichier que ni le référentiel ni une règle ne couvrent');
+  for (const nom of ['button', 'stress-test', 'poppy']) assert.equal(sans.includes(nom), false, nom);
+  assert.deepEqual(sans, ['outlined', 'scale-wrap', 'padding', 'text-columns'], 'les mots du fichier et les noms de groupe que ni le référentiel ni une règle ne couvrent');
   const composants = listeComplete(projection, 'composants').termes.map((terme) => terme.mot).sort();
-  assert.deepEqual(composants, ['button', 'scale-wrap', 'stress-test', 'text-columns']);
+  assert.deepEqual(composants, ['button', 'stress-test']);
   assert.deepEqual(listeComplete(projection, 'palettes').termes.map((terme) => terme.mot), ['poppy']);
 });
 
@@ -592,7 +592,7 @@ test('les cinq comptes sont ceux des cinq filtres et ne changent pas avec la rec
   assert.equal(comptes.tous, termes.length);
   assert.equal(comptes.avecRegle, listeComplete(projection, 'avec-regle').termes.length);
   assert.equal(comptes.sansRegle, listeComplete(projection, 'sans-regle').termes.length);
-  assert.equal(comptes.composants, 4);
+  assert.equal(comptes.composants, 2);
   assert.equal(comptes.palettes, 1);
   assert.equal(comptes.tous, comptes.avecRegle + comptes.sansRegle + comptes.composants + comptes.palettes, 'aucun nom n’a de règle ici : chaque terme est dans un seul groupe');
   assert.deepEqual(projection.termes({ recherche: 'xyz', filtre: 'palettes', debut: 0 }), { termes: [], total: 0, comptes });
@@ -610,7 +610,7 @@ test('la recherche lit la clé, la forme et les variantes', () => {
 test('la fiche d’un nom rend sa forme et sa nature, et marque le segment entier du nom', () => {
   const projection = projeter(calculer(playground));
   const fiche = projection.fiche('scale-wrap');
-  assert.deepEqual([fiche.mot, fiche.forme, fiche.nature, fiche.origine, fiche.question], ['scale-wrap', 'ScaleWrap', 'element', null, null]);
+  assert.deepEqual([fiche.mot, fiche.forme, fiche.nature, fiche.origine, fiche.question], ['scale-wrap', 'ScaleWrap', null, null, null]);
   assert.deepEqual(fiche.emploi.exemples, [
     { id: 's1', ancien: 'StressTest/Info/ScaleWrap/Colors/Scale-1', nouveau: 'StressTest/Info/ScaleWrap/Colors/Scale-1', marques: [2], aussi: [] },
     { id: 's2', ancien: 'StressTest/Info/ScaleWrap/Colors/Scale-2', nouveau: 'StressTest/Info/ScaleWrap/Colors/Scale-2', marques: [2], aussi: [] },
@@ -647,7 +647,7 @@ test('le détail du vocabulaire porte la forme et la nature de chaque terme, et 
   assert.deepEqual(terme.segments, [{ segment: 'StressTest', mots: ['Stress', 'Test'], noms: 3, exemple: 'StressTest/Info/ScaleWrap/Colors/Scale-1' }]);
   const nom = (texte: string) => detail.noms.find((autre) => autre.nom === texte)!;
   const scale = nom('StressTest/Info/ScaleWrap/Colors/Scale-1');
-  assert.deepEqual(scale.natures, ['composant', null, 'element', null, null]);
+  assert.deepEqual(scale.natures, ['composant', null, null, null, null]);
   assert.deepEqual(scale.termes, [['StressTest'], ['Info'], ['ScaleWrap'], ['Colors'], ['Scale', '1']]);
   assert.deepEqual(nom('Display/Large/LineHeight').termes, [['Display'], ['Large'], ['LineHeight']]);
   assert.deepEqual(nom('lineheight/3xl').termes, [['lineheight'], ['3xl']]);

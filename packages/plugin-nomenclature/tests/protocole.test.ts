@@ -563,13 +563,13 @@ test('le vocabulaire du Playground : noms et mots se séparent, les cinq filtres
   const hauteur = tous.termes.find((terme) => terme.mot === 'line-height');
   assert.deepEqual([hauteur?.forme, hauteur?.nombre], ['lineheight', 3]);
 
-  assert.deepEqual((await lire('composants')).termes.map((terme) => terme.mot).sort(), ['button', 'scale-wrap', 'stress-test', 'text-columns']);
+  assert.deepEqual((await lire('composants')).termes.map((terme) => terme.mot).sort(), ['button', 'stress-test']);
   assert.deepEqual((await lire('palettes')).termes.map((terme) => terme.mot).sort(), ['poppy', 'sky'], 'sky n’a qu’un cran : l’identifiant de palette lu dans Figma suffit');
   const sans = await lire('sans-regle');
   assert.equal(sans.termes.some((terme) => ['button', 'poppy', 'sky'].includes(terme.mot)), false);
   assert.ok(sans.termes.every((terme) => terme.nature === null));
   const { comptes } = tous;
-  assert.deepEqual([comptes.tous, comptes.composants, comptes.palettes], [tous.total, 4, 2]);
+  assert.deepEqual([comptes.tous, comptes.composants, comptes.palettes], [tous.total, 2, 2]);
   assert.equal(comptes.avecRegle, (await lire('avec-regle')).total);
   assert.equal(comptes.sansRegle, sans.total);
   assert.equal(comptes.tous, comptes.avecRegle + comptes.sansRegle + comptes.composants + comptes.palettes);
@@ -587,7 +587,7 @@ test('le vocabulaire du Playground : la fiche et le détail portent la forme et 
   assert.deepEqual([fiche.fiche.forme, fiche.fiche.nature, fiche.fiche.emploi.nombre, fiche.fiche.emploi.exemples[0].marques], ['StressTest', 'composant', 3, [0]]);
   const detail = JSON.parse(diagnostic.texte);
   const nom = detail.noms.find((autre: { nom: string }) => autre.nom === 'StressTest/Info/ScaleWrap/Colors/Scale-1');
-  assert.deepEqual(nom.natures, ['composant', null, 'element', null, null]);
+  assert.deepEqual(nom.natures, ['composant', null, null, null, null]);
   assert.deepEqual(nom.termes, [['StressTest'], ['Info'], ['ScaleWrap'], ['Colors'], ['Scale', '1']]);
   const terme = detail.termes.find((autre: { mot: string }) => autre.mot === 'stress-test');
   assert.deepEqual([terme.forme, terme.nature], ['StressTest', 'composant']);

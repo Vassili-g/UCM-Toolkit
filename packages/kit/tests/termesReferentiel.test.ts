@@ -27,7 +27,7 @@ function preparer(noms: readonly NomLu[], ordinaires?: ReadonlySet<string>): Lex
 /** Les termes d'un segment, chacun sous la forme de ses mots joints par `-`. */
 function termes(segment: string, nature: NatureDeSegment | null = null): string[] {
   const mots = decouperSegment(segment);
-  const plages = termesDuSegment(mots, nature);
+  const plages = termesDuSegment(segment, mots, nature);
   assert.deepEqual(plages.flatMap(([debut, fin]) => mots.slice(debut, fin)), mots, `les plages de ${segment} couvrent tous ses mots, dans l'ordre`);
   return plages.map(([debut, fin]) => mots.slice(debut, fin).join('-').toLowerCase());
 }
@@ -43,12 +43,31 @@ test('une propriété composée est un seul terme, quelle que soit son écriture
 });
 
 test('les autres mots restent des termes séparés', () => {
-  for (const segment of ['Padding-x', 'Gap-col', 'Background-Tag', 'Icon-size', 'primaryBg', 'TextColumns']) {
+  for (const segment of ['Padding-x', 'Gap-col', 'Background-Tag', 'Icon-size', 'primaryBg', 'Scale-1']) {
     assert.equal(termes(segment).length, 2, segment);
   }
   assert.equal(termes('Text-color-Tag').length, 3);
   assert.equal(termes('Radius-top-left').length, 3);
   assert.deepEqual(termes('primaryBg'), ['primary', 'bg']);
+});
+
+test('un bloc dont un mot est inconnu est un nom propre, un seul terme', () => {
+  for (const segment of ['TileLinksWrap', 'ScaleWrap', 'TilesGrid', 'UserInput', 'TextColumns']) {
+    assert.equal(termes(segment).length, 1, segment);
+  }
+  assert.deepEqual(termes('TileLinksWrap'), ['tile-links-wrap']);
+  assert.deepEqual(termes('Scale-1'), ['scale', '1']);
+});
+
+test('un bloc dont tous les mots sont connus se coupe mot à mot, bloc par bloc', () => {
+  assert.deepEqual(termes('primaryBg'), ['primary', 'bg']);
+  assert.deepEqual(termes('Background-Tag'), ['background', 'tag']);
+  assert.deepEqual(termes('Text-color-Tag'), ['text', 'color', 'tag']);
+  assert.deepEqual(termes('Radius-top-left'), ['radius', 'top', 'left']);
+  // Le bloc inconnu reste entier, le bloc connu voisin se coupe.
+  assert.deepEqual(termes('TileLinksWrap-padding'), ['tile-links-wrap', 'padding']);
+  assert.deepEqual(termes('TileLinksWrap padding'), ['tile-links-wrap', 'padding'], 'l’espace et le tiret bas séparent aussi');
+  assert.deepEqual(termes('Padding_x'), ['padding', 'x']);
 });
 
 test('un terme de plusieurs mots d’un registre est un seul terme', () => {
@@ -59,10 +78,10 @@ test('un terme de plusieurs mots d’un registre est un seul terme', () => {
 
 test('un segment qui a une nature est un seul terme', () => {
   assert.deepEqual(termes('StressTest', 'composant'), ['stress-test']);
-  assert.deepEqual(termes('TileLinksWrap', 'element'), ['tile-links-wrap']);
+  assert.deepEqual(termes('TileLinksWrap', 'composant'), ['tile-links-wrap']);
   assert.deepEqual(termes('Titanium', 'palette'), ['titanium']);
-  assert.deepEqual(termesDuSegment([], 'composant'), []);
-  assert.equal(termes('TextColumns', null).length, 2);
+  assert.deepEqual(termesDuSegment('', [], 'composant'), []);
+  assert.equal(termes('primaryBg', null).length, 2);
 });
 
 /** Un extrait du Playground, avec la collection `components`. */
@@ -106,7 +125,7 @@ test('le lexique porte la nature et les plages de chaque segment, alignées sur 
   const noms = extrait();
   const lexique = preparer(noms);
   const textColumns = noms.find((nom) => nom.nom.endsWith('TextColumns/Colors/Title'))!;
-  assert.deepEqual(lexique.natures.get(textColumns.id), ['composant', null, 'element', null, null]);
+  assert.deepEqual(lexique.natures.get(textColumns.id), ['composant', null, null, null, null]);
   assert.deepEqual(lexique.termes.get(textColumns.id), [[[0, 2]], [[0, 1]], [[0, 2]], [[0, 1]], [[0, 1]]]);
   const hauteur = noms.find((nom) => nom.nom === 'lineheight/3xl')!;
   assert.deepEqual(lexique.termes.get(hauteur.id), [[[0, 2]], [[0, 1]]]);
@@ -141,7 +160,7 @@ function renommer(noms: readonly NomLu[], personnalises: Parameters<typeof index
   return new Map(resultat.renommages.map((renommage) => [renommage.ancienNom, renommage.nouveauNom]));
 }
 
-test('une règle sur un mot ne touche pas un nom d’élément qui le contient', () => {
+test('une règle sur un mot ne touche pas un nom propre qui le contient', () => {
   const noms = [
     ...COLLECTIONS.map(collection),
     variable('components', 'StressTest/Info/ScaleWrap/Colors/Scale-1'),
@@ -151,18 +170,18 @@ test('une règle sur un mot ne touche pas un nom d’élément qui le contient',
   ];
   const regle = [{ terme: ['container'], remplace: [['wrap']] }];
   const renommages = renommer(noms, regle);
-  // D'autres règles renomment ces variables (`Colors` devient `Color`), mais leurs éléments gardent leur nom.
+  // D'autres règles renomment ces variables (`Colors` devient `Color`), mais ScaleWrap et TileLinksWrap gardent leur nom.
   assert.equal(renommages.get('StressTest/Info/ScaleWrap/Colors/Scale-1'), 'StressTest/Info/ScaleWrap/Color/Scale-1');
   assert.equal(renommages.get('StressTest/Info/TileLinksWrap/Sizes/Gap-x'), 'StressTest/Info/TileLinksWrap/Size/Gap-x');
-  assert.equal(renommages.get('layout/primaryWrap/gap'), 'layout/primaryContainer/gap');
+  assert.equal(renommages.get('layout/primaryWrap/gap'), undefined, 'un mot inconnu fait de primaryWrap un nom propre entier');
   assert.equal(renommages.get('layout/Wrap/gap'), 'layout/Container/gap');
 });
 
-test('le même mot est remplacé dans un nom qui n’est pas un élément', () => {
-  // Sans la collection `components` ni groupe de propriétés, ScaleWrap n'a pas de nature : le mot reste remplaçable.
-  const noms = [...COLLECTIONS.map(collection), variable('theme', 'layout/ScaleWrap/gap')];
-  const regle = [{ terme: ['container'], remplace: [['wrap']] }];
-  assert.equal(renommer(noms, regle).get('layout/ScaleWrap/gap'), 'layout/ScaleContainer/gap');
+test('le même mot est remplacé dans un nom dont tous les mots sont connus', () => {
+  // Tous les mots de `primaryGap` sont connus : `gap` y reste remplaçable.
+  const noms = [...COLLECTIONS.map(collection), variable('theme', 'layout/primaryGap/top')];
+  const regle = [{ terme: ['spacing'], remplace: [['gap']] }];
+  assert.equal(renommer(noms, regle).get('layout/primaryGap/top'), 'layout/primarySpacing/top');
 });
 
 test('radius remplace toujours Border-radius, et bg s’applique toujours dans primaryBg', () => {

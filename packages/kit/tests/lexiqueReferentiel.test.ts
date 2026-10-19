@@ -207,15 +207,24 @@ test('un grand groupe de collision cède aussi pendant la lecture de ses identif
 
 test('un terme de longueur différente garde le séparateur du segment sous la convention inchangée', () => {
   const inchange: ConventionsParCategorie = { ...conventions, variables: { casse: 'inchangee', separateur: 'inchange' } };
-  const vers = indexerVocabulaire({ personnalises: [{ terme: ['qux'], remplace: [['bar', 'baz']] }], ecartsUcm: [] }).index;
-  const retour = indexerVocabulaire({ personnalises: [{ terme: ['bar', 'baz'], remplace: [['qux']] }], ecartsUcm: [] }).index;
+  const vers = indexerVocabulaire({ personnalises: [{ terme: ['qux'], remplace: [['icon', 'gap']] }], ecartsUcm: [] }).index;
+  const retour = indexerVocabulaire({ personnalises: [{ terme: ['icon', 'gap'], remplace: [['qux']] }], ecartsUcm: [] }).index;
   const renommer = (nom: string, index: typeof vers) =>
     normaliserLeLexique(preparer([variable('a', nom)]), inchange, index).renommages[0]?.nouveauNom ?? nom;
-  assert.equal(renommer('text/foo-bar-baz', vers), 'text/foo-qux');
-  assert.equal(renommer('text/foo_bar_baz', vers), 'text/foo_qux');
-  assert.equal(renommer('text/foo bar baz', vers), 'text/foo qux');
-  assert.equal(renommer('text/fooBarBaz', vers), 'text/fooQux');
-  assert.equal(renommer('text/foo-qux-x', retour), 'text/foo-bar-baz-x');
+  // Les mots d'un bloc doivent être connus pour que le bloc se coupe : `foo` ferait de `fooBarBaz` un nom propre.
+  assert.equal(renommer('text/primary-icon-gap', vers), 'text/primary-qux');
+  assert.equal(renommer('text/primary_icon_gap', vers), 'text/primary_qux');
+  assert.equal(renommer('text/primary icon gap', vers), 'text/primary qux');
+  assert.equal(renommer('text/primaryIconGap', vers), 'text/primaryQux');
+  assert.equal(renommer('text/primary-qux-x', retour), 'text/primary-icon-gap-x');
+});
+
+test('un bloc dont un mot est inconnu est un nom propre : une règle sur ses morceaux ne le change pas', () => {
+  const inchange: ConventionsParCategorie = { ...conventions, variables: { casse: 'inchangee', separateur: 'inchange' } };
+  const vers = indexerVocabulaire({ personnalises: [{ terme: ['qux'], remplace: [['bar', 'baz']] }], ecartsUcm: [] }).index;
+  const renommer = (nom: string) => normaliserLeLexique(preparer([variable('a', nom)]), inchange, vers).renommages[0]?.nouveauNom ?? nom;
+  assert.equal(renommer('text/fooBarBaz'), 'text/fooBarBaz');
+  assert.equal(renommer('text/foo-bar-baz'), 'text/foo-qux');
 });
 
 function primitive(id: string, nom: string, portee = 'primitives'): NomLu {

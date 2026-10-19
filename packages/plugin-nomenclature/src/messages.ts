@@ -101,7 +101,7 @@ export interface Bilan {
 /**
  * Le filtre `avec-regle` montre `regle` et `ecart` ; `sans-regle` montre `sans-regle` et `a-trancher` quand `nature` est `null`.
  * `mot` est la clé du terme (`stress-test`), `forme` son écriture la plus fréquente dans le fichier (`StressTest`).
- * `nature` vaut `composant`, `element` ou `palette` pour un nom, `null` pour un mot.
+ * `nature` vaut `composant` ou `palette` pour un nom, `null` pour un mot.
  */
 export interface TermeDeListe { readonly mot: string; readonly forme: string; readonly nature: NatureDeSegment | null; readonly origine: OrigineDuTerme | null; readonly statut: 'regle' | 'ecart' | 'a-trancher' | 'sans-regle'; readonly remplace: readonly string[]; readonly avec: string | null; readonly nombre: number; readonly trouve: string | null }
 export interface FicheVue {

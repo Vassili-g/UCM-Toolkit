@@ -55,20 +55,20 @@ function natures(noms: readonly NomLu[], nom: string, options?: { readonly ordin
   return segments.flatMap((segment, rang) => lues[rang] ? [`${segment}:${lues[rang]}`] : []);
 }
 
-test('les composants, les éléments et les palettes du Playground sont reconnus', () => {
+test('les composants et les palettes du Playground sont reconnus, les autres groupes n’ont pas de nature', () => {
   const noms = extraitDuPlayground();
   const attendus: Record<string, string[]> = {
     'Button/Colors/Primary/Contained/Default/Background': ['Button:composant'],
     'Button/Sizes/Medium/Padding-x': ['Button:composant'],
     'Alert/Colors/Info/Standard/Background': ['Alert:composant'],
     'TileLink/Colors/Info/Default/Background': ['TileLink:composant'],
-    'StressTest/Info/Head/Colors/Text': ['StressTest:composant', 'Head:element'],
-    'StressTest/Info/TilesGrid/Colors/Tile': ['StressTest:composant', 'TilesGrid:element'],
-    'StressTest/Info/UserInput/Colors/Background': ['StressTest:composant', 'UserInput:element'],
-    'StressTest/Info/TextColumns/Colors/Title': ['StressTest:composant', 'TextColumns:element'],
-    'StressTest/Info/ScaleWrap/Colors/Scale-1': ['StressTest:composant', 'ScaleWrap:element'],
-    'StressTest/Info/TileLinksWrap/Sizes/Gap-x': ['StressTest:composant', 'TileLinksWrap:element'],
-    'StressTest/Warning/Badge/Colors/Background': ['StressTest:composant', 'Badge:element'],
+    'StressTest/Info/Head/Colors/Text': ['StressTest:composant'],
+    'StressTest/Info/TilesGrid/Colors/Tile': ['StressTest:composant'],
+    'StressTest/Info/UserInput/Colors/Background': ['StressTest:composant'],
+    'StressTest/Info/TextColumns/Colors/Title': ['StressTest:composant'],
+    'StressTest/Info/ScaleWrap/Colors/Scale-1': ['StressTest:composant'],
+    'StressTest/Info/TileLinksWrap/Sizes/Gap-x': ['StressTest:composant'],
+    'StressTest/Warning/Badge/Colors/Background': ['StressTest:composant'],
     'colors/Titanium/light/50': ['Titanium:palette'],
     'colors/Titanium/dark/950': ['Titanium:palette'],
     'colors/Titanium/white': ['Titanium:palette'],
@@ -129,20 +129,31 @@ test('deux collections qui partagent un chemin ne mêlent pas leurs crans', () =
 test('une clé de ordinaires retire la nature, sous sa forme en minuscules, jointe par des tirets ou soudée', () => {
   const noms = extraitDuPlayground();
   const nom = 'StressTest/Info/Head/Colors/Text';
-  assert.deepEqual(natures(noms, nom, { ordinaires: new Set(['stress-test']) }), ['Head:element']);
-  assert.deepEqual(natures(noms, nom, { ordinaires: new Set(['stresstest']) }), ['Head:element']);
+  assert.deepEqual(natures(noms, nom, { ordinaires: new Set(['stress-test']) }), []);
+  assert.deepEqual(natures(noms, nom, { ordinaires: new Set(['stresstest']) }), []);
   assert.deepEqual(natures(noms, nom, { ordinaires: new Set(['head']) }), ['StressTest:composant']);
-  assert.deepEqual(natures(noms, nom, { ordinaires: new Set(['autre']) }), ['StressTest:composant', 'Head:element']);
+  assert.deepEqual(natures(noms, nom, { ordinaires: new Set(['autre']) }), ['StressTest:composant']);
   assert.deepEqual(natures(noms, 'Button/Sizes/Medium/Padding-x', { ordinaires: new Set(['stress-test']) }), ['Button:composant']);
 });
 
-test('sans collection reconnue, seule la suite d’un groupe de propriétés désigne un composant', () => {
-  const noms = [collection('Divers'), variable('Divers', 'Menu/Colors/Text'), variable('Divers', 'Autre/Taille/Gap')];
-  assert.deepEqual(natures(noms, 'Menu/Colors/Text'), ['Menu:composant']);
+test('hors de la collection components, seul le dossier components désigne un composant', () => {
+  const noms = [collection('Divers'), variable('Divers', 'Menu/Colors/Text'), variable('Divers', 'Autre/Taille/Gap'),
+    variable('Divers', 'components/Button/Colors/primary'), variable('Divers', 'components/Button/Sizes/Medium/Gap'),
+    variable('Divers', 'Autre/components/Alert/Colors/info')];
+  assert.deepEqual(natures(noms, 'Menu/Colors/Text'), [], 'un premier segment suivi de Colors n’est plus un composant');
   assert.deepEqual(natures(noms, 'Autre/Taille/Gap'), []);
+  assert.deepEqual(natures(noms, 'components/Button/Colors/primary'), ['Button:composant'], 'components n’est pas un composant');
+  assert.deepEqual(natures(noms, 'components/Button/Sizes/Medium/Gap'), ['Button:composant'], 'seul l’enfant direct du dossier');
+  assert.deepEqual(natures(noms, 'Autre/components/Alert/Colors/info'), ['Alert:composant'], 'un dossier components plus profond');
 });
 
-test('une variable sans groupe n’a aucune nature, même dans la collection components', () => {
+test('un groupe plus profond qu’un composant, même suivi de Colors, n’a pas de nature', () => {
+  const noms = [collection('components'), variable('components', 'Card/Header/Colors/Text'), variable('components', 'Card/Colors/Text')];
+  assert.deepEqual(natures(noms, 'Card/Header/Colors/Text'), ['Card:composant']);
+  assert.deepEqual(natures(noms, 'Card/Colors/Text'), ['Card:composant']);
+});
+
+test('un dossier, même sans groupe, est un composant au rang 0 de la collection components', () => {
   const noms = [collection('Components'), variable('Components', 'Gap'), variable('Components', 'Widget/Medium')];
   assert.deepEqual(natures(noms, 'Gap'), []);
   assert.deepEqual(natures(noms, 'Widget/Medium'), ['Widget:composant']);

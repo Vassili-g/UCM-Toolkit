@@ -303,10 +303,9 @@ export const TEXTES = {
     return connues[identifiant] ?? identifiant;
   },
   pastilleSansRegle: 'Sans règle',
-  natureDuTerme: { composant: 'Composant', element: 'Élément', palette: 'Palette' },
+  natureDuTerme: { composant: 'Composant', palette: 'Palette' },
   phraseDeNature: {
     composant: 'Nom d’un composant du fichier. Aucune question ne porte sur un nom.',
-    element: 'Nom d’un élément de composant du fichier. Aucune question ne porte sur un nom.',
     palette: 'Nom d’une palette du fichier. Aucune question ne porte sur un nom.',
   },
   traiterCommeUnTerme: 'Traiter comme un terme',

@@ -64,7 +64,7 @@ export function commencerLexique(options: { readonly ordinaires?: ReadonlySet<st
           let plages = plagesParSegment.get(cleDePlages);
           if (!plages) {
             // Un nom que le fichier traite comme un terme reste entier : il perd sa nature, pas son unité.
-            plages = !nature && estOrdinaire(decoupe) ? [[0, decoupe.length] as const] : termesDuSegment(decoupe, nature);
+            plages = !nature && estOrdinaire(decoupe) ? [[0, decoupe.length] as const] : termesDuSegment(segment, decoupe, nature);
             plagesParSegment.set(cleDePlages, plages);
           }
           plagesDuNom.push(plages);
@@ -95,7 +95,7 @@ function normaliserSegment(segment: string, categorie: CategorieDeNom, conventio
   index: IndexDuVocabulaire, decoupe: Mots, plages: readonly PlageDeTerme[]): SegmentNormalise {
   if (decoupe.length === 0) return { nouveau: segment, regles: [], termes: [] };
   const choix = conventions[categorie] ?? { casse: 'inchangee', separateur: 'inchange' };
-  // Un remplacement ne coupe pas un terme : `wrap` ne touche pas `ScaleWrap` (un élément), `radius` remplace `Border-radius` en entier.
+  // Un remplacement ne coupe pas un terme : `wrap` ne touche pas `ScaleWrap` (un nom propre), `radius` remplace `Border-radius` en entier.
   const frontieres = new Set([...plages.map(([debut]) => debut), decoupe.length]);
   const remplacements = index.remplacements(decoupe, categorie, frontieres);
   const termes: ChangementDeTerme[] = [];
@@ -139,7 +139,7 @@ function proposer(nom: NomLu, lexique: Lexique, conventions: ConventionsParCateg
     const categorie = categorieDuSegment(nom, rang);
     const choix = conventions[categorie];
     const decoupe = lexique.mots.get(segment) ?? decouperSegment(segment);
-    const plages = lexique.termes.get(nom.id)?.[rang] ?? termesDuSegment(decoupe, lexique.natures.get(nom.id)?.[rang] ?? null);
+    const plages = lexique.termes.get(nom.id)?.[rang] ?? termesDuSegment(segment, decoupe, lexique.natures.get(nom.id)?.[rang] ?? null);
     const cle = JSON.stringify([segment, categorie, choix?.casse, choix?.separateur, plages]);
     let resultat = cache.get(cle);
     if (!resultat) {

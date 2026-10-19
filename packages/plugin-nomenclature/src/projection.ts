@@ -363,8 +363,8 @@ function occurrencesDuTerme(lexique: Lexique, cle: string): readonly OccurrenceD
 /** Les noms (identifiants) où le terme apparaît, chacun une fois. */
 const nomsEmployant = (occurrences: readonly OccurrenceDeTerme[]): string[] => [...new Set(occurrences.map((occurrence) => occurrence.nomId))];
 
-/** Quand les occurrences d'un terme n'ont pas la même nature : composant, puis élément, puis palette. */
-const ORDRE_DES_NATURES: readonly NatureDeSegment[] = ['composant', 'element', 'palette'];
+/** Quand les occurrences d'un terme n'ont pas la même nature : composant, puis palette. */
+const ORDRE_DES_NATURES: readonly NatureDeSegment[] = ['composant', 'palette'];
 const natureLaPlusHaute = (a: NatureDeSegment | null, b: NatureDeSegment | null): NatureDeSegment | null =>
   a === null ? b : b === null ? a : ORDRE_DES_NATURES.indexOf(b) < ORDRE_DES_NATURES.indexOf(a) ? b : a;
 
@@ -399,7 +399,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
   const occurrences = (cle: string): readonly OccurrenceDeTerme[] => unique(`occurrences:${cle}`, () => occurrencesDuTerme(lexique, cle));
   const emploi = (cle: string): readonly string[] => unique(`emploi:${cle}`, () => nomsEmployant(occurrences(cle)));
   const presence = (cle: string) => unique(`presence:${cle}`, () => presenceDuTerme(lexique, cle, occurrences(cle)));
-  /** La question qui porte le terme ; un nom (composant, élément, palette) n'en a jamais. */
+  /** La question qui porte le terme ; un nom (composant, palette) n'en a jamais. */
   const questionDuTerme = (cle: string) => (presence(cle).nature === null ? termesEnQuestion().get(cle) : undefined);
 
   const conventionDe = (categorie: CategorieDeNom): Convention =>
@@ -719,7 +719,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
   const aUneRegle = (terme: TermeDeListe): boolean => terme.statut === 'regle' || terme.statut === 'ecart';
   /** Un nom ne compte jamais dans « Sans règle » : il n'a pas de règle à écrire. */
   const sansRegle = (terme: TermeDeListe): boolean => !aUneRegle(terme) && terme.nature === null;
-  const estUnComposant = (terme: TermeDeListe): boolean => terme.nature === 'composant' || terme.nature === 'element';
+  const estUnComposant = (terme: TermeDeListe): boolean => terme.nature === 'composant';
   const estUnePalette = (terme: TermeDeListe): boolean => terme.nature === 'palette';
   const DANS_LE_FILTRE: Readonly<Record<FiltreDeTermes, (terme: TermeDeListe) => boolean>> = {
     tous: () => true, 'avec-regle': aUneRegle, 'sans-regle': sansRegle, composants: estUnComposant, palettes: estUnePalette,

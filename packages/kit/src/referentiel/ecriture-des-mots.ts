@@ -3,7 +3,7 @@ import { COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
 import { CATEGORIES_DE_NOM, type Casse, type CategorieDeNom, type NomANormaliser, type Separateur } from './conventions.js';
 import type { NatureDeSegment } from './natures.js';
 import type { ConventionDetectee } from './normalisation.js';
-import { decouperUnBloc, TERMES_COMPOSES } from './termes-connus.js';
+import { decouperUnBloc, TERMES_COMPOSES, termeOuVarianteConnu } from './termes-connus.js';
 import { REGISTRES } from './vocabulaire.js';
 
 export function frontieres(segment: string): string {
@@ -51,18 +51,45 @@ const termesDePlusieursMots = new Set([
 ]);
 const MOTS_DU_PLUS_LONG_TERME = Math.max(...[...termesDePlusieursMots].map((terme) => terme.split('-').length));
 
+/** Les blocs d'un segment, en plages de mots : les séparateurs explicites (`-`, `_`, espace) les coupent, la casse et les mots soudés non. */
+function blocsDuSegment(segment: string, mots: readonly string[]): (readonly [number, number])[] {
+  const blocs: [number, number][] = [];
+  let position = 0;
+  let debut = 0;
+  for (let rang = 0; rang < mots.length; rang++) {
+    const place = segment.indexOf(mots[rang], position);
+    if (place < 0) return [[0, mots.length]];
+    if (rang > debut && /[-_\s]/u.test(segment.slice(position, place))) {
+      blocs.push([debut, rang]);
+      debut = rang;
+    }
+    position = place + mots[rang].length;
+  }
+  blocs.push([debut, mots.length]);
+  return blocs;
+}
+
 /**
  * Plages `[début, fin[` des termes d'un segment découpé par `decouperSegment`, qui couvrent tous ses mots.
- * Un segment qui a une nature (composant, élément, palette) est un seul terme. Sinon, une suite de mots
- * qui forme un terme de plusieurs mots (`line-height`, `border-radius`) est un terme, la plus longue d'abord ;
- * tout autre mot est un terme à lui seul, pour que `primaryBg` reste deux termes.
+ * Un segment qui a une nature (composant, palette) est un seul terme. Sinon, bloc par bloc (un bloc va d'un séparateur explicite
+ * à l'autre) : un bloc de plusieurs mots dont un mot est inconnu et qui n'est pas lui-même un terme de plusieurs mots reste entier,
+ * car c'est un nom propre (`TileLinksWrap`) ; c'est ce qu'un nom de groupe devient une fois qu'il n'est plus un nom de composant.
+ * Pour les autres blocs, une suite de mots qui forme un terme de plusieurs mots (`line-height`, `border-radius`, même de part et d'autre
+ * d'un séparateur) est un terme, la plus longue d'abord ; tout autre mot est un terme à lui seul, pour que `primaryBg` reste deux termes.
  */
-export function termesDuSegment(mots: readonly string[], nature: NatureDeSegment | null): readonly (readonly [number, number])[] {
+export function termesDuSegment(segment: string, mots: readonly string[], nature: NatureDeSegment | null): readonly (readonly [number, number])[] {
   if (mots.length === 0) return [];
   if (nature) return [[0, mots.length]];
   const minuscules = mots.map((mot) => mot.toLowerCase());
   const debuts = new Map<number, number>();
   const prises = new Set<number>();
+  for (const [debut, fin] of blocsDuSegment(segment, mots)) {
+    if (fin - debut < 2) continue;
+    const bloc = minuscules.slice(debut, fin);
+    if (termesDePlusieursMots.has(bloc.join('-')) || bloc.every(termeOuVarianteConnu)) continue;
+    debuts.set(debut, fin - debut);
+    for (let rang = debut; rang < fin; rang++) prises.add(rang);
+  }
   for (let longueur = Math.min(MOTS_DU_PLUS_LONG_TERME, mots.length); longueur >= 2; longueur--) {
     for (let debut = 0; debut + longueur <= mots.length; debut++) {
       if (!termesDePlusieursMots.has(minuscules.slice(debut, debut + longueur).join('-'))) continue;

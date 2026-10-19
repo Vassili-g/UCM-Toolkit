@@ -1,5 +1,5 @@
 /**
- * Nature des segments d'un nom de variable : un nom de composant, d'élément ou de palette n'est pas un mot du vocabulaire.
+ * Nature des segments d'un nom de variable : un nom de composant ou de palette n'est pas un mot du vocabulaire.
  * Pur : la nature vient de la place du segment et de tous les noms du fichier, jamais d'une liste de noms propres.
  *
  * Après une modification : relancer `npm test` et changer la version du kit ; aucune vue ni planche n'en tire de données.
@@ -9,17 +9,16 @@ import { decouperSegment } from './ecriture-des-mots.js';
 import type { NomLu } from './harmonisation.js';
 import { collectionUcmReconnue } from './normalisation.js';
 import { termeOuFormeConnu } from './termes-connus.js';
-import { ABREVIATIONS, CRANS, MODES, PROFILS, REGISTRES, REGISTRE_GROUPES, SYNONYMES_COURANTS } from './vocabulaire.js';
+import { ABREVIATIONS, CRANS, MODES, PROFILS, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
 
-export type NatureDeSegment = 'composant' | 'element' | 'palette';
+export type NatureDeSegment = 'composant' | 'palette';
 type Nature = NatureDeSegment | null;
 
 /** Reprend `SEUIL_DE_PALETTE` d'UCM Palettes (`packages/plugin-palettes/src/variables/detection.ts`) : un chemin porte une palette à partir de ce nombre de crans différents. */
 const SEUIL_DE_PALETTE = 5;
 
-const TERMES_DES_GROUPES = ['color', 'size'];
-const formesDeGroupe = new Set(REGISTRE_GROUPES.termes.filter((terme) => TERMES_DES_GROUPES.includes(terme.id))
-  .flatMap((terme) => [terme.id, ...(terme.toleres ?? [])]).map((forme) => forme.toLowerCase()));
+/** Le groupe dont les enfants directs sont des composants, quelle que soit la collection (forme en minuscules). */
+const DOSSIER_DES_COMPOSANTS = 'components';
 const crans = new Set<string>(CRANS.map(String));
 const modesEtProfils = new Set<string>([...MODES, ...PROFILS]);
 const couleursAbsolues = new Set(REGISTRE_COULEURS_ABSOLUES.termes.map((terme) => terme.id));
@@ -74,11 +73,11 @@ export function naturesDesNoms(
     const segments = nom.nom.split('/');
     const minuscules = segments.map((segment) => segment.toLowerCase());
     const dansComponents = collectionsUcm.get(nom.portee) === 'components';
+    // Sur UCM, un composant est seulement un élément à la racine d'un dossier `components` : les autres éléments sont des noms de groupe.
     const natures = segments.map((segment, rang): Nature => {
       if (!segment || rang === segments.length - 1) return null;
-      const suivantEstUnGroupe = formesDeGroupe.has(minuscules[rang + 1]);
-      if (rang === 0) return dansComponents || suivantEstUnGroupe ? 'composant' : null;
-      return suivantEstUnGroupe ? 'element' : null;
+      if (minuscules[rang] === DOSSIER_DES_COMPOSANTS) return null;
+      return (rang === 0 && dansComponents) || minuscules[rang - 1] === DOSSIER_DES_COMPOSANTS ? 'composant' : null;
     });
     return { nom, segments, minuscules, natures };
   });
