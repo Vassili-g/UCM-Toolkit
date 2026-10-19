@@ -20,6 +20,7 @@ Le référentiel dont l'Architect lit les définitions a son propre dossier,
 | Recette de la v1 | Lot 19 : recette dans Figma par le mainteneur, puis export des tokens du fichier renommé |
 | Suite de l'Architect | Explorée sans décision : versions v1.1, v1.2 et v2, quatre questions ouvertes |
 | Refonte | [Conception](./3%20Refonte/CONCEPTION.md) revue par un agent spécialiste de l'UX, et [maquettes](./3%20Refonte/MAQUETTES-ARCHITECT.html) ; attend la validation du mainteneur |
+| Contrôle de structure | [Recherche](./6%20Contrôle%20de%20structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md) : signaler les erreurs simples de la structure des tokens (mode qui vise la branche d'un autre mode, sœurs divergentes, échelles) ; attend quatre décisions |
 | Recette de la refonte | [Dossier](./5%20Recette/DOSSIER-RECETTE-ARCHITECT.md) et [maquettes](./5%20Recette/Maquettes/MAQUETTE-RECETTE-ARCHITECT.html) : langage visuel commun, avant et après dans À appliquer, cartes de À trancher, fiche d'un terme, question des tailles retirée ; attend les décisions D1 à D10 |
 
 La v1 contredit la version minimale : le mainteneur a demandé l'Architect
