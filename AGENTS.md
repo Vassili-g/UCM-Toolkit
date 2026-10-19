@@ -1676,6 +1676,14 @@ La spécification en lien porte le raisonnement.
 - Le moteur (vocabulaire, lexique, normalisation, questions) et les données
   UCM viennent de `@ucm-kit/core/referentiel` ; le plugin n'en recopie
   aucune, ce que `tests/referentielUnique.test.ts` vérifie.
+- Le kit repère par sa place la nature d'un segment : composant, élément de
+  composant ou palette (`naturesDesNoms`). Un tel nom est un seul terme du
+  vocabulaire, n'entre dans aucune question et ne compte jamais dans « Sans
+  règle ». Un remplacement ne coupe jamais un terme (`termesDuSegment`). Un
+  dossier partagé avec une variable protégée garde son nom.
+  `packages/kit/tests/naturesReferentiel.test.ts`,
+  `packages/kit/tests/termesReferentiel.test.ts` et
+  `packages/kit/tests/lexiqueReferentiel.test.ts` le tiennent.
 - Le sandbox garde l'inventaire et le résultat et n'envoie à l'écran que le
   `Bilan` et les pages demandées. Chaque réponse porte le numéro de sa
   demande et la génération du calcul ; l'écran ignore une réponse périmée.
