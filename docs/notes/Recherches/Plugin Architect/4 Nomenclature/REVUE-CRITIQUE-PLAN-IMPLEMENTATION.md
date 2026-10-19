@@ -79,7 +79,7 @@ theme/selected/fill     reste theme/selected/fill
 theme/unselected/edge   devient theme/selected/edge
 ```
 
-Dans la [session](../../../../../packages/plugin-architect/src/session.ts),
+Dans la [session](../../../../../packages/plugin-nomenclature/src/session.ts),
 la réponse `garder` à une question de paire crée précisément un remplacement
 du terme opposé. Le contrôle des collisions ne protège donc pas contre cette
 perte de sens.

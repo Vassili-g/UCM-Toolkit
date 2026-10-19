@@ -5,7 +5,7 @@ le moteur actuel avec des données synthétiques. Le plugin n'a pas été modifi
 
 Lecteur : le mainteneur qui doit corriger les blocages pendant l'analyse et le
 choix d'une convention. La revue couvre la v1 construite dans
-[`packages/plugin-architect`](../../../../packages/plugin-architect/). La
+[`packages/plugin-nomenclature`](../../../../packages/plugin-nomenclature/). La
 [conception de la refonte](./3%20Refonte/CONCEPTION.md) reste une proposition
 distincte ; ses détecteurs de synonymes ne sont pas présents dans ce code.
 
@@ -57,8 +57,8 @@ Sources : [API des variables](https://developers.figma.com/docs/plugins/api/figm
 
 | Étape | Code actuel | Travail effectué |
 |---|---|---|
-| Déclenchement | [`ui/index.ts`](../../../../packages/plugin-architect/src/ui/index.ts), bouton d'analyse | Masque les résultats et désactive les contrôles |
-| Lecture des variables | [`lectureFigma.ts`](../../../../packages/plugin-architect/src/lectureFigma.ts), `creerPortDeLecture` ; [`lecture.ts`](../../../../packages/plugin-architect/src/lecture.ts), `lireInventaire` | Attend les collections puis les variables, filtre les objets locaux, relève les noms |
+| Déclenchement | [`ui/index.ts`](../../../../packages/plugin-nomenclature/src/ui/index.ts), bouton d'analyse | Masque les résultats et désactive les contrôles |
+| Lecture des variables | [`lectureFigma.ts`](../../../../packages/plugin-nomenclature/src/lectureFigma.ts), `creerPortDeLecture` ; [`lecture.ts`](../../../../packages/plugin-nomenclature/src/lecture.ts), `lireInventaire` | Attend les collections puis les variables, filtre les objets locaux, relève les noms |
 | Lecture des composants | Mêmes modules | Charge chaque page, appelle `findAllWithCriteria` pour `COMPONENT_SET` et `COMPONENT`, copie leurs propriétés et variantes |
 | Inventaire logique | `lireInventaire` | Déduplique les propriétés héritées et regroupe les valeurs par propriétaire et axe ; conserve aussi les composants pour l'écriture |
 | Calcul | [`analyse.ts`](https://github.com/Vassili-g/UCM-Toolkit/blob/c025995e72969860fd535191623706d5e407fb01/packages/plugin-architect/src/analyse.ts), `analyserInventaire` | Relève tous les noms, détecte les conventions, normalise les noms, retire les propositions en collision |
@@ -190,7 +190,7 @@ jeux mesurés ici ne démontrent pas cette situation.
 
 L'application prépare les objets de tous les composants, relit l'inventaire
 complet, puis contrôle la sélection. Dans
-[`ecriture.ts`](../../../../packages/plugin-architect/src/ecriture.ts), plusieurs
+[`ecriture.ts`](../../../../packages/plugin-nomenclature/src/ecriture.ts), plusieurs
 `find`, `filter`, `some`, tris et comparaisons JSON sont répétés dans des
 boucles. `routage.ts` vérifie aussi les identifiants sélectionnés par une
 recherche dans toutes les propositions. Ces chemins peuvent ralentir un gros

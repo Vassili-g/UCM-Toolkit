@@ -368,7 +368,7 @@ packages/plugin-explorateur/  le plugin UCM Token Explorer : ucm-explorateur-plu
   scripts/mesurer.mjs      la mesure sur 10 000 variables, hors des tests
   SPEC.md                  ce que le plugin lit, résout et refuse de conclure
 
-packages/plugin-architect/  le plugin UCM Architect : ucm-architect-plugin, privé ; renomme les variables et les collections locales
+packages/plugin-nomenclature/  le plugin UCM Nomenclature : ucm-nomenclature-plugin, privé ; renomme les variables et les collections locales
   src/code.ts              la fenêtre, sa taille, et les demandes de l'écran confiées à la session
   src/messages.ts          les deux sens de la frontière sandbox ↔ écran, numérotés par demande et par génération
   src/session.ts           l'inventaire, le lexique, les règles et le résultat, gardés dans le sandbox ; la file des calculs
@@ -1660,9 +1660,9 @@ La spécification en lien porte le raisonnement.
   dans le kit.
   → [spec](./packages/plugin-explorateur/SPEC.md#intégrations-facultatives)
 
-### UCM Architect
+### UCM Nomenclature
 
-- Architect ne change dans le document que le `name` d'une variable ou d'une
+- UCM Nomenclature ne change dans le document que le `name` d'une variable ou d'une
   collection locale, ses données partagées dans `ESPACE_ARCHITECT` et le point
   d'annulation, et seul `src/ecriture.ts` le fait. Il ne lit ni page ni
   composant. `tests/loiDEcriture.test.ts` refuse ailleurs toute création,

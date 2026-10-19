@@ -1,11 +1,11 @@
 /** Reproduit les défauts de récupération sur des objets en mémoire, sans connexion à Figma. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { appliquerLesRenommages, annulerLeDernierRenommage, type PortDeRegles, type RenommageDemande, type SessionEcriture, type VariableModifiable } from '../../../../../../packages/plugin-architect/src/ecriture';
-import { relireInventaireAvantEcriture, type PortDeLecture } from '../../../../../../packages/plugin-architect/src/lecture';
-import { cleDistinct, defaireReponse, exporterLesRegles, importerLesRegles, lireLesRegles, lireLeStockage, preparerJournal, preparerReponse, rangerLesEcritures, serialiserRegle } from '../../../../../../packages/plugin-architect/src/regles';
-import { creerSession } from '../../../../../../packages/plugin-architect/src/session';
-import type { Bilan, DemandeArchitect, PluginMessage } from '../../../../../../packages/plugin-architect/src/messages';
+import { appliquerLesRenommages, annulerLeDernierRenommage, type PortDeRegles, type RenommageDemande, type SessionEcriture, type VariableModifiable } from '../../../../../../packages/plugin-nomenclature/src/ecriture';
+import { relireInventaireAvantEcriture, type PortDeLecture } from '../../../../../../packages/plugin-nomenclature/src/lecture';
+import { cleDistinct, defaireReponse, exporterLesRegles, importerLesRegles, lireLesRegles, lireLeStockage, preparerJournal, preparerReponse, rangerLesEcritures, serialiserRegle } from '../../../../../../packages/plugin-nomenclature/src/regles';
+import { creerSession } from '../../../../../../packages/plugin-nomenclature/src/session';
+import type { Bilan, DemandeArchitect, PluginMessage } from '../../../../../../packages/plugin-nomenclature/src/messages';
 import { indexVariables } from '../../../../../../packages/plugin-exporter/src/variables';
 
 function banc(specs: readonly (readonly [string, string])[]) {

@@ -15,7 +15,7 @@ par cet audit.
 
 ## Périmètre et niveau de preuve
 
-Le périmètre est le code de `packages/plugin-architect/`, ses dépendances de
+Le périmètre est le code de `packages/plugin-nomenclature/`, ses dépendances de
 nommage dans le kit et le socle, puis l’index d’export de l’Exporter. La base
 Git est `acfa3a59e0ac4709cbeea0896e0bdfaafb4e32ad`, paquet Architect `0.1.0`,
 kit `0.9.3`. Le nom et le dossier futurs d’UCM Nomenclature dans le
@@ -58,20 +58,20 @@ Ils ne font pas partie de `npm test` et ne valent pas certification de sûreté.
 ## Carte des lectures et des écritures
 
 Les numéros de ligne ci-dessous correspondent aux sources de la base auditée.
-Les chemins `src/` de ce rapport partent de `packages/plugin-architect/`.
+Les chemins `src/` de ce rapport partent de `packages/plugin-nomenclature/`.
 
 | Zone | Sources et responsabilité vérifiée |
 |---|---|
-| Entrée du sandbox | [code.ts](../../../../../packages/plugin-architect/src/code.ts), [messages.ts](../../../../../packages/plugin-architect/src/messages.ts) : forme des demandes et routage |
-| Lecture Figma | [lecture.ts](../../../../../packages/plugin-architect/src/lecture.ts), [lectureFigma.ts](../../../../../packages/plugin-architect/src/lectureFigma.ts) : identifiants, noms, portée, protection Palettes |
-| Calcul et file | [session.ts](../../../../../packages/plugin-architect/src/session.ts), [tranches.ts](../../../../../packages/plugin-architect/src/tranches.ts) : génération, calculs ordonnés, application et relecture |
-| Règles | [regles.ts](../../../../../packages/plugin-architect/src/regles.ts), [conventions.ts](../../../../../packages/plugin-architect/src/conventions.ts) : validation, import, export, journal et restauration des réponses |
-| Mutation | [ecriture.ts](../../../../../packages/plugin-architect/src/ecriture.ts) : affectation de `name`, données partagées Architect, `commitUndo` |
-| Proposition et sélection | [projection.ts](../../../../../packages/plugin-architect/src/projection.ts), [selection.ts](../../../../../packages/plugin-architect/src/ui/selection.ts) : groupes, noms cochés, exclusions et inclusions |
-| Résultat présenté | [aAppliquer.ts](../../../../../packages/plugin-architect/src/ui/aAppliquer.ts), [frontiere.ts](../../../../../packages/plugin-architect/src/ui/frontiere.ts), [configuration.ts](../../../../../packages/plugin-architect/src/ui/configuration.ts), [textes.ts](../../../../../packages/plugin-architect/src/ui/textes.ts) |
+| Entrée du sandbox | [code.ts](../../../../../packages/plugin-nomenclature/src/code.ts), [messages.ts](../../../../../packages/plugin-nomenclature/src/messages.ts) : forme des demandes et routage |
+| Lecture Figma | [lecture.ts](../../../../../packages/plugin-nomenclature/src/lecture.ts), [lectureFigma.ts](../../../../../packages/plugin-nomenclature/src/lectureFigma.ts) : identifiants, noms, portée, protection Palettes |
+| Calcul et file | [session.ts](../../../../../packages/plugin-nomenclature/src/session.ts), [tranches.ts](../../../../../packages/plugin-nomenclature/src/tranches.ts) : génération, calculs ordonnés, application et relecture |
+| Règles | [regles.ts](../../../../../packages/plugin-nomenclature/src/regles.ts), [conventions.ts](../../../../../packages/plugin-nomenclature/src/conventions.ts) : validation, import, export, journal et restauration des réponses |
+| Mutation | [ecriture.ts](../../../../../packages/plugin-nomenclature/src/ecriture.ts) : affectation de `name`, données partagées Architect, `commitUndo` |
+| Proposition et sélection | [projection.ts](../../../../../packages/plugin-nomenclature/src/projection.ts), [selection.ts](../../../../../packages/plugin-nomenclature/src/ui/selection.ts) : groupes, noms cochés, exclusions et inclusions |
+| Résultat présenté | [aAppliquer.ts](../../../../../packages/plugin-nomenclature/src/ui/aAppliquer.ts), [frontiere.ts](../../../../../packages/plugin-nomenclature/src/ui/frontiere.ts), [configuration.ts](../../../../../packages/plugin-nomenclature/src/ui/configuration.ts), [textes.ts](../../../../../packages/plugin-nomenclature/src/ui/textes.ts) |
 | Moteur du kit | [lexique.ts](../../../../../packages/kit/src/referentiel/lexique.ts), [normalisation.ts](../../../../../packages/kit/src/referentiel/normalisation.ts), [vocabulaire-du-fichier.ts](../../../../../packages/kit/src/referentiel/vocabulaire-du-fichier.ts), [ecriture-des-mots.ts](../../../../../packages/kit/src/referentiel/ecriture-des-mots.ts) |
 | Chemins publiés | [cheminsDeTokens.ts](../../../../../packages/plugin-socle/src/cheminsDeTokens.ts), [variables.ts](../../../../../packages/plugin-exporter/src/variables.ts), [exportTokens.ts](../../../../../packages/plugin-exporter/src/tokens/exportTokens.ts) |
-| Distribution | [manifest.json](../../../../../packages/plugin-architect/manifest.json), scripts de build et tests du paquet |
+| Distribution | [manifest.json](../../../../../packages/plugin-nomenclature/manifest.json), scripts de build et tests du paquet |
 
 Architect ne contient pas de commande qui ouvre et remplace un fichier
 `tokens.json` sur disque. Son export télécharge les règles de nommage. Le
@@ -412,7 +412,7 @@ et employer la même validation pour une réponse et pour un import.
 - Le manifeste n’ouvre aucun domaine réseau. Les noms sont rendus par
   `textContent` dans les chemins relus de l’interface.
 
-La [loi d’écriture](../../../../../packages/plugin-architect/tests/loiDEcriture.test.ts)
+La [loi d’écriture](../../../../../packages/plugin-nomenclature/tests/loiDEcriture.test.ts)
 est un contrôle textuel utile. Elle ne prouve ni la transaction du lot ni la
 durabilité du journal. Les tests existants d’interruption d’annulation
 n’épuisent pas les étapes d’un cycle.
@@ -485,9 +485,9 @@ journal antérieur encore nécessaire.
 À lancer depuis la racine du dépôt :
 
 ```powershell
-npm test --workspace ucm-architect-plugin
-npm run typecheck --workspace ucm-architect-plugin
-npm run build --workspace ucm-architect-plugin
+npm test --workspace ucm-nomenclature-plugin
+npm run typecheck --workspace ucm-nomenclature-plugin
+npm run build --workspace ucm-nomenclature-plugin
 npx tsx --test 'docs/notes/Recherches/Plugin Architect/5 Recette/Mesures/auditer-integrite.ts'
 ```
 

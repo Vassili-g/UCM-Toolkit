@@ -1,4 +1,4 @@
-/** Point d'entrée de l'écran d'UCM Architect : la coquille reçoit les messages du sandbox. */
+/** Point d'entrée de l'écran d'UCM Nomenclature : la coquille reçoit les messages du sandbox. */
 import type { PluginMessage, UiMessage } from '../messages';
 import { monterAAppliquer } from './aAppliquer';
 import { monterATrancher } from './aTrancher';

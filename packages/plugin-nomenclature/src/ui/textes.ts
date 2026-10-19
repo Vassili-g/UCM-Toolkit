@@ -16,13 +16,13 @@ function nombreDeNoms(variables: number, collections: number): string {
 }
 
 export const TEXTES = {
-  marque: 'UCM Architect',
+  marque: 'UCM Nomenclature',
   titreConfiguration: 'Configuration',
   boutonConfiguration: 'Configuration',
   ouvrirLaConfiguration: 'Ouvrir la configuration',
   retour: 'Retour',
 
-  etiquetteDesOnglets: 'Sections d’UCM Architect',
+  etiquetteDesOnglets: 'Sections d’UCM Nomenclature',
   ongletAAppliquer: 'Renommages',
   ongletATrancher: 'Questions',
   ongletRegles: 'Règles',
@@ -68,7 +68,7 @@ export const TEXTES = {
   reglesDeCeFichier: 'Règles de ce fichier',
   exporter: 'Exporter',
   importer: 'Importer',
-  nomDuFichierDeRegles: 'regles-ucm-architect.json',
+  nomDuFichierDeRegles: 'regles-ucm-nomenclature.json',
   choisirLeFichierDeRegles: 'Fichier de règles à importer',
   dernierRenommage: 'Dernier renommage',
   renommagesALHeure: (nombre: number, heure: string): string => `${noms(nombre)}, à ${heure}`,
@@ -83,7 +83,7 @@ export const TEXTES = {
     'fichier-modifie': 'Le fichier a changé depuis l’analyse. Relancez l’analyse.',
     'generation-perimee': 'Les noms affichés ne correspondent plus au fichier. Relancez l’analyse, puis recommencez.',
     'regles-modifiees': 'Les règles ont changé depuis le calcul de cette liste. Relisez la liste, puis recommencez.',
-    'import-illisible': 'Ce fichier de règles est illisible. Choisissez un fichier exporté depuis la Configuration d’UCM Architect.',
+    'import-illisible': 'Ce fichier de règles est illisible. Choisissez un fichier exporté depuis la Configuration d’UCM Nomenclature.',
     echec: 'L’opération a échoué. Relancez l’analyse ; si le message revient, rouvrez le plugin.',
   } satisfies Record<CodeDErreur, string>,
 

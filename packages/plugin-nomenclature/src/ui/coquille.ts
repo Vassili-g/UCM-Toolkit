@@ -1,5 +1,5 @@
 /**
- * La coquille de l'écran d'UCM Architect : l'en-tête du socle, les trois
+ * La coquille de l'écran d'UCM Nomenclature : l'en-tête du socle, les trois
  * onglets, les écrans de lecture et de premier lancement, la page
  * Configuration et le bandeau du fichier modifié. Elle relie la frontière à
  * l'état et l'état au DOM. Les lots d'onglet reçoivent la coquille et montent

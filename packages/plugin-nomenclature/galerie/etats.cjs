@@ -1,5 +1,5 @@
 /**
- * Les états d'UCM Architect : un par écran des maquettes, feuilles comprises,
+ * Les états d'UCM Nomenclature : un par écran des maquettes, feuilles comprises,
  * et au moins un par type de `PluginMessage`. Chaque état rejoue la suite de
  * gestes et de messages qui le produit dans l'interface réelle.
  *
@@ -105,7 +105,7 @@ module.exports.ETATS = [
   etat('import-refuse', 'Import refusé', 'Un fichier de règles importé contredit une règle du fichier.',
     'La phrase « Aucune règle n’a été importée » suivie d’une ligne par conflit.',
     [...ouvert(bilans.travail), clic('.icon-button', '.config-liste'),
-      { fichier: { dans: 'input[type="file"]', nom: 'regles-ucm-architect.json', contenu: '{"version":1}' } },
+      { fichier: { dans: 'input[type="file"]', nom: 'regles-ucm-nomenclature.json', contenu: '{"version":1}' } },
       msg(messages.refus(3, [conflitDeFichier, conflitDeCycle]), '.etat-erreur:not([hidden])')]),
   etat('erreur', 'Fichier modifié', 'Le fichier a changé depuis l’analyse.',
     'Le bandeau « Le fichier a changé » avec son bouton, au-dessus des onglets.',

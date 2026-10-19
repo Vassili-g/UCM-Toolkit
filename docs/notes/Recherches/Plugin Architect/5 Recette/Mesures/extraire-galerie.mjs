@@ -1,6 +1,6 @@
-// Fige des états sombres de la galerie d'UCM Architect : le DOM rendu, sans script, et la feuille du plugin.
+// Fige des états sombres de la galerie d'UCM Nomenclature : le DOM rendu, sans script, et la feuille du plugin.
 // Les maquettes modifient ces écrans réels au lieu de les redessiner.
-// Préalable : `npm run galerie -w ucm-architect-plugin`. Lancer depuis la racine du dépôt :
+// Préalable : `npm run galerie -w ucm-nomenclature-plugin`. Lancer depuis la racine du dépôt :
 // `node "docs/notes/Recherches/Plugin Architect/5 Recette/Mesures/extraire-galerie.mjs"`.
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const ici = path.dirname(fileURLToPath(import.meta.url));
-const galerie = path.resolve(ici, '../../../../../../packages/plugin-architect/dist/galerie/sombre');
+const galerie = path.resolve(ici, '../../../../../../packages/plugin-nomenclature/dist/galerie/sombre');
 const sortie = path.resolve(ici, '../Maquettes/galerie');
 const ETATS = [
   'a-appliquer-depliee',
