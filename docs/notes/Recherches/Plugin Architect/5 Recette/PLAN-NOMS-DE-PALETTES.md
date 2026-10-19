@@ -69,71 +69,79 @@ PascalCase), le fichier garde `Primitives/colors/Poppy/vivid/light/50` :
 
 ### S1 — Le calcul partagé dans le socle
 
-- [ ] `socle/src/reglesDeNommage.ts` : lecture des entrées de règles qui
+- [x] `socle/src/reglesDeNommage.ts` : lecture des entrées de règles qui
   changent un nom, depuis les couples (clé, texte) de l'espace
   `ESPACE_ARCHITECT` : `ecriture` (et la clé `conventions` de la v1),
   `terme:`, `ecart:`, `ordinaire:`, `exclues`. Rend `null` sans écriture
   enregistrée en v2 (cas `ecritureDeLaV1`). `nomenclature/src/regles.ts`
   réutilise ces lecteurs : un seul analyseur pour ces clés.
-- [ ] Déplacer dans le socle ce qui forme l'entrée du calcul :
+- [x] Déplacer dans le socle ce qui forme l'entrée du calcul :
   `inventaireDeLectures` et ses aides (`nomenclature/src/lecture.ts`),
   `inventairePublie` et `cheminsEnConflit` (`nomenclature/src/cheminsPublies.ts`).
   UCM Nomenclature les importe du socle ; aucun comportement ne change.
-- [ ] `socle/src/nomsSelonLesRegles.ts` : un générateur qui, pour un
+- [x] `socle/src/nomsSelonLesRegles.ts` : un générateur qui, pour un
   inventaire et des règles, rend les renommages après contrôle des chemins
   publiés. C'est la composition que `calculerTout` fait aujourd'hui
   (`nomenclature/src/session.ts`) ; `calculerTout` l'appelle. Les questions
   et les collections renommées restent dans UCM Nomenclature.
-- [ ] Test d'idempotence sur un inventaire de fichier entier (collections,
+- [x] Test d'idempotence sur un inventaire de fichier entier (collections,
   composants, palettes à deux intensités, thèmes dans le chemin) : appliquer
   les renommages puis recalculer ne donne aucun renommage.
+- Fait (`2ff5d11a`).
 - Fin : `npm test` vert ; aucun test d'UCM Nomenclature modifié sauf
   imports.
 
 ### P1 — Palettes suit les règles du fichier
 
-- [ ] Au moment d'écrire comme de simuler (`palettes/src/ecriture/variables.ts`,
+- [x] Au moment d'écrire comme de simuler (`palettes/src/ecriture/variables.ts`,
   `palettes/src/variables/gestion.ts`, l'aperçu de `palettes/src/ui/ongletCreation.ts`),
   construire un nommeur une fois par geste : il lit les règles (S1), lit
   toutes les collections et variables locales (tous types, pas seulement
   `COLOR`), remplace le nom des variables suivies par leur nom brut du plan,
   ajoute les variables à créer, et rend le nom final de chaque entrée par
   `nomsSelonLesRegles`.
-- [ ] Les comparaisons de noms (nom pris, variable à renommer, occupant)
+- [x] Les comparaisons de noms (nom pris, variable à renommer, occupant)
   portent sur les noms finaux. `planDesVariables` reste pur et rend les
   noms bruts ; le nommeur s'applique à sa sortie.
-- [ ] Sans règles, ou quand la collection de destination est exclue, les
+- [x] Sans règles, ou quand la collection de destination est exclue, les
   noms restent bruts (comportement actuel).
-- [ ] À l'ouverture du plugin, ranger la marque `nommage`
+- [x] À l'ouverture du plugin, ranger la marque `nommage`
   (`{ "version": 1 }`) dans `ESPACE_PARTAGE` à la racine si elle manque, dans
   un `try` (fichier en lecture seule). La clé est déclarée dans le kit, à côté
   de `CLES_PARTAGEES_DE_PALETTES`.
-- [ ] Tests : écriture des groupes en PascalCase → `Color/Poppy/Vivid/Light/50` ;
+- [x] Tests : écriture des groupes en PascalCase → `Color/Poppy/Vivid/Light/50` ;
   liaison `destination` et liaison `reprise` ; thèmes en modes ; sans règles,
   noms inchangés ; collection exclue, noms inchangés ; la détection relit
   une palette aux segments `Vivid`/`Light`.
+- Fait (`d8126cb8`).
 - Fin : `npm test` vert dans `packages/plugin-palettes`.
 
 ### N1 — UCM Nomenclature cesse de bloquer les variables de Palettes
 
-- [ ] Une variable de Palettes est renommable quand la marque `nommage` est
+- [x] Une variable de Palettes est renommable quand la marque `nommage` est
   présente, que l'écriture est enregistrée (S1 ne rend pas `null`) et que sa
   collection n'est pas exclue. Sinon elle reste protégée comme aujourd'hui.
-- [ ] Quand la protection reste, le bloc des noms non renommés dit, en mots
+- [x] Quand la protection reste, le bloc des noms non renommés dit, en mots
   de designer, que le dossier garde son nom parce qu'UCM Palettes y écrit, et
   qu'il suffit d'ouvrir UCM Palettes une fois pour qu'il suive les règles.
   Textes dans `nomenclature/src/ui/textes.ts`.
-- [ ] Le test d'aller-retour dans `tests/` : fichier avec palettes suivies
+- [x] Le test d'aller-retour dans `tests/` : fichier avec palettes suivies
   en minuscules, règles PascalCase et `colors → color` ; UCM Nomenclature
   calcule et applique ; le plan de Palettes avec le nommeur ne renomme rien
   et donne les mêmes noms.
+- [ ] Brancher le jugement dans le calcul de la session
+  (`nomenclature/src/session.ts` : `calculerTout`, `recalculer`,
+  `construireEtat`) ; tant que ce n'est pas fait, l'écran garde les
+  variables de Palettes protégées.
+- Fait sans `session.ts` (`5c7bb067`).
 - Fin : `npm test` vert à la racine.
 
 ### D1 — Le corpus d'UCM montre la forme des dossiers
 
-- [ ] `docs/references/design-systems/_outils/ucm.mjs` écrit
+- [x] `docs/references/design-systems/_outils/ucm.mjs` écrit
   `identifiantParCategorie` dans `registres.json` (les tailles des dossiers
   `small`, `medium`, `large`) ; régénérer `registres.json` et `sources.json`.
+- Fait (`37f31e45`).
 - Fin : `tests/corpusUcm.test.ts` vert.
 
 ### V — Versions et build
