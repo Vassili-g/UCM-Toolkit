@@ -209,30 +209,36 @@ Agent : `implementeur-exigeant`. Fichiers : `src/lecture.ts`,
 `src/lectureFigma.ts`, `src/session.ts`, `src/projection.ts`,
 `src/messages.ts`, leurs tests.
 
-- [ ] La lecture passe l'identifiant de palette de chaque variable.
-- [ ] `TermeDeListe` et `FicheVue` reçoivent `forme` (forme la plus fréquente
+- [x] La lecture passe l'identifiant de palette de chaque variable.
+- [x] `TermeDeListe` et `FicheVue` reçoivent `forme` (forme la plus fréquente
   dans le fichier) et `nature` (`composant`, `element`, `palette` ou `null`).
-- [ ] `listeDesTermes` et `nomsEmployant` lisent `occurrencesDesTermes`. Un
+- [x] `listeDesTermes` et `nomsEmployant` lisent `occurrencesDesTermes`. Un
   nom de collection n'a plus de ligne.
-- [ ] Filtres `tous`, `avec-regle`, `sans-regle`, `composants` (composants et
+- [x] Filtres `tous`, `avec-regle`, `sans-regle`, `composants` (composants et
   éléments), `palettes` ; `comptes` les cinq. Un nom ne compte jamais dans
   `sans-regle`. La recherche lit la clé et la forme.
-- [ ] La fiche et ses exemples marquent le terme entier.
-- [ ] Le détail du vocabulaire porte les natures et les termes de chaque nom.
-- [ ] Test du Playground : `line`, `height` (31), `stress`, `wrap`,
+- [x] La fiche et ses exemples marquent le terme entier.
+- [x] Le détail du vocabulaire porte les natures et les termes de chaque nom.
+- [x] Test du Playground : `line`, `height` (31), `stress`, `wrap`,
   `components` disparaissent ; `StressTest` compte 66 noms une fois ;
   « Sans règle » ne contient ni Button ni Poppy.
+  Fait en f0c822a2. Un terme de plusieurs mots qu'une règle du fichier ajoute
+  (`extra-small`) se cherche encore dans les mots, faute d'être dans le
+  lexique.
 
 ### P2 · Traiter comme un terme (plugin, après P1)
 
 Agent : `implementeur`. Fichiers : `src/regles.ts`, `src/session.ts`,
 `src/messages.ts`, leurs tests.
 
-- [ ] Règle `ordinaire:<clé>` dans `ESPACE_ARCHITECT` ;
+- [x] Règle `ordinaire:<clé>` dans `ESPACE_ARCHITECT` ;
   `ReglesDuFichier.ordinaires` ; export et import comme `voulus`.
-- [ ] Gestes `traiter-comme-terme` et `traiter-comme-nom` ; ils relancent le
+- [x] Gestes `traiter-comme-terme` et `traiter-comme-nom` ; ils relancent le
   calcul depuis l'inventaire.
-- [ ] Tests : le nom revient dans le vocabulaire, puis redevient un nom.
+- [x] Tests : le nom revient dans le vocabulaire, puis redevient un nom.
+  Fait en a997feab. Le premier essai coupait `StressTest` en `stress` et
+  `test` une fois traité comme un terme ; le kit garde désormais le segment
+  entier (47b3c12e).
 
 ### P3 · L'écran (plugin, après P2)
 
@@ -240,12 +246,15 @@ Agent : `implementeur`. Fichiers : `src/ui/listeDesTermes.ts`,
 `src/ui/regles.ts`, `src/ui/feuilles.ts`, `src/ui/textes.ts`,
 `src/ui/styles.css`, `galerie/`, leurs tests.
 
-- [ ] Cinq filtres ; la ligne affiche la forme ; la pastille grise
+- [x] Cinq filtres ; la ligne affiche la forme ; la pastille grise
   `pastille-indice` dit la nature et passe avant celle de l'origine.
-- [ ] La fiche d'un nom : pastille grise, phrase de la maquette, lien
+- [x] La fiche d'un nom : pastille grise, phrase de la maquette, lien
   « Traiter comme un terme ». La fiche d'un terme ordinaire dont la nature
   est repérée offre « Traiter comme un nom ».
-- [ ] Galerie : la liste avec des noms, la fiche d'un composant.
+- [x] Galerie : la liste avec des noms, la fiche d'un composant.
+  Fait en 61c1c868, états de galerie `regles-noms` et `feuille-composant`.
+  Les étapes « Remplacer par… » et « Remplace d’autres termes… » titrent
+  encore avec la clé (`button`) et non la forme.
 
 ### P4 · Un groupe protégé ne se coupe pas (kit, pendant K1)
 
@@ -261,9 +270,12 @@ non renommables : la règle vit dans `normaliserParEtapes`
 
 ### F · Fin
 
-- [ ] `AGENTS.md`, section UCM Nomenclature : la nature d'un segment vient du
-  kit, un nom n'entre dans aucune question.
-- [ ] `npm test` à la racine, build du plugin, export du Playground relu.
+- [x] `AGENTS.md`, section UCM Nomenclature : la nature d'un segment vient du
+  kit, un nom n'entre dans aucune question (4b8b4b6d).
+- [x] `npm test` à la racine (dix paquets, aucun échec), build du plugin ;
+  kit 0.9.6, cli 0.1.65, adapter 0.1.58 (3ccd4888).
+- [ ] Recette dans Figma par le mainteneur : relancer l'analyse du
+  Playground, relire la liste et refaire l'export du détail du vocabulaire.
 
 ## Ordre
 
