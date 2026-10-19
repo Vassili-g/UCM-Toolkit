@@ -7,7 +7,7 @@ import { LISTE_INITIALE, choisir, debutSuivant, filtrer, recevoir, resteAAffiche
 const COMPTES = { tous: 120, avecRegle: 20, sansRegle: 100 };
 
 function termes(depart: number, nombre: number): TermeDeListe[] {
-  return Array.from({ length: nombre }, (_, rang) => ({ mot: `terme-${depart + rang}`, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 1 }));
+  return Array.from({ length: nombre }, (_, rang) => ({ mot: `terme-${depart + rang}`, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 1, trouve: null }));
 }
 
 test('les pages successives s’ajoutent bout à bout', () => {
@@ -66,7 +66,7 @@ test('le terme choisi survit à une page et à une recherche', () => {
 });
 
 test('le résumé d’une ligne dit la règle du terme', () => {
-  const base: TermeDeListe = { mot: 'pressed', origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38 };
+  const base: TermeDeListe = { mot: 'pressed', origine: 'ucm', statut: 'regle', remplace: ['press', 'push'], avec: null, nombre: 38, trouve: null };
   assert.equal(resumeDuTerme(base), 'remplace press, push');
   assert.equal(resumeDuTerme({ ...base, statut: 'a-trancher', avec: 'error' }), 'à trancher avec error');
   assert.equal(resumeDuTerme({ ...base, statut: 'a-trancher', avec: null }), 'à trancher');

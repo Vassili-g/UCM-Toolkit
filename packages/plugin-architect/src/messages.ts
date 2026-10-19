@@ -80,7 +80,7 @@ export interface Bilan {
   readonly dernierRenommage: { readonly nombre: number; readonly heure: string } | null;
 }
 /** Le filtre `avec-regle` montre `regle` et `ecart` ; `sans-regle` montre `sans-regle` et `a-trancher`. */
-export interface TermeDeListe { readonly mot: string; readonly origine: OrigineDuTerme | null; readonly statut: 'regle' | 'ecart' | 'a-trancher' | 'sans-regle'; readonly remplace: readonly string[]; readonly avec: string | null; readonly nombre: number }
+export interface TermeDeListe { readonly mot: string; readonly origine: OrigineDuTerme | null; readonly statut: 'regle' | 'ecart' | 'a-trancher' | 'sans-regle'; readonly remplace: readonly string[]; readonly avec: string | null; readonly nombre: number; readonly trouve: string | null }
 export interface FicheVue {
   readonly mot: string; readonly origine: OrigineDuTerme | null; readonly categorieUcm: string | null; readonly definition: string | null;
   readonly remplace: readonly { readonly mot: string; readonly nombre: number; readonly ucm: boolean }[];

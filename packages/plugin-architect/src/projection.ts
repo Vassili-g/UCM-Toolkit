@@ -600,7 +600,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
   // La liste des termes et la fiche
 
   /** Le statut d'un terme et ce qu'il remplace, d'après les règles du fichier. */
-  function entreeDuTerme(cle: string): Omit<TermeDeListe, 'mot' | 'nombre'> {
+  function entreeDuTerme(cle: string): Omit<TermeDeListe, 'mot' | 'nombre' | 'trouve'> {
     const { ucm, ecartes, remplaceesParUcm, personnalises, remplaceesParPerso } = table();
     const perso = personnalises.get(cle);
     const gardeParUcm = ucm.get(cle);
@@ -627,7 +627,9 @@ export function projeter(entree: EntreeDeProjection): Projection {
     for (const terme of ucm.values()) {
       if (!cles.has(terme.cle) && terme.formes.some((forme) => emploi(forme).length > 0)) cles.add(terme.cle);
     }
-    return [...cles].map((cle): TermeDeListe => ({ mot: cle, nombre: emploi(cle).length, ...entreeDuTerme(cle) }))
+    // Un terme remplacé n'a pas de ligne : sa référence le porte dans `remplace`.
+    return [...cles].map((cle): TermeDeListe => ({ mot: cle, nombre: emploi(cle).length, ...entreeDuTerme(cle), trouve: null }))
+      .filter((terme) => !(terme.statut === 'regle' && terme.avec !== null))
       .sort((a, b) => b.nombre - a.nombre || comparer(a.mot, b.mot));
   });
 
@@ -636,8 +638,13 @@ export function projeter(entree: EntreeDeProjection): Projection {
   function termes(requete: RequeteDeTermes): PageDeTermes {
     const toutes = listeDesTermes();
     const recherche = requete.recherche.trim().toLowerCase();
-    const retenues = toutes.filter((terme) =>
-      (requete.filtre === 'tous' || aUneRegle(terme) === (requete.filtre === 'avec-regle')) && terme.mot.includes(recherche));
+    const retenues: TermeDeListe[] = [];
+    for (const terme of toutes) {
+      if (requete.filtre !== 'tous' && aUneRegle(terme) !== (requete.filtre === 'avec-regle')) continue;
+      if (recherche === '' || terme.mot.includes(recherche)) { retenues.push(terme); continue; }
+      const variante = terme.remplace.find((forme) => forme.includes(recherche));
+      if (variante !== undefined) retenues.push({ ...terme, trouve: variante });
+    }
     const avecRegle = toutes.filter(aUneRegle).length;
     return {
       termes: retenues.slice(requete.debut, requete.debut + TAILLE_DE_PAGE),

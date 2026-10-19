@@ -104,12 +104,12 @@ const bilans = {
 };
 
 const termes = [
-  { mot: 'background', origine: 'ucm', statut: 'regle', remplace: ['bg', 'back'], avec: null, nombre: 40 },
-  { mot: 'hover', origine: 'personnalise', statut: 'regle', remplace: ['hovered'], avec: null, nombre: 8 },
-  { mot: 'bg', origine: null, statut: 'a-trancher', remplace: [], avec: 'background', nombre: 12 },
-  { mot: 'sm', origine: null, statut: 'a-trancher', remplace: [], avec: null, nombre: 20 },
-  { mot: 'radius', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 9 },
-  { mot: 'surface', origine: 'ucm', statut: 'ecart', remplace: [], avec: null, nombre: 6 },
+  { mot: 'background', origine: 'ucm', statut: 'regle', remplace: ['bg', 'back'], avec: null, nombre: 40, trouve: null },
+  { mot: 'hover', origine: 'personnalise', statut: 'regle', remplace: ['hovered'], avec: null, nombre: 8, trouve: null },
+  { mot: 'bg', origine: null, statut: 'a-trancher', remplace: [], avec: 'background', nombre: 12, trouve: null },
+  { mot: 'sm', origine: null, statut: 'a-trancher', remplace: [], avec: null, nombre: 20, trouve: null },
+  { mot: 'radius', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 9, trouve: null },
+  { mot: 'surface', origine: 'ucm', statut: 'ecart', remplace: [], avec: null, nombre: 6, trouve: null },
 ];
 
 const fiches = {

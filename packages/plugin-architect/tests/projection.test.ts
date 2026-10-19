@@ -289,17 +289,28 @@ test('la liste des termes dit le statut, l’origine et ce que chaque terme remp
   }));
   const liste = projection.termes({ recherche: '', filtre: 'tous', debut: 0 });
   const parMot = new Map(liste.termes.map((terme) => [terme.mot, terme]));
-  assert.deepEqual(parMot.get('pressed'), { mot: 'pressed', origine: 'ucm', statut: 'regle', remplace: ['press'], avec: null, nombre: 1 });
-  assert.deepEqual(parMot.get('press'), { mot: 'press', origine: 'ucm', statut: 'regle', remplace: [], avec: 'pressed', nombre: 1 });
-  assert.deepEqual(parMot.get('outlined'), { mot: 'outlined', origine: 'personnalise', statut: 'regle', remplace: ['outline'], avec: null, nombre: 0 });
-  assert.deepEqual(parMot.get('outline'), { mot: 'outline', origine: 'personnalise', statut: 'regle', remplace: [], avec: 'outlined', nombre: 1 });
-  assert.deepEqual(parMot.get('disabled'), { mot: 'disabled', origine: 'ucm', statut: 'ecart', remplace: [], avec: null, nombre: 0 });
-  assert.deepEqual(parMot.get('gap'), { mot: 'gap', origine: null, statut: 'a-trancher', remplace: [], avec: 'space', nombre: 3 });
-  assert.deepEqual(parMot.get('button'), { mot: 'button', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 6 });
+  assert.deepEqual(parMot.get('pressed'), { mot: 'pressed', origine: 'ucm', statut: 'regle', remplace: ['press'], avec: null, nombre: 1, trouve: null });
+  assert.equal(parMot.has('press'), false);
+  assert.deepEqual(parMot.get('outlined'), { mot: 'outlined', origine: 'personnalise', statut: 'regle', remplace: ['outline'], avec: null, nombre: 0, trouve: null });
+  assert.equal(parMot.has('outline'), false);
+  assert.deepEqual(parMot.get('disabled'), { mot: 'disabled', origine: 'ucm', statut: 'ecart', remplace: [], avec: null, nombre: 0, trouve: null });
+  assert.deepEqual(parMot.get('gap'), { mot: 'gap', origine: null, statut: 'a-trancher', remplace: [], avec: 'space', nombre: 3, trouve: null });
+  assert.deepEqual(parMot.get('button'), { mot: 'button', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 6, trouve: null });
   assert.equal(parMot.has('extra-small'), false);
   assert.equal(parMot.has('hover'), true);
   assert.deepEqual(liste.comptes, { tous: liste.total, avecRegle: liste.termes.filter((t) => t.statut === 'regle' || t.statut === 'ecart').length, sansRegle: liste.termes.filter((t) => t.statut === 'a-trancher' || t.statut === 'sans-regle').length });
   assert.deepEqual(liste.termes.slice(0, 2).map((terme) => terme.mot), ['button', 'gap']);
+});
+
+test('la recherche trouve une référence par une de ses variantes et le dit', () => {
+  const projection = projeter(calculer(fichierDesTermes, { termes: [{ terme: ['extra', 'small'], remplace: [['xs']] }] }));
+  const parVariante = projection.termes({ recherche: 'XS', filtre: 'tous', debut: 0 });
+  assert.deepEqual(parVariante.termes.map((terme) => [terme.mot, terme.trouve]), [['extra-small', 'xs']]);
+  const parMot = projection.termes({ recherche: 'extra-s', filtre: 'tous', debut: 0 });
+  assert.deepEqual(parMot.termes.map((terme) => [terme.mot, terme.trouve]), [['extra-small', null]]);
+  assert.equal(projection.termes({ recherche: '', filtre: 'tous', debut: 0 }).termes.every((terme) => terme.trouve === null), true);
+  assert.equal(projection.termes({ recherche: 'xs', filtre: 'sans-regle', debut: 0 }).total, 0);
+  assert.equal(projection.termes({ recherche: 'xs', filtre: 'avec-regle', debut: 0 }).total, 1);
 });
 
 test('les filtres et la recherche réduisent la liste sans changer les comptes', () => {
@@ -312,8 +323,8 @@ test('les filtres et la recherche réduisent la liste sans changer les comptes',
   assert.ok(sans.termes.every((terme) => terme.statut === 'sans-regle' || terme.statut === 'a-trancher'));
   assert.deepEqual(avec.comptes, tous.comptes);
   const recherche = projection.termes({ recherche: '  PRESS ', filtre: 'tous', debut: 0 });
-  assert.deepEqual(recherche.termes.map((terme) => terme.mot).sort(), ['press', 'pressed']);
-  assert.equal(recherche.total, 2);
+  assert.deepEqual(recherche.termes.map((terme) => [terme.mot, terme.trouve]), [['pressed', null]]);
+  assert.equal(recherche.total, 1);
   assert.deepEqual(recherche.comptes, tous.comptes);
   assert.equal(projection.termes({ recherche: 'press', filtre: 'sans-regle', debut: 0 }).total, 0);
 });
@@ -363,7 +374,7 @@ test('un terme de plusieurs mots se compte par la suite de ses mots', () => {
   const projection = projeter(calculer(fichierDesTermes, { termes: [{ terme: ['extra', 'small'], remplace: [['xs']] }] }));
   assert.equal(projection.fiche('extra-small').emploi.nombre, 1);
   const terme = projection.termes({ recherche: 'extra-small', filtre: 'tous', debut: 0 }).termes[0];
-  assert.deepEqual(terme, { mot: 'extra-small', origine: 'personnalise', statut: 'regle', remplace: ['xs'], avec: null, nombre: 1 });
+  assert.deepEqual(terme, { mot: 'extra-small', origine: 'personnalise', statut: 'regle', remplace: ['xs'], avec: null, nombre: 1, trouve: null });
 });
 
 // Les conflits et les effets
