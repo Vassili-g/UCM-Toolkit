@@ -280,3 +280,24 @@ non renommables : la règle vit dans `normaliserParEtapes`
 ## Ordre
 
 K1 et K3 en parallèle, P4 pendant K1, puis K2, K4, P1, P2, P3.
+
+## Tour 2
+
+Retour du mainteneur après la première implémentation.
+
+- [x] Sur UCM, un composant est seulement un nom à la racine de la
+  collection `components` ou d'un dossier `components`. La nature `element`
+  disparaît ; ScaleWrap, UserInput ou TilesGrid sont des noms de groupe. Un
+  bloc en camelCase dont un mot est inconnu reste un seul terme, pour que
+  `wrap` ne ressorte pas de `TileLinksWrap`. Fait en 6714152e, kit 0.9.7
+  (d9022034). Conséquence : une règle personnalisée sur un mot inconnu ne
+  s'applique plus à l'intérieur d'un tel bloc.
+- [ ] Le terme de référence s'écrit dans la convention de la catégorie qui
+  l'emploie le plus (`Color` pour un dossier en PascalCase) ; les variantes
+  gardent leur forme du fichier.
+- [ ] La fiche place la définition sous le nom, dans l'en-tête ; le jeton du
+  terme se détache du bloc gris de la règle.
+- [ ] La vue Vocabulaire : choix entre les trois propositions de la
+  [maquette du tour 2](./Maquettes/vocabulaire-2/MAQUETTE-VOCABULAIRE-2.html),
+  un menu « Filtrer » à cases à cocher et un tri par type puis par ordre
+  alphabétique.
