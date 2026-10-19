@@ -9,7 +9,7 @@ import { assembler, capitale, categorieDuSegment, commencerDetectionDesConventio
 import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
 import { termePourCategorie } from './termes.js';
 
-export { decouperSegment } from './ecriture-des-mots.js';
+export { assembler, categorieDuSegment, decouperSegment, motsAvecCasse } from './ecriture-des-mots.js';
 
 export type RaisonDeNormalisation = 'casse' | 'separateur' | 'terme-tolere';
 export type PropositionDeNom = Omit<NomANormaliser, 'nom'> & {
