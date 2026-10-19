@@ -127,9 +127,9 @@ Agent : `implementeur-exigeant`. Fichiers : `referentiel/natures.ts` (nouveau),
 `referentiel/harmonisation.ts` (`NomLu.palette`), `referentiel/index.ts`,
 `tests/naturesReferentiel.test.ts` (nouveau).
 
-- [ ] `NomLu` reçoit `palette?: string`, l'identifiant de palette qu'UCM
+- [x] `NomLu` reçoit `palette?: string`, l'identifiant de palette qu'UCM
   Palettes écrit dans les données partagées de la variable.
-- [ ] `naturesDesNoms(noms, options)` rend, pour chaque nom, la nature de
+- [x] `naturesDesNoms(noms, options)` rend, pour chaque nom, la nature de
   chaque segment : `composant`, `element`, `palette` ou `null`.
   - `composant` : rang 0, dans la collection dont le nom est reconnu
     `components` (la portée d'une variable est l'identifiant du nom de sa
@@ -146,10 +146,13 @@ Agent : `implementeur-exigeant`. Fichiers : `referentiel/natures.ts` (nouveau),
     (`termeOuFormeConnu`, sans les fautes à une lettre près),
     pour un mot employé aussi à une place sans nature, ni pour une clé de
     `options.ordinaires`.
-- [ ] Tests sur un extrait du Playground : Button, StressTest, Alert, TileLink
+- [x] Tests sur un extrait du Playground : Button, StressTest, Alert, TileLink
   composants ; ScaleWrap, UserInput, TilesGrid, Badge, TextColumns, Head,
   TileLinksWrap éléments ; les huit palettes ; `Icons`, `Base`, `Divider`,
   `primary`, `success`, `scale` sans nature ; un nom ordinaire sans nature.
+  Fait en 14640ef. Le dernier segment d'une variable n'a jamais de nature.
+  `button` reste un nom possible, bien que l'abréviation `btn` le fasse
+  connaître.
 
 ### K2 · Les termes d'un segment (kit, après K1)
 
@@ -183,11 +186,12 @@ Agent : `implementeur-exigeant`. Fichiers : `referentiel/ecriture-des-mots.ts`,
 Agent : `implementeur`. Fichiers : `referentiel/vocabulaire.ts`, les tests du
 référentiel, la vue illustrée (`generer-donnees-referentiel.ts`).
 
-- [ ] `TAILLES_RETENUES` et `SIZE_VALUES` reçoivent `5xs` à `9xs` et `5xl` à
+- [x] `TAILLES_RETENUES` et `SIZE_VALUES` reçoivent `5xs` à `9xs` et `5xl` à
   `9xl`, dans l'ordre de l'échelle.
-- [ ] `REGISTRE_COTES` (`x`, `y`, `top`, `right`, `bottom`, `left`, libellés
+- [x] `REGISTRE_COTES` (`x`, `y`, `top`, `right`, `bottom`, `left`, libellés
   bilingues), ajouté à `REGISTRES`.
-- [ ] Vue illustrée régénérée ; `referentielUnique.test.ts` passe.
+- [x] `referentielUnique.test.ts` passe. La vue illustrée ne montre ni les
+  tailles ni ces registres : rien à régénérer. Fait en 1a10884.
 
 ### K4 · La version du kit (après K1 à K3)
 
@@ -239,16 +243,17 @@ Agent : `implementeur`. Fichiers : `src/ui/listeDesTermes.ts`,
   est repérée offre « Traiter comme un nom ».
 - [ ] Galerie : la liste avec des noms, la fiche d'un composant.
 
-### P4 · Un groupe protégé ne se coupe pas (plugin, pendant K2)
+### P4 · Un groupe protégé ne se coupe pas (kit, pendant K1)
 
-Agent : `implementeur-exigeant`. Fichiers : `src/session.ts`,
-`tests/session.test.ts`.
+Agent : `implementeur-exigeant`. Le calcul des renommages reçoit déjà les noms
+non renommables : la règle vit dans `normaliserParEtapes`
+(`referentiel/lexique.ts`), testée dans `tests/lexiqueReferentiel.test.ts`.
 
-- [ ] Test : `colors/Titanium/white` non protégé, à côté de
+- [x] Test : `colors/Titanium/white` non protégé, à côté de
   `colors/Titanium/light/50` protégé, garde `colors/Titanium`.
-- [ ] Si le test échoue : un segment de groupe partagé avec une variable
+- [x] Si le test échoue : un segment de groupe partagé avec une variable
   protégée garde son écriture pour toutes les variables du même chemin
-  parent.
+  parent. Le test échouait ; corrigé en a165887.
 
 ### F · Fin
 
@@ -258,4 +263,4 @@ Agent : `implementeur-exigeant`. Fichiers : `src/session.ts`,
 
 ## Ordre
 
-K1 et K3 en parallèle, puis K2, K4, P1, P2, P3. P4 tourne pendant K2.
+K1 et K3 en parallèle, P4 pendant K1, puis K2, K4, P1, P2, P3.
