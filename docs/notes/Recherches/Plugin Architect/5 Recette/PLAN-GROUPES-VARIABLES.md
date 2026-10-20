@@ -161,10 +161,11 @@ Fichiers : `galerie/donnees.cjs`, `galerie/etats.cjs`.
 - [x] `npm run build` du plugin, puis `npm run galerie` ; chaque état atteint
   `pret`.
 - [x] `node scripts/controle-style.mjs` sur les fichiers touchés.
-- [ ] Le banc du socle n'a pas d'étape pour un menu déroulant :
-  `regles-tri-nombre` pose la valeur du tri par une `saisie`, puis envoie
-  `change` par une étape `fichier`. Une étape `selection` dans
-  `plugin-socle/galerie/banc.cjs` retirerait ce détour.
+- [x] Étape `selection` dans `plugin-socle/galerie/banc.cjs` pour un menu
+  déroulant ; `regles-tri-nombre` s'en sert (4e4d4231).
+- [x] Exemple des conventions d'écriture : le chemin le plus profond jusqu'à
+  quatre segments, chaque segment avec une lettre, tous les groupes marqués
+  (3ee72ae4).
 
 ### F · Fin · conversation principale
 
