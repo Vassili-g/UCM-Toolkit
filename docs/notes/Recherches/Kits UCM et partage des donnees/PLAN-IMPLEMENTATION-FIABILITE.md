@@ -448,6 +448,15 @@ Plan de fiabilité, section « Lot 2 ». Sondes de Codex :
     modèle.
   - Fini quand : tests verts ; la conversation principale relit les états de
     galerie.
+- [ ] **T2.5** · `implementeur` · Les déclarations des lecteurs suivent le code
+  - Constat de T2.1 : `packages/kit/src/lecteurs/index.d.mts` déclare
+    `porteLaTableDesEmplois`, `constatsDesEmplois`, `sectionEmplois` et
+    `resumeTerminalEmplois`, qu'aucun module n'exporte plus ; `index.mjs`
+    exporte `constatsDesContrastes`, `sectionContrastes` et
+    `resumeTerminalContrastes`. `navigateur.d.mts` republie les mêmes noms.
+  - Fichiers : `index.d.mts`, `navigateur.d.mts`, un test du kit qui compare les
+    noms exportés de `index.mjs` et `navigateur.mjs` aux noms déclarés.
+  - Fini quand : le test passe, et il échoue sur un nom déclaré sans export.
 - [ ] **Clôture du lot 2** (numéro du kit monté)
 
 ## Lot 3. Une couleur de composant vise le thème
@@ -618,10 +627,21 @@ Plan de fiabilité, section « Lot 6 », décisions D1 et D7. Sonde de Codex :
 Plan de fiabilité, section « Lot 14 », décision D5. Sonde de Codex :
 `destination-theme`.
 
-- [ ] **T14.0** · Conversation principale · Texte du refus
-  - Écrire le message de refus, avec la skill `rediger-diagnostics-ucm`, et le
-    passer à T14.1.
-- [ ] **T14.1** · `implementeur` · Refuser une couche interdite
+- [ ] **T14.0** · Conversation principale · **Conception**
+  - Fixer dans `conception/lot-14.md` : la clé partagée de l'interrupteur full
+    UCM (espace, nom, forme `{ version, … }`, classement absent, courant,
+    illisible, futur), son déclarant dans le kit, sa place dans la
+    Configuration de Nomenclature (onglet, libellé, phrase d'aide, au format de
+    `createInterrupteur` comme l'exporteur), son entrée dans l'Historique de la
+    Configuration, sa lecture par Palettes, et le message de refus écrit avec
+    la skill `rediger-diagnostics-ucm`.
+- [ ] **T14.2** · `implementeur` · L'interrupteur full UCM de Nomenclature
+  - Entrée : `conception/lot-14.md`.
+  - Fichiers : ceux que la note désigne dans `packages/plugin-nomenclature/`
+    (Configuration, textes, historique, protocole, galerie) et le kit.
+  - Fini quand : tests et galerie de Nomenclature verts ; la conversation
+    principale relit l'état de galerie.
+- [ ] **T14.1** · `implementeur` · Refuser une couche interdite (après T14.2)
   - Fichiers : `packages/kit/src/referentiel/architecture.ts` (exporter la
     liste des couches où Palettes n'écrit pas : `theme`, `brands`, `utility`),
     `packages/plugin-palettes/src/variables/destination.ts`
@@ -630,7 +650,8 @@ Plan de fiabilité, section « Lot 14 », décision D5. Sonde de Codex :
     `src/i18n/en.ts`, les tests, et `AGENTS.md` (invariants de Palettes : la
     frontière « jamais dans `theme`, `brands` ni `utility` » en full UCM, que
     le fichier ne décrit pas encore).
-  - Faire : quand `collectionUcmReconnue` reconnaît la collection visée comme
+  - Faire : quand l'interrupteur full UCM est activé et que
+    `collectionUcmReconnue` reconnaît la collection visée comme
     une couche interdite, le rangement et l'écriture refusent avant toute
     mutation. Une collection non reconnue reste admise.
   - Tests : une collection par couche ; une collection libre ; le refus avant

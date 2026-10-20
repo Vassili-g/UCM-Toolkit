@@ -13,7 +13,7 @@ donnent `soft` ; `ForegroundMain`, `foreground_main` et `foregroundmain`
 donnent `foreground-main`.
 
 ```ts
-// packages/kit/src/referentiel/termes.ts
+// packages/kit/src/referentiel/reconnaissance.ts (d'abord écrit dans termes.ts, déplacé pour casser un cycle d'imports)
 /** Le texte ramené à la forme qu'on compare : mots de `decouperSegment`, en minuscules, joints par `-`. */
 export function formeReconnue(texte: string): string;
 
@@ -33,7 +33,7 @@ export function termeReconnu(registre: Registre, segment: string): Terme | undef
 
 ## La grammaire
 
-`cheminConforme` (`architecture.ts`) garde sa signature et ses refus d'un
+`cheminConforme` (d'abord dans `architecture.ts`, désormais dans `grammaire.ts`) garde sa signature et ses refus d'un
 segment vide, entouré d'espaces ou qui contient `/` ou `.`. Ensuite :
 
 - `exclues` et `valeurs` se comparent par `formeReconnue` des deux côtés ;

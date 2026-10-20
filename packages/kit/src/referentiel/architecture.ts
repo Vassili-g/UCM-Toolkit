@@ -5,7 +5,6 @@
  */
 import { NIVEAUX_D_ELEVATION_DU_THEME, VARIABLES_DE_PALETTE, VARIABLES_DU_NEUTRE, VARIABLES_GLOBALES } from '../emplois/dossiers.js';
 import type { Registre } from './termes.js';
-import { termeRetenu } from './termes.js';
 import { REGISTRE_CRANS, REGISTRE_MODES, REGISTRE_PROFILS, REGISTRE_STATUTS, REGISTRE_TAILLES } from './vocabulaire.js';
 
 export const COLLECTIONS = ['components', 'theme', 'brands', 'utility', 'primitives', 'layout', 'typography'] as const;
@@ -140,15 +139,6 @@ export const FORMES_DES_CHEMINS: Readonly<Record<Exclude<Collection, 'components
 };
 
 /** Valide des segments sans préfixe de collection. Les propriétés de `components` dépendent du composant. */
-export function cheminConforme(collection: Collection, segments: readonly string[]): boolean {
-  if (collection === 'components') return false;
-  return FORMES_DES_CHEMINS[collection].some((forme) => forme.length === segments.length && forme.every((position, rang) => {
-    const segment = segments[rang];
-    if (!segment || segment.trim() !== segment || /[/.]/.test(segment) || position.exclues?.includes(segment)) return false;
-    if (position.valeurs) return position.valeurs.includes(segment);
-    return Boolean(termeRetenu(position.registre, segment)) || position.registre.extensible;
-  }));
-}
 
 export function estNeutre(nom: string): boolean {
   return nom.trim().toLowerCase() === 'neutral';

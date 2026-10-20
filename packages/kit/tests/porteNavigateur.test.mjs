@@ -69,4 +69,7 @@ test("la porte navigateur juge un contrat comme la porte Node", () => {
   assert.equal(navigateur.verdictDeVersion("2.0"), "ancien");
   assert.deepEqual([...navigateur.collecterReferences(navigateur.sansEchantillon({ a: "{x.y}", samples: { b: "{z.w}" } }))], ["{x.y}"]);
   assert.deepEqual(navigateur.champsInvalidesDuContrat(null), porte.champsInvalidesDuContrat(null));
+  const un = { nature: "duree", secondes: 1 };
+  assert.deepEqual(navigateur.comparerAuTokenPublie(un, "duration", { value: 1000, unit: "ms" }), { etat: "egal" });
+  assert.deepEqual(navigateur.comparerAuTokenPublie(un, "duration", { value: 1, unit: "ms" }), porte.comparerAuTokenPublie(un, "duration", { value: 1, unit: "ms" }));
 });

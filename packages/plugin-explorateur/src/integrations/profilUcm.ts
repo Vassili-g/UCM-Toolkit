@@ -11,11 +11,9 @@
  */
 import {
   SUPPORT_DES_VARIABLES,
-  VARIABLES_DE_PALETTE,
-  VARIABLES_DU_NEUTRE,
-  VARIABLES_GLOBALES,
   cranDeLaVariable,
   sensDuTheme,
+  type ModeDuTheme,
   type SupportDeVariable,
   type VariableDuTheme,
 } from '@ucm-kit/core/emplois';
@@ -25,12 +23,16 @@ import {
   CIBLES_DES_COLLECTIONS,
   DEFINITIONS_DES_VARIABLES,
   FORMES_ANCIENNES_DES_COLLECTIONS,
+  indexerVocabulaire,
+  modeDuThemeReconnu,
+  variableDuThemeReconnue,
   type Collection,
+  type IndexDuVocabulaire,
 } from '@ucm-kit/core/referentiel';
 import type { Recette } from 'ucm-couleur';
 
 import type { Index } from '../indexation';
-import type { VariableRelevee } from '../modele';
+import type { VariableRelevee, VocabulaireDuReleve } from '../modele';
 
 export const COUCHES = COLLECTIONS;
 
@@ -71,17 +73,29 @@ export function coucheRangee(valeur: unknown): Couche | null {
   return estCouche(valeur) ? valeur : null;
 }
 
-const VARIABLES_DU_THEME: readonly VariableDuTheme[] = [
-  ...VARIABLES_DE_PALETTE,
-  ...VARIABLES_DU_NEUTRE,
-  ...VARIABLES_GLOBALES,
-  'elevation/page',
-  'elevation/raised',
-];
+const indexesDesVocabulaires = new WeakMap<object, IndexDuVocabulaire | null>();
+
+/**
+ * L'index des termes que le fichier déclare ; `undefined` sans règle, ou quand un relevé importé porte un vocabulaire
+ * de forme inattendue. Gardé par relevé : l'indexation parcourt tous les registres du kit.
+ */
+export function indexDuVocabulaire(vocabulaire: VocabulaireDuReleve | undefined): IndexDuVocabulaire | undefined {
+  if (!vocabulaire || typeof vocabulaire !== 'object') return undefined;
+  const connu = indexesDesVocabulaires.get(vocabulaire);
+  if (connu !== undefined) return connu ?? undefined;
+  let index: IndexDuVocabulaire | null = null;
+  try {
+    index = indexerVocabulaire({ personnalises: vocabulaire.personnalises, ecartsUcm: vocabulaire.ecartsUcm }).index;
+  } catch {
+    index = null;
+  }
+  indexesDesVocabulaires.set(vocabulaire, index);
+  return index ?? undefined;
+}
 
 /** La variable de dossier qu'un nom de `theme` porte, par sa fin : `primary/solid/hover` est `solid/hover`. `null` pour `identity` et tout nom inconnu. */
-export function variableDuNom(nom: string): { variable: VariableDuTheme; support: SupportDeVariable } | null {
-  const variable = VARIABLES_DU_THEME.find((candidate) => nom === candidate || nom.endsWith(`/${candidate}`));
+export function variableDuNom(nom: string, index?: IndexDuVocabulaire): { variable: VariableDuTheme; support: SupportDeVariable } | null {
+  const variable = variableDuThemeReconnue(nom, index);
   return variable ? { variable, support: SUPPORT_DES_VARIABLES[variable] } : null;
 }
 
@@ -91,8 +105,8 @@ export function libelleDeLaVariable(variable: string, langue: 'fr' | 'en' = 'fr'
 }
 
 /** La nuance qu'une variable de dossier doit viser dans un mode ; `null` sans nuance à juger. */
-export function nuanceAttendue(nom: string, mode: 'light' | 'dark', recette: Recette): number | null {
-  const lue = variableDuNom(nom);
+export function nuanceAttendue(nom: string, mode: ModeDuTheme, recette: Recette, index?: IndexDuVocabulaire): number | null {
+  const lue = variableDuNom(nom, index);
   if (!lue) return null;
   const cran = cranDeLaVariable(lue.variable, mode, sensDuTheme(mode, recette.texteDesBoutons[mode]));
   return typeof cran === 'number' ? cran : null;
@@ -105,15 +119,20 @@ function memeEnsemble(a: readonly string[], b: readonly string[]): boolean {
 /**
  * Les écarts au profil, sur les variables de couleur des collections
  * associées. `recette` permet le contrôle de la nuance attendue. Les
- * exceptions du designer sont retirées.
+ * exceptions du designer sont retirées. `indexDuVocabulaire` apporte les termes
+ * du fichier : un mode que ni UCM ni ces termes ne désignent n'est pas contrôlé.
  */
-export function controlerLeProfil(index: Index, couches: AssociationDesCouches, options: { recette?: Recette | null; exceptions?: ReadonlySet<string> } = {}): ConstatDuProfil[] {
+export function controlerLeProfil(
+  index: Index,
+  couches: AssociationDesCouches,
+  options: { recette?: Recette | null; exceptions?: ReadonlySet<string>; indexDuVocabulaire?: IndexDuVocabulaire } = {},
+): ConstatDuProfil[] {
   const constats: ConstatDuProfil[] = [];
   const coucheDe = (variable: VariableRelevee | undefined): Couche | undefined => (variable ? couches[variable.collection] : undefined);
   for (const variable of index.releve.variables) {
     const couche = coucheDe(variable);
     if (!couche || variable.type !== 'COLOR') continue;
-    const dossier = couche === 'theme' ? variableDuNom(variable.nom) : null;
+    const dossier = couche === 'theme' ? variableDuNom(variable.nom, options.indexDuVocabulaire) : null;
     for (const [mode, valeur] of Object.entries(variable.valeurs)) {
       if (valeur.nature !== 'alias') {
         if (couche !== 'primitives') constats.push({ regle: 'valeur-directe', cle: `valeur-directe:${variable.id}:${mode}`, variable: variable.id, mode });
@@ -125,9 +144,10 @@ export function controlerLeProfil(index: Index, couches: AssociationDesCouches, 
         constats.push({ regle: 'couche', cle: `couche:${variable.id}:${mode}`, variable: variable.id, mode, cible: valeur.cible, coucheCible });
       }
       if (dossier && options.recette && cible) {
-        const nomDuMode = index.collections.get(variable.collection)?.modes.find((candidat) => candidat.id === mode)?.nom.toLowerCase();
-        if (nomDuMode === 'light' || nomDuMode === 'dark') {
-          const attendue = nuanceAttendue(variable.nom, nomDuMode, options.recette);
+        const nomDuMode = index.collections.get(variable.collection)?.modes.find((candidat) => candidat.id === mode)?.nom;
+        const modeDuTheme = nomDuMode === undefined ? undefined : modeDuThemeReconnu(nomDuMode, options.indexDuVocabulaire);
+        if (modeDuTheme) {
+          const attendue = nuanceAttendue(variable.nom, modeDuTheme, options.recette, options.indexDuVocabulaire);
           if (attendue !== null && Number(cible.nom.split('/').at(-1)) !== attendue) {
             constats.push({ regle: 'nuance', cle: `nuance:${variable.id}:${mode}`, variable: variable.id, mode, cible: valeur.cible, attendue: String(attendue) });
           }

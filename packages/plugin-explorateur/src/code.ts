@@ -12,7 +12,7 @@ import { CLE_RECETTE, ESPACE_PARTAGE } from 'ucm-couleur';
 import { exporterLApercu } from './apercu';
 import type { NoeudLu, StyleLu } from './consommateurs';
 import { TAILLE_PAR_DEFAUT, creerRedimensionnement, lireTaille, tailleValide, type Disposition } from './fenetre';
-import { lireLeReleve, type PortDeLecture } from './lecture';
+import { lireLeReleve, lireLeVocabulaire, type PortDeLecture } from './lecture';
 import { lireLeComposant, sujetDeLaSelection, type PortDuComposant } from './lectureDuComposant';
 import type { PluginMessage, UiRequest } from './messages';
 import { creerPreferences } from './preferences';
@@ -74,7 +74,8 @@ async function lireReleve(demande: number): Promise<void> {
       return;
     }
     revision += 1;
-    versUi({ type: 'releve', demande, releve: issue.releve });
+    const vocabulaire = lireLeVocabulaire(figma.root);
+    versUi({ type: 'releve', demande, releve: vocabulaire ? { ...issue.releve, vocabulaire } : issue.releve });
   } catch (erreur) {
     versUi({ type: 'lecture-echouee', demande, message: erreur instanceof Error ? erreur.message : String(erreur) });
   } finally {

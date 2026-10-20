@@ -2,11 +2,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { CONVENTIONS, ESPACE_ARCHITECT, normaliserLesNoms } from '@ucm-kit/core/referentiel';
 import { FORMAT_RECETTE, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
 import { indexer } from '../src/indexation';
+import { lireLeVocabulaire } from '../src/lecture';
 import { lireLaRecette, validerAssociation, variablesDeLAssociation } from '../src/integrations/palettes';
-import { coucheRangee, controlerLeProfil, nuanceAttendue, variableDuNom } from '../src/integrations/profilUcm';
+import { coucheRangee, controlerLeProfil, indexDuVocabulaire, nuanceAttendue, variableDuNom } from '../src/integrations/profilUcm';
+import type { VocabulaireDuReleve } from '../src/modele';
+import { exporterReleve, importerReleve } from '../src/releves';
 import { alias, constructeur, couleur, projetLibre } from './fixtures';
 
 function recetteAvec(...noms: string[]): Recette {
@@ -54,10 +58,18 @@ test('un nom de theme porte sa variable de dossier et son support', () => {
   assert.equal(nuanceAttendue('primary/solid/foreground', 'light', recetteAvec('primary')), null);
 });
 
+test('un nom de theme porte sa variable de dossier quelle que soit son écriture', () => {
+  assert.equal(variableDuNom('Primary/Solid/default')?.variable, 'solid/default');
+  assert.equal(variableDuNom('PRIMARY/SOLID/DEFAULT')?.variable, 'solid/default');
+  assert.equal(variableDuNom('Neutral/Page/ForegroundMain')?.variable, 'page/foreground-main');
+  assert.equal(variableDuNom('Primary/Identity'), null);
+  assert.equal(nuanceAttendue('Primary/Solid/Hover', 'light', recetteAvec('primary')), 800);
+});
+
 const SOLID = ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'];
 
-/** Un fichier remappé : `theme` en deux modes, aliasé vers `brands` et `utility`. */
-function fichierRemappe(aliasDeHover = 'b-800', portees: string[] = SOLID) {
+/** Un fichier remappé : `theme` en deux modes, aliasé vers `brands` et `utility`. `ecrire` change l'écriture des noms de `theme`. */
+function fichierRemappe(aliasDeHover = 'b-800', portees: string[] = SOLID, ecrire: (nom: string) => string = (nom) => nom) {
   const c = constructeur('Multimarque');
   c.collection('c', 'Composants', ['M']);
   c.collection('t', 'Thème', ['Light', 'Dark']);
@@ -65,10 +77,10 @@ function fichierRemappe(aliasDeHover = 'b-800', portees: string[] = SOLID) {
   c.collection('u', 'Utilitaires', ['M']);
   c.collection('p', 'Catalogue', ['M']);
   c.variable('bouton', 'c', 'button/bg', 'COLOR', { M: alias('t-hover') });
-  c.variable('t-hover', 't', 'primary/solid/hover', 'COLOR', { Light: alias(aliasDeHover), Dark: alias('b-800') }, { portees });
-  c.variable('t-defaut', 't', 'primary/solid/default', 'COLOR', { Light: alias('b-700'), Dark: alias('b-700') }, { portees: SOLID });
-  c.variable('t-echelle', 't', 'neutral/scale/0', 'COLOR', { Light: alias('u-0'), Dark: alias('u-0') }, { portees: [] });
-  c.variable('t-identite', 't', 'primary/identity', 'COLOR', { Light: alias('b-700'), Dark: alias('b-700') }, { portees: [] });
+  c.variable('t-hover', 't', ecrire('primary/solid/hover'), 'COLOR', { Light: alias(aliasDeHover), Dark: alias('b-800') }, { portees });
+  c.variable('t-defaut', 't', ecrire('primary/solid/default'), 'COLOR', { Light: alias('b-700'), Dark: alias('b-700') }, { portees: SOLID });
+  c.variable('t-echelle', 't', ecrire('neutral/scale/0'), 'COLOR', { Light: alias('u-0'), Dark: alias('u-0') }, { portees: [] });
+  c.variable('t-identite', 't', ecrire('primary/identity'), 'COLOR', { Light: alias('b-700'), Dark: alias('b-700') }, { portees: [] });
   c.variable('b-700', 'b', 'primary/light/700', 'COLOR', { M: alias('cat') }, { portees: [] });
   c.variable('b-600', 'b', 'primary/light/600', 'COLOR', { M: alias('cat') }, { portees: [] });
   c.variable('b-800', 'b', 'primary/light/800', 'COLOR', { M: alias('cat') }, { portees: [] });
@@ -113,6 +125,95 @@ test('en Dark inversé, la 600 est attendue pour solid/hover', () => {
 test('une variable de dossier sans portée rend un constat de portée, avec les portées de la table', () => {
   const constats = controlerLeProfil(fichierRemappe('b-800', []), COUCHES_REMAPPEES);
   assert.deepEqual(constats.map((constat) => `${constat.regle}:${constat.variable}:${constat.attendue}`), ['portee:t-hover:FRAME_FILL, SHAPE_FILL, STROKE_COLOR']);
+});
+
+const RESUME = (constats: ReturnType<typeof controlerLeProfil>) => constats.map((constat) => `${constat.regle}:${constat.variable}:${constat.attendue}`);
+
+test('un thème renommé selon chaque convention rend les mêmes constats de portée et de nuance que le thème en minuscules', () => {
+  const recette = recetteAvec('primary');
+  const ecrire = (convention: (typeof CONVENTIONS)[number]['convention']) => (nom: string): string => {
+    const { propositions } = normaliserLesNoms([{ id: 'a', nom, portee: 'p', categorie: 'variables' }], { variables: convention });
+    return propositions[0]?.nouveauNom ?? nom;
+  };
+  const attendus = RESUME(controlerLeProfil(fichierRemappe('b-700', []), COUCHES_REMAPPEES, { recette }));
+  assert.deepEqual(attendus, ['nuance:t-hover:800', 'portee:t-hover:FRAME_FILL, SHAPE_FILL, STROKE_COLOR']);
+  for (const choix of CONVENTIONS) {
+    const index = fichierRemappe('b-700', [], ecrire(choix.convention));
+    assert.deepEqual(RESUME(controlerLeProfil(index, COUCHES_REMAPPEES, { recette })), attendus, choix.id);
+    assert.deepEqual(controlerLeProfil(fichierRemappe('b-800', SOLID, ecrire(choix.convention)), COUCHES_REMAPPEES, { recette }), [], choix.id);
+  }
+});
+
+/** Un thème dont l'unique mode porte un autre nom que `Light` ; `t-hover` vise la 700 au lieu de la 800. */
+function fichierEnMode(nomDuMode: string) {
+  const c = constructeur('Mode libre');
+  c.collection('t', 'Thème', [nomDuMode]);
+  c.collection('b', 'Marques', ['M']);
+  c.collection('p', 'Catalogue', ['M']);
+  c.variable('t-hover', 't', 'primary/solid/hover', 'COLOR', { [nomDuMode]: alias('b-700') }, { portees: SOLID });
+  c.variable('b-700', 'b', 'primary/light/700', 'COLOR', { M: alias('cat') }, { portees: [] });
+  c.variable('cat', 'p', 'colors/blue/700', 'COLOR', { M: couleur('#1E40AF') }, { portees: [] });
+  return indexer(c.releve());
+}
+
+const COUCHES_EN_MODE = { t: 'theme', b: 'brands', p: 'primitives' } as const;
+const JOUR_EST_LIGHT: VocabulaireDuReleve = { personnalises: [{ terme: ['light'], remplace: [['jour']] }], ecartsUcm: [] };
+
+test('un mode Jour déclaré comme light est contrôlé ; sans la règle, il ne rend aucun constat', () => {
+  const recette = recetteAvec('primary');
+  const index = fichierEnMode('Jour');
+  assert.deepEqual(RESUME(controlerLeProfil(index, COUCHES_EN_MODE, { recette, indexDuVocabulaire: indexDuVocabulaire(JOUR_EST_LIGHT) })), ['nuance:t-hover:800']);
+  assert.deepEqual(controlerLeProfil(index, COUCHES_EN_MODE, { recette }), []);
+  assert.deepEqual(controlerLeProfil(index, COUCHES_EN_MODE, { recette, indexDuVocabulaire: indexDuVocabulaire({ personnalises: [], ecartsUcm: [] }) }), []);
+  assert.deepEqual(RESUME(controlerLeProfil(fichierEnMode('LIGHT'), COUCHES_EN_MODE, { recette })), ['nuance:t-hover:800']);
+});
+
+test('le vocabulaire d’un relevé est indexé une fois ; un vocabulaire illisible se lit sans règle', () => {
+  assert.equal(indexDuVocabulaire(undefined), undefined);
+  assert.equal(indexDuVocabulaire(JOUR_EST_LIGHT), indexDuVocabulaire(JOUR_EST_LIGHT));
+  assert.equal(indexDuVocabulaire({ personnalises: 3, ecartsUcm: null } as unknown as VocabulaireDuReleve), undefined);
+  assert.equal(indexDuVocabulaire(null as unknown as VocabulaireDuReleve), undefined);
+});
+
+test('un relevé exporté sans vocabulaire se réimporte sans règle ; avec vocabulaire, il le garde', () => {
+  const releve = fichierEnMode('Jour').releve;
+  const sans = importerReleve(exporterReleve(releve));
+  assert.ok('releve' in sans);
+  if (!('releve' in sans)) return;
+  assert.equal(sans.releve.vocabulaire, undefined);
+  assert.equal(indexDuVocabulaire(sans.releve.vocabulaire), undefined);
+  const avec = importerReleve(exporterReleve({ ...releve, vocabulaire: JOUR_EST_LIGHT }));
+  assert.ok('releve' in avec);
+  if (!('releve' in avec)) return;
+  assert.deepEqual(avec.releve.vocabulaire, JOUR_EST_LIGHT);
+});
+
+/** Une racine qui ne sait que lire : toute autre méthode manque, et ses lectures sont journalisées. */
+function racineDeNommage(entrees: Readonly<Record<string, string>>) {
+  const lectures: string[] = [];
+  return {
+    lectures,
+    racine: Object.freeze({
+      getSharedPluginDataKeys(espace: string) { lectures.push(`cles:${espace}`); return espace === ESPACE_ARCHITECT ? Object.keys(entrees) : []; },
+      getSharedPluginData(espace: string, cle: string) { lectures.push(`lire:${espace}:${cle}`); return espace === ESPACE_ARCHITECT ? entrees[cle] ?? '' : ''; },
+    }),
+  };
+}
+
+const ECRITURE = JSON.stringify({ version: 1, groupes: { casse: 'PascalCase', separateur: 'camelCase' }, variables: { casse: 'minuscules', separateur: 'tiret' } });
+const TERME_JOUR = JSON.stringify({ version: 1, terme: ['light'], remplace: [['jour']] });
+
+test('le vocabulaire du fichier se lit dans l’espace d’UCM Architect, sans rien écrire', () => {
+  const { racine, lectures } = racineDeNommage({ ecriture: ECRITURE, 'terme:light': TERME_JOUR, 'autre:cle': 'x' });
+  assert.deepEqual(lireLeVocabulaire(racine), { personnalises: [{ terme: ['light'], remplace: [['jour']] }], ecartsUcm: [] });
+  assert.ok(lectures.every((lecture) => lecture.startsWith('cles:') || lecture.startsWith('lire:')));
+  assert.ok(!lectures.includes(`lire:${ESPACE_ARCHITECT}:autre:cle`), 'une clé qui ne nomme rien n’est pas lue');
+});
+
+test('sans écriture rangée, le fichier se lit sans règle', () => {
+  assert.equal(lireLeVocabulaire(racineDeNommage({}).racine), undefined);
+  assert.equal(lireLeVocabulaire(racineDeNommage({ 'terme:light': TERME_JOUR }).racine), undefined);
+  assert.equal(lireLeVocabulaire(racineDeNommage({ ecriture: '{ illisible' }).racine), undefined);
 });
 
 /** Un fichier aux noms libres, associé au profil par le designer. */

@@ -26,6 +26,14 @@ export type VariablePropreAuNeutre = (typeof VARIABLES_DU_NEUTRE)[number];
 export type VariableGlobale = (typeof VARIABLES_GLOBALES)[number];
 export type VariableDuTheme = VariableDePalette | VariablePropreAuNeutre | VariableGlobale | `elevation/${(typeof NIVEAUX_D_ELEVATION_DU_THEME)[number]}`;
 
+/** Les variables de dossier que porte `theme`, dans l'ordre où une fin de nom les cherche. */
+export const VARIABLES_DU_THEME: readonly VariableDuTheme[] = [
+  ...VARIABLES_DE_PALETTE,
+  ...VARIABLES_DU_NEUTRE,
+  ...VARIABLES_GLOBALES,
+  ...NIVEAUX_D_ELEVATION_DU_THEME.map((niveau): VariableDuTheme => `elevation/${niveau}`),
+];
+
 /** Une table par thème et par sens : en Dark, les surfaces montent aux crans 300 à 500 et leur texte au 950. */
 export const TABLE_DES_DOSSIERS = {
   light: {

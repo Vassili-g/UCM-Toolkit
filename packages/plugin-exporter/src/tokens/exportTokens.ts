@@ -15,6 +15,9 @@ import {
   PREFIXE_DES_INTERMEDIAIRES,
   TOKENS_FORMAT_VERSION,
   axeDesExtensions,
+  courbeDeToken,
+  dureeDeToken,
+  espaceDuProfil,
   etatDuFormatDeTokens,
   normalizeName,
   poidsDeGraisse,
@@ -23,9 +26,13 @@ import {
 import { famillesDeTokens } from './familles';
 import type { LiaisonsDeTextStyles } from './familles';
 import { graissesNumeriques } from './graisses';
-import { courbeDeToken, dureeDeToken, easingsSansCourbe } from './mouvement';
-import type { CauseSansCourbe } from './mouvement';
-import type { CouleurDeToken, DimensionDeToken } from '@ucm-kit/core/format';
+import { easingsSansCourbe } from './mouvement';
+import type {
+  CauseSansCourbe,
+  CouleurDeToken,
+  DimensionDeToken,
+  EspaceColorimetrique,
+} from '@ucm-kit/core/format';
 import {
   collisionWarnings,
   firstVariableAlias,
@@ -134,18 +141,6 @@ export function dtcgType(
       return 'cubicBezier';
   }
   return typeInconnu(resolvedType);
-}
-
-/** L'espace colorimétrique qu'une couleur déclare. */
-export type EspaceColorimetrique = CouleurDeToken['colorSpace'];
-
-/**
- * L'espace des couleurs d'un document, d'après son profil. `LEGACY` désigne un
- * fichier qui n'en déclare aucun : ses couleurs sont publiées en sRGB, et
- * `avertissementDeProfil` le dit au designer.
- */
-export function espaceDuProfil(profil: DocumentNode['documentColorProfile']): EspaceColorimetrique {
-  return profil === 'DISPLAY_P3' ? 'display-p3' : 'srgb';
 }
 
 /**

@@ -16,7 +16,7 @@ import {
   type TokensImportes,
 } from '../../integrations/contrats';
 import { cransDeLaPalette, variablesDeLAssociation, intensitesDeLaPalette, lireLaRecette, validerAssociation, type AssociationDeCran } from '../../integrations/palettes';
-import { COUCHES, controlerLeProfil, coucheRangee, libelleDeLaVariable, variableDuNom, type AssociationDesCouches, type ConstatDuProfil } from '../../integrations/profilUcm';
+import { COUCHES, controlerLeProfil, coucheRangee, indexDuVocabulaire, libelleDeLaVariable, variableDuNom, type AssociationDesCouches, type ConstatDuProfil } from '../../integrations/profilUcm';
 import type { Recette } from 'ucm-couleur';
 import type { Application, Composant } from '../application';
 import { versSandbox } from '../pont';
@@ -71,7 +71,7 @@ export function constatsDuProfil(app: Application): ConstatDuProfil[] {
   const { index, preferences, releve } = app.etat;
   if (!index || !preferences.profilUcm) return [];
   const exceptions = new Set(preferences.exceptions[releve?.fichier ?? ''] ?? []);
-  return controlerLeProfil(index, couchesDuFichier(app), { recette: recetteLue(app), exceptions });
+  return controlerLeProfil(index, couchesDuFichier(app), { recette: recetteLue(app), exceptions, indexDuVocabulaire: indexDuVocabulaire(releve?.vocabulaire) });
 }
 
 export function creerVueIntegrations(app: Application): Composant {
@@ -354,11 +354,11 @@ function avecLibelle(variable: string): string {
 }
 
 function sectionProfilDeLInspecteur(app: Application, variable: string): HTMLElement | null {
-  const { index, preferences } = app.etat;
+  const { index, preferences, releve } = app.etat;
   if (!index || !preferences.profilUcm) return null;
   const trouvee = index.variables.get(variable);
   if (!trouvee || couchesDuFichier(app)[trouvee.collection] !== 'theme') return null;
-  const lue = variableDuNom(trouvee.nom);
+  const lue = variableDuNom(trouvee.nom, indexDuVocabulaire(releve?.vocabulaire));
   if (!lue) return null;
   const bloc = section(TEXTES.profilTitre);
   bloc.append(note(TEXTES.variableDuTheme(avecLibelle(lue.variable), lue.support.peint.join(', '), lue.support.portees.join(', '))));

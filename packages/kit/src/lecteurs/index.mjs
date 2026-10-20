@@ -59,6 +59,9 @@ export {
   referencesAbsentes,
 } from "./tokens-dtcg.mjs";
 
+/** Une valeur Figma face à la valeur qu'un token publié porte, selon son `$type`. */
+export { comparerAuTokenPublie } from "./comparaison-dtcg.mjs";
+
 /** Les axes de modes du fichier de tokens, sans CSS. */
 export {
   BORNE_DES_CYCLES,

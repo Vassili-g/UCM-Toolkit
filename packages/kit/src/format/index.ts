@@ -64,6 +64,8 @@ export {
   tokenCssVariable,
 } from './names.js';
 export { estStyleItalique, nomsDeGraisseConnus, poidsDeGraisse } from './typography.js';
+export { courbeDeToken, dureeDeToken, espaceDuProfil } from './valeurs-figma.js';
+export type { CauseSansCourbe, EspaceColorimetrique } from './valeurs-figma.js';
 export { TOKEN_REFERENCE, isTokenReference, refPath, toRef } from './references.js';
 export { comparerIdentiteDeContrat, identiteDeContrat } from './identite.js';
 export type { ArbitreIdentite, IdentiteDeContrat, VerdictIdentite } from './identite.js';

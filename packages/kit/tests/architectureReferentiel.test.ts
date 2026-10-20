@@ -3,9 +3,9 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
 import {
-  AXES_DES_COLLECTIONS, CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT,
+  AXES_DES_COLLECTIONS, CONVENTIONS, CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT,
   COLLECTIONS, COLLECTIONS_SANS_PORTEE, DESTINATION_DES_PALETTES, FORMES_ANCIENNES_DES_COLLECTIONS, FORMES_DES_CHEMINS,
-  REGISTRES, REGISTRES_ARCHITECTURE, cheminConforme, estNeutre, type Collection,
+  REGISTRES, REGISTRES_ARCHITECTURE, cheminConforme, estNeutre, normaliserLesNoms, type Collection,
 } from '../src/referentiel/index.js';
 
 test('les collections suivent l’ordre de la vue et séparent les cibles de couleur des composants', () => {
@@ -55,6 +55,43 @@ test('les positions extensibles acceptent d’autres palettes, marques et taille
   const marques = REGISTRES_ARCHITECTURE.find((registre) => registre.id === 'marques')!;
   assert.equal(marques.extensible, true);
   assert.deepEqual(marques.termes, []);
+});
+
+/** Écrit les segments selon une convention, comme le ferait le renommage de Nomenclature. */
+function ecritsSelon(convention: (typeof CONVENTIONS)[number]['convention'], segments: readonly string[]): string[] {
+  const nom = segments.join('/');
+  const { propositions } = normaliserLesNoms([{ id: 'a', nom, portee: 'p', categorie: 'variables' }], { variables: convention });
+  return (propositions[0]?.nouveauNom ?? nom).split('/');
+}
+
+const CHEMINS_A_RENOMMER = [
+  ['primitives', ['color', 'ocean', 'soft', 'light', '500']],
+  ['primitives', ['color', 'ocean', 'soft', 'dark', '950']],
+  ['primitives', ['font-size', 'base']],
+  ['theme', ['primary', 'solid', 'default']],
+  ['theme', ['neutral', 'page', 'foreground-main']],
+  ['typography', ['body', 'medium', 'font-size']],
+] as const;
+
+test('un chemin conforme le reste sous chaque convention d’écriture des segments', () => {
+  for (const choix of CONVENTIONS) for (const [collection, segments] of CHEMINS_A_RENOMMER) {
+    const ecrits = ecritsSelon(choix.convention, segments);
+    assert.ok(cheminConforme(collection, ecrits), `${choix.id} : ${collection}/${ecrits.join('/')}`);
+  }
+});
+
+test('la sonde Color/Ocean/Soft/Light/500 est conforme en primitives', () => {
+  assert.ok(cheminConforme('primitives', ['Color', 'Ocean', 'Soft', 'Light', '500']));
+  assert.ok(cheminConforme('primitives', ['COLOR', 'OCEAN', 'SOFT', 'LIGHT', '500']));
+});
+
+test('la comparaison des valeurs et des exclusions suit la forme reconnue', () => {
+  assert.ok(cheminConforme('theme', ['Primary', 'Solid', 'default']));
+  assert.ok(cheminConforme('theme', ['PRIMARY', 'SOLID', 'DEFAULT']));
+  assert.equal(cheminConforme('theme', ['Identity', 'Solid', 'default']), false, 'identity est exclue de la palette de marque du thème');
+  assert.equal(cheminConforme('theme', ['Primary', 'Solid', 'Border']), false);
+  assert.equal(cheminConforme('theme', ['Primary', 'Identity']), false);
+  assert.equal(cheminConforme('primitives', ['Color', 'Ocean', 'Soft', 'Light', '500', 'suite']), false);
 });
 
 test('les formes refusent les chemins incomplets, les positions déplacées et les croisements de familles', () => {

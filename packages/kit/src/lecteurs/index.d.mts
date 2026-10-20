@@ -183,6 +183,66 @@ declare module "@ucm-kit/core/lecteurs" {
     index: Map<string, unknown>,
   ): string[];
 
+  // ─── Une valeur Figma face à un token publié ──────────────────────────────
+
+  /**
+   * Une valeur Figma ramenée à ce que l'exporteur en écrirait, sans dépendre
+   * des objets de Figma. Une durée est en secondes, une courbe en quatre
+   * points, ou `null` quand la valeur n'en a pas.
+   */
+  export type ValeurFigmaPortable =
+    | {
+        readonly nature: "couleur";
+        readonly espace: "srgb" | "display-p3";
+        readonly composantes: readonly [number, number, number];
+        readonly alpha: number;
+      }
+    | { readonly nature: "nombre"; readonly nombre: number }
+    | { readonly nature: "duree"; readonly secondes: number }
+    | {
+        readonly nature: "courbe";
+        readonly points: readonly [number, number, number, number] | null;
+      }
+    | { readonly nature: "texte"; readonly texte: string }
+    | { readonly nature: "booleen"; readonly booleen: boolean };
+
+  /**
+   * Pourquoi une comparaison n'a pas eu lieu.
+   *
+   * `forme-inconnue` : la valeur publiée n'a pas la forme que son `$type`
+   * annonce, ou le `$type` est absent ou inconnu. `unite-relative` : `rem` ou
+   * `em`, dont la taille en pixels dépend de la page. `unite-inconnue` : une
+   * unité que ni l'exporteur ni DTCG n'écrit pour ce type. `espace-inconnu` :
+   * un `colorSpace` autre que `srgb` et `display-p3`. `courbe-sans-points` : la
+   * valeur Figma n'a pas de points de contrôle. `type-incompatible` : la valeur
+   * Figma n'est pas de la nature que le `$type` annonce.
+   */
+  export type CauseNonComparable =
+    | "forme-inconnue"
+    | "unite-relative"
+    | "unite-inconnue"
+    | "espace-inconnu"
+    | "courbe-sans-points"
+    | "type-incompatible";
+
+  /** Le verdict d'une comparaison : égal, différent, ou non comparable avec sa cause. */
+  export type Comparaison =
+    | { readonly etat: "egal" }
+    | { readonly etat: "different" }
+    | { readonly etat: "non-comparable"; readonly cause: CauseNonComparable };
+
+  /**
+   * Compare une valeur Figma à la valeur qu'un token publié porte, selon son
+   * `$type`. Une entrée qu'aucune règle ne couvre rend `non-comparable`, jamais
+   * `egal`. Les alias ne passent pas ici : seul l'appelant sait calculer le
+   * chemin publié de leur cible.
+   */
+  export function comparerAuTokenPublie(
+    source: ValeurFigmaPortable,
+    type: string | undefined,
+    publiee: unknown,
+  ): Comparaison;
+
   // ─── Les axes de modes du fichier de tokens ───────────────────────────────
 
   /** Un axe tel qu'`axesDeTokens` le rend : ses feuilles suivent l'ordre du document. */

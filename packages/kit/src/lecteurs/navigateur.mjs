@@ -16,6 +16,7 @@ export { vueExacteDuVariant, compositionsExactesDuVariant, projectionDeReference
 export { sansEchantillon, collecterReferences } from "./references-token.mjs";
 export { erreursTypesTypographiques } from "./typography-token-types.mjs";
 export { indexerTokensDtcg, cheminDeReference, referencesAbsentes } from "./tokens-dtcg.mjs";
+export { comparerAuTokenPublie } from "./comparaison-dtcg.mjs";
 export { BORNE_DES_CYCLES, axesDeTokens, axesDuContrat, conesDesAxes, contextesDesAxes, contextesDeVerification, cyclesActifs, valeurDansLeContexte } from "./modes-tokens.mjs";
 export { CARACTERISTIQUES, CHAMPS, SANS_AIDE, caracteristiquesDuContrat } from "./caracteristiques.mjs";
 export { avertissementsCorrigeables, TITRE_AVERTISSEMENTS, sectionAvertissementsExport, resumeTerminalAvertissements } from "./avertissements-export.mjs";

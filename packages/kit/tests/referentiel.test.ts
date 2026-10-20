@@ -3,7 +3,8 @@ import test from 'node:test';
 import {
   CRANS, INTENSITE_UNIQUE, MODES, PROFILS, REGISTRES, REGISTRE_ETATS,
   STATE_AXIS_NAMES, STATE_PRECEDENCE, STATE_SELECTORS, SIZE_VALUES, ECHELLES_DE_TAILLES,
-  REGISTRE_TAILLES, TAILLES_DE_COMPATIBILITE, libelleDuTerme, termeRetenu,
+  REGISTRE_TAILLES, TAILLES_DE_COMPATIBILITE, REGISTRES_ARCHITECTURE, REGISTRE_PROFILS, REGISTRE_VALEURS_THEME, FAMILLES_PRIMITIVES,
+  formeReconnue, libelleDuTerme, termeReconnu, termeRetenu,
 } from '../src/referentiel/index.js';
 
 test('chaque registre porte un identifiant unique', () => {
@@ -35,6 +36,46 @@ for (const registre of REGISTRES) {
       for (const mot of terme.toleres ?? []) assert.equal(termeRetenu(registre, mot), terme);
     }
     assert.equal(termeRetenu(registre, 'inconnu-ucm'), undefined);
+  });
+}
+
+test('la forme reconnue joint en minuscules les mots que découpe decouperSegment', () => {
+  for (const ecrit of ['Soft', 'SOFT', 'soft']) assert.equal(formeReconnue(ecrit), 'soft', ecrit);
+  for (const ecrit of ['ForegroundMain', 'foreground_main', 'foreground-main', 'foregroundmain', 'Foreground Main']) assert.equal(formeReconnue(ecrit), 'foreground-main', ecrit);
+  assert.equal(formeReconnue(''), '');
+  assert.equal(formeReconnue('-_ '), '');
+});
+
+test('termeReconnu retrouve un terme quelle que soit l’écriture du segment', () => {
+  for (const ecrit of ['Soft', 'SOFT', 'soft']) assert.equal(termeReconnu(REGISTRE_PROFILS, ecrit), termeRetenu(REGISTRE_PROFILS, 'soft'), ecrit);
+  const colors = termeRetenu(FAMILLES_PRIMITIVES, 'color');
+  assert.ok(colors);
+  for (const ecrit of ['Color', 'Colors', 'colour', 'COLORS']) assert.equal(termeReconnu(FAMILLES_PRIMITIVES, ecrit), colors, ecrit);
+  const typeDeTexte = termeRetenu(FAMILLES_PRIMITIVES, 'font-family');
+  for (const ecrit of ['FontFamily', 'fontfamily', 'font_family', 'font-family']) assert.equal(termeReconnu(FAMILLES_PRIMITIVES, ecrit), typeDeTexte, ecrit);
+  const textePrincipal = termeRetenu(REGISTRE_VALEURS_THEME, 'foreground-main');
+  assert.ok(textePrincipal);
+  for (const ecrit of ['foreground-main', 'ForegroundMain', 'foregroundmain']) assert.equal(termeReconnu(REGISTRE_VALEURS_THEME, ecrit), textePrincipal, ecrit);
+});
+
+test('termeReconnu rend undefined pour un terme absent, un segment vide ou sans mot', () => {
+  assert.equal(termeReconnu(REGISTRE_PROFILS, 'medium'), undefined);
+  assert.equal(termeReconnu(REGISTRE_PROFILS, ''), undefined);
+  assert.equal(termeReconnu(REGISTRE_PROFILS, '--'), undefined);
+  assert.equal(termeReconnu(REGISTRE_VALEURS_THEME, 'foreground-mai'), undefined);
+});
+
+for (const registre of [...REGISTRES, ...REGISTRES_ARCHITECTURE]) {
+  test(`${registre.id} : deux termes ne donnent jamais la même forme reconnue`, () => {
+    const proprietaires = new Map<string, string>();
+    for (const terme of registre.termes) {
+      for (const ecrit of [terme.id, ...(terme.toleres ?? [])]) {
+        const forme = formeReconnue(ecrit);
+        const autre = proprietaires.get(forme);
+        assert.ok(autre === undefined || autre === terme.id, `${ecrit} (${terme.id}) et ${autre} donnent ${forme}`);
+        proprietaires.set(forme, terme.id);
+      }
+    }
   });
 }
 

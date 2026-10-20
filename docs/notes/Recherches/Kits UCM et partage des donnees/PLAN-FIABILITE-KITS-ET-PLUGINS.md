@@ -72,7 +72,7 @@ Codex :
 | D2. Renommage à l'écriture (Codex Q1) | Une palette créée par Palettes ne renomme pas ses variables suivies : Nomenclature s'en charge. L'encart d'écriture annonce un renommage seulement quand l'écriture le fait, c'est-à-dire pour une palette reprise |
 | D3. Constats C05 à C09 (Codex Q5) | Tout entre dans le kit : lots 9 à 13 |
 | D4. Marque de nommage posée à l'ouverture (Codex Q2) | Gardée. L'exception à « ouvrir un plugin n'écrit rien » est documentée, et Nomenclature explique la protection |
-| D5. Destination de Palettes (Codex Q6) | En full UCM, Palettes refuse d'écrire dans une collection reconnue comme `theme`, `brands` ou `utility` (noms du lot 17). Dans un fichier libre, le nom d'une collection ne prouve rien : pas de refus |
+| D5. Destination de Palettes (Codex Q6) | En full UCM, Palettes refuse d'écrire dans une collection reconnue comme `theme`, `brands` ou `utility` (noms du lot 17). Dans un fichier libre, le nom d'une collection ne prouve rien : pas de refus. Le full UCM se déclare par un interrupteur de la Configuration d'UCM Nomenclature, au même format que ceux de la Configuration de l'exporteur, rangé dans les données partagées du fichier et lu par Palettes : le nom d'une collection seul ne départage pas les deux cas, et les règles v2 ne portent plus l'interrupteur « termes UCM » de la v1 |
 | D6. Mode ou rôle renommé par un mot personnel (Codex Q3) | L'explorateur lit les termes personnalisés rangés par Nomenclature ; sans règle, il dit « non reconnu, non vérifié » |
 | D7. Portée de la grammaire (Codex Q4) | La grammaire valide le profil UCM, avec le contexte des modes de la collection. Une sortie libre de Palettes reste agnostique : jamais bloquée, jamais déclarée fautive |
 | D8. Noms des couches UCM | Les couches de référence deviennent `primitives`, `utility`, `brands`, `theme`, `layout`, `typography`, `components`. Les anciens `color-utilities`, `color-brands` et `layouts` restent reconnus comme formes anciennes : lot 17 |
@@ -528,15 +528,26 @@ collection nommée `theme`, et y crée 44 variables. `validerLaDestination` et
 `rangerLaDestination` vérifient une adresse et une collection locale, jamais
 une couche.
 
-**Changement.** Quand le fichier suit l'architecture UCM, c'est-à-dire quand
-la collection visée est reconnue comme une couche UCM (`collectionUcmReconnue`, kit), Palettes refuse
-d'écrire dans `theme`, `brands` et `utility`, avant toute
-mutation, avec un message pour le designer. Dans un fichier libre, une
-collection appelée `theme` reste une destination possible. La règle « où une
-palette peut écrire » vient du kit (`architecture.ts`).
+**Changement.**
 
-**Tests.** Une collection associée à chaque couche ; une collection libre du
-même nom dans un fichier sans architecture UCM ; le refus avant mutation.
+1. UCM Nomenclature gagne, dans sa Configuration, un interrupteur « Ce
+   fichier suit l'architecture UCM », au format des interrupteurs de la
+   Configuration de l'exporteur (`createInterrupteur` du socle, libellé et
+   phrase d'aide, effet immédiat). Son état se range dans les données
+   partagées du fichier, sous une clé que le kit déclare avec sa forme et sa
+   version (`produits.ts`, puis le module `nommage` du lot 11). Désactivé par
+   défaut : le périmètre agnostique reste le défaut.
+2. Quand cet interrupteur est activé et que la collection visée est reconnue
+   comme `theme`, `brands` ou `utility` (`collectionUcmReconnue`), Palettes
+   refuse d'écrire, avant toute mutation, avec un message pour le designer.
+   Interrupteur désactivé, absent ou illisible : aucun refus, une collection
+   appelée `theme` reste une destination possible. La liste des couches où une
+   palette n'écrit pas vient du kit (`architecture.ts`).
+
+**Tests.** Interrupteur activé : une collection par couche interdite est
+refusée avant mutation ; `primitives` et une collection libre sont admises.
+Interrupteur désactivé ou absent : aucune collection n'est refusée. La lecture
+de l'interrupteur : absent, courant, illisible, futur.
 
 **Fini quand** : tests verts ; message relu avec la skill
 `rediger-diagnostics-ucm`.

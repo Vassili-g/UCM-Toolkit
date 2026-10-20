@@ -3,8 +3,12 @@
  *
  * Après une modification : relancer `npm test`, régénérer la vue illustrée (`generer-donnees-referentiel.ts`) (elle en tire les définitions des variables), et changer la version du kit.
  */
-import { SUPPORT_DES_VARIABLES, VARIABLES_DE_PALETTE, type VariableDePalette, type VariableDuTheme, type SupportDeVariable } from '../emplois/dossiers.js';
+import { SUPPORT_DES_VARIABLES, VARIABLES_DE_PALETTE, VARIABLES_DU_THEME, type ModeDuTheme, type VariableDePalette, type VariableDuTheme, type SupportDeVariable } from '../emplois/dossiers.js';
+import type { IndexDuVocabulaire } from './harmonisation.js';
+import { decouperSegment } from './ecriture-des-mots.js';
 import type { Langues, Terme } from './termes.js';
+import { formeReconnue } from './reconnaissance.js';
+import { MODES } from './vocabulaire.js';
 
 export type VariableLibellee = VariableDePalette | 'page/foreground-main' | 'page/foreground-subtle' | 'elevation/page' | 'elevation/raised';
 export type DefinitionDeVariable = Terme & { readonly id: VariableDuTheme; readonly support: SupportDeVariable };
@@ -51,6 +55,41 @@ export const REGLE_SCALE = {
 export const REGISTRE_VARIABLES_THEME = {
   id: 'variables-theme', extensible: false, termes: [...DEFINITIONS_DES_VARIABLES, REGLE_SCALE],
 } as const;
+
+/** Les mots d'un segment, remplacés par les termes de `index` (catégorie `variables`) quand il est donné. */
+function motsDuSegment(segment: string, index?: IndexDuVocabulaire): string[] {
+  const mots = decouperSegment(segment);
+  if (!index) return mots;
+  const resultat: string[] = [];
+  let curseur = 0;
+  for (const { debut, fin, par } of index.remplacements(mots, 'variables')) {
+    resultat.push(...mots.slice(curseur, debut), ...par);
+    curseur = fin;
+  }
+  return [...resultat, ...mots.slice(curseur)];
+}
+
+function formeDuSegment(segment: string, index?: IndexDuVocabulaire): string {
+  return motsDuSegment(segment, index).map((mot) => mot.toLowerCase()).join('-');
+}
+
+/**
+ * La variable de dossier qu'un nom de `theme` porte par sa fin, quelle que soit l'écriture :
+ * `Primary/Solid/default` porte `solid/default`. `undefined` pour `identity` et tout nom inconnu.
+ */
+export function variableDuThemeReconnue(nom: string, index?: IndexDuVocabulaire): VariableDuTheme | undefined {
+  const segments = nom.split('/').map((segment) => formeDuSegment(segment, index));
+  return VARIABLES_DU_THEME.find((variable) => {
+    const fin = variable.split('/').map((segment) => formeReconnue(segment));
+    return fin.length <= segments.length && fin.every((segment, rang) => segment === segments[segments.length - fin.length + rang]);
+  });
+}
+
+/** Le mode du thème qu'un nom de mode désigne, quelle que soit l'écriture ; `undefined` sinon. */
+export function modeDuThemeReconnu(nom: string, index?: IndexDuVocabulaire): ModeDuTheme | undefined {
+  const forme = formeDuSegment(nom, index);
+  return MODES.find((mode) => mode === forme);
+}
 
 /** Projette les dix-sept libellés affichés par Palettes, sans les variables globales ni les bornes de la rampe. */
 export function libellesDesVariables(langue: keyof Langues): Record<VariableLibellee, string> {

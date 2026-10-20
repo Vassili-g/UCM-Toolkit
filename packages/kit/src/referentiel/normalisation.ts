@@ -8,6 +8,7 @@ import { type Casse, type Separateur, type Convention, type NomANormaliser, type
 import { assembler, capitale, categorieDuSegment, commencerDetectionDesConventions, decouperSegment, motsAvecCasse } from './ecriture-des-mots.js';
 import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
 import { termePourCategorie } from './termes.js';
+import { formeReconnue } from './reconnaissance.js';
 
 export { assembler, categorieDuSegment, decouperSegment, motsAvecCasse } from './ecriture-des-mots.js';
 
@@ -30,7 +31,7 @@ export type ResultatDeNormalisation = {
 
 /** Reconnaît une collection après découpage des séparateurs et de la casse, puis parmi les formes d'avant le renommage. */
 export function collectionUcmReconnue(nom: string): Collection | undefined {
-  const normalise = decouperSegment(nom).map((mot) => mot.toLowerCase()).join('-');
+  const normalise = formeReconnue(nom);
   if ((COLLECTIONS as readonly string[]).includes(normalise)) return normalise as Collection;
   return Object.prototype.hasOwnProperty.call(FORMES_ANCIENNES_DES_COLLECTIONS, normalise) ? FORMES_ANCIENNES_DES_COLLECTIONS[normalise] : undefined;
 }

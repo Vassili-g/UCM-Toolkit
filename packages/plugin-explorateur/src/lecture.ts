@@ -20,6 +20,9 @@
  * Une cible que ni la lecture ni l'import ne rendent reste « introuvable »,
  * ou « refusée » quand la lecture a levé : elle n'est pas déclarée supprimée.
  */
+import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
+import { estCleDeNommage, lireReglesDeNommage } from 'ucm-plugin-socle/src/reglesDeNommage';
+
 import {
   FORMAT_DU_RELEVE,
   TYPES_DE_VARIABLE,
@@ -30,6 +33,7 @@ import {
   type TypeDeVariable,
   type ValeurSource,
   type VariableRelevee,
+  type VocabulaireDuReleve,
 } from './modele';
 import type { ModeDeCalque } from './resolution';
 
@@ -407,6 +411,21 @@ async function lireLesBasesDesExtensions(port: PortDeLecture, { collections, man
       manquees.set(parent, { id: parent, genre: 'collection', issue: 'refusee', message: messageDErreur(erreur), depuis: collection.id });
     }
   }
+}
+
+/** Ce que la lecture des règles de nommage demande au document : deux lectures de la donnée partagée. */
+export interface RacineDeNommage {
+  getSharedPluginDataKeys(espace: string): string[];
+  getSharedPluginData(espace: string, cle: string): string;
+}
+
+/**
+ * Les termes personnalisés et les termes UCM écartés que Nomenclature a rangés dans `ESPACE_ARCHITECT`.
+ * `undefined` quand aucune écriture n'est rangée en v2 : le fichier se lit sans règle. Ne fait que lire.
+ */
+export function lireLeVocabulaire(racine: RacineDeNommage): VocabulaireDuReleve | undefined {
+  const couples = racine.getSharedPluginDataKeys(ESPACE_ARCHITECT).filter(estCleDeNommage).map((cle) => [cle, racine.getSharedPluginData(ESPACE_ARCHITECT, cle)] as const);
+  return lireReglesDeNommage(couples)?.vocabulaire;
 }
 
 /** Lit toutes les variables accessibles et les cibles de leurs alias. */

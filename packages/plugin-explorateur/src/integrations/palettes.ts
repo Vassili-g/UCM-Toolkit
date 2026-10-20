@@ -8,13 +8,13 @@
  * teinte ou de l'égalité de deux couleurs.
  */
 import { sensDuTheme, variablesDuCran, type VariableDuTheme } from '@ucm-kit/core/emplois';
-import { estNeutre, PROFILS } from '@ucm-kit/core/referentiel';
+import { estNeutre, MODES, PROFILS } from '@ucm-kit/core/referentiel';
 import { classerRecette, type Classement, type Palette, type Recette } from 'ucm-couleur';
 
 import type { Index } from '../indexation';
 
-export type Intensite = 'soft' | 'vivid';
-export type Theme = 'light' | 'dark';
+export type Intensite = (typeof PROFILS)[number];
+export type Theme = (typeof MODES)[number];
 
 export interface AssociationDeCran {
   readonly palette: string;

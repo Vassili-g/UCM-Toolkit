@@ -8,7 +8,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { courbeDeToken, dureeDeToken, easingsSansCourbe } from '../src/tokens/mouvement';
+import { courbeDeToken, dureeDeToken } from '@ucm-kit/core/format';
+import { easingsSansCourbe } from '../src/tokens/mouvement';
 import { indexVariables } from '../src/variables';
 import { fichierDeVariables } from './fichierDeVariables';
 

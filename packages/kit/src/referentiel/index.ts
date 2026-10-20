@@ -5,8 +5,10 @@
  */
 export * from '../emplois/index.js';
 export * from './termes.js';
+export * from './reconnaissance.js';
 export * from './vocabulaire.js';
 export * from './architecture.js';
+export * from './grammaire.js';
 export * from './conventions.js';
 export * from './normalisation.js';
 export * from './theme.js';

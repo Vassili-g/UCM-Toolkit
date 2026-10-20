@@ -103,6 +103,15 @@ export interface Capacites {
   readonly variablesDistantes: boolean;
 }
 
+/**
+ * Les termes que le fichier déclare dans ses règles de nommage. Même forme que `VocabulaireDuFichier` du kit,
+ * que le noyau n'importe pas.
+ */
+export interface VocabulaireDuReleve {
+  readonly personnalises: ReadonlyArray<{ readonly terme: readonly string[]; readonly remplace: readonly (readonly string[])[]; readonly definition?: string }>;
+  readonly ecartsUcm: readonly string[];
+}
+
 export const FORMAT_DU_RELEVE = 1;
 
 export interface Releve {
@@ -116,6 +125,8 @@ export interface Releve {
   readonly variables: readonly VariableRelevee[];
   readonly manquees: readonly LectureManquee[];
   readonly capacites: Capacites;
+  /** Absent d'un fichier sans règles de nommage rangées, et d'un relevé importé d'une version antérieure : il se lit sans règle. */
+  readonly vocabulaire?: VocabulaireDuReleve;
 }
 
 /** Le texte d'une valeur terminale, sans unité supposée ni transformation. */
