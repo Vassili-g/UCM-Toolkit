@@ -1,4 +1,4 @@
-/** Les assertions passent tant que les défauts de normalisation et de liaison des alias existent. */
+/** N03 et N08 corrigés : les assertions constatent la stabilisation des règles et la liaison des alias. */
 import assert from 'node:assert/strict';
 import {
   commencerLexique, detecterLesQuestions, indexerVocabulaire,
@@ -17,9 +17,13 @@ const ecriture = {
 const collections = [{ id: 'c', name: 'custom', remote: false }];
 const sansAlias = { cibleAlias: () => undefined, protegee: () => false, palette: () => undefined };
 
-function importer(termes: readonly TermePersonnalise[]) {
+function importerLeTexte(termes: readonly TermePersonnalise[]) {
   const texte = exporterLesRegles({ ...reglesVides, ecriture, termes });
-  const resultat = importerLesRegles(texte, reglesVides, (vocabulaire) => indexerVocabulaire(vocabulaire).conflits);
+  return importerLesRegles(texte, reglesVides, (vocabulaire) => indexerVocabulaire(vocabulaire).conflits);
+}
+
+function importer(termes: readonly TermePersonnalise[]) {
+  const resultat = importerLeTexte(termes);
   assert.equal(resultat.statut, 'valide');
   if (resultat.statut !== 'valide') throw new Error(resultat.statut);
   const regles = lireReglesDeNommage(resultat.ecritures.filter((ecriture) => ecriture.texte !== null).map(({ cle, texte }) => [cle, texte!]));
@@ -42,22 +46,17 @@ const chaine = importer([
 ]);
 const premier = appliquer('foo', chaine);
 const second = appliquer(premier, chaine);
-assert.equal(premier, 'bar');
-assert.equal(second, 'baz');
-assert.notEqual(second, premier);
+assert.equal(premier, 'baz', 'la chaîne donne sa destination au premier calcul');
+assert.equal(second, premier, 'le second calcul ne renomme plus rien');
 console.log('Chaîne acceptée, noms successifs :', ['foo', premier, second]);
 
-const cyclePartiel = importer([
+const cyclePartiel = importerLeTexte([
   { terme: ['bar', 'quux'], remplace: [['foo']] },
   { terme: ['foo'], remplace: [['bar']] },
 ]);
-const suite = ['foo'];
-for (let rang = 0; rang < 6; rang++) suite.push(appliquer(suite.at(-1)!, cyclePartiel));
-assert.deepEqual(suite, [
-  'foo', 'bar-quux', 'foo-quux', 'bar-quux-quux',
-  'foo-quux-quux', 'bar-quux-quux-quux', 'foo-quux-quux-quux',
-]);
-console.log('Cycle partiel accepté, noms successifs :', suite);
+assert.equal(cyclePartiel.statut, 'conflits');
+assert.ok(cyclePartiel.statut === 'conflits' && cyclePartiel.conflits.some((conflit) => conflit.type === 'cycle'));
+console.log('Cycle partiel refusé à l’import :', cyclePartiel.statut === 'conflits' ? cyclePartiel.conflits : cyclePartiel.statut);
 
 function lexique(noms: readonly NomLu[]): Lexique {
   const preparation = commencerLexique();
@@ -83,14 +82,9 @@ function clesDesQuestions(noms: readonly NomLu[]): string[] {
   }, { seuil: 0, maximum: 100 });
   return [...resultat.questions, ...resultat.autres].map((question) => question.cle);
 }
-const avant = clesDesQuestions(noms);
-const apres = clesDesQuestions(noms.map((nom) => nom.cibleAlias
-  ? { ...nom, cibleAlias: JSON.stringify(['variable', nom.cibleAlias]) }
-  : nom));
-assert.equal(avant.includes('paire:ledger|registre'), false);
-assert.equal(apres.includes('paire:ledger|registre'), true);
-console.log('Questions avec les identifiants lus :', avant);
-console.log('Questions après conversion des seules cibles d’alias :', apres);
+const questions = clesDesQuestions(noms);
+assert.equal(questions.includes('paire:ledger|registre'), true, 'les cibles locales se retrouvent dans le lexique');
+console.log('Questions avec les identifiants lus :', questions);
 
 const donneesPalettes: DonneesDeNommage = {
   couples: [
@@ -103,13 +97,13 @@ const donneesPalettes: DonneesDeNommage = {
   variables: [{ id: 'v', nom: 'color/bar/vivid/light/50', collection: 'c', palette: 'p' }],
 };
 const brutDuPlan = 'colors/foo/vivid/light/50';
-const depuisPalettes = creerNommeur(donneesPalettes)!.pour({ id: 'c' })!([{ id: 'v', nom: brutDuPlan }])[0];
+const depuisPalettes = creerNommeur(donneesPalettes)!.pour({ id: 'c' })!([{ cle: 'p:vivid:light:50', id: 'v', nom: brutDuPlan }])[0];
 const depuisNomenclature = appliquer(depuisPalettes, chaine);
 const depuisPalettesEnsuite = creerNommeur({
   ...donneesPalettes,
   variables: [{ ...donneesPalettes.variables[0], nom: depuisNomenclature }],
-})!.pour({ id: 'c' })!([{ id: 'v', nom: brutDuPlan }])[0];
-assert.equal(depuisPalettes, 'color/bar/vivid/light/50');
-assert.equal(depuisNomenclature, 'color/baz/vivid/light/50');
+})!.pour({ id: 'c' })!([{ cle: 'p:vivid:light:50', id: 'v', nom: brutDuPlan }])[0];
+assert.equal(depuisPalettes, 'color/baz/vivid/light/50');
+assert.equal(depuisNomenclature, depuisPalettes, 'Nomenclature ne renomme pas ce que Palettes a nommé');
 assert.equal(depuisPalettesEnsuite, depuisPalettes);
 console.log('Palettes, Nomenclature, puis Palettes :', [depuisPalettes, depuisNomenclature, depuisPalettesEnsuite]);

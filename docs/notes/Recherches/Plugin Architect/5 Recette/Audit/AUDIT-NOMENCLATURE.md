@@ -10,10 +10,10 @@ sélection, les définitions, la détection par alias et la galerie. Le comporte
 de l’annulation dans une collection exclue demande aussi une clarification de
 la garantie produit.
 
-Le rapport décrit le code et les preuves. Les scripts voisins conservent les
-reproductions ; leurs assertions constatent les défauts de la base auditée et
-échouent depuis les corrections, que la section
-[Suivi des corrections](#suivi-des-corrections) relie à leurs tests.
+Le rapport décrit le code et les preuves. Les scripts voisins rejouent les
+scénarios ; depuis les corrections, leurs assertions constatent le
+comportement corrigé. La section [Suivi des corrections](#suivi-des-corrections)
+relie chaque constat à ses tests de régression.
 
 ## Périmètre et état du code
 
@@ -420,6 +420,8 @@ Les pistes suivantes ne sont pas comptées comme nouveaux bugs critiques :
 
 ## Vérifications exécutées
 
+Le tableau donne les résultats sur la base auditée.
+
 | Commande ou contrôle | Résultat |
 |---|---|
 | `npm test` | 3 451 tests, zéro échec, dans les dix exécutions du dépôt et des workspaces |
@@ -434,9 +436,11 @@ Les pistes suivantes ne sont pas comptées comme nouveaux bugs critiques :
 | Reproductions interface | N05, N06 et N07 constatés |
 | Rejeu Chromium de la galerie | 240 pages terminées, 18 en échec ; zéro débordement horizontal de racine |
 
-Les preuves de défaut passent lorsqu’elles retrouvent le comportement
-indésirable. Le contrôle de galerie échoue volontairement au bilan final
-si une page n’atteint pas l’état attendu. Son code de sortie actuel est `1`.
+Sur la base auditée, chaque script passait en retrouvant le défaut, et le
+contrôle de galerie sortait en `1`. Ses assertions sont maintenant inversées :
+chaque script passe en constatant la correction, et le contrôle de galerie
+termine ses 264 pages, 44 états dans trois thèmes et deux tailles, sans échec
+ni débordement.
 
 Les commandes se lancent depuis la racine du dépôt :
 
@@ -455,9 +459,8 @@ la connexion avant toute navigation, avec une erreur de transport indiquant
 un champ `sandboxPolicy` absent. Le contrôle utilise donc Chromium local.
 
 [galerie-resultats.json](./galerie-resultats.json) donne le résultat par
-état, taille et thème. Les échecs de galerie et leurs messages sont conservés
-dans ce relevé. Les empreintes de sources permettent de distinguer une
-correction du produit d’une différence entre les versions examinées.
+état, taille et thème, relevé après les corrections. Les empreintes de
+[etat-audite.json](./etat-audite.json) restent celles de la base auditée.
 
 ## Ordre de correction
 
@@ -471,8 +474,8 @@ correction du produit d’une différence entre les versions examinées.
 5. Réparer N10 et intégrer le rejeu des scénarios au contrôle courant.
 
 Chaque correction doit ajouter un test de régression dont l’attente porte
-sur le comportement souhaité. Les scripts de ce dossier restent des preuves
-du défaut ; ils ne remplacent pas ces tests.
+sur le comportement souhaité. Les scripts de ce dossier rejouent les
+scénarios de l’audit ; ils ne remplacent pas ces tests.
 
 La validation Figma qui reste à mener porte sur les setters réels, les quotas
 de données partagées, l’annulation native et les changements par un autre

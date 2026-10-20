@@ -48,10 +48,9 @@ async function verifierSignature() {
   await session.recevoir({ type: 'appliquer', demande: 3, generation: avant.generation,
     selection: { groupes: avant.groupes.map((g) => g.cle), exclus: [], inclus: [] } });
   assert.equal(stock.has('ordinaire:primary-bg'), true);
-  assert.equal(messages.some((m) => m.type === 'erreur' && m.demande === 3 && m.code === 'regles-modifiees'), false);
-  assert.equal(variable.name, 'primary-background');
-  console.log('S1 : règle ordinaire ajoutée pendant ouvrir ; renommage périmé appliqué :', variable.name);
-  variable.name = 'primaryBg';
+  assert.equal(messages.some((m) => m.type === 'erreur' && m.demande === 3 && m.code === 'regles-modifiees'), true);
+  assert.equal(variable.name, 'primaryBg');
+  console.log('S1 : règle ordinaire ajoutée pendant ouvrir ; lot refusé en regles-modifiees, nom inchangé :', variable.name);
   await session.recevoir({ type: 'analyser', demande: 4 });
   const frais = bilan();
   for (const groupe of frais.groupes) {

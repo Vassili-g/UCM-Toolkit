@@ -66,7 +66,7 @@ function protocole(f: ReturnType<typeof fichier>) {
   };
 }
 
-test('AUD-E1 : une annulation crée un nouveau conflit entre token et groupe après une modification extérieure', () => {
+test('AUD-E1 : une annulation ne crée pas de conflit entre token et groupe après une modification extérieure', () => {
   const f = fichier([['c', 'Brand']], [['a', 'a', 'c'], ['autre', 'c', 'c']]);
   assert.equal(appliquerLesRenommages({ demandes: [f.demandeVariable('a', 'b')], session: f.session, stockage: f.stockage }).statut, 'applique');
   f.variables[1]!.name = 'a/x';
@@ -75,31 +75,30 @@ test('AUD-E1 : une annulation crée un nouveau conflit entre token et groupe apr
   assert.equal(conflits.length, 1);
   assert.equal(conflits[0]!.motif, 'token-et-groupe');
   const annulation = annulerLeDernierRenommage({ session: f.session, stockage: f.stockage });
-  assert.equal(annulation.statut, 'applique');
-  assert.equal(annulation.annulable, false);
-  assert.equal(f.variables[0]!.name, 'a');
+  assert.equal(annulation.statut, 'refuse');
+  assert.deepEqual(annulation.sautes.map(({ motif }) => motif), ['collision']);
+  assert.equal(annulation.annulable, true, 'la ligne reste au journal');
+  assert.equal(f.variables[0]!.name, 'b');
   const arbre = {};
   const avertissements: string[] = [];
   const conserves = f.variables.map((variable) => insert(arbre, joinTokenPath('Brand', variable.name), { $type: 'number', $value: 1 }, avertissements));
-  assert.deepEqual(conserves, [true, false]);
-  assert.equal(avertissements.length, 1);
+  assert.deepEqual(conserves, [true, true], 'les deux tokens restent exportables');
+  assert.equal(avertissements.length, 0);
 });
 
-test('AUD-E2 : un renommage de collection accepté supprime les deux axes de modes à l’export', () => {
+test('AUD-E2 : un renommage de collection qui supprimerait les deux axes de modes est refusé', () => {
   const f = fichier([['c', 'Couleurs']], [['a', 'primary', 'c']]);
   f.collections.push({ id: 'd', name: 'Primitives', remote: false, defaultModeId: 'd:0', modes: [{ modeId: 'd:0', name: 'Light' }, { modeId: 'd:1', name: 'Dark' }] });
   f.variables.push({ id: 'b', name: 'secondary', variableCollectionId: 'd', remote: false });
   assert.equal(axesDesCollections(f.collections as unknown as VariableCollection[]).axes.size, 2);
   const resultat = appliquerLesRenommages({ demandes: [f.demandeCollection('c', 'primitives')], session: f.session, stockage: f.stockage });
-  assert.equal(resultat.statut, 'applique');
-  assert.deepEqual(resultat.sautes, []);
-  const apres = axesDesCollections(f.collections as unknown as VariableCollection[]);
-  assert.equal(apres.axes.size, 0);
-  assert.equal(apres.points.length, 1);
-  assert.match(apres.points[0]!.impact, /ne pourra pas générer les modes de ces collections/u);
+  assert.equal(resultat.statut, 'refuse');
+  assert.deepEqual(resultat.sautes.map(({ motif }) => motif), ['collision']);
+  assert.equal(f.collections[0]!.name, 'Couleurs');
+  assert.equal(axesDesCollections(f.collections as unknown as VariableCollection[]).axes.size, 2);
 });
 
-test('AUD-E2b : la réponse de collection suivie d’Appliquer atteint la collision d’axes avec une collection exclue', async () => {
+test('AUD-E2b : la réponse de collection bloque le renommage qui rejoindrait l’axe d’une collection exclue', async () => {
   const f = fichier([['c', 'Zorglub'], ['d', 'Primitives']], [['a', 'primary', 'c'], ['b', 'secondary', 'c'], ['tiers', 'autre', 'd']]);
   const p = protocole(f);
   await p.envoyer({ type: 'analyser' });
@@ -109,18 +108,14 @@ test('AUD-E2b : la réponse de collection suivie d’Appliquer atteint la collis
   assert.ok(question);
   await p.envoyer({ type: 'repondre', question: question.cle, reponse: { type: 'collection', cible: 'primitives' } });
   const bilan = p.bilan();
-  assert.ok(bilan.groupes.some((groupe) => groupe.regle.sorte === 'collection' && groupe.apres === 'primitives'));
-  assert.equal(bilan.bloques.length, 0);
-  assert.equal(axesDesCollections(f.collections as unknown as VariableCollection[]).axes.size, 2);
+  assert.equal(bilan.groupes.some((groupe) => groupe.regle.sorte === 'collection' && groupe.apres === 'primitives'), false);
+  assert.ok(bilan.bloques.some((bloque) => bloque.chemin?.motif === 'meme-axe'));
   await p.envoyer({ type: 'appliquer', generation: bilan.generation, selection: { groupes: bilan.groupes.map((groupe) => groupe.cle), inclus: [], exclus: [] } });
-  const application = p.messages.findLast((message) => message.type === 'application');
-  assert.ok(application?.type === 'application');
-  assert.equal(application.resultat.statut, 'applique');
-  assert.deepEqual(f.collections.map((collection) => collection.name), ['primitives', 'Primitives']);
-  assert.equal(axesDesCollections(f.collections as unknown as VariableCollection[]).axes.size, 0);
+  assert.deepEqual(f.collections.map((collection) => collection.name), ['Zorglub', 'Primitives']);
+  assert.equal(axesDesCollections(f.collections as unknown as VariableCollection[]).axes.size, 2);
 });
 
-test('AUD-E3 : une collection exclue après application est modifiée par Annuler', async () => {
+test('AUD-E3 : une collection exclue après application n’est pas modifiée par Annuler', async () => {
   const f = fichier([['c', 'components']], [['a', 'Button/Fill Hover', 'c'], ['b', 'Button/Fill Pressed', 'c']]);
   const p = protocole(f);
   await p.envoyer({ type: 'analyser' });
@@ -132,10 +127,12 @@ test('AUD-E3 : une collection exclue après application est modifiée par Annule
   assert.equal(p.bilan().collections[0]!.analysee, false);
   assert.ok(p.bilan().dernierRenommage);
   await p.envoyer({ type: 'annuler-dernier' });
-  assert.equal(f.variables[0]!.name, 'Button/Fill Hover');
-  assert.equal(f.variables[1]!.name, 'Button/Fill Pressed');
+  assert.equal(f.variables[0]!.name, 'button/fill-hover');
+  assert.equal(f.variables[1]!.name, 'button/fill-pressed');
   const annulation = p.messages.findLast((message) => message.type === 'application');
   assert.ok(annulation?.type === 'application');
-  assert.equal(annulation.resultat.statut, 'applique');
-  assert.equal(annulation.resultat.renommes, 2);
+  assert.equal(annulation.resultat.statut, 'refuse');
+  assert.equal(annulation.resultat.renommes, 0);
+  assert.equal(annulation.resultat.exclues, annulation.resultat.sautes);
+  assert.equal(annulation.resultat.annulable, true, 'les noms restent au journal');
 });

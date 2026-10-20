@@ -32,9 +32,11 @@ const ligne = (id) => ({ id, ancien: id, nouveau: id, marques: [], aussi: [] });
 let selection = api.creerSelection([groupe(2, [ligne('a'), ligne('b')])]);
 selection = api.cocherLigne(selection, ligne('a'), 'terme:quux', false);
 selection = api.reconcilier(selection, [groupe(1, [ligne('b')])]);
-assert.equal(api.compterLesNomsCoches(selection), 0);
+// L'écran demande alors au sandbox quels exclus sont encore à renommer : `a` ne l'est plus.
+selection = api.restreindre(selection, { exclus: ['a'], inclus: [] }, []);
+assert.equal(api.compterLesNomsCoches(selection), 1);
 assert.equal(api.ligneCochee(selection, ligne('b'), 'terme:quux'), true);
-console.log('UI-01 confirmé : le compteur vaut 0 pour une ligne encore cochée après disparition de son ancienne voisine exclue.');
+console.log('UI-01 corrigé : après la lecture selection, la ligne restante compte et Appliquer reste disponible.');
 
 const envoyees = [];
 const abonnements = [];
@@ -56,13 +58,13 @@ const decocher = (rang) => { cases[rang].checked = false; cases[rang].events.get
 decocher(0);
 decocher(1);
 frontiere.recevoir({ type: 'bilan', demande: 2, bilan: bilan(2, ['a']) });
-assert.equal(cases[1].checked, true);
+assert.equal(cases[1].checked, false);
 decocher(2);
 frontiere.recevoir({ type: 'bilan', demande: 3, bilan: bilan(3, ['a', 'b']) });
-assert.deepEqual(Array.from(envoyees.at(-1).collectionsExclues), ['a', 'c']);
-frontiere.recevoir({ type: 'bilan', demande: 4, bilan: bilan(4, ['a', 'c']) });
-assert.equal(cases[1].checked, true);
-console.log('UI-02 confirmé : décocher A puis B, recevoir le bilan de A, puis décocher C finit avec seulement A et C exclues.');
+assert.deepEqual(Array.from(envoyees.at(-1).collectionsExclues), ['a', 'b', 'c']);
+frontiere.recevoir({ type: 'bilan', demande: 4, bilan: bilan(4, ['a', 'b', 'c']) });
+assert.deepEqual(cases.map((caseACocher) => caseACocher.checked), [false, false, false]);
+console.log('UI-02 corrigé : décocher A, B puis C pendant les réponses finit avec A, B et C exclues.');
 
 const ecriture = JSON.stringify({ version: 1, groupes: { casse: 'minuscules', separateur: 'tiret' }, variables: { casse: 'minuscules', separateur: 'tiret' } });
 const stock = new Map([
@@ -81,5 +83,6 @@ const session = api.creerSession({
 await session.recevoir({ type: 'analyser', demande: 1 });
 assert.ok(messages.some((message) => message.type === 'bilan'));
 await session.recevoir({ type: 'regle', demande: 2, geste: { type: 'retirer-remplace', terme: 'quux', remplace: 'quuxed' } });
-assert.equal(stock.has('terme:quux'), false);
-console.log('UI-03 confirmé : retirer la dernière variante supprime aussi la définition du terme.');
+assert.deepEqual(JSON.parse(stock.get('terme:quux')).definition, 'Terme métier conservé.');
+assert.deepEqual(JSON.parse(stock.get('terme:quux')).remplace, []);
+console.log('UI-03 corrigé : retirer la dernière variante garde le terme et sa définition.');
