@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Groupes et variables</title>
+<style>
+  :root { --fond: #161616; --bordure: #333; --texte: #eee; --second: #9a9a9a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 2720px; margin: 0 auto; padding: 32px 16px 96px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 18px; margin: 48px 0 6px; }
+  p { margin: 6px 0; max-width: 900px; }
+  .intro { color: var(--second); }
+  code { font-family: Consolas, monospace; font-size: 13px; background: #2a2a2a; padding: 0 4px; border-radius: 3px; }
+  .colonnes { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; margin-top: 16px; }
+  .colonne { flex: 0 0 auto; width: 640px; max-width: 100%; }
+  .cadre { border: 1px solid var(--bordure); border-radius: 8px; overflow: hidden; background: #2c2c2c; }
+  .cadre iframe { display: block; border: 0; max-width: 100%; }
+  .etiquette { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 4px; margin-bottom: 6px; background: #16314d; color: #9fcfff; }
+  .etiquette.recommande { background: #1d3a24; color: #a6e3b4; }
+  ol.argu, ul.argu { padding-left: 20px; margin: 10px 0 0; font-size: 13px; color: #cfcfcf; }
+  ol.argu li, ul.argu li { margin: 4px 0; }
+  table { border-collapse: collapse; margin-top: 12px; font-size: 13px; max-width: 1200px; }
+  th, td { text-align: left; vertical-align: top; padding: 6px 12px; border-top: 1px solid var(--bordure); }
+  th { color: var(--second); font-weight: 600; border-top: 0; }
+  td.garde { color: var(--second); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Groupes et variables dans l'onglet Règles</h1>
+  <p class="intro">Retours sur <code>vocabulaire-2/MAQUETTE-PLACES.html</code>. Les cadres partent de l'onglet Règles réel, avec les
+  termes du Playground. Un groupe est un segment avant la dernière barre (<code>Button/<b>Colors</b>/…</code>) ; une variable
+  est le dernier segment (<code>…/Sizes/<b>gap</b></code>). Dans chaque section, en tri A → Z, les groupes viennent d'abord,
+  puis les variables, chaque bloc trié par ordre alphabétique.</p>
+
+  <h2>1 · La teinte des pastilles</h2>
+  <p class="intro">Six couleurs ont déjà un sens dans le plugin : rouge pour la forme qui disparaît, vert pour la forme retenue,
+  ambre pour « À trancher », bleu pour les actions, indigo pour la pastille UCM, sarcelle pour la pastille Personnalisé.
+  Une teinte de groupe ou de variable doit rester loin de ces six. Il reste deux écarts larges : l'orchidée (entre l'indigo
+  et le rouge) et l'olive (entre l'ambre et le vert). La section « Conventions d'écriture » sert de légende dans les quatre
+  pistes : sa ligne Groupes et sa ligne Variables portent chacune la teinte de leur place.</p>
+  <div class="colonnes">
+    <div class="colonne">
+      <span class="etiquette">A · Orchidée et olive</span>
+      <div class="cadre" id="a"></div>
+      <ol class="argu">
+        <li>Deux teintes, chacune dans un écart libre : aucune ne touche l'indigo de UCM ni la sarcelle de Personnalisé.</li>
+        <li>L'olive se rapproche de l'ambre de « À trancher ». La différence tient à la saturation, plus faible ici ; elle se voit
+          mal sur un écran peu contrasté.</li>
+        <li>Une ligne Remplace porte deux pastilles de couleur : le terme et son origine.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette">B · Orchidée pour les groupes, gris pour les variables</span>
+      <div class="cadre" id="b"></div>
+      <ol class="argu">
+        <li>Une seule teinte nouvelle. La variable garde la pastille grise d'aujourd'hui ; le groupe se signale par sa couleur.</li>
+        <li>Aucun risque de confusion avec l'ambre ou le vert.</li>
+        <li>Le gris dit « variable » par défaut d'autre chose : le designer doit lire la légende une fois pour le comprendre.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette">C · Orchidée pleine ou en contour</span>
+      <div class="cadre" id="c"></div>
+      <ol class="argu">
+        <li>Une teinte pour le vocabulaire entier ; la tenue sépare les places : fond plein pour un groupe, contour pour une variable.</li>
+        <li>Le contour se lit moins vite que le fond, surtout sur les termes courts (<code>200</code>, <code>gap</code>).</li>
+        <li>Les termes sans règle n'ont pas de pastille : leur place ne se lit qu'à la couleur du texte, orchidée ou blanc.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette recommande">D · Origine en texte gris, violet et sarcelle · recommandée</span>
+      <div class="cadre" id="d"></div>
+      <ol class="argu">
+        <li>Les pastilles UCM et Personnalisé deviennent un texte gris, comme le compte. La couleur de la ligne ne sert plus
+          qu'à la place du terme : violet pour un groupe, sarcelle pour une variable.</li>
+        <li>Une seule couleur par ligne. Les deux teintes sont les plus éloignées l'une de l'autre parmi les quatre pistes.</li>
+        <li>Le changement touche aussi la carte de question et la fiche, où la pastille UCM est indigo aujourd'hui : elles
+          prendraient le même texte gris pour garder une seule écriture de l'origine.</li>
+      </ol>
+    </div>
+  </div>
+  <ul class="argu">
+    <li>Dans les quatre pistes, une section qui a des groupes et des variables les sépare par un intertitre « Groupes · n »,
+      « Variables · n ». Chaque bloc montre ses premières lignes et son propre « Afficher les n autres » : sans ce découpage,
+      les cinq premières lignes d'une section seraient toutes des groupes et ses variables resteraient cachées.</li>
+    <li>Composants et Palettes ne contiennent que des groupes : l'intertitre disparaît, la teinte reste.</li>
+    <li>Le menu « Filtrer » reçoit le groupe « Place » : Groupes, Variables.</li>
+    <li>Question ouverte : en tri par nombre de variables, garder la même séparation (groupes puis variables) ou mêler les deux places ?</li>
+  </ul>
+
+  <h2>2 · L'onglet Questions sans question</h2>
+  <p class="intro">Aujourd'hui, quand le fichier a des renommages mais aucune question, l'onglet Questions s'affiche vide.
+  L'écran ci-dessous reprend la vue des autres états du plugin (« Tous les noms suivent vos règles », « Aucune variable à
+  harmoniser ici ») : un titre centré, une ligne d'explication, un bouton secondaire. Quand il n'y a ni question ni
+  renommage, l'état « Tous les noms suivent vos règles » couvre déjà les trois onglets.</p>
+  <div class="colonnes">
+    <div class="colonne">
+      <span class="etiquette">Q1 · Aucune question</span>
+      <div class="cadre" id="q1"></div>
+      <ol class="argu">
+        <li>L'onglet perd son compte. Le titre dit l'état, la ligne dit d'où viendrait une question, avec un exemple du fichier.</li>
+        <li>« Voir les renommages » ouvre l'onglet Renommages, où se trouve le travail restant.</li>
+        <li>Après la réponse à la dernière question, sa ligne de réussite reste au-dessus de cet état jusqu'au changement d'onglet.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette">Q2 · Aucune question, des questions gardées pour plus tard</span>
+      <div class="cadre" id="q2"></div>
+      <ol class="argu">
+        <li>Même état, avec une ligne qui renvoie aux questions mises de côté.</li>
+        <li>« Plus tard » et « Autres pistes » restent sous l'état, à leur place habituelle.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h2>3 · Les mots de l'interface</h2>
+  <p class="intro">« Noms » a deux sens dans les textes du plugin. Quand il désigne la place du dernier segment, il devient
+  « variables ». Quand il compte des éléments renommés, il compte aussi les collections : il reste « noms ».</p>
+  <table>
+    <tr><th>Texte actuel</th><th>Texte proposé</th><th>Où</th></tr>
+    <tr><td>Comment s’écrivent les groupes, les noms et les collections.</td><td>Comment s’écrivent les groupes, les variables et les collections.</td><td>Règles, Conventions d’écriture</td></tr>
+    <tr><td>Noms</td><td>Variables</td><td>Ligne de Conventions d’écriture, carte de l’écriture</td></tr>
+    <tr><td>Écriture des noms</td><td>Écriture des variables</td><td>Choix de l’écriture de la ligne Variables</td></tr>
+    <tr><td>Écrire les noms en</td><td>Écrire les variables en</td><td>Carte d’écriture dans Renommages</td></tr>
+    <tr><td>Dans les noms · n</td><td>Dans les variables · n</td><td>Fiche d’un terme</td></tr>
+    <tr><td>Écriture des noms (titre du premier lancement), Modifier l’écriture des noms</td><td>Écriture des groupes et des variables, Modifier l’écriture</td><td>Premier lancement, bouton Modifier</td></tr>
+    <tr><td>UCM Palettes écrit ces noms, et leur dossier garde son nom.</td><td>UCM Palettes écrit ces variables, et leur groupe garde son nom.</td><td>Renommages, Non renommés</td></tr>
+    <tr><td class="garde">87 noms, Aucun nom coché, Tous les noms suivent vos règles, Trier : nombre de noms</td><td class="garde">inchangés : ils comptent variables et collections</td><td class="garde">Renommages, onglets, tri</td></tr>
+  </table>
+
+  <h2>4 · Renommer les collections de base en PascalCase</h2>
+  <p class="intro">Effet d'un renommage manuel de <code>color-brands</code> en <code>ColorBrands</code>, <code>primitives</code> en
+  <code>Primitives</code>, et ainsi de suite, d'après le code actuel.</p>
+  <table>
+    <tr><th>Outil</th><th>Effet</th></tr>
+    <tr><td>UCM Nomenclature</td><td>La collection reste reconnue : <code>collectionUcmReconnue</code> découpe la casse avant de comparer.
+      Mais la règle des collections n'a pas de choix d'écriture : chaque analyse propose dans Renommages de rendre
+      <code>ColorBrands</code> à <code>color-brands</code>. Décocher la carte ne la retire pas de l'analyse suivante.</td></tr>
+    <tr><td>Export des tokens</td><td>Le préfixe d'une collection est son nom en minuscules, sans découpage de la casse
+      (<code>normalizeName</code>). <code>Primitives</code>, <code>Theme</code>, <code>Components</code>, <code>Layouts</code> et
+      <code>Typography</code> donnent le même préfixe qu'avant. <code>ColorBrands</code> donne <code>colorbrands</code> et
+      <code>ColorUtilities</code> <code>colorutilities</code> : chaque chemin de ces deux collections dans <code>tokens.json</code>,
+      chaque variable CSS de <code>ucm tokens css</code> et la clé de leur axe dans <code>com.ucm.axes</code> changent. Le code qui
+      lit <code>--color-brands-…</code> ne trouve plus ses variables.</td></tr>
+    <tr><td>UCM Palettes, Explorateur, alias Figma</td><td>Aucun effet : ils suivent la collection par son identifiant, pas par son nom.</td></tr>
+    <tr><td>Fichiers qui utilisent la bibliothèque</td><td>Ils voient le nouveau nom après publication ; leurs liaisons tiennent.</td></tr>
+  </table>
+  <p class="intro">Pour adopter le PascalCase sans casser le code, deux changements seraient nécessaires : un choix d'écriture des
+  collections dans le référentiel (aujourd'hui figé sur les noms UCM), et un préfixe de token qui découpe la casse, pour que
+  <code>ColorBrands</code> donne encore <code>color-brands</code>.</p>
+</main>
+
+<script src="galerie/etats.js"></script>
+<script>
+const esc = (texte) => String(texte).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const CHEVRON = '<svg class="chevron-svg suivant" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"></path></svg>';
+const CHEVRON_BAS = '<svg class="chevron-svg" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"></path></svg>';
+const svg = (corps) => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${corps}</svg>`;
+const ICONES = {
+  remplace: svg('<path d="M2.5 4.5h7M2.5 11.5h7M9.5 4.5 13 8l-3.5 3.5M13 8H6"/>'),
+  conforme: svg('<path d="m3.5 8.5 3 3 6-7"/>'),
+  sans: svg('<circle cx="8" cy="8" r="5.5" stroke-dasharray="2.2 2"/>'),
+  composant: svg('<path d="M8 1.8 10.2 4 8 6.2 5.8 4zM4 5.8 6.2 8 4 10.2 1.8 8zM12 5.8 14.2 8 12 10.2 9.8 8zM8 9.8 10.2 12 8 14.2 5.8 12z"/>'),
+  palette: svg('<circle cx="8" cy="8" r="6.2"/><path d="M8 1.8v12.4M1.8 8h12.4"/>'),
+};
+const icone = (type) => `<span class="icone-type">${ICONES[type]}</span>`;
+const ORIGINE = { ucm: '<span class="pastille pastille-ucm">UCM</span>', perso: '<span class="pastille pastille-personnalise">Personnalisé</span>' };
+
+/* Le Playground. `g` : groupes, `v` : variables ; `autres` : les lignes que « Afficher les n autres » ajouterait. */
+const SECTIONS = [
+  { type: 'remplace', titre: 'Remplace', total: 9, avecPastille: true,
+    g: { lignes: [['Color', 540, ['Colors', 'colors']], ['Danger', 49, ['Error']], ['Disabled', 46, ['Disable']], ['Size', 59, ['Sizes']]], autres: 2 },
+    v: { lignes: [['radius', 9, ['Border-radius']]], autres: 2 } },
+  { type: 'conforme', titre: 'Conforme', total: 37, avecPastille: true,
+    g: { lignes: [['Info', 185], ['LineHeight', 16], ['Small', 5]], autres: 19 },
+    v: { lignes: [['200', 59], ['background', 92], ['line-height', 15]], autres: 12 } },
+  { type: 'sans', titre: 'Sans règle', total: 22,
+    g: { lignes: [['Contained', 71], ['Outlined', 106], ['ScaleWrap', 22]], autres: 9 },
+    v: { lignes: [['Gap', 12], ['Padding', 15]], autres: 8 } },
+  { type: 'composant', titre: 'Composants', total: 6,
+    g: { lignes: [['Button', 245], ['Link', 38], ['Modal', 52]], autres: 3 } },
+  { type: 'palette', titre: 'Palettes', total: 2,
+    g: { lignes: [['Poppy', 44], ['Titanium', 30]], autres: 0 } },
+];
+/* L'origine des termes de règle : Color, Danger… viennent d'UCM ; LineHeight est personnalisé. */
+const PERSONNALISES = new Set(['LineHeight', 'line-height', 'Small']);
+
+function ligne(section, place, [mot, nombre, remplace]) {
+  const terme = section.avecPastille
+    ? `<span class="jeton petit place-${place}">${esc(mot)}</span>`
+    : `<code class="mot place-${place}">${esc(mot)}</code>`;
+  const variantes = remplace ? `<span class="variantes">remplace</span><span>${remplace.map((v) => `<code class="variante">${esc(v)}</code>`).join('')}</span>` : '';
+  const origine = section.avecPastille ? ORIGINE[PERSONNALISES.has(mot) ? 'perso' : 'ucm'] : '<span></span>';
+  return `<button type="button" class="ligne-v2">${icone(section.type)}<span class="terme-regle">${terme}${variantes}</span>${origine}<span class="meta terme-nombre">${nombre}</span>${CHEVRON}</button>`;
+}
+const autres = (bloc, mot) => (bloc.autres ? `<button type="button" class="btn-texte plus-dans-section">Afficher les ${bloc.autres} autres${mot ? ` ${mot}` : ''}</button>` : '');
+const intertitre = (place, libelle, bloc) =>
+  `<div class="sous-place"><span class="echantillon place-${place}"></span>${libelle}<span class="meta">${bloc.lignes.length + bloc.autres}</span></div>`;
+function section(s) {
+  const deuxPlaces = Boolean(s.v);
+  const corps = (deuxPlaces ? intertitre('g', 'Groupes', s.g) : '') + s.g.lignes.map((l) => ligne(s, 'g', l)).join('') + autres(s.g, deuxPlaces ? 'groupes' : '')
+    + (deuxPlaces ? intertitre('v', 'Variables', s.v) + s.v.lignes.map((l) => ligne(s, 'v', l)).join('') + autres(s.v, 'variables') : '');
+  return `<div class="section-type"><div class="section-type-tete">${icone(s.type)}<h3>${s.titre}</h3><span class="meta">${s.total}</span>${CHEVRON_BAS}</div><div class="liste-v2">${corps}</div></div>`;
+}
+
+const CONVENTIONS = `<section class="section-regles"><div class="section-tete"><div><h2>Conventions d’écriture</h2><p>Comment s’écrivent les groupes, les variables et les collections.</p></div>`
+  + '<button type="button" class="btn btn-secondary btn-compact"><span>Modifier</span></button></div><div class="ecriture-regles">'
+  + '<div class="ecriture-regle"><span class="meta">Groupes</span><span class="jeton place-g">PascalCase</span><span class="ecriture-exemple"><span class="ecriture-partie partie-g">Button</span>/<span class="ecriture-partie partie-g">Contained</span>/background</span></div>'
+  + '<div class="ecriture-regle"><span class="meta">Variables</span><span class="jeton place-v">minuscules-tirets</span><span class="ecriture-exemple">Button/Contained/<span class="ecriture-partie partie-v">background</span></span></div>'
+  + '<div class="ecriture-regle"><span class="meta">Collections</span><span class="jeton jeton-neutre">noms UCM</span><span class="ecriture-exemple"><span class="ecriture-partie">color-brands</span></span></div>'
+  + '</div></section>';
+const VOCABULAIRE = '<section class="section-regles"><div class="section-tete"><div><h2>Vocabulaire</h2><p>Le terme de référence de chaque notion, et les variantes qu’il remplace.</p></div></div>'
+  + '<div class="barre-v2"><button type="button" class="btn btn-secondary btn-compact"><span>Filtrer</span></button><input type="search" class="input recherche" placeholder="Chercher un terme" value=""><select class="tri"><option>Trier : A → Z</option></select></div>'
+  + SECTIONS.map(section).join('') + '</section>';
+
+/* Les teintes de chaque piste, en thème sombre. */
+const TEINTES = `<style>
+  .jeton.place-g, .jeton.place-v { font-weight: 600; }
+  .jeton.place-g { background: var(--fond-g); color: var(--texte-g); box-shadow: var(--contour-g, none); }
+  .jeton.place-v { background: var(--fond-v); color: var(--texte-v); box-shadow: var(--contour-v, none); }
+  .mot.place-g, .partie-g { color: var(--mot-g, var(--texte-g)); }
+  .mot.place-v, .partie-v { color: var(--mot-v, var(--texte-v)); }
+  .sous-place { display: flex; align-items: center; gap: var(--espace-controle); padding: var(--espace-serre) var(--espace-bloc); border-top: 1px solid var(--bordure); background: var(--fond-bloc); color: var(--texte-second); font-size: var(--libelle); font-weight: 600; }
+  .sous-place:first-child { border-top: 0; }
+  .sous-place .meta { font-weight: 400; }
+  .echantillon { width: 10px; height: 10px; border-radius: 3px; }
+  .echantillon.place-g { background: var(--fond-g); box-shadow: inset 0 0 0 1px var(--texte-g); }
+  .echantillon.place-v { background: var(--fond-v); box-shadow: inset 0 0 0 1px var(--trait-v, var(--texte-v)); }
+  .liste-v2 .plus-dans-section { display: block; width: 100%; min-height: 32px; padding: var(--espace-controle) var(--espace-bloc); border-top: 1px solid var(--bordure); text-align: left; }
+
+  .piste-a { --fond-g: rgb(80 36 84); --texte-g: rgb(244 180 248); --fond-v: rgb(58 62 28); --texte-v: rgb(222 228 150); }
+  .piste-b { --fond-g: rgb(80 36 84); --texte-g: rgb(244 180 248); --fond-v: var(--fond-note); --texte-v: var(--texte); --trait-v: var(--texte-second); }
+  .piste-c { --fond-g: rgb(80 36 84); --texte-g: rgb(244 180 248); --fond-v: transparent; --texte-v: rgb(244 180 248); --contour-v: inset 0 0 0 1px rgb(176 98 182); --mot-v: var(--texte); }
+  .piste-d { --fond-g: rgb(58 38 94); --texte-g: rgb(214 190 255); --fond-v: rgb(23 59 56); --texte-v: rgb(126 224 210); }
+  .piste-d .pastille-ucm, .piste-d .pastille-personnalise { padding: 0; background: none; color: var(--texte-second); font-weight: 400; }
+</style>`;
+
+function iframe(hote, etat, classe, poser) {
+  const g = window.GALERIE[etat];
+  const cadre = document.createElement('iframe');
+  cadre.width = 640;
+  cadre.style.width = '640px';
+  cadre.style.height = '700px';
+  cadre.srcdoc = `<!doctype html><html lang="fr" class="${g.classe} ${classe}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/plugin.css"><link rel="stylesheet" href="propose.css">${TEINTES}</head><body>${g.corps}</body></html>`;
+  cadre.addEventListener('load', () => {
+    const doc = cadre.contentDocument;
+    poser(doc);
+    cadre.style.height = `${doc.documentElement.scrollHeight}px`;
+  });
+  document.getElementById(hote).append(cadre);
+}
+
+function regles(doc) {
+  const sections = doc.querySelectorAll('#panneau-regles .section-regles');
+  sections[0].outerHTML = CONVENTIONS;
+  sections[1].outerHTML = VOCABULAIRE;
+}
+for (const piste of ['a', 'b', 'c', 'd']) iframe(piste, 'regles-noms', `piste-${piste}`, regles);
+
+/* L'onglet Questions vide : la vue `.etat` des autres états du plugin. */
+const ETAT_VIDE = (ligneDExplication) => '<div class="etat"><div class="etat-titre">Aucune question pour l’instant</div>'
+  + `<p class="etat-texte">${ligneDExplication}</p>`
+  + '<button type="button" class="btn btn-secondary btn-compact"><span>Voir les renommages</span></button></div>';
+const PLUS_TARD = '<div class="carte"><div class="tete sans-coche"><button type="button" class="tete-bouton" aria-expanded="false"><span class="plus-tard-titre">Plus tard · 2</span>'
+  + `${CHEVRON_BAS}</button></div></div><div class="carte muette"><div class="tete sans-coche"><span>Autres pistes · 2</span></div></div>`;
+function questions(avecPlusTard) {
+  return (doc) => {
+    const onglet = doc.getElementById('onglet-a-trancher');
+    onglet.querySelector('.compte')?.remove();
+    onglet.removeAttribute('aria-label');
+    const pile = doc.querySelector('#panneau-a-trancher > .page-stack');
+    pile.innerHTML = avecPlusTard
+      ? ETAT_VIDE('Vous avez gardé 2 questions pour plus tard : elles sont ci-dessous.') + PLUS_TARD
+      : ETAT_VIDE('Aucun terme du fichier n’en rappelle un autre. Une question apparaîtra si une variante arrive, comme <code class="mot">bg</code> à côté de <code class="mot">background</code>.');
+  };
+}
+iframe('q1', 'a-trancher', '', questions(false));
+iframe('q2', 'a-trancher', '', questions(true));
+</script>
+</body>
+</html>
