@@ -164,7 +164,7 @@ export function planDesVariables(recette: Recette, palette: Palette, destination
     const finals = nommer ? nommer(candidats.map(({ entree, lue, voulu }) => ({ cle: entree.cle, nom: voulu, id: lue?.id }))) : candidats.map(({ voulu }) => voulu);
     candidats.forEach(({ entree, lue, voulu: brut }, rang) => {
       const voulu = finals[rang];
-      const occupant = origine.parNom.get(voulu);
+      const occupant = origine.parNom.get(voulu.toLowerCase());
       const cible = suivie.modes[entree.mode];
       if (!lue) {
         // Sans variable, l'entrée en crée une, ou reprend celle de ce nom que la palette suit sous une autre clé.

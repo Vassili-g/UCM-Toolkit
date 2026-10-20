@@ -223,7 +223,7 @@ export function suiviDeLaRepriseGroupee(groupee: PaletteGroupee): PaletteSuivie 
 export interface OrigineDeLaReprise {
   /** Le chemin commun des variables d'origine à la reprise, sans leur nuance : celui que le suivi garde, sinon celui de leurs noms. */
   readonly chemin: string;
-  /** Les variables de couleur de la collection, par nom. */
+  /** Les variables de couleur de la collection, par nom en minuscules : un nom pris l'est sans casse, comme à l'écriture d'une destination. */
   readonly parNom: ReadonlyMap<string, VariableLue>;
   /** Les variables que le suivi de la palette désigne et que le fichier porte encore, par identifiant. */
   readonly suivies: ReadonlyMap<string, VariableLue>;
@@ -253,7 +253,11 @@ export function origineDeLaReprise(suivie: PaletteSuivie, variables: readonly Va
     suivies.set(lue.id, lue);
     if (estDOrigine(suivie, cle)) origine.push(lue.nom);
   }
-  const parNom = new Map(variables.filter((variable) => variable.collection === suivie.collection).map((variable) => [variable.nom, variable]));
+  const parNom = new Map<string, VariableLue>();
+  for (const variable of variables) {
+    const cle = variable.nom.toLowerCase();
+    if (variable.collection === suivie.collection && !parNom.has(cle)) parNom.set(cle, variable);
+  }
   if (origine.length === 0) {
     return suivie.chemin ? { chemin: suivie.chemin, parNom, suivies } : null;
   }
@@ -285,7 +289,7 @@ export function variableDeLEntree(entree: Pick<EntreeDuPlan, 'cle' | 'nom'>, sui
   const connue = suivie.variables[entree.cle];
   const designee = connue ? origine.suivies.get(connue.id) : undefined;
   if (designee) return designee;
-  const homonyme = origine.parNom.get(entree.nom);
+  const homonyme = origine.parNom.get(entree.nom.toLowerCase());
   return homonyme && origine.suivies.has(homonyme.id) ? homonyme : undefined;
 }
 

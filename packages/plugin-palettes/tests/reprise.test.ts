@@ -86,6 +86,19 @@ test('[VAR-13] une collision Dark reste visible après l’écriture partielle e
   assert.equal((await tokens(figma, recette, palette)).etat, 'a-jour');
 });
 
+test('[VAR-13] une reprise juge un nom pris sans casse, comme l’écriture d’une destination', async () => {
+  const { figma, collection } = fichierAvecSlate();
+  const [source] = await duFichier(figma);
+  const { recette, palette } = await reprendre(figma, source, 'recalculees');
+  const etrangere = figma.variables.createVariable('Slate/Dark/50', collection, 'COLOR');
+  etrangere.setValueForMode(collection.defaultModeId, composantes('#FF0000'));
+  await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  const partielle = await tokens(figma, recette, palette);
+  assert.deepEqual([partielle.nomsOccupes, partielle.variables], [['slate/dark/50'], 21]);
+  assert.equal(hexa(figma, 'Slate/Dark/50'), '#FF0000');
+  assert.ok(!figma.variablesDe(collection).some((variable) => variable.name === 'slate/dark/50'), 'aucune variable ne se crée à côté de celle qui ne diffère que par la casse');
+});
+
 test('[VAR-13] un mode suivi supprimé refuse la reprise avant toute mutation et garde le suivi', async () => {
   const { figma, collection } = fichierAvecSlate();
   collection.renameMode(collection.defaultModeId, 'Light');
