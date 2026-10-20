@@ -71,6 +71,7 @@ import { reglagesModifies } from '../reglagesParDefaut';
 import type { IssueDeLaConversion } from '../ecriture/variables';
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import { conversionDeLaReprise } from '../variables/conversion';
+import { nommeurDuFichier } from '../variables/nommeur';
 import { tokensDeLaPalette, type TokensDUnePalette } from '../variables/gestion';
 import { palettesDuFichier as lirePalettesDuFichier, retrouverLaPaletteGroupee, type PaletteDuFichier, type PaletteGroupee } from '../variables/detection';
 import { planDesVariables } from '../variables/plan';
@@ -639,7 +640,9 @@ function construireVues(i18n: Localisation) {
       const ouverteIci = conversionOuverte === courante.id;
       boutonDeConversion.hidden = ouverteIci;
       confirmationDeConversion.hidden = !ouverteIci;
-      const conversion = conversionDeLaReprise(recette, courante, suivie, fichier.suivi.destination, fichier.variables);
+      // Les noms annoncés sont ceux que l'écriture donne : les règles de nommage de la collection de la reprise.
+      const nommer = nommeurDuFichier(fichier)?.pour({ id: suivie.collection });
+      const conversion = conversionDeLaReprise(recette, courante, suivie, fichier.suivi.destination, fichier.variables, nommer);
       const [premiere] = conversion.aRenommer;
       i18n.lier(texteDeConversion, 'textContent', texteDeLaConversion(nomDeLaPalette(courante), {
         enPlace: conversion.enPlace,

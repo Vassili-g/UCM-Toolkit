@@ -15,6 +15,7 @@ import { lireLesVariablesDuFichier, lireLeSuiviRange } from '../src/lectureDesVa
 import type { Destination } from '../src/variables/destination';
 import { palettesDuFichier } from '../src/variables/detection';
 import { tokensDeLaPalette } from '../src/variables/gestion';
+import { conversionDeLaReprise } from '../src/variables/conversion';
 import { creerNommeur, nommeurDuFichier, planDeLaPalette, type DonneesDeNommage } from '../src/variables/nommeur';
 import { cleDuPlan, nomsDuPlan, planDesVariables } from '../src/variables/plan';
 import { texteDuSuivi, variablesSuivies } from '../src/variables/suivi';
@@ -309,12 +310,16 @@ test('[VAR-13] liaison reprise : les nuances ajoutées se créent sous les noms 
   assert.equal(tokensDeLaPalette(elargie, commune, await lireLesVariablesDuFichier(api(figma))).etat, 'a-jour');
 });
 
-test('[VAR-13] « Passer au format du plugin » donne aux variables reprises les noms finaux de la destination', async () => {
+test('[VAR-13] « Passer au format du plugin » annonce et donne aux variables reprises les noms finaux de la destination', async () => {
   const { figma, collection } = fichierAvecUneRampe('colors/Azur');
   poserLesRegles(figma);
   const { recette, palette } = await reprendre(figma);
   const suivi = lireLeSuiviRange(figma.root);
   figma.root.setSharedPluginData('ucm_palettes', 'variables', texteDuSuivi({ ...suivi, destination: { collection: { id: collection.id }, groupe: 'colors', themes: 'chemin' }, confirmee: true }));
+  // L'annonce de l'onglet Création se calcule sur le fichier lu, comme `rendreLaConversion`.
+  const lu = await lireLesVariablesDuFichier(api(figma));
+  const annonce = conversionDeLaReprise(recette, palette, lu.suivi.palettes[palette.id], lu.suivi.destination, lu.variables, nommeurDuFichier(lu)?.pour({ id: collection.id }));
+  assert.deepEqual(annonce.aRenommer[0] && { de: annonce.aRenommer[0].de, vers: annonce.aRenommer[0].vers }, { de: 'colors/Azur/50', vers: 'Color/Azur/Light/50' });
   const issue = await convertirLaReprise(api(figma), { palette: palette.id, empreinteLue: empreinte(recette) });
   assert.deepEqual(issue, { issue: 'convertie', renommees: 11, enPlace: true });
   assert.deepEqual(noms(figma), TAILWIND.map((nuance) => `Color/Azur/Light/${nuance}`));
