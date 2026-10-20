@@ -13,6 +13,8 @@ export interface Etape {
   message?: { type: string };
   clic?: string;
   saisie?: { dans: string; valeur: string };
+  /** L'option `valeur` choisie dans le menu déroulant désigné. */
+  selection?: { dans: string; valeur: string };
   erreurUi?: string;
   /** Le pointeur entre sur l'élément désigné. */
   survol?: string;
@@ -73,7 +75,7 @@ export function fautesDeScenario(etats: readonly EtatDeGalerie[]): string[] {
     if (!etat.regarder) fautes.push(`${etat.id} : rien à regarder`);
     if ((etat.atteinte ?? []).length === 0) fautes.push(`${etat.id} : aucune étape`);
     for (const etape of etat.atteinte ?? []) {
-      const gestes = [etape.message, etape.clic, etape.saisie, etape.erreurUi, etape.survol, etape.touche, etape.fichier].filter(Boolean);
+      const gestes = [etape.message, etape.clic, etape.saisie, etape.selection, etape.erreurUi, etape.survol, etape.touche, etape.fichier].filter(Boolean);
       if (gestes.length !== 1) fautes.push(`${etat.id} : une étape porte ${gestes.length} gestes`);
     }
   }

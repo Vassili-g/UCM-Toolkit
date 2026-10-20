@@ -62,6 +62,12 @@ function pilote(etat) {
         if (!champ) throw new Error('Galerie : aucun champ pour ' + etape.saisie.dans);
         champ.value = etape.saisie.valeur;
         champ.dispatchEvent(new Event('input', { bubbles: true }));
+      } else if (etape.selection) {
+        var menu = document.querySelector(etape.selection.dans);
+        if (!menu) throw new Error('Galerie : aucun menu pour ' + etape.selection.dans);
+        menu.value = etape.selection.valeur;
+        if (menu.value !== etape.selection.valeur) throw new Error('Galerie : aucune option ' + etape.selection.valeur + ' dans ' + etape.selection.dans);
+        menu.dispatchEvent(new Event('change', { bubbles: true }));
       } else if (etape.erreurUi) {
         window.dispatchEvent(new ErrorEvent('error', { message: etape.erreurUi }));
       } else if (etape.survol) {

@@ -32,14 +32,6 @@ const termeOuvert = (mot, fiche) => [
 ];
 /** Le délai de la simulation d'une saisie : l'écran attend 250 ms avant de demander. */
 const delai = () => Array.from({ length: 60 }, () => ({ survol: 'body' }));
-/**
- * Le choix d'une option du tri. Le pilote du banc n'a pas d'étape pour un menu déroulant : `saisie` pose la valeur, puis `fichier`
- * envoie l'événement `change` que l'écran écoute (l'ajout de fichier est sans effet sur un menu).
- */
-const choisirLeTri = (valeur) => [
-  { saisie: { dans: '.tri', valeur } },
-  { fichier: { dans: '.tri', nom: 'tri.json', contenu: '{}' } },
-];
 const repondreAuPremier = '.carte.question .question-actions:first-child .btn-primary';
 const appliquer = [clic('.pied .btn-primary', '.feuille'), clic('.feuille-groupe .btn-primary')];
 
@@ -114,7 +106,7 @@ module.exports.ETATS = [
     reglesDuPlayground()),
   etat('regles-tri-nombre', 'Règles, tri par nombre', 'Le designer choisit « Trier : nombre de variables ».',
     'Chaque section ne montre plus que cinq lignes, du plus employé au moins employé, groupes et variables mêlés, sans intertitre de place ; un seul lien « Afficher les n autres » par section.',
-    [...reglesDuPlayground(), ...choisirLeTri('nombre'), msg(messages.termesParNombre(4), '.ligne-terme')]),
+    [...reglesDuPlayground(), { selection: { dans: '.tri', valeur: 'nombre' } }, msg(messages.termesParNombre(4), '.ligne-terme')]),
   etat('regles-section-suite', 'Règles, la suite d’une section', 'Le designer appuie sur « Afficher les 4 autres variables », sous Remplace.',
     'Les variables de Remplace passent de cinq à neuf et perdent leur lien ; ses groupes et les autres sections ne bougent pas.',
     [...reglesDuPlayground(), clic('[data-cle="plus:remplace:variables"]'), msg(messages.termesPage(4), ligneDe('size'))]),
