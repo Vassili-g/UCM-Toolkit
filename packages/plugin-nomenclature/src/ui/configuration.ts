@@ -12,7 +12,7 @@ import type { MessageAAfficher } from './frontiere';
 import { telecharger } from './telechargement';
 import { ouvrirUneFeuilleDeConfirmation } from './aAppliquer';
 import { creerHistorique } from './historique';
-import { annonceDUneAnnulation, lignesDUneAnnulationNonVerifiee } from './annonce';
+import { annonceDUneAnnulation, lignesDUneAnnulationNonVerifiee, texteDUneAnnulationRefusee } from './annonce';
 import { lignesDeProtection } from './protection';
 import { TEXTES } from './textes';
 
@@ -302,7 +302,7 @@ export function monterConfiguration(coquille: Coquille): void {
           else if (exclues > 0) {
             dire(TEXTES.annulationDansUneCollectionExclue(renommes, exclues),
               ...(sautes > exclues ? [TEXTES.annulationAutresNomsNonRetablis(sautes - exclues)] : []));
-          } else if (statut === 'refuse') dire(TEXTES.annulationDuRenommageRefusee);
+          } else if (statut === 'refuse') dire(texteDUneAnnulationRefusee(recu.resultat.cause, TEXTES.annulationDuRenommageRefusee));
           else if (statut === 'partiel') dire(TEXTES.annulationDuRenommagePartielle(renommes, sautes));
           else historique.reussite(renommes);
           synchroniserLesBoutons();

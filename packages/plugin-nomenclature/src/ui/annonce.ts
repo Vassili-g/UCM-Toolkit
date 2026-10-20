@@ -15,7 +15,7 @@ export type Annonce =
   /** `exclues` noms gardés parce que leur collection est exclue de l'analyse ; `autres` noms sautés pour une autre raison. */
   | { readonly type: 'annulation-collection-exclue'; readonly retablis: number; readonly exclues: number; readonly autres: number }
   | { readonly type: 'annulation-non-verifiee'; readonly retablis: number; readonly nonVerifiees: number; readonly exclues: number; readonly autres: number }
-  | { readonly type: 'annulation-refusee' };
+  | { readonly type: 'annulation-refusee'; readonly cause?: CauseDeRefus };
 
 /** Ce que le designer a demandé en dernier ; `recue` dit si l'`application` de cette demande est arrivée. */
 export interface Attente {
@@ -52,7 +52,13 @@ export function annonceDUneAnnulation(resultat: ResultatVue): Annonce | null {
   };
   if (exclues > 0) return { type: 'annulation-collection-exclue', retablis: resultat.renommes, exclues, autres: Math.max(0, resultat.sautes - exclues) };
   if (resultat.statut === 'applique') return null;
-  return resultat.statut === 'partiel' ? { type: 'annulation-partielle', sautes: resultat.sautes } : { type: 'annulation-refusee' };
+  if (resultat.statut === 'partiel') return { type: 'annulation-partielle', sautes: resultat.sautes };
+  return resultat.cause ? { type: 'annulation-refusee', cause: resultat.cause } : { type: 'annulation-refusee' };
+}
+
+/** Le texte d'une annulation refusée : la cause `regles-futures` dit le geste, les autres refus gardent le texte de la vue. */
+export function texteDUneAnnulationRefusee(cause: CauseDeRefus | undefined, parDefaut: string): string {
+  return cause === 'regles-futures' ? TEXTES.annulationRefuseeReglesFutures : parDefaut;
 }
 
 /** Les deux vues donnent le même constat pour une restitution non vérifiée ; seul l'accès aux collections exclues dépend de la vue. */

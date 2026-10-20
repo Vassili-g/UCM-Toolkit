@@ -31,7 +31,7 @@ export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
   readonly existantes: readonly string[];
   /** Les identifiants des variables de `existantes`, dans le même ordre. */
   readonly variablesExistantes: readonly string[];
-  /** Le nombre de valeurs déjà écrites qu'une écriture remplacerait. */
+  /** Le nombre de variables déjà écrites dont une valeur au moins serait remplacée ; même unité que `variables`. */
   readonly aRemplacer: number;
   /** Le nom de la collection où l'écriture se ferait ; `null` quand la destination désigne une collection que le fichier ne porte plus. */
   readonly collection: string | null;

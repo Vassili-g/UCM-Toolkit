@@ -28,7 +28,7 @@ import {
   type ModeleDeSelection,
 } from './selection';
 import { apresUnePage, creerLaFile, nomsRestants, prochainDebut, sectionsDansLOrdre, segmentsDeNom, type SorteDeRegle } from './lignes';
-import { annonceApresUneErreur, annonceDUneApplication, annonceDUneAnnulation, lignesDUneAnnulationNonVerifiee, type Annonce, type Attente } from './annonce';
+import { annonceApresUneErreur, annonceDUneApplication, annonceDUneAnnulation, lignesDUneAnnulationNonVerifiee, texteDUneAnnulationRefusee, type Annonce, type Attente } from './annonce';
 import { lignesDeProtection, totauxDeProtection } from './protection';
 import { TEXTES } from './textes';
 
@@ -646,9 +646,9 @@ export function monterAAppliquer(coquille: Coquille): void {
         if (annonce.type === 'refuse-non-verifiee') titre.textContent = TEXTES.rienNAEteRenommeNonVerifie;
         else if (annonce.type === 'refuse') {
           titre.textContent = annonce.cause === 'journal-impossible' ? TEXTES.journalImpossible : annonce.cause === 'regles-futures' ? TEXTES.reglesFutures : TEXTES.rienNAEteRenomme;
-        } else titre.textContent = TEXTES.annulationRefusee;
+        } else titre.textContent = texteDUneAnnulationRefusee(annonce.cause, TEXTES.annulationRefusee);
         // Relire le fichier ne change pas la version qui a rangé les règles : seule la mise à jour du plugin le fait.
-        if (!(annonce.type === 'refuse' && annonce.cause === 'regles-futures')) {
+        if (!(annonce.type !== 'refuse-non-verifiee' && annonce.cause === 'regles-futures')) {
           action = fabriquerAction(TEXTES.relancerLAnalyse, () => {
             frontiere.analyser();
           });

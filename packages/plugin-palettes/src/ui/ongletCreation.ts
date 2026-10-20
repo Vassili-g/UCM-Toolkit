@@ -802,7 +802,7 @@ function construireVues(i18n: Localisation) {
       rampeDuFichier.replaceChildren(...clair.map((entree) => nuance(suivie.modes.light === undefined ? null : lues.get(suivie.variables[entree.cle].id)?.valeurs[suivie.modes.light])));
       rampeDuPlugin.replaceChildren(...clair.map((entree) => nuance(entree.hexa)));
       for (const { mode, choixDuMode } of choixDeReprise) choixDuMode.setAttribute('aria-pressed', String((mode === 'telles-quelles') === figee));
-      i18n.lier(texteDeLaReprise, 'textContent', figee ? TEXTES_DE_LA_REPRISE.figee : couleursQuiChangeront(tokens.aRemplacer, tokens.variables === 0 ? 0 : Object.keys(suivie.variables).length, tokens.aCreer.length));
+      i18n.lier(texteDeLaReprise, 'textContent', figee ? TEXTES_DE_LA_REPRISE.figee : couleursQuiChangeront(tokens.aRemplacer, tokens.variables === 0 ? 0 : new Set(Object.values(suivie.variables).map((variable) => variable.id)).size,tokens.aCreer.length));
     }
 
     // La palette se règle ici, et se juge dans Vérification ([UI-12]).

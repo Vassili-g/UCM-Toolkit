@@ -80,7 +80,7 @@ export interface EcritureDUnePalette {
   readonly reserves: readonly string[];
   /** Reprise : les noms du plan qu'une variable hors du lot occupe ; ces entrées sortent du plan ([VAR-13]). */
   readonly nomsOccupes: readonly string[];
-  /** Le nombre de couleurs déjà écrites que l'écriture remplace. */
+  /** Le nombre de variables déjà écrites dont au moins un thème change ; une variable aux thèmes en modes compte une fois. */
   readonly aRemplacer: number;
   /** Les modes que l'écriture trouve, ajoute ou renomme, par mode du plan. */
   readonly modes: ModesVises;
@@ -282,7 +282,7 @@ export function planDuLot(recette: Recette, fichier: InventaireDuLot, demande: D
     const cibles: CibleDeLEntree[] = [];
     const renommages = new Map<string, RenommageExecute>();
     const variableDuNom = new Map<string, Reference>();
-    let aRemplacer = 0;
+    const variablesARemplacer = new Set<string>();
     for (const entree of plan) {
       const vise = modes[entree.mode];
       if (!permissif && (vise === undefined || (!vise.creer && !collection!.modes.some((mode) => mode.id === vise.id)))) {
@@ -311,7 +311,7 @@ export function planDuLot(recette: Recette, fichier: InventaireDuLot, demande: D
           noms.set(reference.id, entree.nom);
         }
         const ecrire = vise === undefined || vise.creer !== undefined || lues.get(reference.id)!.valeurs[vise.id] !== entree.hexa;
-        if (ecrire) aRemplacer += 1;
+        if (ecrire) variablesARemplacer.add(reference.id);
         cibles.push({ cible: 'presente', id: reference.id, ecrire });
       }
       if (entree.nom !== '') variableDuNom.set(entree.nom, reference);
@@ -330,7 +330,7 @@ export function planDuLot(recette: Recette, fichier: InventaireDuLot, demande: D
       renommages: [...renommages.values()],
       reserves,
       nomsOccupes,
-      aRemplacer,
+      aRemplacer: variablesARemplacer.size,
       modes,
       garde: false,
       groupe: etat.destination.groupe,
@@ -411,7 +411,7 @@ export function planDuLot(recette: Recette, fichier: InventaireDuLot, demande: D
       return { cible: 'presente', id: idDeLaVariable, ecrire };
     });
     const idsRemplaces = new Set(remplacements.map((remplacement) => remplacement.id));
-    const aRemplacer = cibles.filter((cible) => cible.cible === 'presente' && cible.ecrire && !idsRemplaces.has(cible.id)).length;
+    const aRemplacer = new Set(cibles.flatMap((cible) => (cible.cible === 'presente' && cible.ecrire && !idsRemplaces.has(cible.id) ? [cible.id] : []))).size;
     const idsPresents = new Set(cibles.flatMap((cible) => (cible.cible === 'presente' ? [cible.id] : [])));
     const nomPris = new Map(remplacements.map((remplacement) => [remplacement.id, remplacement.vers]));
     const reserves = [...[...idsPresents].map((idDeLaVariable) => nomPris.get(idDeLaVariable) ?? lues.get(idDeLaVariable)!.nom), ...creations.map((creation) => creation.nom)];

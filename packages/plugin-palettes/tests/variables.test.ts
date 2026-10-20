@@ -614,6 +614,19 @@ test('[UI-26] le compte d’une fiche est celui que l’écriture fait : créée
   assert.deepEqual(await ecrire(figma, [GRIS], changee), [{ palette: GRIS.id, issue: 'ecrite', creees: 11, ecrites: 22 }]);
 });
 
+test('[UI-26] thèmes en modes : une variable dont les deux thèmes changent compte une fois : 22 couleurs sur 22 variables, pas 44 sur 22', async () => {
+  const figma = fichier();
+  poserLaDestination(figma, { collection: { nom: 'primitives' }, groupe: 'color', themes: 'modes' });
+  await ecrire(figma, [BLEU]);
+  const changee = remplacerPalette(RECETTE, changerReference(RECETTE, BLEU, '#D91E6F')!);
+  ranger(figma, changee);
+  const tokens = tokensDeLaPalette(changee, changee.palettes[0], await lireLesVariablesDuFichier(api(figma)));
+  assert.ok(tokens.aRemplacer > 0);
+  assert.ok(tokens.aRemplacer <= tokens.variables, `${tokens.aRemplacer} couleurs sur ${tokens.variables} variables`);
+  assert.equal(tokens.aRemplacer, 22);
+  assert.equal(tokens.variables, 22);
+});
+
 test('[UI-30] la simulation suit la destination : quatre groupes d’un mode dans le chemin, deux groupes de deux modes en modes', () => {
   const chemin = simulationDeLaDestination(RECETTE, { collection: { nom: 'primitives' }, groupe: 'color', themes: 'chemin' })!;
   assert.equal(chemin.modes, 1);

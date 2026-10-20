@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { ResultatVue } from '../src/messages';
-import { annonceApresUneErreur, annonceDUneAnnulation, annonceDUneApplication } from '../src/ui/annonce';
+import { annonceApresUneErreur, annonceDUneAnnulation, annonceDUneApplication, texteDUneAnnulationRefusee } from '../src/ui/annonce';
 import { TEXTES } from '../src/ui/textes';
 
 const applique: ResultatVue = { sorte: 'application', statut: 'applique', renommes: 4, sautes: 0, annulable: true };
@@ -41,6 +41,15 @@ test('une annulation complète n’annonce rien, une partielle compte les noms n
   assert.equal(annonceDUneAnnulation(annulation), null);
   assert.deepEqual(annonceDUneAnnulation({ ...annulation, statut: 'partiel', sautes: 2 }), { type: 'annulation-partielle', sautes: 2 });
   assert.deepEqual(annonceDUneAnnulation({ ...annulation, statut: 'refuse', renommes: 0, sautes: 2 }), { type: 'annulation-refusee' });
+});
+
+test('L12 : une annulation refusée pour règles futures garde sa cause et dit de mettre le plugin à jour', () => {
+  const refus = annonceDUneAnnulation({ ...annulation, statut: 'refuse', renommes: 0, annulable: false, cause: 'regles-futures' });
+  assert.deepEqual(refus, { type: 'annulation-refusee', cause: 'regles-futures' });
+  const texte = texteDUneAnnulationRefusee('regles-futures', TEXTES.annulationRefusee);
+  assert.equal(texte, 'Une version plus récente d’UCM Nomenclature a rangé des règles dans ce fichier. Mettez le plugin à jour pour annuler ce renommage.');
+  assert.equal(texteDUneAnnulationRefusee(undefined, TEXTES.annulationRefusee), TEXTES.annulationRefusee);
+  assert.equal(texteDUneAnnulationRefusee('journal-impossible', TEXTES.annulationDuRenommageRefusee), TEXTES.annulationDuRenommageRefusee);
 });
 
 test('N09 : des noms gardés dans une collection exclue ne sont ni un refus à relancer ni des noms changés', () => {

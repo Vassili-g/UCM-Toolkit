@@ -347,6 +347,7 @@ const messages = {
   annulation: (demande) => m('application', demande, { resultat: { sorte: 'annulation', statut: 'applique', renommes: 12, sautes: 0, annulable: false } }),
   annulationPartielleNonVerifiee: (demande) => m('application', demande, { resultat: { sorte: 'annulation', statut: 'partiel', renommes: 10, sautes: 2, nonVerifiees: 2, annulable: true } }),
   annulationRefuseeNonVerifiee: (demande) => m('application', demande, { resultat: { sorte: 'annulation', statut: 'refuse', renommes: 0, sautes: 1, nonVerifiees: 1, annulable: true } }),
+  annulationRefuseeReglesFutures: (demande) => m('application', demande, { resultat: { sorte: 'annulation', statut: 'refuse', renommes: 0, sautes: 0, annulable: false, cause: 'regles-futures' } }),
   applicationRefusee: (demande, cause) => m('application', demande, { resultat: { sorte: 'application', statut: 'refuse', renommes: 0, sautes: 0, annulable: false, cause } }),
   diagnostic: (demande) => m('diagnostic', demande, { generation: 1, texte: '{"version":1,"termes":[],"noms":[]}' }),
   reglesExportees: (demande) => m('regles-exportees', demande, { texte: '{"version":1,"termes":{"hover":{"remplace":["hovered"]}}}' }),

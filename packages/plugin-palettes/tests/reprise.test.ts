@@ -8,7 +8,7 @@ import { ajouter, choisirLesIntensites, nomDeLaReprise, remplacerPalette, repren
 import { ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables, type FigmaDesVariablesEcrites } from '../src/ecriture/variables';
 import { lireLesVariablesDuFichier, lireLeSuiviRange } from '../src/lectureDesVariables';
 import { palettesDuFichier, regrouperLesPalettes, type PaletteDuFichier, type PaletteGroupee } from '../src/variables/detection';
-import { tokensDeLaPalette } from '../src/variables/gestion';
+import { ecartsDeLaReprise, tokensDeLaPalette } from '../src/variables/gestion';
 import { planDesVariables } from '../src/variables/plan';
 import { couleursDeLaRepriseGroupee, modesDeLaReprise, origineDeLaReprise, sourceDeLaReprise, suiviDeLaReprise, suiviDeLaRepriseGroupee } from '../src/variables/reprise';
 import { texteDuSuivi, variablesSuivies } from '../src/variables/suivi';
@@ -542,6 +542,16 @@ test('[VAR-13] [VAR-10] avec les thèmes en modes, une palette reprise trouve ou
   const resultat = await ecrireLesVariables(api(limite), { palettes: [refusee.palette.id], empreinteLue: empreinte(refusee.recette), remettre: [] });
   assert.equal(resultat.issue === 'ecrites' && resultat.palettes[0].issue, 'modes-refuses');
   assert.equal(hexa(limite, 'slate/800'), SLATE[8]);
+});
+
+test('[UI-34] avec les thèmes en modes, « couleurs sur variables » compte des variables : 11 sur 11, jamais plus de couleurs que de variables', async () => {
+  const { figma } = fichierAvecSlate();
+  figma.root.setSharedPluginData('ucm_palettes', 'variables', JSON.stringify({ version: 1, destination: { collection: { nom: 'primitives' }, groupe: 'color', themes: 'modes' }, confirmee: true, palettes: {} }));
+  const [source] = await duFichier(figma);
+  const { recette, palette } = await reprendre(figma, source, 'recalculees');
+  const avant = await tokens(figma, recette, palette);
+  assert.deepEqual([avant.variables, avant.aRemplacer], [11, 11]);
+  assert.deepEqual(ecartsDeLaReprise(avant).filter((ecart) => ecart.ecart === 'couleurs'), [{ ecart: 'couleurs', nombre: 11, total: 11 }]);
 });
 
 test('[VAR-13] une palette reprise ne crée pas sous un nom que le fichier porte déjà, et n’écrase pas un alias', async () => {

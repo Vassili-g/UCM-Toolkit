@@ -291,6 +291,8 @@ export const TEXTES = {
   nomsNonRetablis: (nombre: number): string =>
     nombre === 1 ? '1 nom n’a pas retrouvé son ancien nom : il a changé depuis le renommage.' : `${nombre} noms n’ont pas retrouvé leur ancien nom : ils ont changé depuis le renommage.`,
   annulationRefusee: 'Le dernier renommage n’a pas pu être annulé.',
+  /** Une règle de nommage vient d'une version plus récente du plugin : l'annulation est refusée avant toute écriture, comme l'application. */
+  annulationRefuseeReglesFutures: 'Une version plus récente d’UCM Nomenclature a rangé des règles dans ce fichier. Mettez le plugin à jour pour annuler ce renommage.',
 
   // U4a : onglet Règles, liste des termes.
   modifier: 'Modifier',

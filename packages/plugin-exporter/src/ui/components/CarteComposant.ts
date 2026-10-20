@@ -3,6 +3,7 @@
 import type { Cible } from '../../cible';
 import type { PluginMessage } from '../../messages';
 import type { Offre } from '../../template/sources';
+import { MAITRES_DU_KIT_DE_REGLES } from '@ucm-kit/core/referentiel';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import type { CarteCommandeUi, OptionsCarteConcrete } from './CarteCommande';
 import { createCarteCommande } from './CarteCommande';
@@ -70,7 +71,7 @@ export function createCarteComposant({
   // Le geste vise cette page, et pas une autre : le parcours ne repart pas de
   // lui-même, alors que le relevé de la page active voit une instance collée
   // dès le changement de sélection.
-  sansSource.textContent = 'Le modèle de règles « .componentRules » est absent du document. '
+  sansSource.textContent = `Le modèle de règles « ${MAITRES_DU_KIT_DE_REGLES.conteneur} » est absent du document. `
     + 'Copiez une instance depuis le kit de règles et collez-la sur cette page. ';
 
   /** Le lien vers le kit, que les deux notes portent. */
