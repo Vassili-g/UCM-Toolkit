@@ -7,12 +7,13 @@
  * fond réel inconnu ; une composante hors de [0, 1] sort du gamut que le
  * calcul suppose. Les deux rendent un résultat non jugé, avec sa raison.
  */
+import { SEUILS_PAR_USAGE, SEUIL_TEXTE_AAA } from '@ucm-kit/core/referentiel';
 import { aDixDecimales, atteintLeSeuil, contraste, type Rgb8 } from '@ucm-kit/core/emplois';
 
 import type { Couleur } from './modele';
 import type { Resultat } from './resolution';
 
-export const SEUILS = [3, 4.5, 7] as const;
+export const SEUILS = [SEUILS_PAR_USAGE.nonTexte, SEUILS_PAR_USAGE.texte, SEUIL_TEXTE_AAA] as const;
 
 export type Contraste =
   | { readonly statut: 'juge'; readonly ratio: number; readonly affiche: string; readonly atteint: boolean; readonly seuil: number }

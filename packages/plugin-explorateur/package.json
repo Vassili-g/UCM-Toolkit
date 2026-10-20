@@ -15,7 +15,7 @@
     "fidelite": "node galerie/comparer-maquette.cjs",
     "test:ui": "npm run galerie && node --test tests/interface/interface.test.mjs",
     "mesure": "node --expose-gc scripts/mesurer.mjs",
-    "build": "npm run typecheck && npm run build:code && npm run build:ui && npm run build:manifest",
+    "build": "node ../../scripts/construire-plugin.mjs verifier-kit explorateur && npm run typecheck && npm run build:code && npm run build:ui && npm run build:manifest",
     "test": "node scripts/run-tests.cjs"
   },
   "dependencies": {

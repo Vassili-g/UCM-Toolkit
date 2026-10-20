@@ -254,9 +254,12 @@ neutre ajoute `page/foreground-main`, `page/foreground-subtle`, `scale/0`,
 `scale/1000` et `disabled/*`. Un cran qu'aucune variable ne vise, comme 50,
 400 ou 950, ne liste rien.
 
-**Profil UCM.** Les cinq couches et leurs cibles suivent l'architecture
-multimarque : `components` vise `theme`, `theme` vise `color-brands` ou
-`color-utilities`, qui visent `primitives`. Une association rangée sous
+**Profil UCM.** Les sept couches et leurs cibles suivent l'architecture
+multimarque : `components` vise `theme`, `layouts` ou `typography` ; `theme`
+vise `color-brands` ou `color-utilities` ; `color-brands`, `color-utilities`,
+`layouts` et `typography` visent `primitives` ; `primitives` ne vise rien. Le
+profil ne juge que les variables de couleur : les variables de `layouts` et de
+`typography` qui ne sont pas des couleurs ne sont pas contrôlées. Une association rangée sous
 `brand` se lit `color-brands` ; une couche `usage`, disparue, se lit sans
 couche. Le profil contrôle quatre règles, en information :
 

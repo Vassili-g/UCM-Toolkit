@@ -39,8 +39,8 @@ export const PRODUITS: readonly Produit[] = [
   {
     id: 'palettes', libelle: { fr: 'UCM Palettes', en: 'UCM Palettes' },
     definition: { fr: 'Calcule les palettes et écrit leur recette, leurs variables primitives et leurs planches dans Figma.', en: 'Computes palettes and writes their recipe, primitive variables and boards to Figma.' },
-    lit: ['recette', 'variables', 'planches'], execution: 'figma',
-    ecrit: [{ donnees: ['recette'], destination: 'donnees-partagees-figma' }, { donnees: ['variables', 'planches'], destination: 'document-figma' }],
+    lit: ['recette', 'variables', 'planches', 'regles-de-nommage'], execution: 'figma',
+    ecrit: [{ donnees: ['recette', 'variables'], destination: 'donnees-partagees-figma' }, { donnees: ['variables', 'planches'], destination: 'document-figma' }],
   },
   {
     id: 'explorateur', libelle: { fr: 'UCM Explorateur', en: 'UCM Explorer' },

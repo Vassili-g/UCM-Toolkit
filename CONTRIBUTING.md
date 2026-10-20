@@ -437,6 +437,17 @@ nulle part ailleurs : elle s’applique alors du même geste à tous les scénar
 existants. La raison de ce point unique, et celle qui interdit de commiter un
 `.contract.json` ici, sont dans [AGENTS.md](./AGENTS.md#vérification).
 
+Pour construire, ouvrir en galerie ou tester un seul paquet, passez par les
+commandes racine, qui reconstruisent le kit d'abord : un plugin construit seul
+refuse un kit compilé périmé. Le pourquoi est dans
+[AGENTS.md](./AGENTS.md#vérification).
+
+```sh
+npm run build:plugin -- palettes
+npm run galerie:plugin -- palettes
+npm run test:paquet -- socle
+```
+
 Avant une pull request :
 
 ```sh

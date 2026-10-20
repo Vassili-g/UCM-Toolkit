@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
   CRANS, INTENSITE_UNIQUE, MODES, PROFILS, REGISTRES, REGISTRE_ETATS,
   STATE_AXIS_NAMES, STATE_PRECEDENCE, STATE_SELECTORS, SIZE_VALUES, ECHELLES_DE_TAILLES,
-  libelleDuTerme, termeRetenu,
+  REGISTRE_TAILLES, TAILLES_DE_COMPATIBILITE, libelleDuTerme, termeRetenu,
 } from '../src/referentiel/index.js';
 
 test('chaque registre porte un identifiant unique', () => {
@@ -71,4 +71,10 @@ test('les tailles connues gardent les deux échelles reconnues par l’exporteur
   for (const formes of ECHELLES_DE_TAILLES) {
     for (const forme of formes) assert.ok(SIZE_VALUES.has(forme), forme);
   }
+});
+
+test('SIZE_VALUES vaut les identifiants et formes tolérées du registre des tailles, plus la compatibilité', () => {
+  const duRegistre = REGISTRE_TAILLES.termes.flatMap((terme) => [terme.id, ...(terme.toleres ?? [])]);
+  assert.deepEqual([...SIZE_VALUES].sort(), [...duRegistre, ...TAILLES_DE_COMPATIBILITE].sort());
+  for (const taille of TAILLES_DE_COMPATIBILITE) assert.equal(termeRetenu(REGISTRE_TAILLES, taille), undefined, taille);
 });

@@ -114,6 +114,46 @@ const EXCEPTIONS: { fichier: string; extrait: string; raison: string }[] = [
     extrait: "['default', 'hover', 'pressed', 'focus']",
     raison: "Les états que l'Interface de test montre, focus compris : un choix de l'écran, pas la liste des états du thème.",
   },
+  {
+    fichier: 'packages/plugin-exporter/src/contract/extractRules.ts',
+    extrait: "{ usage: ['content'], do: ['content']",
+    raison: "Une table typée `Record<RuleTag, …>` : le compilateur la force à suivre `TAGS_DES_REGLES`, elle ne peut pas dériver.",
+  },
+  {
+    fichier: 'packages/plugin-exporter/src/template/sources.ts',
+    extrait: "{ usage: 'content', prop: 'content', boolean: 'content'",
+    raison: "Une table `Partial<Record<RuleTag, …>>` des tags dont le moteur lit l'aide : un sous-ensemble choisi, typé sur `RuleTag`.",
+  },
+  {
+    fichier: 'packages/plugin-palettes/src/i18n/en.ts',
+    extrait: '{ page: "on the page", carte: "on the card", default:',
+    raison: "Les textes d'un écran de Palettes, indexés par état et par fond : une table d'affichage, pas la liste des états.",
+  },
+  {
+    fichier: 'packages/plugin-palettes/src/i18n/en.ts',
+    extrait: "'page' | 'carte' | 'default' | 'hover' | 'pressed'",
+    raison: "Le type du fond d'un écran de Palettes, qui mêle deux fonds et trois états : un choix de l'écran, pas la liste des états.",
+  },
+  {
+    fichier: 'packages/plugin-palettes/src/i18n/fr.ts',
+    extrait: "'page' | 'carte' | 'default' | 'hover' | 'pressed'",
+    raison: "Le type du fond d'un écran de Palettes, qui mêle deux fonds et trois états : un choix de l'écran, pas la liste des états.",
+  },
+  {
+    fichier: 'packages/plugin-palettes/src/i18n/fr.ts',
+    extrait: "{ page: 'sur la page', carte: 'sur la carte', default:",
+    raison: "Les textes d'un écran de Palettes, indexés par état et par fond : une table d'affichage, pas la liste des états.",
+  },
+  {
+    fichier: 'packages/plugin-palettes/src/ui/apercuCompact.ts',
+    extrait: "{ default: TEXTES_DE_L_APERCU.noms.repos",
+    raison: "Le nom de trois états sur leur bouton dans l'aperçu : un choix de l'écran, pas la liste des états du thème.",
+  },
+  {
+    fichier: 'packages/plugin-palettes/src/ui/garanties.ts',
+    extrait: "{ default: '', hover: '4 3', pressed:",
+    raison: "Le motif de trait de chaque état dans l'écran des garanties : une table d'affichage, pas la liste des états.",
+  },
 ];
 
 /** Remplace les commentaires par des blancs, sans toucher aux chaînes ni aux numéros de ligne. */
@@ -190,6 +230,27 @@ function recopiesDuTexte(fichier: string, texte: string): Trouvaille[] {
       trouvees.push({ fichier, ligne, texte: m[0].replace(/\s+/g, ' ').slice(0, 90), regle });
     }
   }
+  const signaler = (index: number, texte: string, mots: string[], nombres: number[], familles: Regle[] = REGLES) => {
+    for (const regle of familles) {
+      if (!regle.reconnait(mots, nombres)) continue;
+      trouvees.push({ fichier, ligne: source.slice(0, index).split('\n').length, texte: texte.replace(/\s+/g, ' ').slice(0, 90), regle });
+    }
+  };
+  // Une union de littéraux (`'a' | 'b' | 'c'`) recopie une famille comme un tableau. Les modes et les profils
+  // en sont exclus : `'light' | 'dark'` est un type à deux valeurs que le code écrit partout, sans liste à maintenir.
+  const litteral = String.raw`(?:'[^'\n]*'|"[^"\n]*"|` + '`[^`\\n$]*`' + String.raw`|\d+)`;
+  for (const m of source.matchAll(new RegExp(`${litteral}(?:\\s*\\|\\s*${litteral})+`, 'g'))) {
+    const mots = [...m[0].matchAll(/'([^'\n]*)'|"([^"\n]*)"|`([^`\n$]*)`/g)].map((t) => t[1] ?? t[2] ?? t[3]);
+    const nombres = [...m[0].matchAll(/(?<![\w.'"])(\d+)(?![\w.'"])/g)].map((t) => Number(t[1]));
+    signaler(m.index ?? 0, m[0], mots, nombres, REGLES.filter((r) => !['modes', 'profils'].includes(r.nom)));
+  }
+  // Un objet dont les clés recopient une famille (`{ hover: …, pressed: … }`). Les modes et les profils
+  // en sont exclus : un enregistrement `{ light, dark }` est une structure de type ou de calcul, pas une liste.
+  for (const m of source.matchAll(/\{([^{}]*)\}/g)) {
+    const cles = [...m[1].matchAll(/(?:^|[,{;\s])(?:'([^'\n]+)'|"([^"\n]+)"|([\w-]+))\s*:/g)].map((t) => t[1] ?? t[2] ?? t[3]);
+    if (cles.length < 2) continue;
+    signaler(m.index ?? 0, m[0], cles, cles.filter((c) => /^\d+$/.test(c)).map(Number), REGLES.filter((r) => !['modes', 'profils'].includes(r.nom)));
+  }
   return trouvees;
 }
 
@@ -230,7 +291,12 @@ test('le contrôle voit une copie des crans, des modes, des profils, des états,
     "// const g = ['light', 'dark'];",
     'const h = [100, 200];',
     'const i = tableau[100];',
+    "type J = 'hover' | 'pressed';",
+    'const k = { hover: 1, pressed: 2 };',
+    'const l = { light: 1, dark: 2 };',
+    "type M = 'light' | 'dark';",
+    "type L = 'theme' | 'primitives' | 'layouts';",
   ].join('\n');
   const noms = recopiesDuTexte('exemple.ts', exemple).map((t) => `${t.ligne}:${t.regle.nom}`);
-  assert.deepEqual(noms, ['1:crans', '2:modes', '3:profils', '4:états', '5:collections', "6:tags des règles d'usage"]);
+  assert.deepEqual(noms, ['1:crans', '2:modes', '3:profils', '4:états', '5:collections', "6:tags des règles d'usage", '10:états', '14:collections', '11:états']);
 });

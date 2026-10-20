@@ -10,7 +10,7 @@ the repository that implements the component. The plugin and the readers both
 import the format from this package.
 
 ```sh
-npm install @ucm-kit/core@0.9.10
+npm install @ucm-kit/core@0.9.11
 ```
 
 Most repositories never call this package directly. They run
@@ -103,7 +103,7 @@ succeeds. Style Dictionary 5 writes the same for every `duration` unless the
 reader registers a transform for that type. Check the generated output before
 merging the first export in a new format version.
 
-## The five entry points
+## The six entry points
 
 ```js
 import { CONTRACT_VERSION, codeIdentifier, normalizeName } from "@ucm-kit/core/format";
@@ -111,6 +111,7 @@ import { GARANTIES, TABLE_DES_DOSSIERS, atteintLeSeuil, contraste } from "@ucm-k
 import { champsInvalidesDuContrat, verdictDeVersion } from "@ucm-kit/core/lecteurs";
 import { lireLeSchema, CHEMIN_DU_SCHEMA } from "@ucm-kit/core/lecteurs";
 import { champsInvalidesDuContrat, indexerTokensDtcg } from "@ucm-kit/core/lecteurs/navigateur";
+import { COLLECTIONS, PRODUITS } from "@ucm-kit/core/referentiel";
 ```
 
 **`@ucm-kit/core/format`** gives the shape of a contract, its version, the
@@ -124,6 +125,11 @@ plugin and `ucm check` share: the table of theme variables in three folders
 each variable targets, the seven contrast guarantees, and the WCAG 2 contrast
 compared on its value written to ten decimals. Like `format`, it depends on
 nothing.
+
+**`@ucm-kit/core/referentiel`** is the shared reference data: the UCM
+collections and their targets, the naming registers and lexicon, the products
+and their responsibilities, and the implementation advice. Like `format`, it
+depends on nothing.
 
 **`@ucm-kit/core/lecteurs`** holds everything that judges a contract already
 written: its shape, its composition graph, its token references, the meaning of

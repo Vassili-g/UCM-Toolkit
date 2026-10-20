@@ -407,6 +407,8 @@ docs/                    la documentation classée par sujet
   rediger-sans-tics-ia/    le standard d'écriture, documents et commentaires
 
 scripts/
+  construire-plugin.mjs  construit, ouvre en galerie ou teste un paquet après le kit
+  empreinte-du-kit.mjs   l'empreinte des sources compilées du kit, écrite dans `dist`
   controle-style.mjs     les règles de style, pour le test et pour le hook
   hook-style.mjs         le même contrôle, au moment où un agent écrit
   mesurer-prose.mjs      le volume de la prose, document et commentaire
@@ -423,6 +425,8 @@ tests/                   les tests du monorepo lui-même
   registrePortableDocuments.test.ts  aucun document portable ne promet une stack
   versionSuitLeContenu.test.mjs  un numéro publié annonce bien ce qu'il publie
   monorepoCoherent.test.mjs  chaque paquet lit le kit d'à côté, jamais le registre
+  kitCompileAJour.test.mjs  un plugin ne se construit pas sur un kit compilé périmé
+  portesDocumentees.test.mjs  chaque porte publique du kit est décrite dans son README
   pluginsSepares.test.ts  aucun des trois plugins n'importe un autre
   referentielUnique.test.ts  aucune liste littérale ne recopie une donnée du référentiel
   vueIllustree.test.ts   la vue illustrée montre le référentiel d'aujourd'hui
@@ -1739,6 +1743,20 @@ npm test
 npm run typecheck
 npm run build
 ```
+
+Un plugin résout `@ucm-kit/core/*` vers `packages/kit/dist`. Construire un
+plugin seul embarquerait donc un kit périmé : son script `build` compare une
+empreinte des sources du kit à `packages/kit/dist/.empreinte` et s'arrête, en
+donnant la commande à lancer. Trois commandes racine construisent le kit
+d'abord, puis le paquet nommé :
+
+```sh
+npm run build:plugin -- palettes      # palettes, explorateur, nomenclature, exporter
+npm run galerie:plugin -- palettes    # les mêmes quatre plugins
+npm run test:paquet -- socle          # les quatre plugins, socle, couleur, cli, adapter
+```
+
+Un nom inconnu sort en erreur et liste les noms admis.
 
 Chaque paquet a son `scripts/run-tests.cjs`, `build/run-tests.cjs` dans le socle,
 qui découvre les fichiers `tests/*.test.ts` et `tests/*.test.mjs` de son dossier.

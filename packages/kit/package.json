@@ -1,6 +1,6 @@
 {
   "name": "@ucm-kit/core",
-  "version": "0.9.10",
+  "version": "0.9.11",
   "description": "Le format de contrat UCM et ses lecteurs : types, version, règles de nommage, schéma et validateurs.",
   "type": "module",
   "license": "MIT",
@@ -46,7 +46,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/empreinte-du-kit.mjs ecrire",
     "prepare": "npm run build",
     "schema": "tsx scripts/build-schema.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",

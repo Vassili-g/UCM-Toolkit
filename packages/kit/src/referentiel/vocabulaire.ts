@@ -35,6 +35,8 @@ export const STATE_PRECEDENCE = [
   'default', 'rest', 'resting', 'normal', 'selected-false', 'unselected',
 ] as const;
 export const STATE_AXIS_NAMES = ['state', 'states', 'status'] as const;
+/** Les tailles que l'exporteur accepte sans que `REGISTRE_TAILLES` les reconnaisse : une compatibilité voulue. */
+export const TAILLES_DE_COMPATIBILITE = ['tiny', 'huge'] as const;
 export const SIZE_VALUES: ReadonlySet<string> = new Set([
   'tiny', 'small', 'medium', 'large', 'big', 'huge',
   '9xs', '8xs', '7xs', '6xs', '5xs', '4xs', '3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl', '2xl', '3xl', '4xl',

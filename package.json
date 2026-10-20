@@ -13,7 +13,10 @@
     "schema": "npm run schema --workspace @ucm-kit/core",
     "pins": "node scripts/pins-servis.mjs",
     "cascade": "npm run build --workspace @ucm-kit/core && node --test packages/cli/tests/cascade/cascade.test.mjs",
-    "start": "npm run build"
+    "start": "npm run build",
+    "build:plugin": "node scripts/construire-plugin.mjs build",
+    "galerie:plugin": "node scripts/construire-plugin.mjs galerie",
+    "test:paquet": "node scripts/construire-plugin.mjs test"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

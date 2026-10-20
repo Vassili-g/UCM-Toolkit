@@ -9,7 +9,7 @@
     "build:ui:js": "esbuild src/ui/index.ts --bundle --outfile=dist/ui.js --format=iife --platform=browser --target=chrome80 --minify",
     "build:ui": "npm run build:ui:js && node scripts/build-ui.cjs",
     "build:manifest": "node scripts/build-manifest.cjs",
-    "build": "npm run typecheck && npm run build:code && npm run build:ui && npm run build:manifest",
+    "build": "node ../../scripts/construire-plugin.mjs verifier-kit nomenclature && npm run typecheck && npm run build:code && npm run build:ui && npm run build:manifest",
     "galerie": "npm run build:ui && node galerie/build-galerie.cjs",
     "galerie:captures": "node galerie/capturer.cjs",
     "test:ui": "npm run galerie && node --test tests/interface/galerie.test.mjs",

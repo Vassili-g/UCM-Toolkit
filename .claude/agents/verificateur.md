@@ -21,6 +21,13 @@ rien.
    test, le fichier et la ligne, le message. Si la sortie montre plusieurs
    échecs, compte-les et relève les trois premiers.
 
+## Vérifications standard
+
+Depuis la racine, `npm test` construit le kit, lance les tests des paquets,
+puis ceux de `tests/`. Après une modification de `packages/kit/src`, ne
+t'en tiens jamais aux tests des paquets : lance `npm test` depuis la racine,
+ou `npm run test:paquet -- <nom>` suivi de `node scripts/run-tests.cjs`.
+
 ## Ce que tu rends
 
 Un tableau, puis les détails des échecs, et rien d'autre :

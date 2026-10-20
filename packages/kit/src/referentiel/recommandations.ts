@@ -1,6 +1,9 @@
 /**
  * Les conseils d'implémentation ne déclarent aucun champ normatif du contrat.
  *
+ * Aucun produit ne consomme encore `RECOMMANDATIONS` : seuls l'index du référentiel, les tests du kit et le générateur
+ * de la vue illustrée la lisent. Ces conseils ne sont donc pas une règle distribuée aux plugins.
+ *
  * Après une modification : relancer `npm test`, régénérer la vue illustrée (`generer-donnees-referentiel.ts`) (elle en tire les recommandations), et changer la version du kit.
  */
 import type { Langues } from './termes.js';

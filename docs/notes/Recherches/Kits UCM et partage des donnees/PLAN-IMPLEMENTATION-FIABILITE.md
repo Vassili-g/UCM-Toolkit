@@ -344,7 +344,11 @@ Plan de fiabilité, section « Lot 1 », décision D6.
     (`VARIABLES_DU_THEME`, `variableDuNom`, `nuanceAttendue`), les tests.
   - Faire : la liste des variables du thème est dérivée dans le kit ;
     `profilUcm.ts` ne la construit plus ; `variableDuNom` et `nuanceAttendue`
-    appellent la fonction du kit. Le nom affiché reste celui du fichier.
+    appellent la fonction du kit. Le nom affiché reste celui du fichier. Au
+    passage, les unions `'light' | 'dark'` et `'soft' | 'vivid'` de
+    l'explorateur (`integrations/palettes.ts` : `Intensite`, `Theme` ;
+    `profilUcm.ts` : `nuanceAttendue`) et `ModeDuTheme` du kit
+    (`emplois/dossiers.ts`) dérivent de `MODES` et `PROFILS` du référentiel.
   - Tests : un thème renommé selon chaque convention de `CONVENTIONS` donne
     les mêmes constats de portée et de nuance que le thème en minuscules.
   - Fini quand : tests du kit et de l'explorateur verts.
@@ -561,7 +565,14 @@ Plan de fiabilité, section « Lot 6 », décisions D1 et D7. Sonde de Codex :
   - Entrée : `conception/lot-6.md`.
   - Fichiers : `packages/kit/src/referentiel/vocabulaire.ts`,
     `architecture.ts`, `packages/couleur/src/nuances.ts` (`PREREGLAGES[13]`
-    lit `1000` et `1050` du kit), les tests du kit et du moteur.
+    lit `1000` et `1050` du kit), les tests du kit et du moteur. Au passage,
+    `IntensiteDuChemin` et `ThemeDuChemin`
+    (`packages/plugin-palettes/src/variables/detection.ts`), `intensite` du
+    suivi (`variables/suivi.ts`) et l'enregistrement `light`/`dark` de
+    `packages/couleur/src/recette.ts` dérivent de `MODES` et `PROFILS` du
+    référentiel. Puis `tests/referentielUnique.test.ts` cesse d'exclure les
+    modes et les profils des unions et des objets ; ses exceptions restantes
+    sont motivées.
   - Tests : la matrice de Codex (une et deux intensités, 11 et 13 nuances,
     thèmes dans le chemin et en modes) rend zéro refus et la bonne forme ;
     `color/Ocean/soft/50` en modes est reconnu comme intensité, pas comme
