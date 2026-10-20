@@ -10,9 +10,10 @@ sélection, les définitions, la détection par alias et la galerie. Le comporte
 de l’annulation dans une collection exclue demande aussi une clarification de
 la garantie produit.
 
-Le rapport décrit le code et les preuves. Il ne corrige aucun de ces défauts.
-Les scripts voisins conservent les reproductions. Leurs assertions constatent
-les défauts actuels ; elles devront être inversées dans les tests de régression.
+Le rapport décrit le code et les preuves. Les scripts voisins conservent les
+reproductions ; leurs assertions constatent les défauts de la base auditée et
+échouent depuis les corrections, que la section
+[Suivi des corrections](#suivi-des-corrections) relie à leurs tests.
 
 ## Périmètre et état du code
 
@@ -477,3 +478,33 @@ La validation Figma qui reste à mener porte sur les setters réels, les quotas
 de données partagées, l’annulation native et les changements par un autre
 éditeur. La relecture des deux thèmes à la taille minimale doit utiliser les
 couleurs servies par Figma. Les mesures de galerie n’établissent pas ce rendu.
+
+## Suivi des corrections
+
+Le noyau est corrigé en `fd886db7`, le plugin et le socle en `d9cb4f22`,
+publiés avec le kit 0.9.9, la cli 0.1.68 et l'adaptateur 0.1.61 (`44b29da6`).
+Chaque test cité porte le repère du constat dans son titre.
+
+| Repère | Correction | Tests |
+|---|---|---|
+| N01 | L'annulation contrôle les chemins ; le journal range les paires déjà en conflit avant le lot (`dejaEnConflit`), seules restituées | `ecriture.test.ts`, `cheminsPublies.test.ts`, `regles.test.ts` |
+| N02 | Les collections lues portent leurs modes et leurs extensions ; `cheminsEnConflit` refuse une collision d'axes nouvelle (`meme-axe`, `axe-et-extensions`) | `cheminsPublies.test.ts`, `ecriture.test.ts`, `protocole.test.ts`, `tests/axesDeModes.test.ts` |
+| N03 | La cible d'un terme personnalisé est résolue vers sa forme terminale ; un cycle partiel est un conflit `cycle` | `vocabulaireDuFichier.test.ts`, `nomsSelonLesRegles.test.ts`, `tests/nomsDePalettes.test.ts` |
+| N04 | La signature d'`appliquer` inclut les termes ordinaires et la reprise de l'écriture de la v1 | `protocole.test.ts` |
+| N05 | Configuration garde le dernier choix d'exclusion jusqu'à sa réponse | `configuration.test.ts` |
+| N06 | La lecture `selection` retire les exclus et les inclus qui ne sont plus à renommer ; Appliquer attend sa réponse | `selection.test.ts`, `protocole.test.ts`, `frontiereUi.test.ts`, `messages.test.ts` |
+| N07 | Retirer la dernière forme garde la règle qui porte une définition | `session.test.ts` |
+| N08 | La cible d'un alias local porte l'identifiant de son nom lu ; une cible distante reste sans cible | `lecture.test.ts`, `aliasQuestions.test.ts` |
+| N09 | L'exclusion vaut pour l'annulation : les noms d'une collection exclue sont sautés en `exclue` et restent au journal | `ecriture.test.ts`, `protocole.test.ts`, `annonce.test.ts`, `textesDeLAnnulation.test.ts` |
+| N10 | Sélecteurs de la galerie à jour ; `test:ui` rejoue chaque état dans Chromium, en CI aussi | `tests/interface/galerie.test.mjs` |
+
+Limites connues :
+
+- un journal rangé avant `d9cb4f22` n'a pas de paires d'origine : son
+  annulation refuse aussi la restitution d'un conflit qui existait avant le lot ;
+- une annulation qui rétablirait une collision d'axes antérieure au lot est
+  sautée, car le journal ne range que les paires de chemins ;
+- un renommage de collection vers un nom sans préfixe (`$`) écarte son axe à
+  l'export sans être bloqué ;
+- les règles de cycle partiel déjà rangées dans un fichier font refuser les
+  gestes suivants sur ses règles, jusqu'à leur retrait.
