@@ -33,26 +33,22 @@
 <body>
 <main>
   <h1>Historique de la Configuration</h1>
-  <p class="intro">Demande du mainteneur : deux onglets dans la Configuration d'UCM Nomenclature, sur le modèle de la
-  Configuration de Palettes. Le premier garde ce qu'elle contient aujourd'hui ; le second, « Historique », garde l'état d'avant
-  la dernière application pour revenir en arrière après une erreur grave, avec un petit diff. Les cadres sont les écrans réels de la
-  galerie sombre (gel du 2026-10-20), modifiés avec les classes du plugin. Les repères <span class="rose">roses</span> montrent ce
-  qui change.</p>
+  <p class="intro">La Configuration d'UCM Nomenclature prend deux onglets, sur le modèle de Palettes. Le premier garde les
+  réglages actuels. Le second, « Historique », permet de revenir à l'état d'avant le dernier renommage. Les cadres sont les
+  écrans réels de la galerie sombre, modifiés avec les classes du plugin. Les repères <span class="rose">roses</span>
+  montrent ce qui change.</p>
 
   <h2>Ce que le plugin garde déjà</h2>
-  <p>La sauvegarde existe : avant le premier nom écrit, <code>appliquerLesRenommages</code> range dans le fichier le journal du lot,
-  c'est-à-dire le type, l'identifiant Figma, l'ancien et le nouveau nom de chaque objet renommé (<code>src/regles.ts</code>,
-  <code>Journal</code>). Si le fichier ne peut pas le garder, aucun nom ne change. Un import de règles garde de même le texte
-  d'avant et d'après de chaque règle qu'il a écrasée (<code>ImportRange</code>). La Configuration en tire deux sections,
-  « Dernier renommage » et « Dernier import », avec chacune un bouton d'annulation, mais elle ne dit ni quels noms reviendront,
-  ni lesquels ne pourront pas revenir. Le designer ne l'apprend qu'après coup, par un message d'annulation partielle.</p>
-  <p>L'Historique proposé ne demande donc aucun nouveau stockage. Il montre ce que le journal contient et il annonce, avant le
-  clic, ce que l'annulation fera de chaque nom.</p>
+  <p>Avant d'écrire un nom, « Appliquer » range un journal dans le fichier. Ce journal garde l'ancien et le nouveau nom de
+  chaque objet renommé. Un import de règles garde de même chaque règle qu'il remplace.</p>
+  <p>La Configuration actuelle s'en sert pour ses deux boutons « Annuler ». Elle ne montre pas les noms concernés. Le designer
+  découvre après coup les noms qui n'ont pas pu revenir.</p>
+  <p>L'Historique affiche ce journal. Il n'ajoute aucun stockage.</p>
 
   <h2>1 · Aujourd'hui</h2>
   <div class="colonnes">
     <div class="colonne">
-      <span class="etiquette actuel">Configuration actuelle, après un renommage puis un import</span>
+      <span class="etiquette actuel">Configuration actuelle, après un renommage et un import</span>
       <div class="cadre" id="actuel"></div>
     </div>
   </div>
@@ -63,29 +59,24 @@
       <span class="etiquette recommande">Onglet Réglages</span>
       <div class="cadre" id="reglages"></div>
       <ol class="argu">
-        <li>Les onglets et la phrase sous les onglets reprennent la Configuration de Palettes : <code>.onglets</code>, puis une
-        <code>.subtitle</code> qui dit ce que contient l'onglet.</li>
-        <li>« Réglages » garde « Collections analysées » et « Règles de ce fichier » sans changement.</li>
-        <li>« Dernier renommage » et « Dernier import » passent dans l'Historique : ce sont des retours en arrière, pas des
-        réglages, et les laisser aussi ici ferait deux boutons pour la même annulation.</li>
+        <li>Les onglets et la phrase en dessous reprennent la Configuration de Palettes.</li>
+        <li>Les sections « Collections analysées » et « Règles de ce fichier » ne changent pas.</li>
+        <li>« Dernier renommage » et « Dernier import » passent dans l'Historique.</li>
       </ol>
     </div>
     <div class="colonne">
       <span class="etiquette recommande">Onglet Historique</span>
       <div class="cadre" id="historique"></div>
       <ol class="argu">
-        <li>Le moment s'écrit avec le jour : « aujourd'hui à 14:32 », « hier », « le 14 octobre ». Le journal reste dans le
-        fichier après la fermeture du plugin, et une heure seule devient ambiguë le lendemain.</li>
-        <li>Une phrase dit la limite : le plugin garde le dernier renommage seulement, et le prochain « Appliquer » le remplace.</li>
-        <li>Le diff reprend la carte dépliée de l'onglet Renommages : « Aujourd'hui » à gauche, puis le nom d'après l'annulation à
-        droite. Les parties qui disparaissent sont en rouge barré et celles qui reviennent en vert, comme dans Renommages. Les cases
-        à cocher sont retirées : l'annulation porte sur tout le lot.</li>
-        <li>Une carte par collection, repliée sauf la première : un lot peut compter des centaines de noms.</li>
-        <li>Les boutons disent ce qu'ils annulent (« Annuler le renommage », « Annuler l'import »). Avec deux sections dans le
-        même onglet, « Annuler » seul serait ambigu.</li>
-        <li>Le diff de l'import montre la règle d'aujourd'hui et celle d'après l'annulation, avec les jetons neutres de l'onglet
-        Règles : le rouge et le vert restent réservés aux noms.</li>
-        <li>La dernière ligne grise ne vaut que si Q2 est retenue.</li>
+        <li>La date donne le jour en plus de l'heure. Le journal reste dans le fichier d'un jour à l'autre.</li>
+        <li>Une phrase rappelle que seul le dernier renommage est gardé.</li>
+        <li>Le diff reprend la carte dépliée de l'onglet Renommages, sans les cases.</li>
+        <li>Les noms actuels sont à gauche et les anciens noms à droite.</li>
+        <li>Le rouge barré marque ce qui disparaît. Le vert marque ce qui revient.</li>
+        <li>Chaque collection a sa carte. Seule la première est ouverte.</li>
+        <li>Chaque bouton nomme ce qu'il annule.</li>
+        <li>Le diff de l'import affiche les règles avec les jetons gris de l'onglet Règles.</li>
+        <li>La ligne grise sur Figma dépend de la question Q2.</li>
       </ol>
     </div>
   </div>
@@ -96,38 +87,33 @@
       <span class="etiquette">3a · Des noms ne reviendront pas</span>
       <div class="cadre" id="partiel"></div>
       <ol class="argu">
-        <li>Le plugin compare le journal au fichier à chaque bilan, comme le fait déjà l'annulation. Il annonce les noms qui ne
-        reviendront pas avant le clic, au lieu de l'expliquer après.</li>
-        <li>Un nom renommé dans Figma depuis reste en gris et dit pourquoi. La collection décochée dit ce qu'il faut faire pour
-        que ses noms reviennent.</li>
-        <li>Le bouton reste actif : les noms qui peuvent revenir reviennent, et le plugin garde les autres pour une annulation
-        suivante. C'est ce que fait déjà l'annulation partielle.</li>
+        <li>Le plugin annonce avant le clic les noms qui ne reviendront pas.</li>
+        <li>Un nom changé dans Figma depuis le renommage reste gris.</li>
+        <li>Une collection décochée indique comment rétablir ses noms.</li>
+        <li>Le bouton reste actif. Les autres noms reviennent normalement.</li>
       </ol>
     </div>
     <div class="colonne">
       <span class="etiquette">3b · Confirmation</span>
       <div class="cadre" id="confirmation"></div>
       <ol class="argu">
-        <li>La feuille de confirmation actuelle est gardée, sans changement ; elle s'ouvre maintenant au-dessus de l'Historique.</li>
-        <li>Dans le cas 3a, son titre suit le compte : « 7 noms reprennent leur ancien nom, 5 restent tels quels. »</li>
+        <li>La fenêtre de confirmation actuelle ne change pas.</li>
       </ol>
     </div>
     <div class="colonne">
       <span class="etiquette">3c · Après l'annulation</span>
       <div class="cadre" id="apres"></div>
       <ol class="argu">
-        <li>La ligne de réussite reprend celle de l'onglet Renommages et dit où les renommages sont repartis.</li>
-        <li>Il n'y a pas de bouton « Refaire » : les règles n'ont pas changé, donc l'onglet Renommages propose de nouveau les mêmes
-        noms et « Appliquer » les refait.</li>
-        <li>L'import n'est pas touché : chaque section s'annule seule.</li>
+        <li>La ligne verte reprend celle de l'onglet Renommages.</li>
+        <li>Il n'y a pas de bouton « Refaire ». L'onglet Renommages propose de nouveau les mêmes noms.</li>
+        <li>L'import reste annulable à part.</li>
       </ol>
     </div>
     <div class="colonne">
       <span class="etiquette">3d · Rien à annuler</span>
       <div class="cadre" id="vide"></div>
       <ol class="argu">
-        <li>L'onglet reste visible et dit ce qu'il gardera, pour qu'un designer sache, avant son premier « Appliquer », qu'un
-        retour en arrière existe.</li>
+        <li>L'onglet reste visible. Le designer sait dès le début qu'un retour en arrière existe.</li>
       </ol>
     </div>
   </div>
@@ -135,28 +121,25 @@
   <h2>4 · Dans l'onglet Renommages, juste après « Appliquer »</h2>
   <div class="colonnes">
     <div class="colonne">
-      <span class="etiquette">La ligne de réussite dit où se trouve la sauvegarde</span>
+      <span class="etiquette">La ligne verte indique l'Historique</span>
       <div class="cadre" id="application"></div>
       <ol class="argu">
-        <li>« Annuler » reste dans la ligne : c'est le geste immédiat.</li>
-        <li>Une ligne de plus indique l'Historique. Le designer qui découvre son erreur plus tard sait où revenir, même après avoir
-        fermé le plugin.</li>
+        <li>« Annuler » reste dans la ligne verte.</li>
+        <li>Une ligne de plus indique où retrouver les anciens noms plus tard.</li>
       </ol>
     </div>
   </div>
 
-  <h2>5 · Variante écartée : garder plusieurs renommages</h2>
+  <h2>5 · Variante écartée : plusieurs renommages</h2>
   <div class="colonnes">
     <div class="colonne">
       <span class="etiquette ecarte">Plusieurs renommages · non retenue</span>
       <div class="cadre" id="plusieurs"></div>
       <ol class="argu">
-        <li>Les annulations doivent se faire dans l'ordre, de la plus récente à la plus ancienne. Un renommage ancien ne peut pas
-        s'annuler seul, car un renommage plus récent a pu toucher les mêmes noms. Les lignes anciennes ne servent donc qu'à lire.</li>
-        <li>Chaque lot occupe de la place dans le fichier (une entrée Figma est limitée à 100 ko, et le journal en prend autant
-        qu'il faut). Le fichier grossit à chaque renommage.</li>
-        <li>La demande porte sur la dernière version. Si un retour plus loin devient nécessaire, Q2 le couvre mieux, sans rien
-        stocker dans le fichier.</li>
+        <li>Les annulations devraient se faire du plus récent au plus ancien.</li>
+        <li>Les anciens renommages serviraient seulement à lire.</li>
+        <li>Le fichier grossirait à chaque renommage.</li>
+        <li>La demande porte sur le dernier renommage.</li>
       </ol>
     </div>
   </div>
@@ -164,29 +147,24 @@
   <h2>6 · Questions au mainteneur</h2>
   <table>
     <tr><th>Id</th><th>Question</th><th>Proposition</th></tr>
-    <tr><td>Q1</td><td>Le nom du premier onglet : « Réglages », « Général » ou « Fichier » ? Palettes nomme ses onglets par leur
-      contenu (« Palettes », « Général », où « Général » désigne les réglages du poste).</td><td>« Réglages » : l'onglet ne contient que
-      des réglages de ce fichier, et « Général » prendrait chez Nomenclature un autre sens que chez Palettes.</td></tr>
-    <tr><td>Q2</td><td>Enregistrer aussi une version dans l'historique des versions de Figma avant chaque « Appliquer »
-      (<code>figma.saveVersionHistoryAsync</code>) ?</td><td>Oui, si l'ajout d'une version à chaque application ne gêne pas.
-      C'est le filet pour l'erreur vraiment grave : la version restaure le fichier entier, plus loin que le dernier renommage. En
-      contrepartie, la restaurer efface aussi tout ce qui a changé depuis dans le fichier.</td></tr>
-    <tr><td>Q3</td><td>Dire qui a appliqué le renommage (« par Camille ») ? Le journal est rangé dans le fichier et toute personne
-      qui l'ouvre le voit.</td><td>Non pour l'instant : il faudrait ajouter la permission <code>currentuser</code> au manifeste, et Figma
-      montre déjà qui a modifié le fichier.</td></tr>
-    <tr><td>Q4</td><td>Annuler une partie du lot, avec des cases comme dans Renommages ?</td><td>Non : décocher une règle dans
-      Renommages puis appliquer produit le même effet, et l'Historique reste un seul geste de secours.</td></tr>
+    <tr><td>Q1</td><td>Quel nom pour le premier onglet ?</td><td>« Réglages ». Chez Palettes, « Général » désigne les
+      réglages du poste.</td></tr>
+    <tr><td>Q2</td><td>Le plugin enregistre-t-il une version Figma avant chaque « Appliquer » ?
+      (<code>figma.saveVersionHistoryAsync</code>)</td><td>À trancher. Une version restaure tout le fichier. Elle efface aussi
+      les changements faits depuis.</td></tr>
+    <tr><td>Q3</td><td>L'Historique indique-t-il qui a appliqué le renommage ?</td><td>Non. Il faudrait une permission de plus
+      dans le manifeste.</td></tr>
+    <tr><td>Q4</td><td>Peut-on annuler une partie du renommage ?</td><td>Non. Décocher une règle dans Renommages donne le même
+      résultat.</td></tr>
   </table>
 
   <h2>7 · Ce que l'implémentation demande</h2>
   <ul class="argu">
-    <li>Le bilan transmet les lignes du journal avec leur sort : rétabli, renommé depuis ou dans une collection non analysée. Ce
-    sont les contrôles que fait déjà <code>annulerLeDernierRenommage</code>, faits à la lecture et sans écriture. La collection de
-    chaque variable se lit à partir de son identifiant Figma.</li>
-    <li>Le bilan transmet aussi l'avant et l'après de l'import, traduits en lignes de règle, et la date du lot en plus de l'heure.</li>
-    <li><code>configuration.ts</code> se divise en deux panneaux derrière des onglets du socle. Les textes qui renvoient à « Dernier
-    renommage » dans la Configuration (<code>annulationDansUneCollectionExclue</code>) renvoient à l'onglet Historique.</li>
-    <li>Pas de nouveau stockage, pas de changement du format du journal.</li>
+    <li>Le bilan transmet les lignes du journal avec leur sort.</li>
+    <li>Le sort se calcule avec la règle de l'annulation.</li>
+    <li>Le bilan transmet aussi les règles d'avant et d'après l'import.</li>
+    <li>La Configuration se divise en deux onglets du socle.</li>
+    <li>Le format du journal ne change pas.</li>
   </ul>
 </main>
 
@@ -229,18 +207,18 @@ function carteDeCollection(nom, meta, corps, { ouverte = false, pastille = '' } 
 const ONGLETS = (actif) => `<div class="onglets" role="tablist" aria-label="Configuration"><button type="button" class="onglet" role="tab" aria-selected="${actif === 'reglages'}">Réglages</button><button type="button" class="onglet" role="tab" aria-selected="${actif === 'historique'}">Historique</button></div>`;
 const PHRASE = {
   reglages: 'Les collections que le plugin lit et les règles de ce fichier.',
-  historique: 'Ce qu’il y avait avant le dernier renommage et le dernier import, pour revenir en arrière.',
+  historique: 'Revenez à l’état d’avant le dernier renommage ou le dernier import.',
 };
 
 const SECTIONS_REGLAGES = (doc) => [...doc.querySelectorAll('.page-stack > .config-section')].slice(0, 2).map((s) => s.outerHTML).join('');
 
 const BOUTON = (libelle) => `<button type="button" class="btn btn-secondary btn-compact"><span>${libelle}</span></button>`;
-const VERSION_FIGMA = '<p class="historique-note">Figma garde aussi le fichier d’avant ce renommage dans son historique des versions : « UCM Nomenclature, avant le renommage de 12 noms ».</p>';
+const VERSION_FIGMA = '<p class="historique-note">L’historique des versions de Figma garde aussi le fichier d’avant ce renommage.</p>';
 
 const SECTION_RENOMMAGE = `<div class="config-section">
   <h2 class="config-titre">Dernier renommage</h2>
   <div class="config-boutons config-ecartes"><p class="config-renommage">12 noms, aujourd’hui à 14:32</p>${BOUTON('Annuler le renommage')}</div>
-  <p class="historique-note">Le plugin garde le dernier renommage seulement : le prochain « Appliquer » le remplace.</p>
+  <p class="historique-note">Seul le dernier renommage est gardé.</p>
   <div class="historique-liste">
     ${carteDeCollection('color-brands', '8 noms', tete('Aujourd’hui', 'Après l’annulation') + COLOR_BRANDS.map(ligneDiff).join(''), { ouverte: true })}
     ${carteDeCollection('Couleurs', '4 noms', '')}
@@ -256,7 +234,7 @@ const SECTION_IMPORT = `<div class="config-section">
   <div class="carte"><div class="corps" style="border-top:0">
     ${tete('Aujourd’hui', 'Après l’annulation')}
     <div class="diff sans-case regle"><span><span class="phrase-regle">Écrire les variables en</span>${jeton('minuscules-tirets')}</span><span><span class="phrase-regle">Écrire les variables en</span>${jeton('camelCase')}</span></div>
-    <div class="diff sans-case regle"><span>${jeton('hovered')}${fleche}${jeton('hover')}</span><span class="meta">Aucune règle pour ce terme</span></div>
+    <div class="diff sans-case regle"><span>${jeton('hovered')}${fleche}${jeton('hover')}</span><span class="meta">Aucune règle</span></div>
     <div class="diff sans-case regle"><span>${jeton('bg')}${jeton('bkg')}${fleche}${jeton('background')}</span><span>${jeton('bg')}${fleche}${jeton('background')}</span></div>
   </div></div>
 </div>`;
@@ -304,16 +282,16 @@ cadre('historique', 'configuration-dernier-import', (doc) => {
 // 3a · Des noms ne reviendront pas.
 cadre('partiel', 'configuration-dernier-import', (doc) => {
   const lignes = COLOR_BRANDS.map((l, i) => i === 3
-    ? '<div class="diff sans-case reste"><span class="chemin">text/hover-strong</span><span class="chemin-apres">Reste tel quel : renommé dans Figma depuis</span></div>'
+    ? '<div class="diff sans-case reste"><span class="chemin">text/hover-strong</span><span class="chemin-apres">Changé dans Figma depuis</span></div>'
     : ligneDiff(l)).join('');
   const section = `<div class="config-section">
     <h2 class="config-titre">Dernier renommage</h2>
     <div class="config-boutons config-ecartes"><p class="config-renommage">12 noms, hier à 17:05</p>${BOUTON('Annuler le renommage')}</div>
-    <p class="historique-note">Le plugin garde le dernier renommage seulement : le prochain « Appliquer » le remplace.</p>
-    <p class="historique-avertissement">7 noms reprendront leur ancien nom, 5 resteront tels quels.</p>
+    <p class="historique-note">Seul le dernier renommage est gardé.</p>
+    <p class="historique-avertissement">5 noms ne reviendront pas.</p>
     <div class="historique-liste">
-      ${carteDeCollection('color-brands', '7 noms reviendront, 1 restera tel quel', tete('Aujourd’hui', 'Après l’annulation') + lignes, { ouverte: true })}
-      ${carteDeCollection('Couleurs', '4 noms resteront tels quels', '<p class="historique-note">Cette collection n’est plus analysée. Cochez-la dans l’onglet Réglages pour que ses noms reviennent.</p>', { ouverte: true, pastille: '<span class="pastille pastille-attente">Non analysée</span>' })}
+      ${carteDeCollection('color-brands', '8 noms', tete('Aujourd’hui', 'Après l’annulation') + lignes, { ouverte: true })}
+      ${carteDeCollection('Couleurs', '4 noms', '<p class="historique-note">Cochez cette collection dans Réglages pour rétablir ses noms.</p>', { ouverte: true, pastille: '<span class="pastille pastille-attente">Non analysée</span>' })}
     </div>
   </div>`;
   pile(doc).innerHTML = panneau('historique', section);
@@ -327,27 +305,27 @@ cadre('confirmation', 'confirmation-annulation', (doc) => {
 
 // 3c · Après l'annulation.
 cadre('apres', 'configuration-dernier-import', (doc) => {
-  const reussite = '<div class="resultat" role="status"><div class="pile"><span><span aria-hidden="true">✓ </span>12 noms ont repris leur ancien nom</span><span class="meta">Les renommages sont de nouveau proposés dans l’onglet Renommages.</span></div></div>';
+  const reussite = '<div class="resultat" role="status"><div class="pile"><span><span aria-hidden="true">✓ </span>12 noms rétablis</span><span class="meta">Les renommages reviennent dans l’onglet Renommages.</span></div></div>';
   pile(doc).innerHTML = panneau('historique', reussite + SECTION_IMPORT);
   reperer(doc, '.resultat');
 });
 
 // 3d · Rien à annuler.
 cadre('vide', 'configuration', (doc) => {
-  pile(doc).innerHTML = panneau('historique', '<p class="historique-note">Rien à annuler pour l’instant. Après un renommage ou un import de règles, le plugin garde ici ce qu’il y avait avant, jusqu’au suivant.</p>');
+  pile(doc).innerHTML = panneau('historique', '<p class="historique-note">Rien à annuler pour l’instant.</p><p class="historique-note">Après chaque renommage ou import, l’état d’avant apparaît ici.</p>');
   reperer(doc, '.historique-note');
 });
 
 // 4 · La ligne de réussite de Renommages.
 cadre('application', 'application', (doc) => {
   const p = doc.querySelector('.resultat .pile');
-  p.insertAdjacentHTML('beforeend', '<span class="meta">Les anciens noms restent dans Configuration, onglet Historique.</span>');
+  p.insertAdjacentHTML('beforeend', '<span class="meta">Les anciens noms sont gardés dans Configuration › Historique.</span>');
   reperer(doc, '.resultat .meta');
 });
 
 // 5 · Variante écartée.
 cadre('plusieurs', 'configuration-dernier-import', (doc) => {
-  const lot = (quand, nombre, actif) => `<div class="carte"><div class="tete sans-coche"><div class="tete-bouton"><div class="pile"><span class="phrase-regle">${nombre} noms, ${quand}</span>${actif ? '' : '<span class="meta">Annulez d’abord les renommages plus récents.</span>'}</div><span class="droite">${actif ? BOUTON('Annuler le renommage') : ''}${CHEVRON_FERME}</span></div></div></div>`;
+  const lot = (quand, nombre, actif) => `<div class="carte"><div class="tete sans-coche"><div class="tete-bouton"><div class="pile"><span class="phrase-regle">${nombre} noms, ${quand}</span>${actif ? '' : '<span class="meta">Annulez d’abord les plus récents.</span>'}</div><span class="droite">${actif ? BOUTON('Annuler le renommage') : ''}${CHEVRON_FERME}</span></div></div></div>`;
   const section = `<div class="config-section"><h2 class="config-titre">Renommages</h2><div class="historique-liste">${lot('aujourd’hui à 14:32', 12, true)}${lot('hier à 17:05', 87, false)}${lot('le 14 octobre à 09:12', 420, false)}</div></div>`;
   pile(doc).innerHTML = panneau('historique', section);
 });
