@@ -129,11 +129,10 @@ PascalCase), le fichier garde `Primitives/colors/Poppy/vivid/light/50` :
   en minuscules, règles PascalCase et `colors → color` ; UCM Nomenclature
   calcule et applique ; le plan de Palettes avec le nommeur ne renomme rien
   et donne les mêmes noms.
-- [ ] Brancher le jugement dans le calcul de la session
+- [x] Brancher le jugement dans le calcul de la session
   (`nomenclature/src/session.ts` : `calculerTout`, `recalculer`,
-  `construireEtat`) ; tant que ce n'est pas fait, l'écran garde les
-  variables de Palettes protégées.
-- Fait sans `session.ts` (`5c7bb067`).
+  `construireEtat`).
+- Fait (`5c7bb067`, `c9765e7b`).
 - Fin : `npm test` vert à la racine.
 
 ### D1 — Le corpus d'UCM montre la forme des dossiers
@@ -146,8 +145,10 @@ PascalCase), le fichier garde `Primitives/colors/Poppy/vivid/light/50` :
 
 ### V — Versions et build
 
-- [ ] Versions selon `versionSuitLeContenu` (kit seulement si le kit change),
+- [x] Versions selon `versionSuitLeContenu` (kit seulement si le kit change),
   publication autorisée ; `npm run build` ; tests de tous les paquets.
+  Kit 0.9.8, cli 0.1.67, adapter 0.1.60 (`d032c79f`) ; build et tests
+  verts dans tous les paquets.
 - [ ] Recette Figma du mainteneur : ouvrir UCM Palettes, puis UCM
   Nomenclature ; vérifier `Color/…/Vivid/Light` dans Primitives, puis une
   écriture de Palettes qui ne renomme rien.
