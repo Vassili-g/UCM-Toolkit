@@ -57,89 +57,89 @@ Un lot par appel d'agent, deux agents au plus en même temps. La conversation
 principale relit chaque diff, contrôle les fins de ligne contre `HEAD` et
 commite par chemins explicites.
 
-### L1 · La liste par place (sandbox) · `implementeur-exigeant`
+### L1 · La liste par place (sandbox) · `implementeur-exigeant` · fait (a2ee32ae)
 
 Fichiers : `src/messages.ts`, `src/projection.ts`, `src/session.ts` si la
 requête y transite, `tests/projection.test.ts`, `tests/messages.test.ts`,
 `tests/session.test.ts`.
 
-- [ ] `PlaceDuTerme = 'groupes' | 'variables'` ; `TermeDeListe.place`.
-- [ ] `listeDesTermes` rend une entrée par terme et par place où le terme ou
+- [x] `PlaceDuTerme = 'groupes' | 'variables'` ; `TermeDeListe.place`.
+- [x] `listeDesTermes` rend une entrée par terme et par place où le terme ou
   une de ses variantes remplacées apparaît (`categorieDuSegment` ; toute
   catégorie autre que `groupes` compte comme `variables`, comme
   `categorieDesOccurrences`). Un terme sans occurrence garde une entrée, à la
   place que donne `categorieDEmploi`. Composants et palettes : `groupes`.
-- [ ] Par entrée : `forme` dans la convention de sa place
+- [x] Par entrée : `forme` dans la convention de sa place
   (`TERME_SELON_LA_PLACE` compris : `Small` en groupe, `sm` en variable),
   `remplace` et `nombre` limités aux occurrences de cette place, `type`
   calculé à cette place (`remplace` si une variante y est remplacée).
-- [ ] `RequeteDeTermes` reçoit `places` (filtre, vide = toutes) et `place`
+- [x] `RequeteDeTermes` reçoit `places` (filtre, vide = toutes) et `place`
   (page d'une seule place dans une section, `null` sinon) ;
   `ComptesDeTermes.places` compte les lignes par place.
-- [ ] Tri `alpha` : groupes avant variables, puis l'ordre actuel. Sans
+- [x] Tri `alpha` : groupes avant variables, puis l'ordre actuel. Sans
   `section`, chaque section porte jusqu'à `LIGNES_PAR_SECTION` groupes et
   autant de variables ; `SectionDeTermes.totaux` donne le total de chaque
   place. Avec `section` et `place`, la page ne lit que cette place.
-- [ ] Tri `nombre` : places mêlées, `LIGNES_PAR_SECTION` lignes par section,
+- [x] Tri `nombre` : places mêlées, `LIGNES_PAR_SECTION` lignes par section,
   pagination inchangée.
-- [ ] Tests sur l'extrait du Playground : `line-height` a deux lignes,
+- [x] Tests sur l'extrait du Playground : `line-height` a deux lignes,
   `Small`/`sm` selon la place, ordre groupes puis variables, pages par place,
   filtre de place, comptes.
 
-### L2 · Textes et couleurs · `implementeur`
+### L2 · Textes et couleurs · `implementeur` · fait (a2ee32ae)
 
 Fichiers : `src/ui/textes.ts`, `src/ui/styles.css`, tests de textes s'il y en a.
 En parallèle de L1.
 
-- [ ] Les textes du tableau ci-dessus. Les lignes de section sous
+- [x] Les textes du tableau ci-dessus. Les lignes de section sous
   `ligneDeSection: Record<TypeDeTerme, string>`.
-- [ ] Rôles de couleur, clair et sombre, à côté de `--fond-pastille-ucm` :
+- [x] Rôles de couleur, clair et sombre, à côté de `--fond-pastille-ucm` :
   `--fond-groupe` / `--texte-groupe` (sombre `rgb(80 36 84)` /
   `rgb(244 180 248)`, clair `rgb(250 228 251)` / `rgb(134 25 143)`),
   `--fond-variable` / `--texte-variable` (sombre `rgb(58 62 28)` /
   `rgb(222 228 150)`, clair `rgb(240 242 214)` / `rgb(84 90 20)`).
   Contraste du texte sur son fond : 4,5:1 au moins.
-- [ ] Classes : `.jeton-groupe`, `.jeton-variable`, `.mot-groupe`,
+- [x] Classes : `.jeton-groupe`, `.jeton-variable`, `.mot-groupe`,
   `.mot-variable`, `.origine` (texte gris, sans fond), `.bande-section`,
   `.intertitre-place` et son échantillon, d'après
   `Maquettes/vocabulaire-3/MAQUETTE-TITRES-DE-SECTION.html` (cadre T3).
-- [ ] Retirer `--fond-pastille-ucm`, `--texte-pastille-ucm`,
+- [x] Retirer `--fond-pastille-ucm`, `--texte-pastille-ucm`,
   `--fond-pastille-personnalise`, `--texte-pastille-personnalise`, leurs
   classes et leurs usages CSS une fois L3 et L4 passés (sinon au lot L4).
 
-### L3 · L'onglet Règles · `implementeur-exigeant` (après L1 et L2)
+### L3 · L'onglet Règles · `implementeur-exigeant` (après L1 et L2) · fait (a2ee32ae)
 
 Fichiers : `src/ui/regles.ts`, `src/ui/listeDesTermes.ts`,
 `src/ui/frontiere.ts` si la requête change, `tests/listeDesTermes.test.ts`,
 `tests/regles.test.ts`, `tests/frontiereUi.test.ts`.
 
-- [ ] Section : la bande de G7 (icône, titre, compte, ligne, chevron) ; toute
+- [x] Section : la bande de G7 (icône, titre, compte, ligne, chevron) ; toute
   la bande déplie ou replie ; l'icône À trancher reste ambre.
-- [ ] Ligne : jeton ou mot coloré selon `terme.place` ; origine en
+- [x] Ligne : jeton ou mot coloré selon `terme.place` ; origine en
   `.origine` (G3) ; `pastilleDeLaLigne` et le nom accessible suivent.
-- [ ] Tri A → Z : intertitres de place (section à deux places seulement),
+- [x] Tri A → Z : intertitres de place (section à deux places seulement),
   « Afficher les n autres groupes / variables » qui demande la page de la
   place. Tri par nombre : places mêlées, un seul « Afficher les n autres ».
-- [ ] Menu Filtrer : groupe Place (G9), avec ses comptes ; le filtre actif
+- [x] Menu Filtrer : groupe Place (G9), avec ses comptes ; le filtre actif
   s'affiche en jeton retirable comme les autres.
-- [ ] Conventions d'écriture : lignes Groupes et Variables, spécimen dans la
+- [x] Conventions d'écriture : lignes Groupes et Variables, spécimen dans la
   couleur de la place, partie de l'exemple colorée ; textes de L2.
-- [ ] Le nom accessible d'une ligne dit sa place (« groupe », « variable »).
+- [x] Le nom accessible d'une ligne dit sa place (« groupe », « variable »).
 
-### L4 · Origine grise et onglet Questions vide · `implementeur` (après L2, en parallèle de L3)
+### L4 · Origine grise et onglet Questions vide · `implementeur` (après L2, en parallèle de L3) · fait (a2ee32ae)
 
 Fichiers : `src/ui/aTrancher.ts`, `src/ui/feuilles.ts`, `src/ui/aAppliquer.ts`,
 `src/ui/panneaux.ts` ou `src/ui/coquille.ts`, leurs tests.
 
-- [ ] UCM et Personnalisé en `.origine` dans la carte de question, la fiche
+- [x] UCM et Personnalisé en `.origine` dans la carte de question, la fiche
   (« UCM · catégorie » compris) et les cartes de Renommages.
-- [ ] Onglet Questions sans question à poser et avec au moins un renommage :
-  vue `.etat` de G8 au-dessus de Plus tard et Autres pistes ; « Voir les
+- [x] Onglet Questions sans question à poser : vue `.etat` de G8, avec
+  « Voir les renommages » s'il en reste, au-dessus de Plus tard et Autres pistes ; « Voir les
   renommages » sélectionne l'onglet Renommages. Après la réponse à la dernière
   question, la ligne de réussite reste au-dessus de la vue jusqu'au changement
   d'onglet. Sans question ni renommage, l'état `rien-a-faire` actuel
   s'applique.
-- [ ] Tests : vue vide, vue vide avec Plus tard, bouton.
+- [x] Tests : vue vide, vue vide avec Plus tard, bouton.
 
 ### L5 · Galerie · `implementeur` (après L3 et L4)
 
