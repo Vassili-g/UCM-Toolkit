@@ -16,6 +16,7 @@ Pour modifier le produit, partez des références de
 | [Recette v10 de Palettes](./Plugin%20Palettes/Recette%20v10/README.md) | R2 à R6 implémentés ; R1 attend la décision D1 ; rampes Dark sans ancrage mesurées | Décision D1 du mainteneur, puis recette Figma |
 | [Référentiel UCM](./Référentiel%20UCM/README.md) | Lots 0 à 18 du [plan par lots](./Référentiel%20UCM/PLAN-IMPLEMENTATION.md) faits, kit 0.7.0 publié | Lot 19 : recette d'UCM Architect dans Figma, puis export des tokens |
 | [UCM Architect](./Plugin%20Architect/README.md) | Repris depuis le début. La v1 normalise les noms ; l'architecture globale UCM et les explorations de la suite y sont regroupées | Le mainteneur parcourt les maquettes et les réflexions |
+| [Guide des agents](./Guide%20des%20agents/README.md) | Recherche et plan du découpage d'`AGENTS.md` en index et fichiers par paquet | Décisions D1 à D7 du mainteneur |
 | [Architecture multi-marques](Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle : collections, panneau des variables et rôles de `theme` | Actualiser les données du panneau après un export ; les évolutions ouvertes restent séparées dans le dossier |
 
 La [spécification de Palettes](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)
