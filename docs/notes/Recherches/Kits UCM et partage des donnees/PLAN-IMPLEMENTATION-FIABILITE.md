@@ -88,7 +88,7 @@ Puis cocher le lot dans l'avancement du plan de fiabilité, avec son hash.
 ## Avancement
 
 - [x] Lot 8. La fabrication et la vérification (b805f6a5)
-- [ ] Lot 17. Les nouveaux noms des couches UCM
+- [x] Lot 17. Les nouveaux noms des couches UCM (0ccbff70)
 - [ ] Lot 1. L'explorateur reconnaît le thème quelle que soit son écriture
 - [ ] Lot 2. Une comparaison qui n'a pas pu se faire le dit
 - [ ] Lot 3. Une couleur de composant vise le thème
@@ -96,8 +96,8 @@ Puis cocher le lot dans l'avancement du plan de fiabilité, avec son hash.
 - [ ] Lot 4. Les protections de Nomenclature tiennent et s'expliquent
 - [ ] Lot 6. La grammaire décrit toutes les palettes du profil UCM
 - [ ] Lot 14. La destination de Palettes en full UCM
-- [ ] Lot 15. La CLI distingue une erreur de Git d'un changement
-- [ ] Lot 16. L'adaptateur TypeScript refuse un type incompatible
+- [x] Lot 15. La CLI distingue une erreur de Git d'un changement (0ccbff70)
+- [x] Lot 16. L'adaptateur TypeScript refuse un type incompatible (0ccbff70)
 - [ ] Lot 9. Les chemins de tokens et les axes dans le kit
 - [ ] Lot 10. Les rôles de rendu dans le kit
 - [ ] Lot 11. Les protocoles entre plugins dans le kit
@@ -201,7 +201,7 @@ Plan de fiabilité, section « Lot 8 ».
 
 Plan de fiabilité, section « Lot 17 », décision D8.
 
-- [x] **T17.0** (vérification en cours) · `Explore` · Relevé des anciens noms
+- [x] **T17.0** (0ccbff70) · `Explore` · Relevé des anciens noms
   - Faire : lister chaque occurrence de `color-brands`, `color-utilities`,
     `data-color-brands`, `FAMILLES_COLOR_BRANDS`, `FAMILLES_COLOR_UTILITIES`,
     `FAMILLES_LAYOUTS` et des identifiants `familles-color-brands`,
@@ -213,7 +213,7 @@ Plan de fiabilité, section « Lot 17 », décision D8.
     texte).
   - Fini quand : le tableau est rendu à la conversation principale, qui
     l'attache aux tâches suivantes.
-- [x] **T17.1** (vérification en cours) · `implementeur-exigeant` · Le référentiel prend les nouveaux noms
+- [x] **T17.1** (0ccbff70) · `implementeur-exigeant` · Le référentiel prend les nouveaux noms
   - Entrée : le tableau de T17.0.
   - Fichiers : `packages/kit/src/referentiel/architecture.ts`,
     `packages/kit/src/referentiel/normalisation.ts`, les tests du kit qui
@@ -233,7 +233,7 @@ Plan de fiabilité, section « Lot 17 », décision D8.
     `BRANDS`, `color-brands`, `Color Brands`, `ColorBrands` ; `utility` pour
     `Utility` et `color-utilities` ; `layout` pour `Layout` et `layouts`.
   - Fini quand : tests du kit verts.
-- [x] **T17.2** (vérification en cours) · `implementeur` · Nomenclature propose le nouveau nom
+- [x] **T17.2** (0ccbff70) · `implementeur` · Nomenclature propose le nouveau nom
   - Fichiers : `packages/kit/src/referentiel/lexique.ts` (`proposer`),
     `packages/kit/tests/lexiqueReferentiel.test.ts`,
     `packages/plugin-nomenclature/tests/`, `packages/plugin-nomenclature/galerie/donnees.cjs`
@@ -260,7 +260,7 @@ Plan de fiabilité, section « Lot 17 », décision D8.
     aujourd'hui `color-brands`, il suit) ; `Brands` ne déclenche aucune
     question de collection (`questions.ts`, type `collection`).
   - Fini quand : tests du kit et de Nomenclature verts.
-- [x] **T17.3** (vérification en cours) · `implementeur` · L'explorateur relit les anciennes associations
+- [x] **T17.3** (0ccbff70) · `implementeur` · L'explorateur relit les anciennes associations
   - Fichiers : `packages/plugin-explorateur/src/integrations/profilUcm.ts`
     (`coucheRangee`), `src/ui/textes.ts`, `README.md`, `SPEC.md`, la galerie,
     les tests.
@@ -269,7 +269,7 @@ Plan de fiabilité, section « Lot 17 », décision D8.
     `brand`. Les textes et documents suivent.
   - Tests : une préférence rangée sous un ancien nom se relit sous le nouveau.
   - Fini quand : tests de l'explorateur verts.
-- [x] **T17.4** (vérification en cours) · `implementeur` · La CLI et l'attribut des marques
+- [x] **T17.4** (0ccbff70) · `implementeur` · La CLI et l'attribut des marques
   - Fichiers : `packages/cli/src/tokens-css.mjs` (`attributsDesAxes`), les
     tests de la CLI.
   - Constat vérifié : la CLI n'écrit aucun nom de couche.
@@ -291,7 +291,7 @@ Plan de fiabilité, section « Lot 17 », décision D8.
     erreur ; les deux clés à la fois : la clé nouvelle l'emporte, une note le
     dit.
   - Fini quand : tests de la CLI verts.
-- [x] **T17.5** (vérification en cours) · `implementeur` · Exporteur et Palettes
+- [x] **T17.5** (0ccbff70) · `implementeur` · Exporteur et Palettes
   - Fichiers : les tests de `packages/plugin-exporter/tests/` et de
     `packages/plugin-palettes/tests/` qui citent les anciens noms, les
     galeries et README de ces deux plugins.
@@ -301,7 +301,7 @@ Plan de fiabilité, section « Lot 17 », décision D8.
     `color-brands` donne toujours `color-brands.*` (le chemin suit le nom du
     fichier).
   - Fini quand : tests des deux plugins verts.
-- [x] **T17.6** (vérification en cours) · `executant` · Documents
+- [x] **T17.6** (0ccbff70) · `executant` · Documents
   - Entrée : le tableau de T17.0, colonne « texte ».
   - Fichiers : `CONCEPT.md`, `AGENTS.md`, `docs/format/FORMAT.md`,
     `docs/format/CHANGELOG-FORMAT.md`, `docs/guides/*.md`,
@@ -321,7 +321,7 @@ Plan de fiabilité, section « Lot 17 », décision D8.
   - Fini quand : `git grep` des anciens noms ne rend plus que les formes
     anciennes du référentiel, les lecteurs de transition et les tests qui les
     vérifient.
-- [x] **T17.7** (vérification en cours) · `implementeur` · Le corpus et les vues suivent le référentiel
+- [x] **T17.7** (0ccbff70) · `implementeur` · Le corpus et les vues suivent le référentiel
   - Constat de T17.1 : `extraireNoms` (`docs/references/design-systems/_outils/ucm.mjs`)
     lève « Collection UCM inconnue : color-brands » sur l'instantané
     `donnees-vue-illustree.js`, qui vient d'un export du fichier Figma du
@@ -332,23 +332,23 @@ Plan de fiabilité, section « Lot 17 », décision D8.
     (`node docs/references/design-systems/_outils/ucm.mjs`) et
     `npx tsx "docs/notes/Recherches/Archi Tokens Multi-marques/generer-donnees-referentiel.ts"`.
   - Fini quand : `tests/corpusUcm.test.ts` et `tests/vueIllustree.test.ts` verts.
-- [x] **T17.8** (vérification en cours) · Conversation principale · README du kit
+- [x] **T17.8** (0ccbff70) · Conversation principale · README du kit
   - Faire : écrire dans `packages/kit/README.md` le paragraphe « Nouveaux noms
     des couches » : ce qu'un repository consommateur voit à l'export suivant
     (chemins, variables CSS, attribut `data-brands`) et ce qu'il doit suivre.
-- [x] **T17.P** (vérification en cours) · `executant` · Montée de version mineure
+- [x] **T17.P** (0ccbff70) · `executant` · Montée de version mineure
   - Faire : kit `0.10.0`, CLI et adaptateur au numéro suivant, pins de la CLI
     et de l'adaptateur sur `0.10.0`, versions documentées (`README.md` racine,
     READMEs des trois paquets, `docs/references/design-systems/ucm/sources.json`),
     puis `npm install --package-lock-only --ignore-scripts`. Modèle : le
     commit `cc9c78fe`.
-- [ ] **Clôture du lot 17** (numéro du kit monté)
+- [x] **Clôture du lot 17** (0ccbff70 ; kit 0.10.0, non publié)
 
 ## Lot 1. L'explorateur reconnaît le thème quelle que soit son écriture
 
 Plan de fiabilité, section « Lot 1 », décision D6.
 
-- [x] **T1.0** (note : conception/lot-1.md) · Conversation principale · **Conception**
+- [x] **T1.0** (0ccbff70, conception/lot-1.md) · Conversation principale · **Conception**
   - Fixer dans `conception/lot-1.md` : la signature de `termeReconnu`, celle
     de la fonction du kit qui reconnaît une variable du thème par la fin de son
     nom (nom proposé `variableDuThemeReconnue`, dans `kit/src/emplois/`, à côté
@@ -401,7 +401,7 @@ Plan de fiabilité, section « Lot 2 ». Sondes de Codex :
 `espace-ignore`, `unite-ignoree`, `duree-unite-ignoree`, `mode-non-lu`,
 `theme-mode-inconnu`).
 
-- [x] **T2.0** (note : conception/lot-2.md) · Conversation principale · **Conception**
+- [x] **T2.0** (0ccbff70, conception/lot-2.md) · Conversation principale · **Conception**
   - Fixer dans `conception/lot-2.md` : le type du résultat d'une comparaison
     (`egal`, `different`, `non-comparable` et sa cause), la signature du
     comparateur DTCG du kit (dans `packages/kit/src/lecteurs/`, réexporté par
@@ -642,7 +642,7 @@ Plan de fiabilité, section « Lot 14 », décision D5. Sonde de Codex :
 
 Plan de fiabilité, section « Lot 15 ». Sonde de Codex : `diff-echec128`.
 
-- [x] **T15.1** (vérification en cours) · `implementeur` · Lire le statut de `git diff --quiet`
+- [x] **T15.1** (0ccbff70) · `implementeur` · Lire le statut de `git diff --quiet`
   - Fichiers : `packages/cli/src/check.mjs` (`releveDuDiff`), les tests de la
     CLI.
   - Faire : le premier appel (`git diff --name-only`) traite déjà tout échec
@@ -653,13 +653,13 @@ Plan de fiabilité, section « Lot 15 ». Sonde de Codex : `diff-echec128`.
   - Tests : statuts 0, 1, 128 et erreur de lancement, sur chacun des deux
     appels à Git.
   - Fini quand : tests de la CLI verts.
-- [ ] **Clôture du lot 15** (numéro de la CLI monté)
+- [x] **Clôture du lot 15** (0ccbff70 ; CLI 0.1.71, non publiée)
 
 ## Lot 16. L'adaptateur TypeScript refuse un type incompatible
 
 Plan de fiabilité, section « Lot 16 ». Sonde de Codex : `enum-nombre`.
 
-- [x] **T16.1** (vérification en cours) · `implementeur` · Trois cas de parité
+- [x] **T16.1** (0ccbff70) · `implementeur` · Trois cas de parité
   - Fichiers : `packages/adapter-typescript/src/parite.mjs`
     (`ecartsDeParite`), les tests de l'adaptateur.
   - Faire : type incompatible (écart), type plus large et compatible
@@ -667,7 +667,7 @@ Plan de fiabilité, section « Lot 16 ». Sonde de Codex : `enum-nombre`.
   - Tests : enum contre `number`, `boolean`, `string`, union plus large, alias
     non résolu.
   - Fini quand : tests de l'adaptateur verts.
-- [x] **T16.2** (vérification en cours) · `implementeur` · Le kit explique les deux cas
+- [x] **T16.2** (0ccbff70) · `implementeur` · Le kit explique les deux cas
   - Constat de T16.1 : `detailsDeLEcart` (`kit/src/lecteurs/diagnostic-parite.mjs`)
     écrit « vaut oui ou non dans Figma » pour tout type incorrect, faux pour
     un enum ; la limite `typesNonAnalyses` ne s'affiche nulle part.
@@ -678,7 +678,7 @@ Plan de fiabilité, section « Lot 16 ». Sonde de Codex : `enum-nombre`.
     `implementationNonLue` se dit (« …, sauf `tone` : type non résolu par
     l'adaptateur »), sans avertissement ni compte.
   - Fini quand : tests du kit, de l'adaptateur et de la CLI verts.
-- [ ] **Clôture du lot 16** (numéros de l'adaptateur et du kit montés)
+- [x] **Clôture du lot 16** (0ccbff70 ; adaptateur 0.1.64, non publié)
 
 ## Lot 9. Les chemins de tokens et les axes dans le kit
 

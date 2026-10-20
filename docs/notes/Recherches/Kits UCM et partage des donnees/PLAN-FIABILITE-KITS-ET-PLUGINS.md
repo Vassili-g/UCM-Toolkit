@@ -82,7 +82,7 @@ Codex :
 Dans l'ordre d'exécution (section [Ordre](#ordre)).
 
 - [x] Lot 8. La fabrication et la vérification (b805f6a5)
-- [ ] Lot 17. Les nouveaux noms des couches UCM
+- [x] Lot 17. Les nouveaux noms des couches UCM (0ccbff70)
 - [ ] Lot 1. L'explorateur reconnaît le thème quelle que soit son écriture
 - [ ] Lot 2. Une comparaison qui n'a pas pu se faire le dit
 - [ ] Lot 3. Une couleur de composant vise le thème
@@ -90,8 +90,8 @@ Dans l'ordre d'exécution (section [Ordre](#ordre)).
 - [ ] Lot 4. Les protections de Nomenclature tiennent et s'expliquent
 - [ ] Lot 6. La grammaire décrit toutes les palettes du profil UCM
 - [ ] Lot 14. La destination de Palettes en full UCM
-- [ ] Lot 15. La CLI distingue une erreur de Git d'un changement
-- [ ] Lot 16. L'adaptateur TypeScript refuse un type incompatible
+- [x] Lot 15. La CLI distingue une erreur de Git d'un changement (0ccbff70)
+- [x] Lot 16. L'adaptateur TypeScript refuse un type incompatible (0ccbff70)
 - [ ] Lot 9. Les chemins de tokens et les axes dans le kit
 - [ ] Lot 10. Les rôles de rendu dans le kit
 - [ ] Lot 11. Les protocoles entre plugins dans le kit
