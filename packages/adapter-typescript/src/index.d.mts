@@ -18,6 +18,8 @@ export function ecartsDeParite(
   fonctionAbsente: string | null;
   manquantes: string[];
   typesIncorrects: Array<{ prop: string; attendu: string; recu: string }>;
+  /** Type que l'adaptateur n'a pas su résoudre : une limite, ni un écart ni une acceptation. */
+  typesNonAnalyses: Array<{ prop: string; attendu: string; recu: string }>;
   valeursNonImplementees: Array<{ prop: string; valeurs: string[] }>;
   booleensNonUtilises: string[];
   enumsSansEffet: Array<{ prop: string; valeurs: string[] }>;

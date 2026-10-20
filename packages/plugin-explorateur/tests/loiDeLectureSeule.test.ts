@@ -92,6 +92,6 @@ test('le noyau ne lit ni Figma, ni le DOM, ni UCM', () => {
 
 test('aucune règle ne dépend d’un nom de collection réservé', () => {
   const noyau = fichiers(SOURCE).filter((fichier) => !fichier.includes(`${path.sep}integrations${path.sep}`));
-  const fautes = noyau.filter((fichier) => /['"](usage|theme|brand|primitives|color-utilities|components)['"]/.test(fs.readFileSync(fichier, 'utf8')));
+  const fautes = noyau.filter((fichier) => /['"](usage|theme|brand|brands|primitives|color-brands|color-utilities|utility|layout|layouts|components)['"]/.test(fs.readFileSync(fichier, 'utf8')));
   assert.deepEqual(fautes.map((fichier) => path.relative(racine, fichier)), []);
 });

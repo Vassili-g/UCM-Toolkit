@@ -56,7 +56,7 @@ test('un nom de theme porte sa variable de dossier et son support', () => {
 
 const SOLID = ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'];
 
-/** Un fichier remappé : `theme` en deux modes, aliasé vers `color-brands` et `color-utilities`. */
+/** Un fichier remappé : `theme` en deux modes, aliasé vers `brands` et `utility`. */
 function fichierRemappe(aliasDeHover = 'b-800', portees: string[] = SOLID) {
   const c = constructeur('Multimarque');
   c.collection('c', 'Composants', ['M']);
@@ -77,14 +77,19 @@ function fichierRemappe(aliasDeHover = 'b-800', portees: string[] = SOLID) {
   return indexer(c.releve());
 }
 
-test('une association rangée sous brand se lit color-brands ; usage et l’inconnu se lisent sans couche', () => {
-  assert.equal(coucheRangee('brand'), 'color-brands');
+test('une association rangée sous un ancien nom se lit sous le nouveau ; usage et l’inconnu se lisent sans couche', () => {
+  assert.equal(coucheRangee('brand'), 'brands');
+  assert.equal(coucheRangee('color-brands'), 'brands');
+  assert.equal(coucheRangee('color-utilities'), 'utility');
+  assert.equal(coucheRangee('layouts'), 'layout');
+  assert.equal(coucheRangee('brands'), 'brands');
+  assert.equal(coucheRangee('toString'), null);
   assert.equal(coucheRangee('theme'), 'theme');
   assert.equal(coucheRangee('usage'), null);
   assert.equal(coucheRangee('autre'), null);
 });
 
-const COUCHES_REMAPPEES = { c: 'components', t: 'theme', b: 'color-brands', u: 'color-utilities', p: 'primitives' } as const;
+const COUCHES_REMAPPEES = { c: 'components', t: 'theme', b: 'brands', u: 'utility', p: 'primitives' } as const;
 
 test('un fichier à la forme du fichier remappé ne rend aucun constat', () => {
   assert.deepEqual(controlerLeProfil(fichierRemappe(), COUCHES_REMAPPEES, { recette: recetteAvec('primary') }), []);
@@ -126,7 +131,7 @@ function fichierAssocie() {
   return indexer(c.releve());
 }
 
-const COUCHES_ASSOCIEES = { c: 'components', t: 'theme', b: 'color-brands', p: 'primitives' } as const;
+const COUCHES_ASSOCIEES = { c: 'components', t: 'theme', b: 'brands', p: 'primitives' } as const;
 
 test('le profil contrôle les couches, les valeurs directes et les portées, sur des noms libres', () => {
   const constats = controlerLeProfil(fichierAssocie(), COUCHES_ASSOCIEES, { recette: recetteAvec('primary') });

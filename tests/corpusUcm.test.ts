@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { COLLECTIONS, REGISTRES, REGISTRES_ARCHITECTURE } from '@ucm-kit/core/referentiel';
-import { extraireNoms, lireDonnees } from '../docs/references/design-systems/_outils/ucm.mjs';
+import { COLLECTIONS, FORMES_ANCIENNES_DES_COLLECTIONS, REGISTRES, REGISTRES_ARCHITECTURE } from '@ucm-kit/core/referentiel';
+import { collectionCourante, extraireNoms, lireDonnees } from '../docs/references/design-systems/_outils/ucm.mjs';
 
 const lire = (chemin: string): string => readFileSync(new URL(chemin, import.meta.url), 'utf8');
 const lireJson = (chemin: string) => JSON.parse(lire(chemin));
@@ -34,6 +34,14 @@ test('un type absent ou différent entre modes reste indéterminé', () => {
   assert.ok(noms.every((nom) => nom.type === null));
 });
 
+test('une collection ancienne compte sous son nom courant, une collection inconnue refuse l’extraction', () => {
+  const [ancien, courant] = Object.entries(FORMES_ANCIENNES_DES_COLLECTIONS)[0];
+  const noms = extraireNoms({ collections: { [ancien]: { [`${ancien}.primary.solid`]: '#AABBCC' } } });
+  assert.deepEqual(noms, [{ nom: `${ancien}/primary/solid`, type: 'color', couche: 'semantique' }]);
+  assert.equal(collectionCourante(ancien), courant);
+  assert.throws(() => extraireNoms({ collections: { inconnue: { 'inconnue.a': '#AABBCC' } } }), /Collection UCM inconnue : inconnue/);
+});
+
 test('un cycle ou une cible absente refuse l’extraction', () => {
   assert.throws(() => extraireNoms({ collections: { theme: { 'theme.a': 'theme.b', 'theme.b': 'theme.a' } } }), /Cycle d'alias/);
   assert.throws(() => extraireNoms({ collections: { theme: { 'theme.a': 'theme.absent' } } }), /Cible d'alias absente/);
@@ -50,7 +58,9 @@ test('les noms et leur provenance suivent les données de la vue illustrée', ()
   const donnees = lireDonnees(source);
   const noms = lireJson(`${corpus}noms.json`);
   assert.deepEqual(noms, extraireNoms(donnees));
-  assert.deepEqual(Object.keys(donnees.collections).sort(), [...COLLECTIONS].sort());
+  // L'instantané peut porter les anciens noms de collection : ils comptent sous le nom courant.
+  assert.deepEqual(Object.keys(donnees.collections).map((collection) => collectionCourante(collection)).sort(), [...COLLECTIONS].sort());
+  assert.deepEqual(Object.keys(provenance.comptes.parCollection).sort(), [...COLLECTIONS].sort());
   assert.equal(provenance.source.sha256, createHash('sha256').update(source).digest('hex'));
   assert.equal(provenance.extracteur.sha256, createHash('sha256').update(lire(`../${provenance.extracteur.fichier}`)).digest('hex'));
   assert.deepEqual(provenance.source.modes, donnees.modes);

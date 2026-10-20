@@ -8,21 +8,28 @@ import type { Registre } from './termes.js';
 import { termeRetenu } from './termes.js';
 import { REGISTRE_CRANS, REGISTRE_MODES, REGISTRE_PROFILS, REGISTRE_STATUTS, REGISTRE_TAILLES } from './vocabulaire.js';
 
-export const COLLECTIONS = ['components', 'theme', 'color-brands', 'color-utilities', 'primitives', 'layouts', 'typography'] as const;
+export const COLLECTIONS = ['components', 'theme', 'brands', 'utility', 'primitives', 'layout', 'typography'] as const;
 export type Collection = (typeof COLLECTIONS)[number];
 
 export const CIBLES_DES_COLLECTIONS: Readonly<Record<Collection, readonly Collection[]>> = {
-  components: ['theme', 'layouts', 'typography'],
-  theme: ['color-brands', 'color-utilities'],
-  'color-brands': ['primitives'],
-  'color-utilities': ['primitives'],
+  components: ['theme', 'layout', 'typography'],
+  theme: ['brands', 'utility'],
+  brands: ['primitives'],
+  utility: ['primitives'],
   primitives: [],
-  layouts: ['primitives'],
+  layout: ['primitives'],
   typography: ['primitives'],
 };
 
 export const CIBLES_DES_COULEURS_DE_COMPOSANT = ['theme'] as const;
-export const COLLECTIONS_SANS_PORTEE = ['primitives', 'color-brands', 'color-utilities'] as const;
+export const COLLECTIONS_SANS_PORTEE = ['primitives', 'brands', 'utility'] as const;
+/** Les noms d'avant le renommage de la décision D8, que le kit lit encore comme les collections courantes. */
+export const FORMES_ANCIENNES_DES_COLLECTIONS: Readonly<Record<string, Collection>> = {
+  'color-brands': 'brands',
+  'color-utilities': 'utility',
+  layouts: 'layout',
+};
+
 export const DESTINATION_DES_PALETTES = { collection: 'primitives', groupe: 'color', themes: 'chemin' } as const;
 
 /** Un terme s'écrit seul, ou avec ses formes tolérées que le renommage ramène vers lui. */
@@ -40,15 +47,15 @@ function registre(id: string, extensible: boolean, termes: readonly TermeDeRegis
   };
 }
 
-export const FAMILLES_COLOR_BRANDS = registre('familles-color-brands', true, ['identity', 'primary', 'secondary']);
-export const FAMILLES_COLOR_UTILITIES = registre('familles-color-utilities', true, [...REGISTRE_STATUTS.termes.map((terme) => terme.id), 'neutral', 'elevation']);
+export const FAMILLES_BRANDS = registre('familles-brands', true, ['identity', 'primary', 'secondary']);
+export const FAMILLES_UTILITY = registre('familles-utility', true, [...REGISTRE_STATUTS.termes.map((terme) => terme.id), 'neutral', 'elevation']);
 /** Décisions T04, T05 et T13 de la nomenclature : singulier, propriétés de texte écrites avec un tiret. */
 const PROPRIETES_DE_TEXTE: readonly TermeDeRegistre[] = [
   ['font-family', ['fontfamily']], ['font-weight', ['fontweight']], ['font-size', ['fontsize']],
   ['line-height', ['lineheight']], ['letter-spacing', ['letterspacing']],
 ];
 export const FAMILLES_PRIMITIVES = registre('familles-primitives', true, [['color', ['colors', 'colour']], ['dimension', ['dimensions']], ...PROPRIETES_DE_TEXTE]);
-export const FAMILLES_LAYOUTS = registre('familles-layouts', true, ['sizing', 'radius', 'stroke']);
+export const FAMILLES_LAYOUT = registre('familles-layout', true, ['sizing', 'radius', 'stroke']);
 export const FAMILLES_TYPOGRAPHY = registre('familles-typography', true, ['display', 'headline', 'title', 'body', 'label']);
 export const REGISTRE_PALETTES = registre('palettes', true, []);
 export const REGISTRE_MARQUES = registre('marques', true, []);
@@ -62,14 +69,14 @@ export const REGISTRE_VALEURS_THEME = registre('valeurs-theme', false, [
   ...new Set([...VARIABLES_DE_PALETTE, ...VARIABLES_DU_NEUTRE, ...VARIABLES_GLOBALES].flatMap((variable) => variable.split('/').slice(1))),
 ]);
 export const REGISTRES_ARCHITECTURE: readonly Registre[] = [
-  FAMILLES_COLOR_BRANDS, FAMILLES_COLOR_UTILITIES, FAMILLES_PRIMITIVES, FAMILLES_LAYOUTS, FAMILLES_TYPOGRAPHY,
+  FAMILLES_BRANDS, FAMILLES_UTILITY, FAMILLES_PRIMITIVES, FAMILLES_LAYOUT, FAMILLES_TYPOGRAPHY,
   REGISTRE_PALETTES, REGISTRE_MARQUES, REGISTRE_VALEURS_DIMENSIONNELLES, REGISTRE_VALEURS_TYPOGRAPHIQUES,
   REGISTRE_PROPRIETES_TYPOGRAPHIQUES, REGISTRE_COULEURS_ABSOLUES, REGISTRE_ELEVATIONS,
   REGISTRE_DOSSIERS_THEME, REGISTRE_VALEURS_THEME,
 ];
 
 export const AXES_DES_COLLECTIONS = {
-  marque: { collection: 'color-brands', attribut: 'data-color-brands', registre: REGISTRE_MARQUES },
+  marque: { collection: 'brands', attribut: 'data-brands', registre: REGISTRE_MARQUES },
   theme: { collection: 'theme', attribut: 'data-theme', registre: REGISTRE_MODES },
 } as const;
 
@@ -85,14 +92,14 @@ function position(registre: Registre, valeurs?: readonly string[], exclues?: rea
 }
 
 const statut = position(REGISTRE_STATUTS, undefined, ['neutral', 'elevation', 'identity', 'disabled']);
-const paletteDeMarque = position(FAMILLES_COLOR_BRANDS, undefined, ['identity', 'neutral', 'elevation', 'disabled', ...REGISTRE_STATUTS.termes.map((terme) => terme.id)]);
+const paletteDeMarque = position(FAMILLES_BRANDS, undefined, ['identity', 'neutral', 'elevation', 'disabled', ...REGISTRE_STATUTS.termes.map((terme) => terme.id)]);
 const profil = position(REGISTRE_PROFILS);
 const mode = position(REGISTRE_MODES);
 const cran = position(REGISTRE_CRANS);
 const palette = position(REGISTRE_PALETTES);
 const colors = position(FAMILLES_PRIMITIVES, ['color']);
-const neutre = position(FAMILLES_COLOR_UTILITIES, ['neutral']);
-const elevation = position(FAMILLES_COLOR_UTILITIES, ['elevation']);
+const neutre = position(FAMILLES_UTILITY, ['neutral']);
+const elevation = position(FAMILLES_UTILITY, ['elevation']);
 
 function finsDuTheme(): FormeDeChemin[] {
   return [
@@ -105,11 +112,11 @@ const palettesDuTheme: FormeDeChemin[] = [[paletteDeMarque], [neutre], [statut, 
 
 /** Chaque forme porte un nombre exact de positions ; seules les positions extensibles admettent un segment supplémentaire au vocabulaire. */
 export const FORMES_DES_CHEMINS: Readonly<Record<Exclude<Collection, 'components'>, readonly FormeDeChemin[]>> = {
-  'color-brands': [
-    [position(FAMILLES_COLOR_BRANDS, ['identity']), paletteDeMarque],
+  brands: [
+    [position(FAMILLES_BRANDS, ['identity']), paletteDeMarque],
     [paletteDeMarque, mode, cran],
   ],
-  'color-utilities': [
+  utility: [
     [neutre, mode, cran],
     [neutre, mode, position(REGISTRE_COULEURS_ABSOLUES)],
     [elevation, mode, position(REGISTRE_ELEVATIONS)],
@@ -122,7 +129,7 @@ export const FORMES_DES_CHEMINS: Readonly<Record<Exclude<Collection, 'components
     [position(FAMILLES_PRIMITIVES, ['dimension']), position(REGISTRE_VALEURS_DIMENSIONNELLES)],
     [position(FAMILLES_PRIMITIVES, ['font-family', 'font-weight', 'font-size', 'line-height', 'letter-spacing']), position(REGISTRE_VALEURS_TYPOGRAPHIQUES)],
   ],
-  layouts: [[position(FAMILLES_LAYOUTS), position(REGISTRE_VALEURS_DIMENSIONNELLES)]],
+  layout: [[position(FAMILLES_LAYOUT), position(REGISTRE_VALEURS_DIMENSIONNELLES)]],
   typography: [[position(FAMILLES_TYPOGRAPHY), position(REGISTRE_TAILLES), position(REGISTRE_PROPRIETES_TYPOGRAPHIQUES)]],
   theme: [
     ...palettesDuTheme.flatMap((prefixe) => finsDuTheme().map((fin) => [...prefixe, ...fin])),

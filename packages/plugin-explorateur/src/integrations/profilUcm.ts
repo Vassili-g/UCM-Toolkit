@@ -24,6 +24,7 @@ import {
   COLLECTIONS_SANS_PORTEE,
   CIBLES_DES_COLLECTIONS,
   DEFINITIONS_DES_VARIABLES,
+  FORMES_ANCIENNES_DES_COLLECTIONS,
   type Collection,
 } from '@ucm-kit/core/referentiel';
 import type { Recette } from 'ucm-couleur';
@@ -65,7 +66,8 @@ export function estCouche(valeur: unknown): valeur is Couche {
 
 /** Une couche rangée sous son ancien nom se lit sous le nouveau ; une couche disparue, ou inconnue, se lit sans couche. */
 export function coucheRangee(valeur: unknown): Couche | null {
-  if (valeur === 'brand') return 'color-brands';
+  if (valeur === 'brand') return 'brands';
+  if (typeof valeur === 'string' && Object.prototype.hasOwnProperty.call(FORMES_ANCIENNES_DES_COLLECTIONS, valeur)) return FORMES_ANCIENNES_DES_COLLECTIONS[valeur] ?? null;
   return estCouche(valeur) ? valeur : null;
 }
 

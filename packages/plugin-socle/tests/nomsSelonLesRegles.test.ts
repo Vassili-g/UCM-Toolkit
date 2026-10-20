@@ -11,7 +11,7 @@ const collections: ObjetNomme[] = [
   { id: 'c1', name: 'primitives', remote: false },
   { id: 'c2', name: 'components', remote: false },
   { id: 'c3', name: 'theme', remote: false },
-  { id: 'c4', name: 'color-utilities', remote: false },
+  { id: 'c4', name: 'utility', remote: false },
 ];
 let compteur = 0;
 const variable = (collection: string, name: string): VariableLue => ({ id: `v${++compteur}`, name, variableCollectionId: collection, remote: false });

@@ -85,7 +85,9 @@ Limites de ce qui est relevé :
 
 - `ucm` garde les noms de l’instantané, y compris les formes antérieures aux
   registres actuels. La couche vient de la collection : `primitives`,
-  `components`, ou sémantique pour les cinq autres. Le type est déduit des
+  `components`, ou sémantique pour les cinq autres. Une collection de
+  l’instantané qui porte un ancien nom (`color-brands`, `color-utilities`,
+  `layouts`) compte sous son nom courant. Le type est déduit des
   valeurs et des cibles d’alias dans chaque mode ; 24 valeurs absentes restent
   sans type. Les registres contiennent les formes retenues, sans renommer ces
   observations.

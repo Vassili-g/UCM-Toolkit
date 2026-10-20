@@ -393,7 +393,7 @@
   ]
  },
  {
-  "id": "familles-color-brands",
+  "id": "familles-brands",
   "extensible": true,
   "termes": [
    {
@@ -411,7 +411,7 @@
   ]
  },
  {
-  "id": "familles-color-utilities",
+  "id": "familles-utility",
   "extensible": true,
   "termes": [
    {
@@ -490,7 +490,7 @@
   ]
  },
  {
-  "id": "familles-layouts",
+  "id": "familles-layout",
   "extensible": true,
   "termes": [
    {

@@ -15,19 +15,19 @@
   },
   "extracteur": {
     "fichier": "docs/references/design-systems/_outils/ucm.mjs",
-    "sha256": "30aa2103669f13e23ec9d24276dc30e0c310b26cfc7408fcaaf95aaa15b5b463"
+    "sha256": "d743619e94cdfd8ade00cc20d2cffd8f67d5bfb1b9b91d28af23d1569e5f4926"
   },
   "kit": {
-    "version": "0.9.11",
-    "sha256Registres": "6445f220695610f3c38d008117011aff3cbec01bb890ad7da0fac6d3499b1e3e"
+    "version": "0.10.0",
+    "sha256Registres": "78b2904d0d653a8f61c5bafcce51b80fbe141f8147fff125c7b009c4a32fbdfe"
   },
   "comptes": {
     "noms": 1300,
     "parCollection": {
       "components": 369,
-      "color-brands": 46,
-      "color-utilities": 206,
-      "layouts": 31,
+      "brands": 46,
+      "utility": 206,
+      "layout": 31,
       "typography": 60,
       "theme": 271,
       "primitives": 317

@@ -32,6 +32,7 @@ import {
   lireConfiguration,
   sansEchantillon,
 } from "@ucm-kit/core/lecteurs";
+import { FORMES_ANCIENNES_DES_COLLECTIONS } from "@ucm-kit/core/referentiel";
 
 import { contratsDuDossier } from "./contrats.mjs";
 
@@ -100,20 +101,37 @@ function litteral(type, valeur, repliDeFamille) {
  * un attribut quand leurs ensembles de modes sont égaux ; leurs défauts peuvent
  * différer, et `notes` le dit. Une clé de `modes` qui ne nomme aucun axe, et
  * deux ensembles de modes différents sous un même attribut, vont dans `erreurs`.
+ * Une clé qui reprend l'ancien nom d'une collection UCM (`color-brands`) est lue
+ * sous le nom courant (`brands`) quand le fichier de tokens porte l'axe courant
+ * et non l'ancien : `notes` demande de la renommer.
  */
 export function attributsDesAxes(axes, modes = {}) {
   const erreurs = [];
   const notes = [];
+  const nomsDAxes = new Set(axes.map((axe) => axe.nom));
+  const effectifs = {};
   for (const cle of Object.keys(modes)) {
-    if (!axes.some((axe) => axe.nom === cle)) {
+    if (nomsDAxes.has(cle)) {
+      effectifs[cle] = modes[cle];
+      continue;
+    }
+    const courante = possede(FORMES_ANCIENNES_DES_COLLECTIONS, cle) ? FORMES_ANCIENNES_DES_COLLECTIONS[cle] : undefined;
+    if (courante === undefined || !nomsDAxes.has(courante)) {
       erreurs.push(`${NOM_CONFIGURATION}, modes.${cle} : aucun axe du fichier de tokens ne porte ce nom.`);
+    } else if (possede(modes, courante)) {
+      notes.push(`${NOM_CONFIGURATION}, modes.${cle} : ${NOM_CONFIGURATION} porte aussi modes.${courante}, qui l'emporte. `
+        + `Supprimez modes.${cle}.`);
+    } else {
+      effectifs[courante] = modes[cle];
+      notes.push(`${NOM_CONFIGURATION}, modes.${cle} : l'axe s'appelle maintenant « ${courante} », et la clé est lue sous ce nom. `
+        + `Renommez-la modes.${courante}.`);
     }
   }
 
   const attributs = new Map();
   const parAttribut = new Map();
   for (const axe of axes) {
-    const attribut = possede(modes, axe.nom) ? modes[axe.nom] : attributDeMode(axe.nom);
+    const attribut = possede(effectifs, axe.nom) ? effectifs[axe.nom] : attributDeMode(axe.nom);
     attributs.set(axe.nom, attribut);
     parAttribut.set(attribut, [...(parAttribut.get(attribut) ?? []), axe]);
   }

@@ -369,6 +369,11 @@ declare module "@ucm-kit/core/lecteurs" {
     manquantes: string[];
     typesIncorrects: Array<{ prop: string; attendu: string; recu: string }>;
     /**
+     * Types que l'adaptateur n'a pas su résoudre : une limite de lecture, pas
+     * un écart. Absent d'un bilan écrit avant ce champ.
+     */
+    typesNonAnalyses?: Array<{ prop: string; attendu: string; recu: string }>;
+    /**
      * Valeurs qu'un contrat publie et que l'union déclarée par le code n'offre
      * pas. Vide quand le type est élargi : sans littéral, aucun verdict.
      */

@@ -166,6 +166,34 @@ test("une propriété sans effet nomme ce que le designer verra", () => {
   );
 });
 
+test("un enum que le code type autrement se dit par ses variantes", () => {
+  const section = sectionEcartsDeParite([
+    bilan({ typesIncorrects: [{ prop: "tone", attendu: "enum", recu: "number" }] }),
+  ]).join("\n");
+
+  assert.match(section, /La propriété `tone` propose des variantes dans Figma, et le code attend `number`\./);
+  assert.doesNotMatch(section, /vaut oui ou non/);
+});
+
+test("un booléen garde sa phrase, un autre type la sienne", () => {
+  const booleen = sectionEcartsDeParite([
+    bilan({ typesIncorrects: [{ prop: "actif", attendu: "boolean", recu: "string" }] }),
+  ]).join("\n");
+  const autre = sectionEcartsDeParite([
+    bilan({ typesIncorrects: [{ prop: "label", attendu: "string", recu: "number" }] }),
+  ]).join("\n");
+
+  assert.match(booleen, /La propriété `actif` vaut oui ou non dans Figma, et le code attend `string`\./);
+  assert.match(autre, /La propriété `label` n'a pas dans le code le type que le contrat déclare : le code attend `number`\./);
+});
+
+test("un type non résolu n'est pas un écart", () => {
+  const limite = bilan({ typesNonAnalyses: [{ prop: "tone", attendu: "enum", recu: "any" }] });
+
+  assert.equal(aUnEcartDeParite(limite), false);
+  assert.deepEqual(sectionEcartsDeParite([limite]), []);
+});
+
 /**
  * Le rapport est lu par un designer. Le vocabulaire du code y a été introduit
  * deux fois pendant l'arbitrage de cette section : la loi le refuse au lieu de

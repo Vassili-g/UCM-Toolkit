@@ -365,7 +365,7 @@ packages/plugin-explorateur/  le plugin UCM Token Explorer : ucm-explorateur-plu
   src/releves.ts           le relevé exporté, réimporté et comparé à un autre
   src/simulation.ts        une substitution dans une copie en mémoire
   src/preferences.ts       vue compacte, intégrations, associations et largeurs réglées, dans clientStorage
-  src/integrations/        contrats et tokens importés, recette UCM Palettes, profil d'architecture UCM (couches `primitives`, `color-brands`, `color-utilities`, `theme`, `components`)
+  src/integrations/        contrats et tokens importés, recette UCM Palettes, profil d'architecture UCM (les sept couches de `COLLECTIONS`)
   src/ui/                  la barre et sa bascule de mode, l'arbre et sa recherche, la table, l'inspecteur, la bulle de chaîne, la poignée des largeurs et les vues des onglets
   src/ui/vues/composant.ts la vue composant : fil d'Ariane, en-tête, aperçu, frontières, sections, pied
   src/ui/roles.css         les couleurs sombres, placées avant la feuille du socle
@@ -1656,10 +1656,11 @@ La spécification en lien porte le raisonnement.
 - Les intégrations s'activent explicitement et leur absence ne produit aucun
   constat. Le profil UCM ne contrôle que les collections que le designer
   associe à une couche (`src/integrations/profilUcm.ts`). Les couches sont
-  `primitives`, `color-brands`, `color-utilities`, `theme` et `components` :
-  `components` vise `theme`, `theme` vise `color-brands` ou
-  `color-utilities`, et ces deux-là visent `primitives`. Une association
-  rangée sous `brand` se lit `color-brands`, une sous `usage` se lit sans
+  celles de `COLLECTIONS` : `components` vise `theme`, `layout` ou
+  `typography`, `theme` vise `brands` ou `utility`, et `brands`, `utility`,
+  `layout` et `typography` visent `primitives`. Une association rangée sous
+  `brand`, `color-brands`, `color-utilities` ou `layouts` se lit sous le nom
+  courant (`FORMES_ANCIENNES_DES_COLLECTIONS`), une sous `usage` se lit sans
   couche. Dans `theme`, chaque variable de dossier porte les portées de
   `SUPPORT_DES_VARIABLES` et `scale/*` aucune ; son alias vise, dans chaque
   mode, le cran de `TABLE_DES_DOSSIERS` dans le sens que donne

@@ -125,9 +125,13 @@ function proposer(nom: NomLu, lexique: Lexique, conventions: ConventionsParCateg
   index: IndexDuVocabulaire, cache: Map<string, SegmentNormalise>, groupesFiges: ReadonlySet<string>): Renommage | undefined {
   if (nom.categorie === 'collections') {
     const canonique = collectionUcmReconnue(nom.nom);
-    if (!canonique || canonique === nom.nom) return undefined;
+    if (!canonique) return undefined;
+    // Sans convention `collections`, l'identifiant reconnu reste tel quel.
+    const choix = conventions.collections;
+    const ecrit = choix ? assembler(nom.nom, motsAvecCasse(decouperSegment(canonique), choix.casse), choix.separateur) : canonique;
+    if (ecrit === nom.nom) return undefined;
     return { id: nom.id, categorie: nom.categorie, portee: nom.portee, ancienNom: nom.nom,
-      nouveauNom: canonique, regles: [`collection:${nom.id}`], termes: [] };
+      nouveauNom: ecrit, regles: [`collection:${nom.id}`], termes: [] };
   }
   const regles: { readonly cle: CleDeRegle; readonly priorite: number }[] = [];
   const termes: ChangementDeTerme[] = [];

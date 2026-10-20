@@ -587,6 +587,65 @@ test("un adaptateur branché est appelé, et son écart avertit sans bloquer", (
   }
 });
 
+function adaptateurDeParite(parite) {
+  return {
+    lireApiPublique: (implementations) => new Map(implementations.map((chemin) => [chemin, { props: [] }])),
+    nomInterfaceAttendue: () => "WidgetProps",
+    ecartsDeParite: () => ({
+      implementationAbsente: false,
+      implementationNonLue: null,
+      interfaceAbsente: null,
+      fonctionAbsente: null,
+      manquantes: [],
+      typesIncorrects: [],
+      valeursNonImplementees: [],
+      booleensNonUtilises: [],
+      enumsSansEffet: [],
+      compositionsIncorrectes: [],
+      ...parite,
+    }),
+  };
+}
+
+function ligneDeWidget(parite) {
+  const racine = preparerRepo({
+    composants: { Widget: { contrat: contrat(), tsx: TSX } },
+    tokens: TOKENS,
+  });
+  try {
+    const { terminal } = controlerRepository(racine, {
+      configuration: CONFIGURATION,
+      adaptateur: adaptateurDeParite(parite),
+    });
+    return terminal.map(({ texte }) => texte).filter((texte) => texte.includes("Widget.contract.json")).join("\n");
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+}
+
+test("un type non résolu se dit sur la ligne du terminal sans faire passer le composant en écart", () => {
+  const ligne = ligneDeWidget({
+    typesNonAnalyses: [
+      { prop: "tone", attendu: "enum", recu: "any" },
+      { prop: "size", attendu: "enum", recu: "unknown" },
+    ],
+  });
+
+  assert.match(ligne, /code conforme, sauf `tone` et `size` : type non résolu par l'adaptateur \(/);
+  assert.doesNotMatch(ligne, /code en écart/);
+  assert.match(
+    ligneDeWidget({ manquantes: ["label"], typesNonAnalyses: [{ prop: "tone", attendu: "enum", recu: "any" }] }),
+    /code en écart, sauf `tone` : type non résolu par l'adaptateur/,
+  );
+});
+
+test("un bilan écrit sans typesNonAnalyses reste lu", () => {
+  const ligne = ligneDeWidget({});
+
+  assert.match(ligne, /code conforme \(/);
+  assert.doesNotMatch(ligne, /sauf/);
+});
+
 /**
  * Ce que l'appelant transmet de ce qu'il a exécuté lui-même.
  *

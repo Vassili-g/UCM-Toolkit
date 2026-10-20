@@ -10,7 +10,7 @@ the repository that implements the component. The plugin and the readers both
 import the format from this package.
 
 ```sh
-npm install @ucm-kit/core@0.9.11
+npm install @ucm-kit/core@0.10.0
 ```
 
 Most repositories never call this package directly. They run
@@ -102,6 +102,32 @@ and writes `[object Object]` for every color and dimension, and the build
 succeeds. Style Dictionary 5 writes the same for every `duration` unless the
 reader registers a transform for that type. Check the generated output before
 merging the first export in a new format version.
+
+## New names for the UCM layers
+
+From 0.10.0, three reference layers have new names: `color-brands` becomes
+`brands`, `color-utilities` becomes `utility`, and `layouts` becomes
+`layout`. `primitives`, `theme`, `typography` and `components` keep theirs.
+`COLLECTIONS` holds the new names. `FORMES_ANCIENNES_DES_COLLECTIONS` maps
+each old name to the new one, and `collectionUcmReconnue` reads both, so a
+Figma file that keeps the old names keeps its UCM checks.
+
+A token path starts with the name of its Figma collection, not with the
+reference name. Nothing changes in a repository until the designer renames the
+collections in Figma and exports again. That export then changes:
+
+| Before | After |
+|---|---|
+| `color-brands.primary.light.500` | `brands.primary.light.500` |
+| `--color-utilities-neutral-light-500` | `--utility-neutral-light-500` |
+| `layouts.radius.md` | `layout.radius.md` |
+| `data-color-brands` (mode attribute of a brand collection with several modes) | `data-brands` |
+
+Aliases inside `tokens.json` are rewritten in the same export and stay
+consistent. Code that cites these CSS variables or this attribute directly
+must follow them. In `ucm.config.json`, a `modes.color-brands` key is still
+read as `modes.brands` once the token file has a `brands` axis, and the CLI
+prints a note that asks to rename the key.
 
 ## The six entry points
 

@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { tokensCss } from "../src/tokens-css.mjs";
+import { attributsDesAxes, tokensCss } from "../src/tokens-css.mjs";
 import { executer } from "../src/ucm.mjs";
 import { DEUX_AXES, TROIS_AXES, avecOrdreDesAxes } from "./cascade/documents.mjs";
 
@@ -346,6 +346,54 @@ test("l'attribut d'un axe vient de la configuration, et une clé qui ne nomme au
   const ecarte = documentAvec({}, { marque: { primaire: feuille(undefined, { m1: 1, m2: 2 }) } });
   const repli = lancer({ tokens: ecarte, configuration: { modes: { marque: "data-marque" } } }, [...SORTIE, "--sans-modes"]);
   assert.equal(repli.code, 0, "une clé qui vise un axe écarté n'empêche pas le repli");
+});
+
+const AXE_BRANDS = { nom: "brands", modes: ["a", "b"], defaut: "a" };
+const AXE_ANCIEN = { nom: "color-brands", modes: ["a", "b"], defaut: "a" };
+
+test("un axe brands sans clé reçoit data-brands", () => {
+  const { attributs, erreurs, notes } = attributsDesAxes([AXE_BRANDS], {});
+  assert.equal(attributs.get("brands"), "data-brands");
+  assert.deepEqual([erreurs, notes], [[], []]);
+});
+
+test("l'ancienne clé d'une collection est lue sous le nom courant, avec une note qui demande de la renommer", () => {
+  const { attributs, erreurs, notes } = attributsDesAxes([AXE_BRANDS], { "color-brands": "data-marque" });
+  assert.equal(attributs.get("brands"), "data-marque");
+  assert.deepEqual(erreurs, []);
+  assert.equal(notes.length, 1);
+  assert.match(notes[0], /ucm\.config\.json, modes\.color-brands/);
+  assert.match(notes[0], /Renommez-la modes\.brands/);
+});
+
+test("une ancienne clé qui nomme encore un axe reste telle quelle, sans note", () => {
+  const { attributs, erreurs, notes } = attributsDesAxes([AXE_ANCIEN], { "color-brands": "data-marque" });
+  assert.equal(attributs.get("color-brands"), "data-marque");
+  assert.deepEqual([erreurs, notes], [[], []]);
+});
+
+test("l'ancienne et la nouvelle clé à la fois : la nouvelle l'emporte, et une note le dit", () => {
+  const { attributs, erreurs, notes } = attributsDesAxes(
+    [AXE_BRANDS],
+    { "color-brands": "data-ancien", brands: "data-nouveau" },
+  );
+  assert.equal(attributs.get("brands"), "data-nouveau");
+  assert.deepEqual(erreurs, []);
+  assert.equal(notes.length, 1);
+  assert.match(notes[0], /modes\.brands, qui l'emporte/);
+});
+
+test("une clé qui ne nomme aucun axe et n'est pas une forme ancienne garde son erreur ; une forme ancienne sans axe courant aussi", () => {
+  assert.equal(attributsDesAxes([AXE_BRANDS], { inconnu: "data-x" }).erreurs.length, 1);
+  assert.equal(attributsDesAxes([{ ...AXE_BRANDS, nom: "theme" }], { "color-brands": "data-x" }).erreurs.length, 1);
+});
+
+test("par la commande, une ancienne clé relue écrit l'attribut voulu et la note", () => {
+  const tokens = documentAvec({ brands: { modes: ["a", "b"], default: "a" } }, { m: { c: feuille("brands", { a: 1, b: 2 }) } });
+  const lue = lancer({ tokens, configuration: { modes: { "color-brands": "data-marque" } } });
+  assert.equal(lue.code, 0, lue.erreur);
+  assert.match(lue.css, /\[data-marque="b"\] \{/);
+  assert.match(lue.log, /Renommez-la modes\.brands/);
 });
 
 test("deux axes aux mêmes modes partagent un attribut malgré des défauts différents ; des modes différents sont refusés", () => {

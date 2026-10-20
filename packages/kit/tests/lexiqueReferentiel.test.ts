@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
 import {
-  commencerLexique, indexerVocabulaire, normaliserLeLexique, normaliserLesNoms, normaliserParEtapes, porteesTouchees,
+  commencerLexique, detecterLesQuestions, indexerVocabulaire, normaliserLeLexique, normaliserLesNoms, normaliserParEtapes, porteesTouchees,
   type ConventionsParCategorie, type Lexique, type NomLu,
 } from '../src/referentiel/index.js';
 import { assembler } from '../src/referentiel/ecriture-des-mots.js';
@@ -95,8 +95,31 @@ test('les collections inconnues restent inchangées et les reconnues prennent le
   ];
   const resultat = normaliserLeLexique(preparer(noms), conventions, indexUcm);
   assert.deepEqual(resultat.renommages.map(({ id, nouveauNom, regles }) => ({ id, nouveauNom, regles })), [
-    { id: 'a', nouveauNom: 'color-brands', regles: ['collection:a'] },
+    { id: 'a', nouveauNom: 'brands', regles: ['collection:a'] },
   ]);
+});
+
+test('sous PascalCase, une collection reconnue s\'écrit dans la convention du fichier', () => {
+  const pascal: ConventionsParCategorie = { ...conventions, collections: { casse: 'PascalCase', separateur: 'camelCase' } };
+  const proposer = (noms: readonly string[]) => normaliserLeLexique(
+    preparer(noms.map((nom, rang) => ({ id: `c${rang}`, nom, categorie: 'collections', portee: 'fichier' }) as NomLu)), pascal, indexUcm,
+  ).renommages.map(({ ancienNom, nouveauNom }) => [ancienNom, nouveauNom]);
+  assert.deepEqual(proposer(['Primitives', 'Brands', 'Theme', 'Components', 'Utility', 'Typography', 'Layout']), []);
+  assert.deepEqual(proposer(['color-brands', 'Layouts', 'color-utilities']), [
+    ['color-brands', 'Brands'], ['Layouts', 'Layout'], ['color-utilities', 'Utility'],
+  ]);
+});
+
+test('sous minuscules et tirets, une collection reconnue garde l\'écriture du fichier', () => {
+  assert.deepEqual(normaliserLeLexique(preparer([{ id: 'a', nom: 'Color Brands', categorie: 'collections', portee: 'fichier' }]), conventions, indexUcm)
+    .renommages.map(({ nouveauNom }) => nouveauNom), ['brands']);
+  assert.deepEqual(normaliserLeLexique(preparer([{ id: 'a', nom: 'brands', categorie: 'collections', portee: 'fichier' }]), conventions, indexUcm).renommages, []);
+});
+
+test('une collection au nom UCM ne déclenche aucune question de collection', () => {
+  const noms = ['Brands', 'color-brands', 'Layouts', 'Primitives'].map((nom) => ({ id: nom, nom, categorie: 'collections', portee: 'fichier' }) as NomLu);
+  const resultat = detecterLesQuestions(preparer(noms), indexUcm, { distincts: [], plusTard: [], voulus: [], collectionsGardees: [] }, { seuil: 0, maximum: 100 });
+  assert.deepEqual([...resultat.questions].filter((question) => question.type === 'collection'), []);
 });
 
 test('les règles sont rangées UCM, personnalisée, puis écriture', () => {

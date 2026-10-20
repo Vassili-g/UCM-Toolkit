@@ -138,7 +138,7 @@ page et y déplace les planches déjà créées.
 
 ### Limites de l'écriture
 
-- Il n'écrit ni `color-brands`, ni `color-utilities`, ni `theme`, ni alias.
+- Il n'écrit ni `brands`, ni `utility`, ni `theme`, ni alias.
 - La reprise d'une palette locale peut renommer ses variables sous leur thème
   et leur intensité. Elle conserve leurs identifiants et leurs liaisons.
 - Il ne supprime une variable que par « Supprimer les variables… », sur la

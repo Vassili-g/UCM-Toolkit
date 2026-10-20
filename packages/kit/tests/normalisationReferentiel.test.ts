@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
 import {
-  CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, collectionUcmReconnue, decouperSegment,
+  CONVENTIONS, FORMES_ANCIENNES_DES_COLLECTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, collectionUcmReconnue, decouperSegment,
   detecterLesConventions, normaliserLesNoms,
   type CategorieDeNom, type Convention, type NomANormaliser,
 } from '../src/referentiel/index.js';
@@ -34,12 +34,24 @@ test('les frontières des mots gardent acronymes, accents et chiffres', () => {
   assert.deepEqual(decouperSegment('fontsize'), ['font', 'size']);
   assert.deepEqual(decouperSegment('colorbrands'), ['color', 'brands']);
   assert.deepEqual(decouperSegment('Colorbrands'), ['Color', 'brands']);
+  assert.deepEqual(decouperSegment('colorutilities'), ['color', 'utilities']);
 });
 
 test('une collection reconnue tolère la casse et les séparateurs', () => {
-  assert.equal(collectionUcmReconnue('Color Brands'), 'color-brands');
-  assert.equal(collectionUcmReconnue('COLOR_BRANDS'), 'color-brands');
+  for (const ecrit of ['Brands', 'brands', 'BRANDS']) assert.equal(collectionUcmReconnue(ecrit), 'brands', ecrit);
+  assert.equal(collectionUcmReconnue('Utility'), 'utility');
+  assert.equal(collectionUcmReconnue('Layout'), 'layout');
   assert.equal(collectionUcmReconnue('inconnue'), undefined);
+  assert.equal(collectionUcmReconnue('constructor'), undefined);
+});
+
+test('les anciens noms de collection se lisent comme les noms courants', () => {
+  for (const ecrit of ['color-brands', 'Color Brands', 'ColorBrands', 'COLOR_BRANDS']) assert.equal(collectionUcmReconnue(ecrit), 'brands', ecrit);
+  assert.equal(collectionUcmReconnue('color-utilities'), 'utility');
+  assert.equal(collectionUcmReconnue('Color Utilities'), 'utility');
+  assert.equal(collectionUcmReconnue('layouts'), 'layout');
+  assert.equal(collectionUcmReconnue('Layouts'), 'layout');
+  assert.deepEqual(FORMES_ANCIENNES_DES_COLLECTIONS, { 'color-brands': 'brands', 'color-utilities': 'utility', layouts: 'layout' });
 });
 
 test('les propositions conservent les groupes et excluent les noms déjà conformes', () => {

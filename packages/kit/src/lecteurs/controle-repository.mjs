@@ -428,6 +428,26 @@ function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
   return finaliserRapport(lignes.join("\n"));
 }
 
+/**
+ * Un type que l'adaptateur n'a pas su résoudre est une limite, pas un écart :
+ * elle se dit à la suite de l'état du code, sans rien compter ni refuser. Un
+ * bilan écrit sans ce champ reste lu.
+ */
+function limitesDeLecture(parite) {
+  const props = (parite.typesNonAnalyses ?? []).map(({ prop }) => prop);
+  return props.length === 0
+    ? ""
+    : `, sauf ${listeDeProps(props)} : type non résolu par l'adaptateur`;
+}
+
+/** Énumère en français : « `a`, `b` et `c` ». */
+function listeDeProps(props) {
+  const citees = props.map((prop) => `\`${prop}\``);
+  return citees.length < 2
+    ? citees.join("")
+    : `${citees.slice(0, -1).join(", ")} et ${citees[citees.length - 1]}`;
+}
+
 /** Le fil du terminal, contrat par contrat, dans l'ordre où il s'écrit. */
 function terminalDesBilans(bilans) {
   const fil = [];
@@ -510,9 +530,7 @@ function terminalDesBilans(bilans) {
         // rien tiré.
         : bilan.parite.implementationNonLue
           ? `implémentation présente, non lue par l'adaptateur (${bilan.parite.implementationNonLue})`
-          : ecartDeParite
-            ? "code en écart"
-            : "code conforme";
+          : `${ecartDeParite ? "code en écart" : "code conforme"}${limitesDeLecture(bilan.parite)}`;
     fil.push({
       flux: "log",
       texte: `${marque} ${bilan.fichier} : ${libelleNombre(bilan.total, "référence")} contrôlée${bilan.total === 1 ? "" : "s"}, ${etatDuCode} (${bilan.relatif})`,

@@ -274,6 +274,27 @@ function optionsTypeScript(racine) {
   return analysee.options;
 }
 
+/**
+ * Famille d'un membre de type, assez grossière pour juger la compatibilité avec
+ * un contrat. `indeterminee` couvre ce que le vérificateur ne sait pas
+ * résoudre (`any` d'un alias ou d'un import introuvable, paramètre de type) :
+ * ce n'est ni une compatibilité ni une contradiction.
+ */
+function familleDeType(item) {
+  const { flags } = item;
+  if (flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral | ts.TypeFlags.TemplateLiteral | ts.TypeFlags.StringMapping)) {
+    return "texte";
+  }
+  if (flags & (ts.TypeFlags.Number | ts.TypeFlags.NumberLiteral | ts.TypeFlags.BigInt | ts.TypeFlags.BigIntLiteral)) {
+    return "nombre";
+  }
+  if (flags & (ts.TypeFlags.Boolean | ts.TypeFlags.BooleanLiteral)) return "booleen";
+  if (flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown | ts.TypeFlags.Never | ts.TypeFlags.Instantiable)) {
+    return "indeterminee";
+  }
+  return "autre";
+}
+
 /** Relève en un seul programme les API publiques des fichiers qui existent. */
 export function lireApiPublique(fichiers, racine) {
   const api = new Map();
@@ -323,6 +344,9 @@ export function lireApiPublique(fichiers, racine) {
           type: estBoolean ? "boolean" : "autre",
           typescript: verificateur.typeToString(typeMembre),
           valeurs,
+          familles: significatifs.length > 0
+            ? [...new Set(significatifs.map(familleDeType))].sort()
+            : ["indeterminee"],
           utilisee: consommees.has(membre.getName()),
         }];
       }));
@@ -338,6 +362,28 @@ export function lireApiPublique(fichiers, racine) {
   return api;
 }
 
+/**
+ * Juge le type d'une prop contre le type du contrat : `incorrect`,
+ * `non-analyse` (le vérificateur n'a pas su résoudre le type), ou `null`
+ * quand le type est compatible ou que le contrat ne gouverne pas ce type.
+ *
+ * Un type plus large mais compatible est accepté : `string` ou une union qui
+ * contient une chaîne couvre un enum, comme une union plus large que ses
+ * valeurs (voir `valeursNonImplementees`).
+ */
+function verdictDeType(typeContrat, prop) {
+  if (typeContrat === "boolean") {
+    if (prop.type === "boolean") return null;
+    return Array.isArray(prop.familles) && prop.familles.every((famille) => famille === "indeterminee")
+      ? "non-analyse"
+      : "incorrect";
+  }
+  // Un relevé sans familles vient d'un lecteur qui ne les mesure pas : taire.
+  if (typeContrat !== "enum" || !Array.isArray(prop.familles)) return null;
+  if (prop.familles.includes("texte")) return null;
+  return prop.familles.includes("indeterminee") ? "non-analyse" : "incorrect";
+}
+
 /** Compare le contrat au relevé TypeScript, sans rendre le diagnostic. */
 export function ecartsDeParite(contrat, releve, nomInterface, options = {}) {
   const vide = {
@@ -347,6 +393,7 @@ export function ecartsDeParite(contrat, releve, nomInterface, options = {}) {
     fonctionAbsente: null,
     manquantes: [],
     typesIncorrects: [],
+    typesNonAnalyses: [],
     valeursNonImplementees: [],
     booleensNonUtilises: [],
     enumsSansEffet: [],
@@ -384,10 +431,20 @@ export function ecartsDeParite(contrat, releve, nomInterface, options = {}) {
     .map(([nom]) => nom)
     .filter((nom) => !(nom in props))
     .sort();
-  const typesIncorrects = declarees
-    .filter(([nom, prop]) => nom in props && prop?.type === "boolean" && props[nom].type !== "boolean")
-    .map(([nom]) => ({ prop: nom, attendu: "boolean", recu: props[nom].typescript }))
-    .sort((gauche, droite) => gauche.prop.localeCompare(droite.prop));
+  const verdictsDeType = declarees.flatMap(([nom, prop]) => {
+    if (!(nom in props)) return [];
+    const verdict = verdictDeType(prop?.type, props[nom]);
+    return verdict ? [{ verdict, prop: nom, attendu: prop.type, recu: props[nom].typescript }] : [];
+  });
+  const parProp = (gauche, droite) => gauche.prop.localeCompare(droite.prop);
+  const typesIncorrects = verdictsDeType
+    .filter(({ verdict }) => verdict === "incorrect")
+    .map(({ prop, attendu, recu }) => ({ prop, attendu, recu }))
+    .sort(parProp);
+  const typesNonAnalyses = verdictsDeType
+    .filter(({ verdict }) => verdict === "non-analyse")
+    .map(({ prop, attendu, recu }) => ({ prop, attendu, recu }))
+    .sort(parProp);
   const booleensNonUtilises = declarees
     .filter(([nom, prop]) => (
       nom in props
@@ -421,6 +478,7 @@ export function ecartsDeParite(contrat, releve, nomInterface, options = {}) {
     ...vide,
     manquantes,
     typesIncorrects,
+    typesNonAnalyses,
     valeursNonImplementees,
     booleensNonUtilises,
     enumsSansEffet,

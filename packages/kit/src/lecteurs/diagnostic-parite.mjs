@@ -86,8 +86,15 @@ function detailsDeLEcart(parite) {
       (nom) => `La propriété \`${nom}\` de Figma n'existe pas dans le code : le composant ne peut pas la recevoir.`,
     ),
     ...parite.typesIncorrects.map(
-      ({ prop, recu }) =>
-        `La propriété \`${prop}\` vaut oui ou non dans Figma, et le code attend \`${recu}\`.`,
+      ({ prop, attendu, recu }) => {
+        if (attendu === "boolean") {
+          return `La propriété \`${prop}\` vaut oui ou non dans Figma, et le code attend \`${recu}\`.`;
+        }
+        if (attendu === "enum") {
+          return `La propriété \`${prop}\` propose des variantes dans Figma, et le code attend \`${recu}\`.`;
+        }
+        return `La propriété \`${prop}\` n'a pas dans le code le type que le contrat déclare : le code attend \`${recu}\`.`;
+      },
     ),
     ...(parite.valeursNonImplementees ?? []).flatMap(({ valeurs }) => valeurs.map(
       (valeur) => `La variante \`${valeur}\` n'est pas implémentée dans le code.`,

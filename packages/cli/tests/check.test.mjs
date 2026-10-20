@@ -270,6 +270,48 @@ test("le diff relève tout ce que la demande touche, et le sort du fichier de to
 });
 
 /**
+ * Un faux `git` qui répond au premier appel (`--name-only`) et au second
+ * (`--quiet`) séparément : le statut de sortie de `--quiet` est ce qui est testé.
+ */
+function gitSimule({ liste, quiet }) {
+  return (_commande, arguments_) => {
+    const reponse = arguments_.includes("--quiet") ? quiet : liste;
+    if (reponse instanceof Error) throw reponse;
+    return reponse;
+  };
+}
+
+function echecGit(statut, message = "git a échoué") {
+  return Object.assign(new Error(message), statut === undefined ? { code: "ENOENT" } : { status: statut });
+}
+
+test("`git diff --quiet` : 0 veut dire aucun changement, 1 un changement", () => {
+  const sans = releveDuDiff("r", "base", "tokens.json", gitSimule({ liste: "a\0", quiet: "" }));
+  assert.equal(sans.tokensModifies, false);
+  assert.equal(sans.erreur, undefined);
+  const avec = releveDuDiff("r", "base", "tokens.json", gitSimule({ liste: "a\0", quiet: echecGit(1) }));
+  assert.equal(avec.tokensModifies, true);
+  assert.equal(avec.erreur, undefined);
+});
+
+test("`git diff --quiet` : un statut autre que 0 et 1, ou un échec de lancement, est un relevé raté", () => {
+  for (const echec of [echecGit(128, "bad revision"), echecGit(undefined, "spawn git ENOENT")]) {
+    const releve = releveDuDiff("r", "base", "tokens.json", gitSimule({ liste: "a\0", quiet: echec }));
+    assert.match(releve.erreur, /relevé des tokens « tokens\.json » depuis « base » a échoué/);
+    assert.match(releve.erreur, new RegExp(echec.message));
+    assert.equal(releve.tokensModifies, undefined);
+  }
+});
+
+test("`git diff --name-only` : tout échec, quel que soit le statut, est un relevé raté", () => {
+  for (const statut of [0, 1, 128, undefined]) {
+    const releve = releveDuDiff("r", "base", "tokens.json", gitSimule({ liste: echecGit(statut), quiet: "" }));
+    assert.match(releve.erreur, /Le diff depuis « base » a échoué/);
+    assert.equal(releve.cheminsModifies, undefined);
+  }
+});
+
+/**
  * Le périmètre limite les états informatifs aux contrats de la pull request :
  * un export de Widget ne doit pas reparler d'un Autre déjà fusionné.
  */

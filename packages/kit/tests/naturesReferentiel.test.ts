@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { CRANS, naturesDesNoms, type NatureDeSegment, type NomLu } from '../src/referentiel/index.js';
 
-const COLLECTIONS = ['components', 'primitives', 'color-utilities', 'color-brands', 'theme', 'layouts'];
+const COLLECTIONS = ['components', 'primitives', 'utility', 'brands', 'theme', 'layout'];
 const idDeCollection = (nom: string): string => JSON.stringify(['collection', nom]);
 
 function collection(nom: string): NomLu {
@@ -37,8 +37,8 @@ function extraitDuPlayground(): NomLu[] {
     ...rampe('primitives', 'colors/Terracota/light'),
     variable('primitives', 'fontsize/base'),
     variable('primitives', 'lineheight/base'),
-    ...rampe('color-brands', 'primary/light'),
-    ...rampe('color-utilities', 'success/vivid/light'),
+    ...rampe('brands', 'primary/light'),
+    ...rampe('utility', 'success/vivid/light'),
     ...rampe('theme', 'secondary/scale'),
     variable('theme', 'secondary/page/divider'),
   ];

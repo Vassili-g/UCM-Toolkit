@@ -96,8 +96,8 @@ Le plugin est complet sans elles, et aucune ne s'active seule :
   `surface/foreground`, `ring`), dans le sens normal ou inversé du
   thème associé ;
 - appliquer le profil d'architecture UCM, après avoir associé chaque
-  collection à l'une des cinq couches (`primitives`, `color-brands`,
-  `color-utilities`, `theme`, `components`), contrôle les alias, les valeurs
+  collection à l'une des sept couches (`primitives`, `brands`,
+  `utility`, `theme`, `components`, `layout`, `typography`), contrôle les alias, les valeurs
   directes, les portées et la nuance que vise chaque variable de `theme`.
 
 Le détail de chaque lecture et de ses limites est dans la

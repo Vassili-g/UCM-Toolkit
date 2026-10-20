@@ -1,5 +1,5 @@
 /** Découpage et écriture des segments employés par les deux moteurs de normalisation. */
-import { COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
+import { COLLECTIONS, FORMES_ANCIENNES_DES_COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
 import { CATEGORIES_DE_NOM, type Casse, type CategorieDeNom, type NomANormaliser, type Separateur } from './conventions.js';
 import type { NatureDeSegment } from './natures.js';
 import type { ConventionDetectee } from './normalisation.js';
@@ -11,7 +11,7 @@ export function frontieres(segment: string): string {
 }
 
 const termesDecomposables = [...REGISTRES, ...REGISTRES_ARCHITECTURE].flatMap((registre) => registre.termes).map((terme) => terme.id);
-const decompositions = new Map([...termesDecomposables, ...COLLECTIONS].flatMap((terme) => {
+const decompositions = new Map([...termesDecomposables, ...COLLECTIONS, ...Object.keys(FORMES_ANCIENNES_DES_COLLECTIONS)].flatMap((terme) => {
   const mots = frontieres(terme).split(/[-_\s\0]+/u);
   return mots.length > 1 ? [[mots.join('').toLowerCase(), mots] as const] : [];
 }));

@@ -255,19 +255,20 @@ neutre ajoute `page/foreground-main`, `page/foreground-subtle`, `scale/0`,
 400 ou 950, ne liste rien.
 
 **Profil UCM.** Les sept couches et leurs cibles suivent l'architecture
-multimarque : `components` vise `theme`, `layouts` ou `typography` ; `theme`
-vise `color-brands` ou `color-utilities` ; `color-brands`, `color-utilities`,
-`layouts` et `typography` visent `primitives` ; `primitives` ne vise rien. Le
-profil ne juge que les variables de couleur : les variables de `layouts` et de
+multimarque : `components` vise `theme`, `layout` ou `typography` ; `theme`
+vise `brands` ou `utility` ; `brands`, `utility`,
+`layout` et `typography` visent `primitives` ; `primitives` ne vise rien. Le
+profil ne juge que les variables de couleur : les variables de `layout` et de
 `typography` qui ne sont pas des couleurs ne sont pas contrôlées. Une association rangée sous
-`brand` se lit `color-brands` ; une couche `usage`, disparue, se lit sans
+`brand`, `color-brands`, `color-utilities` ou `layouts` se lit sous le nouveau
+nom (`brands`, `utility`, `layout`) ; une couche `usage`, disparue, se lit sans
 couche. Le profil contrôle quatre règles, en information :
 
 | Règle | Écart relevé |
 |---|---|
 | `couche` | Un alias vise une couche que sa couche ne peut pas viser |
 | `valeur-directe` | Une couleur hors de `primitives` n'est pas un alias |
-| `portee` | Une variable de `primitives`, `color-brands` ou `color-utilities` porte une portée ; une variable de dossier de `theme` n'a pas les portées de sa ligne de la table |
+| `portee` | Une variable de `primitives`, `brands` ou `utility` porte une portée ; une variable de dossier de `theme` n'a pas les portées de sa ligne de la table |
 | `nuance` | Une variable de dossier de `theme` ne vise pas, dans un mode `light` ou `dark`, le cran que la table donne dans le sens de ce mode |
 
 Les variables de dossier (`solid/default`, `surface/border`, `ring`),

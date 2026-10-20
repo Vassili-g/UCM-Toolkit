@@ -141,7 +141,7 @@ test('« Renommer » répond avec la collection choisie, « Garder ce nom » ave
   const carte = carteDeQuestion(collection('typography'));
   const [renommer, garder] = carte.pied.actions;
   assert.equal(renommer.suite.sorte, 'choisir');
-  if (renommer.suite.sorte === 'choisir') assert.deepEqual(renommer.suite.reponse('layouts'), { type: 'collection', cible: 'layouts' });
+  if (renommer.suite.sorte === 'choisir') assert.deepEqual(renommer.suite.reponse('layout'), { type: 'collection', cible: 'layout' });
   assert.deepEqual([renommer.libelle, garder.libelle], ['Renommer', 'Garder ce nom']);
   assert.deepEqual(poidsDuPied(carte), ['borde', 'texte', 'texte']);
   assert.deepEqual(garder.suite, { sorte: 'repondre', reponse: { type: 'collection', cible: null } });

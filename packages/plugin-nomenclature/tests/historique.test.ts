@@ -70,12 +70,12 @@ const renommage: Renommage = {
   nombre: 12, reviennent: 3, heure: iso(2026, 10, 20, 14, 32),
   collections: [
     {
-      id: 'c1', nom: 'color-brands', exclue: false,
+      id: 'c1', nom: 'brands', exclue: false,
       lignes: [
         { type: 'variable', aujourdhui: 'background/default', ancien: 'bg/default', sort: 'revient' },
         { type: 'variable', aujourdhui: 'font-size/body-large', ancien: 'fontSize/bodyLarge', sort: 'revient' },
         { type: 'variable', aujourdhui: 'text/hover-strong', ancien: 'text/hover', sort: 'change-depuis' },
-        { type: 'collection', aujourdhui: 'color-brands', ancien: 'colorBrands', sort: 'revient' },
+        { type: 'collection', aujourdhui: 'brands', ancien: 'colorBrands', sort: 'revient' },
       ],
     },
     { id: 'c2', nom: 'Couleurs', exclue: true, lignes: [{ type: 'variable', aujourdhui: 'brand/primary-hover', ancien: 'brand/primaryHovered', sort: 'revient' }] },
@@ -150,7 +150,7 @@ test('le dernier renommage montre sa ligne, sa note, les noms qui ne reviendront
   annuler!.evenements.get('click')!({ preventDefault() {} });
   assert.deepEqual(clics, ['renommage']);
 
-  assert.deepEqual(textes(tous(element, 'config-nom')), ['color-brands', 'Couleurs', 'Introuvables']);
+  assert.deepEqual(textes(tous(element, 'config-nom')), ['brands', 'Couleurs', 'Introuvables']);
   assert.deepEqual(textes(tous(element, 'historique-liste')[0]!.children.map((carte) => tous(carte, 'meta')[0]!)), ['4 noms', '1 nom', '1 nom']);
   const tetes = tous(element, 'tete-bouton');
   assert.deepEqual(tetes.map((tete) => tete.attributs.get('aria-expanded')), ['true', 'false', 'false'], 'la première carte est ouverte');
@@ -168,7 +168,7 @@ test('le diff marque les segments qui changent, met la collection en tête et gr
   assert.equal(lignes.length, 4);
   assert.deepEqual(textes(tous(premiere!, 'colonnes-tete')[0]!.children), ['Aujourd’hui', 'Après l’annulation']);
   // La collection vient d'abord, avec sa mention.
-  assert.equal(lignes[0]!.textContent.startsWith('color-brands collection'), true);
+  assert.equal(lignes[0]!.textContent.startsWith('brands collection'), true);
   assert.deepEqual(textes(tous(lignes[0]!, 'meta')), ['collection']);
   // Un segment sur deux : seul le premier change.
   assert.deepEqual(textes(tous(lignes[1]!, 'seg-ancien')), ['background']);

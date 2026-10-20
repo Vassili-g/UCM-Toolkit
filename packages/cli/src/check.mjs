@@ -72,18 +72,26 @@ export function releveDuDiff(racine, base, sourceTokens, executer = execFileSync
     };
   }
 
-  // `git diff --quiet` sort en 1 quand il y a une différence : l'exception est
-  // la réponse, et l'absence d'exception veut dire « rien n'a bougé ».
+  // `git diff --quiet` sort en 1 quand il y a une différence, et en 0 quand
+  // rien n'a bougé. Tout autre statut (128 pour un sha inconnu, par exemple)
+  // et un échec de lancement sans statut ne disent rien des tokens : c'est un
+  // relevé raté, pas une différence.
   //
   // La question reste posée à git, et non déduite de la liste ci-dessus : lui
   // seul normalise le `./` d'un chemin de configuration, la casse selon
   // `core.ignorecase` et le dossier passé en pathspec.
-  let tokensModifies = true;
+  let tokensModifies = false;
   try {
     git(["diff", "--quiet", base, "HEAD", "--", sourceTokens]);
-    tokensModifies = false;
-  } catch {
-    tokensModifies = true;
+  } catch (erreur) {
+    if (erreur?.status === 1) {
+      tokensModifies = true;
+    } else {
+      return {
+        erreur: `Le relevé des tokens « ${sourceTokens} » depuis « ${base} » a échoué : ${erreur?.message ?? erreur}.\n`
+          + "Sans ce relevé, le rapport ne peut pas dire si les tokens ont changé.",
+      };
+    }
   }
 
   return { cheminsModifies: cheminsModifies.replaceAll("\0", "\n"), tokensModifies };

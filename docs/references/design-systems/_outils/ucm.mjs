@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { COLLECTIONS, REGISTRES, REGISTRES_ARCHITECTURE } from '@ucm-kit/core/referentiel';
+import { COLLECTIONS, FORMES_ANCIENNES_DES_COLLECTIONS, REGISTRES, REGISTRES_ARCHITECTURE } from '@ucm-kit/core/referentiel';
 
 const racine = new URL('../', import.meta.url);
 const depot = new URL('../../../', racine);
@@ -22,13 +22,23 @@ export function lireDonnees(texte) {
   return donnees;
 }
 
-/** Une entrée par variable, même si plusieurs modes la renseignent ; les noms restent ceux de l'instantané. */
+/** Nom courant d'une collection de l'instantané, ou undefined si ni le nom courant ni une forme ancienne ne la désignent. */
+export function collectionCourante(collection) {
+  if (COLLECTIONS.includes(collection)) return collection;
+  return Object.hasOwn(FORMES_ANCIENNES_DES_COLLECTIONS, collection) ? FORMES_ANCIENNES_DES_COLLECTIONS[collection] : undefined;
+}
+
+/**
+ * Une entrée par variable, même si plusieurs modes la renseignent. Le nom garde la forme de l'instantané, qui vient
+ * d'un export Figma et peut dater d'avant un renommage de collection ; la collection et la couche suivent le nom courant.
+ */
 export function extraireNoms(donnees) {
   const entrees = new Map();
-  for (const [collection, variables] of Object.entries(donnees.collections)) {
-    if (!COLLECTIONS.includes(collection)) throw new Error(`Collection UCM inconnue : ${collection}`);
+  for (const [collectionInstantane, variables] of Object.entries(donnees.collections)) {
+    const collection = collectionCourante(collectionInstantane);
+    if (!collection) throw new Error(`Collection UCM inconnue : ${collectionInstantane}`);
     for (const [chemin, valeur] of Object.entries(variables)) {
-      if (!chemin.startsWith(`${collection}.`)) throw new Error(`Chemin hors de sa collection : ${chemin}`);
+      if (!chemin.startsWith(`${collectionInstantane}.`)) throw new Error(`Chemin hors de sa collection : ${chemin}`);
       entrees.set(chemin, { collection, valeur });
     }
   }
@@ -87,7 +97,7 @@ function ecrireCorpus(source) {
     },
     comptes: {
       noms: noms.length,
-      parCollection: Object.fromEntries(Object.entries(donnees.collections).map(([collection, variables]) => [collection, Object.keys(variables).length])),
+      parCollection: Object.fromEntries(Object.entries(donnees.collections).map(([collection, variables]) => [collectionCourante(collection) ?? collection, Object.keys(variables).length])),
       sansType: noms.filter((nom) => nom.type === null).length,
       registres: registres.length,
     },

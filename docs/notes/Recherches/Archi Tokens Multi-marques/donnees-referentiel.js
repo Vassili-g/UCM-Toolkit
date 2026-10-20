@@ -5,7 +5,7 @@ window.REFERENTIEL = {
    "nom": "components",
    "cibles": [
     "theme",
-    "layouts",
+    "layout",
     "typography"
    ],
    "sansPortee": false
@@ -13,20 +13,20 @@ window.REFERENTIEL = {
   {
    "nom": "theme",
    "cibles": [
-    "color-brands",
-    "color-utilities"
+    "brands",
+    "utility"
    ],
    "sansPortee": false
   },
   {
-   "nom": "color-brands",
+   "nom": "brands",
    "cibles": [
     "primitives"
    ],
    "sansPortee": true
   },
   {
-   "nom": "color-utilities",
+   "nom": "utility",
    "cibles": [
     "primitives"
    ],
@@ -38,7 +38,7 @@ window.REFERENTIEL = {
    "sansPortee": true
   },
   {
-   "nom": "layouts",
+   "nom": "layout",
    "cibles": [
     "primitives"
    ],

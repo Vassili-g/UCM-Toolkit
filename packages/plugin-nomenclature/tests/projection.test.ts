@@ -132,8 +132,8 @@ test('une collection reconnue forme un groupe sans variable', () => {
   const groupe = projeter(calculer(fichierDeBase)).bilan().groupes.find((autre) => autre.cle === 'collection:c:c2')!;
   assert.equal(groupe.variables, 0);
   assert.equal(groupe.collections, 1);
-  assert.deepEqual([groupe.avant, groupe.apres], ['Color Brands', 'color-brands']);
-  assert.deepEqual(groupe.apercu, [{ id: 'c:c2', ancien: 'Color Brands', nouveau: 'color-brands', marques: [0], aussi: [] }]);
+  assert.deepEqual([groupe.avant, groupe.apres], ['Color Brands', 'brands']);
+  assert.deepEqual(groupe.apercu, [{ id: 'c:c2', ancien: 'Color Brands', nouveau: 'brands', marques: [0], aussi: [] }]);
   assert.equal(groupe.autres, 0);
 });
 
@@ -252,7 +252,7 @@ const termeEnQuestion = (mot: string, nombre: number, exemples: readonly string[
 const questionsDeTest: readonly Question[] = [
   { type: 'paire', cle: 'paire:gap|space', indice: 'synonymes', termes: [termeEnQuestion('gap', 3, ['v4', 'v5']), termeEnQuestion('space', 1, ['v6'], true)], propose: 1, score: 5, cibleAlias: 'ALIAS' },
   { type: 'ecriture-du-terme', cle: 'ecriture-du-terme:faute:color|colour', indice: 'faute', terme: termeEnQuestion('colour', 1, ['v9']), proposition: ['color'], reference: { mot: 'color', nombre: 3 }, score: 3 },
-  { type: 'collection', cle: 'collection:c1', collectionId: 'c1', nom: 'Couleurs', nombre: 34, proposee: 'color-brands', score: 4 },
+  { type: 'collection', cle: 'collection:c1', collectionId: 'c1', nom: 'Couleurs', nombre: 34, proposee: 'brands', score: 4 },
   { type: 'collection', cle: 'collection:c2', collectionId: 'c2', nom: 'Typo', nombre: 3, score: 4 },
 ];
 
@@ -279,7 +279,7 @@ test('les questions deviennent des vues, les questions mises de côté vont à p
   assert.deepEqual(faute.type === 'ecriture-du-terme' && [faute.terme.exemples[0].ancien, faute.terme.exemples[0].marques], ['link/press/colour', [2]]);
   assert.deepEqual(faute.type === 'ecriture-du-terme' && faute.effet, { id: 'v9', ancien: 'link/press/colour', nouveau: 'link/press/color', marques: [2], aussi: [] });
   assert.deepEqual(faute.type === 'ecriture-du-terme' && [faute.proposition, faute.reference], [['color'], { mot: 'color', nombre: 3 }]);
-  assert.deepEqual(collection, { type: 'collection', cle: 'collection:c1', nom: 'Couleurs', nombre: 34, proposee: 'color-brands' });
+  assert.deepEqual(collection, { type: 'collection', cle: 'collection:c1', nom: 'Couleurs', nombre: 34, proposee: 'brands' });
   assert.equal(bilan.plusTard[0].type === 'collection' && bilan.plusTard[0].proposee, null);
 });
 
@@ -573,7 +573,7 @@ test('un renommage garde son nombre de segments, ses marques désignent des segm
     assert.ok(ligne.marques.length > 0 && ligne.marques.every((rang) => rang < avant.length), ligne.id);
   }
   const collection = lignes.find((ligne) => ligne.id === 'c:c2')!;
-  assert.deepEqual([collection.ancien, collection.nouveau, collection.marques], ['Color Brands', 'color-brands', [0]]);
+  assert.deepEqual([collection.ancien, collection.nouveau, collection.marques], ['Color Brands', 'brands', [0]]);
 });
 
 test('les marques d’une carte de terme suivent la règle du terme, pas l’écriture', () => {

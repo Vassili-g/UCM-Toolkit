@@ -149,3 +149,52 @@ test("un enum déclaré jamais lu parle comme son jumeau booléen", () => {
     { prop: "muet", valeurs: ["info", "success", "warning"] },
   ]);
 });
+
+const types = join(racinePaquet, "tests", "fixtures", "TypesFixture.tsx");
+
+const contratDesTypes = {
+  name: "TypesFixture",
+  props: {
+    nombre: { type: "enum", values: ["primary", "danger"] },
+    booleen: { type: "enum", values: ["primary", "danger"] },
+    chaine: { type: "enum", values: ["primary", "danger"] },
+    large: { type: "enum", values: ["primary", "danger"] },
+    mixte: { type: "enum", values: ["primary", "danger"] },
+    inconnu: { type: "enum", values: ["primary", "danger"] },
+    actifTexte: { type: "boolean" },
+    actifInconnu: { type: "boolean" },
+  },
+};
+
+test("un enum contre un nombre ou un booléen est un type incorrect", () => {
+  const releve = lireApiPublique([types], racinePaquet).get(types);
+  const ecarts = ecartsDeParite(contratDesTypes, releve, "TypesFixtureProps");
+
+  assert.deepEqual(ecarts.typesIncorrects, [
+    { prop: "actifTexte", attendu: "boolean", recu: "string | undefined" },
+    { prop: "booleen", attendu: "enum", recu: "boolean | undefined" },
+    { prop: "nombre", attendu: "enum", recu: "number | undefined" },
+  ]);
+});
+
+test("un type plus large mais compatible n'est ni un écart ni une limite", () => {
+  const releve = lireApiPublique([types], racinePaquet).get(types);
+  const ecarts = ecartsDeParite(contratDesTypes, releve, "TypesFixtureProps");
+  const signales = [...ecarts.typesIncorrects, ...ecarts.typesNonAnalyses].map(({ prop }) => prop);
+
+  for (const prop of ["chaine", "large", "mixte"]) {
+    assert.equal(signales.includes(prop), false, prop);
+  }
+  assert.deepEqual(ecarts.valeursNonImplementees, []);
+});
+
+test("un alias non résolu est une limite, distincte d'un écart", () => {
+  const releve = lireApiPublique([types], racinePaquet).get(types);
+  const ecarts = ecartsDeParite(contratDesTypes, releve, "TypesFixtureProps");
+
+  assert.deepEqual(ecarts.typesNonAnalyses.map(({ prop, attendu }) => ({ prop, attendu })), [
+    { prop: "actifInconnu", attendu: "boolean" },
+    { prop: "inconnu", attendu: "enum" },
+  ]);
+  assert.equal(ecarts.typesIncorrects.some(({ prop }) => /inconnu/i.test(prop)), false);
+});

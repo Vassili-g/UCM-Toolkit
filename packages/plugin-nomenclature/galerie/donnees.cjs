@@ -42,7 +42,7 @@ const groupeEcriture = {
 };
 const groupeCollection = {
   cle: 'collection:c2', regle: { sorte: 'collection' },
-  avant: 'Couleurs', apres: 'color-brands', autres: 0, variables: 0, collections: 1, aussiDEcriture: 0, nouveau: false, apercu: [],
+  avant: 'Couleurs', apres: 'brands', autres: 0, variables: 0, collections: 1, aussiDEcriture: 0, nouveau: false, apercu: [],
 };
 
 const paire = {
@@ -60,7 +60,7 @@ const motsColles = {
   proposition: ['contrast', 'hovered'], reference: null,
   effet: renom('v13', 'Link/contrasthovered/text', 'Link/contrast-hovered/text', [1]),
 };
-const collection = { type: 'collection', cle: 'collection:c2', nom: 'Couleurs', nombre: 34, proposee: 'color-brands' };
+const collection = { type: 'collection', cle: 'collection:c2', nom: 'Couleurs', nombre: 34, proposee: 'brands' };
 const paireDeTailles = {
   type: 'paire', cle: 'paire:radius|corner', indice: 'synonymes',
   termes: [terme('radius', 9, [rayon]), terme('corner', 3, [coinCarte])], propose: 0, cibleCommune: null,
@@ -68,7 +68,7 @@ const paireDeTailles = {
 };
 
 const collections = [
-  { id: 'c1', nom: 'color-brands', nombre: 420, analysee: true, palettes: false },
+  { id: 'c1', nom: 'brands', nombre: 420, analysee: true, palettes: false },
   { id: 'c2', nom: 'Couleurs', nombre: 34, analysee: true, palettes: false },
   { id: 'c3', nom: 'primitives', nombre: 346, analysee: false, palettes: true },
 ];
@@ -81,7 +81,7 @@ const quand = (jours, heures, minutes) => {
   return date.toISOString();
 };
 const nomDuJournal = (aujourdhui, ancien, sort = 'revient') => ({ type: 'variable', aujourdhui, ancien, sort });
-const lignesDeColorBrands = [
+const lignesDeBrands = [
   ['background/default', 'bg/default'], ['background/subtle', 'bg/subtle'], ['background/inverse', 'bg/inverse'], ['text/hover', 'text/hovered'],
   ['border/hover', 'border/hovered'], ['font-size/body-large', 'fontSize/bodyLarge'], ['font-size/body-small', 'fontSize/bodySmall'], ['font-size/title', 'fontSize/title'],
 ].map(([aujourdhui, ancien]) => nomDuJournal(aujourdhui, ancien));
@@ -92,15 +92,15 @@ const lignesDeCouleurs = [
 const journalNominal = {
   nombre: 12, reviennent: 12, heure: quand(0, 14, 32),
   collections: [
-    { id: 'c1', nom: 'color-brands', exclue: false, lignes: lignesDeColorBrands },
+    { id: 'c1', nom: 'brands', exclue: false, lignes: lignesDeBrands },
     { id: 'c2', nom: 'Couleurs', exclue: false, lignes: lignesDeCouleurs },
   ],
 };
-// Le lot d'hier : un nom a changé depuis dans color-brands, et Couleurs est exclue de l'analyse (ses 4 noms ne reviennent pas).
+// Le lot d'hier : un nom a changé depuis dans brands, et Couleurs est exclue de l'analyse (ses 4 noms ne reviennent pas).
 const journalPartiel = {
   nombre: 12, reviennent: 7, heure: quand(1, 17, 5),
   collections: [
-    { id: 'c1', nom: 'color-brands', exclue: false, lignes: lignesDeColorBrands.map((ligne, rang) => (rang === 3 ? nomDuJournal('text/hover-strong', ligne.ancien, 'change-depuis') : ligne)) },
+    { id: 'c1', nom: 'brands', exclue: false, lignes: lignesDeBrands.map((ligne, rang) => (rang === 3 ? nomDuJournal('text/hover-strong', ligne.ancien, 'change-depuis') : ligne)) },
     { id: 'c2', nom: 'Couleurs', exclue: true, lignes: lignesDeCouleurs },
   ],
 };
