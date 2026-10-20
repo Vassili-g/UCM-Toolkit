@@ -1,7 +1,7 @@
 # Arbre des slots
 
 - **`structure.children` descend dès qu'un descendant porte une information qu'une feuille ne sait pas exprimer** (texte, icône, dépendance, liaison de variable), à n'importe quelle profondeur. Extraction, `textSlots` et signatures la consultent sans la recalculer. Borne : calque dont aucun descendant ne porte d'information = feuille. Autorité : `structureTree.ts`. → [§6]
-- **La profondeur est bornée à 12 niveaux.** Coupure dite dès qu'elle emporte autre chose qu'un dessin. → [§6]
+- **La profondeur est bornée à 12 niveaux.** Coupure dite dès qu'elle emporte autre chose qu'un dessin. Autorité : `structureTree.ts`. → [§6]
 - **Un conteneur publie tous ses calques rendables, à quelque profondeur qu'ils soient, jamais une sélection.** `variants[].tokens` relève les couleurs du variant entier.
 - **Une typographie appartient à un calque texte et vient de son text style.** `textStyles` lie le style à ses variables (`tokens`) et publie en CSS ce qu'aucune variable ne porte (`literals`). Vue exacte : usage situé par un chemin de slots ; l'usage porte alignement du calque et troncature quand `maxLines` la borne. `textRendering.ts` fait ces traductions. Borne : calque sans text style → aucun usage publié, donc ni alignement ni troncature. → [§5]
 - **Un calque dont `textCase`, `textDecoration`, `textWrapStyle` ou `leadingTrim` diffère de son style avertit.** Le contrat publie la valeur du style ; gras ou italique ajouté par-dessus le style (`textStyleOverrides`) avertit de même. → [§5]
