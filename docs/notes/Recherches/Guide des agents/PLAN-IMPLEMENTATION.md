@@ -198,7 +198,7 @@ Profil : conversation principale.
 
 Fin : le contrôle de style passe sur la skill.
 
-### Lots 5 à 7. La réécriture
+### Lots 5 à 7. La réécriture : faits, `95149442`, `13544d0b`, `5a5dfddb`, `123b0578`, `3f0b85c5`, relectures `6b860ddd`, `0e83b8cf`
 
 Chaque lot réécrit des groupes de zéro, dans la convention, depuis
 `AGENTS.md` au commit de départ. Il corrige au passage les écarts relevés par
@@ -224,75 +224,75 @@ Le lot 7b garde chaque fichier que la carte actuelle décrit, et sa
 description dans la convention. Il ajoute `src/espace.ts` à l'explorateur et
 retire les quatre dossiers de `docs/notes/` absents.
 
-### Lot 8. Les `AGENTS.md` de paquet et la publication
+### Lot 8. Les `AGENTS.md` de paquet et la publication : fait, `6d0e9243`
 
 Profil : `implementeur`. Fichiers : neuf `packages/<paquet>/AGENTS.md`, neuf
 `CLAUDE.md`, `.agents/skills/publier-paquets/SKILL.md`.
 
-- [ ] Chaque `AGENTS.md` de paquet, dans la convention : rôle du paquet en une
+- [x] Chaque `AGENTS.md` de paquet, dans la convention : rôle du paquet en une
   phrase, fichiers qui écrivent dans Figma ou dans le document, commandes de
   test et de build, table de ses fichiers d'invariants avec leurs motifs de
   chemins. Au plus 6 Kio.
-- [ ] Chaque `CLAUDE.md` : `@AGENTS.md`.
-- [ ] La skill de publication reprend « Publier les paquets » dans la
+- [x] Chaque `CLAUDE.md` : `@AGENTS.md`.
+- [x] La skill de publication reprend « Publier les paquets » dans la
   convention, sans rien perdre.
 
-### Lot 9. La bascule
+### Lot 9. La bascule : faite, `6d0e9243`
 
 Profils : conversation principale pour les textes, `implementeur-exigeant`
 pour les contrôles. Un seul commit.
 
 Conversation principale :
 
-- [ ] Le nouveau `AGENTS.md` racine, de zéro, dans la convention : le produit
+- [x] Le nouveau `AGENTS.md` racine, de zéro, dans la convention : le produit
   en un paragraphe ; les skills à charger ; les invariants transversaux
   (référentiel en une ligne, plugins séparés, document intact, ordre des
   versions) ; la table de routage, entre deux marqueurs et écrite par
   `agents-contexte.mjs ecrire-index` ; la table « Où écrire » ; la consigne de
   doute ; les commandes ; la frontière de recette ; les limites ; le renvoi à
   la section « Travailler avec des agents ».
-- [ ] `CLAUDE.md` : `@AGENTS.md` ; l'orchestrateur lance `agents:lire` avant
+- [x] `CLAUDE.md` : `@AGENTS.md` ; l'orchestrateur lance `agents:lire` avant
   de déléguer et `agents:diff` avant de commiter ; le prompt d'un
   implémenteur contient la note du lot et cette liste, rien d'autre.
-- [ ] `CONTRIBUTING.md` : section « Travailler avec des agents » (A1, A3, D10,
+- [x] `CONTRIBUTING.md` : section « Travailler avec des agents » (A1, A3, D10,
   table des exigences selon la tâche) ; tables « Documentation » et « Une
   règle, un domicile » ; phrase de la convention dans « Rédiger un document ».
-- [ ] `.claude/agents/implementeur.md`, `implementeur-exigeant.md`,
+- [x] `.claude/agents/implementeur.md`, `implementeur-exigeant.md`,
   `executant.md` : `git status` d'abord ; lire la liste du prompt ;
   `test:paquet` des paquets touchés ; pas de `test:ui` ; `agents:diff` avant
   de rendre ; aucun document créé.
-- [ ] `docs/README.md` : table des autorités.
+- [x] `docs/README.md` : table des autorités.
 
 `implementeur-exigeant` :
 
-- [ ] `tests/inventaireInvariants.test.ts` lit les fichiers et l'ordre des
+- [x] `tests/inventaireInvariants.test.ts` lit les fichiers et l'ordre des
   groupes dans le manifeste. Une entrée de `AUTORITES` qui est un chemin
   `packages/<paquet>/…` se trouve aussi sous sa forme courte : `<paquet>/…`
   partout, ou le reste du chemin dans un fichier de ce paquet. Aucune entrée
   n'est retirée. Le contrôle de la liste de `tests/` lit `CARTE.md` racine.
   Le titre « quatorze domaines » devient exact.
-- [ ] `tests/docLinks.test.ts` résout les liens de référence et compte les
+- [x] `tests/docLinks.test.ts` résout les liens de référence et compte les
   ancres distinctes de `FORMAT.md` et de `SPEC.md` dans les fichiers
   d'invariants, au seuil de vingt.
-- [ ] `scripts/controle-style.mjs` : fichiers d'invariants et `AGENTS.md` de
+- [x] `scripts/controle-style.mjs` : fichiers d'invariants et `AGENTS.md` de
   paquet dans `AUTORITES`.
-- [ ] `tests/registreDesDocuments.test.ts` et `scripts/hook-documents.mjs`,
+- [x] `tests/registreDesDocuments.test.ts` et `scripts/hook-documents.mjs`,
   branché en `PreToolUse` sur `Write` dans `.claude/settings.json`.
-- [ ] Un test borne `AGENTS.md` racine à 12 Kio et chaque chaîne
+- [x] Un test borne `AGENTS.md` racine à 12 Kio et chaque chaîne
   racine-paquet à 32 Kio.
-- [ ] Les liens entrants vers une ancre d'`AGENTS.md` et les commentaires de
+- [x] Les liens entrants vers une ancre d'`AGENTS.md` et les commentaires de
   code qui citent une de ses sections visent leur nouveau fichier.
 
 Fin : `verifier-conservation <HEAD>` ne liste aucun manque, et un
 `verificateur` rend `npm test`, `npm run typecheck` et `npm run build` verts.
 
-### Lot 10. Mesure
+### Lot 10. Mesure : faite (section 7)
 
 Profil : conversation principale.
 
-- [ ] Additionner les octets que `agents:lire` rend pour les six tâches types
+- [x] Additionner les octets que `agents:lire` rend pour les six tâches types
   du plan du découpage, et les consigner dans le README du dossier.
-- [ ] Rendre au mainteneur les essais Codex et `/context`.
+- [x] Rendre au mainteneur les essais Codex et `/context`.
 
 ## 5. Ordre d'exécution
 
@@ -328,3 +328,34 @@ Relecture faite avant la première vague. Points relevés et changement apporté
 | `.claude/agents/` dit encore de lancer `test:ui` | corrigé au lot 9 (D10) |
 | Pendant le lot 5a, le gabarit appliqué sans compacter a grossi les fichiers ; une passe de compaction sans perte s'arrête à 85–98 % des groupes de l'exporteur, déjà denses | cible ramenée à 90 % ; un pourquoi ne se retire que si la spec liée l'énonce. Le gain de lecture vient du découpage, la compaction n'y ajoute qu'environ 10 % |
 | Le seuil de la partie B du plan du découpage n'est pas mesuré | le mainteneur a demandé l'implémentation ; les essais Codex restent utiles et passent au lot 10 |
+
+## 7. Résultat
+
+`AGENTS.md` passe de 152 469 à 9 298 octets. Octets que `npm run agents:lire`
+donne à lire pour une tâche type, spécifications non comptées :
+
+| Tâche | Sans la carte | Avec la carte | Part de l'ancien `AGENTS.md` |
+|---|---:|---:|---:|
+| Écriture des variables de Palettes | 24 034 | 39 293 | 25 % |
+| Layout de l'exporteur | 17 750 | 21 489 | 14 % |
+| Moteur de couleur | 25 142 | 29 211 | 19 % |
+| Nomenclature | 15 180 | 16 937 | 11 % |
+| Explorateur | 16 124 | 19 105 | 12 % |
+| Note de recherche, sans code | 9 298 | 13 785 | 9 % |
+
+Compaction des invariants : 85 à 98 % de la source selon le groupe. Le gain
+vient du découpage.
+
+Écarts au plan :
+
+- Règle de résolution du manifeste : le motif le plus long l'emporte (section 3.2).
+- Pas de relecteur pour les cartes (lot 7b) : compaction à 93 %, garde à zéro manque.
+- La racine porte une table des paquets ; la table des domaines de chaque paquet est générée dans son guide (`ecrire-index <paquet> --ecrire`), parce que la table complète pesait 4 Ko.
+- Faits périmés d'`AGENTS.md` corrigés pendant la réécriture : corpus N-1 en 13.0, loi de pureté sur `kit/src/referentiel/`, quatre plugins séparés, six liens de référence morts vers d'anciens fichiers du socle.
+- `versionSuitLeContenu` ne compte pas les fichiers des agents ; un test vérifie qu'aucun champ `files` ne les publie.
+
+Restent au mainteneur :
+
+- les essais 1 à 4 de la section 5 de la recherche (`/context`, Codex à la racine et dans un paquet) ;
+- deux ambiguïtés de la source, gardées telles quelles : la borne `CONCURRENCE` de l'explorateur (par identifiant ou au total) et les couches que vise `components` dans le profil UCM ;
+- la partie C (lots aux fichiers disjoints), au prochain plan de plusieurs lots.

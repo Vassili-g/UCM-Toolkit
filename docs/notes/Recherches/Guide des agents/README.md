@@ -9,10 +9,11 @@ l'ouvrir d'un coup.
 | [RECHERCHE-DECOUPAGE-AGENTS.md](./RECHERCHE-DECOUPAGE-AGENTS.md) | mesures du fichier, chargement par Codex et Claude Code, dépôts comparables, études sur la longueur du contexte, options |
 | [PLAN-DECOUPAGE-AGENTS.md](./PLAN-DECOUPAGE-AGENTS.md) | partie A : règles de travail des agents ; partie B : découpage en onze lots ; partie C : lots aux fichiers disjoints ; dix décisions |
 | [CONVENTION-ECRITURE-AGENTS.md](./CONVENTION-ECRITURE-AGENTS.md) | proposition de convention d'écriture compacte pour les fichiers d'agents, avec un exemple mesuré (−29 %) |
+| [PLAN-IMPLEMENTATION.md](./PLAN-IMPLEMENTATION.md) | plan réuni, revue, lots 1 à 10 cochés avec leurs commits, résultat mesuré |
 | [CRITIQUE-DU-DECOUPAGE.md](./CRITIQUE-DU-DECOUPAGE.md) | le plan confronté à la fin du plan de fiabilité : ce qu'il règle, ce qu'il ne règle pas, huit mesures qui manquent |
 
-État : recherche et plan rédigés ; aucun lot commencé.
+État : [plan d'implémentation](./PLAN-IMPLEMENTATION.md) fait, lots 1 à 10. `AGENTS.md` pèse 9 298 octets ; une tâche type lit 9 à 25 % de l'ancien fichier (section 7 du plan).
 
-Prochain geste : le mainteneur tranche D8 et D9, puis la partie A et les lots
-0 et 1 peuvent partir. Les lots 2 à 10 attendent le seuil de la partie B, les
-décisions D1 à D7 et la clôture du plan de fiabilité.
+Prochain geste : le mainteneur mène les essais Codex et `/context` (section 5 de la
+recherche), et tranche les deux ambiguïtés de la section 7 du plan
+d'implémentation.
