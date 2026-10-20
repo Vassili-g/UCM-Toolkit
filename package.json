@@ -16,7 +16,10 @@
     "start": "npm run build",
     "build:plugin": "node scripts/construire-plugin.mjs build",
     "galerie:plugin": "node scripts/construire-plugin.mjs galerie",
-    "test:paquet": "node scripts/construire-plugin.mjs test"
+    "test:paquet": "node scripts/construire-plugin.mjs test",
+    "agents:lire": "node scripts/agents-contexte.mjs lire",
+    "agents:domicile": "node scripts/agents-contexte.mjs domicile",
+    "agents:diff": "node scripts/agents-contexte.mjs diff"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

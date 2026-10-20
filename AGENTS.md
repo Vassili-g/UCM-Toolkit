@@ -426,7 +426,9 @@ scripts/
 
 tests/                   les tests du monorepo lui-même
   docLinks.test.ts       les liens et les ancres de la documentation
+  domiciles.test.ts      chaque fichier de `packages/*/src/` a un seul domicile dans `.agents/domiciles.json`
   finsDeLigne.test.mjs   aucun fichier texte en CRLF dans l'index
+  verifierConservation.test.mjs  la garde de la réécriture d'AGENTS.md relève et compare ses atomes
   inventaireInvariants.test.ts  l'accord d'AGENTS.md avec le code, dans les deux sens
   styleDocumentaire.test.ts  les tics de rédaction, interdits sans exemption
   pinDocumente.test.mjs  les versions montrées par une commande copiable

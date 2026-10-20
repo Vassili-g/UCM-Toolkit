@@ -1,0 +1,500 @@
+{
+  "version": 1,
+  "domaines": [
+    {
+      "id": "exporter-portee",
+      "titre": "Portée et forme du contrat",
+      "fichier": "packages/plugin-exporter/invariants/portee-du-contrat.md",
+      "chemins": [
+        "packages/plugin-exporter/src/**",
+        "packages/kit/src/format/**"
+      ],
+      "specs": [
+        "docs/format/FORMAT.md#sortie",
+        "docs/format/FORMAT.md#1-props",
+        "packages/plugin-exporter/SPEC.md#1-props",
+        "docs/format/FORMAT.md#7-intention-et-documentation-des-props"
+      ],
+      "lies": [
+        "packages/plugin-exporter/README.md",
+        "packages/plugin-exporter/SPEC.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- exporter",
+        "npm run test --workspace @ucm-kit/core",
+        "node scripts/run-tests.cjs"
+      ]
+    },
+    {
+      "id": "exporter-tokens",
+      "titre": "Tokens et variables",
+      "fichier": "packages/plugin-exporter/invariants/tokens-et-variables.md",
+      "chemins": [
+        "packages/plugin-exporter/src/tokens/**",
+        "packages/plugin-exporter/src/variables.ts",
+        "packages/kit/src/format/names.ts",
+        "packages/kit/src/format/tokens.ts",
+        "packages/kit/src/format/chemins-de-tokens.ts",
+        "packages/kit/src/format/axes-de-collections.ts",
+        "packages/kit/src/lecteurs/modes-tokens.mjs"
+      ],
+      "specs": [
+        "docs/format/FORMAT.md#partie-2--export-tokens",
+        "docs/format/FORMAT.md#8-rendu-sémantique-et-garde-fous",
+        "docs/format/FORMAT.md#nommer-et-citer-un-token",
+        "docs/format/COMPATIBILITE.md#la-version-du-format-de-tokens",
+        "packages/plugin-exporter/SPEC.md#partie-2--export-tokens"
+      ],
+      "lies": [
+        "packages/plugin-exporter/README.md",
+        "packages/plugin-exporter/SPEC.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- exporter",
+        "npm run test --workspace @ucm-kit/core",
+        "node scripts/run-tests.cjs"
+      ]
+    },
+    {
+      "id": "exporter-couleurs",
+      "titre": "Couleurs",
+      "fichier": "packages/plugin-exporter/invariants/couleurs.md",
+      "chemins": [
+        "packages/plugin-exporter/src/contract/colorKeys.ts"
+      ],
+      "specs": [
+        "docs/format/FORMAT.md#2-tokens-de-variantes",
+        "docs/format/FORMAT.md#8-rendu-sémantique-et-garde-fous"
+      ],
+      "lies": [
+        "packages/plugin-exporter/README.md",
+        "packages/plugin-exporter/SPEC.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- exporter"
+      ]
+    },
+    {
+      "id": "exporter-composition",
+      "titre": "Composition",
+      "fichier": "packages/plugin-exporter/invariants/composition.md",
+      "chemins": [],
+      "specs": [
+        "docs/format/FORMAT.md#cadre-de-dépendance",
+        "docs/format/FORMAT.md#composition-et-dépendances"
+      ],
+      "lies": [
+        "packages/plugin-exporter/README.md",
+        "packages/plugin-exporter/SPEC.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- exporter"
+      ]
+    },
+    {
+      "id": "exporter-slots",
+      "titre": "Arbre des slots",
+      "fichier": "packages/plugin-exporter/invariants/arbre-des-slots.md",
+      "chemins": [
+        "packages/plugin-exporter/src/contract/imbriques.ts",
+        "packages/plugin-exporter/src/contract/slotNames.ts",
+        "packages/plugin-exporter/src/contract/structureTree.ts",
+        "packages/plugin-exporter/src/contract/textRendering.ts"
+      ],
+      "specs": [
+        "docs/format/FORMAT.md#6-structure",
+        "docs/format/FORMAT.md#5-typographie",
+        "docs/format/FORMAT.md#7-intention-et-documentation-des-props",
+        "docs/format/FORMAT.md#ce-que-le-contrat-ne-dit-pas-dune-icône"
+      ],
+      "lies": [
+        "packages/plugin-exporter/README.md",
+        "packages/plugin-exporter/SPEC.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- exporter"
+      ]
+    },
+    {
+      "id": "exporter-layout",
+      "titre": "Layout, dimensions et bornes",
+      "fichier": "packages/plugin-exporter/invariants/layout.md",
+      "chemins": [
+        "packages/plugin-exporter/src/contract/effectStyles.ts",
+        "packages/plugin-exporter/src/contract/extractLayout.ts",
+        "packages/plugin-exporter/src/contract/flexLayout.ts",
+        "packages/plugin-exporter/src/contract/layoutNodes.ts",
+        "packages/plugin-exporter/src/contract/nodeBindings.ts"
+      ],
+      "specs": [
+        "docs/format/FORMAT.md#3-layout",
+        "packages/plugin-exporter/SPEC.md#3-layout",
+        "docs/format/FORMAT.md#flux-et-alignement",
+        "docs/format/FORMAT.md#dimensions-et-bornes",
+        "docs/format/FORMAT.md#position-absolue",
+        "docs/format/FORMAT.md#passage-à-la-ligne",
+        "docs/format/FORMAT.md#propriétés-non-portables",
+        "docs/format/FORMAT.md#opacité",
+        "docs/format/FORMAT.md#effets"
+      ],
+      "lies": [
+        "packages/plugin-exporter/README.md",
+        "packages/plugin-exporter/SPEC.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- exporter"
+      ]
+    },
+    {
+      "id": "exporter-grilles",
+      "titre": "Grilles",
+      "fichier": "packages/plugin-exporter/invariants/grilles.md",
+      "chemins": [],
+      "specs": [
+        "docs/format/FORMAT.md#grilles"
+      ],
+      "lies": [
+        "packages/plugin-exporter/README.md",
+        "packages/plugin-exporter/SPEC.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- exporter"
+      ]
+    },
+    {
+      "id": "exporter-diagnostics",
+      "titre": "Diagnostics",
+      "fichier": "packages/plugin-exporter/invariants/diagnostics.md",
+      "chemins": [
+        "packages/cli/src/**",
+        "packages/adapter-typescript/src/**",
+        "packages/kit/src/lecteurs/**",
+        "packages/plugin-exporter/src/config.ts",
+        "packages/plugin-exporter/src/contract/localisation.ts",
+        "packages/plugin-exporter/src/depot.ts",
+        "packages/plugin-exporter/src/forges/**",
+        "packages/kit/src/format/version.ts",
+        "packages/kit/src/lecteurs/diagnostic-contrastes.mjs",
+        "packages/kit/src/lecteurs/perimetre-rapport.mjs"
+      ],
+      "specs": [
+        "docs/format/FORMAT.md#2-tokens-de-variantes",
+        "docs/format/FORMAT.md#métadonnées",
+        "packages/plugin-exporter/SPEC.md#partie-3--configuration-et-dépôt-sur-une-forge"
+      ],
+      "lies": [
+        "packages/plugin-exporter/README.md",
+        "packages/plugin-exporter/SPEC.md",
+        "packages/cli/README.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- exporter",
+        "npm run test:paquet -- cli",
+        "npm run test:paquet -- adapter",
+        "npm run test --workspace @ucm-kit/core",
+        "node scripts/run-tests.cjs"
+      ]
+    },
+    {
+      "id": "exporter-echantillon",
+      "titre": "Échantillon de maquette",
+      "fichier": "packages/plugin-exporter/invariants/echantillon.md",
+      "chemins": [],
+      "specs": [
+        "docs/format/FORMAT.md#9-échantillon-de-maquette"
+      ],
+      "lies": [
+        "packages/plugin-exporter/README.md",
+        "packages/plugin-exporter/SPEC.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- exporter"
+      ]
+    },
+    {
+      "id": "exporter-ecriture",
+      "titre": "Écriture dans le document",
+      "fichier": "packages/plugin-exporter/invariants/ecriture-dans-le-document.md",
+      "chemins": [
+        "packages/plugin-exporter/src/code.ts",
+        "packages/plugin-exporter/src/prevol.ts",
+        "packages/plugin-exporter/src/template/**",
+        "packages/plugin-exporter/src/contract/composedComponents.ts"
+      ],
+      "specs": [
+        "packages/plugin-exporter/SPEC.md#comment-lécriture-range-une-règle"
+      ],
+      "lies": [
+        "packages/plugin-exporter/README.md",
+        "packages/plugin-exporter/SPEC.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- exporter"
+      ]
+    },
+    {
+      "id": "tests-du-moteur",
+      "titre": "Tests du moteur",
+      "fichier": "packages/plugin-exporter/invariants/tests-du-moteur.md",
+      "chemins": [
+        "packages/plugin-exporter/tests/**"
+      ],
+      "specs": [],
+      "lies": [
+        "packages/plugin-exporter/README.md",
+        "packages/plugin-exporter/SPEC.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- exporter"
+      ]
+    },
+    {
+      "id": "versionnage",
+      "titre": "Versionnage",
+      "fichier": "packages/kit/invariants/versionnage.md",
+      "chemins": [
+        "packages/kit/src/**",
+        "packages/kit/src/format/types.ts"
+      ],
+      "specs": [
+        "docs/format/COMPATIBILITE.md#lordre-dune-nouvelle-version-du-format-de-tokens"
+      ],
+      "lies": [
+        "packages/kit/README.md"
+      ],
+      "verifications": [
+        "npm run test --workspace @ucm-kit/core",
+        "node scripts/run-tests.cjs"
+      ]
+    },
+    {
+      "id": "corpus-de-test",
+      "titre": "Corpus de test",
+      "fichier": "packages/kit/invariants/corpus-de-test.md",
+      "chemins": [
+        "packages/kit/fixtures/**"
+      ],
+      "specs": [],
+      "lies": [
+        "packages/kit/README.md"
+      ],
+      "verifications": [
+        "npm run test --workspace @ucm-kit/core",
+        "node scripts/run-tests.cjs"
+      ]
+    },
+    {
+      "id": "referentiel",
+      "titre": "Référentiel",
+      "fichier": "packages/kit/invariants/referentiel.md",
+      "chemins": [
+        "packages/kit/src/referentiel/**"
+      ],
+      "specs": [],
+      "lies": [
+        "packages/kit/README.md"
+      ],
+      "verifications": [
+        "npm run test --workspace @ucm-kit/core",
+        "node scripts/run-tests.cjs"
+      ]
+    },
+    {
+      "id": "moteur-de-couleur",
+      "titre": "Moteur de couleur",
+      "fichier": "packages/couleur/invariants/moteur-de-couleur.md",
+      "chemins": [
+        "packages/couleur/src/**",
+        "packages/kit/src/emplois/**",
+        "packages/kit/src/referentiel/theme.ts"
+      ],
+      "specs": [
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#6-le-moteur-de-couleur",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#112-promesses-des-emplois",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#63-fabriquer-un-cran",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#64-la-teinte-dun-cran",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#81-une-palette",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#65-le-préréglage-tailwind",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#113-alertes",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#123-les-limites"
+      ],
+      "lies": [
+        "packages/couleur/README.md",
+        "packages/kit/README.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- couleur",
+        "npm run test --workspace @ucm-kit/core",
+        "node scripts/run-tests.cjs"
+      ]
+    },
+    {
+      "id": "palettes-ecriture",
+      "titre": "Écriture d'UCM Palettes",
+      "fichier": "packages/plugin-palettes/invariants/ecriture.md",
+      "chemins": [
+        "packages/plugin-palettes/src/**",
+        "packages/plugin-palettes/src/ui/frontiere.ts"
+      ],
+      "specs": [
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#143-le-plugin",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#91-emplacement-et-propriété",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#9-sortie-1--la-planche",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#96-fraîcheur",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#73-rangement-et-version",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#101-la-recette-exportée",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#173-lécriture",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#174-les-palettes-du-fichier",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#171-la-forme-et-la-destination",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#172-la-propriété-et-létat"
+      ],
+      "lies": [
+        "packages/plugin-palettes/README.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- palettes",
+        "node scripts/run-tests.cjs"
+      ]
+    },
+    {
+      "id": "palettes-langue",
+      "titre": "Langue d'UCM Palettes",
+      "fichier": "packages/plugin-palettes/invariants/langue.md",
+      "chemins": [
+        "packages/plugin-palettes/src/i18n/**",
+        "packages/plugin-palettes/src/preferences.ts",
+        "packages/plugin-palettes/src/planche/textes.ts"
+      ],
+      "specs": [
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#131-fenêtre-et-onglets"
+      ],
+      "lies": [
+        "packages/plugin-palettes/README.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- palettes",
+        "node scripts/run-tests.cjs"
+      ]
+    },
+    {
+      "id": "palettes-interface",
+      "titre": "Interface d'UCM Palettes",
+      "fichier": "packages/plugin-palettes/invariants/interface.md",
+      "chemins": [
+        "packages/plugin-palettes/src/ui/**",
+        "packages/plugin-palettes/src/harmonisation.ts",
+        "packages/plugin-palettes/src/presentation.ts",
+        "packages/couleur/src/harmonisation.ts",
+        "packages/plugin-socle/src/**"
+      ],
+      "specs": [
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#132-écrans",
+        "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md#123-les-limites"
+      ],
+      "lies": [
+        "packages/plugin-palettes/README.md",
+        "packages/plugin-socle/README.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- palettes",
+        "npm run test:paquet -- socle",
+        "node scripts/run-tests.cjs"
+      ]
+    },
+    {
+      "id": "explorateur",
+      "titre": "Explorateur de tokens",
+      "fichier": "packages/plugin-explorateur/invariants/explorateur.md",
+      "chemins": [
+        "packages/plugin-explorateur/src/**"
+      ],
+      "specs": [
+        "packages/plugin-explorateur/SPEC.md#lecture-seule",
+        "packages/plugin-explorateur/SPEC.md#architecture-libre",
+        "packages/plugin-explorateur/SPEC.md#résolution",
+        "packages/plugin-explorateur/SPEC.md#lecture",
+        "packages/plugin-explorateur/SPEC.md#vue-composant",
+        "packages/plugin-explorateur/SPEC.md#intégrations-facultatives"
+      ],
+      "lies": [
+        "packages/plugin-explorateur/README.md",
+        "packages/plugin-explorateur/SPEC.md"
+      ],
+      "verifications": [
+        "npm run test:paquet -- explorateur"
+      ]
+    },
+    {
+      "id": "nomenclature",
+      "titre": "UCM Nomenclature",
+      "fichier": "packages/plugin-nomenclature/invariants/nomenclature.md",
+      "chemins": [
+        "packages/plugin-nomenclature/src/**",
+        "packages/kit/src/nommage/**",
+        "packages/kit/src/protocoles/**",
+        "packages/plugin-socle/src/inventaireDeNoms.ts"
+      ],
+      "specs": [],
+      "lies": [],
+      "verifications": [
+        "npm run test:paquet -- nomenclature",
+        "npm run test --workspace @ucm-kit/core",
+        "node scripts/run-tests.cjs"
+      ]
+    }
+  ],
+  "cartes": {
+    "packages/adapter-typescript": "packages/adapter-typescript/CARTE.md",
+    "packages/cli": "packages/cli/CARTE.md",
+    "packages/couleur": "packages/couleur/CARTE.md",
+    "packages/kit": "packages/kit/CARTE.md",
+    "packages/plugin-explorateur": "packages/plugin-explorateur/CARTE.md",
+    "packages/plugin-exporter": "packages/plugin-exporter/CARTE.md",
+    "packages/plugin-nomenclature": "packages/plugin-nomenclature/CARTE.md",
+    "packages/plugin-palettes": "packages/plugin-palettes/CARTE.md",
+    "packages/plugin-socle": "packages/plugin-socle/CARTE.md",
+    ".": "CARTE.md"
+  },
+  "registre": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "CARTE.md",
+    "CONCEPT.md",
+    "CONTRIBUTING.md",
+    "README.md",
+    "ROADMAP.md",
+    "LICENSE*",
+    "packages/*/README.md",
+    "packages/*/SPEC.md",
+    "packages/*/AGENTS.md",
+    "packages/*/CARTE.md",
+    "packages/*/CLAUDE.md",
+    "packages/*/CHANGELOG.md",
+    "packages/*/invariants/*.md",
+    "docs/README.md",
+    "docs/format/**",
+    "docs/guides/**",
+    "docs/references/**",
+    "docs/marque/**",
+    "docs/notes/Archives/**",
+    "docs/notes/Recherches/Archi Tokens Multi-marques/**",
+    "docs/notes/Recherches/Diff Sémantique/**",
+    "docs/notes/Recherches/Evolutions globales/**",
+    "docs/notes/Recherches/Guide des agents/**",
+    "docs/notes/Recherches/Kits UCM et partage des donnees/**",
+    "docs/notes/Recherches/Linter Dev/**",
+    "docs/notes/Recherches/Optimisation Tokens/**",
+    "docs/notes/Recherches/Plugin Architect/**",
+    "docs/notes/Recherches/Plugin Palettes/**",
+    "docs/notes/Recherches/Référentiel UCM/**",
+    "docs/notes/Recherches/README.md",
+    ".agents/skills/*/**",
+    ".claude/agents/*.md",
+    "packages/cli/aides/*.md",
+    "packages/cli/procedure.md",
+    "packages/plugin-exporter/scripts/README.md",
+    "packages/plugin-exporter/tests/dtcg-2025.10/README.md",
+    "packages/kit/fixtures/contrats/*/README.md",
+    "packages/kit/fixtures/tokens/origine/README.md"
+  ]
+}

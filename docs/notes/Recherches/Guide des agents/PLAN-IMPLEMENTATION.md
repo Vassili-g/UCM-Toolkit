@@ -110,10 +110,14 @@ source exact. L'ordre du manifeste suit l'ordre actuel des groupes.
 }
 ```
 
-Règle de résolution : pour un chemin, le dernier motif de `chemins` qui
-correspond, dans l'ordre du fichier, désigne le domicile. Chaque paquet ouvre
-sa liste par un motif `packages/<paquet>/src/**` vers son domaine par défaut ;
-les motifs fins viennent après.
+Règle de résolution : pour un chemin, parmi les motifs qui correspondent, le
+plus long en caractères désigne le domicile ; à longueur égale, le dernier
+dans l'ordre du fichier. Chaque paquet a un motif `packages/<paquet>/src/**`
+vers son domaine par défaut, et un motif de dossier ou de fichier l'emporte
+sur lui quel que soit l'ordre des domaines. La première version suivait la
+règle de `CODEOWNERS`, le dernier motif l'emporte : elle forçait à déplacer
+des domaines dans la liste, et deux fichiers ne pouvaient pas rejoindre le
+domaine qui les cite.
 
 Les motifs initiaux se déduisent des citations : un fichier va au domaine
 dont les invariants le citent le plus souvent, l'ordre du manifeste départage,
