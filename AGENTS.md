@@ -425,6 +425,7 @@ scripts/
 .github/workflows/       ci.yml, et publish.yml qui publie sans jeton
 
 tests/                   les tests du monorepo lui-même
+  cartes.test.ts         chaque chemin d'une carte existe ; la carte racine liste exactement `tests/`
   docLinks.test.ts       les liens et les ancres de la documentation
   domiciles.test.ts      chaque fichier de `packages/*/src/` a un seul domicile dans `.agents/domiciles.json`
   finsDeLigne.test.mjs   aucun fichier texte en CRLF dans l'index
