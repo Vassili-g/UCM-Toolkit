@@ -24,10 +24,11 @@ const navigateur = await chromium.launch();
 const page = await navigateur.newPage({ viewport: { width: 640, height: 720 } });
 // Hors de Figma, `parent` est la fenêtre elle-même : l'écran reçoit ses propres demandes `termes`, `fiche` et `lignes`
 // comme des réponses, sans leur liste, et plante. On arrête ces échos avant l'écran (voir R0 du dossier).
+// Une réponse `termes` porte `sections` ; la demande porte `section` (au singulier) et jamais `sections`.
 await page.addInitScript(() => {
   window.addEventListener('message', (evenement) => {
     const message = evenement.data?.pluginMessage;
-    const echo = message && ((message.type === 'termes' && !('termes' in message))
+    const echo = message && ((message.type === 'termes' && !('sections' in message))
       || (message.type === 'fiche' && !('fiche' in message))
       || (message.type === 'lignes' && !('lignes' in message)));
     if (echo) evenement.stopImmediatePropagation();

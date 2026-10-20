@@ -32,6 +32,14 @@ const termeOuvert = (mot, fiche) => [
 ];
 /** Le délai de la simulation d'une saisie : l'écran attend 250 ms avant de demander. */
 const delai = () => Array.from({ length: 60 }, () => ({ survol: 'body' }));
+/**
+ * Le choix d'une option du tri. Le pilote du banc n'a pas d'étape pour un menu déroulant : `saisie` pose la valeur, puis `fichier`
+ * envoie l'événement `change` que l'écran écoute (l'ajout de fichier est sans effet sur un menu).
+ */
+const choisirLeTri = (valeur) => [
+  { saisie: { dans: '.tri', valeur } },
+  { fichier: { dans: '.tri', nom: 'tri.json', contenu: '{}' } },
+];
 const repondreAuPremier = '.carte.question .question-actions:first-child .btn-primary';
 const appliquer = [clic('.pied .btn-primary', '.feuille'), clic('.feuille-groupe .btn-primary')];
 
@@ -78,6 +86,12 @@ module.exports.ETATS = [
   etat('a-trancher-collection-et-plus-tard', 'Questions, collection et Plus tard', 'La liste porte une collection, des mots collés, et des questions remises à plus tard.',
     'La carte de collection avec son choix, la carte des mots collés, la section Plus tard dépliée avec Reprendre.',
     [...ouvert(bilans.collectionsEtPlusTard), clic('#onglet-a-trancher', '.carte.question'), clic('.tete-bouton:has(.plus-tard-titre)')]),
+  etat('questions-vide', 'Questions, aucune question', 'Le designer ouvre l’onglet des questions : aucun terme du fichier n’en rappelle un autre, et des renommages restent.',
+    'La vue « Aucune question pour l’instant », sa ligne et le bouton Voir les renommages, au-dessus de la carte Autres pistes.',
+    [...ouvert(bilans.sansQuestion), clic('#onglet-a-trancher', '.etat')]),
+  etat('questions-vide-plus-tard', 'Questions, aucune question et Plus tard', 'Aucune question à poser, mais le designer en a gardé pour plus tard.',
+    'La vue vide dit « Vous avez gardé 2 questions pour plus tard » avec Voir les renommages ; dessous, la section Plus tard dépliée avec Reprendre, puis Autres pistes.',
+    [...ouvert(bilans.sansQuestionAvecPlusTard), clic('#onglet-a-trancher', '.etat'), clic('.tete-bouton:has(.plus-tard-titre)')]),
   etat('a-trancher-reponse', 'Questions, réponse donnée', 'Le designer garde un terme ; l’analyse relit le fichier.',
     'La carte répondue se réduit à une ligne avec Annuler ; le compte de Renommages a changé.',
     [...ouvert(bilans.travail), clic('#onglet-a-trancher', '.carte.question'), clic(repondreAuPremier),
@@ -93,18 +107,28 @@ module.exports.ETATS = [
     'Les sections Composants (Button, StressTest sous sa forme du fichier) et Palettes (Poppy), sans pastille de nature : l’icône et le titre de la section disent le type. Les lignes de background et de hover gardent leur origine.',
     reglesAvecNoms()),
   etat('regles-sections', 'Règles, toutes les sections', 'Le fichier a des lignes de chaque type : le Playground.',
-    'Six sections ouvertes, de À trancher à Palettes, dans cet ordre ; une icône grise par type et ambre pour À trancher ; cinq lignes au plus par section et « Afficher les 4 autres » sous Remplace ; le jeton gris d’une règle et « remplace » avec ses variantes ; les pastilles UCM et À trancher à droite.',
+    'Six sections ouvertes, de À trancher à Palettes, dans cet ordre, chacune sous sa bande (icône grise par type, ambre pour À trancher, titre, total, ligne, chevron) ; cinq lignes au plus par place et « Afficher les 4 autres variables » sous Remplace ; le jeton d’une règle et « remplace » avec ses variantes ; l’origine en texte gris et la pastille À trancher à droite.',
     reglesDuPlayground()),
-  etat('regles-section-suite', 'Règles, la suite d’une section', 'Le designer appuie sur « Afficher les 4 autres », sous Remplace.',
-    'La section Remplace passe de cinq à neuf lignes et perd son lien ; les autres sections ne bougent pas.',
-    [...reglesDuPlayground(), clic('[data-cle="plus:remplace"]'), msg(messages.termesPage(4), ligneDe('size'))]),
+  etat('regles-places', 'Règles, groupes et variables', 'Le designer lit une section qui a des termes aux deux places, en tri A → Z.',
+    'Dans Remplace, À trancher et Sans règle : l’intertitre Groupes (échantillon orchidée, total) puis ses lignes, l’intertitre Variables (échantillon olive, total) puis ses lignes ; Size et size, Color et color, LineHeight et line-height ; un lien « Afficher les n autres variables » par place qui en a de reste. Conforme, Composants et Palettes n’ont qu’une place et pas d’intertitre.',
+    reglesDuPlayground()),
+  etat('regles-tri-nombre', 'Règles, tri par nombre', 'Le designer choisit « Trier : nombre de variables ».',
+    'Chaque section ne montre plus que cinq lignes, du plus employé au moins employé, groupes et variables mêlés, sans intertitre de place ; un seul lien « Afficher les n autres » par section.',
+    [...reglesDuPlayground(), ...choisirLeTri('nombre'), msg(messages.termesParNombre(4), '.ligne-terme')]),
+  etat('regles-section-suite', 'Règles, la suite d’une section', 'Le designer appuie sur « Afficher les 4 autres variables », sous Remplace.',
+    'Les variables de Remplace passent de cinq à neuf et perdent leur lien ; ses groupes et les autres sections ne bougent pas.',
+    [...reglesDuPlayground(), clic('[data-cle="plus:remplace:variables"]'), msg(messages.termesPage(4), ligneDe('size'))]),
   etat('regles-section-repliee', 'Règles, une section repliée', 'Le designer replie la section Palettes.',
-    'La tête de Palettes garde son icône, son titre et son total, le chevron tourné vers la droite ; ses lignes ont disparu.',
+    'La bande de Palettes garde son icône, son titre, son total et sa ligne, le chevron tourné vers la droite ; ses lignes ont disparu.',
     [...reglesDuPlayground(), clic('[data-cle="entete:palette"]')]),
   etat('regles-menu-filtrer', 'Règles, menu Filtrer ouvert', 'Le designer ouvre Filtrer et coche Remplace et Sans règle.',
-    'Le bouton « Filtrer · 2 », le menu avec les six types (icône, libellé, compte) puis les deux origines, deux cases cochées ; les jetons Remplace et Sans règle avec leur × ; seules les deux sections correspondantes restent.',
+    'Le bouton « Filtrer · 2 », le menu avec les six types (icône, libellé, compte), les deux origines puis les deux places, deux cases cochées ; les jetons Remplace et Sans règle avec leur × ; seules les deux sections correspondantes restent.',
     [...reglesDuPlayground(), clic('.ancre-menu .btn'), clic('.menu-filtres label:nth-of-type(2) input'), clic('.menu-filtres label:nth-of-type(4) input'),
       msg(messages.termesFiltres(5), '.filtre-actif')]),
+  etat('regles-filtre-place', 'Règles, filtre de place', 'Le designer ouvre Filtrer et coche Groupes, dans le groupe Place.',
+    'Le menu reste ouvert sur son groupe Place (échantillons, Groupes 17, Variables 55) avec Groupes coché ; le jeton Groupes avec son × ; chaque section ne montre que ses groupes, sans intertitre.',
+    [...reglesDuPlayground(), clic('.ancre-menu .btn'), clic('.menu-filtres label:nth-of-type(9) input'),
+      msg(messages.termesDesGroupes(5), '.filtre-actif')]),
   etat('regles-recherche', 'Règles, variante cherchée', 'Le designer cherche bg dans Règles.',
     'La phrase « bg est remplacé par background » sous la recherche ; bg en blanc dans la ligne de background.',
     [...reglesOuvertes(), { saisie: { dans: '.recherche', valeur: 'bg' } }, ...delai(), msg(messages.termesTrouves(4), '.resultat-recherche:not([hidden])')]),

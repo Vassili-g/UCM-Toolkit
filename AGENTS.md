@@ -1697,6 +1697,11 @@ La spécification en lien porte le raisonnement.
   `packages/kit/tests/naturesReferentiel.test.ts`,
   `packages/kit/tests/termesReferentiel.test.ts` et
   `packages/kit/tests/lexiqueReferentiel.test.ts` le tiennent.
+- La liste du vocabulaire a une ligne par terme et par place : groupe (tout
+  segment avant le dernier) ou variable (le dernier). Chaque ligne s'écrit
+  dans la convention de sa place et ne compte que les noms de cette place ;
+  un composant ou une palette n'a qu'une ligne, aux groupes. La fiche reste
+  une par terme. `tests/projection.test.ts` le tient.
 - Le sandbox garde l'inventaire et le résultat et n'envoie à l'écran que le
   `Bilan` et les pages demandées. Chaque réponse porte le numéro de sa
   demande et la génération du calcul ; l'écran ignore une réponse périmée.

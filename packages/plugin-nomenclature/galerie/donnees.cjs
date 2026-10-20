@@ -94,6 +94,9 @@ const bilans = {
   rienAFaire: { ...bilanDeBase, groupes: [], bloques: [], questions: [], plusTard: [], autresPistes: 0 },
   sansVariableLocale: { ...bilanDeBase, sansVariableLocale: true, groupes: [], bloques: [], questions: [], plusTard: [], autresPistes: 0, collections: [], dernierRenommage: null },
   avecUnImport: { ...bilanDeBase, dernierImport: { heure: '14:35' } },
+  // Aucune question à poser, mais des renommages (le bilan de base garde ses groupes) : la vue vide propose de les voir.
+  sansQuestion: { ...bilanDeBase, questions: [], plusTard: [] },
+  sansQuestionAvecPlusTard: { ...bilanDeBase, questions: [], plusTard: [collection, paireDeTailles] },
   apresUneReponse: {
     ...bilanDeBase, generation: 2,
     groupes: [{ ...groupeBackground, variables: 52, nouveau: false }, groupeHover, groupeEcriture, groupeCollection],
@@ -105,11 +108,12 @@ const bilans = {
   },
 };
 
-// Les lignes de la liste de l'onglet Règles, une fabrique par statut. `forme` est le terme écrit selon la convention du projet.
-const termeRegle = (type, mot, forme, origine, remplace, nombre) => ({ mot, forme, type, nature: null, origine, statut: 'regle', remplace, avec: null, nombre, trouve: null });
-const termeATrancher = (mot, avec, nombre) => ({ mot, forme: mot, type: 'a-trancher', nature: null, origine: null, statut: 'a-trancher', remplace: [], avec, nombre, trouve: null });
-const termeSansRegle = (mot, forme, nombre, statut = 'sans-regle', origine = null) => ({ mot, forme, type: 'sans-regle', nature: null, origine, statut, remplace: [], avec: null, nombre, trouve: null });
-const nomDeLaListe = (type, mot, forme, nombre) => ({ mot, forme, type, nature: type, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre, trouve: null });
+// Les lignes de la liste de l'onglet Règles, une fabrique par statut. `forme` est le terme écrit selon la convention de sa place ;
+// `place` vaut `variables`, sauf pour un nom de composant ou de palette, qui n'a de ligne qu'aux groupes.
+const termeRegle = (type, mot, forme, origine, remplace, nombre, place = 'variables') => ({ mot, place, forme, type, nature: null, origine, statut: 'regle', remplace, avec: null, nombre, trouve: null });
+const termeATrancher = (mot, avec, nombre, place = 'variables', forme = mot) => ({ mot, place, forme, type: 'a-trancher', nature: null, origine: null, statut: 'a-trancher', remplace: [], avec, nombre, trouve: null });
+const termeSansRegle = (mot, forme, nombre, statut = 'sans-regle', origine = null, place = 'variables') => ({ mot, place, forme, type: 'sans-regle', nature: null, origine, statut, remplace: [], avec: null, nombre, trouve: null });
+const nomDeLaListe = (type, mot, forme, nombre) => ({ mot, place: 'groupes', forme, type, nature: type, origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre, trouve: null });
 
 const background = termeRegle('remplace', 'background', 'background', 'ucm', ['bg', 'back'], 40);
 const hover = termeRegle('remplace', 'hover', 'hover', 'personnalise', ['hovered'], 8);
@@ -121,19 +125,29 @@ const button = nomDeLaListe('composant', 'button', 'Button', 245);
 const stressTest = nomDeLaListe('composant', 'stress-test', 'StressTest', 66);
 const poppy = nomDeLaListe('palette', 'poppy', 'Poppy', 44);
 
-const section = (type, total, termes) => ({ type, total, termes });
+const PLACES = ['groupes', 'variables'];
+/** Une section : `totaux` compte les lignes de chaque place ; sans lui, toutes les lignes sont à la place de la première. */
+const section = (type, total, termes, totaux) => ({
+  type, total,
+  totaux: totaux ?? Object.fromEntries(PLACES.map((place) => [place, termes[0]?.place === place ? total : 0])),
+  termes,
+});
 const comptesVides = { 'a-trancher': 0, remplace: 0, conforme: 0, 'sans-regle': 0, composant: 0, palette: 0 };
 
-// Le fichier de base : des termes à trancher, deux règles, deux mots sans règle.
+// Le fichier de base : des termes à trancher, deux règles, deux mots sans règle, tous à la place des variables.
 const sectionsDeBase = [section('a-trancher', 2, [bg, sm]), section('remplace', 2, [background, hover]), section('sans-regle', 2, [radius, surface])];
-const comptesDeBase = { types: { ...comptesVides, 'a-trancher': 2, remplace: 2, 'sans-regle': 2 }, origines: { ucm: 1, personnalise: 1 } };
+const comptesDeBase = { types: { ...comptesVides, 'a-trancher': 2, remplace: 2, 'sans-regle': 2 }, origines: { ucm: 1, personnalise: 1 }, places: { groupes: 0, variables: 6 } };
 
-// Un fichier qui a des noms : un composant, un autre nom de composant et une palette.
+// Un fichier qui a des noms : un composant, un autre nom de composant et une palette, qui n'ont de ligne qu'aux groupes.
 const sectionsAvecNoms = [section('remplace', 2, [background, hover]), section('sans-regle', 1, [surface]), section('composant', 2, [button, stressTest]), section('palette', 1, [poppy])];
-const comptesAvecNoms = { types: { ...comptesVides, remplace: 2, 'sans-regle': 1, composant: 2, palette: 1 }, origines: { ucm: 1, personnalise: 1 } };
+const comptesAvecNoms = { types: { ...comptesVides, remplace: 2, 'sans-regle': 1, composant: 2, palette: 1 }, origines: { ucm: 1, personnalise: 1 }, places: { groupes: 3, variables: 3 } };
 
-// Le Playground : chaque type a plus de lignes que la section n'en montre, sauf les composants, qui tiennent en quatre.
-const remplaceDuPlayground = [
+// Le Playground : des termes aux deux places (`Size` en groupe et `size` en variable, `Color` et `color`, `LineHeight` et `line-height`).
+// En tri A → Z, une section porte jusqu'à cinq lignes de chaque place, les groupes d'abord ; les composants tiennent en quatre.
+const smDuPlayground = termeATrancher('sm', null, 13);
+const smEnGroupe = termeATrancher('sm', null, 7, 'groupes', 'Small');
+const remplaceEnGroupe = [termeRegle('remplace', 'icon', 'Icon', 'ucm', ['Icons'], 33, 'groupes'), termeRegle('remplace', 'size', 'Size', 'ucm', ['Sizes'], 45, 'groupes')];
+const remplaceEnVariable = [
   background, termeRegle('remplace', 'dimension', 'dimension', 'ucm', ['dimensions'], 30), termeRegle('remplace', 'disabled', 'disabled', 'ucm', ['disable'], 49), hover,
   termeRegle('remplace', 'icon', 'icon', 'ucm', ['icons'], 6),
 ];
@@ -142,30 +156,51 @@ const remplaceSuivant = [
   termeRegle('remplace', 'radius', 'radius', 'ucm', ['border-radius'], 26), termeRegle('remplace', 'size', 'size', 'ucm', ['sizes'], 81),
 ];
 const conformes = [['50', 59], ['100', 59], ['200', 59], ['300', 59], ['400', 60]].map(([mot, nombre]) => termeRegle('conforme', mot, mot, 'ucm', [], nombre));
+const sansRegleEnGroupe = [termeSansRegle('color', 'Color', 18, 'sans-regle', null, 'groupes'), termeSansRegle('line-height', 'LineHeight', 7, 'sans-regle', null, 'groupes')];
+const sansRegleEnVariable = [termeSansRegle('color', 'color', 30), termeSansRegle('gap', 'gap', 12), termeSansRegle('line-height', 'line-height', 15), termeSansRegle('padding', 'padding', 15), radius];
+const composants = [nomDeLaListe('composant', 'alert', 'Alert', 16), button, stressTest, nomDeLaListe('composant', 'tile-link', 'TileLink', 11)];
+const palettes = ['Deep', 'Grass', 'Orange', 'Poppy', 'Sky'].map((forme, rang) => nomDeLaListe('palette', forme.toLowerCase(), forme, rang === 0 ? 22 : 44));
 const sectionsDuPlayground = [
-  section('a-trancher', 2, [bg, sm]),
-  section('remplace', 9, remplaceDuPlayground),
+  section('a-trancher', 3, [smEnGroupe, bg, smDuPlayground], { groupes: 1, variables: 2 }),
+  section('remplace', 11, [...remplaceEnGroupe, ...remplaceEnVariable], { groupes: 2, variables: 9 }),
   section('conforme', 37, conformes),
-  section('sans-regle', 22, [termeSansRegle('gap', 'gap', 12), termeSansRegle('padding', 'padding', 15), radius, termeSansRegle('scale-wrap', 'ScaleWrap', 22), surface]),
-  section('composant', 4, [nomDeLaListe('composant', 'alert', 'Alert', 16), button, stressTest, nomDeLaListe('composant', 'tile-link', 'TileLink', 11)]),
-  section('palette', 8, ['Deep', 'Grass', 'Orange', 'Poppy', 'Sky'].map((forme, rang) => nomDeLaListe('palette', forme.toLowerCase(), forme, rang === 0 ? 22 : 44))),
+  section('sans-regle', 9, [...sansRegleEnGroupe, ...sansRegleEnVariable], { groupes: 2, variables: 7 }),
+  section('composant', 4, composants),
+  section('palette', 8, palettes),
 ];
 const comptesDuPlayground = {
-  types: { 'a-trancher': 2, remplace: 9, conforme: 37, 'sans-regle': 22, composant: 4, palette: 8 },
-  origines: { ucm: 45, personnalise: 1 },
+  types: { 'a-trancher': 3, remplace: 11, conforme: 37, 'sans-regle': 9, composant: 4, palette: 8 },
+  origines: { ucm: 47, personnalise: 1 },
+  places: { groupes: 17, variables: 55 },
 };
+// Le même fichier en tri par nombre : cinq lignes au plus par section, les places mêlées, du plus employé au moins employé.
+const sectionsParNombre = [
+  section('a-trancher', 3, [smDuPlayground, bg, smEnGroupe], { groupes: 1, variables: 2 }),
+  section('remplace', 11, [remplaceSuivant[3], remplaceEnVariable[2], remplaceEnGroupe[1], background, remplaceSuivant[1]], { groupes: 2, variables: 9 }),
+  section('conforme', 37, [...conformes].sort((a, b) => b.nombre - a.nombre)),
+  section('sans-regle', 9, [sansRegleEnVariable[0], termeSansRegle('scale-wrap', 'scale-wrap', 22), sansRegleEnGroupe[0], sansRegleEnVariable[2], sansRegleEnVariable[3]], { groupes: 2, variables: 7 }),
+  section('composant', 4, [button, stressTest, composants[0], composants[3]]),
+  section('palette', 8, [...palettes.slice(1), palettes[0]]),
+];
+/** Les sections du Playground réduites à une place : le total de chaque section suit, et une section sans ligne disparaît. */
+const dansLaPlace = (sections, place) => sections
+  .map((autre) => ({
+    ...autre, total: autre.totaux[place], totaux: Object.fromEntries(PLACES.map((p) => [p, p === place ? autre.totaux[place] : 0])),
+    termes: autre.termes.filter((terme) => terme.place === place),
+  }))
+  .filter((autre) => autre.total > 0);
 
 const fiches = {
   ucm: {
     mot: 'background', forme: 'background', nature: null, origine: 'ucm', categorieUcm: 'roles', definition: 'La couleur de fond d’un élément.',
-    remplace: [{ mot: 'bg', nombre: 12, ucm: true }, { mot: 'back', nombre: 3, ucm: true }],
+    remplace: [{ mot: 'bg', forme: 'bg', nombre: 12, ucm: true }, { mot: 'back', forme: 'back', nombre: 3, ucm: true }],
     emploi: { nombre: 40, exemples: [boutonFondEmploye, employe('v14', 'Card/background/default', [1]), employe('v15', 'Page/background/default', [1])] },
     aRenommer: { nombre: 12, exemples: [boutonFond, carteFond, pageFond] },
     ecart: false, voulu: false, ordinaire: false, distincts: [], question: null,
   },
   personnalise: {
     mot: 'hover', forme: 'hover', nature: null, origine: 'personnalise', categorieUcm: null, definition: null,
-    remplace: [{ mot: 'hovered', nombre: 8, ucm: false }],
+    remplace: [{ mot: 'hovered', forme: 'hovered', nombre: 8, ucm: false }],
     emploi: { nombre: 8, exemples: [employe('v16', 'Link/hover/text', [1]), employe('v17', 'Button/hover/border', [1])] },
     aRenommer: { nombre: 8, exemples: [survol, survolBouton] },
     ecart: false, voulu: false, ordinaire: false, distincts: [], question: null,
@@ -208,8 +243,12 @@ const messages = {
   termesDuPlayground: (demande) => reponseDeTermes(demande, sectionsDuPlayground, comptesDuPlayground),
   /** Le menu Filtrer avec Remplace et Sans règle cochés : seules ces deux sections reviennent, les comptes restent ceux du fichier. */
   termesFiltres: (demande) => reponseDeTermes(demande, [sectionsDuPlayground[1], sectionsDuPlayground[3]], comptesDuPlayground),
-  /** « Afficher les 4 autres » de la section Remplace : les quatre lignes qui suivent les cinq premières. */
-  termesPage: (demande) => reponseDeTermes(demande, [section('remplace', 9, remplaceSuivant)], comptesDuPlayground, { section: 'remplace', debut: 5 }),
+  /** Le tri par nombre : cinq lignes au plus par section, les groupes et les variables mêlés. */
+  termesParNombre: (demande) => reponseDeTermes(demande, sectionsParNombre, comptesDuPlayground),
+  /** Le menu Filtrer avec Groupes coché : chaque section ne garde que ses groupes, les comptes restent ceux du fichier. */
+  termesDesGroupes: (demande) => reponseDeTermes(demande, dansLaPlace(sectionsDuPlayground, 'groupes'), comptesDuPlayground),
+  /** « Afficher les 4 autres variables » de la section Remplace : les quatre variables qui suivent les cinq premières. */
+  termesPage: (demande) => reponseDeTermes(demande, [section('remplace', 11, remplaceSuivant, { groupes: 2, variables: 9 })], comptesDuPlayground, { section: 'remplace', debut: 5 }),
   /** La recherche d'une variante : la ligne de sa référence porte la variante trouvée. */
   termesTrouves: (demande) => reponseDeTermes(demande, [section('remplace', 1, [{ ...background, trouve: 'bg' }])], comptesDeBase),
   fiche: (demande, fiche) => m('fiche', demande, { generation: 1, fiche }),
