@@ -1655,10 +1655,6 @@
   outline-offset: 2px;
 }
 
-.section[data-ouverte='true'] .carte-chevron {
-  transform: rotate(90deg);
-}
-
 .section-compte {
   padding: 1px 6px;
   border-radius: var(--rayon);
@@ -2012,10 +2008,6 @@
   outline-offset: 2px;
 }
 
-/*
- * Le chevron des sections tourne sous `.section[data-ouverte]`, qui couvre
- * aussi les lignes de la liste : celle-ci a donc sa propre classe.
- */
 .palette-chevron::before {
   content: '';
   display: block;
@@ -2025,10 +2017,6 @@
   color: var(--texte-second);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 12px no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 12px no-repeat;
-}
-
-.palette-bascule[aria-expanded='true'] .palette-chevron::before {
-  transform: rotate(180deg);
 }
 
 .palette-bascule .fiche-teinte {
@@ -2763,9 +2751,27 @@
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 12px no-repeat;
 }
 
-/* Le chevron du socle en masque, tourné de 180° à l'ouverture. */
-.carte-bascule[aria-expanded='true'] .carte-chevron::before {
-  transform: rotate(180deg);
+/*
+ * Le glyphe pointe vers le bas : replié, il est tourné vers la droite ; ouvert,
+ * il revient vers le bas. Le sélecteur vise le chevron enfant direct de sa
+ * bascule, pour qu'une section ouverte ne tourne pas ceux des cartes qu'elle contient.
+ */
+.carte-chevron::before,
+.palette-chevron::before {
+  transform: rotate(-90deg);
+  transition: transform 150ms ease-out;
+}
+
+[aria-expanded='true'] > .carte-chevron::before,
+[aria-expanded='true'] > .palette-chevron::before {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carte-chevron::before,
+  .palette-chevron::before {
+    transition: none;
+  }
 }
 
 /* Dépliée, l'en-tête ajoute 4 px sous lui : le contenu ne colle pas au titre. */
@@ -2863,10 +2869,6 @@
 .reglages-avances-bascule:focus-visible {
   outline: 2px solid var(--bordure-marque);
   outline-offset: 2px;
-}
-
-.reglages-avances-bascule[aria-expanded='true'] .carte-chevron::before {
-  transform: rotate(90deg);
 }
 
 .reglages-avances-titre {
