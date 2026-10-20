@@ -20,6 +20,8 @@ export interface EntreeDuPlan {
   readonly cle: string;
   /** Le nom de la variable, segments séparés par `/`. */
   readonly nom: string;
+  /** Dans une reprise, le nom voulu avant les règles de nommage, quand elles le changent. */
+  readonly brut?: string;
   readonly mode: ModeDuPlan;
   /** La couleur que le plugin calcule, en hexa majuscule. */
   readonly hexa: string;
@@ -103,7 +105,9 @@ function suffixeDeNuance(nom: string | undefined, nuance: number): string {
  * du fichier, voir `nommeur.ts`), il porte les noms finaux, et la reprise
  * compare ces noms-là à ceux du fichier : l'occupant d'un nom et la variable à
  * renommer se cherchent sur le nom final, que le fichier porte déjà quand
- * UCM Nomenclature l'a appliqué. Le plan reste pur : `nommer` est injecté.
+ * UCM Nomenclature l'a appliqué. Une entrée garde dans `brut` le nom d'avant
+ * les règles : une variable qui le porte n'est pas à renommer, comme celles
+ * d'une palette que le plugin a créée. Le plan reste pur : `nommer` est injecté.
  */
 export function planDesVariables(recette: Recette, palette: Palette, destination: Destination, suivie?: PaletteSuivie, origine?: OrigineDeLaReprise | null, nomsOccupes: string[] = [], nommer?: Nommer): EntreeDuPlan[] {
   if (suivie?.liaison === 'reprise') {
@@ -158,7 +162,7 @@ export function planDesVariables(recette: Recette, palette: Palette, destination
     }
     // Les noms se choisissent ensemble : les règles de nommage lisent tout le fichier, et l'occupant d'un nom se cherche sur le nom final.
     const finals = nommer ? nommer(candidats.map(({ entree, lue, voulu }) => ({ cle: entree.cle, nom: voulu, id: lue?.id }))) : candidats.map(({ voulu }) => voulu);
-    candidats.forEach(({ entree, lue }, rang) => {
+    candidats.forEach(({ entree, lue, voulu: brut }, rang) => {
       const voulu = finals[rang];
       const occupant = origine.parNom.get(voulu);
       const cible = suivie.modes[entree.mode];
@@ -170,7 +174,7 @@ export function planDesVariables(recette: Recette, palette: Palette, destination
         return;
       }
       // Une variable garde son nom quand une autre porte déjà celui que le plan lui donne.
-      reprises.push({ ...entree, nom: occupant && occupant.id !== lue.id ? lue.nom : voulu });
+      reprises.push({ ...entree, nom: occupant && occupant.id !== lue.id ? lue.nom : voulu, ...(brut !== voulu ? { brut } : {}) });
     });
     return reprises;
   }

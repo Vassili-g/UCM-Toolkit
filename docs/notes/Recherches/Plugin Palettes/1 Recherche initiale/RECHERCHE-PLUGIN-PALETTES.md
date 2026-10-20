@@ -3375,7 +3375,11 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   variable. Ce suffixe seul ne demande pas de mise à jour ; un tiret final
   seul reste un renommage. Toute autre différence de nom est renommée : la
   variable garde son identifiant, donc ses liaisons, et la palette est « À
-  mettre à jour » tant qu'un renommage reste à faire. Elle garde son nom quand
+  mettre à jour » tant qu'un renommage reste à faire. Une différence que
+  seules les règles de nommage du fichier créent n'est pas un renommage à
+  faire : la variable porte le nom que la forme demande, UCM Nomenclature
+  propose le renommage, et la prochaine écriture de la palette donne le nom
+  final, comme pour une palette que le plugin a créée. Elle garde son nom quand
   une autre variable porte déjà celui du plan. Une variable
   d'origine disparue se recrée, et toute variable créée naît sans portée. Le
   suivi garde le chemin d'origine dès la première écriture, parce que les

@@ -245,12 +245,12 @@ async function reprendre(figma: FauxFigma): Promise<{ recette: Recette; palette:
   return { recette, palette };
 }
 
-test('[VAR-13] liaison reprise : l’écriture renomme les variables d’origine sous leurs noms finaux, et la suivante ne renomme plus rien', async () => {
+test('[VAR-13] liaison reprise : un nom que seules les règles changent n’est pas à renommer, et l’écriture lui donne son nom final', async () => {
   const { figma } = fichierAvecUneRampe('colors/Azur');
   poserLesRegles(figma);
   const { recette, palette } = await reprendre(figma);
   const avant = await tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
-  assert.deepEqual(avant.aRenommer.slice(0, 1), [{ de: 'colors/Azur/50', vers: 'Color/Azur/50' }]);
+  assert.deepEqual(avant.aRenommer, [], 'UCM Nomenclature propose ce renommage');
   await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
   assert.deepEqual(noms(figma), TAILWIND.map((nuance) => `Color/Azur/${nuance}`));
   const apres = tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
@@ -271,6 +271,17 @@ test('[VAR-13] liaison reprise : un fichier dont UCM Nomenclature a déjà écri
   await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
   assert.deepEqual(figma.journal.filter((ligne) => ligne.startsWith('créer variable')), []);
   assert.deepEqual(noms(figma), TAILWIND.map((nuance) => `Color/Azur/${nuance}`));
+});
+
+test('[VAR-13] liaison reprise : un renommage de forme reste à faire sous les règles, vers le nom final', async () => {
+  // Les thèmes dans le chemin : la forme demande un segment `light` que les variables d'origine n'ont pas.
+  const { figma } = fichierAvecUneRampe('colors/Azur');
+  poserLesRegles(figma);
+  const { recette, palette } = await reprendre(figma);
+  const lu = await lireLesVariablesDuFichier(api(figma));
+  figma.root.setSharedPluginData('ucm_palettes', 'variables', texteDuSuivi({ ...lu.suivi, destination: { ...lu.suivi.destination, themes: 'chemin' } }));
+  const avant = tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
+  assert.deepEqual([avant.etat, avant.aRenommer.length, avant.aRenommer[0]], ['a-mettre-a-jour', 11, { de: 'colors/Azur/50', vers: 'Color/Azur/Light/50' }]);
 });
 
 test('[VAR-13] liaison reprise : un fichier sans règles garde ses noms', async () => {

@@ -39,7 +39,10 @@ export interface EtatDesTokensDUnePalette {
   readonly aEcrire: readonly CouleurAEcrire[];
   /** Vrai quand la palette a été écrite vers une autre collection, un autre groupe ou une autre forme de thèmes. */
   readonly destinationChangee: boolean;
-  /** Les variables d'une palette reprise dont le nom n'est pas celui du plan : l'ancien nom et le nouveau ([VAR-13]). */
+  /**
+   * Les variables d'une palette reprise dont le nom n'est pas celui du plan : l'ancien nom et le nouveau ([VAR-13]).
+   * Une variable qui porte le nom d'avant les règles de nommage n'y est pas : UCM Nomenclature propose ce renommage.
+   */
   readonly aRenommer: readonly { readonly de: string; readonly vers: string }[];
 }
 
@@ -120,7 +123,7 @@ export function etatDesTokens(
       }
       continue;
     }
-    if (suivi.liaison === 'reprise' && entree.nom !== '' && lue.nom !== entree.nom) aRenommer.set(lue.id, { de: lue.nom, vers: entree.nom });
+    if (suivi.liaison === 'reprise' && entree.nom !== '' && lue.nom !== entree.nom && lue.nom !== entree.brut) aRenommer.set(lue.id, { de: lue.nom, vers: entree.nom });
     const theme = entree.cle.split('/')[1];
     // Le conflit porte sur le mode de la dernière écriture, même si la destination change de forme.
     const mode = suivi.liaison === 'destination'
