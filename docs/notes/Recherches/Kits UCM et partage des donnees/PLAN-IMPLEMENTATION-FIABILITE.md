@@ -12,7 +12,7 @@ Cocher une case quand la tâche est faite, avec le hash du commit qui la porte.
 
 | Agent | Modèle | Reçoit | Ne reçoit jamais |
 |---|---|---|---|
-| Conversation principale | Opus | Conception d'une interface de code, texte destiné au designer, relecture des diffs, commits, publication des paquets, cases cochées | |
+| Conversation principale | Opus | Conception d'une interface de code, texte destiné au designer, relecture des diffs, commits, numéros de version, publication finale, cases cochées | |
 | `implementeur` | Sonnet | Une tâche dont les fichiers, la forme du code et les tests sont fixés ici ou par une tâche de conception | Une décision de conception, un texte d'écran à inventer |
 | `implementeur-exigeant` | Sonnet | Une tâche qui touche plusieurs lecteurs d'une même règle, ou une sortie qui doit rester identique octet pour octet | Idem |
 | `executant` | Haiku | Un changement mécanique à résultat unique : renommage listé, numéro de version, renvoi de documentation | Toute tâche qui demande de lire du code pour décider |
@@ -68,17 +68,26 @@ Chaque lot finit par ces quatre étapes, cochées sur sa ligne « Clôture ».
    modifié. Rendre un tableau commande, résultat, erreurs exactes.
 3. **Commit** (conversation principale) : par chemins explicites, message au
    format du dépôt, puis `git push`.
-4. **Publication** (conversation principale), quand le lot change
-   `packages/kit/src` : faire faire la montée de version par un `executant`
-   (tâche P du lot), puis publier dans l'ordre core, cli, adapter
-   (`AGENTS.md`, « Publier les paquets »), et constater chaque version par
-   `npm view`. Plusieurs lots qui se suivent peuvent partager une version.
+4. **Numéro de version** (conversation principale), quand le lot change le
+   contenu publiable d'un paquet (`packages/kit/src`, son README, la CLI,
+   l'adaptateur) : monter le numéro du paquet, et les pins de la CLI et de
+   l'adaptateur sur le kit, dans le commit du lot (modèle : `cc9c78fe`), sans
+   publier. `tests/versionSuitLeContenu.test.mjs` exige un numéro monté, pas
+   un numéro publié : la CI de `main` reste verte. Les numéros intermédiaires
+   ne seront jamais publiés.
+
+**Publication, une seule fois, à la fin du plan** (demande du mainteneur) :
+publier les dernières versions dans l'ordre core, cli, adapter (`AGENTS.md`,
+« Publier les paquets »), et constater chaque version par `npm view`. Le kit
+0.9.11 a été publié au lot 8, avant cette demande ; la CLI 0.1.70 et
+l'adaptateur 0.1.63 ne l'ont pas été, et les README les montrent jusqu'à la
+publication finale.
 
 Puis cocher le lot dans l'avancement du plan de fiabilité, avec son hash.
 
 ## Avancement
 
-- [ ] Lot 8. La fabrication et la vérification
+- [x] Lot 8. La fabrication et la vérification (b805f6a5)
 - [ ] Lot 17. Les nouveaux noms des couches UCM
 - [ ] Lot 1. L'explorateur reconnaît le thème quelle que soit son écriture
 - [ ] Lot 2. Une comparaison qui n'a pas pu se faire le dit
@@ -96,16 +105,18 @@ Puis cocher le lot dans l'avancement du plan de fiabilité, avec son hash.
 - [ ] Lot 13. La grammaire du kit de règles Figma dans le référentiel
 - [ ] Lot 7. Des lois entre produits
 
-Parallélisme : deux agents au plus à la fois (`CLAUDE.md`). Les lots 15 et 16
-sont indépendants de tout et peuvent tourner à côté d'un autre lot. Dans un
-même lot, deux tâches ne tournent en même temps que si leurs listes de
-fichiers sont disjointes.
+Parallélisme : le mainteneur a demandé plusieurs agents en parallèle pour ce
+plan, au-delà des deux de `CLAUDE.md`. Deux tâches ne tournent en même temps
+que si leurs listes de fichiers sont disjointes ; les tests qu'elles lancent
+peuvent alors voir le travail en cours de l'autre, et seule la vérification de
+clôture, lancée sur un arbre stable, fait foi. Les lots 15 et 16 sont
+indépendants de tout. Après T17.1, les tâches T17.2 à T17.5 tournent ensemble.
 
 ## Lot 8. La fabrication et la vérification
 
 Plan de fiabilité, section « Lot 8 ».
 
-- [ ] **T8.1** · `implementeur` · Construire un plugin après le kit
+- [x] **T8.1** (b805f6a5) · `implementeur` · Construire un plugin après le kit
   - Fichiers : `package.json` (racine), un script nouveau dans `scripts/`
     (`construire-plugin.mjs`), `AGENTS.md` (section des commandes),
     `CONTRIBUTING.md`.
@@ -123,7 +134,7 @@ Plan de fiabilité, section « Lot 8 ».
     message ; vérifier à la main qu'un `npm run build:plugin -- palettes`
     reconstruit le kit puis Palettes.
   - Fini quand : les trois commandes marchent et sont documentées.
-- [ ] **T8.2** · `implementeur` · Refuser un kit compilé périmé
+- [x] **T8.2** (b805f6a5) · `implementeur` · Refuser un kit compilé périmé
   - Fichiers : `scripts/construire-plugin.mjs`, un module
     `scripts/empreinte-du-kit.mjs`, un test racine nouveau
     `tests/kitCompileAJour.test.mjs`, le script `build` de
@@ -144,14 +155,14 @@ Plan de fiabilité, section « Lot 8 ».
   - Tests : dans un répertoire temporaire, copier une source, la modifier, et
     vérifier le refus ; une empreinte égale laisse passer.
   - Fini quand : un build de plugin sur un kit périmé échoue avec le message.
-- [ ] **T8.3** · `executant` · La vérification standard inclut les tests racine
+- [x] **T8.3** (b805f6a5) · `executant` · La vérification standard inclut les tests racine
   - Fichiers : `.claude/agents/verificateur.md`.
   - Faire : ajouter à la liste des vérifications standard : « depuis la
     racine, `npm test` lance aussi les tests de `tests/` ; après une
     modification de `packages/kit/src`, ne jamais s'en tenir aux tests des
     paquets ».
   - Fini quand : la phrase est dans le fichier.
-- [ ] **T8.4** · `implementeur` · Contrôle d'unicité étendu
+- [x] **T8.4** (b805f6a5) · `implementeur` · Contrôle d'unicité étendu
   - Fichiers : `tests/referentielUnique.test.ts`,
     `packages/plugin-explorateur/src/contraste.ts`,
     `packages/kit/src/referentiel/contraste.ts`,
@@ -167,7 +178,7 @@ Plan de fiabilité, section « Lot 8 ».
   - Tests : le test d'unicité échoue sur une union recopiée ajoutée à titre
     d'essai, puis l'essai est retiré.
   - Fini quand : tests verts, aucune liste de seuils écrite hors du kit.
-- [ ] **T8.5** · `implementeur` · Documents en retard sur le code (C12)
+- [x] **T8.5** (b805f6a5) · `implementeur` · Documents en retard sur le code (C12)
   - Fichiers : `packages/kit/README.md`, `packages/plugin-socle/README.md`,
     `packages/plugin-explorateur/SPEC.md`,
     `packages/kit/src/referentiel/produits.ts`,
@@ -180,9 +191,11 @@ Plan de fiabilité, section « Lot 8 ».
     commentaire de tête de `recommandations.ts` dit qu'aucun produit ne le
     consomme encore. Le test refuse une clé de `exports` absente du README.
   - Fini quand : le test passe.
-- [ ] **Clôture du lot 8** (relecture, vérification, commit ; pas de
-  publication : le kit ne change que par un commentaire et `contraste.ts`, à
-  publier avec le lot 17)
+- [x] **Clôture du lot 8** (relecture, vérification, commit b805f6a5). Kit
+  0.9.11, CLI 0.1.70, adaptateur 0.1.63 : sans montée de version,
+  `versionSuitLeContenu` laissait la CI de `main` rouge pendant tout le
+  lot 17. Seul le kit 0.9.11 est publié ; la CLI et l'adaptateur attendent la
+  publication finale. Le lot 17 garde la version mineure `0.10.0`.
 
 ## Lot 17. Les nouveaux noms des couches UCM
 
@@ -314,7 +327,7 @@ Plan de fiabilité, section « Lot 17 », décision D8.
     READMEs des trois paquets, `docs/references/design-systems/ucm/sources.json`),
     puis `npm install --package-lock-only --ignore-scripts`. Modèle : le
     commit `cc9c78fe`.
-- [ ] **Clôture du lot 17** (avec publication)
+- [ ] **Clôture du lot 17** (numéro du kit monté)
 
 ## Lot 1. L'explorateur reconnaît le thème quelle que soit son écriture
 
@@ -362,8 +375,7 @@ Plan de fiabilité, section « Lot 1 », décision D6.
     limite affichée vient au lot 2).
   - Fini quand : tests verts ; l'explorateur n'écrit rien dans le document
     (`tests/` de l'explorateur sur la lecture seule verts).
-- [ ] **Clôture du lot 1** (publication groupée avec les lots 3 et 6, ou seule
-  si le lot 2 doit attendre)
+- [ ] **Clôture du lot 1** (numéro du kit monté)
 
 ## Lot 2. Une comparaison qui n'a pas pu se faire le dit
 
@@ -419,7 +431,7 @@ Plan de fiabilité, section « Lot 2 ». Sondes de Codex :
     modèle.
   - Fini quand : tests verts ; la conversation principale relit les états de
     galerie.
-- [ ] **Clôture du lot 2** (avec publication)
+- [ ] **Clôture du lot 2** (numéro du kit monté)
 
 ## Lot 3. Une couleur de composant vise le thème
 
@@ -438,7 +450,7 @@ Plan de fiabilité, section « Lot 3 ».
     couleur de composant vers `theme` acceptée, vers `layout`, `typography` ou
     `primitives` signalée.
   - Fini quand : la sonde `C01` de Codex est un test qui passe.
-- [ ] **Clôture du lot 3** (publication groupée avec les lots 1 et 6)
+- [ ] **Clôture du lot 3** (numéro du kit monté)
 
 ## Lot 5. Palettes annonce ce qu'il écrit, sur un lot entier
 
@@ -582,7 +594,7 @@ Plan de fiabilité, section « Lot 6 », décisions D1 et D7. Sonde de Codex :
   - Faire : `npm run planche --workspace ucm-couleur`, puis
     `npx tsx "docs/notes/Recherches/Archi Tokens Multi-marques/generer-donnees-referentiel.ts"` ;
     rendre la liste des fichiers changés.
-- [ ] **Clôture du lot 6** (publication groupée avec les lots 1 et 3)
+- [ ] **Clôture du lot 6** (numéro du kit monté)
 
 ## Lot 14. La destination de Palettes en full UCM
 
@@ -605,7 +617,7 @@ Plan de fiabilité, section « Lot 14 », décision D5. Sonde de Codex :
   - Tests : une collection par couche ; une collection libre ; le refus avant
     mutation.
   - Fini quand : tests verts.
-- [ ] **Clôture du lot 14** (publication si le kit a changé, groupée possible)
+- [ ] **Clôture du lot 14** (numéro du kit monté s'il a changé)
 
 ## Lot 15. La CLI distingue une erreur de Git d'un changement
 
@@ -622,8 +634,7 @@ Plan de fiabilité, section « Lot 15 ». Sonde de Codex : `diff-echec128`.
   - Tests : statuts 0, 1, 128 et erreur de lancement, sur chacun des deux
     appels à Git.
   - Fini quand : tests de la CLI verts.
-- [ ] **Clôture du lot 15** (publication de la CLI seule, par un `executant`
-  pour la version et la conversation principale pour `publish.yml`)
+- [ ] **Clôture du lot 15** (numéro de la CLI monté)
 
 ## Lot 16. L'adaptateur TypeScript refuse un type incompatible
 
@@ -637,7 +648,7 @@ Plan de fiabilité, section « Lot 16 ». Sonde de Codex : `enum-nombre`.
   - Tests : enum contre `number`, `boolean`, `string`, union plus large, alias
     non résolu.
   - Fini quand : tests de l'adaptateur verts.
-- [ ] **Clôture du lot 16** (publication de l'adaptateur)
+- [ ] **Clôture du lot 16** (numéro de l'adaptateur monté)
 
 ## Lot 9. Les chemins de tokens et les axes dans le kit
 
@@ -672,7 +683,7 @@ Plan de fiabilité, sections « Le principe des lots 9 à 13 » et « Lot 9 ».
   - Tests : les sorties de l'exporteur identiques octet pour octet sur ses
     tests ; `axesDeModes.test.ts` teste la fonction unique.
   - Fini quand : une seule implémentation.
-- [ ] **Clôture du lot 9** (avec publication, groupée possible avec 10 à 13)
+- [ ] **Clôture du lot 9** (numéro du kit monté)
 
 ## Lot 10. Les rôles de rendu dans le kit
 
@@ -729,7 +740,7 @@ adresse » de la revue de Codex.
     migrations qui calculent restent dans `ucm-couleur` au-dessus du lecteur.
   - Tests : les tests de la recette passent sans changement d'attente.
   - Fini quand : `ucm-couleur` ne porte plus que le calcul et ses migrations.
-- [ ] **Clôture du lot 11** (avec publication)
+- [ ] **Clôture du lot 11** (numéro du kit monté)
 
 ## Lot 12. Le calcul du nommage dans le kit
 
@@ -762,7 +773,7 @@ Plan de fiabilité, section « Lot 12 ».
     `packages/plugin-nomenclature/tests/nomsDePalettes.test.ts` sans changement
     d'attente.
   - Fini quand : Palettes et Nomenclature appellent la même fonction du kit.
-- [ ] **Clôture du lot 12** (avec publication)
+- [ ] **Clôture du lot 12** (numéro du kit monté)
 
 ## Lot 13. La grammaire du kit de règles Figma dans le référentiel
 
@@ -787,7 +798,7 @@ Plan de fiabilité, section « Lot 13 ».
   - Fichiers : `docs/guides/KIT-DE-REGLES.md`, un test racine.
   - Faire : le test compare la liste des calques et tags du guide à la
     grammaire.
-- [ ] **Clôture du lot 13** (avec publication)
+- [ ] **Clôture du lot 13** (numéro du kit monté)
 
 ## Lot 7. Des lois entre produits
 

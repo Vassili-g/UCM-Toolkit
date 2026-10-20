@@ -81,7 +81,7 @@ Codex :
 
 Dans l'ordre d'exécution (section [Ordre](#ordre)).
 
-- [ ] Lot 8. La fabrication et la vérification
+- [x] Lot 8. La fabrication et la vérification (b805f6a5)
 - [ ] Lot 17. Les nouveaux noms des couches UCM
 - [ ] Lot 1. L'explorateur reconnaît le thème quelle que soit son écriture
 - [ ] Lot 2. Une comparaison qui n'a pas pu se faire le dit
@@ -112,9 +112,9 @@ Dans l'ordre d'exécution (section [Ordre](#ordre)).
 - Ne jamais lancer `test:ui`. Garder les fins de ligne du fichier, et comparer
   les octets à `HEAD` avant le commit.
 - Une modification de `packages/kit/src` monte la version du kit dans le même
-  envoi, avec les pins de la CLI et de l'adaptateur, puis publie dans l'ordre
-  core, cli, adapter (`AGENTS.md`, « Publier les paquets »). Plusieurs lots
-  compatibles peuvent partager une version.
+  envoi, avec les pins de la CLI et de l'adaptateur, sans publier. Le
+  mainteneur a demandé une seule publication, à la fin du plan, dans l'ordre
+  core, cli, adapter (`AGENTS.md`, « Publier les paquets »).
 - Chaque lot finit par la vérification du lot 8 : typecheck, tests des paquets
   touchés **et** tests racine.
 - Un test qui prouve une correction doit échouer sans elle : le compte rendu du
