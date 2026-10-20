@@ -1725,6 +1725,12 @@ La spécification en lien porte le raisonnement.
   `tests/protocole.test.ts` et `tests/frontiereUi.test.ts` le tiennent.
 - Le sandbox n'envoie que des données et des codes ; les textes destinés au
   designer vivent dans `src/ui/textes.ts`.
+- L'onglet Historique de la Configuration classe le journal du dernier renommage
+  avec `classerLeRenommage` de `src/ecriture.ts`, la fonction qu'emploie
+  l'annulation. Il annonce ainsi avant le clic les noms que l'annulation laissera.
+  Le bilan porte ce classement dans `dernierRenommage` et les règles du dernier
+  import dans `dernierImport`. `tests/ecriture.test.ts` et
+  `tests/projection.test.ts` du paquet le tiennent.
 
 ## Vérification
 

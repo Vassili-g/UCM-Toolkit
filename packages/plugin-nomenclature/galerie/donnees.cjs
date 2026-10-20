@@ -73,6 +73,47 @@ const collections = [
   { id: 'c3', nom: 'primitives', nombre: 346, analysee: false, palettes: true },
 ];
 
+// Les dates du journal se calculent au build : « aujourd'hui » et « hier » restent vrais le jour où l'on ouvre la galerie.
+const quand = (jours, heures, minutes) => {
+  const date = new Date();
+  date.setDate(date.getDate() - jours);
+  date.setHours(heures, minutes, 0, 0);
+  return date.toISOString();
+};
+const nomDuJournal = (aujourdhui, ancien, sort = 'revient') => ({ type: 'variable', aujourdhui, ancien, sort });
+const lignesDeColorBrands = [
+  ['background/default', 'bg/default'], ['background/subtle', 'bg/subtle'], ['background/inverse', 'bg/inverse'], ['text/hover', 'text/hovered'],
+  ['border/hover', 'border/hovered'], ['font-size/body-large', 'fontSize/bodyLarge'], ['font-size/body-small', 'fontSize/bodySmall'], ['font-size/title', 'fontSize/title'],
+].map(([aujourdhui, ancien]) => nomDuJournal(aujourdhui, ancien));
+const lignesDeCouleurs = [
+  ['brand/primary-hover', 'brand/primaryHovered'], ['brand/background', 'brand/bg'], ['neutral/background-subtle', 'neutral/bgSubtle'], ['neutral/text-hover', 'neutral/textHovered'],
+].map(([aujourdhui, ancien]) => nomDuJournal(aujourdhui, ancien));
+// Le lot de 12 noms : tous reviennent.
+const journalNominal = {
+  nombre: 12, reviennent: 12, heure: quand(0, 14, 32),
+  collections: [
+    { id: 'c1', nom: 'color-brands', exclue: false, lignes: lignesDeColorBrands },
+    { id: 'c2', nom: 'Couleurs', exclue: false, lignes: lignesDeCouleurs },
+  ],
+};
+// Le lot d'hier : un nom a changé depuis dans color-brands, et Couleurs est exclue de l'analyse (ses 4 noms ne reviennent pas).
+const journalPartiel = {
+  nombre: 12, reviennent: 7, heure: quand(1, 17, 5),
+  collections: [
+    { id: 'c1', nom: 'color-brands', exclue: false, lignes: lignesDeColorBrands.map((ligne, rang) => (rang === 3 ? nomDuJournal('text/hover-strong', ligne.ancien, 'change-depuis') : ligne)) },
+    { id: 'c2', nom: 'Couleurs', exclue: true, lignes: lignesDeCouleurs },
+  ],
+};
+// L'import de 3 règles : l'écriture des variables, un terme ajouté (hover) et un terme modifié (background).
+const importDeTroisRegles = {
+  heure: quand(0, 14, 35),
+  lignes: [
+    { sorte: 'ecriture', avant: { groupes: minusculesEtTirets, variables: { casse: 'camelCase', separateur: 'camelCase' } }, apres: { groupes: minusculesEtTirets, variables: minusculesEtTirets } },
+    { sorte: 'terme', terme: 'hover', avant: null, apres: ['hovered'] },
+    { sorte: 'terme', terme: 'background', avant: ['bg'], apres: ['bg', 'bkg'] },
+  ],
+};
+
 const bilanDeBase = {
   generation: 1, premierLancement: false, sansVariableLocale: false,
   ecriture: { groupes: ecritureDesGroupes, variables: ecritureDesVariables, collections: { reconnues: 5, total: 7 } },
@@ -83,7 +124,7 @@ const bilanDeBase = {
   autresPistes: 2,
   plusTard: [collection],
   collections,
-  dernierRenommage: { nombre: 12, heure: '14:32' },
+  dernierRenommage: journalNominal,
   dernierImport: null,
 };
 
@@ -93,7 +134,13 @@ const bilans = {
   collectionsEtPlusTard: { ...bilanDeBase, questions: [collection, motsColles], plusTard: [paireDeTailles] },
   rienAFaire: { ...bilanDeBase, groupes: [], bloques: [], questions: [], plusTard: [], autresPistes: 0 },
   sansVariableLocale: { ...bilanDeBase, sansVariableLocale: true, groupes: [], bloques: [], questions: [], plusTard: [], autresPistes: 0, collections: [], dernierRenommage: null },
-  avecUnImport: { ...bilanDeBase, dernierImport: { heure: '14:35' } },
+  avecUnImport: { ...bilanDeBase, dernierImport: importDeTroisRegles },
+  // Le lot d'hier, partiel, sans import.
+  journalPartiel: { ...bilanDeBase, dernierRenommage: journalPartiel },
+  // Ni renommage ni import à annuler.
+  sansHistorique: { ...bilanDeBase, dernierRenommage: null, dernierImport: null },
+  // Le renommage est annulé : il sort du journal, l'import reste.
+  apresUneAnnulation: { ...bilanDeBase, generation: 2, dernierRenommage: null, dernierImport: importDeTroisRegles },
   // Aucune question à poser, mais des renommages (le bilan de base garde ses groupes) : la vue vide propose de les voir.
   sansQuestion: { ...bilanDeBase, questions: [], plusTard: [] },
   sansQuestionAvecPlusTard: { ...bilanDeBase, questions: [], plusTard: [collection, paireDeTailles] },
@@ -110,7 +157,7 @@ const bilans = {
   },
   apresLApplication: {
     ...bilanDeBase, generation: 2, groupes: [], bloques: [{ avant: 'Font Size', apres: 'font-size', collection: 'Typographie' }],
-    dernierRenommage: { nombre: 87, heure: '14:41' },
+    dernierRenommage: { ...journalNominal, nombre: 87, reviennent: 87, heure: quand(0, 14, 41) },
   },
 };
 
@@ -263,6 +310,8 @@ const messages = {
   simulation: (demande) => m('simulation', demande, { generation: 1, effet: effetDeTerme, conflit: null }),
   refus: (demande, conflits) => m('refus', demande, { conflits }),
   application: (demande) => m('application', demande, { resultat: { sorte: 'application', statut: 'applique', renommes: 87, sautes: 0, annulable: true } }),
+  /** La réponse à l'annulation du dernier renommage : 12 noms rétablis. */
+  annulation: (demande) => m('application', demande, { resultat: { sorte: 'annulation', statut: 'applique', renommes: 12, sautes: 0, annulable: false } }),
   applicationRefusee: (demande, cause) => m('application', demande, { resultat: { sorte: 'application', statut: 'refuse', renommes: 0, sautes: 0, annulable: false, cause } }),
   diagnostic: (demande) => m('diagnostic', demande, { generation: 1, texte: '{"version":1,"termes":[],"noms":[]}' }),
   reglesExportees: (demande) => m('regles-exportees', demande, { texte: '{"version":1,"termes":{"hover":{"remplace":["hovered"]}}}' }),
