@@ -315,6 +315,57 @@ test('un calque absolu n’est pas inventé comme item Flex, et le moteur le pla
   assert.deepEqual(warnings.filter((warning) => warning.includes('Absolute')), []);
 });
 
+test('un calque absolu étiré par ses contraintes ne réclame ni width ni height', async () => {
+  const anneau = (constraints: { horizontal: string; vertical: string }) => ({
+    type: 'FRAME',
+    id: 'ring',
+    name: '.Ring',
+    layoutPositioning: 'ABSOLUTE',
+    layoutSizingHorizontal: 'FIXED',
+    layoutSizingVertical: 'FIXED',
+    constraints,
+    width: 104,
+    height: 44,
+    relativeTransform: [[1, 0, -2], [0, 1, -2]],
+    boundVariables: {},
+  });
+  const bouton = (ring: ReturnType<typeof anneau>) => ({
+    type: 'COMPONENT',
+    name: 'Button',
+    layoutMode: 'HORIZONTAL',
+    primaryAxisAlignItems: 'CENTER',
+    counterAxisAlignItems: 'CENTER',
+    width: 100,
+    height: 40,
+    boundVariables: {},
+    children: [ring],
+    findAll: findAllOn([ring]),
+  } as unknown as ComponentNode);
+  const surLaTaille = (warning: string) => /« \.Ring », (width|height)/.test(warning);
+
+  const etire: string[] = [];
+  const layout = await extractLayout(
+    bouton(anneau({ horizontal: 'STRETCH', vertical: 'STRETCH' })),
+    resolverFor({}),
+    etire,
+  );
+  assert.deepEqual(layout.children[0].inset, {
+    top: '-2px', bottom: '-2px', left: '-2px', right: '-2px',
+  });
+  assert.equal(layout.children[0].size, undefined);
+  assert.deepEqual(etire.filter(surLaTaille), []);
+
+  // Ancré à un seul bord, l'axe redevient figé et sa variable se réclame.
+  const ancre: string[] = [];
+  await extractLayout(
+    bouton(anneau({ horizontal: 'MIN', vertical: 'STRETCH' })),
+    resolverFor({}),
+    ancre,
+  );
+  assert.equal(ancre.filter(surLaTaille).length, 1);
+  assert.ok(ancre.some((warning) => warning.includes('« .Ring », width')));
+});
+
 test('extractLayout nomme le calque texte « label » sans recopier sa typographie', async () => {
   const texte = {
     type: 'TEXT',
@@ -1862,12 +1913,30 @@ test('les enfants d’un cadre sans auto layout sont placés par leurs contraint
   ), warnings.join('\n'));
 });
 
-test('un enfant de cadre libre en STRETCH réclame toujours la variable de son axe figé', async () => {
+test('un enfant de cadre libre en STRETCH ou SCALE ne réclame pas la variable de cet axe', async () => {
+  for (const ancrage of ['STRETCH', 'SCALE']) {
+    const warnings: string[] = [];
+    await extractLayout(
+      composantAvecCadre('FRAME', [
+        pose('Mask', 0, 0, {
+          constraints: { horizontal: ancrage, vertical: 'MIN' },
+          boundVariables: { height: alias('haut'), fills: [alias('fond')] },
+        }),
+        pose('Circle', 70, 25),
+      ]),
+      resolverFor(TOKENS_DU_CADRE),
+      warnings,
+    );
+    assert.ok(!warnings.some((warning) => warning.startsWith('Layer « Mask », width')), warnings.join('\n'));
+  }
+});
+
+test('un enfant de cadre libre centré réclame toujours la variable de son axe figé', async () => {
   const warnings: string[] = [];
   await extractLayout(
     composantAvecCadre('FRAME', [
       pose('Mask', 0, 0, {
-        constraints: { horizontal: 'STRETCH', vertical: 'MIN' },
+        constraints: { horizontal: 'CENTER', vertical: 'MIN' },
         boundVariables: { height: alias('haut'), fills: [alias('fond')] },
       }),
       pose('Circle', 70, 25),

@@ -187,9 +187,9 @@ comme un calque absolu. Le moteur garde pourtant ses trois avertissements :
 ou « il enveloppe » sur un conteneur publié, et « ni gap ni padding ». Leur
 impact dit que la place publiée ne suit pas le contenu ; le designer décide si
 elle doit le suivre. Sur les racines de variants, l'absence d'auto layout et
-« ni gap ni padding » s'écrivent une fois. `menuDeDimensionnement` ne change
-pas : une contrainte `STRETCH` ou `SCALE` ne dispense pas un axe figé de sa
-variable.
+« ni gap ni padding » s'écrivent une fois. Une contrainte `STRETCH` ou `SCALE`
+donne au parent la dimension de l'axe : `fixedDimensions` ne le compte pas comme
+figé, et l'axe ne réclame aucune variable.
 
 **Applicabilité avant liaison.** Un gap et des paddings n'existent que sous un
 auto-layout, et une liaison de variable survit à sa désactivation. L'exporteur

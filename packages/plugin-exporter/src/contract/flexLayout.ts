@@ -525,6 +525,13 @@ export function containerSizing(node: SceneNode): ContainerSizing {
  * le doute, et mieux vaut réclamer une variable en trop que taire une
  * dimension que le contrat ne saurait pas reconstituer.
  *
+ * Un calque placé par ses contraintes et accroché aux deux bords d'un axe
+ * (« Left & right », « Top & bottom », « Scale ») n'a pas non plus de dimension
+ * à lui sur cet axe : le parent la décide, et `inset` en publie les deux côtés.
+ * Le menu y affiche pourtant `Fixed`, et réclamer une variable demanderait au
+ * designer une liaison qui briserait l'accroche. Un axe accroché au centre
+ * garde sa dimension : ses deux côtés ne font que le recentrer.
+ *
  * Le parent décide de la lecture (`menuDeDimensionnement`) ; la racine du
  * composant n'en passe pas.
  */
@@ -533,10 +540,15 @@ export function fixedDimensions(
   parent?: SceneNode,
 ): { width: boolean; height: boolean } {
   const menu = menuDeDimensionnement(node, parent);
+  const contraintes = parent && estPlaceParSesContraintes(parent, node)
+    ? layoutConstraints(node)
+    : null;
   const figee = (sizing: unknown) => sizing !== 'HUG' && sizing !== 'FILL';
+  const accrocheAuxDeuxBords = (ancrage: string | undefined) =>
+    ancrage === 'stretch' || ancrage === 'scale';
   return {
-    width: figee(menu.horizontal),
-    height: figee(menu.vertical),
+    width: figee(menu.horizontal) && !accrocheAuxDeuxBords(contraintes?.horizontal),
+    height: figee(menu.vertical) && !accrocheAuxDeuxBords(contraintes?.vertical),
   };
 }
 

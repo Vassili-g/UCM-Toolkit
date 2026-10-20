@@ -350,6 +350,7 @@ const CORRIGEES: ReadonlySet<Famille> = new Set<Famille>([
   'opaciteDuCalqueAbsolu',
   'opaciteDeRacine',
   'effet',
+  'dimensionSousContrainte',
 ]);
 
 /** Le nombre de lignes de chaque famille dans une liste de messages. */
@@ -431,8 +432,8 @@ test('le cadre sans auto layout place ses calques et avertit toujours, une fois'
   }>).flatMap((vue) => vue.children ?? []).find((enfant) => enfant.figmaLayer === 'Overlay');
 
   assert.equal(comptes.cadreSansAutoLayout, 1);
-  // Une contrainte ne dispense pas un axe figé de sa variable.
-  assert.equal(comptes.dimensionSousContrainte, 4);
+  // En `Scale`, le parent décide des deux axes : aucune variable n'est réclamée.
+  assert.equal(comptes.dimensionSousContrainte, 0);
   assert.deepEqual(overlay?.children?.map((enfant) => enfant.position), ['absolute', 'absolute']);
 });
 

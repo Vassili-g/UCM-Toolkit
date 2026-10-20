@@ -699,9 +699,11 @@ absolue.
 Un enfant d'un cadre, d'un composant ou d'une instance sans auto layout n'a pas
 de flux : il est placé de la même façon. Un enfant de groupe ou d'opération
 booléenne ne l'est pas : ces deux types n'ont pas de contraintes, et la position
-de leurs enfants se rapporte au cadre englobant. Une contrainte `stretch` ou
-`scale` ne dispense pas un axe figé de sa variable : `size` suit la règle
-commune.
+de leurs enfants se rapporte au cadre englobant. Sur un axe en `stretch` ou en
+`scale`, le parent décide de la dimension, et `inset` en publie les deux côtés :
+`size` n'y figure pas, et aucune variable n'est réclamée, même si le menu de
+Figma affiche `Fixed`. Un anneau de focus posé à 2 px autour d'un bouton en est
+le cas type. Les autres axes suivent la règle commune, `center` compris.
 
 Sans contrainte lisible, l'ancrage est celui de Figma, le début de chaque axe.
 

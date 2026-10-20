@@ -777,8 +777,9 @@ La spécification en lien porte le raisonnement.
   Rien n’est publié quand la géométrie manque. Un enfant d’un cadre, d’un
   composant ou d’une instance sans auto layout est placé de la même façon ;
   un enfant de groupe ne l’est pas. `estPlaceParSesContraintes`
-  (`flexLayout.ts`) en est l’unique autorité, et une contrainte ne dispense
-  aucun axe figé de sa variable.
+  (`flexLayout.ts`) en est l’unique autorité. Un axe en `stretch` ou en
+  `scale` n’a pas de dimension propre : `fixedDimensions` ne le compte pas
+  comme figé, et aucune variable n’y est réclamée.
   → [spec](./docs/format/FORMAT.md#position-absolue)
 - La `rotation` d’un calque publié est écrite, en convention CSS, absente sous
   le centième de degré. `flexLayout.rotationDegrees` en est l’unique autorité.
