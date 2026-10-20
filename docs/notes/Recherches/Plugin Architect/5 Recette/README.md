@@ -12,6 +12,7 @@ Figma T, V et la recette Figma du mainteneur.
 
 | Document | Contenu |
 |---|---|
+| [Audit d’UCM Nomenclature](./Audit/AUDIT-NOMENCLATURE.md) | Dix constats reproduits, dont trois de priorité haute ; scripts, contrôles du dépôt et rejeu Chromium de la galerie |
 | [AUDIT-COMPLET-ARCHITECT.md](./AUDIT-COMPLET-ARCHITECT.md) | Les défauts AC1 à AC13 qui peuvent abîmer les variables ou `tokens.json`, rejoués sur le code, et ce qui tient |
 | [AUDIT-INTEGRITE-TOKENS.md](./AUDIT-INTEGRITE-TOKENS.md) | Les risques de perte de noms, de restauration et de tokens à l’export, avec les reproductions et les corrections attendues |
 | [DOSSIER-RECETTE-ARCHITECT.md](./DOSSIER-RECETTE-ARCHITECT.md) | Les points R1 à R11 : demande, constat dans le code, proposition, décision ; les lots qui suivent les décisions |

@@ -1,0 +1,2378 @@
+[
+  {
+    "etat": "a-appliquer",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer-depliee",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer-non-renommes",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-collection-et-plus-tard",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-conflit",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .carte.question .question-actions:first-child .btn-primary",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-reponse",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .carte.question .question-actions:first-child .btn-primary",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "application",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "bilan-illisible",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "configuration",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "configuration-dernier-import",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "confirmation",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "confirmation-annulation",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "ecriture-des-noms",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "erreur",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-composant",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-ecriture",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .btn[aria-label=\"Modifier l’écriture des noms\"]",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-remplacer-par",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-personnalise",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-sans-regle",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-ucm",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-mot-refuse",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-partiel",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-refuse",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "journal-impossible",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "lecture",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "premier-lancement",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "questions-vide",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "questions-vide-plus-tard",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-detail-exporte",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-exportees",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-filtre-place",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-menu-filtrer",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-noms",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-places",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-recherche",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-section-repliee",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-section-suite",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-sections",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-tri-nombre",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "rien-a-faire",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "sans-variable-locale",
+    "mode": "clair",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer-depliee",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer-non-renommes",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-collection-et-plus-tard",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-conflit",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .carte.question .question-actions:first-child .btn-primary",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-reponse",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .carte.question .question-actions:first-child .btn-primary",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "application",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "bilan-illisible",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "configuration",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "configuration-dernier-import",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "confirmation",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "confirmation-annulation",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "ecriture-des-noms",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "erreur",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-composant",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-ecriture",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .btn[aria-label=\"Modifier l’écriture des noms\"]",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-remplacer-par",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-personnalise",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-sans-regle",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-ucm",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-mot-refuse",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-partiel",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-refuse",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "journal-impossible",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "lecture",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "premier-lancement",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "questions-vide",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "questions-vide-plus-tard",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-detail-exporte",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-exportees",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-filtre-place",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-menu-filtrer",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-noms",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-places",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-recherche",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-section-repliee",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-section-suite",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-sections",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-tri-nombre",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "rien-a-faire",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "sans-variable-locale",
+    "mode": "replis",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer-depliee",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer-non-renommes",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-collection-et-plus-tard",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-conflit",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .carte.question .question-actions:first-child .btn-primary",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-reponse",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .carte.question .question-actions:first-child .btn-primary",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "application",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "bilan-illisible",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "configuration",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "configuration-dernier-import",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "confirmation",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "confirmation-annulation",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "ecriture-des-noms",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "erreur",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-composant",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-ecriture",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .btn[aria-label=\"Modifier l’écriture des noms\"]",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-remplacer-par",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-personnalise",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-sans-regle",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-ucm",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-mot-refuse",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-partiel",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-refuse",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "journal-impossible",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "lecture",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "premier-lancement",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "questions-vide",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "questions-vide-plus-tard",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-detail-exporte",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-exportees",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-filtre-place",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-menu-filtrer",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-noms",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-places",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-recherche",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-section-repliee",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-section-suite",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-sections",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-tri-nombre",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "rien-a-faire",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "sans-variable-locale",
+    "mode": "sombre",
+    "largeur": 360,
+    "hauteur": 420,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer-depliee",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer-non-renommes",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-collection-et-plus-tard",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-conflit",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .carte.question .question-actions:first-child .btn-primary",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-reponse",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .carte.question .question-actions:first-child .btn-primary",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "application",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "bilan-illisible",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "configuration",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "configuration-dernier-import",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "confirmation",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "confirmation-annulation",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "ecriture-des-noms",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "erreur",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-composant",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-ecriture",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .btn[aria-label=\"Modifier l’écriture des noms\"]",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-remplacer-par",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-personnalise",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-sans-regle",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-ucm",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-mot-refuse",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-partiel",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-refuse",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "journal-impossible",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "lecture",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "premier-lancement",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "questions-vide",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "questions-vide-plus-tard",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-detail-exporte",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-exportees",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-filtre-place",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-menu-filtrer",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-noms",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-places",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-recherche",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-section-repliee",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-section-suite",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-sections",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-tri-nombre",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "rien-a-faire",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "sans-variable-locale",
+    "mode": "clair",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer-depliee",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer-non-renommes",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-collection-et-plus-tard",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-conflit",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .carte.question .question-actions:first-child .btn-primary",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-reponse",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .carte.question .question-actions:first-child .btn-primary",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "application",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "bilan-illisible",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "configuration",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "configuration-dernier-import",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "confirmation",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "confirmation-annulation",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "ecriture-des-noms",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "erreur",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-composant",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-ecriture",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .btn[aria-label=\"Modifier l’écriture des noms\"]",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-remplacer-par",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-personnalise",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-sans-regle",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-ucm",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-mot-refuse",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-partiel",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-refuse",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "journal-impossible",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "lecture",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "premier-lancement",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "questions-vide",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "questions-vide-plus-tard",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-detail-exporte",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-exportees",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-filtre-place",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-menu-filtrer",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-noms",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-places",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-recherche",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-section-repliee",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-section-suite",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-sections",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-tri-nombre",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "rien-a-faire",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "sans-variable-locale",
+    "mode": "replis",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer-depliee",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-appliquer-non-renommes",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-collection-et-plus-tard",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-conflit",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .carte.question .question-actions:first-child .btn-primary",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "a-trancher-reponse",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .carte.question .question-actions:first-child .btn-primary",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "application",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "bilan-illisible",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "configuration",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "configuration-dernier-import",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "confirmation",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "confirmation-annulation",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "ecriture-des-noms",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "erreur",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-composant",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-ecriture",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": false,
+    "erreurs": [
+      "Galerie : aucun élément pour .btn[aria-label=\"Modifier l’écriture des noms\"]",
+      "page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('html[data-galerie=\"pret\"]') to be visible\u001b[22m\n"
+    ],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-remplacer-par",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-personnalise",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-sans-regle",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "feuille-terme-ucm",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-mot-refuse",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-partiel",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "import-refuse",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "journal-impossible",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "lecture",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "premier-lancement",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "questions-vide",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "questions-vide-plus-tard",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-detail-exporte",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-exportees",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-filtre-place",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-menu-filtrer",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-noms",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-places",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-recherche",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-section-repliee",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-section-suite",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-sections",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "regles-tri-nombre",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "rien-a-faire",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  },
+  {
+    "etat": "sans-variable-locale",
+    "mode": "sombre",
+    "largeur": 640,
+    "hauteur": 720,
+    "pret": true,
+    "erreurs": [],
+    "debordement": false
+  }
+]
