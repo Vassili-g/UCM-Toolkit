@@ -5,7 +5,7 @@
  */
 import { nomDeMode } from '../../copie';
 import { indexer } from '../../indexation';
-import type { Releve } from '../../modele';
+import { espaceDuReleve, type Releve } from '../../modele';
 import { comparerReleves, exporterReleve, importerReleve, type ComparaisonDeReleves } from '../../releves';
 import { effetsDeLaSimulation, lireSaisie, simuler } from '../../simulation';
 import type { Application, Composant } from '../application';
@@ -148,7 +148,8 @@ export function creerVueReleves(app: Application): Composant {
         for (const effet of effets.slice(0, 200)) {
           const ligne = document.createElement('li');
           ligne.className = 'ligne-de-lien';
-          ligne.append(lienVersVariable(app, effet.id, undefined, 'inspecter'), rendreResultat(effet.avant), document.createTextNode('→'), rendreResultat(effet.apres));
+          const espace = app.etat.index ? espaceDuReleve(app.etat.index.releve) : 'srgb';
+          ligne.append(lienVersVariable(app, effet.id, undefined, 'inspecter'), rendreResultat(effet.avant, false, espace), document.createTextNode('→'), rendreResultat(effet.apres, false, espace));
           liste.append(ligne);
         }
         parties.push(liste);

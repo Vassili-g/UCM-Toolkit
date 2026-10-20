@@ -21,7 +21,7 @@ import type { PaletteSuivie, VariableSuivie } from './suivi';
 export function modesDeLaReprise(
   modes: readonly ModeLu[],
   couleurs?: { readonly [mode: string]: readonly (string | null)[] },
-): { readonly light: ModeLu | null; readonly dark: ModeLu | null } {
+): Readonly<Record<Mode, ModeLu | null>> {
   const nomme = (mot: string): ModeLu | undefined => modes.find((mode) => mode.nom.toLowerCase().includes(mot));
   const porteUneCouleur = (mode: ModeLu): boolean => couleurs === undefined || (couleurs[mode.id] ?? []).some((couleur) => couleur !== null);
   const light = (nomme('light') && porteUneCouleur(nomme('light')!))
@@ -31,12 +31,10 @@ export function modesDeLaReprise(
   return { light, dark };
 }
 
-/** Les couleurs qu'une palette du fichier porte dans chaque thème, dans l'ordre de ses nuances ; `null` pour un alias. */
-export interface CouleursDeLaReprise {
+/** Les couleurs dans l'ordre des nuances : `null` pour un alias, ou pour le thème Dark quand la collection n'a pas de mode Dark. */
+export interface CouleursDeLaReprise extends Readonly<Record<Mode, readonly (string | null)[] | null>> {
   readonly nuances: readonly number[];
   readonly light: readonly (string | null)[];
-  /** `null` quand la collection n'a pas de mode Dark. */
-  readonly dark: readonly (string | null)[] | null;
 }
 
 export function couleursDeLaReprise(palette: PaletteDuFichier): CouleursDeLaReprise {
@@ -104,7 +102,7 @@ function couleursFigeesDeLaGroupee(groupee: PaletteGroupee): CouleursDeLaReprise
     const mode = enModes ? viser[theme] : viser.light;
     return groupe && mode ? groupe.palette.couleurs[mode.id] ?? null : null;
   };
-  const lues: { readonly light: readonly (string | null)[]; readonly dark: readonly (string | null)[] | null }[] = [];
+  const lues: Omit<CouleursDeLaReprise, 'nuances'>[] = [];
   for (const intensite of groupee.forme === 'themes-chemin' ? [null] : PROFILS) {
     const light = lire(intensite, 'light');
     if (!light) return null;
@@ -151,7 +149,7 @@ export function suiviDeLaReprise(palette: PaletteDuFichier): PaletteSuivie {
   const viser = modesDeLaReprise(palette.modes, palette.couleurs);
   const couleurs = couleursDeLaReprise(palette);
   const variables: { [cle: string]: VariableSuivie } = {};
-  const modes: { light?: string; dark?: string } = {};
+  const modes: Partial<Record<Mode, string>> = {};
   for (const mode of MODES) {
     const cible = viser[mode];
     const lues = mode === 'light' ? couleurs.light : couleurs.dark;
@@ -186,7 +184,7 @@ export function suiviDeLaRepriseGroupee(groupee: PaletteGroupee): PaletteSuivie 
   const { palette: ancre } = groupeDAncrage(groupee);
   const viser = modesDeLaReprise(ancre.modes, ancre.couleurs);
   const themesEnModes = groupee.forme === 'intensites-themes-modes';
-  const modes: { light?: string; dark?: string } = {};
+  const modes: Partial<Record<Mode, string>> = {};
   if (viser.light) modes.light = viser.light.id;
   if (themesEnModes && viser.dark) modes.dark = viser.dark.id;
   const variables: { [cle: string]: VariableSuivie } = {};

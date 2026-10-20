@@ -4,16 +4,18 @@
  * un token de `tokens.json`. Le contrôle des noms Figma exacts ne les voit pas (`bg/primary` et `Background/primary`
  * ont deux noms et un chemin).
  *
- * Le module est pur : il lit un inventaire et des renommages, et ne touche à aucun objet Figma. Il vit dans le socle
- * parce que UCM Nomenclature et UCM Palettes contrôlent leurs noms par lui.
+ * Le module est pur : il lit un inventaire et des renommages, et ne touche à aucun objet Figma. UCM Nomenclature et
+ * UCM Palettes contrôlent leurs noms par lui.
  *
  * Il contrôle aussi les axes de modes (`axesDeLExport`) : le nom d'une collection donne la clé de son axe, et l'export de tokens
  * écarte deux axes de même clé. Le contrôle ne voit un axe que si l'inventaire porte les modes de la collection.
+ *
+ * Après une modification : relancer `npm test`, relancer les tests des plugins qui contrôlent leurs noms, et changer la version du kit.
  */
-import { axeDesExtensions, tokenCssVariable } from '@ucm-kit/core/format';
-import type { Collision } from '@ucm-kit/core/referentiel';
-import { joinTokenPath, prefixeDeCollection } from './cheminsDeTokens';
-import type { EntreeInventaire, Inventaire } from './inventaireDeNoms';
+import { deciderAxesDesCollections, type ConflitDAxes as ConflitDAxesDe } from '../format/axes-de-collections.js';
+import { joinTokenPath } from '../format/chemins-de-tokens.js';
+import type { Collision } from '../referentiel/harmonisation.js';
+import type { EntreeInventaire, Inventaire } from './inventaire.js';
 
 /**
  * Pourquoi un renommage fait perdre quelque chose à l'export de tokens :
@@ -106,52 +108,10 @@ function indexerLesChemins(variables: readonly VariablePubliee[], cheminDe: (var
 /** Un axe de modes tel que l'export de tokens le retient : sa clé est le préfixe de sa collection, et `extensions` dit s'il garde les siennes. */
 export interface AxeDeLExport { readonly cle: string; readonly extensions: boolean }
 
-interface ConflitDAxes {
-  readonly motif: 'meme-axe' | 'axe-et-extensions';
-  /** `meme-axe` : la collection de plus petit identifiant. `axe-et-extensions` : la collection qui a des extensions. */
-  readonly a: CollectionPubliee;
-  /** `meme-axe` : l'autre collection. `axe-et-extensions` : la collection dont le nom est réservé à ces extensions. */
-  readonly b: CollectionPubliee;
-}
+type ConflitDAxes = ConflitDAxesDe<CollectionPubliee>;
 
-/**
- * Les axes que `axesDesCollections` de l'exporteur retient pour ces collections, d'après le nom que `nomDe` leur donne, et les
- * conflits qui en écartent d'autres. Une collection est un axe quand elle n'est pas une extension et qu'elle a au moins deux modes
- * ou qu'une extension locale la désigne comme racine. Deux axes de même clé, ou un axe de clé vide, sont écartés ; un axe qui a des
- * extensions les perd quand un autre axe donne la propriété CSS que ces extensions réserveraient.
- * Les autres causes d'écart de l'exporteur (mode sans nom, mode par défaut introuvable, extensions mal nommées) ne se lisent pas ici.
- */
-function axesPrevus(collections: readonly CollectionPubliee[], nomDe: (collection: CollectionPubliee) => string): { readonly axes: Map<string, AxeDeLExport>; readonly conflits: ConflitDAxes[] } {
-  const racines = new Set(collections.flatMap((collection) => (collection.extension === true && collection.racine !== undefined ? [collection.racine] : [])));
-  const parCle = new Map<string, CollectionPubliee[]>();
-  for (const collection of collections) {
-    if (collection.extension === true || ((collection.nombreDeModes ?? 0) < 2 && !racines.has(collection.id))) continue;
-    const cle = prefixeDeCollection(nomDe(collection));
-    parCle.set(cle, [...(parCle.get(cle) ?? []), collection]);
-  }
-  const axes = new Map<string, AxeDeLExport>();
-  const porteurs = new Map<string, CollectionPubliee>();
-  const conflits: ConflitDAxes[] = [];
-  for (const [cle, partageant] of parCle) {
-    if (cle === '') continue;
-    if (partageant.length === 1) {
-      axes.set(partageant[0]!.id, { cle, extensions: racines.has(partageant[0]!.id) });
-      porteurs.set(partageant[0]!.id, partageant[0]!);
-      continue;
-    }
-    const triees = [...partageant].sort((x, y) => (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
-    for (let i = 0; i < triees.length; i++) for (let j = i + 1; j < triees.length; j++) conflits.push({ motif: 'meme-axe', a: triees[i]!, b: triees[j]! });
-  }
-  const parPropriete = new Map([...axes].map(([id, axe]) => [tokenCssVariable(axe.cle), id]));
-  for (const [id, axe] of [...axes]) {
-    if (!axe.extensions) continue;
-    const rivale = parPropriete.get(tokenCssVariable(axeDesExtensions(axe.cle)));
-    if (rivale === undefined) continue;
-    conflits.push({ motif: 'axe-et-extensions', a: porteurs.get(id)!, b: porteurs.get(rivale)! });
-    if ((porteurs.get(id)!.nombreDeModes ?? 0) < 2) axes.delete(id); else axes.set(id, { ...axe, extensions: false });
-  }
-  return { axes, conflits };
-}
+const axesPrevus = (collections: readonly CollectionPubliee[], nomDe: (collection: CollectionPubliee) => string) =>
+  deciderAxesDesCollections(collections, { nomDe });
 
 /** Les axes de modes que l'export de tokens retient pour ces collections, par identifiant de collection. */
 export function axesDeLExport(collections: readonly CollectionPubliee[]): ReadonlyMap<string, AxeDeLExport> {

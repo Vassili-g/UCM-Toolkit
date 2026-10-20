@@ -5,7 +5,9 @@
  * Le routage n'a qu'une porte par geste d'écriture ([ARC-14]) : « ranger la
  * recette », « dessiner », « retirer un cadre », « choisir la page »,
  * « écrire les variables », « ranger la destination », « retirer les
- * variables », « reprendre une palette » et « copier une palette ».
+ * variables », « reprendre une palette » et « copier une palette ». La marque
+ * de nommage, rangée à l'ouverture sans geste du designer, est la seule
+ * exception (`AGENTS.md`, « Écriture d'UCM Palettes »).
  */
 import { rangerLaMarqueDeNommage } from './ecriture/marque';
 import { choisirLaPage, dessinerLaRecetteRangee, retirerLeCadre } from './ecriture/planche';

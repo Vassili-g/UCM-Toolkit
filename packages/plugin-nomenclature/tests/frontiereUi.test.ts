@@ -6,9 +6,9 @@ import { creerFrontiere, type MessageAAfficher } from '../src/ui/frontiere';
 
 const ECRITURE = { convention: { casse: 'minuscules', separateur: 'tiret' }, suivent: 1, total: 1, exemple: null } as const;
 const bilan = (generation: number): Bilan => ({
-  generation, premierLancement: false, sansVariableLocale: false,
+  generation, premierLancement: false, sansVariableLocale: false, reglesFutures: false, architecture: 'absente',
   ecriture: { groupes: ECRITURE, variables: ECRITURE, collections: { reconnues: 0, total: 0 } },
-  groupes: [], bloques: [], proteges: 0, questions: [], autresPistes: 0, plusTard: [], collections: [], dernierRenommage: null, dernierImport: null,
+  groupes: [], bloques: [], proteges: 0, protections: [], questions: [], autresPistes: 0, plusTard: [], collections: [], dernierRenommage: null, dernierImport: null,
 });
 const GESTE = { type: 'supprimer', terme: 'bg' } as const;
 const SELECTION = { groupes: ['g'], exclus: [], inclus: [] };

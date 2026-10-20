@@ -1,7 +1,7 @@
 /**
  * Traduction des propriétés Figma en props publiques du contrat.
  */
-import { normalizeName } from '@ucm-kit/core/format';
+import { estUneValeurDesactivee, normalizeName } from '@ucm-kit/core/format';
 import { pousserSansNode } from './localisation';
 import { STATE_AXIS_NAMES, semanticEnumName } from './semantics';
 import type { ContractProp } from '@ucm-kit/core/format';
@@ -111,19 +111,6 @@ export function collidingVariantAxes(
 }
 
 /**
- * Vrai pour la valeur d'axe d'états qui devient la prop publique `disabled`.
- *
- * Unique autorité sur cette orthographe : le modèle des props la consulte pour
- * fabriquer la prop, l'échantillon pour dire qu'une dépendance la porte. Deux
- * expressions régulières jumelles finiraient par accepter des graphies
- * différentes, et le contrat annoncerait une prop que l'échantillon ne remplit
- * jamais.
- */
-export function isDisabledStateValue(value: unknown): boolean {
-  return /^disabl(?:e|ed)$/i.test(String(value).trim());
-}
-
-/**
  * Convertit les définitions de propriétés Figma en props publiques :
  * variant → enum, BOOLEAN → boolean, TEXT → string.
  * La couche sémantique renomme les axes reconnus (ex. axe de tailles →
@@ -167,7 +154,7 @@ export function extractContractPropertyModel(
   const disabledState = Object.entries(definitions).find(([propertyName, definition]) =>
     isStateProperty(normalizePropKey(propertyName)) &&
     definition.type === 'VARIANT' &&
-    (definition.variantOptions ?? []).some(isDisabledStateValue),
+    (definition.variantOptions ?? []).some(estUneValeurDesactivee),
   );
   if (disabledState) {
     const [propertyName, definition] = disabledState;
@@ -176,7 +163,7 @@ export function extractContractPropertyModel(
       owners.set('disabled', rawFigmaName);
       definePropOn(props, 'disabled', {
         type: 'boolean',
-        default: isDisabledStateValue(definition.defaultValue),
+        default: estUneValeurDesactivee(definition.defaultValue),
       });
     }
   }
@@ -259,7 +246,7 @@ export function extractContractPropertyModel(
         const [statePropertyName, stateDefinition] = disabledState;
         const stateFigmaName = statePropertyName.replace(/#.*$/, '');
         const disabledStateName = stateDefinition.type === 'VARIANT'
-          ? (stateDefinition.variantOptions ?? []).find(isDisabledStateValue) ?? 'Disable'
+          ? (stateDefinition.variantOptions ?? []).find(estUneValeurDesactivee) ?? 'Disable'
           : 'Disable';
         pousserSansNode(warnings, `Propriété de composant « ${rawFigmaName} »`, {
           famille: 'proprietes',

@@ -4,7 +4,7 @@
  * puis rendus citables. UCM Exporter l'écrit ; l'explorateur de tokens le
  * recalcule pour rapprocher une variable Figma d'un fichier importé.
  */
-import { normalizeName } from '@ucm-kit/core/format';
+import { normalizeName } from './names.js';
 
 /**
  * Réduit un nom normalisé à ce qu'une référence DTCG sait citer.

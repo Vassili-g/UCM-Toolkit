@@ -1,7 +1,7 @@
 /** Les chemins de tokens.json : le contrôle pur, puis les deux parcours de l'audit et leur affichage dans la session. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { axesDeLExport, cheminsEnConflit, inventairePublie, pairesDejaEnConflit, type CollectionPubliee, type InventairePublie } from '../src/cheminsPublies';
+import { axesDeLExport, cheminsEnConflit, inventairePublie, pairesDejaEnConflit, type CollectionPubliee, type InventairePublie } from '@ucm-kit/core/nommage';
 import type { PortDeRegles } from '../src/ecriture';
 import { inventaireDeLectures, type PortDeLecture } from '../src/lecture';
 import type { DemandeArchitect, GesteSurLesRegles, PluginMessage } from '../src/messages';

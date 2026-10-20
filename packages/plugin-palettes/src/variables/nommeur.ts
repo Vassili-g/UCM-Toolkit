@@ -11,12 +11,12 @@
  */
 import type { Palette, Recette } from 'ucm-couleur';
 import { inventaireDeLectures, type LecteurDeVariable, type ObjetNomme, type VariableLue as VariableDuSocle } from 'ucm-plugin-socle/src/inventaireDeNoms';
-import { nomsSelonLesReglesSync } from 'ucm-plugin-socle/src/nomsSelonLesRegles';
-import { lireReglesDeNommage } from 'ucm-plugin-socle/src/reglesDeNommage';
+import { nomsSelonLesReglesSync } from '@ucm-kit/core/nommage';
+import { lireReglesDeNommage } from '@ucm-kit/core/protocoles';
 
 import type { Destination } from './destination';
 import { destinationChangee } from './etat';
-import { planDesVariables, type EntreeDuPlan, type Nommer } from './plan';
+import { planDesVariables, type EntreeDuPlan, type Nommer, type NomReserve } from './plan';
 import type { OrigineDeLaReprise } from './reprise';
 import type { VariableLue } from './releve';
 import type { PaletteSuivie } from './suivi';
@@ -50,7 +50,8 @@ export interface Nommeur {
   pour(collection: CollectionVisee): Nommer | undefined;
 }
 
-const COLLECTION_A_CREER = 'ucm-palettes:collection-a-creer';
+/** L'identifiant sous lequel le nommeur, et le plan d'un lot, voient une collection que l'écriture crée. */
+export const COLLECTION_A_CREER = 'ucm-palettes:collection-a-creer';
 const PREFIXE_A_CREER = 'ucm-palettes:a-creer:';
 
 /** Le nommeur du fichier ; `undefined` tant qu'aucune écriture n'est rangée par UCM Nomenclature. */
@@ -144,7 +145,8 @@ export function nommeurDuFichier(fichier: { readonly nommage?: DonneesDeNommage 
  * Le plan d'une palette sous ses noms finaux, quand le fichier a des règles. La collection où la palette écrit se choisit
  * comme l'écriture la choisit : celle de sa reprise ; celle de son suivi tant que la destination n'a pas changé ; sinon celle
  * de la destination. Elle se juge sur le plan brut, que le changement de destination ne distingue pas du plan final.
- * `collections` dit quelles collections le fichier porte.
+ * `collections` dit quelles collections le fichier porte. `reservesDuLot` et
+ * `nomsReserves` suivent `planDesVariables` : ils ne servent qu'à une reprise.
  */
 export function planDeLaPalette(
   nommeur: Nommeur | undefined,
@@ -156,9 +158,11 @@ export function planDeLaPalette(
   lues: ReadonlyMap<string, VariableLue>,
   collections: { has(id: string): boolean },
   nomsOccupes?: string[],
+  reservesDuLot?: ReadonlyMap<string, string>,
+  nomsReserves?: NomReserve[],
 ): EntreeDuPlan[] {
-  if (!nommeur) return planDesVariables(recette, palette, destination, suivie, origine, nomsOccupes);
-  if (suivie?.liaison === 'reprise') return planDesVariables(recette, palette, destination, suivie, origine, nomsOccupes, nommeur.pour({ id: suivie.collection }));
+  if (!nommeur) return planDesVariables(recette, palette, destination, suivie, origine, nomsOccupes, undefined, reservesDuLot, nomsReserves);
+  if (suivie?.liaison === 'reprise') return planDesVariables(recette, palette, destination, suivie, origine, nomsOccupes, nommeur.pour({ id: suivie.collection }), reservesDuLot, nomsReserves);
   const brut = planDesVariables(recette, palette, destination, suivie, origine);
   const garde = suivie && !destinationChangee(suivie, destination, brut, lues) && collections.has(suivie.collection);
   const visee: CollectionVisee = garde ? { id: suivie.collection } : 'id' in destination.collection ? { id: destination.collection.id } : { nom: destination.collection.nom };

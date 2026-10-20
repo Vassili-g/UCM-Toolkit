@@ -20,7 +20,7 @@ import {
 import {
   COLLECTIONS,
   COLLECTIONS_SANS_PORTEE,
-  CIBLES_DES_COLLECTIONS,
+  ciblesAdmises,
   DEFINITIONS_DES_VARIABLES,
   FORMES_ANCIENNES_DES_COLLECTIONS,
   indexerVocabulaire,
@@ -38,9 +38,6 @@ export const COUCHES = COLLECTIONS;
 
 export type Couche = Collection;
 
-/** Les couches qu'un alias de chaque couche peut viser. */
-export const CIBLES_DES_COUCHES: { readonly [C in Couche]: readonly Couche[] } = CIBLES_DES_COLLECTIONS;
-
 /** Les couches dont les variables ne paraissent dans aucun sélecteur de calque : portées vides. */
 const COUCHES_SANS_PORTEE: readonly Couche[] = COLLECTIONS_SANS_PORTEE;
 
@@ -57,6 +54,30 @@ export interface ConstatDuProfil {
   /** Les portées attendues (règle `portee`) ou la nuance attendue (règle `nuance`). */
   readonly attendue?: string;
   readonly coucheCible?: Couche;
+}
+
+/** Pourquoi un contrôle n'a pas pu se faire. */
+export type CauseDeLimiteDuProfil = 'role-inconnu' | 'mode-non-reconnu' | 'mode-sans-valeur' | 'cible-sans-couche';
+
+/**
+ * Un contrôle que le profil n'a pas pu faire. `cle` est stable pour un même
+ * fichier. `mode` est un identifiant de mode, comme celui d'un constat. `cible`
+ * est la variable visée, pour `cible-sans-couche`. `mode-non-reconnu` n'est
+ * relevé qu'une fois par collection et par mode, avec la première variable
+ * qui l'a rencontré.
+ */
+export interface LimiteDuProfil {
+  readonly cause: CauseDeLimiteDuProfil;
+  readonly cle: string;
+  readonly variable: string;
+  readonly mode?: string;
+  readonly cible?: string;
+}
+
+/** Ce que le profil a constaté, et ce qu'il n'a pas pu contrôler. Une exception du designer retire un constat, jamais une limite. */
+export interface ControleDuProfil {
+  readonly constats: readonly ConstatDuProfil[];
+  readonly limites: readonly LimiteDuProfil[];
 }
 
 /** L'association de chaque collection à sa couche, par identifiant. */
@@ -99,6 +120,11 @@ export function variableDuNom(nom: string, index?: IndexDuVocabulaire): { variab
   return variable ? { variable, support: SUPPORT_DES_VARIABLES[variable] } : null;
 }
 
+/** Vrai pour `identity`, le rôle que le profil ne juge pas, quelle que soit l'écriture du nom. */
+function estIdentite(nom: string): boolean {
+  return nom.split('/').at(-1)?.toLowerCase() === 'identity';
+}
+
 /** Le libellé de la variable de `theme` dans le référentiel, en français par défaut ; `null` sans libellé (les nuances `scale/…` n'en ont pas). */
 export function libelleDeLaVariable(variable: string, langue: 'fr' | 'en' = 'fr'): string | null {
   return DEFINITIONS_DES_VARIABLES.find((definition) => definition.id === variable)?.libelle[langue] ?? null;
@@ -118,38 +144,60 @@ function memeEnsemble(a: readonly string[], b: readonly string[]): boolean {
 
 /**
  * Les écarts au profil, sur les variables de couleur des collections
- * associées. `recette` permet le contrôle de la nuance attendue. Les
- * exceptions du designer sont retirées. `indexDuVocabulaire` apporte les termes
- * du fichier : un mode que ni UCM ni ces termes ne désignent n'est pas contrôlé.
+ * associées, et les contrôles qu'il n'a pas pu faire. `recette` permet le
+ * contrôle de la nuance attendue. Les exceptions du designer retirent des
+ * constats. `indexDuVocabulaire` apporte les termes du fichier : un mode que ni
+ * UCM ni ces termes ne désignent n'est pas contrôlé, et le profil le dit.
  */
 export function controlerLeProfil(
   index: Index,
   couches: AssociationDesCouches,
   options: { recette?: Recette | null; exceptions?: ReadonlySet<string>; indexDuVocabulaire?: IndexDuVocabulaire } = {},
-): ConstatDuProfil[] {
+): ControleDuProfil {
   const constats: ConstatDuProfil[] = [];
+  const limites: LimiteDuProfil[] = [];
+  const modesNonReconnus = new Set<string>();
   const coucheDe = (variable: VariableRelevee | undefined): Couche | undefined => (variable ? couches[variable.collection] : undefined);
   for (const variable of index.releve.variables) {
     const couche = coucheDe(variable);
     if (!couche || variable.type !== 'COLOR') continue;
+    const collection = index.collections.get(variable.collection);
     const dossier = couche === 'theme' ? variableDuNom(variable.nom, options.indexDuVocabulaire) : null;
-    for (const [mode, valeur] of Object.entries(variable.valeurs)) {
+    if (couche === 'theme' && !dossier && !estIdentite(variable.nom)) {
+      limites.push({ cause: 'role-inconnu', cle: `role-inconnu:${variable.id}`, variable: variable.id });
+    }
+    const modes = [...new Set([...(collection?.modes.map((candidat) => candidat.id) ?? []), ...Object.keys(variable.valeurs)])];
+    for (const mode of modes) {
+      const valeur = variable.valeurs[mode];
+      if (!valeur) {
+        limites.push({ cause: 'mode-sans-valeur', cle: `mode-sans-valeur:${variable.id}:${mode}`, variable: variable.id, mode });
+        continue;
+      }
       if (valeur.nature !== 'alias') {
         if (couche !== 'primitives') constats.push({ regle: 'valeur-directe', cle: `valeur-directe:${variable.id}:${mode}`, variable: variable.id, mode });
         continue;
       }
       const cible = index.variables.get(valeur.cible);
       const coucheCible = coucheDe(cible);
-      if (coucheCible && !CIBLES_DES_COUCHES[couche].includes(coucheCible)) {
+      if (coucheCible && !ciblesAdmises(couche, 'couleur').includes(coucheCible)) {
         constats.push({ regle: 'couche', cle: `couche:${variable.id}:${mode}`, variable: variable.id, mode, cible: valeur.cible, coucheCible });
       }
+      if (cible && !coucheCible) {
+        limites.push({ cause: 'cible-sans-couche', cle: `cible-sans-couche:${variable.id}:${mode}`, variable: variable.id, mode, cible: valeur.cible });
+      }
       if (dossier && options.recette && cible) {
-        const nomDuMode = index.collections.get(variable.collection)?.modes.find((candidat) => candidat.id === mode)?.nom;
+        const nomDuMode = collection?.modes.find((candidat) => candidat.id === mode)?.nom;
         const modeDuTheme = nomDuMode === undefined ? undefined : modeDuThemeReconnu(nomDuMode, options.indexDuVocabulaire);
         if (modeDuTheme) {
           const attendue = nuanceAttendue(variable.nom, modeDuTheme, options.recette, options.indexDuVocabulaire);
           if (attendue !== null && Number(cible.nom.split('/').at(-1)) !== attendue) {
             constats.push({ regle: 'nuance', cle: `nuance:${variable.id}:${mode}`, variable: variable.id, mode, cible: valeur.cible, attendue: String(attendue) });
+          }
+        } else if (nomDuMode !== undefined) {
+          const cle = `mode-non-reconnu:${variable.collection}:${mode}`;
+          if (!modesNonReconnus.has(cle)) {
+            modesNonReconnus.add(cle);
+            limites.push({ cause: 'mode-non-reconnu', cle, variable: variable.id, mode });
           }
         }
       }
@@ -162,5 +210,5 @@ export function controlerLeProfil(
     }
   }
   const exceptions = options.exceptions ?? new Set<string>();
-  return constats.filter((constat) => !exceptions.has(constat.cle));
+  return { constats: constats.filter((constat) => !exceptions.has(constat.cle)), limites };
 }

@@ -1,16 +1,19 @@
 /**
- * La page Configuration, en deux onglets : Réglages (les collections analysées, l'export et l'import des
+ * La page Configuration, en deux onglets : Réglages (l'architecture du fichier, les collections analysées, l'export et l'import des
  * règles du fichier) et Historique (le dernier renommage et le dernier import avec leur annulation, dans
  * `historique.ts`). Elle se met à jour à chaque bilan, qu'elle soit ouverte ou non.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { createOnglets } from 'ucm-plugin-socle/src/ui/Onglets';
-import type { Bilan, CollectionVue } from '../messages';
+import { createInterrupteur } from 'ucm-plugin-socle/src/ui/Interrupteur';
+import type { Bilan, CollectionVue, ProtectionVue } from '../messages';
 import type { Coquille } from './coquille';
 import type { MessageAAfficher } from './frontiere';
 import { telecharger } from './telechargement';
 import { ouvrirUneFeuilleDeConfirmation } from './aAppliquer';
 import { creerHistorique } from './historique';
+import { annonceDUneAnnulation, lignesDUneAnnulationNonVerifiee } from './annonce';
+import { lignesDeProtection } from './protection';
 import { TEXTES } from './textes';
 
 /** La taille d'import que `estUiMessage` accepte (`src/messages.ts`) : au-delà, le sandbox ignore la demande. */
@@ -48,7 +51,7 @@ function creerLigneDeCollection(collection: CollectionVue, aChange: () => void):
 function poserLaCollection(ligne: LigneDeCollection, collection: CollectionVue, analysee: boolean): void {
   ligne.case.checked = analysee;
   ligne.nom.textContent = collection.nom;
-  ligne.detail.textContent = collection.palettes ? TEXTES.palettesProtegees : TEXTES.variablesDeLaCollection(collection.nombre);
+  ligne.detail.textContent = TEXTES.variablesEtProtegees(collection.nombre, collection.protegees);
 }
 
 /** Monte la page Configuration dans le conteneur de la coquille. */
@@ -84,6 +87,22 @@ export function monterConfiguration(coquille: Coquille): void {
     return demande;
   }
 
+  let architectureEnVol: { readonly demande: number; readonly ucm: boolean } | null = null;
+  const architecture = createInterrupteur('architecture-ucm', TEXTES.fichierUcm, TEXTES.aideArchitecture, (ucm) => {
+    dire();
+    architectureEnVol = { demande: suivre(frontiere.regle({ type: 'architecture', ucm })), ucm };
+  });
+  const etatArchitecture = document.createElement('p');
+  etatArchitecture.className = 'subtitle';
+  etatArchitecture.setAttribute('role', 'status');
+
+  function poserLArchitecture(etat: Bilan['architecture'] | null): void {
+    architecture.poser(architectureEnVol ? architectureEnVol.ucm : etat === 'ucm');
+    architecture.bouton.disabled = etat === null;
+    etatArchitecture.textContent = etat === 'illisible' ? TEXTES.architectureIllisible : etat === 'future' ? TEXTES.architectureFuture : '';
+    etatArchitecture.hidden = etatArchitecture.textContent === '';
+  }
+
   // Collections analysées.
   const sansCollection = document.createElement('p');
   sansCollection.className = 'subtitle';
@@ -101,6 +120,26 @@ export function monterConfiguration(coquille: Coquille): void {
     const exclues = lignes.filter((ligne) => !ligne.case.checked).map((ligne) => ligne.id);
     dire();
     choixEnVol = { demande: suivre(frontiere.configurer(exclues)), exclues: new Set(exclues) };
+  }
+
+  /** Sous la liste : chaque cause de protection présente, avec son nombre et son explication. */
+  const causes = document.createElement('div');
+  causes.className = 'config-protections';
+  causes.hidden = true;
+
+  function poserLesCauses(protections: readonly ProtectionVue[]): void {
+    causes.hidden = protections.length === 0;
+    causes.replaceChildren(...lignesDeProtection(protections).map((ligne) => {
+      const bloc = document.createElement('div');
+      bloc.className = 'config-protection';
+      const nombre = document.createElement('p');
+      nombre.textContent = ligne.nombre;
+      const explication = document.createElement('p');
+      explication.className = 'subtitle';
+      explication.textContent = ligne.explication;
+      bloc.append(nombre, explication);
+      return bloc;
+    }));
   }
 
   /** Garde les lignes, donc le focus de la case, tant que les collections sont les mêmes. */
@@ -192,7 +231,8 @@ export function monterConfiguration(coquille: Coquille): void {
   const panneauDesReglages = document.createElement('div');
   panneauDesReglages.className = 'page-stack';
   panneauDesReglages.append(
-    section(creerIntertitre(TEXTES.collectionsAnalysees), sansCollection, liste),
+    section(creerIntertitre(TEXTES.architectureDuFichier), architecture.element, etatArchitecture),
+    section(creerIntertitre(TEXTES.collectionsAnalysees), sansCollection, liste, causes),
     section(creerIntertitre(TEXTES.reglesDeCeFichier), reglesBoutons),
   );
   const phraseDeLOnglet = document.createElement('p');
@@ -208,7 +248,9 @@ export function monterConfiguration(coquille: Coquille): void {
   coquille.configuration.replaceChildren(message, onglets.liste, phraseDeLOnglet, panneauDesReglages, historique.element);
 
   function lireLeBilan(bilan: Bilan | null): void {
+    poserLArchitecture(bilan?.architecture ?? null);
     poserLesCollections(bilan?.collections ?? []);
+    poserLesCauses(bilan?.protections ?? []);
     dernierRenommage = bilan?.dernierRenommage ?? null;
     historique.poser(dernierRenommage, bilan?.dernierImport ?? null);
     synchroniserLesBoutons();
@@ -217,6 +259,7 @@ export function monterConfiguration(coquille: Coquille): void {
   coquille.abonner((recu: MessageAAfficher, etat) => {
     switch (recu.type) {
       case 'bilan':
+        if (recu.demande === architectureEnVol?.demande) architectureEnVol = null;
         if (recu.demande === choixEnVol?.demande) choixEnVol = null;
         if (recu.demande === demandeDAnnulation) demandeDAnnulation = null;
         if (recu.demande === demandeDAnnulationDImport) demandeDAnnulationDImport = null;
@@ -230,6 +273,10 @@ export function monterConfiguration(coquille: Coquille): void {
         }
         break;
       case 'refus':
+        if (recu.demande === architectureEnVol?.demande) {
+          architectureEnVol = null;
+          poserLArchitecture(etat.bilan?.architecture ?? null);
+        }
         if (recu.demande === choixEnVol?.demande) {
           choixEnVol = null;
           poserLesCollections(etat.bilan?.collections ?? []);
@@ -250,7 +297,9 @@ export function monterConfiguration(coquille: Coquille): void {
           demandeDAnnulation = null;
           demandes.delete(recu.demande);
           const { statut, renommes, sautes, exclues = 0 } = recu.resultat;
-          if (exclues > 0) {
+          const annonce = annonceDUneAnnulation(recu.resultat);
+          if (annonce?.type === 'annulation-non-verifiee') dire(...lignesDUneAnnulationNonVerifiee(annonce, 'configuration'));
+          else if (exclues > 0) {
             dire(TEXTES.annulationDansUneCollectionExclue(renommes, exclues),
               ...(sautes > exclues ? [TEXTES.annulationAutresNomsNonRetablis(sautes - exclues)] : []));
           } else if (statut === 'refuse') dire(TEXTES.annulationDuRenommageRefusee);
@@ -260,6 +309,10 @@ export function monterConfiguration(coquille: Coquille): void {
         }
         break;
       case 'erreur':
+        if (recu.demande === architectureEnVol?.demande) {
+          architectureEnVol = null;
+          poserLArchitecture(recu.architecture ?? etat.bilan?.architecture ?? null);
+        }
         if (recu.demande === demandeDAnnulation) demandeDAnnulation = null;
         if (recu.demande === demandeDAnnulationDImport) demandeDAnnulationDImport = null;
         if (demandes.delete(recu.demande)) dire(TEXTES.erreur[recu.code]);

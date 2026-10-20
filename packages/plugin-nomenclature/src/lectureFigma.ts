@@ -1,36 +1,46 @@
 /** L'adaptateur ne conserve aucun nœud dans l'inventaire envoyé à l'interface. */
 import { CLES_PARTAGEES_DE_PALETTES, CLE_NOMMAGE_DE_PALETTES, ESPACE_PARTAGE } from '@ucm-kit/core/referentiel';
-import { marqueDeNommageLue, variablesSuiviesParPalettes, type LecteurDeVariable, type PortDeLecture } from './lecture';
+import { lireLaMarqueDeNommage, marqueurDePaletteLu } from '@ucm-kit/core/protocoles';
+import { lireLeSuiviDePalettes, type LecteurDeVariable, type PortDeLecture } from './lecture';
 
 /**
  * Lit alias, protection et palette sur des variables déjà rendues par Figma, sans attente. Une variable est protégée quand sa donnée
  * partagée `palette` n'est pas vide (variable créée par Palettes) ou quand le suivi racine `variables` de Palettes la liste
  * (variable reprise). La donnée racine se lit une fois, à la création du lecteur ; la donnée de chaque variable se lit une fois aussi.
- * La marque `nommage` de Palettes (racine de `ESPACE_PARTAGE`) se lit une fois aussi : une marque absente ou illisible se lit comme absente.
+ * La marque `nommage` de Palettes (racine de `ESPACE_PARTAGE`) se lit une fois aussi.
+ *
+ * Une lecture refusée n'est pas une absence. Quand le suivi racine ou la donnée `palette` d'une variable ne se lit pas, une variable
+ * de couleur sans marqueur peut être reprise par Palettes : elle est `indecidable`. Palettes ne crée, ne relève et ne reprend que des
+ * variables `COLOR` ; un `resolvedType` absent compte pour une couleur possible.
  */
 export function lecteurDeVariablesFigma(api: PluginAPI, variables: readonly Variable[]): LecteurDeVariable {
   const lues = new Map(variables.map((variable) => [variable.id, variable]));
-  let suivies: ReadonlySet<string>;
-  try { suivies = variablesSuiviesParPalettes(api.root.getSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.variables)); } catch { suivies = new Set(); }
-  let marque: boolean;
-  try { marque = marqueDeNommageLue(api.root.getSharedPluginData(ESPACE_PARTAGE, CLE_NOMMAGE_DE_PALETTES)); } catch { marque = false; }
-  const palettes = new Map<string, string>();
-  const palette = (variable: { readonly id: string }): string => {
+  const suivi = lireLeSuiviDePalettes(() => api.root.getSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.variables));
+  const marque = lireLaMarqueDeNommage(() => api.root.getSharedPluginData(ESPACE_PARTAGE, CLE_NOMMAGE_DE_PALETTES));
+  /** `null` : la lecture de la donnée `palette` de la variable a été refusée. */
+  const palettes = new Map<string, string | null>();
+  const palette = (variable: { readonly id: string }): string | null => {
     let lue = palettes.get(variable.id);
     if (lue === undefined) {
-      lue = lues.get(variable.id)?.getSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.palette) ?? '';
+      try { lue = lues.get(variable.id)?.getSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.palette) ?? ''; } catch { lue = null; }
       palettes.set(variable.id, lue);
     }
     return lue;
+  };
+  const protegee = (variable: { readonly id: string }): boolean => (suivi.etat === 'lu' && suivi.ids.has(variable.id)) || marqueurDePaletteLu(palette(variable) ?? '') !== null;
+  const peutEtreUneCouleur = (variable: { readonly id: string }): boolean => {
+    const type = lues.get(variable.id)?.resolvedType;
+    return type === undefined || type === 'COLOR';
   };
   return {
     cibleAlias: (variable) => {
       const premier = Object.values(lues.get(variable.id)?.valuesByMode ?? {})[0];
       return typeof premier === 'object' && premier !== null && 'type' in premier && premier.type === 'VARIABLE_ALIAS' ? premier.id : undefined;
     },
-    protegee: (variable) => suivies.has(variable.id) || palette(variable) !== '',
-    palette: (variable) => palette(variable) || undefined,
-    palettesSuiventLesRegles: () => marque,
+    protegee,
+    palette: (variable) => marqueurDePaletteLu(palette(variable) ?? '') ?? undefined,
+    indecidable: (variable) => peutEtreUneCouleur(variable) && !protegee(variable) && (suivi.etat === 'refuse' || palette(variable) === null),
+    marqueDePalettes: () => marque,
   };
 }
 
@@ -47,6 +57,7 @@ export function creerPortDeLecture(api: PluginAPI): PortDeLecture {
     cibleAlias: (variable) => lecteur?.cibleAlias(variable),
     protegee: (variable) => lecteur?.protegee(variable) ?? false,
     palette: (variable) => lecteur?.palette(variable),
-    palettesSuiventLesRegles: () => lecteur?.palettesSuiventLesRegles?.() ?? false,
+    indecidable: (variable) => lecteur?.indecidable?.(variable) ?? false,
+    marqueDePalettes: () => lecteur?.marqueDePalettes?.() ?? 'absente',
   };
 }

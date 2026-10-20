@@ -621,3 +621,59 @@ test('avec le maître courant, la règle @icons créée garde le texte du maîtr
 
   assert.equal(icone, AIDES.icons.icon);
 });
+
+const REFUS_DU_KIT_FUTUR = 'Ce kit de règles vient d’une version plus récente d’UCM Exporter. '
+  + 'Mettez le plugin à jour pour créer des règles.';
+
+/** Le maître du kit, dont la description porte (ou non) le numéro de version. */
+function maitreDeVersion(description?: string) {
+  const maitre = maitreDeRegles(catalogueDeRegles(), SECTIONS);
+  if (description !== undefined) maitre.description = description;
+  return maitre;
+}
+
+test('un kit d’une version plus récente refuse la création, avec le texte prévu', async (t) => {
+  const { sources, refus } = await sourcesDeLaPage(t, [maitreDeVersion('Kit.\nucm-kit-de-regles: 2')]);
+
+  assert.equal(sources, null);
+  assert.equal(refus, REFUS_DU_KIT_FUTUR);
+});
+
+test('un kit futur lu par une instance refuse aussi la création', async (t) => {
+  const maitre = maitreDeVersion('ucm-kit-de-regles: 7');
+  const instance = instanceDe(maitre, '.componentRules', [
+    noeud('TEXT', 'component-name', [], { characters: 'Chip' }),
+  ]);
+
+  const { sources, refus } = await sourcesDeLaPage(t, [instance]);
+
+  assert.equal(sources, null);
+  assert.equal(refus, REFUS_DU_KIT_FUTUR);
+});
+
+test('la version 1, la version absente et une autre graphie de la ligne créent', async (t) => {
+  for (const description of [undefined, '', 'Kit de règles.', 'ucm-kit-de-regles: 1', 'UCM-Kit-De-Regles :1']) {
+    const { sources, refus } = await sourcesDeLaPage(t, [maitreDeVersion(description)]);
+    assert.equal(refus, null, String(description));
+    assert.ok(sources, String(description));
+  }
+});
+
+test('un kit futur ne change pas l’export des règles déjà rédigées', async (t) => {
+  const catalogue = catalogueDeRegles();
+  const conteneur = noeud('INSTANCE', '.componentRules', [
+    noeud('TEXT', 'component-name', [], { characters: 'Root' }),
+    reglePosee(catalogue, 'usage', { content: 'Action principale du formulaire.' }),
+  ]);
+  const lire = async (enfants: any[]) => {
+    monterPage(t, enfants);
+    const { releve: _releve, ...lues } = await extractRules({ name: 'Root' } as ComponentSetNode);
+    return lues;
+  };
+
+  const sansMaitre = await lire([conteneur]);
+  const avecKitFutur = await lire([maitreDeVersion('ucm-kit-de-regles: 2'), conteneur]);
+
+  assert.equal(avecKitFutur.intent?.usage, 'Action principale du formulaire.');
+  assert.deepEqual(avecKitFutur, sansMaitre);
+});

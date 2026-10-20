@@ -5,8 +5,20 @@ import vm from 'node:vm';
 import {
   AXES_DES_COLLECTIONS, CONVENTIONS, CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT,
   COLLECTIONS, COLLECTIONS_SANS_PORTEE, DESTINATION_DES_PALETTES, FORMES_ANCIENNES_DES_COLLECTIONS, FORMES_DES_CHEMINS,
-  REGISTRES, REGISTRES_ARCHITECTURE, cheminConforme, estNeutre, normaliserLesNoms, type Collection,
+  REGISTRES, REGISTRES_ARCHITECTURE, cheminConforme, ciblesAdmises, estNeutre, normaliserLesNoms, type Collection,
 } from '../src/referentiel/index.js';
+
+test('seules les couleurs des composants restreignent leurs cibles au thème', () => {
+  assert.deepEqual(ciblesAdmises('components', 'couleur'), ['theme']);
+  for (const nature of ['dimension', 'typographie'] as const) {
+    assert.deepEqual(ciblesAdmises('components', nature), ['theme', 'layout', 'typography']);
+  }
+  for (const collection of COLLECTIONS.filter((collection) => collection !== 'components')) {
+    for (const nature of ['couleur', 'dimension', 'typographie'] as const) {
+      assert.deepEqual(ciblesAdmises(collection, nature), CIBLES_DES_COLLECTIONS[collection]);
+    }
+  }
+});
 
 test('les collections suivent l’ordre de la vue et séparent les cibles de couleur des composants', () => {
   assert.deepEqual(COLLECTIONS, ['components', 'theme', 'brands', 'utility', 'primitives', 'layout', 'typography']);
@@ -125,9 +137,15 @@ test('les formes et registres portent des identifiants distincts et des position
       assert.ok(terme.definition[langue]);
     }
   }
-  for (const formes of Object.values(FORMES_DES_CHEMINS)) for (const forme of formes) {
-    assert.ok(forme.length > 0);
-    for (const position of forme) assert.ok(position.registre.id);
+  const identifiants = Object.values(FORMES_DES_CHEMINS).flatMap((formes) => formes.map((forme) => forme.id));
+  assert.equal(new Set(identifiants).size, identifiants.length, 'deux formes ne portent jamais le même identifiant');
+  for (const [collection, formes] of Object.entries(FORMES_DES_CHEMINS)) for (const forme of formes) {
+    assert.ok(forme.id.startsWith(`${collection}:`), forme.id);
+    assert.ok(forme.positions.length > 0);
+    for (const position of forme.positions) {
+      assert.ok(position.registre.id);
+      assert.ok(position.role);
+    }
   }
 });
 

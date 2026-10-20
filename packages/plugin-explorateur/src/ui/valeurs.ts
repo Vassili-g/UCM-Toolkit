@@ -5,18 +5,20 @@
  * CSS qu'après validation de ses composantes.
  */
 import { nomComplet } from '../copie';
+import { versSrgb } from '../espace';
 import type { Index } from '../indexation';
-import { hexaDeCouleur, pourcentageDOpacite, texteDeValeur, type Couleur, type ValeurSource, type ValeurTerminale } from '../modele';
+import { espaceDuReleve, pourcentageDOpacite, texteDeValeur, type Couleur, type EspaceDuReleve, type ValeurSource, type ValeurTerminale } from '../modele';
 import type { Resultat } from '../resolution';
 import { TEXTES } from './textes';
 
 const composanteValide = (composante: number): boolean => Number.isFinite(composante) && composante >= 0 && composante <= 1;
 
 /** La couleur CSS d'une couleur rangée, ou `null` quand une composante sort de [0, 1]. */
-export function couleurCss(couleur: Couleur): string | null {
+export function couleurCss(couleur: Couleur, espace: EspaceDuReleve = 'srgb'): string | null {
   if (![couleur.r, couleur.g, couleur.b, couleur.a].every(composanteValide)) return null;
+  const affichee = versSrgb(couleur, espace).couleur;
   const canal = (composante: number) => Math.round(composante * 255);
-  return `rgba(${canal(couleur.r)}, ${canal(couleur.g)}, ${canal(couleur.b)}, ${couleur.a})`;
+  return `rgba(${canal(affichee.r)}, ${canal(affichee.g)}, ${canal(affichee.b)}, ${affichee.a})`;
 }
 
 /**
@@ -25,13 +27,13 @@ export function couleurCss(couleur: Couleur): string | null {
  * garde un contour sombre sur l'écran sombre. Une couleur transparente garde
  * le contour commun, qui cadre le damier.
  */
-export function pastille(couleur: Couleur): HTMLSpanElement {
+export function pastille(couleur: Couleur, espace: EspaceDuReleve = 'srgb'): HTMLSpanElement {
   const element = document.createElement('span');
   element.className = 'pastille';
   element.setAttribute('aria-hidden', 'true');
   const remplissage = document.createElement('span');
   remplissage.className = 'pastille-remplissage';
-  const css = couleurCss(couleur);
+  const css = couleurCss(couleur, espace);
   if (css) remplissage.style.background = css;
   if (css && couleur.a === 1) {
     element.classList.add('pastille-opaque');
@@ -42,31 +44,27 @@ export function pastille(couleur: Couleur): HTMLSpanElement {
 }
 
 /** Le texte affiché d'une valeur terminale : la chaîne vide se nomme, rien n'est omis. */
-export function texteAffiche(valeur: ValeurTerminale): string {
+export function texteAffiche(valeur: ValeurTerminale, espace: EspaceDuReleve = 'srgb'): string {
   if (valeur.nature === 'texte' && valeur.texte === '') return TEXTES.chaineVide;
-  if (valeur.nature === 'couleur') {
-    const { hexa } = hexaDeCouleur(valeur.couleur);
-    return hexa;
-  }
-  return texteDeValeur(valeur);
+  return texteDeValeur(valeur, espace);
 }
 
 /** Une valeur terminale : pastille éventuelle et texte. `sansPastille` laisse la pastille à l'alias voisin. */
-export function rendreValeur(valeur: ValeurTerminale, sansPastille = false): HTMLSpanElement {
+export function rendreValeur(valeur: ValeurTerminale, sansPastille = false, espace: EspaceDuReleve = 'srgb'): HTMLSpanElement {
   const element = document.createElement('span');
   element.className = 'valeur';
-  if (valeur.nature === 'couleur' && !sansPastille) element.append(pastille(valeur.couleur));
+  if (valeur.nature === 'couleur' && !sansPastille) element.append(pastille(valeur.couleur, espace));
   const texte = document.createElement('span');
   texte.className = 'valeur-texte';
   texte.classList.toggle('valeur-vide', valeur.nature === 'texte' && valeur.texte === '');
-  texte.textContent = valeur.nature === 'non-prise-en-charge' ? TEXTES.nonPrisEnCharge : texteAffiche(valeur);
+  texte.textContent = valeur.nature === 'non-prise-en-charge' ? TEXTES.nonPrisEnCharge : texteAffiche(valeur, espace);
   element.append(texte);
   return element;
 }
 
 /** Le résultat d'une chaîne : sa valeur, ou le nom de son statut. */
-export function rendreResultat(resultat: Resultat, sansPastille = false): HTMLSpanElement {
-  if (resultat.statut === 'resolu') return rendreValeur(resultat.valeur, sansPastille);
+export function rendreResultat(resultat: Resultat, sansPastille = false, espace: EspaceDuReleve = 'srgb'): HTMLSpanElement {
+  if (resultat.statut === 'resolu') return rendreValeur(resultat.valeur, sansPastille, espace);
   const element = document.createElement('span');
   element.className = 'statut-echec';
   element.textContent = TEXTES.statut[resultat.statut];
@@ -90,13 +88,14 @@ export function rendreValeurResolue(index: Index, source: ValeurSource | undefin
   const element = document.createElement('span');
   element.className = 'valeur-resolue';
   const estAlias = source?.nature === 'alias';
+  const espace = espaceDuReleve(index.releve);
   if (source?.nature === 'alias') {
     const cible = source.cible;
     const bouton = document.createElement('button');
     bouton.type = 'button';
     bouton.className = 'alias';
     const nom = nomDeCible(index, cible);
-    if (resultat.statut === 'resolu' && resultat.valeur.nature === 'couleur') bouton.append(pastille(resultat.valeur.couleur));
+    if (resultat.statut === 'resolu' && resultat.valeur.nature === 'couleur') bouton.append(pastille(resultat.valeur.couleur, espace));
     const libelle = document.createElement('span');
     libelle.className = 'alias-nom';
     libelle.textContent = index.variables.get(cible)?.nom ?? nom;
@@ -115,9 +114,9 @@ export function rendreValeurResolue(index: Index, source: ValeurSource | undefin
     bouton.addEventListener('click', () => suivre(cible));
     element.append(bouton);
   } else if (source && resultat.statut !== 'resolu') {
-    element.append(rendreValeur(source));
+    element.append(rendreValeur(source, false, espace));
   }
-  const rendu = rendreResultat(resultat, estAlias);
+  const rendu = rendreResultat(resultat, estAlias, espace);
   rendu.classList.toggle('valeur-rendue', estAlias);
   rendu.dataset.chaine = survol.variable;
   rendu.dataset.mode = survol.mode;

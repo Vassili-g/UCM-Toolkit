@@ -274,6 +274,17 @@ export const TEXTES = {
   ecartsExport: 'Figma comparé à l’export',
   ecartExport: { presence: 'Absent de l’export', type: 'Type différent', alias: 'Alias différent', valeur: 'Valeur différente', mode: 'Mode absent de l’export' } as Record<string, string>,
   aucunEcartExport: 'L’export porte la même chose que Figma pour ce token.',
+  aucunEcartDansLesModesComparesExport: 'Aucun écart dans les modes comparés.',
+  limiteExport: {
+    'mode-sans-valeur': (mode: string) => `Mode ${mode} : Figma ne donne aucune valeur. Rien n’est comparé.`,
+    'alias-a-opacite': (mode: string) => `Mode ${mode} : un alias avec opacité n’est pas comparé.`,
+    'forme-inconnue': (mode: string) => `Mode ${mode} : la valeur de l’export n’est pas comparée. Sa forme n’est pas prise en charge.`,
+    'unite-relative': (mode: string, unite: string) => `Mode ${mode} : l’export écrit cette valeur en ${unite}. Sa taille en pixels dépend de la page. Elle n’est pas comparée.`,
+    'unite-inconnue': (mode: string, unite: string) => `Mode ${mode} : l’unité ${unite} de l’export n’est pas comparée.`,
+    'espace-inconnu': (mode: string, espace: string) => `Mode ${mode} : l’espace de couleur ${espace} de l’export n’est pas comparé.`,
+    'courbe-sans-points': (mode: string) => `Mode ${mode} : cette courbe de Figma n’a pas de points de contrôle. Elle n’est pas comparée.`,
+  },
+  verifierAMainExport: 'Vérifiez à la main les modes non comparés.',
   fraicheurExport: 'Un écart peut venir d’un export antérieur à vos modifications : réexportez avant de corriger.',
   palettesTitre: 'Recette UCM Palettes',
   palettesActiver: 'Lire la recette UCM Palettes',
@@ -297,7 +308,17 @@ export const TEXTES = {
   profilAide: 'Associez chaque collection à sa couche ; une collection sans couche n’est pas contrôlée.',
   coucheDe: (nom: string) => `Couche de ${nom}`,
   sansCouche: 'Aucune',
-  profilConstats: (nombre: number) => (nombre === 0 ? 'Aucun écart au profil.' : `${nombre} écart${nombre > 1 ? 's' : ''} au profil`),
+  profilConstats: (nombre: number, limites = 0) => {
+    if (nombre === 0) return limites === 0 ? 'Aucun écart au profil.' : 'Aucun écart dans ce qui a été contrôlé.';
+    return `${nombre} écart${nombre > 1 ? 's' : ''} au profil`;
+  },
+  profilLimites: (nombre: number) => (nombre === 1 ? '1 contrôle n’a pas pu se faire.' : `${nombre} contrôles n’ont pas pu se faire.`),
+  profilLimite: {
+    'role-inconnu': (variable: string) => `${variable} : son rôle dans le thème n’est pas reconnu. Sa portée et sa nuance ne sont pas vérifiées.`,
+    'mode-non-reconnu': (mode: string) => `Le mode ${mode} n’est pas reconnu. Sa nuance n’est pas vérifiée. Dans UCM Nomenclature, déclarez ce mot comme une autre écriture de light ou de dark.`,
+    'mode-sans-valeur': (variable: string, mode: string) => `${variable} n’a pas de valeur dans le mode ${mode}. Ce mode n’est pas contrôlé.`,
+    'cible-sans-couche': (variable: string, collection: string) => `${variable} vise une variable de la collection ${collection}, qui n’a pas de couche. Associez-lui une couche pour la contrôler.`,
+  },
   profilRegles: {
     couche: {
       detail: (nom: string, cible: string, couche: string) => `${nom} vise ${cible}, dans la couche ${couche}, que sa couche ne vise pas.`,

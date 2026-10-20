@@ -34,13 +34,13 @@ import type { ComposedInstances } from './exportableNodes';
 import type { PublishedNodePaths } from './extractLayout';
 import { textSlots } from './extractVariantTypography';
 import {
-  isDisabledStateValue,
   isStateProperty,
   normalizePropKey,
   normalizePropValue,
 } from './parsers';
 import type { ContractPropertyModel } from './parsers';
 import { figmaPath } from './slotRelations';
+import { estUneValeurDesactivee } from '@ucm-kit/core/format';
 import type {
   ComposedDependency,
   ContractSample,
@@ -194,7 +194,7 @@ function argumentsOf(
     // l'axe : c'est elle qui permet de rapprocher cet échantillon d'un
     // `variants[].values` de ce contrat-là. Sa valeur « Disable » porte en plus
     // la prop publique que le contrat en tire.
-    if (isStateProperty(key) && isDisabledStateValue(property.value)) {
+    if (isStateProperty(key) && estUneValeurDesactivee(property.value)) {
       Object.defineProperty(args, 'disabled', {
         value: true, enumerable: true, writable: true, configurable: true,
       });

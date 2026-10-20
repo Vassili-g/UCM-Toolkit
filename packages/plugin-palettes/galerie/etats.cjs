@@ -150,6 +150,12 @@ function reprisePartielleDeSlate() {
   return { palette: reprise.palette, fichier: { ...reprise.fichier, variables, suivi: { ...reprise.fichier.suivi, destination, palettes: { [reprise.palette.id]: { collection: COLLECTION_DES_TOKENS.id, groupe: '', chemin: 'slate', modes: { light: '7:0' }, variables: suivies, liaison: 'reprise' } } } } };
 }
 
+/** Le fichier où une variable de `palette`, la clé de son plan `cle`, porte le nom `nom` : une autre palette du plugin tient ce nom. */
+function avecUneVariableRenommee(fichier, palette, cle, nom) {
+  const { id } = fichier.suivi.palettes[palette.id].variables[cle];
+  return { ...fichier, variables: fichier.variables.map((variable) => (variable.id === id ? { ...variable, nom } : variable)) };
+}
+
 function avecAncienneSortie(fichier, palette) {
   const suivie = fichier.suivi.palettes[palette.id];
   const ids = new Set(Object.values(suivie.variables).map((variable) => variable.id));
@@ -1007,6 +1013,63 @@ const ETATS = [
     ],
   },
   {
+    id: 'nom-pris-par-une-autre-palette',
+    titre: 'Nom pris par une autre palette',
+    quand: 'Une variable de Jaune porte le nom « color/ardoise/soft/light/50 », que le plan d’Ardoise écrit « color/Ardoise/soft/light/50 ». Le designer déplie Ardoise avant toute écriture.',
+    regarder: 'Au-dessus de l’aperçu d’Ardoise, le message « Tokens non écrits : Ardoise » : « La variable « color/Ardoise/soft/light/50 » appartient déjà à Jaune. » et « Renommez l’une des deux palettes, ou changez le groupe de la destination des tokens. » La ligne « Tokens Figma » dit « Jamais écrits » et « Noms déjà pris par Jaune », sans « Écrire dans les tokens ».',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(avecUneVariableRenommee(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]]), JAUNE, 'soft/light/50', 'color/ardoise/soft/light/50')),
+      ouvrirLaPlanche,
+      deplier(TROIS_PALETTES[2]),
+    ],
+  },
+  {
+    id: 'ecriture-defaite',
+    titre: 'Écriture défaite',
+    quand: 'Le designer écrit Ardoise ; Figma refuse d’enregistrer le suivi, et le plugin défait toute l’écriture.',
+    regarder: 'Sous le bloc de la connexion, le message « Écriture des tokens annulée » : « Figma a refusé d’enregistrer l’écriture. Le plugin l’a défaite : le fichier est comme avant. » et « Synchronisez dans Gestion, puis réessayez. », avec le détail de l’erreur replié. La fiche d’Ardoise garde « Jamais écrits » et « Écrire dans les tokens ».',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]])),
+      ouvrirLaPlanche,
+      deplier(TROIS_PALETTES[2]),
+      { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="ecrire"]' },
+      { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="confirmer-ecriture"]' },
+      { message: { type: 'variables-ecrites', demande: 3, resultat: { issue: 'defaite', message: 'rangement refusé : ucm_palettes/variables', restes: [] } } },
+    ],
+  },
+  {
+    id: 'ecriture-defaite-avec-restes',
+    titre: 'Écriture défaite, variables restées',
+    quand: 'Le designer écrit Ardoise ; Figma refuse d’enregistrer le suivi, et le plugin ne peut pas retirer deux variables qu’il vient de créer.',
+    regarder: 'Sous le bloc de la connexion, le message « Écriture des tokens annulée » : « Figma a refusé d’enregistrer l’écriture. Le plugin n’a pas pu la défaire entièrement. 2 variables restent changées, dont color/Ardoise/soft/light/50. » et « Faites Ctrl+Z dans Figma pour revenir à l’état d’avant, puis réessayez. »',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]])),
+      ouvrirLaPlanche,
+      deplier(TROIS_PALETTES[2]),
+      { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="ecrire"]' },
+      { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="confirmer-ecriture"]' },
+      { message: { type: 'variables-ecrites', demande: 3, resultat: { issue: 'defaite', message: 'rangement refusé : ucm_palettes/variables', restes: [{ reste: 'variable-creee', id: 'VariableID:9:1', nom: 'color/Ardoise/soft/light/50' }, { reste: 'variable-creee', id: 'VariableID:9:2', nom: 'color/Ardoise/soft/light/100' }] } } },
+    ],
+  },
+  {
+    id: 'ecriture-interrompue-avec-restes',
+    titre: 'Écriture interrompue, variables restées',
+    quand: 'Le designer écrit Ardoise ; Figma lève au milieu de la palette, et le plugin ne peut pas retirer deux variables qu’il vient de créer.',
+    regarder: 'Sous l’encart d’Ardoise, le message « Écriture interrompue : Ardoise » : « Figma a interrompu l’écriture. 2 variables gardent un changement de cette écriture, dont color/Ardoise/soft/light/50. » et « Écrivez de nouveau la palette : elle proposera de remplacer ces variables. »',
+    existe: true,
+    atteinte: [
+      gestionDeTroisPalettes(tokensEcrits(rangee(TROIS_PALETTES), [BLEU, TROIS_PALETTES[1]])),
+      ouvrirLaPlanche,
+      deplier(TROIS_PALETTES[2]),
+      { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="ecrire"]' },
+      { clic: '#panneau-gestion .palette-depliable[data-palette] [data-geste="confirmer-ecriture"]' },
+      { message: { type: 'variables-ecrites', demande: 3, resultat: { issue: 'ecrites', palettes: [{ palette: 'p-5c1d0e77', issue: 'interrompue', message: 'écriture de valeur refusée', restes: [{ reste: 'variable-creee', id: 'VariableID:9:1', nom: 'color/Ardoise/soft/light/50' }, { reste: 'variable-creee', id: 'VariableID:9:2', nom: 'color/Ardoise/soft/light/100' }] }] } } },
+    ],
+  },
+  {
     id: 'palette-supprimee-avec-variables',
     titre: 'Palette supprimée, variables restées',
     quand: 'Ardoise a été supprimée du plugin ; son cadre et ses 44 variables sont restés dans Figma. Le designer clique « Supprimer les variables… ».',
@@ -1086,7 +1149,7 @@ const ETATS = [
     id: 'reprise-dans-gestion',
     titre: 'Reprise dans Gestion',
     quand: 'Dans Gestion, le designer clique « Mettre à jour » sur la ligne des tokens de slate, reprise et recalculée.',
-    regarder: 'La fiche de slate parmi les palettes du plugin : « Tokens Figma », « À mettre à jour », « primitives / slate » et le nombre de couleurs qui changent. Dessous, l’encart de remplacement : « Remplacer N couleurs de slate dans Figma ? », chaque variable avec sa valeur dans Figma et sa valeur dans le plugin, six au plus, « Et N autres. Les variables gardent leur nom et leurs liaisons. », puis « Annuler » et « Remplacer N couleurs ». L’intertitre « Déjà dans le fichier · 1 » ne précède plus que brand/emerald.',
+    regarder: 'La fiche de slate parmi les palettes du plugin : « Tokens Figma », « À mettre à jour », « primitives / slate », puis chaque écart de la mise à jour : variables à créer, couleurs qui changent, variables à renommer. Dessous, l’encart de remplacement : « Remplacer N couleurs de slate dans Figma ? », chaque variable avec sa valeur dans Figma et sa valeur dans le plugin, six au plus, « Et N autres. Les variables gardent leur nom et leurs liaisons. », puis « Annuler » et « Remplacer N couleurs ». L’intertitre « Déjà dans le fichier · 1 » ne précède plus que brand/emerald.',
     existe: true,
     atteinte: [
       ((reprise) => etatDuFichier(rangee([reprise.palette, BLEU]), 'SRGB', PLANCHE_VIDE, 1, reprise.fichier))(repriseDeSlate(false)),

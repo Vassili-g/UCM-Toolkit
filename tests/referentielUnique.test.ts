@@ -16,10 +16,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
+import { NUMEROS_DE_PALETTE } from '../packages/kit/src/referentiel/vocabulaire';
 
 const racine = path.resolve(__dirname, '..');
 
-const CRANS = new Set([50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950]);
+const CRANS = new Set<number>(NUMEROS_DE_PALETTE);
 const ETATS = ['default', 'hover', 'pressed', 'press', 'disabled', 'disable', 'focus'];
 
 /** Les noms de `COLLECTIONS` et les tags de `TAGS_DES_REGLES`, lus dans le référentiel. */
@@ -113,16 +114,6 @@ const EXCEPTIONS: { fichier: string; extrait: string; raison: string }[] = [
     fichier: 'packages/plugin-palettes/src/ui/interfaceDeTest.ts',
     extrait: "['default', 'hover', 'pressed', 'focus']",
     raison: "Les états que l'Interface de test montre, focus compris : un choix de l'écran, pas la liste des états du thème.",
-  },
-  {
-    fichier: 'packages/plugin-exporter/src/contract/extractRules.ts',
-    extrait: "{ usage: ['content'], do: ['content']",
-    raison: "Une table typée `Record<RuleTag, …>` : le compilateur la force à suivre `TAGS_DES_REGLES`, elle ne peut pas dériver.",
-  },
-  {
-    fichier: 'packages/plugin-exporter/src/template/sources.ts',
-    extrait: "{ usage: 'content', prop: 'content', boolean: 'content'",
-    raison: "Une table `Partial<Record<RuleTag, …>>` des tags dont le moteur lit l'aide : un sous-ensemble choisi, typé sur `RuleTag`.",
   },
   {
     fichier: 'packages/plugin-palettes/src/i18n/en.ts',
@@ -236,20 +227,20 @@ function recopiesDuTexte(fichier: string, texte: string): Trouvaille[] {
       trouvees.push({ fichier, ligne: source.slice(0, index).split('\n').length, texte: texte.replace(/\s+/g, ' ').slice(0, 90), regle });
     }
   };
-  // Une union de littéraux (`'a' | 'b' | 'c'`) recopie une famille comme un tableau. Les modes et les profils
-  // en sont exclus : `'light' | 'dark'` est un type à deux valeurs que le code écrit partout, sans liste à maintenir.
+  // Une union de littéraux recopie la famille même quand elle ne sert qu'à typer une valeur.
   const litteral = String.raw`(?:'[^'\n]*'|"[^"\n]*"|` + '`[^`\\n$]*`' + String.raw`|\d+)`;
   for (const m of source.matchAll(new RegExp(`${litteral}(?:\\s*\\|\\s*${litteral})+`, 'g'))) {
     const mots = [...m[0].matchAll(/'([^'\n]*)'|"([^"\n]*)"|`([^`\n$]*)`/g)].map((t) => t[1] ?? t[2] ?? t[3]);
     const nombres = [...m[0].matchAll(/(?<![\w.'"])(\d+)(?![\w.'"])/g)].map((t) => Number(t[1]));
-    signaler(m.index ?? 0, m[0], mots, nombres, REGLES.filter((r) => !['modes', 'profils'].includes(r.nom)));
+    signaler(m.index ?? 0, m[0], mots, nombres);
   }
-  // Un objet dont les clés recopient une famille (`{ hover: …, pressed: … }`). Les modes et les profils
-  // en sont exclus : un enregistrement `{ light, dark }` est une structure de type ou de calcul, pas une liste.
+  // Pour les modes et profils, seules les déclarations de type se contrôlent ici. Les objets de valeurs suivent leur type au compilateur.
   for (const m of source.matchAll(/\{([^{}]*)\}/g)) {
     const cles = [...m[1].matchAll(/(?:^|[,{;\s])(?:'([^'\n]+)'|"([^"\n]+)"|([\w-]+))\s*:/g)].map((t) => t[1] ?? t[2] ?? t[3]);
     if (cles.length < 2) continue;
-    signaler(m.index ?? 0, m[0], cles, cles.filter((c) => /^\d+$/.test(c)).map(Number), REGLES.filter((r) => !['modes', 'profils'].includes(r.nom)));
+    const declarationDeType = /\breadonly\b|;/u.test(m[1]);
+    signaler(m.index ?? 0, m[0], cles, cles.filter((c) => /^\d+$/.test(c)).map(Number),
+      REGLES.filter((r) => declarationDeType || !['modes', 'profils'].includes(r.nom)));
   }
   return trouvees;
 }
@@ -296,7 +287,9 @@ test('le contrôle voit une copie des crans, des modes, des profils, des états,
     'const l = { light: 1, dark: 2 };',
     "type M = 'light' | 'dark';",
     "type L = 'theme' | 'primitives' | 'layouts';",
+    'type N = { readonly light: number; readonly dark: number };',
+    'const o = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950, 1000, 1050];',
   ].join('\n');
   const noms = recopiesDuTexte('exemple.ts', exemple).map((t) => `${t.ligne}:${t.regle.nom}`);
-  assert.deepEqual(noms, ['1:crans', '2:modes', '3:profils', '4:états', '5:collections', "6:tags des règles d'usage", '10:états', '14:collections', '11:états']);
+  assert.deepEqual(noms, ['1:crans', '2:modes', '3:profils', '4:états', '5:collections', "6:tags des règles d'usage", '16:crans', '10:états', '13:modes', '14:collections', '11:états', '15:modes']);
 });

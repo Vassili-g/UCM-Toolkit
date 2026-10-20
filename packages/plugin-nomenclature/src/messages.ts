@@ -1,11 +1,11 @@
 /** Contrat des messages entre l'écran et le sandbox : les demandes de l'écran, les réponses numérotées du sandbox et le contrôle de forme des demandes. */
-import type { Convention, OrigineDuTerme, IndiceDePaire, CategorieDeNom, NatureDeSegment } from '@ucm-kit/core/referentiel';
+import type { ArchitectureDuFichier, Convention, OrigineDuTerme, IndiceDePaire, CategorieDeNom, NatureDeSegment } from '@ucm-kit/core/referentiel';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
-import type { EcritureChoisie } from 'ucm-plugin-socle/src/reglesDeNommage';
-import type { MotifDeChemin } from 'ucm-plugin-socle/src/cheminsPublies';
+import type { EcritureChoisie } from '@ucm-kit/core/protocoles';
+import type { CauseDeProtection, MotifDeChemin } from '@ucm-kit/core/nommage';
 import { estConventions } from './conventions';
 
-export type { EcritureChoisie, MotifDeChemin };
+export type { CauseDeProtection, EcritureChoisie, MotifDeChemin };
 
 /** Un nom est coché si son groupe principal l'est et qu'il n'est pas exclu, ou s'il est inclus. */
 export interface Selection { readonly groupes: readonly string[]; readonly exclus: readonly string[]; readonly inclus: readonly string[] }
@@ -15,6 +15,7 @@ export type Reponse =
   | { readonly type: 'corriger'; readonly mots: readonly string[] } | { readonly type: 'voulu' }
   | { readonly type: 'collection'; readonly cible: string | null };
 export type GesteSurLesRegles =
+  | { readonly type: 'architecture'; readonly ucm: boolean }
   | { readonly type: 'ecriture'; readonly ecriture: EcritureChoisie }
   | { readonly type: 'remplacer-par'; readonly terme: string; readonly par: string }
   | { readonly type: 'remplace-termes'; readonly terme: string; readonly termes: readonly string[] }
@@ -120,15 +121,24 @@ export type QuestionVue =
   | { readonly type: 'ecriture-du-terme'; readonly cle: string; readonly indice: 'faute' | 'mots-colles'; readonly terme: TermeVue; readonly proposition: readonly string[]; readonly reference: { readonly mot: string; readonly nombre: number } | null; readonly effet: LigneVue | null }
   | { readonly type: 'collection'; readonly cle: string; readonly nom: string; readonly nombre: number; readonly proposee: string | null };
 export interface LigneDEcriture { readonly convention: Convention; readonly suivent: number; readonly total: number; readonly exemple: LigneVue | null }
-export interface CollectionVue { readonly id: string; readonly nom: string; readonly nombre: number; readonly analysee: boolean; readonly palettes: boolean }
+/** `protegees` compte les variables de la collection que `causeDeProtection` empêche de renommer, toutes causes, collection exclue comprise. */
+export interface CollectionVue { readonly id: string; readonly nom: string; readonly nombre: number; readonly analysee: boolean; readonly protegees: number }
+/** Le nombre de variables qu'une cause de protection empêche de renommer. */
+export interface ProtectionVue { readonly cause: CauseDeProtection; readonly nombre: number }
 export interface Bilan {
   readonly generation: number;
+  readonly architecture: ArchitectureDuFichier;
   readonly premierLancement: boolean;
   readonly sansVariableLocale: boolean;
+  /** Vrai quand une règle de nommage vient d'une version plus récente du plugin : rien ne s'applique tant que le plugin n'est pas à jour. */
+  readonly reglesFutures: boolean;
   readonly ecriture: { readonly groupes: LigneDEcriture; readonly variables: LigneDEcriture; readonly collections: { readonly reconnues: number; readonly total: number } };
   readonly groupes: readonly GroupeVue[];
   readonly bloques: readonly BloqueVue[];
+  /** Le total des variables des collections analysées que `causeDeProtection` empêche de renommer, toutes causes, même celles dont le nom suit déjà les règles. */
   readonly proteges: number;
+  /** Une ligne par cause présente, dans l'ordre de `CauseDeProtection`, sans nombre nul. La somme vaut `proteges`. */
+  readonly protections: readonly ProtectionVue[];
   readonly questions: readonly QuestionVue[];
   readonly autresPistes: number;
   readonly plusTard: readonly QuestionVue[];
@@ -198,15 +208,20 @@ export type ConflitVue =
   | { readonly type: 'contredit-ucm'; readonly terme: string; readonly remplace: string; readonly termeUcm: string }
   | { readonly type: 'deja-remplace'; readonly remplace: string; readonly par: string }
   | { readonly type: 'cycle'; readonly termes: readonly string[] };
-/** `journal-impossible` : le fichier ne peut pas garder le journal du lot, qui est refusé avant tout renommage. */
-export type CauseDeRefus = 'journal-impossible';
+/**
+ * `journal-impossible` : le fichier ne peut pas garder le journal du lot, qui est refusé avant tout renommage.
+ * `regles-futures` : une règle de nommage vient d'une version plus récente du plugin ; rien ne s'écrit.
+ */
+export type CauseDeRefus = 'journal-impossible' | 'regles-futures';
 export interface ResultatVue {
   readonly sorte: 'application' | 'annulation'; readonly statut: 'applique' | 'partiel' | 'refuse'; readonly renommes: number; readonly sautes: number; readonly annulable: boolean;
   readonly cause?: CauseDeRefus;
   /** Les lignes d'une annulation sautées parce que leur objet est dans une collection exclue de l'analyse ; présent quand il y en a. Elles sont comptées dans `sautes`. */
   readonly exclues?: number;
+  /** Les variables sautées parce que leur protection ne se lit pas (`non-verifiee`) ; présent quand il y en a. Elles sont comptées dans `sautes`. */
+  readonly nonVerifiees?: number;
 }
-export type CodeDErreur = 'analyse-en-cours' | 'fichier-modifie' | 'generation-perimee' | 'regles-modifiees' | 'import-illisible' | 'mot-refuse' | 'import-partiel' | 'echec';
+export type CodeDErreur = 'analyse-en-cours' | 'fichier-modifie' | 'generation-perimee' | 'regles-modifiees' | 'regles-futures' | 'import-illisible' | 'mot-refuse' | 'import-partiel' | 'echec';
 
 export type PluginMessage =
   | { readonly type: 'initial'; readonly dejaAnalyse: boolean }
@@ -223,7 +238,7 @@ export type PluginMessage =
   | { readonly type: 'refus'; readonly demande: number; readonly conflits: readonly ConflitVue[] }
   | { readonly type: 'application'; readonly demande: number; readonly resultat: ResultatVue }
   | { readonly type: 'regles-exportees'; readonly demande: number; readonly texte: string }
-  | { readonly type: 'erreur'; readonly demande: number; readonly code: CodeDErreur };
+  | { readonly type: 'erreur'; readonly demande: number; readonly code: CodeDErreur; readonly architecture?: ArchitectureDuFichier };
 
 type Objet = Readonly<Record<string, unknown>>;
 const entierPositif = (valeur: unknown): boolean => typeof valeur === 'number' && Number.isSafeInteger(valeur) && valeur > 0;
@@ -257,6 +272,7 @@ function estReponse(brut: unknown): boolean {
 function estGeste(brut: unknown): boolean {
   if (!objet(brut)) return false;
   switch (brut.type) {
+    case 'architecture': return typeof brut.ucm === 'boolean';
     case 'ecriture': return estEcriture(brut.ecriture);
     case 'remplacer-par': return chaine(brut.terme) && chaine(brut.par);
     case 'remplace-termes': return chaine(brut.terme) && chaines(brut.termes);

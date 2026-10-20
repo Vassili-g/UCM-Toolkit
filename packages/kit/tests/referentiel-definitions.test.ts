@@ -85,7 +85,7 @@ test('les neuf produits décrivent leurs responsabilités et leurs destinations'
   assert.deepEqual(PRODUITS.find(({ id }) => id === 'architect')?.lit, ['noms-collections', 'noms-variables', 'regles-de-nommage']);
   assert.deepEqual(PRODUITS.find(({ id }) => id === 'architect')?.ecrit, [
     { donnees: ['noms-collections', 'noms-variables'], destination: 'document-figma' },
-    { donnees: ['regles-de-nommage'], destination: 'donnees-partagees-figma' },
+    { donnees: ['regles-de-nommage', 'architecture-du-fichier'], destination: 'donnees-partagees-figma' },
   ]);
   assert.equal(ESPACE_PARTAGE, 'ucm_palettes');
   assert.equal(CLE_RECETTE, 'recette');

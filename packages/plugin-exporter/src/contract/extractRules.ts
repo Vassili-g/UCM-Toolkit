@@ -21,7 +21,19 @@
  * `src/template/ecriture.ts`, seul fichier du moteur qui écrive dans le
  * document.
  */
-import { TAGS_DES_REGLES } from '@ucm-kit/core/referentiel';
+import {
+  CALQUES_DE_CONTENU,
+  CALQUES_DU_KIT_DE_REGLES,
+  CALQUES_LUS_PAR_TAG,
+  MAITRES_COMPACTES,
+  MAITRES_DU_KIT_DE_REGLES,
+  MARQUEUR_A_COMPLETER,
+  TAGS_DES_REGLES,
+  estUneInstanceVierge,
+  nomCompacte,
+  porteLeMarqueur,
+} from '@ucm-kit/core/referentiel';
+import type { TextesDesCalques } from '@ucm-kit/core/referentiel';
 import {
   buildRules,
   iconPolicyFromVisibility,
@@ -48,46 +60,6 @@ import {
   sujetSansNode,
 } from './localisation';
 export type { IconRule, RuleEntry, RuleTag, RulesResult } from './rulesModel';
-
-/**
- * Nom canonique du composant qui porte un jeu de règles, tel qu'un message le
- * nomme. Exporté parce qu'il ne sert pas qu'à lire les règles : posséder un tel
- * conteneur est ce qui déclare un composant comme dépendance UCM, plutôt que
- * comme détail interne à parcourir (cf. `composedComponents.ts`). Il ne
- * conditionne plus l'export du composant lui-même depuis la 8.0.
- */
-export const RULES_CONTAINER_NAME = '.componentRules';
-/** Calque du conteneur qui porte le nom du composant documenté. */
-export const COMPONENT_NAME_LAYER = 'component-name';
-/**
- * Début d'un texte d'aide : un calque lu qui le contient n'est pas rédigé.
- *
- * Sans lui, le texte d'exemple d'une règle fraîchement posée, ou le nom
- * pré-rempli d'un conteneur, partirait dans le contrat comme une documentation
- * réelle.
- */
-export const MARQUEUR_A_COMPLETER = '[À compléter]';
-/** Nom (compacté) du maître qui porte un jeu de règles. */
-export const MAITRE_COMPACTE = '.componentrules';
-/** Nom du composant qui matérialise une règle, tel qu'un message le nomme. */
-export const RULE_ITEM_NAME = '.ruleItem';
-/** Nom (compacté) du composant qui matérialise une règle. */
-export const RULES_COMPONENT_NAME = '.ruleitem';
-/** Compacte un nom (sans espaces, en minuscules) pour comparer un nom de composant. */
-export function compactName(name: string): string {
-  return name.replace(/\s+/g, '').toLowerCase();
-}
-
-/**
- * Vrai d'un texte qui contient le marqueur, sans tenir compte de la casse.
- *
- * La normalisation Unicode compte : un « À » collé depuis un autre outil
- * arrive parfois en deux points de code, et le marqueur serait alors publié.
- */
-export function porteLeMarqueur(texte: string): boolean {
-  return texte.normalize('NFC').toLowerCase()
-    .includes(MARQUEUR_A_COMPLETER.normalize('NFC').toLowerCase());
-}
 
 /**
  * Ce que le parcours de page retient en plus des conteneurs du composant.
@@ -135,12 +107,11 @@ export function releveVide(): ReleveDeSource {
  * travail, ce qui range la prudence du bon côté.
  */
 function estVierge(conteneur: InstanceNode): boolean {
-  return conteneur
-    .findAll((node) => node.type === 'INSTANCE')
-    .every((node) => RULE_CONTENT_LAYERS.every((calque) => {
-      const texte = textOfLayer(node as InstanceNode, calque).trim();
-      return texte === '' || porteLeMarqueur(texte);
-    }));
+  return estUneInstanceVierge(
+    conteneur
+      .findAll((node) => node.type === 'INSTANCE')
+      .map((node) => textesDesCalques(node as InstanceNode, CALQUES_DE_CONTENU)),
+  );
 }
 
 /** Résultat de lecture enrichi pour distinguer l'absence du conteneur de son contenu invalide. */
@@ -215,6 +186,26 @@ function layerOfName(node: NodeFouillable, target: string): TextNode | null {
 }
 
 /**
+ * Le relevé portable d'un node : pour chaque calque demandé qu'il porte, son
+ * texte, ou une chaîne vide si le calque n'est pas un texte (`modifiable`,
+ * `strict`). Un calque absent n'a pas d'entrée, ce que le validateur du kit lit
+ * comme manquant.
+ */
+export function textesDesCalques(
+  node: NodeFouillable,
+  calques: readonly string[],
+): TextesDesCalques {
+  const textes: Record<string, string> = {};
+  for (const calque of calques) {
+    const cible = calque.trim().toLowerCase();
+    const texte = layerOfName(node, cible);
+    if (texte) textes[calque] = texte.characters;
+    else if (node.findOne?.((enfant) => porteLeNom(enfant, cible))) textes[calque] = '';
+  }
+  return textes;
+}
+
+/**
  * Nom écrit dans le calque « component-name » d'un node, ou null si le node
  * n'en porte pas.
  *
@@ -229,7 +220,7 @@ function layerOfName(node: NodeFouillable, target: string): TextNode | null {
  */
 export function nomDeComposantEcrit(node: NodeFouillable): string | null {
   if (node.type !== 'INSTANCE') return null;
-  const calque = layerOfName(node, COMPONENT_NAME_LAYER);
+  const calque = layerOfName(node, CALQUES_DU_KIT_DE_REGLES.nomDuComposant);
   return calque ? calque.characters : null;
 }
 
@@ -258,7 +249,7 @@ export function rulesContainerOwner(
   nom: string | null = nomDeComposantEcrit(node),
 ): string | null {
   if (nom === null || porteLeMarqueur(nom)) return null;
-  return compactName(nom) || null;
+  return nomCompacte(nom) || null;
 }
 
 /**
@@ -269,7 +260,7 @@ function nomOrphelin(node: NodeFouillable): 'vide' | 'marque' | null {
   const nom = nomDeComposantEcrit(node);
   if (nom === null) return null;
   if (porteLeMarqueur(nom)) return 'marque';
-  return compactName(nom) === '' ? 'vide' : null;
+  return nomCompacte(nom) === '' ? 'vide' : null;
 }
 
 /**
@@ -287,13 +278,13 @@ function visibilityOfLayer(instance: InstanceNode, layerName: string): boolean |
 
 /** Construit l'entrée `@icons` à partir de ses trois calques dédiés. */
 function iconRuleEntry(instance: InstanceNode): RuleEntry {
-  const modifiable = visibilityOfLayer(instance, 'modifiable');
-  const strict = visibilityOfLayer(instance, 'strict');
+  const modifiable = visibilityOfLayer(instance, CALQUES_DU_KIT_DE_REGLES.modifiable);
+  const strict = visibilityOfLayer(instance, CALQUES_DU_KIT_DE_REGLES.strict);
 
   return {
     tag: 'icons',
     content: '',
-    iconName: textOfLayer(instance, 'icon'),
+    iconName: textOfLayer(instance, CALQUES_DU_KIT_DE_REGLES.icone),
     iconPolicy: iconPolicyFromVisibility(modifiable, strict),
   };
 }
@@ -308,7 +299,7 @@ function iconRuleEntry(instance: InstanceNode): RuleEntry {
  */
 export function nomDuCatalogue(main: ComponentNode | null): string {
   const owner = main?.parent?.type === 'COMPONENT_SET' ? main.parent.name : main?.name ?? '';
-  return compactName(owner);
+  return nomCompacte(owner);
 }
 
 /**
@@ -320,11 +311,8 @@ export function nomDuCatalogue(main: ComponentNode | null): string {
  */
 async function isRuleInstance(instance: InstanceNode): Promise<boolean> {
   const main = await instance.getMainComponentAsync().catch(() => null);
-  return nomDuCatalogue(main) === RULES_COMPONENT_NAME;
+  return nomDuCatalogue(main) === MAITRES_COMPACTES.regle;
 }
-
-/** Les calques par lesquels une règle écrit quelque chose : son texte ou sa cible. */
-const RULE_CONTENT_LAYERS: readonly string[] = ['content', 'prop', 'icon'];
 
 /**
  * Vrai d'une instance de règle qui n'écrit ni texte ni cible.
@@ -338,28 +326,12 @@ const RULE_CONTENT_LAYERS: readonly string[] = ['content', 'prop', 'icon'];
  * séparateur ajouté plus tard ne demandera aucune mise à jour du moteur.
  */
 function nEcritRien(instance: InstanceNode): boolean {
-  return RULE_CONTENT_LAYERS.every((calque) => textOfLayer(instance, calque).trim() === '');
+  return CALQUES_DE_CONTENU.every((calque) => textOfLayer(instance, calque).trim() === '');
 }
-
-/**
- * Les calques où chaque tag cherche le marqueur : ceux que le moteur lit.
- * `@default` ne lit pas son `content`, qui explique au designer quoi écrire
- * dans `prop` et garde donc son texte d'aide.
- */
-const CALQUES_LUS: Record<RuleTag, readonly string[]> = {
-  usage: ['content'],
-  do: ['content'],
-  dont: ['content'],
-  pairs: ['content'],
-  prop: ['content', 'prop'],
-  boolean: ['content', 'prop'],
-  default: ['prop'],
-  icons: ['icon'],
-};
 
 /** Vrai d'une règle dont un calque lu porte encore le marqueur. */
 function nEstPasRedigee(instance: InstanceNode, tag: RuleTag): boolean {
-  return CALQUES_LUS[tag].some((calque) => porteLeMarqueur(textOfLayer(instance, calque)));
+  return CALQUES_LUS_PAR_TAG[tag].some((calque) => porteLeMarqueur(textOfLayer(instance, calque)));
 }
 
 /**
@@ -373,7 +345,7 @@ function signalerNonRedigees(
 ): void {
   const marqueur = `« ${MARQUEUR_A_COMPLETER} »`;
   for (const [tag, regles] of parTag) {
-    const sujetDesRegles = sujetNomme('Layer', RULE_ITEM_NAME, regles[0]);
+    const sujetDesRegles = sujetNomme('Layer', MAITRES_DU_KIT_DE_REGLES.regle, regles[0]);
     const une = regles.length === 1;
     const message = pousserNote(
       warnings,
@@ -395,7 +367,7 @@ function signalerNonRedigees(
       sujetDesRegles,
     );
     for (const regle of regles.slice(1)) {
-      noter(warnings, message, sujetNomme('Layer', RULE_ITEM_NAME, regle));
+      noter(warnings, message, sujetNomme('Layer', MAITRES_DU_KIT_DE_REGLES.regle, regle));
     }
   }
 }
@@ -438,7 +410,7 @@ function candidatsDeRegles(page: PageNode): SceneNode[] {
   }
   const instances = new Set<string>();
   for (const texte of page.findAllWithCriteria({ types: ['TEXT'] })) {
-    if (!porteLeNom(texte, COMPONENT_NAME_LAYER)) continue;
+    if (!porteLeNom(texte, CALQUES_DU_KIT_DE_REGLES.nomDuComposant)) continue;
     let parent = texte.parent;
     while (parent && parent !== page) {
       if (parent.type === 'INSTANCE') instances.add(parent.id);
@@ -462,14 +434,14 @@ export async function extractRules(
   componentSet: ComponentNode | ComponentSetNode,
   page: PageNode = figma.currentPage,
 ): Promise<ExtractedRules> {
-  const owner = compactName(componentSet.name);
+  const owner = nomCompacte(componentSet.name);
   const releve = releveVide();
   // On les cherche tous : n'en lire qu'un alors que la page en porte plusieurs
   // ferait disparaître des règles sans que rien ne le dise. Le même parcours
   // relève ce dont l'offre de création a besoin.
   const candidats = candidatsDeRegles(page);
   const containers = candidats.filter((node) => {
-    if (node.type === 'COMPONENT' && compactName(node.name) === MAITRE_COMPACTE) {
+    if (node.type === 'COMPONENT' && nomCompacte(node.name) === MAITRES_COMPACTES.conteneur) {
       releve.maitreLocal ??= node;
       return false;
     }
@@ -497,9 +469,9 @@ export async function extractRules(
       pousserLocalise(absent, 'Layer', orphelin, {
         famille: 'regles',
         manque: marque
-          ? `son calque « ${COMPONENT_NAME_LAYER} » contient encore « ${MARQUEUR_A_COMPLETER} », `
+          ? `son calque « ${CALQUES_DU_KIT_DE_REGLES.nomDuComposant} » contient encore « ${MARQUEUR_A_COMPLETER} », `
             + 'donc il ne documente aucun composant.'
-          : `son calque « ${COMPONENT_NAME_LAYER} » est vide, donc il ne documente `
+          : `son calque « ${CALQUES_DU_KIT_DE_REGLES.nomDuComposant} » est vide, donc il ne documente `
             + 'aucun composant.',
         impact: 'Le contrat ne contiendra aucune règle d’usage, '
           + 'documentation de propriété ou règle d’icône.',
@@ -513,15 +485,15 @@ export async function extractRules(
       // loi de localisation le lirait comme un site qu'on a oublié de convertir.
       const message = pousserSansNode(
         absent,
-        sujetSansNode('Layer', RULES_CONTAINER_NAME, 'inexistant'),
+        sujetSansNode('Layer', MAITRES_DU_KIT_DE_REGLES.conteneur, 'inexistant'),
         {
           famille: 'regles',
           manque: `aucune instance de cette page n’écrit « ${componentSet.name} » dans son `
-            + `calque « ${COMPONENT_NAME_LAYER} ».`,
+            + `calque « ${CALQUES_DU_KIT_DE_REGLES.nomDuComposant} ».`,
           impact: 'Le contrat ne contiendra aucune règle d’usage, '
             + 'documentation de propriété ou règle d’icône.',
-          action: `Posez une instance de « ${RULES_CONTAINER_NAME} » à côté du composant, `
-            + `écrivez « ${componentSet.name} » dans son calque « ${COMPONENT_NAME_LAYER} », `
+          action: `Posez une instance de « ${MAITRES_DU_KIT_DE_REGLES.conteneur} » à côté du composant, `
+            + `écrivez « ${componentSet.name} » dans son calque « ${CALQUES_DU_KIT_DE_REGLES.nomDuComposant} », `
             + 'puis réexportez.',
         },
       );
@@ -552,14 +524,14 @@ export async function extractRules(
     // La cause n'est pas un rangement à refaire : le maître `.componentRules`
     // est livré avec un `component-name` pré-rempli, et toute instance fraîche
     // revendique donc ce nom-là jusqu'à sa première édition.
-    const sujetDuDoublon = sujetNomme('Layer', RULES_CONTAINER_NAME, container);
+    const sujetDuDoublon = sujetNomme('Layer', MAITRES_DU_KIT_DE_REGLES.conteneur, container);
     const ignorees = containers.length - 1;
     pousserNote(
       warnings,
       pointDe(sujetDuDoublon.texte, {
         famille: 'regles',
         manque: `${containers.length} instances écrivent « ${componentSet.name} » dans leur `
-          + `calque « ${COMPONENT_NAME_LAYER} », et l’export n’en lit qu’une.`,
+          + `calque « ${CALQUES_DU_KIT_DE_REGLES.nomDuComposant} », et l’export n’en lit qu’une.`,
         impact: ignorees === 1
           ? 'Les règles de l’autre instance manqueront au développeur.'
           : `Les règles des ${ignorees} autres instances manqueront au développeur.`,
@@ -576,7 +548,7 @@ export async function extractRules(
     const tag = ruleTagOf(instance, warnings);
     if (!tag) {
       if (nEcritRien(instance)) continue;
-      pousserSansNode(warnings, `Une règle de « ${RULES_CONTAINER_NAME} »`, {
+      pousserSansNode(warnings, `Une règle de « ${MAITRES_DU_KIT_DE_REGLES.conteneur} »`, {
         famille: 'regles',
         manque: `aucun de ses calques ne porte de tag (${TAGS_DES_REGLES.map((tag) => `@${tag}`).join(', ')}).`,
         impact: 'Sa documentation manquera au développeur.',
@@ -596,9 +568,9 @@ export async function extractRules(
         ? iconRuleEntry(instance)
         : {
             tag,
-            content: textOfLayer(instance, 'content'),
+            content: textOfLayer(instance, CALQUES_DU_KIT_DE_REGLES.contenu),
             prop: tag === 'prop' || tag === 'boolean' || tag === 'default'
-              ? textOfLayer(instance, 'prop')
+              ? textOfLayer(instance, CALQUES_DU_KIT_DE_REGLES.cible)
               : undefined,
           },
     );
@@ -607,12 +579,12 @@ export async function extractRules(
   signalerNonRedigees(warnings, nonRedigees);
   // Une règle marquée porte un tag : le conteneur n'est pas vide pour autant.
   if (entries.length === 0 && nonRedigees.size === 0) {
-    const sujetDuConteneur = sujetNomme('Layer', RULES_CONTAINER_NAME, container);
+    const sujetDuConteneur = sujetNomme('Layer', MAITRES_DU_KIT_DE_REGLES.conteneur, container);
     pousserNote(
       warnings,
       pointDe(sujetDuConteneur.texte, {
         famille: 'regles',
-        manque: 'il ne contient aucune instance de « .ruleItem » qui porte un tag.',
+        manque: `il ne contient aucune instance de « ${MAITRES_DU_KIT_DE_REGLES.regle} » qui porte un tag.`,
         impact: 'Le développeur ne recevra aucune règle d’usage pour ce composant.',
         action: 'Ajoutez-y au moins une règle, puis réexportez.',
       }),

@@ -1,5 +1,5 @@
 /**
- * Types du moteur d'harmonisation : lexique, vocabulaire du fichier, renommages et questions.
+ * Types du moteur d'harmonisation : lexique, vocabulaire du fichier, renommages et questions, et la clé de règle d'un terme.
  *
  * Après une modification : relancer `npm test` et changer la version du kit ; aucune vue ni planche n'en tire de données.
  */
@@ -63,6 +63,13 @@ export type ConflitDeVocabulaire =
   | { readonly type: 'cycle'; readonly termes: readonly Mots[] };
 
 export type CleDeRegle = `ecriture:${CategorieDeNom}` | `terme:${string}` | `collection:${string}`;
+
+/**
+ * La règle de l'analyse d'un terme : `terme:` puis ses mots en minuscules joints par `-` (`terme:font-size`). Elle ne vit qu'en
+ * mémoire. Ce n'est pas la clé que Nomenclature range dans Figma, `cleTerme` de `@ucm-kit/core/protocoles` : celle-ci joint les
+ * mots par une espace et garde leur casse (`terme:font size`).
+ */
+export const cleDeRegleDuTerme = (mots: Mots): CleDeRegle => `terme:${mots.join('-').toLowerCase()}`;
 export interface ChangementDeTerme { readonly avant: Mots; readonly apres: Mots; readonly origine: OrigineDuTerme }
 export interface Renommage {
   readonly id: string; readonly categorie: CategorieDeNom; readonly portee: string;

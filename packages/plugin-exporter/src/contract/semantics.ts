@@ -19,6 +19,12 @@ import {
   STATE_SELECTORS,
   termeRetenu,
 } from '@ucm-kit/core/referentiel';
+import {
+  kindDeNature,
+  natureDuRole,
+  roleDeRendu,
+  tableDesRolesDeRendu,
+} from '@ucm-kit/core/format';
 import type {
   RenderingRole,
   RenderingSemantics,
@@ -152,35 +158,7 @@ export type DiscoveredRoles = {
  * dans chaque contrat afin qu'un agent n'ait pas à deviner le CSS d'un rôle.
  */
 export function defaultRenderingSemantics(): RenderingSemantics {
-  return {
-    roles: {
-      background: { kind: 'paint', cssProperties: ['background-color'] },
-      foreground: { kind: 'paint', cssProperties: ['color', 'fill'] },
-      icon: { kind: 'paint', cssProperties: ['color', 'fill'] },
-      // Un stroke Figma se dessine hors du flux : il n'élargit pas la boîte et
-      // ne déplace aucun voisin. `border-color` / `border-width` disaient le
-      // contraire au consommateur, qui rendait une bordure CSS et décalait tout
-      // le contenu du composant. `align` dit de quel côté la dessiner
-      // (cf. `StrokeAlignment`) ; aucune de ses valeurs ne justifie une bordure.
-      border: { kind: 'stroke', cssProperties: ['box-shadow'] },
-      ring: {
-        kind: 'stroke',
-        cssProperties: ['outline-color', 'outline-width'],
-        fallback: 'box-shadow',
-      },
-    },
-  };
-}
-
-/**
- * Rôles réellement rendables, avec leur nature. Dérivé de
- * `defaultRenderingSemantics()` : il n'existe volontairement pas de seconde
- * liste de rôles à maintenir en phase avec la première.
- */
-function renderableRoles(): Map<string, RenderingRole['kind']> {
-  return new Map(
-    Object.entries(defaultRenderingSemantics().roles).map(([role, descriptor]) => [role, descriptor.kind]),
-  );
+  return { roles: tableDesRolesDeRendu() };
 }
 
 /**
@@ -190,7 +168,7 @@ function renderableRoles(): Map<string, RenderingRole['kind']> {
  * apparence finiraient par diverger au premier rôle ajouté.
  */
 export function isRenderableRole(key: string): boolean {
-  return renderableRoles().has(key);
+  return roleDeRendu(key) !== null;
 }
 
 /**
@@ -198,7 +176,8 @@ export function isRenderableRole(key: string): boolean {
  * désigne aucun.
  */
 export function roleKind(role: string): RenderingRole['kind'] | null {
-  return renderableRoles().get(role) ?? null;
+  const nature = natureDuRole(role);
+  return nature === null ? null : kindDeNature(nature);
 }
 
 /**

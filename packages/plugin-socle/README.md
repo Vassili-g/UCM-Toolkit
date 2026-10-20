@@ -12,11 +12,7 @@ les composants communs et les outils de vérification des plugins.
 | `build/manifest.cjs` | Produit le manifeste importable depuis `dist/` |
 | `build/run-tests.cjs` | Découvre et exécute les tests d'un paquet |
 | `src/fenetre.ts` | Borne la taille de fenêtre et la conserve dans `clientStorage` |
-| `src/cheminsDeTokens.ts` | Construit le chemin publié d'un token, que l'exporteur écrit et que l'explorateur recalcule |
-| `src/cheminsPublies.ts` | Détecte les renommages qui feraient disparaître un token ou un axe de modes de l'export |
-| `src/inventaireDeNoms.ts` | Lit les collections et les variables locales d'un fichier et écarte les noms que le plugin ne renomme pas |
-| `src/reglesDeNommage.ts` | Analyse les règles de nommage que UCM Nomenclature range dans le fichier et que UCM Palettes relit |
-| `src/nomsSelonLesRegles.ts` | Calcule les noms que donnent les règles du fichier, pour Nomenclature comme pour Palettes |
+| `src/inventaireDeNoms.ts` | Lit les collections et les variables locales d'un fichier par les ports de lecture ; la forme de l'inventaire et la protection sont dans `@ucm-kit/core/nommage` |
 | `src/ui/` | Bouton, onglets, interrupteur, redimensionnement et commandes d'en-tête |
 | `src/ui/socle.css` | Échelles de texte, espacements, couleurs et replis sombres |
 | `galerie/` | Construit et capture les états d'interface hors de Figma |

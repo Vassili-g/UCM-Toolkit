@@ -15,10 +15,18 @@ function compiler(entree, nom) {
   return require(compile);
 }
 const { projetLibre, cinqCollections, grandReleve, constructeur, alias, nombre, couleur, composantSimple, composantComplexe, composantBouton, composantInterrompu, composantSansToken, peinturesDe } = compiler(path.resolve(__dirname, '../tests/fixtures.ts'), 'galerie-fixtures');
+const { releveDesLimitesDExport, tokensDesLimitesDExport, releveDuProfilAvecLimites, couchesDuProfilAvecLimites, recetteEnTexte } = compiler(path.resolve(__dirname, '../tests/fixturesDesLimites.ts'), 'galerie-fixtures-limites');
 const { imagePng } = require('./image.cjs');
 
 const releve = (donnees, demande = 1) => ({ message: { type: 'releve', demande, releve: donnees } });
 const libre = releve(projetLibre());
+function releveP3() {
+  const c = constructeur('Couleur Display P3');
+  c.collection('couleurs', 'Couleurs', ['Valeur']);
+  c.variable('corail', 'couleurs', 'corail', 'COLOR', { Valeur: { nature: 'couleur', couleur: { r: 0.8, g: 0.3, b: 0.3, a: 1 } } });
+  return { ...c.releve(), espace: 'display-p3' };
+}
+const displayP3 = releve(releveP3());
 const multimarque = releve(cinqCollections());
 const preferences = (valeurs = {}) => ({ message: { type: 'preferences', preferences: { vueCompacte: false, palettes: false, profilUcm: false, associations: {}, exceptions: {}, largeurs: {}, ...valeurs } } });
 const onglet = (nom) => ({ clic: `#onglet-${nom}` });
@@ -44,6 +52,28 @@ function releveLong() {
   for (let rang = 0; rang < 30; rang += 1) c.variable(`v${rang}`, 'long', `niveau-${String(rang).padStart(2, '0')}`, 'COLOR', { Valeur: rang === 29 ? couleur('#7A3E9D') : alias(`v${rang + 1}`) });
   return c.releve();
 }
+
+/*
+ * Les limites de la comparaison avec l'export : le designer inspecte un token,
+ * puis importe le tokens.json dans l'onglet Intégrations. L'inspecteur garde le
+ * token ; l'import le rafraîchit.
+ */
+const limitesDExport = releve(releveDesLimitesDExport());
+const importerLesTokens = (cause) => ({ fichier: { dans: '.champ-fichier', nom: 'tokens.json', contenu: tokensDesLimitesDExport() }, attendre: `.inspecteur [data-limite="${cause}"]` });
+const comparerAvecLExport = (id, cause) => [preferences(), limitesDExport, inspecter(id), onglet('integrations'), importerLesTokens(cause)];
+
+/*
+ * Les limites du profil UCM. Le fichier associe quatre collections à une
+ * couche ; la recette de Palettes arrive sous la demande 2, que l'activation
+ * de l'intégration émet.
+ */
+const nomDuFichierDuProfil = releveDuProfilAvecLimites().fichier;
+const profilAvecLimites = [
+  preferences({ palettes: true, profilUcm: true, associations: { [nomDuFichierDuProfil]: couchesDuProfilAvecLimites() } }),
+  releve(releveDuProfilAvecLimites()),
+  { message: { type: 'recette-palettes', demande: 2, texte: recetteEnTexte() } },
+  onglet('integrations'),
+];
 
 /*
  * La vue composant. Le sandbox annonce la disposition, puis la sélection ;
@@ -104,6 +134,7 @@ const ETATS_LARGES = [
   { id: 'lecture-refusee', titre: 'Lecture refusée', quand: 'La première lecture lève.', regarder: 'Le message nomme l’échec et propose d’actualiser.', existe: true, atteinte: [{ message: { type: 'lecture-echouee', demande: 1, message: 'Accès refusé' } }] },
   { id: 'lecture-annulee', titre: 'Lecture annulée', quand: 'Le designer annule la première lecture.', regarder: 'Aucune donnée partielle ; le bouton relance la lecture.', existe: true, atteinte: [{ message: { type: 'annulation', demande: 1 } }] },
   { id: 'table-libre', titre: 'Projet libre, collection entière', quand: 'Un fichier sans UCM, collection Interface ouverte.', regarder: 'La bascule sur « Tokens », la recherche sous le titre de l’arbre ; les quatre types, zéro, faux et texte vide affichés ; aucun onglet ni alerte UCM.', existe: true, atteinte: [preferences(), libre] },
+  { id: 'profil-p3', titre: 'Couleur en Display P3', quand: 'Le document utilise le profil Display P3.', regarder: 'La table affiche la couleur convertie en hexadécimal sRGB et la pastille peint la même couleur convertie.', existe: true, atteinte: [preferences(), displayP3] },
   { id: 'groupe-parent', titre: 'Groupe et descendants', quand: 'Clic sur le groupe card.', regarder: 'card/fill, card/gap et card/header/* ; cardinal exclu ; le chemin est visible.', existe: true, atteinte: [preferences(), libre, chevron('interface', 'card'), groupe('interface', 'card')] },
   { id: 'arbre-replie', titre: 'Parent replié, filtre conservé', quand: 'Le groupe card est choisi puis replié.', regarder: 'L’arbre cache header ; la table garde le contenu de card.', existe: true, atteinte: [preferences(), libre, chevron('interface', 'card'), groupe('interface', 'card'), chevron('interface', 'card')] },
   { id: 'arbre-profond', titre: 'Arbre profond, nom long', quand: 'Huit niveaux de groupes, un segment vide.', regarder: 'Les libellés coupés gardent leur infobulle ; le segment vide se nomme.', existe: true, atteinte: [preferences(), releve(releveProfond()), chevron('profond', 'navigation'), groupe('profond', 'navigation', 'barre latérale', 'section', 'groupe', 'élément')] },
@@ -124,6 +155,15 @@ const ETATS_LARGES = [
   { id: 'releve-perime', titre: 'Relevé précédent après un échec', quand: 'Une actualisation échoue après une lecture réussie.', regarder: 'Les données restent ; leur heure et l’échec sont annoncés.', existe: true, atteinte: [preferences(), libre, { clic: '.barre-lecture .bouton-discret:first-child' }, { message: { type: 'lecture-echouee', demande: 2, message: 'Délai dépassé' } }] },
   { id: 'integrations', titre: 'Intégrations désactivées', quand: 'Aucune intégration n’est active.', regarder: 'Le socle est complet ; les intégrations se décrivent sans alerte.', existe: true, atteinte: [preferences(), libre, onglet('integrations')] },
   { id: 'recette-palettes', titre: 'Recette UCM Palettes absente', quand: 'L’intégration est active sur un fichier sans recette.', regarder: 'L’absence est dite, sans geste imposé.', existe: true, atteinte: [preferences({ palettes: true }), libre, { message: { type: 'recette-palettes', demande: 2, texte: '' } }, onglet('integrations')] },
+  { id: 'export-mode-sans-valeur', titre: 'Export : mode sans valeur', quand: 'Le token n’a aucune valeur dans le mode Sombre.', regarder: 'La section « Figma comparé à l’export » dit « Aucun écart dans les modes comparés », nomme le mode Sombre et finit sur la vérification à la main ; l’égalité n’est pas affirmée.', existe: true, atteinte: comparerAvecLExport('sans-valeur', 'mode-sans-valeur') },
+  { id: 'export-alias-a-opacite', titre: 'Export : alias avec opacité', quand: 'Le mode Sombre du token est un alias avec opacité.', regarder: 'La section nomme le mode Sombre et dit que l’alias avec opacité n’est pas comparé.', existe: true, atteinte: comparerAvecLExport('opacite', 'alias-a-opacite') },
+  { id: 'export-forme-inconnue', titre: 'Export : forme non prise en charge', quand: 'L’export écrit « 1rem » en chaîne pour le mode Sombre.', regarder: 'La section dit que la forme de la valeur de l’export n’est pas prise en charge ; le mode Clair est comparé.', existe: true, atteinte: comparerAvecLExport('forme', 'forme-inconnue') },
+  { id: 'export-unite-relative', titre: 'Export : unité relative', quand: 'L’export écrit le mode Sombre en rem.', regarder: 'La section nomme l’unité rem et dit que la taille en pixels dépend de la page.', existe: true, atteinte: comparerAvecLExport('relative', 'unite-relative') },
+  { id: 'export-unite-inconnue', titre: 'Export : unité inconnue', quand: 'L’export écrit le mode Sombre en vh.', regarder: 'La section nomme l’unité vh et dit qu’elle n’est pas comparée.', existe: true, atteinte: comparerAvecLExport('unite', 'unite-inconnue') },
+  { id: 'export-espace-inconnu', titre: 'Export : espace de couleur inconnu', quand: 'L’export écrit le mode Sombre dans l’espace oklch.', regarder: 'La section nomme l’espace oklch et dit qu’il n’est pas comparé.', existe: true, atteinte: comparerAvecLExport('espace', 'espace-inconnu') },
+  { id: 'export-courbe-sans-points', titre: 'Export : courbe sans points', quand: 'Le mode Sombre du token est un préréglage de courbe sans points de contrôle.', regarder: 'La section dit que la courbe de Figma n’a pas de points de contrôle ; le mode Clair est comparé.', existe: true, atteinte: comparerAvecLExport('courbe', 'courbe-sans-points') },
+  { id: 'profil-limites', titre: 'Profil : contrôles impossibles', quand: 'Le profil contrôle un fichier dont un rôle, un mode, une valeur et une couche manquent.', regarder: '« Aucun écart dans ce qui a été contrôlé », « 4 contrôles n’ont pas pu se faire », puis une ligne par cause, chacune avec son texte.', existe: true, atteinte: profilAvecLimites },
+  { id: 'profil-limite-inspecteur', titre: 'Profil : limite dans l’inspecteur', quand: 'primary/solid/default, sans valeur dans le mode Jour, est inspectée dans un fichier associé au profil.', regarder: 'La section Profil UCM de l’inspecteur dit que le mode Jour n’est pas contrôlé, sous la phrase qui décrit la variable.', existe: true, atteinte: [...profilAvecLimites, groupe('theme', 'primary', 'solid'), inspecter('defaut')] },
   { id: 'preferences-rangees', titre: 'Préférence rangée', quand: 'Le sandbox confirme un rangement.', regarder: 'Rien ne bouge à l’écran.', existe: true, atteinte: [preferences(), libre, { message: { type: 'preferences-rangees', reussie: true } }] },
   { id: 'releves', titre: 'Relevés et simulation', quand: 'L’onglet Relevés est ouvert sur un token.', regarder: 'Export, import et simulation se lisent sans rien modifier.', existe: true, atteinte: [preferences(), libre, groupe('mesures'), inspecter('espace-carte'), onglet('releves')] },
   { id: 'grand-releve', titre: 'Dix mille variables', quand: 'Vingt collections de cinq cents variables, quatre modes.', regarder: 'La table ne rend que les lignes visibles ; l’arbre reste replié.', existe: true, atteinte: [preferences(), releve(grandReleve())] },

@@ -32,7 +32,8 @@ import {
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import { indexer, type Index } from '../../indexation';
 import type { PluginMessage, SujetSelectionne } from '../../messages';
-import { hexaDeCouleur, texteDeValeur, type Couleur } from '../../modele';
+import { espaceDuReleve, texteDeValeur, type Couleur } from '../../modele';
+import { versSrgb } from '../../espace';
 import type { Resultat } from '../../resolution';
 import type { Application, Composant } from '../application';
 import { constatDeResultat } from '../chaine';
@@ -64,7 +65,10 @@ export interface VueComposant extends Composant {
 const motDeLibelle = (libelle: string): string => T.libelles[libelle] ?? libelle;
 
 /** Vrai quand une couleur est assez claire pour porter une encre sombre. */
-const estClaire = (couleur: Couleur): boolean => (couleur.r * 299 + couleur.g * 587 + couleur.b * 114) * 0.255 > 150;
+const estClaire = (couleur: Couleur, espace: ReturnType<typeof espaceDuReleve>): boolean => {
+  const affichee = versSrgb(couleur, espace).couleur;
+  return (affichee.r * 299 + affichee.g * 587 + affichee.b * 114) * 0.255 > 150;
+};
 
 function icone(largeur: number, tracer: (svg: SVGSVGElement) => void): SVGSVGElement {
   const svg = document.createElementNS(SVG, 'svg');
@@ -87,6 +91,7 @@ function trace(svg: SVGSVGElement, balise: 'path' | 'circle', attributs: Record<
 
 export function creerVueComposant(app: Application): VueComposant {
   const { etat } = app;
+  const espace = (): ReturnType<typeof espaceDuReleve> => etat.index ? espaceDuReleve(etat.index.releve) : 'srgb';
   const c = etat.composant;
 
   const element = document.createElement('div');
@@ -446,7 +451,7 @@ export function creerVueComposant(app: Application): VueComposant {
     const pastille = document.createElement('i');
     pastille.className = 'vc-pastille';
     const couleur = couleurDe(ligne.resultat);
-    const css = couleur ? couleurCss(couleur) : null;
+    const css = couleur ? couleurCss(couleur, espace()) : null;
     if (couleur && css) {
       if (ligne.libelles.length === 1 && ligne.libelles[0] === 'contour') {
         pastille.classList.add('vc-pastille-contour');
@@ -454,7 +459,7 @@ export function creerVueComposant(app: Application): VueComposant {
         return pastille;
       }
       pastille.style.background = css;
-      const claire = estClaire(couleur);
+      const claire = estClaire(couleur, espace());
       pastille.classList.toggle('vc-pastille-claire', claire);
       pastille.classList.toggle('vc-pastille-sombre', !claire);
       if (ligne.libelles.length === 1 && ligne.libelles[0] === 'texte') pastille.textContent = T.glyphes.texte;
@@ -495,14 +500,14 @@ export function creerVueComposant(app: Application): VueComposant {
     const fin = document.createElement('li');
     if (resultat.statut === 'resolu') {
       fin.className = 'vc-terme';
-      const valeur = ligne.valeur ?? texteDeValeur(resultat.valeur);
+      const valeur = ligne.valeur ?? texteDeValeur(resultat.valeur, espace());
       const copie = document.createElement('button');
       copie.type = 'button';
       copie.className = 'vc-copie';
       copie.dataset.focus = `copie:${ligne.cle}`;
       copie.setAttribute('aria-label', T.copier(valeur));
       const couleur = couleurDe(resultat);
-      const css = couleur ? couleurCss(couleur) : null;
+      const css = couleur ? couleurCss(couleur, espace()) : null;
       if (css) {
         const pastille = document.createElement('i');
         pastille.className = 'vc-pastille';
@@ -531,7 +536,7 @@ export function creerVueComposant(app: Application): VueComposant {
       ecart.className = 'vc-rompue';
       const texte = document.createElement('span');
       texte.className = 'vc-rompue-texte';
-      texte.textContent = T.ecartAvecFigma(ligne.ecart.nature === 'couleur' ? hexaDeCouleur(ligne.ecart.couleur).hexa : texteDeValeur(ligne.ecart));
+      texte.textContent = T.ecartAvecFigma(texteDeValeur(ligne.ecart, espace()));
       ecart.append(texte);
       chaine.append(ecart);
     }
@@ -552,7 +557,7 @@ export function creerVueComposant(app: Application): VueComposant {
       const collections = document.createElement('em');
       collections.textContent = champ.resultat.etapes.map((etape) => index.collections.get(etape.collection)?.nom ?? etape.collection).join(` ${T.glyphes.miette} `);
       const valeur = document.createElement('code');
-      valeur.textContent = champ.resultat.statut === 'resolu' ? texteDeValeur(champ.resultat.valeur) : T.valeurAbsente;
+      valeur.textContent = champ.resultat.statut === 'resolu' ? texteDeValeur(champ.resultat.valeur, espace()) : T.valeurAbsente;
       element.append(nom, collections, valeur);
       champs.append(element);
     }
@@ -630,12 +635,12 @@ export function creerVueComposant(app: Application): VueComposant {
     const resume = document.createElement('div');
     resume.className = 'vc-resume';
     for (const couleur of couleurs) {
-      const css = couleurCss(couleur.valeur.couleur);
+      const css = couleurCss(couleur.valeur.couleur, espace());
       const pastille = document.createElement('button');
       pastille.type = 'button';
       pastille.dataset.ouvrir = couleur.cle;
       if (css) pastille.style.background = css;
-      pastille.title = `${couleur.nom} · ${hexaDeCouleur(couleur.valeur.couleur).hexa}`;
+      pastille.title = `${couleur.nom} · ${texteDeValeur(couleur.valeur, espace())}`;
       pastille.setAttribute('aria-label', couleur.nom);
       pastille.addEventListener('click', () => {
         sections.set(section.nature, true);

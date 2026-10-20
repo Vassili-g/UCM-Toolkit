@@ -16,7 +16,7 @@
  * `tete` nomme le groupe ouvert. L'entrée la place au-dessus des onglets :
  * elle se lit dans chaque vue, et se met à jour même quand la table est cachée.
  */
-import { texteDeValeur, TYPES_DE_VARIABLE, type CollectionRelevee, type VariableRelevee } from '../modele';
+import { espaceDuReleve, texteDeValeur, TYPES_DE_VARIABLE, type CollectionRelevee, type VariableRelevee } from '../modele';
 import { valeurPourLeMode } from '../resolution';
 import type { Application, Composant } from './application';
 import { FILTRES_PAR_DEFAUT, variablesAffichees, type Filtres } from './etat';
@@ -119,7 +119,7 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
 
   const valeurCherchee = (id: string): string => {
     const resultat = app.resultat(id);
-    return resultat.statut === 'resolu' ? texteDeValeur(resultat.valeur) : '';
+    return resultat.statut === 'resolu' ? texteDeValeur(resultat.valeur, app.etat.index ? espaceDuReleve(app.etat.index.releve) : 'srgb') : '';
   };
 
   /** L'en-tête d'une colonne et sa poignée. `cle` désigne une colonne de valeur ; sans elle, `colonne` est le nom ou le type. */

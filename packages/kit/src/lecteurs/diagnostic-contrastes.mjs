@@ -15,6 +15,7 @@
  * faux signal reste une information. Le diagnostic ne bloque jamais la fusion.
  */
 import { aDixDecimales, atteintLeSeuil, contraste } from "@ucm-kit/core/emplois";
+import { natureDuRoleDuContrat } from "@ucm-kit/core/format";
 import { SEUILS_PAR_ROLE } from "@ucm-kit/core/referentiel";
 
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
@@ -28,8 +29,12 @@ const CONTEXTES_AU_PLUS = 32;
 /** Le contraste que chaque rôle de couleur doit atteindre contre son fond. */
 const SEUILS = SEUILS_PAR_ROLE;
 
-const ROLES_DE_PEINTURE = new Set(["background", "foreground", "icon"]);
-const ROLES_DE_CONTOUR = new Set(["border", "ring"]);
+/**
+ * La nature des rôles qu'un côté du contrat peut porter : les clés de `tokens`
+ * sont des peintures, celles de `strokes` des contours. La nature de chaque rôle
+ * se lit dans la table du contrat (`natureDuRoleDuContrat`).
+ */
+const NATURE_DU_COTE = { fills: "peinture", strokes: "contour" };
 
 /** Le nom qu'un axe prend dans un message. */
 const NOMS_DES_AXES = { brand: "marque", theme: "thème" };
@@ -163,9 +168,8 @@ export function constatsDesContrastes(contrat, document) {
       ...Object.entries(variant.strokes ?? {}).map(([cle, trait]) => ({ cle, cote: "strokes", reference: trait?.color })),
     ].flatMap((couleur) => {
       const role = roleDeLaCle(contrat, couleur.cote, couleur.cle);
-      const roles = couleur.cote === "fills" ? ROLES_DE_PEINTURE : ROLES_DE_CONTOUR;
       const lu = typeof couleur.reference === "string" ? premierAlias(document, couleur.reference) : null;
-      if (!roles.has(role) || !lu) return [];
+      if (natureDuRoleDuContrat(contrat.rendering, role) !== NATURE_DU_COTE[couleur.cote] || !lu) return [];
       const chemins = Array.isArray(placements[couleur.cote]?.[couleur.cle]) ? placements[couleur.cote][couleur.cle] : [];
       return [{ ...couleur, role, lu, chemins }];
     });

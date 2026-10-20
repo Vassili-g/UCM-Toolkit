@@ -14,7 +14,7 @@ import {
   EXTENSION_VERSION_TOKENS,
   PREFIXE_DES_INTERMEDIAIRES,
   TOKENS_FORMAT_VERSION,
-  axeDesExtensions,
+  deciderAxesDesCollections,
   courbeDeToken,
   dureeDeToken,
   espaceDuProfil,
@@ -630,37 +630,6 @@ function extensionsDeLaCollection(
 }
 
 /**
- * Écarte les extensions d'un axe quand un autre axe porte leur nom.
- *
- * `ucm tokens css` déclare les extensions d'un axe sous `axeDesExtensions`, et
- * refuse la feuille entière quand un axe du fichier donne la même propriété
- * CSS. Les modes des deux collections restent publiés.
- */
-function ecarterLesExtensionsHomonymesDUnAxe(
-  collections: VariableCollection[],
-  axes: Map<string, AxeDeCollection>,
-  points: PointACorriger[],
-): void {
-  const parPropriete = new Map([...axes].map(([id, axe]) => [tokenCssVariable(axe.cle), id]));
-  const nomDe = (id: string) => collections.find((collection) => collection.id === id)?.name ?? id;
-  for (const [id, axe] of axes) {
-    if (axe.extensions.length === 0) continue;
-    const rivale = parPropriete.get(tokenCssVariable(axeDesExtensions(axe.cle)));
-    if (rivale === undefined) continue;
-    points.push(pointDe(`Collection « ${nomDe(rivale)} »`, {
-      famille: 'fichier',
-      manque: `son nom donne le préfixe « ${axes.get(rivale)?.cle} », que le fichier de tokens réserve aux `
-        + `collections étendues de « ${nomDe(id)} ».`,
-      impact: `Le développeur ne pourra pas générer les extensions de la collection « ${nomDe(id)} ».`,
-      action: `Renommez la collection « ${nomDe(rivale)} », puis réexportez.`,
-    }));
-    // Une collection à un seul mode n'était un axe que par ses extensions.
-    if (axe.modes.length < 2) axes.delete(id);
-    else axes.set(id, { ...axe, extensions: [] });
-  }
-}
-
-/**
  * Les axes que l'export retient, par identifiant de collection, et les constats
  * qui écartent les autres. Une collection à un seul mode n'est pas un axe.
  *
@@ -675,67 +644,75 @@ export function axesDesCollections(
 ): { axes: Map<string, AxeDeCollection>; points: PointACorriger[] } {
   const points: PointACorriger[] = [];
   const extensionsLocales = collections.filter(estUneExtension).map(commeExtension);
-  const racinesEtendues = new Set(extensionsLocales.map((extension) => extension.rootVariableCollectionId));
-  const parCle = new Map<string, VariableCollection[]>();
-  for (const collection of collections) {
-    if (estUneExtension(collection)) continue;
-    if (collection.modes.length < 2 && !racinesEtendues.has(collection.id)) continue;
-    const cle = prefixeDeCollection(collection.name);
-    parCle.set(cle, [...(parCle.get(cle) ?? []), collection]);
-  }
-
-  const axes = new Map<string, AxeDeCollection>();
-  for (const [cle, porteurs] of parCle) {
-    if (cle === '') {
-      for (const collection of porteurs) {
-        points.push(pointDe(`Collection « ${collection.name} »`, {
+  const qualifiees = new Map<string, AxeDeCollection>();
+  const inventaire = collections.map((collection) => ({
+    id: collection.id, nom: collection.name, nombreDeModes: collection.modes.length,
+    extension: estUneExtension(collection),
+    ...(estUneExtension(collection) ? { racine: commeExtension(collection).rootVariableCollectionId } : {}),
+    source: collection,
+  }));
+  const decision = deciderAxesDesCollections(inventaire, {
+    refuser(motif, porteurs, cle) {
+      if (motif === 'prefixe-vide') {
+        for (const { source: collection } of porteurs) {
+          points.push(pointDe(`Collection « ${collection.name} »`, {
+            famille: 'fichier',
+            manque: 'son nom ne donne aucun préfixe de token.',
+            impact: IMPACT_SANS_AXE,
+            action: 'Donnez à la collection un nom qui contient une lettre ou un chiffre, puis réexportez.',
+          }));
+        }
+      } else {
+        points.push(pointDe(`Collections ${porteurs.map(({ nom }) => `« ${nom} »`).join(' et ')}`, {
           famille: 'fichier',
-          manque: 'son nom ne donne aucun préfixe de token.',
-          impact: IMPACT_SANS_AXE,
-          action: 'Donnez à la collection un nom qui contient une lettre ou un chiffre, puis réexportez.',
+          manque: `leurs noms donnent le même préfixe « ${cle} » dans le fichier de tokens.`,
+          impact: 'Le développeur ne pourra pas générer les modes de ces collections.',
+          action: 'Renommez les collections pour que leurs noms diffèrent, puis réexportez.',
         }));
       }
-      continue;
-    }
-    if (porteurs.length > 1) {
-      points.push(pointDe(`Collections ${porteurs.map(({ name }) => `« ${name} »`).join(' et ')}`, {
+    },
+    qualifier({ source: collection }, cle) {
+      const modes = collection.modes.map((mode) => normalizeName(mode.name));
+      if (modes.includes('')) {
+        points.push(pointDe(`Collection « ${collection.name} »`, {
+          famille: 'fichier',
+          manque: 'un de ses modes n’a pas de nom.',
+          impact: IMPACT_SANS_AXE,
+          action: 'Nommez chaque mode de la collection, puis réexportez.',
+        }));
+        return null;
+      }
+      if (new Set(modes).size !== modes.length) return null;
+      const defaut = collection.modes.find((mode) => mode.modeId === collection.defaultModeId);
+      if (!defaut) {
+        points.push(pointDe(`Collection « ${collection.name} »`, {
+          famille: 'fichier',
+          manque: 'son mode par défaut est introuvable.',
+          impact: IMPACT_SANS_AXE,
+          action: 'Choisissez de nouveau le mode par défaut de la collection, puis réexportez.',
+        }));
+        return null;
+      }
+      const extensions = extensionsDeLaCollection(collection, collections, points);
+      if (modes.length < 2 && extensions.length === 0) return null;
+      qualifiees.set(collection.id, { cle, modes, defaut: normalizeName(defaut.name), extensions });
+      return { extensions: extensions.length > 0 };
+    },
+    conflitDExtensions(a, b) {
+      points.push(pointDe(`Collection « ${b.nom} »`, {
         famille: 'fichier',
-        manque: `leurs noms donnent le même préfixe « ${cle} » dans le fichier de tokens.`,
-        impact: 'Le développeur ne pourra pas générer les modes de ces collections.',
-        action: 'Renommez les collections pour que leurs noms diffèrent, puis réexportez.',
+        manque: `son nom donne le préfixe « ${qualifiees.get(b.id)?.cle} », que le fichier de tokens réserve aux `
+          + `collections étendues de « ${a.nom} ».`,
+        impact: `Le développeur ne pourra pas générer les extensions de la collection « ${a.nom} ».`,
+        action: `Renommez la collection « ${b.nom} », puis réexportez.`,
       }));
-      continue;
-    }
-
-    const [collection] = porteurs;
-    const modes = collection.modes.map((mode) => normalizeName(mode.name));
-    if (modes.includes('')) {
-      points.push(pointDe(`Collection « ${collection.name} »`, {
-        famille: 'fichier',
-        manque: 'un de ses modes n’a pas de nom.',
-        impact: IMPACT_SANS_AXE,
-        action: 'Nommez chaque mode de la collection, puis réexportez.',
-      }));
-      continue;
-    }
-    if (new Set(modes).size !== modes.length) continue;
-    const defaut = collection.modes.find((mode) => mode.modeId === collection.defaultModeId);
-    if (!defaut) {
-      points.push(pointDe(`Collection « ${collection.name} »`, {
-        famille: 'fichier',
-        manque: 'son mode par défaut est introuvable.',
-        impact: IMPACT_SANS_AXE,
-        action: 'Choisissez de nouveau le mode par défaut de la collection, puis réexportez.',
-      }));
-      continue;
-    }
-    const extensions = extensionsDeLaCollection(collection, collections, points);
-    // Une collection à un seul mode n'est un axe que par ses extensions : si
-    // toutes sont écartées, leur constat suffit et elle reste sans modes.
-    if (modes.length < 2 && extensions.length === 0) continue;
-    axes.set(collection.id, { cle, modes, defaut: normalizeName(defaut.name), extensions });
+    },
+  });
+  const axes = new Map<string, AxeDeCollection>();
+  for (const [id, axe] of decision.axes) {
+    const qualifiee = qualifiees.get(id)!;
+    axes.set(id, axe.extensions ? qualifiee : { ...qualifiee, extensions: [] });
   }
-  ecarterLesExtensionsHomonymesDUnAxe(collections, axes, points);
 
   // L'extension locale d'une collection de bibliothèque surcharge des variables
   // que ce fichier ne contient pas : aucun axe ne la reçoit.

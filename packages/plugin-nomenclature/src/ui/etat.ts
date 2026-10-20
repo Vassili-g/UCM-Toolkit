@@ -56,9 +56,12 @@ export function comptesDuBilan(bilan: Bilan | null): EtatDeLEcran['comptes'] {
   return { aAppliquer: renommages, aTrancher: bilan.questions.length };
 }
 
-/** Rien dans À appliquer ni dans À trancher : ni groupe, ni nom bloqué, ni question, ni question remise à plus tard. */
+/**
+ * Rien dans À appliquer ni dans À trancher : ni groupe, ni nom bloqué, ni variable protégée, ni question, ni question remise à plus tard.
+ * Une variable protégée a un geste que « Tous les noms suivent vos règles » cacherait.
+ */
 function rienAFaire(bilan: Bilan): boolean {
-  return bilan.groupes.length === 0 && bilan.bloques.length === 0 && bilan.questions.length === 0 && bilan.plusTard.length === 0;
+  return bilan.groupes.length === 0 && bilan.bloques.length === 0 && bilan.proteges === 0 && bilan.questions.length === 0 && bilan.plusTard.length === 0;
 }
 
 /**

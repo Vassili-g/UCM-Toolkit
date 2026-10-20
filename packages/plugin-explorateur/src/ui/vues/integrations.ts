@@ -4,19 +4,21 @@
  * elle ne produit aucun constat et ne change ni la table ni la navigation.
  * Leurs sections de l'inspecteur s'enregistrent ici.
  */
-import { nomComplet } from '../../copie';
+import { nomComplet, nomDeMode } from '../../copie';
 import {
   classerImport,
   correspondance,
   ecartsAvecLExport,
   occurrencesDeLaVariable,
   variablesParChemin,
+  type ComparaisonAvecLExport,
   type ContratImporte,
+  type LimiteDExport,
   type RefusDImport,
   type TokensImportes,
 } from '../../integrations/contrats';
-import { cransDeLaPalette, variablesDeLAssociation, intensitesDeLaPalette, lireLaRecette, validerAssociation, type AssociationDeCran } from '../../integrations/palettes';
-import { COUCHES, controlerLeProfil, coucheRangee, indexDuVocabulaire, libelleDeLaVariable, variableDuNom, type AssociationDesCouches, type ConstatDuProfil } from '../../integrations/profilUcm';
+import { cransDeLaPalette, variablesDeLAssociation, intensitesDeLaPalette, lireLaRecette, validerAssociation, type AssociationDeCran, type Intensite, type Theme } from '../../integrations/palettes';
+import { COUCHES, controlerLeProfil, coucheRangee, indexDuVocabulaire, libelleDeLaVariable, variableDuNom, type AssociationDesCouches, type ConstatDuProfil, type ControleDuProfil, type LimiteDuProfil } from '../../integrations/profilUcm';
 import type { Recette } from 'ucm-couleur';
 import type { Application, Composant } from '../application';
 import { versSandbox } from '../pont';
@@ -66,10 +68,10 @@ export function couchesDuFichier(app: Application): AssociationDesCouches {
   }));
 }
 
-/** Les écarts au profil, quand le profil est actif. */
-export function constatsDuProfil(app: Application): ConstatDuProfil[] {
+/** Les écarts au profil et les contrôles qu'il n'a pas pu faire, quand le profil est actif. */
+export function controleDuProfil(app: Application): ControleDuProfil {
   const { index, preferences, releve } = app.etat;
-  if (!index || !preferences.profilUcm) return [];
+  if (!index || !preferences.profilUcm) return { constats: [], limites: [] };
   const exceptions = new Set(preferences.exceptions[releve?.fichier ?? ''] ?? []);
   return controlerLeProfil(index, couchesDuFichier(app), { recette: recetteLue(app), exceptions, indexDuVocabulaire: indexDuVocabulaire(releve?.vocabulaire) });
 }
@@ -190,8 +192,8 @@ export function creerVueIntegrations(app: Application): Composant {
       grille.append(champCouche);
     }
     parties.push(grille);
-    const constats = constatsDuProfil(app);
-    parties.push(note(TEXTES.profilConstats(constats.length)));
+    const { constats, limites } = controleDuProfil(app);
+    parties.push(note(TEXTES.profilConstats(constats.length, limites.length)));
     const liste = document.createElement('ul');
     liste.className = 'liens';
     for (const constat of constats.slice(0, 200)) {
@@ -213,6 +215,7 @@ export function creerVueIntegrations(app: Application): Composant {
     }
     parties.push(liste);
     if (constats.length > 0) parties.push(note(TEXTES.exceptionAide));
+    if (limites.length > 0) parties.push(note(TEXTES.profilLimites(limites.length)), listeDesLimitesDuProfil(app, limites));
     return parties;
   }
 
@@ -228,6 +231,42 @@ export function creerVueIntegrations(app: Application): Composant {
       element.replaceChildren(titreDeVue(TEXTES.integrationsTitre), note(TEXTES.integrationsNote), ...sectionContrats(), ...sectionPalettes(), ...sectionProfil());
     },
   };
+}
+
+/** Le texte d'un contrôle que le profil n'a pas pu faire, avec les noms du fichier. */
+function texteDeLaLimiteDuProfil(app: Application, limite: LimiteDuProfil): string {
+  const index = app.etat.index!;
+  const nom = nomDeCible(index, limite.variable);
+  switch (limite.cause) {
+    case 'role-inconnu':
+      return TEXTES.profilLimite['role-inconnu'](nom);
+    case 'mode-non-reconnu':
+      return TEXTES.profilLimite['mode-non-reconnu'](nomDeMode(index, limite.mode ?? ''));
+    case 'mode-sans-valeur':
+      return TEXTES.profilLimite['mode-sans-valeur'](nom, nomDeMode(index, limite.mode ?? ''));
+    case 'cible-sans-couche': {
+      const collection = index.collections.get(index.variables.get(limite.cible ?? '')?.collection ?? '');
+      return TEXTES.profilLimite['cible-sans-couche'](nom, collection?.nom ?? '');
+    }
+  }
+}
+
+/** Les contrôles impossibles du profil, un par ligne. Le mode non reconnu parle de tout le mode : il ne renvoie à aucune variable. */
+function listeDesLimitesDuProfil(app: Application, limites: readonly LimiteDuProfil[]): HTMLUListElement {
+  const liste = document.createElement('ul');
+  liste.className = 'liens';
+  for (const limite of limites.slice(0, 200)) {
+    const ligne = document.createElement('li');
+    ligne.className = 'constat';
+    ligne.dataset.limite = limite.cause;
+    const detail = document.createElement('p');
+    detail.className = 'constat-detail';
+    detail.textContent = texteDeLaLimiteDuProfil(app, limite);
+    ligne.append(detail);
+    if (limite.cause !== 'mode-non-reconnu') ligne.append(lienVersVariable(app, limite.variable, undefined, 'inspecter'));
+    liste.append(ligne);
+  }
+  return liste;
 }
 
 /** Le texte d'un écart au profil, avec les noms du fichier. */
@@ -253,7 +292,40 @@ function section(titre: string): HTMLElement {
   return element;
 }
 
-function sectionContratsDeLInspecteur(app: Application, variable: string): HTMLElement | null {
+/** Le texte d'un mode que la comparaison avec l'export n'a pas pu faire. */
+function texteDeLaLimiteDExport(limite: LimiteDExport): string {
+  switch (limite.cause) {
+    case 'unite-relative':
+    case 'unite-inconnue':
+    case 'espace-inconnu':
+      return TEXTES.limiteExport[limite.cause](limite.mode, limite.detail ?? '');
+    default:
+      return TEXTES.limiteExport[limite.cause](limite.mode);
+  }
+}
+
+/**
+ * Les notes de la comparaison avec l'export. Le texte d'égalité ne paraît que
+ * si aucun écart ni aucune limite n'est relevé, donc si chaque mode a été
+ * comparé.
+ */
+function notesDeLaComparaison({ ecarts, limites }: ComparaisonAvecLExport): HTMLElement[] {
+  const notes: HTMLElement[] = [];
+  if (ecarts.length > 0) {
+    notes.push(note(ecarts.map((ecart) => `${TEXTES.ecartExport[ecart.ecart]}${ecart.mode ? ` (${ecart.mode})` : ''}`).join(' · ')), note(TEXTES.fraicheurExport));
+  } else {
+    notes.push(note(limites.length === 0 ? TEXTES.aucunEcartExport : TEXTES.aucunEcartDansLesModesComparesExport));
+  }
+  for (const limite of limites) {
+    const ligne = note(texteDeLaLimiteDExport(limite));
+    ligne.dataset.limite = limite.cause;
+    notes.push(ligne);
+  }
+  if (limites.length > 0) notes.push(note(TEXTES.verifierAMainExport));
+  return notes;
+}
+
+export function sectionContratsDeLInspecteur(app: Application, variable: string): HTMLElement | null {
   const { index, imports } = app.etat;
   if (!index || imports.length === 0) return null;
   const bloc = section(TEXTES.contratsTitre);
@@ -271,9 +343,7 @@ function sectionContratsDeLInspecteur(app: Application, variable: string): HTMLE
         bloc.append(note(TEXTES.correspondanceUnique(reference)));
         const copie = boutonDiscret(TEXTES.copies.reference, () => void app.copier(variable, 'reference', reference));
         bloc.append(copie);
-        const ecarts = ecartsAvecLExport(index, variable, fichier.feuilles.get(trouve.chemin)!);
-        bloc.append(note(ecarts.length === 0 ? TEXTES.aucunEcartExport : ecarts.map((ecart) => `${TEXTES.ecartExport[ecart.ecart]}${ecart.mode ? ` (${ecart.mode})` : ''}`).join(' · ')));
-        if (ecarts.length > 0) bloc.append(note(TEXTES.fraicheurExport));
+        bloc.append(...notesDeLaComparaison(ecartsAvecLExport(index, variable, fichier.feuilles.get(trouve.chemin)!)));
       }
     }
   }
@@ -333,8 +403,8 @@ function sectionPalettesDeLInspecteur(app: Application, variable: string): HTMLE
       const nouvelle = recette.palettes.find((candidate) => candidate.id === valeur)!;
       poser({ palette: valeur, intensite: intensitesDeLaPalette(nouvelle)[0], cran: cransDeLaPalette(recette, nouvelle)[0] });
     }),
-    choix(TEXTES.associationIntensite, intensitesDeLaPalette(palette).map((intensite) => [intensite ?? '', intensite ?? '·']), brouillon.intensite ?? '', (valeur) => poser({ intensite: valeur === '' ? null : (valeur as 'soft' | 'vivid') })),
-    choix(TEXTES.associationTheme, [['light', 'Light'], ['dark', 'Dark']], brouillon.theme, (valeur) => poser({ theme: valeur as 'light' | 'dark' })),
+    choix(TEXTES.associationIntensite, intensitesDeLaPalette(palette).map((intensite) => [intensite ?? '', intensite ?? '·']), brouillon.intensite ?? '', (valeur) => poser({ intensite: valeur === '' ? null : (valeur as Intensite) })),
+    choix(TEXTES.associationTheme, [['light', 'Light'], ['dark', 'Dark']], brouillon.theme, (valeur) => poser({ theme: valeur as Theme })),
     choix(TEXTES.associationCran, cransDeLaPalette(recette, palette).map((cran) => [String(cran), String(cran)]), String(brouillon.cran), (valeur) => poser({ cran: Number(valeur) })),
   );
   bloc.append(note(TEXTES.associer), ligne);
@@ -362,7 +432,10 @@ function sectionProfilDeLInspecteur(app: Application, variable: string): HTMLEle
   if (!lue) return null;
   const bloc = section(TEXTES.profilTitre);
   bloc.append(note(TEXTES.variableDuTheme(avecLibelle(lue.variable), lue.support.peint.join(', '), lue.support.portees.join(', '))));
-  const constats = constatsDuProfil(app).filter((constat) => constat.variable === variable);
+  const controle = controleDuProfil(app);
+  const constats = controle.constats.filter((constat) => constat.variable === variable);
   for (const constat of constats) bloc.append(note(texteDuConstatDuProfil(app, constat)));
+  const limites = controle.limites.filter((limite) => limite.variable === variable && limite.cause !== 'mode-non-reconnu');
+  for (const limite of limites) bloc.append(note(texteDeLaLimiteDuProfil(app, limite)));
   return bloc;
 }

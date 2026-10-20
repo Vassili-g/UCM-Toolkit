@@ -18,14 +18,17 @@
  * cette palette. Sans règles, les noms restent ceux du plan.
  */
 import { aUneIntensite, jsonCanonique, profilPorteur, validerRecette, type Recette, type Refus } from 'ucm-couleur';
-import { CLES_PARTAGEES_DE_PALETTES, SEUIL_DE_PALETTE } from '@ucm-kit/core/referentiel';
+import { CLE_ARCHITECTURE_DU_FICHIER, CLES_PARTAGEES_DE_PALETTES, COUCHES_SANS_PALETTES, ESPACE_ARCHITECT, SEUIL_DE_PALETTE, collectionUcmReconnue, lireLArchitectureDuFichier, type ArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 import { CLE_RECETTE, ESPACE_PARTAGE, empreinteDuTexte, lireEtat } from '../lecture';
 import { ajouter, nouvellePalette, reprendreDuFichier } from '../edition';
-import { collectionLue, lireLeSuiviRange, lireLesDonneesDeNommage, variableLue, variablesDeLaBibliotheque, type FigmaDesBibliotheques, type LecturesDeNommage } from '../lectureDesVariables';
+import { collectionLue, inventaireLu, lireLeSuiviRange, lireLesDonneesDeNommage, variableLue, variablesDeLaBibliotheque, type FigmaDesBibliotheques } from '../lectureDesVariables';
 import { variablesDeLaRampe } from '../variables/bibliotheques';
 import { conversionDeLaReprise } from '../variables/conversion';
-import { creerNommeur, planDeLaPalette } from '../variables/nommeur';
+import { COLLECTION_A_CREER, creerNommeur } from '../variables/nommeur';
+import { MODE_PAR_DEFAUT_A_CREER, idSimuleDeLaVariable, planDuLot, suiviApresLEcriture, type DecisionDuLot } from '../variables/lot';
+import { etatDAvant, journalDesVariables, type EtatDAvant, type Reste } from './restaurationDesVariables';
+export type { Reste } from './restaurationDesVariables';
 import { validerLaDestination, type Destination, type RefusDeDestination } from '../variables/destination';
 import { nuanceDeReference, palettesDuFichier, retrouverLaPaletteGroupee, type PaletteDuFichier, type SourceGroupee } from '../variables/detection';
 import { etatDesTokens } from '../variables/etat';
@@ -63,18 +66,20 @@ export type IssueDeLaPalette =
   /** Des couleurs ont été changées dans Figma, et le designer n'a pas choisi de les remettre : rien n'est écrit ([VAR-06]). */
   | { readonly palette: string; readonly issue: 'modifiee'; readonly couleurs: number }
   /** Une variable de ce nom existe dans la collection, et le designer n'a pas choisi de la remplacer, ou une autre palette la suit : rien n'est créé ([VAR-08]). */
-  | { readonly palette: string; readonly issue: 'nom-pris'; readonly nom: string }
+  | { readonly palette: string; readonly issue: 'nom-pris'; readonly nom: string; readonly occupant?: { readonly palette: string; readonly dansLeLot: boolean } }
   /** La collection que la destination désigne n'est plus dans le fichier. */
   | { readonly palette: string; readonly issue: 'collection-introuvable' }
+  | { readonly palette: string; readonly issue: 'couche-interdite'; readonly nom: string }
   | { readonly palette: string; readonly issue: 'mode-introuvable'; readonly mode: ModeDuPlan }
   /** Figma a refusé un mode Light ou Dark, selon l'offre du fichier ([VAR-10]). */
   | { readonly palette: string; readonly issue: 'modes-refuses'; readonly message: string }
   /** Figma a levé au milieu de la palette : les variables que cette écriture venait de créer pour elle sont retirées. */
-  | { readonly palette: string; readonly issue: 'interrompue'; readonly message: string }
+  | { readonly palette: string; readonly issue: 'interrompue'; readonly message: string; readonly restes?: readonly Reste[] }
   /** La recette rangée ne contient pas cette palette. */
   | { readonly palette: string; readonly issue: 'absente' };
 
 export type ResultatDeLEcriture =
+  | { readonly issue: 'defaite'; readonly message: string; readonly restes: readonly Reste[] }
   | { readonly issue: 'interrompue'; readonly message: string }
   | { readonly issue: 'ecrites'; readonly palettes: readonly IssueDeLaPalette[] }
   /** La recette rangée n'est plus celle que l'interface a lue : rien n'est écrit. */
@@ -84,6 +89,18 @@ export type ResultatDeLEcriture =
   | { readonly issue: 'suivi-futur' };
 
 const messageDe = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
+
+function architectureDuFichier(root: FigmaDesVariablesEcrites['root']): ArchitectureDuFichier {
+  try {
+    return lireLArchitectureDuFichier(root.getSharedPluginData(ESPACE_ARCHITECT, CLE_ARCHITECTURE_DU_FICHIER));
+  } catch {
+    return 'illisible';
+  }
+}
+
+function coucheInterdite(nom: string, architecture: ArchitectureDuFichier): boolean {
+  return architecture === 'ucm' && COUCHES_SANS_PALETTES.some((couche) => couche === collectionUcmReconnue(nom));
+}
 
 /** Le mode d'une collection qui porte ce nom, sans casse ni espaces autour. */
 function modeNomme(collection: VariableCollection, nom: string): string | undefined {
@@ -97,6 +114,10 @@ function modeNomme(collection: VariableCollection, nom: string): string | undefi
  * `commitUndo` clôt l'écriture.
  */
 export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demande: DemandeDEcriture): Promise<ResultatDeLEcriture> {
+  const journal = journalDesVariables({
+    ecrireLaValeur: (variable, mode, valeur) => variable.setValueForMode(mode, valeur),
+    renommerLeMode: (collection, mode, nom) => collection.renameMode(mode, nom),
+  });
   try {
     const etat = lireEtat(figma.root);
     if (etat.classement.etat !== 'courante') return { issue: 'sans-recette' };
@@ -104,315 +125,170 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
     const recette = etat.classement.recette;
     const rangee = lireLeSuiviRange(figma.root);
     if (suiviFutur(rangee)) return { issue: 'suivi-futur' };
-
-    // Les règles de nommage lisent les variables de tous types : seules les couleurs se suivent et s'écrivent.
     const [collectionsLocales, toutesLesVariables] = await Promise.all([
       figma.variables.getLocalVariableCollectionsAsync(),
       figma.variables.getLocalVariablesAsync(),
     ]);
-    const variablesLocales = toutesLesVariables.filter((variable) => variable.resolvedType === 'COLOR');
     if (lireEtat(figma.root).empreinte !== demande.empreinteLue) return { issue: 'recette-changee' };
+    const inventaire = inventaireLu(figma.root, collectionsLocales, toutesLesVariables);
+    if (suiviFutur(inventaire.suivi)) return { issue: 'suivi-futur' };
+    const architecture = architectureDuFichier(figma.root);
+    const lot = planDuLot(recette, inventaire, { ...demande, remplacer: demande.remplacer ?? [] });
     const profil = figma.root.documentColorProfile;
     const collections = new Map(collectionsLocales.map((collection) => [collection.id, collection]));
-    const locales = new Map(variablesLocales.map((variable) => [variable.id, variable]));
-    const lues = new Map<string, VariableLue>(variablesLocales.map((variable) => [variable.id, variableLue(variable, profil)]));
-    const remettre = new Set(demande.remettre);
-    const remplacer = new Set(demande.remplacer ?? []);
-    const lecturesDeNommage: LecturesDeNommage = new Map();
-    /** Le nommeur du fichier tel qu'il est maintenant : les palettes déjà écrites ont changé ses variables et ses noms. */
-    const nommeurActuel = () => {
-      const donnees = lireLesDonneesDeNommage(figma.root, [...collections.values()], toutesLesVariables, lecturesDeNommage);
-      return donnees ? creerNommeur(donnees) : undefined;
-    };
+    const locales = new Map(toutesLesVariables.filter((variable) => variable.resolvedType === 'COLOR').map((variable) => [variable.id, variable]));
+    const identifiants = new Map<string, string>();
+    const modesFaits = new Set<string>();
+    const idReel = (id: string): string => identifiants.get(id) ?? id;
+    let destination = inventaire.suivi.destination;
+    let suivies = { ...inventaire.suivi.palettes };
+    let unEchec = false;
 
-    let destination: Destination = rangee.destination;
-    const suivies: { [id: string]: PaletteSuivie } = { ...rangee.palettes };
-    /** Vrai dès qu'une collection, un mode, une variable ou une valeur a changé : le suivi se range et l'écriture se clôt. */
-    let ecrit = false;
-
-    /**
-     * Écrit une palette reprise dans sa collection d'origine ([VAR-13]). Les
-     * variables d'origine prennent le nom que le plan leur donne, sous le
-     * groupe retenu par le plan et le segment de leur thème ou de leur
-     * intensité ; une entrée du plan sans variable en crée une sous ce chemin,
-     * et le mode Dark se trouve ou
-     * se crée quand le plan écrit ce thème en mode. Une entrée sans nom ne
-     * crée rien : sa variable disparue quitte le suivi. Un mode suivi disparu
-     * refuse la palette avant toute mutation.
-     */
-    function ecrireLaReprise(id: string, suivie: PaletteSuivie, plan: readonly EntreeDuPlan[], origine: OrigineDeLaReprise | null, destination: Destination, palette: Recette['palettes'][number], intensite: PaletteSuivie['intensite']): IssueDeLaPalette {
-      const collection = collections.get(suivie.collection);
-      if (!collection) return { palette: id, issue: 'collection-introuvable' };
-      const modes: { [M in ModeDuPlan]?: string } = { ...suivie.modes };
-      const disparu = plan.find((entree) => modes[entree.mode] !== undefined && !collection.modes.some((mode) => mode.modeId === modes[entree.mode]));
-      if (disparu) return { palette: id, issue: 'mode-introuvable', mode: disparu.mode };
-      if (origine?.suivies.size === 0 && plan.length > 0) {
-        if (!plan.some((entree) => entree.mode === 'dark')) delete modes.dark;
-        if (!collection.modes.some((mode) => mode.modeId === modes.light)) modes.light = collection.defaultModeId;
+    // Toutes les lectures nécessaires à une restauration précèdent la première mutation du lot.
+    const avant = new Map<string, EtatDAvant>();
+    for (const decision of lot.palettes) {
+      if (decision.decision !== 'ecrire') continue;
+      const touches = [...decision.renommages.map(({ id }) => id), ...decision.remplacements.map(({ id }) => id), ...decision.cibles.flatMap((cible) => cible.cible === 'presente' && cible.ecrire ? [cible.id] : [])];
+      for (const id of touches) {
+        const variable = locales.get(id);
+        if (variable && !avant.has(id)) avant.set(id, etatDAvant(variable));
       }
-      if (modes.dark === undefined && plan.some((entree) => entree.mode === 'dark')) {
-        try {
-          const nomme = modeNomme(collection, 'Dark');
-          if (nomme !== undefined && nomme !== modes.light) modes.dark = nomme;
-          else {
-            modes.dark = collection.addMode('Dark');
-            ecrit = true;
-          }
-        } catch (erreur) {
-          return { palette: id, issue: 'modes-refuses', message: messageDe(erreur) };
-        }
-      }
-      const variableDuNom = new Map<string, Variable>();
-      const creees: Variable[] = [];
-      const gardees: { [cle: string]: VariableSuivie } = {};
-      const chemin = origine ? cheminDeLaReprise(destination, suivie, recette, palette, origine) : suivie.chemin;
-      /** Les clés dont le mode a quitté la collection : elles quittent le suivi. */
-      const sansMode = new Set<string>();
-      let valeurs = 0;
-      /** Le suivi d'après : les clés écrites, celles d'un plan plus ancien dont la variable existe encore, et le chemin d'origine, que les noms ne rendent plus après un renommage. */
-      const suivant = (retenues: { readonly [cle: string]: VariableSuivie }): PaletteSuivie => ({
-        ...suivie,
-        groupe: destination.groupe,
-        modes,
-        ...(chemin !== undefined ? { chemin } : {}),
-        ...(intensite ? { intensite } : {}),
-        variables: {
-          ...Object.fromEntries(Object.entries(suivie.variables).filter(([cle, variable]) => !sansMode.has(cle) && locales.has(variable.id))),
-          ...retenues,
-        },
-      });
-      try {
-        for (const entree of plan) {
-          const mode = modes[entree.mode];
-          if (mode === undefined || !collection.modes.some((candidat) => candidat.modeId === mode)) {
-            sansMode.add(entree.cle);
-            continue;
-          }
-          const presente = variableDeLEntree(entree, suivie, origine);
-          let variable = locales.get(suivie.variables[entree.cle]?.id ?? '') ?? (presente ? locales.get(presente.id) : undefined) ?? variableDuNom.get(entree.nom);
-          const couleur = couleurPourFigma(entree.hexa, profil);
-          if (!variable) {
-            if (entree.nom === '') continue;
-            variable = figma.variables.createVariable(entree.nom, collection, 'COLOR');
-            // Une primitive ne paraît dans aucun sélecteur de calque (D14).
-            variable.scopes = [];
-            creees.push(variable);
-            toutesLesVariables.push(variable);
-            // Une variable neuve porte sa couleur dans tous les modes de la collection, avant ce que le plan écrit dans chacun.
-            for (const cible of collection.modes) variable.setValueForMode(cible.modeId, couleur);
-            valeurs += 1;
-            ecrit = true;
-          } else {
-            // Un renommage garde l'identifiant de la variable, donc ses liaisons.
-            if (entree.nom !== '' && variable.name !== entree.nom) {
-              variable.name = entree.nom;
-              ecrit = true;
-            }
-            if (creees.includes(variable) || lues.get(variable.id)?.valeurs[mode] !== entree.hexa) {
-              variable.setValueForMode(mode, couleur);
-              valeurs += 1;
-              ecrit = true;
-            }
-          }
-          if (entree.nom !== '') variableDuNom.set(entree.nom, variable);
-          gardees[entree.cle] = { id: variable.id, ecrite: entree.hexa };
-        }
-        for (const variable of creees) {
-          const premiere = plan.find((entree) => variableDuNom.get(entree.nom) === variable)!;
-          variable.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.palette, id);
-          variable.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.cle, premiere.cle);
-        }
-      } catch (erreur) {
-        for (const variable of creees) {
-          try {
-            variable.remove();
-          } catch {
-            // Une variable que Figma refuse de retirer reste dans le fichier, hors du suivi.
-          }
-        }
-        // Les valeurs déjà écrites dans les variables présentes le restent : le suivi les retient, pour ne pas les lire comme changées dans Figma.
-        const presentes = Object.fromEntries(Object.entries(gardees).filter(([, variable]) => !creees.some((creee) => creee.id === variable.id)));
-        suivies[id] = { ...suivant({}), variables: { ...suivie.variables, ...presentes } };
-        return { palette: id, issue: 'interrompue', message: messageDe(erreur) };
-      }
-      suivies[id] = suivant(gardees);
-      return { palette: id, issue: 'ecrite', creees: creees.length, ecrites: valeurs };
     }
 
-    function ecrireLaPalette(id: string): IssueDeLaPalette {
-      const palette = recette.palettes.find((candidate) => candidate.id === id);
-      if (!palette) return { palette: id, issue: 'absente' };
-      const suivie = suivies[id];
-      const origine = suivie?.liaison === 'reprise' ? origineDeLaReprise(suivie, [...lues.values()]) : null;
-      // Les noms du plan sont les noms finaux des règles de nommage du fichier, quand il en a ; sinon les noms bruts.
-      const plan = planDeLaPalette(nommeurActuel(), recette, palette, destination, suivie, origine, lues, collections);
-      const tokens = etatDesTokens(plan, suivie, lues, destination);
-      if (tokens.modifiees.length > 0 && !remettre.has(id)) return { palette: id, issue: 'modifiee', couleurs: tokens.modifiees.length };
-      if (suivie?.liaison === 'reprise') return ecrireLaReprise(id, suivie, plan, origine, destination, palette, suivie.intensite ?? (aUneIntensite(palette) ? undefined : profilPorteur(recette, palette)));
-
-      // La collection du suivi, tant que la destination n'a pas changé ; sinon celle de la destination ([VAR-09]).
-      const garde = suivie && !tokens.destinationChangee && collections.has(suivie.collection) ? suivie : undefined;
-      let collection: VariableCollection;
-      if (garde) collection = collections.get(garde.collection)!;
-      else if ('id' in destination.collection) {
-        const designee = collections.get(destination.collection.id);
-        if (!designee) return { palette: id, issue: 'collection-introuvable' };
-        collection = designee;
-      } else {
-        collection = figma.variables.createVariableCollection(destination.collection.nom);
-        collections.set(collection.id, collection);
-        // La collection créée devient la destination : la palette suivante la rejoint au lieu d'en créer une autre.
-        destination = { ...destination, collection: { id: collection.id } };
-        ecrit = true;
+    function executer(decision: Extract<DecisionDuLot, { decision: 'ecrire' }>): IssueDeLaPalette {
+      const id = decision.palette;
+      const nomDeCollection = 'nom' in decision.collection ? decision.collection.nom : collections.get(idReel(decision.collection.id))?.name;
+      if (decision.liaison === 'destination' && nomDeCollection !== undefined && coucheInterdite(nomDeCollection, architecture)) return { palette: id, issue: 'couche-interdite', nom: nomDeCollection };
+      let collection = 'id' in decision.collection ? collections.get(idReel(decision.collection.id)) : collections.get(idReel(COLLECTION_A_CREER));
+      if (unEchec && collection) {
+        const aPrendre = [...decision.creations.map((creation) => ({ nom: creation.nom, id: '' })), ...decision.renommages.map((renommage) => ({ nom: renommage.vers, id: idReel(renommage.id) })), ...decision.remplacements.map((remplacement) => ({ nom: remplacement.vers, id: idReel(remplacement.id) }))];
+        const prise = aPrendre.find((cible) => [...locales.values()].some((variable) => variable.variableCollectionId === collection!.id && variable.id !== cible.id && variable.name.toLowerCase() === cible.nom.toLowerCase()));
+        if (prise) return { palette: id, issue: 'nom-pris', nom: prise.nom };
       }
-
-      // Les modes que le plan écrit ([VAR-10]).
-      const modes: { [M in ModeDuPlan]?: string } = {};
-      const existe = (mode: string | undefined): mode is string => mode !== undefined && collection.modes.some((candidat) => candidat.modeId === mode);
-      if (destination.themes === 'chemin') {
-        modes.unique = existe(garde?.modes.unique) ? garde!.modes.unique : collection.defaultModeId;
-      } else {
+      if (!collection) {
+        if ('id' in decision.collection) return { palette: id, issue: 'collection-introuvable' };
         try {
-          // Une collection sans variable et à un seul mode est neuve : son mode se renomme, plutôt que d'en ajouter un.
-          const neuve = collection.variableIds.length === 0 && collection.modes.length === 1;
-          let light = existe(garde?.modes.light) ? garde!.modes.light : modeNomme(collection, 'Light');
-          if (light === undefined) {
-            if (neuve) {
-              collection.renameMode(collection.defaultModeId, 'Light');
-              light = collection.defaultModeId;
-            } else light = collection.addMode('Light');
-            ecrit = true;
-          }
-          let dark = existe(garde?.modes.dark) ? garde!.modes.dark : modeNomme(collection, 'Dark');
-          if (dark === undefined) {
-            dark = collection.addMode('Dark');
-            ecrit = true;
-          }
-          modes.light = light;
-          modes.dark = dark;
+          collection = figma.variables.createVariableCollection(decision.collection.nom);
         } catch (erreur) {
-          return { palette: id, issue: 'modes-refuses', message: messageDe(erreur) };
+          unEchec = true;
+          return { palette: id, issue: 'interrompue', message: messageDe(erreur) };
         }
+        journal.ajouter({ faite: 'collection', collection });
+        collections.set(collection.id, collection);
+        identifiants.set(COLLECTION_A_CREER, collection.id);
+        identifiants.set(MODE_PAR_DEFAUT_A_CREER, collection.defaultModeId);
+        destination = { ...destination, collection: { id: collection.id } };
       }
-
-      // La variable de chaque entrée : celle que le suivi désigne, quand elle existe encore.
-      const variableDuNom = new Map<string, Variable>();
-      for (const entree of plan) {
-        const connue = garde?.variables[entree.cle];
-        const variable = connue ? locales.get(connue.id) : undefined;
-        if (variable && !variableDuNom.has(entree.nom)) variableDuNom.set(entree.nom, variable);
+      const modes: { [M in ModeDuPlan]?: string } = {};
+      try {
+        for (const [mode, vise] of Object.entries(decision.modes)) {
+          let reel = idReel(vise.id);
+          if (vise.creer && !modesFaits.has(vise.id)) {
+            if (vise.creer.renommer) {
+              const avant = collection.modes.find((mode) => mode.modeId === reel)!.name;
+              journal.ajouter({ faite: 'mode-renomme', collection, mode: reel, avant });
+              collection.renameMode(reel, vise.creer.nom);
+            } else {
+              reel = collection.addMode(vise.creer.nom);
+              journal.ajouter({ faite: 'mode-ajoute', collection, mode: reel });
+            }
+            identifiants.set(vise.id, reel);
+            modesFaits.add(vise.id);
+          }
+          modes[mode as ModeDuPlan] = reel;
+        }
+      } catch (erreur) {
+        unEchec = true;
+        return { palette: id, issue: 'modes-refuses', message: messageDe(erreur) };
       }
-      const sansVariable = [...new Set(plan.map((entree) => entree.nom))].filter((nom) => !variableDuNom.has(nom));
-      // Avant toute création : un nom déjà pris dans la collection arrête la palette, sauf quand le designer a choisi
-      // de remplacer les variables de ce nom qu'aucune autre palette de la recette ne suit ([VAR-08]).
-      const dansLaCollection = new Map<string, Variable>();
-      for (const variable of variablesLocales) {
-        const cle = variable.name.toLowerCase();
-        if (variable.variableCollectionId === collection.id && !dansLaCollection.has(cle)) dansLaCollection.set(cle, variable);
-      }
-      const protegees = variablesProtegees({ palettes: suivies }, new Set(recette.palettes.map((palette) => palette.id)), id);
-      const remplacees = new Map<string, Variable>();
-      for (const nom of sansVariable) {
-        const existante = dansLaCollection.get(nom.toLowerCase());
-        if (!existante) continue;
-        if (!remplacer.has(id) || protegees.has(existante.id)) return { palette: id, issue: 'nom-pris', nom };
-        remplacees.set(nom, existante);
-      }
-      const aCreer = sansVariable.filter((nom) => !remplacees.has(nom));
-
+      const suivieAvant = inventaire.suivi.palettes[id];
+      const idsSuivis = new Set(Object.values(suivieAvant?.variables ?? {}).map((variable) => variable.id));
+      const preparees = new Set<string>();
       const creees: Variable[] = [];
       const ecrites: { [cle: string]: VariableSuivie } = {};
       let valeurs = 0;
+      const preparer = (variable: Variable): void => {
+        if (preparees.has(variable.id) || creees.includes(variable)) return;
+        const etatAvant = avant.get(variable.id);
+        if (!etatAvant) throw new Error(`État de restauration absent : ${variable.id}`);
+        journal.ajouter({ faite: 'modification', variable, avant: etatAvant, palette: id, suivieAvant: idsSuivis.has(variable.id) });
+        preparees.add(variable.id);
+      };
       try {
-        for (const [nom, variable] of remplacees) {
-          // Une variable remplacée prend le nom du plan, à la casse près, et garde sa portée.
-          if (variable.name !== nom) variable.name = nom;
-          variableDuNom.set(nom, variable);
-          ecrit = true;
+        for (const changement of [...decision.remplacements, ...decision.renommages]) {
+          const variable = locales.get(idReel(changement.id))!;
+          preparer(variable);
+          if (variable.name !== changement.vers) variable.name = changement.vers;
         }
-        for (const nom of aCreer) {
-          const variable = figma.variables.createVariable(nom, collection, 'COLOR');
-          // Une primitive ne paraît dans aucun sélecteur de calque (D14).
-          variable.scopes = [];
+        for (const [rang, creation] of decision.creations.entries()) {
+          const variable = figma.variables.createVariable(creation.nom, collection, 'COLOR');
+          journal.ajouter({ faite: 'creation', variable, palette: id });
           creees.push(variable);
-          toutesLesVariables.push(variable);
-          variableDuNom.set(nom, variable);
-          ecrit = true;
+          locales.set(variable.id, variable);
+          identifiants.set(idSimuleDeLaVariable(id, rang), variable.id);
+          variable.scopes = [];
+          if (decision.liaison === 'reprise') {
+            const entree = decision.plan.find((entree, index) => decision.cibles[index].cible === 'creee' && (decision.cibles[index] as { rang: number }).rang === rang)!;
+            for (const mode of collection.modes) variable.setValueForMode(mode.modeId, couleurPourFigma(entree.hexa, profil));
+          }
         }
-        const neuves = new Set(creees);
-        for (const entree of plan) {
-          const variable = variableDuNom.get(entree.nom)!;
-          const mode = modes[entree.mode]!;
-          const valeursLues = lues.get(variable.id)?.valeurs;
-          const differente = entree.mode === 'unique'
-            ? collection.modes.some((cible) => valeursLues?.[cible.modeId] !== entree.hexa)
-            : valeursLues?.[mode] !== entree.hexa;
-          if (neuves.has(variable) || differente) {
+        for (const [rang, entree] of decision.plan.entries()) {
+          const cible = decision.cibles[rang];
+          if (cible.cible === 'aucune') continue;
+          const variable = locales.get(cible.cible === 'creee' ? idReel(idSimuleDeLaVariable(id, cible.rang)) : idReel(cible.id))!;
+          if (cible.cible === 'creee' || cible.ecrire) {
+            preparer(variable);
             const couleur = couleurPourFigma(entree.hexa, profil);
-            // Thèmes dans le chemin : la même valeur dans tous les modes de la collection ([VAR-10]).
-            for (const cible of entree.mode === 'unique' ? collection.modes.map((candidat) => candidat.modeId) : [mode]) variable.setValueForMode(cible, couleur);
+            for (const mode of entree.mode === 'unique' ? collection.modes.map((mode) => mode.modeId) : [modes[entree.mode]!]) variable.setValueForMode(mode, couleur);
             valeurs += 1;
-            ecrit = true;
           }
           ecrites[entree.cle] = { id: variable.id, ecrite: entree.hexa };
         }
-        for (const variable of [...remplacees.values(), ...creees]) {
-          const premiere = plan.find((entree: EntreeDuPlan) => variableDuNom.get(entree.nom) === variable)!;
+        for (const variable of [...decision.remplacements.map(({ id }) => locales.get(idReel(id))!), ...creees]) {
+          preparer(variable);
+          const cle = decision.plan.find((_, rang) => {
+            const cible = decision.cibles[rang];
+            return cible.cible !== 'aucune' && variable.id === (cible.cible === 'creee' ? idReel(idSimuleDeLaVariable(id, cible.rang)) : idReel(cible.id));
+          })!.cle;
           variable.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.palette, id);
-          variable.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.cle, premiere.cle);
+          variable.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.cle, cle);
         }
+        suivies = suiviApresLEcriture(suivies, id, decision, collection.id, modes, (cible) => cible.cible === 'creee' ? idReel(idSimuleDeLaVariable(id, cible.rang)) : idReel(cible.id), (id) => locales.has(id));
+        return { palette: id, issue: 'ecrite', creees: creees.length, ecrites: valeurs };
       } catch (erreur) {
-        for (const variable of creees) {
-          try {
-            variable.remove();
-          } catch {
-            // Une variable que Figma refuse de retirer reste dans le fichier, hors du suivi.
-          }
-        }
-        // Les valeurs déjà écrites dans des variables suivies le restent : le suivi les retient, pour ne pas les lire comme changées dans Figma.
-        const gardees = Object.fromEntries(Object.entries(ecrites).filter(([, variable]) => !creees.some((creee) => creee.id === variable.id)));
-        if (garde && Object.keys(gardees).length > 0) suivies[id] = { ...garde, variables: { ...garde.variables, ...gardees } };
-        return { palette: id, issue: 'interrompue', message: messageDe(erreur) };
+        unEchec = true;
+        const restes = journal.defaire(id);
+        const restees = new Set(restes.filter((reste) => reste.reste === 'variable-creee').map((reste) => 'id' in reste ? reste.id : ''));
+        for (const variable of creees) if (!restees.has(variable.id)) locales.delete(variable.id);
+        // Les valeurs conservées sur les variables suivies restent suivies, même si la palette s'est arrêtée.
+        const gardees = Object.fromEntries(Object.entries(ecrites).filter(([, variable]) => idsSuivis.has(variable.id)));
+        if (suivieAvant && (Object.keys(gardees).length > 0 || decision.liaison === 'reprise')) suivies[id] = { ...suivieAvant, modes, variables: { ...suivieAvant.variables, ...gardees } };
+        return { palette: id, issue: 'interrompue', message: messageDe(erreur), ...(restes.length > 0 ? { restes } : {}) };
       }
-
-      // Une clé d'un plan plus ancien reste suivie tant que la destination n'a pas changé : ses variables restent celles du plugin.
-      if (suivie?.liaison === 'destination' && !garde) {
-        const actuelles = new Set(Object.values(ecrites).map((variable) => variable.id));
-        const anciennes = Object.fromEntries(Object.entries(suivie.variables).filter(([, variable]) => locales.has(variable.id) && !actuelles.has(variable.id)));
-        if (Object.keys(anciennes).length > 0) {
-          let rang = 1;
-          while (suivies[`ancienne:${id}:${rang}`]) rang += 1;
-          suivies[`ancienne:${id}:${rang}`] = { ...suivie, variables: anciennes, sortieAnterieureDe: id };
-        }
-      }
-      if (remplacees.size > 0) {
-        // Une variable remplacée quitte la palette supprimée ou la sortie ancienne qui la suivait : son retrait ne l'emporte plus.
-        const restantes = sansLesVariables(suivies, new Set([...remplacees.values()].map((variable) => variable.id)));
-        for (const cle of Object.keys(suivies)) if (!(cle in restantes)) delete suivies[cle];
-        Object.assign(suivies, restantes);
-      }
-      suivies[id] = { collection: collection.id, groupe: destination.groupe, modes, variables: { ...(garde?.variables ?? {}), ...ecrites }, liaison: 'destination' };
-      return { palette: id, issue: 'ecrite', creees: creees.length, ecrites: valeurs };
     }
 
-    const demandees = new Set(demande.palettes);
-    const dansLOrdre = [...recette.palettes.map((palette) => palette.id).filter((id) => demandees.has(id)), ...demande.palettes.filter((id) => !recette.palettes.some((palette) => palette.id === id))];
-    const palettes = dansLOrdre.map((id) => {
-      try {
-        return ecrireLaPalette(id);
-      } catch (erreur) {
-        return { palette: id, issue: 'interrompue', message: messageDe(erreur) } as const;
+    const palettes: IssueDeLaPalette[] = lot.palettes.map((decision) => {
+      switch (decision.decision) {
+        case 'absente': return { palette: decision.palette, issue: 'absente' };
+        case 'modifiee': return { palette: decision.palette, issue: 'modifiee', couleurs: decision.etat.modifiees.length };
+        case 'collection-introuvable': return { palette: decision.palette, issue: 'collection-introuvable' };
+        case 'mode-introuvable': return { palette: decision.palette, issue: 'mode-introuvable', mode: decision.mode };
+        case 'nom-pris': return { palette: decision.palette, issue: 'nom-pris', nom: decision.nom, ...(decision.occupant.par === 'palette' ? { occupant: { palette: decision.occupant.palette, dansLeLot: decision.occupant.dansLeLot } } : {}) };
+        case 'ecrire': return executer(decision);
       }
     });
-
-    const suivant: SuiviDesVariables = { ...rangee, destination, palettes: suivies };
-    if (ecrit || texteDuSuivi(suivant) !== texteDuSuivi(rangee)) {
+    const suivant: SuiviDesVariables = { ...inventaire.suivi, destination, palettes: suivies };
+    const suiviChange = texteDuSuivi(suivant) !== texteDuSuivi(inventaire.suivi);
+    if (journal.aDesMutations() || suiviChange) {
       figma.root.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.variables, texteDuSuivi(suivant));
       figma.commitUndo();
     }
     return { issue: 'ecrites', palettes };
   } catch (erreur) {
-    return { issue: 'interrompue', message: messageDe(erreur) };
+    if (!journal.aDesMutations()) return { issue: 'interrompue', message: messageDe(erreur) };
+    const restes = journal.defaire();
+    if (restes.length > 0) figma.commitUndo();
+    return { issue: 'defaite', message: messageDe(erreur), restes };
   }
 }
 
@@ -420,7 +296,8 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
 export type IssueDeLaDestination =
   | { readonly issue: 'interrompue'; readonly message: string }
   | { readonly issue: 'rangee'; readonly destination: Destination }
-  | { readonly issue: 'invalide'; readonly refus: RefusDeDestination }
+  | { readonly issue: 'invalide'; readonly refus: Exclude<RefusDeDestination, 'couche'> }
+  | { readonly issue: 'invalide'; readonly refus: 'couche'; readonly nom: string }
   | { readonly issue: 'suivi-futur' };
 
 /**
@@ -435,11 +312,15 @@ export async function rangerLaDestination(figma: FigmaDesVariablesEcrites, valeu
     const validee = validerLaDestination(valeur);
     if ('refus' in validee) return { issue: 'invalide', refus: validee.refus };
     const { destination } = validee;
+    let nom: string;
     if ('id' in destination.collection) {
       const visee = destination.collection.id;
       const locales = await figma.variables.getLocalVariableCollectionsAsync();
-      if (!locales.some((collection) => collection.id === visee)) return { issue: 'invalide', refus: 'collection' };
-    }
+      const collection = locales.find((collection) => collection.id === visee);
+      if (!collection) return { issue: 'invalide', refus: 'collection' };
+      nom = collection.name;
+    } else nom = destination.collection.nom;
+    if (coucheInterdite(nom, architectureDuFichier(figma.root))) return { issue: 'invalide', refus: 'couche', nom };
     figma.root.setSharedPluginData(ESPACE_PARTAGE, CLES_PARTAGEES_DE_PALETTES.variables, texteDuSuivi({ ...rangee, destination, confirmee: true }));
     figma.commitUndo();
     return { issue: 'rangee', destination };

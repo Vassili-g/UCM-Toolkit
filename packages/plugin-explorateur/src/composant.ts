@@ -10,7 +10,7 @@
  * `src/ui/textes.ts`.
  */
 import type { Index } from './indexation';
-import { texteDeValeur, valeursEgales, type Releve, type TypeDeVariable, type ValeurSource, type ValeurTerminale } from './modele';
+import { espaceDuReleve, texteDeValeur, valeursEgales, type Releve, type TypeDeVariable, type ValeurSource, type ValeurTerminale } from './modele';
 import { resoudre, type ModeDeCalque, type Resultat } from './resolution';
 
 /** Le nombre de lignes au-delà duquel chaque section s'ouvre repliée. */
@@ -176,9 +176,9 @@ export function ecartAvecFigma(resultat: Resultat, valeurDeFigma: ValeurSource |
   return !valeursEgales(resultat.valeur, valeurDeFigma);
 }
 
-const valeurDeChamp = (champs: readonly ChampDeStyle[], nom: string): string | null => {
+const valeurDeChamp = (champs: readonly ChampDeStyle[], nom: string, espace: ReturnType<typeof espaceDuReleve>): string | null => {
   const resultat = champs.find((champ) => champ.champ === nom)?.resultat;
-  return resultat?.statut === 'resolu' ? texteDeValeur(resultat.valeur) : null;
+  return resultat?.statut === 'resolu' ? texteDeValeur(resultat.valeur, espace) : null;
 };
 
 /**
@@ -186,6 +186,7 @@ const valeurDeChamp = (champs: readonly ChampDeStyle[], nom: string): string | n
  * même variable sous des modes différents donnent deux lignes.
  */
 export function lignesDe(lecture: LectureDeComposant, index: Index, portee: ReadonlySet<string>): LigneDeComposant[] {
+  const espace = espaceDuReleve(index.releve);
   const calques = new Map(lecture.calques.map((calque) => [calque.id, calque]));
   const nomDe = (variable: string): string => index.variables.get(variable)?.nom ?? variable;
   const prefixe = prefixeCommun(lecture.liaisons.map((liaison) => nomDe(liaison.variable)));
@@ -220,7 +221,7 @@ export function lignesDe(lecture: LectureDeComposant, index: Index, portee: Read
           type: index.variables.get(liaison.variable)?.type ?? null,
           resultat,
           champs: [],
-          valeur: resultat.statut === 'resolu' ? texteDeValeur(resultat.valeur) : null,
+          valeur: resultat.statut === 'resolu' ? texteDeValeur(resultat.valeur, espace) : null,
           ecart: null,
         },
       };
@@ -242,7 +243,7 @@ export function lignesDe(lecture: LectureDeComposant, index: Index, portee: Read
     if (!brouillon) {
       const modes = calques.get(usage.calque)?.modes ?? {};
       const champs = style.liaisons.map((liaison) => ({ champ: liaison.champ, variable: liaison.variable, resultat: resoudre(index, liaison.variable, {}, { calque: modes }) }));
-      const valeur = [valeurDeChamp(champs, 'fontSize'), valeurDeChamp(champs, 'lineHeight')].filter((texte): texte is string => texte !== null).join('/');
+      const valeur = [valeurDeChamp(champs, 'fontSize', espace), valeurDeChamp(champs, 'lineHeight', espace)].filter((texte): texte is string => texte !== null).join('/');
       brouillon = {
         libelles: new Set(['style']),
         calques: new Set(),

@@ -4,7 +4,9 @@
  * les enfants d'une page non chargée (`documentAccess: "dynamic-page"`), y
  * chercher, poser un texte dans une police non chargée, créer une variable
  * dont le nom est déjà pris dans sa collection, ajouter un mode au-delà de
- * la limite de l'offre. Un journal garde l'ordre des opérations.
+ * la limite de l'offre. Un journal garde l'ordre des opérations. Des options
+ * acceptent les doublons de nom ou injectent un refus à la création, au
+ * marqueur, au rangement ou au retrait ; elles sont éteintes par défaut.
  */
 import type { FigmaDuDessin } from '../src/ecriture/planche';
 
@@ -88,6 +90,11 @@ class Document extends Noeud {
 
   constructor(figma: FauxFigma) {
     super('DOCUMENT', figma);
+  }
+
+  override setSharedPluginData(espace: string, cle: string, valeur: string): void {
+    if (this.figma.rangementsRefuses.has(`${espace}/${cle}`)) throw new Error(`rangement refusé : ${espace}/${cle}`);
+    super.setSharedPluginData(espace, cle, valeur);
   }
 }
 
@@ -238,6 +245,24 @@ export class FausseCollection extends Porteur {
     mode.name = nom;
     this.figma.journal.push(`renommer mode ${nom}`);
   }
+
+  removeMode(modeId: string): void {
+    if (this.figma.retraitsRefuses) throw new Error('retrait refusé');
+    const mode = this.modes.find((candidat) => candidat.modeId === modeId);
+    if (!mode) throw new Error(`mode inconnu : ${modeId}`);
+    this.modes = this.modes.filter((candidat) => candidat !== mode);
+    for (const variable of this.figma.variablesDe(this)) delete variable.valuesByMode[modeId];
+    this.figma.journal.push(`retirer mode ${mode.name}`);
+  }
+
+  /** Retire la collection et ses variables, comme Figma. */
+  remove(): void {
+    if (this.figma.retraitsRefuses) throw new Error('retrait refusé');
+    for (const variable of this.figma.variablesDe(this)) this.figma.locales.delete(variable.id);
+    this.variableIds = [];
+    this.figma.collections.delete(this.id);
+    this.figma.journal.push(`retirer collection ${this.name}`);
+  }
 }
 
 /** Une variable locale de couleur. Créée, elle porte dans chaque mode le blanc que Figma lui donne. */
@@ -263,8 +288,18 @@ export class FausseVariable extends Porteur {
   }
 
   set name(nom: string) {
-    if (this.figma.variablesDe(this.collection).some((autre) => autre !== this && autre.name === nom)) throw new Error(`duplicate variable name : ${nom}`);
+    if (!this.figma.accepterLesDoublons && this.figma.variablesDe(this.collection).some((autre) => autre !== this && autre.name === nom)) throw new Error(`duplicate variable name : ${nom}`);
+    this.figma.journal.push(`renommer variable ${this.nom} -> ${nom}`);
     this.nom = nom;
+  }
+
+  override setSharedPluginData(espace: string, cle: string, valeur: string): void {
+    if (this.figma.echouerAuMarqueur !== null && (this.figma.echouerAuMarqueur -= 1) < 0) {
+      // Un seul marqueur échoue : les suivants se rangent.
+      this.figma.echouerAuMarqueur = null;
+      throw new Error('marqueur de variable refusé');
+    }
+    super.setSharedPluginData(espace, cle, valeur);
   }
 
   get variableCollectionId(): string {
@@ -283,6 +318,7 @@ export class FausseVariable extends Porteur {
   }
 
   remove(): void {
+    if (this.figma.retraitsRefuses) throw new Error('retrait refusé');
     this.figma.locales.delete(this.id);
     this.collection.variableIds = this.collection.variableIds.filter((id) => id !== this.id);
     this.figma.journal.push(`retirer variable ${this.nom}`);
@@ -298,6 +334,16 @@ export class FauxFigma {
   limiteDeModes = 4;
   /** Le nombre de valeurs écrites avant que l'écriture suivante lève, une fois ; `null`, jamais. */
   echouerALaValeur: number | null = null;
+  /** Vrai : la création et le renommage acceptent un nom que la collection porte déjà, ce que le guide de Figma dit possible (F09). */
+  accepterLesDoublons = false;
+  /** Le nombre de créations de variable avant que la suivante lève, une fois ; `null`, jamais. */
+  echouerALaCreation: number | null = null;
+  /** Le nombre de marqueurs de variable rangés avant que le suivant lève, une fois ; `null`, jamais. */
+  echouerAuMarqueur: number | null = null;
+  /** Les clés `espace/cle` que la racine refuse de ranger. */
+  readonly rangementsRefuses = new Set<string>();
+  /** Vrai : le retrait d'une variable, d'une collection ou d'un mode lève. */
+  retraitsRefuses = false;
 
   /** L'API des variables : ce que Figma appelle `figma.variables`. */
   readonly variables = {
@@ -309,7 +355,12 @@ export class FauxFigma {
     },
     createVariable: (nom: string, collection: FausseCollection, type: string): FausseVariable => {
       if (type !== 'COLOR') throw new Error(`type hors du double : ${type}`);
-      if (this.variablesDe(collection).some((autre) => autre.name === nom)) throw new Error(`duplicate variable name : ${nom}`);
+      if (!this.accepterLesDoublons && this.variablesDe(collection).some((autre) => autre.name === nom)) throw new Error(`duplicate variable name : ${nom}`);
+      if (this.echouerALaCreation !== null && (this.echouerALaCreation -= 1) < 0) {
+        // Une seule création échoue : les suivantes réussissent.
+        this.echouerALaCreation = null;
+        throw new Error('création de variable refusée');
+      }
       const variable = new FausseVariable(nom, collection, this);
       this.locales.set(variable.id, variable);
       collection.variableIds.push(variable.id);

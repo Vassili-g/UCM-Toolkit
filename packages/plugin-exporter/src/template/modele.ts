@@ -12,9 +12,9 @@
  * moteur ignore les noms de section, et le maître range déjà un exemple de
  * chaque tag dans la sienne.
  */
-import { isDisabledStateValue } from '../contract/parsers';
-import type { RuleTag } from '../contract/rulesModel';
+import { estUneValeurDesactivee } from '@ucm-kit/core/format';
 import type { Contract } from '@ucm-kit/core/format';
+import type { RuleTag } from '@ucm-kit/core/referentiel';
 
 /** Ce que le modèle lit du contrat, et rien d'autre. */
 export type ContratLu = Pick<Contract, 'props' | 'stateModel'>;
@@ -108,10 +108,10 @@ function reglesDesGroupes(groupes: string[][]): ElementDeModele[] {
 function clesBooleennes(contrat: ContratLu): string[] {
   const etats = contrat.stateModel;
   const desactiveVientDeLAxe = etats !== undefined
-    && Object.keys(etats.states).some(isDisabledStateValue);
+    && Object.keys(etats.states).some(estUneValeurDesactivee);
   return Object.entries(contrat.props ?? {})
     .filter(([cle, prop]) =>
-      prop.type === 'boolean' && !(desactiveVientDeLAxe && isDisabledStateValue(cle)))
+      prop.type === 'boolean' && !(desactiveVientDeLAxe && estUneValeurDesactivee(cle)))
     .map(([cle]) => cle);
 }
 

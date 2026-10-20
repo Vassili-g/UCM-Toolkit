@@ -140,7 +140,7 @@ interface Cadre {
   readonly crans: readonly number[];
   /** Vrai quand la liste de la palette figée est celle de la recette : les palettes essayées sont alors communes, sans `crans`. */
   readonly commune: boolean;
-  readonly courbes: { readonly light: readonly number[]; readonly dark: readonly number[] };
+  readonly courbes: Readonly<Record<Mode, readonly number[]>>;
   readonly bouts: Bouts;
   readonly sombre: FondsSombres;
   readonly nuances: number;
@@ -513,8 +513,8 @@ function deriveDe(x: readonly number[], cle: Profil): Derive & { origine: 'libre
  */
 function construirePalette(c: Cadre, x: readonly number[], k: Candidat, depart: Rgb8): Palette {
   const lu = rgb8VersOklch(depart);
-  const teinte: { soft?: number; vivid?: number } = {};
-  const clarte: { soft?: number; vivid?: number } = {};
+  const teinte: Partial<Record<Profil, number>> = {};
+  const clarte: Partial<Record<Profil, number>> = {};
   for (const cle of c.cles) {
     const t = ecartAngle(x[indice(cle, 'Hp')], lu.H);
     if (Math.abs(t) > 1e-9) teinte[cle] = t;

@@ -2,6 +2,31 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { TEXTES } from '../src/ui/textes';
+import { annonceDUneAnnulation, lignesDUneAnnulationNonVerifiee } from '../src/ui/annonce';
+
+for (const nombre of [1, 3]) {
+  test(`l’annulation dit la lecture refusée pour ${nombre} variables dans les deux vues`, () => {
+    const annonce = annonceDUneAnnulation({ sorte: 'annulation', statut: 'partiel', renommes: 2, sautes: nombre, nonVerifiees: nombre, annulable: true });
+    assert.ok(annonce?.type === 'annulation-non-verifiee');
+    const lignes = lignesDUneAnnulationNonVerifiee(annonce, 'configuration');
+    assert.deepEqual(lignes, lignesDUneAnnulationNonVerifiee(annonce, 'renommages'));
+    assert.equal(lignes[0], '2 noms rétablis.');
+    assert.equal(lignes[1], nombre === 1
+      ? '1 variable de couleur n’a pas pu être rétablie. UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse, puis annulez de nouveau.'
+      : '3 variables de couleur n’ont pas pu être rétablies. UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse, puis annulez de nouveau.');
+    assert.doesNotMatch(lignes.join(' '), /changé depuis|occupe/u);
+  });
+}
+
+test('les collections exclues et les autres noms gardent leurs propres lignes', () => {
+  const annonce = annonceDUneAnnulation({ sorte: 'annulation', statut: 'partiel', renommes: 2, sautes: 6, exclues: 2, nonVerifiees: 3, annulable: true });
+  assert.ok(annonce?.type === 'annulation-non-verifiee');
+  const lignes = lignesDUneAnnulationNonVerifiee(annonce, 'configuration');
+  assert.equal(lignes.length, 3);
+  assert.match(lignes[0], /2 autres noms sont dans une collection exclue/u);
+  assert.match(lignes[1], /^3 variables de couleur n’ont pas pu être rétablies/u);
+  assert.match(lignes[2], /^1 autre nom n’a pas pu être rétabli/u);
+});
 
 test('N09 : le texte dit combien de noms sont rétablis, que les autres sont gardés, et quoi cocher pour les rétablir', () => {
   assert.equal(TEXTES.annulationDansUneCollectionExclue(3, 2),

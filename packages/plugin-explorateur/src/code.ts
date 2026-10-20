@@ -7,6 +7,7 @@
  * Figma ne signale pas les changements de variables sans charger toutes les
  * pages (`documentchange`) : le relevé se relit au geste « Actualiser ».
  */
+import { espaceDuProfil } from '@ucm-kit/core/format';
 import { CLE_RECETTE, ESPACE_PARTAGE } from 'ucm-couleur';
 
 import { exporterLApercu } from './apercu';
@@ -68,7 +69,7 @@ async function lireReleve(demande: number): Promise<void> {
     const issue = await lireLeReleve(portDeLecture, figma.root.name, revision + 1, {
       annulee: () => annulees.has(demande),
       progression: (phase, fait, total) => versUi({ type: 'progression', demande, phase, fait, total }),
-    }, () => Date.now());
+    }, () => Date.now(), espaceDuProfil(figma.root.documentColorProfile));
     if (issue.statut === 'annule') {
       versUi({ type: 'annulation', demande });
       return;

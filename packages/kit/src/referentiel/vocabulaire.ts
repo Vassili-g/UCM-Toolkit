@@ -6,6 +6,9 @@
 import type { Registre } from './termes.js';
 
 export const CRANS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
+/** Les numéros qu'une palette de `primitives` peut porter : les crans, puis 1000 et 1050 des palettes à treize nuances. */
+export const NUMEROS_DE_PALETTE = [...CRANS, 1000, 1050] as const;
+export type NumeroDePalette = (typeof NUMEROS_DE_PALETTE)[number];
 export const MODES = ['light', 'dark'] as const;
 export const PROFILS = ['soft', 'vivid'] as const;
 export const INTENSITE_UNIQUE = 'unique' as const;

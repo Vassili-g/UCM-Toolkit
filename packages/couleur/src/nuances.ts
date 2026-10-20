@@ -5,7 +5,7 @@
  */
 import type { Bouts, Courbes, Mode } from './rampe';
 import { sensDuTheme, type TexteDesBoutons } from '@ucm-kit/core/emplois';
-import { CRANS } from '@ucm-kit/core/referentiel';
+import { CRANS, NUMEROS_DE_PALETTE } from '@ucm-kit/core/referentiel';
 import type { Palette, Recette } from './recette';
 
 /** Une liste de numéros et une luminosité par numéro, dans chaque thème. */
@@ -26,14 +26,15 @@ const ONZE: Grille = {
 
 /**
  * Les deux préréglages et leurs courbes par défaut (W6.1). Treize nuances
- * ajoutent 1000 et 1050 après 950. Aucun n'insère de nuance entre deux
+ * ajoutent 1000 et 1050 après 950 : le kit déclare ces numéros
+ * (`NUMEROS_DE_PALETTE`), le moteur leur donne leurs courbes. Aucun n'insère de nuance entre deux
  * numéros d'emploi : les rangs gardent leurs numéros, et chaque liste porte
  * 400 et 950, que le quatrième rang vise.
  */
 export const PREREGLAGES: { readonly [N in NombreDeNuances]: Grille } = {
   11: ONZE,
   13: {
-    crans: [...ONZE.crans, 1000, 1050],
+    crans: NUMEROS_DE_PALETTE,
     courbes: { light: [...ONZE.courbes.light, 0.215, 0.165], dark: [...ONZE.courbes.dark, 0.96, 0.98] },
   },
 };

@@ -3,7 +3,7 @@
  * commandes du plugin. Principe fondamental : on résout les noms, jamais les
  * valeurs, pour préserver la chaîne d'alias du design system.
  */
-import { joinTokenPath, prefixeDeCollection } from 'ucm-plugin-socle/src/cheminsDeTokens';
+import { joinTokenPath, prefixeDeCollection } from '@ucm-kit/core/format';
 
 import {
   noterLesParties,

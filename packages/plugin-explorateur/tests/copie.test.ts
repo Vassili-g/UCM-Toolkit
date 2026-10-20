@@ -2,11 +2,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { ecrireHexa, p3VersRgb8 } from 'ucm-couleur';
+
 import { copier, texteDeChaine } from '../src/copie';
+import { versSrgb } from '../src/espace';
 import { indexer } from '../src/indexation';
-import { hexaDeCouleur } from '../src/modele';
+import { hexaDeCouleur, texteDeValeur, type Releve } from '../src/modele';
 import { resoudre } from '../src/resolution';
-import { projetLibre } from './fixtures';
+import { exporterReleve, importerReleve } from '../src/releves';
+import { constructeur, projetLibre } from './fixtures';
 
 const index = indexer(projetLibre());
 const copie = (variable: string, format: Parameters<typeof copier>[3], contexte = {}) => copier(index, variable, resoudre(index, variable, contexte), format);
@@ -48,4 +52,62 @@ test('aucune référence publiée sans correspondance vérifiée', () => {
 
 test('une couleur n’a pas de forme hexadécimale pour un nombre', () => {
   assert.equal(copie('zero', 'hexa').raison, 'pas-une-couleur');
+});
+
+/** Deux couleurs aux mêmes canaux, l'une opaque et l'autre à moitié transparente, dans l'espace du relevé. */
+function fichierDeCouleurs(espace?: Releve['espace']) {
+  const c = constructeur('Couleurs');
+  c.collection('c', 'Couleurs', ['M']);
+  const canaux = { r: 0.8, g: 0.3, b: 0.3 };
+  c.variable('opaque', 'c', 'opaque', 'COLOR', { M: { nature: 'couleur', couleur: { ...canaux, a: 1 } } });
+  c.variable('voile', 'c', 'voile', 'COLOR', { M: { nature: 'couleur', couleur: { ...canaux, a: 0.5 } } });
+  return indexer(espace ? { ...c.releve(), espace } : c.releve());
+}
+
+const copieDeCouleur = (index: ReturnType<typeof indexer>, variable: string, format: 'composantes' | 'hexa', espace: 'srgb' | 'display-p3') =>
+  copier(index, variable, resoudre(index, variable, {}), format, { versSrgb: (couleur) => versSrgb(couleur, espace) });
+
+test('les mêmes canaux se copient autrement en sRGB et en Display P3', () => {
+  const srgb = fichierDeCouleurs('srgb');
+  const p3 = fichierDeCouleurs('display-p3');
+  assert.equal(copieDeCouleur(srgb, 'opaque', 'composantes', 'srgb').texte, 'rgba(0.8, 0.3, 0.3, 1)');
+  assert.equal(copieDeCouleur(p3, 'opaque', 'composantes', 'display-p3').texte, 'color(display-p3 0.8 0.3 0.3)');
+  assert.equal(copieDeCouleur(p3, 'voile', 'composantes', 'display-p3').texte, 'color(display-p3 0.8 0.3 0.3 / 0.5)');
+  assert.notEqual(copieDeCouleur(srgb, 'opaque', 'hexa', 'srgb').texte, copieDeCouleur(p3, 'opaque', 'hexa', 'display-p3').texte);
+});
+
+test('l’hexadécimal d’une couleur Display P3 est celui de p3VersRgb8, et annonce son arrondi', () => {
+  const p3 = fichierDeCouleurs('display-p3');
+  const attendu = ecrireHexa(p3VersRgb8([0.8, 0.3, 0.3]).couleur);
+  const copie = copieDeCouleur(p3, 'opaque', 'hexa', 'display-p3');
+  assert.equal(copie.texte, attendu);
+  assert.equal(copie.arrondi, true);
+  assert.equal(copieDeCouleur(p3, 'voile', 'hexa', 'display-p3').texte, `${attendu}80`);
+  assert.throws(() => copier(p3, 'opaque', resoudre(p3, 'opaque', {}), 'hexa'), /versSrgb/);
+});
+
+test('le texte d’une valeur Display P3 montre son hexadécimal sRGB converti', () => {
+  const valeur = { nature: 'couleur', couleur: { r: 0.8, g: 0.3, b: 0.3, a: 1 } } as const;
+  const texteSelonEspace = texteDeValeur as (valeurLue: typeof valeur, espace?: 'srgb' | 'display-p3') => string;
+  const attendu = ecrireHexa(p3VersRgb8([0.8, 0.3, 0.3]).couleur);
+  assert.equal(texteSelonEspace(valeur, 'display-p3'), attendu);
+});
+
+test('un noir et un blanc Display P3 se convertissent sans arrondi', () => {
+  assert.deepEqual(versSrgb({ r: 0, g: 0, b: 0, a: 1 }, 'display-p3').arrondi, false);
+  assert.deepEqual(versSrgb({ r: 1, g: 1, b: 1, a: 1 }, 'display-p3').arrondi, false);
+  assert.deepEqual(versSrgb({ r: 0.8, g: 0.3, b: 0.3, a: 1 }, 'srgb'), { couleur: { r: 0.8, g: 0.3, b: 0.3, a: 1 }, arrondi: false });
+});
+
+test('un relevé importé sans espace se lit en sRGB, et un relevé Display P3 garde le sien', () => {
+  const ancien = JSON.parse(exporterReleve(fichierDeCouleurs().releve)) as { releve: Record<string, unknown> };
+  assert.equal('espace' in ancien.releve, false);
+  const importe = importerReleve(JSON.stringify(ancien));
+  assert.ok('releve' in importe);
+  if (!('releve' in importe)) return;
+  assert.equal(copieDeCouleur(indexer(importe.releve), 'opaque', 'composantes', 'srgb').texte, 'rgba(0.8, 0.3, 0.3, 1)');
+  const p3 = importerReleve(exporterReleve(fichierDeCouleurs('display-p3').releve));
+  assert.ok('releve' in p3);
+  if (!('releve' in p3)) return;
+  assert.equal(copieDeCouleur(indexer(p3.releve), 'opaque', 'composantes', 'display-p3').texte, 'color(display-p3 0.8 0.3 0.3)');
 });

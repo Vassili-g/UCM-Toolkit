@@ -5,7 +5,7 @@
  * variable écrite ici s'exporte sans surprise par UCM Exporter. Pur.
  */
 import type { Palette, Recette } from 'ucm-couleur';
-import { cheminCitable } from 'ucm-plugin-socle/src/cheminsDeTokens';
+import { cheminCitable } from '@ucm-kit/core/format';
 
 /**
  * Le segment d'un nom : espaces en tirets, rendu citable, puis privé du `.`

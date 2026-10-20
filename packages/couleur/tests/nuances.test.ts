@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { CRANS, NUMEROS_DE_PALETTE } from '@ucm-kit/core/referentiel';
+
 import {
   FORMAT_RECETTE,
   PREREGLAGES,
@@ -123,6 +125,15 @@ function hexasParNuance(recette: Recette, palette: Palette): Map<string, string>
   }
   return hexas;
 }
+
+test('les numéros des préréglages viennent du kit, et chaque courbe a la longueur de sa liste', () => {
+  assert.deepEqual(PREREGLAGES[13].crans, NUMEROS_DE_PALETTE);
+  assert.deepEqual(PREREGLAGES[11].crans, CRANS);
+  for (const nombre of [11, 13] as const) {
+    assert.equal(PREREGLAGES[nombre].courbes.light.length, PREREGLAGES[nombre].crans.length, `${nombre} light`);
+    assert.equal(PREREGLAGES[nombre].courbes.dark.length, PREREGLAGES[nombre].crans.length, `${nombre} dark`);
+  }
+});
 
 test('W6 : les deux préréglages se reconnaissent, et la recette par défaut est celle de onze nuances', () => {
   assert.equal(nombreDeNuancesDe(recetteParDefaut().crans), 11);

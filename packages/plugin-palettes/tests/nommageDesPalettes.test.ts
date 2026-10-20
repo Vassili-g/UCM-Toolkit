@@ -5,21 +5,25 @@ import test from 'node:test';
 import { fnv1a, jsonCanonique, lireHexa, octetsUtf8, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
 import { inventaireDeLectures } from 'ucm-plugin-socle/src/inventaireDeNoms';
-import { nomsSelonLesReglesSync } from 'ucm-plugin-socle/src/nomsSelonLesRegles';
-import { lireReglesDeNommage } from 'ucm-plugin-socle/src/reglesDeNommage';
+import { nomsSelonLesReglesSync } from '@ucm-kit/core/nommage';
+import { lireReglesDeNommage } from '@ucm-kit/core/protocoles';
 
-import { ajouter, nouvellePalette, remplacerPalette, reprendreDuFichier, revenirAuModele } from '../src/edition';
+import { ajouter, nouvellePalette, remplacerPalette, renommer, reprendreDuFichier, revenirAuModele } from '../src/edition';
 import { convertirLaReprise, ecrireLesVariables, reprendreLaPalette, type FigmaDesVariablesEcrites } from '../src/ecriture/variables';
 import { rangerLaMarqueDeNommage } from '../src/ecriture/marque';
 import { lireLesVariablesDuFichier, lireLeSuiviRange } from '../src/lectureDesVariables';
 import type { Destination } from '../src/variables/destination';
 import { palettesDuFichier } from '../src/variables/detection';
-import { tokensDeLaPalette } from '../src/variables/gestion';
+import { ecartsDeLaReprise, restesNommes, tokensDeLaPalette, type TokensDUnePalette } from '../src/variables/gestion';
+import { planDuLot } from '../src/variables/lot';
 import { conversionDeLaReprise } from '../src/variables/conversion';
 import { creerNommeur, nommeurDuFichier, planDeLaPalette, type DonneesDeNommage } from '../src/variables/nommeur';
-import { cleDuPlan, nomsDuPlan, planDesVariables } from '../src/variables/plan';
+import { cleDuPlan, nommerLePlan, nomsDuPlan, planDesVariables } from '../src/variables/plan';
 import { texteDuSuivi, variablesSuivies } from '../src/variables/suivi';
+import { detailDeLaReprise } from '../src/ui/detailDesTokens';
+import { creerLocalisation, lireTexte } from '../src/ui/localisation';
 import { FauxFigma, type FausseCollection } from './figmaDeTest';
+import { verifierLaLoiDuLot } from './lotDeTest';
 
 const VIDE = recetteParDefaut();
 const POPPY: Palette = { ...nouvellePalette(VIDE, 'p-0000000a', '#1E6FD9', 2)!, nom: 'Poppy' };
@@ -95,6 +99,13 @@ test('[VAR-10] thèmes en modes : Light et Dark d’une nuance gardent le même 
   assert.deepEqual(nomsDuPlan(plan).slice(0, 2), ['Color/Poppy/Soft/50', 'Color/Poppy/Soft/100']);
   assert.equal(nomsDuPlan(plan).length, 22);
   assert.equal(plan.find((entree) => entree.cle === cleDuPlan('vivid', 'dark', 50))!.nom, plan.find((entree) => entree.cle === cleDuPlan('vivid', 'light', 50))!.nom);
+});
+
+test('[VAR-10] reprise aux thèmes en modes : la variable d’origine, portée par la seule entrée Light, reçoit le nom final pour les deux entrées', () => {
+  const nommer = creerNommeur(donnees(['color/Azur/50']))!.pour({ id: 'c1' })!;
+  const entree = (mode: 'light' | 'dark') => ({ cle: cleDuPlan('vivid', mode, 50), nom: 'color/Azur/50', mode, hexa: '#FFFFFF' });
+  const plan = nommerLePlan([entree('light'), entree('dark')], nommer, (cle) => (cle === cleDuPlan('vivid', 'light', 50) ? 'v0' : undefined));
+  assert.deepEqual(plan.map((entree) => entree.nom), ['Color/Azur/50', 'Color/Azur/50']);
 });
 
 test('[VAR-07] sans règles enregistrées, ou avec la seule clé de la v1, le plan garde ses noms bruts', () => {
@@ -246,12 +257,14 @@ async function reprendre(figma: FauxFigma): Promise<{ recette: Recette; palette:
   return { recette, palette };
 }
 
-test('[VAR-13] liaison reprise : un nom que seules les règles changent n’est pas à renommer, et l’écriture lui donne son nom final', async () => {
+test('[VAR-13] liaison reprise : les renommages dus aux règles gardent l’état et l’écriture leur donne leur nom final', async () => {
   const { figma } = fichierAvecUneRampe('colors/Azur');
-  poserLesRegles(figma);
   const { recette, palette } = await reprendre(figma);
+  const sansRegles = tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
+  poserLesRegles(figma);
   const avant = await tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
-  assert.deepEqual(avant.aRenommer, [], 'UCM Nomenclature propose ce renommage');
+  assert.equal(avant.etat, sansRegles.etat);
+  assert.deepEqual(avant.aRenommer, TAILWIND.map((nuance) => ({ id: figma.variable(`colors/Azur/${nuance}`).id, de: `colors/Azur/${nuance}`, vers: `Color/Azur/${nuance}`, cause: 'regles' })));
   await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
   assert.deepEqual(noms(figma), TAILWIND.map((nuance) => `Color/Azur/${nuance}`));
   const apres = tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
@@ -282,7 +295,7 @@ test('[VAR-13] liaison reprise : un renommage de forme reste à faire sous les r
   const lu = await lireLesVariablesDuFichier(api(figma));
   figma.root.setSharedPluginData('ucm_palettes', 'variables', texteDuSuivi({ ...lu.suivi, destination: { ...lu.suivi.destination, themes: 'chemin' } }));
   const avant = tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
-  assert.deepEqual([avant.etat, avant.aRenommer.length, avant.aRenommer[0]], ['a-mettre-a-jour', 11, { de: 'colors/Azur/50', vers: 'Color/Azur/Light/50' }]);
+  assert.deepEqual([avant.etat, avant.aRenommer.length, avant.aRenommer[0]], ['a-mettre-a-jour', 11, { id: figma.variable('colors/Azur/50').id, de: 'colors/Azur/50', vers: 'Color/Azur/Light/50', cause: 'forme' }]);
 });
 
 test('[VAR-13] liaison reprise : un fichier sans règles garde ses noms', async () => {
@@ -355,6 +368,126 @@ test('[VAR-04] la détection relit une palette aux segments Vivid et Light que P
   assert.deepEqual([...new Set(trouvees.map((palette) => palette.chemin.split('/').slice(0, 2).join('/')))], ['Color/Poppy']);
   assert.ok(trouvees.some((palette) => /\/(Vivid|Soft)\//.test(`${palette.chemin}/`)), trouvees.map((palette) => palette.chemin).join(' | '));
 });
+
+/** La ligne « Tokens Figma » d'une palette reprise, dans la langue demandée. */
+const ligneDeLaReprise = (tokens: TokensDUnePalette, langue: 'fr' | 'en' = 'fr'): string => lireTexte(detailDeLaReprise(creerLocalisation(langue), tokens));
+const renommagesJournalises = (figma: FauxFigma): string[] => figma.journal.filter((ligne) => ligne.startsWith('renommer variable '));
+
+test('[UI-34] une reprise dont des couleurs changent et dont un renommage de forme reste à faire nomme créations, couleurs et renommages sur sa ligne', async () => {
+  // Les thèmes dans le chemin : la forme demande un segment `light` que les variables d'origine n'ont pas, et un thème Dark à créer.
+  const { figma } = fichierAvecUneRampe('colors/Azur');
+  poserLesRegles(figma);
+  const { recette, palette } = await reprendre(figma);
+  const lu = await lireLesVariablesDuFichier(api(figma));
+  figma.root.setSharedPluginData('ucm_palettes', 'variables', texteDuSuivi({ ...lu.suivi, destination: { ...lu.suivi.destination, themes: 'chemin' } }));
+  const avant = tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
+  assert.equal(avant.etat, 'a-mettre-a-jour');
+  assert.ok(avant.aRenommer.every(({ cause }) => cause === 'forme'));
+  assert.deepEqual(ecartsDeLaReprise(avant).map(({ ecart }) => ecart), ['creations', 'couleurs', 'renommages']);
+  assert.equal(ligneDeLaReprise(avant), 'Primitives / colors/Azur · Thèmes dans le chemin · 11 variables à créer · 11 couleurs sur 22 changent · 11 variables à renommer');
+  assert.equal(ligneDeLaReprise(avant, 'en'), 'Primitives / colors/Azur · Themes in paths · 11 variables to create · 11 colors out of 22 change · 11 variables to rename');
+});
+
+test('[UI-34] une reprise dont les couleurs changent et dont le nom brut passe sous les règles annonce les renommages, les fait, et passe à jour', async () => {
+  const { figma } = fichierAvecUneRampe('colors/Azur');
+  const { recette, palette } = await reprendre(figma);
+  poserLesRegles(figma);
+  const avant = tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
+  assert.equal(avant.etat, 'a-mettre-a-jour');
+  assert.equal(avant.aRenommer.length, 11);
+  assert.ok(avant.aRenommer.every(({ cause }) => cause === 'regles'));
+  assert.deepEqual(ecartsDeLaReprise(avant).map(({ ecart }) => ecart), ['couleurs', 'renommages']);
+  assert.match(ligneDeLaReprise(avant), / couleurs sur \d+ changent · 11 variables à renommer$/);
+  // L'encart cite ce nombre et le premier renommage.
+  assert.equal(lireTexte(creerLocalisation('fr').messages.texteDuRenommage(avant.aRenommer.length, avant.aRenommer[0].de, avant.aRenommer[0].vers)), '11 variables d’origine seront renommées : colors/Azur/50 devient Color/Azur/50, et les autres de la même façon. Elles gardent leurs liaisons.');
+  figma.journal.length = 0;
+  await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  assert.equal(renommagesJournalises(figma).length, 11);
+  assert.deepEqual(noms(figma), TAILWIND.map((nuance) => `Color/Azur/${nuance}`));
+  assert.equal(tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma))).etat, 'a-jour');
+});
+
+test('[UI-34] une reprise dont les couleurs sont égales et dont le nom brut passe sous les règles reste à jour, et sa ligne ne parle d’aucun renommage', async () => {
+  const { figma } = fichierAvecUneRampe('colors/Azur');
+  const { recette, palette } = await reprendre(figma);
+  await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  poserLesRegles(figma);
+  figma.journal.length = 0;
+  const apres = tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
+  assert.equal(apres.etat, 'a-jour');
+  assert.equal(apres.aRenommer.length, 11);
+  assert.ok(apres.aRenommer.every(({ cause }) => cause === 'regles'));
+  assert.equal(ligneDeLaReprise(apres), 'Primitives / colors/Azur · Thèmes en modes · 11 variables');
+  assert.equal(ligneDeLaReprise(apres, 'en'), 'Primitives / colors/Azur · Themes in modes · 11 variables');
+});
+
+test('[VAR-07] une palette de la destination dont le nom brut passe sous les règles annonce et fait aucun renommage, et nomme l’écart pour UCM Nomenclature', async () => {
+  const { figma } = fichier({ regles: false });
+  await ecrire(figma, [POPPY]);
+  poserLesRegles(figma);
+  figma.journal.length = 0;
+  const lu = await lireLesVariablesDuFichier(api(figma));
+  const tokens = tokensDeLaPalette(RECETTE, POPPY, lu);
+  assert.equal(tokens.etat, 'a-jour');
+  assert.deepEqual(tokens.aRenommer, []);
+  assert.equal(tokens.ecartsLaissesANomenclature.length, 44);
+  assert.deepEqual(tokens.ecartsLaissesANomenclature[0], { id: figma.variable('colors/Poppy/soft/light/50').id, nom: 'colors/Poppy/soft/light/50', plan: 'Color/Poppy/Soft/Light/50' });
+  assert.deepEqual(await ecrire(figma, [POPPY]), [{ palette: POPPY.id, issue: 'ecrite', creees: 0, ecrites: 0 }]);
+  assert.deepEqual(renommagesJournalises(figma), []);
+  assert.ok(noms(figma).every((nom) => nom.startsWith('colors/Poppy/')));
+});
+
+test('[UI-34] ce que l’écriture n’a pas pu défaire se nomme variable par variable, mode et collection compris', () => {
+  assert.deepEqual(restesNommes([
+    { reste: 'variable-creee', id: 'v1', nom: 'Color/Ocean/50' },
+    { reste: 'variable-changee', id: 'v2', nom: 'Color/Ocean/100' },
+    { reste: 'mode', collection: 'Primitives', mode: 'Dark' },
+    { reste: 'collection-creee', id: 'c1', nom: 'Primitives' },
+  ]), [
+    { nom: 'Color/Ocean/50', variable: true },
+    { nom: 'Color/Ocean/100', variable: true },
+    { nom: 'Dark', variable: false },
+    { nom: 'Primitives', variable: false },
+  ]);
+});
+
+// Une reprise renomme ses variables sous le groupe configuré, et une palette de la destination crée les mêmes noms : la première palette du lot les tient.
+for (const repriseEnPremier of [true, false]) {
+  test(`[VAR-07] [VAR-13] ${repriseEnPremier ? 'reprise puis destination' : 'destination puis reprise'} : la seconde palette est refusée avant toute mutation, et une reprise refusée ne renomme rien`, async () => {
+    const { figma, collection } = fichierAvecUneRampe('anciens/Azur');
+    const { palette: reprisee } = await reprendre(figma);
+    // La palette reprise porte un autre nom que le dernier segment de son chemin d'origine : seul ce segment décide de ses noms.
+    const reprise = renommer(reprisee, 'Mon bleu');
+    const lu = await lireLesVariablesDuFichier(api(figma));
+    figma.root.setSharedPluginData('ucm_palettes', 'variables', texteDuSuivi({ ...lu.suivi, destination: { ...lu.suivi.destination, collection: { id: collection.id }, groupe: 'colors' } }));
+    const rivale: Palette = { ...nouvellePalette(VIDE, 'p-000000a2', '#6B7280', 1)!, nom: 'Azur' };
+    const recette = (repriseEnPremier ? [reprise, rivale] : [rivale, reprise]).reduce(ajouter, VIDE);
+    figma.root.setSharedPluginData('ucm_palettes', 'recette', jsonCanonique(recette));
+    const plan = planDuLot(recette, await lireLesVariablesDuFichier(api(figma)), { palettes: [reprise.id, rivale.id], remettre: [], remplacer: [] });
+    const [premiere, seconde] = plan.palettes;
+    assert.equal(premiere.decision, 'ecrire');
+    assert.equal(seconde.decision, 'nom-pris');
+    figma.journal.length = 0;
+    const resultat = await ecrireLesVariables(api(figma), { palettes: [reprise.id, rivale.id], empreinteLue: empreinte(recette), remettre: [], remplacer: [] });
+    assert.ok(resultat.issue === 'ecrites');
+    const [ecrite, refusee] = resultat.palettes;
+    assert.equal(refusee.issue, 'nom-pris');
+    assert.deepEqual(refusee.issue === 'nom-pris' ? [refusee.nom, refusee.occupant] : null, ['colors/Azur/50', { palette: (repriseEnPremier ? reprise : rivale).id, dansLeLot: true }]);
+    assert.equal(ecrite.issue, 'ecrite');
+    if (repriseEnPremier) {
+      assert.deepEqual(noms(figma), TAILWIND.map((nuance) => `colors/Azur/${nuance}`));
+      assert.equal(figma.journal.filter((ligne) => ligne.startsWith('renommer variable ')).length, 11);
+      assert.deepEqual(figma.journal.filter((ligne) => ligne.startsWith('créer variable ')), []);
+    } else {
+      // La reprise refusée ne renomme rien : ses variables gardent leurs noms d'origine.
+      assert.deepEqual(figma.journal.filter((ligne) => ligne.startsWith('renommer variable ')), []);
+      assert.equal(figma.locales.size, 22);
+      assert.equal([...figma.locales.values()].filter((variable) => variable.name.startsWith('anciens/Azur/')).length, 11);
+    }
+    assert.equal(figma.journal.filter((ligne) => ligne === 'commitUndo').length, 1);
+    await verifierLaLoiDuLot(figma, plan);
+  });
+}
 
 test('la marque nommage se range une fois, ne remplace pas une marque existante, et un fichier en lecture seule ne la refuse pas', () => {
   const figma = new FauxFigma();

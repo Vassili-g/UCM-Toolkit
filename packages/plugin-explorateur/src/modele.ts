@@ -7,6 +7,8 @@
  * l'architecture vient entièrement des données lues.
  */
 
+import { versSrgb } from './espace';
+
 /** Les types de valeur qu'une variable Figma déclare (`resolvedType`). */
 export type TypeDeVariable = 'COLOR' | 'FLOAT' | 'STRING' | 'BOOLEAN' | 'EASING' | 'TIMING';
 
@@ -114,6 +116,13 @@ export interface VocabulaireDuReleve {
 
 export const FORMAT_DU_RELEVE = 1;
 
+/**
+ * L'espace dans lequel Figma range les couleurs du document : le profil
+ * `DISPLAY_P3` donne `display-p3`, tout autre profil `srgb`. Même forme que
+ * `EspaceColorimetrique` du kit, que le noyau n'importe pas.
+ */
+export type EspaceDuReleve = 'srgb' | 'display-p3';
+
 export interface Releve {
   readonly format: typeof FORMAT_DU_RELEVE;
   /** Augmente à chaque lecture terminée du même fichier. */
@@ -127,18 +136,25 @@ export interface Releve {
   readonly capacites: Capacites;
   /** Absent d'un fichier sans règles de nommage rangées, et d'un relevé importé d'une version antérieure : il se lit sans règle. */
   readonly vocabulaire?: VocabulaireDuReleve;
+  /** Absent d'un relevé importé d'une version antérieure et d'un relevé de composant : il se lit en sRGB, comme l'exporteur publie un fichier sans profil. */
+  readonly espace?: EspaceDuReleve;
 }
 
-/** Le texte d'une valeur terminale, sans unité supposée ni transformation. */
+/** L'espace des couleurs d'un relevé. */
+export function espaceDuReleve(releve: { readonly espace?: unknown }): EspaceDuReleve {
+  return releve.espace === 'display-p3' ? 'display-p3' : 'srgb';
+}
+
 /** Une opacité de 0 à 1 en pourcentage, à la virgule française : `12,5 %`. */
 export function pourcentageDOpacite(opacite: number): string {
   return `${String(Math.round(opacite * 1000) / 10).replace('.', ',')} %`;
 }
 
-export function texteDeValeur(valeur: ValeurTerminale): string {
+/** Le texte d'une valeur terminale ; une couleur P3 se convertit en sRGB pour son hexadécimal. */
+export function texteDeValeur(valeur: ValeurTerminale, espace: EspaceDuReleve = 'srgb'): string {
   switch (valeur.nature) {
     case 'couleur':
-      return hexaDeCouleur(valeur.couleur).hexa;
+      return hexaDeCouleur(versSrgb(valeur.couleur, espace).couleur).hexa;
     case 'nombre':
       return String(valeur.nombre);
     case 'texte':
@@ -174,8 +190,13 @@ export function hexaDeCouleur(couleur: Couleur): { hexa: string; arrondi: boolea
   return { hexa, arrondi };
 }
 
-/** Les composantes exactes d'une couleur, telles que Figma les range. */
-export function composantesDeCouleur(couleur: Couleur): string {
+/**
+ * Les composantes exactes d'une couleur, telles que Figma les range : `rgba(…)`
+ * en sRGB, `color(display-p3 …)` en Display P3, avec ` / alpha` quand l'alpha
+ * n'est pas 1.
+ */
+export function composantesDeCouleur(couleur: Couleur, espace: EspaceDuReleve = 'srgb'): string {
+  if (espace === 'display-p3') return `color(display-p3 ${couleur.r} ${couleur.g} ${couleur.b}${couleur.a === 1 ? '' : ` / ${couleur.a}`})`;
   return `rgba(${couleur.r}, ${couleur.g}, ${couleur.b}, ${couleur.a})`;
 }
 

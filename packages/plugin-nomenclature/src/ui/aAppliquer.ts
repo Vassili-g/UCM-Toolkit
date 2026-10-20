@@ -9,7 +9,7 @@ import { CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, libelleDuTerme, ter
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import { createFeuille } from 'ucm-plugin-socle/src/ui/Feuille';
-import type { Bilan, BloqueVue, GroupeVue, LigneVue, PluginMessage, ResultatVue } from '../messages';
+import type { Bilan, BloqueVue, GroupeVue, LigneVue, PluginMessage, ProtectionVue, ResultatVue } from '../messages';
 import type { Coquille } from './coquille';
 import {
   cocherGroupe,
@@ -28,10 +28,11 @@ import {
   type ModeleDeSelection,
 } from './selection';
 import { apresUnePage, creerLaFile, nomsRestants, prochainDebut, sectionsDansLOrdre, segmentsDeNom, type SorteDeRegle } from './lignes';
-import { annonceApresUneErreur, annonceDUneApplication, annonceDUneAnnulation, type Annonce, type Attente } from './annonce';
+import { annonceApresUneErreur, annonceDUneApplication, annonceDUneAnnulation, lignesDUneAnnulationNonVerifiee, type Annonce, type Attente } from './annonce';
+import { lignesDeProtection, totauxDeProtection } from './protection';
 import { TEXTES } from './textes';
 
-type Pastille = 'nouveau' | 'bloque' | 'protege';
+type Pastille = 'nouveau' | 'bloque' | 'protege' | 'non-verifie';
 
 /** Un texte entre accents graves met ces mots en code (voir `textes.ts`). */
 function poserLeTexte(element: HTMLElement, texte: string): void {
@@ -111,6 +112,10 @@ function fabriquerPastille(variante: Pastille): HTMLElement {
     case 'protege':
       pastille.classList.add('pastille-protege');
       pastille.textContent = TEXTES.pastilleProtege;
+      break;
+    case 'non-verifie':
+      pastille.classList.add('pastille-non-verifie');
+      pastille.textContent = TEXTES.pastilleNonVerifie;
       break;
   }
   return pastille;
@@ -343,7 +348,10 @@ export function monterAAppliquer(coquille: Coquille): void {
 
   function synchroniserLePied(): void {
     const nombre = compterLesNomsCoches(modele);
-    if (nombre === 0) {
+    const reglesFutures = bilan?.reglesFutures === true;
+    if (reglesFutures) {
+      resume.textContent = TEXTES.reglesFutures;
+    } else if (nombre === 0) {
       resume.textContent = TEXTES.aucunNomCoche;
     } else {
       const compte = TEXTES.nomsCoches(nombre);
@@ -351,7 +359,7 @@ export function monterAAppliquer(coquille: Coquille): void {
       enGras.textContent = compte.nombre;
       resume.replaceChildren(enGras, compte.suite);
     }
-    boutonAppliquer.disabled = nombre === 0 || attente !== null || lectureDeLaSelection !== null;
+    boutonAppliquer.disabled = reglesFutures || nombre === 0 || attente !== null || lectureDeLaSelection !== null;
     if (boutonAnnuler) boutonAnnuler.disabled = attente !== null;
   }
 
@@ -515,8 +523,9 @@ export function monterAAppliquer(coquille: Coquille): void {
     };
   }
 
-  function creerNonRenommes(bloques: readonly BloqueVue[], proteges: number): HTMLElement | null {
-    if (bloques.length === 0 && proteges === 0) return null;
+  function creerNonRenommes(bloques: readonly BloqueVue[], protections: readonly ProtectionVue[]): HTMLElement | null {
+    if (bloques.length === 0 && protections.length === 0) return null;
+    const { proteges, nonVerifiees } = totauxDeProtection(protections);
     const element = document.createElement('div');
     element.className = 'carte muette';
     const tete = document.createElement('div');
@@ -525,7 +534,7 @@ export function monterAAppliquer(coquille: Coquille): void {
     bouton.type = 'button';
     bouton.className = 'tete-bouton';
     const titre = document.createElement('span');
-    titre.textContent = TEXTES.nonRenommes(bloques.length, proteges);
+    titre.textContent = TEXTES.nonRenommes(bloques.length, proteges, nonVerifiees);
     bouton.append(titre, creerChevron());
     tete.append(bouton);
 
@@ -545,18 +554,23 @@ export function monterAAppliquer(coquille: Coquille): void {
       info.append(pile, fabriquerPastille('bloque'));
       corps.append(info);
     }
-    if (proteges > 0) {
+    for (const ligne of lignesDeProtection(protections)) {
       const info = document.createElement('div');
       info.className = 'info';
       const pile = document.createElement('div');
       pile.className = 'pile';
       const nombre = document.createElement('span');
-      nombre.textContent = TEXTES.nomsProteges(proteges);
+      nombre.textContent = ligne.nombre;
       const explication = document.createElement('span');
       explication.className = 'meta';
-      explication.textContent = TEXTES.nomsProtegesExplication;
+      explication.textContent = ligne.explication;
       pile.append(nombre, explication);
-      info.append(pile, fabriquerPastille('protege'));
+      if (ligne.relancer) {
+        pile.append(fabriquerAction(TEXTES.relancerLAnalyse, () => {
+          frontiere.analyser();
+        }));
+      }
+      info.append(pile, fabriquerPastille(ligne.pastille));
       corps.append(info);
     }
 
@@ -585,7 +599,7 @@ export function monterAAppliquer(coquille: Coquille): void {
     for (const { sorte, groupes: dedans } of sectionsDansLOrdre(cartes.map((carte) => ({ carte, regle: carte.groupe.regle })))) {
       enfants.push(fabriquerIntertitre(TITRES_DES_SECTIONS[sorte]), ...dedans.map(({ carte }) => carte.element));
     }
-    const nonRenommes = bilan ? creerNonRenommes(bilan.bloques, bilan.proteges) : null;
+    const nonRenommes = bilan ? creerNonRenommes(bilan.bloques, bilan.protections) : null;
     if (nonRenommes) enfants.push(nonRenommes);
     liste.replaceChildren(...enfants);
     // Un groupe disparu ne garde pas son état déplié.
@@ -611,7 +625,11 @@ export function monterAAppliquer(coquille: Coquille): void {
         coche.setAttribute('aria-hidden', 'true');
         coche.textContent = '✓ ';
         titre.append(coche, TEXTES.nomsRenommes(annonce.renommes));
-        note.textContent = [annonce.sautes > 0 ? TEXTES.nomsSautes(annonce.sautes) : '', annonce.bilanIllisible ? TEXTES.bilanIllisible : ''].filter(Boolean).join(' ');
+        note.textContent = [
+          annonce.sautes > 0 ? TEXTES.nomsSautes(annonce.sautes) : '',
+          annonce.nonVerifiees ? TEXTES.nonVerifieesNonRenommees(annonce.nonVerifiees) : '',
+          annonce.bilanIllisible ? TEXTES.bilanIllisible : '',
+        ].filter(Boolean).join(' ');
         if (annonce.annulable) {
           action = fabriquerAction(TEXTES.annuler, () => {
             const demande = frontiere.annulerLeDernier();
@@ -623,15 +641,29 @@ export function monterAAppliquer(coquille: Coquille): void {
         break;
       }
       case 'refuse':
+      case 'refuse-non-verifiee':
       case 'annulation-refusee':
-        titre.textContent = annonce.type === 'refuse' ? (annonce.cause === 'journal-impossible' ? TEXTES.journalImpossible : TEXTES.rienNAEteRenomme) : TEXTES.annulationRefusee;
-        action = fabriquerAction(TEXTES.relancerLAnalyse, () => {
-          frontiere.analyser();
-        });
+        if (annonce.type === 'refuse-non-verifiee') titre.textContent = TEXTES.rienNAEteRenommeNonVerifie;
+        else if (annonce.type === 'refuse') {
+          titre.textContent = annonce.cause === 'journal-impossible' ? TEXTES.journalImpossible : annonce.cause === 'regles-futures' ? TEXTES.reglesFutures : TEXTES.rienNAEteRenomme;
+        } else titre.textContent = TEXTES.annulationRefusee;
+        // Relire le fichier ne change pas la version qui a rangé les règles : seule la mise à jour du plugin le fait.
+        if (!(annonce.type === 'refuse' && annonce.cause === 'regles-futures')) {
+          action = fabriquerAction(TEXTES.relancerLAnalyse, () => {
+            frontiere.analyser();
+          });
+        }
         break;
       case 'annulation-partielle':
         titre.textContent = TEXTES.nomsNonRetablis(annonce.sautes);
         break;
+      case 'annulation-non-verifiee': {
+        const [premiere, ...suite] = lignesDUneAnnulationNonVerifiee(annonce, 'renommages');
+        titre.textContent = premiere;
+        note.textContent = suite.join(' ');
+        action = fabriquerAction(TEXTES.relancerLAnalyse, () => { frontiere.analyser(); });
+        break;
+      }
       case 'annulation-collection-exclue':
         titre.textContent = TEXTES.annulationDansUneCollectionExclue(annonce.retablis, annonce.exclues, 'renommages');
         if (annonce.autres > 0) note.textContent = TEXTES.annulationAutresNomsNonRetablis(annonce.autres);
@@ -661,7 +693,7 @@ export function monterAAppliquer(coquille: Coquille): void {
 
   function demanderLaConfirmation(): void {
     const nombre = compterLesNomsCoches(modele);
-    if (nombre === 0 || attente || lectureDeLaSelection || confirmation) return;
+    if (bilan?.reglesFutures === true || nombre === 0 || attente || lectureDeLaSelection || confirmation) return;
     const { variables, collections } = compterLesNomsCochesParSorte(modele);
     const selection = versSelection(modele);
     confirmation = ouvrirConfirmation({

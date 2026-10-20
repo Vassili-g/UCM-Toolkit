@@ -237,10 +237,14 @@ versions du kit, puis `champsInvalidesDuContrat`, champ par champ. Le JSON
 Schema n'est pas appliqué : son lecteur charge le schéma depuis le disque. Ses
 références se relèvent hors de `samples` et `meta`, chacune avec son adresse,
 ses variants et sa propriété. Une variable se rapproche d'un token par le
-chemin qu'UCM Exporter publie (`joinTokenPath` du socle), jamais par sa
+chemin qu'UCM Exporter publie (`joinTokenPath` de `@ucm-kit/core/format`), jamais par sa
 valeur ; deux variables qui donnent le même chemin rendent un rapprochement
 ambigu. La comparaison avec l'export porte sur le type, puis sur l'alias ou
-la valeur de chaque mode ; un écart peut venir d'un export antérieur.
+la valeur de chaque mode ; un écart peut venir d'un export antérieur. Un mode
+que la comparaison n'a pas pu faire (pas de valeur dans Figma, alias avec
+opacité, forme, unité ou espace de couleur que l'explorateur ne compare pas)
+rend une limite avec sa cause. L'égalité ne s'affiche que si chaque mode
+annoncé a été comparé.
 
 **Recette UCM Palettes.** Le texte rangé sous `ucm_palettes/recette` se
 classe par `classerRecette` d'`ucm-couleur`, sans migration. La recette ne
@@ -255,7 +259,7 @@ neutre ajoute `page/foreground-main`, `page/foreground-subtle`, `scale/0`,
 400 ou 950, ne liste rien.
 
 **Profil UCM.** Les sept couches et leurs cibles suivent l'architecture
-multimarque : `components` vise `theme`, `layout` ou `typography` ; `theme`
+multimarque. Pour les couleurs contrôlées ici, `components` vise `theme` ; `theme`
 vise `brands` ou `utility` ; `brands`, `utility`,
 `layout` et `typography` visent `primitives` ; `primitives` ne vise rien. Le
 profil ne juge que les variables de couleur : les variables de `layout` et de
@@ -279,6 +283,11 @@ nuance ; les deux premières ne portent aucune portée. Une collection sans
 couche n'est pas contrôlée, et le designer peut ignorer un écart pour ce
 fichier.
 
+Le profil annonce aussi les contrôles impossibles, avec une cause et la
+variable concernée : rôle de `theme` inconnu, mode non reconnu, valeur absente
+dans un mode ou cible dont la collection n'a pas de couche. Une limite n'est
+pas un écart et ne disparaît pas avec une exception du designer.
+
 ## Relevés et simulation
 
 Le relevé s'exporte en JSON (`ucm-explorateur/releve`, version 1) et se
@@ -289,7 +298,11 @@ confirme. Un renommage reste un renommage.
 ## Interface
 
 L'interface est en français et toujours sombre. Les modes Light, Dark ou
-Jour des données ne changent que les valeurs et les pastilles.
+Jour des données ne changent que les valeurs et les pastilles. Le relevé
+conserve l'espace colorimétrique du document (`srgb` ou `display-p3`) ; un
+relevé ancien sans espace se lit en sRGB. Contraste, hexadécimal affiché,
+pastilles et couleurs de la vue composant ramènent Display P3 en sRGB. La
+copie des composantes conserve l'espace source.
 
 La fenêtre a deux dispositions, une par mode. La barre du haut porte le
 produit et la bascule « Tokens » / « Composant », présente dans les deux. Le

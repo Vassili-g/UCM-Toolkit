@@ -1,20 +1,22 @@
 /**
  * Les règles du fichier : une entrée de données partagées par règle, sans dépendance à Figma.
  *
- * Les clés vivent dans l'espace `ESPACE_ARCHITECT` du kit. Une entrée est un JSON qui porte `version: 1` ;
- * une entrée illisible ou d'une autre version se lit comme absente, et une lecture ne réécrit rien.
+ * Les clés vivent dans l'espace `ESPACE_ARCHITECT` du kit. Une entrée est un JSON qui porte `version: 1`.
+ * Les règles de nommage illisibles se lisent comme absentes, et celles d'une version plus récente sont nommées dans `futures` ;
+ * l'architecture garde son état de lecture.
+ * Une lecture ne réécrit rien.
  * Toute écriture sort sous forme d'`Ecriture` (`texte: null` efface la clé) : la session les range par le port d'`ecriture.ts`.
  */
-import { COLLECTIONS, ESPACE_ARCHITECT, type Collection, type ConflitDeVocabulaire, type DejaJuge, type Mots, type TermePersonnalise, type VocabulaireDuFichier } from '@ucm-kit/core/referentiel';
+import { COLLECTIONS, ESPACE_ARCHITECT, CLE_ARCHITECTURE_DU_FICHIER, lireLArchitectureDuFichier, texteDeLArchitectureDuFichier, type ArchitectureDuFichier, type Collection, type ConflitDeVocabulaire, type DejaJuge, type Mots, type TermePersonnalise, type VocabulaireDuFichier } from '@ucm-kit/core/referentiel';
 import {
   CLE_CONVENTIONS_V1, CLE_ECRITURE, CLE_EXCLUES, VERSION_DES_REGLES,
-  apres, comparer, estCleDeNommage, estListeDeTextes, estMot, estMots, estObjet, estTexte, lireEcriture, lireEntree, lireLesEntreesDeNommage, lireTerme, motsDe, trier,
-  vocabulaireDeNommage,
-} from 'ucm-plugin-socle/src/reglesDeNommage';
+  PREFIXES_DE_NOMMAGE, apres, cleEcart, cleOrdinaire, cleTerme, comparer, estCleDeNommage, estListeDeTextes, estMot, estMots, estObjet, estTexte, lireEcriture, lireEntree,
+  lireLesEntreesDeNommage, lireTerme, motsDe, trier, vocabulaireDeNommage,
+} from '@ucm-kit/core/protocoles';
 import type { EcritureChoisie } from './messages';
 
-// Les clés qui changent un nom et leur analyseur vivent dans le socle, où UCM Palettes les lit aussi.
-export { CLE_CONVENTIONS_V1, CLE_ECRITURE, CLE_EXCLUES, VERSION_DES_REGLES, estMot };
+// Les clés qui changent un nom, leurs constructeurs et leur analyseur vivent dans le kit (`protocoles`), où UCM Palettes les lit aussi.
+export { CLE_CONVENTIONS_V1, CLE_ECRITURE, CLE_EXCLUES, VERSION_DES_REGLES, cleEcart, cleOrdinaire, cleTerme, estMot };
 export const CLE_VUS = 'vus';
 /** Clé de la référence du journal : elle nomme le lot courant et le nombre de ses entrées. */
 export const CLE_JOURNAL = 'journal';
@@ -54,6 +56,7 @@ export interface ReponseRangee {
 export interface ImportRange { readonly heure: string; readonly avant: Readonly<Record<string, string | null>>; readonly apres: Readonly<Record<string, string | null>> }
 
 export interface ReglesDuFichier {
+  readonly architecture: ArchitectureDuFichier;
   readonly ecriture?: EcritureChoisie;
   /** Vrai quand `ecriture` vient de la clé `conventions` de la v1 et n'est pas encore rangée. */
   readonly ecritureDeLaV1: boolean;
@@ -69,6 +72,8 @@ export interface ReglesDuFichier {
   /** Identifiant de la collection vers la collection UCM qu'elle prend pour nom ; propre au fichier, comme `collectionsGardees`. */
   readonly collectionsRenommees: Readonly<Record<string, Collection>>;
   readonly collectionsExclues: readonly string[];
+  /** Les clés de nommage dont l'entrée vient d'une version plus récente du plugin ; tant qu'il y en a, rien ne s'écrit. */
+  readonly futures: readonly string[];
   readonly reponses: Readonly<Record<string, ReponseRangee>>;
   readonly vus: readonly string[];
   readonly journal?: Journal;
@@ -76,6 +81,7 @@ export interface ReglesDuFichier {
 }
 
 export type Regle =
+  | { readonly type: 'architecture'; readonly ucm: boolean }
   | { readonly type: 'ecriture'; readonly ecriture: EcritureChoisie }
   | { readonly type: 'terme'; readonly terme: TermePersonnalise }
   | { readonly type: 'ecart'; readonly id: string }
@@ -89,14 +95,11 @@ export type Regle =
 
 // Les clés
 
-export const cleTerme = (mots: Mots): string => `terme:${mots.join(' ')}`;
-export const cleEcart = (id: string): string => `ecart:${id}`;
 /** Une paire distincte s'écrit dans l'ordre trié. */
 export const cleDistinct = (a: string, b: string): string => a <= b ? `distinct:${a}|${b}` : `distinct:${b}|${a}`;
 export const cleVoulu = (mots: Mots): string => `voulu:${mots.join(' ')}`;
 /** La clé d'un terme ordinaire joint ses mots par `-`, comme `ordinaires` du lexique. */
 export const cleDuTermeOrdinaire = (mots: Mots): string => mots.map((mot) => mot.toLowerCase()).join('-');
-export const cleOrdinaire = (cle: string): string => `ordinaire:${cle}`;
 /** Les questions d'échelle ont quitté le plugin : leur clé déjà rangée n'est plus lue, pour ne compter ni parmi les mises de côté ni dans le plafond. */
 const PREFIXE_RETIRE = 'echelle:';
 export const clePlusTard = (cle: string): string => `plus-tard:${cle}`;
@@ -202,7 +205,7 @@ function lireJournalDuLot(entrees: ReadonlyMap<string, string>): Journal | undef
 
 /**
  * Lit toutes les règles depuis les couples (clé, texte) de l'espace ; les clés inconnues sont ignorées.
- * Les clés qui changent un nom passent par `lireLesEntreesDeNommage` du socle ; ici restent les autres.
+ * Les clés qui changent un nom passent par `lireLesEntreesDeNommage` du kit ; ici restent les autres.
  */
 export function lireLesRegles(couples: Iterable<readonly [string, string]>): ReglesDuFichier {
   const entrees = new Map(couples);
@@ -243,6 +246,7 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
   }
   const journal = lireJournal(entrees);
   return {
+    architecture: lireLArchitectureDuFichier(entrees.get(CLE_ARCHITECTURE_DU_FICHIER) ?? ''),
     ...(nommage.ecriture ? { ecriture: nommage.ecriture } : {}),
     ecritureDeLaV1: nommage.ecritureDeLaV1,
     termes: nommage.termes,
@@ -254,6 +258,7 @@ export function lireLesRegles(couples: Iterable<readonly [string, string]>): Reg
     collectionsGardees: trier(gardees),
     collectionsRenommees: Object.fromEntries(Object.entries(renommees).sort(([a], [b]) => comparer(a, b))),
     collectionsExclues: nommage.collectionsExclues,
+    futures: nommage.futures,
     reponses,
     vus,
     ...(journal ? { journal } : {}),
@@ -282,6 +287,7 @@ export function dejaJugeDuFichier(regles: Pick<ReglesDuFichier, 'distincts' | 'p
 export function serialiserRegle(regle: Regle): Ecriture {
   const v = VERSION_DES_REGLES;
   switch (regle.type) {
+    case 'architecture': return { cle: CLE_ARCHITECTURE_DU_FICHIER, texte: texteDeLArchitectureDuFichier(regle.ucm) };
     case 'ecriture': return { cle: CLE_ECRITURE, texte: JSON.stringify({ version: v, groupes: regle.ecriture.groupes, variables: regle.ecriture.variables }) };
     case 'terme': return { cle: cleTerme(regle.terme.terme), texte: JSON.stringify({ version: v, terme: regle.terme.terme, remplace: regle.terme.remplace,
       ...(regle.terme.definition ? { definition: regle.terme.definition } : {}) }) };
@@ -299,6 +305,7 @@ export function serialiserRegle(regle: Regle): Ecriture {
 /** Toutes les entrées des règles, hors réponses et journal. `exclues` et `vus` ne sortent que s'ils ne sont pas vides. */
 export function ecrituresDesRegles(regles: ReglesDuFichier): Ecriture[] {
   const liste: Regle[] = [
+    ...(regles.architecture === 'ucm' || regles.architecture === 'libre' ? [{ type: 'architecture', ucm: regles.architecture === 'ucm' } as const] : []),
     ...(regles.ecriture ? [{ type: 'ecriture', ecriture: regles.ecriture } as const] : []),
     ...regles.termes.map((terme) => ({ type: 'terme', terme }) as const),
     ...regles.ecartsUcm.map((id) => ({ type: 'ecart', id }) as const),
@@ -386,7 +393,7 @@ export function defaireLImport(courant: ReadonlyMap<string, string>): Ecriture[]
  */
 export function preparerImport(ecritures: readonly Ecriture[], courant: ReadonlyMap<string, string>, heure: string): Ecriture | undefined {
   const changees = ecritures.filter((e) => (e.texte ?? '') !== (courant.get(e.cle) ?? ''));
-  const ecrase = changees.some((e) => (e.cle === CLE_ECRITURE || e.cle.startsWith('terme:')) && courant.has(e.cle));
+  const ecrase = changees.some((e) => (e.cle === CLE_ECRITURE || e.cle.startsWith(PREFIXES_DE_NOMMAGE.terme)) && courant.has(e.cle));
   if (!ecrase) return undefined;
   const avant: Record<string, string | null> = {};
   const ecrit: Record<string, string | null> = {};
@@ -458,6 +465,7 @@ export function effacerLeJournal(clesExistantes: Iterable<string>, garder: Reado
 
 export interface ExportDesRegles {
   readonly version: 1;
+  readonly architecture?: boolean;
   readonly ecriture?: EcritureChoisie;
   readonly termes: readonly TermePersonnalise[];
   readonly ecartsUcm: readonly string[];
@@ -472,6 +480,7 @@ export interface ExportDesRegles {
 export function exporterLesRegles(regles: ReglesDuFichier): string {
   const sortie: ExportDesRegles = {
     version: VERSION_DES_REGLES,
+    ...(regles.architecture === 'ucm' || regles.architecture === 'libre' ? { architecture: regles.architecture === 'ucm' } : {}),
     ...(regles.ecriture ? { ecriture: regles.ecriture } : {}),
     termes: regles.termes, ecartsUcm: regles.ecartsUcm, distincts: regles.distincts, voulus: regles.voulus,
     ordinaires: regles.ordinaires, plusTard: regles.plusTard,
@@ -484,6 +493,7 @@ function lireExport(texte: string): ReglesDuFichier | undefined {
   let brut: unknown;
   try { brut = JSON.parse(texte); } catch { return undefined; }
   if (!estObjet(brut) || brut.version !== VERSION_DES_REGLES) return undefined;
+  if (brut.architecture !== undefined && typeof brut.architecture !== 'boolean') return undefined;
   const liste = (valeur: unknown): unknown[] | undefined => valeur === undefined ? [] : Array.isArray(valeur) ? valeur : undefined;
   const termesBruts = liste(brut.termes), distinctsBruts = liste(brut.distincts);
   const ecarts = liste(brut.ecartsUcm), voulus = liste(brut.voulus), plusTard = liste(brut.plusTard), ordinaires = liste(brut.ordinaires);
@@ -505,6 +515,7 @@ function lireExport(texte: string): ReglesDuFichier | undefined {
     || !voulus.every((v) => estTexte(v) && !!motsDe(v)) || !ordinaires.every(estMot)) return undefined;
   return {
     ...reglesVides,
+    ...(typeof brut.architecture === 'boolean' ? { architecture: brut.architecture ? 'ucm' : 'libre' } as const : {}),
     ...(ecriture ? { ecriture } : {}),
     termes, ecartsUcm: trier(ecarts), distincts, voulus: trier(voulus as string[]), ordinaires: trier(ordinaires as string[]), plusTard: trier((plusTard as string[]).filter((cle) => !cle.startsWith(PREFIXE_RETIRE))),
   };
@@ -516,6 +527,7 @@ function fusionner(actuelles: ReglesDuFichier, importees: ReglesDuFichier): Regl
   const paires = new Map([...actuelles.distincts, ...importees.distincts].map((p) => [p.join('|'), p]));
   return {
     ...actuelles,
+    ...(importees.architecture === 'ucm' || importees.architecture === 'libre' ? { architecture: importees.architecture } : {}),
     ...(importees.ecriture ? { ecriture: importees.ecriture, ecritureDeLaV1: false } : {}),
     termes: [...termes.values()].sort((a, b) => comparer(a.terme.join(' '), b.terme.join(' '))),
     ecartsUcm: trier([...actuelles.ecartsUcm, ...importees.ecartsUcm]),

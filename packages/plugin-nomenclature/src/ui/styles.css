@@ -198,6 +198,21 @@ mark {
   border-radius: var(--rayon);
 }
 
+/* Sous la liste des collections : une cause de protection par bloc, son nombre puis son explication. */
+.config-protections {
+  display: grid;
+  gap: var(--espace-controle);
+}
+
+.config-protection {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+.config-protection p {
+  margin: 0;
+}
+
 .config-ligne {
   display: grid;
   grid-template-columns: 14px 1fr auto;
@@ -394,7 +409,8 @@ button.tete-bouton {
   color: var(--texte-second);
 }
 
-.pastille-attente {
+.pastille-attente,
+.pastille-non-verifie {
   background: var(--fond-avertissement);
   color: var(--texte-avertissement);
 }
@@ -675,6 +691,13 @@ button.tete-bouton {
   cursor: pointer;
   font-weight: 600;
   text-decoration: underline;
+}
+
+/* Sous l'explication d'une ligne protégée : le bouton garde sa largeur et s'aligne sur le texte. */
+.info .resultat-action {
+  justify-self: start;
+  height: auto;
+  padding: 0;
 }
 
 .resultat-action:disabled {

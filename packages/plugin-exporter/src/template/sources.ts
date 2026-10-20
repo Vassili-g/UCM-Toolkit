@@ -8,18 +8,21 @@
  * `importComponentByKeyAsync`.
  */
 import {
-  MAITRE_COMPACTE,
+  CALQUES_DU_KIT_DE_REGLES,
+  MAITRES_COMPACTES,
+  MAITRES_DU_KIT_DE_REGLES,
   MARQUEUR_A_COMPLETER,
-  RULES_COMPONENT_NAME,
-  RULES_CONTAINER_NAME,
-  RULE_ITEM_NAME,
-  compactName,
+  calqueDuTag,
+  nomCompacte,
+  validerLeKitDeRegles,
+} from '@ucm-kit/core/referentiel';
+import type { ReleveDuKitDeRegles } from '@ucm-kit/core/referentiel';
+import {
   nomDuCatalogue,
   nomLisible,
-  porteLeMarqueur,
   releveVide,
   ruleTagFromLayerName,
-  textOfLayer,
+  textesDesCalques,
 } from '../contract/extractRules';
 import type { ReleveDeSource, RuleTag } from '../contract/extractRules';
 
@@ -95,7 +98,7 @@ function sourceDeLaPage(page: PageNode): ReleveDeSource | null {
   figma.skipInvisibleInstanceChildren = true;
   try {
     const porteLeNomDuMaitre = (node: SceneNode) =>
-      compactName(nomLisible(node) ?? '') === MAITRE_COMPACTE;
+      nomCompacte(nomLisible(node) ?? '') === MAITRES_COMPACTES.conteneur;
     const maitre = nodesDeType(page, 'COMPONENT').find(porteLeNomDuMaitre);
     if (maitre) return { ...releveVide(), maitreLocal: maitre as ComponentNode };
     const instance = nodesDeType(page, 'INSTANCE').find(porteLeNomDuMaitre);
@@ -157,15 +160,6 @@ export async function chercherLaSourceDansLeDocument(
   }
   return null;
 }
-
-/**
- * Nom (compacté) du component set des sections.
- *
- * Il ne vit pas avec les noms que le moteur lit : le moteur ignore les
- * sections (FORMAT.md, section 7), et seul le template a besoin de les
- * reconnaître pour ranger chaque règle dans la sienne.
- */
-const SECTION_COMPACTEE = '.rulessection';
 
 /**
  * Les maîtres que l'écriture emploiera, résolus une fois au clic.
@@ -255,10 +249,10 @@ async function exemplesDuMaitre(maitre: ComponentNode): Promise<{
   const sections = new Map<RuleTag, ComponentNode>();
   const regles = new Map<RuleTag, ComponentNode>();
   for (const candidate of instancesDe(maitre)) {
-    const maitreDeSection = await maitreDuCatalogue(candidate, SECTION_COMPACTEE);
+    const maitreDeSection = await maitreDuCatalogue(candidate, MAITRES_COMPACTES.section);
     if (!maitreDeSection) continue;
     for (const exemple of instancesDe(candidate)) {
-      const variante = await maitreDuCatalogue(exemple, RULES_COMPONENT_NAME);
+      const variante = await maitreDuCatalogue(exemple, MAITRES_COMPACTES.regle);
       const tag = variante ? tagAffiche(exemple) : null;
       if (!variante || tag === null || regles.has(tag)) continue;
       regles.set(tag, variante);
@@ -290,29 +284,41 @@ function separateurDuCatalogue(regles: Map<RuleTag, ComponentNode>): ComponentNo
   return null;
 }
 
-/**
- * Les calques d'aide que l'écriture ne remplit pas, et qui doivent donc porter
- * le marqueur : le texte d'une règle que le template pose sans le rédiger.
- *
- * `@default` n'y est pas, le template ne posant aucune règle de ce tag.
- * `@icons` non plus : un maître antérieur écrit `icon-name` sans marqueur dans
- * son calque `icon`, et l'écriture pose elle-même le marqueur dans chaque règle
- * `@icons` qu'elle crée (`ecriture.ts`). Refuser ce maître bloquerait la
- * création pour un défaut qu'elle corrige.
- */
-const AIDES_LUES: Partial<Record<RuleTag, string>> = {
-  usage: 'content',
-  prop: 'content',
-  boolean: 'content',
-};
+const NUMERO_DU_KIT = /ucm-kit-de-regles\s*:\s*(\d+)/i;
 
-/** Vrai dès qu'un texte d'aide du maître passerait pour une documentation. */
-function aideSansMarqueur(regles: Map<RuleTag, ComponentNode>): boolean {
-  return Object.entries(AIDES_LUES).some(([tag, calque]) => {
-    const variante = regles.get(tag as RuleTag);
-    return variante !== undefined && !porteLeMarqueur(textOfLayer(variante, calque));
-  });
+/** La version écrite dans la description du maître, ou `null` sans mention. */
+export function versionDuKit(maitre: ComponentNode): number | null {
+  const lu = NUMERO_DU_KIT.exec(maitre.description ?? '');
+  return lu ? Number(lu[1]) : null;
 }
+
+/**
+ * Le relevé portable du maître et de ses variants de règle, que le validateur
+ * du kit juge sans Figma. Seuls les variants rencontrés sur les exemples y
+ * figurent.
+ */
+function releveDuKit(
+  maitre: ComponentNode,
+  regles: Map<RuleTag, ComponentNode>,
+): ReleveDuKitDeRegles {
+  const calques = Object.values(CALQUES_DU_KIT_DE_REGLES);
+  return {
+    version: versionDuKit(maitre),
+    conteneur: textesDesCalques(maitre, [CALQUES_DU_KIT_DE_REGLES.nomDuComposant]),
+    regles: Object.fromEntries([...regles].map(([tag, variante]) => [
+      tag,
+      textesDesCalques(variante, [calqueDuTag(tag), ...calques]),
+    ])),
+  };
+}
+
+/**
+ * Le refus d'un kit écrit pour une version plus récente du plugin. Ses règles
+ * déjà rédigées se lisent encore, mais ce plugin ne sait pas en poser de neuves
+ * dans un modèle qu'il ne connaît pas.
+ */
+export const REFUS_DU_KIT_FUTUR = 'Ce kit de règles vient d’une version plus récente d’UCM Exporter. '
+  + 'Mettez le plugin à jour pour créer des règles.';
 
 /**
  * Les maîtres que l'écriture emploiera, ou le refus qui l'arrête avant toute
@@ -327,24 +333,26 @@ export async function resoudreLesSources(releve: ReleveDeSource): Promise<Resolu
   const maitre = await maitreDeLaPage(releve);
   if (!maitre) {
     return refuser(
-      `Le maître de « ${RULES_CONTAINER_NAME} » est introuvable dans ce document. `
+      `Le maître de « ${MAITRES_DU_KIT_DE_REGLES.conteneur} » est introuvable dans ce document. `
         + 'Collez une instance de vos règles sur la page du composant, puis recommencez.',
     );
   }
 
   const { sections, regles } = await exemplesDuMaitre(maitre);
+  const verdict = validerLeKitDeRegles(releveDuKit(maitre, regles));
+  if (verdict.version === 'future') return refuser(REFUS_DU_KIT_FUTUR);
   if (regles.size === 0) {
     return refuser(
-      `« ${RULES_CONTAINER_NAME} » ne porte aucun exemple de règle. Ajoutez-y un exemple `
+      `« ${MAITRES_DU_KIT_DE_REGLES.conteneur} » ne porte aucun exemple de règle. Ajoutez-y un exemple `
         + `de chaque règle, dans sa section, puis recommencez.`,
     );
   }
   // Avant toute écriture : un maître encore à l'ancienne ferait publier ses
   // textes d'aide comme la documentation du composant.
-  if (aideSansMarqueur(regles)) {
+  if (verdict.aidesSansMarqueur.length > 0) {
     return refuser(
-      `Les textes d’aide de « ${RULE_ITEM_NAME} » ne commencent pas par `
-        + `« ${MARQUEUR_A_COMPLETER} ». Ajoutez-le dans le composant « ${RULE_ITEM_NAME} », `
+      `Les textes d’aide de « ${MAITRES_DU_KIT_DE_REGLES.regle} » ne commencent pas par `
+        + `« ${MARQUEUR_A_COMPLETER} ». Ajoutez-le dans le composant « ${MAITRES_DU_KIT_DE_REGLES.regle} », `
         + 'puis recommencez.',
     );
   }

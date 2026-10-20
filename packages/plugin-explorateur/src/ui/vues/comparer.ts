@@ -7,6 +7,7 @@
 import { comparer, type Ecart } from '../../comparaison';
 import { nomComplet } from '../../copie';
 import { familles, modesDeFamille, type Index } from '../../indexation';
+import { espaceDuReleve } from '../../modele';
 import type { Contexte, Resultat } from '../../resolution';
 import type { Application, Composant } from '../application';
 import { constatDeChaine, rendreChaine, rendreConstat } from '../chaine';
@@ -77,7 +78,7 @@ export function creerVueComparer(app: Application): Composant {
     const choix = document.createElement('div');
     choix.className = 'contextes';
     choix.append(...contextes);
-    const valeur = rendreResultat(resultat);
+    const valeur = rendreResultat(resultat, false, app.etat.index ? espaceDuReleve(app.etat.index.releve) : 'srgb');
     valeur.classList.add('valeur-grande');
     bloc.append(entete, choix, valeur, rendreChaine(app, resultat, (cible) => app.suivre(cible), marque));
     const constat = constatDeChaine(app, resultat);

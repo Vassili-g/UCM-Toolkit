@@ -3,7 +3,7 @@
  *
  * Après une modification : relancer `npm test` et changer la version du kit ; aucune vue ni planche n'en tire de données.
  */
-import { COLLECTIONS, FORMES_ANCIENNES_DES_COLLECTIONS, REGISTRES_ARCHITECTURE, type Collection } from './architecture.js';
+import { COLLECTIONS, DESTINATION_DES_PALETTES, FORMES_ANCIENNES_DES_COLLECTIONS, REGISTRES_ARCHITECTURE, type Collection } from './architecture.js';
 import { type Casse, type Separateur, type Convention, type NomANormaliser, type ConventionsParCategorie, type CategorieDeNom } from './conventions.js';
 import { assembler, capitale, categorieDuSegment, commencerDetectionDesConventions, decouperSegment, motsAvecCasse } from './ecriture-des-mots.js';
 import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
@@ -34,6 +34,17 @@ export function collectionUcmReconnue(nom: string): Collection | undefined {
   const normalise = formeReconnue(nom);
   if ((COLLECTIONS as readonly string[]).includes(normalise)) return normalise as Collection;
   return Object.prototype.hasOwnProperty.call(FORMES_ANCIENNES_DES_COLLECTIONS, normalise) ? FORMES_ANCIENNES_DES_COLLECTIONS[normalise] : undefined;
+}
+
+/**
+ * La portée de la grammaire pour une sortie de palette : `reference` quand la collection est reconnue comme `primitives`
+ * et que le groupe est un seul segment de forme reconnue `color` ; `libre` sinon. Aucune écriture n'est refusée ni changée
+ * selon cette portée : une sortie `libre` n'est jamais jugée par `FORMES_DES_CHEMINS`.
+ */
+export function porteeDeLaGrammaire(nomDeCollection: string, groupe: readonly string[]): 'reference' | 'libre' {
+  const reference = collectionUcmReconnue(nomDeCollection) === DESTINATION_DES_PALETTES.collection
+    && groupe.length === 1 && formeReconnue(groupe[0]) === formeReconnue(DESTINATION_DES_PALETTES.groupe);
+  return reference ? 'reference' : 'libre';
 }
 
 

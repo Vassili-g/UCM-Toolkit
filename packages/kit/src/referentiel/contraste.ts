@@ -4,14 +4,17 @@
  * Après une modification : relancer `npm test`, régénérer la vue illustrée (`generer-donnees-referentiel.ts`) si une garantie change, la planche du moteur (`npm run planche --workspace ucm-couleur`) (les seuils bornent les rampes), et changer la version du kit.
  */
 import { atteintLeSeuil } from '../emplois/contraste.js';
+import { identifiantsDeRoles, roleDeRendu, type IdentifiantDeRole } from '../format/roles-de-rendu.js';
 
 export const SEUILS_PAR_USAGE = { texte: 4.5, nonTexte: 3 } as const;
 /** Le seuil AAA du texte courant (critère 1.4.6) ; le grand texte atteint déjà l'AAA au seuil AA du texte courant. */
 export const SEUIL_TEXTE_AAA = 7 as const;
-export const SEUILS_PAR_ROLE = {
-  foreground: SEUILS_PAR_USAGE.texte, icon: SEUILS_PAR_USAGE.texte,
-  border: SEUILS_PAR_USAGE.nonTexte, ring: SEUILS_PAR_USAGE.nonTexte,
-} as const;
+export const SEUILS_PAR_ROLE: Readonly<Partial<Record<IdentifiantDeRole, number>>> = Object.fromEntries(
+  identifiantsDeRoles().flatMap((identifiant) => {
+    const usage = roleDeRendu(identifiant)?.usageDeContraste;
+    return usage ? [[identifiant, SEUILS_PAR_USAGE[usage]]] : [];
+  }),
+);
 /** Un niveau WCAG de contraste de texte, `null` quand le minimum AA n'est pas atteint. */
 export type NiveauDeTexte = 'AAA' | 'AA' | null;
 export interface NiveauxWcag {

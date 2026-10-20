@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  annulerLeDernierRenommage, appliquerLesRenommages, classerLeRenommage, creerPortEcriture,
+  annulerLeDernierRenommage, appliquerLesRenommages, classerLeRenommage, creerPortEcriture, reglesFuturesDuStockage,
   type LecteursDuJournal, type ObjetModifiable, type PortDeRegles, type RenommageDemande, type SessionEcriture, type VariableModifiable,
 } from '../src/ecriture';
 import { inventaireDeLectures, type CollectionLue, type LecteurDeVariable, type VariableLue } from '../src/lecture';
@@ -494,9 +494,51 @@ test('AC7 : un suivi racine illisible ou d’une autre forme ne lève pas et n�
     const session = await creerPortEcriture(apiAvecSuivi(b, texte)).ouvrir();
     assert.deepEqual(session.inventaire.entrees.filter((entree) => entree.protegee), [], texte);
   }
-  const sansLecture = apiAvecSuivi(b, '');
-  (sansLecture.root as unknown as { getSharedPluginData: () => string }).getSharedPluginData = () => { throw new Error('refus'); };
-  assert.deepEqual((await creerPortEcriture(sansLecture).ouvrir()).inventaire.entrees.filter((entree) => entree.protegee), []);
+});
+
+/** Une API dont la racine refuse toute lecture : le suivi de Palettes et la marque `nommage` sont illisibles. */
+function apiQuiRefuse(b: ReturnType<typeof banc>, palettes: Record<string, string> = {}): PluginAPI {
+  const api = apiAvecSuivi(b, '', palettes);
+  (api.root as unknown as { getSharedPluginData: () => string }).getSharedPluginData = () => { throw new Error('refus'); };
+  return api;
+}
+
+test('T4.1 : une racine qui refuse la lecture suspend la variable de couleur sans marqueur, qui n’est pas écrite (non-verifiee)', async () => {
+  const b = banc({ variables: [['v0', 'a']] });
+  const session = await creerPortEcriture(apiQuiRefuse(b)).ouvrir();
+  assert.deepEqual(session.inventaire.entrees.filter((entree) => entree.indecidable === true).map((entree) => entree.nom.nom), ['a']);
+  assert.equal(session.inventaire.marque, 'refusee');
+  const resultat = appliquerLesRenommages({ demandes: [b.v('v0', 'a2')], session, stockage: b.stockage });
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('variable', 'v0'), motif: 'non-verifiee' }]);
+  assert.equal(resultat.statut, 'refuse');
+  assert.deepEqual(b.ecritures, []);
+  assert.equal(b.nom('v0'), 'a');
+});
+
+test('T4.1 : une racine qui refuse la lecture rend aussi non-verifiee la variable à marqueur lisible, dont la marque de Palettes est inconnue', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  const session = await creerPortEcriture(apiQuiRefuse(b, { v0: 'Brand' })).ouvrir();
+  const resultat = appliquerLesRenommages({ demandes: [b.v('v0', 'a2'), b.v('v1', 'b2')], session, stockage: b.stockage });
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('variable', 'v0'), motif: 'non-verifiee' }, { id: b.entree('variable', 'v1'), motif: 'non-verifiee' }]);
+  assert.deepEqual(b.ecritures, []);
+});
+
+test('T4.1 : l’annulation saute une restitution devenue indécidable (non-verifiee) et le journal garde la ligne', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'b']] });
+  const lisible = await creerPortEcriture(apiAvecSuivi(b, '')).ouvrir();
+  const lot = appliquerLesRenommages({ demandes: [b.v('v0', 'a2'), b.v('v1', 'b2')], session: lisible, stockage: b.stockage, heure: () => HEURE });
+  assert.equal(lot.statut, 'applique');
+  const journal = b.journal();
+  const refusee = await creerPortEcriture(apiQuiRefuse(b)).ouvrir();
+  const annulation = annulerLeDernierRenommage({ session: refusee, stockage: b.stockage });
+  assert.deepEqual(annulation.sautes, [{ id: 'v0', motif: 'non-verifiee' }, { id: 'v1', motif: 'non-verifiee' }], 'les identifiants d’une annulation sont ceux de Figma');
+  assert.deepEqual(annulation.renommes, []);
+  assert.equal(annulation.annulable, true);
+  assert.deepEqual([b.nom('v0'), b.nom('v1')], ['a2', 'b2']);
+  assert.deepEqual(b.journal(), journal, 'le journal garde les deux lignes');
+  const reprise = annulerLeDernierRenommage({ session: await creerPortEcriture(apiAvecSuivi(b, '')).ouvrir(), stockage: b.stockage });
+  assert.equal(reprise.statut, 'applique');
+  assert.deepEqual([b.nom('v0'), b.nom('v1')], ['a', 'b']);
 });
 
 // Le journal durable : reprises des cas AI1 à AI5 du banc d'intégrité, avec l'attente inverse.
@@ -965,4 +1007,58 @@ test('classer : une entrée de collection est exclue quand sa propre collection 
   assert.equal(classerLeRenommage(collection, lecteursDe({ 'collection:c1': 'b' })), 'revient');
   assert.equal(classerLeRenommage(collection, lecteursDe({ 'collection:c1': 'b' }, { exclues: ['c1'] })), 'exclue');
   assert.equal(classerLeRenommage(collection, lecteursDe({ 'variable:c1': 'b' })), 'change-depuis', 'le type compte : une variable du même identifiant n’est pas la collection');
+});
+
+// Les règles d'une version plus récente du plugin
+
+const FUTURE = JSON.stringify({ version: 2 });
+const CLES_FUTURES = ['ecriture', 'exclues', 'terme:quux', 'ecart:ucm-etat-hover', 'ordinaire:dark'];
+
+for (const cle of CLES_FUTURES) {
+  test(`L12 : une entrée ${cle} de version 2 refuse l’application avant toute écriture`, async () => {
+    const b = banc({ variables: [['v1', 'Button/Fill Hover']] });
+    b.stock.set(cle, FUTURE);
+    const avant = new Map(b.stock);
+    const resultat = await b.appliquer([b.v('v1', 'button/fill-hover')]);
+    assert.equal(resultat.statut, 'refuse');
+    assert.equal(resultat.cause, 'regles-futures');
+    assert.deepEqual(resultat.renommes, []);
+    assert.equal(resultat.annulable, false);
+    assert.equal(b.nom('v1'), 'Button/Fill Hover');
+    assert.deepEqual(b.ecritures, [], 'aucun nom écrit');
+    assert.deepEqual(b.traces, [], 'ni journal ni point d’annulation');
+    assert.deepEqual(b.stock, avant);
+  });
+}
+
+test('L12 : sans entrée future, la même application renomme', async () => {
+  const b = banc({ variables: [['v1', 'Button/Fill Hover']] });
+  b.stock.set('terme:quux', JSON.stringify({ version: 1, terme: ['quux'], remplace: [['quuxed']] }));
+  const resultat = await b.appliquer([b.v('v1', 'button/fill-hover')]);
+  assert.equal(resultat.statut, 'applique');
+  assert.equal(b.nom('v1'), 'button/fill-hover');
+});
+
+test('L12 : une entrée de version 2 refuse aussi l’annulation, journal et noms intacts', async () => {
+  const b = banc({ variables: [['v1', 'Button/Fill Hover']] });
+  assert.equal((await b.appliquer([b.v('v1', 'button/fill-hover')])).statut, 'applique');
+  b.stock.set('terme:quux', FUTURE);
+  const avant = new Map(b.stock);
+  b.traces.length = 0;
+  const resultat = await b.annuler();
+  assert.equal(resultat.statut, 'refuse');
+  assert.equal(resultat.cause, 'regles-futures');
+  assert.equal(b.nom('v1'), 'button/fill-hover');
+  assert.deepEqual(b.traces, []);
+  assert.deepEqual(b.stock, avant);
+});
+
+test('L12 : reglesFuturesDuStockage nomme les clés futures, et rend une liste vide quand le stockage ne se lit pas', () => {
+  const b = banc();
+  assert.deepEqual(reglesFuturesDuStockage(b.stockage), []);
+  b.stock.set('terme:quux', FUTURE);
+  b.stock.set('ecart:x', JSON.stringify({ version: 1 }));
+  b.stock.set('distinct:a|b', FUTURE);
+  assert.deepEqual(reglesFuturesDuStockage(b.stockage), ['terme:quux']);
+  assert.deepEqual(reglesFuturesDuStockage({ ...b.stockage, cles: () => { throw new Error('illisible'); } }), []);
 });

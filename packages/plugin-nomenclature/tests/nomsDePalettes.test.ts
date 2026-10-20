@@ -7,6 +7,7 @@ import test from 'node:test';
 
 import { CLE_NOMMAGE_DE_PALETTES, ESPACE_PARTAGE } from '@ucm-kit/core/referentiel';
 import { annulerLeDernierRenommage, appliquerLesRenommages, creerPortEcriture, type PortDeRegles, type RenommageDemande } from '../src/ecriture';
+import { type EtatDeLaMarque } from '@ucm-kit/core/protocoles';
 import { lireInventaire } from '../src/lecture';
 import { creerPortDeLecture, lecteurDeVariablesFigma } from '../src/lectureFigma';
 
@@ -57,29 +58,30 @@ function fichier(options: { marque?: string; regles?: readonly (readonly [string
 test('la marque nommage se lit une fois à la racine de l’espace partagé, avec la version 1', () => {
   const f = fichier({ marque: MARQUE });
   const lecteur = lecteurDeVariablesFigma(f.api, []);
-  assert.equal(lecteur.palettesSuiventLesRegles?.(), true);
-  assert.equal(lecteur.palettesSuiventLesRegles?.(), true);
+  assert.equal(lecteur.marqueDePalettes?.(), 'courante');
+  assert.equal(lecteur.marqueDePalettes?.(), 'courante');
   assert.equal(f.lectures.filter((lecture) => lecture === `${ESPACE_PARTAGE}/${CLE_NOMMAGE_DE_PALETTES}`).length, 1);
-  for (const marque of ['', '{"version":2}', 'pas du json', '[]']) assert.equal(lecteurDeVariablesFigma(fichier({ marque }).api, []).palettesSuiventLesRegles?.(), false, marque);
+  const attendus: readonly (readonly [string, EtatDeLaMarque])[] = [['', 'absente'], ['{"version":2}', 'future'], ['pas du json', 'illisible'], ['[]', 'illisible']];
+  for (const [marque, etat] of attendus) assert.equal(lecteurDeVariablesFigma(fichier({ marque }).api, []).marqueDePalettes?.(), etat, marque);
 });
 
-test('une racine qui refuse la lecture se lit comme une marque absente', () => {
+test('une racine qui refuse la lecture donne une marque refusée, pas une marque absente', () => {
   const f = fichier({ marque: MARQUE });
   (f.api.root as unknown as { getSharedPluginData: () => string }).getSharedPluginData = () => { throw new Error('refus'); };
-  assert.equal(lecteurDeVariablesFigma(f.api, []).palettesSuiventLesRegles?.(), false);
+  assert.equal(lecteurDeVariablesFigma(f.api, []).marqueDePalettes?.(), 'refusee');
 });
 
 test('l’inventaire lu par le port porte la marque, et la protection de la variable reste un fait brut', async () => {
-  for (const [marque, attendu] of [[MARQUE, true], ['', false]] as const) {
+  for (const [marque, attendu] of [[MARQUE, 'courante'], ['', 'absente']] as const satisfies readonly (readonly [string, EtatDeLaMarque])[]) {
     const inventaire = await lireInventaire(creerPortDeLecture(fichier({ marque }).api), { pause: async () => {} });
-    assert.equal(inventaire.palettesSuiventLesRegles, attendu);
+    assert.equal(inventaire.marque, attendu);
     assert.deepEqual(inventaire.entrees.filter((entree) => entree.protegee).map((entree) => entree.nom.nom), ['colors/Poppy/vivid/light/50']);
   }
 });
 
 test('l’inventaire de l’écriture porte la marque', async () => {
-  assert.equal((await creerPortEcriture(fichier({ marque: MARQUE }).api).ouvrir()).inventaire.palettesSuiventLesRegles, true);
-  assert.equal((await creerPortEcriture(fichier().api).ouvrir()).inventaire.palettesSuiventLesRegles, false);
+  assert.equal((await creerPortEcriture(fichier({ marque: MARQUE }).api).ouvrir()).inventaire.marque, 'courante');
+  assert.equal((await creerPortEcriture(fichier().api).ouvrir()).inventaire.marque, 'absente');
 });
 
 test('marque et écriture rangée : la variable de Palettes est renommée, et l’annulation la remet', async () => {

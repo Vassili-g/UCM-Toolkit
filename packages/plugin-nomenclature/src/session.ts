@@ -17,12 +17,15 @@ import {
   type ConflitDeVocabulaire, type IndexDuVocabulaire, type Lexique, type Mots,
   type Collection, type Collision, type Question, type Renommage, type ResultatDesQuestions, type ResultatDuLexique,
 } from '@ucm-kit/core/referentiel';
-import { avecLesCheminsPublies, conventionsDe, ecritureEffective, idsNonRenommables, nomsSelonLesRegles } from 'ucm-plugin-socle/src/nomsSelonLesRegles';
 import {
-  annulerLeDernierRenommage, appliquerLesRenommages,
+  avecLesCheminsPublies, conventionsDe, ecritureEffective, idsNonRenommables, inventaireSelonLaProtection, nomsSelonLesRegles, palettesLibres,
+  type Inventaire,
+} from '@ucm-kit/core/nommage';
+import {
+  annulerLeDernierRenommage, appliquerLesRenommages, reglesFuturesDuStockage,
   type PortDeRegles, type PortEcriture, type RenommageDemande, type ResultatEcriture,
 } from './ecriture';
-import { inventaireSelonLaProtection, lireInventaire, palettesLibres, type Inventaire, type PortDeLecture } from './lecture';
+import { lireInventaire, type PortDeLecture } from './lecture';
 import type {
   CodeDErreur, DemandeArchitect, EcritureChoisie, EffetVue, GesteSurLesRegles, PluginMessage, Reponse, ResultatVue,
 } from './messages';
@@ -158,6 +161,7 @@ function termeAvec(regles: ReglesDuFichier, mots: Mots, ajouts: readonly Mots[])
 
 function ecrituresDuGeste(geste: GesteSurLesRegles, regles: ReglesDuFichier, courant: ReadonlyMap<string, string>): Ecriture[] {
   switch (geste.type) {
+    case 'architecture': return [serialiserRegle(geste)];
     case 'ecriture':
       return [serialiserRegle({ type: 'ecriture', ecriture: geste.ecriture })];
     case 'remplacer-par':
@@ -489,6 +493,7 @@ export function creerSession(options: OptionsDeSession): Session {
   /** Écrit les règles que `preparer` demande, sauf conflit de vocabulaire, puis recalcule. */
   async function modifierLesRegles(passage: Passage, preparer: (base: Etat, courant: ReadonlyMap<string, string>, regles: ReglesDuFichier) => Ecriture[]): Promise<void> {
     const base = exiger();
+    if (reglesFuturesDuStockage(port.regles).length > 0) throw new ErreurDeProtocole('regles-futures');
     const courant = lireLeStockage(port.regles);
     const ecritures = preparer(base, courant, lireLesRegles(courant));
     const { regles, conflits } = essayer(courant, ecritures);
@@ -496,12 +501,19 @@ export function creerSession(options: OptionsDeSession): Session {
       envoyer({ type: 'refus', demande: passage.demande.demande, conflits: conflits.map(conflitVue) });
       return;
     }
-    rangerLesEcritures(port.regles, ecritures);
+    try {
+      rangerLesEcritures(port.regles, ecritures);
+    } catch (cause) {
+      if (passage.demande.type !== 'regle' || passage.demande.geste.type !== 'architecture') throw cause;
+      envoyer({ type: 'erreur', demande: passage.demande.demande, code: 'echec', architecture: lireRegles().architecture });
+      return;
+    }
     await recalculerDepuisLesRegles(passage, base, regles);
   }
 
   async function importer(passage: Passage, texte: string): Promise<void> {
     const demande = passage.demande.demande;
+    if (reglesFuturesDuStockage(port.regles).length > 0) throw new ErreurDeProtocole('regles-futures');
     const courant = lireLeStockage(port.regles);
     const resultat = importerLesRegles(texte, lireLesRegles(courant), (vocabulaire) => moteur.indexerVocabulaire(vocabulaire).conflits);
     if (resultat.statut === 'illisible') return erreur(demande, 'import-illisible');
@@ -532,10 +544,12 @@ export function creerSession(options: OptionsDeSession): Session {
 
   const resultatVue = (sorte: ResultatVue['sorte'], resultat: ResultatEcriture): ResultatVue => {
     const exclues = resultat.sautes.filter(({ motif }) => motif === 'exclue').length;
+    const nonVerifiees = resultat.sautes.filter(({ motif }) => motif === 'non-verifiee').length;
     return {
       sorte, statut: resultat.statut, renommes: resultat.renommes.length, sautes: resultat.sautes.length, annulable: resultat.annulable,
       ...(resultat.cause ? { cause: resultat.cause } : {}),
       ...(exclues > 0 ? { exclues } : {}),
+      ...(nonVerifiees > 0 ? { nonVerifiees } : {}),
     };
   };
 

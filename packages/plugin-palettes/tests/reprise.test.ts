@@ -295,7 +295,7 @@ test('[VAR-13] recalculée, la palette est à mettre à jour ; l’écriture rem
   assert.ok(avant.aRemplacer > 0 && avant.aRemplacer <= 11);
   // La collection n'a qu'un mode et la destination met les thèmes dans le chemin : le thème Dark se crée sous `dark`, et les variables d'origine passent sous `light`.
   assert.deepEqual(avant.aCreer, TAILWIND.map((nuance) => `slate/dark/${nuance}`));
-  assert.deepEqual([avant.aRenommer.length, avant.aRenommer[0]], [11, { de: 'slate/50', vers: 'slate/light/50' }]);
+  assert.deepEqual([avant.aRenommer.length, avant.aRenommer[0]], [11, { id: figma.variable('slate/50').id, de: 'slate/50', vers: 'slate/light/50', cause: 'forme' }]);
   assert.equal(avant.variables, 22);
   // La couleur de la nuance 600 devient la référence, que le plugin ancre à la nuance de sa luminosité : la 800, sur ses courbes.
   assert.equal(avant.aEcrire.find((couleur) => couleur.cle === 'unique/light/800')?.plugin, '#475569');
@@ -316,6 +316,27 @@ test('[VAR-13] recalculée, la palette est à mettre à jour ; l’écriture rem
   assert.deepEqual([apres.etat, apres.variables, apres.aCreer.length, apres.aRemplacer, apres.aRenommer.length, apres.origine], ['a-jour', 22, 0, 0, 0, 'slate']);
   // Une seconde écriture ne change rien.
   assert.deepEqual(await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] }), { issue: 'ecrites', palettes: [{ palette: palette.id, issue: 'ecrite', creees: 0, ecrites: 0 }] });
+});
+
+test('[VAR-13] un suivi refusé après une reprise qui renomme rétablit les noms et les couleurs d’avant, avec les mêmes identifiants', async () => {
+  const { figma, collection } = fichierAvecSlate();
+  const [source] = await duFichier(figma);
+  const { recette, palette } = await reprendre(figma, source, 'recalculees');
+  const avant = figma.variablesDe(collection).map((variable) => [variable.id, variable.name, structuredClone(variable.valuesByMode)]);
+  const suivi = figma.root.getSharedPluginData('ucm_palettes', 'variables');
+  const etatAvant = await tokens(figma, recette, palette);
+  figma.journal.length = 0;
+  figma.rangementsRefuses.add('ucm_palettes/variables');
+
+  const resultat = await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
+  assert.deepEqual(resultat, { issue: 'defaite', message: 'rangement refusé : ucm_palettes/variables', restes: [] });
+  assert.equal(figma.journal.filter((ligne) => ligne.startsWith('renommer variable')).length, 22);
+  assert.deepEqual(figma.variablesDe(collection).map((variable) => [variable.id, variable.name, variable.valuesByMode]), avant);
+  assert.equal(figma.root.getSharedPluginData('ucm_palettes', 'variables'), suivi);
+  assert.equal(figma.journal.filter((ligne) => ligne === 'commitUndo').length, 0);
+  // Le fichier est comme avant : la palette annonce les mêmes renommages et les mêmes créations.
+  const etatApres = await tokens(figma, recette, palette);
+  assert.deepEqual([etatApres.etat, etatApres.aRenommer, etatApres.aCreer], [etatAvant.etat, etatAvant.aRenommer, etatAvant.aCreer]);
 });
 
 test('[VAR-13] une reprise suit la casse du chemin quand Figma renomme ses variables sans changer leur structure', async () => {

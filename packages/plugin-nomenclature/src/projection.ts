@@ -6,18 +6,17 @@
  * Un renommage appartient au groupe de sa première règle dans l'ordre du bilan et apparaît dans les autres par `aussi`.
  */
 import {
-  REGISTRES, REGISTRES_ARCHITECTURE, REGISTRE_AXES_ETAT, REGISTRE_TAILLES, assembler, categorieDuSegment, collectionUcmReconnue, decouperSegment, motsAvecCasse,
+  REGISTRES, REGISTRES_ARCHITECTURE, REGISTRE_AXES_ETAT, REGISTRE_TAILLES, assembler, categorieDuSegment, cleDeRegleDuTerme, collectionUcmReconnue, decouperSegment, motsAvecCasse,
   termePourCategorie, type Terme,
   type CategorieDeNom, type ChangementDeTerme, type ConflitDeVocabulaire, type Convention, type Lexique, type Mots, type NatureDeSegment, type NomLu,
   type OccurrenceDeTerme, type OrigineDuTerme, type Question, type Renommage, type ResultatDesQuestions, type ResultatDuLexique, type TermeEnQuestion,
 } from '@ucm-kit/core/referentiel';
-import { CLE_ECRITURE, lireEcriture, lireEntree, lireTerme, motsDe } from 'ucm-plugin-socle/src/reglesDeNommage';
-import { estCollisionDeChemin } from './cheminsPublies';
+import { CLE_ECRITURE, PREFIXES_DE_NOMMAGE, apres as apresLePrefixe, lireEcriture, lireEntree, lireTerme, motsDe } from '@ucm-kit/core/protocoles';
+import { CAUSES_DE_PROTECTION, causeDeProtection, estCollisionDeChemin, type CauseDeProtection, type Inventaire } from '@ucm-kit/core/nommage';
 import { classerLeRenommage, type LecteursDuJournal } from './ecriture';
-import type { Inventaire } from './lecture';
 import {
   PLACES_DE_TERMES, TYPES_DE_TERMES,
-  type Bilan, type BloqueVue, type CollectionDuJournal, type CollectionVue, type ComptesDeTermes, type ConflitVue, type EcritureChoisie, type EffetVue, type FicheVue, type GroupeVue,
+  type Bilan, type BloqueVue, type CollectionDuJournal, type CollectionVue, type ProtectionVue, type ComptesDeTermes, type ConflitVue, type EcritureChoisie, type EffetVue, type FicheVue, type GroupeVue,
   type LigneDEcriture, type LigneDImport, type LigneDuJournal, type LigneVue, type PlaceDuTerme, type QuestionVue, type RegleVue, type RequeteDeTermes, type SectionDeTermes, type Selection, type TermeDeListe, type TermeVue,
   type TriDeTermes, type TypeDeTerme,
 } from './messages';
@@ -128,7 +127,7 @@ function lignesDeLImport(importe: ImportRange): LigneDImport[] {
   let autres = 0;
   for (const cle of cles) {
     const avant = importe.avant[cle], apres = importe.apres[cle];
-    const reste = cle.startsWith('terme:') ? cle.slice('terme:'.length) : undefined;
+    const reste = apresLePrefixe(cle, PREFIXES_DE_NOMMAGE.terme);
     const mots = reste === undefined ? undefined : motsDe(reste);
     if (cle === CLE_ECRITURE) {
       const ligne = { sorte: 'ecriture', avant: ecritureDuTexte(avant), apres: ecritureDuTexte(apres) } as const;
@@ -253,7 +252,6 @@ function reecrireLeSegment(segment: string, mots: Mots, place: readonly [number,
 
 // Les clés de règle
 
-const cleDeTerme = (apres: Mots): string => `terme:${cleDesMots(apres)}`;
 const estTerme = (cle: string): boolean => cle.startsWith('terme:');
 const estCollection = (cle: string): boolean => cle.startsWith('collection:');
 const categorieDeLEcriture = (cle: string): CategorieDeNom => cle.slice('ecriture:'.length) as CategorieDeNom;
@@ -262,10 +260,10 @@ const categorieDeLEcriture = (cle: string): CategorieDeNom => cle.slice('ecritur
 function changementsParCle(renommage: Renommage): Map<string, ChangementDeTerme> {
   const cles = renommage.regles.filter(estTerme);
   const connus = new Set(cles.map((cle) => cle.toLowerCase()));
-  const sansCle = renommage.termes.filter((changement) => !connus.has(cleDeTerme(changement.apres)));
+  const sansCle = renommage.termes.filter((changement) => !connus.has(cleDeRegleDuTerme(changement.apres)));
   const resultat = new Map<string, ChangementDeTerme>();
   for (const cle of cles) {
-    const trouve = renommage.termes.find((changement) => cleDeTerme(changement.apres) === cle.toLowerCase());
+    const trouve = renommage.termes.find((changement) => cleDeRegleDuTerme(changement.apres) === cle.toLowerCase());
     const changement = trouve ?? sansCle.shift();
     if (changement) resultat.set(cle, changement);
   }
@@ -305,12 +303,12 @@ function ajouter<T>(liste: Map<string, T[]>, cle: string, valeur: T): void {
  */
 function cleSelonLaPlace(cle: string, changement: ChangementDeTerme): string {
   if (!TERMES_SELON_LA_PLACE.has(cle.slice('terme:'.length).toLowerCase())) return cle;
-  const ecrite = cleDeTerme(changement.apres);
+  const ecrite = cleDeRegleDuTerme(changement.apres);
   return ecrite !== cle.toLowerCase() && TERMES_SELON_LA_PLACE.has(ecrite.slice('terme:'.length)) ? ecrite : cle;
 }
 
 function analyser(entree: EntreeDeProjection): Analyse {
-  const personnalises = new Set(entree.regles.termes.map((terme) => cleDeTerme(terme.terme)));
+  const personnalises = new Set<string>(entree.regles.termes.map((terme) => cleDeRegleDuTerme(terme.terme)));
   const clesDe = new Map<string, readonly string[]>();
   const changements = new Map<string, ReadonlyMap<string, ChangementDeTerme>>();
   const origines = new Map<string, OrigineDuTerme>();
@@ -745,34 +743,42 @@ export function projeter(entree: EntreeDeProjection): Projection {
     }));
   }
 
-  function collectionsVues(): { readonly collections: CollectionVue[]; readonly proteges: number } {
+  /**
+   * Les comptes de protection se font avec `causeDeProtection`, sur l'inventaire effectif (déjà libéré quand Palettes est libre).
+   * `protections` ne compte que les collections analysées ; `CollectionVue.protegees` les compte toutes.
+   */
+  function collectionsVues(): { readonly collections: CollectionVue[]; readonly protections: ProtectionVue[] } {
     const exclues = new Set(regles.collectionsExclues);
     const nombre = new Map<string, number>();
-    const palettes = new Set<string>();
-    let proteges = 0;
+    const protegees = new Map<string, number>();
+    const parCause = new Map<CauseDeProtection, number>();
     for (const e of entree.inventaire.entrees) {
       if (e.cible.type !== 'variable') continue;
-      nombre.set(e.cible.collectionId, (nombre.get(e.cible.collectionId) ?? 0) + 1);
-      if (e.protegee) {
-        palettes.add(e.cible.collectionId);
-        if (!exclues.has(e.cible.collectionId)) proteges++;
-      }
+      const collection = e.cible.collectionId;
+      nombre.set(collection, (nombre.get(collection) ?? 0) + 1);
+      const cause = causeDeProtection(e, entree.inventaire, !premierLancement());
+      if (cause === undefined) continue;
+      protegees.set(collection, (protegees.get(collection) ?? 0) + 1);
+      if (!exclues.has(collection)) parCause.set(cause, (parCause.get(cause) ?? 0) + 1);
     }
     const collections = entree.inventaire.entrees.flatMap((e): CollectionVue[] => e.cible.type === 'collection'
-      ? [{ id: e.cible.collectionId, nom: e.nom.nom, nombre: nombre.get(e.cible.collectionId) ?? 0, analysee: !exclues.has(e.cible.collectionId), palettes: palettes.has(e.cible.collectionId) }]
+      ? [{ id: e.cible.collectionId, nom: e.nom.nom, nombre: nombre.get(e.cible.collectionId) ?? 0, analysee: !exclues.has(e.cible.collectionId), protegees: protegees.get(e.cible.collectionId) ?? 0 }]
       : []);
-    return { collections, proteges };
+    const protections = CAUSES_DE_PROTECTION.flatMap((cause): ProtectionVue[] => (parCause.get(cause) ? [{ cause, nombre: parCause.get(cause)! }] : []));
+    return { collections, protections };
   }
 
   function bilan(): Bilan {
     return unique('bilan', (): Bilan => {
-      const { collections, proteges } = collectionsVues();
+      const { collections, protections } = collectionsVues();
       const noms = [...lexique.noms.values()].filter((nom) => nom.categorie === 'collections');
       const { questions, misesDeCote, autres } = questionsAffichees();
       return {
         generation: entree.generation,
+        architecture: regles.architecture,
         premierLancement: premierLancement(),
         sansVariableLocale: !entree.inventaire.entrees.some((e) => e.cible.type === 'variable'),
+        reglesFutures: regles.futures.length > 0,
         ecriture: {
           groupes: ligneDEcriture('groupes'),
           variables: ligneDEcriture('variables'),
@@ -780,7 +786,8 @@ export function projeter(entree: EntreeDeProjection): Projection {
         },
         groupes: analyse().ordre.map(groupeVue),
         bloques: bloques(),
-        proteges,
+        proteges: protections.reduce((total, { nombre }) => total + nombre, 0),
+        protections,
         questions: questions.map(questionVue),
         autresPistes: autres,
         plusTard: misesDeCote.map(questionVue),
@@ -1055,7 +1062,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
     const variantes = [...(ucm.get(cle)?.formes ?? []).map((variante) => ({ variante, ucm: true })), ...(perso?.remplace ?? []).map((variante) => ({ variante, ucm: false }))];
     const ids = emploi(cle);
     const voulu = motsDeLaCle(cle).join(' ');
-    const cleDeRegle = `terme:${cle}`;
+    const cleDeRegle = cleDeRegleDuTerme(motsDeLaCle(cle));
     const { clesDe } = analyse();
     const dues = entree.resultat.renommages.flatMap((renommage) => {
       const trouvee = clesDe.get(renommage.id)?.find((autre) => autre.toLowerCase() === cleDeRegle);

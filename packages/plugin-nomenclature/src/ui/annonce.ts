@@ -3,13 +3,18 @@
  * réponse du sandbox la change. Le module ne touche pas au DOM.
  */
 import type { CauseDeRefus, ResultatVue } from '../messages';
+import { TEXTES } from './textes';
 
 export type Annonce =
-  | { readonly type: 'renomme'; readonly renommes: number; readonly sautes: number; readonly annulable: boolean; readonly bilanIllisible: boolean }
+  /** `sautes` compte les noms sautés pour une autre raison que `nonVerifiees`, présent quand des variables de couleur n'ont pas pu être vérifiées. */
+  | { readonly type: 'renomme'; readonly renommes: number; readonly sautes: number; readonly nonVerifiees?: number; readonly annulable: boolean; readonly bilanIllisible: boolean }
   | { readonly type: 'refuse'; readonly cause?: CauseDeRefus }
+  /** Toutes les variables sautées sont non vérifiées : le geste est de relancer l'analyse. */
+  | { readonly type: 'refuse-non-verifiee' }
   | { readonly type: 'annulation-partielle'; readonly sautes: number }
   /** `exclues` noms gardés parce que leur collection est exclue de l'analyse ; `autres` noms sautés pour une autre raison. */
   | { readonly type: 'annulation-collection-exclue'; readonly retablis: number; readonly exclues: number; readonly autres: number }
+  | { readonly type: 'annulation-non-verifiee'; readonly retablis: number; readonly nonVerifiees: number; readonly exclues: number; readonly autres: number }
   | { readonly type: 'annulation-refusee' };
 
 /** Ce que le designer a demandé en dernier ; `recue` dit si l'`application` de cette demande est arrivée. */
@@ -21,8 +26,17 @@ export interface Attente {
 
 /** L'annonce d'une application : un refus garde sa cause, le reste dit combien de noms ont changé. */
 export function annonceDUneApplication(resultat: ResultatVue): Annonce {
-  if (resultat.statut === 'refuse') return resultat.cause ? { type: 'refuse', cause: resultat.cause } : { type: 'refuse' };
-  return { type: 'renomme', renommes: resultat.renommes, sautes: resultat.statut === 'partiel' ? resultat.sautes : 0, annulable: resultat.annulable, bilanIllisible: false };
+  const nonVerifiees = resultat.nonVerifiees ?? 0;
+  if (resultat.statut === 'refuse') {
+    if (resultat.cause) return { type: 'refuse', cause: resultat.cause };
+    return nonVerifiees > 0 && nonVerifiees === resultat.sautes ? { type: 'refuse-non-verifiee' } : { type: 'refuse' };
+  }
+  const partiel = resultat.statut === 'partiel';
+  return {
+    type: 'renomme', renommes: resultat.renommes, sautes: partiel ? resultat.sautes - nonVerifiees : 0,
+    ...(partiel && nonVerifiees > 0 ? { nonVerifiees } : {}),
+    annulable: resultat.annulable, bilanIllisible: false,
+  };
 }
 
 /**
@@ -31,9 +45,26 @@ export function annonceDUneApplication(resultat: ResultatVue): Annonce {
  */
 export function annonceDUneAnnulation(resultat: ResultatVue): Annonce | null {
   const exclues = resultat.exclues ?? 0;
+  const nonVerifiees = resultat.nonVerifiees ?? 0;
+  if (nonVerifiees > 0) return {
+    type: 'annulation-non-verifiee', retablis: resultat.renommes, nonVerifiees, exclues,
+    autres: Math.max(0, resultat.sautes - exclues - nonVerifiees),
+  };
   if (exclues > 0) return { type: 'annulation-collection-exclue', retablis: resultat.renommes, exclues, autres: Math.max(0, resultat.sautes - exclues) };
   if (resultat.statut === 'applique') return null;
   return resultat.statut === 'partiel' ? { type: 'annulation-partielle', sautes: resultat.sautes } : { type: 'annulation-refusee' };
+}
+
+/** Les deux vues donnent le même constat pour une restitution non vérifiée ; seul l'accès aux collections exclues dépend de la vue. */
+export function lignesDUneAnnulationNonVerifiee(
+  annonce: Extract<Annonce, { type: 'annulation-non-verifiee' }>, depuis: 'configuration' | 'renommages',
+): string[] {
+  return [
+    ...(annonce.exclues > 0 ? [TEXTES.annulationDansUneCollectionExclue(annonce.retablis, annonce.exclues, depuis)]
+      : annonce.retablis > 0 ? [`${TEXTES.nomsRetablis(annonce.retablis)}.`] : []),
+    TEXTES.annulationNonVerifiee(annonce.nonVerifiees),
+    ...(annonce.autres > 0 ? [TEXTES.annulationAutresNomsNonRetablis(annonce.autres)] : []),
+  ];
 }
 
 /**

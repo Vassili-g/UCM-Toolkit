@@ -21,12 +21,13 @@
  * ou « refusée » quand la lecture a levé : elle n'est pas déclarée supprimée.
  */
 import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
-import { estCleDeNommage, lireReglesDeNommage } from 'ucm-plugin-socle/src/reglesDeNommage';
+import { estCleDeNommage, lireReglesDeNommage } from '@ucm-kit/core/protocoles';
 
 import {
   FORMAT_DU_RELEVE,
   TYPES_DE_VARIABLE,
   type CollectionRelevee,
+  type EspaceDuReleve,
   type LectureManquee,
   type Mode,
   type Releve,
@@ -428,8 +429,11 @@ export function lireLeVocabulaire(racine: RacineDeNommage): VocabulaireDuReleve 
   return lireReglesDeNommage(couples)?.vocabulaire;
 }
 
-/** Lit toutes les variables accessibles et les cibles de leurs alias. */
-export async function lireLeReleve(port: PortDeLecture, fichier: string, revision: number, suivi: SuiviDeLecture, horloge: () => number): Promise<IssueDeLecture> {
+/**
+ * Lit toutes les variables accessibles et les cibles de leurs alias. `espace` est celui du profil du document, que
+ * l'appelant lit (`espaceDuProfil` du kit) : le relevé le porte pour le contraste et les copies de couleur.
+ */
+export async function lireLeReleve(port: PortDeLecture, fichier: string, revision: number, suivi: SuiviDeLecture, horloge: () => number, espace: EspaceDuReleve = 'srgb'): Promise<IssueDeLecture> {
   const lues: VariablesLues = { collections: new Map(), variables: new Map(), manquees: new Map(), ecartees: new Set() };
   const { collections, variables, manquees, ecartees } = lues;
   let collectionsEtendues = false;
@@ -465,6 +469,7 @@ export async function lireLeReleve(port: PortDeLecture, fichier: string, revisio
     variables: [...variables.values()],
     manquees: [...manquees.values()],
     capacites: { collectionsEtendues, variablesDistantes: [...variables.values()].some((variable) => variable.distante) },
+    espace,
   };
   return { statut: 'lu', releve };
 }

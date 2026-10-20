@@ -50,6 +50,13 @@ test('N09 : des noms gardés dans une collection exclue ne sont ni un refus à r
     { type: 'annulation-collection-exclue', retablis: 5, exclues: 2, autres: 1 });
 });
 
+test('une annulation distingue les variables non vérifiées des autres noms non rétablis', () => {
+  for (const statut of ['partiel', 'refuse'] as const) {
+    assert.deepEqual(annonceDUneAnnulation({ ...annulation, statut, renommes: statut === 'partiel' ? 4 : 0, sautes: 6, exclues: 2, nonVerifiees: 3 }),
+      { type: 'annulation-non-verifiee', retablis: statut === 'partiel' ? 4 : 0, exclues: 2, nonVerifiees: 3, autres: 1 });
+  }
+});
+
 test('N09 : depuis Renommages, le texte envoie à Configuration, là où se cochent les collections', () => {
   assert.equal(TEXTES.annulationDansUneCollectionExclue(0, 3, 'renommages'),
     'Aucun nom n’a été rétabli. 3 noms sont dans une collection exclue de l’analyse : le plugin les garde. '
@@ -57,4 +64,18 @@ test('N09 : depuis Renommages, le texte envoie à Configuration, là où se coch
   assert.equal(TEXTES.annulationDansUneCollectionExclue(1, 1, 'renommages'),
     '1 nom rétabli. 1 autre nom est dans une collection exclue de l’analyse : le plugin le garde. '
     + 'Pour le rétablir, ouvrez Configuration, cochez de nouveau la collection dans l’onglet Réglages, puis annulez de nouveau dans l’onglet Historique.');
+});
+
+test('un lot partiel compte à part les variables non vérifiées : `sautes` garde les autres', () => {
+  assert.deepEqual(annonceDUneApplication({ ...applique, statut: 'partiel', sautes: 3, nonVerifiees: 2 }),
+    { type: 'renomme', renommes: 4, sautes: 1, nonVerifiees: 2, annulable: true, bilanIllisible: false });
+  assert.deepEqual(annonceDUneApplication({ ...applique, statut: 'partiel', sautes: 2, nonVerifiees: 2 }),
+    { type: 'renomme', renommes: 4, sautes: 0, nonVerifiees: 2, annulable: true, bilanIllisible: false });
+});
+
+test('un lot refusé dont toutes les variables sautées sont non vérifiées a sa propre annonce', () => {
+  const refuse: ResultatVue = { ...applique, statut: 'refuse', renommes: 0, annulable: false, sautes: 2, nonVerifiees: 2 };
+  assert.deepEqual(annonceDUneApplication(refuse), { type: 'refuse-non-verifiee' });
+  assert.deepEqual(annonceDUneApplication({ ...refuse, sautes: 3 }), { type: 'refuse' });
+  assert.deepEqual(annonceDUneApplication({ ...refuse, cause: 'journal-impossible' }), { type: 'refuse', cause: 'journal-impossible' });
 });

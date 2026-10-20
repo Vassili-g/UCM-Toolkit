@@ -2064,12 +2064,52 @@ export function confirmationDeLaMiseAJour(compte: { creees: number; ecrites: num
   return `Tout mettre à jour ? ${parties.join(', ')}.${laissees}`;
 }
 
-/** Un nom de variable déjà pris dans la collection ([VAR-08]). */
-export function nomDejaPris(palette: string, nom: string): Constat {
+/** Un nom de variable déjà pris dans la collection ([VAR-08]) ; `autre` nomme la palette de la recette qui le porte. */
+export function nomDejaPris(palette: string, nom: string, autre?: string): Constat {
+  if (autre !== undefined) {
+    return {
+      ou: `Tokens non écrits : ${palette}`,
+      quoi: `La variable « ${nom} » appartient déjà à ${autre}.`,
+      geste: 'Renommez l’une des deux palettes, ou changez le groupe de la destination des tokens.',
+    };
+  }
   return {
     ou: `Tokens non écrits : ${palette}`,
     quoi: `La collection porte déjà une variable « ${nom} », qu’une autre palette écrit ou que l’écriture n’a pas prévue.`,
     geste: 'Renommez la palette, ou changez le groupe de la destination des tokens.',
+  };
+}
+
+/** La ligne « Tokens Figma » d'une palette dont l'écriture serait refusée : la palette qui tient les noms. */
+export function nomsPrisPar(autre: string): string {
+  return `Noms déjà pris par ${autre}`;
+}
+
+/** Ce qu'une écriture a changé dans le fichier sans pouvoir le défaire : une variable, un mode ou une collection. */
+export interface ResteNomme {
+  readonly nom: string;
+  /** Faux pour un mode ou une collection. */
+  readonly variable: boolean;
+}
+
+/** Ce qui reste changé, en une phrase ; `restes` n'est pas vide. */
+function resteChange(restes: readonly ResteNomme[]): string {
+  const [premier] = restes;
+  if (restes.every((reste) => reste.variable)) {
+    return restes.length === 1 ? `La variable ${premier.nom} reste changée.` : `${restes.length} variables restent changées, dont ${premier.nom}.`;
+  }
+  return restes.length === 1 ? `L’élément ${premier.nom} reste changé.` : `${restes.length} éléments restent changés, dont ${premier.nom}.`;
+}
+
+/** Figma a refusé d'enregistrer l'écriture après la première mutation : le plugin l'a défaite, entièrement ou non ([VAR-07]). */
+export function ecritureDefaite(message: string, restes: readonly ResteNomme[]): ConstatIllustre {
+  return {
+    ou: 'Écriture des tokens annulée',
+    quoi: restes.length === 0
+      ? 'Figma a refusé d’enregistrer l’écriture. Le plugin l’a défaite : le fichier est comme avant.'
+      : `Figma a refusé d’enregistrer l’écriture. Le plugin n’a pas pu la défaire entièrement. ${resteChange(restes)}`,
+    geste: restes.length === 0 ? 'Synchronisez dans Gestion, puis réessayez.' : 'Faites Ctrl+Z dans Figma pour revenir à l’état d’avant, puis réessayez.',
+    detail: `Détail de l’erreur : ${message}`,
   };
 }
 
@@ -2092,12 +2132,25 @@ export function modesRefuses(palette: string, message: string): ConstatIllustre 
   };
 }
 
-/** Figma a levé au milieu d'une palette ([VAR-07]). */
-export function ecritureInterrompue(palette: string, message: string): ConstatIllustre {
+/** Figma a levé au milieu d'une palette ([VAR-07]) ; `restes` nomme les variables que le plugin n'a pas pu défaire. */
+export function ecritureInterrompue(palette: string, message: string, restes: readonly ResteNomme[] = []): ConstatIllustre {
+  const [premier] = restes;
+  if (!premier) {
+    return {
+      ou: `Écriture interrompue : ${palette}`,
+      quoi: 'Figma a interrompu l’écriture. Les variables créées pour cette palette ont été retirées.',
+      geste: 'Écrivez de nouveau la palette.',
+      detail: `Détail de l’erreur : ${message}`,
+    };
+  }
   return {
     ou: `Écriture interrompue : ${palette}`,
-    quoi: 'Figma a interrompu l’écriture. Les variables créées pour cette palette ont été retirées.',
-    geste: 'Écrivez de nouveau la palette.',
+    quoi: restes.length === 1
+      ? `Figma a interrompu l’écriture. La variable ${premier.nom} garde un changement de cette écriture.`
+      : `Figma a interrompu l’écriture. ${restes.length} variables gardent un changement de cette écriture, dont ${premier.nom}.`,
+    geste: restes.length === 1
+      ? 'Écrivez de nouveau la palette : elle proposera de remplacer cette variable.'
+      : 'Écrivez de nouveau la palette : elle proposera de remplacer ces variables.',
     detail: `Détail de l’erreur : ${message}`,
   };
 }
@@ -2112,8 +2165,13 @@ export function variablesSurUneAutreRecette(): Constat {
 }
 
 /** Un refus de « Enregistrer », dans la carte « Destination des tokens » ([VAR-16]). */
-export function refusDeLaDestination(refus: RefusDeDestination): Constat {
+export function refusDeLaDestination(refus: RefusDeDestination, nom = ''): Constat {
   return {
+    couche: {
+      ou: 'Collection',
+      quoi: `La collection « ${nom} » est une couche de l’architecture UCM. Elle ne porte que des alias vers les primitives.`,
+      geste: 'Choisissez la collection des primitives.',
+    },
     collection: {
       ou: 'Collection',
       quoi: 'La collection n’a pas de nom, ou n’est plus dans le fichier.',
@@ -2130,6 +2188,15 @@ export function refusDeLaDestination(refus: RefusDeDestination): Constat {
       geste: 'Choisissez « Dans le chemin » ou « En modes ».',
     },
   }[refus];
+}
+
+/** Une couche UCM ne reçoit pas les primitives d'une palette. */
+export function coucheInterdite(palette: string, nom: string): Constat {
+  return {
+    ou: `Tokens non écrits : ${palette}`,
+    quoi: refusDeLaDestination('couche', nom).quoi,
+    geste: 'Changez la destination des tokens : choisissez la collection des primitives.',
+  };
 }
 
 /** Les textes des variables d'une palette supprimée ([UI-35], [VAR-11]). */

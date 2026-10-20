@@ -22,9 +22,10 @@ import { tokensDeLaPalette } from '../packages/plugin-palettes/src/variables/ges
 import { creerNommeur, nommeurDuFichier, planDeLaPalette, type DonneesDeNommage } from '../packages/plugin-palettes/src/variables/nommeur';
 import { nomsDuPlan } from '../packages/plugin-palettes/src/variables/plan';
 import { texteDuSuivi, variablesSuivies } from '../packages/plugin-palettes/src/variables/suivi';
-import { idsNonRenommables, nomsSelonLesReglesSync } from '../packages/plugin-socle/src/nomsSelonLesRegles';
-import { inventaireDeLectures, palettesLibres } from '../packages/plugin-socle/src/inventaireDeNoms';
-import { lireReglesDeNommage } from '../packages/plugin-socle/src/reglesDeNommage';
+import { idsNonRenommables, nomsSelonLesReglesSync } from '@ucm-kit/core/nommage';
+import { inventaireDeLectures } from '../packages/plugin-socle/src/inventaireDeNoms';
+import { palettesLibres } from '@ucm-kit/core/nommage';
+import { lireReglesDeNommage } from '@ucm-kit/core/protocoles';
 
 const VIDE = recetteParDefaut();
 const POPPY: Palette = { ...nouvellePalette(VIDE, 'p-0000000a', '#1E6FD9', 2)!, nom: 'Poppy' };
@@ -155,6 +156,32 @@ test('une marque d’une autre version laisse la protection', async () => {
   figma.root.setSharedPluginData('ucm_palettes', 'nommage', '{"version":2}');
   assert.equal((await nomenclatureRenomme(figma)).libres, false);
 });
+
+/** La lecture de la clé `variables` (le suivi de Palettes) lève ; les autres clés se lisent. */
+function refuserLeSuivi(figma: FauxFigma): void {
+  const lire = figma.root.getSharedPluginData.bind(figma.root);
+  figma.root.getSharedPluginData = (espace: string, cle: string): string => {
+    if (espace === 'ucm_palettes' && cle === 'variables') throw new Error('refus');
+    return lire(espace, cle);
+  };
+}
+
+for (const liaison of ['destination', 'reprise'] as const) {
+  test(`liaison ${liaison} : quand la lecture du suivi de Palettes lève, Nomenclature ne renomme aucune variable de Palettes`, async () => {
+    const { figma, prefixe } = await fichierEcritParPalettes(liaison);
+    poserLesRegles(figma, false);
+    const avant = noms(figma);
+    refuserLeSuivi(figma);
+    const fait = await nomenclatureRenomme(figma);
+    assert.deepEqual([fait.libres, fait.sautes], [false, []]);
+    assert.deepEqual(noms(figma).filter((nom) => nom.startsWith('colors/') || nom.startsWith(prefixe)), avant.filter((nom) => nom.startsWith('colors/') || nom.startsWith(prefixe)));
+    assert.equal(noms(figma).filter((nom) => nom.startsWith('Color/')).length, 0);
+    const session = await creerPortEcriture(figma as unknown as PluginAPI).ouvrir();
+    assert.equal(session.inventaire.marque, 'absente');
+    assert.ok(session.inventaire.entrees.filter((entree) => entree.cible.type === 'variable').every((entree) => entree.protegee || entree.indecidable === true),
+      'chaque variable de couleur est protégée ou non vérifiée');
+  });
+}
 
 test('une chaîne de termes personnalisés : Palettes nomme la forme terminale et Nomenclature ne la renomme pas', () => {
   const terme = (mots: string[], remplace: string[][]) => [`terme:${mots.join(' ')}`, JSON.stringify({ version: 1, terme: mots, remplace })] as const;

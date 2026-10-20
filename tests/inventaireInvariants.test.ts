@@ -84,6 +84,7 @@ const AUTORITES = [
   'clipsContent',
   'axesDeTokens',
   'axesDesCollections',
+  'rangerLaMarqueDeNommage',
   'codeIdentifier',
   'com.ucm.axes',
   'com.ucm.axis',

@@ -42,6 +42,69 @@ import * as anglais from '../src/i18n/en';
 import * as francais from '../src/i18n/fr';
 import type { Catalogue } from '../src/i18n/catalogue';
 
+test('[VAR-08] un nom tenu par une autre palette de la recette nomme cette palette, et la ligne des tokens aussi', () => {
+  assert.deepEqual(francais.nomDejaPris('OceanBlue', 'Color/OceanBlue/Soft/Light/50', 'Ocean-Blue'), {
+    ou: 'Tokens non écrits : OceanBlue',
+    quoi: 'La variable « Color/OceanBlue/Soft/Light/50 » appartient déjà à Ocean-Blue.',
+    geste: 'Renommez l’une des deux palettes, ou changez le groupe de la destination des tokens.',
+  });
+  assert.deepEqual(anglais.nomDejaPris('OceanBlue', 'Color/OceanBlue/Soft/Light/50', 'Ocean-Blue'), {
+    ou: 'Tokens not written: OceanBlue',
+    quoi: 'The variable “Color/OceanBlue/Soft/Light/50” already belongs to Ocean-Blue.',
+    geste: 'Rename one of the two palettes, or change the group in the token destination.',
+  });
+  // Sans autre palette, le texte d'avant : la variable vient d'un tiers.
+  assert.equal(francais.nomDejaPris('Ardoise', 'color/ardoise/50').quoi, 'La collection porte déjà une variable « color/ardoise/50 », qu’une autre palette écrit ou que l’écriture n’a pas prévue.');
+  assert.equal(francais.nomsPrisPar('Ocean-Blue'), 'Noms déjà pris par Ocean-Blue');
+  assert.equal(anglais.nomsPrisPar('Ocean-Blue'), 'Names already taken by Ocean-Blue');
+});
+
+test('[VAR-07] une écriture défaite dit si le fichier est comme avant, ou ce qui reste changé et le retour par Ctrl+Z', () => {
+  const sansReste = francais.ecritureDefaite('rangement refusé', []);
+  assert.deepEqual(sansReste, {
+    ou: 'Écriture des tokens annulée',
+    quoi: 'Figma a refusé d’enregistrer l’écriture. Le plugin l’a défaite : le fichier est comme avant.',
+    geste: 'Synchronisez dans Gestion, puis réessayez.',
+    detail: 'Détail de l’erreur : rangement refusé',
+  });
+  assert.deepEqual(anglais.ecritureDefaite('refused', []), {
+    ou: 'Token writing cancelled',
+    quoi: 'Figma refused to save the writing. The plugin undid it: the file is as before.',
+    geste: 'Sync in Management, then retry.',
+    detail: 'Error details: refused',
+  });
+  const une = [{ nom: 'Color/Ocean/50', variable: true }];
+  const plusieurs = [{ nom: 'Color/Ocean/50', variable: true }, { nom: 'Color/Ocean/100', variable: true }];
+  assert.equal(francais.ecritureDefaite('x', une).quoi, 'Figma a refusé d’enregistrer l’écriture. Le plugin n’a pas pu la défaire entièrement. La variable Color/Ocean/50 reste changée.');
+  assert.equal(francais.ecritureDefaite('x', plusieurs).quoi, 'Figma a refusé d’enregistrer l’écriture. Le plugin n’a pas pu la défaire entièrement. 2 variables restent changées, dont Color/Ocean/50.');
+  assert.equal(francais.ecritureDefaite('x', une).geste, 'Faites Ctrl+Z dans Figma pour revenir à l’état d’avant, puis réessayez.');
+  assert.equal(anglais.ecritureDefaite('x', une).quoi, 'Figma refused to save the writing. The plugin could not undo all of it. The variable Color/Ocean/50 remains changed.');
+  assert.equal(anglais.ecritureDefaite('x', plusieurs).quoi, 'Figma refused to save the writing. The plugin could not undo all of it. 2 variables remain changed, including Color/Ocean/50.');
+  assert.equal(anglais.ecritureDefaite('x', une).geste, 'Press Ctrl+Z in Figma to return to the previous state, then retry.');
+  // Un mode ou une collection restés ne passent pas pour des variables.
+  assert.match(francais.ecritureDefaite('x', [{ nom: 'Dark', variable: false }]).quoi, /L’élément Dark reste changé\.$/);
+  assert.match(anglais.ecritureDefaite('x', [{ nom: 'Dark', variable: false }, ...une]).quoi, /2 items remain changed, including Dark\.$/);
+});
+
+test('[VAR-07] une palette interrompue dont des variables restent nomme la première et propose de les remplacer', () => {
+  assert.equal(francais.ecritureInterrompue('Bleu', 'x').quoi, 'Figma a interrompu l’écriture. Les variables créées pour cette palette ont été retirées.');
+  const plusieurs = [{ nom: 'Color/Bleu/50', variable: true }, { nom: 'Color/Bleu/100', variable: true }];
+  assert.deepEqual(francais.ecritureInterrompue('Bleu', 'refusé', plusieurs), {
+    ou: 'Écriture interrompue : Bleu',
+    quoi: 'Figma a interrompu l’écriture. 2 variables gardent un changement de cette écriture, dont Color/Bleu/50.',
+    geste: 'Écrivez de nouveau la palette : elle proposera de remplacer ces variables.',
+    detail: 'Détail de l’erreur : refusé',
+  });
+  assert.deepEqual(anglais.ecritureInterrompue('Bleu', 'refused', plusieurs), {
+    ou: 'Writing interrupted: Bleu',
+    quoi: 'Figma interrupted the writing. 2 variables keep a change from this writing, including Color/Bleu/50.',
+    geste: 'Write the palette again: it will offer to replace these variables.',
+    detail: 'Error details: refused',
+  });
+  assert.equal(francais.ecritureInterrompue('Bleu', 'x', plusieurs.slice(0, 1)).quoi, 'Figma a interrompu l’écriture. La variable Color/Bleu/50 garde un changement de cette écriture.');
+  assert.equal(anglais.ecritureInterrompue('Bleu', 'x', plusieurs.slice(0, 1)).geste, 'Write the palette again: it will offer to replace this variable.');
+});
+
 test('un chemin de champ s’écrit en mots du designer', () => {
   assert.equal(nommerChamp('crans[3]'), '4e nuance');
   assert.equal(nommerChamp('crans[0]'), '1re nuance');

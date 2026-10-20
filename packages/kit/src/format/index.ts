@@ -60,10 +60,20 @@ export {
   attributDeMode,
   axeDesExtensions,
   codeIdentifier,
+  estUneValeurDesactivee,
   normalizeName,
   tokenCssVariable,
 } from './names.js';
 export { estStyleItalique, nomsDeGraisseConnus, poidsDeGraisse } from './typography.js';
+export {
+  identifiantsDeRoles,
+  kindDeNature,
+  natureDuRole,
+  natureDuRoleDuContrat,
+  roleDeRendu,
+  tableDesRolesDeRendu,
+} from './roles-de-rendu.js';
+export type { IdentifiantDeRole, NatureDeRole, RoleDeRendu } from './roles-de-rendu.js';
 export { courbeDeToken, dureeDeToken, espaceDuProfil } from './valeurs-figma.js';
 export type { CauseSansCourbe, EspaceColorimetrique } from './valeurs-figma.js';
 export { TOKEN_REFERENCE, isTokenReference, refPath, toRef } from './references.js';
@@ -78,3 +88,6 @@ export {
   estCheminDuRepository,
 } from './configuration.js';
 export type { ConfigurationRepository } from './configuration.js';
+export { cheminCitable, prefixeDeCollection, joinTokenPath } from './chemins-de-tokens.js';
+export { deciderAxesDesCollections } from './axes-de-collections.js';
+export type { CollectionPourAxe, AxeDeCollectionDecide, ConflitDAxes, OptionsDesAxes } from './axes-de-collections.js';

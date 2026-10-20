@@ -53,6 +53,18 @@ test('les messages dynamiques nomment les données et accordent les comptes', ()
   assert.equal(francais.texteDuRefus({ regle: 'courbes-bornes', chemin: 'courbes.light[0]', valeur: 1.2 }).includes('1,2'), true);
 });
 
+test('[VAR-07] les textes d’une écriture refusée traversent la localisation avec leurs restes et leur autre palette, dans les deux langues', () => {
+  const restes = [{ nom: 'Color/Ocean/50', variable: true }, { nom: 'Color/Ocean/100', variable: true }];
+  const en = creerLocalisation('en').messages;
+  const fr = creerLocalisation('fr').messages;
+  assert.equal(lireTexte(en.ecritureDefaite('refused', restes).quoi), 'Figma refused to save the writing. The plugin could not undo all of it. 2 variables remain changed, including Color/Ocean/50.');
+  assert.equal(lireTexte(fr.ecritureDefaite('refusé', restes).geste), 'Faites Ctrl+Z dans Figma pour revenir à l’état d’avant, puis réessayez.');
+  assert.equal(lireTexte(en.ecritureInterrompue('Ocean', 'refused', restes).geste), 'Write the palette again: it will offer to replace these variables.');
+  assert.equal(lireTexte(fr.ecritureInterrompue('Ocean', 'refusé').quoi), 'Figma a interrompu l’écriture. Les variables créées pour cette palette ont été retirées.');
+  assert.equal(lireTexte(en.nomDejaPris('OceanBlue', 'Color/OceanBlue/50', 'Ocean-Blue').quoi), 'The variable “Color/OceanBlue/50” already belongs to Ocean-Blue.');
+  assert.equal(lireTexte(fr.nomsPrisPar('Ocean-Blue')), 'Noms déjà pris par Ocean-Blue');
+});
+
 test('un contexte ne partage pas ses messages avec un autre contexte', () => {
   const en = creerLocalisation('en');
   const fr = creerLocalisation('fr');

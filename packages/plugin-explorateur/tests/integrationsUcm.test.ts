@@ -12,6 +12,7 @@ import { coucheRangee, controlerLeProfil, indexDuVocabulaire, nuanceAttendue, va
 import type { VocabulaireDuReleve } from '../src/modele';
 import { exporterReleve, importerReleve } from '../src/releves';
 import { alias, constructeur, couleur, projetLibre } from './fixtures';
+import { couchesDuProfilAvecLimites, releveDuProfilAvecLimites } from './fixturesDesLimites';
 
 function recetteAvec(...noms: string[]): Recette {
   const palettes = noms.map((nom, rang) => ({ id: `p${rang}`, nom, reference: '#3366FF', derive: { lien: true, soft: [0, 0], vivid: [0, 0] } }) as unknown as Palette);
@@ -104,30 +105,57 @@ test('une association rangée sous un ancien nom se lit sous le nouveau ; usage 
 const COUCHES_REMAPPEES = { c: 'components', t: 'theme', b: 'brands', u: 'utility', p: 'primitives' } as const;
 
 test('un fichier à la forme du fichier remappé ne rend aucun constat', () => {
-  assert.deepEqual(controlerLeProfil(fichierRemappe(), COUCHES_REMAPPEES, { recette: recetteAvec('primary') }), []);
+  assert.deepEqual(controlerLeProfil(fichierRemappe(), COUCHES_REMAPPEES, { recette: recetteAvec('primary') }).constats, []);
+});
+
+test('une couleur de composant vise theme, même si components admet layout pour une autre nature', () => {
+  const c = constructeur('Cible couleur de composant');
+  c.collection('c', 'Composants', ['M']);
+  c.collection('t', 'Thème', ['Light']);
+  c.collection('l', 'Layout', ['M']);
+  c.variable('composant-vers-layout', 'c', 'button/color', 'COLOR', { M: alias('layout') });
+  c.variable('layout', 'l', 'radius/button', 'FLOAT', { M: { nature: 'nombre', nombre: 4 } });
+  const controle = controlerLeProfil(indexer(c.releve()), { c: 'components', t: 'theme', l: 'layout' });
+  assert.deepEqual(controle.constats.map(({ regle, variable, coucheCible }) => [regle, variable, coucheCible]), [['couche', 'composant-vers-layout', 'layout']]);
+});
+
+test('une couleur de composant vers typography ou primitives est signalée', () => {
+  const c = constructeur('Cibles interdites');
+  c.collection('c', 'Composants', ['M']);
+  c.collection('y', 'Typographie', ['M']);
+  c.collection('p', 'Catalogue', ['M']);
+  c.variable('vers-typography', 'c', 'button/color', 'COLOR', { M: alias('typo') });
+  c.variable('vers-primitives', 'c', 'button/border', 'COLOR', { M: alias('prim') });
+  c.variable('typo', 'y', 'font/color', 'COLOR', { M: couleur('#112233') });
+  c.variable('prim', 'p', 'colors/blue/700', 'COLOR', { M: couleur('#1E40AF') });
+  const controle = controlerLeProfil(indexer(c.releve()), { c: 'components', y: 'typography', p: 'primitives' });
+  assert.deepEqual(
+    controle.constats.filter(({ regle }) => regle === 'couche').map(({ variable, coucheCible }) => [variable, coucheCible]),
+    [['vers-typography', 'typography'], ['vers-primitives', 'primitives']],
+  );
 });
 
 test('un alias de solid/hover vers la 700 en Light rend un constat de nuance', () => {
-  const constats = controlerLeProfil(fichierRemappe('b-700'), COUCHES_REMAPPEES, { recette: recetteAvec('primary') });
+  const constats = controlerLeProfil(fichierRemappe('b-700'), COUCHES_REMAPPEES, { recette: recetteAvec('primary') }).constats;
   assert.deepEqual(constats.map((constat) => `${constat.regle}:${constat.variable}:${constat.attendue}`), ['nuance:t-hover:800']);
 });
 
 test('en Dark inversé, la 600 est attendue pour solid/hover', () => {
   const recette = { ...recetteAvec('primary'), texteDesBoutons: { light: 'blanc', dark: 'blanc' } } as Recette;
-  const constats = controlerLeProfil(fichierRemappe(), COUCHES_REMAPPEES, { recette });
+  const constats = controlerLeProfil(fichierRemappe(), COUCHES_REMAPPEES, { recette }).constats;
   // Light reste normal et vise 800 : seul Dark, qui vise 800 au lieu de 600, déroge.
   assert.deepEqual(constats.map((constat) => `${constat.regle}:${constat.mode}:${constat.attendue}`), ['nuance:t:Dark:600']);
   const lightInverse = { ...recetteAvec('primary'), texteDesBoutons: { light: 'noir', dark: 'noir' } } as Recette;
   // Light inversé attend 600 et le trouve ; Dark normal attend 800 et le trouve.
-  assert.deepEqual(controlerLeProfil(fichierRemappe('b-600'), COUCHES_REMAPPEES, { recette: lightInverse }), []);
+  assert.deepEqual(controlerLeProfil(fichierRemappe('b-600'), COUCHES_REMAPPEES, { recette: lightInverse }).constats, []);
 });
 
 test('une variable de dossier sans portée rend un constat de portée, avec les portées de la table', () => {
-  const constats = controlerLeProfil(fichierRemappe('b-800', []), COUCHES_REMAPPEES);
+  const constats = controlerLeProfil(fichierRemappe('b-800', []), COUCHES_REMAPPEES).constats;
   assert.deepEqual(constats.map((constat) => `${constat.regle}:${constat.variable}:${constat.attendue}`), ['portee:t-hover:FRAME_FILL, SHAPE_FILL, STROKE_COLOR']);
 });
 
-const RESUME = (constats: ReturnType<typeof controlerLeProfil>) => constats.map((constat) => `${constat.regle}:${constat.variable}:${constat.attendue}`);
+const RESUME = (constats: ReturnType<typeof controlerLeProfil>['constats']) => constats.map((constat) => `${constat.regle}:${constat.variable}:${constat.attendue}`);
 
 test('un thème renommé selon chaque convention rend les mêmes constats de portée et de nuance que le thème en minuscules', () => {
   const recette = recetteAvec('primary');
@@ -135,12 +163,12 @@ test('un thème renommé selon chaque convention rend les mêmes constats de por
     const { propositions } = normaliserLesNoms([{ id: 'a', nom, portee: 'p', categorie: 'variables' }], { variables: convention });
     return propositions[0]?.nouveauNom ?? nom;
   };
-  const attendus = RESUME(controlerLeProfil(fichierRemappe('b-700', []), COUCHES_REMAPPEES, { recette }));
+  const attendus = RESUME(controlerLeProfil(fichierRemappe('b-700', []), COUCHES_REMAPPEES, { recette }).constats);
   assert.deepEqual(attendus, ['nuance:t-hover:800', 'portee:t-hover:FRAME_FILL, SHAPE_FILL, STROKE_COLOR']);
   for (const choix of CONVENTIONS) {
     const index = fichierRemappe('b-700', [], ecrire(choix.convention));
-    assert.deepEqual(RESUME(controlerLeProfil(index, COUCHES_REMAPPEES, { recette })), attendus, choix.id);
-    assert.deepEqual(controlerLeProfil(fichierRemappe('b-800', SOLID, ecrire(choix.convention)), COUCHES_REMAPPEES, { recette }), [], choix.id);
+    assert.deepEqual(RESUME(controlerLeProfil(index, COUCHES_REMAPPEES, { recette }).constats), attendus, choix.id);
+    assert.deepEqual(controlerLeProfil(fichierRemappe('b-800', SOLID, ecrire(choix.convention)), COUCHES_REMAPPEES, { recette }).constats, [], choix.id);
   }
 });
 
@@ -162,10 +190,57 @@ const JOUR_EST_LIGHT: VocabulaireDuReleve = { personnalises: [{ terme: ['light']
 test('un mode Jour déclaré comme light est contrôlé ; sans la règle, il ne rend aucun constat', () => {
   const recette = recetteAvec('primary');
   const index = fichierEnMode('Jour');
-  assert.deepEqual(RESUME(controlerLeProfil(index, COUCHES_EN_MODE, { recette, indexDuVocabulaire: indexDuVocabulaire(JOUR_EST_LIGHT) })), ['nuance:t-hover:800']);
-  assert.deepEqual(controlerLeProfil(index, COUCHES_EN_MODE, { recette }), []);
-  assert.deepEqual(controlerLeProfil(index, COUCHES_EN_MODE, { recette, indexDuVocabulaire: indexDuVocabulaire({ personnalises: [], ecartsUcm: [] }) }), []);
-  assert.deepEqual(RESUME(controlerLeProfil(fichierEnMode('LIGHT'), COUCHES_EN_MODE, { recette })), ['nuance:t-hover:800']);
+  assert.deepEqual(RESUME(controlerLeProfil(index, COUCHES_EN_MODE, { recette, indexDuVocabulaire: indexDuVocabulaire(JOUR_EST_LIGHT) }).constats), ['nuance:t-hover:800']);
+  assert.deepEqual(controlerLeProfil(index, COUCHES_EN_MODE, { recette }).constats, []);
+  assert.deepEqual(controlerLeProfil(index, COUCHES_EN_MODE, { recette, indexDuVocabulaire: indexDuVocabulaire({ personnalises: [], ecartsUcm: [] }) }).constats, []);
+  assert.deepEqual(RESUME(controlerLeProfil(fichierEnMode('LIGHT'), COUCHES_EN_MODE, { recette }).constats), ['nuance:t-hover:800']);
+});
+
+test('[theme-mode-inconnu] un mode que ni UCM ni le fichier ne désignent est une limite du profil, une seule fois par mode', () => {
+  const recette = recetteAvec('primary');
+  const jour = fichierEnMode('Jour');
+  const controle = controlerLeProfil(jour, COUCHES_EN_MODE, { recette });
+  assert.deepEqual(controle.constats, []);
+  assert.deepEqual(controle.limites, [{ cause: 'mode-non-reconnu', cle: 'mode-non-reconnu:t:t:Jour', variable: 't-hover', mode: 't:Jour' }]);
+  // Déclaré comme une écriture de light, le mode est contrôlé : plus de limite.
+  assert.deepEqual(controlerLeProfil(jour, COUCHES_EN_MODE, { recette, indexDuVocabulaire: indexDuVocabulaire(JOUR_EST_LIGHT) }).limites, []);
+  // Sans recette, la nuance n'est pas jugée : le mode n'y change rien.
+  assert.deepEqual(controlerLeProfil(jour, COUCHES_EN_MODE).limites, []);
+  // Deux variables dans le même mode : une seule limite.
+  const c = constructeur('Mode libre');
+  c.collection('t', 'Thème', ['Jour']);
+  c.collection('b', 'Marques', ['M']);
+  c.collection('p', 'Catalogue', ['M']);
+  c.variable('t-hover', 't', 'primary/solid/hover', 'COLOR', { Jour: alias('b-700') }, { portees: SOLID });
+  c.variable('t-defaut', 't', 'primary/solid/default', 'COLOR', { Jour: alias('b-700') }, { portees: SOLID });
+  c.variable('b-700', 'b', 'primary/light/700', 'COLOR', { M: alias('cat') }, { portees: [] });
+  c.variable('cat', 'p', 'colors/blue/700', 'COLOR', { M: couleur('#1E40AF') }, { portees: [] });
+  assert.equal(controlerLeProfil(indexer(c.releve()), COUCHES_EN_MODE, { recette }).limites.length, 1);
+});
+
+test('un rôle de theme que la table ne reconnaît pas est une limite ; identity n’en donne pas', () => {
+  const controle = controlerLeProfil(indexer(releveDuProfilAvecLimites()), couchesDuProfilAvecLimites(), { recette: recetteAvec('primary') });
+  assert.deepEqual(controle.limites.filter((limite) => limite.cause === 'role-inconnu').map((limite) => limite.variable), ['mystere']);
+  const identite = fichierRemappe();
+  assert.deepEqual(controlerLeProfil(identite, COUCHES_REMAPPEES, { recette: recetteAvec('primary') }).limites, []);
+  assert.equal(identite.variables.get('t-identite')?.nom, 'primary/identity');
+});
+
+test('une valeur absente d’un mode, et un alias vers une collection sans couche, sont des limites', () => {
+  const controle = controlerLeProfil(indexer(releveDuProfilAvecLimites()), couchesDuProfilAvecLimites(), { recette: recetteAvec('primary') });
+  assert.deepEqual(controle.constats, []);
+  assert.deepEqual(controle.limites.map((limite) => `${limite.cause}:${limite.variable}:${limite.mode ?? ''}:${limite.cible ?? ''}`).sort(), [
+    'cible-sans-couche:bordure:composants:Valeur:hors-couche',
+    'mode-non-reconnu:hover:theme:Jour:',
+    'mode-sans-valeur:defaut:theme:Jour:',
+    'role-inconnu:mystere::',
+  ]);
+});
+
+test('une exception du designer retire un constat, jamais une limite', () => {
+  const index = indexer(releveDuProfilAvecLimites());
+  const exceptions = new Set(['role-inconnu:mystere', 'mode-sans-valeur:defaut:theme:Jour', 'cible-sans-couche:bordure:composants:Valeur']);
+  assert.equal(controlerLeProfil(index, couchesDuProfilAvecLimites(), { recette: recetteAvec('primary'), exceptions }).limites.length, 4);
 });
 
 test('le vocabulaire d’un relevé est indexé une fois ; un vocabulaire illisible se lit sans règle', () => {
@@ -235,7 +310,7 @@ function fichierAssocie() {
 const COUCHES_ASSOCIEES = { c: 'components', t: 'theme', b: 'brands', p: 'primitives' } as const;
 
 test('le profil contrôle les couches, les valeurs directes et les portées, sur des noms libres', () => {
-  const constats = controlerLeProfil(fichierAssocie(), COUCHES_ASSOCIEES, { recette: recetteAvec('primary') });
+  const constats = controlerLeProfil(fichierAssocie(), COUCHES_ASSOCIEES, { recette: recetteAvec('primary') }).constats;
   assert.deepEqual(constats.map((constat) => `${constat.regle}:${constat.variable}`).sort(), [
     'couche:saut',
     'portee:cat',
@@ -245,15 +320,15 @@ test('le profil contrôle les couches, les valeurs directes et les portées, sur
 });
 
 test('sans association, le profil ne contrôle rien : un groupe nommé usage n’active aucun contrôle', () => {
-  assert.deepEqual(controlerLeProfil(indexer(projetLibre()), {}), []);
-  assert.deepEqual(controlerLeProfil(fichierAssocie(), {}), []);
+  assert.deepEqual(controlerLeProfil(indexer(projetLibre()), {}).constats, []);
+  assert.deepEqual(controlerLeProfil(fichierAssocie(), {}).constats, []);
 });
 
 test('une exception du designer retire l’écart', () => {
   const index = fichierAssocie();
-  const avec = controlerLeProfil(index, COUCHES_ASSOCIEES);
+  const avec = controlerLeProfil(index, COUCHES_ASSOCIEES).constats;
   const exceptions = new Set(['couche:saut:c:M']);
-  const sans = controlerLeProfil(index, COUCHES_ASSOCIEES, { exceptions });
+  const sans = controlerLeProfil(index, COUCHES_ASSOCIEES, { exceptions }).constats;
   assert.equal(sans.some((constat) => exceptions.has(constat.cle)), false);
   assert.equal(sans.length, avec.length - 1);
 });

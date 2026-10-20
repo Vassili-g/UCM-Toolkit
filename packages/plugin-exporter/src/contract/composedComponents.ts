@@ -13,12 +13,8 @@
  * qu'un contrat autonome existe : sans elle, un component set peut n'être qu'un
  * wrapper ou un détail d'implémentation du composant parent.
  */
-import {
-  COMPONENT_NAME_LAYER,
-  compactName,
-  porteLeNom,
-  rulesContainerOwner,
-} from './extractRules';
+import { CALQUES_DU_KIT_DE_REGLES, nomCompacte } from '@ucm-kit/core/referentiel';
+import { porteLeNom, rulesContainerOwner } from './extractRules';
 import { findWrapperReference } from './componentTree';
 import { getAllNodes, hasAncestorIn } from './exportableNodes';
 import { normalizePropKey } from './parsers';
@@ -144,7 +140,7 @@ function calquesDeNomDeComposant(page: PageNode): TextNode[] {
   const textes = typeof parCriteres === 'function'
     ? (parCriteres.call(page, { types: ['TEXT'] }) as TextNode[])
     : (page.findAll((node) => node.type === 'TEXT') as TextNode[]);
-  return textes.filter((calque) => porteLeNom(calque, COMPONENT_NAME_LAYER));
+  return textes.filter((calque) => porteLeNom(calque, CALQUES_DU_KIT_DE_REGLES.nomDuComposant));
 }
 
 /**
@@ -298,7 +294,7 @@ async function calculerLIndex(
         noms = entree.noms;
         nomsParPage.set(cleDePage, noms);
       }
-      const nom = compactName(proprietaire.name);
+      const nom = nomCompacte(proprietaire.name);
       const cle = typeof proprietaire.id === 'string' ? proprietaire.id : proprietaire;
       const dejaJuge = juges.has(cle);
       if (!dejaJuge) juges.set(cle, noms.has(nom));
@@ -518,7 +514,7 @@ function estLocal(owner: Proprietaire, main: ComponentNode | Proprietaire = owne
 
 /** Les homonymes locaux partagent leur verdict ; un maître distant reste exclu. */
 export function estContracte(owner: Proprietaire, noms: ContractedNames, main: Proprietaire = owner): boolean {
-  try { return estLocal(owner, main) && noms.has(compactName(owner.name)); } catch { return false; }
+  try { return estLocal(owner, main) && noms.has(nomCompacte(owner.name)); } catch { return false; }
 }
 
 /**

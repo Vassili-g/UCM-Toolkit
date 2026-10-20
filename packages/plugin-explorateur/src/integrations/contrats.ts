@@ -8,12 +8,22 @@
  * Ajv : un contrat se juge ici comme `ucm check` le juge. Le JSON Schema
  * reste dans la porte Node.
  */
-import { etatDuFormatDeTokens, isTokenReference, normalizeName, versionDeContrat } from '@ucm-kit/core/format';
-import { champsInvalidesDuContrat, indexerTokensDtcg, nomFigmaDuVariant, sansEchantillon, verdictDeVersion } from '@ucm-kit/core/lecteurs/navigateur';
-import { joinTokenPath } from 'ucm-plugin-socle/src/cheminsDeTokens';
+import { courbeDeToken, dureeDeToken, etatDuFormatDeTokens, isTokenReference, normalizeName, poidsDeGraisse, versionDeContrat } from '@ucm-kit/core/format';
+import {
+  champsInvalidesDuContrat,
+  comparerAuTokenPublie,
+  indexerTokensDtcg,
+  nomFigmaDuVariant,
+  sansEchantillon,
+  verdictDeVersion,
+  type CauseNonComparable,
+  type Comparaison,
+  type ValeurFigmaPortable,
+} from '@ucm-kit/core/lecteurs/navigateur';
+import { joinTokenPath } from '@ucm-kit/core/format';
 
 import type { Index } from '../indexation';
-import type { Couleur, ValeurSource, VariableRelevee } from '../modele';
+import { espaceDuReleve, type EspaceDuReleve, type ValeurTerminale, type VariableRelevee } from '../modele';
 
 /** Les bornes d'un import, en octets. */
 export const TAILLE_MAXIMALE_D_UN_FICHIER = 20 * 1024 * 1024;
@@ -207,69 +217,98 @@ const TYPES_DTCG: Readonly<Record<VariableRelevee['type'], readonly string[]>> =
 
 export type EcartDExport = 'type' | 'alias' | 'valeur' | 'mode';
 
-/** Une valeur DTCG ramenée à une forme comparable à la valeur Figma ; `null` quand la forme est inconnue. */
-function valeurDtcg(valeur: unknown): { nature: 'alias'; chemin: string } | { nature: 'couleur'; couleur: Couleur } | { nature: 'nombre'; nombre: number } | { nature: 'texte'; texte: string } | { nature: 'booleen'; booleen: boolean } | null {
-  if (typeof valeur === 'string') {
-    const alias = /^\{([^{}\s]+)\}$/.exec(valeur);
-    if (alias) return { nature: 'alias', chemin: alias[1] };
-    const hexa = /^#([0-9a-f]{6})([0-9a-f]{2})?$/i.exec(valeur);
-    if (hexa) {
-      const octet = (rang: number) => parseInt(hexa[1].slice(rang * 2, rang * 2 + 2), 16) / 255;
-      return { nature: 'couleur', couleur: { r: octet(0), g: octet(1), b: octet(2), a: hexa[2] ? parseInt(hexa[2], 16) / 255 : 1 } };
-    }
-    const pixels = /^(-?\d+(?:\.\d+)?)px$/.exec(valeur);
-    if (pixels) return { nature: 'nombre', nombre: Number(pixels[1]) };
-    return { nature: 'texte', texte: valeur };
-  }
-  if (typeof valeur === 'number') return { nature: 'nombre', nombre: valeur };
-  if (typeof valeur === 'boolean') return { nature: 'booleen', booleen: valeur };
-  if (estObjet(valeur)) {
-    if (Array.isArray(valeur.components) && valeur.components.length === 3) {
-      const [r, g, b] = valeur.components as number[];
-      return { nature: 'couleur', couleur: { r, g, b, a: typeof valeur.alpha === 'number' ? valeur.alpha : 1 } };
-    }
-    if (typeof valeur.value === 'number') return { nature: 'nombre', nombre: valeur.value };
-  }
-  return null;
+/**
+ * Un mode que la comparaison n'a pas pu faire. `type-incompatible` n'y figure
+ * pas : l'écart de type est relevé à part, et sans lui une valeur de la mauvaise
+ * nature se relève comme `forme-inconnue`. `detail` porte l'unité ou l'espace
+ * de couleur que l'export écrit, pour `unite-relative`, `unite-inconnue` et
+ * `espace-inconnu`.
+ */
+export type LimiteDExport =
+  | { readonly cause: 'mode-sans-valeur' | 'alias-a-opacite'; readonly mode: string }
+  | { readonly cause: Exclude<CauseNonComparable, 'type-incompatible'>; readonly mode: string; readonly detail?: string };
+
+export interface ComparaisonAvecLExport {
+  readonly ecarts: ReadonlyArray<{ readonly ecart: EcartDExport; readonly mode?: string }>;
+  readonly limites: readonly LimiteDExport[];
 }
 
-/** Compare une valeur Figma rangée à une valeur DTCG ; un hexadécimal compare au 8 bits près. */
-function memeValeur(index: Index, source: ValeurSource, publiee: unknown): boolean | null {
-  const dtcg = valeurDtcg(publiee);
-  if (!dtcg) return null;
-  if (source.nature === 'alias') {
-    // Un alias à opacité ne se compare pas : la forme que l'export lui donne n'est pas établie.
-    if (source.opacite !== undefined) return null;
-    const cible = index.variables.get(source.cible);
-    return dtcg.nature === 'alias' && cible !== undefined && dtcg.chemin === cheminPublie(index, cible);
+const ALIAS_PUBLIE = /^\{([^{}\s]+)\}$/;
+
+/** Ce que l'export écrirait pour la valeur terminale d'une variable, sans les objets de Figma ; `null` quand sa nature ne va pas avec le type de la variable. */
+function valeurPortable(variable: VariableRelevee, source: ValeurTerminale, espace: EspaceDuReleve): ValeurFigmaPortable | null {
+  switch (variable.type) {
+    case 'COLOR':
+      return source.nature === 'couleur' ? { nature: 'couleur', espace, composantes: [source.couleur.r, source.couleur.g, source.couleur.b], alpha: source.couleur.a } : null;
+    case 'FLOAT':
+      return source.nature === 'nombre' ? { nature: 'nombre', nombre: source.nombre } : null;
+    case 'TIMING':
+      return source.nature === 'nombre' ? { nature: 'duree', secondes: dureeDeToken(source.nombre).value } : null;
+    case 'EASING': {
+      const brut = source.nature === 'courbe' ? source.courbe : source.nature === 'non-prise-en-charge' ? source.brut : null;
+      if (brut === null) return null;
+      let lue: unknown;
+      try {
+        lue = JSON.parse(brut);
+      } catch {
+        lue = undefined;
+      }
+      const courbe = courbeDeToken(lue);
+      return { nature: 'courbe', points: 'courbe' in courbe ? courbe.courbe : null };
+    }
+    case 'STRING':
+      return source.nature === 'texte' ? { nature: 'texte', texte: source.texte } : null;
+    case 'BOOLEAN':
+      return source.nature === 'booleen' ? { nature: 'booleen', booleen: source.booleen } : null;
   }
-  if (dtcg.nature === 'alias') return false;
-  if (source.nature === 'couleur' && dtcg.nature === 'couleur') {
-    const proche = (a: number, b: number) => Math.abs(a - b) <= 0.5 / 255 + 1e-9;
-    return proche(source.couleur.r, dtcg.couleur.r) && proche(source.couleur.g, dtcg.couleur.g) && proche(source.couleur.b, dtcg.couleur.b) && proche(source.couleur.a, dtcg.couleur.a);
-  }
-  if (source.nature === 'nombre' && dtcg.nature === 'nombre') return source.nombre === dtcg.nombre;
-  if (source.nature === 'booleen' && dtcg.nature === 'booleen') return source.booleen === dtcg.booleen;
-  if (source.nature === 'texte' && dtcg.nature === 'texte') return source.texte === dtcg.texte;
-  // Une graisse publiée en poids, une durée ou une courbe : la forme diffère sans écart démontré.
-  return null;
 }
 
 /**
- * Les écarts entre une variable et sa feuille publiée : type, alias ou valeur
- * par mode, mode absent. La structure se compare avant les valeurs résolues ;
- * l'appelant annonce que l'export peut être antérieur aux modifications.
+ * Compare la valeur terminale d'un mode à la valeur publiée. Une variable
+ * `STRING` publiée en `number` est une graisse numérique : l'exporteur écrit le
+ * poids que `poidsDeGraisse` donne au nom, et garde le nom qu'elle ne connaît pas.
  */
-export function ecartsAvecLExport(index: Index, variable: string, feuille: FeuilleDeTokens): Array<{ ecart: EcartDExport; mode?: string }> {
+function comparerLeTerminal(variable: VariableRelevee, source: ValeurTerminale, espace: EspaceDuReleve, type: string | undefined, publiee: unknown): Comparaison {
+  const portable = valeurPortable(variable, source, espace);
+  if (portable === null) return { etat: 'non-comparable', cause: 'forme-inconnue' };
+  if (variable.type === 'STRING' && type === 'number' && portable.nature === 'texte') {
+    const poids = poidsDeGraisse(portable.texte);
+    return comparerAuTokenPublie(poids === null ? portable : { nature: 'nombre', nombre: poids }, 'fontWeight', publiee);
+  }
+  return comparerAuTokenPublie(portable, type, publiee);
+}
+
+/** L'unité ou l'espace de couleur que la valeur publiée écrit, quand la cause le demande. */
+function detailDeLaLimite(cause: CauseNonComparable, publiee: unknown): string | undefined {
+  if (!estObjet(publiee)) return undefined;
+  if (cause === 'espace-inconnu') return typeof publiee.colorSpace === 'string' ? publiee.colorSpace : undefined;
+  if (cause === 'unite-relative' || cause === 'unite-inconnue') return typeof publiee.unit === 'string' ? publiee.unit : undefined;
+  return undefined;
+}
+
+/**
+ * Figma comparé à l'export, mode par mode. Chaque mode de la collection donne
+ * un seul résultat : un écart (mode absent de l'export, alias ou valeur
+ * différents), une limite avec sa cause, ou une égalité qui ne laisse rien. Un
+ * écart de type arrête la comparaison des valeurs : aucun mode n'est alors dit
+ * égal. L'appelant annonce que l'export peut être antérieur aux modifications.
+ */
+export function ecartsAvecLExport(index: Index, variable: string, feuille: FeuilleDeTokens): ComparaisonAvecLExport {
   const trouvee = index.variables.get(variable);
   const collection = trouvee ? index.collections.get(trouvee.collection) : undefined;
-  if (!trouvee || !collection) return [];
+  if (!trouvee || !collection) return { ecarts: [], limites: [] };
   const ecarts: Array<{ ecart: EcartDExport; mode?: string }> = [];
-  if (feuille.$type && !TYPES_DTCG[trouvee.type].includes(feuille.$type)) ecarts.push({ ecart: 'type' });
+  const limites: LimiteDExport[] = [];
+  const typeDifferent = Boolean(feuille.$type) && !TYPES_DTCG[trouvee.type].includes(feuille.$type!);
+  if (typeDifferent) ecarts.push({ ecart: 'type' });
+  const espace = espaceDuReleve(index.releve);
   const modesPublies = estObjet(feuille.$extensions?.['com.ucm.modes']) ? (feuille.$extensions!['com.ucm.modes'] as Record<string, unknown>) : null;
   for (const mode of collection.modes) {
     const source = trouvee.valeurs[mode.id];
-    if (!source) continue;
+    if (!source) {
+      limites.push({ cause: 'mode-sans-valeur', mode: mode.nom });
+      continue;
+    }
     const cle = normalizeName(mode.nom);
     let publiee: unknown;
     if (modesPublies) {
@@ -284,10 +323,36 @@ export function ecartsAvecLExport(index: Index, variable: string, feuille: Feuil
       ecarts.push({ ecart: 'mode', mode: mode.nom });
       continue;
     }
-    const egale = memeValeur(index, source, publiee);
-    if (egale === false) ecarts.push({ ecart: source.nature === 'alias' ? 'alias' : 'valeur', mode: mode.nom });
+    if (typeDifferent) continue;
+    if (source.nature === 'alias') {
+      // La forme que l'export donne à un alias avec opacité n'est pas établie.
+      if (source.opacite !== undefined) {
+        limites.push({ cause: 'alias-a-opacite', mode: mode.nom });
+        continue;
+      }
+      if (publiee === null || publiee === undefined) {
+        limites.push({ cause: 'forme-inconnue', mode: mode.nom });
+        continue;
+      }
+      const publie = typeof publiee === 'string' ? ALIAS_PUBLIE.exec(publiee) : null;
+      const cible = index.variables.get(source.cible);
+      if (!publie || !cible || publie[1] !== cheminPublie(index, cible)) ecarts.push({ ecart: 'alias', mode: mode.nom });
+      continue;
+    }
+    if (typeof publiee === 'string' && ALIAS_PUBLIE.test(publiee)) {
+      ecarts.push({ ecart: 'valeur', mode: mode.nom });
+      continue;
+    }
+    const comparaison = comparerLeTerminal(trouvee, source, espace, feuille.$type, publiee);
+    if (comparaison.etat === 'different') ecarts.push({ ecart: 'valeur', mode: mode.nom });
+    else if (comparaison.etat === 'non-comparable') {
+      // Le type de la variable et le `$type` s'accordent ici : une nature qui ne va pas avec le `$type` reste une forme que la comparaison ne lit pas.
+      const cause = comparaison.cause === 'type-incompatible' ? 'forme-inconnue' : comparaison.cause;
+      const detail = detailDeLaLimite(cause, publiee);
+      limites.push(detail === undefined ? { cause, mode: mode.nom } : { cause, mode: mode.nom, detail });
+    }
   }
-  return ecarts;
+  return { ecarts, limites };
 }
 
 /** Les occurrences contractuelles d'une variable, par sa référence publiée. */

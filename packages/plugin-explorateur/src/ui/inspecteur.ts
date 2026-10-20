@@ -7,6 +7,7 @@
 import { SEUILS, jugerContraste } from '../contraste';
 import { nomComplet, type FormatDeCopie } from '../copie';
 import { dependantsDirects } from '../indexation';
+import { espaceDuReleve } from '../modele';
 import { modePour, valeurPourLeMode } from '../resolution';
 import type { Application, Composant } from './application';
 import { constatDeChaine, rendreChaine, rendreConstat } from './chaine';
@@ -96,7 +97,7 @@ export function creerInspecteur(app: Application): Composant {
     ligne.append(choix, seuils);
     bloc.append(ligne);
     if (fondChoisi && index.variables.has(fondChoisi)) {
-      const jugement = jugerContraste(app.resultat(variable), app.resultat(fondChoisi), seuil);
+      const jugement = jugerContraste(app.resultat(variable), app.resultat(fondChoisi), seuil, espaceDuReleve(index.releve));
       const verdict = document.createElement('p');
       verdict.className = 'verdict';
       verdict.dataset.contraste = jugement.statut === 'juge' ? (jugement.atteint ? 'atteint' : 'manque') : 'non-juge';
@@ -148,7 +149,7 @@ export function creerInspecteur(app: Application): Composant {
 
       const valeur = section(TEXTES.valeurTerminale);
       valeur.classList.add('carte-valeur');
-      const resultatRendu = rendreResultat(resultat);
+      const resultatRendu = rendreResultat(resultat, false, espaceDuReleve(index.releve));
       resultatRendu.classList.add('valeur-grande');
       valeur.append(resultatRendu);
       const constat = constatDeChaine(app, resultat);

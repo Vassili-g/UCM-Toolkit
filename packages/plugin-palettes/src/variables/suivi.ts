@@ -9,49 +9,18 @@
  * un suivi vide, et un suivi d'une version plus récente refuse toute
  * écriture. Pur : `src/ecriture/variables.ts` le range.
  */
-import { INTENSITE_UNIQUE } from '@ucm-kit/core/referentiel';
-import { MODES } from 'ucm-couleur';
+import {
+  VERSION_DU_SUIVI_DES_VARIABLES,
+  lireLeSuiviComplet,
+  type Liaison,
+  type PaletteSuivie,
+  type VariableSuivie,
+} from '@ucm-kit/core/protocoles';
 
 import { DESTINATION_PAR_DEFAUT, validerLaDestination, type Destination } from './destination';
-import type { ModeDuPlan } from './plan';
 
-export const VERSION_DU_SUIVI_DES_VARIABLES = 1;
-
-export interface VariableSuivie {
-  readonly id: string;
-  /** La dernière couleur que le plugin y a écrite, en hexa majuscule. */
-  readonly ecrite: string;
-}
-
-/**
- * `destination` : la palette suit la destination des tokens, et une
- * écriture crée ce qui manque. `reprise` : ses clés désignent les variables
- * d'origine d'une palette du fichier, et celles que l'écriture crée sous
- * leur chemin, dans leur collection ([VAR-13]).
- */
-export type Liaison = 'destination' | 'reprise';
-
-export interface PaletteSuivie {
-  /** Une sortie conservée après migration, à retirer avec sa propre confirmation. */
-  readonly sortieAnterieureDe?: string;
-  /** L'identifiant de la collection qui porte les variables de la palette. */
-  readonly collection: string;
-  /** Le groupe de référence : source de la reprise, puis groupe de la dernière écriture. */
-  readonly groupe: string;
-  /** L'identifiant du mode de Figma que chaque mode du plan écrit. */
-  readonly modes: { readonly [M in ModeDuPlan]?: string };
-  /** Par clé du plan. */
-  readonly variables: { readonly [cle: string]: VariableSuivie };
-  readonly liaison: Liaison;
-  /**
-   * Pour une liaison de reprise déjà écrite, le chemin commun des variables
-   * d'origine à la reprise : l'écriture les range ensuite sous un segment de
-   * thème ou d'intensité, et leurs noms ne le rendent plus.
-   */
-  readonly chemin?: string;
-  /** Pour une liaison de reprise écrite à deux intensités, celle que les variables d'origine portent. */
-  readonly intensite?: 'soft' | 'vivid';
-}
+export { VERSION_DU_SUIVI_DES_VARIABLES };
+export type { Liaison, PaletteSuivie, VariableSuivie };
 
 export interface SuiviDesVariables {
   readonly version: number;
@@ -63,37 +32,6 @@ export interface SuiviDesVariables {
 
 export const SUIVI_VIDE: SuiviDesVariables = { version: VERSION_DU_SUIVI_DES_VARIABLES, destination: DESTINATION_PAR_DEFAUT, confirmee: false, palettes: {} };
 
-const estUnObjet = (valeur: unknown): valeur is Record<string, unknown> => typeof valeur === 'object' && valeur !== null && !Array.isArray(valeur);
-
-function lireLaPalette(valeur: unknown): PaletteSuivie | null {
-  if (!estUnObjet(valeur) || typeof valeur.collection !== 'string') return null;
-  const modes: { [M in ModeDuPlan]?: string } = {};
-  if (estUnObjet(valeur.modes)) {
-    for (const mode of [INTENSITE_UNIQUE, ...MODES]) {
-      const id = valeur.modes[mode];
-      if (typeof id === 'string') modes[mode] = id;
-    }
-  }
-  const variables: Record<string, VariableSuivie> = {};
-  if (estUnObjet(valeur.variables)) {
-    for (const [cle, variable] of Object.entries(valeur.variables)) {
-      if (estUnObjet(variable) && typeof variable.id === 'string' && typeof variable.ecrite === 'string') {
-        variables[cle] = { id: variable.id, ecrite: variable.ecrite.toUpperCase() };
-      }
-    }
-  }
-  return {
-    collection: valeur.collection,
-    groupe: typeof valeur.groupe === 'string' ? valeur.groupe : '',
-    modes,
-    variables,
-    liaison: valeur.liaison === 'reprise' ? 'reprise' : 'destination',
-    ...(typeof valeur.sortieAnterieureDe === 'string' ? { sortieAnterieureDe: valeur.sortieAnterieureDe } : {}),
-    ...(typeof valeur.chemin === 'string' ? { chemin: valeur.chemin } : {}),
-    ...(valeur.intensite === 'soft' || valeur.intensite === 'vivid' ? { intensite: valeur.intensite } : {}),
-  };
-}
-
 /**
  * Le suivi que le texte rangé décrit. Un texte vide, illisible ou d'une
  * forme inattendue donne un suivi vide, que la prochaine écriture
@@ -101,32 +39,18 @@ function lireLaPalette(valeur: unknown): PaletteSuivie | null {
  * sans version se lit comme la version 1.
  */
 export function lireLeSuivi(texte: string): SuiviDesVariables {
-  if (texte === '') return SUIVI_VIDE;
-  let lu: unknown;
-  try {
-    lu = JSON.parse(texte);
-  } catch {
-    return SUIVI_VIDE;
-  }
-  if (!estUnObjet(lu)) return SUIVI_VIDE;
-  const version = typeof lu.version === 'number' ? lu.version : 1;
+  const lu = lireLeSuiviComplet(texte);
+  if (lu.etat === 'absente' || lu.etat === 'illisible' || lu.etat === 'refusee') return SUIVI_VIDE;
   // Un suivi d'une version plus récente ne se lit pas : sa forme n'est pas connue.
-  if (version > VERSION_DU_SUIVI_DES_VARIABLES) return { ...SUIVI_VIDE, version };
-  const validee = validerLaDestination(lu.destination);
-  const palettes: Record<string, PaletteSuivie> = {};
-  if (estUnObjet(lu.palettes)) {
-    for (const [id, valeur] of Object.entries(lu.palettes)) {
-      const palette = lireLaPalette(valeur);
-      if (palette) palettes[id] = palette;
-    }
-  }
+  if (lu.etat === 'future') return { ...SUIVI_VIDE, version: lu.version };
+  const validee = validerLaDestination(lu.valeur.destination);
   const lisible = 'destination' in validee;
   return {
-    version,
+    version: lu.version,
     destination: lisible ? validee.destination : DESTINATION_PAR_DEFAUT,
     // Une destination illisible revient au défaut, que le designer confirme de nouveau.
-    confirmee: lisible && lu.confirmee === true,
-    palettes,
+    confirmee: lisible && lu.valeur.confirmee === true,
+    palettes: lu.valeur.palettes,
   };
 }
 

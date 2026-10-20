@@ -6,6 +6,11 @@ import { estUiMessage } from '../src/messages';
 const ecriture = { groupes: { casse: 'minuscules', separateur: 'tiret' }, variables: { casse: 'camelCase', separateur: 'camelCase' } };
 const selection = { groupes: ['a'], exclus: ['b'], inclus: ['c'] };
 
+test('l’architecture passe par les règles avec un choix booléen', () => {
+  for (const ucm of [true, false]) assert.equal(estUiMessage({ type: 'regle', demande: 1, geste: { type: 'architecture', ucm } }), true);
+  for (const ucm of [undefined, null, 1, 'true']) assert.equal(estUiMessage({ type: 'regle', demande: 1, geste: { type: 'architecture', ucm } }), false);
+});
+
 const valides: Record<string, unknown> = {
   analyser: { type: 'analyser', demande: 1 },
   lignes: { type: 'lignes', demande: 2, generation: 1, groupe: 'g', debut: 0 },

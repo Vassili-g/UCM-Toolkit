@@ -71,10 +71,7 @@ export interface Bouts {
 }
 
 /** Les courbes de clarté d'une recette, un nombre par cran. */
-export interface Courbes {
-  readonly light: readonly number[];
-  readonly dark: readonly number[];
-}
+export type Courbes = Readonly<Record<Mode, readonly number[]>>;
 
 /**
  * Arrondi à `decimales` chiffres, symétrique en signe : `signe(x) × round(|x| ×
@@ -325,10 +322,7 @@ export function clartesVisees(parametres: ParametresRampe): number[] {
 }
 
 /** Une part de chroma par profil. */
-export interface Parts {
-  readonly soft: number;
-  readonly vivid: number;
-}
+export type Parts = Readonly<Record<Profil, number>>;
 
 /**
  * Les parts qu'une palette emploie : ses parts propres quand elle en porte,
@@ -344,7 +338,7 @@ export interface EntreesPalette {
   readonly courbes: Courbes;
   readonly bouts: Bouts;
   readonly parts: Parts;
-  readonly derives: { readonly soft: Derive; readonly vivid: Derive };
+  readonly derives: Readonly<Record<Profil, Derive>>;
   readonly gamut: Gamut;
   /** Absent, les fonds du thème Dark gardent la part de leur profil ([MOT-28]). */
   readonly sombre?: FondsSombres;

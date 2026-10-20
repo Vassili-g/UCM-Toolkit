@@ -1,7 +1,9 @@
 /** Les doubles reproduisent ce que Figma rend : collections et variables locales, alias et donnée partagée. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { inventaireDeLectures, lireInventaire, TAILLE_DU_LOT, variablesSuiviesParPalettes, type AvancementLecture, type PortDeLecture, type VariableLue } from '../src/lecture';
+import { identifiantsDuSuivi } from '@ucm-kit/core/protocoles';
+import { estProtegee, type Inventaire } from '@ucm-kit/core/nommage';
+import { inventaireDeLectures, lireInventaire, TAILLE_DU_LOT, type AvancementLecture, type PortDeLecture, type VariableLue } from '../src/lecture';
 import { creerPortDeLecture } from '../src/lectureFigma';
 
 function portDeTest(variables: readonly VariableLue[], extras: { alias?: Record<string, string>; protegees?: readonly string[]; palettes?: Record<string, string>; traces?: string[] } = {}): PortDeLecture {
@@ -79,9 +81,9 @@ test('l’inventaire construit sans attente est le même modèle que la lecture 
 
 test('AC7 : le suivi racine de Palettes donne les identifiants de variables reprises, sans jamais lever', () => {
   const suivi = JSON.stringify({ version: 3, palettes: { p1: { variables: { a: { id: 'v1', ecrite: true }, b: { id: 'v2' } } }, p2: { variables: { c: { id: 'v3' } } } } });
-  assert.deepEqual([...variablesSuiviesParPalettes(suivi)].sort(), ['v1', 'v2', 'v3']);
+  assert.deepEqual([...identifiantsDuSuivi(suivi)].sort(), ['v1', 'v2', 'v3']);
   for (const texte of ['', '{', 'null', '3', '{"palettes":[]}', '{"palettes":{"p":{"variables":"x"}}}']) {
-    assert.deepEqual([...variablesSuiviesParPalettes(texte)], [], texte);
+    assert.deepEqual([...identifiantsDuSuivi(texte)], [], texte);
   }
 });
 
@@ -113,4 +115,63 @@ test('AC7 : l’analyse ne propose pas une variable reprise que Palettes suit, e
   const inventaire = await lireInventaire(creerPortDeLecture(api as unknown as PluginAPI), { pause: async () => {} });
   assert.deepEqual(inventaire.entrees.filter((entree) => entree.protegee).map((entree) => entree.cible.type === 'variable' ? entree.cible.variableId : ''), ['b']);
   assert.deepEqual(racine, ['ucm_palettes/variables', 'ucm_palettes/nommage'], 'le suivi et la marque de Palettes, chacun une fois');
+});
+
+/** Une API dont la racine rend `suivi` (ou lève s'il vaut `null`) et dont chaque variable porte son type, son marqueur ou un refus. */
+function apiAvecRefus(options: {
+  suivi: string | null; marque?: string;
+  variables: readonly { id: string; type?: string; palette?: string | 'refus' }[];
+}): PluginAPI {
+  const brutes = options.variables.map(({ id, type, palette = '' }) => ({
+    id, name: id, remote: false, variableCollectionId: 'local', valuesByMode: {}, ...(type === undefined ? {} : { resolvedType: type }),
+    getSharedPluginData: () => { if (palette === 'refus') throw new Error('refus'); return palette; },
+  }));
+  return {
+    variables: { getLocalVariableCollectionsAsync: async () => [{ id: 'local', name: 'Local', remote: false }], getLocalVariablesAsync: async () => brutes },
+    root: { getSharedPluginData: (_espace: string, cle: string) => {
+      if (cle === 'variables') { if (options.suivi === null) throw new Error('refus'); return options.suivi; }
+      return options.marque ?? '';
+    } },
+  } as unknown as PluginAPI;
+}
+const variablesDe = (inventaire: Inventaire) => inventaire.entrees.filter((entree) => entree.cible.type === 'variable');
+const etatsDe = (inventaire: Inventaire) => Object.fromEntries(variablesDe(inventaire).map((entree) => [entree.cible.type === 'variable' ? entree.cible.variableId : '',
+  { protegee: entree.protegee, indecidable: entree.indecidable === true, jugee: estProtegee(entree) }]));
+
+test('T4.1 : un suivi racine refusé rend indécidable toute variable de couleur sans marqueur, et seulement elle', async () => {
+  const api = apiAvecRefus({ suivi: null, variables: [{ id: 'couleur', type: 'COLOR' }, { id: 'nombre', type: 'FLOAT' }, { id: 'texte', type: 'STRING' }, { id: 'sans-type' }, { id: 'marquee', type: 'COLOR', palette: 'poppy' }] });
+  const inventaire = await lireInventaire(creerPortDeLecture(api), { pause: async () => {} });
+  assert.deepEqual(etatsDe(inventaire), {
+    couleur: { protegee: false, indecidable: true, jugee: true },
+    nombre: { protegee: false, indecidable: false, jugee: false },
+    texte: { protegee: false, indecidable: false, jugee: false },
+    'sans-type': { protegee: false, indecidable: true, jugee: true },
+    marquee: { protegee: true, indecidable: false, jugee: true },
+  });
+});
+
+test('T4.1 : un suivi racine lu, absent ou illisible ne rend aucune variable indécidable', async () => {
+  for (const suivi of ['', '{pas du json', JSON.stringify({ version: 3, palettes: { p: { variables: { k: { id: 'suivie' } } } } })]) {
+    const api = apiAvecRefus({ suivi, variables: [{ id: 'suivie', type: 'COLOR' }, { id: 'autre', type: 'COLOR' }] });
+    const etats = etatsDe(await lireInventaire(creerPortDeLecture(api), { pause: async () => {} }));
+    assert.equal(etats.autre.indecidable, false, suivi);
+    assert.equal(etats.suivie.protegee, suivi.startsWith('{"version":3'), suivi);
+  }
+});
+
+test('T4.1 : un marqueur individuel dont la lecture lève rend la variable indécidable sans faire échouer l’analyse', async () => {
+  const api = apiAvecRefus({ suivi: '', variables: [{ id: 'refus', type: 'COLOR', palette: 'refus' }, { id: 'refus-nombre', type: 'FLOAT', palette: 'refus' }, { id: 'lue', type: 'COLOR' }] });
+  const inventaire = await lireInventaire(creerPortDeLecture(api), { pause: async () => {} });
+  assert.deepEqual(etatsDe(inventaire), {
+    refus: { protegee: false, indecidable: true, jugee: true },
+    'refus-nombre': { protegee: false, indecidable: false, jugee: false },
+    lue: { protegee: false, indecidable: false, jugee: false },
+  });
+  assert.equal(variablesDe(inventaire)[0].nom.palette, undefined, 'palette(v) rend undefined');
+});
+
+test('T4.1 : une variable reprise par le suivi reste protégée même quand son marqueur ne se lit pas', async () => {
+  const suivi = JSON.stringify({ palettes: { p: { variables: { k: { id: 'reprise' } } } } });
+  const etats = etatsDe(await lireInventaire(creerPortDeLecture(apiAvecRefus({ suivi, variables: [{ id: 'reprise', type: 'COLOR', palette: 'refus' }] })), { pause: async () => {} }));
+  assert.deepEqual(etats.reprise, { protegee: true, indecidable: false, jugee: true });
 });

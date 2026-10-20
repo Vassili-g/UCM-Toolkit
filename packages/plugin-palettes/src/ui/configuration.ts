@@ -592,7 +592,7 @@ function construireVues(i18n: Localisation) {
         const bloquee = partie === 'rampes' || (theme && unSeulTheme && allumee);
         ui.bouton.disabled = bloquee;
         const ligne = TEXTES_DU_CONTENU.lignes[partie];
-        i18n.lier(aide, 'textContent', i18n.composer`${typeof ligne.aide === 'function' ? ligne.aide(lue.fonds[partie as 'light' | 'dark']) : ligne.aide}${theme && bloquee ? TEXTES_DU_CONTENU.auMoinsUnTheme : ''}`);
+        i18n.lier(aide, 'textContent', i18n.composer`${typeof ligne.aide === 'function' ? ligne.aide(lue.fonds[partie as Mode]) : ligne.aide}${theme && bloquee ? TEXTES_DU_CONTENU.auMoinsUnTheme : ''}`);
         i18n.lier(nombre, 'textContent', calques && partie !== 'rampes' ? TEXTES_DU_CONTENU.calques(calques[partie]) : '');
         nombre.hidden = nombre.textContent === '';
       }

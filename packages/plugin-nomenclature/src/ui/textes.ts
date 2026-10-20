@@ -3,7 +3,7 @@
  * code : c'est l'écriture d'un nom, jamais une phrase.
  */
 import type { IndiceDePaire } from '@ucm-kit/core/referentiel';
-import type { CodeDErreur, ConflitVue, TypeDeTerme } from '../messages';
+import type { CauseDeProtection, CodeDErreur, ConflitVue, TypeDeTerme } from '../messages';
 
 const noms = (nombre: number): string => (nombre === 1 ? '1 nom' : `${nombre} noms`);
 const questions = (nombre: number): string => (nombre === 1 ? '1 question' : `${nombre} questions`);
@@ -80,9 +80,20 @@ export const TEXTES = {
   collectionsSuiventUcm: 'Elles portent les noms du référentiel UCM.',
   nomsUcm: 'noms UCM',
 
+  architectureDuFichier: 'Architecture du fichier',
+  fichierUcm: 'Ce fichier suit l’architecture UCM',
+  aideArchitecture: 'UCM Palettes n’écrit alors ses palettes ni dans theme, ni dans brands, ni dans utility. Ces collections ne portent que des alias.',
+  architectureIllisible: 'La déclaration rangée dans ce fichier est illisible.',
+  architectureFuture: 'Elle vient d’une version plus récente d’UCM Nomenclature.',
   collectionsAnalysees: 'Collections analysées',
   variablesDeLaCollection: (nombre: number): string => (nombre === 1 ? '1 variable' : `${nombre} variables`),
-  palettesProtegees: 'palettes protégées',
+  /** La ligne d'une collection : « 346 variables, dont 120 gardent leur nom » ; `gardees` compte les variables protégées de la collection. */
+  variablesEtProtegees: (nombre: number, gardees: number): string => {
+    const variables = nombre === 1 ? '1 variable' : `${nombre} variables`;
+    if (gardees <= 0) return variables;
+    if (gardees >= nombre) return `${variables}, ${nombre === 1 ? 'qui garde son nom' : 'qui gardent leur nom'}`;
+    return `${variables}, dont ${gardees} ${gardees === 1 ? 'garde son nom' : 'gardent leur nom'}`;
+  },
   sansCollection: 'Les collections du fichier apparaissent après la première analyse.',
   reglesDeCeFichier: 'Règles de ce fichier',
   exporter: 'Exporter',
@@ -119,6 +130,9 @@ export const TEXTES = {
   renommagesReviennent: 'Les renommages reviennent dans l’onglet Renommages.',
   anciensNomsGardes: 'Les anciens noms sont gardés dans Configuration › Historique.',
   annulationDuRenommageRefusee: 'L’annulation a été refusée. Relancez l’analyse, puis annulez de nouveau.',
+  annulationNonVerifiee: (nombre: number): string =>
+    `${nombre === 1 ? '1 variable de couleur n’a pas pu être rétablie.' : `${nombre} variables de couleur n’ont pas pu être rétablies.`} `
+    + 'UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse, puis annulez de nouveau.',
   annulationDuRenommagePartielle: (retablis: number, sautes: number): string =>
     `${noms(retablis)} rétablis, ${sautes} n’ont pas pu l’être : un autre nom occupe leur place ou ils ont changé depuis. Le plugin les garde ; annulez de nouveau après avoir corrigé.`,
   /**
@@ -155,6 +169,7 @@ export const TEXTES = {
     'fichier-modifie': 'Le fichier a changé depuis l’analyse. Relancez l’analyse.',
     'generation-perimee': 'Les noms affichés ne correspondent plus au fichier. Relancez l’analyse, puis recommencez.',
     'regles-modifiees': 'Les règles ont changé depuis le calcul de cette liste. Relisez la liste, puis recommencez.',
+    'regles-futures': 'Une version plus récente d’UCM Nomenclature a rangé des règles dans ce fichier. Mettez le plugin à jour pour renommer.',
     'import-illisible': 'Ce fichier de règles est illisible. Choisissez un fichier exporté depuis la Configuration d’UCM Nomenclature.',
     'mot-refuse': 'Ce terme ne peut pas s’écrire ainsi : retirez les espaces et les caractères / | . { } $.',
     'import-partiel': 'L’import s’est arrêté en route : les règles du fichier sont revenues à leur état d’avant.',
@@ -209,14 +224,16 @@ export const TEXTES = {
   pastilleNouveau: 'Nouveau',
   pastilleBloque: 'Bloqué',
   pastilleProtege: 'Protégé',
+  pastilleNonVerifie: 'Non vérifié',
 
   afficherLesAutresNoms: (nombre: number): string => (nombre === 1 ? 'Afficher l’autre nom' : `Afficher les ${nombre} autres noms`),
   chargementDesNoms: 'Chargement des noms…',
 
-  nonRenommes: (bloques: number, proteges: number): string => {
+  nonRenommes: (bloques: number, proteges: number, nonVerifiees = 0): string => {
     const parties = [
       ...(bloques > 0 ? [bloques === 1 ? '1 bloqué' : `${bloques} bloqués`] : []),
       ...(proteges > 0 ? [proteges === 1 ? '1 protégé' : `${proteges} protégés`] : []),
+      ...(nonVerifiees > 0 ? [nonVerifiees === 1 ? '1 non vérifié' : `${nonVerifiees} non vérifiés`] : []),
     ];
     return `Non renommés : ${parties.join(', ')}`;
   },
@@ -231,7 +248,16 @@ export const TEXTES = {
   /** `autre` aurait le nom que l'export réserve aux extensions de `apres`. */
   axeEtExtensions: (apres: string, autre: string): string => `\`${autre}\` aurait le nom que l’export des tokens réserve aux collections étendues de \`${apres}\` : les extensions de \`${apres}\` ne pourraient plus être générées. Gardez un nom différent pour l’une des deux.`,
   nomsProteges: (nombre: number): string => (nombre === 1 ? '1 nom écrit par UCM Palettes' : `${nombre} noms écrits par UCM Palettes`),
-  nomsProtegesExplication: 'UCM Palettes écrit ces variables, et leur groupe garde son nom. Ouvrez UCM Palettes une fois dans ce fichier pour qu’il suive les règles, puis revenez ici.',
+  /** La ligne du nombre d'une cause de protection. */
+  variablesNonVerifiees: (nombre: number): string => (nombre === 1 ? '1 variable de couleur non vérifiée' : `${nombre} variables de couleur non vérifiées`),
+  /** Ce que chaque cause dit au designer, et le geste qui suit. */
+  explicationDeProtection: {
+    'marque-absente': 'UCM Palettes écrit ces variables, et leur groupe garde son nom. Ouvrez UCM Palettes une fois dans ce fichier pour qu’il suive les règles, puis revenez ici.',
+    'marque-illisible': 'Ce qu’UCM Palettes a noté dans ce fichier est illisible. Signalez ce fichier au mainteneur des plugins UCM.',
+    'marque-future': 'Ce fichier a été ouvert avec une version d’UCM Palettes plus récente que celle qu’UCM Nomenclature connaît. Mettez à jour UCM Nomenclature pour renommer ces variables.',
+    'sans-regles': 'Les variables d’UCM Palettes gardent leur nom tant que l’écriture des noms n’est pas enregistrée. Choisissez l’écriture, puis appuyez sur Continuer.',
+    'lecture-refusee': 'UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse pour renommer ces variables.',
+  } satisfies Record<CauseDeProtection, string>,
 
   aucunNomCoche: 'Aucun nom coché',
   /** Le compte du pied, en deux morceaux : le nombre s'écrit en gras. */
@@ -253,6 +279,13 @@ export const TEXTES = {
   nomsSautes: (nombre: number): string => (nombre === 1 ? '1 nom n’a pas été renommé.' : `${nombre} noms n’ont pas été renommés.`),
   annuler: 'Annuler',
   rienNAEteRenomme: 'Rien n’a été renommé.',
+  /** Un lot partiel : les variables dont la protection ne se lit pas. */
+  nonVerifieesNonRenommees: (nombre: number): string =>
+    `${nombre === 1 ? '1 variable de couleur n’a pas été renommée.' : `${nombre} variables de couleur n’ont pas été renommées.`} UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier.`,
+  /** Un lot refusé parce que toutes les variables sautées sont non vérifiées. */
+  rienNAEteRenommeNonVerifie: 'Rien n’a été renommé. UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse.',
+  /** Une règle de nommage vient d'une version plus récente du plugin : le compte « À appliquer » cède la place à ce texte, et le bouton reste inactif. */
+  reglesFutures: 'Une version plus récente d’UCM Nomenclature a rangé des règles dans ce fichier. Mettez le plugin à jour pour renommer.',
   journalImpossible: 'Rien n’a été renommé : le fichier ne peut pas garder de quoi remettre ces noms. Cochez moins de noms, puis appliquez de nouveau.',
   bilanIllisible: 'Les noms sont changés, mais le plugin n’a pas pu relire le fichier. Relancez l’analyse.',
   nomsNonRetablis: (nombre: number): string =>

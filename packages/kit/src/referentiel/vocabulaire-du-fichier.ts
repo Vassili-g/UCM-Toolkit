@@ -9,7 +9,7 @@
 import { REGISTRES_ARCHITECTURE } from './architecture.js';
 import { CATEGORIES_DE_NOM, type CategorieDeNom } from './conventions.js';
 import { termesDuSegment } from './ecriture-des-mots.js';
-import type { ConflitDeVocabulaire, IndexDuVocabulaire, Mots, OrigineDuTerme, Remplacement, VocabulaireDuFichier } from './harmonisation.js';
+import { cleDeRegleDuTerme, type ConflitDeVocabulaire, type IndexDuVocabulaire, type Mots, type OrigineDuTerme, type Remplacement, type VocabulaireDuFichier } from './harmonisation.js';
 import { decouperSegment } from './normalisation.js';
 import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
 import { termePourCategorie } from './termes.js';
@@ -95,7 +95,7 @@ function indexerPourCategorie(vocabulaire: VocabulaireDuFichier, categorie: Cate
 
   for (const personnalise of vocabulaire.personnalises) {
     const par = personnalise.terme;
-    const cleRegle = `terme:${par.join('-').toLowerCase()}`;
+    const cleRegle = cleDeRegleDuTerme(par);
     for (const source of personnalise.remplace) {
       const cle = cleDesMots(source);
       if (cle === cleDesMots(par)) continue;

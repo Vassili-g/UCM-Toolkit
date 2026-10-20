@@ -105,3 +105,17 @@ export function axeDesExtensions(axe: string): string {
  * feuille impossible à générer.
  */
 export const PREFIXE_DES_INTERMEDIAIRES = '--ucm-x-';
+
+/**
+ * Vrai pour la valeur d'axe d'états qui devient la prop publique `disabled`.
+ *
+ * Unique autorité sur cette orthographe : le modèle des props la consulte pour
+ * fabriquer la prop, l'échantillon pour dire qu'une dépendance la porte, et le
+ * modèle des règles pour ne pas documenter deux fois le même fait. Deux
+ * expressions régulières jumelles finiraient par accepter des graphies
+ * différentes, et le contrat annoncerait une prop que l'échantillon ne remplit
+ * jamais.
+ */
+export function estUneValeurDesactivee(valeur: unknown): boolean {
+  return /^disabl(?:e|ed)$/i.test(String(valeur).trim());
+}

@@ -130,11 +130,19 @@ packages/kit/            le format et ses lecteurs : @ucm-kit/core, publié
     version.ts               CONTRACT_VERSION, seul endroit où elle est écrite
     tokens.ts                la forme de tokens.json, TOKENS_FORMAT_VERSION et la lecture de sa marque
     names.ts                 normalizeName, codeIdentifier, tokenCssVariable
+    chemins-de-tokens.ts     le chemin publié d’un token, commun aux plugins
+    axes-de-collections.ts   la décision des axes de modes et de leurs collisions, que l'exporteur et le socle appellent
+    roles-de-rendu.ts        la table des rôles de rendu (nature, propriétés CSS, repli) dont l'exporteur et le diagnostic des contrastes dérivent
     references.ts            la forme d'une référence de token, et son enveloppe
     configuration.ts         la grammaire de ucm.config.json, pour la CI et le plugin
     identite.ts              « ces deux contrats sont-ils le même composant ? »
     typography.ts            les graisses et styles DTCG qu'un text style emploie
     index.ts                 ce que le sous-chemin publie
+  src/protocoles/nommage.ts  les règles de nommage que Nomenclature range et que Palettes relit : préfixes et constructeurs de clés, lecture versionnée, entrées d'une version future (`futures`)
+  src/nommage/             sous-chemin sans Figma : le calcul de renommage sur un inventaire portable
+    inventaire.ts            la forme de l'inventaire, `estProtegee`, `palettesLibres`, `causeDeProtection`
+    chemins-publies.ts       les renommages qui feraient disparaître un token de `tokens.json` ou un axe de modes de l'export (`axesDeLExport`)
+    calcul.ts                `nomsSelonLesRegles` et sa version synchrone, qu'UCM Nomenclature et UCM Palettes appellent ; `idsNonRenommables` en tire les noms figés
   src/emplois/             sous-chemin SANS dépendance : le vocabulaire qu'UCM Palettes et `ucm check` partagent
     dossiers.ts              la table des dossiers `solid`, `surface` et `page` et de `ring`, une par thème et par sens, le neutre, les crans requis, les trois états, ce que chaque variable peint et ses portées Figma
     garanties.ts             les sept garanties G1 à G7, leurs fonds (une variable de la palette, la page ou la carte) et leur jugeabilité selon les crans présents
@@ -234,11 +242,7 @@ packages/plugin-socle/   ce que les plugins partagent : ucm-plugin-socle, privé
   build/manifest.cjs       le manifest de distribution
   build/run-tests.cjs      le découvreur de tests, que chaque plugin appelle
   src/fenetre.ts           la taille bornée de la fenêtre, rangée dans clientStorage
-  src/cheminsDeTokens.ts   le chemin publié d'un token, collection puis variable : UCM Exporter l'écrit, l'explorateur le recalcule
-  src/inventaireDeNoms.ts  l'inventaire des collections et variables locales, tel que le calcul de renommage le lit, avec les modes, l'extension et la racine des collections quand l'adaptateur les lit ; `estProtegee` et `palettesLibres` disent seuls si une variable de Palettes est protégée
-  src/cheminsPublies.ts    les renommages qui feraient disparaître un token de `tokens.json` ou un axe de modes de l'export (`axesDeLExport`)
-  src/reglesDeNommage.ts   les entrées de règles qui changent un nom (écriture, termes, écarts, ordinaires, exclues), lues par un seul analyseur
-  src/nomsSelonLesRegles.ts  le calcul de renommage qu'UCM Nomenclature et UCM Palettes appellent : lexique du kit, puis contrôle des chemins publiés ; `idsNonRenommables` en tire les noms figés
+  src/inventaireDeNoms.ts  l'acquisition de l'inventaire depuis Figma : les ports de lecture, la lecture par lots, la lecture du suivi de Palettes ; la forme de l'inventaire et la protection sont dans `@ucm-kit/core/nommage`
   src/ui/socle.css         échelle de texte, trame, rôles de couleur et replis sombres, avant la feuille de chaque plugin
   src/ui/                  bouton, onglets dont un peut être indisponible (désactivé, sauté par les flèches), interrupteur, chevron `Chevron.ts` (SVG qui tourne par CSS), feuille modale, poignée de redimensionnement, bouton « Configuration » (engrenage puis libellé) et bascule de l'en-tête
   galerie/                 le banc de galerie, sa capture et le décalque du thème Figma
@@ -278,6 +282,9 @@ packages/plugin-palettes/  le plugin UCM Palettes : ucm-palettes-plugin, privé
   src/variables/reprise.ts la reprise d'une palette du fichier : le mode que chaque thème vise, la liaison du suivi, la palette du fichier qu'une liaison désigne, et l'origine sous laquelle ses autres variables se créent
   src/variables/bibliotheques.ts  les collections de bibliothèque et les palettes que leurs noms de variables dessinent, sans leurs couleurs
   src/variables/gestion.ts ce que Gestion montre des tokens : ce qu'une écriture créerait et remplacerait, la simulation d'une destination, les variables d'une palette supprimée
+  src/variables/lot.ts     le plan pur d'un lot entier : noms finaux, réservations, refus, créations, remplacements et renommages ; Gestion l'annonce et l'écriture l'exécute
+  src/ecriture/restaurationDesVariables.ts  le journal qui défait une écriture refusée par Figma et rend les restes qu'il n'a pas pu défaire
+  src/ui/detailDesTokens.ts le détail de la ligne « Tokens Figma » d'une palette reprise du fichier, sans DOM
   src/ecriture/variables.ts  l'écriture des palettes dans les variables : collection, modes, nom déjà pris, création sans portée, valeurs, suivi, un commitUndo ; le rangement de la destination ; le retrait des variables d'une palette supprimée ; la reprise d'une palette du fichier ; la copie d'une palette de bibliothèque
   src/navigation.ts        « Afficher dans Figma » : ouvre la page du cadre et le cadre, sans toucher au document
   src/fenetre.ts           les bornes et la clé de la fenêtre ; le socle la lit et la range
@@ -379,11 +386,11 @@ packages/plugin-nomenclature/  le plugin UCM Nomenclature : ucm-nomenclature-plu
   src/messages.ts          les deux sens de la frontière sandbox ↔ écran, numérotés par demande et par génération
   src/session.ts           l'inventaire, le lexique, les règles et le résultat, gardés dans le sandbox ; la file des calculs
   src/tranches.ts          un générateur du kit mené par tranches de huit millisecondes, abandonné par une demande plus récente
-  src/lecture.ts           republie l'inventaire des noms du socle
+  src/lecture.ts           republie l'acquisition de l'inventaire du socle
   src/lectureFigma.ts      collections et variables locales, les variables qu'UCM Palettes a écrites et sa marque `nommage`
-  src/regles.ts            les règles du fichier, une entrée de données partagées par règle, le journal, l'export et l'import ; les clés qui changent un nom sont lues par le socle
+  src/regles.ts            les règles du fichier, une entrée de données partagées par règle, le journal, l'export et l'import ; les clés qui changent un nom, leurs constructeurs et leur lecture viennent du kit (`protocoles`)
   src/projection.ts        du résultat du kit aux vues de l'écran : bilan, groupes, pages, questions, fiches, effets
-  src/ecriture.ts          le seul fichier qui écrive dans le document : noms, règles, journal et point d'annulation
+  src/ecriture.ts          le seul fichier qui écrive dans le document : noms, règles, journal et point d'annulation ; un refus avant toute écriture quand une règle de nommage vient d'une version plus récente
   src/conventions.ts       l'écriture des noms choisie par le fichier, validée par les registres du kit
   src/fenetre.ts           les bornes et la clé de la fenêtre
   src/ui/                  la coquille et sa frontière, les onglets À appliquer, À trancher et Règles, les feuilles, la Configuration ; les textes dans textes.ts
@@ -433,7 +440,9 @@ tests/                   les tests du monorepo lui-même
   corpusUcm.test.ts      les noms, les registres et les empreintes du corpus UCM suivent leurs sources
   manifestsDesPlugins.test.ts  chaque plugin a son propre `id` de manifest
   nomsDePalettes.test.ts  l'aller-retour : Nomenclature renomme les palettes que Palettes a écrites, et le plan de Palettes ne renomme plus rien
-  axesDeModes.test.ts    le socle et `axesDesCollections` de l'exporteur retiennent les mêmes axes de modes, avant et après un renommage de collection
+  guideDuKitDeRegles.test.ts  le guide du kit de règles cite les maîtres, les calques, les sections et le marqueur de la grammaire du kit
+  axesDeModes.test.ts    le socle et l'exporteur appellent `deciderAxesDesCollections` du kit et retiennent les mêmes axes de modes, avant et après un renommage de collection
+  loisEntreProduits.test.ts  huit lois entre Palettes, Nomenclature et l'explorateur, pour chaque convention de nommage ; ses fabriques sont dans `fabriquesDeFichiers.ts`
 ```
 
 ## Invariants
@@ -1301,6 +1310,30 @@ La spécification en lien porte le raisonnement.
   par geste d'écriture : `ranger-recette`, `dessiner`, `retirer-cadre`,
   `choisir-page`, `ecrire-variables`, `ranger-destination`,
   `retirer-variables`, `reprendre-palette` et `copier-palette`.
+- En full UCM, la déclaration `architecture` d'UCM Nomenclature vaut `ucm`.
+  Palettes refuse alors une destination reconnue comme `theme`, `brands` ou
+  `utility` (`COUCHES_SANS_PALETTES`), au rangement et avant l'écriture des
+  variables. Sans déclaration, ces collections restent admises. Une reprise
+  conserve sa collection d'origine.
+- Une seule écriture se fait sans geste du designer. À l'ouverture,
+  `src/code.ts` appelle `rangerLaMarqueDeNommage` (`src/ecriture/marque.ts`),
+  qui range la marque `nommage`, `{"version":1}`, à la racine de
+  `ESPACE_PARTAGE` quand la clé est vide. La marque déclare une capacité du
+  code ouvert : ce Palettes nomme ses variables selon les règles d'UCM
+  Nomenclature, qui cesse alors de les protéger dès que l'écriture est rangée.
+  Une valeur non vide, même illisible ou d'une version future, n'est jamais
+  remplacée. Un fichier qui refuse l'écriture garde la marque absente, et la
+  protection avec. Aucun `commitUndo` ne suit, et aucun code ne l'efface :
+  elle reste après la fermeture. Risque : une version de Palettes antérieure
+  à la marque, rouverte ensuite dans le fichier, ne la retire pas et ne suit
+  pas les règles. À sa prochaine écriture de variables, elle peut redonner
+  des noms bruts aux variables qu'UCM Nomenclature a renommées. Conduite : un
+  fichier marqué ne s'ouvre qu'avec une version de Palettes qui pose la
+  marque. Si une version ancienne y a écrit, relancer l'analyse d'UCM
+  Nomenclature, qui propose de nouveau ces renommages. Aucune autre écriture
+  ne s'ajoute à l'ouverture sans une décision écrite ici.
+  `packages/plugin-palettes/tests/nommageDesPalettes.test.ts` et
+  `tests/nomsDePalettes.test.ts` à la racine le tiennent.
 - Le plugin ne retire un cadre de Figma que sur « Supprimer définitivement »,
   geste explicite du designer. Le sandbox relit la recette rangée et le cadre :
   il ne retire qu'un cadre possédé qui porte encore l'identifiant de sa
@@ -1384,13 +1417,20 @@ La spécification en lien porte le raisonnement.
   suivie qui n'y est plus se recrée. Une palette dont Figma a changé une
   couleur ne s'écrit pas sans ce choix. Un nom déjà pris par une variable
   hors du suivi arrête la palette avant toute création. Une variable créée
-  naît sans portée (D14). Une erreur au milieu d'une palette retire les
-  variables que l'écriture venait de créer pour elle, et les autres palettes
-  continuent. Aucune écriture ne renomme ni ne déplace une variable ; seul
-  `retirerLesVariables` en retire, pour une palette que la recette rangée ne
-  contient plus. Le suivi se range après les valeurs, et un seul
-  `commitUndo` clôt l'écriture. `packages/plugin-palettes/tests/variables.test.ts`
-  le tient, contre le double de `tests/figmaDeTest.ts`.
+  naît sans portée (D14). Une reprise renomme les variables que le plan du
+  lot annonce ; une destination ne renomme rien (D2). Aucune écriture ne
+  déplace une variable ; seul `retirerLesVariables` en retire, pour une
+  palette que la recette rangée ne contient plus. Avant la première
+  mutation, l'écriture prépare un journal (`ecriture/restaurationDesVariables.ts`).
+  Si Figma refuse une étape, elle défait la palette en cours, et les autres
+  palettes continuent ; si le rangement du suivi échoue, elle défait tout le
+  geste. Elle rend `interrompue` (une palette) ou `defaite` (le geste), avec
+  les `restes` qu'elle n'a pas pu défaire. Le suivi se range après les
+  valeurs, et un seul `commitUndo` clôt l'écriture : il ne clôt que les
+  mutations conservées.
+  `packages/plugin-palettes/tests/variables.test.ts` et
+  `tests/restaurationVariables.test.ts` le tiennent, contre le double de
+  `tests/figmaDeTest.ts`.
   → [spec](./docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md#173-lécriture)
 - Une palette reprise du fichier garde ses variables d'origine pour tokens.
   `reprendreLaPalette` range la recette qui la porte et la liaison de
@@ -1672,9 +1712,22 @@ La spécification en lien porte le raisonnement.
   deux bundles, et `packages/kit/tests/porteNavigateur.test.mjs` la tient
   dans le kit.
   → [spec](./packages/plugin-explorateur/SPEC.md#intégrations-facultatives)
+- Le relevé garde l'espace de couleur du document (`documentColorProfile`,
+  `Releve.espace`). Les copies, le contraste et l'affichage convertissent en
+  sRGB par `versSrgb` (`src/espace.ts`). Une comparaison au token publié
+  (`comparerAuTokenPublie`) ou un contrôle du profil qui n'a pas pu se faire
+  rend une limite avec sa cause, et l'égalité ne s'affiche que si chaque mode
+  annoncé a été comparé. `tests/vuesDesLimites.test.ts` le tient.
+  → [spec](./packages/plugin-explorateur/SPEC.md#intégrations-facultatives)
 
 ### UCM Nomenclature
 
+- L'interrupteur « Ce fichier suit l’architecture UCM » de la Configuration
+  range la déclaration `architecture` dans `ESPACE_ARCHITECT`. Le kit en
+  déclare la clé (`CLE_ARCHITECTURE_DU_FICHIER`), le lecteur et la forme
+  versionnée. Le bilan porte son état lu. L'export et l'import des règles
+  portent ce choix ; un import sans déclaration conserve celle du fichier.
+  Une bascule ne change pas l'Historique.
 - UCM Nomenclature ne change dans le document que le `name` d'une variable ou d'une
   collection locale, ses données partagées dans `ESPACE_ARCHITECT` et le point
   d'annulation, et seul `src/ecriture.ts` le fait. Il ne lit ni page ni
@@ -1718,6 +1771,12 @@ La spécification en lien porte le raisonnement.
   `packages/kit/tests/naturesReferentiel.test.ts`,
   `packages/kit/tests/termesReferentiel.test.ts` et
   `packages/kit/tests/lexiqueReferentiel.test.ts` le tiennent.
+- Une lecture refusée du suivi racine ou de la marque de Palettes n'est pas une
+  absence : une variable de couleur dont la protection ne se lit pas n'est ni
+  proposée ni écrite (motif `non-verifiee`), annulation comprise, et l'écran
+  donne la cause que calcule `causeDeProtection` du socle.
+  `tests/ecriture.test.ts` et `tests/protocole.test.ts` du paquet, et
+  `tests/nomsDePalettes.test.ts` à la racine, le tiennent.
 - La liste du vocabulaire a une ligne par terme et par place : groupe (tout
   segment avant le dernier) ou variable (le dernier). Chaque ligne s'écrit
   dans la convention de sa place et ne compte que les noms de cette place ;

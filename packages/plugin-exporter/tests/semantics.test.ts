@@ -220,6 +220,19 @@ test('defaultRenderingSemantics publie le vocabulaire de rendu partagé', () => 
   });
 });
 
+test('la table de rendu du contrat, issue de celle du kit, garde ses octets', () => {
+  // `rendering.roles` est copié dans chaque contrat publié : l'ordre des clés et
+  // des propriétés ne bouge pas, ou tous les contrats changent.
+  assert.equal(
+    JSON.stringify(defaultRenderingSemantics()),
+    '{"roles":{"background":{"kind":"paint","cssProperties":["background-color"]},'
+      + '"foreground":{"kind":"paint","cssProperties":["color","fill"]},'
+      + '"icon":{"kind":"paint","cssProperties":["color","fill"]},'
+      + '"border":{"kind":"stroke","cssProperties":["box-shadow"]},'
+      + '"ring":{"kind":"stroke","cssProperties":["outline-color","outline-width"],"fallback":"box-shadow"}}}',
+  );
+});
+
 test('un état homonyme d’Object.prototype reste un état comme un autre', () => {
   const warnings: string[] = [];
   const model = buildStateModel(

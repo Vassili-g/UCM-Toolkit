@@ -4,13 +4,13 @@
  * palettes et se range dans le suivi, jamais dans la recette. Pur : ni
  * Figma, ni DOM.
  */
-import { DESTINATION_DES_PALETTES } from '@ucm-kit/core/referentiel';
+import { DESTINATION_DES_PALETTES, PLACES_DES_THEMES, type PlaceDesThemes } from '@ucm-kit/core/referentiel';
 
 /** Une collection locale, par son identifiant, ou une collection à créer, par son nom. */
 export type CollectionVisee = { readonly id: string } | { readonly nom: string };
 
 /** Les thèmes Light et Dark : un segment du chemin, ou deux modes de la collection. */
-export type ThemesDeLaDestination = 'chemin' | 'modes';
+export type ThemesDeLaDestination = PlaceDesThemes;
 
 export interface Destination {
   readonly collection: CollectionVisee;
@@ -27,7 +27,7 @@ export const DESTINATION_PAR_DEFAUT: Destination = {
 };
 
 /** Le champ qu'une destination refusée doit corriger. */
-export type RefusDeDestination = 'collection' | 'groupe' | 'themes';
+export type RefusDeDestination = 'collection' | 'groupe' | 'themes' | 'couche';
 
 /** Ce que Figma refuse dans un nom de variable : `.`, `{`, `}`, et un `$` en tête de segment. */
 const SEGMENT_REFUSE = /[.{}]|^\$/;
@@ -46,7 +46,7 @@ export function segmentsDuGroupe(groupe: string): string[] | null {
  * rend sous sa forme rangée : le nom de collection et le groupe sans espaces
  * autour, le groupe sans `/` de trop.
  */
-export function validerLaDestination(valeur: unknown): { readonly destination: Destination } | { readonly refus: RefusDeDestination } {
+export function validerLaDestination(valeur: unknown): { readonly destination: Destination } | { readonly refus: Exclude<RefusDeDestination, 'couche'> } {
   if (!valeur || typeof valeur !== 'object') return { refus: 'collection' };
   const { collection, groupe, themes } = valeur as { collection?: unknown; groupe?: unknown; themes?: unknown };
   let visee: CollectionVisee | null = null;
@@ -59,8 +59,9 @@ export function validerLaDestination(valeur: unknown): { readonly destination: D
   if (typeof groupe !== 'string') return { refus: 'groupe' };
   const segments = segmentsDuGroupe(groupe);
   if (!segments) return { refus: 'groupe' };
-  if (themes !== 'chemin' && themes !== 'modes') return { refus: 'themes' };
-  return { destination: { collection: visee, groupe: segments.join('/'), themes } };
+  const place = PLACES_DES_THEMES.find((valeur) => valeur === themes);
+  if (!place) return { refus: 'themes' };
+  return { destination: { collection: visee, groupe: segments.join('/'), themes: place } };
 }
 
 /** Vrai quand deux destinations désignent la même collection, le même groupe et la même forme de thèmes. */

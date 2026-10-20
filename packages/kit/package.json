@@ -1,6 +1,6 @@
 {
   "name": "@ucm-kit/core",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "description": "Le format de contrat UCM et ses lecteurs : types, version, règles de nommage, schéma et validateurs.",
   "type": "module",
   "license": "MIT",
@@ -33,6 +33,14 @@
     "./referentiel": {
       "types": "./dist/referentiel/index.d.ts",
       "default": "./dist/referentiel/index.js"
+    },
+    "./protocoles": {
+      "types": "./dist/protocoles/index.d.ts",
+      "default": "./dist/protocoles/index.js"
+    },
+    "./nommage": {
+      "types": "./dist/nommage/index.d.ts",
+      "default": "./dist/nommage/index.js"
     },
     "./lecteurs": {
       "types": "./src/lecteurs/index.d.mts",

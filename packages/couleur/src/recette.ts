@@ -7,6 +7,7 @@
  * règle et le chemin du champ fautif ; l'interface les met en mots.
  */
 import { TEXTE_DES_BOUTONS_PAR_DEFAUT, cransRequis, sensDuTheme, type SensDuTheme, type TexteDesBoutons } from '@ucm-kit/core/emplois';
+import { FENETRE_DE_LA_RECETTE, classerLEnveloppeDeLaRecette } from '@ucm-kit/core/protocoles';
 import { MODES, PROFILS, SEUILS_PAR_USAGE } from '@ucm-kit/core/referentiel';
 
 import { lireHexa } from './conversions';
@@ -19,9 +20,9 @@ import { RELEVE_TAILWIND, type RampeDeDerive } from './tailwind';
  * chroma, et `derives` relève les crans de chaque rampe Tailwind
  * ([REC-12]). Les formats 8 à 11 se lisent en format 12 par `classerRecette` ;
  * les formats plus anciens sont illisibles et les formats plus récents sont
- * futurs.
+ * futurs. La fenêtre des formats lus est celle du kit (`FENETRE_DE_LA_RECETTE`).
  */
-export const FORMAT_RECETTE = 12;
+export const FORMAT_RECETTE = FENETRE_DE_LA_RECETTE.courante;
 
 export type OrigineDerive = 'tailwind' | 'constante' | 'libre';
 
@@ -49,17 +50,12 @@ export function decalageRange(derive: Derive, grandeur: DecalageDuColorShift): D
 /** Des parts propres viennent toujours du designer ([ENT-09]). */
 export type OrigineParts = 'designer';
 
-export interface PartsPropres {
-  readonly soft: number;
-  readonly vivid: number;
+export interface PartsPropres extends Readonly<Record<Profil, number>> {
   readonly origine: OrigineParts;
 }
 
 /** Une valeur par profil ; une palette à une intensité range la sienne sous `vivid`, comme sa dérive. */
-export interface ParProfil {
-  readonly soft?: number;
-  readonly vivid?: number;
-}
+export type ParProfil = Readonly<Partial<Record<Profil, number>>>;
 
 /**
  * Teinte, saturation et luminosité réglées dans la carte (Z10.5, spécification
@@ -92,16 +88,12 @@ export const BORNES_DES_REGLAGES = { teinte: 30, clarte: { bas: -0.1, haut: 0.1 
  * `dark` est absent quand la collection d'origine n'a pas de mode Dark : le
  * thème Dark montre alors les couleurs de `light`.
  */
-export interface CouleursFigees {
+export interface CouleursFigees extends Readonly<Partial<Record<Mode, readonly string[]>>> {
   readonly light: readonly string[];
-  readonly dark?: readonly string[];
 }
 
 /** Les couleurs figées d'une palette à deux intensités : celles de chaque intensité, chacune de la forme d'une intensité. */
-export interface CouleursFigeesParIntensite {
-  readonly soft: CouleursFigees;
-  readonly vivid: CouleursFigees;
-}
+export type CouleursFigeesParIntensite = Readonly<Record<Profil, CouleursFigees>>;
 
 /** Vrai pour les couleurs figées de deux intensités, `{ soft, vivid }`. */
 export function figeesParIntensite(figees: CouleursFigees | CouleursFigeesParIntensite): figees is CouleursFigeesParIntensite {
@@ -112,10 +104,8 @@ export interface Palette {
   readonly id: string;
   readonly nom?: string;
   readonly reference: string;
-  readonly derive: {
+  readonly derive: Readonly<Record<Profil, DeriveRangee>> & {
     readonly lien: boolean;
-    readonly soft: DeriveRangee;
-    readonly vivid: DeriveRangee;
   };
   readonly parts?: PartsPropres;
   /** La palette de base ([ENT-11]) : le profil porteur forcé. Absente, le classement automatique décide. */
@@ -142,12 +132,10 @@ export interface Palette {
 }
 
 /** Les parties d'un cadre de la planche que le designer choisit de dessiner ([PLA-28]). */
-export interface ContenuDesPlanches {
+export interface ContenuDesPlanches extends Readonly<Record<Mode, boolean>> {
   readonly note: boolean;
   readonly usages: boolean;
   readonly grilles: boolean;
-  readonly light: boolean;
-  readonly dark: boolean;
 }
 
 /** Tout se dessine : le contenu d'une recette qui ne l'a jamais réglé. */
@@ -172,10 +160,8 @@ export interface BornesDeChroma {
 }
 
 /** L'enveloppe de chroma d'un profil : `p0` et les bornes de chaque thème. */
-export interface EnveloppeDeProfil {
+export interface EnveloppeDeProfil extends Readonly<Record<Mode, BornesDeChroma>> {
   readonly p0: number;
-  readonly light: BornesDeChroma;
-  readonly dark: BornesDeChroma;
 }
 
 /**
@@ -190,7 +176,7 @@ export interface ProfilDeRecette {
 }
 
 /** Les deux profils de la recette par défaut. Les bornes de chroma ne paraissent pas dans l'interface. */
-export const PROFILS_PAR_DEFAUT: { readonly soft: ProfilDeRecette; readonly vivid: ProfilDeRecette } = {
+export const PROFILS_PAR_DEFAUT: Readonly<Record<Profil, ProfilDeRecette>> = {
   soft: {
     part: 0.85,
     clairs: 0.7,
@@ -216,11 +202,11 @@ function copierLesProfils(profils: Recette['profils']): Recette['profils'] {
 export interface Recette {
   readonly formatVersion: number;
   readonly crans: readonly number[];
-  readonly courbes: { readonly light: readonly number[]; readonly dark: readonly number[] };
-  readonly profils: { readonly soft: ProfilDeRecette; readonly vivid: ProfilDeRecette };
+  readonly courbes: Readonly<Record<Mode, readonly number[]>>;
+  readonly profils: Readonly<Record<Profil, ProfilDeRecette>>;
   readonly gamut: 'srgb';
-  readonly fonds: { readonly light: string; readonly dark: string };
-  readonly texteDesBoutons: { readonly light: TexteDesBoutons; readonly dark: TexteDesBoutons };
+  readonly fonds: Readonly<Record<Mode, string>>;
+  readonly texteDesBoutons: Readonly<Record<Mode, TexteDesBoutons>>;
   readonly seuils: Seuils;
   readonly derives: readonly RampeDeDerive[];
   /** Le facteur de la part des fonds du thème Dark au numéro 50, entre 0 et 1 ([MOT-28]). */
@@ -760,7 +746,7 @@ export function validerRecette(entree: unknown): { recette: Recette } | { refus:
   // Les crans requis sont la réunion des crans de la table de chaque thème, dans son sens (S2, P7,
   // [REC-13]) : seul 50 est facultatif. Un texte illisible est déjà refusé plus bas ; sans texte
   // lisible, le thème se juge dans le sens normal.
-  const sens: Record<'light' | 'dark', SensDuTheme> = { light: 'normal', dark: 'normal' };
+  const sens: Record<Mode, SensDuTheme> = { light: 'normal', dark: 'normal' };
   if (releve.objet(entree.texteDesBoutons, 'texteDesBoutons', MODES)) {
     for (const mode of MODES) {
       const texte = entree.texteDesBoutons[mode];
@@ -829,9 +815,6 @@ export type Classement =
   | { readonly etat: 'courante'; readonly recette: Recette }
   | { readonly etat: 'future'; readonly version: number }
   | { readonly etat: 'illisible'; readonly refus: readonly Refus[] };
-
-/** Le plus ancien format que la lecture convertit ([REC-12]). */
-const PREMIER_FORMAT_LISIBLE = 8;
 
 /**
  * Le premier refus d'une forme ancienne, avant toute transformation : le
@@ -984,32 +967,35 @@ function depuisLeFormat11(objet: Objet): Objet {
  * laisse la recette rangée intacte ([REC-04]).
  */
 export function classerRecette(texte: string | undefined): Classement {
-  if (texte === undefined || texte === '') return { etat: 'absente', recette: recetteParDefaut() };
-
-  let objet: unknown;
-  try {
-    objet = JSON.parse(texte);
-  } catch {
-    return { etat: 'illisible', refus: [{ regle: 'forme', chemin: '' }] };
+  const enveloppe = classerLEnveloppeDeLaRecette(texte);
+  switch (enveloppe.etat) {
+    case 'absente':
+      return { etat: 'absente', recette: recetteParDefaut() };
+    case 'illisible':
+      return {
+        etat: 'illisible',
+        refus: [enveloppe.cause === 'version'
+          ? { regle: 'forme', chemin: 'formatVersion', ...(enveloppe.version === undefined ? {} : { valeur: enveloppe.version }) }
+          : { regle: 'forme', chemin: '' }],
+      };
+    case 'future':
+      return { etat: 'future', version: enveloppe.version };
+    case 'refusee':
+      // classerLEnveloppeDeLaRecette classe un texte : seule une lecture de Figma refuse.
+      return { etat: 'illisible', refus: [{ regle: 'forme', chemin: '' }] };
+    case 'ancienne':
+    case 'courante':
+      break;
   }
-  if (!estObjet(objet)) return { etat: 'illisible', refus: [{ regle: 'forme', chemin: '' }] };
 
-  const version = objet.formatVersion;
-  if (!Number.isInteger(version) || (version as number) < 0) {
-    return { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'formatVersion' }] };
-  }
-  if ((version as number) > FORMAT_RECETTE) return { etat: 'future', version: version as number };
-  if ((version as number) < PREMIER_FORMAT_LISIBLE) {
-    return { etat: 'illisible', refus: [{ regle: 'forme', chemin: 'formatVersion', valeur: version as number }] };
-  }
-
+  const { valeur: objet, version } = enveloppe;
   let lue: Objet = objet;
-  if ((version as number) < FORMAT_RECETTE) {
-    const refus = refusDeLaFormeAncienne(objet, version as number);
+  if (enveloppe.etat === 'ancienne') {
+    const refus = refusDeLaFormeAncienne(objet, version);
     if (refus) return { etat: 'illisible', refus: [refus] };
     if (version === 8) lue = depuisLeFormat8(lue);
-    if ((version as number) <= 9) lue = depuisLeFormat9(lue);
-    if ((version as number) <= 10) lue = depuisLeFormat10(lue);
+    if (version <= 9) lue = depuisLeFormat9(lue);
+    if (version <= 10) lue = depuisLeFormat10(lue);
     lue = depuisLeFormat11(lue);
   }
 

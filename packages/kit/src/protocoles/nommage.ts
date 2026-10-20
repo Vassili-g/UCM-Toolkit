@@ -1,21 +1,47 @@
 /**
- * Les règles du fichier qui changent un nom : l'écriture des groupes et des variables, les termes du vocabulaire,
- * les termes UCM écartés, les termes ordinaires et les collections exclues. UCM Nomenclature les range dans
- * `ESPACE_ARCHITECT`, et UCM Palettes les relit pour nommer ses variables comme lui : le socle les analyse une fois.
+ * Les règles du fichier qui changent un nom : l'écriture des groupes et des variables, les termes du vocabulaire, les termes UCM
+ * écartés, les termes ordinaires et les collections exclues. UCM Nomenclature les range dans `ESPACE_ARCHITECT` et UCM Palettes
+ * les relit pour nommer ses variables comme lui : ce module porte les clés, leur forme et leur lecture.
  *
- * Une entrée est un JSON qui porte `version: 1` ; une entrée illisible ou d'une autre version se lit comme absente,
- * et une lecture ne réécrit rien. Le module est pur : il lit des couples (clé, texte) et ne touche à aucun objet Figma.
+ * Une entrée est un JSON qui porte `version: 1`. Une entrée illisible se lit comme absente. Une entrée d'une version plus
+ * récente n'entre pas dans le calcul, mais `lireLesEntreesDeNommage` la nomme dans `futures`. Une lecture ne réécrit rien.
+ *
+ * Le module lit des couples (clé, texte) et ne touche à aucun objet Figma ; l'écriture reste dans UCM Nomenclature
+ * (`serialiserRegle`), qui construit ses clés avec `cleTerme`, `cleEcart` et `cleOrdinaire`.
+ *
+ * Après une modification : relancer `npm test`, relancer les tests de Nomenclature et de Palettes, et changer la version du kit.
  */
 import {
   CATEGORIES_DE_NOM, REGISTRE_CASSES, REGISTRE_SEPARATEURS,
-  type Convention, type ConventionsParCategorie, type Mots, type TermePersonnalise, type VocabulaireDuFichier,
-} from '@ucm-kit/core/referentiel';
+  type Convention, type ConventionsParCategorie,
+} from '../referentiel/conventions.js';
+import type { Mots, TermePersonnalise, VocabulaireDuFichier } from '../referentiel/harmonisation.js';
+import { classerLaDonnee, type FenetreDeVersions } from './donnee.js';
 
 export const VERSION_DES_REGLES = 1;
 export const CLE_ECRITURE = 'ecriture';
 export const CLE_EXCLUES = 'exclues';
 /** Clé de la convention de la v1, lue seulement quand `ecriture` manque. */
 export const CLE_CONVENTIONS_V1 = 'conventions';
+
+/** La seule définition des préfixes des clés rangées dans Figma ; Nomenclature écrit avec, `lireLesEntreesDeNommage` lit avec. */
+export const PREFIXES_DE_NOMMAGE = { terme: 'terme:', ecart: 'ecart:', ordinaire: 'ordinaire:' } as const;
+
+/** Les entrées de règles ne sont lues qu'à la version 1 : toute version supérieure est future. */
+export const FENETRE_DES_REGLES: FenetreDeVersions = { champ: 'version', courante: VERSION_DES_REGLES, premiere: VERSION_DES_REGLES };
+
+// Les clés
+//
+// Le préfixe `terme:` sert à deux clés. Celle-ci est rangée dans Figma : les mots du terme joints par une espace, casse gardée
+// (`terme:font size`). La règle de l'analyse, `cleDeRegleDuTerme` du référentiel, vit en mémoire : mots en minuscules joints par
+// `-` (`terme:font-size`).
+
+/** La clé rangée du terme personnalisé de ces mots : `terme:font size`. */
+export const cleTerme = (mots: Mots): string => `${PREFIXES_DE_NOMMAGE.terme}${mots.join(' ')}`;
+/** La clé rangée d'un terme UCM que le fichier n'applique pas, désigné par son identifiant. */
+export const cleEcart = (id: string): string => `${PREFIXES_DE_NOMMAGE.ecart}${id}`;
+/** La clé rangée d'un terme ordinaire, désigné par ses mots en minuscules joints par `-`. */
+export const cleOrdinaire = (cle: string): string => `${PREFIXES_DE_NOMMAGE.ordinaire}${cle}`;
 
 export interface EcritureChoisie { readonly groupes: Convention; readonly variables: Convention }
 
@@ -64,13 +90,10 @@ export function motsDe(texte: string): Mots | undefined {
   return estMots(mots) ? mots : undefined;
 }
 
-/** Un JSON objet portant `version: 1`, sinon rien. */
+/** Un JSON objet portant `version: 1`, sinon rien. Une entrée d'une version plus récente rend aussi `undefined` : `lireLesEntreesDeNommage` la nomme. */
 export function lireEntree(texte: string): Record<string, unknown> | undefined {
-  if (!texte) return undefined;
-  try {
-    const brut: unknown = JSON.parse(texte);
-    return estObjet(brut) && brut.version === VERSION_DES_REGLES ? brut : undefined;
-  } catch { return undefined; }
+  const classee = classerLaDonnee(texte, FENETRE_DES_REGLES);
+  return classee.etat === 'courante' ? classee.valeur : undefined;
 }
 
 export function lireEcriture(brut: Record<string, unknown>): EcritureChoisie | undefined {
@@ -90,7 +113,8 @@ export function lireTerme(mots: Mots, brut: Record<string, unknown>): TermePerso
 /** Vrai pour une clé que `lireLesEntreesDeNommage` lit ; les autres règles du fichier ne changent aucun nom. */
 export const estCleDeNommage = (cle: string): boolean =>
   cle === CLE_ECRITURE || cle === CLE_EXCLUES || cle === CLE_CONVENTIONS_V1
-  || apres(cle, 'terme:') !== undefined || apres(cle, 'ecart:') !== undefined || apres(cle, 'ordinaire:') !== undefined;
+  || apres(cle, PREFIXES_DE_NOMMAGE.terme) !== undefined || apres(cle, PREFIXES_DE_NOMMAGE.ecart) !== undefined
+  || apres(cle, PREFIXES_DE_NOMMAGE.ordinaire) !== undefined;
 
 export interface EntreesDeNommage {
   readonly ecriture?: EcritureChoisie;
@@ -101,32 +125,39 @@ export interface EntreesDeNommage {
   /** Les termes (mots en minuscules joints par `-`) que le fichier traite comme des mots ordinaires, jamais comme des noms. */
   readonly ordinaires: readonly string[];
   readonly collectionsExclues: readonly string[];
+  /** Les clés de nommage dont l'entrée vient d'une version plus récente, triées. Le calcul les ignore. */
+  readonly futures: readonly string[];
 }
 
 /**
  * Lit les entrées de l'espace qui changent un nom : `ecriture` (à défaut, `conventions` de la v1), `terme:`, `ecart:`,
  * `ordinaire:` et `exclues`. Les autres clés sont ignorées. C'est l'analyseur unique : UCM Nomenclature l'appelle
  * pour toutes ses règles et UCM Palettes pour les seules qui nomment.
+ *
+ * Une entrée de nommage d'une version plus récente est rangée dans `futures` et n'entre pas dans le calcul.
  */
 export function lireLesEntreesDeNommage(entrees: ReadonlyMap<string, string>): EntreesDeNommage {
   let ecriture: EcritureChoisie | undefined;
   const termes: TermePersonnalise[] = [];
   const ecartsUcm: string[] = [];
   const ordinaires: string[] = [];
+  const futures: string[] = [];
   let exclues: string[] = [];
   for (const [cle, texte] of entrees) {
-    if (cle === CLE_CONVENTIONS_V1 || !estCleDeNommage(cle)) continue;
-    const brut = lireEntree(texte);
-    if (!brut) continue;
+    if (!estCleDeNommage(cle)) continue;
+    const classee = classerLaDonnee(texte, FENETRE_DES_REGLES);
+    if (classee.etat === 'future') { futures.push(cle); continue; }
+    if (cle === CLE_CONVENTIONS_V1 || classee.etat !== 'courante') continue;
+    const brut = classee.valeur;
     let reste: string | undefined;
     if (cle === CLE_ECRITURE) ecriture = lireEcriture(brut);
     else if (cle === CLE_EXCLUES) { if (estListeDeTextes(brut.ids)) exclues = trier(brut.ids); }
-    else if ((reste = apres(cle, 'terme:')) !== undefined) {
+    else if ((reste = apres(cle, PREFIXES_DE_NOMMAGE.terme)) !== undefined) {
       const mots = motsDe(reste);
       const terme = mots && lireTerme(mots, brut);
       if (terme) termes.push(terme);
-    } else if ((reste = apres(cle, 'ecart:')) !== undefined) ecartsUcm.push(reste);
-    else if ((reste = apres(cle, 'ordinaire:')) !== undefined) { if (estMot(reste)) ordinaires.push(reste); }
+    } else if ((reste = apres(cle, PREFIXES_DE_NOMMAGE.ecart)) !== undefined) ecartsUcm.push(reste);
+    else if ((reste = apres(cle, PREFIXES_DE_NOMMAGE.ordinaire)) !== undefined) { if (estMot(reste)) ordinaires.push(reste); }
   }
   const v1 = ecriture ? undefined : lireChoix(entrees.get(CLE_CONVENTIONS_V1) ?? '');
   const reprise: EcritureChoisie | undefined = v1?.conventions.groupes && v1.conventions.variables
@@ -138,6 +169,7 @@ export function lireLesEntreesDeNommage(entrees: ReadonlyMap<string, string>): E
     ecartsUcm: trier(ecartsUcm),
     ordinaires: trier(ordinaires),
     collectionsExclues: exclues,
+    futures: trier(futures),
   };
 }
 
@@ -161,9 +193,14 @@ export interface ReglesDeNommage extends ReglesPourLeCalcul { readonly ecriture:
  * Les règles de nommage d'un fichier, depuis les couples (clé, texte) de l'espace `ESPACE_ARCHITECT`.
  * `null` quand aucune écriture n'est rangée en v2 : la clé `ecriture` manque ou est illisible, ou seule la clé
  * `conventions` de la v1 existe. UCM Nomenclature n'a alors pas fini son premier lancement.
+ *
+ * `null` aussi quand `ecriture` ou `exclues` vient d'une version plus récente : sans elle, le lecteur ne sait ni comment écrire
+ * ni quelles collections laisser. UCM Palettes garde alors la protection de ses variables et son nommage par défaut. Une entrée
+ * `terme:`, `ecart:` ou `ordinaire:` future ne change rien pour ce lecteur.
  */
 export function lireReglesDeNommage(couples: Iterable<readonly [string, string]>): ReglesDeNommage | null {
   const lues = lireLesEntreesDeNommage(new Map(couples));
   if (!lues.ecriture || lues.ecritureDeLaV1) return null;
+  if (lues.futures.includes(CLE_ECRITURE) || lues.futures.includes(CLE_EXCLUES)) return null;
   return { ecriture: lues.ecriture, vocabulaire: vocabulaireDeNommage(lues), ordinaires: lues.ordinaires, collectionsExclues: lues.collectionsExclues };
 }

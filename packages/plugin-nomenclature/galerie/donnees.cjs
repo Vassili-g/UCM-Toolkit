@@ -67,11 +67,16 @@ const paireDeTailles = {
   effet: renom('v21', 'Card/corner/default', 'Card/radius/default', [1]),
 };
 
+// `protegees` compte les variables que `causeDeProtection` empêche de renommer, toutes causes, collection exclue comprise.
 const collections = [
-  { id: 'c1', nom: 'brands', nombre: 420, analysee: true, palettes: false },
-  { id: 'c2', nom: 'Couleurs', nombre: 34, analysee: true, palettes: false },
-  { id: 'c3', nom: 'primitives', nombre: 346, analysee: false, palettes: true },
+  { id: 'c1', nom: 'brands', nombre: 420, analysee: true, protegees: 0 },
+  { id: 'c2', nom: 'Couleurs', nombre: 34, analysee: true, protegees: 0 },
+  { id: 'c3', nom: 'primitives', nombre: 346, analysee: false, protegees: 120 },
 ];
+// Le fichier sans variable protégée.
+const collectionsLibres = collections.map((c) => ({ ...c, protegees: 0 }));
+// Une variable de Palettes que la règle de background renomme : la marque est lue, Palettes suit les règles.
+const fondDePalettes = renom('vp1', 'Poppy/bg/subtle', 'Poppy/background/subtle', [1]);
 
 // Les dates du journal se calculent au build : « aujourd'hui » et « hier » restent vrais le jour où l'on ouvre la galerie.
 const quand = (jours, heures, minutes) => {
@@ -115,11 +120,12 @@ const importDeTroisRegles = {
 };
 
 const bilanDeBase = {
-  generation: 1, premierLancement: false, sansVariableLocale: false,
+  generation: 1, premierLancement: false, sansVariableLocale: false, reglesFutures: false, architecture: 'absente',
   ecriture: { groupes: ecritureDesGroupes, variables: ecritureDesVariables, collections: { reconnues: 5, total: 7 } },
   groupes: [groupeBackground, groupeHover, groupeEcriture, groupeCollection],
   bloques: [{ avant: 'Font Size', apres: 'font-size', collection: 'Typographie' }],
   proteges: 3,
+  protections: [{ cause: 'marque-absente', nombre: 3 }],
   questions: [paire, faute, motsColles],
   autresPistes: 2,
   plusTard: [collection],
@@ -130,10 +136,28 @@ const bilanDeBase = {
 
 const bilans = {
   travail: bilanDeBase,
-  premierLancement: { ...bilanDeBase, premierLancement: true, groupes: [], questions: [], plusTard: [], bloques: [], proteges: 0, autresPistes: 0, dernierRenommage: null },
+  premierLancement: { ...bilanDeBase, premierLancement: true, groupes: [], questions: [], plusTard: [], bloques: [], proteges: 0, protections: [], collections: collectionsLibres, autresPistes: 0, dernierRenommage: null },
+  // Les règles ne sont pas rangées : les variables de Palettes gardent leur nom jusqu'à l'écriture choisie. La Configuration s'ouvre déjà.
+  premierLancementSansRegles: {
+    ...bilanDeBase, premierLancement: true, groupes: [], questions: [], plusTard: [], bloques: [], proteges: 120, protections: [{ cause: 'sans-regles', nombre: 120 }],
+    collections: collections.map((c) => ({ ...c, analysee: true })), autresPistes: 0, dernierRenommage: null,
+  },
   collectionsEtPlusTard: { ...bilanDeBase, questions: [collection, motsColles], plusTard: [paireDeTailles] },
-  rienAFaire: { ...bilanDeBase, groupes: [], bloques: [], questions: [], plusTard: [], autresPistes: 0 },
-  sansVariableLocale: { ...bilanDeBase, sansVariableLocale: true, groupes: [], bloques: [], questions: [], plusTard: [], autresPistes: 0, collections: [], dernierRenommage: null },
+  rienAFaire: { ...bilanDeBase, groupes: [], bloques: [], proteges: 0, protections: [], collections: collectionsLibres, questions: [], plusTard: [], autresPistes: 0 },
+  // Une variable de Palettes parmi les renommages : plus aucune ligne de protection.
+  marqueCourante: {
+    ...bilanDeBase, proteges: 0, protections: [], collections: collectionsLibres,
+    groupes: [{ ...groupeBackground, variables: 13, apercu: [fondDePalettes, boutonFond] }, groupeHover, groupeEcriture, groupeCollection],
+  },
+  marqueIllisible: { ...bilanDeBase, protections: [{ cause: 'marque-illisible', nombre: 3 }] },
+  marqueFuture: { ...bilanDeBase, protections: [{ cause: 'marque-future', nombre: 3 }] },
+  // Une règle de nommage rangée par une version plus récente du plugin : le pied remplace le compte, et Appliquer reste inactif.
+  reglesFutures: { ...bilanDeBase, reglesFutures: true },
+  lectureRefusee: { ...bilanDeBase, proteges: 120, protections: [{ cause: 'lecture-refusee', nombre: 120 }] },
+  deuxCauses: { ...bilanDeBase, proteges: 43, protections: [{ cause: 'marque-absente', nombre: 3 }, { cause: 'lecture-refusee', nombre: 40 }] },
+  // Ni groupe, ni nom bloqué, ni question : seule la carte des protégés reste.
+  protectionSeule: { ...bilanDeBase, groupes: [], bloques: [], questions: [], plusTard: [], autresPistes: 0 },
+  sansVariableLocale: { ...bilanDeBase, sansVariableLocale: true, groupes: [], bloques: [], proteges: 0, protections: [], questions: [], plusTard: [], autresPistes: 0, collections: [], dernierRenommage: null },
   avecUnImport: { ...bilanDeBase, dernierImport: importDeTroisRegles },
   // Le lot d'hier, partiel, sans import.
   journalPartiel: { ...bilanDeBase, dernierRenommage: journalPartiel },
@@ -158,6 +182,11 @@ const bilans = {
   apresLApplication: {
     ...bilanDeBase, generation: 2, groupes: [], bloques: [{ avant: 'Font Size', apres: 'font-size', collection: 'Typographie' }],
     dernierRenommage: { ...journalNominal, nombre: 87, reviennent: 87, heure: quand(0, 14, 41) },
+  },
+  // Le lot a laissé deux variables de couleur dont la protection ne se lit pas : la relecture les compte non vérifiées.
+  apresUnLotPartiel: {
+    ...bilanDeBase, generation: 2, groupes: [], proteges: 2, protections: [{ cause: 'lecture-refusee', nombre: 2 }],
+    dernierRenommage: { ...journalNominal, nombre: 85, reviennent: 85, heure: quand(0, 14, 41) },
   },
 };
 
@@ -310,8 +339,14 @@ const messages = {
   simulation: (demande) => m('simulation', demande, { generation: 1, effet: effetDeTerme, conflit: null }),
   refus: (demande, conflits) => m('refus', demande, { conflits }),
   application: (demande) => m('application', demande, { resultat: { sorte: 'application', statut: 'applique', renommes: 87, sautes: 0, annulable: true } }),
+  /** Un lot partiel : 85 noms renommés, deux variables de couleur non vérifiées. */
+  applicationPartielleNonVerifiee: (demande) => m('application', demande, { resultat: { sorte: 'application', statut: 'partiel', renommes: 85, sautes: 2, nonVerifiees: 2, annulable: true } }),
+  /** Un lot refusé : les deux variables cochées sont non vérifiées. */
+  applicationRefuseeNonVerifiee: (demande) => m('application', demande, { resultat: { sorte: 'application', statut: 'refuse', renommes: 0, sautes: 2, nonVerifiees: 2, annulable: false } }),
   /** La réponse à l'annulation du dernier renommage : 12 noms rétablis. */
   annulation: (demande) => m('application', demande, { resultat: { sorte: 'annulation', statut: 'applique', renommes: 12, sautes: 0, annulable: false } }),
+  annulationPartielleNonVerifiee: (demande) => m('application', demande, { resultat: { sorte: 'annulation', statut: 'partiel', renommes: 10, sautes: 2, nonVerifiees: 2, annulable: true } }),
+  annulationRefuseeNonVerifiee: (demande) => m('application', demande, { resultat: { sorte: 'annulation', statut: 'refuse', renommes: 0, sautes: 1, nonVerifiees: 1, annulable: true } }),
   applicationRefusee: (demande, cause) => m('application', demande, { resultat: { sorte: 'application', statut: 'refuse', renommes: 0, sautes: 0, annulable: false, cause } }),
   diagnostic: (demande) => m('diagnostic', demande, { generation: 1, texte: '{"version":1,"termes":[],"noms":[]}' }),
   reglesExportees: (demande) => m('regles-exportees', demande, { texte: '{"version":1,"termes":{"hover":{"remplace":["hovered"]}}}' }),

@@ -105,7 +105,7 @@ la restitution des conflits d’origine prévus par les tests.
 ### N02. Un nom de collection accepté peut faire disparaître deux axes
 
 **Sources :** [session.ts](../../../../../../packages/plugin-nomenclature/src/session.ts),
-lignes 289 à 307 ; [cheminsPublies.ts](../../../../../../packages/plugin-socle/src/cheminsPublies.ts),
+lignes 289 à 307 ; [chemins-publies.ts](../../../../../../packages/kit/src/nommage/chemins-publies.ts) (anciennement dans le socle),
 inventaire publié ; [exportTokens.ts](../../../../../../packages/plugin-exporter/src/tokens/exportTokens.ts),
 lignes 678 à 716.
 
@@ -140,7 +140,7 @@ l’inventaire. Le test doit conserver les deux axes ou refuser le renommage.
 **Sources :** [vocabulaire-du-fichier.ts](../../../../../../packages/kit/src/referentiel/vocabulaire-du-fichier.ts),
 lignes 31 à 48 et indexation des règles ;
 [lexique.ts](../../../../../../packages/kit/src/referentiel/lexique.ts),
-lignes 100 à 120 ; [nomsSelonLesRegles.ts](../../../../../../packages/plugin-socle/src/nomsSelonLesRegles.ts),
+lignes 100 à 120 ; [calcul.ts](../../../../../../packages/kit/src/nommage/calcul.ts) (anciennement `nomsSelonLesRegles.ts` du socle),
 calcul partagé ; [nommeur.ts](../../../../../../packages/plugin-palettes/src/variables/nommeur.ts),
 nommage du plan de Palettes.
 

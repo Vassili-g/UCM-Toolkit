@@ -37,12 +37,24 @@ export interface EntreeANommer {
 /** Les noms que les règles de nommage du fichier donnent à ces entrées, dans leur ordre. */
 export type Nommer = (entrees: readonly EntreeANommer[]) => string[];
 
+/** Un nom qu'une entrée de reprise veut prendre et qu'une palette précédente du même lot tient déjà. */
+export interface NomReserve {
+  readonly nom: string;
+  readonly palette: string;
+}
+
 /**
  * Le plan sous les noms de `nommer`. `id` donne la variable que le fichier
  * porte pour une clé ; une entrée sans nom reste telle quelle.
  */
 export function nommerLePlan(plan: readonly EntreeDuPlan[], nommer: Nommer, id: (cle: string) => string | undefined): EntreeDuPlan[] {
-  const noms = nommer(plan.map((entree) => ({ cle: entree.cle, nom: entree.nom, id: id(entree.cle) })));
+  // Thèmes en modes : Light et Dark d'une nuance sont une seule variable, que seule l'entrée qui la porte désigne. Les deux entrées prennent son id.
+  const idDuNom = new Map<string, string>();
+  for (const entree of plan) {
+    const existant = entree.nom === '' ? undefined : id(entree.cle);
+    if (existant !== undefined && !idDuNom.has(entree.nom)) idDuNom.set(entree.nom, existant);
+  }
+  const noms = nommer(plan.map((entree) => ({ cle: entree.cle, nom: entree.nom, id: id(entree.cle) ?? idDuNom.get(entree.nom) })));
   return plan.map((entree, rang) => (entree.nom === '' || noms[rang] === entree.nom ? entree : { ...entree, nom: noms[rang] }));
 }
 
@@ -95,7 +107,11 @@ function suffixeDeNuance(nom: string | undefined, nuance: number): string {
  * thèmes en modes et que le suivi n'a aucune variable Dark ; sinon dans le
  * mode du thème Light. Une entrée sans variable dont le nom est déjà pris,
  * ou qui vise un alias, sort du plan. `nomsOccupes` reçoit les collisions
- * avec les variables que la palette ne suit pas.
+ * avec les variables que la palette ne suit pas. `reservesDuLot` donne les
+ * noms (en minuscules) que les palettes précédentes du lot tiennent dans la
+ * collection de la reprise : une entrée dont le nom, créé ou visé par un
+ * renommage, y figure sort du plan et rejoint `nomsReserves`, que l'appelant
+ * traite comme un refus de la reprise entière.
  *
  * Une palette figée garde les noms d'origine tant qu'une variable suivie
  * subsiste. Sans variable restante, le chemin rangé et la destination actuelle
@@ -109,7 +125,7 @@ function suffixeDeNuance(nom: string | undefined, nuance: number): string {
  * les règles : une variable qui le porte n'est pas à renommer, comme celles
  * d'une palette que le plugin a créée. Le plan reste pur : `nommer` est injecté.
  */
-export function planDesVariables(recette: Recette, palette: Palette, destination: Destination, suivie?: PaletteSuivie, origine?: OrigineDeLaReprise | null, nomsOccupes: string[] = [], nommer?: Nommer): EntreeDuPlan[] {
+export function planDesVariables(recette: Recette, palette: Palette, destination: Destination, suivie?: PaletteSuivie, origine?: OrigineDeLaReprise | null, nomsOccupes: string[] = [], nommer?: Nommer, reservesDuLot?: ReadonlyMap<string, string>, nomsReserves: NomReserve[] = []): EntreeDuPlan[] {
   if (suivie?.liaison === 'reprise') {
     const rampes = rampesDe(recette, palette);
     const nuances = grilleDe(recette, palette).crans;
@@ -166,6 +182,13 @@ export function planDesVariables(recette: Recette, palette: Palette, destination
       const voulu = finals[rang];
       const occupant = origine.parNom.get(voulu.toLowerCase());
       const cible = suivie.modes[entree.mode];
+      const reservePar = reservesDuLot?.get(voulu.toLowerCase());
+      if (reservePar !== undefined && (!lue || occupant?.id !== lue.id)) {
+        // Une palette précédente du lot tient ce nom : la reprise entière est refusée, et l'entrée n'écrit rien.
+        nomsReserves.push({ nom: voulu, palette: reservePar });
+        if (lue) reprises.push({ ...entree, nom: lue.nom, ...(brut !== voulu ? { brut } : {}) });
+        return;
+      }
       if (!lue) {
         // Sans variable, l'entrée en crée une, ou reprend celle de ce nom que la palette suit sous une autre clé.
         const libre = !occupant || (origine.suivies.has(occupant.id) && !(cible !== undefined && occupant.valeurs[cible] === null));

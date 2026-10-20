@@ -15,6 +15,7 @@ export * from './theme.js';
 export * from './contraste.js';
 export * from './produits.js';
 export * from './regles.js';
+export * from './kit-de-regles.js';
 export * from './recommandations.js';
 export * from './harmonisation.js';
 export * from './vocabulaire-du-fichier.js';

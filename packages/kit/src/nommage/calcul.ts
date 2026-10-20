@@ -10,14 +10,16 @@
  * avant le contrôle des chemins par `ajuster`.
  *
  * Le moteur est celui du kit ; un test peut en passer un autre pour compter ses appels.
+ *
+ * Après une modification : relancer `npm test`, relancer les tests de Nomenclature et de Palettes, et changer la version du kit.
  */
-import {
-  commencerLexique, indexerVocabulaire, normaliserParEtapes,
-  type ConflitDeVocabulaire, type ConventionsParCategorie, type Convention, type IndexDuVocabulaire, type Lexique, type ResultatDuLexique,
-} from '@ucm-kit/core/referentiel';
-import { cheminsEnConflit, inventairePublie, type CollisionDeChemin } from './cheminsPublies';
-import { estProtegee, type Inventaire, type OptionsDeProtection } from './inventaireDeNoms';
-import type { EcritureChoisie, ReglesPourLeCalcul } from './reglesDeNommage';
+import type { Convention, ConventionsParCategorie } from '../referentiel/conventions.js';
+import type { ConflitDeVocabulaire, IndexDuVocabulaire, Lexique, ResultatDuLexique } from '../referentiel/harmonisation.js';
+import { commencerLexique, normaliserParEtapes } from '../referentiel/lexique.js';
+import { indexerVocabulaire } from '../referentiel/vocabulaire-du-fichier.js';
+import type { EcritureChoisie, ReglesPourLeCalcul } from '../protocoles/nommage.js';
+import { cheminsEnConflit, inventairePublie, type CollisionDeChemin } from './chemins-publies.js';
+import { estProtegee, type Inventaire, type OptionsDeProtection } from './inventaire.js';
 
 export interface MoteurDeNommage {
   readonly commencerLexique: typeof commencerLexique;

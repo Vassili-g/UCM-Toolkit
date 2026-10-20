@@ -5,7 +5,7 @@
  */
 import type { EtatDesTokens } from '../presentation';
 import { segmentsDuGroupe, type Destination } from './destination';
-import type { EntreeDuPlan } from './plan';
+import { nomsDuPlan, type EntreeDuPlan } from './plan';
 import type { VariableLue } from './releve';
 import type { PaletteSuivie } from './suivi';
 
@@ -29,6 +29,15 @@ export interface CouleurAEcrire {
   readonly plugin: string;
 }
 
+/** Une variable que l'écriture renomme. */
+export interface RenommageExecute {
+  readonly id: string;
+  readonly de: string;
+  readonly vers: string;
+  /** `regles` : le fichier porte le nom brut du plan, et seules les règles de nommage le changent. */
+  readonly cause: 'forme' | 'regles';
+}
+
 export interface EtatDesTokensDUnePalette {
   readonly etat: EtatDesTokens;
   /** Une clé d'entrée par variable absente, même quand Light et Dark partagent cette variable. */
@@ -40,10 +49,17 @@ export interface EtatDesTokensDUnePalette {
   /** Vrai quand la palette a été écrite vers une autre collection, un autre groupe ou une autre forme de thèmes. */
   readonly destinationChangee: boolean;
   /**
-   * Les variables d'une palette reprise dont le nom n'est pas celui du plan : l'ancien nom et le nouveau ([VAR-13]).
-   * Une variable qui porte le nom d'avant les règles de nommage n'y est pas : UCM Nomenclature propose ce renommage.
+   * Reprise : chaque variable que l'écriture renomme, parce que son nom diffère de celui du plan ([VAR-13]).
+   * Seul un renommage de forme rend la palette « à mettre à jour ». Vide pour une destination (D2).
    */
-  readonly aRenommer: readonly { readonly de: string; readonly vers: string }[];
+  readonly aRenommer: readonly RenommageExecute[];
+  /**
+   * Destination : les variables suivies dont le nom du fichier n'est pas celui du plan. L'écriture les garde,
+   * UCM Nomenclature les renomme (D2).
+   */
+  readonly ecartsLaissesANomenclature: readonly { readonly id: string; readonly nom: string; readonly plan: string }[];
+  /** Les noms du plan, sans doublon, dans son ordre. */
+  readonly nomsDuPlan: readonly string[];
 }
 
 /** Les segments du groupe et de la palette d'un nom, sans casse : là où la variable est rangée. */
@@ -94,6 +110,7 @@ export function etatDesTokens(
   lues: ReadonlyMap<string, VariableLue>,
   destination: Destination,
 ): EtatDesTokensDUnePalette {
+  const noms = nomsDuPlan(plan).filter((nom) => nom !== '');
   if (!suivi || Object.keys(suivi.variables).length === 0) {
     return {
       etat: 'jamais-ecrits',
@@ -102,13 +119,16 @@ export function etatDesTokens(
       aEcrire: plan.map((entree) => ({ cle: entree.cle, nom: entree.nom, ecrite: null, plugin: entree.hexa })),
       destinationChangee: false,
       aRenommer: [],
+      ecartsLaissesANomenclature: [],
+      nomsDuPlan: noms,
     };
   }
   const introuvables: string[] = [];
   const variablesAbsentes = new Set<string>();
   const modifiees: CouleurModifiee[] = [];
   const aEcrire: CouleurAEcrire[] = [];
-  const aRenommer = new Map<string, { de: string; vers: string }>();
+  const aRenommer = new Map<string, RenommageExecute>();
+  const ecarts = new Map<string, { id: string; nom: string; plan: string }>();
   for (const entree of plan) {
     const suivie = suivi.variables[entree.cle];
     if (!suivie) {
@@ -123,7 +143,11 @@ export function etatDesTokens(
       }
       continue;
     }
-    if (suivi.liaison === 'reprise' && entree.nom !== '' && lue.nom !== entree.nom && lue.nom !== entree.brut) aRenommer.set(lue.id, { de: lue.nom, vers: entree.nom });
+    if (entree.nom !== '' && lue.nom !== entree.nom) {
+      // Une reprise est renommée par l'écriture ; une palette de la destination garde le nom du fichier (D2).
+      if (suivi.liaison === 'reprise') aRenommer.set(lue.id, { id: lue.id, de: lue.nom, vers: entree.nom, cause: lue.nom === entree.brut ? 'regles' : 'forme' });
+      else if (!ecarts.has(lue.id)) ecarts.set(lue.id, { id: lue.id, nom: lue.nom, plan: entree.nom });
+    }
     const theme = entree.cle.split('/')[1];
     // Le conflit porte sur le mode de la dernière écriture, même si la destination change de forme.
     const mode = suivi.liaison === 'destination'
@@ -142,8 +166,8 @@ export function etatDesTokens(
     ? 'introuvables'
     : modifiees.length > 0
       ? 'modifies'
-      : aEcrire.length > 0 || changee || aRenommer.size > 0
+      : aEcrire.length > 0 || changee || [...aRenommer.values()].some((renommage) => renommage.cause === 'forme')
         ? 'a-mettre-a-jour'
         : 'a-jour';
-  return { etat, introuvables, modifiees, aEcrire, destinationChangee: changee, aRenommer: [...aRenommer.values()] };
+  return { etat, introuvables, modifiees, aEcrire, destinationChangee: changee, aRenommer: [...aRenommer.values()], ecartsLaissesANomenclature: [...ecarts.values()], nomsDuPlan: noms };
 }

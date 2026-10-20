@@ -17,12 +17,11 @@
  *   lever, et le texte d'aide du maître partirait dans le contrat.
  */
 import {
-  COMPONENT_NAME_LAYER,
+  CALQUES_DU_KIT_DE_REGLES,
+  MAITRES_DU_KIT_DE_REGLES,
   MARQUEUR_A_COMPLETER,
   porteLeMarqueur,
-  RULES_CONTAINER_NAME,
-  RULE_ITEM_NAME,
-} from '../contract/extractRules';
+} from '@ucm-kit/core/referentiel';
 import { nombreDeRegles } from './modele';
 import type { ElementDeModele, ModeleDeRegles, SectionDeModele } from './modele';
 import type { SourcesDeCreation } from './sources';
@@ -75,7 +74,7 @@ async function slotFrais(porteur: InstanceNode, nom: string): Promise<SlotNode> 
   if (!slot) {
     throw new Error(
       `« ${porteur.name} » ne porte pas de slot « ${nom} ». Ce composant n'est pas celui `
-        + `que « ${RULES_CONTAINER_NAME} » attend.`,
+        + `que « ${MAITRES_DU_KIT_DE_REGLES.conteneur} » attend.`,
     );
   }
   return slot;
@@ -162,8 +161,8 @@ function maitreDe(element: ElementDeModele, sources: SourcesDeCreation): Compone
   const variante = sources.regles.get(element.tag);
   if (!variante) {
     throw new Error(
-      `« ${RULE_ITEM_NAME} » ne porte aucun exemple « @${element.tag} » dans `
-        + `« ${RULES_CONTAINER_NAME} ». Ajoutez-en un, puis recommencez.`,
+      `« ${MAITRES_DU_KIT_DE_REGLES.regle} » ne porte aucun exemple « @${element.tag} » dans `
+        + `« ${MAITRES_DU_KIT_DE_REGLES.conteneur} ». Ajoutez-en un, puis recommencez.`,
     );
   }
   return variante;
@@ -179,9 +178,9 @@ function maitreDe(element: ElementDeModele, sources: SourcesDeCreation): Compone
  * n'est pas réécrit.
  */
 async function marquerLeCalqueIcon(regle: InstanceNode): Promise<void> {
-  const calque = calqueTexte(await frais(regle), 'icon');
+  const calque = calqueTexte(await frais(regle), CALQUES_DU_KIT_DE_REGLES.icone);
   if (!calque || porteLeMarqueur(calque.characters)) return;
-  await ecrireDans(regle, 'icon', `${MARQUEUR_A_COMPLETER} ${calque.characters}`);
+  await ecrireDans(regle, CALQUES_DU_KIT_DE_REGLES.icone, `${MARQUEUR_A_COMPLETER} ${calque.characters}`);
 }
 
 /**
@@ -201,7 +200,7 @@ async function poserUnElement(
   const regle = maitre.createInstance();
   enAttente.add(regle);
   if (element.genre === 'regle' && element.cible) {
-    await ecrireDans(regle, 'prop', element.cible);
+    await ecrireDans(regle, CALQUES_DU_KIT_DE_REGLES.cible, element.cible);
   }
   if (element.genre === 'regle' && element.tag === 'icons') await marquerLeCalqueIcon(regle);
   (await slotFrais(section, SLOT_DES_REGLES)).appendChild(regle);
@@ -231,7 +230,7 @@ async function poserUneSection(
   const maitre = sources.sections.get(section.tag);
   if (!maitre) {
     throw new Error(
-      `« ${RULES_CONTAINER_NAME} » ne range aucune section pour « @${section.tag} ». `
+      `« ${MAITRES_DU_KIT_DE_REGLES.conteneur} » ne range aucune section pour « @${section.tag} ». `
         + 'Ajoutez-y un exemple de cette règle, puis recommencez.',
     );
   }
@@ -366,7 +365,7 @@ export async function creerLesRegles(
       await poserUneSection(section, conteneur, sources, enAttente);
       posees += section.elements.filter((element) => element.genre === 'regle').length;
     }
-    await ecrireDans(conteneur, COMPONENT_NAME_LAYER, modele.nom);
+    await ecrireDans(conteneur, CALQUES_DU_KIT_DE_REGLES.nomDuComposant, modele.nom);
     if (!remplissait) placer(conteneur, composant);
     return { conteneur, regles: nombreDeRegles(modele) };
   } catch (erreur) {

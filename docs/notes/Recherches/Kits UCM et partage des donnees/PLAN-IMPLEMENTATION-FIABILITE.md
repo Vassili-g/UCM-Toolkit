@@ -6,7 +6,8 @@ porte le pourquoi, les exemples et les décisions D1 à D8 ; ce document porte l
 qui et le comment. En cas de désaccord entre les deux, le plan de fiabilité
 fait foi et la conversation principale corrige ce document.
 
-Cocher une case quand la tâche est faite, avec le hash du commit qui la porte.
+Cocher une case quand la tâche est faite. Avant le commit, indiquer « non
+commité » ; remplacer cette mention par le hash du commit qui la porte.
 
 ## Qui fait quoi
 
@@ -85,25 +86,32 @@ publication finale.
 
 Puis cocher le lot dans l'avancement du plan de fiabilité, avec son hash.
 
+**Clôture commune des lots 2 à 7 et 9 à 14** (demande du mainteneur, pour
+économiser) : Codex a laissé ces lots mêlés dans les mêmes fichiers, sans
+commit. Ils se ferment ensemble : une relecture des diffs par échantillon,
+une seule vérification complète, un seul commit, une seule montée de version
+(kit 0.11.0, CLI 0.1.74, adaptateur 0.1.67 : le kit gagne les portes
+`protocoles` et `nommage`), puis la publication finale.
+
 ## Avancement
 
 - [x] Lot 8. La fabrication et la vérification (b805f6a5)
 - [x] Lot 17. Les nouveaux noms des couches UCM (0ccbff70)
 - [x] Lot 1. L'explorateur reconnaît le thème quelle que soit son écriture (42dd8719)
-- [ ] Lot 2. Une comparaison qui n'a pas pu se faire le dit
-- [ ] Lot 3. Une couleur de composant vise le thème
-- [ ] Lot 5. Palettes annonce ce qu'il écrit, sur un lot entier
-- [ ] Lot 4. Les protections de Nomenclature tiennent et s'expliquent
-- [ ] Lot 6. La grammaire décrit toutes les palettes du profil UCM
-- [ ] Lot 14. La destination de Palettes en full UCM
+- [ ] Lot 2. Une comparaison qui n'a pas pu se faire le dit (tâches faites, non commité ; clôture commune)
+- [ ] Lot 3. Une couleur de composant vise le thème (tâches faites, non commité ; clôture commune)
+- [ ] Lot 5. Palettes annonce ce qu'il écrit, sur un lot entier (tâches faites, non commité ; clôture commune)
+- [ ] Lot 4. Les protections de Nomenclature tiennent et s'expliquent (tâches faites, non commité ; clôture commune)
+- [ ] Lot 6. La grammaire décrit toutes les palettes du profil UCM (tâches faites, non commité ; clôture commune)
+- [ ] Lot 14. La destination de Palettes en full UCM (tâches faites, non commité ; clôture commune)
 - [x] Lot 15. La CLI distingue une erreur de Git d'un changement (0ccbff70)
 - [x] Lot 16. L'adaptateur TypeScript refuse un type incompatible (0ccbff70)
-- [ ] Lot 9. Les chemins de tokens et les axes dans le kit
-- [ ] Lot 10. Les rôles de rendu dans le kit
-- [ ] Lot 11. Les protocoles entre plugins dans le kit
-- [ ] Lot 12. Le calcul du nommage dans le kit
-- [ ] Lot 13. La grammaire du kit de règles Figma dans le référentiel
-- [ ] Lot 7. Des lois entre produits
+- [ ] Lot 9. Les chemins de tokens et les axes dans le kit (tâches faites, non commité ; clôture commune)
+- [ ] Lot 10. Les rôles de rendu dans le kit (tâches faites, non commité ; clôture commune)
+- [ ] Lot 11. Les protocoles entre plugins dans le kit (tâches faites, non commité ; clôture commune)
+- [ ] Lot 12. Le calcul du nommage dans le kit (tâches faites, non commité ; clôture commune)
+- [ ] Lot 13. La grammaire du kit de règles Figma dans le référentiel (tâches faites, non commité ; clôture commune)
+- [ ] Lot 7. Des lois entre produits (tâches faites, non commité ; clôture commune)
 
 Parallélisme : le mainteneur a demandé plusieurs agents en parallèle pour ce
 plan, au-delà des deux de `CLAUDE.md`. Deux tâches ne tournent en même temps
@@ -418,7 +426,7 @@ Plan de fiabilité, section « Lot 2 ». Sondes de Codex :
   - Tests : chaque règle de la note ; une forme inconnue rend `non-comparable`,
     jamais `egal`.
   - Fini quand : tests du kit verts.
-- [ ] **T2.2** · `implementeur` · L'explorateur garde l'espace de couleur
+- [x] **T2.2** (non commité) · `implementeur` · L'explorateur garde l'espace de couleur
   - Fichiers : `packages/plugin-explorateur/src/lecture.ts` (`Releve`,
     `PortDeLecture`), `src/modele.ts`, `src/contraste.ts`, les copies CSS, les
     tests.
@@ -427,7 +435,7 @@ Plan de fiabilité, section « Lot 2 ». Sondes de Codex :
     contraste et les copies l'emploient.
   - Tests : mêmes canaux en sRGB et en Display P3.
   - Fini quand : tests verts.
-- [ ] **T2.3** · `implementeur-exigeant` · Comparaisons et contrôles de l'explorateur
+- [x] **T2.3** (non commité ; un rôle inconnu est une limite, selon conception/lot-2.md) · `implementeur-exigeant` · Comparaisons et contrôles de l'explorateur
   - Entrée : `conception/lot-2.md`, résultats de T2.1 et T2.2.
   - Fichiers : `packages/plugin-explorateur/src/integrations/contrats.ts`
     (`valeurDtcg`, `memeValeur`, `ecartsAvecLExport`),
@@ -437,7 +445,7 @@ Plan de fiabilité, section « Lot 2 ». Sondes de Codex :
     un rôle inconnu donne un constat d'information, sauf `identity`.
   - Tests : les six sondes de Codex deviennent des tests ; courbes identiques.
   - Fini quand : tests verts.
-- [ ] **T2.4** · `implementeur` · L'écran de l'inspecteur
+- [x] **T2.4** (non commité) · `implementeur` · L'écran de l'inspecteur
   - Entrée : textes de `conception/lot-2.md`.
   - Fichiers : `packages/plugin-explorateur/src/ui/vues/integrations.ts`
     (`sectionContratsDeLInspecteur`), `src/ui/textes.ts`, la galerie de
@@ -448,7 +456,7 @@ Plan de fiabilité, section « Lot 2 ». Sondes de Codex :
     modèle.
   - Fini quand : tests verts ; la conversation principale relit les états de
     galerie.
-- [ ] **T2.5** · `implementeur` · Les déclarations des lecteurs suivent le code
+- [x] **T2.5** (non commité) · `implementeur` · Les déclarations des lecteurs suivent le code
   - Constat de T2.1 : `packages/kit/src/lecteurs/index.d.mts` déclare
     `porteLaTableDesEmplois`, `constatsDesEmplois`, `sectionEmplois` et
     `resumeTerminalEmplois`, qu'aucun module n'exporte plus ; `index.mjs`
@@ -457,13 +465,22 @@ Plan de fiabilité, section « Lot 2 ». Sondes de Codex :
   - Fichiers : `index.d.mts`, `navigateur.d.mts`, un test du kit qui compare les
     noms exportés de `index.mjs` et `navigateur.mjs` aux noms déclarés.
   - Fini quand : le test passe, et il échoue sur un nom déclaré sans export.
-- [ ] **Clôture du lot 2** (numéro du kit monté)
+- [x] **T2.6** (non commité) · `implementeur` · L'affichage suit l'espace, et les documents suivent le code
+  - Constat de T2.4 : en Display P3, le tableau et `texteDeValeur` affichent
+    les canaux bruts comme un hexadécimal sRGB ; la section du profil de
+    l'inspecteur n'affiche pas les limites de la variable ; la SPEC de
+    l'explorateur et `AGENTS.md` ne décrivent ni l'espace ni les limites.
+  - Faire : l'affichage passe par la conversion de la copie ; la section du
+    profil de l'inspecteur montre les limites de la variable ; les deux
+    documents décrivent l'état actuel.
+  - Fini quand : tests, galerie et `inventaireInvariants` verts.
+- [ ] **Clôture du lot 2** (clôture commune ; kit 0.11.0)
 
 ## Lot 3. Une couleur de composant vise le thème
 
 Plan de fiabilité, section « Lot 3 ».
 
-- [ ] **T3.1** · `implementeur` · Les cibles selon la nature
+- [x] **T3.1** (non commité) · `implementeur` · Les cibles selon la nature
   - Fichiers : `packages/kit/src/referentiel/architecture.ts`,
     `packages/plugin-explorateur/src/integrations/profilUcm.ts`
     (`controlerLeProfil`, `CIBLES_DES_COUCHES`), les tests des deux paquets.
@@ -476,7 +493,7 @@ Plan de fiabilité, section « Lot 3 ».
     couleur de composant vers `theme` acceptée, vers `layout`, `typography` ou
     `primitives` signalée.
   - Fini quand : la sonde `C01` de Codex est un test qui passe.
-- [ ] **Clôture du lot 3** (numéro du kit monté)
+- [ ] **Clôture du lot 3** (clôture commune ; kit 0.11.0)
 
 ## Lot 5. Palettes annonce ce qu'il écrit, sur un lot entier
 
@@ -492,13 +509,13 @@ Plan de fiabilité, section « Lot 5 », décision D2. Sondes de Codex :
     (`ecriture/variables.ts`) le consomment, les trois listes de l'état des
     tokens (renommages exécutés, écarts laissés à Nomenclature, noms du plan),
     la stratégie de restauration de F06, et les textes de l'encart.
-- [ ] **T5.1** · `implementeur` · Un double de Figma qui accepte les doublons
+- [x] **T5.1** (non commité ; double permissif, 4 tests verts) · `implementeur` · Un double de Figma qui accepte les doublons
   - Fichiers : `packages/plugin-palettes/tests/figmaDeTest.ts`.
   - Faire : une option du `FauxFigma` qui accepte deux variables de même nom,
     comme le guide de Figma l'indique possible ; l'option par défaut ne change
     pas.
   - Fini quand : les tests existants passent inchangés.
-- [ ] **T5.2** · `implementeur-exigeant` · Le plan du lot entier
+- [x] **T5.2** (non commité) · `implementeur-exigeant` · Le plan du lot entier
   - Entrée : `conception/lot-5.md`.
   - Fichiers : ceux que la note désigne dans `packages/plugin-palettes/src/variables/`
     et `src/ecriture/variables.ts`, les tests.
@@ -510,7 +527,7 @@ Plan de fiabilité, section « Lot 5 », décision D2. Sondes de Codex :
     occupant tiers.
   - Fini quand : le refus se produit avant toute création de la palette
     concernée, et l'annonce le dit.
-- [ ] **T5.3** · `implementeur-exigeant` · Récupérer un rangement refusé (F06)
+- [x] **T5.3** (non commité) · `implementeur-exigeant` · Récupérer un rangement refusé (F06)
   - Entrée : `conception/lot-5.md`.
   - Fichiers : `packages/plugin-palettes/src/ecriture/variables.ts`, les tests.
   - Faire : la stratégie de la note : préparer les restaurations avant la
@@ -521,7 +538,7 @@ Plan de fiabilité, section « Lot 5 », décision D2. Sondes de Codex :
     variable, au rangement du suivi, à une restauration.
   - Fini quand : aucune variable créée n'est laissée sans suivi ni issue qui la
     décrit.
-- [ ] **T5.4** · `implementeur` · L'encart annonce les renommages exécutés
+- [x] **T5.4** (non commité) · `implementeur` · L'encart annonce les renommages exécutés
   - Entrée : textes de `conception/lot-5.md`.
   - Fichiers : `packages/plugin-palettes/src/variables/etat.ts`,
     `src/ui/ongletGestion.ts`, `src/i18n/fr.ts`, `src/i18n/en.ts`, la galerie
@@ -543,7 +560,7 @@ Plan de fiabilité, section « Lot 5 », décision D2. Sondes de Codex :
     même cas : aucune annonce de renommage, aucun renommage.
   - Fini quand : tests verts ; la conversation principale relit les états de
     galerie de l'encart.
-- [ ] **Clôture du lot 5** (sans publication)
+- [ ] **Clôture du lot 5** (clôture commune)
 
 ## Lot 4. Les protections de Nomenclature tiennent et s'expliquent
 
@@ -562,7 +579,7 @@ Plan de fiabilité, section « Lot 4 », décision D4. Sondes de Codex :
     quand la marque est posée sans règles rangées ou que la lecture est
     refusée ; la Configuration écrit « palettes protégées » sans raison
     (`ui/configuration.ts`).
-- [ ] **T4.1** · `implementeur-exigeant` · Une lecture refusée garde la protection
+- [x] **T4.1** (non commité ; lecture, suspension, écriture et annulation ; 137 tests verts) · `implementeur-exigeant` · Une lecture refusée garde la protection
   - Entrée : `conception/lot-4.md`.
   - Fichiers : `packages/plugin-nomenclature/src/lectureFigma.ts`
     (`lecteurDeVariablesFigma`), `packages/plugin-socle/src/inventaireDeNoms.ts`,
@@ -573,7 +590,7 @@ Plan de fiabilité, section « Lot 4 », décision D4. Sondes de Codex :
   - Tests : reprise sans marqueur individuel, lecture racine refusée, puis
     rétablie.
   - Fini quand : tests verts.
-- [ ] **T4.2** · `implementeur` · Nomenclature explique la protection
+- [x] **T4.2** (non commité) · `implementeur` · Nomenclature explique la protection
   - Entrée : textes de `conception/lot-4.md`.
   - Fichiers : `packages/plugin-nomenclature/src/ui/textes.ts` et les vues qui
     affichent le compte « protégés », la galerie et ses tests.
@@ -583,10 +600,18 @@ Plan de fiabilité, section « Lot 4 », décision D4. Sondes de Codex :
   - Tests : un état de galerie et un test par cas ; marque absente, courante,
     invalide, future ; règles absentes, rangées, illisibles.
   - Fini quand : tests verts ; la conversation principale relit les états.
-- [ ] **T4.3** · Conversation principale · L'exception de la marque dans `AGENTS.md`
+- [x] **T4.3** (non commité ; exception et risque documentés) · Conversation principale · L'exception de la marque dans `AGENTS.md`
   - Faire : écrire dans `AGENTS.md`, groupe « écriture dans le document »,
     l'exception de D4 et le risque d'une ancienne version de Palettes.
-- [ ] **Clôture du lot 4** (sans publication)
+- [x] **T4.4** (non commité) · `implementeur` · Une annulation non vérifiée le dit
+  - Constat de T4.2 : une annulation partielle dont des lignes sont sautées en
+    `non-verifiee` affiche « … ont changé depuis le renommage », faux pour ces
+    lignes, dans l'annonce et dans la Configuration.
+  - Faire : un texte propre aux lignes non vérifiées, le même dans l'annonce et
+    dans l'Historique ; `annonceDUneAnnulation` ne les compte plus dans
+    `autres`.
+  - Fini quand : tests et galerie de Nomenclature verts.
+- [ ] **Clôture du lot 4** (clôture commune)
 
 ## Lot 6. La grammaire décrit toutes les palettes du profil UCM
 
@@ -599,7 +624,7 @@ Plan de fiabilité, section « Lot 6 », décisions D1 et D7. Sonde de Codex :
     de `primitives` selon que les thèmes sont en modes, et le type de la
     reconnaissance structurée (forme reconnue, rôle de chaque segment) dont
     `cheminConforme` dérive son booléen.
-- [ ] **T6.1** · `implementeur-exigeant` · Les numéros et les formes
+- [x] **T6.1** (non commité) · `implementeur-exigeant` · Les numéros et les formes
   - Entrée : `conception/lot-6.md`.
   - Fichiers : `packages/kit/src/referentiel/vocabulaire.ts`,
     `architecture.ts`, `packages/couleur/src/nuances.ts` (`PREREGLAGES[13]`
@@ -616,18 +641,18 @@ Plan de fiabilité, section « Lot 6 », décisions D1 et D7. Sonde de Codex :
     `color/Ocean/soft/50` en modes est reconnu comme intensité, pas comme
     mode ; une sortie vers un groupe libre n'est pas déclarée fautive.
   - Fini quand : tests du kit et du moteur verts.
-- [ ] **T6.2** · `executant` · Planche et vue
+- [x] **T6.2** (sans diff : planche et vue déjà à jour) · `executant` · Planche et vue
   - Faire : `npm run planche --workspace ucm-couleur`, puis
     `npx tsx "docs/notes/Recherches/Archi Tokens Multi-marques/generer-donnees-referentiel.ts"` ;
     rendre la liste des fichiers changés.
-- [ ] **Clôture du lot 6** (numéro du kit monté)
+- [ ] **Clôture du lot 6** (clôture commune ; kit 0.11.0)
 
 ## Lot 14. La destination de Palettes en full UCM
 
 Plan de fiabilité, section « Lot 14 », décision D5. Sonde de Codex :
 `destination-theme`.
 
-- [ ] **T14.0** · Conversation principale · **Conception**
+- [x] **T14.0** (conception/lot-14.md, non commité) · Conversation principale · **Conception**
   - Fixer dans `conception/lot-14.md` : la clé partagée de l'interrupteur full
     UCM (espace, nom, forme `{ version, … }`, classement absent, courant,
     illisible, futur), son déclarant dans le kit, sa place dans la
@@ -635,13 +660,13 @@ Plan de fiabilité, section « Lot 14 », décision D5. Sonde de Codex :
     `createInterrupteur` comme l'exporteur), son entrée dans l'Historique de la
     Configuration, sa lecture par Palettes, et le message de refus écrit avec
     la skill `rediger-diagnostics-ucm`.
-- [ ] **T14.2** · `implementeur` · L'interrupteur full UCM de Nomenclature
+- [x] **T14.2** (non commité ; tests du protocole et des trois états de galerie verts) · `implementeur` · L'interrupteur full UCM de Nomenclature
   - Entrée : `conception/lot-14.md`.
   - Fichiers : ceux que la note désigne dans `packages/plugin-nomenclature/`
     (Configuration, textes, historique, protocole, galerie) et le kit.
   - Fini quand : tests et galerie de Nomenclature verts ; la conversation
     principale relit l'état de galerie.
-- [ ] **T14.1** · `implementeur` · Refuser une couche interdite (après T14.2)
+- [x] **T14.1** (non commité ; 41 tests dédiés et 38 tests d’écriture verts) · `implementeur` · Refuser une couche interdite (après T14.2)
   - Fichiers : `packages/kit/src/referentiel/architecture.ts` (exporter la
     liste des couches où Palettes n'écrit pas : `theme`, `brands`, `utility`),
     `packages/plugin-palettes/src/variables/destination.ts`
@@ -657,7 +682,9 @@ Plan de fiabilité, section « Lot 14 », décision D5. Sonde de Codex :
   - Tests : une collection par couche ; une collection libre ; le refus avant
     mutation.
   - Fini quand : tests verts.
-- [ ] **Clôture du lot 14** (numéro du kit monté s'il a changé)
+- [ ] **Clôture du lot 14** (clôture commune ; kit 0.11.0). Les trois états
+  de galerie de Nomenclature sont testés dans le DOM ; leur relecture visuelle
+  reste à faire.
 
 ## Lot 15. La CLI distingue une erreur de Git d'un changement
 
@@ -705,7 +732,7 @@ Plan de fiabilité, section « Lot 16 ». Sonde de Codex : `enum-nombre`.
 
 Plan de fiabilité, sections « Le principe des lots 9 à 13 » et « Lot 9 ».
 
-- [ ] **T9.1** · `implementeur-exigeant` · Les chemins dans `core/format`
+- [x] **T9.1** (non commité ; 35 tests des chemins et comparaisons verts) · `implementeur-exigeant` · Les chemins dans `core/format`
   - Fichiers : `packages/kit/src/format/names.ts` (ou un module nouveau publié
     par `format/index.ts`), `packages/plugin-socle/src/cheminsDeTokens.ts`
     (réexport temporaire), et les clients relevés : `plugin-exporter/src/variables.ts`
@@ -720,27 +747,27 @@ Plan de fiabilité, sections « Le principe des lots 9 à 13 » et « Lot 9 ».
   - Tests : les tests existants passent sans changement d'attente.
   - Fini quand : `git grep cheminsDeTokens` ne rend plus rien hors de
     l'historique.
-- [ ] **T9.2** · Conversation principale · **Conception** des axes
+- [x] **T9.2** (conception/lot-9.md, non commité) · Conversation principale · **Conception** des axes
   - Fixer dans `conception/lot-9.md` la fonction unique des axes et de leurs
     collisions, sur un inventaire portable, à partir de `axesDesCollections`
     (`plugin-exporter/src/tokens/exportTokens.ts`), que le socle reproduit
     sans l'importer par `axesPrevus` et `axesDeLExport`
     (`plugin-socle/src/cheminsPublies.ts`), et de leurs différences relevées
     par `tests/axesDeModes.test.ts`.
-- [ ] **T9.3** · `implementeur-exigeant` · Une seule décision des axes
+- [x] **T9.3** (non commité) · `implementeur-exigeant` · Une seule décision des axes
   - Entrée : `conception/lot-9.md`.
   - Fichiers : le kit, `cheminsPublies.ts`, `exportTokens.ts`,
     `tests/axesDeModes.test.ts`.
   - Tests : les sorties de l'exporteur identiques octet pour octet sur ses
     tests ; `axesDeModes.test.ts` teste la fonction unique.
   - Fini quand : une seule implémentation.
-- [ ] **Clôture du lot 9** (numéro du kit monté)
+- [ ] **Clôture du lot 9** (clôture commune ; kit 0.11.0)
 
 ## Lot 10. Les rôles de rendu dans le kit
 
 Plan de fiabilité, section « Lot 10 ».
 
-- [ ] **T10.1** · `implementeur-exigeant` · La table des rôles
+- [x] **T10.1** (non commité) · `implementeur-exigeant` · La table des rôles
   - Fichiers : un module nouveau dans `packages/kit/src/format/`,
     `packages/plugin-exporter/src/contract/semantics.ts`
     (`defaultRenderingSemantics`, `renderableRoles`, `roleKind`),
@@ -752,27 +779,27 @@ Plan de fiabilité, section « Lot 10 ».
   - Tests : contrats des tests de l'exporteur identiques octet pour octet ; un
     rôle sans nature fait échouer un test.
   - Fini quand : aucune liste de rôles hors de la table.
-- [ ] **Clôture du lot 10**
+- [ ] **Clôture du lot 10** (clôture commune ; kit 0.11.0)
 
 ## Lot 11. Les protocoles entre plugins dans le kit
 
 Plan de fiabilité, section « Lot 11 », et section « Les données partagées, par
 adresse » de la revue de Codex.
 
-- [ ] **T11.0** · Conversation principale · **Conception**
+- [x] **T11.0** (conception/lot-11.md, non commité) · Conversation principale · **Conception**
   - Fixer dans `conception/lot-11.md` : l'arborescence de
     `packages/kit/src/protocoles/` (modules `palettes`, `nommage`,
     `regles-usage`, `index.ts`), l'entrée `./protocoles` de `exports`, le type
     commun du classement d'un contenu lu (absent, illisible, refusé, ancien,
     courant, futur), et pour la recette la frontière entre le lecteur du kit et
     les migrations qui restent dans `ucm-couleur`.
-- [ ] **T11.1** · `implementeur` · La porte et le classement
+- [x] **T11.1** (non commité) · `implementeur` · La porte et le classement
   - Entrée : `conception/lot-11.md`.
   - Fichiers : `packages/kit/src/protocoles/`, `packages/kit/package.json`,
     `packages/kit/tests/paquetPublie.test.mjs`, `porteNavigateur.test.mjs`,
     `packages/kit/README.md`, `packages/kit/src/referentiel/produits.ts`.
   - Fini quand : la porte s'importe dans Node et dans la porte navigateur.
-- [ ] **T11.2** · `implementeur-exigeant` · Suivi et marque
+- [x] **T11.2** (non commité) · `implementeur-exigeant` · Suivi et marque
   - Fichiers : le module `palettes`, `packages/plugin-palettes/src/variables/suivi.ts`
     (`lireLeSuivi`), `src/ecriture/marque.ts`,
     `packages/plugin-socle/src/inventaireDeNoms.ts`
@@ -783,7 +810,7 @@ adresse » de la revue de Codex.
   - Tests : octets du producteur lus par chaque lecteur ; absence, JSON
     invalide, lecture refusée, versions ancienne, courante, future.
   - Fini quand : tests verts, sorties de Palettes identiques.
-- [ ] **T11.3** · `implementeur-exigeant` · La recette
+- [x] **T11.3** (non commité ; `PREMIER_FORMAT_LISIBLE` n'existe plus que dans le kit) · `implementeur-exigeant` · La recette
   - Entrée : `conception/lot-11.md`.
   - Fichiers : le module `palettes`, `packages/couleur/src/recette.ts`
     (`classerRecette`), l'explorateur et Palettes qui la lisent, les tests.
@@ -791,19 +818,19 @@ adresse » de la revue de Codex.
     migrations qui calculent restent dans `ucm-couleur` au-dessus du lecteur.
   - Tests : les tests de la recette passent sans changement d'attente.
   - Fini quand : `ucm-couleur` ne porte plus que le calcul et ses migrations.
-- [ ] **Clôture du lot 11** (numéro du kit monté)
+- [ ] **Clôture du lot 11** (clôture commune ; kit 0.11.0)
 
 ## Lot 12. Le calcul du nommage dans le kit
 
 Plan de fiabilité, section « Lot 12 ».
 
-- [ ] **T12.0** · Conversation principale · **Conception**
+- [x] **T12.0** (conception/lot-12.md, non commité) · Conversation principale · **Conception**
   - Fixer dans `conception/lot-12.md` : ce qui passe dans le module `nommage`
     (forme des règles, constructeurs de clés, lecture versionnée) et dans le
     kit (inventaire portable, `estProtegee`, `palettesLibres`,
     `nomsSelonLesRegles`), et ce qui reste au socle (`inventaireDeLectures`,
     ports de lecture).
-- [ ] **T12.1** · `implementeur-exigeant` · Le protocole des règles
+- [x] **T12.1** (non commité) · `implementeur-exigeant` · Le protocole des règles
   - Fichiers : le module `nommage`, `packages/plugin-socle/src/reglesDeNommage.ts`,
     `packages/plugin-nomenclature/src/regles.ts` (`cleTerme`, `cleEcart`,
     `cleOrdinaire`), `packages/plugin-nomenclature/src/projection.ts`
@@ -814,7 +841,7 @@ Plan de fiabilité, section « Lot 12 ».
     `ordinaire:`, employée par Nomenclature pour écrire et par le kit pour
     lire ; une entrée de version future est classée, jamais ignorée en silence.
   - Tests : octets sérialisés par Nomenclature lus par le kit.
-- [ ] **T12.2** · `implementeur-exigeant` · Le calcul
+- [x] **T12.2** (non commité ; Nomenclature refuse aussi l'annulation et les gestes sur les règles quand une entrée est future ; texte en français seulement, Nomenclature n'a pas de catalogue anglais) · `implementeur-exigeant` · Le calcul
   - Fichiers : le kit, `packages/plugin-socle/src/nomsSelonLesRegles.ts`,
     `inventaireDeNoms.ts`, `packages/plugin-palettes/src/variables/nommeur.ts`,
     `packages/plugin-nomenclature/src/session.ts`, `ecriture.ts`, l'explorateur
@@ -824,19 +851,20 @@ Plan de fiabilité, section « Lot 12 ».
     `packages/plugin-nomenclature/tests/nomsDePalettes.test.ts` sans changement
     d'attente.
   - Fini quand : Palettes et Nomenclature appellent la même fonction du kit.
-- [ ] **Clôture du lot 12** (numéro du kit monté)
+- [ ] **Clôture du lot 12** (clôture commune ; kit 0.11.0)
 
 ## Lot 13. La grammaire du kit de règles Figma dans le référentiel
 
 Plan de fiabilité, section « Lot 13 ».
 
-- [ ] **T13.0** · Conversation principale · **Conception**
+- [x] **T13.0** (conception/lot-13.md, non commité) · Conversation principale · **Conception**
   - Fixer dans `conception/lot-13.md` : la grammaire des maîtres (noms,
     calques, tags requis, marqueur), la forme du relevé portable, la signature
     du validateur et le numéro de compatibilité du modèle.
-- [ ] **T13.1** · `implementeur-exigeant` · Grammaire et validateur
-  - Fichiers : `packages/kit/src/referentiel/` (module nouveau), le module
-    `regles-usage` de `protocoles`,
+- [x] **T13.1** (non commité ; refus du kit futur au clic, texte en français seulement : l'exporteur n'a pas de catalogue de langues) · `implementeur-exigeant` · Grammaire et validateur
+  - Fichiers : `packages/kit/src/referentiel/` (module nouveau
+    `kit-de-regles.ts` ; le kit de règles ne range aucune donnée partagée et
+    n'a pas de module dans `protocoles`),
     `packages/plugin-exporter/src/contract/extractRules.ts`,
     `src/template/modele.ts`, `src/template/sources.ts`,
     `src/contract/parsers.ts` (`isDisabledStateValue` si `modele.ts` en a
@@ -845,22 +873,22 @@ Plan de fiabilité, section « Lot 13 ».
     dépend plus que du kit ; une instance remplie n'est jamais modifiée.
   - Tests : chaque tag et calque ; instance vierge et remplie ; sorties de
     l'exporteur identiques.
-- [ ] **T13.2** · `implementeur` · Le guide tenu par un test
+- [x] **T13.2** (non commité) · `implementeur` · Le guide tenu par un test
   - Fichiers : `docs/guides/KIT-DE-REGLES.md`, un test racine.
   - Faire : le test compare la liste des calques et tags du guide à la
     grammaire.
-- [ ] **Clôture du lot 13** (numéro du kit monté)
+- [ ] **Clôture du lot 13** (clôture commune ; kit 0.11.0)
 
 ## Lot 7. Des lois entre produits
 
 Plan de fiabilité, section « Lot 7 ».
 
-- [ ] **T7.0** · Conversation principale · **Conception**
+- [x] **T7.0** (conception/lot-7.md, non commité) · Conversation principale · **Conception**
   - Fixer dans `conception/lot-7.md` : la matrice (conventions, formes,
     liaisons), les fabriques de fichiers de test, et pour la loi 3 la fonction
     pure d'annonce que chaque écran de Palettes appelle (à extraire si elle
     n'existe pas).
-- [ ] **T7.1** · `implementeur-exigeant` · Les lois
+- [x] **T7.1** (non commité ; diagonale de trois formes et une quatrième pour la conversion, 303 lois vertes ; 7 `todo` : une conversion aux thèmes en modes garde les noms bruts, Nomenclature propose encore des renommages, défaut à trancher) · `implementeur-exigeant` · Les lois
   - Entrée : `conception/lot-7.md`.
   - Fichiers : `tests/loisEntreProduits.test.ts`, les extractions de
     fonctions d'annonce dans `packages/plugin-palettes/src/ui/` désignées par
@@ -868,9 +896,9 @@ Plan de fiabilité, section « Lot 7 ».
   - Faire : les huit lois du plan de fiabilité, sur le double de Figma qui
     accepte les doublons.
   - Fini quand : la suite passe.
-- [ ] **T7.2** · `implementeur` · Preuve par les mutants
+- [x] **T7.2** (non commité ; défauts reproduits à la main : 170a6d79 → loi 1 sur la reprise, c93bff20 → loi 3 conversion, 7c673dac → loi 4 nom pris en reprise) · `implementeur` · Preuve par les mutants
   - Faire : retirer une à une les corrections de 170a6d79, c93bff20 et
     7c673dac dans une copie de travail ; relever la loi qui échoue pour
     chacune ; tout remettre. Rendre le tableau correction, loi rouge, message.
   - Fini quand : chaque correction retirée fait échouer une loi nommée.
-- [ ] **Clôture du lot 7**
+- [ ] **Clôture du lot 7** (clôture commune)

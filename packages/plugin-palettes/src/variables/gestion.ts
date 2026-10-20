@@ -6,14 +6,15 @@
  */
 import type { Palette, Recette } from 'ucm-couleur';
 
+import type { Reste } from '../ecriture/variables';
+import type { ResteNomme } from '../i18n/fr';
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import type { Destination } from './destination';
-import { etatDesTokens, type EtatDesTokensDUnePalette } from './etat';
+import type { EtatDesTokensDUnePalette } from './etat';
 import { nomsDuPlan, nommerLePlan, planDesVariables } from './plan';
-import { nommeurDuFichier, planDeLaPalette } from './nommeur';
-import type { VariableLue } from './releve';
-import { variablesProtegees } from './suivi';
-import { cheminCommun, origineDeLaReprise, variableDeLEntree } from './reprise';
+import { nommeurDuFichier } from './nommeur';
+import { planDuLot } from './lot';
+import { cheminCommun } from './reprise';
 
 export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
   readonly nomsOccupes: readonly string[];
@@ -38,6 +39,7 @@ export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
   readonly reprise: boolean;
   /** Pour une palette reprise, le chemin commun de ses variables d'origine ; `null` sinon. */
   readonly origine: string | null;
+  readonly refus: { readonly nom: string; readonly palette: string } | null;
 }
 
 /**
@@ -47,82 +49,52 @@ export interface TokensDUnePalette extends EtatDesTokensDUnePalette {
  * variables ; sinon, seules celles que le suivi ne désigne plus.
  */
 export function tokensDeLaPalette(recette: Recette, palette: Palette, fichier: VariablesDuFichier): TokensDUnePalette {
-  const { destination } = fichier.suivi;
-  const suivie = fichier.suivi.palettes[palette.id];
-  const origine = suivie?.liaison === 'reprise' ? origineDeLaReprise(suivie, fichier.variables) : null;
-  const nomsOccupes: string[] = [];
-  const lues = new Map<string, VariableLue>(fichier.variables.map((variable) => [variable.id, variable]));
-  const collections = new Map(fichier.collections.map((collection) => [collection.id, collection.nom]));
-  // Les noms sont ceux que l'écriture donnerait : les règles de nommage du fichier, quand il en a.
-  const plan = planDeLaPalette(nommeurDuFichier(fichier), recette, palette, destination, suivie, origine, lues, collections, nomsOccupes);
-  const lu = etatDesTokens(plan, suivie, lues, destination);
-  const etat = { ...lu, etat: lu.etat === 'a-jour' && nomsOccupes.length > 0 ? 'a-mettre-a-jour' as const : lu.etat, nomsOccupes };
-  if (suivie?.liaison === 'reprise') {
-    // Ce que la palette porte de plus que ses variables d'origine se crée sous le chemin du plan.
-    const presentes = new Set<string>();
-    const aCreer = new Set<string>();
-    const variablesDuPlan = new Map<string, VariableLue>();
-    let aRemplacer = 0;
-    for (const entree of plan) {
-      const lue = variableDeLEntree(entree, suivie, origine) ?? variablesDuPlan.get(entree.nom);
-      if (!lue) {
-        if (entree.nom !== '') aCreer.add(entree.nom);
-        continue;
-      }
-      if (entree.nom !== '') variablesDuPlan.set(entree.nom, lue);
-      presentes.add(lue.id);
-      const mode = suivie.modes[entree.mode];
-      // Un thème dont le mode reste à trouver s'écrit dans une variable présente : il compte parmi les couleurs remplacées.
-      if (mode === undefined || lue.valeurs[mode] !== entree.hexa) aRemplacer += 1;
-    }
-    const chemin = origine?.chemin ?? cheminCommun([...presentes].map((id) => lues.get(id)!.nom));
-    const themes = !plan.some((entree) => entree.cle.includes('/dark/')) ? 'light-seul' : plan.some((entree) => entree.mode === 'dark') ? 'modes' : 'chemin';
-    return { ...etat, themes, variables: presentes.size + aCreer.size, aCreer: [...aCreer], existantes: [], variablesExistantes: [], aRemplacer, collection: collections.get(suivie.collection) ?? null, reprise: true, origine: chemin };
-  }
-  const garde = suivie && !etat.destinationChangee && collections.has(suivie.collection) ? suivie : undefined;
-
-  const resolus = new Set<string>();
-  let aRemplacer = 0;
-  for (const entree of plan) {
-    const connue = garde?.variables[entree.cle];
-    const lue = connue ? lues.get(connue.id) : undefined;
-    if (!lue) continue;
-    resolus.add(entree.nom);
-    const mode = garde!.modes[entree.mode];
-    const differente = entree.mode === 'unique'
-      ? fichier.collections.find((collection) => collection.id === garde!.collection)?.modes.some((cible) => lue.valeurs[cible.id] !== entree.hexa)
-      : mode !== undefined && lue.valeurs[mode] !== entree.hexa;
-    if (differente) aRemplacer += 1;
-  }
-  const noms = nomsDuPlan(plan);
-  const collection = garde
-    ? collections.get(garde.collection)!
-    : 'id' in destination.collection ? collections.get(destination.collection.id) ?? null : destination.collection.nom;
-  // Les variables du même nom, sans casse, que la collection de l'écriture porte hors des autres palettes de la recette, comme `ecrireLesVariables` les cherche.
-  const cible = garde ? garde.collection : 'id' in destination.collection ? destination.collection.id : undefined;
-  const protegees = variablesProtegees(fichier.suivi, new Set(recette.palettes.map((autre) => autre.id)), palette.id);
-  const prises = new Map<string, string>();
-  for (const variable of fichier.variables) {
-    const cle = variable.nom.toLowerCase();
-    if (variable.collection === cible && !protegees.has(variable.id) && !prises.has(cle)) prises.set(cle, variable.id);
-  }
-  const sansVariable = noms.filter((nom) => !resolus.has(nom));
-  const existantes = sansVariable.filter((nom) => prises.has(nom.toLowerCase()));
-  // Une palette jamais écrite dont la collection porte déjà les variables est à mettre à jour, pas à écrire.
-  const suite = etat.etat === 'jamais-ecrits' && existantes.length > 0 ? 'a-mettre-a-jour' as const : etat.etat;
+  const decision = planDuLot(recette, fichier, { palettes: [palette.id], remettre: [palette.id], remplacer: [palette.id] }).palettes[0];
+  if (decision.decision === 'absente' || decision.decision === 'modifiee') throw new Error(`Palette sans plan : ${palette.id}`);
+  const ecriture = decision.decision === 'ecrire' ? decision : decision.ecriture;
+  const reprise = ecriture.liaison === 'reprise';
+  const existantes = ecriture.remplacements.map((remplacement) => remplacement.vers);
+  const etat = ecriture.etat.etat === 'a-jour' && ecriture.nomsOccupes.length > 0
+    ? 'a-mettre-a-jour' : ecriture.etat.etat === 'jamais-ecrits' && existantes.length > 0 ? 'a-mettre-a-jour' : ecriture.etat.etat;
+  const visee = ecriture.collection;
+  const collection = 'nom' in visee ? visee.nom : fichier.collections.find((candidate) => candidate.id === visee.id)?.nom ?? null;
+  const presentes = new Set(ecriture.cibles.flatMap((cible) => cible.cible === 'presente' ? [cible.id] : []));
   return {
-    ...etat,
-    etat: suite,
-    themes: destination.themes,
-    variables: noms.length,
-    aCreer: sansVariable.filter((nom) => !prises.has(nom.toLowerCase())),
+    ...ecriture.etat,
+    etat,
+    aRenommer: ecriture.renommages,
+    nomsOccupes: ecriture.nomsOccupes,
+    themes: reprise ? !ecriture.plan.some((entree) => entree.cle.includes('/dark/')) ? 'light-seul' : ecriture.plan.some((entree) => entree.mode === 'dark') ? 'modes' : 'chemin' : fichier.suivi.destination.themes,
+    variables: reprise ? presentes.size + ecriture.creations.length : nomsDuPlan(ecriture.plan).length,
+    aCreer: ecriture.creations.map((creation) => creation.nom),
     existantes,
-    variablesExistantes: existantes.map((nom) => prises.get(nom.toLowerCase())!),
-    aRemplacer,
+    variablesExistantes: ecriture.remplacements.map((remplacement) => remplacement.id),
+    aRemplacer: ecriture.aRemplacer,
     collection,
-    reprise: false,
-    origine: null,
+    reprise,
+    origine: ecriture.origine,
+    refus: decision.decision === 'nom-pris' && decision.occupant.par === 'palette' ? { nom: decision.nom, palette: decision.occupant.palette } : null,
   };
+}
+
+/** Un écart que la mise à jour d'une palette reprise ferait ; la ligne « Tokens Figma » les nomme tous, dans cet ordre. */
+export type EcartDeLaReprise =
+  | { readonly ecart: 'creations'; readonly nombre: number }
+  | { readonly ecart: 'couleurs'; readonly nombre: number; readonly total: number }
+  | { readonly ecart: 'renommages'; readonly nombre: number };
+
+/** Les écarts d'une palette reprise : créations, couleurs qui changent, renommages. Vide quand aucun des trois ne se produit. */
+export function ecartsDeLaReprise(tokens: Pick<TokensDUnePalette, 'aCreer' | 'aRemplacer' | 'aRenommer' | 'variables'>): EcartDeLaReprise[] {
+  return [
+    ...(tokens.aCreer.length > 0 ? [{ ecart: 'creations', nombre: tokens.aCreer.length } as const] : []),
+    ...(tokens.aRemplacer > 0 ? [{ ecart: 'couleurs', nombre: tokens.aRemplacer, total: tokens.variables } as const] : []),
+    ...(tokens.aRenommer.length > 0 ? [{ ecart: 'renommages', nombre: tokens.aRenommer.length } as const] : []),
+  ];
+}
+
+/** Ce qu'une écriture n'a pas pu défaire, tel que l'annonce le nomme : une variable, un mode ou une collection. */
+export function restesNommes(restes: readonly Reste[]): ResteNomme[] {
+  return restes.map((reste) => (reste.reste === 'mode' ? { nom: reste.mode, variable: false } : { nom: reste.nom, variable: reste.reste !== 'collection-creee' }));
 }
 
 /** Les variables qu'une palette supprimée de la recette laisse dans le fichier. */

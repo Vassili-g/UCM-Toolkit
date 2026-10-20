@@ -1,5 +1,7 @@
 /** La lecture des variables : identité, cibles distantes, mutualisation, concurrence, annulation, lecture seule. */
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
 
 import { indexer } from '../src/indexation';
@@ -206,4 +208,16 @@ test('un type de variable inconnu est écarté sans casser la lecture', async ()
   const { port } = portDeTest([collectionFigma('c', 'X', ['M'], ['a', 'b'])], [variableFigma('a', 'c', 'a', 'FUTUR', { 'c:M': 1 }), variableFigma('b', 'c', 'b', 'FLOAT', { 'c:M': 1 })]);
   const issue = await lireLeReleve(port, 'Fichier', 1, sansAnnulation, horloge);
   assert.equal(issue.statut === 'lu' && issue.releve.variables.length, 1);
+});
+
+test('le relevé porte l’espace du profil du document, sRGB sans autre précision', async () => {
+  const { port } = portDeTest([collectionFigma('c', 'Couleurs', ['M'], ['a'])], [variableFigma('a', 'c', 'a', 'COLOR', { 'c:M': { r: 1, g: 0, b: 0, a: 1 } })]);
+  const sansPrecision = await lireLeReleve(port, 'Fichier', 1, sansAnnulation, horloge);
+  const p3 = await lireLeReleve(port, 'Fichier', 1, sansAnnulation, horloge, 'display-p3');
+  assert.deepEqual([sansPrecision, p3].map((issue) => (issue.statut === 'lu' ? issue.releve.espace : null)), ['srgb', 'display-p3']);
+});
+
+test('le sandbox lit le profil du document et le donne à la lecture', () => {
+  const code = fs.readFileSync(path.join(__dirname, '..', 'src', 'code.ts'), 'utf8');
+  assert.match(code, /lireLeReleve\([\s\S]*espaceDuProfil\(figma\.root\.documentColorProfile\)\)/);
 });

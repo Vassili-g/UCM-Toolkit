@@ -688,13 +688,11 @@ export function modeleDeCadre(recette: Recette, palette: Palette, profil: Profil
 }
 
 /** Les calques de chaque partie d'un cadre que le designer peut retirer ([PLA-28]), comptés sur le cadre complet. */
-export interface CalquesDesParties {
+export interface CalquesDesParties extends Readonly<Record<Mode, number>> {
   readonly total: number;
   readonly note: number;
   readonly usages: number;
   readonly grilles: number;
-  readonly light: number;
-  readonly dark: number;
 }
 
 /**

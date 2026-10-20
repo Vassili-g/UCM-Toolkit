@@ -2,9 +2,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { inventaireDeLectures, type Inventaire, type ObjetNomme, type VariableLue } from '../src/inventaireDeNoms';
-import { nomsSelonLesRegles, nomsSelonLesReglesSync, idsNonRenommables } from '../src/nomsSelonLesRegles';
-import { lireReglesDeNommage } from '../src/reglesDeNommage';
+import { idsNonRenommables, nomsSelonLesRegles, nomsSelonLesReglesSync, type Inventaire } from '@ucm-kit/core/nommage';
+import { lireReglesDeNommage } from '@ucm-kit/core/protocoles';
+import { inventaireDeLectures, type ObjetNomme, type VariableLue } from '../src/inventaireDeNoms';
 
 const PALIERS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
 const collections: ObjetNomme[] = [

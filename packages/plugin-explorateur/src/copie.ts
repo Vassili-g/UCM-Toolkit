@@ -2,13 +2,15 @@
  * Ce que chaque commande de copie met dans le presse-papiers. Un nombre reste
  * sans unité, un booléen s'écrit `true` ou `false`, une chaîne vide reste
  * vide. Une couleur se copie en composantes exactes ou en hexadécimal à 8 bits,
- * et la seconde forme annonce son arrondi.
+ * et la seconde forme annonce son arrondi. Dans un document Display P3, les
+ * composantes s'écrivent `color(display-p3 …)` et l'hexadécimal part de la
+ * couleur convertie en sRGB par `versSrgb`, que l'appelant fournit.
  *
  * La référence publiée n'est proposée qu'avec une correspondance vérifiée
  * (`referencePubliee`) : un nom Figma ne donne pas une référence DTCG.
  */
 import type { Index } from './indexation';
-import { composantesDeCouleur, hexaDeCouleur, pourcentageDOpacite, texteDeValeur, type ValeurSource } from './modele';
+import { composantesDeCouleur, espaceDuReleve, hexaDeCouleur, pourcentageDOpacite, texteDeValeur, type Couleur, type ValeurSource } from './modele';
 import type { Etape, Resultat } from './resolution';
 
 export type FormatDeCopie = 'nom' | 'valeur' | 'hexa' | 'composantes' | 'chaine' | 'source' | 'reference';
@@ -21,6 +23,9 @@ export interface Copie {
   /** Vrai quand le texte copié arrondit la donnée source. */
   readonly arrondi?: boolean;
 }
+
+/** La conversion d'une couleur du document vers le sRGB à 8 bits ; `arrondi` dit qu'elle a modifié la couleur. */
+export type VersSrgb = (couleur: Couleur) => { readonly couleur: Couleur; readonly arrondi: boolean };
 
 /** Le nom complet d'une variable, collection comprise, pour un texte lisible hors de Figma. */
 export function nomComplet(index: Index, variable: string): string {
@@ -38,19 +43,20 @@ export function nomDeMode(index: Index, mode: string): string {
 
 /** Une valeur source en texte : un alias nomme sa cible. */
 export function texteDeSource(index: Index, source: ValeurSource): string {
-  if (source.nature !== 'alias') return texteDeValeur(source);
+  if (source.nature !== 'alias') return texteDeValeur(source, espaceDuReleve(index.releve));
   return `→ ${nomComplet(index, source.cible)}${source.opacite === undefined ? '' : ` · ${pourcentageDOpacite(source.opacite)}`}`;
 }
 
 /** La chaîne en texte, une étape par ligne, avec le constat quand elle n'aboutit pas. */
 export function texteDeChaine(index: Index, resultat: Resultat, constat: string | null): string {
   const lignes = resultat.etapes.map((etape: Etape) => `${nomComplet(index, etape.variable)} [${nomDeMode(index, etape.mode)}]`);
-  const fin = resultat.statut === 'resolu' ? texteDeValeur(resultat.valeur) : constat ?? resultat.statut;
+  const fin = resultat.statut === 'resolu' ? texteDeValeur(resultat.valeur, espaceDuReleve(index.releve)) : constat ?? resultat.statut;
   return [...lignes, fin].join('\n→ ');
 }
 
 /** Le texte de chaque format de copie pour un résultat. `reference` vient d'une correspondance vérifiée, sinon `null`. */
-export function copier(index: Index, variable: string, resultat: Resultat, format: FormatDeCopie, options: { constat?: string | null; reference?: string | null } = {}): Copie {
+export function copier(index: Index, variable: string, resultat: Resultat, format: FormatDeCopie, options: { constat?: string | null; reference?: string | null; versSrgb?: VersSrgb } = {}): Copie {
+  const espace = espaceDuReleve(index.releve);
   switch (format) {
     case 'nom':
       return { format, texte: index.variables.get(variable)?.nom ?? variable };
@@ -64,15 +70,17 @@ export function copier(index: Index, variable: string, resultat: Resultat, forma
       return options.reference ? { format, texte: options.reference } : { format, texte: null, raison: 'sans-correspondance' };
     case 'valeur':
       if (resultat.statut !== 'resolu') return { format, texte: null, raison: 'non-resolu' };
-      if (resultat.valeur.nature === 'couleur') return { format, texte: composantesDeCouleur(resultat.valeur.couleur) };
+      if (resultat.valeur.nature === 'couleur') return { format, texte: composantesDeCouleur(resultat.valeur.couleur, espace) };
       return { format, texte: texteDeValeur(resultat.valeur) };
     case 'composantes':
     case 'hexa': {
       if (resultat.statut !== 'resolu') return { format, texte: null, raison: 'non-resolu' };
       if (resultat.valeur.nature !== 'couleur') return { format, texte: null, raison: 'pas-une-couleur' };
-      if (format === 'composantes') return { format, texte: composantesDeCouleur(resultat.valeur.couleur) };
-      const { hexa, arrondi } = hexaDeCouleur(resultat.valeur.couleur);
-      return { format, texte: hexa, arrondi };
+      if (format === 'composantes') return { format, texte: composantesDeCouleur(resultat.valeur.couleur, espace) };
+      if (espace !== 'srgb' && !options.versSrgb) throw new Error('copier : l’hexadécimal d’une couleur Display P3 demande versSrgb.');
+      const convertie = espace === 'srgb' ? { couleur: resultat.valeur.couleur, arrondi: false } : options.versSrgb!(resultat.valeur.couleur);
+      const { hexa, arrondi } = hexaDeCouleur(convertie.couleur);
+      return { format, texte: hexa, arrondi: arrondi || convertie.arrondi };
     }
   }
 }

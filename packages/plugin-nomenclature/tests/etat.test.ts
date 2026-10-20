@@ -10,9 +10,9 @@ const groupe = (cle: string, variables: number, collections = 0): GroupeVue => (
 });
 const question = (cle: string): QuestionVue => ({ type: 'collection', cle, nom: 'Couleurs', nombre: 3, proposee: null });
 const bilan = (reste: Partial<Bilan> = {}): Bilan => ({
-  generation: 1, premierLancement: false, sansVariableLocale: false,
+  generation: 1, premierLancement: false, sansVariableLocale: false, reglesFutures: false, architecture: 'absente',
   ecriture: { groupes: LIGNE, variables: LIGNE, collections: { reconnues: 0, total: 0 } },
-  groupes: [groupe('g1', 10)], bloques: [], proteges: 0, questions: [], autresPistes: 0, plusTard: [], collections: [], dernierRenommage: null, dernierImport: null,
+  groupes: [groupe('g1', 10)], bloques: [], proteges: 0, protections: [], questions: [], autresPistes: 0, plusTard: [], collections: [], dernierRenommage: null, dernierImport: null,
   ...reste,
 });
 const jouer = (...evenements: Evenement[]): EtatDeLEcran => evenements.reduce(etatSuivant, ETAT_INITIAL);
@@ -70,7 +70,21 @@ test('rien à faire : ni groupe, ni nom bloqué, ni question, ni question remise
   assert.equal(jouer(recu({ ...vide, bloques: [{ avant: 'Font Size', apres: 'font-size', collection: 'Typographie' }] })).particulier, null);
   assert.equal(jouer(recu({ ...vide, questions: [question('q1')] })).particulier, null);
   assert.equal(jouer(recu({ ...vide, plusTard: [question('q1')] })).particulier, null);
-  assert.equal(jouer(recu({ ...vide, proteges: 143 })).particulier?.type, 'rien-a-faire');
+});
+
+test('rien à faire : un bilan qui n’a que des variables protégées garde ses onglets, chaque cause a son geste', () => {
+  const vide = { groupes: [], bloques: [], questions: [], plusTard: [] };
+  const protegees = { ...vide, proteges: 143, protections: [{ cause: 'marque-absente' as const, nombre: 143 }] };
+  assert.equal(jouer(recu(protegees)).particulier, null);
+  assert.deepEqual(jouer(recu({ ...vide, proteges: 0, protections: [] })).particulier, { type: 'rien-a-faire' });
+});
+
+test('la Configuration s’ouvre pendant le premier lancement, avec le bilan qui porte la cause sans-regles', () => {
+  const premier = jouer(recu({ premierLancement: true, proteges: 120, protections: [{ cause: 'sans-regles' as const, nombre: 120 }] }));
+  const ouverte = etatSuivant(premier, { type: 'configuration-ouverte' });
+  assert.equal(ouverte.ecran, 'configuration');
+  assert.equal(ouverte.ecranDeTravail, 'premier-lancement');
+  assert.equal(ouverte.bilan?.protections[0]?.cause, 'sans-regles');
 });
 
 test('un fichier sans variable locale montre cet état, même au premier lancement', () => {

@@ -1,6 +1,8 @@
 /**
  * Les responsabilités des produits UCM et l'adresse de la recette partagée dans Figma.
  *
+ * La forme et la version de chaque donnée partagée sont dans la porte `@ucm-kit/core/protocoles` (`src/protocoles/`), qui importe ces adresses et les republie.
+ *
  * Après une modification : relancer `npm test`, régénérer la vue illustrée (`generer-donnees-referentiel.ts`) (elle en tire les produits), et changer la version du kit.
  */
 import type { Langues } from './termes.js';
@@ -15,9 +17,28 @@ export const ESPACE_PARTAGE = 'ucm_palettes';
  * d'UCM Nomenclature. UCM Nomenclature la lit pour cesser de protéger les variables de Palettes.
  */
 export const CLE_NOMMAGE_DE_PALETTES = 'nommage';
+/** La déclaration de l'architecture du fichier, rangée par Nomenclature à la racine de `ESPACE_ARCHITECT`. */
+export const CLE_ARCHITECTURE_DU_FICHIER = 'architecture';
+export type ArchitectureDuFichier = 'absente' | 'ucm' | 'libre' | 'illisible' | 'future';
+
+/** Classe la déclaration sans convertir une version future ni remplacer une valeur illisible. */
+export function lireLArchitectureDuFichier(texte: string): ArchitectureDuFichier {
+  if (texte === '') return 'absente';
+  let brut: unknown;
+  try { brut = JSON.parse(texte); } catch { return 'illisible'; }
+  if (!brut || typeof brut !== 'object' || Array.isArray(brut)) return 'illisible';
+  const declaration = brut as Record<string, unknown>;
+  if (typeof declaration.version === 'number' && Number.isInteger(declaration.version) && declaration.version > 1) return 'future';
+  if (declaration.version !== 1 || typeof declaration.ucm !== 'boolean') return 'illisible';
+  return declaration.ucm ? 'ucm' : 'libre';
+}
+
+export function texteDeLArchitectureDuFichier(ucm: boolean): string {
+  return JSON.stringify({ version: 1, ucm });
+}
 export const CLE_RECETTE = 'recette';
 
-export type DonneeDeProduit = 'composants' | 'variables' | 'recette' | 'planches' | 'regles-usage' | 'regles-de-nommage' | 'contrats' | 'tokens-dtcg' | 'configuration' | 'implementation' | 'rapports' | 'css' | 'types' | 'couleurs' | 'sources-plugin' | 'bundle-plugin' | 'conventions' | 'noms-collections' | 'noms-variables' | 'noms-proprietes' | 'valeurs-proprietes';
+export type DonneeDeProduit = 'composants' | 'variables' | 'recette' | 'planches' | 'regles-usage' | 'regles-de-nommage' | 'architecture-du-fichier' | 'contrats' | 'tokens-dtcg' | 'configuration' | 'implementation' | 'rapports' | 'css' | 'types' | 'couleurs' | 'sources-plugin' | 'bundle-plugin' | 'conventions' | 'noms-collections' | 'noms-variables' | 'noms-proprietes' | 'valeurs-proprietes';
 export type DestinationDeProduit = 'document-figma' | 'donnees-partagees-figma' | 'repository' | 'memoire' | 'distribution-plugin';
 export type SortieDeProduit = { readonly donnees: readonly DonneeDeProduit[]; readonly destination: DestinationDeProduit };
 export type Produit = {
@@ -39,7 +60,7 @@ export const PRODUITS: readonly Produit[] = [
   {
     id: 'palettes', libelle: { fr: 'UCM Palettes', en: 'UCM Palettes' },
     definition: { fr: 'Calcule les palettes et écrit leur recette, leurs variables primitives et leurs planches dans Figma.', en: 'Computes palettes and writes their recipe, primitive variables and boards to Figma.' },
-    lit: ['recette', 'variables', 'planches', 'regles-de-nommage'], execution: 'figma',
+    lit: ['recette', 'variables', 'planches', 'regles-de-nommage', 'architecture-du-fichier'], execution: 'figma',
     ecrit: [{ donnees: ['recette', 'variables'], destination: 'donnees-partagees-figma' }, { donnees: ['variables', 'planches'], destination: 'document-figma' }],
   },
   {
@@ -79,6 +100,6 @@ export const PRODUITS: readonly Produit[] = [
     id: 'architect', libelle: { fr: 'UCM Nomenclature', en: 'UCM Nomenclature' },
     definition: { fr: 'Normalise les noms de collections et de variables, puis range les règles de nommage choisies.', en: 'Normalizes collection and variable names, then stores the chosen naming rules.' },
     lit: ['noms-collections', 'noms-variables', 'regles-de-nommage'], execution: 'figma',
-    ecrit: [{ donnees: ['noms-collections', 'noms-variables'], destination: 'document-figma' }, { donnees: ['regles-de-nommage'], destination: 'donnees-partagees-figma' }],
+    ecrit: [{ donnees: ['noms-collections', 'noms-variables'], destination: 'document-figma' }, { donnees: ['regles-de-nommage', 'architecture-du-fichier'], destination: 'donnees-partagees-figma' }],
   },
 ];

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CRANS, naturesDesNoms, type NatureDeSegment, type NomLu } from '../src/referentiel/index.js';
+import { CRANS, NUMEROS_DE_PALETTE, naturesDesNoms, type NatureDeSegment, type NomLu } from '../src/referentiel/index.js';
 
 const COLLECTIONS = ['components', 'primitives', 'utility', 'brands', 'theme', 'layout'];
 const idDeCollection = (nom: string): string => JSON.stringify(['collection', nom]);
@@ -170,4 +170,11 @@ test('le calcul reste linéaire sur un fichier de plusieurs milliers de variable
   assert.deepEqual(lues.get(premier.id), ['composant' satisfies NatureDeSegment, null, null, null]);
   const palette = noms.find((nom) => nom.nom === 'colors/Palette7/light/50')!;
   assert.deepEqual(lues.get(palette.id), [null, 'palette', null, null]);
+});
+
+test('une palette de primitives à treize nuances garde sa nature, 1000 et 1050 compris', () => {
+  const noms = [collection('primitives'), ...rampe('primitives', 'color/Titanium/light', NUMEROS_DE_PALETTE)];
+  for (const numero of NUMEROS_DE_PALETTE) assert.deepEqual(natures(noms, `color/Titanium/light/${numero}`), ['Titanium:palette'], String(numero));
+  const sansTheme = [collection('primitives'), ...rampe('primitives', 'color/Titanium', NUMEROS_DE_PALETTE)];
+  assert.deepEqual(natures(sansTheme, 'color/Titanium/1000'), ['Titanium:palette']);
 });

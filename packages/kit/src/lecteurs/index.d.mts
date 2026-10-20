@@ -532,41 +532,42 @@ declare module "@ucm-kit/core/lecteurs" {
     sourceTokens: string,
   ): string | null;
 
-  /** Ce qu'un constat juge : l'emploi et son support, une paire, l'état et son rang, ou une couleur hors de la table. */
-  export type NatureDeConstatDEmploi = "support" | "paire" | "etat" | "hors-table";
+  /** Ce que le diagnostic des contrastes juge : une couleur contre son fond. */
+  export type NatureDeConstatDeContraste = "contraste";
 
-  /** Un écart d'une couleur de contrat à la table des emplois. */
-  export interface ConstatDEmploi {
-    nature: NatureDeConstatDEmploi;
+  /** Un contraste mesuré dans un contexte de modes ; `valeur` est un nombre pour un constat. */
+  export interface MesureDeContraste {
+    /** Le contexte, tel que le rapport le cite : « marque acme, thème dark ». */
+    contexte: string;
+    valeur: number | null;
+  }
+
+  /** Une couleur d'un contrat sous le seuil de son rôle contre son fond. */
+  export interface ConstatDeContraste {
+    nature: NatureDeConstatDeContraste;
     /** Les coordonnées du variant : « state=hover ». */
     variant: string;
     cle: string;
     role: string;
     reference: string;
-    usage?: string;
-    vise?: string | null;
-    fond?: string;
-    usageDuFond?: string;
-    peint?: string[];
-    etat?: string;
-    rangAttendu?: string;
-    rang?: string;
-    usagesAttendus?: string[];
-    /** Le contraste sur le fond, par contexte de marque et de thème ; `null` pour une couleur non jugée. */
-    contrastes?: { contexte: string; valeur: number | null }[];
+    /** Ce que la couleur vise dans `tokens.json`, ou `null` quand rien n'est lu. */
+    vise: string | null;
+    /** La clé du fond contre lequel la couleur est mesurée. */
+    fond: string;
+    /** 4,5 pour un texte ou une icône, 3 pour un contour ou un anneau. */
+    seuil: number;
+    /** Les contextes où la couleur passe sous le seuil. */
+    mesures: MesureDeContraste[];
   }
 
-  /** Vrai quand le fichier de tokens porte la collection `usage` : le diagnostic s'applique. */
-  export function porteLaTableDesEmplois(document: unknown): boolean;
-
-  /** Les écarts d'un contrat à la table des emplois ; `[]` sans collection `usage`. */
-  export function constatsDesEmplois(contrat: unknown, document: unknown): ConstatDEmploi[];
+  /** Les couleurs d'un contrat sous le seuil contre leur fond ; `[]` sans fond jugeable. */
+  export function constatsDesContrastes(contrat: unknown, document: unknown): ConstatDeContraste[];
 
   /** La section du rapport, non bloquante ; `[]` sans écart. */
-  export function sectionEmplois(bilans: ReadonlyArray<{ fichier: string; emplois?: ConstatDEmploi[] }>): string[];
+  export function sectionContrastes(bilans: ReadonlyArray<{ fichier: string; contrastes?: ConstatDeContraste[] }>): string[];
 
   /** Le rappel du terminal, ou `null` sans écart. */
-  export function resumeTerminalEmplois(bilans: ReadonlyArray<{ emplois?: ConstatDEmploi[] }>): string | null;
+  export function resumeTerminalContrastes(bilans: ReadonlyArray<{ contrastes?: ConstatDeContraste[] }>): string | null;
 
   /** Ce relevé de parité porte-t-il un écart ? */
   export function pariteEnEcart(ecarts: EcartsDeParite): boolean;

@@ -6,6 +6,7 @@ import test, { afterEach } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
 import * as format from '@ucm-kit/core/format';
+import * as referentiel from '@ucm-kit/core/referentiel';
 import * as config from '../src/config';
 import * as connexion from '../src/connexion';
 import * as cible from '../src/cible';
@@ -109,13 +110,11 @@ function ouvrir() {
     return exporte.traiter(annoncer, options);
   };
   const modules: Record<string, unknown> = {
-    '@ucm-kit/core/format': format, './config': config, './connexion': connexion,
+    '@ucm-kit/core/format': format, '@ucm-kit/core/referentiel': referentiel, './config': config, './connexion': connexion,
     './cible': cible, './fenetre': fenetre, './prevol': prevol,
     './contract/extractRules': {
       extractRules: async () => ({ releve: releve.actuel, aRediger: regles.aRediger }),
       hasUsableRules: () => regles.exploitables,
-      compactName: (nom: string) => nom.replace(/\s+/g, '').toLowerCase(),
-      MARQUEUR_A_COMPLETER: '[À compléter]',
     },
     './contract/composedComponents': {
       IndexModifie,

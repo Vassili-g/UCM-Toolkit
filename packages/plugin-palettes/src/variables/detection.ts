@@ -6,7 +6,7 @@
  * Pur : ni Figma, ni DOM.
  */
 import { SEUIL_DE_PALETTE } from '@ucm-kit/core/referentiel';
-import { MODES, PROFILS } from 'ucm-couleur';
+import { MODES, PROFILS, type Mode, type Profil } from 'ucm-couleur';
 import type { CollectionLue, ModeLu, VariableLue } from './releve';
 
 /** La nuance que « Modifier dans le plugin » prend pour référence, ou la plus proche ([VAR-13]). */
@@ -87,8 +87,8 @@ export function palettesDuFichier(
     });
 }
 
-export type IntensiteDuChemin = 'soft' | 'vivid';
-export type ThemeDuChemin = 'light' | 'dark';
+export type IntensiteDuChemin = Profil;
+export type ThemeDuChemin = Mode;
 
 /**
  * Les trois formes complètes d'une palette écrite en plusieurs groupes :

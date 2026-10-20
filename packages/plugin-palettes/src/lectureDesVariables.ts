@@ -11,12 +11,13 @@
  * tant qu'un calque la cite, et ne sert donc pas à cette lecture.
  */
 import { ESPACE_PARTAGE } from 'ucm-couleur';
-import { estCleDeNommage, lireReglesDeNommage } from 'ucm-plugin-socle/src/reglesDeNommage';
+import { estCleDeNommage, lireReglesDeNommage } from '@ucm-kit/core/protocoles';
 
 import type { ProfilDuDocument } from './lecture';
 import { SANS_BIBLIOTHEQUE, palettesDeLaCollection, type Bibliotheques, type CollectionDeBibliotheque, type VariableDeBibliotheque } from './variables/bibliotheques';
 import { RELEVE_VIDE, hexaLu, type CollectionLue, type ReleveDesVariables, type VariableLue } from './variables/releve';
 import { CLES_PARTAGEES_DE_PALETTES, ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
+import type { InventaireDuLot } from './variables/lot';
 import type { DonneesDeNommage, VariableNommee } from './variables/nommeur';
 import { SUIVI_VIDE, lireLeSuivi, type SuiviDesVariables } from './variables/suivi';
 
@@ -156,6 +157,20 @@ export async function lireLesVariables(figma: FigmaDesVariables, profil: ProfilD
 }
 
 /**
+ * Ce que le plan d'un lot lit du fichier, à partir des objets que Figma a rendus : le relevé des collections et des
+ * variables de couleur, le suivi rangé, et les données de nommage quand les règles sont enregistrées. Synchrone :
+ * l'écriture l'appelle après sa dernière attente, et `lireLesVariablesDuFichier` rend le même relevé.
+ */
+export function inventaireLu(
+  racine: { getSharedPluginDataKeys(espace: string): string[]; getSharedPluginData(espace: string, cle: string): string; readonly documentColorProfile: ProfilDuDocument },
+  collections: readonly VariableCollection[],
+  variables: readonly Variable[],
+): InventaireDuLot {
+  const nommage = lireLesDonneesDeNommage(racine, collections, variables);
+  return { ...releveDe(collections, variables, racine.documentColorProfile), suivi: lireLeSuiviRange(racine), ...(nommage ? { nommage } : {}) };
+}
+
+/**
  * Ce que `lire-etat` ajoute à l'état : le relevé, le suivi, et les
  * bibliothèques que l'appelant a lues, et de quoi calculer les noms que
  * les règles de nommage donnent (toutes les variables, de tous types, avec
@@ -167,6 +182,5 @@ export async function lireLesVariablesDuFichier(
   bibliotheques: Bibliotheques = SANS_BIBLIOTHEQUE,
 ): Promise<VariablesDuFichier> {
   const { collections, variables } = await lireLesObjets(figma);
-  const nommage = lireLesDonneesDeNommage(figma.root, collections, variables);
-  return { ...releveDe(collections, variables, figma.root.documentColorProfile), suivi: lireLeSuiviRange(figma.root), bibliotheques, ...(nommage ? { nommage } : {}) };
+  return { ...inventaireLu(figma.root, collections, variables), bibliotheques };
 }

@@ -4,6 +4,7 @@
  * Palettes ne la pose pas : le fichier qu'elle seule a ouvert garde la protection.
  */
 import { CLE_NOMMAGE_DE_PALETTES } from '@ucm-kit/core/referentiel';
+import { texteDeLaMarque } from '@ucm-kit/core/protocoles';
 
 import { ESPACE_PARTAGE } from '../lecture';
 
@@ -19,7 +20,7 @@ export interface CibleDeLaMarque {
 export function rangerLaMarqueDeNommage(cible: CibleDeLaMarque): void {
   try {
     if (cible.root.getSharedPluginData(ESPACE_PARTAGE, CLE_NOMMAGE_DE_PALETTES) !== '') return;
-    cible.root.setSharedPluginData(ESPACE_PARTAGE, CLE_NOMMAGE_DE_PALETTES, JSON.stringify({ version: 1 }));
+    cible.root.setSharedPluginData(ESPACE_PARTAGE, CLE_NOMMAGE_DE_PALETTES, texteDeLaMarque());
   } catch {
     // Pas d'écriture possible : UCM Nomenclature garde alors la protection.
   }

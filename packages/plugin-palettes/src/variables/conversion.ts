@@ -9,7 +9,9 @@
  */
 import { intensitePorteuse, intensitesDe, type Palette, type Recette } from 'ucm-couleur';
 
+import type { VariablesDuFichier } from '../lectureDesVariables';
 import type { Destination } from './destination';
+import { nommeurDuFichier } from './nommeur';
 import { nommerLePlan, planDesVariables, type Nommer } from './plan';
 import type { VariableLue } from './releve';
 import type { PaletteSuivie, VariableSuivie } from './suivi';
@@ -69,4 +71,19 @@ export function conversionDeLaReprise(
   const prises = new Set(variables.filter((variable) => variable.collection === suivie.collection && !propres.has(variable.id)).map((variable) => variable.nom.toLowerCase()));
   const occupe = [...aRenommer.values()].find(({ vers }) => prises.has(vers.toLowerCase()))?.vers ?? null;
   return { suivie: { ...base, groupe: destination.groupe }, enPlace: true, aRenommer: [...aRenommer.values()], occupe };
+}
+
+/**
+ * Ce que l'écran annonce du passage au format du plugin : la conversion de la palette reprise sous les noms que
+ * l'écriture donne, ceux des règles de nommage de la collection de la reprise. Les écrans et les lois entre produits
+ * appellent cette fonction ; l'écriture (`convertirLaReprise`) calcule les mêmes noms à partir des mêmes règles.
+ */
+export function annonceDeLaConversion(
+  recette: Recette,
+  palette: Palette,
+  suivie: PaletteSuivie,
+  fichier: Pick<VariablesDuFichier, 'nommage' | 'suivi' | 'variables'>,
+): ConversionDeLaReprise {
+  const nommer = nommeurDuFichier(fichier)?.pour({ id: suivie.collection });
+  return conversionDeLaReprise(recette, palette, suivie, fichier.suivi.destination, fichier.variables, nommer);
 }

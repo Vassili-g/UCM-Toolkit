@@ -9,7 +9,7 @@ import { decouperSegment } from './ecriture-des-mots.js';
 import type { NomLu } from './harmonisation.js';
 import { collectionUcmReconnue } from './normalisation.js';
 import { termeOuFormeConnu } from './termes-connus.js';
-import { ABREVIATIONS, CRANS, MODES, PROFILS, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
+import { ABREVIATIONS, CRANS, MODES, NUMEROS_DE_PALETTE, PROFILS, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
 
 export type NatureDeSegment = 'composant' | 'palette';
 type Nature = NatureDeSegment | null;
@@ -20,6 +20,8 @@ export const SEUIL_DE_PALETTE = 5;
 /** Le groupe dont les enfants directs sont des composants, quelle que soit la collection (forme en minuscules). */
 const DOSSIER_DES_COMPOSANTS = 'components';
 const crans = new Set<string>(CRANS.map(String));
+/** Les numéros d'une palette de `primitives` : 1000 et 1050 s'ajoutent aux crans. */
+const numerosDePalette = new Set<string>(NUMEROS_DE_PALETTE.map(String));
 const modesEtProfils = new Set<string>([...MODES, ...PROFILS]);
 const couleursAbsolues = new Set(REGISTRE_COULEURS_ABSOLUES.termes.map((terme) => terme.id));
 
@@ -45,11 +47,11 @@ interface NomEtSegments {
 }
 
 /** Le segment qui précède les modes, profils et crans d'une variable dont le dernier segment est un cran ou une couleur absolue. */
-function candidatDePalette(minuscules: readonly string[]): number {
+function candidatDePalette(minuscules: readonly string[], numeros: ReadonlySet<string>): number {
   const dernier = minuscules[minuscules.length - 1];
-  if (!crans.has(dernier) && !couleursAbsolues.has(dernier)) return -1;
+  if (!numeros.has(dernier) && !couleursAbsolues.has(dernier)) return -1;
   let rang = minuscules.length - 2;
-  while (rang >= 0 && (crans.has(minuscules[rang]) || modesEtProfils.has(minuscules[rang]))) rang--;
+  while (rang >= 0 && (numeros.has(minuscules[rang]) || modesEtProfils.has(minuscules[rang]))) rang--;
   return rang;
 }
 
@@ -83,11 +85,12 @@ export function naturesDesNoms(
   });
 
   for (const lu of lus) {
-    const rang = candidatDePalette(lu.minuscules);
+    const numeros = collectionsUcm.get(lu.nom.portee) === 'primitives' ? numerosDePalette : crans;
+    const rang = candidatDePalette(lu.minuscules, numeros);
     if (rang < 0 || !lu.segments[rang]) continue;
     const cle = JSON.stringify([lu.nom.portee, lu.segments.slice(0, rang + 1)]);
     const dernier = lu.minuscules[lu.minuscules.length - 1];
-    if (crans.has(dernier)) {
+    if (numeros.has(dernier)) {
       const nuances = cransParChemin.get(cle) ?? new Set<string>();
       nuances.add(dernier);
       cransParChemin.set(cle, nuances);

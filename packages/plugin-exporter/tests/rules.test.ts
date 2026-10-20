@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { nomCompacte } from '@ucm-kit/core/referentiel';
 import {
   buildRules,
-  compactName,
   extractRules,
   hasUsableRules,
   iconPolicyFromVisibility,
@@ -229,7 +229,7 @@ test('le conteneur est reconnu par son calque, pas par son nom, à la casse prè
 
   assert.equal(rules.sectionFound, true);
   assert.equal(rules.intent?.usage, 'Action principale');
-  assert.equal(rulesContainerOwner(container), compactName(componentSet.name));
+  assert.equal(rulesContainerOwner(container), nomCompacte(componentSet.name));
   assert.deepEqual([...nomsDeLaPage(page as unknown as PageNode)], ['iconbutton']);
 });
 

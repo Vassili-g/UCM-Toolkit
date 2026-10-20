@@ -5,7 +5,8 @@ import {
   commencerLexique, indexerVocabulaire, normaliserLeLexique,
   type ConventionsParCategorie, type Lexique, type NomLu, type Question, type ResultatDesQuestions, type TermePersonnalise,
 } from '@ucm-kit/core/referentiel';
-import type { EntreeInventaire, Inventaire } from '../src/lecture';
+import { idsNonRenommables, inventaireSelonLaProtection, palettesLibres, type EntreeInventaire, type Inventaire } from '@ucm-kit/core/nommage';
+import type { EtatDeLaMarque } from '@ucm-kit/core/protocoles';
 import { PLACES_DE_TERMES, TYPES_DE_TERMES, type EcritureChoisie, type PlaceDuTerme, type TermeDeListe, type TypeDeTerme } from '../src/messages';
 import { conflitVue, effetDEcriture, effetDeTerme, LIGNES_PAR_SECTION, projeter, TAILLE_DE_L_APERCU, TAILLE_DE_PAGE, type EntreeDeProjection, type PageDeTermes, type RequeteDeTermes } from '../src/projection';
 import { reglesVides, type ReglesDuFichier } from '../src/regles';
@@ -13,8 +14,8 @@ import { reglesVides, type ReglesDuFichier } from '../src/regles';
 const minusculesTirets = { casse: 'minuscules', separateur: 'tiret' } as const;
 const ecritureParDefaut: EcritureChoisie = { groupes: minusculesTirets, variables: minusculesTirets };
 
-interface Variable { readonly id: string; readonly nom: string; readonly collection?: string; readonly protegee?: boolean; readonly alias?: string }
-interface Fichier { readonly collections: readonly (readonly [string, string])[]; readonly variables: readonly Variable[] }
+interface Variable { readonly id: string; readonly nom: string; readonly collection?: string; readonly protegee?: boolean; readonly indecidable?: boolean; readonly alias?: string }
+interface Fichier { readonly collections: readonly (readonly [string, string])[]; readonly variables: readonly Variable[]; readonly marque?: EtatDeLaMarque }
 
 function lexiqueDe(noms: readonly NomLu[]): Lexique {
   const preparation = commencerLexique();
@@ -40,9 +41,10 @@ function inventaireDe(fichier: Fichier): { readonly inventaire: Inventaire; read
         ...(variable.alias ? { cibleAlias: variable.alias } : {}),
       },
       cible: { type: 'variable', variableId: variable.id, collectionId }, renommable: true, protegee: variable.protegee === true,
+      ...(variable.indecidable === true ? { indecidable: true as const } : {}),
     });
   }
-  return { inventaire: { entrees }, noms: entrees.map((entree) => entree.nom) };
+  return { inventaire: { entrees, ...(fichier.marque ? { marque: fichier.marque } : {}) }, noms: entrees.map((entree) => entree.nom) };
 }
 
 interface Options {
@@ -60,7 +62,7 @@ function calculer(fichier: Fichier, options: Options = {}): EntreeDeProjection {
   const ecriture = options.ecriture ?? ecritureParDefaut;
   const conventions: ConventionsParCategorie = { ...ecriture, collections: minusculesTirets };
   const { index } = indexerVocabulaire({ personnalises: options.termes ?? [], ecartsUcm: options.ecarts ?? [] });
-  const protegees = inventaire.entrees.filter((entree) => entree.protegee).map((entree) => entree.nom.id);
+  const protegees = inventaire.entrees.filter((entree) => entree.protegee || entree.indecidable === true).map((entree) => entree.nom.id);
   const resultat = normaliserLeLexique(lexique, conventions, index, { nonRenommables: protegees });
   return {
     generation: 3, lexique, resultat, ecriture, inventaire,
@@ -197,9 +199,9 @@ test('les collections de l’inventaire, les noms protégés et le dernier renom
   const journal = { heure: '14:32', renommages: [{ type: 'variable', id: 'a', ancienNom: 'x', nouveauNom: 'y' }, { type: 'variable', id: 'b', ancienNom: 'x', nouveauNom: 'y' }] } as const;
   const bilan = projeter(calculer(fichier, { regles: { collectionsExclues: ['c2'], journal } })).bilan();
   assert.deepEqual(bilan.collections, [
-    { id: 'c1', nom: 'components', nombre: 1, analysee: true, palettes: false },
-    { id: 'c2', nom: 'primitives', nombre: 2, analysee: false, palettes: true },
-    { id: 'c3', nom: 'Color Brands', nombre: 0, analysee: true, palettes: false },
+    { id: 'c1', nom: 'components', nombre: 1, analysee: true, protegees: 0 },
+    { id: 'c2', nom: 'primitives', nombre: 2, analysee: false, protegees: 2 },
+    { id: 'c3', nom: 'Color Brands', nombre: 0, analysee: true, protegees: 0 },
   ]);
   assert.equal(bilan.proteges, 0);
   assert.deepEqual(bilan.dernierRenommage, {
@@ -1051,4 +1053,71 @@ test('le bilan sans journal ni import les donne à null', () => {
   assert.equal(bilan.dernierRenommage, null);
   assert.equal(bilan.dernierImport, null);
   assert.equal(projeter(calculer(fichierDuJournal, { regles: { journal: { heure: '14:32', renommages: [] } } })).bilan().dernierRenommage, null);
+});
+
+// Les comptes de protection : une ligne par cause, la même que `causeDeProtection` du socle.
+
+const FICHIER_PROTEGE: Fichier = {
+  collections: [['c1', 'components'], ['c2', 'primitives'], ['c3', 'brands']],
+  variables: [
+    { id: 'a', nom: 'Button/press/gap' },
+    { id: 'p1', nom: 'colors/Red/50', collection: 'c2', protegee: true }, { id: 'p2', nom: 'colors/Red/100', collection: 'c2', protegee: true },
+    { id: 'p3', nom: 'color/Red/200', collection: 'c2', protegee: true },
+    { id: 'i1', nom: 'Card/hover/gap', collection: 'c1', indecidable: true }, { id: 'i2', nom: 'Chip/Hover/gap', collection: 'c1', indecidable: true },
+    { id: 'i3', nom: 'Tag/Hover/gap', collection: 'c3', indecidable: true },
+  ],
+};
+const sommeDe = (protections: readonly { readonly nombre: number }[]): number => protections.reduce((total, { nombre }) => total + nombre, 0);
+
+test('protections : une ligne par cause présente, dans l’ordre des causes, sans nombre nul, et la somme vaut proteges', () => {
+  const cas: readonly (readonly [EtatDeLaMarque, boolean, readonly { cause: string; nombre: number }[]])[] = [
+    ['absente', false, [{ cause: 'marque-absente', nombre: 3 }, { cause: 'lecture-refusee', nombre: 3 }]],
+    ['illisible', false, [{ cause: 'marque-illisible', nombre: 3 }, { cause: 'lecture-refusee', nombre: 3 }]],
+    ['future', false, [{ cause: 'marque-future', nombre: 3 }, { cause: 'lecture-refusee', nombre: 3 }]],
+    ['refusee', false, [{ cause: 'lecture-refusee', nombre: 6 }]],
+    ['courante', true, [{ cause: 'sans-regles', nombre: 3 }, { cause: 'lecture-refusee', nombre: 3 }]],
+  ];
+  for (const [marque, premierLancement, attendu] of cas) {
+    const bilan = projeter(calculer({ ...FICHIER_PROTEGE, marque }, { regles: { ecritureDeLaV1: premierLancement } })).bilan();
+    assert.deepEqual(bilan.protections, attendu, `${marque} ${premierLancement}`);
+    assert.equal(bilan.proteges, sommeDe(bilan.protections), `${marque} : la somme vaut proteges`);
+    assert.equal(bilan.proteges, 6);
+  }
+  assert.deepEqual(projeter(calculer({ collections: [['c', 'x']], variables: variables(['a', 'Button/press/gap']) })).bilan().protections, []);
+});
+
+test('protections : une marque courante avec les règles rangées libère les variables, protégées ou non vérifiées', () => {
+  const entree = calculer({ ...FICHIER_PROTEGE, marque: 'courante' });
+  const libre = inventaireSelonLaProtection(entree.inventaire, { palettesLibres: palettesLibres(entree.inventaire, true) });
+  const bilan = projeter({ ...entree, inventaire: libre }).bilan();
+  assert.deepEqual([bilan.protections, bilan.proteges], [[], 0]);
+  assert.deepEqual(bilan.collections.map((collection) => collection.protegees), [0, 0, 0]);
+});
+
+test('protections : les causes comptent les variables que idsNonRenommables fige, collection par collection', () => {
+  for (const marque of ['absente', 'illisible', 'future', 'refusee', 'courante'] as const) {
+    const fichier = { ...FICHIER_PROTEGE, marque };
+    const regles = { collectionsExclues: ['c3'], ecritureDeLaV1: marque === 'courante' };
+    const entree = calculer(fichier, { regles });
+    const bilan = projeter(entree).bilan();
+    const figes = new Set(idsNonRenommables(entree.inventaire, [], {}));
+    const figesDe = (collection: string, exclues: readonly string[]): number => entree.inventaire.entrees.filter((e) =>
+      e.cible.type === 'variable' && e.cible.collectionId === collection && !exclues.includes(collection) && figes.has(e.nom.id)).length;
+    assert.deepEqual(bilan.collections.map((c) => c.protegees), ['c1', 'c2', 'c3'].map((id) => figesDe(id, [])), marque);
+    assert.equal(bilan.proteges, ['c1', 'c2', 'c3'].reduce((total, id) => total + figesDe(id, ['c3']), 0), `${marque} : collections exclues retirées du total`);
+    assert.equal(sommeDe(bilan.protections), bilan.proteges, marque);
+  }
+});
+
+test('CollectionVue.protegees compte toutes les causes, collections exclues comprises', () => {
+  const bilan = projeter(calculer({ ...FICHIER_PROTEGE, marque: 'absente' }, { regles: { collectionsExclues: ['c1'] } })).bilan();
+  assert.deepEqual(bilan.collections.map(({ id, analysee, protegees }) => [id, analysee, protegees]), [['c1', false, 2], ['c2', true, 3], ['c3', true, 1]]);
+  assert.equal(bilan.proteges, 4, 'les deux variables de la collection exclue ne comptent pas dans le total');
+});
+
+test('proteges garde son sens : toute variable protégée, même celle dont le nom suit déjà les règles', () => {
+  const bilan = projeter(calculer({ collections: [['c', 'x']], variables: [{ id: 'p', nom: 'color/red/50', protegee: true }] })).bilan();
+  assert.equal(bilan.proteges, 1);
+  assert.deepEqual(bilan.protections, [{ cause: 'marque-absente', nombre: 1 }]);
+  assert.deepEqual(bilan.groupes, []);
 });

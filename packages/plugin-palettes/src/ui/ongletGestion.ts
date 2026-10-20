@@ -41,13 +41,14 @@ import { etatDeLaFiche, type EtatDeLaFiche } from '../presentation';
 import { SANS_BIBLIOTHEQUE, type Bibliotheques, type PaletteDeBibliotheque } from '../variables/bibliotheques';
 import type { Destination } from '../variables/destination';
 import { palettesDuFichier, regrouperLesPalettes, type PaletteDuFichier, type PaletteGroupee } from '../variables/detection';
-import { tokensDeLaPalette, variablesDesPalettesSupprimees, type TokensDUnePalette, type VariablesOrphelines } from '../variables/gestion';
+import { restesNommes, tokensDeLaPalette, variablesDesPalettesSupprimees, type TokensDUnePalette, type VariablesOrphelines } from '../variables/gestion';
 import { suiviFutur as suiviDesVariablesFutur, variablesSuivies } from '../variables/suivi';
 import { creerVuesApercuCompact } from './apercuCompact';
 import { createCarte } from './carte';
 import { creerVuesConnexion } from './connexion';
 import { creerVuesConstats } from './constats';
 import { creerVuesDessin, type EtatDuDessin, type GestesDuResultat } from './dessin';
+import { detailDeLaReprise } from './detailDesTokens';
 import { creerVuesDestination } from './destination';
 import type { GestesDeLaRecetteUi } from './gestesDeLaRecette';
 import { memoriserVues, type Localisation, type Texte } from './localisation';
@@ -135,11 +136,11 @@ function construireVues(i18n: Localisation) {
   const { createPageDesPlanches } = creerVuesPageDesPlanches(i18n);
   const {
     TEXTES, TEXTES_DE_LA_GESTION, TEXTES_DE_LA_PALETTE_SUPPRIMEE, TEXTES_DE_LA_REPRISE, TEXTES_DES_VARIABLES_SUPPRIMEES, TEXTES_DU_DESSIN,
-    couleursSurNChangent, origineDesTokens, remplacerNCouleurs, repriseRefusee, texteDuRenommage, titreDuRemplacement, variablesARenommer,
+    remplacerNCouleurs, repriseRefusee, texteDuRenommage, titreDuRemplacement,
     tokensPartiels, formeDesThemes, modeDisparu, gesteInterrompu, referencesImportees, ancienneSortie,
     bibliothequeIllisible, bibliothequesIllisibles, collectionDeBibliotheque, copieRefusee, copieSansCouleur, couleursDeBibliotheque, texteDeLaCopie, titreDeLaCopie,
     avecLeNom, collectionDisparue, copieDeCadre, couleursChangeesALaMain, couleursChangeesDansLePlugin, couleursDeLaPaletteDuFichier, detailsTechniques,
-    ecrireNVariables, remplacerNVariables, texteDesExistantes, titreDeLaMiseAJour, variablesARemplacer, ecritureInterrompue, etNAutres, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris,
+    ecrireNVariables, remplacerNVariables, texteDesExistantes, titreDeLaMiseAJour, variablesARemplacer, ecritureInterrompue, etNAutres, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris, nomsPrisPar, coucheInterdite, ecritureDefaite,
     nombreDeVariables, noticeDisplayP3, pageDeLaPlanche, progressionDuBouton, progressionDuDessin,recetteFuture, recetteIllisible, suiviFutur,
     suppressionDesVariablesRefusee, suppressionRefusee, texteDeLEcriture, titreDeLEcriture, titreDesModifiees, valeurDansFigma, valeurDansLePlugin,
     variablesACreer, variablesDisparues, variablesSurUneAutreRecette, verifierLaPalette, regroupementDuFichier,
@@ -663,6 +664,8 @@ function construireVues(i18n: Localisation) {
     /** La ligne « Tokens Figma » d'une fiche : l'état des variables, ce qu'il compte, et le geste qu'il demande ([UI-26]). */
     function ligneDesTokens(id: string, etat: TokensDUnePalette): LigneDeSortie {
       const ligne = { sortie: 'tokens' as const, nom: TEXTES_DE_LA_GESTION.tokensFigma, etat: etat.etat, libelle: etatDesTokensEcrit(etat.etat) };
+      // Le fichier porte déjà un nom que le plan veut prendre à une autre palette : l'écriture serait refusée, et aucun geste ne la propose.
+      if (etat.refus) return { ...ligne, detail: nomsPrisPar(noms()[etat.refus.palette] ?? etat.refus.palette), gestes: [] };
       // L'encart ouvert porte le geste : la ligne n'en garde pas.
       const mettreAJour = (variant: 'primary' | 'secondary'): HTMLElement[] => (encart === id ? [] : [gesteDEcriture(
         TEXTES_DE_LA_GESTION.mettreAJour,
@@ -681,13 +684,8 @@ function construireVues(i18n: Localisation) {
         },
       )]);
       if (etat.reprise && (etat.etat === 'a-jour' || etat.etat === 'a-mettre-a-jour')) {
-        // Une palette reprise : sa collection et son chemin d'origine, puis ce que la mise à jour créerait ou remplacerait ([UI-34]).
-        const origine = i18n.composer`${origineDesTokens(etat.collection ?? TEXTES_DE_LA_GESTION.collectionIntrouvable, etat.origine ?? '')} · ${formeDesThemes(etat.themes)}`;
-        if (etat.etat === 'a-jour') return { ...ligne, detail: i18n.composer`${origine} · ${nombreDeVariables(etat.variables)}`, gestes: [] };
-        const ecart = etat.aCreer.length > 0
-          ? variablesACreer(etat.aCreer.length)
-          : etat.aRemplacer > 0 ? couleursSurNChangent(etat.aRemplacer, etat.variables) : etat.nomsOccupes.length > 0 ? tokensPartiels(etat.nomsOccupes).quoi : variablesARenommer(etat.aRenommer.length);
-        return { ...ligne, detail: i18n.composer`${origine} · ${ecart}`, gestes: mettreAJour('primary') };
+        // Une palette reprise : sa collection et son chemin d'origine, puis tout ce que la mise à jour créerait, remplacerait ou renommerait ([UI-34]).
+        return { ...ligne, detail: detailDeLaReprise(i18n, etat), gestes: etat.etat === 'a-jour' ? [] : mettreAJour('primary') };
       }
       switch (etat.etat) {
         case 'jamais-ecrits':
@@ -1055,10 +1053,12 @@ function construireVues(i18n: Localisation) {
       const sorties = [...(etatDesTokens ? [ligneDesTokens(id, etatDesTokens)] : []), ligneDeLaPlanche(id, cadre, sansGeneration)];
       const fiche: HTMLElement[] = [];
       if (etatDesTokens && etatDesTokens.nomsOccupes.length > 0) fiche.push(blocDeConstat(tokensPartiels(etatDesTokens.nomsOccupes), 'alerte'));
+      if (etatDesTokens?.refus) fiche.push(blocDeConstat(nomDejaPris(nom, etatDesTokens.refus.nom, noms()[etatDesTokens.refus.palette] ?? etatDesTokens.refus.palette), 'alerte'));
       fiche.push(apercuCompact(lue, analyse, mode), information, lignesDeSortie(sorties, i18n));
       if (etatDesTokens && etatDesTokens.modifiees.length > 0 && !laissees.has(id)) fiche.push(encartDesModifiees(id, nom, etatDesTokens));
       else if (etatDesTokens && encart === id) fiche.push(etatDesTokens.reprise && etatDesTokens.aCreer.length === 0 ? encartDuRemplacement(id, nom, etatDesTokens) : encartDeLEcriture(id, nom, etatDesTokens));
-      const refus = refusDesTokens.get(id);
+      // Le refus que le plan annonce déjà remplace celui de la dernière écriture.
+      const refus = etatDesTokens?.refus ? undefined : refusDesTokens.get(id);
       if (refus) fiche.push(blocDeConstat(refus, 'alerte'));
       return fiche;
     }
@@ -1557,6 +1557,7 @@ function construireVues(i18n: Localisation) {
             zoneDesVariables.replaceChildren(bloc);
           } else if (resultat.issue === 'suivi-futur') zoneDesVariables.replaceChildren(blocDeConstat(suiviFutur(), 'bloquant'));
           else if (resultat.issue === 'interrompue') zoneDesVariables.replaceChildren(blocDeConstat(gesteInterrompu(resultat.message), 'alerte'));
+          else if (resultat.issue === 'defaite') zoneDesVariables.replaceChildren(blocDeConstat(ecritureDefaite(resultat.message, restesNommes(resultat.restes)), 'alerte'));
           zoneDesVariables.hidden = zoneDesVariables.childElementCount === 0;
         } else if (resultat) {
           const nom = (id: string): string => noms()[id] ?? id;
@@ -1566,11 +1567,12 @@ function construireVues(i18n: Localisation) {
             if (issue.issue === 'ecrite') {
               if (encart === issue.palette) encart = null;
               laissees.delete(issue.palette);
-            } else if (issue.issue === 'nom-pris') refusDesTokens.set(issue.palette, nomDejaPris(nom(issue.palette), issue.nom));
+            } else if (issue.issue === 'nom-pris') refusDesTokens.set(issue.palette, nomDejaPris(nom(issue.palette), issue.nom, issue.occupant ? nom(issue.occupant.palette) : undefined));
             else if (issue.issue === 'collection-introuvable') refusDesTokens.set(issue.palette, collectionDisparue(nom(issue.palette)));
+            else if (issue.issue === 'couche-interdite') refusDesTokens.set(issue.palette, coucheInterdite(nom(issue.palette), issue.nom));
             else if (issue.issue === 'mode-introuvable') refusDesTokens.set(issue.palette, modeDisparu(nom(issue.palette), issue.mode));
             else if (issue.issue === 'modes-refuses') refusDesTokens.set(issue.palette, modesRefuses(nom(issue.palette), issue.message));
-            else if (issue.issue === 'interrompue') refusDesTokens.set(issue.palette, ecritureInterrompue(nom(issue.palette), issue.message));
+            else if (issue.issue === 'interrompue') refusDesTokens.set(issue.palette, ecritureInterrompue(nom(issue.palette), issue.message, restesNommes(issue.restes ?? [])));
           }
         }
         rendre();

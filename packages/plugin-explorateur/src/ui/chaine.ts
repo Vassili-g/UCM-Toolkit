@@ -5,7 +5,7 @@
  */
 import { nomDeMode, texteDeSource } from '../copie';
 import type { Index } from '../indexation';
-import { pourcentageDOpacite } from '../modele';
+import { espaceDuReleve, pourcentageDOpacite } from '../modele';
 import { BORNE_DES_ETAPES, type Resultat } from '../resolution';
 import type { Application } from './application';
 import { TEXTES } from './textes';
@@ -111,7 +111,7 @@ export function rendreChaine(app: Application, resultat: Resultat, ouvrir?: (var
   });
   const fin = document.createElement('li');
   fin.className = 'etape-fin';
-  fin.append(rendreResultat(resultat));
+  fin.append(rendreResultat(resultat, false, espaceDuReleve(index.releve)));
   liste.append(fin);
   return liste;
 }

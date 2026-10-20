@@ -4,8 +4,10 @@
  * geste, sans modifier l'état elles-mêmes.
  */
 import { copier as texteACopier, type FormatDeCopie } from '../copie';
+import { versSrgb } from '../espace';
 import { clesDesAncetres, segmentsDeGroupe } from '../groupes';
 import { modesDeFamille } from '../indexation';
+import { espaceDuReleve } from '../modele';
 import type { Disposition } from '../fenetre';
 import type { Preferences } from '../preferences';
 import { contexteDeColonne, type Resultat } from '../resolution';
@@ -149,7 +151,8 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       if (!etat.index) return;
       const resultat = app.resultat(variable);
       const constat = resultat.statut === 'resolu' ? null : titreDeConstat(resultat.statut);
-      const copie = texteACopier(etat.index, variable, resultat, format, { constat, reference });
+      const espace = espaceDuReleve(etat.index.releve);
+      const copie = texteACopier(etat.index, variable, resultat, format, { constat, reference, versSrgb: (couleur) => versSrgb(couleur, espace) });
       if (copie.texte === null) {
         app.annoncer(TEXTES.copieImpossible[copie.raison ?? 'non-resolu']);
         return;

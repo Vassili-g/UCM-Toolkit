@@ -1172,6 +1172,59 @@ test('[UI-34] une reprise partielle nomme la collision et affiche la forme réel
   } finally { await page.close(); }
 });
 
+test('[VAR-08] une palette dont le plan prend le nom d’une autre palette annonce le refus avant toute écriture, sans geste d’écriture', async () => {
+  const page = await ouvrirSur('nom-pris-par-une-autre-palette');
+  try {
+    await ouvrirLaPlanche(page);
+    const fiche = page.locator('.palette-depliable[data-palette="p-5c1d0e77"]');
+    const ligne = fiche.locator('.sortie[data-sortie="tokens"]');
+    assert.equal(await ligne.locator('.pastille-d-etat').textContent(), 'Jamais écrits');
+    assert.equal(await ligne.locator('.sortie-detail').textContent(), 'Noms déjà pris par Jaune');
+    assert.equal(await ligne.locator('[data-geste]').count(), 0);
+    assert.match(await fiche.textContent(), /Tokens non écrits : Ardoise/);
+    assert.match(await fiche.textContent(), /La variable « color\/Ardoise\/soft\/light\/50 » appartient déjà à Jaune\./);
+    assert.match(await fiche.textContent(), /Renommez l’une des deux palettes, ou changez le groupe de la destination des tokens\./);
+    assert.equal((await demandes(page)).filter((demande) => demande.type === 'ecrire-variables').length, 0);
+  } finally { await page.close(); }
+});
+
+test('[VAR-07] une écriture défaite dit si le fichier est comme avant, ou ce que le plugin n’a pas pu défaire', async () => {
+  for (const [id, attendu, geste] of [
+    ['ecriture-defaite', /Le plugin l’a défaite : le fichier est comme avant\./, /Synchronisez dans Gestion, puis réessayez\./],
+    ['ecriture-defaite-avec-restes', /2 variables restent changées, dont color\/Ardoise\/soft\/light\/50\./, /Faites Ctrl\+Z dans Figma pour revenir à l’état d’avant, puis réessayez\./],
+  ]) {
+    const page = await ouvrirSur(id);
+    try {
+      await ouvrirLaPlanche(page);
+      await page.locator('#panneau-gestion .palette-depliable[data-palette="p-5c1d0e77"] [data-geste="ecrire"]').click();
+      await page.locator('#panneau-gestion .palette-depliable[data-palette="p-5c1d0e77"] [data-geste="confirmer-ecriture"]').click();
+      const demande = await prochaineDuType(page, 'ecrire-variables', 0);
+      await envoyer(page, { ...ETATS.find((etat) => etat.id === id).atteinte.at(-1).message, demande: demande.demande });
+      const zone = page.locator('#panneau-gestion');
+      await zone.getByText('Écriture des tokens annulée', { exact: true }).waitFor();
+      assert.match(await zone.textContent(), attendu);
+      assert.match(await zone.textContent(), geste);
+      assert.match(await zone.textContent(), /Détail de l’erreur : rangement refusé/);
+    } finally { await page.close(); }
+  }
+});
+
+test('[VAR-07] une palette interrompue dont des variables restent propose de les remplacer', async () => {
+  const id = 'ecriture-interrompue-avec-restes';
+  const page = await ouvrirSur(id);
+  try {
+    await ouvrirLaPlanche(page);
+    await page.locator('#panneau-gestion .palette-depliable[data-palette="p-5c1d0e77"] [data-geste="ecrire"]').click();
+    await page.locator('#panneau-gestion .palette-depliable[data-palette="p-5c1d0e77"] [data-geste="confirmer-ecriture"]').click();
+    const demande = await prochaineDuType(page, 'ecrire-variables', 0);
+    await envoyer(page, { ...ETATS.find((etat) => etat.id === id).atteinte.at(-1).message, demande: demande.demande });
+    const fiche = page.locator('.palette-depliable[data-palette="p-5c1d0e77"]');
+    await fiche.getByText('Écriture interrompue : Ardoise', { exact: true }).waitFor();
+    assert.match(await fiche.textContent(), /2 variables gardent un changement de cette écriture, dont color\/Ardoise\/soft\/light\/50\./);
+    assert.match(await fiche.textContent(), /Écrivez de nouveau la palette : elle proposera de remplacer ces variables\./);
+  } finally { await page.close(); }
+});
+
 test('[UI-35] l’ancienne sortie demande sa propre confirmation et ne cible pas les tokens actuels', async () => {
   const page = await ouvrirSur('ancienne-sortie-des-tokens');
   try {

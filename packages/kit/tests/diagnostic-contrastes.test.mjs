@@ -10,6 +10,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { identifiantsDeRoles, natureDuRole, tableDesRolesDeRendu } from "@ucm-kit/core/format";
+
 import { controlerRepository } from "../src/lecteurs/controle-repository.mjs";
 import * as diagnostic from "../src/lecteurs/diagnostic-contrastes.mjs";
 import * as navigateur from "../src/lecteurs/navigateur.mjs";
@@ -141,6 +143,48 @@ test("une couleur Display P3 ou translucide ne se juge pas, sans effacer les aut
   const translucide = structuredClone(TOKENS);
   translucide.base.pale.$extensions["com.ucm.modes"] = { light: srgb("#BFDBFE", 0.5), dark: srgb("#1E3A8A", 0.5) };
   assert.deepEqual(constatsDesContrastes(bouton([{ texte: "texte-pale" }]), translucide), []);
+});
+
+/** Un contrat où une clé `k`, d'un rôle donné, vit d'un côté du contrat sur un fond `background` ; la couleur `texte-pale` passe sous tous les seuils. */
+function contratAvecUnRole(cote, role, roles) {
+  const reference = "{composants.bouton.texte-pale}";
+  return {
+    meta: { contractVersion: "14.0" },
+    rendering: { roles, keyRoles: { [cote]: { k: role } } },
+    variantViews: { vue: { structure: "arbre", paintPlacements: "peintures" } },
+    viewStructures: { arbre: { children: [] } },
+    viewPaintPlacements: { peintures: { fills: { background: [[]], ...(cote === "fills" ? { k: [["cadre"]] } : {}) }, strokes: cote === "strokes" ? { k: [["cadre"]] } : {} } },
+    variants: [{
+      values: { state: "default" },
+      view: "vue",
+      tokens: { background: "{composants.bouton.fond}", ...(cote === "fills" ? { k: reference } : {}) },
+      ...(cote === "strokes" ? { strokes: { k: { color: reference, width: null, align: "outside" } } } : {}),
+    }],
+  };
+}
+
+test("les rôles jugés viennent de la table du kit : peinture du côté des tokens, contour du côté des strokes", () => {
+  for (const identifiant of identifiantsDeRoles()) {
+    for (const cote of ["fills", "strokes"]) {
+      const natureDuCote = cote === "fills" ? "peinture" : "contour";
+      // Le fond n'a pas de seuil : il sert de fond aux autres, il n'est pas jugé.
+      const attendu = identifiant !== "background" && natureDuRole(identifiant) === natureDuCote;
+      const contrat = contratAvecUnRole(cote, identifiant, {});
+      assert.equal(constatsDesContrastes(contrat, TOKENS).length, attendu ? 1 : 0, `${identifiant} côté ${cote}`);
+    }
+  }
+});
+
+test("un contrat ancien se lit avec la table qu'il porte, pas avec celle du kit", () => {
+  const tableDuKit = tableDesRolesDeRendu();
+  const sansAnneau = { background: tableDuKit.background, foreground: tableDuKit.foreground, border: tableDuKit.border };
+  // `ring` est un contour dans la table du kit ; ce contrat ne le connaît pas, donc il n'est pas jugé.
+  assert.equal(constatsDesContrastes(contratAvecUnRole("strokes", "ring", sansAnneau), TOKENS).length, 0);
+  assert.equal(constatsDesContrastes(contratAvecUnRole("strokes", "ring", tableDuKit), TOKENS).length, 1);
+  // `icon` est une peinture dans la table du kit ; ce contrat en fait un contour.
+  const iconEnContour = { ...tableDuKit, icon: { kind: "stroke", cssProperties: ["box-shadow"] } };
+  assert.equal(constatsDesContrastes(contratAvecUnRole("fills", "icon", iconEnContour), TOKENS).length, 0);
+  assert.equal(constatsDesContrastes(contratAvecUnRole("strokes", "icon", iconEnContour), TOKENS).length, 1);
 });
 
 test("la section est une information qui ne bloque pas, et le terminal le répète", () => {

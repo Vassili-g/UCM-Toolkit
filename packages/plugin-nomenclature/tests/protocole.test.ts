@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { ObjetModifiable, PortDeRegles, SessionEcriture, VariableModifiable } from '../src/ecriture';
+import type { EtatDeLaMarque } from '@ucm-kit/core/protocoles';
 import { inventaireDeLectures, type PortDeLecture } from '../src/lecture';
 import { TYPES_DE_TERMES, type Bilan, type DemandeArchitect, type GesteSurLesRegles, type PluginMessage, type TermeDeListe, type TypeDeTerme } from '../src/messages';
 import { creerSession, moteurDuKit, type Moteur } from '../src/session';
@@ -19,6 +20,8 @@ interface OptionsDuBanc {
   readonly protegees?: readonly string[];
   /** L'identifiant de palette que Palettes écrit dans la donnée partagée d'une variable, par identifiant de variable. */
   readonly palettes?: Readonly<Record<string, string>>;
+  /** L'état de la marque `nommage` de Palettes ; `absente` par défaut. */
+  readonly marque?: EtatDeLaMarque;
 }
 
 /** Un fichier Figma factice : il compte ses lectures et trace les noms écrits. */
@@ -44,12 +47,19 @@ function banc(options: OptionsDuBanc = {}) {
   const collectionsLues = () => [...collections.values()].map((o) => ({ id: o.id, name: o.name, remote: false, ...(modes.has(o.id) ? { modes: Array.from({ length: modes.get(o.id)! }, () => ({})) } : {}) }));
   for (const [id, nom, collection = 'c'] of options.variables ?? []) variables.set(id, creer(id, nom, { variableCollectionId: collection }));
   const protegees = [...(options.protegees ?? [])];
+  /**
+   * Une lecture de Palettes refusée : `actif` refuse tout (le suivi et la marque sont illisibles, donc seules les variables
+   * à marqueur restent décidées), `ids` ne rend indécidables que ces variables.
+   */
+  const refus = { actif: false, ids: [] as string[] };
   const lecture: PortDeLecture = {
     collections: async () => { lectures.collections++; return collectionsLues(); },
     variables: async () => { lectures.variables++; return [...variables.values()].map((o) => ({ id: o.id, name: o.name, variableCollectionId: o.variableCollectionId, remote: false })); },
     cibleAlias: () => undefined,
-    protegee: (variable) => protegees.includes(variable.id),
+    protegee: (variable) => !refus.actif && protegees.includes(variable.id),
     palette: (variable) => options.palettes?.[variable.id],
+    indecidable: (variable) => (refus.actif || refus.ids.includes(variable.id)) && !lecture.protegee(variable),
+    marqueDePalettes: () => (refus.actif ? 'refusee' : options.marque ?? 'absente'),
   };
   /** Ce qui arrive dans Figma pendant `ouvrir`, avant que la lecture d'écriture ne s'achève. */
   const pendantOuvrir = { action: undefined as (() => void) | undefined };
@@ -89,7 +99,7 @@ function banc(options: OptionsDuBanc = {}) {
   };
   const bilans = () => messages.filter((m): m is Extract<PluginMessage, { type: 'bilan' }> => m.type === 'bilan');
   return {
-    noms, lectures, protegees, pendantOuvrir, compteurs, portees, maximums, stock, messages, instance, envoyer, bilans,
+    noms, lectures, protegees, refus, pendantOuvrir, compteurs, portees, maximums, stock, regles, messages, instance, envoyer, bilans,
     dernierBilan: (): Bilan => bilans().at(-1)!.bilan,
     vider: () => { messages.length = 0; },
     /** Une modification faite hors du plugin. */
@@ -117,6 +127,37 @@ const FICHIER: OptionsDuBanc = {
   collections: [['c', 'Brand']],
   variables: [['v1', 'Button/Fill Hover'], ['v2', 'Button/Fill Pressed'], ['v3', 'fontSize/Body']],
 };
+
+test('l’architecture est rangée et relue au bilan sans ajouter d’historique', async () => {
+  const b = banc(FICHIER);
+  await b.envoyer({ type: 'analyser' });
+  assert.equal(b.dernierBilan().architecture, 'absente');
+  for (const ucm of [true, false]) {
+    await b.envoyer({ type: 'regle', geste: { type: 'architecture', ucm } });
+    assert.equal(b.stock.get('architecture'), JSON.stringify({ version: 1, ucm }));
+    assert.equal(b.dernierBilan().architecture, ucm ? 'ucm' : 'libre');
+    assert.equal(b.dernierBilan().dernierImport, null);
+    assert.equal(b.dernierBilan().dernierRenommage, null);
+  }
+  await b.envoyer({ type: 'importer', texte: '{"version":1}' });
+  assert.equal(b.dernierBilan().architecture, 'libre');
+  await b.envoyer({ type: 'exporter' });
+  const exporte = b.messages.at(-1)!;
+  assert.ok(exporte.type === 'regles-exportees');
+  assert.equal(JSON.parse(exporte.texte).architecture, false);
+  await b.envoyer({ type: 'importer', texte: '{"version":1,"architecture":true}' });
+  assert.equal(b.dernierBilan().architecture, 'ucm');
+});
+
+test('une écriture d’architecture refusée renvoie l’état relu après le retour des données', async () => {
+  const b = banc(FICHIER);
+  await b.envoyer({ type: 'analyser' });
+  b.stock.set('architecture', '{"version":2}');
+  b.regles.ecrire = () => { throw new Error('refus Figma'); };
+  const demande = await b.envoyer({ type: 'regle', geste: { type: 'architecture', ucm: true } });
+  assert.deepEqual(b.messages.at(-1), { type: 'erreur', demande, code: 'echec', architecture: 'future' });
+  assert.equal(b.stock.get('architecture'), '{"version":2}');
+});
 
 test('de analyser à application : le premier bilan, l\'écriture, l\'application et son bilan neuf', async () => {
   const b = banc(FICHIER);
@@ -631,6 +672,68 @@ test('N04 : un terme ordinaire écrit pendant ouvrir refuse le lot en regles-mod
   assert.equal(b.stock.has('journal'), false, 'aucun journal rangé');
 });
 
+test('T4.1 : une lecture devenue refusée entre l’analyse et l’écriture saute la variable en non-verifiee, sans changer son nom', async () => {
+  const { b, appliquer } = await pretAAppliquer(FICHIER);
+  b.pendantOuvrir.action = () => { b.refus.ids.push('v1'); };
+  await appliquer();
+  const application = b.messages.find((m) => m.type === 'application');
+  assert.ok(application && application.type === 'application');
+  assert.equal(b.noms.get('v1'), 'Button/Fill Hover');
+  assert.equal(b.noms.get('v2'), 'button/fill-pressed');
+  assert.equal(application.resultat.statut, 'partiel');
+  assert.equal(application.resultat.sautes, 1);
+  assert.equal(application.resultat.nonVerifiees, 1);
+});
+
+test('T4.1 : un lot dont tout est non vérifié est refusé, et nonVerifiees compte les variables sautées', async () => {
+  const { b, appliquer } = await pretAAppliquer(FICHIER);
+  b.pendantOuvrir.action = () => { b.refus.actif = true; };
+  await appliquer();
+  const application = b.messages.find((m) => m.type === 'application');
+  assert.ok(application && application.type === 'application');
+  assert.deepEqual(b.messages.map((m) => m.type), ['application'], 'rien n’a changé : pas de bilan neuf');
+  assert.equal(application.resultat.statut, 'refuse');
+  assert.equal(application.resultat.nonVerifiees, application.resultat.sautes);
+  assert.ok(application.resultat.sautes >= 1);
+  assert.deepEqual(['v1', 'v2', 'v3'].map((id) => b.noms.get(id)), ['Button/Fill Hover', 'Button/Fill Pressed', 'fontSize/Body']);
+});
+
+test('T4.1 : une lecture refusée puis rétablie, avec une variable reprise et une couleur ordinaire', async () => {
+  const b = banc({ collections: [['c', 'Brand']], variables: [['reprise', 'Button/Fill Hover'], ['ordinaire', 'Button/Fill Pressed']], protegees: ['reprise'] });
+  b.refus.actif = true;
+  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'regle', geste: regleEcriture });
+  const refuse = b.dernierBilan();
+  assert.deepEqual(refuse.protections, [{ cause: 'lecture-refusee', nombre: 2 }]);
+  assert.equal(refuse.proteges, 2);
+  assert.equal(refuse.groupes.length, 0, 'pendant le refus, ni la reprise ni la couleur ordinaire ne sont proposées');
+  assert.deepEqual([b.noms.get('reprise'), b.noms.get('ordinaire')], ['Button/Fill Hover', 'Button/Fill Pressed']);
+
+  b.refus.actif = false;
+  await b.envoyer({ type: 'analyser' });
+  const retablie = b.dernierBilan();
+  assert.deepEqual(retablie.protections, [{ cause: 'marque-absente', nombre: 1 }], 'marque absente : la reprise est protégée');
+  assert.equal(retablie.groupes.reduce((total, groupe) => total + groupe.variables, 0), 1, 'la couleur ordinaire est proposée');
+  b.vider();
+  await b.envoyer({ type: 'appliquer', generation: retablie.generation, selection: { groupes: retablie.groupes.map((g) => g.cle), exclus: [], inclus: [] } });
+  assert.deepEqual([b.noms.get('reprise'), b.noms.get('ordinaire')], ['Button/Fill Hover', 'Button/fill-pressed'], 'le dossier Button reste celui de la variable protégée');
+});
+
+test('T4.1 : une annulation dont la lecture devient refusée saute la restitution en non-verifiee', async () => {
+  const { b, appliquer } = await pretAAppliquer(FICHIER);
+  await appliquer();
+  assert.equal(b.noms.get('v1'), 'button/fill-hover');
+  b.vider();
+  b.pendantOuvrir.action = () => { b.refus.ids.push('v1'); };
+  await b.envoyer({ type: 'annuler-dernier' });
+  const annulation = b.messages.find((m) => m.type === 'application');
+  assert.ok(annulation?.type === 'application');
+  assert.equal(b.noms.get('v1'), 'button/fill-hover');
+  assert.equal(b.noms.get('v2'), 'Button/Fill Pressed');
+  assert.equal(annulation.resultat.nonVerifiees, 1);
+  assert.equal(annulation.resultat.annulable, true, 'le journal garde la ligne');
+});
+
 test('AC13 : une annulation lit la protection pendant ouvrir et saute la variable devenue protégée', async () => {
   const { b, appliquer } = await pretAAppliquer(FICHIER);
   await appliquer();
@@ -820,4 +923,54 @@ test('terme-ordinaire : une simulation rend effet null sans erreur, et un terme 
   b.vider();
   await b.envoyer({ type: 'regle', geste: { type: 'terme-ordinaire', terme: 'a/b', actif: true } });
   assert.ok(b.messages.some((message) => message.type === 'erreur' && message.code === 'mot-refuse'));
+});
+
+// Les règles d'une version plus récente du plugin
+
+const FUTURE = JSON.stringify({ version: 2, terme: ['quux'], remplace: [['quuxed']] });
+const TEXTE_DES_REGLES_FUTURES = 'Une version plus récente d’UCM Nomenclature a rangé des règles dans ce fichier. Mettez le plugin à jour pour renommer.';
+
+test('L12 : une entrée de nommage de version 2 refuse l’application avant toute écriture, et le bilan le dit', async () => {
+  const { b } = await pretAAppliquer(FICHIER);
+  b.stock.set('terme:quux', FUTURE);
+  await b.envoyer({ type: 'analyser' });
+  const avant = new Map(b.stock);
+  const bilan = b.dernierBilan();
+  assert.equal(bilan.reglesFutures, true);
+  b.vider();
+  const demande = await b.envoyer({ type: 'appliquer', generation: bilan.generation, selection: { groupes: bilan.groupes.map((g) => g.cle), exclus: [], inclus: [] } });
+  const application = b.messages.find((m): m is Extract<PluginMessage, { type: 'application' }> => m.type === 'application');
+  assert.equal(application?.demande, demande);
+  assert.equal(application?.resultat.statut, 'refuse');
+  assert.equal(application?.resultat.cause, 'regles-futures');
+  assert.equal(application?.resultat.renommes, 0);
+  assert.equal(b.noms.get('v1'), 'Button/Fill Hover');
+  assert.deepEqual(b.stock, avant, 'aucune règle ni journal rangé');
+  assert.equal(b.messages.some((m) => m.type === 'bilan'), false, 'un refus n’est pas suivi d’un bilan');
+});
+
+test('L12 : sans entrée future, le bilan ne le dit pas et l’application passe', async () => {
+  const { b, appliquer } = await pretAAppliquer(FICHIER);
+  await appliquer();
+  const application = b.messages.find((m): m is Extract<PluginMessage, { type: 'application' }> => m.type === 'application');
+  assert.equal(application?.resultat.statut, 'applique');
+  assert.equal(b.dernierBilan().reglesFutures, false);
+});
+
+test('L12 : une entrée de nommage de version 2 refuse un geste sur les règles et un import, sans rien écrire', async () => {
+  const b = banc(FICHIER);
+  await b.envoyer({ type: 'analyser' });
+  b.stock.set('ecriture', JSON.stringify({ version: 2, groupes: {}, variables: {} }));
+  const avant = new Map(b.stock);
+  b.vider();
+  const geste = await b.envoyer({ type: 'regle', geste: regleEcriture });
+  const importe = await b.envoyer({ type: 'importer', texte: JSON.stringify({ version: 1, ecriture: ecriture }) });
+  assert.deepEqual(b.messages, [{ type: 'erreur', demande: geste, code: 'regles-futures' }, { type: 'erreur', demande: importe, code: 'regles-futures' }]);
+  assert.deepEqual(b.stock, avant, 'l’écriture de la version 2 reste telle quelle');
+});
+
+test('L12 : le texte du refus est celui de la conception', async () => {
+  const { TEXTES } = await import('../src/ui/textes');
+  assert.equal(TEXTES.reglesFutures, TEXTE_DES_REGLES_FUTURES);
+  assert.equal(TEXTES.erreur['regles-futures'], TEXTE_DES_REGLES_FUTURES);
 });

@@ -5,11 +5,8 @@
  * handler et lui renvoyer le fichier produit ou l'erreur.
  */
 import { IndexModifie, oublierLaPage } from './contract/composedComponents';
-import {
-  extractRules,
-  hasUsableRules,
-  MARQUEUR_A_COMPLETER,
-} from './contract/extractRules';
+import { MARQUEUR_A_COMPLETER } from '@ucm-kit/core/referentiel';
+import { extractRules, hasUsableRules } from './contract/extractRules';
 import { pointsDesImbriques } from './contract/imbriques';
 import type { PointACorriger } from './contract/localisation';
 import type { ExtractedRules, ReleveDeSource } from './contract/extractRules';

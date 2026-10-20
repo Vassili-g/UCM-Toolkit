@@ -1,15 +1,11 @@
 /// <reference types="@figma/plugin-typings" />
-/**
- * Le contrôle des axes de modes du socle et l'export de tokens retiennent les mêmes axes. Le socle reproduit la règle de
- * `axesDesCollections` sans importer l'exporteur (`axesDeLExport`, `cheminsEnConflit`) : ce test les compare sur des fichiers
- * inventés, avant et après un renommage de collection. Un renommage que l'export traduirait par la perte d'un axe ou de ses
- * extensions doit être en cause, et un renommage sans perte ne doit pas l'être.
- */
+/** Les adaptateurs de lecture et d’export transmettent les mêmes collections à la décision des axes du kit. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { deciderAxesDesCollections } from '@ucm-kit/core/format';
+import { axesDeLExport, cheminsEnConflit, inventairePublie } from '@ucm-kit/core/nommage';
 
 import { axesDesCollections } from '../packages/plugin-exporter/src/tokens/exportTokens';
-import { axesDeLExport, cheminsEnConflit, inventairePublie } from '../packages/plugin-socle/src/cheminsPublies';
 import { inventaireDeLectures } from '../packages/plugin-socle/src/inventaireDeNoms';
 
 /** Une collection du fichier inventé. `racine` en fait une extension de cette collection ; `modes` vaut 2 par défaut. */
@@ -39,7 +35,10 @@ function axesDeLExporteur(objets: ReturnType<typeof objetsFigma>) {
 /** Ce que le socle prévoit pour les mêmes objets, d'après l'inventaire que les plugins construisent. */
 function axesDuSocle(objets: ReturnType<typeof objetsFigma>) {
   const inventaire = inventaireDeLectures(objets, [], { cibleAlias: () => undefined, protegee: () => false, palette: () => undefined });
-  return [...axesDeLExport(inventairePublie(inventaire, (entree) => entree.cible.collectionId).collections)];
+  const collections = inventairePublie(inventaire, (entree) => entree.cible.collectionId).collections;
+  const decision = deciderAxesDesCollections(collections);
+  assert.deepEqual([...axesDeLExport(collections)], [...decision.axes]);
+  return [...decision.axes];
 }
 
 /** Un axe est perdu quand l'export le retenait avant et plus après, ou qu'il en perd ses extensions. */

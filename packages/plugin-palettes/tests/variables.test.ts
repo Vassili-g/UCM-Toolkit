@@ -242,7 +242,7 @@ test('[VAR-08] une variable qu’une autre palette suit n’est jamais remplacé
   const lu = tokensDeLaPalette(RECETTE, BLEU, await lireLesVariablesDuFichier(api(figma)));
   assert.deepEqual(lu.existantes, []);
   const resultat = await ecrireLesVariables(api(figma), { palettes: [BLEU.id], empreinteLue: empreinte(RECETTE), remettre: [], remplacer: [BLEU.id] });
-  assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: BLEU.id, issue: 'nom-pris', nom: 'color/Bleu/vivid/light/600' }] });
+  assert.deepEqual(resultat, { issue: 'ecrites', palettes: [{ palette: BLEU.id, issue: 'nom-pris', nom: 'color/Bleu/vivid/light/600', occupant: { palette: GRIS.id, dansLeLot: false } }] });
 });
 
 test('[VAR-08] les variables d’une palette supprimée de la recette se remplacent, et quittent son suivi', async () => {

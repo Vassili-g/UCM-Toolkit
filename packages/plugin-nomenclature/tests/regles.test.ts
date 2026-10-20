@@ -1,7 +1,8 @@
 /** Les règles du fichier : lecture tolérante, clés, réponses, journal, reprise de la v1 et échange d'export. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { ConflitDeVocabulaire } from '@ucm-kit/core/referentiel';
+import { cleDeRegleDuTerme, type ConflitDeVocabulaire } from '@ucm-kit/core/referentiel';
+import { PREFIXES_DE_NOMMAGE, cleEcart, cleOrdinaire, lireEntree, lireLesEntreesDeNommage, lireReglesDeNommage, cleTerme as cleTermeDuKit } from '@ucm-kit/core/protocoles';
 import { creerPortDeRegles } from '../src/ecriture';
 import {
   budgetDUneEntree, cleDistinct, cleJournal, cleReponse, cleTerme, defaireLImport, defaireReponse, preparerImport, dejaJugeDuFichier, ecrituresDesRegles, effacerLeJournal, exporterLesRegles,
@@ -13,6 +14,43 @@ const convention = { casse: 'minuscules', separateur: 'tiret' } as const;
 const autre = { casse: 'PascalCase', separateur: 'inchange' } as const;
 const ecriture = { groupes: convention, variables: autre };
 const dans = (ecritures: readonly Ecriture[]): Map<string, string> => new Map(ecritures.filter((e) => e.texte !== null).map((e) => [e.cle, e.texte as string]));
+
+test('la déclaration d’architecture se relit et se porte dans le fichier de règles', () => {
+  for (const ucm of [false, true]) {
+    const entree = serialiserRegle({ type: 'architecture', ucm });
+    assert.deepEqual(entree, { cle: 'architecture', texte: JSON.stringify({ version: 1, ucm }) });
+    const regles = lireLesRegles(dans([entree]));
+    assert.equal(regles.architecture, ucm ? 'ucm' : 'libre');
+    const texte = exporterLesRegles(regles);
+    assert.equal(JSON.parse(texte).architecture, ucm);
+    const importe = importerLesRegles(texte, reglesVides, () => []);
+    assert.equal(importe.statut, 'valide');
+    if (importe.statut !== 'valide') return;
+    assert.deepEqual(importe.ecritures, [entree]);
+    assert.equal(importe.regles.architecture, regles.architecture);
+  }
+});
+
+test('sans déclaration exportée, un import préserve l’architecture du fichier', () => {
+  const texte = exporterLesRegles(reglesVides);
+  assert.equal('architecture' in JSON.parse(texte), false);
+  for (const architecture of ['absente', 'ucm', 'libre', 'illisible', 'future'] as const) {
+    const importe = importerLesRegles(texte, { ...reglesVides, architecture }, () => []);
+    assert.equal(importe.statut, 'valide');
+    if (importe.statut !== 'valide') continue;
+    assert.equal(importe.regles.architecture, architecture);
+    assert.equal(importe.ecritures.some((e) => e.cle === 'architecture'), false);
+  }
+});
+
+test('une déclaration illisible ou future garde son état et ne sort pas comme un choix libre', () => {
+  for (const [texte, attendu] of [['{}', 'illisible'], ['{"version":2}', 'future']] as const) {
+    const regles = lireLesRegles([['architecture', texte]]);
+    assert.equal(regles.architecture, attendu);
+    assert.equal('architecture' in JSON.parse(exporterLesRegles(regles)), false);
+  }
+  assert.equal(importerLesRegles('{"version":1,"architecture":"true"}', reglesVides, () => []).statut, 'illisible');
+});
 /** Un stockage en mémoire sur une table. */
 const stockageDe = (table: Map<string, string>) => ({
   cles: () => [...table.keys()],
@@ -418,4 +456,55 @@ test('un export sans ordinaires se lit comme une liste vide, et la fusion des or
   assert.deepEqual(fusion.regles.ordinaires, ['head', 'stress-test']);
   assert.deepEqual(lireLesRegles(dans(fusion.ecritures)).ordinaires, ['stress-test']);
   assert.deepEqual(lireLesRegles(dans([{ cle: 'ordinaire:a b', texte: '{"version":1}' }, { cle: 'ordinaire:', texte: '{"version":1}' }])).ordinaires, []);
+});
+
+// Les octets que Nomenclature écrit et que le kit lit
+
+test('L12 : les octets de serialiserRegle sont lus par lireLesEntreesDeNommage du kit', () => {
+  const avecDefinition = { terme: ['font', 'size'], remplace: [['fontsize'], ['text', 'size']], definition: 'La taille du texte.' };
+  const sansDefinition = { terme: ['color'], remplace: [['colors']] };
+  const ecritures = [
+    serialiserRegle({ type: 'ecriture', ecriture }),
+    serialiserRegle({ type: 'terme', terme: avecDefinition }),
+    serialiserRegle({ type: 'terme', terme: sansDefinition }),
+    serialiserRegle({ type: 'ecart', id: 'ucm-etat-hover' }),
+    serialiserRegle({ type: 'ordinaire', cle: 'dark' }),
+    serialiserRegle({ type: 'exclues', ids: ['c9', 'c1'] }),
+  ];
+  const lues = lireLesEntreesDeNommage(dans(ecritures));
+  assert.deepEqual(lues.ecriture, ecriture);
+  assert.equal(lues.ecritureDeLaV1, false);
+  assert.deepEqual(lues.termes, [sansDefinition, avecDefinition]);
+  assert.deepEqual(lues.ecartsUcm, ['ucm-etat-hover']);
+  assert.deepEqual(lues.ordinaires, ['dark']);
+  assert.deepEqual(lues.collectionsExclues, ['c1', 'c9']);
+  assert.deepEqual(lues.futures, []);
+  assert.deepEqual(lireReglesDeNommage(dans(ecritures))?.vocabulaire.personnalises, [sansDefinition, avecDefinition]);
+});
+
+test('L12 : chaque entrée de nommage que Nomenclature écrit porte une version que le kit lit comme courante', () => {
+  for (const regle of [
+    { type: 'ecriture', ecriture }, { type: 'terme', terme: { terme: ['bg'], remplace: [] } }, { type: 'ecart', id: 'x' },
+    { type: 'ordinaire', cle: 'dark' }, { type: 'exclues', ids: ['c1'] },
+  ] as const) {
+    const { texte } = serialiserRegle(regle);
+    assert.notEqual(lireEntree(texte!), undefined, regle.type);
+  }
+});
+
+test('L12 : Nomenclature écrit les clés que le kit construit, et lit les entrées futures dans futures', () => {
+  assert.equal(serialiserRegle({ type: 'terme', terme: { terme: ['font', 'size'], remplace: [] } }).cle, cleTermeDuKit(['font', 'size']));
+  assert.equal(serialiserRegle({ type: 'ecart', id: 'x' }).cle, cleEcart('x'));
+  assert.equal(serialiserRegle({ type: 'ordinaire', cle: 'dark' }).cle, cleOrdinaire('dark'));
+  assert.equal(cleTerme(['font', 'size']), 'terme:font size');
+  assert.equal(PREFIXES_DE_NOMMAGE.terme, 'terme:');
+  const regles = lireLesRegles(new Map([['terme:color', JSON.stringify({ version: 2 })], ['ecriture', serialiserRegle({ type: 'ecriture', ecriture }).texte!]]));
+  assert.deepEqual(regles.futures, ['terme:color']);
+  assert.deepEqual(regles.termes, []);
+  assert.deepEqual(reglesVides.futures, []);
+});
+
+test('L12 : la règle de l’analyse d’un terme joint les mots par un tiret, la clé rangée par une espace', () => {
+  assert.equal(cleDeRegleDuTerme(['Font', 'Size']), 'terme:font-size');
+  assert.equal(cleTerme(['Font', 'Size']), 'terme:Font Size');
 });

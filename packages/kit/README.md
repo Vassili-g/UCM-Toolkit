@@ -10,7 +10,7 @@ the repository that implements the component. The plugin and the readers both
 import the format from this package.
 
 ```sh
-npm install @ucm-kit/core@0.10.1
+npm install @ucm-kit/core@0.11.0
 ```
 
 Most repositories never call this package directly. They run
@@ -129,7 +129,7 @@ must follow them. In `ucm.config.json`, a `modes.color-brands` key is still
 read as `modes.brands` once the token file has a `brands` axis, and the CLI
 prints a note that asks to rename the key.
 
-## The six entry points
+## The eight entry points
 
 ```js
 import { CONTRACT_VERSION, codeIdentifier, normalizeName } from "@ucm-kit/core/format";
@@ -138,6 +138,8 @@ import { champsInvalidesDuContrat, verdictDeVersion } from "@ucm-kit/core/lecteu
 import { lireLeSchema, CHEMIN_DU_SCHEMA } from "@ucm-kit/core/lecteurs";
 import { champsInvalidesDuContrat, indexerTokensDtcg } from "@ucm-kit/core/lecteurs/navigateur";
 import { COLLECTIONS, PRODUITS } from "@ucm-kit/core/referentiel";
+import { classerLaDonnee, lireLeSuiviComplet } from "@ucm-kit/core/protocoles";
+import { nomsSelonLesReglesSync } from "@ucm-kit/core/nommage";
 ```
 
 **`@ucm-kit/core/format`** gives the shape of a contract, its version, the
@@ -154,8 +156,28 @@ nothing.
 
 **`@ucm-kit/core/referentiel`** is the shared reference data: the UCM
 collections and their targets, the naming registers and lexicon, the products
-and their responsibilities, and the implementation advice. Like `format`, it
-depends on nothing.
+and their responsibilities, the implementation advice, and the grammar of the
+Figma rules kit (`.componentRules`, `.rulesSection`, `.ruleItem`, their layers
+and the `[À compléter]` marker) with a validator of a portable survey of its
+masters. Like `format`, it depends on nothing.
+
+**`@ucm-kit/core/protocoles`** holds the data that UCM plugins share inside a
+Figma file: for each one, its address, its versions and the way a stored text
+is classified as absent, unreadable, refused, old, current or future. The
+`palettes` module covers the recipe, the variable tracking, the `nommage` mark
+and the `palette` and `cle` markers of a variable. The `nommage` module covers
+the rules that UCM Nomenclature stores to change a name (`ecriture`, `terme:`,
+`ecart:`, `ordinaire:`, `exclues`): the key constructors, the reader, and the
+entries of a newer version, which it lists as `futures`. A reader never
+migrates or rewrites the data. Like `format`, it depends on nothing: not Node,
+not Figma, not a third-party package.
+
+**`@ucm-kit/core/nommage`** computes the renaming that UCM Nomenclature and
+UCM Palettes share. It takes an inventory of the names of a file and the rules
+read through `protocoles`, and returns the names the lexicon gives, after the
+check of the published paths: no rename may make a token of `tokens.json` or a
+mode axis disappear. It also holds the portable inventory and the protection of
+the variables that UCM Palettes writes. It reads no Figma object.
 
 **`@ucm-kit/core/lecteurs`** holds everything that judges a contract already
 written: its shape, its composition graph, its token references, the meaning of
