@@ -4,7 +4,7 @@
  * lue dans Figma. Pur : ni Figma, ni DOM.
  */
 import type { EtatDesTokens } from '../presentation';
-import type { Destination } from './destination';
+import { segmentsDuGroupe, type Destination } from './destination';
 import type { EntreeDuPlan } from './plan';
 import type { VariableLue } from './releve';
 import type { PaletteSuivie } from './suivi';
@@ -43,10 +43,19 @@ export interface EtatDesTokensDUnePalette {
   readonly aRenommer: readonly { readonly de: string; readonly vers: string }[];
 }
 
+/** Les segments du groupe et de la palette d'un nom, sans casse : là où la variable est rangée. */
+function emplacement(nom: string, segments: number): string {
+  return nom.split('/').slice(0, segments).join('/').toLowerCase();
+}
+
 /**
  * Vrai quand la destination d'aujourd'hui n'est plus celle de la dernière
  * écriture de la palette. Une palette reprise du fichier garde ses variables
- * d'origine : la destination ne la concerne pas.
+ * d'origine : la destination ne la concerne pas. Un groupe changé ne compte
+ * pas quand les variables suivies sont déjà rangées sous le nouveau groupe et
+ * la palette, à la casse près : le fichier a suivi le renommage, et ce qui
+ * vient après la palette est l'affaire des règles de nommage, pas de la
+ * destination.
  */
 export function destinationChangee(
   suivi: PaletteSuivie,
@@ -63,7 +72,8 @@ export function destinationChangee(
       const lue = suivie ? lues.get(suivie.id) : undefined;
       return lue ? [{ entree, lue }] : [];
     });
-    if (presentes.length === 0 || presentes.some(({ entree, lue }) => lue.collection !== collection || lue.nom !== entree.nom)) return true;
+    const segments = (segmentsDuGroupe(destination.groupe)?.length ?? 0) + 1;
+    if (presentes.length === 0 || presentes.some(({ entree, lue }) => lue.collection !== collection || emplacement(lue.nom, segments) !== emplacement(entree.nom, segments))) return true;
   }
   return (destination.themes === 'chemin') !== (suivi.modes.unique !== undefined);
 }

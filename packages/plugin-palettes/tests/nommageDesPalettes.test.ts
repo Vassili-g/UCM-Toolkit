@@ -163,6 +163,24 @@ test('[VAR-07] aller-retour : les noms qu’UCM Nomenclature applique à des var
   assert.deepEqual(noms(figma), apresNomenclature);
 });
 
+test('[VAR-05] le groupe de la destination passe de colors à Color sur un fichier déjà renommé : les palettes restent à jour, et l’écriture ne défait aucun nom', async () => {
+  for (const regles of [true, false]) {
+    const { figma } = fichier({ regles: false });
+    await ecrire(figma, [POPPY]);
+    // Le fichier porte les noms d'UCM Nomenclature ; sans règles enregistrées, Palettes ne sait pas les calculer.
+    for (const variable of figma.locales.values()) variable.name = variable.name.replace(/^colors\//, 'Color/').replace(/\/(soft|vivid)\/(light|dark)\//, (_, intensite: string, theme: string) => `/${intensite[0].toUpperCase()}${intensite.slice(1)}/${theme[0].toUpperCase()}${theme.slice(1)}/`);
+    if (regles) poserLesRegles(figma);
+    const suivi = lireLeSuiviRange(figma.root);
+    figma.root.setSharedPluginData('ucm_palettes', 'variables', texteDuSuivi({ ...suivi, destination: { ...suivi.destination, groupe: 'Color' } }));
+    const avant = noms(figma);
+    assert.ok(avant.includes('Color/Poppy/Vivid/Light/50'));
+    const jetons = tokensDeLaPalette(RECETTE, POPPY, await lireLesVariablesDuFichier(api(figma)));
+    assert.deepEqual([jetons.etat, jetons.destinationChangee, jetons.existantes.length], ['a-jour', false, 0], `règles : ${regles}`);
+    assert.deepEqual(await ecrire(figma, [POPPY]), [{ palette: POPPY.id, issue: 'ecrite', creees: 0, ecrites: 0 }]);
+    assert.deepEqual(noms(figma), avant);
+  }
+});
+
 test('[VAR-07] sans règles, la première écriture garde les noms bruts', async () => {
   const { figma } = fichier({ regles: false });
   await ecrire(figma, [POPPY]);

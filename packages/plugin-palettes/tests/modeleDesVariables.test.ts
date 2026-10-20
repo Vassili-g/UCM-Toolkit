@@ -292,6 +292,21 @@ test('[VAR-05] un groupe renommé dans Figma et dans la destination reste à jou
   assert.deepEqual([etat.etat, etat.destinationChangee, etat.aEcrire.length], ['a-jour', false, 0]);
 });
 
+test('[VAR-05] un groupe changé se juge sur l’emplacement des variables suivies, sans casse : ce qui suit la palette ne compte pas', () => {
+  const suivi = { ...ecrit(['#F0F0F0', '#E0E0E0']), groupe: 'colors' };
+  const plan = PLAN.map((entree) => ({ ...entree, nom: entree.nom.replace('color/', 'Color/') }));
+  const nommees = (noms: readonly string[]) => new Map(noms.map((nom, rang) => [`v${rang}`, { id: `v${rang}`, nom, collection: 'C', valeurs: { m: PLAN[rang].hexa } }]));
+  const etat = (noms: readonly string[]) => etatDesTokens(plan, suivi, nommees(noms), { ...DESTINATION, groupe: 'Color' });
+  assert.deepEqual([etat(['Color/Gris/Light/50', 'Color/Gris/Light/100']).etat, etat(['Color/Gris/Light/50', 'Color/Gris/Light/100']).destinationChangee], ['a-jour', false]);
+  assert.equal(etat(['color/gris/light/50', 'color/gris/light/100']).etat, 'a-jour');
+  // Des variables restées sous l'ancien groupe, ou sous une autre palette, ne sont pas à la destination.
+  assert.equal(etat(['colors/Gris/light/50', 'colors/Gris/light/100']).destinationChangee, true);
+  assert.equal(etat(['Color/Bleu/light/50', 'Color/Gris/light/100']).destinationChangee, true);
+  // À la racine, la palette est le premier segment.
+  const aLaRacine = etatDesTokens(PLAN.map((entree) => ({ ...entree, nom: entree.nom.replace('color/', '') })), suivi, nommees(['colors/Gris/light/50', 'colors/Gris/light/100']), { ...DESTINATION, groupe: '' });
+  assert.equal(aLaRacine.destinationChangee, true);
+});
+
 test('[VAR-05] deux couleurs sont égales à l’octet : les composantes de Figma s’arrondissent', () => {
   assert.equal(hexaDeFigma({ r: 0.11764705926179886, g: 0.43529412150382996, b: 0.8509804010391235 }), '#1E6FD9');
   assert.equal(hexaDeFigma({ r: 1, g: 1, b: 1, a: 1 }), '#FFFFFF');
