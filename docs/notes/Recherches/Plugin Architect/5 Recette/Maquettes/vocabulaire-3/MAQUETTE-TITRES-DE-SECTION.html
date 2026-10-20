@@ -56,7 +56,7 @@
       </ol>
     </div>
     <div class="colonne">
-      <span class="etiquette recommande">T3 · Titre dans une bande en tête de la liste · recommandée</span>
+      <span class="etiquette recommande">T3 · Titre dans une bande en tête de la liste · retenue</span>
       <div class="cadre" id="t3"></div>
       <ol class="argu">
         <li>Le titre et sa ligne occupent une bande grise qui ferme le haut du cadre de la liste : la section forme un bloc.</li>
@@ -92,12 +92,12 @@
   <h2>3 · Les lignes sous les titres</h2>
   <table>
     <tr><th>Section</th><th>Ligne</th></tr>
-    <tr><td>À trancher</td><td>Termes proches d’un autre : répondez dans l’onglet Questions.</td></tr>
-    <tr><td>Remplace</td><td>Le terme retenu, et les variantes qu’il remplace dans le fichier.</td></tr>
-    <tr><td>Conforme</td><td>Termes qui suivent une règle, sans variante dans le fichier.</td></tr>
-    <tr><td>Sans règle</td><td>Termes du fichier qu’aucune règle ne couvre encore.</td></tr>
-    <tr><td>Composants</td><td>Noms des composants du fichier ; aucune question ne porte sur eux.</td></tr>
-    <tr><td>Palettes</td><td>Noms des palettes du fichier ; aucune question ne porte sur eux.</td></tr>
+    <tr><td>À trancher</td><td>Termes qui attendent votre réponse dans l’onglet Questions.</td></tr>
+    <tr><td>Remplace</td><td>Termes qui remplacent des variantes dans le fichier.</td></tr>
+    <tr><td>Conforme</td><td>Termes déjà écrits selon leur règle.</td></tr>
+    <tr><td>Sans règle</td><td>Termes qu’aucune règle ne couvre encore.</td></tr>
+    <tr><td>Composants</td><td>Noms des composants du fichier.</td></tr>
+    <tr><td>Palettes</td><td>Noms des palettes du fichier.</td></tr>
   </table>
 </main>
 
@@ -119,20 +119,20 @@ const icone = (type) => `<span class="icone-type${type === 'a-trancher' ? ' ambr
 
 /* Le Playground. Une ligne : [terme, nombre de variables, variantes, origine] ; `autres` : ce que « Afficher les n autres » ajouterait. */
 const SECTIONS = [
-  { type: 'a-trancher', titre: 'À trancher', total: 3, ligneDeTitre: 'Termes proches d’un autre : répondez dans l’onglet Questions.',
+  { type: 'a-trancher', titre: 'À trancher', total: 3, ligneDeTitre: 'Termes qui attendent votre réponse dans l’onglet Questions.',
     g: { lignes: [['backgrond', 2, null, 'trancher', 'background'], ['bg', 12, null, 'trancher', 'background'], ['contrasthovered', 1, null, 'trancher']], autres: 0 } },
-  { type: 'remplace', titre: 'Remplace', total: 9, ligneDeTitre: 'Le terme retenu, et les variantes qu’il remplace dans le fichier.',
+  { type: 'remplace', titre: 'Remplace', total: 9, ligneDeTitre: 'Termes qui remplacent des variantes dans le fichier.',
     g: { lignes: [['Color', 540, ['Colors', 'colors'], 'ucm'], ['Danger', 49, ['Error'], 'ucm'], ['Disabled', 46, ['Disable'], 'ucm'], ['Size', 59, ['Sizes'], 'ucm']], autres: 2 },
     v: { lignes: [['radius', 9, ['Border-radius'], 'ucm']], autres: 2 } },
-  { type: 'conforme', titre: 'Conforme', total: 37, ligneDeTitre: 'Termes qui suivent une règle, sans variante dans le fichier.',
+  { type: 'conforme', titre: 'Conforme', total: 37, ligneDeTitre: 'Termes déjà écrits selon leur règle.',
     g: { lignes: [['Info', 185, null, 'ucm'], ['LineHeight', 16, null, 'perso'], ['Small', 5, null, 'perso']], autres: 19 },
     v: { lignes: [['200', 59, null, 'ucm'], ['background', 92, null, 'ucm'], ['line-height', 15, null, 'perso']], autres: 12 } },
-  { type: 'sans', titre: 'Sans règle', total: 22, ligneDeTitre: 'Termes du fichier qu’aucune règle ne couvre encore.',
+  { type: 'sans', titre: 'Sans règle', total: 22, ligneDeTitre: 'Termes qu’aucune règle ne couvre encore.',
     g: { lignes: [['Contained', 71], ['Outlined', 106], ['ScaleWrap', 22]], autres: 9 },
     v: { lignes: [['Gap', 12], ['Padding', 15]], autres: 8 } },
-  { type: 'composant', titre: 'Composants', total: 6, ligneDeTitre: 'Noms des composants du fichier ; aucune question ne porte sur eux.',
+  { type: 'composant', titre: 'Composants', total: 6, ligneDeTitre: 'Noms des composants du fichier.',
     g: { lignes: [['Button', 245], ['Link', 38], ['Modal', 52]], autres: 3 } },
-  { type: 'palette', titre: 'Palettes', total: 2, ligneDeTitre: 'Noms des palettes du fichier ; aucune question ne porte sur eux.',
+  { type: 'palette', titre: 'Palettes', total: 2, ligneDeTitre: 'Noms des palettes du fichier.',
     g: { lignes: [['Poppy', 44], ['Titanium', 30]], autres: 0 } },
 ];
 const ORIGINE = {
