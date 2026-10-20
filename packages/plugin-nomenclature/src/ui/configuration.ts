@@ -43,8 +43,8 @@ function creerLigneDeCollection(collection: CollectionVue, aChange: () => void):
   return { id: collection.id, ligne, case: caseACocher, nom, detail };
 }
 
-function poserLaCollection(ligne: LigneDeCollection, collection: CollectionVue): void {
-  ligne.case.checked = collection.analysee;
+function poserLaCollection(ligne: LigneDeCollection, collection: CollectionVue, analysee: boolean): void {
+  ligne.case.checked = analysee;
   ligne.nom.textContent = collection.nom;
   ligne.detail.textContent = collection.palettes ? TEXTES.palettesProtegees : TEXTES.variablesDeLaCollection(collection.nombre);
 }
@@ -87,11 +87,16 @@ export function monterConfiguration(coquille: Coquille): void {
   const liste = document.createElement('div');
   liste.className = 'config-liste';
   let lignes: LigneDeCollection[] = [];
+  /**
+   * Le dernier choix envoyé, tant que sa réponse n'est pas arrivée : un bilan d'une demande plus ancienne
+   * ne recoche pas une case que le designer vient de décocher.
+   */
+  let choixEnVol: { readonly demande: number; readonly exclues: ReadonlySet<string> } | null = null;
 
   function configurer(): void {
     const exclues = lignes.filter((ligne) => !ligne.case.checked).map((ligne) => ligne.id);
     dire();
-    suivre(frontiere.configurer(exclues));
+    choixEnVol = { demande: suivre(frontiere.configurer(exclues)), exclues: new Set(exclues) };
   }
 
   /** Garde les lignes, donc le focus de la case, tant que les collections sont les mêmes. */
@@ -103,7 +108,8 @@ export function monterConfiguration(coquille: Coquille): void {
       lignes = collections.map((collection) => creerLigneDeCollection(collection, configurer));
       liste.replaceChildren(...lignes.map((ligne) => ligne.ligne));
     }
-    collections.forEach((collection, rang) => poserLaCollection(lignes[rang], collection));
+    collections.forEach((collection, rang) => poserLaCollection(lignes[rang], collection,
+      choixEnVol ? !choixEnVol.exclues.has(collection.id) : collection.analysee));
   }
 
   // Règles de ce fichier.
@@ -235,6 +241,7 @@ export function monterConfiguration(coquille: Coquille): void {
   coquille.abonner((recu: MessageAAfficher, etat) => {
     switch (recu.type) {
       case 'bilan':
+        if (recu.demande === choixEnVol?.demande) choixEnVol = null;
         if (recu.demande === demandeDAnnulation) demandeDAnnulation = null;
         if (recu.demande === demandeDAnnulationDImport) demandeDAnnulationDImport = null;
         if (demandes.delete(recu.demande)) dire();
@@ -247,6 +254,10 @@ export function monterConfiguration(coquille: Coquille): void {
         }
         break;
       case 'refus':
+        if (recu.demande === choixEnVol?.demande) {
+          choixEnVol = null;
+          poserLesCollections(etat.bilan?.collections ?? []);
+        }
         if (recu.demande === demandeDAnnulationDImport) {
           demandeDAnnulationDImport = null;
           demandes.delete(recu.demande);
@@ -262,8 +273,11 @@ export function monterConfiguration(coquille: Coquille): void {
         if (recu.demande === demandeDAnnulation) {
           demandeDAnnulation = null;
           demandes.delete(recu.demande);
-          const { statut, renommes, sautes } = recu.resultat;
-          if (statut === 'refuse') dire(TEXTES.annulationDuRenommageRefusee);
+          const { statut, renommes, sautes, exclues = 0 } = recu.resultat;
+          if (exclues > 0) {
+            dire(TEXTES.annulationDansUneCollectionExclue(renommes, exclues),
+              ...(sautes > exclues ? [TEXTES.annulationAutresNomsNonRetablis(sautes - exclues)] : []));
+          } else if (statut === 'refuse') dire(TEXTES.annulationDuRenommageRefusee);
           else if (statut === 'partiel') dire(TEXTES.annulationDuRenommagePartielle(renommes, sautes));
           synchroniserLesBoutons();
         }
@@ -272,6 +286,11 @@ export function monterConfiguration(coquille: Coquille): void {
         if (recu.demande === demandeDAnnulation) demandeDAnnulation = null;
         if (recu.demande === demandeDAnnulationDImport) demandeDAnnulationDImport = null;
         if (demandes.delete(recu.demande)) dire(TEXTES.erreur[recu.code]);
+        // Le choix refusé n'est pas rangé : les cases reviennent au dernier bilan.
+        if (recu.demande === choixEnVol?.demande) {
+          choixEnVol = null;
+          poserLesCollections(etat.bilan?.collections ?? []);
+        }
         synchroniserLesBoutons();
         break;
     }

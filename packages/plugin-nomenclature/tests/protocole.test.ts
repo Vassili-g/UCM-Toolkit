@@ -13,7 +13,8 @@ const ecriture = { groupes: minusculesTirets, variables: minusculesTirets };
 
 type SpecVariable = readonly [id: string, nom: string, collection?: string];
 interface OptionsDuBanc {
-  readonly collections?: readonly (readonly [string, string])[];
+  /** Le nombre de modes est facultatif : sans lui, la collection n'expose pas ses modes. */
+  readonly collections?: readonly (readonly [id: string, nom: string, modes?: number])[];
   readonly variables?: readonly SpecVariable[];
   readonly protegees?: readonly string[];
   /** L'identifiant de palette que Palettes écrit dans la donnée partagée d'une variable, par identifiant de variable. */
@@ -35,11 +36,16 @@ function banc(options: OptionsDuBanc = {}) {
     noms.set(id, nom);
     return { id, remote: false, ...extra, get name() { return noms.get(id)!; }, set name(valeur: string) { noms.set(id, valeur); } };
   };
-  for (const [id, nom] of options.collections ?? [['c', 'components']]) collections.set(id, creer(id, nom, {}));
+  const modes = new Map<string, number>();
+  for (const [id, nom, nombre] of options.collections ?? [['c', 'components']]) {
+    collections.set(id, creer(id, nom, {}));
+    if (nombre !== undefined) modes.set(id, nombre);
+  }
+  const collectionsLues = () => [...collections.values()].map((o) => ({ id: o.id, name: o.name, remote: false, ...(modes.has(o.id) ? { modes: Array.from({ length: modes.get(o.id)! }, () => ({})) } : {}) }));
   for (const [id, nom, collection = 'c'] of options.variables ?? []) variables.set(id, creer(id, nom, { variableCollectionId: collection }));
   const protegees = [...(options.protegees ?? [])];
   const lecture: PortDeLecture = {
-    collections: async () => { lectures.collections++; return [...collections.values()].map((o) => ({ id: o.id, name: o.name, remote: false })); },
+    collections: async () => { lectures.collections++; return collectionsLues(); },
     variables: async () => { lectures.variables++; return [...variables.values()].map((o) => ({ id: o.id, name: o.name, variableCollectionId: o.variableCollectionId, remote: false })); },
     cibleAlias: () => undefined,
     protegee: (variable) => protegees.includes(variable.id),
@@ -49,7 +55,7 @@ function banc(options: OptionsDuBanc = {}) {
   const pendantOuvrir = { action: undefined as (() => void) | undefined };
   const session = (): SessionEcriture => ({
     inventaire: inventaireDeLectures(
-      [...collections.values()].map((o) => ({ id: o.id, name: o.name, remote: false })),
+      collectionsLues(),
       [...variables.values()].map((o) => ({ id: o.id, name: o.name, variableCollectionId: o.variableCollectionId, remote: false })),
       lecture,
     ),
@@ -173,6 +179,51 @@ test('une lecture d\'une génération périmée reçoit generation-perimee ; une
   assert.deepEqual(b.messages.map((m) => m.type), ['termes', 'fiche']);
   const fiche = b.messages[1];
   assert.ok(fiche.type === 'fiche' && fiche.fiche.aRenommer.exemples.length <= 3 && fiche.fiche.aRenommer.nombre >= fiche.fiche.aRenommer.exemples.length);
+});
+
+test('N06 : la lecture selection rend le groupe principal des identifiants encore à renommer, et omet les autres', async () => {
+  const b = banc(PLAYGROUND);
+  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'regle', geste: regleEcriture });
+  const bilan = b.dernierBilan();
+  const [premier, second] = bilan.groupes.filter((groupe) => groupe.apercu.length > 0);
+  assert.ok(premier && second, 'le fichier a au moins deux groupes qui montrent des noms');
+  const renommee = premier.apercu[0].id;
+  const autre = second.apercu[0].id;
+  b.vider();
+  const demande = await b.envoyer({ type: 'selection', generation: bilan.generation, exclus: [renommee, 'inconnue'], inclus: [autre] });
+  assert.deepEqual(b.messages, [{ type: 'selection', demande, generation: bilan.generation, principaux: [[renommee, premier.cle], [autre, second.cle]] }]);
+
+  b.vider();
+  const perimee = await b.envoyer({ type: 'selection', generation: bilan.generation - 1, exclus: [renommee], inclus: [] });
+  assert.deepEqual(b.messages, [{ type: 'erreur', demande: perimee, code: 'generation-perimee' }]);
+});
+
+test('N06 : un nom corrigé hors du plugin n’est plus rendu par la lecture selection après la nouvelle analyse', async () => {
+  const b = banc(FICHIER);
+  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'regle', geste: regleEcriture });
+  const avant = b.dernierBilan();
+  b.vider();
+  await b.envoyer({ type: 'lignes', generation: avant.generation, groupe: avant.groupes[0].cle, debut: 0 });
+  const page = b.messages[0];
+  assert.ok(page.type === 'lignes');
+  const ids = page.lignes.map((ligne) => ligne.id);
+  const corrigee = page.lignes.find((ligne) => ligne.ancien === 'fontSize/Body');
+  assert.ok(corrigee && ids.length === 3);
+  b.vider();
+  await b.envoyer({ type: 'selection', generation: avant.generation, exclus: ids, inclus: [] });
+  const complete = b.messages[0];
+  assert.ok(complete.type === 'selection' && complete.principaux.map(([id]) => id).join() === ids.join(), 'trois noms sont à renommer');
+
+  b.changer('v3', 'font-size/body');
+  await b.envoyer({ type: 'analyser' });
+  const apres = b.dernierBilan();
+  b.vider();
+  await b.envoyer({ type: 'selection', generation: apres.generation, exclus: ids, inclus: [] });
+  const restreinte = b.messages[0];
+  assert.ok(restreinte.type === 'selection');
+  assert.deepEqual(restreinte.principaux.map(([id]) => id), ids.filter((id) => id !== corrigee.id), 'le nom corrigé sort, les deux autres restent');
 });
 
 test('le détail du vocabulaire donne chaque terme de la liste avec ses segments, et chaque nom avec ses mots', async () => {
@@ -487,6 +538,44 @@ test('renommer une collection vers un nom déjà pris est un blocage, pas un ren
   assert.deepEqual(bilan.bloques.map((x) => [x.avant, x.apres]), [['Zorglub', 'color-brands']]);
 });
 
+test('AUD-E2b : renommer une collection à modes vers la clé d’axe d’une collection exclue est un blocage, et Appliquer n’écrit rien', async () => {
+  const b = banc({
+    collections: [['c', 'Zorglub', 2], ['d', 'Primitives', 2]],
+    variables: [['v1', 'primary', 'c'], ['v2', 'secondary', 'c'], ['v3', 'autre', 'd']],
+  });
+  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'regle', geste: regleEcriture });
+  await b.envoyer({ type: 'configurer', collectionsExclues: ['d'] });
+  const question = b.dernierBilan().questions.find((q) => q.type === 'collection' && q.nom === 'Zorglub');
+  assert.ok(question);
+  await b.envoyer({ type: 'repondre', question: question.cle, reponse: { type: 'collection', cible: 'primitives' } });
+  const bilan = b.dernierBilan();
+  assert.equal(bilan.groupes.some((g) => g.regle.sorte === 'collection'), false);
+  assert.deepEqual(bilan.bloques, [{
+    avant: 'Zorglub', apres: 'primitives', collection: '',
+    chemin: { motif: 'meme-axe', apres: 'primitives', autre: 'Primitives' },
+  }]);
+  b.vider();
+  await b.envoyer({ type: 'appliquer', generation: bilan.generation, selection: { groupes: bilan.groupes.map((g) => g.cle), exclus: [], inclus: [] } });
+  assert.deepEqual([b.noms.get('c'), b.noms.get('d')], ['Zorglub', 'Primitives']);
+  assert.equal([...b.stock.keys()].some((cle) => cle.startsWith('journal')), false, 'aucun lot n’est rangé au journal');
+});
+
+test('AUD-E2b : la même réponse sur des collections sans modes lus reste un renommage proposé', async () => {
+  const b = banc({
+    collections: [['c', 'Zorglub'], ['d', 'Primitives']],
+    variables: [['v1', 'primary', 'c'], ['v2', 'secondary', 'c'], ['v3', 'autre', 'd']],
+  });
+  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'regle', geste: regleEcriture });
+  await b.envoyer({ type: 'configurer', collectionsExclues: ['d'] });
+  const question = b.dernierBilan().questions.find((q) => q.type === 'collection' && q.nom === 'Zorglub');
+  assert.ok(question);
+  await b.envoyer({ type: 'repondre', question: question.cle, reponse: { type: 'collection', cible: 'primitives' } });
+  assert.deepEqual(b.dernierBilan().bloques, []);
+  assert.ok(b.dernierBilan().groupes.some((g) => g.regle.sorte === 'collection' && g.apres === 'primitives'));
+});
+
 // Les courses pendant `ouvrir` (AI6, AI7, AC13) : la lecture d'écriture se termine après les contrôles de la session.
 
 async function pretAAppliquer(options: OptionsDuBanc) {
@@ -533,6 +622,15 @@ test('AI7 : une règle écrite pendant ouvrir refuse le lot en regles-modifiees,
   assert.equal(b.stock.has('journal'), false, 'aucun journal rangé');
 });
 
+test('N04 : un terme ordinaire écrit pendant ouvrir refuse le lot en regles-modifiees, sans rien écrire', async () => {
+  const { b, appliquer } = await pretAAppliquer(FICHIER);
+  b.pendantOuvrir.action = () => { b.stock.set('ordinaire:fill-hover', JSON.stringify({ version: 1 })); };
+  const demande = await appliquer();
+  assert.deepEqual(b.messages, [{ type: 'erreur', demande, code: 'regles-modifiees' }]);
+  assert.equal(b.noms.get('v1'), 'Button/Fill Hover');
+  assert.equal(b.stock.has('journal'), false, 'aucun journal rangé');
+});
+
 test('AC13 : une annulation lit la protection pendant ouvrir et saute la variable devenue protégée', async () => {
   const { b, appliquer } = await pretAAppliquer(FICHIER);
   await appliquer();
@@ -542,6 +640,32 @@ test('AC13 : une annulation lit la protection pendant ouvrir et saute la variabl
   await b.envoyer({ type: 'annuler-dernier' });
   assert.equal(b.noms.get('v1'), 'button/fill-hover');
   assert.equal(b.noms.get('v2'), 'Button/Fill Pressed');
+});
+
+test('N09 : une collection exclue après l’application n’est pas touchée par l’annulation, qui en compte les noms', async () => {
+  const { b, appliquer } = await pretAAppliquer(FICHIER);
+  await appliquer();
+  assert.equal(b.noms.get('v1'), 'button/fill-hover');
+  await b.envoyer({ type: 'configurer', collectionsExclues: ['c'] });
+  assert.equal(b.dernierBilan().collections[0]!.analysee, false);
+  assert.ok(b.dernierBilan().dernierRenommage);
+  b.vider();
+  await b.envoyer({ type: 'annuler-dernier' });
+  assert.equal(b.noms.get('v1'), 'button/fill-hover');
+  assert.equal(b.noms.get('v2'), 'button/fill-pressed');
+  assert.equal(b.noms.get('v3'), 'font-size/body');
+  const annulation = b.messages.find((m) => m.type === 'application');
+  assert.ok(annulation?.type === 'application');
+  assert.deepEqual(annulation.resultat, { sorte: 'annulation', statut: 'refuse', renommes: 0, sautes: 3, annulable: true, exclues: 3 });
+  assert.deepEqual(b.messages.map((m) => m.type), ['application'], 'rien n’a changé : pas de bilan neuf');
+  await b.envoyer({ type: 'configurer', collectionsExclues: [] });
+  b.vider();
+  await b.envoyer({ type: 'annuler-dernier' });
+  const reprise = b.messages.find((m) => m.type === 'application');
+  assert.ok(reprise?.type === 'application');
+  assert.equal(reprise.resultat.statut, 'applique');
+  assert.equal('exclues' in reprise.resultat, false, 'le champ est omis quand aucune ligne n’est exclue');
+  assert.equal(b.noms.get('v1'), 'Button/Fill Hover');
 });
 
 // Le vocabulaire sur un extrait du Playground

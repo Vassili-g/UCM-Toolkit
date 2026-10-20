@@ -73,6 +73,8 @@ export type DemandeArchitect =
   | { readonly type: 'lignes'; readonly demande: number; readonly generation: number; readonly groupe: string; readonly debut: number }
   | ({ readonly type: 'termes'; readonly demande: number; readonly generation: number } & RequeteDeTermes)
   | { readonly type: 'fiche'; readonly demande: number; readonly generation: number; readonly terme: string }
+  /** Les identifiants que l'écran a exclus ou inclus à la main : le sandbox dit lesquels sont encore à renommer, et dans quel groupe. */
+  | { readonly type: 'selection'; readonly demande: number; readonly generation: number; readonly exclus: readonly string[]; readonly inclus: readonly string[] }
   | { readonly type: 'diagnostic'; readonly demande: number; readonly generation: number }
   | { readonly type: 'simuler'; readonly demande: number; readonly generation: number; readonly geste: GesteSurLesRegles }
   | { readonly type: 'repondre'; readonly demande: number; readonly question: string; readonly reponse: Reponse }
@@ -104,7 +106,8 @@ export interface GroupeVue {
 }
 /**
  * Un nom qui n'est pas renommé. `chemin` est posé quand deux chemins de `tokens.json` se rejoignent : `apres` est le nom, avec sa collection, du token
- * (qui est aussi le groupe de `autre` pour `token-et-groupe`), et `autre` celui de l'autre variable.
+ * (qui est aussi le groupe de `autre` pour `token-et-groupe`), et `autre` celui de l'autre variable. Pour `meme-axe` et `axe-et-extensions`, le
+ * renommage d'une collection fait écarter des axes de modes de l'export, et `apres` et `autre` sont les noms des deux collections.
  */
 export interface BloqueVue {
   readonly avant: string; readonly apres: string; readonly collection: string;
@@ -171,6 +174,8 @@ export type CauseDeRefus = 'journal-impossible';
 export interface ResultatVue {
   readonly sorte: 'application' | 'annulation'; readonly statut: 'applique' | 'partiel' | 'refuse'; readonly renommes: number; readonly sautes: number; readonly annulable: boolean;
   readonly cause?: CauseDeRefus;
+  /** Les lignes d'une annulation sautées parce que leur objet est dans une collection exclue de l'analyse ; présent quand il y en a. Elles sont comptées dans `sautes`. */
+  readonly exclues?: number;
 }
 export type CodeDErreur = 'analyse-en-cours' | 'fichier-modifie' | 'generation-perimee' | 'regles-modifiees' | 'import-illisible' | 'mot-refuse' | 'import-partiel' | 'echec';
 
@@ -182,6 +187,8 @@ export type PluginMessage =
   /** `section` et `debut` répètent la demande. Sans section, `sections` ne garde que les types qui ont au moins un terme. */
   | { readonly type: 'termes'; readonly demande: number; readonly generation: number; readonly section: TypeDeTerme | null; readonly debut: number; readonly sections: readonly SectionDeTermes[]; readonly comptes: ComptesDeTermes }
   | { readonly type: 'fiche'; readonly demande: number; readonly generation: number; readonly fiche: FicheVue }
+  /** Pour chaque identifiant reçu qui est encore un renommage de cette génération, la clé de son groupe principal. Un identifiant absent n'est plus à renommer. */
+  | { readonly type: 'selection'; readonly demande: number; readonly generation: number; readonly principaux: readonly (readonly [string, string])[] }
   | { readonly type: 'diagnostic'; readonly demande: number; readonly generation: number; readonly texte: string }
   | { readonly type: 'simulation'; readonly demande: number; readonly generation: number; readonly effet: EffetVue | null; readonly conflit: ConflitVue | null }
   | { readonly type: 'refus'; readonly demande: number; readonly conflits: readonly ConflitVue[] }
@@ -238,7 +245,7 @@ function estSelection(brut: unknown): boolean {
   return objet(brut) && sansDoublon(brut.groupes) && sansDoublon(brut.exclus) && sansDoublon(brut.inclus);
 }
 
-/** Refuse toute demande hors contrat : demande ou génération non numérotée, rang, type, origine, place, tri, section ou geste inconnu, sélection à doublons, import de plus d'un million de caractères, coordonnées de fenêtre non finies. */
+/** Refuse toute demande hors contrat : demande ou génération non numérotée, rang, type, origine, place, tri, section ou geste inconnu, sélection ou lecture de sélection à doublons, import de plus d'un million de caractères, coordonnées de fenêtre non finies. */
 export function estUiMessage(brut: unknown): brut is UiMessage {
   if (!objet(brut)) return false;
   if (brut.type === 'resize') {
@@ -254,6 +261,7 @@ export function estUiMessage(brut: unknown): brut is UiMessage {
         && TRIS_DE_TERMES.includes(brut.tri as TriDeTermes) && (brut.section === null || TYPES_DE_TERMES.includes(brut.section as TypeDeTerme))
         && (brut.place === null || PLACES_DE_TERMES.includes(brut.place as PlaceDuTerme)) && entierNonNegatif(brut.debut);
     case 'fiche': return genere && chaine(brut.terme);
+    case 'selection': return genere && sansDoublon(brut.exclus) && sansDoublon(brut.inclus);
     case 'diagnostic': return genere;
     case 'simuler': return genere && estGeste(brut.geste);
     case 'repondre': return chaine(brut.question) && estReponse(brut.reponse);

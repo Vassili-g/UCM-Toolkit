@@ -173,6 +173,21 @@ test('8 000 renommages se découpent sous le budget en octets, puis se relisent 
   assert.deepEqual(lireLesRegles(dans(ecritures)).journal, journal);
 });
 
+test('les paires déjà en conflit suivent les renommages sous le même budget, et se relisent à l’identique', () => {
+  const paires: [string, string][] = Array.from({ length: 4000 }, (_, i) => [`VariableID:${i}:${i * 7}`, `VariableID:${i + 1}:${(i + 1) * 7}`]);
+  const journal: Journal = { heure: 'h', renommages: [uneVariable(0, 'a', 'b')], dejaEnConflit: paires };
+  const ecritures = ecritureDuLot(journal, 'l1', 20_000);
+  assert.ok(ecritures.length > 3);
+  for (const e of ecritures.slice(0, -1)) assert.ok(Buffer.byteLength(e.texte!, 'utf8') <= 20_000, e.cle);
+  assert.deepEqual(lireLesRegles(dans(ecritures)).journal, journal);
+  const sansPaire = ecritureDuLot({ heure: 'h', renommages: [uneVariable(0, 'a', 'b')] }, 'l2');
+  assert.equal('dejaEnConflit' in JSON.parse(sansPaire[0]!.texte!), false, 'le champ est omis quand il est vide');
+  assert.deepEqual(lireLesRegles(dans(sansPaire)).journal, { heure: 'h', renommages: [uneVariable(0, 'a', 'b')] });
+  const illisible = dans(ecritureDuLot({ heure: 'h', renommages: [uneVariable(0, 'a', 'b')], dejaEnConflit: [['v0', 'v1']] }, 'l3'));
+  illisible.set('journal:l3:0', JSON.stringify({ version: 1, lot: 'l3', rang: 0, renommages: [uneVariable(0, 'a', 'b')], dejaEnConflit: [['v0']] }));
+  assert.equal(lireLesRegles(illisible).journal, undefined, 'une paire mal formée rend le journal illisible');
+});
+
 test('des noms en é, idéogrammes et emoji se découpent sur les octets, pas sur les caractères', () => {
   const renommages = Array.from({ length: 700 }, (_, i) => uneVariable(i, `${'漢字色彩背景前景'.repeat(3)}${i}`, `新${'😀é'.repeat(8)}${i}`));
   const journal: Journal = { heure: 'h', renommages };

@@ -235,8 +235,8 @@ packages/plugin-socle/   ce que les plugins partagent : ucm-plugin-socle, privé
   build/run-tests.cjs      le découvreur de tests, que chaque plugin appelle
   src/fenetre.ts           la taille bornée de la fenêtre, rangée dans clientStorage
   src/cheminsDeTokens.ts   le chemin publié d'un token, collection puis variable : UCM Exporter l'écrit, l'explorateur le recalcule
-  src/inventaireDeNoms.ts  l'inventaire des collections et variables locales, tel que le calcul de renommage le lit ; `estProtegee` et `palettesLibres` disent seuls si une variable de Palettes est protégée
-  src/cheminsPublies.ts    les renommages qui feraient disparaître un token de `tokens.json`
+  src/inventaireDeNoms.ts  l'inventaire des collections et variables locales, tel que le calcul de renommage le lit, avec les modes, l'extension et la racine des collections quand l'adaptateur les lit ; `estProtegee` et `palettesLibres` disent seuls si une variable de Palettes est protégée
+  src/cheminsPublies.ts    les renommages qui feraient disparaître un token de `tokens.json` ou un axe de modes de l'export (`axesDeLExport`)
   src/reglesDeNommage.ts   les entrées de règles qui changent un nom (écriture, termes, écarts, ordinaires, exclues), lues par un seul analyseur
   src/nomsSelonLesRegles.ts  le calcul de renommage qu'UCM Nomenclature et UCM Palettes appellent : lexique du kit, puis contrôle des chemins publiés ; `idsNonRenommables` en tire les noms figés
   src/ui/socle.css         échelle de texte, trame, rôles de couleur et replis sombres, avant la feuille de chaque plugin
@@ -429,6 +429,7 @@ tests/                   les tests du monorepo lui-même
   corpusUcm.test.ts      les noms, les registres et les empreintes du corpus UCM suivent leurs sources
   manifestsDesPlugins.test.ts  chaque plugin a son propre `id` de manifest
   nomsDePalettes.test.ts  l'aller-retour : Nomenclature renomme les palettes que Palettes a écrites, et le plan de Palettes ne renomme plus rien
+  axesDeModes.test.ts    le socle et `axesDesCollections` de l'exporteur retiennent les mêmes axes de modes, avant et après un renommage de collection
 ```
 
 ## Invariants
@@ -1679,13 +1680,28 @@ La spécification en lien porte le raisonnement.
   porte la marque `nommage` de Palettes (JSON `version: 1` à la racine de
   `ESPACE_PARTAGE`) et que l'écriture est rangée en v2, relue au moment
   d'écrire. Sinon elle n'est jamais renommée, même cochée, et son dossier
-  garde son nom. Une collection exclue n'est pas touchée. La collection qui
+  garde son nom. Une collection exclue n'est pas touchée, annulation
+  comprise : l'annulation relit les exclusions au moment d'écrire, saute les
+  lignes de cette collection en `exclue` et les garde au journal, pour une
+  annulation suivante une fois la collection réincluse. La collection qui
   porte la variable peut être renommée, Palettes la suit par son
   identifiant. Avant d'écrire, chaque nom est relu : un objet changé, disparu
   ou dont le nouveau nom est occupé est sauté, et un lot s'annule en un seul
-  pas. `tests/ecriture.test.ts` et `tests/nomsDePalettes.test.ts` du paquet, et
+  pas. Une annulation saute aussi en `collision` la restitution qui créerait
+  un conflit de chemin de `tokens.json` absent avant le lot : le journal range
+  les paires déjà en conflit (`dejaEnConflit`), qu'elle peut rétablir.
+  `tests/ecriture.test.ts` (dont les tests `N01` et `N09`), `tests/protocole.test.ts`
+  (`N09`) et `tests/nomsDePalettes.test.ts` du paquet, et
   `tests/nomsDePalettes.test.ts` à la racine (l'aller-retour avec Palettes),
   le tiennent.
+- Un renommage de collection n'est ni proposé ni écrit quand il ferait écarter des axes de modes de
+  l'export de tokens : deux collections à plusieurs modes, ou étendues par une extension locale, dont
+  les noms donnent le même préfixe (`meme-axe`), ou un nom que l'export réserve aux extensions d'un
+  axe (`axe-et-extensions`). Un nom sans préfixe n'est pas contrôlé. `cheminsEnConflit` le juge sur tout le document, collections exclues
+  comprises, d'après les modes que l'inventaire porte ; sans eux, aucun contrôle d'axe. Une collision
+  déjà présente ne bloque rien. `tests/axesDeModes.test.ts` à la racine compare cette règle à
+  `axesDesCollections`, et `tests/cheminsPublies.test.ts`, `tests/ecriture.test.ts` (`AUD-E2`) et
+  `tests/protocole.test.ts` (`AUD-E2b`) du paquet la tiennent.
 - Le moteur (vocabulaire, lexique, normalisation, questions) et les données
   UCM viennent de `@ucm-kit/core/referentiel` ; le plugin n'en recopie
   aucune, ce que `tests/referentielUnique.test.ts` vérifie.

@@ -5,13 +5,13 @@ import {
   annulerLeDernierRenommage, appliquerLesRenommages, creerPortEcriture,
   type ObjetModifiable, type PortDeRegles, type RenommageDemande, type SessionEcriture, type VariableModifiable,
 } from '../src/ecriture';
-import { inventaireDeLectures, type LecteurDeVariable, type ObjetNomme, type VariableLue } from '../src/lecture';
+import { inventaireDeLectures, type CollectionLue, type LecteurDeVariable, type VariableLue } from '../src/lecture';
 import { lireLesRegles, lireLeStockage } from '../src/regles';
 
 const HEURE = '2026-10-17T10:00:00.000Z';
 
 type SpecVariable = readonly [id: string, nom: string, collection?: string];
-function banc(options: { variables?: readonly SpecVariable[]; collections?: readonly (readonly [string, string])[]; protegees?: readonly string[] } = {}) {
+function banc(options: { variables?: readonly SpecVariable[]; collections?: readonly (readonly [id: string, nom: string, modes?: number])[]; protegees?: readonly string[] } = {}) {
   const noms = new Map<string, string>();
   const ecritures: string[] = [];
   const traces: string[] = [];
@@ -36,10 +36,15 @@ function banc(options: { variables?: readonly SpecVariable[]; collections?: read
   };
   const collections = new Map<string, ObjetModifiable>();
   const variables = new Map<string, VariableModifiable>();
-  for (const [id, nom] of options.collections ?? [['c', 'Brand']]) collections.set(id, creer(id, nom, {}));
+  /** Le nombre de modes d'une collection, quand le banc en donne un ; sans lui, la collection n'expose pas ses modes. */
+  const modes = new Map<string, number>();
+  for (const [id, nom, nombre] of options.collections ?? [['c', 'Brand']]) {
+    collections.set(id, creer(id, nom, {}));
+    if (nombre !== undefined) modes.set(id, nombre);
+  }
   for (const [id, nom, collection = 'c'] of options.variables ?? []) variables.set(id, creer(id, nom, { variableCollectionId: collection }));
-  const lectures = (): [readonly ObjetNomme[], readonly VariableLue[]] => [
-    [...collections.values()].map((objet) => ({ id: objet.id, name: objet.name, remote: false })),
+  const lectures = (): [readonly CollectionLue[], readonly VariableLue[]] => [
+    [...collections.values()].map((objet) => ({ id: objet.id, name: objet.name, remote: false, ...(modes.has(objet.id) ? { modes: Array.from({ length: modes.get(objet.id)! }, () => ({})) } : {}) })),
     [...variables.values()].map((objet) => ({ id: objet.id, name: objet.name, variableCollectionId: objet.variableCollectionId, remote: false })),
   ];
   const lecture: LecteurDeVariable = {
@@ -766,6 +771,35 @@ test('AI10 : une collection renommée dont les variables rejoignent les chemins 
   assert.deepEqual(b.ecritures, []);
 });
 
+test('AUD-E2 : une collection à modes renommée du nom, à la casse près, d’une autre collection à modes est sautée, et rien ne s’écrit', async () => {
+  const b = banc({ collections: [['c', 'Zorglub', 2], ['d', 'Primitives', 2]], variables: [['a', 'primary', 'c'], ['x', 'secondary', 'd']] });
+  const resultat = await b.appliquer([b.c('c', 'primitives'), b.v('a', 'main')]);
+  assert.deepEqual(resultat.sautes, [{ id: b.entree('collection', 'c'), motif: 'collision' }]);
+  assert.equal(b.nom('c'), 'Zorglub');
+  assert.deepEqual(b.ecritures, ['a=main'], 'la variable renommée avec elle reste écrite');
+  const seule = banc({ collections: [['c', 'Zorglub', 2], ['d', 'Primitives', 2]] });
+  const refuse = await seule.appliquer([seule.c('c', 'primitives')]);
+  assert.equal(refuse.statut, 'refuse');
+  assert.deepEqual(seule.ecritures, []);
+  assert.equal(seule.journal(), undefined);
+});
+
+test('AUD-E2 : une collection à un seul mode, ou dont les modes ne sont pas lus, se renomme comme avant', async () => {
+  const unMode = banc({ collections: [['c', 'Zorglub', 2], ['d', 'Primitives', 1]] });
+  assert.equal((await unMode.appliquer([unMode.c('c', 'primitives')])).statut, 'applique');
+  const sansModes = banc({ collections: [['c', 'Zorglub'], ['d', 'Primitives']] });
+  assert.equal((await sansModes.appliquer([sansModes.c('c', 'primitives')])).statut, 'applique');
+});
+
+test('AUD-E2 : une annulation ne rétablit pas un nom de collection qui rejoindrait la clé d’axe d’une autre', async () => {
+  const b = banc({ collections: [['c', 'Zorglub', 2], ['d', 'Autre', 2]] });
+  assert.equal((await b.appliquer([b.c('c', 'Nouveau')])).statut, 'applique');
+  b.changer('d', 'zorglub');
+  const annulation = await b.annuler();
+  assert.deepEqual(annulation.sautes, [{ id: 'c', motif: 'collision' }]);
+  assert.equal(b.nom('c'), 'Nouveau');
+});
+
 test('un renommage sauté pour son chemin rend son nom à l’objet, qui peut bloquer un doublon de nom', async () => {
   const b = banc({ variables: [['v0', 'x'], ['v1', 'b'], ['v2', 'c'], ['v3', 'y']] });
   // v0 vise le chemin de v3 et est sauté ; v2 vise alors le nom `x` que v0 garde.
@@ -803,11 +837,92 @@ test('le `$` qui n’est pas en tête d’un segment, et les noms à plusieurs s
   assert.deepEqual(b.ecritures, ['v0=prix$/net', 'v1=x y/z']);
 });
 
-test('une annulation ne refait ni le contrôle du nom ni celui des chemins', async () => {
+test('une annulation restitue un conflit de chemin qui existait avant le lot, sans refaire le contrôle du nom', async () => {
   const b = banc({ variables: [['v0', 'Foo'], ['v1', 'foo/bar']] });
   const applique = await b.appliquer([b.v('v0', 'baz')]);
   assert.equal(applique.statut, 'applique');
+  assert.deepEqual(b.journal()!.dejaEnConflit, [['v0', 'v1']], 'le lot range la paire déjà en conflit, en identifiants Figma');
   const annule = await b.annuler();
   assert.equal(annule.statut, 'applique', 'Foo et foo/bar se rejoignaient déjà avant le lot');
   assert.equal(b.nom('v0'), 'Foo');
+});
+
+test('N01 : une restitution qui créerait un token et son groupe est sautée, garde sa ligne, et passe une fois le conflit levé', async () => {
+  const b = banc({ variables: [['v0', 'a'], ['v1', 'c']] });
+  await b.appliquer([b.v('v0', 'b')]);
+  assert.equal(b.journal()!.dejaEnConflit, undefined, 'aucune paire en conflit avant le lot : le champ est omis');
+  b.changer('v1', 'a/x');
+  const bloquee = await b.annuler();
+  assert.equal(bloquee.statut, 'refuse');
+  assert.deepEqual(bloquee.sautes, [{ id: 'v0', motif: 'collision' }]);
+  assert.equal(bloquee.annulable, true);
+  assert.equal(b.nom('v0'), 'b');
+  assert.deepEqual(b.journal()!.renommages, [{ type: 'variable', id: 'v0', ancienNom: 'a', nouveauNom: 'b' }]);
+  assert.equal(compter(b, 'undo'), 1, 'seule l’application a ouvert un point d’annulation');
+  b.changer('v1', 'c');
+  const reprise = await b.annuler();
+  assert.equal(reprise.statut, 'applique');
+  assert.equal(b.nom('v0'), 'a');
+  assert.equal(b.journal(), undefined);
+});
+
+test('N01 : un journal de l’ancienne forme, sans paire, refuse la restitution qui crée un conflit de chemin et rétablit le reste', async () => {
+  const b = banc({ variables: [['v0', 'baz'], ['v1', 'foo/bar'], ['v2', 'x2']] });
+  b.stock.set('journal:0', JSON.stringify({ version: 1, heure: HEURE, morceaux: 1, renommages: [
+    { type: 'variable', id: 'v0', ancienNom: 'Foo', nouveauNom: 'baz' },
+    { type: 'variable', id: 'v2', ancienNom: 'x', nouveauNom: 'x2' },
+  ] }));
+  const resultat = await b.annuler();
+  assert.deepEqual(resultat.sautes, [{ id: 'v0', motif: 'collision' }]);
+  assert.deepEqual(resultat.renommes.map(({ figmaId }) => figmaId), ['v2']);
+  assert.equal(resultat.statut, 'partiel');
+  assert.deepEqual([b.nom('v0'), b.nom('v2')], ['baz', 'x']);
+  assert.deepEqual(b.journal()!.renommages, [{ type: 'variable', id: 'v0', ancienNom: 'Foo', nouveauNom: 'baz' }]);
+});
+
+test('N01 : une collection restituée dont les variables rejoindraient celles d’une autre est sautée, sauf si le lot les trouvait déjà jointes', async () => {
+  const neuf = banc({ collections: [['c', 'Colors']], variables: [['v0', 'foo', 'c']] });
+  await neuf.appliquer([neuf.c('c', 'Couleurs')]);
+  neuf.collections.set('e', { id: 'e', name: 'colors', remote: false });
+  neuf.variables.set('v1', { id: 'v1', name: 'foo', remote: false, variableCollectionId: 'e' });
+  const bloquee = await neuf.annuler();
+  assert.deepEqual(bloquee.sautes, [{ id: 'c', motif: 'collision' }]);
+  assert.equal(neuf.nom('c'), 'Couleurs');
+  assert.equal(neuf.journal()!.renommages.length, 1);
+
+  const ancien = banc({ collections: [['c', 'Colors'], ['e', 'colors']], variables: [['v0', 'foo', 'c'], ['v1', 'foo', 'e']] });
+  await ancien.appliquer([ancien.c('c', 'Couleurs')]);
+  assert.deepEqual(ancien.journal()!.dejaEnConflit, [['v0', 'v1']]);
+  const rendue = await ancien.annuler();
+  assert.equal(rendue.statut, 'applique');
+  assert.equal(ancien.nom('c'), 'Colors');
+});
+
+// Une collection exclue de l'analyse n'est pas touchée, annulation comprise
+
+const exclure = (b: ReturnType<typeof banc>, ...ids: string[]): void => { b.stock.set('exclues', JSON.stringify({ version: 1, ids })); };
+
+test('N09 : l’annulation saute les objets d’une collection exclue, qui restent au journal et se rétablissent une fois la collection réincluse', async () => {
+  const b = banc({ collections: [['c', 'Brand'], ['d', 'Texte']], variables: [['v0', 'a', 'c'], ['v1', 'b', 'd']] });
+  await b.appliquer([b.v('v0', 'a2'), b.v('v1', 'b2'), b.c('d', 'Texte2')]);
+  exclure(b, 'd');
+  const partielle = await b.annuler();
+  assert.deepEqual([b.nom('v0'), b.nom('v1'), b.nom('d')], ['a', 'b2', 'Texte2']);
+  assert.equal(partielle.statut, 'partiel');
+  assert.deepEqual(partielle.sautes, [{ id: 'v1', motif: 'exclue' }, { id: 'd', motif: 'exclue' }]);
+  assert.deepEqual(partielle.renommes.map(({ figmaId }) => figmaId), ['v0']);
+  assert.equal(partielle.annulable, true);
+  assert.deepEqual(b.journal()!.renommages, [
+    { type: 'variable', id: 'v1', ancienNom: 'b', nouveauNom: 'b2' },
+    { type: 'collection', id: 'd', ancienNom: 'Texte', nouveauNom: 'Texte2' },
+  ]);
+  const toujours = await b.annuler();
+  assert.equal(toujours.statut, 'refuse', 'rien ne change tant que la collection reste exclue');
+  assert.deepEqual(toujours.sautes.map(({ motif }) => motif), ['exclue', 'exclue']);
+  assert.equal(compter(b, 'undo'), 2, 'ni la seconde annulation ni les lignes sautées n’ouvrent de point d’annulation');
+  b.stock.delete('exclues');
+  const reprise = await b.annuler();
+  assert.equal(reprise.statut, 'applique');
+  assert.deepEqual([b.nom('v1'), b.nom('d')], ['b', 'Texte']);
+  assert.equal(b.journal(), undefined);
 });

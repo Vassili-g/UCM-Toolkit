@@ -13,6 +13,7 @@ import {
   nombreCocheDuGroupe,
   oublierLesInclus,
   reconcilier,
+  restreindre,
   versSelection,
 } from '../src/ui/selection';
 
@@ -164,6 +165,80 @@ test('un nom du groupe principal décoché reste décoché sous le groupe où il
   assert.deepEqual(versSelection(inclus).inclus, ['p1']);
   assert.equal(etatDuGroupe(inclus, 'press'), 'partiel');
   assert.equal(etatDuGroupe(inclus, 'disable'), 'coche');
+});
+
+test('N06 : une exclusion dont la ligne a disparu sort, et la ligne qui reste est comptée', () => {
+  const avant = cocherLigne(creerSelection([groupe('press', 2)]), ligne('A'), 'press', false);
+  const modele = reconcilier(avant, [groupe('press', 1)]);
+  assert.equal(compterLesNomsCoches(modele), 0, 'avant la lecture, le compte suit le modèle périmé');
+  const restreint = restreindre(modele, { exclus: ['A'], inclus: [] }, []);
+  assert.deepEqual(versSelection(restreint), { groupes: ['press'], exclus: [], inclus: [] });
+  assert.equal(compterLesNomsCoches(restreint), 1);
+  assert.equal(ligneCochee(restreint, ligne('B'), 'press'), true);
+});
+
+test('une exclusion dont la ligne est encore à renommer dans le même groupe reste', () => {
+  const modele = cocherLigne(creerSelection(GROUPES), ligne('v1'), 'press', false);
+  const restreint = restreindre(modele, { exclus: ['v1'], inclus: [] }, [['v1', 'press']]);
+  assert.equal(restreint, modele);
+});
+
+test('une exclusion dont la ligne est passée dans un autre groupe coché le suit', () => {
+  const modele = cocherLigne(creerSelection(GROUPES), ligne('v1'), 'press', false);
+  const restreint = restreindre(modele, { exclus: ['v1'], inclus: [] }, [['v1', 'disable']]);
+  assert.equal(etatDuGroupe(restreint, 'press'), 'coche');
+  assert.equal(etatDuGroupe(restreint, 'disable'), 'partiel');
+  assert.deepEqual(versSelection(restreint).exclus, ['v1']);
+  assert.equal(compterLesNomsCoches(restreint), 3 + 1 + 4 + 1);
+});
+
+test('une exclusion dont la ligne est passée dans un groupe décoché sort, la ligne restant décochée', () => {
+  const modele = cocherLigne(cocherGroupe(creerSelection(GROUPES), 'disable', false), ligne('v1'), 'press', false);
+  const restreint = restreindre(modele, { exclus: ['v1'], inclus: [] }, [['v1', 'disable']]);
+  assert.deepEqual(versSelection(restreint).exclus, []);
+  assert.equal(ligneCochee(restreint, ligne('v1'), 'disable'), false);
+});
+
+test('une exclusion qui rejoint le seul nom d’un autre groupe coché décoche ce groupe', () => {
+  const modele = cocherLigne(creerSelection([groupe('press', 2), groupe('disable', 1)]), ligne('A'), 'press', false);
+  const restreint = restreindre(modele, { exclus: ['A'], inclus: [] }, [['A', 'disable']]);
+  assert.equal(etatDuGroupe(restreint, 'disable'), 'vide');
+  assert.deepEqual(versSelection(restreint), { groupes: ['press'], exclus: [], inclus: [] });
+});
+
+test('une inclusion devenue sans objet sort et ne gonfle plus le compte', () => {
+  const decoche = cocherGroupe(creerSelection([groupe('press', 2), groupe('disable', 2)]), 'press', false);
+  const modele = cocherLigne(decoche, ligne('A'), 'press', true);
+  assert.equal(compterLesNomsCoches(modele), 3);
+  const restreint = restreindre(modele, { exclus: [], inclus: ['A'] }, []);
+  assert.deepEqual(versSelection(restreint).inclus, []);
+  assert.equal(compterLesNomsCoches(restreint), 2);
+});
+
+test('une inclusion dont la ligne est passée dans un groupe coché sort : elle y est déjà cochée', () => {
+  const decoche = cocherGroupe(creerSelection(GROUPES), 'press', false);
+  const modele = cocherLigne(decoche, ligne('A'), 'press', true);
+  const restreint = restreindre(modele, { exclus: [], inclus: ['A'] }, [['A', 'disable']]);
+  assert.deepEqual(versSelection(restreint).inclus, []);
+  assert.equal(ligneCochee(restreint, ligne('A'), 'disable'), true);
+});
+
+test('une exclusion dont le groupe principal n’est pas au bilan sort', () => {
+  const modele = cocherLigne(creerSelection(GROUPES), ligne('v1'), 'press', false);
+  const restreint = restreindre(modele, { exclus: ['v1'], inclus: [] }, [['v1', 'inconnu']]);
+  assert.deepEqual(versSelection(restreint).exclus, []);
+});
+
+test('la restriction ne touche pas ce que le designer a posé après la demande', () => {
+  const interroge = cocherLigne(creerSelection(GROUPES), ligne('v1'), 'press', false);
+  const modele = cocherLigne(interroge, ligne('v2'), 'press', false);
+  const restreint = restreindre(modele, { exclus: ['v1'], inclus: [] }, []);
+  assert.deepEqual(versSelection(restreint).exclus, ['v2']);
+});
+
+test('sans exclu ni inclus, le modèle est rendu tel quel', () => {
+  const modele = creerSelection(GROUPES);
+  assert.equal(restreindre(modele, { exclus: [], inclus: [] }, []), modele);
 });
 
 test('oublier les inclus ramène un groupe décoché à vide', () => {

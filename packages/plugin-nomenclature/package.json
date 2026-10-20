@@ -12,6 +12,7 @@
     "build": "npm run typecheck && npm run build:code && npm run build:ui && npm run build:manifest",
     "galerie": "npm run build:ui && node galerie/build-galerie.cjs",
     "galerie:captures": "node galerie/capturer.cjs",
+    "test:ui": "npm run galerie && node --test tests/interface/galerie.test.mjs",
     "test": "node scripts/run-tests.cjs"
   },
   "dependencies": {

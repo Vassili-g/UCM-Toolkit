@@ -102,6 +102,12 @@ const bilans = {
     groupes: [{ ...groupeBackground, variables: 52, nouveau: false }, groupeHover, groupeEcriture, groupeCollection],
     questions: [faute, motsColles],
   },
+  // Button/bg/hover a été corrigé hors du plugin : le groupe de background garde 11 noms, sans cette ligne.
+  apresUneCorrection: {
+    ...bilanDeBase, generation: 2,
+    groupes: [{ ...groupeBackground, variables: 11, nouveau: false, apercu: [carteFond] }, groupeHover, groupeEcriture, groupeCollection],
+    questions: [faute, motsColles],
+  },
   apresLApplication: {
     ...bilanDeBase, generation: 2, groupes: [], bloques: [{ avant: 'Font Size', apres: 'font-size', collection: 'Typographie' }],
     dernierRenommage: { nombre: 87, heure: '14:41' },
@@ -252,6 +258,8 @@ const messages = {
   /** La recherche d'une variante : la ligne de sa référence porte la variante trouvée. */
   termesTrouves: (demande) => reponseDeTermes(demande, [section('remplace', 1, [{ ...background, trouve: 'bg' }])], comptesDeBase),
   fiche: (demande, fiche) => m('fiche', demande, { generation: 1, fiche }),
+  /** La lecture de la sélection : les identifiants encore à renommer, avec la clé de leur groupe principal. */
+  selection: (demande, generation, principaux) => m('selection', demande, { generation, principaux }),
   simulation: (demande) => m('simulation', demande, { generation: 1, effet: effetDeTerme, conflit: null }),
   refus: (demande, conflits) => m('refus', demande, { conflits }),
   application: (demande) => m('application', demande, { resultat: { sorte: 'application', statut: 'applique', renommes: 87, sautes: 0, annulable: true } }),

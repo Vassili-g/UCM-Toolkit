@@ -51,7 +51,7 @@ export interface EntreeDeProjection {
   readonly ecriture: EcritureChoisie;
   /** Toutes les collections locales, analysées ou non. */
   readonly inventaire: Inventaire;
-  /** Nom complet de la variable que vise un alias, d'après l'identifiant de Figma ; absent, `cibleCommune` vaut `null`. */
+  /** Nom complet de la variable que vise un alias, d'après l'identifiant de son nom lu ; absent, `cibleCommune` vaut `null`. */
   readonly nomDeLaCible?: (identifiant: string) => string | undefined;
 }
 
@@ -90,6 +90,8 @@ export interface Projection {
   fiche(mot: string): FicheVue;
   /** Les identifiants cochés : groupe principal coché sans exclusion, plus les inclus qui sont des renommages. */
   identifiants(selection: Selection): readonly string[];
+  /** Pour chaque identifiant reçu (une fois) qui est un renommage, la clé de son groupe principal ; les autres sont omis. Même groupe que `identifiants`. */
+  principaux(ids: readonly string[]): readonly (readonly [string, string])[];
 }
 
 // Les segments
@@ -1046,7 +1048,15 @@ export function projeter(entree: EntreeDeProjection): Projection {
       .map((renommage) => renommage.id);
   }
 
-  return { bilan, diagnostic, lignes, termes, fiche, identifiants };
+  function principaux(ids: readonly string[]): readonly (readonly [string, string])[] {
+    const { principal } = analyse();
+    return [...new Set(ids)].flatMap((id): [string, string][] => {
+      const cle = principal.get(id);
+      return cle === undefined ? [] : [[id, cle]];
+    });
+  }
+
+  return { bilan, diagnostic, lignes, termes, fiche, identifiants, principaux };
 }
 
 // Les conflits et les effets

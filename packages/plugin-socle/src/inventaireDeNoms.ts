@@ -10,12 +10,22 @@ export interface ObjetNomme {
   readonly remote: boolean;
 }
 export interface VariableLue extends ObjetNomme { readonly variableCollectionId: string }
+/**
+ * Une collection lue. Les champs facultatifs sont ceux de l'objet Figma ; un adaptateur qui ne les donne pas (UCM Palettes, un
+ * test) n'expose aucun axe de modes, et le contrôle des axes ne le concerne pas.
+ */
+export interface CollectionLue extends ObjetNomme {
+  readonly modes?: readonly unknown[];
+  readonly isExtension?: boolean;
+  /** Pour une collection étendue, l'identifiant de la collection racine de la chaîne d'extensions. */
+  readonly rootVariableCollectionId?: string;
+}
 
 /** Le port lit les collections et les variables locales ; il ne touche à aucune page. */
 export interface PortDeLecture {
-  collections(): Promise<readonly ObjetNomme[]>;
+  collections(): Promise<readonly CollectionLue[]>;
   variables(): Promise<readonly VariableLue[]>;
-  /** Identifiant visé par l'alias du premier mode de la variable, s'il y en a un. */
+  /** Identifiant Figma visé par l'alias du premier mode de la variable, s'il y en a un. */
   cibleAlias(variable: VariableLue): string | undefined;
   /** Vrai quand la donnée partagée `palette` de la variable n'est pas vide. */
   protegee(variable: VariableLue): boolean;
@@ -36,6 +46,12 @@ export interface EntreeInventaire {
   readonly renommable: boolean;
   /** Vrai pour une variable que la donnée partagée de Palettes protège. */
   readonly protegee: boolean;
+  /** Collection seulement : le nombre de ses modes. Absent quand l'adaptateur ne lit pas les modes. */
+  readonly nombreDeModes?: number;
+  /** Collection seulement : vrai pour une collection étendue. Absent : faux. */
+  readonly extension?: boolean;
+  /** Collection étendue seulement : l'identifiant Figma de sa collection racine. */
+  readonly racine?: string;
 }
 export interface Inventaire {
   readonly entrees: readonly EntreeInventaire[];
@@ -65,19 +81,27 @@ function categoriesDesSegments(nom: string): (CategorieDeNom | null)[] | undefin
 /** Ce que la lecture d'une variable demande à Figma, sans attente : l'alias, la protection, la palette et la marque de Palettes. */
 export type LecteurDeVariable = Pick<PortDeLecture, 'cibleAlias' | 'protegee' | 'palette' | 'palettesSuiventLesRegles'>;
 
-function lesLocales(toutesLesCollections: readonly ObjetNomme[], toutesLesVariables: readonly VariableLue[]) {
+function lesLocales(toutesLesCollections: readonly CollectionLue[], toutesLesVariables: readonly VariableLue[]) {
   const collections = new Map(toutesLesCollections.filter((collection) => !collection.remote).map((collection) => [collection.id, collection]));
   const variables = toutesLesVariables.filter((variable) => !variable.remote && collections.has(variable.variableCollectionId));
   return { collections, variables };
 }
 
-function entreeDeCollection(collection: ObjetNomme): EntreeInventaire {
+function entreeDeCollection(collection: CollectionLue): EntreeInventaire {
   return { nom: { id: identite('collection', collection.id), categorie: 'collections', portee: 'document', nom: collection.name },
-    cible: { type: 'collection', collectionId: collection.id }, renommable: true, protegee: false };
+    cible: { type: 'collection', collectionId: collection.id }, renommable: true, protegee: false,
+    ...(Array.isArray(collection.modes) ? { nombreDeModes: collection.modes.length } : {}),
+    ...(collection.isExtension === true ? { extension: true } : {}),
+    ...(typeof collection.rootVariableCollectionId === 'string' ? { racine: collection.rootVariableCollectionId } : {}) };
 }
 
-function entreeDeVariable(variable: VariableLue, collectionNom: string | undefined, lecteur: LecteurDeVariable): EntreeInventaire {
-  const cibleAlias = lecteur.cibleAlias(variable);
+/**
+ * `cibleAlias` du nom lu est l'identifiant du nom de la variable visée, celui que le lexique indexe. Une cible qui n'est pas
+ * une variable locale lue (distante, d'une collection distante ou absente) n'a pas de nom dans l'inventaire et reste sans cible.
+ */
+function entreeDeVariable(variable: VariableLue, collectionNom: string | undefined, lecteur: LecteurDeVariable, locales: ReadonlySet<string>): EntreeInventaire {
+  const cibleFigma = lecteur.cibleAlias(variable);
+  const cibleAlias = cibleFigma !== undefined && locales.has(cibleFigma) ? identite('variable', cibleFigma) : undefined;
   const palette = lecteur.palette(variable);
   const categories = categoriesDesSegments(variable.name);
   return {
@@ -96,12 +120,13 @@ export async function lireInventaire(
 ): Promise<Inventaire> {
   const [toutesLesCollections, toutesLesVariables] = await Promise.all([port.collections(), port.variables()]);
   const { collections, variables } = lesLocales(toutesLesCollections, toutesLesVariables);
+  const locales = new Set(variables.map((variable) => variable.id));
   const entrees: EntreeInventaire[] = [...collections.values()].map(entreeDeCollection);
   options.avancement?.({ lues: 0, total: variables.length });
   for (let debut = 0; debut < variables.length; debut += TAILLE_DU_LOT) {
     if (debut > 0) await options.pause();
     for (const variable of variables.slice(debut, debut + TAILLE_DU_LOT)) {
-      entrees.push(entreeDeVariable(variable, collections.get(variable.variableCollectionId)?.name, port));
+      entrees.push(entreeDeVariable(variable, collections.get(variable.variableCollectionId)?.name, port, locales));
     }
     options.avancement?.({ lues: Math.min(debut + TAILLE_DU_LOT, variables.length), total: variables.length });
   }
@@ -110,15 +135,16 @@ export async function lireInventaire(
 
 /** Construit l'inventaire de lectures déjà faites, sans attente : le même modèle que `lireInventaire`. */
 export function inventaireDeLectures(
-  toutesLesCollections: readonly ObjetNomme[],
+  toutesLesCollections: readonly CollectionLue[],
   toutesLesVariables: readonly VariableLue[],
   lecteur: LecteurDeVariable,
 ): Inventaire {
   const { collections, variables } = lesLocales(toutesLesCollections, toutesLesVariables);
+  const locales = new Set(variables.map((variable) => variable.id));
   return {
     entrees: [
       ...[...collections.values()].map(entreeDeCollection),
-      ...variables.map((variable) => entreeDeVariable(variable, collections.get(variable.variableCollectionId)?.name, lecteur)),
+      ...variables.map((variable) => entreeDeVariable(variable, collections.get(variable.variableCollectionId)?.name, lecteur, locales)),
     ],
     palettesSuiventLesRegles: lecteur.palettesSuiventLesRegles?.() ?? false,
   };

@@ -8,7 +8,7 @@
  */
 import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
 import { lireReglesDeNommage } from 'ucm-plugin-socle/src/reglesDeNommage';
-import { cheminsEnConflit, inventairePublie } from './cheminsPublies';
+import { cheminsEnConflit, inventairePublie, pairesDejaEnConflit, type PaireEnConflit } from './cheminsPublies';
 import { estProtegee, inventaireDeLectures, palettesLibres, type EntreeInventaire, type Inventaire } from './lecture';
 import { lecteurDeVariablesFigma } from './lectureFigma';
 import type { CauseDeRefus } from './messages';
@@ -42,7 +42,8 @@ export type RenommageDemande =
   | (DemandeCommune & { readonly type: 'collection' })
   | (DemandeCommune & { readonly type: 'variable'; readonly collectionId: string });
 
-export type MotifSaute = 'fichier-modifie' | 'protegee' | 'collision' | 'nom-invalide' | 'ecriture-interrompue';
+/** `exclue` : l'annulation saute un objet qui est dans une collection exclue de l'analyse (voir `annulerLeDernierRenommage`). */
+export type MotifSaute = 'fichier-modifie' | 'protegee' | 'collision' | 'nom-invalide' | 'ecriture-interrompue' | 'exclue';
 export interface RenommageFait {
   /** L'entrée de l'inventaire pour une application ; l'identifiant Figma pour une annulation. */
   readonly id: string;
@@ -134,13 +135,15 @@ const nomInvalide = (nom: string, type: RenommageDemande['type']): boolean =>
 
 /**
  * Retire les renommages qui feraient disparaître un token de `tokens.json` (voir `cheminsEnConflit`), puis les doublons
- * que ce retrait fait naître, jusqu'à ce que plus rien ne bouge.
+ * que ce retrait fait naître, jusqu'à ce que plus rien ne bouge. `origine` est la liste des paires déjà en conflit avant le lot.
  */
-function retirerLesConflitsDeChemin(retenus: readonly Element[], document: ReadonlyMap<string, ObjetDuDocument>, inventaire: Inventaire, sautes: RenommageSaute[]): Element[] {
+function retirerLesConflitsDeChemin(
+  retenus: readonly Element[], document: ReadonlyMap<string, ObjetDuDocument>, inventaire: Inventaire, sautes: RenommageSaute[], origine: readonly PaireEnConflit[],
+): Element[] {
   const publie = inventairePublie(inventaire, cleDeEntree);
   let elements = retirerLesDoublons(retenus, document, sautes);
   for (;;) {
-    const enCause = new Set(cheminsEnConflit(publie, new Map(elements.map((element) => [cleDObjet(element.demande.type, element.demande.figmaId), element.demande.nouveauNom]))).map(({ id }) => id));
+    const enCause = new Set(cheminsEnConflit(publie, new Map(elements.map((element) => [cleDObjet(element.demande.type, element.demande.figmaId), element.demande.nouveauNom])), origine).map(({ id }) => id));
     if (enCause.size === 0) return elements;
     const gardes = elements.filter((element) => {
       if (!enCause.has(cleDObjet(element.demande.type, element.demande.figmaId))) return true;
@@ -204,10 +207,13 @@ interface Execution { readonly renommes: RenommageFait[]; readonly sautes: Renom
 
 /**
  * Contrôle les renommages sur le document relu : ce qui reste est à écrire.
- * `nomFinal` ajoute le contrôle du nom (`nom-invalide`) et celui des chemins de `tokens.json` ; une annulation rend des noms
- * que le document a déjà portés et ne les refait pas.
+ * `nomFinal` ajoute le contrôle du nom (`nom-invalide`) : une annulation rend des noms que le document a déjà portés et ne
+ * le refait pas. Les chemins de `tokens.json` se contrôlent toujours ; `origine` donne à une annulation les paires de variables
+ * que le lot avait trouvées en conflit, qu'elle peut rétablir.
  */
-function controler(demandes: readonly RenommageDemande[], inventaire: Inventaire, session: SessionEcriture, nomFinal: boolean, libres: boolean): Controle {
+function controler(
+  demandes: readonly RenommageDemande[], inventaire: Inventaire, session: SessionEcriture, nomFinal: boolean, libres: boolean, origine: readonly PaireEnConflit[] = [],
+): Controle {
   const document = lireLeDocument(inventaire, libres);
   const sautes: RenommageSaute[] = [];
   const retenus: Element[] = [];
@@ -227,7 +233,7 @@ function controler(demandes: readonly RenommageDemande[], inventaire: Inventaire
     else if (nomFinal && nomInvalide(demande.nouveauNom, demande.type)) sautes.push({ id: demande.id, motif: 'nom-invalide' });
     else retenus.push({ demande, portee: actuel.portee, objet });
   }
-  return { elements: nomFinal ? retirerLesConflitsDeChemin(retenus, document, inventaire, sautes) : retirerLesDoublons(retenus, document, sautes), sautes, document };
+  return { elements: retirerLesConflitsDeChemin(retenus, document, inventaire, sautes, origine), sautes, document };
 }
 
 /** Ordonne et écrit les renommages contrôlés ; l'état final se lit sur les objets. */
@@ -299,6 +305,22 @@ function retirer(stockage: PortDeRegles, lot: LotRange): void {
   for (const cle of lot.entrees) { try { stockage.effacer(cle); } catch { /* orpheline */ } }
 }
 
+const PREFIXE_DE_VARIABLE = 'variable:';
+/** Les paires du journal portent des identifiants Figma ; le contrôle des chemins nomme les variables par `cleDObjet`. */
+const paireDeLInventaire = ([a, b]: PaireEnConflit): PaireEnConflit => [cleDObjet('variable', a), cleDObjet('variable', b)];
+const paireDuJournal = ([a, b]: PaireEnConflit): PaireEnConflit => [a.slice(PREFIXE_DE_VARIABLE.length), b.slice(PREFIXE_DE_VARIABLE.length)];
+
+/**
+ * Les paires de variables que le document relu avait déjà en conflit de chemin, pour les objets du lot (une collection compte
+ * par ses variables). Le champ est omis quand il n'y en a aucune.
+ */
+function pairesDeLOrigine(elements: readonly Element[], inventaire: Inventaire): Pick<Journal, 'dejaEnConflit'> {
+  if (elements.length === 0) return {};
+  const touches = new Set(elements.map(({ demande }) => cleDObjet(demande.type, demande.figmaId)));
+  const paires = pairesDejaEnConflit(inventairePublie(inventaire, cleDeEntree), touches).map(paireDuJournal);
+  return paires.length > 0 ? { dejaEnConflit: paires } : {};
+}
+
 const lignesDuJournal = (renommages: readonly { readonly type: 'variable' | 'collection'; readonly figmaId: string; readonly ancienNom: string; readonly nouveauNom: string }[]): RenommageJournal[] =>
   renommages.map(({ type, figmaId, ancienNom, nouveauNom }) => ({ type, id: figmaId, ancienNom, nouveauNom }));
 
@@ -327,7 +349,8 @@ export function appliquerLesRenommages(options: {
   const controle = controler(options.demandes, inventaire, session, true, palettesLibresMaintenant(inventaire, stockage));
   const heure = (options.heure ?? heureActuelle)();
   const prevu = lignesDuJournal(controle.elements.map(({ demande }) => demande));
-  const lotPrevu = controle.elements.length > 0 ? ranger(stockage, { heure, renommages: prevu }, nouveauLot()) : undefined;
+  const dejaEnConflit = pairesDeLOrigine(controle.elements, inventaire);
+  const lotPrevu = controle.elements.length > 0 ? ranger(stockage, { heure, renommages: prevu, ...dejaEnConflit }, nouveauLot()) : undefined;
   if (controle.elements.length > 0 && !lotPrevu) {
     return { statut: 'refuse', renommes: [], sautes: [...controle.sautes], annulable: false, cause: 'journal-impossible' };
   }
@@ -337,7 +360,7 @@ export function appliquerLesRenommages(options: {
   if (lotPrevu && execution.renommes.length === 0) retirer(stockage, lotPrevu);
   else if (lotPrevu) {
     const constate = lignesDuJournal(execution.renommes);
-    const reecrit = JSON.stringify(constate) === JSON.stringify(prevu) ? undefined : ranger(stockage, { heure, renommages: constate }, nouveauLot());
+    const reecrit = JSON.stringify(constate) === JSON.stringify(prevu) ? undefined : ranger(stockage, { heure, renommages: constate, ...dejaEnConflit }, nouveauLot());
     // Si la réécriture échoue, le journal prévu reste valide : l'annulation reconnaît aussi un nom provisoire.
     nettoyer(stockage, (reecrit ?? lotPrevu).cles);
     annulable = true;
@@ -355,9 +378,12 @@ const nomDuLot = (nom: string, renommage: RenommageJournal): boolean =>
 /**
  * Remet l'ancien nom à chaque objet du journal dont le nom est celui que le lot a écrit (ou un nom provisoire) ;
  * saute les autres. Un objet qui porte déjà son ancien nom compte comme rétabli.
- * Le journal garde chaque entrée non rétablie, avec le nom provisoire que l'objet porte s'il en porte un ;
- * il n'est effacé que quand toutes le sont. Un journal illisible refuse l'annulation sans être touché.
- * Les identifiants du résultat sont ceux de Figma.
+ * Saute aussi les objets d'une collection exclue de l'analyse au moment d'écrire (motif `exclue`), et les restitutions qui
+ * créeraient un conflit de chemin dans `tokens.json` que le lot n'avait pas trouvé (motif `collision`, voir `Journal.dejaEnConflit`).
+ * Le contrôle du nom (`nom-invalide`) n'est pas refait : ces noms ont déjà été portés.
+ * Le journal garde chaque entrée non rétablie, avec le nom provisoire que l'objet porte s'il en porte un, et les paires
+ * d'origine qui concernent ces entrées ; il n'est effacé que quand toutes le sont. Un journal illisible refuse l'annulation
+ * sans être touché. Les identifiants du résultat sont ceux de Figma.
  */
 export function annulerLeDernierRenommage(options: {
   readonly session: SessionEcriture;
@@ -367,10 +393,18 @@ export function annulerLeDernierRenommage(options: {
 }): ResultatEcriture {
   const { session, stockage } = options;
   const inventaire = session.inventaire;
-  const journal = lireLesRegles(lireLeStockage(stockage)).journal;
+  const regles = lireLesRegles(lireLeStockage(stockage));
+  const journal = regles.journal;
   if (!journal) return { statut: 'refuse', renommes: [], sautes: [], annulable: false };
   const libres = palettesLibresMaintenant(inventaire, stockage);
   const document = lireLeDocument(inventaire, libres);
+  const exclues = new Set(regles.collectionsExclues);
+  const collectionDe = (renommage: RenommageJournal): string | undefined =>
+    renommage.type === 'collection' ? renommage.id : document.get(cleDObjet('variable', renommage.id))?.collectionId;
+  const estExclue = (renommage: RenommageJournal): boolean => {
+    const collection = collectionDe(renommage);
+    return collection !== undefined && exclues.has(collection);
+  };
   const objetDe = (renommage: RenommageJournal): ObjetModifiable | null => renommage.type === 'collection' ? session.collection(renommage.id) : session.variable(renommage.id);
   const demandes: RenommageDemande[] = [];
   const horsDuLot: RenommageSaute[] = [];
@@ -378,12 +412,14 @@ export function annulerLeDernierRenommage(options: {
     const objet = objetDe(renommage);
     if (objet?.name === renommage.ancienNom) continue;
     if (!objet || objet.remote || !nomDuLot(objet.name, renommage)) { horsDuLot.push({ id: renommage.id, motif: 'fichier-modifie' }); continue; }
+    if (estExclue(renommage)) { horsDuLot.push({ id: renommage.id, motif: 'exclue' }); continue; }
     const base = { id: renommage.id, figmaId: renommage.id, ancienNom: objet.name, nouveauNom: renommage.ancienNom };
     demandes.push(renommage.type === 'collection'
       ? { ...base, type: 'collection' }
       : { ...base, type: 'variable', collectionId: document.get(cleDObjet('variable', renommage.id))?.collectionId ?? '' });
   }
-  const fait = ecrire(controler(demandes, inventaire, session, false, libres));
+  const origine = (journal.dejaEnConflit ?? []).map(paireDeLInventaire);
+  const fait = ecrire(controler(demandes, inventaire, session, false, libres, origine));
   const execution: Execution = { ...fait, sautes: [...horsDuLot, ...fait.sautes] };
   let erreur = execution.erreur;
   const restants: RenommageJournal[] = [];
@@ -395,7 +431,14 @@ export function annulerLeDernierRenommage(options: {
   if (restants.length === 0) {
     try { rangerLesEcritures(stockage, effacerLeJournal(stockage.cles())); } catch { erreur = true; }
   } else if (JSON.stringify(restants) !== JSON.stringify(journal.renommages)) {
-    const lot = ranger(stockage, { heure: journal.heure, renommages: restants }, (options.lot ?? identifiantDeLot)());
+    // Une paire reste tant qu'une des deux variables est une entrée restante ou dans la collection d'une entrée restante.
+    const objetsRestants = new Set(restants.map(({ type, id }) => cleDObjet(type, id)));
+    const concernee = (id: string): boolean => {
+      const collection = document.get(cleDObjet('variable', id))?.collectionId;
+      return objetsRestants.has(cleDObjet('variable', id)) || (collection !== undefined && objetsRestants.has(cleDObjet('collection', collection)));
+    };
+    const gardees = (journal.dejaEnConflit ?? []).filter(([a, b]) => concernee(a) || concernee(b));
+    const lot = ranger(stockage, { heure: journal.heure, renommages: restants, ...(gardees.length > 0 ? { dejaEnConflit: gardees } : {}) }, (options.lot ?? identifiantDeLot)());
     if (lot) nettoyer(stockage, lot.cles); else erreur = true;
   }
   if (execution.renommes.length > 0) {

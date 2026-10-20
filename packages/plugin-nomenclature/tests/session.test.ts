@@ -129,6 +129,22 @@ test('remplacer-par ajoute à la règle du terme gardé ; retirer-remplace et su
   assert.equal(b.bilan().generation > 0, true, 'un geste sans règle à défaire répond quand même par un bilan');
 });
 
+test('N07 : retirer la dernière forme garde la règle qui porte une définition ; sans définition, la règle part', async () => {
+  const defini = JSON.stringify({ version: 1, terme: ['quux'], remplace: [['quuxed']], definition: 'Terme métier conservé.' });
+  const b = banc(PAIRES, { ecriture, 'terme:quux': defini });
+  await b.envoyer({ type: 'analyser' });
+  await b.regle({ type: 'retirer-remplace', terme: 'quux', remplace: 'quuxed' });
+  assert.deepEqual(b.terme('terme:quux'), { version: 1, terme: ['quux'], remplace: [], definition: 'Terme métier conservé.' });
+  await b.envoyer({ type: 'exporter' });
+  const exporte = b.messages.find((m) => m.type === 'regles-exportees');
+  assert.ok(exporte && exporte.type === 'regles-exportees');
+  assert.match(exporte.texte, /Terme métier conservé\./u, 'la définition reste à l’export');
+  await b.regle({ type: 'supprimer', terme: 'quux' });
+  await b.regle({ type: 'remplacer-par', terme: 'quuxed', par: 'quux' });
+  await b.regle({ type: 'retirer-remplace', terme: 'quux', remplace: 'quuxed' });
+  assert.equal(b.terme('terme:quux'), null, 'un terme sans définition peut encore être retiré');
+});
+
 test('ecart-ucm écrit et retire l\'écart ; retirer-distinct et retirer-voulu effacent leur entrée', async () => {
   const b = banc([['v1', 'tile/hovered/fill'], ['v2', 'tile/hovered/fg']], { ecriture, 'distinct:a|b': '{"version":1}', 'voulu:foo bar': '{"version":1}' });
   await b.envoyer({ type: 'analyser' });

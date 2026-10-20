@@ -9,7 +9,7 @@
  * seule la dernière demande en attente reste. Un calcul se termine par un
  * `bilan`, un `refus` ou une `erreur`, ou par une `application` refusée.
  *
- * Lectures (`lignes`, `termes`, `fiche`, `simuler`, `diagnostic`) : elles partent pendant un
+ * Lectures (`lignes`, `termes`, `fiche`, `selection`, `simuler`, `diagnostic`) : elles partent pendant un
  * calcul, sur la génération courante. Une nouvelle lecture de même clé rend la
  * précédente caduque, et un nouveau `bilan` rend caduques toutes les lectures.
  */
@@ -44,6 +44,8 @@ export interface Frontiere {
   lignes(groupe: string, debut: number): number | null;
   termes(requete: RequeteDeTermes): number | null;
   fiche(terme: string): number | null;
+  /** Demande lesquels de ces identifiants exclus ou inclus sont encore à renommer, et leur groupe principal. */
+  selection(exclus: readonly string[], inclus: readonly string[]): number | null;
   simuler(geste: GesteSurLesRegles): number | null;
   diagnostic(): number | null;
   /** L'export ne dépend d'aucune génération et ne retient aucun calcul. */
@@ -122,7 +124,9 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     terminerLeCalcul();
   }
 
-  function aSonContenu(message: Extract<PluginMessage, { type: 'lignes' | 'termes' | 'fiche' | 'simulation' | 'diagnostic' }>): boolean {
+  type MessageDeLecture = Extract<PluginMessage, { type: 'lignes' | 'termes' | 'fiche' | 'selection' | 'simulation' | 'diagnostic' }>;
+
+  function aSonContenu(message: MessageDeLecture): boolean {
     const contenu = message as unknown as Record<string, unknown>;
     switch (message.type) {
       case 'termes':
@@ -131,6 +135,8 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
         return Array.isArray(contenu.lignes);
       case 'fiche':
         return typeof contenu.fiche === 'object' && contenu.fiche !== null;
+      case 'selection':
+        return Array.isArray(contenu.principaux);
       case 'diagnostic':
         return typeof contenu.texte === 'string';
       default:
@@ -138,7 +144,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     }
   }
 
-  function recevoirUneLecture(message: Extract<PluginMessage, { type: 'lignes' | 'termes' | 'fiche' | 'simulation' | 'diagnostic' }>): void {
+  function recevoirUneLecture(message: MessageDeLecture): void {
     if (!lectures.has(message.demande) || message.generation !== generation) return;
     // Hors Figma l'écran reçoit ses propres demandes : l'écho porte le même numéro
     // mais pas de contenu. Il ne doit pas consommer la lecture en attente.
@@ -184,6 +190,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
       case 'lignes':
       case 'termes':
       case 'fiche':
+      case 'selection':
       case 'simulation':
       case 'diagnostic':
         recevoirUneLecture(message);
@@ -216,6 +223,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     lignes: (groupe, debut) => lire(`lignes:${groupe}:${debut}`, (demande, courante) => ({ type: 'lignes', demande, generation: courante, groupe, debut })),
     termes: (requete) => lire('termes', (demande, courante) => ({ type: 'termes', demande, generation: courante, ...requete })),
     fiche: (terme) => lire('fiche', (demande, courante) => ({ type: 'fiche', demande, generation: courante, terme })),
+    selection: (exclus, inclus) => lire('selection', (demande, courante) => ({ type: 'selection', demande, generation: courante, exclus, inclus })),
     simuler: (geste) => lire('simuler', (demande, courante) => ({ type: 'simuler', demande, generation: courante, geste })),
     diagnostic: () => lire('diagnostic', (demande, courante) => ({ type: 'diagnostic', demande, generation: courante })),
     exporter() {

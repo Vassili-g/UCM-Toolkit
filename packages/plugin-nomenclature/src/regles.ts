@@ -34,7 +34,16 @@ export interface RenommageJournal {
   readonly ancienNom: string;
   readonly nouveauNom: string;
 }
-export interface Journal { readonly heure: string; readonly renommages: readonly RenommageJournal[] }
+/**
+ * `dejaEnConflit` : les paires de variables (identifiants Figma) dont les chemins de `tokens.json` étaient déjà en conflit
+ * avant le lot, pour les variables qu'il touche. L'annulation ne les compte pas comme un conflit nouveau.
+ * Absent d'un journal sans paire et d'un journal rangé avant ce champ.
+ */
+export interface Journal {
+  readonly heure: string;
+  readonly renommages: readonly RenommageJournal[];
+  readonly dejaEnConflit?: readonly (readonly [string, string])[];
+}
 /** Les entrées qu'une réponse a créées ou changées, avec leur texte d'avant (`null` : l'entrée n'existait pas). */
 export interface ReponseRangee {
   readonly avant: Readonly<Record<string, string | null>>;
@@ -143,6 +152,18 @@ function lireRenommages(brut: unknown): RenommageJournal[] | undefined {
   return sortie;
 }
 
+/** Les paires d'une entrée du journal ; une entrée sans le champ n'en porte aucune. */
+function lirePaires(brut: unknown): [string, string][] | undefined {
+  if (brut === undefined) return [];
+  if (!Array.isArray(brut)) return undefined;
+  const sortie: [string, string][] = [];
+  for (const paire of brut) {
+    if (!Array.isArray(paire) || paire.length !== 2 || !estTexte(paire[0]) || !estTexte(paire[1])) return undefined;
+    sortie.push([paire[0], paire[1]]);
+  }
+  return sortie;
+}
+
 /**
  * Le journal n'est lu que complet. La référence `journal` nomme le lot ; chaque entrée du lot porte ce lot et son rang.
  * Une entrée manquante, illisible ou d'un autre lot rend le journal illisible, et la lecture ne l'efface pas.
@@ -167,13 +188,16 @@ function lireJournalDuLot(entrees: ReadonlyMap<string, string>): Journal | undef
   if (!reference || typeof reference.lot !== 'string' || !reference.lot || reference.lot.includes(':')
     || !Number.isInteger(reference.morceaux) || (reference.morceaux as number) < 1 || typeof reference.heure !== 'string') return undefined;
   const renommages: RenommageJournal[] = [];
+  const paires: [string, string][] = [];
   for (let rang = 0; rang < (reference.morceaux as number); rang++) {
     const entree = lireEntree(entrees.get(cleJournal(reference.lot, rang)) ?? '');
     const lus = entree && entree.lot === reference.lot && entree.rang === rang && lireRenommages(entree.renommages);
-    if (!lus) return undefined;
+    const lues = entree && lirePaires(entree.dejaEnConflit);
+    if (!lus || !lues) return undefined;
     renommages.push(...lus);
+    paires.push(...lues);
   }
-  return { heure: reference.heure, renommages };
+  return { heure: reference.heure, renommages, ...(paires.length > 0 ? { dejaEnConflit: paires } : {}) };
 }
 
 /**
@@ -386,22 +410,35 @@ export function budgetDUneEntree(lot: string): number {
 /**
  * Découpe le journal en entrées `journal:<lot>:<rang>` dont la valeur pèse `max` octets UTF-8 au plus,
  * puis prépare la référence `journal` (lot, heure, nombre d'entrées).
+ * Les paires `dejaEnConflit` suivent les renommages dans les mêmes entrées, sous le même budget.
  * Rend `undefined` quand un renommage ne tient pas seul dans une entrée : le journal ne peut pas être écrit.
  */
 export function preparerJournal(journal: Journal, lot: string, max: number = budgetDUneEntree(lot)): JournalPrepare | undefined {
-  const reserve = octetsUtf8(JSON.stringify({ version: VERSION_DES_REGLES, lot, rang: 999_999_999, renommages: [] }));
-  const morceaux: RenommageJournal[][] = [[]];
+  const paires = journal.dejaEnConflit ?? [];
+  const reserve = octetsUtf8(JSON.stringify({ version: VERSION_DES_REGLES, lot, rang: 999_999_999, renommages: [], ...(paires.length > 0 ? { dejaEnConflit: [] } : {}) }));
+  interface Morceau { readonly renommages: RenommageJournal[]; readonly dejaEnConflit: (readonly [string, string])[] }
+  const morceaux: Morceau[] = [{ renommages: [], dejaEnConflit: [] }];
   let taille = reserve;
-  for (const renommage of journal.renommages) {
-    const longueur = octetsUtf8(JSON.stringify(renommage)) + 1;
-    if (reserve + longueur > max) return undefined;
-    if (morceaux[morceaux.length - 1]!.length > 0 && taille + longueur > max) { morceaux.push([]); taille = reserve; }
-    morceaux[morceaux.length - 1]!.push(renommage);
+  /** Place l'élément dans l'entrée courante, ou dans une neuve ; faux quand il ne tient pas seul. */
+  const placer = (element: RenommageJournal | readonly [string, string], dans: (morceau: Morceau) => void): boolean => {
+    const longueur = octetsUtf8(JSON.stringify(element)) + 1;
+    if (reserve + longueur > max) return false;
+    let morceau = morceaux[morceaux.length - 1]!;
+    if (morceau.renommages.length + morceau.dejaEnConflit.length > 0 && taille + longueur > max) {
+      morceau = { renommages: [], dejaEnConflit: [] };
+      morceaux.push(morceau);
+      taille = reserve;
+    }
+    dans(morceau);
     taille += longueur;
-  }
+    return true;
+  };
+  for (const renommage of journal.renommages) if (!placer(renommage, (morceau) => morceau.renommages.push(renommage))) return undefined;
+  for (const paire of paires) if (!placer(paire, (morceau) => morceau.dejaEnConflit.push(paire))) return undefined;
   return {
-    entrees: morceaux.map((renommages, rang) => ({
-      cle: cleJournal(lot, rang), texte: JSON.stringify({ version: VERSION_DES_REGLES, lot, rang, renommages }),
+    entrees: morceaux.map(({ renommages, dejaEnConflit }, rang) => ({
+      cle: cleJournal(lot, rang),
+      texte: JSON.stringify({ version: VERSION_DES_REGLES, lot, rang, renommages, ...(dejaEnConflit.length > 0 ? { dejaEnConflit } : {}) }),
     })),
     reference: { cle: CLE_JOURNAL, texte: JSON.stringify({ version: VERSION_DES_REGLES, lot, heure: journal.heure, morceaux: morceaux.length }) },
   };

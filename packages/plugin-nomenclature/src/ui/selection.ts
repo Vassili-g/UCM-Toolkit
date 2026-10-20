@@ -190,6 +190,40 @@ export function oublierLesInclus(modele: ModeleDeSelection): ModeleDeSelection {
   return modele.inclus.size === 0 ? modele : { ...modele, inclus: new Map() };
 }
 
+/** Les identifiants que l'écran a envoyés à la lecture `selection`. */
+export interface IdentifiantsInterroges { readonly exclus: readonly string[]; readonly inclus: readonly string[] }
+
+const memesEntrees = (a: ReadonlyMap<string, string>, b: ReadonlyMap<string, string>): boolean =>
+  a.size === b.size && [...a].every(([id, cle]) => b.get(id) === cle);
+
+/**
+ * Reporte la réponse de la lecture `selection` : un identifiant interrogé dont la réponse ne donne plus de groupe n'est plus à renommer,
+ * et sort ; un identifiant passé dans un autre groupe y est rattaché. Une exclusion dont le nouveau groupe est décoché, une inclusion
+ * dont il est coché, n'ont plus d'objet et sortent aussi. Les entrées que le designer a posées depuis la demande ne sont pas touchées.
+ */
+export function restreindre(modele: ModeleDeSelection, interroges: IdentifiantsInterroges, principaux: readonly (readonly [string, string])[]): ModeleDeSelection {
+  const rendus = new Map(principaux);
+  const interroge = new Set([...interroges.exclus, ...interroges.inclus]);
+  const reporter = (entrees: ReadonlyMap<string, string>, utile: (cle: string) => boolean): ReadonlyMap<string, string> => {
+    const suite = new Map<string, string>();
+    for (const [id, cle] of entrees) {
+      if (!interroge.has(id)) {
+        suite.set(id, cle);
+        continue;
+      }
+      const principal = rendus.get(id);
+      if (principal !== undefined && modele.tailles.has(principal) && utile(principal)) suite.set(id, principal);
+    }
+    return memesEntrees(entrees, suite) ? entrees : suite;
+  };
+  const exclus = reporter(modele.exclus, (cle) => modele.coches.has(cle));
+  const inclus = reporter(modele.inclus, (cle) => !modele.coches.has(cle));
+  if (exclus === modele.exclus && inclus === modele.inclus) return modele;
+  let restreint: ModeleDeSelection = { ...modele, exclus, inclus };
+  for (const cle of new Set([...exclus.values(), ...inclus.values()])) restreint = normaliser(restreint, cle);
+  return restreint;
+}
+
 /** La `Selection` que `appliquer` envoie. */
 export function versSelection(modele: ModeleDeSelection): Selection {
   return {

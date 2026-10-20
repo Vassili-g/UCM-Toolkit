@@ -79,9 +79,12 @@ class ErreurDeProtocole extends Error {
 const premierLancement = (regles: ReglesDuFichier): boolean => regles.ecriture === undefined || regles.ecritureDeLaV1;
 const memes = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
 
-/** Ce qu'`appliquer` compare : les règles qui changent les renommages proposés. */
+/**
+ * Ce qu'`appliquer` compare : les règles qui changent les renommages proposés. Les termes ordinaires changent les frontières
+ * des termes, et la reprise de l'écriture de la v1 libère les variables de Palettes.
+ */
 const signatureDuCalcul = (regles: ReglesDuFichier): string =>
-  JSON.stringify([regles.ecriture ?? null, regles.termes, regles.ecartsUcm, regles.collectionsExclues, regles.collectionsRenommees]);
+  JSON.stringify([regles.ecriture ?? null, regles.ecritureDeLaV1, regles.termes, regles.ecartsUcm, regles.ordinaires, regles.collectionsExclues, regles.collectionsRenommees]);
 
 const motsDe = (texte: string): Mots => texte.trim().toLowerCase().split(/[\s-]+/u).filter((mot) => mot !== '');
 const jointure = (mots: Mots): string => mots.map((mot) => mot.toLowerCase()).join(' ');
@@ -173,11 +176,12 @@ function ecrituresDuGeste(geste: GesteSurLesRegles, regles: ReglesDuFichier, cou
       })];
     }
     case 'retirer-remplace': {
+      // Comme `remplace-termes` : une règle sans forme remplacée reste quand elle porte une définition.
       const mots = motsDe(geste.terme);
       const existant = regles.termes.find((terme) => jointure(terme.terme) === jointure(mots));
       if (!existant) return [];
       const reste = existant.remplace.filter((forme) => jointure(forme) !== jointure(motsDe(geste.remplace)));
-      return [reste.length === 0 ? { cle: cleTerme(existant.terme), texte: null } : serialiserRegle({ type: 'terme', terme: { ...existant, remplace: reste } })];
+      return [reste.length === 0 && !existant.definition ? { cle: cleTerme(existant.terme), texte: null } : serialiserRegle({ type: 'terme', terme: { ...existant, remplace: reste } })];
     }
     case 'supprimer': {
       const existant = regles.termes.find((terme) => jointure(terme.terme) === jointure(motsDe(geste.terme)));
@@ -384,7 +388,7 @@ function* recalculer(moteur: Moteur, base: Etat, regles: ReglesDuFichier, avecQu
 
 function construireEtat(generation: number, inventaire: Inventaire, regles: ReglesDuFichier, calcul: Calcul): Etat {
   const noms = new Map<string, string>();
-  for (const entree of inventaire.entrees) if (entree.cible.type === 'variable') noms.set(entree.cible.variableId, entree.nom.nom);
+  for (const entree of inventaire.entrees) if (entree.cible.type === 'variable') noms.set(entree.nom.id, entree.nom.nom);
   const entree: EntreeDeProjection = {
     generation, lexique: calcul.lexique, resultat: calcul.resultat, questions: calcul.questions, regles,
     // L'écran compte comme protégées les seules variables que le calcul ne renomme pas.
@@ -526,10 +530,14 @@ export function creerSession(options: OptionsDeSession): Session {
     });
   }
 
-  const resultatVue = (sorte: ResultatVue['sorte'], resultat: ResultatEcriture): ResultatVue => ({
-    sorte, statut: resultat.statut, renommes: resultat.renommes.length, sautes: resultat.sautes.length, annulable: resultat.annulable,
-    ...(resultat.cause ? { cause: resultat.cause } : {}),
-  });
+  const resultatVue = (sorte: ResultatVue['sorte'], resultat: ResultatEcriture): ResultatVue => {
+    const exclues = resultat.sautes.filter(({ motif }) => motif === 'exclue').length;
+    return {
+      sorte, statut: resultat.statut, renommes: resultat.renommes.length, sautes: resultat.sautes.length, annulable: resultat.annulable,
+      ...(resultat.cause ? { cause: resultat.cause } : {}),
+      ...(exclues > 0 ? { exclues } : {}),
+    };
+  };
 
   /** Après une écriture : `application`, puis un `bilan` neuf lu dans Figma, sauf si tout a été refusé. */
   async function conclureUneEcriture(passage: Passage, sorte: ResultatVue['sorte'], resultat: ResultatEcriture): Promise<void> {
@@ -666,6 +674,12 @@ export function creerSession(options: OptionsDeSession): Session {
         const courant = etatDeLaGeneration(demande.demande, demande.generation);
         if (!courant) return;
         envoyer({ type: 'fiche', demande: demande.demande, generation: courant.generation, fiche: courant.projection.fiche(demande.terme) });
+        return;
+      }
+      case 'selection': {
+        const courant = etatDeLaGeneration(demande.demande, demande.generation);
+        if (!courant) return;
+        envoyer({ type: 'selection', demande: demande.demande, generation: courant.generation, principaux: courant.projection.principaux([...demande.exclus, ...demande.inclus]) });
         return;
       }
       case 'diagnostic': {

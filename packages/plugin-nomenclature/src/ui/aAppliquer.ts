@@ -22,11 +22,13 @@ import {
   nombreCocheDuGroupe,
   oublierLesInclus,
   reconcilier,
+  restreindre,
   versSelection,
+  type IdentifiantsInterroges,
   type ModeleDeSelection,
 } from './selection';
 import { apresUnePage, creerLaFile, nomsRestants, prochainDebut, sectionsDansLOrdre, segmentsDeNom, type SorteDeRegle } from './lignes';
-import { annonceApresUneErreur, annonceDUneApplication, type Annonce, type Attente } from './annonce';
+import { annonceApresUneErreur, annonceDUneApplication, annonceDUneAnnulation, type Annonce, type Attente } from './annonce';
 import { TEXTES } from './textes';
 
 type Pastille = 'nouveau' | 'bloque' | 'protege';
@@ -318,6 +320,8 @@ export function monterAAppliquer(coquille: Coquille): void {
   let annonce: Annonce | null = null;
   /** Ce que le designer a demandé en dernier et dont la réponse n'est pas revenue. */
   let attente: Attente | null = null;
+  /** La lecture `selection` envoyée après un bilan, avec les identifiants qu'elle interroge. Appliquer reste indisponible tant qu'elle est en vol. */
+  let lectureDeLaSelection: { readonly demande: number; readonly interroges: IdentifiantsInterroges } | null = null;
   let confirmation: { fermer(): void } | null = null;
   const deplies = new Set<string>();
   let nonRenommesDeplie = false;
@@ -347,7 +351,7 @@ export function monterAAppliquer(coquille: Coquille): void {
       enGras.textContent = compte.nombre;
       resume.replaceChildren(enGras, compte.suite);
     }
-    boutonAppliquer.disabled = nombre === 0 || attente !== null;
+    boutonAppliquer.disabled = nombre === 0 || attente !== null || lectureDeLaSelection !== null;
     if (boutonAnnuler) boutonAnnuler.disabled = attente !== null;
   }
 
@@ -535,7 +539,7 @@ export function monterAAppliquer(coquille: Coquille): void {
       const explication = document.createElement('span');
       explication.className = 'meta';
       poserLeTexte(explication, bloque.chemin
-        ? (bloque.chemin.motif === 'meme-token' ? TEXTES.memeToken : TEXTES.tokenEtGroupe)(bloque.chemin.apres, bloque.chemin.autre)
+        ? { 'meme-token': TEXTES.memeToken, 'token-et-groupe': TEXTES.tokenEtGroupe, 'meme-axe': TEXTES.memeAxe, 'axe-et-extensions': TEXTES.axeEtExtensions }[bloque.chemin.motif](bloque.chemin.apres, bloque.chemin.autre)
         : TEXTES.nomBloque(bloque.collection, bloque.apres));
       pile.append(fabriquerChange(bloque.avant, bloque.apres, 0), explication);
       info.append(pile, fabriquerPastille('bloque'));
@@ -628,6 +632,10 @@ export function monterAAppliquer(coquille: Coquille): void {
       case 'annulation-partielle':
         titre.textContent = TEXTES.nomsNonRetablis(annonce.sautes);
         break;
+      case 'annulation-collection-exclue':
+        titre.textContent = TEXTES.annulationDansUneCollectionExclue(annonce.retablis, annonce.exclues, 'renommages');
+        if (annonce.autres > 0) note.textContent = TEXTES.annulationAutresNomsNonRetablis(annonce.autres);
+        break;
     }
     texte.append(titre);
     if (note.textContent) texte.append(note);
@@ -647,7 +655,7 @@ export function monterAAppliquer(coquille: Coquille): void {
 
   function demanderLaConfirmation(): void {
     const nombre = compterLesNomsCoches(modele);
-    if (nombre === 0 || attente || confirmation) return;
+    if (nombre === 0 || attente || lectureDeLaSelection || confirmation) return;
     const { variables, collections } = compterLesNomsCochesParSorte(modele);
     const selection = versSelection(modele);
     confirmation = ouvrirConfirmation({
@@ -670,9 +678,21 @@ export function monterAAppliquer(coquille: Coquille): void {
     bilan = nouveau;
     modele = reconcilier(modele, nouveau.groupes);
     attente = null;
+    lectureDeLaSelection = null;
     reconstruire();
     synchroniser();
     rendreLaLigneDuResultat();
+    verifierLaSelection();
+  }
+
+  /** `reconcilier` ne connaît que les groupes : le sandbox dit quels exclus et quels inclus sont encore des renommages. */
+  function verifierLaSelection(): void {
+    if (modele.exclus.size === 0 && modele.inclus.size === 0) return;
+    const interroges = { exclus: [...modele.exclus.keys()], inclus: [...modele.inclus.keys()] };
+    const demande = frontiere.selection(interroges.exclus, interroges.inclus);
+    if (demande === null) return;
+    lectureDeLaSelection = { demande, interroges };
+    synchroniserLePied();
   }
 
   function traiterLeResultat(resultat: ResultatVue, demande: number): void {
@@ -682,10 +702,8 @@ export function monterAAppliquer(coquille: Coquille): void {
       annonce = annonceDUneApplication(resultat);
       // Les noms ont changé : une erreur de la relecture qui suit ne doit pas l'effacer.
       if (attente?.sorte === 'application' && attente.demande === demande) attente = { ...attente, recue: true };
-    } else if (resultat.statut === 'applique') {
-      annonce = null;
     } else {
-      annonce = resultat.statut === 'partiel' ? { type: 'annulation-partielle', sautes: resultat.sautes } : { type: 'annulation-refusee' };
+      annonce = annonceDUneAnnulation(resultat);
     }
     // Un refus n'est pas suivi d'un bilan : la main revient tout de suite.
     if (resultat.statut === 'refuse') attente = null;
@@ -699,6 +717,7 @@ export function monterAAppliquer(coquille: Coquille): void {
       case 'analyse-demandee':
         annonce = null;
         attente = null;
+        lectureDeLaSelection = null;
         confirmation?.fermer();
         rendreLaLigneDuResultat();
         break;
@@ -708,11 +727,21 @@ export function monterAAppliquer(coquille: Coquille): void {
       case 'lignes':
         for (const carte of cartes) carte.recevoirLesLignes(message);
         break;
+      case 'selection':
+        if (lectureDeLaSelection?.demande !== message.demande) break;
+        modele = restreindre(modele, lectureDeLaSelection.interroges, message.principaux);
+        lectureDeLaSelection = null;
+        synchroniser();
+        break;
       case 'application':
         traiterLeResultat(message.resultat, message.demande);
         break;
       case 'erreur':
         for (const carte of cartes) carte.recevoirUneErreur(message.demande);
+        if (lectureDeLaSelection?.demande === message.demande) {
+          lectureDeLaSelection = null;
+          synchroniserLePied();
+        }
         if (attente?.demande === message.demande) {
           annonce = annonceApresUneErreur(attente, annonce);
           attente = null;

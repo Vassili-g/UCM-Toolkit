@@ -76,6 +76,24 @@ export const TEXTES = {
   annulationDuRenommageRefusee: 'L’annulation a été refusée. Relancez l’analyse, puis annulez de nouveau.',
   annulationDuRenommagePartielle: (retablis: number, sautes: number): string =>
     `${noms(retablis)} rétablis, ${sautes} n’ont pas pu l’être : un autre nom occupe leur place ou ils ont changé depuis. Le plugin les garde ; annulez de nouveau après avoir corrigé.`,
+  /**
+   * Une annulation qui laisse des noms dans une collection décochée de « Collections analysées ». Depuis l'onglet Renommages (`depuis`),
+   * le designer ouvre d'abord Configuration, où se trouvent la collection et le bouton Annuler du dernier renommage.
+   */
+  annulationDansUneCollectionExclue: (retablis: number, exclues: number, depuis: 'configuration' | 'renommages' = 'configuration'): string => {
+    const un = exclues === 1;
+    const debut = retablis === 0 ? 'Aucun nom n’a été rétabli.' : `${retablis === 1 ? '1 nom rétabli' : `${retablis} noms rétablis`}.`;
+    const reste = retablis === 0 ? (un ? '1 nom' : `${exclues} noms`) : (un ? '1 autre nom' : `${exclues} autres noms`);
+    const geste = depuis === 'configuration'
+      ? 'cochez de nouveau la collection dans Collections analysées, puis annulez de nouveau.'
+      : 'ouvrez Configuration, cochez de nouveau la collection dans Collections analysées, puis annulez de nouveau dans Dernier renommage.';
+    return `${debut} ${reste} ${un ? 'est' : 'sont'} dans une collection exclue de l’analyse : le plugin ${un ? 'le garde' : 'les garde'}. `
+      + `Pour ${un ? 'le' : 'les'} rétablir, ${geste}`;
+  },
+  /** La suite de `annulationDansUneCollectionExclue` quand d'autres noms n'ont pas pu être rétablis pour une autre raison. */
+  annulationAutresNomsNonRetablis: (nombre: number): string => (nombre === 1
+    ? '1 autre nom n’a pas pu être rétabli : un nom occupe déjà sa place ou il a changé depuis. Le plugin le garde ; annulez de nouveau après avoir corrigé.'
+    : `${nombre} autres noms n’ont pas pu être rétablis : un nom occupe déjà leur place ou ils ont changé depuis. Le plugin les garde ; annulez de nouveau après avoir corrigé.`),
   confirmerLAnnulation: (nombre: number, heure: string): string =>
     `Annuler le renommage de ${heure} ? ${nombre === 1 ? '1 nom reprend son' : `${nombre} noms reprennent leur`} ancien nom.`,
   remettreLesAnciensNoms: 'Remettre les anciens noms',
@@ -161,6 +179,10 @@ export const TEXTES = {
   memeToken: (apres: string, autre: string): string => `\`${apres}\` et \`${autre}\` donneraient le même token dans tokens.json : renommez l’une des deux dans Figma.`,
   /** `apres` est un token et le groupe de `autre`. */
   tokenEtGroupe: (apres: string, autre: string): string => `\`${apres}\` serait à la fois un token et le groupe de \`${autre}\` dans tokens.json : renommez l’une des deux dans Figma.`,
+  /** Deux collections à modes dont les noms donnent la même clé d'axe ; `apres` et `autre` sont leurs noms. */
+  memeAxe: (apres: string, autre: string): string => `\`${apres}\` et \`${autre}\` donneraient le même nom dans l’export des tokens : les modes de ces deux collections ne pourraient plus être générés. Gardez un nom différent pour l’une des deux.`,
+  /** `autre` aurait le nom que l'export réserve aux extensions de `apres`. */
+  axeEtExtensions: (apres: string, autre: string): string => `\`${autre}\` aurait le nom que l’export des tokens réserve aux collections étendues de \`${apres}\` : les extensions de \`${apres}\` ne pourraient plus être générées. Gardez un nom différent pour l’une des deux.`,
   nomsProteges: (nombre: number): string => (nombre === 1 ? '1 nom écrit par UCM Palettes' : `${nombre} noms écrits par UCM Palettes`),
   nomsProtegesExplication: 'UCM Palettes écrit ces variables, et leur groupe garde son nom. Ouvrez UCM Palettes une fois dans ce fichier pour qu’il suive les règles, puis revenez ici.',
 

@@ -8,6 +8,8 @@ export type Annonce =
   | { readonly type: 'renomme'; readonly renommes: number; readonly sautes: number; readonly annulable: boolean; readonly bilanIllisible: boolean }
   | { readonly type: 'refuse'; readonly cause?: CauseDeRefus }
   | { readonly type: 'annulation-partielle'; readonly sautes: number }
+  /** `exclues` noms gardés parce que leur collection est exclue de l'analyse ; `autres` noms sautés pour une autre raison. */
+  | { readonly type: 'annulation-collection-exclue'; readonly retablis: number; readonly exclues: number; readonly autres: number }
   | { readonly type: 'annulation-refusee' };
 
 /** Ce que le designer a demandé en dernier ; `recue` dit si l'`application` de cette demande est arrivée. */
@@ -21,6 +23,17 @@ export interface Attente {
 export function annonceDUneApplication(resultat: ResultatVue): Annonce {
   if (resultat.statut === 'refuse') return resultat.cause ? { type: 'refuse', cause: resultat.cause } : { type: 'refuse' };
   return { type: 'renomme', renommes: resultat.renommes, sautes: resultat.statut === 'partiel' ? resultat.sautes : 0, annulable: resultat.annulable, bilanIllisible: false };
+}
+
+/**
+ * L'annonce d'une annulation, `null` quand tous les noms sont rétablis. Dès qu'une ligne est gardée parce que sa collection est exclue, l'annonce
+ * le dit, même si l'annulation est refusée : le geste est de recocher la collection, pas de relancer l'analyse. `exclues` est compté dans `sautes`.
+ */
+export function annonceDUneAnnulation(resultat: ResultatVue): Annonce | null {
+  const exclues = resultat.exclues ?? 0;
+  if (exclues > 0) return { type: 'annulation-collection-exclue', retablis: resultat.renommes, exclues, autres: Math.max(0, resultat.sautes - exclues) };
+  if (resultat.statut === 'applique') return null;
+  return resultat.statut === 'partiel' ? { type: 'annulation-partielle', sautes: resultat.sautes } : { type: 'annulation-refusee' };
 }
 
 /**

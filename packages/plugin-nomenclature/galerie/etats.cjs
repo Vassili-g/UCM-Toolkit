@@ -32,7 +32,7 @@ const termeOuvert = (mot, fiche) => [
 ];
 /** Le délai de la simulation d'une saisie : l'écran attend 250 ms avant de demander. */
 const delai = () => Array.from({ length: 60 }, () => ({ survol: 'body' }));
-const repondreAuPremier = '.carte.question .question-actions:first-child .btn-primary';
+const repondreAuPremier = '.carte.question .question-actions:first-child .btn-secondary';
 const appliquer = [clic('.pied .btn-primary', '.feuille'), clic('.feuille-groupe .btn-primary')];
 
 module.exports.ETATS = [
@@ -54,6 +54,11 @@ module.exports.ETATS = [
   etat('a-appliquer-non-renommes', 'Renommages, noms non renommés', 'Un nom bloqué et des noms protégés accompagnent les renommages.',
     'La carte Non renommés dépliée : le nom bloqué avec sa raison, les noms écrits par UCM Palettes.',
     [...ouvert(bilans.travail), clic('.carte.muette .tete-bouton')]),
+  etat('a-appliquer-nom-corrige', 'Renommages, un nom décoché puis corrigé', 'Le designer décoche Button/bg/hover ; le nom est corrigé dans Figma ; la nouvelle analyse ne le propose plus.',
+    'Le groupe background garde ses 11 noms, tous cochés, sans mention « non cochés » ; le pied compte 86 noms cochés et Appliquer reste disponible.',
+    [...ouvert(bilans.travail), clic('.case[aria-label="Button/bg/hover"]'), clic('#onglet-a-trancher', '.carte.question'), clic(repondreAuPremier),
+      msg(messages.bilan(3, bilans.apresUneCorrection), '.faite-texte'), msg(messages.selection(4, 2, []), '.pied .btn-primary:not([disabled])'),
+      clic('#onglet-a-appliquer')]),
   etat('confirmation', 'Confirmation', 'Le designer appuie sur Appliquer.',
     'La feuille « Renommer 87 noms ? », ses quatre faits, Retour et Renommer ; le focus sur Retour.',
     [...ouvert(bilans.travail), clic('.pied .btn-primary', '.feuille')]),
@@ -129,7 +134,7 @@ module.exports.ETATS = [
     [...reglesOuvertes(), msg(messages.diagnostic(4))]),
   etat('feuille-ecriture', 'Feuille de l’écriture', 'Le designer appuie sur Modifier, dans Règles.',
     'La même carte qu’au premier lancement, dans une feuille ; Annuler et Enregistrer en bas.',
-    [...reglesOuvertes(), clic('.btn[aria-label="Modifier l’écriture des noms"]', '.feuille')]),
+    [...reglesOuvertes(), clic('.btn[aria-label="Modifier l’écriture"]', '.feuille')]),
   etat('feuille-terme-ucm', 'Feuille d’un terme UCM', 'Le designer ouvre un terme défini par UCM.',
     'Le terme et UCM · rôle dans l’en-tête, la définition, le bloc gris Règle avec Formes fixées par UCM et des jetons sans ×, À renommer en deux colonnes avec Voir dans Renommages, Déjà employé ; Ne pas appliquer ce terme dans ce fichier en bas, sans Fermer.',
     termeOuvert('background', fiches.ucm)),

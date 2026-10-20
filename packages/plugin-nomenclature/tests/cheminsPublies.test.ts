@@ -1,9 +1,9 @@
 /** Les chemins de tokens.json : le contrôle pur, puis les deux parcours de l'audit et leur affichage dans la session. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { cheminsEnConflit, type InventairePublie } from '../src/cheminsPublies';
+import { axesDeLExport, cheminsEnConflit, inventairePublie, pairesDejaEnConflit, type CollectionPubliee, type InventairePublie } from '../src/cheminsPublies';
 import type { PortDeRegles } from '../src/ecriture';
-import type { PortDeLecture } from '../src/lecture';
+import { inventaireDeLectures, type PortDeLecture } from '../src/lecture';
 import type { DemandeArchitect, GesteSurLesRegles, PluginMessage } from '../src/messages';
 import { creerSession } from '../src/session';
 import { TEXTES } from '../src/ui/textes';
@@ -97,6 +97,28 @@ test('un nom qui ne donne aucun chemin ne se publie pas', () => {
   assert.deepEqual(cheminsEnConflit(doc, renommer(['a', '$x'])), []);
 });
 
+test('une paire donnée comme déjà en conflit ne compte pas comme un conflit nouveau, dans les deux ordres', () => {
+  const doc = inventaire([['c', 'components']], [['v1', 'b'], ['v2', 'a/x'], ['v3', 'a/y']]);
+  const retour = renommer(['v1', 'a']);
+  assert.deepEqual(ids(cheminsEnConflit(doc, retour)), ['v1'], 'sans le paramètre, le comportement ne change pas');
+  assert.deepEqual(ids(cheminsEnConflit(doc, retour, [])), ['v1']);
+  assert.deepEqual(ids(cheminsEnConflit(doc, retour, [['v1', 'v2']])), ['v1'], 'v3 reste un conflit nouveau');
+  assert.deepEqual(ids(cheminsEnConflit(doc, retour, [['v2', 'v1'], ['v3', 'v1']])), []);
+  assert.deepEqual(ids(cheminsEnConflit(doc, retour, [['v2', 'v3']])), ['v1'], 'une paire étrangère à la variable renommée n’exempte rien');
+});
+
+test('pairesDejaEnConflit rend les paires déjà en conflit dont une variable est touchée, directement ou par sa collection', () => {
+  const doc = inventaire([['c', 'colors'], ['d', 'Colors'], ['e', 'autre']], [
+    ['v1', 'foo', 'c'], ['v2', 'foo', 'd'], ['v3', 'foo/bar', 'c'], ['v4', 'seul', 'e'], ['v5', 'foo', 'e'],
+  ]);
+  assert.deepEqual(pairesDejaEnConflit(doc, new Set(['v4'])), [], 'une variable sans conflit n’a aucune paire');
+  assert.deepEqual(pairesDejaEnConflit(doc, new Set(['v1'])), [['v1', 'v2'], ['v1', 'v3']], 'même chemin que v2, et groupe de v3');
+  assert.deepEqual(pairesDejaEnConflit(doc, new Set(['v3'])), [['v1', 'v3'], ['v2', 'v3']], 'v3 est le groupe de v1 et de v2');
+  assert.deepEqual(pairesDejaEnConflit(doc, new Set(['e'])), [], 'une collection touchée compte par ses variables');
+  assert.deepEqual(pairesDejaEnConflit(doc, new Set(['d'])), [['v1', 'v2'], ['v2', 'v3']], 'chaque paire sort une fois, triée');
+  assert.deepEqual(pairesDejaEnConflit(doc, new Set()), []);
+});
+
 test('dix mille variables et mille renommages se contrôlent sans balayage de paires', () => {
   const collections: (readonly [string, string])[] = Array.from({ length: 20 }, (_, rang) => [`c${rang}`, `Collection ${rang}`]);
   const variables: Spec[] = Array.from({ length: 10_000 }, (_, rang) => [`v${rang}`, `groupe ${rang % 50}/sous-groupe ${rang % 7}/nom ${rang}`, `c${rang % 20}`]);
@@ -110,6 +132,115 @@ test('dix mille variables et mille renommages se contrôlent sans balayage de pa
   const duree = performance.now() - debut;
   assert.deepEqual(ids(causes), ['v1']);
   assert.ok(duree < 500, `le contrôle a pris ${Math.round(duree)} ms`);
+});
+
+// Les axes de modes (N02)
+
+/** Un document sans variable : les collections suffisent au contrôle des axes. */
+const collectionsSeules = (...collections: readonly CollectionPubliee[]): InventairePublie => ({ collections, variables: [] });
+const axe = (id: string, nom: string, nombreDeModes = 2): CollectionPubliee => ({ id, nom, nombreDeModes });
+const etendue = (id: string, nom: string, racine: string): CollectionPubliee => ({ id, nom, nombreDeModes: 2, extension: true, racine });
+
+test('N02 : renommer une collection à modes du nom d’une autre fait perdre les deux axes, et le renommage est en cause', () => {
+  const doc = collectionsSeules(axe('c', 'Zorglub'), axe('d', 'Primitives'));
+  assert.deepEqual(cheminsEnConflit(doc, renommer(['c', 'primitives'])), [
+    { id: 'c', motif: 'meme-axe', apres: 'primitives', autre: 'Primitives' },
+  ]);
+  assert.deepEqual(cheminsEnConflit(doc, renommer(['c', 'Primitives '])), [
+    { id: 'c', motif: 'meme-axe', apres: 'Primitives ', autre: 'Primitives' },
+  ], 'les espaces de bord et la casse ne distinguent pas deux clés');
+  assert.deepEqual(cheminsEnConflit(doc, renommer(['c', 'Nouveau'])), []);
+});
+
+test('N02 : deux renommages qui donnent la même clé d’axe sont en cause ensemble, chacun avec le nom de l’autre', () => {
+  const doc = collectionsSeules(axe('c', 'Un'), axe('d', 'Deux'));
+  assert.deepEqual(cheminsEnConflit(doc, renommer(['c', 'zorglub'], ['d', 'Zorglub'])), [
+    { id: 'c', motif: 'meme-axe', apres: 'zorglub', autre: 'Zorglub' },
+    { id: 'd', motif: 'meme-axe', apres: 'Zorglub', autre: 'zorglub' },
+  ]);
+});
+
+test('N02 : une collision d’axes déjà présente ne bloque rien, une nouvelle reste vue à côté', () => {
+  const doc = collectionsSeules(axe('c', 'primitives'), axe('d', 'Primitives'), axe('e', 'Autre'));
+  assert.deepEqual(cheminsEnConflit(doc, renommer(['c', 'PRIMITIVES'])), [], 'les deux collections se rejoignaient déjà');
+  assert.deepEqual(cheminsEnConflit(doc, renommer(['e', 'Primitives'])), [{ id: 'e', motif: 'meme-axe', apres: 'Primitives', autre: 'primitives' }],
+    'la troisième collection rejoint le groupe : sa paire est neuve');
+});
+
+test('N02 : un renommage retiré rend son nom à la collection, et le contrôle recommence', () => {
+  const doc = collectionsSeules(axe('c', 'Zorglub'), axe('d', 'Primitives'), axe('e', 'Autre'));
+  // c prend le nom de d ; e prend celui que c libère. Une fois c retiré, c reprend Zorglub et bloque e.
+  assert.deepEqual(ids(cheminsEnConflit(doc, renommer(['c', 'primitives'], ['e', 'zorglub']))), ['c', 'e']);
+});
+
+test('N02 : une collection à un seul mode n’est pas un axe', () => {
+  assert.deepEqual(cheminsEnConflit(collectionsSeules(axe('c', 'Zorglub'), axe('d', 'Primitives', 1)), renommer(['c', 'primitives'])), []);
+  assert.deepEqual(cheminsEnConflit(collectionsSeules(axe('c', 'Zorglub', 1), axe('d', 'Primitives')), renommer(['c', 'primitives'])), []);
+  assert.deepEqual(cheminsEnConflit(collectionsSeules(axe('c', 'Zorglub', 1), axe('d', 'Primitives', 1)), renommer(['c', 'primitives'])), []);
+});
+
+test('N02 : un inventaire qui ne porte pas les modes n’a aucun axe', () => {
+  const doc = collectionsSeules({ id: 'c', nom: 'Zorglub' }, { id: 'd', nom: 'Primitives' });
+  assert.deepEqual(cheminsEnConflit(doc, renommer(['c', 'primitives'])), []);
+  assert.equal(axesDeLExport(doc.collections).size, 0);
+});
+
+test('N02 : une collection à un seul mode que des extensions locales étendent est un axe', () => {
+  const doc = collectionsSeules(axe('b', 'Brand', 1), etendue('e', 'Brand dark', 'b'), axe('d', 'Zorglub'));
+  assert.deepEqual(cheminsEnConflit(doc, renommer(['d', 'brand'])), [{ id: 'd', motif: 'meme-axe', apres: 'brand', autre: 'Brand' }]);
+  const sansExtension = collectionsSeules(axe('b', 'Brand', 1), axe('d', 'Zorglub'));
+  assert.deepEqual(cheminsEnConflit(sansExtension, renommer(['d', 'brand'])), []);
+});
+
+test('N02 : une collection étendue n’est pas un axe, et une extension dont la racine est absente du document ne fait d’aucune collection un axe', () => {
+  const doc = collectionsSeules(axe('b', 'Brand'), etendue('e', 'Brand dark', 'b'), axe('d', 'Zorglub'));
+  assert.deepEqual(cheminsEnConflit(doc, renommer(['e', 'zorglub'])), [], 'renommer une extension ne change aucune clé d’axe');
+  assert.deepEqual(cheminsEnConflit(doc, renommer(['d', 'brand dark'])), [], 'une extension n’a pas de clé d’axe à partager');
+  const distante = collectionsSeules(axe('d', 'Zorglub', 1), etendue('e', 'Brand dark', 'ailleurs'), axe('b', 'Brand', 1));
+  assert.equal(axesDeLExport(distante.collections).has('b'), false, 'seule une extension locale désigne une racine');
+});
+
+test('N02 : le nom que l’export réserve aux extensions d’un axe est un conflit nouveau, sans le perdre pour lui-même', () => {
+  const doc = collectionsSeules(axe('b', 'Brand'), etendue('e', 'Brand dark', 'b'), axe('d', 'Zorglub'));
+  assert.deepEqual(cheminsEnConflit(doc, renommer(['d', 'Brand Extensions'])), [
+    { id: 'd', motif: 'axe-et-extensions', apres: 'Brand', autre: 'Brand Extensions' },
+  ]);
+  const inverse = collectionsSeules(axe('b', 'Zorglub'), etendue('e', 'Brand dark', 'b'), axe('d', 'Brand extensions'));
+  assert.deepEqual(cheminsEnConflit(inverse, renommer(['b', 'Brand'])), [
+    { id: 'b', motif: 'axe-et-extensions', apres: 'Brand', autre: 'Brand extensions' },
+  ], 'renommer la collection étendue crée le même conflit');
+  const sansExtension = collectionsSeules(axe('b', 'Brand'), axe('d', 'Zorglub'));
+  assert.deepEqual(cheminsEnConflit(sansExtension, renommer(['d', 'Brand Extensions'])), []);
+  const dejaLa = collectionsSeules(axe('b', 'Brand'), etendue('e', 'Brand dark', 'b'), axe('d', 'Brand extensions'));
+  assert.deepEqual(cheminsEnConflit(dejaLa, renommer(['d', 'BRAND EXTENSIONS'])), [], 'le conflit existait avant le renommage');
+});
+
+test('N02 : axesDeLExport rend les axes retenus et ceux qui perdent leurs extensions', () => {
+  const doc = collectionsSeules(axe('b', 'Brand'), etendue('e', 'Brand dark', 'b'), axe('d', 'Brand extensions'), axe('p', 'primitives'), axe('q', 'Primitives'), axe('v', '$'), axe('s', 'Seul', 1));
+  assert.deepEqual([...axesDeLExport(doc.collections)], [
+    ['b', { cle: 'brand', extensions: false }],
+    ['d', { cle: 'brand-extensions', extensions: false }],
+  ]);
+  const libre = collectionsSeules(axe('b', 'Brand'), etendue('e', 'Brand dark', 'b'));
+  assert.deepEqual([...axesDeLExport(libre.collections)], [['b', { cle: 'brand', extensions: true }]]);
+});
+
+test('N02 : inventairePublie reporte les modes, l’extension et la racine, sous l’identifiant du document', () => {
+  const lectures = inventaireDeLectures(
+    [
+      { id: 'b', name: 'Brand', remote: false, modes: [{}, {}] },
+      { id: 'e', name: 'Brand dark', remote: false, modes: [{}], isExtension: true, rootVariableCollectionId: 'b' },
+      { id: 'p', name: 'Plain', remote: false },
+    ],
+    [],
+    { cibleAlias: () => undefined, protegee: () => false, palette: () => undefined },
+  );
+  assert.deepEqual(inventairePublie(lectures, (entree) => `doc:${entree.cible.collectionId}`).collections, [
+    { id: 'doc:b', nom: 'Brand', nombreDeModes: 2 },
+    { id: 'doc:e', nom: 'Brand dark', nombreDeModes: 1, extension: true, racine: 'doc:b' },
+    { id: 'doc:p', nom: 'Plain' },
+  ]);
+  assert.deepEqual(JSON.parse(JSON.stringify(lectures)), lectures, 'l’inventaire reste sérialisable');
 });
 
 // Les parcours de l'audit, dans la session
@@ -224,4 +355,11 @@ test('les deux textes de l’écran nomment les deux variables', () => {
   assert.equal(TEXTES.memeToken('components/a', 'components/A'), '`components/a` et `components/A` donneraient le même token dans tokens.json : renommez l’une des deux dans Figma.');
   assert.equal(TEXTES.tokenEtGroupe('components/color', 'components/color/primary'),
     '`components/color` serait à la fois un token et le groupe de `components/color/primary` dans tokens.json : renommez l’une des deux dans Figma.');
+});
+
+test('N02 : les textes des axes disent la conséquence à l’export et nomment les deux collections', () => {
+  assert.equal(TEXTES.memeAxe('primitives', 'Primitives'),
+    '`primitives` et `Primitives` donneraient le même nom dans l’export des tokens : les modes de ces deux collections ne pourraient plus être générés. Gardez un nom différent pour l’une des deux.');
+  assert.equal(TEXTES.axeEtExtensions('Brand', 'Brand extensions'),
+    '`Brand extensions` aurait le nom que l’export des tokens réserve aux collections étendues de `Brand` : les extensions de `Brand` ne pourraient plus être générées. Gardez un nom différent pour l’une des deux.');
 });

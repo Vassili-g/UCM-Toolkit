@@ -103,6 +103,30 @@ test('les cinq lectures portent la génération du dernier bilan', () => {
   assert.deepEqual(lectures.map((demande) => ('generation' in demande ? demande.generation : null)), [7, 7, 7, 7, 7]);
 });
 
+test('la lecture de la sélection part avec ses exclus, ses inclus et la génération courante, et sa réponse est rendue', () => {
+  const { frontiere, envoyees, affichees, analyser } = creer();
+  analyser(3);
+  const demande = frontiere.selection(['v1'], ['v2', 'v3']) as number;
+  assert.deepEqual(envoyees[envoyees.length - 1], { type: 'selection', demande, generation: 3, exclus: ['v1'], inclus: ['v2', 'v3'] });
+  const reponse: PluginMessage = { type: 'selection', demande, generation: 3, principaux: [['v2', 'terme:bg']] };
+  frontiere.recevoir(reponse);
+  assert.equal(affichees[affichees.length - 1], reponse);
+});
+
+test('une réponse de sélection périmée est ignorée, et celle d’une lecture remplacée aussi', () => {
+  const { frontiere, affichees, analyser } = creer();
+  analyser(2);
+  const premiere = frontiere.selection(['v1'], []) as number;
+  const seconde = frontiere.selection(['v1', 'v2'], []) as number;
+  const avant = affichees.length;
+  frontiere.recevoir({ type: 'selection', demande: seconde, generation: 1, principaux: [] });
+  assert.equal(affichees.length, avant, 'une génération plus ancienne est ignorée');
+  frontiere.recevoir({ type: 'selection', demande: premiere, generation: 2, principaux: [] });
+  assert.equal(affichees.length, avant, 'la lecture remplacée est caduque');
+  frontiere.recevoir({ type: 'selection', demande: seconde, generation: 2, principaux: [] });
+  assert.equal(affichees.length, avant + 1);
+});
+
 test('la demande de termes part avec tous ses critères et la génération courante', () => {
   const { frontiere, envoyees, analyser } = creer();
   analyser(5);
@@ -119,6 +143,7 @@ test('sans bilan, une lecture ou appliquer ne part pas', () => {
   assert.equal(frontiere.lignes('g', 0), null);
   assert.equal(frontiere.termes(requete('')), null);
   assert.equal(frontiere.fiche('bg'), null);
+  assert.equal(frontiere.selection(['v1'], []), null);
   assert.equal(frontiere.simuler(GESTE), null);
   assert.equal(frontiere.diagnostic(), null);
   assert.equal(frontiere.appliquer(SELECTION), null);
@@ -165,6 +190,11 @@ test("l'écho d'une demande de lecture est ignoré, puis la vraie réponse est a
       ouvrir: (f) => f.fiche('bg') as number,
       echo: (demande) => ({ type: 'fiche', demande, generation: 1, mot: 'bg' }),
       reponse: (demande) => ({ type: 'fiche', demande, generation: 1, fiche: ficheVide }),
+    },
+    {
+      ouvrir: (f) => f.selection(['v1'], ['v2']) as number,
+      echo: (demande) => ({ type: 'selection', demande, generation: 1, exclus: ['v1'], inclus: ['v2'] }),
+      reponse: (demande) => ({ type: 'selection', demande, generation: 1, principaux: [['v2', 'terme:bg']] }),
     },
     {
       ouvrir: (f) => f.diagnostic() as number,
