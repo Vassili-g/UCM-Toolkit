@@ -30,7 +30,7 @@
  *
  * Usage :
  *   node scripts/verifier-conservation.mjs [--ref <commit>] [--domaines <id,id>]
- *     [--strict] [--manifeste <chemin>]
+ *     [--strict] [--manifeste <chemin>] [--retraits <atome,…>]
  *
  * `--ref` vaut `HEAD` par défaut. `--domaines` limite le contrôle aux groupes
  * de ces domaines et saute la partie hors groupe. Un fichier d'arrivée absent
@@ -47,7 +47,7 @@ const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 export const CATEGORIES = ['code', 'nombres', 'identifiants', 'liens'];
 
-const EXTENSIONS_CHEMIN = /\.(?:ts|tsx|mjs|cjs|js|json|md|css|html|toml|yml)$/;
+const EXTENSIONS_CHEMIN = /\.(?:ts|tsx|mts|mjs|cjs|js|json|md|css|html|toml|yml)$/;
 
 const NOMBRES_EN_LETTRES = [
   'dix-sept', 'dix-huit', 'dix-neuf', 'deux', 'trois', 'quatre', 'cinq', 'six',
@@ -163,6 +163,14 @@ export function atomesDe(texte) {
         if (atome !== null) atomes.code.add(atome);
       }
     }
+  }
+
+  // Une carte réécrite nomme ses fichiers sans accents graves : `- nom : rôle`
+  // sous un titre `## dossier/`. Ce nom vaut le premier mot d'une ligne de
+  // l'ancienne carte.
+  for (const ligne of prose.split('\n')) {
+    const entree = /^\s*-\s+(\S+)\s+:\s/.exec(ligne) ?? /^#{2,}\s+(\S+\/)\s*$/.exec(ligne);
+    if (entree !== null && ressembleAUnChemin(entree[1])) atomes.code.add(dernierSegment(entree[1]));
   }
 
   let reste = prose.replace(RE_SPAN, (_, contenu) => {
@@ -461,7 +469,7 @@ function lecteurDuDisque() {
 }
 
 function lireOptions(argv) {
-  const options = { ref: 'HEAD', domaines: null, strict: false, manifeste: '.agents/domiciles.json' };
+  const options = { ref: 'HEAD', domaines: null, strict: false, manifeste: '.agents/domiciles.json', retraits: [] };
   for (let i = 0; i < argv.length; i += 1) {
     const option = argv[i];
     const valeur = () => {
@@ -474,6 +482,9 @@ function lireOptions(argv) {
       options.domaines = valeur().split(',').map((id) => id.trim()).filter((id) => id !== '');
     } else if (option === '--manifeste') options.manifeste = valeur();
     else if (option === '--strict') options.strict = true;
+    else if (option === '--retraits') {
+      options.retraits = valeur().split(',').map((atome) => atome.trim()).filter((atome) => atome !== '');
+    }
     else throw new Error(`Option inconnue : ${option}.`);
   }
   return options;
@@ -504,6 +515,20 @@ function main() {
   } catch (erreur) {
     console.error(`verifier-conservation : ${erreur.message}`);
     process.exit(2);
+  }
+  // Un retrait voulu se nomme dans la commande, et le commit qui la lance dit pourquoi.
+  if (options.retraits.length > 0) {
+    const retires = new Set(options.retraits);
+    for (const entree of resultat.entrees) {
+      if (entree.manques === null || entree.manques === undefined) continue;
+      for (const categorie of CATEGORIES) {
+        entree.manques[categorie] = entree.manques[categorie].filter((atome) => !retires.has(atome));
+      }
+      if (entree.statut === 'manques' && totalDe(entree.manques) === 0) entree.statut = 'ok';
+    }
+    resultat.manquesTotal = resultat.entrees.reduce(
+      (somme, entree) => somme + (entree.manques ? totalDe(entree.manques) : 0), 0,
+    );
   }
   console.log(formaterRapport(resultat));
   process.exit(resultat.manquesTotal > 0 || resultat.erreurs.length > 0 ? 1 : 0);

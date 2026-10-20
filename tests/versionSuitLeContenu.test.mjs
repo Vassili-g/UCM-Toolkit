@@ -53,6 +53,13 @@ function commitDuNumero(chemin, versionCourante) {
   return anterieur === -1 ? commits.at(-1) : commits[anterieur - 1];
 }
 
+/**
+ * Les fichiers d'un paquet que seuls les agents du dépôt lisent : guide,
+ * carte, invariants. Le champ `files` d'aucun paquet ne les publie, et le
+ * test vérifie ce point plus bas pour qu'un ajout à `files` les fasse revenir.
+ */
+const LUS_PAR_LES_AGENTS = ["AGENTS.md", "CLAUDE.md", "CARTE.md", "invariants/"];
+
 /** Ce qui a changé depuis un commit, copie de travail et fichiers neufs compris. */
 function changeDepuis(commit, dossier) {
   const suivis = git("diff", "--name-only", commit, "--", dossier);
@@ -60,7 +67,8 @@ function changeDepuis(commit, dossier) {
   return [...suivis.split("\n"), ...neufs.split("\n")]
     .filter(Boolean)
     .filter((fichier) => !fichier.startsWith(`${dossier}/tests/`))
-    .filter((fichier) => !fichier.startsWith(`${dossier}/fixtures/`));
+    .filter((fichier) => !fichier.startsWith(`${dossier}/fixtures/`))
+    .filter((fichier) => !LUS_PAR_LES_AGENTS.some((nom) => fichier.startsWith(`${dossier}/${nom}`)));
 }
 
 /** Les paquets que ce dépôt publie, lus au lieu d'être énumérés. */
@@ -95,4 +103,22 @@ test("le contenu publiable d'un paquet n'a pas bougé depuis le commit qui a pos
   }
 
   assert.deepEqual(fautes, [], "un paquet publie autre chose que ce que son numéro annonce");
+});
+
+test("aucun paquet publié n'embarque les fichiers lus par les agents", () => {
+  const fautes = [];
+  for (const { manifeste } of paquetsPublies()) {
+    const publies = manifeste.files ?? [];
+    for (const nom of LUS_PAR_LES_AGENTS) {
+      if (publies.some((entree) => entree.replace(/\/$/, "") === nom.replace(/\/$/, ""))) {
+        fautes.push(`${manifeste.name} publie ${nom}`);
+      }
+    }
+    if (publies.length === 0) fautes.push(`${manifeste.name} n'a pas de champ files : il publierait tout`);
+  }
+  assert.deepEqual(
+    fautes,
+    [],
+    "Ces fichiers ne servent qu'aux agents du dépôt ; s'ils se publient, le contrôle des versions doit les compter.",
+  );
 });

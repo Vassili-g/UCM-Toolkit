@@ -17,8 +17,8 @@ change.
 
 ## Ce qu'ils ne sont pas
 
-Ils ne testent pas le moteur. `AGENTS.md` interdit qu'un contrat commité serve à
-ça : un instantané ne bouge qu'au réexport, si bien qu'une régression du moteur
+Ils ne testent pas le moteur. Les [invariants des tests du moteur](../../../../plugin-exporter/invariants/tests-du-moteur.md)
+interdisent qu'un contrat commité serve à ça : un instantané ne bouge qu'au réexport, si bien qu'une régression du moteur
 ne s'y verrait jamais. Seuls les **lecteurs** les lisent.
 
 Ils ne sont pas non plus une source à rafraîchir. **Un réexport les rendrait

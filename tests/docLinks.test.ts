@@ -76,18 +76,59 @@ function ancres(contenu: string): Set<string> {
   return resultat;
 }
 
-/** Liens markdown relatifs, hors blocs de code et hors URL externes. */
+const estExterne = (cible: string): boolean => /^[a-z]+:/i.test(cible) || cible.startsWith('//');
+
+/** Une étiquette de lien de référence se compare sans casse et espaces fusionnés. */
+const etiquette = (texte: string): string => texte.trim().replace(/\s+/g, ' ').toLowerCase();
+
+/** Une définition de lien de référence : `[id]: cible`, en début de ligne. */
+const DEFINITION = /^ {0,3}\[([^\]^][^\]]*)\]:\s*<?([^\s>]+)>?/;
+
+/**
+ * Cibles relatives d'un document, hors blocs de code et hors URL externes : les
+ * liens en ligne `](cible)` et les définitions de liens de référence.
+ */
 function liensRelatifs(contenu: string): string[] {
   const trouves: string[] = [];
-  const motif = /\]\(([^)\s]+)\)/g;
   for (const ligne of lignesHorsCode(contenu)) {
-    for (const lien of ligne.matchAll(motif)) {
-      const cible = lien[1];
-      if (/^[a-z]+:/i.test(cible) || cible.startsWith('//')) continue;
-      trouves.push(cible);
+    const definition = DEFINITION.exec(ligne);
+    if (definition) {
+      if (!estExterne(definition[2])) trouves.push(definition[2]);
+      continue;
+    }
+    for (const lien of ligne.matchAll(/\]\(([^)\s]+)\)/g)) {
+      if (!estExterne(lien[1])) trouves.push(lien[1]);
     }
   }
   return trouves;
+}
+
+/**
+ * Les liens de référence employés sans définition dans le même fichier.
+ *
+ * Seules les formes `[texte][id]` et `[id][]` sont jugées. Le raccourci `[id]`
+ * seul ne l'est pas : `[x]`, `[ ]` ou un indice entre crochets en prose lui
+ * ressemblent, et le contrôle ne sait pas les distinguer d'un lien. Les
+ * fragments de code en ligne sont écartés avant la recherche.
+ */
+function referencesSansDefinition(contenu: string): string[] {
+  const lignes = lignesHorsCode(contenu);
+  const definies = new Set<string>();
+  for (const ligne of lignes) {
+    const definition = DEFINITION.exec(ligne);
+    if (definition) definies.add(etiquette(definition[1]));
+  }
+
+  const manquantes: string[] = [];
+  for (const ligne of lignes) {
+    if (DEFINITION.test(ligne)) continue;
+    const sansCode = ligne.replace(/`[^`]*`/g, '');
+    for (const usage of sansCode.matchAll(/\[([^\]]+)\]\[([^\]]*)\]/g)) {
+      const id = etiquette(usage[2] === '' ? usage[1] : usage[2]);
+      if (!definies.has(id)) manquantes.push(usage[0]);
+    }
+  }
+  return manquantes;
 }
 
 test('aucun lien entre documents ne pointe vers un fichier ou une ancre absente', () => {
@@ -108,6 +149,10 @@ test('aucun lien entre documents ne pointe vers un fichier ou une ancre absente'
   for (const document of documents) {
     const contenu = fs.readFileSync(document, 'utf8');
     const relatif = path.relative(racine, document).replace(/\\/g, '/');
+
+    for (const usage of referencesSansDefinition(contenu)) {
+      morts.push(`${relatif} → ${usage} (lien de référence sans définition)`);
+    }
 
     for (const lien of liensRelatifs(contenu)) {
       const [chemin, ancre] = lien.split('#');
@@ -141,33 +186,57 @@ test('aucun lien entre documents ne pointe vers un fichier ou une ancre absente'
 const SPECIFICATIONS = ['docs/format/FORMAT.md', 'packages/plugin-exporter/SPEC.md'];
 
 /**
+ * Les fichiers d'invariants que le manifeste liste, en chemins relatifs à la
+ * racine.
+ */
+function fichiersDInvariants(): string[] {
+  const manifeste = JSON.parse(
+    fs.readFileSync(path.join(racine, '.agents', 'domiciles.json'), 'utf8'),
+  ) as { domaines: { fichier: string }[] };
+  return [...new Set(manifeste.domaines.map((d) => d.fichier))];
+}
+
+/**
  * Le test précédent interdit un renvoi mort ; celui-ci interdit l'absence de
- * renvoi. Un invariant d'`AGENTS.md` porte la règle et sa borne, jamais son
- * pourquoi : sans lien, ce pourquoi devient introuvable, et la version courte
- * se met à faire autorité toute seule.
+ * renvoi. Un invariant porte la règle et sa borne, jamais son pourquoi : sans
+ * lien, ce pourquoi devient introuvable, et la version courte se met à faire
+ * autorité toute seule.
  *
  * Il compte donc les renvois plutôt que de nommer un fichier et un seuil. La
  * version d'avant la scission codait « au moins dix ancres de
  * UCM-EXPORTER-SPEC.md » : elle serait passée au vert sur un document devenu
- * la moitié de lui-même.
+ * la moitié de lui-même. Les liens en ligne et les définitions de liens de
+ * référence des fichiers d'invariants comptent, chaque cible relative résolue
+ * depuis son fichier, et une ancre citée dix fois compte pour une.
  */
 test('les invariants renvoient aux DEUX spécifications, et chaque ancre existe', () => {
-  const agents = fs.readFileSync(path.join(racine, 'AGENTS.md'), 'utf8');
+  const vises = new Map<string, Set<string>>(SPECIFICATIONS.map((relatif) => [relatif, new Set()]));
+
+  for (const fichier of fichiersDInvariants()) {
+    const complet = path.join(racine, fichier);
+    for (const lien of liensRelatifs(fs.readFileSync(complet, 'utf8'))) {
+      const [chemin, ancre] = lien.split('#');
+      if (chemin === '' || !ancre) continue;
+      const cible = path
+        .relative(racine, path.resolve(path.dirname(complet), decodeURIComponent(chemin)))
+        .split(path.sep)
+        .join('/');
+      vises.get(cible)?.add(decodeURIComponent(ancre));
+    }
+  }
 
   const absentes: string[] = [];
-  const comptes = SPECIFICATIONS.map((relatif) => {
+  for (const relatif of SPECIFICATIONS) {
     const connues = ancres(fs.readFileSync(path.join(racine, relatif), 'utf8'));
-    const motif = new RegExp(`${relatif.replace(/[./]/g, '\\$&')}#([^)\\s]+)`, 'g');
-    const vises = [...agents.matchAll(motif)].map((lien) => decodeURIComponent(lien[1]));
-    absentes.push(...vises.filter((ancre) => !connues.has(ancre)).map((a) => `${relatif}#${a}`));
-    return { relatif, vises: vises.length };
-  });
-
+    for (const ancre of vises.get(relatif)!) {
+      if (!connues.has(ancre)) absentes.push(`${relatif}#${ancre}`);
+    }
+  }
   assert.deepEqual(absentes, [], `Ancres absentes : ${absentes.join(', ')}`);
 
-  const muets = comptes.filter(({ vises }) => vises === 0).map(({ relatif }) => relatif);
-  assert.deepEqual(muets, [], `AGENTS.md ne renvoie à aucune ancre de : ${muets.join(', ')}`);
+  const muets = SPECIFICATIONS.filter((relatif) => vises.get(relatif)!.size === 0);
+  assert.deepEqual(muets, [], `Les invariants ne renvoient à aucune ancre de : ${muets.join(', ')}`);
 
-  const total = comptes.reduce((somme, { vises }) => somme + vises, 0);
-  assert.ok(total >= 20, `AGENTS.md ne renvoie qu'à ${total} ancres de spécification`);
+  const total = [...vises.values()].reduce((somme, ancres) => somme + ancres.size, 0);
+  assert.ok(total >= 20, `Les invariants ne renvoient qu'à ${total} ancres distinctes de spécification`);
 });

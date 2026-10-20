@@ -679,12 +679,12 @@ finale.
 [contraste]: ../../../../packages/plugin-explorateur/src/contraste.ts
 [unicite]: ../../../../tests/referentielUnique.test.ts
 [produits]: ../../../../packages/kit/src/referentiel/produits.ts
-[chemins]: ../../../../packages/plugin-socle/src/cheminsDeTokens.ts
-[axes-socle]: ../../../../packages/plugin-socle/src/cheminsPublies.ts
+[chemins]: ../../../../packages/kit/src/format/chemins-de-tokens.ts
+[axes-socle]: ../../../../packages/kit/src/nommage/chemins-publies.ts
 [export-tokens]: ../../../../packages/plugin-exporter/src/tokens/exportTokens.ts
 [semantics]: ../../../../packages/plugin-exporter/src/contract/semantics.ts
 [diagnostic-contrastes]: ../../../../packages/kit/src/lecteurs/diagnostic-contrastes.mjs
-[regles-partagees]: ../../../../packages/plugin-socle/src/reglesDeNommage.ts
+[regles-partagees]: ../../../../packages/kit/src/protocoles/nommage.ts
 [regles-nomenclature]: ../../../../packages/plugin-nomenclature/src/regles.ts
 [extract-rules]: ../../../../packages/plugin-exporter/src/contract/extractRules.ts
 [guide-regles]: ../../../guides/KIT-DE-REGLES.md

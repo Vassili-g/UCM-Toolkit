@@ -7,7 +7,7 @@
  * « écrire les variables », « ranger la destination », « retirer les
  * variables », « reprendre une palette » et « copier une palette ». La marque
  * de nommage, rangée à l'ouverture sans geste du designer, est la seule
- * exception (`AGENTS.md`, « Écriture d'UCM Palettes »).
+ * exception (`packages/plugin-palettes/invariants/ecriture.md`).
  */
 import { rangerLaMarqueDeNommage } from './ecriture/marque';
 import { choisirLaPage, dessinerLaRecetteRangee, retirerLeCadre } from './ecriture/planche';

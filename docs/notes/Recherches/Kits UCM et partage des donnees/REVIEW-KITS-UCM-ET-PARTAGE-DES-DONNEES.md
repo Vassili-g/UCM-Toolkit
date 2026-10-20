@@ -348,10 +348,10 @@ Les liens pointent vers les fichiers de production et les contrôles qui étayen
 [plan-variables]: ../../../../packages/plugin-palettes/src/variables/plan.ts
 [suivi]: ../../../../packages/plugin-palettes/src/variables/suivi.ts
 [palettes-package]: ../../../../packages/plugin-palettes/package.json
-[chemins-tokens]: ../../../../packages/plugin-socle/src/cheminsDeTokens.ts
+[chemins-tokens]: ../../../../packages/kit/src/format/chemins-de-tokens.ts
 [inventaire]: ../../../../packages/plugin-socle/src/inventaireDeNoms.ts
-[regles-nommage]: ../../../../packages/plugin-socle/src/reglesDeNommage.ts
-[calcul-nommage]: ../../../../packages/plugin-socle/src/nomsSelonLesRegles.ts
+[regles-nommage]: ../../../../packages/kit/src/protocoles/nommage.ts
+[calcul-nommage]: ../../../../packages/kit/src/nommage/calcul.ts
 [socle-readme]: ../../../../packages/plugin-socle/README.md
 [regles-plugin]: ../../../../packages/plugin-nomenclature/src/regles.ts
 [semantics]: ../../../../packages/plugin-exporter/src/contract/semantics.ts

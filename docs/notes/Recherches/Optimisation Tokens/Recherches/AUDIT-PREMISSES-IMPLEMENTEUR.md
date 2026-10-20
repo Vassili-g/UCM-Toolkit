@@ -301,8 +301,8 @@ L'identifiant est celui que la parité compte
 ([`parite.mjs:377`](../../../../../packages/adapter-typescript/src/parite.mjs)),
 et le graphe refuse deux noms qui donneraient le même
 ([`validation-graphe-contrats.mjs:95-105`](../../../../../packages/kit/src/lecteurs/validation-graphe-contrats.mjs)).
-L'intérieur de l'enfant appartient à son contrat, invariant de composition
-d'[AGENTS.md](../../../../../AGENTS.md#composition). Le cadre qui enveloppe
+L'intérieur de l'enfant appartient à son contrat (voir les
+[invariants de composition](../../../../../packages/plugin-exporter/invariants/composition.md)). Le cadre qui enveloppe
 l'instance appartient au parent, qui publie son flux.
 
 ### 2.3. L'ordre de compilation

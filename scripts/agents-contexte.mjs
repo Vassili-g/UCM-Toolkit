@@ -5,7 +5,7 @@
  *   node scripts/agents-contexte.mjs lire <chemin…>
  *   node scripts/agents-contexte.mjs domicile <chemin>
  *   node scripts/agents-contexte.mjs diff [--base <ref>]
- *   node scripts/agents-contexte.mjs ecrire-index
+ *   node scripts/agents-contexte.mjs ecrire-index [<paquet> [--ecrire]]
  *
  * Un chemin a un seul domicile : parmi les motifs du manifeste qui lui
  * correspondent, le plus long en caractères l'emporte, et à longueur égale le
@@ -14,7 +14,7 @@
  * correspondant reste dans `AGENTS.md`, et la sortie donne ses lignes.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -183,6 +183,49 @@ export function ecrireIndex(manifeste) {
   return `${lignes.join("\n")}\n`;
 }
 
+const MARQUE_DEBUT = "<!-- domaines:debut -->";
+const MARQUE_FIN = "<!-- domaines:fin -->";
+
+/**
+ * Table « Invariants | Chemins » des domaines d'un paquet (`<paquet>` sans le
+ * préfixe `packages/`), dans l'ordre du manifeste. Un domaine y figure si un
+ * de ses motifs porte sur le paquet ou si son fichier y est.
+ */
+export function indexDuPaquet(manifeste, paquet) {
+  const prefixe = `packages/${paquet}/`;
+  const lignes = ["| Invariants | Chemins |", "|---|---|"];
+  for (const d of manifeste.domaines) {
+    const motifs = d.chemins.filter((c) => c.startsWith(prefixe)).map((c) => c.slice(prefixe.length));
+    if (motifs.length === 0 && !d.fichier.startsWith(prefixe)) continue;
+    const lien = d.fichier.startsWith(prefixe)
+      ? `./${d.fichier.slice(prefixe.length)}`
+      : `../${d.fichier.slice("packages/".length)}`;
+    const cellule = motifs.length
+      ? motifs.map((m) => (m === "src/**" ? "tout le paquet (défaut)" : `\`${m}\``)).join(", ")
+      : "aucun";
+    lignes.push(`| [${d.titre}](${lien}) | ${cellule} |`);
+  }
+  return `${lignes.join("\n")}\n`;
+}
+
+/** Texte entre les marqueurs `domaines:debut` et `domaines:fin`, ou `null` si l'un manque. */
+export function blocDomaines(texte) {
+  const debut = texte.indexOf(MARQUE_DEBUT);
+  const fin = texte.indexOf(MARQUE_FIN);
+  if (debut === -1 || fin === -1 || fin < debut) return null;
+  return texte.slice(debut + MARQUE_DEBUT.length + 1, fin);
+}
+
+/** Remplace le texte entre les marqueurs par `table`. Lève si un marqueur manque. */
+export function remplacerBlocDomaines(texte, table) {
+  if (blocDomaines(texte) === null) {
+    throw new Error(`Marqueurs ${MARQUE_DEBUT} et ${MARQUE_FIN} introuvables.`);
+  }
+  const debut = texte.indexOf(MARQUE_DEBUT) + MARQUE_DEBUT.length;
+  const fin = texte.indexOf(MARQUE_FIN);
+  return `${texte.slice(0, debut)}\n${table}${texte.slice(fin)}`;
+}
+
 function git(args, racine) {
   const r = spawnSync("git", ["-c", "core.quotepath=false", ...args], { cwd: racine, encoding: "utf8", maxBuffer: 1 << 28 });
   return { code: r.status ?? 1, sortie: r.stdout ?? "", erreur: r.stderr ?? "" };
@@ -257,10 +300,30 @@ export function executer(argv, racine = RACINE) {
     return 0;
   }
   if (commande === "ecrire-index") {
-    process.stdout.write(ecrireIndex(manifeste));
+    const [paquet, ...options] = reste;
+    if (!paquet) {
+      process.stdout.write(ecrireIndex(manifeste));
+      return 0;
+    }
+    const table = indexDuPaquet(manifeste, paquet);
+    if (!options.includes("--ecrire")) {
+      process.stdout.write(table);
+      return 0;
+    }
+    const fichier = join(racine, "packages", paquet, "AGENTS.md");
+    if (!existsSync(fichier)) {
+      console.error(`packages/${paquet}/AGENTS.md est absent.`);
+      return 1;
+    }
+    try {
+      writeFileSync(fichier, remplacerBlocDomaines(readFileSync(fichier, "utf8"), table));
+    } catch (e) {
+      console.error(`packages/${paquet}/AGENTS.md : ${e.message}`);
+      return 1;
+    }
     return 0;
   }
-  console.error("Commandes : lire <chemin…>, domicile <chemin>, diff [--base <ref>], ecrire-index.");
+  console.error("Commandes : lire <chemin…>, domicile <chemin>, diff [--base <ref>], ecrire-index [<paquet> [--ecrire]].");
   return 1;
 }
 

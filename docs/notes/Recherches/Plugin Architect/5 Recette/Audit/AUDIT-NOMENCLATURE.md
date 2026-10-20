@@ -301,7 +301,7 @@ résolue. Le test doit partir de l’inventaire de lecture jusqu’aux questions
 **Sources :** [ecriture.ts](../../../../../../packages/plugin-nomenclature/src/ecriture.ts),
 lignes 362 à 386 ; [session.ts](../../../../../../packages/plugin-nomenclature/src/session.ts),
 lignes 551 à 554 ; garantie des exclusions dans
-[AGENTS.md](../../../../../../AGENTS.md#ucm-nomenclature).
+[invariants de Nomenclature](../../../../../../packages/plugin-nomenclature/invariants/nomenclature.md).
 
 Appliquer les renommages de deux variables de `components`, exclure cette
 collection dans Configuration, puis annuler le dernier lot. Les deux noms

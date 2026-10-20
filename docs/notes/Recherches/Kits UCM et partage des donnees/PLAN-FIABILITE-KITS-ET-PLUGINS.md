@@ -114,7 +114,7 @@ Dans l'ordre d'exécution (section [Ordre](#ordre)).
 - Une modification de `packages/kit/src` monte la version du kit dans le même
   envoi, avec les pins de la CLI et de l'adaptateur, sans publier. Le
   mainteneur a demandé une seule publication, à la fin du plan, dans l'ordre
-  core, cli, adapter (`AGENTS.md`, « Publier les paquets »).
+  core, cli, adapter (skill `.agents/skills/publier-paquets`).
 - Chaque lot finit par la vérification du lot 8 : typecheck, tests des paquets
   touchés **et** tests racine.
 - Un test qui prouve une correction doit échouer sans elle : le compte rendu du

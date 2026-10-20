@@ -187,7 +187,7 @@ l'interface en thèmes clair, sombre et sombre sans variables Figma.
 
 Le [socle](../plugin-socle/README.md) fournit les composants d'interface et le
 banc de galerie. Le [moteur de couleur](../couleur/README.md) porte les calculs.
-Les règles du produit sont dans [AGENTS.md](../../AGENTS.md), les règles de
+Les règles du produit sont dans [AGENTS.md](./AGENTS.md), les règles de
 contribution dans [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ## État du produit

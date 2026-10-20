@@ -4,8 +4,9 @@ Ce document dit **comment travailler** sur ce dépôt : écrire du code, un
 message, un test, un document, et vérifier avant de proposer un changement.
 
 Il ne dit pas ce que le produit garantit. Les règles que le code doit tenir sont
-les invariants d'[AGENTS.md](./AGENTS.md#invariants), qui donnent pour chacune
-sa borne et son fichier autorité. Les deux spécifications portent leur
+les invariants des fichiers `packages/*/invariants/`, que
+[AGENTS.md](./AGENTS.md#routage) indexe et qui donnent pour chacune sa borne et
+son fichier autorité. Les deux spécifications portent leur
 raisonnement : [docs/format/FORMAT.md](./docs/format/FORMAT.md) pour la forme de ce qui est
 publié, [packages/plugin-exporter/SPEC.md](./packages/plugin-exporter/SPEC.md) pour ce que le
 plugin lit dans Figma. Lire la spécification concernée avant de modifier, et
@@ -421,7 +422,8 @@ Une donnée facultative, illisible ou non tokenisée produit un avertissement et
 reste absente de l’export ; elle n’est jamais remplacée par une valeur brute ou
 une supposition. Ce que le produit bloque et ce dont il se contente d’avertir
 est une règle du format, pas un choix d’implémentation :
-[AGENTS.md](./AGENTS.md#diagnostics) en tient la liste.
+[les invariants des diagnostics](./packages/plugin-exporter/invariants/diagnostics.md)
+en tiennent la liste.
 
 ## Tests
 
@@ -435,7 +437,8 @@ plugins range le sien sous `build/`. Le script lance les fichiers
 Une loi de forme d’un contrat s’écrit dans `packages/plugin-exporter/tests/lois.ts` et
 nulle part ailleurs : elle s’applique alors du même geste à tous les scénarios
 existants. La raison de ce point unique, et celle qui interdit de commiter un
-`.contract.json` ici, sont dans [AGENTS.md](./AGENTS.md#vérification).
+`.contract.json` ici, sont dans
+[les invariants des tests du moteur](./packages/plugin-exporter/invariants/tests-du-moteur.md).
 
 Pour construire, ouvrir en galerie ou tester un seul paquet, passez par les
 commandes racine, qui reconstruisent le kit d'abord : un plugin construit seul
@@ -472,15 +475,66 @@ galeries, dans les trois thèmes. Elles demandent le navigateur installé par
 `npx playwright install chromium` ; le job `cascade` de la CI les exécute après
 les vérifications de la feuille de tokens.
 
+## Travailler avec des agents
+
+Ces règles valent pour Claude Code, pour Codex et pour chaque sous-agent.
+
+**Avant de commencer.** L'implémenteur lance `git status`. Si un fichier du lot
+porte déjà des modifications qu'aucune case du plan ne décrit, il s'arrête et
+rend la question. Les fichiers hors du lot, modifiés par d'autres sessions, ne
+l'arrêtent pas. Un
+lot ne commence pas tant que le précédent du même plan n'est pas commité, ou
+rendu comme non commencé.
+
+**Ce que reçoit un implémenteur.** L'orchestrateur lance
+`npm run agents:lire -- <chemins du lot>` et colle la liste dans le prompt, avec
+la note de conception du lot et la nature de la tâche. Le plan d'ensemble et le
+plan d'implémentation restent au mainteneur et à l'orchestrateur.
+
+**Vérifier.** L'implémenteur lance `npm run test:paquet -- <nom>` sur les
+paquets qu'il touche, et jamais `npm test` à la racine. Les tests racine
+(`node scripts/run-tests.cjs`) se lancent quand la tâche touche
+`packages/kit/src/`, Palettes, Nomenclature ou le nommage du kit. Un changement
+du kit demande aussi `versionSuitLeContenu` et une montée de version.
+`npm run agents:diff` donne ces commandes. Un vérificateur lance la
+vérification complète une fois, sur un arbre stable, avant le commit.
+
+Aucun agent ne lance `test:ui` sans demande explicite du mainteneur : il vérifie
+l'interface lui-même. Le compte rendu nomme les écrans que le lot change.
+
+Les exigences suivent la nature de la tâche, que le prompt nomme :
+
+| Nature de la tâche | Exigences |
+|---|---|
+| Déplacement de code à sortie identique | les tests existants passent sans changement d'attente ; pas de preuve d'un test rouge |
+| Correction d'un défaut | un test qui échoue sans la correction |
+| Texte ou écran nouveau | le texte vient de la note ; un état de galerie ; les deux langues si le plugin a un catalogue |
+
+**Textes d'écran.** Un texte absent de la note de conception s'écrit avec le
+marqueur `TODO(texte)` dans le catalogue, et le compte rendu le signale.
+L'orchestrateur écrit le texte et le fait valider par le mainteneur.
+`tests/textesEcrits.test.mjs` refuse le marqueur : le commit ne passe pas tant
+que le texte manque.
+
+**Avant de rendre.** `npm run agents:diff` liste les domiciles et les documents
+liés que le diff touche. L'implémenteur met à jour ceux-là, et seulement
+ceux-là. Il ne crée aucun document : `tests/registreDesDocuments.test.ts`
+refuse un fichier Markdown hors du registre de `.agents/domiciles.json`, et le
+hook `scripts/hook-documents.mjs` refuse sa création dans Claude Code.
+
+**Commit.** L'orchestrateur relit le diff, fait relancer les vérifications et
+commite par chemins explicites.
+
 ## Documentation
 
 Chaque document a une autorité limitée, et
 [docs/README.md](./docs/README.md#quel-document-porte-quelle-règle) en tient la
-table. Deux seulement concernent qui contribue :
+table. Trois concernent qui contribue :
 
 | Document | Rôle |
 |---|---|
-| `AGENTS.md` | Ce que le produit garantit : la carte du code, les invariants, leur borne et leur fichier autorité |
+| `AGENTS.md` | L'index des agents : où lire, où écrire, commandes ; il renvoie aux guides et aux cartes des paquets |
+| `packages/*/invariants/*.md` | Ce que le produit garantit : les invariants, leur borne et leur fichier autorité |
 | `CONTRIBUTING.md` | Comment travailler : code, message, test, document, vérification |
 
 Une modification se termine par une revue des documents concernés. Décrire
@@ -492,6 +546,13 @@ répétition. L’historique appartient à Git.
 Ces règles portent sur les documents du dépôt. Les textes du produit, lus par un
 designer dans le plugin ou dans une pull request, relèvent de [Messages destinés
 au designer](#messages-destinés-au-designer), qui reste leur autorité.
+
+Les fichiers lus par les agents suivent en plus la skill
+[`rediger-pour-agents`](./.agents/skills/rediger-pour-agents/SKILL.md) :
+`AGENTS.md`, `CLAUDE.md`, les `CARTE.md`, les guides et les invariants des
+paquets, les définitions d'agents et les skills. Elle admet les fragments et
+quelques symboles, et elle garde chaque nom en code, nombre, négation et borne.
+Les autres documents gardent les règles de cette section.
 
 Elles existent parce que la documentation avait pris les tics d’écriture des
 modèles de langage, mesurables et reconnaissables : la densité de tiret cadratin
@@ -549,7 +610,7 @@ porte donc une altitude différente, et une seule fait autorité :
 |---|---|
 | `docs/format/FORMAT.md` | L’autorité sur la règle et son pourquoi, quand elle porte sur ce qui est publié |
 | `packages/plugin-exporter/SPEC.md` | L’autorité sur la règle et son pourquoi, quand elle porte sur ce que le plugin lit |
-| `AGENTS.md` | La règle, sa borne, le fichier qui la porte, un lien vers la spécification |
+| `packages/*/invariants/*.md` | La règle, sa borne, le fichier qui la porte, un lien vers la spécification |
 | Commentaire de code | Ce qui ne vaut qu’à cet endroit du code |
 | Nom de test | La clause vérifiable, une par test |
 
@@ -568,7 +629,7 @@ Ailleurs, un lien. Une mention d’une phrase à une autre altitude, comme le
 répétition.
 
 Écrire dans une spécification demande une ancre : ses titres sont les cibles des
-liens d’`AGENTS.md`, et `npm test` échoue sur un lien mort.
+liens des fichiers d'invariants, et `npm test` échoue sur un lien mort.
 
 **Déplacer une information entre deux altitudes.** Le message de commit nomme
 l’altitude d’arrivée et l’emplacement exact ; sans cette phrase, le retrait ne

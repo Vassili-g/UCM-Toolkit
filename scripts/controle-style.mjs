@@ -354,16 +354,41 @@ export function horsPerimetre(chemin) {
 }
 
 /**
+ * Les fichiers de `packages/<paquet>/<sousDossier>` que `accepte` retient,
+ * relevés sur le disque, en chemins relatifs à séparateur `/`.
+ */
+function fichiersDesPaquets(sousDossier, accepte) {
+  const dossier = path.join(racine, 'packages');
+  if (!fs.existsSync(dossier)) return [];
+  const trouves = [];
+  for (const paquet of fs.readdirSync(dossier, { withFileTypes: true })) {
+    if (!paquet.isDirectory()) continue;
+    const dedans = path.join(dossier, paquet.name, sousDossier);
+    if (!fs.existsSync(dedans)) continue;
+    for (const fichier of fs.readdirSync(dedans, { withFileTypes: true })) {
+      if (fichier.isFile() && accepte(fichier.name)) {
+        trouves.push(['packages', paquet.name, sousDossier, fichier.name].filter(Boolean).join('/'));
+      }
+    }
+  }
+  return trouves.sort();
+}
+
+/**
  * Les documents d'autorité, au sens de la table « Où vit quelle règle ».
  *
  * Le contrôle de re-narration ne porte que sur eux. Un `README` de paquet en
  * est écarté parce qu'il est publié seul sur npm et doit se suffire, et une
- * note de travail parce qu'elle ne fait autorité sur rien.
+ * note de travail parce qu'elle ne fait autorité sur rien. Les fichiers
+ * d'invariants, les `AGENTS.md` de paquet et `CARTE.md` à la racine en sont :
+ * ils se relèvent sur le disque, pour qu'un paquet ou un groupe ajouté entre
+ * sans qu'on édite cette liste.
  */
 export const AUTORITES = [
   'CONCEPT.md',
   'README.md',
   'AGENTS.md',
+  'CARTE.md',
   'CONTRIBUTING.md',
   'ROADMAP.md',
   'docs/README.md',
@@ -373,6 +398,8 @@ export const AUTORITES = [
   'docs/guides/POUR-LES-DESIGNERS.md',
   'docs/guides/RECETTE.md',
   'packages/plugin-exporter/SPEC.md',
+  ...fichiersDesPaquets('', (nom) => nom === 'AGENTS.md'),
+  ...fichiersDesPaquets('invariants', (nom) => nom.endsWith('.md')),
 ];
 
 /**

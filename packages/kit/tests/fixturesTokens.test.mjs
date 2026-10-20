@@ -5,7 +5,8 @@
  * tient à son immobilité, comme celle des contrats figés. L'empreinte est lue
  * dans le README voisin, qui reste son unique domicile.
  *
- * Aucun test d'ici ne le compare à une sortie du moteur : `AGENTS.md` l'interdit.
+ * Aucun test d'ici ne le compare à une sortie du moteur :
+ * `packages/plugin-exporter/invariants/tests-du-moteur.md` l'interdit.
  */
 import assert from "node:assert/strict";
 import { createHash } from 'node:crypto';

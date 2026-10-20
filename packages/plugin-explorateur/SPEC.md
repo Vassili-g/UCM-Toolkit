@@ -5,7 +5,7 @@ valeurs : collections, groupes, alias, modes, tokens d'un composant. Ce document
 décrit ce que le plugin lit, comment il résout une chaîne et ce qu'il refuse
 de conclure. Le [plan d'implémentation](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/PLAN-IMPLEMENTATION.md)
 porte l'historique des décisions ; les invariants vérifiés sont dans
-[AGENTS.md](../../AGENTS.md#explorateur-de-tokens).
+[invariants/explorateur.md](./invariants/explorateur.md).
 
 ## Lecture seule
 

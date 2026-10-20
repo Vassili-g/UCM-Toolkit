@@ -1,14 +1,16 @@
 
 /**
- * Tient l'accord entre `AGENTS.md` et le dépôt, dans les deux sens, et tient
- * les deux spécifications contre leur propre appauvrissement.
+ * Tient l'accord entre les fichiers d'invariants et le dépôt, dans les deux
+ * sens, et tient les deux spécifications contre leur propre appauvrissement.
  *
- * Vers le document : un raccourcissement ne peut pas supprimer un invariant
- * entier, ni retirer un test de la carte du code. Vers le code : une autorité
- * que le document cite existe encore là où il la situe. Les deux sens sont
- * nécessaires, et l'un sans l'autre laisse passer exactement ce que l'autre
- * attrape : un document appauvri, ou un document qui nomme ce qui a été
- * renommé.
+ * Les invariants vivent dans `packages/<paquet>/invariants/*.md`, que
+ * `.agents/domiciles.json` liste dans l'ordre. Vers le document : un
+ * raccourcissement ne peut pas supprimer un invariant entier. Vers le code :
+ * une autorité que les invariants citent existe encore là où ils la situent.
+ * Les deux sens sont nécessaires, et l'un sans l'autre laisse passer
+ * exactement ce que l'autre attrape : un document appauvri, ou un document qui
+ * nomme ce qui a été renommé. La carte du code et la liste de `tests/` sont
+ * tenues par `tests/cartes.test.ts`.
  *
  * `docs/format/FORMAT.md` et `packages/plugin-exporter/SPEC.md` portent la règle et son
  * pourquoi, et rien ne les tenait. Deux listes les couvrent : leur vocabulaire,
@@ -22,9 +24,9 @@ import test from 'node:test';
 
 const racine = path.resolve(__dirname, '..');
 
-/** Ordre attendu des domaines d'invariants dans `AGENTS.md`. */
+/** Ordre attendu des domaines d'invariants, tel que le manifeste les range. */
 const DOMAINES = [
-  'Portee et forme du contrat',
+  'Portée et forme du contrat',
   'Tokens et variables',
   'Couleurs',
   'Composition',
@@ -32,11 +34,14 @@ const DOMAINES = [
   'Layout, dimensions et bornes',
   'Grilles',
   'Diagnostics',
-  'Echantillon de maquette',
+  'Échantillon de maquette',
+  'Écriture dans le document',
+  'Tests du moteur',
   'Versionnage',
-  'Ecriture dans le document',
+  'Corpus de test',
+  'Référentiel',
   'Moteur de couleur',
-  "Ecriture d'UCM Palettes",
+  "Écriture d'UCM Palettes",
   "Langue d'UCM Palettes",
   "Interface d'UCM Palettes",
   'Explorateur de tokens',
@@ -46,7 +51,7 @@ const DOMAINES = [
 /**
  * Termes dont la disparition signalerait une règle perdue.
  *
- * La liste sert deux contrôles : le document les nomme encore, et le code les
+ * La liste sert deux contrôles : les fichiers d'invariants les nomment encore, et le code les
  * porte encore. Une entrée qui contient `/` ou finit par `.ts` ou `.mjs` est un
  * chemin, et un fichier du dépôt doit s'y terminer ; toute autre est un
  * vocabulaire, et chacun de ses segments doit apparaître comme mot entier dans
@@ -213,20 +218,28 @@ const AUTORITES = [
   'visibilityTargets',
 ];
 
-/** Isole la section contrôlée sans dépendre du reste du guide. */
-function sectionDesInvariants() {
-  const contenu = fs.readFileSync(path.join(racine, 'AGENTS.md'), 'utf8');
-  const debut = contenu.indexOf('## Invariants');
-  const fin = contenu.indexOf('## Vérification');
-  assert.ok(debut !== -1, "AGENTS.md n'a plus de section « Invariants »");
-  assert.ok(fin > debut, "AGENTS.md n'a plus de section « Verification » apres les invariants");
-  return contenu.slice(debut, fin);
+/** Les domaines que le manifeste range, dans son ordre. */
+function domainesDuManifeste(): { titre: string; fichier: string }[] {
+  const manifeste = JSON.parse(
+    fs.readFileSync(path.join(racine, '.agents', 'domiciles.json'), 'utf8'),
+  ) as { domaines: { titre: string; fichier: string }[] };
+  return manifeste.domaines;
+}
+
+/** Le contenu d'un fichier d'invariants, en fins de ligne LF. */
+function lireInvariants(fichier: string): string {
+  return fs.readFileSync(path.join(racine, fichier), 'utf8').replace(/\r\n/g, '\n');
+}
+
+/** La réunion des fichiers d'invariants, que les autorités se cherchent dedans. */
+function invariantsReunis(): { fichier: string; contenu: string }[] {
+  return domainesDuManifeste().map(({ fichier }) => ({ fichier, contenu: lireInvariants(fichier) }));
 }
 
 /**
  * Le même contrôle, porté sur les deux spécifications.
  *
- * `AGENTS.md` était seul tenu, alors que la règle et son pourquoi vivent dans
+ * Les fichiers d'invariants étaient seuls tenus, alors que la règle et son pourquoi vivent dans
  * `docs/format/FORMAT.md` et `packages/plugin-exporter/SPEC.md` : un raccourcissement pouvait y
  * retirer une règle entière sans qu'un lien ne meure ni qu'un invariant ne
  * bouge. Chaque terme est un nom que la spécification employait quand la liste
@@ -383,29 +396,44 @@ const ENONCES_SPEC = [
   "La marque de version vient de la constante du kit.",
 ];
 
-const sansAccent = (texte: string): string =>
-  texte.normalize('NFD').replace(/[̀-ͯ]/g, '');
+test("les vingt domaines d'invariants sont là, dans l'ordre du manifeste, sous leur titre", () => {
+  const domaines = domainesDuManifeste();
+  assert.deepEqual(domaines.map((d) => d.titre), DOMAINES);
 
-test("les quatorze domaines d'invariants sont la, dans leur ordre", () => {
-  const bloc = sansAccent(sectionDesInvariants());
-  const trouves = [...bloc.matchAll(/^### (.+)$/gm)].map((t) => t[1].trim());
-  assert.deepEqual(trouves, DOMAINES);
+  const faux: string[] = [];
+  for (const { titre, fichier } of domaines) {
+    const premiere = lireInvariants(fichier).split('\n', 1)[0].trim();
+    if (premiere !== `# ${titre}`) faux.push(`${fichier} : « ${premiere} » au lieu de « # ${titre} »`);
+  }
+  assert.deepEqual(faux, [], `Ces fichiers ne commencent plus par le titre du manifeste :\n${faux.join('\n')}`);
 });
 
 test('chaque domaine porte au moins un invariant', () => {
-  const bloc = sectionDesInvariants();
-  const vides = [];
-  const parties = bloc.split(/^### /m).slice(1);
-  for (const partie of parties) {
-    const titre = partie.split(/\r?\n/, 1)[0].trim();
-    if (!/^- /m.test(partie)) vides.push(titre);
-  }
-  assert.deepEqual(vides, [], `Ces domaines n'ont plus aucune regle : ${vides.join(', ')}`);
+  const vides = invariantsReunis()
+    .filter(({ contenu }) => !/^- /m.test(contenu))
+    .map(({ fichier }) => fichier);
+  assert.deepEqual(vides, [], `Ces fichiers n'ont plus aucune regle : ${vides.join(', ')}`);
 });
 
-test("aucune autorite citee par un invariant n'a disparu du document", () => {
-  const bloc = sectionDesInvariants();
-  const perdues = AUTORITES.filter((autorite) => !bloc.includes(autorite));
+/**
+ * Vrai si un fichier d'invariants nomme l'autorité. Un chemin
+ * `packages/<paquet>/<reste>` se trouve aussi sous sa forme courte : `<paquet>/<reste>`
+ * dans n'importe quel fichier, ou `<reste>` dans un fichier de ce paquet.
+ */
+function nommee(autorite: string, invariants: { fichier: string; contenu: string }[]): boolean {
+  const chemin = autorite.match(/^packages\/([^/]+)\/(.+)$/);
+  return invariants.some(({ fichier, contenu }) => {
+    if (contenu.includes(autorite)) return true;
+    if (!chemin) return false;
+    const [, paquet, reste] = chemin;
+    return contenu.includes(`${paquet}/${reste}`)
+      || (fichier.startsWith(`packages/${paquet}/`) && contenu.includes(reste));
+  });
+}
+
+test("aucune autorite citee par un invariant n'a disparu des fichiers d'invariants", () => {
+  const invariants = invariantsReunis();
+  const perdues = AUTORITES.filter((autorite) => !nommee(autorite, invariants));
 
   assert.deepEqual(
     perdues,
@@ -415,51 +443,6 @@ test("aucune autorite citee par un invariant n'a disparu du document", () => {
       + "Une regle a probablement ete perdue en raccourcissant. Si le retrait est "
       + "voulu, retirer l'entree de AUTORITES dans le meme commit, et dire dans le "
       + 'message quelle regle part avec elle.',
-  );
-});
-
-/**
- * Les fichiers que la carte du code range sous `tests/`.
- *
- * La carte vit dans un bloc `text` et n'a aucune syntaxe : le bloc `tests/`
- * commence à la ligne qui porte ce nom en début de colonne, et se termine à la
- * première ligne qui n'est plus une entrée indentée.
- */
-function testsListesParLaCarte(): string[] {
-  const contenu = fs.readFileSync(path.join(racine, 'AGENTS.md'), 'utf8');
-  const lignes = contenu.split(/\r?\n/);
-  const depart = lignes.findIndex((ligne) => ligne.startsWith('tests/'));
-  assert.ok(depart !== -1, "la carte du code d'AGENTS.md n'a plus de bloc « tests/ »");
-
-  const listes: string[] = [];
-  for (const ligne of lignes.slice(depart + 1)) {
-    const entree = ligne.match(/^ {2}(\S+)/);
-    if (!entree) break;
-    listes.push(entree[1]);
-  }
-  return listes;
-}
-
-/**
- * La carte du code annonce ce que le dépôt contient, donc elle se périme comme
- * tout inventaire tenu à la main. Un test ajouté sans y être écrit reste
- * invisible à qui lit le guide avant de modifier, et c'est arrivé.
- *
- * Le contrôle porte sur `tests/` seul : c'est le seul bloc de la carte qui
- * énumère des fichiers un par un, là où les autres décrivent des dossiers et
- * des familles.
- */
-test('la carte du code liste exactement les tests du monorepo', () => {
-  const reels = fs.readdirSync(path.join(racine, 'tests'))
-    .filter((nom) => nom.endsWith('.test.ts') || nom.endsWith('.test.mjs'))
-    .sort();
-
-  assert.ok(reels.length >= 5, `seuls ${reels.length} tests trouvés sous tests/`);
-  assert.deepEqual(
-    testsListesParLaCarte().sort(),
-    reels,
-    "La carte du code d'AGENTS.md ne décrit plus le dossier `tests/`. Y ajouter le "
-      + 'test manquant avec ce qu\'il tient, ou en retirer la ligne devenue fausse.',
   );
 });
 
@@ -502,7 +485,7 @@ function segmentsDe(autorite: string): string[] {
  * Le second sens, et il est le seul qui regarde le code.
  *
  * Sans lui, renommer `structureTree.publishesChildren` laisse le test au vert
- * tant qu'`AGENTS.md` cite l'ancien nom, ce qui est l'inverse de ce que la
+ * tant qu'un fichier d'invariants cite l'ancien nom, ce qui est l'inverse de ce que la
  * liste sert. Le mot entier est exigé : une troncature en resterait sinon une
  * sous-chaîne, donc une trouvaille.
  */
@@ -534,7 +517,7 @@ test('chaque autorite citee par un invariant existe encore dans le code', () => 
     [],
     "Ces autorites sont nommees par un invariant mais n'existent plus dans le code :\n"
       + `${introuvables.join('\n')}\n`
-      + "Un renommage a laisse AGENTS.md derriere lui. Corriger l'invariant et "
+      + "Un renommage a laisse un fichier d'invariants derriere lui. Corriger l'invariant et "
       + "l'entree de AUTORITES dans le meme commit que le renommage.",
   );
 });

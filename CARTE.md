@@ -32,6 +32,7 @@ Procédures qu'un agent charge à la demande.
 - empreinte-du-kit.mjs : empreinte des sources compilées du kit, écrite dans `dist`
 - controle-style.mjs : règles de style, pour le test et pour le hook
 - hook-style.mjs : même contrôle, au moment où un agent écrit
+- hook-documents.mjs : refuse qu'un agent crée un document Markdown hors du registre
 - mesurer-prose.mjs : volume de la prose, document et commentaire
 - pins-servis.mjs : versions que le registre sert
 - run-tests.cjs : découvreur de tests
@@ -51,8 +52,10 @@ Les tests du monorepo lui-même.
 - docLinks.test.ts : liens et ancres de la documentation
 - domiciles.test.ts : chaque fichier de `packages/*/src/` a un seul domicile dans `.agents/domiciles.json`
 - finsDeLigne.test.mjs : aucun fichier texte en CRLF dans l'index
+- registreDesDocuments.test.ts : chaque document Markdown du dépôt a un emplacement dans le registre de `.agents/domiciles.json`
 - verifierConservation.test.mjs : garde de la réécriture d'AGENTS.md relève et compare ses atomes
-- inventaireInvariants.test.ts : accord d'AGENTS.md avec le code, dans les deux sens
+- inventaireInvariants.test.ts : accord des fichiers d'invariants avec le code, dans les deux sens
+- textesEcrits.test.mjs : aucun catalogue de textes des plugins ne porte `TODO(texte)`
 - cartes.test.ts : chaque chemin des cartes existe, et la section `tests/` liste exactement les tests de `tests/`
 - styleDocumentaire.test.ts : tics de rédaction, interdits sans exemption
 - pinDocumente.test.mjs : versions montrées par une commande copiable

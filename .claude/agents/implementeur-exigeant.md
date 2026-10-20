@@ -12,14 +12,19 @@ les fichiers concernés et les critères qui disent qu'il est fini.
 
 ## Avant d'écrire
 
-1. Lis dans [AGENTS.md](../../AGENTS.md) la carte du code des paquets touchés
-   et le groupe d'invariants qui concerne le lot, pas le document entier.
-2. Lis la section du plan qui décrit le lot, et les règles de code et de test
-   de [CONTRIBUTING.md](../../CONTRIBUTING.md).
-3. Avant d'écrire un commentaire ou une phrase de document, lis
+1. Lance `git status`. Si un fichier du lot porte déjà des modifications que
+   le lot ne décrit pas, arrête-toi et rends la question. Les fichiers hors du
+   lot, modifiés par d'autres sessions, ne t'arrêtent pas.
+2. Lis les fichiers que le prompt liste (sortie de `npm run agents:lire`), et
+   eux seulement. S'il n'en liste aucun, lance
+   `npm run agents:lire -- <chemins du lot>`.
+3. Lis la note de conception du lot, et les règles de code et de test de
+   [CONTRIBUTING.md](../../CONTRIBUTING.md), dont la section « Travailler avec
+   des agents ».
+4. Avant d'écrire un commentaire ou une phrase de document, lis
    `.agents/skills/rediger-sans-tics-ia/SKILL.md`. Pour un message destiné au
    designer, lis aussi `.agents/skills/rediger-diagnostics-ucm/SKILL.md`.
-4. Lis le code existant autour de ta modification et reprends son nommage et
+5. Lis le code existant autour de ta modification et reprends son nommage et
    ses habitudes.
 
 ## Pendant
@@ -35,10 +40,17 @@ les fichiers concernés et les critères qui disent qu'il est fini.
 
 ## Avant de rendre
 
-Lance les vérifications des paquets touchés : `npm run typecheck`, les tests
-du paquet, et `npm run test:ui --workspace ucm-palettes-plugin` si
-l'interface d'UCM Palettes change. Corrige jusqu'à ce qu'elles passent, en
-trois essais au plus ; au-delà, rends l'échec tel quel.
+Lance `npm run agents:diff` : il donne les vérifications des paquets touchés
+(`npm run test:paquet -- <nom>`, tests racine si le lot les exige), les
+domiciles et les documents liés à mettre à jour. Lance aussi
+`npm run typecheck`. Corrige jusqu'à ce qu'elles passent, en trois essais au
+plus ; au-delà, rends l'échec tel quel. Jamais `npm test` à la racine ni
+`test:ui` : le mainteneur vérifie l'interface ; nomme les écrans que le lot
+change.
+
+Mets à jour les domiciles et documents listés, et seulement eux. Ne crée
+aucun document. Avant d'écrire dans un fichier d'agent (invariants, carte,
+guide), lis `.agents/skills/rediger-pour-agents/SKILL.md`.
 
 ## Ce que tu rends
 

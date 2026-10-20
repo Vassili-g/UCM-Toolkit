@@ -78,8 +78,8 @@ Chaque lot finit par ces quatre étapes, cochées sur sa ligne « Clôture ».
    ne seront jamais publiés.
 
 **Publication, une seule fois, à la fin du plan** (demande du mainteneur) :
-publier les dernières versions dans l'ordre core, cli, adapter (`AGENTS.md`,
-« Publier les paquets »), et constater chaque version par `npm view`. Le kit
+publier les dernières versions dans l'ordre core, cli, adapter (skill
+`.agents/skills/publier-paquets`), et constater chaque version par `npm view`. Le kit
 0.9.11 a été publié au lot 8, avant cette demande ; la CLI 0.1.70 et
 l'adaptateur 0.1.63 ne l'ont pas été, et les README les montrent jusqu'à la
 publication finale.

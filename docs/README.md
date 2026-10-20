@@ -22,8 +22,9 @@ et les recherches encore utiles.
 
 ## Contribuer
 
-Commencez par [AGENTS.md](../AGENTS.md) pour les invariants et la carte du code,
-puis [CONTRIBUTING.md](../CONTRIBUTING.md) pour les règles de travail.
+Commencez par [AGENTS.md](../AGENTS.md) : il dit quoi lire pour une tâche, où
+écrire, et renvoie au guide, à la carte et aux invariants de chaque paquet.
+Puis [CONTRIBUTING.md](../CONTRIBUTING.md) pour les règles de travail.
 Lisez ensuite la spécification du domaine touché, indiquée ci-dessous.
 
 Les README des paquets privés décrivent leur usage dans le monorepo :
@@ -43,7 +44,8 @@ Les galeries et leurs commandes sont documentées dans chaque README de plugin.
 | [Spécification Palettes](./notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md) | Calculs, recette, écriture des palettes et comportement de l'interface |
 | [SPEC de l'explorateur](../packages/plugin-explorateur/SPEC.md) | Relevés, résolution et limites de lecture |
 | [Architecture multi-marques](notes/Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle des collections, des alias et des rôles de `theme` |
-| [AGENTS.md](../AGENTS.md) | Invariants du produit, bornes et fichiers qui les appliquent |
+| [AGENTS.md](../AGENTS.md) | Index des agents : quoi lire, où écrire, commandes |
+| `packages/*/invariants/*.md` | Invariants du produit, bornes et fichiers qui les appliquent ; [AGENTS.md](../AGENTS.md#routage) les indexe |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | Code, tests, rédaction et vérifications |
 | [ROADMAP.md](../ROADMAP.md) | Maturité, limites et validations restantes |
 

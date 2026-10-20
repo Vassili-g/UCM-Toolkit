@@ -10,7 +10,7 @@
  *
  * Ce n'est pas un test du moteur, et il ne doit jamais le devenir : comparer
  * ces fichiers à une sortie du moteur rouvrirait exactement le défaut que
- * `AGENTS.md` interdit, un instantané qui ne bouge qu'au réexport ne prouve
+ * `packages/plugin-exporter/invariants/tests-du-moteur.md` interdit, un instantané qui ne bouge qu'au réexport ne prouve
  * que sa propre immobilité.
  *
  * Les empreintes ne sont pas recopiées ici : elles sont lues dans le README

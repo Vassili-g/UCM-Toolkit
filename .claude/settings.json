@@ -4,6 +4,19 @@
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-documents.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Registre des documents"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",

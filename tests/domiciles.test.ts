@@ -28,8 +28,10 @@ import {
   chargerManifeste,
   correspond,
   domaineDe,
+  blocDomaines,
   documentDuDomaine,
   ecrireIndex,
+  indexDuPaquet,
   lignesDuGroupe,
   lire,
   normaliser,
@@ -217,4 +219,42 @@ test("sans fichier de domicile, le document est la plage du groupe dans AGENTS.m
   assert.equal(document, 'AGENTS.md:5-8  Grilles');
   assert.equal(documentDuDomaine(domaine, { existe: () => true, agents: agentsEssai }), domaine.fichier);
   assert.equal(documentDuDomaine(domaine, { existe: () => false, agents: '# T\n' }), domaine.fichier);
+});
+
+const paquets = fs
+  .readdirSync(path.join(racine, 'packages'), { withFileTypes: true })
+  .filter((e) => e.isDirectory() && fs.existsSync(path.join(racine, 'packages', e.name, 'AGENTS.md')))
+  .map((e) => e.name);
+
+test("le bloc de domaines de chaque packages/*/AGENTS.md est la sortie de ecrire-index", () => {
+  const ecarts: string[] = [];
+  for (const paquet of paquets) {
+    const texte = fs.readFileSync(path.join(racine, 'packages', paquet, 'AGENTS.md'), 'utf8');
+    if (blocDomaines(texte) !== indexDuPaquet(manifeste, paquet)) {
+      ecarts.push(`node scripts/agents-contexte.mjs ecrire-index ${paquet} --ecrire`);
+    }
+  }
+  assert.deepEqual(ecarts, [], `blocs périmés, lancer : ${ecarts.join(' ; ')}`);
+});
+
+test('chaque packages/*/AGENTS.md pèse au plus 6 144 octets', () => {
+  const lourds = paquets
+    .map((p) => ({ p, taille: fs.statSync(path.join(racine, 'packages', p, 'AGENTS.md')).size }))
+    .filter(({ taille }) => taille > 6144)
+    .map(({ p, taille }) => `${p} : ${taille} octets`);
+  assert.deepEqual(lourds, []);
+});
+
+test("AGENTS.md à la racine pèse au plus 12 288 octets", () => {
+  const taille = fs.statSync(path.join(racine, 'AGENTS.md')).size;
+  assert.ok(taille <= 12288, `AGENTS.md pèse ${taille} octets pour 12 288 permis`);
+});
+
+test("chaque chaîne AGENTS.md racine puis AGENTS.md de paquet pèse au plus 32 768 octets", () => {
+  const racineTaille = fs.statSync(path.join(racine, 'AGENTS.md')).size;
+  const lourdes = paquets
+    .map((p) => ({ p, taille: racineTaille + fs.statSync(path.join(racine, 'packages', p, 'AGENTS.md')).size }))
+    .filter(({ taille }) => taille > 32768)
+    .map(({ p, taille }) => `${p} : ${taille} octets`);
+  assert.deepEqual(lourdes, []);
 });
