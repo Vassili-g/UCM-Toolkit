@@ -132,33 +132,33 @@ Profils : `implementeur` (Sonnet, effort moyen), `implementeur-exigeant`
 `relecteur` (agent généraliste sur Sonnet, lecture seule), conversation
 principale. Deux agents au plus en même temps.
 
-### Lot 1. Fins de ligne (A2)
+### Lot 1. Fins de ligne (A2) : fait, `6cb3974a`, `3a79a220`
 
 Profil : conversation principale. Une ligne, cinq fichiers, un test court.
 
-- [ ] `* text=auto eol=lf` en tête de `.gitattributes`.
-- [ ] `git add --renormalize` sur les cinq fichiers CRLF de l'index, commit seul.
-- [ ] `tests/finsDeLigne.test.mjs` : `git ls-files --eol`, refus de `i/crlf`.
+- [x] `* text=auto eol=lf` en tête de `.gitattributes`.
+- [x] `git add --renormalize` sur les cinq fichiers CRLF de l'index, commit seul.
+- [x] `tests/finsDeLigne.test.mjs` : `git ls-files --eol`, refus de `i/crlf`.
 
 Fin : `node scripts/run-tests.cjs` passe. Ce lot précède les autres, pour que
 Git normalise ce que les agents écrivent.
 
-### Lot 2. Le manifeste et `agents-contexte`
+### Lot 2. Le manifeste et `agents-contexte` : fait, `4f55e5de`
 
 Profil : `implementeur`. Fichiers : `.agents/domiciles.json`,
 `scripts/agents-contexte.mjs`, `tests/domiciles.test.ts`, `package.json`
 (trois scripts).
 
-- [ ] Le manifeste de la section 3.2, avec les fichiers de la section 3.1.
-- [ ] `node scripts/agents-contexte.mjs lire <chemin…>` : liste triée, sans
+- [x] Le manifeste de la section 3.2, avec les fichiers de la section 3.1.
+- [x] `node scripts/agents-contexte.mjs lire <chemin…>` : liste triée, sans
   doublon : `AGENTS.md`, `AGENTS.md` et `CARTE.md` de chaque paquet touché,
   domicile de chaque chemin, ses `specs`.
-- [ ] `domicile <chemin>` : une ligne, le fichier.
-- [ ] `diff [--base <ref>]` : depuis `git diff --name-status <ref>` et les
+- [x] `domicile <chemin>` : une ligne, le fichier.
+- [x] `diff [--base <ref>]` : depuis `git diff --name-status <ref>` et les
   fichiers non suivis, quatre listes titrées : domiciles, documents liés,
   vérifications, fichiers Markdown qui citent un chemin supprimé ou renommé.
-- [ ] Scripts npm `agents:lire`, `agents:domicile`, `agents:diff`.
-- [ ] `tests/domiciles.test.ts` : chaque fichier suivi de `packages/*/src/` a un
+- [x] Scripts npm `agents:lire`, `agents:domicile`, `agents:diff`.
+- [x] `tests/domiciles.test.ts` : chaque fichier suivi de `packages/*/src/` a un
   domicile ; chaque `fichier`, `specs` et `lies` existe une fois les lots 4
   à 7 faits (le test saute un fichier encore absent tant que
   `AGENTS.md` porte le groupe, et l'exige après la bascule) ; deux appels
@@ -167,34 +167,34 @@ Profil : `implementeur`. Fichiers : `.agents/domiciles.json`,
 Fin : `npm run agents:domicile -- packages/couleur/src/rampe.ts` rend
 `packages/couleur/invariants/moteur-de-couleur.md`.
 
-### Lot 3. La garde de conservation
+### Lot 3. La garde de conservation : fait, `4f55e5de`
 
 Profil : `implementeur-exigeant`. Fichier : `scripts/verifier-conservation.mjs`.
 
-- [ ] Entrée : un commit de référence et le manifeste. Le script lit
+- [x] Entrée : un commit de référence et le manifeste. Le script lit
   `AGENTS.md` à ce commit et coupe ses groupes selon la section 3.1.
-- [ ] Pour chaque groupe, il relève les atomes : textes en code, nombres,
+- [x] Pour chaque groupe, il relève les atomes : textes en code, nombres,
   identifiants de test entre crochets (`[UI-20]`), cibles de liens. Un chemin
   se compare par son dernier segment, puisque la convention raccourcit les
   chemins ; une cible de lien se compare par fichier et ancre.
-- [ ] Il exige que chaque atome du groupe source figure dans le fichier
+- [x] Il exige que chaque atome du groupe source figure dans le fichier
   d'arrivée. Pour les parties sans groupe (en-tête, carte, vérification,
   limites), il exige leurs atomes dans la réunion des nouveaux fichiers.
-- [ ] Sortie : par fichier, les atomes manquants ; code de sortie non nul
+- [x] Sortie : par fichier, les atomes manquants ; code de sortie non nul
   s'il en manque un.
-- [ ] Tests du script sur deux petits textes figés, dans `tests/`.
+- [x] Tests du script sur deux petits textes figés, dans `tests/`.
 
 Fin : lancé sur le commit courant avec des fichiers d'arrivée vides, il
 liste tous les atomes ; avec une copie exacte des groupes, il n'en liste aucun.
 
-### Lot 4. La convention en skill
+### Lot 4. La convention en skill : fait, `4f55e5de`
 
 Profil : conversation principale.
 
-- [ ] `.agents/skills/rediger-pour-agents/SKILL.md` depuis la proposition,
+- [x] `.agents/skills/rediger-pour-agents/SKILL.md` depuis la proposition,
   avec le gabarit, les raccourcis, la liste de garde et le relevé de la
   section 3 de ce plan.
-- [ ] Ajouter au gabarit l'en-tête d'un fichier d'invariants et d'un `CARTE.md`.
+- [x] Ajouter au gabarit l'en-tête d'un fichier d'invariants et d'un `CARTE.md`.
 
 Fin : le contrôle de style passe sur la skill.
 
@@ -326,4 +326,5 @@ Relecture faite avant la première vague. Points relevés et changement apporté
 | La relecture de chaque lot doublerait le nombre d'agents | un relecteur par vague, qui couvre un ou deux lots |
 | Un rédacteur pourrait corriger une règle qu'il croit fausse | consigne : aucun changement de sens, une question à la place |
 | `.claude/agents/` dit encore de lancer `test:ui` | corrigé au lot 9 (D10) |
+| Pendant le lot 5a, le gabarit appliqué sans compacter a grossi les fichiers ; une passe de compaction sans perte s'arrête à 85–98 % des groupes de l'exporteur, déjà denses | cible ramenée à 90 % ; un pourquoi ne se retire que si la spec liée l'énonce. Le gain de lecture vient du découpage, la compaction n'y ajoute qu'environ 10 % |
 | Le seuil de la partie B du plan du découpage n'est pas mesuré | le mainteneur a demandé l'implémentation ; les essais Codex restent utiles et passent au lot 10 |

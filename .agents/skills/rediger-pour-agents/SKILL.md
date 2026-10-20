@@ -122,6 +122,15 @@ c'est Y », qualificatifs, dates. `scripts/controle-style.mjs` les refuse.
 
 ## 7. Vérifier une réécriture
 
+Cible : ≤ 90 % des octets du texte source ; un texte déjà dense peut rester
+au-dessus. La cible ne justifie jamais une perte. Un gabarit appliqué sans
+compacter grossit le texte : étiquettes et définitions de liens coûtent plus
+qu'elles ne rendent. Pas de retour à la ligne forcé ; un lien de référence
+seulement s'il sert deux fois, avec un identifiant court (`[§2]`).
+
+Un pourquoi se retire seulement si la spec liée l'énonce : la lire avant de
+couper. Absent de la spec, il reste.
+
 1. `node scripts/verifier-conservation.mjs --domaines <id>` : aucun manque de nom en code, nombre, identifiant ou cible de lien. Bloquant.
 2. `node scripts/controle-style.mjs <fichiers>`.
 3. Un relecteur compare chaque groupe source à son fichier et liste les négations, conditions et bornes perdues. Le mainteneur relit seulement ce qu'il liste.

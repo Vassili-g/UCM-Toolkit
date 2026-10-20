@@ -224,8 +224,13 @@ export function manques(source, arrivee) {
   const depart = enAtomes(source);
   const but = enAtomes(arrivee);
   const rendu = {};
+  // Un renvoi interne d'AGENTS.md (`#ancre`) vise, après le découpage, le
+  // fichier qui porte ce groupe : la même ancre dans un autre fichier suffit.
+  const trouve = (categorie, atome) => but[categorie].has(atome)
+    || (categorie === 'liens' && atome.startsWith('#')
+      && [...but.liens].some((cible) => cible.endsWith(atome)));
   for (const categorie of CATEGORIES) {
-    rendu[categorie] = [...depart[categorie]].filter((atome) => !but[categorie].has(atome)).sort();
+    rendu[categorie] = [...depart[categorie]].filter((atome) => !trouve(categorie, atome)).sort();
   }
   return rendu;
 }

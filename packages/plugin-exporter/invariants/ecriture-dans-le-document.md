@@ -1,0 +1,9 @@
+# Écriture dans le document
+
+- **Un seul fichier du moteur écrit dans Figma : `src/template/ecriture.ts`, seul exclu de `loiDuDocumentIntact.test.ts`.** `modele.ts` et `sources.ts` du même dossier restent balayés : un fichier de lecture ajouté ne passe pas sous l'exclusion sans que la loi le dise.
+- **Une seule porte y mène : `creerRegles` dans `src/code.ts`, routée par la demande `creer-regles`.** Aucun fichier de `src/contract/`, `src/tokens/`, `src/forges/`, ni `depot.ts` ni `prevol.ts` n'importe `src/template/`.
+- **Le parcours des sources charge une page à la fois (`PageNode.loadAsync`) et s'arrête à la première qui porte une source.** `loadAllPagesAsync` et `importComponentByKeyAsync` restent refusés dans tout `src/template/`.
+- **`figma.skipInvisibleInstanceChildren` se pose seulement autour d'un relevé synchrone et reprend sa valeur d'avant.** Deux fichiers le posent : `src/template/sources.ts` (sources), `src/contract/composedComponents.ts` (balayage de page de l'index). À `true` pendant un `await`, une analyse concurrente lirait une politique d'icône fausse (`visibilityOfLayer` dépend d'un calque masqué).
+- **Ce que la création écrit se défait d'un geste : supprimer le conteneur.** Le plugin n'appelle pas `commitUndo` : un Ctrl+Z défait déjà la création entière.
+- **Une règle s'écrit hors de l'arbre, puis se range d'un seul geste.** Un ajout dans un slot déjà imbriqué laisse une coquille à l'ancien chemin du node ; tout parcours du conteneur lève jusqu'à la fin de la session.
+- **Aucun handle de sous-calque ne se garde d'une écriture à l'autre : son id est un chemin, et le chemin bouge.** Toute écriture se relit, une écriture perdue ne levant pas. → [spec](../SPEC.md#comment-lécriture-range-une-règle)
