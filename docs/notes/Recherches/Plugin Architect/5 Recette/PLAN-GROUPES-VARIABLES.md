@@ -141,30 +141,36 @@ Fichiers : `src/ui/aTrancher.ts`, `src/ui/feuilles.ts`, `src/ui/aAppliquer.ts`,
   s'applique.
 - [x] Tests : vue vide, vue vide avec Plus tard, bouton.
 
-### L5 · Galerie · `implementeur` (après L3 et L4)
+### L5 · Galerie · `implementeur` (après L3 et L4) · fait (bbe5fa54)
 
 Fichiers : `galerie/donnees.cjs`, `galerie/etats.cjs`.
 
-- [ ] Données du Playground avec des termes aux deux places.
-- [ ] États : `regles-places` (A → Z, intertitres), `regles-tri-nombre`,
+- [x] Données du Playground avec des termes aux deux places.
+- [x] États : `regles-places` (A → Z, intertitres), `regles-tri-nombre`,
   `regles-filtre-place`, `questions-vide`, `questions-vide-plus-tard`.
-- [ ] Les états `regles-*` atteignent `data-galerie="pret"`. Aujourd'hui,
+- [x] Les états `regles-*` atteignent `data-galerie="pret"`. Aujourd'hui,
   `Mesures/extraire-galerie.mjs` dépasse son délai sur `regles-sections` et
   `regles-noms`. Trouver la cause (galerie ou extracteur) et la corriger.
+  Cause : l'extracteur arrêtait toute réponse `termes` sans propriété
+  `termes`, alors qu'elle porte `sections`.
 
-### L6 · Vérification · `verificateur`
+### L6 · Vérification · `verificateur` · fait (421 tests, build, galerie : 43 états × 3 modes)
 
-- [ ] `npm run typecheck` et `npm test` dans `packages/plugin-nomenclature`,
+- [x] `npm run typecheck` et `npm test` dans `packages/plugin-nomenclature`,
   puis `npm test` à la racine.
-- [ ] `npm run build` du plugin, puis `npm run galerie` ; chaque état atteint
+- [x] `npm run build` du plugin, puis `npm run galerie` ; chaque état atteint
   `pret`.
-- [ ] `node scripts/controle-style.mjs` sur les fichiers touchés.
+- [x] `node scripts/controle-style.mjs` sur les fichiers touchés.
+- [ ] Le banc du socle n'a pas d'étape pour un menu déroulant :
+  `regles-tri-nombre` pose la valeur du tri par une `saisie`, puis envoie
+  `change` par une étape `fichier`. Une étape `selection` dans
+  `plugin-socle/galerie/banc.cjs` retirerait ce détour.
 
 ### F · Fin · conversation principale
 
-- [ ] Relire chaque diff ; fins de ligne identiques à `HEAD` ; commits par
+- [x] Relire chaque diff ; fins de ligne identiques à `HEAD` ; commits par
   chemins explicites ; plan coché avec les hashes.
-- [ ] `AGENTS.md`, section UCM Nomenclature : une ligne par place dans le
+- [x] `AGENTS.md`, section UCM Nomenclature : une ligne par place dans le
   vocabulaire, origine en texte gris.
 - [ ] Recette dans Figma par le mainteneur.
 
