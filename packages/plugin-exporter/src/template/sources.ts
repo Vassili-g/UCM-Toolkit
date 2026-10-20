@@ -284,14 +284,6 @@ function separateurDuCatalogue(regles: Map<RuleTag, ComponentNode>): ComponentNo
   return null;
 }
 
-const NUMERO_DU_KIT = /ucm-kit-de-regles\s*:\s*(\d+)/i;
-
-/** La version écrite dans la description du maître, ou `null` sans mention. */
-export function versionDuKit(maitre: ComponentNode): number | null {
-  const lu = NUMERO_DU_KIT.exec(maitre.description ?? '');
-  return lu ? Number(lu[1]) : null;
-}
-
 /**
  * Le relevé portable du maître et de ses variants de règle, que le validateur
  * du kit juge sans Figma. Seuls les variants rencontrés sur les exemples y
@@ -303,7 +295,6 @@ function releveDuKit(
 ): ReleveDuKitDeRegles {
   const calques = Object.values(CALQUES_DU_KIT_DE_REGLES);
   return {
-    version: versionDuKit(maitre),
     conteneur: textesDesCalques(maitre, [CALQUES_DU_KIT_DE_REGLES.nomDuComposant]),
     regles: Object.fromEntries([...regles].map(([tag, variante]) => [
       tag,
@@ -311,14 +302,6 @@ function releveDuKit(
     ])),
   };
 }
-
-/**
- * Le refus d'un kit écrit pour une version plus récente du plugin. Ses règles
- * déjà rédigées se lisent encore, mais ce plugin ne sait pas en poser de neuves
- * dans un modèle qu'il ne connaît pas.
- */
-export const REFUS_DU_KIT_FUTUR = 'Ce kit de règles vient d’une version plus récente d’UCM Exporter. '
-  + 'Mettez le plugin à jour pour créer des règles.';
 
 /**
  * Les maîtres que l'écriture emploiera, ou le refus qui l'arrête avant toute
@@ -340,7 +323,6 @@ export async function resoudreLesSources(releve: ReleveDeSource): Promise<Resolu
 
   const { sections, regles } = await exemplesDuMaitre(maitre);
   const verdict = validerLeKitDeRegles(releveDuKit(maitre, regles));
-  if (verdict.version === 'future') return refuser(REFUS_DU_KIT_FUTUR);
   if (regles.size === 0) {
     return refuser(
       `« ${MAITRES_DU_KIT_DE_REGLES.conteneur} » ne porte aucun exemple de règle. Ajoutez-y un exemple `

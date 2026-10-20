@@ -786,7 +786,8 @@ des règles à poser (`template/modele.ts`) dépend de modules de l'exporteur.
    lit la grammaire et appelle le validateur. `template/modele.ts` ne dépend
    plus que du kit.
 4. Un numéro de compatibilité classe le modèle du kit Figma. Il ne modifie
-   jamais une instance déjà remplie.
+   jamais une instance déjà remplie. Écarté par le mainteneur : aucune mention de
+   version à écrire à la main dans Figma.
 5. La liste de vérification du mainteneur, dans le guide, est produite depuis
    la grammaire, ou un test refuse un écart entre les deux.
 

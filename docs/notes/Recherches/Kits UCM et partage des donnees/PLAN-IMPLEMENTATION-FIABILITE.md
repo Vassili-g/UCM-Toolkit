@@ -861,7 +861,7 @@ Plan de fiabilité, section « Lot 13 ».
   - Fixer dans `conception/lot-13.md` : la grammaire des maîtres (noms,
     calques, tags requis, marqueur), la forme du relevé portable, la signature
     du validateur et le numéro de compatibilité du modèle.
-- [x] **T13.1** (94d384cc ; refus du kit futur au clic, texte en français seulement : l'exporteur n'a pas de catalogue de langues) · `implementeur-exigeant` · Grammaire et validateur
+- [x] **T13.1** (94d384cc ; le numéro de version du kit est retiré à la demande du mainteneur, au commit qui suit a021ea16) · `implementeur-exigeant` · Grammaire et validateur
   - Fichiers : `packages/kit/src/referentiel/` (module nouveau
     `kit-de-regles.ts` ; le kit de règles ne range aucune donnée partagée et
     n'a pas de module dans `protocoles`),

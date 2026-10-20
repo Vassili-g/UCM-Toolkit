@@ -58,10 +58,6 @@ Le mainteneur passe chaque point avant une publication.
   calque `component-name` du maître porte aussi le marqueur : une instance
   collée sans être remplie reste alors vierge, et le plugin la remplit au lieu
   d'en poser une seconde.
-- **Version.** La description de `.componentRules` porte la ligne
-  `ucm-kit-de-regles: 1`, où 1 est le numéro courant du kit. Un kit dont le
-  numéro dépasse celui du plugin se lit encore, mais ne sert plus à créer des
-  règles. Une description sans cette ligne vaut 1.
 - **Autonomie.** Aucun style, aucune variable et aucun composant ne viennent
   d'une bibliothèque tierce. Chez une autre équipe, ces références ne se
   résolvent pas. Une liaison héritée du fichier du design system devient locale,

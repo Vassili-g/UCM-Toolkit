@@ -13,7 +13,6 @@ import {
   MAITRES_DU_KIT_DE_REGLES,
   MARQUEUR_A_COMPLETER,
   TAGS_DES_REGLES,
-  VERSION_DU_KIT_DE_REGLES,
   calqueDuTag,
   estUneInstanceVierge,
   nomCompacte,
@@ -39,7 +38,6 @@ function varianteComplete(tag: RuleTag): TextesDesCalques {
 
 function releveComplet(): ReleveDuKitDeRegles {
   return {
-    version: null,
     conteneur: { [CALQUES_DU_KIT_DE_REGLES.nomDuComposant]: AIDE },
     regles: Object.fromEntries(TAGS_DES_REGLES.map((tag) => [tag, varianteComplete(tag)])),
   };
@@ -60,7 +58,6 @@ test('les noms des maîtres et des calques sont ceux du kit Figma', () => {
     'component-name', 'content', 'prop', 'icon', 'modifiable', 'strict',
   ]);
   assert.equal(MARQUEUR_A_COMPLETER, '[À compléter]');
-  assert.equal(VERSION_DU_KIT_DE_REGLES, 1);
 });
 
 test('les formes compactées dérivent des noms des maîtres', () => {
@@ -89,7 +86,7 @@ test('seuls usage, prop et boolean exigent le marqueur dans leur content', () =>
 
 test('un relevé complet ne rend rien', () => {
   assert.deepEqual(validerLeKitDeRegles(releveComplet()), {
-    version: 'courante', manquants: [], tagsSansVariant: [], aidesSansMarqueur: [],
+    manquants: [], tagsSansVariant: [], aidesSansMarqueur: [],
   });
 });
 
@@ -145,7 +142,7 @@ test('un tag sans variant est dit seul, sans répéter ses calques', () => {
 });
 
 test('un relevé vide dit tous les tags sans variant et le calque du conteneur', () => {
-  const verdict = validerLeKitDeRegles({ version: null, conteneur: null, regles: {} });
+  const verdict = validerLeKitDeRegles({ conteneur: null, regles: {} });
   assert.deepEqual(verdict.tagsSansVariant, [...TAGS_DES_REGLES]);
   assert.deepEqual(verdict.manquants, ['.componentRules/component-name']);
 });
@@ -179,19 +176,6 @@ test('le marqueur manquant de @icons et de @default ne rend aucune aide fautive'
     },
   });
   assert.deepEqual(verdict.aidesSansMarqueur, []);
-});
-
-test('la version absente vaut 1, la version 1 est courante, la version 2 est future', () => {
-  const releve = releveComplet();
-  assert.equal(validerLeKitDeRegles({ ...releve, version: null }).version, 'courante');
-  assert.equal(validerLeKitDeRegles({ ...releve, version: 1 }).version, 'courante');
-  assert.equal(validerLeKitDeRegles({ ...releve, version: 2 }).version, 'future');
-});
-
-test('un kit futur se juge comme les autres sur le reste du relevé', () => {
-  const verdict = validerLeKitDeRegles({ ...sansLeCalque('usage', 'content'), version: 2 });
-  assert.equal(verdict.version, 'future');
-  assert.deepEqual(verdict.manquants, ['.ruleItem/@usage/content']);
 });
 
 test('le marqueur se reconnaît sans tenir compte de la casse ni de la forme Unicode', () => {

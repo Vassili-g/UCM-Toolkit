@@ -16,7 +16,7 @@ import { lireLesVariablesDuFichier, lireLeSuiviRange } from '../packages/plugin-
 import { palettesDuFichier } from '../packages/plugin-palettes/src/variables/detection';
 import { texteDuSuivi, variablesSuivies } from '../packages/plugin-palettes/src/variables/suivi';
 import { FauxFigma } from '../packages/plugin-palettes/tests/figmaDeTest';
-import { alias, constructeur, couleur } from '../packages/plugin-explorateur/tests/fixtures';
+import { alias, constructeur, couleur } from './releveDeTest';
 import { nuanceAttendue, variableDuNom } from '../packages/plugin-explorateur/src/integrations/profilUcm';
 import type { Releve } from '../packages/plugin-explorateur/src/modele';
 
@@ -251,7 +251,7 @@ export function releveDuFichier(figma: FauxFigma): Releve {
       const valeur = variable.valuesByMode[mode.modeId];
       return [mode.name, 'type' in valeur ? alias(identifiants.get(valeur.id)!) : couleur(`#${[valeur.r, valeur.g, valeur.b].map((canal) => Math.round(canal * 255).toString(16).padStart(2, '0')).join('')}`)];
     }));
-    c.variable(identifiants.get(variable.id)!, identifiants.get(collection.id)!, variable.name, 'COLOR', valeurs, { portees: [...variable.scopes] });
+    c.variable(identifiants.get(variable.id)!, identifiants.get(collection.id)!, variable.name, 'COLOR', valeurs, [...variable.scopes]);
   }
   return c.releve();
 }

@@ -19,7 +19,6 @@ import {
   MARQUEUR_A_COMPLETER,
   SECTIONS_DU_KIT_DE_REGLES,
   TAGS_DES_REGLES,
-  VERSION_DU_KIT_DE_REGLES,
   calqueDuTag,
   nomCompacte,
 } from '../packages/kit/src/referentiel/index';
@@ -101,13 +100,6 @@ test('la puce « Marqueur » cite les tags et le calque que la grammaire fait ma
     assert.ok(citees.includes(calque as string), `la puce ne cite plus le calque ${calque}`);
   }
   assert.ok(citees.includes(CALQUES_DU_KIT_DE_REGLES.nomDuComposant));
-});
-
-test('la puce « Version » cite le numéro courant du kit', () => {
-  assert.ok(
-    mentions(puce('Version')).includes(`ucm-kit-de-regles: ${VERSION_DU_KIT_DE_REGLES}`),
-    'la puce ne cite pas la ligne de version courante',
-  );
 });
 
 test('aucun nom de maître ou de calque du guide ne diffère de la grammaire que par la casse', () => {

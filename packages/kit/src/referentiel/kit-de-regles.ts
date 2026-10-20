@@ -1,12 +1,9 @@
 /**
  * La grammaire du kit de règles Figma : les noms des trois maîtres, les calques que chaque règle lit, le marqueur des textes d'aide, et le validateur d'un relevé de ces maîtres.
  *
- * Après une modification : relancer `npm test` et changer la version du kit. Un nom ou un calque modifié demande aussi de republier le kit sur Figma Community et de corriger `docs/guides/KIT-DE-REGLES.md`, que `tests/guideDuKitDeRegles.test.ts` compare à ce fichier.
+ * Après une modification : relancer `npm test`. Un nom ou un calque modifié demande aussi de republier le kit sur Figma Community et de corriger `docs/guides/KIT-DE-REGLES.md`, que `tests/guideDuKitDeRegles.test.ts` compare à ce fichier.
  */
 import { TAGS_DES_REGLES, type RuleTag } from './regles.js';
-
-/** Le numéro de compatibilité du modèle du kit Figma, écrit `ucm-kit-de-regles: N` dans la description de `.componentRules`. Une description sans cette ligne vaut 1. */
-export const VERSION_DU_KIT_DE_REGLES = 1;
 
 export const MAITRES_DU_KIT_DE_REGLES = {
   conteneur: '.componentRules',
@@ -95,8 +92,6 @@ export function porteLeMarqueur(texte: string): boolean {
 export type TextesDesCalques = Readonly<Record<string, string>>;
 
 export interface ReleveDuKitDeRegles {
-  /** La version lue dans la description du maître `.componentRules`, ou `null` sans mention. */
-  readonly version: number | null;
   /** Les calques du maître `.componentRules`, avec leurs textes. */
   readonly conteneur: TextesDesCalques | null;
   /** Les variants de `.ruleItem` par tag ; un tag absent n'a pas de variant. */
@@ -104,7 +99,6 @@ export interface ReleveDuKitDeRegles {
 }
 
 export interface VerdictDuKitDeRegles {
-  readonly version: 'courante' | 'future';
   /** Les calques attendus et absents, sous la forme `.ruleItem/@prop/prop` ou `.componentRules/component-name`. */
   readonly manquants: readonly string[];
   /** Les tags sans variant dans `.ruleItem`. */
@@ -140,7 +134,7 @@ function calquesAttendus(tag: RuleTag): readonly CalqueDuKitDeRegles[] {
 /**
  * Juge un relevé du kit sans Figma. Un calque en plus n'est pas une faute, le designer pouvant décorer un maître : le verdict ne liste donc que ce qui manque.
  *
- * Un tag sans variant est dit dans `tagsSansVariant` seulement, ses calques ne sont pas répétés dans `manquants`. Une version absente vaut 1.
+ * Un tag sans variant est dit dans `tagsSansVariant` seulement, ses calques ne sont pas répétés dans `manquants`.
  */
 export function validerLeKitDeRegles(releve: ReleveDuKitDeRegles): VerdictDuKitDeRegles {
   const manquants: string[] = [];
@@ -166,13 +160,7 @@ export function validerLeKitDeRegles(releve: ReleveDuKitDeRegles): VerdictDuKitD
     if (aide !== undefined && !porteLeMarqueur(texteDuCalque(textes, aide))) aidesSansMarqueur.push(tag);
   }
 
-  const version = releve.version ?? 1;
-  return {
-    version: version > VERSION_DU_KIT_DE_REGLES ? 'future' : 'courante',
-    manquants,
-    tagsSansVariant,
-    aidesSansMarqueur,
-  };
+  return { manquants, tagsSansVariant, aidesSansMarqueur };
 }
 
 /**

@@ -19,7 +19,6 @@ chemins de l'exporteur sont relatifs à `packages/plugin-exporter/src/`.
   `contract/parsers.ts` et `RuleTag` de `contract/rulesModel.ts`.
 - Le guide `docs/guides/KIT-DE-REGLES.md` recopie les noms des trois maîtres,
   les calques et les cinq sections de `.rulesSection`.
-- Le kit Figma ne porte aucun numéro de version.
 
 ## La grammaire : `packages/kit/src/referentiel/kit-de-regles.ts`
 
@@ -27,8 +26,6 @@ Le module est publié par `referentiel/index.ts`. Il importe `TAGS_DES_REGLES`
 et `RuleTag` de `regles.ts`.
 
 ```ts
-export const VERSION_DU_KIT_DE_REGLES = 1;
-
 export const MAITRES_DU_KIT_DE_REGLES = {
   conteneur: '.componentRules',
   section: '.rulesSection',
@@ -88,8 +85,6 @@ L'exporteur construit le relevé depuis Figma. Le kit le juge sans Figma.
 export type TextesDesCalques = Readonly<Record<string, string>>;
 
 export interface ReleveDuKitDeRegles {
-  /** La version lue dans la description du maître `.componentRules`, ou `null` sans mention. */
-  readonly version: number | null;
   /** Les calques du maître `.componentRules`, avec leurs textes. */
   readonly conteneur: TextesDesCalques | null;
   /** Les variants de `.ruleItem` par tag ; un tag absent n'a pas de variant. */
@@ -97,7 +92,6 @@ export interface ReleveDuKitDeRegles {
 }
 
 export interface VerdictDuKitDeRegles {
-  readonly version: 'courante' | 'future';
   /** Les calques attendus et absents, sous la forme `.ruleItem/@prop/prop` ou `.componentRules/component-name`. */
   readonly manquants: readonly string[];
   /** Les tags sans variant dans `.ruleItem`. */
@@ -120,26 +114,8 @@ Règles du validateur :
 - Un calque en plus n'est pas une faute : le designer peut décorer le maître.
   Le validateur ne rend donc pas de liste « en trop ».
 - `aidesSansMarqueur` reprend `aideSansMarqueur` de `template/sources.ts`.
-- Version : `null` vaut 1. Au-dessus de `VERSION_DU_KIT_DE_REGLES`, le
-  verdict est `future`.
 
-### Le numéro de version dans Figma
-
-La description du maître `.componentRules` peut porter la ligne
-`ucm-kit-de-regles: 1`. L'exporteur la lit par
-`/ucm-kit-de-regles\s*:\s*(\d+)/i`. Le kit actuel ne la porte pas et vaut 1 :
-aucune migration du fichier Figma n'est demandée. Le mainteneur ajoutera la
-ligne à la prochaine publication du kit sur Figma Community.
-
-Un kit `future` :
-
-- se lit toujours : l'export des règles déjà rédigées ne change pas ;
-- ne sert pas à créer ou remplir des règles. L'offre de création
-  (`offreDeCreation`, `resoudreLesSources`) rend un refus. Textes :
-  - fr : « Ce kit de règles vient d'une version plus récente d'UCM Exporter.
-    Mettez le plugin à jour pour créer des règles. »
-  - en : « This rules kit comes from a newer version of UCM Exporter. Update
-    the plugin to create rules. »
+Le kit de règles n'a pas de numéro de version : le mainteneur a écarté une mention à écrire à la main dans Figma.
 
 Une instance remplie n'est jamais modifiée : `estUneInstanceVierge` garde le
 critère actuel (ce que les instances écrivent, pas leur nom).
@@ -169,16 +145,11 @@ Un test racine, `tests/guideDuKitDeRegles.test.ts`, lit
 - le marqueur cité vaut `MARQUEUR_A_COMPLETER` ;
 - la puce « Marqueur » cite les tags de `AIDES_A_MARQUER`.
 
-Le guide gagne une puce « Version » dans « Vérifier avant de publier » : la
-description de `.componentRules` porte `ucm-kit-de-regles:` suivi du numéro
-courant.
-
 ## Les tests
 
 - Kit : chaque tag et chaque calque attendu ; un relevé complet ne rend rien ;
   un calque retiré le rend dans `manquants` ; un tag sans variant ; une aide
-  sans marqueur ; version `null`, 1 et 2 ; instance vierge, instance remplie.
+  sans marqueur ; instance vierge, instance remplie.
 - Exporteur : les tests actuels de `extractRules`, du modèle et des sources
   passent sans changement d'attente, et les contrats produits restent
-  identiques octet pour octet. Un kit `future` refuse la création, sans
-  écriture, avec le texte, et l'export des règles rédigées ne change pas.
+  identiques octet pour octet.
