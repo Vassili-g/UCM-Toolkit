@@ -95,7 +95,7 @@ leurs tests. Règles de style à reprendre : `Maquettes/historique/propose.css`.
 
 Fin : `npm run typecheck` et `npm test` du paquet passent.
 
-## Lot 3 · La galerie
+## Lot 3 · La galerie (85589f9d)
 
 Fichiers : `galerie/donnees.cjs`, `galerie/etats.cjs`, `tests/interface/galerie.test.mjs`.
 
@@ -109,7 +109,7 @@ Fichiers : `galerie/donnees.cjs`, `galerie/etats.cjs`, `tests/interface/galerie.
 
 Fin : `npm run galerie -w ucm-nomenclature-plugin` passe.
 
-## Lot 4 · La documentation
+## Lot 4 · La documentation (85589f9d)
 
 - [x] AGENTS.md, section « UCM Nomenclature » : l'Historique classe le journal avec la fonction de
   l'annulation. Le test qui le tient est nommé.
@@ -121,7 +121,7 @@ Fin : `npm run galerie -w ucm-nomenclature-plugin` passe.
 
 ## Lot 6 · Livraison
 
-- [ ] Relire les diffs des lots 1 à 4.
-- [ ] Vérifier que les fins de ligne restent celles du dernier commit.
-- [ ] Commit par chemins explicites, push sur main, hash coché ici.
+- [x] Relire les diffs des lots 1 à 4.
+- [x] Vérifier que les fins de ligne restent celles du dernier commit.
+- [x] Commit par chemins explicites, push sur main, hash coché ici.
 - [ ] La recette dans Figma reste au mainteneur.
