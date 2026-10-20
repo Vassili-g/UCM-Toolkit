@@ -22,7 +22,7 @@ import {
   annulerLeDernierRenommage, appliquerLesRenommages,
   type PortDeRegles, type PortEcriture, type RenommageDemande, type ResultatEcriture,
 } from './ecriture';
-import { lireInventaire, type Inventaire, type PortDeLecture } from './lecture';
+import { inventaireSelonLaProtection, lireInventaire, palettesLibres, type Inventaire, type PortDeLecture } from './lecture';
 import type {
   CodeDErreur, DemandeArchitect, EcritureChoisie, EffetVue, GesteSurLesRegles, PluginMessage, Reponse, ResultatVue,
 } from './messages';
@@ -319,13 +319,16 @@ function dansLOrdre(lexique: Lexique, parId: ReadonlyMap<string, Renommage>): Re
   return renommages;
 }
 
+/** Les variables de Palettes se renomment quand Palettes suit les règles du fichier et qu'une écriture est rangée (le jugement du socle). */
+const palettesLibresSelon = (inventaire: Inventaire, regles: ReglesDuFichier): boolean => palettesLibres(inventaire, !premierLancement(regles));
+
 /**
  * Le calcul complet depuis l'inventaire : lexique, vocabulaire, renommages, questions. Les collections exclues n'y entrent pas.
  * Les renommages viennent de `nomsSelonLesRegles` du socle, que UCM Palettes appelle aussi ; ici s'ajoutent les collections
  * que le fichier renomme, avant le contrôle des chemins publiés.
  */
 function* calculerTout(moteur: Moteur, inventaire: Inventaire, regles: ReglesDuFichier): Generator<void, Calcul> {
-  const nonRenommables = idsNonRenommables(inventaire, regles.collectionsExclues);
+  const nonRenommables = idsNonRenommables(inventaire, regles.collectionsExclues, { palettesLibres: palettesLibresSelon(inventaire, regles) });
   const { lexique, indexation, ecriture, brut, resultat } = yield* nomsSelonLesRegles(
     inventaire,
     { ecriture: regles.ecriture, vocabulaire: vocabulaireDuFichier(regles), ordinaires: regles.ordinaires, collectionsExclues: regles.collectionsExclues },
@@ -355,7 +358,9 @@ function fusionner(lexique: Lexique, precedent: ResultatDuLexique, partiel: Resu
  */
 function* recalculer(moteur: Moteur, base: Etat, regles: ReglesDuFichier, avecQuestions: boolean): Generator<void, Calcul> {
   // Une collection exclue, ou un terme ordinaire, en plus ou en moins change les noms ou leur nature : tout le lexique se refait.
-  if (!memes(base.regles.collectionsExclues, regles.collectionsExclues) || !memes(base.regles.ordinaires, regles.ordinaires)) return yield* calculerTout(moteur, base.inventaire, regles);
+  // Le premier choix d'écriture libère les variables de Palettes : les noms non renommables changent, le calcul repart de zéro.
+  if (!memes(base.regles.collectionsExclues, regles.collectionsExclues) || !memes(base.regles.ordinaires, regles.ordinaires)
+    || palettesLibresSelon(base.inventaire, base.regles) !== palettesLibresSelon(base.inventaire, regles)) return yield* calculerTout(moteur, base.inventaire, regles);
   const termes = termesChanges(base.regles, regles);
   const indexation = termes.length > 0 ? moteur.indexerVocabulaire(vocabulaireDuFichier(regles)) : base.indexation;
   const ecriture = ecritureEffective(regles, base.lexique);
@@ -382,7 +387,9 @@ function construireEtat(generation: number, inventaire: Inventaire, regles: Regl
   for (const entree of inventaire.entrees) if (entree.cible.type === 'variable') noms.set(entree.cible.variableId, entree.nom.nom);
   const entree: EntreeDeProjection = {
     generation, lexique: calcul.lexique, resultat: calcul.resultat, questions: calcul.questions, regles,
-    ecriture: calcul.ecriture, inventaire, nomDeLaCible: (identifiant) => noms.get(identifiant),
+    // L'écran compte comme protégées les seules variables que le calcul ne renomme pas.
+    ecriture: calcul.ecriture, inventaire: inventaireSelonLaProtection(inventaire, { palettesLibres: palettesLibresSelon(inventaire, regles) }),
+    nomDeLaCible: (identifiant) => noms.get(identifiant),
   };
   return { ...calcul, generation, inventaire, regles, entree, projection: projeter(entree) };
 }
