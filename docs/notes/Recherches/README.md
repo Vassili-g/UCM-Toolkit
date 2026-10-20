@@ -12,6 +12,7 @@ Pour modifier le produit, partez des références de
 
 | Sujet | État | Prochain geste |
 |---|---|---|
+| [Kits UCM et partage des données](./Kits%20UCM%20et%20partage%20des%20donnees/REVIEW-KITS-UCM-ET-PARTAGE-DES-DONNEES.md) | Revue du référentiel, des protocoles et de leurs consommateurs ; douze constats | Corriger les conclusions erronées du profil et de la comparaison d'exports, puis compléter les API communes du kit |
 | [Recette v10 de Palettes](./Plugin%20Palettes/Recette%20v10/README.md) | R2 à R6 implémentés ; R1 attend la décision D1 ; rampes Dark sans ancrage mesurées | Décision D1 du mainteneur, puis recette Figma |
 | [Référentiel UCM](./Référentiel%20UCM/README.md) | Lots 0 à 18 du [plan par lots](./Référentiel%20UCM/PLAN-IMPLEMENTATION.md) faits, kit 0.7.0 publié | Lot 19 : recette d'UCM Architect dans Figma, puis export des tokens |
 | [UCM Architect](./Plugin%20Architect/README.md) | Repris depuis le début. La v1 normalise les noms ; l'architecture globale UCM et les explorations de la suite y sont regroupées | Le mainteneur parcourt les maquettes et les réflexions |
