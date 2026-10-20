@@ -2,8 +2,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  annulerLeDernierRenommage, appliquerLesRenommages, creerPortEcriture,
-  type ObjetModifiable, type PortDeRegles, type RenommageDemande, type SessionEcriture, type VariableModifiable,
+  annulerLeDernierRenommage, appliquerLesRenommages, classerLeRenommage, creerPortEcriture,
+  type LecteursDuJournal, type ObjetModifiable, type PortDeRegles, type RenommageDemande, type SessionEcriture, type VariableModifiable,
 } from '../src/ecriture';
 import { inventaireDeLectures, type CollectionLue, type LecteurDeVariable, type VariableLue } from '../src/lecture';
 import { lireLesRegles, lireLeStockage } from '../src/regles';
@@ -925,4 +925,44 @@ test('N09 : l’annulation saute les objets d’une collection exclue, qui reste
   assert.equal(reprise.statut, 'applique');
   assert.deepEqual([b.nom('v1'), b.nom('d')], ['b', 'Texte']);
   assert.equal(b.journal(), undefined);
+});
+
+/** Un document minimal pour le classement : des noms par type et identifiant, et la collection de chaque variable. */
+function lecteursDe(noms: Readonly<Record<string, string>>, options: { remote?: readonly string[]; collections?: Readonly<Record<string, string>>; exclues?: readonly string[] } = {}): LecteursDuJournal {
+  return {
+    objet: (type, figmaId) => {
+      const cle = `${type}:${figmaId}`;
+      return cle in noms ? { nom: noms[cle], remote: (options.remote ?? []).includes(cle) } : null;
+    },
+    collectionDeLaVariable: (figmaId) => options.collections?.[figmaId],
+    exclues: new Set(options.exclues),
+  };
+}
+const entreeDuJournal = { type: 'variable', id: 'v1', ancienNom: 'a', nouveauNom: 'b' } as const;
+
+test('classer : chaque sort d’une entrée du journal', () => {
+  const sort = (noms: Record<string, string>, options?: Parameters<typeof lecteursDe>[1]) => classerLeRenommage(entreeDuJournal, lecteursDe(noms, options));
+  assert.equal(sort({ 'variable:v1': 'a' }), 'retabli', 'l’objet porte déjà son ancien nom');
+  assert.equal(sort({ 'variable:v1': 'b' }), 'revient');
+  assert.equal(sort({ 'variable:v1': 'b~ucm' }), 'revient', 'un nom provisoire du lot compte comme le nom du lot');
+  assert.equal(sort({ 'variable:v1': 'a~ucm-2' }), 'revient', 'un nom provisoire d’une annulation interrompue aussi');
+  assert.equal(sort({ 'variable:v1': 'autre' }), 'change-depuis');
+  assert.equal(sort({}), 'change-depuis', 'l’objet a disparu');
+  assert.equal(sort({ 'variable:v1': 'b' }, { remote: ['variable:v1'] }), 'change-depuis', 'un objet distant ne se renomme pas');
+  assert.equal(sort({ 'variable:v1': 'b' }, { collections: { v1: 'c1' }, exclues: ['c1'] }), 'exclue');
+  assert.equal(sort({ 'variable:v1': 'b' }, { collections: { v1: 'c2' }, exclues: ['c1'] }), 'revient');
+});
+
+test('classer : l’ordre des contrôles est celui de l’annulation', () => {
+  const exclue = { collections: { v1: 'c1' }, exclues: ['c1'] };
+  assert.equal(classerLeRenommage(entreeDuJournal, lecteursDe({ 'variable:v1': 'a' }, exclue)), 'retabli', 'rétabli avant exclue');
+  assert.equal(classerLeRenommage(entreeDuJournal, lecteursDe({ 'variable:v1': 'autre' }, exclue)), 'change-depuis', 'changé depuis avant exclue');
+  assert.equal(classerLeRenommage(entreeDuJournal, lecteursDe({}, exclue)), 'change-depuis');
+});
+
+test('classer : une entrée de collection est exclue quand sa propre collection l’est', () => {
+  const collection = { type: 'collection', id: 'c1', ancienNom: 'a', nouveauNom: 'b' } as const;
+  assert.equal(classerLeRenommage(collection, lecteursDe({ 'collection:c1': 'b' })), 'revient');
+  assert.equal(classerLeRenommage(collection, lecteursDe({ 'collection:c1': 'b' }, { exclues: ['c1'] })), 'exclue');
+  assert.equal(classerLeRenommage(collection, lecteursDe({ 'variable:c1': 'b' })), 'change-depuis', 'le type compte : une variable du même identifiant n’est pas la collection');
 });

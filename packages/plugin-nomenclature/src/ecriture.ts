@@ -376,6 +376,35 @@ const nomDuLot = (nom: string, renommage: RenommageJournal): boolean =>
   nom === renommage.nouveauNom || estProvisoire(nom, renommage.nouveauNom) || estProvisoire(nom, renommage.ancienNom);
 
 /**
+ * Le sort d'une entrée du journal : `retabli` (l'objet porte déjà son ancien nom), `change-depuis` (l'objet a disparu, est distant,
+ * ou porte un nom qui n'est ni celui du lot ni un nom provisoire), `exclue` (sa collection est exclue de l'analyse), sinon `revient`.
+ */
+export type SortDuRenommage = 'retabli' | 'revient' | 'change-depuis' | 'exclue';
+
+/** Ce que le classement lit du document : l'annulation le tire de ses objets, la projection de l'inventaire. Les identifiants sont ceux de Figma. */
+export interface LecteursDuJournal {
+  /** Le nom actuel de l'objet et s'il est distant ; `null` quand il n'existe plus. */
+  objet(type: 'variable' | 'collection', figmaId: string): { readonly nom: string; readonly remote: boolean } | null;
+  /** La collection qui porte la variable ; `undefined` quand la variable est introuvable. */
+  collectionDeLaVariable(figmaId: string): string | undefined;
+  /** Les collections exclues de l'analyse. */
+  readonly exclues: ReadonlySet<string>;
+}
+
+/**
+ * Classe une entrée du journal selon le document lu. L'ordre des contrôles est celui de l'annulation : un objet déjà rétabli
+ * passe avant tout, et un objet changé depuis le lot passe avant l'exclusion de sa collection. Une entrée de collection est exclue
+ * quand sa propre collection l'est.
+ */
+export function classerLeRenommage(renommage: RenommageJournal, lecteurs: LecteursDuJournal): SortDuRenommage {
+  const objet = lecteurs.objet(renommage.type, renommage.id);
+  if (objet?.nom === renommage.ancienNom) return 'retabli';
+  if (!objet || objet.remote || !nomDuLot(objet.nom, renommage)) return 'change-depuis';
+  const collection = renommage.type === 'collection' ? renommage.id : lecteurs.collectionDeLaVariable(renommage.id);
+  return collection !== undefined && lecteurs.exclues.has(collection) ? 'exclue' : 'revient';
+}
+
+/**
  * Remet l'ancien nom à chaque objet du journal dont le nom est celui que le lot a écrit (ou un nom provisoire) ;
  * saute les autres. Un objet qui porte déjà son ancien nom compte comme rétabli.
  * Saute aussi les objets d'une collection exclue de l'analyse au moment d'écrire (motif `exclue`), et les restitutions qui
@@ -399,20 +428,24 @@ export function annulerLeDernierRenommage(options: {
   const libres = palettesLibresMaintenant(inventaire, stockage);
   const document = lireLeDocument(inventaire, libres);
   const exclues = new Set(regles.collectionsExclues);
-  const collectionDe = (renommage: RenommageJournal): string | undefined =>
-    renommage.type === 'collection' ? renommage.id : document.get(cleDObjet('variable', renommage.id))?.collectionId;
-  const estExclue = (renommage: RenommageJournal): boolean => {
-    const collection = collectionDe(renommage);
-    return collection !== undefined && exclues.has(collection);
-  };
   const objetDe = (renommage: RenommageJournal): ObjetModifiable | null => renommage.type === 'collection' ? session.collection(renommage.id) : session.variable(renommage.id);
+  const lecteurs: LecteursDuJournal = {
+    objet: (type, figmaId) => {
+      const objet = type === 'collection' ? session.collection(figmaId) : session.variable(figmaId);
+      return objet ? { nom: objet.name, remote: objet.remote } : null;
+    },
+    collectionDeLaVariable: (figmaId) => document.get(cleDObjet('variable', figmaId))?.collectionId,
+    exclues,
+  };
   const demandes: RenommageDemande[] = [];
   const horsDuLot: RenommageSaute[] = [];
   for (const renommage of journal.renommages) {
+    const sort = classerLeRenommage(renommage, lecteurs);
+    if (sort === 'retabli') continue;
     const objet = objetDe(renommage);
-    if (objet?.name === renommage.ancienNom) continue;
-    if (!objet || objet.remote || !nomDuLot(objet.name, renommage)) { horsDuLot.push({ id: renommage.id, motif: 'fichier-modifie' }); continue; }
-    if (estExclue(renommage)) { horsDuLot.push({ id: renommage.id, motif: 'exclue' }); continue; }
+    // Sans objet, le sort est `change-depuis` ; le test sert aussi à resserrer le type de `objet`.
+    if (sort === 'change-depuis' || !objet) { horsDuLot.push({ id: renommage.id, motif: 'fichier-modifie' }); continue; }
+    if (sort === 'exclue') { horsDuLot.push({ id: renommage.id, motif: 'exclue' }); continue; }
     const base = { id: renommage.id, figmaId: renommage.id, ancienNom: objet.name, nouveauNom: renommage.ancienNom };
     demandes.push(renommage.type === 'collection'
       ? { ...base, type: 'collection' }

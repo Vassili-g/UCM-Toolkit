@@ -11,15 +11,17 @@ import {
   type CategorieDeNom, type ChangementDeTerme, type ConflitDeVocabulaire, type Convention, type Lexique, type Mots, type NatureDeSegment, type NomLu,
   type OccurrenceDeTerme, type OrigineDuTerme, type Question, type Renommage, type ResultatDesQuestions, type ResultatDuLexique, type TermeEnQuestion,
 } from '@ucm-kit/core/referentiel';
+import { CLE_ECRITURE, lireEcriture, lireEntree, lireTerme, motsDe } from 'ucm-plugin-socle/src/reglesDeNommage';
 import { estCollisionDeChemin } from './cheminsPublies';
+import { classerLeRenommage, type LecteursDuJournal } from './ecriture';
 import type { Inventaire } from './lecture';
 import {
   PLACES_DE_TERMES, TYPES_DE_TERMES,
-  type Bilan, type BloqueVue, type CollectionVue, type ComptesDeTermes, type ConflitVue, type EcritureChoisie, type EffetVue, type FicheVue, type GroupeVue,
-  type LigneDEcriture, type LigneVue, type PlaceDuTerme, type QuestionVue, type RegleVue, type RequeteDeTermes, type SectionDeTermes, type Selection, type TermeDeListe, type TermeVue,
+  type Bilan, type BloqueVue, type CollectionDuJournal, type CollectionVue, type ComptesDeTermes, type ConflitVue, type EcritureChoisie, type EffetVue, type FicheVue, type GroupeVue,
+  type LigneDEcriture, type LigneDImport, type LigneDuJournal, type LigneVue, type PlaceDuTerme, type QuestionVue, type RegleVue, type RequeteDeTermes, type SectionDeTermes, type Selection, type TermeDeListe, type TermeVue,
   type TriDeTermes, type TypeDeTerme,
 } from './messages';
-import type { ReglesDuFichier } from './regles';
+import type { ImportRange, ReglesDuFichier } from './regles';
 
 export type { RequeteDeTermes };
 
@@ -100,6 +102,44 @@ const motsEnMinuscules = (mots: Mots): string[] => mots.map((mot) => mot.toLower
 const cleDesMots = (mots: Mots): string => motsEnMinuscules(mots).join('-');
 const comparer = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 const motsDeLaCle = (cle: string): string[] => cle.split('-').filter((mot) => mot !== '');
+
+// Le dernier import
+
+/** L'écriture que le texte d'une entrée `ecriture` range ; `null` quand l'entrée manque ou ne se lit pas. */
+function ecritureDuTexte(texte: string | null | undefined): EcritureChoisie | null {
+  const brut = texte ? lireEntree(texte) : undefined;
+  return (brut && lireEcriture(brut)) || null;
+}
+
+/** Les formes remplacées par le terme d'une entrée `terme:`, écrites comme sa clé ; `null` quand l'entrée manque ou ne se lit pas. */
+function formesDuTexte(mots: Mots, texte: string | null | undefined): readonly string[] | null {
+  const brut = texte ? lireEntree(texte) : undefined;
+  const terme = brut && lireTerme(mots, brut);
+  return terme ? terme.remplace.map(cleDesMots) : null;
+}
+
+/**
+ * Ce qu'un import a changé : l'écriture (sa clé précède celles des termes), puis chaque terme dans l'ordre de sa clé, puis le nombre des autres clés.
+ * Une clé dont ni l'avant ni l'après ne se lisent compte parmi les autres.
+ */
+function lignesDeLImport(importe: ImportRange): LigneDImport[] {
+  const cles = [...new Set([...Object.keys(importe.avant), ...Object.keys(importe.apres)])].sort(comparer);
+  const lignes: LigneDImport[] = [];
+  let autres = 0;
+  for (const cle of cles) {
+    const avant = importe.avant[cle], apres = importe.apres[cle];
+    const reste = cle.startsWith('terme:') ? cle.slice('terme:'.length) : undefined;
+    const mots = reste === undefined ? undefined : motsDe(reste);
+    if (cle === CLE_ECRITURE) {
+      const ligne = { sorte: 'ecriture', avant: ecritureDuTexte(avant), apres: ecritureDuTexte(apres) } as const;
+      if (ligne.avant || ligne.apres) lignes.push(ligne); else autres++;
+    } else if (mots) {
+      const ligne = { sorte: 'terme', terme: cleDesMots(mots), avant: formesDuTexte(mots, avant), apres: formesDuTexte(mots, apres) } as const;
+      if (ligne.avant || ligne.apres) lignes.push(ligne); else autres++;
+    } else autres++;
+  }
+  return autres > 0 ? [...lignes, { sorte: 'autres', nombre: autres }] : lignes;
+}
 
 function motsDuSegment(lexique: Lexique, segment: string): Mots {
   return lexique.mots.get(segment) ?? decouperSegment(segment);
@@ -729,7 +769,6 @@ export function projeter(entree: EntreeDeProjection): Projection {
       const { collections, proteges } = collectionsVues();
       const noms = [...lexique.noms.values()].filter((nom) => nom.categorie === 'collections');
       const { questions, misesDeCote, autres } = questionsAffichees();
-      const journal = regles.journal;
       return {
         generation: entree.generation,
         premierLancement: premierLancement(),
@@ -746,10 +785,54 @@ export function projeter(entree: EntreeDeProjection): Projection {
         autresPistes: autres,
         plusTard: misesDeCote.map(questionVue),
         collections,
-        dernierRenommage: journal && journal.renommages.length > 0 ? { nombre: journal.renommages.length, heure: journal.heure } : null,
-        dernierImport: regles.dernierImport ? { heure: regles.dernierImport.heure } : null,
+        dernierRenommage: dernierRenommage(),
+        dernierImport: regles.dernierImport ? { heure: regles.dernierImport.heure, lignes: lignesDeLImport(regles.dernierImport) } : null,
       };
     });
+  }
+
+  /**
+   * Les entrées du journal que l'annulation ne rétablit pas encore, rangées par collection dans l'ordre de l'inventaire ; les objets
+   * introuvables forment le dernier groupe. Le sort se juge sans les exclusions, que `exclue` et `reviennent` portent à part.
+   */
+  function dernierRenommage(): Bilan['dernierRenommage'] {
+    const journal = regles.journal;
+    if (!journal || journal.renommages.length === 0) return null;
+    const exclues = new Set(regles.collectionsExclues);
+    const collections = new Map<string, string>();
+    const variables = new Map<string, { readonly nom: string; readonly collectionId: string }>();
+    for (const e of entree.inventaire.entrees) {
+      if (e.cible.type === 'collection') collections.set(e.cible.collectionId, e.nom.nom);
+      else variables.set(e.cible.variableId, { nom: e.nom.nom, collectionId: e.cible.collectionId });
+    }
+    const lecteurs: LecteursDuJournal = {
+      objet: (type, figmaId) => {
+        const nom = type === 'collection' ? collections.get(figmaId) : variables.get(figmaId)?.nom;
+        return nom === undefined ? null : { nom, remote: false };
+      },
+      collectionDeLaVariable: (figmaId) => variables.get(figmaId)?.collectionId,
+      exclues: new Set(),
+    };
+    const rangees = new Map<string | null, LigneDuJournal[]>();
+    let reviennent = 0;
+    for (const renommage of journal.renommages) {
+      const sort = classerLeRenommage(renommage, lecteurs);
+      if (sort === 'retabli' || sort === 'exclue') continue;
+      const nom = lecteurs.objet(renommage.type, renommage.id)?.nom ?? null;
+      const collection = renommage.type === 'collection'
+        ? (collections.has(renommage.id) ? renommage.id : null)
+        : variables.get(renommage.id)?.collectionId ?? null;
+      if (sort === 'revient' && (collection === null || !exclues.has(collection))) reviennent++;
+      const ligne: LigneDuJournal = { type: renommage.type, aujourdhui: nom, ancien: renommage.ancienNom, sort };
+      const rangee = rangees.get(collection);
+      if (rangee) rangee.push(ligne); else rangees.set(collection, [ligne]);
+    }
+    const groupes: CollectionDuJournal[] = [...collections]
+      .filter(([id]) => rangees.has(id))
+      .map(([id, nom]) => ({ id, nom, exclue: exclues.has(id), lignes: rangees.get(id) ?? [] }));
+    const introuvables = rangees.get(null);
+    if (introuvables) groupes.push({ id: null, nom: null, exclue: false, lignes: introuvables });
+    return { nombre: journal.renommages.length, reviennent, heure: journal.heure, collections: groupes };
   }
 
   function lignes(groupe: string, debut: number): PageDeLignes {

@@ -202,7 +202,13 @@ test('les collections de l’inventaire, les noms protégés et le dernier renom
     { id: 'c3', nom: 'Color Brands', nombre: 0, analysee: true, palettes: false },
   ]);
   assert.equal(bilan.proteges, 0);
-  assert.deepEqual(bilan.dernierRenommage, { nombre: 2, heure: '14:32' });
+  assert.deepEqual(bilan.dernierRenommage, {
+    nombre: 2, reviennent: 0, heure: '14:32',
+    collections: [
+      { id: 'c1', nom: 'components', exclue: false, lignes: [{ type: 'variable', aujourdhui: 'Button/press/gap', ancien: 'x', sort: 'change-depuis' }] },
+      { id: 'c2', nom: 'primitives', exclue: true, lignes: [{ type: 'variable', aujourdhui: 'colors/Red', ancien: 'x', sort: 'change-depuis' }] },
+    ],
+  });
   assert.equal(bilan.generation, 3);
   assert.equal(projeter(calculer(fichier)).bilan().proteges, 2);
   assert.equal(projeter(calculer(fichier)).bilan().dernierRenommage, null);
@@ -935,4 +941,114 @@ test('les comptes de places comptent les lignes, hors recherche et filtres', () 
   for (const demande of [{ recherche: 'zzz' }, { places: ['groupes'] }, { places: ['variables'], tri: 'nombre' }, { section: 'conforme', place: 'groupes', debut: 5 }] satisfies Partial<RequeteDeTermes>[]) {
     assert.deepEqual(premiers(projection, demande).comptes, comptes, JSON.stringify(demande));
   }
+});
+
+// Le dernier renommage et le dernier import du bilan
+
+const fichierDuJournal: Fichier = {
+  collections: [['c1', 'components'], ['c2', 'primitives'], ['c3', 'theme']],
+  variables: [
+    { id: 'a', nom: 'new/a' }, { id: 'b', nom: 'new/b~ucm' }, { id: 'c', nom: 'autre/c' }, { id: 'd', nom: 'old/d' },
+    { id: 'e', nom: 'new/e', collection: 'c2' }, { id: 'f', nom: 'autre/f', collection: 'c2' },
+    { id: 'g', nom: 'new/g', collection: 'c3' },
+  ],
+};
+const renommage = (type: 'variable' | 'collection', id: string, ancienNom: string, nouveauNom: string) => ({ type, id, ancienNom, nouveauNom }) as const;
+
+test('le journal du bilan range les noms qui ne sont pas rétablis par collection, dans l’ordre de l’inventaire', () => {
+  const journal = {
+    heure: '2026-10-20T12:32:00.000Z',
+    renommages: [
+      renommage('variable', 'g', 'old/g', 'new/g'),
+      renommage('variable', 'a', 'old/a', 'new/a'),
+      renommage('variable', 'b', 'old/b', 'new/b'),
+      renommage('variable', 'c', 'old/c', 'new/c'),
+      renommage('variable', 'd', 'old/d', 'new/d'),
+      renommage('variable', 'disparue', 'old/x', 'new/x'),
+      renommage('collection', 'c1', 'old-components', 'components'),
+      renommage('collection', 'disparue', 'old-gone', 'gone'),
+    ],
+  };
+  const dernier = projeter(calculer(fichierDuJournal, { regles: { journal } })).bilan().dernierRenommage;
+  assert.equal(dernier?.nombre, 8);
+  assert.equal(dernier?.heure, '2026-10-20T12:32:00.000Z', 'la date reste celle du journal');
+  assert.equal(dernier?.reviennent, 4, 'g, a, b (nom provisoire) et la collection c1');
+  assert.deepEqual(dernier?.collections, [
+    { id: 'c1', nom: 'components', exclue: false, lignes: [
+      { type: 'variable', aujourdhui: 'new/a', ancien: 'old/a', sort: 'revient' },
+      { type: 'variable', aujourdhui: 'new/b~ucm', ancien: 'old/b', sort: 'revient' },
+      { type: 'variable', aujourdhui: 'autre/c', ancien: 'old/c', sort: 'change-depuis' },
+      { type: 'collection', aujourdhui: 'components', ancien: 'old-components', sort: 'revient' },
+    ] },
+    { id: 'c3', nom: 'theme', exclue: false, lignes: [{ type: 'variable', aujourdhui: 'new/g', ancien: 'old/g', sort: 'revient' }] },
+    { id: null, nom: null, exclue: false, lignes: [
+      { type: 'variable', aujourdhui: null, ancien: 'old/x', sort: 'change-depuis' },
+      { type: 'collection', aujourdhui: null, ancien: 'old-gone', sort: 'change-depuis' },
+    ] },
+  ]);
+});
+
+test('le journal du bilan omet les entrées déjà rétablies et garde un groupe vide absent', () => {
+  const retablies = { heure: '14:32', renommages: [renommage('variable', 'd', 'old/d', 'new/d'), renommage('collection', 'c1', 'components', 'new-components')] };
+  const dernier = projeter(calculer(fichierDuJournal, { regles: { journal: retablies } })).bilan().dernierRenommage;
+  assert.deepEqual(dernier, { nombre: 2, reviennent: 0, heure: '14:32', collections: [] });
+});
+
+test('le journal du bilan garde les lignes d’une collection exclue sans les compter parmi celles qui reviennent', () => {
+  const journal = {
+    heure: '14:32',
+    renommages: [renommage('variable', 'e', 'old/e', 'new/e'), renommage('variable', 'f', 'old/f', 'new/f'), renommage('variable', 'a', 'old/a', 'new/a')],
+  };
+  const dernier = projeter(calculer(fichierDuJournal, { regles: { journal, collectionsExclues: ['c2'] } })).bilan().dernierRenommage;
+  assert.equal(dernier?.reviennent, 1, 'seule a, de la collection analysée, reviendrait');
+  assert.deepEqual(dernier?.collections.map(({ id, exclue }) => [id, exclue]), [['c1', false], ['c2', true]]);
+  assert.deepEqual(dernier?.collections[1].lignes, [
+    { type: 'variable', aujourdhui: 'new/e', ancien: 'old/e', sort: 'revient' },
+    { type: 'variable', aujourdhui: 'autre/f', ancien: 'old/f', sort: 'change-depuis' },
+  ]);
+  const collectionExclue = { heure: '14:32', renommages: [renommage('collection', 'c2', 'old-primitives', 'primitives')] };
+  const seule = projeter(calculer(fichierDuJournal, { regles: { journal: collectionExclue, collectionsExclues: ['c2'] } })).bilan().dernierRenommage;
+  assert.equal(seule?.reviennent, 0);
+  assert.deepEqual(seule?.collections, [{ id: 'c2', nom: 'primitives', exclue: true, lignes: [{ type: 'collection', aujourdhui: 'primitives', ancien: 'old-primitives', sort: 'revient' }] }]);
+});
+
+const ecrire = (groupes: EcritureChoisie['groupes'], variables: EcritureChoisie['variables']) => JSON.stringify({ version: 1, groupes, variables });
+const pascalEspaces = { casse: 'PascalCase', separateur: 'espace' } as const;
+const entreeDeTerme = (terme: string[], remplace: string[][]) => JSON.stringify({ version: 1, terme, remplace });
+
+test('le dernier import du bilan donne une ligne par écriture et par terme changés', () => {
+  const dernierImport = {
+    heure: '14:35',
+    avant: { ecriture: ecrire(minusculesTirets, minusculesTirets), 'terme:colors': entreeDeTerme(['colors'], [['color']]), 'terme:size': entreeDeTerme(['size'], [['sz'], ['big', 'size']]), 'terme:gone': entreeDeTerme(['gone'], [['old']]) },
+    apres: { ecriture: ecrire(pascalEspaces, minusculesTirets), 'terme:colors': entreeDeTerme(['colors'], [['color'], ['colours']]), 'terme:size': null, 'terme:gone': '{pas du json' },
+  };
+  const lignes = projeter(calculer(fichierDuJournal, { regles: { dernierImport } })).bilan().dernierImport;
+  assert.equal(lignes?.heure, '14:35');
+  assert.deepEqual(lignes?.lignes, [
+    { sorte: 'ecriture', avant: { groupes: minusculesTirets, variables: minusculesTirets }, apres: { groupes: pascalEspaces, variables: minusculesTirets } },
+    { sorte: 'terme', terme: 'colors', avant: ['color'], apres: ['color', 'colours'] },
+    { sorte: 'terme', terme: 'gone', avant: ['old'], apres: null },
+    { sorte: 'terme', terme: 'size', avant: ['sz', 'big-size'], apres: null },
+  ]);
+});
+
+test('le dernier import du bilan donne null pour une règle absente avant, et compte les autres clés en une ligne', () => {
+  const dernierImport = {
+    heure: '14:35',
+    avant: { ecriture: null, 'terme:neuf': null, 'ecart:tailles': entreeDeTerme(['x'], []), 'ordinaire:foo': null, 'terme:': 'x' },
+    apres: { ecriture: ecrire(minusculesTirets, pascalEspaces), 'terme:neuf': entreeDeTerme(['neuf'], []), 'ecart:tailles': null, 'ordinaire:foo': '{}', 'terme:': 'x' },
+  };
+  const lignes = projeter(calculer(fichierDuJournal, { regles: { dernierImport } })).bilan().dernierImport?.lignes;
+  assert.deepEqual(lignes, [
+    { sorte: 'ecriture', avant: null, apres: { groupes: minusculesTirets, variables: pascalEspaces } },
+    { sorte: 'terme', terme: 'neuf', avant: null, apres: [] },
+    { sorte: 'autres', nombre: 3 },
+  ]);
+});
+
+test('le bilan sans journal ni import les donne à null', () => {
+  const bilan = projeter(calculer(fichierDuJournal)).bilan();
+  assert.equal(bilan.dernierRenommage, null);
+  assert.equal(bilan.dernierImport, null);
+  assert.equal(projeter(calculer(fichierDuJournal, { regles: { journal: { heure: '14:32', renommages: [] } } })).bilan().dernierRenommage, null);
 });

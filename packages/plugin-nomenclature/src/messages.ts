@@ -133,10 +133,39 @@ export interface Bilan {
   readonly autresPistes: number;
   readonly plusTard: readonly QuestionVue[];
   readonly collections: readonly CollectionVue[];
-  readonly dernierRenommage: { readonly nombre: number; readonly heure: string } | null;
-  /** Le dernier import qui a écrasé l'écriture ou un terme, que `annuler-import` défait. */
-  readonly dernierImport: { readonly heure: string } | null;
+  /**
+   * Le dernier renommage du journal. `nombre` est la taille du journal, `heure` sa date ISO. `reviennent` compte les noms que l'annulation
+   * remettrait aujourd'hui, collections exclues retirées.
+   */
+  readonly dernierRenommage: {
+    readonly nombre: number; readonly reviennent: number; readonly heure: string; readonly collections: readonly CollectionDuJournal[];
+  } | null;
+  /** Le dernier import qui a écrasé l'écriture ou un terme, que `annuler-import` défait, et ce qu'il a changé. */
+  readonly dernierImport: { readonly heure: string; readonly lignes: readonly LigneDImport[] } | null;
 }
+/**
+ * Un nom du journal que l'annulation ne rétablit pas encore. `aujourdhui` est le nom que l'objet porte, `null` s'il a disparu ; `ancien` celui
+ * d'avant le renommage. `revient` : l'annulation le remettrait ; `change-depuis` : l'objet a été changé ou supprimé depuis, elle le laisse.
+ */
+export interface LigneDuJournal {
+  readonly type: 'variable' | 'collection'; readonly aujourdhui: string | null; readonly ancien: string; readonly sort: 'revient' | 'change-depuis';
+}
+/**
+ * Les lignes du journal d'une collection, dans l'ordre de l'inventaire. `id` et `nom` valent `null` pour le groupe des objets introuvables.
+ * Une collection exclue garde ses lignes, avec le sort qu'elles auraient sans l'exclusion : l'annulation ne les touche pas.
+ */
+export interface CollectionDuJournal {
+  readonly id: string | null; readonly nom: string | null; readonly exclue: boolean; readonly lignes: readonly LigneDuJournal[];
+}
+/**
+ * Une clé changée par le dernier import. `avant` et `apres` valent `null` quand la règle n'existait pas ou n'existe plus ;
+ * `terme` est le mot du terme (mots en minuscules joints par un tiret) et ses formes remplacées sont écrites de même.
+ * `autres` regroupe en un nombre les autres clés changées.
+ */
+export type LigneDImport =
+  | { readonly sorte: 'ecriture'; readonly avant: EcritureChoisie | null; readonly apres: EcritureChoisie | null }
+  | { readonly sorte: 'terme'; readonly terme: string; readonly avant: readonly string[] | null; readonly apres: readonly string[] | null }
+  | { readonly sorte: 'autres'; readonly nombre: number };
 /**
  * Une ligne de la liste : un terme à une place. `mot` est la clé du terme (`stress-test`) ; un terme employé aux deux places a deux lignes,
  * de même `mot`. `forme` est son écriture affichée à `place` : pour un terme réglé, le terme de référence écrit dans la convention de cette place
