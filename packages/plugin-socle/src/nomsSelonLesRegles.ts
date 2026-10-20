@@ -2,7 +2,9 @@
  * Le calcul de renommage que partagent UCM Nomenclature et UCM Palettes : pour un inventaire et les règles de nommage
  * du fichier, les noms que le lexique du kit donne, après le contrôle des chemins publiés. Les deux plugins l'appellent
  * avec les mêmes entrées (tous les noms locaux du fichier, les mêmes règles, les mêmes noms non renommables) et
- * obtiennent donc les mêmes noms. Le calcul est idempotent : appliqué à ses propres résultats, il ne renomme rien.
+ * obtiennent donc les mêmes noms. Le calcul est idempotent : appliqué à ses propres résultats, il ne renomme rien. Cela
+ * tient à l'index du kit, qui résout la cible d'un terme personnalisé vers sa forme terminale et refuse les cycles
+ * (`ConflitDeVocabulaire`) ; avec des conflits dans l'index, le calcul ne le promet plus.
  *
  * Les questions de vocabulaire et les collections que le fichier renomme restent à UCM Nomenclature, qui s'insère
  * avant le contrôle des chemins par `ajuster`.

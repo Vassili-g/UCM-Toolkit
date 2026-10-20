@@ -1,6 +1,14 @@
-/** Index des termes UCM et des termes propres au fichier pour normaliser ses noms. */
+/**
+ * Index des termes UCM et des termes propres au fichier pour normaliser ses noms.
+ *
+ * La cible d'un terme personnalisé est résolue vers sa forme terminale : l'index lui applique les remplacements de sa catégorie
+ * (termes UCM et personnalisés) jusqu'à ce que rien ne change. Une chaîne `foo` → `bar`, `bar` → `baz` remplace donc `foo`
+ * par `baz` dès le premier calcul. Une résolution qui revient sur une règle de sa propre pile est un conflit `cycle` ; la
+ * règle garde alors sa cible d'origine. Les cibles UCM restent telles quelles.
+ */
 import { REGISTRES_ARCHITECTURE } from './architecture.js';
 import { CATEGORIES_DE_NOM, type CategorieDeNom } from './conventions.js';
+import { termesDuSegment } from './ecriture-des-mots.js';
 import type { ConflitDeVocabulaire, IndexDuVocabulaire, Mots, OrigineDuTerme, Remplacement, VocabulaireDuFichier } from './harmonisation.js';
 import { decouperSegment } from './normalisation.js';
 import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
@@ -109,26 +117,112 @@ function indexerPourCategorie(vocabulaire: VocabulaireDuFichier, categorie: Cate
     }
   }
 
-  conflits.push(...cyclesDesRemplacements(entrees));
-  const candidats = [...entrees.values()].sort((a, b) => b.source.length - a.source.length);
+  const cyclesSimples = cyclesDesRemplacements(entrees);
+  conflits.push(...cyclesSimples);
+  const bruts = [...entrees.values()].sort((a, b) => b.source.length - a.source.length);
+  const resolutions = resoudreLesCibles(bruts, categorie, cyclesSimples, conflits);
+  const candidats = bruts.map((entree) => ({ ...entree, par: resolutions.get(entree) ?? entree.par }));
   return {
     index: {
       remplacements(mots: Mots, categorie: CategorieDeNom, frontieres?: ReadonlySet<number>): readonly Remplacement[] {
-        const prises = new Set<number>();
-        const resultats: Remplacement[] = [];
-        for (const entree of candidats) {
-          if (entree.proprietesSeulement && categorie !== 'proprietes') continue;
-          for (let debut = 0; debut <= mots.length - entree.source.length; debut++) {
-            if (entree.source.some((mot, rang) => prises.has(debut + rang) || mot.toLowerCase() !== mots[debut + rang].toLowerCase())) continue;
-            const fin = debut + entree.source.length;
-            if (frontieres && !(frontieres.has(debut) && frontieres.has(fin))) continue;
-            for (let rang = debut; rang < fin; rang++) prises.add(rang);
-            resultats.push({ debut, fin, par: conserverLaCasse(mots.slice(debut, fin), entree.par), origine: entree.origine, cle: entree.cle });
-          }
-        }
-        return resultats.sort((a, b) => a.debut - b.debut);
+        return trouverLesRemplacements(candidats, mots, categorie, frontieres).map(({ debut, fin, entree }) => ({
+          debut, fin, par: conserverLaCasse(mots.slice(debut, fin), entree.par), origine: entree.origine, cle: entree.cle,
+        }));
       },
     },
     conflits,
   };
+}
+
+type Trouve = { readonly debut: number; readonly fin: number; readonly entree: Entree };
+
+/** Les entrées trouvées dans `mots`, la plus longue source d'abord, sans chevauchement, ordonnées par position. */
+function trouverLesRemplacements(candidats: readonly Entree[], mots: Mots, categorie: CategorieDeNom, frontieres?: ReadonlySet<number>): Trouve[] {
+  const prises = new Set<number>();
+  const resultats: Trouve[] = [];
+  for (const entree of candidats) {
+    if (entree.proprietesSeulement && categorie !== 'proprietes') continue;
+    for (let debut = 0; debut <= mots.length - entree.source.length; debut++) {
+      if (entree.source.some((mot, rang) => prises.has(debut + rang) || mot.toLowerCase() !== mots[debut + rang].toLowerCase())) continue;
+      const fin = debut + entree.source.length;
+      if (frontieres && !(frontieres.has(debut) && frontieres.has(fin))) continue;
+      for (let rang = debut; rang < fin; rang++) prises.add(rang);
+      resultats.push({ debut, fin, entree });
+    }
+  }
+  return resultats.sort((a, b) => a.debut - b.debut);
+}
+
+/** Les débuts de terme d'une cible écrite en tirets, plus sa longueur : les frontières que le calcul lui donnerait comme segment. */
+function frontieresDeLaCible(mots: Mots): ReadonlySet<number> {
+  return new Set([...termesDuSegment(mots.join('-'), mots, null).map(([debut]) => debut), mots.length]);
+}
+
+function cleDuCycle(termes: readonly Mots[]): string {
+  return JSON.stringify(termes.map(cleDesMots).sort());
+}
+
+/**
+ * La forme terminale de la cible de chaque entrée personnalisée. Une entrée en cycle,
+ * ou qui dépend d'un cycle, n'a pas de forme terminale et garde sa cible. Un cycle déjà signalé par `cyclesDesRemplacements`,
+ * ou déjà trouvé ici, n'est pas signalé deux fois.
+ */
+function resoudreLesCibles(
+  candidats: readonly Entree[], categorie: CategorieDeNom, cyclesSimples: readonly ConflitDeVocabulaire[], conflits: ConflitDeVocabulaire[],
+): Map<Entree, Mots> {
+  const signales = new Set(cyclesSimples.flatMap((conflit) => (conflit.type === 'cycle' ? [cleDuCycle(conflit.termes)] : [])));
+  const terminales = new Map<Entree, Mots | null>();
+
+  function signaler(boucle: readonly Entree[]): void {
+    const termes = boucle.map((entree) => entree.source);
+    const cle = cleDuCycle(termes);
+    if (signales.has(cle)) return;
+    signales.add(cle);
+    conflits.push({ type: 'cycle', termes });
+  }
+
+  function resoudre(entree: Entree, pile: Entree[]): Mots | null {
+    if (entree.origine === 'ucm') return entree.par;
+    if (terminales.has(entree)) return terminales.get(entree)!;
+    const rang = pile.indexOf(entree);
+    if (rang >= 0) {
+      signaler(pile.slice(rang));
+      return null;
+    }
+    pile.push(entree);
+    let courant = entree.par;
+    const utilisees = new Set<Entree>();
+    let terminale: Mots | null = courant;
+    for (;;) {
+      const trouves = trouverLesRemplacements(candidats, courant, categorie, frontieresDeLaCible(courant));
+      if (trouves.length === 0) break;
+      const suite: string[] = [];
+      let curseur = 0;
+      for (const { debut, fin, entree: remplacee } of trouves) {
+        if (utilisees.has(remplacee)) signaler([entree, remplacee]);
+        const cible = utilisees.has(remplacee) ? null : resoudre(remplacee, pile);
+        if (cible === null) {
+          terminale = null;
+          break;
+        }
+        suite.push(...courant.slice(curseur, debut), ...conserverLaCasse(courant.slice(debut, fin), cible));
+        curseur = fin;
+      }
+      if (terminale === null) break;
+      suite.push(...courant.slice(curseur));
+      for (const { entree: remplacee } of trouves) utilisees.add(remplacee);
+      courant = suite;
+      terminale = courant;
+    }
+    pile.pop();
+    terminales.set(entree, terminale);
+    return terminale;
+  }
+
+  const resolutions = new Map<Entree, Mots>();
+  for (const entree of candidats) {
+    const terminale = resoudre(entree, []);
+    if (terminale !== null && entree.origine === 'personnalise') resolutions.set(entree, terminale);
+  }
+  return resolutions;
 }

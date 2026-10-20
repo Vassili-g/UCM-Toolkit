@@ -105,3 +105,20 @@ test('le contrôle des chemins publiés retire un renommage qui ferait disparaî
   assert.deepEqual(resultat.renommages, []);
   assert.deepEqual(resultat.collisions.map((collision) => [collision.ids, 'motif' in collision ? collision.motif : null]), [[[cible], 'meme-token']]);
 });
+
+test('des règles de termes enchaînées se stabilisent au premier calcul', () => {
+  const terme = (mots: string[], remplace: string[][]): [string, string] => [`terme:${mots.join(' ')}`, JSON.stringify({ version: 1, terme: mots, remplace })];
+  const enchaine = lireReglesDeNommage([
+    ['ecriture', JSON.stringify({ version: 1, groupes: { casse: 'minuscules', separateur: 'tiret' }, variables: { casse: 'minuscules', separateur: 'tiret' } })],
+    terme(['bar'], [['foo']]), terme(['baz'], [['bar']]), terme(['zed'], [['baz']]),
+  ])!;
+  const noms = ['colors/foo/vivid/light/50', 'colors/bar/vivid/light/100', 'colors/baz/vivid/light/200', 'colors/foo-quux/vivid/light/300', 'button/size/foo'];
+  const variables = noms.map((nom) => variable('c1', nom));
+  const premier = nomsSelonLesReglesSync(inventaireDeLectures(collections, variables, aucunAlias), enchaine, []);
+  assert.deepEqual(premier.indexation.conflits, []);
+  const nouveaux = new Map(premier.resultat.renommages.map((renommage) => [renommage.id, renommage.nouveauNom]));
+  const suite = variables.map((v) => ({ ...v, name: nouveaux.get(JSON.stringify(['variable', v.id])) ?? v.name }));
+  assert.deepEqual(suite.map((v) => v.name), ['color/zed/vivid/light/50', 'color/zed/vivid/light/100', 'color/zed/vivid/light/200', 'color/zed-quux/vivid/light/300', 'button/size/zed']);
+  const second = nomsSelonLesReglesSync(inventaireDeLectures(collections, suite, aucunAlias), enchaine, []);
+  assert.deepEqual(second.resultat.renommages, []);
+});

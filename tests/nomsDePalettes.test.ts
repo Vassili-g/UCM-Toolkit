@@ -19,11 +19,11 @@ import { lireLesVariablesDuFichier, lireLeSuiviRange } from '../packages/plugin-
 import { FauxFigma } from '../packages/plugin-palettes/tests/figmaDeTest';
 import { palettesDuFichier } from '../packages/plugin-palettes/src/variables/detection';
 import { tokensDeLaPalette } from '../packages/plugin-palettes/src/variables/gestion';
-import { nommeurDuFichier, planDeLaPalette } from '../packages/plugin-palettes/src/variables/nommeur';
+import { creerNommeur, nommeurDuFichier, planDeLaPalette, type DonneesDeNommage } from '../packages/plugin-palettes/src/variables/nommeur';
 import { nomsDuPlan } from '../packages/plugin-palettes/src/variables/plan';
 import { texteDuSuivi, variablesSuivies } from '../packages/plugin-palettes/src/variables/suivi';
 import { idsNonRenommables, nomsSelonLesReglesSync } from '../packages/plugin-socle/src/nomsSelonLesRegles';
-import { palettesLibres } from '../packages/plugin-socle/src/inventaireDeNoms';
+import { inventaireDeLectures, palettesLibres } from '../packages/plugin-socle/src/inventaireDeNoms';
 import { lireReglesDeNommage } from '../packages/plugin-socle/src/reglesDeNommage';
 
 const VIDE = recetteParDefaut();
@@ -154,4 +154,32 @@ test('une marque d’une autre version laisse la protection', async () => {
   poserLesRegles(figma, false);
   figma.root.setSharedPluginData('ucm_palettes', 'nommage', '{"version":2}');
   assert.equal((await nomenclatureRenomme(figma)).libres, false);
+});
+
+test('une chaîne de termes personnalisés : Palettes nomme la forme terminale et Nomenclature ne la renomme pas', () => {
+  const terme = (mots: string[], remplace: string[][]) => [`terme:${mots.join(' ')}`, JSON.stringify({ version: 1, terme: mots, remplace })] as const;
+  const couples = [
+    ['ecriture', JSON.stringify({ version: 1, groupes: { casse: 'minuscules', separateur: 'tiret' }, variables: { casse: 'minuscules', separateur: 'tiret' } })],
+    terme(['bar'], [['foo']]),
+    terme(['baz'], [['bar']]),
+  ] as const;
+  const donnees = (nom: string): DonneesDeNommage => ({
+    couples,
+    collections: [{ id: 'c', nom: 'custom' }],
+    variables: [{ id: 'v', nom, collection: 'c', palette: 'p' }],
+  });
+  const brutDuPlan = 'colors/foo/vivid/light/50';
+  const nomme = (nom: string): string => creerNommeur(donnees(nom))!.pour({ id: 'c' })!([{ cle: 'p:vivid:light:50', id: 'v', nom: brutDuPlan }])[0];
+  const regles = lireReglesDeNommage(couples)!;
+  const parNomenclature = (nom: string): string => {
+    const inventaire = inventaireDeLectures([{ id: 'c', name: 'custom', remote: false }], [{ id: 'v', name: nom, variableCollectionId: 'c', remote: false }], { cibleAlias: () => undefined, protegee: () => false, palette: () => undefined });
+    const { resultat } = nomsSelonLesReglesSync(inventaire, regles, []);
+    return resultat.renommages.find((renommage) => renommage.id === JSON.stringify(['variable', 'v']))?.nouveauNom ?? nom;
+  };
+
+  const ecrit = nomme('color/bar/vivid/light/50');
+  assert.equal(ecrit, 'color/baz/vivid/light/50');
+  assert.equal(parNomenclature(ecrit), ecrit, 'Nomenclature ne renomme pas ce que Palettes vient d’écrire');
+  assert.equal(nomme(ecrit), ecrit, 'Palettes retrouve le même nom');
+  assert.equal(parNomenclature(brutDuPlan), ecrit, 'Nomenclature et Palettes donnent le même nom au nom brut du plan');
 });
