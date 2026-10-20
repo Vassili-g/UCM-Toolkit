@@ -3378,8 +3378,9 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   mettre à jour » tant qu'un renommage reste à faire. Une différence que
   seules les règles de nommage du fichier créent n'est pas un renommage à
   faire : la variable porte le nom que la forme demande, UCM Nomenclature
-  propose le renommage, et la prochaine écriture de la palette donne le nom
-  final, comme pour une palette que le plugin a créée. Elle garde son nom quand
+  propose le renommage, et la prochaine écriture de la palette reprise donne
+  le nom final. Une palette que le plugin a créée ne renomme jamais ses
+  variables suivies à l'écriture. Elle garde son nom quand
   une autre variable porte déjà celui du plan. Une variable
   d'origine disparue se recrée, et toute variable créée naît sans portée. Le
   suivi garde le chemin d'origine dès la première écriture, parce que les
