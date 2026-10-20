@@ -1,3 +1,8 @@
+# Tout fichier texte entre dans l'index en LF, quel que soit l'outil qui l'a
+# écrit. Les motifs plus bas l'emportent sur celui-ci, puisque Git applique le
+# dernier qui correspond. `tests/finsDeLigne.test.mjs` refuse un CRLF dans l'index.
+* text=auto eol=lf
+
 # Ces motifs portent un « / » : Git les ancre donc au répertoire de CE fichier,
 # et un déplacement de dossier les désancre SANS RIEN DIRE. C'est arrivé au
 # passage en workspaces — les deux règles ci-dessous ne matchaient plus rien,

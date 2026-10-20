@@ -426,6 +426,7 @@ scripts/
 
 tests/                   les tests du monorepo lui-même
   docLinks.test.ts       les liens et les ancres de la documentation
+  finsDeLigne.test.mjs   aucun fichier texte en CRLF dans l'index
   inventaireInvariants.test.ts  l'accord d'AGENTS.md avec le code, dans les deux sens
   styleDocumentaire.test.ts  les tics de rédaction, interdits sans exemption
   pinDocumente.test.mjs  les versions montrées par une commande copiable
