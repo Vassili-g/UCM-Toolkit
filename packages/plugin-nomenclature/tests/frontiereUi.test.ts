@@ -13,8 +13,8 @@ const bilan = (generation: number): Bilan => ({
 const GESTE = { type: 'supprimer', terme: 'bg' } as const;
 const SELECTION = { groupes: ['g'], exclus: [], inclus: [] };
 const requete = (recherche: string, reste: Partial<RequeteDeTermes> = {}): RequeteDeTermes =>
-  ({ recherche, types: [], origines: [], tri: 'alpha', section: null, debut: 0, ...reste });
-const COMPTES = { types: { 'a-trancher': 0, remplace: 0, conforme: 0, 'sans-regle': 0, composant: 0, palette: 0 }, origines: { ucm: 0, personnalise: 0 } };
+  ({ recherche, types: [], origines: [], places: [], tri: 'alpha', section: null, place: null, debut: 0, ...reste });
+const COMPTES = { types: { 'a-trancher': 0, remplace: 0, conforme: 0, 'sans-regle': 0, composant: 0, palette: 0 }, origines: { ucm: 0, personnalise: 0 }, places: { groupes: 0, variables: 0 } };
 const reponseDesTermes = (demande: number): PluginMessage => ({ type: 'termes', demande, generation: 1, section: null, debut: 0, sections: [], comptes: COMPTES });
 
 function creer() {
@@ -109,6 +109,9 @@ test('la demande de termes part avec tous ses critères et la génération coura
   const complete = requete('bg', { types: ['remplace', 'conforme'], origines: ['ucm'], tri: 'nombre', section: 'remplace', debut: 50 });
   const demande = frontiere.termes(complete) as number;
   assert.deepEqual(envoyees[envoyees.length - 1], { type: 'termes', demande, generation: 5, ...complete });
+  const parPlace = requete('', { places: ['variables'], section: 'remplace', place: 'variables', debut: 5 });
+  const demandeParPlace = frontiere.termes(parPlace) as number;
+  assert.deepEqual(envoyees[envoyees.length - 1], { type: 'termes', demande: demandeParPlace, generation: 5, ...parPlace }, 'le filtre et la place de la page partent avec la demande');
 });
 
 test('sans bilan, une lecture ou appliquer ne part pas', () => {

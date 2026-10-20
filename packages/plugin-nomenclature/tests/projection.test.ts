@@ -6,7 +6,7 @@ import {
   type ConventionsParCategorie, type Lexique, type NomLu, type Question, type ResultatDesQuestions, type TermePersonnalise,
 } from '@ucm-kit/core/referentiel';
 import type { EntreeInventaire, Inventaire } from '../src/lecture';
-import { TYPES_DE_TERMES, type EcritureChoisie, type TermeDeListe, type TypeDeTerme } from '../src/messages';
+import { PLACES_DE_TERMES, TYPES_DE_TERMES, type EcritureChoisie, type PlaceDuTerme, type TermeDeListe, type TypeDeTerme } from '../src/messages';
 import { conflitVue, effetDEcriture, effetDeTerme, LIGNES_PAR_SECTION, projeter, TAILLE_DE_L_APERCU, TAILLE_DE_PAGE, type EntreeDeProjection, type PageDeTermes, type RequeteDeTermes } from '../src/projection';
 import { reglesVides, type ReglesDuFichier } from '../src/regles';
 
@@ -274,7 +274,7 @@ test('sans nom de cible, la paire n’a pas de cible commune', () => {
 
 // La liste des termes et la fiche
 
-const requete = (reste: Partial<RequeteDeTermes> = {}): RequeteDeTermes => ({ recherche: '', types: [], origines: [], tri: 'alpha', section: null, debut: 0, ...reste });
+const requete = (reste: Partial<RequeteDeTermes> = {}): RequeteDeTermes => ({ recherche: '', types: [], origines: [], places: [], tri: 'alpha', section: null, place: null, debut: 0, ...reste });
 const premiers = (projection: ReturnType<typeof projeter>, reste: Partial<RequeteDeTermes> = {}) => projection.termes(requete(reste));
 const aplatir = (page: PageDeTermes): TermeDeListe[] => page.sections.flatMap((section) => section.termes);
 
@@ -293,6 +293,9 @@ const toutLeVocabulaire = (projection: ReturnType<typeof projeter>, reste: Parti
   TYPES_DE_TERMES.flatMap((type) => termesDuType(projection, type, reste));
 
 const mots = (termes: readonly TermeDeListe[]): string[] => termes.map((terme) => terme.mot);
+/** Les lignes d'un terme, une par place, les groupes d'abord : leurs types peuvent les ranger dans des sections différentes. */
+const lignesDuTerme = (termes: readonly TermeDeListe[], mot: string): TermeDeListe[] =>
+  termes.filter((terme) => terme.mot === mot).sort((a, b) => PLACES_DE_TERMES.indexOf(a.place) - PLACES_DE_TERMES.indexOf(b.place));
 
 const fichierDesTermes: Fichier = {
   collections: [['c1', 'components']],
@@ -309,18 +312,19 @@ test('la liste des termes dit le type, le statut, l’origine et ce que chaque t
   }));
   const liste = toutLeVocabulaire(projection);
   const parMot = new Map(liste.map((terme) => [terme.mot, terme]));
-  assert.deepEqual(parMot.get('pressed'), { mot: 'pressed', forme: 'pressed', type: 'remplace', nature: null, origine: 'ucm', statut: 'regle', remplace: ['press'], avec: null, nombre: 2, trouve: null });
+  assert.deepEqual(parMot.get('pressed'), { mot: 'pressed', place: 'groupes', forme: 'pressed', type: 'remplace', nature: null, origine: 'ucm', statut: 'regle', remplace: ['press'], avec: null, nombre: 2, trouve: null });
   assert.equal(parMot.has('press'), false);
-  assert.deepEqual(parMot.get('outlined'), { mot: 'outlined', forme: 'outlined', type: 'remplace', nature: null, origine: 'personnalise', statut: 'regle', remplace: ['outline'], avec: null, nombre: 1, trouve: null });
+  assert.deepEqual(parMot.get('outlined'), { mot: 'outlined', place: 'groupes', forme: 'outlined', type: 'remplace', nature: null, origine: 'personnalise', statut: 'regle', remplace: ['outline'], avec: null, nombre: 1, trouve: null });
   assert.equal(parMot.has('outline'), false);
-  assert.deepEqual(parMot.get('disabled'), { mot: 'disabled', forme: 'disabled', type: 'sans-regle', nature: null, origine: 'ucm', statut: 'ecart', remplace: [], avec: null, nombre: 0, trouve: null });
-  assert.deepEqual(parMot.get('gap'), { mot: 'gap', forme: 'gap', type: 'a-trancher', nature: null, origine: null, statut: 'a-trancher', remplace: [], avec: 'space', nombre: 3, trouve: null });
-  assert.deepEqual(parMot.get('button'), { mot: 'button', forme: 'button', type: 'composant', nature: 'composant', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 6, trouve: null });
+  assert.deepEqual(parMot.get('disabled'), { mot: 'disabled', place: 'variables', forme: 'disabled', type: 'sans-regle', nature: null, origine: 'ucm', statut: 'ecart', remplace: [], avec: null, nombre: 0, trouve: null });
+  assert.deepEqual(parMot.get('gap'), { mot: 'gap', place: 'variables', forme: 'gap', type: 'a-trancher', nature: null, origine: null, statut: 'a-trancher', remplace: [], avec: 'space', nombre: 3, trouve: null });
+  assert.deepEqual(parMot.get('button'), { mot: 'button', place: 'groupes', forme: 'button', type: 'composant', nature: 'composant', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 6, trouve: null });
   assert.equal(parMot.has('extra-small'), false);
   assert.equal(parMot.has('hover'), true);
   const { comptes } = premiers(projection);
   for (const type of TYPES_DE_TERMES) assert.equal(comptes.types[type], liste.filter((terme) => terme.type === type).length, type);
   assert.equal(Object.values(comptes.types).reduce((somme, nombre) => somme + nombre, 0), liste.length);
+  for (const place of PLACES_DE_TERMES) assert.equal(comptes.places[place], liste.filter((terme) => terme.place === place).length, place);
 });
 
 test('un terme réglé est « remplace » quand le fichier emploie une variante, « conforme » sinon ; une règle écartée est « sans règle »', () => {
@@ -413,7 +417,8 @@ test('les sections suivent l’ordre des types et ne gardent que celles qui ont 
   }));
   const page = premiers(projection);
   assert.deepEqual(page.sections.map((section) => section.type), ['a-trancher', 'remplace', 'conforme', 'sans-regle', 'composant', 'palette']);
-  assert.ok(page.sections.every((section) => section.termes.length === Math.min(section.total, LIGNES_PAR_SECTION)));
+  assert.ok(page.sections.every((section) => PLACES_DE_TERMES.every((place) => section.termes.filter((terme) => terme.place === place).length === Math.min(section.totaux[place], LIGNES_PAR_SECTION))));
+  assert.ok(page.sections.every((section) => section.total === section.totaux.groupes + section.totaux.variables));
   assert.deepEqual(page.sections.map((section) => section.total), TYPES_DE_TERMES.map((type) => page.comptes.types[type]));
   assert.deepEqual(premiers(projection, { types: ['palette', 'conforme'] }).sections.map((section) => section.type), ['conforme', 'palette'], 'l’ordre des types demandés ne compte pas');
   const sansComposant = projeter(calculer({ collections: [['c1', 'primitives']], variables: [{ id: 'p', nom: 'colors/Poppy/soft/light/500' }] }));
@@ -502,7 +507,7 @@ test('un terme de plusieurs mots se compte par la suite de ses mots', () => {
   const projection = projeter(calculer(fichierDesTermes, { termes: [{ terme: ['extra', 'small'], remplace: [['xs']] }] }));
   assert.equal(projection.fiche('extra-small').emploi.nombre, 1);
   const terme = aplatir(premiers(projection, { recherche: 'extra-small' }))[0];
-  assert.deepEqual(terme, { mot: 'extra-small', forme: 'extra-small', type: 'conforme', nature: null, origine: 'personnalise', statut: 'regle', remplace: [], avec: null, nombre: 1, trouve: null });
+  assert.deepEqual(terme, { mot: 'extra-small', place: 'groupes', forme: 'extra-small', type: 'conforme', nature: null, origine: 'personnalise', statut: 'regle', remplace: [], avec: null, nombre: 1, trouve: null });
 });
 
 // Les conflits et les effets
@@ -655,7 +660,7 @@ test('un nom de composant se compte une fois par nom et porte sa forme et sa nat
   const projection = projeter(calculer(playground));
   const termes = toutLeVocabulaire(projection);
   const terme = (mot: string) => termes.find((autre) => autre.mot === mot)!;
-  assert.deepEqual(terme('stress-test'), { mot: 'stress-test', forme: 'StressTest', type: 'composant', nature: 'composant', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 3, trouve: null });
+  assert.deepEqual(terme('stress-test'), { mot: 'stress-test', place: 'groupes', forme: 'StressTest', type: 'composant', nature: 'composant', origine: null, statut: 'sans-regle', remplace: [], avec: null, nombre: 3, trouve: null });
   assert.deepEqual([terme('button').forme, terme('button').nature, terme('button').nombre], ['Button', 'composant', 3]);
   assert.deepEqual([terme('scale-wrap').forme, terme('scale-wrap').nature, terme('scale-wrap').nombre, terme('scale-wrap').type], ['ScaleWrap', null, 2, 'sans-regle']);
   assert.deepEqual([terme('text-columns').forme, terme('text-columns').nature], ['TextColumns', null]);
@@ -682,8 +687,8 @@ test('un terme réglé s’écrit dans la convention de la catégorie qui l’em
 test('line-height s’écrit « line-height » quand c’est une variable qui l’emploie le plus', () => {
   const fichier: Fichier = { collections: [['c1', 'theme']], variables: variables(['a', 'Display/Large/LineHeight'], ['b', 'Display/Small/LineHeight'], ['c', 'lineheight/base']) };
   const projection = projeter(calculer(fichier, { ecriture: pascalEtMinuscules }));
-  assert.equal(termesDuType(projection, 'conforme').find((terme) => terme.mot === 'line-height')!.forme, 'line-height');
-  assert.equal(projection.fiche('line-height').forme, 'line-height');
+  assert.deepEqual(lignesDuTerme(termesDuType(projection, 'conforme'), 'line-height').map((terme) => [terme.place, terme.forme, terme.nombre]), [['groupes', 'LineHeight', 1], ['variables', 'line-height', 2]]);
+  assert.equal(projection.fiche('line-height').forme, 'line-height', 'la fiche garde une seule écriture, celle de la place qui l’emploie le plus');
   const enDossier = projeter(calculer({ collections: [['c1', 'theme']], variables: variables(['a', 'lineheight/base'], ['b', 'lineheight/lg'], ['c', 'Display/Large/LineHeight']) }, { ecriture: pascalEtMinuscules }));
   assert.equal(enDossier.fiche('line-height').forme, 'LineHeight');
 });
@@ -710,11 +715,11 @@ test('les variantes portent leur forme du fichier, les plus fréquentes d’abor
   assert.deepEqual(parFrequence({ collections: [['c', 'theme']], variables: [colors('colors/b', '2'), colors('Colors/a', '1')] }), ['colors', 'Colors']);
 });
 
-test('line-height compte lineheight et LineHeight, et garde la forme la plus fréquente du fichier pour la recherche', () => {
+test('line-height compte lineheight et LineHeight, une ligne par place, et garde la forme du fichier à cette place pour la recherche', () => {
   const projection = projeter(calculer(playground));
-  const lineHeight = toutLeVocabulaire(projection).find((terme) => terme.mot === 'line-height')!;
-  assert.deepEqual([lineHeight.nature, lineHeight.nombre, lineHeight.type], [null, 4, 'conforme']);
-  assert.deepEqual(mots(aplatir(premiers(projection, { recherche: 'lineheight' }))), ['line-height'], 'la forme du fichier se lit encore');
+  const lignes = lignesDuTerme(toutLeVocabulaire(projection), 'line-height');
+  assert.deepEqual(lignes.map((ligne) => [ligne.place, ligne.nature, ligne.nombre, ligne.type]), [['groupes', null, 3, 'conforme'], ['variables', null, 1, 'conforme']]);
+  assert.deepEqual(aplatir(premiers(projection, { recherche: 'lineheight' })).map((terme) => [terme.mot, terme.place]), [['line-height', 'groupes'], ['line-height', 'variables']], 'la forme du fichier se lit encore, dans chaque place');
   assert.deepEqual(projection.fiche('line-height').emploi.exemples.map((ligne) => [ligne.ancien, ligne.marques]), [
     ['lineheight/3xl', [0]], ['lineheight/xl', [0]], ['lineheight/base', [0]],
   ]);
@@ -750,8 +755,8 @@ test('la recherche lit la clé, la forme et les variantes', () => {
   const cherche = (recherche: string) => mots(aplatir(premiers(projection, { recherche })));
   assert.deepEqual(cherche('stress-t'), ['stress-test']);
   assert.deepEqual(cherche('STRESSTEST'), ['stress-test'], 'la forme, sans le tiret de la clé');
-  assert.deepEqual(cherche('lineheight'), ['line-height']);
-  assert.deepEqual(cherche('line-height'), ['line-height']);
+  assert.deepEqual(cherche('lineheight'), ['line-height', 'line-height'], 'une ligne par place');
+  assert.deepEqual(cherche('line-height'), ['line-height', 'line-height']);
 });
 
 test('la fiche d’un nom rend sa forme et sa nature, et marque le segment entier du nom', () => {
@@ -808,9 +813,116 @@ test('le détail du vocabulaire porte le type, la forme et la nature de chaque t
 
 test('une taille s’écrit à sa place : Small reste en dossier, small devient sm dans un nom de variable', () => {
   const enDossier: Fichier = { collections: [['c1', 'components']], variables: variables(['v1', 'Button/Sizes/Small/Gap'], ['v2', 'Display/Small/FontSize']) };
-  const seul = toutLeVocabulaire(projeter(calculer(enDossier, { ecriture: pascalEtMinuscules }))).find((terme) => terme.mot === 'sm')!;
-  assert.deepEqual([seul.forme, seul.type, seul.remplace], ['Small', 'conforme', []], 'en dossier, small est la forme retenue');
+  const seul = lignesDuTerme(toutLeVocabulaire(projeter(calculer(enDossier, { ecriture: pascalEtMinuscules }))), 'sm');
+  assert.deepEqual(seul.map((ligne) => [ligne.place, ligne.forme, ligne.type, ligne.remplace]), [['groupes', 'Small', 'conforme', []]], 'en dossier, small est la forme retenue');
   const avecVariable: Fichier = { ...enDossier, variables: [...enDossier.variables, ...variables(['v3', 'spacing/small'])] };
-  const mixte = toutLeVocabulaire(projeter(calculer(avecVariable, { ecriture: pascalEtMinuscules }))).find((terme) => terme.mot === 'sm')!;
-  assert.deepEqual([mixte.forme, mixte.type, mixte.remplace], ['sm', 'remplace', ['small']], 'seul le nom de variable est remplacé');
+  const mixte = lignesDuTerme(toutLeVocabulaire(projeter(calculer(avecVariable, { ecriture: pascalEtMinuscules }))), 'sm');
+  assert.deepEqual(mixte.map((ligne) => [ligne.place, ligne.forme, ligne.type, ligne.remplace, ligne.nombre]), [
+    ['groupes', 'Small', 'conforme', [], 2], ['variables', 'sm', 'remplace', ['small'], 1],
+  ], 'chaque place a sa ligne, et seul le nom de variable est remplacé');
+});
+
+// La liste par place
+
+const lignesParPlace = (termes: readonly TermeDeListe[]): Record<PlaceDuTerme, string[]> =>
+  ({ groupes: mots(termes.filter((terme) => terme.place === 'groupes')), variables: mots(termes.filter((terme) => terme.place === 'variables')) });
+
+test('un terme employé aux deux places a une ligne par place, avec sa forme, son type, ses variantes et son nombre à cette place', () => {
+  const fichier: Fichier = { collections: [['c1', 'components']], variables: variables(['a', 'Card/Color/fill'], ['b', 'Card/Colors/fill'], ['c', 'Card/gap/colors'], ['d', 'Card/gap/color']) };
+  const projection = projeter(calculer(fichier, { ecriture: pascalEtMinuscules }));
+  const color = lignesDuTerme(toutLeVocabulaire(projection), 'color');
+  assert.deepEqual(color.map((ligne) => [ligne.place, ligne.forme, ligne.type, ligne.remplace, ligne.nombre]), [
+    ['groupes', 'Color', 'remplace', ['Colors'], 2], ['variables', 'color', 'remplace', ['colors'], 2],
+  ]);
+  const conforme: Fichier = { collections: [['c1', 'components']], variables: variables(['a', 'Card/Color/fill'], ['c', 'Card/gap/colors']) };
+  const separees = lignesDuTerme(toutLeVocabulaire(projeter(calculer(conforme, { ecriture: pascalEtMinuscules }))), 'color');
+  assert.deepEqual(separees.map((ligne) => [ligne.place, ligne.type, ligne.remplace, ligne.nombre]), [['groupes', 'conforme', [], 1], ['variables', 'remplace', ['colors'], 1]], 'le type se calcule à chaque place');
+  const trouvees = aplatir(premiers(projeter(calculer(conforme, { ecriture: pascalEtMinuscules })), { recherche: 'colors' }));
+  assert.deepEqual(trouvees.map((ligne) => [ligne.place, ligne.trouve]), [['variables', 'colors']], 'la recherche se juge ligne par ligne : la variante n’est employée qu’en variable');
+  assert.deepEqual(projeter(calculer(conforme, { ecriture: pascalEtMinuscules })).fiche('color').remplace.map((variante) => variante.mot), ['colors', 'colour', 'colours'], 'la fiche reste celle du terme, toutes places confondues');
+});
+
+test('un composant, une palette et un terme sans occurrence n’ont qu’une ligne', () => {
+  const termes = toutLeVocabulaire(projeter(calculer(playground, { termes: [{ terme: ['extra', 'small'], remplace: [['xs']] }], ecarts: ['disabled'] })));
+  for (const mot of ['button', 'stress-test', 'poppy']) assert.deepEqual(lignesDuTerme(termes, mot).map((ligne) => ligne.place), ['groupes'], mot);
+  for (const mot of ['extra-small', 'disabled']) assert.deepEqual(lignesDuTerme(termes, mot).map((ligne) => ligne.place), ['variables'], `${mot} : sans occurrence, les variables`);
+  const enGroupe = toutLeVocabulaire(projeter(calculer({ collections: [['c1', 'components']], variables: variables(['a', 'Card/disabled/fill']) }, { ecarts: ['disabled'] })));
+  assert.deepEqual(lignesDuTerme(enGroupe, 'disabled').map((ligne) => ligne.place), ['groupes'], 'la place que le fichier emploie le plus');
+});
+
+const fichierDesNombres: Fichier = {
+  collections: [['c1', 'theme']],
+  variables: variables(['a', 'zeta/Banana/alfa'], ['b', 'zeta/Banana/bravo'], ['c', 'zeta/Banana/charlie'], ['d', 'zeta/apple/alfa'], ['e', 'zeta/Cherry/alfa'], ['f', 'zeta/Dune/alfa'], ['g', 'zeta/Dune/bravo']),
+};
+
+test('en tri alphabétique, une section porte ses groupes puis ses variables, cinq de chaque, avec le total de chaque place', () => {
+  const projection = projeter(calculer(fichierDesNombres));
+  const [section] = premiers(projection, { types: ['sans-regle'] }).sections;
+  assert.deepEqual(lignesParPlace(section.termes), { groupes: ['apple', 'banana', 'cherry', 'dune', 'zeta'], variables: ['alfa', 'bravo', 'charlie'] });
+  assert.deepEqual(section.termes.map((terme) => terme.place), ['groupes', 'groupes', 'groupes', 'groupes', 'groupes', 'variables', 'variables', 'variables'], 'les groupes d’abord');
+  assert.deepEqual([section.total, section.totaux], [8, { groupes: 5, variables: 3 }]);
+
+  const nombreux: Fichier = {
+    collections: [['c1', 'theme']],
+    variables: Array.from({ length: 60 }, (_, rang) => {
+      const lettres = `${String.fromCharCode(97 + (rang % 26))}${String.fromCharCode(97 + Math.floor(rang / 26))}`;
+      return { id: `n${rang}`, nom: `grp${lettres}x/val${lettres}x` };
+    }),
+  };
+  const grande = projeter(calculer(nombreux));
+  const [resume] = premiers(grande, { types: ['sans-regle'] }).sections;
+  assert.deepEqual([resume.total, resume.totaux, resume.termes.length], [120, { groupes: 60, variables: 60 }, 10]);
+  assert.deepEqual(resume.termes.map((terme) => terme.place), [...Array(5).fill('groupes'), ...Array(5).fill('variables')], 'cinq lignes de chaque place');
+  const page = (place: PlaceDuTerme | null, debut: number) => premiers(grande, { types: ['sans-regle'], section: 'sans-regle', place, debut }).sections[0];
+  const groupes = [page('groupes', 0), page('groupes', 50)];
+  assert.deepEqual(groupes.map((lue) => [lue.termes.length, lue.total, lue.totaux]), [[50, 120, { groupes: 60, variables: 60 }], [10, 120, { groupes: 60, variables: 60 }]]);
+  assert.ok([...groupes[0].termes, ...groupes[1].termes].every((terme) => terme.place === 'groupes'), 'la page d’une place ne lit que cette place');
+  assert.equal(new Set([...groupes[0].termes, ...groupes[1].termes].map((terme) => terme.mot)).size, 60);
+  const variablesLues = [page('variables', 0), page('variables', 50)];
+  assert.deepEqual(variablesLues.map((lue) => lue.termes.length), [50, 10]);
+  assert.ok(variablesLues.flatMap((lue) => lue.termes).every((terme) => terme.place === 'variables'));
+  assert.deepEqual(page('variables', 60).termes, [], 'au-delà de la place, rien');
+  assert.deepEqual(page(null, 55).termes.map((terme) => terme.place), [...Array(5).fill('groupes'), ...Array(45).fill('variables')], 'sans place, les groupes puis les variables');
+});
+
+test('en tri par nombre, les deux places se mêlent et la section porte cinq lignes', () => {
+  const projection = projeter(calculer(fichierDesNombres));
+  const [section] = premiers(projection, { types: ['sans-regle'], tri: 'nombre' }).sections;
+  assert.deepEqual(section.termes.map((terme) => [terme.mot, terme.place, terme.nombre]), [
+    ['zeta', 'groupes', 7], ['alfa', 'variables', 4], ['banana', 'groupes', 3], ['bravo', 'variables', 2], ['dune', 'groupes', 2],
+  ]);
+  assert.deepEqual([section.total, section.totaux], [8, { groupes: 5, variables: 3 }]);
+  const suite = premiers(projection, { types: ['sans-regle'], tri: 'nombre', section: 'sans-regle', place: 'groupes', debut: 5 }).sections[0];
+  assert.deepEqual(suite.termes.map((terme) => [terme.mot, terme.place]), [['apple', 'groupes'], ['charlie', 'variables'], ['cherry', 'groupes']], 'la page suit la suite mêlée ; place est ignoré');
+});
+
+test('le filtre de place garde les lignes d’une place sans changer les comptes', () => {
+  const projection = projeter(calculer(playground, { ecriture: pascalEtMinuscules }));
+  const tout = premiers(projection);
+  const toutes = toutLeVocabulaire(projection);
+  const enVariable = toutLeVocabulaire(projection, { places: ['variables'] });
+  assert.ok(enVariable.length > 0 && enVariable.every((terme) => terme.place === 'variables'));
+  assert.deepEqual(mots(enVariable), mots(toutes.filter((terme) => terme.place === 'variables')));
+  assert.deepEqual(lignesDuTerme(enVariable, 'line-height').map((terme) => terme.forme), ['line-height']);
+  const enGroupe = toutLeVocabulaire(projection, { places: ['groupes'] });
+  assert.deepEqual(lignesDuTerme(enGroupe, 'line-height').map((terme) => terme.forme), ['LineHeight']);
+  assert.equal(enGroupe.length + enVariable.length, toutes.length);
+  assert.deepEqual(mots(toutLeVocabulaire(projection, { places: ['groupes', 'variables'] })), mots(toutes), 'les deux places = toutes');
+  assert.deepEqual(premiers(projection, { places: ['variables'] }).comptes, tout.comptes);
+  assert.deepEqual(premiers(projection, { places: ['variables'] }).sections.map((section) => section.totaux.groupes), premiers(projection, { places: ['variables'] }).sections.map(() => 0));
+  assert.equal(premiers(projection, { places: ['groupes'], types: ['composant'] }).sections[0].total, 2);
+  assert.equal(premiers(projection, { places: ['variables'], types: ['composant'] }).sections.length, 0, 'un nom n’a pas de ligne en variable');
+});
+
+test('les comptes de places comptent les lignes, hors recherche et filtres', () => {
+  const projection = projeter(calculer(playground, { ecriture: pascalEtMinuscules }));
+  const { comptes } = premiers(projection);
+  const toutes = toutLeVocabulaire(projection);
+  assert.deepEqual(comptes.places, { groupes: toutes.filter((terme) => terme.place === 'groupes').length, variables: toutes.filter((terme) => terme.place === 'variables').length });
+  assert.equal(comptes.places.groupes + comptes.places.variables, toutes.length);
+  assert.equal(Object.values(comptes.types).reduce((somme, nombre) => somme + nombre, 0), toutes.length, 'les types comptent des lignes');
+  assert.ok(toutes.filter((terme) => terme.mot === 'line-height').length === 2 && comptes.places.variables > 0);
+  for (const demande of [{ recherche: 'zzz' }, { places: ['groupes'] }, { places: ['variables'], tri: 'nombre' }, { section: 'conforme', place: 'groupes', debut: 5 }] satisfies Partial<RequeteDeTermes>[]) {
+    assert.deepEqual(premiers(projection, demande).comptes, comptes, JSON.stringify(demande));
+  }
 });

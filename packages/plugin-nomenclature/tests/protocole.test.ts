@@ -93,7 +93,7 @@ function banc(options: OptionsDuBanc = {}) {
 type DistributiveOmit<T, K extends keyof never> = T extends unknown ? Omit<T, K> : never;
 
 const regleEcriture: GesteSurLesRegles = { type: 'ecriture', ecriture };
-const TOUS = { recherche: '', types: [], origines: [], tri: 'alpha', section: null, debut: 0 } as const;
+const TOUS = { recherche: '', types: [], origines: [], places: [], tri: 'alpha', section: null, place: null, debut: 0 } as const;
 
 /** Les termes de chaque type demandé, lus section par section : la première page de cinquante lignes de chacune. */
 async function lireLesTermes(b: ReturnType<typeof banc>, generation: number, types: readonly TypeDeTerme[] = TYPES_DE_TERMES): Promise<TermeDeListe[]> {
@@ -570,14 +570,14 @@ test('le vocabulaire du Playground : noms et mots se séparent, les sections et 
   assert.deepEqual([resume.section, resume.debut], [null, 0]);
   const ordre = resume.sections.map((section) => section.type);
   assert.deepEqual(ordre, TYPES_DE_TERMES.filter((type) => ordre.includes(type)), 'les sections suivent l’ordre des types');
-  assert.ok(resume.sections.every((section) => section.total > 0 && section.termes.length === Math.min(section.total, 5)), 'au plus cinq lignes par section, avec le total');
+  assert.ok(resume.sections.every((section) => section.total > 0 && section.termes.length === Math.min(section.totaux.groupes, 5) + Math.min(section.totaux.variables, 5)), 'au plus cinq lignes par place et par section, avec le total');
   const termes = await lireLesTermes(b, generation);
   const mots = termes.map((terme) => terme.mot);
   for (const absent of ['line', 'height', 'stress', 'test', 'wrap', 'columns', 'components', 'primitives', 'typography', 'theme']) assert.equal(mots.includes(absent), false, absent);
   const stress = termes.find((terme) => terme.mot === 'stress-test');
   assert.deepEqual([stress?.forme, stress?.nature, stress?.type, stress?.nombre], ['StressTest', 'composant', 'composant', 3]);
-  const hauteur = termes.find((terme) => terme.mot === 'line-height');
-  assert.deepEqual([hauteur?.type, hauteur?.nombre], ['conforme', 3]);
+  const hauteur = termes.filter((terme) => terme.mot === 'line-height');
+  assert.deepEqual(hauteur.map((terme) => [terme.place, terme.type, terme.nombre]), [['groupes', 'conforme', 2], ['variables', 'conforme', 1]], 'une ligne par place');
 
   assert.deepEqual(termes.filter((terme) => terme.type === 'composant').map((terme) => terme.mot).sort(), ['button', 'stress-test']);
   assert.deepEqual(termes.filter((terme) => terme.type === 'palette').map((terme) => terme.mot).sort(), ['poppy', 'sky'], 'sky n’a qu’un cran : l’identifiant de palette lu dans Figma suffit');

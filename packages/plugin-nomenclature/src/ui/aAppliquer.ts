@@ -29,7 +29,7 @@ import { apresUnePage, creerLaFile, nomsRestants, prochainDebut, sectionsDansLOr
 import { annonceApresUneErreur, annonceDUneApplication, type Annonce, type Attente } from './annonce';
 import { TEXTES } from './textes';
 
-type Pastille = 'ucm' | 'personnalise' | 'nouveau' | 'bloque' | 'protege';
+type Pastille = 'nouveau' | 'bloque' | 'protege';
 
 /** Un texte entre accents graves met ces mots en code (voir `textes.ts`). */
 function poserLeTexte(element: HTMLElement, texte: string): void {
@@ -98,14 +98,6 @@ function fabriquerPastille(variante: Pastille): HTMLElement {
   const pastille = document.createElement('span');
   pastille.className = 'pastille';
   switch (variante) {
-    case 'ucm':
-      pastille.classList.add('pastille-ucm');
-      pastille.textContent = TEXTES.pastilleUcm;
-      break;
-    case 'personnalise':
-      pastille.classList.add('pastille-personnalise');
-      pastille.textContent = TEXTES.pastillePersonnalise;
-      break;
     case 'nouveau':
       pastille.classList.add('pastille-nouveau');
       pastille.textContent = TEXTES.pastilleNouveau;
@@ -120,6 +112,14 @@ function fabriquerPastille(variante: Pastille): HTMLElement {
       break;
   }
   return pastille;
+}
+
+/** L'origine d'une règle de terme : du texte gris, sans fond. */
+function fabriquerOrigine(origine: 'ucm' | 'personnalise'): HTMLElement {
+  const element = document.createElement('span');
+  element.className = 'origine';
+  element.textContent = origine === 'ucm' ? TEXTES.pastilleUcm : TEXTES.pastillePersonnalise;
+  return element;
 }
 
 function fabriquerJeton(texte: string, variante: 'retire' | 'retenu' | 'neutre'): HTMLElement {
@@ -386,7 +386,7 @@ export function monterAAppliquer(coquille: Coquille): void {
     pile.append(fabriquerLaTete(groupe), detail);
     const droite = document.createElement('span');
     droite.className = 'droite';
-    if (groupe.regle.sorte === 'terme') droite.append(fabriquerPastille(groupe.regle.origine === 'ucm' ? 'ucm' : 'personnalise'));
+    if (groupe.regle.sorte === 'terme') droite.append(fabriquerOrigine(groupe.regle.origine === 'ucm' ? 'ucm' : 'personnalise'));
     if (groupe.nouveau) droite.append(fabriquerPastille('nouveau'));
     if (peutSeDeplier) droite.append(creerChevron());
     bouton.append(pile, droite);

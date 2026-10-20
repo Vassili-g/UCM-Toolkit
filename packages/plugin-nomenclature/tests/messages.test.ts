@@ -9,7 +9,7 @@ const selection = { groupes: ['a'], exclus: ['b'], inclus: ['c'] };
 const valides: Record<string, unknown> = {
   analyser: { type: 'analyser', demande: 1 },
   lignes: { type: 'lignes', demande: 2, generation: 1, groupe: 'g', debut: 0 },
-  termes: { type: 'termes', demande: 3, generation: 1, recherche: 'bg', types: ['remplace', 'conforme'], origines: ['ucm'], tri: 'nombre', section: 'remplace', debut: 50 },
+  termes: { type: 'termes', demande: 3, generation: 1, recherche: 'bg', types: ['remplace', 'conforme'], origines: ['ucm'], places: ['groupes'], tri: 'nombre', section: 'remplace', place: 'variables', debut: 50 },
   fiche: { type: 'fiche', demande: 4, generation: 1, terme: 'bg' },
   diagnostic: { type: 'diagnostic', demande: 13, generation: 1 },
   simuler: { type: 'simuler', demande: 5, generation: 1, geste: { type: 'supprimer', terme: 'bg' } },
@@ -59,12 +59,16 @@ test('termes accepte chaque type, origine, tri et section, et refuse le reste', 
   assert.equal(estUiMessage({ ...termes, types: [], origines: [], section: null }), true, 'vide = tous');
   for (const origines of [['ucm'], ['personnalise'], ['ucm', 'personnalise']]) assert.equal(estUiMessage({ ...termes, origines }), true, origines.join());
   for (const tri of ['alpha', 'nombre']) assert.equal(estUiMessage({ ...termes, tri }), true, tri);
+  for (const places of [[], ['groupes'], ['variables'], ['groupes', 'variables']]) assert.equal(estUiMessage({ ...termes, places }), true, places.join() || 'vide = toutes');
+  for (const place of [null, 'groupes', 'variables']) assert.equal(estUiMessage({ ...termes, place }), true, String(place));
   const refus: Record<string, unknown> = {
     'ancien filtre': { type: 'termes', demande: 3, generation: 1, recherche: '', filtre: 'tous', debut: 0 },
     'types absent': { ...termes, types: undefined }, 'types en chaîne': { ...termes, types: 'remplace' }, 'type inconnu': { ...termes, types: ['composants'] },
     'origine inconnue': { ...termes, origines: ['perso'] }, 'origines absent': { ...termes, origines: undefined },
     'tri inconnu': { ...termes, tri: 'nom' }, 'tri absent': { ...termes, tri: undefined },
     'section inconnue': { ...termes, section: 'palettes' }, 'section absente': { ...termes, section: undefined },
+    'place inconnue': { ...termes, places: ['noms'] }, 'places absent': { ...termes, places: undefined }, 'places en chaîne': { ...termes, places: 'groupes' },
+    'page de place inconnue': { ...termes, place: 'noms' }, 'page de place absente': { ...termes, place: undefined },
   };
   for (const [nom, message] of Object.entries(refus)) assert.equal(estUiMessage(message), false, nom);
 });

@@ -319,3 +319,27 @@ test('annuler-import rétablit l’écriture et le terme qu’un import avait é
   assert.equal(b.bilan().dernierImport, null);
   assert.deepEqual([...b.stock].sort(), [...depart].sort());
 });
+
+test('termes transmet le filtre de places et la place de la page, et répond les totaux de chaque place', async () => {
+  const b = banc(PAIRES, { ecriture });
+  await b.envoyer({ type: 'analyser' });
+  const { generation } = b.bilan();
+  const demande = { type: 'termes', generation, recherche: '', types: [], origines: [], places: [], tri: 'alpha', section: null, place: null, debut: 0 } as const;
+  const lire = async (reste: Partial<Extract<DemandeArchitect, { type: 'termes' }>>) => {
+    await b.envoyer({ ...demande, ...reste });
+    const reponse = b.messages.find((m) => m.type === 'termes');
+    assert.ok(reponse && reponse.type === 'termes');
+    return reponse;
+  };
+  const tout = await lire({});
+  const lignes = tout.sections.flatMap((section) => section.termes);
+  assert.ok(lignes.some((ligne) => ligne.place === 'groupes') && lignes.some((ligne) => ligne.place === 'variables'));
+  assert.equal(tout.comptes.places.groupes + tout.comptes.places.variables, Object.values(tout.comptes.types).reduce((somme, nombre) => somme + nombre, 0));
+  const enVariable = await lire({ places: ['variables'] });
+  assert.ok(enVariable.sections.flatMap((section) => section.termes).every((ligne) => ligne.place === 'variables'));
+  assert.ok(enVariable.sections.every((section) => section.totaux.groupes === 0 && section.total === section.totaux.variables));
+  assert.deepEqual(enVariable.comptes, tout.comptes);
+  const type = tout.sections.find((section) => section.totaux.groupes > 0)!.type;
+  const page = await lire({ section: type, place: 'groupes' });
+  assert.ok(page.sections[0].termes.length > 0 && page.sections[0].termes.every((ligne) => ligne.place === 'groupes'), 'la page ne lit que la place demandée');
+});

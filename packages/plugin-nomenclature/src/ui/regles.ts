@@ -3,36 +3,42 @@
  * son bouton Modifier, puis la section du vocabulaire : une section par type de
  * terme, sous une barre qui porte le menu Filtrer, la recherche et le tri. Chaque
  * section arrive avec ses premières lignes, puis se lit par pages (demande
- * `termes`) ; l'état qu'elle suit vit dans `listeDesTermes.ts`. Les feuilles de l'écriture et d'un
+ * `termes`), par place en tri A → Z ; l'état qu'elle suit vit dans `listeDesTermes.ts`. Les feuilles de l'écriture et d'un
  * terme (lot U4b) se branchent sur les deux rappels que `monterRegles` rend. En bas de page, un lien discret
  * télécharge le détail du vocabulaire (demande `diagnostic`).
  */
 import { CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, collectionUcmReconnue, libelleDuTerme, termeRetenu, type Convention } from '@ucm-kit/core/referentiel';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
-import { ORIGINES_DE_FILTRE, TRIS_DE_TERMES, TYPES_DE_TERMES } from '../messages';
-import type { Bilan, LigneVue, OrigineDeFiltre, SectionDeTermes, TermeDeListe, TriDeTermes, TypeDeTerme } from '../messages';
+import { ORIGINES_DE_FILTRE, PLACES_DE_TERMES, TRIS_DE_TERMES, TYPES_DE_TERMES } from '../messages';
+import type { Bilan, LigneVue, OrigineDeFiltre, PlaceDuTerme, SectionDeTermes, TermeDeListe, TriDeTermes, TypeDeTerme } from '../messages';
 import type { Coquille } from './coquille';
 import { creerIconeDeType } from './icones';
 import {
   LISTE_INITIALE,
+  bandeDeLaSection,
   basculerLePli,
   basculerUneOrigine,
+  basculerUnePlace,
   basculerUnType,
+  blocsDeLaSection,
   choisir,
   estRepliee,
   filtresActifs,
   morceauxDuTerme,
   nomAccessibleDuTerme,
+  origineDeLaLigne,
   pastilleDeLaLigne,
   phraseDeRecherche,
   recevoir,
   requeteDeLaListe,
-  resteDansLaSection,
   retirerUnFiltre,
   saisir,
+  teinter,
   termesRecus,
+  texteDeLaSuite,
   trier,
+  type BlocDeSection,
   type EtatDeLaListe,
   type FiltreActif,
 } from './listeDesTermes';
@@ -83,21 +89,25 @@ interface LigneDuResume {
   readonly ligne: HTMLElement;
   readonly specimen: HTMLElement;
   readonly exemple: HTMLElement;
+  /** La place dont le spécimen et la partie de l'exemple prennent la teinte ; `null` pour les collections, qui restent neutres. */
+  readonly place: PlaceDuTerme | null;
 }
 
-function creerLigneDuResume(nom: string): LigneDuResume {
+function creerLigneDuResume(nom: string, place: PlaceDuTerme | null): LigneDuResume {
   const categorie = document.createElement('span');
   categorie.className = 'meta';
   categorie.textContent = nom;
   const specimen = document.createElement('span');
-  specimen.className = 'jeton jeton-neutre';
+  specimen.className = 'jeton';
+  if (place === null) specimen.classList.add('jeton-neutre');
+  else teinter(specimen, place, 'jeton');
   specimen.setAttribute('role', 'img');
   const exemple = document.createElement('span');
   exemple.className = 'ecriture-exemple';
   const ligne = document.createElement('div');
   ligne.className = 'ecriture-regle';
   ligne.append(categorie, specimen, exemple);
-  return { ligne, specimen, exemple };
+  return { ligne, specimen, exemple, place };
 }
 
 /** Le spécimen en pastille ; le libellé de la convention reste le nom accessible de la pastille. */
@@ -114,6 +124,7 @@ function poserLExemple(cible: LigneDuResume, exemple: LigneVue | null): void {
     if (!exemple?.marques.includes(rang)) return [...separateur, segment];
     const concerne = document.createElement('span');
     concerne.className = 'ecriture-partie';
+    if (cible.place !== null) teinter(concerne, cible.place, 'mot');
     concerne.textContent = segment;
     return [...separateur, concerne];
   }));
@@ -125,11 +136,21 @@ function exempleDeCollection(bilan: Bilan): LigneVue | null {
   return reconnue ? { id: reconnue.id, ancien: reconnue.nom, nouveau: reconnue.nom, marques: [0], aussi: [] } : null;
 }
 
+/** Le terme de référence d'une phrase, en jeton gris : il ne dit pas sa place. */
 function creerPastilleDeReference(texte: string): HTMLElement {
   const reference = document.createElement('span');
   reference.className = 'jeton jeton-neutre petit';
   reference.textContent = texte;
   return reference;
+}
+
+/** Le terme d'une règle en jeton, teinté selon sa place. */
+function creerJetonDeTerme(texte: string, place: PlaceDuTerme): HTMLElement {
+  const jeton = document.createElement('span');
+  jeton.className = 'jeton petit';
+  teinter(jeton, place, 'jeton');
+  jeton.textContent = texte;
+  return jeton;
 }
 
 function creerLigneDeTerme(terme: TermeDeListe, choisie: boolean, auClic: () => void): HTMLElement {
@@ -145,10 +166,11 @@ function creerLigneDeTerme(terme: TermeDeListe, choisie: boolean, auClic: () => 
   const variantes = document.createElement('span');
   for (const morceau of morceauxDuTerme(terme)) {
     if (morceau.sorte === 'reference') {
-      regle.append(creerPastilleDeReference(morceau.texte));
+      regle.append(creerJetonDeTerme(morceau.texte, terme.place));
     } else if (morceau.sorte === 'mot') {
       const mot = document.createElement('code');
       mot.className = 'mot';
+      teinter(mot, terme.place, 'mot');
       mot.textContent = morceau.texte;
       regle.append(mot);
     } else if (morceau.sorte === 'gris') {
@@ -166,11 +188,16 @@ function creerLigneDeTerme(terme: TermeDeListe, choisie: boolean, auClic: () => 
   }
   if (variantes.childElementCount > 0) regle.append(variantes);
 
+  // À droite : la pastille « À trancher », sinon l'origine en texte gris, sinon une cellule vide.
   const droite = document.createElement('span');
   const pastille = pastilleDeLaLigne(terme);
+  const origine = origineDeLaLigne(terme);
   if (pastille) {
     droite.classList.add('pastille', pastille.classe);
     droite.textContent = pastille.texte;
+  } else if (origine !== null) {
+    droite.className = 'origine';
+    droite.textContent = origine;
   }
   const nombre = document.createElement('span');
   nombre.className = 'meta terme-nombre';
@@ -201,6 +228,13 @@ function creerCaseDuMenu(libelle: string, icone: HTMLElement | null, auChangemen
   const ligne = document.createElement('label');
   ligne.append(caseACocher, icone ?? document.createElement('span'), texte, compte);
   return { ligne, caseACocher, compte };
+}
+
+/** Le petit carré de la couleur d'une place, devant l'intertitre d'un bloc et la case du menu. */
+function creerEchantillonDePlace(place: PlaceDuTerme): HTMLElement {
+  const echantillon = document.createElement('span');
+  teinter(echantillon, place, 'echantillon');
+  return echantillon;
 }
 
 function creerIntituleDuMenu(texte: string): HTMLElement {
@@ -239,9 +273,9 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
   // Les conventions d'écriture.
   const modifier = createButton({ label: TEXTES.modifier, variant: 'secondary', compact: true, onClick: () => modifierLEcriture() });
   modifier.setAttribute('aria-label', TEXTES.modifierLEcriture);
-  const groupes = creerLigneDuResume(TEXTES.ecritureDesGroupes);
-  const noms = creerLigneDuResume(TEXTES.ecritureDesNoms);
-  const collections = creerLigneDuResume(TEXTES.ecritureDesCollections);
+  const groupes = creerLigneDuResume(TEXTES.ecritureDesGroupes, 'groupes');
+  const noms = creerLigneDuResume(TEXTES.ecritureDesNoms, 'variables');
+  const collections = creerLigneDuResume(TEXTES.ecritureDesCollections, null);
   poserLeSpecimen(collections, { specimen: TEXTES.nomsUcm, libelle: TEXTES.nomsUcm });
   const lignesDeLEcriture = document.createElement('div');
   lignesDeLEcriture.className = 'ecriture-regles';
@@ -265,6 +299,12 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
       demander(null);
     })]),
   );
+  const casesDePlace = new Map<PlaceDuTerme, CaseDuMenu>(
+    PLACES_DE_TERMES.map((place) => [place, creerCaseDuMenu(TEXTES.placeDeFiltre[place], creerEchantillonDePlace(place), () => {
+      liste = basculerUnePlace(liste, place);
+      demander(null);
+    })]),
+  );
   const menu = document.createElement('div');
   menu.className = 'menu-filtres';
   menu.id = 'menu-filtres';
@@ -274,6 +314,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
   menu.append(
     creerIntituleDuMenu(TEXTES.titreDesTypes), ...[...casesDeTypes.values()].map(({ ligne }) => ligne),
     creerIntituleDuMenu(TEXTES.titreDesOrigines), ...[...casesDOrigine.values()].map(({ ligne }) => ligne),
+    creerIntituleDuMenu(TEXTES.titreDesPlaces), ...[...casesDePlace.values()].map(({ ligne }) => ligne),
   );
   const ancreDuMenu = document.createElement('span');
   ancreDuMenu.className = 'ancre-menu';
@@ -362,57 +403,81 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
     boutonFiltrer.focus();
   }
 
-  /** Une section : sa tête qui la replie, ses lignes, et de quoi demander la suite. */
-  function creerLaSection(section: SectionDeTermes): HTMLElement {
+  /** La bande en tête du cadre d'une section : toute la bande plie ou déplie la section. */
+  function creerLaBande(section: SectionDeTermes): HTMLElement {
     const type = section.type;
-    const titre = TEXTES.typeDeTerme[type];
-    const repliee = estRepliee(liste, type);
-    const entete = document.createElement('button');
-    entete.type = 'button';
-    entete.className = 'section-type-tete';
-    entete.dataset.cle = `entete:${type}`;
-    entete.setAttribute('aria-expanded', String(!repliee));
-    entete.setAttribute('aria-label', repliee ? TEXTES.deplierLaSection(titre) : TEXTES.replierLaSection(titre));
-    entete.addEventListener('click', () => {
+    const bande = bandeDeLaSection(liste, section);
+    const bouton = document.createElement('button');
+    bouton.type = 'button';
+    bouton.className = 'bande-section';
+    bouton.dataset.cle = `entete:${type}`;
+    bouton.setAttribute('aria-expanded', String(bande.ouverte));
+    bouton.setAttribute('aria-label', bande.libelle);
+    bouton.addEventListener('click', () => {
       liste = basculerLePli(liste, type);
       rendre();
     });
     const nom = document.createElement('span');
-    nom.textContent = titre;
+    nom.className = 'titre-de-section';
+    nom.append(bande.titre, ' ');
     const total = document.createElement('span');
-    total.className = 'meta section-type-total';
-    total.textContent = String(section.total);
-    entete.append(creerIconeDeType(type), nom, total, creerChevron());
+    total.className = 'meta';
+    total.textContent = String(bande.total);
+    nom.append(total);
+    const ligne = document.createElement('span');
+    ligne.className = 'ligne-de-section';
+    ligne.textContent = bande.ligne;
+    const texte = document.createElement('span');
+    texte.className = 'texte-de-section';
+    texte.append(nom, ligne);
+    bouton.append(creerIconeDeType(type), texte, creerChevron());
     const intitule = document.createElement('h3');
-    intitule.className = 'section-type-titre';
-    intitule.append(entete);
+    intitule.append(bouton);
+    return intitule;
+  }
 
-    const element = document.createElement('div');
-    element.className = 'section-type';
-    element.append(intitule);
-    if (repliee) return element;
+  /** L'intertitre d'un bloc : l'échantillon de la place, son nom et son total. */
+  function creerLIntertitre(bloc: BlocDeSection, place: PlaceDuTerme): HTMLElement {
+    const total = document.createElement('span');
+    total.className = 'meta';
+    total.textContent = String(bloc.total);
+    const intertitre = document.createElement('div');
+    intertitre.className = 'intertitre-place';
+    intertitre.append(creerEchantillonDePlace(place), TEXTES.intertitreDePlace[place], total);
+    return intertitre;
+  }
 
+  /** « Afficher les n autres » d'un bloc : la page de sa place, ou de la section en tri par nombre. */
+  function creerLaSuite(type: TypeDeTerme, bloc: BlocDeSection): HTMLElement {
+    const afficherLaSuite = document.createElement('button');
+    afficherLaSuite.type = 'button';
+    afficherLaSuite.className = 'lien';
+    afficherLaSuite.dataset.cle = bloc.intertitre && bloc.place !== null ? `plus:${type}:${bloc.place}` : `plus:${type}`;
+    afficherLaSuite.textContent = texteDeLaSuite(bloc);
+    afficherLaSuite.disabled = enCours !== null;
+    afficherLaSuite.addEventListener('click', () => demander(type, bloc.place));
+    const pied = document.createElement('div');
+    pied.className = 'plus-dans-section';
+    pied.append(afficherLaSuite);
+    return pied;
+  }
+
+  /** Une section : un cadre dont la bande est le titre, puis ses blocs de lignes, chacun avec de quoi demander la suite. */
+  function creerLaSection(section: SectionDeTermes): HTMLElement {
+    const type = section.type;
     const lignes = document.createElement('div');
     lignes.className = 'liste-termes';
     lignes.setAttribute('role', 'group');
-    lignes.setAttribute('aria-label', titre);
-    lignes.append(...section.termes.map((terme) => creerLigneDeTerme(terme, terme.mot === liste.choisi, () => choisirUnTerme(terme))));
-    const reste = resteDansLaSection(section);
-    if (reste > 0) {
-      const afficherLaSuite = document.createElement('button');
-      afficherLaSuite.type = 'button';
-      afficherLaSuite.className = 'lien';
-      afficherLaSuite.dataset.cle = `plus:${type}`;
-      afficherLaSuite.textContent = TEXTES.afficherLesAutres(reste);
-      afficherLaSuite.disabled = enCours !== null;
-      afficherLaSuite.addEventListener('click', () => demander(type));
-      const pied = document.createElement('div');
-      pied.className = 'plus-dans-section';
-      pied.append(afficherLaSuite);
-      lignes.append(pied);
+    lignes.setAttribute('aria-label', TEXTES.typeDeTerme[type]);
+    lignes.append(creerLaBande(section));
+    if (!estRepliee(liste, type)) {
+      for (const bloc of blocsDeLaSection(section, liste.tri)) {
+        if (bloc.intertitre && bloc.place !== null) lignes.append(creerLIntertitre(bloc, bloc.place));
+        lignes.append(...bloc.termes.map((terme) => creerLigneDeTerme(terme, terme.mot === liste.choisi, () => choisirUnTerme(terme))));
+        if (bloc.reste > 0) lignes.append(creerLaSuite(type, bloc));
+      }
     }
-    element.append(lignes);
-    return element;
+    return lignes;
   }
 
   /** Les sections se reconstruisent à chaque rendu : la clé de l'élément qui avait le focus permet de le retrouver. */
@@ -439,12 +504,17 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
       caseACocher.checked = liste.origines.includes(origine);
       compte.textContent = liste.comptes ? String(liste.comptes.origines[origine]) : '';
     }
+    for (const [place, { caseACocher, compte }] of casesDePlace) {
+      caseACocher.checked = liste.places.includes(place);
+      compte.textContent = liste.comptes ? String(liste.comptes.places[place]) : '';
+    }
     choixDuTri.value = liste.tri;
 
     const cle = cleDuFocusDansLesSections();
     sections.replaceChildren(...(liste.sections ?? []).map(creerLaSection));
     if (cle !== undefined) {
-      const retrouve = sections.querySelector<HTMLElement>(`[data-cle="${cle}"]`) ?? sections.querySelector<HTMLElement>(`[data-cle="entete:${cle.slice(cle.indexOf(':') + 1)}"]`);
+      // Un lien « Afficher les n autres » qui disparaît laisse le focus à la bande de sa section.
+      const retrouve = sections.querySelector<HTMLElement>(`[data-cle="${cle}"]`) ?? sections.querySelector<HTMLElement>(`[data-cle="entete:${cle.split(':')[1]}"]`);
       retrouve?.focus();
     }
     const phrase = phraseDeRecherche(termesRecus(liste));
@@ -460,15 +530,15 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
   }
 
   /**
-   * Demande les premières lignes de chaque section (`section` à `null`), ou la page suivante d'une section. Une demande de même
-   * clé rend la précédente caduque côté frontière : seul `enCours` fait foi.
+   * Demande les premières lignes de chaque section (`section` à `null`), ou la page suivante d'une section, ou d'une place de la section
+   * en tri A → Z. Une demande de même clé rend la précédente caduque côté frontière : seul `enCours` fait foi.
    */
-  function demander(section: TypeDeTerme | null): void {
+  function demander(section: TypeDeTerme | null, place: PlaceDuTerme | null = null): void {
     if (minuteur !== null) {
       clearTimeout(minuteur);
       minuteur = null;
     }
-    enCours = frontiere.termes(requeteDeLaListe(liste, section));
+    enCours = frontiere.termes(requeteDeLaListe(liste, section, place));
     rendre();
   }
 

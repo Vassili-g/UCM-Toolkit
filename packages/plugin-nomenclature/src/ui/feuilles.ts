@@ -237,7 +237,7 @@ function creerLeContenu(): HTMLElement {
 }
 
 function creerPastille(texte: string, variante: 'ucm' | 'personnalise' | 'indice'): HTMLElement {
-  return el('span', `pastille pastille-${variante}`, texte);
+  return variante === 'indice' ? el('span', 'pastille pastille-indice', texte) : el('span', 'origine', texte);
 }
 
 /** Le pied d'une feuille : un bouton à gauche, ou rien, puis les boutons à droite. */
@@ -493,7 +493,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
       if (ancien) {
         ancien.replaceWith(titre);
       }
-      entete.querySelector('.pastille')?.replaceWith();
+      entete.querySelector('.pastille, .origine')?.replaceWith();
       entete.classList.toggle('avec-definition', definition !== null);
       const pastille = origine === null ? null : creerPastille(origine.texte, origine.variante);
       if (definition === null) {

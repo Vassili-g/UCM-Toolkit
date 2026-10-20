@@ -39,22 +39,33 @@ export const TYPES_DE_TERMES: readonly TypeDeTerme[] = ['a-trancher', 'remplace'
 /** Qui a posé la règle d'un terme : le référentiel UCM ou le fichier. */
 export type OrigineDeFiltre = 'ucm' | 'personnalise';
 export const ORIGINES_DE_FILTRE: readonly OrigineDeFiltre[] = ['ucm', 'personnalise'];
+/** La place où une ligne de la liste emploie son terme : le nom d'un groupe ou le dernier segment d'un nom de variable. */
+export type PlaceDuTerme = 'groupes' | 'variables';
+/** Les places dans l'ordre de la liste : les groupes d'abord. */
+export const PLACES_DE_TERMES: readonly PlaceDuTerme[] = ['groupes', 'variables'];
 export type TriDeTermes = 'alpha' | 'nombre';
 export const TRIS_DE_TERMES: readonly TriDeTermes[] = ['alpha', 'nombre'];
 /**
- * Ce que l'écran demande à la liste. `types` et `origines` vides ne filtrent rien ; `origines` ne retient que parmi `remplace` et `conforme`.
+ * Ce que l'écran demande à la liste. `types`, `origines` et `places` vides ne filtrent rien ; `origines` ne retient que parmi `remplace` et `conforme`.
  * Sans `section`, la réponse donne les premières lignes de chaque section ; avec `section`, une page de cette seule section, à partir de `debut`.
+ * `place` n'a d'effet qu'avec `section` et le tri `alpha` : la page ne lit alors que les lignes de cette place. Sinon il vaut `null`.
  */
 export interface RequeteDeTermes {
-  readonly recherche: string; readonly types: readonly TypeDeTerme[]; readonly origines: readonly OrigineDeFiltre[];
-  readonly tri: TriDeTermes; readonly section: TypeDeTerme | null; readonly debut: number;
+  readonly recherche: string; readonly types: readonly TypeDeTerme[]; readonly origines: readonly OrigineDeFiltre[]; readonly places: readonly PlaceDuTerme[];
+  readonly tri: TriDeTermes; readonly section: TypeDeTerme | null; readonly place: PlaceDuTerme | null; readonly debut: number;
 }
-/** Le total d'une section, après recherche et filtres, et ses lignes : les premières, ou la page demandée. */
-export interface SectionDeTermes { readonly type: TypeDeTerme; readonly total: number; readonly termes: readonly TermeDeListe[] }
-/** Le nombre de termes de chaque type et de chaque origine, hors recherche et hors filtres : il alimente le menu des filtres. */
+/**
+ * Le total d'une section, après recherche et filtres, et ses lignes : les premières, ou la page demandée. `totaux` donne le total de chaque
+ * place et `total` en est la somme. En tri `alpha`, les lignes des groupes précèdent celles des variables.
+ */
+export interface SectionDeTermes {
+  readonly type: TypeDeTerme; readonly total: number; readonly totaux: Readonly<Record<PlaceDuTerme, number>>; readonly termes: readonly TermeDeListe[];
+}
+/** Le nombre de lignes de chaque type, de chaque origine et de chaque place, hors recherche et hors filtres : il alimente le menu des filtres. */
 export interface ComptesDeTermes {
   readonly types: Readonly<Record<TypeDeTerme, number>>;
   readonly origines: Readonly<Record<OrigineDeFiltre, number>>;
+  readonly places: Readonly<Record<PlaceDuTerme, number>>;
 }
 
 export type DemandeArchitect =
@@ -124,15 +135,17 @@ export interface Bilan {
   readonly dernierImport: { readonly heure: string } | null;
 }
 /**
- * `mot` est la clé du terme (`stress-test`). `forme` est son écriture affichée : pour un terme réglé, le terme de référence écrit dans la
- * convention de la catégorie qui l'emploie le plus (`Color` en dossier, `line-height` en variable) ; pour un nom ou un mot sans règle,
- * son écriture la plus fréquente dans le fichier (`StressTest`). `nature` vaut `composant` ou `palette` pour un nom, `null` pour un mot.
- * `remplace` liste les formes du fichier des variantes du terme (`Colors`, `colors`), les plus fréquentes d'abord ; une variante que le fichier
- * n'emploie pas n'y figure pas. `trouve`, quand la recherche a trouvé le terme par une variante, en est un élément : si le fichier n'emploie
- * pas cette variante, la ligne trouvée la porte sous sa clé.
+ * Une ligne de la liste : un terme à une place. `mot` est la clé du terme (`stress-test`) ; un terme employé aux deux places a deux lignes,
+ * de même `mot`. `forme` est son écriture affichée à `place` : pour un terme réglé, le terme de référence écrit dans la convention de cette place
+ * (`LineHeight` en groupe, `line-height` en variable, `Small` en groupe et `sm` en variable) ; pour un nom ou un mot sans règle, son écriture
+ * la plus fréquente à cette place dans le fichier (`StressTest`). `nature` vaut `composant` ou `palette` pour un nom, `null` pour un mot ;
+ * un nom n'a qu'une ligne, aux groupes.
+ * `remplace` liste les formes du fichier des variantes du terme remplacées à cette place (`Colors`, `colors`), les plus fréquentes d'abord ; une
+ * variante que le fichier n'emploie pas n'y figure pas. `type` et `nombre` se lisent à cette place. `trouve`, quand la recherche a trouvé
+ * la ligne par une variante, en est un élément : si le fichier n'emploie pas cette variante, la ligne trouvée la porte sous sa clé.
  */
 export interface TermeDeListe {
-  readonly mot: string; readonly forme: string; readonly type: TypeDeTerme; readonly nature: NatureDeSegment | null; readonly origine: OrigineDuTerme | null;
+  readonly mot: string; readonly place: PlaceDuTerme; readonly forme: string; readonly type: TypeDeTerme; readonly nature: NatureDeSegment | null; readonly origine: OrigineDuTerme | null;
   readonly statut: 'regle' | 'ecart' | 'a-trancher' | 'sans-regle'; readonly remplace: readonly string[]; readonly avec: string | null; readonly nombre: number; readonly trouve: string | null;
 }
 export interface FicheVue {
@@ -225,7 +238,7 @@ function estSelection(brut: unknown): boolean {
   return objet(brut) && sansDoublon(brut.groupes) && sansDoublon(brut.exclus) && sansDoublon(brut.inclus);
 }
 
-/** Refuse toute demande hors contrat : demande ou génération non numérotée, rang, type, origine, tri, section ou geste inconnu, sélection à doublons, import de plus d'un million de caractères, coordonnées de fenêtre non finies. */
+/** Refuse toute demande hors contrat : demande ou génération non numérotée, rang, type, origine, place, tri, section ou geste inconnu, sélection à doublons, import de plus d'un million de caractères, coordonnées de fenêtre non finies. */
 export function estUiMessage(brut: unknown): brut is UiMessage {
   if (!objet(brut)) return false;
   if (brut.type === 'resize') {
@@ -237,8 +250,9 @@ export function estUiMessage(brut: unknown): brut is UiMessage {
     case 'analyser': case 'annuler-dernier': case 'exporter': return true;
     case 'lignes': return genere && chaine(brut.groupe) && entierNonNegatif(brut.debut);
     case 'termes':
-      return genere && chaine(brut.recherche) && membres(brut.types, TYPES_DE_TERMES) && membres(brut.origines, ORIGINES_DE_FILTRE)
-        && TRIS_DE_TERMES.includes(brut.tri as TriDeTermes) && (brut.section === null || TYPES_DE_TERMES.includes(brut.section as TypeDeTerme)) && entierNonNegatif(brut.debut);
+      return genere && chaine(brut.recherche) && membres(brut.types, TYPES_DE_TERMES) && membres(brut.origines, ORIGINES_DE_FILTRE) && membres(brut.places, PLACES_DE_TERMES)
+        && TRIS_DE_TERMES.includes(brut.tri as TriDeTermes) && (brut.section === null || TYPES_DE_TERMES.includes(brut.section as TypeDeTerme))
+        && (brut.place === null || PLACES_DE_TERMES.includes(brut.place as PlaceDuTerme)) && entierNonNegatif(brut.debut);
     case 'fiche': return genere && chaine(brut.terme);
     case 'diagnostic': return genere;
     case 'simuler': return genere && estGeste(brut.geste);

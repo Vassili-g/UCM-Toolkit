@@ -3,22 +3,23 @@
  * règle, comme ceux du socle : aucune couleur ne s'écrit plus bas.
  *
  * Le terme en cause d'un nom lit les rôles d'avertissement du socle (voir la
- * règle `mark`). Les pastilles d'origine n'ont pas d'équivalent dans l'éditeur :
- * chacune reçoit une valeur claire et une valeur sombre.
+ * règle `mark`). Les couleurs de place (groupe, variable) n'ont pas
+ * d'équivalent dans l'éditeur : chacune reçoit une valeur claire et une valeur
+ * sombre, avec 4,5:1 au moins du texte sur son fond.
  */
 :root {
-  --fond-pastille-ucm: rgb(228 229 255);
-  --texte-pastille-ucm: rgb(59 63 158);
-  --fond-pastille-personnalise: rgb(213 242 238);
-  --texte-pastille-personnalise: rgb(15 98 88);
+  --fond-groupe: rgb(250 228 251);
+  --texte-groupe: rgb(134 25 143);
+  --fond-variable: rgb(240 242 214);
+  --texte-variable: rgb(84 90 20);
   --police-code: "JetBrains Mono", Consolas, monospace;
 }
 
 .figma-dark {
-  --fond-pastille-ucm: rgb(39 39 90);
-  --texte-pastille-ucm: rgb(180 185 255);
-  --fond-pastille-personnalise: rgb(23 59 56);
-  --texte-pastille-personnalise: rgb(126 224 210);
+  --fond-groupe: rgb(80 36 84);
+  --texte-groupe: rgb(244 180 248);
+  --fond-variable: rgb(58 62 28);
+  --texte-variable: rgb(222 228 150);
 }
 
 /* Le terme en cause dans un chemin : la seule couleur d'accent des listes de noms. */
@@ -371,14 +372,11 @@ button.tete-bouton {
   white-space: nowrap;
 }
 
-.pastille-ucm {
-  background: var(--fond-pastille-ucm);
-  color: var(--texte-pastille-ucm);
-}
-
-.pastille-personnalise {
-  background: var(--fond-pastille-personnalise);
-  color: var(--texte-pastille-personnalise);
+/* L'origine d'une règle s'écrit en texte gris, sans fond. */
+.origine {
+  color: var(--texte-second);
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 .pastille-nouveau {
@@ -425,6 +423,25 @@ button.tete-bouton {
 .jeton-neutre {
   background: var(--fond-note);
   color: var(--texte);
+}
+
+/* La place d'un terme : orchidée en groupe, olive en variable. Le mot seul prend la couleur du texte. */
+.jeton-groupe {
+  background: var(--fond-groupe);
+  color: var(--texte-groupe);
+}
+
+.jeton-variable {
+  background: var(--fond-variable);
+  color: var(--texte-variable);
+}
+
+.mot-groupe {
+  color: var(--texte-groupe);
+}
+
+.mot-variable {
+  color: var(--texte-variable);
 }
 
 .jeton.petit {
@@ -692,6 +709,15 @@ button.tete-bouton {
   font-weight: 600;
 }
 
+/* La partie concernée prend la teinte de sa place : ces règles suivent `.ecriture-partie`, qui fixe la couleur neutre. */
+.ecriture-partie.mot-groupe {
+  color: var(--texte-groupe);
+}
+
+.ecriture-partie.mot-variable {
+  color: var(--texte-variable);
+}
+
 /* La barre : un bouton qui ouvre le menu Filtrer, les filtres actifs en jetons retirables, la recherche, le tri. */
 .outils-termes {
   display: flex;
@@ -766,55 +792,32 @@ button.tete-bouton {
   gap: var(--espace-controle);
 }
 
-.ligne-terme:focus-visible,
-.section-type-tete:focus-visible {
+.ligne-terme:focus-visible {
   outline: 2px solid var(--bordure-marque);
   outline-offset: 2px;
 }
 
-/* Une section par type, repliable : l'icône, le titre, le total et le chevron, qui pointe vers le bas quand la section est ouverte. */
+/* Une section par type, repliable : un cadre dont la bande de tête porte le titre ; le chevron pointe vers le bas quand la section est ouverte. */
 .sections-termes {
   display: grid;
-  gap: var(--espace-controle);
+  gap: var(--espace-bloc);
 }
 
-.section-type {
-  display: grid;
-  gap: var(--espace-serre);
-}
-
-.section-type-titre {
+.liste-termes > h3 {
   margin: 0;
-  font-size: var(--libelle);
-  font-weight: 600;
-  line-height: var(--libelle-interligne);
+  font: inherit;
 }
 
-.section-type-tete {
-  display: flex;
-  width: 100%;
-  min-height: 28px;
-  align-items: center;
-  gap: var(--espace-controle);
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  cursor: pointer;
-  font-weight: inherit;
-  text-align: left;
+.bande-section:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: -2px;
 }
 
-.section-type-total {
-  flex: 1;
-  font-weight: 400;
-}
-
-.section-type-tete[aria-expanded="true"] .chevron-svg {
+.bande-section[aria-expanded="true"] .chevron-svg {
   transform: none;
 }
 
-.section-type-tete[aria-expanded="false"] .chevron-svg {
+.bande-section[aria-expanded="false"] .chevron-svg {
   transform: rotate(-90deg);
 }
 
@@ -840,6 +843,95 @@ button.tete-bouton {
   height: 16px;
 }
 
+/* Le titre d'une section : une bande grise en tête du cadre de sa liste, toute cliquable. */
+.bande-section {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 16px minmax(0, 1fr) 12px;
+  align-items: start;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc);
+  border: 0;
+  background: var(--fond-bloc);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.bande-section .icone-type {
+  margin-top: 1px;
+  color: var(--texte);
+}
+
+.bande-section .icone-type.ambre {
+  color: var(--texte-avertissement);
+}
+
+.texte-de-section {
+  display: block;
+  min-width: 0;
+}
+
+.titre-de-section {
+  display: block;
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.bande-section .meta {
+  font-weight: 400;
+}
+
+.ligne-de-section {
+  display: block;
+  color: var(--texte-second);
+}
+
+.bande-section .chevron-svg {
+  width: 12px;
+  height: 12px;
+  margin-top: 2px;
+}
+
+/* Les intertitres de place d'une section : petites capitales grises, sans fond. */
+.intertitre-place {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc) var(--espace-serre);
+  border-top: 1px solid var(--bordure);
+  background: none;
+  color: var(--texte-second);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.intertitre-place .meta {
+  font-weight: 400;
+}
+
+.echantillon-groupe,
+.echantillon-variable {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.echantillon-groupe {
+  background: var(--fond-groupe);
+  box-shadow: inset 0 0 0 1px var(--texte-groupe);
+}
+
+.echantillon-variable {
+  background: var(--fond-variable);
+  box-shadow: inset 0 0 0 1px var(--texte-variable);
+}
+
 .liste-termes {
   overflow: hidden;
   border: 1px solid var(--bordure);
@@ -862,7 +954,7 @@ button.tete-bouton {
   text-align: left;
 }
 
-.ligne-terme:first-child {
+.intertitre-place + .ligne-terme {
   border-top: 0;
 }
 

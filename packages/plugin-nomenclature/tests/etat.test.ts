@@ -142,7 +142,7 @@ test('les messages de lecture, de simulation et de r√©sultat ne changent pas l‚Ä
   const travail = jouer(recu());
   const sansEffet: Evenement[] = [
     { type: 'lignes', demande: 2, generation: 1, groupe: 'g1', debut: 0, lignes: [], total: 0 },
-    { type: 'termes', demande: 3, generation: 1, section: null, debut: 0, sections: [], comptes: { types: { 'a-trancher': 0, remplace: 0, conforme: 0, 'sans-regle': 0, composant: 0, palette: 0 }, origines: { ucm: 0, personnalise: 0 } } },
+    { type: 'termes', demande: 3, generation: 1, section: null, debut: 0, sections: [], comptes: { types: { 'a-trancher': 0, remplace: 0, conforme: 0, 'sans-regle': 0, composant: 0, palette: 0 }, origines: { ucm: 0, personnalise: 0 }, places: { groupes: 0, variables: 0 } } },
     { type: 'refus', demande: 4, conflits: [] },
     { type: 'application', demande: 5, resultat: { sorte: 'application', statut: 'applique', renommes: 1, sautes: 0, annulable: true } },
     { type: 'regles-exportees', demande: 6, texte: '{}' },

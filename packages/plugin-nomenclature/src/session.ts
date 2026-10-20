@@ -657,8 +657,8 @@ export function creerSession(options: OptionsDeSession): Session {
       case 'termes': {
         const courant = etatDeLaGeneration(demande.demande, demande.generation);
         if (!courant) return;
-        const { recherche, types, origines, tri, section, debut } = demande;
-        const page = courant.projection.termes({ recherche, types, origines, tri, section, debut });
+        const { recherche, types, origines, places, tri, section, place, debut } = demande;
+        const page = courant.projection.termes({ recherche, types, origines, places, tri, section, place, debut });
         envoyer({ type: 'termes', demande: demande.demande, generation: courant.generation, ...page });
         return;
       }

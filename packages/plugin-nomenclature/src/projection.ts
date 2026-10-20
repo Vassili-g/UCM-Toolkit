@@ -14,9 +14,9 @@ import {
 import { estCollisionDeChemin } from './cheminsPublies';
 import type { Inventaire } from './lecture';
 import {
-  TYPES_DE_TERMES,
+  PLACES_DE_TERMES, TYPES_DE_TERMES,
   type Bilan, type BloqueVue, type CollectionVue, type ComptesDeTermes, type ConflitVue, type EcritureChoisie, type EffetVue, type FicheVue, type GroupeVue,
-  type LigneDEcriture, type LigneVue, type QuestionVue, type RegleVue, type RequeteDeTermes, type SectionDeTermes, type Selection, type TermeDeListe, type TermeVue,
+  type LigneDEcriture, type LigneVue, type PlaceDuTerme, type QuestionVue, type RegleVue, type RequeteDeTermes, type SectionDeTermes, type Selection, type TermeDeListe, type TermeVue,
   type TriDeTermes, type TypeDeTerme,
 } from './messages';
 import type { ReglesDuFichier } from './regles';
@@ -25,7 +25,7 @@ export type { RequeteDeTermes };
 
 /** Nombre d'entrées d'une page de `lignes` ou de `termes`. */
 export const TAILLE_DE_PAGE = 50;
-/** Nombre de lignes que chaque section de `termes` porte quand l'écran ne demande pas une section précise. */
+/** Nombre de lignes que chaque section de `termes` porte quand l'écran ne demande pas une section précise : en tri alphabétique, autant pour chaque place. */
 export const LIGNES_PAR_SECTION = 5;
 /** Nombre de lignes que `GroupeVue.apercu` porte. */
 export const TAILLE_DE_L_APERCU = 3;
@@ -438,9 +438,9 @@ function comparerAlphabetiquement(a: TermeDeListe, b: TermeDeListe): number {
   if (tailleA !== undefined || tailleB !== undefined) {
     if (tailleA === undefined) return -1;
     if (tailleB === undefined) return 1;
-    return tailleA - tailleB;
+    return tailleA - tailleB || comparer(a.place, b.place);
   }
-  return comparerLesTextes(a.forme, b.forme) || comparer(a.mot, b.mot);
+  return comparerLesTextes(a.forme, b.forme) || comparer(a.mot, b.mot) || comparer(a.place, b.place);
 }
 
 const TRIS: Readonly<Record<TriDeTermes, (a: TermeDeListe, b: TermeDeListe) => number>> = {
@@ -746,7 +746,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
   // La liste des termes et la fiche
 
   /** Le statut d'un terme et les clés des variantes qu'il remplace, d'après les règles du fichier. */
-  function entreeDuTerme(cle: string): Omit<TermeDeListe, 'mot' | 'forme' | 'type' | 'nature' | 'nombre' | 'trouve' | 'remplace'> & { readonly variantes: readonly string[] } {
+  function entreeDuTerme(cle: string): Omit<TermeDeListe, 'mot' | 'place' | 'forme' | 'type' | 'nature' | 'nombre' | 'trouve' | 'remplace'> & { readonly variantes: readonly string[] } {
     const { ucm, ecartes, remplaceesParUcm, personnalises, remplaceesParPerso } = table();
     const perso = personnalises.get(cle);
     const gardeParUcm = ucm.get(cle);
@@ -767,6 +767,16 @@ export function projeter(entree: EntreeDeProjection): Projection {
   function categorieDEmploi(cles: readonly string[]): 'groupes' | 'variables' {
     return categorieDesOccurrences(cles.flatMap((cle) => occurrences(cle)));
   }
+
+  /** La place d'une occurrence : les groupes, ou les variables pour toute autre catégorie de segment. */
+  function placeDeLOccurrence(occurrence: OccurrenceDeTerme): PlaceDuTerme {
+    const nom = lexique.noms.get(occurrence.nomId);
+    return nom !== undefined && categorieDuSegment(nom, occurrence.rangSegment) === 'groupes' ? 'groupes' : 'variables';
+  }
+
+  /** Les occurrences d'une place. Un nom (composant, palette) n'a qu'une ligne : toutes ses occurrences y comptent. */
+  const dansLaPlace = (liste: readonly OccurrenceDeTerme[], nature: NatureDeSegment | null, place: PlaceDuTerme): readonly OccurrenceDeTerme[] =>
+    nature !== null ? liste : liste.filter((occurrence) => placeDeLOccurrence(occurrence) === place);
 
   /** La catégorie la plus fréquente parmi des occurrences ; les variables, à égalité ou sans occurrence. */
   function categorieDesOccurrences(liste: readonly OccurrenceDeTerme[]): 'groupes' | 'variables' {
@@ -799,33 +809,39 @@ export function projeter(entree: EntreeDeProjection): Projection {
     });
   }
 
-  function formeAffichee(cle: string, nature: NatureDeSegment | null, statut: TermeDeListe['statut'], variantes: readonly string[]): string {
+  /**
+   * Avec `place`, l'écriture de la ligne de cette place ; sans elle (la fiche), celle de la place choisie pour tout le terme.
+   * Un nom ou un mot sans règle garde son écriture du fichier, la plus fréquente à `place`.
+   */
+  function formeAffichee(cle: string, nature: NatureDeSegment | null, statut: TermeDeListe['statut'], variantes: readonly string[], place?: PlaceDuTerme): string {
     const mots = motsDeLaCle(cle);
-    if (nature !== null || (statut !== 'regle' && statut !== 'ecart') || mots.length === 0) return presence(cle).forme;
+    if (nature !== null || (statut !== 'regle' && statut !== 'ecart') || mots.length === 0) {
+      return place === undefined ? presence(cle).forme : presenceDuTerme(lexique, cle, dansLaPlace(occurrences(cle), nature, place)).forme;
+    }
     const terme = TERME_SELON_LA_PLACE.get(cle);
-    // Un terme dont la forme dépend de la place s'écrit à la place où il remplace des variantes, sinon à celle qui l'emploie le plus,
-    // avec l'identifiant de cette place : `sm remplace small` pour une variable, `Small` en dossier.
-    const remplacees = terme ? variantes.flatMap((variante) => occurrencesRemplacees(cle, variante)) : [];
-    const categorie = remplacees.length > 0 ? categorieDesOccurrences(remplacees) : categorieDEmploi([cle, ...variantes]);
+    // Sans `place`, un terme dont la forme dépend de la place s'écrit à la place où il remplace des variantes, sinon à celle qui l'emploie
+    // le plus, avec l'identifiant de cette place : `sm remplace small` pour une variable, `Small` en dossier.
+    const remplacees = place === undefined && terme ? variantes.flatMap((variante) => occurrencesRemplacees(cle, variante)) : [];
+    const categorie = place ?? (remplacees.length > 0 ? categorieDesOccurrences(remplacees) : categorieDEmploi([cle, ...variantes]));
     const convention = conventionDe(categorie);
     const retenus = terme ? motsDeLaCle(termePourCategorie(terme, categorie).id.toLowerCase()) : mots;
     return assembler(retenus.join('-'), motsAvecCasse(retenus, convention.casse), convention.separateur);
   }
 
-  /** Les formes du fichier des variantes que le terme remplace vraiment, de la plus fréquente à la moins fréquente. */
-  function formesDesVariantes(cle: string, variantes: readonly string[]): string[] {
+  /** Les formes du fichier des variantes que le terme remplace vraiment à `place`, de la plus fréquente à la moins fréquente. */
+  function formesDesVariantes(cle: string, nature: NatureDeSegment | null, variantes: readonly string[], place: PlaceDuTerme): string[] {
     const comptes = new Map<string, number>();
     for (const variante of variantes) {
-      for (const [forme, nombre] of formesDuFichier(lexique, occurrencesRemplacees(cle, variante))) comptes.set(forme, (comptes.get(forme) ?? 0) + nombre);
+      for (const [forme, nombre] of formesDuFichier(lexique, dansLaPlace(occurrencesRemplacees(cle, variante), nature, place))) comptes.set(forme, (comptes.get(forme) ?? 0) + nombre);
     }
     return formesParFrequence(comptes);
   }
 
-  const typeDuTerme = (cle: string, nature: NatureDeSegment | null, statut: TermeDeListe['statut'], variantes: readonly string[]): TypeDeTerme =>
+  const typeDuTerme = (cle: string, nature: NatureDeSegment | null, statut: TermeDeListe['statut'], variantes: readonly string[], place: PlaceDuTerme): TypeDeTerme =>
     nature !== null ? nature : statut === 'a-trancher' ? 'a-trancher'
-      : statut === 'regle' ? (variantes.some((variante) => occurrencesRemplacees(cle, variante).length > 0) ? 'remplace' : 'conforme') : 'sans-regle';
+      : statut === 'regle' ? (variantes.some((variante) => dansLaPlace(occurrencesRemplacees(cle, variante), nature, place).length > 0) ? 'remplace' : 'conforme') : 'sans-regle';
 
-  /** Un terme de la liste, avec l'écriture du fichier de lui-même et de chacune de ses variantes, que la recherche lit aussi. */
+  /** Une ligne de la liste, avec l'écriture du fichier du terme et de chacune de ses variantes à sa place, que la recherche lit aussi. */
   interface EntreeDeListe {
     readonly terme: TermeDeListe;
     readonly fichier: string;
@@ -847,38 +863,53 @@ export function projeter(entree: EntreeDeProjection): Projection {
     return [...cles].flatMap((cle): EntreeDeListe[] => {
       const { variantes, ...reste } = entreeDuTerme(cle);
       if (reste.statut === 'regle' && reste.avec !== null) return [];
-      const { nature, forme: fichier } = presence(cle);
-      const terme: TermeDeListe = {
-        mot: cle, forme: formeAffichee(cle, nature, reste.statut, variantes), type: typeDuTerme(cle, nature, reste.statut, variantes), nature,
-        // Une règle compte les noms du terme et ceux de ses variantes : `Color`, que seuls `Colors` et `colors` emploient, ne vaut pas 0.
-        ...reste, remplace: formesDesVariantes(cle, variantes), nombre: new Set([...emploi(cle), ...variantes.flatMap((variante) => emploi(variante))]).size, trouve: null,
-      };
-      return [{ terme, fichier, variantes: variantes.map((variante) => ({ cle: variante, forme: presence(variante).forme })) }];
-    }).sort((a, b) => b.terme.nombre - a.terme.nombre || comparer(a.terme.mot, b.terme.mot));
+      const { nature } = presence(cle);
+      const employees = [...occurrences(cle), ...variantes.flatMap((variante) => occurrences(variante))];
+      // Une ligne par place où le terme ou une de ses variantes apparaît, un nom sur la seule place des groupes ; sans occurrence, une ligne
+      // à la place où le fichier emploie le plus le terme.
+      const lieux = nature !== null ? ['groupes' as const] : PLACES_DE_TERMES.filter((place) => employees.some((occurrence) => placeDeLOccurrence(occurrence) === place));
+      return (lieux.length > 0 ? lieux : [categorieDEmploi([cle, ...variantes])]).map((place): EntreeDeListe => {
+        const terme: TermeDeListe = {
+          mot: cle, place, forme: formeAffichee(cle, nature, reste.statut, variantes, place), type: typeDuTerme(cle, nature, reste.statut, variantes, place), nature,
+          // Une règle compte les noms du terme et ceux de ses variantes : `Color`, que seuls `Colors` et `colors` emploient, ne vaut pas 0.
+          ...reste, remplace: formesDesVariantes(cle, nature, variantes, place), nombre: nomsEmployant(dansLaPlace(employees, nature, place)).length, trouve: null,
+        };
+        // Une variante que le fichier emploie ailleurs qu'à cette place ne fait pas trouver cette ligne ; une variante absente du fichier, si.
+        const vues = variantes.flatMap((variante) => {
+          const ici = dansLaPlace(occurrences(variante), nature, place);
+          return ici.length > 0 || occurrences(variante).length === 0 ? [{ cle: variante, forme: presenceDuTerme(lexique, variante, ici).forme }] : [];
+        });
+        return { terme, fichier: presenceDuTerme(lexique, cle, dansLaPlace(occurrences(cle), nature, place)).forme, variantes: vues };
+      });
+    }).sort((a, b) => b.terme.nombre - a.terme.nombre || comparer(a.terme.mot, b.terme.mot) || comparer(a.terme.place, b.terme.place));
   });
 
   const reglee = (terme: TermeDeListe): boolean => terme.type === 'remplace' || terme.type === 'conforme';
 
-  /** Les comptes de toute la liste : ni la recherche ni les filtres ne les changent. */
+  /** Les comptes de toutes les lignes de la liste : ni la recherche ni les filtres ne les changent. */
   const comptesDeLaListe = (): ComptesDeTermes => unique('comptes', () => {
     const types: Record<TypeDeTerme, number> = { 'a-trancher': 0, remplace: 0, conforme: 0, 'sans-regle': 0, composant: 0, palette: 0 };
     const origines = { ucm: 0, personnalise: 0 };
+    const places = { groupes: 0, variables: 0 };
     for (const { terme } of listeDesTermes()) {
       types[terme.type]++;
+      places[terme.place]++;
       if (reglee(terme) && terme.origine !== null) origines[terme.origine]++;
     }
-    return { types, origines };
+    return { types, origines, places };
   });
 
   function termes(requete: RequeteDeTermes): PageDeTermes {
     const recherche = requete.recherche.trim().toLowerCase();
     const types = new Set<TypeDeTerme>(requete.types);
     const origines = new Set(requete.origines);
-    const retenues = new Map<TypeDeTerme, TermeDeListe[]>(TYPES_DE_TERMES.map((type) => [type, []]));
+    const places = new Set(requete.places);
+    const retenues = new Map<TypeDeTerme, Record<PlaceDuTerme, TermeDeListe[]>>(TYPES_DE_TERMES.map((type) => [type, { groupes: [], variables: [] }]));
     for (const { terme, fichier, variantes } of listeDesTermes()) {
       if (types.size > 0 && !types.has(terme.type)) continue;
+      if (places.size > 0 && !places.has(terme.place)) continue;
       if (origines.size > 0 && reglee(terme) && (terme.origine === null || !origines.has(terme.origine))) continue;
-      const liste = retenues.get(terme.type)!;
+      const liste = retenues.get(terme.type)![terme.place];
       if (recherche === '' || terme.mot.includes(recherche) || terme.forme.toLowerCase().includes(recherche) || fichier.toLowerCase().includes(recherche)) {
         liste.push(terme);
         continue;
@@ -889,11 +920,24 @@ export function projeter(entree: EntreeDeProjection): Projection {
     }
     const tri = TRIS[requete.tri];
     const sections = (requete.section === null ? TYPES_DE_TERMES : [requete.section]).flatMap((type): SectionDeTermes[] => {
-      const liste = retenues.get(type)!;
-      if (requete.section === null && liste.length === 0) return [];
-      liste.sort(tri);
-      const fin = requete.section === null ? LIGNES_PAR_SECTION : requete.debut + TAILLE_DE_PAGE;
-      return [{ type, total: liste.length, termes: liste.slice(requete.section === null ? 0 : requete.debut, fin) }];
+      const { groupes, variables } = retenues.get(type)!;
+      const totaux = { groupes: groupes.length, variables: variables.length };
+      const total = totaux.groupes + totaux.variables;
+      if (requete.section === null && total === 0) return [];
+      const debut = requete.debut;
+      let termes: TermeDeListe[];
+      if (requete.tri === 'nombre') {
+        // Les places se mêlent : une seule suite, une seule page.
+        const melees = [...groupes, ...variables].sort(tri);
+        termes = requete.section === null ? melees.slice(0, LIGNES_PAR_SECTION) : melees.slice(debut, debut + TAILLE_DE_PAGE);
+      } else {
+        groupes.sort(tri);
+        variables.sort(tri);
+        // Sans section, autant de lignes pour chaque place. Avec section, la place demandée seule, sinon les groupes puis les variables.
+        const lues = requete.place === null ? [...groupes, ...variables] : requete.place === 'groupes' ? groupes : variables;
+        termes = requete.section === null ? [...groupes.slice(0, LIGNES_PAR_SECTION), ...variables.slice(0, LIGNES_PAR_SECTION)] : lues.slice(debut, debut + TAILLE_DE_PAGE);
+      }
+      return [{ type, total, totaux, termes }];
     });
     return { section: requete.section, debut: requete.debut, sections, comptes: comptesDeLaListe() };
   }

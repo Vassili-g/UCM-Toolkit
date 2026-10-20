@@ -3,7 +3,7 @@
  * code : c'est l'écriture d'un nom, jamais une phrase.
  */
 import type { IndiceDePaire } from '@ucm-kit/core/referentiel';
-import type { CodeDErreur, ConflitVue } from '../messages';
+import type { CodeDErreur, ConflitVue, TypeDeTerme } from '../messages';
 
 const noms = (nombre: number): string => (nombre === 1 ? '1 nom' : `${nombre} noms`);
 const questions = (nombre: number): string => (nombre === 1 ? '1 question' : `${nombre} questions`);
@@ -47,15 +47,15 @@ export const TEXTES = {
   ligneDuPremierLancement: 'Leur écriture et les termes qu’elles emploient.',
   analyserLeFichier: 'Analyser le fichier',
 
-  titreDeLEcriture: 'Écriture des noms',
+  titreDeLEcriture: 'Écriture des groupes et des variables',
   ligneDeLEcriture: 'Proposée d’après votre fichier ; modifiable ensuite dans Règles.',
   continuer: 'Continuer',
 
   ecritureDesGroupes: 'Groupes',
-  ecritureDesNoms: 'Noms',
+  ecritureDesNoms: 'Variables',
   ecritureDesCollections: 'Collections',
   choisirLEcritureDesGroupes: 'Écriture des groupes',
-  choisirLEcritureDesNoms: 'Écriture des noms',
+  choisirLEcritureDesNoms: 'Écriture des variables',
   suiventSurTotal: (suivent: number, total: number): string => `· ${suivent} sur ${total}`,
   collectionsReconnues: (reconnues: number, total: number): string => `· ${reconnues} sur ${total} reconnues`,
   collectionsSuiventUcm: 'Elles portent les noms du référentiel UCM.',
@@ -120,7 +120,7 @@ export const TEXTES = {
   /** La phrase qui précède le spécimen d'une écriture dans la tête d'une carte. */
   ecrireEn: {
     groupes: 'Écrire les groupes en',
-    variables: 'Écrire les noms en',
+    variables: 'Écrire les variables en',
     collections: 'Écrire les collections en',
     proprietes: 'Écrire les propriétés en',
     valeurs: 'Écrire les valeurs en',
@@ -133,7 +133,7 @@ export const TEXTES = {
   },
   /** Le détail d'une carte de terme dont la forme dépend de sa place. */
   detailDeTaille: (categorie: 'variables' | 'groupes', variables: number): string =>
-    `${categorie === 'variables' ? 'Dans les noms' : 'Dans les groupes'} · ${nombreDeNoms(variables, 0)}`,
+    `${categorie === 'variables' ? 'Dans les variables' : 'Dans les groupes'} · ${nombreDeNoms(variables, 0)}`,
   collectionUcm: 'Collection UCM',
   nomsCochesDansLeGroupe: (coches: number, total: number): string => `${coches} sur ${total} cochés`,
   nomsNonCoches: (total: number): string => (total === 1 ? 'non coché' : 'non cochés'),
@@ -162,7 +162,7 @@ export const TEXTES = {
   /** `apres` est un token et le groupe de `autre`. */
   tokenEtGroupe: (apres: string, autre: string): string => `\`${apres}\` serait à la fois un token et le groupe de \`${autre}\` dans tokens.json : renommez l’une des deux dans Figma.`,
   nomsProteges: (nombre: number): string => (nombre === 1 ? '1 nom écrit par UCM Palettes' : `${nombre} noms écrits par UCM Palettes`),
-  nomsProtegesExplication: 'UCM Palettes écrit ces noms, et leur dossier garde son nom. Ouvrez UCM Palettes une fois dans ce fichier pour qu’il suive les règles, puis revenez ici.',
+  nomsProtegesExplication: 'UCM Palettes écrit ces variables, et leur groupe garde son nom. Ouvrez UCM Palettes une fois dans ce fichier pour qu’il suive les règles, puis revenez ici.',
 
   aucunNomCoche: 'Aucun nom coché',
   /** Le compte du pied, en deux morceaux : le nombre s'écrit en gras. */
@@ -192,7 +192,7 @@ export const TEXTES = {
 
   // U4a : onglet Règles, liste des termes.
   modifier: 'Modifier',
-  modifierLEcriture: 'Modifier l’écriture des noms',
+  modifierLEcriture: 'Modifier l’écriture',
   chercherUnTerme: 'Chercher un terme',
   listeDesTermes: 'Termes du fichier',
   exporterLeDetailDuVocabulaire: 'Exporter le détail du vocabulaire',
@@ -201,7 +201,7 @@ export const TEXTES = {
   termeRemplace: (remplaces: readonly string[]): string => `remplace ${remplaces.join(', ')}`,
   termeATrancher: (avec: string | null): string => (avec ? `à trancher avec ${avec}` : 'à trancher'),
   termeNonApplique: 'règle UCM non appliquée dans ce fichier',
-  phraseDesConventions: 'Comment s’écrivent les groupes, les noms et les collections.',
+  phraseDesConventions: 'Comment s’écrivent les groupes, les variables et les collections.',
   phraseDuVocabulaire: 'Le terme de référence de chaque notion, et les variantes qu’il remplace.',
   motRemplace: 'remplace',
   motOu: 'ou',
@@ -211,6 +211,34 @@ export const TEXTES = {
   // Tour 2, T-U : la liste en sections par type, le menu Filtrer et le tri.
   typeDeTerme: { 'a-trancher': 'À trancher', remplace: 'Remplace', conforme: 'Conforme', 'sans-regle': 'Sans règle', composant: 'Composants', palette: 'Palettes' },
   typeDeTermeAuSingulier: { 'a-trancher': 'À trancher', remplace: 'Remplace', conforme: 'Conforme', 'sans-regle': 'Sans règle', composant: 'Composant', palette: 'Palette' },
+  /** La ligne sous le titre d'une section de la liste des termes. */
+  ligneDeSection: {
+    'a-trancher': 'Termes qui attendent votre réponse dans l’onglet Questions.',
+    remplace: 'Termes qui remplacent des variantes dans le fichier.',
+    conforme: 'Termes déjà écrits selon leur règle.',
+    'sans-regle': 'Termes qu’aucune règle ne couvre encore.',
+    composant: 'Noms des composants du fichier.',
+    palette: 'Noms des palettes du fichier.',
+  } satisfies Record<TypeDeTerme, string>,
+  /** Les intertitres d'une section qui a des groupes et des variables. */
+  intertitreDePlace: { groupes: 'Groupes', variables: 'Variables' },
+  /** La suite d'une place : le nombre de termes que la section ne montre pas encore. */
+  afficherLesAutresDeLaPlace: {
+    groupes: (n: number): string => (n === 1 ? 'Afficher l’autre groupe' : `Afficher les ${n} autres groupes`),
+    variables: (n: number): string => (n === 1 ? 'Afficher l’autre variable' : `Afficher les ${n} autres variables`),
+  },
+  /** La place d'une ligne dans son nom accessible. */
+  placeAuSingulier: { groupes: 'groupe', variables: 'variable' },
+  titreDesPlaces: 'Place',
+  placeDeFiltre: { groupes: 'Groupes', variables: 'Variables' },
+  /** L'onglet Questions quand aucun terme n'en pose. */
+  questionsVides: {
+    titre: 'Aucune question pour l’instant',
+    ligne: 'Aucun terme du fichier n’en rappelle un autre. Une question apparaîtra si une variante arrive, comme `bg` à côté de `background`.',
+    ligneAvecPlusTard: (n: number): string =>
+      n === 1 ? 'Vous avez gardé 1 question pour plus tard. Elle est ci-dessous.' : `Vous avez gardé ${n} questions pour plus tard. Elles sont ci-dessous.`,
+    bouton: 'Voir les renommages',
+  },
   filtrer: 'Filtrer',
   filtrerAvecNombre: (n: number): string => `Filtrer · ${n}`,
   titreDesTypes: 'Types',
@@ -219,7 +247,7 @@ export const TEXTES = {
   /** Le nom accessible du × d'un jeton de filtre. */
   retirerLeFiltre: (libelle: string): string => `Retirer le filtre ${libelle}`,
   trierAlpha: 'Trier : A → Z',
-  trierNombre: 'Trier : nombre de noms',
+  trierNombre: 'Trier : nombre de variables',
   trier: 'Trier',
   afficherLesAutres: (n: number): string => (n === 1 ? 'Afficher l’autre' : `Afficher les ${n} autres`),
   replierLaSection: (titre: string): string => `Replier ${titre}`,

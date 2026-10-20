@@ -1,5 +1,7 @@
 /** Ce que l'onglet Questions affiche d'une question et la réponse de chaque bouton. */
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
 import { COLLECTIONS, type IndiceDePaire } from '@ucm-kit/core/referentiel';
 import type { LigneVue, QuestionVue, Reponse, TermeVue } from '../src/messages';
@@ -14,6 +16,8 @@ import {
   type CarteDeQuestion,
   texteDuTitre,
 } from '../src/ui/questions';
+import { ligneDeLaVueVide } from '../src/ui/aTrancher';
+import { TEXTES } from '../src/ui/textes';
 
 const chemin = (avant: string, terme: string, apres: string): LigneVue => {
   const nom = `${avant}${terme}${apres}`;
@@ -205,4 +209,33 @@ test('la liste suit l’ordre du bilan, une question annulée y reprend sa place
   assert.deepEqual(composerLaListe(['a'], ['a', 'b'], new Set(['z'])), ['a', 'b', 'z']);
   assert.deepEqual(composerLaListe([], [], new Set()), []);
   assert.deepEqual(composerLaListe(['a', 'b'], ['a', 'b'], new Set(['b'])), ['a', 'b']);
+});
+
+test('sans question mais avec un renommage, l’onglet montre la vue vide et sa ligne', () => {
+  assert.equal(ligneDeLaVueVide(0, 0), TEXTES.questionsVides.ligne);
+  assert.match(TEXTES.questionsVides.ligne, /`bg`/u);
+});
+
+test('la vue vide dit combien de questions sont gardées pour plus tard, au pluriel et au singulier', () => {
+  assert.equal(ligneDeLaVueVide(0, 2), 'Vous avez gardé 2 questions pour plus tard. Elles sont ci-dessous.');
+  assert.equal(ligneDeLaVueVide(0, 1), 'Vous avez gardé 1 question pour plus tard. Elle est ci-dessous.');
+});
+
+test('la vue vide ne se montre pas quand une question attend', () => {
+  assert.equal(ligneDeLaVueVide(1, 0), null);
+  assert.equal(ligneDeLaVueVide(1, 2), null);
+});
+
+const source = (fichier: string): string => fs.readFileSync(path.join(__dirname, '..', 'src', 'ui', fichier), 'utf8');
+
+test('le bouton de la vue vide ouvre Renommages par l’API d’onglets de la coquille', () => {
+  assert.match(source('aTrancher.ts'), /TEXTES\.questionsVides\.bouton, \(\) => coquille\.choisirOnglet\('a-appliquer'\)/u);
+});
+
+test('UCM et Personnalisé s’écrivent en texte gris dans une carte de question, une fiche et une carte de Renommages', () => {
+  for (const fichier of ['aTrancher.ts', 'feuilles.ts', 'aAppliquer.ts']) {
+    const texte = source(fichier);
+    assert.doesNotMatch(texte, /pastille-ucm|pastille-personnalise|pastille-\$\{/u, fichier);
+    assert.match(texte, /'origine'/u, fichier);
+  }
 });

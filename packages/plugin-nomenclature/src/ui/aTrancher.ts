@@ -8,6 +8,7 @@ import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import type { Bilan, ConflitVue, GesteSurLesRegles, LigneVue, QuestionVue, Reponse } from '../messages';
 import type { Coquille } from './coquille';
+import { comptesDuBilan } from './etat';
 import { segmentsDeNom } from './lignes';
 import {
   carteDeConflit,
@@ -113,12 +114,28 @@ function fabriquerChange(avant: string, separateur: '→' | '≠' | null, apres:
   return change;
 }
 
-function fabriquerPastille(texte: string, ucm = false): HTMLElement {
+function fabriquerPastille(texte: string): HTMLElement {
   const pastille = document.createElement('span');
-  pastille.className = 'pastille';
-  pastille.classList.add(ucm ? 'pastille-ucm' : 'pastille-indice');
+  pastille.className = 'pastille pastille-indice';
   pastille.textContent = texte;
   return pastille;
+}
+
+/** L'origine d'un terme UCM : du texte gris, sans fond. */
+function fabriquerOrigine(texte: string): HTMLElement {
+  const origine = document.createElement('span');
+  origine.className = 'origine';
+  origine.textContent = texte;
+  return origine;
+}
+
+/**
+ * La ligne de la vue vide de l'onglet, ou `null` quand une question attend. Sans question,
+ * sans renommage ni question gardée, l'état « rien à faire » couvre déjà les onglets.
+ */
+export function ligneDeLaVueVide(questions: number, plusTard: number): string | null {
+  if (questions > 0) return null;
+  return plusTard > 0 ? TEXTES.questionsVides.ligneAvecPlusTard(plusTard) : TEXTES.questionsVides.ligne;
 }
 
 /** Le bouton bordé : une carte n'en porte qu'un. */
@@ -198,6 +215,7 @@ export function monterATrancher(coquille: Coquille): void {
   const questions = new Map<string, QuestionVue>();
   let plusTard: readonly QuestionVue[] = [];
   let autresPistes = 0;
+  let renommages = 0;
   let plusTardOuvert = false;
   /** Les clés affichées, dans l'ordre : une ligne de réussite retrouve ainsi la place de sa carte. */
   let ordre: string[] = [];
@@ -216,9 +234,10 @@ export function monterATrancher(coquille: Coquille): void {
   message.hidden = true;
   const liste = document.createElement('div');
   liste.className = 'liste';
+  const vueVide = document.createElement('div');
   const sectionPlusTard = document.createElement('div');
   const sectionPistes = document.createElement('div');
-  panneau.contenu.append(message, liste, sectionPlusTard, sectionPistes);
+  panneau.contenu.append(message, liste, vueVide, sectionPlusTard, sectionPistes);
 
   function dire(texte: string | null): void {
     message.hidden = texte === null;
@@ -283,7 +302,7 @@ export function monterATrancher(coquille: Coquille): void {
       const entete = document.createElement('div');
       entete.className = 'question-entete';
       entete.append(fabriquerTitreDeProposition(carte.titre));
-      if (carte.ucm) entete.append(fabriquerPastille(TEXTES.pastilleUcm, true));
+      if (carte.ucm) entete.append(fabriquerOrigine(TEXTES.pastilleUcm));
       const detail = document.createElement('span');
       detail.className = 'meta';
       detail.textContent = carte.detail;
@@ -532,6 +551,21 @@ export function monterATrancher(coquille: Coquille): void {
     return element;
   }
 
+  /** « Aucune question » : le titre, la ligne, et le bouton qui ouvre Renommages quand il y a des renommages. */
+  function creerVueVide(ligne: string): HTMLElement {
+    const vue = document.createElement('div');
+    vue.className = 'etat';
+    const titre = document.createElement('div');
+    titre.className = 'etat-titre';
+    titre.textContent = TEXTES.questionsVides.titre;
+    const texte = document.createElement('p');
+    texte.className = 'etat-texte';
+    poserLeTexte(texte, ligne);
+    vue.append(titre, texte);
+    if (renommages > 0) vue.append(fabriquerBouton(TEXTES.questionsVides.bouton, () => coquille.choisirOnglet('a-appliquer')));
+    return vue;
+  }
+
   function rendre(): void {
     ordre = composerLaListe(ordre, [...questions.keys()], new Set(lignes.keys()));
     entrees = new Map();
@@ -543,6 +577,9 @@ export function monterATrancher(coquille: Coquille): void {
     }
     liste.replaceChildren(...[...entrees.values()].map((entree) => entree.element));
     liste.hidden = entrees.size === 0;
+    const ligneVide = ligneDeLaVueVide(questions.size, plusTard.length);
+    vueVide.hidden = ligneVide === null;
+    vueVide.replaceChildren(...(ligneVide === null ? [] : [creerVueVide(ligneVide)]));
     sectionPlusTard.hidden = plusTard.length === 0;
     sectionPlusTard.replaceChildren(...(plusTard.length === 0 ? [] : [creerSectionPlusTard()]));
     sectionPistes.hidden = autresPistes === 0;
@@ -562,6 +599,7 @@ export function monterATrancher(coquille: Coquille): void {
     for (const question of bilan.questions) questions.set(question.cle, question);
     plusTard = bilan.plusTard;
     autresPistes = bilan.autresPistes;
+    renommages = comptesDuBilan(bilan).aAppliquer;
     if (attente) {
       const cle = cleDe(attente);
       enCours.delete(cle);
