@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titres de section</title>
+<style>
+  :root { --fond: #161616; --bordure: #333; --texte: #eee; --second: #9a9a9a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 3400px; margin: 0 auto; padding: 32px 16px 96px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 18px; margin: 48px 0 6px; }
+  p { margin: 6px 0; max-width: 900px; }
+  .intro { color: var(--second); }
+  code { font-family: Consolas, monospace; font-size: 13px; background: #2a2a2a; padding: 0 4px; border-radius: 3px; }
+  .colonnes { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; margin-top: 16px; }
+  .colonne { flex: 0 0 auto; width: 640px; max-width: 100%; }
+  .cadre { border: 1px solid var(--bordure); border-radius: 8px; overflow: hidden; background: #2c2c2c; }
+  .cadre iframe { display: block; border: 0; max-width: 100%; }
+  .etiquette { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 4px; margin-bottom: 6px; background: #16314d; color: #9fcfff; }
+  .etiquette.recommande { background: #1d3a24; color: #a6e3b4; }
+  ol.argu, ul.argu { padding-left: 20px; margin: 10px 0 0; font-size: 13px; color: #cfcfcf; }
+  ol.argu li, ul.argu li { margin: 4px 0; }
+  table { border-collapse: collapse; margin-top: 12px; font-size: 13px; max-width: 1100px; }
+  th, td { text-align: left; vertical-align: top; padding: 6px 12px; border-top: 1px solid var(--bordure); }
+  th { color: var(--second); font-weight: 600; border-top: 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Titres de section du vocabulaire</h1>
+  <p class="intro">Suite de <code>MAQUETTE-GROUPES-VARIABLES.html</code>. Les cadres appliquent la piste D avec les couleurs de
+  la piste A : l'origine (UCM, Personnalisé) s'écrit en texte gris, un groupe prend une pastille orchidée, une variable une
+  pastille olive. Seule la pastille ambre « À trancher » garde un fond. Chaque titre de section reçoit une ligne qui dit ce
+  que la section contient ; les quatre cadres essaient quatre façons de poser ce titre.</p>
+
+  <h2>1 · Quatre titres, en tri A → Z</h2>
+  <div class="colonnes">
+    <div class="colonne">
+      <span class="etiquette">T1 · Titre et ligne grise</span>
+      <div class="cadre" id="t1"></div>
+      <ol class="argu">
+        <li>Le titre garde sa taille ; la ligne grise et un espace plus grand entre les sections le détachent des lignes.</li>
+        <li>Le changement le plus petit par rapport au plugin.</li>
+        <li>Le titre reste à la taille du texte des lignes : la hiérarchie tient surtout à l'espace.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette">T2 · Titre à la taille d'un intertitre, filet au-dessus</span>
+      <div class="cadre" id="t2"></div>
+      <ol class="argu">
+        <li>Le titre prend 15 px, la taille de « Vocabulaire » ; un filet sépare chaque section de la précédente.</li>
+        <li>Le compte se lit à côté du titre, le chevron reste à droite.</li>
+        <li>« Vocabulaire » et ses sections ont la même taille : la section « Vocabulaire » se distingue seulement par sa position en tête.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette recommande">T3 · Titre dans une bande en tête de la liste · recommandée</span>
+      <div class="cadre" id="t3"></div>
+      <ol class="argu">
+        <li>Le titre et sa ligne occupent une bande grise qui ferme le haut du cadre de la liste : la section forme un bloc.</li>
+        <li>Les intertitres Groupes et Variables passent sans fond, en petites capitales grises, pour ne pas concurrencer la bande.</li>
+        <li>Toute la bande déplie ou replie la section.</li>
+      </ol>
+    </div>
+    <div class="colonne">
+      <span class="etiquette">T4 · Icône en carré, compte à droite</span>
+      <div class="cadre" id="t4"></div>
+      <ol class="argu">
+        <li>L'icône de la section passe dans un carré gris de 28 px ; le titre et sa ligne s'alignent à côté.</li>
+        <li>Le compte de termes passe à droite, en grand, à la place où se lit le compte de chaque ligne.</li>
+        <li>Le carré prend de la largeur à chaque section, et l'icône répète ce que dit le titre.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h2>2 · Tri par nombre de variables</h2>
+  <p class="intro">Décision du mainteneur : en tri par nombre, les groupes et les variables se mêlent. Chaque section garde son
+  titre, sans intertitre de place ; la teinte de la pastille dit la place de chaque terme.</p>
+  <div class="colonnes">
+    <div class="colonne">
+      <span class="etiquette">N · Tri par nombre, places mêlées (titres T3)</span>
+      <div class="cadre" id="n"></div>
+      <ol class="argu">
+        <li>Les lignes de chaque section suivent le nombre de variables, du plus grand au plus petit.</li>
+        <li>Un seul « Afficher les n autres » par section, comme aujourd'hui.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h2>3 · Les lignes sous les titres</h2>
+  <table>
+    <tr><th>Section</th><th>Ligne</th></tr>
+    <tr><td>À trancher</td><td>Termes proches d’un autre : répondez dans l’onglet Questions.</td></tr>
+    <tr><td>Remplace</td><td>Le terme retenu, et les variantes qu’il remplace dans le fichier.</td></tr>
+    <tr><td>Conforme</td><td>Termes qui suivent une règle, sans variante dans le fichier.</td></tr>
+    <tr><td>Sans règle</td><td>Termes du fichier qu’aucune règle ne couvre encore.</td></tr>
+    <tr><td>Composants</td><td>Noms des composants du fichier ; aucune question ne porte sur eux.</td></tr>
+    <tr><td>Palettes</td><td>Noms des palettes du fichier ; aucune question ne porte sur eux.</td></tr>
+  </table>
+</main>
+
+<script src="galerie/etats.js"></script>
+<script>
+const esc = (texte) => String(texte).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const CHEVRON = '<svg class="chevron-svg suivant" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"></path></svg>';
+const CHEVRON_BAS = '<svg class="chevron-svg" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"></path></svg>';
+const svg = (corps) => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${corps}</svg>`;
+const ICONES = {
+  'a-trancher': svg('<circle cx="8" cy="8" r="6.2"/><path d="M6.3 6.2a1.8 1.8 0 1 1 2.4 1.7c-.5.2-.7.6-.7 1.1v.4"/><circle cx="8" cy="11.6" r=".4" fill="currentColor"/>'),
+  remplace: svg('<path d="M2.5 4.5h7M2.5 11.5h7M9.5 4.5 13 8l-3.5 3.5M13 8H6"/>'),
+  conforme: svg('<path d="m3.5 8.5 3 3 6-7"/>'),
+  sans: svg('<circle cx="8" cy="8" r="5.5" stroke-dasharray="2.2 2"/>'),
+  composant: svg('<path d="M8 1.8 10.2 4 8 6.2 5.8 4zM4 5.8 6.2 8 4 10.2 1.8 8zM12 5.8 14.2 8 12 10.2 9.8 8zM8 9.8 10.2 12 8 14.2 5.8 12z"/>'),
+  palette: svg('<circle cx="8" cy="8" r="6.2"/><path d="M8 1.8v12.4M1.8 8h12.4"/>'),
+};
+const icone = (type) => `<span class="icone-type${type === 'a-trancher' ? ' ambre' : ''}">${ICONES[type]}</span>`;
+
+/* Le Playground. Une ligne : [terme, nombre de variables, variantes, origine] ; `autres` : ce que « Afficher les n autres » ajouterait. */
+const SECTIONS = [
+  { type: 'a-trancher', titre: 'À trancher', total: 3, ligneDeTitre: 'Termes proches d’un autre : répondez dans l’onglet Questions.',
+    g: { lignes: [['backgrond', 2, null, 'trancher', 'background'], ['bg', 12, null, 'trancher', 'background'], ['contrasthovered', 1, null, 'trancher']], autres: 0 } },
+  { type: 'remplace', titre: 'Remplace', total: 9, ligneDeTitre: 'Le terme retenu, et les variantes qu’il remplace dans le fichier.',
+    g: { lignes: [['Color', 540, ['Colors', 'colors'], 'ucm'], ['Danger', 49, ['Error'], 'ucm'], ['Disabled', 46, ['Disable'], 'ucm'], ['Size', 59, ['Sizes'], 'ucm']], autres: 2 },
+    v: { lignes: [['radius', 9, ['Border-radius'], 'ucm']], autres: 2 } },
+  { type: 'conforme', titre: 'Conforme', total: 37, ligneDeTitre: 'Termes qui suivent une règle, sans variante dans le fichier.',
+    g: { lignes: [['Info', 185, null, 'ucm'], ['LineHeight', 16, null, 'perso'], ['Small', 5, null, 'perso']], autres: 19 },
+    v: { lignes: [['200', 59, null, 'ucm'], ['background', 92, null, 'ucm'], ['line-height', 15, null, 'perso']], autres: 12 } },
+  { type: 'sans', titre: 'Sans règle', total: 22, ligneDeTitre: 'Termes du fichier qu’aucune règle ne couvre encore.',
+    g: { lignes: [['Contained', 71], ['Outlined', 106], ['ScaleWrap', 22]], autres: 9 },
+    v: { lignes: [['Gap', 12], ['Padding', 15]], autres: 8 } },
+  { type: 'composant', titre: 'Composants', total: 6, ligneDeTitre: 'Noms des composants du fichier ; aucune question ne porte sur eux.',
+    g: { lignes: [['Button', 245], ['Link', 38], ['Modal', 52]], autres: 3 } },
+  { type: 'palette', titre: 'Palettes', total: 2, ligneDeTitre: 'Noms des palettes du fichier ; aucune question ne porte sur eux.',
+    g: { lignes: [['Poppy', 44], ['Titanium', 30]], autres: 0 } },
+];
+const ORIGINE = {
+  ucm: '<span class="origine">UCM</span>',
+  perso: '<span class="origine">Personnalisé</span>',
+  trancher: '<span class="pastille pastille-bloque">À trancher</span>',
+};
+const avecPastille = (type) => type === 'remplace' || type === 'conforme';
+
+function ligne(type, place, [mot, nombre, remplace, origine, avec]) {
+  const terme = avecPastille(type) ? `<span class="jeton petit place-${place}">${esc(mot)}</span>` : `<code class="mot place-${place}">${esc(mot)}</code>`;
+  const suite = remplace
+    ? `<span class="variantes">remplace</span><span>${remplace.map((v) => `<code class="variante">${esc(v)}</code>`).join('')}</span>`
+    : avec ? `<span class="variantes">ou</span><code class="variante">${esc(avec)}</code>` : '';
+  return `<button type="button" class="ligne-v2">${icone(type)}<span class="terme-regle">${terme}${suite}</span>${origine ? ORIGINE[origine] : '<span></span>'}<span class="meta terme-nombre">${nombre}</span>${CHEVRON}</button>`;
+}
+const autres = (n, mot) => (n ? `<button type="button" class="btn-texte plus-dans-section">Afficher les ${n} autres${mot ? ` ${mot}` : ''}</button>` : '');
+const intertitre = (place, libelle, bloc) =>
+  `<div class="sous-place"><span class="echantillon place-${place}"></span>${libelle}<span class="meta">${bloc.lignes.length + bloc.autres}</span></div>`;
+
+/* Le corps d'une section : groupes puis variables en A → Z, places mêlées par nombre décroissant. */
+function corps(s, tri) {
+  const az = (a, b) => a[0].localeCompare(b[0], 'fr', { sensitivity: 'base' });
+  if (tri === 'nombre') {
+    const toutes = [...s.g.lignes.map((l) => ['g', l]), ...(s.v ? s.v.lignes.map((l) => ['v', l]) : [])].sort((a, b) => b[1][1] - a[1][1]);
+    return toutes.map(([place, l]) => ligne(s.type, place, l)).join('') + autres(s.g.autres + (s.v?.autres ?? 0));
+  }
+  const deux = Boolean(s.v);
+  return (deux ? intertitre('g', 'Groupes', s.g) : '') + [...s.g.lignes].sort(az).map((l) => ligne(s.type, 'g', l)).join('') + autres(s.g.autres, deux ? 'groupes' : '')
+    + (deux ? intertitre('v', 'Variables', s.v) + [...s.v.lignes].sort(az).map((l) => ligne(s.type, 'v', l)).join('') + autres(s.v.autres, 'variables') : '');
+}
+
+const ENTETES = {
+  t1: (s) => `<div class="section-type-tete">${icone(s.type)}<h3>${s.titre}</h3><span class="meta">${s.total}</span>${CHEVRON_BAS}</div><p class="ligne-de-titre">${s.ligneDeTitre}</p>`,
+  t2: (s) => `<div class="tete-2">${icone(s.type)}<div><h3>${s.titre} <span class="meta">${s.total}</span></h3><p class="ligne-de-titre">${s.ligneDeTitre}</p></div>${CHEVRON_BAS}</div>`,
+  t3: () => '',
+  t4: (s) => `<div class="tete-4"><span class="carre">${icone(s.type)}</span><div><h3>${s.titre}</h3><p class="ligne-de-titre">${s.ligneDeTitre}</p></div><span class="grand-compte">${s.total}</span>${CHEVRON_BAS}</div>`,
+};
+const bande = (s) => `<div class="bande">${icone(s.type)}<div><h3>${s.titre} <span class="meta">${s.total}</span></h3><p class="ligne-de-titre">${s.ligneDeTitre}</p></div>${CHEVRON_BAS}</div>`;
+const section = (s, entete, tri) =>
+  `<div class="section-type entete-${entete}">${ENTETES[entete](s)}<div class="liste-v2">${entete === 't3' ? bande(s) : ''}${corps(s, tri)}</div></div>`;
+
+const CONVENTIONS = `<section class="section-regles"><div class="section-tete"><div><h2>Conventions d’écriture</h2><p>Comment s’écrivent les groupes, les variables et les collections.</p></div>`
+  + '<button type="button" class="btn btn-secondary btn-compact"><span>Modifier</span></button></div><div class="ecriture-regles">'
+  + '<div class="ecriture-regle"><span class="meta">Groupes</span><span class="jeton place-g">PascalCase</span><span class="ecriture-exemple"><span class="ecriture-partie partie-g">Button</span>/<span class="ecriture-partie partie-g">Contained</span>/background</span></div>'
+  + '<div class="ecriture-regle"><span class="meta">Variables</span><span class="jeton place-v">minuscules-tirets</span><span class="ecriture-exemple">Button/Contained/<span class="ecriture-partie partie-v">background</span></span></div>'
+  + '<div class="ecriture-regle"><span class="meta">Collections</span><span class="jeton jeton-neutre">noms UCM</span><span class="ecriture-exemple"><span class="ecriture-partie">color-brands</span></span></div>'
+  + '</div></section>';
+const vocabulaire = (entete, tri) => '<section class="section-regles"><div class="section-tete"><div><h2>Vocabulaire</h2><p>Le terme de référence de chaque notion, et les variantes qu’il remplace.</p></div></div>'
+  + `<div class="barre-v2"><button type="button" class="btn btn-secondary btn-compact"><span>Filtrer</span></button><input type="search" class="input recherche" placeholder="Chercher un terme" value=""><select class="tri"><option>${tri === 'nombre' ? 'Trier : nombre de variables' : 'Trier : A → Z'}</option></select></div>`
+  + `<div class="sections entete-${entete}">${SECTIONS.map((s) => section(s, entete, tri)).join('')}</div></section>`;
+
+const STYLE = `<style>
+  /* Piste D aux couleurs de A : groupes orchidée, variables olive, origine en texte gris. */
+  :root { --fond-g: rgb(80 36 84); --texte-g: rgb(244 180 248); --fond-v: rgb(58 62 28); --texte-v: rgb(222 228 150); }
+  .jeton.place-g, .jeton.place-v { font-weight: 600; }
+  .jeton.place-g { background: var(--fond-g); color: var(--texte-g); }
+  .jeton.place-v { background: var(--fond-v); color: var(--texte-v); }
+  .mot.place-g, .partie-g { color: var(--texte-g); }
+  .mot.place-v, .partie-v { color: var(--texte-v); }
+  .origine { color: var(--texte-second); white-space: nowrap; }
+  .echantillon { width: 10px; height: 10px; border-radius: 3px; }
+  .echantillon.place-g { background: var(--fond-g); box-shadow: inset 0 0 0 1px var(--texte-g); }
+  .echantillon.place-v { background: var(--fond-v); box-shadow: inset 0 0 0 1px var(--texte-v); }
+  .sous-place { display: flex; align-items: center; gap: var(--espace-controle); padding: var(--espace-serre) var(--espace-bloc); border-top: 1px solid var(--bordure); background: var(--fond-bloc); color: var(--texte-second); font-size: var(--libelle); font-weight: 600; }
+  .sous-place:first-child { border-top: 0; }
+  .sous-place .meta { font-weight: 400; }
+  .liste-v2 .plus-dans-section { display: block; width: 100%; min-height: 32px; padding: var(--espace-controle) var(--espace-bloc); border-top: 1px solid var(--bordure); text-align: left; }
+  .ligne-de-titre { margin: 0; color: var(--texte-second); }
+  .section-type h3 .meta { margin-left: var(--espace-serre); font-weight: 400; }
+
+  /* T1 : la ligne sous le titre, plus d'espace entre les sections. */
+  .sections.entete-t1 { display: grid; gap: var(--espace-page); }
+  .entete-t1 .ligne-de-titre { margin: -4px 0 var(--espace-serre) 24px; }
+
+  /* T2 : le titre à 15 px, un filet au-dessus de chaque section. */
+  .sections.entete-t2 { display: grid; gap: var(--espace-page); }
+  .section-type.entete-t2 + .section-type.entete-t2 { padding-top: var(--espace-page); border-top: 1px solid var(--bordure); }
+  .tete-2 { display: grid; grid-template-columns: 16px minmax(0, 1fr) 12px; align-items: start; gap: var(--espace-controle); margin-bottom: var(--espace-serre); }
+  .tete-2 .icone-type { margin-top: 2px; }
+  .tete-2 h3 { margin: 0; font-size: var(--titre); line-height: var(--titre-interligne); font-weight: 600; }
+  .tete-2 .chevron-svg { margin-top: 4px; }
+
+  /* T3 : le titre dans une bande grise en tête du cadre de la liste ; intertitres sans fond. */
+  .sections.entete-t3 { display: grid; gap: var(--espace-bloc); }
+  .bande { display: grid; grid-template-columns: 16px minmax(0, 1fr) 12px; align-items: start; gap: var(--espace-controle); padding: var(--espace-controle) var(--espace-bloc); background: var(--fond-bloc); }
+  .bande .icone-type { margin-top: 1px; color: var(--texte); }
+  .bande .icone-type.ambre { color: var(--texte-avertissement); }
+  .bande h3 { margin: 0; font-size: var(--libelle); line-height: var(--libelle-interligne); font-weight: 600; }
+  .bande .chevron-svg { margin-top: 2px; }
+  .entete-t3 .sous-place { background: none; padding-top: var(--espace-controle); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .entete-t3 .bande + .sous-place, .entete-t3 .bande + .ligne-v2 { border-top: 1px solid var(--bordure); }
+
+  /* T4 : l'icône dans un carré, le compte en grand à droite. */
+  .sections.entete-t4 { display: grid; gap: var(--espace-page); }
+  .tete-4 { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto 12px; align-items: center; gap: var(--espace-controle); margin-bottom: var(--espace-serre); }
+  .carre { display: flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: 6px; background: var(--fond-note); }
+  .carre .icone-type { color: var(--texte); }
+  .carre .icone-type.ambre { color: var(--texte-avertissement); }
+  .tete-4 h3 { margin: 0; font-size: var(--libelle); font-weight: 600; }
+  .grand-compte { font-size: var(--titre); font-weight: 600; }
+</style>`;
+
+function cadre(hote, entete, tri = 'az') {
+  const g = window.GALERIE['regles-noms'];
+  const iframe = document.createElement('iframe');
+  iframe.width = 640;
+  iframe.style.width = '640px';
+  iframe.style.height = '700px';
+  iframe.srcdoc = `<!doctype html><html lang="fr" class="${g.classe}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/plugin.css"><link rel="stylesheet" href="propose.css">${STYLE}</head><body>${g.corps}</body></html>`;
+  iframe.addEventListener('load', () => {
+    const doc = iframe.contentDocument;
+    const sections = doc.querySelectorAll('#panneau-regles .section-regles');
+    sections[0].outerHTML = CONVENTIONS;
+    sections[1].outerHTML = vocabulaire(entete, tri);
+    iframe.style.height = `${doc.documentElement.scrollHeight}px`;
+  });
+  document.getElementById(hote).append(iframe);
+}
+for (const entete of ['t1', 't2', 't3', 't4']) cadre(entete, entete);
+cadre('n', 't3', 'nombre');
+</script>
+</body>
+</html>
