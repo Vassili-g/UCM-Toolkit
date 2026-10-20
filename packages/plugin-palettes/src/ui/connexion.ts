@@ -80,7 +80,7 @@ function construireVues(i18n: Localisation) {
         element.hidden = tokens === null;
         if (!tokens) return;
         i18n.lier(collection, 'textContent', tokens.collection);
-        // Le groupe se lit comme un dossier : « colors/… » ; vide, les palettes sont à la racine de la collection.
+        // Le groupe se lit comme un dossier : « color/… » ; vide, les palettes sont à la racine de la collection.
         groupe.textContent = tokens.groupe === '' ? '' : `${tokens.groupe}/…`;
         groupe.hidden = tokens.groupe === '';
         fleche.hidden = tokens.groupe === '';

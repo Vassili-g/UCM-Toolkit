@@ -14,8 +14,8 @@ import { ABREVIATIONS, CRANS, MODES, PROFILS, REGISTRES, SYNONYMES_COURANTS } fr
 export type NatureDeSegment = 'composant' | 'palette';
 type Nature = NatureDeSegment | null;
 
-/** Reprend `SEUIL_DE_PALETTE` d'UCM Palettes (`packages/plugin-palettes/src/variables/detection.ts`) : un chemin porte une palette à partir de ce nombre de crans différents. */
-const SEUIL_DE_PALETTE = 5;
+/** Un chemin porte une palette à partir de ce nombre de crans différents. UCM Palettes détecte les palettes du fichier sur ce seuil. */
+export const SEUIL_DE_PALETTE = 5;
 
 /** Le groupe dont les enfants directs sont des composants, quelle que soit la collection (forme en minuscules). */
 const DOSSIER_DES_COMPOSANTS = 'components';

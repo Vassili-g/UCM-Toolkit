@@ -5,11 +5,9 @@
  * variable qui n'a de couleur dans aucun mode n'entre dans aucune palette.
  * Pur : ni Figma, ni DOM.
  */
+import { SEUIL_DE_PALETTE } from '@ucm-kit/core/referentiel';
 import { MODES, PROFILS } from 'ucm-couleur';
 import type { CollectionLue, ModeLu, VariableLue } from './releve';
-
-/** Le nombre de variables à partir duquel un groupe est une palette. */
-export const SEUIL_DE_PALETTE = 5;
 
 /** La nuance que « Modifier dans le plugin » prend pour référence, ou la plus proche ([VAR-13]). */
 export const NUANCE_DE_REFERENCE = 600;

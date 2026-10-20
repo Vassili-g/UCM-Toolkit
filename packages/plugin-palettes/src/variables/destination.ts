@@ -19,7 +19,7 @@ export interface Destination {
   readonly themes: ThemesDeLaDestination;
 }
 
-/** La forme de l'architecture (D5) : la collection neuve `primitives`, le groupe `colors`, les thèmes dans le chemin. */
+/** La forme de l'architecture (D5), lue dans le référentiel du kit : la collection neuve `primitives`, le groupe `color`, les thèmes dans le chemin. */
 export const DESTINATION_PAR_DEFAUT: Destination = {
   collection: { nom: DESTINATION_DES_PALETTES.collection },
   groupe: DESTINATION_DES_PALETTES.groupe,

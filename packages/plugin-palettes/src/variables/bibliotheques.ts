@@ -5,7 +5,7 @@
  * une couleur ne se lit qu'après l'import de la variable. Une collection de
  * bibliothèque n'est jamais une destination. Pur : ni Figma, ni DOM.
  */
-import { SEUIL_DE_PALETTE } from './detection';
+import { SEUIL_DE_PALETTE } from '@ucm-kit/core/referentiel';
 
 export interface CollectionDeBibliotheque {
   /** La clé de la collection, que Figma demande pour lister ses variables. */

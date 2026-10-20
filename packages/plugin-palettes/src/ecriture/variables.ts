@@ -18,7 +18,7 @@
  * cette palette. Sans règles, les noms restent ceux du plan.
  */
 import { aUneIntensite, jsonCanonique, profilPorteur, validerRecette, type Recette, type Refus } from 'ucm-couleur';
-import { CLES_PARTAGEES_DE_PALETTES } from '@ucm-kit/core/referentiel';
+import { CLES_PARTAGEES_DE_PALETTES, SEUIL_DE_PALETTE } from '@ucm-kit/core/referentiel';
 
 import { CLE_RECETTE, ESPACE_PARTAGE, empreinteDuTexte, lireEtat } from '../lecture';
 import { ajouter, nouvellePalette, reprendreDuFichier } from '../edition';
@@ -27,7 +27,7 @@ import { variablesDeLaRampe } from '../variables/bibliotheques';
 import { conversionDeLaReprise } from '../variables/conversion';
 import { creerNommeur, planDeLaPalette } from '../variables/nommeur';
 import { validerLaDestination, type Destination, type RefusDeDestination } from '../variables/destination';
-import { SEUIL_DE_PALETTE, nuanceDeReference, palettesDuFichier, retrouverLaPaletteGroupee, type PaletteDuFichier, type SourceGroupee } from '../variables/detection';
+import { nuanceDeReference, palettesDuFichier, retrouverLaPaletteGroupee, type PaletteDuFichier, type SourceGroupee } from '../variables/detection';
 import { etatDesTokens } from '../variables/etat';
 import { origineDeLaReprise, suiviDeLaReprise, suiviDeLaRepriseGroupee, variableDeLEntree, type OrigineDeLaReprise } from '../variables/reprise';
 import { cheminDeLaReprise, type EntreeDuPlan, type ModeDuPlan } from '../variables/plan';
