@@ -209,6 +209,16 @@ test('les collections de l’inventaire, les noms protégés et le dernier renom
   assert.deepEqual(bilan.ecriture.collections, { reconnues: 3, total: 3 });
 });
 
+test('l’exemple d’une écriture suivie est le chemin le plus complet dont chaque segment a une lettre', () => {
+  const fichier: Fichier = {
+    collections: [['c1', 'theme']],
+    variables: variables(['a', 'sizing/0'], ['b', 'card/gap'], ['c', 'surface/brand/primary/background'], ['d', 'one/two/three/four/five']),
+  };
+  const { ecriture } = projeter(calculer(fichier)).bilan();
+  assert.deepEqual(ecriture.groupes.exemple, { id: 'c', ancien: 'surface/brand/primary/background', nouveau: 'surface/brand/primary/background', marques: [0, 1, 2], aussi: [] });
+  assert.deepEqual(ecriture.variables.exemple, { id: 'c', ancien: 'surface/brand/primary/background', nouveau: 'surface/brand/primary/background', marques: [3], aussi: [] });
+});
+
 test('un fichier sans variable locale se signale', () => {
   const bilan = projeter(calculer({ collections: [['c1', 'components']], variables: [] })).bilan();
   assert.equal(bilan.sansVariableLocale, true);

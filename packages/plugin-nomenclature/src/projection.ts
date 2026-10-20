@@ -8,7 +8,7 @@
 import {
   REGISTRES, REGISTRES_ARCHITECTURE, REGISTRE_AXES_ETAT, REGISTRE_TAILLES, assembler, categorieDuSegment, collectionUcmReconnue, decouperSegment, motsAvecCasse,
   termePourCategorie, type Terme,
-  type CategorieDeNom, type ChangementDeTerme, type ConflitDeVocabulaire, type Convention, type Lexique, type Mots, type NatureDeSegment,
+  type CategorieDeNom, type ChangementDeTerme, type ConflitDeVocabulaire, type Convention, type Lexique, type Mots, type NatureDeSegment, type NomLu,
   type OccurrenceDeTerme, type OrigineDuTerme, type Question, type Renommage, type ResultatDesQuestions, type ResultatDuLexique, type TermeEnQuestion,
 } from '@ucm-kit/core/referentiel';
 import { estCollisionDeChemin } from './cheminsPublies';
@@ -402,6 +402,25 @@ function presenceDuTerme(lexique: Lexique, cle: string, occurrences: readonly Oc
   return { forme: formesParFrequence(formesDuFichier(lexique, occurrences))[0] ?? cle, nature };
 }
 
+// L'exemple d'une écriture
+
+/**
+ * La valeur d'un nom comme exemple d'écriture : un nom dont chaque segment contient une lettre passe avant les autres (`Sizing/0` montre
+ * mal une écriture), puis le plus profond jusqu'à quatre segments ; au-delà, chaque segment de plus coûte de la largeur et le classe plus bas.
+ */
+function valeurDExemple(nom: string): number {
+  const segments = nom.split('/');
+  const profondeur = segments.length <= 4 ? segments.length : 8 - segments.length;
+  return (segments.every((segment) => /\p{L}/u.test(segment)) ? 10 : 0) + profondeur;
+}
+
+/** Les rangs des segments d'un nom qui sont à `place` : tous ses groupes, ou sa variable. */
+function rangsDeLaPlace(nom: NomLu, place: 'groupes' | 'variables'): number[] {
+  const segments = nom.nom.split('/');
+  if (place === 'variables') return [segments.length - 1];
+  return segments.flatMap((_, rang) => (nom.categoriesDesSegments?.[rang] === 'groupes' ? [rang] : []));
+}
+
 // Le tri de la liste
 
 const TAILLES = new Map(REGISTRE_TAILLES.termes.map((terme, rang) => [terme.id, rang]));
@@ -592,19 +611,18 @@ export function projeter(entree: EntreeDeProjection): Projection {
   function ligneDEcriture(categorie: 'groupes' | 'variables'): LigneDEcriture {
     const cle = `ecriture:${categorie}`;
     let total = 0;
-    let premier: LigneVue | null = null;
+    let modele: NomLu | null = null;
     for (const nom of lexique.noms.values()) {
       if (nom.categorie !== 'variables' || (categorie === 'groupes' && !nom.categoriesDesSegments?.includes('groupes'))) continue;
       total++;
-      if (!premier) {
-        const rang = categorie === 'groupes' ? nom.categoriesDesSegments!.indexOf('groupes') : nom.nom.split('/').length - 1;
-        premier = { id: nom.id, ancien: nom.nom, nouveau: nom.nom, marques: [rang], aussi: [] };
-      }
+      if (!modele || valeurDExemple(nom.nom) > valeurDExemple(modele.nom)) modele = nom;
     }
     const concernes = entree.resultat.renommages.filter((renommage) => (renommage.regles as readonly string[]).includes(cle));
-    const exemple = concernes.length > 0
-      ? ligneDuNom(concernes[0], marquesDeLaRegle(concernes[0], cle), [])
-      : premier;
+    const concerne = concernes.reduce<Renommage | null>((meilleur, renommage) =>
+      (!meilleur || valeurDExemple(renommage.ancienNom) > valeurDExemple(meilleur.ancienNom) ? renommage : meilleur), null);
+    const exemple = concerne
+      ? ligneDuNom(concerne, marquesDeLaRegle(concerne, cle), [])
+      : modele && { id: modele.id, ancien: modele.nom, nouveau: modele.nom, marques: rangsDeLaPlace(modele, categorie), aussi: [] };
     return { convention: conventionDe(categorie), suivent: Math.max(0, total - concernes.length), total, exemple };
   }
 
