@@ -89,7 +89,7 @@ Puis cocher le lot dans l'avancement du plan de fiabilité, avec son hash.
 
 - [x] Lot 8. La fabrication et la vérification (b805f6a5)
 - [x] Lot 17. Les nouveaux noms des couches UCM (0ccbff70)
-- [ ] Lot 1. L'explorateur reconnaît le thème quelle que soit son écriture
+- [x] Lot 1. L'explorateur reconnaît le thème quelle que soit son écriture (42dd8719)
 - [ ] Lot 2. Une comparaison qui n'a pas pu se faire le dit
 - [ ] Lot 3. Une couleur de composant vise le thème
 - [ ] Lot 5. Palettes annonce ce qu'il écrit, sur un lot entier
@@ -356,7 +356,7 @@ Plan de fiabilité, section « Lot 1 », décision D6.
     nom inconnu, et la façon dont l'explorateur obtient les termes
     personnalisés de Nomenclature (lecture de la donnée partagée racine
     `ucm_architect` par `lireReglesDeNommage` du socle, en attendant le lot 12).
-- [ ] **T1.1** · `implementeur` · `termeReconnu` et la grammaire
+- [x] **T1.1** (42dd8719) · `implementeur` · `termeReconnu` et la grammaire
   - Entrée : `conception/lot-1.md`.
   - Fichiers : `packages/kit/src/referentiel/termes.ts`,
     `packages/kit/src/referentiel/architecture.ts` (`cheminConforme`), les
@@ -364,7 +364,7 @@ Plan de fiabilité, section « Lot 1 », décision D6.
   - Faire : selon la note. `termeRetenu` ne change pas.
   - Tests : ceux du plan de fiabilité, lot 1, deux premiers points.
   - Fini quand : tests du kit verts.
-- [ ] **T1.2** · `implementeur` · La reconnaissance des variables du thème
+- [x] **T1.2** (42dd8719) · `implementeur` · La reconnaissance des variables du thème
   - Entrée : `conception/lot-1.md`.
   - Fichiers : `packages/kit/src/emplois/dossiers.ts` (la liste),
     `packages/kit/src/referentiel/theme.ts` (la reconnaissance : `emplois`
@@ -382,7 +382,7 @@ Plan de fiabilité, section « Lot 1 », décision D6.
   - Tests : un thème renommé selon chaque convention de `CONVENTIONS` donne
     les mêmes constats de portée et de nuance que le thème en minuscules.
   - Fini quand : tests du kit et de l'explorateur verts.
-- [ ] **T1.3** · `implementeur` · Les termes personnalisés dans l'explorateur
+- [x] **T1.3** (42dd8719) · `implementeur` · Les termes personnalisés dans l'explorateur
   - Entrée : `conception/lot-1.md`.
   - Fichiers : `packages/plugin-explorateur/src/lecture.ts` (relevé),
     `src/integrations/profilUcm.ts`, les tests.
@@ -392,7 +392,7 @@ Plan de fiabilité, section « Lot 1 », décision D6.
     limite affichée vient au lot 2).
   - Fini quand : tests verts ; l'explorateur n'écrit rien dans le document
     (`tests/` de l'explorateur sur la lecture seule verts).
-- [ ] **Clôture du lot 1** (numéro du kit monté)
+- [x] **Clôture du lot 1** (42dd8719 ; kit 0.10.1, non publié)
 
 ## Lot 2. Une comparaison qui n'a pas pu se faire le dit
 
@@ -410,7 +410,7 @@ Plan de fiabilité, section « Lot 2 ». Sondes de Codex :
     type du résultat d'un contrôle du profil (faits, différences, impossibles
     avec cause), et les textes d'écran.
   - Écrire les textes d'écran avec la skill `rediger-diagnostics-ucm`.
-- [ ] **T2.1** · `implementeur` · Le comparateur DTCG du kit
+- [x] **T2.1** (42dd8719) · `implementeur` · Le comparateur DTCG du kit
   - Entrée : `conception/lot-2.md`.
   - Fichiers : un module nouveau dans `packages/kit/src/lecteurs/`,
     `navigateur.mjs`, `index.mjs` et leurs déclarations `.d.mts`, les tests du
@@ -484,7 +484,7 @@ Plan de fiabilité, section « Lot 5 », décision D2. Sondes de Codex :
 `lot5-collision`, `collision-double-permissif`, `suivi-refuse`,
 `destination-casse`.
 
-- [ ] **T5.0** · Conversation principale · **Conception**
+- [x] **T5.0** (42dd8719) · Conversation principale · **Conception**
   - Fixer dans `conception/lot-5.md` : la forme du plan d'un lot entier
     (`planDuLot` : noms finaux, réservations, refus, créations, remplacements,
     renommages exécutés, par palette), où il vit (`packages/plugin-palettes/src/variables/`),
@@ -550,7 +550,7 @@ Plan de fiabilité, section « Lot 5 », décision D2. Sondes de Codex :
 Plan de fiabilité, section « Lot 4 », décision D4. Sondes de Codex :
 `protection-lecture-refusee`, `suivi-futur`, `marque-ouverture`.
 
-- [ ] **T4.0** · Conversation principale · **Conception et textes**
+- [x] **T4.0** (42dd8719) · Conversation principale · **Conception et textes**
   - Fixer dans `conception/lot-4.md` : le résultat de lecture du suivi
     (absent, lu, refusé), la règle de suspension d'un renommage indécidable, et
     les textes d'explication, écrits avec la skill `rediger-diagnostics-ucm`.
@@ -593,7 +593,7 @@ Plan de fiabilité, section « Lot 4 », décision D4. Sondes de Codex :
 Plan de fiabilité, section « Lot 6 », décisions D1 et D7. Sonde de Codex :
 `matrice-grammaire`.
 
-- [ ] **T6.0** · Conversation principale · **Conception**
+- [x] **T6.0** (42dd8719) · Conversation principale · **Conception**
   - Fixer dans `conception/lot-6.md` : le nom et la place des numéros de
     palette (`NUMEROS_DE_PALETTE` dans `vocabulaire.ts`), la forme des chemins
     de `primitives` selon que les thèmes sont en modes, et le type de la

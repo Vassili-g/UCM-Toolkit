@@ -83,7 +83,7 @@ Dans l'ordre d'exécution (section [Ordre](#ordre)).
 
 - [x] Lot 8. La fabrication et la vérification (b805f6a5)
 - [x] Lot 17. Les nouveaux noms des couches UCM (0ccbff70)
-- [ ] Lot 1. L'explorateur reconnaît le thème quelle que soit son écriture
+- [x] Lot 1. L'explorateur reconnaît le thème quelle que soit son écriture (42dd8719)
 - [ ] Lot 2. Une comparaison qui n'a pas pu se faire le dit
 - [ ] Lot 3. Une couleur de composant vise le thème
 - [ ] Lot 5. Palettes annonce ce qu'il écrit, sur un lot entier
