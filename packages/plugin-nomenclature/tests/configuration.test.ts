@@ -8,6 +8,9 @@ class Element {
   children: Element[] = [];
   readonly events = new Map<string, () => void>();
   checked = false;
+  id = '';
+  type = '';
+  tabIndex = 0;
   hidden = false;
   disabled = false;
   textContent = '';
@@ -20,7 +23,7 @@ class Element {
   setAttribute(): void {}
   addEventListener(type: string, action: () => void): void { this.events.set(type, action); }
 }
-(globalThis as { document?: unknown }).document = { createElement: (tag: string) => new Element(tag), createTextNode: (texte: string) => Object.assign(new Element('#text'), { textContent: texte }) };
+(globalThis as { document?: unknown }).document = { createElement: (tag: string) => new Element(tag), createElementNS: (_espace: string, tag: string) => new Element(tag), createTextNode: (texte: string) => Object.assign(new Element('#text'), { textContent: texte }) };
 
 /** Les modules de l'écran se chargent après le DOM minimal. */
 const modules = Promise.all([import('../src/ui/configuration'), import('../src/ui/frontiere')]);
@@ -45,7 +48,7 @@ async function banc() {
     dernierRenommage: null, dernierImport: null,
   }) as unknown as Bilan;
   frontiere.recevoir({ type: 'bilan', demande: frontiere.analyser(), bilan: bilanDe(1, []) });
-  const cases = configuration.children[1]!.children[2]!.children.map((ligne) => ligne.children[0]!);
+  const cases = configuration.children[3]!.children[0]!.children[2]!.children.map((ligne) => ligne.children[0]!);
   const decocher = (rang: number) => { cases[rang]!.checked = false; cases[rang]!.events.get('change')!(); };
   const repondues = new Set<number>();
   /** Le sandbox répond à la plus ancienne demande envoyée sans réponse. */

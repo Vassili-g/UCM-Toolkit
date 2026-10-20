@@ -15,6 +15,25 @@ function nombreDeNoms(variables: number, collections: number): string {
   return variables === 0 ? lesCollections : `${lesVariables} et ${lesCollections}`;
 }
 
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const deuxChiffres = (valeur: number): string => String(valeur).padStart(2, '0');
+
+/**
+ * Le moment d'un lot d'après sa date ISO, à l'heure locale : « aujourd’hui à 14:32 », « hier à 17:05 », « le 14 octobre à 09:12 ».
+ * L'année s'ajoute quand elle diffère de celle de `maintenant`. Un texte qui n'est pas une date ISO s'écrit tel quel, après « à ».
+ */
+function quandLeLot(iso: string, maintenant: Date): string {
+  const date = /^\d{4}-\d{2}-\d{2}T/u.test(iso) ? new Date(iso) : null;
+  if (date === null || Number.isNaN(date.getTime())) return `à ${iso}`;
+  const heure = `à ${deuxChiffres(date.getHours())}:${deuxChiffres(date.getMinutes())}`;
+  const jour = (d: Date): number => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const hier = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() - 1);
+  if (jour(date) === jour(maintenant)) return `aujourd’hui ${heure}`;
+  if (jour(date) === jour(hier)) return `hier ${heure}`;
+  const annee = date.getFullYear() === maintenant.getFullYear() ? '' : ` ${date.getFullYear()}`;
+  return `le ${date.getDate() === 1 ? '1er' : date.getDate()} ${MOIS[date.getMonth()]}${annee} ${heure}`;
+}
+
 export const TEXTES = {
   marque: 'UCM Nomenclature',
   titreConfiguration: 'Configuration',
@@ -70,23 +89,50 @@ export const TEXTES = {
   importer: 'Importer',
   nomDuFichierDeRegles: 'regles-ucm-nomenclature.json',
   choisirLeFichierDeRegles: 'Fichier de règles à importer',
+  etiquetteDesOngletsDeLaConfiguration: 'Configuration',
+  ongletReglages: 'Réglages',
+  ongletHistorique: 'Historique',
+  phraseReglages: 'Les collections que le plugin lit et les règles de ce fichier.',
+  phraseHistorique: 'Revenez à l’état d’avant le dernier renommage ou le dernier import.',
+
   dernierRenommage: 'Dernier renommage',
-  renommagesALHeure: (nombre: number, heure: string): string => `${noms(nombre)}, à ${heure}`,
-  annulerLeRenommage: 'Annuler',
+  /** « aujourd’hui à 14:32 », « hier à 17:05 », « le 14 octobre à 09:12 » : le moment du lot, à l'heure locale de `maintenant`. */
+  quandLeLot: (iso: string, maintenant: Date): string => quandLeLot(iso, maintenant),
+  renommagesALHeure: (nombre: number, quand: string): string => `${noms(nombre)}, ${quand}`,
+  annulerLeRenommage: 'Annuler le renommage',
+  seulLeDernierRenommage: 'Seul le dernier renommage est gardé.',
+  nomsNeReviendrontPas: (nombre: number): string => (nombre === 1 ? '1 nom ne reviendra pas.' : `${nombre} noms ne reviendront pas.`),
+  /** Le nombre de noms d'une carte de l'Historique : « 8 noms ». */
+  nomsDuLot: noms,
+  collectionsIntrouvables: 'Introuvables',
+  pastilleNonAnalysee: 'Non analysée',
+  cocherPourRetablir: 'Cochez cette collection dans Réglages pour rétablir ses noms.',
+  legendeApresAnnulation: 'Après l’annulation',
+  uneCollection: 'collection',
+  changeDepuisDansFigma: 'Changé dans Figma depuis',
+  supprimeDansFigma: 'Supprimé dans Figma',
+  aucuneRegle: 'Aucune règle',
+  autresReglesChangees: (nombre: number): string => (nombre === 1 ? '1 autre règle changée' : `${nombre} autres règles changées`),
+  rienAAnnuler: 'Rien à annuler pour l’instant.',
+  rienAAnnulerExplication: 'Après chaque renommage ou import, l’état d’avant apparaît ici.',
+  nomsRetablis: (nombre: number): string => (nombre === 1 ? '1 nom rétabli' : `${nombre} noms rétablis`),
+  renommagesReviennent: 'Les renommages reviennent dans l’onglet Renommages.',
+  anciensNomsGardes: 'Les anciens noms sont gardés dans Configuration › Historique.',
   annulationDuRenommageRefusee: 'L’annulation a été refusée. Relancez l’analyse, puis annulez de nouveau.',
   annulationDuRenommagePartielle: (retablis: number, sautes: number): string =>
     `${noms(retablis)} rétablis, ${sautes} n’ont pas pu l’être : un autre nom occupe leur place ou ils ont changé depuis. Le plugin les garde ; annulez de nouveau après avoir corrigé.`,
   /**
-   * Une annulation qui laisse des noms dans une collection décochée de « Collections analysées ». Depuis l'onglet Renommages (`depuis`),
-   * le designer ouvre d'abord Configuration, où se trouvent la collection et le bouton Annuler du dernier renommage.
+   * Une annulation qui laisse des noms dans une collection décochée de « Collections analysées ». La collection se coche dans l'onglet
+   * Réglages de la Configuration et l'annulation se refait dans l'onglet Historique ; depuis l'onglet Renommages (`depuis`),
+   * le designer ouvre d'abord Configuration.
    */
   annulationDansUneCollectionExclue: (retablis: number, exclues: number, depuis: 'configuration' | 'renommages' = 'configuration'): string => {
     const un = exclues === 1;
     const debut = retablis === 0 ? 'Aucun nom n’a été rétabli.' : `${retablis === 1 ? '1 nom rétabli' : `${retablis} noms rétablis`}.`;
     const reste = retablis === 0 ? (un ? '1 nom' : `${exclues} noms`) : (un ? '1 autre nom' : `${exclues} autres noms`);
     const geste = depuis === 'configuration'
-      ? 'cochez de nouveau la collection dans Collections analysées, puis annulez de nouveau.'
-      : 'ouvrez Configuration, cochez de nouveau la collection dans Collections analysées, puis annulez de nouveau dans Dernier renommage.';
+      ? 'cochez de nouveau la collection dans l’onglet Réglages, puis annulez de nouveau dans l’onglet Historique.'
+      : 'ouvrez Configuration, cochez de nouveau la collection dans l’onglet Réglages, puis annulez de nouveau dans l’onglet Historique.';
     return `${debut} ${reste} ${un ? 'est' : 'sont'} dans une collection exclue de l’analyse : le plugin ${un ? 'le garde' : 'les garde'}. `
       + `Pour ${un ? 'le' : 'les'} rétablir, ${geste}`;
   },
@@ -94,12 +140,13 @@ export const TEXTES = {
   annulationAutresNomsNonRetablis: (nombre: number): string => (nombre === 1
     ? '1 autre nom n’a pas pu être rétabli : un nom occupe déjà sa place ou il a changé depuis. Le plugin le garde ; annulez de nouveau après avoir corrigé.'
     : `${nombre} autres noms n’ont pas pu être rétablis : un nom occupe déjà leur place ou ils ont changé depuis. Le plugin les garde ; annulez de nouveau après avoir corrigé.`),
-  confirmerLAnnulation: (nombre: number, heure: string): string =>
-    `Annuler le renommage de ${heure} ? ${nombre === 1 ? '1 nom reprend son' : `${nombre} noms reprennent leur`} ancien nom.`,
+  /** `reviennent` compte les noms que l'annulation remet, pas la taille du lot. */
+  confirmerLAnnulation: (reviennent: number): string =>
+    `Annuler le renommage ? ${reviennent === 1 ? '1 nom reprend son' : `${reviennent} noms reprennent leur`} ancien nom.`,
   remettreLesAnciensNoms: 'Remettre les anciens noms',
   garderLesNoms: 'Garder',
   dernierImport: 'Dernier import',
-  importALHeure: (heure: string): string => `Règles importées à ${heure}`,
+  importeALHeure: (regles: number, quand: string): string => `${regles === 1 ? '1 règle changée' : `${regles} règles changées`}, ${quand}`,
   annulerLImport: 'Annuler l’import',
 
   /** Ce qui s'est passé et ce que le designer fait ensuite, pour chaque erreur du sandbox. */

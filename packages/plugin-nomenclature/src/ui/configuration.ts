@@ -1,14 +1,16 @@
 /**
- * La page Configuration : les collections analysées, l'export et l'import des
- * règles du fichier, le dernier renommage et le dernier import avec leur annulation. Elle se met à
- * jour à chaque bilan, qu'elle soit ouverte ou non.
+ * La page Configuration, en deux onglets : Réglages (les collections analysées, l'export et l'import des
+ * règles du fichier) et Historique (le dernier renommage et le dernier import avec leur annulation, dans
+ * `historique.ts`). Elle se met à jour à chaque bilan, qu'elle soit ouverte ou non.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
+import { createOnglets } from 'ucm-plugin-socle/src/ui/Onglets';
 import type { Bilan, CollectionVue } from '../messages';
 import type { Coquille } from './coquille';
 import type { MessageAAfficher } from './frontiere';
 import { telecharger } from './telechargement';
 import { ouvrirUneFeuilleDeConfirmation } from './aAppliquer';
+import { creerHistorique } from './historique';
 import { TEXTES } from './textes';
 
 /** La taille d'import que `estUiMessage` accepte (`src/messages.ts`) : au-delà, le sandbox ignore la demande. */
@@ -76,6 +78,8 @@ export function monterConfiguration(coquille: Coquille): void {
   }
 
   function suivre(demande: number): number {
+    // La ligne verte d'une annulation disparaît à la demande suivante de la page.
+    historique.reussite(null);
     demandes.add(demande);
     return demande;
   }
@@ -145,75 +149,37 @@ export function monterConfiguration(coquille: Coquille): void {
   reglesBoutons.className = 'config-boutons';
   reglesBoutons.append(exporter, importer, fichier);
 
-  // Dernier renommage.
-  const renommage = document.createElement('p');
-  renommage.className = 'config-renommage';
-  const annuler = createButton({
-    label: TEXTES.annulerLeRenommage,
-    variant: 'secondary',
-    compact: true,
-    onClick: () => {
-      if (!dernierRenommage || confirmation) return;
-      const { nombre, heure } = dernierRenommage;
-      confirmation = ouvrirUneFeuilleDeConfirmation({
-        titre: TEXTES.confirmerLAnnulation(nombre, heure),
-        corps: document.createElement('div'),
-        libelleDuRetour: TEXTES.garderLesNoms,
-        libelleDeLaConfirmation: TEXTES.remettreLesAnciensNoms,
-        auRetour: () => {
-          confirmation = null;
-        },
-        confirmer: () => {
-          dire();
-          demandeDAnnulation = suivre(frontiere.annulerLeDernier());
-          synchroniserLesBoutons();
-        },
-      });
-    },
-  });
-  const ligneDuRenommage = document.createElement('div');
-  ligneDuRenommage.className = 'config-boutons config-ecartes';
-  ligneDuRenommage.append(renommage, annuler);
-  const titreDuRenommage = creerIntertitre(TEXTES.dernierRenommage);
-  const sectionDuRenommage = document.createElement('div');
-  sectionDuRenommage.className = 'config-section';
-  sectionDuRenommage.append(titreDuRenommage, ligneDuRenommage);
-
-  function poserLeRenommage(dernier: Bilan['dernierRenommage']): void {
-    dernierRenommage = dernier;
-    sectionDuRenommage.hidden = dernier === null;
-    if (dernier) renommage.textContent = TEXTES.renommagesALHeure(dernier.nombre, dernier.heure);
+  // Historique : le dernier renommage et le dernier import.
+  function demanderLAnnulation(): void {
+    if (!dernierRenommage || confirmation) return;
+    const { reviennent } = dernierRenommage;
+    confirmation = ouvrirUneFeuilleDeConfirmation({
+      titre: TEXTES.confirmerLAnnulation(reviennent),
+      corps: document.createElement('div'),
+      libelleDuRetour: TEXTES.garderLesNoms,
+      libelleDeLaConfirmation: TEXTES.remettreLesAnciensNoms,
+      auRetour: () => {
+        confirmation = null;
+      },
+      confirmer: () => {
+        dire();
+        demandeDAnnulation = suivre(frontiere.annulerLeDernier());
+        synchroniserLesBoutons();
+      },
+    });
   }
-
-  // Dernier import.
-  const texteDeLImport = document.createElement('p');
-  texteDeLImport.className = 'config-renommage';
-  const annulerImport = createButton({
-    label: TEXTES.annulerLImport,
-    variant: 'secondary',
-    compact: true,
-    onClick: () => {
+  const historique = creerHistorique({
+    annulerLeRenommage: demanderLAnnulation,
+    annulerLImport: () => {
       dire();
       demandeDAnnulationDImport = suivre(frontiere.regle({ type: 'annuler-import' }));
       synchroniserLesBoutons();
     },
   });
-  const ligneDeLImport = document.createElement('div');
-  ligneDeLImport.className = 'config-boutons config-ecartes';
-  ligneDeLImport.append(texteDeLImport, annulerImport);
-  const sectionDeLImport = document.createElement('div');
-  sectionDeLImport.className = 'config-section';
-  sectionDeLImport.append(creerIntertitre(TEXTES.dernierImport), ligneDeLImport);
-
-  function poserLImport(dernier: Bilan['dernierImport']): void {
-    sectionDeLImport.hidden = dernier === null;
-    if (dernier) texteDeLImport.textContent = TEXTES.importALHeure(dernier.heure);
-  }
 
   /** Un bouton d'annulation reste inactif tant que la réponse à sa demande n'est pas arrivée. */
   function synchroniserLesBoutons(): void {
-    annuler.disabled = demandeDAnnulation !== null;
-    annulerImport.disabled = demandeDAnnulationDImport !== null;
+    historique.bloquer({ renommage: demandeDAnnulation !== null, importe: demandeDAnnulationDImport !== null });
   }
 
   function section(...enfants: HTMLElement[]): HTMLElement {
@@ -223,18 +189,28 @@ export function monterConfiguration(coquille: Coquille): void {
     return bloc;
   }
 
-  coquille.configuration.replaceChildren(
-    message,
+  const panneauDesReglages = document.createElement('div');
+  panneauDesReglages.className = 'page-stack';
+  panneauDesReglages.append(
     section(creerIntertitre(TEXTES.collectionsAnalysees), sansCollection, liste),
     section(creerIntertitre(TEXTES.reglesDeCeFichier), reglesBoutons),
-    sectionDuRenommage,
-    sectionDeLImport,
   );
+  const phraseDeLOnglet = document.createElement('p');
+  phraseDeLOnglet.className = 'subtitle';
+  const phrasesDesOnglets = { reglages: TEXTES.phraseReglages, historique: TEXTES.phraseHistorique };
+  // Les deux onglets restent montés : l'onglet choisi se garde tant que le plugin reste ouvert.
+  const onglets = createOnglets(TEXTES.etiquetteDesOngletsDeLaConfiguration, [
+    { id: 'reglages', libelle: TEXTES.ongletReglages, panneau: panneauDesReglages },
+    { id: 'historique', libelle: TEXTES.ongletHistorique, panneau: historique.element },
+  ], (id) => {
+    phraseDeLOnglet.textContent = phrasesDesOnglets[id];
+  });
+  coquille.configuration.replaceChildren(message, onglets.liste, phraseDeLOnglet, panneauDesReglages, historique.element);
 
   function lireLeBilan(bilan: Bilan | null): void {
     poserLesCollections(bilan?.collections ?? []);
-    poserLeRenommage(bilan?.dernierRenommage ?? null);
-    poserLImport(bilan?.dernierImport ?? null);
+    dernierRenommage = bilan?.dernierRenommage ?? null;
+    historique.poser(dernierRenommage, bilan?.dernierImport ?? null);
     synchroniserLesBoutons();
   }
 
@@ -279,6 +255,7 @@ export function monterConfiguration(coquille: Coquille): void {
               ...(sautes > exclues ? [TEXTES.annulationAutresNomsNonRetablis(sautes - exclues)] : []));
           } else if (statut === 'refuse') dire(TEXTES.annulationDuRenommageRefusee);
           else if (statut === 'partiel') dire(TEXTES.annulationDuRenommagePartielle(renommes, sautes));
+          else historique.reussite(renommes);
           synchroniserLesBoutons();
         }
         break;

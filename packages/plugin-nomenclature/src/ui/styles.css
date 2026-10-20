@@ -394,6 +394,11 @@ button.tete-bouton {
   color: var(--texte-second);
 }
 
+.pastille-attente {
+  background: var(--fond-avertissement);
+  color: var(--texte-avertissement);
+}
+
 /*
  * Le langage visuel des renommages. Le rouge et le vert ne marquent que les
  * conséquences : la forme qui disparaît et celle qui la remplace. Le gris
@@ -531,6 +536,77 @@ button.tete-bouton {
     display: inline;
     color: var(--texte-second);
   }
+}
+
+/* L'onglet Historique de la Configuration : le diff n'a pas de case, deux colonnes, aujourd'hui et après l'annulation. */
+.colonnes-tete.sans-case,
+.diff.sans-case {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+/* Un nom que l'annulation ne touchera pas : gris, et la raison à droite. */
+.diff.reste .chemin {
+  color: var(--texte-second);
+}
+
+.diff.reste .chemin-apres {
+  color: var(--texte-second);
+  font-family: inherit;
+}
+
+.diff .chemin .meta {
+  font-family: inherit;
+}
+
+/* Une ligne de règle : la règle d'aujourd'hui, la règle d'après l'annulation. */
+.diff.regle {
+  align-items: center;
+}
+
+.diff.regle > span {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-serre) var(--espace-controle);
+}
+
+.carte > .corps:first-child {
+  border-top: 0;
+}
+
+@media (max-width: 519px) {
+  .diff.sans-case {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .diff.sans-case .chemin-apres {
+    grid-column: auto;
+  }
+}
+
+.historique-liste {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+.historique-note {
+  margin: 0;
+  color: var(--texte-second);
+}
+
+.historique-avertissement {
+  margin: 0;
+  color: var(--texte-avertissement);
+}
+
+.tete-bouton .nom-de-collection {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--espace-controle);
+}
+
+.corps .historique-note {
+  padding: var(--espace-serre) 0 var(--espace-controle);
 }
 
 .rang {

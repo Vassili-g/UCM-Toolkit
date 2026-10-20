@@ -53,8 +53,8 @@ test('N09 : des noms gardés dans une collection exclue ne sont ni un refus à r
 test('N09 : depuis Renommages, le texte envoie à Configuration, là où se cochent les collections', () => {
   assert.equal(TEXTES.annulationDansUneCollectionExclue(0, 3, 'renommages'),
     'Aucun nom n’a été rétabli. 3 noms sont dans une collection exclue de l’analyse : le plugin les garde. '
-    + 'Pour les rétablir, ouvrez Configuration, cochez de nouveau la collection dans Collections analysées, puis annulez de nouveau dans Dernier renommage.');
+    + 'Pour les rétablir, ouvrez Configuration, cochez de nouveau la collection dans l’onglet Réglages, puis annulez de nouveau dans l’onglet Historique.');
   assert.equal(TEXTES.annulationDansUneCollectionExclue(1, 1, 'renommages'),
     '1 nom rétabli. 1 autre nom est dans une collection exclue de l’analyse : le plugin le garde. '
-    + 'Pour le rétablir, ouvrez Configuration, cochez de nouveau la collection dans Collections analysées, puis annulez de nouveau dans Dernier renommage.');
+    + 'Pour le rétablir, ouvrez Configuration, cochez de nouveau la collection dans l’onglet Réglages, puis annulez de nouveau dans l’onglet Historique.');
 });

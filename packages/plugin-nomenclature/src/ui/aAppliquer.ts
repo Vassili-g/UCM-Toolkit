@@ -54,7 +54,7 @@ function libelleDeConvention(convention: Convention): string {
 }
 
 /** L'écriture d'une convention dans la tête d'une carte : son spécimen du kit, ou son libellé quand la convention n'y figure pas. */
-function specimenDeConvention(convention: Convention): string {
+export function specimenDeConvention(convention: Convention): string {
   const connue = CONVENTIONS.find(({ convention: autre }) => autre.casse === convention.casse && autre.separateur === convention.separateur);
   return connue ? connue.specimen.fr : libelleDeConvention(convention);
 }
@@ -639,6 +639,12 @@ export function monterAAppliquer(coquille: Coquille): void {
     }
     texte.append(titre);
     if (note.textContent) texte.append(note);
+    if (annonce.type === 'renomme' && annonce.annulable) {
+      const gardes = document.createElement('span');
+      gardes.className = 'meta';
+      gardes.textContent = TEXTES.anciensNomsGardes;
+      texte.append(gardes);
+    }
     ligneDuResultat.append(texte);
     if (action) ligneDuResultat.append(action);
     synchroniserLePied();
