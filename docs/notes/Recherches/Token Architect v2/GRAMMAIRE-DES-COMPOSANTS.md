@@ -80,12 +80,12 @@ colonne « Contrôle » renvoie aux fonctions du document préparatoire.
 | Palette et élément avant la famille | `stresstest/info/head/color/text` | C7, règle 2 | `stresstest/color/head/info/foreground` |
 | Couleur qui vise une primitive | `stresstest/info/base/color/border` vise `primitives.color.titanium.light.500` | C61 | Une variable du thème, par la règle du dossier |
 | Couleur qui vise `utility` en Light seul : elle ne change pas en Dark | `tilelink/color/info/default/background` vise `utility.info.vivid.light.50` | C20, C61 | `theme/info/vivid/surface/default` |
-| Token vide | `stresstest/info/tilesgrid/color/tile`, `stresstest/info/scalewrap/color/scale-1` à `scale-6`, `tilelink/color/info/hover/foreground`… | C30 | Lier, ou supprimer le token |
+| Token vide | `stresstest/info/tilesgrid/color/tile`, `stresstest/info/scalewrap/color/scale-1` à `scale-6`, `tilelink/color/info/hover/foreground`… | T5, cas (b), mode Tokens | Lier, ou supprimer le token |
 | Dimension qui vise une primitive | `button/size/medium/padding-x` vise `primitives.dimension.14` ; même cas pour `gap`, `padding-y`, `icon/size/*`, `alert/size/*` | C20 | Une valeur de `layout` : `layout/sizing/3,5` vaut 14 px |
 | Valeur directe | `stresstest/info/base/size/max-width` vaut 600 px | C61 | Une variable de `layout` |
 | Bouton texte primaire au focus : texte de `surface`, alors que les cinq autres palettes prennent `page` | `button/color/primary/text/focus/foreground` | C21 | `theme/primary/page/foreground` |
 | Alerte `outlined` : texte de `surface` sans fond teinté | `alert/color/info/outlined/foreground` vise `theme.info.soft.surface.foreground` | C59 | `theme/info/soft/page/foreground`, si l'alerte `outlined` n'a pas de fond |
-| Alerte `outlined` sans token de contour | `alert/color/*/outlined` | C32 | Créer `…/outlined/border` |
+| Alerte `outlined` sans token de contour | `alert/color/*/outlined` | C30, si le composant peint un contour sans variable ; aucun constat sinon (règle 3) | Créer `…/outlined/border` par la génération |
 | Taille écrite `medium` au lieu de `md` | `button/size/medium` | C10 | `button/size/md` ; Nomenclature le propose déjà |
 | Un composant vise un autre composant | `tilelink/size/icon` vise `components.icon.size.xl` | C20 | Les tailles d'icône passent dans `layout` (G-5 ci-dessous) |
 

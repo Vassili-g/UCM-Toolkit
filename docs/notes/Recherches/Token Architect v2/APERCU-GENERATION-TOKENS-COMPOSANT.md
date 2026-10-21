@@ -13,7 +13,7 @@ Aujourd'hui, pour Alert, le designer fait trois choses à la main :
 
 Avec la génération, le plugin prépare la liste des 36 variables : leur nom et
 le token du thème que chacune vise. Il lit pour cela les variantes et les
-calques du composant. Il pose une seule question par style : « Filled : quel
+calques du composant. Il pose une question par style : « Filled : quel
 fond ? Plein, teinté ou aucun ? ». Le designer ouvre ensuite le fichier des
 tokens et clique Créer. Après la publication de la bibliothèque, il revient au
 composant et clique Lier.
@@ -39,8 +39,10 @@ Tout le reste est une question, sans réponse cochée d'avance.
 | Rôle du fond | Le fond du composant lui-même donne `background` | Le calque est la racine du variant | Le calque est un cadre imbriqué : voir « Élément » |
 | Rôle d'une icône | La couleur d'un vecteur placé dans une instance d'icône donne `icon` | Le vecteur est dans une instance | Le vecteur est libre |
 | Rôle d'un contour | Un contour donne `border` ; `ring` seulement si le calque s'appelle `ring` ou `focus-ring` | Le nom tranche | Un contour visible au seul variant `focus`, sous un autre nom |
-| Élément | Le nom du calque, quand deux calques du même rôle ont des couleurs différentes | Le calque porte un nom donné par le designer : `title`, `message` | Le calque porte un nom par défaut de Figma : `Frame 12`, `Rectangle 3` |
+| Axe | Un axe reconnu par un registre (palette, état) entre dans les noms | L'axe est dans un registre | L'axe est inconnu : faut-il un token par valeur ? |
+| Élément | Deux calques du même rôle dans un variant (`title`, `message`) : partagent-ils un token ? | Jamais | Toujours, sans réponse cochée ; un nom par défaut de Figma (`Frame 12`) demande aussi un nom |
 | Dossier du thème | La réponse du designer, une par valeur de style | Le designer a répondu | Toujours posée, sans réponse cochée |
+| Intensité d'un statut | `soft` ou `vivid`, lue parmi les variables du thème | Le thème n'a qu'une intensité pour ce statut | Le thème a les deux : la question du style demande aussi « douce ou vive » |
 | Taille | Le champ donne la famille (marge et écart : `sizing` ; arrondi : `radius` ; épaisseur de contour : `stroke`), puis la valeur en pixels donne le token de cette famille qui a exactement cette valeur | Un seul token de la famille a la valeur | Aucun token, ou plusieurs, ont la valeur |
 
 La couleur actuelle d'un calque n'intervient dans aucune proposition.
@@ -88,17 +90,18 @@ variables, chacune avec son alias vers le thème.
 
 Le dossier ne se déduit pas d'un nom : `outlined` peut poser son texte sur la
 page ou sur une teinte. Le plugin pose donc une question par valeur de style.
-Pour Alert, cela fait trois questions. Les 36 alias en découlent par la règle
+Pour Alert, cela fait trois questions, plus celles de l'intensité et des éléments
+quand le composant en demande. Les alias en découlent par la règle
 du dossier : le premier plan prend le dossier du fond juste derrière lui.
 
 | Variable générée | Alias proposé |
 |---|---|
-| `components/alert/color/danger/filled/background` | `theme/danger/solid/default` |
-| `components/alert/color/danger/filled/foreground` | `theme/danger/solid/foreground` |
-| `components/alert/color/danger/standard/background` | `theme/danger/surface/default` |
-| `components/alert/color/danger/standard/foreground` | `theme/danger/surface/foreground` |
-| `components/alert/color/danger/outlined/border` | `theme/danger/page/border` |
-| `components/alert/color/danger/outlined/foreground` | `theme/danger/page/foreground` |
+| `components/alert/color/danger/filled/background` | `theme/danger/soft/solid/default` |
+| `components/alert/color/danger/filled/foreground` | `theme/danger/soft/solid/foreground` |
+| `components/alert/color/danger/standard/background` | `theme/danger/soft/surface/default` |
+| `components/alert/color/danger/standard/foreground` | `theme/danger/soft/surface/foreground` |
+| `components/alert/color/danger/outlined/border` | `theme/danger/soft/page/border` |
+| `components/alert/color/danger/outlined/foreground` | `theme/danger/soft/page/foreground` |
 
 Les chemins du thème suivent la table des dossiers du kit
 (`emplois/dossiers.ts`). Le plugin vérifie que chaque cible existe dans la
@@ -156,7 +159,7 @@ Collection components · 36 variables
 Créées         34
 Déjà présentes  2   (gardées telles quelles)
 
-  alert/color/danger/filled/background   theme/danger/solid/default
+  alert/color/danger/filled/background   theme/danger/soft/solid/default
   …
                  [ Annuler le plan ]  [ Créer ]
 ```
