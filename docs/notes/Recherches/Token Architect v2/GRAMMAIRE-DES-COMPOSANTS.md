@@ -3,8 +3,8 @@
 Ce document propose la forme des chemins de la collection `components`
 (question Q13 du [document préparatoire](./PREPARATION-TOKEN-ARCHITECT.md)).
 Le kit décrit la forme des six autres collections dans `FORMES_DES_CHEMINS`
-(`packages/kit/src/referentiel/architecture.ts`) et exclut `components`. Rien
-n'est décidé.
+(`packages/kit/src/referentiel/architecture.ts`) et exclut `components`. Le
+mainteneur a adopté la forme et répondu aux questions de la section 5.
 
 La proposition part de l'export de tokens que le mainteneur a fourni, dont le
 mapping n'est pas terminé. Cet export n'est pas versionné.
@@ -130,8 +130,14 @@ chemin, et leurs formes tolérées. Nomenclature lit déjà les registres du kit
 Nomenclature permet aussi à l'équipe d'ajouter ses propres termes dans
 l'onglet Règles, sous « Personnalisé ».
 
-| # | Question | Recommandation |
+| # | Question | Réponse du mainteneur |
 |---|---|---|
-| G-5 | Ranger les tailles d'icône dans `layout/icon/*` | Oui |
+| G-5 | Ranger les tailles d'icône dans `layout/icon/*` | Oui ; le mainteneur déplace lui-même les variables dans son fichier de tokens |
 | G-7 | Les styles : un registre UCM, ou les termes personnalisés de l'équipe dans Nomenclature ? | Les termes personnalisés : les styles changent d'une bibliothèque à l'autre |
-| G-8 | Ajouter `padding`, `gap`, `width`, `height` et `border-width` aux registres existants, combinés aux côtés : `padding-x`, `gap-y` | Oui. Nomenclature signalerait alors `gap-col` et `gap-rows` dans `stresstest`, à côté de `gap-x` et `gap-y` |
+| G-8 | Ajouter `padding`, `gap`, `width`, `height` et `border-width` aux registres existants, combinés aux côtés : `padding-x`, `gap-y` | Oui. Nomenclature signalera alors `gap-col` et `gap-rows` dans `stresstest`, à côté de `gap-x` et `gap-y` |
+
+Changements du kit qui en découlent :
+- la forme des chemins de `components` dans `FORMES_DES_CHEMINS` ;
+- `icon` dans `FAMILLES_LAYOUT`, avec les valeurs de `REGISTRE_TAILLES` ;
+- `padding`, `gap`, `width`, `height` et `border-width` dans les registres que
+  lit Nomenclature.

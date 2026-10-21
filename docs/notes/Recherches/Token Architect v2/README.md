@@ -19,5 +19,4 @@ tokens restent dans [Plugin Architect](../Plugin%20Architect/README.md).
 
 Document préparatoire écrit ; les réponses du mainteneur sont rangées à sa
 section 8. Prochains gestes : les maquettes des deux modes, et le déplacement
-des contrôles de l'export dans le kit. La génération et la grammaire des
-composants sont retenues ; G-3 et G-5 à G-8 restent ouvertes.
+des contrôles de l'export dans le kit. Toutes les questions ont une réponse.

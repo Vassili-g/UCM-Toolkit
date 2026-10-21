@@ -532,6 +532,8 @@ l'onglet Relevés.
 | Q8 | Sévérités | Trois niveaux propres au panneau, sans effet sur l'export ; à vérifier sur maquettes |
 | — | Périmètre | Full UCM seulement (section 3.4) |
 | Q12 | Fichier qui ne déclare pas l'architecture UCM | La navigation seule (arbre, vue Composant, chaînes), sans contrôle ni correction |
+| Q6 | Générer les tokens de composant qui manquent (C28, T12) | Construite après P3, couleurs puis dimensions, sans aucune supposition ([aperçu](./APERCU-GENERATION-TOKENS-COMPOSANT.md)) |
+| Q13 | Forme des chemins de `components` dans le kit | Adoptée, avec les tailles d'icône dans `layout/icon` ([grammaire](./GRAMMAIRE-DES-COMPOSANTS.md)) |
 | Q10 | Seuils d'accessibilité | Taille de cible : 24 × 24 px en constat (WCAG 2.5.8, niveau AA), 44 × 44 px en recommandation (niveau AAA, iOS). Texte : aucun minimum WCAG ; 12 px en recommandation |
 | Q11 | Bibliothèque de tokens quand plusieurs sont activées | Choix automatique par les liaisons existantes, modifiable dans la Configuration (section 3.10) |
 
@@ -547,7 +549,5 @@ Les quatre décisions de la [recherche sur le contrôle de structure](../Plugin%
 
 ### 8.2 Ouvert
 
-| # | Question | Recommandation |
-|---|---|---|
-| Q6 | Générer les tokens de composant qui manquent (C28, T12) | Construite après P3, couleurs puis dimensions ; reste G-3 dans [APERCU-GENERATION-TOKENS-COMPOSANT.md](./APERCU-GENERATION-TOKENS-COMPOSANT.md) |
-| Q13 | Forme des chemins de `components` dans le kit (section 3.4) | Forme adoptée ; restent G-5 à G-8 dans [GRAMMAIRE-DES-COMPOSANTS.md](./GRAMMAIRE-DES-COMPOSANTS.md) |
+Aucune question n'est ouverte. Les maquettes (phase M) trancheront la forme
+de la barre latérale, le sort visuel des onglets et les sévérités.

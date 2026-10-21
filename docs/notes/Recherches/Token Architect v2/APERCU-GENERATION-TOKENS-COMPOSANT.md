@@ -226,8 +226,10 @@ Recommandation : la construire, après P3, avec le transfert par
 |---|---|---|
 | G-1 | Construire la génération ? | Oui, après P3 |
 | G-2 | Forme d'un chemin de `components` | Celle de [GRAMMAIRE-DES-COMPOSANTS.md](./GRAMMAIRE-DES-COMPOSANTS.md) |
+| G-3 | Passage de la liste du fichier des composants au fichier des tokens | Par `figma.clientStorage`, avec le copier-coller en secours |
 | G-4 | Générer aussi les dimensions ? | Oui, après les couleurs |
 
-| # | Question ouverte | Recommandation |
-|---|---|---|
-| G-3 | La liste des variables à créer (nom et cible de chacune) se prépare dans le fichier des composants, qui contient le composant. Les variables se créent dans le fichier des tokens : un fichier ne peut pas modifier les variables d'une bibliothèque, et un plugin n'écrit que dans le fichier ouvert. La liste doit donc passer de l'un à l'autre. A : par la mémoire du plugin sur le poste du designer, sans geste, mais pour ce designer et ce poste seulement. B : le designer copie un texte dans le premier fichier et le colle dans le second ; un autre designer peut le recevoir | A, avec B en secours |
+La liste des variables à créer se prépare dans le fichier des composants, qui
+contient le composant. Les variables se créent dans le fichier des tokens : un
+fichier ne peut pas modifier les variables d'une bibliothèque, et un plugin
+n'écrit que dans le fichier ouvert.
