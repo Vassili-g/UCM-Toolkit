@@ -4,6 +4,24 @@ Ce document décrit ce que donnerait la fonction C28 du
 [document préparatoire](./PREPARATION-TOKEN-ARCHITECT.md) (question Q6), pour
 que le mainteneur décide de la construire ou non. Rien n'est construit.
 
+## En bref
+
+Aujourd'hui, pour Alert, le designer fait trois choses à la main :
+1. Dans le fichier des tokens, il crée 36 variables.
+2. Pour chacune, il choisit le token du thème qu'elle vise.
+3. Dans le fichier des composants, il lie chaque calque à sa variable.
+
+Avec la génération, le plugin prépare la liste des 36 variables : leur nom et
+le token du thème que chacune vise. Il lit pour cela les variantes et les
+calques du composant. Il pose une seule question par style : « Filled : quel
+fond ? Plein, teinté ou aucun ? ». Le designer ouvre ensuite le fichier des
+tokens et clique Créer. Après la publication de la bibliothèque, il revient au
+composant et clique Lier.
+
+Le plugin ne peut écrire que dans le fichier ouvert. La liste préparée passe
+donc d'un fichier à l'autre par la mémoire du plugin, sur le poste du
+designer.
+
 ## Le besoin
 
 Un composant UCM lie ses couleurs à des variables de la collection
@@ -170,6 +188,6 @@ Recommandation : la construire, après P3, avec le transfert par
 | # | Question | Recommandation |
 |---|---|---|
 | G-1 | Construire la génération ? | Oui, après P3 |
-| G-2 | Ordre des segments d'un chemin de `components` | Composant, famille, palette, style, état, rôle, comme Alert dans le fichier de référence |
+| G-2 | Forme d'un chemin de `components` | Celle de [GRAMMAIRE-DES-COMPOSANTS.md](./GRAMMAIRE-DES-COMPOSANTS.md) : composant, famille, élément, valeurs de variante, rôle ou propriété |
 | G-3 | Transfert du plan entre les deux fichiers | `figma.clientStorage`, avec le copier-coller en secours |
 | G-4 | Générer aussi les dimensions (marges, rayons, tailles par axe `Size`) ? | Plus tard ; les couleurs d'abord |

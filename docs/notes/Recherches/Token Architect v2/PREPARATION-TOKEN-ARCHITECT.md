@@ -116,7 +116,7 @@ Ce choix a deux conséquences :
   Sans cette forme, les contrôles de nommage et de mapping n'ont pas de règle
   écrite à appliquer aux tokens d'un composant.
 - Nomenclature fonctionne aujourd'hui dans un fichier qui ne déclare pas UCM.
-  Ce que Token Architect fait dans un tel fichier est la question Q12.
+  Dans un tel fichier, Token Architect offre la navigation seule (Q12).
 
 ### 3.5 La correction automatique
 
@@ -522,6 +522,7 @@ l'onglet Relevés.
 | Q7 | Sélection et vue du designer | Changées au clic sur un constat seulement |
 | Q8 | Sévérités | Trois niveaux propres au panneau, sans effet sur l'export ; à vérifier sur maquettes |
 | — | Périmètre | Full UCM seulement (section 3.4) |
+| Q12 | Fichier qui ne déclare pas l'architecture UCM | La navigation seule (arbre, vue Composant, chaînes), sans contrôle ni correction |
 | Q10 | Seuils d'accessibilité | Taille de cible : 24 × 24 px en constat (WCAG 2.5.8, niveau AA), 44 × 44 px en recommandation (niveau AAA, iOS). Texte : aucun minimum WCAG ; 12 px en recommandation |
 | Q11 | Bibliothèque de tokens quand plusieurs sont activées | Choix automatique par les liaisons existantes, modifiable dans la Configuration (section 3.10) |
 
@@ -540,5 +541,4 @@ Les quatre décisions de la [recherche sur le contrôle de structure](../Plugin%
 | # | Question | Recommandation |
 |---|---|---|
 | Q6 | Générer les tokens de composant qui manquent (C28, T12) | Aperçu dans [APERCU-GENERATION-TOKENS-COMPOSANT.md](./APERCU-GENERATION-TOKENS-COMPOSANT.md), avec ses quatre décisions G-1 à G-4 |
-| Q12 | Que fait Token Architect dans un fichier qui ne déclare pas l'architecture UCM ? A : rien, sauf une invitation à la déclarer. B : la navigation seule (arbre, vue Composant, chaînes), sans contrôle ni correction. C : la navigation et Nomenclature dans sa forme actuelle | B : la navigation ne juge rien et sert au débogage de tout fichier |
-| Q13 | Forme des chemins de `components` dans le kit (section 3.4) | Composant, famille, palette, style, état, rôle, comme Alert dans le fichier de référence ; la même question que G-2 |
+| Q13 | Forme des chemins de `components` dans le kit (section 3.4) | Proposition et questions G-2, G-5 à G-8 dans [GRAMMAIRE-DES-COMPOSANTS.md](./GRAMMAIRE-DES-COMPOSANTS.md) |
