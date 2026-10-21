@@ -115,7 +115,8 @@ cases se cochent dans un commit à part, après celui du lot.
 | M | Maquettes des deux modes | rien |
 | P0 | Moteur de l'exporteur déplacé dans le socle | décision A ; tourne pendant M |
 | K1 | Grammaire des composants dans le kit | note K1.0 validée ; tourne pendant M |
-| P1 | Fusion | M validé, P0, décisions B à F |
+| L | Langage visuel commun : vocabulaire dans le kit, styles et composants dans le socle | M validé, questions L-1 à L-3 de la maquette |
+| P1 | Fusion | M validé, P0, L, décisions B à F |
 | P2 | Lecture et contrôles | P1, K1 |
 | P3 | Corrections exactes | P2, sonde S2 |
 | P4 | Contraste et accessibilité | P2 |
@@ -154,6 +155,23 @@ Fait quand : le mainteneur a validé la taille de la fenêtre et la largeur de
 la barre latérale dans chaque mode, la place des onglets déplacés, les trois
 sévérités, la forme d'un constat et le thème. Ses choix entrent dans les
 décisions de ce plan.
+
+### L · Le langage visuel commun
+
+La section 1 de la [maquette](./Maquettes/MAQUETTE-TOKEN-ARCHITECT.html#langage) inventorie les signaux des plugins et
+propose leur rangement.
+
+- [ ] **L.1 · Vocabulaire dans le kit.** `@ucm-kit/core/referentiel` déclare chaque signal : identifiant, sens, libellé
+  français, échelle de gravité (question L-1), place d'un segment. Version et publication du kit.
+  Fait quand : un test du kit refuse un signal sans libellé ; les gravités de Palettes et de l'exporteur ont chacune leur
+  niveau dans l'échelle.
+- [ ] **L.2 · Styles et composants dans le socle** (`implementeur-exigeant`). `plugin-socle/src/ui/langage.css` et les
+  composants chemin, jeton, pastille, gravité, bandeau, ligne de réussite et deux colonnes, repris de Nomenclature par
+  `git mv` quand ils y existent. La loi des styles du socle refuse qu'un plugin redéfinisse une classe du langage.
+  Fait quand : Nomenclature emploie les composants du socle sans changement visible, à l'essai sur sa galerie ; la loi
+  des styles refuse, à l'essai, une classe du langage redéfinie dans un plugin.
+- [ ] **L.3 · Planche de la galerie du socle**, en sombre et en clair, qui montre chaque signal.
+- Palettes et l'exporteur migrent dans des lots à part, après la recette de P1 (question L-3).
 
 ### P0 · Le moteur de l'exporteur dans le socle
 

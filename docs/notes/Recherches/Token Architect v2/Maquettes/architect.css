@@ -29,6 +29,12 @@
 .sev-corriger::before { background: currentColor; border-radius: 1px; }
 .sev-verifier::before { border-radius: 50%; box-shadow: inset 0 0 0 1.5px currentColor; }
 .sev-info { color: var(--texte-second); font-weight: 500; }
+/* Bloquant : empêche d’écrire ou d’exporter. Un carré plein dans un cadre. */
+.sev-bloquant::before { background: currentColor; box-shadow: 0 0 0 2px var(--fond), 0 0 0 3px currentColor; border-radius: 1px; }
+/* Une garantie tenue ou manquée, sur les rôles de niveau du socle. */
+.niveau { display: inline-flex; align-items: center; padding: 0 6px; border-radius: 4px; font-weight: 600; line-height: 18px; }
+.niveau-atteint { background: var(--fond-niveau-atteint); color: var(--texte-niveau-atteint); }
+.niveau-manque { background: var(--fond-niveau-manque); color: var(--texte-niveau-manque); }
 .sev-info::before { width: 0; }
 
 /* Le résumé en tête de la barre du mode Composant. */
@@ -122,6 +128,10 @@
 .mot-cite:not(.mot-retire):not(.mot-retenu) { font-family: "JetBrains Mono", Consolas, monospace; font-size: 11px; font-weight: 600; color: var(--texte); background: none; padding: 0; }
 /* L'aperçu des corrections cochées dans la colonne de gauche : l'interrupteur qui l'affiche. */
 .apercu-corrections { display: inline-flex; align-items: center; gap: var(--espace-controle); color: var(--texte-second); white-space: nowrap; }
+
+
+/* Les places de la forme D dans la colonne de l'explorateur : l'arbre liste des groupes, la table des variables. */
+.application .arbre-groupe .arbre-libelle { color: var(--texte-groupe); }
 
 /* Les repères de la maquette, hors du plugin : un trait fin et une pastille numérotée, expliquée sous la fenêtre. */
 .repere { outline: 1px dashed #ff8ad8; outline-offset: 1px; }

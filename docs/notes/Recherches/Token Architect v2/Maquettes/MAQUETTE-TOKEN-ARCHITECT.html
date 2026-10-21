@@ -51,20 +51,71 @@
   montre. Cette version applique la <a href="./REVUE-UX-MAQUETTES.html">revue
   UX</a> ; la section 10 dit ce qu'elle a changé.</p>
   <nav class="sommaire">
-    <a href="#parcours">1 · Le parcours</a>
-    <a href="#aujourdhui">2 · Aujourd'hui</a>
-    <a href="#tokens">3 · Mode Tokens</a>
-    <a href="#composant">4 · Mode Composant</a>
-    <a href="#a11y">5 · Contraste et accessibilité</a>
-    <a href="#generation">6 · Génération des tokens</a>
-    <a href="#configuration">7 · Configuration</a>
-    <a href="#etats">8 · États</a>
-    <a href="#styles">9 · Styles communs</a>
+    <a href="#langage">1 · Le langage visuel commun</a>
+    <a href="#parcours">2 · Le parcours</a>
+    <a href="#aujourdhui">3 · Aujourd'hui</a>
+    <a href="#tokens">4 · Mode Tokens</a>
+    <a href="#composant">5 · Mode Composant</a>
+    <a href="#a11y">6 · Contraste et accessibilité</a>
+    <a href="#generation">7 · Génération des tokens</a>
+    <a href="#configuration">8 · Configuration</a>
+    <a href="#etats">9 · États</a>
     <a href="#revue">10 · Ce que la revue a changé</a>
     <a href="#questions">11 · Questions au mainteneur</a>
   </nav>
 
-  <h2 id="parcours">1 · Le parcours</h2>
+  <h2 id="langage">1 · Le langage visuel commun</h2>
+  <p>Chaque plugin signale aujourd'hui ses données, ses changements et ses constats avec ses propres formes. Palettes range
+  ses constats en bloquant, alerte, notice et promesse. L'exporteur a une pastille danger. Nomenclature a six pastilles
+  d'état, des jetons et une ligne de réussite. L'explorateur écrit ses chemins dans une autre police. Le socle ne partage que
+  les rôles de couleur, les boutons, les onglets et la feuille.</p>
+  <p>La proposition : un seul langage visuel pour tous les plugins. Le kit en porte le vocabulaire. Le socle en porte les
+  styles et les composants. Un plugin n'en redéfinit aucun. Token Architect l'emploie le premier.</p>
+
+  <h3>Les signaux</h3>
+  <table class="t">
+    <tr><th>Famille</th><th>Signal</th><th>Sens</th><th>Forme</th><th>Rôle du socle</th><th>Aujourd'hui</th></tr>
+    <tr><td>Données</td><td>Groupe</td><td>Un segment avant la dernière barre</td><td>Texte orchidée ; pastille orchidée pour un terme isolé</td><td><code>--texte-groupe</code>, <code>--fond-groupe</code></td><td>Nomenclature</td></tr>
+    <tr><td>Données</td><td>Variable</td><td>Le dernier segment</td><td>Texte olive ; pastille olive pour un terme isolé</td><td><code>--texte-variable</code>, <code>--fond-variable</code></td><td>Nomenclature</td></tr>
+    <tr><td>Données</td><td>Chemin montré comme objet</td><td>Un token nommé : dans une liste, une fiche, un constat</td><td>Police de code 11 px, graisse normale ; groupes en orchidée, variable en olive</td><td>idem</td><td>Nomenclature ; l'explorateur écrit en Inter 12 px</td></tr>
+    <tr><td>Données</td><td>Collection</td><td>Une collection de variables</td><td>Police de code, texte blanc</td><td><code>--texte</code></td><td>Nomenclature, explorateur</td></tr>
+    <tr><td>Données</td><td>Origine</td><td>UCM, Personnalisé</td><td>Texte gris, à droite</td><td><code>--texte-second</code></td><td>Nomenclature</td></tr>
+    <tr><td>Données</td><td>Couleur</td><td>La valeur d'une couleur</td><td>Pastille carrée de la couleur</td><td>aucun</td><td>Explorateur, Palettes</td></tr>
+    <tr><td>Changements</td><td>Ce qui part</td><td>Un segment, un terme ou un nom remplacé</td><td>Rouge, barré, semi-gras ; pastille rouge pour un terme</td><td><code>--texte-danger</code>, <code>--fond-danger</code></td><td>Nomenclature</td></tr>
+    <tr><td>Changements</td><td>Ce qui arrive</td><td>La forme retenue</td><td>Vert, semi-gras ; pastille verte pour un terme</td><td><code>--texte-succes</code>, <code>--fond-succes</code></td><td>Nomenclature</td></tr>
+    <tr><td>Changements</td><td>Chemin montré comme changement</td><td>Un nom avant et après</td><td>Deux colonnes Aujourd'hui | Après ; seul le segment qui change est coloré</td><td>idem</td><td>Nomenclature</td></tr>
+    <tr><td>Changements</td><td>Fait</td><td>Une écriture réussie</td><td>Ligne verte avec ✓, puis comment la défaire</td><td><code>--texte-succes</code></td><td>Nomenclature</td></tr>
+    <tr><td>Décisions</td><td>À trancher</td><td>Attend une décision du designer</td><td>Ambre : pastille, bandeau</td><td><code>--texte-avertissement</code>, <code>--fond-avertissement</code></td><td>Nomenclature</td></tr>
+    <tr><td>Décisions</td><td>Protégé, non vérifié, bloqué, nouveau</td><td>L'état d'un nom ou d'une variable</td><td>Pastilles de Nomenclature</td><td><code>--fond-note</code> et rôles voisins</td><td>Nomenclature</td></tr>
+    <tr><td>Décisions</td><td>Périmé</td><td>Une analyse d'avant une écriture</td><td>Bandeau neutre, texte gris</td><td><code>--texte-second</code></td><td>Aucun</td></tr>
+    <tr><td>Constats</td><td>Gravité</td><td>Le poids d'un constat</td><td>Une forme et un mot, sans couleur</td><td><code>--texte</code></td><td>Palettes : bloquant, alerte, notice, promesse. Exporteur : danger. Question L-1</td></tr>
+    <tr><td>Constats</td><td>Tenu, manqué</td><td>Une garantie atteinte ou non</td><td>Pastille de niveau</td><td><code>--texte-niveau-atteint</code>, <code>--texte-niveau-manque</code></td><td>Palettes</td></tr>
+    <tr><td>Constats</td><td>Limite</td><td>Une mesure impossible</td><td>Gravité Information, texte gris</td><td><code>--texte-second</code></td><td>Explorateur</td></tr>
+    <tr><td>Bandeaux</td><td>Information, attente, fait, arrêt</td><td>Un message en tête de liste</td><td>Fond neutre, bordure gauche de la couleur du sens ; fond ambre pour l'attente</td><td>rôles ci-dessus</td><td>Aucun</td></tr>
+    <tr><td>Actions</td><td>Principale, secondaire, discrète, destructive</td><td>Un bouton</td><td>Bleu plein, bordé, texte, rouge plein</td><td><code>--fond-marque</code>, <code>--fond-danger-plein</code></td><td>Socle</td></tr>
+  </table>
+
+  <h3>La planche</h3>
+  <p>Chaque signal dessiné avec les classes de Nomenclature et de <code>architect.css</code>. Elle préfigure la planche de la
+  galerie du socle.</p>
+  <div class="colonnes"><div class="colonne"><div class="cadre" id="s-planche"></div></div></div>
+
+  <h3>Où le ranger</h3>
+  <table class="t">
+    <tr><th>Couche</th><th>Contenu</th><th>Raison</th></tr>
+    <tr><td>Kit, <code>@ucm-kit/core/referentiel</code></td><td>La liste des signaux : identifiant, sens, libellé français, échelle de gravité, place d'un segment</td><td>Un seul vocabulaire, lu aussi par <code>ucm check</code> et les rapports de la CI. Le kit ne dessine rien.</td></tr>
+    <tr><td>Socle, <code>plugin-socle/src/ui/</code></td><td>Les rôles de couleur, une feuille <code>langage.css</code> et les composants : chemin, jeton, pastille, gravité, bandeau, ligne de réussite, deux colonnes</td><td>Les plugins lisent le socle en source. La loi des styles du socle refuse qu'un plugin redéfinisse une classe du langage.</td></tr>
+    <tr><td>Galerie du socle</td><td>Une planche qui montre chaque signal, en sombre et en clair</td><td>Le mainteneur relit le langage à un seul endroit.</td></tr>
+    <tr><td>Plugins</td><td>Aucun style de signal</td><td>Ils emploient les composants du socle.</td></tr>
+  </table>
+  <table class="t">
+    <tr><th>#</th><th>Question</th><th>Proposition</th></tr>
+    <tr><td>L-1</td><td>Une échelle de gravité commune à tous les plugins</td><td>Bloquant (empêche d'écrire ou d'exporter), À corriger, À vérifier, Information ; Tenu pour une garantie atteinte. Palettes et l'exporteur s'y rangent.</td></tr>
+    <tr><td>L-2</td><td>Le vocabulaire dans le kit, les styles et les composants dans le socle</td><td>Oui</td></tr>
+    <tr><td>L-3</td><td>Quand migrer les autres plugins</td><td>Token Architect l'emploie dès sa fusion. Palettes et l'exporteur migrent ensuite, chacun dans un lot à part.</td></tr>
+  </table>
+
+  <h2 id="parcours">2 · Le parcours</h2>
   <p>Le plugin s'ouvre dans le mode qui correspond au fichier. Un fichier de tokens ouvre le mode Tokens. Une sélection de
   composant ouvre le mode Composant. La bascule de la barre change de mode.</p>
   <div class="parcours">
@@ -118,7 +169,7 @@
     <tr><td>Configuration</td><td>Page entière</td><td>Réglages et Historique, sous la barre commune.</td></tr>
   </table>
 
-  <h2 id="aujourdhui">2 · Aujourd'hui</h2>
+  <h2 id="aujourdhui">3 · Aujourd'hui</h2>
   <p>Les trois écrans réels dont part Token Architect.</p>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette actuel">UCM Token Explorer, mode Tokens · 1200 × 800</span><div class="cadre" id="a-tokens"></div></div>
@@ -126,11 +177,11 @@
     <div class="colonne"><span class="etiquette actuel">UCM Token Explorer, mode Composant · 364 × 724</span><div class="cadre" id="a-composant"></div></div>
   </div>
 
-  <h2 id="tokens">3 · Mode Tokens</h2>
+  <h2 id="tokens">4 · Mode Tokens</h2>
   <p>La fenêtre passe à 1360 × 800. L'arbre et la table restent à gauche. La barre latérale de 640 px, la largeur de Nomenclature, l'affiche.
   L'inspecteur devient une feuille, comme la fiche d'un terme.</p>
 
-  <h3>3a · Renommages, filtrés par l'arbre</h3>
+  <h3>4a · Renommages, filtrés par l'arbre</h3>
   <div class="colonnes"><div class="colonne">
     <span class="etiquette nouveau">Tokens · Renommages</span><div class="cadre" id="t-renommages"></div>
     <ol class="argu">
@@ -145,7 +196,7 @@
     </ol>
   </div></div>
 
-  <h3>3b · Questions, et un terme choisi dans Règles</h3>
+  <h3>4b · Questions, et un terme choisi dans Règles</h3>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette nouveau">Tokens · Questions</span><div class="cadre" id="t-questions"></div>
       <ol class="argu"><li>L'onglet Questions ne change pas.</li><li>La question ouverte marque ses variables dans la table.</li></ol></div>
@@ -153,7 +204,7 @@
       <ol class="argu"><li>Un clic sur un terme ouvre sa fiche.</li><li>La table ne montre plus que les variables qui emploient ce terme.</li><li>Le bandeau au-dessus de la table rend la liste entière.</li></ol></div>
   </div>
 
-  <h3>3c · Structure</h3>
+  <h3>4c · Structure</h3>
   <div class="colonnes"><div class="colonne">
     <span class="etiquette nouveau">Tokens · Structure</span><div class="cadre" id="t-structure"></div>
     <ol class="argu">
@@ -165,7 +216,7 @@
     </ol>
   </div></div>
 
-  <h3>3d · La fiche d'une variable</h3>
+  <h3>4d · La fiche d'une variable</h3>
   <div class="colonnes"><div class="colonne">
     <span class="etiquette nouveau">Tokens · Fiche d'une variable</span><div class="cadre" id="t-fiche"></div>
     <ol class="argu">
@@ -178,7 +229,7 @@
     </ol>
   </div></div>
 
-  <h3>3e · Bibliothèque, règle reçue, fichier hors UCM</h3>
+  <h3>4e · Bibliothèque, règle reçue, fichier hors UCM</h3>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette nouveau">Tokens · Bibliothèque lue depuis le fichier des composants</span><div class="cadre" id="t-bibliotheque"></div>
       <ol class="argu"><li>Les noms s'affichent tout de suite. Les valeurs d'un groupe se chargent à son ouverture.</li><li>Renommages, Questions et Structure sont grisés. Ils ne peuvent rien écrire ici.</li><li>Règles reste ouvert.</li></ol></div>
@@ -188,11 +239,11 @@
       <ol class="argu"><li>L'arbre, la table et les fiches restent.</li><li>La barre latérale invite à déclarer l'architecture (question M-10).</li></ol></div>
   </div>
 
-  <h2 id="composant">4 · Mode Composant</h2>
+  <h2 id="composant">5 · Mode Composant</h2>
   <p>La fenêtre passe à 1040 × 760. La vue Composant garde 400 px à gauche. La barre latérale de 640 px montre l'analyse.
   Le composant d'exemple est Alert, avec 11 variants : 4 statuts × 3 styles, sans warning · filled.</p>
 
-  <h3>4a · Avant la première analyse</h3>
+  <h3>5a · Avant la première analyse</h3>
   <div class="colonnes"><div class="colonne">
     <span class="etiquette nouveau">Composant · Pas encore analysé</span><div class="cadre" id="c-avant"></div>
     <ol class="argu">
@@ -202,7 +253,7 @@
     </ol>
   </div></div>
 
-  <h3>4b · Corrections</h3>
+  <h3>5b · Corrections</h3>
   <div class="colonnes"><div class="colonne">
     <span class="etiquette nouveau">Composant · Corrections</span><div class="cadre" id="c-corrections"></div>
     <ol class="argu">
@@ -216,7 +267,7 @@
     </ol>
   </div></div>
 
-  <h3>4c · Un constat cliqué</h3>
+  <h3>5c · Un constat cliqué</h3>
   <div class="colonnes"><div class="colonne">
     <span class="etiquette nouveau">Composant · Constat cliqué</span><div class="cadre" id="c-clic"></div>
     <ol class="argu">
@@ -228,7 +279,7 @@
     </ol>
   </div></div>
 
-  <h3>4d · Servir de modèle</h3>
+  <h3>5d · Servir de modèle</h3>
   <div class="colonnes"><div class="colonne">
     <span class="etiquette nouveau">Composant · Propagation depuis un variant</span><div class="cadre" id="c-modele"></div>
     <ol class="argu">
@@ -238,7 +289,7 @@
     </ol>
   </div></div>
 
-  <h3>4e · Questions</h3>
+  <h3>5e · Questions</h3>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette nouveau">Composant · Questions</span><div class="cadre" id="c-questions"></div>
       <ol class="argu">
@@ -252,7 +303,7 @@
       <ol class="argu"><li>Une réponse fait passer la liaison dans Corrections, cochée.</li><li>Rien n'est écrit avant Appliquer.</li></ol></div>
   </div>
 
-  <h3>4f · À faire dans Figma</h3>
+  <h3>5f · À faire dans Figma</h3>
   <div class="colonnes"><div class="colonne">
     <span class="etiquette nouveau">Composant · À faire dans Figma</span><div class="cadre" id="c-afaire"></div>
     <ol class="argu">
@@ -263,7 +314,7 @@
     </ol>
   </div></div>
 
-  <h3>4g · Après Appliquer, après Ctrl+Z, vue repliée</h3>
+  <h3>5g · Après Appliquer, après Ctrl+Z, vue repliée</h3>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette nouveau">Composant · Après Appliquer</span><div class="cadre" id="c-apres"></div>
       <ol class="argu"><li>La ligne verte reprend Renommages. Elle dit que Ctrl+Z défait le lot.</li><li>Le bandeau dit que l'analyse est périmée. Les compteurs passent en gris.</li><li>Un seul Actualiser, dans la barre.</li></ol></div>
@@ -273,7 +324,7 @@
       <ol class="argu"><li>« Replier » ne garde que la barre latérale.</li><li>Le canevas reste visible pour voir le calque sélectionné.</li></ol></div>
   </div>
 
-  <h2 id="a11y">5 · Contraste et accessibilité</h2>
+  <h2 id="a11y">6 · Contraste et accessibilité</h2>
   <p>Les contrôles d'état demandent un composant interactif. Ils sont montrés sur Button, qui a les axes Style, Palette, State
   et Size. La galerie n'a pas d'état de Button : seule la barre latérale est dessinée.</p>
   <div class="colonnes">
@@ -285,28 +336,28 @@
       <ol class="argu"><li>Le survol lié au token du repos se corrige par le token frère.</li><li>Le dossier change entre deux états : la carte le montre.</li></ol></div>
   </div>
 
-  <h2 id="generation">6 · Génération des tokens</h2>
+  <h2 id="generation">7 · Génération des tokens</h2>
   <p>Le parcours de l'aperçu de génération, sur Tag. Ses couleurs n'ont pas de token. Le parcours passe du fichier des composants
   au fichier des tokens, puis revient.</p>
   <div class="colonnes">
-    <div class="colonne"><span class="etiquette nouveau">6a · Composant : Tag sans tokens</span><div class="cadre" id="g-entree"></div>
+    <div class="colonne"><span class="etiquette nouveau">7a · Composant : Tag sans tokens</span><div class="cadre" id="g-entree"></div>
       <ol class="argu"><li>Un composant sans tokens propres reçoit « Préparer les tokens » dans son résumé.</li></ol></div>
-    <div class="colonne"><span class="etiquette nouveau">6b · Composant : préparer</span><div class="cadre" id="g-preparer"></div>
+    <div class="colonne"><span class="etiquette nouveau">7b · Composant : préparer</span><div class="cadre" id="g-preparer"></div>
       <ol class="argu">
         <li>La feuille pose les questions. Aucune réponse n'est cochée.</li>
         <li>Chaque choix montre la couleur du thème qu'il donnerait.</li>
         <li>Les tailles se lient seules quand la valeur existe dans layout. Sinon une question.</li>
         <li>Préparer reste inactif tant qu'une question reste.</li>
       </ol></div>
-    <div class="colonne"><span class="etiquette nouveau">6c · Composant : plan prêt</span><div class="cadre" id="g-pret"></div>
+    <div class="colonne"><span class="etiquette nouveau">7c · Composant : plan prêt</span><div class="cadre" id="g-pret"></div>
       <ol class="argu"><li>Le bandeau dit où continuer et que le plan reste sur ce poste.</li><li>La copie en texte n'apparaît qu'ici, quand le plan est complet.</li></ol></div>
   </div>
   <div class="colonnes">
-    <div class="colonne"><span class="etiquette nouveau">6d · Tokens : créer</span><div class="cadre" id="g-creer"></div>
+    <div class="colonne"><span class="etiquette nouveau">7d · Tokens : créer</span><div class="cadre" id="g-creer"></div>
       <ol class="argu"><li>Le plan attend en tête de la barre.</li><li>Une variable qui existe déjà avec une autre cible le dit.</li><li>Le pied tient sur une ligne. « Abandonner le plan » demande une confirmation.</li></ol></div>
-    <div class="colonne"><span class="etiquette nouveau">6e · Tokens : après Créer</span><div class="cadre" id="g-cree"></div>
+    <div class="colonne"><span class="etiquette nouveau">7e · Tokens : après Créer</span><div class="cadre" id="g-cree"></div>
       <ol class="argu"><li>La ligne verte dit de publier la bibliothèque, puis de revenir au composant.</li></ol></div>
-    <div class="colonne"><span class="etiquette nouveau">6f · Composant : lier</span><div class="cadre" id="g-lier"></div>
+    <div class="colonne"><span class="etiquette nouveau">7f · Composant : lier</span><div class="cadre" id="g-lier"></div>
       <ol class="argu"><li>Après la publication, Analyser trouve les variables du plan.</li><li>Les comptes parlent de liaisons seulement.</li><li>Une variable pas encore publiée laisse sa ligne en attente.</li></ol></div>
   </div>
   <h3>Les cas de passage</h3>
@@ -316,7 +367,7 @@
     <div class="colonne"><span class="etiquette nouveau">Coller un plan reçu</span><div class="cadre" id="g-coller"></div></div>
   </div>
 
-  <h2 id="configuration">7 · Configuration</h2>
+  <h2 id="configuration">8 · Configuration</h2>
   <p>Une seule Configuration pour le plugin. Elle s'ouvre en page entière sous la barre commune. Retour rend la vue de travail.</p>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette nouveau">Configuration · Réglages</span><div class="cadre" id="cf-reglages"></div>
@@ -325,7 +376,7 @@
       <ol class="argu"><li>L'Historique garde la dernière écriture de chaque sorte sur les variables, avec son heure.</li><li>Annuler une création prévient que les calques liés perdront leur liaison après publication.</li><li>Les corrections d'un composant se défont par Ctrl+Z.</li></ol></div>
   </div>
 
-  <h2 id="etats">8 · États</h2>
+  <h2 id="etats">9 · États</h2>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette nouveau">Aucune sélection</span><div class="cadre" id="e-vide"></div></div>
     <div class="colonne"><span class="etiquette nouveau">Analyse en cours</span><div class="cadre" id="e-cours"></div></div>
@@ -346,17 +397,6 @@
     <li>Pendant une écriture, Analyser et Appliquer sont inactifs.</li>
   </ol>
 
-  <h2 id="styles">9 · Styles communs</h2>
-  <p>Les éléments partagés par les deux modes. Les pastilles orchidée et olive viennent de Nomenclature et désignent un groupe
-  ou une variable partout dans le plugin.</p>
-  <div class="colonnes"><div class="colonne"><div class="cadre" id="s-planche"></div>
-    <ul class="argu">
-      <li><b>À corriger</b> : une règle écrite d'UCM est enfreinte.</li>
-      <li><b>À vérifier</b> : un fait demande le regard du designer. Le plugin ne peut pas conclure.</li>
-      <li><b>Information</b> : rien n'est faux, ou la mesure n'a pas pu se faire.</li>
-      <li>Rouge et vert marquent les noms qui partent et ceux qui arrivent. Ambre marque ce qui attend une décision. Bleu marque l'action principale.</li>
-    </ul></div></div>
-
   <h2 id="revue">10 · Ce que la revue a changé</h2>
   <table class="t">
     <tr><th>Revue</th><th>Changement</th></tr>
@@ -374,7 +414,7 @@
     <tr><td>U21, U22</td><td>Règles d'usage créées depuis Corrections. Contrôles d'état montrés sur Button.</td></tr>
     <tr><td>U23, U24, U34</td><td>Textes de l'Historique et de la déclaration UCM réécrits. État « aucune bibliothèque choisie ». Configuration sous la barre commune.</td></tr>
     <tr><td>U29, U31, U32, U33, U35, U36</td><td>Structure complétée. Couleurs dans les choix. Pied du plan sur une ligne. Cases non lues. Planche complétée. Textes de la section 6 de la revue.</td></tr>
-    <tr><td>Retour du mainteneur</td><td>Barre latérale à 640 px. Corrections et Questions reprennent le tour 3 de Nomenclature : règle en jetons, deux colonnes, question qui propose, rouge et vert des conséquences. Ce choix validé prime sur U4 et U5 de la revue. Repères fins, numérotés et légendés. Barre latérale au fond et au style de Nomenclature. Un seul style pour tous les chemins, celui de Nomenclature. Les noms et liaisons que les corrections cochées changent se lisent aussi à gauche, dans la table et dans la vue Composant.</td></tr>
+    <tr><td>Retour du mainteneur</td><td>Les places de la forme D reviennent partout : un groupe en orchidée, une variable en olive, dans l'arbre, la table, la vue Composant, les fiches et les constats. Barre latérale à 640 px. Corrections et Questions reprennent le tour 3 de Nomenclature : règle en jetons, deux colonnes, question qui propose, rouge et vert des conséquences. Ce choix validé prime sur U4 et U5 de la revue. Repères fins, numérotés et légendés. Barre latérale au fond et au style de Nomenclature. Un seul style pour tous les chemins, celui de Nomenclature. Les noms et liaisons que les corrections cochées changent se lisent aussi à gauche, dans la table et dans la vue Composant.</td></tr>
     <tr><td>Soumis au mainteneur</td><td>U6 (colonnes empilées), U17 (Renommages hors UCM), U25 (lequel des deux fonds), U27 (la bascule Tokens · Composant) : questions M-7 à M-10.</td></tr>
   </table>
 
@@ -496,6 +536,7 @@ function fenetreTokens(doc, { repere = false, sansModes = false } = {}) {
   const fraicheur = doc.querySelector('.pied-fraicheur'); if (fraicheur) fraicheur.textContent = 'Lu à 14:00';
   const note = doc.querySelector('.table-tete .note');
   if (note) note.outerHTML = sansModes ? '<p class="note">11 variables.</p>' : MODES_AFFICHES;
+  doc.querySelectorAll('.nom-de-token').forEach((n) => { n.innerHTML = placer(n.textContent.trim()); });
   if (repere) reperer(doc, '.produit-nom, .barre .icon-button');
 }
 function renommerDansLaTable(doc) {
@@ -512,7 +553,8 @@ function corrigerDansLaVue(doc, ancien = 'info', nouveau = 'success') {
   doc.querySelectorAll('.vc-nom bdi').forEach((b) => {
     const t = b.textContent;
     if (!/\/(background|icon)$/.test(t) || !t.includes(`/${ancien}/`)) return;
-    b.innerHTML = t.replace(`/${ancien}/`, `/<span class="seg-ancien">${ancien}</span> <span class="seg-nouveau">${nouveau}</span>/`);
+    const i = t.lastIndexOf('/');
+    b.innerHTML = `<span class="mot-groupe">${t.slice(0, i + 1).replace(`/${ancien}/`, `/<span class="seg-ancien">${ancien}</span> <span class="seg-nouveau">${nouveau}</span>/`)}</span><span class="mot-variable">${t.slice(i + 1)}</span>`;
     b.closest('.vc-ligne')?.classList.add('corrige');
   });
   doc.querySelector('.vc-liste')?.insertAdjacentHTML('beforebegin', '<div class="apercu-corrections" style="margin:0 16px 8px"><button type="button" class="interrupteur" role="switch" aria-checked="true"><span class="interrupteur-curseur"></span></button>Montrer les corrections cochées</div>');
@@ -557,6 +599,7 @@ function fenetreComposant(doc, { action = { texte: 'Actualiser' }, matriceHtml =
   enveloppe.append(vc);
   if (replie) { vc.style.display = 'none'; } else { vc.style.width = `${largeurVue}px`; }
   enveloppe.insertAdjacentHTML('beforeend', `<aside class="arch-laterale ${replie ? 'pleine' : ''}" style="width:${replie ? '100%' : '640px'}"></aside>`);
+  doc.querySelectorAll('.vc-nom bdi').forEach((b) => { if (b.textContent.includes('/')) b.innerHTML = placer(b.textContent); });
   if (matriceHtml) {
     doc.querySelector('.vc-sous select')?.remove();
     doc.querySelector('.vc-tete').insertAdjacentHTML('afterend', matriceHtml);
@@ -579,9 +622,11 @@ const pied = (resume, bouton, inactif = false) => `<div class="pied"><span class
 const btn2 = (t, inactif = false) => `<button type="button" class="btn btn-secondary btn-compact" ${inactif ? 'disabled' : ''}><span>${t}</span></button>`;
 const lien = (t) => `<button type="button" class="btn-texte">${t}</button>`;
 const SEV = { c: '<span class="sev sev-corriger">À corriger</span>', v: '<span class="sev sev-verifier">À vérifier</span>', i: '<span class="sev sev-info">Information</span>' };
-const varPill = (groupes, variable) => `${groupes}${variable}`;
+const varPill = (groupes, variable) => `<span class="mot-groupe">${groupes}</span><span class="mot-variable">${variable}</span>`;
+// La place de chaque segment d'un chemin : orchidée pour un groupe, olive pour la variable (dernier segment).
+const placer = (chemin) => { const i = chemin.lastIndexOf('/'); return i < 0 ? `<span class="mot-variable">${chemin}</span>` : varPill(chemin.slice(0, i + 1), chemin.slice(i + 1)); };
 // Les chemins cités dans un texte prennent le style des chemins de Nomenclature.
-const chemins = (t) => t.replace(/(?<![<\w])[a-z0-9-]+(?:\/[a-z0-9,.-]+)+/g, (m) => `<code class="chemin-ligne">${m}</code>`);
+const chemins = (t) => t.replace(/(?<![<\w])[a-z0-9-]+(?:\/[a-z0-9,.-]+)+/g, (m) => `<code class="chemin-ligne">${placer(m)}</code>`);
 const cite = (m) => `<code class="mot-cite">${m}</code>`;
 const puce = (c) => `<span class="puce-couleur" style="background:${c}"></span>`;
 
@@ -665,6 +710,8 @@ const LEGENDES = {
     ['g', '.apercu-corrections', 'Cet interrupteur montre dans la table les renommages cochés.'],
     ['g', '.table-ligne.renomme .nom-de-token', 'Un nom que Renommages va changer, avec le rouge et le vert de la barre latérale.'],
     ['g', '.arbre-ligne.filtre-actif', 'La collection choisie dans l’arbre filtre la barre latérale.'],
+    ['g', '.arbre-groupe .arbre-libelle', 'Un groupe s’écrit en orchidée, comme dans Règles.'],
+    ['g', '.table-ligne:not(.renomme) .nom-de-token', 'Une variable s’écrit en olive, comme dans Règles.'],
     ['d', '.onglets .onglet:last-child', 'Le nouvel onglet Structure.'],
     ['d', '.bandeau', 'Le filtre de l’arbre, et le lien qui l’enlève.'],
     ['d', '.pied .resume', 'Le pied compte les seuls noms affichés.'],
@@ -683,7 +730,7 @@ const LEGENDES = {
   ],
   't-fiche': [
     ['g', '.table-ligne.marquee', 'La ligne de la variable ouverte.'],
-    ['d', '.feuille-titre', 'Le chemin de la variable, au style de tous les chemins.'],
+    ['d', '.feuille-titre', 'Le chemin de la variable : ses groupes en orchidée, sa variable en olive.'],
     ['d', '.feuille-contenu > .fiche-bloc:nth-child(1)', 'La valeur, dans les modes affichés par la table.'],
     ['d', '.feuille-contenu > .fiche-bloc:nth-child(2)', 'Comparer avec remplace l’onglet Comparer.'],
     ['d', '.feuille-contenu > .fiche-bloc:nth-child(3)', 'Les renommages de cette variable.'],
@@ -705,6 +752,7 @@ const LEGENDES = {
     ['g', '.matrice td.choisi', 'Le variant affiché, choisi dans la matrice des variants.'],
     ['g', '.apercu-corrections', 'Cet interrupteur montre dans la vue les corrections cochées.'],
     ['g', '.vc-ligne.corrige .vc-nom', 'Une liaison que Corrections va changer, avec le rouge et le vert de la barre latérale.'],
+    ['g', '.vc-ligne:not(.corrige) .vc-nom', 'Un token lié : ses groupes en orchidée, sa variable en olive.'],
     ['d', '.onglets', 'Trois onglets. Chaque constat est dans un seul.'],
     ['d', '.carte .regle-ligne', 'La règle de la carte, en jetons, comme au tour 3 de Renommages.'],
     ['d', '.carte .colonnes-tete', 'Les deux colonnes Aujourd’hui et Après l’application.'],
@@ -851,19 +899,19 @@ cadre('t-structure', {
 });
 
 const FICHE_VARIABLE = `<div class="feuille-voile feuille-terme"><section class="feuille" role="dialog">
-  <header class="feuille-entete avec-definition"><div class="titre-et-definition"><div class="titre-ligne"><h2 class="feuille-titre"><span class="chemin-titre">theme/primary/surface/<b>default</b></span></h2><span class="origine">theme · couleur</span></div><p class="meta">Le fond teinté de la palette primary, au repos.</p></div><button type="button" class="feuille-fermer">×</button></header>
+  <header class="feuille-entete avec-definition"><div class="titre-et-definition"><div class="titre-ligne"><h2 class="feuille-titre"><span class="chemin-titre"><span class="mot-groupe">theme/primary/surface/</span><b class="mot-variable">default</b></span></h2><span class="origine">theme · couleur</span></div><p class="meta">Le fond teinté de la palette primary, au repos.</p></div><button type="button" class="feuille-fermer">×</button></header>
   <div class="feuille-corps"><div class="feuille-contenu">
     <div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>Valeur · intencial · light</h3></div>
-      <ul class="chaine"><li>${puce('#F6E6E6')}theme/primary/surface/default</li><li>brands/primary/light/100</li><li>primitives/color/terracota/light/100 · #F6E6E6</li></ul></div>
+      <ul class="chaine"><li>${puce('#F6E6E6')}${placer('theme/primary/surface/default')}</li><li>${placer('brands/primary/light/100')}</li><li>${placer('primitives/color/terracota/light/100')} · #F6E6E6</li></ul></div>
     <div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>Comparer avec</h3><select class="input"><option>marque-2 · dark</option></select></div>
-      <ul class="chaine"><li>${puce('#2C2D62')}theme/primary/surface/default</li><li>brands/primary/dark/300</li><li>primitives/color/deep/dark/300 · #2C2D62</li></ul>
+      <ul class="chaine"><li>${puce('#2C2D62')}${placer('theme/primary/surface/default')}</li><li>${placer('brands/primary/dark/300')}</li><li>${placer('primitives/color/deep/dark/300')} · #2C2D62</li></ul>
       <p class="meta">La chaîne diffère à partir de brands.</p></div>
     <div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>Renommages de cette variable · 1</h3>${lien('Voir dans Renommages')}</div>
       <div class="fiche-liste">${diff(`theme/primary/${anc('Surface')}/default`, `theme/primary/${nouv('surface')}/default`, null)}</div></div>
     <div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>Utilisée par · 14</h3>${lien('Marquer dans la table')}</div>
       <div class="fiche-liste">
-        <div class="diff sans-case"><span class="chemin">components/button/color/primary/text/hover/background</span></div>
-        <div class="diff sans-case"><span class="chemin">components/alert/color/primary/standard/background</span></div>
+        <div class="diff sans-case"><span class="chemin">${placer('components/button/color/primary/text/hover/background')}</span></div>
+        <div class="diff sans-case"><span class="chemin">${placer('components/alert/color/primary/standard/background')}</span></div>
       </div>${lien('Afficher les 12 autres')}</div>
   </div></div></section></div>`;
 cadre('t-fiche', {
@@ -1039,9 +1087,9 @@ const CREER = `<div class="feuille-voile feuille-terme"><section class="feuille"
   <div class="feuille-corps"><div class="feuille-contenu">
     <p><b>15 variables à créer.</b> 1 existe déjà.</p>
     <div class="fiche-liste">${colonnes('Variable', 'Vise', false)}
-      <div class="diff sans-case"><span class="chemin">${varPill('components/tag/color/danger/soft/', 'background')}</span><span class="chemin-apres">theme/danger/soft/surface/default</span></div>
-      <div class="diff sans-case"><span class="chemin">${varPill('components/tag/color/danger/soft/', 'foreground')}</span><span class="chemin-apres">theme/danger/soft/surface/foreground</span></div>
-      <div class="diff sans-case"><span class="chemin">${varPill('components/tag/size/', 'padding-x')}</span><span class="chemin-apres">layout/sizing/2</span></div>
+      <div class="diff sans-case"><span class="chemin">${varPill('components/tag/color/danger/soft/', 'background')}</span><span class="chemin-apres">${placer('theme/danger/soft/surface/default')}</span></div>
+      <div class="diff sans-case"><span class="chemin">${varPill('components/tag/color/danger/soft/', 'foreground')}</span><span class="chemin-apres">${placer('theme/danger/soft/surface/foreground')}</span></div>
+      <div class="diff sans-case"><span class="chemin">${varPill('components/tag/size/', 'padding-x')}</span><span class="chemin-apres">${placer('layout/sizing/2')}</span></div>
       <div class="diff sans-case reste"><span class="chemin">components/tag/color/info/soft/background</span><span class="chemin-apres">existe déjà, vise <code class="chemin-ligne">theme/info/vivid/surface/default</code> · gardée</span></div>
     </div>${lien('Afficher les 12 autres')}
     <div class="pied"><span>${lien('Abandonner le plan')}</span><button type="button" class="btn btn-primary"><span>Créer 15 variables</span></button></div>
@@ -1132,11 +1180,21 @@ ETAT('e-hors', `<div class="bandeau info"><p><b>Ce fichier ne suit pas l’archi
 ETAT('e-biblio', resume({ etat: 'pas encore analysé', compteurs: 'aucun' }) + `<div class="bandeau attente"><p><b>Choisissez la bibliothèque de tokens.</b></p><p>Deux bibliothèques activées portent des variables. Aucune n’est encore liée à ce composant.</p><div class="actions">${btn2('Ouvrir la Configuration')}</div></div>`, { action: { texte: 'Analyser', principal: true, inactif: true } });
 
 // ---------- 9 · Styles communs ----------
-cadreSeul('s-planche', { largeur: 640, hauteur: 1160, html: `<div class="page-stack">
+cadreSeul('s-planche', { largeur: 640, hauteur: 1560, html: `<div class="page-stack">
   ${intertitre('Groupes et variables')}
-  <p><span class="jeton jeton-groupe">button/color</span> <span class="jeton jeton-variable">foreground</span> ${varPill('theme/primary/surface/', 'default')}</p>
-  ${intertitre('Gravités, dans À faire dans Figma')}
-  <p class="arch-compteurs">${SEV.c}${SEV.v}${SEV.i}</p>
+  <p>Un terme isolé : <span class="jeton jeton-groupe">color</span> groupe, <span class="jeton jeton-variable">foreground</span> variable.</p>
+  <p>Un chemin montré comme objet : <code class="chemin-ligne">${placer('theme/primary/surface/default')}</code></p>
+  <p>Un chemin montré comme changement : <code class="chemin-ligne">colors/${anc('info')}/standard/icon</code> → <code class="chemin-ligne">colors/${nouv('success')}/standard/icon</code></p>
+  ${intertitre('Origine et couleur')}
+  <p>${placer('theme/primary/ring')} <span class="origine">UCM</span> · ${puce('#B15152')} <code class="chemin-ligne">#B15152</code></p>
+  ${intertitre('États')}
+  <p class="arch-compteurs"><span class="pastille pastille-attente">À trancher</span><span class="pastille pastille-nouveau">Nouveau</span><span class="pastille pastille-protege">Protégé</span><span class="pastille pastille-non-verifie">Non vérifié</span><span class="pastille pastille-bloque">Bloqué</span></p>
+  ${intertitre('Gravités')}
+  <p class="arch-compteurs"><span class="sev sev-bloquant">Bloquant</span>${SEV.c}${SEV.v}${SEV.i}<span class="niveau niveau-atteint">Tenu</span><span class="niveau niveau-manque">Manqué</span></p>
+  ${intertitre('Fait')}
+  <div class="resultat" role="status"><div class="pile"><span><span aria-hidden="true">✓ </span>8 calques liés</span><span class="meta">Ctrl+Z dans Figma défait ce lot.</span></div></div>
+  ${intertitre('Actions')}
+  <p class="arch-compteurs"><button type="button" class="btn btn-primary btn-compact"><span>Appliquer</span></button>${btn2('Analyser')}${lien('Plus tard')}<button type="button" class="btn btn-danger btn-compact"><span>Supprimer</span></button></p>
   ${intertitre('Onglets du mode Composant')}
   ${ONGLETS_C('Corrections')}
   ${intertitre('Correction')}
