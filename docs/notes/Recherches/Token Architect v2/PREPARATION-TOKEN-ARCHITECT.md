@@ -80,15 +80,16 @@ le fichier ouvert : une correction qui toucherait les deux fichiers à la fois,
 comme renommer un token pour qu'il suive une propriété, ne se fait pas en un
 geste.
 
-### 3.3 Les contrôles de l'export passent dans le kit
+### 3.3 Les contrôles de l'export passent dans le socle
 
 Les quelque 130 points à corriger sont émis par la lecture du contrat, dans
-`plugin-exporter/src/contract/`. Décidé : ces contrôles passent dans le kit,
-et l'exporteur comme Token Architect les y lisent. Le partage suivrait celui
-de Nomenclature. Le socle relève le composant dans Figma et en fait un relevé
-sérialisable. Le kit juge ce relevé, sans appeler `figma`. Les contrats que
-l'exporteur produit avant et après le déplacement doivent être identiques
-octet pour octet : les tests de l'exporteur en sont la garde.
+`plugin-exporter/src/contract/`. Ce moteur lit des nœuds Figma. Décidé : il
+passe dans le socle des plugins, et l'exporteur comme Token Architect l'y
+lisent. Le kit ne peut pas le porter : il est publié sur npm et n'appelle
+jamais `figma`. `ucm check` ne lit donc pas ces contrôles. Les contrôles
+nouveaux de Token Architect jugent un relevé sérialisable : ils vont dans le
+kit. Les tests de l'exporteur gardent le déplacement : aucun attendu ne
+change.
 
 ### 3.4 Les sévérités
 
@@ -447,7 +448,7 @@ règles pendant l'export. Le kit ne vérifie que la forme des maîtres du kit
 | G4 | Loi d'écriture : un fichier qui écrit, un test qui le borne, aperçu et annulation | ajouté | oui | forte | Condition des corrections (section 3.1) |
 | G5 | Déclaration « Ce fichier suit l'architecture UCM » partagée par les deux modes | ajouté | oui | forte | Existe dans Nomenclature ; porte le périmètre de chaque contrôle |
 | G6 | Permission `teamlibrary` au manifeste | ajouté | oui | forte | Condition de C24 à C27 (section 3.2) |
-| G7 | Moteur de contrôles dans le kit, commun à Token Architect, à l'exporteur et à `ucm check` | ajouté | oui | forte | Condition de C38 (section 3.3) |
+| G7 | Moteur de l'exporteur dans le socle, commun à Token Architect et à l'exporteur ; contrôles nouveaux dans le kit | ajouté | oui | forte | Condition de C38 (section 3.3) |
 | G8 | Fusionner aussi l'exporteur | ajouté | oui | faible | Un plugin trop gros ; l'exporteur garde ses accès réseau et son geste de publication. Le panneau annonce seulement « prêt à exporter » |
 
 ## 7. Avis
@@ -522,7 +523,7 @@ l'onglet Relevés.
 | # | Question | Réponse du mainteneur |
 |---|---|---|
 | — | Lecture seule | Token Architect écrit dans le document (section 3.1) |
-| — | Contrôles de l'export | Partagés dans le kit, lus par l'exporteur et par Token Architect (section 3.3) |
+| — | Contrôles de l'export | Moteur partagé dans le socle, lu par l'exporteur et par Token Architect ; contrôles nouveaux dans le kit (section 3.3) |
 | Q1 | Identifiant de manifeste | Celui de l'explorateur |
 | Q2 | Forme des corrections | Le modèle de Nomenclature, avec si possible la même interface, intégrée à la barre latérale de droite ; à affiner sur maquettes |
 | Q3 | Écart entre une propriété et un token | Proposer les deux corrections : renommer la variante, ou préparer une règle qui renomme le token |

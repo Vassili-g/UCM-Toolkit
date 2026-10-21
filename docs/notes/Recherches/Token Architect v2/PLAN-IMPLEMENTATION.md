@@ -22,7 +22,7 @@ cases se cochent dans un commit à part, après celui du lot.
 | Périmètre | Contrôles et corrections pour un fichier qui déclare l'architecture UCM ; ailleurs, la navigation seule. Le sandbox relit la déclaration avant chaque contrôle et avant chaque écriture |
 | Écriture | Token Architect écrit dans le document, par les seuls fichiers de `src/ecriture/` |
 | Exactitude | Une correction n'est proposée que si une règle écrite la tire d'un fait lu dans Figma, avec un seul candidat ; le reste est une question sans réponse cochée |
-| Corrections | Le modèle de Nomenclature : lot avec aperçu, Appliquer, une annulation ; questions à part |
+| Corrections | Le modèle de Nomenclature : lot avec aperçu, Appliquer, annulation ; questions à part. Une écriture sur des variables passe par le journal et l'Historique ; une écriture sur un composant se défait par Ctrl+Z (décision E) |
 | Contrôles de l'export | Le moteur de l'exporteur passe dans le socle des plugins (décision A), lu par l'exporteur et par Token Architect. Le kit ne peut pas le porter : il est publié sur npm et n'appelle jamais `figma`. Les contrôles nouveaux, qui jugent un relevé sérialisable, vont dans le kit |
 | Lecteurs du composant | Deux lecteurs : le moteur de l'exporteur rend les points à corriger ; la lecture de l'explorateur (`src/lectureDuComposant.ts`), étendue à tous les variants, rend les liaisons calque par calque. Le contrat ne garde ni le calque ni le champ d'une liaison |
 | Une opération à la fois | Le sandbox refuse une analyse ou une écriture demandée pendant une autre. Après une écriture ou un Ctrl+Z, le panneau se dit périmé jusqu'à Actualiser |
@@ -94,19 +94,19 @@ cases se cochent dans un commit à part, après celui du lot.
 | Import de variables par l'explorateur | Seule `src/lecture.ts` importe, et seulement des cibles d'alias | Inchangée jusqu'à P2.5 ; P2.5 l'étend après sonde | P2.5 |
 | Paquets séparés | `tests/pluginsSepares.test.ts` liste quatre plugins | Trois plugins, dont `plugin-architect` | P1.1, P1.2 |
 
-## Décisions à prendre avant le lancement
+## Décisions du mainteneur
 
-| # | Question | Recommandation |
+| # | Question | Décision |
 |---|---|---|
-| A | Le moteur de l'exporteur dans le socle (`plugin-socle/src/composant/`) plutôt que dans le kit. Le socle s'exporte fichier par fichier : le bundle de Palettes et des autres plugins ne change pas | Oui. Confirmée, elle réécrit dans le même commit la section 3.3, la ligne « Contrôles de l'export » de la section 8.1 et G7 du document préparatoire |
-| B | Renommer `packages/plugin-explorateur` en `packages/plugin-architect`, paquet `ucm-architect-plugin` | Oui |
-| C | Repli pendant la fusion : Nomenclature disparaît du dépôt au lot P1.2. Pour s'en servir encore, le mainteneur construit le commit qui précède P1.2 | Noter ce commit dans le plan au lancement de P1.2 |
-| D | Les points à corriger de l'exporteur disent « réexportez » et entrent dans le contrat. Token Architect les affiche-t-il tels quels ? | Oui, tels quels ; un texte propre à Token Architect changerait le contrat |
-| E | Annulation d'une correction : Ctrl+Z de Figma (un point d'annulation par lot), ou en plus un journal rangé dans le document, comme l'Historique de Nomenclature ? | Ctrl+Z seul ; le journal est l'option lourde |
-| F | Thème : l'explorateur est toujours sombre ; Nomenclature suit le thème de Figma | À trancher sur les maquettes M1 |
-| G | Compléter les règles d'une instance de `.componentRules` déjà remplie (C47) demande une écriture nouvelle dans ses slots : l'écriture actuelle vide le slot avant de le reconstruire | P5.2 ne fait que générer les règles d'un composant qui n'en a pas (C46). C47 attend une sonde S3 et une décision ; d'ici là, le panneau signale la règle manquante et le designer l'ajoute |
-| H | Le thème des statuts porte une intensité (`theme/danger/soft/…`, `theme/danger/vivid/…`). Comment la génération la choisit-elle ? | Si la bibliothèque n'a qu'une intensité pour ce statut, le choix est exact. Sinon, la question de chaque style demande aussi « douce ou vive », sans réponse cochée |
-| I | Pour savoir quels axes entrent dans les noms et si deux calques (titre, message) partagent un token, la génération peut comparer les couleurs actuelles des calques, ou poser la question | Poser la question : une couleur actuelle fausse fausserait le découpage. Les axes reconnus par un registre (palette, état) entrent sans question ; un axe inconnu et deux calques du même rôle donnent une question |
+| A | Où vit le moteur de l'exporteur | Dans le socle, `plugin-socle/src/composant/`. Le document préparatoire est réécrit en conséquence (sections 3.3, 8.1, G7) |
+| B | Renommer `packages/plugin-explorateur` | `packages/plugin-architect`, paquet `ucm-architect-plugin` |
+| C | Repli pendant la fusion | Nomenclature quitte le dépôt en P1.2 ; le commit qui précède P1.2 est noté ici à son lancement |
+| D | Points à corriger de l'exporteur, qui disent « réexportez » | Affichés tels quels, pour le moment |
+| E | Annulation | Toute écriture sur des variables (renommage, création, portées) passe par le journal et l'Historique de Nomenclature. Une écriture sur un composant se défait par Ctrl+Z, un point d'annulation par lot |
+| F | Thème | Sombre, quel que soit le thème de Figma, pour tout le plugin, Nomenclature comprise ; une seule feuille de socle |
+| G | Compléter les règles d'une instance remplie (C47) | Plus tard. P5.2 prépare le code pour l'ajouter sans le reprendre |
+| H | Intensité des statuts dans la génération | Exacte si le thème n'a qu'une intensité pour ce statut ; sinon une question « douce ou vive », sans réponse cochée |
+| I | Axes et éléments dans la génération | Par question. Les axes reconnus par un registre (palette, état) entrent sans question ; un axe inconnu et deux calques du même rôle donnent une question |
 
 ## Ordre
 
@@ -135,7 +135,7 @@ Faites par la conversation principale : une maquette est une conception.
 - [ ] **M1 · Mode Tokens.** Arbre et table à gauche ; Nomenclature à droite,
   ses onglets et sa Configuration à l'identique. Lien entre l'arbre et
   Nomenclature (T2). Inspecteur avec « Comparer avec un autre mode » et
-  « Utilisée par ». Bloc Structure. Fichier qui ne déclare pas UCM. Thème
+  « Utilisée par ». Bloc Structure. Fichier qui ne déclare pas UCM. Thème sombre
   (décision F).
 - [ ] **M2 · Mode Composant.** Aperçu et liaisons à gauche ; barre latérale :
   familles, compte par sévérité, constat dépliable, lot avec Aujourd'hui et
@@ -244,7 +244,7 @@ contrat commité.
   `template/ecriture` hors de `src/ecriture/` ; `npm test` passe.
 - [ ] **P1.3 · Interface de Nomenclature dans la barre latérale**
   (`implementeur-exigeant`). La barre latérale du mode Tokens affiche
-  `src/ui/nomenclature/` selon M1 ; thème selon F ; un seul `messages.ts`
+  `src/ui/nomenclature/` selon M1 ; thème sombre (décision F), les tests d'interface ne rejouent plus que ce thème ; un seul `messages.ts`
   pour la loi de galerie du socle.
   Fait quand : les tests d'interface de Nomenclature et de l'explorateur sont
   réunis et mis à jour, sans être lancés ; la galerie montre les états de M1 ;
@@ -339,7 +339,7 @@ contrat commité.
   `figma.commitUndo` défait-il tout le lot ?
 - [ ] **P3.0 · Note de conception de l'écriture**, d'après S2 : champs
   couverts, ordre des écritures, relecture, objet changé depuis l'aperçu,
-  échec partiel, annulation (décision E). Une écriture à la fois ; aucune
+  échec partiel, annulation par Ctrl+Z (décision E). Une écriture à la fois ; aucune
   analyse pendant une écriture ; après une écriture ou un Ctrl+Z, le panneau
   se dit périmé jusqu'à Actualiser.
 - [ ] **P3.1 · Écriture des liaisons.** `src/ecriture/liaisons.ts` selon P3.0.
@@ -398,12 +398,26 @@ Les mesures portent sur le composant dessiné dans Figma. Elles signalent un
   Fait quand : un test par constat.
 - [ ] **P5.2** Génération des règles d'un composant qui n'en a pas (C46), par
   `template/ecriture.ts` du socle ; Architect entre dans la liste de ses
-  importeurs permis. C47 suit la décision G.
+  importeurs permis. Décision G : un modèle pur compare les propriétés et les
+  règles et rend une liste d'opérations (créer le conteneur, ajouter une
+  règle, retirer une règle) ; l'écriture n'exécute que « créer le conteneur »
+  et refuse les deux autres avec un motif « non pris en charge ». C47
+  ajoutera ces deux opérations à l'écriture, après une sonde S3 sur un slot
+  rempli.
   Fait quand : la loi du document intact passe avec Architect dans la liste ;
-  un composant qui a déjà une instance de règles ne reçoit aucune écriture.
+  le modèle rend, en test, les opérations d'ajout et de retrait d'une
+  instance remplie ; l'écriture les refuse sans rien écrire.
 
 ### P6 · Full UCM et bloc Structure
 
+- [ ] **P6.0 · Journal étendu** (`implementeur-exigeant`). Le journal de
+  Nomenclature range aujourd'hui des renommages. Il reçoit deux autres sortes
+  d'écriture sur les variables : les portées (P6.4) et la création de
+  variables avec leurs alias (P7.3). L'Historique les classe et les annule
+  avec les mêmes règles de relecture que les renommages.
+  Fait quand : les tests de l'Historique et de l'annulation des renommages
+  passent sans changement d'attendu ; un test par nouvelle sorte annule son
+  écriture et saute un objet changé depuis.
 - [ ] **P6.1** Règle du dossier (C59), état et dossier (C60), variable du
   thème hors de ses champs (C63), dans le kit.
 - [ ] **P6.2** Mapping vers le thème (C27) : le dossier vient d'une question
@@ -412,7 +426,7 @@ Les mesures portent sur le composant dessiné dans Figma. Elles signalent un
   (c) et (f) de la recherche sur la structure, dans le kit (décision 8.1 du
   document préparatoire) ; règles du profil UCM, qui restent dans
   `profilUcm.ts`, sans association manuelle des couches.
-- [ ] **P6.4** Correction des portées (T7).
+- [ ] **P6.4** Correction des portées (T7), par le journal de P6.0.
 
 Fait quand, pour chaque lot : un test positif et un test négatif par règle ;
 P6.3 rend les cas (a) à (c) et (f) sur un relevé écrit à la main.
@@ -438,7 +452,7 @@ P6.3 rend les cas (a) à (c) et (f) sur un relevé écrit à la main.
 - [ ] **P7.3 · Mode Tokens.** Plan en attente ; le plugin vérifie que les
   cibles du plan existent parmi les variables locales, ce qui reconnaît le
   fichier des tokens ; aperçu ; création des seules variables manquantes et
-  de leurs alias ; annulation.
+  de leurs alias, par le journal de P6.0 ; l'Historique les annule.
 - [ ] **P7.4 · Retour au composant.** Liaison par les cibles gardées dans le
   plan, seulement si le jeu trouvé a la même clé, sinon le plugin le dit. La
   variable se cherche dans la bibliothèque choisie (Q11) ; une variable pas
@@ -468,7 +482,7 @@ attente ; recette du mainteneur sur Alert.
 | C26 : mapping par valeur | Contraire à la règle d'exactitude, sauf P7.6 : valeur exacte, un seul token (G-4) |
 | C30, C41 dans le kit | Déjà rendus par le moteur de l'exporteur |
 | C39, C40 : parité du code, écart avec le contrat publié | Hors de Figma, ou demande le réseau |
-| C47 : compléter une instance de règles remplie | Décision G |
+| C47 : compléter une instance de règles remplie | Décision G : le code de P5.2 le prépare |
 | C48 : rédaction par IA | Réseau |
 | T3 : effet d'un renommage montré dans l'arbre | Après la recette de P1 |
 | T4 : lecture unique des variables | Seulement si la recette montre une lenteur |
