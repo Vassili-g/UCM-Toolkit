@@ -66,9 +66,9 @@ une à une, puis pose chaque alias. Pour Alert, le fichier de référence en
 compte 36 :
 
 ```
-components/alert/colors/{error|info|success|warning}/filled/{background|foreground|icon}
-components/alert/colors/{error|info|success|warning}/outlined/{border|foreground|icon}
-components/alert/colors/{error|info|success|warning}/standard/{background|foreground|icon}
+components/alert/color/{danger|info|success|warning}/filled/{background|foreground|icon}
+components/alert/color/{danger|info|success|warning}/outlined/{border|foreground|icon}
+components/alert/color/{danger|info|success|warning}/standard/{background|foreground|icon}
 ```
 
 Token Architect lirait la structure du composant et proposerait ces 36
@@ -93,12 +93,12 @@ du dossier : le premier plan prend le dossier du fond juste derrière lui.
 
 | Variable générée | Alias proposé |
 |---|---|
-| `components/alert/colors/error/filled/background` | `theme/danger/solid/default` |
-| `components/alert/colors/error/filled/foreground` | `theme/danger/solid/foreground` |
-| `components/alert/colors/error/standard/background` | `theme/danger/surface/default` |
-| `components/alert/colors/error/standard/foreground` | `theme/danger/surface/foreground` |
-| `components/alert/colors/error/outlined/border` | `theme/danger/page/border` |
-| `components/alert/colors/error/outlined/foreground` | `theme/danger/page/foreground` |
+| `components/alert/color/danger/filled/background` | `theme/danger/solid/default` |
+| `components/alert/color/danger/filled/foreground` | `theme/danger/solid/foreground` |
+| `components/alert/color/danger/standard/background` | `theme/danger/surface/default` |
+| `components/alert/color/danger/standard/foreground` | `theme/danger/surface/foreground` |
+| `components/alert/color/danger/outlined/border` | `theme/danger/page/border` |
+| `components/alert/color/danger/outlined/foreground` | `theme/danger/page/foreground` |
 
 Les chemins du thème suivent la table des dossiers du kit
 (`emplois/dossiers.ts`). Le plugin vérifie que chaque cible existe dans la
@@ -156,7 +156,7 @@ Collection components · 36 variables
 Créées         34
 Déjà présentes  2   (gardées telles quelles)
 
-  alert/colors/error/filled/background   theme/danger/solid/default
+  alert/color/danger/filled/background   theme/danger/solid/default
   …
                  [ Annuler le plan ]  [ Créer ]
 ```
@@ -174,7 +174,7 @@ Déjà présentes  2   (gardées telles quelles)
 
 - **Une forme de chemin pour `components` dans le kit.** `FORMES_DES_CHEMINS`
   décrit les six autres collections et exclut `components`. Il faut décider
-  l'ordre des segments : composant, famille (`colors`), axes, état, rôle.
+  l'ordre des segments : composant, famille (`color`), axes, état, rôle.
   Ce prérequis sert aussi aux contrôles de nommage et de mapping en full UCM.
 - **L'ordre des axes dans le chemin.** Alert met `Severity` avant `Variant`.
   Une règle est à choisir : l'ordre des propriétés dans Figma, ou un ordre fixe
