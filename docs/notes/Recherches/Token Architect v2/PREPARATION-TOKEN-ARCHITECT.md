@@ -1,8 +1,9 @@
 # Préparation de UCM Token Architect
 
 Ce document recueille les demandes du mainteneur pour UCM Token Architect,
-liste les fonctions possibles et donne un avis sur chacune. Il ne tranche
-rien : les décisions attendues sont à la [section 8](#8-décisions-attendues).
+liste les fonctions possibles et donne un avis sur chacune. Les réponses du
+mainteneur et les décisions encore ouvertes sont à la
+[section 8](#8-décisions).
 
 UCM Token Architect réunit deux plugins existants : UCM Token Explorer
 (`packages/plugin-explorateur`) et UCM Nomenclature
@@ -55,14 +56,15 @@ Deux éléments manquent :
 
 ## 3. Les contraintes
 
-### 3.1 L'explorateur est en lecture seule
+### 3.1 Token Architect écrit dans le document
 
-L'invariant de l'explorateur interdit toute écriture, tout changement de
-sélection et tout changement de vue ; `tests/loiDeLectureSeule.test.ts` le
-tient. Token Architect écrira des liaisons de variables, des noms de variantes
-et des règles. Il lui faut une loi d'écriture du type de celle de
-Nomenclature : un seul fichier qui écrit, une relecture avant chaque écriture,
-un aperçu avant et après, et un point d'annulation par lot.
+Décidé : Token Architect n'est pas en lecture seule. L'invariant actuel de
+l'explorateur, tenu par `tests/loiDeLectureSeule.test.ts`, cède la place à une
+loi d'écriture du type de celle de Nomenclature : un seul fichier qui écrit,
+une relecture avant chaque écriture, un aperçu avant et après, et un point
+d'annulation par lot. Token Architect écrira des liaisons de variables, des
+noms de variantes, des règles, et changera la sélection au clic sur un
+constat.
 
 ### 3.2 Les composants et les tokens vivent dans deux fichiers Figma
 
@@ -78,13 +80,15 @@ le fichier ouvert : une correction qui toucherait les deux fichiers à la fois,
 comme renommer un token pour qu'il suive une propriété, ne se fait pas en un
 geste.
 
-### 3.3 Les contrôles de l'export vivent dans l'exporteur
+### 3.3 Les contrôles de l'export passent dans le kit
 
 Les quelque 130 points à corriger sont émis par la lecture du contrat, dans
-`plugin-exporter/src/contract/`. Les afficher dans Token Architect sans les
-recopier demande de déplacer cette lecture dans le kit ou dans le socle. Sans
-ce déplacement, le panneau et l'export rendraient deux verdicts différents sur
-le même composant.
+`plugin-exporter/src/contract/`. Décidé : ces contrôles passent dans le kit,
+et l'exporteur comme Token Architect les y lisent. Le partage suivrait celui
+de Nomenclature. Le socle relève le composant dans Figma et en fait un relevé
+sérialisable. Le kit juge ce relevé, sans appeler `figma`. Les contrats que
+l'exporteur produit avant et après le déplacement doivent être identiques
+octet pour octet : les tests de l'exporteur en sont la garde.
 
 ### 3.4 Les sévérités
 
@@ -162,6 +166,42 @@ vérifier sur le code brut.
 | `figma.skipInvisibleInstanceChildren = true`, et main rendue tous les 1 000 nœuds | design-lint | Lecture de tous les variants (C2) ; la vue Composant lit déjà par lots de 400 |
 | Calques dont le nom commence par `.` ou `_` sautés | figmalint | Même règle que le kit de règles, dont les maîtres commencent par `.` |
 | Composants détachés et composants d'une bibliothèque absente signalés sans correction | Check designs | Constat seulement (C79) |
+
+### 3.10 Lire les tokens depuis un fichier qui ne les contient pas
+
+Les variables d'un fichier Figma appartiennent au fichier, pas à une page. Le
+fichier des composants voit les variables des bibliothèques que le designer y
+a activées. Aucune page source n'est donc à désigner.
+
+| Ce que le plugin lit | Comment | Coût |
+|---|---|---|
+| La liste des collections des bibliothèques activées | `figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync` | Faible |
+| Le nom, la clé et le type de chaque variable d'une collection | `getVariablesInLibraryCollectionAsync` ; rien d'autre : ni valeur, ni alias | Faible |
+| La valeur et la cible d'alias d'une variable déjà liée à un calque | `getVariableByIdAsync`, puis `resolveForConsumer`, comme la vue Composant aujourd'hui | Faible |
+| La valeur d'une variable qu'aucun calque n'emploie | `importVariableByKeyAsync`, variable par variable | Élevé sur une bibliothèque entière ; à mesurer |
+
+Les contrôles de structure (C7 à C25) comparent des noms : la liste des noms
+leur suffit. Seuls le contraste d'un candidat, le mapping par valeur (C26) et
+le classement par valeur (C76) demandent des valeurs. Le plugin importe alors
+les seuls candidats d'une correction.
+
+Palettes lit déjà les bibliothèques de cette façon
+(`plugin-palettes/src/lectureDesVariables.ts`), avec la permission
+`teamlibrary`.
+
+Un réglage n'est nécessaire que si plusieurs bibliothèques activées portent des
+variables. Proposition : le plugin choisit seul la bibliothèque dont les
+variables sont déjà liées au plus grand nombre de calques, et la Configuration
+permet d'en choisir une autre. Ce choix se range dans les données partagées du
+document, pour toute l'équipe. Check designs a le même réglage (C78).
+
+Limites :
+- un plugin ne peut pas activer une bibliothèque ; le designer l'active dans
+  Figma ;
+- seules les modifications publiées de la bibliothèque sont visibles ;
+- un fichier sans bibliothèque activée ni variable locale n'a pas de tokens à
+  lire. L'import d'un `tokens.json`, que l'onglet Intégrations proposait,
+  reste possible en dernier recours.
 
 Check designs ne compare ni les variants entre eux, ni les axes du composant
 aux chemins des tokens. Il ne contrôle pas non plus la règle d'un composant de
@@ -350,7 +390,7 @@ règles pendant l'export. Le kit ne vérifie que la forme des maîtres du kit
 
 | # | Fonction | Source | Faisable | Utilité | Périmètre | Avis |
 |---|---|---|---|---|---|---|
-| T5 | Bloc « Structure » : chaînes cassées et cas (a) à (g) de la recherche sur la structure | ajouté | oui pour (a), (b), (c), (f) ; (d) et (e) relèvent de Palettes ; (g) demande deux exports | forte | agnostique | La recherche attend quatre décisions (Q9) |
+| T5 | Bloc « Structure » : chaînes cassées et cas (a) à (g) de la recherche sur la structure | ajouté | oui pour (a), (b), (c), (f) ; (e) retiré, Palettes s'en charge ; (d) à confirmer ; (g) demande deux exports | forte | agnostique | Voir Q9 |
 | T6 | Règles du profil UCM : `couche`, `valeur-directe`, `portee`, `nuance` | existe | oui | forte | full UCM | Code existant à déplacer ; les associations manuelles de couches disparaissent si la déclaration UCM du fichier suffit |
 | T7 | Correction des portées selon `SUPPORT_DES_VARIABLES` | ajouté | oui | moyenne | full UCM | Écrit `scopes` ; suit la loi d'écriture |
 | T8 | Noms de modes cohérents entre collections | ajouté | oui | moyenne | agnostique | Le marché le contrôle (figma-token-audit) |
@@ -398,8 +438,10 @@ des crans eux-mêmes reste dans le mode Tokens (règle `nuance`).
 
 **Les contrôles du kit (D6).** Les reprendre demande de déplacer la lecture du
 contrat de l'exporteur dans le kit (G7). Les recopier donnerait deux verdicts
-sur le même composant. Ce chantier est le plus lourd du projet ; il peut venir
-après les contrôles nouveaux, qui n'en dépendent pas.
+sur le même composant. Ce chantier est le plus lourd du projet, et il vient en
+premier (Q5) : les contrôles nouveaux lisent le même relevé du composant
+(variants, propriétés, liaisons) que l'exporteur. Les écrire avant le
+déplacement créerait un second lecteur du composant, à fusionner ensuite.
 
 **La correction automatique.** La règle retenue pour les interfaces de Palettes
 interdit un bouton qui choisit une valeur à la place du designer. Ici, une
@@ -426,25 +468,47 @@ l'onglet Relevés.
 
 | Phase | Contenu | Dépend de |
 |---|---|---|
-| P0 | Fusion sans fonction nouvelle : coquille, Nomenclature dans la barre latérale, onglets supprimés ou déplacés, loi d'écriture | Q1, Q4 |
-| P1 | Lecture du composant (C2 à C4) et contrôles en lecture seule : nommage (C7 à C11), mapping (C15 à C21), oublis (C30 à C33) | P0 |
-| P2 | Corrections sûres, questions, propagation, groupes et classement des candidats (C12, C22, C24, C69 à C71, C75, C76) | P1, Q2, Q3 |
-| P3 | Contraste et accessibilité (C49 à C53) | P1 |
-| P4 | Moteur de l'export dans le kit, contrôles de l'export et des règles (G7, C38, C43 à C47) | Q5 |
-| P5 | Full UCM : règle du dossier, mapping vers le thème, bloc Structure (C59 à C61, C27, T5 à T7) | P2, Q9 |
-| P6 | Typographie et icônes (C64 à C67) | P4 |
+| M | Maquettes : barre latérale des deux modes, interface de Nomenclature intégrée, onglets déplacés, sévérités | Q2, Q4, Q8 |
+| P0 | Relevé du composant dans le socle, contrôles de l'export dans le kit ; l'exporteur les y lit, contrats identiques avant et après (G7, C38) | rien ; peut avancer pendant M |
+| P1 | Fusion : coquille, identifiant de l'explorateur, Nomenclature dans la barre latérale, onglets supprimés ou déplacés, loi d'écriture, permission `teamlibrary` | M |
+| P2 | Lecture de tous les variants et des propriétés (C2 à C4), tokens des bibliothèques (section 3.10), contrôles de nommage, de mapping et d'oublis (C7 à C21, C30 à C33), écrits dans le kit | P0, P1 |
+| P3 | Corrections au modèle de Nomenclature : lot sûr, questions, propagation, groupes, classement des candidats (C12, C13, C22, C24, C69 à C71, C75, C76) | P2 |
+| P4 | Contraste et accessibilité (C49 à C53) | P2, Q10 |
+| P5 | Composant de règles (C43 à C47) | P0 |
+| P6 | Full UCM : règle du dossier, mapping vers le thème, bloc Structure (C59 à C61, C27, T5 à T7) | P3 |
+| P7 | Typographie et icônes (C64 à C67) | P0 |
 
-## 8. Décisions attendues
+## 8. Décisions
+
+### 8.1 Décidé
+
+| # | Question | Réponse du mainteneur |
+|---|---|---|
+| — | Lecture seule | Token Architect écrit dans le document (section 3.1) |
+| — | Contrôles de l'export | Partagés dans le kit, lus par l'exporteur et par Token Architect (section 3.3) |
+| Q1 | Identifiant de manifeste | Celui de l'explorateur |
+| Q2 | Forme des corrections | Le modèle de Nomenclature, avec si possible la même interface, intégrée à la barre latérale de droite ; à affiner sur maquettes |
+| Q3 | Écart entre une propriété et un token | Proposer les deux corrections : renommer la variante, ou préparer une règle qui renomme le token |
+| Q4 | Sort des onglets | Proposition de la section 5.2 retenue ; à juger sur maquettes |
+| Q5 | Ordre | Déplacer d'abord les contrôles de l'export dans le kit (section 7, phase P0) |
+| Q7 | Sélection et vue du designer | Changées au clic sur un constat seulement |
+| Q8 | Sévérités | Trois niveaux propres au panneau, sans effet sur l'export ; à vérifier sur maquettes |
+
+Les quatre décisions de la [recherche sur le contrôle de structure](../Plugin%20Architect/6%20Contrôle%20de%20structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md#les-décisions-attendues) :
+
+| Question de la recherche | Réponse |
+|---|---|
+| Cas (e), cran saturé au blanc | Retiré : Palettes s'en charge |
+| Périmètre | Les règles full UCM s'ajoutent aux contrôles agnostiques |
+| Lieu | Le bloc « Structure » du mode Tokens de Token Architect ; les contrôles vivent dans le kit, et `ucm check` pourra les appeler |
+| Correction | Les deux : chaque écart est signalé, et corrigé en un geste quand la correction est sûre |
+
+### 8.2 Ouvert
 
 | # | Question | Recommandation |
 |---|---|---|
-| Q1 | Quel identifiant de manifeste garder : celui de l'explorateur ou celui de Nomenclature ? | Celui de l'explorateur, dont les préférences de largeur sont plus nombreuses |
-| Q2 | Les corrections : un lot sûr avec aperçu et des questions pour le reste, comme Nomenclature, ou une correction à la fois ? | Le modèle de Nomenclature |
-| Q3 | Un écart entre une propriété et un token : renommer la variante (le contrat publié change) ou préparer une règle pour renommer le token ? | Proposer les deux et laisser le designer choisir par constat |
-| Q4 | Le sort de chaque onglet, d'après le tableau de la section 5.2 | Garder Variables ; déplacer Comparer et Dépendants dans l'inspecteur, Diagnostics dans « Structure » ; supprimer Intégrations et Relevés |
-| Q5 | Déplacer le moteur de l'exporteur dans le kit avant d'afficher ses contrôles, ou commencer par les contrôles nouveaux ? | Commencer par les contrôles nouveaux (P1 à P3), déplacer le moteur ensuite |
-| Q6 | Générer les tokens de composant qui manquent (C28, T12) : oui ou non, et dans quel fichier ? | Plus tard ; à étudier après la propagation |
-| Q7 | Le plugin peut-il changer la sélection et la vue du designer quand un constat est cliqué ? | Oui, au clic seulement |
-| Q8 | Les sévérités du panneau : tout en information comme `ucm check`, ou trois niveaux propres au panneau, sans effet sur l'export ? | Trois niveaux propres au panneau |
-| Q9 | Les quatre décisions de la [recherche sur le contrôle de structure](../Plugin%20Architect/6%20Contrôle%20de%20structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md#les-décisions-attendues) | À lire dans ce document |
-| Q10 | Les seuils d'accessibilité : taille de cible (24 ou 44 px), taille de texte minimale | 24 px en constat, 44 px en recommandation |
+| Q6 | Générer les tokens de composant qui manquent (C28, T12) | Idée retenue, à développer dans une étude propre. Le composant vit dans le fichier des composants, et les tokens dans l'autre. Trois voies à comparer : lire le contrat publié par l'exporteur depuis le mode Tokens ; copier un squelette depuis le mode Composant et le coller dans le mode Tokens ; demander au designer d'ouvrir le fichier des tokens avec la liste préparée |
+| Q9 | Cas (d) de la recherche, cran recopié d'une autre rampe : Palettes s'en charge-t-il, comme pour (e) ? | Oui : les deux cas portent sur une rampe que Palettes calcule |
+| Q9 bis | Cas (g), tokens disparus entre deux exports : où le détecter ? | Dans l'exporteur, au moment d'exporter : il lit déjà la version publiée de `tokens.json` sur GitHub ou GitLab. Le mode Tokens ne voit que l'état actuel du fichier Figma |
+| Q10 | Seuils d'accessibilité | Taille de cible : 24 × 24 px en constat (WCAG 2.5.8, niveau AA), 44 × 44 px en recommandation (niveau AAA, iOS). Texte : aucun minimum WCAG ; 12 px proposé en recommandation |
+| Q11 | Bibliothèque de tokens quand plusieurs sont activées (section 3.10) | Choix automatique par les liaisons existantes, modifiable dans la Configuration |

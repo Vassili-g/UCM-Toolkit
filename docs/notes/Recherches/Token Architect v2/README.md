@@ -15,5 +15,6 @@ tokens restent dans [Plugin Architect](../Plugin%20Architect/README.md).
 
 ## Où en est le sujet
 
-Document préparatoire écrit. Prochain geste : le mainteneur lit les tableaux et
-répond aux décisions Q1 à Q10.
+Document préparatoire écrit ; les réponses du mainteneur sont rangées à sa
+section 8. Prochains gestes : les maquettes des deux modes, et le déplacement
+des contrôles de l'export dans le kit. Q6, Q9, Q10 et Q11 restent ouvertes.
