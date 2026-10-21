@@ -1,0 +1,98 @@
+/* Les éléments nouveaux de Token Architect, posés au-dessus des feuilles réelles de l'explorateur et de Nomenclature.
+   Chaque règle n'emploie que les variables du socle : la même feuille vaut dans les deux cadres. */
+
+/* Les places de Nomenclature, communes à tout le plugin : orchidée pour un groupe, olive pour une variable. */
+:root {
+  --fond-groupe: rgb(80 36 84);
+  --texte-groupe: rgb(244 180 248);
+  --fond-variable: rgb(58 62 28);
+  --texte-variable: rgb(222 228 150);
+}
+
+.jeton { display: inline-flex; align-items: center; padding: 0 6px; border-radius: 4px; font-family: var(--police-code); line-height: 18px; white-space: nowrap; }
+.jeton-groupe { background: var(--fond-groupe); color: var(--texte-groupe); }
+.jeton-variable { background: var(--fond-variable); color: var(--texte-variable); }
+.jeton-neutre { background: var(--fond-note); color: var(--texte); }
+.mot-groupe { color: var(--texte-groupe); }
+.mot-variable { color: var(--texte-variable); }
+
+/* La barre latérale de droite, dans le cadre de l'explorateur. */
+.arch-laterale { flex: 0 0 auto; display: flex; border-left: 1px solid var(--bordure); background: var(--fond); min-height: 0; }
+.arch-laterale > iframe { flex: 1 1 auto; border: 0; width: 100%; height: 100%; display: block; }
+.arch-corps-composant { display: flex; flex: 1 1 auto; min-height: 0; }
+.arch-corps-composant > .vc { flex: 0 0 auto; overflow: auto; }
+
+/* Le bouton Configuration rejoint la barre commune. */
+.barre .icon-button.avec-libelle { margin-left: var(--espace-controle); }
+
+/* La gravité d'un constat : un point et un mot ; le rouge pour ce qui empêche, l'ambre pour ce qui demande un regard. */
+.sev { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; white-space: nowrap; }
+.sev::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.sev-corriger { color: var(--texte-danger); }
+.sev-verifier { color: var(--texte-avertissement); }
+.sev-info { color: var(--texte-second); }
+
+/* Le résumé en tête de la barre du mode Composant. */
+.arch-resume { display: grid; gap: var(--espace-serre); padding-bottom: var(--espace-controle); border-bottom: 1px solid var(--bordure); }
+.arch-resume-ligne { display: flex; align-items: center; justify-content: space-between; gap: var(--espace-controle); }
+.arch-resume-titre { display: flex; align-items: baseline; gap: var(--espace-controle); font-weight: 600; }
+.arch-compteurs { display: flex; flex-wrap: wrap; gap: var(--espace-controle) var(--espace-bloc); }
+
+/* Un constat : la gravité, la phrase, le lieu, puis le détail déplié. */
+.constat .tete-bouton { align-items: flex-start; }
+.constat-titre { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; }
+.constat-lieu { color: var(--texte-second); }
+.constat-faits { display: grid; gap: var(--espace-serre); padding: var(--espace-controle) 0; }
+.constat-fait { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: var(--espace-controle); align-items: baseline; }
+.constat-fait > span:first-child { color: var(--texte-second); }
+.constat-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-controle) var(--espace-bloc); padding-top: var(--espace-serre); }
+.constat-statut { color: var(--texte-second); }
+.constat-statut.pret { color: var(--texte-succes); }
+.constat-statut.question { color: var(--texte-avertissement); }
+
+/* Un bandeau en tête de liste : analyse partielle, panneau périmé, plan en attente, fichier hors UCM. */
+.bandeau { display: grid; gap: 4px; padding: var(--espace-controle) var(--espace-bloc); border: 1px solid var(--bordure); border-left-width: 3px; border-radius: var(--rayon); }
+.bandeau.attente { border-left-color: var(--texte-avertissement); }
+.bandeau.info { border-left-color: var(--texte-second); }
+.bandeau.succes { border-left-color: var(--texte-succes); }
+.bandeau.danger { border-left-color: var(--texte-danger); }
+.bandeau-ligne { display: flex; align-items: center; justify-content: space-between; gap: var(--espace-controle); }
+.bandeau p { margin: 0; }
+.bandeau .btn { justify-self: start; white-space: nowrap; }
+
+/* La matrice des variants, dans la colonne de gauche du mode Composant. */
+.matrice { margin: 4px 16px 12px; }
+.matrice-titre { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--espace-serre); color: var(--texte-second); }
+.matrice table { border-collapse: separate; border-spacing: 3px; width: 100%; }
+.matrice th { font-weight: 400; color: var(--texte-second); text-align: left; padding: 0 4px; white-space: nowrap; }
+.matrice td { height: 26px; border: 1px solid var(--bordure); border-radius: 4px; text-align: center; font-variant-numeric: tabular-nums; }
+.matrice td.vide { border-style: dashed; color: var(--texte-second); }
+.matrice td.choisi { outline: 2px solid var(--bordure-visee, var(--texte)); outline-offset: 1px; }
+.matrice td .sev { justify-content: center; }
+
+/* Une paire mesurée : le premier plan sur son fond, le rapport et le seuil. */
+.paire { display: inline-flex; align-items: center; gap: var(--espace-controle); }
+.paire-echantillon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 20px; border-radius: 4px; font-weight: 700; box-shadow: inset 0 0 0 1px var(--bordure); }
+.paire-mode { color: var(--texte-second); }
+
+/* Le parcours de génération : une question à trois réponses, aucune cochée. */
+.choix-ligne { display: flex; flex-wrap: wrap; gap: var(--espace-serre); }
+.choix { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border: 1px solid var(--bordure); border-radius: 999px; }
+.choix::before { content: ""; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--texte-second); }
+.choix.pris::before { box-shadow: inset 0 0 0 3px var(--fond), inset 0 0 0 10px var(--texte); }
+
+/* Le chemin d'une variable dans une fiche : les groupes en orchidée, la variable en olive. */
+.chemin-place { font-family: var(--police-code); overflow-wrap: anywhere; }
+
+/* Les étapes d'une chaîne d'alias dans la fiche d'une variable. */
+.chaine { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.chaine li { display: flex; align-items: center; gap: var(--espace-controle); font-family: var(--police-code); }
+.chaine li::before { content: "↳"; color: var(--texte-second); }
+.chaine li:first-child::before { content: ""; }
+.puce-couleur { width: 12px; height: 12px; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--bordure); flex: 0 0 auto; }
+
+/* Une ligne de l'arbre filtrée par la barre latérale. */
+.arbre-ligne.filtre-actif { box-shadow: inset 3px 0 0 var(--texte-groupe); }
+
+/* Le cadre des repères dans la maquette, hors du plugin. */
+.repere { outline: 2px dashed #ff8ad8; outline-offset: 2px; border-radius: 4px; }

@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Architect</title>
+<style>
+  :root { --fond: #161616; --bordure: #333; --texte: #eee; --second: #9a9a9a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 3400px; margin: 0 auto; padding: 32px 16px 96px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 20px; margin: 56px 0 6px; padding-top: 16px; border-top: 1px solid var(--bordure); }
+  h3 { font-size: 16px; margin: 32px 0 6px; }
+  p { margin: 6px 0; max-width: 900px; }
+  .intro { color: var(--second); }
+  code { font-family: Consolas, monospace; font-size: 13px; background: #2a2a2a; padding: 0 4px; border-radius: 3px; }
+  nav.sommaire { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 16px 0; font-size: 13px; }
+  nav.sommaire a { color: #9fcfff; }
+  .colonnes { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; margin-top: 16px; }
+  .colonne { flex: 0 0 auto; max-width: 100%; }
+  .cadre { border: 1px solid var(--bordure); border-radius: 8px; overflow: hidden; background: #2c2c2c; display: inline-block; max-width: 100%; overflow-x: auto; }
+  .cadre iframe { display: block; border: 0; }
+  .etiquette { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 4px; margin-bottom: 6px; background: #16314d; color: #9fcfff; }
+  .etiquette.actuel { background: #333; color: #ddd; }
+  .etiquette.nouveau { background: #1d3a24; color: #a6e3b4; }
+  ol.argu, ul.argu { padding-left: 20px; margin: 10px 0 0; font-size: 13px; color: #cfcfcf; max-width: 620px; }
+  ol.argu li, ul.argu li { margin: 4px 0; }
+  table.t { border-collapse: collapse; margin-top: 12px; font-size: 13px; max-width: 1200px; }
+  table.t th, table.t td { text-align: left; vertical-align: top; padding: 6px 12px; border-top: 1px solid var(--bordure); }
+  table.t th { color: var(--second); font-weight: 600; border-top: 0; }
+  .rose { color: #ff8ad8; }
+  .parcours { display: grid; grid-template-columns: repeat(3, minmax(260px, 1fr)); gap: 16px; max-width: 1300px; margin-top: 16px; }
+  .bloc { border: 1px solid var(--bordure); border-radius: 8px; padding: 12px 14px; background: #1d1d1d; }
+  .bloc h4 { margin: 0 0 6px; font-size: 14px; }
+  .bloc ol { margin: 0; padding-left: 18px; font-size: 13px; color: #cfcfcf; }
+  .bloc ol li { margin: 3px 0; }
+  .bloc .ou { color: var(--second); font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>UCM Token Architect</h1>
+  <p class="intro">Ces maquettes dessinent toutes les fonctions du <a href="../PLAN-IMPLEMENTATION.md" style="color:#9fcfff">plan
+  d'implémentation</a>. Chaque fenêtre part des écrans réels de l'explorateur et de Nomenclature, figés depuis leurs galeries
+  sombres. Les éléments nouveaux emploient les classes de ces deux plugins et la feuille <code>architect.css</code>. Les repères
+  <span class="rose">roses</span> montrent ce qui change.</p>
+  <nav class="sommaire">
+    <a href="#parcours">1 · Le parcours</a>
+    <a href="#aujourdhui">2 · Aujourd'hui</a>
+    <a href="#tokens">3 · Mode Tokens</a>
+    <a href="#composant">4 · Mode Composant</a>
+    <a href="#generation">5 · Génération des tokens</a>
+    <a href="#configuration">6 · Configuration</a>
+    <a href="#etats">7 · États de la barre latérale</a>
+    <a href="#styles">8 · Styles communs</a>
+    <a href="#questions">9 · Questions au mainteneur</a>
+  </nav>
+
+  <h2 id="parcours">1 · Le parcours</h2>
+  <p>Le plugin s'ouvre dans le mode qui correspond au fichier. Un fichier de tokens ouvre le mode Tokens. Une sélection de
+  composant ouvre le mode Composant. La bascule de la barre change de mode à tout moment.</p>
+  <div class="parcours">
+    <div class="bloc">
+      <h4>Mode Tokens</h4>
+      <p class="ou">Dans le fichier des tokens</p>
+      <ol>
+        <li>L'arbre et la table montrent les variables.</li>
+        <li>Renommages applique les noms sûrs.</li>
+        <li>Questions demande les choix.</li>
+        <li>Règles montre l'écriture et le vocabulaire.</li>
+        <li>Structure signale les erreurs des alias et des portées.</li>
+        <li>Un clic sur une variable ouvre sa fiche.</li>
+        <li>Un plan de génération attend en tête de la barre.</li>
+      </ol>
+    </div>
+    <div class="bloc">
+      <h4>Mode Composant</h4>
+      <p class="ou">Dans le fichier des composants</p>
+      <ol>
+        <li>Le designer sélectionne un composant.</li>
+        <li>Actualiser lance l'analyse de tous les variants.</li>
+        <li>Constats liste tout ce qui ne va pas.</li>
+        <li>Corrections applique les liaisons sûres.</li>
+        <li>Questions demande les choix.</li>
+        <li>Un clic sur un constat sélectionne le calque dans Figma.</li>
+        <li>Ctrl+Z défait une correction.</li>
+      </ol>
+    </div>
+    <div class="bloc">
+      <h4>Génération des tokens</h4>
+      <p class="ou">Entre les deux fichiers</p>
+      <ol>
+        <li>Composant : Préparer les tokens, répondre aux questions.</li>
+        <li>Le plan reste dans la mémoire du plugin.</li>
+        <li>Tokens : le plan attend en tête de la barre.</li>
+        <li>Créer, puis publier la bibliothèque.</li>
+        <li>Composant : Corrections propose de lier les calques.</li>
+        <li>L'Historique annule une création.</li>
+      </ol>
+    </div>
+  </div>
+  <table class="t">
+    <tr><th>Élément</th><th>Où</th><th>Rôle</th></tr>
+    <tr><td>Barre du haut</td><td>Les deux modes</td><td>Nom du plugin, bascule Tokens et Composant, Actualiser, Configuration.</td></tr>
+    <tr><td>Colonne de gauche</td><td>Tokens</td><td>L'arbre et la table de l'explorateur, sans les onglets.</td></tr>
+    <tr><td>Colonne de gauche</td><td>Composant</td><td>La vue Composant de l'explorateur, avec la matrice des variants.</td></tr>
+    <tr><td>Barre latérale</td><td>Tokens</td><td>Nomenclature à l'identique, plus l'onglet Structure.</td></tr>
+    <tr><td>Barre latérale</td><td>Composant</td><td>Le résumé de l'analyse, puis Constats, Corrections et Questions.</td></tr>
+    <tr><td>Feuille</td><td>Les deux modes</td><td>La fiche d'une variable, la fiche d'un terme, le plan de génération. Elle glisse sur la barre latérale.</td></tr>
+    <tr><td>Configuration</td><td>Page entière</td><td>Réglages et Historique, communs aux deux modes.</td></tr>
+  </table>
+
+  <h2 id="aujourdhui">2 · Aujourd'hui</h2>
+  <p>Les trois écrans réels dont part Token Architect.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette actuel">UCM Token Explorer, mode Tokens · 1200 × 800</span><div class="cadre" id="a-tokens"></div></div>
+    <div class="colonne"><span class="etiquette actuel">UCM Nomenclature · 640 × 720</span><div class="cadre" id="a-nomenclature"></div></div>
+    <div class="colonne"><span class="etiquette actuel">UCM Token Explorer, mode Composant · 364 × 724</span><div class="cadre" id="a-composant"></div></div>
+  </div>
+
+  <h2 id="tokens">3 · Mode Tokens</h2>
+  <p>La fenêtre garde 1200 × 800. L'arbre et la table restent à gauche. La barre latérale de 440 px affiche Nomenclature.
+  L'inspecteur devient une feuille, comme la fiche d'un terme.</p>
+
+  <h3>3a · Renommages, filtrés par l'arbre</h3>
+  <div class="colonnes"><div class="colonne">
+    <span class="etiquette nouveau">Tokens · Renommages</span><div class="cadre" id="t-renommages"></div>
+    <ol class="argu">
+      <li>La barre du haut porte le nom UCM Token Architect.</li>
+      <li>Le bouton Configuration de Nomenclature rejoint la barre du haut. La Configuration vaut pour tout le plugin.</li>
+      <li>Les onglets de l'explorateur disparaissent. La table montre toujours les variables.</li>
+      <li>La barre latérale reprend Nomenclature sans changement. L'en-tête de Nomenclature disparaît.</li>
+      <li>Un quatrième onglet, Structure, rejoint Renommages, Questions et Règles.</li>
+      <li>Une collection choisie dans l'arbre filtre la liste. Un bandeau le dit et rend la liste entière.</li>
+      <li>Le pied ne dit plus « Lecture seule ».</li>
+    </ol>
+  </div></div>
+
+  <h3>3b · Questions et Règles</h3>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette nouveau">Tokens · Questions</span><div class="cadre" id="t-questions"></div>
+      <ol class="argu"><li>L'onglet Questions ne change pas.</li></ol></div>
+    <div class="colonne"><span class="etiquette nouveau">Tokens · Règles</span><div class="cadre" id="t-regles"></div>
+      <ol class="argu"><li>L'onglet Règles ne change pas.</li><li>Un clic sur un terme ouvre sa fiche et marque ses variables dans la table.</li></ol></div>
+  </div>
+
+  <h3>3c · Structure</h3>
+  <div class="colonnes"><div class="colonne">
+    <span class="etiquette nouveau">Tokens · Structure</span><div class="cadre" id="t-structure"></div>
+    <ol class="argu">
+      <li>L'onglet reprend les diagnostics de l'explorateur et les règles du profil UCM.</li>
+      <li>Les constats se rangent par sujet : chaînes, modes, valeurs, couches, portées.</li>
+      <li>Chaque constat garde la forme d'une carte de Nomenclature.</li>
+      <li>Seules les portées se corrigent ici. Leur carte a une case.</li>
+      <li>Les autres constats renvoient à la fiche de la variable.</li>
+      <li>Appliquer range la correction dans l'Historique.</li>
+    </ol>
+  </div></div>
+
+  <h3>3d · La fiche d'une variable</h3>
+  <div class="colonnes"><div class="colonne">
+    <span class="etiquette nouveau">Tokens · Fiche d'une variable</span><div class="cadre" id="t-fiche"></div>
+    <ol class="argu">
+      <li>Un clic sur un nom de la table ouvre la fiche. Elle glisse sur la barre latérale.</li>
+      <li>La fiche reprend la feuille d'un terme de Nomenclature.</li>
+      <li>Le titre colore les groupes en orchidée et la variable en olive.</li>
+      <li>La chaîne de chaque mode reprend l'inspecteur de l'explorateur.</li>
+      <li>« Comparer avec » remplace l'onglet Comparer.</li>
+      <li>« Utilisée par » remplace l'onglet Dépendants.</li>
+      <li>La croix rend Nomenclature, sur l'onglet qui était ouvert.</li>
+    </ol>
+  </div></div>
+
+  <h3>3e · Une bibliothèque lue depuis le fichier des composants</h3>
+  <div class="colonnes"><div class="colonne">
+    <span class="etiquette nouveau">Tokens · Bibliothèque</span><div class="cadre" id="t-bibliotheque"></div>
+    <ol class="argu">
+      <li>Le fichier des composants n'a pas de variable locale. Le mode Tokens montre la bibliothèque de tokens.</li>
+      <li>Les noms s'affichent tout de suite.</li>
+      <li>Les valeurs d'un groupe se chargent à son ouverture.</li>
+      <li>Nomenclature montre ses règles. Les renommages se font dans le fichier des tokens.</li>
+    </ol>
+  </div></div>
+
+  <h2 id="composant">4 · Mode Composant</h2>
+  <p>La fenêtre passe à 900 × 760. La vue Composant garde 400 px à gauche. La barre latérale de 500 px montre l'analyse.
+  Le composant d'exemple est Alert, sélectionné sur son variant info · standard.</p>
+
+  <h3>4a · Constats</h3>
+  <div class="colonnes"><div class="colonne">
+    <span class="etiquette nouveau">Composant · Constats</span><div class="cadre" id="c-constats"></div>
+    <ol class="argu">
+      <li>La matrice des variants rejoint la vue Composant, sous l'en-tête.</li>
+      <li>Chaque case compte les constats de son variant. Sa couleur suit le constat le plus grave.</li>
+      <li>Une case en pointillés signale une combinaison absente.</li>
+      <li>Un clic sur une case lit ce variant à gauche.</li>
+      <li>Le résumé donne le composant, l'heure de l'analyse et le compte par gravité.</li>
+      <li>Actualiser relance l'analyse. Elle ne se relance jamais seule.</li>
+      <li>Les onglets suivent l'ordre du travail : constater, corriger, trancher.</li>
+      <li>Les constats se rangent par sujet, comme les intertitres de Renommages.</li>
+      <li>Chaque constat dit ce qui ne va pas, puis où.</li>
+      <li>La dernière ligne dit comment il se règle : correction prête, question, ou geste dans Figma.</li>
+    </ol>
+  </div></div>
+
+  <h3>4b · Un constat ouvert</h3>
+  <div class="colonnes"><div class="colonne">
+    <span class="etiquette nouveau">Composant · Constat ouvert</span><div class="cadre" id="c-constat"></div>
+    <ol class="argu">
+      <li>Le constat ouvert donne les faits lus : calque, champ, variable liée, variable attendue.</li>
+      <li>« Sélectionner dans Figma » sélectionne le calque et le montre à l'écran.</li>
+      <li>Le survol entoure le calque dans l'aperçu, comme aujourd'hui.</li>
+      <li>« Ignorer » range le choix dans le fichier. Toute l'équipe le voit.</li>
+      <li>Un constat ignoré passe en bas de la liste, grisé, avec « Ne plus ignorer ».</li>
+    </ol>
+  </div></div>
+
+  <h3>4c · Corrections</h3>
+  <div class="colonnes"><div class="colonne">
+    <span class="etiquette nouveau">Composant · Corrections</span><div class="cadre" id="c-corrections"></div>
+    <ol class="argu">
+      <li>L'onglet reprend Renommages : cartes cochées, colonnes Aujourd'hui et Après, pied Appliquer.</li>
+      <li>Une carte groupe les liaisons d'une même cause.</li>
+      <li>Seule change la partie du nom qui change.</li>
+      <li>Chaque ligne nomme son calque et son variant.</li>
+      <li>La propagation demande d'abord le variant de référence. Aucun n'est choisi d'avance.</li>
+      <li>Une correction n'apparaît ici que si elle est exacte. Le reste va dans Questions.</li>
+    </ol>
+  </div></div>
+
+  <h3>4d · Après Appliquer</h3>
+  <div class="colonnes"><div class="colonne">
+    <span class="etiquette nouveau">Composant · Après Appliquer</span><div class="cadre" id="c-apres"></div>
+    <ol class="argu">
+      <li>La ligne verte reprend celle de Renommages.</li>
+      <li>Elle dit que Ctrl+Z défait le lot.</li>
+      <li>Le bandeau dit que l'analyse est périmée. Les constats restent lisibles jusqu'à Actualiser.</li>
+    </ol>
+  </div></div>
+
+  <h3>4e · Questions</h3>
+  <div class="colonnes"><div class="colonne">
+    <span class="etiquette nouveau">Composant · Questions</span><div class="cadre" id="c-questions"></div>
+    <ol class="argu">
+      <li>Les cartes reprennent celles de Questions dans Nomenclature.</li>
+      <li>Aucune réponse n'est mise en avant. Chaque candidat a son bouton.</li>
+      <li>Renommer une valeur de variante prévient que le code devra suivre.</li>
+      <li>La seconde réponse prépare une règle pour Nomenclature, dans le fichier des tokens.</li>
+    </ol>
+  </div></div>
+
+  <h3>4f · Contraste et accessibilité</h3>
+  <div class="colonnes"><div class="colonne">
+    <span class="etiquette nouveau">Composant · Contraste</span><div class="cadre" id="c-contraste"></div>
+    <ol class="argu">
+      <li>Chaque mesure montre la paire, le rapport et le seuil.</li>
+      <li>Elle nomme la marque et le thème mesurés.</li>
+      <li>Un fond en dégradé dit que la mesure n'a pas pu se faire.</li>
+      <li>La taille de cible compare la zone cliquable à 24 px.</li>
+      <li>Une ligne rappelle que la mesure porte sur le dessin Figma.</li>
+    </ol>
+  </div></div>
+
+  <h3>4g · Règles d'usage</h3>
+  <div class="colonnes"><div class="colonne">
+    <span class="etiquette nouveau">Composant · Règles d'usage</span><div class="cadre" id="c-regles"></div>
+    <ol class="argu">
+      <li>Un composant sans règles reçoit un bouton « Générer les règles ».</li>
+      <li>La génération pose l'instance de règles à côté du composant, comme l'exporteur aujourd'hui.</li>
+      <li>Une propriété sans règle reste un constat. Le designer l'ajoute dans Figma.</li>
+    </ol>
+  </div></div>
+
+  <h2 id="generation">5 · Génération des tokens</h2>
+  <p>Le parcours de l'aperçu de génération, en quatre écrans. Il passe du fichier des composants au fichier des tokens, puis revient.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette nouveau">5a · Composant : préparer</span><div class="cadre" id="g-preparer"></div>
+      <ol class="argu">
+        <li>« Préparer les tokens » part d'un constat d'oubli, ou du menu du résumé.</li>
+        <li>La feuille pose les questions. Aucune réponse n'est cochée.</li>
+        <li>Les cibles s'affichent au fur et à mesure des réponses.</li>
+        <li>Préparer reste inactif tant qu'une question reste.</li>
+        <li>« Copier le plan en texte » sert à l'envoyer à un autre designer.</li>
+      </ol></div>
+    <div class="colonne"><span class="etiquette nouveau">5b · Composant : plan prêt</span><div class="cadre" id="g-pret"></div>
+      <ol class="argu">
+        <li>Le bandeau dit où continuer.</li>
+        <li>Il dit que le plan reste sur ce poste.</li>
+      </ol></div>
+    <div class="colonne"><span class="etiquette nouveau">5c · Tokens : créer</span><div class="cadre" id="g-creer"></div>
+      <ol class="argu">
+        <li>Le plan attend en tête de la barre latérale.</li>
+        <li>La feuille montre les variables à créer et leur cible.</li>
+        <li>Les variables qui existent déjà restent telles quelles.</li>
+        <li>Créer range la création dans l'Historique.</li>
+      </ol></div>
+    <div class="colonne"><span class="etiquette nouveau">5d · Composant : lier</span><div class="cadre" id="g-lier"></div>
+      <ol class="argu">
+        <li>Après la publication de la bibliothèque, Corrections propose les liaisons.</li>
+        <li>Les liaisons viennent du plan. Elles sont exactes.</li>
+        <li>Une variable pas encore publiée laisse sa ligne en attente.</li>
+      </ol></div>
+  </div>
+
+  <h2 id="configuration">6 · Configuration</h2>
+  <p>Une seule Configuration pour le plugin. Elle s'ouvre en page entière depuis la barre du haut, comme dans Nomenclature.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette nouveau">Configuration · Réglages</span><div class="cadre" id="cf-reglages"></div>
+      <ol class="argu">
+        <li>Les sections de Nomenclature ne changent pas.</li>
+        <li>« Bibliothèque de tokens » dit laquelle le mode Composant lit, et pourquoi.</li>
+        <li>« Accessibilité » choisit le niveau de contraste, AA ou AAA.</li>
+      </ol></div>
+    <div class="colonne"><span class="etiquette nouveau">Configuration · Historique</span><div class="cadre" id="cf-historique"></div>
+      <ol class="argu">
+        <li>L'Historique garde la dernière écriture de chaque sorte sur les variables.</li>
+        <li>Renommage, création de variables, portées : chacun a son bouton Annuler.</li>
+        <li>Les corrections d'un composant se défont par Ctrl+Z. Elles n'entrent pas ici.</li>
+      </ol></div>
+  </div>
+
+  <h2 id="etats">7 · États de la barre latérale</h2>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette nouveau">Aucun composant sélectionné</span><div class="cadre" id="e-vide"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">Analyse en cours</span><div class="cadre" id="e-cours"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">Analyse partielle</span><div class="cadre" id="e-partiel"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">Analyse arrêtée</span><div class="cadre" id="e-echec"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">Fichier hors UCM</span><div class="cadre" id="e-hors"></div></div>
+  </div>
+  <ol class="argu">
+    <li>Une analyse partielle ou arrêtée ne dit jamais « aucun constat ».</li>
+    <li>Une erreur du moteur s'affiche avec le texte de l'exporteur.</li>
+    <li>Hors UCM, la navigation reste entière. Le bouton ouvre la Configuration sur la déclaration.</li>
+  </ol>
+
+  <h2 id="styles">8 · Styles communs</h2>
+  <p>Les éléments partagés par les deux modes. Les pastilles orchidée et olive viennent de Nomenclature et désignent un groupe
+  ou une variable partout dans le plugin.</p>
+  <div class="colonnes"><div class="colonne"><div class="cadre" id="s-planche"></div></div></div>
+
+  <h2 id="questions">9 · Questions au mainteneur</h2>
+  <table class="t">
+    <tr><th>#</th><th>Question</th><th>Proposition</th></tr>
+    <tr><td>M-1</td><td>Taille de la fenêtre en mode Tokens</td><td>1200 × 800, barre latérale de 440 px</td></tr>
+    <tr><td>M-2</td><td>Taille de la fenêtre en mode Composant</td><td>900 × 760, vue Composant de 400 px, barre latérale de 500 px</td></tr>
+    <tr><td>M-3</td><td>L'inspecteur devient une feuille sur la barre latérale</td><td>Oui. Le mode Tokens garde deux colonnes, et la fiche d'une variable suit la fiche d'un terme.</td></tr>
+    <tr><td>M-4</td><td>Structure, quatrième onglet de Nomenclature</td><td>Oui. Ses constats portent sur les variables, comme les trois autres onglets.</td></tr>
+    <tr><td>M-5</td><td>Ordre des onglets du mode Composant</td><td>Constats, Corrections, Questions. Le designer voit d'abord tout ce qui ne va pas.</td></tr>
+    <tr><td>M-6</td><td>Noms et couleurs des trois gravités</td><td>« À corriger » en rouge, « À vérifier » en ambre, « Pour info » en gris</td></tr>
+    <tr><td>M-7</td><td>Forme d'un constat</td><td>Gravité et phrase, lieu en gris, puis la façon de le régler</td></tr>
+    <tr><td>M-8</td><td>Thème</td><td>Sombre partout (décision F)</td></tr>
+  </table>
+</main>
+
+<script src="galerie/explorateur-large/etats.js"></script>
+<script src="galerie/explorateur-etroit/etats.js"></script>
+<script src="galerie/nomenclature/etats.js"></script>
+<script>
+const G = window.GALERIES;
+const lire = (html) => new DOMParser().parseFromString(html, 'text/html');
+const NOMEN = lire(G.nomenclature['a-appliquer-depliee'].corps);
+const BOUTON_CONFIG = NOMEN.querySelector('.header-topline .icon-button').outerHTML;
+const CHEV_O = NOMEN.querySelector('.tete-bouton[aria-expanded="true"] .droite svg').outerHTML;
+const CHEV_F = NOMEN.querySelector('.tete-bouton[aria-expanded="false"] .droite svg').outerHTML;
+
+const APERCU_ALERT = `<div style="display:flex;gap:10px;align-items:flex-start;width:300px;padding:10px 14px;border-radius:6px;background:#F0F9FF;color:#0369A1;font:13px/1.4 Inter,sans-serif">
+  <span style="flex:0 0 auto;width:18px;height:18px;border-radius:50%;border:2px solid #0369A1;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px">i</span>
+  <span style="flex:1"><b style="display:block">Information</b>Le dossier a été partagé avec l’équipe.</span>
+  <span style="flex:0 0 auto;font-size:14px">×</span></div>`;
+
+// ---------- Cadres ----------
+function srcdoc(galerie, etat) {
+  const e = G[galerie][etat];
+  // L'aperçu de la galerie est une image en mémoire, perdue au gel : un Alert info · standard la remplace.
+  const corps = e.corps.replace(/<img[^>]*class="vc-image"[^>]*>/g, APERCU_ALERT);
+  return `<!doctype html><html lang="fr" class="${e.classe}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/${galerie}/plugin.css"><link rel="stylesheet" href="architect.css"></head><body>${corps}</body></html>`;
+}
+
+function cadre(hote, { galerie, etat, largeur, hauteur, modifier, laterale }) {
+  const f = document.createElement('iframe');
+  f.style.width = `${largeur}px`;
+  f.style.height = `${hauteur}px`;
+  f.srcdoc = srcdoc(galerie, etat);
+  f.addEventListener('load', () => {
+    const doc = f.contentDocument;
+    if (modifier) modifier(doc);
+    if (laterale) {
+      const aside = doc.querySelector('.arch-laterale');
+      const i = doc.createElement('iframe');
+      i.srcdoc = srcdoc('nomenclature', laterale.etat);
+      i.addEventListener('load', () => { if (laterale.modifier) laterale.modifier(i.contentDocument); });
+      aside.append(i);
+    }
+  });
+  document.getElementById(hote).append(f);
+}
+
+const reperer = (doc, sel) => doc.querySelectorAll(sel).forEach((e) => e.classList.add('repere'));
+
+// ---------- La barre commune ----------
+function barre(doc, mode) {
+  doc.querySelector('.produit-nom').textContent = 'UCM Token Architect';
+  doc.querySelector('.produit-nom').style.display = 'block';
+  doc.querySelectorAll('.bascule-choix').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === (mode === 'tokens' ? 'large' : 'etroite'))));
+  const b = doc.querySelector('.barre');
+  if (mode === 'composant' && !b.querySelector('.barre-lecture')) b.insertAdjacentHTML('beforeend', '<div class="barre-lecture"></div>');
+  b.querySelector('.barre-lecture').insertAdjacentHTML('beforeend', BOUTON_CONFIG);
+}
+
+// ---------- Mode Tokens : l'explorateur sans onglets, Nomenclature à droite ----------
+function fenetreTokens(doc, { repere = true } = {}) {
+  barre(doc, 'tokens');
+  doc.querySelector('.centre > .onglets')?.remove();
+  const corps = doc.querySelector('.corps');
+  corps.style.gridTemplateColumns = '200px minmax(0, 1fr) 440px';
+  doc.querySelector('aside.inspecteur').outerHTML = '<aside class="arch-laterale" style="width:440px"></aside>';
+  doc.querySelector('.pied-lecture')?.remove();
+  if (repere) reperer(doc, '.produit-nom, .barre .icon-button');
+}
+
+// La barre latérale de Nomenclature : sans son en-tête, avec l'onglet Structure.
+function nomenclatureLaterale(doc, { actif = null } = {}) {
+  doc.querySelector('.header')?.remove();
+  const onglets = doc.querySelector('.onglets');
+  onglets.insertAdjacentHTML('beforeend', `<button type="button" class="onglet" role="tab" aria-selected="${actif === 'Structure'}">Structure<span class="compte">6</span></button>`);
+  if (actif === 'Structure') onglets.querySelectorAll('.onglet').forEach((o) => { if (!o.textContent.startsWith('Structure')) o.setAttribute('aria-selected', 'false'); });
+  return onglets;
+}
+
+// ---------- Mode Composant : la vue Composant à gauche, l'analyse à droite ----------
+const MATRICE = `<div class="matrice repere">
+  <div class="matrice-titre"><span>Variants</span><span>11 sur 12</span></div>
+  <table>
+    <tr><th></th><th>standard</th><th>outlined</th><th>filled</th></tr>
+    <tr><th>info</th><td class="choisi"><span class="sev sev-verifier">1</span></td><td><span class="sev sev-corriger">2</span></td><td><span class="sev sev-info">1</span></td></tr>
+    <tr><th>error</th><td><span class="sev sev-verifier">1</span></td><td><span class="sev sev-corriger">2</span></td><td><span class="sev sev-info">1</span></td></tr>
+    <tr><th>success</th><td><span class="sev sev-corriger">2</span></td><td><span class="sev sev-corriger">2</span></td><td>·</td></tr>
+    <tr><th>warning</th><td><span class="sev sev-corriger">1</span></td><td><span class="sev sev-corriger">2</span></td><td class="vide">absent</td></tr>
+  </table>
+</div>`;
+
+function fenetreComposant(doc, { matrice = true } = {}) {
+  barre(doc, 'composant');
+  const vc = doc.querySelector('.vc');
+  const enveloppe = doc.createElement('div');
+  enveloppe.className = 'arch-corps-composant';
+  vc.replaceWith(enveloppe);
+  enveloppe.append(vc);
+  vc.style.width = '400px';
+  enveloppe.insertAdjacentHTML('beforeend', '<aside class="arch-laterale" style="width:500px"></aside>');
+  if (matrice) doc.querySelector('.vc-tete').insertAdjacentHTML('afterend', MATRICE);
+}
+
+// ---------- Les morceaux de Nomenclature ----------
+const onglets = (liste, actif) => `<div class="onglets" role="tablist">${liste.map(([n, c]) => `<button type="button" class="onglet" role="tab" aria-selected="${n === actif}">${n}${c != null ? `<span class="compte">${c}</span>` : ''}</button>`).join('')}</div>`;
+const intertitre = (t) => `<div class="intertitre"><h2>${t}</h2></div>`;
+function carte({ tete, meta = '', corps = '', ouverte = false, coche = null, classe = '' }) {
+  const caseHtml = coche === null ? '' : `<input type="checkbox" class="case" ${coche ? 'checked' : ''}>`;
+  return `<div class="carte ${classe}"><div class="tete ${coche === null ? 'sans-coche' : ''}">${caseHtml}<button type="button" class="tete-bouton" aria-expanded="${ouverte}"><div class="pile"><span class="regle-ligne">${tete}</span>${meta ? `<span class="meta">${meta}</span>` : ''}</div><span class="droite">${ouverte ? CHEV_O : CHEV_F}</span></button></div>${ouverte && corps ? `<div class="corps">${corps}</div>` : ''}</div>`;
+}
+const colonnes = (a = 'Aujourd’hui', b = 'Après l’application', avecCase = true) => `<div class="colonnes-tete">${avecCase ? '<span></span>' : ''}<span>${a}</span><span>${b}</span></div>`;
+const diff = (avant, apres, coche = true) => `<div class="diff">${coche === null ? '' : `<input type="checkbox" class="case" ${coche ? 'checked' : ''}>`}<span class="chemin">${avant}</span><span class="chemin-apres"><span class="fleche-ligne">→ </span>${apres}</span></div>`;
+const anc = (s) => `<span class="seg-ancien">${s}</span>`;
+const nouv = (s) => `<span class="seg-nouveau">${s}</span>`;
+const pied = (resume, bouton, inactif = false) => `<div class="pied"><span class="resume">${resume}</span><button type="button" class="btn btn-primary" ${inactif ? 'disabled' : ''}><span>${bouton}</span></button></div>`;
+const btn2 = (t) => `<button type="button" class="btn btn-secondary btn-compact"><span>${t}</span></button>`;
+const lien = (t) => `<button type="button" class="btn-texte">${t}</button>`;
+const sev = (n) => ({ c: '<span class="sev sev-corriger">À corriger</span>', v: '<span class="sev sev-verifier">À vérifier</span>', i: '<span class="sev sev-info">Pour info</span>' })[n];
+const varPill = (groupes, variable) => `<span class="chemin-place"><span class="mot-groupe">${groupes}</span><span class="jeton jeton-variable">${variable}</span></span>`;
+
+function constat({ g, phrase, lieu, statut, statutClasse = '', ouverte = false, faits = [], actions = '' }) {
+  const corps = `<div class="constat-faits">${faits.map(([k, v]) => `<div class="constat-fait"><span>${k}</span><span>${v}</span></div>`).join('')}</div><div class="constat-actions">${actions}</div>`;
+  return carte({
+    classe: 'constat',
+    ouverte,
+    tete: `<span class="constat-titre">${sev(g)}<span>${phrase}</span></span>`,
+    meta: `<span class="constat-lieu">${lieu}</span><br><span class="constat-statut ${statutClasse}">${statut}</span>`,
+    corps,
+  });
+}
+
+// Le résumé et les onglets du mode Composant.
+function resume({ etat = 'Analysé à 14:02', compteurs = true, actualiser = true } = {}) {
+  return `<div class="arch-resume repere">
+    <div class="arch-resume-ligne"><span class="arch-resume-titre">Alert <span class="meta">12 variants · ${etat}</span></span>${actualiser ? btn2('Actualiser') : '<button type="button" class="btn btn-secondary btn-compact" disabled><span>Actualiser</span></button>'}</div>
+    ${compteurs ? '<div class="arch-compteurs"><span class="sev sev-corriger">5 à corriger</span><span class="sev sev-verifier">4 à vérifier</span><span class="sev sev-info">2 pour info</span></div>' : ''}
+  </div>`;
+}
+const ONGLETS_C = (actif) => onglets([['Constats', 11], ['Corrections', 3], ['Questions', 2]], actif);
+function laterale(doc, html) {
+  doc.querySelector('.header')?.remove();
+  doc.querySelector('main > .page-stack').innerHTML = html;
+}
+
+// ---------- Les constats d'Alert ----------
+const C_NOMMAGE = [
+  constat({ g: 'v', phrase: 'Les tokens d’Alert sont rangés sous <code>colors</code>. La grammaire attend <code>color</code>.', lieu: 'Tous les variants · 36 liaisons', statut: 'Se règle dans le fichier des tokens, par Nomenclature', }),
+  constat({ g: 'i', phrase: 'La valeur <code>Error</code> de Severity correspond à la palette <code>danger</code>.', lieu: 'Axe Severity', statut: 'Rien à faire' }),
+];
+const C_LIAISONS = [
+  constat({ g: 'c', phrase: 'Success · standard emploie l’icône d’info.', lieu: 'success · standard · calque icon', statut: 'Correction prête', statutClasse: 'pret' }),
+  constat({ g: 'c', phrase: 'Le texte d’Outlined suit le dossier surface. Outlined n’a pas de fond teinté.', lieu: 'outlined · 4 statuts · calque message', statut: 'Correction prête', statutClasse: 'pret' }),
+];
+const C_OUBLIS = [
+  constat({ g: 'c', phrase: 'Le contour d’Outlined n’a pas de variable.', lieu: 'outlined · 4 statuts · calque container', statut: 'Question : quel token ?', statutClasse: 'question' }),
+  constat({ g: 'v', phrase: 'Warning · filled n’existe pas.', lieu: 'Matrice des variants', statut: 'À créer dans Figma, ou à ignorer' }),
+];
+const C_EXPORT = [
+  constat({ g: 'v', phrase: 'Calque masqué sans propriété : <code>icon-close</code>. Associez une propriété booléenne ou une variable, puis réexportez.', lieu: 'Tous les variants · texte de l’exporteur', statut: 'À faire dans Figma' }),
+];
+
+// ---------- 2 · Aujourd'hui ----------
+cadre('a-tokens', { galerie: 'explorateur-large', etat: 'bascule-tokens', largeur: 1200, hauteur: 800 });
+cadre('a-nomenclature', { galerie: 'nomenclature', etat: 'a-appliquer-depliee', largeur: 640, hauteur: 720 });
+cadre('a-composant', { galerie: 'explorateur-etroit', etat: 'composant-variants', largeur: 364, hauteur: 724 });
+
+// ---------- 3a · Renommages ----------
+cadre('t-renommages', {
+  galerie: 'explorateur-large', etat: 'bascule-tokens', largeur: 1200, hauteur: 800,
+  modifier: (doc) => { fenetreTokens(doc); const l = doc.querySelectorAll('.arbre-ligne')[1]; l?.classList.add('filtre-actif'); },
+  laterale: { etat: 'a-appliquer-depliee', modifier: (doc) => {
+    const o = nomenclatureLaterale(doc);
+    reperer(doc, '.onglets .onglet:last-child');
+    o.insertAdjacentHTML('afterend', '<div class="bandeau info repere"><div class="bandeau-ligne"><p>Filtré sur la collection choisie dans l’arbre. 24 renommages sur 87.</p>' + lien('Tout afficher') + '</div></div>');
+  } },
+});
+
+// ---------- 3b · Questions, Règles ----------
+cadre('t-questions', {
+  galerie: 'explorateur-large', etat: 'bascule-tokens', largeur: 1200, hauteur: 800,
+  modifier: (doc) => fenetreTokens(doc, { repere: false }),
+  laterale: { etat: 'a-trancher', modifier: (doc) => nomenclatureLaterale(doc) },
+});
+cadre('t-regles', {
+  galerie: 'explorateur-large', etat: 'bascule-tokens', largeur: 1200, hauteur: 800,
+  modifier: (doc) => fenetreTokens(doc, { repere: false }),
+  laterale: { etat: 'regles-noms', modifier: (doc) => nomenclatureLaterale(doc) },
+});
+
+// ---------- 3c · Structure ----------
+const STRUCTURE = [
+  intertitre('Chaînes'),
+  carte({ tete: `<span class="constat-titre">${sev('c')}<span>Deux variables se visent l’une l’autre.</span></span>`, meta: 'theme/primary/ring et brands/primary/light/600 · tous les modes' }),
+  intertitre('Modes'),
+  carte({ tete: `<span class="constat-titre">${sev('c')}<span>En Dark, le ring de success vise une couleur Light.</span></span>`, meta: 'theme/success/vivid/ring · mode dark · vise utility/success/vivid/light/600' }),
+  intertitre('Valeurs'),
+  carte({ tete: `<span class="constat-titre">${sev('v')}<span>Cette variable est vide. Ses voisines ont une valeur.</span></span>`, meta: 'button/color/primary/contained/focus/ring' }),
+  carte({ tete: `<span class="constat-titre">${sev('v')}<span>Deux crans de l’échelle ont la même valeur.</span></span>`, meta: 'layout/sizing/1,5 et layout/sizing/2 · 6 px' }),
+  intertitre('Couches'),
+  carte({ tete: `<span class="constat-titre">${sev('c')}<span>Un token de composant vise utility au lieu du thème.</span></span>`, meta: 'components/tilelink/color/info/default/background' }),
+  intertitre('Portées'),
+  carte({ coche: true, ouverte: true, tete: `<span class="constat-titre">${sev('v')}<span>3 variables du thème proposent leur couleur partout.</span></span>`, meta: 'Figma les propose pour tous les champs. Leur rôle en demande deux.',
+    corps: colonnes() + diff('theme/primary/surface/default · tous les champs', 'fond de cadre, fond de forme') + diff('theme/primary/surface/hover · tous les champs', 'fond de cadre, fond de forme') + diff('theme/info/soft/page/border · tous les champs', 'contour') }),
+  pied('<b>3 portées</b> cochées', 'Appliquer'),
+].join('');
+cadre('t-structure', {
+  galerie: 'explorateur-large', etat: 'bascule-tokens', largeur: 1200, hauteur: 800,
+  modifier: (doc) => fenetreTokens(doc, { repere: false }),
+  laterale: { etat: 'a-appliquer', modifier: (doc) => {
+    nomenclatureLaterale(doc, { actif: 'Structure' });
+    doc.querySelector('[role=tabpanel]').innerHTML = `<div class="page-stack"><div class="liste repere">${STRUCTURE}</div></div>`;
+  } },
+});
+
+// ---------- 3d · Fiche d'une variable ----------
+const FICHE_VARIABLE = `<div class="feuille-voile feuille-terme repere"><section class="feuille" role="dialog">
+  <header class="feuille-entete avec-definition"><div class="titre-et-definition"><div class="titre-ligne"><h2 class="feuille-titre">${varPill('theme/primary/surface/', 'default')}</h2><span class="origine">theme · couleur</span></div><p class="meta">Le fond teinté de la palette primary, au repos.</p></div><button type="button" class="feuille-fermer">×</button></header>
+  <div class="feuille-corps"><div class="feuille-contenu">
+    <div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>Valeur</h3></div>
+      <p class="meta">light</p>
+      <ul class="chaine"><li><span class="puce-couleur" style="background:#F6E6E6"></span>theme/primary/surface/default</li><li>brands/primary/light/100</li><li>primitives/color/terracota/light/100 · #F6E6E6</li></ul>
+      <p class="meta" style="margin-top:8px">dark</p>
+      <ul class="chaine"><li><span class="puce-couleur" style="background:#4F2927"></span>theme/primary/surface/default</li><li>brands/primary/dark/300</li><li>primitives/color/terracota/dark/300 · #4F2927</li></ul>
+    </div>
+    <div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>Comparer avec</h3><select class="input"><option>marque-2 · dark</option></select></div>
+      <p class="meta">Même chemin jusqu’à brands. La primitive diffère : terracota en intencial, deep en marque-2.</p></div>
+    <div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>Utilisée par · 14</h3>${lien('Voir dans l’arbre')}</div>
+      <div class="fiche-liste">
+        <div class="diff sans-case"><span class="chemin">components/button/color/primary/text/hover/background</span></div>
+        <div class="diff sans-case"><span class="chemin">components/button/color/primary/text/pressed/background</span></div>
+        <div class="diff sans-case"><span class="chemin">components/alert/color/primary/standard/background</span></div>
+      </div>${lien('Afficher les 11 autres')}</div>
+  </div></div></section></div>`;
+cadre('t-fiche', {
+  galerie: 'explorateur-large', etat: 'bascule-tokens', largeur: 1200, hauteur: 800,
+  modifier: (doc) => fenetreTokens(doc, { repere: false }),
+  laterale: { etat: 'a-appliquer', modifier: (doc) => { nomenclatureLaterale(doc); doc.body.insertAdjacentHTML('beforeend', FICHE_VARIABLE); } },
+});
+
+// ---------- 3e · Bibliothèque ----------
+cadre('t-bibliotheque', {
+  galerie: 'explorateur-large', etat: 'bascule-tokens', largeur: 1200, hauteur: 800,
+  modifier: (doc) => {
+    fenetreTokens(doc, { repere: false });
+    doc.querySelector('.arbre .surtitre').textContent = 'Bibliothèque · Intencial Tokens';
+    doc.querySelector('.table-tete .note').textContent = 'Les valeurs de ce groupe se chargent… 8 variables sur 11.';
+    reperer(doc, '.arbre .surtitre, .table-tete .note');
+  },
+  laterale: { etat: 'regles-noms', modifier: (doc) => {
+    const o = nomenclatureLaterale(doc);
+    o.insertAdjacentHTML('beforebegin', '<div class="bandeau info repere"><p>Ces variables viennent d’une bibliothèque.</p><p class="meta">Pour les renommer, ouvrez le fichier des tokens.</p></div>');
+  } },
+});
+
+// ---------- 4a · Constats ----------
+const CONSTATS = [intertitre('Nommage'), ...C_NOMMAGE, intertitre('Liaisons'), ...C_LIAISONS, intertitre('Oublis'), ...C_OUBLIS, intertitre('Export'), ...C_EXPORT].join('');
+cadre('c-constats', {
+  galerie: 'explorateur-etroit', etat: 'composant-variants', largeur: 900, hauteur: 760,
+  modifier: (doc) => fenetreComposant(doc),
+  laterale: { etat: 'a-appliquer', modifier: (doc) => laterale(doc, `<div class="page-stack">${resume()}${ONGLETS_C('Constats')}<div class="page-stack" role="tabpanel"><div class="liste">${CONSTATS}</div></div></div>`) },
+});
+
+// ---------- 4b · Constat ouvert ----------
+const OUVERT = constat({
+  g: 'c', ouverte: true, phrase: 'Success · standard emploie l’icône d’info.', lieu: 'success · standard · calque icon', statut: 'Correction prête', statutClasse: 'pret',
+  faits: [['Calque', 'icon, dans container'], ['Champ', 'couleur du vecteur'], ['Liée à', `<span class="chemin-place"><span class="mot-groupe">colors/</span>${anc('info')}<span class="mot-groupe">/standard/</span><span class="jeton jeton-variable">icon</span></span>`], ['Attendue', `<span class="chemin-place"><span class="mot-groupe">colors/</span>${nouv('success')}<span class="mot-groupe">/standard/</span><span class="jeton jeton-variable">icon</span></span>`], ['Règle', 'Le variant success vise les tokens de success.']],
+  actions: btn2('Sélectionner dans Figma') + lien('Voir la correction') + lien('Ignorer'),
+});
+cadre('c-constat', {
+  galerie: 'explorateur-etroit', etat: 'composant-variants', largeur: 900, hauteur: 760,
+  modifier: (doc) => { fenetreComposant(doc); reperer(doc, '.vc-apercu'); },
+  laterale: { etat: 'a-appliquer', modifier: (doc) => laterale(doc, `<div class="page-stack">${resume()}${ONGLETS_C('Constats')}<div class="page-stack" role="tabpanel"><div class="liste">${intertitre('Liaisons')}<div class="repere">${OUVERT}</div>${C_LIAISONS[1]}${intertitre('Ignorés')}${carte({ classe: 'muette', tete: `<span class="constat-titre">${sev('v')}<span>Warning · filled n’existe pas.</span></span>`, meta: 'Ignoré dans ce fichier · <u>Ne plus ignorer</u>' })}</div></div></div>`) },
+});
+
+// ---------- 4c · Corrections ----------
+const CORRECTIONS = [
+  carte({ coche: true, ouverte: true, tete: '<span class="phrase-regle">Remplacer les tokens d’info dans success · standard</span>', meta: '2 liaisons',
+    corps: colonnes() + diff(`<span class="meta">icon · </span>colors/${anc('info')}/standard/icon`, `colors/${nouv('success')}/standard/icon`) + diff(`<span class="meta">container · </span>colors/${anc('info')}/standard/background`, `colors/${nouv('success')}/standard/background`) }),
+  carte({ coche: true, tete: '<span class="phrase-regle">Le texte d’Outlined suit le dossier page</span>', meta: '4 liaisons · une par statut' }),
+  carte({ coche: false, ouverte: true, classe: 'repere', tete: '<span class="phrase-regle">Lier les autres variants comme</span> <select class="input"><option>Choisir un variant…</option><option>info · standard</option></select>', meta: 'Les liaisons de ce variant servent de modèle aux 11 autres.',
+    corps: '<p class="meta" style="padding:8px 0">Choisissez le variant dont les liaisons sont justes. La liste des liaisons apparaît ensuite.</p>' }),
+  pied('<b>6 liaisons</b> cochées', 'Appliquer'),
+].join('');
+cadre('c-corrections', {
+  galerie: 'explorateur-etroit', etat: 'composant-variants', largeur: 900, hauteur: 760,
+  modifier: (doc) => fenetreComposant(doc),
+  laterale: { etat: 'a-appliquer', modifier: (doc) => laterale(doc, `<div class="page-stack">${resume()}${ONGLETS_C('Corrections')}<div class="page-stack" role="tabpanel"><div class="page-stack"><div class="liste">${CORRECTIONS}</div></div></div></div>`) },
+});
+
+// ---------- 4d · Après Appliquer ----------
+cadre('c-apres', {
+  galerie: 'explorateur-etroit', etat: 'composant-variants', largeur: 900, hauteur: 760,
+  modifier: (doc) => fenetreComposant(doc),
+  laterale: { etat: 'application', modifier: (doc) => {
+    const res = doc.querySelector('.resultat')?.outerHTML ?? '';
+    laterale(doc, `<div class="page-stack">${resume({ etat: 'analysé à 14:02' })}<div class="bandeau attente repere"><div class="bandeau-ligne"><p>Le composant a changé depuis l’analyse.</p>${btn2('Actualiser')}</div></div>${ONGLETS_C('Corrections')}<div class="page-stack" role="tabpanel">${res}</div></div>`);
+    const r = doc.querySelector('.resultat');
+    if (r) { r.classList.add('repere'); r.querySelector('.pile').innerHTML = '<span><span aria-hidden="true">✓ </span>6 liaisons posées</span><span class="meta">Ctrl+Z dans Figma défait ce lot.</span>'; }
+  } },
+});
+
+// ---------- 4e · Questions ----------
+const Q = (titre, meta, corps, actions) => `<div class="carte question question-proposition"><div class="question-entete"><span class="question-titre">${titre}</span></div><span class="meta">${meta}</span>${corps}<div class="question-pied"><span class="question-actions">${actions}</span><span class="question-actions">${lien('Plus tard')}</span></div></div>`;
+const QUESTIONS = [
+  Q('Quel token pour le contour d’Outlined ?', 'Alert n’a pas de token de contour. Deux tokens du thème conviennent.',
+    `<div class="renommage"><span></span><span class="ancien">container · contour sans variable</span></div>`,
+    btn2('theme/info/soft/page/border') + btn2('theme/info/soft/surface/border') + lien('Préparer les tokens d’Alert')),
+  Q('Les tokens écrivent <code class="mot-cite mot-retenu">outline</code>. Le composant écrit <code class="mot-cite mot-retire">Outlined</code>.', 'Axe Variant · 4 variants',
+    `<p class="meta" style="margin:6px 0">Renommer la valeur change le contrat publié. Le code devra suivre.</p>`,
+    btn2('Renommer la valeur en Outline') + btn2('Préparer une règle outline → outlined')),
+].join('');
+cadre('c-questions', {
+  galerie: 'explorateur-etroit', etat: 'composant-variants', largeur: 900, hauteur: 760,
+  modifier: (doc) => fenetreComposant(doc),
+  laterale: { etat: 'a-trancher', modifier: (doc) => laterale(doc, `<div class="page-stack">${resume()}${ONGLETS_C('Questions')}<div class="page-stack" role="tabpanel"><div class="page-stack"><div class="liste repere">${QUESTIONS}</div></div></div></div>`) },
+});
+
+// ---------- 4f · Contraste ----------
+const paire = (fg, bg, texte, ratio, seuil, mode) => `<span class="paire"><span class="paire-echantillon" style="color:${fg};background:${bg}">${texte}</span><b>${ratio}</b><span class="meta">seuil ${seuil}</span><span class="paire-mode">${mode}</span></span>`;
+const CONTRASTE = [
+  intertitre('Contraste et accessibilité'),
+  constat({ g: 'c', ouverte: true, phrase: 'Le texte de warning · standard manque de contraste en Dark.', lieu: 'warning · standard · calque message', statut: 'À régler dans le thème, ou par une autre variable', faits: [['Mesure', paire('#C98C5A', '#3C2A1E', 'Aa', '3,9:1', '4,5:1', 'intencial · dark')], ['Autres modes', 'intencial · light 7,1:1 · marque-2 · light 6,8:1 · marque-2 · dark 4,6:1']], actions: btn2('Sélectionner dans Figma') + lien('Ignorer') }),
+  constat({ g: 'i', phrase: 'Le fond d’error · filled est un dégradé. Le contraste n’a pas été mesuré.', lieu: 'error · filled · calque container', statut: 'Mesure impossible' }),
+  constat({ g: 'c', phrase: 'Le bouton de fermeture mesure 16 × 16 px. La cible attend 24 × 24 px.', lieu: 'Tous les variants · calque icon-close', statut: 'À faire dans Figma' }),
+  '<p class="meta repere">Ces mesures portent sur le dessin du composant dans Figma. Elles ne prouvent pas la conformité de l’interface livrée.</p>',
+].join('');
+cadre('c-contraste', {
+  galerie: 'explorateur-etroit', etat: 'composant-variants', largeur: 900, hauteur: 760,
+  modifier: (doc) => fenetreComposant(doc),
+  laterale: { etat: 'a-appliquer', modifier: (doc) => laterale(doc, `<div class="page-stack">${resume()}${ONGLETS_C('Constats')}<div class="page-stack" role="tabpanel"><div class="liste">${CONTRASTE}</div></div></div>`) },
+});
+
+// ---------- 4g · Règles d'usage ----------
+const REGLES = [
+  intertitre('Règles d’usage'),
+  constat({ g: 'v', ouverte: true, phrase: 'Alert n’a pas de règles d’usage.', lieu: 'Page Composants', statut: 'Générer les règles depuis le composant', faits: [['Contenu', '3 propriétés documentées. Usage, À faire, À éviter et Paires restent à écrire.']], actions: btn2('Générer les règles') }),
+  constat({ g: 'v', phrase: 'La propriété Dismissible n’a pas de règle @prop.', lieu: 'Instance .componentRules d’Alert', statut: 'À ajouter dans Figma' }),
+].join('');
+cadre('c-regles', {
+  galerie: 'explorateur-etroit', etat: 'composant-variants', largeur: 900, hauteur: 760,
+  modifier: (doc) => fenetreComposant(doc),
+  laterale: { etat: 'a-appliquer', modifier: (doc) => laterale(doc, `<div class="page-stack">${resume()}${ONGLETS_C('Constats')}<div class="page-stack" role="tabpanel"><div class="liste repere">${REGLES}</div></div></div>`) },
+});
+
+// ---------- 5 · Génération ----------
+const choix = (liste, pris = -1) => `<span class="choix-ligne">${liste.map((c, i) => `<span class="choix ${i === pris ? 'pris' : ''}">${c}</span>`).join('')}</span>`;
+const QG = (titre, liste, pris) => `<div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>${titre}</h3></div>${choix(liste, pris)}</div>`;
+const PREPARER = `<div class="feuille-voile feuille-terme repere"><section class="feuille" role="dialog">
+  <header class="feuille-entete avec-definition"><div class="titre-et-definition"><div class="titre-ligne"><h2 class="feuille-titre">Préparer les tokens d’Alert</h2></div><p class="meta">Les variables se créent ensuite dans le fichier des tokens.</p></div><button type="button" class="feuille-fermer">×</button></header>
+  <div class="feuille-corps"><div class="feuille-contenu">
+    ${QG('Filled : quel fond ?', ['Plein', 'Teinté', 'Aucun'], 0)}
+    ${QG('Standard : quel fond ?', ['Plein', 'Teinté', 'Aucun'], 1)}
+    ${QG('Outlined : quel fond ?', ['Plein', 'Teinté', 'Aucun'])}
+    ${QG('Les statuts : douce ou vive ?', ['Douce', 'Vive'])}
+    ${QG('Title et message : un token commun ?', ['Un token commun', 'Un token chacun'])}
+    <div class="fiche-bloc"><div class="fiche-bloc-tete"><h3>36 variables</h3><span class="meta">24 cibles connues</span></div>
+      <div class="fiche-liste">${colonnes('Variable', 'Vise', false)}
+        <div class="diff sans-case"><span class="chemin">alert/color/danger/filled/background</span><span class="chemin-apres">en attente de l’intensité</span></div>
+        <div class="diff sans-case"><span class="chemin">alert/color/danger/outlined/border</span><span class="chemin-apres">en attente d’une réponse</span></div>
+      </div></div>
+    <div class="pied"><span class="resume">3 questions restent · ${lien('Copier le plan en texte')}</span><button type="button" class="btn btn-primary" disabled><span>Préparer</span></button></div>
+  </div></div></section></div>`;
+cadre('g-preparer', {
+  galerie: 'explorateur-etroit', etat: 'composant-variants', largeur: 900, hauteur: 760,
+  modifier: (doc) => fenetreComposant(doc),
+  laterale: { etat: 'a-appliquer', modifier: (doc) => { laterale(doc, `<div class="page-stack">${resume()}${ONGLETS_C('Constats')}<div class="page-stack" role="tabpanel"><div class="liste">${intertitre('Oublis')}${C_OUBLIS[0]}</div></div></div>`); doc.body.insertAdjacentHTML('beforeend', PREPARER); } },
+});
+cadre('g-pret', {
+  galerie: 'explorateur-etroit', etat: 'composant-variants', largeur: 900, hauteur: 760,
+  modifier: (doc) => fenetreComposant(doc),
+  laterale: { etat: 'a-appliquer', modifier: (doc) => laterale(doc, `<div class="page-stack">${resume()}<div class="bandeau succes repere"><p><b>Plan prêt : 36 variables pour Alert.</b></p><p>Ouvrez le fichier des tokens, puis Token Architect.</p><p class="meta">Le plan reste sur ce poste, dans cette application.</p><div class="bandeau-ligne">${lien('Copier le plan en texte')}${lien('Abandonner le plan')}</div></div>${ONGLETS_C('Constats')}<div class="page-stack" role="tabpanel"><div class="liste">${intertitre('Oublis')}${C_OUBLIS[0]}</div></div></div>`) },
+});
+const CREER = `<div class="feuille-voile feuille-terme repere"><section class="feuille" role="dialog">
+  <header class="feuille-entete avec-definition"><div class="titre-et-definition"><div class="titre-ligne"><h2 class="feuille-titre">Plan d’Alert</h2><span class="origine">components</span></div><p class="meta">Préparé dans le fichier des composants, aujourd’hui à 14:20.</p></div><button type="button" class="feuille-fermer">×</button></header>
+  <div class="feuille-corps"><div class="feuille-contenu">
+    <p><b>34 variables à créer.</b> 2 existent déjà et restent telles quelles.</p>
+    <div class="fiche-liste">${colonnes('Variable', 'Vise', false)}
+      <div class="diff sans-case"><span class="chemin">${varPill('components/alert/color/danger/filled/', 'background')}</span><span class="chemin-apres">theme/danger/soft/solid/default</span></div>
+      <div class="diff sans-case"><span class="chemin">${varPill('components/alert/color/danger/filled/', 'foreground')}</span><span class="chemin-apres">theme/danger/soft/solid/foreground</span></div>
+      <div class="diff sans-case"><span class="chemin">${varPill('components/alert/color/danger/standard/', 'background')}</span><span class="chemin-apres">theme/danger/soft/surface/default</span></div>
+      <div class="diff sans-case reste"><span class="chemin">components/alert/color/info/standard/background</span><span class="chemin-apres">existe déjà</span></div>
+    </div>${lien('Afficher les 30 autres')}
+    <div class="pied"><span class="resume">La création se range dans l’Historique.</span><span>${lien('Abandonner le plan')} <button type="button" class="btn btn-primary"><span>Créer 34 variables</span></button></span></div>
+  </div></div></section></div>`;
+cadre('g-creer', {
+  galerie: 'explorateur-large', etat: 'bascule-tokens', largeur: 1200, hauteur: 800,
+  modifier: (doc) => fenetreTokens(doc, { repere: false }),
+  laterale: { etat: 'a-appliquer', modifier: (doc) => {
+    const o = nomenclatureLaterale(doc);
+    o.insertAdjacentHTML('beforebegin', `<div class="bandeau attente"><div class="bandeau-ligne"><p><b>Un plan attend :</b> Alert, 36 variables.</p>${btn2('Voir le plan')}</div></div>`);
+    doc.body.insertAdjacentHTML('beforeend', CREER);
+  } },
+});
+cadre('g-lier', {
+  galerie: 'explorateur-etroit', etat: 'composant-variants', largeur: 900, hauteur: 760,
+  modifier: (doc) => fenetreComposant(doc),
+  laterale: { etat: 'a-appliquer', modifier: (doc) => laterale(doc, `<div class="page-stack">${resume()}${ONGLETS_C('Corrections')}<div class="page-stack" role="tabpanel"><div class="page-stack"><div class="liste">${carte({ coche: true, ouverte: true, classe: 'repere', tete: '<span class="phrase-regle">Lier aux tokens créés pour Alert</span>', meta: '34 liaisons · 2 en attente de publication',
+    corps: colonnes() + diff('<span class="meta">container · danger · filled · </span>couleur en dur', 'components/alert/color/danger/filled/background') + diff('<span class="meta">message · danger · filled · </span>couleur en dur', 'components/alert/color/danger/filled/foreground') + '<div class="diff reste"><span></span><span class="chemin">container · warning · outlined</span><span class="chemin-apres">pas encore publiée</span></div>' })}${pied('<b>34 liaisons</b> cochées', 'Appliquer')}</div></div></div></div>`) },
+});
+
+// ---------- 6 · Configuration ----------
+const SECTIONS_NOUVELLES = `<div class="config-section repere"><h2 class="config-titre">Bibliothèque de tokens</h2>
+  <div class="reglage"><div class="reglage-ligne"><span class="field-label">Le mode Composant lit</span><select class="input"><option>Intencial Tokens</option><option>Icônes Intencial</option></select></div>
+  <p class="field-help">Choisie parce que ses variables sont liées à 412 calques de ce fichier.</p></div></div>
+  <div class="config-section repere"><h2 class="config-titre">Accessibilité</h2>
+  <div class="reglage"><div class="reglage-ligne"><span class="field-label">Niveau de contraste</span><span class="bascule"><button type="button" class="bascule-choix" aria-pressed="true">AA</button><button type="button" class="bascule-choix" aria-pressed="false">AAA</button></span></div>
+  <p class="field-help">AA demande 4,5:1 pour un texte et 3:1 pour un contour.</p></div></div>`;
+cadre('cf-reglages', {
+  galerie: 'nomenclature', etat: 'configuration-architecture-ucm', largeur: 640, hauteur: 900,
+  modifier: (doc) => { const s = doc.querySelectorAll('.config-section'); s[0].insertAdjacentHTML('afterend', SECTIONS_NOUVELLES); },
+});
+cadre('cf-historique', {
+  galerie: 'nomenclature', etat: 'configuration-historique', largeur: 640, hauteur: 900,
+  modifier: (doc) => {
+    const panneau = doc.querySelector('[role=tabpanel]');
+    panneau.insertAdjacentHTML('beforeend', `<div class="config-section repere"><h2 class="config-titre">Dernière création de variables</h2>
+      <div class="config-boutons config-ecartes"><p class="config-renommage">34 variables d’Alert, aujourd’hui à 14:31</p>${btn2('Annuler la création')}</div>
+      <p class="meta">Les variables créées depuis sont gardées. Une variable déjà liée à un calque reste en place.</p></div>
+      <div class="config-section repere"><h2 class="config-titre">Dernières portées</h2>
+      <div class="config-boutons config-ecartes"><p class="config-renommage">3 variables, aujourd’hui à 14:40</p>${btn2('Annuler les portées')}</div></div>
+      <p class="meta repere">Les corrections d’un composant se défont par Ctrl+Z dans Figma.</p>`);
+  },
+});
+
+// ---------- 7 · États ----------
+const ETAT = (hote, html, gauche = 'composant-variants', matrice = true) => cadre(hote, {
+  galerie: 'explorateur-etroit', etat: gauche, largeur: 900, hauteur: 520,
+  modifier: (doc) => fenetreComposant(doc, { matrice }),
+  laterale: { etat: 'a-appliquer', modifier: (doc) => laterale(doc, `<div class="page-stack">${html}</div>`) },
+});
+ETAT('e-vide', '<div class="bandeau info"><p>Sélectionnez un composant dans Figma pour l’analyser.</p></div>', 'composant-vide', false);
+ETAT('e-cours', resume({ etat: 'analyse en cours · 5 variants sur 12', compteurs: false, actualiser: false }) + '<p class="meta">Les constats s’afficheront à la fin de l’analyse.</p>', 'composant-variants', false);
+ETAT('e-partiel', resume({ etat: 'analysé à 14:02' }) + '<div class="bandeau attente"><p><b>Analyse partielle.</b> 2 000 calques lus sur 2 640.</p><p class="meta">Les constats portent sur la partie lue. Le reste n’est pas contrôlé.</p></div>' + ONGLETS_C('Constats'));
+ETAT('e-echec', resume({ etat: 'analyse arrêtée', compteurs: false }) + '<div class="bandeau danger"><p><b>L’analyse s’est arrêtée.</b></p><p>Deux propriétés s’écrivent de la même façon : <code>State</code> et <code>state</code>. Renommez l’une des deux, puis réexportez.</p><p class="meta">Texte de l’exporteur. Aucun autre contrôle n’a été fait.</p></div>');
+ETAT('e-hors', '<div class="bandeau info"><p><b>Ce fichier ne suit pas l’architecture UCM.</b></p><p>Token Architect affiche les variables et les composants. Il ne les contrôle pas.</p><div>' + btn2('Déclarer l’architecture UCM') + '</div></div>', 'composant-variants', false);
+
+// ---------- 8 · Styles communs ----------
+cadre('s-planche', {
+  galerie: 'nomenclature', etat: 'a-appliquer', largeur: 640, hauteur: 760,
+  modifier: (doc) => laterale(doc, `<div class="page-stack">
+    ${intertitre('Groupes et variables')}
+    <p><span class="jeton jeton-groupe">button/color</span> <span class="jeton jeton-variable">foreground</span> ${varPill('theme/primary/surface/', 'default')}</p>
+    ${intertitre('Gravités')}
+    <p class="arch-compteurs">${sev('c')}${sev('v')}${sev('i')}</p>
+    ${intertitre('Constat')}
+    ${constat({ g: 'c', phrase: 'Success · standard emploie l’icône d’info.', lieu: 'success · standard · calque icon', statut: 'Correction prête', statutClasse: 'pret' })}
+    ${intertitre('Correction')}
+    ${carte({ coche: true, ouverte: true, tete: '<span class="phrase-regle">Remplacer les tokens d’info</span>', meta: '1 liaison', corps: colonnes() + diff(`colors/${anc('info')}/standard/icon`, `colors/${nouv('success')}/standard/icon`) })}
+    ${intertitre('Bandeaux')}
+    <div class="bandeau info"><p>Information.</p></div><div class="bandeau attente"><p>À reprendre.</p></div><div class="bandeau succes"><p>Fait.</p></div><div class="bandeau danger"><p>Arrêté.</p></div>
+    ${intertitre('Choix sans réponse cochée')}
+    ${choix(['Plein', 'Teinté', 'Aucun'])}
+  </div>`),
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,2663 @@
+/*
+ * Les couleurs de l'explorateur, toujours sombres. Cette feuille précède celle
+ * du socle : `styles.css` affecte ensuite ces valeurs aux rôles du socle, si
+ * bien que ni le thème clair de Figma ni celui du système ne changent les
+ * surfaces. Les modes des tokens inspectés ne touchent que les valeurs et les
+ * pastilles.
+ *
+ * Les valeurs sont celles de MAQUETTE-EXPLORATEUR-TOKENS.html : une page plus
+ * sombre que ses panneaux, un arbre entre les deux, un bleu clair pour ce qui
+ * se suit et un bleu plein pour le seul geste principal.
+ */
+:root {
+  --sombre-page: #141414;
+  --sombre-fond: #222222;
+  --sombre-arbre: #1c1c1c;
+  --sombre-survol: #2c2c2c;
+  --sombre-bloc: #2c2c2c;
+  --sombre-note: #303030;
+  --sombre-logo: #232937;
+  --sombre-marque: #3867b3;
+  --sombre-marque-survol: #4678c9;
+  --sombre-selection: #293b58;
+  --sombre-succes: #1d3a28;
+  --sombre-avertissement: #382a20;
+  --sombre-filet-avertissement: #e3ac7d;
+  --sombre-danger: #3a2320;
+  --sombre-danger-plein: #e03e1a;
+  --sombre-danger-plein-survol: #c4381c;
+  --sombre-bordure: #414141;
+  --sombre-bordure-forte: #667080;
+  --sombre-filet: #373737;
+  --sombre-rail: #505762;
+  --sombre-noeud: #98a5bc;
+  --sombre-focus: #91b8ff;
+  --sombre-texte: #ededed;
+  --sombre-texte-second: #adadad;
+  --sombre-texte-marque: #91b8ff;
+  --sombre-texte-danger: #ffaaa0;
+  --sombre-texte-succes: #85e0a3;
+  --sombre-texte-avertissement: #f0c9a4;
+  --sombre-texte-sur-marque: #ffffff;
+  --sombre-pastille: #ffffff40;
+  --sombre-voile: rgb(0 0 0 / 60%);
+  --sombre-ombre: #00000066;
+  --sombre-damier-clair: #8a8a8a;
+  --sombre-damier-fonce: #5a5a5a;
+  /* La vue composant, d'après MAQUETTE-VUE-COMPOSANT.html : le violet d'un composant, le fond clair de son aperçu, l'encre d'une pastille claire et les deux cadres posés sur l'aperçu. */
+  --sombre-composant: #b69cff;
+  --sombre-apercu: #f7f8fa;
+  --sombre-encre: #111111;
+  --sombre-cadre-survol: #ff5fa2;
+  --sombre-cadre-portee: #4c9bff;
+}
+
+/*
+ * Le socle graphique de l'interface des plugins UCM. Chaque plugin ajoute ses
+ * règles propres dans une feuille que le build place après celle-ci.
+ *
+ * Trois choses vivent ici et nulle part ailleurs : l'échelle de texte, la trame
+ * d'espacement, et le rôle de chaque couleur. Une valeur écrite en dur dans une
+ * règle est un quatrième domicile pour une décision déjà prise — c'est ainsi
+ * qu'on se retrouvait avec `gap: 12px`, `gap: 10px`, `padding: 9px 10px` et
+ * quatre hauteurs de contrôle pour trois rôles.
+ *
+ * La hiérarchie que ce socle sert — ce qui décide, ce sur quoi on agit, ce qui
+ * informe — est écrite dans CONTRIBUTING.md, « Interface du plugin ». Elle fait
+ * autorité : une règle d'ici qui la contredit a tort.
+ */
+:root {
+  color-scheme: light dark;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * Trois crans de texte, et pas un de plus. 11 px est la base de l'interface de
+   * Figma ; le plugin était à 12 px et paraissait plus gros que son hôte, tout
+   * en redescendant localement à 11 px à deux endroits. Les interlignes sont
+   * des multiples de 4, comme la trame.
+   */
+  font-size: 11px;
+  --corps: 11px;
+  --corps-interligne: 16px;
+  --libelle: 12px;
+  --libelle-interligne: 16px;
+  --titre: 15px;
+  --titre-interligne: 20px;
+
+  /*
+   * Une variable par rôle d'espacement, jamais une valeur par endroit.
+   * Quatre rôles, quatre valeurs, toutes prises dans la trame de 4.
+   */
+  --espace-page: 16px;
+  --espace-bloc: 12px;
+  --espace-controle: 8px;
+  --espace-serre: 4px;
+
+  /* Deux hauteurs de contrôle. Une action se clique, un outil s'atteint. */
+  --hauteur-action: 32px;
+  --hauteur-secondaire: 24px;
+
+  --rayon: 6px;
+
+  /*
+   * Un seul endroit par rôle de couleur, et le repli avec lui.
+   *
+   * Les replis étaient écrits pour le thème clair et répétés à chaque règle :
+   * `#fff`, `#f5f5f5`, `#fff1d6`. Si l'hôte ne servait pas la variable Figma
+   * correspondante, cette valeur claire s'appliquait EN THÈME SOMBRE, et le
+   * texte devenait illisible — d'autant plus sûrement que personne ne l'aurait
+   * vu : les replis ne servent que hors de Figma, là où justement on ne regarde
+   * pas.
+   *
+   * La correction n'est pas de choisir des couleurs qui tiendraient dans les
+   * deux thèmes — il n'y en a pas —, c'est de donner au repli le même thème
+   * qu'à la variable. `figma-dark` est la classe que Figma pose sur `html`
+   * quand `themeColors: true` est demandé : le bloc ci-dessous redéclare les
+   * mêmes rôles avec un repli SOMBRE. Si cette classe manquait, le repli clair
+   * s'appliquerait comme aujourd'hui : ce socle ne peut donc pas faire pire.
+   *
+   * `prefers-color-scheme` n'est délibérément PAS employé : il dit le thème du
+   * système, pas celui de Figma, et un éditeur clair sur un système sombre
+   * recevrait alors des replis sombres.
+   */
+  --fond: var(--figma-color-bg, #ffffff);
+  --fond-voile: rgb(0 0 0 / 40%);
+  --fond-survol: var(--figma-color-bg-hover, #f5f5f5);
+  --fond-bloc: var(--figma-color-bg-secondary, #f5f5f5);
+  --fond-note: var(--figma-color-bg-tertiary, #ebebeb);
+  --fond-marque: var(--figma-color-bg-brand, #0d99ff);
+  --fond-marque-survol: var(--figma-color-bg-brand-hover, #007be5);
+  --fond-succes: var(--figma-color-bg-success-tertiary, #e3f6e9);
+  --fond-avertissement: var(--figma-color-bg-warning-tertiary, #fff1d6);
+  --fond-danger: var(--figma-color-bg-danger-tertiary, #ffe0db);
+  --fond-danger-plein: var(--figma-color-bg-danger, #f24822);
+  --fond-danger-plein-survol: var(--figma-color-bg-danger-hover, #dc3412);
+  /*
+   * La bordure ne suit pas `--figma-color-border` : sur le fond sombre, #444444
+   * ne détache pas une carte de son voisin. Même valeur dans et hors de Figma.
+   */
+  --bordure: #d2d2d2;
+  --bordure-marque: var(--figma-color-border-brand-strong, #0d99ff);
+  /*
+   * La bordure d'une carte dépôt visée, au survol comme au focus. Seul rôle de
+   * couleur à n'être relié à aucune variable Figma : la carte dépôt se distingue
+   * par un gris neutre, et la relier au thème la ferait bleuir dans les fichiers
+   * où l'hôte sert sa couleur de marque. Même valeur dans les deux thèmes, parce
+   * qu'elle se voit sur le fond clair comme sur le fond sombre.
+   */
+  --bordure-visee: #666666;
+  --texte: var(--figma-color-text, #1e1e1e);
+  --texte-second: var(--figma-color-text-secondary, #6b6b6b);
+  --texte-marque: var(--figma-color-text-brand, #007be5);
+  --texte-danger: var(--figma-color-text-danger, #dc3412);
+  --texte-succes: var(--figma-color-text-success, #168b52);
+  --texte-avertissement: var(--figma-color-text-warning, #a55b00);
+  --texte-sur-marque: var(--figma-color-text-onbrand, #ffffff);
+  --texte-sur-danger: var(--figma-color-text-ondanger, #ffffff);
+  /*
+   * Le badge d'un niveau WCAG d'UCM Palettes : une pastille pleine, verte ou
+   * rouge, adoucie. Même valeur dans les deux thèmes : la pastille porte son
+   * propre fond, et se pose aussi sur les fonds peints des palettes.
+   */
+  --fond-niveau-atteint: #CDEFD9;
+  --texte-niveau-atteint: #14532D;
+  --fond-niveau-manque: #F9D8D1;
+  --texte-niveau-manque: #8A2A1B;
+}
+
+.figma-dark {
+  --fond: var(--figma-color-bg, #2c2c2c);
+  --fond-voile: rgb(0 0 0 / 40%);
+  --fond-survol: var(--figma-color-bg-hover, #383838);
+  --fond-bloc: var(--figma-color-bg-secondary, #383838);
+  --fond-note: var(--figma-color-bg-tertiary, #4d4d4d);
+  --fond-marque: var(--figma-color-bg-brand, #0d99ff);
+  --fond-marque-survol: var(--figma-color-bg-brand-hover, #3ab0ff);
+  --fond-succes: var(--figma-color-bg-success-tertiary, #1d3a28);
+  --fond-avertissement: var(--figma-color-bg-warning-tertiary, #4a3a10);
+  --fond-danger: var(--figma-color-bg-danger-tertiary, #4d1f17);
+  --fond-danger-plein: var(--figma-color-bg-danger, #e03e1a);
+  --fond-danger-plein-survol: var(--figma-color-bg-danger-hover, #c4381c);
+  --bordure: #5e5e5e;
+  --bordure-marque: var(--figma-color-border-brand-strong, #0d99ff);
+  /* Redéclaré à l'identique : le rôle existe dans les deux thèmes, ou l'un des
+   * deux tomberait sur celui de l'autre sans que rien ne le dise. */
+  --bordure-visee: #666666;
+  --texte: var(--figma-color-text, #ffffff);
+  --texte-second: var(--figma-color-text-secondary, #b3b3b3);
+  --texte-marque: var(--figma-color-text-brand, #7cc4f8);
+  --texte-danger: var(--figma-color-text-danger, #ffafa3);
+  --texte-succes: var(--figma-color-text-success, #85e0a3);
+  --texte-avertissement: var(--figma-color-text-warning, #ffc470);
+  --texte-sur-marque: var(--figma-color-text-onbrand, #ffffff);
+  --texte-sur-danger: var(--figma-color-text-ondanger, #ffffff);
+  /* Redéclarés à l'identique, comme --bordure-visee. */
+  --fond-niveau-atteint: #CDEFD9;
+  --texte-niveau-atteint: #14532D;
+  --fond-niveau-manque: #F9D8D1;
+  --texte-niveau-manque: #8A2A1B;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font-size: var(--corps);
+  line-height: var(--corps-interligne);
+}
+
+/*
+ * Stabilité de l'UI : la barre verticale est réservée en permanence, qu'il y ait
+ * du dépassement ou non. Ainsi son apparition/disparition (selon la longueur du
+ * message d'état) ne décale plus l'interface. `scrollbar-gutter` pour les
+ * navigateurs modernes, `overflow-y: scroll` en filet de sécurité.
+ */
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/*
+ * La stabilité vient de la PLACE des blocs, jamais d'une hauteur réservée à
+ * vide : la fenêtre est haute d'un écran, et le pied de page est poussé en bas
+ * par ce qui reste. Sa position ne dépend donc plus de la longueur du journal.
+ */
+.container {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  gap: var(--espace-bloc);
+  padding: var(--espace-page);
+}
+
+.page-stack {
+  display: grid;
+  gap: var(--espace-bloc);
+}
+
+/*
+ * Le titre du produit se lit avant l'état de connexion, et l'outil de
+ * navigation garde un seul emplacement quelle que soit la page. La pastille
+ * était empilée au-dessus du titre : l'état se lisait donc en premier, alors
+ * qu'il n'est que le rang 3.
+ */
+.header {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+.header-topline {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.page-title {
+  font-size: var(--titre);
+  font-weight: 600;
+  line-height: var(--titre-interligne);
+}
+
+.subtitle,
+.field-help {
+  color: var(--texte-second);
+  line-height: var(--corps-interligne);
+}
+
+/* L'outil de navigation est un contrôle secondaire : 24 px, une seule fois. */
+.icon-button,
+.header-back-button {
+  display: inline-flex;
+  height: var(--hauteur-secondaire);
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--espace-controle);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+  color: var(--texte);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 120ms ease;
+}
+
+.icon-button {
+  width: var(--hauteur-secondaire);
+  padding: 0;
+}
+
+.icon-button svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+/* Le bouton nommé : l'engrenage, puis le texte, sur une largeur automatique ([ENT-21]). */
+.icon-button.avec-libelle {
+  width: auto;
+  gap: 6px;
+  padding: 0 10px;
+  color: var(--texte);
+  font: inherit;
+  font-size: var(--corps);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.icon-button.avec-libelle svg {
+  display: inline-block;
+  flex: none;
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+.icon-button:hover,
+.header-back-button:hover {
+  background: var(--fond-survol);
+}
+
+.btn {
+  display: inline-flex;
+  min-height: var(--hauteur-action);
+  align-items: center;
+  justify-content: center;
+  gap: var(--espace-controle);
+
+  /* Le libellé dit l'action entière : dans 380 px il peut passer
+     sur deux lignes, et le bouton grandit au lieu de rogner son texte. */
+  padding: var(--espace-serre) var(--espace-bloc);
+  border: 1px solid transparent;
+  border-radius: var(--rayon);
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* La taille compacte : la hauteur d'un geste secondaire, pour toutes les variantes. */
+.btn-compact {
+  min-height: var(--hauteur-secondaire);
+  padding: 0 var(--espace-controle);
+}
+
+.btn-primary {
+  background: var(--fond-marque);
+  color: var(--texte-sur-marque);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--fond-marque-survol);
+}
+
+.btn-secondary {
+  border-color: var(--bordure);
+  background: var(--fond);
+  color: var(--texte);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--fond-survol);
+}
+
+/*
+ * Un bouton désactivé faute de sélection n'attend rien : il refuse. Le curseur
+ * d'attente ne vaut que pendant un export, et `aria-busy` dit lequel des deux
+ * cas on est.
+ */
+/* Un geste destructif : le fond plein du danger, son survol, et un focus du même rouge. */
+.btn-danger {
+  background: var(--fond-danger-plein);
+  color: var(--texte-sur-danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--fond-danger-plein-survol);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+[aria-busy='true'] .btn:disabled {
+  cursor: wait;
+}
+
+/*
+ * Un état de focus partout. Seul `.btn` en avait un : au clavier, la
+ * navigation disparaissait dès qu'elle quittait les deux boutons d'action.
+ */
+.btn:focus-visible,
+.icon-button:focus-visible,
+.header-back-button:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.btn-danger:focus-visible {
+  outline-color: var(--fond-danger-plein);
+}
+
+.field {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+.field-label {
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.input {
+  width: 100%;
+  height: var(--hauteur-action);
+  padding: 0 var(--espace-controle);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  outline: none;
+  background: var(--fond);
+  color: var(--texte);
+}
+
+/*
+ * Une liste déroulante perd sa flèche native pour un chevron de 8 × 5 px, de la
+ * couleur du texte secondaire : un SVG par thème, car une image de fond ne lit
+ * pas les variables.
+ */
+select.input {
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%236b6b6b'/%3E%3C/svg%3E");
+  padding: 0 24px 0 var(--espace-controle);
+  background-image: var(--chevron);
+  background-position: right 9px center;
+  background-repeat: no-repeat;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.figma-dark select.input {
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23b3b3b3'/%3E%3C/svg%3E");
+}
+
+select.input:hover {
+  background-color: var(--fond-survol);
+}
+
+/*
+ * L'adresse d'un dépôt enregistré se lit : le fond des blocs la distingue d'une saisie.
+ * Une liste est toujours en lecture seule pour le navigateur : elle garde son fond.
+ */
+.input:read-only:not(select) {
+  background: var(--fond-bloc);
+  color: var(--texte-second);
+}
+
+.input:focus-visible {
+  border-color: var(--bordure-marque);
+  box-shadow: 0 0 0 1px var(--bordure-marque);
+}
+
+/*
+ * Aucune hauteur réservée ici non plus (même doctrine que la note) : les cinq
+ * champs gardaient chacun une ligne vide pour le cas où une erreur arriverait,
+ * soit 60 px qui repoussaient le bouton « Enregistrer » sous la ligne de
+ * flottaison — en permanence, pour un cas rare. Les erreurs arrivent toutes
+ * ensemble, au clic sur « Enregistrer », jamais sous le curseur pendant la
+ * saisie : le décalage se produit au moment où on l'a demandé.
+ */
+.field-error {
+  color: var(--texte-danger);
+}
+
+/*
+ * Les onglets reprennent le dessin de `@create-figma-plugin/ui`, décalque de
+ * l'éditeur : une rangée soulignée, des segments de 24 px, l'onglet actif en
+ * gras sur le fond des blocs.
+ */
+.onglets {
+  display: flex;
+  gap: var(--espace-serre);
+  padding-bottom: var(--espace-serre);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.onglet {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 60px;
+  min-width: 60px;
+  height: var(--hauteur-secondaire);
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--espace-controle);
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.onglet:hover:not([aria-selected='true']) {
+  background: var(--fond-survol);
+  color: var(--texte);
+}
+
+.onglet[aria-selected='true'] {
+  background: var(--fond-bloc);
+  color: var(--texte);
+}
+
+.onglet:focus-visible,
+.interrupteur:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.feuille-voile {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  background: var(--fond-voile);
+}
+
+.feuille {
+  display: flex;
+  width: 100%;
+  max-height: 92vh;
+  flex-direction: column;
+  border: 1px solid var(--bordure);
+  border-bottom: 0;
+  border-radius: var(--rayon) var(--rayon) 0 0;
+  outline: none;
+  background: var(--fond);
+  box-shadow: 0 -8px 24px color-mix(in srgb, var(--texte) 16%, transparent);
+}
+
+.feuille-entete {
+  display: flex;
+  min-height: 48px;
+  flex: none;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-page) var(--espace-serre);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.feuille-titre {
+  min-width: 0;
+  flex: 1;
+  font-size: var(--titre);
+  font-weight: 600;
+  line-height: var(--titre-interligne);
+}
+
+.feuille-retour,
+.feuille-fermer {
+  display: inline-flex;
+  width: var(--hauteur-secondaire);
+  height: var(--hauteur-secondaire);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--rayon);
+  background: transparent;
+  color: var(--texte);
+  cursor: pointer;
+  font-size: var(--titre);
+}
+
+.feuille-retour:hover {
+  background: var(--fond-survol);
+}
+
+/* Le ✕ se repère sur un fond de bloc, que le survol assombrit. */
+.feuille-fermer {
+  background: var(--fond-bloc);
+  font-size: 16px;
+}
+
+.feuille-fermer:hover {
+  background: var(--fond-note);
+}
+
+.feuille-retour:focus-visible,
+.feuille-fermer:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.feuille-corps {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  padding: var(--espace-page);
+}
+
+.feuille-pied {
+  display: flex;
+  flex: none;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-page) var(--espace-page);
+  border-top: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+/*
+ * L'entrée : le voile passe de transparent à `--fond-voile` pendant que la
+ * feuille glisse de toute sa hauteur. La sortie rejoue le mouvement à l'envers,
+ * sur un voile devenu inerte (`Feuille.ts` pose `sortante`).
+ */
+.feuille-voile {
+  animation: voile-entree 200ms ease-out both;
+}
+
+.feuille {
+  animation: feuille-glisse 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.feuille-voile.sortante {
+  pointer-events: none;
+  animation: voile-sortie 200ms ease-in both;
+}
+
+.feuille-voile.sortante .feuille {
+  animation: feuille-sort 200ms ease-in both;
+}
+
+@keyframes voile-entree { from { background: transparent; } to { background: var(--fond-voile); } }
+@keyframes voile-sortie { from { background: var(--fond-voile); } to { background: transparent; } }
+@keyframes feuille-glisse { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes feuille-sort { from { transform: translateY(0); } to { transform: translateY(100%); } }
+@keyframes fondu { from { opacity: 0; } to { opacity: 1; } }
+
+/* Sans mouvement, la feuille apparaît et disparaît en fondu de 120 ms. */
+@media (prefers-reduced-motion: reduce) {
+  .feuille,
+  .feuille-voile.sortante .feuille {
+    animation: fondu 120ms linear both;
+  }
+
+  .feuille-voile.sortante .feuille {
+    animation-direction: reverse;
+  }
+}
+
+/*
+ * Le chevron : pointe en bas, tourne de 180° à l'ouverture. `suivant` et `retour`
+ * sont déclarés après et l'emportent sur `aria-expanded`.
+ */
+.chevron-svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+  color: var(--texte-second);
+  transition: transform 150ms ease-out;
+}
+
+.chevron-svg path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+[aria-expanded="true"] .chevron-svg,
+.chevron-svg.ouvert {
+  transform: rotate(180deg);
+}
+
+svg.chevron-svg.suivant {
+  transform: rotate(-90deg);
+}
+
+svg.chevron-svg.retour {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron-svg {
+    transition: none;
+  }
+}
+
+.reglage {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+.reglage-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+/* L'interrupteur de l'éditeur : 28 × 16 px, le curseur à droite quand il est activé. */
+.interrupteur {
+  display: inline-flex;
+  width: 28px;
+  height: 16px;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 2px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--texte-second);
+  cursor: pointer;
+}
+
+.interrupteur:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.interrupteur[aria-checked='true'] {
+  justify-content: flex-end;
+  background: var(--fond-marque);
+}
+
+.interrupteur-curseur {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--fond);
+}
+
+/*
+ * La poignée de redimensionnement. Elle est posée dans le coin, hors du
+ * flux : sa place ne dépend d'aucun contenu, et la marge de la page la sépare
+ * déjà du pied de page.
+ */
+.resize-grip {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--texte-second);
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.resize-grip svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+/*
+ * La feuille de l'explorateur, après celle du socle. Elle affecte les couleurs
+ * sombres de `roles.css` aux rôles du socle, sous `:root` comme sous
+ * `.figma-dark` : l'interface reste sombre quel que soit le thème de l'hôte.
+ * Aucune couleur n'est écrite ici en dur.
+ *
+ * Le dessin suit MAQUETTE-EXPLORATEUR-TOKENS.html : trois surfaces étagées,
+ * les noms de variable en chasse fixe, un alias en pastille, la chaîne en
+ * frise. L'échelle de texte monte d'un cran par rapport au socle : la fenêtre
+ * est une table de lecture, large de 1200 px, et non un panneau de 380 px.
+ */
+:root,
+.figma-dark {
+  color-scheme: dark;
+  --fond-page: var(--sombre-page);
+  --fond: var(--sombre-fond);
+  --fond-arbre: var(--sombre-arbre);
+  --fond-survol: var(--sombre-survol);
+  --fond-bloc: var(--sombre-bloc);
+  --fond-note: var(--sombre-note);
+  --fond-logo: var(--sombre-logo);
+  --fond-marque: var(--sombre-marque);
+  --fond-marque-survol: var(--sombre-marque-survol);
+  --fond-selection: var(--sombre-selection);
+  --fond-succes: var(--sombre-succes);
+  --fond-avertissement: var(--sombre-avertissement);
+  --fond-voile: var(--sombre-voile);
+  --fond-danger: var(--sombre-danger);
+  --fond-danger-plein: var(--sombre-danger-plein);
+  --fond-danger-plein-survol: var(--sombre-danger-plein-survol);
+  --bordure: var(--sombre-bordure);
+  --bordure-marque: var(--sombre-focus);
+  --bordure-visee: var(--sombre-bordure-forte);
+  --bordure-pastille: var(--sombre-pastille);
+  --filet: var(--sombre-filet);
+  --filet-avertissement: var(--sombre-filet-avertissement);
+  --rail: var(--sombre-rail);
+  --noeud: var(--sombre-noeud);
+  --ombre: var(--sombre-ombre);
+  --texte: var(--sombre-texte);
+  --texte-second: var(--sombre-texte-second);
+  --texte-marque: var(--sombre-texte-marque);
+  --texte-danger: var(--sombre-texte-danger);
+  --texte-succes: var(--sombre-texte-succes);
+  --texte-avertissement: var(--sombre-texte-avertissement);
+  --texte-sur-marque: var(--sombre-texte-sur-marque);
+  --texte-sur-danger: var(--sombre-texte-sur-marque);
+  --damier-clair: var(--sombre-damier-clair);
+  --damier-fonce: var(--sombre-damier-fonce);
+  --texte-composant: var(--sombre-composant);
+  --fond-apercu: var(--sombre-apercu);
+  --encre: var(--sombre-encre);
+  --cadre-survol: var(--sombre-cadre-survol);
+  --cadre-portee: var(--sombre-cadre-portee);
+
+  --corps: 12px;
+  --corps-interligne: 18px;
+  --libelle: 13px;
+  --libelle-interligne: 20px;
+  --titre: 20px;
+  --titre-interligne: 28px;
+  --petit: 11px;
+  --hauteur-secondaire: 28px;
+  --chasse-fixe: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+/* La fenêtre ne défile pas : chaque zone défile seule. */
+html {
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--fond-page);
+}
+
+button,
+select,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 1px;
+}
+
+.application {
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
+  background: var(--fond);
+}
+
+/* La barre : produit, bascule des deux modes, puis lecture du relevé. */
+.barre {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--espace-bloc);
+  padding: 10px var(--espace-page);
+  border-bottom: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+.produit {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.logo {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--fond-logo);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.produit-nom {
+  margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+}
+
+/* La bascule : deux segments, celui du mode affiché en aplat. */
+.bascule {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond-arbre);
+}
+
+.bascule-choix {
+  height: 24px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: calc(var(--rayon) - 2px);
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.bascule-choix:hover:not([aria-pressed='true']) {
+  background: var(--fond-survol);
+  color: var(--texte);
+}
+
+.bascule-choix[aria-pressed='true'] {
+  background: var(--fond-selection);
+  color: var(--texte);
+}
+
+.barre-lecture {
+  display: flex;
+  gap: var(--espace-controle);
+  margin-left: auto;
+}
+
+.contextes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-controle) var(--espace-bloc);
+}
+
+.contexte-champ,
+.filtre {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.contexte-nom,
+.filtre-nom {
+  color: var(--texte-second);
+}
+
+.choix,
+.recherche,
+.saisie {
+  height: var(--hauteur-secondaire);
+  padding: 0 9px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+}
+
+.choix:hover,
+.recherche:hover,
+.saisie:hover {
+  border-color: var(--bordure-visee);
+}
+
+/* La recherche tient la largeur de l'arbre, sous son titre. */
+.recherche {
+  flex: none;
+  min-width: 0;
+  margin: 0 var(--espace-controle);
+}
+
+.recherche::placeholder {
+  color: var(--texte-second);
+}
+
+.saisie {
+  min-width: 160px;
+  flex: 1;
+}
+
+.bouton-discret {
+  height: var(--hauteur-secondaire);
+  padding: 0 10px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bouton-discret:hover:not(:disabled) {
+  background: var(--fond-survol);
+}
+
+.bouton-discret:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* Le seul geste plein de l'écran : copier la valeur terminale. */
+.bouton-principal {
+  border-color: var(--fond-marque);
+  background: var(--fond-marque);
+  color: var(--texte-sur-marque);
+}
+
+.bouton-principal:hover:not(:disabled) {
+  border-color: var(--fond-marque-survol);
+  background: var(--fond-marque-survol);
+}
+
+.bandeau-simulation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-page);
+  border-left: 3px solid var(--filet-avertissement);
+  background: var(--fond-avertissement);
+  color: var(--texte-avertissement);
+}
+
+/* Les trois colonnes : arbre, centre, inspecteur. */
+.corps {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: min(var(--largeur-arbre, 220px), 40vw) minmax(0, 1fr) 350px;
+}
+
+.arbre {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--espace-controle);
+  padding: var(--espace-page) var(--espace-controle) var(--espace-bloc);
+  border-right: 1px solid var(--bordure);
+  background: var(--fond-arbre);
+}
+
+.arbre > .surtitre {
+  padding: 0 var(--espace-controle);
+}
+
+.arbre-lignes {
+  flex: 1;
+}
+
+.liste-virtuelle {
+  position: relative;
+  min-height: 0;
+  overflow: auto;
+}
+
+.liste-espace {
+  position: relative;
+}
+
+.arbre-ligne,
+.table-ligne {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.arbre-ligne {
+  display: flex;
+  right: 0;
+  align-items: center;
+}
+
+/* Un trait par niveau d'ancêtre, sous le chevron de chacun. */
+.arbre-ligne::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 9px;
+  width: calc(var(--profondeur) * 12px);
+  background: repeating-linear-gradient(to right, var(--bordure) 0 1px, transparent 1px 12px);
+  content: '';
+  pointer-events: none;
+}
+
+.chevron,
+.chevron-vide {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--rayon);
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+}
+
+.chevron:hover {
+  color: var(--texte);
+}
+
+.arbre-choix {
+  display: flex;
+  min-width: 0;
+  height: 24px;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  padding: 0 var(--espace-controle) 0 6px;
+  border: 0;
+  border-radius: var(--rayon);
+  background: none;
+  cursor: pointer;
+  font-family: var(--chasse-fixe);
+  text-align: left;
+}
+
+.arbre-groupe {
+  font-size: var(--petit);
+}
+
+.arbre-choix:hover {
+  background: var(--fond-survol);
+}
+
+.arbre-choix[aria-current='true'] {
+  background: var(--fond-selection);
+  color: var(--texte-marque);
+}
+
+.arbre-libelle {
+  overflow: hidden;
+  flex: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.segment-vide,
+.valeur-vide {
+  color: var(--texte-second);
+  font-style: italic;
+}
+
+.arbre-compte {
+  color: var(--texte-second);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--petit);
+  font-variant-numeric: tabular-nums;
+}
+
+.pastille-texte {
+  flex: none;
+  padding: 1px 7px;
+  border: 1px solid var(--bordure);
+  border-radius: 5px;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--petit);
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+/*
+ * La poignée d'une largeur : une bande de 9 px sur le bord droit, dont le
+ * trait ne paraît qu'au survol, au focus et pendant le geste.
+ */
+.poignee {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 9px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.arbre > .poignee {
+  right: -5px;
+}
+
+.poignee::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  background: transparent;
+  content: '';
+}
+
+.cellule-entete > .poignee::after {
+  top: 9px;
+  bottom: 9px;
+  background: var(--bordure);
+}
+
+.poignee:hover::after,
+.poignee:focus-visible::after,
+.poignee-active::after {
+  left: 3px;
+  width: 2px;
+  background: var(--bordure-marque);
+}
+
+.poignee:focus-visible {
+  outline: none;
+}
+
+/* Pendant le geste, le curseur reste celui du réglage et aucun texte ne se sélectionne. */
+.reglage-en-cours,
+.reglage-en-cours * {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* Le surtitre d'une zone : petites capitales espacées. */
+.surtitre {
+  margin: 0;
+  color: var(--texte-second);
+  font-size: var(--petit);
+  font-weight: 500;
+  letter-spacing: 1px;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+/* Le titre d'une section : il se lit comme un titre, sans capitales. */
+.section:not(.carte-valeur) > .surtitre,
+.vue > .surtitre {
+  color: var(--texte);
+  font-size: var(--libelle);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: var(--libelle-interligne);
+  text-transform: none;
+}
+
+.note {
+  margin: 0;
+  color: var(--texte-second);
+}
+
+/* Le centre : le groupe ouvert, les onglets, puis le panneau de l'onglet actif. */
+.centre {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  background: var(--fond);
+}
+
+.table-tete {
+  display: grid;
+  gap: 2px;
+  padding: var(--espace-page) 20px var(--espace-controle);
+}
+
+.emplacement {
+  margin: 0;
+  color: var(--texte-second);
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+}
+
+.table-titre,
+.vue-titre,
+.inspecteur-titre {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.table-titre {
+  font-size: var(--titre);
+  line-height: var(--titre-interligne);
+}
+
+.vue-titre {
+  font-size: 17px;
+  line-height: 24px;
+}
+
+.inspecteur-titre {
+  font-family: var(--chasse-fixe);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+/* Les onglets soulignés de la maquette, à la place des segments du socle. */
+.centre .onglets {
+  overflow-x: auto;
+  flex: none;
+  gap: 18px;
+  padding: 0 20px;
+}
+
+.centre .onglet {
+  width: auto;
+  min-width: 0;
+  height: 38px;
+  padding: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.centre .onglet:hover:not([aria-selected='true']),
+.centre .onglet[aria-selected='true'] {
+  background: none;
+}
+
+.centre .onglet[aria-selected='true'] {
+  border-bottom-color: var(--texte-marque);
+}
+
+.centre .onglet:focus-visible {
+  outline-offset: -2px;
+}
+
+.accueil {
+  display: grid;
+  justify-items: start;
+  gap: var(--espace-bloc);
+  padding: 32px;
+}
+
+.accueil-texte {
+  max-width: 60ch;
+  color: var(--texte-second);
+  font-size: var(--libelle);
+  line-height: var(--libelle-interligne);
+}
+
+.panneau {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.panneau:focus-visible {
+  outline-offset: -2px;
+}
+
+.table {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.filtres,
+.gestes,
+.ligne-de-champs,
+.copies {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.filtres {
+  gap: var(--espace-controle) 10px;
+  padding: var(--espace-bloc) 20px;
+}
+
+.table-corps {
+  flex: 1;
+  border-top: 1px solid var(--bordure);
+}
+
+.table-entete,
+.table-ligne {
+  display: grid;
+  min-width: var(--largeur-minimale);
+  grid-template-columns: var(--colonnes);
+}
+
+.table-entete {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  border-bottom: 1px solid var(--bordure);
+  background: var(--fond-bloc);
+}
+
+.table-ligne {
+  right: 0;
+  border-bottom: 1px solid var(--filet);
+}
+
+.table-ligne:hover,
+.table-ligne:hover .cellule-nom {
+  background: var(--fond-arbre);
+}
+
+.table-ligne.ligne-choisie,
+.table-ligne.ligne-choisie .cellule-nom {
+  background: var(--fond-selection);
+}
+
+.cellule-entete {
+  position: relative;
+  min-width: 0;
+  padding: 10px var(--espace-page);
+  color: var(--texte-second);
+  font-size: var(--petit);
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.cellule-entete-nom {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cellule-entete:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--fond-bloc);
+}
+
+.cellule-nom {
+  position: sticky;
+  z-index: 1;
+  left: 0;
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  padding: 0 var(--espace-page);
+  background: var(--fond);
+}
+
+.nom-de-token {
+  color: var(--texte);
+}
+
+.nom-de-token-chemin {
+  color: var(--texte-second);
+}
+
+.nom-de-token,
+.lien {
+  overflow: hidden;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--chasse-fixe);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lien {
+  color: var(--texte-marque);
+  font-size: var(--petit);
+}
+
+.nom-de-token:hover,
+.lien:hover {
+  text-decoration: underline;
+}
+
+/* Ce qui se suit : un alias, ou une variable citée dans une liste. */
+.alias,
+.liens .lien {
+  display: inline-flex;
+  overflow: hidden;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 7px;
+  border: 1px solid var(--bordure);
+  border-radius: 5px;
+  background: var(--fond-note);
+  color: var(--texte);
+  cursor: pointer;
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+  line-height: 16px;
+  text-align: left;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.alias:hover,
+.liens .lien:hover {
+  border-color: var(--texte-marque);
+  background: var(--fond-selection);
+  text-decoration: none;
+}
+
+.cellule-type {
+  align-self: center;
+  padding: 0 var(--espace-page);
+  color: var(--texte-second);
+  font-size: var(--petit);
+}
+
+.cellule-valeur {
+  display: flex;
+  overflow: hidden;
+  min-width: 0;
+  align-items: center;
+  padding: 0 var(--espace-page);
+}
+
+/* Une valeur dans son contexte : l'alias cède la place, ce qu'il rend reste entier. */
+.valeur-resolue {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 8px;
+}
+
+.valeur-resolue > .alias {
+  min-width: 40px;
+  flex: 0 1 auto;
+}
+
+.alias-nom {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+.alias-opacite {
+  flex: none;
+  color: var(--texte-second);
+}
+
+.valeur-rendue {
+  flex: none;
+  color: var(--texte-second);
+}
+
+.propriete-valeur > .valeur-resolue {
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.vide {
+  padding: 32px;
+  color: var(--texte-second);
+}
+
+/* Une valeur : pastille et texte exact. */
+.valeur {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 7px;
+  vertical-align: middle;
+}
+
+.valeur-texte {
+  overflow: hidden;
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valeur-grande {
+  gap: var(--espace-bloc);
+}
+
+.valeur-grande .valeur-texte {
+  font-size: 20px;
+  line-height: 32px;
+}
+
+.pastille {
+  display: inline-block;
+  overflow: hidden;
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border: 1px solid var(--bordure-pastille);
+  border-radius: 3px;
+  background: conic-gradient(var(--damier-clair) 25%, var(--damier-fonce) 0 50%, var(--damier-clair) 0 75%, var(--damier-fonce) 0) 0 0 / 8px 8px;
+}
+
+/* Le contour d'une couleur opaque : cette couleur, à peine éclaircie. */
+.pastille-opaque {
+  border-color: color-mix(in srgb, var(--pastille-couleur) 84%, var(--texte));
+}
+
+.valeur-grande .pastille {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--rayon);
+}
+
+.pastille-remplissage {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.statut-echec {
+  color: var(--texte-danger);
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+}
+
+.statut-echec.valeur-grande {
+  font-size: 15px;
+  line-height: 24px;
+}
+
+/* L'inspecteur épinglé. */
+.inspecteur {
+  display: grid;
+  min-height: 0;
+  align-content: start;
+  gap: var(--espace-page);
+  overflow: hidden auto;
+  padding: 20px;
+  grid-template-columns: minmax(0, 1fr);
+  border-left: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+.inspecteur-haut {
+  display: grid;
+  gap: 6px;
+}
+
+.inspecteur-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.section {
+  display: grid;
+  gap: var(--espace-controle);
+}
+
+.carte-valeur {
+  padding: 14px;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  background: var(--fond-bloc);
+}
+
+.carte-comparee {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--espace-bloc);
+  padding: 14px;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+}
+
+/* La chaîne en frise : un rail, un nœud par étape, la valeur au bout. */
+.chaine {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.etape,
+.etape-fin {
+  position: relative;
+  display: grid;
+  margin-left: 4px;
+  padding: 0 0 14px 17px;
+  border-left: 2px solid var(--rail);
+}
+
+.etape-fin {
+  padding-bottom: 0;
+  border-left-color: transparent;
+}
+
+.etape::before,
+.etape-fin::before {
+  position: absolute;
+  top: 4px;
+  left: -6px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--noeud);
+  border-radius: 50%;
+  background: var(--fond);
+  content: '';
+}
+
+.etape-fin::before {
+  background: var(--noeud);
+}
+
+.etape-marquee::before {
+  border-color: var(--texte-marque);
+  background: var(--texte-marque);
+}
+
+.etape > .lien,
+.etape-nom {
+  color: var(--texte);
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+  line-height: 18px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.etape-marquee > .lien {
+  color: var(--texte-marque);
+}
+
+.etape > .note {
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.etape-source {
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+}
+
+.constat {
+  display: grid;
+  gap: var(--espace-serre);
+  padding: var(--espace-bloc);
+  border-left: 3px solid var(--texte-danger);
+  border-radius: 0 var(--rayon) var(--rayon) 0;
+  background: var(--fond-danger);
+  list-style: none;
+}
+
+.constat-titre {
+  color: var(--texte-danger);
+  font-size: var(--libelle);
+}
+
+.constat-detail,
+.constat-action {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.constat-action {
+  font-weight: 600;
+}
+
+.proprietes {
+  display: grid;
+  margin: 0;
+}
+
+.propriete {
+  display: grid;
+  grid-template-columns: minmax(80px, 32%) minmax(0, 1fr);
+  gap: var(--espace-bloc);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--filet);
+}
+
+.propriete:last-child {
+  border-bottom: 0;
+}
+
+.propriete-active .propriete-nom {
+  color: var(--texte-marque);
+}
+
+.propriete-nom {
+  color: var(--texte-second);
+}
+
+.propriete-valeur {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 3px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.liens {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ligne-de-lien {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.interrupteur-nom {
+  font-weight: 600;
+}
+
+.verdict {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Le verdict d'une comparaison se lit comme une note, avant les deux cartes. */
+.verdict[data-ecart] {
+  padding: var(--espace-bloc);
+  border-left: 3px solid var(--filet-avertissement);
+  background: var(--fond-avertissement);
+  font-weight: 400;
+}
+
+.verdict[data-contraste='atteint'] {
+  color: var(--texte-succes);
+}
+
+.verdict[data-contraste='manque'] {
+  color: var(--texte-danger);
+}
+
+.code {
+  margin: 0;
+  font-family: var(--chasse-fixe);
+  overflow-wrap: anywhere;
+}
+
+/* Les vues des onglets. */
+.vue {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 20px;
+}
+
+.grille-comparee {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.grille-de-couches {
+  display: grid;
+  gap: var(--espace-controle);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.interrupteur-ligne {
+  display: flex;
+  align-items: start;
+  gap: var(--espace-bloc);
+  padding: var(--espace-bloc) 0;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.choix-de-fichier {
+  display: flex;
+}
+
+.champ-fichier {
+  max-width: 100%;
+}
+
+/* La bulle de la chaîne, au survol et au focus. */
+.bulle {
+  position: fixed;
+  z-index: 10;
+  display: grid;
+  overflow: auto;
+  max-width: min(390px, calc(100vw - 16px));
+  max-height: 70vh;
+  gap: var(--espace-bloc);
+  padding: 14px;
+  border: 1px solid var(--bordure-visee);
+  border-radius: 9px;
+  background: var(--fond);
+  box-shadow: 0 12px 35px var(--ombre);
+  pointer-events: none;
+}
+
+.bulle-titre {
+  font-size: var(--libelle);
+  font-weight: 600;
+}
+
+/* Le pied : périmètre, fraîcheur et lecture seule. */
+.pied {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-serre) var(--espace-page);
+  padding: var(--espace-controle) var(--espace-page);
+  border-top: 1px solid var(--bordure);
+  background: var(--fond-bloc);
+  color: var(--texte-second);
+  font-size: var(--petit);
+  line-height: 16px;
+}
+
+.pied-perimetre,
+.pied-fraicheur {
+  white-space: nowrap;
+}
+
+.pied-lecture {
+  margin-left: auto;
+  padding-right: var(--espace-page);
+}
+
+/* L'annonce : centrée au-dessus du pied, claire sur l'écran sombre. */
+.annonce {
+  position: fixed;
+  z-index: 11;
+  bottom: 44px;
+  left: 50%;
+  display: grid;
+  max-width: min(420px, calc(100vw - 32px));
+  justify-items: center;
+  gap: var(--espace-serre);
+  transform: translateX(-50%);
+}
+
+.annonce > span:not(:empty) {
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: var(--texte);
+  box-shadow: 0 12px 35px var(--ombre);
+  color: var(--fond-page);
+}
+
+.secours {
+  min-width: min(360px, calc(100vw - 32px));
+  min-height: 64px;
+  border: 1px solid var(--bordure-marque);
+  border-radius: var(--rayon);
+  background: var(--fond-bloc);
+}
+
+.zone-hors-champ {
+  position: fixed;
+  left: -9999px;
+}
+
+/* Sous 900 px, l'inspecteur passe au-dessus du centre et se ferme. */
+@media (min-width: 900px) {
+  .fermer-inspecteur {
+    display: none;
+  }
+}
+
+@media (max-width: 899px) {
+  .corps {
+    grid-template-columns: min(var(--largeur-arbre, 200px), 40vw) minmax(0, 1fr);
+  }
+
+  .inspecteur {
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    width: min(350px, 90vw);
+    box-shadow: -12px 0 35px var(--ombre);
+  }
+
+  .inspecteur.inspecteur-ouvert {
+    display: grid;
+  }
+}
+
+@media (max-width: 699px) {
+  .corps {
+    grid-template-columns: min(var(--largeur-arbre, 168px), 40vw) minmax(0, 1fr);
+  }
+
+  .produit-nom {
+    display: none;
+  }
+
+  .table-tete {
+    padding: var(--espace-bloc) var(--espace-bloc) var(--espace-serre);
+  }
+
+  .table-titre {
+    font-size: 17px;
+    line-height: 24px;
+  }
+
+  .centre .onglets,
+  .filtres {
+    padding-right: var(--espace-bloc);
+    padding-left: var(--espace-bloc);
+  }
+}
+
+/*
+ * La vue composant. Ses règles reprennent une à une celles de la fenêtre du
+ * plugin dans MAQUETTE-VUE-COMPOSANT.html : une colonne de 364 px, un texte
+ * de 13 px à l'interligne 1,5, des noms en chasse fixe de 11,5 px. Elles ne
+ * suivent pas l'échelle de texte des autres zones, faite pour la table.
+ */
+.vc {
+  --chasse-fixe: ui-monospace, Consolas, monospace;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  background: var(--fond);
+  color: var(--texte);
+  font: 13px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* La fenêtre étroite ne descend pas sous sa largeur minimale. Sa barre fait 44 px : `TAILLE_ETROITE` les ajoute aux 680 px de la vue. */
+.application-etroite {
+  min-width: 320px;
+}
+
+.application-etroite .barre {
+  height: 44px;
+  padding: 0 16px;
+}
+
+.application-etroite .produit-nom {
+  display: none;
+}
+
+.vc button {
+  cursor: pointer;
+}
+
+.vc :focus-visible {
+  outline-offset: 2px;
+}
+
+.vc-corps {
+  position: relative;
+  flex: 1;
+  overflow: auto;
+}
+
+.vc-vide {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  padding: 0 16px;
+  color: var(--texte-second);
+  text-align: center;
+}
+
+.vc-vide svg {
+  display: block;
+  margin: 0 auto 14px;
+  opacity: 0.7;
+}
+
+.vc-vide p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.vc-fil {
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px 0;
+  color: var(--texte-second);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.vc-fil button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--texte-marque);
+}
+
+.vc-fil span:last-child {
+  overflow: hidden;
+  color: var(--texte);
+  text-overflow: ellipsis;
+}
+
+.vc-tete {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px 10px;
+}
+
+.vc-tete h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.vc-tete h2 span {
+  color: var(--texte-composant);
+  font-size: 12px;
+}
+
+.vc-sous {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  color: var(--texte-second);
+  font-size: 12px;
+}
+
+/* La pastille d'un mode ; le choix d'un variant en reprend le dessin. */
+.vc-mode,
+.vc-variants {
+  padding: 0 7px;
+  border: 1px solid var(--bordure);
+  border-radius: 99px;
+  color: var(--texte-second);
+  font-size: 10.5px;
+  line-height: 17px;
+  white-space: nowrap;
+}
+
+.vc-variants {
+  max-width: 100%;
+  background: transparent;
+}
+
+.vc-outils {
+  display: flex;
+  gap: 2px;
+}
+
+.vc-icone {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  place-items: center;
+  padding: 1px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--texte-second);
+}
+
+.vc-icone:hover,
+.vc-icone[aria-pressed='true'] {
+  background: var(--fond-survol);
+  color: var(--texte);
+}
+
+.vc-apercu {
+  display: grid;
+  overflow: hidden;
+  min-height: 72px;
+  place-items: center;
+  margin: 0 16px;
+  padding: 10px;
+  border: 1px solid var(--filet);
+  border-radius: 8px;
+  background: var(--fond-apercu);
+}
+
+.vc-echelle {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
+.vc-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Le cadre d'un calque sur l'aperçu : celui d'une ligne survolée, puis celui de la portée. */
+.vc-cadre {
+  position: absolute;
+  outline: 3px solid var(--cadre-survol);
+  outline-offset: -3px;
+  pointer-events: none;
+}
+
+.vc-cadre-portee {
+  outline-color: var(--cadre-portee);
+}
+
+.vc-imbriques {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 16px 0;
+}
+
+.vc-imbriques button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--texte-composant);
+  font-size: 11.5px;
+}
+
+.vc-imbriques button:hover {
+  background: var(--fond-survol);
+}
+
+.vc-imbriques small {
+  color: var(--texte-second);
+  font-size: 10.5px;
+}
+
+.vc-filtre {
+  padding: 10px 16px 0;
+}
+
+.vc-filtre input {
+  width: 100%;
+  padding: 4px 9px;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  background: var(--fond-arbre);
+  font-size: 12px;
+}
+
+.vc-liste {
+  padding-top: 6px;
+}
+
+.vc-section-tete {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px 3px;
+  border: 0;
+  background: transparent;
+  color: var(--texte-second);
+  font-size: 10px;
+  letter-spacing: 0.9px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.vc-section-tete:hover {
+  color: var(--texte);
+}
+
+.vc-section-tete .chevron-svg {
+  flex: none;
+}
+
+.vc-section-tete b {
+  color: var(--rail);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.vc-resume {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 16px 8px 30px;
+  color: var(--texte-second);
+  font: 11px/1.5 var(--chasse-fixe);
+}
+
+.vc-resume button {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid var(--bordure-pastille);
+  border-radius: 3px;
+}
+
+.vc-resume button:hover {
+  transform: scale(1.25);
+}
+
+.vc-resume span {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vc-resume button + span {
+  margin-left: 6px;
+}
+
+.vc-token {
+  border-top: 1px solid var(--filet);
+}
+
+.vc-section-tete + .vc-token {
+  border-top: 0;
+}
+
+.vc-ligne {
+  display: grid;
+  width: 100%;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 16px;
+  border: 0;
+  background: transparent;
+  grid-template-columns: 18px minmax(0, 1fr) auto auto;
+  text-align: left;
+}
+
+.vc-ligne:hover {
+  background: var(--fond-survol);
+}
+
+.vc-pastille {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border: 1px solid var(--bordure-pastille);
+  border-radius: 4px;
+  font: 700 9px/1 system-ui, sans-serif;
+  font-style: normal;
+}
+
+.vc-pastille-claire {
+  color: var(--encre);
+}
+
+.vc-pastille-sombre {
+  color: var(--texte-sur-marque);
+}
+
+.vc-pastille-contour {
+  border-width: 3px;
+  background: transparent;
+}
+
+.vc-pastille-nombre {
+  border-color: transparent;
+  color: var(--texte-second);
+  font: 11px/1 system-ui, sans-serif;
+}
+
+.vc-nom {
+  display: block;
+  overflow: hidden;
+  direction: rtl;
+  font: 11.5px/1.5 var(--chasse-fixe);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vc-fin {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.vc-valeur {
+  font: 11.5px/1.35 var(--chasse-fixe);
+  white-space: nowrap;
+}
+
+/* Une chaîne interrompue, et la marque d'un écart avec Figma. */
+.vc-rompue-valeur {
+  color: var(--texte-avertissement);
+}
+
+.vc-fois {
+  min-width: 20px;
+  color: var(--texte-second);
+  font-size: 10.5px;
+  text-align: right;
+}
+
+.vc-points {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.vc-points i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--rail);
+}
+
+.vc-points i:last-child {
+  background: var(--noeud);
+}
+
+.vc-chaine {
+  margin: 0;
+  padding: 4px 16px 4px 22px;
+  list-style: none;
+}
+
+.vc-chaine li {
+  position: relative;
+  padding: 0 0 8px 18px;
+  border-left: 1px solid var(--rail);
+}
+
+.vc-chaine li:last-child {
+  padding-bottom: 0;
+  border-left-color: transparent;
+}
+
+.vc-chaine li::before {
+  position: absolute;
+  top: 5px;
+  left: -4px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--noeud);
+  border-radius: 50%;
+  background: var(--fond);
+  content: '';
+}
+
+.vc-chaine li.vc-terme::before {
+  background: var(--noeud);
+}
+
+.vc-chaine li.vc-rompue::before {
+  border-color: var(--texte-avertissement);
+}
+
+.vc-etape-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--texte-second);
+  font-size: 10.5px;
+  line-height: 17px;
+}
+
+.vc-etape-nom {
+  display: block;
+  font: 11.5px/1.45 var(--chasse-fixe);
+  overflow-wrap: anywhere;
+}
+
+.vc-copie {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: 12px var(--chasse-fixe);
+}
+
+.vc-copie:hover {
+  color: var(--texte-marque);
+}
+
+.vc-copie .vc-pastille {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.vc-rompue-texte {
+  color: var(--texte-avertissement);
+  font-size: 11.5px;
+}
+
+.vc-sur-calques {
+  padding: 4px 16px 10px 43px;
+  color: var(--texte-second);
+  font-size: 11px;
+}
+
+.vc-champs {
+  margin: 0;
+  padding: 2px 16px 4px 43px;
+  list-style: none;
+}
+
+.vc-champs li {
+  display: grid;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 11.5px;
+  grid-template-columns: 92px minmax(0, 1fr) auto;
+}
+
+.vc-champs span {
+  color: var(--texte-second);
+}
+
+.vc-champs em {
+  overflow: hidden;
+  color: var(--rail);
+  font-size: 10.5px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vc-champs code {
+  font: 11.5px var(--chasse-fixe);
+}
+
+.vc-aucun {
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--texte-second);
+  font-size: 12px;
+}
+
+.vc-pied {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 16px;
+  border-top: 1px solid var(--filet);
+  background: var(--fond-arbre);
+  color: var(--texte-second);
+  font-size: 11px;
+}
+
+.vc-pied button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--texte-second);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.vc-directes {
+  margin: 0;
+  padding: 0 16px 12px;
+  list-style: none;
+}
+
+.vc-directes li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  border-top: 1px solid var(--filet);
+  font-size: 12px;
+}
+
+.vc-directes code {
+  color: var(--texte-second);
+  font: 11.5px var(--chasse-fixe);
+}
+
+/*
+ * Décalque des variables de thème que Figma injecte dans l'iframe du plugin
+ * (`themeColors: true`). Hors de Figma, aucune n'est servie : sans ce fichier,
+ * la galerie ne montrerait que les REPLIS EN DUR de `styles.css`, c'est-à-dire
+ * un thème clair dans les deux modes — et l'on croirait avoir regardé le thème
+ * sombre.
+ *
+ * ⚠ Ce n'est PAS une autorité sur la palette de Figma. Les valeurs sont des
+ * approximations : elles servent à juger une hiérarchie, une densité et une
+ * place, jamais à conclure sur un contraste. La vérification des contrastes et
+ * celle des variables réellement servies par l'hôte se font dans
+ * Figma.
+ *
+ * La convention de classe est celle de Figma : `figma-dark` sur la racine.
+ * `tests/galerie.test.ts` vérifie que toute variable demandée par `styles.css`
+ * est définie ici, dans les deux thèmes — sans quoi une capture montrerait un
+ * repli sans que rien ne le dise.
+ */
+:root {
+  --figma-color-bg: #ffffff;
+  --figma-color-bg-hover: #f5f5f5;
+  --figma-color-bg-secondary: #f5f5f5;
+  --figma-color-bg-tertiary: #ebebeb;
+  --figma-color-bg-brand: #0d99ff;
+  --figma-color-bg-brand-hover: #007be5;
+  --figma-color-bg-success-tertiary: #e3f6e9;
+  --figma-color-bg-warning-tertiary: #fff1d6;
+  --figma-color-bg-danger-tertiary: #ffe0db;
+  --figma-color-bg-danger: #f24822;
+  --figma-color-bg-danger-hover: #dc3412;
+  --figma-color-border: #e6e6e6;
+  --figma-color-border-brand-strong: #0d99ff;
+  --figma-color-text: #1e1e1e;
+  --figma-color-text-secondary: #6b6b6b;
+  --figma-color-text-brand: #007be5;
+  --figma-color-text-danger: #dc3412;
+  --figma-color-text-success: #168b52;
+  --figma-color-text-warning: #a55b00;
+  --figma-color-text-onbrand: #ffffff;
+  --figma-color-text-ondanger: #ffffff;
+}
+
+.figma-dark {
+  --figma-color-bg: #2c2c2c;
+  --figma-color-bg-hover: #383838;
+  --figma-color-bg-secondary: #383838;
+  --figma-color-bg-tertiary: #4d4d4d;
+  --figma-color-bg-brand: #0d99ff;
+  --figma-color-bg-brand-hover: #3ab0ff;
+  --figma-color-bg-success-tertiary: #1d3a28;
+  --figma-color-bg-warning-tertiary: #4a3a10;
+  --figma-color-bg-danger-tertiary: #4d1f17;
+  --figma-color-bg-danger: #e03e1a;
+  --figma-color-bg-danger-hover: #c4381c;
+  --figma-color-border: #444444;
+  --figma-color-border-brand-strong: #0d99ff;
+  --figma-color-text: #ffffff;
+  --figma-color-text-secondary: #b3b3b3;
+  --figma-color-text-brand: #7cc4f8;
+  --figma-color-text-danger: #ffafa3;
+  --figma-color-text-success: #85e0a3;
+  --figma-color-text-warning: #ffc470;
+  --figma-color-text-onbrand: #ffffff;
+  --figma-color-text-ondanger: #ffffff;
+}
