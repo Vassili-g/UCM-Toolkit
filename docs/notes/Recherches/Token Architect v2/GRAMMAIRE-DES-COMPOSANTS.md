@@ -91,10 +91,16 @@ colonne « Contrôle » renvoie aux fonctions du document préparatoire.
 
 ## 5. Les questions
 
+Décidé : la forme de la section 2 est adoptée (G-2).
+
+Un registre est une liste du kit : les mots qu'UCM reconnaît à une position du
+chemin, et leurs formes tolérées. Le registre des états connaît `pressed` et
+tolère `press` ; Nomenclature propose alors de renommer `press` en `pressed`,
+et Token Architect signale l'écart.
+
 | # | Question | Recommandation |
 |---|---|---|
-| G-2 | Adopter la forme de la section 2 ? | Oui ; elle reprend la forme de `button`, `alert` et `tilelink` |
-| G-5 | Un token de composant peut-il viser un autre composant, comme `tilelink/size/icon` qui vise `icon/size/xl` ? | Oui, pour les tailles seulement : la taille d'une icône imbriquée suit le composant Icon. `CIBLES_DES_COLLECTIONS` ajouterait `components` aux cibles de `components` pour la famille `size` |
-| G-6 | `icon/size/xl` n'a pas de propriété finale. L'admettre quand le composant n'a qu'une propriété par taille, ou écrire `icon/size/xl/size` ? | L'admettre : la propriété est implicite quand la famille n'en porte qu'une |
-| G-7 | Créer un registre des styles (`contained`, `outlined`, `text`, `standard`, `filled`) ? | Plus tard. Les styles restent propres à chaque composant tant que deux composants n'emploient pas deux mots pour la même chose |
-| G-8 | Créer un registre des propriétés de `size` ? | Oui, avec les mots déjà présents dans l'export : `padding-x`, `padding-y`, `gap`, `radius`, `width`, `height`, `border-width`, `icon-size`, `max-width` |
+| G-5 | Un token de composant peut-il viser le token d'un autre composant ? Dans l'export, `tilelink/size/icon` vise `icon/size/xl` : l'icône de la tuile prend la taille `xl` du composant Icon. La règle actuelle n'autorise qu'une cible `theme`, `layout` ou `typography` | Oui, pour les tailles seulement |
+| G-6 | Le token `icon/size/xl` existe et vaut 28 px. Son nom finit par la taille `xl`, sans mot de propriété après, alors que la forme demande une propriété finale (`padding-x`, `gap`…). Admettre ce nom tel quel, ou exiger `icon/size/xl/size` ? | L'admettre tel quel : un composant qui n'a qu'une dimension par taille n'a pas besoin du mot |
+| G-7 | Créer le registre des styles : `contained`, `outlined`, `text`, `standard`, `filled`… Token Architect signalerait alors deux mots pour un même style dans deux composants, comme `filled` dans Alert et `contained` dans Button | Plus tard, quand la bibliothèque aura plus de composants |
+| G-8 | Créer le registre des propriétés de taille : `padding-x`, `padding-y`, `gap`, `radius`, `width`, `height`, `border-width`, `icon-size`… Token Architect signalerait alors `gap-col`, `gap-rows` et `gap-x` dans `stresstest`, trois noms pour deux propriétés | Oui |

@@ -22,6 +22,41 @@ Le plugin ne peut écrire que dans le fichier ouvert. La liste préparée passe
 donc d'un fichier à l'autre par la mémoire du plugin, sur le poste du
 designer.
 
+## Sur quoi le plugin se base
+
+La génération part d'un composant déjà dessiné : ses variants existent, et ses
+calques sont peints, avec des couleurs en dur ou des tokens faux. Le plugin ne
+devine pas un token d'après une couleur. Il lit quatre informations, de la plus
+sûre à la moins sûre.
+
+| Information | Ce que le plugin lit | Sûreté |
+|---|---|---|
+| Valeurs de variante | Les propriétés du jeu de variants : `Severity=Error`, `Variant=Filled` | Exacte : Figma les donne telles quelles |
+| Rôle du calque | Le champ peint : le fond d'un cadre donne `background`, la couleur d'un texte `foreground`, le fond d'un vecteur ou d'une instance d'icône `icon`, un contour `border`. Un contour qui n'apparaît qu'au variant `focus` donne `ring` | Sûre pour un composant simple |
+| Élément | Le nom du calque, quand le composant a plusieurs calques du même rôle qui n'ont pas la même couleur : `title` et `message` | Dépend des noms : un calque nommé `Frame 12` déclenche une question |
+| Dossier du thème | La réponse du designer, une par valeur de style | Donnée par le designer |
+
+La couleur actuelle d'un calque sert seulement d'indice. Si le fond d'Alert
+`Filled` a déjà la couleur de `theme/danger/solid/default`, la question
+s'ouvre avec « Plein » coché. Le designer garde le dernier mot.
+
+Pour les tailles, la valeur en pixels sert au contraire de base. `layout` est
+une échelle : une marge de 14 px vise `layout/sizing/3,5`, qui vaut 14 px. Une
+valeur absente de l'échelle, comme 13 px, devient une question.
+
+À l'étape « Lier », le plugin ne cherche plus rien. Le plan garde, pour chaque
+variable, l'identifiant du calque qui l'a produite. Si le designer a modifié
+le composant entre-temps, un calque disparu se retrouve par son nom et son
+rôle, ou devient une question.
+
+| Cas | Ce que fait le plugin |
+|---|---|
+| Rôle clair, palette reconnue, style répondu | Proposition marquée « Exact » |
+| Valeur de variante inconnue des registres (`Severity=Brand`) | Question : quelle palette ? |
+| Deux calques du même rôle, de couleurs différentes, aux noms vagues | Question : nommer les deux éléments |
+| Forme décorative, dégradé, image, calque masqué | Ignorée, et listée dans l'aperçu |
+| Composant pas encore peint | Les rôles se lisent encore ; les questions s'ouvrent sans réponse cochée |
+
 ## Le besoin
 
 Un composant UCM lie ses couleurs à des variables de la collection
@@ -183,11 +218,14 @@ propagation (phase P3), dont elle reprend le modèle d'aperçu.
 Recommandation : la construire, après P3, avec le transfert par
 `figma.clientStorage`.
 
-## Décisions attendues
+## Décisions
 
-| # | Question | Recommandation |
+| # | Question | Réponse |
 |---|---|---|
 | G-1 | Construire la génération ? | Oui, après P3 |
-| G-2 | Forme d'un chemin de `components` | Celle de [GRAMMAIRE-DES-COMPOSANTS.md](./GRAMMAIRE-DES-COMPOSANTS.md) : composant, famille, élément, valeurs de variante, rôle ou propriété |
-| G-3 | Transfert du plan entre les deux fichiers | `figma.clientStorage`, avec le copier-coller en secours |
-| G-4 | Générer aussi les dimensions (marges, rayons, tailles par axe `Size`) ? | Plus tard ; les couleurs d'abord |
+| G-2 | Forme d'un chemin de `components` | Celle de [GRAMMAIRE-DES-COMPOSANTS.md](./GRAMMAIRE-DES-COMPOSANTS.md) |
+| G-4 | Générer aussi les dimensions ? | Oui, après les couleurs |
+
+| # | Question ouverte | Recommandation |
+|---|---|---|
+| G-3 | Comment la liste passe du fichier des composants au fichier des tokens. A : par la mémoire du plugin sur le poste du designer, sans geste, mais pour ce designer et ce poste seulement. B : le designer copie un texte dans le premier fichier et le colle dans le second ; un autre designer peut le recevoir | A, avec B en secours |

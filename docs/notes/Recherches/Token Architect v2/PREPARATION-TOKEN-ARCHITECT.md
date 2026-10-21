@@ -540,5 +540,5 @@ Les quatre décisions de la [recherche sur le contrôle de structure](../Plugin%
 
 | # | Question | Recommandation |
 |---|---|---|
-| Q6 | Générer les tokens de composant qui manquent (C28, T12) | Aperçu dans [APERCU-GENERATION-TOKENS-COMPOSANT.md](./APERCU-GENERATION-TOKENS-COMPOSANT.md), avec ses quatre décisions G-1 à G-4 |
-| Q13 | Forme des chemins de `components` dans le kit (section 3.4) | Proposition et questions G-2, G-5 à G-8 dans [GRAMMAIRE-DES-COMPOSANTS.md](./GRAMMAIRE-DES-COMPOSANTS.md) |
+| Q6 | Générer les tokens de composant qui manquent (C28, T12) | Construite après P3, couleurs puis dimensions ; reste G-3 dans [APERCU-GENERATION-TOKENS-COMPOSANT.md](./APERCU-GENERATION-TOKENS-COMPOSANT.md) |
+| Q13 | Forme des chemins de `components` dans le kit (section 3.4) | Forme adoptée ; restent G-5 à G-8 dans [GRAMMAIRE-DES-COMPOSANTS.md](./GRAMMAIRE-DES-COMPOSANTS.md) |
