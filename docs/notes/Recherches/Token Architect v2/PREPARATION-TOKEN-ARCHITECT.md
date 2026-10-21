@@ -104,6 +104,20 @@ Chaque fonction des tableaux porte son périmètre :
 - **full UCM** : demande l'architecture UCM déclarée ;
 - **les deux** : une forme agnostique, et une forme plus stricte en full UCM.
 
+Décidé : Token Architect ne contrôle que des fichiers full UCM. La forme
+agnostique d'une fonction ne sera pas construite ; la colonne en garde la
+trace. Une régularité apprise du fichier (C20, C21) devient une règle écrite
+du référentiel quand elle en a une. L'exporteur et `ucm check` restent
+agnostiques.
+
+Ce choix a deux conséquences :
+- Le kit doit décrire la forme des chemins de `components`.
+  `FORMES_DES_CHEMINS` décrit les six autres collections et exclut celle-ci.
+  Sans cette forme, les contrôles de nommage et de mapping n'ont pas de règle
+  écrite à appliquer aux tokens d'un composant.
+- Nomenclature fonctionne aujourd'hui dans un fichier qui ne déclare pas UCM.
+  Ce que Token Architect fait dans un tel fichier est la question Q12.
+
 ### 3.5 La correction automatique
 
 Nomenclature montre chaque renommage en deux colonnes, avant et après, et
@@ -202,6 +216,19 @@ Limites :
 - un fichier sans bibliothèque activée ni variable locale n'a pas de tokens à
   lire. L'import d'un `tokens.json`, que l'onglet Intégrations proposait,
   reste possible en dernier recours.
+
+Le mode Tokens peut lire de la même façon (T14). Aujourd'hui, l'explorateur
+n'affiche que les variables locales du fichier ouvert. Depuis le fichier des
+composants, il afficherait toute la bibliothèque de tokens :
+- l'arbre et la table s'affichent dès la lecture des noms, qui est rapide ;
+- les valeurs et les alias d'un groupe se lisent à son ouverture, en important
+  ses variables par lots de huit, comme les cibles d'alias aujourd'hui ;
+- Nomenclature ne renomme que des variables locales : dans ce fichier, sa barre
+  latérale montre les règles et invite à ouvrir le fichier des tokens pour
+  renommer.
+
+Le temps d'import d'un groupe de plusieurs centaines de variables reste à
+mesurer dans Figma, comme l'effet d'un import sur le fichier.
 
 Check designs ne compare ni les variants entre eux, ni les axes du composant
 aux chemins des tokens. Il ne contrôle pas non plus la règle d'un composant de
@@ -399,6 +426,7 @@ règles pendant l'export. Le kit ne vérifie que la forme des maîtres du kit
 | T11 | Deux variables d'une même couche qui visent la même cible dans tous les modes | ajouté | oui | faible | agnostique | Information seulement |
 | T12 | Générer les tokens d'un composant depuis sa structure | ajouté | partiel | moyenne | les deux | Le composant vit dans l'autre fichier ; il faudrait lire son contrat exporté. Lié à C28 |
 | T13 | Contraste des paires du thème | ajouté | existe (Palettes) | faible | full UCM | Doublon de Palettes |
+| T14 | Afficher les tokens d'une bibliothèque depuis un fichier qui ne les contient pas | demandé | oui, valeurs lues à l'ouverture d'un groupe | forte | full UCM | Section 3.10 ; renommer reste réservé au fichier des tokens |
 
 ## 6. Le plugin entier
 
@@ -457,7 +485,7 @@ cas qui a plusieurs candidats. La décision Q2 le confirme ou non.
 - Les deux fichiers : une correction qui touche composant et tokens demande
   deux gestes dans deux fichiers.
 - Le contraste réel s'arrête aux fonds unis.
-- La taille du projet : 79 fonctions pour le mode Composant, 13 pour le mode
+- La taille du projet : 79 fonctions pour le mode Composant, 14 pour le mode
   Tokens.
 
 **À ne pas faire.** C39 (parité du code, absente de Figma), C48 (rédaction par
@@ -493,13 +521,17 @@ l'onglet Relevés.
 | Q5 | Ordre | Déplacer d'abord les contrôles de l'export dans le kit (section 7, phase P0) |
 | Q7 | Sélection et vue du designer | Changées au clic sur un constat seulement |
 | Q8 | Sévérités | Trois niveaux propres au panneau, sans effet sur l'export ; à vérifier sur maquettes |
+| — | Périmètre | Full UCM seulement (section 3.4) |
+| Q10 | Seuils d'accessibilité | Taille de cible : 24 × 24 px en constat (WCAG 2.5.8, niveau AA), 44 × 44 px en recommandation (niveau AAA, iOS). Texte : aucun minimum WCAG ; 12 px en recommandation |
+| Q11 | Bibliothèque de tokens quand plusieurs sont activées | Choix automatique par les liaisons existantes, modifiable dans la Configuration (section 3.10) |
 
 Les quatre décisions de la [recherche sur le contrôle de structure](../Plugin%20Architect/6%20Contrôle%20de%20structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md#les-décisions-attendues) :
 
 | Question de la recherche | Réponse |
 |---|---|
-| Cas (e), cran saturé au blanc | Retiré : Palettes s'en charge |
-| Périmètre | Les règles full UCM s'ajoutent aux contrôles agnostiques |
+| Cas (d) et (e), cran recopié et cran saturé au blanc | Retirés : Palettes s'en charge |
+| Cas (g), tokens disparus entre deux exports | L'exporteur les signale au moment d'exporter, d'après la version publiée de `tokens.json` |
+| Périmètre | Full UCM |
 | Lieu | Le bloc « Structure » du mode Tokens de Token Architect ; les contrôles vivent dans le kit, et `ucm check` pourra les appeler |
 | Correction | Les deux : chaque écart est signalé, et corrigé en un geste quand la correction est sûre |
 
@@ -507,8 +539,6 @@ Les quatre décisions de la [recherche sur le contrôle de structure](../Plugin%
 
 | # | Question | Recommandation |
 |---|---|---|
-| Q6 | Générer les tokens de composant qui manquent (C28, T12) | Idée retenue, à développer dans une étude propre. Le composant vit dans le fichier des composants, et les tokens dans l'autre. Trois voies à comparer : lire le contrat publié par l'exporteur depuis le mode Tokens ; copier un squelette depuis le mode Composant et le coller dans le mode Tokens ; demander au designer d'ouvrir le fichier des tokens avec la liste préparée |
-| Q9 | Cas (d) de la recherche, cran recopié d'une autre rampe : Palettes s'en charge-t-il, comme pour (e) ? | Oui : les deux cas portent sur une rampe que Palettes calcule |
-| Q9 bis | Cas (g), tokens disparus entre deux exports : où le détecter ? | Dans l'exporteur, au moment d'exporter : il lit déjà la version publiée de `tokens.json` sur GitHub ou GitLab. Le mode Tokens ne voit que l'état actuel du fichier Figma |
-| Q10 | Seuils d'accessibilité | Taille de cible : 24 × 24 px en constat (WCAG 2.5.8, niveau AA), 44 × 44 px en recommandation (niveau AAA, iOS). Texte : aucun minimum WCAG ; 12 px proposé en recommandation |
-| Q11 | Bibliothèque de tokens quand plusieurs sont activées (section 3.10) | Choix automatique par les liaisons existantes, modifiable dans la Configuration |
+| Q6 | Générer les tokens de composant qui manquent (C28, T12) | Aperçu dans [APERCU-GENERATION-TOKENS-COMPOSANT.md](./APERCU-GENERATION-TOKENS-COMPOSANT.md), avec ses quatre décisions G-1 à G-4 |
+| Q12 | Que fait Token Architect dans un fichier qui ne déclare pas l'architecture UCM ? A : rien, sauf une invitation à la déclarer. B : la navigation seule (arbre, vue Composant, chaînes), sans contrôle ni correction. C : la navigation et Nomenclature dans sa forme actuelle | B : la navigation ne juge rien et sert au débogage de tout fichier |
+| Q13 | Forme des chemins de `components` dans le kit (section 3.4) | Composant, famille, palette, style, état, rôle, comme Alert dans le fichier de référence ; la même question que G-2 |

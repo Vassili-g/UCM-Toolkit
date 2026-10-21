@@ -8,7 +8,8 @@ variables.
 
 | Document | Contenu |
 |---|---|
-| [PREPARATION-TOKEN-ARCHITECT.md](./PREPARATION-TOKEN-ARCHITECT.md) | Les demandes du mainteneur, l'existant, les contraintes, chaque fonction possible avec sa faisabilité et son utilité, l'avis, l'ordre proposé et les décisions attendues |
+| [PREPARATION-TOKEN-ARCHITECT.md](./PREPARATION-TOKEN-ARCHITECT.md) | Les demandes du mainteneur, l'existant, les contraintes, chaque fonction possible avec sa faisabilité et son utilité, l'avis, l'ordre proposé et les décisions |
+| [APERCU-GENERATION-TOKENS-COMPOSANT.md](./APERCU-GENERATION-TOKENS-COMPOSANT.md) | Ce que donnerait la génération des tokens d'un composant : déductions, questions, parcours entre les deux fichiers, prérequis, coût et avis |
 
 Les recherches antérieures sur Nomenclature et sur le contrôle de structure des
 tokens restent dans [Plugin Architect](../Plugin%20Architect/README.md).
@@ -17,4 +18,5 @@ tokens restent dans [Plugin Architect](../Plugin%20Architect/README.md).
 
 Document préparatoire écrit ; les réponses du mainteneur sont rangées à sa
 section 8. Prochains gestes : les maquettes des deux modes, et le déplacement
-des contrôles de l'export dans le kit. Q6, Q9, Q10 et Q11 restent ouvertes.
+des contrôles de l'export dans le kit. Q6 (génération, avec son aperçu), Q12 et
+Q13 restent ouvertes.
