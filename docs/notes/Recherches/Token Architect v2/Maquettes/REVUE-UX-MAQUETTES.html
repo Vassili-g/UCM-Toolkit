@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revue UX Token Architect</title>
+<style>
+  :root { --fond: #161616; --bordure: #333; --texte: #eee; --second: #a0a0a0; --lien: #9fcfff; --bloc: #1d1d1d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.55 Inter, system-ui, sans-serif; }
+  main { max-width: 1240px; margin: 0 auto; padding: 32px 16px 96px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 20px; margin: 48px 0 8px; padding-top: 16px; border-top: 1px solid var(--bordure); }
+  h3 { font-size: 16px; margin: 28px 0 6px; }
+  p, li { max-width: 920px; }
+  p { margin: 6px 0; }
+  a { color: var(--lien); }
+  code { font-family: Consolas, monospace; font-size: 12.5px; background: #2a2a2a; padding: 0 4px; border-radius: 3px; }
+  .intro { color: var(--second); }
+  nav.sommaire { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 16px 0; font-size: 13px; }
+  .verdict { border: 1px solid var(--bordure); border-radius: 8px; background: var(--bloc); padding: 12px 16px; margin-top: 12px; }
+  .verdict ol { margin: 0; padding-left: 20px; }
+  .verdict li { margin: 4px 0; }
+  .tableau { overflow-x: auto; margin-top: 12px; }
+  table { border-collapse: collapse; font-size: 13px; width: 100%; }
+  th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-top: 1px solid var(--bordure); }
+  th { color: var(--second); font-weight: 600; border-top: 0; white-space: nowrap; }
+  td:first-child { white-space: nowrap; }
+  td ul, td ol { margin: 0; padding-left: 18px; }
+  td li { margin: 2px 0; }
+  .g { display: inline-block; font-size: 12px; font-weight: 600; padding: 0 7px; border-radius: 4px; white-space: nowrap; }
+  .g-b { background: #3a1f1f; color: #ffc9c0; }
+  .g-m { background: #2f2a1a; color: #f0d9a0; }
+  .g-n { background: #262626; color: #cfcfcf; }
+  .etat-oui { color: #a6e3b4; }
+  .etat-partiel { color: #f0d9a0; }
+  .etat-non { color: #ffb4a8; }
+  .note { color: var(--second); font-size: 13px; }
+  .choix { border: 1px solid var(--bordure); border-radius: 8px; background: var(--bloc); padding: 10px 14px; margin: 12px 0; }
+  .choix h3 { margin: 0 0 4px; font-size: 15px; }
+  .choix p { margin: 4px 0; }
+  .avis { font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Revue UX des maquettes de Token Architect</h1>
+  <p class="intro">Cette revue lit <code>Maquettes/MAQUETTE-TOKEN-ARCHITECT.html</code>, <code>architect.css</code> et les écrans figés
+  de <code>Maquettes/galerie/</code>. Elle confronte chaque cadre au plan d'implémentation, au document préparatoire, à la grammaire,
+  à l'aperçu de la génération, à la spécification de l'explorateur et aux invariants de Nomenclature. Les textes, les positions et
+  les styles calculés viennent du rendu de la page dans Chromium, lu cadre par cadre. Aucune capture n'a été faite.</p>
+
+  <nav class="sommaire">
+    <a href="#verdict">1 · Verdict</a>
+    <a href="#taches">2 · Les tâches et leur flux</a>
+    <a href="#logique">3 · La logique des écrans</a>
+    <a href="#ecrans">4 · Critique par écran</a>
+    <a href="#couverture">5 · Couverture du plan</a>
+    <a href="#textes">6 · Textes affichés</a>
+    <a href="#recommandations">7 · Recommandations</a>
+  </nav>
+
+  <h2 id="verdict">1 · Verdict</h2>
+  <div class="verdict"><ol>
+    <li>Le mode Tokens tient : Nomenclature est reprise à l'identique, et la fiche d'une variable remplace l'inspecteur sans troisième colonne.</li>
+    <li>Le mode Composant n'a pas encore de parcours lisible. Un même problème apparaît dans deux onglets, les comptes ne concordent pas, et l'entrée comme la sortie de l'analyse manquent.</li>
+    <li>Cinq règles fixées par le mainteneur sont enfreintes : le clic sur un constat ne sélectionne pas, une question colore sa réponse, un bouton Annuler promet un geste impossible, les gravités prennent le rouge et l'ambre, et tous les bandeaux sont ambre.</li>
+    <li>Les barres de 440 et 500 px font passer les colonnes Aujourd'hui et Après en lignes empilées. La fenêtre de 900 px du mode Composant couvre le canevas où la sélection doit se voir.</li>
+    <li>La génération est dessinée sur Alert, qui a déjà ses tokens, sans point d'entrée et sans les états de passage entre les deux fichiers.</li>
+  </ol></div>
+
+  <h2 id="taches">2 · Les tâches et leur flux</h2>
+  <p>Les étapes comptent les gestes du designer, changement de fichier compris. Une étape entre crochets n'a aucun cadre.</p>
+  <div class="tableau"><table>
+    <tr><th>Tâche</th><th>Étapes</th><th>Points de friction et impasses</th><th>États manquants</th><th>Retour en arrière</th></tr>
+    <tr>
+      <td>Déboguer un token</td>
+      <td><ol><li>Ouvrir le plugin dans le fichier des tokens.</li><li>Choisir un groupe dans l'arbre.</li><li>Cliquer un nom dans la table.</li><li>Lire la chaîne de chaque mode dans la fiche.</li><li>Choisir un contexte dans « Comparer avec ».</li><li>Fermer la fiche.</li></ol>Six étapes.</td>
+      <td><ul><li>Le contexte actif de la table vivait dans l'onglet Comparer (SPEC de l'explorateur, section Résolution). L'onglet disparaît, et aucun sélecteur de modes ne le remplace.</li><li>La note de la table cite encore « le contexte A de l'onglet Comparer ».</li><li>La fiche donne light et dark sans dire pour quelle marque.</li><li>« Comparer avec » ne nomme pas le contexte de départ.</li><li>La ligne cliquée n'est pas marquée dans la table.</li><li>Une carte de Structure doit « renvoyer à la fiche », mais n'a aucune action visible.</li></ul></td>
+      <td>Fiche d'une chaîne cassée. Fiche d'une variable de bibliothèque dont la valeur se charge.</td>
+      <td>La croix rend Nomenclature sur l'onglet ouvert. Rien ne permet de revenir à la variable précédente après un saut dans la chaîne.</td>
+    </tr>
+    <tr>
+      <td>Harmoniser les noms</td>
+      <td><ol><li>Ouvrir Renommages.</li><li>Filtrer par l'arbre, au besoin.</li><li>Déplier, décocher.</li><li>Appliquer.</li><li>Ouvrir Questions et répondre.</li><li>Appliquer de nouveau.</li></ol>Six étapes.</td>
+      <td><ul><li>Sous le filtre, le bandeau dit « 24 renommages sur 87 » et le pied dit « 87 noms cochés ». Le designer ne sait pas ce qu'Appliquer écrit.</li><li>Le bandeau parle d'une collection ; la ligne marquée dans l'arbre est le groupe <code>card</code>.</li><li>Les colonnes Aujourd'hui et Après deviennent deux lignes empilées.</li><li>Le lien inverse (un terme choisi filtre l'arbre) n'est qu'annoncé.</li><li>Depuis le fichier des composants, les onglets gardent leurs comptes alors que rien ne peut s'écrire.</li></ul></td>
+      <td>Terme choisi dans Règles et variables marquées dans la table. Mode Tokens hors UCM.</td>
+      <td>Configuration, Historique, Annuler le renommage : trois gestes qui quittent la vue de travail. Conforme à Nomenclature.</td>
+    </tr>
+    <tr>
+      <td>Valider un composant</td>
+      <td><ol><li>Sélectionner le composant.</li><li>[Lancer l'analyse : aucun cadre ne montre l'état d'avant.]</li><li>Lire le résumé et la matrice.</li><li>Déplier un constat.</li><li>Cliquer « Sélectionner dans Figma ».</li><li>Ignorer, ou passer à Corrections.</li><li>Actualiser.</li><li>[Lire « aucun constat » : absent.]</li></ol>Huit étapes, dont deux sans cadre.</td>
+      <td><ul><li>« Sélectionnez un composant dans Figma pour l'analyser » laisse croire que l'analyse suit la sélection. Elle ne part qu'au bouton.</li><li>Le premier geste s'appelle « Actualiser », alors que rien n'a encore été analysé.</li><li>Les comptes divergent : 11 dans le résumé, 7 cartes dans la liste, 15 dans la matrice.</li><li>Le clic sur un constat le déplie sans sélectionner le calque.</li><li>La fenêtre de 900 px cache la zone du canevas où Figma montre le calque sélectionné.</li></ul></td>
+      <td>Composant sélectionné, pas encore analysé. Composant sans constat. Composant de plus de deux axes dans la matrice.</td>
+      <td>« Ne plus ignorer » sur un constat ignoré : présent, sous forme de texte souligné.</td>
+    </tr>
+    <tr>
+      <td>Corriger ses liaisons</td>
+      <td><ol><li>Lire le constat.</li><li>Cliquer « Voir la correction ».</li><li>Arriver dans Corrections.</li><li>Déplier, décocher.</li><li>Appliquer.</li><li>Actualiser depuis le bandeau.</li><li>Répondre aux Questions.</li></ol>Sept étapes.</td>
+      <td><ul><li>La correction de Success · standard change deux liaisons ; le constat n'en cite qu'une.</li><li>La propagation attend le choix d'un variant de référence. La suite n'est pas dessinée : impasse.</li><li>Un clic sur un candidat d'une question n'a pas d'effet décrit : écriture immédiate, ou entrée dans le lot.</li><li>Après Appliquer, le résumé garde 5, 4 et 2, et les onglets 11, 3 et 2, sans marque de péremption.</li></ul></td>
+      <td>Liste des liaisons proposées par la propagation. Question après réponse. Panneau après un Ctrl+Z. Écriture en cours.</td>
+      <td>Contradiction dans c-apres : la ligne dit « Ctrl+Z dans Figma défait ce lot », et un bouton Annuler de Nomenclature reste à côté. Un plugin ne peut pas déclencher l'annulation de Figma.</td>
+    </tr>
+    <tr>
+      <td>Générer les tokens d'un nouveau composant</td>
+      <td><ol><li>Sélectionner le composant.</li><li>[Ouvrir « Préparer les tokens » : le menu du résumé n'existe pas.]</li><li>Répondre à cinq questions.</li><li>Préparer.</li><li>Fermer le plugin.</li><li>Ouvrir le fichier des tokens.</li><li>Relancer Token Architect.</li><li>Voir le plan.</li><li>Créer.</li><li>[Publier la bibliothèque : aucun rappel.]</li><li>Revenir au fichier des composants.</li><li>Relancer Token Architect.</li><li>[Analyser.]</li><li>Ouvrir Corrections, Appliquer.</li></ol>Dix-huit gestes en comptant les cinq réponses.</td>
+      <td><ul><li>Le scénario ne tient pas : la vue Composant montre Alert déjà lié à <code>colors/info/standard/...</code>.</li><li>Le seul accès dessiné est un lien dans une question (« Préparer les tokens d'Alert »).</li><li>Les choix Plein, Teinté et Aucun ne montrent ni le variant concerné ni la couleur du thème.</li><li>Après Créer, rien ne dit de publier la bibliothèque.</li><li>Au retour, rien n'annonce que le plan est prêt à lier.</li></ul></td>
+      <td>Après Créer. Plan ouvert dans un fichier sans les cibles. Jeu de variants d'une autre clé (P7.4). Coller un plan reçu en texte. Tailles (P7.6).</td>
+      <td>Historique, « Annuler la création ». Le texte promet qu'« une variable déjà liée à un calque reste en place » : le fichier des tokens ne lit pas les liaisons d'un autre fichier (T9).</td>
+    </tr>
+    <tr>
+      <td>Revenir en arrière</td>
+      <td>Variables : Configuration, Historique, Annuler, trois gestes. Composant : Ctrl+Z dans Figma, puis Actualiser, deux gestes. Constat : Ne plus ignorer, un geste.</td>
+      <td><ul><li>Le bouton Annuler de c-apres contredit la décision E.</li><li>L'Historique ne garde que la dernière écriture de chaque sorte. Trois sections « dernier » côte à côte rendent l'ordre réel illisible.</li><li>Annuler une création après publication et liaison casse les liaisons du composant. Aucun texte ne le dit.</li></ul></td>
+      <td>Panneau après un Ctrl+Z. Détail des portées annulées.</td>
+      <td>Sans objet.</td>
+    </tr>
+  </table></div>
+
+  <h2 id="logique">3 · La logique des écrans</h2>
+
+  <div class="choix"><h3>L'inspecteur devient une feuille sur la barre latérale</h3>
+    <p>La feuille garde deux colonnes dans 1200 px. Elle reprend la feuille d'un terme, déjà connue du designer.</p>
+    <p>Elle couvre Renommages, raison de la fusion côté tokens. Elle ne montre aucun lien entre la variable et les renommages qui la touchent.</p>
+    <p class="avis">Garder. Ajouter un bloc « Renommages de cette variable » qui ouvre l'onglet filtré sur elle, et marquer la ligne dans la table.</p></div>
+
+  <div class="choix"><h3>Structure en quatrième onglet de Nomenclature</h3>
+    <p>Les trois premiers onglets traitent des noms ; Structure traite des alias, des modes et des valeurs. L'en-tête « UCM Nomenclature » a disparu, donc rien ne sépare les deux sujets.</p>
+    <p>Un onglet de plus reste la solution la plus simple. Le bloc dans l'arbre ou une colonne de plus coûteraient plus de place.</p>
+    <p class="avis">Garder. Donner une action « Ouvrir la fiche » à chaque carte sans correction.</p></div>
+
+  <div class="choix"><h3>Ordre Constats · Corrections · Questions, et constat présent deux fois</h3>
+    <p>Dans Nomenclature, chaque renommage est à la fois le constat et sa correction. Il n'existe que deux onglets, et rien n'y apparaît deux fois.</p>
+    <p>La maquette ajoute un onglet Constats qui reprend ce que Corrections et Questions contiennent déjà. Le designer lit le problème dans un onglet, puis le corrige dans un autre. Les comptes 11, 3 et 2 ne s'additionnent pas, et le designer ne sait pas ce qui reste à faire.</p>
+    <p class="avis">Changer. Répartir chaque constat dans un seul onglet, selon la façon dont il se règle : Corrections (exact, coché), Questions (choix du designer), À faire dans Figma (tout le reste, dont les points de l'exporteur). Ouvrir sur le premier onglet non vide. Le résumé et la matrice donnent la vue d'ensemble. Les familles restent en intertitres dans chaque onglet.</p></div>
+
+  <div class="choix"><h3>La matrice dans la colonne de gauche</h3>
+    <p>La place est juste : la matrice sert à choisir le variant que montre l'aperçu. Elle fait doublon avec le sélecteur de variant de l'en-tête.</p>
+    <p>Elle ne tient que deux axes. Button, l'un des deux composants de la recette P2.R, a palette, style, état et taille.</p>
+    <p>Sa dernière ligne mesure 86 px au lieu de 26. Ses comptes donnent 15 constats ; le résumé en donne 11.</p>
+    <p class="avis">Garder. Ajouter deux sélecteurs « Lignes » et « Colonnes », les autres axes en filtre au-dessus. Retirer le sélecteur de variant quand la matrice est là. Un clic sur une case filtre aussi la barre sur ce variant, avec le même bandeau que le filtre par l'arbre.</p></div>
+
+  <div class="choix"><h3>La génération dans une feuille</h3>
+    <p>La tâche est bornée et se termine par un seul bouton : une feuille convient.</p>
+    <p>Elle cache la liste, ce qui ne gêne pas. Elle ne relie pas une question au variant qu'elle concerne.</p>
+    <p class="avis">Garder. Au focus d'une question, montrer ce variant dans l'aperçu de gauche.</p></div>
+
+  <div class="choix"><h3>La Configuration en page entière</h3>
+    <p>Nomenclature fonctionne déjà ainsi, avec Retour. Le cadre mesure 640 × 900, ce qui ne correspond à aucune des deux fenêtres, et la barre du haut disparaît.</p>
+    <p class="avis">Garder. Dessiner la page à 1200 × 800 et à 900 × 760, sous la barre commune.</p></div>
+
+  <div class="choix"><h3>Tailles de fenêtre : 1200 × 800 et 900 × 760</h3>
+    <p>En mode Tokens, le canevas compte peu : 1200 px conviennent. La barre de 440 px laisse 424 px de contenu, sous le seuil de 520 px où Nomenclature empile ses colonnes.</p>
+    <p>En mode Composant, le clic sur un constat sélectionne le calque et zoome dessus. Sur un écran de 1440 px, Figma laisse environ 960 px de canevas entre ses deux panneaux : une fenêtre de 900 px le couvre presque entièrement. La disposition étroite actuelle mesure 364 px.</p>
+    <p class="avis">Changer le mode Composant. Ajouter « Replier la vue Composant », qui ramène la fenêtre à la seule barre latérale, environ 520 px. Pour les colonnes, voir U6.</p></div>
+
+  <div class="choix"><h3>Trois gravités et leurs couleurs</h3>
+    <p>« À corriger » prend <code>--texte-danger</code>, rgb(255, 175, 163). C'est la couleur de <code>.seg-ancien</code>, le segment qui disparaît dans un renommage. Dans c-constat, le même rouge marque la gravité et le segment <code>info</code> qui va disparaître.</p>
+    <p>« À vérifier » prend l'ambre, réservé à ce qui attend une décision. Les cartes « À vérifier » de la maquette n'attendent aucune décision : Alert sans règles, combinaison absente.</p>
+    <p>Aucune règle écrite ne dit quel constat reçoit quel niveau. « Pour info » marque aussi bien « Rien à faire » qu'une mesure impossible.</p>
+    <p class="avis">Changer. Gravité sans couleur : un repère de forme et le mot. Ambre réservé au statut « Question ». Écrire sous la planche la règle qui attribue chaque niveau, par exemple : règle écrite enfreinte, fait à vérifier, information.</p></div>
+
+  <div class="choix"><h3>Deux fonds sombres dans la même fenêtre</h3>
+    <p>La colonne de gauche a le fond de l'explorateur, rgb(20, 20, 20). La barre latérale a le fond de Nomenclature, rgb(44, 44, 44). La décision F demande une seule feuille de socle.</p>
+    <p class="avis">Changer. Un seul fond, et la barre séparée par sa bordure.</p></div>
+
+  <div class="choix"><h3>La bascule Tokens · Composant</h3>
+    <p>Le mainteneur réserve le choix segmenté à l'affichage d'une même vue. La bascule change de vue, de contenu et de taille de fenêtre. Elle existe déjà dans l'explorateur, ce qui explique sa reprise.</p>
+    <p class="avis">Tension à soumettre au mainteneur. La correction la plus simple : dessiner les deux modes comme deux onglets dans la barre.</p></div>
+
+  <h2 id="ecrans">4 · Critique par écran</h2>
+  <div class="tableau"><table>
+    <tr><th>Cadre</th><th>Ce qui marche</th><th>Ce qui ne marche pas</th><th>Correction</th></tr>
+    <tr><td>t-renommages</td>
+      <td>Nomenclature reprise sans changement. Structure ajouté sans casser la rangée d'onglets. « Lecture seule » retiré du pied.</td>
+      <td><ul><li>Le bandeau dit « 24 renommages sur 87 » ; le pied dit « 87 noms cochés ».</li><li>Le bandeau parle de collection ; l'arbre marque le groupe <code>card</code>.</li><li>Les renommages affichés (<code>fontSize</code>, <code>Couleurs</code>) ne viennent pas de <code>card</code>.</li><li>Colonnes empilées.</li><li>Note de table et « relevé 1 » périmés.</li><li>Bandeau ambre.</li></ul></td>
+      <td>« 24 noms cochés sur 87 ». Appliquer ne porte que sur la liste filtrée. Marquer une collection. Retirer la note et « relevé 1 ».</td></tr>
+    <tr><td>t-questions</td>
+      <td>Identique à Nomenclature. Aucune réponse mise en avant.</td>
+      <td>Les variables d'une question ne sont pas marquées dans la table.</td>
+      <td>À l'ouverture d'une question, marquer ses variables dans la table.</td></tr>
+    <tr><td>t-regles</td>
+      <td>Identique à Nomenclature.</td>
+      <td>La note annonce un terme qui ouvre sa fiche et marque ses variables. Aucun cadre ne le montre.</td>
+      <td>Ajouter le cadre : fiche du terme ouverte, lignes marquées, bandeau « Filtré sur le terme background » au-dessus de la table.</td></tr>
+    <tr><td>t-structure</td>
+      <td>Cartes de Nomenclature. Intertitres par sujet. Seule la portée porte une case, ce qui suit la règle d'exactitude.</td>
+      <td><ul><li>Les cartes sans correction n'ont pas d'action.</li><li>Le cycle est la seule chaîne cassée montrée.</li><li>Les règles <code>valeur-directe</code> et <code>nuance</code> manquent.</li><li>« Leur rôle en demande deux » ne dit pas lesquels.</li></ul></td>
+      <td>« Ouvrir la fiche » dans chaque carte dépliée. Un exemple de cible inaccessible et de mode absent. Réécrire la carte des portées (section 6).</td></tr>
+    <tr><td>t-fiche</td>
+      <td>Feuille d'un terme reprise. Groupes en orchidée, variable en olive. Chaîne par mode. « Utilisée par » remplace Dépendants.</td>
+      <td><ul><li>La table montre la collection <code>Interface</code>, sans la variable de la fiche.</li><li>La marque de la chaîne n'est pas dite.</li><li>Le contexte de départ de la comparaison manque.</li><li>Le contexte actif de la table n'a plus de place.</li></ul></td>
+      <td>Sélecteurs « Modes affichés » au-dessus de la table. La fiche écrit ses deux contextes. Bloc « Renommages de cette variable ».</td></tr>
+    <tr><td>t-bibliotheque</td>
+      <td>Noms tout de suite, valeurs à l'ouverture d'un groupe. Bandeau qui renvoie au fichier des tokens.</td>
+      <td><ul><li>Renommages 87, Questions 3 et Structure 6 restent actifs.</li><li>Structure demande des valeurs non chargées.</li><li>La première phrase du bandeau tient dans 111 px, sur trois lignes, à côté de la seconde.</li><li>L'arbre garde les collections locales de la galerie.</li></ul></td>
+      <td>Griser Renommages, Questions et Structure, sans compte. Règles seul actif. Arbre des collections de la bibliothèque.</td></tr>
+    <tr><td>c-constats</td>
+      <td>Résumé court. Actualiser à côté de l'heure. Familles en intertitres. Chaque carte dit quoi, où et comment.</td>
+      <td><ul><li>11, 7 et 15 constats selon l'endroit.</li><li>Contraste et Règles d'usage, montrés ailleurs sous le même onglet, manquent à la liste.</li><li>Les huit familles de l'exporteur deviennent « Export ».</li><li>Les compteurs ne filtrent pas (C68).</li><li>Une carte « Pour info · Rien à faire ».</li><li>La gravité passe seule sur sa ligne quand la phrase est longue.</li></ul></td>
+      <td>Une liste avec toutes les familles et des comptes justes. Compteurs cliquables. Retirer « Rien à faire ». Gravité sur une ligne à elle dans toutes les cartes.</td></tr>
+    <tr><td>c-constat</td>
+      <td>Faits lus en cinq lignes. Segments rouge et vert réemployés pour lié et attendu. Ignorés grisés en bas.</td>
+      <td><ul><li>Le clic déplie ; la sélection demande un bouton de plus.</li><li>« Voir la correction » change d'onglet sans retour.</li><li>La correction touche aussi <code>container</code>, absent du constat.</li><li>« Ne plus ignorer » est un texte souligné.</li></ul></td>
+      <td>Le clic sur l'en-tête sélectionne et déplie. Un constat groupé sélectionne tous ses calques. « Ne plus ignorer » en bouton texte.</td></tr>
+    <tr><td>c-corrections</td>
+      <td>Cartes cochées, seul le segment changé est coloré, pied Appliquer : le modèle de Renommages est tenu.</td>
+      <td><ul><li>Colonnes empilées.</li><li>« Le texte d'Outlined suit le dossier page » décrit un état, pas une action.</li><li>La propagation demande un choix et compte parmi les 3 corrections.</li><li>« aux 11 autres » : 11 variants existent, donc 10 autres.</li><li>Les lignes ne nomment pas le variant.</li></ul></td>
+      <td>Titres à l'infinitif. Propagation déplacée dans la matrice (U11). Variant nommé dans chaque ligne.</td></tr>
+    <tr><td>c-apres</td>
+      <td>Ligne verte de Nomenclature. Bandeau « Le composant a changé ». Constats lisibles jusqu'à Actualiser.</td>
+      <td><ul><li>Le bouton Annuler contredit « Ctrl+Z dans Figma défait ce lot ».</li><li>Deux boutons Actualiser à 70 px l'un de l'autre.</li><li>Les comptes ne sont pas marqués comme périmés.</li></ul></td>
+      <td>Retirer Annuler. Un seul Actualiser. Comptes grisés, suivis de « avant correction ».</td></tr>
+    <tr><td>c-questions</td>
+      <td>Cartes de Questions. Candidats de même poids. Plus tard.</td>
+      <td><ul><li>La seconde question colore <code>outline</code> en vert et <code>Outlined</code> en rouge.</li><li>La première propose deux tokens d'info pour quatre statuts.</li><li>Elle lie le contour au thème alors qu'Alert a des tokens de composant (règle 4 de la grammaire).</li><li>L'effet d'un clic sur un candidat n'est pas dit.</li></ul></td>
+      <td>Mots cités en gris. Une question par statut, ou un renvoi vers la génération seule. Cadre de la question après réponse.</td></tr>
+    <tr><td>c-contraste</td>
+      <td>Paire, rapport, seuil et mode mesuré. Mesure impossible dite. Limite de la mesure écrite.</td>
+      <td><ul><li>Taille de cible jugée sur Alert, qui n'a pas d'axe d'état ; P4.2 la réserve aux composants interactifs.</li><li>Quatre rapports alignés sur une ligne.</li><li>Ni contour, ni anneau, ni désactivé, ni 44 px, ni texte sous 12 px.</li><li>Le statut ne nomme pas l'outil qui règle le thème.</li></ul></td>
+      <td>Refaire le cadre sur Button. Une ligne par mode. « Réglez la palette warning dans UCM Palettes. »</td></tr>
+    <tr><td>c-regles</td>
+      <td>Bouton près du constat. Ce qui reste au designer est nommé.</td>
+      <td><ul><li>« Alert n'a pas de règles d'usage » côtoie une règle manquante dans l'instance de règles d'Alert.</li><li>« Générer les règles » écrit depuis Constats, sans aperçu ni Ctrl+Z.</li></ul></td>
+      <td>Garder un seul des deux cas. Génération dans Corrections, avec la liste des règles créées et la ligne Ctrl+Z.</td></tr>
+    <tr><td>g-preparer</td>
+      <td>Aucune réponse cochée. Préparer inactif tant qu'une question reste. Cibles affichées au fil des réponses.</td>
+      <td><ul><li>Aucun point d'entrée dessiné.</li><li>Composant déjà lié à gauche.</li><li>Les choix ne montrent ni variant ni couleur.</li><li>Copie offerte avant que le plan soit complet.</li><li>« 24 cibles connues » est flou.</li></ul></td>
+      <td>Bouton « Préparer les tokens » dans le résumé, pour un composant sans tokens propres. Composant à couleurs en dur. Copier dans g-pret seulement.</td></tr>
+    <tr><td>g-pret</td>
+      <td>Le bandeau dit où continuer et que le plan reste sur ce poste.</td>
+      <td><ul><li>Bandeau ambre.</li><li>Rien ne dit ce que verra le designer en revenant avant la publication.</li></ul></td>
+      <td>Bandeau neutre. État « plan en attente de création » à la réouverture.</td></tr>
+    <tr><td>g-creer</td>
+      <td>Plan en tête de barre. Variables existantes gardées. Historique annoncé.</td>
+      <td><ul><li>« Abandonner le plan » posé au-dessus du bouton principal, sans confirmation.</li><li>Pas d'état après Créer.</li><li>Pas d'état pour un fichier sans les cibles.</li><li>« existe déjà » sans dire si l'alias diffère.</li><li>Pas de champ pour coller un plan.</li></ul></td>
+      <td>Pied sur une ligne. Quatre états (U19). « existe déjà, vise <code>theme/...</code> » quand l'alias diffère.</td></tr>
+    <tr><td>g-lier</td>
+      <td>Lignes « calque · variant · couleur en dur », puis le token. Lot coché, exact.</td>
+      <td><ul><li>34 liaisons, 2 en attente, 34 variables créées, 36 au plan : le designer ne peut pas réconcilier ces nombres.</li><li>La gauche montre des liaisons déjà posées.</li><li>Rien n'annonce le retour du plan.</li><li>Le cas d'un jeu d'une autre clé manque.</li></ul></td>
+      <td>Bandeau « Le plan d'Alert est créé. 34 liaisons sont prêtes. » Comptes en liaisons seulement.</td></tr>
+    <tr><td>cf-reglages</td>
+      <td>Bibliothèque lue, avec la raison du choix. AA et AAA avec leurs seuils.</td>
+      <td><ul><li>L'aide de la déclaration UCM ne parle que de Palettes ; e-hors y conduit.</li><li>L'état « aucune bibliothèque choisie » (P2.2) manque. C'est le premier état d'un fichier de composants sans liaison.</li><li>Cadre à 640 × 900, sans barre.</li></ul></td>
+      <td>Aide réécrite (section 6). Cadre de choix demandé, et bandeau de la barre latérale qui y renvoie.</td></tr>
+    <tr><td>cf-historique</td>
+      <td>Une section par sorte d'écriture. Ligne Ctrl+Z pour les composants.</td>
+      <td><ul><li>Sous-titre limité au renommage et à l'import.</li><li>Promesse invérifiable sur les variables liées.</li><li>Portées sans détail.</li></ul></td>
+      <td>Sous-titre général. Avertissement sur les liaisons. Détail Aujourd'hui et Après l'annulation pour les portées.</td></tr>
+    <tr><td>e-vide</td>
+      <td>Message court.</td>
+      <td>Même phrase dans les deux colonnes. « pour l'analyser » annonce une analyse automatique.</td>
+      <td>« Sélectionnez un composant dans Figma. »</td></tr>
+    <tr><td>e-cours</td>
+      <td>Actualiser inactif. Progression en variants.</td>
+      <td>Colonne de gauche vide alors que le variant par défaut est lu.</td>
+      <td>Garder la vue Composant à gauche.</td></tr>
+    <tr><td>e-partiel</td>
+      <td>Ne conclut pas. Dit ce qui n'est pas contrôlé.</td>
+      <td>Ne dit pas quels variants restent hors lecture.</td>
+      <td>Cases « non lu » dans la matrice.</td></tr>
+    <tr><td>e-echec</td>
+      <td>Message du moteur. « Aucun autre contrôle n'a été fait. »</td>
+      <td><ul><li>« réexportez » renvoie à l'exporteur.</li><li>P2.4 demande un constat bloquant ; la maquette pose un bandeau.</li></ul></td>
+      <td>Garder le bandeau et corriger le critère de P2.4. Ajouter « puis cliquez Actualiser ».</td></tr>
+    <tr><td>e-hors</td>
+      <td>Phrase claire. Bouton vers la déclaration.</td>
+      <td><ul><li>Bandeau ambre, deux phrases côte à côte.</li><li>Le mode Tokens hors UCM manque (P1.5).</li></ul></td>
+      <td>Cadre Tokens hors UCM. Question au mainteneur sur Renommages hors UCM (U17).</td></tr>
+    <tr><td>s-planche</td>
+      <td>Jetons, gravités, constat, correction, bandeaux, choix.</td>
+      <td><ul><li>Les quatre bandeaux ont le même fond ambre.</li><li>Manquent la matrice, la paire de contraste, la question, les onglets et le pied.</li></ul></td>
+      <td>Compléter. La planche tranche U1 et U5.</td></tr>
+  </table></div>
+
+  <h2 id="couverture">5 · Couverture du plan</h2>
+  <p>Le mainteneur a demandé toutes les fonctions du plan. <span class="etat-oui">Dessiné</span>, <span class="etat-partiel">partiel</span> ou <span class="etat-non">absent</span>.</p>
+  <div class="tableau"><table>
+    <tr><th>Lot</th><th>Fonction</th><th>État</th><th>Remarque</th></tr>
+    <tr><td>M1</td><td>Arbre, table, Nomenclature à droite, Configuration</td><td class="etat-oui">dessiné</td><td></td></tr>
+    <tr><td>M1</td><td>T2, de l'arbre vers Nomenclature</td><td class="etat-partiel">partiel</td><td>Groupe marqué, collection annoncée, comptes discordants.</td></tr>
+    <tr><td>M1</td><td>T2, d'un terme vers l'arbre</td><td class="etat-non">absent</td><td>Annoncé dans la note de t-regles.</td></tr>
+    <tr><td>M1</td><td>Comparer avec, Utilisée par</td><td class="etat-partiel">partiel</td><td>Contexte de départ absent.</td></tr>
+    <tr><td>M1</td><td>Contexte actif de la table, ancien contexte A</td><td class="etat-non">absent</td><td>Perdu avec l'onglet Comparer.</td></tr>
+    <tr><td>M1</td><td>Structure : chaînes cassées</td><td class="etat-partiel">partiel</td><td>Cycle seul.</td></tr>
+    <tr><td>M1</td><td>Structure : cas (a), (b), (c), (f)</td><td class="etat-oui">dessiné</td><td></td></tr>
+    <tr><td>M1</td><td>Profil UCM (T6)</td><td class="etat-partiel">partiel</td><td><code>couche</code> et <code>portee</code> ; <code>valeur-directe</code> et <code>nuance</code> absents.</td></tr>
+    <tr><td>M1</td><td>Correction des portées (T7)</td><td class="etat-oui">dessiné</td><td></td></tr>
+    <tr><td>M1</td><td>Bibliothèque lue depuis le fichier des composants (T14)</td><td class="etat-partiel">partiel</td><td>Onglets actifs à tort.</td></tr>
+    <tr><td>M1</td><td>Fichier hors UCM, mode Tokens</td><td class="etat-non">absent</td><td></td></tr>
+    <tr><td>M2</td><td>Familles, compte par gravité</td><td class="etat-partiel">partiel</td><td>Filtre absent (C68).</td></tr>
+    <tr><td>M2</td><td>Constat dépliable, Ignorer, Actualiser, partiel, échec, périmé</td><td class="etat-oui">dessiné</td><td></td></tr>
+    <tr><td>M2</td><td>Composant non analysé ; composant sans constat</td><td class="etat-non">absent</td><td>Exigés par P2.4.</td></tr>
+    <tr><td>M2</td><td>Écriture en cours ; demande refusée pendant une autre</td><td class="etat-non">absent</td><td>Seul Actualiser inactif pendant l'analyse.</td></tr>
+    <tr><td>M2</td><td>Panneau après un Ctrl+Z</td><td class="etat-non">absent</td><td></td></tr>
+    <tr><td>M2</td><td>Matrice (C4)</td><td class="etat-partiel">partiel</td><td>Deux axes.</td></tr>
+    <tr><td>M2</td><td>Clic qui sélectionne (C5)</td><td class="etat-non">contredit</td><td>Bouton à part.</td></tr>
+    <tr><td>M2</td><td>Nommage (C7 à C11)</td><td class="etat-partiel">partiel</td><td>C8 en information, <code>colors</code> contre <code>color</code>.</td></tr>
+    <tr><td>M2</td><td>Renommer une valeur (C12), règle préparée (C13)</td><td class="etat-partiel">partiel</td><td>Arrivée de la règle dans le mode Tokens (P7.5) absente.</td></tr>
+    <tr><td>M2</td><td>Segment d'un autre variant (C15, C22)</td><td class="etat-oui">dessiné</td><td></td></tr>
+    <tr><td>M2</td><td>État, rôle, portée, autre composant (C16 à C19)</td><td class="etat-non">absent</td><td></td></tr>
+    <tr><td>M2</td><td>Couche contournée (C20, C61)</td><td class="etat-non">absent</td><td>L'écart le plus fréquent de la grammaire : dimension qui vise une primitive.</td></tr>
+    <tr><td>M2</td><td>Variant qui s'écarte (C21)</td><td class="etat-non">absent</td><td></td></tr>
+    <tr><td>M2</td><td>Propagation (C24)</td><td class="etat-partiel">partiel</td><td>Entrée seule.</td></tr>
+    <tr><td>M2</td><td>Liaison initiale par la grammaire (C25)</td><td class="etat-non">absent</td><td></td></tr>
+    <tr><td>M2</td><td>Tailles et espacements (C29)</td><td class="etat-non">absent</td><td>Toutes les corrections portent sur des couleurs.</td></tr>
+    <tr><td>M2</td><td>Valeur en dur (C30), combinaison absente (C31)</td><td class="etat-oui">dessiné</td><td></td></tr>
+    <tr><td>M2</td><td>Token sans variant, variant sans token (C32, C33)</td><td class="etat-non">absent</td><td></td></tr>
+    <tr><td>M2</td><td>Points de l'exporteur (C38)</td><td class="etat-partiel">partiel</td><td>Un exemple ; huit familles fondues.</td></tr>
+    <tr><td>M2</td><td>Variable introuvable (C41)</td><td class="etat-non">absent</td><td></td></tr>
+    <tr><td>M2</td><td>Règles (C43 à C46)</td><td class="etat-partiel">partiel</td><td>Deux constats contradictoires.</td></tr>
+    <tr><td>M2</td><td>Contraste du texte (C49)</td><td class="etat-oui">dessiné</td><td></td></tr>
+    <tr><td>M2</td><td>Contour, anneau, focus, désactivé (C50, C51, C36, C53)</td><td class="etat-non">absent</td><td></td></tr>
+    <tr><td>M2</td><td>Cible de 24 px, recommandation de 44 px, texte sous 12 px</td><td class="etat-partiel">partiel</td><td>24 px seul, sur un composant non concerné.</td></tr>
+    <tr><td>M2</td><td>Règle du dossier (C59)</td><td class="etat-oui">dessiné</td><td></td></tr>
+    <tr><td>M2</td><td>État et dossier (C60), variable hors de ses champs (C63), mapping vers le thème (C27)</td><td class="etat-non">absent</td><td></td></tr>
+    <tr><td>M2</td><td>Groupes de même cause (C75)</td><td class="etat-oui">dessiné</td><td></td></tr>
+    <tr><td>M2</td><td>Classement des candidats (C76)</td><td class="etat-non">absent</td><td>Ordre non expliqué.</td></tr>
+    <tr><td>M2</td><td>Bibliothèque choisie, AA ou AAA</td><td class="etat-partiel">partiel</td><td>Égalité et absence de liaison non dessinées.</td></tr>
+    <tr><td>M3</td><td>Questions de style, d'intensité, d'éléments</td><td class="etat-partiel">partiel</td><td>Axe inconnu, nom <code>Frame 12</code> et icône absents (décision I, P7.0).</td></tr>
+    <tr><td>M3</td><td>Plan prêt, plan en attente, Créer, Lier</td><td class="etat-oui">dessiné</td><td></td></tr>
+    <tr><td>M3</td><td>Point d'entrée de la génération</td><td class="etat-non">absent</td><td></td></tr>
+    <tr><td>M3</td><td>Après Créer ; mauvais fichier ; autre clé ; coller un plan</td><td class="etat-non">absent</td><td>P7.3, P7.4, décision G-3.</td></tr>
+    <tr><td>M3</td><td>Tailles (P7.6)</td><td class="etat-non">absent</td><td></td></tr>
+    <tr><td>P8</td><td>Typographie et icônes (C64 à C67)</td><td class="etat-non">absent</td><td></td></tr>
+  </table></div>
+
+  <h2 id="textes">6 · Textes affichés</h2>
+  <div class="tableau"><table>
+    <tr><th>Cadre</th><th>Texte</th><th>Problème</th><th>Proposition</th></tr>
+    <tr><td>c-constats</td><td>« Les tokens d'Alert sont rangés sous colors. La grammaire attend color. »</td><td>« grammaire » est un terme de contributeur.</td><td>« Les tokens d'Alert sont rangés sous colors. UCM attend color. »</td></tr>
+    <tr><td>c-constats</td><td>« Se règle dans le fichier des tokens, par Nomenclature »</td><td>Nomenclature n'existe plus comme plugin.</td><td>« Se règle dans le fichier des tokens, onglet Renommages. »</td></tr>
+    <tr><td>c-constats</td><td>« Success · standard emploie l'icône d'info. »</td><td>Le designer comprend que le pictogramme est faux. Seule sa couleur l'est.</td><td>« L'icône de success · standard prend la couleur d'info. »</td></tr>
+    <tr><td>c-constats</td><td>« Le texte d'Outlined suit le dossier surface. »</td><td>« dossier surface » suppose de connaître le thème UCM.</td><td>« Le texte d'Outlined prend la couleur prévue pour un fond teinté. Outlined n'a pas de fond. »</td></tr>
+    <tr><td>c-constats</td><td>« Calque masqué sans propriété… puis réexportez. »</td><td>Le designer n'exporte rien ici.</td><td>Décision D : garder le texte, avec la mention « Message de l'exporteur » en tête.</td></tr>
+    <tr><td>c-corrections</td><td>« Lier les autres variants comme »</td><td>Phrase coupée par le sélecteur.</td><td>« Variant modèle : » suivi du sélecteur.</td></tr>
+    <tr><td>c-corrections</td><td>« Le texte d'Outlined suit le dossier page »</td><td>Titre d'état dans une liste d'actions.</td><td>« Lier le texte d'Outlined aux tokens sans fond ».</td></tr>
+    <tr><td>c-questions</td><td>« Les tokens écrivent outline. Le composant écrit Outlined. »</td><td>Des tokens qui écrivent : personnification.</td><td>« Les tokens emploient outline. Le composant emploie Outlined. »</td></tr>
+    <tr><td>c-questions</td><td>« Renommer la valeur change le contrat publié. »</td><td>« contrat publié » est un terme de développeur.</td><td>« Si vous renommez la valeur, les développeurs devront modifier leur code. »</td></tr>
+    <tr><td>c-contraste</td><td>« La cible attend 24 × 24 px. »</td><td>« cible » désigne aussi la variable visée dans la génération (« 24 cibles connues »).</td><td>« La zone cliquable doit mesurer au moins 24 × 24 px. »</td></tr>
+    <tr><td>c-contraste</td><td>« À régler dans le thème, ou par une autre variable »</td><td>Ne nomme ni l'outil ni le geste.</td><td>« Réglez la palette warning dans UCM Palettes. »</td></tr>
+    <tr><td>c-regles</td><td>« La propriété Dismissible n'a pas de règle @prop. »</td><td><code>@prop</code> est la syntaxe interne.</td><td>« La propriété Dismissible n'a pas de règle d'usage. »</td></tr>
+    <tr><td>g-preparer</td><td>« 24 cibles connues »</td><td>Le designer ne sait pas ce qu'est une cible connue.</td><td>« 24 variables sur 36 savent déjà quel token du thème viser. »</td></tr>
+    <tr><td>t-structure</td><td>« 3 variables du thème proposent leur couleur partout. Leur rôle en demande deux. »</td><td>Variables qui proposent : personnification. « deux » sans nom.</td><td>« Figma propose ces 3 variables pour tous les champs. Elles servent seulement aux fonds. »</td></tr>
+    <tr><td>t-renommages</td><td>« Les autres collections suivent le contexte A de l'onglet Comparer. »</td><td>L'onglet n'existe plus.</td><td>Retirer, ou renvoyer aux sélecteurs « Modes affichés ».</td></tr>
+    <tr><td>t-renommages</td><td>« Lu à 01:00 · relevé 1 »</td><td>« relevé » renvoie à l'onglet Relevés supprimé.</td><td>« Lu à 01:00 »</td></tr>
+    <tr><td>cf-historique</td><td>« Revenez à l'état d'avant le dernier renommage ou le dernier import. »</td><td>Ne couvre ni création ni portées.</td><td>« Annulez la dernière écriture de chaque sorte sur les variables. »</td></tr>
+    <tr><td>cf-historique</td><td>« Une variable déjà liée à un calque reste en place. »</td><td>Le fichier des tokens ne lit pas les liaisons d'un autre fichier.</td><td>« Si la bibliothèque est publiée, les calques liés à ces variables perdront leur liaison. »</td></tr>
+    <tr><td>cf-reglages</td><td>Aide de « Ce fichier suit l'architecture UCM »</td><td>Parle de Palettes seulement.</td><td>Ajouter : « Token Architect contrôle alors les composants et les tokens de ce fichier. »</td></tr>
+    <tr><td>e-vide</td><td>« Sélectionnez un composant dans Figma pour l'analyser. »</td><td>Laisse croire que l'analyse démarre seule.</td><td>« Sélectionnez un composant dans Figma. »</td></tr>
+    <tr><td>Plusieurs</td><td>« Analysé à 14:02 », « analysé à 14:02 »</td><td>Casse différente pour le même texte.</td><td>Une seule forme.</td></tr>
+    <tr><td>Plusieurs</td><td>« 12 variants », « 11 sur 12 », « aux 11 autres »</td><td>Trois nombres pour le même jeu.</td><td>« 11 variants · 1 combinaison absente ».</td></tr>
+    <tr><td>Plusieurs</td><td>« Pour info »</td><td>Abréviation familière.</td><td>« Information ».</td></tr>
+  </table></div>
+
+  <h2 id="recommandations">7 · Recommandations</h2>
+  <p>Chaque recommandation donne la modification la plus simple qui suffit. <span class="g g-b">bloquant</span> empêche de valider la maquette ; <span class="g g-m">majeur</span> casse une tâche ; <span class="g g-n">mineur</span> gêne la lecture.</p>
+  <div class="tableau"><table>
+    <tr><th>#</th><th>Gravité</th><th>Écran</th><th>Problème</th><th>Recommandation</th></tr>
+    <tr><td>U1</td><td><span class="g g-b">bloquant</span></td><td>Tous les bandeaux</td><td>Chaque bandeau a le fond et le texte ambre de Nomenclature, rgb(74, 58, 16) et rgb(255, 196, 112). Seule la bordure gauche change. Succès, échec et information se lisent comme une décision en attente. Deux bandeaux placent leurs phrases côte à côte.</td><td>Dans <code>architect.css</code> : fond <code>var(--fond)</code>, texte <code>var(--texte)</code> et une seule colonne pour <code>.bandeau</code>. Garder le fond ambre pour <code>.bandeau.attente</code> seul.</td></tr>
+    <tr><td>U2</td><td><span class="g g-b">bloquant</span></td><td>c-apres</td><td>Le bouton Annuler de Nomenclature reste à côté de « Ctrl+Z dans Figma défait ce lot ». Un plugin ne peut pas déclencher l'annulation de Figma.</td><td>Retirer le bouton <code>.resultat-action</code>.</td></tr>
+    <tr><td>U3</td><td><span class="g g-b">bloquant</span></td><td>c-constat</td><td>Le clic sur un constat le déplie. Sélectionner le calque demande un bouton de plus, contre la règle du mainteneur.</td><td>Le clic sur l'en-tête sélectionne le calque et déplie la carte. Retirer « Sélectionner dans Figma ». Un constat groupé sélectionne tous ses calques.</td></tr>
+    <tr><td>U4</td><td><span class="g g-b">bloquant</span></td><td>c-questions</td><td>La seconde question met <code>outline</code> en vert et <code>Outlined</code> en rouge. La couleur désigne la réponse.</td><td>Mots cités en gris, sans <code>mot-retenu</code> ni <code>mot-retire</code>.</td></tr>
+    <tr><td>U5</td><td><span class="g g-b">bloquant</span></td><td>Toutes les cartes, s-planche</td><td>« À corriger » a le rouge de <code>.seg-ancien</code>. « À vérifier » a l'ambre des décisions en attente. Aucune règle n'attribue les niveaux.</td><td>Gravité sans couleur, repérée par une forme et un mot. Ambre réservé au statut « Question ». Règle d'attribution écrite sous la planche.</td></tr>
+    <tr><td>U6</td><td><span class="g g-b">bloquant</span></td><td>t-renommages, t-structure, c-corrections, g-lier</td><td>Sous 520 px, Nomenclature empile l'ancien et le nouveau nom et cache l'en-tête Aujourd'hui et Après. Les barres offrent 424 et 484 px.</td><td>Garder l'empilement, et écrire « Aujourd'hui » et « Après » en petit devant chaque ligne. Soumettre cette forme au mainteneur. Élargir la barre réduirait la table du mode Tokens.</td></tr>
+    <tr><td>U7</td><td><span class="g g-b">bloquant</span></td><td>Nouveau cadre</td><td>Rien entre « aucune sélection » et « analyse en cours ». Le premier geste s'appelle Actualiser.</td><td>Cadre « Alert · 11 variants · pas encore analysé », avec un bouton principal « Analyser ». Actualiser remplace Analyser après la première analyse.</td></tr>
+    <tr><td>U8</td><td><span class="g g-m">majeur</span></td><td>c-constats, c-corrections, c-questions</td><td>Un problème apparaît dans Constats puis dans Corrections ou Questions. Les comptes 11, 3 et 2 ne s'additionnent pas.</td><td>Trois onglets sans doublon : Corrections, Questions, À faire dans Figma. Ouvrir sur le premier non vide.</td></tr>
+    <tr><td>U9</td><td><span class="g g-m">majeur</span></td><td>Nouveau cadre</td><td>Pas d'état « aucun constat », que P2.4 exige. La validation n'a pas de fin visible.</td><td>Cadre « Aucun constat sur les 11 variants d'Alert », avec l'heure et la liste des familles contrôlées.</td></tr>
+    <tr><td>U10</td><td><span class="g g-m">majeur</span></td><td>c-constats</td><td>11 constats au résumé, 7 cartes, 15 dans la matrice. Contraste et Règles d'usage hors de la liste. Huit familles de l'exporteur fondues en une.</td><td>Une liste avec toutes les familles. Comptes recalculés sur les cartes. Intertitres repris des familles de l'exporteur.</td></tr>
+    <tr><td>U11</td><td><span class="g g-m">majeur</span></td><td>c-corrections</td><td>La propagation demande un choix, compte comme correction, et sa suite n'est pas dessinée.</td><td>Action « Servir de modèle » sur une case de la matrice. Dessiner la carte qui en sort : liaisons exactes cochées, cas ambigus vers Questions. Écrire « 10 autres ».</td></tr>
+    <tr><td>U12</td><td><span class="g g-m">majeur</span></td><td>Matrice</td><td>Deux axes seulement. Button en a quatre. Dernière ligne haute de 86 px.</td><td>Sélecteurs « Lignes » et « Colonnes », autres axes en filtre. Hauteur de ligne fixe. Retirer le sélecteur de variant de l'en-tête.</td></tr>
+    <tr><td>U13</td><td><span class="g g-m">majeur</span></td><td>Mode Composant</td><td>La fenêtre de 900 px couvre le canevas où le calque sélectionné doit apparaître.</td><td>Bouton « Replier la vue Composant » qui réduit la fenêtre à la barre latérale.</td></tr>
+    <tr><td>U14</td><td><span class="g g-m">majeur</span></td><td>t-fiche, t-renommages</td><td>Le contexte actif de la table disparaît avec l'onglet Comparer. La fiche ne dit pas ce qu'elle compare.</td><td>Sélecteurs « Modes affichés » au-dessus de la table. La fiche nomme ses deux contextes.</td></tr>
+    <tr><td>U15</td><td><span class="g g-m">majeur</span></td><td>t-renommages, t-regles</td><td>Le filtre par l'arbre rend Appliquer ambigu. Le lien d'un terme vers l'arbre n'est pas dessiné.</td><td>« 24 noms cochés sur 87 ». Appliquer limité à la liste filtrée. Cadre du terme choisi avec ses variables marquées.</td></tr>
+    <tr><td>U16</td><td><span class="g g-m">majeur</span></td><td>t-bibliotheque</td><td>Renommages, Questions et Structure restent actifs avec leurs comptes. Aucun ne peut agir dans ce fichier.</td><td>Griser ces trois onglets, sans compte. Règles seul actif.</td></tr>
+    <tr><td>U17</td><td><span class="g g-m">majeur</span></td><td>e-hors</td><td>Le mode Tokens hors UCM n'est pas dessiné. Nomenclature renomme aujourd'hui dans tout fichier ; Q12 limite Token Architect à la navigation.</td><td>Dessiner le cadre. Demander au mainteneur si Renommages reste ouvert hors UCM.</td></tr>
+    <tr><td>U18</td><td><span class="g g-m">majeur</span></td><td>g-preparer, g-lier</td><td>Génération dessinée sur un Alert déjà lié. Aucun point d'entrée.</td><td>Composant à couleurs en dur. Bouton « Préparer les tokens » dans le résumé quand le composant n'a pas de tokens propres.</td></tr>
+    <tr><td>U19</td><td><span class="g g-m">majeur</span></td><td>g-creer, g-lier</td><td>Quatre états de passage manquent.</td><td>Cadres : après Créer (« Publiez la bibliothèque, puis revenez au composant ») ; fichier sans les cibles ; jeu d'une autre clé ; champ « Coller un plan ».</td></tr>
+    <tr><td>U20</td><td><span class="g g-m">majeur</span></td><td>c-questions</td><td>La première question propose des tokens d'info pour quatre statuts, et lie au thème en sautant les tokens d'Alert. L'effet d'une réponse n'est pas dit.</td><td>Renvoyer cette question vers « Préparer les tokens ». Dessiner la carte après réponse : elle passe dans Corrections, cochée.</td></tr>
+    <tr><td>U21</td><td><span class="g g-m">majeur</span></td><td>c-regles</td><td>Deux constats contradictoires. Écriture depuis Constats, sans aperçu.</td><td>Un seul cas. « Générer les règles » dans Corrections, avec la liste des règles et la ligne Ctrl+Z.</td></tr>
+    <tr><td>U22</td><td><span class="g g-m">majeur</span></td><td>c-contraste</td><td>Taille de cible jugée sur un composant sans axe d'état. Contour, anneau, désactivé, 44 px et 12 px absents.</td><td>Refaire le cadre sur Button, avec un exemple de chaque contrôle de P4.</td></tr>
+    <tr><td>U23</td><td><span class="g g-m">majeur</span></td><td>cf-historique</td><td>Promesse invérifiable sur les variables liées. Rien sur la casse des liaisons après publication.</td><td>Texte de la section 6.</td></tr>
+    <tr><td>U24</td><td><span class="g g-m">majeur</span></td><td>cf-reglages</td><td>L'aide de la déclaration UCM parle de Palettes seulement. L'état « aucune bibliothèque choisie » manque.</td><td>Aide réécrite. Cadre de choix demandé, et bandeau de la barre latérale qui y renvoie.</td></tr>
+    <tr><td>U25</td><td><span class="g g-m">majeur</span></td><td>Toutes les fenêtres</td><td>Deux fonds sombres : rgb(20, 20, 20) à gauche, rgb(44, 44, 44) dans la barre.</td><td>Un seul fond de socle.</td></tr>
+    <tr><td>U26</td><td><span class="g g-m">majeur</span></td><td>c-apres</td><td>Pas d'état après Ctrl+Z. Deux boutons Actualiser. Comptes non marqués comme périmés.</td><td>Cadre après Ctrl+Z, avec le même bandeau. Un seul Actualiser. Comptes grisés.</td></tr>
+    <tr><td>U27</td><td><span class="g g-n">mineur</span></td><td>Barre du haut</td><td>La bascule Tokens · Composant est un choix segmenté qui change de vue. Actualiser est dans la barre en mode Tokens, dans le résumé en mode Composant.</td><td>Soumettre la bascule au mainteneur. Actualiser au même endroit dans les deux modes.</td></tr>
+    <tr><td>U28</td><td><span class="g g-n">mineur</span></td><td>c-constat</td><td>« Ne plus ignorer » est un texte souligné. La portée d'Ignorer sur un constat groupé n'est pas dite.</td><td>Bouton texte. « Ignorer ces 4 calques ».</td></tr>
+    <tr><td>U29</td><td><span class="g g-n">mineur</span></td><td>t-structure</td><td>Cartes sans action. Cycle seul pour les chaînes cassées. <code>valeur-directe</code> et <code>nuance</code> absents.</td><td>« Ouvrir la fiche » dans chaque carte. Un exemple de chaque règle manquante.</td></tr>
+    <tr><td>U30</td><td><span class="g g-n">mineur</span></td><td>t-fiche</td><td>Ligne non marquée dans la table. Aucun lien vers les renommages de la variable.</td><td>Ligne marquée. Bloc « Renommages de cette variable ».</td></tr>
+    <tr><td>U31</td><td><span class="g g-n">mineur</span></td><td>g-preparer</td><td>Choix sans variant ni couleur. Copie offerte avant le plan complet.</td><td>Au focus d'une question, variant montré à gauche. Pastille du thème dans chaque choix. Copier dans g-pret seulement.</td></tr>
+    <tr><td>U32</td><td><span class="g g-n">mineur</span></td><td>g-creer</td><td>« Abandonner le plan » posé au-dessus du bouton principal. Alias existant différent non signalé.</td><td>Pied sur une ligne, Abandonner à gauche avec confirmation. « existe déjà, vise … ».</td></tr>
+    <tr><td>U33</td><td><span class="g g-n">mineur</span></td><td>e-partiel, e-echec</td><td>Variants non lus invisibles. Bandeau au lieu du constat bloquant de P2.4.</td><td>Cases « non lu » dans la matrice. Corriger le critère de P2.4.</td></tr>
+    <tr><td>U34</td><td><span class="g g-n">mineur</span></td><td>cf-reglages, cf-historique</td><td>Cadres à 640 × 900, sans la barre commune.</td><td>Cadres aux tailles des deux fenêtres.</td></tr>
+    <tr><td>U35</td><td><span class="g g-n">mineur</span></td><td>s-planche</td><td>Matrice, paire, question, onglets et pied absents.</td><td>Compléter la planche.</td></tr>
+    <tr><td>U36</td><td><span class="g g-n">mineur</span></td><td>Plusieurs</td><td>Textes de la section 6.</td><td>Appliquer les propositions de la section 6.</td></tr>
+  </table></div>
+</main>
+</body>
+</html>

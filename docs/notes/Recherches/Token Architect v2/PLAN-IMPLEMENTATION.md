@@ -138,9 +138,10 @@ Faites par la conversation principale : une maquette est une conception.
   « Utilisée par ». Bloc Structure. Fichier qui ne déclare pas UCM. Thème sombre
   (décision F).
 - [ ] **M2 · Mode Composant.** Aperçu et liaisons à gauche ; barre latérale :
-  familles, compte par sévérité, constat dépliable, lot avec Aujourd'hui et
-  Après, question, Ignorer, Actualiser, analyse partielle, panneau périmé.
-  Matrice des variants (C4).
+  résumé, puis Corrections, Questions et À faire dans Figma, chaque constat
+  dans un seul onglet ; Analyser puis Actualiser ; Ignorer ; analyse
+  partielle, aucun constat, panneau périmé. Matrice des variants (C4) et
+  « Servir de modèle ».
 - [ ] **M3 · Génération.** Questions par style dans le fichier des composants ;
   plan en attente dans le fichier des tokens.
 
@@ -316,7 +317,7 @@ contrat commité.
   chaque sévérité, en cours d'analyse, partiel et en échec ; une seconde
   analyse demandée pendant la première est refusée par le sandbox et
   Actualiser reste inactif ; une erreur du moteur (axes confondus, jeu sans
-  variant) s'affiche comme un constat bloquant avec son message ; la
+  variant) s'affiche dans un bandeau, avec son message, et aucun autre constat ; la
   sélection ne change que par `src/ecriture/selection.ts`.
 - [ ] **S1 · Sonde : import d'une variable de bibliothèque.** Effet de
   `importVariableByKeyAsync` sur le fichier (variable visible, gardée après
