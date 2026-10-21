@@ -158,7 +158,7 @@ décisions de ce plan.
 
 ### L · Le langage visuel commun
 
-La section 1 de la [maquette](./Maquettes/MAQUETTE-TOKEN-ARCHITECT.html#langage) inventorie les signaux des plugins et
+La section 1 de la [maquette](./Maquettes/MAQUETTE-TOKEN-ARCHITECT.html) inventorie les signaux des plugins et
 propose leur rangement.
 
 - [ ] **L.1 · Vocabulaire dans le kit.** `@ucm-kit/core/referentiel` déclare chaque signal : identifiant, sens, libellé
