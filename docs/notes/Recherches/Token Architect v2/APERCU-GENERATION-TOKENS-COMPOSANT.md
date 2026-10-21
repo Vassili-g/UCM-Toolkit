@@ -25,24 +25,25 @@ designer.
 ## Sur quoi le plugin se base
 
 La génération part d'un composant déjà dessiné : ses variants existent, et ses
-calques sont peints, avec des couleurs en dur ou des tokens faux. Le plugin ne
-devine pas un token d'après une couleur. Il lit quatre informations, de la plus
-sûre à la moins sûre.
+calques sont peints, avec des couleurs en dur ou des tokens faux.
 
-| Information | Ce que le plugin lit | Sûreté |
-|---|---|---|
-| Valeurs de variante | Les propriétés du jeu de variants : `Severity=Error`, `Variant=Filled` | Exacte : Figma les donne telles quelles |
-| Rôle du calque | Le champ peint : le fond d'un cadre donne `background`, la couleur d'un texte `foreground`, le fond d'un vecteur ou d'une instance d'icône `icon`, un contour `border`. Un contour qui n'apparaît qu'au variant `focus` donne `ring` | Sûre pour un composant simple |
-| Élément | Le nom du calque, quand le composant a plusieurs calques du même rôle qui n'ont pas la même couleur : `title` et `message` | Dépend des noms : un calque nommé `Frame 12` déclenche une question |
-| Dossier du thème | La réponse du designer, une par valeur de style | Donnée par le designer |
+Décidé : le plugin ne fait aucune supposition. Il ne propose que ce qu'une
+règle écrite tire d'un fait lu dans Figma, avec un seul résultat possible.
+Tout le reste est une question, sans réponse cochée d'avance.
 
-La couleur actuelle d'un calque sert seulement d'indice. Si le fond d'Alert
-`Filled` a déjà la couleur de `theme/danger/solid/default`, la question
-s'ouvre avec « Plein » coché. Le designer garde le dernier mot.
+| Information | Règle | Exact quand | Question quand |
+|---|---|---|---|
+| Valeur de variante | Lue dans les propriétés du jeu : `Severity=Error`, `Variant=Filled` | Toujours | Jamais |
+| Palette | Valeur de variante reconnue par un registre : `error` est une forme tolérée de `danger` | La valeur est dans un registre | La valeur est inconnue : `Severity=Brand` |
+| Rôle d'un texte | La couleur d'un calque de texte donne `foreground` | Toujours | Jamais |
+| Rôle du fond | Le fond du composant lui-même donne `background` | Le calque est la racine du variant | Le calque est un cadre imbriqué : voir « Élément » |
+| Rôle d'une icône | La couleur d'un vecteur placé dans une instance d'icône donne `icon` | Le vecteur est dans une instance | Le vecteur est libre |
+| Rôle d'un contour | Un contour donne `border` ; `ring` seulement si le calque s'appelle `ring` ou `focus-ring` | Le nom tranche | Un contour visible au seul variant `focus`, sous un autre nom |
+| Élément | Le nom du calque, quand deux calques du même rôle ont des couleurs différentes | Le calque porte un nom donné par le designer : `title`, `message` | Le calque porte un nom par défaut de Figma : `Frame 12`, `Rectangle 3` |
+| Dossier du thème | La réponse du designer, une par valeur de style | Le designer a répondu | Toujours posée, sans réponse cochée |
+| Taille | Le champ donne la famille (marge et écart : `sizing` ; arrondi : `radius` ; épaisseur de contour : `stroke`), puis la valeur en pixels donne le token de cette famille qui a exactement cette valeur | Un seul token de la famille a la valeur | Aucun token, ou plusieurs, ont la valeur |
 
-Pour les tailles, la valeur en pixels sert au contraire de base. `layout` est
-une échelle : une marge de 14 px vise `layout/sizing/3,5`, qui vaut 14 px. Une
-valeur absente de l'échelle, comme 13 px, devient une question.
+La couleur actuelle d'un calque n'intervient dans aucune proposition.
 
 À l'étape « Lier », le plugin ne cherche plus rien. Le plan garde, pour chaque
 variable, l'identifiant du calque qui l'a produite. Si le designer a modifié
@@ -55,7 +56,7 @@ rôle, ou devient une question.
 | Valeur de variante inconnue des registres (`Severity=Brand`) | Question : quelle palette ? |
 | Deux calques du même rôle, de couleurs différentes, aux noms vagues | Question : nommer les deux éléments |
 | Forme décorative, dégradé, image, calque masqué | Ignorée, et listée dans l'aperçu |
-| Composant pas encore peint | Les rôles se lisent encore ; les questions s'ouvrent sans réponse cochée |
+| Composant pas encore peint | Les rôles se lisent encore ; les questions restent les mêmes |
 
 ## Le besoin
 
@@ -130,13 +131,13 @@ Préparer les tokens d'Alert
 3 questions
 
 Variant = Filled : quel fond ?
-  (•) Plein   ( ) Teinté   ( ) Aucun
+  ( ) Plein   ( ) Teinté   ( ) Aucun
 
 Variant = Standard : quel fond ?
-  ( ) Plein   (•) Teinté   ( ) Aucun
+  ( ) Plein   ( ) Teinté   ( ) Aucun
 
 Variant = Outlined : quel fond ?
-  ( ) Plein   ( ) Teinté   (•) Aucun
+  ( ) Plein   ( ) Teinté   ( ) Aucun
 
 36 variables à créer
   error / filled / background   danger · solid · default
@@ -209,7 +210,8 @@ Risques :
 La génération supprime la tâche la plus longue de la création d'un composant :
 taper les noms et poser les alias un par un. Elle produit des noms qui suivent
 la structure du composant. La liaison de l'étape 6 devient alors exacte, sans
-heuristique. Elle ne demande qu'une question par valeur de style.
+heuristique. Elle demande une question par valeur de style, et une question
+par fait que les règles ne tranchent pas.
 
 Elle dépend de la forme des chemins de `components` dans le kit, à décider de
 toute façon pour les contrôles en full UCM. Elle viendrait après la
@@ -228,4 +230,4 @@ Recommandation : la construire, après P3, avec le transfert par
 
 | # | Question ouverte | Recommandation |
 |---|---|---|
-| G-3 | Comment la liste passe du fichier des composants au fichier des tokens. A : par la mémoire du plugin sur le poste du designer, sans geste, mais pour ce designer et ce poste seulement. B : le designer copie un texte dans le premier fichier et le colle dans le second ; un autre designer peut le recevoir | A, avec B en secours |
+| G-3 | La liste des variables à créer (nom et cible de chacune) se prépare dans le fichier des composants, qui contient le composant. Les variables se créent dans le fichier des tokens : un fichier ne peut pas modifier les variables d'une bibliothèque, et un plugin n'écrit que dans le fichier ouvert. La liste doit donc passer de l'un à l'autre. A : par la mémoire du plugin sur le poste du designer, sans geste, mais pour ce designer et ce poste seulement. B : le designer copie un texte dans le premier fichier et le colle dans le second ; un autre designer peut le recevoir | A, avec B en secours |

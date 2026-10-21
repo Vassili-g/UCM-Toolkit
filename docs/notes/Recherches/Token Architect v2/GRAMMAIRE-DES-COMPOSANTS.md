@@ -87,20 +87,51 @@ colonne « Contrôle » renvoie aux fonctions du document préparatoire.
 | Alerte `outlined` : texte de `surface` sans fond teinté | `alert/color/info/outlined/foreground` vise `theme.info.soft.surface.foreground` | C59 | `theme/info/soft/page/foreground`, si l'alerte `outlined` n'a pas de fond |
 | Alerte `outlined` sans token de contour | `alert/color/*/outlined` | C32 | Créer `…/outlined/border` |
 | Taille écrite `medium` au lieu de `md` | `button/size/medium` | C10 | `button/size/md` ; Nomenclature le propose déjà |
-| Un composant vise un autre composant | `tilelink/size/icon` vise `components.icon.size.xl` | C20 | Question G-5 ci-dessous |
+| Un composant vise un autre composant | `tilelink/size/icon` vise `components.icon.size.xl` | C20 | Les tailles d'icône passent dans `layout` (G-5 ci-dessous) |
 
 ## 5. Les questions
 
 Décidé : la forme de la section 2 est adoptée (G-2).
 
+### Les tailles d'icône (G-5)
+
+Les tailles de `components/icon/size/*` servent d'échelle à plusieurs
+composants : `tilelink/size/icon` et `stresstest/warning/badge/size/icon-size`
+les visent. Le mainteneur propose de les ranger dans `layout`, avec les autres
+échelles (`sizing`, `radius`, `stroke`).
+
+| Aujourd'hui | Proposé |
+|---|---|
+| `components/icon/size/xl` | `layout/icon/xl` |
+| `tilelink/size/icon` vise `components.icon.size.xl` | `tilelink/size/icon` vise `layout.icon.xl` |
+
+Le kit ajoute `icon` au registre des familles de `layout` (`FAMILLES_LAYOUT`),
+avec les tailles de `REGISTRE_TAILLES` comme valeurs. Un composant ne vise
+alors plus un autre composant, et la question de la propriété finale de
+`icon/size/xl` disparaît. Le déplacement des variables dans le fichier des
+tokens reste un geste du mainteneur : l'API de Figma ne change pas la
+collection d'une variable.
+
+### Les registres (G-7, G-8)
+
 Un registre est une liste du kit : les mots qu'UCM reconnaît à une position du
-chemin, et leurs formes tolérées. Le registre des états connaît `pressed` et
-tolère `press` ; Nomenclature propose alors de renommer `press` en `pressed`,
-et Token Architect signale l'écart.
+chemin, et leurs formes tolérées. Nomenclature lit déjà les registres du kit.
+
+| Registre | Existe | Contenu |
+|---|---|---|
+| Rôles | oui (`REGISTRE_ROLES`) | `background` (tolère `bg`), `foreground`, `text`, `icon`, `border`, `divider`… |
+| Familles d'un composant | oui (`REGISTRE_GROUPES`) | `color`, `size`, `radius` |
+| Côtés | oui (`REGISTRE_COTES`) | `x`, `y`, `top`, `right`, `bottom`, `left` |
+| États | oui (`REGISTRE_ETATS`) | `default`, `hover`, `pressed`, `focus`, `disabled`, `selected` |
+| Tailles | oui (`REGISTRE_TAILLES`) | `sm` (tolère `small`), `md`, `lg`… |
+| Propriétés de taille | non | `padding`, `gap`, `width`, `height` n'y sont pas |
+| Styles | non | `contained`, `outlined`, `text`… n'y sont pas |
+
+Nomenclature permet aussi à l'équipe d'ajouter ses propres termes dans
+l'onglet Règles, sous « Personnalisé ».
 
 | # | Question | Recommandation |
 |---|---|---|
-| G-5 | Un token de composant peut-il viser le token d'un autre composant ? Dans l'export, `tilelink/size/icon` vise `icon/size/xl` : l'icône de la tuile prend la taille `xl` du composant Icon. La règle actuelle n'autorise qu'une cible `theme`, `layout` ou `typography` | Oui, pour les tailles seulement |
-| G-6 | Le token `icon/size/xl` existe et vaut 28 px. Son nom finit par la taille `xl`, sans mot de propriété après, alors que la forme demande une propriété finale (`padding-x`, `gap`…). Admettre ce nom tel quel, ou exiger `icon/size/xl/size` ? | L'admettre tel quel : un composant qui n'a qu'une dimension par taille n'a pas besoin du mot |
-| G-7 | Créer le registre des styles : `contained`, `outlined`, `text`, `standard`, `filled`… Token Architect signalerait alors deux mots pour un même style dans deux composants, comme `filled` dans Alert et `contained` dans Button | Plus tard, quand la bibliothèque aura plus de composants |
-| G-8 | Créer le registre des propriétés de taille : `padding-x`, `padding-y`, `gap`, `radius`, `width`, `height`, `border-width`, `icon-size`… Token Architect signalerait alors `gap-col`, `gap-rows` et `gap-x` dans `stresstest`, trois noms pour deux propriétés | Oui |
+| G-5 | Ranger les tailles d'icône dans `layout/icon/*` | Oui |
+| G-7 | Les styles : un registre UCM, ou les termes personnalisés de l'équipe dans Nomenclature ? | Les termes personnalisés : les styles changent d'une bibliothèque à l'autre |
+| G-8 | Ajouter `padding`, `gap`, `width`, `height` et `border-width` aux registres existants, combinés aux côtés : `padding-x`, `gap-y` | Oui. Nomenclature signalerait alors `gap-col` et `gap-rows` dans `stresstest`, à côté de `gap-x` et `gap-y` |

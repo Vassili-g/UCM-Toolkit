@@ -126,6 +126,15 @@ Le mainteneur a validé ce modèle. La même forme convient aux corrections de
 Token Architect : un lot de corrections sûres avec aperçu, et une question
 pour chaque cas qui a plusieurs candidats.
 
+Décidé : Token Architect ne propose une correction ou une liaison que si elle
+est exacte. Une proposition est exacte quand une règle écrite du kit la tire
+d'un fait lu dans Figma (un nom, une valeur de variante, le champ peint) et
+qu'elle n'a qu'un candidat. Tout le reste devient une question sans réponse
+cochée d'avance. Aucune proposition ne vient d'une valeur proche, d'une
+fréquence d'usage ou d'une ressemblance de couleur. Conséquences : C26
+(mapping par valeur) n'est pas construit ; C76 ne garde que le classement des
+candidats d'une question, sans étiquette « Proche ».
+
 ### 3.6 Le marché
 
 Figma propose « Check designs », réservé aux offres Organization et Enterprise.
@@ -166,8 +175,8 @@ vérifier sur le code brut.
 |---|---|---|
 | Quatre onglets (Couleurs, Dimensions, Typographie, Composants), un total en haut, ouverture sur le premier onglet non vide | Check designs | Familles de constats et total (C68) ; ouverture sur la première famille non vide |
 | Lignes rangées sous des intitulés ; un clic sur l'intitulé sélectionne le groupe | Check designs | Constats groupés par cause identique : « 12 calques liés à `primary` dans le variant `secondary` » (C75) |
-| Étiquette « Match » pour une égalité exacte ; sinon suggestion proche | Check designs | Niveau de confiance affiché sur chaque proposition (C76) |
-| Classement des candidats par trois signaux : valeur, nom et hiérarchie de la variable, fréquence d'usage ; sans modèle de langage selon l'aide | Check designs | Les mêmes signaux, et un quatrième : la structure du composant (C76) |
+| Étiquette « Match » pour une égalité exacte ; sinon suggestion proche | Check designs | Non repris : seule une proposition exacte est faite (section 3.5) |
+| Classement des candidats par trois signaux : valeur, nom et hiérarchie de la variable, fréquence d'usage ; sans modèle de langage selon l'aide | Check designs | Structure, nom et hiérarchie, pour ordonner les candidats d'une question (C76) |
 | Candidats filtrés par les portées de la variable | figmalint ; conseillé par l'aide de Figma | Filtre des candidats par `scopes` (C18) |
 | Distance de couleur RGB, tolérance de 0,1, premier mode seul | figmalint | À éviter : le kit mesure en OKLab, et chaque mode doit être comparé |
 | Menu déroulant par ligne pour choisir un autre candidat | Check designs | Question à plusieurs candidats (C70) |
@@ -296,7 +305,7 @@ erreur.
 |---|---|---|---|---|---|---|
 | C24 | Propagation : le designer lie un variant de référence ; le plugin lie tous les autres en substituant les segments d'axe | ajouté, forme de D7 | oui | forte | agnostique | Le gain de temps le plus grand pour le risque le plus faible. Chaque liaison proposée s'appuie sur un token qui existe |
 | C25 | Mapping initial par structure : rôle du calque (texte, fond de cadre, contour, calque nommé `ring` ou `focus`) et valeurs des axes donnent le chemin attendu dans les tokens du composant | demandé | oui, limité | forte | agnostique | Marche quand l'arbre des tokens suit les axes ; sinon des questions |
-| C26 | Mapping par valeur : une valeur en dur égale à celle d'un token | ajouté | oui | moyenne | agnostique | Ce que fait le marché. Plusieurs tokens ont souvent la même valeur : à garder en dernier recours, toujours confirmé |
+| C26 | Mapping par valeur : une valeur en dur égale à celle d'un token | ajouté | oui | faible | agnostique | Écarté : plusieurs tokens ont souvent la même valeur, et seule une proposition exacte est admise (section 3.5) |
 | C27 | Mapping vers le thème quand le composant n'a pas de tokens propres : `solid/default`, `surface/foreground`… selon le rôle et l'état (`TABLE_DES_DOSSIERS`) | ajouté | oui | forte | full UCM | Applique la règle du dossier : un premier plan prend le dossier du fond qui est juste derrière lui |
 | C28 | Créer les tokens de composant qui manquent : `button/color/secondary/hover/background`, alias du thème | ajouté | partiel | moyenne | les deux | Écrit dans le fichier des tokens, autre fichier que celui du composant ; décision Q6 |
 | C29 | Mêmes mécanismes pour les espacements, rayons, épaisseurs et tailles | ajouté | oui | forte | agnostique | Les liaisons de disposition sont aussi longues à poser que les couleurs |
@@ -386,7 +395,7 @@ règles pendant l'export. Le kit ne vérifie que la forme des maîtres du kit
 | C73 | Rapport des constats d'une page, en JSON ou en Markdown | ajouté | oui | moyenne | agnostique | Sert à une revue de bibliothèque ou à un ticket |
 | C74 | Relancer les contrôles quand le composant change (`documentchange`) | ajouté | oui | moyenne | agnostique | Coût à mesurer ; un bouton Actualiser suffit au début |
 | C75 | Grouper les constats de même cause et les corriger par groupe | ajouté (Check designs) | oui | forte | agnostique | Une erreur de duplication touche souvent des dizaines de calques |
-| C76 | Classer les candidats d'une correction : structure, valeur, nom et hiérarchie, fréquence d'usage ; afficher « Exact » ou « Proche » | ajouté (Check designs) | oui | forte | agnostique | La structure passe en premier : elle porte la valeur propre de Token Architect. La fréquence d'usage ne se lit que dans le fichier ouvert |
+| C76 | Classer les candidats d'une question : structure, nom et hiérarchie | ajouté (Check designs) | oui | moyenne | agnostique | Aucun candidat n'est coché d'avance ; ni valeur proche ni fréquence d'usage (section 3.5) |
 | C77 | Montrer sur le canevas l'effet d'un candidat survolé | ajouté (Check designs) | partiel | faible | agnostique | Un plugin doit écrire puis défaire ; l'aperçu du plugin suffit |
 | C78 | Réglages : bibliothèques de référence, niveau AA ou AAA, primitives masquées des candidats | ajouté (Check designs) | oui | moyenne | les deux | En full UCM, les primitives sont toujours masquées (C61) |
 | C79 | Composant détaché, ou instance d'une bibliothèque absente | ajouté (Check designs) | oui | moyenne | agnostique | Constat sans correction automatique |
