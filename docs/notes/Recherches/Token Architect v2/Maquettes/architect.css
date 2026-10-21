@@ -113,5 +113,19 @@
 .arbre-ligne.filtre-actif { box-shadow: inset 3px 0 0 var(--texte-groupe); }
 .marquee { box-shadow: inset 3px 0 0 var(--texte-variable); background: var(--fond-survol); }
 
-/* Le cadre des repères dans la maquette, hors du plugin. */
-.repere { outline: 2px dashed #ff8ad8; outline-offset: 2px; border-radius: 4px; }
+/* Un seul style pour tout chemin de token, dans la colonne de gauche comme dans la barre latérale : celui de Nomenclature.
+   Police de code, 11 px, graisse normale ; seul le segment qui change passe en semi-gras, rouge barré s'il part, vert s'il arrive. */
+.nom-de-token, .vc-nom, .vc-nom bdi, .chemin-ligne, .arbre-libelle { font-family: "JetBrains Mono", Consolas, monospace; font-size: 11px; font-weight: 400; }
+.chemin-ligne { color: inherit; background: none; padding: 0; overflow-wrap: anywhere; }
+.chemin-titre { font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px; font-weight: 400; overflow-wrap: anywhere; }
+.chemin-titre b { font-weight: 600; }
+.seg-ancien { color: var(--texte-danger, rgb(255 175 163)); font-weight: 600; text-decoration: line-through; text-decoration-thickness: 1px; }
+.seg-nouveau { color: var(--texte-succes, rgb(133 224 163)); font-weight: 600; }
+/* Un terme cité dans une phrase : police de code, semi-gras, sans fond ni couleur de réponse. */
+.mot-cite { font-family: "JetBrains Mono", Consolas, monospace; font-size: 11px; font-weight: 600; color: var(--texte); background: none; padding: 0; }
+/* L'aperçu des corrections cochées dans la colonne de gauche : l'interrupteur qui l'affiche. */
+.apercu-corrections { display: inline-flex; align-items: center; gap: var(--espace-controle); color: var(--texte-second); white-space: nowrap; }
+
+/* Les repères de la maquette, hors du plugin : un trait fin et une pastille numérotée, expliquée sous la fenêtre. */
+.repere { outline: 1px dashed #ff8ad8; outline-offset: 1px; }
+.repere-n { position: absolute; z-index: 1000; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #ff8ad8; color: #1a1a1a; font: 700 10px/16px Inter, system-ui, sans-serif; text-align: center; pointer-events: none; }
