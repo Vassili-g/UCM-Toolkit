@@ -1,22 +1,19 @@
 /* Les éléments nouveaux de Token Architect, posés au-dessus des feuilles réelles de l'explorateur et de Nomenclature.
-   Chaque règle n'emploie que les variables du socle : la même feuille vaut dans les deux cadres. */
+   La feuille vaut dans les deux cadres. Elle ne redéfinit aucune classe de Nomenclature dans la barre latérale :
+   les règles qui portent un nom de classe de Nomenclature ne visent que la colonne de l'explorateur (`.application`). */
 
-/* Les places de Nomenclature, communes à tout le plugin : orchidée pour un groupe, olive pour une variable. */
-:root {
+/* Les places de Nomenclature, reprises dans la colonne de l'explorateur : orchidée pour un groupe, olive pour une variable. */
+.application {
   --fond-groupe: rgb(80 36 84);
   --texte-groupe: rgb(244 180 248);
   --fond-variable: rgb(58 62 28);
   --texte-variable: rgb(222 228 150);
 }
-
-.jeton { display: inline-flex; align-items: center; padding: 0 6px; border-radius: 4px; font-family: var(--police-code); line-height: 18px; white-space: nowrap; }
-.jeton-groupe { background: var(--fond-groupe); color: var(--texte-groupe); }
-.jeton-variable { background: var(--fond-variable); color: var(--texte-variable); }
-.jeton-neutre { background: var(--fond-note); color: var(--texte); }
-.mot-groupe { color: var(--texte-groupe); }
-.mot-variable { color: var(--texte-variable); }
-/* Un mot cité dans une question : gris, sans couleur de réponse. */
-.mot-neutre { background: var(--fond-note); color: var(--texte); padding: 0 4px; border-radius: 3px; font-family: var(--police-code); }
+.application .jeton { display: inline-flex; align-items: center; padding: 0 6px; border-radius: 4px; font-family: var(--police-code); line-height: 18px; white-space: nowrap; }
+.application .jeton-groupe { background: var(--fond-groupe); color: var(--texte-groupe); }
+.application .jeton-variable { background: var(--fond-variable); color: var(--texte-variable); }
+.application .mot-groupe { color: var(--texte-groupe); }
+.application .mot-variable { color: var(--texte-variable); }
 
 /* La barre latérale de droite, dans le cadre de l'explorateur. Un seul fond pour toute la fenêtre. */
 .arch-laterale { flex: 0 0 auto; display: flex; border-left: 1px solid var(--bordure); background: var(--fond); min-height: 0; }
@@ -119,10 +116,10 @@
 .chemin-ligne { color: inherit; background: none; padding: 0; overflow-wrap: anywhere; }
 .chemin-titre { font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px; font-weight: 400; overflow-wrap: anywhere; }
 .chemin-titre b { font-weight: 600; }
-.seg-ancien { color: var(--texte-danger, rgb(255 175 163)); font-weight: 600; text-decoration: line-through; text-decoration-thickness: 1px; }
-.seg-nouveau { color: var(--texte-succes, rgb(133 224 163)); font-weight: 600; }
+.application .seg-ancien { color: var(--texte-danger, rgb(255 175 163)); font-weight: 600; text-decoration: line-through; text-decoration-thickness: 1px; }
+.application .seg-nouveau { color: var(--texte-succes, rgb(133 224 163)); font-weight: 600; }
 /* Un terme cité dans une phrase : police de code, semi-gras, sans fond ni couleur de réponse. */
-.mot-cite { font-family: "JetBrains Mono", Consolas, monospace; font-size: 11px; font-weight: 600; color: var(--texte); background: none; padding: 0; }
+.mot-cite:not(.mot-retire):not(.mot-retenu) { font-family: "JetBrains Mono", Consolas, monospace; font-size: 11px; font-weight: 600; color: var(--texte); background: none; padding: 0; }
 /* L'aperçu des corrections cochées dans la colonne de gauche : l'interrupteur qui l'affiche. */
 .apercu-corrections { display: inline-flex; align-items: center; gap: var(--espace-controle); color: var(--texte-second); white-space: nowrap; }
 
