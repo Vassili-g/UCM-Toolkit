@@ -504,6 +504,10 @@
    {
     "id": "stroke",
     "toleres": []
+   },
+   {
+    "id": "icon",
+    "toleres": []
    }
   ]
  },
