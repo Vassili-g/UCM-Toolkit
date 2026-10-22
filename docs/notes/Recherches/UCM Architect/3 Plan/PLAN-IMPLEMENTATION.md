@@ -406,7 +406,7 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   Fait quand : `test:paquet -- exporter` et `-- socle` sans changement
   d'attendu ; `npm test` passe ; `build:plugin -- exporter` et `-- palettes`
   passent, bundles à 1 % près.
-- [ ] **S1 · Langage visuel du socle.** Vague 2 · A1, K2.
+- [~ Claude 2] **S1 · Langage visuel du socle.** Vague 2 · A1, K2.
   Écrit : `plugin-socle/src/ui/langage.css`, composants du socle, galerie du
   socle, loi des styles ; et, par exception, les règles reprises de
   `plugin-architect/src/ui/nomenclature/` (aucun lot U ouvert).
@@ -464,7 +464,7 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   Fait quand : tests du sandbox et loi d'écriture de Nomenclature sans
   changement d'attendu ; la loi d'Architect refuse, à l'essai, une écriture et
   un import de `template/ecriture` hors de `src/ecriture/` ; `npm test` passe.
-- [~ Claude 1] **A1 · Squelette des domaines.** `implementeur-exigeant` · vague 2 · seul
+- [x] (c2dc6c87) **A1 · Squelette des domaines.** `implementeur-exigeant` · vague 2 · seul
   · A0.2, note N1 · code nouveau.
   Lit : N1, `src/code.ts`, `src/messages.ts`, `src/ui/textes.ts`, `src/ui/index.ts`, `galerie/etats.cjs`.
   Vérifie : `npm run test:paquet -- architect`, `npm run build:plugin -- architect`, tests racine.
@@ -498,7 +498,7 @@ les tests d'interface de ses cadres, sans `test:ui`, et retire ses mots de la
 liste d'exceptions de la loi du vocabulaire. Les données viennent des fixtures
 de galerie quand le lot B n'est pas fait.
 
-- [ ] **U0 · Manifeste des cadres et comparateur.** Vague 2 · A1 (exempté de
+- [~ Claude 1] **U0 · Manifeste des cadres et comparateur.** Vague 2 · A1 (exempté de
   S1 : outil).
   Écrit : `plugin-architect/galerie/cadres.json`,
   `plugin-architect/galerie/comparer-maquette.cjs`.
@@ -1108,6 +1108,15 @@ Choix faits sans le mainteneur :
   défauts tant qu'il ne redimensionne pas · réversible : oui.
 - Q-20 · A1 · Collisions de messages · `noms-analyser`, `noms-repondre`,
   `noms-selection` pour Nomenclature · réversible : oui.
+- Q-21 · A1 · Modules sans lecteur · `comparaison.ts`, `releves.ts`,
+  `simulation.ts`, `rapport.ts` et `integrations/contrats.ts` restent, avec
+  leurs tests, sans écran ; O1 les retire si rien ne les reprend · réversible : oui.
+- Q-22 · A1 · Contexte de modes · sans Comparer, chaque collection prend son
+  mode par défaut dans la table ; les modes affichés de `t-renommages`
+  (U1) rendront le choix · réversible : oui.
+- Q-23 · A1 · Classes de Nomenclature · `pastille`, `pied`, `corps`, `lien`,
+  `recherche`, `zone-hors-champ` deviennent `noms-*` ; Nomenclature passe au
+  thème sombre · réversible : oui.
 
 ## 10. Hors du plan
 
