@@ -2,18 +2,18 @@
  * La fenêtre de l'explorateur : ses deux dispositions, leurs bornes et leurs
  * clés. La lecture, le rangement et le bornage sont ceux du socle.
  *
- * La disposition large porte l'explorateur de tokens : l'arbre, la table et
- * l'inspecteur. La disposition étroite porte la vue composant. Le sandbox
- * ouvre l'étroite dans un fichier sans variable locale, et la bascule de la
- * barre passe de l'une à l'autre. Chaque disposition range sa taille sous sa
- * propre clé.
+ * La disposition large est le mode Tokens : l'arbre, la table et le panneau
+ * latéral. La disposition étroite est le mode Composant. Le sandbox ouvre
+ * l'étroite quand la sélection a un sujet, la large sinon, et la bascule de
+ * la barre passe de l'une à l'autre. Chaque disposition range sa taille sous
+ * sa propre clé.
  */
 import * as socle from 'ucm-plugin-socle/src/fenetre';
 
 export type Disposition = 'large' | 'etroite';
 
-/** La taille d'ouverture, tant que rien n'a été rangé : l'arbre, la table et l'inspecteur côte à côte. */
-export const TAILLE_PAR_DEFAUT = { largeur: 1200, hauteur: 800 } as const;
+/** La taille d'ouverture du mode Tokens, tant que rien n'a été rangé : l'arbre, la table et le panneau latéral de 640 px côte à côte. */
+export const TAILLE_PAR_DEFAUT = { largeur: 1360, hauteur: 800 } as const;
 
 /** En dessous, l'arbre et la table ne tiennent plus côte à côte, inspecteur replié. */
 export const TAILLE_MINIMALE = { largeur: 560, hauteur: 480 } as const;
@@ -21,8 +21,11 @@ export const TAILLE_MINIMALE = { largeur: 560, hauteur: 480 } as const;
 /** Une clé propre au plugin, distincte de celles des deux autres plugins. */
 export const CLE_DE_LA_FENETRE = 'ucm-explorateur/tailleFenetre';
 
-/** La taille d'ouverture de la vue composant : une colonne de 680 px sous la barre de 44 px. */
-export const TAILLE_ETROITE = { largeur: 364, hauteur: 724 } as const;
+/** La taille d'ouverture du mode Composant, panneau des constats fermé. */
+export const TAILLE_ETROITE = { largeur: 520, hauteur: 760 } as const;
+
+/** La taille du mode Composant, panneau des constats ouvert. L'interface la demande par `resize` ; elle n'est pas rangée comme défaut. */
+export const TAILLE_COMPOSANT_PANNEAU_OUVERT = { largeur: 1040, hauteur: 760 } as const;
 
 /** En dessous, une ligne ne montre plus son nom à côté de sa valeur. */
 export const TAILLE_MINIMALE_ETROITE = { largeur: 320, hauteur: 420 } as const;

@@ -6,7 +6,7 @@
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { createOnglets } from 'ucm-plugin-socle/src/ui/Onglets';
 import { createInterrupteur } from 'ucm-plugin-socle/src/ui/Interrupteur';
-import type { Bilan, CollectionVue, ProtectionVue } from '../../nomenclature/messages';
+import type { Bilan, CollectionVue, ProtectionVue } from '../../messages/nomenclature';
 import type { Coquille } from './coquille';
 import type { MessageAAfficher } from './frontiere';
 import { telecharger } from './telechargement';

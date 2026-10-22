@@ -192,7 +192,7 @@ export function causeDeProtection(
   `projection.ts`). `reglesRangees` vaut `!premierLancement()`.
 
 ```ts
-// packages/plugin-architect/src/nomenclature/messages.ts
+// packages/plugin-architect/src/messages/nomenclature.ts
 export interface Bilan {
   // …
   readonly proteges: number;   // inchangé : le total, toutes causes

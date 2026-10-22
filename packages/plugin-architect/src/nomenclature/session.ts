@@ -27,8 +27,8 @@ import {
 } from '../ecriture/noms';
 import { lireInventaire, type PortDeLecture } from './lecture';
 import type {
-  CodeDErreur, DemandeArchitect, EcritureChoisie, EffetVue, GesteSurLesRegles, PluginMessage, Reponse, ResultatVue,
-} from './messages';
+  CodeDErreur, DemandeDeNomenclature, EcritureChoisie, EffetVue, GesteSurLesRegles, MessageDeNomenclature, Reponse, ResultatVue,
+} from '../messages/nomenclature';
 import { conflitVue, effetDEcriture, effetDeTerme, projeter, type EntreeDeProjection, type Projection } from './projection';
 import {
   CLE_EXCLUES, cleDuTermeOrdinaire, cleEcart, cleOrdinaire, clePlusTard, cleReponse, cleTerme, cleVoulu, cleDistinct, dejaJugeDuFichier, defaireReponse,
@@ -56,7 +56,7 @@ export interface PortDeSession {
 
 export interface OptionsDeSession {
   readonly port: PortDeSession;
-  readonly envoyer: (message: PluginMessage) => void;
+  readonly envoyer: (message: MessageDeNomenclature) => void;
   readonly moteur?: Moteur;
   readonly tranches?: OptionsDeTranches;
   /** Heure du journal ; l'heure courante par défaut. */
@@ -65,13 +65,13 @@ export interface OptionsDeSession {
 
 export interface Session {
   /** Traite une demande de l'écran ; la promesse se résout quand la demande est répondue ou écartée. */
-  recevoir(demande: DemandeArchitect): Promise<void>;
+  recevoir(demande: DemandeDeNomenclature): Promise<void>;
 }
 
-type DemandeDeCalcul = Extract<DemandeArchitect, { type: 'analyser' | 'regle' | 'repondre' | 'configurer' | 'importer' | 'appliquer' | 'annuler-dernier' }>;
-const TYPES_DE_CALCUL: ReadonlySet<DemandeArchitect['type']> = new Set(['analyser', 'regle', 'repondre', 'configurer', 'importer', 'appliquer', 'annuler-dernier']);
+type DemandeDeCalcul = Extract<DemandeDeNomenclature, { type: 'noms-analyser' | 'regle' | 'noms-repondre' | 'configurer' | 'importer' | 'appliquer' | 'annuler-dernier' }>;
+const TYPES_DE_CALCUL: ReadonlySet<DemandeDeNomenclature['type']> = new Set(['noms-analyser', 'regle', 'noms-repondre', 'configurer', 'importer', 'appliquer', 'annuler-dernier']);
 /** Pour ces calculs, une demande plus récente de même sorte écarte la précédente. */
-const DERNIERE_INTENTION: ReadonlySet<DemandeArchitect['type']> = new Set(['analyser', 'configurer']);
+const DERNIERE_INTENTION: ReadonlySet<DemandeDeNomenclature['type']> = new Set(['noms-analyser', 'configurer']);
 
 class ErreurDeProtocole extends Error {
   constructor(readonly code: CodeDErreur) { super(code); }
@@ -559,7 +559,7 @@ export function creerSession(options: OptionsDeSession): Session {
     if (resultat.statut !== 'refuse') await rafraichir(passage, false);
   }
 
-  async function appliquer(passage: Passage, demande: Extract<DemandeArchitect, { type: 'appliquer' }>): Promise<void> {
+  async function appliquer(passage: Passage, demande: Extract<DemandeDeNomenclature, { type: 'appliquer' }>): Promise<void> {
     const base = exiger();
     if (demande.generation !== base.generation) throw new ErreurDeProtocole('generation-perimee');
     const demandes = demandesDeRenommage(base, base.projection.identifiants(demande.selection));
@@ -587,9 +587,9 @@ export function creerSession(options: OptionsDeSession): Session {
   async function executer(passage: Passage): Promise<void> {
     const demande = passage.demande;
     switch (demande.type) {
-      case 'analyser': return rafraichir(passage, true);
+      case 'noms-analyser': return rafraichir(passage, true);
       case 'regle': return modifierLesRegles(passage, (_base, courant, regles) => ecrituresDuGeste(demande.geste, regles, courant));
-      case 'repondre':
+      case 'noms-repondre':
         return modifierLesRegles(passage, (base, courant, regles) => {
           const question = [...base.questions.questions, ...base.questions.autres].find((candidate) => candidate.cle === demande.question);
           if (!question) throw new ErreurDeProtocole('echec');
@@ -641,12 +641,12 @@ export function creerSession(options: OptionsDeSession): Session {
   /** L'état de la génération demandée, ou l'erreur qui répond à la lecture. */
   function etatDeLaGeneration(demande: number, generation: number): Etat | null {
     if (etat && etat.generation === generation) return etat;
-    const analyseEnCours = enCours?.demande.type === 'analyser' || attente.some((passage) => passage.demande.type === 'analyser');
+    const analyseEnCours = enCours?.demande.type === 'noms-analyser' || attente.some((passage) => passage.demande.type === 'noms-analyser');
     erreur(demande, !etat && analyseEnCours ? 'analyse-en-cours' : 'generation-perimee');
     return null;
   }
 
-  async function simuler(demande: Extract<DemandeArchitect, { type: 'simuler' }>): Promise<void> {
+  async function simuler(demande: Extract<DemandeDeNomenclature, { type: 'simuler' }>): Promise<void> {
     const base = etatDeLaGeneration(demande.demande, demande.generation);
     if (!base) return;
     const courant = lireLeStockage(port.regles);
@@ -667,7 +667,7 @@ export function creerSession(options: OptionsDeSession): Session {
     envoyer({ type: 'simulation', demande: demande.demande, generation: base.generation, effet, conflit: null });
   }
 
-  async function lire(demande: DemandeArchitect): Promise<void> {
+  async function lire(demande: DemandeDeNomenclature): Promise<void> {
     switch (demande.type) {
       case 'lignes': {
         const courant = etatDeLaGeneration(demande.demande, demande.generation);
@@ -690,10 +690,10 @@ export function creerSession(options: OptionsDeSession): Session {
         envoyer({ type: 'fiche', demande: demande.demande, generation: courant.generation, fiche: courant.projection.fiche(demande.terme) });
         return;
       }
-      case 'selection': {
+      case 'noms-selection': {
         const courant = etatDeLaGeneration(demande.demande, demande.generation);
         if (!courant) return;
-        envoyer({ type: 'selection', demande: demande.demande, generation: courant.generation, principaux: courant.projection.principaux([...demande.exclus, ...demande.inclus]) });
+        envoyer({ type: 'noms-selection', demande: demande.demande, generation: courant.generation, principaux: courant.projection.principaux([...demande.exclus, ...demande.inclus]) });
         return;
       }
       case 'diagnostic': {

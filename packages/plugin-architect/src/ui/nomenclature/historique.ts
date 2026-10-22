@@ -7,7 +7,7 @@
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import type { Convention } from '@ucm-kit/core/referentiel';
-import type { Bilan, CollectionDuJournal, LigneDImport, LigneDuJournal } from '../../nomenclature/messages';
+import type { Bilan, CollectionDuJournal, LigneDImport, LigneDuJournal } from '../../messages/nomenclature';
 import { poserLesSegments, specimenDeConvention } from './aAppliquer';
 import { TEXTES } from './textes';
 

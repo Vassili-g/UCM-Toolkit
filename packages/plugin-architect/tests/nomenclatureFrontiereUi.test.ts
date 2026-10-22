@@ -1,7 +1,7 @@
 /** La frontière de l'écran : numérotation, calculs un à un, lectures sur la génération courante. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { Bilan, DemandeArchitect, PluginMessage, RequeteDeTermes } from '../src/nomenclature/messages';
+import type { Bilan, DemandeDeNomenclature, MessageDeNomenclature, RequeteDeTermes } from '../src/messages/nomenclature';
 import { creerFrontiere, type MessageAAfficher } from '../src/ui/nomenclature/frontiere';
 
 const ECRITURE = { convention: { casse: 'minuscules', separateur: 'tiret' }, suivent: 1, total: 1, exemple: null } as const;
@@ -15,10 +15,10 @@ const SELECTION = { groupes: ['g'], exclus: [], inclus: [] };
 const requete = (recherche: string, reste: Partial<RequeteDeTermes> = {}): RequeteDeTermes =>
   ({ recherche, types: [], origines: [], places: [], tri: 'alpha', section: null, place: null, debut: 0, ...reste });
 const COMPTES = { types: { 'a-trancher': 0, remplace: 0, conforme: 0, 'sans-regle': 0, composant: 0, palette: 0 }, origines: { ucm: 0, personnalise: 0 }, places: { groupes: 0, variables: 0 } };
-const reponseDesTermes = (demande: number): PluginMessage => ({ type: 'termes', demande, generation: 1, section: null, debut: 0, sections: [], comptes: COMPTES });
+const reponseDesTermes = (demande: number): MessageDeNomenclature => ({ type: 'termes', demande, generation: 1, section: null, debut: 0, sections: [], comptes: COMPTES });
 
 function creer() {
-  const envoyees: DemandeArchitect[] = [];
+  const envoyees: DemandeDeNomenclature[] = [];
   const affichees: MessageAAfficher[] = [];
   const frontiere = creerFrontiere({ envoyer: (demande) => envoyees.push(demande), afficher: (message) => affichees.push(message) });
   /** Analyse le fichier jusqu'au bilan de la génération donnée. */
@@ -42,7 +42,7 @@ test('analyser prévient l’écran avant d’envoyer sa demande', () => {
   const { frontiere, envoyees, types } = creer();
   frontiere.analyser();
   assert.deepEqual(types(), ['analyse-demandee']);
-  assert.deepEqual(envoyees, [{ type: 'analyser', demande: 1 }]);
+  assert.deepEqual(envoyees, [{ type: 'noms-analyser', demande: 1 }]);
 });
 
 test('un seul calcul est en vol : le suivant attend la réponse du premier, puis part', () => {
@@ -50,10 +50,10 @@ test('un seul calcul est en vol : le suivant attend la réponse du premier, puis
   analyser(1);
   const regle = frontiere.regle(GESTE);
   const reponse = frontiere.repondre('q', { type: 'distincts' });
-  assert.deepEqual(envoyees.map((demande) => demande.type), ['analyser', 'regle']);
+  assert.deepEqual(envoyees.map((demande) => demande.type), ['noms-analyser', 'regle']);
   assert.equal(frontiere.calculEnCours(), true);
   frontiere.recevoir({ type: 'bilan', demande: regle, bilan: bilan(2) });
-  assert.deepEqual(envoyees.map((demande) => demande.type), ['analyser', 'regle', 'repondre']);
+  assert.deepEqual(envoyees.map((demande) => demande.type), ['noms-analyser', 'regle', 'noms-repondre']);
   frontiere.recevoir({ type: 'bilan', demande: reponse, bilan: bilan(3) });
   assert.equal(frontiere.calculEnCours(), false);
 });
@@ -71,7 +71,7 @@ test('seule la dernière demande de configuration en attente est envoyée, les r
   finir(premiere, 3);
   finir(5, 4);
   finir(seconde, 5);
-  assert.deepEqual(envoyees.slice(2).map((demande) => demande.type), ['repondre', 'configurer', 'repondre']);
+  assert.deepEqual(envoyees.slice(2).map((demande) => demande.type), ['noms-repondre', 'configurer', 'noms-repondre']);
   assert.deepEqual(envoyees[3], { type: 'configurer', demande: 5, collectionsExclues: ['a', 'b'] });
   assert.equal(frontiere.calculEnCours(), false);
 });
@@ -83,7 +83,7 @@ test('une lecture part pendant un calcul, sur la génération courante, et sa r�
   const lignes = frontiere.lignes('g', 50);
   assert.deepEqual(envoyees[envoyees.length - 1], { type: 'lignes', demande: lignes, generation: 4, groupe: 'g', debut: 50 });
   assert.equal(frontiere.calculEnCours(), true);
-  const reponse: PluginMessage = { type: 'lignes', demande: lignes as number, generation: 4, groupe: 'g', debut: 50, lignes: [], total: 0 };
+  const reponse: MessageDeNomenclature = { type: 'lignes', demande: lignes as number, generation: 4, groupe: 'g', debut: 50, lignes: [], total: 0 };
   frontiere.recevoir(reponse);
   assert.equal(affichees[affichees.length - 1], reponse);
   assert.equal(frontiere.calculEnCours(), true, 'la lecture n’a pas mis fin au calcul');
@@ -107,8 +107,8 @@ test('la lecture de la sélection part avec ses exclus, ses inclus et la génér
   const { frontiere, envoyees, affichees, analyser } = creer();
   analyser(3);
   const demande = frontiere.selection(['v1'], ['v2', 'v3']) as number;
-  assert.deepEqual(envoyees[envoyees.length - 1], { type: 'selection', demande, generation: 3, exclus: ['v1'], inclus: ['v2', 'v3'] });
-  const reponse: PluginMessage = { type: 'selection', demande, generation: 3, principaux: [['v2', 'terme:bg']] };
+  assert.deepEqual(envoyees[envoyees.length - 1], { type: 'noms-selection', demande, generation: 3, exclus: ['v1'], inclus: ['v2', 'v3'] });
+  const reponse: MessageDeNomenclature = { type: 'noms-selection', demande, generation: 3, principaux: [['v2', 'terme:bg']] };
   frontiere.recevoir(reponse);
   assert.equal(affichees[affichees.length - 1], reponse);
 });
@@ -119,11 +119,11 @@ test('une réponse de sélection périmée est ignorée, et celle d’une lectur
   const premiere = frontiere.selection(['v1'], []) as number;
   const seconde = frontiere.selection(['v1', 'v2'], []) as number;
   const avant = affichees.length;
-  frontiere.recevoir({ type: 'selection', demande: seconde, generation: 1, principaux: [] });
+  frontiere.recevoir({ type: 'noms-selection', demande: seconde, generation: 1, principaux: [] });
   assert.equal(affichees.length, avant, 'une génération plus ancienne est ignorée');
-  frontiere.recevoir({ type: 'selection', demande: premiere, generation: 2, principaux: [] });
+  frontiere.recevoir({ type: 'noms-selection', demande: premiere, generation: 2, principaux: [] });
   assert.equal(affichees.length, avant, 'la lecture remplacée est caduque');
-  frontiere.recevoir({ type: 'selection', demande: seconde, generation: 2, principaux: [] });
+  frontiere.recevoir({ type: 'noms-selection', demande: seconde, generation: 2, principaux: [] });
   assert.equal(affichees.length, avant + 1);
 });
 
@@ -180,7 +180,7 @@ test('un nouveau bilan rend caduques les lectures en attente, même leur erreur'
 
 test("l'écho d'une demande de lecture est ignoré, puis la vraie réponse est affichée", () => {
   const ficheVide = { mot: 'bg', forme: 'bg', nature: null, origine: null, categorieUcm: null, definition: null, remplace: [], emploi: { nombre: 0, exemples: [] }, aRenommer: { nombre: 0, exemples: [] }, ecart: false, voulu: false, ordinaire: false, distincts: [], question: null };
-  const formes: Array<{ ouvrir: (f: ReturnType<typeof creer>['frontiere']) => number; echo: (demande: number) => unknown; reponse: (demande: number) => PluginMessage }> = [
+  const formes: Array<{ ouvrir: (f: ReturnType<typeof creer>['frontiere']) => number; echo: (demande: number) => unknown; reponse: (demande: number) => MessageDeNomenclature }> = [
     {
       ouvrir: (f) => f.termes(requete('')) as number,
       echo: (demande) => ({ type: 'termes', demande, generation: 1, debut: 0, requete: '' }),
@@ -193,8 +193,8 @@ test("l'écho d'une demande de lecture est ignoré, puis la vraie réponse est a
     },
     {
       ouvrir: (f) => f.selection(['v1'], ['v2']) as number,
-      echo: (demande) => ({ type: 'selection', demande, generation: 1, exclus: ['v1'], inclus: ['v2'] }),
-      reponse: (demande) => ({ type: 'selection', demande, generation: 1, principaux: [['v2', 'terme:bg']] }),
+      echo: (demande) => ({ type: 'noms-selection', demande, generation: 1, exclus: ['v1'], inclus: ['v2'] }),
+      reponse: (demande) => ({ type: 'noms-selection', demande, generation: 1, principaux: [['v2', 'terme:bg']] }),
     },
     {
       ouvrir: (f) => f.diagnostic() as number,
@@ -212,7 +212,7 @@ test("l'écho d'une demande de lecture est ignoré, puis la vraie réponse est a
     analyser(1);
     const demande = forme.ouvrir(frontiere);
     const avant = affichees.length;
-    frontiere.recevoir(forme.echo(demande) as PluginMessage);
+    frontiere.recevoir(forme.echo(demande) as MessageDeNomenclature);
     assert.equal(affichees.length, avant, "l'écho est ignoré");
     const reponse = forme.reponse(demande);
     frontiere.recevoir(reponse);
@@ -355,7 +355,7 @@ test('l’export ne retient aucun calcul et sa réponse n’est rendue qu’une 
   const exporter = frontiere.exporter();
   assert.equal(envoyees[envoyees.length - 1].type, 'exporter');
   assert.equal(frontiere.calculEnCours(), true);
-  const reponse: PluginMessage = { type: 'regles-exportees', demande: exporter, texte: '{}' };
+  const reponse: MessageDeNomenclature = { type: 'regles-exportees', demande: exporter, texte: '{}' };
   const avant = affichees.length;
   frontiere.recevoir(reponse);
   frontiere.recevoir(reponse);

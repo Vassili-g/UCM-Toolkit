@@ -1,14 +1,14 @@
 /** L'état de la liste des termes de l'onglet Règles : sections, filtres, tri, replis, pages de section, lignes et résumés. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { ComptesDeTermes, PlaceDuTerme, PluginMessage, SectionDeTermes, TermeDeListe, TypeDeTerme } from '../src/nomenclature/messages';
+import type { ComptesDeTermes, PlaceDuTerme, MessageDeNomenclature, SectionDeTermes, TermeDeListe, TypeDeTerme } from '../src/messages/nomenclature';
 import {
   LISTE_INITIALE, bandeDeLaSection, basculerLePli, basculerUneOrigine, basculerUnePlace, basculerUnType, blocsDeLaSection, choisir, estRepliee, filtresActifs, morceauxDuTerme,
   motAffiche, nomAccessibleDuTerme, origineDeLaLigne, pastilleDeLaLigne, phraseDeRecherche, recevoir, requeteDeLaListe, resteDansLaSection, retirerUnFiltre, saisir, teinter,
   termesRecus, texteDeLaSuite, trier,
 } from '../src/ui/nomenclature/listeDesTermes';
 
-type Reponse = Extract<PluginMessage, { type: 'termes' }>;
+type Reponse = Extract<MessageDeNomenclature, { type: 'termes' }>;
 
 const COMPTES: ComptesDeTermes = { types: { 'a-trancher': 1, remplace: 4, conforme: 10, 'sans-regle': 120, composant: 3, palette: 2 }, origines: { ucm: 12, personnalise: 2 }, places: { groupes: 100, variables: 40 } };
 

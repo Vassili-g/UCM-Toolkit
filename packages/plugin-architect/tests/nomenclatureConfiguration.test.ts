@@ -1,7 +1,7 @@
 /** La page Configuration sur un DOM minimal : les cases suivent le dernier choix du designer, pas un bilan plus ancien. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { Bilan, PluginMessage } from '../src/nomenclature/messages';
+import type { Bilan, MessageDeNomenclature } from '../src/messages/nomenclature';
 
 /** Ce que la page et les composants du socle emploient du DOM, sans rendu. */
 class Element {
@@ -29,13 +29,13 @@ class Element {
 
 /** Les modules de l'écran se chargent après le DOM minimal. */
 const modules = Promise.all([import('../src/ui/nomenclature/configuration'), import('../src/ui/nomenclature/frontiere')]);
-const { ETATS } = require('../galerie/nomenclature/etats.cjs') as { ETATS: { id: string; atteinte: { message?: PluginMessage }[] }[] };
+const { ETATS } = require('../galerie/nomenclature/etats.cjs') as { ETATS: { id: string; atteinte: { message?: MessageDeNomenclature }[] }[] };
 
 async function banc() {
   const [{ monterConfiguration }, { creerFrontiere }] = await modules;
-  const envoyees: Extract<import('../src/nomenclature/messages').DemandeArchitect, { type: 'configurer' }>[] = [];
-  const reglesEnvoyees: Extract<import('../src/nomenclature/messages').DemandeArchitect, { type: 'regle' }>[] = [];
-  const abonnes: ((message: PluginMessage, etat: { bilan: Bilan | null }) => void)[] = [];
+  const envoyees: Extract<import('../src/messages/nomenclature').DemandeDeNomenclature, { type: 'configurer' }>[] = [];
+  const reglesEnvoyees: Extract<import('../src/messages/nomenclature').DemandeDeNomenclature, { type: 'regle' }>[] = [];
+  const abonnes: ((message: MessageDeNomenclature, etat: { bilan: Bilan | null }) => void)[] = [];
   let bilan: Bilan | null = null;
   const frontiere = creerFrontiere({
     envoyer: (demande) => {

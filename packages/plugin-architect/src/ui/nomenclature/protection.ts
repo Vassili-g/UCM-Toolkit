@@ -3,7 +3,7 @@
  * explication et sa pastille. « À appliquer » et la Configuration lisent le même tableau, `Bilan.protections`. Le module ne
  * touche pas au DOM.
  */
-import type { CauseDeProtection, ProtectionVue } from '../../nomenclature/messages';
+import type { CauseDeProtection, ProtectionVue } from '../../messages/nomenclature';
 import { TEXTES } from './textes';
 
 export interface LigneDeProtection {

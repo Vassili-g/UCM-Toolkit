@@ -1,4 +1,4 @@
-/** QuickJS doit compiler le bundle et mener une analyse avant tout essai dans Figma. */
+/** QuickJS doit compiler le bundle du sandbox d'Architect et mener une analyse de Nomenclature avant tout essai dans Figma. */
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
@@ -7,7 +7,7 @@ import { getQuickJS } from 'quickjs-emscripten';
 
 test('le sandbox démarre et analyse des branches parallèles dans QuickJS', async () => {
   const bundle = buildSync({
-    entryPoints: [path.resolve(__dirname, '../src/nomenclature/code.ts')],
+    entryPoints: [path.resolve(__dirname, '../src/code.ts')],
     bundle: true, write: false, platform: 'browser', target: 'chrome80', logLevel: 'silent',
   }).outputFiles[0].text;
   // Cette version conserve le défaut de compilation du yield dans la source d'un for…of.
@@ -32,9 +32,12 @@ test('le sandbox démarre et analyse des branches parallèles dans QuickJS', asy
       var setTimeout = function (rappel) { rappel(); };
       var figma = {
         showUI: function () { ouvertures++; },
-        ui: { resize: function () {}, postMessage: function (message) { messages.push(message); } },
-        clientStorage: { getAsync: async function () {} },
-        root: { getSharedPluginDataKeys: function () { return []; }, getSharedPluginData: function () { return ''; } },
+        on: function () {},
+        loadAllPagesAsync: async function () {},
+        currentPage: { selection: [] },
+        ui: { resize: function () {}, show: function () {}, postMessage: function (message) { messages.push(message); } },
+        clientStorage: { getAsync: async function () {}, setAsync: async function () {} },
+        root: { name: 'fichier', getSharedPluginDataKeys: function () { return []; }, getSharedPluginData: function () { return ''; } },
         variables: {
           getLocalVariableCollectionsAsync: async function () { return [{ id: 'c', name: 'theme', remote: false }]; },
           getLocalVariablesAsync: async function () {
@@ -50,14 +53,20 @@ test('le sandbox démarre et analyse des branches parallèles dans QuickJS', asy
     `);
     executer(bundle);
     assert.equal(executer('ouvertures'), 1);
-    assert.deepEqual(executer('messages.map(function (m) { return m.type; })'), ['initial']);
-    executer("figma.ui.onmessage({ type: 'analyser', demande: 1 });");
-    const travaux = vm.executePendingJobs();
-    if (travaux.error) {
-      const erreur = vm.dump(travaux.error);
-      travaux.error.dispose();
-      assert.fail(JSON.stringify(erreur));
-    }
+    const finir = (): void => {
+      const travaux = vm.executePendingJobs();
+      if (travaux.error) {
+        const erreur = vm.dump(travaux.error);
+        travaux.error.dispose();
+        assert.fail(JSON.stringify(erreur));
+      }
+    };
+    executer("figma.ui.onmessage({ type: 'lire-preferences' });");
+    finir();
+    assert.deepEqual(executer('messages.map(function (m) { return m.type; })'), ['preferences', 'disposition', 'selection', 'declaration', 'initial']);
+    assert.deepEqual(executer("messages.filter(function (m) { return m.type === 'disposition'; })[0].disposition"), 'large');
+    executer("figma.ui.onmessage({ type: 'noms-analyser', demande: 1 });");
+    finir();
     assert.deepEqual(executer("messages.filter(function (m) { return m.type === 'erreur' || m.type === 'refus'; })"), []);
     assert.equal(executer("messages.filter(function (m) { return m.type === 'bilan' && m.demande === 1; }).length"), 1);
   } finally {

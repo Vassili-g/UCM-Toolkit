@@ -1,7 +1,7 @@
 /** Le modèle de sélection de l'onglet Renommages : cases, compte, réconciliation. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { GroupeVue, LigneVue } from '../src/nomenclature/messages';
+import type { GroupeVue, LigneVue } from '../src/messages/nomenclature';
 import {
   cocherGroupe,
   cocherLigne,

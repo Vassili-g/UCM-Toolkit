@@ -59,7 +59,7 @@ Les chemins `src/` de ce rapport partent de `packages/plugin-architect/`.
 
 | Zone | Sources et responsabilité vérifiée |
 |---|---|
-| Entrée du sandbox | [code.ts](../../../../../packages/plugin-architect/src/nomenclature/code.ts), [messages.ts](../../../../../packages/plugin-architect/src/nomenclature/messages.ts) : forme des demandes et routage |
+| Entrée du sandbox | [code.ts](../../../../../packages/plugin-architect/src/sandbox/nomenclature.ts), [messages.ts](../../../../../packages/plugin-architect/src/messages/nomenclature.ts) : forme des demandes et routage |
 | Lecture Figma | [lecture.ts](../../../../../packages/plugin-architect/src/nomenclature/lecture.ts), [lectureFigma.ts](../../../../../packages/plugin-architect/src/nomenclature/lectureFigma.ts) : identifiants, noms, portée, protection Palettes |
 | Calcul et file | [session.ts](../../../../../packages/plugin-architect/src/nomenclature/session.ts), [tranches.ts](../../../../../packages/plugin-architect/src/nomenclature/tranches.ts) : génération, calculs ordonnés, application et relecture |
 | Règles | [regles.ts](../../../../../packages/plugin-architect/src/nomenclature/regles.ts), [conventions.ts](../../../../../packages/plugin-architect/src/nomenclature/conventions.ts) : validation, import, export, journal et restauration des réponses |

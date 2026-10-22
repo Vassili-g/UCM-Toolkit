@@ -1,7 +1,7 @@
 /** Une demande valide et au moins un refus par type de demande. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { estUiMessage } from '../src/nomenclature/messages';
+import { estUiMessage } from '../src/messages/nomenclature';
 
 const ecriture = { groupes: { casse: 'minuscules', separateur: 'tiret' }, variables: { casse: 'camelCase', separateur: 'camelCase' } };
 const selection = { groupes: ['a'], exclus: ['b'], inclus: ['c'] };
@@ -12,14 +12,14 @@ test('l’architecture passe par les règles avec un choix booléen', () => {
 });
 
 const valides: Record<string, unknown> = {
-  analyser: { type: 'analyser', demande: 1 },
+  analyser: { type: 'noms-analyser', demande: 1 },
   lignes: { type: 'lignes', demande: 2, generation: 1, groupe: 'g', debut: 0 },
   termes: { type: 'termes', demande: 3, generation: 1, recherche: 'bg', types: ['remplace', 'conforme'], origines: ['ucm'], places: ['groupes'], tri: 'nombre', section: 'remplace', place: 'variables', debut: 50 },
   fiche: { type: 'fiche', demande: 4, generation: 1, terme: 'bg' },
-  selection: { type: 'selection', demande: 14, generation: 1, exclus: ['b'], inclus: ['c'] },
+  selection: { type: 'noms-selection', demande: 14, generation: 1, exclus: ['b'], inclus: ['c'] },
   diagnostic: { type: 'diagnostic', demande: 13, generation: 1 },
   simuler: { type: 'simuler', demande: 5, generation: 1, geste: { type: 'supprimer', terme: 'bg' } },
-  repondre: { type: 'repondre', demande: 6, question: 'q', reponse: { type: 'garder', rang: 1 } },
+  repondre: { type: 'noms-repondre', demande: 6, question: 'q', reponse: { type: 'garder', rang: 1 } },
   regle: { type: 'regle', demande: 7, geste: { type: 'ecriture', ecriture } },
   appliquer: { type: 'appliquer', demande: 8, generation: 2, selection },
   'annuler-dernier': { type: 'annuler-dernier', demande: 9 },
@@ -29,17 +29,17 @@ const valides: Record<string, unknown> = {
   resize: { type: 'resize', largeur: 400, hauteur: 600, fin: true },
 };
 const refuses: Record<string, readonly unknown[]> = {
-  analyser: [{ type: 'analyser' }, { type: 'analyser', demande: 0 }, { type: 'analyser', demande: 1.5 }],
+  analyser: [{ type: 'noms-analyser' }, { type: 'noms-analyser', demande: 0 }, { type: 'noms-analyser', demande: 1.5 }],
   lignes: [{ ...(valides.lignes as object), debut: -1 }, { ...(valides.lignes as object), generation: 0 }, { ...(valides.lignes as object), groupe: 3 }],
   termes: [{ ...(valides.termes as object), types: ['autre'] }, { ...(valides.termes as object), debut: -1 }, { ...(valides.termes as object), recherche: null }],
   fiche: [{ ...(valides.fiche as object), terme: 3 }, { type: 'fiche', demande: 4, terme: 'bg' }],
   selection: [
-    { type: 'selection', demande: 14, exclus: [], inclus: [] },
+    { type: 'noms-selection', demande: 14, exclus: [], inclus: [] },
     { ...(valides.selection as object), generation: 0 },
     { ...(valides.selection as object), exclus: ['b', 'b'] },
     { ...(valides.selection as object), inclus: [1] },
     { ...(valides.selection as object), exclus: 'b' },
-    { type: 'selection', demande: 14, generation: 1, exclus: [] },
+    { type: 'noms-selection', demande: 14, generation: 1, exclus: [] },
   ],
   diagnostic: [{ type: 'diagnostic', demande: 13 }, { type: 'diagnostic', demande: 13, generation: 0 }],
   simuler: [{ ...(valides.simuler as object), geste: { type: 'inconnu' } }, { ...(valides.simuler as object), geste: null }],
@@ -91,7 +91,7 @@ test('une valeur qui n’est pas un objet, ou de type inconnu, est refusée', ()
 });
 test('une réponse sans paramètre et une collection sans cible sont acceptées', () => {
   for (const reponse of [{ type: 'distincts' }, { type: 'plus-tard' }, { type: 'voulu' }, { type: 'collection', cible: null }, { type: 'corriger', mots: ['a'] }, { type: 'autre', terme: 'x' }]) {
-    assert.equal(estUiMessage({ type: 'repondre', demande: 1, question: 'q', reponse }), true);
+    assert.equal(estUiMessage({ type: 'noms-repondre', demande: 1, question: 'q', reponse }), true);
   }
 });
 test('terme-ordinaire demande un terme et un booléen, dans une règle comme dans une simulation', () => {

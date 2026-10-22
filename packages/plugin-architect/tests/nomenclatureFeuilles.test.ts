@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import type { FicheVue } from '../src/nomenclature/messages';
+import type { FicheVue } from '../src/messages/nomenclature';
 import {
   blocsDeLaFiche,
   definitionDeLaFiche,

@@ -1,7 +1,7 @@
 /** L'annonce des renommages : une application reçue survit à l'erreur de la relecture. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { ResultatVue } from '../src/nomenclature/messages';
+import type { ResultatVue } from '../src/messages/nomenclature';
 import { annonceApresUneErreur, annonceDUneAnnulation, annonceDUneApplication, texteDUneAnnulationRefusee } from '../src/ui/nomenclature/annonce';
 import { TEXTES } from '../src/ui/nomenclature/textes';
 

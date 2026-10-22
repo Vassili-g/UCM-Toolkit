@@ -2,7 +2,7 @@
  * Ce que la ligne au-dessus de la liste des renommages annonce, et comment une
  * réponse du sandbox la change. Le module ne touche pas au DOM.
  */
-import type { CauseDeRefus, ResultatVue } from '../../nomenclature/messages';
+import type { CauseDeRefus, ResultatVue } from '../../messages/nomenclature';
 import { TEXTES } from './textes';
 
 export type Annonce =

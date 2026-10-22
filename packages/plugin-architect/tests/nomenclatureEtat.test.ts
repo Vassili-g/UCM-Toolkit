@@ -1,7 +1,7 @@
 /** Ce que l'écran montre, tiré des messages : écran, onglet, comptes et états particuliers. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { Bilan, GroupeVue, QuestionVue } from '../src/nomenclature/messages';
+import type { Bilan, GroupeVue, QuestionVue } from '../src/messages/nomenclature';
 import { ETAT_INITIAL, comptesDuBilan, etatSuivant, type EtatDeLEcran, type Evenement } from '../src/ui/nomenclature/etat';
 
 const LIGNE = { convention: { casse: 'minuscules', separateur: 'tiret' }, suivent: 1, total: 1, exemple: null } as const;

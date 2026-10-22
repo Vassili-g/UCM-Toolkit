@@ -335,7 +335,7 @@ const messages = {
   termesTrouves: (demande) => reponseDeTermes(demande, [section('remplace', 1, [{ ...background, trouve: 'bg' }])], comptesDeBase),
   fiche: (demande, fiche) => m('fiche', demande, { generation: 1, fiche }),
   /** La lecture de la sélection : les identifiants encore à renommer, avec la clé de leur groupe principal. */
-  selection: (demande, generation, principaux) => m('selection', demande, { generation, principaux }),
+  selection: (demande, generation, principaux) => m('noms-selection', demande, { generation, principaux }),
   simulation: (demande) => m('simulation', demande, { generation: 1, effet: effetDeTerme, conflit: null }),
   refus: (demande, conflits) => m('refus', demande, { conflits }),
   application: (demande) => m('application', demande, { resultat: { sorte: 'application', statut: 'applique', renommes: 87, sautes: 0, annulable: true } }),

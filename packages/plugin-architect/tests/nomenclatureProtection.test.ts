@@ -1,7 +1,7 @@
 /** Ce que l'écran dit des variables protégées : un titre en trois parties, une ligne et un texte par cause. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { ProtectionVue } from '../src/nomenclature/messages';
+import type { ProtectionVue } from '../src/messages/nomenclature';
 import { lignesDeProtection, totauxDeProtection } from '../src/ui/nomenclature/protection';
 import { TEXTES } from '../src/ui/nomenclature/textes';
 

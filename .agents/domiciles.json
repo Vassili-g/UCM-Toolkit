@@ -433,6 +433,8 @@
         "packages/plugin-architect/src/nomenclature/**",
         "packages/plugin-architect/src/ecriture/noms.ts",
         "packages/plugin-architect/src/ui/nomenclature/**",
+        "packages/plugin-architect/src/messages/nomenclature.ts",
+        "packages/plugin-architect/src/sandbox/nomenclature.ts",
         "packages/kit/src/nommage/**",
         "packages/kit/src/protocoles/**",
         "packages/plugin-socle/src/inventaireDeNoms.ts"

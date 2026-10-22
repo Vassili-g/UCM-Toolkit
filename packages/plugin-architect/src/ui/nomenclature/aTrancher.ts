@@ -6,7 +6,7 @@
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
-import type { Bilan, ConflitVue, GesteSurLesRegles, LigneVue, QuestionVue, Reponse } from '../../nomenclature/messages';
+import type { Bilan, ConflitVue, GesteSurLesRegles, LigneVue, QuestionVue, Reponse } from '../../messages/nomenclature';
 import type { Coquille } from './coquille';
 import { comptesDuBilan } from './etat';
 import { segmentsDeNom } from './lignes';

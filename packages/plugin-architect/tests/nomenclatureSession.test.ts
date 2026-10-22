@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { PortDeRegles } from '../src/ecriture/noms';
 import type { PortDeLecture } from '../src/nomenclature/lecture';
-import type { DemandeArchitect, GesteSurLesRegles, PluginMessage, Reponse } from '../src/nomenclature/messages';
+import type { DemandeDeNomenclature, GesteSurLesRegles, MessageDeNomenclature, Reponse } from '../src/messages/nomenclature';
 import { creerSession, fichierDejaAnalyse } from '../src/nomenclature/session';
 import { mener } from '../src/nomenclature/tranches';
 
@@ -61,7 +61,7 @@ test('mener n\'abandonne pas un calcul qui tient dans une tranche, mais abandonn
 function banc(variables: readonly (readonly [string, string])[], regles: Record<string, string> = {}, collection = 'components') {
   const noms = new Map(variables);
   const stock = new Map(Object.entries(regles));
-  const messages: PluginMessage[] = [];
+  const messages: MessageDeNomenclature[] = [];
   const lecture: PortDeLecture = {
     collections: async () => [{ id: 'c', name: collection, remote: false }],
     variables: async () => [...noms].map(([id, name]) => ({ id, name, variableCollectionId: 'c', remote: false })),
@@ -81,13 +81,13 @@ function banc(variables: readonly (readonly [string, string])[], regles: Record<
     tranches: { pause: async () => {} },
   });
   let numero = 0;
-  const envoyer = async (demande: DistributiveOmit<DemandeArchitect, 'demande'>) => {
+  const envoyer = async (demande: DistributiveOmit<DemandeDeNomenclature, 'demande'>) => {
     numero++;
     messages.length = 0;
-    await session.recevoir({ ...demande, demande: numero } as DemandeArchitect);
+    await session.recevoir({ ...demande, demande: numero } as DemandeDeNomenclature);
   };
   const regle = (geste: GesteSurLesRegles) => envoyer({ type: 'regle', geste });
-  const repondre = (question: string, reponse: Reponse) => envoyer({ type: 'repondre', question, reponse });
+  const repondre = (question: string, reponse: Reponse) => envoyer({ type: 'noms-repondre', question, reponse });
   const bilan = () => {
     const m = messages.find((candidat) => candidat.type === 'bilan');
     assert.ok(m && m.type === 'bilan', `un bilan était attendu, reçu : ${messages.map((x) => x.type).join(',')}`);
@@ -103,7 +103,7 @@ const PAIRES: readonly (readonly [string, string])[] = [['v1', 'tile/quux/fill']
 
 test('remplace-termes pose exactement la liste reçue ; une liste vide supprime la règle', async () => {
   const b = banc(PAIRES, { ecriture });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.regle({ type: 'remplace-termes', terme: 'quux', termes: ['quuxed', 'quuxy'] });
   assert.deepEqual(b.terme('terme:quux')?.remplace, [['quuxed'], ['quuxy']]);
   await b.regle({ type: 'remplace-termes', terme: 'quux', termes: ['quuxed'] });
@@ -114,7 +114,7 @@ test('remplace-termes pose exactement la liste reçue ; une liste vide supprime 
 
 test('remplacer-par ajoute à la règle du terme gardé ; retirer-remplace et supprimer la défont', async () => {
   const b = banc(PAIRES, { ecriture });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.regle({ type: 'remplacer-par', terme: 'quuxed', par: 'quux' });
   assert.deepEqual(b.terme('terme:quux')?.remplace, [['quuxed']]);
   assert.equal(b.bilan().groupes.find((g) => g.regle.sorte === 'terme')?.variables, 2);
@@ -132,7 +132,7 @@ test('remplacer-par ajoute à la règle du terme gardé ; retirer-remplace et su
 test('N07 : retirer la dernière forme garde la règle qui porte une définition ; sans définition, la règle part', async () => {
   const defini = JSON.stringify({ version: 1, terme: ['quux'], remplace: [['quuxed']], definition: 'Terme métier conservé.' });
   const b = banc(PAIRES, { ecriture, 'terme:quux': defini });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.regle({ type: 'retirer-remplace', terme: 'quux', remplace: 'quuxed' });
   assert.deepEqual(b.terme('terme:quux'), { version: 1, terme: ['quux'], remplace: [], definition: 'Terme métier conservé.' });
   await b.envoyer({ type: 'exporter' });
@@ -147,7 +147,7 @@ test('N07 : retirer la dernière forme garde la règle qui porte une définition
 
 test('ecart-ucm écrit et retire l\'écart ; retirer-distinct et retirer-voulu effacent leur entrée', async () => {
   const b = banc([['v1', 'tile/hovered/fill'], ['v2', 'tile/hovered/fg']], { ecriture, 'distinct:a|b': '{"version":1}', 'voulu:foo bar': '{"version":1}' });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   assert.equal(b.bilan().groupes.some((g) => g.regle.sorte === 'terme'), true, 'hovered devient hover');
   await b.regle({ type: 'ecart-ucm', terme: 'hover', actif: true });
   assert.ok(b.stock.has('ecart:hover'));
@@ -162,7 +162,7 @@ test('ecart-ucm écrit et retire l\'écart ; retirer-distinct et retirer-voulu e
 
 test('une règle refusée par le vocabulaire n\'écrit rien, y compris via une réponse', async () => {
   const b = banc(PAIRES, { ecriture });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.regle({ type: 'remplacer-par', terme: 'hover', par: 'quux' });
   assert.deepEqual(b.messages.map((m) => m.type), ['refus']);
   assert.ok(!b.stock.has('terme:quux'));
@@ -174,7 +174,7 @@ test('une règle refusée par le vocabulaire n\'écrit rien, y compris via une r
 
 test('répondre à une paire : autre terme, termes différents, plus tard', async () => {
   const b = banc(PAIRES, { ecriture });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const cle = b.bilan().questions[0].cle;
   await b.repondre(cle, { type: 'autre', terme: 'Quuxy' });
   assert.deepEqual(b.terme('terme:quuxy')?.remplace, [['quux'], ['quuxed']]);
@@ -192,7 +192,7 @@ test('répondre à une faute : corriger écrit le terme corrigé ; c\'est voulu 
   for (let i = 0; i < 5; i++) noms.push([`a${i}`, `box${i}/border/bg`]);
   noms.push(['b0', 'box0/bordr/fg']);
   const b = banc(noms, { ecriture });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const question = b.bilan().questions.find((q) => q.type === 'ecriture-du-terme');
   assert.ok(question && question.type === 'ecriture-du-terme', `une faute était attendue : ${JSON.stringify(b.bilan().questions.map((q) => q.cle))}`);
   await b.repondre(question.cle, { type: 'voulu' });
@@ -207,7 +207,7 @@ test('une faute au milieu d\'un mot collé : la réponse renomme, l\'annulation 
   const neutre = JSON.stringify({ version: 1, groupes: { casse: 'inchangee', separateur: 'inchange' }, variables: { casse: 'inchangee', separateur: 'inchange' } });
   const noms: [string, string][] = [['rare', 'x/textsucccess/y'], ...['a', 'b', 'c', 'd', 'e'].map((l): [string, string] => [`ref-${l}`, `x/success/${l}`])];
   const b = banc(noms, { ecriture: neutre });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const termes = () => b.bilan().groupes.filter((g) => g.regle.sorte === 'terme').reduce((total, g) => total + g.variables, 0);
   assert.equal(termes(), 0);
   const question = b.bilan().questions.find((q) => q.type === 'ecriture-du-terme' && q.terme.mot === 'succcess');
@@ -221,7 +221,7 @@ test('une faute au milieu d\'un mot collé : la réponse renomme, l\'annulation 
 
 test('une réponse qui ne convient pas à la question, ou à une question disparue, répond echec', async () => {
   const b = banc(PAIRES, { ecriture });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const cle = b.bilan().questions[0].cle;
   await b.repondre(cle, { type: 'voulu' });
   assert.deepEqual(b.messages.map((m) => m.type === 'erreur' ? m.code : m.type), ['echec']);
@@ -232,7 +232,7 @@ test('une réponse qui ne convient pas à la question, ou à une question dispar
 
 test('une collection de deux variables ou plus pose la question ; garder le nom la classe', async () => {
   const b = banc([['v1', 'fill/main'], ['v2', 'fill/alt'], ['v3', 'fg/main']], { ecriture }, 'Zorglub');
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const question = b.bilan().questions.find((q) => q.type === 'collection');
   assert.ok(question && question.type === 'collection');
   assert.equal(question.nombre, 3);
@@ -245,7 +245,7 @@ test('une collection de deux variables ou plus pose la question ; garder le nom 
 
 test('renommer vers un nom qui n’est pas une collection UCM répond echec et n’écrit rien', async () => {
   const b = banc([['v1', 'fill/main'], ['v2', 'fill/alt']], { ecriture }, 'Zorglub');
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const question = b.bilan().questions.find((q) => q.type === 'collection');
   assert.ok(question);
   await b.repondre(question.cle, { type: 'collection', cible: 'pas-une-collection' });
@@ -265,7 +265,7 @@ const codes = (b: ReturnType<typeof banc>) => b.messages.map((m) => m.type === '
 
 test('un terme avec / | . { } $ ou vide est refusé au geste, sans rien écrire', async () => {
   const b = banc(PAIRES, { ecriture });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   for (const geste of [
     { type: 'remplacer-par', terme: 'text/quux', par: 'a/b' },
     { type: 'remplacer-par', terme: 'quuxed', par: 'a.b' },
@@ -282,7 +282,7 @@ test('un terme avec / | . { } $ ou vide est refusé au geste, sans rien écrire'
 
 test('une réponse à un terme refusé, ou à une paire avec « | », n’écrit rien', async () => {
   const b = banc(PAIRES, { ecriture });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const cle = b.bilan().questions[0].cle;
   await b.repondre(cle, { type: 'autre', terme: 'a/b' });
   assert.deepEqual(codes(b), ['mot-refuse']);
@@ -293,7 +293,7 @@ test('une réponse à un terme refusé, ou à une paire avec « | », n’écrit
 
 test('une paire dont un terme contient « | » ne peut pas être jugée distincte', async () => {
   const b = banc([['v1', 'tile/qu|x/fill'], ['v2', 'tile/qu|x/fg'], ['v3', 'tile/qu|xed/text'], ['v4', 'tile/qu|xed/line']], { ecriture });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const paire = b.bilan().questions.find((q) => q.type === 'paire');
   assert.ok(paire, 'la paire de mots proches est posée');
   await b.repondre(paire.cle, { type: 'distincts' });
@@ -303,7 +303,7 @@ test('une paire dont un terme contient « | » ne peut pas être jugée distinct
 
 test('un import refuse un terme avec « / » sans rien écrire', async () => {
   const b = banc(PAIRES, { ecriture });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'importer', texte: JSON.stringify({ version: 1, termes: [{ terme: ['text/quux'], remplace: [['a/b']] }] }) });
   assert.deepEqual(codes(b), ['import-illisible']);
   assert.deepEqual([...b.stock.keys()], ['ecriture']);
@@ -311,7 +311,7 @@ test('un import refuse un terme avec « / » sans rien écrire', async () => {
 
 test('un stockage qui échoue à la deuxième clé d’un import rétablit toutes les clés et répond import-partiel', async () => {
   const b = banc(PAIRES, { ecriture });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const avant = new Map(b.stock);
   const ecrire = b.port.ecrire;
   let appels = 0;
@@ -324,7 +324,7 @@ test('un stockage qui échoue à la deuxième clé d’un import rétablit toute
 test('annuler-import rétablit l’écriture et le terme qu’un import avait écrasés', async () => {
   const ancien = JSON.stringify({ version: 1, terme: ['quux'], remplace: [['quuxed']] });
   const b = banc(PAIRES, { ecriture, 'terme:quux': ancien });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   assert.equal(b.bilan().dernierImport, null);
   const autreEcriture = { groupes: { casse: 'PascalCase', separateur: 'inchange' }, variables: { casse: 'PascalCase', separateur: 'inchange' } };
   const depart = new Map(b.stock);
@@ -338,10 +338,10 @@ test('annuler-import rétablit l’écriture et le terme qu’un import avait é
 
 test('termes transmet le filtre de places et la place de la page, et répond les totaux de chaque place', async () => {
   const b = banc(PAIRES, { ecriture });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const { generation } = b.bilan();
   const demande = { type: 'termes', generation, recherche: '', types: [], origines: [], places: [], tri: 'alpha', section: null, place: null, debut: 0 } as const;
-  const lire = async (reste: Partial<Extract<DemandeArchitect, { type: 'termes' }>>) => {
+  const lire = async (reste: Partial<Extract<DemandeDeNomenclature, { type: 'termes' }>>) => {
     await b.envoyer({ ...demande, ...reste });
     const reponse = b.messages.find((m) => m.type === 'termes');
     assert.ok(reponse && reponse.type === 'termes');

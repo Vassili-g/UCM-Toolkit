@@ -2,7 +2,7 @@
  * Les icônes des types de terme de la liste des règles, reprises de la maquette du vocabulaire (tour 2). Le gris dit ce qu'est un
  * terme ; seule l'icône de « À trancher » est ambre.
  */
-import type { TypeDeTerme } from '../../nomenclature/messages';
+import type { TypeDeTerme } from '../../messages/nomenclature';
 
 type Trait = readonly [balise: 'path' | 'circle', attributs: Readonly<Record<string, string>>];
 

@@ -7,7 +7,7 @@ import {
 } from '@ucm-kit/core/referentiel';
 import { idsNonRenommables, inventaireSelonLaProtection, palettesLibres, type EntreeInventaire, type Inventaire } from '@ucm-kit/core/nommage';
 import type { EtatDeLaMarque } from '@ucm-kit/core/protocoles';
-import { PLACES_DE_TERMES, TYPES_DE_TERMES, type EcritureChoisie, type PlaceDuTerme, type TermeDeListe, type TypeDeTerme } from '../src/nomenclature/messages';
+import { PLACES_DE_TERMES, TYPES_DE_TERMES, type EcritureChoisie, type PlaceDuTerme, type TermeDeListe, type TypeDeTerme } from '../src/messages/nomenclature';
 import { conflitVue, effetDEcriture, effetDeTerme, LIGNES_PAR_SECTION, projeter, TAILLE_DE_L_APERCU, TAILLE_DE_PAGE, type EntreeDeProjection, type PageDeTermes, type RequeteDeTermes } from '../src/nomenclature/projection';
 import { reglesVides, type ReglesDuFichier } from '../src/nomenclature/regles';
 

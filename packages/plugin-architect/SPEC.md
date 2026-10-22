@@ -307,14 +307,14 @@ copie des composantes conserve l'espace source.
 La fenêtre a deux dispositions, une par mode. La barre du haut porte le
 produit et la bascule « Tokens » / « Composant », présente dans les deux. Le
 sandbox choisit la disposition d'ouverture avant d'afficher la fenêtre : étroite
-dans un fichier sans variable locale, large sinon. La bascule demande l'autre
+quand la sélection a un composant pour sujet, large sinon. La bascule demande l'autre
 disposition ; le sandbox donne alors à la fenêtre la taille rangée pour elle.
 Chacune range sa taille sous sa propre clé.
 
 | Disposition | Mode | Ouverture | Minimum | Contenu sous la barre |
 |---|---|---|---|---|
-| Large | Tokens | 1200 × 800 | 560 × 480 | Arbre, onglets et inspecteur ; Actualiser dans la barre |
-| Étroite | Composant | 364 × 724 | 320 × 420 | La vue composant, sous une barre de 44 px |
+| Large | Tokens | 1360 × 800 | 560 × 480 | Arbre, onglets et inspecteur ; Actualiser dans la barre |
+| Étroite | Composant | 520 × 760, 1040 × 760 panneau ouvert | 320 × 420 | La vue composant, sous une barre de 44 px |
 
 La recherche est dans l'arbre, sous son titre, et porte sur toutes les
 collections. Les onglets sont Variables, Comparer, Dépendants, Diagnostics,

@@ -3,7 +3,7 @@
  * gestes locaux (configuration, onglet). Le module est pur : `etatSuivant`
  * rend un nouvel état, ou le même quand l'événement ne change rien.
  */
-import type { Bilan } from '../../nomenclature/messages';
+import type { Bilan } from '../../messages/nomenclature';
 import type { MessageAAfficher } from './frontiere';
 
 export type Onglet = 'a-appliquer' | 'a-trancher' | 'regles';

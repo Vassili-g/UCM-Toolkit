@@ -8,7 +8,7 @@
 import { createBackButton, createSettingsButton, montrerConfiguration, montrerTravail, type ElementsDeBascule } from 'ucm-plugin-socle/src/ui/EnTete';
 import { createOnglets } from 'ucm-plugin-socle/src/ui/Onglets';
 import { createResizeGrip } from 'ucm-plugin-socle/src/ui/ResizeGrip';
-import type { UiMessage } from '../../nomenclature/messages';
+import type { UiMessage } from '../../messages/nomenclature';
 import { ETAT_INITIAL, etatSuivant, type EtatDeLEcran, type Onglet } from './etat';
 import { creerFrontiere, type Frontiere, type MessageAAfficher } from './frontiere';
 import { creerBandeau, creerPanneau, creerVueDAnalyse, type Panneau } from './panneaux';

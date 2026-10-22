@@ -3,7 +3,7 @@
  * code : c'est l'écriture d'un nom, jamais une phrase.
  */
 import type { IndiceDePaire } from '@ucm-kit/core/referentiel';
-import type { CauseDeProtection, CodeDErreur, ConflitVue, TypeDeTerme } from '../../nomenclature/messages';
+import type { CauseDeProtection, CodeDErreur, ConflitVue, TypeDeTerme } from '../../messages/nomenclature';
 
 const noms = (nombre: number): string => (nombre === 1 ? '1 nom' : `${nombre} noms`);
 const questions = (nombre: number): string => (nombre === 1 ? '1 question' : `${nombre} questions`);

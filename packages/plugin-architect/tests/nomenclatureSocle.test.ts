@@ -17,7 +17,7 @@ test('le gabarit contient les repères du build autonome', () => {
 test('chaque réponse possède un scénario de galerie compilable', () => {
   assert.deepEqual(fautesDIdentite(ETATS), []);
   assert.deepEqual(fautesDeScenario(ETATS), []);
-  assert.deepEqual(ecartsDesMessages(typesDeLUnion(lire('src/nomenclature/messages.ts'), 'PluginMessage'), ETATS), { jamaisRegardes: [], inventes: [] });
+  assert.deepEqual(ecartsDesMessages(typesDeLUnion(lire('src/messages/nomenclature.ts'), 'MessageDeNomenclature'), ETATS), { jamaisRegardes: [], inventes: [] });
   assert.deepEqual(scriptsQuiNeCompilentPas(path.join(racine, 'galerie', 'nomenclature')), []);
   assert.deepEqual(variablesAbsentesDuDecalque(feuilleDuSocle() + lire('src/ui/nomenclature/styles.css')), []);
 });

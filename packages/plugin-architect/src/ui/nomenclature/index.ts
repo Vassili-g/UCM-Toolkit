@@ -1,5 +1,5 @@
 /** Point d'entrée de l'écran d'UCM Nomenclature : la coquille reçoit les messages du sandbox. */
-import type { PluginMessage, UiMessage } from '../../nomenclature/messages';
+import type { MessageDeNomenclature, UiMessage } from '../../messages/nomenclature';
 import { monterAAppliquer } from './aAppliquer';
 import { monterATrancher } from './aTrancher';
 import { monterConfiguration } from './configuration';
@@ -18,7 +18,7 @@ monterATrancher(coquille);
 monterConfiguration(coquille);
 monterFeuilles(coquille, monterRegles(coquille));
 
-window.addEventListener('message', (event: MessageEvent<{ pluginMessage?: PluginMessage }>) => {
+window.addEventListener('message', (event: MessageEvent<{ pluginMessage?: MessageDeNomenclature }>) => {
   const message = event.data?.pluginMessage;
   if (message) coquille.frontiere.recevoir(message);
 });

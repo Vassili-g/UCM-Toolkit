@@ -4,7 +4,7 @@ import test from 'node:test';
 import { axesDeLExport, cheminsEnConflit, inventairePublie, pairesDejaEnConflit, type CollectionPubliee, type InventairePublie } from '@ucm-kit/core/nommage';
 import type { PortDeRegles } from '../src/ecriture/noms';
 import { inventaireDeLectures, type PortDeLecture } from '../src/nomenclature/lecture';
-import type { DemandeArchitect, GesteSurLesRegles, PluginMessage } from '../src/nomenclature/messages';
+import type { DemandeDeNomenclature, GesteSurLesRegles, MessageDeNomenclature } from '../src/messages/nomenclature';
 import { creerSession } from '../src/nomenclature/session';
 import { TEXTES } from '../src/ui/nomenclature/textes';
 
@@ -248,7 +248,7 @@ test('N02 : inventairePublie reporte les modes, l’extension et la racine, sous
 type Collections = readonly (readonly [id: string, nom: string])[];
 function session(collections: Collections, variables: readonly Spec[]) {
   const stock = new Map<string, string>();
-  const messages: PluginMessage[] = [];
+  const messages: MessageDeNomenclature[] = [];
   const lecture: PortDeLecture = {
     collections: async () => collections.map(([id, name]) => ({ id, name, remote: false })),
     variables: async () => variables.map(([id, name, variableCollectionId = collections[0][0]]) => ({ id, name, variableCollectionId, remote: false })),
@@ -266,7 +266,7 @@ function session(collections: Collections, variables: readonly Spec[]) {
     tranches: { pause: async () => {} },
   });
   let numero = 0;
-  const envoyer = async (demande: object) => { messages.length = 0; await creee.recevoir({ ...demande, demande: ++numero } as DemandeArchitect); };
+  const envoyer = async (demande: object) => { messages.length = 0; await creee.recevoir({ ...demande, demande: ++numero } as DemandeDeNomenclature); };
   const bilan = () => {
     const message = messages.find((candidat) => candidat.type === 'bilan');
     assert.ok(message && message.type === 'bilan', `un bilan était attendu, reçu : ${messages.map((m) => m.type).join(',')}`);
@@ -280,7 +280,7 @@ const ecritureInchangee: GesteSurLesRegles = { type: 'ecriture', ecriture: { gro
 
 test('AC1 : bg/primary à côté de Background/primary est bloqué avec le motif meme-token', async () => {
   const s = session([['c', 'components']], [['v1', 'bg/primary'], ['v2', 'Background/primary']]);
-  await s.envoyer({ type: 'analyser' });
+  await s.envoyer({ type: 'noms-analyser' });
   await s.geste(ecritureInchangee);
   await s.geste({ type: 'remplacer-par', terme: 'bg', par: 'background' });
   const bilan = s.bilan();
@@ -293,7 +293,7 @@ test('AC1 : bg/primary à côté de Background/primary est bloqué avec le motif
 
 test('AC2 : colors renommé color à côté de color/primary est bloqué avec le motif token-et-groupe', async () => {
   const s = session([['c', 'components']], [['v1', 'colors'], ['v2', 'color/primary']]);
-  await s.envoyer({ type: 'analyser' });
+  await s.envoyer({ type: 'noms-analyser' });
   await s.geste(ecritureInchangee);
   await s.geste({ type: 'remplacer-par', terme: 'colors', par: 'color' });
   assert.deepEqual(s.bilan().bloques, [{
@@ -304,7 +304,7 @@ test('AC2 : colors renommé color à côté de color/primary est bloqué avec le
 
 test('AI10 : ink renommé paint à côté de paint/detail est bloqué', async () => {
   const s = session([['c', 'components']], [['v1', 'ink'], ['v2', 'paint/detail']]);
-  await s.envoyer({ type: 'analyser' });
+  await s.envoyer({ type: 'noms-analyser' });
   await s.geste(ecritureInchangee);
   await s.geste({ type: 'remplacer-par', terme: 'ink', par: 'paint' });
   const [bloque] = s.bilan().bloques;
@@ -314,11 +314,11 @@ test('AI10 : ink renommé paint à côté de paint/detail est bloqué', async ()
 
 test('AI10 : une collection renommée theme à côté de ses variables theme/foo est bloquée', async () => {
   const s = session([['c', 'Colors']], [['v1', 'foo'], ['v2', 'theme/foo']]);
-  await s.envoyer({ type: 'analyser' });
+  await s.envoyer({ type: 'noms-analyser' });
   await s.geste(ecritureInchangee);
   const question = s.bilan().questions.find((q) => q.type === 'collection');
   assert.ok(question);
-  await s.envoyer({ type: 'repondre', question: question.cle, reponse: { type: 'collection', cible: 'theme' } });
+  await s.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'collection', cible: 'theme' } });
   const bilan = s.bilan();
   assert.deepEqual(bilan.bloques, [{
     avant: 'Colors', apres: 'theme', collection: '',
@@ -329,12 +329,12 @@ test('AI10 : une collection renommée theme à côté de ses variables theme/foo
 
 test('AI10 : une collection renommée theme à côté d\'une collection Theme qui a les mêmes noms est bloquée', async () => {
   const s = session([['t', 'Theme'], ['c', 'Colors']], [['v1', 'foo', 't'], ['v2', 'foo', 'c'], ['v3', 'bar', 'c']]);
-  await s.envoyer({ type: 'analyser' });
+  await s.envoyer({ type: 'noms-analyser' });
   await s.geste(ecritureInchangee);
   await s.envoyer({ type: 'configurer', collectionsExclues: ['t'] });
   const question = s.bilan().questions.find((q) => q.type === 'collection' && q.nom === 'Colors');
   assert.ok(question);
-  await s.envoyer({ type: 'repondre', question: question.cle, reponse: { type: 'collection', cible: 'theme' } });
+  await s.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'collection', cible: 'theme' } });
   assert.deepEqual(s.bilan().bloques, [{
     avant: 'Colors', apres: 'theme', collection: '',
     chemin: { motif: 'meme-token', apres: 'theme/foo', autre: 'Theme/foo' },
@@ -343,7 +343,7 @@ test('AI10 : une collection renommée theme à côté d\'une collection Theme qu
 
 test('un renommage sans conflit de chemin reste proposé', async () => {
   const s = session([['c', 'components']], [['v1', 'bg/primary'], ['v2', 'Background/secondary']]);
-  await s.envoyer({ type: 'analyser' });
+  await s.envoyer({ type: 'noms-analyser' });
   await s.geste(ecritureInchangee);
   await s.geste({ type: 'remplacer-par', terme: 'bg', par: 'background' });
   const bilan = s.bilan();

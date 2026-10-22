@@ -4,11 +4,11 @@
  * terme choisi. Le module est pur ; `regles.ts` lit cet état pour le DOM et
  * envoie les demandes.
  */
-import { ORIGINES_DE_FILTRE, PLACES_DE_TERMES, TYPES_DE_TERMES } from '../../nomenclature/messages';
-import type { ComptesDeTermes, OrigineDeFiltre, PlaceDuTerme, PluginMessage, RequeteDeTermes, SectionDeTermes, TermeDeListe, TriDeTermes, TypeDeTerme } from '../../nomenclature/messages';
+import { ORIGINES_DE_FILTRE, PLACES_DE_TERMES, TYPES_DE_TERMES } from '../../messages/nomenclature';
+import type { ComptesDeTermes, OrigineDeFiltre, PlaceDuTerme, MessageDeNomenclature, RequeteDeTermes, SectionDeTermes, TermeDeListe, TriDeTermes, TypeDeTerme } from '../../messages/nomenclature';
 import { TEXTES } from './textes';
 
-type ReponseDesTermes = Extract<PluginMessage, { type: 'termes' }>;
+type ReponseDesTermes = Extract<MessageDeNomenclature, { type: 'termes' }>;
 
 export interface EtatDeLaListe {
   readonly recherche: string;

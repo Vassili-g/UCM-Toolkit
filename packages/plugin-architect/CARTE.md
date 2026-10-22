@@ -10,8 +10,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - galerie/nomenclature/ : états de l'écran de Nomenclature, à 640 × 720 et à 360 × 420 ; pas encore construits, l'interface d'Architect ne les porte pas
 
 ## src/
-- code.ts : routage des demandes de l'interface ; aucune route n'écrit dans le document, aucune n'appelle encore Nomenclature
-- messages.ts : les deux sens de la frontière sandbox ↔ interface, numérotés par demande
+- code.ts : aiguillage des demandes de l'interface vers les domaines de `sandbox/` ; ouverture, déclaration UCM, sélection et panneau périmé
 - lecture.ts : collections et variables locales, cibles d'alias lues par identifiant, huit à la fois, importées par leur clé quand Figma ne les rend pas
 - modele.ts : relevé sérialisable : collections, modes, extensions, valeurs typées, lectures manquées
 - groupes.ts : arbre des groupes, des seuls segments `/` des noms Figma
@@ -35,12 +34,25 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - ui/ : barre et sa bascule de mode, arbre et sa recherche, table, inspecteur, bulle de chaîne, poignée des largeurs et vues des onglets
 - ui/nomenclature/ : coquille de Nomenclature et sa frontière, onglets À appliquer, À trancher et Règles, feuilles, Configuration ; textes dans `textes.ts`
 
+## src/messages/
+- index.ts : `UiRequest` et `PluginMessage`, réunis par domaine
+- commun.ts : messages communs aux deux modes et identité d'une analyse
+- nomenclature.ts : messages de Nomenclature, numérotés par demande et par génération
+- arbre.ts, composant.ts : messages de l'arbre des tokens et de la vue Composant
+- accessibilite.ts, analyse.ts, bibliotheque.ts, configuration.ts, corrections.ts, fiche.ts, ignores.ts, preparation.ts, questions.ts, recherche.ts, regles.ts, structure.ts : messages des autres domaines
+
+## src/sandbox/
+- index.ts : la table des domaines que `code.ts` aiguille
+- contexte.ts : ce qu'un domaine reçoit : port vers l'interface, fenêtre, état partagé
+- lectureDeFigma.ts : ports de lecture sur `figma`, communs aux domaines
+- souche.ts : réponse « non construit » d'un domaine pas encore fait
+- commun.ts, arbre.ts, composant.ts, nomenclature.ts, analyse.ts : domaines construits ; `analyse.ts` porte l'identité et le panneau périmé
+- accessibilite.ts, bibliotheque.ts, configuration.ts, corrections.ts, fiche.ts, ignores.ts, preparation.ts, questions.ts, recherche.ts, regles.ts, structure.ts : souches
+
 ## src/ecriture/
 - noms.ts : le seul fichier qui écrive dans le document : noms, règles, journal et point d'annulation ; un refus avant toute écriture quand une règle de nommage vient d'une version plus récente
 
 ## src/nomenclature/
-- code.ts : fenêtre, sa taille, et demandes de l'écran confiées à la session ; point d'entrée de Nomenclature, non branché
-- messages.ts : les deux sens de la frontière sandbox ↔ écran de Nomenclature, numérotés par demande et par génération
 - session.ts : inventaire, lexique, règles et résultat, gardés dans le sandbox ; file des calculs
 - tranches.ts : un générateur du kit mené par tranches de huit millisecondes, abandonné par une demande plus récente
 - lecture.ts : republie l'acquisition de l'inventaire du socle

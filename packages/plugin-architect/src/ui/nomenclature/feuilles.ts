@@ -11,7 +11,7 @@
 import { REGISTRES, type Terme } from '@ucm-kit/core/referentiel';
 import { createButton, type BoutonUi } from 'ucm-plugin-socle/src/ui/Button';
 import { createFeuille } from 'ucm-plugin-socle/src/ui/Feuille';
-import type { ConflitVue, EffetVue, FicheVue, GesteSurLesRegles, LigneVue, PluginMessage, TermeDeListe } from '../../nomenclature/messages';
+import type { ConflitVue, EffetVue, FicheVue, GesteSurLesRegles, LigneVue, MessageDeNomenclature, TermeDeListe } from '../../messages/nomenclature';
 import { poserLesSegments } from './aAppliquer';
 import type { Coquille } from './coquille';
 import { creerCarteDEcriture } from './ecriture';
@@ -277,7 +277,7 @@ type Apres = 'fermer' | 'relire' | 'resimuler';
 
 /** Ce que l'étape « Remplacer par… » ou « Remplace d'autres termes… » fait des réponses du sandbox. */
 interface Etape {
-  recevoirLaSimulation(message: Extract<PluginMessage, { type: 'simulation' }>): void;
+  recevoirLaSimulation(message: Extract<MessageDeNomenclature, { type: 'simulation' }>): void;
   relancer(): void;
   figer(oui: boolean): void;
 }

@@ -3,7 +3,7 @@
  * découpage d'un nom en segments marqués et la file qui charge les pages de noms
  * d'une carte. `aAppliquer.ts` dessine ; ce module décide.
  */
-import type { RegleVue } from '../../nomenclature/messages';
+import type { RegleVue } from '../../messages/nomenclature';
 
 export type SorteDeRegle = RegleVue['sorte'];
 

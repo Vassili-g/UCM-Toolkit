@@ -13,18 +13,18 @@
  * calcul, sur la génération courante. Une nouvelle lecture de même clé rend la
  * précédente caduque, et un nouveau `bilan` rend caduques toutes les lectures.
  */
-import type { DemandeArchitect, GesteSurLesRegles, PluginMessage, Reponse, RequeteDeTermes, Selection } from '../../nomenclature/messages';
+import type { DemandeDeNomenclature, GesteSurLesRegles, MessageDeNomenclature, Reponse, RequeteDeTermes, Selection } from '../../messages/nomenclature';
 
 /** Ce que l'écran affiche en plus des messages du sandbox : l'analyse que le designer vient de demander. */
-export type MessageAAfficher = PluginMessage | { readonly type: 'analyse-demandee' };
+export type MessageAAfficher = MessageDeNomenclature | { readonly type: 'analyse-demandee' };
 
-type TypeDeDemande = DemandeArchitect['type'];
+type TypeDeDemande = DemandeDeNomenclature['type'];
 
 /** Pour ces calculs, la demande en attente est remplacée par la plus récente. */
-const DERNIERE_INTENTION: ReadonlySet<TypeDeDemande> = new Set<TypeDeDemande>(['analyser', 'configurer']);
+const DERNIERE_INTENTION: ReadonlySet<TypeDeDemande> = new Set<TypeDeDemande>(['noms-analyser', 'configurer']);
 
 export interface OptionsDeFrontiere {
-  readonly envoyer: (demande: DemandeArchitect) => void;
+  readonly envoyer: (demande: DemandeDeNomenclature) => void;
   readonly afficher: (message: MessageAAfficher) => void;
 }
 
@@ -51,7 +51,7 @@ export interface Frontiere {
   /** L'export ne dépend d'aucune génération et ne retient aucun calcul. */
   exporter(): number;
   /** Rend à `afficher` le message s'il répond à une demande encore attendue. */
-  recevoir(message: PluginMessage): void;
+  recevoir(message: MessageDeNomenclature): void;
   generation(): number | null;
   calculEnCours(): boolean;
 }
@@ -59,8 +59,8 @@ export interface Frontiere {
 export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
   let compteur = 0;
   let generation: number | null = null;
-  let enVol: DemandeArchitect | null = null;
-  const attente: DemandeArchitect[] = [];
+  let enVol: DemandeDeNomenclature | null = null;
+  const attente: DemandeDeNomenclature[] = [];
   /** Numéro d'une lecture en attente de réponse, vers sa clé. */
   const lectures = new Map<number, string>();
   const derniereLecture = new Map<string, number>();
@@ -72,7 +72,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
   };
   const attendu = (demande: number): boolean => enVol !== null && enVol.demande === demande;
 
-  function partir(demande: DemandeArchitect): void {
+  function partir(demande: DemandeDeNomenclature): void {
     enVol = demande;
     options.envoyer(demande);
   }
@@ -83,7 +83,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     if (suivante) partir(suivante);
   }
 
-  function calculer(demande: DemandeArchitect): number {
+  function calculer(demande: DemandeDeNomenclature): number {
     if (DERNIERE_INTENTION.has(demande.type)) {
       for (let rang = attente.length - 1; rang >= 0; rang -= 1) if (attente[rang].type === demande.type) attente.splice(rang, 1);
     }
@@ -92,7 +92,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     return demande.demande;
   }
 
-  function lire(cle: string, fabriquer: (demande: number, generationCourante: number) => DemandeArchitect): number | null {
+  function lire(cle: string, fabriquer: (demande: number, generationCourante: number) => DemandeDeNomenclature): number | null {
     if (generation === null) return null;
     const precedente = derniereLecture.get(cle);
     if (precedente !== undefined) lectures.delete(precedente);
@@ -115,7 +115,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     if (derniereLecture.get(cle) === demande) derniereLecture.delete(cle);
   }
 
-  function recevoirLeBilan(message: Extract<PluginMessage, { type: 'bilan' }>): void {
+  function recevoirLeBilan(message: Extract<MessageDeNomenclature, { type: 'bilan' }>): void {
     if (!attendu(message.demande)) return;
     if (generation !== null && message.bilan.generation < generation) return;
     if (message.bilan.generation !== generation) oublierLesLectures();
@@ -124,7 +124,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     terminerLeCalcul();
   }
 
-  type MessageDeLecture = Extract<PluginMessage, { type: 'lignes' | 'termes' | 'fiche' | 'selection' | 'simulation' | 'diagnostic' }>;
+  type MessageDeLecture = Extract<MessageDeNomenclature, { type: 'lignes' | 'termes' | 'fiche' | 'noms-selection' | 'simulation' | 'diagnostic' }>;
 
   function aSonContenu(message: MessageDeLecture): boolean {
     const contenu = message as unknown as Record<string, unknown>;
@@ -135,7 +135,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
         return Array.isArray(contenu.lignes);
       case 'fiche':
         return typeof contenu.fiche === 'object' && contenu.fiche !== null;
-      case 'selection':
+      case 'noms-selection':
         return Array.isArray(contenu.principaux);
       case 'diagnostic':
         return typeof contenu.texte === 'string';
@@ -153,7 +153,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     options.afficher(message);
   }
 
-  function recevoirUneErreur(message: Extract<PluginMessage, { type: 'erreur' }>): void {
+  function recevoirUneErreur(message: Extract<MessageDeNomenclature, { type: 'erreur' }>): void {
     const duCalcul = attendu(message.demande);
     const dUneLecture = lectures.has(message.demande);
     const dUnExport = message.demande === exportEnAttente;
@@ -165,13 +165,13 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     if (duCalcul) terminerLeCalcul();
   }
 
-  function recevoir(message: PluginMessage): void {
+  function recevoir(message: MessageDeNomenclature): void {
     switch (message.type) {
       case 'initial':
         options.afficher(message);
         return;
       case 'lecture':
-        if (enVol?.type === 'analyser' && enVol.demande === message.demande) options.afficher(message);
+        if (enVol?.type === 'noms-analyser' && enVol.demande === message.demande) options.afficher(message);
         return;
       case 'bilan':
         recevoirLeBilan(message);
@@ -190,7 +190,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
       case 'lignes':
       case 'termes':
       case 'fiche':
-      case 'selection':
+      case 'noms-selection':
       case 'simulation':
       case 'diagnostic':
         recevoirUneLecture(message);
@@ -209,10 +209,10 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
   return {
     analyser() {
       options.afficher({ type: 'analyse-demandee' });
-      return calculer({ type: 'analyser', demande: numeroSuivant() });
+      return calculer({ type: 'noms-analyser', demande: numeroSuivant() });
     },
     regle: (geste) => calculer({ type: 'regle', demande: numeroSuivant(), geste }),
-    repondre: (question, reponse) => calculer({ type: 'repondre', demande: numeroSuivant(), question, reponse }),
+    repondre: (question, reponse) => calculer({ type: 'noms-repondre', demande: numeroSuivant(), question, reponse }),
     configurer: (collectionsExclues) => calculer({ type: 'configurer', demande: numeroSuivant(), collectionsExclues }),
     importer: (texte) => calculer({ type: 'importer', demande: numeroSuivant(), texte }),
     appliquer(selection) {
@@ -223,7 +223,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     lignes: (groupe, debut) => lire(`lignes:${groupe}:${debut}`, (demande, courante) => ({ type: 'lignes', demande, generation: courante, groupe, debut })),
     termes: (requete) => lire('termes', (demande, courante) => ({ type: 'termes', demande, generation: courante, ...requete })),
     fiche: (terme) => lire('fiche', (demande, courante) => ({ type: 'fiche', demande, generation: courante, terme })),
-    selection: (exclus, inclus) => lire('selection', (demande, courante) => ({ type: 'selection', demande, generation: courante, exclus, inclus })),
+    selection: (exclus, inclus) => lire('noms-selection', (demande, courante) => ({ type: 'noms-selection', demande, generation: courante, exclus, inclus })),
     simuler: (geste) => lire('simuler', (demande, courante) => ({ type: 'simuler', demande, generation: courante, geste })),
     diagnostic: () => lire('diagnostic', (demande, courante) => ({ type: 'diagnostic', demande, generation: courante })),
     exporter() {

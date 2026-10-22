@@ -1,7 +1,7 @@
 /** L'onglet Historique de la Configuration sur un DOM minimal, et la date des lots que la Configuration affiche. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { Bilan } from '../src/nomenclature/messages';
+import type { Bilan } from '../src/messages/nomenclature';
 import { TEXTES } from '../src/ui/nomenclature/textes';
 
 /** Ce que l'Historique et les composants du socle emploient du DOM, avec les classes, les attributs et le texte. */

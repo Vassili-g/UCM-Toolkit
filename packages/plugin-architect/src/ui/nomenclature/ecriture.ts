@@ -5,7 +5,7 @@
  * la feuille de l'écriture (onglet Règles) la réutilise.
  */
 import { CONVENTIONS, type Convention } from '@ucm-kit/core/referentiel';
-import type { Bilan, EcritureChoisie, LigneDEcriture, LigneVue } from '../../nomenclature/messages';
+import type { Bilan, EcritureChoisie, LigneDEcriture, LigneVue } from '../../messages/nomenclature';
 import { TEXTES } from './textes';
 
 type EcritureDuBilan = Bilan['ecriture'];

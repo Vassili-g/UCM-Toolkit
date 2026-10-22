@@ -13,7 +13,7 @@ import {
   PREFIXES_DE_NOMMAGE, apres, cleEcart, cleOrdinaire, cleTerme, comparer, estCleDeNommage, estListeDeTextes, estMot, estMots, estObjet, estTexte, lireEcriture, lireEntree,
   lireLesEntreesDeNommage, lireTerme, motsDe, trier, vocabulaireDeNommage,
 } from '@ucm-kit/core/protocoles';
-import type { EcritureChoisie } from './messages';
+import type { EcritureChoisie } from '../messages/nomenclature';
 
 // Les clés qui changent un nom, leurs constructeurs et leur analyseur vivent dans le kit (`protocoles`), où UCM Palettes les lit aussi.
 export { CLE_CONVENTIONS_V1, CLE_ECRITURE, CLE_EXCLUES, VERSION_DES_REGLES, cleEcart, cleOrdinaire, cleTerme, estMot };

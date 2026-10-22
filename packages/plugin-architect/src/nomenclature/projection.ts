@@ -19,7 +19,7 @@ import {
   type Bilan, type BloqueVue, type CollectionDuJournal, type CollectionVue, type ProtectionVue, type ComptesDeTermes, type ConflitVue, type EcritureChoisie, type EffetVue, type FicheVue, type GroupeVue,
   type LigneDEcriture, type LigneDImport, type LigneDuJournal, type LigneVue, type PlaceDuTerme, type QuestionVue, type RegleVue, type RequeteDeTermes, type SectionDeTermes, type Selection, type TermeDeListe, type TermeVue,
   type TriDeTermes, type TypeDeTerme,
-} from './messages';
+} from '../messages/nomenclature';
 import type { ImportRange, ReglesDuFichier } from './regles';
 
 export type { RequeteDeTermes };

@@ -7,7 +7,7 @@
  * s'il est inclus. Un groupe coché ne porte donc que des exclus, un groupe décoché
  * que des inclus : cocher ou décocher un groupe efface les uns et les autres.
  */
-import type { GroupeVue, LigneVue, Selection } from '../../nomenclature/messages';
+import type { GroupeVue, LigneVue, Selection } from '../../messages/nomenclature';
 
 export type EtatDeCase = 'coche' | 'partiel' | 'vide';
 

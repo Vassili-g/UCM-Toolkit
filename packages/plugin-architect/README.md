@@ -27,8 +27,9 @@ refuse.
 
 La bascule de la barre passe de **Tokens**, l'explorateur des collections, à
 **Composant**, la lecture du composant sélectionné. La fenêtre prend la taille
-rangée pour chaque mode : 1200 × 800 pour le premier, 364 × 724 pour le second.
-Dans un fichier sans variable locale, elle s'ouvre sur **Composant**.
+rangée pour chaque mode : 1360 × 800 pour le premier, 520 × 760 pour le second
+(1040 × 760 avec le panneau des constats ouvert). Quand la sélection a un
+composant pour sujet, elle s'ouvre sur **Composant** ; sinon sur **Tokens**.
 
 ## Explorer les variables
 

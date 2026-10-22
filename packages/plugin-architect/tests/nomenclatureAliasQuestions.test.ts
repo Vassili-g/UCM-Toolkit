@@ -1,7 +1,7 @@
 /** N08 : de l'adaptateur Figma aux questions, une cible d'alias locale se retrouve dans le lexique. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { PluginMessage } from '../src/nomenclature/messages';
+import type { MessageDeNomenclature } from '../src/messages/nomenclature';
 import { creerPortDeLecture } from '../src/nomenclature/lectureFigma';
 import { creerSession } from '../src/nomenclature/session';
 
@@ -18,7 +18,7 @@ test('N08 : deux alias locaux entre les branches ledger et registre posent la qu
     variables: { getLocalVariableCollectionsAsync: async () => [{ id: 'c', name: 'custom', remote: false }], getLocalVariablesAsync: async () => variables },
     root: { getSharedPluginData: () => '' },
   } as unknown as PluginAPI;
-  const messages: PluginMessage[] = [];
+  const messages: MessageDeNomenclature[] = [];
   const stock = new Map<string, string>();
   const session = creerSession({
     port: {
@@ -29,7 +29,7 @@ test('N08 : deux alias locaux entre les branches ledger et registre posent la qu
     envoyer: (message) => { messages.push(message); },
     tranches: { pause: async () => {} },
   });
-  await session.recevoir({ type: 'analyser', demande: 1 });
+  await session.recevoir({ type: 'noms-analyser', demande: 1 });
   const bilan = messages.find((message) => message.type === 'bilan');
   assert.ok(bilan && bilan.type === 'bilan');
   assert.ok(bilan.bilan.questions.some((question) => question.cle === 'paire:ledger|registre'),

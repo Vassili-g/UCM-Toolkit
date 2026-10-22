@@ -4,7 +4,7 @@
  * Continuer (écran 2). La lecture elle-même est montrée par la coquille.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
-import type { Bilan } from '../../nomenclature/messages';
+import type { Bilan } from '../../messages/nomenclature';
 import type { Coquille } from './coquille';
 import { creerCarteDEcriture } from './ecriture';
 import type { EtatDeLEcran } from './etat';

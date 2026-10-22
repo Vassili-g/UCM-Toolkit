@@ -4,7 +4,7 @@ import test from 'node:test';
 import type { ObjetModifiable, PortDeRegles, SessionEcriture, VariableModifiable } from '../src/ecriture/noms';
 import type { EtatDeLaMarque } from '@ucm-kit/core/protocoles';
 import { inventaireDeLectures, type PortDeLecture } from '../src/nomenclature/lecture';
-import { TYPES_DE_TERMES, type Bilan, type DemandeArchitect, type GesteSurLesRegles, type PluginMessage, type TermeDeListe, type TypeDeTerme } from '../src/nomenclature/messages';
+import { TYPES_DE_TERMES, type Bilan, type DemandeDeNomenclature, type GesteSurLesRegles, type MessageDeNomenclature, type TermeDeListe, type TypeDeTerme } from '../src/messages/nomenclature';
 import { creerSession, moteurDuKit, type Moteur } from '../src/nomenclature/session';
 import { creerFrontiere } from '../src/ui/nomenclature/frontiere';
 
@@ -32,7 +32,7 @@ function banc(options: OptionsDuBanc = {}) {
   const portees: (readonly string[] | undefined)[] = [];
   const maximums: (number | undefined)[] = [];
   const stock = new Map<string, string>();
-  const messages: PluginMessage[] = [];
+  const messages: MessageDeNomenclature[] = [];
   const collections = new Map<string, ObjetModifiable>();
   const variables = new Map<string, VariableModifiable>();
   const creer = <T extends object>(id: string, nom: string, extra: T) => {
@@ -92,12 +92,12 @@ function banc(options: OptionsDuBanc = {}) {
     tranches: { pause: async () => {} },
   });
   let numero = 0;
-  const envoyer = async (demande: DistributiveOmit<DemandeArchitect, 'demande'>): Promise<number> => {
+  const envoyer = async (demande: DistributiveOmit<DemandeDeNomenclature, 'demande'>): Promise<number> => {
     numero++;
-    await instance.recevoir({ ...demande, demande: numero } as DemandeArchitect);
+    await instance.recevoir({ ...demande, demande: numero } as DemandeDeNomenclature);
     return numero;
   };
-  const bilans = () => messages.filter((m): m is Extract<PluginMessage, { type: 'bilan' }> => m.type === 'bilan');
+  const bilans = () => messages.filter((m): m is Extract<MessageDeNomenclature, { type: 'bilan' }> => m.type === 'bilan');
   return {
     noms, lectures, protegees, refus, pendantOuvrir, compteurs, portees, maximums, stock, regles, messages, instance, envoyer, bilans,
     dernierBilan: (): Bilan => bilans().at(-1)!.bilan,
@@ -130,7 +130,7 @@ const FICHIER: OptionsDuBanc = {
 
 test('l’architecture est rangée et relue au bilan sans ajouter d’historique', async () => {
   const b = banc(FICHIER);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   assert.equal(b.dernierBilan().architecture, 'absente');
   for (const ucm of [true, false]) {
     await b.envoyer({ type: 'regle', geste: { type: 'architecture', ucm } });
@@ -151,7 +151,7 @@ test('l’architecture est rangée et relue au bilan sans ajouter d’historique
 
 test('une écriture d’architecture refusée renvoie l’état relu après le retour des données', async () => {
   const b = banc(FICHIER);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   b.stock.set('architecture', '{"version":2}');
   b.regles.ecrire = () => { throw new Error('refus Figma'); };
   const demande = await b.envoyer({ type: 'regle', geste: { type: 'architecture', ucm: true } });
@@ -161,7 +161,7 @@ test('une écriture d’architecture refusée renvoie l’état relu après le r
 
 test('de analyser à application : le premier bilan, l\'écriture, l\'application et son bilan neuf', async () => {
   const b = banc(FICHIER);
-  const analyse = await b.envoyer({ type: 'analyser' });
+  const analyse = await b.envoyer({ type: 'noms-analyser' });
   assert.ok(b.messages.some((m) => m.type === 'lecture' && m.demande === analyse));
   const premier = b.dernierBilan();
   assert.equal(premier.generation, 1);
@@ -202,7 +202,7 @@ test('de analyser à application : le premier bilan, l\'écriture, l\'applicatio
 
 test('une lecture d\'une génération périmée reçoit generation-perimee ; une lecture courante répond', async () => {
   const b = banc(FICHIER);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const bilan = b.dernierBilan();
   b.vider();
@@ -224,7 +224,7 @@ test('une lecture d\'une génération périmée reçoit generation-perimee ; une
 
 test('N06 : la lecture selection rend le groupe principal des identifiants encore à renommer, et omet les autres', async () => {
   const b = banc(PLAYGROUND);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const bilan = b.dernierBilan();
   const [premier, second] = bilan.groupes.filter((groupe) => groupe.apercu.length > 0);
@@ -232,17 +232,17 @@ test('N06 : la lecture selection rend le groupe principal des identifiants encor
   const renommee = premier.apercu[0].id;
   const autre = second.apercu[0].id;
   b.vider();
-  const demande = await b.envoyer({ type: 'selection', generation: bilan.generation, exclus: [renommee, 'inconnue'], inclus: [autre] });
-  assert.deepEqual(b.messages, [{ type: 'selection', demande, generation: bilan.generation, principaux: [[renommee, premier.cle], [autre, second.cle]] }]);
+  const demande = await b.envoyer({ type: 'noms-selection', generation: bilan.generation, exclus: [renommee, 'inconnue'], inclus: [autre] });
+  assert.deepEqual(b.messages, [{ type: 'noms-selection', demande, generation: bilan.generation, principaux: [[renommee, premier.cle], [autre, second.cle]] }]);
 
   b.vider();
-  const perimee = await b.envoyer({ type: 'selection', generation: bilan.generation - 1, exclus: [renommee], inclus: [] });
+  const perimee = await b.envoyer({ type: 'noms-selection', generation: bilan.generation - 1, exclus: [renommee], inclus: [] });
   assert.deepEqual(b.messages, [{ type: 'erreur', demande: perimee, code: 'generation-perimee' }]);
 });
 
 test('N06 : un nom corrigé hors du plugin n’est plus rendu par la lecture selection après la nouvelle analyse', async () => {
   const b = banc(FICHIER);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const avant = b.dernierBilan();
   b.vider();
@@ -253,23 +253,23 @@ test('N06 : un nom corrigé hors du plugin n’est plus rendu par la lecture sel
   const corrigee = page.lignes.find((ligne) => ligne.ancien === 'fontSize/Body');
   assert.ok(corrigee && ids.length === 3);
   b.vider();
-  await b.envoyer({ type: 'selection', generation: avant.generation, exclus: ids, inclus: [] });
+  await b.envoyer({ type: 'noms-selection', generation: avant.generation, exclus: ids, inclus: [] });
   const complete = b.messages[0];
-  assert.ok(complete.type === 'selection' && complete.principaux.map(([id]) => id).join() === ids.join(), 'trois noms sont à renommer');
+  assert.ok(complete.type === 'noms-selection' && complete.principaux.map(([id]) => id).join() === ids.join(), 'trois noms sont à renommer');
 
   b.changer('v3', 'font-size/body');
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const apres = b.dernierBilan();
   b.vider();
-  await b.envoyer({ type: 'selection', generation: apres.generation, exclus: ids, inclus: [] });
+  await b.envoyer({ type: 'noms-selection', generation: apres.generation, exclus: ids, inclus: [] });
   const restreinte = b.messages[0];
-  assert.ok(restreinte.type === 'selection');
+  assert.ok(restreinte.type === 'noms-selection');
   assert.deepEqual(restreinte.principaux.map(([id]) => id), ids.filter((id) => id !== corrigee.id), 'le nom corrigé sort, les deux autres restent');
 });
 
 test('le détail du vocabulaire donne chaque terme de la liste avec ses segments, et chaque nom avec ses mots', async () => {
   const b = banc(FICHIER);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const bilan = b.dernierBilan();
   b.vider();
   await b.envoyer({ type: 'termes', generation: bilan.generation, ...TOUS });
@@ -292,7 +292,7 @@ test('une lecture avant toute analyse reçoit generation-perimee, ou analyse-en-
   const seule = await b.envoyer({ type: 'lignes', generation: 1, groupe: 'x', debut: 0 });
   assert.deepEqual(b.messages, [{ type: 'erreur', demande: seule, code: 'generation-perimee' }]);
   b.vider();
-  const analyse = b.instance.recevoir({ type: 'analyser', demande: 10 });
+  const analyse = b.instance.recevoir({ type: 'noms-analyser', demande: 10 });
   await b.instance.recevoir({ type: 'lignes', demande: 11, generation: 1, groupe: 'x', debut: 0 });
   assert.deepEqual(b.messages.filter((m) => m.type === 'erreur'), [{ type: 'erreur', demande: 11, code: 'analyse-en-cours' }]);
   await analyse;
@@ -300,8 +300,8 @@ test('une lecture avant toute analyse reçoit generation-perimee, ou analyse-en-
 
 test('une nouvelle analyse abandonne la précédente, qui ne répond pas', async () => {
   const b = banc(FICHIER);
-  const premiere = b.instance.recevoir({ type: 'analyser', demande: 1 });
-  const seconde = b.instance.recevoir({ type: 'analyser', demande: 2 });
+  const premiere = b.instance.recevoir({ type: 'noms-analyser', demande: 1 });
+  const seconde = b.instance.recevoir({ type: 'noms-analyser', demande: 2 });
   await Promise.all([premiere, seconde]);
   assert.deepEqual(b.bilans().map((m) => m.demande), [2]);
   assert.equal(b.messages.filter((m) => m.type === 'erreur').length, 0);
@@ -311,7 +311,7 @@ test('une nouvelle analyse abandonne la précédente, qui ne répond pas', async
 test('les calculs passent un à un, dans l\'ordre des demandes', async () => {
   const b = banc(FICHIER);
   const toutes = [
-    b.instance.recevoir({ type: 'analyser', demande: 1 }),
+    b.instance.recevoir({ type: 'noms-analyser', demande: 1 }),
     b.instance.recevoir({ type: 'regle', demande: 2, geste: regleEcriture }),
     b.instance.recevoir({ type: 'configurer', demande: 3, collectionsExclues: [] }),
   ];
@@ -321,7 +321,7 @@ test('les calculs passent un à un, dans l\'ordre des demandes', async () => {
 
 test('un geste en conflit répond refus, sans rien écrire ni changer de génération', async () => {
   const b = banc(FICHIER);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const avant = new Map(b.stock);
   const generation = b.dernierBilan().generation;
@@ -339,7 +339,7 @@ test('un geste en conflit répond refus, sans rien écrire ni changer de génér
 
 test('appliquer refuse une génération périmée et des règles modifiées depuis le calcul', async () => {
   const b = banc(FICHIER);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const bilan = b.dernierBilan();
   const selection = { groupes: bilan.groupes.map((g) => g.cle), exclus: [], inclus: [] };
@@ -361,7 +361,7 @@ test('appliquer refuse une génération périmée et des règles modifiées depu
 
 test('appliquer saute un nom que quelqu\'un a renommé dans Figma', async () => {
   const b = banc(FICHIER);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const bilan = b.dernierBilan();
   b.changer('v1', 'Button/Fill Over');
@@ -377,7 +377,7 @@ test('appliquer saute un nom que quelqu\'un a renommé dans Figma', async () => 
 
 test('une application refusée répond par application seule, sans bilan', async () => {
   const b = banc({ ...FICHIER, protegees: ['v1', 'v2', 'v3'] });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const bilan = b.dernierBilan();
   assert.equal(bilan.proteges, 3);
@@ -392,7 +392,7 @@ test('un geste de terme recalcule les seules portées touchées, sans lire Figma
     collections: [['c1', 'Brand'], ['c2', 'Card']],
     variables: [['v1', 'btn/quux-bg', 'c1'], ['v2', 'card/title-text', 'c2'], ['v3', 'card/body-text', 'c2']],
   });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const lectures = { ...b.lectures };
   const compteurs = { ...b.compteurs };
@@ -419,12 +419,12 @@ test('un geste de terme recalcule les seules portées touchées, sans lire Figma
 
 test('mettre une question de côté agrandit le plafond des questions de sa place', async () => {
   const b = banc({ variables: [['v1', 'tile/quux/fill'], ['v2', 'tile/quux/fg'], ['v3', 'tile/quuxed/text'], ['v4', 'tile/quuxed/line']] });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const question = b.dernierBilan().questions[0];
   assert.ok(question && question.type === 'paire');
   assert.equal(b.maximums.at(-1), 10);
-  await b.envoyer({ type: 'repondre', question: question.cle, reponse: { type: 'plus-tard' } });
+  await b.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'plus-tard' } });
   assert.equal(b.maximums.at(-1), 11, 'la question mise de côté ne prend pas une des dix places');
   assert.deepEqual(b.dernierBilan().questions, []);
   assert.deepEqual(b.dernierBilan().plusTard.map((q) => q.cle), [question.cle]);
@@ -436,12 +436,12 @@ test('mettre une question de côté agrandit le plafond des questions de sa plac
 
 test('répondre garde un terme, ajoute ses renommages ; Annuler défait la réponse', async () => {
   const b = banc({ variables: [['v1', 'tile/quux/fill'], ['v2', 'tile/quux/fg'], ['v3', 'tile/quuxed/text'], ['v4', 'tile/quuxed/line']] });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const question = b.dernierBilan().questions[0];
   assert.ok(question && question.type === 'paire');
   const gardee = question.termes[0].mot === 'quux' ? 0 : 1;
-  await b.envoyer({ type: 'repondre', question: question.cle, reponse: { type: 'garder', rang: gardee } });
+  await b.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'garder', rang: gardee } });
   assert.deepEqual(JSON.parse(b.stock.get('terme:quux')!).remplace, [['quuxed']]);
   assert.ok(b.stock.has(`reponse:${question.cle}`));
   const repondu = b.dernierBilan();
@@ -460,7 +460,7 @@ test('configurer refait le lexique depuis l\'inventaire en mémoire, sans relire
     collections: [['c1', 'Brand'], ['c2', 'Card']],
     variables: [['v1', 'Btn/Fill Hover', 'c1'], ['v2', 'Card/Fill Hover', 'c2']],
   });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   assert.equal(b.dernierBilan().groupes.reduce((n, g) => n + g.variables, 0), 2);
   const lectures = { ...b.lectures };
@@ -479,7 +479,7 @@ test('configurer refait le lexique depuis l\'inventaire en mémoire, sans relire
 
 test('export puis import : illisible, conflit refusé, import valide suivi d\'un bilan', async () => {
   const b = banc(FICHIER);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const generation = b.dernierBilan().generation;
   b.vider();
@@ -538,12 +538,12 @@ const COLLECTION_INCONNUE: OptionsDuBanc = {
 
 test('renommer une collection : une carte dans Renommages, l\'application la renomme, Annuler défait la réponse', async () => {
   const b = banc(COLLECTION_INCONNUE);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const question = b.dernierBilan().questions.find((q) => q.type === 'collection');
   assert.ok(question && question.type === 'collection' && question.nombre === 3);
   const lectures = { ...b.lectures };
-  await b.envoyer({ type: 'repondre', question: question.cle, reponse: { type: 'collection', cible: 'brands' } });
+  await b.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'collection', cible: 'brands' } });
   assert.deepEqual(b.lectures, lectures, 'aucune lecture de Figma');
   assert.deepEqual(JSON.parse(b.stock.get(question.cle)!), { version: 1, cible: 'brands' });
   const bilan = b.dernierBilan();
@@ -558,7 +558,7 @@ test('renommer une collection : une carte dans Renommages, l\'application la ren
   assert.equal(b.dernierBilan().groupes.some((g) => g.regle.sorte === 'collection'), false);
   assert.ok(b.dernierBilan().questions.some((q) => q.cle === question.cle));
 
-  await b.envoyer({ type: 'repondre', question: question.cle, reponse: { type: 'collection', cible: 'brands' } });
+  await b.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'collection', cible: 'brands' } });
   const avecRegle = b.dernierBilan();
   b.vider();
   await b.envoyer({ type: 'appliquer', generation: avecRegle.generation, selection: { groupes: avecRegle.groupes.map((g) => g.cle), exclus: [], inclus: [] } });
@@ -569,11 +569,11 @@ test('renommer une collection : une carte dans Renommages, l\'application la ren
 
 test('renommer une collection vers un nom déjà pris est un blocage, pas un renommage', async () => {
   const b = banc({ collections: [['c', 'Zorglub'], ['d', 'brands']], variables: [['v1', 'fill/main', 'c'], ['v2', 'fill/alt', 'c'], ['v3', 'fg/main', 'd']] });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const question = b.dernierBilan().questions.find((q) => q.type === 'collection');
   assert.ok(question);
-  await b.envoyer({ type: 'repondre', question: question.cle, reponse: { type: 'collection', cible: 'brands' } });
+  await b.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'collection', cible: 'brands' } });
   const bilan = b.dernierBilan();
   assert.equal(bilan.groupes.some((g) => g.regle.sorte === 'collection'), false);
   assert.deepEqual(bilan.bloques.map((x) => [x.avant, x.apres]), [['Zorglub', 'brands']]);
@@ -584,12 +584,12 @@ test('AUD-E2b : renommer une collection à modes vers la clé d’axe d’une co
     collections: [['c', 'Zorglub', 2], ['d', 'Primitives', 2]],
     variables: [['v1', 'primary', 'c'], ['v2', 'secondary', 'c'], ['v3', 'autre', 'd']],
   });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   await b.envoyer({ type: 'configurer', collectionsExclues: ['d'] });
   const question = b.dernierBilan().questions.find((q) => q.type === 'collection' && q.nom === 'Zorglub');
   assert.ok(question);
-  await b.envoyer({ type: 'repondre', question: question.cle, reponse: { type: 'collection', cible: 'primitives' } });
+  await b.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'collection', cible: 'primitives' } });
   const bilan = b.dernierBilan();
   assert.equal(bilan.groupes.some((g) => g.regle.sorte === 'collection'), false);
   assert.deepEqual(bilan.bloques, [{
@@ -607,12 +607,12 @@ test('AUD-E2b : la même réponse sur des collections sans modes lus reste un re
     collections: [['c', 'Zorglub'], ['d', 'Primitives']],
     variables: [['v1', 'primary', 'c'], ['v2', 'secondary', 'c'], ['v3', 'autre', 'd']],
   });
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   await b.envoyer({ type: 'configurer', collectionsExclues: ['d'] });
   const question = b.dernierBilan().questions.find((q) => q.type === 'collection' && q.nom === 'Zorglub');
   assert.ok(question);
-  await b.envoyer({ type: 'repondre', question: question.cle, reponse: { type: 'collection', cible: 'primitives' } });
+  await b.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'collection', cible: 'primitives' } });
   assert.deepEqual(b.dernierBilan().bloques, []);
   assert.ok(b.dernierBilan().groupes.some((g) => g.regle.sorte === 'collection' && g.apres === 'primitives'));
 });
@@ -621,7 +621,7 @@ test('AUD-E2b : la même réponse sur des collections sans modes lus reste un re
 
 async function pretAAppliquer(options: OptionsDuBanc) {
   const b = banc(options);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const bilan = b.dernierBilan();
   b.vider();
@@ -701,7 +701,7 @@ test('T4.1 : un lot dont tout est non vérifié est refusé, et nonVerifiees com
 test('T4.1 : une lecture refusée puis rétablie, avec une variable reprise et une couleur ordinaire', async () => {
   const b = banc({ collections: [['c', 'Brand']], variables: [['reprise', 'Button/Fill Hover'], ['ordinaire', 'Button/Fill Pressed']], protegees: ['reprise'] });
   b.refus.actif = true;
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const refuse = b.dernierBilan();
   assert.deepEqual(refuse.protections, [{ cause: 'lecture-refusee', nombre: 2 }]);
@@ -710,7 +710,7 @@ test('T4.1 : une lecture refusée puis rétablie, avec une variable reprise et u
   assert.deepEqual([b.noms.get('reprise'), b.noms.get('ordinaire')], ['Button/Fill Hover', 'Button/Fill Pressed']);
 
   b.refus.actif = false;
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const retablie = b.dernierBilan();
   assert.deepEqual(retablie.protections, [{ cause: 'marque-absente', nombre: 1 }], 'marque absente : la reprise est protégée');
   assert.equal(retablie.groupes.reduce((total, groupe) => total + groupe.variables, 0), 1, 'la couleur ordinaire est proposée');
@@ -788,7 +788,7 @@ const PLAYGROUND: OptionsDuBanc = {
 
 test('le vocabulaire du Playground : noms et mots se séparent, les sections et leurs comptes répondent', async () => {
   const b = banc(PLAYGROUND);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const { generation } = b.dernierBilan();
   b.vider();
   await b.envoyer({ type: 'termes', generation, ...TOUS });
@@ -817,7 +817,7 @@ test('le vocabulaire du Playground : noms et mots se séparent, les sections et 
 
 test('le vocabulaire du Playground : un terme réglé s’écrit dans la convention choisie pour les groupes', async () => {
   const b = banc(PLAYGROUND);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: { type: 'ecriture', ecriture: { groupes: { casse: 'PascalCase', separateur: 'camelCase' }, variables: minusculesTirets } } });
   const pascal = await lireLesTermes(b, b.dernierBilan().generation, ['conforme', 'remplace']);
   assert.deepEqual([pascal.find((terme) => terme.mot === 'line-height')?.forme, pascal.find((terme) => terme.mot === 'color')?.forme], ['LineHeight', 'Color']);
@@ -830,7 +830,7 @@ test('le vocabulaire du Playground : un terme réglé s’écrit dans la convent
 
 test('termes : une section se lit par pages, les filtres réduisent les sections et les comptes restent ceux du fichier', async () => {
   const b = banc(PLAYGROUND);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const { generation } = b.dernierBilan();
   b.vider();
   await b.envoyer({ type: 'termes', generation, ...TOUS });
@@ -857,7 +857,7 @@ test('termes : une section se lit par pages, les filtres réduisent les sections
 
 test('le vocabulaire du Playground : la fiche et le détail portent la forme et la nature', async () => {
   const b = banc(PLAYGROUND);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const { generation } = b.dernierBilan();
   b.vider();
   await b.envoyer({ type: 'fiche', generation, terme: 'stress-test' });
@@ -876,7 +876,7 @@ test('le vocabulaire du Playground : la fiche et le détail portent la forme et 
 
 test('terme-ordinaire range le nom dans les règles, relance le lexique et se défait par le geste inverse', async () => {
   const b = banc(PLAYGROUND);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   let generation = b.dernierBilan().generation;
   const lire = (...types: TypeDeTerme[]) => lireLesTermes(b, generation, types.length > 0 ? types : TYPES_DE_TERMES);
   const fiche = async (terme: string) => {
@@ -911,7 +911,7 @@ test('terme-ordinaire range le nom dans les règles, relance le lexique et se d�
 
 test('terme-ordinaire : une simulation rend effet null sans erreur, et un terme refusé arrête le geste', async () => {
   const b = banc(PLAYGROUND);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const { generation } = b.dernierBilan();
   b.vider();
   await b.envoyer({ type: 'simuler', generation, geste: { type: 'terme-ordinaire', terme: 'stress-test', actif: true } });
@@ -933,13 +933,13 @@ const TEXTE_DES_REGLES_FUTURES = 'Une version plus récente d’UCM Nomenclature
 test('L12 : une entrée de nommage de version 2 refuse l’application avant toute écriture, et le bilan le dit', async () => {
   const { b } = await pretAAppliquer(FICHIER);
   b.stock.set('terme:quux', FUTURE);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   const avant = new Map(b.stock);
   const bilan = b.dernierBilan();
   assert.equal(bilan.reglesFutures, true);
   b.vider();
   const demande = await b.envoyer({ type: 'appliquer', generation: bilan.generation, selection: { groupes: bilan.groupes.map((g) => g.cle), exclus: [], inclus: [] } });
-  const application = b.messages.find((m): m is Extract<PluginMessage, { type: 'application' }> => m.type === 'application');
+  const application = b.messages.find((m): m is Extract<MessageDeNomenclature, { type: 'application' }> => m.type === 'application');
   assert.equal(application?.demande, demande);
   assert.equal(application?.resultat.statut, 'refuse');
   assert.equal(application?.resultat.cause, 'regles-futures');
@@ -952,14 +952,14 @@ test('L12 : une entrée de nommage de version 2 refuse l’application avant tou
 test('L12 : sans entrée future, le bilan ne le dit pas et l’application passe', async () => {
   const { b, appliquer } = await pretAAppliquer(FICHIER);
   await appliquer();
-  const application = b.messages.find((m): m is Extract<PluginMessage, { type: 'application' }> => m.type === 'application');
+  const application = b.messages.find((m): m is Extract<MessageDeNomenclature, { type: 'application' }> => m.type === 'application');
   assert.equal(application?.resultat.statut, 'applique');
   assert.equal(b.dernierBilan().reglesFutures, false);
 });
 
 test('L12 : une entrée de nommage de version 2 refuse un geste sur les règles et un import, sans rien écrire', async () => {
   const b = banc(FICHIER);
-  await b.envoyer({ type: 'analyser' });
+  await b.envoyer({ type: 'noms-analyser' });
   b.stock.set('ecriture', JSON.stringify({ version: 2, groupes: {}, variables: {} }));
   const avant = new Map(b.stock);
   b.vider();

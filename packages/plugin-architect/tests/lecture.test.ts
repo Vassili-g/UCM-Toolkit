@@ -218,6 +218,6 @@ test('le relevé porte l’espace du profil du document, sRGB sans autre précis
 });
 
 test('le sandbox lit le profil du document et le donne à la lecture', () => {
-  const code = fs.readFileSync(path.join(__dirname, '..', 'src', 'code.ts'), 'utf8');
+  const code = fs.readFileSync(path.join(__dirname, '..', 'src', 'sandbox', 'arbre.ts'), 'utf8');
   assert.match(code, /lireLeReleve\([\s\S]*espaceDuProfil\(figma\.root\.documentColorProfile\)\)/);
 });

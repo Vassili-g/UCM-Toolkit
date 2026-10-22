@@ -1,9 +1,13 @@
-/** Contrat des messages entre l'écran et le sandbox : les demandes de l'écran, les réponses numérotées du sandbox et le contrôle de forme des demandes. */
+/**
+ * Contrat des messages entre l'écran et le sandbox : les demandes de l'écran, les réponses numérotées du sandbox et le contrôle de forme des demandes.
+ * Le `type` `noms-analyser`, `noms-repondre` et `noms-selection` porte le préfixe `noms-` : l'analyse d'un composant, les questions et la sélection
+ * d'Architect gardent les noms sans préfixe, et la table de `code.ts` route chaque `type` vers un seul domaine.
+ */
 import type { ArchitectureDuFichier, Convention, OrigineDuTerme, IndiceDePaire, CategorieDeNom, NatureDeSegment } from '@ucm-kit/core/referentiel';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 import type { EcritureChoisie } from '@ucm-kit/core/protocoles';
 import type { CauseDeProtection, MotifDeChemin } from '@ucm-kit/core/nommage';
-import { estConventions } from './conventions';
+import { estConventions } from '../nomenclature/conventions';
 
 export type { CauseDeProtection, EcritureChoisie, MotifDeChemin };
 
@@ -69,23 +73,23 @@ export interface ComptesDeTermes {
   readonly places: Readonly<Record<PlaceDuTerme, number>>;
 }
 
-export type DemandeArchitect =
-  | { readonly type: 'analyser'; readonly demande: number }
+export type DemandeDeNomenclature =
+  | { readonly type: 'noms-analyser'; readonly demande: number }
   | { readonly type: 'lignes'; readonly demande: number; readonly generation: number; readonly groupe: string; readonly debut: number }
   | ({ readonly type: 'termes'; readonly demande: number; readonly generation: number } & RequeteDeTermes)
   | { readonly type: 'fiche'; readonly demande: number; readonly generation: number; readonly terme: string }
   /** Les identifiants que l'écran a exclus ou inclus à la main : le sandbox dit lesquels sont encore à renommer, et dans quel groupe. */
-  | { readonly type: 'selection'; readonly demande: number; readonly generation: number; readonly exclus: readonly string[]; readonly inclus: readonly string[] }
+  | { readonly type: 'noms-selection'; readonly demande: number; readonly generation: number; readonly exclus: readonly string[]; readonly inclus: readonly string[] }
   | { readonly type: 'diagnostic'; readonly demande: number; readonly generation: number }
   | { readonly type: 'simuler'; readonly demande: number; readonly generation: number; readonly geste: GesteSurLesRegles }
-  | { readonly type: 'repondre'; readonly demande: number; readonly question: string; readonly reponse: Reponse }
+  | { readonly type: 'noms-repondre'; readonly demande: number; readonly question: string; readonly reponse: Reponse }
   | { readonly type: 'regle'; readonly demande: number; readonly geste: GesteSurLesRegles }
   | { readonly type: 'appliquer'; readonly demande: number; readonly generation: number; readonly selection: Selection }
   | { readonly type: 'annuler-dernier'; readonly demande: number }
   | { readonly type: 'exporter'; readonly demande: number }
   | { readonly type: 'importer'; readonly demande: number; readonly texte: string }
   | { readonly type: 'configurer'; readonly demande: number; readonly collectionsExclues: readonly string[] };
-export type UiMessage = DemandeArchitect | DemandeDeTaille;
+export type UiMessage = DemandeDeNomenclature | DemandeDeTaille;
 
 /**
  * Un nom avant et après le renommage. `ancien` et `nouveau` sont les noms complets, de même nombre de segments séparés par `/` ;
@@ -223,7 +227,7 @@ export interface ResultatVue {
 }
 export type CodeDErreur = 'analyse-en-cours' | 'fichier-modifie' | 'generation-perimee' | 'regles-modifiees' | 'regles-futures' | 'import-illisible' | 'mot-refuse' | 'import-partiel' | 'echec';
 
-export type PluginMessage =
+export type MessageDeNomenclature =
   | { readonly type: 'initial'; readonly dejaAnalyse: boolean }
   | { readonly type: 'lecture'; readonly demande: number; readonly lues: number; readonly total: number }
   | { readonly type: 'bilan'; readonly demande: number; readonly bilan: Bilan }
@@ -232,7 +236,7 @@ export type PluginMessage =
   | { readonly type: 'termes'; readonly demande: number; readonly generation: number; readonly section: TypeDeTerme | null; readonly debut: number; readonly sections: readonly SectionDeTermes[]; readonly comptes: ComptesDeTermes }
   | { readonly type: 'fiche'; readonly demande: number; readonly generation: number; readonly fiche: FicheVue }
   /** Pour chaque identifiant reçu qui est encore un renommage de cette génération, la clé de son groupe principal. Un identifiant absent n'est plus à renommer. */
-  | { readonly type: 'selection'; readonly demande: number; readonly generation: number; readonly principaux: readonly (readonly [string, string])[] }
+  | { readonly type: 'noms-selection'; readonly demande: number; readonly generation: number; readonly principaux: readonly (readonly [string, string])[] }
   | { readonly type: 'diagnostic'; readonly demande: number; readonly generation: number; readonly texte: string }
   | { readonly type: 'simulation'; readonly demande: number; readonly generation: number; readonly effet: EffetVue | null; readonly conflit: ConflitVue | null }
   | { readonly type: 'refus'; readonly demande: number; readonly conflits: readonly ConflitVue[] }
@@ -299,17 +303,17 @@ export function estUiMessage(brut: unknown): brut is UiMessage {
   if (!entierPositif(brut.demande)) return false;
   const genere = entierPositif(brut.generation);
   switch (brut.type) {
-    case 'analyser': case 'annuler-dernier': case 'exporter': return true;
+    case 'noms-analyser': case 'annuler-dernier': case 'exporter': return true;
     case 'lignes': return genere && chaine(brut.groupe) && entierNonNegatif(brut.debut);
     case 'termes':
       return genere && chaine(brut.recherche) && membres(brut.types, TYPES_DE_TERMES) && membres(brut.origines, ORIGINES_DE_FILTRE) && membres(brut.places, PLACES_DE_TERMES)
         && TRIS_DE_TERMES.includes(brut.tri as TriDeTermes) && (brut.section === null || TYPES_DE_TERMES.includes(brut.section as TypeDeTerme))
         && (brut.place === null || PLACES_DE_TERMES.includes(brut.place as PlaceDuTerme)) && entierNonNegatif(brut.debut);
     case 'fiche': return genere && chaine(brut.terme);
-    case 'selection': return genere && sansDoublon(brut.exclus) && sansDoublon(brut.inclus);
+    case 'noms-selection': return genere && sansDoublon(brut.exclus) && sansDoublon(brut.inclus);
     case 'diagnostic': return genere;
     case 'simuler': return genere && estGeste(brut.geste);
-    case 'repondre': return chaine(brut.question) && estReponse(brut.reponse);
+    case 'noms-repondre': return chaine(brut.question) && estReponse(brut.reponse);
     case 'regle': return estGeste(brut.geste);
     case 'appliquer': return genere && estSelection(brut.selection);
     case 'importer': return chaine(brut.texte) && (brut.texte as string).length <= LIMITE_D_IMPORT;

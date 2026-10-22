@@ -9,7 +9,7 @@ import { CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, libelleDuTerme, ter
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import { createFeuille } from 'ucm-plugin-socle/src/ui/Feuille';
-import type { Bilan, BloqueVue, GroupeVue, LigneVue, PluginMessage, ProtectionVue, ResultatVue } from '../../nomenclature/messages';
+import type { Bilan, BloqueVue, GroupeVue, LigneVue, MessageDeNomenclature, ProtectionVue, ResultatVue } from '../../messages/nomenclature';
 import type { Coquille } from './coquille';
 import {
   cocherGroupe,
@@ -307,7 +307,7 @@ interface CarteDeGroupe {
   deplier(): void;
   /** Remet les cases, le détail et le bouton des autres noms d'accord avec le modèle. */
   rafraichir(): void;
-  recevoirLesLignes(message: Extract<PluginMessage, { type: 'lignes' }>): void;
+  recevoirLesLignes(message: Extract<MessageDeNomenclature, { type: 'lignes' }>): void;
   /** Rend la main au bouton des autres noms quand la lecture qu'il attendait a échoué. */
   recevoirUneErreur(demande: number): void;
 }
@@ -765,7 +765,7 @@ export function monterAAppliquer(coquille: Coquille): void {
       case 'lignes':
         for (const carte of cartes) carte.recevoirLesLignes(message);
         break;
-      case 'selection':
+      case 'noms-selection':
         if (lectureDeLaSelection?.demande !== message.demande) break;
         modele = restreindre(modele, lectureDeLaSelection.interroges, message.principaux);
         lectureDeLaSelection = null;

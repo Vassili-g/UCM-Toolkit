@@ -10,8 +10,8 @@
 import { CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, collectionUcmReconnue, libelleDuTerme, termeRetenu, type Convention } from '@ucm-kit/core/referentiel';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
-import { ORIGINES_DE_FILTRE, PLACES_DE_TERMES, TRIS_DE_TERMES, TYPES_DE_TERMES } from '../../nomenclature/messages';
-import type { Bilan, LigneVue, OrigineDeFiltre, PlaceDuTerme, SectionDeTermes, TermeDeListe, TriDeTermes, TypeDeTerme } from '../../nomenclature/messages';
+import { ORIGINES_DE_FILTRE, PLACES_DE_TERMES, TRIS_DE_TERMES, TYPES_DE_TERMES } from '../../messages/nomenclature';
+import type { Bilan, LigneVue, OrigineDeFiltre, PlaceDuTerme, SectionDeTermes, TermeDeListe, TriDeTermes, TypeDeTerme } from '../../messages/nomenclature';
 import type { Coquille } from './coquille';
 import { creerIconeDeType } from './icones';
 import {

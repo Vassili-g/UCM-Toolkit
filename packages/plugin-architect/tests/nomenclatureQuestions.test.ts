@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { COLLECTIONS, type IndiceDePaire } from '@ucm-kit/core/referentiel';
-import type { LigneVue, QuestionVue, Reponse, TermeVue } from '../src/nomenclature/messages';
+import type { LigneVue, QuestionVue, Reponse, TermeVue } from '../src/messages/nomenclature';
 import {
   carteDeConflit,
   carteDeQuestion,

@@ -4,7 +4,7 @@
  * en fait du DOM.
  */
 import { COLLECTIONS } from '@ucm-kit/core/referentiel';
-import type { ConflitVue, LigneVue, QuestionVue, Reponse } from '../../nomenclature/messages';
+import type { ConflitVue, LigneVue, QuestionVue, Reponse } from '../../messages/nomenclature';
 import { TEXTES } from './textes';
 
 type QuestionDePaire = Extract<QuestionVue, { type: 'paire' }>;

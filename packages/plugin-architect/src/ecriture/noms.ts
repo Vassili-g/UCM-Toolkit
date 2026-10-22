@@ -14,7 +14,7 @@ import {
 } from '@ucm-kit/core/nommage';
 import { inventaireDeLectures } from '../nomenclature/lecture';
 import { lecteurDeVariablesFigma } from '../nomenclature/lectureFigma';
-import type { CauseDeRefus } from '../nomenclature/messages';
+import type { CauseDeRefus } from '../messages/nomenclature';
 import { CLE_JOURNAL, effacerLeJournal, lireLesRegles, lireLeStockage, preparerJournal, rangerLesEcritures, type Journal, type RenommageJournal } from '../nomenclature/regles';
 
 export interface ObjetModifiable { readonly id: string; name: string; readonly remote: boolean }
