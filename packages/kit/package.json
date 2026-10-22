@@ -34,6 +34,10 @@
       "types": "./dist/referentiel/index.d.ts",
       "default": "./dist/referentiel/index.js"
     },
+    "./controles": {
+      "types": "./dist/controles/index.d.ts",
+      "default": "./dist/controles/index.js"
+    },
     "./protocoles": {
       "types": "./dist/protocoles/index.d.ts",
       "default": "./dist/protocoles/index.js"

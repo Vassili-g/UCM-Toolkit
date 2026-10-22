@@ -22,3 +22,4 @@ export * from './vocabulaire-du-fichier.js';
 export * from './lexique.js';
 export * from './natures.js';
 export * from './questions.js';
+export type { ReleveDeComposant, CatalogueDeReference, Constat } from '../controles/index.js';
