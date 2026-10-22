@@ -74,7 +74,7 @@ donnent leurs prérequis propres.
 Avec Node 20 ou plus, à la racine du dépôt consommateur :
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.78 init
+npx --yes @ucm-kit/cli@0.1.79 init
 ```
 
 `init` crée la configuration et la CI de la forge détectée, sans écraser les
@@ -91,7 +91,7 @@ consommateur peut utiliser une autre technologie que Node.
 Pour choisir d'autres chemins dès l'installation :
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.78 init \
+npx --yes @ucm-kit/cli@0.1.79 init \
   --components src/components \
   --tokens src/tokens \
   --implementation '{dir}/{id}.vue'
@@ -100,7 +100,7 @@ npx --yes @ucm-kit/cli@0.1.78 init \
 Pour contrôler les exports sur le poste :
 
 ```sh
-npx --yes @ucm-kit/cli@0.1.78 check --report ci-report.md
+npx --yes @ucm-kit/cli@0.1.79 check --report ci-report.md
 ```
 
 Gardez une version exacte. Le [README du CLI](./packages/cli/README.md)
