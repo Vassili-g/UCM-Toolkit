@@ -591,7 +591,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   valeurs importées par clé à la demande des contrôles ; chaque entrée est
   présente, absente, non chargée ou inaccessible ; un token hors de l'arbre
   ouvert est trouvé.
-- [~ Claude 2] **B1 · Relevé du composant.** Vague 4 · K0, S3.
+- [x] (bb6a148f) **B1 · Relevé du composant.** Vague 4 · K0, S3.
   Écrit : `src/lectureDuComposant.ts` et ses tests.
   Fait quand : relevé de N2 complet (tous les variants, propriétés, porteur
   réel, champ, indice, plage, peintures directes, opacités, fonds des
