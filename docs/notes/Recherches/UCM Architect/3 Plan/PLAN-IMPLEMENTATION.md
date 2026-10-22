@@ -5,13 +5,18 @@ Formule à respecter pour tous les agents:
 # Plan d'implémentation de UCM Architect
 
 Lecteur : l'orchestrateur, la conversation principale de Claude Code. Aucun
-agent ne lit ce plan. Un agent reçoit la fiche de son lot (§4.5), copiée telle
-quelle dans son prompt.
+agent ne lit ce plan. Un agent reçoit le socle commun (§4.5) et la fiche de son
+lot, copiés tels quels dans son prompt.
+
+Version 5. Elle intègre la revue d'Opus du 22 octobre et la revue de Codex
+([REVUE-CODEX-DU-PLAN.md](./REVUE-CODEX-DU-PLAN.md), constats A1 à A17), et les
+réponses du mainteneur aux questions Q-1 à Q-5.
 
 Sources, de la plus forte à la plus faible :
 
 1. La [maquette](../2%20Maquettes/MAQUETTE-ARCHITECT.html), version
-   `6cf27974` : écrans, textes et comportements. En cas d'écart, elle l'emporte.
+   `6cf27974` : écrans, textes et comportements. Un écart entre la maquette et
+   une décision du §2 arrête l'orchestrateur (§4.9).
 2. Les décisions du §2.
 3. Le [document préparatoire](../1%20Conception/PREPARATION-ARCHITECT.md), la
    [grammaire des composants](../1%20Conception/GRAMMAIRE-DES-COMPOSANTS.md) et
@@ -22,45 +27,51 @@ Sources, de la plus forte à la plus faible :
 
 - UCM Architect remplace l'explorateur et Nomenclature, dans
   `packages/plugin-architect`.
-- Chaque cadre de la maquette, hors section 3 et hors cadres d'étude `v-*`,
-  existe en état de galerie de même identifiant. Le contrôle de fidélité (§4.10)
-  ne relève aucun écart.
-- `npm test`, `npm run typecheck` et `npm run build` passent.
-- Le §9 rend au mainteneur les questions et les choix faits sans lui.
+- Chaque cadre retenu au manifeste des cadres (§4.10) existe en état de galerie
+  de même identifiant, et le comparateur ne relève aucun écart.
+- `npm test`, `npm run typecheck` et `npm run build` passent ; le mainteneur a
+  lancé `test:ui` et sa recette.
+- Le commit final est poussé, la CI distante passe, puis le kit, la CLI et
+  l'adaptateur sont publiés depuis ce commit.
+- Le §9 rend au mainteneur les choix faits sans lui.
 
 ## 2. Décisions
 
 | Sujet | Décision |
 |---|---|
 | Plugin | UCM Architect remplace l'explorateur et Nomenclature. Il garde l'identifiant de manifeste de l'explorateur. Paquet `ucm-architect-plugin`, dossier `packages/plugin-architect` |
-| Nom | « UCM Architect » partout : manifeste, barre du plugin, textes, galeries, guides, cartes, CI, scripts. « UCM Token Explorer », « UCM Nomenclature » et le nom de travail « UCM Token Architect » disparaissent du code et des documents vivants. Seuls les gardent les Archives, les notes de recherche passées, les journaux de version et les messages de commit. La clé de stockage `ESPACE_ARCHITECT` reste |
-| Périmètre | Contrôles et corrections pour un fichier déclaré UCM. Ailleurs : navigation seule, et l'alerte de `t-hors`. Le sandbox relit la déclaration avant chaque contrôle et chaque écriture |
+| Nom | « UCM Architect » partout : manifeste, barre, textes, galeries, guides, cartes, CI, scripts, produits du kit. « UCM Token Explorer », « UCM Nomenclature » et « UCM Token Architect » disparaissent du code et des documents vivants ; seuls les gardent les Archives, les notes de recherche passées, les journaux de version et les messages de commit. La clé `ESPACE_ARCHITECT` reste |
+| Périmètre | Contrôles et corrections pour un fichier déclaré UCM. Ailleurs : navigation seule, sans renommage, et l'alerte de `t-hors` (M-10). Le sandbox relit la déclaration avant chaque contrôle et chaque écriture |
 | Écriture | Seulement par `src/ecriture/` |
-| Exactitude | Une correction n'est proposée que si une règle écrite la tire d'un fait lu, avec un seul candidat. Le reste devient une question, sans réponse cochée |
+| Exactitude | Une correction n'est proposée que si une règle écrite la tire d'un fait lu, avec un seul candidat. Le reste devient une question, sans réponse cochée. Un survol lié au token du repos devient une question (M-15) |
 | Annulation | Une écriture sur des variables passe par le journal et l'Historique. Une écriture sur un composant se défait par Ctrl+Z, un point d'annulation par lot |
-| Moteur de l'exporteur | Dans le socle, `plugin-socle/src/composant/`, lu par l'exporteur et par Architect. Les contrôles nouveaux, purs, vont dans le kit |
-| Lecteurs du composant | Le moteur rend les points de l'export. La lecture de l'explorateur, étendue à tous les variants, rend le relevé que le kit juge |
-| Concurrence | Une opération à la fois. Après une écriture ou un Ctrl+Z, le panneau se dit périmé jusqu'à Actualiser |
+| Échec partiel | Une écriture qui échoue est sautée ; les autres s'écrivent ; la ligne de réussite compte les sautées et dit pourquoi. Ctrl+Z défait le lot entier |
+| Moteur de l'exporteur | Dans le socle, `plugin-socle/src/composant/`. Les contrôles nouveaux, purs, vont dans le kit |
+| Lecteurs | Le moteur rend les points de l'export. La lecture de l'explorateur, étendue, rend le relevé du composant. Le catalogue des collections de référence est une donnée à part (note N2) |
+| Analyse | Une opération à la fois. Chaque analyse a une identité : sujet (clé du jeu de variants) et génération. Une réponse d'une génération périmée est ignorée. Après une écriture, un Ctrl+Z ou une sélection extérieure d'un autre composant, le panneau se dit périmé jusqu'à Actualiser ou Analyser. Un clic sur un constat garde le sujet |
 | Sélection | Changée au clic sur un constat, jamais ailleurs, par `src/ecriture/selection.ts` |
-| Onglets | Tokens : Corrections, Questions, À faire dans Figma, Règles. Composant : les trois premiers. Chaque constat est dans un seul onglet. Structure, Intégrations, Relevés et Comparer disparaissent. Dépendants devient « Utilisée par » dans la fiche d'une variable. `integrations/profilUcm.ts` et `lireLaRecette` restent |
-| Inspecteur | Remplacé par la fiche d'une variable, une feuille sur la barre latérale (`t-fiche`) |
-| Fenêtres | Tokens 1360 × 800, barre latérale 640 px. Composant 520 × 760 panneau fermé, par défaut ; 1040 × 760 ouvert. Frontière tirable |
-| Bouton du panneau | « Constats », icône du panneau, pastille du nombre dans la couleur du plus grave (`c-bouton-texte`) |
-| Section Variants | Forme C par défaut, pour tout composant. Le lien Tableau croise deux properties |
-| Alertes | Cinq types : Bloquant, À corriger, À vérifier, Information, Tenu. Couleur, icône et mot, liseré gauche. Même code pour les alertes, les cartes de constat, les puces de Variants et la pastille |
+| Onglets | Tokens : Corrections, Questions, À faire dans Figma, Règles. Composant : les trois premiers. Intégrations, Relevés, Comparer et Diagnostics disparaissent. Dépendants devient « Utilisée par » dans la fiche. `integrations/profilUcm.ts` et `lireLaRecette` restent |
+| Inspecteur | Remplacé par la fiche d'une variable (`t-fiche`) (M-3) |
+| Fenêtres | Tokens 1360 × 800, barre latérale 640 px. Composant 520 × 760 panneau fermé, par défaut ; 1040 × 760 ouvert ; frontière tirable |
+| Ouverture | Le plugin s'ouvre en mode Composant quand un composant est sélectionné, en mode Tokens sinon. La bascule change de mode |
+| Bouton du panneau | « Constats », icône du panneau, pastille du nombre dans la couleur du plus grave (M-18) |
+| Section Variants | Forme C pour tout composant ; le lien Tableau croise deux properties (M-14) |
+| Alertes | Bloquant, À corriger, À vérifier, Information, Tenu : couleur, icône et mot, liseré gauche |
 | Langage visuel | Vocabulaire des signaux dans le kit, styles et composants dans le socle. Valeurs : `2 Maquettes/architect.css`. Palettes et l'exporteur migrent hors de ce plan |
-| Mots | Termes de Figma et d'UCM en anglais, tels que Figma et le modèle les nomment (CONTRIBUTING.md, Messages destinés au designer). Variant écrit `Severity=info, Variant=standard`. Aucun « · » dans les textes d'Architect. « Tableau des tokens ». Textes en français seulement |
-| Recherche | Du texte dans le champ de l'arbre. Préfixes `terme:` et `vise:` pour les filtres qu'un mot ne dit pas |
-| Thème | Sombre, quel que soit le thème de Figma. Fonds de la maquette |
-| Préparation des tokens | Liste transmise par `figma.clientStorage` ; couleurs puis tailles ; intensité exacte s'il n'y en a qu'une, sinon une question ; axes et éléments par question. Le mot « plan » n'apparaît pas à l'écran |
+| Mots | Termes de Figma et d'UCM en anglais (CONTRIBUTING.md), même pour un Figma en français (M-17). Variant écrit `Severity=info, Variant=standard`. Aucun « · » dans les textes d'Architect. « Tableau des tokens ». Français seulement |
+| Recherche | Du texte dans le champ de l'arbre ; préfixes `terme:` et `vise:` |
+| Thème | Sombre, quel que soit le thème de Figma |
+| Grammaire | `components/composant/famille/[élément]/[palette/style/taille/état]/rôle ou propriété`, reconnue par positions facultatives, pas par une liste de formes. `padding`, `gap`, `width`, `height`, `border-width` dans un registre propre à `components` (remplace G-8). Tailles d'icône dans `layout/icon` |
+| Préparation des tokens | Couleurs puis tailles ; intensité exacte s'il n'y en a qu'une, sinon une question ; axes et éléments par question. Le mot « plan » n'apparaît pas à l'écran. Identité, destination et reprise : note P |
 | Règles reçues | Des questions, en tête de l'onglet Questions (`t-regle`) |
-| Lien vers le fichier des tokens | Seulement si `figma.fileKey` a déjà été lu dans ce fichier. Le manifeste ne change pas ; voir §9 |
-| Grammaire | `components/composant/famille/[élément]/[palette/style/taille/état]/rôle ou propriété` ; tailles d'icône dans `layout/icon` |
-| Gestes du mainteneur | Il lance `test:ui`, les sondes et les recettes Figma, et migre les fichiers Figma réels. Aucun agent ne le fait à sa place |
+| Lien vers le fichier des tokens | Seulement si `figma.fileKey` est servi ; voir la sonde S-4 |
+| Accessibilité | Seuils WCAG : texte 4,5:1 en AA et 7:1 en AAA ; grand texte (≥ 24 px, ou ≥ 18,66 px en graisse ≥ 700) 3:1 en AA et 4,5:1 en AAA ; comparaison sans arrondi. Cible, anneau UCM et texte sous 12 px : des recommandations, car le dessin Figma ne prouve pas la cible réelle |
+| Push et publication | Un seul push, à J-F, après la recette (Q-1). Puis CI distante, puis publication depuis ce commit |
+| Gestes du mainteneur | Il lance `test:ui`, les sondes et les recettes, et migre les fichiers Figma réels |
 
 Principes : le plus simple qui tient les critères ; déplacer par `git mv` avant
-de réécrire ; une analyse partielle ou en échec ne dit jamais « aucun constat » ;
-aucun geste manuel du designer inventé.
+de réécrire ; une analyse partielle, annulée ou en échec ne dit jamais « aucun
+constat » ; aucun geste manuel du designer inventé.
 
 ## 3. Lois qui changent
 
@@ -70,473 +81,591 @@ aucun geste manuel du designer inventé.
 | Lecture seule de l'explorateur (`tests/loiDeLectureSeule.test.ts`) | Remplacée par la loi d'écriture d'Architect | A0.2 |
 | Écriture de Nomenclature (`plugin-nomenclature/tests/loiDEcriture.test.ts`) | Suit ses fichiers dans Architect, mêmes attendus | A0.2 |
 | Écriture d'Architect | Hors de `src/ecriture/` : aucune écriture, aucun changement de sélection ou de vue, aucun import de `template/ecriture` | A0.2 |
-| Import de variables | Seule `src/lecture.ts` importe des cibles d'alias ; B3 l'étend aux valeurs d'une library | B3 |
-| Paquets séparés (`tests/pluginsSepares.test.ts`) | Trois plugins | A0.1, A0.2 |
-| Vocabulaire de Figma | Nouvelle loi : les catalogues de textes d'Architect refusent les traductions listées (portée, calque, fond de cadre…) et le glyphe « · » | A1 |
+| Import de variables | Seule `src/lecture.ts` importe ; B3 l'étend aux valeurs d'une library, B10 au catalogue | B3, B10 |
+| Paquets séparés, manifestes, kit compilé (`tests/pluginsSepares.test.ts`, `tests/manifestsDesPlugins.test.ts`, `tests/kitCompileAJour.test.mjs`) | Trois plugins | A0.1, A0.2 |
+| Textes écrits, loi des textes (`tests/textesEcrits.test.mjs`, `plugin-explorateur/tests/loiDesTextes.test.ts`) | Lisent les catalogues découpés `src/ui/textes/*.ts` | A1 |
+| Vocabulaire de Figma | Nouvelle loi : les catalogues d'Architect refusent les traductions listées (portée, calque, fond de cadre…) et le glyphe « · », sauf une liste d'exceptions que les lots U vident | A1, U1 à U8 |
 
 ## 4. Méthode
 
 ### 4.1 Pistes
 
-Une piste = un paquet ou un dossier. Deux lots de pistes différentes n'écrivent
-jamais le même fichier.
+Une piste = un ensemble de fichiers. Deux lots de pistes différentes n'écrivent
+jamais le même fichier, sauf les exceptions nommées dans une fiche.
 
 | Piste | Écrit seulement | Exécutant par défaut |
 |---|---|---|
-| K · kit | `packages/kit/**` | Codex, dans son clone ; sinon `implementeur` |
-| S · socle | `packages/plugin-socle/**` ; `plugin-exporter` en S0 | `implementeur-exigeant` |
-| B · sandbox d'Architect | `plugin-architect/src/**` hors `src/ui/`, ses tests hors `tests/interface/` | `implementeur` (Claude 2) |
-| U · interface d'Architect | `plugin-architect/src/ui/**`, `galerie/**`, `tests/interface/**` | `implementeur-exigeant` (Claude 1) |
-| O · orchestrateur | ce plan, `.agents/`, `CARTE.md`, `AGENTS.md`, invariants, docs, CI, `package-lock.json` | conversation principale |
+| K · kit | `packages/kit/**` hors `package.json` ; la vue illustrée du référentiel (`docs/notes/Recherches/Archi Tokens Multi-marques/generer-donnees-referentiel.ts` et sa sortie) quand un lot change `PRODUITS` ou une définition | Codex, dans son clone ; sinon `implementeur` |
+| V · versions | `packages/{kit,cli,adapter-typescript}/package.json`, leurs README, le `README.md` racine (pins), `package-lock.json` | orchestrateur, à chaque synchronisation |
+| S · socle | `packages/plugin-socle/**` ; `plugin-exporter` en S0 et S3 | `implementeur-exigeant` |
+| B · sandbox | `plugin-architect/src/**` hors `src/ui/`, ses tests hors `tests/interface/` | `implementeur` (Claude 2) |
+| U · interface | `plugin-architect/src/ui/**`, `galerie/**`, `tests/interface/**` | `implementeur-exigeant` (Claude 1) |
+| X · autres plugins | textes de `plugin-exporter` et `plugin-palettes` qui nomment l'explorateur ou Nomenclature | `implementeur` |
+| O · orchestrateur | ce plan, `.agents/`, cartes, guides, invariants, docs, CI | conversation principale |
 
 ### 4.2 Fichiers carrefours
 
 | Carrefour | Parade |
 |---|---|
-| Version du kit (`packages/kit/package.json`), exigée dans le même commit par `tests/versionSuitLeContenu.test.mjs` | Tous les lots du kit dans la seule piste K, en série. Publication npm groupée aux jalons (O2) |
-| Clés `ESPACE_ARCHITECT` (`kit/src/referentiel/produits.ts`), sous-chemins exportés du kit | K0 les déclare toutes d'un coup |
-| Type du relevé du composant, contrat entre K et B | K0 le pose d'après la note N2 ; seule la piste K le change ensuite |
-| `code.ts`, `messages.ts` d'Architect | A1 les découpe : `src/messages/<domaine>.ts`, `src/sandbox/<domaine>.ts`, une table d'aiguillage déjà remplie de tous les domaines de §7 N1, chacun en souche |
-| `src/ui/textes.ts`, `src/ui/styles.css`, `galerie/etats.cjs`, `tests/interface/interface.test.mjs` | A1 les découpe de même : `src/ui/textes/<domaine>.ts`, `src/ui/styles/<domaine>.css`, `galerie/etats/<domaine>.cjs`, `tests/interface/<domaine>.test.mjs`, index déjà remplis |
-| Socle lu en source par Architect | S0 et S1 passent avant les lots U ; un lot S ultérieur est « seul » |
-| `.agents/domiciles.json`, cartes, guides, invariants, docs, CI | Piste O seule, aux synchronisations. Un lot qui crée un fichier sans domicile le dit dans son compte rendu ; il ne touche pas au registre |
-| Ce plan | Écrit par l'orchestrateur seul. Codex ne le modifie pas |
+| Versions du kit, de la CLI et de l'adaptateur, pins, lock (`tests/versionSuitLeContenu.test.mjs`, `tests/monorepoCoherent.test.mjs`, `tests/pinDocumente.test.mjs`) | Les lots K ne montent aucune version. Après chaque merge de Codex, l'orchestrateur commite un lot V : kit, CLI et adaptateur montés, pins, READMEs et lock à jour. Entre le commit d'un lot K et le lot V qui le suit, `versionSuitLeContenu` échoue : c'est le seul rouge admis, et il ne vit que dans le clone de Codex |
+| Clés `ESPACE_ARCHITECT`, sous-chemins du kit, portes documentées (`tests/portesDocumentees.test.mjs`) | K0 les déclare toutes, avec `kit/README.md` |
+| Contrat entre K et B : relevé et catalogue | K0 pose les types d'après N2 ; seule la piste K les change ensuite |
+| Routes, cartes, guides, invariants, tests racine que vérifient `tests/domiciles.test.ts`, `tests/cartes.test.ts`, `tests/inventaireInvariants.test.ts`, `tests/docLinks.test.ts` | Un lot qui déplace ou crée des sources (S0, A0.1, A0.2, A1) les met à jour dans son propre commit. L'orchestrateur les écrit avant la vérification du lot ; la fiche les liste |
+| `code.ts`, `messages.ts`, `src/ui/textes.ts`, `src/ui/styles.css`, `galerie/etats.cjs`, tests d'interface d'Architect | A1 les découpe par domaine de N1, avec des index déjà remplis ; un lot n'écrit que son domaine |
+| Socle lu en source par Architect | S1 passe avant U1 et U5 ; un lot S qui modifie un fichier déjà importé par Architect est seul |
+| Ce plan | Écrit par l'orchestrateur seul. Codex le lit, ne l'écrit pas |
 
 Un lot qui découvre qu'il doit écrire hors de sa liste s'arrête et le dit.
 L'orchestrateur découpe, ou sérialise.
 
-### 4.3 Parallélisme
+### 4.3 Parallélisme et Codex
 
-- Au plus deux agents Claude, Claude 1 sur U et Claude 2 sur B ou S, plus Codex
-  sur K. Un lot marqué « seul » tourne sans autre agent Claude. Codex continue,
+- Au plus deux agents Claude, Claude 1 sur U et Claude 2 sur B, S ou X, plus
+  Codex sur K. Un lot « seul » tourne sans autre agent Claude ; Codex continue
   dans son clone.
-- **Codex travaille dans un clone à part**, chemin court (`A:\UCM-codex`, à
-  cause des chemins longs de Windows), sur `main`, sans pousser. Le clone a
-  pour remote `partage` le dépôt de l'arbre partagé, par son chemin local :
-  rien n'est poussé sur GitHub avant J-F. Avant chaque lot, Codex lance
-  `git pull --rebase partage main`. Il ne touche pas l'arbre partagé.
-- L'orchestrateur ajoute le clone comme remote `codex`. À chaque
-  synchronisation, il lance `git fetch codex`, puis
-  `git merge --no-edit codex/main`. Les fichiers sont disjoints : le merge
-  passe sans conflit, sans stash ni rebase de l'arbre partagé.
-- Synchronisation : avant un lot B ou U qui consomme un lot K, et à chaque
-  jalon.
-- L'orchestrateur pousse une seule fois, à J-F, après la recette du mainteneur
-  (Q-1). Jusque-là, la CI ne tourne pas : les jalons la remplacent.
+- Claude 1 et Claude 2 écrivent le même paquet, `plugin-architect`. Un agent
+  qui voit échouer un test sur un fichier de l'autre piste le dit dans son
+  compte rendu, sans le corriger.
+- **Codex** travaille dans un clone à part (`A:\UCM-codex`, chemin court à
+  cause des chemins longs de Windows), sur `main`, sans pousser. Son remote
+  `partage` pointe sur le dépôt de l'arbre partagé, par son chemin local.
+  Avant chaque lot : `git status` propre, `git pull --rebase partage main`,
+  puis lecture des états du §6 par
+  `git show partage/main:"docs/notes/Recherches/UCM Architect/3 Plan/PLAN-IMPLEMENTATION.md"`.
+  Il prend le premier lot K libre marqué « Codex » dont les dépendances sont
+  `[x]`. Il ne prend jamais un lot marqué `[~ Claude …]`.
+- **Synchronisation**, seulement quand aucun agent Claude n'a de lot ouvert :
+  `git -C A:\UCM-codex status` (un clone sale = lot interrompu), `git fetch
+  codex`, `git merge --no-edit codex/main`, lot V, reconstruction du kit
+  (`npm run build -w @ucm-kit/core`), cases cochées. Les commits de Codex déjà
+  fusionnés gardent leur hash : le `pull --rebase` suivant ne les rejoue pas.
+- Synchroniser avant un lot B ou U qui consomme un lot K, et à chaque jalon.
+- Un lot K repris par Claude passe `[~ Claude 2]` : Codex ne le prend plus.
 
 ### 4.4 Niveau d'agent
 
 | Sorte de travail | Qui |
 |---|---|
-| Note de conception, contrat de messages, texte absent de la maquette, revue de diff | orchestrateur (Opus) |
+| Note, fiche exécutable, texte absent de la maquette, revue de diff, lot V | orchestrateur (Opus) |
 | Règle pure et ses tests dans le kit | Codex, ou `implementeur` |
 | Sandbox, lecture, écriture | `implementeur` ; `implementeur-exigeant` si le lot touche une loi ou le journal |
-| Écran à reproduire au pixel | `implementeur-exigeant` |
+| Écran au pixel, comparateur | `implementeur-exigeant` |
 | Déplacement, renommage de chemins, cases du plan | `executant` (Haiku) |
-| Vérification longue, contrôle de fidélité | `verificateur` (Haiku) |
+| Vérification de jalon | `verificateur` (Haiku) |
 
-### 4.5 Fiche de lot
+### 4.5 Prompt d'un agent
 
-Chaque lot du §6 est écrit sous cette forme. Le prompt d'un agent contient sa
-fiche, la sortie de `npm run agents:lire -- <chemins de « Écrit »>` et la note
-du §7 que la fiche cite. Rien d'autre.
+Le prompt contient, dans cet ordre : le socle commun ci-dessous, la fiche du
+lot, la note du §7 qu'elle cite, la sortie de
+`npm run agents:lire -- <chemins de « Écrit »>`. Rien d'autre. En vague 0,
+l'orchestrateur complète chaque fiche : « Écrit » fermé, « Lit », « Vérifie »,
+« Nature ». Les défauts par piste du §6 valent quand un champ manque.
+
+Socle commun, joint à chaque prompt :
 
 ```text
-<id> · <titre>        Piste · Agent · Dépend de · Seul ?
-Écrit : chemins que le lot crée ou modifie, et seulement eux.
-Lit : fichiers et sections précis.
-Maquette : identifiants de cadres ; symboles du script à chercher.
+- Écris seulement les chemins de « Écrit ». Un besoin hors liste : arrête-toi et dis-le.
+- Lance `git status` avant de commencer ; un fichier du lot déjà modifié sans raison : arrête-toi.
+- Écriture dans Figma : seulement par `src/ecriture/`. Une opération à la fois ; chaque message porte le sujet et la génération de l'analyse ; une réponse périmée est ignorée.
+- Textes : recopiés de la maquette, mot pour mot. Termes de Figma et d'UCM en anglais. Pas de « · ».
+- Ne lance ni `npm test`, ni `test:ui`. Lance la commande de « Vérifie ».
+- Mets à jour les documents que `npm run agents:diff` liste, et eux seuls ; ne crée aucun document.
+- Compte rendu : fichiers écrits, commande lancée et résultat, échecs dus à une autre piste, écrans changés, texte absent de la maquette.
+```
+
+Gabarit d'une fiche :
+
+```text
+<id> · <titre>        Piste · Agent · Nature · Dépend de · Seul ?
+Écrit : chemins créés ou modifiés, et seulement eux.
+Lit : fichiers et sections.
+Maquette : identifiants de cadres ; symboles du script.
 Fait quand : critères vérifiables.
 Vérifie : commande du lot.
 ```
 
+Natures, selon `CONTRIBUTING.md` : déplacement à sortie identique ; correction
+d'un défaut ; code ou écran nouveau.
+
 ### 4.6 Lectures
 
-- Un agent lit sa fiche, la sortie de `agents:lire` et les fichiers de « Lit ».
-  Il ne lit ni ce plan, ni `AGENTS.md` racine, ni le document préparatoire, ni
-  la maquette en entier. Codex lit `AGENTS.md` d'office : c'est un coût fixe,
-  et la fiche n'y ajoute rien.
-- La maquette se lit par recherche : `grep -n "<id>\|<SYMBOLE>"` dans
-  `2 Maquettes/MAQUETTE-ARCHITECT.html`, puis les seules lignes trouvées.
-  Une classe de style se cherche de même dans `2 Maquettes/architect.css`.
-- Un lot d'écran capture ses cadres une fois, en début de lot, par
-  `node "docs/notes/Recherches/UCM Architect/2 Maquettes/Mesures/capturer-cadres.mjs" <dossier> <id>…`,
-  et lit les images. Pas d'autre capture pendant le lot.
-- L'orchestrateur lit ce plan, les notes et les diffs. Il ne relit pas le code
-  d'un lot dont la vérification est consignée (§4.8).
+- Un agent lit la sortie de `agents:lire`, invariants et `AGENTS.md` racine
+  compris (coût fixe), puis les fichiers de « Lit ». Il ne lit ni ce plan, ni
+  le document préparatoire, ni la maquette en entier.
+- La maquette se lit par `grep -n "<id>\|<SYMBOLE>"` dans
+  `2 Maquettes/MAQUETTE-ARCHITECT.html`, puis les seules lignes trouvées. Une
+  classe se cherche de même dans `2 Maquettes/architect.css`.
+- Un lot d'écran capture ses cadres une fois, en début de lot :
+  `node "docs/notes/Recherches/UCM Architect/2 Maquettes/Mesures/capturer-cadres.mjs" <dossier> <id>…`.
+- L'orchestrateur lit ce plan, les notes et les diffs.
 
 ### 4.7 Vérifier
 
 | Niveau | Quand | Commande | Qui |
 |---|---|---|---|
-| Lot | chaque lot | `npm run test:paquet -- <paquet>` du paquet écrit, ou les seuls fichiers de test du lot par `npx tsx --test <fichier>` ; `tsc` du paquet si un type exporté change | l'agent |
-| Lot du kit | chaque lot K | tests du kit, puis tests racine `node scripts/run-tests.cjs` (version du kit) | Codex ou l'agent |
-| Jalon | fin de vague | `npm test`, `npm run typecheck`, `npm run build`, contrôle de fidélité des cadres de la vague | un `verificateur`, une fois, arbre stable |
-| Recette | J-F, et tout jalon que le mainteneur choisit | `npm run test:ui -w ucm-architect-plugin`, Figma | le mainteneur |
+| Lot | chaque lot | « Vérifie » de la fiche : `npm run test:paquet -- <paquet>` ou les fichiers de test du lot par `npx tsx --test <fichier>` ; `tsc` du paquet si un type exporté change | l'agent |
+| Lot d'écran | chaque lot U | en plus, le comparateur d'U0 sur les cadres du lot | l'agent |
+| Lot du kit | chaque lot K | tests du kit, puis tests racine `node scripts/run-tests.cjs` ; seul `versionSuitLeContenu` peut échouer | Codex ou l'agent |
+| Lot qui touche Nomenclature ou ses écritures | A0.2, B6, B8 | en plus, les tests racine | l'agent |
+| Jalon | fin de vague | `npm test`, `npm run typecheck`, `npm run build`, comparateur sur les cadres de la vague | un `verificateur`, une fois |
+| Recette | J-F | `npm run test:ui -w ucm-architect-plugin`, Figma | le mainteneur |
 
-Jamais `npm test` dans un lot, jamais `test:ui` par un agent. Un lot d'écran
-met à jour son état de galerie et son test d'interface sans les lancer.
+Jamais `npm test` dans un lot, jamais `test:ui` par un agent. Un jalon dit, pour
+chaque cadre, s'il est vérifié sur des fixtures ou sur l'analyse branchée.
 
 ### 4.8 État, commit, relais
 
-- États, écrits par l'orchestrateur seul : `[ ]` libre, `[~ Claude 1]`,
-  `[~ Claude 2]` ou `[~ Codex]` pris, `[x] (hash)` fait.
-- Un lot = un commit vert, par chemins explicites. Message :
-  `<id> · <titre>`, puis la ligne `Vérifié : <commandes lancées>`.
-- Un lot tient en moins de 400 lignes de diff et de 10 fichiers. Au-delà, il se
-  découpe avant de partir, ou se commite par étapes vertes `<id> (1/3)`.
+- États, écrits par l'orchestrateur : `[ ]` libre, `[~ Claude 1]`,
+  `[~ Claude 2]`, `[~ Codex]` pris, `[x] (hash)` fait.
+- Un lot = un commit vert, par chemins explicites. Message : `<id> · <titre>`,
+  puis la ligne `Vérifié : <commandes lancées>`.
+- Un lot tient en 400 lignes changées et 10 fichiers, renommages purs exclus
+  (`git diff -M --stat`). Au-delà, il se commite par étapes vertes nommées
+  dans sa fiche, `<id> (1/n)`.
 - **Relais de Codex.** Codex ne laisse rien hors commit. Avant sa limite, il
-  commite l'étape verte en cours, ou l'abandonne par `git restore` dans son
-  clone. Le corps du commit d'une étape dit ce qui reste : `Reste : …`.
-- **Reprise.** L'orchestrateur lit `git log codex/main` à chaque
-  synchronisation et coche les lots faits. Un lot `[~ Codex]` sans commit, Codex
-  arrêté, repart de zéro depuis sa fiche, avec un agent Claude. Un lot partiel
-  repart de la ligne `Reste :`.
-- **Confiance.** Un commit qui porte `Vérifié :` n'est pas revérifié avant le
-  jalon. L'orchestrateur relit seulement les fichiers publics du lot : types et
-  fonctions exportés, index. Le jalon couvre le reste.
+  commite l'étape verte en cours avec une ligne `Reste : …`, ou l'abandonne par
+  `git restore` dans son clone.
+- **Reprise.** À chaque synchronisation, l'orchestrateur lit
+  `git log codex/main` et coche. Un lot `[~ Codex]` sans commit, Codex arrêté,
+  repart de zéro chez Claude. Un lot partiel repart de sa ligne `Reste :`.
+- **Revue.** L'orchestrateur relit chaque diff par `git diff --stat`, puis les
+  fichiers publics (types et fonctions exportés, index) et les lois. Il ne
+  relance pas une vérification consignée par `Vérifié :` avant le jalon.
 
 ### 4.9 Autonomie
 
 - L'orchestrateur ne s'arrête pas pour demander. Devant un choix, il prend le
   plus simple, réversible, conforme à la maquette, et l'inscrit au §9.
-- Il s'arrête seulement devant : une contradiction entre la maquette et une
-  décision du §2 ; une publication qui casserait un consommateur ; un test
-  racine rouge dont la cause est hors des pistes du plan.
+- Il s'arrête seulement devant : un écart entre la maquette et une décision du
+  §2 ; une publication qui casserait un consommateur ; un test racine rouge
+  dont la cause est hors des pistes du plan. Un rouge que le plan provoque
+  (versions entre K et V) ne l'arrête pas.
 - Textes : tous viennent de la maquette. Un texte absent, l'orchestrateur
   l'écrit (skill `rediger-diagnostics-ucm`), le donne au lot et l'inscrit au §9.
-  Aucun `TODO(texte)`.
-- Sondes : S-1 et S-2 (§7) partent au mainteneur au lancement, en un seul
-  passage. Les lots qui en dépendent avancent sur l'hypothèse de leur fiche.
-  Un écart devient une question du §9 et un lot de reprise.
+- Sondes : S-1, S-2 et S-4 (§7) partent au mainteneur au lancement, en un seul
+  passage. Les lots avancent sur l'hypothèse de leur fiche ; un écart devient
+  une question du §9 et un lot de reprise.
 
 ### 4.10 Fidélité aux maquettes
 
-- Un cadre = un état de galerie du même identifiant, avec les données de la
-  maquette : fichier Intencial, Alert, Button, Tag.
-- Les textes sont recopiés du script de la maquette, sans retouche.
-- Les valeurs de style viennent de `2 Maquettes/architect.css` et des feuilles de
-  galerie. Aucune valeur inventée.
-- Les pastilles roses et les légendes de la maquette sont des annotations : elles
-  ne s'implémentent pas.
-- Contrôle : `plugin-explorateur/galerie/comparer-maquette.cjs`, étendu en U0
-  aux paires d'identifiants de la maquette d'Architect. Tolérance 1 px sur une
-  position ou une taille, aucune sur une police, une couleur ou un texte. Un
-  `verificateur` le lance aux jalons ; chaque écart devient un lot de reprise.
+- Un cadre retenu = un état de galerie du même identifiant, avec les données de
+  la maquette (fichier Intencial, Alert, Button, Tag, Input), à la taille du
+  cadre : fenêtre entière, ou extrait de barre latérale pour un cadre
+  `cadreSeul`.
+- Textes recopiés ; valeurs de style de `2 Maquettes/architect.css` et des
+  feuilles de galerie ; pastilles roses et légendes jamais implémentées.
+- **Manifeste des cadres** : U0 l'écrit dans `galerie/cadres.json` (cadre, lot,
+  taille, sorte). Retenus : `t-*`, `c-*` sauf `c-bouton-icone`, `x-*`, `g-*`,
+  `cf-*`, `e-*`. Exclus : `a-*` (l'existant), `v-*` (étude), `c-bouton-icone`
+  (variante écartée par M-18). `s-planche` va à la galerie du socle (S1).
+- **Comparateur** (U0) : apparie les éléments de même texte visible et ceux
+  des sélecteurs listés par cadre ; ignore `.repere`, `.repere-n` et les
+  légendes ; 1 px de tolérance sur une position ou une taille, aucune sur une
+  police, une couleur ou un texte ; sort en échec sur un écart, un cadre
+  manquant ou un sélecteur obligatoire vide.
+
+### 4.11 Écarts assumés aux règles du dépôt
+
+| Règle | Écart | Raison |
+|---|---|---|
+| Un texte absent porte `TODO(texte)` et attend la validation du mainteneur | L'orchestrateur l'écrit ; le §9 le rend | autonomie |
+| Un lot attend le commit du précédent | Deux lots de pistes disjointes en parallèle | vitesse |
+| Les tests racine verts à chaque commit | `versionSuitLeContenu` rouge dans le clone de Codex jusqu'au lot V | carrefour des versions |
+| Une note est validée avant ses lots | Les notes partent sans validation, le §9 les rend (Q-5) | autonomie |
 
 ## 5. Vagues
 
 | Vague | Claude 1 | Claude 2 | Codex | Jalon |
 |---|---|---|---|---|
-| 0 | — | — | — | Notes N1, N2, T, G, E, P du §7 par l'orchestrateur ; sondes S-1 et S-2 au mainteneur |
-| 1 | S0 seul, puis A0.1 seul, puis A0.2 seul | — | K0, K1, K2 | J0 : fusion verte |
-| 2 | A1 seul, puis U0 | S1, puis S2 | K3, K8 | — |
-| 3 | U1, U2, U3, U4 | B3, B6 | K5 | J1 : mode Tokens |
-| 4 | U5, U6 | B1, B2 | K4, K7 | J2 : mode Composant, lecture |
-| 5 | U7 | B4, B5, B7 | K6 | J3 : corrections et écriture |
-| 6 | U8 | B8, B9 | — | J-F : fidélité complète, documents, §9, recette |
+| 0 | — | — | — | Notes N1, N2, T, G, E, P, M ; fiches exécutables ; sondes S-1, S-2, S-4 au mainteneur |
+| 1 | S0 seul, puis A0.1 seul, puis A0.2 seul | — | K0, K1, K2, K9 | J0 : fusion verte |
+| 2 | A1 seul, puis U0 | S1, puis S2, puis X1 | K3, K8 | — |
+| 3 | U1, U2, U3, U4 | B3, puis B6 après K5 | K5 | J1 : mode Tokens |
+| 4 | U5, U6 | S3 seul, puis B10, B1, B2 | K4, K7 | J2 : mode Composant, lecture |
+| 5 | U7 | B9, B4, B5, B7 | K6 | J3 : corrections, écriture, accessibilité branchée |
+| 6 | U8 | B8 | — | J-F |
 
 Une case libre se remplit du lot suivant de la piste dont les dépendances sont
-faites. Codex, une fois K fini, prend des lots B dans son clone ; ses fichiers
-restent disjoints de ceux de Claude 2.
+faites. Codex, une fois K fini, prend des lots B dans son clone, sur des
+fichiers disjoints de ceux de Claude 2.
 
 ## 6. Lots
 
 ### Piste K · kit
 
-Chaque lot monte la version du kit et fait passer les tests racine. Les noms de
-fichiers sont indicatifs ; la note du lot les fixe.
+Défauts : Codex · nature « code nouveau » · Vérifie : tests du kit et tests
+racine (§4.7). Aucun lot K ne monte de version (lot V).
 
-- [ ] **K0 · Clés, sous-chemin et relevé.** Codex · vague 1.
+- [ ] **K0 · Clés, sous-chemin, relevé et catalogue.** Vague 1 · note N2.
   Écrit : `kit/src/referentiel/produits.ts`, `kit/src/controles/` (index,
-  `releve.ts`, `constat.ts`), `kit/package.json`.
-  Lit : §7 N2 ; `produits.ts`.
+  `releve.ts`, `catalogue.ts`, `constat.ts`), `kit/package.json` (exports
+  seulement), `kit/README.md` (porte nouvelle).
   Fait quand : `ESPACE_ARCHITECT` déclare les clés d'Ignorer, de la library
-  choisie, du niveau de contraste, de la clé du fichier des tokens et de la
-  préparation reçue ; `@ucm-kit/core/controles` exporte `ReleveDeComposant` et
-  `Constat` (code, type d'alerte, layer, variant, faits lus) ; test de forme.
-- [ ] **K1 · Grammaire des composants.** Codex · vague 1 · note G.
-  Écrit : `kit/src/referentiel/grammaire.ts` et ses tests.
-  Fait quand : les chemins de la section 2 de la grammaire sont reconnus avec
-  leurs positions, ceux de la section 4 refusés ; `layout/icon/xl` reconnu,
-  `layout/sizing/xl` refusé ; un chemin à deux lectures rend `ambigu` sans les
-  axes, une seule lecture avec ; tests de Nomenclature sans changement
-  d'attendu.
-- [ ] **K2 · Signaux du langage.** Codex · vague 1.
-  Écrit : `kit/src/referentiel/signaux.ts` ; la définition de `scale/{cran}` dans
-  `kit/src/referentiel/theme.ts`, qui dit « portée » au lieu de « scope ».
+  choisie, du niveau de contraste, de la clé du fichier des tokens et des
+  préparations ; `@ucm-kit/core/controles` exporte `ReleveDeComposant`,
+  `CatalogueDeReference` et `Constat` (code, type d'alerte, layer, variant,
+  faits lus) selon N2 ; `portesDocumentees` passe.
+- [ ] **K1 · Grammaire des composants.** Vague 1 · note G.
+  Écrit : `kit/src/referentiel/{grammaire,architecture}.ts` et registres, leurs
+  tests.
+  Fait quand : positions facultatives reconnues ; registre propre à
+  `components` ; cas nommés de la note G reconnus avec leurs positions ;
+  `layout/icon/xl` reconnu, `layout/sizing/xl` refusé ; deux lectures rendent
+  `ambigu` sans les axes, une avec ; le jugement d'une liaison reste à K3 et
+  K5 ; tests de Nomenclature sans changement d'attendu.
+- [ ] **K2 · Signaux du langage.** Vague 1.
+  Écrit : `kit/src/referentiel/signaux.ts` ; définition de `scale/{cran}` dans
+  `theme.ts` (« portée » → « scope ») ; vue illustrée régénérée.
   Lit : maquette, section 1 « Les signaux ».
-  Fait quand : chaque signal a un identifiant, un sens et un libellé ; les cinq
-  types d'alerte sont ordonnés ; les gravités de Palettes et de l'exporteur ont
-  chacune leur type ; un test refuse un signal sans libellé.
-- [ ] **K3 · Contrôles du composant.** Codex · vague 2 · K0, note T.
+  Fait quand : chaque signal a un identifiant, un sens, un libellé ; cinq types
+  d'alerte ordonnés ; les gravités de Palettes et de l'exporteur ont chacune
+  leur type ; `tests/vueIllustree.test.ts` passe.
+- [ ] **K9 · Produits et noms dans le kit.** Vague 1.
+  Écrit : `kit/src/referentiel/produits.ts` (produit `architect` « UCM
+  Architect », produit `explorateur` retiré), commentaires de
+  `kit/src/protocoles/nommage.ts`, `generer-donnees-referentiel.ts` et sa sortie.
+  Fait quand : aucun texte du kit ne nomme l'explorateur ni Nomenclature comme
+  produit ; `vueIllustree` passe.
+- [ ] **K3 · Contrôles du composant.** Vague 2 · K0, K1, note T.
   Écrit : `kit/src/controles/{nommage,mapping,couche,oublis}.ts`.
-  Fait quand : nommage C7 à C11, mapping C15 à C19 et C21, couche C20 et C61,
-  oublis C31 à C33 ; un test positif et un négatif par contrôle ; un relevé
-  écrit à la main de Button et d'Alert rend les constats de la table T ; aucun
-  constat pour `alert/size/gap` sans axe de taille, un token partagé entre
-  deux états, un rôle absent.
-- [ ] **K8 · Corrections exactes et questions.** Codex · vague 2 · K3.
+  Fait quand : C7 à C11, C15 à C19 et C21, C20 et C61, C31 à C33, sur relevé et
+  catalogue ; un test positif et un négatif par contrôle ; un token inutilisé
+  et un frère jamais importé sont trouvés par le catalogue ; les relevés écrits
+  à la main de Button et d'Alert rendent la table T ; aucun constat pour
+  `alert/size/gap` sans axe de taille, un token partagé entre deux états, un
+  rôle absent.
+- [ ] **K8 · Corrections exactes et questions.** Vague 2 · K3.
   Écrit : `kit/src/controles/corrections.ts`.
   Maquette : `c-corrections`, `c-modele`, `c-questions`, `x-button-corr`.
-  Fait quand : token frère (C22), copie des liaisons d'un variant (C24),
-  liaison par la grammaire (C25), couleurs et tailles (C29) ; une correction
-  seulement si chaque nom calculé existe, avec un seul candidat et un seul
-  layer destinataire ; sinon une question (C70, C76), sans réponse cochée ; un
-  `State=hover` lié au token du repos rend une question avec l'indice des
-  autres variants `State=hover`.
-- [ ] **K5 · Full UCM, structure, scopes, modes.** Codex · vague 3 · K3.
+  Fait quand : C22, C24, C25, C29 ; une correction seulement si chaque nom
+  calculé existe au catalogue, avec un seul candidat et un seul layer
+  destinataire ; sinon une question (C70, C76) ; `State=hover` lié au token du
+  repos rend une question avec l'indice des autres variants `State=hover` ;
+  chaque correction porte les faits à relire avant écriture (axes, règle,
+  cible).
+- [ ] **K5 · Full UCM, structure, scopes, modes.** Vague 3 · K3.
   Écrit : `kit/src/controles/{theme,structure}.ts`.
+  Lit : `docs/notes/Recherches/Plugin Architect/6 Contrôle de structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md`, cas (a), (b), (c), (f) ; `kit/src/emplois/dossiers.ts`.
   Maquette : `t-structure`, `t-portees`.
-  Fait quand : C59, C60, C63 ; cas (a), (b), (c) et (f) de la recherche sur la
-  structure, sans le cas des alias en boucle ; scope attendu par dossier
-  (`surface` → Frame fill et Shape fill) ; cran attendu par mode, tiré de
-  `TABLE_DES_DOSSIERS` ; un test positif et un négatif par règle.
-- [ ] **K4 · Contraste et accessibilité.** Codex · vague 4 · K0.
+  Fait quand : C59, C60, C63 ; cas (a), (b), (c), (f), sans alias en boucle ;
+  scope attendu par chemin complet, tiré de `SUPPORT_DES_VARIABLES`
+  (`surface/default` ≠ `surface/foreground`) ; correction exacte de la cible
+  d'alias d'un mode, tirée de `TABLE_DES_DOSSIERS`, avec l'ancienne cible ;
+  candidat absent ou multiple → question ; collections reconnues par la
+  déclaration UCM, sans association manuelle ; un test positif et un négatif
+  par règle.
+- [ ] **K4 · Contraste et accessibilité.** Vague 4 · K0, note N2.
   Écrit : `kit/src/controles/accessibilite.ts`.
   Maquette : `x-alert`, `x-button`.
-  Fait quand : contraste des textes, icônes, strokes et anneaux sur fond uni,
-  par variant et combinaison de modes (C49, C50) ; `State=disabled` exclu
-  (C53) ; AA ou AAA ; grand corps à 3:1 ; borne de combinaisons dite ; cible
-  sous 24 px et recommandation sous 44 px (C52) ; focus sans anneau (C36) ;
-  anneau (C51) ; texte sous 12 px ; un dégradé rend une limite.
-- [ ] **K7 · Typographie et icônes.** Codex · vague 4 · K0.
+  Fait quand : seuils du §2, sans arrondi ; un grand texte à 3,9:1 passe en AA
+  et échoue en AAA ; fond composé des ancêtres et des opacités ; texte mixte
+  par plage ; un fond indéterminé, un dégradé, une peinture superposée ou un
+  mode illisible rendent une limite, jamais un verdict ; `State=disabled`
+  exclu ; borne de combinaisons dite ; cible, anneau et 12 px en
+  recommandations.
+- [ ] **K7 · Typographie et icônes.** Vague 4 · K0.
   Écrit : `kit/src/controles/typographie.ts`.
   Fait quand : C64 à C67, un test positif et un négatif par contrôle.
-- [ ] **K6 · Préparation des tokens.** Codex · vague 5 · K1, note P.
+- [ ] **K6 · Préparation des tokens.** Vague 5 · K1, note P.
   Écrit : `kit/src/controles/preparation.ts`.
   Maquette : `g-preparer`, `g-creer`.
-  Fait quand : du relevé et des réponses, la liste des variables, de leurs
-  cibles et des tokens du thème visés, avec leurs crans ; chaque entrée exacte
-  ou une question ; Alert rend les variables de l'aperçu ; un layer `Frame 12`
-  rend une question ; une taille se lie seulement si un seul token de `layout`
-  a la valeur.
+  Fait quand : du relevé, du catalogue et des réponses, la liste des variables,
+  de leurs cibles et des tokens visés, avec leurs crans ; chaque entrée exacte
+  ou une question ; une variable existante n'est réutilisée que si
+  collection, type et alias de chaque mode égalent le choix, sinon question ;
+  Alert rend les variables de l'aperçu ; `Frame 12` rend une question ; une
+  taille se lie seulement si un seul token de `layout` a la valeur.
+
+### Piste V · versions
+
+- [ ] **V · Lot de versions**, après chaque merge de Codex, par l'orchestrateur.
+  Écrit : `packages/{kit,cli,adapter-typescript}/package.json`, leurs README,
+  `README.md` racine, `package-lock.json`.
+  Fait quand : tests racine verts, `versionSuitLeContenu`,
+  `monorepoCoherent` et `pinDocumente` compris.
 
 ### Piste S · socle
 
-- [ ] **S0 · Le moteur de l'exporteur dans le socle.** `implementeur-exigeant`
-  · vague 1 · seul.
+Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
+
+- [ ] **S0 · Le moteur de l'exporteur dans le socle.** Vague 1 · seul ·
+  déplacement à sortie identique.
   Écrit : `plugin-exporter/src/{contract,template,variables.ts}` →
-  `plugin-socle/src/composant/` par `git mv` ; le type `Annonce` sort de
-  `messages.ts` d'abord ; chemins des tests, de `tests/lois.ts`, des invariants
-  et de `SPEC.md` ; loi du document intact.
-  Fait quand : `test:paquet -- exporter` et `-- socle` passent sans changement
+  `plugin-socle/src/composant/` par `git mv`, après la sortie du type `Annonce`
+  de `messages.ts` ; tests, `tests/lois.ts`, invariants, `SPEC.md` de
+  l'exporteur ; loi du document intact ; par l'orchestrateur avant la
+  vérification : routes de `domiciles.json` (sinon `plugin-socle/src/**` tombe
+  dans le domaine de l'interface de Palettes), carte et autorités des
+  invariants (`inventaireInvariants`).
+  Étapes : (1/2) `Annonce` et `git mv` ; (2/2) chemins des tests et documents.
+  Fait quand : `test:paquet -- exporter` et `-- socle` sans changement
   d'attendu ; `npm test` passe ; `build:plugin -- exporter` et `-- palettes`
-  passent, bundles de même taille à 1 % près. L'orchestrateur range ensuite les
-  routes de `domiciles.json`.
-- [ ] **S1 · Langage visuel du socle.** `implementeur-exigeant` · vague 2 ·
-  A0.2, K2.
+  passent, bundles à 1 % près.
+- [ ] **S1 · Langage visuel du socle.** Vague 2 · A1, K2.
   Écrit : `plugin-socle/src/ui/langage.css`, composants du socle, galerie du
-  socle, loi des styles.
+  socle, loi des styles ; et, par exception, les règles reprises de
+  `plugin-architect/src/ui/nomenclature/` (aucun lot U ouvert).
   Maquette : `s-planche` ; `2 Maquettes/architect.css`.
   Fait quand : chemin (groupe, variable, mis en avant, ajout, retrait, dans une
   phrase, lien), jeton, pastille, alerte des cinq types, gravité, ligne de
   réussite, deux colonnes, carte ciblée, puce de filtre, recherche active,
-  pastille de compte, poignée ; les classes de Nomenclature reprises par
-  `git mv` ; la planche reproduit `s-planche` ; la loi refuse, à l'essai, une
-  classe du langage redéfinie dans un plugin.
+  pastille de compte, poignée ; les règles de Nomenclature déplacées, non
+  copiées ; la planche reproduit `s-planche` ; la loi refuse, à l'essai, une
+  classe du langage redéfinie dans un plugin ; Palettes et l'exporteur sans
+  changement visible.
 - [ ] **S2 · Noms d'une library.** `implementeur` · vague 2 · K0.
   Écrit : `plugin-socle/src/bibliotheque.ts` et son test.
-  Fait quand : nom, clé et type de chaque variable par library et collection
-  (`figma.teamLibrary`) ; la library la plus liée est choisie ; à égalité ou
-  sans liaison, aucune n'est choisie ; une library illisible est dite
-  illisible.
+  Fait quand : nom, clé et type de chaque variable par library et collection ;
+  la plus liée est choisie ; à égalité ou sans liaison, aucune ; une library
+  illisible est dite illisible.
+- [ ] **S3 · Budget et annulation du moteur.** Vague 4 · seul · B1 en cours de
+  conception (note N2).
+  Écrit : `plugin-socle/src/composant/` (option de budget et jeton
+  d'annulation, sans effet pour l'exporteur), tests de l'exporteur.
+  Fait quand : l'exporteur garde ses attendus ; un budget dépassé arrête les
+  lectures de variants ; une annulation rend « annulée », pas Bloquant ; le
+  nombre de layers non lus est exact ou dit inconnu.
 
 ### Piste A · fusion et squelette
 
-- [ ] **A0.1 · Renommage.** `implementeur` · vague 1 · seul · S0.
-  Écrit : dossier, paquet, manifeste (« UCM Architect », identifiant
-  gardé, permission `teamlibrary`), `scripts/construire-plugin.mjs`, scripts et
-  `package-lock.json` racine, `ci.yml`, `tests/pluginsSepares.test.ts`, tests
+- [ ] **A0.1 · Renommage.** `implementeur` · vague 1 · seul · S0 ·
+  déplacement.
+  Écrit : dossier, paquet, manifeste (« UCM Architect », identifiant gardé,
+  permission `teamlibrary`), `scripts/construire-plugin.mjs`, scripts racine,
+  `ci.yml`, `pluginsSepares`, `manifestsDesPlugins`, `kitCompileAJour`, tests
   racine qui importent l'explorateur, commandes de `CONTRIBUTING.md`, liens de
-  `docs/` hors Archives.
+  `docs/` hors Archives ; par l'orchestrateur : routes, carte, `AGENTS.md`,
+  liens de `kit/AGENTS.md` et `plugin-socle/AGENTS.md`, `package-lock.json`.
   Fait quand : `npm test`, `npm run typecheck`, `build:plugin -- architect`
-  passent ; `agents:diff` ne liste aucun chemin mort ; `git grep -n "UCM Token Explorer"`
-  ne rend que des Archives, des notes de recherche passées, des journaux de
-  version ; la barre de la galerie dit « UCM Architect ».
+  passent ; `agents:diff` ne liste aucun chemin mort ; « UCM Token Explorer »
+  ne reste que dans les Archives, les notes passées, les journaux de version ;
+  la barre de la galerie dit « UCM Architect ».
 - [ ] **A0.2 · Nomenclature entre dans Architect.** `implementeur-exigeant` ·
-  vague 1 · seul · A0.1.
+  vague 1 · seul · A0.1 · déplacement.
   L'orchestrateur note ici le commit de repli avant de lancer : `……`.
-  Écrit : `git mv` de Nomenclature : sandbox → `src/nomenclature/`,
-  `ecriture.ts` → `src/ecriture/noms.ts`, interface → `src/ui/nomenclature/`,
-  galerie et tests à côté ; invariants → `plugin-architect/invariants/` ;
-  suppression de `packages/plugin-nomenclature` et de ses entrées ; tests
-  racine `nomsDePalettes`, `loisEntreProduits`, `fabriquesDeFichiers`,
-  `releveDeTest` sur les nouveaux chemins ; lois du §3.
+  Écrit : `git mv` : sandbox → `src/nomenclature/`, `ecriture.ts` →
+  `src/ecriture/noms.ts`, interface → `src/ui/nomenclature/`, galerie et tests
+  à côté, invariants → `plugin-architect/invariants/` ; suppression de
+  `packages/plugin-nomenclature` et de ses entrées ; tests racine
+  `nomsDePalettes`, `loisEntreProduits`, `fabriquesDeFichiers`, `releveDeTest`
+  sur les nouveaux chemins ; lois du §3 ; par l'orchestrateur : routes, carte,
+  invariants, `package-lock.json`.
+  Étapes : (1/3) sandbox et écriture ; (2/3) interface, galerie, tests ;
+  (3/3) suppression du paquet, lois, tests racine.
   Fait quand : tests du sandbox et loi d'écriture de Nomenclature sans
   changement d'attendu ; la loi d'Architect refuse, à l'essai, une écriture et
-  un import de `template/ecriture` hors de `src/ecriture/` ; `npm test` passe ;
-  `git grep -n "UCM Nomenclature"` ne rend que des Archives, des notes de
-  recherche passées, des journaux de version, et ne rend aucun texte d'écran.
+  un import de `template/ecriture` hors de `src/ecriture/` ; `npm test` passe.
 - [ ] **A1 · Squelette des domaines.** `implementeur-exigeant` · vague 2 · seul
-  · A0.2, note N1.
-  Écrit : `src/code.ts` (table d'aiguillage), `src/messages/<domaine>.ts`
-  (types complets de N1), `src/sandbox/<domaine>.ts` (souches qui répondent
-  « non construit »), `src/ui/textes/<domaine>.ts`,
-  `src/ui/styles/<domaine>.css`, `galerie/etats/<domaine>.cjs`,
-  `tests/interface/<domaine>.test.mjs`, index ; tailles de fenêtre par mode ;
-  retrait des vues Intégrations, Relevés, Comparer et Diagnostics, de leurs
-  préférences et de leurs états ; loi du vocabulaire de Figma (§3).
+  · A0.2, note N1 · code nouveau.
+  Écrit : `src/code.ts` (aiguillage), `src/messages/<domaine>.ts` (types
+  complets de N1), `src/sandbox/<domaine>.ts` (souches « non construit »),
+  `src/ui/textes/<domaine>.ts`, `src/ui/styles/<domaine>.css`,
+  `galerie/etats/<domaine>.cjs`, `tests/interface/<domaine>.test.mjs`, index ;
+  script `test:ui` qui découvre tous les `tests/interface/*.test.mjs` ;
+  `tests/textesEcrits.test.mjs` et `loiDesTextes` sur les catalogues
+  découpés ; loi du vocabulaire avec sa liste d'exceptions ; tailles de
+  fenêtre et mode d'ouverture ; retrait d'Intégrations, Relevés, Comparer,
+  Diagnostics, de leurs préférences et états ; abonnement aux changements du
+  document pour le panneau périmé ; par l'orchestrateur : routes et carte.
+  Étapes : (1/3) messages, aiguillage, souches ; (2/3) textes, styles,
+  galerie, tests d'interface, `test:ui` ; (3/3) retrait des vues, lois.
   Fait quand : chaque domaine de N1 a ses fichiers ; ajouter un domaine ne
-  touche qu'un index ; les tests de `profilUcm` et de `lireLaRecette` passent ;
+  touche qu'un index ; `profilUcm` et `lireLaRecette` passent ;
   `build:plugin -- architect` passe ; la loi du vocabulaire refuse, à l'essai,
-  « portée » dans un catalogue.
+  « portée » hors de sa liste d'exceptions.
 
 ### Piste U · interface d'Architect
 
-Agent : `implementeur-exigeant`. Chaque lot écrit seulement dans les fichiers de
-son domaine, crée les états de galerie de ses cadres et leurs tests
-d'interface, sans les lancer. Les données viennent de souches du sandbox ou des
-fixtures de galerie quand le lot B n'est pas encore fait.
+Défauts : `implementeur-exigeant` · écran nouveau · Écrit : les fichiers
+d'interface du domaine (§4.2) · Vérifie : `npm run test:paquet -- architect` et
+le comparateur sur les cadres du lot. Chaque lot crée les états de galerie et
+les tests d'interface de ses cadres, sans `test:ui`, et retire ses mots de la
+liste d'exceptions de la loi du vocabulaire. Les données viennent des fixtures
+de galerie quand le lot B n'est pas fait.
 
-- [ ] **U0 · Contrôle de fidélité.** `implementeur` · vague 2 · A1.
-  Écrit : `plugin-architect/galerie/comparer-maquette.cjs`.
-  Fait quand : il prend une liste d'identifiants, ouvre l'état de galerie et le
-  cadre de même nom, et imprime chaque écart selon §4.10.
+- [ ] **U0 · Manifeste des cadres et comparateur.** Vague 2 · A1 (exempté de
+  S1 : outil).
+  Écrit : `plugin-architect/galerie/cadres.json`,
+  `plugin-architect/galerie/comparer-maquette.cjs`.
+  Fait quand : règles du §4.10 ; à l'essai, une police changée et un élément
+  retiré font échouer la comparaison ; un cadre manquant aussi.
 - [ ] **U1 · Mode Tokens, Corrections.** Vague 3 · S1, A1.
   Maquette : `t-renommages` ; `fenetreTokens`, `MODES_AFFICHES`,
   `ARBRE_INTERFACE`, `LIGNES_INTERFACE`, `ciblerCarte`, `nomenclatureLaterale`.
-  Fait quand : barre, arbre avec « replier les autres », modes affichés sur une
-  ligne, tableau des tokens avec les renommages cochés (terme nouveau vert,
-  cliquable), carte ciblée ouverte, filtre de l'arbre en puce, onglets, pied ;
-  Appliquer n'écrit que les noms affichés ; les textes repris de l'explorateur
-  disent « scope », jamais « portée » ; fidélité sans écart.
+  Fait quand : barre, arbre et « replier les autres », modes sur une ligne,
+  tableau des tokens avec renommages cochés (terme vert cliquable), carte
+  ciblée ouverte, puce du filtre de l'arbre, onglets, pied ; Appliquer n'écrit
+  que les noms affichés (M-11) ; les textes repris de l'explorateur disent
+  « scope » ; comparateur sans écart.
 - [ ] **U2 · Recherche, fiche d'une variable.** Vague 3 · U1.
   Maquette : `t-questions`, `t-terme`, `t-fiche` ; `LIGNES_BACKGROND`,
   `LIGNES_BACKGROUND`, `FICHE_VARIABLE`, `ETAPE`.
-  Fait quand : recherche en texte, préfixes `terme:` et `vise:` ; « Voir les N
-  variables », « Filtrer le tableau des tokens », « Afficher ces N variables
-  dans le tableau des tokens » écrivent dans le champ ; fiche : chaîne d'alias,
-  « Renommage à appliquer », « Utilisée par » ; ligne choisie d'un fond
-  uniforme ; fidélité sans écart.
-- [ ] **U3 · À faire dans Figma et corrections de scopes.** Vague 3 · U1.
-  Maquette : `t-structure`, `t-portees` ; `AFAIRE_TOKENS`, `LIGNE_SCOPE`,
-  `SCOPE_AVANT`, `SCOPE_APRES`.
-  Fait quand : constats avec leur type d'alerte, chemins dans une phrase ;
-  cartes de modes et de scopes en Aujourd'hui et Après l'application ;
-  fidélité sans écart.
+  Fait quand : recherche en texte, préfixes `terme:` et `vise:` ; les trois
+  liens écrivent dans le champ ; fiche : chaîne d'alias, « Renommage à
+  appliquer », « Utilisée par » ; ligne choisie d'un fond uniforme ;
+  comparateur sans écart.
+- [ ] **U3 · À faire dans Figma, modes et scopes.** Vague 3 · U1.
+  Maquette : `t-structure`, `t-portees` ; `AFAIRE_TOKENS`, `LIGNE_SCOPE`.
+  Fait quand : constats typés, chemins dans une phrase ; cartes de modes et de
+  scopes en Aujourd'hui et Après l'application ; comparateur sans écart.
 - [ ] **U4 · Library, règles reçues, hors UCM.** Vague 3 · U1.
   Maquette : `t-bibliotheque`, `t-regle`, `t-hors` ; `REGLE_RECUE`.
-  Fait quand : valeurs en attente en trait gris, onglets grisés, alerte avec
-  « Ouvrir Intencial Tokens » seulement si la clé est connue ; règles reçues
-  en questions sous leur intertitre ; alerte hors UCM ; fidélité sans écart.
+  Fait quand : valeurs en attente en trait gris, onglets grisés, « Ouvrir
+  Intencial Tokens » seulement si la clé est connue ; règles reçues en
+  questions ; alerte hors UCM ; comparateur sans écart.
 - [ ] **U5 · Vue Composant et section Variants.** Vague 4 · S1, A1.
   Maquette : `c-avant`, `c-replie`, `c-bouton-texte`, `c-gros`, colonne gauche
   de `c-corrections` ; `variants`, `COMPOSANTS`, `fenetreComposant`, `barre`,
   `corrigerDansLaVue`.
   Fait quand : panneau fermé à l'ouverture ; bouton Constats et pastille ;
   frontière tirable ; aperçu en haut ; Variants forme C, « +N », Tableau ;
-  liaisons changées en vert, cliquables ; fidélité sans écart.
+  liaisons changées en vert, cliquables ; ouverture dans le mode du fichier et
+  bascule ; comparateur sans écart.
 - [ ] **U6 · Panneau des constats.** Vague 4 · U5.
   Maquette : `c-corrections`, `c-clic`, `c-modele`, `c-questions`,
   `c-tranchee`, `c-afaire`, `c-apres`, `c-ctrlz`, `e-*` ; `CORR_ALERT`,
   `AFAIRE_ALERT`, `Q_TITLE`, `Q_OUTLINE`, `Q_CONTOUR`, `CLIC`, `PERIME`.
   Fait quand : trois onglets, cartes du tour 3, alertes, ignorés, ligne de
-  réussite, panneau périmé, états de l'analyse ; la sélection Figma dans
-  l'aperçu ; fidélité sans écart.
+  réussite avec les sautées, panneau périmé, états de l'analyse dont
+  « annulée » ; sélection Figma dans l'aperçu ; comparateur sans écart.
 - [ ] **U7 · Contraste et accessibilité.** Vague 5 · U6.
   Maquette : `x-alert`, `x-button`, `x-button-corr` ; `paire`.
+  Fait quand : paire mesurée, rapport et seuil, autres modes, limites ;
+  questions d'état ; comparateur sans écart.
 - [ ] **U8 · Préparation et Configuration.** Vague 6 · U6.
   Maquette : `g-*`, `cf-reglages`, `cf-historique` ; `PREPARER`, `CREER`,
   `optionP`, `cibleP`, `SECTIONS_NOUVELLES`.
   Fait quand : chaque choix porte son terme UCM puis sa description ; Préparer
-  inactif tant qu'une question reste ; fidélité sans écart.
+  inactif tant qu'une question reste ; préparation reçue lue et validée ;
+  comparateur sans écart.
 
 ### Piste B · sandbox d'Architect
 
-Agent : `implementeur`, sauf mention. Chaque lot remplace la souche de son
-domaine et garde les types de §7 N1.
+Défauts : `implementeur` · code nouveau · Écrit : les fichiers sandbox du
+domaine (§4.2) et ses tests · Vérifie : `npm run test:paquet -- architect`.
+Chaque lot remplace la souche de son domaine et garde les types de N1.
 
-- [ ] **B3 · Library en mode Tokens.** Vague 3 · S2 · hypothèse S-1.
+- [ ] **B3 · Library en mode Tokens.** Vague 3 · S2 · hypothèses S-1, S-4.
   Fait quand : arbre depuis les noms ; valeurs d'un groupe importées à son
-  ouverture, par lots de huit ; loi d'import étendue ; `figma.fileKey` lu et
-  rangé sous sa clé quand il existe ; test sur doubles.
+  ouverture, par lots de huit ; loi d'import étendue ; `figma.fileKey` rangé
+  sous sa clé quand il est servi.
 - [ ] **B6 · Journal étendu, scopes et modes.** `implementeur-exigeant` · vague
-  3 · K5.
-  Fait quand : le journal range et l'Historique annule les scopes et la
-  création de variables, avec la relecture des renommages ; corrections de
-  scopes et de modes écrites par le journal ; tests de l'Historique sans
-  changement d'attendu ; un objet changé depuis est sauté.
-- [ ] **B1 · Relevé du composant.** Vague 4 · K0.
-  Écrit : `src/lectureDuComposant.ts`.
-  Fait quand : tous les variants, propriétés de composant (C3), porteur réel
-  d'une liaison, champ, indice de peinture ou plage de texte, variables
-  atteintes ; la borne arrête le parcours et compte les layers non lus ; rend
-  `ReleveDeComposant` ; test sur un jeu factice de six variants.
-- [ ] **B2 · Analyse.** Vague 4 · B1, K3, S0.
-  Fait quand : Analyser puis Actualiser lancent moteur et kit ; une seconde
-  analyse pendant la première est refusée ; une erreur du moteur rend un
-  constat Bloquant et rien d'autre ; une analyse partielle le dit ; la
-  sélection ne change que par `src/ecriture/selection.ts`.
-- [ ] **B4 · Écriture des liaisons.** `implementeur-exigeant` · vague 5 · note E.
-  Écrit : `src/ecriture/liaisons.ts`.
+  3 · K5 fusionné.
+  Fait quand : le journal range et l'Historique annule trois sortes nouvelles :
+  scopes, cible d'alias par mode (`setValueForMode`, ancienne valeur gardée),
+  création de variables ; une variable créée qui a gagné un usage accessible
+  (alias, layer liée du fichier) n'est pas supprimée, et la limite des usages
+  d'autres fichiers est dite ; un objet changé depuis est sauté ; tests de
+  l'Historique sans changement d'attendu.
+- [ ] **B10 · Catalogue de référence.** Vague 4 · S2, K0 · hypothèse S-1.
+  Fait quand : pour une analyse en mode Composant, les collections `theme`,
+  `layout` et `components` de la library choisie sont lues : noms d'abord,
+  valeurs importées par clé à la demande des contrôles ; chaque entrée est
+  présente, absente, non chargée ou inaccessible ; un token hors de l'arbre
+  ouvert est trouvé.
+- [ ] **B1 · Relevé du composant.** Vague 4 · K0, S3.
+  Écrit : `src/lectureDuComposant.ts` et ses tests.
+  Fait quand : relevé de N2 complet (tous les variants, propriétés, porteur
+  réel, champ, indice, plage, peintures directes, opacités, fonds des
+  ancêtres, propriétés de texte par plage, dimensions, styles, modes
+  effectifs, espace de couleur) ; budget commun avec S3 ; test sur un jeu
+  factice de six variants.
+- [ ] **B2 · Analyse.** Vague 4 · B1, B10, K3, S3.
+  Fait quand : Analyser puis Actualiser lancent moteur et kit ; identité de
+  l'analyse (sujet, génération) dans chaque message ; seconde analyse
+  refusée ; sélection extérieure d'un autre composant et Ctrl+Z rendent le
+  panneau périmé, sans réanalyse ; une erreur du moteur rend un Bloquant et
+  rien d'autre ; une annulation rend « annulée » ; tests : analyse lente
+  d'Alert puis sélection de Button, clic sur un constat, Ctrl+Z puis
+  Actualiser.
+- [ ] **B9 · Branchement de l'accessibilité et de la typographie.** Vague 5 ·
+  K4, K7, B2.
+  Fait quand : constats de K4 et K7 dans l'analyse ; niveau AA ou AAA lu dans la
+  Configuration.
+- [ ] **B4 · Écriture des liaisons.** `implementeur-exigeant` · vague 5 · B2,
+  K8, note E · hypothèse S-2.
+  Écrit : `src/ecriture/liaisons.ts` et ses tests.
   Fait quand : un test par sorte (nombre, fill de frame, stroke, texte) sur
-  doubles ; un objet changé depuis l'aperçu est sauté et compté ; un fichier qui
-  ne déclare plus UCM ne reçoit rien ; un lot = un point d'annulation.
+  doubles ; avant chaque écriture, les faits de la correction sont relus ; un
+  objet changé ou un fait faux est sauté et compté ; un fichier qui ne déclare
+  plus UCM ne reçoit rien ; un lot = un point d'annulation.
 - [ ] **B5 · Corrections, questions, Ignorer.** Vague 5 · B4, K8.
   Fait quand : corrections de K8 dans le lot Appliquer ; renommer une valeur
-  de variante (C12), une valeur déjà présente devient une question ; Ignorer et
-  « Ne plus proposer » rangés à la racine du document, sous leur clé ; un
-  ignoré revient par « Ne plus ignorer » ; une limite de lecture ne s'ignore
-  pas.
+  de variante (C12), une valeur déjà présente → question ; Ignorer et « Ne plus
+  proposer » rangés à la racine du document ; « Ne plus ignorer » rend le
+  constat ; une limite de lecture ne s'ignore pas.
 - [ ] **B7 · Règles de composant.** Vague 5 · B2.
-  Fait quand : C43, C44, C45 ; C46 par `template/ecriture.ts` du socle,
-  Architect dans les importeurs permis ; ajout et retrait d'une instance
-  remplie refusés avec un motif.
-- [ ] **B8 · Préparation, création, retour.** Vague 6 · K6, B6, B4.
-  Fait quand : préparation rangée dans `figma.clientStorage` avec la clé et le
-  nom du jeu de variants ; copie en texte ; dans le fichier des tokens, création
-  des seules variables manquantes par le journal ; retour au composant
-  seulement pour la même clé de jeu ; une variable pas encore publiée laisse sa
-  ligne sans case ; règles reçues transmises par le même chemin (C13).
-- [ ] **B9 · Branchement de l'accessibilité et de la typographie.** Vague 6 ·
-  K4, K7, B2.
-  Fait quand : constats de K4 et K7 dans l'analyse ; le niveau AA ou AAA vient
-  de la Configuration.
+  Écrit : en plus, les importeurs permis de
+  `plugin-exporter/tests/loiDuDocumentIntact.test.ts`.
+  Fait quand : C43, C44, C45 ; C46 par `template/ecriture.ts` ; ajout et
+  retrait d'une instance remplie refusés avec un motif.
+- [ ] **B8 · Préparation, création, retour.** Vague 6 · K6, B6, B4, note P.
+  Fait quand : règles de la note P (identité, destination, versions du texte
+  échangé, états par entrée, reprise sans doublon) ; création des seules
+  variables manquantes par le journal ; existant divergent → question ;
+  retour au composant seulement pour la même clé de jeu ; une variable pas
+  encore publiée laisse sa ligne sans case ; règles reçues par le même
+  chemin (C13) ; tests : deux fichiers homonymes, deux préparations, une
+  création interrompue, un texte incompatible.
+
+### Piste X · autres plugins
+
+- [ ] **X1 · Textes de l'exporteur et de Palettes.** `implementeur` · vague 2 ·
+  A0.2.
+  Écrit : `plugin-socle/src/composant/contract/semantics.ts` (texte de l'exporteur, après S0) et
+  les catalogues de Palettes, en français et en anglais, qui nomment « UCM
+  Nomenclature » ou l'explorateur.
+  Fait quand : ils disent « UCM Architect » ; `test:paquet -- exporter` et
+  `-- palettes` passent.
 
 ### Piste O · orchestrateur
 
-- [ ] **O0 · Notes de la vague 0** (§7) et envoi des sondes.
-- [ ] **O1 · Documents, à chaque jalon** : routes de `domiciles.json`, carte,
-  `AGENTS.md` et invariants d'Architect, `SPEC.md` de l'explorateur devenu
-  celui d'Architect, README de ce dossier, ROADMAP ; selon `agents:diff`.
-- [ ] **O2 · Publication du kit, à J-F, avant le push** (skill
-  `publier-paquets`), avec le CLI et l'adaptateur si leurs dépendances
-  changent.
-- [ ] **O3 · Textes de l'explorateur et du kit qui traduisent un terme Figma**
-  (`plugin-explorateur/src/ui/textes.ts` devenu celui d'Architect, définition
-  de `scale` dans `kit/src/referentiel/theme.ts`) : confiés à U1 et K2.
+- [ ] **O0 · Vague 0** : notes du §7, fiches exécutables, sondes envoyées.
+- [ ] **O1 · Documents de jalon** : cohérence générale de `agents:diff`,
+  `SPEC.md` de l'explorateur devenu celui d'Architect, README de ce dossier,
+  ROADMAP.
+- [ ] **O2 · Fin** (skill `publier-paquets`) : recette locale, commit final,
+  push unique, CI distante verte, puis publication du kit, puis de la CLI et
+  de l'adaptateur, depuis le commit poussé ; versions servies contrôlées.
 
 ## 7. Notes de conception
 
-Écrites par l'orchestrateur en vague 0, dans ce fichier, sous ce titre. Elles
-ne demandent pas de validation avant les lots ; le §9 les rend au mainteneur.
+Écrites par l'orchestrateur en vague 0, dans ce fichier, sous ce titre. Les
+choix tranchés par le mainteneur y entrent tels quels.
 
-- **N1 · Domaines et messages.** La liste des domaines du squelette : arbre et
-  tableau des tokens, recherche, fiche, library, nomenclature, structure et
-  scopes, vue Composant, analyse, corrections, questions, ignorés,
-  accessibilité, règles de composant, préparation, configuration. Pour chacun,
-  les messages UI → sandbox et sandbox → UI, typés, tirés des cadres de la
-  maquette.
-- **N2 · Relevé du composant.** Le type sérialisable que B1 produit et que le
-  kit juge : variants, propriétés, layers, liaisons (porteur, champ, indice),
-  variables atteintes (collection, scopes, alias par mode), lectures manquées.
-- **T · Table des constats attendus.** Pour Button et Alert, les constats
-  attendus (code, chemin). Elle corrige la section 4 de la grammaire : un champ
-  peint sans variable relève de C30 ; un rôle non peint ne donne aucun
-  constat ; C59 attend K5.
-- **G · Grammaire.** Reconnaissance des positions facultatives de
-  `FORMES_DES_CHEMINS` ; levée des exclusions de `components` dans
-  `grammaire.ts` ; forme `layout/icon/<taille>` ; segment à deux registres
-  (`text`) lu par les axes, `ambigu` sans eux ; registre propre à `components`
-  pour `padding`, `gap`, `width`, `height`, `border-width` ; termes de l'équipe.
-- **E · Écriture des liaisons**, sur l'hypothèse de S-2 : champs couverts,
-  ordre, relecture, objet changé depuis l'aperçu, échec partiel, annulation par
-  Ctrl+Z.
+- **N1 · Domaines et messages.** Domaines : arbre et tableau des tokens,
+  recherche, fiche, library, nomenclature, structure et scopes, vue Composant,
+  analyse, corrections, questions, ignorés, accessibilité, règles de
+  composant, préparation, configuration. Pour chacun, les messages UI →
+  sandbox et sandbox → UI, typés, tirés des cadres ; identité d'analyse dans
+  chaque message de résultat ; politique de sélection et de panneau périmé.
+- **N2 · Relevé et catalogue.** Le relevé du composant (variants, propriétés,
+  layers, liaisons avec porteur, champ, indice et plage ; peintures directes,
+  opacités, fonds des ancêtres, texte par plage, dimensions, styles, modes
+  effectifs, espace de couleur ; lectures manquées ; layers non lus, exact ou
+  inconnu). Le catalogue de référence (collections, variables, alias par mode,
+  scopes ; présente, absente, non chargée, inaccessible ; jointure par clé).
+  Une table contrôle → données → lecteur.
+- **T · Table des constats attendus.** Button et Alert : code et chemin de
+  chaque constat attendu. Corrige la section 4 de la grammaire : un champ peint
+  sans variable relève de C30 ; un rôle non peint ne donne aucun constat ; C59
+  attend K5. Relue par le mainteneur à la fin.
+- **G · Grammaire.** Positions facultatives de `FORMES_DES_CHEMINS` ; levée des
+  exclusions de `components` (`grammaire.ts`, `architecture.ts`) ; forme
+  `layout/icon/<taille>` ; segment à deux registres (`text`) lu par les axes,
+  `ambigu` sans eux ; registre propre à `components` ; termes de l'équipe ;
+  liste des cas nommés de K1, sans le tableau de la section 4 qui juge des
+  liaisons.
+- **E · Écriture des liaisons**, sur l'hypothèse de S-2 : champs, ordre,
+  relecture des faits, objet changé, échec partiel (sauté et compté), Ctrl+Z.
 - **P · Préparation.** Axes et éléments ; icône pilotée par une propriété
-  d'échange d'instance ; intensité ; cibles d'une variable, un même chemin à
-  deux alias devient une question ; tailles exactes dans chaque mode de
-  `layout`.
+  d'échange d'instance, sinon question ; intensité ; cibles d'une variable ;
+  tailles exactes ; identifiant de préparation ; source (fichier, clé et nom du
+  jeu) ; destination (collection `components` du fichier ouvert, refusée si
+  `theme` manque, choisie si deux collections conviennent) ; schéma versionné
+  du texte échangé et sa validation ; états par entrée ; reprise sans
+  doublon ; aucune hypothèse de verrou dans `figma.clientStorage`.
+- **M · Manifeste des cadres** : la liste d'U0, reprise du §4.10.
 
 Sondes, lancées par le mainteneur au lancement :
 
@@ -550,20 +679,20 @@ Sondes, lancées par le mainteneur au lancement :
   Hypothèse : oui pour les quatre.
 - **S-4 · Clé du fichier dans un plugin en développement.** Ajouter
   `"enablePrivatePluginApi": true` au manifeste d'un plugin chargé depuis son
-  manifeste, puis lire `figma.fileKey`. Hypothèse : `undefined`, la clé
-  n'est servie qu'à un plugin privé publié dans l'organisation. Si la clé est
+  manifeste, puis lire `figma.fileKey`. Hypothèse : `undefined`. Si la clé est
   servie, B3 ajoute le drapeau au manifeste et le lien de `t-bibliotheque`
   marche.
+- **S-3 · Slot rempli**, hors de ce plan : avant C47.
 
 ## 8. Jalons
 
 | Jalon | Contenu vérifié | Après |
 |---|---|---|
 | J0 | `npm test`, typecheck, build ; Nomenclature et l'explorateur ne vivent plus que dans Architect | vague 1 |
-| J1 | Mode Tokens : fidélité de `t-*` | vague 3 |
-| J2 | Mode Composant, lecture : fidélité de `c-avant` à `c-afaire`, `e-*` | vague 4 |
-| J3 | Corrections, écriture, accessibilité : fidélité de `c-apres`, `c-ctrlz`, `x-*` | vague 5 |
-| J-F | Fidélité de tous les cadres ; ni « UCM Token Explorer », ni « UCM Nomenclature », ni « Token Architect » dans le code ou un document vivant ; O1 ; §9 rendu ; recette du mainteneur, puis publication du kit (O2) et push : `test:ui`, renommage et annulation, analyse et correction de Button sur une copie, préparation d'Alert | vague 6 |
+| J1 | Mode Tokens : `t-*` au comparateur ; modes et scopes branchés | vague 3 |
+| J2 | Mode Composant, lecture : `c-avant`, `c-replie`, `c-bouton-texte`, `c-gros`, `c-corrections` à `c-afaire`, `e-*`, branchés sur l'analyse | vague 4 |
+| J3 | Corrections, écriture, accessibilité branchée : `c-apres`, `c-ctrlz`, `x-*` | vague 5 |
+| J-F | Tous les cadres du manifeste ; ni « UCM Token Explorer », ni « UCM Nomenclature », ni « Token Architect » dans le code ou un document vivant ; O1 ; §9 rendu ; recette du mainteneur (`test:ui`, renommage et annulation, analyse et correction de Button sur une copie, préparation d'Alert) ; puis O2 | vague 6 |
 
 ## 9. Questions de fin
 
@@ -572,25 +701,18 @@ Remplie pendant l'exécution. Une ligne par choix fait sans le mainteneur :
 
 Tranchées par le mainteneur le 22 octobre :
 
-- Q-1 · Un seul push, à J-F, après la recette. La CI ne tourne pas avant.
-- Q-2 · Codex dans un clone à part, intégré par `git merge`. L'historique de
-  `main` reçoit des commits de fusion.
+- Q-1 · Un seul push, à J-F, après la recette.
+- Q-2 · Codex dans un clone à part, intégré par `git merge` ; l'historique
+  reçoit des commits de fusion.
+- Q-3 · M-3, M-10, M-14, M-15, M-17, M-18 : les choix proposés (§2).
+- Q-5 · Les notes partent sans validation, avec ces choix tranchés : positions
+  facultatives (G) ; registre propre à `components` (G, remplace G-8) ; échec
+  partiel sauté et compté (E) ; table T relue à la fin.
 
-À confirmer, déjà choisies par défaut :
+Ouverte :
 
-- Q-3 · Les questions M de la maquette restées ouvertes, et le choix appliqué :
-  la fiche d'une variable remplace l'inspecteur de l'explorateur (M-3) ; dans
-  un fichier non déclaré UCM, aucun renommage, il faut déclarer d'abord
-  (M-10) ; la section Variants prend la forme C partout (M-14) ; un survol lié
-  au token du repos devient une question, pas une correction (M-15) ; les
-  libellés de Figma restent en anglais même si le designer emploie Figma en
-  français (M-17) ; le bouton du panneau s'appelle « Constats » (M-18).
-- Q-4 · Lien vers le fichier des tokens : selon la sonde S-4.
-- Q-5 · Les six notes de conception du §7 (domaines et messages, relevé du
-  composant, constats attendus, grammaire, écriture des liaisons, préparation)
-  fixent des règles que le code suit. L'orchestrateur les écrit en vague 0, et
-  les lots les appliquent sans attendre une relecture du mainteneur. Il les
-  relit à la fin, avec le reste du §9.
+- Q-4 · Lien vers le fichier des tokens : selon la sonde S-4, ou une
+  publication privée des plugins UCM dans l'organisation.
 
 ## 10. Hors du plan
 
