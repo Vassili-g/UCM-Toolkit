@@ -418,7 +418,7 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   copiées ; la planche reproduit `s-planche` ; la loi refuse, à l'essai, une
   classe du langage redéfinie dans un plugin ; Palettes et l'exporteur sans
   changement visible.
-- [ ] **S2 · Noms d'une library.** `implementeur` · vague 2 · K0.
+- [~ Claude 1] **S2 · Noms d'une library.** `implementeur` · vague 2 · K0.
   Écrit : `plugin-socle/src/bibliotheque.ts` et son test.
   Fait quand : nom, clé et type de chaque variable par library et collection ;
   la plus liée est choisie ; à égalité ou sans liaison, aucune ; une library
@@ -498,7 +498,7 @@ les tests d'interface de ses cadres, sans `test:ui`, et retire ses mots de la
 liste d'exceptions de la loi du vocabulaire. Les données viennent des fixtures
 de galerie quand le lot B n'est pas fait.
 
-- [~ Claude 1] **U0 · Manifeste des cadres et comparateur.** Vague 2 · A1 (exempté de
+- [x] (162cb94a) **U0 · Manifeste des cadres et comparateur.** Vague 2 · A1 (exempté de
   S1 : outil).
   Écrit : `plugin-architect/galerie/cadres.json`,
   `plugin-architect/galerie/comparer-maquette.cjs`.
