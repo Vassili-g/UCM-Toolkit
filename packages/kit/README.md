@@ -129,7 +129,7 @@ must follow them. In `ucm.config.json`, a `modes.color-brands` key is still
 read as `modes.brands` once the token file has a `brands` axis, and the CLI
 prints a note that asks to rename the key.
 
-## The eight entry points
+## The nine entry points
 
 ```js
 import { CONTRACT_VERSION, codeIdentifier, normalizeName } from "@ucm-kit/core/format";
@@ -138,6 +138,7 @@ import { champsInvalidesDuContrat, verdictDeVersion } from "@ucm-kit/core/lecteu
 import { lireLeSchema, CHEMIN_DU_SCHEMA } from "@ucm-kit/core/lecteurs";
 import { champsInvalidesDuContrat, indexerTokensDtcg } from "@ucm-kit/core/lecteurs/navigateur";
 import { COLLECTIONS, PRODUITS } from "@ucm-kit/core/referentiel";
+import { variableDuCatalogue } from "@ucm-kit/core/controles";
 import { classerLaDonnee, lireLeSuiviComplet } from "@ucm-kit/core/protocoles";
 import { nomsSelonLesReglesSync } from "@ucm-kit/core/nommage";
 ```
@@ -160,6 +161,10 @@ and their responsibilities, the implementation advice, and the grammar of the
 Figma rules kit (`.componentRules`, `.rulesSection`, `.ruleItem`, their layers
 and the `[À compléter]` marker) with a validator of a portable survey of its
 masters. Like `format`, it depends on nothing.
+
+**`@ucm-kit/core/controles`** defines the portable component survey, reference
+catalogue and findings used by UCM Architect. It also looks up catalogue
+variables by key or name. The subpath does not read Figma objects.
 
 **`@ucm-kit/core/protocoles`** holds the data that UCM plugins share inside a
 Figma file: for each one, its address, its versions and the way a stored text

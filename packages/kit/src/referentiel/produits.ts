@@ -9,6 +9,14 @@ import type { Langues } from './termes.js';
 
 export const CLES_PARTAGEES_DE_PALETTES = { variables: 'variables', palette: 'palette', cle: 'cle' } as const;
 export const ESPACE_ARCHITECT = 'ucm_architect';
+/** Les données propres à Architect restent distinctes des règles de nommage du même espace. */
+export const CLES_D_ARCHITECT = {
+  ignorer: 'ignorer',
+  libraryChoisie: 'library-choisie',
+  niveauDeContraste: 'niveau-de-contraste',
+  cleDuFichierDesTokens: 'cle-du-fichier-des-tokens',
+  preparations: 'preparations',
+} as const;
 
 /** L'adresse partagée survit à un changement d'identifiant du plugin Palettes. */
 export const ESPACE_PARTAGE = 'ucm_palettes';
