@@ -10,3 +10,5 @@ export {
   CIBLE_MINIMALE_PX, CIBLE_TACTILE_PX, TEXTE_MINIMAL_PX,
 } from './accessibilite.js';
 export { controlerLaTypographie } from './typographie.js';
+export { axeDePropriete, axesDuReleve, tokensDuComposant, segmentDAxe, controlerNommage } from './nommage.js';
+export type { AxeDuComposant, TokenDuComposant } from './nommage.js';
