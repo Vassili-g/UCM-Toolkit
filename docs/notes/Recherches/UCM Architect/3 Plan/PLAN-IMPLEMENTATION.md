@@ -418,7 +418,7 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   copiées ; la planche reproduit `s-planche` ; la loi refuse, à l'essai, une
   classe du langage redéfinie dans un plugin ; Palettes et l'exporteur sans
   changement visible.
-- [~ Claude 1] **S2 · Noms d'une library.** `implementeur` · vague 2 · K0.
+- [x] (5a0129ec) **S2 · Noms d'une library.** `implementeur` · vague 2 · K0.
   Écrit : `plugin-socle/src/bibliotheque.ts` et son test.
   Fait quand : nom, clé et type de chaque variable par library et collection ;
   la plus liée est choisie ; à égalité ou sans liaison, aucune ; une library
@@ -570,7 +570,7 @@ fiche nomme · Lit : N1, la note citée, les types de `@ucm-kit/core/controles`
 · Vérifie : `npm run test:paquet -- architect`.
 Chaque lot remplace la souche de son domaine et garde les types de N1.
 
-- [ ] **B3 · Library en mode Tokens.** Vague 3 · S2 · hypothèses S-1, S-4.
+- [~ Claude 1] **B3 · Library en mode Tokens.** Vague 3 · S2 · hypothèses S-1, S-4.
   Domaines : `bibliotheque`. Écrit en plus : `src/lecture.ts`, `tests/loiDImport.test.ts`, `manifest.json` si S-4 sert la clé.
   Fait quand : arbre depuis les noms ; valeurs d'un groupe importées à son
   ouverture, par lots de huit ; loi d'import étendue ; `figma.fileKey` rangé
@@ -644,7 +644,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
 
 ### Piste X · autres plugins
 
-- [ ] **X1 · Textes de l'exporteur et de Palettes.** `implementeur` · vague 2 ·
+- [x] (221ad69b) **X1 · Textes de l'exporteur et de Palettes.** `implementeur` · vague 2 ·
   A0.2.
   Écrit : `plugin-socle/src/composant/contract/semantics.ts` (texte de l'exporteur, après S0) et
   les catalogues de Palettes, en français et en anglais, qui nomment « UCM
@@ -1117,6 +1117,12 @@ Choix faits sans le mainteneur :
 - Q-23 · A1 · Classes de Nomenclature · `pastille`, `pied`, `corps`, `lien`,
   `recherche`, `zone-hors-champ` deviennent `noms-*` ; Nomenclature passe au
   thème sombre · réversible : oui.
+- Q-24 · S2 · Types de la library · `bibliotheque.ts` a ses propres types
+  sérialisables, pas `CatalogueDeReference` (nom, clé, type seuls) ; route
+  vers le domaine d'Architect · réversible : oui.
+- Q-25 · X1 · Portée · le seul texte affiché était le message de
+  l'exporteur (`semantics.ts`) ; le reste était des commentaires ; les
+  identifiants (`ecartsLaissesANomenclature`) restent · réversible : oui.
 
 ## 10. Hors du plan
 
