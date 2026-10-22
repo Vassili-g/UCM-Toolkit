@@ -406,7 +406,7 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   Fait quand : `test:paquet -- exporter` et `-- socle` sans changement
   d'attendu ; `npm test` passe ; `build:plugin -- exporter` et `-- palettes`
   passent, bundles à 1 % près.
-- [~ Claude 2] **S1 · Langage visuel du socle.** Vague 2 · A1, K2.
+- [x] (277a96df) **S1 · Langage visuel du socle.** Vague 2 · A1, K2.
   Écrit : `plugin-socle/src/ui/langage.css`, composants du socle, galerie du
   socle, loi des styles ; et, par exception, les règles reprises de
   `plugin-architect/src/ui/nomenclature/` (aucun lot U ouvert).
@@ -1140,6 +1140,17 @@ Choix faits sans le mainteneur :
   l'identifiant de sa cible (pas sa clé) ; une collection de library a
   `modes: []`, les noms de modes ne se lisant qu'à l'import. B9 (contraste
   par mode) ajoute la lecture des modes s'il en a besoin · réversible : oui.
+- Q-29 · S1 · Planche · elle omet « Section Variants » et « Mesure de
+  contraste » de `s-planche` : ce sont des composants d'Architect (U5, U7),
+  pas des signaux du socle · réversible : oui.
+- Q-30 · S1 · Thème clair des `--ton-*` · la maquette ne donne que le sombre ;
+  valeurs claires choisies (`#c62828`, `#b45309`, `#8a6500`, `#0b6bcb`,
+  `#167a3e`) ; Palettes et l'exporteur ne chargent pas encore `langage.css`
+  · réversible : oui.
+- Q-31 · S1 · Loi des styles · « redéfinir » = un sélecteur sans
+  combinateur qui nomme une classe du langage ; un sélecteur à ancêtre la
+  place sans la redessiner ; la loi est appelée par le test du socle, qui
+  lit les feuilles des trois plugins · réversible : oui.
 
 ## 10. Hors du plan
 
