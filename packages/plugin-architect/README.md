@@ -119,10 +119,11 @@ npm run mesure --workspace ucm-architect-plugin
 `dist/galerie-etroite/` à 364 × 724 pour la vue composant. `mesure`
 imprime les durées du noyau et du premier rendu sur 10 000 variables.
 
-`npm run fidelite --workspace ucm-architect-plugin` compare la galerie
-étroite à la maquette de la vue composant : il range les captures côte à côte
-dans `dist/fidelite/` et imprime chaque écart de taille, de police, de couleur
-ou de texte.
+`npm run fidelite --workspace ucm-architect-plugin -- [<cadre>…]` compare
+chaque cadre de `galerie/cadres.json` à l'état de galerie du même identifiant,
+dans la maquette d'UCM Architect : il range les captures côte à côte dans
+`dist/fidelite/` et imprime chaque écart de taille, de police, de couleur ou
+de texte.
 
 Après un échec de `test:ui` sur `dist/galerie-fixtures.cjs` introuvable,
 relancez `npm run galerie --workspace ucm-architect-plugin` : il compile les

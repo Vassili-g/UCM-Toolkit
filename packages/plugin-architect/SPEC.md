@@ -321,10 +321,10 @@ Dépendants, Diagnostics, Intégrations et Relevés sont retirés, et les sectio
 sur leurs calculs décrivent des modules conservés sans écran.
 
 Dans la disposition large, sous 1100 px de large, le panneau latéral passe sous
-l'arbre et la table, sur toute la largeur. Le dessin de la vue composant suit la
-[maquette](./galerie/fixtures/MAQUETTE-VUE-COMPOSANT.html) ;
-`npm run fidelite --workspace ucm-architect-plugin` mesure l'écart entre les
-deux.
+l'arbre et la table, sur toute la largeur. Le dessin suit la
+[maquette d'UCM Architect](../../docs/notes/Recherches/UCM%20Architect/2%20Maquettes/MAQUETTE-ARCHITECT.html) ;
+`npm run fidelite --workspace ucm-architect-plugin` mesure l'écart, cadre par
+cadre (`galerie/cadres.json`).
 
 Une cellule de la table tient sur une ligne. Une valeur directe s'affiche
 seule. Un alias s'affiche en bouton, avec la pastille de la couleur qu'il
