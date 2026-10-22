@@ -584,7 +584,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   (alias, layer liée du fichier) n'est pas supprimée, et la limite des usages
   d'autres fichiers est dite ; un objet changé depuis est sauté ; tests de
   l'Historique sans changement d'attendu.
-- [ ] **B10 · Catalogue de référence.** Vague 4 · S2, K0 · hypothèse S-1.
+- [x] (2ff5fcf1) **B10 · Catalogue de référence.** Vague 4 · S2, K0 · hypothèse S-1.
   Écrit : `src/catalogue.ts`, `tests/catalogue.test.ts`, `src/lecture.ts` (loi d'import étendue), `tests/loiDImport.test.ts`.
   Fait quand : pour une analyse en mode Composant, les collections `theme`,
   `layout` et `components` de la library choisie sont lues : noms d'abord,
@@ -612,6 +612,9 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   Domaines : `accessibilite`, `configuration` (niveau).
   Fait quand : constats de K4 et K7 dans l'analyse ; niveau AA ou AAA lu dans la
   Configuration.
+  Note : le catalogue (B10) n'a pas les noms de modes d'une collection de
+  library ni la clé des cibles d'alias (Q-28) ; B9 les ajoute dans
+  `src/catalogue.ts` si le contraste par mode en a besoin.
 - [ ] **B4 · Écriture des liaisons.** `implementeur-exigeant` · vague 5 · B2,
   K8, note E · hypothèse S-2.
   Domaines : `corrections`.
@@ -1133,6 +1136,10 @@ Choix faits sans le mainteneur :
   liaison connue, `bibliotheque` rend `library: null` ; le choix passe par la
   Configuration (`e-biblio`, `cf-reglages`) ; `library.cle` porte le nom de
   la library, l'API n'en donne pas de clé · réversible : oui.
+- Q-28 · B10 · Catalogue d'une library · une valeur d'alias porte
+  l'identifiant de sa cible (pas sa clé) ; une collection de library a
+  `modes: []`, les noms de modes ne se lisant qu'à l'import. B9 (contraste
+  par mode) ajoute la lecture des modes s'il en a besoin · réversible : oui.
 
 ## 10. Hors du plan
 
