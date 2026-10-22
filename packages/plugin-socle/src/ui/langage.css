@@ -1,0 +1,198 @@
+/*
+ * Le langage visuel commun des plugins UCM : un chemin, un jeton, une alerte,
+ * un changement, un filtre se dessinent partout de la même façon. Le kit en
+ * porte le vocabulaire (`SIGNAUX_DU_LANGAGE`, `TYPES_D_ALERTE`), cette feuille
+ * en porte les styles, et les composants du socle posent ses classes.
+ *
+ * Elle se place après `socle.css` et avant la feuille du plugin. Un plugin ne
+ * redéfinit aucune de ces classes : la loi des styles refuse un sélecteur sans
+ * ancêtre qui en nomme une. Il peut les placer (`.fiche-liste .diff`), pas les
+ * redessiner.
+ *
+ * Les couleurs ne s'écrivent que dans les blocs de rôles, entre les repères
+ * `roles:debut` et `roles:fin`. Chaque type d'alerte a deux valeurs, une pour
+ * le fond clair et une, suffixée `-sombre`, pour le fond sombre ; un plugin
+ * toujours sombre (Architect) affecte les valeurs sombres à ses rôles.
+ */
+
+/* roles:debut */
+:root {
+  --ton-bloquant: #c62828;
+  --ton-corriger: #b45309;
+  --ton-verifier: #8a6500;
+  --ton-info: #0b6bcb;
+  --ton-tenu: #167a3e;
+  --ton-bloquant-sombre: #ff7b72;
+  --ton-corriger-sombre: #f5a35c;
+  --ton-verifier-sombre: #e8cc6a;
+  --ton-info-sombre: #7cb7ff;
+  --ton-tenu-sombre: #7fdc9c;
+  /* L'encre d'une icône pleine et d'une pastille de compte, posée sur la couleur du type. */
+  --texte-sur-ton: #ffffff;
+  --texte-sur-ton-sombre: #1a1a1a;
+
+  /* La place d'un terme : rose en groupe, olive en variable. */
+  --fond-groupe: #f9e0fb;
+  --texte-groupe: #7a1f80;
+  --fond-variable: #eef0c4;
+  --texte-variable: #55590f;
+  --fond-groupe-sombre: rgb(80 36 84);
+  --texte-groupe-sombre: rgb(244 180 248);
+  --fond-variable-sombre: rgb(58 62 28);
+  --texte-variable-sombre: rgb(222 228 150);
+
+  /* Une sélection bleue, adoucie : le fond d'une puce de filtre. */
+  --fond-selection: color-mix(in srgb, var(--texte-marque) 18%, var(--fond));
+  --police-chemin: "JetBrains Mono", Consolas, monospace;
+}
+
+.figma-dark {
+  --ton-bloquant: var(--ton-bloquant-sombre);
+  --ton-corriger: var(--ton-corriger-sombre);
+  --ton-verifier: var(--ton-verifier-sombre);
+  --ton-info: var(--ton-info-sombre);
+  --ton-tenu: var(--ton-tenu-sombre);
+  --texte-sur-ton: var(--texte-sur-ton-sombre);
+  --fond-groupe: var(--fond-groupe-sombre);
+  --texte-groupe: var(--texte-groupe-sombre);
+  --fond-variable: var(--fond-variable-sombre);
+  --texte-variable: var(--texte-variable-sombre);
+}
+/* roles:fin */
+
+/* ---------- Les chemins ----------
+   Un chemin montré comme objet : groupes en gris, variable en gris clair.
+   Seul un terme qu'on veut montrer prend une couleur : rose pour un groupe, olive pour la variable.
+   Un segment qui arrive passe en vert. Un segment qui part passe en rouge barré. */
+.ch { font-family: var(--police-chemin); font-size: 11px; font-weight: 400; overflow-wrap: anywhere; }
+.ch-groupe { color: var(--texte-second); }
+.ch-variable { color: var(--texte); }
+.ch-groupe-vu { color: var(--texte-groupe); font-weight: 600; }
+.ch-variable-vu { color: var(--texte-variable); font-weight: 600; }
+.ch-ajout { color: var(--texte-succes); font-weight: 600; }
+/* Un terme vert cliquable : il ouvre la carte qui le propose. */
+.ch-lien { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.ch-lien.survol { text-decoration-style: solid; }
+.ch-titre { font-size: 13px; }
+/* Un chemin ou un variant cité dans une phrase : un fond discret le sépare du texte. */
+.ch-inline { padding: 1px 5px; border-radius: 3px; background: var(--fond-survol); white-space: normal; }
+.ch-variant { color: var(--texte); }
+/* Un chemin écrit dans une cellule : la police de code, sans fond. */
+.chemin-ligne { font-family: var(--police-chemin); font-size: 11px; font-weight: 400; color: inherit; background: none; padding: 0; overflow-wrap: anywhere; }
+.puce-couleur { display: inline-block; width: 12px; height: 12px; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--bordure); flex: 0 0 auto; }
+
+/* ---------- Les changements ----------
+   Le rouge et le vert ne marquent que les conséquences : la forme qui disparaît et celle qui la remplace.
+   Le gris marque la forme d'une écriture et ce qui ne change pas. */
+.fleche { color: var(--texte-second); }
+.jeton {
+  display: inline-block;
+  padding: 0 var(--espace-serre);
+  border-radius: 4px;
+  font-family: var(--police-chemin);
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+  white-space: nowrap;
+}
+.jeton-retire { background: var(--fond-danger); color: var(--texte-danger); }
+.jeton-retenu { background: var(--fond-succes); color: var(--texte-succes); }
+.jeton-neutre { background: var(--fond-note); color: var(--texte); }
+/* La place d'un terme : orchidée en groupe, olive en variable. Le mot seul prend la couleur du texte. */
+.jeton-groupe { background: var(--fond-groupe); color: var(--texte-groupe); }
+.jeton-variable { background: var(--fond-variable); color: var(--texte-variable); }
+.mot-groupe { color: var(--texte-groupe); }
+.mot-variable { color: var(--texte-variable); }
+.jeton.petit { font-size: var(--corps); line-height: var(--corps-interligne); }
+.seg-ancien { color: var(--texte-danger); font-weight: 600; text-decoration: line-through; text-decoration-thickness: 1px; }
+.seg-nouveau { color: var(--texte-succes); font-weight: 600; }
+
+/* Deux colonnes : le nom actuel, le nom après l'application. */
+.colonnes-tete,
+.diff {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--espace-controle);
+}
+.colonnes-tete { padding: var(--espace-controle) 0 var(--espace-serre); color: var(--texte-second); font-weight: 600; }
+.diff { padding: var(--espace-serre) 0; }
+.diff .case { align-self: center; }
+.diff .chemin-apres { color: var(--texte); font-family: var(--police-chemin); overflow-wrap: anywhere; }
+.diff .fleche-ligne { display: none; }
+/* Sans case, le diff n'a que deux colonnes. */
+.colonnes-tete.sans-case,
+.diff.sans-case { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+/* Un nom que l'annulation ne touchera pas : gris, et la raison à droite. */
+.diff.reste .chemin { color: var(--texte-second); }
+.diff.reste .chemin-apres { color: var(--texte-second); font-family: inherit; }
+.diff .chemin .meta { color: var(--texte-second); font-family: inherit; }
+/* Une ligne de règle : la règle d'aujourd'hui, la règle d'après l'annulation. */
+.diff.regle { align-items: center; }
+.diff.regle > span { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--espace-serre) var(--espace-controle); }
+
+/* Sous 520 px, le nom après passe sous le nom actuel et la légende disparaît. */
+@media (max-width: 519px) {
+  .colonnes-tete { display: none; }
+  .diff { grid-template-columns: 12px minmax(0, 1fr); row-gap: 0; }
+  .diff .chemin-apres { grid-column: -2; }
+  .diff .fleche-ligne { display: inline; color: var(--texte-second); }
+  .diff.sans-case { grid-template-columns: minmax(0, 1fr); }
+  .diff.sans-case .chemin-apres { grid-column: auto; }
+}
+
+/* Ce qui vient de se passer : une ligne verte, puis comment le défaire. */
+.resultat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-radius: var(--rayon);
+  background: var(--fond-succes);
+  color: var(--texte-succes);
+  font-weight: 600;
+}
+.resultat-corps { display: grid; min-width: 0; gap: var(--espace-serre); }
+.resultat .meta { color: inherit; font-weight: 400; }
+
+/* La carte qu'un clic ailleurs vient d'ouvrir. Bordure et ombre, pas outline : un repère de maquette pose son propre outline.
+   `!important` : la bordure d'une carte est posée par la feuille du plugin, qui vient après. */
+.carte-ciblee { border-color: var(--texte-marque) !important; box-shadow: 0 0 0 1px var(--texte-marque); background: color-mix(in srgb, var(--texte-marque) 9%, var(--fond)); }
+
+/* ---------- Les alertes ----------
+   Un type se reconnaît d'un coup d'œil : un liseré, une icône et un mot, de la même couleur. Le fond reste neutre. */
+.ton-bloquant { --ton: var(--ton-bloquant); }
+.ton-corriger { --ton: var(--ton-corriger); }
+.ton-verifier { --ton: var(--ton-verifier); }
+.ton-info { --ton: var(--ton-info); }
+.ton-tenu { --ton: var(--ton-tenu); }
+.ico { display: inline-flex; flex: 0 0 auto; width: 12px; height: 12px; color: var(--ton); }
+.ico svg { width: 12px; height: 12px; display: block; }
+.gravite { display: inline-flex; align-items: center; gap: 6px; color: var(--ton); font-weight: 600; white-space: nowrap; }
+/* Le liseré d'un type sur une carte de constat. */
+.a-ton { border-left: 3px solid var(--ton) !important; }
+
+.alerte { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 0 10px; padding: 10px 12px; border: 1px solid var(--bordure); border-left: 3px solid var(--ton); border-radius: var(--rayon); background: color-mix(in srgb, var(--ton) 7%, var(--fond)); color: var(--texte); }
+.alerte > .ico { margin-top: 2px; }
+.alerte-corps { display: grid; gap: 3px; min-width: 0; }
+.alerte-corps p { margin: 0; }
+.alerte-titre { font-weight: 600; }
+.alerte-meta { color: var(--texte-second); }
+.alerte-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-controle) var(--espace-bloc); padding-top: 4px; }
+.alerte-actions .btn { white-space: nowrap; }
+.lien-externe { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; color: var(--texte-marque); cursor: pointer; font: inherit; font-weight: 600; }
+
+/* ---------- Les filtres ----------
+   Un filtre se montre comme une recherche : une puce dans le champ, une croix pour l'enlever. */
+.puce-filtre { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; height: 20px; padding: 0 2px 0 8px; border-radius: 10px; background: var(--fond-selection); color: var(--texte); font-size: 11px; white-space: nowrap; }
+.puce-type { color: var(--texte-second); }
+.puce-x { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 8px; color: var(--texte-second); }
+/* Une recherche posée par un lien du plugin : du texte dans le champ, bordure bleue. */
+.recherche-active { border-color: var(--texte-marque) !important; color: var(--texte) !important; }
+
+/* ---------- La barre et ses repères ---------- */
+.pastille-compte { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--ton); color: var(--texte-sur-ton); font-size: 11px; font-weight: 700; }
+/* La frontière entre deux vues : elle se tire à la souris. */
+.arch-poignee { flex: 0 0 7px; display: flex; align-items: center; justify-content: center; cursor: col-resize; background: var(--fond); border-left: 1px solid var(--bordure); }
+.arch-poignee::before { content: ""; width: 3px; height: 28px; border-radius: 2px; background: repeating-linear-gradient(to bottom, var(--texte-second) 0 2px, transparent 2px 5px); opacity: .8; }

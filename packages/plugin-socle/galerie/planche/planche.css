@@ -1,0 +1,28 @@
+/*
+ * Les coques de la planche : une carte, un intertitre, une rangée. Un plugin
+ * dessine les siennes ; celles-ci n'existent que pour montrer les signaux dans
+ * leur contexte. Aucune couleur ne s'écrit ici : les rôles du socle suffisent.
+ */
+.page-stack p { margin: 0; }
+.planche-rangee { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-controle) 14px; }
+
+.intertitre { display: flex; min-height: var(--hauteur-secondaire); align-items: center; margin-top: var(--espace-controle); }
+.intertitre h2 { margin: 0; font-size: var(--libelle); font-weight: 600; line-height: var(--libelle-interligne); }
+
+.carte { border: 1px solid var(--bordure); border-radius: var(--rayon); }
+.tete { display: grid; grid-template-columns: 12px 1fr; align-items: center; gap: var(--espace-controle); padding: var(--espace-controle) var(--espace-bloc); }
+.tete.sans-coche { grid-template-columns: 1fr; }
+.tete-bouton { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--espace-controle); padding: 0; border: 0; background: none; color: inherit; text-align: left; }
+.constat .tete-bouton { align-items: flex-start; }
+.case { width: 12px; height: 12px; margin: 0; accent-color: var(--fond-marque); }
+.pile { display: grid; min-width: 0; gap: var(--espace-serre); }
+.regle-ligne { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--espace-serre) var(--espace-controle); }
+.phrase-regle { font-size: var(--libelle); line-height: var(--libelle-interligne); }
+.meta { color: var(--texte-second); }
+.droite { display: flex; flex: none; align-items: center; gap: var(--espace-controle); }
+.corps { display: grid; padding: var(--espace-serre) var(--espace-bloc) var(--espace-controle); border-top: 1px solid var(--bordure); }
+.constat-titre { display: grid; gap: 2px; }
+.constat-lieu, .constat-statut { color: var(--texte-second); }
+
+.btn-texte { height: var(--hauteur-secondaire); padding: 0 var(--espace-serre); border: 0; background: none; color: var(--texte-second); cursor: pointer; font-weight: 600; }
+.bouton-panneau { display: inline-flex; align-items: center; gap: 6px; }

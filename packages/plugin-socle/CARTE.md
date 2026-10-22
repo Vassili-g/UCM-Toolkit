@@ -3,7 +3,7 @@
 Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 
 ## ./
-- galerie/ : banc de galerie, sa capture et décalque du thème Figma
+- galerie/ : banc de galerie, sa capture et décalque du thème Figma ; `planche.cjs` et `planche/` : la planche des signaux du langage, sa source et ses coques
 - lois/ : lois des styles, du gabarit, du manifest et de la galerie, que le test de chaque plugin appelle
 - tests/ : build, manifest, fenêtre, banc et loi des styles, pour un plugin quelconque
 
@@ -16,7 +16,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - fenetre.ts : taille bornée de la fenêtre, rangée dans clientStorage
 - inventaireDeNoms.ts : acquisition de l'inventaire depuis Figma : ports de lecture, lecture par lots, lecture du suivi de Palettes ; forme de l'inventaire et protection sont dans `@ucm-kit/core/nommage`
 - bibliotheque.ts : noms des variables des libraries activées (sans valeur), et choix de la library la plus liée
-- ui/ : bouton, onglets dont un peut être indisponible (désactivé, sauté par les flèches), interrupteur, chevron `Chevron.ts` (SVG qui tourne par CSS), feuille modale, poignée de redimensionnement, bouton « Configuration » (engrenage puis libellé) et bascule de l'en-tête
+- ui/ : bouton, onglets dont un peut être indisponible (désactivé, sauté par les flèches), interrupteur, chevron `Chevron.ts` (SVG qui tourne par CSS), feuille modale, poignée de redimensionnement, bouton « Configuration » (engrenage puis libellé), bascule de l'en-tête et composants du langage visuel (voir `## src/ui/`)
 
 ## src/composant/
 - annonce.ts : le type `Annonce`, par lequel le moteur dit son étape sans dépendre de l'UI
@@ -58,3 +58,10 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 
 ## src/ui/
 - socle.css : échelle de texte, trame, rôles de couleur et replis sombres, avant la feuille de chaque plugin
+- langage.css : le langage visuel commun, après `socle.css` : rôles `--ton-*` et de place, classes de chemin, jeton, alerte, changement, filtre ; sa loi est dans `lois/styles.ts`
+- Chemin.ts : chemin de token, chemin ou variant dans une phrase, segment qui part ou arrive, pastille de couleur
+- Jeton.ts : jeton d'un renommage, flèche, mot de place
+- Alerte.ts : les cinq types d'alerte, tirés de `TYPES_D_ALERTE` du kit : icône, gravité, alerte, liseré, pastille de compte, lien externe
+- Changement.ts : colonnes et ligne de diff, ligne de réussite, carte ciblée
+- Filtre.ts : puce de filtre et recherche active
+- PoigneeDeSeparation.ts : poignée entre deux vues

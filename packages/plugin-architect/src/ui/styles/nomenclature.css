@@ -1,18 +1,11 @@
 /*
- * Les rôles de couleur propres à UCM Nomenclature. Ils vivent ici, avant toute
- * règle, comme ceux du socle : aucune couleur ne s'écrit plus bas.
- *
- * Le terme en cause d'un nom lit les rôles d'avertissement du socle (voir la
- * règle `mark`). Les couleurs de place (groupe, variable) n'ont pas
- * d'équivalent dans l'éditeur : chacune reçoit une valeur sombre, avec 4,5:1
- * au moins du texte sur son fond. Architect reste sombre quel que soit le thème de Figma.
+ * Les règles propres à UCM Nomenclature. Les signaux du langage visuel commun
+ * (jetons, flèche, diff en deux colonnes, ligne de réussite, couleurs de place)
+ * vivent dans `langage.css` du socle, que le build charge avant cette feuille.
+ * Aucune couleur ne s'écrit ici : le terme en cause d'un nom lit les rôles d'avertissement du socle (voir la règle `mark`).
  */
 :root,
 .figma-dark {
-  --fond-groupe: rgb(80 36 84);
-  --texte-groupe: rgb(244 180 248);
-  --fond-variable: rgb(58 62 28);
-  --texte-variable: rgb(222 228 150);
   --police-code: "JetBrains Mono", Consolas, monospace;
 }
 
@@ -345,8 +338,7 @@ button.tete-bouton {
   overflow-wrap: anywhere;
 }
 
-.avant,
-.fleche {
+.avant {
   color: var(--texte-second);
 }
 
@@ -409,73 +401,6 @@ button.tete-bouton {
   color: var(--texte-avertissement);
 }
 
-/*
- * Le langage visuel des renommages. Le rouge et le vert ne marquent que les
- * conséquences : la forme qui disparaît et celle qui la remplace. Le gris
- * marque la forme d'une écriture et ce qui ne change pas.
- */
-.jeton {
-  display: inline-block;
-  padding: 0 var(--espace-serre);
-  border-radius: 4px;
-  font-family: var(--police-code);
-  font-size: var(--libelle);
-  font-weight: 600;
-  line-height: var(--libelle-interligne);
-  white-space: nowrap;
-}
-
-.jeton-retire {
-  background: var(--fond-danger);
-  color: var(--texte-danger);
-}
-
-.jeton-retenu {
-  background: var(--fond-succes);
-  color: var(--texte-succes);
-}
-
-.jeton-neutre {
-  background: var(--fond-note);
-  color: var(--texte);
-}
-
-/* La place d'un terme : orchidée en groupe, olive en variable. Le mot seul prend la couleur du texte. */
-.jeton-groupe {
-  background: var(--fond-groupe);
-  color: var(--texte-groupe);
-}
-
-.jeton-variable {
-  background: var(--fond-variable);
-  color: var(--texte-variable);
-}
-
-.mot-groupe {
-  color: var(--texte-groupe);
-}
-
-.mot-variable {
-  color: var(--texte-variable);
-}
-
-.jeton.petit {
-  font-size: var(--corps);
-  line-height: var(--corps-interligne);
-}
-
-.seg-ancien {
-  color: var(--texte-danger);
-  font-weight: 600;
-  text-decoration: line-through;
-  text-decoration-thickness: 1px;
-}
-
-.seg-nouveau {
-  color: var(--texte-succes);
-  font-weight: 600;
-}
-
 .regle-ligne {
   display: inline-flex;
   flex-wrap: wrap;
@@ -494,104 +419,8 @@ button.tete-bouton {
   border-top: 1px solid var(--bordure);
 }
 
-/* Une ligne dépliée : la case, le nom actuel, le nom après l'application. */
-.colonnes-tete,
-.diff {
-  display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) minmax(0, 1fr);
-  align-items: baseline;
-  gap: var(--espace-controle);
-}
-
-.colonnes-tete {
-  padding: var(--espace-controle) 0 var(--espace-serre);
-  color: var(--texte-second);
-  font-weight: 600;
-}
-
-.diff {
-  padding: var(--espace-serre) 0;
-}
-
-.diff .case {
-  align-self: center;
-}
-
-.diff .chemin-apres {
-  color: var(--texte);
-  font-family: var(--police-code);
-  overflow-wrap: anywhere;
-}
-
-.diff .fleche-ligne {
-  display: none;
-}
-
-/* Sous 520 px, le nom après passe sous le nom actuel et la légende disparaît. */
-@media (max-width: 519px) {
-  .colonnes-tete {
-    display: none;
-  }
-
-  .diff {
-    grid-template-columns: 12px minmax(0, 1fr);
-    row-gap: 0;
-  }
-
-  .diff .chemin-apres {
-    grid-column: -2;
-  }
-
-  .diff .fleche-ligne {
-    display: inline;
-    color: var(--texte-second);
-  }
-}
-
-/* L'onglet Historique de la Configuration : le diff n'a pas de case, deux colonnes, aujourd'hui et après l'annulation. */
-.colonnes-tete.sans-case,
-.diff.sans-case {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-}
-
-/* Un nom que l'annulation ne touchera pas : gris, et la raison à droite. */
-.diff.reste .chemin {
-  color: var(--texte-second);
-}
-
-.diff.reste .chemin-apres {
-  color: var(--texte-second);
-  font-family: inherit;
-}
-
-.diff .chemin .meta {
-  font-family: inherit;
-}
-
-/* Une ligne de règle : la règle d'aujourd'hui, la règle d'après l'annulation. */
-.diff.regle {
-  align-items: center;
-}
-
-.diff.regle > span {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--espace-serre) var(--espace-controle);
-}
-
 .carte > .noms-corps:first-child {
   border-top: 0;
-}
-
-@media (max-width: 519px) {
-  .diff.sans-case {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .diff.sans-case .chemin-apres {
-    grid-column: auto;
-  }
 }
 
 .historique-liste {
@@ -653,26 +482,9 @@ button.tete-bouton {
 }
 
 /* Ce qui vient de se passer, au-dessus de la liste. */
-.resultat {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espace-controle);
-  padding: var(--espace-controle) var(--espace-bloc);
-  border-radius: var(--rayon);
-  background: var(--fond-succes);
-  color: var(--texte-succes);
-  font-weight: 600;
-}
-
 .resultat-avertissement {
   background: var(--fond-avertissement);
   color: var(--texte-avertissement);
-}
-
-.resultat .meta {
-  color: inherit;
-  font-weight: 400;
 }
 
 .resultat-action {
@@ -798,17 +610,12 @@ button.tete-bouton {
 }
 
 .ecriture-partie {
-  color: var(--texte);
   font-weight: 600;
 }
 
-/* La partie concernée prend la teinte de sa place : ces règles suivent `.ecriture-partie`, qui fixe la couleur neutre. */
-.ecriture-partie.mot-groupe {
-  color: var(--texte-groupe);
-}
-
-.ecriture-partie.mot-variable {
-  color: var(--texte-variable);
+/* Sans teinte de place, la partie concernée est neutre ; `.mot-groupe` et `.mot-variable`, du langage du socle, la teintent. */
+.ecriture-partie:not(.mot-groupe):not(.mot-variable) {
+  color: var(--texte);
 }
 
 /* La barre : un bouton qui ouvre le menu Filtrer, les filtres actifs en jetons retirables, la recherche, le tri. */

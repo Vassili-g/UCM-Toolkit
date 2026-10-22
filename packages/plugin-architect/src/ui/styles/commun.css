@@ -52,6 +52,17 @@
   --encre: var(--sombre-encre);
   --cadre-survol: var(--sombre-cadre-survol);
   --cadre-portee: var(--sombre-cadre-portee);
+  /* Les rôles du langage commun (`langage.css` du socle) : leurs valeurs sombres, quel que soit le thème de l'hôte. */
+  --ton-bloquant: var(--ton-bloquant-sombre);
+  --ton-corriger: var(--ton-corriger-sombre);
+  --ton-verifier: var(--ton-verifier-sombre);
+  --ton-info: var(--ton-info-sombre);
+  --ton-tenu: var(--ton-tenu-sombre);
+  --texte-sur-ton: var(--texte-sur-ton-sombre);
+  --fond-groupe: var(--fond-groupe-sombre);
+  --texte-groupe: var(--texte-groupe-sombre);
+  --fond-variable: var(--fond-variable-sombre);
+  --texte-variable: var(--texte-variable-sombre);
 
   --corps: 12px;
   --corps-interligne: 18px;

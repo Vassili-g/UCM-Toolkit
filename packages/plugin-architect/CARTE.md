@@ -59,7 +59,6 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - session.ts : inventaire, lexique, règles et résultat, gardés dans le sandbox ; file des calculs
 - tranches.ts : un générateur du kit mené par tranches de huit millisecondes, abandonné par une demande plus récente
 - lecture.ts : republie l'acquisition de l'inventaire du socle
-- catalogue.ts : catalogue de référence du mode Composant : library lue par noms, valeurs importées à la demande par clé, variables du fichier
 - lectureFigma.ts : collections et variables locales, variables qu'UCM Palettes a écrites et sa marque `nommage`
 - regles.ts : règles du fichier, une entrée de données partagées par règle, journal, export et import ; les clés qui changent un nom, leurs constructeurs et leur lecture viennent du kit (`protocoles`)
 - projection.ts : du résultat du kit aux vues de l'écran : bilan, groupes, pages, questions, fiches, effets

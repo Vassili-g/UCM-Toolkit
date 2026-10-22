@@ -18,9 +18,23 @@ export function sourcesDuSocle(): string[] {
     .map((nom) => path.join(DOSSIER_UI_DU_SOCLE, nom));
 }
 
-/** La feuille du socle, placée avant celle de chaque plugin. */
-export function feuilleDuSocle(): string {
+/** La feuille des rôles et des composants du socle, sans le langage visuel. */
+export function feuilleDeBaseDuSocle(): string {
   return fs.readFileSync(path.join(DOSSIER_UI_DU_SOCLE, 'socle.css'), 'utf8');
+}
+
+/** Le langage visuel commun : chemins, jetons, alertes, changements, filtres. */
+export function feuilleDuLangage(): string {
+  return fs.readFileSync(path.join(DOSSIER_UI_DU_SOCLE, 'langage.css'), 'utf8');
+}
+
+/**
+ * Les feuilles du socle, placées avant celle de chaque plugin : la base, puis
+ * le langage. Les composants du socle posent les classes des deux.
+ */
+export function feuilleDuSocle(): string {
+  return `${feuilleDeBaseDuSocle()}
+${feuilleDuLangage()}`;
 }
 
 export interface EntreesLoiDesStyles {
@@ -112,9 +126,52 @@ export function reglesMortes(entrees: EntreesLoiDesStyles): string[] {
 /**
  * Les couleurs écrites après le bloc de rôles. Les replis vivent dans ce bloc,
  * en tête de la feuille du socle : une couleur écrite dans une règle est un
- * repli que personne ne relira au moment de vérifier les deux thèmes.
+ * repli que personne ne relira au moment de vérifier les deux thèmes. Les blocs
+ * de rôles du langage, entre `roles:debut` et `roles:fin`, sont le second
+ * domicile des couleurs : ils suivent le socle dans la feuille concaténée.
  */
 export function couleursHorsDesRoles(feuille: string): string[] {
-  const apresLesRoles = feuille.slice(feuille.indexOf('* {'));
+  const apresLesRoles = feuille.slice(feuille.indexOf('* {')).replace(BLOC_DE_ROLES_DU_LANGAGE, '');
   return [...apresLesRoles.matchAll(/#[0-9a-f]{3,8}\b/gi)].map((trouve) => trouve[0]);
+}
+
+/** Les repères qui ouvrent et ferment les blocs de rôles de `langage.css`. */
+const BLOC_DE_ROLES_DU_LANGAGE = /\/\* roles:debut \*\/[\s\S]*?\/\* roles:fin \*\//g;
+
+/**
+ * Les classes que `langage.css` définit : celles de ses sélecteurs sans
+ * ancêtre. Un sélecteur à ancêtre (`.diff .case`) place une classe d'ailleurs,
+ * il ne la définit pas.
+ */
+export function classesDuLangage(): Set<string> {
+  return new Set(selecteursSansAncetre(feuilleDuLangage().replace(BLOC_DE_ROLES_DU_LANGAGE, '')).flatMap(classesDe));
+}
+
+/**
+ * Les sélecteurs d'une feuille qui redéfinissent une classe du langage : un
+ * sélecteur sans ancêtre qui la nomme. Un sélecteur à ancêtre
+ * (`.fiche-liste .diff`) place la classe dans une page, il ne la redessine pas ;
+ * une négation (`:not(.jeton)`) n'en dessine aucune.
+ */
+export function redefinitionsDuLangage(feuilleDuPlugin: string): string[] {
+  const langage = classesDuLangage();
+  return selecteursSansAncetre(feuilleDuPlugin).filter((selecteur) => classesDe(selecteur).some((classe) => langage.has(classe)));
+}
+
+function selecteursSansAncetre(feuille: string): string[] {
+  const sansCommentaires = feuille.replace(/\/\*[\s\S]*?\*\//g, '');
+  const selecteurs: string[] = [];
+  for (const regle of sansCommentaires.matchAll(/([^{}]+)\{/g)) {
+    if (regle[1].trim().startsWith('@')) continue;
+    for (const morceau of regle[1].split(',')) {
+      const selecteur = morceau.trim();
+      // Un espace hors crochets, ou `>`, `+`, `~` : un ancêtre ou un voisin.
+      if (selecteur !== '' && !/[\s>+~]/.test(selecteur.replace(/\[[^\]]*\]/g, ''))) selecteurs.push(selecteur);
+    }
+  }
+  return selecteurs;
+}
+
+function classesDe(selecteur: string): string[] {
+  return [...selecteur.replace(/:not\([^)]*\)/g, '').matchAll(/\.([a-z][\w-]*)/g)].map((trouve) => trouve[1]);
 }

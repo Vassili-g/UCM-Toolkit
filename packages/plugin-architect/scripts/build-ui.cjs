@@ -8,10 +8,13 @@
 const path = require('path');
 const { construireUi } = require('ucm-plugin-socle/build/inline-ui.cjs');
 
+/** Le langage visuel commun, rangé à côté de `socle.css` : il suit le socle et précède les feuilles des domaines. */
+const LANGAGE_DU_SOCLE = path.join(path.dirname(require.resolve('ucm-plugin-socle/socle.css')), 'langage.css');
+
 const FEUILLES_DES_DOMAINES = ['commun', 'arbre', 'fiche', 'composant', 'nomenclature'];
 
 construireUi({
   srcDir: path.resolve(__dirname, '../src/ui'),
   distDir: path.resolve(__dirname, '../dist'),
-  feuilles: ['roles.css', require.resolve('ucm-plugin-socle/socle.css'), ...FEUILLES_DES_DOMAINES.map((domaine) => `styles/${domaine}.css`)],
+  feuilles: ['roles.css', require.resolve('ucm-plugin-socle/socle.css'), LANGAGE_DU_SOCLE, ...FEUILLES_DES_DOMAINES.map((domaine) => `styles/${domaine}.css`)],
 });
