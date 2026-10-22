@@ -12,7 +12,7 @@
  * groupe de référence, puis sous le dernier segment de son chemin d'origine.
  * Elle seule renomme des variables ([VAR-13]).
  *
- * Quand le fichier porte les règles de nommage d'UCM Nomenclature, chaque
+ * Quand le fichier porte les règles de nommage d'UCM Architect, chaque
  * palette s'écrit sous les noms que ces règles donnent (`variables/nommeur.ts`),
  * calculés sur les variables du fichier telles qu'elles sont au moment de
  * cette palette. Sans règles, les noms restent ceux du plan.

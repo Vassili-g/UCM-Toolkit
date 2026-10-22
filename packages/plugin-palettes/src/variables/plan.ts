@@ -121,7 +121,7 @@ function suffixeDeNuance(nom: string | undefined, nuance: number): string {
  * du fichier, voir `nommeur.ts`), il porte les noms finaux, et la reprise
  * compare ces noms-là à ceux du fichier : l'occupant d'un nom et la variable à
  * renommer se cherchent sur le nom final, que le fichier porte déjà quand
- * UCM Nomenclature l'a appliqué. Une entrée garde dans `brut` le nom d'avant
+ * UCM Architect l'a appliqué. Une entrée garde dans `brut` le nom d'avant
  * les règles : une variable qui le porte n'est pas à renommer, comme celles
  * d'une palette que le plugin a créée. Le plan reste pur : `nommer` est injecté.
  */

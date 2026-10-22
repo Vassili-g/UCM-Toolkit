@@ -34,8 +34,8 @@ test('buildStateModel conserve press et disable et conseille pressed et disabled
     precedence: ['disable', 'press', 'focus', 'hover', 'default'],
   });
   assert.deepEqual(warnings, [
-    'Propriété de variante « state » : l’état « press » s’écrit « pressed » dans le vocabulaire UCM. Le développeur recevra « press » au lieu de « pressed ». Renommez la valeur en « pressed » dans Figma ou avec UCM Nomenclature, puis réexportez.',
-    'Propriété de variante « state » : l’état « disable » s’écrit « disabled » dans le vocabulaire UCM. Le développeur recevra « disable » au lieu de « disabled ». Renommez la valeur en « disabled » dans Figma ou avec UCM Nomenclature, puis réexportez.',
+    'Propriété de variante « state » : l’état « press » s’écrit « pressed » dans le vocabulaire UCM. Le développeur recevra « press » au lieu de « pressed ». Renommez la valeur en « pressed » dans Figma ou avec UCM Architect, puis réexportez.',
+    'Propriété de variante « state » : l’état « disable » s’écrit « disabled » dans le vocabulaire UCM. Le développeur recevra « disable » au lieu de « disabled ». Renommez la valeur en « disabled » dans Figma ou avec UCM Architect, puis réexportez.',
   ]);
 });
 
@@ -61,8 +61,8 @@ test('buildStateModel conserve hovered et focused et les range à côté de leur
     precedence: ['disabled', 'pressed', 'focus', 'focused', 'hover', 'hovered', 'default'],
   });
   assert.deepEqual(warnings, [
-    'Propriété de variante « state » : l’état « hovered » s’écrit « hover » dans le vocabulaire UCM. Le développeur recevra « hovered » au lieu de « hover ». Renommez la valeur en « hover » dans Figma ou avec UCM Nomenclature, puis réexportez.',
-    'Propriété de variante « state » : l’état « focused » s’écrit « focus » dans le vocabulaire UCM. Le développeur recevra « focused » au lieu de « focus ». Renommez la valeur en « focus » dans Figma ou avec UCM Nomenclature, puis réexportez.',
+    'Propriété de variante « state » : l’état « hovered » s’écrit « hover » dans le vocabulaire UCM. Le développeur recevra « hovered » au lieu de « hover ». Renommez la valeur en « hover » dans Figma ou avec UCM Architect, puis réexportez.',
+    'Propriété de variante « state » : l’état « focused » s’écrit « focus » dans le vocabulaire UCM. Le développeur recevra « focused » au lieu de « focus ». Renommez la valeur en « focus » dans Figma ou avec UCM Architect, puis réexportez.',
   ]);
 });
 

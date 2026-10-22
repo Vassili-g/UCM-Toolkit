@@ -1,6 +1,6 @@
 /**
  * La marque `nommage` : à l'ouverture, Palettes déclare dans le fichier qu'il y nomme ses variables selon les règles
- * d'UCM Nomenclature. UCM Nomenclature la lit pour cesser de protéger les variables de Palettes. Une copie plus ancienne de
+ * d'UCM Architect. UCM Architect la lit pour cesser de protéger les variables de Palettes. Une copie plus ancienne de
  * Palettes ne la pose pas : le fichier qu'elle seule a ouvert garde la protection.
  */
 import { CLE_NOMMAGE_DE_PALETTES } from '@ucm-kit/core/referentiel';
@@ -22,6 +22,6 @@ export function rangerLaMarqueDeNommage(cible: CibleDeLaMarque): void {
     if (cible.root.getSharedPluginData(ESPACE_PARTAGE, CLE_NOMMAGE_DE_PALETTES) !== '') return;
     cible.root.setSharedPluginData(ESPACE_PARTAGE, CLE_NOMMAGE_DE_PALETTES, texteDeLaMarque());
   } catch {
-    // Pas d'écriture possible : UCM Nomenclature garde alors la protection.
+    // Pas d'écriture possible : UCM Architect garde alors la protection.
   }
 }

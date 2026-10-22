@@ -1,4 +1,4 @@
-/** Palettes nomme ses variables selon les règles de nommage du fichier, comme UCM Nomenclature : mêmes règles, même calcul, mêmes noms. */
+/** Palettes nomme ses variables selon les règles de nommage du fichier, comme UCM Architect : mêmes règles, même calcul, mêmes noms. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -32,7 +32,7 @@ const RECETTE: Recette = [POPPY, UNIQUE].reduce(ajouter, VIDE);
 const TAILWIND = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
 const GRIS = ['#F8FAFC', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8', '#64748B', '#475569', '#334155', '#1E293B', '#0F172A', '#020617'];
 
-/** PascalCase pour les groupes, minuscules et tirets pour les variables : l'écriture que les tests d'UCM Nomenclature emploient. */
+/** PascalCase pour les groupes, minuscules et tirets pour les variables : l'écriture que les tests d'UCM Architect emploient. */
 const ECRITURE = JSON.stringify({ version: 1, groupes: { casse: 'PascalCase', separateur: 'camelCase' }, variables: { casse: 'minuscules', separateur: 'tiret' } });
 const COUPLES: readonly (readonly [string, string])[] = [['ecriture', ECRITURE]];
 
@@ -148,14 +148,14 @@ test('[VAR-07] liaison destination : une première écriture crée les variables
   assert.equal(tokensDeLaPalette(RECETTE, POPPY, fichierLu).etat, 'a-jour');
 });
 
-test('[VAR-07] aller-retour : les noms qu’UCM Nomenclature applique à des variables écrites sans règles sont ceux que le plan de Palettes donne', async () => {
+test('[VAR-07] aller-retour : les noms qu’UCM Architect applique à des variables écrites sans règles sont ceux que le plan de Palettes donne', async () => {
   const { figma } = fichier({ regles: false });
   await ecrire(figma, [POPPY]);
   poserLesRegles(figma);
   // Palettes n'a pas encore renommé : le plan reste à jour, les variables suivies gardent leur nom du fichier.
   assert.deepEqual(await ecrire(figma, [POPPY]), [{ palette: POPPY.id, issue: 'ecrite', creees: 0, ecrites: 0 }]);
   assert.ok(noms(figma).every((nom) => nom.startsWith('colors/Poppy/')));
-  // UCM Nomenclature, par le calcul du socle, renomme le fichier.
+  // UCM Architect, par le calcul du socle, renomme le fichier.
   const lues = [...figma.locales.values()];
   const inventaire = inventaireDeLectures([...figma.collections.values()], lues, { cibleAlias: () => undefined, protegee: () => false, palette: () => 'p' });
   const { resultat } = nomsSelonLesReglesSync(inventaire, lireReglesDeNommage(COUPLES)!, []);
@@ -179,7 +179,7 @@ test('[VAR-05] le groupe de la destination passe de colors à Color sur un fichi
   for (const regles of [true, false]) {
     const { figma } = fichier({ regles: false });
     await ecrire(figma, [POPPY]);
-    // Le fichier porte les noms d'UCM Nomenclature ; sans règles enregistrées, Palettes ne sait pas les calculer.
+    // Le fichier porte les noms d'UCM Architect ; sans règles enregistrées, Palettes ne sait pas les calculer.
     for (const variable of figma.locales.values()) variable.name = variable.name.replace(/^colors\//, 'Color/').replace(/\/(soft|vivid)\/(light|dark)\//, (_, intensite: string, theme: string) => `/${intensite[0].toUpperCase()}${intensite.slice(1)}/${theme[0].toUpperCase()}${theme.slice(1)}/`);
     if (regles) poserLesRegles(figma);
     const suivi = lireLeSuiviRange(figma.root);
@@ -273,7 +273,7 @@ test('[VAR-13] liaison reprise : les renommages dus aux règles gardent l’éta
   assert.deepEqual(apres.nomsOccupes, []);
 });
 
-test('[VAR-13] liaison reprise : un fichier dont UCM Nomenclature a déjà écrit les noms finaux n’a aucune variable à renommer', async () => {
+test('[VAR-13] liaison reprise : un fichier dont UCM Architect a déjà écrit les noms finaux n’a aucune variable à renommer', async () => {
   const { figma } = fichierAvecUneRampe('Color/Azur');
   poserLesRegles(figma);
   const { recette, palette } = await reprendre(figma);
@@ -421,7 +421,7 @@ test('[UI-34] une reprise dont les couleurs sont égales et dont le nom brut pas
   assert.equal(ligneDeLaReprise(apres, 'en'), 'Primitives / colors/Azur · Themes in modes · 11 variables');
 });
 
-test('[VAR-07] une palette de la destination dont le nom brut passe sous les règles annonce et fait aucun renommage, et nomme l’écart pour UCM Nomenclature', async () => {
+test('[VAR-07] une palette de la destination dont le nom brut passe sous les règles annonce et fait aucun renommage, et nomme l’écart pour UCM Architect', async () => {
   const { figma } = fichier({ regles: false });
   await ecrire(figma, [POPPY]);
   poserLesRegles(figma);

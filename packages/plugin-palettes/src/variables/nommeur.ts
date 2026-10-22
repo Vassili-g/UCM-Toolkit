@@ -1,12 +1,12 @@
 /**
- * Le nommeur de Palettes : les noms que le plan écrit passent par le calcul de renommage qu'UCM Nomenclature emploie
+ * Le nommeur de Palettes : les noms que le plan écrit passent par le calcul de renommage qu'UCM Architect emploie
  * (`ucm-plugin-socle`), sur l'inventaire du fichier entier. Les deux plugins tombent ainsi sur le même nom :
  * `colors/Poppy/vivid/light/50` devient `Color/Poppy/Vivid/Light/50` avec l'écriture PascalCase des groupes, et Palettes
  * ne défait plus un renommage. Pur : ni Figma, ni DOM ; `src/lectureDesVariables.ts` lit les données.
  *
  * Le calcul voit les variables suivies sous leur nom brut du plan (c'est le nom que l'écriture leur donne), les variables à
  * créer sous des identifiants temporaires, et les autres sous leur nom du fichier. Aucune variable de Palettes n'est protégée
- * ici : c'est Palettes qui suit les règles, la protection est celle d'UCM Nomenclature. Sans règles enregistrées, ou dans une
+ * ici : c'est Palettes qui suit les règles, la protection est celle d'UCM Architect. Sans règles enregistrées, ou dans une
  * collection que les règles excluent, il n'y a pas de nommeur pour la collection et le plan garde ses noms bruts.
  */
 import type { Palette, Recette } from 'ucm-couleur';
@@ -54,7 +54,7 @@ export interface Nommeur {
 export const COLLECTION_A_CREER = 'ucm-palettes:collection-a-creer';
 const PREFIXE_A_CREER = 'ucm-palettes:a-creer:';
 
-/** Le nommeur du fichier ; `undefined` tant qu'aucune écriture n'est rangée par UCM Nomenclature. */
+/** Le nommeur du fichier ; `undefined` tant qu'aucune écriture n'est rangée par UCM Architect. */
 export function creerNommeur(donnees: DonneesDeNommage): Nommeur | undefined {
   const regles = lireReglesDeNommage(donnees.couples);
   if (!regles) return undefined;

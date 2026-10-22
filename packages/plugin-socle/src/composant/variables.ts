@@ -40,7 +40,7 @@ export function firstVariableAlias(value: unknown): VariableAlias | null {
 }
 
 /**
- * Le chemin canonique d'un token, partagé avec l'explorateur de tokens par le
+ * Le chemin canonique d'un token, partagé avec UCM Architect par le
  * socle : les deux plugins le calculent par la même fonction.
  */
 export { joinTokenPath, prefixeDeCollection };

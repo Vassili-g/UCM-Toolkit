@@ -55,7 +55,7 @@ export interface EtatDesTokensDUnePalette {
   readonly aRenommer: readonly RenommageExecute[];
   /**
    * Destination : les variables suivies dont le nom du fichier n'est pas celui du plan. L'écriture les garde,
-   * UCM Nomenclature les renomme (D2).
+   * UCM Architect les renomme (D2).
    */
   readonly ecartsLaissesANomenclature: readonly { readonly id: string; readonly nom: string; readonly plan: string }[];
   /** Les noms du plan, sans doublon, dans son ordre. */

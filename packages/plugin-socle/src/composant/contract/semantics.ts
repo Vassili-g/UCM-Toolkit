@@ -128,7 +128,7 @@ export function buildStateModel(
           famille: 'proprietes',
           manque: `l’état « ${value} » s’écrit « ${terme.id} » dans le vocabulaire UCM.`,
           impact: `Le développeur recevra « ${value} » au lieu de « ${terme.id} ».`,
-          action: `Renommez la valeur en « ${terme.id} » dans Figma ou avec UCM Nomenclature, puis réexportez.`,
+          action: `Renommez la valeur en « ${terme.id} » dans Figma ou avec UCM Architect, puis réexportez.`,
         });
       }
     }

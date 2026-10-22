@@ -3,7 +3,7 @@
  *
  * `dureeDeToken` et `courbeDeToken`, la traduction d'une valeur `TIMING` ou
  * `EASING` en DTCG, vivent dans `@ucm-kit/core/format` : le comparateur de
- * l'explorateur applique les mêmes règles. Une `EASING` a une courbe dès que
+ * UCM Architect applique les mêmes règles. Une `EASING` a une courbe dès que
  * l'API publie ses quatre points, quel que soit le nom du préréglage, et
  * `LINEAR` en a une par définition. Un ressort n'en a pas, `HOLD` non plus, et
  * un préréglage dont l'API tait les points n'en donne aucune. `easingsSansCourbe`
