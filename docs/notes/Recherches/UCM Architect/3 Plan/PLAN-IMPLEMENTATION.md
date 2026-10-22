@@ -391,7 +391,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
 
 Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
 
-- [ ] **S0 · Le moteur de l'exporteur dans le socle.** Vague 1 · seul ·
+- [x] (606e65f7) **S0 · Le moteur de l'exporteur dans le socle.** Vague 1 · seul ·
   déplacement à sortie identique.
   Lit : `plugin-exporter/CARTE.md`, `plugin-exporter/AGENTS.md`, `loiDuDocumentIntact.test.ts`, `tests/lois.ts`.
   Vérifie : `npm run test:paquet -- exporter`, `-- socle`, `npm run build:plugin -- exporter`, `-- palettes` ; `npm test` par un `verificateur` à la fin.
@@ -433,7 +433,7 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
 
 ### Piste A · fusion et squelette
 
-- [ ] **A0.1 · Renommage.** `implementeur` · vague 1 · seul · S0 ·
+- [~ Claude 1] **A0.1 · Renommage.** `implementeur` · vague 1 · seul · S0 ·
   déplacement.
   Lit : `plugin-explorateur/CARTE.md`, `tests/pluginsSepares.test.ts`, `tests/manifestsDesPlugins.test.ts`, `scripts/construire-plugin.mjs`.
   Vérifie : `npm run test:paquet -- architect`, `npm run build:plugin -- architect`, tests racine ; `npm test` et `typecheck` par un `verificateur`.
@@ -654,7 +654,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
 
 ### Piste O · orchestrateur
 
-- [ ] **O0 · Vague 0** : notes du §7, fiches exécutables, sondes envoyées.
+- [x] (f32079e8) **O0 · Vague 0** : notes du §7, fiches exécutables, sondes envoyées.
 - [ ] **O1 · Documents de jalon** : cohérence générale de `agents:diff`,
   `SPEC.md` de l'explorateur devenu celui d'Architect, README de ce dossier,
   ROADMAP.
@@ -1072,6 +1072,15 @@ Choix faits sans le mainteneur :
   oui, tant que rien n'est publié.
 - Q-10 · S0 · Étapes · un seul commit vert au lieu de deux : les fichiers
   déplacés sont des renommages purs · réversible : oui.
+- Q-11 · S0 · Incident · le commit `fa2837f5` (§9) a pris par erreur les
+  renommages de S0 indexés par l'agent ; il n'est pas vert seul, `606e65f7`
+  le complète ; l'historique n'est pas réécrit, Codex l'avait tiré.
+  L'orchestrateur commite désormais par `git commit -- <chemins>` · réversible : non.
+- Q-12 · S0 · Hors liste · l'agent a corrigé les chemins de
+  `scripts/mesurer-export.cjs`, `sondes/S2-prechauffage.js` et
+  `galerie/etats.cjs` de l'exporteur ; l'option de comparaison à une révision
+  antérieure de `mesurer-export.cjs` ne trouve plus le moteur avant `606e65f7`
+  · réversible : oui.
 
 ## 10. Hors du plan
 
