@@ -464,7 +464,7 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   Fait quand : tests du sandbox et loi d'écriture de Nomenclature sans
   changement d'attendu ; la loi d'Architect refuse, à l'essai, une écriture et
   un import de `template/ecriture` hors de `src/ecriture/` ; `npm test` passe.
-- [ ] **A1 · Squelette des domaines.** `implementeur-exigeant` · vague 2 · seul
+- [~ Claude 1] **A1 · Squelette des domaines.** `implementeur-exigeant` · vague 2 · seul
   · A0.2, note N1 · code nouveau.
   Lit : N1, `src/code.ts`, `src/messages.ts`, `src/ui/textes.ts`, `src/ui/index.ts`, `galerie/etats.cjs`.
   Vérifie : `npm run test:paquet -- architect`, `npm run build:plugin -- architect`, tests racine.
@@ -1099,6 +1099,15 @@ Choix faits sans le mainteneur :
 - Q-17 · A0.2 · Hors liste · l'orchestrateur corrige l'invariant de Palettes
   (`invariants/ecriture.md`, « trois plugins ») et abaisse à 9 le minimum de
   cartes de `tests/cartes.test.ts` · réversible : oui.
+- Q-18 · A1 · Panneau périmé · le sandbox écoute `nodechange` de la page
+  courante (et `currentpagechange`), pas `documentchange`, qui demande
+  `loadAllPagesAsync` hors de `src/ecriture/` ; un jeu de variants vit sur
+  une page, le Ctrl+Z reste vu · réversible : oui.
+- Q-19 · A1 · Taille de fenêtre · les clés `ucm-explorateur/tailleFenetre*`
+  restent : un designer qui a rangé une taille ne voit pas les nouveaux
+  défauts tant qu'il ne redimensionne pas · réversible : oui.
+- Q-20 · A1 · Collisions de messages · `noms-analyser`, `noms-repondre`,
+  `noms-selection` pour Nomenclature · réversible : oui.
 
 ## 10. Hors du plan
 
