@@ -142,7 +142,8 @@
 .axe-nom { color: var(--texte-second); font-size: 11px; line-height: 22px; }
 .axe-valeurs { display: flex; flex-wrap: wrap; gap: 4px; }
 .valeur-axe { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border: 1px solid var(--bordure); border-radius: 11px; background: none; color: var(--texte); font-size: 11px; }
-.valeur-axe.choisie { border-color: var(--texte); background: var(--fond-selection, #293b58); }
+/* La valeur affichée : un bord bleu adouci, pas le blanc pur du texte. */
+.valeur-axe.choisie { border-color: color-mix(in srgb, var(--texte-marque) 60%, var(--bordure)); background: var(--fond-selection, #293b58); }
 .valeur-axe .n { display: inline-flex; align-items: center; gap: 3px; color: var(--ton); font-weight: 600; }
 .valeur-axe.plus { border-style: dashed; color: var(--texte-second); }
 .valeur-axe.non-lu { border-style: dashed; }
@@ -179,7 +180,7 @@
 .cible { display: grid; grid-template-columns: 78px 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
 .cible > span:first-child { color: var(--texte-second); }
 .cible .cran { color: var(--texte-second); white-space: nowrap; }
-.zone-texte { width: 100%; min-height: 72px; padding: 6px 8px; border: 1px solid var(--bordure); border-radius: var(--rayon); background: var(--fond); color: var(--texte-second); font-family: var(--police-chemin); }
+.zone-texte { width: 100%; min-height: 72px; padding: 6px 8px; border: 1px solid var(--bordure); border-radius: var(--rayon); background: var(--fond); color: var(--texte-second); font: 11px/1.5 var(--police-chemin); }
 
 /* Une paire mesurée : le premier plan sur son fond, le rapport et le seuil. */
 .paire { display: inline-flex; align-items: center; gap: var(--espace-controle); }
