@@ -244,6 +244,16 @@ export type MessageDeNomenclature =
   | { readonly type: 'regles-exportees'; readonly demande: number; readonly texte: string }
   | { readonly type: 'erreur'; readonly demande: number; readonly code: CodeDErreur; readonly architecture?: ArchitectureDuFichier };
 
+/**
+ * Les `type` des messages que le sandbox envoie à l'écran des noms. L'interface d'Architect s'en sert pour
+ * lui confier ces messages ; `Record` oblige à lister chaque membre de `MessageDeNomenclature`.
+ */
+const TYPES_DES_MESSAGES: Readonly<Record<MessageDeNomenclature['type'], true>> = {
+  initial: true, lecture: true, bilan: true, lignes: true, termes: true, fiche: true, 'noms-selection': true, diagnostic: true,
+  simulation: true, refus: true, application: true, 'regles-exportees': true, erreur: true,
+};
+export const estMessageDeNomenclature = (brut: { readonly type: string }): brut is MessageDeNomenclature => Object.prototype.hasOwnProperty.call(TYPES_DES_MESSAGES, brut.type);
+
 type Objet = Readonly<Record<string, unknown>>;
 const entierPositif = (valeur: unknown): boolean => typeof valeur === 'number' && Number.isSafeInteger(valeur) && valeur > 0;
 const entierNonNegatif = (valeur: unknown): boolean => typeof valeur === 'number' && Number.isSafeInteger(valeur) && valeur >= 0;

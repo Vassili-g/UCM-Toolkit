@@ -3,7 +3,7 @@
  * réponse du sandbox la change. Le module ne touche pas au DOM.
  */
 import type { CauseDeRefus, ResultatVue } from '../../messages/nomenclature';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 export type Annonce =
   /** `sautes` compte les noms sautés pour une autre raison que `nonVerifiees`, présent quand des variables de couleur n'ont pas pu être vérifiées. */

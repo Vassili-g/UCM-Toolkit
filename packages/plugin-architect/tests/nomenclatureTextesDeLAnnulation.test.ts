@@ -1,7 +1,7 @@
 /** Les textes qu'une annulation laisse devant le designer quand des noms sont dans une collection exclue de l'analyse. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { TEXTES } from '../src/ui/nomenclature/textes';
+import { TEXTES } from '../src/ui/textes/nomenclature';
 import { annonceDUneAnnulation, lignesDUneAnnulationNonVerifiee } from '../src/ui/nomenclature/annonce';
 
 for (const nombre of [1, 3]) {

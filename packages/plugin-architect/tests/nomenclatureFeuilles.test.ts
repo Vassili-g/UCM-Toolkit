@@ -81,7 +81,7 @@ test('la définition est dans l’en-tête de la feuille, plus dans le corps', (
 });
 
 test('le jeton du terme prend le fond de la page et une bordure dans le bloc gris de la règle', () => {
-  const css = readFileSync(new URL('../src/ui/nomenclature/styles.css', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../src/ui/styles/nomenclature.css', import.meta.url), 'utf8');
   assert.match(css, /\.fiche-regle \.jeton-neutre \{\s*background: var\(--fond\);\s*box-shadow: inset 0 0 0 1px var\(--bordure\);/);
   assert.match(css, /\.feuille-entete\.avec-definition \{/);
 });

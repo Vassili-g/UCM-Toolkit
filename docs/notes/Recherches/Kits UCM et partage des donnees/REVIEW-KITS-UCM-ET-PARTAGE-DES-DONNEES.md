@@ -340,7 +340,7 @@ Les liens pointent vers les fichiers de production et les contrôles qui étayen
 [imports]: ../../../../packages/plugin-architect/src/integrations/contrats.ts
 [lecture-explorateur]: ../../../../packages/plugin-architect/src/lecture.ts
 [vue-integrations]: ../../../../packages/plugin-architect/src/ui/vues/integrations.ts
-[textes-explorateur]: ../../../../packages/plugin-architect/src/ui/textes.ts
+[textes-explorateur]: ../../../../packages/plugin-architect/src/ui/textes/index.ts
 [contraste-explorateur]: ../../../../packages/plugin-architect/src/contraste.ts
 [explorateur-spec]: ../../../../packages/plugin-architect/SPEC.md
 [nuances]: ../../../../packages/couleur/src/nuances.ts

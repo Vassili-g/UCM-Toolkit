@@ -9,7 +9,7 @@ import type { Coquille } from './coquille';
 import { creerCarteDEcriture } from './ecriture';
 import type { EtatDeLEcran } from './etat';
 import type { MessageAAfficher } from './frontiere';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 function creerParagraphe(classe: string, texte = ''): HTMLElement {
   const paragraphe = document.createElement('p');

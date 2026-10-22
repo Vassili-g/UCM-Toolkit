@@ -5,9 +5,9 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 ## ./
 - SPEC.md : ce que le plugin lit, résout et refuse de conclure
 - invariants/ : les invariants du paquet, un fichier par groupe
-- galerie/ : états de l'interface, à 1200 × 800, à 560 × 480 et à 364 × 724, et comparaison à la maquette de la vue composant
+- galerie/ : états de l'interface, à 1360 × 800, à 560 × 480 et à 520 × 760, un fichier d'états par domaine dans `etats/`, et comparaison à la maquette de la vue composant
 - tests/ : dont les lois d'écriture (`loiDEcriture`, `loiDEcritureDesNoms`), les doubles de Figma, `nomenclature*.test.ts` pour le code de Nomenclature et `interface/` pour Chromium
-- galerie/nomenclature/ : états de l'écran de Nomenclature, à 640 × 720 et à 360 × 420 ; pas encore construits, l'interface d'Architect ne les porte pas
+- galerie/nomenclature/ : données des états de Nomenclature, joués dans la galerie d'Architect (`etats/nomenclature.cjs`)
 
 ## src/
 - code.ts : aiguillage des demandes de l'interface vers les domaines de `sandbox/` ; ouverture, déclaration UCM, sélection et panneau périmé
@@ -32,7 +32,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - espace.ts : couleurs d'un document Display P3 ramenées en sRGB, pour le contraste et la copie hexadécimale ; conversion de Palettes (`p3VersRgb8` de `ucm-couleur`), hors du noyau, qui n'importe pas `ucm-couleur`
 - integrations/ : contrats et tokens importés, recette UCM Palettes, profil d'architecture UCM (les sept couches de `COLLECTIONS`)
 - ui/ : barre et sa bascule de mode, arbre et sa recherche, table, inspecteur, bulle de chaîne, poignée des largeurs et vues des onglets
-- ui/nomenclature/ : coquille de Nomenclature et sa frontière, onglets À appliquer, À trancher et Règles, feuilles, Configuration ; textes dans `textes.ts`
+- ui/nomenclature/ : coquille de Nomenclature et sa frontière, onglets À appliquer, À trancher et Règles, feuilles, Configuration ; montée dans le panneau latéral du mode Tokens
 
 ## src/messages/
 - index.ts : `UiRequest` et `PluginMessage`, réunis par domaine
@@ -64,6 +64,8 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 
 ## src/ui/
 - roles.css : couleurs sombres, placées avant la feuille du socle
+- textes/ : catalogues des textes, un par domaine ; `index.ts` les réunit
+- styles/ : feuilles, une par domaine, chargées dans l'ordre de `FEUILLES_DES_DOMAINES` (`scripts/build-ui.cjs`)
 
 ## src/ui/vues/
 - composant.ts : vue composant : fil d'Ariane, en-tête, aperçu, frontières, sections, pied

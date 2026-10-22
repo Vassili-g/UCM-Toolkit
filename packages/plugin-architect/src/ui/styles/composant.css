@@ -1,0 +1,569 @@
+/*
+ * La vue composant. Ses règles reprennent une à une celles de la fenêtre du
+ * plugin dans MAQUETTE-VUE-COMPOSANT.html : une colonne de 364 px, un texte
+ * de 13 px à l'interligne 1,5, des noms en chasse fixe de 11,5 px. Elles ne
+ * suivent pas l'échelle de texte des autres zones, faite pour la table.
+ */
+.vc {
+  --chasse-fixe: ui-monospace, Consolas, monospace;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  background: var(--fond);
+  color: var(--texte);
+  font: 13px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* La fenêtre étroite ne descend pas sous sa largeur minimale. Sa barre fait 44 px : `TAILLE_ETROITE` les ajoute aux 680 px de la vue. */
+.application-etroite {
+  min-width: 320px;
+}
+
+.application-etroite .barre {
+  height: 44px;
+  padding: 0 16px;
+}
+
+.application-etroite .produit-nom {
+  display: none;
+}
+
+.vc button {
+  cursor: pointer;
+}
+
+.vc :focus-visible {
+  outline-offset: 2px;
+}
+
+.vc-corps {
+  position: relative;
+  flex: 1;
+  overflow: auto;
+}
+
+.vc-vide {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  padding: 0 16px;
+  color: var(--texte-second);
+  text-align: center;
+}
+
+.vc-vide svg {
+  display: block;
+  margin: 0 auto 14px;
+  opacity: 0.7;
+}
+
+.vc-vide p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.vc-fil {
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px 0;
+  color: var(--texte-second);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.vc-fil button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--texte-marque);
+}
+
+.vc-fil span:last-child {
+  overflow: hidden;
+  color: var(--texte);
+  text-overflow: ellipsis;
+}
+
+.vc-tete {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px 10px;
+}
+
+.vc-tete h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.vc-tete h2 span {
+  color: var(--texte-composant);
+  font-size: 12px;
+}
+
+.vc-sous {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  color: var(--texte-second);
+  font-size: 12px;
+}
+
+/* La pastille d'un mode ; le choix d'un variant en reprend le dessin. */
+.vc-mode,
+.vc-variants {
+  padding: 0 7px;
+  border: 1px solid var(--bordure);
+  border-radius: 99px;
+  color: var(--texte-second);
+  font-size: 10.5px;
+  line-height: 17px;
+  white-space: nowrap;
+}
+
+.vc-variants {
+  max-width: 100%;
+  background: transparent;
+}
+
+.vc-outils {
+  display: flex;
+  gap: 2px;
+}
+
+.vc-icone {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  place-items: center;
+  padding: 1px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--texte-second);
+}
+
+.vc-icone:hover,
+.vc-icone[aria-pressed='true'] {
+  background: var(--fond-survol);
+  color: var(--texte);
+}
+
+.vc-apercu {
+  display: grid;
+  overflow: hidden;
+  min-height: 72px;
+  place-items: center;
+  margin: 0 16px;
+  padding: 10px;
+  border: 1px solid var(--filet);
+  border-radius: 8px;
+  background: var(--fond-apercu);
+}
+
+.vc-echelle {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
+.vc-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Le cadre d'un calque sur l'aperçu : celui d'une ligne survolée, puis celui de la portée. */
+.vc-cadre {
+  position: absolute;
+  outline: 3px solid var(--cadre-survol);
+  outline-offset: -3px;
+  pointer-events: none;
+}
+
+.vc-cadre-portee {
+  outline-color: var(--cadre-portee);
+}
+
+.vc-imbriques {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 16px 0;
+}
+
+.vc-imbriques button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--texte-composant);
+  font-size: 11.5px;
+}
+
+.vc-imbriques button:hover {
+  background: var(--fond-survol);
+}
+
+.vc-imbriques small {
+  color: var(--texte-second);
+  font-size: 10.5px;
+}
+
+.vc-filtre {
+  padding: 10px 16px 0;
+}
+
+.vc-filtre input {
+  width: 100%;
+  padding: 4px 9px;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  background: var(--fond-arbre);
+  font-size: 12px;
+}
+
+.vc-liste {
+  padding-top: 6px;
+}
+
+.vc-section-tete {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px 3px;
+  border: 0;
+  background: transparent;
+  color: var(--texte-second);
+  font-size: 10px;
+  letter-spacing: 0.9px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.vc-section-tete:hover {
+  color: var(--texte);
+}
+
+.vc-section-tete .chevron-svg {
+  flex: none;
+}
+
+.vc-section-tete b {
+  color: var(--rail);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.vc-resume {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 16px 8px 30px;
+  color: var(--texte-second);
+  font: 11px/1.5 var(--chasse-fixe);
+}
+
+.vc-resume button {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid var(--bordure-pastille);
+  border-radius: 3px;
+}
+
+.vc-resume button:hover {
+  transform: scale(1.25);
+}
+
+.vc-resume span {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vc-resume button + span {
+  margin-left: 6px;
+}
+
+.vc-token {
+  border-top: 1px solid var(--filet);
+}
+
+.vc-section-tete + .vc-token {
+  border-top: 0;
+}
+
+.vc-ligne {
+  display: grid;
+  width: 100%;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 16px;
+  border: 0;
+  background: transparent;
+  grid-template-columns: 18px minmax(0, 1fr) auto auto;
+  text-align: left;
+}
+
+.vc-ligne:hover {
+  background: var(--fond-survol);
+}
+
+.vc-pastille {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border: 1px solid var(--bordure-pastille);
+  border-radius: 4px;
+  font: 700 9px/1 system-ui, sans-serif;
+  font-style: normal;
+}
+
+.vc-pastille-claire {
+  color: var(--encre);
+}
+
+.vc-pastille-sombre {
+  color: var(--texte-sur-marque);
+}
+
+.vc-pastille-contour {
+  border-width: 3px;
+  background: transparent;
+}
+
+.vc-pastille-nombre {
+  border-color: transparent;
+  color: var(--texte-second);
+  font: 11px/1 system-ui, sans-serif;
+}
+
+.vc-nom {
+  display: block;
+  overflow: hidden;
+  direction: rtl;
+  font: 11.5px/1.5 var(--chasse-fixe);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vc-fin {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.vc-valeur {
+  font: 11.5px/1.35 var(--chasse-fixe);
+  white-space: nowrap;
+}
+
+/* Une chaîne interrompue, et la marque d'un écart avec Figma. */
+.vc-rompue-valeur {
+  color: var(--texte-avertissement);
+}
+
+.vc-fois {
+  min-width: 20px;
+  color: var(--texte-second);
+  font-size: 10.5px;
+  text-align: right;
+}
+
+.vc-points {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.vc-points i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--rail);
+}
+
+.vc-points i:last-child {
+  background: var(--noeud);
+}
+
+.vc-chaine {
+  margin: 0;
+  padding: 4px 16px 4px 22px;
+  list-style: none;
+}
+
+.vc-chaine li {
+  position: relative;
+  padding: 0 0 8px 18px;
+  border-left: 1px solid var(--rail);
+}
+
+.vc-chaine li:last-child {
+  padding-bottom: 0;
+  border-left-color: transparent;
+}
+
+.vc-chaine li::before {
+  position: absolute;
+  top: 5px;
+  left: -4px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--noeud);
+  border-radius: 50%;
+  background: var(--fond);
+  content: '';
+}
+
+.vc-chaine li.vc-terme::before {
+  background: var(--noeud);
+}
+
+.vc-chaine li.vc-rompue::before {
+  border-color: var(--texte-avertissement);
+}
+
+.vc-etape-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--texte-second);
+  font-size: 10.5px;
+  line-height: 17px;
+}
+
+.vc-etape-nom {
+  display: block;
+  font: 11.5px/1.45 var(--chasse-fixe);
+  overflow-wrap: anywhere;
+}
+
+.vc-copie {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: 12px var(--chasse-fixe);
+}
+
+.vc-copie:hover {
+  color: var(--texte-marque);
+}
+
+.vc-copie .vc-pastille {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.vc-rompue-texte {
+  color: var(--texte-avertissement);
+  font-size: 11.5px;
+}
+
+.vc-sur-calques {
+  padding: 4px 16px 10px 43px;
+  color: var(--texte-second);
+  font-size: 11px;
+}
+
+.vc-champs {
+  margin: 0;
+  padding: 2px 16px 4px 43px;
+  list-style: none;
+}
+
+.vc-champs li {
+  display: grid;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 11.5px;
+  grid-template-columns: 92px minmax(0, 1fr) auto;
+}
+
+.vc-champs span {
+  color: var(--texte-second);
+}
+
+.vc-champs em {
+  overflow: hidden;
+  color: var(--rail);
+  font-size: 10.5px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vc-champs code {
+  font: 11.5px var(--chasse-fixe);
+}
+
+.vc-aucun {
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--texte-second);
+  font-size: 12px;
+}
+
+.vc-pied {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 16px;
+  border-top: 1px solid var(--filet);
+  background: var(--fond-arbre);
+  color: var(--texte-second);
+  font-size: 11px;
+}
+
+.vc-pied button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--texte-second);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.vc-directes {
+  margin: 0;
+  padding: 0 16px 12px;
+  list-style: none;
+}
+
+.vc-directes li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  border-top: 1px solid var(--filet);
+  font-size: 12px;
+}
+
+.vc-directes code {
+  color: var(--texte-second);
+  font: 11.5px var(--chasse-fixe);
+}

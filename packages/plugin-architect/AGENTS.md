@@ -10,5 +10,5 @@ Plugin UCM Architect : ucm-architect-plugin, privé. `src/code.ts` aiguille chaq
 | Invariants | Chemins |
 |---|---|
 | [Explorateur de tokens](./invariants/explorateur.md) | tout le paquet (défaut) |
-| [UCM Nomenclature](./invariants/nomenclature.md) | `src/nomenclature/**`, `src/ecriture/noms.ts`, `src/ui/nomenclature/**`, `src/messages/nomenclature.ts`, `src/sandbox/nomenclature.ts` |
+| [UCM Nomenclature](./invariants/nomenclature.md) | `src/nomenclature/**`, `src/ecriture/noms.ts`, `src/ui/nomenclature/**`, `src/messages/nomenclature.ts`, `src/sandbox/nomenclature.ts`, `src/ui/textes/nomenclature.ts`, `src/ui/styles/nomenclature.css` |
 <!-- domaines:fin -->

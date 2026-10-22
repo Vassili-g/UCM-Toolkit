@@ -1,5 +1,5 @@
 /**
- * Chaque état atteignable de la galerie, rejoué dans Chromium : trois thèmes, deux tailles. Un état réussit quand son
+ * Chaque état de Nomenclature, rejoué dans Chromium dans le panneau latéral d'Architect : trois thèmes, chaque taille de la galerie. Un état réussit quand son
  * scénario mène la page jusqu'à `data-galerie="pret"` sans erreur inattendue et que la racine ne déborde pas en largeur.
  * `npm run galerie` précède ce test dans `test:ui`.
  */
@@ -11,14 +11,14 @@ import test, { after, before } from 'node:test';
 import { chromium } from 'playwright';
 
 const exiger = createRequire(import.meta.url);
-const { GALERIES } = exiger('../../galerie/nomenclature/build-galerie.cjs');
+const { GALERIES } = exiger('../../galerie/build-galerie.cjs');
 const MODES = ['clair', 'sombre', 'replis'];
 
 let navigateur;
 before(async () => { navigateur = await chromium.launch(); });
 after(async () => { await navigateur?.close(); });
 
-for (const galerie of GALERIES) {
+for (const galerie of GALERIES.map((candidate) => ({ ...candidate, etats: candidate.etats.filter((etat) => etat.domaine === 'nomenclature') })).filter((candidate) => candidate.etats.length > 0)) {
   for (const mode of MODES) {
     test(`galerie ${galerie.largeur} × ${galerie.hauteur}, thème ${mode} : chaque état atteignable est prêt`, async () => {
       const page = await navigateur.newPage({ viewport: { width: galerie.largeur, height: galerie.hauteur } });

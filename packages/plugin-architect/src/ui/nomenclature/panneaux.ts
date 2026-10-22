@@ -6,7 +6,7 @@
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import type { EtatParticulier } from './etat';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 type EtatDePanneau = Exclude<EtatParticulier, { type: 'analyse-en-cours' }>;
 

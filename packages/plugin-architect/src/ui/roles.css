@@ -1,6 +1,6 @@
 /*
  * Les couleurs de l'explorateur, toujours sombres. Cette feuille précède celle
- * du socle : `styles.css` affecte ensuite ces valeurs aux rôles du socle, si
+ * du socle : `styles/commun.css` affecte ensuite ces valeurs aux rôles du socle, si
  * bien que ni le thème clair de Figma ni celui du système ne changent les
  * surfaces. Les modes des tokens inspectés ne touchent que les valeurs et les
  * pastilles.

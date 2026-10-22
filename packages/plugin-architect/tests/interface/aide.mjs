@@ -1,0 +1,101 @@
+/**
+ * Ce que les tests d'interface se partagent : la page compilée, l'envoi des
+ * messages du sandbox et la fermeture qui vérifie les demandes envoyées. Les
+ * relevés viennent des fixtures, compilées par la galerie (`npm run galerie`
+ * précède ces tests dans `test:ui`).
+ */
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { after, before } from 'node:test';
+import { chromium } from 'playwright';
+
+export const exiger = createRequire(import.meta.url);
+export const fixtures = exiger('../../dist/galerie-fixtures.cjs');
+export const { imagePng } = exiger('../../galerie/image.cjs');
+export const html = readFileSync(new URL('../../dist/ui.html', import.meta.url), 'utf8');
+
+let navigateur;
+/** À appeler une fois par fichier de test : ouvre Chromium avant les tests et le ferme après. */
+export function lancerLeNavigateur() {
+  before(async () => { navigateur = await chromium.launch(); });
+  after(async () => { await navigateur?.close(); });
+}
+
+/** Relève chaque demande que l'interface envoie au sandbox ; posé avant le bundle. */
+const RELEVE = `<script>
+  // La page de test n'est pas un contexte sécurisé : le presse-papiers est simulé.
+  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (texte) => { window.copie = texte; }, readText: async () => window.copie } });
+  window.demandes = [];
+  window.addEventListener('message', (event) => {
+    const message = event.data && event.data.pluginMessage;
+    if (message && message.type) window.demandes.push(message);
+  });
+</script>`;
+
+/**
+ * Dans une page sans iframe, `parent` est la fenêtre elle-même : le relevé voit
+ * aussi les messages que le test joue au nom du sandbox.
+ */
+const MESSAGES_DU_SANDBOX = new Set(['preferences', 'preferences-rangees', 'progression', 'releve', 'lecture-echouee', 'annulation', 'selection', 'recette-palettes', 'disposition', 'composant', 'apercu-du-composant', 'declaration', 'non-construit']);
+
+/** Les demandes qu'un explorateur en lecture seule peut envoyer. */
+const DEMANDES_PERMISES = new Set(['lire-preferences', 'ranger-preferences', 'lire-releve', 'annuler', 'lire-recette-palettes', 'lire-composant', 'changer-disposition', 'resize']);
+
+export async function ouvrir({ largeur = 1360, hauteur = 800, classe = '', presse = true } = {}) {
+  const contexte = await navigateur.newContext({ viewport: { width: largeur, height: hauteur }, permissions: presse ? ['clipboard-read', 'clipboard-write'] : [] });
+  const page = await contexte.newPage();
+  page.setDefaultTimeout(5000);
+  const erreurs = [];
+  page.on('pageerror', (erreur) => erreurs.push(erreur.message));
+  await page.setContent(html.replace('<head>', () => `<head>${RELEVE}`).replace('<html lang="fr" dir="ltr">', () => `<html lang="fr" dir="ltr" class="${classe}">`));
+  page.erreurs = erreurs;
+  return page;
+}
+
+export async function envoyer(page, message) {
+  await page.evaluate((m) => window.postMessage({ pluginMessage: m }, '*'), message);
+  await page.waitForTimeout(30);
+}
+
+export async function avecReleve(page, releve, demande = 1) {
+  await envoyer(page, { type: 'releve', demande, releve });
+}
+
+export async function fermer(page) {
+  assert.deepEqual(page.erreurs, []);
+  const demandes = await page.evaluate(() => window.demandes.map((demande) => demande.type));
+  assert.deepEqual(demandes.filter((type) => !DEMANDES_PERMISES.has(type) && !MESSAGES_DU_SANDBOX.has(type)), []);
+  await page.context().close();
+}
+
+/** La fenêtre du mode Composant que ces tests simulent : la vue garde sa mise en page d'avant, que le lot U1 reprend. */
+export const FENETRE_COMPOSANT = { largeur: 364, hauteur: 724 };
+
+export const choisir = (lecture, portee = lecture.sujet.id, ignores = 0) => ({ type: 'selection', sujet: { id: lecture.sujet.id, portee }, ignores, origine: 'figma' });
+
+/** Les lectures de composant demandées ; une demande arrive au relevé un instant après le geste. */
+export async function lecturesDemandees(page) {
+  await page.waitForTimeout(30);
+  return page.evaluate(() => window.demandes.filter((demande) => demande.type === 'lire-composant').map((demande) => [demande.demande, demande.calque]));
+}
+
+export const ligne = (page, debut) => page.locator(`[data-focus^='ligne:${debut}']`);
+
+export function apercuDe(lecture, demande) {
+  const { largeur, hauteur } = lecture.calques[0].boite;
+  return { type: 'apercu-du-composant', demande, sujet: lecture.sujet.id, octets: [...imagePng(largeur, hauteur, fixtures.peinturesDe(lecture))], largeur, hauteur, origine: { x: 0, y: 0 } };
+}
+
+/** Ouvre la fenêtre étroite sur un composant sélectionné et lu, image comprise. */
+export async function ouvrirComposant(lecture, { image = true } = {}) {
+  const page = await ouvrir(FENETRE_COMPOSANT);
+  await envoyer(page, { type: 'disposition', disposition: 'etroite' });
+  await envoyer(page, choisir(lecture));
+  await envoyer(page, { type: 'composant', demande: 2, lecture });
+  if (image) {
+    await envoyer(page, apercuDe(lecture, 2));
+    await page.waitForFunction(() => [...document.images].every((candidate) => candidate.complete && candidate.naturalWidth > 0));
+  }
+  return page;
+}

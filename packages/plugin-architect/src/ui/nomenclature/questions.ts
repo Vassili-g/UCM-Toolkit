@@ -5,7 +5,7 @@
  */
 import { COLLECTIONS } from '@ucm-kit/core/referentiel';
 import type { ConflitVue, LigneVue, QuestionVue, Reponse } from '../../messages/nomenclature';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 type QuestionDePaire = Extract<QuestionVue, { type: 'paire' }>;
 type QuestionDEcriture = Extract<QuestionVue, { type: 'ecriture-du-terme' }>;

@@ -1,9 +1,9 @@
 /**
  * Le DOM de l'interface et ses feuilles parlent des mêmes classes, et aucune
  * couleur n'est écrite hors des rôles. La loi est celle du socle. Les
- * couleurs de l'explorateur vivent dans `roles.css`, placée avant le socle.
- * `ui/nomenclature/` a sa propre feuille et sa propre loi (`nomenclatureSocle.test.ts`)
- * tant que les deux interfaces ne sont pas fusionnées.
+ * couleurs d'Architect vivent dans `roles.css`, placée avant le socle.
+ * `ui/nomenclature/` et `styles/nomenclature.css` ont leur propre loi
+ * (`nomenclatureSocle.test.ts`).
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -33,7 +33,8 @@ function sourcesUi(dossier: string): string[] {
 
 const source = [...sourcesUi(dossierUi), ...sourcesDuSocle()].map(lire).join('\n');
 const roles = lire(path.join(dossierUi, 'roles.css'));
-const feuilleDuPlugin = lire(path.join(dossierUi, 'styles.css'));
+/** Les feuilles de chaque domaine, hors Nomenclature qui a sa propre loi. */
+const feuilleDuPlugin = fs.readdirSync(path.join(dossierUi, 'styles')).filter((nom) => nom.endsWith('.css') && nom !== 'nomenclature.css').sort().map((nom) => lire(path.join(dossierUi, 'styles', nom))).join('\n');
 
 const ENTREES: EntreesLoiDesStyles = {
   source,

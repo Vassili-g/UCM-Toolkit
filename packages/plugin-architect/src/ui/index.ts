@@ -3,8 +3,9 @@
  * réception des messages du sandbox. Une réponse dont la demande a été
  * remplacée est ignorée : elle ne remplace pas le sujet courant.
  *
- * La disposition large monte l'explorateur de tokens : l'arbre, les onglets
- * et l'inspecteur. La disposition étroite monte la vue composant. Le sandbox
+ * La disposition large monte le mode Tokens : l'arbre, les onglets et le
+ * panneau latéral, où l'écran de Nomenclature a pris la place de
+ * l'inspecteur. La disposition étroite monte la vue composant. Le sandbox
  * annonce celle de l'ouverture, et la bascule de la barre passe de l'une à
  * l'autre.
  */
@@ -13,11 +14,12 @@ import { createResizeGrip } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
 import type { Disposition } from '../fenetre';
 import type { PluginMessage } from '../messages';
+import { estMessageDeNomenclature } from '../messages/nomenclature';
 import { creerApplication, type Branchements, type Composant, type Zone } from './application';
 import { creerArbre } from './arbre';
 import { creerBarre } from './barre';
 import { etatInitial, ONGLETS, poserReleve, type Onglet } from './etat';
-import { creerInspecteur } from './inspecteur';
+import { monterNomenclature } from './nomenclature';
 import { versSandbox } from './pont';
 import { installerSurvol } from './survol';
 import { creerTable } from './table';
@@ -40,7 +42,6 @@ racine.className = 'application';
 const barre = creerBarre(app);
 const arbre = creerArbre(app);
 const table = creerTable(app);
-const inspecteur = creerInspecteur(app);
 const vueComposant = creerVueComposant(app);
 const vues: Record<Exclude<Onglet, 'table'>, Composant> = {
   comparer: creerVueComparer(app),
@@ -95,9 +96,15 @@ secours.hidden = true;
 secours.setAttribute('aria-label', TEXTES.copieRefusee);
 annonce.append(annonceTexte, secours);
 
+const lateral = document.createElement('aside');
+lateral.className = 'panneau-lateral';
+const hoteDeNomenclature = document.createElement('div');
+lateral.append(hoteDeNomenclature);
+const nomenclature = monterNomenclature(hoteDeNomenclature, versSandbox);
+
 const corps = document.createElement('div');
 corps.className = 'corps';
-corps.append(arbre.element, centre, inspecteur.element);
+corps.append(arbre.element, centre, lateral);
 
 const bulle = installerSurvol(app);
 const poignee = createResizeGrip(versSandbox);
@@ -157,7 +164,6 @@ branchements = {
       table.mettreAJour();
       if (etat.onglet !== 'table') vues[etat.onglet].mettreAJour();
     }
-    if (demandees.has('inspecteur')) inspecteur.mettreAJour();
     rendreAccueil();
     if (demandees.has('pied') || demandees.has('barre')) rendrePied();
   },
@@ -178,6 +184,10 @@ branchements = {
 const demandeCourante = (demande: number): boolean => etat.lecture.statut === 'en-cours' && etat.lecture.demande === demande;
 
 function recevoir(message: PluginMessage): void {
+  if (estMessageDeNomenclature(message)) {
+    nomenclature.recevoir(message);
+    return;
+  }
   switch (message.type) {
     case 'preferences':
       etat.preferences = message.preferences;
@@ -215,6 +225,11 @@ function recevoir(message: PluginMessage): void {
       return;
     case 'disposition':
       poserLaDisposition(message.disposition);
+      return;
+    case 'declaration':
+      etat.architecture = message.architecture;
+      return;
+    case 'non-construit':
       return;
     case 'composant':
       vueComposant.recevoirLecture(message.demande, message.lecture);

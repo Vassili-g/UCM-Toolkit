@@ -9,7 +9,7 @@ import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import type { Convention } from '@ucm-kit/core/referentiel';
 import type { Bilan, CollectionDuJournal, LigneDImport, LigneDuJournal } from '../../messages/nomenclature';
 import { poserLesSegments, specimenDeConvention } from './aAppliquer';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 type DernierRenommage = NonNullable<Bilan['dernierRenommage']>;
 type DernierImport = NonNullable<Bilan['dernierImport']>;
@@ -212,7 +212,7 @@ export function creerHistorique(actions: ActionsDeLHistorique, maintenant: () =>
     nom.append(code);
     if (collection.exclue) {
       const pastille = creer('span', TEXTES.pastilleNonAnalysee);
-      pastille.className = 'pastille pastille-attente';
+      pastille.className = 'noms-pastille pastille-attente';
       nom.append(pastille);
     }
     pile.append(nom, meta(TEXTES.nomsDuLot(collection.lignes.length)));
@@ -223,7 +223,7 @@ export function creerHistorique(actions: ActionsDeLHistorique, maintenant: () =>
     tete.append(bouton);
 
     const corps = creer('div');
-    corps.className = 'corps';
+    corps.className = 'noms-corps';
     if (collection.exclue) corps.append(note(TEXTES.cocherPourRetablir));
     const enTete = collection.lignes.filter((ligne) => ligne.type === 'collection');
     const suite = collection.lignes.filter((ligne) => ligne.type !== 'collection');
@@ -261,7 +261,7 @@ export function creerHistorique(actions: ActionsDeLHistorique, maintenant: () =>
     boutonDeLImport = createButton({ label: TEXTES.annulerLImport, variant: 'secondary', compact: true, onClick: actions.annulerLImport });
     const ligne = ligneDuLot(TEXTES.importeALHeure(lignes.length + autres, TEXTES.quandLeLot(dernier.heure, maintenant())), boutonDeLImport);
     const corps = creer('div');
-    corps.className = 'corps';
+    corps.className = 'noms-corps';
     corps.append(legende(), ...lignes);
     if (autres > 0) corps.append(meta(TEXTES.autresReglesChangees(autres)));
     const carte = creer('div');

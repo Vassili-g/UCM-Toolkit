@@ -12,7 +12,7 @@ import type { UiMessage } from '../../messages/nomenclature';
 import { ETAT_INITIAL, etatSuivant, type EtatDeLEcran, type Onglet } from './etat';
 import { creerFrontiere, type Frontiere, type MessageAAfficher } from './frontiere';
 import { creerBandeau, creerPanneau, creerVueDAnalyse, type Panneau } from './panneaux';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 /** Reçoit chaque message que la frontière rend, après la mise à jour de l'état. */
 export type Ecouteur = (message: MessageAAfficher, etat: EtatDeLEcran) => void;
@@ -40,7 +40,10 @@ interface CompteDOnglet {
   readonly nom: (nombre: number) => string;
 }
 
-export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) => void): Coquille {
+/** `poignee: false` quand l'hôte a déjà la sienne : la poignée d'Architect règle la fenêtre entière. */
+export interface OptionsDeCoquille { readonly poignee?: boolean }
+
+export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) => void, options: OptionsDeCoquille = {}): Coquille {
   app.replaceChildren();
   app.className = 'container';
 
@@ -168,7 +171,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     if (onglets.actif() !== etat.onglet) onglets.selectionner(etat.onglet);
   }
 
-  app.append(enTete, travail, configuration, createResizeGrip(envoyer));
+  app.append(enTete, travail, configuration, ...(options.poignee === false ? [] : [createResizeGrip(envoyer)]));
   prete = true;
   rendre();
 

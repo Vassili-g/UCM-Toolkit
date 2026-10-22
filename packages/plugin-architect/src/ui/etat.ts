@@ -7,6 +7,8 @@
  * toutes les résolutions mémorisées tombent d'un coup.
  */
 import type { LectureDeComposant } from '../composant';
+import type { ArchitectureDuFichier } from '@ucm-kit/core/referentiel';
+
 import type { Disposition } from '../fenetre';
 import { arbreDeCollection, commencePar, segmentsDeGroupe, type NoeudDeGroupe } from '../groupes';
 import { familles, indexer, modesDeFamille, type Index } from '../indexation';
@@ -111,6 +113,8 @@ export interface Etat {
   crans: Map<string, AssociationDeCran>;
   /** La disposition de la fenêtre, large avant l'annonce du sandbox. La bascule de la barre la change. */
   disposition: Disposition;
+  /** La déclaration UCM du fichier, que le sandbox annonce à l'ouverture et à chaque changement ; `null` avant l'annonce. */
+  architecture: ArchitectureDuFichier | null;
   composant: EtatDuComposant;
 }
 
@@ -133,6 +137,7 @@ export function etatInitial(): Etat {
     recette: null,
     crans: new Map(),
     disposition: 'large',
+    architecture: null,
     composant: { demande: 0, statut: 'vide', message: '', lecture: null, index: null, pile: [], portee: null, apercu: null, selection: null, ignores: 0, empiler: false, deLaSelection: true },
   };
 }

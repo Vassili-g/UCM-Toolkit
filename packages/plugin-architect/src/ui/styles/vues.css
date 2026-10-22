@@ -1,0 +1,57 @@
+/* Le verdict d'une comparaison se lit comme une note, avant les deux cartes. */
+.verdict[data-ecart] {
+  padding: var(--espace-bloc);
+  border-left: 3px solid var(--filet-avertissement);
+  background: var(--fond-avertissement);
+  font-weight: 400;
+}
+
+.verdict[data-contraste='atteint'] {
+  color: var(--texte-succes);
+}
+
+.verdict[data-contraste='manque'] {
+  color: var(--texte-danger);
+}
+
+.code {
+  margin: 0;
+  font-family: var(--chasse-fixe);
+  overflow-wrap: anywhere;
+}
+
+/* Les vues des onglets. */
+.vue {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 20px;
+}
+
+.grille-comparee {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.grille-de-couches {
+  display: grid;
+  gap: var(--espace-controle);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.interrupteur-ligne {
+  display: flex;
+  align-items: start;
+  gap: var(--espace-bloc);
+  padding: var(--espace-bloc) 0;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.choix-de-fichier {
+  display: flex;
+}
+
+.champ-fichier {
+  max-width: 100%;
+}

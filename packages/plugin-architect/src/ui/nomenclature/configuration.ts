@@ -14,7 +14,7 @@ import { ouvrirUneFeuilleDeConfirmation } from './aAppliquer';
 import { creerHistorique } from './historique';
 import { annonceDUneAnnulation, lignesDUneAnnulationNonVerifiee, texteDUneAnnulationRefusee } from './annonce';
 import { lignesDeProtection } from './protection';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 /** La taille d'import que `estUiMessage` accepte (`src/messages.ts`) : au-delà, le sandbox ignore la demande. */
 const LIMITE_D_IMPORT = 1_000_000;

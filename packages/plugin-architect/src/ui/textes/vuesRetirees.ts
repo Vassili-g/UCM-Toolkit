@@ -1,199 +1,6 @@
-/**
- * Tous les textes de l'interface, en français. Les vues n'écrivent aucun mot
- * en dur : `tests/loiDesTextes.test.ts` refuse un littéral posé dans
- * `textContent`, `title`, `placeholder` ou un nom accessible.
- *
- * Le nom du produit est provisoire et ne s'écrit qu'ici et dans le manifest.
- */
-import type { Nature } from '../composant';
-import type { NatureDeConstat } from '../diagnostics';
-import type { TypeDeVariable } from '../modele';
-import type { OrigineDuMode, StatutDeResolution } from '../resolution';
+/** Les textes des onglets Comparer, Dépendants, Diagnostics, Intégrations et Relevés, que l'étape 3 du lot A1 retire avec leurs vues. */
 
-export const NOM_DU_PRODUIT = 'UCM Architect';
-
-export const TEXTES = {
-  marque: 'UCM',
-  produit: NOM_DU_PRODUIT,
-  lectureSeule: 'Lecture seule',
-  actualiser: 'Actualiser',
-  actualiserAide: 'Relire les variables du fichier',
-  annuler: 'Annuler',
-  rechercher: 'Rechercher',
-  rechercheEtiquette: 'Recherche dans toutes les collections',
-  rechercheAide: 'Cherche dans le nom, la collection, la description et la valeur',
-  contexteDeFamille: (nom: string) => `Mode de ${nom}`,
-  defautDeFamille: (mode: string) => `${mode} (défaut)`,
-  modes: {
-    etiquette: 'Mode de l’explorateur',
-    noms: { large: 'Tokens', etroite: 'Composant' },
-    aides: { large: 'Explorer les collections de variables du fichier', etroite: 'Lire les tokens du composant sélectionné dans Figma' },
-  },
-
-  // Lecture
-  pret: 'Lire les variables de ce fichier pour commencer.',
-  lire: 'Lire les variables',
-  lectureEnCours: 'Lecture des variables…',
-  phase: { collections: 'Collections', variables: 'Variables locales', references: 'Cibles des alias' } as Record<string, string>,
-  progression: (phase: string, fait: number, total: number) => (total > 1 ? `${phase} : ${fait} sur ${total}` : `${phase}…`),
-  lectureAnnulee: 'Lecture annulée. Aucune donnée partielle n’est affichée.',
-  lectureEchouee: (message: string) => `La lecture a échoué : ${message}. Actualisez pour réessayer.`,
-  donneesAnciennes: (heure: string) => `Données lues à ${heure}, la dernière lecture a échoué. Actualisez pour réessayer.`,
-  aucuneVariable: 'Ce fichier n’a aucune variable locale ni cible lisible.',
-  perimetre: (variables: number, collections: number) => `${variables} variables · ${collections} collections`,
-  fraicheur: (heure: string, revision: number) => `Lu à ${heure} · relevé ${revision}`,
-  manquees: (nombre: number) => `${nombre} cible${nombre > 1 ? 's' : ''} non lue${nombre > 1 ? 's' : ''}`,
-
-  // Arbre
-  arbreEtiquette: 'Collections',
-  deplier: (nom: string) => `Déplier ${nom}`,
-  replier: (nom: string) => `Replier ${nom}`,
-  segmentVide: '(sans nom)',
-  largeurDe: (nom: string) => `Largeur de ${nom}`,
-  largeurDeLArbre: 'Largeur des collections',
-  largeurAide: 'Glissez pour régler la largeur. Double-cliquez pour rétablir la largeur par défaut.',
-  distante: 'distante',
-  etendue: 'étendue',
-
-  // Table
-  vues: 'Vues',
-  onglets: {
-    table: 'Variables',
-    comparer: 'Comparer',
-    dependants: 'Dépendants',
-    diagnostics: 'Diagnostics',
-    integrations: 'Intégrations',
-    releves: 'Relevés',
-  },
-  colonneNom: 'Nom',
-  colonneType: 'Type',
-  colonneValeur: 'Valeur ou alias direct',
-  colonneResultat: 'Résultat',
-  colonneContexte: 'Contexte actif',
-  colonneCollection: 'Collection',
-  vueCompacte: 'Vue compacte',
-  vueCompacteAide: 'Une seule colonne : le contexte actif',
-  autresCollections: 'Les autres collections suivent le contexte A de l’onglet Comparer.',
-  resultatsDeRecherche: 'Résultats de recherche',
-  rechercheGlobale: (nombre: number) => `${nombre} résultat${nombre > 1 ? 's' : ''} dans toutes les collections`,
-  aucunResultat: 'Aucune variable ne correspond. Videz la recherche ou les filtres.',
-  aucuneVariableIci: 'Ce groupe ne contient aucune variable.',
-  compte: (nombre: number) => `${nombre} variable${nombre > 1 ? 's' : ''}`,
-  suivreAlias: (nom: string) => `Suivre l’alias vers ${nom}`,
-  ouvrir: (nom: string) => `Inspecter ${nom}`,
-  filtres: 'Filtres',
-  filtreType: 'Type',
-  filtreNature: 'Valeur',
-  filtreProvenance: 'Provenance',
-  filtreConcernees: 'Seulement les variables à examiner',
-  tous: 'Tous',
-  natures: { toutes: 'Toutes', alias: 'Alias', directe: 'Valeur directe' },
-  provenances: { toutes: 'Toutes', locale: 'Locales', distante: 'Distantes' },
-  chemin: 'Emplacement',
-
-  // Valeurs
-  types: { COLOR: 'Couleur', FLOAT: 'Nombre', STRING: 'Texte', BOOLEAN: 'Booléen', EASING: 'Courbe', TIMING: 'Durée' } satisfies Record<TypeDeVariable, string>,
-  chaineVide: '(texte vide)',
-  vrai: 'true',
-  faux: 'false',
-  nonPrisEnCharge: 'Valeur non prise en charge',
-  statut: {
-    resolu: 'Résolu',
-    inaccessible: 'Cible inaccessible',
-    'mode-absent': 'Mode absent',
-    cycle: 'Cycle',
-    'type-incompatible': 'Type incompatible',
-    'non-pris-en-charge': 'Non pris en charge',
-    interrompu: 'Chaîne interrompue',
-  } satisfies Record<StatutDeResolution, string>,
-  origine: {
-    contexte: 'contexte',
-    defaut: 'défaut',
-    'calque-explicite': 'explicite sur le calque',
-    'calque-herite': 'hérité par le calque',
-  } satisfies Record<OrigineDuMode, string>,
-  cibleInconnue: (id: string) => `Variable ${id}`,
-  opaciteDeLAlias: (pourcentage: string) => `Alias à ${pourcentage} d’opacité`,
-
-  // Survol
-  chaineComplete: 'Chaîne complète',
-  fermer: 'Fermer',
-
-  // Inspecteur
-  inspecteur: 'Inspecteur',
-  aucunToken: 'Choisissez une variable par son nom pour l’inspecter.',
-  valeurTerminale: 'Valeur terminale',
-  contexteSimule: 'Contexte simulé',
-  chaineDeResolution: 'Chaîne de résolution',
-  etape: (rang: number) => `Étape ${rang}`,
-  modeEtOrigine: (mode: string, origine: string) => `${mode} · ${origine}`,
-  surcharge: (collection: string) => `surcharge de ${collection}`,
-  valeursParMode: 'Valeurs par mode',
-  provenance: 'Provenance',
-  identifiant: 'Identifiant',
-  clePubliee: 'Clé publiée',
-  collection: 'Collection',
-  description: 'Description',
-  portees: 'Portées',
-  syntaxe: 'Syntaxe de code',
-  locale: 'Locale',
-  distanteBibliotheque: 'Distante',
-  masquee: 'Masquée à la publication',
-  aucune: 'Aucune',
-  copier: 'Copier',
-  copies: {
-    nom: 'Nom Figma',
-    valeur: 'Valeur',
-    hexa: 'Hexadécimal',
-    composantes: 'Composantes',
-    chaine: 'Chaîne',
-    source: 'Donnée source',
-    reference: 'Référence publiée',
-  },
-  copieReussie: (quoi: string) => `Copié : ${quoi}`,
-  copieArrondie: (hexa: string) => `Copié : ${hexa}. L’hexadécimal arrondit les composantes à 8 bits.`,
-  copieRefusee: 'Le presse-papiers est refusé. Sélectionnez le texte ci-dessous puis copiez-le.',
-  copieImpossible: {
-    'non-resolu': 'Aucune valeur : la chaîne n’aboutit pas dans ce contexte.',
-    'pas-une-couleur': 'Cette variable n’est pas une couleur.',
-    'sans-correspondance': 'Aucune référence publiée vérifiée : importez un tokens.json dans Intégrations.',
-  },
-  dependantsDirects: (contexte: number, tous: number) => `${contexte} dans ce contexte · ${tous} dans tous les modes chargés`,
-
-  // Constats d'une chaîne : constat, puis geste
-  constat: {
-    inaccessible: {
-      titre: 'Cible inaccessible',
-      detail: (nom: string) => `L’alias vise ${nom}, que le relevé n’a pu ni lire ni importer. Sa suppression n’est pas établie.`,
-      action: 'Vérifiez que la bibliothèque publie encore cette variable et que vous y avez accès, puis actualisez.',
-    },
-    'mode-absent': {
-      titre: 'Mode absent',
-      detail: (nom: string, mode: string) => `${nom} n’a aucune valeur pour le mode ${mode}.`,
-      action: 'Donnez une valeur à ce mode dans Figma.',
-    },
-    cycle: {
-      titre: 'Cycle',
-      detail: (noms: string) => `La chaîne revient sur elle-même : ${noms}.`,
-      action: 'Remplacez l’un de ces alias par une valeur ou une autre cible dans Figma.',
-    },
-    'type-incompatible': {
-      titre: 'Type incompatible',
-      detail: (nom: string, attendu: string, obtenu: string) => `${nom} rend ${obtenu} là où ${attendu} est attendu.`,
-      action: 'Faites pointer l’alias vers une variable du même type dans Figma.',
-    },
-    'non-pris-en-charge': {
-      titre: 'Valeur non prise en charge',
-      detail: (nom: string) => `${nom} porte une valeur que l’explorateur ne sait pas évaluer. Sa donnée source reste lisible.`,
-      action: 'Consultez la valeur dans le panneau des variables de Figma.',
-    },
-    interrompu: {
-      titre: 'Chaîne interrompue',
-      detail: (etapes: number) => `La chaîne dépasse ${etapes} étapes ; son parcours s’arrête sans conclure à un cycle.`,
-      action: 'Raccourcissez la chaîne d’alias dans Figma.',
-    },
-  } satisfies Record<NatureDeConstat, { titre: string; action: string; detail: (...valeurs: never[]) => string }>,
-
+export const TEXTES_VUES_RETIREES = {
   // Comparer
   comparerTitre: 'Un token, deux contextes',
   contexteA: 'Contexte A · actif',
@@ -211,7 +18,6 @@ export const TEXTES = {
   ecartsDeLaVue: (nombre: number, total: number) => `${nombre} variable${nombre > 1 ? 's' : ''} sur ${total} changent entre A et B dans cette vue`,
   aucunEcartDansLaVue: 'Aucune variable de cette vue ne change entre A et B.',
   choisirUnToken: 'Inspectez une variable pour la comparer.',
-
   // Dépendants
   dependantsTitre: 'Variables dépendantes',
   dependantsDuContexte: 'Dans le contexte courant',
@@ -219,7 +25,6 @@ export const TEXTES = {
   dependantsTransitifs: 'Dépendants indirects',
   distance: (distance: number) => `à ${distance} alias`,
   aucunDependant: 'Aucune référence entrante dans le relevé.',
-
   // Diagnostics
   diagnosticsTitre: (nombre: number) => (nombre === 0 ? 'Aucune chaîne à examiner' : `${nombre} constat${nombre > 1 ? 's' : ''} à examiner`),
   diagnosticsPortee: (resolutions: number) => `${resolutions} résolutions : chaque variable dans chaque mode de sa collection, les autres collections au contexte A.`,
@@ -234,7 +39,6 @@ export const TEXTES = {
   manqueeRefusee: (nom: string, message: string) => `${nom} : la lecture a été refusée (${message}).`,
   exporterJson: 'Exporter le rapport JSON',
   exporterTexte: 'Exporter le rapport texte',
-
   // Contraste
   contrasteTitre: 'Contraste d’une paire',
   contrasteAvec: 'Fond',
@@ -247,7 +51,6 @@ export const TEXTES = {
     gamut: 'Non jugé : une composante sort de sRGB.',
   },
   choisirUnFond: 'Choisissez une variable de couleur comme fond.',
-
   // Intégrations
   integrationsTitre: 'Intégrations facultatives',
   integrationsNote: 'Le socle fonctionne sans elles. Les désactiver retire leurs constats sans changer la navigation.',
@@ -340,7 +143,6 @@ export const TEXTES = {
   variableDuTheme: (variable: string, peint: string, portees: string) => `Variable ${variable} · peint ${peint} · portées ${portees}`,
   exception: 'Ignorer cet écart',
   exceptionAide: 'L’exception reste dans vos préférences, pour ce fichier.',
-
   // Relevés et simulation
   relevesTitre: 'Relevés',
   exporterReleve: 'Exporter le relevé',
@@ -370,55 +172,4 @@ export const TEXTES = {
     valeur: 'Refusé : la valeur ne se lit pas pour ce type.',
   },
   simulationEffets: (nombre: number) => `${nombre} variable${nombre > 1 ? 's' : ''} du relevé changent de valeur dans ce contexte`,
-
-  // Vue composant : les mots et les glyphes de MAQUETTE-VUE-COMPOSANT.html
-  composant: {
-    vide: 'Sélectionnez un composant',
-    lecture: 'Lecture du composant…',
-    lectureEchouee: (message: string) => `La lecture du composant a échoué : ${message}. Sélectionnez-le de nouveau dans Figma.`,
-    filDAriane: 'Fil d’Ariane',
-    apercu: 'Aperçu du composant lu',
-    filtrer: 'Filtrer',
-    filtrerLesTokens: 'Filtrer les tokens',
-    toutDeplier: 'Tout déplier ou replier',
-    ouvrir: (nom: string) => `Ouvrir ${nom}`,
-    variantLu: 'Variant lu',
-    etapes: (nombre: number) => `${nombre} étape${nombre > 1 ? 's' : ''}`,
-    interrompue: 'interrompue',
-    copier: (valeur: string) => `Copier ${valeur}`,
-    ecartAvecFigma: (valeur: string) => `Figma rend ${valeur}`,
-    ecartAide: 'Figma rend une autre valeur que cette chaîne. Dépliez la ligne pour lire les deux.',
-    aucunNeCorrespond: 'Aucun token ne correspond.',
-    aucunToken: 'Aucun token · valeurs directes',
-    sansToken: 'Sans token',
-    aucunSurCeCalque: 'Aucun token sur ce calque.',
-    tokens: (nombre: number) => `${nombre} token${nombre > 1 ? 's' : ''}`,
-    liaisons: (nombre: number) => `${nombre} liaisons`,
-    nombreSansToken: (nombre: number) => `${nombre} sans token`,
-    calquesNonLus: (nombre: number) => `${nombre} calque${nombre > 1 ? 's' : ''} non lu${nombre > 1 ? 's' : ''}`,
-    calquesIgnores: (nombre: number) => `${nombre} calque${nombre > 1 ? 's' : ''} ignoré${nombre > 1 ? 's' : ''}`,
-    valeurAbsente: '—',
-    natures: { couleur: 'Couleur', forme: 'Forme', espacement: 'Espacement', taille: 'Taille', texte: 'Texte', autre: 'Autre' } satisfies Record<Nature, string>,
-    libelles: { texte: 'Texte', fond: 'Fond', contour: 'Contour', effet: 'Effet', rayon: 'Rayon', epaisseur: 'Épaisseur', opacite: 'Opacité', ecart: 'Écart', marge: 'Marge', taille: 'Taille', police: 'Texte', style: 'Style' } as Record<string, string>,
-    glyphes: {
-      composant: '◇',
-      calque: '#',
-      forme: '◜',
-      espacement: '↔',
-      taille: '⤢',
-      epaisseur: '─',
-      style: 'Aa',
-      texte: 'A',
-      autre: '·',
-      couleurInconnue: '?',
-      miette: '›',
-      ecart: '≠',
-    },
-    fois: (nombre: number) => `×${nombre}`,
-  },
 };
-
-/** Le titre d'un constat de chaîne. */
-export function titreDeConstat(nature: NatureDeConstat): string {
-  return TEXTES.constat[nature].titre;
-}

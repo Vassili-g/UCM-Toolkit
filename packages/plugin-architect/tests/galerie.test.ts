@@ -17,38 +17,41 @@ import {
 import { feuilleDuSocle } from 'ucm-plugin-socle/lois/styles';
 
 const racine = path.resolve(__dirname, '..');
-const { ETATS } = require('../galerie/etats.cjs') as { ETATS: EtatDeGalerie[] };
+
+/**
+ * Les messages du sandbox que l'interface d'Architect reçoit, par domaine. Ceux de Nomenclature ont leurs états
+ * dans `nomenclatureSocle.test.ts`. Les domaines construits par les lots suivants ajoutent ici leur fichier.
+ */
+const DOMAINES_DE_MESSAGES: readonly (readonly [string, string])[] = [['commun.ts', 'MessageDeCommun'], ['arbre.ts', 'MessageDArbre'], ['composant.ts', 'MessageDeComposant']];
+const { ETATS: TOUS } = require('../galerie/etats.cjs') as { ETATS: EtatDeGalerie[] };
+/** Les états d'Architect ; ceux de Nomenclature sont jugés par `nomenclatureSocle.test.ts`. */
+const ETATS = TOUS.filter((etat) => (etat as { domaine?: string }).domaine !== 'nomenclature');
 
 test('chaque état porte son identité et sa situation', () => {
   assert.deepEqual(fautesDIdentite(ETATS), []);
 });
 
 test('un état absent nomme la case du plan qui le créera', () => {
-  assert.deepEqual(fautesDAttente(ETATS, /^Lot \d+$/), []);
+  assert.deepEqual(fautesDAttente(ETATS, /^Lot [A-Z]?\d+$/), []);
 });
 
 test('un état atteignable dit ce qu’on regarde, et chaque étape porte un seul geste', () => {
   assert.deepEqual(fautesDeScenario(ETATS), []);
 });
 
-/** Messages du domaine `commun` que l'interface ne traite pas encore : l'étape qui découpe la galerie par domaine leur donne un état. */
-const SANS_ETAT_POUR_LE_MOMENT = new Set(['declaration', 'non-construit']);
-
 test('tout message que le sandbox peut envoyer a un état où le regarder', () => {
-  const union = (fichier: string, nom: string) => typesDeLUnion(fs.readFileSync(path.join(racine, 'src', 'messages', fichier), 'utf8'), nom);
-  const declares = new Set([...union('commun.ts', 'MessageDeCommun'), ...union('arbre.ts', 'MessageDArbre'), ...union('composant.ts', 'MessageDeComposant')]);
-  for (const type of SANS_ETAT_POUR_LE_MOMENT) declares.delete(type);
+  const declares = new Set(DOMAINES_DE_MESSAGES.flatMap(([fichier, nom]) => [...typesDeLUnion(fs.readFileSync(path.join(racine, 'src', 'messages', fichier), 'utf8'), nom)]));
   assert.ok(declares.size > 0);
   assert.deepEqual(ecartsDesMessages(declares, ETATS), { jamaisRegardes: [], inventes: [] });
 });
 
 test('le décalque sert toutes les variables de thème que les feuilles demandent', () => {
-  const feuilles = feuilleDuSocle() + fs.readFileSync(path.join(racine, 'src', 'ui', 'styles.css'), 'utf8');
+  const feuilles = feuilleDuSocle() + fs.readdirSync(path.join(racine, 'src', 'ui', 'styles')).map((nom) => fs.readFileSync(path.join(racine, 'src', 'ui', 'styles', nom), 'utf8')).join('\n');
   assert.deepEqual(variablesAbsentesDuDecalque(feuilles), []);
 });
 
 test('chaque script de la galerie se compile', () => {
   const dossier = path.join(racine, 'galerie');
   assert.ok(fs.readdirSync(dossier).includes('capturer.cjs'), 'capturer.cjs a quitté la galerie');
-  assert.deepEqual(scriptsQuiNeCompilentPas(dossier), []);
+  for (const sous of ['', 'etats', 'nomenclature']) assert.deepEqual(scriptsQuiNeCompilentPas(path.join(dossier, sous)), []);
 });

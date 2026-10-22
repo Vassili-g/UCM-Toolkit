@@ -1,0 +1,341 @@
+/*
+ * La feuille commune d'Architect, après celle du socle. Elle affecte les couleurs
+ * sombres de `roles.css` aux rôles du socle, sous `:root` comme sous
+ * `.figma-dark` : l'interface reste sombre quel que soit le thème de l'hôte.
+ * Aucune couleur n'est écrite ici en dur.
+ *
+ * Le dessin suit MAQUETTE-EXPLORATEUR-TOKENS.html : trois surfaces étagées,
+ * les noms de variable en chasse fixe, un alias en pastille, la chaîne en
+ * frise. L'échelle de texte monte d'un cran par rapport au socle : la fenêtre
+ * est une table de lecture, large de 1360 px, et non un panneau de 380 px.
+ */
+:root,
+.figma-dark {
+  color-scheme: dark;
+  --fond-page: var(--sombre-page);
+  --fond: var(--sombre-fond);
+  --fond-arbre: var(--sombre-arbre);
+  --fond-survol: var(--sombre-survol);
+  --fond-bloc: var(--sombre-bloc);
+  --fond-note: var(--sombre-note);
+  --fond-logo: var(--sombre-logo);
+  --fond-marque: var(--sombre-marque);
+  --fond-marque-survol: var(--sombre-marque-survol);
+  --fond-selection: var(--sombre-selection);
+  --fond-succes: var(--sombre-succes);
+  --fond-avertissement: var(--sombre-avertissement);
+  --fond-voile: var(--sombre-voile);
+  --fond-danger: var(--sombre-danger);
+  --fond-danger-plein: var(--sombre-danger-plein);
+  --fond-danger-plein-survol: var(--sombre-danger-plein-survol);
+  --bordure: var(--sombre-bordure);
+  --bordure-marque: var(--sombre-focus);
+  --bordure-visee: var(--sombre-bordure-forte);
+  --bordure-pastille: var(--sombre-pastille);
+  --filet: var(--sombre-filet);
+  --filet-avertissement: var(--sombre-filet-avertissement);
+  --rail: var(--sombre-rail);
+  --noeud: var(--sombre-noeud);
+  --ombre: var(--sombre-ombre);
+  --texte: var(--sombre-texte);
+  --texte-second: var(--sombre-texte-second);
+  --texte-marque: var(--sombre-texte-marque);
+  --texte-danger: var(--sombre-texte-danger);
+  --texte-succes: var(--sombre-texte-succes);
+  --texte-avertissement: var(--sombre-texte-avertissement);
+  --texte-sur-marque: var(--sombre-texte-sur-marque);
+  --texte-sur-danger: var(--sombre-texte-sur-marque);
+  --damier-clair: var(--sombre-damier-clair);
+  --damier-fonce: var(--sombre-damier-fonce);
+  --texte-composant: var(--sombre-composant);
+  --fond-apercu: var(--sombre-apercu);
+  --encre: var(--sombre-encre);
+  --cadre-survol: var(--sombre-cadre-survol);
+  --cadre-portee: var(--sombre-cadre-portee);
+
+  --corps: 12px;
+  --corps-interligne: 18px;
+  --libelle: 13px;
+  --libelle-interligne: 20px;
+  --titre: 20px;
+  --titre-interligne: 28px;
+  --petit: 11px;
+  --hauteur-secondaire: 28px;
+  --chasse-fixe: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+/* La fenêtre ne défile pas : chaque zone défile seule. */
+html {
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--fond-page);
+}
+
+button,
+select,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 1px;
+}
+
+.application {
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
+  background: var(--fond);
+}
+
+/* La barre : produit, bascule des deux modes, puis lecture du relevé. */
+.barre {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--espace-bloc);
+  padding: 10px var(--espace-page);
+  border-bottom: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+.produit {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.logo {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--fond-logo);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.produit-nom {
+  margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+}
+
+/* La bascule : deux segments, celui du mode affiché en aplat. */
+.bascule {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond-arbre);
+}
+
+.bascule-choix {
+  height: 24px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: calc(var(--rayon) - 2px);
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.bascule-choix:hover:not([aria-pressed='true']) {
+  background: var(--fond-survol);
+  color: var(--texte);
+}
+
+.bascule-choix[aria-pressed='true'] {
+  background: var(--fond-selection);
+  color: var(--texte);
+}
+
+.barre-lecture {
+  display: flex;
+  gap: var(--espace-controle);
+  margin-left: auto;
+}
+
+.contextes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-controle) var(--espace-bloc);
+}
+
+.contexte-champ,
+.filtre {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.contexte-nom,
+.filtre-nom {
+  color: var(--texte-second);
+}
+
+.choix,
+.recherche,
+.saisie {
+  height: var(--hauteur-secondaire);
+  padding: 0 9px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+}
+
+.choix:hover,
+.recherche:hover,
+.saisie:hover {
+  border-color: var(--bordure-visee);
+}
+
+/*
+ * La poignée d'une largeur : une bande de 9 px sur le bord droit, dont le
+ * trait ne paraît qu'au survol, au focus et pendant le geste.
+ */
+.poignee {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 9px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.arbre > .poignee {
+  right: -5px;
+}
+
+.poignee::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  background: transparent;
+  content: '';
+}
+
+.cellule-entete > .poignee::after {
+  top: 9px;
+  bottom: 9px;
+  background: var(--bordure);
+}
+
+.poignee:hover::after,
+.poignee:focus-visible::after,
+.poignee-active::after {
+  left: 3px;
+  width: 2px;
+  background: var(--bordure-marque);
+}
+
+.poignee:focus-visible {
+  outline: none;
+}
+
+/* Pendant le geste, le curseur reste celui du réglage et aucun texte ne se sélectionne. */
+.reglage-en-cours,
+.reglage-en-cours * {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* Le surtitre d'une zone : petites capitales espacées. */
+.surtitre {
+  margin: 0;
+  color: var(--texte-second);
+  font-size: var(--petit);
+  font-weight: 500;
+  letter-spacing: 1px;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+/* Le titre d'une section : il se lit comme un titre, sans capitales. */
+.section:not(.carte-valeur) > .surtitre,
+.vue > .surtitre {
+  color: var(--texte);
+  font-size: var(--libelle);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: var(--libelle-interligne);
+  text-transform: none;
+}
+
+.note {
+  margin: 0;
+  color: var(--texte-second);
+}
+
+/* Le pied : périmètre, fraîcheur et lecture seule. */
+.pied {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-serre) var(--espace-page);
+  padding: var(--espace-controle) var(--espace-page);
+  border-top: 1px solid var(--bordure);
+  background: var(--fond-bloc);
+  color: var(--texte-second);
+  font-size: var(--petit);
+  line-height: 16px;
+}
+
+.pied-perimetre,
+.pied-fraicheur {
+  white-space: nowrap;
+}
+
+.pied-lecture {
+  margin-left: auto;
+  padding-right: var(--espace-page);
+}
+
+/* L'annonce : centrée au-dessus du pied, claire sur l'écran sombre. */
+.annonce {
+  position: fixed;
+  z-index: 11;
+  bottom: 44px;
+  left: 50%;
+  display: grid;
+  max-width: min(420px, calc(100vw - 32px));
+  justify-items: center;
+  gap: var(--espace-serre);
+  transform: translateX(-50%);
+}
+
+.annonce > span:not(:empty) {
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: var(--texte);
+  box-shadow: 0 12px 35px var(--ombre);
+  color: var(--fond-page);
+}
+
+.secours {
+  min-width: min(360px, calc(100vw - 32px));
+  min-height: 64px;
+  border: 1px solid var(--bordure-marque);
+  border-radius: var(--rayon);
+  background: var(--fond-bloc);
+}
+
+.zone-hors-champ {
+  position: fixed;
+  left: -9999px;
+}

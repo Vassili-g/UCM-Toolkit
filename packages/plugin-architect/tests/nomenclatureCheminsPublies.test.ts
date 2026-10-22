@@ -6,7 +6,7 @@ import type { PortDeRegles } from '../src/ecriture/noms';
 import { inventaireDeLectures, type PortDeLecture } from '../src/nomenclature/lecture';
 import type { DemandeDeNomenclature, GesteSurLesRegles, MessageDeNomenclature } from '../src/messages/nomenclature';
 import { creerSession } from '../src/nomenclature/session';
-import { TEXTES } from '../src/ui/nomenclature/textes';
+import { TEXTES } from '../src/ui/textes/nomenclature';
 
 /** Les variables s'écrivent `[id, nom, collection]` ; la collection est `c` par défaut. */
 type Spec = readonly [id: string, nom: string, collection?: string];

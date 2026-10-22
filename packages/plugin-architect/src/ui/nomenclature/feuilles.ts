@@ -20,7 +20,7 @@ import { segmentsDeNom } from './lignes';
 import { motAffiche } from './listeDesTermes';
 import { carteDeConflit } from './questions';
 import type { ReglesMontees } from './regles';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 /** Le délai après lequel une saisie calme demande sa simulation. */
 const DELAI_DE_SIMULATION = 250;
@@ -181,7 +181,7 @@ async function copierTexte(texte: string): Promise<IssueDeCopie> {
   const zone = document.createElement('textarea');
   zone.value = texte;
   zone.setAttribute('readonly', '');
-  zone.className = 'zone-hors-champ';
+  zone.className = 'noms-zone-hors-champ';
   document.body.append(zone);
   zone.select();
   let reussie = false;
@@ -237,7 +237,7 @@ function creerLeContenu(): HTMLElement {
 }
 
 function creerPastille(texte: string, variante: 'ucm' | 'personnalise' | 'indice'): HTMLElement {
-  return variante === 'indice' ? el('span', 'pastille pastille-indice', texte) : el('span', 'origine', texte);
+  return variante === 'indice' ? el('span', 'noms-pastille pastille-indice', texte) : el('span', 'origine', texte);
 }
 
 /** Le pied d'une feuille : un bouton à gauche, ou rien, puis les boutons à droite. */
@@ -493,7 +493,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
       if (ancien) {
         ancien.replaceWith(titre);
       }
-      entete.querySelector('.pastille, .origine')?.replaceWith();
+      entete.querySelector('.noms-pastille, .origine')?.replaceWith();
       entete.classList.toggle('avec-definition', definition !== null);
       const pastille = origine === null ? null : creerPastille(origine.texte, origine.variante);
       if (definition === null) {
@@ -521,7 +521,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
       const lien = lienDeLaFiche(donnees);
       if (lien) {
         const traiter = creerUnBoutonNu(lien.libelle, () => envoyer(lien.geste, 'relire'));
-        traiter.className = 'lien';
+        traiter.className = 'noms-lien';
         identite.append(traiter);
       }
       return identite;
@@ -609,7 +609,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
         feuille.fermer();
         coquille.demanderUneCarte(`terme:${donnees.mot}`);
       });
-      voir.className = 'lien';
+      voir.className = 'noms-lien';
       return creerLeBloc(TEXTES.titreARenommer(donnees.aRenommer.nombre), [legende, ...lignes], voir);
     }
 

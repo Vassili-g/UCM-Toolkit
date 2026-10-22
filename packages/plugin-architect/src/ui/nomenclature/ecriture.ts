@@ -6,7 +6,7 @@
  */
 import { CONVENTIONS, type Convention } from '@ucm-kit/core/referentiel';
 import type { Bilan, EcritureChoisie, LigneDEcriture, LigneVue } from '../../messages/nomenclature';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 type EcritureDuBilan = Bilan['ecriture'];
 

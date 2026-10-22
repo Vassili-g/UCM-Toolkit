@@ -1,0 +1,620 @@
+/* La recherche tient la largeur de l'arbre, sous son titre. */
+.recherche {
+  flex: none;
+  min-width: 0;
+  margin: 0 var(--espace-controle);
+}
+
+.recherche::placeholder {
+  color: var(--texte-second);
+}
+
+.saisie {
+  min-width: 160px;
+  flex: 1;
+}
+
+.bouton-discret {
+  height: var(--hauteur-secondaire);
+  padding: 0 10px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bouton-discret:hover:not(:disabled) {
+  background: var(--fond-survol);
+}
+
+.bouton-discret:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* Les trois colonnes : arbre, centre, panneau latéral. */
+.corps {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: min(var(--largeur-arbre, 220px), 40vw) minmax(0, 1fr) 640px;
+}
+
+.arbre {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--espace-controle);
+  padding: var(--espace-page) var(--espace-controle) var(--espace-bloc);
+  border-right: 1px solid var(--bordure);
+  background: var(--fond-arbre);
+}
+
+.arbre > .surtitre {
+  padding: 0 var(--espace-controle);
+}
+
+.arbre-lignes {
+  flex: 1;
+}
+
+.liste-virtuelle {
+  position: relative;
+  min-height: 0;
+  overflow: auto;
+}
+
+.liste-espace {
+  position: relative;
+}
+
+.arbre-ligne,
+.table-ligne {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.arbre-ligne {
+  display: flex;
+  right: 0;
+  align-items: center;
+}
+
+/* Un trait par niveau d'ancêtre, sous le chevron de chacun. */
+.arbre-ligne::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 9px;
+  width: calc(var(--profondeur) * 12px);
+  background: repeating-linear-gradient(to right, var(--bordure) 0 1px, transparent 1px 12px);
+  content: '';
+  pointer-events: none;
+}
+
+.chevron,
+.chevron-vide {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--rayon);
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+}
+
+.chevron:hover {
+  color: var(--texte);
+}
+
+.arbre-choix {
+  display: flex;
+  min-width: 0;
+  height: 24px;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  padding: 0 var(--espace-controle) 0 6px;
+  border: 0;
+  border-radius: var(--rayon);
+  background: none;
+  cursor: pointer;
+  font-family: var(--chasse-fixe);
+  text-align: left;
+}
+
+.arbre-groupe {
+  font-size: var(--petit);
+}
+
+.arbre-choix:hover {
+  background: var(--fond-survol);
+}
+
+.arbre-choix[aria-current='true'] {
+  background: var(--fond-selection);
+  color: var(--texte-marque);
+}
+
+.arbre-libelle {
+  overflow: hidden;
+  flex: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.segment-vide,
+.valeur-vide {
+  color: var(--texte-second);
+  font-style: italic;
+}
+
+.arbre-compte {
+  color: var(--texte-second);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--petit);
+  font-variant-numeric: tabular-nums;
+}
+
+.pastille-texte {
+  flex: none;
+  padding: 1px 7px;
+  border: 1px solid var(--bordure);
+  border-radius: 5px;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--petit);
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+/* Le centre : le groupe ouvert, les onglets, puis le panneau de l'onglet actif. */
+.centre {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  background: var(--fond);
+}
+
+.table-tete {
+  display: grid;
+  gap: 2px;
+  padding: var(--espace-page) 20px var(--espace-controle);
+}
+
+.emplacement {
+  margin: 0;
+  color: var(--texte-second);
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+}
+
+.table-titre,
+.vue-titre,
+.inspecteur-titre {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.table-titre {
+  font-size: var(--titre);
+  line-height: var(--titre-interligne);
+}
+
+.vue-titre {
+  font-size: 17px;
+  line-height: 24px;
+}
+
+.inspecteur-titre {
+  font-family: var(--chasse-fixe);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+/* Les onglets soulignés de la maquette, à la place des segments du socle. */
+.centre .onglets {
+  overflow-x: auto;
+  flex: none;
+  gap: 18px;
+  padding: 0 20px;
+}
+
+.centre .onglet {
+  width: auto;
+  min-width: 0;
+  height: 38px;
+  padding: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.centre .onglet:hover:not([aria-selected='true']),
+.centre .onglet[aria-selected='true'] {
+  background: none;
+}
+
+.centre .onglet[aria-selected='true'] {
+  border-bottom-color: var(--texte-marque);
+}
+
+.centre .onglet:focus-visible {
+  outline-offset: -2px;
+}
+
+.accueil {
+  display: grid;
+  justify-items: start;
+  gap: var(--espace-bloc);
+  padding: 32px;
+}
+
+.accueil-texte {
+  max-width: 60ch;
+  color: var(--texte-second);
+  font-size: var(--libelle);
+  line-height: var(--libelle-interligne);
+}
+
+.panneau {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.panneau:focus-visible {
+  outline-offset: -2px;
+}
+
+.table {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.filtres,
+.gestes,
+.ligne-de-champs,
+.copies {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.filtres {
+  gap: var(--espace-controle) 10px;
+  padding: var(--espace-bloc) 20px;
+}
+
+.table-corps {
+  flex: 1;
+  border-top: 1px solid var(--bordure);
+}
+
+.table-entete,
+.table-ligne {
+  display: grid;
+  min-width: var(--largeur-minimale);
+  grid-template-columns: var(--colonnes);
+}
+
+.table-entete {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  border-bottom: 1px solid var(--bordure);
+  background: var(--fond-bloc);
+}
+
+.table-ligne {
+  right: 0;
+  border-bottom: 1px solid var(--filet);
+}
+
+.table-ligne:hover,
+.table-ligne:hover .cellule-nom {
+  background: var(--fond-arbre);
+}
+
+.table-ligne.ligne-choisie,
+.table-ligne.ligne-choisie .cellule-nom {
+  background: var(--fond-selection);
+}
+
+.cellule-entete {
+  position: relative;
+  min-width: 0;
+  padding: 10px var(--espace-page);
+  color: var(--texte-second);
+  font-size: var(--petit);
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.cellule-entete-nom {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cellule-entete:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--fond-bloc);
+}
+
+.cellule-nom {
+  position: sticky;
+  z-index: 1;
+  left: 0;
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  padding: 0 var(--espace-page);
+  background: var(--fond);
+}
+
+.nom-de-token {
+  color: var(--texte);
+}
+
+.nom-de-token-chemin {
+  color: var(--texte-second);
+}
+
+.nom-de-token,
+.lien {
+  overflow: hidden;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--chasse-fixe);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lien {
+  color: var(--texte-marque);
+  font-size: var(--petit);
+}
+
+.nom-de-token:hover,
+.lien:hover {
+  text-decoration: underline;
+}
+
+/* Ce qui se suit : un alias, ou une variable citée dans une liste. */
+.alias,
+.liens .lien {
+  display: inline-flex;
+  overflow: hidden;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 7px;
+  border: 1px solid var(--bordure);
+  border-radius: 5px;
+  background: var(--fond-note);
+  color: var(--texte);
+  cursor: pointer;
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+  line-height: 16px;
+  text-align: left;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.alias:hover,
+.liens .lien:hover {
+  border-color: var(--texte-marque);
+  background: var(--fond-selection);
+  text-decoration: none;
+}
+
+.cellule-type {
+  align-self: center;
+  padding: 0 var(--espace-page);
+  color: var(--texte-second);
+  font-size: var(--petit);
+}
+
+.cellule-valeur {
+  display: flex;
+  overflow: hidden;
+  min-width: 0;
+  align-items: center;
+  padding: 0 var(--espace-page);
+}
+
+/* Une valeur dans son contexte : l'alias cède la place, ce qu'il rend reste entier. */
+.valeur-resolue {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 8px;
+}
+
+.valeur-resolue > .alias {
+  min-width: 40px;
+  flex: 0 1 auto;
+}
+
+.alias-nom {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+.alias-opacite {
+  flex: none;
+  color: var(--texte-second);
+}
+
+.valeur-rendue {
+  flex: none;
+  color: var(--texte-second);
+}
+
+.propriete-valeur > .valeur-resolue {
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.vide {
+  padding: 32px;
+  color: var(--texte-second);
+}
+
+/* Une valeur : pastille et texte exact. */
+.valeur {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 7px;
+  vertical-align: middle;
+}
+
+.valeur-texte {
+  overflow: hidden;
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valeur-grande {
+  gap: var(--espace-bloc);
+}
+
+.valeur-grande .valeur-texte {
+  font-size: 20px;
+  line-height: 32px;
+}
+
+.pastille {
+  display: inline-block;
+  overflow: hidden;
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border: 1px solid var(--bordure-pastille);
+  border-radius: 3px;
+  background: conic-gradient(var(--damier-clair) 25%, var(--damier-fonce) 0 50%, var(--damier-clair) 0 75%, var(--damier-fonce) 0) 0 0 / 8px 8px;
+}
+
+/* Le contour d'une couleur opaque : cette couleur, à peine éclaircie. */
+.pastille-opaque {
+  border-color: color-mix(in srgb, var(--pastille-couleur) 84%, var(--texte));
+}
+
+.valeur-grande .pastille {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--rayon);
+}
+
+.pastille-remplissage {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.statut-echec {
+  color: var(--texte-danger);
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+}
+
+.statut-echec.valeur-grande {
+  font-size: 15px;
+  line-height: 24px;
+}
+
+/* La bulle de la chaîne, au survol et au focus. */
+.bulle {
+  position: fixed;
+  z-index: 10;
+  display: grid;
+  overflow: auto;
+  max-width: min(390px, calc(100vw - 16px));
+  max-height: 70vh;
+  gap: var(--espace-bloc);
+  padding: 14px;
+  border: 1px solid var(--bordure-visee);
+  border-radius: 9px;
+  background: var(--fond);
+  box-shadow: 0 12px 35px var(--ombre);
+  pointer-events: none;
+}
+
+.bulle-titre {
+  font-size: var(--libelle);
+  font-weight: 600;
+}
+
+/* Le panneau latéral du mode Tokens : la colonne de droite, 640 px, où Nomenclature prend la place de l'inspecteur. */
+.panneau-lateral {
+  min-height: 0;
+  overflow: hidden auto;
+  border-left: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+/* Sous 1100 px, le panneau passe sous l'arbre et le centre, sur toute la largeur. */
+@media (max-width: 1099px) {
+  .corps {
+    grid-template-columns: min(var(--largeur-arbre, 200px), 40vw) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .panneau-lateral {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--bordure);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 699px) {
+  .corps {
+    grid-template-columns: min(var(--largeur-arbre, 168px), 40vw) minmax(0, 1fr);
+  }
+
+  .produit-nom {
+    display: none;
+  }
+
+  .table-tete {
+    padding: var(--espace-bloc) var(--espace-bloc) var(--espace-serre);
+  }
+
+  .table-titre {
+    font-size: 17px;
+    line-height: 24px;
+  }
+
+  .centre .onglets,
+  .filtres {
+    padding-right: var(--espace-bloc);
+    padding-left: var(--espace-bloc);
+  }
+}

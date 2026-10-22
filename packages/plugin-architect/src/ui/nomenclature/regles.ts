@@ -43,7 +43,7 @@ import {
   type FiltreActif,
 } from './listeDesTermes';
 import { telecharger } from './telechargement';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 /** Le délai après lequel une saisie calme déclenche la recherche. */
 const DELAI_DE_SAISIE = 200;
@@ -193,7 +193,7 @@ function creerLigneDeTerme(terme: TermeDeListe, choisie: boolean, auClic: () => 
   const pastille = pastilleDeLaLigne(terme);
   const origine = origineDeLaLigne(terme);
   if (pastille) {
-    droite.classList.add('pastille', pastille.classe);
+    droite.classList.add('noms-pastille', pastille.classe);
     droite.textContent = pastille.texte;
   } else if (origine !== null) {
     droite.className = 'origine';
@@ -323,7 +323,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
   jetons.className = 'filtres-actifs';
   const recherche = document.createElement('input');
   recherche.type = 'search';
-  recherche.className = 'input recherche';
+  recherche.className = 'input noms-recherche';
   recherche.placeholder = TEXTES.chercherUnTerme;
   recherche.setAttribute('aria-label', TEXTES.chercherUnTerme);
   const choixDuTri = document.createElement('select');
@@ -361,7 +361,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
   // En bas de page, l'export qui sert à étudier le découpage des noms hors du plugin.
   const exporterLeDetail = document.createElement('button');
   exporterLeDetail.type = 'button';
-  exporterLeDetail.className = 'lien export-du-detail';
+  exporterLeDetail.className = 'noms-lien export-du-detail';
   exporterLeDetail.textContent = TEXTES.exporterLeDetailDuVocabulaire;
   exporterLeDetail.addEventListener('click', () => {
     demandeDuDetail = frontiere.diagnostic();
@@ -451,7 +451,7 @@ export function monterRegles(coquille: Coquille): ReglesMontees {
   function creerLaSuite(type: TypeDeTerme, bloc: BlocDeSection): HTMLElement {
     const afficherLaSuite = document.createElement('button');
     afficherLaSuite.type = 'button';
-    afficherLaSuite.className = 'lien';
+    afficherLaSuite.className = 'noms-lien';
     afficherLaSuite.dataset.cle = bloc.intertitre && bloc.place !== null ? `plus:${type}:${bloc.place}` : `plus:${type}`;
     afficherLaSuite.textContent = texteDeLaSuite(bloc);
     afficherLaSuite.disabled = enCours !== null;

@@ -6,7 +6,7 @@
  */
 import { ORIGINES_DE_FILTRE, PLACES_DE_TERMES, TYPES_DE_TERMES } from '../../messages/nomenclature';
 import type { ComptesDeTermes, OrigineDeFiltre, PlaceDuTerme, MessageDeNomenclature, RequeteDeTermes, SectionDeTermes, TermeDeListe, TriDeTermes, TypeDeTerme } from '../../messages/nomenclature';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 type ReponseDesTermes = Extract<MessageDeNomenclature, { type: 'termes' }>;
 

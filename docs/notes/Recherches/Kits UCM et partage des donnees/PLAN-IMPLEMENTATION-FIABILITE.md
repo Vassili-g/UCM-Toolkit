@@ -592,7 +592,7 @@ Plan de fiabilité, section « Lot 4 », décision D4. Sondes de Codex :
   - Fini quand : tests verts.
 - [x] **T4.2** (94d384cc) · `implementeur` · Nomenclature explique la protection
   - Entrée : textes de `conception/lot-4.md`.
-  - Fichiers : `packages/plugin-architect/src/ui/nomenclature/textes.ts` et les vues qui
+  - Fichiers : `packages/plugin-architect/src/ui/textes/nomenclature.ts` et les vues qui
     affichent le compte « protégés », la galerie et ses tests.
   - Faire : la raison et le geste s'affichent dans chaque cas (marque absente,
     marque sans règles rangées, lecture refusée) ; comptes et explications

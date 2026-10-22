@@ -4,7 +4,7 @@
  * touche pas au DOM.
  */
 import type { CauseDeProtection, ProtectionVue } from '../../messages/nomenclature';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 export interface LigneDeProtection {
   readonly cause: CauseDeProtection;

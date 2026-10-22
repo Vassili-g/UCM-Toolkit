@@ -1,6 +1,6 @@
 /**
  * Les vues ne posent aucun mot en dur : ce que le designer lit ou entend vient
- * de `src/ui/textes.ts`.
+ * des catalogues de `src/ui/textes/`.
  *
  * Borne : la loi lit la source ligne à ligne et ne reconnaît qu'un littéral
  * posé directement dans une destination connue. Un mot rangé d'abord dans une
@@ -27,8 +27,8 @@ const DESTINATIONS: RegExp[] = [
 function fichiers(dossier: string): string[] {
   return fs.readdirSync(dossier, { withFileTypes: true }).flatMap((entree) => {
     const chemin = path.join(dossier, entree.name);
-    if (entree.isDirectory()) return fichiers(chemin);
-    return chemin.endsWith('.ts') && entree.name !== 'textes.ts' ? [chemin] : [];
+    if (entree.isDirectory()) return entree.name === 'textes' ? [] : fichiers(chemin);
+    return chemin.endsWith('.ts') ? [chemin] : [];
   });
 }
 

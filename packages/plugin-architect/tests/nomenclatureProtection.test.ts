@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { ProtectionVue } from '../src/messages/nomenclature';
 import { lignesDeProtection, totauxDeProtection } from '../src/ui/nomenclature/protection';
-import { TEXTES } from '../src/ui/nomenclature/textes';
+import { TEXTES } from '../src/ui/textes/nomenclature';
 
 const toutes: readonly ProtectionVue[] = [
   { cause: 'marque-absente', nombre: 3 }, { cause: 'marque-illisible', nombre: 1 }, { cause: 'marque-future', nombre: 2 },

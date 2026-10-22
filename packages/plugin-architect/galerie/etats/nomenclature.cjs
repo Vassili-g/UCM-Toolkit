@@ -1,6 +1,6 @@
 /**
- * Les états d'UCM Nomenclature : un par écran des maquettes, feuilles comprises,
- * et au moins un par type de `PluginMessage`. Chaque état rejoue la suite de
+ * Les états de Nomenclature : un par écran des maquettes, feuilles comprises,
+ * et au moins un par type de `MessageDeNomenclature`. Chaque état rejoue la suite de
  * gestes et de messages qui le produit dans l'interface réelle.
  *
  * Sans sandbox, l'écran n'accepte que les réponses à ses propres demandes. Les
@@ -8,7 +8,7 @@
  * ont émises : le bilan est la demande 1, la lecture des termes la 2, et
  * chaque geste qui interroge le sandbox prend le numéro suivant.
  */
-const { bilans, fiches, messages, conflitDeFichier, conflitDeCycle } = require('./donnees.cjs');
+const { bilans, fiches, messages, conflitDeFichier, conflitDeCycle } = require('../nomenclature/donnees.cjs');
 
 const etat = (id, titre, quand, regarder, atteinte) => ({ id, titre, quand, regarder, existe: true, atteinte });
 const msg = (message, attendre) => (attendre ? { message, attendre } : { message });
@@ -33,9 +33,9 @@ const termeOuvert = (mot, fiche) => [
 /** Le délai de la simulation d'une saisie : l'écran attend 250 ms avant de demander. */
 const delai = () => Array.from({ length: 60 }, () => ({ survol: 'body' }));
 const repondreAuPremier = '.carte.question .question-actions:first-child .btn-secondary';
-const appliquer = [clic('.pied .btn-primary', '.feuille'), clic('.feuille-groupe .btn-primary')];
+const appliquer = [clic('.noms-pied .btn-primary', '.feuille'), clic('.feuille-groupe .btn-primary')];
 
-module.exports.ETATS = [
+const ETATS = [
   etat('premier-lancement', 'Premier lancement', 'Le plugin vient de s’ouvrir sur un fichier jamais analysé.',
     'Un titre, une ligne, un bouton Analyser le fichier, sans onglets.',
     [msg(messages.initial(false))]),
@@ -84,11 +84,11 @@ module.exports.ETATS = [
   etat('a-appliquer-nom-corrige', 'Renommages, un nom décoché puis corrigé', 'Le designer décoche Button/bg/hover ; le nom est corrigé dans Figma ; la nouvelle analyse ne le propose plus.',
     'Le groupe background garde ses 11 noms, tous cochés, sans mention « non cochés » ; le pied compte 86 noms cochés et Appliquer reste disponible.',
     [...ouvert(bilans.travail), clic('.case[aria-label="Button/bg/hover"]'), clic('#onglet-a-trancher', '.carte.question'), clic(repondreAuPremier),
-      msg(messages.bilan(3, bilans.apresUneCorrection), '.faite-texte'), msg(messages.selection(4, 2, []), '.pied .btn-primary:not([disabled])'),
+      msg(messages.bilan(3, bilans.apresUneCorrection), '.faite-texte'), msg(messages.selection(4, 2, []), '.noms-pied .btn-primary:not([disabled])'),
       clic('#onglet-a-appliquer')]),
   etat('confirmation', 'Confirmation', 'Le designer appuie sur Appliquer.',
     'La feuille « Renommer 87 noms ? », ses quatre faits, Retour et Renommer ; le focus sur Retour.',
-    [...ouvert(bilans.travail), clic('.pied .btn-primary', '.feuille')]),
+    [...ouvert(bilans.travail), clic('.noms-pied .btn-primary', '.feuille')]),
   etat('application', 'Après application', 'Les noms cochés ont été renommés.',
     'La ligne « 87 noms renommés » avec Annuler, suivie de « Les anciens noms sont gardés dans Configuration › Historique. » ; la liste ne garde que ce qui n’était pas coché.',
     [...ouvert(bilans.travail), ...appliquer, msg(messages.application(3)), msg(messages.bilan(3, bilans.apresLApplication), '.resultat:not([hidden])')]),
@@ -177,7 +177,7 @@ module.exports.ETATS = [
       msg(messages.termesDesGroupes(5), '.filtre-actif')]),
   etat('regles-recherche', 'Règles, variante cherchée', 'Le designer cherche bg dans Règles.',
     'La phrase « bg est remplacé par background » sous la recherche ; bg en blanc dans la ligne de background.',
-    [...reglesOuvertes(), { saisie: { dans: '.recherche', valeur: 'bg' } }, ...delai(), msg(messages.termesTrouves(4), '.resultat-recherche:not([hidden])')]),
+    [...reglesOuvertes(), { saisie: { dans: '.noms-recherche', valeur: 'bg' } }, ...delai(), msg(messages.termesTrouves(4), '.resultat-recherche:not([hidden])')]),
   etat('regles-detail-exporte', 'Règles, détail du vocabulaire', 'Le sandbox rend le détail du vocabulaire.',
     'L’onglet Règles, avec le lien gris « Exporter le détail du vocabulaire » en bas de page. Le message rejoue la réponse sans le clic, qui lancerait le téléchargement.',
     [...reglesOuvertes(), msg(messages.diagnostic(4))]),
@@ -255,3 +255,5 @@ module.exports.ETATS = [
     'Le bandeau « Le fichier a changé » avec son bouton, au-dessus des onglets.',
     [...ouvert(bilans.travail), msg(messages.erreur(9, 'fichier-modifie'))]),
 ];
+
+module.exports = { ETATS };

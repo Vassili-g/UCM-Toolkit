@@ -1,24 +1,24 @@
-/** Point d'entrée de l'écran d'UCM Nomenclature : la coquille reçoit les messages du sandbox. */
+/** Monte l'écran des noms dans l'hôte que l'interface d'Architect lui donne : la coquille reçoit ensuite les messages du sandbox. */
 import type { MessageDeNomenclature, UiMessage } from '../../messages/nomenclature';
 import { monterAAppliquer } from './aAppliquer';
 import { monterATrancher } from './aTrancher';
 import { monterConfiguration } from './configuration';
-import { creerCoquille } from './coquille';
+import { creerCoquille, type Coquille } from './coquille';
 import { monterFeuilles } from './feuilles';
 import { monterPremierLancement } from './premierLancement';
 import { monterRegles } from './regles';
 
-const app = document.getElementById('app');
-if (!app) throw new Error('Élément app absent');
-const envoyer = (message: UiMessage) => parent.postMessage({ pluginMessage: message }, '*');
-const coquille = creerCoquille(app, envoyer);
-monterPremierLancement(coquille);
-monterAAppliquer(coquille);
-monterATrancher(coquille);
-monterConfiguration(coquille);
-monterFeuilles(coquille, monterRegles(coquille));
+export interface NomenclatureMontee {
+  readonly coquille: Coquille;
+  recevoir(message: MessageDeNomenclature): void;
+}
 
-window.addEventListener('message', (event: MessageEvent<{ pluginMessage?: MessageDeNomenclature }>) => {
-  const message = event.data?.pluginMessage;
-  if (message) coquille.frontiere.recevoir(message);
-});
+export function monterNomenclature(hote: HTMLElement, envoyer: (message: UiMessage) => void): NomenclatureMontee {
+  const coquille = creerCoquille(hote, envoyer, { poignee: false });
+  monterPremierLancement(coquille);
+  monterAAppliquer(coquille);
+  monterATrancher(coquille);
+  monterConfiguration(coquille);
+  monterFeuilles(coquille, monterRegles(coquille));
+  return { coquille, recevoir: (message) => coquille.frontiere.recevoir(message) };
+}

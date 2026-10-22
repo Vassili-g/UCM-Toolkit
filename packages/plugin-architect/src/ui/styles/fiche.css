@@ -1,0 +1,245 @@
+/* Le seul geste plein de l'écran : copier la valeur terminale. */
+.bouton-principal {
+  border-color: var(--fond-marque);
+  background: var(--fond-marque);
+  color: var(--texte-sur-marque);
+}
+
+.bouton-principal:hover:not(:disabled) {
+  border-color: var(--fond-marque-survol);
+  background: var(--fond-marque-survol);
+}
+
+.bandeau-simulation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-page);
+  border-left: 3px solid var(--filet-avertissement);
+  background: var(--fond-avertissement);
+  color: var(--texte-avertissement);
+}
+
+/* L'inspecteur épinglé. */
+.inspecteur {
+  display: grid;
+  min-height: 0;
+  align-content: start;
+  gap: var(--espace-page);
+  overflow: hidden auto;
+  padding: 20px;
+  grid-template-columns: minmax(0, 1fr);
+  border-left: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+.inspecteur-haut {
+  display: grid;
+  gap: 6px;
+}
+
+.inspecteur-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.section {
+  display: grid;
+  gap: var(--espace-controle);
+}
+
+.carte-valeur {
+  padding: 14px;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  background: var(--fond-bloc);
+}
+
+.carte-comparee {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--espace-bloc);
+  padding: 14px;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+}
+
+/* La chaîne en frise : un rail, un nœud par étape, la valeur au bout. */
+.chaine {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.etape,
+.etape-fin {
+  position: relative;
+  display: grid;
+  margin-left: 4px;
+  padding: 0 0 14px 17px;
+  border-left: 2px solid var(--rail);
+}
+
+.etape-fin {
+  padding-bottom: 0;
+  border-left-color: transparent;
+}
+
+.etape::before,
+.etape-fin::before {
+  position: absolute;
+  top: 4px;
+  left: -6px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--noeud);
+  border-radius: 50%;
+  background: var(--fond);
+  content: '';
+}
+
+.etape-fin::before {
+  background: var(--noeud);
+}
+
+.etape-marquee::before {
+  border-color: var(--texte-marque);
+  background: var(--texte-marque);
+}
+
+.etape > .lien,
+.etape-nom {
+  color: var(--texte);
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+  line-height: 18px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.etape-marquee > .lien {
+  color: var(--texte-marque);
+}
+
+.etape > .note {
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.etape-source {
+  font-family: var(--chasse-fixe);
+  font-size: var(--petit);
+}
+
+.constat {
+  display: grid;
+  gap: var(--espace-serre);
+  padding: var(--espace-bloc);
+  border-left: 3px solid var(--texte-danger);
+  border-radius: 0 var(--rayon) var(--rayon) 0;
+  background: var(--fond-danger);
+  list-style: none;
+}
+
+.constat-titre {
+  color: var(--texte-danger);
+  font-size: var(--libelle);
+}
+
+.constat-detail,
+.constat-action {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.constat-action {
+  font-weight: 600;
+}
+
+.proprietes {
+  display: grid;
+  margin: 0;
+}
+
+.propriete {
+  display: grid;
+  grid-template-columns: minmax(80px, 32%) minmax(0, 1fr);
+  gap: var(--espace-bloc);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--filet);
+}
+
+.propriete:last-child {
+  border-bottom: 0;
+}
+
+.propriete-active .propriete-nom {
+  color: var(--texte-marque);
+}
+
+.propriete-nom {
+  color: var(--texte-second);
+}
+
+.propriete-valeur {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 3px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.liens {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ligne-de-lien {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.interrupteur-nom {
+  font-weight: 600;
+}
+
+.verdict {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Le bouton qui ferme l'inspecteur n'existe qu'en dessous de 900 px. */
+@media (min-width: 900px) {
+  .fermer-inspecteur {
+    display: none;
+  }
+}
+
+/* Sous 900 px, l'inspecteur passe au-dessus du centre et se ferme. */
+@media (max-width: 899px) {
+  .inspecteur {
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    width: min(350px, 90vw);
+    box-shadow: -12px 0 35px var(--ombre);
+  }
+
+  .inspecteur.inspecteur-ouvert {
+    display: grid;
+  }
+}

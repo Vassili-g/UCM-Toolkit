@@ -4,26 +4,20 @@
  *
  * Le terme en cause d'un nom lit les rôles d'avertissement du socle (voir la
  * règle `mark`). Les couleurs de place (groupe, variable) n'ont pas
- * d'équivalent dans l'éditeur : chacune reçoit une valeur claire et une valeur
- * sombre, avec 4,5:1 au moins du texte sur son fond.
+ * d'équivalent dans l'éditeur : chacune reçoit une valeur sombre, avec 4,5:1
+ * au moins du texte sur son fond. Architect reste sombre quel que soit le thème de Figma.
  */
-:root {
-  --fond-groupe: rgb(250 228 251);
-  --texte-groupe: rgb(134 25 143);
-  --fond-variable: rgb(240 242 214);
-  --texte-variable: rgb(84 90 20);
-  --police-code: "JetBrains Mono", Consolas, monospace;
-}
-
+:root,
 .figma-dark {
   --fond-groupe: rgb(80 36 84);
   --texte-groupe: rgb(244 180 248);
   --fond-variable: rgb(58 62 28);
   --texte-variable: rgb(222 228 150);
+  --police-code: "JetBrains Mono", Consolas, monospace;
 }
 
 /* Le terme en cause dans un chemin : la seule couleur d'accent des listes de noms. */
-mark {
+.container mark {
   padding: 0 3px;
   border-radius: 3px;
   background: var(--fond-avertissement);
@@ -31,7 +25,7 @@ mark {
 }
 
 /* Les onglets portent un compte : ils s'élargissent à leur libellé. */
-.onglet { width: auto; }
+.container .onglet { width: auto; }
 
 .compte {
   display: inline-block;
@@ -379,7 +373,7 @@ button.tete-bouton {
   gap: var(--espace-controle);
 }
 
-.pastille {
+.noms-pastille {
   display: inline-block;
   padding: 0 var(--espace-controle);
   border-radius: 99px;
@@ -494,7 +488,7 @@ button.tete-bouton {
   line-height: var(--libelle-interligne);
 }
 
-.corps {
+.noms-corps {
   display: grid;
   padding: var(--espace-serre) var(--espace-bloc) var(--espace-controle);
   border-top: 1px solid var(--bordure);
@@ -586,7 +580,7 @@ button.tete-bouton {
   gap: var(--espace-serre) var(--espace-controle);
 }
 
-.carte > .corps:first-child {
+.carte > .noms-corps:first-child {
   border-top: 0;
 }
 
@@ -621,7 +615,7 @@ button.tete-bouton {
   gap: var(--espace-controle);
 }
 
-.corps .historique-note {
+.noms-corps .historique-note {
   padding: var(--espace-serre) 0 var(--espace-controle);
 }
 
@@ -706,7 +700,7 @@ button.tete-bouton {
 }
 
 /* Le pied suit le défilement. Il annule la marge basse de la page pour ne pas la doubler. */
-.pied {
+.noms-pied {
   position: sticky;
   bottom: 0;
   display: flex;
@@ -825,7 +819,7 @@ button.tete-bouton {
   gap: var(--espace-controle);
 }
 
-.input.recherche {
+.input.noms-recherche {
   min-width: 160px;
   height: var(--hauteur-secondaire);
   flex: 1;
@@ -1431,14 +1425,14 @@ button.tete-bouton {
 
 .retirer-jeton:disabled,
 .jeton-ajout:disabled,
-.lien:disabled {
+.noms-lien:disabled {
   cursor: wait;
   opacity: 0.5;
 }
 
 .retirer-jeton:focus-visible,
 .jeton-ajout:focus-visible,
-.lien:focus-visible {
+.noms-lien:focus-visible {
   outline: 2px solid var(--bordure-marque);
   outline-offset: 2px;
 }
@@ -1463,7 +1457,7 @@ button.tete-bouton {
   line-height: var(--libelle-interligne);
 }
 
-.lien {
+.noms-lien {
   padding: 0;
   border: 0;
   background: none;
@@ -1518,7 +1512,7 @@ button.tete-bouton {
   font-family: var(--police-code);
 }
 
-.zone-hors-champ {
+.noms-zone-hors-champ {
   position: fixed;
   top: 0;
   left: -9999px;

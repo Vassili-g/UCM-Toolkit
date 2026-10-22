@@ -17,7 +17,7 @@ import {
   texteDuTitre,
 } from '../src/ui/nomenclature/questions';
 import { ligneDeLaVueVide } from '../src/ui/nomenclature/aTrancher';
-import { TEXTES } from '../src/ui/nomenclature/textes';
+import { TEXTES } from '../src/ui/textes/nomenclature';
 
 const chemin = (avant: string, terme: string, apres: string): LigneVue => {
   const nom = `${avant}${terme}${apres}`;

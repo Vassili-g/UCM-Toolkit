@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { Bilan } from '../src/messages/nomenclature';
-import { TEXTES } from '../src/ui/nomenclature/textes';
+import { TEXTES } from '../src/ui/textes/nomenclature';
 
 /** Ce que l'Historique et les composants du socle emploient du DOM, avec les classes, les attributs et le texte. */
 class Noeud {
@@ -191,11 +191,11 @@ test('une collection exclue porte la pastille « Non analysée » et la phrase q
   const { historique, element } = await banc();
   historique.poser(renommage, null);
   const exclue = tous(element, 'historique-liste')[0]!.children[1]!;
-  assert.deepEqual(textes(tous(exclue, 'pastille', 'pastille-attente')), ['Non analysée']);
-  const corps = tous(exclue, 'corps')[0]!;
+  assert.deepEqual(textes(tous(exclue, 'noms-pastille', 'pastille-attente')), ['Non analysée']);
+  const corps = tous(exclue, 'noms-corps')[0]!;
   assert.equal(corps.children[0]!.classes.has('historique-note'), true);
   assert.equal(corps.children[0]!.textContent, 'Cochez cette collection dans Réglages pour rétablir ses noms.');
-  assert.equal(tous(tous(element, 'historique-liste')[0]!.children[0]!, 'pastille').length, 0);
+  assert.equal(tous(tous(element, 'historique-liste')[0]!.children[0]!, 'noms-pastille').length, 0);
 });
 
 test('sans nom qui revienne, le bouton d’annulation reste inactif et aucun avertissement ne s’ajoute pour un lot complet', async () => {
@@ -234,7 +234,7 @@ test('le dernier import montre les règles d’aujourd’hui et celles d’aprè
   // Formes remplacées des deux côtés.
   assert.equal(regles[2]!.children[0]!.textContent, 'bgbkg→background');
   assert.equal(regles[2]!.children[1]!.textContent, 'bg→background');
-  assert.deepEqual(textes(tous(element, 'corps')[0]!.children.filter((enfant) => enfant.tag === 'span')), ['2 autres règles changées']);
+  assert.deepEqual(textes(tous(element, 'noms-corps')[0]!.children.filter((enfant) => enfant.tag === 'span')), ['2 autres règles changées']);
 });
 
 test('l’écriture inchangée côté groupes ne produit qu’une ligne, et une règle d’écriture absente avant l’import en produit deux', async () => {

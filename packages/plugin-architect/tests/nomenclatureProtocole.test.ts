@@ -970,7 +970,7 @@ test('L12 : une entrée de nommage de version 2 refuse un geste sur les règles 
 });
 
 test('L12 : le texte du refus est celui de la conception', async () => {
-  const { TEXTES } = await import('../src/ui/nomenclature/textes');
+  const { TEXTES } = await import('../src/ui/textes/nomenclature');
   assert.equal(TEXTES.reglesFutures, TEXTE_DES_REGLES_FUTURES);
   assert.equal(TEXTES.erreur['regles-futures'], TEXTE_DES_REGLES_FUTURES);
 });

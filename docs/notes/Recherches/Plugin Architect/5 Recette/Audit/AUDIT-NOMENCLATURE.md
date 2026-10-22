@@ -323,10 +323,10 @@ réinclusion. Le test doit vérifier le périmètre courant à l’annulation.
 
 ### N10. La galerie ne rejoue plus trois scénarios déclarés atteignables
 
-**Sources :** [etats.cjs](../../../../../../packages/plugin-architect/galerie/nomenclature/etats.cjs),
+**Sources :** [etats.cjs](../../../../../../packages/plugin-architect/galerie/etats/nomenclature.cjs),
 lignes 35, 87 à 93 et 130 à 132 ;
 [aTrancher.ts](../../../../../../packages/plugin-architect/src/ui/nomenclature/aTrancher.ts),
-création des boutons ; [textes.ts](../../../../../../packages/plugin-architect/src/ui/nomenclature/textes.ts),
+création des boutons ; [textes.ts](../../../../../../packages/plugin-architect/src/ui/textes/nomenclature.ts),
 ligne 195.
 
 Le build annonce 43 états atteignables. Le contrôle Chromium ouvre leurs

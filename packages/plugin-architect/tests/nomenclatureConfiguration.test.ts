@@ -29,7 +29,7 @@ class Element {
 
 /** Les modules de l'écran se chargent après le DOM minimal. */
 const modules = Promise.all([import('../src/ui/nomenclature/configuration'), import('../src/ui/nomenclature/frontiere')]);
-const { ETATS } = require('../galerie/nomenclature/etats.cjs') as { ETATS: { id: string; atteinte: { message?: MessageDeNomenclature }[] }[] };
+const { ETATS } = require('../galerie/etats/nomenclature.cjs') as { ETATS: { id: string; atteinte: { message?: MessageDeNomenclature }[] }[] };
 
 async function banc() {
   const [{ monterConfiguration }, { creerFrontiere }] = await modules;

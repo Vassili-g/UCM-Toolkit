@@ -313,15 +313,15 @@ Chacune range sa taille sous sa propre clé.
 
 | Disposition | Mode | Ouverture | Minimum | Contenu sous la barre |
 |---|---|---|---|---|
-| Large | Tokens | 1360 × 800 | 560 × 480 | Arbre, onglets et inspecteur ; Actualiser dans la barre |
+| Large | Tokens | 1360 × 800 | 560 × 480 | Arbre, onglets et panneau latéral de 640 px, où Nomenclature a pris la place de l'inspecteur jusqu'à la fiche (lot U2) ; Actualiser dans la barre |
 | Étroite | Composant | 520 × 760, 1040 × 760 panneau ouvert | 320 × 420 | La vue composant, sous une barre de 44 px |
 
 La recherche est dans l'arbre, sous son titre, et porte sur toutes les
 collections. Les onglets sont Variables, Comparer, Dépendants, Diagnostics,
 Intégrations et Relevés.
 
-Dans la disposition large, sous 900 px de large, l'inspecteur passe au-dessus
-de la table et se ferme. Le dessin de la vue composant suit la
+Dans la disposition large, sous 1100 px de large, le panneau latéral passe sous
+l'arbre et la table, sur toute la largeur. Le dessin de la vue composant suit la
 [maquette](./galerie/fixtures/MAQUETTE-VUE-COMPOSANT.html) ;
 `npm run fidelite --workspace ucm-architect-plugin` mesure l'écart entre les
 deux.

@@ -30,7 +30,7 @@ import {
 import { apresUnePage, creerLaFile, nomsRestants, prochainDebut, sectionsDansLOrdre, segmentsDeNom, type SorteDeRegle } from './lignes';
 import { annonceApresUneErreur, annonceDUneApplication, annonceDUneAnnulation, lignesDUneAnnulationNonVerifiee, texteDUneAnnulationRefusee, type Annonce, type Attente } from './annonce';
 import { lignesDeProtection, totauxDeProtection } from './protection';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 type Pastille = 'nouveau' | 'bloque' | 'protege' | 'non-verifie';
 
@@ -99,7 +99,7 @@ function fabriquerChange(avant: string, apres: string, autres: number): HTMLElem
 
 function fabriquerPastille(variante: Pastille): HTMLElement {
   const pastille = document.createElement('span');
-  pastille.className = 'pastille';
+  pastille.className = 'noms-pastille';
   switch (variante) {
     case 'nouveau':
       pastille.classList.add('pastille-nouveau');
@@ -339,7 +339,7 @@ export function monterAAppliquer(coquille: Coquille): void {
   const liste = document.createElement('div');
   liste.className = 'liste';
   const pied = document.createElement('div');
-  pied.className = 'pied';
+  pied.className = 'noms-pied';
   const resume = document.createElement('span');
   resume.className = 'resume';
   const boutonAppliquer = createButton({ label: TEXTES.appliquer, onClick: demanderLaConfirmation });
@@ -405,7 +405,7 @@ export function monterAAppliquer(coquille: Coquille): void {
     tete.append(caseDuGroupe, bouton);
 
     const corps = document.createElement('div');
-    corps.className = 'corps';
+    corps.className = 'noms-corps';
     const legende = fabriquerLaLegende();
     legende.hidden = groupe.apercu.length === 0;
     const ligneDesAutres = document.createElement('div');
@@ -539,7 +539,7 @@ export function monterAAppliquer(coquille: Coquille): void {
     tete.append(bouton);
 
     const corps = document.createElement('div');
-    corps.className = 'corps';
+    corps.className = 'noms-corps';
     for (const bloque of bloques) {
       const info = document.createElement('div');
       info.className = 'info';

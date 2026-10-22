@@ -7,7 +7,7 @@
  * valider. Ce test garde le commit fermé tant qu'un marqueur reste.
  *
  * Catalogues lus : les fichiers suivis de `packages/*\/src/` rangés sous
- * `i18n/` ou nommés `textes.ts`.
+ * `i18n/`, nommés `textes.ts` ou rangés sous `textes/`.
  */
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
@@ -22,7 +22,7 @@ const MARQUEUR = "TODO(texte)";
 function catalogues() {
   return execFileSync("git", ["ls-files", "packages/*/src/*"], { cwd: racine, encoding: "utf8" })
     .split("\n")
-    .filter((chemin) => /\/i18n\/|(^|\/)textes\.ts$/.test(chemin));
+    .filter((chemin) => /\/i18n\/|(^|\/)textes\.ts$|\/textes\/[^/]+\.ts$/.test(chemin));
 }
 
 test("les catalogues de textes sont trouvés", () => {

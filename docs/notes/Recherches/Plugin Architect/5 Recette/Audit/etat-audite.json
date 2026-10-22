@@ -99,7 +99,7 @@
                         "sha256":  "971bfcddd6f1bbb993ea570bb60805a2cb6325ec8afec3c3c066977e6dda676b"
                     },
                     {
-                        "chemin":  "packages/plugin-architect/galerie/nomenclature/etats.cjs",
+                        "chemin":  "packages/plugin-architect/galerie/etats/nomenclature.cjs",
                         "sha256":  "443413c523f1b8fae9632f7ff8950ec0a418c097ef2e6069ce23da772fd75681"
                     },
                     {
@@ -235,7 +235,7 @@
                         "sha256":  "c756ea2cb1388678f33ffbdff86305d9331f56f91020a1c05e39e9623e6369f2"
                     },
                     {
-                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/styles.css",
+                        "chemin":  "packages/plugin-architect/src/ui/styles/nomenclature.css",
                         "sha256":  "ca2b53cca7b7ba3f0b1392772bca0c127f838ccdfa9f7e90319c06976981d797"
                     },
                     {
@@ -243,7 +243,7 @@
                         "sha256":  "18e8c2bf82230ce0d3424886fc97ec19aecd88c22d48a7817b0fd8f3f88b89a8"
                     },
                     {
-                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/textes.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/textes/nomenclature.ts",
                         "sha256":  "187381739b64c409ea8fb29eb9f9196e093d51217a540e429e5129e374eb5fb6"
                     },
                     {

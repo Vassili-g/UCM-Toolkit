@@ -22,7 +22,7 @@ import {
   type PiedDeCarte,
   type TitreDeProposition,
 } from './questions';
-import { TEXTES } from './textes';
+import { TEXTES } from '../textes/nomenclature';
 
 /** Une entrée de la liste : son élément, et ce que l'écran peut en faire. */
 interface Entree {
@@ -116,7 +116,7 @@ function fabriquerChange(avant: string, separateur: '→' | '≠' | null, apres:
 
 function fabriquerPastille(texte: string): HTMLElement {
   const pastille = document.createElement('span');
-  pastille.className = 'pastille pastille-indice';
+  pastille.className = 'noms-pastille pastille-indice';
   pastille.textContent = texte;
   return pastille;
 }
@@ -515,7 +515,7 @@ export function monterATrancher(coquille: Coquille): void {
     tete.append(bouton);
 
     const corps = document.createElement('div');
-    corps.className = 'corps';
+    corps.className = 'noms-corps';
     for (const question of plusTard) {
       const reprise = ligneDeReprise(question);
       const rang = document.createElement('div');
