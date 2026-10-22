@@ -363,7 +363,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   mode illisible rendent une limite, jamais un verdict ; `State=disabled`
   exclu ; borne de combinaisons dite ; cible, anneau et 12 px en
   recommandations.
-- [ ] **K7 · Typographie et icônes.** Vague 4 · K0.
+- [~ Claude 2] **K7 · Typographie et icônes.** Vague 4 · K0.
   Écrit : `kit/src/controles/typographie.ts`.
   Fait quand : C64 à C67, un test positif et un négatif par contrôle.
 - [ ] **K6 · Préparation des tokens.** Vague 5 · K1, note P.
