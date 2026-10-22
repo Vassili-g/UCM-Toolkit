@@ -68,7 +68,7 @@ Chaque groupe part tel quel. Seuls les préfixes des liens relatifs changent.
 | Langue d'UCM Palettes | `packages/plugin-palettes/invariants/langue.md` | 1 520 |
 | Interface d'UCM Palettes | `packages/plugin-palettes/invariants/interface.md` | 7 962 |
 | Explorateur de tokens | `packages/plugin-architect/invariants/explorateur.md` | 6 637 |
-| UCM Nomenclature | `packages/plugin-nomenclature/invariants/nomenclature.md` | 5 446 |
+| UCM Nomenclature | `packages/plugin-architect/invariants/nomenclature.md` | 5 446 |
 | Vérification : corpus N-1 et forme d'origine des tokens | `packages/kit/invariants/corpus-de-test.md` | environ 2 000 |
 | Vérification : moteur jugé sur ses sorties, DTCG, `lois.ts` | `packages/plugin-exporter/invariants/tests-du-moteur.md` | environ 2 500 |
 | Publier les paquets | `.agents/skills/publier-paquets/SKILL.md` | 1 342 |

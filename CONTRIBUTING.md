@@ -474,13 +474,11 @@ Les interactions du plugin se vérifient dans Chromium :
 npm run test:ui --workspace ucm-exporter-plugin
 npm run test:ui --workspace ucm-palettes-plugin
 npm run test:ui --workspace ucm-architect-plugin
-npm run test:ui --workspace ucm-nomenclature-plugin
 ```
 
 Chaque commande reconstruit l'interface de son plugin. Celle d'UCM Palettes
 reconstruit aussi ses galeries, dont elle rejoue des pages pour éprouver les
-étapes du banc. Celle d'UCM Nomenclature rejoue chaque état de ses deux
-galeries, dans les trois thèmes. Elles demandent le navigateur installé par
+étapes du banc. Elles demandent le navigateur installé par
 `npx playwright install chromium` ; le job `cascade` de la CI les exécute après
 les vérifications de la feuille de tokens.
 

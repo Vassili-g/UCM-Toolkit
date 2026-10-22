@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import { build } from 'esbuild';
 
 const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../..');
-const fichier = (nom) => JSON.stringify(path.join(racine, 'packages/plugin-nomenclature/src', nom));
+const fichier = (nom) => JSON.stringify(path.join(racine, 'packages/plugin-architect/src/nomenclature', nom));
 const compilation = await build({
   stdin: { contents: `export * from ${fichier('ui/selection.ts')}; export * from ${fichier('ui/configuration.ts')}; export * from ${fichier('ui/frontiere.ts')}; export * from ${fichier('session.ts')};`, resolveDir: racine },
   bundle: true, platform: 'node', format: 'cjs', write: false,

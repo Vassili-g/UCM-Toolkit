@@ -26,7 +26,7 @@ const GALERIES = [
   },
   {
     nom: 'nomenclature',
-    dossier: path.join(paquets, 'plugin-nomenclature/dist/galerie/sombre'),
+    dossier: path.join(paquets, 'plugin-architect/dist/galerie/sombre'),
     largeur: 640, hauteur: 720,
     // Hors de Figma, `parent` est la fenêtre elle-même : l'écran reçoit ses propres demandes comme des réponses.
     echos: true,

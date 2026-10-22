@@ -15,5 +15,5 @@ Le format et ses lecteurs : @ucm-kit/core, publié.
 | [Corpus de test](./invariants/corpus-de-test.md) | `fixtures/**` |
 | [Référentiel](./invariants/referentiel.md) | `src/referentiel/**` |
 | [Moteur de couleur](../couleur/invariants/moteur-de-couleur.md) | `src/emplois/**`, `src/referentiel/theme.ts` |
-| [UCM Nomenclature](../plugin-nomenclature/invariants/nomenclature.md) | `src/nommage/**`, `src/protocoles/**` |
+| [UCM Nomenclature](../plugin-architect/invariants/nomenclature.md) | `src/nommage/**`, `src/protocoles/**` |
 <!-- domaines:fin -->

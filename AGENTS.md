@@ -1,6 +1,6 @@
 # Guide agent
 
-Monorepo UCM : quatre plugins Figma (exporteur de contrats et de tokens DTCG, Palettes, UCM Architect, Nomenclature), le kit `@ucm-kit/core`, la CLI `@ucm-kit/cli`, l'adaptateur `@ucm-kit/adapter-typescript`, le moteur de couleur `ucm-couleur` et le socle des plugins.
+Monorepo UCM : trois plugins Figma (exporteur de contrats et de tokens DTCG, Palettes, UCM Architect), le kit `@ucm-kit/core`, la CLI `@ucm-kit/cli`, l'adaptateur `@ucm-kit/adapter-typescript`, le moteur de couleur `ucm-couleur` et le socle des plugins.
 
 Ce guide dit **ce que le produit garantit** et où le lire. [CONTRIBUTING.md](./CONTRIBUTING.md) dit **comment travailler**. Règle du produit → un fichier d'invariants ; règle de travail → `CONTRIBUTING.md`.
 
@@ -42,7 +42,6 @@ Maturité et priorités : [ROADMAP.md](./ROADMAP.md). Idées non décidées : [P
 | `plugin-socle` | [AGENTS.md](./packages/plugin-socle/AGENTS.md) | [CARTE.md](./packages/plugin-socle/CARTE.md) |
 | `plugin-palettes` | [AGENTS.md](./packages/plugin-palettes/AGENTS.md) | [CARTE.md](./packages/plugin-palettes/CARTE.md) |
 | `plugin-architect` | [AGENTS.md](./packages/plugin-architect/AGENTS.md) | [CARTE.md](./packages/plugin-architect/CARTE.md) |
-| `plugin-nomenclature` | [AGENTS.md](./packages/plugin-nomenclature/AGENTS.md) | [CARTE.md](./packages/plugin-nomenclature/CARTE.md) |
 | reste du dépôt | ce guide | [CARTE.md](./CARTE.md) |
 
 Codex lancé à la racine ne charge pas le guide d'un paquet : lire celui que la table désigne.
@@ -79,9 +78,9 @@ npm run build
 - Un plugin résout `@ucm-kit/core/*` vers `packages/kit/dist`. Construit seul, il embarquerait un kit périmé : son `build` compare une empreinte des sources du kit à `packages/kit/dist/.empreinte` et s'arrête en donnant la commande à lancer. Trois commandes racine construisent le kit d'abord, puis le paquet nommé ; un nom inconnu sort en erreur et liste les noms admis :
 
 ```sh
-npm run build:plugin -- palettes      # palettes, architect, nomenclature, exporter
-npm run galerie:plugin -- palettes    # les mêmes quatre plugins
-npm run test:paquet -- socle          # les quatre plugins, socle, couleur, cli, adapter
+npm run build:plugin -- palettes      # palettes, architect, exporter
+npm run galerie:plugin -- palettes    # les mêmes trois plugins
+npm run test:paquet -- socle          # les trois plugins, socle, couleur, cli, adapter
 ```
 
 - Chaque paquet a son `scripts/run-tests.cjs` (`build/run-tests.cjs` dans le socle), qui découvre `tests/*.test.ts` et `tests/*.test.mjs` de son dossier. Tout bug corrigé reçoit un test de régression.

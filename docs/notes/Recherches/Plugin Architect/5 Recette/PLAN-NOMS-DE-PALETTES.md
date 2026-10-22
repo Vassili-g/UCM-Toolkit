@@ -7,7 +7,7 @@ règles, comparé à l'export précédent (`docs/notes/Recherches/Archi Tokens M
 
 Les chemins `src/…` sont précisés par paquet : `palettes/` pour
 `packages/plugin-palettes/`, `nomenclature/` pour
-`packages/plugin-nomenclature/`, `socle/` pour `packages/plugin-socle/`.
+`packages/plugin-architect/`, `socle/` pour `packages/plugin-socle/`.
 
 ## Le constat
 

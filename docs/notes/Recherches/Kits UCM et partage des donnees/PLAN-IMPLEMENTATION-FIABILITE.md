@@ -244,7 +244,7 @@ Plan de fiabilité, section « Lot 17 », décision D8.
 - [x] **T17.2** (0ccbff70) · `implementeur` · Nomenclature propose le nouveau nom
   - Fichiers : `packages/kit/src/referentiel/lexique.ts` (`proposer`),
     `packages/kit/tests/lexiqueReferentiel.test.ts`,
-    `packages/plugin-nomenclature/tests/`, `packages/plugin-nomenclature/galerie/donnees.cjs`
+    `packages/plugin-architect/tests/`, `packages/plugin-architect/galerie/nomenclature/donnees.cjs`
     et `etats.cjs`.
   - Constat vérifié : les collections ne sont pas des termes de
     registre. `collectionUcmReconnue` (T17.1) les reconnaît, et `proposer`
@@ -581,9 +581,9 @@ Plan de fiabilité, section « Lot 4 », décision D4. Sondes de Codex :
     (`ui/configuration.ts`).
 - [x] **T4.1** (94d384cc ; lecture, suspension, écriture et annulation ; 137 tests verts) · `implementeur-exigeant` · Une lecture refusée garde la protection
   - Entrée : `conception/lot-4.md`.
-  - Fichiers : `packages/plugin-nomenclature/src/lectureFigma.ts`
+  - Fichiers : `packages/plugin-architect/src/nomenclature/lectureFigma.ts`
     (`lecteurDeVariablesFigma`), `packages/plugin-socle/src/inventaireDeNoms.ts`,
-    `packages/plugin-nomenclature/src/session.ts` et `ecriture.ts`, les tests.
+    `packages/plugin-architect/src/nomenclature/session.ts` et `ecriture.ts`, les tests.
   - Faire : un échec de lecture du suivi est distinct d'une absence ; le
     renommage des variables dont la protection est indécidable est suspendu et
     refusé au moment d'écrire.
@@ -592,7 +592,7 @@ Plan de fiabilité, section « Lot 4 », décision D4. Sondes de Codex :
   - Fini quand : tests verts.
 - [x] **T4.2** (94d384cc) · `implementeur` · Nomenclature explique la protection
   - Entrée : textes de `conception/lot-4.md`.
-  - Fichiers : `packages/plugin-nomenclature/src/ui/textes.ts` et les vues qui
+  - Fichiers : `packages/plugin-architect/src/ui/nomenclature/textes.ts` et les vues qui
     affichent le compte « protégés », la galerie et ses tests.
   - Faire : la raison et le geste s'affichent dans chaque cas (marque absente,
     marque sans règles rangées, lecture refusée) ; comptes et explications
@@ -662,7 +662,7 @@ Plan de fiabilité, section « Lot 14 », décision D5. Sonde de Codex :
     la skill `rediger-diagnostics-ucm`.
 - [x] **T14.2** (94d384cc ; tests du protocole et des trois états de galerie verts) · `implementeur` · L'interrupteur full UCM de Nomenclature
   - Entrée : `conception/lot-14.md`.
-  - Fichiers : ceux que la note désigne dans `packages/plugin-nomenclature/`
+  - Fichiers : ceux que la note désigne dans `packages/plugin-architect/`
     (Configuration, textes, historique, protocole, galerie) et le kit.
   - Fini quand : tests et galerie de Nomenclature verts ; la conversation
     principale relit l'état de galerie.
@@ -832,8 +832,8 @@ Plan de fiabilité, section « Lot 12 ».
     ports de lecture).
 - [x] **T12.1** (94d384cc) · `implementeur-exigeant` · Le protocole des règles
   - Fichiers : le module `nommage`, `packages/plugin-socle/src/reglesDeNommage.ts`,
-    `packages/plugin-nomenclature/src/regles.ts` (`cleTerme`, `cleEcart`,
-    `cleOrdinaire`), `packages/plugin-nomenclature/src/projection.ts`
+    `packages/plugin-architect/src/nomenclature/regles.ts` (`cleTerme`, `cleEcart`,
+    `cleOrdinaire`), `packages/plugin-architect/src/nomenclature/projection.ts`
     (`cleDeTerme`, `estTerme`, et les clés `terme:` qu'il compose : mots en
     minuscules joints par `-`, là où `cleTerme` les joint par une espace ; la
     note T12.0 dit si ce sont les mêmes clés), les tests.
@@ -844,11 +844,11 @@ Plan de fiabilité, section « Lot 12 ».
 - [x] **T12.2** (94d384cc ; Nomenclature refuse aussi l'annulation et les gestes sur les règles quand une entrée est future ; texte en français seulement, Nomenclature n'a pas de catalogue anglais) · `implementeur-exigeant` · Le calcul
   - Fichiers : le kit, `packages/plugin-socle/src/nomsSelonLesRegles.ts`,
     `inventaireDeNoms.ts`, `packages/plugin-palettes/src/variables/nommeur.ts`,
-    `packages/plugin-nomenclature/src/session.ts`, `ecriture.ts`, l'explorateur
+    `packages/plugin-architect/src/nomenclature/session.ts`, `ecriture.ts`, l'explorateur
     (lecture de T1.3).
   - Tests : idempotence, remplacements personnalisés, exclusions, collisions,
     protection ; `tests/nomsDePalettes.test.ts` et
-    `packages/plugin-nomenclature/tests/nomsDePalettes.test.ts` sans changement
+    `packages/plugin-architect/tests/nomenclatureNomsDePalettes.test.ts` sans changement
     d'attente.
   - Fini quand : Palettes et Nomenclature appellent la même fonction du kit.
 - [x] **Clôture du lot 12** (clôture commune, 94d384cc ; kit 0.11.0)

@@ -7,7 +7,7 @@ mainteneur et les décisions encore ouvertes sont à la
 
 UCM Architect réunit deux plugins existants : UCM Token Explorer
 (`packages/plugin-architect`) et UCM Nomenclature
-(`packages/plugin-nomenclature`). L'ancien nom « UCM Architect » désignait
+(`packages/plugin-architect`). L'ancien nom « UCM Architect » désignait
 Nomenclature et n'est plus employé. Nomenclature garde en interne la clé de
 données partagées `ESPACE_ARCHITECT` et la clé de fenêtre
 `ucm-architect/tailleFenetre`, qui ne gênent pas le nouveau nom.
@@ -41,7 +41,7 @@ des tokens, tâche longue où les erreurs sont fréquentes.
 |---|---|---|
 | Vue Composant de l'explorateur | Lit, pour le variant par défaut, les liaisons de chaque calque, les styles de texte, les valeurs sans token, la chaîne d'alias par mode, l'aperçu et la boîte des calques. Ne lit pas les propriétés de composant. Ne juge rien | `plugin-architect/src/lectureDuComposant.ts`, `src/composant.ts` |
 | Mode Tokens de l'explorateur | Arbre des groupes, table des variables, inspecteur, et les onglets Variables, Comparer, Dépendants, Diagnostics, Intégrations, Relevés | `plugin-architect/src/ui/` |
-| UCM Nomenclature | Onglets Renommages, Questions et Règles, Configuration avec Historique ; renomme les variables et collections locales avec aperçu et annulation | `plugin-nomenclature/src/` |
+| UCM Nomenclature | Onglets Renommages, Questions et Règles, Configuration avec Historique ; renomme les variables et collections locales avec aperçu et annulation | `plugin-architect/src/nomenclature/` |
 | Exporteur | Environ 130 points à corriger, rangés en huit familles (disposition, propriétés, imbriqués, variables, styles, règles, non exportés, fichier), émis pendant l'export d'un composant ; pose une instance de `.componentRules` préremplie depuis le contrat | `plugin-exporter/src/contract/`, `src/template/` |
 | `ucm check` | Contrat lisible et complet, graphe de composition, échantillons, types typographiques, tokens absents de la source, parité code et contrat, contraste en information | `kit/src/lecteurs/` |
 | Référentiel du kit | Crans, modes, collections et leurs cibles admises, dossiers du thème (`solid`, `surface`, `page`, `ring`) et cran de chaque variable, champs que peint chaque variable (`SUPPORT_DES_VARIABLES`), états (`STATE_SELECTORS`, `REGISTRE_ETATS`), seuils de contraste, recommandation `anneau-de-focus` | `kit/src/referentiel/`, `kit/src/emplois/` |

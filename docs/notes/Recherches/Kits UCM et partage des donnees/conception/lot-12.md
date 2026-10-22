@@ -13,7 +13,7 @@ clés.
 
 | Clé | Forme | Où elle vit | Constructeur aujourd'hui |
 |---|---|---|---|
-| Entrée rangée dans Figma (`ESPACE_ARCHITECT`) | `terme:` + mots du terme joints par une espace, casse gardée : `terme:font size` | Données partagées du fichier | `cleTerme` (`plugin-nomenclature/src/regles.ts`) ; lue par `apres(cle, 'terme:')` et `motsDe` (`plugin-socle/src/reglesDeNommage.ts`) |
+| Entrée rangée dans Figma (`ESPACE_ARCHITECT`) | `terme:` + mots du terme joints par une espace, casse gardée : `terme:font size` | Données partagées du fichier | `cleTerme` (`plugin-architect/src/nomenclature/regles.ts`) ; lue par `apres(cle, 'terme:')` et `motsDe` (`plugin-socle/src/reglesDeNommage.ts`) |
 | Règle de l'analyse (`CleDeRegle`, `kit/src/referentiel/harmonisation.ts`) | `terme:` + mots en minuscules joints par `-` : `terme:font-size` | Mémoire seulement | Écrite à la main dans `vocabulaire-du-fichier.ts` (`terme:${par.join('-').toLowerCase()}`) et dans `projection.ts` (`cleDeTerme`, `` `terme:${cle}` `` dans `fiche`) |
 
 Le lot donne un seul constructeur à chacune :
@@ -35,7 +35,7 @@ comportement sauf le classement des versions futures :
   `CLE_CONVENTIONS_V1`, et les préfixes
   `PREFIXES_DE_NOMMAGE = { terme: 'terme:', ecart: 'ecart:', ordinaire: 'ordinaire:' } as const` ;
 - constructeurs : `cleTerme(mots)`, `cleEcart(id)`, `cleOrdinaire(cle)`, qui
-  quittent `plugin-nomenclature/src/regles.ts` ;
+  quittent `plugin-architect/src/nomenclature/regles.ts` ;
 - lecture : `lireEntree`, `lireEcriture`, `lireTerme`, `lireChoix`,
   `estConventions`, `estCleDeNommage`, `lireLesEntreesDeNommage`,
   `vocabulaireDeNommage`, `lireReglesDeNommage` ;
@@ -112,7 +112,7 @@ l'inventaire depuis le kit.
    `nomsSelonLesRegles.ts` et `cheminsPublies.ts` du socle des réexports du
    kit.
 2. Migrer les clients relevés : `plugin-architect/src/lecture.ts` ;
-   `plugin-nomenclature/src/` (`conventions.ts`, `ecriture.ts`, `lecture.ts`,
+   `plugin-architect/src/nomenclature/` (`conventions.ts`, `ecriture.ts`, `lecture.ts`,
    `messages.ts`, `projection.ts`, `regles.ts`, `session.ts`,
    `cheminsPublies.ts`) et ses tests ; `plugin-palettes/src/`
    (`lectureDesVariables.ts`, `variables/nommeur.ts`) et ses tests ; les
@@ -135,5 +135,5 @@ l'inventaire depuis le kit.
   protection avec et sans marque : les tests actuels du socle et de
   Nomenclature, déplacés ou réimportés, sans changement d'attente.
 - `tests/nomsDePalettes.test.ts` et
-  `packages/plugin-nomenclature/tests/nomsDePalettes.test.ts` passent sans
+  `packages/plugin-architect/tests/nomenclatureNomsDePalettes.test.ts` passent sans
   changement d'attente.

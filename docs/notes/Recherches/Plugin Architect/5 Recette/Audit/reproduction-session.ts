@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { creerSession } from '../../../../../../packages/plugin-nomenclature/src/session';
-import { inventaireDeLectures } from '../../../../../../packages/plugin-nomenclature/src/lecture';
-import { serialiserRegle } from '../../../../../../packages/plugin-nomenclature/src/regles';
-import type { Bilan, PluginMessage } from '../../../../../../packages/plugin-nomenclature/src/messages';
+import { creerSession } from '../../../../../../packages/plugin-architect/src/nomenclature/session';
+import { inventaireDeLectures } from '../../../../../../packages/plugin-architect/src/nomenclature/lecture';
+import { serialiserRegle } from '../../../../../../packages/plugin-architect/src/nomenclature/regles';
+import type { Bilan, PluginMessage } from '../../../../../../packages/plugin-architect/src/nomenclature/messages';
 
 async function verifierSignature() {
   const collection = { id: 'c', name: 'custom', remote: false };

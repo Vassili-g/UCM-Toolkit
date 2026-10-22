@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const ici = path.dirname(fileURLToPath(import.meta.url));
-const galerie = process.env.GALERIE ?? path.resolve(ici, '../../../../../../packages/plugin-nomenclature/dist/galerie/sombre');
+const galerie = process.env.GALERIE ?? path.resolve(ici, '../../../../../../packages/plugin-architect/dist/galerie/sombre');
 const sortie = process.env.SORTIE ?? path.resolve(ici, '../Maquettes/galerie');
 const ETATS = process.env.ETATS?.split(',') ?? [
   'a-appliquer-depliee',

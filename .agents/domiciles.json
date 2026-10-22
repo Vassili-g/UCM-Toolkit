@@ -428,9 +428,11 @@
     {
       "id": "nomenclature",
       "titre": "UCM Nomenclature",
-      "fichier": "packages/plugin-nomenclature/invariants/nomenclature.md",
+      "fichier": "packages/plugin-architect/invariants/nomenclature.md",
       "chemins": [
-        "packages/plugin-nomenclature/src/**",
+        "packages/plugin-architect/src/nomenclature/**",
+        "packages/plugin-architect/src/ecriture/noms.ts",
+        "packages/plugin-architect/src/ui/nomenclature/**",
         "packages/kit/src/nommage/**",
         "packages/kit/src/protocoles/**",
         "packages/plugin-socle/src/inventaireDeNoms.ts"
@@ -438,7 +440,6 @@
       "specs": [],
       "lies": [],
       "verifications": [
-        "npm run test:paquet -- nomenclature",
         "npm run test --workspace @ucm-kit/core",
         "node scripts/run-tests.cjs"
       ]
@@ -451,7 +452,6 @@
     "packages/kit": "packages/kit/CARTE.md",
     "packages/plugin-architect": "packages/plugin-architect/CARTE.md",
     "packages/plugin-exporter": "packages/plugin-exporter/CARTE.md",
-    "packages/plugin-nomenclature": "packages/plugin-nomenclature/CARTE.md",
     "packages/plugin-palettes": "packages/plugin-palettes/CARTE.md",
     "packages/plugin-socle": "packages/plugin-socle/CARTE.md",
     ".": "CARTE.md"

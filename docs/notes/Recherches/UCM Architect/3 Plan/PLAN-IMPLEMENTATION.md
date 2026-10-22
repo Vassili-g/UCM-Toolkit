@@ -79,7 +79,7 @@ constat » ; aucun geste manuel du designer inventé.
 |---|---|---|
 | Document intact de l'exporteur (`plugin-exporter/tests/loiDuDocumentIntact.test.ts`) | Balaie aussi `plugin-socle/src/composant/` ; `template/ecriture.ts` reste la seule écriture ; importeurs permis : exporteur, puis Architect | S0, B7 |
 | Lecture seule de l'explorateur (`tests/loiDeLectureSeule.test.ts`) | Remplacée par la loi d'écriture d'Architect | A0.2 |
-| Écriture de Nomenclature (`plugin-nomenclature/tests/loiDEcriture.test.ts`) | Suit ses fichiers dans Architect, mêmes attendus | A0.2 |
+| Écriture de Nomenclature (`plugin-architect/tests/loiDEcritureDesNoms.test.ts`) | Suit ses fichiers dans Architect, mêmes attendus | A0.2 |
 | Écriture d'Architect | Hors de `src/ecriture/` : aucune écriture, aucun changement de sélection ou de vue, aucun import de `template/ecriture` | A0.2 |
 | Import de variables | Seule `src/lecture.ts` importe ; B3 l'étend aux valeurs d'une library, B10 au catalogue | B3, B10 |
 | Paquets séparés, manifestes, kit compilé (`tests/pluginsSepares.test.ts`, `tests/manifestsDesPlugins.test.ts`, `tests/kitCompileAJour.test.mjs`) | Trois plugins | A0.1, A0.2 |
@@ -449,13 +449,13 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   la barre de la galerie dit « UCM Architect ».
 - [~ Claude 1] **A0.2 · Nomenclature entre dans Architect.** `implementeur-exigeant` ·
   vague 1 · seul · A0.1 · déplacement.
-  Lit : `plugin-nomenclature/CARTE.md`, ses invariants, `tests/loiDEcriture.test.ts`, `tests/loiDeLectureSeule.test.ts`.
+  Lit : `plugin-architect/CARTE.md`, ses invariants, `tests/loiDEcriture.test.ts`, `tests/loiDeLectureSeule.test.ts`.
   Vérifie : `npm run test:paquet -- architect`, tests racine ; `npm test` par un `verificateur`.
   L'orchestrateur note ici le commit de repli avant de lancer : `e2b04108`.
   Écrit : `git mv` : sandbox → `src/nomenclature/`, `ecriture.ts` →
   `src/ecriture/noms.ts`, interface → `src/ui/nomenclature/`, galerie et tests
   à côté, invariants → `plugin-architect/invariants/` ; suppression de
-  `packages/plugin-nomenclature` et de ses entrées ; tests racine
+  `packages/plugin-architect` et de ses entrées ; tests racine
   `nomsDePalettes`, `loisEntreProduits`, `fabriquesDeFichiers`, `releveDeTest`
   sur les nouveaux chemins ; lois du §3 ; par l'orchestrateur : routes, carte,
   invariants, `package-lock.json`.

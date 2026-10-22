@@ -65,7 +65,7 @@ function existe(dossierDeLaCarte: string, entree: Entree): boolean {
 
 test('les cartes sont rangées dans le manifeste, et leurs fichiers existent', () => {
   const cartes = Object.entries(manifeste.cartes);
-  assert.ok(cartes.length >= 10, `seules ${cartes.length} cartes dans le manifeste`);
+  assert.ok(cartes.length >= 9, `seules ${cartes.length} cartes dans le manifeste`);
   for (const [dossier, fichier] of cartes) {
     assert.ok(
       fs.existsSync(path.join(racine, fichier)),

@@ -33,6 +33,6 @@ test('deux plugins du dépôt ne partagent jamais un id de manifest', () => {
   assert.deepEqual(doublons, []);
 });
 
-test('le dépôt compte au moins quatre plugins à manifest', () => {
-  assert.ok(plugins.length >= 4, plugins.map(({ dossier }) => dossier).join(', '));
+test('le dépôt compte au moins trois plugins à manifest', () => {
+  assert.ok(plugins.length >= 3, plugins.map(({ dossier }) => dossier).join(', '));
 });

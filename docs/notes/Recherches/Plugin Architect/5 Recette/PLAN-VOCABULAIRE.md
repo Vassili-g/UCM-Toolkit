@@ -4,7 +4,7 @@ Ce plan corrige la liste « Vocabulaire » de l'onglet Règles, d'après l'expor
 du détail du vocabulaire (lien en bas de l'onglet, 0a98374) pris sur le
 fichier Playground : 140 termes, 77 avec règle, 63 sans règle,
 7 collections. Les chemins `src/…` partent de
-`packages/plugin-nomenclature/`, les chemins `referentiel/…` de
+`packages/plugin-architect/`, les chemins `referentiel/…` de
 `packages/kit/src/`.
 
 ## La cause commune

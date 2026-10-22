@@ -87,243 +87,243 @@
                         "sha256":  "c7e05fc3cef21c4cca9301c59991fd2511b888b2489cb16cfcc686965d02f25d"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/galerie/build-galerie.cjs",
+                        "chemin":  "packages/plugin-architect/galerie/nomenclature/build-galerie.cjs",
                         "sha256":  "b6246ee9d3f7d52eea11df5fc9a38b4fb9143a53328e418e939724ccfc5eb05c"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/galerie/capturer.cjs",
+                        "chemin":  "packages/plugin-architect/galerie/nomenclature/capturer.cjs",
                         "sha256":  "82695a94f52dbca4ea667439a49578e1635f4a51972d81090842f74d1ed1ff98"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/galerie/donnees.cjs",
+                        "chemin":  "packages/plugin-architect/galerie/nomenclature/donnees.cjs",
                         "sha256":  "971bfcddd6f1bbb993ea570bb60805a2cb6325ec8afec3c3c066977e6dda676b"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/galerie/etats.cjs",
+                        "chemin":  "packages/plugin-architect/galerie/nomenclature/etats.cjs",
                         "sha256":  "443413c523f1b8fae9632f7ff8950ec0a418c097ef2e6069ce23da772fd75681"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/manifest.json",
+                        "chemin":  "packages/plugin-architect/manifest.json",
                         "sha256":  "a2b4e819f81fff86553305264f099218daff657d3c6ed0c0d5e297aac0f76b83"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/package.json",
+                        "chemin":  "packages/plugin-architect/package.json",
                         "sha256":  "627855f7735dafb729514f6d21dbec962234b16b048afaaa937cb8313a97e803"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/cheminsPublies.ts",
+                        "chemin":  "packages/plugin-architect/src/nomenclature/cheminsPublies.ts",
                         "sha256":  "2fd1dea52ba9583c13307bba1775851e0aa2166a27a69558c79b6b6558dc3c75"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/code.ts",
+                        "chemin":  "packages/plugin-architect/src/nomenclature/code.ts",
                         "sha256":  "70215d67ae24a819e7b81caf06fa75051ee9a1ad976562e99ba9bf214e8f7c81"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/conventions.ts",
+                        "chemin":  "packages/plugin-architect/src/nomenclature/conventions.ts",
                         "sha256":  "4a1f780ca654a75c6d26e374e588d5d0589bb73346c064981ca9f40ddc566bd5"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ecriture.ts",
+                        "chemin":  "packages/plugin-architect/src/ecriture/noms.ts",
                         "sha256":  "7274eb8a54fda1266ab88503893124208f60b4cc109ce35fdef8f12395adbc1f"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/fenetre.ts",
+                        "chemin":  "packages/plugin-architect/src/nomenclature/fenetre.ts",
                         "sha256":  "3d73844ebd5ede438be05aaacc28878ca867436c9db0df4c6e60984a352b61ef"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/lecture.ts",
+                        "chemin":  "packages/plugin-architect/src/nomenclature/lecture.ts",
                         "sha256":  "3bbc1e999477d639ee1eb4ac1f2799e682d822c0d6909c324b974b0955ae5310"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/lectureFigma.ts",
+                        "chemin":  "packages/plugin-architect/src/nomenclature/lectureFigma.ts",
                         "sha256":  "729812b426f7b72e91fc2b02154d158063df1ff14ef52c6f8016dc87376ce2bd"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/messages.ts",
+                        "chemin":  "packages/plugin-architect/src/nomenclature/messages.ts",
                         "sha256":  "cc1e2cd924a8ab36c9baac481a5ca1491b1d175c3736f7760023c47c3065534b"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/projection.ts",
+                        "chemin":  "packages/plugin-architect/src/nomenclature/projection.ts",
                         "sha256":  "716ae5bcd68ef5a0c848140905d52f95c25b93f5c39931fee7271d933b124932"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/regles.ts",
+                        "chemin":  "packages/plugin-architect/src/nomenclature/regles.ts",
                         "sha256":  "2b887180e23323125c014241dd864f7a11c45c52e82547c47c7c57c8bd953522"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/session.ts",
+                        "chemin":  "packages/plugin-architect/src/nomenclature/session.ts",
                         "sha256":  "10ae145e8288f482407c420d4bf60ad8e2c2ea7630d96f10b9c73ea558dc554d"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/tranches.ts",
+                        "chemin":  "packages/plugin-architect/src/nomenclature/tranches.ts",
                         "sha256":  "eb45e8ade6902d4361b16d5e64b12aef9e030db4e31929dc0165ef6b91e1ec23"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/aAppliquer.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/aAppliquer.ts",
                         "sha256":  "ae866b8f4a412736a62bf98f6f1497c88992482355da8225b837ea808b29f890"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/aTrancher.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/aTrancher.ts",
                         "sha256":  "cfee3c1b68e55de0ba973f093f680092568eb8cd736e061c5191827e2f2a49f6"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/annonce.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/annonce.ts",
                         "sha256":  "6e6c28e0283bcda89905976a92d14fe000045e2d8a05157bfafb867d6069315d"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/configuration.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/configuration.ts",
                         "sha256":  "6c2ec3d11222eb1ade99a47a05884ce5dc87e7b6be5de540d817f38022813604"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/coquille.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/coquille.ts",
                         "sha256":  "dc1b4c0304f2b23ee99b68bbeae138bdaecdec0fa3e36504de6aa7ac51ffd8fe"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/ecriture.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/ecriture.ts",
                         "sha256":  "7904bfca56be20335c989a7e1d11d1f7ffb2ce5401891f438c3a2db8727d2917"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/etat.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/etat.ts",
                         "sha256":  "144d76fcde16d02df8a4c2976ea43a77ee17e8dd203a3c49379946202e5bb4ea"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/feuilles.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/feuilles.ts",
                         "sha256":  "8de2c498bf22ef803866def423eaa3af060d3f68f524d4af6e20cc15a8ff7dd1"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/frontiere.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/frontiere.ts",
                         "sha256":  "90e9b1a31eb43e9c552ce49dd7224bbabc9999bb3e58ab39169b12d2a57f7ea6"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/icones.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/icones.ts",
                         "sha256":  "5577fc3b1cb51e58615bcd622494d9252287b563a53652c44af71dc893045594"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/index.html",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/index.html",
                         "sha256":  "02940b4d91813ae68eb7dbad5312e1e1d1f05ae1d789c91c7deb9955e95f2e41"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/index.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/index.ts",
                         "sha256":  "c82ed5623d3efe6747b6f5b06569cfc8859eee283395a073460872c9d653003c"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/lignes.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/lignes.ts",
                         "sha256":  "d597ec09d9f679bbb553fbd60d8e82a5840631813157be25b7adee9e9c613fe8"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/listeDesTermes.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/listeDesTermes.ts",
                         "sha256":  "f52f166fc32eff1cefa2a8439a66042edd3fe3dfef66ccbbcde767621fc25028"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/panneaux.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/panneaux.ts",
                         "sha256":  "8a677da1b3e67205a477f0521f1fd56fd93e29323befe4a8df0d6501c54544d1"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/premierLancement.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/premierLancement.ts",
                         "sha256":  "6711aa2e4c2eeb09d20eca8def389a34ce93f078aba183ae21edbb5a6fca3026"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/questions.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/questions.ts",
                         "sha256":  "44906261a17a76eb594836da7630d11eb971815030f4c82cdd4bc84507dc857c"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/regles.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/regles.ts",
                         "sha256":  "890dbafdbddd5403ee8fd877386e71c3ddbb769b3e88f12f6f5f12585b549666"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/selection.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/selection.ts",
                         "sha256":  "c756ea2cb1388678f33ffbdff86305d9331f56f91020a1c05e39e9623e6369f2"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/styles.css",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/styles.css",
                         "sha256":  "ca2b53cca7b7ba3f0b1392772bca0c127f838ccdfa9f7e90319c06976981d797"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/telechargement.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/telechargement.ts",
                         "sha256":  "18e8c2bf82230ce0d3424886fc97ec19aecd88c22d48a7817b0fd8f3f88b89a8"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/src/ui/textes.ts",
+                        "chemin":  "packages/plugin-architect/src/ui/nomenclature/textes.ts",
                         "sha256":  "187381739b64c409ea8fb29eb9f9196e093d51217a540e429e5129e374eb5fb6"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/annonce.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureAnnonce.test.ts",
                         "sha256":  "0e143dc4574232fee68a4e7886867dafccfdd061db6597ef74795c0b96ff32a3"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/cheminsPublies.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureCheminsPublies.test.ts",
                         "sha256":  "7aca5bf2ae42dce16320087881127df8c7877184047376232942e95bdb3859d0"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/ecriture.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureEcriture.test.ts",
                         "sha256":  "2cf2fe3289155829886710528f30c41cf76c3182e949304293d2275a7337fcb4"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/etat.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureEtat.test.ts",
                         "sha256":  "b563e3f2c9902659e2b6183acd07eeb9b68a331d05707e8f7807be66ad04c8df"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/feuilles.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureFeuilles.test.ts",
                         "sha256":  "26198dbbc6eb1cbd5f71159f1e165b75f2144a09773250fcf73ce198502e9a64"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/frontiereUi.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureFrontiereUi.test.ts",
                         "sha256":  "8b22db5d11971bd04557a66669c2b824aaed4da42c82c07962fe8cd846d92fb2"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/lecture.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureLecture.test.ts",
                         "sha256":  "e8cfa0e0378de7cb4d52ebb57e24d162879712fca8aa992abb960d4b169e8d37"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/lignes.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureLignes.test.ts",
                         "sha256":  "d2e9487bae9c4780ebffa44eaf7ddd62cf8948cf50293c53cdec497886d9ca6b"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/listeDesTermes.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureListeDesTermes.test.ts",
                         "sha256":  "cb02c47bc505e12e91fa209bf78e45b27fe5db676e666fbcb8cc1b9a5f94ac55"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/loiDEcriture.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/loiDEcritureDesNoms.test.ts",
                         "sha256":  "8896f11ee19e4f7b65293354ec7b5397d2c2a34f47483ea1ed82a1644a04768e"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/messages.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureMessages.test.ts",
                         "sha256":  "d8123964d4703ef89283a3222ee3aeecb423c74e45abd3c045484000bc476fac"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/nomsDePalettes.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureNomsDePalettes.test.ts",
                         "sha256":  "c39e804df7c55b6993d65c321dadeead7139724752125a0150bf3f264652468c"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/projection.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureProjection.test.ts",
                         "sha256":  "fa036adefb151cd111c67627e372afe5ca1a76639f3ff4cd15f3dad86185849d"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/protocole.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureProtocole.test.ts",
                         "sha256":  "07a0bc41e2ec4983663a61aa636b756eedaa0732f0e1c7a33ac88af202d7cbcf"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/questions.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureQuestions.test.ts",
                         "sha256":  "a0a29b7cd4a2a4fc6ad4e6bb252224ed4b0093c65800444281e035c00b2cfc37"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/regles.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureRegles.test.ts",
                         "sha256":  "915514780f09287d8358862f0e4711a6075ca784aa92164719e39ebbe3349b1f"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/sandboxQuickjs.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureSandboxQuickjs.test.ts",
                         "sha256":  "b6e356127a9391c8c1522f483128170426ff38b30928d43fe6567826f6895558"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/selection.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureSelection.test.ts",
                         "sha256":  "6c1de9cebece4658266259ada22d50552edf6f21e4aba6164cc5ff433255fe99"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/session.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureSession.test.ts",
                         "sha256":  "36aa13a6d85f0f62be7877bac58d7dcdbfd9002e9173e91c29db48a8ff35cdc9"
                     },
                     {
-                        "chemin":  "packages/plugin-nomenclature/tests/socle.test.ts",
+                        "chemin":  "packages/plugin-architect/tests/nomenclatureSocle.test.ts",
                         "sha256":  "8108e1692fc43b85af16987e4e0b1e178d8aad6415c3d6270a9221b235bc5096"
                     },
                     {

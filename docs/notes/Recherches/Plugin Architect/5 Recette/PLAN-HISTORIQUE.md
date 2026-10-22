@@ -1,7 +1,7 @@
 # Plan de l'Historique de la Configuration
 
 Maquette : [Maquettes/historique/MAQUETTE-HISTORIQUE.html](./Maquettes/historique/MAQUETTE-HISTORIQUE.html).
-Paquet : `packages/plugin-nomenclature`.
+Paquet : `packages/plugin-architect`.
 
 La Configuration prend deux onglets, « Réglages » et « Historique ». L'Historique montre le dernier
 renommage et le dernier import avec leur diff, et annonce les noms qui ne reviendront pas. Le format du

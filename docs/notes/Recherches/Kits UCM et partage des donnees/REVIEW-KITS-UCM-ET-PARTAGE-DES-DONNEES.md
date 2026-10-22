@@ -301,7 +301,7 @@ Les neuf suites de paquets passent. L'échec appartient aux contrôles racine. L
 La commande ciblée est reproductible depuis la racine :
 
 ```sh
-npx tsx --test tests/referentielUnique.test.ts tests/monorepoCoherent.test.mjs tests/nomsDePalettes.test.ts tests/axesDeModes.test.ts packages/kit/tests/referentiel.test.ts packages/kit/tests/referentiel-definitions.test.ts packages/kit/tests/architectureReferentiel.test.ts packages/kit/tests/porteNavigateur.test.mjs packages/kit/tests/paquetPublie.test.mjs packages/plugin-socle/tests/reglesDeNommage.test.ts packages/plugin-nomenclature/tests/nomsDePalettes.test.ts packages/plugin-architect/tests/integrationsUcm.test.ts packages/plugin-architect/tests/bundle.test.ts
+npx tsx --test tests/referentielUnique.test.ts tests/monorepoCoherent.test.mjs tests/nomsDePalettes.test.ts tests/axesDeModes.test.ts packages/kit/tests/referentiel.test.ts packages/kit/tests/referentiel-definitions.test.ts packages/kit/tests/architectureReferentiel.test.ts packages/kit/tests/porteNavigateur.test.mjs packages/kit/tests/paquetPublie.test.mjs packages/plugin-socle/tests/reglesDeNommage.test.ts packages/plugin-architect/tests/nomenclatureNomsDePalettes.test.ts packages/plugin-architect/tests/integrationsUcm.test.ts packages/plugin-architect/tests/bundle.test.ts
 ```
 
 | Sonde | Entrée | Résultat observé |
@@ -353,7 +353,7 @@ Les liens pointent vers les fichiers de production et les contrôles qui étayen
 [regles-nommage]: ../../../../packages/kit/src/protocoles/nommage.ts
 [calcul-nommage]: ../../../../packages/kit/src/nommage/calcul.ts
 [socle-readme]: ../../../../packages/plugin-socle/README.md
-[regles-plugin]: ../../../../packages/plugin-nomenclature/src/regles.ts
+[regles-plugin]: ../../../../packages/plugin-architect/src/nomenclature/regles.ts
 [semantics]: ../../../../packages/plugin-socle/src/composant/contract/semantics.ts
 [extract-rules]: ../../../../packages/plugin-socle/src/composant/contract/extractRules.ts
 [modele-regles]: ../../../../packages/plugin-socle/src/composant/template/modele.ts

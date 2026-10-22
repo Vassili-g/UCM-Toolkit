@@ -18,7 +18,7 @@ import { idsNonRenommables, nomsSelonLesReglesSync, palettesLibres } from '@ucm-
 import { lireReglesDeNommage } from '@ucm-kit/core/protocoles';
 import { jsonCanonique, type Recette } from 'ucm-couleur';
 
-import { appliquerLesRenommages, creerPortDeRegles, creerPortEcriture, type RenommageDemande } from '../packages/plugin-nomenclature/src/ecriture';
+import { appliquerLesRenommages, creerPortDeRegles, creerPortEcriture, type RenommageDemande } from '../packages/plugin-architect/src/ecriture/noms';
 import { indexer } from '../packages/plugin-architect/src/indexation';
 import { controlerLeProfil, variableDuNom, type AssociationDesCouches } from '../packages/plugin-architect/src/integrations/profilUcm';
 import { changerReference, choisirLesIntensites } from '../packages/plugin-palettes/src/edition';

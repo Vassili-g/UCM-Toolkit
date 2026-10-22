@@ -23,7 +23,6 @@ const racine = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PLUGINS = {
   palettes: "ucm-palettes-plugin",
   architect: "ucm-architect-plugin",
-  nomenclature: "ucm-nomenclature-plugin",
   exporter: "ucm-exporter-plugin",
 };
 

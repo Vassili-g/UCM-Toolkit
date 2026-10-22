@@ -19,7 +19,6 @@ const PLUGINS = [
   { dossier: 'plugin-exporter', nom: 'ucm-exporter-plugin' },
   { dossier: 'plugin-palettes', nom: 'ucm-palettes-plugin' },
   { dossier: 'plugin-architect', nom: 'ucm-architect-plugin' },
-  { dossier: 'plugin-nomenclature', nom: 'ucm-nomenclature-plugin' },
 ];
 
 /** Les sources d'un paquet, hors `node_modules` et `dist`. */

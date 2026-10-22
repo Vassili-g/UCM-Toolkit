@@ -11,7 +11,7 @@ import test from 'node:test';
 
 import { fnv1a, jsonCanonique, lireHexa, octetsUtf8, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
-import { appliquerLesRenommages, creerPortDeRegles, creerPortEcriture, type RenommageDemande } from '../packages/plugin-nomenclature/src/ecriture';
+import { appliquerLesRenommages, creerPortDeRegles, creerPortEcriture, type RenommageDemande } from '../packages/plugin-architect/src/ecriture/noms';
 import { ecrireLesVariables, reprendreLaPalette, type FigmaDesVariablesEcrites } from '../packages/plugin-palettes/src/ecriture/variables';
 import { rangerLaMarqueDeNommage } from '../packages/plugin-palettes/src/ecriture/marque';
 import { ajouter, nouvellePalette, reprendreDuFichier } from '../packages/plugin-palettes/src/edition';

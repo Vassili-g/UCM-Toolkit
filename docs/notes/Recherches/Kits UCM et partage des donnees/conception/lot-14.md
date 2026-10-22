@@ -45,7 +45,7 @@ export function texteDeLArchitectureDuFichier(ucm: boolean): string;
 ## L'interrupteur de Nomenclature (T14.2)
 
 - **Place.** L'onglet « Réglages » de la Configuration
-  (`plugin-nomenclature/src/ui/configuration.ts`), en tête, dans une section
+  (`plugin-architect/src/ui/nomenclature/configuration.ts`), en tête, dans une section
   d'intertitre « Architecture du fichier », avant « Collections analysées ».
 - **Forme.** `createInterrupteur` du socle (`ucm-plugin-socle/src/ui/Interrupteur`),
   comme l'exporteur dans `plugin-exporter/src/ui/components/ConfigurationPage.ts` :
@@ -145,7 +145,7 @@ créées dans `theme`) :
 ## Les fichiers de chaque tâche
 
 - T14.2 : `packages/kit/src/referentiel/produits.ts`, les tests du kit,
-  `packages/plugin-nomenclature/src/regles.ts`, `messages.ts`, `session.ts`
+  `packages/plugin-architect/src/nomenclature/regles.ts`, `messages.ts`, `session.ts`
   (le bilan porte l'état lu), `projection.ts` (sa construction), `ui/configuration.ts`, `ui/textes.ts`, la
   galerie et les tests de Nomenclature.
 - T14.1 (après T14.2) : `packages/kit/src/referentiel/architecture.ts`,

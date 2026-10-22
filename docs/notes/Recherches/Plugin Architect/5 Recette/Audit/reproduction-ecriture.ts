@@ -3,13 +3,13 @@ import test from 'node:test';
 import {
   annulerLeDernierRenommage, appliquerLesRenommages,
   type PortDeRegles, type RenommageDemande, type SessionEcriture,
-} from '../../../../../../packages/plugin-nomenclature/src/ecriture';
-import { inventaireDeLectures } from '../../../../../../packages/plugin-nomenclature/src/lecture';
+} from '../../../../../../packages/plugin-architect/src/nomenclature/ecriture';
+import { inventaireDeLectures } from '../../../../../../packages/plugin-architect/src/nomenclature/lecture';
 import { cheminsEnConflit, inventairePublie } from '../../../../../../packages/plugin-socle/src/cheminsPublies';
 import { joinTokenPath } from '../../../../../../packages/plugin-socle/src/cheminsDeTokens';
 import { axesDesCollections, insert } from '../../../../../../packages/plugin-exporter/src/tokens/exportTokens';
-import { creerSession } from '../../../../../../packages/plugin-nomenclature/src/session';
-import type { Bilan, DemandeArchitect, PluginMessage } from '../../../../../../packages/plugin-nomenclature/src/messages';
+import { creerSession } from '../../../../../../packages/plugin-architect/src/nomenclature/session';
+import type { Bilan, DemandeArchitect, PluginMessage } from '../../../../../../packages/plugin-architect/src/nomenclature/messages';
 
 function fichier(collectionsInitiales: [string, string][], variablesInitiales: [string, string, string][]) {
   const collections = collectionsInitiales.map(([id, name]) => ({

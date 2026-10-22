@@ -231,7 +231,7 @@ trois noms changent de mots : `utility`, `brands` et `layout`.
 6. Documents : `CONCEPT.md`, `AGENTS.md` (frontière d'écriture de Palettes :
    jamais dans `theme`, `brands` ni `utility`), `FORMAT.md` et
    `CHANGELOG-FORMAT.md` là où ils nomment une couche, les README et
-   spécifications des plugins, les galeries (`plugin-nomenclature/galerie`,
+   spécifications des plugins, les galeries (`plugin-architect/galerie/nomenclature`,
    `plugin-palettes/galerie`, `plugin-architect/galerie`), et la vue de
    l'architecture de référence
    (`docs/notes/Recherches/Archi Tokens Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html`).
@@ -449,7 +449,7 @@ une fois dans ce fichier… » (`ui/aAppliquer.ts`), qui ne vaut que pour la
 marque absente ; la Configuration écrit « palettes protégées » sans raison.
 
 **F07.** Dans `lecteurDeVariablesFigma`
-(`plugin-nomenclature/src/lectureFigma.ts`), un échec de lecture du suivi de
+(`plugin-architect/src/nomenclature/lectureFigma.ts`), un échec de lecture du suivi de
 Palettes donne un ensemble vide. Une variable reprise ne porte pas le marqueur
 individuel `palette` : elle paraît alors non protégée, et Nomenclature
 pourrait la renommer.
@@ -734,7 +734,7 @@ migrations ; kit publié.
 `plugin-socle/src/reglesDeNommage.ts`) et le calcul `nomsSelonLesRegles`
 (`plugin-socle/src/nomsSelonLesRegles.ts`), avec l'inventaire et la protection
 (`inventaireDeNoms.ts` : `estProtegee`, `palettesLibres`). Nomenclature
-construit les mêmes clés elle-même (`plugin-nomenclature/src/regles.ts`).
+construit les mêmes clés elle-même (`plugin-architect/src/nomenclature/regles.ts`).
 
 **Changement.**
 
@@ -758,7 +758,7 @@ construit les mêmes clés elle-même (`plugin-nomenclature/src/regles.ts`).
 **Tests.** Idempotence, remplacements personnalisés, exclusions, collisions,
 protection avec et sans marque, octets sérialisés par Nomenclature lus par le
 kit. `tests/nomsDePalettes.test.ts` et
-`plugin-nomenclature/tests/nomsDePalettes.test.ts` passent sans changement
+`plugin-architect/tests/nomenclatureNomsDePalettes.test.ts` passent sans changement
 d'attente.
 
 **Fini quand** : Palettes et Nomenclature appellent la même fonction du kit ;

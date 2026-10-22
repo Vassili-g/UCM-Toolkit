@@ -465,7 +465,7 @@ Fin : commandes du plugin, `npm run galerie -w ucm-architect-plugin`.
 
 Agent : `implementeur`.
 
-- [x] `git mv packages/plugin-architect packages/plugin-nomenclature`, puis
+- [x] `git mv packages/plugin-architect packages/plugin-architect`, puis
   vérifier qu'aucun dossier `packages/plugin-architect/` ne reste (`dist`,
   `node_modules` ignorés) : `tests/monorepoCoherent.test.mjs` lit tout
   sous-dossier de `packages/`. Paquet `ucm-nomenclature-plugin` ; script
@@ -510,7 +510,7 @@ Agent : `verificateur`, puis la conversation principale, puis le mainteneur.
 - [ ] Le dossier et son README disent la recette faite ; la mémoire du projet
   suit ; les cases de ce plan portent leur hash.
 - [ ] Note de recette au mainteneur : réimporter le plugin depuis
-  `packages/plugin-nomenclature/dist/manifest.json` (même `id`, les règles
+  `packages/plugin-architect/dist/manifest.json` (même `id`, les règles
   des fichiers sont gardées) ; s'il a répondu à l'ancienne question des
   tailles, supprimer dans Règles les termes personnalisés `sm`, `md`, `lg` ou
   `small`, `medium`, `large` qu'elle a créés ; lancer les tests d'interface de

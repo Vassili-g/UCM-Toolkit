@@ -2,7 +2,7 @@
 
 Ce plan applique les décisions du mainteneur sur les maquettes de
 `Maquettes/vocabulaire-3/`. Les chemins `src/…` et `tests/…`
-partent de `packages/plugin-nomenclature/`. Le kit ne change pas : la place de
+partent de `packages/plugin-architect/`. Le kit ne change pas : la place de
 chaque occurrence se lit déjà avec `categorieDuSegment`.
 
 ## Décisions
@@ -156,7 +156,7 @@ Fichiers : `galerie/donnees.cjs`, `galerie/etats.cjs`.
 
 ### L6 · Vérification · `verificateur` · fait (421 tests, build, galerie : 43 états × 3 modes)
 
-- [x] `npm run typecheck` et `npm test` dans `packages/plugin-nomenclature`,
+- [x] `npm run typecheck` et `npm test` dans `packages/plugin-architect`,
   puis `npm test` à la racine.
 - [x] `npm run build` du plugin, puis `npm run galerie` ; chaque état atteint
   `pret`.

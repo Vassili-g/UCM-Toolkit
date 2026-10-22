@@ -72,4 +72,4 @@ Les tests du monorepo lui-même.
 - nomsDePalettes.test.ts : aller-retour : Nomenclature renomme les palettes que Palettes a écrites, et le plan de Palettes ne renomme plus rien
 - guideDuKitDeRegles.test.ts : guide du kit de règles cite les maîtres, calques, sections et marqueur de la grammaire du kit
 - axesDeModes.test.ts : le socle et l'exporteur appellent `deciderAxesDesCollections` du kit et retiennent les mêmes axes de modes, avant et après un renommage de collection
-- loisEntreProduits.test.ts : huit lois entre Palettes, Nomenclature et l'explorateur, pour chaque convention de nommage ; ses fabriques sont dans `fabriquesDeFichiers.ts`
+- loisEntreProduits.test.ts : huit lois entre Palettes et UCM Architect (renommage et lecture), pour chaque convention de nommage ; ses fabriques sont dans `fabriquesDeFichiers.ts`

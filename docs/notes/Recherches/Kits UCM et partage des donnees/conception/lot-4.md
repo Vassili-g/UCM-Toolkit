@@ -9,7 +9,7 @@ constats F07 et F11.
 ## Ce que le code fait aujourd'hui
 
 - `lecteurDeVariablesFigma` lit le suivi racine une fois. Si la lecture lève,
-  il obtient un ensemble vide (`plugin-nomenclature/src/lectureFigma.ts:14`).
+  il obtient un ensemble vide (`plugin-architect/src/nomenclature/lectureFigma.ts:14`).
   Une variable est protégée si le suivi la liste ou si son marqueur `palette`
   n'est pas vide (`:31`).
 - Une variable reprise par Palettes ne porte pas de marqueur : `ecrireLaReprise`
@@ -192,7 +192,7 @@ export function causeDeProtection(
   `projection.ts`). `reglesRangees` vaut `!premierLancement()`.
 
 ```ts
-// packages/plugin-nomenclature/src/messages.ts
+// packages/plugin-architect/src/nomenclature/messages.ts
 export interface Bilan {
   // …
   readonly proteges: number;   // inchangé : le total, toutes causes
@@ -332,10 +332,10 @@ Dans le même commit :
 ## Les fichiers de chaque tâche
 
 - T4.1 : `plugin-socle/src/inventaireDeNoms.ts`,
-  `plugin-socle/src/nomsSelonLesRegles.ts` (à relire), `plugin-nomenclature/src/lectureFigma.ts`,
+  `plugin-socle/src/nomsSelonLesRegles.ts` (à relire), `plugin-architect/src/nomenclature/lectureFigma.ts`,
   `session.ts`, `ecriture.ts`, `messages.ts` (`ResultatVue`), les tests du
   socle, de Nomenclature et `tests/nomsDePalettes.test.ts` à la racine.
-- T4.2 : `plugin-nomenclature/src/projection.ts`, `messages.ts` (`Bilan`,
+- T4.2 : `plugin-architect/src/nomenclature/projection.ts`, `messages.ts` (`Bilan`,
   `CollectionVue`), `ui/etat.ts`, `ui/annonce.ts`, `ui/aAppliquer.ts`,
   `ui/configuration.ts`, `ui/textes.ts`, la galerie et ses tests.
 - T4.3 : `AGENTS.md`, le commentaire de `plugin-palettes/src/code.ts`,

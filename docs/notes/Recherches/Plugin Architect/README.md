@@ -7,7 +7,7 @@ plugin d'architecture des tokens. Le sujet reprend depuis le début : aucune
 direction n'est retenue pour la suite, et chaque document ci-dessous se lit
 comme une matière à trier.
 
-Le code de la v1 vit dans [packages/plugin-nomenclature](../../../../packages/plugin-nomenclature/).
+Le code de la v1 vit dans [packages/plugin-architect](../../../../packages/plugin-architect/).
 Le référentiel dont l'Architect lit les définitions a son propre dossier,
 [Référentiel UCM](../Référentiel%20UCM/README.md).
 
@@ -41,7 +41,7 @@ noms et l'harmonisation des mots.
 
 La galerie du plugin construit montre ses états réels :
 `npm run galerie -w ucm-nomenclature-plugin` l'écrit dans
-`packages/plugin-nomenclature/dist/galerie/`.
+`packages/plugin-architect/dist/galerie/`.
 
 ## Les réflexions
 

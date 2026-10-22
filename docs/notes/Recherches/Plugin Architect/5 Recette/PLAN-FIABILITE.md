@@ -5,7 +5,7 @@ Ce plan corrige les défauts de deux audits du plugin :
 [l'audit d'intégrité des tokens](./AUDIT-INTEGRITE-TOKENS.md), codes AI1 à
 AI12 (ses codes A1 à A12 y prennent le préfixe AI). Il s'exécute après N1 du
 [plan de la recette](./PLAN-IMPLEMENTATION.md) : le plugin vit alors dans
-`packages/plugin-nomenclature/`, paquet `ucm-nomenclature-plugin`. Les chemins
+`packages/plugin-architect/`, paquet `ucm-nomenclature-plugin`. Les chemins
 `src/…` et `tests/…` partent de ce dossier.
 
 ## Lecture des deux audits

@@ -7,7 +7,7 @@ import {
 import { inventaireDeLectures, type VariableLue } from '../../../../../../packages/plugin-socle/src/inventaireDeNoms.ts';
 import { nomsSelonLesReglesSync } from '../../../../../../packages/plugin-socle/src/nomsSelonLesRegles.ts';
 import { lireReglesDeNommage } from '../../../../../../packages/plugin-socle/src/reglesDeNommage.ts';
-import { exporterLesRegles, importerLesRegles, reglesVides } from '../../../../../../packages/plugin-nomenclature/src/regles.ts';
+import { exporterLesRegles, importerLesRegles, reglesVides } from '../../../../../../packages/plugin-architect/src/nomenclature/regles.ts';
 import { creerNommeur, type DonneesDeNommage } from '../../../../../../packages/plugin-palettes/src/variables/nommeur.ts';
 
 const ecriture = {

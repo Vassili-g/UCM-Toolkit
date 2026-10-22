@@ -86,7 +86,7 @@ test("un nom de paquet inconnu sort en erreur avec la liste des noms admis", () 
   const plugin = spawnSync(process.execPath, [script, "build", "inconnu"], { encoding: "utf8" });
   assert.notEqual(plugin.status, 0);
   assert.match(plugin.stderr, /Paquet inconnu : « inconnu »/);
-  assert.match(plugin.stderr, /palettes, architect, nomenclature, exporter\./);
+  assert.match(plugin.stderr, /palettes, architect, exporter\./);
   assert.doesNotMatch(plugin.stderr, /socle/);
 
   const paquet = spawnSync(process.execPath, [script, "test", "inconnu"], { encoding: "utf8" });

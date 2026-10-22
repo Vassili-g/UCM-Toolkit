@@ -17,7 +17,7 @@ relie chaque constat à ses tests de régression.
 
 ## Périmètre et état du code
 
-Le périmètre comprend `packages/plugin-nomenclature/`, le moteur de nommage
+Le périmètre comprend `packages/plugin-architect/`, le moteur de nommage
 de `packages/kit/src/referentiel/`, les modules partagés du socle et les effets
 des noms sur UCM Palettes et l’export DTCG. La revue couvre les lectures,
 les calculs, les écritures, le stockage, le protocole, l’interface et la distribution.
@@ -71,7 +71,7 @@ ne prouve pas l’absence de défaut dans toutes les données Figma possibles.
 
 ### N01. Annuler peut créer un conflit de chemins absent à l’origine
 
-**Sources :** [ecriture.ts](../../../../../../packages/plugin-nomenclature/src/ecriture.ts),
+**Sources :** [ecriture.ts](../../../../../../packages/plugin-architect/src/ecriture/noms.ts),
 lignes 210, 230 et 386 ; [exportTokens.ts](../../../../../../packages/plugin-exporter/src/tokens/exportTokens.ts),
 fonction `insert`, ligne 417.
 
@@ -104,7 +104,7 @@ la restitution des conflits d’origine prévus par les tests.
 
 ### N02. Un nom de collection accepté peut faire disparaître deux axes
 
-**Sources :** [session.ts](../../../../../../packages/plugin-nomenclature/src/session.ts),
+**Sources :** [session.ts](../../../../../../packages/plugin-architect/src/nomenclature/session.ts),
 lignes 289 à 307 ; [chemins-publies.ts](../../../../../../packages/kit/src/nommage/chemins-publies.ts) (anciennement dans le socle),
 inventaire publié ; [exportTokens.ts](../../../../../../packages/plugin-exporter/src/tokens/exportTokens.ts),
 lignes 678 à 716.
@@ -179,7 +179,7 @@ produire sa destination définitive au premier calcul.
 
 ### N04. La signature omet les termes ordinaires
 
-**Source :** [session.ts](../../../../../../packages/plugin-nomenclature/src/session.ts),
+**Source :** [session.ts](../../../../../../packages/plugin-architect/src/nomenclature/session.ts),
 lignes 83 à 84, 334, 362 et 540 à 547.
 
 Le bilan propose `primaryBg` en `primary-background`. Pendant l’ouverture
@@ -203,9 +203,9 @@ pertinent dans la signature des entrées du calcul. Le test doit obtenir
 
 ### N05. Une réponse de configuration écrase une intention plus récente
 
-**Sources :** [configuration.ts](../../../../../../packages/plugin-nomenclature/src/ui/configuration.ts),
+**Sources :** [configuration.ts](../../../../../../packages/plugin-architect/src/ui/nomenclature/configuration.ts),
 lignes 46 à 47, 91 à 106 et 237 ;
-[frontiere.ts](../../../../../../packages/plugin-nomenclature/src/ui/frontiere.ts),
+[frontiere.ts](../../../../../../packages/plugin-architect/src/ui/nomenclature/frontiere.ts),
 file des calculs et remplacement de la dernière configuration en attente.
 
 Reproduction avec trois collections A, B et C :
@@ -230,9 +230,9 @@ doit finir avec A, B et C exclues, sans clic correctif.
 
 ### N06. Une exclusion de ligne disparue bloque une sélection valide
 
-**Sources :** [selection.ts](../../../../../../packages/plugin-nomenclature/src/ui/selection.ts),
+**Sources :** [selection.ts](../../../../../../packages/plugin-architect/src/ui/nomenclature/selection.ts),
 lignes 62 à 67 et calcul des comptes ;
-[aAppliquer.ts](../../../../../../packages/plugin-nomenclature/src/ui/aAppliquer.ts),
+[aAppliquer.ts](../../../../../../packages/plugin-architect/src/ui/nomenclature/aAppliquer.ts),
 lignes 341 à 350 et 649 à 650.
 
 Un groupe contient les lignes A et B. Décocher A, corriger cette variable
@@ -255,7 +255,7 @@ Le cas reproduit doit compter B et laisser Appliquer disponible.
 
 ### N07. Retirer la dernière forme efface une définition importée
 
-**Source :** [session.ts](../../../../../../packages/plugin-nomenclature/src/session.ts),
+**Source :** [session.ts](../../../../../../packages/plugin-architect/src/nomenclature/session.ts),
 branche `retirer-remplace`, lignes 175 à 180.
 
 Le fichier contient une règle de terme valide : `quux` remplace `quuxed`,
@@ -272,7 +272,7 @@ et export, puis vérifier que le terme sans définition peut encore être retir�
 
 ### N08. Les alias et le lexique n’utilisent pas les mêmes identifiants
 
-**Sources :** [lectureFigma.ts](../../../../../../packages/plugin-nomenclature/src/lectureFigma.ts),
+**Sources :** [lectureFigma.ts](../../../../../../packages/plugin-architect/src/nomenclature/lectureFigma.ts),
 lignes 27 à 29 ; [inventaireDeNoms.ts](../../../../../../packages/plugin-socle/src/inventaireDeNoms.ts),
 lignes 80 à 85 ; [branches-paralleles.ts](../../../../../../packages/kit/src/referentiel/branches-paralleles.ts),
 ligne 98.
@@ -298,10 +298,10 @@ résolue. Le test doit partir de l’inventaire de lecture jusqu’aux questions
 
 ### N09. L’annulation ignore l’exclusion actuelle d’une collection
 
-**Sources :** [ecriture.ts](../../../../../../packages/plugin-nomenclature/src/ecriture.ts),
-lignes 362 à 386 ; [session.ts](../../../../../../packages/plugin-nomenclature/src/session.ts),
+**Sources :** [ecriture.ts](../../../../../../packages/plugin-architect/src/ecriture/noms.ts),
+lignes 362 à 386 ; [session.ts](../../../../../../packages/plugin-architect/src/nomenclature/session.ts),
 lignes 551 à 554 ; garantie des exclusions dans
-[invariants de Nomenclature](../../../../../../packages/plugin-nomenclature/invariants/nomenclature.md).
+[invariants de Nomenclature](../../../../../../packages/plugin-architect/invariants/nomenclature.md).
 
 Appliquer les renommages de deux variables de `components`, exclure cette
 collection dans Configuration, puis annuler le dernier lot. Les deux noms
@@ -323,10 +323,10 @@ réinclusion. Le test doit vérifier le périmètre courant à l’annulation.
 
 ### N10. La galerie ne rejoue plus trois scénarios déclarés atteignables
 
-**Sources :** [etats.cjs](../../../../../../packages/plugin-nomenclature/galerie/etats.cjs),
+**Sources :** [etats.cjs](../../../../../../packages/plugin-architect/galerie/nomenclature/etats.cjs),
 lignes 35, 87 à 93 et 130 à 132 ;
-[aTrancher.ts](../../../../../../packages/plugin-nomenclature/src/ui/aTrancher.ts),
-création des boutons ; [textes.ts](../../../../../../packages/plugin-nomenclature/src/ui/textes.ts),
+[aTrancher.ts](../../../../../../packages/plugin-architect/src/ui/nomenclature/aTrancher.ts),
+création des boutons ; [textes.ts](../../../../../../packages/plugin-architect/src/ui/nomenclature/textes.ts),
 ligne 195.
 
 Le build annonce 43 états atteignables. Le contrôle Chromium ouvre leurs

@@ -2,6 +2,8 @@
  * Le DOM de l'interface et ses feuilles parlent des mêmes classes, et aucune
  * couleur n'est écrite hors des rôles. La loi est celle du socle. Les
  * couleurs de l'explorateur vivent dans `roles.css`, placée avant le socle.
+ * `ui/nomenclature/` a sa propre feuille et sa propre loi (`nomenclatureSocle.test.ts`)
+ * tant que les deux interfaces ne sont pas fusionnées.
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -24,7 +26,7 @@ const lire = (fichier: string): string => fs.readFileSync(fichier, 'utf8');
 function sourcesUi(dossier: string): string[] {
   return fs.readdirSync(dossier, { withFileTypes: true }).flatMap((entree) => {
     const chemin = path.join(dossier, entree.name);
-    if (entree.isDirectory()) return sourcesUi(chemin);
+    if (entree.isDirectory()) return entree.name === 'nomenclature' ? [] : sourcesUi(chemin);
     return entree.name.endsWith('.ts') ? [chemin] : [];
   });
 }

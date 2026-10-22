@@ -140,7 +140,6 @@ Dans Figma Desktop, ouvrez `Plugins > Development > Import plugin from manifest`
 | UCM Contract Exporter | `packages/plugin-exporter/dist/manifest.json` |
 | UCM Palettes | `packages/plugin-palettes/dist/manifest.json` |
 | UCM Architect | `packages/plugin-architect/dist/manifest.json` |
-| UCM Nomenclature | `packages/plugin-nomenclature/dist/manifest.json` |
 
 L'explorateur demande encore un identifiant Figma propre ; son README décrit
 comment le renseigner.

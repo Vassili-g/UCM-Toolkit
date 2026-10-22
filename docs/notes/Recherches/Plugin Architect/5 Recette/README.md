@@ -6,7 +6,7 @@ l'avant et l'après d'À appliquer, les cartes de À trancher, les sections de
 Règles, la fiche d'un terme et le langage visuel commun.
 
 **État.** Les lots L0 à N1 du plan d'implémentation sont faits : le plugin
-s'appelle UCM Nomenclature et vit dans `packages/plugin-nomenclature/`.
+s'appelle UCM Nomenclature et vit dans `packages/plugin-architect/`.
 Les lots J à P du plan de fiabilité sont faits (kit 0.9.4). Restent l'essai
 Figma T, V et la recette Figma du mainteneur.
 

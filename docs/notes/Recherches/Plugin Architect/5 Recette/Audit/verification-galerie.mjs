@@ -8,7 +8,7 @@ import { chromium } from 'playwright';
 const ici = path.dirname(fileURLToPath(import.meta.url));
 const racine = path.resolve(ici, '../../../../../..');
 const require = createRequire(import.meta.url);
-const { GALERIES } = require(path.join(racine, 'packages/plugin-nomenclature/galerie/build-galerie.cjs'));
+const { GALERIES } = require(path.join(racine, 'packages/plugin-architect/galerie/nomenclature/build-galerie.cjs'));
 const candidats = [process.env.UCM_CHROME, 'C:/Program Files/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].filter(Boolean);
 const executablePath = candidats.find((candidat) => fs.existsSync(candidat));

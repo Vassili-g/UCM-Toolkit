@@ -660,7 +660,7 @@ finale.
 [vue-integrations]: ../../../../packages/plugin-architect/src/ui/vues/integrations.ts
 [lecture-explorateur]: ../../../../packages/plugin-architect/src/lecture.ts
 [inventaire]: ../../../../packages/plugin-socle/src/inventaireDeNoms.ts
-[lecture-nomenclature]: ../../../../packages/plugin-nomenclature/src/lectureFigma.ts
+[lecture-nomenclature]: ../../../../packages/plugin-architect/src/nomenclature/lectureFigma.ts
 [suivi]: ../../../../packages/plugin-palettes/src/variables/suivi.ts
 [ecriture-variables]: ../../../../packages/plugin-palettes/src/ecriture/variables.ts
 [etat]: ../../../../packages/plugin-palettes/src/variables/etat.ts
@@ -685,7 +685,7 @@ finale.
 [semantics]: ../../../../packages/plugin-socle/src/composant/contract/semantics.ts
 [diagnostic-contrastes]: ../../../../packages/kit/src/lecteurs/diagnostic-contrastes.mjs
 [regles-partagees]: ../../../../packages/kit/src/protocoles/nommage.ts
-[regles-nomenclature]: ../../../../packages/plugin-nomenclature/src/regles.ts
+[regles-nomenclature]: ../../../../packages/plugin-architect/src/nomenclature/regles.ts
 [extract-rules]: ../../../../packages/plugin-socle/src/composant/contract/extractRules.ts
 [guide-regles]: ../../../guides/KIT-DE-REGLES.md
 [mouvement]: ../../../../packages/plugin-exporter/src/tokens/mouvement.ts
@@ -697,7 +697,7 @@ finale.
 [marque]: ../../../../packages/plugin-palettes/src/ecriture/marque.ts
 [code-palettes]: ../../../../packages/plugin-palettes/src/code.ts
 [modele-explorateur]: ../../../../packages/plugin-architect/src/modele.ts
-[ecriture-nomenclature]: ../../../../packages/plugin-nomenclature/src/ecriture.ts
+[ecriture-nomenclature]: ../../../../packages/plugin-architect/src/ecriture/noms.ts
 [destination]: ../../../../packages/plugin-palettes/src/variables/destination.ts
 [api-create-variable]: https://developers.figma.com/docs/plugins/api/properties/figma-variables-createvariable/
 [guide-variables-figma]: https://github.com/figma/mcp-server-guide/blob/main/skills-figquery/figma-use/references/working-with-design-systems/wwds-variables.md

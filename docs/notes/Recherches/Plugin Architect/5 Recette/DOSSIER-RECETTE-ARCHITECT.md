@@ -169,7 +169,7 @@ le nom du paquet `ucm-architect-plugin`, le logo de la famille A
 minuscule-tiret, etc. »
 
 **Constat.** Le résumé de l'écriture
-([`ui/regles.ts`](../../../../../packages/plugin-nomenclature/src/ui/regles.ts),
+([`ui/regles.ts`](../../../../../packages/plugin-architect/src/ui/nomenclature/regles.ts),
 `libelleDeConvention`) lit `CONVENTIONS[].libelle.fr` du kit
 ([`referentiel/conventions.ts`](../../../../../packages/kit/src/referentiel/conventions.ts)).
 Deux libellés se lisent comme leur format (`PascalCase`, `camelCase`), les
@@ -207,11 +207,11 @@ nomenclature visuelle commune (« pastille rouge contre verte ? »).
 
 **Constat.** `creerLigneDeTerme` (`ui/regles.ts`) pose le mot puis la pastille
 d'origine à gauche, puis un résumé gris (`resumeDuTerme`,
-[`ui/listeDesTermes.ts`](../../../../../packages/plugin-nomenclature/src/ui/listeDesTermes.ts)).
+[`ui/listeDesTermes.ts`](../../../../../packages/plugin-architect/src/ui/nomenclature/listeDesTermes.ts)).
 Un défaut s'y ajoute. Un terme que UCM remplace (`colors`, remplacé par
 `color`) reçoit de la projection `origine: 'ucm'`, `statut: 'regle'`,
 `remplace: []` et `avec: 'color'`
-([`projection.ts`](../../../../../packages/plugin-nomenclature/src/projection.ts),
+([`projection.ts`](../../../../../packages/plugin-architect/src/nomenclature/projection.ts),
 `entreeDuTerme`). `resumeDuTerme` ne lit pas `avec` pour ce statut : la ligne
 affiche `colors`, la pastille UCM et rien d'autre. Le terme qui va disparaître
 ressemble à un terme UCM retenu.
@@ -540,7 +540,7 @@ code.
 **Constat.** Hors de Figma, `parent` est la fenêtre elle-même : chaque
 demande de l'écran (`termes`, `fiche`, `lignes`) revient vers lui comme un
 message. La frontière
-([`ui/frontiere.ts`](../../../../../packages/plugin-nomenclature/src/ui/frontiere.ts),
+([`ui/frontiere.ts`](../../../../../packages/plugin-architect/src/ui/nomenclature/frontiere.ts),
 `recevoirUneLecture`) l'accepte, car son numéro de demande est attendu ;
 `monterRegles` lit alors `message.termes`, absent, et lève une erreur. Les
 états `regles` et les feuilles de terme n'atteignent jamais
