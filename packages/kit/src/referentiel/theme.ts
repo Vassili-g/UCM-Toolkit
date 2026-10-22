@@ -46,7 +46,7 @@ export const REGLE_SCALE = {
   id: 'scale/{cran}', palettes: 'toutes',
   libelle: { fr: 'nuance de la palette', en: 'palette shade' },
   definition: {
-    fr: 'Nuance de la rampe de chaque palette, sans rôle de peinture ni portée Figma imposés.',
+    fr: 'Nuance de la rampe de chaque palette, sans rôle de peinture ni scope Figma imposés.',
     en: 'Shade from each palette ramp, with no prescribed painting role or Figma scope.',
   },
   support: SUPPORT_DES_VARIABLES['scale/0'],
@@ -55,6 +55,8 @@ export const REGLE_SCALE = {
 export const REGISTRE_VARIABLES_THEME = {
   id: 'variables-theme', extensible: false, termes: [...DEFINITIONS_DES_VARIABLES, REGLE_SCALE],
 } as const;
+
+export { SIGNAUX_DU_LANGAGE, TYPES_D_ALERTE, type SignalDuLangage, type TypeDAlerte, type SeveriteDePalettes, type SeveriteDeLExporteur } from './signaux.js';
 
 /** Les mots d'un segment, remplacés par les termes de `index` (catégorie `variables`) quand il est donné. */
 function motsDuSegment(segment: string, index?: IndexDuVocabulaire): string[] {
