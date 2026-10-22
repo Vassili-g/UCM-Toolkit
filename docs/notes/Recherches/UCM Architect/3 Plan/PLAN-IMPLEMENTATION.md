@@ -363,7 +363,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   mode illisible rendent une limite, jamais un verdict ; `State=disabled`
   exclu ; borne de combinaisons dite ; cible, anneau et 12 px en
   recommandations.
-- [~ Claude 2] **K7 · Typographie et icônes.** Vague 4 · K0.
+- [x] (b449d9a4) **K7 · Typographie et icônes.** Vague 4 · K0.
   Écrit : `kit/src/controles/typographie.ts`.
   Fait quand : C64 à C67, un test positif et un négatif par contrôle.
 - [ ] **K6 · Préparation des tokens.** Vague 5 · K1, note P.
@@ -385,7 +385,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `monorepoCoherent` et `pinDocumente` compris ; le corpus
   `docs/references/design-systems/ucm/` régénéré par
   `node docs/references/design-systems/_outils/ucm.mjs` (il date la version du kit).
-  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4).
+  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7).
 
 ### Piste S · socle
 
@@ -1048,9 +1048,9 @@ Sondes, lancées par le mainteneur au lancement :
 
 **Relais du 22 octobre au soir.** Session de l'orchestrateur et Codex
 arrêtés par leur limite. Fait et commité : O0, S0, A0.1, A0.2 (J0 vert),
-A1, U0, S1, S2, S3, X1, B1, B3, B10, K0, K1, K2, K4, K9, V1 à V4. Ouverts
+A1, U0, S1, S2, S3, X1, B1, B3, B10, K0, K1, K2, K4, K7, K9, V1 à V5. Ouverts
 au moment de l'arrêt, non commités dans l'arbre partagé : U1 (agent
-Claude 1) et K7 (agent Claude 2) ; la reprise relit `git status`, garde ce
+Claude 1) ; la reprise relit `git status`, garde ce
 qui passe les vérifications de leur fiche, ou repart de la fiche. K3 : voir
 sa ligne. Prochains lots : finir K3, fusionner Codex (lot V5), puis K8, K5,
 B2, U2 à U4, B6.
@@ -1179,6 +1179,10 @@ Choix faits sans le mainteneur :
 - Q-36 · V · Verrou de dépendances · une autre session modifie
   `package-lock.json` ; l'orchestrateur n'y commite que ses numéros, par un
   blob tiré de `HEAD` (`git update-index --cacheinfo`) · réversible : oui.
+- Q-37 · K7 · Régularité · un style ou une liaison « attendus » demandent
+  au moins deux autres variants unanimes ; une icône est un layer dont le nom
+  contient « icon », ou piloté par une propriété INSTANCE_SWAP ; constats
+  groupés par cause · réversible : oui.
 
 ## 10. Hors du plan
 
