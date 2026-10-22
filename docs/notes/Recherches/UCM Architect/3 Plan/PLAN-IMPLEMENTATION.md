@@ -354,7 +354,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   candidat absent ou multiple → question ; collections reconnues par la
   déclaration UCM, sans association manuelle ; un test positif et un négatif
   par règle.
-- [~ Claude 2] **K4 · Contraste et accessibilité.** Vague 4 · K0, note N2.
+- [x] (4f7540cb) **K4 · Contraste et accessibilité.** Vague 4 · K0, note N2.
   Écrit : `kit/src/controles/accessibilite.ts`.
   Maquette : `x-alert`, `x-button`.
   Fait quand : seuils du §2, sans arrondi ; un grand texte à 3,9:1 passe en AA
@@ -385,7 +385,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `monorepoCoherent` et `pinDocumente` compris ; le corpus
   `docs/references/design-systems/ucm/` régénéré par
   `node docs/references/design-systems/_outils/ucm.mjs` (il date la version du kit).
-  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9).
+  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4).
 
 ### Piste S · socle
 
@@ -1163,6 +1163,13 @@ Choix faits sans le mainteneur :
 - Q-34 · K4 · Reprise · K4 est pris par Claude dans l'arbre partagé pour
   avancer B9 et U7 pendant que Codex fait K3, K8 et K5 ; son commit porte
   son lot V · réversible : oui.
+- Q-35 · K4 · Faits rendus · C52 À corriger sous 24 px, À vérifier sous
+  44 px ; le texte sous 12 px porte le code C49 (id `C49:taille`) ; une
+  absence d'anneau est `C50:sans-anneau`, À corriger ; borne de 5 000
+  combinaisons variants × modes · réversible : oui.
+- Q-36 · V · Verrou de dépendances · une autre session modifie
+  `package-lock.json` ; l'orchestrateur n'y commite que ses numéros, par un
+  blob tiré de `HEAD` (`git update-index --cacheinfo`) · réversible : oui.
 
 ## 10. Hors du plan
 
