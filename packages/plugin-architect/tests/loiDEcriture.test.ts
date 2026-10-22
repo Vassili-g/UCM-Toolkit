@@ -10,7 +10,7 @@
  *
  * Un seul import est permis : celui d'une variable par sa clé, dans
  * `lecture.ts`, pour lire la cible d'un alias que Figma ne rend pas par son
- * identifiant.
+ * identifiant, et les valeurs d'un groupe de library que le mode Tokens ouvre.
  *
  * `clientStorage` reçoit la taille de la fenêtre et les préférences du
  * designer, et `figma.ui.resize` redimensionne la fenêtre du plugin.

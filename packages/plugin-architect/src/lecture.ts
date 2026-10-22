@@ -13,9 +13,10 @@
  * qu'un alias vise. Cet identifiant porte la clé publiée de la variable :
  * quand la lecture échoue, la variable s'importe par cette clé. L'import
  * abonne le fichier à la variable de la bibliothèque, sans créer de variable
- * locale. C'est le seul import du plugin, et il ne vise que la cible d'un
- * alias : celui d'une variable du fichier, ou d'une variable liée à un calque
- * du composant lu.
+ * locale. Il sert à deux lectures, toutes deux dans ce fichier : la cible d'un
+ * alias (celui d'une variable du fichier, ou d'une variable liée à un calque
+ * du composant lu), et les valeurs d'un groupe d'une library que le mode
+ * Tokens affiche depuis un autre fichier (`importerLesValeurs`).
  *
  * Une cible que ni la lecture ni l'import ne rendent reste « introuvable »,
  * ou « refusée » quand la lecture a levé : elle n'est pas déclarée supprimée.
@@ -397,6 +398,26 @@ export async function lireLesVariables(port: PortDeLecture, departs: readonly st
     if (!(await lireLaVague(vague, true))) return null;
   }
   return lues;
+}
+
+/** La variable d'une library importée par sa clé, ou le motif pour lequel elle ne se lit pas. */
+export type ValeurDeLibrary = VariableRelevee | { readonly illisible: string };
+
+/**
+ * Importe les variables de `cles` par lots de `CONCURRENCE` et les convertit comme le relevé. Une clé que Figma refuse, ou dont
+ * le type est inconnu, rend son motif sans arrêter les autres. L'import abonne le fichier à la variable, sans créer de variable locale.
+ */
+export async function importerLesValeurs(port: Pick<PortDeLecture, 'importVariableByKeyAsync'>, cles: readonly string[]): Promise<Record<string, ValeurDeLibrary>> {
+  const rendues: Record<string, ValeurDeLibrary> = {};
+  await parLots([...new Set(cles)], CONCURRENCE, async (cle) => {
+    try {
+      const convertie = convertirVariable(await port.importVariableByKeyAsync(cle));
+      rendues[cle] = convertie ?? { illisible: 'Le type de cette variable n’est pas pris en charge.' };
+    } catch (erreur) {
+      rendues[cle] = { illisible: messageDErreur(erreur) };
+    }
+  }, () => false);
+  return rendues;
 }
 
 /** Lit la collection de base d'une extension quand elle manque au lot : elle peut être distante. */
