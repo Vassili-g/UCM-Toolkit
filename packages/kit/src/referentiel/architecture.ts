@@ -1,11 +1,11 @@
 /**
- * Les collections UCM et les formes de leurs chemins, hors propriétés propres aux composants.
+ * Les collections UCM et les formes de leurs chemins, y compris celles des composants.
  *
  * Après une modification : relancer `npm test`, régénérer la vue illustrée (`generer-donnees-referentiel.ts`) (elle en tire les collections et leurs cibles), et changer la version du kit.
  */
 import { NIVEAUX_D_ELEVATION_DU_THEME, VARIABLES_DE_PALETTE, VARIABLES_DU_NEUTRE, VARIABLES_GLOBALES } from '../emplois/dossiers.js';
 import type { Registre } from './termes.js';
-import { NUMEROS_DE_PALETTE, PROFILS, REGISTRE_CRANS, REGISTRE_MODES, REGISTRE_PROFILS, REGISTRE_STATUTS, REGISTRE_TAILLES } from './vocabulaire.js';
+import { NUMEROS_DE_PALETTE, PROFILS, REGISTRE_COTES, REGISTRE_CRANS, REGISTRE_ETATS, REGISTRE_MODES, REGISTRE_PROFILS, REGISTRE_ROLES, REGISTRE_STATUTS, REGISTRE_TAILLES } from './vocabulaire.js';
 
 export const COLLECTIONS = ['components', 'theme', 'brands', 'utility', 'primitives', 'layout', 'typography'] as const;
 export type Collection = (typeof COLLECTIONS)[number];
@@ -44,7 +44,10 @@ export const PLACES_DES_THEMES = ['chemin', 'modes'] as const;
 /** Les thèmes Light et Dark : un segment du chemin, ou des modes de la collection. */
 export type PlaceDesThemes = (typeof PLACES_DES_THEMES)[number];
 /** Ce que la grammaire d'un chemin doit connaître de la collection : la place de ses thèmes. */
-export interface ContexteDuChemin { readonly themes: PlaceDesThemes }
+export interface ContexteDuChemin {
+  readonly themes: PlaceDesThemes;
+  readonly axes?: { readonly palette?: readonly string[]; readonly style?: readonly string[]; readonly taille?: readonly string[]; readonly etat?: readonly string[] };
+}
 
 /** Un terme s'écrit seul, ou avec ses formes tolérées que le renommage ramène vers lui. */
 type TermeDeRegistre = string | readonly [string, readonly string[]];
@@ -69,11 +72,12 @@ const PROPRIETES_DE_TEXTE: readonly TermeDeRegistre[] = [
   ['line-height', ['lineheight']], ['letter-spacing', ['letterspacing']],
 ];
 export const FAMILLES_PRIMITIVES = registre('familles-primitives', true, [['color', ['colors', 'colour']], ['dimension', ['dimensions']], ...PROPRIETES_DE_TEXTE]);
-export const FAMILLES_LAYOUT = registre('familles-layout', true, ['sizing', 'radius', 'stroke']);
+export const FAMILLES_LAYOUT = registre('familles-layout', true, ['sizing', 'radius', 'stroke', 'icon']);
 export const FAMILLES_TYPOGRAPHY = registre('familles-typography', true, ['display', 'headline', 'title', 'body', 'label']);
 export const REGISTRE_PALETTES = registre('palettes', true, []);
 export const REGISTRE_MARQUES = registre('marques', true, []);
 export const REGISTRE_VALEURS_DIMENSIONNELLES = registre('valeurs-dimensionnelles', true, ['none', 'full']);
+export const REGISTRE_MESURES_LAYOUT = registre('mesures-layout', false, ['none', 'full']);
 export const REGISTRE_VALEURS_TYPOGRAPHIQUES = registre('valeurs-typographiques', true, ['base']);
 export const REGISTRE_PROPRIETES_TYPOGRAPHIQUES = registre('proprietes-typographiques', false, PROPRIETES_DE_TEXTE);
 export const REGISTRE_COULEURS_ABSOLUES = registre('couleurs-absolues', false, ['white', 'black']);
@@ -82,6 +86,24 @@ export const REGISTRE_DOSSIERS_THEME = registre('dossiers-theme', false, ['solid
 export const REGISTRE_VALEURS_THEME = registre('valeurs-theme', false, [
   ...new Set([...VARIABLES_DE_PALETTE, ...VARIABLES_DU_NEUTRE, ...VARIABLES_GLOBALES].flatMap((variable) => variable.split('/').slice(1))),
 ]);
+export const FAMILLES_COMPOSANT = registre('familles-composant', false, ['color', 'size']);
+export const REGISTRE_COMPOSANTS = registre('composants', true, []);
+export const REGISTRE_ELEMENTS_COMPOSANT = registre('elements-composant', true, []);
+export const REGISTRE_PALETTES_COMPOSANT: Registre = {
+  id: 'palettes-composant', extensible: false,
+  termes: [...REGISTRE_STATUTS.termes, ...FAMILLES_BRANDS.termes, FAMILLES_UTILITY.termes.find((terme) => terme.id === 'neutral')!],
+};
+/** Les styles supplémentaires viennent des valeurs d'axe lues dans le composant. */
+export const REGISTRE_STYLES_COMPOSANT = registre('styles-composant', true, []);
+export const REGISTRE_PROPRIETES_COMPOSANT = registre('proprietes-composant', false, [
+  'padding', 'gap', 'width', 'height', 'border-width', 'radius', 'icon-size',
+  ...['padding', 'gap', 'border-width'].flatMap((base) => REGISTRE_COTES.termes.map((cote) => `${base}-${cote.id}`)),
+]);
+/** Ces registres n'entrent pas dans le vocabulaire des autres collections de Nomenclature. */
+export const REGISTRES_COMPOSANTS: readonly Registre[] = [
+  FAMILLES_COMPOSANT, REGISTRE_COMPOSANTS, REGISTRE_ELEMENTS_COMPOSANT,
+  REGISTRE_PALETTES_COMPOSANT, REGISTRE_STYLES_COMPOSANT, REGISTRE_PROPRIETES_COMPOSANT,
+];
 export const REGISTRES_ARCHITECTURE: readonly Registre[] = [
   FAMILLES_BRANDS, FAMILLES_UTILITY, FAMILLES_PRIMITIVES, FAMILLES_LAYOUT, FAMILLES_TYPOGRAPHY,
   REGISTRE_PALETTES, REGISTRE_MARQUES, REGISTRE_VALEURS_DIMENSIONNELLES, REGISTRE_VALEURS_TYPOGRAPHIQUES,
@@ -97,15 +119,17 @@ export const AXES_DES_COLLECTIONS = {
 /** Ce qu'un segment est dans le chemin d'une variable. */
 export type RoleDeSegment =
   | 'famille' | 'palette' | 'intensite' | 'theme' | 'cran' | 'couleur-absolue'
-  | 'niveau' | 'dossier' | 'valeur' | 'taille' | 'propriete';
+  | 'niveau' | 'dossier' | 'valeur' | 'taille' | 'propriete'
+  | 'composant' | 'element' | 'style' | 'etat' | 'role';
 
 export type PositionDeChemin = {
   readonly registre: Registre;
   readonly role: RoleDeSegment;
   readonly valeurs?: readonly string[];
   readonly exclues?: readonly string[];
+  readonly facultative?: true;
 };
-export type IdentifiantDeForme = `${Exclude<Collection, 'components'>}:${string}`;
+export type IdentifiantDeForme = `${Collection}:${string}`;
 export type FormeDeChemin = {
   /** Le nom de la collection, puis chaque position : sa valeur quand elle n'en admet qu'une, sinon son rôle. */
   readonly id: IdentifiantDeForme;
@@ -114,11 +138,11 @@ export type FormeDeChemin = {
   readonly themes?: PlaceDesThemes;
 };
 
-function position(registre: Registre, role: RoleDeSegment, valeurs?: readonly string[], exclues?: readonly string[]): PositionDeChemin {
-  return { registre, role, ...(valeurs ? { valeurs } : {}), ...(exclues ? { exclues } : {}) };
+function position(registre: Registre, role: RoleDeSegment, valeurs?: readonly string[], exclues?: readonly string[], facultative?: true): PositionDeChemin {
+  return { registre, role, ...(valeurs ? { valeurs } : {}), ...(exclues ? { exclues } : {}), ...(facultative ? { facultative } : {}) };
 }
 
-function forme(collection: Exclude<Collection, 'components'>, positions: readonly PositionDeChemin[], themes?: PlaceDesThemes): FormeDeChemin {
+function forme(collection: Collection, positions: readonly PositionDeChemin[], themes?: PlaceDesThemes): FormeDeChemin {
   const id = `${collection}:${positions.map((place) => (place.valeurs?.length === 1 ? place.valeurs[0] : place.role)).join('/')}` as IdentifiantDeForme;
   return { id, positions, ...(themes ? { themes } : {}) };
 }
@@ -150,10 +174,34 @@ function finsDuTheme(): (readonly PositionDeChemin[])[] {
 const palettesDuTheme: (readonly PositionDeChemin[])[] = [[paletteDeMarque], [neutre], [statut, profil]];
 
 /**
- * Chaque forme porte un nombre exact de positions ; seules les positions extensibles admettent un segment supplémentaire au vocabulaire.
- * L'ordre compte : la reconnaissance garde la première forme qui convient.
+ * Les formes de `components` portent des positions facultatives. Les autres gardent un nombre exact de positions.
+ * L'ordre compte pour les formes sans ambiguïté.
  */
-export const FORMES_DES_CHEMINS: Readonly<Record<Exclude<Collection, 'components'>, readonly FormeDeChemin[]>> = {
+export const FORMES_DES_CHEMINS: Readonly<Record<Collection, readonly FormeDeChemin[]>> = {
+  components: [
+    {
+      id: 'components:color',
+      positions: [
+        position(REGISTRE_COMPOSANTS, 'composant'), position(FAMILLES_COMPOSANT, 'famille', ['color']),
+        position(REGISTRE_ELEMENTS_COMPOSANT, 'element', undefined, undefined, true),
+        position(REGISTRE_PALETTES_COMPOSANT, 'palette', undefined, undefined, true),
+        position(REGISTRE_STYLES_COMPOSANT, 'style', undefined, undefined, true),
+        position(REGISTRE_TAILLES, 'taille', undefined, undefined, true),
+        position(REGISTRE_ETATS, 'etat', undefined, undefined, true),
+        position(REGISTRE_ROLES, 'role'),
+      ],
+    },
+    {
+      id: 'components:size',
+      positions: [
+        position(REGISTRE_COMPOSANTS, 'composant'), position(FAMILLES_COMPOSANT, 'famille', ['size']),
+        position(REGISTRE_ELEMENTS_COMPOSANT, 'element', undefined, undefined, true),
+        position(REGISTRE_TAILLES, 'taille', undefined, undefined, true),
+        position(REGISTRE_ETATS, 'etat', undefined, undefined, true),
+        position(REGISTRE_PROPRIETES_COMPOSANT, 'propriete'),
+      ],
+    },
+  ],
   brands: [
     forme('brands', [position(FAMILLES_BRANDS, 'famille', ['identity']), paletteDeMarque]),
     forme('brands', [paletteDeMarque, theme, cran]),
@@ -173,7 +221,11 @@ export const FORMES_DES_CHEMINS: Readonly<Record<Exclude<Collection, 'components
     forme('primitives', [position(FAMILLES_PRIMITIVES, 'famille', ['dimension']), position(REGISTRE_VALEURS_DIMENSIONNELLES, 'valeur')]),
     forme('primitives', [position(FAMILLES_PRIMITIVES, 'famille', ['font-family', 'font-weight', 'font-size', 'line-height', 'letter-spacing']), position(REGISTRE_VALEURS_TYPOGRAPHIQUES, 'valeur')]),
   ],
-  layout: [forme('layout', [position(FAMILLES_LAYOUT, 'famille'), position(REGISTRE_VALEURS_DIMENSIONNELLES, 'valeur')])],
+  layout: [
+    forme('layout', [position(FAMILLES_LAYOUT, 'famille', ['icon']), position(REGISTRE_TAILLES, 'taille')]),
+    forme('layout', [position(FAMILLES_LAYOUT, 'famille', ['sizing']), position(REGISTRE_MESURES_LAYOUT, 'valeur')]),
+    forme('layout', [position(FAMILLES_LAYOUT, 'famille', undefined, ['sizing', 'icon']), position(REGISTRE_VALEURS_DIMENSIONNELLES, 'valeur')]),
+  ],
   typography: [forme('typography', [position(FAMILLES_TYPOGRAPHY, 'famille'), position(REGISTRE_TAILLES, 'taille'), position(REGISTRE_PROPRIETES_TYPOGRAPHIQUES, 'propriete')])],
   theme: [
     ...palettesDuTheme.flatMap((prefixe) => finsDuTheme().map((fin) => forme('theme', [...prefixe, ...fin]))),
