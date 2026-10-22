@@ -354,7 +354,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   candidat absent ou multiple → question ; collections reconnues par la
   déclaration UCM, sans association manuelle ; un test positif et un négatif
   par règle.
-- [ ] **K4 · Contraste et accessibilité.** Vague 4 · K0, note N2.
+- [~ Claude 2] **K4 · Contraste et accessibilité.** Vague 4 · K0, note N2.
   Écrit : `kit/src/controles/accessibilite.ts`.
   Maquette : `x-alert`, `x-button`.
   Fait quand : seuils du §2, sans arrondi ; un grand texte à 3,9:1 passe en AA
@@ -1160,6 +1160,9 @@ Choix faits sans le mainteneur :
   jeton, résultat complete, partielle ou annulee) à côté de
   `handleExportComponent`, inchangé ; un contrat partiel ne s'écrit jamais
   · réversible : oui.
+- Q-34 · K4 · Reprise · K4 est pris par Claude dans l'arbre partagé pour
+  avancer B9 et U7 pendant que Codex fait K3, K8 et K5 ; son commit porte
+  son lot V · réversible : oui.
 
 ## 10. Hors du plan
 
