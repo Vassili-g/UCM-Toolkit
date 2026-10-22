@@ -5,7 +5,7 @@
  * `handleExportComponent` applique les lois à chaque contrat produit : un
  * fichier de test qui l'importe y soumet ses scénarios sans rien ajouter.
  */
-import exporterLeComposant from '../../src/contract/exportComponent';
+import exporterLeComposant from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import {
   verifierLaSerialisation,
   verifierLeLecteur,

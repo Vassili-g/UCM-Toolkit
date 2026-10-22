@@ -2,7 +2,7 @@
  * La portée d'une analyse : ce que `handleExportComponent` garde le temps d'un
  * export, et oublie à la fin.
  *
- * Aucune signature de `src/contract/` ne transporte ces mémoires : chaque
+ * Aucune signature de `src/composant/contract/` ne transporte ces mémoires : chaque
  * fonction qui en profite les lit ici, et une fonction appelée hors de toute
  * portée calcule sans mémoire. Le résultat est le même dans les deux cas ; seul
  * le nombre d'allers-retours vers Figma change.

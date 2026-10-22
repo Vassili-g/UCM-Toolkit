@@ -8,9 +8,9 @@ import {
   iconPolicyFromVisibility,
   ruleTagFromValue,
   rulesContainerOwner,
-} from '../src/contract/extractRules';
-import { nomsDeLaPage } from '../src/contract/composedComponents';
-import { localisationsDe } from '../src/contract/localisation';
+} from 'ucm-plugin-socle/src/composant/contract/extractRules';
+import { nomsDeLaPage } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
+import { localisationsDe } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 test('ruleTagFromValue reconnaît @boolean comme les autres variantes de règle', () => {
   assert.equal(ruleTagFromValue('@boolean'), 'boolean');

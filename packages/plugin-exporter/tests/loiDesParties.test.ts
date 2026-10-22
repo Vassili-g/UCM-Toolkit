@@ -7,10 +7,11 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import type { PointACorriger } from '../src/contract/localisation';
+import type { PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE = path.join(racine, 'src');
+const COMPOSANT = path.join(racine, '..', 'plugin-socle', 'src', 'composant');
 const AUTORITE = path.join('contract', 'localisation.ts');
 
 /**
@@ -41,7 +42,7 @@ function fichiersSource(dossier: string): string[] {
 }
 
 test('un message ne s’écrit jamais directement dans un canal de diagnostics', () => {
-  const fichiers = fichiersSource(SOURCE);
+  const fichiers = [...fichiersSource(SOURCE), ...fichiersSource(COMPOSANT)];
   assert.ok(fichiers.length > 20, `seulement ${fichiers.length} fichiers balayés`);
 
   const motif = new RegExp(String.raw`\b(?:${CANAUX.join('|')})\.push\(`);
@@ -70,7 +71,7 @@ test('un message ne s’écrit jamais directement dans un canal de diagnostics',
     fautifs,
     [],
     `${fautifs.length} site(s) écrivent un message dans un canal sans passer par `
-      + `src/contract/localisation.ts, donc sans dire ce qui manque, ce que ça coûte et quel `
+      + `plugin-socle/src/composant/contract/localisation.ts, donc sans dire ce qui manque, ce que ça coûte et quel `
       + `geste le corrige. L'interface ne peut alors qu'afficher un paragraphe :\n`
       + fautifs.map((f) => `  ${f}`).join('\n'),
   );

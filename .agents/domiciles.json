@@ -7,6 +7,7 @@
       "fichier": "packages/plugin-exporter/invariants/portee-du-contrat.md",
       "chemins": [
         "packages/plugin-exporter/src/**",
+        "packages/plugin-socle/src/composant/**",
         "packages/kit/src/format/**"
       ],
       "specs": [
@@ -31,7 +32,7 @@
       "fichier": "packages/plugin-exporter/invariants/tokens-et-variables.md",
       "chemins": [
         "packages/plugin-exporter/src/tokens/**",
-        "packages/plugin-exporter/src/variables.ts",
+        "packages/plugin-socle/src/composant/variables.ts",
         "packages/kit/src/format/names.ts",
         "packages/kit/src/format/tokens.ts",
         "packages/kit/src/format/chemins-de-tokens.ts",
@@ -60,7 +61,7 @@
       "titre": "Couleurs",
       "fichier": "packages/plugin-exporter/invariants/couleurs.md",
       "chemins": [
-        "packages/plugin-exporter/src/contract/colorKeys.ts"
+        "packages/plugin-socle/src/composant/contract/colorKeys.ts"
       ],
       "specs": [
         "docs/format/FORMAT.md#2-tokens-de-variantes",
@@ -96,10 +97,10 @@
       "titre": "Arbre des slots",
       "fichier": "packages/plugin-exporter/invariants/arbre-des-slots.md",
       "chemins": [
-        "packages/plugin-exporter/src/contract/imbriques.ts",
-        "packages/plugin-exporter/src/contract/slotNames.ts",
-        "packages/plugin-exporter/src/contract/structureTree.ts",
-        "packages/plugin-exporter/src/contract/textRendering.ts"
+        "packages/plugin-socle/src/composant/contract/imbriques.ts",
+        "packages/plugin-socle/src/composant/contract/slotNames.ts",
+        "packages/plugin-socle/src/composant/contract/structureTree.ts",
+        "packages/plugin-socle/src/composant/contract/textRendering.ts"
       ],
       "specs": [
         "docs/format/FORMAT.md#6-structure",
@@ -120,11 +121,11 @@
       "titre": "Layout, dimensions et bornes",
       "fichier": "packages/plugin-exporter/invariants/layout.md",
       "chemins": [
-        "packages/plugin-exporter/src/contract/effectStyles.ts",
-        "packages/plugin-exporter/src/contract/extractLayout.ts",
-        "packages/plugin-exporter/src/contract/flexLayout.ts",
-        "packages/plugin-exporter/src/contract/layoutNodes.ts",
-        "packages/plugin-exporter/src/contract/nodeBindings.ts"
+        "packages/plugin-socle/src/composant/contract/effectStyles.ts",
+        "packages/plugin-socle/src/composant/contract/extractLayout.ts",
+        "packages/plugin-socle/src/composant/contract/flexLayout.ts",
+        "packages/plugin-socle/src/composant/contract/layoutNodes.ts",
+        "packages/plugin-socle/src/composant/contract/nodeBindings.ts"
       ],
       "specs": [
         "docs/format/FORMAT.md#3-layout",
@@ -170,7 +171,7 @@
         "packages/adapter-typescript/src/**",
         "packages/kit/src/lecteurs/**",
         "packages/plugin-exporter/src/config.ts",
-        "packages/plugin-exporter/src/contract/localisation.ts",
+        "packages/plugin-socle/src/composant/contract/localisation.ts",
         "packages/plugin-exporter/src/depot.ts",
         "packages/plugin-exporter/src/forges/**",
         "packages/kit/src/format/version.ts",
@@ -218,8 +219,8 @@
       "chemins": [
         "packages/plugin-exporter/src/code.ts",
         "packages/plugin-exporter/src/prevol.ts",
-        "packages/plugin-exporter/src/template/**",
-        "packages/plugin-exporter/src/contract/composedComponents.ts"
+        "packages/plugin-socle/src/composant/template/**",
+        "packages/plugin-socle/src/composant/contract/composedComponents.ts"
       ],
       "specs": [
         "packages/plugin-exporter/SPEC.md#comment-lécriture-range-une-règle"

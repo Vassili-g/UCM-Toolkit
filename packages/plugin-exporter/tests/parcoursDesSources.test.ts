@@ -1,7 +1,7 @@
 /** Le parcours qui cherche un `.componentRules` hors de la page active. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { chercherLaSourceDansLeDocument } from '../src/template/sources';
+import { chercherLaSourceDansLeDocument } from 'ucm-plugin-socle/src/composant/template/sources';
 
 /** Un faux node dont la descendance se parcourt comme dans Figma. */
 function noeud(

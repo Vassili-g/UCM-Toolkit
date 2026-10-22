@@ -16,7 +16,7 @@ import {
   resolveSlotSize,
   resolveTokenName,
   SIDE_KEYS,
-} from '../src/contract/nodeBindings';
+} from 'ucm-plugin-socle/src/composant/contract/nodeBindings';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;
 

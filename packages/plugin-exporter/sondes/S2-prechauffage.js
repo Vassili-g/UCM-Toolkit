@@ -5,9 +5,9 @@
 // Sélectionner un composant à instances et faire défiler le canevas pendant
 // chacun des cinq essais à froid. Un écart supérieur à 100 ms ou un arrêt
 // visible du canevas retire le préchauffage.
-import { indexContractedNames, oublierLIndexDuDocument } from '../src/contract/composedComponents';
-import { dansUnePorteeDAnalyse } from '../src/contract/porteeDAnalyse';
-import { ouvrirLaMesure, fermerLaMesure, abandonnerLaMesure } from '../src/contract/mesure';
+import { indexContractedNames, oublierLIndexDuDocument } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
+import { dansUnePorteeDAnalyse } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
+import { ouvrirLaMesure, fermerLaMesure, abandonnerLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 
 (async () => {
   const racine = figma.currentPage.selection[0];

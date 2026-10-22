@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractIconLayers } from '../src/contract/extractIconLayers';
-import { findLayoutNode } from '../src/contract/layoutNodes';
+import { extractIconLayers } from 'ucm-plugin-socle/src/composant/contract/extractIconLayers';
+import { findLayoutNode } from 'ucm-plugin-socle/src/composant/contract/layoutNodes';
 import { collecterReferences } from '@ucm-kit/core/lecteurs';
-import { mergeIconRules } from '../src/contract/exportComponent';
+import { mergeIconRules } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import type { ContractProp } from '@ucm-kit/core/format';
 
 const layer = (

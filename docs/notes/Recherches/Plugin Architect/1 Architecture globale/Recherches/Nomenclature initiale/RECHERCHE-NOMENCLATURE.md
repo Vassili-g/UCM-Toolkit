@@ -28,8 +28,8 @@ Trois questions en découlent :
 | Mécanisme | Fichier | Ce qu'il fait |
 |---|---|---|
 | Projection Figma vers token | `normalizeName`, [names.ts](../../../../../../../packages/kit/src/format/names.ts) | Met chaque segment en minuscules et remplace les espaces par des tirets |
-| Collision de noms | `VariableIndex.ambiguous`, [variables.ts](../../../../../../../packages/plugin-exporter/src/variables.ts) | Signale deux variables dont les noms donnent le même chemin (`Foo Bar` et `foo-bar`) |
-| Synonymes d'états | `STATE_SELECTORS`, [semantics.ts](../../../../../../../packages/plugin-exporter/src/contract/semantics.ts) | Accepte `hover` et `hovered`, `press` et `pressed`, `focus` et `focused`, `disable` et `disabled` ; un état inconnu produit un avertissement |
+| Collision de noms | `VariableIndex.ambiguous`, [variables.ts](../../../../../../../packages/plugin-socle/src/composant/variables.ts) | Signale deux variables dont les noms donnent le même chemin (`Foo Bar` et `foo-bar`) |
+| Synonymes d'états | `STATE_SELECTORS`, [semantics.ts](../../../../../../../packages/plugin-socle/src/composant/contract/semantics.ts) | Accepte `hover` et `hovered`, `press` et `pressed`, `focus` et `focused`, `disable` et `disabled` ; un état inconnu produit un avertissement |
 | Synonymes de tailles | `SIZE_VALUES`, même fichier | Reconnaît `small`, `medium`, `large`, `big` comme `sm`, `md`, `lg` |
 | Vocabulaire de la table en dossiers | [dossiers.ts](../../../../../../../packages/kit/src/emplois/dossiers.ts) | Fixe les noms `solid`, `surface`, `page`, `default`, `hover`, `pressed`, `foreground`, `border`, `focus`, `disabled` |
 | Profil UCM de l'explorateur | [profilUcm.ts](../../../../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts) | Quatre règles d'architecture en information, activées par le designer, avec des exceptions par fichier |

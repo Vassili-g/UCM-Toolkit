@@ -5,8 +5,8 @@ import {
   findWrapperReference,
   getVariantValues,
   groupComponentsByVariant,
-} from '../src/contract/componentTree';
-import { extractContractPropertyModel } from '../src/contract/parsers';
+} from 'ucm-plugin-socle/src/composant/contract/componentTree';
+import { extractContractPropertyModel } from 'ucm-plugin-socle/src/composant/contract/parsers';
 
 function fakeComponent(name: string, variantProperties?: Record<string, string>): ComponentNode {
   return { name, variantProperties } as unknown as ComponentNode;

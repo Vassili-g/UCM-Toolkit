@@ -8,8 +8,8 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractStructure } from '../src/contract/extractStructure';
-import { electVariantLayoutNodes, findLayoutNode } from '../src/contract/layoutNodes';
+import { extractStructure } from 'ucm-plugin-socle/src/composant/contract/extractStructure';
+import { electVariantLayoutNodes, findLayoutNode } from 'ucm-plugin-socle/src/composant/contract/layoutNodes';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;
 

@@ -25,7 +25,7 @@ import {
 import { nombreDeRegles } from './modele';
 import type { ElementDeModele, ModeleDeRegles, SectionDeModele } from './modele';
 import type { SourcesDeCreation } from './sources';
-import type { Annonce } from '../messages';
+import type { Annonce } from '../annonce';
 
 /** Nom du slot qui porte les sections d'un conteneur. */
 const SLOT_DES_SECTIONS = 'Sections-Wrapper';

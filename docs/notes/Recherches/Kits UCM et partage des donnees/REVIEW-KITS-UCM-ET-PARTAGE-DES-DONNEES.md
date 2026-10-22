@@ -354,9 +354,9 @@ Les liens pointent vers les fichiers de production et les contrôles qui étayen
 [calcul-nommage]: ../../../../packages/kit/src/nommage/calcul.ts
 [socle-readme]: ../../../../packages/plugin-socle/README.md
 [regles-plugin]: ../../../../packages/plugin-nomenclature/src/regles.ts
-[semantics]: ../../../../packages/plugin-exporter/src/contract/semantics.ts
-[extract-rules]: ../../../../packages/plugin-exporter/src/contract/extractRules.ts
-[modele-regles]: ../../../../packages/plugin-exporter/src/template/modele.ts
+[semantics]: ../../../../packages/plugin-socle/src/composant/contract/semantics.ts
+[extract-rules]: ../../../../packages/plugin-socle/src/composant/contract/extractRules.ts
+[modele-regles]: ../../../../packages/plugin-socle/src/composant/template/modele.ts
 [kit-regles]: ../../../guides/KIT-DE-REGLES.md
 [test-unicite]: ../../../../tests/referentielUnique.test.ts
 [test-monorepo]: ../../../../tests/monorepoCoherent.test.mjs

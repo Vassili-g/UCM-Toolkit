@@ -4,18 +4,18 @@
  * Rôle : afficher l'UI, écouter ses demandes d'export, lancer le bon
  * handler et lui renvoyer le fichier produit ou l'erreur.
  */
-import { IndexModifie, oublierLaPage } from './contract/composedComponents';
+import { IndexModifie, oublierLaPage } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
 import { MARQUEUR_A_COMPLETER } from '@ucm-kit/core/referentiel';
-import { extractRules, hasUsableRules } from './contract/extractRules';
-import { pointsDesImbriques } from './contract/imbriques';
-import type { PointACorriger } from './contract/localisation';
-import type { ExtractedRules, ReleveDeSource } from './contract/extractRules';
-import handleExportComponent, { ETAPES_DE_L_ANALYSE, getSelectedComponent } from './contract/exportComponent';
+import { extractRules, hasUsableRules } from 'ucm-plugin-socle/src/composant/contract/extractRules';
+import { pointsDesImbriques } from 'ucm-plugin-socle/src/composant/contract/imbriques';
+import type { PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
+import type { ExtractedRules, ReleveDeSource } from 'ucm-plugin-socle/src/composant/contract/extractRules';
+import handleExportComponent, { ETAPES_DE_L_ANALYSE, getSelectedComponent } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import {
   abandonnerLaMesure, avancementCourant, compter, etape, fermerLaMesure, ouvrirLaMesure,
   retenirLeMaximum,
-} from './contract/mesure';
-import type { EtapePrevue } from './contract/mesure';
+} from 'ucm-plugin-socle/src/composant/contract/mesure';
+import type { EtapePrevue } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { CONTRACT_VERSION } from '@ucm-kit/core/format';
 import handleExportTokens, { annonceDuFormat, etatDesTokensDuFichier } from './tokens/exportTokens';
 import {
@@ -48,13 +48,14 @@ import {
   chercherLaSourceDansLeDocument,
   offreDeCreation,
   resoudreLesSources,
-} from './template/sources';
-import type { Offre } from './template/sources';
-import { modeleDeRegles, restreindreAuParent } from './template/modele';
-import type { ContratLu } from './template/modele';
-import { extractContractPropertyModel } from './contract/parsers';
-import { creerLesRegles } from './template/ecriture';
-import type { Annonce, PluginMessage, Provenance, UiRequest } from './messages';
+} from 'ucm-plugin-socle/src/composant/template/sources';
+import type { Offre } from 'ucm-plugin-socle/src/composant/template/sources';
+import { modeleDeRegles, restreindreAuParent } from 'ucm-plugin-socle/src/composant/template/modele';
+import type { ContratLu } from 'ucm-plugin-socle/src/composant/template/modele';
+import { extractContractPropertyModel } from 'ucm-plugin-socle/src/composant/contract/parsers';
+import { creerLesRegles } from 'ucm-plugin-socle/src/composant/template/ecriture';
+import type { PluginMessage, Provenance, UiRequest } from './messages';
+import type { Annonce } from 'ucm-plugin-socle/src/composant/annonce';
 import {
   etatDeCarte,
   etatDeConnexion,

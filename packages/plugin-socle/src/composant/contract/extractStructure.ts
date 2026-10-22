@@ -28,7 +28,7 @@ import { declarerLesRacinesDeVariants, pousserSansNode } from './localisation';
 import { avancer, etape } from './mesure';
 import { respirerSiBesoin } from './porteeDAnalyse';
 import type { DiscoveredRoles } from './semantics';
-import type { Annonce } from '../messages';
+import type { Annonce } from '../annonce';
 import type {
   ComposedDependency,
   ContractStructure,

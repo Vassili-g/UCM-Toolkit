@@ -7,8 +7,8 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { contientUneInstanceRendue, getAllNodes } from '../src/contract/exportableNodes';
-import { localisationsDe } from '../src/contract/localisation';
+import { contientUneInstanceRendue, getAllNodes } from 'ucm-plugin-socle/src/composant/contract/exportableNodes';
+import { localisationsDe } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;
 

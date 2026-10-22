@@ -10,7 +10,7 @@ import {
   elideNeutrals,
   estProtege,
   isNeutral,
-} from '../src/contract/elideNeutrals';
+} from 'ucm-plugin-socle/src/composant/contract/elideNeutrals';
 
 test('les trois écritures du vide disparaissent', () => {
   assert.deepEqual(

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { resolveColorKeys, tokenKey } from '../src/contract/colorKeys';
+import { resolveColorKeys, tokenKey } from 'ucm-plugin-socle/src/composant/contract/colorKeys';
 
 test('tokenKey lit le dernier segment', () => {
   assert.equal(tokenKey('components.button.colors.primary.default.background'), 'background');

@@ -8,10 +8,10 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import exporterLeComposant, { ETAPES_DE_L_ANALYSE } from '../src/contract/exportComponent';
-import { abandonnerLaMesure, avancementCourant, ouvrirLaMesure } from '../src/contract/mesure';
-import type { Avancement } from '../src/contract/mesure';
-import { BUDGET_DE_CALCUL_MS, respirerSiBesoin } from '../src/contract/porteeDAnalyse';
+import exporterLeComposant, { ETAPES_DE_L_ANALYSE } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import { abandonnerLaMesure, avancementCourant, ouvrirLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import type { Avancement } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { BUDGET_DE_CALCUL_MS, respirerSiBesoin } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 import { conteneurDeRegles, handleExportComponent, node } from './aides/figmaFaux';
 import { sansDate } from './aides/parite';
 

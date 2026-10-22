@@ -11,8 +11,8 @@ import {
   pointsDesImbriques,
   releverLesImbriques,
   sousUnImbriqueSansRegles,
-} from '../src/contract/imbriques';
-import type { ReleveDesImbriques } from '../src/contract/imbriques';
+} from 'ucm-plugin-socle/src/composant/contract/imbriques';
+import type { ReleveDesImbriques } from 'ucm-plugin-socle/src/composant/contract/imbriques';
 import { node } from './aides/figmaFaux';
 
 const variante = (options: string[]) => ({

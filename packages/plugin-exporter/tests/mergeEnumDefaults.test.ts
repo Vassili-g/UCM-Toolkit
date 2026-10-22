@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mergeEnumDefaults } from '../src/contract/mergeEnumDefaults';
-import { extractContractProps } from '../src/contract/parsers';
+import { mergeEnumDefaults } from 'ucm-plugin-socle/src/composant/contract/mergeEnumDefaults';
+import { extractContractProps } from 'ucm-plugin-socle/src/composant/contract/parsers';
 import type { ContractProp } from '@ucm-kit/core/format';
 
 /** Un axe dont le premier variant du set n'est pas celui que le designer veut. */

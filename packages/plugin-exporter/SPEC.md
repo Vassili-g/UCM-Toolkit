@@ -1038,7 +1038,7 @@ silence.
 ### Comment l'écriture range une règle
 
 Trois contraintes de l'API Figma, mesurées dans Figma sur un fichier de tests,
-fixent l'ordre de `src/template/ecriture.ts`.
+fixent l'ordre de `plugin-socle/src/composant/template/ecriture.ts`.
 
 **L'id d'un sous-calque d'instance est un chemin** (`I<instance>;<…>`). Ranger
 un node dans un slot change ce chemin. Un handle pris avant ne résout plus, et
@@ -1134,7 +1134,7 @@ six donnent, et sert à rouvrir la question si un fichier passe la dizaine.
 Le point d'un `Button` dont l'axe d'états porte la valeur `Disable` liste
 encore `disabled` parmi ses propriétés non documentées, alors que le template
 ne lui posera aucune règle `@boolean`. Le corriger demande d'exporter la
-projection de `src/template/modele.ts` au lieu de la recopier dans `code.ts`.
+projection de `plugin-socle/src/composant/template/modele.ts` au lieu de la recopier dans `code.ts`.
 
 **Ce que la création ne pose pas.** Aucune règle pour une propriété `TEXT`,
 `SLOT` ou `INSTANCE_SWAP` : la grammaire de FORMAT.md, section 7, n'a pas de tag
@@ -1143,7 +1143,7 @@ que l'analyse signale comme non déclarés. Un conteneur existant n'est jamais
 complété : une propriété ajoutée au composant après la création attend une
 règle écrite à la main.
 
-L'écriture vit dans un seul fichier, `src/template/ecriture.ts`, atteint par
+L'écriture vit dans un seul fichier, `plugin-socle/src/composant/template/ecriture.ts`, atteint par
 une seule porte, la demande `creer-regles`. `loiDuDocumentIntact.test.ts`
 l'exclut nommément de son balayage et refuse à tout autre fichier du moteur
 d'importer l'écriture, ou de poser un appel qui écrirait.
@@ -1180,7 +1180,7 @@ sous-entendu.
 
 **La frontière que cette décision ne déplace pas.** Créer, renommer, déplacer,
 supprimer un node, écrire une variable ou un style : tout cela reste interdit
-partout ailleurs que dans `src/template/ecriture.ts`, et
+partout ailleurs que dans `plugin-socle/src/composant/template/ecriture.ts`, et
 `loiDuDocumentIntact.test.ts` le refuse en lisant la source. La différence est
 celle entre regarder et écrire, non une affaire de degré, et la création des
 règles est la seule exception, nommée dans la loi.

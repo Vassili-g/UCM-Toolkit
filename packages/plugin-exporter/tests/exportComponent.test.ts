@@ -19,7 +19,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { componentContractFilename, mergeWrapperProps, handleExportComponent as exporterCible } from '../src/contract/exportComponent';
+import { componentContractFilename, mergeWrapperProps, handleExportComponent as exporterCible } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { collecterReferences } from '@ucm-kit/core/lecteurs';
 import { verifierLesLois } from './lois';
 import { conteneurDeRegles, handleExportComponent, node, regle } from './aides/figmaFaux';

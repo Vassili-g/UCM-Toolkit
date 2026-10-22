@@ -7,10 +7,10 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractStructure } from '../src/contract/extractStructure';
+import { extractStructure } from 'ucm-plugin-socle/src/composant/contract/extractStructure';
 import { collecterReferences } from '@ucm-kit/core/lecteurs';
-import { extractSizeDimensions, findSizeRepresentatives } from '../src/contract/extractSizes';
-import { electSizeVariantLayoutNodes } from '../src/contract/layoutNodes';
+import { extractSizeDimensions, findSizeRepresentatives } from 'ucm-plugin-socle/src/composant/contract/extractSizes';
+import { electSizeVariantLayoutNodes } from 'ucm-plugin-socle/src/composant/contract/layoutNodes';
 
 /**
  * Même élection que la production : `layoutNodes.ts` élit pour les seuls

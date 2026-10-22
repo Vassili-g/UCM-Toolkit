@@ -39,7 +39,7 @@ import { buildStateModel, renderingSemanticsFor } from './semantics';
 import { indexVariables, VariableNameResolver } from '../variables';
 import { codeIdentifier } from '@ucm-kit/core/format';
 import { CONTRACT_VERSION } from '@ucm-kit/core/format';
-import type { Annonce } from '../messages';
+import type { Annonce } from '../annonce';
 import type {
   ChildStructure,
   ComposedDependency,

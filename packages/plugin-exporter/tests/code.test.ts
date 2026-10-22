@@ -12,14 +12,14 @@ import * as connexion from '../src/connexion';
 import * as cible from '../src/cible';
 import * as fenetre from '../src/fenetre';
 import * as prevol from '../src/prevol';
-import * as sources from '../src/template/sources';
-import * as modele from '../src/template/modele';
-import * as imbriques from '../src/contract/imbriques';
-import * as mesure from '../src/contract/mesure';
-import { IndexModifie } from '../src/contract/composedComponents';
+import * as sources from 'ucm-plugin-socle/src/composant/template/sources';
+import * as modele from 'ucm-plugin-socle/src/composant/template/modele';
+import * as imbriques from 'ucm-plugin-socle/src/composant/contract/imbriques';
+import * as mesure from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { IndexModifie } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
 import * as termes from '../src/forges/termes';
-import type { ReleveDeSource } from '../src/contract/extractRules';
-import type { ModeleDeRegles } from '../src/template/modele';
+import type { ReleveDeSource } from 'ucm-plugin-socle/src/composant/contract/extractRules';
+import type { ModeleDeRegles } from 'ucm-plugin-socle/src/composant/template/modele';
 import type { PluginMessage, UiRequest } from '../src/messages';
 
 const source = ts.transpileModule(readFileSync(join(__dirname, '../src/code.ts'), 'utf8'), {
@@ -112,40 +112,40 @@ function ouvrir() {
   const modules: Record<string, unknown> = {
     '@ucm-kit/core/format': format, '@ucm-kit/core/referentiel': referentiel, './config': config, './connexion': connexion,
     './cible': cible, './fenetre': fenetre, './prevol': prevol,
-    './contract/extractRules': {
+    'ucm-plugin-socle/src/composant/contract/extractRules': {
       extractRules: async () => ({ releve: releve.actuel, aRediger: regles.aRediger }),
       hasUsableRules: () => regles.exploitables,
     },
-    './contract/composedComponents': {
+    'ucm-plugin-socle/src/composant/contract/composedComponents': {
       IndexModifie,
       oublierLaPage: (page: unknown) => { appels.pagesOubliees.push(page); },
     },
     // Le vrai texte des points : la création le reprend du moteur.
-    './contract/imbriques': imbriques,
+    'ucm-plugin-socle/src/composant/contract/imbriques': imbriques,
     // Le vrai relevé lit les définitions Figma ; ici la clé publique vaut le
     // nom brut, ce qui suffit à dire quelles props le parent déclare.
-    './contract/parsers': {
+    'ucm-plugin-socle/src/composant/contract/parsers': {
       extractContractPropertyModel: (definitions: Record<string, unknown> | undefined) => {
         appels.relevesDeProps.push(Object.keys(definitions ?? {}));
         return { props: Object.fromEntries(Object.keys(definitions ?? {}).map((c) => [c, {}])) };
       },
     },
-    './template/sources': { ...sources, resoudreLesSources: async () => resolution.traiter() },
-    './template/modele': modele,
-    './template/ecriture': {
+    'ucm-plugin-socle/src/composant/template/sources': { ...sources, resoudreLesSources: async () => resolution.traiter() },
+    'ucm-plugin-socle/src/composant/template/modele': modele,
+    'ucm-plugin-socle/src/composant/template/ecriture': {
       creerLesRegles: async (_composant: unknown, modelePose: ModeleDeRegles) => {
         appels.ecritures += 1;
         appels.modeles.push(modelePose);
         return creation.traiter();
       },
     },
-    './contract/exportComponent': {
+    'ucm-plugin-socle/src/composant/contract/exportComponent': {
       default: handler,
       getSelectedComponent: () => runtime.currentPage.selection[0],
       ETAPES_DE_L_ANALYSE: [{ nom: 'regles', poids: 1 }, { nom: 'structure', poids: 1 }],
     },
     // La vraie trace : le banc joue ses étapes depuis `exporte.traiter`.
-    './contract/mesure': mesure,
+    'ucm-plugin-socle/src/composant/contract/mesure': mesure,
     './tokens/exportTokens': { default: handler, annonceDuFormat: () => null, etatDesTokensDuFichier: async () => { appels.collections += 1; return resumeDesTokens.traiter(); } },
     './forges/forge': { ErreurDeForge: Error },
     './forges/termes': termes,

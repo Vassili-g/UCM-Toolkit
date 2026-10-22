@@ -26,8 +26,8 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import Ajv from 'ajv';
 import { champsInvalidesDuContrat, verdictDeVersion } from '@ucm-kit/core/lecteurs';
-import { estProtege } from '../src/contract/elideNeutrals';
-import { serializeJson } from '../src/contract/serializeJson';
+import { estProtege } from 'ucm-plugin-socle/src/composant/contract/elideNeutrals';
+import { serializeJson } from 'ucm-plugin-socle/src/composant/contract/serializeJson';
 
 /**
  * Le schéma publié par le kit, atteint par sa carte `exports`.

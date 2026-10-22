@@ -4,9 +4,9 @@ import {
   extractVariantTokens,
   getSlotTokens,
   insertVariantLeaf,
-} from '../src/contract/extractVariantTokens';
-import { localisationsDe, partiesDe } from '../src/contract/localisation';
-import { renderingSemanticsFor } from '../src/contract/semantics';
+} from 'ucm-plugin-socle/src/composant/contract/extractVariantTokens';
+import { localisationsDe, partiesDe } from 'ucm-plugin-socle/src/composant/contract/localisation';
+import { renderingSemanticsFor } from 'ucm-plugin-socle/src/composant/contract/semantics';
 import { collecterReferences } from '@ucm-kit/core/lecteurs';
 
 const colorAlias = { type: 'VARIABLE_ALIAS', id: 'color' } as VariableAlias;

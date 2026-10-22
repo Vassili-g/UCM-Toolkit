@@ -9,9 +9,9 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractStructure } from '../src/contract/extractStructure';
-import { extractVariantTokens } from '../src/contract/extractVariantTokens';
-import { mergeIconRules } from '../src/contract/mergeIconRules';
+import { extractStructure } from 'ucm-plugin-socle/src/composant/contract/extractStructure';
+import { extractVariantTokens } from 'ucm-plugin-socle/src/composant/contract/extractVariantTokens';
+import { mergeIconRules } from 'ucm-plugin-socle/src/composant/contract/mergeIconRules';
 import { collecterReferences } from '@ucm-kit/core/lecteurs';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;

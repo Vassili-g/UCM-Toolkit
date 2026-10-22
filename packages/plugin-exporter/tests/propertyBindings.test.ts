@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractPropertyBindings } from '../src/contract/propertyBindings';
+import { extractPropertyBindings } from 'ucm-plugin-socle/src/composant/contract/propertyBindings';
 
 function node(type: string, name: string, children: any[] = [], extra: any = {}): any {
   const self: any = { type, id: `${name}-id`, name, children, ...extra };

@@ -17,12 +17,12 @@ import {
   indexMasterInstances,
   scanComposedMatrix,
   scanComposedInstances,
-} from '../src/contract/composedComponents';
-import { findWrapperReference } from '../src/contract/componentTree';
-import { getAllNodes } from '../src/contract/exportableNodes';
-import { extractLayout } from '../src/contract/extractLayout';
-import type { PlacedDependencies } from '../src/contract/extractLayout';
-import { localisationsDe, partiesDe } from '../src/contract/localisation';
+} from 'ucm-plugin-socle/src/composant/contract/composedComponents';
+import { findWrapperReference } from 'ucm-plugin-socle/src/composant/contract/componentTree';
+import { getAllNodes } from 'ucm-plugin-socle/src/composant/contract/exportableNodes';
+import { extractLayout } from 'ucm-plugin-socle/src/composant/contract/extractLayout';
+import type { PlacedDependencies } from 'ucm-plugin-socle/src/composant/contract/extractLayout';
+import { localisationsDe, partiesDe } from 'ucm-plugin-socle/src/composant/contract/localisation';
 import type { ChildStructure, ComposedDependency } from '@ucm-kit/core/format';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;

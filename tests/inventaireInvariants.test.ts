@@ -183,7 +183,7 @@ const AUTORITES = [
   'sansLienAutomatique()',
   'serializeJson.ts',
   'slotNames.ts',
-  'src/contract/localisation.ts',
+  'plugin-socle/src/composant/contract/localisation.ts',
   'src/depot.ts',
   'src/config.ts',
   'src/forges/github.ts',

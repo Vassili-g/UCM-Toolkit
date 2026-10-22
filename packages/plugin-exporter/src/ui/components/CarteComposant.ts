@@ -2,7 +2,7 @@
 /** Carte de la commande composant et de son résultat. */
 import type { Cible } from '../../cible';
 import type { PluginMessage } from '../../messages';
-import type { Offre } from '../../template/sources';
+import type { Offre } from 'ucm-plugin-socle/src/composant/template/sources';
 import { MAITRES_DU_KIT_DE_REGLES } from '@ucm-kit/core/referentiel';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import type { CarteCommandeUi, OptionsCarteConcrete } from './CarteCommande';

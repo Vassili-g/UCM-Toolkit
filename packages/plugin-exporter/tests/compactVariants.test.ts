@@ -1,7 +1,7 @@
 /** Normalisation des variants : compacte, mais sans aucune fusion. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { compactVariants } from '../src/contract/compactVariants';
+import { compactVariants } from 'ucm-plugin-socle/src/composant/contract/compactVariants';
 import type { ExtractedContractVariant, ExtractedPropertyBinding } from '@ucm-kit/core/format';
 
 const structure = (radius: string | null) => ({

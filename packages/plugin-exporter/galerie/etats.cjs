@@ -274,8 +274,8 @@ const aCreer = (offre, nom = COMPOSANT_LONG, avertissement = SANS_REGLE_LISIBLE)
 const CLIC_CREATION = '.carte-composant .btn-secondary';
 
 /*
- * Les textes de la création des règles, copiés de `src/template/sources.ts`,
- * `src/template/ecriture.ts` et `src/code.ts`. Comme les avertissements
+ * Les textes de la création des règles, copiés de `src/composant/template/sources.ts`,
+ * `src/composant/template/ecriture.ts` et `src/code.ts`. Comme les avertissements
  * ci-dessus, ce sont des échantillons et non une autorité : ils servent à
  * regarder la carte sous la longueur réelle de chaque message.
  *

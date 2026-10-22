@@ -16,7 +16,7 @@ import {
   joinTokenPath,
   variableAliases,
   VariableNameResolver,
-} from '../src/variables';
+} from 'ucm-plugin-socle/src/composant/variables';
 
 const collection = (id: string, name: string) =>
   ({ id, name }) as unknown as VariableCollection;

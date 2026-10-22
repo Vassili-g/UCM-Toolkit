@@ -5,12 +5,12 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import handleExportComponent, { ETAPES_DE_L_ANALYSE } from '../src/contract/exportComponent';
+import handleExportComponent, { ETAPES_DE_L_ANALYSE } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import {
   abandonnerLaMesure, avancementCourant, avancer, compter, empreinteDuContrat, etape, fermerLaMesure,
   ouvrirLaMesure,
   retenirLeMaximum,
-} from '../src/contract/mesure';
+} from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { node } from './aides/figmaFaux';
 import { tempsRestant } from '../src/ui/components/CarteCommande';
 

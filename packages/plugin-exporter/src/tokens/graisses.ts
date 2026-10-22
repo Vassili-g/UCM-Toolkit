@@ -10,7 +10,7 @@
  */
 import { poidsDeGraisse } from '@ucm-kit/core/format';
 
-import { firstVariableAlias } from '../variables';
+import { firstVariableAlias } from 'ucm-plugin-socle/src/composant/variables';
 
 /** Ce que la décision lit : l'index des variables exportées, et leurs collections. */
 export type GrapheDesVariables = {

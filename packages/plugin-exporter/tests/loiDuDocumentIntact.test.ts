@@ -7,6 +7,9 @@ import { fileURLToPath } from 'node:url';
 
 const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE = path.join(racine, 'src');
+/** Le moteur vit dans le socle : le sandbox de l'exporteur et lui sont balayés ensemble. */
+const COMPOSANT = path.join(racine, '..', 'plugin-socle', 'src', 'composant');
+const PAQUETS = path.resolve(racine, '..');
 
 /**
  * Le balayage exclut `src/ui`. L'interface s'exécute dans une iframe où le
@@ -23,11 +26,11 @@ const HORS_SANDBOX = path.join(SOURCE, 'ui');
  * Le seul fichier du moteur qui écrit dans le document.
  *
  * Un dossier entier exclu laisserait un fichier de lecture ajouté plus tard
- * échapper au balayage sans que rien ne le dise : `src/template/modele.ts` et
- * `src/template/sources.ts` restent donc balayés, et c'est ce qui garde
+ * échapper au balayage sans que rien ne le dise : `template/modele.ts` et
+ * `template/sources.ts` du moteur restent donc balayés, et c'est ce qui garde
  * l'écriture dans un seul fichier.
  */
-const FICHIER_QUI_ECRIT = path.join(SOURCE, 'template', 'ecriture.ts');
+const FICHIER_QUI_ECRIT = path.join(COMPOSANT, 'template', 'ecriture.ts');
 
 /**
  * Les appels qui écrivent dans le document, et eux seuls.
@@ -97,13 +100,18 @@ function tousLesFichiers(dossier: string): string[] {
   });
 }
 
+/** Les fichiers du sandbox : les sources de l'exporteur, puis le moteur du socle. */
+function sandbox(lister: (dossier: string) => string[]): string[] {
+  return [...lister(SOURCE), ...lister(COMPOSANT)];
+}
+
 /** Les chemins importés par un fichier, tels qu'ils sont écrits. */
 function importsDe(fichier: string): string[] {
   return [...fs.readFileSync(fichier, 'utf8').matchAll(/from\s+'([^']+)'/g)].map((trouve) => trouve[1]);
 }
 
 test('le moteur n’écrit jamais dans le document Figma', () => {
-  const fichiers = fichiersSource(SOURCE);
+  const fichiers = sandbox(fichiersSource);
   // Une liste vide passerait ce test sans rien contrôler : un dossier renommé
   // désarmerait le filet en silence.
   assert.ok(fichiers.length > 20, `seulement ${fichiers.length} fichiers balayés`);
@@ -122,7 +130,7 @@ test('le moteur n’écrit jamais dans le document Figma', () => {
     `${FICHIER_QUI_ECRIT} n'existe plus : l'exclusion vise le vide`,
   );
   assert.deepEqual(
-    tousLesFichiers(SOURCE).filter((fichier) => !fichiers.includes(fichier)),
+    sandbox(tousLesFichiers).filter((fichier) => !fichiers.includes(fichier)),
     [FICHIER_QUI_ECRIT],
     'un second fichier du moteur est exclu de la loi',
   );
@@ -136,7 +144,7 @@ test('le moteur n’écrit jamais dans le document Figma', () => {
       if (nu.startsWith('*') || nu.startsWith('//') || nu.startsWith('/*')) return;
       for (const { motif, quoi } of ECRITURES) {
         if (!motif.test(ligne)) continue;
-        fautifs.push(`${path.relative(racine, fichier)}:${rang + 1} — ${quoi}`);
+        fautifs.push(`${path.relative(PAQUETS, fichier)}:${rang + 1} — ${quoi}`);
       }
     });
   }
@@ -146,7 +154,7 @@ test('le moteur n’écrit jamais dans le document Figma', () => {
     [],
     `${fautifs.length} appel(s) écriraient dans le document Figma. L'analyse et la `
       + `publication n'y écrivent pas ; un seul geste le fait, la création des règles `
-      + `d'usage, et il vit dans src/template/ecriture.ts. Si cette règle doit changer, `
+      + `d'usage, et il vit dans plugin-socle/src/composant/template/ecriture.ts. Si cette règle doit changer, `
       + `elle se change ici et dans packages/plugin-exporter/SPEC.md, jamais par un appel `
       + `ajouté ailleurs :\n`
       + fautifs.map((f) => `  ${f}`).join('\n'),
@@ -162,7 +170,7 @@ test('le moteur n’écrit jamais dans le document Figma', () => {
  * ajouté dans `depot.ts` passerait la loi ci-dessus, qui ne lit que des appels.
  */
 const SANS_TEMPLATE = [
-  path.join(SOURCE, 'contract'),
+  path.join(COMPOSANT, 'contract'),
   path.join(SOURCE, 'tokens'),
   path.join(SOURCE, 'forges'),
   path.join(SOURCE, 'depot.ts'),
@@ -170,13 +178,13 @@ const SANS_TEMPLATE = [
 ];
 
 test('l’écriture n’est atteignable que par code.ts', () => {
-  const fichiers = tousLesFichiers(SOURCE);
+  const fichiers = sandbox(tousLesFichiers);
   const importeurs = fichiers.filter(
     (fichier) => importsDe(fichier).some((cible) => /(^|\/)template\/ecriture$/.test(cible)),
   );
   assert.deepEqual(
-    importeurs.map((fichier) => path.relative(SOURCE, fichier)),
-    ['code.ts'],
+    importeurs.map((fichier) => path.relative(PAQUETS, fichier)),
+    [path.join('plugin-exporter', 'src', 'code.ts')],
     'un autre fichier que code.ts atteint l’écriture',
   );
 
@@ -196,12 +204,12 @@ test('le template charge une page à la fois, et n’importe rien par clé', () 
   // rapatrie pas par sa clé. Les deux appels sont donc refusés dans tout le
   // dossier, écriture comprise.
   const fautifs: string[] = [];
-  for (const fichier of tousLesFichiers(path.join(SOURCE, 'template'))) {
+  for (const fichier of tousLesFichiers(path.join(COMPOSANT, 'template'))) {
     fs.readFileSync(fichier, 'utf8').split('\n').forEach((ligne, rang) => {
       const nu = ligne.trim();
       if (nu.startsWith('*') || nu.startsWith('//') || nu.startsWith('/*')) return;
       if (/loadAllPagesAsync|importComponentByKeyAsync/.test(ligne)) {
-        fautifs.push(`${path.relative(racine, fichier)}:${rang + 1}`);
+        fautifs.push(`${path.relative(PAQUETS, fichier)}:${rang + 1}`);
       }
     });
   }
@@ -220,17 +228,17 @@ test('le drapeau des calques invisibles se restaure, et aucun await ne le traver
   // asynchrone une fonction appelée depuis ce bloc la laisserait verte. Ce que
   // le bloc appelle est donc gardé court, et nommé dans le commentaire de
   // `sourceDeLaPage` et de `nomsDeLaPage`.
-  const porteurs = tousLesFichiers(SOURCE).filter(
+  const porteurs = sandbox(tousLesFichiers).filter(
     (fichier) => /skipInvisibleInstanceChildren/.test(fs.readFileSync(fichier, 'utf8')),
   );
   assert.deepEqual(
-    porteurs.map((fichier) => path.relative(SOURCE, fichier)).sort(),
+    porteurs.map((fichier) => path.relative(COMPOSANT, fichier)).sort(),
     [path.join('contract', 'composedComponents.ts'), path.join('template', 'sources.ts')],
     'un autre fichier pose skipInvisibleInstanceChildren',
   );
 
   for (const porteur of porteurs) {
-    const nom = path.relative(SOURCE, porteur);
+    const nom = path.relative(COMPOSANT, porteur);
     const source = fs.readFileSync(porteur, 'utf8');
     const pose = source.indexOf('figma.skipInvisibleInstanceChildren = true');
     const restauration = source.indexOf('figma.skipInvisibleInstanceChildren = avant');
@@ -249,12 +257,12 @@ test('l’analyse ne charge jamais tout le document', () => {
   // une, par `PageNode.loadAsync`. Un `loadAllPagesAsync` dans le moteur
   // ferait repayer au designer toutes les pages du fichier à chaque analyse.
   const fautifs: string[] = [];
-  for (const fichier of tousLesFichiers(path.join(SOURCE, 'contract'))) {
+  for (const fichier of tousLesFichiers(path.join(COMPOSANT, 'contract'))) {
     fs.readFileSync(fichier, 'utf8').split('\n').forEach((ligne, rang) => {
       const nu = ligne.trim();
       if (nu.startsWith('*') || nu.startsWith('//') || nu.startsWith('/*')) return;
       if (/loadAllPagesAsync/.test(ligne)) {
-        fautifs.push(`${path.relative(racine, fichier)}:${rang + 1}`);
+        fautifs.push(`${path.relative(PAQUETS, fichier)}:${rang + 1}`);
       }
     });
   }

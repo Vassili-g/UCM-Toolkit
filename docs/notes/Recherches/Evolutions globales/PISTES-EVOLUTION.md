@@ -73,7 +73,7 @@ au build, conformément au concept.
 ### 1.1. Décrire les propriétés visuelles manquantes
 
 **Besoin et appui dans le code.**
-[unsupportedProperties.ts](../../../../packages/plugin-exporter/src/contract/unsupportedProperties.ts)
+[unsupportedProperties.ts](../../../../packages/plugin-socle/src/composant/contract/unsupportedProperties.ts)
 signale les propriétés à effet visuel que le contrat n’écrit pas : effets
 non pris en charge ou sans style, opacité sans variable, mask, peinture non unie,
 blend mode, pointillé, et pour un
@@ -108,7 +108,7 @@ au-delà de la seule extraction Figma.
 ### 1.2. Publier la localisation des diagnostics
 
 **Besoin et appui dans le code.**
-[localisation.ts](../../../../packages/plugin-exporter/src/contract/localisation.ts) conserve
+[localisation.ts](../../../../packages/plugin-socle/src/composant/contract/localisation.ts) conserve
 déjà les cibles Figma et les parties des messages pour l’interface. Le type
 [ContractDiagnostic](../../../../packages/kit/src/format/types.ts) accepte `figma`
 et `contractPath`, et cette information est effectivement portée par le
@@ -147,7 +147,7 @@ permet, `meta.figma.url`, ce qui suffit pour retrouver la source Figma depuis un
 rapport ou un contrôle. Les recherches restantes portent sur la meilleure
 association entre un contrat et une revue externe, pas sur l’existence de la
 traçabilité.
-[Métadonnées de l’export](../../../../packages/plugin-exporter/src/contract/exportComponent.ts),
+[Métadonnées de l’export](../../../../packages/plugin-socle/src/composant/contract/exportComponent.ts),
 [API Figma](https://developers.figma.com/docs/plugins/api/figma/).
 
 **Solutions à comparer.** Un réglage du plugin pourrait recevoir l’URL du
@@ -173,7 +173,7 @@ l’intégration n’aurait pas de bénéfice établi.
 **Besoin et appui dans le code.** Les vues exactes, les grilles et `composes`
 permettent déjà de décrire des assemblages. En revanche,
 [la cible d’export](../../../../packages/plugin-exporter/src/cible.ts) et
-[l’exporteur](../../../../packages/plugin-exporter/src/contract/exportComponent.ts)
+[l’exporteur](../../../../packages/plugin-socle/src/composant/contract/exportComponent.ts)
 n’acceptent que `COMPONENT` et `COMPONENT_SET`. Un écran dessiné comme simple
 `FRAME` n’est pas directement exportable.
 
@@ -198,7 +198,7 @@ Un nouveau format ne serait étudié que pour les manques observés.
 ### 1.5. Diagnostiquer les lenteurs et les échecs de l’exporteur
 
 **Besoin et appui dans le code.** Les lectures et résolutions Figma de
-[l’exporteur](../../../../packages/plugin-exporter/src/contract/exportComponent.ts) peuvent
+[l’exporteur](../../../../packages/plugin-socle/src/composant/contract/exportComponent.ts) peuvent
 être difficiles à reproduire. Les limites de performance connues sont suivies
 dans la [roadmap](../../../../ROADMAP.md#fragilités-connues).
 

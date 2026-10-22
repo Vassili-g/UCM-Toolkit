@@ -12,7 +12,7 @@ import test from 'node:test';
 import { famillesDeTokens } from '../src/tokens/familles';
 import type { GrapheDesVariables, LiaisonsDeTextStyles } from '../src/tokens/familles';
 import { graissesNumeriques } from '../src/tokens/graisses';
-import { indexVariables } from '../src/variables';
+import { indexVariables } from 'ucm-plugin-socle/src/composant/variables';
 import { fichierDeVariables } from './fichierDeVariables';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;

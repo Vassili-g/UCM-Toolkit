@@ -10,7 +10,7 @@ import test from 'node:test';
 
 import { courbeDeToken, dureeDeToken } from '@ucm-kit/core/format';
 import { easingsSansCourbe } from '../src/tokens/mouvement';
-import { indexVariables } from '../src/variables';
+import { indexVariables } from 'ucm-plugin-socle/src/composant/variables';
 import { fichierDeVariables } from './fichierDeVariables';
 
 const bezier = (x1: number, y1: number, x2: number, y2: number) =>

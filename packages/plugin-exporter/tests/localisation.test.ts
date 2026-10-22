@@ -10,7 +10,7 @@ import {
   pousserLocalise,
   reporterLocalisations,
   sujet,
-} from '../src/contract/localisation';
+} from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 const node = (id: string, name: string) => ({ id, name });
 

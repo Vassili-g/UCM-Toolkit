@@ -5,7 +5,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractStructure } from '../src/contract/extractStructure';
+import { extractStructure } from 'ucm-plugin-socle/src/composant/contract/extractStructure';
 import { collecterReferences } from '@ucm-kit/core/lecteurs';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;

@@ -8,9 +8,9 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractLayout } from '../src/contract/extractLayout';
+import { extractLayout } from 'ucm-plugin-socle/src/composant/contract/extractLayout';
 import { collecterReferences } from '@ucm-kit/core/lecteurs';
-import { nestedSlotVisibility } from '../src/contract/slotRelations';
+import { nestedSlotVisibility } from 'ucm-plugin-socle/src/composant/contract/slotRelations';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;
 

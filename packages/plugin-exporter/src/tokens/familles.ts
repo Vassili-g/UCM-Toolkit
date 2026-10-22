@@ -14,7 +14,7 @@
  * autorise encore une liaison dans un autre champ, d'où les conflits relevés
  * à côté. `packages/plugin-exporter/SPEC.md` énumère les règles appliquées ici.
  */
-import { firstVariableAlias } from '../variables';
+import { firstVariableAlias } from 'ucm-plugin-socle/src/composant/variables';
 
 /** Ce que la décision lit : l'index des variables exportées, et leurs collections. */
 export type GrapheDesVariables = {

@@ -13,12 +13,12 @@ const dossier = path.resolve(__dirname, '..');
 const reference = process.argv[2];
 
 function charger(fichier, revision) {
-  const relatif = `packages/plugin-exporter/src/contract/${fichier}.ts`;
+  const relatif = `packages/plugin-socle/src/composant/contract/${fichier}.ts`;
   const source = revision
     ? execFileSync('git', ['show', `${revision}:${relatif}`], { cwd: dossier, encoding: 'utf8' })
-    : readFileSync(path.join(dossier, 'src/contract', `${fichier}.ts`), 'utf8');
+    : readFileSync(path.join(dossier, '../plugin-socle/src/composant/contract', `${fichier}.ts`), 'utf8');
   const sortie = buildSync({
-    stdin: { contents: source, loader: 'ts', resolveDir: path.join(dossier, 'src/contract') },
+    stdin: { contents: source, loader: 'ts', resolveDir: path.join(dossier, '../plugin-socle/src/composant/contract') },
     bundle: true, write: false, platform: 'node', format: 'cjs',
   });
   const module = { exports: {} };

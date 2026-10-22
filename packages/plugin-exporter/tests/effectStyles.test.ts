@@ -7,10 +7,10 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractLayout } from '../src/contract/extractLayout';
-import { extractEffectStyles } from '../src/contract/effectStyles';
-import type { EffectCarrier } from '../src/contract/effectStyles';
-import { localisationsDe } from '../src/contract/localisation';
+import { extractLayout } from 'ucm-plugin-socle/src/composant/contract/extractLayout';
+import { extractEffectStyles } from 'ucm-plugin-socle/src/composant/contract/effectStyles';
+import type { EffectCarrier } from 'ucm-plugin-socle/src/composant/contract/effectStyles';
+import { localisationsDe } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;
 

@@ -7,10 +7,11 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { sujet } from '../src/contract/localisation';
+import { sujet } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE = path.join(racine, 'src');
+const COMPOSANT = path.join(racine, '..', 'plugin-socle', 'src', 'composant');
 const AUTORITE = path.join('contract', 'localisation.ts');
 
 /** Les quatre sujets qui désignent un node, tels que le module les publie. */
@@ -25,7 +26,7 @@ function fichiersSource(dossier: string): string[] {
 }
 
 test('un préfixe de sujet ne s’écrit qu’à un seul endroit du moteur', () => {
-  const fichiers = fichiersSource(SOURCE);
+  const fichiers = [...fichiersSource(SOURCE), ...fichiersSource(COMPOSANT)];
   // Un contrôle qui balaie une liste vide se lit vert sans rien mesurer. Le
   // dire ici évite qu'un déplacement de dossier désarme la loi en silence.
   assert.ok(fichiers.length > 20, `seulement ${fichiers.length} fichiers balayés`);
@@ -46,7 +47,7 @@ test('un préfixe de sujet ne s’écrit qu’à un seul endroit du moteur', () 
     fautifs,
     [],
     `${fautifs.length} site(s) forment un sujet à la main au lieu de passer par `
-      + `src/contract/localisation.ts, donc sans retenir le node que le message désigne :\n`
+      + `plugin-socle/src/composant/contract/localisation.ts, donc sans retenir le node que le message désigne :\n`
       + fautifs.map((f) => `  ${f}`).join('\n'),
   );
 });

@@ -17,10 +17,10 @@ du référentiel.
 | L'état du fond selon l'interaction (repos, survol, appui, focus, désactivé) | `ETAT_DU_FOND`, même fichier | Clés françaises, valeurs anglaises | Palettes |
 | Les sept garanties | `GARANTIES`, [garanties.ts](../../../../../../packages/kit/src/emplois/garanties.ts) | Sans libellé | Palettes, `ucm check` |
 | Libellé de chaque variable de `theme` (`solid/default` : « bouton ») | `LIBELLE_DE_LA_VARIABLE`, catalogues `fr.ts` et `en.ts` de Palettes | Français et anglais | Palettes seul |
-| États reconnus dans un composant et leur sélecteur CSS | `STATE_SELECTORS`, [semantics.ts](../../../../../../packages/plugin-exporter/src/contract/semantics.ts) | Identifiants anglais | Exporteur seul |
+| États reconnus dans un composant et leur sélecteur CSS | `STATE_SELECTORS`, [semantics.ts](../../../../../../packages/plugin-socle/src/composant/contract/semantics.ts) | Identifiants anglais | Exporteur seul |
 | Noms d'axe d'état (`state`, `states`, `status`) | `STATE_AXIS_NAMES`, même fichier | Anglais | Exporteur seul |
 | Tailles reconnues | `SIZE_VALUES`, même fichier | Anglais | Exporteur seul |
-| Tags des règles d'usage | `TAGS_D_INTENTION`, [rulesModel.ts](../../../../../../packages/plugin-exporter/src/contract/rulesModel.ts) | Anglais | Exporteur seul |
+| Tags des règles d'usage | `TAGS_D_INTENTION`, [rulesModel.ts](../../../../../../packages/plugin-socle/src/composant/contract/rulesModel.ts) | Anglais | Exporteur seul |
 | Les cinq couches et leurs cibles | `COUCHES`, `CIBLES_DES_COUCHES`, [profilUcm.ts](../../../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts) | Anglais | Explorateur seul, dans l'onglet Intégrations retiré |
 | Les caractéristiques d'un contrat et leur aide | `CARACTERISTIQUES`, [caracteristiques.mjs](../../../../../../packages/kit/src/lecteurs/caracteristiques.mjs), et [packages/cli/aides/](../../../../../../packages/cli/aides/) | Français | `ucm guide`, un agent |
 

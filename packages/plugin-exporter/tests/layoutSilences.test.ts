@@ -8,9 +8,9 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractLayout } from '../src/contract/extractLayout';
-import { flexItemProperties, gridTrackSizes } from '../src/contract/flexLayout';
-import { findLayoutNode } from '../src/contract/layoutNodes';
+import { extractLayout } from 'ucm-plugin-socle/src/composant/contract/extractLayout';
+import { flexItemProperties, gridTrackSizes } from 'ucm-plugin-socle/src/composant/contract/flexLayout';
+import { findLayoutNode } from 'ucm-plugin-socle/src/composant/contract/layoutNodes';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;
 

@@ -200,14 +200,14 @@ test('un chemin Windows est ramené à des / relatifs', () => {
 });
 
 test("lire rend AGENTS.md, les fichiers du paquet, le domicile et ses specs, triés sans doublon", () => {
-  const { documents } = lire(manifeste, ['packages/plugin-exporter/src/contract/layoutNodes.ts'], {
+  const { documents } = lire(manifeste, ['packages/plugin-socle/src/composant/contract/layoutNodes.ts'], {
     existe: () => true,
     agents,
   });
   assert.deepEqual(documents, [...new Set(documents)].sort());
   assert.ok(documents.includes('AGENTS.md'));
-  assert.ok(documents.includes('packages/plugin-exporter/AGENTS.md'));
-  assert.ok(documents.includes('packages/plugin-exporter/CARTE.md'));
+  assert.ok(documents.includes('packages/plugin-socle/AGENTS.md'));
+  assert.ok(documents.includes('packages/plugin-socle/CARTE.md'));
   assert.ok(documents.includes('packages/plugin-exporter/invariants/layout.md'));
   assert.ok(documents.includes('docs/format/FORMAT.md#3-layout'));
 });

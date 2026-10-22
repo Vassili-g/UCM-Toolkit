@@ -10,11 +10,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   extractVariantSample,
-} from '../src/contract/extractSamples';
-import { extractPropertyBindings } from '../src/contract/propertyBindings';
-import { getAllNodes } from '../src/contract/exportableNodes';
-import { compactVariants } from '../src/contract/compactVariants';
-import { buildContractPropertySurface } from '../src/contract/propertySurface';
+} from 'ucm-plugin-socle/src/composant/contract/extractSamples';
+import { extractPropertyBindings } from 'ucm-plugin-socle/src/composant/contract/propertyBindings';
+import { getAllNodes } from 'ucm-plugin-socle/src/composant/contract/exportableNodes';
+import { compactVariants } from 'ucm-plugin-socle/src/composant/contract/compactVariants';
+import { buildContractPropertySurface } from 'ucm-plugin-socle/src/composant/contract/propertySurface';
 import type { ComposedDependency, ExtractedContractVariant } from '@ucm-kit/core/format';
 
 function node(type: string, id: string, name: string, children: any[] = [], extra: object = {}) {

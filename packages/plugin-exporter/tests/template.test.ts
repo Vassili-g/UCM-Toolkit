@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { Contract } from '@ucm-kit/core/format';
-import { extractRules } from '../src/contract/extractRules';
-import { creerLesRegles } from '../src/template/ecriture';
-import { modeleDeRegles, nombreDeRegles, restreindreAuParent } from '../src/template/modele';
-import type { ModeleDeRegles } from '../src/template/modele';
-import { offreDeCreation, resoudreLesSources } from '../src/template/sources';
+import { extractRules } from 'ucm-plugin-socle/src/composant/contract/extractRules';
+import { creerLesRegles } from 'ucm-plugin-socle/src/composant/template/ecriture';
+import { modeleDeRegles, nombreDeRegles, restreindreAuParent } from 'ucm-plugin-socle/src/composant/template/modele';
+import type { ModeleDeRegles } from 'ucm-plugin-socle/src/composant/template/modele';
+import { offreDeCreation, resoudreLesSources } from 'ucm-plugin-socle/src/composant/template/sources';
 
 type ContratLu = Pick<Contract, 'props' | 'stateModel'>;
 

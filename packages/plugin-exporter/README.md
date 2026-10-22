@@ -136,7 +136,7 @@ seconde demande. Le plugin dit où il a trouvé le même contenu.
   geste ne touche qu'à l'instance de `.componentRules` qu'il pose. L'analyse et
   la publication ne créent, ne renomment, ne déplacent ni ne suppriment aucun
   calque, et n'écrivent ni variable ni style. Un test refuse ces appels partout
-  ailleurs que dans `src/template/ecriture.ts`. Poser la sélection et cadrer la
+  ailleurs que dans `plugin-socle/src/composant/template/ecriture.ts`. Poser la sélection et cadrer la
   vue n'entrent pas dans le fichier
   ([SPEC.md](./SPEC.md#sélectionner-et-cadrer-ne-sont-pas-modifier)).
 - Il ne génère aucun code de production.

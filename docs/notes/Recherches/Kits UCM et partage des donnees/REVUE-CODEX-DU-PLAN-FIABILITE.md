@@ -650,7 +650,7 @@ finale.
 
 [vue]: ../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html
 [names]: ../../../../packages/kit/src/format/names.ts
-[parsers]: ../../../../packages/plugin-exporter/src/contract/parsers.ts
+[parsers]: ../../../../packages/plugin-socle/src/composant/contract/parsers.ts
 [detection]: ../../../../packages/plugin-palettes/src/variables/detection.ts
 [normalisation]: ../../../../packages/kit/src/referentiel/normalisation.ts
 [profil]: ../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts
@@ -682,11 +682,11 @@ finale.
 [chemins]: ../../../../packages/kit/src/format/chemins-de-tokens.ts
 [axes-socle]: ../../../../packages/kit/src/nommage/chemins-publies.ts
 [export-tokens]: ../../../../packages/plugin-exporter/src/tokens/exportTokens.ts
-[semantics]: ../../../../packages/plugin-exporter/src/contract/semantics.ts
+[semantics]: ../../../../packages/plugin-socle/src/composant/contract/semantics.ts
 [diagnostic-contrastes]: ../../../../packages/kit/src/lecteurs/diagnostic-contrastes.mjs
 [regles-partagees]: ../../../../packages/kit/src/protocoles/nommage.ts
 [regles-nomenclature]: ../../../../packages/plugin-nomenclature/src/regles.ts
-[extract-rules]: ../../../../packages/plugin-exporter/src/contract/extractRules.ts
+[extract-rules]: ../../../../packages/plugin-socle/src/composant/contract/extractRules.ts
 [guide-regles]: ../../../guides/KIT-DE-REGLES.md
 [mouvement]: ../../../../packages/plugin-exporter/src/tokens/mouvement.ts
 [parite]: ../../../../packages/adapter-typescript/src/parite.mjs

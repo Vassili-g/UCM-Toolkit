@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mergePropDescriptions } from '../src/contract/mergePropDescriptions';
+import { mergePropDescriptions } from 'ucm-plugin-socle/src/composant/contract/mergePropDescriptions';
 import type { ContractProp, StateModel } from '@ucm-kit/core/format';
 
 /** Modèle d'interaction minimal, tel que `buildStateModel` le produit. */

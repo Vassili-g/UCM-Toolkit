@@ -73,7 +73,7 @@ vocabulaire. Chaque définition est écrite là où un produit en a eu besoin.
 |---|---|---|
 | Dossiers `solid`, `surface`, `page`, états `default`, `hover`, `pressed`, variables de `theme` et leur cran | [dossiers.ts](../../../../../packages/kit/src/emplois/dossiers.ts) | Aperçu de Palettes, spécification Palettes |
 | Les sept garanties de contraste | [garanties.ts](../../../../../packages/kit/src/emplois/garanties.ts) | Carte des garanties de Palettes |
-| États reconnus et leurs variantes (`hover`/`hovered`, `press`/`pressed`) | `STATE_SELECTORS`, [semantics.ts](../../../../../packages/plugin-exporter/src/contract/semantics.ts) | Nulle part |
+| États reconnus et leurs variantes (`hover`/`hovered`, `press`/`pressed`) | `STATE_SELECTORS`, [semantics.ts](../../../../../packages/plugin-socle/src/composant/contract/semantics.ts) | Nulle part |
 | Tailles reconnues (`small` lu comme `sm`) | `SIZE_VALUES`, même fichier | Nulle part |
 | Les cinq couches et les alias permis entre elles | `COUCHES` et `CIBLES_DES_COUCHES`, [profilUcm.ts](../../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts) | Onglet Intégrations |
 | Architecture des collections | [Vue illustrée multi-marques](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle des collections et des rôles |

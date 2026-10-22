@@ -1,9 +1,9 @@
 /** Non-régression du lien TextStyle Figma → tokens → usages par variant. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractVariantTypography, textSlots } from '../src/contract/extractVariantTypography';
-import { extractLayout } from '../src/contract/extractLayout';
-import { findLayoutNode } from '../src/contract/layoutNodes';
+import { extractVariantTypography, textSlots } from 'ucm-plugin-socle/src/composant/contract/extractVariantTypography';
+import { extractLayout } from 'ucm-plugin-socle/src/composant/contract/extractLayout';
+import { findLayoutNode } from 'ucm-plugin-socle/src/composant/contract/layoutNodes';
 import type { ChildStructure } from '@ucm-kit/core/format';
 import { collecterReferences } from '@ucm-kit/core/lecteurs';
 

@@ -20,9 +20,9 @@ import {
   resumeDesTokens,
 } from '../src/tokens/exportTokens';
 import type { ExportContext } from '../src/tokens/exportTokens';
-import { collisionWarnings, indexVariables, VariableNameResolver } from '../src/variables';
-import { phraseDe } from '../src/contract/localisation';
-import { serializeJson } from '../src/contract/serializeJson';
+import { collisionWarnings, indexVariables, VariableNameResolver } from 'ucm-plugin-socle/src/composant/variables';
+import { phraseDe } from 'ucm-plugin-socle/src/composant/contract/localisation';
+import { serializeJson } from 'ucm-plugin-socle/src/composant/contract/serializeJson';
 import { collection, exporterLeFichier, fichierDeVariables, variable } from './fichierDeVariables';
 import type { ProfilColorimetrique } from './fichierDeVariables';
 

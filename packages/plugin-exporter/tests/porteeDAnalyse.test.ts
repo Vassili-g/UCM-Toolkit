@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   BUDGET_DE_CALCUL_MS, dansUnePorteeDAnalyse, maitreDe, respirerSiBesoin,
-} from '../src/contract/porteeDAnalyse';
+} from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 function attente() {
   let terminer!: () => void;

@@ -7,14 +7,14 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { indexMasterInstances } from '../src/contract/composedComponents';
+import { indexMasterInstances } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
 import type {
   DependencyPropertySurface,
   DependencyPropertySurfaces,
   MasterInstanceDefaults,
-} from '../src/contract/composedComponents';
-import { extractVariantSample } from '../src/contract/extractSamples';
-import { buildContractPropertySurface } from '../src/contract/propertySurface';
+} from 'ucm-plugin-socle/src/composant/contract/composedComponents';
+import { extractVariantSample } from 'ucm-plugin-socle/src/composant/contract/extractSamples';
+import { buildContractPropertySurface } from 'ucm-plugin-socle/src/composant/contract/propertySurface';
 import type { ComposedDependency, SampleInstance } from '@ucm-kit/core/format';
 
 type MockNode = SceneNode & {

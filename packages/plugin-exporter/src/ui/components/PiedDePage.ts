@@ -2,7 +2,7 @@
  * Le pied de page : la version de schéma que ce bundle produit, et la durée de
  * la dernière analyse, dépliable étape par étape.
  */
-import type { TraceDeMesure } from '../../contract/mesure';
+import type { TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 
 /** Le libellé de chaque étape de la trace ; une étape inconnue garde son nom. */
 const LIBELLES_DES_ETAPES: Record<string, string> = {

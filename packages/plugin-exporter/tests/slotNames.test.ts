@@ -10,10 +10,10 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractStructure } from '../src/contract/extractStructure';
-import { assignSlots } from '../src/contract/slotNames';
-import { mergeIconRules } from '../src/contract/mergeIconRules';
-import type { IconRule } from '../src/contract/rulesModel';
+import { extractStructure } from 'ucm-plugin-socle/src/composant/contract/extractStructure';
+import { assignSlots } from 'ucm-plugin-socle/src/composant/contract/slotNames';
+import { mergeIconRules } from 'ucm-plugin-socle/src/composant/contract/mergeIconRules';
+import type { IconRule } from 'ucm-plugin-socle/src/composant/contract/rulesModel';
 import type { ContractStructure, IconDefinition } from '@ucm-kit/core/format';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;

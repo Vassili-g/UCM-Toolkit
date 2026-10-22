@@ -14,7 +14,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { PROFONDEUR_DE_DECOUPAGE, serializeJson } from '../src/contract/serializeJson';
+import { PROFONDEUR_DE_DECOUPAGE, serializeJson } from 'ucm-plugin-socle/src/composant/contract/serializeJson';
 
 test('une entrée de collection de premier niveau tient sur une ligne', () => {
   // C'est la promesse faite à la revue de pull request : un variant ajouté, une

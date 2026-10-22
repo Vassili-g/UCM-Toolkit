@@ -5,9 +5,9 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
-import * as composition from '../src/contract/composedComponents';
-import * as portee from '../src/contract/porteeDAnalyse';
-import * as mesure from '../src/contract/mesure';
+import * as composition from 'ucm-plugin-socle/src/composant/contract/composedComponents';
+import * as portee from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
+import * as mesure from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { node, conteneurDeRegles } from './aides/figmaFaux';
 
 test('S2 retrouve les dépendances du moteur et retire ses écoutes après la mesure', async () => {

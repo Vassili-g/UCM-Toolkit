@@ -13,12 +13,12 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractLayout } from '../src/contract/extractLayout';
+import { extractLayout } from 'ucm-plugin-socle/src/composant/contract/extractLayout';
 import {
   MAX_STRUCTURE_DEPTH,
   publishesChildren,
-} from '../src/contract/structureTree';
-import { textSlots } from '../src/contract/extractVariantTypography';
+} from 'ucm-plugin-socle/src/composant/contract/structureTree';
+import { textSlots } from 'ucm-plugin-socle/src/composant/contract/extractVariantTypography';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;
 

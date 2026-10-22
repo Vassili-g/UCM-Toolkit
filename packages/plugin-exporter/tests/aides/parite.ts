@@ -7,8 +7,8 @@
  * qu'on ajoutera.
  */
 import assert from 'node:assert/strict';
-import exporterLeComposant from '../../src/contract/exportComponent';
-import { desactiverLaPorteePourLeBanc } from '../../src/contract/porteeDAnalyse';
+import exporterLeComposant from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import { desactiverLaPorteePourLeBanc } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 /** Le contrat sérialisé, date d'export remplacée par une valeur fixe. */
 export function sansDate(content: string): string {

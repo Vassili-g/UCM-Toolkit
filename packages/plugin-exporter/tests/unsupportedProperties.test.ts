@@ -13,9 +13,9 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { rotationDegrees } from '../src/contract/flexLayout';
-import { unsupportedPropertyWarnings } from '../src/contract/unsupportedProperties';
-import { phraseDe } from '../src/contract/localisation';
+import { rotationDegrees } from 'ucm-plugin-socle/src/composant/contract/flexLayout';
+import { unsupportedPropertyWarnings } from 'ucm-plugin-socle/src/composant/contract/unsupportedProperties';
+import { phraseDe } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 /**
  * La phrase compacte de chaque point, dérivée de ses trois parties.

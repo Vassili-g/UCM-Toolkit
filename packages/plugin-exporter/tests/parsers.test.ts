@@ -6,7 +6,7 @@ import {
   extractContractProps,
   normalizePropKey,
   propByName,
-} from '../src/contract/parsers';
+} from 'ucm-plugin-socle/src/composant/contract/parsers';
 
 test('normalizePropKey retire les identifiants Figma et produit du camelCase', () => {
   assert.equal(normalizePropKey('Icon Position#12:3'), 'iconPosition');

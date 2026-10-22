@@ -38,12 +38,12 @@ import {
   firstVariableAlias,
   indexVariables,
   prefixeDeCollection,
-} from '../variables';
-import type { VariableIndex } from '../variables';
-import { serializeJson } from '../contract/serializeJson';
-import { noterLesParties, partiesDe, pointDe, pousserSansNode } from '../contract/localisation';
-import type { PointACorriger } from '../contract/localisation';
-import type { Annonce } from '../messages';
+} from 'ucm-plugin-socle/src/composant/variables';
+import type { VariableIndex } from 'ucm-plugin-socle/src/composant/variables';
+import { serializeJson } from 'ucm-plugin-socle/src/composant/contract/serializeJson';
+import { noterLesParties, partiesDe, pointDe, pousserSansNode } from 'ucm-plugin-socle/src/composant/contract/localisation';
+import type { PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
+import type { Annonce } from 'ucm-plugin-socle/src/composant/annonce';
 
 /** Ce que la commande renvoie à l'UI : le fichier à télécharger + un bilan. */
 export type TokensExport = {

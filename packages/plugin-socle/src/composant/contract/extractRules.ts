@@ -18,7 +18,7 @@
  *
  * Ce fichier ne fait que lire : le conteneur reste la source de vérité, lu tel
  * quel et reversé dans le contrat. Le geste qui le pose vit dans
- * `src/template/ecriture.ts`, seul fichier du moteur qui écrive dans le
+ * `src/composant/template/ecriture.ts`, seul fichier du moteur qui écrive dans le
  * document.
  */
 import {
@@ -71,7 +71,7 @@ export type { IconRule, RuleEntry, RuleTag, RulesResult } from './rulesModel';
  * designer sent passer.
  *
  * Ce que `extractRules` remplit vient de la page active. Le parcours des
- * sources (`src/template/sources.ts`) rend un relevé de même forme pour une
+ * sources (`src/composant/template/sources.ts`) rend un relevé de même forme pour une
  * autre page, dont `code.ts` ne garde que les deux maîtres : les deux premiers
  * champs décrivent toujours la page active.
  */

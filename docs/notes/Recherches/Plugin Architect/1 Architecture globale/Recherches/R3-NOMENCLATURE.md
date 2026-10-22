@@ -178,7 +178,7 @@ au mainteneur.
 | Source | Termes | Écart |
 |---|---|---|
 | `TABLE_DES_DOSSIERS`, [dossiers.ts](../../../../../../packages/kit/src/emplois/dossiers.ts) | `default`, `hover`, `pressed` ; `disabled/*` | Référence du kit |
-| `STATE_SELECTORS`, [semantics.ts](../../../../../../packages/plugin-exporter/src/contract/semantics.ts) | Accepte `hover`/`hovered`, `focus`/`focused`, `press`/`pressed`, `disable`/`disabled` | Le message d'un état inconnu demande de renommer la valeur « en default, hover, focus, press ou disable » : il recommande `press` et `disable`, que la table du kit n'emploie pas |
+| `STATE_SELECTORS`, [semantics.ts](../../../../../../packages/plugin-socle/src/composant/contract/semantics.ts) | Accepte `hover`/`hovered`, `focus`/`focused`, `press`/`pressed`, `disable`/`disabled` | Le message d'un état inconnu demande de renommer la valeur « en default, hover, focus, press ou disable » : il recommande `press` et `disable`, que la table du kit n'emploie pas |
 | Même fichier | Aucun état de sélection (`selected`, `checked`) | C2 porte `selected`, `selected-true`, `selected-false`, `unselected` |
 | `SIZE_VALUES`, même fichier | `tiny`, `small`, `medium`, `large`, `big`, `huge`, `4xs` à `4xl`, `xxl`, `xxxl` | Reconnaît deux formes de la même échelle sans en recommander une |
 | `LIBELLE_DE_LA_VARIABLE`, [fr.ts](../../../../../../packages/plugin-palettes/src/i18n/fr.ts) | Libellés français des variables de `theme` (`solid/default` : « bouton ») | Propres à Palettes : l'explorateur et `ucm check` n'en ont pas |

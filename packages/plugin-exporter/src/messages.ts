@@ -10,22 +10,13 @@ import type { NomDeForge } from './forges/termes';
 import type { EtatConnexion, EtatDeCarte, EtatDuDepot, ResumeDepot } from './connexion';
 import type { Cible } from './cible';
 import type { CodeVerdict } from './prevol';
-import type { Offre } from './template/sources';
-import type { TraceDeMesure } from './contract/mesure';
-import type { FamilleDePoint } from './contract/famillesDePoint';
+import type { Offre } from 'ucm-plugin-socle/src/composant/template/sources';
+import type { TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import type { FamilleDePoint } from 'ucm-plugin-socle/src/composant/contract/famillesDePoint';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
-/**
- * Annonce une étape sans donner au moteur de dépendance vers l'UI.
- *
- * Le message ne part que lorsque le sandbox rend la main. L'analyse d'un
- * composant la rend aussitôt, et la promesse se résout ensuite : le moteur
- * l'attend pour que le texte paraisse avant le calcul qu'il annonce.
- */
-export type Annonce = (etape: string) => void | Promise<void>;
-
-export { FAMILLES_DE_POINT } from './contract/famillesDePoint';
-export type { FamilleDePoint } from './contract/famillesDePoint';
+export { FAMILLES_DE_POINT } from 'ucm-plugin-socle/src/composant/contract/famillesDePoint';
+export type { FamilleDePoint } from 'ucm-plugin-socle/src/composant/contract/famillesDePoint';
 
 /** Niveau d'une ligne de compte rendu : il décide de sa couleur et de son marqueur. */
 export type LogLevel = 'info' | 'success' | 'error';

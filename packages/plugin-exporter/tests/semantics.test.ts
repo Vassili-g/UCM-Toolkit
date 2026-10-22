@@ -6,7 +6,7 @@ import {
   paintSiteRole,
   renderingSemanticsFor,
   roleKind,
-} from '../src/contract/semantics';
+} from 'ucm-plugin-socle/src/composant/contract/semantics';
 
 test('buildStateModel conserve press et disable et conseille pressed et disabled', () => {
   const warnings: string[] = [];

@@ -5,7 +5,7 @@ import {
   litterauxDuStyle,
   tronqueSansMaxLines,
   usageDuCalque,
-} from '../src/contract/textRendering';
+} from 'ucm-plugin-socle/src/composant/contract/textRendering';
 
 /** Un text style aux valeurs par défaut de Figma. */
 const style = (extra: Record<string, unknown> = {}) => ({
