@@ -121,12 +121,57 @@ test('le thème garde 1000 pour la borne du neutre, et pas pour une palette', ()
   assert.equal(cheminConforme('utility', ['success', 'soft', 'light', '1050']), false);
 });
 
-test('les segments mal formés et les collections sans grammaire sont refusés avec leur raison', () => {
-  assert.deepEqual(reconnaitreLeChemin('components', ['button', 'colors'], { themes: 'chemin' }), { conforme: false, raison: 'collection-sans-grammaire' });
+test('les segments mal formés et les chemins inconnus sont refusés avec leur raison', () => {
+  assert.deepEqual(reconnaitreLeChemin('components', ['button', 'colors'], { themes: 'chemin' }), { conforme: false, raison: 'aucune-forme' });
   for (const [segments, rang] of [
     [['color', '', 'light', '50'], 1], [['color', ' Ocean', 'light', '50'], 1], [['color', 'Oc.ean', 'light', '50'], 1], [['color', 'Ocean', 'light', 'a/b'], 3],
   ] as const) assert.deepEqual(reconnaitreLeChemin('primitives', segments, { themes: 'chemin' }), { conforme: false, raison: 'segment-mal-forme', rang });
   assert.deepEqual(formesReconnues('primitives', ['color', '', 'light', '50'], { themes: 'chemin' }), []);
+});
+
+test('les cas nommés de components gardent les positions présentes', () => {
+  const cas = [
+    ['button/color/primary/contained/hover/background', 'components:color', ['composant', 'famille', 'palette', 'style', 'etat', 'role']],
+    ['button/size/md/padding-x', 'components:size', ['composant', 'famille', 'taille', 'propriete']],
+    ['button/size/medium/padding-x', 'components:size', ['composant', 'famille', 'taille', 'propriete']],
+    ['alert/color/danger/standard/foreground', 'components:color', ['composant', 'famille', 'palette', 'style', 'role']],
+    ['alert/size/gap', 'components:size', ['composant', 'famille', 'propriete']],
+    ['tilelink/color/info/hover/foreground', 'components:color', ['composant', 'famille', 'palette', 'etat', 'role']],
+    ['stresstest/color/head/info/foreground', 'components:color', ['composant', 'famille', 'element', 'palette', 'role']],
+  ] as const;
+  for (const [chemin, forme, roles] of cas) {
+    const segments = chemin.split('/');
+    const reconnu = reconnaitreLeChemin('components', segments, { themes: 'chemin' });
+    assert.equal(reconnu.conforme, true, chemin);
+    if (!reconnu.conforme) continue;
+    assert.equal(reconnu.forme, forme, chemin);
+    assert.deepEqual(reconnu.segments.map((segment) => segment.role), roles, chemin);
+    assert.deepEqual(formesReconnues('components', segments, { themes: 'chemin' }), [forme], chemin);
+  }
+  assert.equal(reconnaitreLeChemin('components', 'stresstest/info/head/color/text'.split('/'), { themes: 'chemin' }).conforme, false);
+});
+
+test('un segment à deux lectures demande les axes du composant', () => {
+  const segments = 'button/color/text/foreground'.split('/');
+  const sansAxes = reconnaitreLeChemin('components', segments, { themes: 'chemin' });
+  assert.equal(sansAxes.conforme, false);
+  if (sansAxes.conforme || sansAxes.raison !== 'ambigu') return assert.fail('deux lectures attendues');
+  assert.deepEqual(sansAxes.lectures.map((lecture) => lecture.segments.map((segment) => segment.role)), [
+    ['composant', 'famille', 'element', 'role'],
+    ['composant', 'famille', 'style', 'role'],
+  ]);
+  const style = reconnaitreLeChemin('components', segments, { themes: 'chemin', axes: { style: ['text'] } });
+  assert.ok(style.conforme);
+  assert.deepEqual(style.segments.map((segment) => segment.role), ['composant', 'famille', 'style', 'role']);
+  const element = reconnaitreLeChemin('components', segments, { themes: 'chemin', axes: { style: ['contained'] } });
+  assert.ok(element.conforme);
+  assert.deepEqual(element.segments.map((segment) => segment.role), ['composant', 'famille', 'element', 'role']);
+});
+
+test('layout distingue la taille d’icône des mesures de sizing', () => {
+  assert.equal(reconnaitreLeChemin('layout', ['icon', 'xl'], { themes: 'chemin' }).conforme, true);
+  assert.equal(reconnaitreLeChemin('layout', ['sizing', 'xl'], { themes: 'chemin' }).conforme, false);
+  assert.equal(reconnaitreLeChemin('layout', ['sizing', '3,5'], { themes: 'chemin' }).conforme, true);
 });
 
 test('une forme sans themes vaut dans les deux contextes', () => {

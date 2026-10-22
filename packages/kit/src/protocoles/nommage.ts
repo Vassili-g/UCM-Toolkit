@@ -1,15 +1,15 @@
 /**
  * Les règles du fichier qui changent un nom : l'écriture des groupes et des variables, les termes du vocabulaire, les termes UCM
- * écartés, les termes ordinaires et les collections exclues. UCM Nomenclature les range dans `ESPACE_ARCHITECT` et UCM Palettes
+ * écartés, les termes ordinaires et les collections exclues. UCM Architect les range dans `ESPACE_ARCHITECT` et UCM Palettes
  * les relit pour nommer ses variables comme lui : ce module porte les clés, leur forme et leur lecture.
  *
  * Une entrée est un JSON qui porte `version: 1`. Une entrée illisible se lit comme absente. Une entrée d'une version plus
  * récente n'entre pas dans le calcul, mais `lireLesEntreesDeNommage` la nomme dans `futures`. Une lecture ne réécrit rien.
  *
- * Le module lit des couples (clé, texte) et ne touche à aucun objet Figma ; l'écriture reste dans UCM Nomenclature
+ * Le module lit des couples (clé, texte) et ne touche à aucun objet Figma ; l'écriture reste dans UCM Architect
  * (`serialiserRegle`), qui construit ses clés avec `cleTerme`, `cleEcart` et `cleOrdinaire`.
  *
- * Après une modification : relancer `npm test`, relancer les tests de Nomenclature et de Palettes, et changer la version du kit.
+ * Après une modification : relancer `npm test`, relancer les tests d'Architect et de Palettes, et changer la version du kit.
  */
 import {
   CATEGORIES_DE_NOM, REGISTRE_CASSES, REGISTRE_SEPARATEURS,
@@ -24,7 +24,7 @@ export const CLE_EXCLUES = 'exclues';
 /** Clé de la convention de la v1, lue seulement quand `ecriture` manque. */
 export const CLE_CONVENTIONS_V1 = 'conventions';
 
-/** La seule définition des préfixes des clés rangées dans Figma ; Nomenclature écrit avec, `lireLesEntreesDeNommage` lit avec. */
+/** La seule définition des préfixes des clés rangées dans Figma ; Architect écrit avec, `lireLesEntreesDeNommage` lit avec. */
 export const PREFIXES_DE_NOMMAGE = { terme: 'terme:', ecart: 'ecart:', ordinaire: 'ordinaire:' } as const;
 
 /** Les entrées de règles ne sont lues qu'à la version 1 : toute version supérieure est future. */
@@ -131,7 +131,7 @@ export interface EntreesDeNommage {
 
 /**
  * Lit les entrées de l'espace qui changent un nom : `ecriture` (à défaut, `conventions` de la v1), `terme:`, `ecart:`,
- * `ordinaire:` et `exclues`. Les autres clés sont ignorées. C'est l'analyseur unique : UCM Nomenclature l'appelle
+ * `ordinaire:` et `exclues`. Les autres clés sont ignorées. C'est l'analyseur unique : UCM Architect l'appelle
  * pour toutes ses règles et UCM Palettes pour les seules qui nomment.
  *
  * Une entrée de nommage d'une version plus récente est rangée dans `futures` et n'entre pas dans le calcul.
@@ -192,7 +192,7 @@ export interface ReglesDeNommage extends ReglesPourLeCalcul { readonly ecriture:
 /**
  * Les règles de nommage d'un fichier, depuis les couples (clé, texte) de l'espace `ESPACE_ARCHITECT`.
  * `null` quand aucune écriture n'est rangée en v2 : la clé `ecriture` manque ou est illisible, ou seule la clé
- * `conventions` de la v1 existe. UCM Nomenclature n'a alors pas fini son premier lancement.
+ * `conventions` de la v1 existe. UCM Architect n'a alors pas fini son premier lancement.
  *
  * `null` aussi quand `ecriture` ou `exclues` vient d'une version plus récente : sans elle, le lecteur ne sait ni comment écrire
  * ni quelles collections laisser. UCM Palettes garde alors la protection de ses variables et son nommage par défaut. Une entrée

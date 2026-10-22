@@ -22,10 +22,10 @@ export const CLES_D_ARCHITECT = {
 export const ESPACE_PARTAGE = 'ucm_palettes';
 /**
  * La marque que Palettes range à la racine de `ESPACE_PARTAGE` : dans ce fichier, il nomme ses variables selon les règles
- * d'UCM Nomenclature. UCM Nomenclature la lit pour cesser de protéger les variables de Palettes.
+ * d'UCM Architect. UCM Architect la lit pour cesser de protéger les variables de Palettes.
  */
 export const CLE_NOMMAGE_DE_PALETTES = 'nommage';
-/** La déclaration de l'architecture du fichier, rangée par Nomenclature à la racine de `ESPACE_ARCHITECT`. */
+/** La déclaration de l'architecture du fichier, rangée par Architect à la racine de `ESPACE_ARCHITECT`. */
 export const CLE_ARCHITECTURE_DU_FICHIER = 'architecture';
 export type ArchitectureDuFichier = 'absente' | 'ucm' | 'libre' | 'illisible' | 'future';
 
@@ -50,7 +50,7 @@ export type DonneeDeProduit = 'composants' | 'variables' | 'recette' | 'planches
 export type DestinationDeProduit = 'document-figma' | 'donnees-partagees-figma' | 'repository' | 'memoire' | 'distribution-plugin';
 export type SortieDeProduit = { readonly donnees: readonly DonneeDeProduit[]; readonly destination: DestinationDeProduit };
 export type Produit = {
-  readonly id: 'exporter' | 'palettes' | 'explorateur' | 'kit' | 'cli' | 'adapter-typescript' | 'couleur' | 'socle' | 'architect';
+  readonly id: 'exporter' | 'palettes' | 'kit' | 'cli' | 'adapter-typescript' | 'couleur' | 'socle' | 'architect';
   readonly libelle: Langues;
   readonly definition: Langues;
   readonly lit: readonly DonneeDeProduit[];
@@ -70,11 +70,6 @@ export const PRODUITS: readonly Produit[] = [
     definition: { fr: 'Calcule les palettes et écrit leur recette, leurs variables primitives et leurs planches dans Figma.', en: 'Computes palettes and writes their recipe, primitive variables and boards to Figma.' },
     lit: ['recette', 'variables', 'planches', 'regles-de-nommage', 'architecture-du-fichier'], execution: 'figma',
     ecrit: [{ donnees: ['recette', 'variables'], destination: 'donnees-partagees-figma' }, { donnees: ['variables', 'planches'], destination: 'document-figma' }],
-  },
-  {
-    id: 'explorateur', libelle: { fr: 'UCM Explorateur', en: 'UCM Explorer' },
-    definition: { fr: 'Présente les variables, les composants et la recette des palettes sans écrire dans le document Figma.', en: 'Displays variables, components and the palette recipe without writing to the Figma document.' },
-    lit: ['variables', 'composants', 'recette'], execution: 'figma', ecrit: [],
   },
   {
     id: 'kit', libelle: { fr: 'UCM Kit', en: 'UCM Kit' },
@@ -105,9 +100,9 @@ export const PRODUITS: readonly Produit[] = [
     lit: ['sources-plugin'], execution: 'pur-et-node', ecrit: [{ donnees: ['bundle-plugin'], destination: 'distribution-plugin' }],
   },
   {
-    id: 'architect', libelle: { fr: 'UCM Nomenclature', en: 'UCM Nomenclature' },
-    definition: { fr: 'Normalise les noms de collections et de variables, puis range les règles de nommage choisies.', en: 'Normalizes collection and variable names, then stores the chosen naming rules.' },
-    lit: ['noms-collections', 'noms-variables', 'regles-de-nommage'], execution: 'figma',
+    id: 'architect', libelle: { fr: 'UCM Architect', en: 'UCM Architect' },
+    definition: { fr: 'Présente les variables, les composants et la recette des palettes ; contrôle leur architecture et normalise les noms de collections et de variables.', en: 'Displays variables, components and the palette recipe; checks their architecture and normalizes collection and variable names.' },
+    lit: ['variables', 'composants', 'recette', 'noms-collections', 'noms-variables', 'regles-de-nommage'], execution: 'figma',
     ecrit: [{ donnees: ['noms-collections', 'noms-variables'], destination: 'document-figma' }, { donnees: ['regles-de-nommage', 'architecture-du-fichier'], destination: 'donnees-partagees-figma' }],
   },
 ];

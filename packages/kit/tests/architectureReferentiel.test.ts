@@ -53,7 +53,7 @@ test('chaque chemin de l’instantané hors components respecte une forme du ré
       assert.ok(cheminConforme(collection as Collection, segments.map((segment) => retenus.get(segment) ?? segment)), chemin);
     }
   }
-  assert.ok(!('components' in FORMES_DES_CHEMINS));
+  assert.deepEqual(FORMES_DES_CHEMINS.components.map((forme) => forme.id), ['components:color', 'components:size']);
 });
 
 test('les positions extensibles acceptent d’autres palettes, marques et tailles', () => {
@@ -61,7 +61,7 @@ test('les positions extensibles acceptent d’autres palettes, marques et taille
     ['primitives', 'color.nouvelle-palette.light.500'],
     ['primitives', 'color.nouvelle-palette.soft.dark.700'],
     ['brands', 'tertiary.dark.500'],
-    ['layout', 'sizing.format-special'],
+    ['layout', 'icon.xl'],
     ['typography', 'body.format-special.font-size'],
   ] as const) assert.ok(cheminConforme(collection, chemin.split('.')), chemin);
   const marques = REGISTRES_ARCHITECTURE.find((registre) => registre.id === 'marques')!;

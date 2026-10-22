@@ -70,19 +70,19 @@ test('les huit tags distinguent les quatre entrées de l’intention', () => {
   assert.deepEqual(TAGS_D_INTENTION, ['usage', 'do', 'dont', 'pairs']);
 });
 
-test('les neuf produits décrivent leurs responsabilités et leurs destinations', () => {
-  assert.equal(PRODUITS.length, 9);
-  assert.equal(new Set(PRODUITS.map(({ id }) => id)).size, 9);
+test('les huit produits décrivent leurs responsabilités et leurs destinations', () => {
+  assert.equal(PRODUITS.length, 8);
+  assert.equal(new Set(PRODUITS.map(({ id }) => id)).size, 8);
   for (const produit of PRODUITS) {
     for (const langue of ['fr', 'en'] as const) {
       assert.ok(produit.libelle[langue].trim());
       assert.ok(produit.definition[langue].trim());
     }
   }
-  assert.deepEqual(PRODUITS.find(({ id }) => id === 'explorateur')?.ecrit, []);
+  assert.equal(PRODUITS.find(({ id }) => id === 'architect')?.libelle.fr, 'UCM Architect');
   assert.deepEqual(PRODUITS.find(({ id }) => id === 'exporter')?.ecrit.find(({ destination }) => destination === 'document-figma')?.donnees, ['regles-usage']);
   assert.deepEqual(PRODUITS.find(({ id }) => id === 'adapter-typescript')?.ecrit.find(({ destination }) => destination === 'repository')?.donnees, ['types']);
-  assert.deepEqual(PRODUITS.find(({ id }) => id === 'architect')?.lit, ['noms-collections', 'noms-variables', 'regles-de-nommage']);
+  assert.deepEqual(PRODUITS.find(({ id }) => id === 'architect')?.lit, ['variables', 'composants', 'recette', 'noms-collections', 'noms-variables', 'regles-de-nommage']);
   assert.deepEqual(PRODUITS.find(({ id }) => id === 'architect')?.ecrit, [
     { donnees: ['noms-collections', 'noms-variables'], destination: 'document-figma' },
     { donnees: ['regles-de-nommage', 'architecture-du-fichier'], destination: 'donnees-partagees-figma' },
