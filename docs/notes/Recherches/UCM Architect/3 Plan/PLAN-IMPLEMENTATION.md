@@ -433,7 +433,7 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
 
 ### Piste A · fusion et squelette
 
-- [~ Claude 1] **A0.1 · Renommage.** `implementeur` · vague 1 · seul · S0 ·
+- [x] (e2b04108) **A0.1 · Renommage.** `implementeur` · vague 1 · seul · S0 ·
   déplacement.
   Lit : `plugin-architect/CARTE.md`, `tests/pluginsSepares.test.ts`, `tests/manifestsDesPlugins.test.ts`, `scripts/construire-plugin.mjs`.
   Vérifie : `npm run test:paquet -- architect`, `npm run build:plugin -- architect`, tests racine ; `npm test` et `typecheck` par un `verificateur`.
@@ -447,11 +447,11 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   passent ; `agents:diff` ne liste aucun chemin mort ; « UCM Token Explorer »
   ne reste que dans les Archives, les notes passées, les journaux de version ;
   la barre de la galerie dit « UCM Architect ».
-- [ ] **A0.2 · Nomenclature entre dans Architect.** `implementeur-exigeant` ·
+- [~ Claude 1] **A0.2 · Nomenclature entre dans Architect.** `implementeur-exigeant` ·
   vague 1 · seul · A0.1 · déplacement.
   Lit : `plugin-nomenclature/CARTE.md`, ses invariants, `tests/loiDEcriture.test.ts`, `tests/loiDeLectureSeule.test.ts`.
   Vérifie : `npm run test:paquet -- architect`, tests racine ; `npm test` par un `verificateur`.
-  L'orchestrateur note ici le commit de repli avant de lancer : `……`.
+  L'orchestrateur note ici le commit de repli avant de lancer : `e2b04108`.
   Écrit : `git mv` : sandbox → `src/nomenclature/`, `ecriture.ts` →
   `src/ecriture/noms.ts`, interface → `src/ui/nomenclature/`, galerie et tests
   à côté, invariants → `plugin-architect/invariants/` ; suppression de
