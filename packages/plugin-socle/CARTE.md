@@ -15,6 +15,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 ## src/
 - fenetre.ts : taille bornée de la fenêtre, rangée dans clientStorage
 - inventaireDeNoms.ts : acquisition de l'inventaire depuis Figma : ports de lecture, lecture par lots, lecture du suivi de Palettes ; forme de l'inventaire et protection sont dans `@ucm-kit/core/nommage`
+- bibliotheque.ts : noms des variables des libraries activées (sans valeur), et choix de la library la plus liée
 - ui/ : bouton, onglets dont un peut être indisponible (désactivé, sauté par les flèches), interrupteur, chevron `Chevron.ts` (SVG qui tourne par CSS), feuille modale, poignée de redimensionnement, bouton « Configuration » (engrenage puis libellé) et bascule de l'en-tête
 
 ## src/composant/

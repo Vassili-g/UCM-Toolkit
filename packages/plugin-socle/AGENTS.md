@@ -16,5 +16,6 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 | [Diagnostics](../plugin-exporter/invariants/diagnostics.md) | `src/composant/contract/localisation.ts` |
 | [Écriture dans le document](../plugin-exporter/invariants/ecriture-dans-le-document.md) | `src/composant/template/**`, `src/composant/contract/composedComponents.ts` |
 | [Interface d'UCM Palettes](../plugin-palettes/invariants/interface.md) | tout le paquet (défaut) |
+| [Explorateur de tokens](../plugin-architect/invariants/explorateur.md) | `src/bibliotheque.ts` |
 | [UCM Nomenclature](../plugin-architect/invariants/nomenclature.md) | `src/inventaireDeNoms.ts` |
 <!-- domaines:fin -->

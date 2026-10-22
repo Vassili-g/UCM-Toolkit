@@ -407,7 +407,8 @@
       "titre": "Explorateur de tokens",
       "fichier": "packages/plugin-architect/invariants/explorateur.md",
       "chemins": [
-        "packages/plugin-architect/src/**"
+        "packages/plugin-architect/src/**",
+        "packages/plugin-socle/src/bibliotheque.ts"
       ],
       "specs": [
         "packages/plugin-architect/SPEC.md#lecture-seule",
