@@ -633,39 +633,350 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
 Écrites par l'orchestrateur en vague 0, dans ce fichier, sous ce titre. Les
 choix tranchés par le mainteneur y entrent tels quels.
 
-- **N1 · Domaines et messages.** Domaines : arbre et tableau des tokens,
-  recherche, fiche, library, nomenclature, structure et scopes, vue Composant,
-  analyse, corrections, questions, ignorés, accessibilité, règles de
-  composant, préparation, configuration. Pour chacun, les messages UI →
-  sandbox et sandbox → UI, typés, tirés des cadres ; identité d'analyse dans
-  chaque message de résultat ; politique de sélection et de panneau périmé.
-- **N2 · Relevé et catalogue.** Le relevé du composant (variants, propriétés,
-  layers, liaisons avec porteur, champ, indice et plage ; peintures directes,
-  opacités, fonds des ancêtres, texte par plage, dimensions, styles, modes
-  effectifs, espace de couleur ; lectures manquées ; layers non lus, exact ou
-  inconnu). Le catalogue de référence (collections, variables, alias par mode,
-  scopes ; présente, absente, non chargée, inaccessible ; jointure par clé).
-  Une table contrôle → données → lecteur.
-- **T · Table des constats attendus.** Button et Alert : code et chemin de
-  chaque constat attendu. Corrige la section 4 de la grammaire : un champ peint
-  sans variable relève de C30 ; un rôle non peint ne donne aucun constat ; C59
-  attend K5. Relue par le mainteneur à la fin.
-- **G · Grammaire.** Positions facultatives de `FORMES_DES_CHEMINS` ; levée des
-  exclusions de `components` (`grammaire.ts`, `architecture.ts`) ; forme
-  `layout/icon/<taille>` ; segment à deux registres (`text`) lu par les axes,
-  `ambigu` sans eux ; registre propre à `components` ; termes de l'équipe ;
-  liste des cas nommés de K1, sans le tableau de la section 4 qui juge des
-  liaisons.
-- **E · Écriture des liaisons**, sur l'hypothèse de S-2 : champs, ordre,
-  relecture des faits, objet changé, échec partiel (sauté et compté), Ctrl+Z.
-- **P · Préparation.** Axes et éléments ; icône pilotée par une propriété
-  d'échange d'instance, sinon question ; intensité ; cibles d'une variable ;
-  tailles exactes ; identifiant de préparation ; source (fichier, clé et nom du
-  jeu) ; destination (collection `components` du fichier ouvert, refusée si
-  `theme` manque, choisie si deux collections conviennent) ; schéma versionné
-  du texte échangé et sa validation ; états par entrée ; reprise sans
-  doublon ; aucune hypothèse de verrou dans `figma.clientStorage`.
-- **M · Manifeste des cadres** : la liste d'U0, reprise du §4.10.
+Écrites le 22 octobre (vague 0). Elles partent sans validation (Q-5).
+
+### N1 · Domaines et messages
+
+**Fichiers d'un domaine `<d>`**, créés par A1 avec des index déjà remplis :
+
+| Rôle | Chemin, dans `packages/plugin-architect/` |
+|---|---|
+| Messages | `src/messages/<d>.ts` : `DemandeDe<D>` (UI → sandbox) et `MessageDe<D>` (sandbox → UI) ; `src/messages/index.ts` les réunit en `UiRequest` et `PluginMessage` |
+| Sandbox | `src/sandbox/<d>.ts` : `traiter(demande, contexte)` ; `code.ts` aiguille par une table `type → domaine` |
+| Interface | `src/ui/<d>/` (vues), `src/ui/textes/<d>.ts`, `src/ui/styles/<d>.css` |
+| Galerie et tests | `galerie/etats/<d>.cjs`, `tests/interface/<d>.test.mjs` ; tests unitaires `tests/<d>.test.ts` |
+
+**Identité d'analyse.** `IdentiteDAnalyse = { sujet: string; generation: number }`.
+`sujet` est la clé du jeu de variants (`key` du `COMPONENT_SET`, ou du
+`COMPONENT` seul). Le sandbox incrémente `generation` à chaque `analyser`.
+Chaque message des domaines `analyse`, `corrections`, `questions`, `ignores`,
+`preparation` (côté composant) porte `analyse: IdentiteDAnalyse` ; l'interface
+ignore un message dont l'identité diffère de la sienne. Une seule opération à
+la fois : une demande reçue pendant une opération rend `occupe { analyse }`.
+
+| Domaine | Id | UI → sandbox | Sandbox → UI | Cadres |
+|---|---|---|---|---|
+| Commun | `commun` | `lire-preferences`, `ranger-preferences`, `changer-disposition`, taille (existants) | `preferences`, `disposition`, `selection { sujet, ignores, origine: 'plugin' \| 'figma' }`, `declaration { architecture: ArchitectureDuFichier }` (à l'ouverture et à chaque changement) | tous |
+| Arbre et tableau des tokens | `arbre` | `lire-releve`, `annuler` (existants) | `progression`, `releve`, `lecture-echouee`, `annulation` (existants) | t-renommages |
+| Recherche | `recherche` | aucun : filtre de l'interface sur le relevé | aucun | t-questions, t-terme |
+| Fiche | `fiche` | aucun : calculée du relevé et du résultat de Nomenclature | aucun | t-fiche |
+| Library | `bibliotheque` | `lire-bibliotheque { demande }`, `lire-valeurs { demande, cles: string[] }` | `bibliotheque { demande, library: { nom, cle } \| null, collections: { nom, cle, variables: { nom, cle, type }[] }[], cleDuFichierDesTokens: string \| null }`, `valeurs { demande, valeurs }`, `bibliotheque-illisible { demande, motif }` | t-bibliotheque |
+| Nomenclature | `nomenclature` | messages de Nomenclature, gardés par A0.2 | idem | t-renommages, t-questions, t-terme, t-regle |
+| Structure et scopes | `structure` | `lire-structure { demande }`, `appliquer-structure { demande, ids: string[] }` | `structure { demande, constats: Constat[], corrections: Correction[] }`, `structure-appliquee { demande, ecrites: number, sautees: { id, motif }[] }` | t-structure, t-portees |
+| Vue Composant | `composant` | `lire-composant` (existant) | `composant`, `apercu-du-composant` (existants) | c-avant, c-replie, c-bouton-texte, c-gros |
+| Analyse | `analyse` | `analyser {}`, `annuler-analyse { analyse }` | `analyse-commencee { analyse }`, `analyse-en-cours { analyse, variantsLus, variantsTotal }`, `analyse { analyse, statut: 'complete' \| 'partielle' \| 'annulee' \| 'arretee', constats: Constat[], lecture, variants }`, `perime { analyse, cause: 'ecriture' \| 'document' \| 'selection' }`, `occupe { analyse }` | e-vide, e-cours, e-aucun, e-partiel, e-echec, e-biblio, e-hors |
+| Corrections | `corrections` | `appliquer-corrections { analyse, ids }`, `selectionner { analyse, layers: string[] }` | `corrections-appliquees { analyse, ecrites, sautees: { id, motif }[], resume }` | c-corrections, c-clic, c-modele, c-apres, c-ctrlz, e-ecriture |
+| Questions | `questions` | `repondre { analyse, question, reponse }`, `annuler-reponse { analyse, question }` | `question-repondue { analyse, question, correction: Correction \| null }` | c-questions, c-tranchee, x-button-corr |
+| Ignorés | `ignores` | `ignorer { analyse, constat, portee: 'constat' \| 'proposition' }`, `ne-plus-ignorer { analyse, constat }` | `ignores { analyse, constats: string[] }` | c-afaire, c-clic |
+| Accessibilité | `accessibilite` | aucun : constats de l'analyse | aucun | x-alert, x-button |
+| Règles de composant | `regles` | aucun : leurs corrections passent par `appliquer-corrections` | aucun | c-corrections (Règles d'usage) |
+| Préparation | `preparation` | `preparer { analyse, reponses }`, `lire-preparations {}`, `lire-texte { texte }`, `creer-variables { preparation }`, `abandonner-preparation { preparation }`, `copier-preparation { preparation }` | `preparations { preparations: Preparation[] }`, `preparation-texte { texte }`, `texte-refuse { motif }`, `variables-creees { preparation, creees, gardees, sautees }` | g-* |
+| Configuration | `configuration` | `lire-configuration {}`, `ranger-library { cle }`, `ranger-niveau { niveau: 'AA' \| 'AAA' }` ; Historique de Nomenclature | `configuration { library: { cle, nom, liaisons } \| null, candidates: { cle, nom, liaisons }[], niveau }` | cf-reglages, cf-historique |
+
+Les noms et champs des messages existants de l'explorateur et de Nomenclature
+ne changent pas ; ils passent dans les fichiers de leur domaine.
+
+**Sélection.** Seul `selectionner`, envoyé au clic sur un constat, change la
+sélection, par `src/ecriture/selection.ts`. Le sandbox retient les layers
+qu'il a sélectionnés ; le `selectionchange` qui suit porte `origine:
+'plugin'` et ne rend pas le panneau périmé.
+
+**Panneau périmé.** Le sandbox envoie `perime` après sa propre écriture
+(`ecriture`), sur un `documentchange` qui touche un nœud du jeu analysé
+(`document` : un Ctrl+Z en est un), et sur une sélection Figma d'un autre jeu
+de variants (`selection`). L'interface garde les constats, affiche l'alerte
+`PERIME` et ne relance rien avant Actualiser ou Analyser.
+
+**Ouverture.** Le sandbox envoie `disposition: 'composant'` quand la sélection
+a un sujet, `'tokens'` sinon. Fenêtres : §2.
+
+### N2 · Relevé et catalogue
+
+Types publiés par `@ucm-kit/core/controles` (K0), sérialisables, sans Figma.
+
+```ts
+interface ReleveDeComposant {
+  version: 1;
+  jeu: { cle: string; id: string; nom: string };
+  proprietes: { nom: string; type: 'VARIANT' | 'BOOLEAN' | 'TEXT' | 'INSTANCE_SWAP'; valeurs?: string[]; defaut: string | boolean }[];
+  variants: VariantLu[];
+  lecture: { layersLus: number; layersNonLus: number | 'inconnu'; variantsNonLus: string[]; manquees: { layer?: string; champ?: string; motif: string }[] };
+  espaceDeCouleur: 'srgb' | 'display-p3';
+}
+interface VariantLu { id: string; nom: string; valeurs: Record<string, string>; layers: LayerLu[]; modesEffectifs: Record<string, string> }
+interface LayerLu {
+  id: string; nom: string; type: string; parent: string | null; visible: boolean; opacite: number;
+  dimensions: { x: number; y: number; largeur: number; hauteur: number };
+  peintures: PeintureLue[];                 // fills et strokes directs
+  strokeWeight?: number;
+  liaisons: LiaisonLue[];
+  valeursEnDur: { champ: string; valeur: number }[]; // champs numériques sans variable
+  texte?: { style: string | null; plages: { debut: number; fin: number; fontSize: number; fontWeight: number; peintures: PeintureLue[]; liaisons: LiaisonLue[] }[] };
+  instanceDe?: { cle: string; nom: string; distante: boolean; pilotee: string | null }; // pilotee : propriété INSTANCE_SWAP
+}
+interface PeintureLue { champ: 'fills' | 'strokes'; indice: number; type: string; visible: boolean; opacite: number; blendMode: string; couleur?: { r: number; g: number; b: number; a: number } }
+interface LiaisonLue { champ: string; indice?: number; plage?: { debut: number; fin: number }; porteur: string; variable: { id: string; cle: string; nom: string; collection: string; distante: boolean } }
+```
+
+- `porteur` est le layer qui porte la liaison (le calque de l'instance quand
+  une surcharge la pose). `parent` chaîne les layers jusqu'à la racine du
+  variant : le kit compose les fonds des ancêtres et leurs opacités ; un fond
+  hors du variant n'est pas lu, et le contraste rend une limite.
+- `layersNonLus` vaut `'inconnu'` quand la lecture s'arrête avant d'avoir
+  compté. Une lecture manquée n'est jamais un constat.
+
+```ts
+interface CatalogueDeReference {
+  version: 1;
+  library: { nom: string; cle: string } | null;      // null : variables locales
+  collections: { cle: string; nom: string; role: Collection | null; modes: { id: string; nom: string }[]; etat: 'lue' | 'inaccessible' }[];
+  variables: { cle: string; nom: string; collection: string; type: 'COLOR' | 'FLOAT' | 'STRING' | 'BOOLEAN'; etat: 'presente' | 'non-chargee' | 'inaccessible'; scopes?: string[]; valeurs?: Record<string, { alias: string } | { valeur: unknown }> }[];
+}
+```
+
+- `role` vient de la déclaration UCM et du nom de la collection
+  (`COLLECTIONS`, `FORMES_ANCIENNES_DES_COLLECTIONS`), jamais d'une association
+  manuelle.
+- Une recherche par nom ou par clé rend l'entrée, ou `absente`. La jointure
+  entre une liaison et le catalogue se fait par `cle`.
+- `non-chargee` : nom connu, valeurs pas encore importées ; un contrôle qui
+  a besoin des valeurs rend une limite tant qu'elles manquent.
+
+```ts
+interface Constat {
+  id: string;                         // stable : code, variants, layers, champ
+  code: `C${number}`;
+  type: TypeDAlerte;                  // de K2 : 'bloquant' | 'corriger' | 'verifier' | 'information' | 'tenu'
+  famille: 'liaisons' | 'tailles' | 'tokens' | 'variants' | 'contraste' | 'typographie' | 'regles' | 'visibilite' | 'export';
+  variants: string[]; layers: string[];
+  faits: Record<string, string | number>;
+  correction?: Correction; question?: Question; limite?: true;
+}
+interface Correction { id: string; sorte: 'liaison' | 'nom-de-valeur' | 'regles' | 'scope' | 'alias-de-mode' | 'variable';
+  cible: { layer?: string; champ?: string; indice?: number; plage?: { debut: number; fin: number }; variable?: string; mode?: string };
+  avant: string | null; apres: { cle?: string; nom: string };
+  aRelire: { axes?: Record<string, string>; regle: string; avant: string | null } }
+interface Question { id: string; candidats: { cle?: string; nom: string }[]; indice?: string } // aucun candidat coché
+```
+
+| Contrôles | Relevé | Catalogue | Lecteur |
+|---|---|---|---|
+| C7 à C11, C31 à C33 | `proprietes`, `variants[].valeurs` | noms de `components/<composant>/…` | B1, B10 |
+| C15 à C19, C21, C22, C24, C25 | `liaisons` (champ, porteur, nom), valeurs du variant | noms, `scopes` | B1, B10 |
+| C20, C61 | `liaisons[].variable.collection` | `role` des collections | B1, B10 |
+| C29 | `valeursEnDur`, `dimensions` | valeurs de `layout` | B1, B10 |
+| C59, C60, C63 | `liaisons`, `peintures`, `parent` | noms du thème, `scopes` | B1, B10 |
+| C49 à C53 | `peintures`, `opacite`, `parent`, `texte.plages`, `modesEffectifs`, `dimensions`, `strokeWeight` | `valeurs` par mode des variables liées, importées à la demande | B1, B10 |
+| C64 à C67 | `texte.style`, `texte.plages`, `instanceDe`, `dimensions` | `layout/icon`, `typography` | B1, B10 |
+| C30, C34, C35, C41, C42, C44 | rendus par le moteur de l'exporteur (S0), traduits en `Constat` par B2 | — | moteur |
+
+Budget : B1 et S3 partagent une borne, 2 000 layers par défaut, nommée dans le
+socle.
+
+### T · Table des constats attendus
+
+Corrige la section 4 de la grammaire : un champ peint sans variable relève de
+C30 ; un rôle non peint ne donne aucun constat ; C59 attend K5. Les relevés
+écrits à la main de K3 reproduisent ces cas. Relue par le mainteneur à la fin.
+
+**Alert**, fichier Intencial, 11 variants (Severity × Variant, sans
+`Severity=warning, Variant=filled`), tokens sous `colors/` :
+
+| # | Code | Où | Type | Onglet, forme |
+|---|---|---|---|---|
+| A1 | C15, C22 | `Severity=success, Variant=standard`, layers icon et container liés à `colors/info/standard/{icon,background}` | À corriger | Corrections : `info → success` |
+| A2 | C59 | `Variant=outlined`, layer message, lié à un foreground de `surface` sans fond teinté | À corriger | Corrections : tokens sans fond (K5) |
+| A3 | C29 | tous les variants, padding sans variable | À corriger | Corrections : tokens de taille |
+| A4 | C43, C46 | aucune instance de règles | À corriger | Corrections : créer l'instance, 3 règles |
+| A5 | C8 | 36 tokens rangés sous `colors`, forme tolérée de `color` | À corriger | À faire dans Figma, fichier des tokens |
+| A6 | C20 | `alert/size/gap` vise une primitive | À corriger | À faire dans Figma |
+| A7 | C41 | `Severity=info, Variant=filled`, container, `colors/info/filled/border` absente de la library | Bloquant | À faire dans Figma |
+| A8 | C32 | 3 tokens `warning/filled` sans variant | À vérifier | À faire dans Figma |
+| A9 | C31 | `Severity=warning, Variant=filled` absent | À vérifier | À faire dans Figma |
+| A10 | C21 | icon de `Severity=info, Variant=filled`, couleur que les 10 autres n'emploient pas | À vérifier | À faire dans Figma |
+| A11 | C49 | message de `Severity=warning, Variant=standard`, 3,9:1 en Dark | À corriger | À faire dans Figma |
+| A12 | C50 | stroke de `Variant=outlined` sur la page, 2,4:1 | À corriger | À faire dans Figma |
+| A13 | C49, limite | fill dégradé de `Severity=error, Variant=filled` | Information | À faire dans Figma |
+| A14 | C64 | message de `Severity=success, Variant=standard` sans le text style des autres | À vérifier | À faire dans Figma |
+| A15 | C66 | icon de `Severity=info, Variant=filled` hors de la library d'icônes | À vérifier | À faire dans Figma |
+| A16 | C35 | icon-close masqué sans propriété (moteur) | À vérifier | À faire dans Figma |
+| A17 | C25, C70 | title sans variable : `…/title` et `…/foreground` conviennent | — | Questions |
+| A18 | C12, C13 | `Variant=Outlined`, tokens en `outline` | — | Questions |
+| A19 | C30 | stroke en dur de `Variant=outlined`, aucun token `border` | — | Questions : préparer les tokens |
+
+Aucun constat : `alert/size/gap` sans axe de taille (règle 1) ; un token
+partagé entre deux états ; un rôle absent d'une combinaison (règle 3).
+
+**Button**, 216 variants (Style, Palette, State, Size) :
+
+| # | Code | Où | Type | Onglet, forme |
+|---|---|---|---|---|
+| B1 | C16, M-15 | `State=hover`, container lié au token du repos ; 46 des 54 `State=hover` emploient un token hover | — | Questions, indice |
+| B2 | C60 | `Style=text, State=hover`, label vise `page` alors que le survol passe sur `surface` | — | Questions |
+| B3 | C50 | anneau de `Palette=secondary, Style=outlined, State=focus`, 2,1:1 | À corriger | À faire dans Figma |
+| B4 | C36 | `Palette=primary, Style=text, State=focus` sans anneau visible | À corriger | À faire dans Figma |
+| B5 | C51 | anneau à 1 px de stroke weight | À vérifier, recommandation | À faire dans Figma |
+| B6 | C52 | `Size=small`, 20 × 20 px | À corriger | À faire dans Figma |
+| B7 | C52 | `Size=medium`, 36 px de haut, 44 px recommandés | À vérifier, recommandation | À faire dans Figma |
+| B8 | §2, 12 px | label de `Size=small` à 11 px | À vérifier, recommandation | À faire dans Figma |
+| B9 | C53 | 54 variants `State=disabled` non mesurés | Information | À faire dans Figma |
+| B10 | C10 | `button/size/medium`, forme tolérée de `md` | À corriger | À faire dans Figma, fichier des tokens |
+| B11 | C20 | `button/size/medium/padding-x` vise `primitives.dimension.14` | À corriger | À faire dans Figma |
+| B12 | C21 | `button/color/primary/text/focus/foreground` vise `surface`, les cinq autres palettes `page` | — | Questions : régularité, pas une règle écrite |
+
+### G · Grammaire
+
+- `PositionDeChemin` reçoit `facultative?: true`. Une forme de n positions
+  dont f facultatives reconnaît un chemin de n − k segments (k ≤ f). Parmi les
+  lectures possibles, la première garde le plus de positions, puis les plus à
+  gauche.
+- Un segment ne prend une position extensible à nom propre (composant,
+  élément) que si aucune position suivante ne le reconnaît par son registre.
+- Deux formes pour `components`, sans le préfixe de collection :
+  `components:color` = composant, `color`, élément?, palette?, style?, taille?,
+  état?, rôle ; `components:size` = composant, `size`, élément?, taille?,
+  état?, propriété. Registres : composant et élément extensibles, à nom
+  propre ; famille `FAMILLES_COMPOSANT` (`color`, `size`) ; palette =
+  `REGISTRE_STATUTS`, `FAMILLES_BRANDS` et `neutral` ; style extensible, nourri
+  des termes de l'équipe (`vocabulaire-du-fichier.ts`) et des valeurs d'axe ;
+  taille `REGISTRE_TAILLES` ; état `REGISTRE_ETATS` ; rôle `REGISTRE_ROLES`.
+- Registre propre à `components` (remplace G-8) : `REGISTRE_PROPRIETES_COMPOSANT`
+  = `padding`, `gap`, `width`, `height`, `border-width`, `radius`,
+  `icon-size`, et les combinaisons avec `REGISTRE_COTES` (`padding-x`,
+  `padding-top`, `gap-y`…). Les registres que Nomenclature lit pour les autres
+  collections n'en reçoivent rien.
+- `grammaire.ts` et `architecture.ts` lèvent l'exclusion de `components` :
+  `IdentifiantDeForme`, `FORMES_DES_CHEMINS`, `formesReconnues` et
+  `reconnaitreLeChemin` l'admettent ; `collection-sans-grammaire` disparaît.
+- `layout` : `icon` entre dans `FAMILLES_LAYOUT`, avec la forme `layout/icon/<taille>`
+  (`REGISTRE_TAILLES`) ; `sizing` n'admet qu'une valeur numérique (`3,5`, `14`)
+  ou `none`, `full`.
+- Les axes du composant : `reconnaitreLeChemin('components', segments,
+  { themes, axes })`, avec `axes?: { palette?: string[]; style?: string[];
+  taille?: string[]; etat?: string[] }`, valeurs normalisées. Deux lectures
+  sans axes rendent `{ conforme: false, raison: 'ambigu', lectures }` ; les
+  axes en gardent une.
+- Cas nommés, tests de K1 :
+
+| Chemin | Lecture attendue |
+|---|---|
+| `button/color/primary/contained/hover/background` | composant, famille, palette, style, état, rôle |
+| `button/size/md/padding-x` | composant, famille, taille, propriété |
+| `button/size/medium/padding-x` | idem ; `medium` forme tolérée de `md` |
+| `alert/color/danger/standard/foreground` | composant, famille, palette, style, rôle |
+| `alert/size/gap` | composant, famille, propriété |
+| `tilelink/color/info/hover/foreground` | composant, famille, palette, état, rôle |
+| `stresstest/color/head/info/foreground` | composant, famille, élément, palette, rôle |
+| `stresstest/info/head/color/text` | refusé : `aucune-forme` |
+| `button/color/text/foreground` | `ambigu` sans axes (style `text` ou élément `text`) ; style avec `axes.style` ∋ `text` ; élément sinon |
+| `layout/icon/xl` | reconnu |
+| `layout/sizing/xl` | refusé |
+| `layout/sizing/3,5` | reconnu |
+
+Le jugement d'une liaison (section 4 de la grammaire) reste à K3 et K5.
+
+### E · Écriture des liaisons
+
+Hypothèse : S-2 confirme les quatre écritures et le Ctrl+Z.
+
+- `src/ecriture/liaisons.ts`, appelé par le domaine `corrections`.
+- Champ numérique (`paddingLeft`, `itemSpacing`, `cornerRadius`,
+  `strokeWeight`, `width`, `height`…) : `node.setBoundVariable(champ,
+  variable)`. Fill ou stroke : `figma.variables.setBoundVariableForPaint(paint,
+  'color', variable)`, puis copie du tableau, remplacement à l'indice et
+  réaffectation de `fills` ou `strokes`. Texte : `setRangeFills(debut, fin,
+  [paint lié])`.
+- Une variable de library s'importe par `importVariableByKeyAsync(cle)`, une
+  fois par lot.
+- Ordre : la déclaration UCM est relue une fois au début du lot ; un fichier
+  qui ne déclare plus UCM ne reçoit rien. Puis, correction par correction :
+  le layer existe ; les valeurs du variant égalent `aRelire.axes` ; la
+  liaison du champ égale `aRelire.avant` ; la peinture de l'indice existe et
+  est unie ; la cible s'importe. Un écart saute la correction avec un motif :
+  `objet-change`, `fait-faux`, `cible-introuvable` ou `erreur` (une écriture
+  de Figma qui lève). Les autres s'écrivent.
+- Annulation : aucun `commitUndo` entre deux écritures ; un `figma.commitUndo()`
+  après le lot. Un Ctrl+Z défait le lot entier.
+- Puis `corrections-appliquees` et `perime { cause: 'ecriture' }`. La
+  sélection ne change pas.
+
+### P · Préparation
+
+- **Entrées** : le relevé (B1), le catalogue (`theme`, `layout`,
+  `components`) et les réponses.
+- **Axes** : palette reconnue par registre ; état par `REGISTRE_ETATS` ;
+  chaque valeur de style pose une question de dossier (`solid`, `surface`,
+  `page`) ; un axe inconnu pose « un token par valeur ? ».
+- **Éléments** : deux layers du même rôle dans un variant, ou un nom par défaut
+  de Figma (`Frame 12`), posent une question de nom.
+- **Icône** : un vecteur dans une instance donne le rôle `icon` ; l'instance
+  pilotée par une propriété `INSTANCE_SWAP` est l'icône du composant ; sinon
+  une question.
+- **Intensité** : exacte si le thème n'a que `soft` ou que `vivid` pour un
+  statut ; sinon une question, une seule pour tous les statuts.
+- **Cibles** : couleur → chemin du thème par `TABLE_DES_DOSSIERS` (dossier
+  répondu, état de l'axe, rôle) ; `disabled` → `theme/disabled/*`. Une cible
+  absente du catalogue devient une question.
+- **Tailles** : le champ donne la famille (`padding`, `gap` → `sizing` ;
+  `cornerRadius` → `radius` ; `strokeWeight` → `stroke` ; taille d'icône →
+  `layout/icon`) ; la valeur en pixels donne le seul token de la famille qui
+  la vaut, sinon une question.
+- **Identifiant** : `prep-<horodatage>-<aléa>`, créé par Préparer.
+- **Source** : `{ fichier: figma.root.name, cleDuFichier: figma.fileKey ?? null,
+  jeu: { cle, nom } }`.
+- **Destination** : la collection `components` locale du fichier ouvert,
+  reconnue par la déclaration UCM ; refusée si `theme` manque (g-sans-cibles) ;
+  une question si deux collections conviennent.
+- **Texte échangé** : JSON `{ "format": "ucm-preparation", "version": 1, "id",
+  "source", "creeLe", "variables": [{ "nom", "type", "cibles": { "<mode>":
+  "<nom>" }, "layers": [{ "id", "variant", "champ" }] }], "regles": [{
+  "ancien", "nouveau", "composant" }] }`. Validation : `format`, puis `version`
+  (supérieure : refus « future »), puis chaque champ. Les règles reçues (C13)
+  passent par le même texte.
+- **Rangement** : une liste dans `figma.clientStorage`, sous la clé du kit
+  `CLE_DES_PREPARATIONS` ; lecture, modification, réécriture, sans verrou ;
+  le dernier écrit l'emporte. Une préparation se retrouve par son `id`.
+- **États par entrée** : `a-creer`, `existe-identique` (gardée),
+  `existe-divergente` (question), `creee`, `echec`. Une création interrompue
+  se reprend : une entrée déjà créée et identique passe `existe-identique`,
+  sans doublon.
+- **Retour** : dans le fichier des composants, seulement si `source.jeu.cle`
+  égale la clé du sujet (sinon g-autre). Une variable créée mais pas publiée
+  laisse sa ligne sans case.
+
+### M · Manifeste des cadres
+
+U0 l'écrit dans `galerie/cadres.json`. Sorte : `fenetre` (fenêtre entière) ou
+`seul` (extrait de barre latérale, `cadreSeul`). Lot : celui qui le rend
+fidèle ; le jalon dit s'il est branché.
+
+| Cadre | Taille | Sorte | Lot |
+|---|---|---|---|
+| t-renommages | 1360 × 900 | fenetre | U1 |
+| t-questions, t-terme, t-fiche | 1360 × 800 | fenetre | U2 |
+| t-structure | 1360 × 800 | fenetre | U3 |
+| t-portees | 640 × 700 | seul | U3 |
+| t-bibliotheque, t-regle, t-hors | 1360 × 800 | fenetre | U4 |
+| c-avant | 1040 × 760 | fenetre | U5 |
+| c-bouton-texte | 520 × 170 | fenetre | U5 |
+| c-gros, c-replie | 520 × 760 | fenetre | U5 |
+| c-corrections | 1040 × 800 | fenetre | U6 |
+| c-clic, c-modele, c-questions, c-tranchee, c-afaire, c-apres | 1040 × 760 | fenetre | U6 |
+| c-ctrlz | 1040 × 520 | fenetre | U6 |
+| e-vide, e-cours, e-aucun, e-echec, e-ecriture, e-hors, e-biblio | 1040 × 520 | fenetre | U6 |
+| e-partiel | 1040 × 760 | fenetre | U6 |
+| x-alert | 1040 × 760 | fenetre | U7 |
+| x-button | 640 × 760 | seul | U7 |
+| x-button-corr | 640 × 560 | seul | U7 |
+| g-entree | 1040 × 560 | fenetre | U8 |
+| g-preparer | 1040 × 1000 | fenetre | U8 |
+| g-pret | 1040 × 520 | fenetre | U8 |
+| g-lier | 1040 × 640 | fenetre | U8 |
+| g-creer, cf-reglages, cf-historique | 1360 × 800 | fenetre | U8 |
+| g-cree | 1360 × 560 | fenetre | U8 |
+| g-sans-cibles, g-autre, g-coller | 640 × 300 | seul | U8 |
+
+43 cadres. `s-planche` (640 × 1900) va à la galerie du socle (S1).
 
 Sondes, lancées par le mainteneur au lancement :
 
