@@ -10,7 +10,7 @@ import type { NatureDeConstat } from '../diagnostics';
 import type { TypeDeVariable } from '../modele';
 import type { OrigineDuMode, StatutDeResolution } from '../resolution';
 
-export const NOM_DU_PRODUIT = 'UCM Token Explorer';
+export const NOM_DU_PRODUIT = 'UCM Architect';
 
 export const TEXTES = {
   marque: 'UCM',

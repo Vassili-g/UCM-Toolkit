@@ -16,7 +16,7 @@ node docs/marque/generer-marque.mjs
 | UCM Toolkit | [ucm-toolkit.svg](./logos/ucm-toolkit.svg) | [carte](./cartes/ucm-toolkit.svg) |
 | UCM Contract Exporter | [ucm-contract-exporter.svg](./logos/ucm-contract-exporter.svg) | [carte](./cartes/ucm-contract-exporter.svg) |
 | UCM Palettes | [ucm-palettes.svg](./logos/ucm-palettes.svg) | [carte](./cartes/ucm-palettes.svg) |
-| UCM Token Explorer | [ucm-token-explorer.svg](./logos/ucm-token-explorer.svg) | [carte](./cartes/ucm-token-explorer.svg) |
+| UCM Architect | [ucm-token-explorer.svg](./logos/ucm-token-explorer.svg) | [carte](./cartes/ucm-token-explorer.svg) |
 
 Chaque logo est un carré de 100 unités découpé en rectangle arrondi de rayon
 22,5. Il ne contient aucun texte. Le nom du produit s'écrit à côté du logo,

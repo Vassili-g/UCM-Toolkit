@@ -653,12 +653,12 @@ finale.
 [parsers]: ../../../../packages/plugin-socle/src/composant/contract/parsers.ts
 [detection]: ../../../../packages/plugin-palettes/src/variables/detection.ts
 [normalisation]: ../../../../packages/kit/src/referentiel/normalisation.ts
-[profil]: ../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts
+[profil]: ../../../../packages/plugin-architect/src/integrations/profilUcm.ts
 [architecture]: ../../../../packages/kit/src/referentiel/architecture.ts
 [mots]: ../../../../packages/kit/src/referentiel/ecriture-des-mots.ts
-[imports]: ../../../../packages/plugin-explorateur/src/integrations/contrats.ts
-[vue-integrations]: ../../../../packages/plugin-explorateur/src/ui/vues/integrations.ts
-[lecture-explorateur]: ../../../../packages/plugin-explorateur/src/lecture.ts
+[imports]: ../../../../packages/plugin-architect/src/integrations/contrats.ts
+[vue-integrations]: ../../../../packages/plugin-architect/src/ui/vues/integrations.ts
+[lecture-explorateur]: ../../../../packages/plugin-architect/src/lecture.ts
 [inventaire]: ../../../../packages/plugin-socle/src/inventaireDeNoms.ts
 [lecture-nomenclature]: ../../../../packages/plugin-nomenclature/src/lectureFigma.ts
 [suivi]: ../../../../packages/plugin-palettes/src/variables/suivi.ts
@@ -676,7 +676,7 @@ finale.
 [package-kit]: ../../../../packages/kit/package.json
 [package-palettes]: ../../../../packages/plugin-palettes/package.json
 [seuils]: ../../../../packages/kit/src/referentiel/contraste.ts
-[contraste]: ../../../../packages/plugin-explorateur/src/contraste.ts
+[contraste]: ../../../../packages/plugin-architect/src/contraste.ts
 [unicite]: ../../../../tests/referentielUnique.test.ts
 [produits]: ../../../../packages/kit/src/referentiel/produits.ts
 [chemins]: ../../../../packages/kit/src/format/chemins-de-tokens.ts
@@ -696,7 +696,7 @@ finale.
 [check]: ../../../../packages/cli/src/check.mjs
 [marque]: ../../../../packages/plugin-palettes/src/ecriture/marque.ts
 [code-palettes]: ../../../../packages/plugin-palettes/src/code.ts
-[modele-explorateur]: ../../../../packages/plugin-explorateur/src/modele.ts
+[modele-explorateur]: ../../../../packages/plugin-architect/src/modele.ts
 [ecriture-nomenclature]: ../../../../packages/plugin-nomenclature/src/ecriture.ts
 [destination]: ../../../../packages/plugin-palettes/src/variables/destination.ts
 [api-create-variable]: https://developers.figma.com/docs/plugins/api/properties/figma-variables-createvariable/

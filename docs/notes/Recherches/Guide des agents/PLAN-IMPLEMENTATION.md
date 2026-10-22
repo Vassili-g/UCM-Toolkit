@@ -81,7 +81,7 @@ tests/cartes.test.ts                    chaque chemin d'une carte existe
 | Écriture d'UCM Palettes | `packages/plugin-palettes/invariants/ecriture.md` |
 | Langue d'UCM Palettes | `packages/plugin-palettes/invariants/langue.md` |
 | Interface d'UCM Palettes | `packages/plugin-palettes/invariants/interface.md` |
-| Explorateur de tokens | `packages/plugin-explorateur/invariants/explorateur.md` |
+| Explorateur de tokens | `packages/plugin-architect/invariants/explorateur.md` |
 | UCM Nomenclature | `packages/plugin-nomenclature/invariants/nomenclature.md` |
 | Publier les paquets | `.agents/skills/publier-paquets/SKILL.md` |
 | Avant de modifier (reste), Vérification (commandes), frontière de recette, limites | `AGENTS.md` racine |

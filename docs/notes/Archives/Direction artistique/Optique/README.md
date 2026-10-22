@@ -66,6 +66,6 @@ plus convaincante. Expliquer cette proposition dans le compte rendu.
 - [Concept UCM](../../../../../CONCEPT.md).
 - [README de Contract Exporter](../../../../../packages/plugin-exporter/README.md).
 - [README de Palettes](../../../../../packages/plugin-palettes/README.md).
-- [README de Token Explorer](../../../../../packages/plugin-explorateur/README.md).
+- [README de Token Explorer](../../../../../packages/plugin-architect/README.md).
 
 Ces sources décrivent les outils. Elles ne fixent pas le dessin de leurs logos.

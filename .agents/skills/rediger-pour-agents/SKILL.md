@@ -93,7 +93,7 @@ Liste fermée. Un raccourci absent de la table s'écrit en toutes lettres.
 | lien vers une spec, répété | lien de référence `→ [§6.3]` |
 | implique, donne, mène à, renvoie à | `→` |
 | égal à, différent de, au plus, au moins | `=`, `≠`, `≤`, `≥` |
-| UCM Palettes, UCM Nomenclature, UCM Token Explorer | Palettes, Nomenclature, l'explorateur |
+| UCM Palettes, UCM Nomenclature, UCM Architect | Palettes, Nomenclature, l'explorateur |
 | la spécification | la spec |
 
 ## 4. À retirer

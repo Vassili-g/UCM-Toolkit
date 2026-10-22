@@ -163,7 +163,7 @@ seuls. Ce que Gestion compte et décide des tokens vit dans
 | La ligne « Tokens » avant la phase 5 | Le bloc « Connexion à Figma » et les fiches n'affichent leur ligne des tokens qu'à la phase 5. Les phases 2 et 3 livrent un plugin utilisable, avec la seule ligne des planches |
 | Bibliothèques distantes | Phase 9, la dernière avant la clôture : elle demande une permission au manifest et repose sur l'essai R10. Elle se retire seule si l'essai échoue |
 | Textes | Chaque texte nouveau entre dans `src/i18n/fr.ts` et `src/i18n/en.ts` dans le même commit. Les mots français sont ceux des maquettes |
-| Plugins séparés | Rien ne s'importe de `plugin-explorateur`. Ce qui sert aux deux va dans `packages/plugin-socle` ou `packages/couleur` |
+| Plugins séparés | Rien ne s'importe de `plugin-architect`. Ce qui sert aux deux va dans `packages/plugin-socle` ou `packages/couleur` |
 
 ## Phase 1 : la spécification et les noms
 
@@ -529,7 +529,7 @@ restent ses tokens.
   ni garanties, ni réglage global, ni Color shift. `validerRecette` refuse une
   couleur figée hors de la liste des nuances de la palette. Le format 7 est
   refusé, sans conversion. Spécification, section 7, et `FORMAT_RECETTE`.
-  Vérifier ce que `packages/plugin-explorateur/src/integrations/` lit de la
+  Vérifier ce que `packages/plugin-architect/src/integrations/` lit de la
   recette, et lui faire accepter le format 8. Tests du moteur et des deux
   plugins.
 - [x] **P8.2** `src/edition.ts` : `reprendreDuFichier(recette, id,

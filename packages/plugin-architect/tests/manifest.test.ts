@@ -13,9 +13,9 @@ test('le manifest n’ouvre aucun domaine', () => {
   assert.deepEqual(domainesOuverts(racine), ['none']);
 });
 
-test('le manifest ne déclare aucun droit réservé à un plugin privé, ni aucune permission', () => {
+test('le manifest ne déclare aucun droit réservé à un plugin privé, seule la permission `teamlibrary` est déclarée', () => {
   assert.deepEqual(manifestsAuxDroitsPrives(racine), []);
-  assert.equal('permissions' in manifest, false);
+  assert.deepEqual(manifest.permissions, ['teamlibrary']);
 });
 
 test('le manifest charge les pages à la demande, dans Figma seul', () => {

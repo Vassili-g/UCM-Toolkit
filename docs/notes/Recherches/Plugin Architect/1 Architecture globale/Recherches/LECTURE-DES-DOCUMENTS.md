@@ -13,7 +13,7 @@ tokens de variantes, export des tokens), la
 [SPEC de l'exporteur](../../../../../../packages/plugin-exporter/SPEC.md) (objet,
 contexte, export des tokens, hors périmètre),
 [l'architecture multimarque](../../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
-en entier, la [SPEC de l'explorateur](../../../../../../packages/plugin-explorateur/SPEC.md)
+en entier, la [SPEC de l'explorateur](../../../../../../packages/plugin-architect/SPEC.md)
 (lecture seule, architecture libre), les README du dépôt, du kit, du CLI, de
 l'adaptateur TypeScript, de Palettes, de l'explorateur, de l'exporteur, du
 moteur de couleur et du socle, le [plan du diff sémantique](../../../Diff%20S%C3%A9mantique/PLAN-DIFF-SEMANTIQUE.md)

@@ -1,5 +1,5 @@
 {
-  "name": "ucm-explorateur-plugin",
+  "name": "ucm-architect-plugin",
   "version": "0.1.0",
   "private": true,
   "description": "Explorez les variables Figma de n'importe quelle architecture : collections, groupes, alias, modes et consommateurs, en lecture seule.",
@@ -15,7 +15,7 @@
     "fidelite": "node galerie/comparer-maquette.cjs",
     "test:ui": "npm run galerie && node --test tests/interface/interface.test.mjs",
     "mesure": "node --expose-gc scripts/mesurer.mjs",
-    "build": "node ../../scripts/construire-plugin.mjs verifier-kit explorateur && npm run typecheck && npm run build:code && npm run build:ui && npm run build:manifest",
+    "build": "node ../../scripts/construire-plugin.mjs verifier-kit architect && npm run typecheck && npm run build:code && npm run build:ui && npm run build:manifest",
     "test": "node scripts/run-tests.cjs"
   },
   "dependencies": {

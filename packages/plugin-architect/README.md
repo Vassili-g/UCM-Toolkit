@@ -1,6 +1,6 @@
-# UCM Token Explorer
+# UCM Architect
 
-UCM Token Explorer est le plugin de [UCM Toolkit](../../README.md) qui
+UCM Architect est le plugin de [UCM Toolkit](../../README.md) qui
 explique les variables d'un fichier Figma : collections, groupes, alias,
 modes et tokens d'un composant. Il fonctionne sur toute architecture de tokens, avec
 ou sans UCM, et n'écrit jamais dans le document. Le nom est provisoire ; il ne
@@ -12,11 +12,11 @@ Depuis la racine du dépôt, avec Node 22 :
 
 ```sh
 npm install
-npm run build --workspace ucm-explorateur-plugin
+npm run build --workspace ucm-architect-plugin
 ```
 
 Dans Figma Desktop, ouvrez `Plugins > Development > Import plugin from manifest`
-et choisissez `packages/plugin-explorateur/dist/manifest.json`.
+et choisissez `packages/plugin-architect/dist/manifest.json`.
 
 Le manifeste porte l'`id` que Figma a attribué au plugin de développement,
 sans publication. Figma reconnaît un plugin par cet `id` : n'y recopiez jamais
@@ -124,12 +124,12 @@ Le détail de chaque lecture et de ses limites est dans la
 ## Vérifier
 
 ```sh
-npm run test --workspace ucm-explorateur-plugin
-npm run typecheck --workspace ucm-explorateur-plugin
-npm run build --workspace ucm-explorateur-plugin
-npm run test:ui --workspace ucm-explorateur-plugin
-npm run galerie:captures --workspace ucm-explorateur-plugin
-npm run mesure --workspace ucm-explorateur-plugin
+npm run test --workspace ucm-architect-plugin
+npm run typecheck --workspace ucm-architect-plugin
+npm run build --workspace ucm-architect-plugin
+npm run test:ui --workspace ucm-architect-plugin
+npm run galerie:captures --workspace ucm-architect-plugin
+npm run mesure --workspace ucm-architect-plugin
 ```
 
 `test:ui` reconstruit l'interface et la galerie, puis demande le Chromium de
@@ -138,13 +138,13 @@ npm run mesure --workspace ucm-explorateur-plugin
 `dist/galerie-etroite/` à 364 × 724 pour la vue composant. `mesure`
 imprime les durées du noyau et du premier rendu sur 10 000 variables.
 
-`npm run fidelite --workspace ucm-explorateur-plugin` compare la galerie
+`npm run fidelite --workspace ucm-architect-plugin` compare la galerie
 étroite à la maquette de la vue composant : il range les captures côte à côte
 dans `dist/fidelite/` et imprime chaque écart de taille, de police, de couleur
 ou de texte.
 
 Après un échec de `test:ui` sur `dist/galerie-fixtures.cjs` introuvable,
-relancez `npm run galerie --workspace ucm-explorateur-plugin` : il compile les
+relancez `npm run galerie --workspace ucm-architect-plugin` : il compile les
 fixtures que les tests d'interface lisent.
 
 ## Licence

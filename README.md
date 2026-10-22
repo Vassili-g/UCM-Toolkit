@@ -9,7 +9,7 @@ exporté depuis Figma ; le développeur écrit le comportement du composant.
 | Besoin | Outil | Point d'entrée |
 |---|---|---|
 | Créer des palettes Light et Dark, vérifier leurs contrastes et écrire leurs variables dans Figma | UCM Palettes | [Utilisation et installation](./packages/plugin-palettes/README.md) |
-| Comprendre la valeur d'un token, ses alias et les tokens d'un composant | UCM Token Explorer | [Utilisation et installation](./packages/plugin-explorateur/README.md) |
+| Comprendre la valeur d'un token, ses alias et les tokens d'un composant | UCM Architect | [Utilisation et installation](./packages/plugin-architect/README.md) |
 | Exporter un composant et ses règles d'usage, ou les variables du fichier | UCM Contract Exporter | [Ouvrir le plugin](#ouvrir-le-plugin) |
 | Harmoniser les noms des variables et des collections locales : une écriture, des termes communs | UCM Nomenclature | [Recherches sur UCM Nomenclature](./docs/notes/Recherches/Plugin%20Architect/README.md) |
 | Recevoir les exports et les contrôler dans GitHub ou GitLab | `@ucm-kit/cli` | [Brancher un repository](#brancher-un-repository) |
@@ -66,7 +66,7 @@ commandes et sa connexion à GitHub ou GitLab. Le
 Pour construire les quatre plugins localement, suivez la section
 [Construction](#construire-le-plugin-depuis-ce-dépôt). Les README de
 [Palettes](./packages/plugin-palettes/README.md#ouvrir-le-plugin) et de
-[l'explorateur](./packages/plugin-explorateur/README.md#ouvrir-le-plugin)
+[l'explorateur](./packages/plugin-architect/README.md#ouvrir-le-plugin)
 donnent leurs prérequis propres.
 
 ## Brancher un repository
@@ -139,7 +139,7 @@ Dans Figma Desktop, ouvrez `Plugins > Development > Import plugin from manifest`
 |---|---|
 | UCM Contract Exporter | `packages/plugin-exporter/dist/manifest.json` |
 | UCM Palettes | `packages/plugin-palettes/dist/manifest.json` |
-| UCM Token Explorer | `packages/plugin-explorateur/dist/manifest.json` |
+| UCM Architect | `packages/plugin-architect/dist/manifest.json` |
 | UCM Nomenclature | `packages/plugin-nomenclature/dist/manifest.json` |
 
 L'explorateur demande encore un identifiant Figma propre ; son README décrit
@@ -156,7 +156,7 @@ comment le renseigner.
 | `npm run cascade` | CSS des tokens dans Chromium, Firefox et WebKit |
 
 Pour `<plugin>`, utilisez `ucm-exporter-plugin`, `ucm-palettes-plugin` ou
-`ucm-explorateur-plugin`. Les tests d'interface demandent
+`ucm-architect-plugin`. Les tests d'interface demandent
 `npx playwright install chromium` ; `cascade` demande aussi Firefox et WebKit.
 
 ## Architecture
@@ -165,7 +165,7 @@ Pour `<plugin>`, utilisez `ucm-exporter-plugin`, `ucm-palettes-plugin` ou
 |---|---|
 | [plugin-exporter](./packages/plugin-exporter/README.md) | Lecture de Figma et publication des contrats et tokens |
 | [plugin-palettes](./packages/plugin-palettes/README.md) | Création, vérification et gestion des palettes |
-| [plugin-explorateur](./packages/plugin-explorateur/README.md) | Variables, chaînes d'alias et vue composant |
+| [plugin-architect](./packages/plugin-architect/README.md) | Variables, chaînes d'alias et vue composant |
 | [plugin-socle](./packages/plugin-socle/README.md) | Build, composants d'interface et galeries partagés |
 | [couleur](./packages/couleur/README.md) | Calcul des rampes, limites et contrastes, sans Figma ni DOM |
 | [kit](./packages/kit/README.md) | Format, table des couleurs du thème, lecteurs et schéma |

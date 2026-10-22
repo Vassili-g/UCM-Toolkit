@@ -29,7 +29,7 @@ demande.
 
 ## 2. Ce que le plugin fait aujourd'hui
 
-| Sujet | État dans `packages/plugin-explorateur` | Écart avec le besoin |
+| Sujet | État dans `packages/plugin-architect` | Écart avec le besoin |
 |---|---|---|
 | Relevé | `lireLeReleve` part des collections et des variables locales, puis lit les cibles de leurs alias | Sans variable locale, le relevé est vide. Une variable de bibliothèque liée à un calque n'y entre pas |
 | Sélection | `envoyerSelection` (`src/code.ts`) lit les liaisons du calque sélectionné seul | Les calques internes du composant ne sont pas lus |

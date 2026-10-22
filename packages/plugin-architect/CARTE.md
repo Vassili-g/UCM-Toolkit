@@ -1,6 +1,6 @@
-# Carte : plugin-explorateur
+# Carte : plugin-architect
 
-Plugin UCM Token Explorer : ucm-explorateur-plugin, privé, en lecture seule.
+Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 
 ## ./
 - SPEC.md : ce que le plugin lit, résout et refuse de conclure

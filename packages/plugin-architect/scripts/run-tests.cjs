@@ -2,4 +2,4 @@
 const path = require('path');
 const { lancerLesTests } = require('ucm-plugin-socle/build/run-tests.cjs');
 
-lancerLesTests({ racine: path.resolve(__dirname, '..'), extensions: ['.test.ts'], nom: 'UCM Token Explorer' });
+lancerLesTests({ racine: path.resolve(__dirname, '..'), extensions: ['.test.ts'], nom: 'UCM Architect' });

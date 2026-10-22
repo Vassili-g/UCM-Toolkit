@@ -6,7 +6,7 @@ Les questions Figma encore ouvertes ne sont pas des fonctions absentes.
 
 Ce plan transforme le [plan de recherche](./PLAN-RECHERCHE-VUE-COMPOSANT.md) et
 la [maquette](./MAQUETTE-VUE-COMPOSANT.html) en tâches exécutables dans
-`packages/plugin-explorateur`. Le mainteneur a validé D1 à D5 et D9 à D15. Aucun
+`packages/plugin-architect`. Le mainteneur a validé D1 à D5 et D9 à D15. Aucun
 essai n'a été fait dans Figma : les questions R1 à R14 restent ouvertes, et le
 lot 8 livre la recette qui les lève.
 
@@ -21,7 +21,7 @@ Avant le lot 0, lire :
 - [AGENTS.md](../../../../../AGENTS.md), groupe d'invariants de l'explorateur
   compris, et [CONTRIBUTING.md](../../../../../CONTRIBUTING.md), sections
   « Interface du plugin », « Tests » et « Rédiger un document » ;
-- [SPEC.md](../../../../../packages/plugin-explorateur/SPEC.md) du paquet ;
+- [SPEC.md](../../../../../packages/plugin-architect/SPEC.md) du paquet ;
 - le plan de recherche et la maquette de ce dossier ;
 - la skill [`rediger-sans-tics-ia`](../../../../../.agents/skills/rediger-sans-tics-ia/SKILL.md)
   avant tout commentaire ou document, et
@@ -46,7 +46,7 @@ porter dans le plugin, qui lit des calques Figma.
 ### Travail dans l'arbre partagé
 
 Une autre session modifie le même arbre de travail. Au lancement de ce plan,
-`git status` montre des fichiers de `packages/plugin-explorateur` modifiés et
+`git status` montre des fichiers de `packages/plugin-architect` modifiés et
 non commités, dont `src/lecture.ts`, `src/ui/index.ts`, `src/ui/styles.css`,
 `src/ui/textes.ts`, `SPEC.md` et `AGENTS.md`.
 
@@ -181,7 +181,7 @@ capture de la galerie et celle de la maquette montrent alors le même contenu.
 ## 4. Organisation cible
 
 ```text
-packages/plugin-explorateur/
+packages/plugin-architect/
   src/
     composant.ts            modèle pur de la vue : natures, lignes, sections, résumés, portée, préfixe
     lectureDuComposant.ts   le sujet d'une sélection, ses calques, ses frontières, ses liaisons, ses styles
@@ -524,7 +524,7 @@ Prérequis : lot 5. Sortie : image et boîtes dans la vue.
 
 Prérequis : lot 6. Sortie : documents d'autorité à jour.
 
-- [x] `packages/plugin-explorateur/SPEC.md` : une section « Vue composant » qui
+- [x] `packages/plugin-architect/SPEC.md` : une section « Vue composant » qui
   porte le sujet, la frontière et les surcharges, l'unité de la liste, le
   style de texte, les modes, l'écart avec Figma, la borne des calques, la
   disposition de la fenêtre.
@@ -539,7 +539,7 @@ Prérequis : lot 6. Sortie : documents d'autorité à jour.
   - les modes d'un calque suivent la table de `separerLesModes`.
 - [x] Vérifier que `tests/inventaireInvariants.test.ts` passe : il compare
   AGENTS.md et le code dans les deux sens.
-- [x] `packages/plugin-explorateur/README.md` : la vue, ses deux dispositions,
+- [x] `packages/plugin-architect/README.md` : la vue, ses deux dispositions,
   ses limites.
 - [x] Plan de recherche : renvoyer vers ce plan à l'étape 5.
 
@@ -580,10 +580,10 @@ exécuter par le mainteneur. Les cases de ce lot se cochent après son passage.
 Avant chaque commit :
 
 ```sh
-npm test --workspace ucm-explorateur-plugin
+npm test --workspace ucm-architect-plugin
 npm run typecheck
-npm run build --workspace ucm-explorateur-plugin
-npm run test:ui --workspace ucm-explorateur-plugin
+npm run build --workspace ucm-architect-plugin
+npm run test:ui --workspace ucm-architect-plugin
 npm test
 ```
 

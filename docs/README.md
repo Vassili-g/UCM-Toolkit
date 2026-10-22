@@ -9,7 +9,7 @@ et les recherches encore utiles.
 | Tâche | Document |
 |---|---|
 | Créer, vérifier et écrire une palette dans Figma | [UCM Palettes](../packages/plugin-palettes/README.md) |
-| Lire les alias ou les tokens d'un composant | [UCM Token Explorer](../packages/plugin-explorateur/README.md) |
+| Lire les alias ou les tokens d'un composant | [UCM Architect](../packages/plugin-architect/README.md) |
 | Ouvrir l'exporteur et choisir sa commande | [UCM Contract Exporter](../packages/plugin-exporter/README.md) |
 | Préparer un composant, exporter et relire sa demande de fusion | [Guide designer](./guides/POUR-LES-DESIGNERS.md) |
 | Comparer les rampes du moteur à celles de Tailwind 3.4 | [Planche du moteur](../packages/couleur/planche/PLANCHE-DU-MOTEUR.html) |
@@ -42,7 +42,7 @@ Les galeries et leurs commandes sont documentées dans chaque README de plugin.
 | [CHANGELOG-FORMAT.md](./format/CHANGELOG-FORMAT.md) | Changements des versions du contrat et des tokens |
 | [SPEC de l'exporteur](../packages/plugin-exporter/SPEC.md) | Lecture de Figma, choix des calques et diagnostics |
 | [Spécification Palettes](./notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md) | Calculs, recette, écriture des palettes et comportement de l'interface |
-| [SPEC de l'explorateur](../packages/plugin-explorateur/SPEC.md) | Relevés, résolution et limites de lecture |
+| [SPEC de l'explorateur](../packages/plugin-architect/SPEC.md) | Relevés, résolution et limites de lecture |
 | [Architecture multi-marques](notes/Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle des collections, des alias et des rôles de `theme` |
 | [AGENTS.md](../AGENTS.md) | Index des agents : quoi lire, où écrire, commandes |
 | `packages/*/invariants/*.md` | Invariants du produit, bornes et fichiers qui les appliquent ; [AGENTS.md](../AGENTS.md#routage) les indexe |

@@ -16,7 +16,7 @@ version du commit `9ab1ee40`. Lis cette version : `git show
 Une autre revue tourne en parallèle ; ne lis aucun fichier `REVUE-*` de ce
 dossier.
 
-Le plan fusionne UCM Token Explorer (`packages/plugin-explorateur`) et UCM
+Le plan fusionne UCM Token Explorer (`packages/plugin-architect`) et UCM
 Nomenclature (`packages/plugin-nomenclature`) en un plugin, UCM Token
 Architect, et lui ajoute un mode Composant qui contrôle et corrige les
 liaisons de variables d'un composant.
@@ -24,7 +24,7 @@ liaisons de variables d'un composant.
 ## À lire avant de juger
 
 1. `AGENTS.md`, puis les guides des paquets touchés : `packages/plugin-exporter/AGENTS.md`,
-   `packages/plugin-explorateur/AGENTS.md`, `packages/plugin-nomenclature/AGENTS.md`,
+   `packages/plugin-architect/AGENTS.md`, `packages/plugin-nomenclature/AGENTS.md`,
    `packages/plugin-socle/AGENTS.md`, `packages/kit/AGENTS.md`. Codex lancé à
    la racine ne les charge pas seul.
 2. `CONTRIBUTING.md`, sections « Travailler avec des agents », « Interface du
@@ -37,7 +37,7 @@ liaisons de variables d'un composant.
    `packages/plugin-exporter/src/contract/`, `src/template/`, `src/variables.ts`,
    `tests/aides/figmaFaux.ts`, ses invariants et son `SPEC.md` ;
    `packages/plugin-socle/` (carte, invariants, build, imports par les
-   plugins) ; `packages/plugin-explorateur/` (invariants, `src/code.ts`,
+   plugins) ; `packages/plugin-architect/` (invariants, `src/code.ts`,
    `src/lectureDuComposant.ts`, onglets, préférences, galerie) ;
    `packages/plugin-nomenclature/` (invariants, `src/code.ts`,
    `src/session.ts`, `src/ecriture.ts`, `src/ui/`, galerie) ;

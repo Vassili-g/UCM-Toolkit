@@ -230,10 +230,10 @@ qui peut dater d'un relevé ancien.
 | But | Commande |
 |---|---|
 | Construire le kit, avant tout test qui l'importe | `npm run build --workspace @ucm-kit/core` |
-| Tests d'un paquet | `npm test --workspace <nom>` : `@ucm-kit/core`, `ucm-couleur`, `ucm-palettes-plugin`, `ucm-explorateur-plugin`, `ucm-exporter-plugin`, `ucm-plugin-socle` |
+| Tests d'un paquet | `npm test --workspace <nom>` : `@ucm-kit/core`, `ucm-couleur`, `ucm-palettes-plugin`, `ucm-architect-plugin`, `ucm-exporter-plugin`, `ucm-plugin-socle` |
 | Types de tout le dépôt | `npm run typecheck` |
 | Interface de Palettes (Chromium) | `npm run test:ui --workspace ucm-palettes-plugin` |
-| Interface d'Exporter et de l'explorateur | `npm run test:ui --workspace ucm-exporter-plugin`, `npm run test:ui --workspace ucm-explorateur-plugin` |
+| Interface d'Exporter et de l'explorateur | `npm run test:ui --workspace ucm-exporter-plugin`, `npm run test:ui --workspace ucm-architect-plugin` |
 | Suite complète | `npm test`, `npm run typecheck`, `npm run build` |
 
 `test:ui` ne reconstruit que `ui.html`. Avant tout essai dans Figma,
@@ -290,10 +290,10 @@ Les tâches sont successives.
     `PAL/src/i18n/fr.ts` et `en.ts` (clé `'page/focus'` des libellés, et le
     texte de la garantie des courbes qui choisit entre `page/foreground` et
     `page/focus`) ; `PAL/galerie/etats.cjs` ;
-    `packages/plugin-explorateur/README.md`, `SPEC.md` ; les tests de
+    `packages/plugin-architect/README.md`, `SPEC.md` ; les tests de
     `kit/tests/`, `couleur/tests/`, `PAL/tests/` (dont
     `tests/interface/interface.test.mjs`) et
-    `plugin-explorateur/tests/integrationsUcm.test.ts`
+    `plugin-architect/tests/integrationsUcm.test.ts`
     (`success/vivid/page/focus` devient `success/vivid/ring`).
   - La planche garde pour l'instant `ring` dans la colonne du dossier `page` :
     R2 la déplace.
@@ -1175,7 +1175,7 @@ SPEC-PAL, après celle de Vérification : `[UI-39]` à `[UI-44]` pour H1 à H5
 
 - [x] **F3 · Construire pour Figma** · `verificateur`.
   - `npm run build --workspace ucm-palettes-plugin` et
-    `npm run build --workspace ucm-explorateur-plugin`.
+    `npm run build --workspace ucm-architect-plugin`.
 
 - [ ] **F4 · Recette du mainteneur dans Figma** · mainteneur.
   - Ouvrir Palettes sur la recette existante : elle se lit au format 11, aux

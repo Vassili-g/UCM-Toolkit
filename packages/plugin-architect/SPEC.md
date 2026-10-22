@@ -1,6 +1,6 @@
 # Spécification de l'explorateur de tokens
 
-UCM Token Explorer lit les variables d'un fichier Figma et explique leurs
+UCM Architect lit les variables d'un fichier Figma et explique leurs
 valeurs : collections, groupes, alias, modes, tokens d'un composant. Ce document
 décrit ce que le plugin lit, comment il résout une chaîne et ce qu'il refuse
 de conclure. Le [plan d'implémentation](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/PLAN-IMPLEMENTATION.md)
@@ -323,7 +323,7 @@ Intégrations et Relevés.
 Dans la disposition large, sous 900 px de large, l'inspecteur passe au-dessus
 de la table et se ferme. Le dessin de la vue composant suit la
 [maquette](./galerie/fixtures/MAQUETTE-VUE-COMPOSANT.html) ;
-`npm run fidelite --workspace ucm-explorateur-plugin` mesure l'écart entre les
+`npm run fidelite --workspace ucm-architect-plugin` mesure l'écart entre les
 deux.
 
 Une cellule de la table tient sur une ligne. Une valeur directe s'affiche

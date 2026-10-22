@@ -1,7 +1,7 @@
 /**
  * Capture les galeries de l'explorateur par le banc du socle.
  *
- *   npm run galerie:captures --workspace ucm-explorateur-plugin -- [clair|sombre|replis] [--etats]
+ *   npm run galerie:captures --workspace ucm-architect-plugin -- [clair|sombre|replis] [--etats]
  */
 const { capturerGalerie } = require('ucm-plugin-socle/galerie/capturer.cjs');
 const { GALERIES } = require('./build-galerie.cjs');

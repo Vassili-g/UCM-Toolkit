@@ -83,7 +83,7 @@ constat » ; aucun geste manuel du designer inventé.
 | Écriture d'Architect | Hors de `src/ecriture/` : aucune écriture, aucun changement de sélection ou de vue, aucun import de `template/ecriture` | A0.2 |
 | Import de variables | Seule `src/lecture.ts` importe ; B3 l'étend aux valeurs d'une library, B10 au catalogue | B3, B10 |
 | Paquets séparés, manifestes, kit compilé (`tests/pluginsSepares.test.ts`, `tests/manifestsDesPlugins.test.ts`, `tests/kitCompileAJour.test.mjs`) | Trois plugins | A0.1, A0.2 |
-| Textes écrits, loi des textes (`tests/textesEcrits.test.mjs`, `plugin-explorateur/tests/loiDesTextes.test.ts`) | Lisent les catalogues découpés `src/ui/textes/*.ts` | A1 |
+| Textes écrits, loi des textes (`tests/textesEcrits.test.mjs`, `plugin-architect/tests/loiDesTextes.test.ts`) | Lisent les catalogues découpés `src/ui/textes/*.ts` | A1 |
 | Vocabulaire de Figma | Nouvelle loi : les catalogues d'Architect refusent les traductions listées (portée, calque, fond de cadre…) et le glyphe « · », sauf une liste d'exceptions que les lots U vident | A1, U1 à U8 |
 
 ## 4. Méthode
@@ -435,7 +435,7 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
 
 - [~ Claude 1] **A0.1 · Renommage.** `implementeur` · vague 1 · seul · S0 ·
   déplacement.
-  Lit : `plugin-explorateur/CARTE.md`, `tests/pluginsSepares.test.ts`, `tests/manifestsDesPlugins.test.ts`, `scripts/construire-plugin.mjs`.
+  Lit : `plugin-architect/CARTE.md`, `tests/pluginsSepares.test.ts`, `tests/manifestsDesPlugins.test.ts`, `scripts/construire-plugin.mjs`.
   Vérifie : `npm run test:paquet -- architect`, `npm run build:plugin -- architect`, tests racine ; `npm test` et `typecheck` par un `verificateur`.
   Écrit : dossier, paquet, manifeste (« UCM Architect », identifiant gardé,
   permission `teamlibrary`), `scripts/construire-plugin.mjs`, scripts racine,
@@ -1081,6 +1081,16 @@ Choix faits sans le mainteneur :
   `galerie/etats.cjs` de l'exporteur ; l'option de comparaison à une révision
   antérieure de `mesurer-export.cjs` ne trouve plus le moteur avant `606e65f7`
   · réversible : oui.
+- Q-13 · A0.1 · Logos · `docs/marque/{cartes,logos}/ucm-token-explorer.svg`
+  gardent leur nom de fichier et le texte visible « Token Explorer » ; seul
+  leur `<title>` dit « UCM Architect ». Dessiner la carte d'Architect est un
+  choix de marque laissé au mainteneur · réversible : oui.
+- Q-14 · A0.1 · Permission · `tests/manifest.test.ts` du paquet attend
+  `["teamlibrary"]` au lieu d'aucune permission · réversible : oui.
+- Q-15 · A0.1 · Identifiants internes · l'id de domaine `explorateur` de
+  `domiciles.json`, les noms de galerie `explorateur-large` et
+  `explorateur-etroit` et les noms de code restent ; seuls le produit et les
+  chemins changent · réversible : oui.
 
 ## 10. Hors du plan
 

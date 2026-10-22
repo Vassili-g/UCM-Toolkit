@@ -405,24 +405,24 @@
     {
       "id": "explorateur",
       "titre": "Explorateur de tokens",
-      "fichier": "packages/plugin-explorateur/invariants/explorateur.md",
+      "fichier": "packages/plugin-architect/invariants/explorateur.md",
       "chemins": [
-        "packages/plugin-explorateur/src/**"
+        "packages/plugin-architect/src/**"
       ],
       "specs": [
-        "packages/plugin-explorateur/SPEC.md#lecture-seule",
-        "packages/plugin-explorateur/SPEC.md#architecture-libre",
-        "packages/plugin-explorateur/SPEC.md#résolution",
-        "packages/plugin-explorateur/SPEC.md#lecture",
-        "packages/plugin-explorateur/SPEC.md#vue-composant",
-        "packages/plugin-explorateur/SPEC.md#intégrations-facultatives"
+        "packages/plugin-architect/SPEC.md#lecture-seule",
+        "packages/plugin-architect/SPEC.md#architecture-libre",
+        "packages/plugin-architect/SPEC.md#résolution",
+        "packages/plugin-architect/SPEC.md#lecture",
+        "packages/plugin-architect/SPEC.md#vue-composant",
+        "packages/plugin-architect/SPEC.md#intégrations-facultatives"
       ],
       "lies": [
-        "packages/plugin-explorateur/README.md",
-        "packages/plugin-explorateur/SPEC.md"
+        "packages/plugin-architect/README.md",
+        "packages/plugin-architect/SPEC.md"
       ],
       "verifications": [
-        "npm run test:paquet -- explorateur"
+        "npm run test:paquet -- architect"
       ]
     },
     {
@@ -449,7 +449,7 @@
     "packages/cli": "packages/cli/CARTE.md",
     "packages/couleur": "packages/couleur/CARTE.md",
     "packages/kit": "packages/kit/CARTE.md",
-    "packages/plugin-explorateur": "packages/plugin-explorateur/CARTE.md",
+    "packages/plugin-architect": "packages/plugin-architect/CARTE.md",
     "packages/plugin-exporter": "packages/plugin-exporter/CARTE.md",
     "packages/plugin-nomenclature": "packages/plugin-nomenclature/CARTE.md",
     "packages/plugin-palettes": "packages/plugin-palettes/CARTE.md",

@@ -72,7 +72,7 @@ Trois contrôles lisent `AGENTS.md`, et lui seul :
 | `scripts/controle-style.mjs` | `AGENTS.md` figure parmi les documents d'autorité, que le contrôle de redite compare entre eux |
 
 Huit liens entrants visent une ancre d'`AGENTS.md` (`CONTRIBUTING.md`,
-`packages/couleur/README.md`, `packages/plugin-explorateur/SPEC.md` et deux
+`packages/couleur/README.md`, `packages/plugin-architect/SPEC.md` et deux
 notes de recherche), et trois commentaires de code le citent par section.
 
 Un découpage doit donc adapter ces contrôles avant de déplacer la première

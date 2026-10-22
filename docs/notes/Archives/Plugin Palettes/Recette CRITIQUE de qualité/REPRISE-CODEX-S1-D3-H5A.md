@@ -39,7 +39,7 @@ reste dans H1.
 | `npm run typecheck --workspace ucm-plugin-socle` | Réussi |
 | `npm run typecheck` | Réussi après le raccordement d'Exporter |
 | `npm run test:ui --workspace ucm-exporter-plugin` | 39 tests réussis, y compris après le raccordement |
-| `npm run test:ui --workspace ucm-explorateur-plugin` | 24 tests réussis |
+| `npm run test:ui --workspace ucm-architect-plugin` | 24 tests réussis |
 | `npm run test:ui --workspace ucm-palettes-plugin` | Interrompu à réception des consignes de coordination ; aucun verdict global |
 
 Les suites d'interface ont été lancées avant réception des consignes de

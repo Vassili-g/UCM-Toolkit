@@ -473,7 +473,7 @@ Les interactions du plugin se vérifient dans Chromium :
 ```sh
 npm run test:ui --workspace ucm-exporter-plugin
 npm run test:ui --workspace ucm-palettes-plugin
-npm run test:ui --workspace ucm-explorateur-plugin
+npm run test:ui --workspace ucm-architect-plugin
 npm run test:ui --workspace ucm-nomenclature-plugin
 ```
 

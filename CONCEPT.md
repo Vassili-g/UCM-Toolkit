@@ -82,7 +82,7 @@ porte pour chacun ce qu'il lit, ce qu'il écrit et où.
 | Produit | Rôle |
 |---|---|
 | UCM Palettes | Calcule les palettes, puis écrit leur recette, leurs variables primitives et leurs planches dans Figma |
-| UCM Token Explorer | Présente les variables, les composants et la recette des palettes, sans écrire dans le document Figma |
+| UCM Architect | Présente les variables, les composants et la recette des palettes, sans écrire dans le document Figma |
 | UCM Contract Exporter | Publie les contrats de composants et les tokens DTCG ; seule la création des règles d’usage écrit dans Figma |
 | UCM Nomenclature | Normalise les noms de collections, de variables, de propriétés et de valeurs, puis range la convention de nommage choisie |
 | Kit et CLI | Le kit définit le format et les lecteurs ; le CLI installe la configuration manquante, contrôle le repository et produit le CSS des tokens |

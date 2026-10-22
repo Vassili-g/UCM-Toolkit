@@ -147,7 +147,7 @@ laissé un test racine rouge (voir la demande).
    déjà dans le kit, écrit `7` dans le corps de `niveauxWcag`
    (`kit/src/referentiel/contraste.ts`) : il y prend un nom, et la
    liste `SEUILS = [3, 4.5, 7]` de l'explorateur
-   (`plugin-explorateur/src/contraste.ts`) en est dérivée (correction de Codex).
+   (`plugin-architect/src/contraste.ts`) en est dérivée (correction de Codex).
 5. C12 : README du kit (porte `referentiel`), README du socle (modules de
    nommage), spécification de l'explorateur (sept collections), registre
    `PRODUITS` (Palettes lit les règles de nommage), statut de
@@ -232,7 +232,7 @@ trois noms changent de mots : `utility`, `brands` et `layout`.
    jamais dans `theme`, `brands` ni `utility`), `FORMAT.md` et
    `CHANGELOG-FORMAT.md` là où ils nomment une couche, les README et
    spécifications des plugins, les galeries (`plugin-nomenclature/galerie`,
-   `plugin-palettes/galerie`, `plugin-explorateur/galerie`), et la vue de
+   `plugin-palettes/galerie`, `plugin-architect/galerie`), et la vue de
    l'architecture de référence
    (`docs/notes/Recherches/Archi Tokens Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html`).
    Régénérer la vue illustrée du référentiel (`generer-donnees-referentiel.ts`).
@@ -290,7 +290,7 @@ cran attendu).
    deux niveaux `elevation/*`, déjà définis), au lieu d'être construite dans
    `profilUcm.ts`.
 4. `variableDuNom` et `nuanceAttendue`
-   (`packages/plugin-explorateur/src/integrations/profilUcm.ts`) appellent ces
+   (`packages/plugin-architect/src/integrations/profilUcm.ts`) appellent ces
    fonctions. Le nom affiché reste celui du fichier.
 5. Décision D6 : l'explorateur lit les termes personnalisés rangés par
    Nomenclature (par le lecteur commun du lot 12, ou celui du socle en
@@ -329,7 +329,7 @@ rien comparé :
 **Changement.**
 
 1. La comparaison rend l'un de trois états : égal, différent, non comparable
-   (`packages/plugin-explorateur/src/integrations/contrats.ts` :
+   (`packages/plugin-architect/src/integrations/contrats.ts` :
    `valeurDtcg`, `memeValeur`, `ecartsAvecLExport`). `valeurDtcg` reçoit le
    `$type` et le contexte, pas la valeur seule.
 2. Les règles de comparaison des valeurs DTCG vont dans les lecteurs purs du

@@ -172,7 +172,7 @@ Plan de fiabilité, section « Lot 8 ».
   - Fini quand : la phrase est dans le fichier.
 - [x] **T8.4** (b805f6a5) · `implementeur` · Contrôle d'unicité étendu
   - Fichiers : `tests/referentielUnique.test.ts`,
-    `packages/plugin-explorateur/src/contraste.ts`,
+    `packages/plugin-architect/src/contraste.ts`,
     `packages/kit/src/referentiel/contraste.ts`,
     `packages/kit/src/referentiel/vocabulaire.ts`.
   - Faire : (1) le seuil AAA, écrit `7` dans le corps de `niveauxWcag`, est
@@ -188,7 +188,7 @@ Plan de fiabilité, section « Lot 8 ».
   - Fini quand : tests verts, aucune liste de seuils écrite hors du kit.
 - [x] **T8.5** (b805f6a5) · `implementeur` · Documents en retard sur le code (C12)
   - Fichiers : `packages/kit/README.md`, `packages/plugin-socle/README.md`,
-    `packages/plugin-explorateur/SPEC.md`,
+    `packages/plugin-architect/SPEC.md`,
     `packages/kit/src/referentiel/produits.ts`,
     `packages/kit/src/referentiel/recommandations.ts`, un test racine nouveau
     `tests/portesDocumentees.test.mjs`.
@@ -269,7 +269,7 @@ Plan de fiabilité, section « Lot 17 », décision D8.
     question de collection (`questions.ts`, type `collection`).
   - Fini quand : tests du kit et de Nomenclature verts.
 - [x] **T17.3** (0ccbff70) · `implementeur` · L'explorateur relit les anciennes associations
-  - Fichiers : `packages/plugin-explorateur/src/integrations/profilUcm.ts`
+  - Fichiers : `packages/plugin-architect/src/integrations/profilUcm.ts`
     (`coucheRangee`), `src/ui/textes.ts`, `README.md`, `SPEC.md`, la galerie,
     les tests.
   - Faire : `coucheRangee` lit `color-brands` comme `brands`,
@@ -377,8 +377,8 @@ Plan de fiabilité, section « Lot 1 », décision D6.
   - Fichiers : `packages/kit/src/emplois/dossiers.ts` (la liste),
     `packages/kit/src/referentiel/theme.ts` (la reconnaissance : `emplois`
     n'importe pas `referentiel`, qui porte `decouperSegment`),
-    `packages/plugin-explorateur/src/integrations/palettes.ts`,
-    `packages/plugin-explorateur/src/integrations/profilUcm.ts`
+    `packages/plugin-architect/src/integrations/palettes.ts`,
+    `packages/plugin-architect/src/integrations/profilUcm.ts`
     (`VARIABLES_DU_THEME`, `variableDuNom`, `nuanceAttendue`), les tests.
   - Faire : la liste des variables du thème est dérivée dans le kit ;
     `profilUcm.ts` ne la construit plus ; `variableDuNom` et `nuanceAttendue`
@@ -392,7 +392,7 @@ Plan de fiabilité, section « Lot 1 », décision D6.
   - Fini quand : tests du kit et de l'explorateur verts.
 - [x] **T1.3** (42dd8719) · `implementeur` · Les termes personnalisés dans l'explorateur
   - Entrée : `conception/lot-1.md`.
-  - Fichiers : `packages/plugin-explorateur/src/lecture.ts` (relevé),
+  - Fichiers : `packages/plugin-architect/src/lecture.ts` (relevé),
     `src/integrations/profilUcm.ts`, les tests.
   - Faire : le relevé porte les règles de nommage lues ; un mode `Jour` déclaré
     comme `light` est reconnu pour le contrôle de nuance.
@@ -427,7 +427,7 @@ Plan de fiabilité, section « Lot 2 ». Sondes de Codex :
     jamais `egal`.
   - Fini quand : tests du kit verts.
 - [x] **T2.2** (94d384cc) · `implementeur` · L'explorateur garde l'espace de couleur
-  - Fichiers : `packages/plugin-explorateur/src/lecture.ts` (`Releve`,
+  - Fichiers : `packages/plugin-architect/src/lecture.ts` (`Releve`,
     `PortDeLecture`), `src/modele.ts`, `src/contraste.ts`, les copies CSS, les
     tests.
   - Faire : le relevé porte le profil colorimétrique du document
@@ -437,7 +437,7 @@ Plan de fiabilité, section « Lot 2 ». Sondes de Codex :
   - Fini quand : tests verts.
 - [x] **T2.3** (94d384cc ; un rôle inconnu est une limite, selon conception/lot-2.md) · `implementeur-exigeant` · Comparaisons et contrôles de l'explorateur
   - Entrée : `conception/lot-2.md`, résultats de T2.1 et T2.2.
-  - Fichiers : `packages/plugin-explorateur/src/integrations/contrats.ts`
+  - Fichiers : `packages/plugin-architect/src/integrations/contrats.ts`
     (`valeurDtcg`, `memeValeur`, `ecartsAvecLExport`),
     `src/integrations/profilUcm.ts`, les tests.
   - Faire : `valeurDtcg` reçoit le `$type` ; la comparaison passe par le kit ;
@@ -447,7 +447,7 @@ Plan de fiabilité, section « Lot 2 ». Sondes de Codex :
   - Fini quand : tests verts.
 - [x] **T2.4** (94d384cc) · `implementeur` · L'écran de l'inspecteur
   - Entrée : textes de `conception/lot-2.md`.
-  - Fichiers : `packages/plugin-explorateur/src/ui/vues/integrations.ts`
+  - Fichiers : `packages/plugin-architect/src/ui/vues/integrations.ts`
     (`sectionContratsDeLInspecteur`), `src/ui/textes.ts`, la galerie de
     l'explorateur et ses tests.
   - Faire : le texte d'égalité ne s'affiche que si chaque mode annoncé a été
@@ -482,7 +482,7 @@ Plan de fiabilité, section « Lot 3 ».
 
 - [x] **T3.1** (94d384cc) · `implementeur` · Les cibles selon la nature
   - Fichiers : `packages/kit/src/referentiel/architecture.ts`,
-    `packages/plugin-explorateur/src/integrations/profilUcm.ts`
+    `packages/plugin-architect/src/integrations/profilUcm.ts`
     (`controlerLeProfil`, `CIBLES_DES_COUCHES`), les tests des deux paquets.
   - Faire : exporter `ciblesAdmises(collection, nature)` avec
     `nature` parmi `couleur`, `dimension`, `typographie` ; pour `components`
@@ -737,8 +737,8 @@ Plan de fiabilité, sections « Le principe des lots 9 à 13 » et « Lot 9 ».
     par `format/index.ts`), `packages/plugin-socle/src/cheminsDeTokens.ts`
     (réexport temporaire), et les clients relevés : `plugin-exporter/src/variables.ts`
     (qui réexporte `joinTokenPath` et `prefixeDeCollection` pour ses tests),
-    `plugin-explorateur/src/integrations/contrats.ts` et
-    `plugin-explorateur/tests/contrats.test.ts`,
+    `plugin-architect/src/integrations/contrats.ts` et
+    `plugin-architect/tests/contrats.test.ts`,
     `plugin-palettes/src/variables/noms.ts` (`cheminCitable`),
     `plugin-socle/src/cheminsPublies.ts`, `plugin-socle/README.md`.
     Nomenclature n'importe pas ce module directement.

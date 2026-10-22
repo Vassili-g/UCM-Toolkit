@@ -90,7 +90,7 @@ Ces points attendent l'accord du mainteneur.
 
 ## Relevé de fidélité
 
-`npm run fidelite --workspace ucm-explorateur-plugin`, dernier passage. La
+`npm run fidelite --workspace ucm-architect-plugin`, dernier passage. La
 page de galerie est ouverte à 362 × 643 px, la zone que la maquette laisse au
 plugin sous la barre de titre de Figma qu'elle dessine.
 
@@ -152,24 +152,24 @@ L'agent n'a pas accès à Figma. Tout ce qui suit tient sur des doubles de test.
 
 | Commande | Résultat |
 |---|---|
-| `npm test --workspace ucm-explorateur-plugin` (ligne de base) | 113 tests, 0 échec |
+| `npm test --workspace ucm-architect-plugin` (ligne de base) | 113 tests, 0 échec |
 | `npm run typecheck` (ligne de base) | Vert |
-| `npm run build --workspace ucm-explorateur-plugin` (ligne de base) | Vert |
-| `npm run test:ui --workspace ucm-explorateur-plugin` (ligne de base) | 13 tests, 0 échec |
+| `npm run build --workspace ucm-architect-plugin` (ligne de base) | Vert |
+| `npm run test:ui --workspace ucm-architect-plugin` (ligne de base) | 13 tests, 0 échec |
 | `npm test` (ligne de base) | 2 452 tests, 0 échec |
 | Les cinq commandes après le lot 1 | Vertes ; 126 tests dans le paquet |
-| `npm test --workspace ucm-explorateur-plugin` (arbre de travail, lots 2 à 7) | 144 tests, 0 échec |
+| `npm test --workspace ucm-architect-plugin` (arbre de travail, lots 2 à 7) | 144 tests, 0 échec |
 | `npm run typecheck` (arbre de travail) | Vert |
-| `npm run build --workspace ucm-explorateur-plugin` (arbre de travail) | Vert |
-| `npm run test:ui --workspace ucm-explorateur-plugin` (arbre de travail) | 23 tests, 0 échec ; trois galeries, dont 18 états à 364 × 680 |
+| `npm run build --workspace ucm-architect-plugin` (arbre de travail) | Vert |
+| `npm run test:ui --workspace ucm-architect-plugin` (arbre de travail) | 23 tests, 0 échec ; trois galeries, dont 18 états à 364 × 680 |
 | `npm test` (arbre de travail) | Vert |
-| `npm run fidelite --workspace ucm-explorateur-plugin` | 4 écarts sur 11 paires, relevé ci-dessus |
+| `npm run fidelite --workspace ucm-architect-plugin` | 4 écarts sur 11 paires, relevé ci-dessus |
 | Tête commitée, dans un worktree séparé, sans les fichiers de l'autre session | Typage vert ; 125 tests du paquet ; 12 tests d'interface ; liens et style des documents verts |
 
 ## Reprendre après un échec
 
 | Échec | Reprise |
 |---|---|
-| `test:ui` ne trouve pas `dist/galerie-fixtures.cjs` | `npm run galerie --workspace ucm-explorateur-plugin` |
-| `fidelite` ne trouve pas `dist/galerie-etroite` | `npm run galerie --workspace ucm-explorateur-plugin` |
+| `test:ui` ne trouve pas `dist/galerie-fixtures.cjs` | `npm run galerie --workspace ucm-architect-plugin` |
+| `fidelite` ne trouve pas `dist/galerie-etroite` | `npm run galerie --workspace ucm-architect-plugin` |
 | Chromium absent | `npx playwright install chromium` |

@@ -2,8 +2,8 @@
  * Le contrôle de fidélité de la vue composant : la galerie étroite contre la
  * fenêtre du plugin de MAQUETTE-VUE-COMPOSANT.html.
  *
- *   npm run galerie --workspace ucm-explorateur-plugin
- *   node packages/plugin-explorateur/galerie/comparer-maquette.cjs
+ *   npm run galerie --workspace ucm-architect-plugin
+ *   node packages/plugin-architect/galerie/comparer-maquette.cjs
  *
  * Pour chaque paire, le script joue les mêmes gestes dans les deux pages,
  * range leurs captures côte à côte dans `dist/fidelite/`, puis mesure les

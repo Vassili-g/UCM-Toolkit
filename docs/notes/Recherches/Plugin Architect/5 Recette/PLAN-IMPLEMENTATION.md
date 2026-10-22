@@ -76,7 +76,7 @@ Commandes, par paquet :
 | Kit | `npm test -w @ucm-kit/core`, `npm run typecheck -w @ucm-kit/core`, `npm run build -w @ucm-kit/core` |
 | Socle | `npm test -w ucm-plugin-socle` |
 | Plugin | `npm test -w ucm-architect-plugin`, `npm run typecheck -w ucm-architect-plugin`, `npm run build -w ucm-architect-plugin` |
-| Autres plugins | `npm test` et `npm run typecheck` de `ucm-explorateur-plugin`, `ucm-palettes-plugin`, `ucm-exporter-plugin` |
+| Autres plugins | `npm test` et `npm run typecheck` de `ucm-architect-plugin`, `ucm-palettes-plugin`, `ucm-exporter-plugin` |
 | Racine | `npm test`, `npm run typecheck`, `npm run build` |
 
 ## Ordre
@@ -255,7 +255,7 @@ Fin : commandes du plugin, après le build du kit.
 
 ### S2 · Le chevron dans les trois autres plugins (D13)
 
-Agent : `implementeur`. Fichiers : `packages/plugin-explorateur/src/ui/arbre.ts`,
+Agent : `implementeur`. Fichiers : `packages/plugin-architect/src/ui/arbre.ts`,
 `ui/textes.ts`, `ui/vues/composant.ts`, `tests/interface/interface.test.mjs` ;
 `packages/plugin-palettes/src/ui/selecteur.ts`, `ui/styles.css` ;
 `packages/plugin-exporter/src/ui/styles.css` ; les tests de ces plugins qui

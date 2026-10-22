@@ -67,7 +67,7 @@ Chaque groupe part tel quel. Seuls les préfixes des liens relatifs changent.
 | Écriture d'UCM Palettes | `packages/plugin-palettes/invariants/ecriture.md` | 14 964 |
 | Langue d'UCM Palettes | `packages/plugin-palettes/invariants/langue.md` | 1 520 |
 | Interface d'UCM Palettes | `packages/plugin-palettes/invariants/interface.md` | 7 962 |
-| Explorateur de tokens | `packages/plugin-explorateur/invariants/explorateur.md` | 6 637 |
+| Explorateur de tokens | `packages/plugin-architect/invariants/explorateur.md` | 6 637 |
 | UCM Nomenclature | `packages/plugin-nomenclature/invariants/nomenclature.md` | 5 446 |
 | Vérification : corpus N-1 et forme d'origine des tokens | `packages/kit/invariants/corpus-de-test.md` | environ 2 000 |
 | Vérification : moteur jugé sur ses sorties, DTCG, `lois.ts` | `packages/plugin-exporter/invariants/tests-du-moteur.md` | environ 2 500 |
@@ -99,7 +99,7 @@ L'agent la parcourt dans l'ordre et s'arrête à la première ligne qui convient
 | Forme d'un champ publié, sens de son absence | `docs/format/FORMAT.md` |
 | Ce que l'exporteur lit dans Figma | `packages/plugin-exporter/SPEC.md` |
 | Pourquoi d'un calcul ou d'un comportement de Palettes | la spécification de Palettes |
-| Pourquoi d'une lecture de l'explorateur | `packages/plugin-explorateur/SPEC.md` |
+| Pourquoi d'une lecture de l'explorateur | `packages/plugin-architect/SPEC.md` |
 | Règle tenue par le code : règle, borne, autorité, test | le fichier que rend `npm run agents:domicile -- <fichier autorité>` |
 | Rôle d'un fichier source | son commentaire d'en-tête |
 | Définition UCM : crans, modes, rôles, conventions | `packages/kit/src/referentiel/`, en code |

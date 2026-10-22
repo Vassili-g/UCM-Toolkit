@@ -17,8 +17,8 @@ import { palettesDuFichier } from '../packages/plugin-palettes/src/variables/det
 import { texteDuSuivi, variablesSuivies } from '../packages/plugin-palettes/src/variables/suivi';
 import { FauxFigma } from '../packages/plugin-palettes/tests/figmaDeTest';
 import { alias, constructeur, couleur } from './releveDeTest';
-import { nuanceAttendue, variableDuNom } from '../packages/plugin-explorateur/src/integrations/profilUcm';
-import type { Releve } from '../packages/plugin-explorateur/src/modele';
+import { nuanceAttendue, variableDuNom } from '../packages/plugin-architect/src/integrations/profilUcm';
+import type { Releve } from '../packages/plugin-architect/src/modele';
 
 export { CONVENTIONS, type Convention };
 

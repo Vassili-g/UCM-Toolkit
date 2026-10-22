@@ -6,7 +6,7 @@ dans le [plan de fiabilité](../PLAN-FIABILITE-KITS-ET-PLUGINS.md), lot 2.
 
 ## Ce que le code fait aujourd'hui
 
-`memeValeur` (`plugin-explorateur/src/integrations/contrats.ts`) rend déjà
+`memeValeur` (`plugin-architect/src/integrations/contrats.ts`) rend déjà
 `null` pour une forme qu'elle ne sait pas comparer : graisse, durée, courbe,
 alias à opacité, forme DTCG inconnue. Mais `ecartsAvecLExport` ne garde que
 les `false`. Un `null` disparaît, et l'inspecteur affiche « L’export porte la

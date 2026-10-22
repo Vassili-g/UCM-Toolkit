@@ -81,7 +81,7 @@ export function variableDuThemeReconnue(nom: string, index?: IndexDuVocabulaire)
   `MODES` vit dans `referentiel/vocabulaire.ts`. `emplois` ne peut pas
   l'importer : `ModeDuTheme` reste écrit dans `emplois`, et un test du kit
   vérifie qu'il vaut `MODES`. `Intensite` et `Theme`
-  (`plugin-explorateur/src/integrations/palettes.ts`) et le paramètre `mode`
+  (`plugin-architect/src/integrations/palettes.ts`) et le paramètre `mode`
   de `nuanceAttendue` dérivent de `PROFILS` et `MODES`.
 
 ## Les modes, et les termes personnalisés
@@ -113,7 +113,7 @@ L'explorateur n'écrit rien dans le document. Il lit l'espace partagé
 `getSharedPluginDataKeys(ESPACE_ARCHITECT)` filtré par `estCleDeNommage`,
 puis `lireReglesDeNommage` du socle. Ce lecteur passera au kit au lot 12.
 
-- Le relevé (`plugin-explorateur/src/lecture.ts`, `Releve`) gagne un champ
+- Le relevé (`plugin-architect/src/lecture.ts`, `Releve`) gagne un champ
   facultatif `vocabulaire?: VocabulaireDuFichier`, lu dans `code.ts` au
   moment du relevé. Il est absent quand `lireReglesDeNommage` rend `null`.
 - Un relevé importé d'une version antérieure n'a pas ce champ : il se lit

@@ -1,8 +1,8 @@
 /**
  * Le relevé de l'explorateur que les lois entre produits donnent à lire : un constructeur autonome, écrit sur les types publics de
- * `packages/plugin-explorateur/src/modele.ts`. Les tests racine ne lisent aucun fichier de test d'un paquet pour ce relevé.
+ * `packages/plugin-architect/src/modele.ts`. Les tests racine ne lisent aucun fichier de test d'un paquet pour ce relevé.
  */
-import { FORMAT_DU_RELEVE, type CollectionRelevee, type Couleur, type Releve, type TypeDeVariable, type ValeurSource, type VariableRelevee } from '../packages/plugin-explorateur/src/modele';
+import { FORMAT_DU_RELEVE, type CollectionRelevee, type Couleur, type Releve, type TypeDeVariable, type ValeurSource, type VariableRelevee } from '../packages/plugin-architect/src/modele';
 
 export const alias = (cible: string): ValeurSource => ({ nature: 'alias', cible });
 

@@ -1,7 +1,7 @@
 # Plan d'implémentation de l'explorateur de tokens
 
 **Statut : implémenté.** Les modules sont présents dans
-`packages/plugin-explorateur`. Le [suivi](./SUIVI-IMPLEMENTATION.md) conserve
+`packages/plugin-architect`. Le [suivi](./SUIVI-IMPLEMENTATION.md) conserve
 les preuves et les réserves Figma ; les consignes ci-dessous décrivent le
 plan exécuté, pas un développement à lancer.
 
@@ -55,7 +55,7 @@ une branche ou modifier un fichier Figma réel sans autorisation correspondante.
 | Sujet | Choix d'exécution |
 |---|---|
 | Nom du produit | UCM Token Explorer, provisoire, choisi à la demande du mainteneur ; le nom ne requiert aucune donnée UCM dans le fichier |
-| Paquet | `packages/plugin-explorateur`, privé, nommé `ucm-explorateur-plugin` |
+| Paquet | `packages/plugin-architect`, privé, nommé `ucm-architect-plugin` |
 | Socle | TypeScript strict, DOM natif, esbuild et `ucm-plugin-socle`, selon les plugins voisins |
 | Architecture des tokens | Collections, groupes et modes découverts ; aucun nom ni nombre de couches réservé |
 | Identité | Identifiants Figma pour la navigation ; noms exacts pour l'affichage ; chemins normalisés réservés aux imports UCM |
@@ -89,7 +89,7 @@ Les chemins ci-dessous sont à créer. Leur découpage peut évoluer si les mêm
 responsabilités et frontières restent couvertes par les tests.
 
 ```text
-packages/plugin-explorateur/
+packages/plugin-architect/
   src/
     code.ts                    commandes et événements Figma
     messages.ts                protocole sandbox ↔ UI, demandes et révisions
@@ -557,12 +557,12 @@ Exécuter depuis la racine du dépôt. Les scripts du nouveau workspace sont à
 créer au lot 1 ; ne pas annoncer leur disponibilité avant ce lot.
 
 ```sh
-npm run test --workspace ucm-explorateur-plugin
-npm run typecheck --workspace ucm-explorateur-plugin
-npm run build --workspace ucm-explorateur-plugin
-npm run test:ui --workspace ucm-explorateur-plugin
-npm run galerie:captures --workspace ucm-explorateur-plugin
-npm run mesure --workspace ucm-explorateur-plugin
+npm run test --workspace ucm-architect-plugin
+npm run typecheck --workspace ucm-architect-plugin
+npm run build --workspace ucm-architect-plugin
+npm run test:ui --workspace ucm-architect-plugin
+npm run galerie:captures --workspace ucm-architect-plugin
+npm run mesure --workspace ucm-architect-plugin
 ```
 
 Après intégration, appliquer les contrôles du dépôt et ceux des interfaces

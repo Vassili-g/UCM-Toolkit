@@ -18,7 +18,7 @@ const racine = path.resolve(__dirname, '..');
 const PLUGINS = [
   { dossier: 'plugin-exporter', nom: 'ucm-exporter-plugin' },
   { dossier: 'plugin-palettes', nom: 'ucm-palettes-plugin' },
-  { dossier: 'plugin-explorateur', nom: 'ucm-explorateur-plugin' },
+  { dossier: 'plugin-architect', nom: 'ucm-architect-plugin' },
   { dossier: 'plugin-nomenclature', nom: 'ucm-nomenclature-plugin' },
 ];
 

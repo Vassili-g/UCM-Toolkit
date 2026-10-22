@@ -8,8 +8,8 @@ reprendre le travail sans l'historique de conversation.
 
 | Lot | État | Preuve principale |
 |---|---|---|
-| 0. État des lieux | Livré | `packages/plugin-explorateur/SPEC.md`, `tests/fixtures.ts`, limites ci-dessous |
-| 1. Paquet, build, fenêtre | Livré | `npm run build --workspace ucm-explorateur-plugin` vert ; `tests/manifest.test.ts`, `tests/fenetre.test.ts` |
+| 0. État des lieux | Livré | `packages/plugin-architect/SPEC.md`, `tests/fixtures.ts`, limites ci-dessous |
+| 1. Paquet, build, fenêtre | Livré | `npm run build --workspace ucm-architect-plugin` vert ; `tests/manifest.test.ts`, `tests/fenetre.test.ts` |
 | 2. Relevé et messages | Livré | `tests/lecture.test.ts`, `tests/loiDeLectureSeule.test.ts` |
 | 3. Arbre et navigation | Livré | `tests/groupes.test.ts` ; tests d'interface « groupe », « retour » |
 | 4. Résolution et contextes | Livré, recette Figma restante | `tests/resolution.test.ts` |
@@ -24,13 +24,13 @@ reprendre le travail sans l'historique de conversation.
 
 **Prochaine tâche** : la recette Figma du lot 12, qui demande l'accès du
 mainteneur. Préparer le fichier de recette, puis importer
-`packages/plugin-explorateur/dist/manifest.json` dans Figma Desktop.
+`packages/plugin-architect/dist/manifest.json` dans Figma Desktop.
 
 ## Décisions prises pendant l'exécution
 
 | Sujet | Décision |
 |---|---|
-| Nom | **UCM Token Explorer**, provisoire. Il ne s'écrit que dans `manifest.json`, `src/ui/textes.ts` et `src/ui/index.html` ; `tests/loiDesTextes.test.ts` le vérifie. Le paquet reste `ucm-explorateur-plugin` |
+| Nom | **UCM Token Explorer**, provisoire. Il ne s'écrit que dans `manifest.json`, `src/ui/textes.ts` et `src/ui/index.html` ; `tests/loiDesTextes.test.ts` le vérifie. Le paquet reste `ucm-architect-plugin` |
 | Identifiant du plugin | Aucun dans le manifeste. Le README du paquet décrit l'attribution par `Plugins > Development > New plugin…` |
 | Thème | `src/ui/roles.css` précède la feuille du socle ; `showUI` part avec `themeColors: false` |
 | Dessin | Celui de `MAQUETTE-EXPLORATEUR-TOKENS.html` : ses couleurs dans `roles.css`, les noms en chasse fixe, un alias en pastille, la chaîne en frise, les onglets soulignés sous le titre du groupe. Le texte passe à 12 px et les contrôles à 28 px, au-dessus de l'échelle du socle. Écarts gardés : une colonne par mode, la valeur rangée au-dessus de son résultat ; Retour reste dans la barre |
@@ -59,13 +59,13 @@ Typings installés : `@figma/plugin-typings` 1.138.0.
 |---|---|
 | `npm test` (ligne de base, avant tout changement) | 7 échecs préexistants : 1 dans `ucm-couleur`, 6 dans `ucm-palettes-plugin`, sur des textes modifiés dans la copie de travail |
 | `npm test` (après intégration) | 2 307 tests, 6 échecs : les 6 de la ligne de base dans `ucm-palettes-plugin` ; l'échec de `ucm-couleur` ne se reproduit plus |
-| `npm run test --workspace ucm-explorateur-plugin` | 106 tests, 0 échec |
+| `npm run test --workspace ucm-architect-plugin` | 106 tests, 0 échec |
 | `npm run typecheck` | Vert |
 | `npm run build` | Vert, trois plugins |
-| `npm run test:ui --workspace ucm-explorateur-plugin` | 12 tests, 0 échec, clavier compris |
+| `npm run test:ui --workspace ucm-architect-plugin` | 12 tests, 0 échec, clavier compris |
 | `npm run test:ui --workspace ucm-exporter-plugin` | 24 tests, 0 échec |
 | `npm run test:ui --workspace ucm-palettes-plugin` | 158 tests, 31 échecs. Rejoués avec `src/lecture.ts` d’UCM Palettes remis à son état commité : les 31 mêmes échecs. Ils précèdent ce chantier |
-| `npm run galerie --workspace ucm-explorateur-plugin` | 31 états atteignables × 3 modes, aux deux tailles ; chaque page jouée sans erreur dans Chromium, en thème sombre, clair et sans variable servie ; captures relues à 1200 × 800 et 560 × 480 |
+| `npm run galerie --workspace ucm-architect-plugin` | 31 états atteignables × 3 modes, aux deux tailles ; chaque page jouée sans erreur dans Chromium, en thème sombre, clair et sans variable servie ; captures relues à 1200 × 800 et 560 × 480 |
 | `npx tsx --test tests/pluginsSepares.test.ts` | 6 paires vertes |
 | `npx tsx --test tests/docLinks.test.ts` | Vert |
 | `git diff --check` | Vert |
@@ -75,7 +75,7 @@ Typings installés : `@figma/plugin-typings` 1.138.0.
 
 ## Mesures
 
-`npm run mesure --workspace ucm-explorateur-plugin`, 10 000 variables sur
+`npm run mesure --workspace ucm-architect-plugin`, 10 000 variables sur
 20 collections et quatre modes, dix répétitions après échauffement :
 
 | Phase | Médiane | Budget du plan |
@@ -140,7 +140,7 @@ Aucun de ces points n'est vérifié : l'agent n'a pas accès à Figma.
 
 | Échec | Reprise |
 |---|---|
-| `test:ui` ne trouve pas `dist/galerie-fixtures.cjs` | `npm run galerie --workspace ucm-explorateur-plugin` |
+| `test:ui` ne trouve pas `dist/galerie-fixtures.cjs` | `npm run galerie --workspace ucm-architect-plugin` |
 | Chromium absent | `npx playwright install chromium` |
 | `galerie:captures` ne trouve pas Chrome | Renseigner `UCM_CHROME` avec le chemin de l'exécutable |
 | Un test d'UCM Palettes échoue sur un texte | Vérifier d'abord la ligne de base : six échecs y étaient déjà, dans des fichiers modifiés hors de ce chantier |

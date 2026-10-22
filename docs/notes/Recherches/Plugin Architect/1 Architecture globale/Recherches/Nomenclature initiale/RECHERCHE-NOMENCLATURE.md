@@ -32,7 +32,7 @@ Trois questions en découlent :
 | Synonymes d'états | `STATE_SELECTORS`, [semantics.ts](../../../../../../../packages/plugin-socle/src/composant/contract/semantics.ts) | Accepte `hover` et `hovered`, `press` et `pressed`, `focus` et `focused`, `disable` et `disabled` ; un état inconnu produit un avertissement |
 | Synonymes de tailles | `SIZE_VALUES`, même fichier | Reconnaît `small`, `medium`, `large`, `big` comme `sm`, `md`, `lg` |
 | Vocabulaire de la table en dossiers | [dossiers.ts](../../../../../../../packages/kit/src/emplois/dossiers.ts) | Fixe les noms `solid`, `surface`, `page`, `default`, `hover`, `pressed`, `foreground`, `border`, `focus`, `disabled` |
-| Profil UCM de l'explorateur | [profilUcm.ts](../../../../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts) | Quatre règles d'architecture en information, activées par le designer, avec des exceptions par fichier |
+| Profil UCM de l'explorateur | [profilUcm.ts](../../../../../../../packages/plugin-architect/src/integrations/profilUcm.ts) | Quatre règles d'architecture en information, activées par le designer, avec des exceptions par fichier |
 
 Le moteur absorbe donc une partie des variantes de nommage au moment de
 l'export. Aucun module ne les relève pour que le designer les réduise à la

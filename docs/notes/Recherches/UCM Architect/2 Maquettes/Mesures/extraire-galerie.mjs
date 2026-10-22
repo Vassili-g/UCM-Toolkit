@@ -1,6 +1,6 @@
 // Fige des états sombres des galeries de l'explorateur et de Nomenclature : le DOM rendu, sans script, et la feuille du plugin.
 // Les maquettes de Architect modifient ces écrans réels au lieu de les redessiner.
-// Préalable : `npm run galerie:plugin -- explorateur` et `npm run galerie:plugin -- nomenclature`.
+// Préalable : `npm run galerie:plugin -- architect` et `npm run galerie:plugin -- nomenclature`.
 // Lancer depuis la racine du dépôt : `node "docs/notes/Recherches/UCM Architect/2 Maquettes/Mesures/extraire-galerie.mjs"`.
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -14,13 +14,13 @@ const maquettes = path.resolve(ici, '..');
 const GALERIES = [
   {
     nom: 'explorateur-large',
-    dossier: path.join(paquets, 'plugin-explorateur/dist/galerie/sombre'),
+    dossier: path.join(paquets, 'plugin-architect/dist/galerie/sombre'),
     largeur: 1200, hauteur: 800,
     etats: ['bascule-tokens', 'arbre-profond', 'survol-chaine', 'dependants', 'comparaison', 'diagnostics', 'vide', 'integrations', 'releves'],
   },
   {
     nom: 'explorateur-etroit',
-    dossier: path.join(paquets, 'plugin-explorateur/dist/galerie-etroite/sombre'),
+    dossier: path.join(paquets, 'plugin-architect/dist/galerie-etroite/sombre'),
     largeur: 364, hauteur: 724,
     etats: ['composant-complexe', 'composant-valeurs-sans-token', 'composant-variants', 'composant-simple', 'composant-frontiere', 'composant-lecture', 'composant-vide'],
   },

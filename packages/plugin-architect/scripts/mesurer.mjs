@@ -5,7 +5,7 @@
  * s'impriment. Ce sont des mesures de travail, hors des tests : aucun seuil
  * n'arrête la CI.
  *
- *   npm run mesure --workspace ucm-explorateur-plugin
+ *   npm run mesure --workspace ucm-architect-plugin
  *
  * Le rendu se mesure dans Chromium sur `dist/ui.html` ; sans build ni
  * navigateur, seule la mesure du noyau s'imprime.

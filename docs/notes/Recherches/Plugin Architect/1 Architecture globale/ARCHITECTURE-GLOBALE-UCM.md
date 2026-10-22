@@ -48,7 +48,7 @@ Le code courant n'a aucun onglet intitulé « UCM ». La barre affiche le logo
 `UCM` (`TEXTES.marque`), et l'onglet **Intégrations** regroupe les trois
 fonctions qui connaissent UCM. Si l'explorateur ouvert dans Figma montre un
 onglet « UCM », il vient d'un build antérieur : le reconstruire avec
-`npm run build --workspace ucm-explorateur-plugin`.
+`npm run build --workspace ucm-architect-plugin`.
 
 | Intégration | Ce qu'elle fait | Sa limite | Ce qui la recoupe |
 |---|---|---|---|
@@ -56,7 +56,7 @@ onglet « UCM », il vient d'un build antérieur : le reconstruire avec
 | Recette UCM Palettes | Le designer associe à la main une variable à une palette, une intensité, un thème et un cran ; l'onglet liste les variables de `theme` que ce cran porte | L'association disparaît à la fermeture du plugin | Palettes marque chaque variable qu'il écrit avec sa palette et sa clé (`setSharedPluginData` dans `ecriture/variables.ts`) : l'association peut se lire sans geste. L'aperçu de Palettes montre déjà les variables de chaque cran |
 | Profil d'architecture UCM | Le designer associe chaque collection à l'une des cinq couches ; quatre règles relèvent les alias entre couches non permises, les valeurs directes, les portées et la nuance visée par une variable de `theme` | Seules règles d'opinion de l'explorateur. `variableDuNom` reconnaît une variable de `theme` par la fin de son nom : le profil dépend donc du nommage | Le contrôle des noms étudié dans RECHERCHE-NOMENCLATURE.md |
 
-Le [README de l'explorateur](../../../../../packages/plugin-explorateur/README.md)
+Le [README de l'explorateur](../../../../../packages/plugin-architect/README.md)
 annonce un plugin qui fonctionne sur toute architecture. Les trois
 intégrations sont facultatives et tiennent cette promesse. Elles placent
 pourtant dans l'outil de lecture la seule partie de la suite qui juge une
@@ -75,7 +75,7 @@ vocabulaire. Chaque définition est écrite là où un produit en a eu besoin.
 | Les sept garanties de contraste | [garanties.ts](../../../../../packages/kit/src/emplois/garanties.ts) | Carte des garanties de Palettes |
 | États reconnus et leurs variantes (`hover`/`hovered`, `press`/`pressed`) | `STATE_SELECTORS`, [semantics.ts](../../../../../packages/plugin-socle/src/composant/contract/semantics.ts) | Nulle part |
 | Tailles reconnues (`small` lu comme `sm`) | `SIZE_VALUES`, même fichier | Nulle part |
-| Les cinq couches et les alias permis entre elles | `COUCHES` et `CIBLES_DES_COUCHES`, [profilUcm.ts](../../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts) | Onglet Intégrations |
+| Les cinq couches et les alias permis entre elles | `COUCHES` et `CIBLES_DES_COUCHES`, [profilUcm.ts](../../../../../packages/plugin-architect/src/integrations/profilUcm.ts) | Onglet Intégrations |
 | Architecture des collections | [Vue illustrée multi-marques](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle des collections et des rôles |
 | Une variable par propriété de composant | [SPEC de l'exporteur](../../../../../packages/plugin-exporter/SPEC.md), section 8 | [Guide designer](../../../../guides/POUR-LES-DESIGNERS.md), section 2 |
 | Tags des règles d'usage | [README de l'exporteur](../../../../../packages/plugin-exporter/README.md#documenter-les-règles-dusage) | Même document |

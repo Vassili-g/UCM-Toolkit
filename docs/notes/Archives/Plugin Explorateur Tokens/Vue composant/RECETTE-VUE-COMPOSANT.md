@@ -10,9 +10,9 @@ faire quand une étape échoue.
 
 ## Préparer
 
-1. Depuis la racine du dépôt : `npm run build --workspace ucm-explorateur-plugin`.
+1. Depuis la racine du dépôt : `npm run build --workspace ucm-architect-plugin`.
 2. Dans Figma Desktop, `Plugins > Development > Import plugin from manifest`,
-   puis `packages/plugin-explorateur/dist/manifest.json`.
+   puis `packages/plugin-architect/dist/manifest.json`.
 3. **Fichier A.** Créer un fichier vide. Activer la bibliothèque
    `intencial-library`. Poser une instance d'Alert et une instance de
    StressTest. Ne créer aucune variable locale.

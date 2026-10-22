@@ -250,7 +250,7 @@ l'explorateur) :
 | `packages/plugin-palettes/src/variables/detection.ts` | `IntensiteDuChemin`, `ThemeDuChemin` | `= Profil`, `= Mode` |
 | `packages/plugin-palettes/src/variables/suivi.ts` | `intensite?: 'soft' \| 'vivid'` et sa lecture | `Profil`, et `PROFILS.includes` |
 | `packages/plugin-palettes/src/ui/configuration.ts` | `partie as 'light' \| 'dark'` | `partie as Mode` |
-| `packages/plugin-explorateur/src/ui/vues/integrations.ts` | `valeur as 'soft' \| 'vivid'`, `valeur as 'light' \| 'dark'` | `Intensite`, `Theme` |
+| `packages/plugin-architect/src/ui/vues/integrations.ts` | `valeur as 'soft' \| 'vivid'`, `valeur as 'light' \| 'dark'` | `Intensite`, `Theme` |
 
 Les déclarations de type d'objets à dériver, en `Readonly<Record<Mode, X>>` ou
 `Readonly<Record<Profil, X>>`, ou en intersection avec ce `Record` quand

@@ -1,5 +1,5 @@
 {
-  "name": "UCM Token Explorer",
+  "name": "UCM Architect",
   "id": "1692941924043418903",
   "api": "1.0.0",
   "main": "dist/code.js",
@@ -8,6 +8,9 @@
     "figma"
   ],
   "documentAccess": "dynamic-page",
+  "permissions": [
+    "teamlibrary"
+  ],
   "networkAccess": {
     "allowedDomains": [
       "none"

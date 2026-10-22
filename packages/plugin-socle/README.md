@@ -31,7 +31,7 @@ npm run test --workspace ucm-plugin-socle
 npm run typecheck --workspace ucm-plugin-socle
 npm run galerie --workspace ucm-exporter-plugin
 npm run galerie --workspace ucm-palettes-plugin
-npm run galerie --workspace ucm-explorateur-plugin
+npm run galerie --workspace ucm-architect-plugin
 ```
 
 Une modification partagée se relit dans les trois galeries. Les captures se
@@ -42,7 +42,7 @@ Les tests d'interaction restent dans chaque plugin.
 [CONTRIBUTING.md](../../CONTRIBUTING.md#interface-du-plugin) définit la
 hiérarchie de l'information et le protocole de relecture. Les README de
 [l'exporteur](../plugin-exporter/README.md), de [Palettes](../plugin-palettes/README.md)
-et de [l'explorateur](../plugin-explorateur/README.md)
+et de [l'explorateur](../plugin-architect/README.md)
 décrivent leurs fonctions propres.
 
 ## Licence

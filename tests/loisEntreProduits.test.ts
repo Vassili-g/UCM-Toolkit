@@ -19,8 +19,8 @@ import { lireReglesDeNommage } from '@ucm-kit/core/protocoles';
 import { jsonCanonique, type Recette } from 'ucm-couleur';
 
 import { appliquerLesRenommages, creerPortDeRegles, creerPortEcriture, type RenommageDemande } from '../packages/plugin-nomenclature/src/ecriture';
-import { indexer } from '../packages/plugin-explorateur/src/indexation';
-import { controlerLeProfil, variableDuNom, type AssociationDesCouches } from '../packages/plugin-explorateur/src/integrations/profilUcm';
+import { indexer } from '../packages/plugin-architect/src/indexation';
+import { controlerLeProfil, variableDuNom, type AssociationDesCouches } from '../packages/plugin-architect/src/integrations/profilUcm';
 import { changerReference, choisirLesIntensites } from '../packages/plugin-palettes/src/edition';
 import { convertirLaReprise, ecrireLesVariables, type IssueDeLaPalette } from '../packages/plugin-palettes/src/ecriture/variables';
 import { lireLesVariablesDuFichier, type VariablesDuFichier } from '../packages/plugin-palettes/src/lectureDesVariables';

@@ -1,6 +1,6 @@
-# Explorateur (`packages/plugin-explorateur`)
+# Explorateur (`packages/plugin-architect`)
 
-Plugin UCM Token Explorer : ucm-explorateur-plugin, privé, en lecture seule.
+Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 
 - Écrit dans Figma : rien, lecture seule.
 - Commandes : `npm run test:paquet -- explorateur`, `npm run build:plugin -- explorateur`, `npm run galerie:plugin -- explorateur`.

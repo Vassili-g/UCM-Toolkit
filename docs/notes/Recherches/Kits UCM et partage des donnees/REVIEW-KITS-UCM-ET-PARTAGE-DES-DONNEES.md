@@ -244,7 +244,7 @@ Le registre `PRODUITS` n'indique pas que Palettes lit les règles de nommage ni 
 | `referentielUnique.test.ts` | Refuse les tableaux recopiés des six familles contrôlées et les exceptions périmées | Ne couvre pas toutes les représentations d'une règle |
 | `porteNavigateur.test.mjs` | Les lecteurs purs sont réexportés avec les mêmes noms et fonctions ; la porte n'atteint ni Node ni Ajv | Ne teste pas l'exhaustivité de chaque appel effectué par un plugin |
 | `paquetPublie.test.mjs` | Les cinq portes JavaScript testées s'importent dans Node sans `tsx` | Ne réalise pas une installation du tarball dans un consommateur externe |
-| `plugin-explorateur/tests/bundle.test.ts` | Construit en mémoire les deux bundles et vérifie les dépendances interdites | Ne remplace pas une ouverture réelle dans Figma |
+| `plugin-architect/tests/bundle.test.ts` | Construit en mémoire les deux bundles et vérifie les dépendances interdites | Ne remplace pas une ouverture réelle dans Figma |
 | `tests/nomsDePalettes.test.ts` | Aller-retour Palettes et Nomenclature, marque présente ou absente, reprise et destination, termes personnalisés | Jeux fabriqués ; ne simule pas toutes les anciennes distributions |
 | `tests/axesDeModes.test.ts` | Accord entre le socle et l'exporteur sur les axes et les renommages qui les affectent | La décision reste implémentée dans deux endroits |
 | Types, schéma et lecteurs du kit | Le format des composants est commun au producteur et aux consommateurs | L'interprétation commune doit rester accessible dans le kit |
@@ -301,7 +301,7 @@ Les neuf suites de paquets passent. L'échec appartient aux contrôles racine. L
 La commande ciblée est reproductible depuis la racine :
 
 ```sh
-npx tsx --test tests/referentielUnique.test.ts tests/monorepoCoherent.test.mjs tests/nomsDePalettes.test.ts tests/axesDeModes.test.ts packages/kit/tests/referentiel.test.ts packages/kit/tests/referentiel-definitions.test.ts packages/kit/tests/architectureReferentiel.test.ts packages/kit/tests/porteNavigateur.test.mjs packages/kit/tests/paquetPublie.test.mjs packages/plugin-socle/tests/reglesDeNommage.test.ts packages/plugin-nomenclature/tests/nomsDePalettes.test.ts packages/plugin-explorateur/tests/integrationsUcm.test.ts packages/plugin-explorateur/tests/bundle.test.ts
+npx tsx --test tests/referentielUnique.test.ts tests/monorepoCoherent.test.mjs tests/nomsDePalettes.test.ts tests/axesDeModes.test.ts packages/kit/tests/referentiel.test.ts packages/kit/tests/referentiel-definitions.test.ts packages/kit/tests/architectureReferentiel.test.ts packages/kit/tests/porteNavigateur.test.mjs packages/kit/tests/paquetPublie.test.mjs packages/plugin-socle/tests/reglesDeNommage.test.ts packages/plugin-nomenclature/tests/nomsDePalettes.test.ts packages/plugin-architect/tests/integrationsUcm.test.ts packages/plugin-architect/tests/bundle.test.ts
 ```
 
 | Sonde | Entrée | Résultat observé |
@@ -336,13 +336,13 @@ Les liens pointent vers les fichiers de production et les contrôles qui étayen
 [recommandations]: ../../../../packages/kit/src/referentiel/recommandations.ts
 [noms-format]: ../../../../packages/kit/src/format/names.ts
 [diagnostic-contrastes]: ../../../../packages/kit/src/lecteurs/diagnostic-contrastes.mjs
-[profil]: ../../../../packages/plugin-explorateur/src/integrations/profilUcm.ts
-[imports]: ../../../../packages/plugin-explorateur/src/integrations/contrats.ts
-[lecture-explorateur]: ../../../../packages/plugin-explorateur/src/lecture.ts
-[vue-integrations]: ../../../../packages/plugin-explorateur/src/ui/vues/integrations.ts
-[textes-explorateur]: ../../../../packages/plugin-explorateur/src/ui/textes.ts
-[contraste-explorateur]: ../../../../packages/plugin-explorateur/src/contraste.ts
-[explorateur-spec]: ../../../../packages/plugin-explorateur/SPEC.md
+[profil]: ../../../../packages/plugin-architect/src/integrations/profilUcm.ts
+[imports]: ../../../../packages/plugin-architect/src/integrations/contrats.ts
+[lecture-explorateur]: ../../../../packages/plugin-architect/src/lecture.ts
+[vue-integrations]: ../../../../packages/plugin-architect/src/ui/vues/integrations.ts
+[textes-explorateur]: ../../../../packages/plugin-architect/src/ui/textes.ts
+[contraste-explorateur]: ../../../../packages/plugin-architect/src/contraste.ts
+[explorateur-spec]: ../../../../packages/plugin-architect/SPEC.md
 [nuances]: ../../../../packages/couleur/src/nuances.ts
 [recette]: ../../../../packages/couleur/src/recette.ts
 [plan-variables]: ../../../../packages/plugin-palettes/src/variables/plan.ts

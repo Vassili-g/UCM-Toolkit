@@ -107,7 +107,7 @@ Fin : `npm run build --workspace @ucm-kit/core`, tests du kit et de
 
 - [x] `architecture.ts` : les sept collections dans l'ordre de la vue (a1dd153)
   (A01), les alias permis entre elles, repris de `CIBLES_DES_COUCHES` de
-  `packages/plugin-explorateur/src/integrations/profilUcm.ts` et du texte de
+  `packages/plugin-architect/src/integrations/profilUcm.ts` et du texte de
   la vue (A02), les axes de modes marque et thème (A03), les portées vides
   des collections intermédiaires (A10), la destination par défaut
   `primitives`/`colors` (A11)
@@ -387,7 +387,7 @@ lots 3 à 13 : c'est elle qui débloque la migration du fichier du mainteneur.
 et 15.
 
 - [x] `packages/plugin-architect` sur le socle des plugins (557bf0a) : manifeste, build,
-  galerie, comme `plugin-explorateur`
+  galerie, comme `plugin-architect`
 - [x] Lecture des collections, des variables locales, des propriétés et des (557bf0a)
   valeurs de variantes des composants locaux, de toutes les pages, avec un
   avancement ; propositions par le moteur du lot 15

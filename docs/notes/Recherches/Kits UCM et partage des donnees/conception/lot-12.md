@@ -111,7 +111,7 @@ l'inventaire depuis le kit.
 1. Créer les modules du kit, puis faire de `reglesDeNommage.ts`,
    `nomsSelonLesRegles.ts` et `cheminsPublies.ts` du socle des réexports du
    kit.
-2. Migrer les clients relevés : `plugin-explorateur/src/lecture.ts` ;
+2. Migrer les clients relevés : `plugin-architect/src/lecture.ts` ;
    `plugin-nomenclature/src/` (`conventions.ts`, `ecriture.ts`, `lecture.ts`,
    `messages.ts`, `projection.ts`, `regles.ts`, `session.ts`,
    `cheminsPublies.ts`) et ses tests ; `plugin-palettes/src/`
