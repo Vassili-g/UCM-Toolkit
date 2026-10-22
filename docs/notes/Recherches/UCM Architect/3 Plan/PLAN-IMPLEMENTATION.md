@@ -326,7 +326,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `kit/src/protocoles/nommage.ts`, `generer-donnees-referentiel.ts` et sa sortie.
   Fait quand : aucun texte du kit ne nomme l'explorateur ni Nomenclature comme
   produit ; `vueIllustree` passe.
-- [ ] **K3 · Contrôles du composant.** Vague 2 · K0, K1, note T.
+- [~ Codex] **K3 · Contrôles du composant.** Partiel : `ed36234e` (1/3), `c18fe7fd` (2/3), non fusionnés, gardés par la branche locale `codex-sauvegarde` ; reste la complétude (C31 à C33) et les relevés de la table T. Le clone de Codex garde un travail non commité (`oublis.ts`, `mapping.ts`) : à reprendre de la ligne `Reste :`. Vague 2 · K0, K1, note T.
   Écrit : `kit/src/controles/{nommage,mapping,couche,oublis}.ts`.
   Fait quand : C7 à C11, C15 à C19 et C21, C20 et C61, C31 à C33, sur relevé et
   catalogue ; un test positif et un négatif par contrôle ; un token inutilisé
@@ -1045,6 +1045,15 @@ Sondes, lancées par le mainteneur au lancement :
 | J-F | Tous les cadres du manifeste ; ni « UCM Token Explorer », ni « UCM Nomenclature », ni « Token Architect » dans le code ou un document vivant ; O1 ; §9 rendu ; recette du mainteneur (`test:ui`, renommage et annulation, analyse et correction de Button sur une copie, préparation d'Alert) ; puis O2 | vague 6 |
 
 ## 9. Questions de fin
+
+**Relais du 22 octobre au soir.** Session de l'orchestrateur et Codex
+arrêtés par leur limite. Fait et commité : O0, S0, A0.1, A0.2 (J0 vert),
+A1, U0, S1, S2, S3, X1, B1, B3, B10, K0, K1, K2, K4, K9, V1 à V4. Ouverts
+au moment de l'arrêt, non commités dans l'arbre partagé : U1 (agent
+Claude 1) et K7 (agent Claude 2) ; la reprise relit `git status`, garde ce
+qui passe les vérifications de leur fiche, ou repart de la fiche. K3 : voir
+sa ligne. Prochains lots : finir K3, fusionner Codex (lot V5), puis K8, K5,
+B2, U2 à U4, B6.
 
 Remplie pendant l'exécution. Une ligne par choix fait sans le mainteneur :
 `Q-n · lot · question · choix appliqué · réversible : oui ou non`.
