@@ -570,7 +570,7 @@ fiche nomme · Lit : N1, la note citée, les types de `@ucm-kit/core/controles`
 · Vérifie : `npm run test:paquet -- architect`.
 Chaque lot remplace la souche de son domaine et garde les types de N1.
 
-- [~ Claude 1] **B3 · Library en mode Tokens.** Vague 3 · S2 · hypothèses S-1, S-4.
+- [x] (2300bcda) **B3 · Library en mode Tokens.** Vague 3 · S2 · hypothèses S-1, S-4.
   Domaines : `bibliotheque`. Écrit en plus : `src/lecture.ts`, `tests/loiDImport.test.ts`, `manifest.json` si S-4 sert la clé.
   Fait quand : arbre depuis les noms ; valeurs d'un groupe importées à son
   ouverture, par lots de huit ; loi d'import étendue ; `figma.fileKey` rangé
@@ -1123,6 +1123,16 @@ Choix faits sans le mainteneur :
 - Q-25 · X1 · Portée · le seul texte affiché était le message de
   l'exporteur (`semantics.ts`) ; le reste était des commentaires ; les
   identifiants (`ecartsLaissesANomenclature`) restent · réversible : oui.
+- Q-26 · B3 · Clé du fichier des tokens · B3 range `figma.fileKey` du
+  fichier ouvert ; dans le fichier des composants, c'est la clé de ce
+  fichier, pas celle des tokens. Sans effet tant que S-4 dit `undefined`.
+  Si S-4 sert la clé : lot de reprise, la clé se range par library dans
+  `figma.clientStorage` quand Architect s'ouvre dans le fichier des tokens ·
+  réversible : oui. Question au mainteneur.
+- Q-27 · B3 · Library sans liaison · avec plusieurs libraries et aucune
+  liaison connue, `bibliotheque` rend `library: null` ; le choix passe par la
+  Configuration (`e-biblio`, `cf-reglages`) ; `library.cle` porte le nom de
+  la library, l'API n'en donne pas de clé · réversible : oui.
 
 ## 10. Hors du plan
 
