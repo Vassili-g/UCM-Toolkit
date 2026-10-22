@@ -111,17 +111,18 @@ L'orchestrateur découpe, ou sérialise.
   sur K. Un lot marqué « seul » tourne sans autre agent Claude. Codex continue,
   dans son clone.
 - **Codex travaille dans un clone à part**, chemin court (`A:\UCM-codex`, à
-  cause des chemins longs de Windows), sur `main`, sans pousser. Avant chaque
-  lot, il lance `git pull --rebase origin main`. Il ne touche pas l'arbre
-  partagé.
+  cause des chemins longs de Windows), sur `main`, sans pousser. Le clone a
+  pour remote `partage` le dépôt de l'arbre partagé, par son chemin local :
+  rien n'est poussé sur GitHub avant J-F. Avant chaque lot, Codex lance
+  `git pull --rebase partage main`. Il ne touche pas l'arbre partagé.
 - L'orchestrateur ajoute le clone comme remote `codex`. À chaque
   synchronisation, il lance `git fetch codex`, puis
   `git merge --no-edit codex/main`. Les fichiers sont disjoints : le merge
   passe sans conflit, sans stash ni rebase de l'arbre partagé.
 - Synchronisation : avant un lot B ou U qui consomme un lot K, et à chaque
   jalon.
-- L'orchestrateur pousse aux jalons seulement, après le contrôle de fidélité.
-  La CI rejoue `test:ui` à chaque push (§9, Q-1).
+- L'orchestrateur pousse une seule fois, à J-F, après la recette du mainteneur
+  (Q-1). Jusque-là, la CI ne tourne pas : les jalons la remplacent.
 
 ### 4.4 Niveau d'agent
 
@@ -499,7 +500,7 @@ domaine et garde les types de §7 N1.
 - [ ] **O1 · Documents, à chaque jalon** : routes de `domiciles.json`, carte,
   `AGENTS.md` et invariants d'Architect, `SPEC.md` de l'explorateur devenu
   celui d'Architect, README de ce dossier, ROADMAP ; selon `agents:diff`.
-- [ ] **O2 · Publication du kit, aux jalons J1, J3 et J-F** (skill
+- [ ] **O2 · Publication du kit, à J-F, avant le push** (skill
   `publier-paquets`), avec le CLI et l'adaptateur si leurs dépendances
   changent.
 - [ ] **O3 · Textes de l'explorateur et du kit qui traduisent un terme Figma**
@@ -547,37 +548,49 @@ Sondes, lancées par le mainteneur au lancement :
   `setBoundVariableForPaint` puis réaffectation de `fills` et `strokes` ;
   `setRangeFills` ; un Ctrl+Z après `figma.commitUndo` défait-il le lot ?
   Hypothèse : oui pour les quatre.
+- **S-4 · Clé du fichier dans un plugin en développement.** Ajouter
+  `"enablePrivatePluginApi": true` au manifeste d'un plugin chargé depuis son
+  manifeste, puis lire `figma.fileKey`. Hypothèse : `undefined`, la clé
+  n'est servie qu'à un plugin privé publié dans l'organisation. Si la clé est
+  servie, B3 ajoute le drapeau au manifeste et le lien de `t-bibliotheque`
+  marche.
 
 ## 8. Jalons
 
 | Jalon | Contenu vérifié | Après |
 |---|---|---|
 | J0 | `npm test`, typecheck, build ; Nomenclature et l'explorateur ne vivent plus que dans Architect | vague 1 |
-| J1 | Mode Tokens : fidélité de `t-*` ; publication du kit | vague 3 |
+| J1 | Mode Tokens : fidélité de `t-*` | vague 3 |
 | J2 | Mode Composant, lecture : fidélité de `c-avant` à `c-afaire`, `e-*` | vague 4 |
-| J3 | Corrections, écriture, accessibilité : fidélité de `c-apres`, `c-ctrlz`, `x-*` ; publication du kit | vague 5 |
-| J-F | Fidélité de tous les cadres ; ni « UCM Token Explorer », ni « UCM Nomenclature », ni « Token Architect » dans le code ou un document vivant ; O1 ; §9 rendu ; push ; recette du mainteneur : `test:ui`, renommage et annulation, analyse et correction de Button sur une copie, préparation d'Alert | vague 6 |
+| J3 | Corrections, écriture, accessibilité : fidélité de `c-apres`, `c-ctrlz`, `x-*` | vague 5 |
+| J-F | Fidélité de tous les cadres ; ni « UCM Token Explorer », ni « UCM Nomenclature », ni « Token Architect » dans le code ou un document vivant ; O1 ; §9 rendu ; recette du mainteneur, puis publication du kit (O2) et push : `test:ui`, renommage et annulation, analyse et correction de Button sur une copie, préparation d'Alert | vague 6 |
 
 ## 9. Questions de fin
 
 Remplie pendant l'exécution. Une ligne par choix fait sans le mainteneur :
 `Q-n · lot · question · choix appliqué · réversible : oui ou non`.
 
-À confirmer, déjà choisies par défaut :
+Tranchées par le mainteneur le 22 octobre :
 
-- Q-1 · Push aux jalons seulement. La CI rejoue `test:ui` à chaque push, et les
-  lots d'écran ne le lancent pas. Choix : pousser après le contrôle de fidélité,
-  et laisser une CI rouge jusqu'à la recette du mainteneur, ou ne pousser qu'à
-  J-F.
+- Q-1 · Un seul push, à J-F, après la recette. La CI ne tourne pas avant.
 - Q-2 · Codex dans un clone à part, intégré par `git merge`. L'historique de
   `main` reçoit des commits de fusion.
-- Q-3 · M-3 : la fiche remplace l'inspecteur. M-10 : hors UCM, pas de
-  renommage. M-14 : forme C. M-15 : questions d'état. M-17 : libellés
-  anglais. M-18 : « Constats ».
-- Q-4 · Lien vers le fichier des tokens : `enablePrivatePluginApi` n'est pas
-  ajouté au manifeste. Le lien n'apparaît donc jamais tant que le mainteneur ne
-  l'ajoute pas, si les plugins UCM sont privés à l'organisation.
-- Q-5 · Les notes du §7 ne sont pas validées avant les lots.
+
+À confirmer, déjà choisies par défaut :
+
+- Q-3 · Les questions M de la maquette restées ouvertes, et le choix appliqué :
+  la fiche d'une variable remplace l'inspecteur de l'explorateur (M-3) ; dans
+  un fichier non déclaré UCM, aucun renommage, il faut déclarer d'abord
+  (M-10) ; la section Variants prend la forme C partout (M-14) ; un survol lié
+  au token du repos devient une question, pas une correction (M-15) ; les
+  libellés de Figma restent en anglais même si le designer emploie Figma en
+  français (M-17) ; le bouton du panneau s'appelle « Constats » (M-18).
+- Q-4 · Lien vers le fichier des tokens : selon la sonde S-4.
+- Q-5 · Les six notes de conception du §7 (domaines et messages, relevé du
+  composant, constats attendus, grammaire, écriture des liaisons, préparation)
+  fixent des règles que le code suit. L'orchestrateur les écrit en vague 0, et
+  les lots les appliquent sans attendre une relecture du mainteneur. Il les
+  relit à la fin, avec le reste du §9.
 
 ## 10. Hors du plan
 
