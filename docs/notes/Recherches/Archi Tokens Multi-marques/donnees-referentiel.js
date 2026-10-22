@@ -404,14 +404,9 @@ window.REFERENTIEL = {
    "definition": "Calcule les palettes et écrit leur recette, leurs variables primitives et leurs planches dans Figma."
   },
   {
-   "id": "explorateur",
-   "libelle": "UCM Explorateur",
-   "definition": "Présente les variables, les composants et la recette des palettes sans écrire dans le document Figma."
-  },
-  {
    "id": "architect",
-   "libelle": "UCM Nomenclature",
-   "definition": "Normalise les noms de collections et de variables, puis range les règles de nommage choisies."
+   "libelle": "UCM Architect",
+   "definition": "Présente les variables, les composants et la recette des palettes ; contrôle leur architecture et normalise les noms de collections et de variables."
   },
   {
    "id": "exporter",

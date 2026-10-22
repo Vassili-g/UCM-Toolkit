@@ -27,7 +27,7 @@ import {
 const MODES: readonly ModeDuTheme[] = ['light', 'dark'];
 const SENS: readonly SensDuTheme[] = ['normal', 'inverse'];
 /** Les produits qui lisent ou écrivent les tokens, dans l'ordre où la page les présente. */
-const PRODUITS_MONTRES = ['palettes', 'explorateur', 'architect', 'exporter', 'cli'] as const;
+const PRODUITS_MONTRES = ['palettes', 'architect', 'exporter', 'cli'] as const;
 
 /** Le texte du bouton dans un thème et un sens : le sens inversé prend l'autre couleur que le défaut du thème. */
 function texteDuBouton(mode: ModeDuTheme, sens: SensDuTheme): TexteDesBoutons {
