@@ -75,6 +75,20 @@ export const TEXTES_FICHE = {
       action: 'Raccourcissez la chaîne d’alias dans Figma.',
     },
   } satisfies Record<NatureDeConstat, { titre: string; action: string; detail: (...valeurs: never[]) => string }>,
+  // Dépendants et contraste de l'inspecteur
+  dependantsTitre: 'Variables dépendantes',
+  // Contraste
+  contrasteTitre: 'Contraste d’une paire',
+  contrasteAvec: 'Fond',
+  contrasteSeuil: 'Seuil',
+  contrasteRatio: (ratio: string, seuil: number, atteint: boolean) => `${ratio}:1 · ${atteint ? 'atteint' : 'manque'} ${seuil}:1`,
+  contrasteNonJuge: {
+    transparence: 'Non jugé : une des couleurs est transparente, et son fond réel n’est pas connu.',
+    'non-resolu': 'Non jugé : une des chaînes n’aboutit pas dans ce contexte.',
+    'pas-une-couleur': 'Non jugé : le fond choisi n’est pas une couleur.',
+    gamut: 'Non jugé : une composante sort de sRGB.',
+  },
+  choisirUnFond: 'Choisissez une variable de couleur comme fond.',
 };
 
 /** Le titre d'un constat de chaîne. */

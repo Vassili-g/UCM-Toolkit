@@ -11,17 +11,11 @@ import type { ArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 import type { Disposition } from '../fenetre';
 import { arbreDeCollection, commencePar, segmentsDeGroupe, type NoeudDeGroupe } from '../groupes';
-import { familles, indexer, modesDeFamille, type Index } from '../indexation';
-import type { Import } from '../integrations/contrats';
-import type { AssociationDeCran } from '../integrations/palettes';
+import { indexer, modesDeFamille, type Index } from '../indexation';
 import type { SujetSelectionne } from '../messages';
 import type { Releve, TypeDeVariable, VariableRelevee } from '../modele';
 import { PREFERENCES_PAR_DEFAUT, type Preferences } from '../preferences';
 import { creerResolveur, type Contexte, type Resolveur } from '../resolution';
-
-export type Onglet = 'table' | 'comparer' | 'dependants' | 'diagnostics' | 'integrations' | 'releves';
-
-export const ONGLETS: readonly Onglet[] = ['table', 'comparer', 'dependants', 'diagnostics', 'integrations', 'releves'];
 
 /** L'image d'un sujet, gardée sous une URL de blob, et la zone qu'elle couvre dans la page. */
 export interface ApercuRecu {
@@ -68,11 +62,9 @@ export interface Filtres {
   readonly type: TypeDeVariable | 'tous';
   readonly nature: 'toutes' | 'alias' | 'directe';
   readonly provenance: 'toutes' | 'locale' | 'distante';
-  /** Restreint la liste aux variables d'un constat de diagnostic. */
-  readonly concernees: boolean;
 }
 
-export const FILTRES_PAR_DEFAUT: Filtres = { type: 'tous', nature: 'toutes', provenance: 'toutes', concernees: false };
+export const FILTRES_PAR_DEFAUT: Filtres = { type: 'tous', nature: 'toutes', provenance: 'toutes' };
 
 /** Ce que la table montre et la variable que l'inspecteur épingle. */
 export interface Position {
@@ -99,18 +91,8 @@ export interface Etat {
   lecture: Lecture;
   position: Position;
   replies: Set<string>;
-  onglet: Onglet;
   contexte: Contexte;
-  contexteB: Contexte;
   preferences: Preferences;
-  /** Les variables que les constats concernent, calculées à l'ouverture des diagnostics. */
-  concernees: Set<string> | null;
-  /** Les contrats et fichiers de tokens importés, en mémoire. */
-  imports: Import[];
-  /** Le texte de la recette UCM Palettes lu à la dernière demande ; `null` avant toute lecture. */
-  recette: { readonly demande: number; readonly texte: string | null } | null;
-  /** Les associations de variables à un cran de palette, en mémoire. */
-  crans: Map<string, AssociationDeCran>;
   /** La disposition de la fenêtre, large avant l'annonce du sandbox. La bascule de la barre la change. */
   disposition: Disposition;
   /** La déclaration UCM du fichier, que le sandbox annonce à l'ouverture et à chaque changement ; `null` avant l'annonce. */
@@ -128,14 +110,8 @@ export function etatInitial(): Etat {
     lecture: { statut: 'attente' },
     position: { collection: null, groupe: [], recherche: '', filtres: FILTRES_PAR_DEFAUT, inspectee: null },
     replies: new Set(),
-    onglet: 'table',
     contexte: {},
-    contexteB: {},
     preferences: PREFERENCES_PAR_DEFAUT,
-    concernees: null,
-    imports: [],
-    recette: null,
-    crans: new Map(),
     disposition: 'large',
     architecture: null,
     composant: { demande: 0, statut: 'vide', message: '', lecture: null, index: null, pile: [], portee: null, apercu: null, selection: null, ignores: 0, empiler: false, deLaSelection: true },
@@ -145,7 +121,6 @@ export function etatInitial(): Etat {
 /**
  * Pose un relevé. La navigation garde sa collection, son groupe et le token
  * inspecté quand ils existent encore ; sinon elle ouvre la première collection.
- * Le contexte B prend, pour chaque famille, un mode autre que celui de A.
  */
 export function poserReleve(etat: Etat, releve: Releve, original = true): void {
   etat.releve = releve;
@@ -154,18 +129,8 @@ export function poserReleve(etat: Etat, releve: Releve, original = true): void {
   etat.index = index;
   etat.resolveur = creerResolveur(index);
   etat.arbres = releve.collections.map((collection) => arbreDeCollection(collection, index.variables));
-  etat.concernees = null;
   const garderContexte = (contexte: Contexte): Contexte => Object.fromEntries(Object.entries(contexte).filter(([famille, mode]) => modesDeFamille(index, famille).some((candidat) => candidat.mode.id === mode)));
   etat.contexte = garderContexte(etat.contexte);
-  const contexteB: Record<string, string> = { ...garderContexte(etat.contexteB) };
-  for (const famille of familles(index)) {
-    if (contexteB[famille.id] !== undefined) continue;
-    const modes = modesDeFamille(index, famille.id);
-    if (modes.length < 2) continue;
-    const actuel = etat.contexte[famille.id] ?? famille.modeParDefaut;
-    contexteB[famille.id] = (modes.find((candidat) => candidat.mode.id !== actuel) ?? modes[0]).mode.id;
-  }
-  etat.contexteB = contexteB;
   const { position } = etat;
   const collection = position.collection && index.collections.has(position.collection) ? position.collection : (releve.collections[0]?.id ?? null);
   const inspectee = position.inspectee && index.variables.has(position.inspectee) ? position.inspectee : null;
@@ -192,7 +157,6 @@ export function passeLesFiltres(etat: Etat, variable: VariableRelevee): boolean 
     if (filtres.nature === 'alias' && !estAlias) return false;
     if (filtres.nature === 'directe' && (estAlias || !premiere)) return false;
   }
-  if (filtres.concernees && etat.concernees && !etat.concernees.has(variable.id)) return false;
   return true;
 }
 

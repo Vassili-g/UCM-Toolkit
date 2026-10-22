@@ -44,8 +44,9 @@ et le numéro du relevé.
 - **Table.** Une colonne par mode de la collection, avec l'alias direct ou la
   valeur rangée, puis le résultat. La vue compacte garde la seule colonne du
   contexte actif.
-- **Contexte.** L'onglet **Comparer** choisit un mode par collection à
-  plusieurs modes ; une collection non choisie prend son mode par défaut.
+- **Contexte.** Chaque collection prend son mode par défaut. Les onglets
+  Comparer, Dépendants, Diagnostics, Intégrations et Relevés sont retirés ;
+  leurs calculs purs restent dans le code.
 - **Chaîne.** Survoler un nom ou lui donner le focus montre la chaîne
   complète après 250 ms ; Échap la ferme. Cliquer sur le nom l'épingle dans
   l'inspecteur, cliquer sur un alias suit sa cible.
@@ -54,14 +55,7 @@ et le numéro du relevé.
 
 Le dernier segment du nom reste clair ; son chemin prend la couleur secondaire.
 
-| Onglet | Utilité | Condition ou limite |
-|---|---|---|
-| **Variables** | Lire les valeurs par mode, filtrer et inspecter les chaînes | Le relevé contient les variables locales et les cibles de leurs alias |
-| **Comparer** | Comparer les chaînes et valeurs d'une variable sous deux contextes | Choisir une variable ; le contexte A sert aussi à la table, à l'inspecteur et aux diagnostics. Le bilan de la vue porte sur 2 000 variables au plus |
-| **Dépendants** | Retrouver les variables qui visent celle inspectée, directement ou par plusieurs alias | Le relevé seul est parcouru ; les usages dans les calques et les autres fichiers ne sont pas recensés |
-| **Diagnostics** | Repérer les chaînes qui n'aboutissent pas et exporter leur rapport | Les constats portent sur les données lues ; aucune réparation dans Figma |
-| **Intégrations** | Relier les variables aux exports UCM, aux crans d'UCM Palettes ou au profil d'architecture UCM | Chaque intégration demande un import ou une activation explicite |
-| **Relevés** | Exporter, comparer un relevé importé et simuler une valeur avec ses effets | La simulation reste en mémoire ; **Réinitialiser** rend le relevé d'origine |
+Le centre ne montre plus que la table. Le panneau latéral de 640 px porte Nomenclature, à la place de l'inspecteur, jusqu'à la fiche d'une variable.
 
 La [maquette de la navigation](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Recette%201/MAQUETTE-RECETTE-1.html)
 montre la bascule des deux modes et la recherche dans l'arbre.
@@ -88,21 +82,7 @@ couleur, forme, espacement, taille, texte.
 
 ## Intégrations facultatives
 
-Le plugin est complet sans elles, et aucune ne s'active seule :
-
-- importer des contrats `*.contract.json` et un `tokens.json` relie une
-  variable à sa référence publiée et à ses emplacements dans les contrats ;
-- lire la recette UCM Palettes, puis associer une variable à un cran, montre
-  les variables de dossier de `theme` que ce cran porte (`solid/default`,
-  `surface/foreground`, `ring`), dans le sens normal ou inversé du
-  thème associé ;
-- appliquer le profil d'architecture UCM, après avoir associé chaque
-  collection à l'une des sept couches (`primitives`, `brands`,
-  `utility`, `theme`, `components`, `layout`, `typography`), contrôle les alias, les valeurs
-  directes, les portées et la nuance que vise chaque variable de `theme`.
-
-Le détail de chaque lecture et de ses limites est dans la
-[spécification](./SPEC.md).
+L'onglet Intégrations est retiré. Le profil d'architecture UCM (`src/integrations/profilUcm.ts`) et la lecture de la recette d'UCM Palettes (`lireLaRecette`) restent dans le code, sans écran ; le contrôle du fichier déclaré UCM les reprend.
 
 ## Limites
 

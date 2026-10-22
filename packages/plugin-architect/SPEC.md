@@ -97,9 +97,8 @@ Un mode d'une collection n'est jamais rapproché par son nom d'un mode d'une
 autre collection. Un mode d'extension lit la surcharge de l'extension, puis
 remonte au mode parent de la base.
 
-Le contexte actif est le contexte A de l'onglet Comparer. La table,
-l'inspecteur et les diagnostics le suivent ; tant que le designer n'y choisit
-rien, chaque famille prend son mode par défaut. Une colonne de la table impose
+Le contexte actif donne à chaque famille son mode par défaut : l'onglet
+Comparer, qui le choisissait, est retiré. Une colonne de la table impose
 son mode à sa famille ; les autres familles suivent le contexte actif.
 
 Le résultat est l'un des états suivants, chacun avec les étapes connues :
@@ -317,8 +316,9 @@ Chacune range sa taille sous sa propre clé.
 | Étroite | Composant | 520 × 760, 1040 × 760 panneau ouvert | 320 × 420 | La vue composant, sous une barre de 44 px |
 
 La recherche est dans l'arbre, sous son titre, et porte sur toutes les
-collections. Les onglets sont Variables, Comparer, Dépendants, Diagnostics,
-Intégrations et Relevés.
+collections. Le centre ne montre que la table : les onglets Comparer,
+Dépendants, Diagnostics, Intégrations et Relevés sont retirés, et les sections
+sur leurs calculs décrivent des modules conservés sans écran.
 
 Dans la disposition large, sous 1100 px de large, le panneau latéral passe sous
 l'arbre et la table, sur toute la largeur. Le dessin de la vue composant suit la

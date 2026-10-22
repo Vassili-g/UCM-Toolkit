@@ -45,7 +45,7 @@ test('le rapport est versionné et garde contexte, révision, portée, chaîne e
 
 test('les préférences illisibles prennent leur défaut, et les rangements gardent leur ordre', async () => {
   assert.deepEqual(preferencesValides(null), PREFERENCES_PAR_DEFAUT);
-  assert.deepEqual(preferencesValides({ vueCompacte: 'oui', associations: { f: { c: 'usage', d: 3 } }, exceptions: { f: ['a', 2] } }), { ...PREFERENCES_PAR_DEFAUT, associations: { f: { c: 'usage' } }, exceptions: { f: ['a'] } });
+  assert.deepEqual(preferencesValides({ vueCompacte: 'oui', palettes: true, associations: { f: { c: 'usage' } } }), PREFERENCES_PAR_DEFAUT);
   assert.deepEqual(preferencesValides({ largeurs: { arbre: 300, nom: '240', type: -4, autre: 12 } }).largeurs, { arbre: 300 });
   assert.deepEqual(preferencesValides({ largeurs: [300] }).largeurs, {});
   const ranges: unknown[] = [];
@@ -62,9 +62,9 @@ test('les préférences illisibles prennent leur défaut, et les rangements gard
     },
   });
   const premier = preferences.ranger({ ...PREFERENCES_PAR_DEFAUT, vueCompacte: true });
-  const second = preferences.ranger({ ...PREFERENCES_PAR_DEFAUT, palettes: true });
+  const second = preferences.ranger({ ...PREFERENCES_PAR_DEFAUT, largeurs: { arbre: 300 } });
   assert.deepEqual([await premier, await second], [false, true]);
-  assert.equal((await preferences.lire()).palettes, true);
+  assert.deepEqual((await preferences.lire()).largeurs, { arbre: 300 });
 });
 
 test('les mêmes canaux donnent un autre contraste en Display P3 qu’en sRGB, celui des couleurs converties par p3VersRgb8', () => {

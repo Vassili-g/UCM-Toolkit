@@ -1,13 +1,12 @@
-/** Le domaine `arbre` : la lecture du relevé des variables, son annulation et le texte de la recette d'UCM Palettes. */
+/** Le domaine `arbre` : la lecture du relevé des variables et son annulation. */
 import { espaceDuProfil } from '@ucm-kit/core/format';
-import { CLE_RECETTE, ESPACE_PARTAGE } from 'ucm-couleur';
 
 import { lireLeReleve, lireLeVocabulaire } from '../lecture';
 import type { DemandeDArbre } from '../messages/arbre';
 import type { Contexte, Traiter } from './contexte';
 import { portDeLecture } from './lectureDeFigma';
 
-export const TYPES: readonly DemandeDArbre['type'][] = ['lire-releve', 'annuler', 'lire-recette-palettes'];
+export const TYPES: readonly DemandeDArbre['type'][] = ['lire-releve', 'annuler'];
 
 /** Les demandes que l'interface a annulées, lectures du relevé et du composant confondues. */
 export const annulees = new Set<number>();
@@ -40,9 +39,6 @@ export const traiter: Traiter<DemandeDArbre> = async (demande, contexte) => {
       return;
     case 'annuler':
       annulees.add(demande.demande);
-      return;
-    case 'lire-recette-palettes':
-      contexte.envoyer({ type: 'recette-palettes', demande: demande.demande, texte: contexte.figma.root.getSharedPluginData(ESPACE_PARTAGE, CLE_RECETTE) });
       return;
   }
 };

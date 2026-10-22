@@ -14,7 +14,6 @@ function compiler(entree, nom) {
   return require(compile);
 }
 const { projetLibre, cinqCollections, grandReleve, constructeur, alias, nombre, couleur, composantSimple, composantComplexe, composantBouton, composantInterrompu, composantSansToken, peinturesDe } = compiler(path.resolve(__dirname, '../../tests/fixtures.ts'), 'galerie-fixtures');
-const { releveDesLimitesDExport, tokensDesLimitesDExport, releveDuProfilAvecLimites, couchesDuProfilAvecLimites, recetteEnTexte } = compiler(path.resolve(__dirname, '../../tests/fixturesDesLimites.ts'), 'galerie-fixtures-limites');
 const { imagePng } = require('../image.cjs');
 
 const releve = (donnees, demande = 1) => ({ message: { type: 'releve', demande, releve: donnees } });
@@ -27,8 +26,7 @@ function releveP3() {
 }
 const displayP3 = releve(releveP3());
 const multimarque = releve(cinqCollections());
-const preferences = (valeurs = {}) => ({ message: { type: 'preferences', preferences: { vueCompacte: false, palettes: false, profilUcm: false, associations: {}, exceptions: {}, largeurs: {}, ...valeurs } } });
-const onglet = (nom) => ({ clic: `#onglet-${nom}` });
+const preferences = (valeurs = {}) => ({ message: { type: 'preferences', preferences: { vueCompacte: false, largeurs: {}, ...valeurs } } });
 const inspecter = (id) => ({ clic: `[data-focus="nom:${id}"]` });
 const groupe = (collection, ...segments) => ({ clic: `[data-focus='choix:${JSON.stringify([collection, ...segments])}']` });
 const chevron = (collection, ...segments) => ({ clic: `[data-focus='chevron:${JSON.stringify([collection, ...segments])}']` });
@@ -51,19 +49,6 @@ function releveLong() {
   for (let rang = 0; rang < 30; rang += 1) c.variable(`v${rang}`, 'long', `niveau-${String(rang).padStart(2, '0')}`, 'COLOR', { Valeur: rang === 29 ? couleur('#7A3E9D') : alias(`v${rang + 1}`) });
   return c.releve();
 }
-
-/*
- * Les limites du profil UCM. Le fichier associe quatre collections à une
- * couche ; la recette de Palettes arrive sous la demande 2, que l'activation
- * de l'intégration émet.
- */
-const nomDuFichierDuProfil = releveDuProfilAvecLimites().fichier;
-const profilAvecLimites = [
-  preferences({ palettes: true, profilUcm: true, associations: { [nomDuFichierDuProfil]: couchesDuProfilAvecLimites() } }),
-  releve(releveDuProfilAvecLimites()),
-  { message: { type: 'recette-palettes', demande: 2, texte: recetteEnTexte() } },
-  onglet('integrations'),
-];
 
 /*
  * La vue composant. Le sandbox annonce la disposition, puis la sélection ;
@@ -96,4 +81,4 @@ const alertAvecEcart = { ...alert, liaisons: alert.liaisons.map((liaison) => (li
 /** Alert lu depuis un jeu de trois variants. */
 const alertAVariants = { ...alert, sujet: { ...alert.sujet, type: 'COMPONENT_SET', variants: [{ id: alert.calques[0].id, nom: 'info · standard' }, { id: 'alert:erreur', nom: 'error · standard' }, { id: 'alert:succes', nom: 'success · standard' }] } };
 
-module.exports = { compiler, projetLibre, cinqCollections, grandReleve, constructeur, alias, nombre, couleur, composantSimple, composantComplexe, composantBouton, composantInterrompu, composantSansToken, peinturesDe, imagePng, releve, libre, displayP3, multimarque, preferences, onglet, inspecter, groupe, chevron, releveProfond, releveLong, profilAvecLimites, alert, stressTest, bouton, tag, avatar, etroite, choisir, sansSelection, bascule, composant, apercu, ouvrir, ligne, calqueNomme, alertAvecEcart, alertAVariants };
+module.exports = { compiler, projetLibre, cinqCollections, grandReleve, constructeur, alias, nombre, couleur, composantSimple, composantComplexe, composantBouton, composantInterrompu, composantSansToken, peinturesDe, imagePng, releve, libre, displayP3, multimarque, preferences, inspecter, groupe, chevron, releveProfond, releveLong, alert, stressTest, bouton, tag, avatar, etroite, choisir, sansSelection, bascule, composant, apercu, ouvrir, ligne, calqueNomme, alertAvecEcart, alertAVariants };

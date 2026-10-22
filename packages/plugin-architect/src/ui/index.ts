@@ -3,33 +3,27 @@
  * réception des messages du sandbox. Une réponse dont la demande a été
  * remplacée est ignorée : elle ne remplace pas le sujet courant.
  *
- * La disposition large monte le mode Tokens : l'arbre, les onglets et le
+ * La disposition large monte le mode Tokens : l'arbre, la table et le
  * panneau latéral, où l'écran de Nomenclature a pris la place de
  * l'inspecteur. La disposition étroite monte la vue composant. Le sandbox
  * annonce celle de l'ouverture, et la bascule de la barre passe de l'une à
  * l'autre.
  */
-import { createOnglets } from 'ucm-plugin-socle/src/ui/Onglets';
 import { createResizeGrip } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
 import type { Disposition } from '../fenetre';
 import type { PluginMessage } from '../messages';
 import { estMessageDeNomenclature } from '../messages/nomenclature';
-import { creerApplication, type Branchements, type Composant, type Zone } from './application';
+import { creerApplication, type Branchements, type Zone } from './application';
 import { creerArbre } from './arbre';
 import { creerBarre } from './barre';
-import { etatInitial, ONGLETS, poserReleve, type Onglet } from './etat';
+import { etatInitial, poserReleve } from './etat';
 import { monterNomenclature } from './nomenclature';
 import { versSandbox } from './pont';
 import { installerSurvol } from './survol';
 import { creerTable } from './table';
 import { TEXTES } from './textes';
-import { creerVueComparer } from './vues/comparer';
 import { creerVueComposant } from './vues/composant';
-import { creerVueDependants } from './vues/dependants';
-import { creerVueDiagnostics } from './vues/diagnostics';
-import { creerVueIntegrations } from './vues/integrations';
-import { creerVueReleves, simulationActive } from './vues/releves';
 
 const etat = etatInitial();
 let branchements: Branchements;
@@ -43,30 +37,16 @@ const barre = creerBarre(app);
 const arbre = creerArbre(app);
 const table = creerTable(app);
 const vueComposant = creerVueComposant(app);
-const vues: Record<Exclude<Onglet, 'table'>, Composant> = {
-  comparer: creerVueComparer(app),
-  dependants: creerVueDependants(app),
-  diagnostics: creerVueDiagnostics(app),
-  integrations: creerVueIntegrations(app),
-  releves: creerVueReleves(app),
-};
-
-const panneaux = Object.fromEntries(ONGLETS.map((onglet) => {
-  const panneau = document.createElement('div');
-  panneau.className = 'panneau';
-  panneau.append(onglet === 'table' ? table.element : vues[onglet].element);
-  return [onglet, panneau];
-})) as Record<Onglet, HTMLDivElement>;
-const onglets = createOnglets<Onglet>(TEXTES.vues, ONGLETS.map((id) => ({ id, libelle: TEXTES.onglets[id], panneau: panneaux[id] })), (id) => {
-  if (etat.onglet !== id) app.changerOnglet(id);
-});
+const panneau = document.createElement('div');
+panneau.className = 'panneau';
+panneau.append(table.element);
 
 const accueil = document.createElement('div');
 accueil.className = 'accueil';
 
 const centre = document.createElement('main');
 centre.className = 'centre';
-centre.append(accueil, table.tete, onglets.liste, ...ONGLETS.map((onglet) => panneaux[onglet]));
+centre.append(accueil, table.tete, panneau);
 
 const pied = document.createElement('footer');
 pied.className = 'pied';
@@ -78,11 +58,6 @@ const lectureSeule = document.createElement('span');
 lectureSeule.className = 'pied-lecture';
 lectureSeule.textContent = TEXTES.lectureSeule;
 pied.append(perimetre, fraicheur, lectureSeule);
-
-const bandeau = document.createElement('div');
-bandeau.className = 'bandeau-simulation';
-bandeau.setAttribute('role', 'status');
-bandeau.textContent = TEXTES.simulationActive;
 
 const annonce = document.createElement('div');
 annonce.className = 'annonce';
@@ -108,7 +83,7 @@ corps.append(arbre.element, centre, lateral);
 
 const bulle = installerSurvol(app);
 const poignee = createResizeGrip(versSandbox);
-racine.replaceChildren(barre.element, bandeau, corps, pied, annonce, bulle, poignee);
+racine.replaceChildren(barre.element, corps, pied, annonce, bulle, poignee);
 
 /** Monte le mode de la disposition sous la barre. L'annonce et la poignée restent dans les deux. */
 function poserLaDisposition(disposition: Disposition): void {
@@ -116,7 +91,7 @@ function poserLaDisposition(disposition: Disposition): void {
   etat.disposition = disposition;
   racine.classList.toggle('application-etroite', disposition === 'etroite');
   if (disposition === 'etroite') racine.replaceChildren(barre.element, vueComposant.element, annonce, poignee);
-  else racine.replaceChildren(barre.element, bandeau, corps, pied, annonce, bulle, poignee);
+  else racine.replaceChildren(barre.element, corps, pied, annonce, bulle, poignee);
   app.rendre();
   vueComposant.activer();
 }
@@ -126,7 +101,6 @@ const heure = (millisecondes: number) => new Date(millisecondes).toLocaleTimeStr
 function rendreAccueil(): void {
   const { lecture, index } = etat;
   accueil.hidden = Boolean(index) && lecture.statut !== 'echouee';
-  onglets.liste.hidden = !index;
   const parties: HTMLElement[] = [];
   const texte = document.createElement('p');
   texte.className = 'accueil-texte';
@@ -151,7 +125,6 @@ function rendrePied(): void {
   const { releve, index } = etat;
   perimetre.textContent = releve ? `${TEXTES.perimetre(releve.variables.length, releve.collections.length)}${releve.manquees.length ? ` · ${TEXTES.manquees(releve.manquees.length)}` : ''}` : '';
   fraicheur.textContent = releve && index ? TEXTES.fraicheur(heure(releve.luA), releve.revision) : '';
-  bandeau.hidden = !simulationActive(app);
 }
 
 branchements = {
@@ -159,11 +132,7 @@ branchements = {
     const demandees = new Set(zones);
     if (demandees.has('barre')) barre.mettreAJour();
     if (demandees.has('arbre')) arbre.mettreAJour();
-    if (onglets.actif() !== etat.onglet) onglets.selectionner(etat.onglet);
-    if (demandees.has('table') || demandees.has('vue')) {
-      table.mettreAJour();
-      if (etat.onglet !== 'table') vues[etat.onglet].mettreAJour();
-    }
+    if (demandees.has('table') || demandees.has('vue')) table.mettreAJour();
     rendreAccueil();
     if (demandees.has('pied') || demandees.has('barre')) rendrePied();
   },
@@ -191,7 +160,6 @@ function recevoir(message: PluginMessage): void {
   switch (message.type) {
     case 'preferences':
       etat.preferences = message.preferences;
-      if (etat.preferences.palettes) versSandbox({ type: 'lire-recette-palettes', demande: app.nouvelleDemande() });
       app.rendre(['arbre', 'table']);
       return;
     case 'preferences-rangees':
@@ -236,10 +204,6 @@ function recevoir(message: PluginMessage): void {
       return;
     case 'apercu-du-composant':
       vueComposant.recevoirApercu(message);
-      return;
-    case 'recette-palettes':
-      etat.recette = { demande: message.demande, texte: message.texte };
-      app.rendre(['vue', 'inspecteur']);
       return;
   }
 }

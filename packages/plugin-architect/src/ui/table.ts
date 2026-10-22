@@ -84,7 +84,7 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
   entete.setAttribute('role', 'row');
   const liste = creerListeVirtuelle(HAUTEUR_DE_LIGNE, 'table', entete);
   liste.element.classList.add('table-corps');
-  liste.element.setAttribute('aria-label', TEXTES.onglets.table);
+  liste.element.setAttribute('aria-label', TEXTES.tableEtiquette);
 
   const vide = document.createElement('div');
   vide.className = 'vide';
@@ -214,18 +214,6 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
     const nature = choixDeFiltre<Filtres['nature']>(TEXTES.filtreNature, [['toutes', TEXTES.natures.toutes], ['alias', TEXTES.natures.alias], ['directe', TEXTES.natures.directe]], actuels.nature, (valeur) => changer({ nature: valeur }));
     const provenance = choixDeFiltre<Filtres['provenance']>(TEXTES.filtreProvenance, [['toutes', TEXTES.provenances.toutes], ['locale', TEXTES.provenances.locale], ['distante', TEXTES.provenances.distante]], actuels.provenance, (valeur) => changer({ provenance: valeur }));
     const elements: HTMLElement[] = [type, nature, provenance];
-    if (etat.concernees) {
-      const champ = document.createElement('label');
-      champ.className = 'filtre';
-      const case_ = document.createElement('input');
-      case_.type = 'checkbox';
-      case_.checked = actuels.concernees;
-      case_.addEventListener('change', () => changer({ concernees: case_.checked }));
-      const texte = document.createElement('span');
-      texte.textContent = TEXTES.filtreConcernees;
-      champ.append(case_, texte);
-      elements.push(champ);
-    }
     const compacte = document.createElement('label');
     compacte.className = 'filtre';
     const caseCompacte = document.createElement('input');
@@ -265,8 +253,7 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
 
       emplacement.textContent = recherche ? TEXTES.rechercheEtiquette : [collection?.nom ?? '', ...position.groupe.map((segment) => segment || TEXTES.segmentVide)].join(' / ');
       titre.textContent = recherche ? TEXTES.resultatsDeRecherche : (position.groupe[position.groupe.length - 1] ?? collection?.nom ?? '') || TEXTES.segmentVide;
-      resume.textContent = recherche ? TEXTES.rechercheGlobale(lignes.length) : `${TEXTES.compte(lignes.length)}. ${TEXTES.autresCollections}`;
-      if (etat.onglet !== 'table') return;
+      resume.textContent = recherche ? TEXTES.rechercheGlobale(lignes.length) : TEXTES.compte(lignes.length);
       poserFiltres();
 
       colonnesDeValeur = modes.length === 0 ? [COLONNE_DU_CONTEXTE] : modes.map((mode) => `${collection?.id}:${mode.id}`);

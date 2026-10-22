@@ -6,12 +6,11 @@
 import { copier as texteACopier, type FormatDeCopie } from '../copie';
 import { versSrgb } from '../espace';
 import { clesDesAncetres, segmentsDeGroupe } from '../groupes';
-import { modesDeFamille } from '../indexation';
 import { espaceDuReleve } from '../modele';
 import type { Disposition } from '../fenetre';
 import type { Preferences } from '../preferences';
 import { contexteDeColonne, type Resultat } from '../resolution';
-import type { Etat, Filtres, Onglet } from './etat';
+import type { Etat, Filtres } from './etat';
 import { versSandbox } from './pont';
 import { copierTexte } from './pressePapiers';
 import { TEXTES, titreDeConstat } from './textes';
@@ -36,7 +35,6 @@ export interface Application {
   /** Le résultat d'une variable dans le contexte actif, ou dans celui d'une colonne de mode. */
   resultat(variable: string, mode?: string | null): Resultat;
   /** Le résultat d'une variable dans le contexte B. */
-  resultatB(variable: string): Resultat;
   nouvelleDemande(): number;
   inspecter(variable: string): void;
   suivre(variable: string): void;
@@ -44,8 +42,6 @@ export interface Application {
   basculerRepli(cle: string): void;
   rechercher(texte: string): void;
   filtrer(filtres: Partial<Filtres>): void;
-  changerContexte(famille: string, mode: string, cote: 'A' | 'B'): void;
-  changerOnglet(onglet: Onglet): void;
   /** Passe de l'explorateur de tokens à la vue composant, ou l'inverse. Le sandbox donne à la fenêtre la taille de la disposition. */
   changerDisposition(disposition: Disposition): void;
   actualiser(): void;
@@ -80,10 +76,6 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       if (!resolveur || !index) throw new Error('aucun relevé');
       return resolveur.resoudre(variable, mode ? contexteDeColonne(index, contexte, mode) : contexte);
     },
-    resultatB(variable) {
-      if (!etat.resolveur) throw new Error('aucun relevé');
-      return etat.resolveur.resoudre(variable, etat.contexteB);
-    },
     nouvelleDemande: () => {
       compteur += 1;
       return compteur;
@@ -101,7 +93,6 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       }
       for (const cle of clesDesAncetres(variable)) etat.replies.delete(cle);
       etat.position = { ...etat.position, collection: variable.collection, groupe: segmentsDeGroupe(variable.nom), recherche: '', inspectee: cible };
-      etat.onglet = 'table';
       app.rendre();
       branchements().montrerDansLaTable(cible);
     },
@@ -121,16 +112,6 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     filtrer(filtres) {
       etat.position = { ...etat.position, filtres: { ...etat.position.filtres, ...filtres } };
       app.rendre(['table', 'vue']);
-    },
-    changerContexte(famille, mode, cote) {
-      if (!etat.index || !modesDeFamille(etat.index, famille).some((candidat) => candidat.mode.id === mode)) return;
-      if (cote === 'A') etat.contexte = { ...etat.contexte, [famille]: mode };
-      else etat.contexteB = { ...etat.contexteB, [famille]: mode };
-      app.rendre(['barre', 'table', 'inspecteur', 'vue']);
-    },
-    changerOnglet(onglet) {
-      etat.onglet = onglet;
-      app.rendre(['vue', 'table']);
     },
     changerDisposition(disposition) {
       if (etat.disposition === disposition) return;

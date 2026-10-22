@@ -8,7 +8,7 @@
 const path = require('path');
 const { construireUi } = require('ucm-plugin-socle/build/inline-ui.cjs');
 
-const FEUILLES_DES_DOMAINES = ['commun', 'arbre', 'fiche', 'vues', 'composant', 'nomenclature'];
+const FEUILLES_DES_DOMAINES = ['commun', 'arbre', 'fiche', 'composant', 'nomenclature'];
 
 construireUi({
   srcDir: path.resolve(__dirname, '../src/ui'),

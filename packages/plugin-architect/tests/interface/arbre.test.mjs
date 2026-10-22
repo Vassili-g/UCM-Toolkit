@@ -107,7 +107,7 @@ test('dix mille variables : la table ne monte que les lignes visibles, et la rec
   } finally { await fermer(page); }
 });
 
-test('le clavier atteint l’arbre, la table et les onglets', async () => {
+test('le clavier atteint l’arbre, la table et la recherche', async () => {
   const page = await ouvrir();
   try {
     await avecReleve(page, projetLibre());
@@ -122,12 +122,6 @@ test('le clavier atteint l’arbre, la table et les onglets', async () => {
     assert.equal(await page.locator('.table-titre').textContent(), 'card');
     await page.locator('[data-focus="nom:carte-gap"]').focus();
     await page.keyboard.press('Enter');
-    await page.locator('#onglet-table').focus();
-    assert.deepEqual(await page.locator('.onglet').allTextContents(), ['Variables', 'Comparer', 'Dépendants', 'Diagnostics', 'Intégrations', 'Relevés']);
-    await page.keyboard.press('ArrowRight');
-    assert.equal(await page.locator('#onglet-comparer').getAttribute('aria-selected'), 'true');
-    assert.equal(await page.locator('#panneau-comparer .vue-titre').textContent(), 'Un token, deux contextes');
-    await page.keyboard.press('ArrowLeft');
     assert.equal(await page.locator('.barre .recherche, .arbre > .note').count(), 0);
     await page.locator('.arbre .recherche').focus();
     await page.keyboard.type('papier');
@@ -174,7 +168,7 @@ test('une poignée règle la largeur d’une colonne et de l’arbre ; le nom et
     assert.equal(await largeur('.cellule-nom'), 240);
     assert.deepEqual((await rangees()).pop(), { arbre: 284 });
 
-    await envoyer(page, { type: 'preferences', preferences: { vueCompacte: false, palettes: false, profilUcm: false, associations: {}, exceptions: {}, largeurs: { arbre: 9000, type: 150 } } });
+    await envoyer(page, { type: 'preferences', preferences: { vueCompacte: false, largeurs: { arbre: 9000, type: 150 } } });
     assert.equal(await largeur('.arbre'), 480);
     assert.equal(await largeur('.cellule-type'), 150);
   } finally { await fermer(page); }

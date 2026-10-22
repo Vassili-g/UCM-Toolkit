@@ -657,7 +657,7 @@ finale.
 [architecture]: ../../../../packages/kit/src/referentiel/architecture.ts
 [mots]: ../../../../packages/kit/src/referentiel/ecriture-des-mots.ts
 [imports]: ../../../../packages/plugin-architect/src/integrations/contrats.ts
-[vue-integrations]: ../../../../packages/plugin-architect/src/ui/vues/integrations.ts
+[vue-integrations]: ../../../../packages/plugin-architect/src/integrations/
 [lecture-explorateur]: ../../../../packages/plugin-architect/src/lecture.ts
 [inventaire]: ../../../../packages/plugin-socle/src/inventaireDeNoms.ts
 [lecture-nomenclature]: ../../../../packages/plugin-architect/src/nomenclature/lectureFigma.ts

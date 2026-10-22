@@ -10,17 +10,6 @@
   background: var(--fond-marque-survol);
 }
 
-.bandeau-simulation {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espace-controle);
-  padding: var(--espace-controle) var(--espace-page);
-  border-left: 3px solid var(--filet-avertissement);
-  background: var(--fond-avertissement);
-  color: var(--texte-avertissement);
-}
-
 /* L'inspecteur épinglé. */
 .inspecteur {
   display: grid;
@@ -56,16 +45,6 @@
   border: 1px solid var(--bordure);
   border-radius: 8px;
   background: var(--fond-bloc);
-}
-
-.carte-comparee {
-  display: grid;
-  min-width: 0;
-  align-content: start;
-  gap: var(--espace-bloc);
-  padding: 14px;
-  border: 1px solid var(--bordure);
-  border-radius: 8px;
 }
 
 /* La chaîne en frise : un rail, un nœud par étape, la valeur au bout. */
@@ -203,17 +182,6 @@
   list-style: none;
 }
 
-.ligne-de-lien {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--espace-controle);
-}
-
-.interrupteur-nom {
-  font-weight: 600;
-}
-
 .verdict {
   margin: 0;
   font-weight: 600;
@@ -242,4 +210,13 @@
   .inspecteur.inspecteur-ouvert {
     display: grid;
   }
+}
+
+/* Le verdict du contraste d'une paire se lit comme une note. */
+.verdict[data-contraste='atteint'] {
+  color: var(--texte-succes);
+}
+
+.verdict[data-contraste='manque'] {
+  color: var(--texte-danger);
 }

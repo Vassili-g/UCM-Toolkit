@@ -16,7 +16,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - groupes.ts : arbre des groupes, des seuls segments `/` des noms Figma
 - indexation.ts : index d'identité, familles de collections et références inverses par mode
 - resolution.ts : chaîne explicative dans un contexte de modes, et sa mémoire
-- comparaison.ts : deux contextes : première cible différente, mode différent, valeurs égales ou non
+- comparaison.ts : deux contextes : première cible différente, mode différent, valeurs égales ou non ; sans lecteur depuis A1
 - diagnostics.ts : chaînes qui n'aboutissent pas, regroupées par cause
 - copie.ts : formats de copie et leur précision
 - contraste.ts : contraste d'une paire choisie, par le calcul du kit
@@ -25,13 +25,13 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - lectureDuComposant.ts : sujet d'une sélection, ses calques, ses frontières, ses liaisons, ses styles de texte
 - apercu.ts : image du sujet, exportée en mémoire, et boîte de chaque calque
 - fenetre.ts : deux dispositions de la fenêtre, une par mode, leurs bornes et leurs clés
-- rapport.ts : rapport versionné des diagnostics
-- releves.ts : relevé exporté, réimporté et comparé à un autre
-- simulation.ts : une substitution dans une copie en mémoire
-- preferences.ts : vue compacte, intégrations, associations et largeurs réglées, dans clientStorage
+- rapport.ts : rapport versionné des diagnostics ; sans lecteur depuis A1
+- releves.ts : relevé exporté, réimporté et comparé à un autre ; sans lecteur depuis A1
+- simulation.ts : une substitution dans une copie en mémoire ; sans lecteur depuis A1
+- preferences.ts : vue compacte et largeurs réglées, dans clientStorage
 - espace.ts : couleurs d'un document Display P3 ramenées en sRGB, pour le contraste et la copie hexadécimale ; conversion de Palettes (`p3VersRgb8` de `ucm-couleur`), hors du noyau, qui n'importe pas `ucm-couleur`
 - integrations/ : contrats et tokens importés, recette UCM Palettes, profil d'architecture UCM (les sept couches de `COLLECTIONS`)
-- ui/ : barre et sa bascule de mode, arbre et sa recherche, table, inspecteur, bulle de chaîne, poignée des largeurs et vues des onglets
+- ui/ : barre et sa bascule de mode, arbre et sa recherche, table, panneau latéral, bulle de chaîne et poignée des largeurs ; `inspecteur.ts` n'est plus monté (U2)
 - ui/nomenclature/ : coquille de Nomenclature et sa frontière, onglets À appliquer, À trancher et Règles, feuilles, Configuration ; montée dans le panneau latéral du mode Tokens
 
 ## src/messages/

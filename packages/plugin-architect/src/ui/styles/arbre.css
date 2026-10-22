@@ -9,11 +9,6 @@
   color: var(--texte-second);
 }
 
-.saisie {
-  min-width: 160px;
-  flex: 1;
-}
-
 .bouton-discret {
   height: var(--hauteur-secondaire);
   padding: 0 10px;
@@ -175,7 +170,7 @@
   white-space: nowrap;
 }
 
-/* Le centre : le groupe ouvert, les onglets, puis le panneau de l'onglet actif. */
+/* Le centre : le groupe ouvert, puis la table. */
 .centre {
   display: flex;
   min-width: 0;
@@ -198,7 +193,6 @@
 }
 
 .table-titre,
-.vue-titre,
 .inspecteur-titre {
   margin: 0;
   font-weight: 600;
@@ -210,47 +204,10 @@
   line-height: var(--titre-interligne);
 }
 
-.vue-titre {
-  font-size: 17px;
-  line-height: 24px;
-}
-
 .inspecteur-titre {
   font-family: var(--chasse-fixe);
   font-size: 14px;
   line-height: 22px;
-}
-
-/* Les onglets soulignés de la maquette, à la place des segments du socle. */
-.centre .onglets {
-  overflow-x: auto;
-  flex: none;
-  gap: 18px;
-  padding: 0 20px;
-}
-
-.centre .onglet {
-  width: auto;
-  min-width: 0;
-  height: 38px;
-  padding: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.centre .onglet:hover:not([aria-selected='true']),
-.centre .onglet[aria-selected='true'] {
-  background: none;
-}
-
-.centre .onglet[aria-selected='true'] {
-  border-bottom-color: var(--texte-marque);
-}
-
-.centre .onglet:focus-visible {
-  outline-offset: -2px;
 }
 
 .accueil {
@@ -284,7 +241,6 @@
 }
 
 .filtres,
-.gestes,
 .ligne-de-champs,
 .copies {
   display: flex;
@@ -612,7 +568,6 @@
     line-height: 24px;
   }
 
-  .centre .onglets,
   .filtres {
     padding-right: var(--espace-bloc);
     padding-left: var(--espace-bloc);

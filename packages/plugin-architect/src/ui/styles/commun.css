@@ -168,27 +168,18 @@ textarea {
   margin-left: auto;
 }
 
-.contextes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espace-controle) var(--espace-bloc);
-}
-
-.contexte-champ,
 .filtre {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-.contexte-nom,
 .filtre-nom {
   color: var(--texte-second);
 }
 
 .choix,
-.recherche,
-.saisie {
+.recherche {
   height: var(--hauteur-secondaire);
   padding: 0 9px;
   border: 1px solid var(--bordure);
@@ -197,8 +188,7 @@ textarea {
 }
 
 .choix:hover,
-.recherche:hover,
-.saisie:hover {
+.recherche:hover {
   border-color: var(--bordure-visee);
 }
 
@@ -268,8 +258,7 @@ textarea {
 }
 
 /* Le titre d'une section : il se lit comme un titre, sans capitales. */
-.section:not(.carte-valeur) > .surtitre,
-.vue > .surtitre {
+.section:not(.carte-valeur) > .surtitre {
   color: var(--texte);
   font-size: var(--libelle);
   font-weight: 600;
