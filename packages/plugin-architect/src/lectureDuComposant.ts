@@ -112,7 +112,7 @@ async function nomDuMaitre(instance: NoeudLu): Promise<string> {
 type LiaisonLue = { propriete: string; variable: string; porteur: NoeudLu };
 
 /** Les liaisons que le parent pose dans une instance frontière, lues sur les calques que ses surcharges visent. */
-async function liaisonsDesSurcharges(port: PortDuComposant, instance: NoeudLu): Promise<LiaisonLue[]> {
+export async function liaisonsDesSurcharges(port: PortDuComposant, instance: NoeudLu): Promise<LiaisonLue[]> {
   const liaisons: LiaisonLue[] = [];
   const vues = new Set<string>();
   for (const surcharge of instance.overrides ?? []) {
