@@ -313,7 +313,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `layout/icon/xl` reconnu, `layout/sizing/xl` refusé ; deux lectures rendent
   `ambigu` sans les axes, une avec ; le jugement d'une liaison reste à K3 et
   K5 ; tests de Nomenclature sans changement d'attendu.
-- [ ] **K2 · Signaux du langage.** Vague 1.
+- [x] (17880301) **K2 · Signaux du langage.** Vague 1.
   Écrit : `kit/src/referentiel/signaux.ts` ; définition de `scale/{cran}` dans
   `theme.ts` (« portée » → « scope ») ; vue illustrée régénérée.
   Lit : maquette, section 1 « Les signaux ».
@@ -382,7 +382,10 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   Écrit : `packages/{kit,cli,adapter-typescript}/package.json`, leurs README,
   `README.md` racine, `package-lock.json`.
   Fait quand : tests racine verts, `versionSuitLeContenu`,
-  `monorepoCoherent` et `pinDocumente` compris.
+  `monorepoCoherent` et `pinDocumente` compris ; le corpus
+  `docs/references/design-systems/ucm/` régénéré par
+  `node docs/references/design-systems/_outils/ucm.mjs` (il date la version du kit).
+  Fait : V1 (kit 0.12.0, après K2).
 
 ### Piste S · socle
 
@@ -390,6 +393,8 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
 
 - [ ] **S0 · Le moteur de l'exporteur dans le socle.** Vague 1 · seul ·
   déplacement à sortie identique.
+  Lit : `plugin-exporter/CARTE.md`, `plugin-exporter/AGENTS.md`, `loiDuDocumentIntact.test.ts`, `tests/lois.ts`.
+  Vérifie : `npm run test:paquet -- exporter`, `-- socle`, `npm run build:plugin -- exporter`, `-- palettes` ; `npm test` par un `verificateur` à la fin.
   Écrit : `plugin-exporter/src/{contract,template,variables.ts}` →
   `plugin-socle/src/composant/` par `git mv`, après la sortie du type `Annonce`
   de `messages.ts` ; tests, `tests/lois.ts`, invariants, `SPEC.md` de
@@ -430,6 +435,8 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
 
 - [ ] **A0.1 · Renommage.** `implementeur` · vague 1 · seul · S0 ·
   déplacement.
+  Lit : `plugin-explorateur/CARTE.md`, `tests/pluginsSepares.test.ts`, `tests/manifestsDesPlugins.test.ts`, `scripts/construire-plugin.mjs`.
+  Vérifie : `npm run test:paquet -- architect`, `npm run build:plugin -- architect`, tests racine ; `npm test` et `typecheck` par un `verificateur`.
   Écrit : dossier, paquet, manifeste (« UCM Architect », identifiant gardé,
   permission `teamlibrary`), `scripts/construire-plugin.mjs`, scripts racine,
   `ci.yml`, `pluginsSepares`, `manifestsDesPlugins`, `kitCompileAJour`, tests
@@ -442,6 +449,8 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   la barre de la galerie dit « UCM Architect ».
 - [ ] **A0.2 · Nomenclature entre dans Architect.** `implementeur-exigeant` ·
   vague 1 · seul · A0.1 · déplacement.
+  Lit : `plugin-nomenclature/CARTE.md`, ses invariants, `tests/loiDEcriture.test.ts`, `tests/loiDeLectureSeule.test.ts`.
+  Vérifie : `npm run test:paquet -- architect`, tests racine ; `npm test` par un `verificateur`.
   L'orchestrateur note ici le commit de repli avant de lancer : `……`.
   Écrit : `git mv` : sandbox → `src/nomenclature/`, `ecriture.ts` →
   `src/ecriture/noms.ts`, interface → `src/ui/nomenclature/`, galerie et tests
@@ -457,6 +466,8 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   un import de `template/ecriture` hors de `src/ecriture/` ; `npm test` passe.
 - [ ] **A1 · Squelette des domaines.** `implementeur-exigeant` · vague 2 · seul
   · A0.2, note N1 · code nouveau.
+  Lit : N1, `src/code.ts`, `src/messages.ts`, `src/ui/textes.ts`, `src/ui/index.ts`, `galerie/etats.cjs`.
+  Vérifie : `npm run test:paquet -- architect`, `npm run build:plugin -- architect`, tests racine.
   Écrit : `src/code.ts` (aiguillage), `src/messages/<domaine>.ts` (types
   complets de N1), `src/sandbox/<domaine>.ts` (souches « non construit »),
   `src/ui/textes/<domaine>.ts`, `src/ui/styles/<domaine>.css`,
@@ -476,9 +487,13 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
 
 ### Piste U · interface d'Architect
 
-Défauts : `implementeur-exigeant` · écran nouveau · Écrit : les fichiers
-d'interface du domaine (§4.2) · Vérifie : `npm run test:paquet -- architect` et
-le comparateur sur les cadres du lot. Chaque lot crée les états de galerie et
+Défauts : `implementeur-exigeant` · écran nouveau · Écrit : pour chaque
+domaine du lot (N1), `src/ui/<d>/**`, `src/ui/textes/<d>.ts`,
+`src/ui/styles/<d>.css`, `galerie/etats/<d>.cjs`, `tests/interface/<d>.test.mjs`,
+et l'entrée de ses cadres dans `galerie/cadres.json` · Lit : la note N1, les
+cadres du lot par `grep` (§4.6), les vues de l'explorateur ou de Nomenclature
+qu'il reprend · Vérifie : `npm run test:paquet -- architect` et
+`node galerie/comparer-maquette.cjs <cadres du lot>`. Chaque lot crée les états de galerie et
 les tests d'interface de ses cadres, sans `test:ui`, et retire ses mots de la
 liste d'exceptions de la loi du vocabulaire. Les données viennent des fixtures
 de galerie quand le lot B n'est pas fait.
@@ -490,6 +505,7 @@ de galerie quand le lot B n'est pas fait.
   Fait quand : règles du §4.10 ; à l'essai, une police changée et un élément
   retiré font échouer la comparaison ; un cadre manquant aussi.
 - [ ] **U1 · Mode Tokens, Corrections.** Vague 3 · S1, A1.
+  Domaines : `commun` (barre), `arbre`, `nomenclature`.
   Maquette : `t-renommages` ; `fenetreTokens`, `MODES_AFFICHES`,
   `ARBRE_INTERFACE`, `LIGNES_INTERFACE`, `ciblerCarte`, `nomenclatureLaterale`.
   Fait quand : barre, arbre et « replier les autres », modes sur une ligne,
@@ -498,6 +514,7 @@ de galerie quand le lot B n'est pas fait.
   que les noms affichés (M-11) ; les textes repris de l'explorateur disent
   « scope » ; comparateur sans écart.
 - [ ] **U2 · Recherche, fiche d'une variable.** Vague 3 · U1.
+  Domaines : `recherche`, `fiche`.
   Maquette : `t-questions`, `t-terme`, `t-fiche` ; `LIGNES_BACKGROND`,
   `LIGNES_BACKGROUND`, `FICHE_VARIABLE`, `ETAPE`.
   Fait quand : recherche en texte, préfixes `terme:` et `vise:` ; les trois
@@ -505,15 +522,18 @@ de galerie quand le lot B n'est pas fait.
   appliquer », « Utilisée par » ; ligne choisie d'un fond uniforme ;
   comparateur sans écart.
 - [ ] **U3 · À faire dans Figma, modes et scopes.** Vague 3 · U1.
+  Domaines : `structure`.
   Maquette : `t-structure`, `t-portees` ; `AFAIRE_TOKENS`, `LIGNE_SCOPE`.
   Fait quand : constats typés, chemins dans une phrase ; cartes de modes et de
   scopes en Aujourd'hui et Après l'application ; comparateur sans écart.
 - [ ] **U4 · Library, règles reçues, hors UCM.** Vague 3 · U1.
+  Domaines : `bibliotheque`, `nomenclature` (t-regle), `commun` (t-hors).
   Maquette : `t-bibliotheque`, `t-regle`, `t-hors` ; `REGLE_RECUE`.
   Fait quand : valeurs en attente en trait gris, onglets grisés, « Ouvrir
   Intencial Tokens » seulement si la clé est connue ; règles reçues en
   questions ; alerte hors UCM ; comparateur sans écart.
 - [ ] **U5 · Vue Composant et section Variants.** Vague 4 · S1, A1.
+  Domaines : `commun` (barre, bouton Constats), `composant`.
   Maquette : `c-avant`, `c-replie`, `c-bouton-texte`, `c-gros`, colonne gauche
   de `c-corrections` ; `variants`, `COMPOSANTS`, `fenetreComposant`, `barre`,
   `corrigerDansLaVue`.
@@ -522,6 +542,7 @@ de galerie quand le lot B n'est pas fait.
   liaisons changées en vert, cliquables ; ouverture dans le mode du fichier et
   bascule ; comparateur sans écart.
 - [ ] **U6 · Panneau des constats.** Vague 4 · U5.
+  Domaines : `analyse`, `corrections`, `questions`, `ignores`.
   Maquette : `c-corrections`, `c-clic`, `c-modele`, `c-questions`,
   `c-tranchee`, `c-afaire`, `c-apres`, `c-ctrlz`, `e-*` ; `CORR_ALERT`,
   `AFAIRE_ALERT`, `Q_TITLE`, `Q_OUTLINE`, `Q_CONTOUR`, `CLIC`, `PERIME`.
@@ -529,10 +550,12 @@ de galerie quand le lot B n'est pas fait.
   réussite avec les sautées, panneau périmé, états de l'analyse dont
   « annulée » ; sélection Figma dans l'aperçu ; comparateur sans écart.
 - [ ] **U7 · Contraste et accessibilité.** Vague 5 · U6.
+  Domaines : `accessibilite`, `questions` (x-button-corr).
   Maquette : `x-alert`, `x-button`, `x-button-corr` ; `paire`.
   Fait quand : paire mesurée, rapport et seuil, autres modes, limites ;
   questions d'état ; comparateur sans écart.
 - [ ] **U8 · Préparation et Configuration.** Vague 6 · U6.
+  Domaines : `preparation`, `configuration`.
   Maquette : `g-*`, `cf-reglages`, `cf-historique` ; `PREPARER`, `CREER`,
   `optionP`, `cibleP`, `SECTIONS_NOUVELLES`.
   Fait quand : chaque choix porte son terme UCM puis sa description ; Préparer
@@ -541,16 +564,20 @@ de galerie quand le lot B n'est pas fait.
 
 ### Piste B · sandbox d'Architect
 
-Défauts : `implementeur` · code nouveau · Écrit : les fichiers sandbox du
-domaine (§4.2) et ses tests · Vérifie : `npm run test:paquet -- architect`.
+Défauts : `implementeur` · code nouveau · Écrit : pour chaque domaine du lot
+(N1), `src/sandbox/<d>.ts` et `tests/<d>.test.ts`, plus les fichiers que la
+fiche nomme · Lit : N1, la note citée, les types de `@ucm-kit/core/controles`
+· Vérifie : `npm run test:paquet -- architect`.
 Chaque lot remplace la souche de son domaine et garde les types de N1.
 
 - [ ] **B3 · Library en mode Tokens.** Vague 3 · S2 · hypothèses S-1, S-4.
+  Domaines : `bibliotheque`. Écrit en plus : `src/lecture.ts`, `tests/loiDImport.test.ts`, `manifest.json` si S-4 sert la clé.
   Fait quand : arbre depuis les noms ; valeurs d'un groupe importées à son
   ouverture, par lots de huit ; loi d'import étendue ; `figma.fileKey` rangé
   sous sa clé quand il est servi.
 - [ ] **B6 · Journal étendu, scopes et modes.** `implementeur-exigeant` · vague
   3 · K5 fusionné.
+  Domaines : `structure`. Écrit en plus : `src/ecriture/structure.ts`, `src/ecriture/journal.ts` (extrait du journal de `src/ecriture/noms.ts`, sans changer ses attendus), leurs tests.
   Fait quand : le journal range et l'Historique annule trois sortes nouvelles :
   scopes, cible d'alias par mode (`setValueForMode`, ancienne valeur gardée),
   création de variables ; une variable créée qui a gagné un usage accessible
@@ -558,6 +585,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   d'autres fichiers est dite ; un objet changé depuis est sauté ; tests de
   l'Historique sans changement d'attendu.
 - [ ] **B10 · Catalogue de référence.** Vague 4 · S2, K0 · hypothèse S-1.
+  Écrit : `src/catalogue.ts`, `tests/catalogue.test.ts`, `src/lecture.ts` (loi d'import étendue), `tests/loiDImport.test.ts`.
   Fait quand : pour une analyse en mode Composant, les collections `theme`,
   `layout` et `components` de la library choisie sont lues : noms d'abord,
   valeurs importées par clé à la demande des contrôles ; chaque entrée est
@@ -571,6 +599,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   effectifs, espace de couleur) ; budget commun avec S3 ; test sur un jeu
   factice de six variants.
 - [ ] **B2 · Analyse.** Vague 4 · B1, B10, K3, S3.
+  Domaines : `analyse`, `commun` (sélection, périmé).
   Fait quand : Analyser puis Actualiser lancent moteur et kit ; identité de
   l'analyse (sujet, génération) dans chaque message ; seconde analyse
   refusée ; sélection extérieure d'un autre composant et Ctrl+Z rendent le
@@ -580,26 +609,31 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   Actualiser.
 - [ ] **B9 · Branchement de l'accessibilité et de la typographie.** Vague 5 ·
   K4, K7, B2.
+  Domaines : `accessibilite`, `configuration` (niveau).
   Fait quand : constats de K4 et K7 dans l'analyse ; niveau AA ou AAA lu dans la
   Configuration.
 - [ ] **B4 · Écriture des liaisons.** `implementeur-exigeant` · vague 5 · B2,
   K8, note E · hypothèse S-2.
+  Domaines : `corrections`.
   Écrit : `src/ecriture/liaisons.ts` et ses tests.
   Fait quand : un test par sorte (nombre, fill de frame, stroke, texte) sur
   doubles ; avant chaque écriture, les faits de la correction sont relus ; un
   objet changé ou un fait faux est sauté et compté ; un fichier qui ne déclare
   plus UCM ne reçoit rien ; un lot = un point d'annulation.
 - [ ] **B5 · Corrections, questions, Ignorer.** Vague 5 · B4, K8.
+  Domaines : `corrections`, `questions`, `ignores`. Écrit en plus : `src/ecriture/noms-de-valeurs.ts`, `src/ecriture/ignores.ts`, leurs tests.
   Fait quand : corrections de K8 dans le lot Appliquer ; renommer une valeur
   de variante (C12), une valeur déjà présente → question ; Ignorer et « Ne plus
   proposer » rangés à la racine du document ; « Ne plus ignorer » rend le
   constat ; une limite de lecture ne s'ignore pas.
 - [ ] **B7 · Règles de composant.** Vague 5 · B2.
+  Domaines : `regles`. Écrit en plus : `src/ecriture/regles.ts` (appelle `template/ecriture.ts`), son test.
   Écrit : en plus, les importeurs permis de
   `plugin-exporter/tests/loiDuDocumentIntact.test.ts`.
   Fait quand : C43, C44, C45 ; C46 par `template/ecriture.ts` ; ajout et
   retrait d'une instance remplie refusés avec un motif.
 - [ ] **B8 · Préparation, création, retour.** Vague 6 · K6, B6, B4, note P.
+  `implementeur-exigeant` (journal). Domaines : `preparation`, `configuration`. Écrit en plus : `src/ecriture/variables.ts`, `src/preparations.ts` (clientStorage), leurs tests.
   Fait quand : règles de la note P (identité, destination, versions du texte
   échangé, états par entrée, reprise sans doublon) ; création des seules
   variables manquantes par le journal ; existant divergent → question ;
@@ -746,7 +780,7 @@ interface CatalogueDeReference {
 interface Constat {
   id: string;                         // stable : code, variants, layers, champ
   code: `C${number}`;
-  type: TypeDAlerte;                  // de K2 : 'bloquant' | 'corriger' | 'verifier' | 'information' | 'tenu'
+  type: TypeDAlerte;                  // de K2 : 'bloquant' | 'corriger' | 'verifier' | 'info' | 'tenu'
   famille: 'liaisons' | 'tailles' | 'tokens' | 'variants' | 'contraste' | 'typographie' | 'regles' | 'visibilite' | 'export';
   variants: string[]; layers: string[];
   faits: Record<string, string | number>;
