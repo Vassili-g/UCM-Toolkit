@@ -305,7 +305,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   préparations ; `@ucm-kit/core/controles` exporte `ReleveDeComposant`,
   `CatalogueDeReference` et `Constat` (code, type d'alerte, layer, variant,
   faits lus) selon N2 ; `portesDocumentees` passe.
-- [ ] **K1 · Grammaire des composants.** Vague 1 · note G.
+- [x] (5e479482) **K1 · Grammaire des composants.** Vague 1 · note G.
   Écrit : `kit/src/referentiel/{grammaire,architecture}.ts` et registres, leurs
   tests.
   Fait quand : positions facultatives reconnues ; registre propre à
@@ -320,7 +320,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   Fait quand : chaque signal a un identifiant, un sens, un libellé ; cinq types
   d'alerte ordonnés ; les gravités de Palettes et de l'exporteur ont chacune
   leur type ; `tests/vueIllustree.test.ts` passe.
-- [ ] **K9 · Produits et noms dans le kit.** Vague 1.
+- [x] (7799190c) **K9 · Produits et noms dans le kit.** Vague 1.
   Écrit : `kit/src/referentiel/produits.ts` (produit `architect` « UCM
   Architect », produit `explorateur` retiré), commentaires de
   `kit/src/protocoles/nommage.ts`, `generer-donnees-referentiel.ts` et sa sortie.
@@ -385,7 +385,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `monorepoCoherent` et `pinDocumente` compris ; le corpus
   `docs/references/design-systems/ucm/` régénéré par
   `node docs/references/design-systems/_outils/ucm.mjs` (il date la version du kit).
-  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0).
+  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9).
 
 ### Piste S · socle
 
@@ -447,7 +447,7 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   passent ; `agents:diff` ne liste aucun chemin mort ; « UCM Token Explorer »
   ne reste que dans les Archives, les notes passées, les journaux de version ;
   la barre de la galerie dit « UCM Architect ».
-- [~ Claude 1] **A0.2 · Nomenclature entre dans Architect.** `implementeur-exigeant` ·
+- [x] (b0fd52c8) **A0.2 · Nomenclature entre dans Architect.** `implementeur-exigeant` ·
   vague 1 · seul · A0.1 · déplacement.
   Lit : `plugin-architect/CARTE.md`, ses invariants, `tests/loiDEcriture.test.ts`, `tests/loiDeLectureSeule.test.ts`.
   Vérifie : `npm run test:paquet -- architect`, tests racine ; `npm test` par un `verificateur`.
@@ -1033,7 +1033,7 @@ Sondes, lancées par le mainteneur au lancement :
 
 | Jalon | Contenu vérifié | Après |
 |---|---|---|
-| J0 | `npm test`, typecheck, build ; Nomenclature et l'explorateur ne vivent plus que dans Architect | vague 1 |
+| J0 | `npm test`, typecheck, build ; Nomenclature et l'explorateur ne vivent plus que dans Architect | vague 1 ; fait sur `b0fd52c8` |
 | J1 | Mode Tokens : `t-*` au comparateur ; modes et scopes branchés | vague 3 |
 | J2 | Mode Composant, lecture : `c-avant`, `c-replie`, `c-bouton-texte`, `c-gros`, `c-corrections` à `c-afaire`, `e-*`, branchés sur l'analyse | vague 4 |
 | J3 | Corrections, écriture, accessibilité branchée : `c-apres`, `c-ctrlz`, `x-*` | vague 5 |
@@ -1091,6 +1091,14 @@ Choix faits sans le mainteneur :
   `domiciles.json`, les noms de galerie `explorateur-large` et
   `explorateur-etroit` et les noms de code restent ; seuls le produit et les
   chemins changent · réversible : oui.
+- Q-16 · A0.2 · Tests de Nomenclature · à plat dans `tests/`, préfixés
+  `nomenclature` (le découvreur ne descend pas dans un sous-dossier) ;
+  `tests/interface/nomenclature.test.mjs` n'est pas lancé avant A1 ; le test
+  « manifeste sans permissions » de Nomenclature est retiré, `manifest.test.ts`
+  couvre le manifeste · réversible : oui.
+- Q-17 · A0.2 · Hors liste · l'orchestrateur corrige l'invariant de Palettes
+  (`invariants/ecriture.md`, « trois plugins ») et abaisse à 9 le minimum de
+  cartes de `tests/cartes.test.ts` · réversible : oui.
 
 ## 10. Hors du plan
 
