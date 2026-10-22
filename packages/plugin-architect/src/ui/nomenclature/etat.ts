@@ -6,7 +6,7 @@
 import type { Bilan } from '../../messages/nomenclature';
 import type { MessageAAfficher } from './frontiere';
 
-export type Onglet = 'a-appliquer' | 'a-trancher' | 'regles';
+export type Onglet = 'a-appliquer' | 'a-trancher' | 'a-faire' | 'regles';
 export type EcranDeTravail = 'premier-lancement' | 'lecture' | 'travail';
 export type Ecran = EcranDeTravail | 'configuration';
 

@@ -31,7 +31,6 @@ export interface Exception { readonly fichier: string; readonly entree: string; 
 /** Les occurrences d'avant la loi. Chaque lot d'interface retire celles de ses écrans. */
 const EXCEPTIONS: readonly Exception[] = [
   { fichier: 'arbre.ts', entree: "perimetre", mot: GLYPHE },
-  { fichier: 'arbre.ts', entree: "fraicheur", mot: GLYPHE },
   { fichier: 'arbre.ts', entree: "'calque-explicite'", mot: "calque" },
   { fichier: 'arbre.ts', entree: "'calque-explicite'", mot: "calque" },
   { fichier: 'arbre.ts', entree: "'calque-herite'", mot: "calque" },

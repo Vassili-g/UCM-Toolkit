@@ -92,6 +92,8 @@ export interface Etat {
   position: Position;
   replies: Set<string>;
   contexte: Contexte;
+  /** Vrai tant que la collection choisie dans l'arbre filtre la barre latérale ; la croix de la puce le met à faux jusqu'au prochain choix dans l'arbre. */
+  filtreDeLaBarre: boolean;
   preferences: Preferences;
   /** La disposition de la fenêtre, large avant l'annonce du sandbox. La bascule de la barre la change. */
   disposition: Disposition;
@@ -111,6 +113,7 @@ export function etatInitial(): Etat {
     position: { collection: null, groupe: [], recherche: '', filtres: FILTRES_PAR_DEFAUT, inspectee: null },
     replies: new Set(),
     contexte: {},
+    filtreDeLaBarre: true,
     preferences: PREFERENCES_PAR_DEFAUT,
     disposition: 'large',
     architecture: null,
@@ -187,4 +190,10 @@ export function variablesAffichees(etat: Etat, valeur: (id: string) => string): 
     if (passeLesFiltres(etat, variable)) liste.push(variable);
   }
   return liste;
+}
+
+/** La collection qui filtre la barre latérale : celle que l'arbre a choisie, hors recherche et tant que la croix de la puce n'a pas retiré le filtre. */
+export function collectionDuFiltre(etat: Etat): string | null {
+  if (!etat.filtreDeLaBarre || etat.position.recherche.trim() !== '') return null;
+  return etat.position.collection;
 }

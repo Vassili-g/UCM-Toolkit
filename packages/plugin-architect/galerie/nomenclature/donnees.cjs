@@ -354,4 +354,63 @@ const messages = {
   erreur: (demande, code) => m('erreur', demande, { code }),
 };
 
-module.exports = { bilans, fiches, messages, conflitDeFichier, conflitDeCycle };
+
+/*
+ * Le fichier Intencial de la maquette (cadre `t-renommages`) : la collection Interface passe à UCM. Quatre cartes de Corrections,
+ * dont les lignes de la collection Interface comptent 24 variables et une collection. Les noms sont ceux de `LIGNES_INTERFACE` ;
+ * les autres variables de Interface portent des noms de remplissage, pour que chaque groupe ait le nombre de variables de l'arbre.
+ */
+const GROUPES_D_INTERFACE = [['Button', 18], ['Card', 12], ['Drawer', 4], ['Link', 6], ['Modal', 8], ['Page', 10], ['Tooltip', 8]];
+const NOMS_D_INTERFACE = [
+  ['Button/bg/default', 'Button/background/default'], ['Button/bg/hovered', 'Button/background/hover'], ['Button/foreground/default', null], ['Card/bg/default', 'Card/background/default'],
+  ['Card/border/default', null], ['Card/paddingX', 'Card/padding-x'], ['Link/contrasthovered/text', null], ['Modal/backgrond/default', null], ['Page/bg/default', 'Page/background/default'],
+  ['Tooltip/bg/hovered', 'Tooltip/background/hover'],
+];
+/** Les variables de Interface : les dix de la maquette d'abord, puis le remplissage de chaque groupe jusqu'au nombre de l'arbre. */
+function variablesDInterface() {
+  const variables = NOMS_D_INTERFACE.map(([ancien, nouveau], rang) => ({ id: `i${rang + 1}`, ancien, nouveau: nouveau ?? ancien }));
+  for (const [groupe, total] of GROUPES_D_INTERFACE) {
+    const deja = variables.filter((v) => v.ancien.startsWith(`${groupe}/`)).length;
+    for (let rang = deja; rang < total; rang += 1) variables.push({ id: `i${variables.length + 1}`, ancien: `${groupe}/borderWidth${rang}`, nouveau: `${groupe}/border-width${rang}` });
+  }
+  return variables;
+}
+const variablesDeInterface = variablesDInterface();
+const ligneDInterface = (v, aussi = []) => ({ id: v.id, ancien: v.ancien, nouveau: v.nouveau, marques: v.ancien.split('/').flatMap((seg, rang) => (seg !== v.nouveau.split('/')[rang] ? [rang] : [])), aussi });
+const interfaceParId = new Map(variablesDeInterface.map((v) => [v.id, v]));
+const interfaceDe = (id, aussi) => ligneDInterface(interfaceParId.get(id), aussi);
+/** Une variable d'une autre collection : elle compte dans le groupe, pas dans le filtre Interface. */
+const ailleurs = (rang, ancien, nouveau, marques) => renom(`x${rang}`, ancien, nouveau, marques);
+
+const fondsDInterface = [interfaceDe('i1', []), interfaceDe('i2', ['terme:hover']), interfaceDe('i4', []), interfaceDe('i9', []), interfaceDe('i10', ['terme:hover'])];
+const fondsAilleurs = Array.from({ length: 7 }, (_, rang) => ailleurs(rang, `Alert/bg/state${rang}`, `Alert/background/state${rang}`, [1]));
+const survolsAilleurs = Array.from({ length: 6 }, (_, rang) => ailleurs(100 + rang, `Menu/hovered/item${rang}`, `Menu/hover/item${rang}`, [1]));
+const survolsDInterface = [interfaceDe('i2', ['terme:background']), interfaceDe('i10', ['terme:background'])];
+const ecritureDInterface = [interfaceDe('i6', []), ...variablesDeInterface.filter((v) => v.ancien.includes('borderWidth')).slice(0, 18).map((v) => ligneDInterface(v))];
+const ecritureAilleurs = Array.from({ length: 66 - ecritureDInterface.length }, (_, rang) => ailleurs(200 + rang, `Alert/fontSize${rang}`, `Alert/font-size${rang}`, [1]));
+const collectionInterface = renom('interface', 'Interface', 'components', [0]);
+
+const groupesDInterface = [
+  { ...groupeBackground, apercu: fondsDInterface.slice(0, 1).concat([fondsDInterface[1], fondsDInterface[2]]) },
+  { ...groupeHover, variables: 8, apercu: survolsDInterface },
+  { ...groupeEcriture, cle: 'ecriture:variables', avant: 'Card/paddingX', apres: 'Card/padding-x', variables: 66, apercu: [ecritureDInterface[0]] },
+  { ...groupeCollection, avant: 'Interface', apres: 'components', apercu: [] },
+];
+const renommagesInterface = {
+  ...bilanDeBase,
+  groupes: groupesDInterface,
+  questions: [paire, faute],
+  collections: [
+    { id: 'interface', nom: 'Interface', nombre: 66, analysee: true, protegees: 0 },
+  ],
+};
+/** Les pages que le sandbox rend pour chaque groupe de `renommagesInterface`, avec le numéro de demande de la frontière. */
+const pagesInterface = (demandes) => [
+  m('lignes', demandes.fonds, { generation: 1, groupe: 'terme:background', debut: 0, lignes: [...fondsDInterface, ...fondsAilleurs], total: 12 }),
+  m('lignes', demandes.survols, { generation: 1, groupe: 'terme:hover', debut: 0, lignes: [...survolsDInterface, ...survolsAilleurs], total: 8 }),
+  m('lignes', demandes.ecriture, { generation: 1, groupe: 'ecriture:variables', debut: 0, lignes: [...ecritureDInterface, ...ecritureAilleurs].slice(0, 50), total: 66 }),
+  m('lignes', demandes.collection, { generation: 1, groupe: 'collection:c2', debut: 0, lignes: [collectionInterface], total: 1 }),
+  m('lignes', demandes.suiteEcriture, { generation: 1, groupe: 'ecriture:variables', debut: 50, lignes: [...ecritureDInterface, ...ecritureAilleurs].slice(50), total: 66 }),
+];
+
+module.exports = { bilans, fiches, messages, conflitDeFichier, conflitDeCycle, GROUPES_D_INTERFACE, variablesDeInterface, renommagesInterface, pagesInterface };

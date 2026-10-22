@@ -39,11 +39,13 @@ et le numéro du relevé.
 
 - **Arbre.** Une collection montre toutes ses variables ; un groupe montre les
   siennes et celles de ses descendants. Le chevron replie l'arbre sans
-  changer la table. La recherche, sous le titre de l'arbre, porte sur toutes
-  les collections.
+  changer la table. Le bouton à droite de Collections replie toutes les
+  sections, sauf celle qui est choisie. La recherche, sous le titre de
+  l'arbre, porte sur toutes les collections.
 - **Table.** Une colonne par mode de la collection, avec l'alias direct ou la
   valeur rangée, puis le résultat. La vue compacte garde la seule colonne du
-  contexte actif.
+  contexte actif. Sous le titre, « Modes affichés » tient sur une ligne : un
+  menu par collection à plusieurs modes.
 - **Contexte.** Chaque collection prend son mode par défaut. Les onglets
   Comparer, Dépendants, Diagnostics, Intégrations et Relevés sont retirés ;
   leurs calculs purs restent dans le code.
@@ -53,9 +55,10 @@ et le numéro du relevé.
 - **Inspecteur.** Valeur terminale, chaîne, valeurs par mode, provenance,
   dépendants, copies et contraste d'une paire.
 
-Le dernier segment du nom reste clair ; son chemin prend la couleur secondaire.
+Le nom d'une variable est un chemin : les groupes en gris, le dernier segment en gris clair. Quand un renommage coché de Corrections change un terme, la table montre le nom entier après l'application et ce terme en vert ; un clic sur lui ouvre sa carte dans Corrections.
 
 Le centre ne montre plus que la table. Le panneau latéral de 640 px porte Nomenclature, à la place de l'inspecteur, jusqu'à la fiche d'une variable.
+Les onglets du panneau latéral sont Corrections, Questions, À faire dans Figma et Règles. La collection choisie dans l'arbre les filtre : une puce « collection » sous les onglets la nomme, et sa croix enlève le filtre. Sous le filtre, Appliquer n'écrit que les noms de cette collection.
 
 La [maquette de la navigation](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Recette%201/MAQUETTE-RECETTE-1.html)
 montre la bascule des deux modes et la recherche dans l'arbre.

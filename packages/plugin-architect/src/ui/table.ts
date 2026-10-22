@@ -13,9 +13,15 @@
  * Les lignes sont virtualisées : une table de dix mille variables ne monte
  * que les lignes visibles.
  *
+ * Le nom d'une variable est un chemin : seul le terme que Corrections
+ * propose, quand son renommage est coché, prend le vert et ouvre sa carte.
+ * Le nom reste entier, celui qu'aura la variable après l'application.
+ *
  * `tete` nomme le groupe ouvert. L'entrée la place au-dessus des onglets :
  * elle se lit dans chaque vue, et se met à jour même quand la table est cachée.
  */
+import { creerChemin } from 'ucm-plugin-socle/src/ui/Chemin';
+import { familles, modesDeFamille } from '../indexation';
 import { espaceDuReleve, texteDeValeur, TYPES_DE_VARIABLE, type CollectionRelevee, type VariableRelevee } from '../modele';
 import { valeurPourLeMode } from '../resolution';
 import type { Application, Composant } from './application';
@@ -72,7 +78,9 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
   titre.className = 'table-titre';
   const resume = document.createElement('p');
   resume.className = 'note';
-  tete.append(emplacement, titre, resume);
+  const modes = document.createElement('div');
+  modes.className = 'modes-affiches';
+  tete.append(emplacement, titre, resume, modes);
 
   const filtres = document.createElement('div');
   filtres.className = 'filtres';
@@ -92,7 +100,7 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
   element.append(filtres, liste.element, vide);
 
   let lignes: VariableRelevee[] = [];
-  let modes: CollectionRelevee['modes'] = [];
+  let modesDeLaCollection: CollectionRelevee['modes'] = [];
   let cleDeVue = '';
   /** Les colonnes de valeur affichées, par clé, et les largeurs réglées depuis l'ouverture. */
   let colonnesDeValeur: string[] = [];
@@ -181,14 +189,25 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
     bouton.dataset.focus = `nom:${variable.id}`;
     bouton.dataset.chaine = variable.id;
     bouton.dataset.mode = '';
-    const nomAffiche = etat.position.recherche ? variable.nom : variable.nom.slice(etat.position.groupe.join('/').length + (etat.position.groupe.length ? 1 : 0));
-    const debutDuNom = nomAffiche.lastIndexOf('/') + 1;
-    const chemin = document.createElement('span');
-    chemin.className = 'nom-de-token-chemin';
-    chemin.textContent = nomAffiche.slice(0, debutDuNom);
-    bouton.append(chemin, document.createTextNode(nomAffiche.slice(debutDuNom)));
+    const renommage = app.renommages.de(variable.id);
+    const segments = (renommage?.nouveau ?? variable.nom).split('/');
+    const debut = etat.position.recherche ? 0 : etat.position.groupe.length;
+    const cible = app.renommages.cible();
+    const ajouts = renommage ? [...renommage.cartes.keys()].map((rang) => segments[rang]) : [];
+    const termeCible = cible?.variable === variable.id ? segments[cible.rang] : null;
+    bouton.append(creerChemin(segments.slice(debut).join('/'), { ajouts, lien: true, survol: termeCible }));
+    bouton.addEventListener('click', (evenement) => {
+      const terme = evenement.target instanceof Element ? evenement.target.closest('.ch-lien') : null;
+      if (terme && renommage) {
+        const rang = Array.from(terme.parentElement?.children ?? []).indexOf(terme) / 2 + debut;
+        if (renommage.cartes.has(rang)) {
+          app.renommages.ouvrir(variable.id, rang);
+          return;
+        }
+      }
+      app.inspecter(variable.id);
+    });
     bouton.setAttribute('aria-label', TEXTES.ouvrir(nomDeCible(etat.index!, variable.id)));
-    bouton.addEventListener('click', () => app.inspecter(variable.id));
     nom.append(bouton);
     if (etat.position.recherche) {
       const collection = document.createElement('span');
@@ -201,8 +220,8 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
     type.setAttribute('role', 'cell');
     type.textContent = TEXTES.types[variable.type];
     rangee.append(nom, type);
-    if (modes.length === 0) rangee.append(celluleDeValeur(variable, null));
-    else for (const mode of modes) rangee.append(celluleDeValeur(variable, mode.id));
+    if (modesDeLaCollection.length === 0) rangee.append(celluleDeValeur(variable, null));
+    else for (const mode of modesDeLaCollection) rangee.append(celluleDeValeur(variable, mode.id));
     return rangee;
   }
 
@@ -231,6 +250,43 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
     filtres.replaceChildren(...elements);
   }
 
+  /** Un menu par famille de collections qui a plusieurs modes : le mode que la table lit pour ses alias. */
+  function poserLesModes(): void {
+    const { index, contexte } = app.etat;
+    const menus: HTMLElement[] = [];
+    for (const famille of index ? familles(index) : []) {
+      const choix = modesDeFamille(index!, famille.id);
+      if (choix.length < 2) continue;
+      const actuel = contexte[famille.id] ?? famille.modeParDefaut;
+      const colonne = document.createElement('label');
+      colonne.className = 'mode-col';
+      const nom = document.createElement('span');
+      nom.className = 'collection';
+      nom.textContent = famille.nom;
+      const menu = document.createElement('select');
+      menu.className = 'input';
+      menu.setAttribute('aria-label', TEXTES.contexteDeFamille(famille.nom));
+      for (const { mode } of choix) {
+        const option = document.createElement('option');
+        option.value = mode.id;
+        option.textContent = mode.nom;
+        option.selected = mode.id === actuel;
+        menu.append(option);
+      }
+      menu.addEventListener('change', () => app.choisirMode(famille.id, menu.value));
+      colonne.append(nom, menu);
+      menus.push(colonne);
+    }
+    modes.hidden = menus.length === 0;
+    if (menus.length === 0) {
+      modes.replaceChildren();
+      return;
+    }
+    const libelle = document.createElement('span');
+    libelle.textContent = TEXTES.modesAffiches;
+    modes.replaceChildren(libelle, ...menus);
+  }
+
   return {
     element,
     tete,
@@ -249,24 +305,25 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
       const collection = position.collection ? index.collections.get(position.collection) : undefined;
       const recherche = position.recherche.trim() !== '';
       lignes = variablesAffichees(etat, valeurCherchee);
-      modes = recherche || etat.preferences.vueCompacte || !collection ? [] : collection.modes;
+      modesDeLaCollection = recherche || etat.preferences.vueCompacte || !collection ? [] : collection.modes;
+      poserLesModes();
 
       emplacement.textContent = recherche ? TEXTES.rechercheEtiquette : [collection?.nom ?? '', ...position.groupe.map((segment) => segment || TEXTES.segmentVide)].join(' / ');
       titre.textContent = recherche ? TEXTES.resultatsDeRecherche : (position.groupe[position.groupe.length - 1] ?? collection?.nom ?? '') || TEXTES.segmentVide;
       resume.textContent = recherche ? TEXTES.rechercheGlobale(lignes.length) : TEXTES.compte(lignes.length);
       poserFiltres();
 
-      colonnesDeValeur = modes.length === 0 ? [COLONNE_DU_CONTEXTE] : modes.map((mode) => `${collection?.id}:${mode.id}`);
+      colonnesDeValeur = modesDeLaCollection.length === 0 ? [COLONNE_DU_CONTEXTE] : modesDeLaCollection.map((mode) => `${collection?.id}:${mode.id}`);
       poserColonnes();
       entete.replaceChildren(
         cellule(TEXTES.colonneNom, 'nom'),
         cellule(TEXTES.colonneType, 'type'),
-        ...(modes.length === 0
+        ...(modesDeLaCollection.length === 0
           ? [cellule(TEXTES.colonneContexte, 'valeur', COLONNE_DU_CONTEXTE)]
-          : modes.map((mode, rang) => cellule(mode.id === collection?.modeParDefaut ? TEXTES.defautDeFamille(mode.nom) : mode.nom, 'valeur', colonnesDeValeur[rang]))),
+          : modesDeLaCollection.map((mode, rang) => cellule(mode.id === collection?.modeParDefaut ? TEXTES.defautDeFamille(mode.nom) : mode.nom, 'valeur', colonnesDeValeur[rang]))),
       );
 
-      const cle = JSON.stringify([position.collection, position.groupe, position.recherche, position.filtres, modes.length, etat.preferences.vueCompacte, etat.releve?.revision]);
+      const cle = JSON.stringify([position.collection, position.groupe, position.recherche, position.filtres, modesDeLaCollection.length, etat.preferences.vueCompacte, etat.releve?.revision]);
       const memeVue = cle === cleDeVue;
       cleDeVue = cle;
       liste.element.hidden = lignes.length === 0;

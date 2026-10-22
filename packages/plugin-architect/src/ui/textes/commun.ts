@@ -5,10 +5,11 @@ export const NOM_DU_PRODUIT = 'UCM Architect';
 export const TEXTES_COMMUN = {
   marque: 'UCM',
   produit: NOM_DU_PRODUIT,
-  lectureSeule: 'Lecture seule',
   actualiser: 'Actualiser',
   actualiserAide: 'Relire les variables du fichier',
   annuler: 'Annuler',
+  configuration: 'Configuration',
+  configurationAide: 'Ouvrir la configuration des noms',
   rechercher: 'Rechercher',
   rechercheEtiquette: 'Recherche dans toutes les collections',
   rechercheAide: 'Cherche dans le nom, la collection, la description et la valeur',

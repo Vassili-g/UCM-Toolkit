@@ -283,7 +283,7 @@ textarea {
   color: var(--texte-second);
 }
 
-/* Le pied : périmètre, fraîcheur et lecture seule. */
+/* Le pied : périmètre et fraîcheur. */
 .pied {
   display: flex;
   flex-wrap: wrap;
@@ -299,11 +299,6 @@ textarea {
 .pied-perimetre,
 .pied-fraicheur {
   white-space: nowrap;
-}
-
-.pied-lecture {
-  margin-left: auto;
-  padding-right: var(--espace-page);
 }
 
 /* L'annonce : centrée au-dessus du pied, claire sur l'écran sombre. */

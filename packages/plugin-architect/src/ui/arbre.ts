@@ -14,6 +14,25 @@ import { creerListeVirtuelle } from './virtualisation';
 
 export const HAUTEUR_DE_LIGNE_D_ARBRE = 28;
 
+/** Deux chevrons qui se rejoignent : l'icône du bouton qui replie les autres sections. */
+function creerIconeDeRepli(): SVGSVGElement {
+  const espace = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(espace, 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('width', '14');
+  svg.setAttribute('height', '14');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '1.4');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+  const trait = document.createElementNS(espace, 'path');
+  trait.setAttribute('d', 'M4 2.5l4 3.5 4-3.5M4 13.5l4-3.5 4 3.5');
+  svg.append(trait);
+  return svg;
+}
+
 /** Les bornes de la largeur réglée, en pixels. La feuille la borne aussi à une part de la fenêtre. */
 const LARGEUR_MINIMALE = 140;
 const LARGEUR_MAXIMALE = 480;
@@ -67,7 +86,17 @@ export function creerArbre(app: Application): Composant {
       rangerLargeur(undefined);
     },
   });
-  element.append(titre, recherche, liste.element, poignee);
+  const replier = document.createElement('button');
+  replier.type = 'button';
+  replier.className = 'bouton-icone';
+  replier.title = TEXTES.replierLesAutres;
+  replier.setAttribute('aria-label', TEXTES.replierLesAutresEtiquette);
+  replier.append(creerIconeDeRepli());
+  replier.addEventListener('click', () => app.replierLesAutres());
+  const tete = document.createElement('div');
+  tete.className = 'arbre-tete';
+  tete.append(titre, replier);
+  element.append(tete, recherche, liste.element, poignee);
 
   let lignes: LigneDArbre[] = [];
 

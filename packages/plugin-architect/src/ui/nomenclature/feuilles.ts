@@ -605,7 +605,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
         return diff;
       });
       // Sans carte dans le bilan, `demanderUneCarte` ouvre seulement l'onglet.
-      const voir = creerUnBoutonNu(TEXTES.voirDansRenommages, () => {
+      const voir = creerUnBoutonNu(TEXTES.voirDansCorrections, () => {
         feuille.fermer();
         coquille.demanderUneCarte(`terme:${donnees.mot}`);
       });

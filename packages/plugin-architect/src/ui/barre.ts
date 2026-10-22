@@ -1,8 +1,10 @@
 /**
  * La barre du haut : le produit, la bascule entre l'explorateur de tokens et
- * la vue composant, puis la lecture du relevé. Actualiser et Annuler portent
- * sur le relevé des variables : la disposition étroite ne les montre pas.
+ * la vue composant, puis la lecture du relevé et la configuration de
+ * Nomenclature. Actualiser, Annuler et Configuration portent sur le relevé et
+ * sur les noms des variables : la disposition étroite ne les montre pas.
  */
+import { createSettingsButton } from 'ucm-plugin-socle/src/ui/EnTete';
 import type { Disposition } from '../fenetre';
 import type { Application, Composant } from './application';
 import { TEXTES } from './textes';
@@ -56,7 +58,13 @@ export function creerBarre(app: Application): Composant {
   annuler.textContent = TEXTES.annuler;
   annuler.addEventListener('click', () => app.annulerLecture());
 
-  lecture.append(actualiser, annuler);
+  const configuration = createSettingsButton(() => app.ouvrirLaConfiguration(), {
+    etiquette: TEXTES.configuration,
+    infobulle: TEXTES.configurationAide,
+    texte: TEXTES.configuration,
+  });
+
+  lecture.append(actualiser, annuler, configuration);
   element.append(produit, bascule, lecture);
 
   return {

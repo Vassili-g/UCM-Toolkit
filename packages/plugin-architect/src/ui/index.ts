@@ -17,7 +17,7 @@ import { estMessageDeNomenclature } from '../messages/nomenclature';
 import { creerApplication, type Branchements, type Zone } from './application';
 import { creerArbre } from './arbre';
 import { creerBarre } from './barre';
-import { etatInitial, poserReleve } from './etat';
+import { collectionDuFiltre, etatInitial, poserReleve } from './etat';
 import { monterNomenclature } from './nomenclature';
 import { versSandbox } from './pont';
 import { installerSurvol } from './survol';
@@ -54,10 +54,7 @@ const perimetre = document.createElement('span');
 perimetre.className = 'pied-perimetre';
 const fraicheur = document.createElement('span');
 fraicheur.className = 'pied-fraicheur';
-const lectureSeule = document.createElement('span');
-lectureSeule.className = 'pied-lecture';
-lectureSeule.textContent = TEXTES.lectureSeule;
-pied.append(perimetre, fraicheur, lectureSeule);
+pied.append(perimetre, fraicheur);
 
 const annonce = document.createElement('div');
 annonce.className = 'annonce';
@@ -75,7 +72,37 @@ const lateral = document.createElement('aside');
 lateral.className = 'panneau-lateral';
 const hoteDeNomenclature = document.createElement('div');
 lateral.append(hoteDeNomenclature);
-const nomenclature = monterNomenclature(hoteDeNomenclature, versSandbox);
+const nomenclature = monterNomenclature(hoteDeNomenclature, versSandbox, {
+  appartient: (identifiant, collection) => identifiant === collection || etat.index?.variables.get(identifiant)?.collection === collection,
+  enleverLeFiltre: () => app.enleverLeFiltre(),
+});
+
+/** Le segment dont la carte vient d'être ouverte depuis la table ; il reste souligné tant que la carte est ciblée. */
+let segmentCible: { readonly variable: string; readonly rang: number } | null = null;
+nomenclature.renommages.abonner(() => app.rendre(['table']));
+nomenclature.coquille.surChangement(() => {
+  if (segmentCible === null || nomenclature.coquille.etat().carteDemandee !== null) return;
+  segmentCible = null;
+  app.rendre(['table']);
+});
+app.renommages = {
+  de: (variable) => nomenclature.renommages.de(variable),
+  cible: () => segmentCible,
+  ouvrir(variable, rang) {
+    const carte = nomenclature.renommages.de(variable)?.cartes.get(rang);
+    if (carte === undefined) return;
+    segmentCible = { variable, rang };
+    nomenclature.coquille.demanderUneCarte(carte);
+    app.rendre(['table']);
+  },
+};
+
+/** La collection choisie dans l'arbre filtre la barre latérale : la coquille montre sa puce. */
+function poserLeFiltre(): void {
+  const collection = collectionDuFiltre(etat);
+  const nom = collection ? etat.index?.collections.get(collection)?.nom : undefined;
+  nomenclature.coquille.poserLeFiltre(collection && nom !== undefined ? { id: collection, nom } : null);
+}
 
 const corps = document.createElement('div');
 corps.className = 'corps';
@@ -124,7 +151,7 @@ function rendreAccueil(): void {
 function rendrePied(): void {
   const { releve, index } = etat;
   perimetre.textContent = releve ? `${TEXTES.perimetre(releve.variables.length, releve.collections.length)}${releve.manquees.length ? ` · ${TEXTES.manquees(releve.manquees.length)}` : ''}` : '';
-  fraicheur.textContent = releve && index ? TEXTES.fraicheur(heure(releve.luA), releve.revision) : '';
+  fraicheur.textContent = releve && index ? TEXTES.fraicheur(heure(releve.luA)) : '';
 }
 
 branchements = {
@@ -135,8 +162,10 @@ branchements = {
     if (demandees.has('table') || demandees.has('vue')) table.mettreAJour();
     rendreAccueil();
     if (demandees.has('pied') || demandees.has('barre')) rendrePied();
+    poserLeFiltre();
   },
   montrerDansLaTable: (variable) => table.montrer(variable),
+  ouvrirLaConfiguration: () => nomenclature.coquille.ouvrirLaConfiguration(),
   annoncer(texte, zoneDeSecours) {
     annonceTexte.textContent = texte;
     secours.hidden = zoneDeSecours === undefined;

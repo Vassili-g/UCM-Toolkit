@@ -41,12 +41,13 @@ export const TEXTES = {
   ouvrirLaConfiguration: 'Ouvrir la configuration',
   retour: 'Retour',
 
-  etiquetteDesOnglets: 'Sections d’UCM Nomenclature',
-  ongletAAppliquer: 'Renommages',
+  etiquetteDesOnglets: 'Sections d’UCM Architect',
+  ongletAAppliquer: 'Corrections',
   ongletATrancher: 'Questions',
+  ongletAFaire: 'À faire dans Figma',
   ongletRegles: 'Règles',
   /** Le nom que les lecteurs d'écran donnent à l'onglet quand son compte s'affiche. */
-  nomDeLOngletAAppliquer: (nombre: number): string => `Renommages, ${noms(nombre)}`,
+  nomDeLOngletAAppliquer: (nombre: number): string => `Corrections, ${noms(nombre)}`,
   nomDeLOngletATrancher: (nombre: number): string => `Questions, ${questions(nombre)}`,
 
   analyseEnCours: 'Lecture des variables',
@@ -127,7 +128,7 @@ export const TEXTES = {
   rienAAnnuler: 'Rien à annuler pour l’instant.',
   rienAAnnulerExplication: 'Après chaque renommage ou import, l’état d’avant apparaît ici.',
   nomsRetablis: (nombre: number): string => (nombre === 1 ? '1 nom rétabli' : `${nombre} noms rétablis`),
-  renommagesReviennent: 'Les renommages reviennent dans l’onglet Renommages.',
+  renommagesReviennent: 'Les renommages reviennent dans l’onglet Corrections.',
   anciensNomsGardes: 'Les anciens noms sont gardés dans Configuration › Historique.',
   annulationDuRenommageRefusee: 'L’annulation a été refusée. Relancez l’analyse, puis annulez de nouveau.',
   annulationNonVerifiee: (nombre: number): string =>
@@ -137,7 +138,7 @@ export const TEXTES = {
     `${noms(retablis)} rétablis, ${sautes} n’ont pas pu l’être : un autre nom occupe leur place ou ils ont changé depuis. Le plugin les garde ; annulez de nouveau après avoir corrigé.`,
   /**
    * Une annulation qui laisse des noms dans une collection décochée de « Collections analysées ». La collection se coche dans l'onglet
-   * Réglages de la Configuration et l'annulation se refait dans l'onglet Historique ; depuis l'onglet Renommages (`depuis`),
+   * Réglages de la Configuration et l'annulation se refait dans l'onglet Historique ; depuis l'onglet Corrections (`depuis`),
    * le designer ouvre d'abord Configuration.
    */
   annulationDansUneCollectionExclue: (retablis: number, exclues: number, depuis: 'configuration' | 'renommages' = 'configuration'): string => {
@@ -260,6 +261,11 @@ export const TEXTES = {
   } satisfies Record<CauseDeProtection, string>,
 
   aucunNomCoche: 'Aucun nom coché',
+  filtre: 'Filtre',
+  filtreCollection: 'collection',
+  enleverLeFiltre: 'Enlever le filtre',
+  /** Le pied sous un filtre : « Appliquer renomme 24 variables de Interface. » ; seuls les noms affichés s'écrivent. */
+  appliquerSousFiltre: (variables: number, collections: number, collection: string): { readonly debut: string; readonly nombre: string; readonly fin: string } => ({ debut: 'Appliquer renomme ', nombre: nombreDeNoms(variables, collections), fin: ` de ${collection}.` }),
   /** Le compte du pied, en deux morceaux : le nombre s'écrit en gras. */
   nomsCoches: (nombre: number): { readonly nombre: string; readonly suite: string } => ({ nombre: noms(nombre), suite: nombre === 1 ? ' coché' : ' cochés' }),
   appliquer: 'Appliquer',
@@ -472,7 +478,7 @@ export const TEXTES = {
     { texte: dejaEcrites === 1 ? ' déjà écrite ainsi' : ' déjà écrites ainsi', gras: false },
   ],
   titreARenommer: (nombre: number): string => `À renommer · ${nombre}`,
-  voirDansRenommages: 'Voir dans Renommages',
+  voirDansCorrections: 'Voir dans Corrections',
   titreDejaEmploye: (nombre: number): string => `Déjà employé · ${nombre}`,
   retirer: 'Retirer',
   sectionGardeSepare: 'Gardé séparé de',

@@ -1,5 +1,5 @@
 [
-  {"cadre":"t-renommages","lot":"U1","largeur":1360,"hauteur":900,"sorte":"fenetre","selecteurs":[]},
+  {"cadre":"t-renommages","lot":"U1","largeur":1360,"hauteur":900,"sorte":"fenetre","selecteurs":[".arbre-tete .bouton-icone",".modes-affiches",".table-ligne:nth-child(2) .ch-lien.survol",".table-ligne:nth-child(3) .nom-de-token",".arbre-choix[aria-current]",".onglets",".filtre-ligne .puce-filtre",".carte-ciblee .regle-ligne",".resume"]},
   {"cadre":"t-questions","lot":"U2","largeur":1360,"hauteur":800,"sorte":"fenetre","selecteurs":[]},
   {"cadre":"t-terme","lot":"U2","largeur":1360,"hauteur":800,"sorte":"fenetre","selecteurs":[]},
   {"cadre":"t-fiche","lot":"U2","largeur":1360,"hauteur":800,"sorte":"fenetre","selecteurs":[]},

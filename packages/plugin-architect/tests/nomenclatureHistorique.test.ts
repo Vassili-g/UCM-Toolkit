@@ -251,9 +251,9 @@ test('après une annulation réussie, une ligne verte précède l’Historique, 
   historique.reussite(12);
   const [resultat] = tous(element, 'resultat');
   assert.equal(resultat!.attributs.get('role'), 'status');
-  assert.equal(resultat!.textContent, '✓ 12 noms rétablisLes renommages reviennent dans l’onglet Renommages.');
+  assert.equal(resultat!.textContent, '✓ 12 noms rétablisLes renommages reviennent dans l’onglet Corrections.');
   assert.equal(element.children[0], resultat, 'en tête');
-  assert.equal(tous(resultat!, 'meta')[0]!.textContent, 'Les renommages reviennent dans l’onglet Renommages.');
+  assert.equal(tous(resultat!, 'meta')[0]!.textContent, 'Les renommages reviennent dans l’onglet Corrections.');
   const coche = resultat!.children[0]!.children[0]!.children[0]!;
   assert.equal(coche.attributs.get('aria-hidden'), 'true');
   assert.equal(TEXTES.nomsRetablis(1), '1 nom rétabli');

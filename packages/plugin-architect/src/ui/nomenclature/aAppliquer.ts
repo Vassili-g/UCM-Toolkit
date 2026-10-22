@@ -1,5 +1,5 @@
 /**
- * Le contenu de l'onglet À appliquer : une carte par groupe de renommages sous
+ * Le contenu de l'onglet Corrections : une carte par groupe de renommages sous
  * trois intertitres, la carte repliée des noms non renommés, le pied avec le
  * compte des noms cochés, la confirmation et la ligne qui suit une application.
  * Ce que le designer a coché vit dans `selection.ts` ; ce module le reflète dans
@@ -30,6 +30,7 @@ import {
 import { apresUnePage, creerLaFile, nomsRestants, prochainDebut, sectionsDansLOrdre, segmentsDeNom, type SorteDeRegle } from './lignes';
 import { annonceApresUneErreur, annonceDUneApplication, annonceDUneAnnulation, lignesDUneAnnulationNonVerifiee, texteDUneAnnulationRefusee, type Annonce, type Attente } from './annonce';
 import { lignesDeProtection, totauxDeProtection } from './protection';
+import { creerLaReserve, type Reserve } from './renommages';
 import { TEXTES } from '../textes/nomenclature';
 
 type Pastille = 'nouveau' | 'bloque' | 'protege' | 'non-verifie';
@@ -305,6 +306,8 @@ interface CarteDeGroupe {
   readonly element: HTMLElement;
   /** Déplie la carte, la montre et y pose le focus ; sans effet quand elle n'a rien à déplier. */
   deplier(): void;
+  /** Montre les seuls noms du filtre ; `null` rend les noms que la carte a chargés elle-même. */
+  filtrer(lignes: readonly LigneVue[] | null): void;
   /** Remet les cases, le détail et le bouton des autres noms d'accord avec le modèle. */
   rafraichir(): void;
   recevoirLesLignes(message: Extract<MessageDeNomenclature, { type: 'lignes' }>): void;
@@ -312,13 +315,20 @@ interface CarteDeGroupe {
   recevoirUneErreur(demande: number): void;
 }
 
+export interface OptionsDeCorrections {
+  /** Vrai quand le nom (une variable, ou une collection) fait partie de la collection de l'arbre. */
+  readonly appartient: (identifiant: string, collection: string) => boolean;
+}
+
 /**
  * Monte l'onglet dans `coquille.panneaux.aAppliquer.contenu` et suit les
  * messages de la coquille : un `bilan` reconstruit les cartes, une `application`
- * pose la ligne du résultat.
+ * pose la ligne du résultat. Sous le filtre de l'arbre, les cartes et le pied ne
+ * comptent que les noms de la collection choisie, et Appliquer n'écrit qu'eux.
  */
-export function monterAAppliquer(coquille: Coquille): void {
+export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCorrections): Reserve {
   const { frontiere } = coquille;
+  const reserve = creerLaReserve(frontiere);
   let bilan: Bilan | null = null;
   let modele: ModeleDeSelection = creerSelection([]);
   let cartes: CarteDeGroupe[] = [];
@@ -329,6 +339,7 @@ export function monterAAppliquer(coquille: Coquille): void {
   let lectureDeLaSelection: { readonly demande: number; readonly interroges: IdentifiantsInterroges } | null = null;
   let confirmation: { fermer(): void } | null = null;
   const deplies = new Set<string>();
+  let intertitres: { readonly element: HTMLElement; readonly cartes: readonly CarteDeGroupe[] }[] = [];
   let nonRenommesDeplie = false;
   let boutonAnnuler: HTMLButtonElement | null = null;
 
@@ -346,25 +357,66 @@ export function monterAAppliquer(coquille: Coquille): void {
   pied.append(resume, boutonAppliquer);
   coquille.panneaux.aAppliquer.contenu.append(ligneDuResultat, liste, pied);
 
+  /** Le filtre de l'arbre sur Corrections : la collection choisie, et le prédicat des noms qu'elle retient. */
+  function leFiltre(): { readonly nom: string; readonly retient: (ligne: LigneVue) => boolean } | null {
+    const filtre = coquille.filtre();
+    return filtre ? { nom: filtre.nom, retient: (ligne) => appartient(ligne.id, filtre.id) } : null;
+  }
+
+  /** Les noms que le filtre retient et qui sont cochés, quand toutes les pages sont lues ; `null` sans filtre ou pendant la lecture. */
+  function nomsDuFiltre(): { readonly variables: number; readonly collections: number; readonly identifiants: readonly string[] } | null {
+    const filtre = leFiltre();
+    if (!filtre || !reserve.toutEstCharge()) return null;
+    const retenus = reserve.retenus(filtre.retient);
+    const collections = retenus.filter((retenu) => retenu.collection).length;
+    return { variables: retenus.length - collections, collections, identifiants: retenus.map((retenu) => retenu.ligne.id) };
+  }
+
   function synchroniserLePied(): void {
-    const nombre = compterLesNomsCoches(modele);
+    const filtre = leFiltre();
+    const sousFiltre = nomsDuFiltre();
+    const nombre = sousFiltre ? sousFiltre.variables + sousFiltre.collections : compterLesNomsCoches(modele);
     const reglesFutures = bilan?.reglesFutures === true;
     if (reglesFutures) {
       resume.textContent = TEXTES.reglesFutures;
+    } else if (filtre && !sousFiltre) {
+      resume.textContent = TEXTES.chargementDesNoms;
     } else if (nombre === 0) {
       resume.textContent = TEXTES.aucunNomCoche;
+    } else if (filtre && sousFiltre) {
+      const texte = TEXTES.appliquerSousFiltre(sousFiltre.variables, sousFiltre.collections, filtre.nom);
+      const enGras = document.createElement('b');
+      enGras.textContent = texte.nombre;
+      resume.replaceChildren(texte.debut, enGras, texte.fin);
     } else {
       const compte = TEXTES.nomsCoches(nombre);
       const enGras = document.createElement('b');
       enGras.textContent = compte.nombre;
       resume.replaceChildren(enGras, compte.suite);
     }
-    boutonAppliquer.disabled = reglesFutures || nombre === 0 || attente !== null || lectureDeLaSelection !== null;
+    boutonAppliquer.disabled = reglesFutures || nombre === 0 || attente !== null || lectureDeLaSelection !== null || (filtre !== null && sousFiltre === null);
     if (boutonAnnuler) boutonAnnuler.disabled = attente !== null;
+  }
+
+  /** Montre dans chaque carte les noms du filtre, cache les cartes sans nom retenu, et pose le compte de l'onglet. */
+  function appliquerLeFiltre(): void {
+    const filtre = leFiltre();
+    if (filtre) reserve.charger();
+    for (const carte of cartes) {
+      const cle = carte.groupe.cle;
+      const lignes = filtre && reserve.complete(cle) ? reserve.lignesDuGroupe(cle).filter(filtre.retient) : null;
+      carte.filtrer(lignes);
+      carte.element.hidden = lignes !== null && lignes.length === 0;
+    }
+    for (const { element, cartes: dedans } of intertitres) element.hidden = dedans.every((carte) => carte.element.hidden);
+    const sousFiltre = nomsDuFiltre();
+    coquille.poserLeCompteDesCorrections(sousFiltre ? sousFiltre.variables + sousFiltre.collections : null);
+    synchroniser();
   }
 
   function synchroniser(): void {
     for (const carte of cartes) carte.rafraichir();
+    reserve.poserLaSelection(modele);
     synchroniserLePied();
   }
 
@@ -372,7 +424,10 @@ export function monterAAppliquer(coquille: Coquille): void {
     const { cle } = groupe;
     const total = groupe.variables + groupe.collections;
     const connues = new Set(groupe.apercu.map((ligne) => ligne.id));
-    const rangs: { readonly ligne: LigneVue; readonly caseACocher: HTMLInputElement }[] = [];
+    const rangs: { readonly ligne: LigneVue; readonly caseACocher: HTMLInputElement; readonly element: HTMLElement }[] = [];
+    /** Les noms que la carte a chargés elle-même : ses trois premiers, puis les pages demandées. */
+    const chargees: LigneVue[] = [];
+    let sousFiltre = false;
     let file = creerLaFile(generation, total, groupe.apercu.length);
     /** Vrai tant que la file enchaîne les pages après le clic sur le bouton des autres noms. */
     let enChargement = false;
@@ -424,11 +479,15 @@ export function monterAAppliquer(coquille: Coquille): void {
         modele = cocherLigne(modele, ligne, cle, coche);
         synchroniser();
       });
-      rangs.push({ ligne, caseACocher });
+      const element = fabriquerLaLigne(ligne, caseACocher);
+      rangs.push({ ligne, caseACocher, element });
       legende.hidden = false;
-      ligneDesAutres.before(fabriquerLaLigne(ligne, caseACocher));
+      ligneDesAutres.before(element);
     }
-    groupe.apercu.forEach(ajouterUneLigne);
+    for (const ligne of groupe.apercu) {
+      chargees.push(ligne);
+      ajouterUneLigne(ligne);
+    }
 
     function regler(deplie: boolean): void {
       if (deplie) deplies.add(cle);
@@ -441,7 +500,7 @@ export function monterAAppliquer(coquille: Coquille): void {
 
     function rafraichirLesAutres(): void {
       const nombre = nomsRestants(file);
-      ligneDesAutres.hidden = nombre === 0;
+      ligneDesAutres.hidden = nombre === 0 || sousFiltre;
       boutonDesAutres.hidden = enChargement;
       chargement.hidden = !enChargement;
       boutonDesAutres.textContent = TEXTES.afficherLesAutresNoms(nombre);
@@ -491,6 +550,19 @@ export function monterAAppliquer(coquille: Coquille): void {
         element.scrollIntoView({ block: 'nearest' });
         bouton.focus();
       },
+      filtrer(lignes) {
+        const souhaite = lignes !== null;
+        const memes = souhaite === sousFiltre && (!souhaite || (lignes.length === rangs.length && lignes.every((ligne, rang) => ligne.id === rangs[rang].ligne.id)));
+        if (memes) return;
+        sousFiltre = souhaite;
+        rangs.length = 0;
+        corps.replaceChildren(legende, ligneDesAutres);
+        const montrees = lignes ?? chargees;
+        legende.hidden = montrees.length === 0;
+        for (const ligne of montrees) ajouterUneLigne(ligne);
+        rafraichirLesAutres();
+        rafraichir();
+      },
       rafraichir,
       recevoirLesLignes(message) {
         if (message.groupe !== cle || !demandee || message.debut !== demandee.debut) return;
@@ -510,7 +582,8 @@ export function monterAAppliquer(coquille: Coquille): void {
         file = suite;
         for (const ligne of nouvelles) {
           connues.add(ligne.id);
-          ajouterUneLigne(ligne);
+          chargees.push(ligne);
+          if (!sousFiltre) ajouterUneLigne(ligne);
         }
         rafraichir();
         if (enChargement) demanderLaPageSuivante();
@@ -596,8 +669,11 @@ export function monterAAppliquer(coquille: Coquille): void {
     const generation = bilan?.generation ?? 0;
     cartes = groupes.map((groupe) => creerCarte(groupe, generation));
     const enfants: HTMLElement[] = [];
+    intertitres = [];
     for (const { sorte, groupes: dedans } of sectionsDansLOrdre(cartes.map((carte) => ({ carte, regle: carte.groupe.regle })))) {
-      enfants.push(fabriquerIntertitre(TITRES_DES_SECTIONS[sorte]), ...dedans.map(({ carte }) => carte.element));
+      const intertitre = fabriquerIntertitre(TITRES_DES_SECTIONS[sorte]);
+      intertitres.push({ element: intertitre, cartes: dedans.map(({ carte }) => carte) });
+      enfants.push(intertitre, ...dedans.map(({ carte }) => carte.element));
     }
     const nonRenommes = bilan ? creerNonRenommes(bilan.bloques, bilan.protections) : null;
     if (nonRenommes) enfants.push(nonRenommes);
@@ -692,10 +768,13 @@ export function monterAAppliquer(coquille: Coquille): void {
   }
 
   function demanderLaConfirmation(): void {
-    const nombre = compterLesNomsCoches(modele);
+    const sousFiltre = nomsDuFiltre();
+    if (leFiltre() && !sousFiltre) return;
+    const nombre = sousFiltre ? sousFiltre.variables + sousFiltre.collections : compterLesNomsCoches(modele);
     if (bilan?.reglesFutures === true || nombre === 0 || attente || lectureDeLaSelection || confirmation) return;
-    const { variables, collections } = compterLesNomsCochesParSorte(modele);
-    const selection = versSelection(modele);
+    const { variables, collections } = sousFiltre ?? compterLesNomsCochesParSorte(modele);
+    // Sous le filtre, seuls les noms affichés s'écrivent : aucun groupe n'est envoyé, chaque nom l'est par son identifiant.
+    const selection = sousFiltre ? { groupes: [], exclus: [], inclus: sousFiltre.identifiants } : versSelection(modele);
     confirmation = ouvrirConfirmation({
       variables,
       collections,
@@ -718,7 +797,8 @@ export function monterAAppliquer(coquille: Coquille): void {
     attente = null;
     lectureDeLaSelection = null;
     reconstruire();
-    synchroniser();
+    reserve.reinitialiser(nouveau);
+    appliquerLeFiltre();
     rendreLaLigneDuResultat();
     verifierLaSelection();
   }
@@ -763,6 +843,7 @@ export function monterAAppliquer(coquille: Coquille): void {
         traiterLeBilan(message.bilan);
         break;
       case 'lignes':
+        reserve.recevoir(message);
         for (const carte of cartes) carte.recevoirLesLignes(message);
         break;
       case 'noms-selection':
@@ -775,6 +856,7 @@ export function monterAAppliquer(coquille: Coquille): void {
         traiterLeResultat(message.resultat, message.demande);
         break;
       case 'erreur':
+        reserve.echouer(message.demande);
         for (const carte of cartes) carte.recevoirUneErreur(message.demande);
         if (lectureDeLaSelection?.demande === message.demande) {
           lectureDeLaSelection = null;
@@ -794,7 +876,24 @@ export function monterAAppliquer(coquille: Coquille): void {
 
   coquille.surCarteDemandee((cle) => cartes.find((carte) => carte.groupe.cle === cle)?.deplier());
 
+  /** La carte qu'un clic dans la table ou « Voir dans Corrections » vient d'ouvrir prend la bordure et le fond bleus. */
+  function cibler(): void {
+    const { onglet, carteDemandee } = coquille.etat();
+    for (const carte of cartes) carte.element.classList.toggle('carte-ciblee', onglet === 'a-appliquer' && carte.groupe.cle === carteDemandee);
+  }
+
+  let filtreMontre = coquille.filtre();
+  coquille.surChangement(() => {
+    cibler();
+    const suivant = coquille.filtre();
+    if (suivant?.id === filtreMontre?.id) return;
+    filtreMontre = suivant;
+    appliquerLeFiltre();
+  });
+  reserve.abonner(() => appliquerLeFiltre());
+
   const dejaLu = coquille.etat().bilan;
   if (dejaLu) traiterLeBilan(dejaLu);
   else synchroniserLePied();
+  return reserve;
 }

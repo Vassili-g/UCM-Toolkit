@@ -1328,3 +1328,11 @@ button.tete-bouton {
 .fiche-conflit {
   border: 1px solid var(--texte-avertissement);
 }
+
+/* Le filtre de l'arbre, sous les onglets : le mot, puis la puce qui nomme la collection. */
+.filtre-ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-controle);
+  color: var(--texte-second);
+}

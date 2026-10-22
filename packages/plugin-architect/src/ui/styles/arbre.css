@@ -34,7 +34,7 @@
   display: grid;
   min-height: 0;
   flex: 1;
-  grid-template-columns: min(var(--largeur-arbre, 220px), 40vw) minmax(0, 1fr) 640px;
+  grid-template-columns: min(var(--largeur-arbre, 200px), 40vw) minmax(0, 1fr) 640px;
 }
 
 .arbre {
@@ -48,8 +48,64 @@
   background: var(--fond-arbre);
 }
 
-.arbre > .surtitre {
-  padding: 0 var(--espace-controle);
+/* La tête de l'arbre : le titre et le bouton qui replie les autres sections. */
+.arbre-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.arbre-tete .surtitre {
+  margin: 0;
+}
+
+.bouton-icone {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--texte-second);
+}
+
+.bouton-icone:hover {
+  background: var(--fond-survol);
+  color: var(--texte);
+}
+
+/* Les modes que la table lit pour ses alias, sur une ligne : chaque menu nomme sa collection. */
+.modes-affiches {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--espace-controle);
+  color: var(--texte-second);
+  white-space: nowrap;
+}
+
+.mode-col {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mode-col .collection {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--texte);
+  font-family: var(--police-chemin);
+  font-size: 11px;
+}
+
+.mode-col select {
+  height: 24px;
+  padding: 0 22px 0 6px;
+  font: inherit;
 }
 
 .arbre-lignes {
@@ -141,6 +197,8 @@
 
 .arbre-libelle {
   overflow: hidden;
+  font-family: var(--police-chemin);
+  font-size: 11px;
   flex: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -325,10 +383,8 @@
 
 .nom-de-token {
   color: var(--texte);
-}
-
-.nom-de-token-chemin {
-  color: var(--texte-second);
+  font-family: var(--police-chemin);
+  font-size: 11px;
 }
 
 .nom-de-token,
@@ -339,7 +395,6 @@
   border: 0;
   background: none;
   cursor: pointer;
-  font-family: var(--chasse-fixe);
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -347,6 +402,7 @@
 
 .lien {
   color: var(--texte-marque);
+  font-family: var(--chasse-fixe);
   font-size: var(--petit);
 }
 
@@ -530,6 +586,14 @@
 
 /* Le panneau latéral du mode Tokens : la colonne de droite, 640 px, où Nomenclature prend la place de l'inspecteur. */
 .panneau-lateral {
+  --corps: 11px;
+  --corps-interligne: 16px;
+  --libelle: 12px;
+  --libelle-interligne: 16px;
+  --titre: 15px;
+  --hauteur-secondaire: 24px;
+  font-size: var(--corps);
+  line-height: var(--corps-interligne);
   min-height: 0;
   overflow: hidden auto;
   border-left: 1px solid var(--bordure);

@@ -6,19 +6,29 @@ import { monterConfiguration } from './configuration';
 import { creerCoquille, type Coquille } from './coquille';
 import { monterFeuilles } from './feuilles';
 import { monterPremierLancement } from './premierLancement';
+import type { Reserve } from './renommages';
 import { monterRegles } from './regles';
 
 export interface NomenclatureMontee {
   readonly coquille: Coquille;
+  /** Les renommages cochés de Corrections, que la table des tokens montre dans le nom des variables. */
+  readonly renommages: Reserve;
   recevoir(message: MessageDeNomenclature): void;
 }
 
-export function monterNomenclature(hote: HTMLElement, envoyer: (message: UiMessage) => void): NomenclatureMontee {
-  const coquille = creerCoquille(hote, envoyer, { poignee: false });
+export interface OptionsDeNomenclature {
+  /** Vrai quand le nom (une variable, ou une collection) fait partie de la collection de l'arbre. */
+  readonly appartient: (identifiant: string, collection: string) => boolean;
+  /** Le geste de la croix de la puce du filtre de l'arbre. */
+  readonly enleverLeFiltre: () => void;
+}
+
+export function monterNomenclature(hote: HTMLElement, envoyer: (message: UiMessage) => void, { appartient, enleverLeFiltre }: OptionsDeNomenclature): NomenclatureMontee {
+  const coquille = creerCoquille(hote, envoyer, { poignee: false, enleverLeFiltre });
   monterPremierLancement(coquille);
-  monterAAppliquer(coquille);
+  const renommages = monterAAppliquer(coquille, { appartient });
   monterATrancher(coquille);
   monterConfiguration(coquille);
   monterFeuilles(coquille, monterRegles(coquille));
-  return { coquille, recevoir: (message) => coquille.frontiere.recevoir(message) };
+  return { coquille, renommages, recevoir: (message) => coquille.frontiere.recevoir(message) };
 }

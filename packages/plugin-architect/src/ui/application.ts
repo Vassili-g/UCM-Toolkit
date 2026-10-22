@@ -5,7 +5,7 @@
  */
 import { copier as texteACopier, type FormatDeCopie } from '../copie';
 import { versSrgb } from '../espace';
-import { clesDesAncetres, segmentsDeGroupe } from '../groupes';
+import { clesDesAncetres, segmentsDeGroupe, type NoeudDeGroupe } from '../groupes';
 import { espaceDuReleve } from '../modele';
 import type { Disposition } from '../fenetre';
 import type { Preferences } from '../preferences';
@@ -23,8 +23,26 @@ export interface Composant {
   mettreAJour(): void;
 }
 
+/** Ce que la table sait d'un renommage coché : le nom entier après l'application, et la carte de Corrections qui propose chaque segment changé. */
+export interface RenommageAffiche {
+  readonly nouveau: string;
+  /** Le rang d'un segment changé vers la clé de la carte qui le propose. */
+  readonly cartes: ReadonlyMap<number, string>;
+}
+
+/** Les renommages cochés dans Corrections, que la table montre dans le nom de chaque variable. */
+export interface RenommagesCoches {
+  de(variable: string): RenommageAffiche | undefined;
+  /** Le segment dont la carte vient d'être ouverte, `null` quand aucune carte n'est ciblée. */
+  cible(): { readonly variable: string; readonly rang: number } | null;
+  /** Ouvre la carte de Corrections qui propose ce segment. */
+  ouvrir(variable: string, rang: number): void;
+}
+
 export interface Application {
   readonly etat: Etat;
+  /** Branché par l'entrée une fois Nomenclature montée ; vide avant. */
+  renommages: RenommagesCoches;
   /**
    * Les sections que les intégrations ajoutent à l'inspecteur. Une section
    * rend `null` quand son intégration est désactivée ou sans donnée.
@@ -40,6 +58,14 @@ export interface Application {
   suivre(variable: string): void;
   ouvrirGroupe(collection: string, segments: readonly string[]): void;
   basculerRepli(cle: string): void;
+  /** Replie toutes les sections de l'arbre, sauf celle qui est choisie et ses parents. */
+  replierLesAutres(): void;
+  /** Choisit le mode que la table lit pour une famille de collections. */
+  choisirMode(famille: string, mode: string): void;
+  /** Retire le filtre que la collection choisie pose sur la barre latérale. */
+  enleverLeFiltre(): void;
+  /** Ouvre la fenêtre de configuration de Nomenclature. */
+  ouvrirLaConfiguration(): void;
   rechercher(texte: string): void;
   filtrer(filtres: Partial<Filtres>): void;
   /** Passe de l'explorateur de tokens à la vue composant, ou l'inverse. Le sandbox donne à la fenêtre la taille de la disposition. */
@@ -55,6 +81,7 @@ export interface Application {
 }
 
 export interface Branchements {
+  readonly ouvrirLaConfiguration: () => void;
   readonly montrerDansLaTable: (variable: string) => void;
   readonly rendre: (zones: readonly Zone[]) => void;
   readonly annoncer: (texte: string, zoneDeSecours?: string) => void;
@@ -67,6 +94,7 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
 
   const app: Application = {
     etat,
+    renommages: { de: () => undefined, cible: () => null, ouvrir: () => {} },
     sectionsDeLInspecteur: [],
     rendre(zones = toutes) {
       branchements().rendre(zones);
@@ -98,8 +126,28 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     },
     ouvrirGroupe(collection, segments) {
       etat.position = { ...etat.position, collection, groupe: [...segments], recherche: '' };
+      etat.filtreDeLaBarre = true;
       app.rendre(['barre', 'arbre', 'table', 'vue', 'pied']);
     },
+    replierLesAutres() {
+      const { collection, groupe } = etat.position;
+      const garde = (noeud: NoeudDeGroupe): boolean => noeud.collection === collection && noeud.segments.every((segment, rang) => segment === groupe[rang]);
+      const replier = (noeud: NoeudDeGroupe): void => {
+        if (noeud.enfants.length > 0 && !garde(noeud)) etat.replies.add(noeud.cle);
+        for (const enfant of noeud.enfants) replier(enfant);
+      };
+      for (const arbre of etat.arbres) replier(arbre);
+      app.rendre(['arbre']);
+    },
+    choisirMode(famille, mode) {
+      etat.contexte = { ...etat.contexte, [famille]: mode };
+      app.rendre(['table', 'vue']);
+    },
+    enleverLeFiltre() {
+      etat.filtreDeLaBarre = false;
+      app.rendre(['barre']);
+    },
+    ouvrirLaConfiguration: () => branchements().ouvrirLaConfiguration(),
     basculerRepli(cle) {
       if (etat.replies.has(cle)) etat.replies.delete(cle);
       else etat.replies.add(cle);

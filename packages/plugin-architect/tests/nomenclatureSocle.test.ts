@@ -13,7 +13,9 @@ const { ETATS } = require('../galerie/etats/nomenclature.cjs') as { ETATS: EtatD
 test('chaque réponse possède un scénario de galerie compilable', () => {
   assert.deepEqual(fautesDIdentite(ETATS), []);
   assert.deepEqual(fautesDeScenario(ETATS), []);
-  assert.deepEqual(ecartsDesMessages(typesDeLUnion(lire('src/messages/nomenclature.ts'), 'MessageDeNomenclature'), ETATS), { jamaisRegardes: [], inventes: [] });
+  // Un état du mode Tokens (`t-renommages`) lit d'abord le relevé du fichier, que l'arbre et la table montrent : `preferences` et `releve` y précèdent les messages de Nomenclature.
+  const declares = new Set([...typesDeLUnion(lire('src/messages/nomenclature.ts'), 'MessageDeNomenclature'), 'preferences', 'releve']);
+  assert.deepEqual(ecartsDesMessages(declares, ETATS), { jamaisRegardes: [], inventes: [] });
   assert.deepEqual(variablesAbsentesDuDecalque(feuilleDuSocle() + lire('src/ui/styles/nomenclature.css')), []);
 });
 test('la fenêtre a sa propre clé et borne les tailles invalides', () => {

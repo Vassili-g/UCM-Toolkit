@@ -14,10 +14,12 @@ export const TEXTES_ARBRE = {
   donneesAnciennes: (heure: string) => `Données lues à ${heure}, la dernière lecture a échoué. Actualisez pour réessayer.`,
   aucuneVariable: 'Ce fichier n’a aucune variable locale ni cible lisible.',
   perimetre: (variables: number, collections: number) => `${variables} variables · ${collections} collections`,
-  fraicheur: (heure: string, revision: number) => `Lu à ${heure} · relevé ${revision}`,
+  fraicheur: (heure: string) => `Lu à ${heure}`,
   manquees: (nombre: number) => `${nombre} cible${nombre > 1 ? 's' : ''} non lue${nombre > 1 ? 's' : ''}`,
   // Arbre
   arbreEtiquette: 'Collections',
+  replierLesAutres: 'Replier toutes les sections, sauf celle qui est choisie',
+  replierLesAutresEtiquette: 'Replier les autres sections',
   deplier: (nom: string) => `Déplier ${nom}`,
   replier: (nom: string) => `Replier ${nom}`,
   segmentVide: '(sans nom)',
@@ -51,6 +53,8 @@ export const TEXTES_ARBRE = {
   natures: { toutes: 'Toutes', alias: 'Alias', directe: 'Valeur directe' },
   provenances: { toutes: 'Toutes', locale: 'Locales', distante: 'Distantes' },
   chemin: 'Emplacement',
+  modesAffiches: 'Modes affichés',
+  termeRenomme: (nom: string) => `Ouvrir la carte qui propose ${nom}`,
   // Valeurs
   types: { COLOR: 'Couleur', FLOAT: 'Nombre', STRING: 'Texte', BOOLEAN: 'Booléen', EASING: 'Courbe', TIMING: 'Durée' } satisfies Record<TypeDeVariable, string>,
   chaineVide: '(texte vide)',

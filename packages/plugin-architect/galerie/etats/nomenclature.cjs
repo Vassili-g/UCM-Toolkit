@@ -8,7 +8,41 @@
  * ont émises : le bilan est la demande 1, la lecture des termes la 2, et
  * chaque geste qui interroge le sandbox prend le numéro suivant.
  */
-const { bilans, fiches, messages, conflitDeFichier, conflitDeCycle } = require('../nomenclature/donnees.cjs');
+const { bilans, fiches, messages, conflitDeFichier, conflitDeCycle, renommagesInterface, pagesInterface, variablesDeInterface } = require('../nomenclature/donnees.cjs');
+const { preferences, releve, groupe, chevron, constructeur, alias, nombre, couleur } = require('./aide.cjs');
+
+/**
+ * Le fichier Intencial de la maquette : cinq collections aux nombres de variables de l'arbre, dont Interface, que les Corrections font passer
+ * à UCM. `brands` et `theme` ont deux modes, d'où les deux menus des modes affichés ; les autres collections n'en ont qu'un.
+ */
+function releveIntencial() {
+  const c = constructeur('Intencial');
+  c.collection('primitives', 'primitives', ['Valeur']);
+  c.collection('brands', 'brands', ['intencial', 'partenaire']);
+  c.collection('theme', 'theme', ['light', 'dark']);
+  c.collection('layout', 'layout', ['Valeur']);
+  c.collection('interface', 'Interface', ['Valeur']);
+  const remplir = (collection, total, deja, modes) => {
+    for (let rang = deja; rang < total; rang += 1) c.variable(`${collection}-${rang}`, collection, `remplissage-${rang}`, 'FLOAT', Object.fromEntries(modes.map((mode) => [mode, nombre(rang)])));
+  };
+  const theme = [['primary/solid/default', '#B15152'], ['primary/solid/hover', '#8E3F40'], ['primary/solid/foreground', '#FFFFFF'], ['primary/surface/default', '#F6E6E6'], ['neutral/page/border', '#D4D4D8'],
+    ['primary/page/foreground', '#9A3F40'], ['neutral/elevation/raised', '#FFFFFF'], ['neutral/elevation/page', '#F8FAFC'], ['neutral/solid/hover', '#3F3F46']];
+  for (const [nom, valeur] of theme) c.variable(`theme:${nom}`, 'theme', nom, 'COLOR', { light: couleur(valeur), dark: couleur(valeur) });
+  c.variable('layout:sizing/4', 'layout', 'sizing/4', 'FLOAT', { Valeur: nombre(16) });
+  remplir('primitives', 346, 0, ['Valeur']);
+  remplir('brands', 420, 0, ['intencial', 'partenaire']);
+  remplir('theme', 180, theme.length, ['light', 'dark']);
+  remplir('layout', 60, 1, ['Valeur']);
+  const cibles = { i1: 'primary/solid/default', i2: 'primary/solid/hover', i3: 'primary/solid/foreground', i4: 'primary/surface/default', i5: 'neutral/page/border', i7: 'primary/page/foreground', i8: 'neutral/elevation/raised', i9: 'neutral/elevation/page', i10: 'neutral/solid/hover' };
+  for (const variable of variablesDeInterface) {
+    const nombreDirect = variable.id === 'i6' || !cibles[variable.id];
+    if (variable.id === 'i6') c.variable(variable.id, 'interface', variable.ancien, 'FLOAT', { Valeur: alias('layout:sizing/4') });
+    else if (nombreDirect) c.variable(variable.id, 'interface', variable.ancien, 'FLOAT', { Valeur: nombre(1) });
+    else c.variable(variable.id, 'interface', variable.ancien, 'COLOR', { Valeur: alias(`theme:${cibles[variable.id]}`) });
+  }
+  return { ...c.releve(), luA: new Date(2026, 0, 1, 14, 0).getTime() };
+}
+
 
 const etat = (id, titre, quand, regarder, atteinte) => ({ id, titre, quand, regarder, existe: true, atteinte });
 const msg = (message, attendre) => (attendre ? { message, attendre } : { message });
@@ -36,6 +70,16 @@ const repondreAuPremier = '.carte.question .question-actions:first-child .btn-se
 const appliquer = [clic('.noms-pied .btn-primary', '.feuille'), clic('.feuille-groupe .btn-primary')];
 
 const ETATS = [
+  {
+    id: 't-renommages', titre: 'Tokens, Corrections filtrées par l’arbre', quand: 'La collection Interface passe à UCM : le designer clique le terme vert background d’une ligne du tableau des tokens.',
+    regarder: 'Les noms entiers après renommage, seul le terme nouveau en vert ; la carte de background ouverte et ciblée dans Corrections ; la puce « collection Interface » sous les onglets ; le pied compte les noms de Interface.',
+    existe: true,
+    atteinte: [
+      preferences(), releve(releveIntencial()), groupe('interface'), chevron('interface'), { message: messages.initial(true) }, { message: messages.bilan(1, renommagesInterface), attendre: '.liste' },
+      ...pagesInterface({ fonds: 2, survols: 3, ecriture: 4, collection: 5, suiteEcriture: 7 }).map((message) => ({ message })),
+      { clic: '.table-ligne:nth-child(2) .ch-lien' },
+    ],
+  },
   etat('premier-lancement', 'Premier lancement', 'Le plugin vient de s’ouvrir sur un fichier jamais analysé.',
     'Un titre, une ligne, un bouton Analyser le fichier, sans onglets.',
     [msg(messages.initial(false))]),
@@ -256,4 +300,4 @@ const ETATS = [
     [...ouvert(bilans.travail), msg(messages.erreur(9, 'fichier-modifie'))]),
 ];
 
-module.exports = { ETATS };
+module.exports = { ETATS, releveIntencial };
