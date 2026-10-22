@@ -423,7 +423,7 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   Fait quand : nom, clé et type de chaque variable par library et collection ;
   la plus liée est choisie ; à égalité ou sans liaison, aucune ; une library
   illisible est dite illisible.
-- [ ] **S3 · Budget et annulation du moteur.** Vague 4 · seul · B1 en cours de
+- [~ Claude 2] **S3 · Budget et annulation du moteur.** Vague 4 · seul · B1 en cours de
   conception (note N2).
   Écrit : `plugin-socle/src/composant/` (option de budget et jeton
   d'annulation, sans effet pour l'exporteur), tests de l'exporteur.
@@ -504,7 +504,7 @@ de galerie quand le lot B n'est pas fait.
   `plugin-architect/galerie/comparer-maquette.cjs`.
   Fait quand : règles du §4.10 ; à l'essai, une police changée et un élément
   retiré font échouer la comparaison ; un cadre manquant aussi.
-- [ ] **U1 · Mode Tokens, Corrections.** Vague 3 · S1, A1.
+- [~ Claude 1] **U1 · Mode Tokens, Corrections.** Vague 3 · S1, A1.
   Domaines : `commun` (barre), `arbre`, `nomenclature`.
   Maquette : `t-renommages` ; `fenetreTokens`, `MODES_AFFICHES`,
   `ARBRE_INTERFACE`, `LIGNES_INTERFACE`, `ciblerCarte`, `nomenclatureLaterale`.
@@ -1151,6 +1151,9 @@ Choix faits sans le mainteneur :
   combinateur qui nomme une classe du langage ; un sélecteur à ancêtre la
   place sans la redessiner ; la loi est appelée par le test du socle, qui
   lit les feuilles des trois plugins · réversible : oui.
+- Q-32 · S3 · « Seul » · S3 tourne en parallèle d'U1 : la raison de
+  « seul » (un fichier du socle déjà importé par Architect) ne vaut pas
+  encore, Architect n'importe pas `composant/` avant B2 · réversible : oui.
 
 ## 10. Hors du plan
 
