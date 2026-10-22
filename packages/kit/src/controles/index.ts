@@ -9,3 +9,4 @@ export {
   controlerLAccessibilite, BORNE_DE_COMBINAISONS, SEUILS_D_ACCESSIBILITE,
   CIBLE_MINIMALE_PX, CIBLE_TACTILE_PX, TEXTE_MINIMAL_PX,
 } from './accessibilite.js';
+export { controlerLaTypographie } from './typographie.js';
