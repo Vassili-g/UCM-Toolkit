@@ -1059,6 +1059,20 @@ Ouverte :
 - Q-4 · Lien vers le fichier des tokens : selon la sonde S-4, ou une
   publication privée des plugins UCM dans l'organisation.
 
+Choix faits sans le mainteneur :
+
+- Q-6 · O0 · Chemins d'un domaine · N1 fixe les fichiers de chaque domaine ;
+  les champs « Écrit » des lots U et B s'y ramènent · réversible : oui.
+- Q-7 · K2 · Nom du type « Information » · `TypeDAlerte` vaut `info`, comme
+  le kit de Codex ; N2 le suit · réversible : oui.
+- Q-8 · K2 · Porte des signaux · réexportés par `referentiel/theme.ts`, car
+  `referentiel/index.ts` n'était pas dans « Écrit » · réversible : oui.
+- Q-9 · V · Numéros entre deux publications · kit 0.12.0 au premier lot V,
+  puis un patch par lot V ; aucun numéro n'est publié avant O2 · réversible :
+  oui, tant que rien n'est publié.
+- Q-10 · S0 · Étapes · un seul commit vert au lieu de deux : les fichiers
+  déplacés sont des renommages purs · réversible : oui.
+
 ## 10. Hors du plan
 
 | Fonction | Raison |
