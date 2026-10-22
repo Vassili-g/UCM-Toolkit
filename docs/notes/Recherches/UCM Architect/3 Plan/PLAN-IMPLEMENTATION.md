@@ -423,7 +423,7 @@ Défauts : `implementeur-exigeant` · Vérifie : `npm run test:paquet -- socle`.
   Fait quand : nom, clé et type de chaque variable par library et collection ;
   la plus liée est choisie ; à égalité ou sans liaison, aucune ; une library
   illisible est dite illisible.
-- [~ Claude 2] **S3 · Budget et annulation du moteur.** Vague 4 · seul · B1 en cours de
+- [x] (873c9b22) **S3 · Budget et annulation du moteur.** Vague 4 · seul · B1 en cours de
   conception (note N2).
   Écrit : `plugin-socle/src/composant/` (option de budget et jeton
   d'annulation, sans effet pour l'exporteur), tests de l'exporteur.
@@ -591,7 +591,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   valeurs importées par clé à la demande des contrôles ; chaque entrée est
   présente, absente, non chargée ou inaccessible ; un token hors de l'arbre
   ouvert est trouvé.
-- [ ] **B1 · Relevé du composant.** Vague 4 · K0, S3.
+- [~ Claude 2] **B1 · Relevé du composant.** Vague 4 · K0, S3.
   Écrit : `src/lectureDuComposant.ts` et ses tests.
   Fait quand : relevé de N2 complet (tous les variants, propriétés, porteur
   réel, champ, indice, plage, peintures directes, opacités, fonds des
@@ -606,7 +606,9 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   panneau périmé, sans réanalyse ; une erreur du moteur rend un Bloquant et
   rien d'autre ; une annulation rend « annulée » ; tests : analyse lente
   d'Alert puis sélection de Button, clic sur un constat, Ctrl+Z puis
-  Actualiser.
+  Actualiser. Le moteur s'appelle par `analyserLeComposant` (S3) ; un
+  résultat `partielle` ne sert qu'aux constats du panneau, jamais à un contrat
+  écrit (son `coverage` se dit complet).
 - [ ] **B9 · Branchement de l'accessibilité et de la typographie.** Vague 5 ·
   K4, K7, B2.
   Domaines : `accessibilite`, `configuration` (niveau).
@@ -1154,6 +1156,10 @@ Choix faits sans le mainteneur :
 - Q-32 · S3 · « Seul » · S3 tourne en parallèle d'U1 : la raison de
   « seul » (un fichier du socle déjà importé par Architect) ne vaut pas
   encore, Architect n'importe pas `composant/` avant B2 · réversible : oui.
+- Q-33 · S3 · Deux entrées du moteur · `analyserLeComposant` (budget,
+  jeton, résultat complete, partielle ou annulee) à côté de
+  `handleExportComponent`, inchangé ; un contrat partiel ne s'écrit jamais
+  · réversible : oui.
 
 ## 10. Hors du plan
 
