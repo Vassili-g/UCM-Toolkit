@@ -12,3 +12,5 @@ export {
 export { controlerLaTypographie } from './typographie.js';
 export { axeDePropriete, axesDuReleve, tokensDuComposant, segmentDAxe, controlerNommage } from './nommage.js';
 export type { AxeDuComposant, TokenDuComposant } from './nommage.js';
+export { controlerMapping } from './mapping.js';
+export { controlerCouches } from './couche.js';
