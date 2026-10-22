@@ -1,9 +1,9 @@
-# Revue du plan de Token Architect par Codex
+# Revue du plan de Architect par Codex
 
 Revue du [plan d'implémentation](./PLAN-IMPLEMENTATION.md), confronté à la
-[préparation](./PREPARATION-TOKEN-ARCHITECT.md), à la
-[grammaire](./GRAMMAIRE-DES-COMPOSANTS.md), à l'
-[aperçu de génération](./APERCU-GENERATION-TOKENS-COMPOSANT.md) et aux sources
+[préparation](../1%20Conception/PREPARATION-ARCHITECT.md), à la
+[grammaire](../1%20Conception/GRAMMAIRE-DES-COMPOSANTS.md), à l'
+[aperçu de génération](../1%20Conception/APERCU-GENERATION-TOKENS-COMPOSANT.md) et aux sources
 du dépôt. Les références au code sont vérifiées sur `d633ed09` ; les sources
 des paquets n'ont pas changé depuis `9ab1ee40`. L'aperçu est lu dans son état
 de travail, qui comporte des modifications non commitées.

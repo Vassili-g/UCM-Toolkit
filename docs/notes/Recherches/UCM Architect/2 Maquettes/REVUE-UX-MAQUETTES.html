@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Revue UX Token Architect</title>
+<title>Revue UX Architect</title>
 <style>
   :root { --fond: #161616; --bordure: #333; --texte: #eee; --second: #a0a0a0; --lien: #9fcfff; --bloc: #1d1d1d; }
   * { box-sizing: border-box; }
@@ -44,8 +44,8 @@
 </head>
 <body>
 <main>
-  <h1>Revue UX des maquettes de Token Architect</h1>
-  <p class="intro">Cette revue lit <code>Maquettes/MAQUETTE-TOKEN-ARCHITECT.html</code>, <code>architect.css</code> et les écrans figés
+  <h1>Revue UX des maquettes de Architect</h1>
+  <p class="intro">Cette revue lit <code>Maquettes/MAQUETTE-ARCHITECT.html</code>, <code>architect.css</code> et les écrans figés
   de <code>Maquettes/galerie/</code>. Elle confronte chaque cadre au plan d'implémentation, au document préparatoire, à la grammaire,
   à l'aperçu de la génération, à la spécification de l'explorateur et aux invariants de Nomenclature. Les textes, les positions et
   les styles calculés viennent du rendu de la page dans Chromium, lu cadre par cadre. Aucune capture n'a été faite.</p>
@@ -103,7 +103,7 @@
     </tr>
     <tr>
       <td>Générer les tokens d'un nouveau composant</td>
-      <td><ol><li>Sélectionner le composant.</li><li>[Ouvrir « Préparer les tokens » : le menu du résumé n'existe pas.]</li><li>Répondre à cinq questions.</li><li>Préparer.</li><li>Fermer le plugin.</li><li>Ouvrir le fichier des tokens.</li><li>Relancer Token Architect.</li><li>Voir le plan.</li><li>Créer.</li><li>[Publier la bibliothèque : aucun rappel.]</li><li>Revenir au fichier des composants.</li><li>Relancer Token Architect.</li><li>[Analyser.]</li><li>Ouvrir Corrections, Appliquer.</li></ol>Dix-huit gestes en comptant les cinq réponses.</td>
+      <td><ol><li>Sélectionner le composant.</li><li>[Ouvrir « Préparer les tokens » : le menu du résumé n'existe pas.]</li><li>Répondre à cinq questions.</li><li>Préparer.</li><li>Fermer le plugin.</li><li>Ouvrir le fichier des tokens.</li><li>Relancer Architect.</li><li>Voir le plan.</li><li>Créer.</li><li>[Publier la bibliothèque : aucun rappel.]</li><li>Revenir au fichier des composants.</li><li>Relancer Architect.</li><li>[Analyser.]</li><li>Ouvrir Corrections, Appliquer.</li></ol>Dix-huit gestes en comptant les cinq réponses.</td>
       <td><ul><li>Le scénario ne tient pas : la vue Composant montre Alert déjà lié à <code>colors/info/standard/...</code>.</li><li>Le seul accès dessiné est un lien dans une question (« Préparer les tokens d'Alert »).</li><li>Les choix Plein, Teinté et Aucun ne montrent ni le variant concerné ni la couleur du thème.</li><li>Après Créer, rien ne dit de publier la bibliothèque.</li><li>Au retour, rien n'annonce que le plan est prêt à lier.</li></ul></td>
       <td>Après Créer. Plan ouvert dans un fichier sans les cibles. Jeu de variants d'une autre clé (P7.4). Coller un plan reçu en texte. Tailles (P7.6).</td>
       <td>Historique, « Annuler la création ». Le texte promet qu'« une variable déjà liée à un calque reste en place » : le fichier des tokens ne lit pas les liaisons d'un autre fichier (T9).</td>
@@ -346,7 +346,7 @@
     <tr><td>t-renommages</td><td>« Lu à 01:00 · relevé 1 »</td><td>« relevé » renvoie à l'onglet Relevés supprimé.</td><td>« Lu à 01:00 »</td></tr>
     <tr><td>cf-historique</td><td>« Revenez à l'état d'avant le dernier renommage ou le dernier import. »</td><td>Ne couvre ni création ni portées.</td><td>« Annulez la dernière écriture de chaque sorte sur les variables. »</td></tr>
     <tr><td>cf-historique</td><td>« Une variable déjà liée à un calque reste en place. »</td><td>Le fichier des tokens ne lit pas les liaisons d'un autre fichier.</td><td>« Si la bibliothèque est publiée, les calques liés à ces variables perdront leur liaison. »</td></tr>
-    <tr><td>cf-reglages</td><td>Aide de « Ce fichier suit l'architecture UCM »</td><td>Parle de Palettes seulement.</td><td>Ajouter : « Token Architect contrôle alors les composants et les tokens de ce fichier. »</td></tr>
+    <tr><td>cf-reglages</td><td>Aide de « Ce fichier suit l'architecture UCM »</td><td>Parle de Palettes seulement.</td><td>Ajouter : « Architect contrôle alors les composants et les tokens de ce fichier. »</td></tr>
     <tr><td>e-vide</td><td>« Sélectionnez un composant dans Figma pour l'analyser. »</td><td>Laisse croire que l'analyse démarre seule.</td><td>« Sélectionnez un composant dans Figma. »</td></tr>
     <tr><td>Plusieurs</td><td>« Analysé à 14:02 », « analysé à 14:02 »</td><td>Casse différente pour le même texte.</td><td>Une seule forme.</td></tr>
     <tr><td>Plusieurs</td><td>« 12 variants », « 11 sur 12 », « aux 11 autres »</td><td>Trois nombres pour le même jeu.</td><td>« 11 variants · 1 combinaison absente ».</td></tr>
@@ -373,7 +373,7 @@
     <tr><td>U14</td><td><span class="g g-m">majeur</span></td><td>t-fiche, t-renommages</td><td>Le contexte actif de la table disparaît avec l'onglet Comparer. La fiche ne dit pas ce qu'elle compare.</td><td>Sélecteurs « Modes affichés » au-dessus de la table. La fiche nomme ses deux contextes.</td></tr>
     <tr><td>U15</td><td><span class="g g-m">majeur</span></td><td>t-renommages, t-regles</td><td>Le filtre par l'arbre rend Appliquer ambigu. Le lien d'un terme vers l'arbre n'est pas dessiné.</td><td>« 24 noms cochés sur 87 ». Appliquer limité à la liste filtrée. Cadre du terme choisi avec ses variables marquées.</td></tr>
     <tr><td>U16</td><td><span class="g g-m">majeur</span></td><td>t-bibliotheque</td><td>Renommages, Questions et Structure restent actifs avec leurs comptes. Aucun ne peut agir dans ce fichier.</td><td>Griser ces trois onglets, sans compte. Règles seul actif.</td></tr>
-    <tr><td>U17</td><td><span class="g g-m">majeur</span></td><td>e-hors</td><td>Le mode Tokens hors UCM n'est pas dessiné. Nomenclature renomme aujourd'hui dans tout fichier ; Q12 limite Token Architect à la navigation.</td><td>Dessiner le cadre. Demander au mainteneur si Renommages reste ouvert hors UCM.</td></tr>
+    <tr><td>U17</td><td><span class="g g-m">majeur</span></td><td>e-hors</td><td>Le mode Tokens hors UCM n'est pas dessiné. Nomenclature renomme aujourd'hui dans tout fichier ; Q12 limite Architect à la navigation.</td><td>Dessiner le cadre. Demander au mainteneur si Renommages reste ouvert hors UCM.</td></tr>
     <tr><td>U18</td><td><span class="g g-m">majeur</span></td><td>g-preparer, g-lier</td><td>Génération dessinée sur un Alert déjà lié. Aucun point d'entrée.</td><td>Composant à couleurs en dur. Bouton « Préparer les tokens » dans le résumé quand le composant n'a pas de tokens propres.</td></tr>
     <tr><td>U19</td><td><span class="g g-m">majeur</span></td><td>g-creer, g-lier</td><td>Quatre états de passage manquent.</td><td>Cadres : après Créer (« Publiez la bibliothèque, puis revenez au composant ») ; fichier sans les cibles ; jeu d'une autre clé ; champ « Coller un plan ».</td></tr>
     <tr><td>U20</td><td><span class="g g-m">majeur</span></td><td>c-questions</td><td>La première question propose des tokens d'info pour quatre statuts, et lie au thème en sautant les tokens d'Alert. L'effet d'une réponse n'est pas dit.</td><td>Renvoyer cette question vers « Préparer les tokens ». Dessiner la carte après réponse : elle passe dans Corrections, cochée.</td></tr>

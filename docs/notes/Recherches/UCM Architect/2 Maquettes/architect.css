@@ -1,4 +1,4 @@
-/* Les éléments nouveaux de Token Architect, posés au-dessus des feuilles réelles de l'explorateur et de Nomenclature.
+/* Les éléments nouveaux de Architect, posés au-dessus des feuilles réelles de l'explorateur et de Nomenclature.
    La feuille vaut dans les deux cadres. Ses classes sont nouvelles : aucune ne redéfinit une classe de Nomenclature
    ni de l'explorateur, sauf les quelques règles qui ne visent que la colonne de l'explorateur (`.application`). */
 

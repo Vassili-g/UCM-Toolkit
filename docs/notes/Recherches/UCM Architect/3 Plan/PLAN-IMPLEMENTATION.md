@@ -2,7 +2,7 @@ Formule à respecter pour tous les agents:
 "Time matters here: do not spend time that can be avoided, and the earlier a correct result is obtained, the better."
 
 
-# Plan d'implémentation de UCM Token Architect
+# Plan d'implémentation de UCM Architect
 
 Lecteur : l'orchestrateur, la conversation principale de Claude Code. Aucun
 agent ne lit ce plan. Un agent reçoit la fiche de son lot (§4.5), copiée telle
@@ -10,17 +10,17 @@ quelle dans son prompt.
 
 Sources, de la plus forte à la plus faible :
 
-1. La [maquette](./Maquettes/MAQUETTE-TOKEN-ARCHITECT.html), version
+1. La [maquette](../2%20Maquettes/MAQUETTE-ARCHITECT.html), version
    `6cf27974` : écrans, textes et comportements. En cas d'écart, elle l'emporte.
 2. Les décisions du §2.
-3. Le [document préparatoire](./PREPARATION-TOKEN-ARCHITECT.md), la
-   [grammaire des composants](./GRAMMAIRE-DES-COMPOSANTS.md) et
-   l'[aperçu de la génération](./APERCU-GENERATION-TOKENS-COMPOSANT.md), pour une
+3. Le [document préparatoire](../1%20Conception/PREPARATION-ARCHITECT.md), la
+   [grammaire des composants](../1%20Conception/GRAMMAIRE-DES-COMPOSANTS.md) et
+   l'[aperçu de la génération](../1%20Conception/APERCU-GENERATION-TOKENS-COMPOSANT.md), pour une
    règle que la maquette ne montre pas. Les numéros C, T et G y renvoient.
 
 ## 1. Fin du plan
 
-- UCM Token Architect remplace l'explorateur et Nomenclature, dans
+- UCM Architect remplace l'explorateur et Nomenclature, dans
   `packages/plugin-architect`.
 - Chaque cadre de la maquette, hors section 3 et hors cadres d'étude `v-*`,
   existe en état de galerie de même identifiant. Le contrôle de fidélité (§4.10)
@@ -32,7 +32,8 @@ Sources, de la plus forte à la plus faible :
 
 | Sujet | Décision |
 |---|---|
-| Plugin | Architect remplace l'explorateur et Nomenclature. Il garde l'identifiant de manifeste de l'explorateur. Paquet `ucm-architect-plugin`, dossier `packages/plugin-architect` |
+| Plugin | UCM Architect remplace l'explorateur et Nomenclature. Il garde l'identifiant de manifeste de l'explorateur. Paquet `ucm-architect-plugin`, dossier `packages/plugin-architect` |
+| Nom | « UCM Architect » partout : manifeste, barre du plugin, textes, galeries, guides, cartes, CI, scripts. « UCM Token Explorer », « UCM Nomenclature » et le nom de travail « UCM Token Architect » disparaissent du code et des documents vivants. Seuls les gardent les Archives, les notes de recherche passées, les journaux de version et les messages de commit. La clé de stockage `ESPACE_ARCHITECT` reste |
 | Périmètre | Contrôles et corrections pour un fichier déclaré UCM. Ailleurs : navigation seule, et l'alerte de `t-hors`. Le sandbox relit la déclaration avant chaque contrôle et chaque écriture |
 | Écriture | Seulement par `src/ecriture/` |
 | Exactitude | Une correction n'est proposée que si une règle écrite la tire d'un fait lu, avec un seul candidat. Le reste devient une question, sans réponse cochée |
@@ -47,7 +48,7 @@ Sources, de la plus forte à la plus faible :
 | Bouton du panneau | « Constats », icône du panneau, pastille du nombre dans la couleur du plus grave (`c-bouton-texte`) |
 | Section Variants | Forme C par défaut, pour tout composant. Le lien Tableau croise deux properties |
 | Alertes | Cinq types : Bloquant, À corriger, À vérifier, Information, Tenu. Couleur, icône et mot, liseré gauche. Même code pour les alertes, les cartes de constat, les puces de Variants et la pastille |
-| Langage visuel | Vocabulaire des signaux dans le kit, styles et composants dans le socle. Valeurs : `Maquettes/architect.css`. Palettes et l'exporteur migrent hors de ce plan |
+| Langage visuel | Vocabulaire des signaux dans le kit, styles et composants dans le socle. Valeurs : `2 Maquettes/architect.css`. Palettes et l'exporteur migrent hors de ce plan |
 | Mots | Termes de Figma et d'UCM en anglais, tels que Figma et le modèle les nomment (CONTRIBUTING.md, Messages destinés au designer). Variant écrit `Severity=info, Variant=standard`. Aucun « · » dans les textes d'Architect. « Tableau des tokens ». Textes en français seulement |
 | Recherche | Du texte dans le champ de l'arbre. Préfixes `terme:` et `vise:` pour les filtres qu'un mot ne dit pas |
 | Thème | Sombre, quel que soit le thème de Figma. Fonds de la maquette |
@@ -155,10 +156,10 @@ Vérifie : commande du lot.
   la maquette en entier. Codex lit `AGENTS.md` d'office : c'est un coût fixe,
   et la fiche n'y ajoute rien.
 - La maquette se lit par recherche : `grep -n "<id>\|<SYMBOLE>"` dans
-  `Maquettes/MAQUETTE-TOKEN-ARCHITECT.html`, puis les seules lignes trouvées.
-  Une classe de style se cherche de même dans `Maquettes/architect.css`.
+  `2 Maquettes/MAQUETTE-ARCHITECT.html`, puis les seules lignes trouvées.
+  Une classe de style se cherche de même dans `2 Maquettes/architect.css`.
 - Un lot d'écran capture ses cadres une fois, en début de lot, par
-  `node "docs/notes/Recherches/Token Architect v2/Mesures/capturer-cadres.mjs" <dossier> <id>…`,
+  `node "docs/notes/Recherches/UCM Architect/2 Maquettes/Mesures/capturer-cadres.mjs" <dossier> <id>…`,
   et lit les images. Pas d'autre capture pendant le lot.
 - L'orchestrateur lit ce plan, les notes et les diffs. Il ne relit pas le code
   d'un lot dont la vérification est consignée (§4.8).
@@ -213,7 +214,7 @@ met à jour son état de galerie et son test d'interface sans les lancer.
 - Un cadre = un état de galerie du même identifiant, avec les données de la
   maquette : fichier Intencial, Alert, Button, Tag.
 - Les textes sont recopiés du script de la maquette, sans retouche.
-- Les valeurs de style viennent de `Maquettes/architect.css` et des feuilles de
+- Les valeurs de style viennent de `2 Maquettes/architect.css` et des feuilles de
   galerie. Aucune valeur inventée.
 - Les pastilles roses et les légendes de la maquette sont des annotations : elles
   ne s'implémentent pas.
@@ -326,7 +327,7 @@ fichiers sont indicatifs ; la note du lot les fixe.
   A0.2, K2.
   Écrit : `plugin-socle/src/ui/langage.css`, composants du socle, galerie du
   socle, loi des styles.
-  Maquette : `s-planche` ; `Maquettes/architect.css`.
+  Maquette : `s-planche` ; `2 Maquettes/architect.css`.
   Fait quand : chemin (groupe, variable, mis en avant, ajout, retrait, dans une
   phrase, lien), jeton, pastille, alerte des cinq types, gravité, ligne de
   réussite, deux colonnes, carte ciblée, puce de filtre, recherche active,
@@ -343,13 +344,15 @@ fichiers sont indicatifs ; la note du lot les fixe.
 ### Piste A · fusion et squelette
 
 - [ ] **A0.1 · Renommage.** `implementeur` · vague 1 · seul · S0.
-  Écrit : dossier, paquet, manifeste (« UCM Token Architect », identifiant
+  Écrit : dossier, paquet, manifeste (« UCM Architect », identifiant
   gardé, permission `teamlibrary`), `scripts/construire-plugin.mjs`, scripts et
   `package-lock.json` racine, `ci.yml`, `tests/pluginsSepares.test.ts`, tests
   racine qui importent l'explorateur, commandes de `CONTRIBUTING.md`, liens de
   `docs/` hors Archives.
   Fait quand : `npm test`, `npm run typecheck`, `build:plugin -- architect`
-  passent ; `agents:diff` ne liste aucun chemin mort.
+  passent ; `agents:diff` ne liste aucun chemin mort ; `git grep -n "UCM Token Explorer"`
+  ne rend que des Archives, des notes de recherche passées, des journaux de
+  version ; la barre de la galerie dit « UCM Architect ».
 - [ ] **A0.2 · Nomenclature entre dans Architect.** `implementeur-exigeant` ·
   vague 1 · seul · A0.1.
   L'orchestrateur note ici le commit de repli avant de lancer : `……`.
@@ -361,7 +364,9 @@ fichiers sont indicatifs ; la note du lot les fixe.
   `releveDeTest` sur les nouveaux chemins ; lois du §3.
   Fait quand : tests du sandbox et loi d'écriture de Nomenclature sans
   changement d'attendu ; la loi d'Architect refuse, à l'essai, une écriture et
-  un import de `template/ecriture` hors de `src/ecriture/` ; `npm test` passe.
+  un import de `template/ecriture` hors de `src/ecriture/` ; `npm test` passe ;
+  `git grep -n "UCM Nomenclature"` ne rend que des Archives, des notes de
+  recherche passées, des journaux de version, et ne rend aucun texte d'écran.
 - [ ] **A1 · Squelette des domaines.** `implementeur-exigeant` · vague 2 · seul
   · A0.2, note N1.
   Écrit : `src/code.ts` (table d'aiguillage), `src/messages/<domaine>.ts`
@@ -551,7 +556,7 @@ Sondes, lancées par le mainteneur au lancement :
 | J1 | Mode Tokens : fidélité de `t-*` ; publication du kit | vague 3 |
 | J2 | Mode Composant, lecture : fidélité de `c-avant` à `c-afaire`, `e-*` | vague 4 |
 | J3 | Corrections, écriture, accessibilité : fidélité de `c-apres`, `c-ctrlz`, `x-*` ; publication du kit | vague 5 |
-| J-F | Fidélité de tous les cadres ; O1 ; §9 rendu ; push ; recette du mainteneur : `test:ui`, renommage et annulation, analyse et correction de Button sur une copie, préparation d'Alert | vague 6 |
+| J-F | Fidélité de tous les cadres ; ni « UCM Token Explorer », ni « UCM Nomenclature », ni « Token Architect » dans le code ou un document vivant ; O1 ; §9 rendu ; push ; recette du mainteneur : `test:ui`, renommage et annulation, analyse et correction de Button sur une copie, préparation d'Alert | vague 6 |
 
 ## 9. Questions de fin
 

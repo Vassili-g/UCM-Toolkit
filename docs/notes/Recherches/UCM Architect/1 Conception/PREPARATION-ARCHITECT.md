@@ -1,11 +1,11 @@
-# Préparation de UCM Token Architect
+# Préparation de UCM Architect
 
-Ce document recueille les demandes du mainteneur pour UCM Token Architect,
+Ce document recueille les demandes du mainteneur pour UCM Architect,
 liste les fonctions possibles et donne un avis sur chacune. Les réponses du
 mainteneur et les décisions encore ouvertes sont à la
 [section 8](#8-décisions).
 
-UCM Token Architect réunit deux plugins existants : UCM Token Explorer
+UCM Architect réunit deux plugins existants : UCM Token Explorer
 (`packages/plugin-explorateur`) et UCM Nomenclature
 (`packages/plugin-nomenclature`). L'ancien nom « UCM Architect » désignait
 Nomenclature et n'est plus employé. Nomenclature garde en interne la clé de
@@ -16,7 +16,7 @@ données partagées `ESPACE_ARCHITECT` et la clé de fenêtre
 
 | # | Demande |
 |---|---|
-| D1 | Fusionner UCM Token Explorer et UCM Nomenclature en un plugin nommé UCM Token Architect |
+| D1 | Fusionner UCM Token Explorer et UCM Nomenclature en un plugin nommé UCM Architect |
 | D2 | Mode Composant : une grande barre latérale à droite affiche les erreurs détectées sur le composant |
 | D3 | Nom des propriétés du composant incohérent avec les tokens, et correction automatique |
 | D4 | Erreur de mapping (mauvais token, repéré en comparant la structure du composant à celle des tokens), et correction automatique |
@@ -51,18 +51,18 @@ Deux éléments manquent :
 - Aucune fonction ne donne « le token attendu d'un calque » à partir de son
   rôle, de son état et des axes du variant. Le kit en porte les trois
   ingrédients séparément.
-- Les cas (a) à (g) de la [recherche sur le contrôle de structure](../Plugin%20Architect/6%20Contrôle%20de%20structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md)
+- Les cas (a) à (g) de la [recherche sur le contrôle de structure](../../Plugin%20Architect/6%20Contrôle%20de%20structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md)
   sont décrits mais non construits.
 
 ## 3. Les contraintes
 
-### 3.1 Token Architect écrit dans le document
+### 3.1 Architect écrit dans le document
 
-Décidé : Token Architect n'est pas en lecture seule. L'invariant actuel de
+Décidé : Architect n'est pas en lecture seule. L'invariant actuel de
 l'explorateur, tenu par `tests/loiDeLectureSeule.test.ts`, cède la place à une
 loi d'écriture du type de celle de Nomenclature : un seul fichier qui écrit,
 une relecture avant chaque écriture, un aperçu avant et après, et un point
-d'annulation par lot. Token Architect écrira des liaisons de variables, des
+d'annulation par lot. Architect écrira des liaisons de variables, des
 noms de variantes, des règles, et changera la sélection au clic sur un
 constat.
 
@@ -84,10 +84,10 @@ geste.
 
 Les quelque 130 points à corriger sont émis par la lecture du contrat, dans
 `plugin-exporter/src/contract/`. Ce moteur lit des nœuds Figma. Décidé : il
-passe dans le socle des plugins, et l'exporteur comme Token Architect l'y
+passe dans le socle des plugins, et l'exporteur comme Architect l'y
 lisent. Le kit ne peut pas le porter : il est publié sur npm et n'appelle
 jamais `figma`. `ucm check` ne lit donc pas ces contrôles. Les contrôles
-nouveaux de Token Architect jugent un relevé sérialisable : ils vont dans le
+nouveaux de Architect jugent un relevé sérialisable : ils vont dans le
 kit. Les tests de l'exporteur gardent le déplacement : aucun attendu ne
 change.
 
@@ -95,7 +95,7 @@ change.
 
 `ucm check` et l'exporteur restent agnostiques : ils ne bloquent que sur une
 variable manquante, et tout constat d'usage des couleurs est une information.
-Le panneau de Token Architect peut classer ses constats pour le designer sans
+Le panneau de Architect peut classer ses constats pour le designer sans
 bloquer l'export. Les contrôles propres à l'architecture UCM ne s'activent
 qu'avec la déclaration « Ce fichier suit l'architecture UCM », que la
 Configuration de Nomenclature range déjà dans le document.
@@ -105,7 +105,7 @@ Chaque fonction des tableaux porte son périmètre :
 - **full UCM** : demande l'architecture UCM déclarée ;
 - **les deux** : une forme agnostique, et une forme plus stricte en full UCM.
 
-Décidé : Token Architect ne contrôle que des fichiers full UCM. La forme
+Décidé : Architect ne contrôle que des fichiers full UCM. La forme
 agnostique d'une fonction ne sera pas construite ; la colonne en garde la
 trace. Une régularité apprise du fichier (C20, C21) devient une règle écrite
 du référentiel quand elle en a une. L'exporteur et `ucm check` restent
@@ -117,17 +117,17 @@ Ce choix a deux conséquences :
   Sans cette forme, les contrôles de nommage et de mapping n'ont pas de règle
   écrite à appliquer aux tokens d'un composant.
 - Nomenclature fonctionne aujourd'hui dans un fichier qui ne déclare pas UCM.
-  Dans un tel fichier, Token Architect offre la navigation seule (Q12).
+  Dans un tel fichier, Architect offre la navigation seule (Q12).
 
 ### 3.5 La correction automatique
 
 Nomenclature montre chaque renommage en deux colonnes, avant et après, et
 n'écrit qu'au clic sur Appliquer. Les cas ambigus deviennent des questions.
 Le mainteneur a validé ce modèle. La même forme convient aux corrections de
-Token Architect : un lot de corrections sûres avec aperçu, et une question
+Architect : un lot de corrections sûres avec aperçu, et une question
 pour chaque cas qui a plusieurs candidats.
 
-Décidé : Token Architect ne propose une correction ou une liaison que si elle
+Décidé : Architect ne propose une correction ou une liaison que si elle
 est exacte. Une proposition est exacte quand une règle écrite du kit la tire
 d'un fait lu dans Figma (un nom, une valeur de variante, le champ peint) et
 qu'elle n'a qu'un candidat. Tout le reste devient une question sans réponse
@@ -172,7 +172,7 @@ et le code de [design-lint](https://github.com/destefanis/design-lint),
 licences libres. Le code a été lu par résumé : les numéros de ligne restent à
 vérifier sur le code brut.
 
-| Mécanisme | Chez qui | Reprise dans Token Architect |
+| Mécanisme | Chez qui | Reprise dans Architect |
 |---|---|---|
 | Quatre onglets (Couleurs, Dimensions, Typographie, Composants), un total en haut, ouverture sur le premier onglet non vide | Check designs | Familles de constats et total (C68) ; ouverture sur la première famille non vide |
 | Lignes rangées sous des intitulés ; un clic sur l'intitulé sélectionne le groupe | Check designs | Constats groupés par cause identique : « 12 calques liés à `primary` dans le variant `secondary` » (C75) |
@@ -346,7 +346,7 @@ règles pendant l'export. Le kit ne vérifie que la forme des maîtres du kit
 | C43 | Signaler un composant sans instance de règles | demandé | oui | moyenne | agnostique | `template/sources.ts` sait déjà la trouver |
 | C44 | Valider les règles : marqueur « À compléter » resté, doublons, `@prop` vers une propriété absente, aucune règle `@usage`, `@do`, `@dont` ou `@pairs` | demandé | existe (exporteur) | forte | agnostique | À déplacer avec le moteur |
 | C45 | Synchroniser propriétés et règles : propriété ajoutée sans règle `@prop`, règle qui vise une propriété disparue | demandé | oui | forte | agnostique | Le cas le plus fréquent après une évolution du composant |
-| C46 | Générer les règles depuis le composant | demandé | existe (exporteur) | forte | agnostique | À déplacer dans Token Architect ou à partager. `@default`, `@do`, `@dont` et `@pairs` restent au designer : le modèle refuse de les deviner |
+| C46 | Générer les règles depuis le composant | demandé | existe (exporteur) | forte | agnostique | À déplacer dans Architect ou à partager. `@default`, `@do`, `@dont` et `@pairs` restent au designer : le modèle refuse de les deviner |
 | C47 | Correction : ajouter les règles `@prop` manquantes, retirer les règles orphelines, sans écraser une instance remplie (`estUneInstanceVierge`) | demandé | oui | forte | agnostique | Suit les trois règles d'écriture mesurées dans `template/ecriture.ts` |
 | C48 | Rédaction assistée par IA des règles `@usage`, `@do`, `@dont` | ajouté | non | faible | agnostique | Demande un service externe hors du réseau permis |
 
@@ -421,7 +421,7 @@ règles pendant l'export. Le kit ne vérifie que la forme des maîtres du kit
 | Dépendants | Liste les variables qui visent la variable inspectée, directement puis par rebond | Sert avant un renommage ou une suppression, et sert à Nomenclature | Déplacer dans l'inspecteur : section « Utilisée par » |
 | Diagnostics | Chaînes d'alias qui n'aboutissent pas : cycle, cible inaccessible, mode absent, type incompatible | Contrôle de structure des tokens | Déplacer dans un bloc « Structure » de la barre latérale (T5) |
 | Intégrations | Contrats et tokens importés, association variable et cran de Palettes, profil UCM | Le retrait de l'onglet est déjà décidé. Les écarts avec l'export relèvent de l'exporteur. L'association aux crans est redondante : Palettes marque déjà les variables qu'il écrit | Supprimer ; les quatre règles du profil UCM passent au bloc « Structure » en full UCM (T6) |
-| Relevés | Exporte un relevé, le réimporte, le compare, simule une substitution | Usage faible ; la comparaison de deux exports de tokens est la piste [diff sémantique](../Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md) | Supprimer |
+| Relevés | Exporte un relevé, le réimporte, le compare, simule une substitution | Usage faible ; la comparaison de deux exports de tokens est la piste [diff sémantique](../../Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md) | Supprimer |
 
 ### 5.3 Fonctions ajoutées
 
@@ -442,13 +442,13 @@ règles pendant l'export. Le kit ne vérifie que la forme des maîtres du kit
 
 | # | Fonction | Source | Faisable | Utilité | Avis |
 |---|---|---|---|---|---|
-| G1 | Nom « UCM Token Architect », un seul identifiant de manifeste | demandé | oui | forte | Les données partagées (`ESPACE_ARCHITECT`) ne dépendent pas de l'identifiant. Les préférences de `clientStorage` en dépendent : celles du plugin abandonné sont perdues |
+| G1 | Nom « UCM Architect », un seul identifiant de manifeste | demandé | oui | forte | Les données partagées (`ESPACE_ARCHITECT`) ne dépendent pas de l'identifiant. Les préférences de `clientStorage` en dépendent : celles du plugin abandonné sont perdues |
 | G2 | Retrait du plugin Nomenclature séparé | conséquence de D1 | oui | forte | Les deux plugins sont privés ; aucune page Community à retirer |
 | G3 | Mode d'ouverture choisi par le fichier : variables locales donnent le mode Tokens, composant sélectionné donne le mode Composant | existe en partie | oui | moyenne | L'explorateur choisit déjà sa disposition à l'ouverture |
 | G4 | Loi d'écriture : un fichier qui écrit, un test qui le borne, aperçu et annulation | ajouté | oui | forte | Condition des corrections (section 3.1) |
 | G5 | Déclaration « Ce fichier suit l'architecture UCM » partagée par les deux modes | ajouté | oui | forte | Existe dans Nomenclature ; porte le périmètre de chaque contrôle |
 | G6 | Permission `teamlibrary` au manifeste | ajouté | oui | forte | Condition de C24 à C27 (section 3.2) |
-| G7 | Moteur de l'exporteur dans le socle, commun à Token Architect et à l'exporteur ; contrôles nouveaux dans le kit | ajouté | oui | forte | Condition de C38 (section 3.3) |
+| G7 | Moteur de l'exporteur dans le socle, commun à Architect et à l'exporteur ; contrôles nouveaux dans le kit | ajouté | oui | forte | Condition de C38 (section 3.3) |
 | G8 | Fusionner aussi l'exporteur | ajouté | oui | faible | Un plugin trop gros ; l'exporteur garde ses accès réseau et son geste de publication. Le panneau annonce seulement « prêt à exporter » |
 
 ## 7. Avis
@@ -458,7 +458,7 @@ l'explorateur montre l'effet d'un renommage de Nomenclature, et Nomenclature
 donne à l'arbre ses corrections. Côté tokens, la fusion supprime une lecture et
 un changement de plugin. Le mode Composant porte la valeur nouvelle.
 
-**Ce qui distingue Token Architect.** Le marché lie les variables par valeur, et
+**Ce qui distingue Architect.** Le marché lie les variables par valeur, et
 Check designs de Figma est réservé aux grandes offres. Son panneau sert de
 modèle d'interface (section 3.9) : familles, groupes, confiance affichée,
 application par groupe. Aucun outil trouvé ne
@@ -522,8 +522,8 @@ l'onglet Relevés.
 
 | # | Question | Réponse du mainteneur |
 |---|---|---|
-| — | Lecture seule | Token Architect écrit dans le document (section 3.1) |
-| — | Contrôles de l'export | Moteur partagé dans le socle, lu par l'exporteur et par Token Architect ; contrôles nouveaux dans le kit (section 3.3) |
+| — | Lecture seule | Architect écrit dans le document (section 3.1) |
+| — | Contrôles de l'export | Moteur partagé dans le socle, lu par l'exporteur et par Architect ; contrôles nouveaux dans le kit (section 3.3) |
 | Q1 | Identifiant de manifeste | Celui de l'explorateur |
 | Q2 | Forme des corrections | Le modèle de Nomenclature, avec si possible la même interface, intégrée à la barre latérale de droite ; à affiner sur maquettes |
 | Q3 | Écart entre une propriété et un token | Proposer les deux corrections : renommer la variante, ou préparer une règle qui renomme le token |
@@ -538,14 +538,14 @@ l'onglet Relevés.
 | Q10 | Seuils d'accessibilité | Taille de cible : 24 × 24 px en constat (WCAG 2.5.8, niveau AA), 44 × 44 px en recommandation (niveau AAA, iOS). Texte : aucun minimum WCAG ; 12 px en recommandation |
 | Q11 | Bibliothèque de tokens quand plusieurs sont activées | Choix automatique par les liaisons existantes, modifiable dans la Configuration (section 3.10) |
 
-Les quatre décisions de la [recherche sur le contrôle de structure](../Plugin%20Architect/6%20Contrôle%20de%20structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md#les-décisions-attendues) :
+Les quatre décisions de la [recherche sur le contrôle de structure](../../Plugin%20Architect/6%20Contrôle%20de%20structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md#les-décisions-attendues) :
 
 | Question de la recherche | Réponse |
 |---|---|
 | Cas (d) et (e), cran recopié et cran saturé au blanc | Retirés : Palettes s'en charge |
 | Cas (g), tokens disparus entre deux exports | L'exporteur les signale au moment d'exporter, d'après la version publiée de `tokens.json` |
 | Périmètre | Full UCM |
-| Lieu | Le bloc « Structure » du mode Tokens de Token Architect ; les contrôles vivent dans le kit, et `ucm check` pourra les appeler |
+| Lieu | Le bloc « Structure » du mode Tokens de Architect ; les contrôles vivent dans le kit, et `ucm check` pourra les appeler |
 | Correction | Les deux : chaque écart est signalé, et corrigé en un geste quand la correction est sûre |
 
 ### 8.2 Ouvert

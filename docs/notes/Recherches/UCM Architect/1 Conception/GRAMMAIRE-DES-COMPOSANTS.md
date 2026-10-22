@@ -1,7 +1,7 @@
 # Grammaire des tokens de composant
 
 Ce document propose la forme des chemins de la collection `components`
-(question Q13 du [document préparatoire](./PREPARATION-TOKEN-ARCHITECT.md)).
+(question Q13 du [document préparatoire](./PREPARATION-ARCHITECT.md)).
 Le kit décrit la forme des six autres collections dans `FORMES_DES_CHEMINS`
 (`packages/kit/src/referentiel/architecture.ts`) et exclut `components`. Le
 mainteneur a adopté la forme et répondu aux questions de la section 5.
@@ -72,7 +72,7 @@ Exemples :
 
 ## 4. L'export relu avec cette forme
 
-Ces écarts sont ceux que Token Architect afficherait sur l'export fourni. La
+Ces écarts sont ceux que Architect afficherait sur l'export fourni. La
 colonne « Contrôle » renvoie aux fonctions du document préparatoire.
 
 | Écart | Où | Contrôle | Correction proposée |

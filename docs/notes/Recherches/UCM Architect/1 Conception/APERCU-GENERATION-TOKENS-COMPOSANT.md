@@ -1,7 +1,7 @@
 # Aperçu : générer les tokens d'un composant
 
 Ce document décrit ce que donnerait la fonction C28 du
-[document préparatoire](./PREPARATION-TOKEN-ARCHITECT.md) (question Q6), pour
+[document préparatoire](./PREPARATION-ARCHITECT.md) (question Q6), pour
 que le mainteneur décide de la construire ou non. Rien n'est construit.
 
 ## En bref
@@ -73,7 +73,7 @@ components/alert/color/{danger|info|success|warning}/outlined/{border|foreground
 components/alert/color/{danger|info|success|warning}/standard/{background|foreground|icon}
 ```
 
-Token Architect lirait la structure du composant et proposerait ces 36
+Architect lirait la structure du composant et proposerait ces 36
 variables, chacune avec son alias vers le thème.
 
 ## Ce que le plugin déduit, et ce qu'il demande
@@ -116,7 +116,7 @@ par les deux.
 |---|---|---|---|
 | 1 | Composants | Sélectionne Alert, clique « Préparer les tokens » | Lit le composant, pose les trois questions, montre les 36 variables et leurs alias |
 | 2 | Composants | Valide le plan | Range le plan dans `figma.clientStorage` |
-| 3 | Tokens | Ouvre Token Architect | Annonce « Un plan attend : Alert, 36 variables » dans la barre latérale |
+| 3 | Tokens | Ouvre Architect | Annonce « Un plan attend : Alert, 36 variables » dans la barre latérale |
 | 4 | Tokens | Relit l'aperçu, clique Créer | Crée les variables qui manquent, pose les alias, ouvre un point d'annulation |
 | 5 | Tokens | Publie la bibliothèque dans Figma, comme après toute modification des tokens | Rien |
 | 6 | Composants | Clique « Lier » | Lie chaque calque à sa variable ; les noms viennent de la structure, la correspondance est exacte |

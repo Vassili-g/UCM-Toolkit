@@ -1,4 +1,4 @@
-# Prompt : revue critique du plan de Token Architect par Codex
+# Prompt : revue critique du plan de Architect par Codex
 
 Le mainteneur colle le texte ci-dessous dans Codex, lancé à la racine du dépôt.
 
@@ -10,9 +10,9 @@ rien.
 
 ## Le plan
 
-`docs/notes/Recherches/Token Architect v2/PLAN-IMPLEMENTATION.md`, à la
+`docs/notes/Recherches/UCM Architect/3 Plan/PLAN-IMPLEMENTATION.md`, à la
 version du commit `9ab1ee40`. Lis cette version : `git show
-9ab1ee40:"docs/notes/Recherches/Token Architect v2/PLAN-IMPLEMENTATION.md"`.
+9ab1ee40:"docs/notes/Recherches/UCM Architect/3 Plan/PLAN-IMPLEMENTATION.md"`.
 Une autre revue tourne en parallèle ; ne lis aucun fichier `REVUE-*` de ce
 dossier.
 
@@ -29,8 +29,8 @@ liaisons de variables d'un composant.
    la racine ne les charge pas seul.
 2. `CONTRIBUTING.md`, sections « Travailler avec des agents », « Interface du
    plugin » et « Tests ».
-3. Dans `docs/notes/Recherches/Token Architect v2/` :
-   `PREPARATION-TOKEN-ARCHITECT.md` (fonctions C1 à C79, T1 à T14, G1 à G8 ;
+3. Dans `docs/notes/Recherches/UCM Architect/` :
+   `PREPARATION-ARCHITECT.md` (fonctions C1 à C79, T1 à T14, G1 à G8 ;
    contraintes en section 3 ; décisions en section 8),
    `GRAMMAIRE-DES-COMPOSANTS.md`, `APERCU-GENERATION-TOKENS-COMPOSANT.md`.
 4. Le code que le plan cite, pour vérifier chaque affirmation :
@@ -99,11 +99,11 @@ vérifié de ce qui est déduit.
 ## Sortie
 
 Écris un seul fichier :
-`docs/notes/Recherches/Token Architect v2/REVUE-CODEX-DU-PLAN.md`.
+`docs/notes/Recherches/UCM Architect/3 Plan/REVUE-CODEX-DU-PLAN.md`.
 
 Structure :
 
-1. `# Revue du plan de Token Architect par Codex`, puis une phrase qui
+1. `# Revue du plan de Architect par Codex`, puis une phrase qui
    nomme le commit relu.
 2. `## Défauts`, un tableau classé du plus grave au moins grave, colonnes :
    `#` (R1, R2…), `Gravité` (bloquant, majeur, mineur), `Lot`, `Défaut`,

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Token Architect</title>
+<title>Architect</title>
 <style>
   :root { --fond: #161616; --bordure: #333; --texte: #eee; --second: #9a9a9a; }
   * { box-sizing: border-box; }
@@ -52,8 +52,8 @@
 </head>
 <body>
 <main>
-  <h1>UCM Token Architect</h1>
-  <p class="intro">Ces maquettes dessinent les fonctions du <a href="../PLAN-IMPLEMENTATION.md">plan d'implémentation</a>.
+  <h1>UCM Architect</h1>
+  <p class="intro">Ces maquettes dessinent les fonctions du <a href="../3%20Plan/PLAN-IMPLEMENTATION.md">plan d'implémentation</a>.
   Chaque fenêtre part des écrans réels de l'explorateur et de Nomenclature, figés depuis leurs galeries sombres. Les éléments
   nouveaux emploient les classes de ces deux plugins et la feuille <code>architect.css</code>. Une pastille
   <span class="rose">rose</span> numérotée marque chaque changement. La légende de même numéro, sous la fenêtre, dit ce qu’il
@@ -79,7 +79,7 @@
   <h2 id="langage">1 · Le langage visuel commun</h2>
   <p>Chaque plugin signale aujourd'hui ses données, ses changements et ses constats avec ses propres formes. La proposition :
   un seul langage visuel pour tous les plugins. Le kit en porte le vocabulaire. Le socle en porte les styles et les
-  composants. Un plugin n'en redéfinit aucun. Token Architect l'emploie le premier.</p>
+  composants. Un plugin n'en redéfinit aucun. Architect l'emploie le premier.</p>
   <p>Deux règles le tiennent sobre. Un chemin reste gris tant que l'écran n'a rien à en montrer. Une couleur dit toujours
   la même chose, d'un plugin à l'autre.</p>
 
@@ -167,7 +167,7 @@
   </div>
 
   <h2 id="aujourdhui">3 · Aujourd'hui</h2>
-  <p>Les trois écrans réels dont part Token Architect, sans la feuille <code>architect.css</code>.</p>
+  <p>Les trois écrans réels dont part Architect, sans la feuille <code>architect.css</code>.</p>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette actuel">UCM Token Explorer, mode Tokens · 1200 × 800</span><div class="cadre" id="a-tokens"></div></div>
     <div class="colonne"><span class="etiquette actuel">UCM Nomenclature · 640 × 720</span><div class="cadre" id="a-nomenclature"></div></div>
@@ -423,8 +423,8 @@
     <tr><td>M-8</td><td>Les fonds</td><td>Validé : ceux des maquettes actuelles.</td></tr>
     <tr><td>M-9</td><td>La bascule Tokens · Composant</td><td>Validé : gardée.</td></tr>
     <tr><td>M-11</td><td>Appliquer sous un filtre écrit les seuls noms affichés</td><td>Validé.</td></tr>
-    <tr><td>M-3</td><td>L'explorateur montre aujourd'hui le détail d'une variable dans une troisième colonne, l'inspecteur. Dans Token Architect, cette place revient à Nomenclature. Le détail s'ouvre donc en fiche, par-dessus la barre latérale (écran 4d).</td><td>Proposé : la fiche de 4d remplace l'inspecteur. Le mode Tokens garde deux colonnes, l'arbre et le tableau des tokens.</td></tr>
-    <tr><td>M-10</td><td>Nomenclature renomme aujourd'hui les variables de n'importe quel fichier, déclaré UCM ou non. Token Architect, lui, ne contrôle qu'un fichier déclaré UCM (décision Q12). Dans un fichier non déclaré, le designer peut-il encore renommer avec Corrections ?</td><td>À trancher. (a) Non : il déclare d'abord le fichier. C'est l'écran 4e. (b) Oui : Corrections reste ouvert pour les noms seulement. Questions et À faire dans Figma restent fermés.</td></tr>
+    <tr><td>M-3</td><td>L'explorateur montre aujourd'hui le détail d'une variable dans une troisième colonne, l'inspecteur. Dans Architect, cette place revient à Nomenclature. Le détail s'ouvre donc en fiche, par-dessus la barre latérale (écran 4d).</td><td>Proposé : la fiche de 4d remplace l'inspecteur. Le mode Tokens garde deux colonnes, l'arbre et le tableau des tokens.</td></tr>
+    <tr><td>M-10</td><td>Nomenclature renomme aujourd'hui les variables de n'importe quel fichier, déclaré UCM ou non. Architect, lui, ne contrôle qu'un fichier déclaré UCM (décision Q12). Dans un fichier non déclaré, le designer peut-il encore renommer avec Corrections ?</td><td>À trancher. (a) Non : il déclare d'abord le fichier. C'est l'écran 4e. (b) Oui : Corrections reste ouvert pour les noms seulement. Questions et À faire dans Figma restent fermés.</td></tr>
     <tr><td>M-14</td><td>La section Variants</td><td>Proposé : la forme C pour tous les composants, avec le lien Tableau en option (5b).</td></tr>
     <tr><td>M-15</td><td>Sur Button, un variant <code>State=hover</code> lié au même fond que <code>State=default</code> peut être une erreur ou un choix. Le plugin ne peut pas savoir. Il pose donc une question au lieu de cocher une correction (écran 6, Questions d'état).</td><td>Proposé : une question, sans réponse cochée. « C'est voulu » range le choix dans le fichier.</td></tr>
     <tr><td>M-18</td><td>Le nom du bouton qui ouvre le panneau du mode Composant</td><td>Proposé : Constats, avec l'icône du panneau et la pastille. Variante : l'icône seule, le nom dans l'infobulle (5a).</td></tr>
@@ -590,7 +590,7 @@ const retenu = (m) => `<code class="mot-cite mot-retenu">${m}</code>`;
 // `panneau` : null en mode Tokens ; { ouvert, compte, ton, libelle } en mode Composant. `libelle: null` dessine le bouton sans texte.
 function barre(doc, mode, { action = null, panneau = null, etroite = false } = {}) {
   const nom = doc.querySelector('.produit-nom');
-  nom.textContent = 'UCM Token Architect';
+  nom.textContent = 'UCM Architect';
   nom.style.display = etroite ? 'none' : 'block';
   doc.querySelectorAll('.bascule-choix').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === (mode === 'tokens' ? 'large' : 'etroite'))));
   const b = doc.querySelector('.barre');
@@ -1249,7 +1249,7 @@ cadre('g-preparer', {
 cadre('g-pret', {
   galerie: 'explorateur-etroit', etat: 'composant-valeurs-sans-token', largeur: 1040, hauteur: 520,
   modifier: (doc) => TAG_GAUCHE(doc, { panneau: { ouvert: true, compte: 1, ton: 'corriger' } }),
-  laterale: { etat: 'a-appliquer', modifier: (doc) => laterale(doc, `<div class="page-stack">${resume({ nom: 'Tag', variants: '8 variants' })}${alerte('tenu', { titre: '16 variables préparées pour Tag.', texte: 'Ouvrez le fichier des tokens, puis Token Architect. Elles y attendent d’être créées.', meta: 'La préparation reste sur ce poste.', actions: lien('Copier en texte') + lien('Abandonner la préparation') })}</div>`) },
+  laterale: { etat: 'a-appliquer', modifier: (doc) => laterale(doc, `<div class="page-stack">${resume({ nom: 'Tag', variants: '8 variants' })}${alerte('tenu', { titre: '16 variables préparées pour Tag.', texte: 'Ouvrez le fichier des tokens, puis Architect. Elles y attendent d’être créées.', meta: 'La préparation reste sur ce poste.', actions: lien('Copier en texte') + lien('Abandonner la préparation') })}</div>`) },
 });
 const CREER = `<div class="feuille-voile feuille-terme"><section class="feuille avec-marges" role="dialog">
   <header class="feuille-entete avec-definition"><div class="titre-et-definition"><div class="titre-ligne"><h2 class="feuille-titre">Variables à créer pour Tag</h2><span class="origine">components</span></div><p class="meta">Préparées dans le fichier des composants, aujourd’hui à 14:20.</p></div><button type="button" class="feuille-fermer">×</button></header>
@@ -1315,7 +1315,7 @@ cadre('cf-reglages', {
   laterale: { etat: 'configuration-architecture-ucm', modifier: (doc) => {
     doc.querySelector('main').style.maxWidth = '720px'; doc.querySelector('main').style.margin = '0 auto';
     const s = doc.querySelectorAll('.config-section');
-    const aide = s[0].querySelector('.field-help'); if (aide) aide.textContent = 'Token Architect contrôle alors les composants et les tokens de ce fichier. UCM Palettes n’écrit plus dans theme, brands ni utility.';
+    const aide = s[0].querySelector('.field-help'); if (aide) aide.textContent = 'Architect contrôle alors les composants et les tokens de ce fichier. UCM Palettes n’écrit plus dans theme, brands ni utility.';
     s[0].insertAdjacentHTML('afterend', SECTIONS_NOUVELLES);
   } },
 });

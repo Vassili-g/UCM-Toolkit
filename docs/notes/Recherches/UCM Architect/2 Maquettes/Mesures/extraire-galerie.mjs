@@ -1,15 +1,15 @@
 // Fige des états sombres des galeries de l'explorateur et de Nomenclature : le DOM rendu, sans script, et la feuille du plugin.
-// Les maquettes de Token Architect modifient ces écrans réels au lieu de les redessiner.
+// Les maquettes de Architect modifient ces écrans réels au lieu de les redessiner.
 // Préalable : `npm run galerie:plugin -- explorateur` et `npm run galerie:plugin -- nomenclature`.
-// Lancer depuis la racine du dépôt : `node "docs/notes/Recherches/Token Architect v2/Mesures/extraire-galerie.mjs"`.
+// Lancer depuis la racine du dépôt : `node "docs/notes/Recherches/UCM Architect/2 Maquettes/Mesures/extraire-galerie.mjs"`.
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const ici = path.dirname(fileURLToPath(import.meta.url));
-const paquets = path.resolve(ici, '../../../../../packages');
-const maquettes = path.resolve(ici, '../Maquettes');
+const paquets = path.resolve(ici, '../../../../../../packages');
+const maquettes = path.resolve(ici, '..');
 
 const GALERIES = [
   {

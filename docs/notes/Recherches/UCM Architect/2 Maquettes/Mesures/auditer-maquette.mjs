@@ -1,12 +1,12 @@
-// Cherche les défauts de la maquette de Token Architect sans la capturer : erreurs de script, cadres vides,
+// Cherche les défauts de la maquette de Architect sans la capturer : erreurs de script, cadres vides,
 // barre latérale vide, page qui déborde en largeur, textes qui sortent de leur boîte, jetons et boutons coupés sur deux lignes.
-// Lancer depuis la racine du dépôt : `node "docs/notes/Recherches/Token Architect v2/Mesures/auditer-maquette.mjs"`.
+// Lancer depuis la racine du dépôt : `node "docs/notes/Recherches/UCM Architect/2 Maquettes/Mesures/auditer-maquette.mjs"`.
 import { chromium } from 'playwright';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const ici = path.dirname(fileURLToPath(import.meta.url));
-const maquette = path.resolve(ici, '../Maquettes/MAQUETTE-TOKEN-ARCHITECT.html');
+const maquette = path.resolve(ici, '../MAQUETTE-ARCHITECT.html');
 const navigateur = await chromium.launch();
 const page = await navigateur.newPage({ viewport: { width: 1600, height: 900 } });
 const erreurs = [];
