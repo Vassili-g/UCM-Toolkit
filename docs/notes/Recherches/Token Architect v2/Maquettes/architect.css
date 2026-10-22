@@ -1,137 +1,184 @@
 /* Les éléments nouveaux de Token Architect, posés au-dessus des feuilles réelles de l'explorateur et de Nomenclature.
-   La feuille vaut dans les deux cadres. Elle ne redéfinit aucune classe de Nomenclature dans la barre latérale :
-   les règles qui portent un nom de classe de Nomenclature ne visent que la colonne de l'explorateur (`.application`). */
+   La feuille vaut dans les deux cadres. Ses classes sont nouvelles : aucune ne redéfinit une classe de Nomenclature
+   ni de l'explorateur, sauf les quelques règles qui ne visent que la colonne de l'explorateur (`.application`). */
 
-/* Les places de Nomenclature, reprises dans la colonne de l'explorateur : orchidée pour un groupe, olive pour une variable. */
-.application {
-  --fond-groupe: rgb(80 36 84);
-  --texte-groupe: rgb(244 180 248);
-  --fond-variable: rgb(58 62 28);
-  --texte-variable: rgb(222 228 150);
+:root {
+  /* Le terme mis en avant : rose pour un groupe, olive pour une variable. Ce sont les teintes de place de Nomenclature. */
+  --texte-groupe-vu: rgb(244 180 248);
+  --texte-variable-vu: rgb(222 228 150);
+  /* L'échelle commune des alertes et des constats : une couleur, une icône et un mot par type. */
+  --ton-bloquant: #ff7b72;
+  --ton-corriger: #f5a35c;
+  --ton-verifier: #e8cc6a;
+  --ton-info: #7cb7ff;
+  --ton-tenu: #7fdc9c;
+  --police-chemin: "JetBrains Mono", Consolas, monospace;
 }
-.application .jeton { display: inline-flex; align-items: center; padding: 0 6px; border-radius: 4px; font-family: var(--police-code); line-height: 18px; white-space: nowrap; }
-.application .jeton-groupe { background: var(--fond-groupe); color: var(--texte-groupe); }
-.application .jeton-variable { background: var(--fond-variable); color: var(--texte-variable); }
-.application .mot-groupe { color: var(--texte-groupe); }
-.application .mot-variable { color: var(--texte-variable); }
 
-/* La barre latérale de droite, dans le cadre de l'explorateur. Un seul fond pour toute la fenêtre. */
-.arch-laterale { flex: 0 0 auto; display: flex; border-left: 1px solid var(--bordure); background: var(--fond); min-height: 0; }
-.arch-laterale.pleine { border-left: 0; }
-.arch-laterale > iframe { flex: 1 1 auto; border: 0; width: 100%; height: 100%; display: block; }
-.arch-corps-composant { display: flex; flex: 1 1 auto; min-height: 0; }
-.arch-corps-composant > .vc { flex: 0 0 auto; overflow: auto; }
-.barre .icon-button.avec-libelle, .barre .btn { margin-left: var(--espace-controle); }
+/* ---------- Les chemins ----------
+   Un chemin montré comme objet : groupes en gris, variable en gris clair, comme l'explorateur aujourd'hui.
+   Seul un terme qu'on veut montrer prend une couleur : rose pour un groupe, olive pour la variable.
+   Un segment qui arrive passe en vert. Un segment qui part passe en rouge barré. */
+.ch { font-family: var(--police-chemin); font-size: 11px; font-weight: 400; overflow-wrap: anywhere; }
+.ch-groupe { color: var(--texte-second); }
+.ch-variable { color: var(--texte); }
+.ch-groupe-vu { color: var(--texte-groupe-vu); font-weight: 600; }
+.ch-variable-vu { color: var(--texte-variable-vu); font-weight: 600; }
+.ch-ajout { color: var(--texte-succes); font-weight: 600; }
+.ch-retrait { color: var(--texte-danger); font-weight: 600; text-decoration: line-through; text-decoration-thickness: 1px; }
+/* Un terme vert cliquable : il ouvre la carte qui le propose dans la barre latérale. */
+.ch-lien { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.ch-lien.survol { text-decoration-style: solid; }
+.ch-titre { font-size: 13px; }
 
-/* La gravité d'un constat : une forme et un mot, sans couleur. La couleur reste aux conséquences et aux décisions. */
-.sev { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; white-space: nowrap; color: var(--texte); }
-.sev::before { content: ""; flex: 0 0 auto; width: 8px; height: 8px; }
-.sev-corriger::before { background: currentColor; border-radius: 1px; }
-.sev-verifier::before { border-radius: 50%; box-shadow: inset 0 0 0 1.5px currentColor; }
-.sev-info { color: var(--texte-second); font-weight: 500; }
-/* Bloquant : empêche d’écrire ou d’exporter. Un carré plein dans un cadre. */
-.sev-bloquant::before { background: currentColor; box-shadow: 0 0 0 2px var(--fond), 0 0 0 3px currentColor; border-radius: 1px; }
-/* Une garantie tenue ou manquée, sur les rôles de niveau du socle. */
-.niveau { display: inline-flex; align-items: center; padding: 0 6px; border-radius: 4px; font-weight: 600; line-height: 18px; }
-.niveau-atteint { background: var(--fond-niveau-atteint); color: var(--texte-niveau-atteint); }
-.niveau-manque { background: var(--fond-niveau-manque); color: var(--texte-niveau-manque); }
-.sev-info::before { width: 0; }
+/* Un seul style pour tout chemin de token, dans la colonne de gauche comme dans la barre latérale : police de code, 11 px. */
+.nom-de-token, .vc-nom, .vc-nom bdi, .chemin-ligne, .arbre-libelle { font-family: var(--police-chemin); font-size: 11px; font-weight: 400; }
+.chemin-ligne { color: inherit; background: none; padding: 0; overflow-wrap: anywhere; }
+/* Un terme cité dans une phrase : police de code, semi-gras, sans fond ni couleur de réponse. */
+.mot-cite:not(.mot-retire):not(.mot-retenu) { font-family: var(--police-chemin); font-size: 11px; font-weight: 600; color: var(--texte); background: none; padding: 0; }
 
-/* Le résumé en tête de la barre du mode Composant. */
-.arch-resume { display: grid; gap: var(--espace-serre); padding-bottom: var(--espace-controle); border-bottom: 1px solid var(--bordure); }
-.arch-resume-ligne { display: flex; align-items: center; justify-content: space-between; gap: var(--espace-controle); }
-.arch-resume-titre { display: flex; align-items: baseline; gap: var(--espace-controle); font-weight: 600; }
-.arch-compteurs { display: flex; flex-wrap: wrap; gap: var(--espace-controle) var(--espace-bloc); }
-.arch-compteurs.perimes .sev { color: var(--texte-second); }
-.arch-compteurs button { all: unset; cursor: pointer; }
-.arch-compteurs button[aria-pressed='true'] .sev { text-decoration: underline; text-underline-offset: 3px; }
+/* ---------- Les alertes et les constats ----------
+   Un type se reconnaît d'un coup d'œil : un liseré, une icône et un mot, de la même couleur. Le fond reste neutre. */
+.ton-bloquant { --ton: var(--ton-bloquant); }
+.ton-corriger { --ton: var(--ton-corriger); }
+.ton-verifier { --ton: var(--ton-verifier); }
+.ton-info { --ton: var(--ton-info); }
+.ton-tenu { --ton: var(--ton-tenu); }
+.ico { display: inline-flex; flex: 0 0 auto; width: 12px; height: 12px; color: var(--ton); }
+.ico svg { width: 12px; height: 12px; display: block; }
+.gravite { display: inline-flex; align-items: center; gap: 6px; color: var(--ton); font-weight: 600; white-space: nowrap; }
 
-/* Un constat : la gravité sur sa ligne, la phrase, le lieu, puis le détail déplié. */
+.alerte { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 0 10px; padding: 10px 12px; border: 1px solid var(--bordure); border-left: 3px solid var(--ton); border-radius: var(--rayon); background: color-mix(in srgb, var(--ton) 7%, var(--fond)); color: var(--texte); }
+.alerte > .ico { margin-top: 2px; }
+.alerte-corps { display: grid; gap: 3px; min-width: 0; }
+.alerte-corps p { margin: 0; }
+.alerte-titre { font-weight: 600; }
+.alerte-meta { color: var(--texte-second); }
+.alerte-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-controle) var(--espace-bloc); padding-top: 4px; }
+.alerte-actions .btn { white-space: nowrap; }
+.lien-externe { display: inline-flex; align-items: center; gap: 4px; color: var(--texte-marque); font-weight: 600; }
+
+/* Un constat dans une liste : la carte de Nomenclature, avec le liseré et la gravité de son type. */
+.carte.a-ton { border-left: 3px solid var(--ton); }
 .constat .tete-bouton { align-items: flex-start; }
 .constat-titre { display: grid; gap: 2px; }
 .constat-lieu { color: var(--texte-second); }
 .constat-faits { display: grid; gap: var(--espace-serre); padding: var(--espace-controle) 0; }
-.constat-fait { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: var(--espace-controle); align-items: baseline; }
+.constat-fait { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: var(--espace-controle); align-items: baseline; }
 .constat-fait > span:first-child { color: var(--texte-second); }
 .constat-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-controle) var(--espace-bloc); padding-top: var(--espace-serre); }
 .constat-statut { color: var(--texte-second); }
 .constat-selection { color: var(--texte-second); }
+.carte-ciblee { outline: 2px solid var(--texte-marque); outline-offset: 1px; }
 
-/* Un bandeau : fond et texte neutres ; seule la bordure gauche dit sa nature. L'ambre reste à ce qui attend une décision. */
-.bandeau { display: grid; gap: 4px; padding: var(--espace-controle) var(--espace-bloc); border: 1px solid var(--bordure); border-left-width: 3px; border-radius: var(--rayon); background: var(--fond); color: var(--texte); }
-.bandeau.attente { border-left-color: var(--texte-avertissement); background: var(--fond-avertissement); }
-.bandeau.info { border-left-color: var(--texte-second); }
-.bandeau.succes { border-left-color: var(--texte-succes); }
-.bandeau.danger { border-left-color: var(--texte-danger); }
-.bandeau p { margin: 0; }
-.bandeau .actions { display: flex; flex-wrap: wrap; gap: var(--espace-controle) var(--espace-bloc); align-items: center; padding-top: 2px; }
-.bandeau .btn { white-space: nowrap; }
+/* Une garantie tenue ou manquée, sur les rôles de niveau du socle. */
+.niveau { display: inline-flex; align-items: center; padding: 0 6px; border-radius: 4px; font-weight: 600; line-height: 18px; }
+.niveau-atteint { background: var(--fond-niveau-atteint); color: var(--texte-niveau-atteint); }
+.niveau-manque { background: var(--fond-niveau-manque); color: var(--texte-niveau-manque); }
+
+/* ---------- La barre et les panneaux ---------- */
+.arch-laterale { flex: 0 0 auto; display: flex; border-left: 1px solid var(--bordure); background: var(--fond); min-height: 0; }
+.arch-laterale > iframe { flex: 1 1 auto; border: 0; width: 100%; height: 100%; display: block; }
+.arch-corps-composant { display: flex; flex: 1 1 auto; min-height: 0; }
+.arch-corps-composant > .vc { flex: 0 0 auto; overflow: auto; }
+.barre .icon-button.avec-libelle, .barre .btn { margin-left: var(--espace-controle); }
+/* Le bouton qui ouvre ou ferme le panneau d'analyse. Sa pastille compte les constats. */
+.bouton-panneau { display: inline-flex; align-items: center; gap: 6px; }
+.bouton-panneau[aria-pressed='true'] { background: var(--fond-selection, #293b58); }
+.pastille-compte { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--ton); color: #1a1a1a; font-size: 11px; font-weight: 700; }
+/* La frontière entre la vue Composant et le panneau : elle se tire à la souris. */
+.arch-poignee { flex: 0 0 7px; display: flex; align-items: center; justify-content: center; cursor: col-resize; background: var(--fond); border-left: 1px solid var(--bordure); }
+.arch-poignee::before { content: ""; width: 3px; height: 28px; border-radius: 2px; background: repeating-linear-gradient(to bottom, var(--texte-second) 0 2px, transparent 2px 5px); opacity: .8; }
+.arch-poignee + .arch-laterale { border-left: 0; }
+
+/* Le résumé en tête du panneau du mode Composant. */
+.arch-resume { display: grid; gap: var(--espace-serre); padding-bottom: var(--espace-controle); border-bottom: 1px solid var(--bordure); }
+.arch-resume-ligne { display: flex; align-items: center; justify-content: space-between; gap: var(--espace-controle); }
+.arch-resume-titre { display: flex; align-items: baseline; gap: var(--espace-controle); font-weight: 600; }
 
 /* Un onglet sans objet dans ce fichier : grisé, sans compte. */
 .onglet[disabled] { opacity: .45; cursor: default; }
 
-/* La matrice des variants, dans la colonne de gauche du mode Composant. */
-.matrice { margin: 4px 16px 12px; }
-.matrice-titre { display: flex; align-items: center; justify-content: space-between; gap: var(--espace-controle); margin-bottom: var(--espace-serre); color: var(--texte-second); }
-.matrice-axes { display: flex; gap: var(--espace-controle); align-items: center; }
-.matrice-axes select { font: inherit; }
-.matrice table { border-collapse: separate; border-spacing: 3px; width: 100%; table-layout: fixed; }
-.matrice th { font-weight: 400; color: var(--texte-second); text-align: left; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.matrice td { height: 26px; border: 1px solid var(--bordure); border-radius: 4px; text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.matrice td.vide, .matrice td.non-lu { border-style: dashed; color: var(--texte-second); }
-.matrice td.choisi { outline: 2px solid var(--texte); outline-offset: 1px; }
-.matrice td .sev { justify-content: center; }
-.matrice-note { margin: var(--espace-serre) 0 0; color: var(--texte-second); }
-.matrice-pied { display: flex; justify-content: space-between; align-items: center; margin-top: var(--espace-serre); }
+/* ---------- Les filtres ----------
+   Un filtre se montre comme une recherche : une puce dans le champ, une croix pour l'enlever. */
+.puce-filtre { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; height: 20px; padding: 0 2px 0 8px; border-radius: 10px; background: var(--fond-selection, #293b58); color: var(--texte); font-size: 11px; white-space: nowrap; }
+.puce-filtre .puce-type { color: var(--texte-second); }
+.puce-filtre .puce-x { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 8px; color: var(--texte-second); }
+.recherche-avec-puce { display: flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 8px; border: 1px solid var(--texte-marque); border-radius: var(--rayon, 5px); background: var(--fond); }
+.filtre-ligne { display: flex; align-items: center; gap: var(--espace-controle); color: var(--texte-second); }
+
+/* La tête de l'arbre : le titre et le bouton qui replie les autres sections. */
+.arbre-tete { display: flex; align-items: center; justify-content: space-between; }
+.arbre-tete .surtitre { margin: 0; }
+.bouton-icone { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 4px; background: none; color: var(--texte-second); }
+.bouton-icone:hover, .bouton-icone.survol { background: var(--fond-survol); color: var(--texte); }
+
+/* Les modes affichés par la table du mode Tokens, sur une ligne. Chaque menu nomme sa collection. */
+.modes-affiches { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--espace-controle); color: var(--texte-second); white-space: nowrap; }
+.mode-col { display: inline-flex; align-items: center; gap: 6px; }
+.mode-col .collection { display: inline-flex; align-items: center; gap: 4px; color: var(--texte); font-family: var(--police-chemin); font-size: 11px; }
+.mode-col select { font: inherit; height: 24px; padding: 0 22px 0 6px; }
+/* Une valeur pas encore lue dans une bibliothèque. */
+.valeur-attente { display: inline-block; width: 92px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, var(--fond-survol) 0 100%); opacity: .7; }
+
+/* ---------- La section Variants de la vue Composant ---------- */
+.variants { margin: 4px 16px 12px; border: 1px solid var(--bordure); border-radius: 6px; background: var(--fond); }
+.variants-tete { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--bordure); }
+.variants-tete h3 { margin: 0; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.variants-tete .meta { color: var(--texte-second); font-weight: 400; margin-left: 6px; }
+.variants-tete select { flex: 0 1 190px; min-width: 0; font: inherit; font-size: 11px; height: 22px; }
+.variants-corps { padding: 8px 10px; }
+.variants table { border-collapse: separate; border-spacing: 3px; width: 100%; table-layout: fixed; }
+.variants th { font-weight: 400; color: var(--texte-second); text-align: left; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
+.variants td { height: 24px; border: 1px solid var(--bordure); border-radius: 4px; text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; font-size: 11px; }
+.variants td > span { display: inline-flex; align-items: center; gap: 5px; color: var(--ton, var(--texte-second)); font-weight: 600; }
+.variants td.v-absent, .variants td.v-non-lu { border-style: dashed; color: var(--texte-second); }
+.variants td.choisi { outline: 2px solid var(--texte); outline-offset: 1px; }
+.variants-pied { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; padding: 8px 10px; border-top: 1px solid var(--bordure); font-size: 11px; }
+.variants-pied .meta { color: var(--texte-second); }
+.variants-legende { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0 0; color: var(--texte-second); font-size: 11px; }
+.variants-legende span { display: inline-flex; align-items: center; gap: 4px; }
+/* Par propriété : une ligne par propriété, une puce par valeur. La longueur suit la somme des valeurs. */
+.axes { display: grid; gap: 8px; }
+.axe { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 8px; align-items: start; }
+.axe-nom { color: var(--texte-second); font-size: 11px; line-height: 22px; }
+.axe-valeurs { display: flex; flex-wrap: wrap; gap: 4px; }
+.valeur-axe { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border: 1px solid var(--bordure); border-radius: 11px; background: none; color: var(--texte); font-size: 11px; }
+.valeur-axe.choisie { border-color: var(--texte); background: var(--fond-selection, #293b58); }
+.valeur-axe .n { display: inline-flex; align-items: center; gap: 3px; color: var(--ton); font-weight: 600; }
+
+/* ---------- La fiche d'une variable ---------- */
+.feuille.avec-marges { width: calc(100% - 24px); margin: 0 12px; }
+/* La chaîne d'alias, dessinée comme dans la vue Composant : un rail, un nœud par variable, la valeur au bout. */
+.chaine-alias { margin: 0; padding: 4px 0 0 6px; list-style: none; }
+.chaine-alias li { position: relative; padding: 0 0 8px 16px; border-left: 1px solid var(--bordure); }
+.chaine-alias li:last-child { padding-bottom: 0; border-left-color: transparent; }
+.chaine-alias li::before { position: absolute; top: 5px; left: -4px; width: 7px; height: 7px; border: 1px solid var(--texte-second); border-radius: 50%; background: var(--fond); content: ''; }
+.chaine-alias li.terme::before { background: var(--texte-second); }
+.chaine-col { display: flex; align-items: center; gap: 6px; color: var(--texte-second); font-size: 10.5px; line-height: 17px; }
+.chaine-mode { padding: 0 5px; border: 1px solid var(--bordure); border-radius: 8px; font-size: 10px; line-height: 14px; }
+.chaine-valeur { display: inline-flex; align-items: center; gap: 7px; font: 12px var(--police-chemin); }
+.puce-couleur { display: inline-block; width: 12px; height: 12px; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--bordure); flex: 0 0 auto; }
+
+/* ---------- La préparation des tokens ---------- */
+.option-prep { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 2px 8px; padding: 8px 10px; border: 1px solid var(--bordure); border-radius: var(--rayon); }
+.option-prep + .option-prep { margin-top: 6px; }
+.option-prep.prise { border-color: var(--texte); }
+.option-prep .radio { width: 12px; height: 12px; margin-top: 3px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--texte-second); }
+.option-prep.prise .radio { box-shadow: inset 0 0 0 3px var(--fond), inset 0 0 0 12px var(--texte); }
+.option-prep .titre { font-weight: 600; }
+.option-prep .titre .meta { font-weight: 400; color: var(--texte-second); margin-left: 6px; }
+.option-cibles { grid-column: 2; display: grid; gap: 3px; margin-top: 4px; }
+.cible { display: grid; grid-template-columns: 52px 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.cible > span:first-child { color: var(--texte-second); }
+.cible .cran { color: var(--texte-second); white-space: nowrap; }
+.zone-texte { width: 100%; min-height: 72px; padding: 6px 8px; border: 1px solid var(--bordure); border-radius: var(--rayon); background: var(--fond); color: var(--texte-second); font-family: var(--police-chemin); }
 
 /* Une paire mesurée : le premier plan sur son fond, le rapport et le seuil. */
 .paire { display: inline-flex; align-items: center; gap: var(--espace-controle); }
 .paire-echantillon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 20px; border-radius: 4px; font-weight: 700; box-shadow: inset 0 0 0 1px var(--bordure); }
 .mesures { display: grid; gap: 2px; }
 .mesures span { color: var(--texte-second); }
-
-/* Le parcours de génération : des choix sans réponse cochée, chacun avec la couleur du thème qu'il donnerait. */
-.choix-ligne { display: flex; flex-wrap: wrap; gap: var(--espace-serre); }
-.choix { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border: 1px solid var(--bordure); border-radius: 999px; }
-.choix::before { content: ""; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--texte-second); }
-.choix.pris::before { box-shadow: inset 0 0 0 3px var(--fond), inset 0 0 0 10px var(--texte); }
-.choix .puce-couleur { width: 10px; height: 10px; }
-.zone-texte { width: 100%; min-height: 72px; padding: 6px 8px; border: 1px solid var(--bordure); border-radius: var(--rayon); background: var(--fond); color: var(--texte-second); font-family: var(--police-code); }
-
-/* Le chemin d'une variable : les groupes en orchidée, la variable en olive. */
-.chemin-place { font-family: var(--police-code); overflow-wrap: anywhere; }
-
-/* Les étapes d'une chaîne d'alias dans la fiche d'une variable. */
-.chaine { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
-.chaine li { display: flex; align-items: center; gap: var(--espace-controle); font-family: var(--police-code); }
-.chaine li::before { content: "↳"; color: var(--texte-second); }
-.chaine li:first-child::before { content: ""; }
-.puce-couleur { display: inline-block; width: 12px; height: 12px; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--bordure); flex: 0 0 auto; }
-
-/* Les modes affichés par la table du mode Tokens, à la place de l'ancien contexte A de l'onglet Comparer. */
-.modes-affiches { display: flex; flex-wrap: wrap; gap: var(--espace-controle); align-items: center; color: var(--texte-second); }
-.modes-affiches select { font: inherit; }
-
-/* Une ligne de l'arbre ou de la table marquée par la barre latérale. */
-.arbre-ligne.filtre-actif { box-shadow: inset 3px 0 0 var(--texte-groupe); }
-.marquee { box-shadow: inset 3px 0 0 var(--texte-variable); background: var(--fond-survol); }
-
-/* Un seul style pour tout chemin de token, dans la colonne de gauche comme dans la barre latérale : celui de Nomenclature.
-   Police de code, 11 px, graisse normale ; seul le segment qui change passe en semi-gras, rouge barré s'il part, vert s'il arrive. */
-.nom-de-token, .vc-nom, .vc-nom bdi, .chemin-ligne, .arbre-libelle { font-family: "JetBrains Mono", Consolas, monospace; font-size: 11px; font-weight: 400; }
-.chemin-ligne { color: inherit; background: none; padding: 0; overflow-wrap: anywhere; }
-.chemin-titre { font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px; font-weight: 400; overflow-wrap: anywhere; }
-.chemin-titre b { font-weight: 600; }
-.application .seg-ancien { color: var(--texte-danger, rgb(255 175 163)); font-weight: 600; text-decoration: line-through; text-decoration-thickness: 1px; }
-.application .seg-nouveau { color: var(--texte-succes, rgb(133 224 163)); font-weight: 600; }
-/* Un terme cité dans une phrase : police de code, semi-gras, sans fond ni couleur de réponse. */
-.mot-cite:not(.mot-retire):not(.mot-retenu) { font-family: "JetBrains Mono", Consolas, monospace; font-size: 11px; font-weight: 600; color: var(--texte); background: none; padding: 0; }
-/* L'aperçu des corrections cochées dans la colonne de gauche : l'interrupteur qui l'affiche. */
-.apercu-corrections { display: inline-flex; align-items: center; gap: var(--espace-controle); color: var(--texte-second); white-space: nowrap; }
-
-
-/* Les places de la forme D dans la colonne de l'explorateur : l'arbre liste des groupes, la table des variables. */
-.application .arbre-groupe .arbre-libelle { color: var(--texte-groupe); }
 
 /* Les repères de la maquette, hors du plugin : un trait fin et une pastille numérotée, expliquée sous la fenêtre. */
 .repere { outline: 1px dashed #ff8ad8; outline-offset: 1px; }

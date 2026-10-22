@@ -13,7 +13,7 @@ const erreurs = [];
 page.on('pageerror', (e) => erreurs.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error' || m.text().startsWith('Repère introuvable')) erreurs.push(m.text()); });
 await page.goto(pathToFileURL(maquette).href);
-await page.waitForTimeout(4000);
+await page.waitForTimeout(5000);
 
 const rapport = await page.evaluate(() => {
   const nom = (e) => `${e.tagName.toLowerCase()}${e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).slice(0, 3).join('.') : ''} « ${(e.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 40)} »`;
@@ -28,8 +28,8 @@ const rapport = await page.evaluate(() => {
       if (s.overflowX === 'visible' && e.scrollWidth > e.clientWidth + 2 && e.clientWidth > 0 && [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) defauts.push(`${lieu} : texte qui sort de ${nom(e)}`);
       if (e.matches('.jeton, .btn, .sev, .choix, .onglet') && r.height > 2 * parseFloat(s.lineHeight || '16') + 8) defauts.push(`${lieu} : coupé sur deux lignes ${nom(e)}`);
     }
-    // Un chemin de token a un seul style dans tout le plugin : celui de Nomenclature.
-    for (const e of doc.querySelectorAll('.chemin, .chemin-apres:not(.reste .chemin-apres), .chemin-ligne, .nom-de-token, .vc-nom bdi')) {
+    // Un chemin de token a un seul style dans tout le plugin. Les écrans « Aujourd'hui » (a-) gardent le style réel.
+    if (!lieu.startsWith('a-')) for (const e of doc.querySelectorAll('.chemin, .chemin-apres:not(.reste .chemin-apres), .chemin-ligne, .nom-de-token, .vc-nom bdi')) {
       const s = doc.defaultView.getComputedStyle(e);
       if (!s.fontFamily.includes('JetBrains Mono') || s.fontSize !== '11px' || s.fontWeight !== '400') defauts.push(`${lieu} : chemin hors du style commun ${nom(e)} (${s.fontSize} ${s.fontWeight})`);
     }
@@ -43,7 +43,7 @@ const rapport = await page.evaluate(() => {
     if (aside) {
       const interne = aside.querySelector('iframe')?.contentDocument;
       defauts.push(...auditer(interne, `${hote.id} › barre latérale`));
-      if (interne && !interne.querySelector('.onglets, .bandeau, .arch-resume, .liste')) defauts.push(`${hote.id} › barre latérale : sans contenu attendu`);
+      if (interne && !interne.querySelector('.onglets, .alerte, .arch-resume, .liste')) defauts.push(`${hote.id} › barre latérale : sans contenu attendu`);
       const hauteur = aside.querySelector('iframe')?.getBoundingClientRect().height ?? 0;
       if (hauteur < 300) defauts.push(`${hote.id} › barre latérale : haute de ${Math.round(hauteur)} px seulement`);
     }
