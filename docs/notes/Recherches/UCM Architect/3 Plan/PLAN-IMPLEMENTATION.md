@@ -296,7 +296,7 @@ fichiers disjoints de ceux de Claude 2.
 Défauts : Codex · nature « code nouveau » · Vérifie : tests du kit et tests
 racine (§4.7). Aucun lot K ne monte de version (lot V).
 
-- [ ] **K0 · Clés, sous-chemin, relevé et catalogue.** Vague 1 · note N2.
+- [x] (1a88f4d0) **K0 · Clés, sous-chemin, relevé et catalogue.** Vague 1 · note N2.
   Écrit : `kit/src/referentiel/produits.ts`, `kit/src/controles/` (index,
   `releve.ts`, `catalogue.ts`, `constat.ts`), `kit/package.json` (exports
   seulement), `kit/README.md` (porte nouvelle).
@@ -385,7 +385,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `monorepoCoherent` et `pinDocumente` compris ; le corpus
   `docs/references/design-systems/ucm/` régénéré par
   `node docs/references/design-systems/_outils/ucm.mjs` (il date la version du kit).
-  Fait : V1 (kit 0.12.0, après K2).
+  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0).
 
 ### Piste S · socle
 
