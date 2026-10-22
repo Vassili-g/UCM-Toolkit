@@ -504,7 +504,7 @@ de galerie quand le lot B n'est pas fait.
   `plugin-architect/galerie/comparer-maquette.cjs`.
   Fait quand : règles du §4.10 ; à l'essai, une police changée et un élément
   retiré font échouer la comparaison ; un cadre manquant aussi.
-- [~ Claude 1] **U1 · Mode Tokens, Corrections.** Vague 3 · S1, A1.
+- [~ Claude 1] **U1 · Mode Tokens, Corrections.** Partiel : `9d3fb0f9` (1/2), tests verts ; reste le comparateur (Q-38). Vague 3 · S1, A1.
   Domaines : `commun` (barre), `arbre`, `nomenclature`.
   Maquette : `t-renommages` ; `fenetreTokens`, `MODES_AFFICHES`,
   `ARBRE_INTERFACE`, `LIGNES_INTERFACE`, `ciblerCarte`, `nomenclatureLaterale`.
@@ -1049,8 +1049,7 @@ Sondes, lancées par le mainteneur au lancement :
 **Relais du 22 octobre au soir.** Session de l'orchestrateur et Codex
 arrêtés par leur limite. Fait et commité : O0, S0, A0.1, A0.2 (J0 vert),
 A1, U0, S1, S2, S3, X1, B1, B3, B10, K0, K1, K2, K4, K7, K9, V1 à V5. Ouverts
-au moment de l'arrêt, non commités dans l'arbre partagé : U1 (agent
-Claude 1) ; la reprise relit `git status`, garde ce
+au moment de l'arrêt, non commités dans l'arbre partagé : aucun (U1 commité en partie, voir sa ligne) ; la reprise relit `git status`, garde ce
 qui passe les vérifications de leur fiche, ou repart de la fiche. K3 : voir
 sa ligne. Prochains lots : finir K3, fusionner Codex (lot V5), puis K8, K5,
 B2, U2 à U4, B6.
@@ -1183,6 +1182,17 @@ Choix faits sans le mainteneur :
   au moins deux autres variants unanimes ; une icône est un layer dont le nom
   contient « icon », ou piloté par une propriété INSTANCE_SWAP ; constats
   groupés par cause · réversible : oui.
+- Q-38 · U1 · Comparateur « sans écart » hors d'atteinte · la maquette
+  monte des galeries figées aux chiffres contradictoires (pied « 17
+  variables, 3 collections » contre 1 072 dans l'arbre, 10 lignes pour 66
+  variables, ordre de l'arbre, `hovered` et `hover`) ; 37 écarts de couleur
+  viennent du décalque de thème de la galerie. Question au mainteneur :
+  corriger les données de la maquette, ou borner le comparateur aux
+  sélecteurs du manifeste et aux textes de la barre latérale. U2 à U8
+  attendent cette réponse pour leur critère de fidélité · réversible : oui.
+- Q-39 · U1 · Pied et compte · « Appliquer renomme 24 variables et 1
+  collection de Interface. » et un compte de 25 (la collection est un
+  renommage) ; la maquette dit 24 · réversible : oui.
 
 ## 10. Hors du plan
 
