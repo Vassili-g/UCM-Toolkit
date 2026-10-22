@@ -30,6 +30,9 @@
 .ch-lien { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
 .ch-lien.survol { text-decoration-style: solid; }
 .ch-titre { font-size: 13px; }
+/* Un chemin ou un variant cité dans une phrase : un fond discret le sépare du texte. */
+.ch-inline { padding: 1px 5px; border-radius: 3px; background: var(--fond-survol); white-space: normal; }
+.ch-variant { color: var(--texte); }
 
 /* Un seul style pour tout chemin de token, dans la colonne de gauche comme dans la barre latérale : police de code, 11 px. */
 .nom-de-token, .vc-nom, .vc-nom bdi, .chemin-ligne, .arbre-libelle { font-family: var(--police-chemin); font-size: 11px; font-weight: 400; }
@@ -69,7 +72,8 @@
 .constat-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-controle) var(--espace-bloc); padding-top: var(--espace-serre); }
 .constat-statut { color: var(--texte-second); }
 .constat-selection { color: var(--texte-second); }
-.carte-ciblee { outline: 2px solid var(--texte-marque); outline-offset: 1px; }
+/* La carte qu'un clic ailleurs vient d'ouvrir. Bordure et ombre, pas outline : un repère de maquette pose son propre outline. */
+.carte.carte-ciblee { border-color: var(--texte-marque); box-shadow: 0 0 0 1px var(--texte-marque); background: color-mix(in srgb, var(--texte-marque) 9%, var(--fond)); }
 
 /* Une garantie tenue ou manquée, sur les rôles de niveau du socle. */
 .niveau { display: inline-flex; align-items: center; padding: 0 6px; border-radius: 4px; font-weight: 600; line-height: 18px; }
@@ -104,7 +108,8 @@
 .puce-filtre { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; height: 20px; padding: 0 2px 0 8px; border-radius: 10px; background: var(--fond-selection, #293b58); color: var(--texte); font-size: 11px; white-space: nowrap; }
 .puce-filtre .puce-type { color: var(--texte-second); }
 .puce-filtre .puce-x { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 8px; color: var(--texte-second); }
-.recherche-avec-puce { display: flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 8px; border: 1px solid var(--texte-marque); border-radius: var(--rayon, 5px); background: var(--fond); }
+/* Une recherche posée par un lien du plugin : du texte dans le champ, bordure bleue. */
+.recherche-active { border-color: var(--texte-marque) !important; color: var(--texte) !important; }
 .filtre-ligne { display: flex; align-items: center; gap: var(--espace-controle); color: var(--texte-second); }
 
 /* La tête de l'arbre : le titre et le bouton qui replie les autres sections. */
@@ -128,17 +133,10 @@
 .variants-tete .meta { color: var(--texte-second); font-weight: 400; margin-left: 6px; }
 .variants-tete select { flex: 0 1 190px; min-width: 0; font: inherit; font-size: 11px; height: 22px; }
 .variants-corps { padding: 8px 10px; }
-.variants table { border-collapse: separate; border-spacing: 3px; width: 100%; table-layout: fixed; }
-.variants th { font-weight: 400; color: var(--texte-second); text-align: left; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
-.variants td { height: 24px; border: 1px solid var(--bordure); border-radius: 4px; text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; font-size: 11px; }
-.variants td > span { display: inline-flex; align-items: center; gap: 5px; color: var(--ton, var(--texte-second)); font-weight: 600; }
-.variants td.v-absent, .variants td.v-non-lu { border-style: dashed; color: var(--texte-second); }
-.variants td.choisi { outline: 2px solid var(--texte); outline-offset: 1px; }
-.variants-pied { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; padding: 8px 10px; border-top: 1px solid var(--bordure); font-size: 11px; }
+.variants-pied { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 8px; padding: 8px 10px; border-top: 1px solid var(--bordure); font-size: 11px; }
 .variants-pied .meta { color: var(--texte-second); }
-.variants-legende { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0 0; color: var(--texte-second); font-size: 11px; }
-.variants-legende span { display: inline-flex; align-items: center; gap: 4px; }
-/* Par propriété : une ligne par propriété, une puce par valeur. La longueur suit la somme des valeurs. */
+.variants-affiche { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+/* Formes A et C : une ligne par property, une puce par valeur. C ne montre que la valeur affichée et les valeurs à constat. */
 .axes { display: grid; gap: 8px; }
 .axe { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 8px; align-items: start; }
 .axe-nom { color: var(--texte-second); font-size: 11px; line-height: 22px; }
@@ -146,6 +144,15 @@
 .valeur-axe { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border: 1px solid var(--bordure); border-radius: 11px; background: none; color: var(--texte); font-size: 11px; }
 .valeur-axe.choisie { border-color: var(--texte); background: var(--fond-selection, #293b58); }
 .valeur-axe .n { display: inline-flex; align-items: center; gap: 3px; color: var(--ton); font-weight: 600; }
+.valeur-axe.plus { border-style: dashed; color: var(--texte-second); }
+.valeur-axe.non-lu { border-style: dashed; }
+.non-lu-texte { color: var(--texte-second); }
+/* Forme B : les variants qui ont des constats, du plus grave au moins grave. */
+.variants-ordre { margin: 0 0 6px; color: var(--texte-second); font-size: 11px; }
+.liste-variants { display: grid; gap: 2px; margin-bottom: 6px; }
+.variante-ligne { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 8px; align-items: center; padding: 3px 6px; border: 0; border-radius: 4px; background: none; color: var(--texte); font-size: 11px; text-align: left; }
+.variante-ligne .n { display: inline-flex; align-items: center; gap: 3px; color: var(--ton); font-weight: 600; }
+.variante-ligne.choisie { background: var(--fond-selection, #293b58); }
 
 /* ---------- La fiche d'une variable ---------- */
 .feuille.avec-marges { width: calc(100% - 24px); margin: 0 12px; }
@@ -169,7 +176,7 @@
 .option-prep .titre { font-weight: 600; }
 .option-prep .titre .meta { font-weight: 400; color: var(--texte-second); margin-left: 6px; }
 .option-cibles { grid-column: 2; display: grid; gap: 3px; margin-top: 4px; }
-.cible { display: grid; grid-template-columns: 52px 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.cible { display: grid; grid-template-columns: 78px 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
 .cible > span:first-child { color: var(--texte-second); }
 .cible .cran { color: var(--texte-second); white-space: nowrap; }
 .zone-texte { width: 100%; min-height: 72px; padding: 6px 8px; border: 1px solid var(--bordure); border-radius: var(--rayon); background: var(--fond); color: var(--texte-second); font-family: var(--police-chemin); }

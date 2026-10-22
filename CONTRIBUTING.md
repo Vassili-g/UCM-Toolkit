@@ -187,6 +187,15 @@ phrase reste en français, sauf dans UCM Palettes, décrit plus bas ; seul le
 nom de l’élément Figma est repris à l’identique. Ne traduisez jamais un libellé de panneau : `padding` ne devient
 pas « marges intérieures ».
 
+Cette règle vaut pour l’interface de chaque plugin, pas seulement pour les
+messages de l’export. Un réglage de variable garde son nom Figma : un scope
+reste un scope, jamais une « portée ». Un variant s’écrit comme Figma le
+nomme : `Severity=info, Variant=standard`.
+
+Les termes du modèle UCM restent aussi tels quels : `solid`, `surface`, `page`,
+`soft`, `vivid`, `background`, `foreground`. Une description en français peut
+suivre le terme, jamais le remplacer : `surface`, le fond teinté.
+
 | Terme du code | Terme employé | | Terme du code | Terme employé |
 |---|---|---|---|---|
 | `node de layout` | auto layout frame | | `itemSpacing` | gap, ou horizontal gap sous le wrap |
