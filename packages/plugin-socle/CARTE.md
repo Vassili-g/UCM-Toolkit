@@ -32,6 +32,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - exportableNodes.ts : parcours de l'arbre, hors dépendances composées
 - porteeDAnalyse.ts : ce qu'une analyse garde le temps d'un export : un maître par instance
 - mesure.ts : trace de chaque analyse : durées, compteurs, avancement de la barre
+- budget.ts : le budget de layers d'une analyse, sa borne par défaut, et les variants qu'il laisse lire
 - parsers.ts : propriétés Figma → API publique
 - merge*.ts : doc et icônes des règles, rangées sur leur axe
 - rulesModel.ts : modèle pur des règles d’usage

@@ -9,11 +9,33 @@
  */
 import { compter } from './mesure';
 
+/**
+ * Le jeton qu'un appelant lève pour demander l'arrêt de l'analyse : une
+ * seconde demande, un changement de sujet. L'analyse le lit entre deux variants
+ * et aux points de respiration ; elle ne l'écoute pas pendant un bloc qu'elle
+ * calcule sans rendre la main.
+ */
+export type JetonDAnnulation = { readonly leve: boolean };
+
+/** Levée au point de contrôle qui voit le jeton levé ; `analyserLeComposant` la rend en résultat. */
+export class AnalyseAnnulee extends Error {
+  constructor() {
+    super('analyse annulée');
+    this.name = 'AnalyseAnnulee';
+  }
+}
+
+/** Lève `AnalyseAnnulee` si le jeton est levé ; sans jeton, ne fait rien. */
+export function verifierLAnnulation(jeton?: JetonDAnnulation): void {
+  if (jeton?.leve) throw new AnalyseAnnulee();
+}
+
 type Portee = {
   /** Le maître de chaque instance déjà demandée, par id d'instance. */
   maitres: Map<string, Promise<ComponentNode | null>>;
   /** Rend la main au sandbox, et lève si l'analyse est annulée. */
   respirer?: () => Promise<void>;
+  jeton?: JetonDAnnulation;
   derniereRespiration: number;
 };
 
@@ -41,7 +63,7 @@ let desactivee = false;
  * Le refus persiste même si la première portée se ferme avant lui.
  */
 export async function dansUnePorteeDAnalyse<T>(
-  options: { respirer?: () => Promise<void> },
+  options: { respirer?: () => Promise<void>; jeton?: JetonDAnnulation },
   corps: () => Promise<T>,
 ): Promise<T> {
   if (portee || porteesRefusees > 0) {
@@ -56,6 +78,7 @@ export async function dansUnePorteeDAnalyse<T>(
   const ouverte: Portee = {
     maitres: new Map(),
     respirer: options.respirer,
+    jeton: options.jeton,
     derniereRespiration: Date.now(),
   };
   portee = ouverte;
@@ -100,14 +123,17 @@ function lireLeMaitre(instance: InstanceNode): Promise<ComponentNode | null> {
 
 /**
  * Rend la main si le budget de calcul est écoulé ; sans effet hors portée, ou
- * dans une portée ouverte sans `respirer`.
+ * dans une portée ouverte sans `respirer` ni jeton levé. Le jeton se lit à
+ * chaque appel, avant le budget de calcul : il coûte une lecture.
  *
  * `respirer` lève sur une analyse annulée : l'exception traverse la boucle qui
  * respire, et la portée se ferme dans son `finally`.
  */
 export async function respirerSiBesoin(): Promise<void> {
   const ouverte = portee;
-  if (!ouverte?.respirer || porteesRefusees > 0) return;
+  if (!ouverte || porteesRefusees > 0) return;
+  verifierLAnnulation(ouverte.jeton);
+  if (!ouverte.respirer) return;
   if (Date.now() - ouverte.derniereRespiration < BUDGET_DE_CALCUL_MS) return;
   compter('respirations');
   await ouverte.respirer();

@@ -16,7 +16,14 @@ import { extractRules } from './extractRules';
 import { contientUneInstanceRendue } from './exportableNodes';
 import { avancer, etape } from './mesure';
 import type { EtapePrevue } from './mesure';
-import { dansUnePorteeDAnalyse, respirerSiBesoin } from './porteeDAnalyse';
+import {
+  AnalyseAnnulee,
+  dansUnePorteeDAnalyse,
+  respirerSiBesoin,
+  verifierLAnnulation,
+} from './porteeDAnalyse';
+import type { JetonDAnnulation } from './porteeDAnalyse';
+import { bornerLesVariants } from './budget';
 import { pousserLesImbriques, releverLesImbriques } from './imbriques';
 import type { ReleveDesImbriques } from './imbriques';
 import { TAGS_D_INTENTION } from './rulesModel';
@@ -125,6 +132,26 @@ export type ComponentExport = {
   localisationsDeclarees: ReadonlyMap<string, string>;
   /** Les imbriqués sans règles : la création des règles en tire son modèle et ses points. */
   imbriques: ReleveDesImbriques;
+};
+
+/**
+ * Comment une analyse a fini. `partielle` : le budget de layers a arrêté la
+ * lecture des variants ; `export` ne décrit que les variants lus, sans point à
+ * corriger pour les autres. `annulee` : le jeton s'est levé, rien n'est produit.
+ */
+export type ResultatDAnalyse =
+  | { etat: 'complete'; export: ComponentExport }
+  | { etat: 'partielle'; export: ComponentExport; lus: number; nonLus: number | 'inconnu' }
+  | { etat: 'annulee' };
+
+/** Les options de `analyserLeComposant`. Sans `budgetDeLayers` : tout se lit. Sans `jeton` : jamais annulée. */
+export type OptionsDAnalyse = {
+  respirer?: () => Promise<void>;
+  composant?: ComponentNode | ComponentSetNode;
+  page?: PageNode;
+  /** Le nombre de layers de variants à ne pas dépasser, `BUDGET_DE_LAYERS_PAR_DEFAUT` pour la borne commune. */
+  budgetDeLayers?: number;
+  jeton?: JetonDAnnulation;
 };
 
 /** Erreur « métier » : son message est affiché tel quel à l'utilisateur. */
@@ -240,23 +267,46 @@ export const ETAPES_DE_L_ANALYSE: readonly EtapePrevue[] = [
  */
 export async function handleExportComponent(
   annoncer: Annonce = () => {},
-  options: {
-    respirer?: () => Promise<void>;
-    composant?: ComponentNode | ComponentSetNode;
-    page?: PageNode;
-  } = {},
+  options: Omit<OptionsDAnalyse, 'budgetDeLayers' | 'jeton'> = {},
 ): Promise<ComponentExport> {
+  const resultat = await analyserLeComposant(annoncer, options);
+  if (resultat.etat === 'annulee') throw new Error('analyse annulée sans jeton');
+  return resultat.export;
+}
+
+/**
+ * Comme `handleExportComponent`, avec un budget de layers et un jeton
+ * d'annulation, et un résultat qui dit comment l'analyse a fini. Le jeton levé
+ * rend `annulee`, sans exception ni point à corriger ; il se lit après chaque
+ * étape annoncée, entre deux variants du budget et aux points de respiration.
+ */
+export async function analyserLeComposant(
+  annoncer: Annonce = () => {},
+  options: OptionsDAnalyse = {},
+): Promise<ResultatDAnalyse> {
   const composant = options.composant ?? getSelectedComponent();
   const page = options.page ?? figma.currentPage;
-  return dansUnePorteeDAnalyse(options, () => exporterLeComposant(annoncer, composant, page));
+  try {
+    return await dansUnePorteeDAnalyse(options, () => exporterLeComposant(
+      annoncer, composant, page, options.budgetDeLayers, options.jeton,
+    ));
+  } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) return { etat: 'annulee' };
+    throw erreur;
+  }
 }
 
 async function exporterLeComposant(
   annoncer: Annonce,
   componentSet: ComponentNode | ComponentSetNode,
   page: PageNode,
-): Promise<ComponentExport> {
+  budgetDeLayers?: number,
+  jeton?: JetonDAnnulation,
+): Promise<ResultatDAnalyse> {
+  const verifier = () => verifierLAnnulation(jeton);
+  verifier();
   await annoncer('Lecture des règles d’usage…');
+  verifier();
   etape('regles');
 
   // Les règles enrichissent l'intention et la documentation, mais ne sont plus
@@ -319,12 +369,13 @@ async function exporterLeComposant(
   // La liste exacte porte cet écart : il ne manque rien à la projection v8.
   warningCursor = warnings.length;
   await annoncer('Lecture des variants…');
+  verifier();
   etape('variants');
-  const { matrix, warnings: matrixWarnings } = buildVariantMatrix(
+  const { matrix: matriceLue, warnings: matrixWarnings } = buildVariantMatrix(
     componentSet,
     propertyModel.publicVariantKeyByRawKey,
   );
-  if (matrix.variants.length === 0) {
+  if (matriceLue.variants.length === 0) {
     throw new ComponentExportError(
       `Export impossible pour « ${componentSet.name} » : ce component set ne contient aucun `
         + `variant. Ajoutez au moins un variant dans Figma, puis réexportez.`,
@@ -332,13 +383,20 @@ async function exporterLeComposant(
   }
   // Le variant de référence sert de base au layout.
   const referenceComponent = componentSet.type === 'COMPONENT_SET'
-    ? componentSet.defaultVariant ?? matrix.variants[0]?.component ?? null
+    ? componentSet.defaultVariant ?? matriceLue.variants[0]?.component ?? null
     : componentSet;
+  // Le budget retire des variants avant toute extraction : le reste du moteur
+  // ne voit qu'une matrice plus courte, et n'a rien à dire des variants absents.
+  const bornee = budgetDeLayers === undefined
+    ? null
+    : bornerLesVariants(matriceLue.variants, referenceComponent, budgetDeLayers, verifier);
+  const matrix = bornee ? { ...matriceLue, variants: bornee.gardes } : matriceLue;
 
   // La composition se relève avant toute extraction : un composant unifié
   // imbriqué n'est ni un wrapper, ni un slot à parcourir, et cette décision
   // conditionne tout ce qui suit.
   await annoncer('Lecture des composants imbriqués…');
+  verifier();
   etape('index');
   const contientDesInstances = matrix.variants.some(({ component }) =>
     contientUneInstanceRendue(component));
@@ -374,6 +432,7 @@ async function exporterLeComposant(
   warningCursor = warnings.length;
 
   await annoncer('Lecture des variables…');
+  verifier();
   etape('wrapper');
   const wrapper = referenceComponent
     ? await findWrapperReference(referenceComponent, warnings, composed)
@@ -548,6 +607,7 @@ async function exporterLeComposant(
   // appliquées relevées : il ne recalcule ni chemin de slot, ni reconnaissance
   // de dépendance, il assemble ce que les deux extractions savent déjà.
   await annoncer('Préparation des exemples…');
+  verifier();
   etape('echantillons');
   const componentsById = new Map(matrix.variants.map(({ component }) => [component.id, component]));
   for (const [rang, variant] of extracted.variants.entries()) {
@@ -568,6 +628,7 @@ async function exporterLeComposant(
   }
 
   await annoncer('Écriture du contrat…');
+  verifier();
   etape('compaction');
   const compacted = compactVariants(extracted.variants, propertyBindings);
 
@@ -672,7 +733,7 @@ async function exporterLeComposant(
   }, CATALOGUES_DE_VUES);
 
   etape('serialisation');
-  return {
+  const sortie: ComponentExport = {
     filename: componentContractFilename(contract.name),
     content: serializeJson(contract),
     warningCount: allWarnings.length,
@@ -682,6 +743,9 @@ async function exporterLeComposant(
     localisationsDeclarees,
     imbriques,
   };
+  return bornee?.bilan
+    ? { etat: 'partielle', export: sortie, ...bornee.bilan }
+    : { etat: 'complete', export: sortie };
 }
 
 export default handleExportComponent;
