@@ -431,7 +431,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `monorepoCoherent` et `pinDocumente` compris ; le corpus
   `docs/references/design-systems/ucm/` régénéré par
   `node docs/references/design-systems/_outils/ucm.mjs` (il date la version du kit).
-  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`) ; V7 (0.12.6, après K6 et K8, `683d8e28`) ; V8 (0.12.7, après K5) ; V9 (0.12.8, après K10 et la revue, `104868cc`) ; V10 (0.12.9, après K11, `2cc85eac`) ; V11 (0.12.10, après K12).
+  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`) ; V7 (0.12.6, après K6 et K8, `683d8e28`) ; V8 (0.12.7, après K5) ; V9 (0.12.8, après K10 et la revue, `104868cc`) ; V10 (0.12.9, après K11, `2cc85eac`) ; V11 (0.12.10, après K12) ; V12 (0.12.11, après O1).
 
 ### Piste S · socle
 
@@ -728,7 +728,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
 ### Piste O · orchestrateur
 
 - [x] (f32079e8) **O0 · Vague 0** : notes du §7, fiches exécutables, sondes envoyées.
-- [ ] **O1 · Documents de jalon** : cohérence générale de `agents:diff`,
+- [~ orchestrateur] (ROADMAP 9522c12b ; anciens noms e91a846c) **O1 · Documents de jalon** : cohérence générale de `agents:diff`,
   `SPEC.md` de l'explorateur devenu celui d'Architect, README de ce dossier,
   ROADMAP.
 - [ ] **O2 · Fin** (skill `publier-paquets`) : recette locale, commit final,
