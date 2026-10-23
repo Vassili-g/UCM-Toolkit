@@ -381,7 +381,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   Alert rend les variables de l'aperçu ; `Frame 12` rend une question ; une
   taille se lie seulement si un seul token de `layout` a la valeur.
 
-- [ ] **K10 · Constats manquants du kit.** Codex · après B6 · K3, K5.
+- [~ Codex] **K10 · Constats manquants du kit.** Codex · K3, K5.
   Écrit : `kit/src/controles/{nommage,structure}.ts` ou un fichier nouveau
   de `kit/src/controles/`, leurs tests, leurs lignes d'export dans
   `kit/src/controles/index.ts`.
@@ -546,13 +546,13 @@ de galerie quand le lot B n'est pas fait.
   Maquette : `t-structure`, `t-portees` ; `AFAIRE_TOKENS`, `LIGNE_SCOPE`.
   Fait quand : constats typés, chemins dans une phrase ; cartes de modes et de
   scopes en Aujourd'hui et Après l'application ; comparateur sans écart.
-- [~ Claude 1] **U4 · Library, règles reçues, hors UCM.** (`t-hors` passe à U5 ; reprises Q-61, Q-63 et pastilles de À faire dans Figma) Vague 3 · U1.
+- [x] (3b33f0c6) **U4 · Library, règles reçues, hors UCM.** (`t-hors` passe à U5 ; reprises Q-61, Q-63 et pastilles de À faire dans Figma) Vague 3 · U1.
   Domaines : `bibliotheque`, `nomenclature` (t-regle), `commun` (t-hors).
   Maquette : `t-bibliotheque`, `t-regle`, `t-hors` ; `REGLE_RECUE`.
   Fait quand : valeurs en attente en trait gris, onglets grisés, « Ouvrir
   Intencial Tokens » seulement si la clé est connue ; règles reçues en
   questions ; alerte hors UCM ; comparateur sans écart.
-- [~ Claude 2] **U5 · Vue Composant et section Variants.** (avec `t-hors`, Q-64) Vague 4 · S1, A1.
+- [x] (3b33f0c6) **U5 · Vue Composant et section Variants.** (avec `t-hors`, Q-64) Vague 4 · S1, A1.
   Domaines : `commun` (barre, bouton Constats), `composant`.
   Maquette : `c-avant`, `c-replie`, `c-bouton-texte`, `c-gros`, colonne gauche
   de `c-corrections` ; `variants`, `COMPOSANTS`, `fenetreComposant`, `barre`,
@@ -561,7 +561,7 @@ de galerie quand le lot B n'est pas fait.
   frontière tirable ; aperçu en haut ; Variants forme C, « +N », Tableau ;
   liaisons changées en vert, cliquables ; ouverture dans le mode du fichier et
   bascule ; comparateur sans écart.
-- [ ] **U6 · Panneau des constats.** Vague 4 · U5.
+- [~ Claude 1] **U6 · Panneau des constats.** (1/2 : analyse, Corrections, clic, modèle, après, Ctrl+Z, e-* ; 2/2 : Questions, tranchée, À faire, Ignorés) Vague 4 · U5.
   Domaines : `analyse`, `corrections`, `questions`, `ignores`.
   Maquette : `c-corrections`, `c-clic`, `c-modele`, `c-questions`,
   `c-tranchee`, `c-afaire`, `c-apres`, `c-ctrlz`, `e-*` ; `CORR_ALERT`,
@@ -595,7 +595,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   Fait quand : arbre depuis les noms ; valeurs d'un groupe importées à son
   ouverture, par lots de huit ; loi d'import étendue ; `figma.fileKey` rangé
   sous sa clé quand il est servi.
-- [~ Codex] **B6 · Journal étendu, scopes et modes.** `implementeur-exigeant` · vague
+- [~ Claude 2] **B6 · Journal étendu, scopes et modes.** `implementeur-exigeant` · vague
   3 · K5 fusionné.
   Domaines : `structure`. Écrit en plus : `src/ecriture/structure.ts`, `src/ecriture/journal.ts` (extrait du journal de `src/ecriture/noms.ts`, sans changer ses attendus), leurs tests.
   Fait quand : le journal range et l'Historique annule trois sortes nouvelles :
@@ -1340,6 +1340,21 @@ Choix faits sans le mainteneur :
 - Q-66 · U3 · Constats sans producteur · l'écran lit quatre constats de
   structure que le kit ne rend pas encore (cible supprimée, library non
   activée, mode sans valeur, couleur sans alias) : lot K10 · réversible : oui.
+- Q-67 · U4 · Carte « faute » de t-regle · U2 a ajouté le lien « Voir les 2
+  variables » que la maquette de t-regle n'a pas (elle l'a dans t-questions) ;
+  19 textes décalés de 8 px sont des écarts déclarés. Question au mainteneur :
+  corriger la maquette · réversible : oui.
+- Q-68 · U4 · Library · noms de modes inconnus avant import (Q-28) :
+  `Valeur` pour un mode seul, `Mode N` sinon ; règles reçues lues par un
+  message d'interface `regles-recues` jusqu'à B8 ; au plus 100 variables
+  importées par groupe ouvert · réversible : oui.
+- Q-69 · U5 · Vue Composant · la section Variants n'apparaît qu'après une
+  analyse ; une puce compte les constats dont un variant porte la valeur, au
+  type du plus grave ; Tableau sans maquette (deux menus et une grille) ;
+  hors UCM = déclaration `absente` ou `libre` ; « calque » → « layer »,
+  « Contour » → « Stroke » · réversible : oui.
+- Q-70 · B6, K10 · Échange · Codex n'avait pas commencé B6 ; Claude 2 le
+  prend dans l'arbre partagé, Codex prend K10 · réversible : oui.
 
 ## 10. Hors du plan
 
