@@ -171,11 +171,9 @@ export function monterPreparation(etat: Etat): Preparation {
       const total = rangee.variables.length;
       const nomRangee = rangee.source.jeu.nom;
       panneau.hidden = false; panneau.replaceChildren();
-      const resume = creerAlerte('tenu', { titre: T.preparationPreparees(total, nomRangee), texte: T.preparationAutreFichier, meta: T.preparationResumeRangee, actions: [
-        bouton(T.preparationCopie, () => versSandbox({ type: 'copier-preparation', preparation: rangee!.id }), 'prep-copier'),
-        bouton(T.preparationAbandonner, () => versSandbox({ type: 'abandonner-preparation', preparation: rangee!.id }), 'prep-abandonner'),
-        bouton(T.preparationColler, () => { rangee = null; modeColle = true; rendre(); }, 'prep-coller'),
-      ] });
+      const copier = bouton(T.preparationCopie, () => versSandbox({ type: 'copier-preparation', preparation: rangee!.id }), 'prep-copier'); copier.className = 'btn-texte prep-copier';
+      const abandonner = bouton(T.preparationAbandonner, () => versSandbox({ type: 'abandonner-preparation', preparation: rangee!.id }), 'prep-abandonner'); abandonner.className = 'btn-texte prep-abandonner';
+      const resume = creerAlerte('tenu', { titre: T.preparationPreparees(total, nomRangee), texte: T.preparationAutreFichier, meta: T.preparationResumeRangee, actions: [copier, abandonner] });
       panneau.append(resume);
       voile.hidden = true;
       preparer.hidden = true;

@@ -6,7 +6,6 @@
  */
 import { creerPoigneeDeSeparation } from 'ucm-plugin-socle/src/ui/PoigneeDeSeparation';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
-import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 
 import type { Application, Composant } from '../application';
 import { TEXTES } from '../textes';
@@ -31,7 +30,13 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
   const panneau = document.createElement('aside');
   panneau.className = 'arch-laterale panneau-lateral';
   panneau.style.flex = '1 1 auto';
-  const ouvrirPreparation = createButton({ label: TEXTES_PREPARATION.preparationOuvrirBouton, variant: 'secondary', compact: true, onClick: () => { sectionTokens.hidden = true; constats.panneauAFaire.hidden = true; preparation.ouvrir(); } });
+  panneau.style.position = 'relative';
+  preparation.panneau.style.position = 'absolute';
+  preparation.panneau.style.top = '52px';
+  preparation.panneau.style.left = '16px';
+  preparation.panneau.style.right = '16px';
+  preparation.panneau.style.margin = '0';
+  const ouvrirPreparation = createButton({ label: TEXTES_PREPARATION.preparationOuvrirBouton, variant: 'secondary', compact: true, onClick: () => { constats.panneauAFaire.hidden = true; preparation.ouvrir(); } });
   ouvrirPreparation.classList.add('prep-ouvrir');
 
   /** La largeur que la vue peut prendre sans écraser le panneau. */
@@ -60,9 +65,27 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
   });
 
   const constats = monterLePanneau(app, vue);
-  const sectionTokens = document.createElement('section');
-  sectionTokens.className = 'page-stack prep-constats';
-  preparation.element.querySelector('.feuille-fermer')?.addEventListener('click', () => { sectionTokens.hidden = false; constats.panneauAFaire.hidden = false; });
+  const ajusterResultatPreparation = (): void => {
+    const resultatPreparation = preparation.element.hidden && !preparation.panneau.hidden;
+    if (!resultatPreparation) {
+      if (preparation.element.hidden && (constats.element.classList.contains('prep-resultat') || preparation.panneau.classList.contains('prep-resultat'))) {
+        constats.element.classList.remove('prep-resultat');
+        preparation.panneau.classList.remove('prep-resultat');
+        constats.mettreAJour();
+      }
+      return;
+    }
+    constats.element.querySelector('.onglets')?.remove();
+    for (const selecteur of ['#panneau-corrections', '#panneau-questions', '#panneau-a-faire']) constats.element.querySelector(selecteur)?.remove();
+    ouvrirPreparation.remove();
+    preparation.panneau.querySelector('.prep-coller')?.remove();
+    if (!constats.element.classList.contains('prep-resultat')) constats.element.classList.add('prep-resultat');
+    if (!preparation.panneau.classList.contains('prep-resultat')) preparation.panneau.classList.add('prep-resultat');
+  };
+  const observateurPreparation = new MutationObserver(ajusterResultatPreparation);
+  observateurPreparation.observe(preparation.panneau, { attributes: true, childList: true, subtree: true });
+  observateurPreparation.observe(preparation.element, { attributes: true });
+  preparation.element.querySelector('.feuille-fermer')?.addEventListener('click', () => { constats.panneauAFaire.hidden = false; });
   panneau.append(preparation.panneau, constats.element);
 
   return {
@@ -75,19 +98,21 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
       if (element.children.length !== enfants.length || enfants.some((enfant, rang) => element.children[rang] !== enfant)) element.replaceChildren(...enfants);
       if (ouvert) {
         constats.mettreAJour();
+        ajusterResultatPreparation();
         const constatSansTokens = etat.analyse?.constats.find((constat) => constat.code === 'C16' && constat.type === 'corriger' && !constat.correction && !constat.question);
         if (constatSansTokens && etat.composant.lecture && etat.analyse) {
-          const [resume, prochaineEtape] = TEXTES_PREPARATION.preparationAlerteMeta(etat.analyse.variants.length, etat.analyse.lecture?.layersLus ?? etat.composant.lecture.calques.length, etat.composant.lecture.sujet.nom);
-          const meta = document.createElement('span');
-          const premiereLigne = document.createElement('span'); premiereLigne.textContent = resume;
-          const secondeLigne = document.createElement('span'); secondeLigne.textContent = prochaineEtape;
-          meta.append(premiereLigne, secondeLigne);
-          sectionTokens.replaceChildren(creerAlerte('corriger', {
-            texte: TEXTES_PREPARATION.preparationAlerteTexte(etat.composant.lecture.sujet.nom),
-            meta,
-          }));
-          if (!constats.panneauAFaire.contains(sectionTokens)) constats.panneauAFaire.append(sectionTokens);
-        } else sectionTokens.remove();
+          const carte = Array.from(constats.panneauAFaire.querySelectorAll('.bloc-constat')).find((element) => element.querySelector('.bloc-phrase')?.textContent === 'Constat C16.');
+          const phrase = carte?.querySelector('.bloc-phrase');
+          if (phrase) phrase.textContent = TEXTES_PREPARATION.preparationAlerteTexte(etat.composant.lecture.sujet.nom);
+          const meta = carte?.querySelector('.meta');
+          if (meta) {
+            meta.classList.add('prep-meta');
+            const [resume, prochaineEtape] = TEXTES_PREPARATION.preparationAlerteMeta(etat.analyse.variants.length, etat.analyse.lecture?.layersLus ?? etat.composant.lecture.calques.length, etat.composant.lecture.sujet.nom);
+            const premiereLigne = document.createElement('span'); premiereLigne.className = 'constat-lieu'; premiereLigne.textContent = resume;
+            const secondeLigne = document.createElement('span'); secondeLigne.textContent = prochaineEtape;
+            meta.replaceChildren(premiereLigne, secondeLigne);
+          }
+        }
         ouvrirPreparation.hidden = !etat.composant.lecture || !etat.analyse;
         const resume = panneau.querySelector('.arch-resume');
         const ligneResume = resume?.querySelector('.arch-resume-ligne');

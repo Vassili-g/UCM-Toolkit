@@ -70,9 +70,13 @@
 .prep-pied > span { color: var(--laterale-texte-second); font-size: 11px; line-height: 16px; }
 .prep-pied .btn-primary { min-height: 0; padding: 0; border: 0; background: transparent; color: var(--laterale-texte); font-size: 11px; line-height: 16px; opacity: 1; }
 .prep-panneau { margin-block: var(--espace-bloc); }
-.prep-constats { gap: 4px; margin-top: 8px; }
-.prep-constats .alerte { column-gap: 2px; font-size: 12px; }
-.prep-constats .alerte-titre { color: var(--ton); font-size: 11px; }
-.prep-constats .alerte-corps > p:not(.alerte-meta) { width: max-content; }
-.prep-constats .alerte-meta { width: max-content; font-size: 11px; }
-.prep-constats .alerte-meta > span > span { display: block; }
+.prep-meta { line-height: 14px; }
+.prep-meta > span { display: block; width: max-content; }
+.prep-meta > span:last-child { position: relative; top: 2px; }
+
+.prep-resultat .arch-resume { position: relative; top: -1px; }
+.prep-resultat .prep-copier, .prep-resultat .prep-abandonner { position: relative; top: -5px; height: 24px; padding: 0 4px; font-size: 11px; font-weight: 600; line-height: 24px; }
+.prep-resultat .prep-copier > span, .prep-resultat .prep-abandonner > span { position: relative; top: 5px; display: inline-block; line-height: 24px; }
+.prep-resultat .prep-copier > span { left: -4px; }
+.prep-resultat .prep-copier > span { width: 89.5px; }
+.prep-resultat .prep-abandonner > span { left: -12px; width: 150.2px; }
