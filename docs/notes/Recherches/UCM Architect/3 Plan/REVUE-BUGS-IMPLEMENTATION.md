@@ -33,8 +33,11 @@ sur la souche `preparation`, le nom de collection réservé dans cette préparat
 le texte « calque » des corrections et cinq classes CSS de l'interface. Le build
 Architect s'arrête sur sept erreurs de type dans les modules d'interface locaux
 `ui/analyse` et `ui/corrections`. Ces échecs précèdent la nouvelle revue ; ils ne
-constituent pas des régressions attribuées aux lots terminés. Le résultat de la
-suite du kit est en cours de relevé.
+constituent pas des régressions attribuées aux lots terminés. La suite du kit,
+lancée en même temps que trois autres commandes lourdes, passe 923/924 : seul le
+seuil de temps du test de 32 000 noms échoue. Ce fichier relancé seul passe
+22/22, dont le cas de charge en 3,4 s ; le dépassement initial vient de la
+concurrence des processus.
 
 Les cas nouveaux seront consignés ici avec règle, reproduction, cause,
 correction, tests avant et après, commit et état. Les pistes sans preuve restent
@@ -46,4 +49,11 @@ distinctes des bugs confirmés.
 - Chemin observé : `unLayerLieA` intercepte l'exception de `getStyledTextSegments` et rend `false`. `defaireLaLigne` supprime alors la variable et retire sa ligne du journal, même si un segment pouvait la lier.
 - Effet : l'annulation peut retirer une variable encore utilisée dans le fichier, avec perte de son identité et de sa valeur. Criticité **critique** pour cette suppression irréversible par le plugin.
 - Correction retenue : faire remonter le refus de lecture à `defaireLaLigne`, qui conserve la variable et le journal sous `usage-illisible`. Le contrôle des autres nœuds et les usages effectivement trouvés restent inchangés. Aucun nouveau message ni type public ; le motif existe déjà. Risque à vérifier : un texte illisible sans liaison empêche aussi l'annulation jusqu'à ce que Figma le rende lisible.
-- Reproduction par test avant correction, tests après correction et commit : en cours.
+- Reproduction : un nœud `TEXT` du fichier dont `getStyledTextSegments` lève,
+  puis l'annulation d'une création journalisée. Avant correction, le test échoue
+  (30 réussis, 1 échec) : la variable est supprimée. Après correction, 31/31
+  passent ; la variable et la ligne du journal restent, avec `usage-illisible`.
+- Cause : le `catch` local de `unLayerLieA` transformait l'échec de lecture en
+  absence d'usage. Solution : laisser remonter l'exception au traitement de
+  l'annulation, qui possède déjà le motif et garde la ligne.
+- Commit : `14d17ce7`. État : corrigé, test ciblé relancé 31/31.
