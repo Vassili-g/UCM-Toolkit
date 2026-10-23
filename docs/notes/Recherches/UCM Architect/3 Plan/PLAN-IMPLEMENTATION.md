@@ -617,7 +617,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   Note : le catalogue (B10) n'a pas les noms de modes d'une collection de
   library ni la clé des cibles d'alias (Q-28) ; B9 les ajoute dans
   `src/catalogue.ts` si le contraste par mode en a besoin.
-- [ ] **B4 · Écriture des liaisons.** `implementeur-exigeant` · vague 5 · B2,
+- [~ Claude 2] **B4 · Écriture des liaisons.** `implementeur-exigeant` · vague 5 · B2,
   K8, note E · hypothèse S-2.
   Domaines : `corrections`.
   Écrit : `src/ecriture/liaisons.ts` et ses tests.
@@ -631,7 +631,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   de variante (C12), une valeur déjà présente → question ; Ignorer et « Ne plus
   proposer » rangés à la racine du document ; « Ne plus ignorer » rend le
   constat ; une limite de lecture ne s'ignore pas.
-- [~ Claude 2] **B7 · Règles de composant.** Vague 5 · B2.
+- [x] (3ba33dce) **B7 · Règles de composant.** Vague 5 · B2.
   Domaines : `regles`. Écrit en plus : `src/ecriture/regles.ts` (appelle `template/ecriture.ts`), son test.
   Écrit : en plus, les importeurs permis de
   `plugin-exporter/tests/loiDuDocumentIntact.test.ts`.
@@ -1229,6 +1229,15 @@ Choix faits sans le mainteneur :
   `.panneau-lateral` seul, aux valeurs de la maquette (texte #ffffff et
   #b3b3b3, marque #0d99ff, fonds #2c2c2c, #383838, #4d4d4d…) ; l'arbre et le
   tableau gardent celles de l'explorateur · réversible : oui.
+- Q-46 · B4 · Ordre · B4 part avant K8, sur des `Correction` écrites à la
+  main : le type est fixé depuis K0 (N2), K8 ne fait que les produire. B4
+  prend aussi `src/ecriture/selection.ts` (`selectionner`), qu'aucun lot ne
+  nommait · réversible : oui.
+- Q-47 · B7 · C45 · lu seulement sur une analyse complète du moteur ; comparé
+  par propriété (axe ou booléenne), jamais par valeur (la complétude est
+  C47, hors du plan) ; un constat par écart. Le meta de la maquette « 3
+  règles » compte les propriétés ; `faits.regles` porte le nombre réel de
+  règles du modèle · réversible : oui.
 
 ## 10. Hors du plan
 
