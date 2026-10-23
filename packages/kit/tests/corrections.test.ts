@@ -79,7 +79,7 @@ test('State=hover lié au token default devient une question avec son indice', (
 });
 
 test('un rôle attendu produit une correction sur son unique variable exacte', () => {
-  const r = releve({ Severity: 'info' }, layer({ name: 'icon', token: 'alert/color/info/background' }));
+  const r = releve({ Severity: 'info', LegacyMode: 'classic' }, layer({ name: 'icon', token: 'alert/color/info/background' }));
   const c = catalogue([
     { cle: 'old', nom: 'alert/color/info/background', collection: 'components', type: 'COLOR', etat: 'presente' },
     { cle: 'icon', nom: 'alert/color/info/icon', collection: 'components', type: 'COLOR', etat: 'presente' },
@@ -87,6 +87,7 @@ test('un rôle attendu produit une correction sur son unique variable exacte', (
   const resultat = proposerLesCorrections(r, c, [constat('C17', { attendu: 'icon', token: 'alert/color/info/background', champ: 'fills', indice: 0 })]);
   assert.equal(resultat.find(({ code }) => code === 'C17')?.correction, undefined);
   assert.equal(resultat.find(({ code }) => code === 'C24')?.correction?.apres.cle, 'icon');
+  assert.deepEqual(resultat.find(({ code }) => code === 'C24')?.correction?.aRelire.axes, { Severity: 'info', LegacyMode: 'classic' });
 });
 
 test('C22 cible le champ et l’indice de chaque peinture du constat', () => {
@@ -160,10 +161,11 @@ test('un layer title reçoit une correction si une seule des deux cibles existe'
 });
 
 test('C29 ne propose que si le catalogue porte exactement la valeur lue en pixels', () => {
-  const r = releve({}, layer({ champ: 'paddingTop', value: 8 }));
+  const r = releve({ LegacyMode: 'classic' }, layer({ champ: 'paddingTop', value: 8 }));
   const c = catalogue([{ cle: 'size-8', nom: 'layout/sizing/8', collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 8 } } }], true);
   const resultat = proposerLesCorrections(r, c, [])[0];
   assert.equal(resultat.correction?.apres.cle, 'size-8');
+  assert.deepEqual(resultat.correction?.aRelire.axes, { LegacyMode: 'classic' });
   const faux = catalogue([{ cle: 'size-9', nom: 'layout/sizing/9', collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 9 } } }], true);
   const sansCandidat = proposerLesCorrections(r, faux, []).find(({ code }) => code === 'C29');
   assert.equal(sansCandidat?.correction, undefined);

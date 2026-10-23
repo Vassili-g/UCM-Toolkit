@@ -189,10 +189,7 @@ function variantDuConstat(constat: Constat, releve: ReleveDeComposant): VariantL
 }
 function axesDuVariant(constat: Constat, releve: ReleveDeComposant): Record<string, string> {
   const variant = variantDuConstat(constat, releve);
-  return variant ? Object.fromEntries(Object.entries(axesDuReleve(releve)).flatMap(([, propriete]) => {
-    const valeur = variant.valeurs[propriete.nom];
-    return valeur === undefined ? [] : [[propriete.nom, valeur]];
-  })) : {};
+  return variant ? { ...variant.valeurs } : {};
 }
 function chaine(valeur: unknown): string | undefined { return typeof valeur === 'string' && valeur.length > 0 ? valeur : undefined; }
 
