@@ -504,7 +504,7 @@ de galerie quand le lot B n'est pas fait.
   `plugin-architect/galerie/comparer-maquette.cjs`.
   Fait quand : règles du §4.10 ; à l'essai, une police changée et un élément
   retiré font échouer la comparaison ; un cadre manquant aussi.
-- [~ Claude 1] **U1 · Mode Tokens, Corrections.** Partiel : `9d3fb0f9` (1/2), tests verts ; (2/2) en cours : fidélité de `t-renommages` selon Q-38. Vague 3 · S1, A1.
+- [x] (9d3fb0f9, 6e58255e) **U1 · Mode Tokens, Corrections.** Vague 3 · S1, A1.
   Domaines : `commun` (barre), `arbre`, `nomenclature`.
   Maquette : `t-renommages` ; `fenetreTokens`, `MODES_AFFICHES`,
   `ARBRE_INTERFACE`, `LIGNES_INTERFACE`, `ciblerCarte`, `nomenclatureLaterale`.
@@ -513,7 +513,7 @@ de galerie quand le lot B n'est pas fait.
   ciblée ouverte, puce du filtre de l'arbre, onglets, pied ; Appliquer n'écrit
   que les noms affichés (M-11) ; les textes repris de l'explorateur disent
   « scope » ; comparateur sans écart.
-- [ ] **U2 · Recherche, fiche d'une variable.** Vague 3 · U1.
+- [~ Claude 1] **U2 · Recherche, fiche d'une variable.** Vague 3 · U1.
   Domaines : `recherche`, `fiche`.
   Maquette : `t-questions`, `t-terme`, `t-fiche` ; `LIGNES_BACKGROND`,
   `LIGNES_BACKGROUND`, `FICHE_VARIABLE`, `ETAPE`.
@@ -609,7 +609,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   Actualiser. Le moteur s'appelle par `analyserLeComposant` (S3) ; un
   résultat `partielle` ne sert qu'aux constats du panneau, jamais à un contrat
   écrit (son `coverage` se dit complet).
-- [~ Claude 2] **B9 · Branchement de l'accessibilité et de la typographie.** Vague 5 ·
+- [x] (5dad6d5d) **B9 · Branchement de l'accessibilité et de la typographie.** Vague 5 ·
   K4, K7, B2.
   Domaines : `accessibilite`, `configuration` (niveau, et library rangée : Q-43).
   Fait quand : constats de K4 et K7 dans l'analyse ; niveau AA ou AAA lu dans la
@@ -631,7 +631,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   de variante (C12), une valeur déjà présente → question ; Ignorer et « Ne plus
   proposer » rangés à la racine du document ; « Ne plus ignorer » rend le
   constat ; une limite de lecture ne s'ignore pas.
-- [ ] **B7 · Règles de composant.** Vague 5 · B2.
+- [~ Claude 2] **B7 · Règles de composant.** Vague 5 · B2.
   Domaines : `regles`. Écrit en plus : `src/ecriture/regles.ts` (appelle `template/ecriture.ts`), son test.
   Écrit : en plus, les importeurs permis de
   `plugin-exporter/tests/loiDuDocumentIntact.test.ts`.
@@ -1218,6 +1218,17 @@ Choix faits sans le mainteneur :
   (préférence du designer), library dans les données partagées de la racine
   du document (choix de l'équipe), par `src/ecriture/configuration.ts`
   · réversible : oui.
+- Q-44 · U1 · État `t-renommages` · la maquette montre à la fois une carte en
+  « Chargement des noms… » et un pied qui compte déjà ; le code dit
+  « Chargement… » au pied tant qu'une carte charge. L'état de galerie suit la
+  géométrie de la maquette : lecture incomplète, Appliquer inactif, pastille
+  de Corrections à 87 ; le pied et les pastilles sont des écarts déclarés.
+  La pastille « 3 » de À faire dans Figma attend U3, qui retire la
+  déclaration ; à valider à la recette · réversible : oui.
+- Q-45 · U1 · Couleurs de la barre latérale · rôles `--laterale-*` sous
+  `.panneau-lateral` seul, aux valeurs de la maquette (texte #ffffff et
+  #b3b3b3, marque #0d99ff, fonds #2c2c2c, #383838, #4d4d4d…) ; l'arbre et le
+  tableau gardent celles de l'explorateur · réversible : oui.
 
 ## 10. Hors du plan
 
