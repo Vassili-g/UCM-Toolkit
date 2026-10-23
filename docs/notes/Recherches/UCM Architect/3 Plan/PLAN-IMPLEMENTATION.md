@@ -326,7 +326,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `kit/src/protocoles/nommage.ts`, `generer-donnees-referentiel.ts` et sa sortie.
   Fait quand : aucun texte du kit ne nomme l'explorateur ni Nomenclature comme
   produit ; `vueIllustree` passe.
-- [~ Codex] **K3 · Contrôles du composant.** Partiel : `ed36234e` (1/3), `c18fe7fd` (2/3), non fusionnés, gardés par la branche locale `codex-sauvegarde` ; reste la complétude (C31 à C33) et les relevés de la table T. Le clone de Codex garde un travail non commité (`oublis.ts`, `mapping.ts`) : à reprendre de la ligne `Reste :`. Vague 2 · K0, K1, note T.
+- [~ Codex] **K3 · Contrôles du composant.** Partiel : `e65e3a05` (1/3), `30125a65` (2/3), rejoués le 23 octobre sur `ee0dce95`, non fusionnés (les anciens `ed36234e`, `c18fe7fd` restent sous `codex-sauvegarde`, à supprimer après la fusion) ; Codex reprend la complétude (C31 à C33) et les relevés de la table T, puis K8, K5, K6. Vague 2 · K0, K1, note T.
   Écrit : `kit/src/controles/{nommage,mapping,couche,oublis}.ts`.
   Fait quand : C7 à C11, C15 à C19 et C21, C20 et C61, C31 à C33, sur relevé et
   catalogue ; un test positif et un négatif par contrôle ; un token inutilisé
@@ -504,7 +504,7 @@ de galerie quand le lot B n'est pas fait.
   `plugin-architect/galerie/comparer-maquette.cjs`.
   Fait quand : règles du §4.10 ; à l'essai, une police changée et un élément
   retiré font échouer la comparaison ; un cadre manquant aussi.
-- [~ Claude 1] **U1 · Mode Tokens, Corrections.** Partiel : `9d3fb0f9` (1/2), tests verts ; reste le comparateur (Q-38). Vague 3 · S1, A1.
+- [~ Claude 1] **U1 · Mode Tokens, Corrections.** Partiel : `9d3fb0f9` (1/2), tests verts ; (2/2) en cours : fidélité de `t-renommages` selon Q-38. Vague 3 · S1, A1.
   Domaines : `commun` (barre), `arbre`, `nomenclature`.
   Maquette : `t-renommages` ; `fenetreTokens`, `MODES_AFFICHES`,
   `ARBRE_INTERFACE`, `LIGNES_INTERFACE`, `ciblerCarte`, `nomenclatureLaterale`.
@@ -1190,6 +1190,14 @@ Choix faits sans le mainteneur :
   corriger les données de la maquette, ou borner le comparateur aux
   sélecteurs du manifeste et aux textes de la barre latérale. U2 à U8
   attendent cette réponse pour leur critère de fidélité · réversible : oui.
+  Tranchée par l'orchestrateur le 23 octobre, le mainteneur ayant demandé de
+  continuer sans arrêt : les écarts de style sont des défauts à corriger
+  (la barre latérale prend les couleurs de la maquette, pas celles de
+  l'explorateur) ; le contenu de la barre latérale suit la maquette ; les
+  données contradictoires de l'arbre et du tableau sont bornées par deux
+  champs du manifeste, `zonesDeDonnees` (styles seuls) et `ecartsDeclares`
+  (texte et raison), que le comparateur compte à chaque passage. Chaque lot U
+  déclare les siens et les justifie dans son compte rendu · réversible : oui.
 - Q-39 · U1 · Pied et compte · « Appliquer renomme 24 variables et 1
   collection de Interface. » et un compte de 25 (la collection est un
   renommage) ; la maquette dit 24 · réversible : oui.
