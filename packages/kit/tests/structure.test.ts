@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { controlerLaStructure, type CatalogueDeReference, type ReleveDeComposant } from '../src/controles/index.js';
+import { controlerLaStructure as structureDuComposant, controlerLeCatalogue, type CatalogueDeReference, type ReleveDeComposant } from '../src/controles/index.js';
 
 const modes = [{ id: 'light', nom: 'Light' }, { id: 'dark', nom: 'Dark' }];
 const collection = (cle: string, role: 'theme' | 'components' | 'layout' | 'brands') => ({ cle, nom: cle, role, modes, etat: 'lue' as const });
@@ -15,6 +15,8 @@ function releve(nom = 'Button'): ReleveDeComposant {
   ], variants: [], lecture: { layersLus: 0, layersNonLus: 0, variantsNonLus: [], manquees: [] }, espaceDeCouleur: 'srgb' };
 }
 const variable = (cle: string, nom: string, collection: string, valeurs?: CatalogueDeReference['variables'][number]['valeurs']) => ({ cle, nom, collection, type: 'COLOR' as const, etat: 'presente' as const, valeurs });
+
+const controlerLaStructure = (r: ReleveDeComposant, c: CatalogueDeReference) => [...structureDuComposant(r, c), ...controlerLeCatalogue(c)];
 
 test('C63 compare les scopes au chemin complet du thème', () => {
   const c = cat([collection('theme', 'theme')], [

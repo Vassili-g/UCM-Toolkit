@@ -3,16 +3,24 @@ import { formeReconnue } from '../referentiel/reconnaissance.js';
 import { SUPPORT_DES_VARIABLES, VARIABLES_DU_THEME } from '../emplois/dossiers.js';
 import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
+import { controlerLesModes } from './theme.js';
 import { segmentDAxe, tokensDuComposant, type TokenDuComposant } from './nommage.js';
 import type { ReleveDeComposant } from './releve.js';
 
-/** Vérifie les scopes et les règles de structure apprises ou écrites dans le référentiel UCM. */
+/** Les règles de structure qui lisent un composant : valeurs vides et contournements du thème. */
 export function controlerLaStructure(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
   return [
-    ...controlerLesScopes(catalogue),
     ...controlerLesValeursVides(releve, catalogue),
-    ...controlerLesEchelles(catalogue),
     ...controlerLesContournements(releve, catalogue),
+  ];
+}
+
+/** Les contrôles qui ne lisent que le catalogue : scopes, échelles et alias de mode. Le mode Tokens les lance sans composant. */
+export function controlerLeCatalogue(catalogue: CatalogueDeReference): Constat[] {
+  return [
+    ...controlerLesScopes(catalogue),
+    ...controlerLesEchelles(catalogue),
+    ...controlerLesModes(catalogue),
   ];
 }
 

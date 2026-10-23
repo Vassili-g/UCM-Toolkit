@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { controlerLeTheme } from '../src/controles/theme.js';
+import { controlerLeTheme as fondsDuComposant, controlerLesModes } from '../src/controles/theme.js';
 import type { CatalogueDeReference, LayerLu, ReleveDeComposant } from '../src/controles/index.js';
 
 const modes = [{ id: 'light', nom: 'Light' }, { id: 'dark', nom: 'Dark' }];
@@ -23,6 +23,8 @@ function layer(id: string, parent: string | null, name: string, variable?: { key
   };
 }
 const collection = (cle: string, role: 'theme' | 'brands', ms = modes) => ({ cle, nom: cle, role, modes: ms, etat: 'lue' as const });
+
+const controlerLeTheme = (r: Parameters<typeof fondsDuComposant>[0], c: Parameters<typeof fondsDuComposant>[1]) => [...fondsDuComposant(r, c), ...controlerLesModes(c)];
 
 test('C59 propose page/foreground si surface/foreground n’a aucun fond de surface', () => {
   const r = releve(layer('text', null, 'message', { key: 'fg-surface', name: 'success/surface/foreground', collection: 'themes' }));

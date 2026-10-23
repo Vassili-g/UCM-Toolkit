@@ -8,12 +8,9 @@ import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
 
-/** Détecte une couleur `surface/foreground` sans fond de surface et les alias de mode erronés. */
+/** Détecte une couleur `surface/foreground` sans fond de surface dans un composant. Les alias de mode sont dans `controlerLesModes`. */
 export function controlerLeTheme(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
-  return [
-    ...controlerLesFondsDeTexte(releve, catalogue),
-    ...controlerLesModes(catalogue),
-  ];
+  return controlerLesFondsDeTexte(releve, catalogue);
 }
 
 function controlerLesFondsDeTexte(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
@@ -59,7 +56,8 @@ function estFondDeSurface(liaison: LiaisonLue, catalogue: CatalogueDeReference):
   return !!variable && collection(catalogue, variable)?.role === 'theme' && /^surface\/(default|hover|pressed)$/.test(cleDuTheme(variable.nom) ?? '');
 }
 
-function controlerLesModes(catalogue: CatalogueDeReference): Constat[] {
+/** Les alias de mode du thème, sans composant. */
+export function controlerLesModes(catalogue: CatalogueDeReference): Constat[] {
   const resultats: Constat[] = [];
   for (const theme of catalogue.collections.filter((entree) => entree.role === 'theme' && entree.etat === 'lue')) {
     for (const variable of catalogue.variables.filter((entree) => entree.collection === theme.cle && entree.etat === 'presente')) {
