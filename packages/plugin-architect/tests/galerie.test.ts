@@ -43,8 +43,12 @@ test('tout message que le sandbox peut envoyer a un état où le regarder', () =
   const declares = new Set(DOMAINES_DE_MESSAGES.flatMap(([fichier, nom]) => [...typesDeLUnion(fs.readFileSync(path.join(racine, 'src', 'messages', fichier), 'utf8'), nom)]));
   assert.ok(declares.size > 0);
   // Les états de la recherche et de la fiche jouent des messages de Nomenclature, que ces domaines ne déclarent pas : ils n'ont aucun message propre.
-  const avecMessages = ETATS.filter((etat) => !['recherche', 'fiche', 'structure'].includes((etat as { domaine?: string }).domaine ?? ''));
-  assert.deepEqual(ecartsDesMessages(declares, avecMessages), { jamaisRegardes: [], inventes: [] });
+  // Ceux de la library jouent aussi des messages de Nomenclature ; ses propres messages (`bibliotheque`, `valeurs`) entrent ici quand `bibliotheque-illisible` aura son état (e-biblio, lot U6).
+  const avecMessages = ETATS.filter((etat) => !['recherche', 'fiche', 'structure', 'bibliotheque'].includes((etat as { domaine?: string }).domaine ?? ''));
+  // La vue composant joue déjà le message `analyse` ; les autres messages de l'analyse auront leurs états avec le panneau (lot U6), qui fera entrer `analyse.ts` dans DOMAINES_DE_MESSAGES.
+  const avantLePanneau = typesDeLUnion(fs.readFileSync(path.join(racine, 'src', 'messages', 'analyse.ts'), 'utf8'), 'MessageDAnalyse');
+  const ecarts = ecartsDesMessages(new Set([...declares, ...avantLePanneau]), avecMessages);
+  assert.deepEqual({ ...ecarts, jamaisRegardes: ecarts.jamaisRegardes.filter((type) => !avantLePanneau.has(type)) }, { jamaisRegardes: [], inventes: [] });
 });
 
 test('le décalque sert toutes les variables de thème que les feuilles demandent', () => {

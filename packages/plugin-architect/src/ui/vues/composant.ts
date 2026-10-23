@@ -30,6 +30,7 @@ import {
   type SectionDeComposant,
 } from '../../composant';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
+import { creerChemin } from 'ucm-plugin-socle/src/ui/Chemin';
 import { indexer, type Index } from '../../indexation';
 import type { PluginMessage, SujetSelectionne } from '../../messages';
 import { espaceDuReleve, texteDeValeur, type Couleur } from '../../modele';
@@ -37,6 +38,8 @@ import { versSrgb } from '../../espace';
 import type { Resultat } from '../../resolution';
 import type { Application, Composant } from '../application';
 import { constatDeResultat } from '../chaine';
+import { analyseDe } from '../composant/analyse';
+import { creerSectionVariants, proprietesDe } from '../composant/variants';
 import type { ApercuRecu } from '../etat';
 import { versSandbox } from '../pont';
 import { copierTexte } from '../pressePapiers';
@@ -51,7 +54,20 @@ const HAUTEUR_DE_LAPERCU = 170;
 
 const SVG = 'http://www.w3.org/2000/svg';
 
+/** Une correction cochée dans le panneau : la liaison de `avant` passe à `apres` sur ces layers. */
+export interface CorrectionAffichee {
+  readonly calques: readonly string[];
+  readonly avant: string;
+  readonly apres: string;
+}
+
 export interface VueComposant extends Composant {
+  /**
+   * Les liaisons que les corrections cochées vont changer : la ligne montre le
+   * nom d'après, ses segments nouveaux en vert. Un clic sur un segment appelle
+   * `auClic` ; la vue ne change jamais la sélection.
+   */
+  poserLesCorrections(corrections: readonly CorrectionAffichee[], auClic: (calques: readonly string[]) => void): void;
   /** La sélection de Figma a changé : la vue suit, si elle est visible. */
   recevoirSelection(sujet: SujetSelectionne | null, ignores: number): void;
   recevoirLecture(demande: number, lecture: LectureDeComposant | null): void;
@@ -106,6 +122,11 @@ export function creerVueComposant(app: Application): VueComposant {
   let ouverts = new Set<string>();
   let sections = new Map<Nature, boolean>();
   let directesOuvertes = false;
+  /** Les choix de la section Variants : ils survivent au changement de variant, pas à celui de jeu. */
+  let proprietesDepliees = new Set<string>();
+  let tableau: { lignes: string; colonnes: string } | null = null;
+  let corrections: readonly CorrectionAffichee[] = [];
+  let auClicDeCorrection: (calques: readonly string[]) => void = () => {};
   let filtre = '';
   let filtreOuvert = false;
   /** L'élément à qui rendre le focus après un rendu, par son `data-focus`. */
@@ -267,25 +288,8 @@ export function creerVueComposant(app: Application): VueComposant {
     titre.append(glyphe, surLeSujet ? lecture.sujet.nom : lecture.calques.find((calque) => calque.id === portee)?.nom ?? portee);
     const sous = document.createElement('div');
     sous.className = 'vc-sous';
-    if (surLeSujet && lecture.sujet.variants.length > 1) {
-      const choix = document.createElement('select');
-      choix.className = 'vc-variants';
-      choix.setAttribute('aria-label', T.variantLu);
-      choix.dataset.focus = 'variants';
-      const lu = lecture.calques[0]?.id;
-      for (const variant of lecture.sujet.variants) {
-        const option = document.createElement('option');
-        option.value = variant.id;
-        option.textContent = variant.nom;
-        option.selected = variant.id === lu;
-        choix.append(option);
-      }
-      choix.addEventListener('change', () => {
-        focusAttendu = 'variants';
-        demander(choix.value, false);
-      });
-      sous.append(choix);
-    } else if (surLeSujet && lecture.sujet.variant !== null) {
+    // Un jeu de variants n'écrit pas son variant ici : la section Variants le choisit et le nomme.
+    if (surLeSujet && lecture.sujet.variants.length <= 1 && lecture.sujet.variant !== null) {
       const variant = document.createElement('span');
       variant.textContent = lecture.sujet.variant;
       sous.append(variant);
@@ -389,6 +393,36 @@ export function creerVueComposant(app: Application): VueComposant {
     zone.append(echelle);
     if (portee !== racineDe(lecture)) poserLesCadres([portee], true);
     return zone;
+  }
+
+  function sectionDesVariants(lecture: LectureDeComposant, portee: string): HTMLElement | null {
+    const analyse = analyseDe(etat, lecture);
+    if (!analyse || portee !== racineDe(lecture)) return null;
+    const lu = lecture.calques[0]?.id;
+    return creerSectionVariants({
+      variants: lecture.sujet.variants,
+      constats: analyse.constats,
+      affiche: lecture.sujet.variants.find((variant) => variant.id === lu)?.nom,
+      depliees: proprietesDepliees,
+      tableau,
+      choisir: (variant) => {
+        focusAttendu = null;
+        demander(variant.id, false);
+      },
+      deplier: (propriete) => {
+        proprietesDepliees = new Set([...proprietesDepliees, propriete]);
+        rendre();
+      },
+      basculerLeTableau: () => {
+        const proprietes = proprietesDe(lecture.sujet.variants, []).map((propriete) => propriete.nom);
+        tableau = tableau || proprietes.length < 2 ? null : { lignes: proprietes[0], colonnes: proprietes[1] };
+        rendre();
+      },
+      croiser: (croisement) => {
+        tableau = croisement;
+        rendre();
+      },
+    });
   }
 
   function rangeeDesFrontieres(lecture: LectureDeComposant, portee: ReadonlySet<string>): HTMLElement | null {
@@ -567,6 +601,19 @@ export function creerVueComposant(app: Application): VueComposant {
     return [champs, calques];
   }
 
+  const correctionDe = (ligne: LigneDeComposant): CorrectionAffichee | undefined => corrections.find((correction) => correction.avant === ligne.nomComplet && ligne.calques.some((calque) => correction.calques.includes(calque)));
+
+  /** Le nom d'après, sans le préfixe que la vue retire aux noms d'avant. */
+  function nomApresCorrection(ligne: LigneDeComposant, correction: CorrectionAffichee): string {
+    const prefixe = ligne.nomComplet.slice(0, ligne.nomComplet.length - ligne.nomCourt.length);
+    return prefixe !== '' && correction.apres.startsWith(prefixe) ? correction.apres.slice(prefixe.length) : correction.apres;
+  }
+
+  const segmentsChanges = (avant: string, apres: string): string[] => {
+    const anciens = avant.split('/');
+    return apres.split('/').filter((segment, rang) => segment !== anciens[rang]);
+  };
+
   function ligneDe(lecture: LectureDeComposant, index: Index, ligne: LigneDeComposant): HTMLElement {
     const ouvert = ouverts.has(ligne.cle);
     const token = document.createElement('div');
@@ -583,7 +630,9 @@ export function creerVueComposant(app: Application): VueComposant {
     const nom = document.createElement('span');
     nom.className = 'vc-nom';
     const sens = document.createElement('bdi');
-    sens.textContent = ligne.nomCourt;
+    const changee = correctionDe(ligne);
+    if (changee) bouton.classList.add('corrige');
+    sens.append(changee ? creerChemin(nomApresCorrection(ligne, changee), { ajouts: segmentsChanges(ligne.nomComplet, changee.apres), lien: true }) : creerChemin(ligne.nomCourt));
     nom.append(sens);
     identite.append(nom);
 
@@ -617,7 +666,12 @@ export function creerVueComposant(app: Application): VueComposant {
     if (ligne.calques.length > 1) fois.textContent = T.fois(ligne.calques.length);
 
     bouton.append(pastilleDe(ligne), identite, fin, fois);
-    bouton.addEventListener('click', () => {
+    bouton.addEventListener('click', (evenement) => {
+      const segment = evenement.target instanceof Element ? evenement.target.closest('.ch-lien') : null;
+      if (segment && changee) {
+        auClicDeCorrection(changee.calques);
+        return;
+      }
       if (ouverts.has(ligne.cle)) ouverts.delete(ligne.cle);
       else ouverts.add(ligne.cle);
       focusAttendu = `ligne:${ligne.cle}`;
@@ -795,6 +849,7 @@ export function creerVueComposant(app: Application): VueComposant {
       filDAriane(lecture, portee),
       entete(lecture, index, portee),
       zoneDApercu(lecture, portee),
+      sectionDesVariants(lecture, portee),
       rangeeDesFrontieres(lecture, calques),
       filtreOuvert ? champDuFiltre() : null,
       liste,
@@ -824,6 +879,11 @@ export function creerVueComposant(app: Application): VueComposant {
     element,
     mettreAJour: rendre,
     activer: suivreLaSelection,
+    poserLesCorrections(liste, auClic) {
+      corrections = liste;
+      auClicDeCorrection = auClic;
+      rendre();
+    },
     recevoirSelection(sujet, ignores) {
       c.selection = sujet;
       c.ignores = ignores;
@@ -840,6 +900,10 @@ export function creerVueComposant(app: Application): VueComposant {
       }
       if (c.empiler && c.lecture && c.index && c.portee !== null) c.pile.push({ lecture: c.lecture, index: c.index, portee: c.portee, apercu: c.apercu });
       else liberer(c.apercu);
+      if (c.lecture?.sujet.id !== lecture.sujet.id) {
+        proprietesDepliees = new Set();
+        tableau = null;
+      }
       const voulue = c.deLaSelection ? c.selection?.portee : undefined;
       c.lecture = lecture;
       c.index = indexer(lecture.releve);

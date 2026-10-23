@@ -10,6 +10,7 @@
  * entre elles (`tests/textesParDomaine.test.ts`).
  */
 import { TEXTES_ARBRE } from './arbre';
+import { TEXTES_BIBLIOTHEQUE } from './bibliotheque';
 import { TEXTES_COMMUN } from './commun';
 import { TEXTES_COMPOSANT } from './composant';
 import { TEXTES_FICHE } from './fiche';
@@ -19,4 +20,4 @@ import { TEXTES_STRUCTURE } from './structure';
 export { NOM_DU_PRODUIT } from './commun';
 export { titreDeConstat } from './fiche';
 
-export const TEXTES = { ...TEXTES_COMMUN, ...TEXTES_ARBRE, ...TEXTES_FICHE, ...TEXTES_RECHERCHE, ...TEXTES_COMPOSANT, ...TEXTES_STRUCTURE };
+export const TEXTES = { ...TEXTES_COMMUN, ...TEXTES_ARBRE, ...TEXTES_FICHE, ...TEXTES_RECHERCHE, ...TEXTES_COMPOSANT, ...TEXTES_STRUCTURE, ...TEXTES_BIBLIOTHEQUE };

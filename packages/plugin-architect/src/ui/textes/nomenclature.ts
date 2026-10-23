@@ -60,7 +60,7 @@ export const TEXTES = {
   relancerLAnalyse: 'Relancer l’analyse',
 
   sansVariableLocale: 'Aucune variable à harmoniser ici',
-  sansVariableLocaleExplication: 'Les variables de ce fichier viennent d’une bibliothèque. Ouvrez le plugin dans le fichier des tokens.',
+  sansVariableLocaleExplication: 'Les variables de ce fichier viennent d’une library. Ouvrez le plugin dans le fichier des tokens.',
 
   fichierModifie: 'Le fichier a changé',
 
@@ -402,6 +402,16 @@ export const TEXTES = {
   termesDifferents: 'Termes différents',
   autreTerme: 'Autre terme…',
   plusTard: 'Plus tard',
+  /** Les règles reçues du mode Composant, en tête de Questions. */
+  reglesRecues: {
+    intertitre: 'Règles reçues du mode Composant',
+    intertitreDuFichier: 'Noms du fichier',
+    titre: 'Ajouter la règle',
+    fleche: '→',
+    detail: (composant: string): string => `Préparée depuis ${composant}, dans le fichier des composants.`,
+    ajouter: 'Ajouter la règle',
+    ecarter: 'Écarter',
+  },
   corriger: 'Corriger',
   separer: 'Séparer',
   cEstVoulu: 'C’est voulu',

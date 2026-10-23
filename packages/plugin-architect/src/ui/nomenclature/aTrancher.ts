@@ -2,7 +2,8 @@
  * Le contenu de l'onglet À trancher : une carte par question, la ligne de
  * réussite qui prend la place d'une carte répondue, la carte d'un conflit,
  * puis les sections « Plus tard » et « Autres pistes ». Ce qu'une carte affiche
- * et la réponse de chaque bouton viennent de `questions.ts`.
+ * et la réponse de chaque bouton viennent de `questions.ts`. Les règles que le
+ * mode Composant prépare s'y rangent en tête, sous leur intertitre.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
@@ -22,6 +23,7 @@ import {
   type PiedDeCarte,
   type TitreDeProposition,
 } from './questions';
+import { cleDeRegleRecue, ligneDeRegleRecue, sansDoublon, type RegleRecue } from './reglesRecues';
 import { TEXTES } from '../textes/nomenclature';
 
 /** Une entrée de la liste : son élément, et ce que l'écran peut en faire. */
@@ -36,7 +38,7 @@ interface Entree {
 /** Ce que l'écran attend du sandbox, par numéro de demande. */
 type Attente =
   | { readonly sorte: 'repondre'; readonly question: QuestionVue; readonly reponse: Reponse }
-  | { readonly sorte: 'regle'; readonly cle: string; readonly nature: 'annuler' | 'ecart' | 'reprendre' };
+  | { readonly sorte: 'regle'; readonly cle: string; readonly nature: 'annuler' | 'ecart' | 'reprendre' | 'ajout' };
 
 type QuestionDePaire = Extract<QuestionVue, { type: 'paire' }>;
 
@@ -208,12 +210,26 @@ function fabriquerTitreDeProposition(titre: TitreDeProposition): HTMLElement {
   return intitule;
 }
 
+function fabriquerIntertitre(texte: string): HTMLElement {
+  const element = document.createElement('div');
+  element.className = 'intertitre';
+  const titre = document.createElement('h2');
+  titre.textContent = texte;
+  element.append(titre);
+  return element;
+}
+
+export interface ATrancher {
+  /** Pose les règles reçues du mode Composant ; elles remplacent celles qui étaient là. */
+  poserLesReglesRecues(regles: readonly RegleRecue[]): void;
+}
+
 /**
  * Monte l'onglet dans `coquille.panneaux.aTrancher.contenu`. Un `bilan` rebâtit
  * la liste ; la réponse acceptée à une demande de l'onglet réduit sa carte à
  * une ligne, qui disparaît au changement d'onglet.
  */
-export function monterATrancher(coquille: Coquille): void {
+export function monterATrancher(coquille: Coquille): ATrancher {
   const { frontiere } = coquille;
   const panneau = coquille.panneaux.aTrancher;
   const questions = new Map<string, QuestionVue>();
@@ -221,6 +237,7 @@ export function monterATrancher(coquille: Coquille): void {
   let autresPistes = 0;
   let renommages = 0;
   let plusTardOuvert = false;
+  let recues: readonly RegleRecue[] = [];
   /** Les clés affichées, dans l'ordre : une ligne de réussite retrouve ainsi la place de sa carte. */
   let ordre: string[] = [];
   let entrees = new Map<string, Entree>();
@@ -257,7 +274,7 @@ export function monterATrancher(coquille: Coquille): void {
     return true;
   }
 
-  function demanderUnGeste(cle: string, geste: GesteSurLesRegles, nature: 'annuler' | 'ecart' | 'reprendre'): boolean {
+  function demanderUnGeste(cle: string, geste: GesteSurLesRegles, nature: 'annuler' | 'ecart' | 'reprendre' | 'ajout'): boolean {
     if (enCours.has(cle)) return false;
     dire(null);
     enCours.add(cle);
@@ -367,6 +384,34 @@ export function monterATrancher(coquille: Coquille): void {
         (cible ?? element.querySelector('button'))?.focus();
       },
     };
+  }
+
+  /** La carte d'une règle reçue : la règle et le composant d'où elle vient, un exemple, Ajouter la règle ou Écarter. */
+  function creerCarteRecue(regle: RegleRecue): HTMLElement {
+    const cle = cleDeRegleRecue(regle);
+    const element = document.createElement('div');
+    element.className = 'carte question question-proposition';
+    const entete = document.createElement('div');
+    entete.className = 'question-entete';
+    entete.append(fabriquerTitreDeProposition({ avant: TEXTES.reglesRecues.titre, ancien: regle.ancien, entre: TEXTES.reglesRecues.fleche, nouveau: regle.nouveau }), fabriquerOrigine(regle.composant));
+    const detail = document.createElement('span');
+    detail.className = 'meta';
+    detail.textContent = TEXTES.reglesRecues.detail(regle.composant);
+    const retirer = (): void => {
+      recues = recues.filter((candidate) => cleDeRegleRecue(candidate) !== cle);
+      coquille.poserLeCompteDesReglesRecues(recues.length);
+      rendre();
+    };
+    const boutons: HTMLButtonElement[] = [];
+    const ajouter = fabriquerBouton(TEXTES.reglesRecues.ajouter, () => {
+      if (demanderUnGeste(cle, { type: 'remplacer-par', terme: regle.ancien, par: regle.nouveau }, 'ajout')) for (const bouton of boutons) bouton.disabled = true;
+    });
+    const ecarter = fabriquerBoutonTexte(TEXTES.reglesRecues.ecarter, retirer);
+    const plusTardDeLaRegle = fabriquerBoutonTexte(TEXTES.plusTard, retirer);
+    boutons.push(ajouter, ecarter, plusTardDeLaRegle);
+    if (enCours.has(cle)) for (const bouton of boutons) bouton.disabled = true;
+    element.append(entete, detail, fabriquerRenommage(ligneDeRegleRecue(regle)), fabriquerPied([ajouter, ecarter], [plusTardDeLaRegle]));
+    return element;
   }
 
   function creerCarteDeSaisie(question: QuestionDePaire): Entree {
@@ -584,10 +629,11 @@ export function monterATrancher(coquille: Coquille): void {
       if (enCours.has(cle)) entree.figer();
       entrees.set(cle, entree);
     }
-    liste.replaceChildren(...[...entrees.values()].map((entree) => entree.element));
-    liste.hidden = entrees.size === 0;
+    const delaRegle = recues.length === 0 ? [] : [fabriquerIntertitre(TEXTES.reglesRecues.intertitre), ...recues.map(creerCarteRecue), ...(entrees.size === 0 ? [] : [fabriquerIntertitre(TEXTES.reglesRecues.intertitreDuFichier)])];
+    liste.replaceChildren(...delaRegle, ...[...entrees.values()].map((entree) => entree.element));
+    liste.hidden = entrees.size === 0 && recues.length === 0;
     const ligneVide = ligneDeLaVueVide(questions.size, plusTard.length);
-    vueVide.hidden = ligneVide === null;
+    vueVide.hidden = ligneVide === null || recues.length > 0;
     vueVide.replaceChildren(...(ligneVide === null ? [] : [creerVueVide(ligneVide)]));
     sectionPlusTard.hidden = plusTard.length === 0;
     sectionPlusTard.replaceChildren(...(plusTard.length === 0 ? [] : [creerSectionPlusTard()]));
@@ -621,6 +667,9 @@ export function monterATrancher(coquille: Coquille): void {
         lignes.delete(cle);
       } else if (attente.nature === 'ecart') {
         conflits.delete(cle);
+      } else if (attente.nature === 'ajout') {
+        recues = recues.filter((regle) => cleDeRegleRecue(regle) !== cle);
+        coquille.poserLeCompteDesReglesRecues(recues.length);
       }
       aFocaliser = { cle };
     }
@@ -683,4 +732,11 @@ export function monterATrancher(coquille: Coquille): void {
 
   const dejaLu = coquille.etat().bilan;
   if (dejaLu) traiterLeBilan(0, dejaLu);
+  return {
+    poserLesReglesRecues(regles) {
+      recues = sansDoublon(regles);
+      coquille.poserLeCompteDesReglesRecues(recues.length);
+      rendre();
+    },
+  };
 }

@@ -133,3 +133,58 @@ test('sans filtre, Appliquer écrit les groupes cochés du bilan', async () => {
     assert.deepEqual(demande.selection.inclus, []);
   } finally { await page.context().close(); }
 });
+
+const { bilans, messages } = exiger('../../galerie/nomenclature/donnees.cjs');
+
+/** Les règles reçues : le fichier Intencial, Questions ouvert, puis les deux règles que le mode Composant prépare. */
+async function ouvrirLesReglesRecues() {
+  const page = await ouvrirInterface();
+  await page.locator('#onglet-a-trancher').click();
+  await page.evaluate(() => window.postMessage({ pluginMessage: { type: 'regles-recues', regles: [
+    { ancien: 'outline', nouveau: 'outlined', composant: 'Alert', exemple: { ancien: 'alert/color/info/outline/border', nouveau: 'alert/color/info/outlined/border' } },
+    { ancien: 'txt', nouveau: 'text', composant: 'Tag', exemple: { ancien: 'tag/color/danger/soft/txt', nouveau: 'tag/color/danger/soft/text' } },
+  ] } }, '*'));
+  await page.waitForTimeout(30);
+  return page;
+}
+
+test('les règles reçues du mode Composant se rangent en tête de Questions, sous leur intertitre, et s’ajoutent au compte', async () => {
+  const page = await ouvrirLesReglesRecues();
+  try {
+    const panneau = page.locator('#panneau-a-trancher');
+    assert.deepEqual(await panneau.locator('.intertitre h2').allTextContents(), ['Règles reçues du mode Composant', 'Noms du fichier']);
+    assert.equal(await panneau.locator('.question-proposition').first().locator('.origine').textContent(), 'Alert');
+    assert.equal(await panneau.locator('.question-proposition').first().locator('.question-titre').textContent(), 'Ajouter la règle outline → outlined ?');
+    assert.equal(await panneau.locator('.question-proposition').first().locator('.meta').textContent(), 'Préparée depuis Alert, dans le fichier des composants.');
+    assert.equal(await page.locator('#onglet-a-trancher .compte').textContent(), '4');
+    assert.deepEqual(page.erreurs, []);
+  } finally { await page.context().close(); }
+});
+
+test('Ajouter la règle envoie remplacer-par ; la carte part avec le bilan qui suit', async () => {
+  const page = await ouvrirLesReglesRecues();
+  try {
+    await page.locator('#panneau-a-trancher .question-proposition').first().getByRole('button', { name: 'Ajouter la règle' }).click();
+    await page.waitForTimeout(30);
+    const [demande] = await demandesDe(page, 'regle');
+    assert.deepEqual(demande.geste, { type: 'remplacer-par', terme: 'outline', par: 'outlined' });
+    assert.equal(await page.locator('#panneau-a-trancher .question-proposition').first().getByRole('button', { name: 'Ajouter la règle' }).isDisabled(), true);
+    await page.evaluate((m) => window.postMessage({ pluginMessage: m }, '*'), messages.bilan(demande.demande, bilans.travail));
+    await page.waitForTimeout(30);
+    assert.deepEqual(await page.locator('#panneau-a-trancher .question-proposition .question-titre').first().textContent(), 'Ajouter la règle txt → text ?');
+    assert.deepEqual(page.erreurs, []);
+  } finally { await page.context().close(); }
+});
+
+test('Écarter et Plus tard retirent la carte sans rien envoyer', async () => {
+  const page = await ouvrirLesReglesRecues();
+  try {
+    const avant = (await demandesDe(page, 'regle')).length;
+    await page.locator('#panneau-a-trancher .question-proposition').first().getByRole('button', { name: 'Écarter' }).click();
+    await page.locator('#panneau-a-trancher .question-proposition').first().getByRole('button', { name: 'Plus tard' }).click();
+    assert.equal(await page.locator('#panneau-a-trancher .intertitre h2').count(), 0);
+    assert.equal(await page.locator('#onglet-a-trancher .compte').textContent(), '2');
+    assert.equal((await demandesDe(page, 'regle')).length, avant);
+    assert.deepEqual(page.erreurs, []);
+  } finally { await page.context().close(); }
+});

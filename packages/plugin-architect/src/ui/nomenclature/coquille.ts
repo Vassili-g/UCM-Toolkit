@@ -9,6 +9,7 @@
  */
 import { createBackButton, createSettingsButton, montrerConfiguration, montrerTravail, type ElementsDeBascule } from 'ucm-plugin-socle/src/ui/EnTete';
 import { creerPuceFiltre } from 'ucm-plugin-socle/src/ui/Filtre';
+import { creerAlerte, creerLienExterne } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createOnglets } from 'ucm-plugin-socle/src/ui/Onglets';
 import { createResizeGrip } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 import type { UiMessage } from '../../messages/nomenclature';
@@ -16,6 +17,7 @@ import { ETAT_INITIAL, etatSuivant, type EtatDeLEcran, type Onglet } from './eta
 import { creerFrontiere, type Frontiere, type MessageAAfficher } from './frontiere';
 import { creerBandeau, creerPanneau, creerVueDAnalyse, type Panneau } from './panneaux';
 import { TEXTES } from '../textes/nomenclature';
+import { TEXTES_BIBLIOTHEQUE } from '../textes/bibliotheque';
 import { TEXTES_STRUCTURE } from '../textes/structure';
 
 /** Reçoit chaque message que la frontière rend, après la mise à jour de l'état. */
@@ -23,6 +25,13 @@ export type Ecouteur = (message: MessageAAfficher, etat: EtatDeLEcran) => void;
 
 /** La collection que l'arbre a choisie : elle filtre les onglets qui parlent des noms d'un fichier. */
 export interface FiltreDeCollection { readonly id: string; readonly nom: string }
+
+/** La library dont le fichier tire ses variables : ses onglets de renommage sont grisés, et l'alerte dit où les renommer. */
+export interface LibraryAffichee {
+  readonly nom: string;
+  /** Ouvre le fichier des tokens ; `null` tant que sa clé est inconnue. */
+  readonly ouvrir: (() => void) | null;
+}
 
 export interface Coquille {
   readonly frontiere: Frontiere;
@@ -41,6 +50,10 @@ export interface Coquille {
   /** Les comptes du domaine structure : les constats de « À faire dans Figma », et les corrections de modes et de scopes que Corrections ajoute à ses renommages. */
   poserLesComptesDeStructure(comptes: { readonly aFaire: number; readonly corrections: number }): void;
   poserLeFiltre(filtre: FiltreDeCollection | null): void;
+  /** Les règles que le mode Composant a préparées s'ajoutent au compte de Questions. */
+  poserLeCompteDesReglesRecues(nombre: number): void;
+  /** Grise Corrections, Questions et À faire dans Figma, montre l'alerte de la library et ouvre Règles ; `null` rend les onglets. */
+  poserLaLibrary(library: LibraryAffichee | null): void;
   /** Appelle le rappel à chaque changement de filtre ou d'état local (onglet, carte demandée) ; rend la fonction qui le retire. */
   surChangement(rappel: () => void): () => void;
   /** Rend la fonction qui retire l'écouteur. */
@@ -72,6 +85,13 @@ export interface OptionsDeCoquille {
   readonly rechercherLeTerme?: (mot: string, formes: readonly string[]) => void;
 }
 
+/** Le lien du socle, à la taille d'un bouton texte comme les autres liens de la barre latérale. */
+function lienDeLaLibrary(nom: string, ouvrir: () => void): HTMLButtonElement {
+  const lien = creerLienExterne(TEXTES_BIBLIOTHEQUE.ouvrirLeFichierDesTokens(nom), ouvrir);
+  lien.classList.add('btn-texte');
+  return lien;
+}
+
 export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) => void, options: OptionsDeCoquille = {}): Coquille {
   app.replaceChildren();
   app.className = 'container';
@@ -83,6 +103,8 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   let filtre: FiltreDeCollection | null = null;
   let compteDesCorrections: number | null = null;
   let comptesDeStructure = { aFaire: 0, corrections: 0 };
+  let reglesRecues = 0;
+  let libraryAffichee = false;
   let deplierUneCarte: (cle: string) => void = () => {};
 
   function appliquerLEtat(suivant: EtatDeLEcran): boolean {
@@ -94,6 +116,8 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
 
   function traiter(message: MessageAAfficher): void {
     appliquerLEtat(etatSuivant(etat, message));
+    // Un message qui remet l'écran à zéro rend le premier onglet : la library ne garde que Règles.
+    if (libraryAffichee && etat.onglet !== 'regles') appliquerLEtat(etatSuivant(etat, { type: 'onglet-choisi', onglet: 'regles' }));
     for (const ecouteur of [...ecouteurs]) ecouteur(message, etat);
     // Un fichier déjà analysé relance sa lecture à l'ouverture.
     if (message.type === 'initial' && message.dejaAnalyse) frontiere.analyser();
@@ -124,7 +148,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     aAppliquer: creerPanneau({ etats: ['rien-a-faire', 'sans-variable-locale'], relancer }),
     aTrancher: creerPanneau({ etats: ['rien-a-faire', 'sans-variable-locale'], relancer }),
     aFaire: creerPanneau({ etats: ['sans-variable-locale'], relancer }),
-    regles: creerPanneau({ etats: ['sans-variable-locale'], relancer }),
+    regles: creerPanneau({ etats: [], relancer }),
   };
   const onglets = createOnglets<Onglet>(TEXTES.etiquetteDesOnglets, [
     { id: 'a-appliquer', libelle: TEXTES.ongletAAppliquer, panneau: panneaux.aAppliquer.element },
@@ -165,7 +189,9 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   const ligneDuFiltre = document.createElement('div');
   ligneDuFiltre.className = 'filtre-ligne';
   ligneDuFiltre.hidden = true;
-  ecranDesOnglets.append(onglets.liste, ligneDuFiltre, panneaux.aAppliquer.element, panneaux.aTrancher.element, panneaux.aFaire.element, panneaux.regles.element);
+  const alerteDeLaLibrary = document.createElement('div');
+  alerteDeLaLibrary.hidden = true;
+  ecranDesOnglets.append(alerteDeLaLibrary, onglets.liste, ligneDuFiltre, panneaux.aAppliquer.element, panneaux.aTrancher.element, panneaux.aFaire.element, panneaux.regles.element);
   const travail = document.createElement('div');
   travail.className = 'page-stack';
   travail.append(bandeau, premierLancement, vueDAnalyse.element, ecranDesOnglets);
@@ -213,9 +239,10 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     bandeau.hidden = !etat.fichierModifie || etat.ecranDeTravail === 'lecture';
     if (etat.analyse) vueDAnalyse.poser(etat.analyse.lues, etat.analyse.total);
 
-    poserLeCompte(compteAAppliquer, (compteDesCorrections ?? etat.comptes.aAppliquer) + comptesDeStructure.corrections);
-    poserLeCompte(compteATrancher, etat.comptes.aTrancher);
-    poserLeCompte(compteAFaire, comptesDeStructure.aFaire);
+    // Les onglets grisés d'une library ne comptent rien : ils ne peuvent rien écrire ici.
+    poserLeCompte(compteAAppliquer, libraryAffichee ? 0 : (compteDesCorrections ?? etat.comptes.aAppliquer) + comptesDeStructure.corrections);
+    poserLeCompte(compteATrancher, libraryAffichee ? 0 : etat.comptes.aTrancher + reglesRecues);
+    poserLeCompte(compteAFaire, libraryAffichee ? 0 : comptesDeStructure.aFaire);
     for (const panneau of [panneaux.aAppliquer, panneaux.aTrancher, panneaux.aFaire, panneaux.regles]) panneau.poserEtat(etat.particulier);
     if (onglets.actif() !== etat.onglet) onglets.selectionner(etat.onglet);
     for (const rappel of [...surChangements]) rappel();
@@ -241,6 +268,23 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     poserLesComptesDeStructure(comptes) {
       if (comptes.aFaire === comptesDeStructure.aFaire && comptes.corrections === comptesDeStructure.corrections) return;
       comptesDeStructure = comptes;
+      rendre();
+    },
+    poserLeCompteDesReglesRecues(nombre) {
+      if (nombre === reglesRecues) return;
+      reglesRecues = nombre;
+      rendre();
+    },
+    poserLaLibrary(suivante) {
+      libraryAffichee = suivante !== null;
+      alerteDeLaLibrary.hidden = suivante === null;
+      alerteDeLaLibrary.replaceChildren(...(suivante === null ? [] : [creerAlerte('info', {
+        titre: TEXTES_BIBLIOTHEQUE.alerteDeLaLibrary(suivante.nom),
+        texte: TEXTES_BIBLIOTHEQUE.alerteRenommer,
+        actions: suivante.ouvrir === null ? [] : [lienDeLaLibrary(suivante.nom, suivante.ouvrir)],
+      })]));
+      for (const onglet of ['a-appliquer', 'a-trancher', 'a-faire'] as const) onglets.definirDisponible(onglet, suivante === null);
+      if (suivante !== null) appliquerLEtat(etatSuivant(etat, { type: 'onglet-choisi', onglet: 'regles' }));
       rendre();
     },
     poserLeFiltre(suivant) {

@@ -48,3 +48,21 @@ test('la bascule passe de l’explorateur de tokens à la vue composant, qui lit
     assert.equal(await page.getByRole('button', { name: 'Actualiser' }).isVisible(), true);
   } finally { await fermer(page); }
 });
+
+test('un fichier hors UCM remplace les onglets de la barre latérale par l’alerte, sans renommage dans la table ; la Configuration reste ouverte', async () => {
+  const page = await ouvrir();
+  try {
+    await avecReleve(page, projetLibre());
+    await envoyer(page, { type: 'declaration', architecture: 'absente' });
+    assert.equal(await page.getByText('Ce fichier n’est pas déclaré UCM.').isVisible(), true);
+    assert.equal(await page.locator('.panneau-lateral .onglets').isVisible(), false);
+    assert.equal(await page.locator('.table-ligne .ch-lien').count(), 0);
+    await page.getByRole('button', { name: 'Déclarer dans la Configuration' }).click();
+    assert.equal(await page.getByText('Ce fichier n’est pas déclaré UCM.').isVisible(), false);
+    assert.equal(await page.locator('.panneau-lateral .header-back-button').isVisible(), true);
+    await page.locator('.panneau-lateral .header-back-button').click();
+    assert.equal(await page.getByText('Ce fichier n’est pas déclaré UCM.').isVisible(), true);
+    await envoyer(page, { type: 'declaration', architecture: 'ucm' });
+    assert.equal(await page.getByText('Ce fichier n’est pas déclaré UCM.').isVisible(), false);
+  } finally { await fermer(page); }
+});

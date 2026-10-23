@@ -177,7 +177,7 @@ du relevé du fichier, et fonctionne dans un fichier sans variable locale.
 |---|---|
 | Sujet lu | Le calque sélectionné s'il est `COMPONENT`, `INSTANCE` ou `COMPONENT_SET`, sinon son plus proche ancêtre de l'un de ces types. Hors de tout composant, la vue invite à en sélectionner un |
 | Sélection multiple | Le premier calque décide du sujet ; le pied compte les autres |
-| Jeu de variants | La lecture porte sur `defaultVariant`. Un variant prend le nom de son jeu, et l'en-tête propose de relire un autre variant |
+| Jeu de variants | La lecture porte sur `defaultVariant`. Un variant prend le nom de son jeu. Après une analyse, la section Variants relit un autre variant : une puce choisit celui qui garde le plus de valeurs du variant affiché |
 | Frontière | Toute `INSTANCE` strictement sous le sujet, une icône comprise. Ses calques ne sont pas parcourus : la vue nomme le composant, compte ses instances et l'ouvre au clic |
 | Surcharge du parent | Une liaison que le parent pose dans une instance frontière se lit sur le calque que `InstanceNode.overrides` désigne, pour les seuls champs surchargés. Elle se rattache au calque de l'instance |
 | Ligne | Une par couple variable et chaîne de modes. Deux calques qui portent la même variable sous deux modes donnent deux lignes ; `×N` compte les calques |

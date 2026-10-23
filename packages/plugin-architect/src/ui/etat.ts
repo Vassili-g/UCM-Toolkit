@@ -7,6 +7,7 @@
  * toutes les résolutions mémorisées tombent d'un coup.
  */
 import type { LectureDeComposant } from '../composant';
+import type { AnalyseRecue } from './composant/analyse';
 import type { ArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 import type { Disposition } from '../fenetre';
@@ -100,7 +101,13 @@ export interface Etat {
   disposition: Disposition;
   /** La déclaration UCM du fichier, que le sandbox annonce à l'ouverture et à chaque changement ; `null` avant l'annonce. */
   architecture: ArchitectureDuFichier | null;
+  /** La library dont le fichier tire ses variables, quand il n'en a aucune en local ; `null` sinon. */
+  bibliotheque: { readonly nom: string; readonly cleDuFichierDesTokens: string | null } | null;
   composant: EtatDuComposant;
+  /** La dernière analyse du sandbox ; `null` avant la première. */
+  analyse: AnalyseRecue | null;
+  /** Le panneau des constats du mode Composant : fermé à l'ouverture, et la largeur que la frontière donne à la vue quand il est ouvert. */
+  panneau: { ouvert: boolean; largeurDeLaVue: number };
 }
 
 export function etatInitial(): Etat {
@@ -118,7 +125,10 @@ export function etatInitial(): Etat {
     preferences: PREFERENCES_PAR_DEFAUT,
     disposition: 'large',
     architecture: null,
+    bibliotheque: null,
     composant: { demande: 0, statut: 'vide', message: '', lecture: null, index: null, pile: [], portee: null, apercu: null, selection: null, ignores: 0, empiler: false, deLaSelection: true },
+    analyse: null,
+    panneau: { ouvert: false, largeurDeLaVue: 400 },
   };
 }
 

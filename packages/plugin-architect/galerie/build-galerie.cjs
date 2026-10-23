@@ -3,9 +3,20 @@
  * du mode Tokens, une à sa taille minimale, et une à celle du mode Composant
  * (panneau fermé). Les états de Nomenclature se jouent dans le panneau latéral
  * du mode Tokens.
+ *
+ * Un cadre `seul` du manifeste (`cadres.json`, `sorte: "seul"`) est une barre
+ * latérale sans l'arbre, la table ni la barre de l'application : la maquette
+ * la montre ainsi, et le comparateur la mesure à la taille du cadre. Le banc
+ * du socle ne connaît pas cette forme ; la galerie d'Architect ajoute à la page
+ * de l'état la feuille de style qui la rend. Le champ `masque` du manifeste
+ * liste ce que la maquette remplace par un extrait : ces éléments sont cachés,
+ * donc absents du relevé. Le champ `extrait` donne la ligne que la maquette
+ * écrit à leur place ; elle prend sa place dans la page sans y être un texte,
+ * donc sans entrer dans le relevé.
  */
+const fs = require('fs');
 const path = require('path');
-const { construireGalerie } = require('ucm-plugin-socle/galerie/banc.cjs');
+const { construireGalerie, MODES, sortieDe } = require('ucm-plugin-socle/galerie/banc.cjs');
 const { ETATS } = require('./etats.cjs');
 
 const racine = path.resolve(__dirname, '..');
@@ -17,6 +28,45 @@ const GALERIES = [
   { racine, etats: etroits, largeur: 520, hauteur: 760, dossier: 'galerie-etroite' },
 ];
 
-module.exports = { GALERIES };
+/** La barre latérale couvre la fenêtre : tout le reste de l'application disparaît, et la place de ses bordures avec lui. */
+const STYLE_DU_CADRE_SEUL = `<style>
+.application > :not(.corps) { display: none !important; }
+.corps { display: block !important; }
+.corps > :not(.panneau-lateral) { display: none !important; }
+.panneau-lateral { height: 100%; border: 0 !important; }
+</style>`;
 
-if (require.main === module) for (const galerie of GALERIES) construireGalerie(galerie);
+/** Les cadres que le manifeste déclare `seul`. */
+function cadresSeuls() {
+  const manifeste = JSON.parse(fs.readFileSync(path.join(__dirname, 'cadres.json'), 'utf8'));
+  return manifeste.filter((cadre) => cadre.sorte === 'seul');
+}
+
+const feuilleDuCadre = (cadre) => {
+  const masque = (cadre.masque ?? []).map((selecteur) => `${selecteur} { display: none !important; }
+`).join('');
+  const extrait = cadre.extrait ? `${cadre.extrait.dans}::before { content: ${JSON.stringify(cadre.extrait.texte)}; display: block; margin-bottom: 8px; color: var(--texte-second); }
+` : '';
+  return STYLE_DU_CADRE_SEUL.replace('</style>', () => `${masque}${extrait}</style>`);
+};
+
+/** Ajoute la feuille du cadre seul à la page de chaque état concerné, dans chaque mode de couleur. */
+function poserLesCadresSeuls(galerie) {
+  for (const nom of Object.keys(MODES)) {
+    for (const cadre of cadresSeuls()) {
+      if (!galerie.etats.some((etat) => etat.id === cadre.cadre)) continue;
+      const fichier = path.join(sortieDe(galerie), nom, `${cadre.cadre}.html`);
+      const page = fs.readFileSync(fichier, 'utf8');
+      fs.writeFileSync(fichier, page.replace('</head>', () => `${feuilleDuCadre(cadre)}</head>`));
+    }
+  }
+}
+
+module.exports = { GALERIES, STYLE_DU_CADRE_SEUL, cadresSeuls };
+
+if (require.main === module) {
+  for (const galerie of GALERIES) {
+    construireGalerie(galerie);
+    poserLesCadresSeuls(galerie);
+  }
+}

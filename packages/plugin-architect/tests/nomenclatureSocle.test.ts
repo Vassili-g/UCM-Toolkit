@@ -14,7 +14,8 @@ test('chaque réponse possède un scénario de galerie compilable', () => {
   assert.deepEqual(fautesDIdentite(ETATS), []);
   assert.deepEqual(fautesDeScenario(ETATS), []);
   // Un état du mode Tokens (`t-renommages`) lit d'abord le relevé du fichier, que l'arbre et la table montrent : `preferences` et `releve` y précèdent les messages de Nomenclature.
-  const declares = new Set([...typesDeLUnion(lire('src/messages/nomenclature.ts'), 'MessageDeNomenclature'), 'preferences', 'releve']);
+  // `structure` répond au domaine de la structure, dont les pastilles de ces états dépendent ; `regles-recues` est le message que l'interface lit pour les règles du mode Composant (`ui/nomenclature/reglesRecues.ts`).
+  const declares = new Set([...typesDeLUnion(lire('src/messages/nomenclature.ts'), 'MessageDeNomenclature'), 'preferences', 'releve', 'structure', 'regles-recues']);
   assert.deepEqual(ecartsDesMessages(declares, ETATS), { jamaisRegardes: [], inventes: [] });
   assert.deepEqual(variablesAbsentesDuDecalque(feuilleDuSocle() + lire('src/ui/styles/nomenclature.css')), []);
 });

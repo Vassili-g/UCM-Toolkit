@@ -1,13 +1,31 @@
 /**
  * La barre du haut : le produit, la bascule entre l'explorateur de tokens et
- * la vue composant, puis la lecture du relevé et la configuration de
- * Nomenclature. Actualiser, Annuler et Configuration portent sur le relevé et
- * sur les noms des variables : la disposition étroite ne les montre pas.
+ * la vue composant, puis les gestes du mode. Le mode Tokens montre Actualiser,
+ * Annuler et Configuration, qui portent sur le relevé et sur les noms des
+ * variables. Le mode Composant montre Analyser (Actualiser après la première
+ * analyse), le bouton Constats qui ouvre le panneau, et Configuration, sans son
+ * mot tant que le panneau est fermé.
  */
+import { creerPastilleDeCompte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createSettingsButton } from 'ucm-plugin-socle/src/ui/EnTete';
 import type { Disposition } from '../fenetre';
 import type { Application, Composant } from './application';
+import { tonLePlusGrave } from './composant/analyse';
 import { TEXTES } from './textes';
+
+const ESPACE_SVG = 'http://www.w3.org/2000/svg';
+
+/** L'icône d'un panneau latéral : un cadre coupé par un trait vertical. */
+function iconeDuPanneau(): SVGSVGElement {
+  const svg = document.createElementNS(ESPACE_SVG, 'svg');
+  for (const [nom, valeur] of Object.entries({ viewBox: '0 0 16 16', width: '14', height: '14', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.3', 'aria-hidden': 'true' })) svg.setAttribute(nom, valeur);
+  const cadre = document.createElementNS(ESPACE_SVG, 'rect');
+  for (const [nom, valeur] of Object.entries({ x: '1.5', y: '2.5', width: '13', height: '11', rx: '1.5' })) cadre.setAttribute(nom, valeur);
+  const trait = document.createElementNS(ESPACE_SVG, 'path');
+  trait.setAttribute('d', 'M10 2.5v11');
+  svg.append(cadre, trait);
+  return svg;
+}
 
 const DISPOSITIONS: readonly Disposition[] = ['large', 'etroite'];
 
@@ -64,7 +82,25 @@ export function creerBarre(app: Application): Composant {
     texte: TEXTES.configuration,
   });
 
-  lecture.append(actualiser, annuler, configuration);
+  const analyser = document.createElement('button');
+  analyser.type = 'button';
+  analyser.className = 'btn btn-compact';
+  analyser.title = TEXTES.analyserAide;
+  const analyserTexte = document.createElement('span');
+  analyser.append(analyserTexte);
+  analyser.addEventListener('click', () => app.analyser());
+
+  const constats = document.createElement('button');
+  constats.type = 'button';
+  constats.className = 'btn btn-secondary btn-compact bouton-panneau';
+  constats.setAttribute('aria-label', TEXTES.constats);
+  const constatsTexte = document.createElement('span');
+  constatsTexte.textContent = TEXTES.constats;
+  let pastille: HTMLElement | null = null;
+  constats.append(iconeDuPanneau(), constatsTexte);
+  constats.addEventListener('click', () => app.basculerLePanneau());
+
+  lecture.append(actualiser, annuler, analyser, constats, configuration);
   element.append(produit, bascule, lecture);
 
   return {
@@ -72,10 +108,32 @@ export function creerBarre(app: Application): Composant {
     mettreAJour() {
       const { etat } = app;
       for (const { disposition, bouton } of choix) bouton.setAttribute('aria-pressed', String(etat.disposition === disposition));
-      lecture.hidden = etat.disposition === 'etroite';
+      const composant = etat.disposition === 'etroite';
+      element.classList.toggle('barre-panneau-ouvert', etat.panneau.ouvert);
       const enCours = etat.lecture.statut === 'en-cours';
-      annuler.hidden = !enCours;
+      actualiser.hidden = composant;
+      annuler.hidden = composant || !enCours;
       actualiser.disabled = enCours;
+      analyser.hidden = !composant;
+      constats.hidden = !composant;
+      const analyse = etat.analyse;
+      const analyseEnCours = analyse?.statut === 'en-cours';
+      const dejaAnalyse = analyse !== null && !analyseEnCours;
+      analyser.classList.toggle('btn-primary', !dejaAnalyse);
+      analyser.classList.toggle('btn-secondary', dejaAnalyse);
+      analyserTexte.textContent = dejaAnalyse ? TEXTES.actualiser : TEXTES.analyser;
+      analyser.disabled = analyseEnCours;
+      constats.setAttribute('aria-pressed', String(etat.panneau.ouvert));
+      constats.title = etat.panneau.ouvert ? TEXTES.constatsFermer : TEXTES.constatsOuvrir;
+      const nombre = analyse && !analyseEnCours ? analyse.constats.length : 0;
+      const ton = analyse ? tonLePlusGrave(analyse.constats) : null;
+      pastille?.remove();
+      pastille = nombre > 0 && ton ? creerPastilleDeCompte(nombre, ton) : null;
+      if (pastille) constats.append(pastille);
+      const fermee = composant && !etat.panneau.ouvert;
+      const motDeLaConfiguration = configuration.querySelector('span');
+      if (motDeLaConfiguration) motDeLaConfiguration.hidden = fermee;
+      configuration.setAttribute('aria-label', TEXTES.configuration);
     },
   };
 }

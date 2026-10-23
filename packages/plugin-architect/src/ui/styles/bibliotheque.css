@@ -1,0 +1,19 @@
+/* La Library lue depuis le fichier des composants : une valeur pas encore importée, des onglets de renommage grisés. */
+.valeur-attente {
+  display: inline-block;
+  width: 92px;
+  height: 10px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--fond-survol) 0 100%);
+  opacity: 0.7;
+}
+
+.onglet[disabled] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Le lien vers le fichier des tokens prend la taille d'un bouton texte et garde la couleur de marque de son alerte. */
+.btn-texte.lien-externe {
+  color: var(--texte-marque);
+}

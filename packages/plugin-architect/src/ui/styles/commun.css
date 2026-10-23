@@ -179,6 +179,21 @@ textarea {
   margin-left: auto;
 }
 
+/* Le bouton qui ouvre ou ferme le panneau des constats : l'icône, le mot, puis la pastille de compte. */
+.bouton-panneau {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bouton-panneau[aria-pressed='true'] {
+  background: var(--fond-selection);
+}
+
+.barre-lecture .btn {
+  margin-left: var(--espace-controle);
+}
+
 /* La maquette éloigne le bouton Configuration des boutons de lecture d'un cran de plus que l'écart commun. */
 .barre-lecture .icon-button.avec-libelle {
   margin-left: var(--espace-controle);

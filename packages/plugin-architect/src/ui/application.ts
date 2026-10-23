@@ -7,7 +7,7 @@ import { copier as texteACopier, type FormatDeCopie } from '../copie';
 import { versSrgb } from '../espace';
 import { clesDesAncetres, segmentsDeGroupe, type NoeudDeGroupe } from '../groupes';
 import { espaceDuReleve } from '../modele';
-import type { Disposition } from '../fenetre';
+import { TAILLE_COMPOSANT_PANNEAU_OUVERT, TAILLE_ETROITE, type Disposition } from '../fenetre';
 import type { Preferences } from '../preferences';
 import { contexteDeColonne, type Resultat } from '../resolution';
 import type { Etat, Filtres } from './etat';
@@ -77,6 +77,12 @@ export interface Application {
   /** Passe de l'explorateur de tokens à la vue composant, ou l'inverse. Le sandbox donne à la fenêtre la taille de la disposition. */
   changerDisposition(disposition: Disposition): void;
   actualiser(): void;
+  /** Lance l'analyse du composant sélectionné. */
+  analyser(): void;
+  /** Ouvre ou ferme le panneau des constats ; la fenêtre prend la taille du mode sans le ranger. */
+  basculerLePanneau(): void;
+  /** Donne sa largeur à la vue Composant quand la frontière se tire ; la fenêtre ne change pas. */
+  poserLaLargeurDeLaVue(largeur: number): void;
   annulerLecture(): void;
   copier(variable: string, format: FormatDeCopie, reference?: string | null): Promise<void>;
   /** Annonce un texte à la zone `aria-live` ; `zoneDeSecours` montre un texte à copier à la main. */
@@ -192,6 +198,19 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       etat.lecture = { statut: 'en-cours', demande, phase: 'collections', fait: 0, total: 1 };
       versSandbox({ type: 'lire-releve', demande });
       app.rendre(['barre', 'pied', 'table']);
+    },
+    analyser() {
+      versSandbox({ type: 'analyser' });
+    },
+    basculerLePanneau() {
+      etat.panneau = { ...etat.panneau, ouvert: !etat.panneau.ouvert };
+      const taille = etat.panneau.ouvert ? TAILLE_COMPOSANT_PANNEAU_OUVERT : TAILLE_ETROITE;
+      versSandbox({ type: 'resize', largeur: taille.largeur, hauteur: taille.hauteur, fin: false });
+      app.rendre(['barre', 'vue']);
+    },
+    poserLaLargeurDeLaVue(largeur) {
+      etat.panneau = { ...etat.panneau, largeurDeLaVue: largeur };
+      app.rendre(['vue']);
     },
     annulerLecture() {
       if (etat.lecture.statut !== 'en-cours') return;

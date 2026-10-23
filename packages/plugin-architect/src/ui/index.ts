@@ -17,9 +17,13 @@ import { estMessageDeNomenclature } from '../messages/nomenclature';
 import { creerApplication, type Branchements, type Zone } from './application';
 import { creerArbre } from './arbre';
 import { creerBarre } from './barre';
+import { recevoirUneAnalyse } from './composant/analyse';
+import { creerCorpsDuComposant } from './composant/corps';
 import { creerFiche } from './fiche';
 import { collectionDuFiltre, etatInitial, poserReleve } from './etat';
 import { monterNomenclature } from './nomenclature';
+import { monterBibliotheque } from './bibliotheque';
+import { estReglesRecues } from './nomenclature/reglesRecues';
 import { monterStructure } from './structure';
 import type { Noms } from './structure/lecture';
 import { versSandbox } from './pont';
@@ -27,6 +31,7 @@ import { installerSurvol } from './survol';
 import { creerTable } from './table';
 import { TEXTES } from './textes';
 import { creerVueComposant } from './vues/composant';
+import { creerAlerteHorsUcm, estHorsUcm } from './vues/horsUcm';
 
 const etat = etatInitial();
 let branchements: Branchements;
@@ -41,6 +46,7 @@ const arbre = creerArbre(app);
 const table = creerTable(app);
 const fiche = creerFiche(app);
 const vueComposant = creerVueComposant(app);
+const corpsComposant = creerCorpsDuComposant(app, vueComposant);
 const panneau = document.createElement('div');
 panneau.className = 'panneau';
 panneau.append(table.element);
@@ -75,7 +81,8 @@ annonce.append(annonceTexte, secours);
 const lateral = document.createElement('aside');
 lateral.className = 'panneau-lateral';
 const hoteDeNomenclature = document.createElement('div');
-lateral.append(hoteDeNomenclature);
+const alerteHorsUcm = creerAlerteHorsUcm(app);
+lateral.append(alerteHorsUcm, hoteDeNomenclature);
 const nomenclature = monterNomenclature(hoteDeNomenclature, versSandbox, {
   appartient: (identifiant, collection) => identifiant === collection || etat.index?.variables.get(identifiant)?.collection === collection,
   enleverLeFiltre: () => app.enleverLeFiltre(),
@@ -91,8 +98,18 @@ nomenclature.coquille.surChangement(() => {
   segmentCible = null;
   app.rendre(['table']);
 });
+
+/** Hors UCM l'alerte remplace les onglets, sauf dans la Configuration, qui porte la déclaration. */
+function poserLAlerteHorsUcm(): void {
+  const hors = estHorsUcm(etat.architecture);
+  const enConfiguration = nomenclature.coquille.etat().ecran === 'configuration';
+  alerteHorsUcm.hidden = !hors || enConfiguration;
+  hoteDeNomenclature.hidden = hors && !enConfiguration;
+}
+nomenclature.coquille.surChangement(poserLAlerteHorsUcm);
 app.renommages = {
-  de: (variable) => nomenclature.renommages.de(variable),
+  // Un fichier hors UCM n'a aucun renommage : la table garde les noms d'aujourd'hui.
+  de: (variable) => (estHorsUcm(etat.architecture) ? undefined : nomenclature.renommages.de(variable)),
   cible: () => segmentCible,
   ouvrir(variable, rang) {
     const carte = nomenclature.renommages.de(variable)?.cartes.get(rang);
@@ -117,6 +134,19 @@ const noms: Noms = {
   },
 };
 const structure = monterStructure(nomenclature.coquille, { envoyer: versSandbox, noms, ouvrirLaFiche: (cle) => app.suivre(cle) });
+
+/** Un fichier sans variable locale montre la library dont il tire les siennes ; ses onglets de renommage se grisent, et l'alerte dit où les renommer. */
+const bibliotheque = monterBibliotheque({
+  envoyer: versSandbox,
+  position: () => etat.position,
+  poser(releve, library) {
+    etat.bibliotheque = library;
+    poserReleve(etat, releve);
+    const cle = library.cleDuFichierDesTokens;
+    nomenclature.coquille.poserLaLibrary({ nom: library.nom, ouvrir: cle === null ? null : () => void window.open(`https://www.figma.com/design/${encodeURIComponent(cle)}`, '_blank', 'noopener') });
+    app.rendre();
+  },
+});
 
 /**
  * Les feuilles du socle couvrent la fenêtre. Ici elles ne couvrent que la barre latérale, où Nomenclature et la fiche d'une variable
@@ -158,9 +188,10 @@ function poserLaDisposition(disposition: Disposition): void {
   if (etat.disposition === disposition) return;
   etat.disposition = disposition;
   racine.classList.toggle('application-etroite', disposition === 'etroite');
-  if (disposition === 'etroite') racine.replaceChildren(barre.element, vueComposant.element, annonce, poignee);
+  if (disposition === 'etroite') racine.replaceChildren(barre.element, corpsComposant.element, annonce, poignee);
   else racine.replaceChildren(barre.element, corps, pied, annonce, bulle, poignee);
   app.rendre();
+  corpsComposant.mettreAJour();
   vueComposant.activer();
 }
 
@@ -199,12 +230,14 @@ branchements = {
   rendre(zones: readonly Zone[]) {
     const demandees = new Set(zones);
     if (demandees.has('barre')) barre.mettreAJour();
+    if (demandees.has('barre') || demandees.has('vue')) corpsComposant.mettreAJour();
     if (demandees.has('arbre')) arbre.mettreAJour();
     if (demandees.has('table') || demandees.has('vue')) table.mettreAJour();
     if (demandees.has('fiche')) fiche.mettreAJour();
     rendreAccueil();
     if (demandees.has('pied') || demandees.has('barre')) rendrePied();
     poserLeFiltre();
+    bibliotheque.suivre();
   },
   montrerDansLaTable: (variable) => table.montrer(variable),
   ouvrirLaConfiguration: () => nomenclature.coquille.ouvrirLaConfiguration(),
@@ -251,6 +284,18 @@ function recevoir(message: PluginMessage): void {
       poserReleve(etat, message.releve);
       app.rendre();
       structure.demander();
+      if (message.releve.variables.length === 0) bibliotheque.demander();
+      else if (etat.bibliotheque) {
+        etat.bibliotheque = null;
+        bibliotheque.quitter();
+        nomenclature.coquille.poserLaLibrary(null);
+      }
+      return;
+    case 'bibliotheque':
+    case 'valeurs':
+      bibliotheque.recevoir(message);
+      return;
+    case 'bibliotheque-illisible':
       return;
     case 'lecture-echouee':
       if (demandeCourante(message.demande)) {
@@ -272,6 +317,17 @@ function recevoir(message: PluginMessage): void {
       return;
     case 'declaration':
       etat.architecture = message.architecture;
+      poserLAlerteHorsUcm();
+      app.rendre(['table']);
+      return;
+    case 'analyse-commencee':
+    case 'analyse-en-cours':
+    case 'analyse':
+    case 'perime':
+    case 'occupe':
+      recevoirUneAnalyse(etat, message);
+      vueComposant.mettreAJour();
+      app.rendre(['barre']);
       return;
     case 'non-construit':
       return;
@@ -285,7 +341,12 @@ function recevoir(message: PluginMessage): void {
 }
 
 window.addEventListener('message', (evenement: MessageEvent) => {
-  const message = evenement.data?.pluginMessage as PluginMessage | undefined;
+  const brut: unknown = evenement.data?.pluginMessage;
+  if (estReglesRecues(brut)) {
+    nomenclature.poserLesReglesRecues(brut.regles);
+    return;
+  }
+  const message = brut as PluginMessage | undefined;
   if (message && typeof message.type === 'string') recevoir(message);
 });
 

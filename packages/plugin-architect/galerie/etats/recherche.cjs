@@ -5,11 +5,12 @@
  * (demandes 2 à 5).
  */
 const { preferences, libre, releve, groupe, chevron } = require('./aide.cjs');
+const { structureAFaire } = require('../structure/donnees.cjs');
 const { releveQuestions, releveTerme, bilanDesQuestions, pagesDuTerme, fiches, messages } = require('../recherche/donnees.cjs');
 
 /** Le relevé, le choix de Interface, puis le bilan et les pages de noms. */
 const ouverture = (donnees, bilan, pages) => [
-  preferences(), releve(donnees), groupe('interface'), chevron('interface'),
+  preferences(), releve(donnees), { message: structureAFaire(1) }, groupe('interface'), chevron('interface'),
   { message: messages.initial(true) }, { message: messages.bilan(1, bilan), attendre: '.liste' },
   ...pages.map((message) => ({ message })),
 ];

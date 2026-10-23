@@ -10,6 +10,7 @@
  */
 const { bilans, fiches, messages, conflitDeFichier, conflitDeCycle, renommagesInterface, pagesInterface, variablesDeInterface } = require('../nomenclature/donnees.cjs');
 const { preferences, releve, groupe, chevron, constructeur, alias, nombre, couleur } = require('./aide.cjs');
+const { structureAFaire } = require('../structure/donnees.cjs');
 
 /**
  * Le fichier Intencial de la maquette : cinq collections aux nombres de variables de l'arbre, dont Interface, que les Corrections font passer
@@ -44,6 +45,15 @@ function releveIntencial() {
 }
 
 
+/** Les règles que le mode Composant prépare : un terme d'Alert et un terme de Tag, chacun avec un nom réel du composant. */
+const reglesRecues = {
+  type: 'regles-recues',
+  regles: [
+    { ancien: 'outline', nouveau: 'outlined', composant: 'Alert', exemple: { ancien: 'alert/color/info/outline/border', nouveau: 'alert/color/info/outlined/border' } },
+    { ancien: 'txt', nouveau: 'text', composant: 'Tag', exemple: { ancien: 'tag/color/danger/soft/txt', nouveau: 'tag/color/danger/soft/text' } },
+  ],
+};
+
 const etat = (id, titre, quand, regarder, atteinte) => ({ id, titre, quand, regarder, existe: true, atteinte });
 const msg = (message, attendre) => (attendre ? { message, attendre } : { message });
 const clic = (selecteur, attendre) => (attendre ? { clic: selecteur, attendre } : { clic: selecteur });
@@ -75,11 +85,24 @@ const ETATS = [
     regarder: 'Les noms entiers après renommage, seul le terme nouveau en vert ; la carte de background ouverte et ciblée dans Corrections, avec ses trois noms de Interface ; la carte d’écriture ouverte, qui charge ses noms ; la puce « collection Interface » sous les onglets  ; le pied attend la fin de la lecture.',
     existe: true,
     atteinte: [
-      preferences(), releve(releveIntencial()), groupe('interface'), chevron('interface'), { message: messages.initial(true) }, { message: messages.bilan(1, renommagesInterface), attendre: '.liste' },
+      preferences(), releve(releveIntencial()), { message: structureAFaire(1) }, groupe('interface'), chevron('interface'), { message: messages.initial(true) }, { message: messages.bilan(1, renommagesInterface), attendre: '.liste' },
       ...pagesInterface({ fonds: 2, survols: 3, ecriture: 4, collection: 5, suiteEcriture: 7 }).slice(0, 4).map((message) => ({ message })),
       { clic: '.liste .tete-bouton' },
       { clic: '.autres' },
       { clic: '.table-ligne:nth-child(2) .ch-lien' },
+    ],
+  },
+  {
+    id: 't-regle', titre: 'Tokens, règles reçues du mode Composant', quand: 'Le mode Composant a préparé deux règles : le designer ouvre Questions, qui les range en tête.',
+    regarder: 'Sous l’intertitre « Règles reçues du mode Composant », deux cartes : le terme retiré en rouge, le terme voulu en vert, le composant d’où vient la règle, un exemple avant et après, Ajouter la règle, Écarter et Plus tard ; puis l’intertitre « Noms du fichier » et les questions du fichier ; la pastille de Questions dit 5.',
+    existe: true,
+    atteinte: [
+      preferences(), releve(releveIntencial()), { message: structureAFaire(1) }, groupe('interface'), chevron('interface'), { message: messages.initial(true) },
+      { message: messages.bilan(1, { ...renommagesInterface, questions: bilans.travail.questions }), attendre: '.liste' },
+      ...pagesInterface({ fonds: 2, survols: 3, ecriture: 4, collection: 5, suiteEcriture: 7 }).slice(0, 4).map((message) => ({ message })),
+      { clic: '#onglet-a-trancher', attendre: '.carte.question' },
+      { clic: '.puce-x' },
+      { message: reglesRecues },
     ],
   },
   etat('premier-lancement', 'Premier lancement', 'Le plugin vient de s’ouvrir sur un fichier jamais analysé.',
@@ -170,7 +193,7 @@ const ETATS = [
     'Le message « Tous les noms suivent vos règles » et le bouton pour relancer l’analyse.',
     ouvert(bilans.rienAFaire)),
   etat('sans-variable-locale', 'Sans variable locale', 'Le fichier n’a que des variables de bibliothèque.',
-    'Le message qui renvoie au fichier des tokens, sur les trois onglets.',
+    'Le message qui renvoie au fichier des tokens, sur Corrections, Questions et À faire dans Figma.',
     ouvert(bilans.sansVariableLocale)),
   etat('a-trancher', 'Questions', 'Le designer ouvre l’onglet des questions.',
     'La paire de termes face à face, la proposition bordée de bleu, puis la faute et l’échelle ; Autres pistes en bas.',

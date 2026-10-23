@@ -164,7 +164,8 @@ export function creerArbre(app: Application): Composant {
     choix.append(libelle);
     if (ligne.profondeur === 0) {
       const collection = etat.index?.collections.get(ligne.noeud.collection);
-      if (collection?.distante || collection?.extension) {
+      // Toutes les collections d'une library sont distantes : la mention n'apprend rien.
+      if ((collection?.distante && !etat.bibliotheque) || collection?.extension) {
         const marque = document.createElement('span');
         marque.className = 'pastille-texte';
         marque.textContent = collection.extension ? TEXTES.etendue : TEXTES.distante;
@@ -195,6 +196,7 @@ export function creerArbre(app: Application): Composant {
     element,
     mettreAJour() {
       poserLargeur(app.etat.preferences.largeurs.arbre);
+      titre.textContent = app.etat.bibliotheque ? TEXTES.surtitreDeLaLibrary(app.etat.bibliotheque.nom) : TEXTES.arbreEtiquette;
       if (recherche.value !== app.etat.position.recherche) recherche.value = app.etat.position.recherche;
       recherche.classList.toggle('recherche-active', app.rechercheParLien && app.etat.position.recherche.trim() !== '');
       recherche.disabled = !app.etat.index;

@@ -86,6 +86,14 @@ couleur, forme, espacement, taille, texte.
 - **Calque.** Sélectionner un calque du composant restreint la vue à ce calque
   et à ses descendants.
 - **Aperçu.** Survoler une ligne entoure ses calques dans l'image.
+- **Variants.** Après une analyse, un jeu de variants montre sous l'aperçu une
+  ligne par property : une puce pour la valeur affichée et pour chaque valeur
+  qui porte un constat, « +N » pour les autres. Une puce relit le variant qui
+  garde le plus de valeurs affichées ; **Tableau** croise deux properties.
+- **Constats.** Le bouton ouvre le panneau des constats, à droite de la vue, et
+  la fenêtre passe à 1040 × 760 sans ranger cette taille. Sa pastille compte
+  les constats de la dernière analyse, dans la couleur du plus grave. La
+  frontière entre la vue et le panneau se tire à la souris ou aux flèches.
 - **Sans token.** Le pied compte les valeurs qu'aucune variable ne lie, et les
   liste au clic.
 
@@ -136,7 +144,10 @@ de texte. Deux champs facultatifs d'un cadre bornent ce que la maquette
 contredit elle-même : `zonesDeDonnees` (sélecteurs dont les descendants ne se
 comparent que sur leurs styles) et `ecartsDeclares` (textes dont la présence
 d'un seul côté n'est pas un écart, chacun avec sa raison). Le comparateur
-imprime à la fin ce que chacun couvre.
+imprime à la fin ce que chacun couvre. Un cadre `sorte: "seul"` se compare sur la
+barre latérale seule, à la taille du cadre : la galerie lui ajoute une feuille
+qui cache le reste (`galerie/build-galerie.cjs`), dont les éléments listés par
+`masque` et, par `extrait`, la ligne que la maquette écrit à leur place.
 
 Après un échec de `test:ui` sur `dist/galerie-fixtures.cjs` introuvable,
 relancez `npm run galerie --workspace ucm-architect-plugin` : il compile les

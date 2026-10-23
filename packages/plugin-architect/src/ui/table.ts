@@ -168,6 +168,13 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
     contenu.className = 'cellule-valeur';
     contenu.setAttribute('role', 'cell');
     if (!index) return contenu;
+    if (app.etat.bibliotheque && Object.keys(variable.valeurs).length === 0 && !index.manquees.has(variable.id)) {
+      const attente = document.createElement('span');
+      attente.className = 'valeur-attente';
+      attente.title = TEXTES.valeurEnCoursDeLecture;
+      contenu.append(attente);
+      return contenu;
+    }
     const resultat = app.resultat(variable.id, mode);
     const premiere = resultat.etapes[0];
     const source = mode ? valeurPourLeMode(index, variable.id, variable.collection, mode)?.valeur : premiere?.source;
@@ -315,7 +322,7 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
       poserLesModes();
 
       requete = lireLaRecherche(position.recherche);
-      emplacement.textContent = recherche ? TEXTES.emplacementDeLaRecherche : [collection?.nom ?? '', ...position.groupe.map((segment) => segment || TEXTES.segmentVide)].join(' / ');
+      emplacement.textContent = recherche ? TEXTES.emplacementDeLaRecherche : [collection?.nom ?? '', ...position.groupe.slice(0, -1).map((segment) => segment || TEXTES.segmentVide)].join(' / ');
       titre.textContent = recherche ? TEXTES.titreDeLaRecherche : (position.groupe[position.groupe.length - 1] ?? collection?.nom ?? '') || TEXTES.segmentVide;
       resume.textContent = !recherche ? TEXTES.compte(lignes.length) : requete.sorte === 'terme' ? TEXTES.noteDuTerme(lignes.length, formesDeLaRequete(requete)) : requete.sorte === 'vise' ? TEXTES.noteDeVise(lignes.length, requete.cible) : TEXTES.noteDeRecherche(lignes.length);
       poserFiltres();

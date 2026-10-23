@@ -14,7 +14,10 @@ test('une sélection affiche le composant ; la disposition étroite monte la bar
     for (const selecteur of ['.arbre', '.onglets', '.inspecteur', '.table']) assert.equal(await page.locator(selecteur).count(), 0, selecteur);
     assert.equal(await page.locator('.barre').evaluate((barre) => barre.offsetHeight), 44);
     assert.equal(await page.getByRole('button', { name: 'Composant' }).getAttribute('aria-pressed'), 'true');
-    assert.equal(await page.locator('.barre-lecture').isVisible(), false);
+    assert.equal(await page.getByRole('button', { name: 'Analyser' }).isVisible(), true);
+    assert.equal(await page.getByRole('button', { name: 'Constats' }).getAttribute('aria-pressed'), 'false');
+    assert.equal(await page.locator('.bouton-panneau .pastille-compte').count(), 0);
+    assert.equal(await page.locator('.arch-laterale').count(), 0);
     const alert = composantSimple();
     await envoyer(page, choisir(alert));
     assert.deepEqual(await lecturesDemandees(page), [[2, null]]);
@@ -170,7 +173,7 @@ test('une frontière envoie lire-composant avec son calque ; la miette revient s
   } finally { await fermer(page); }
 });
 
-test('le filtre s’ouvre par la loupe, filtre à la frappe et ouvre les sections ; le choix d’un variant relit ce variant', async () => {
+test('le filtre s’ouvre par la loupe, filtre à la frappe et ouvre les sections', async () => {
   const alert = composantSimple();
   const lecture = { ...alert, sujet: { ...alert.sujet, type: 'COMPONENT_SET', variants: [{ id: alert.calques[0].id, nom: 'info · standard' }, { id: 'alert:erreur', nom: 'error · standard' }] } };
   const page = await ouvrirComposant(lecture, { image: false });
@@ -185,8 +188,7 @@ test('le filtre s’ouvre par la loupe, filtre à la frappe et ouvre les section
     assert.equal(await page.locator('.vc-aucun').textContent(), 'Aucun token ne correspond.');
     await page.getByRole('button', { name: 'Filtrer' }).click();
     assert.equal(await page.locator('.vc-ligne').count(), 10);
-    await page.getByLabel('Variant lu').selectOption('alert:erreur');
-    assert.deepEqual(await lecturesDemandees(page), [[2, null], [3, 'alert:erreur']]);
+    assert.equal(await page.getByLabel('Variant lu').count(), 0);
   } finally { await fermer(page); }
 });
 
@@ -215,4 +217,100 @@ test('le survol d’une ligne à 12 calques pose 12 cadres ; une boîte absente 
     await ligne(seconde, 'components/stresstest/info/tilesgrid/colors/tile').hover();
     assert.equal(await seconde.locator('.vc-cadre').count(), 0);
   } finally { await fermer(seconde); }
+});
+
+/** Un jeu de cinq variants, `Severity` et `Variant`, et l'analyse qui compte deux constats : un « à corriger » et un « à vérifier ». */
+function jeuDeVariants() {
+  const alert = composantSimple();
+  const noms = ['Severity=info, Variant=standard', 'Severity=info, Variant=outlined', 'Severity=error, Variant=standard', 'Severity=error, Variant=outlined', 'Severity=warning, Variant=standard'];
+  const variants = noms.map((nom, rang) => ({ id: rang === 0 ? alert.calques[0].id : `alert:v${rang}`, nom }));
+  const lecture = { ...alert, sujet: { ...alert.sujet, type: 'COMPONENT_SET', variant: noms[0], variants } };
+  const constat = (id, type, touches) => ({ id, code: 'C16', type, famille: 'liaisons', variants: touches, layers: [], faits: {} });
+  const analyse = { type: 'analyse', analyse: { sujet: 'alert-set', generation: 1 }, statut: 'complete', constats: [constat('a', 'corriger', [noms[1]]), constat('b', 'verifier', [noms[3]])], lecture: null, variants };
+  return { lecture, analyse };
+}
+
+/** Ces tests jouent des messages d'analyse que `fermer` ne connaît pas : ils vérifient eux-mêmes les erreurs de la page. */
+const terminer = async (page) => {
+  assert.deepEqual(page.erreurs, []);
+  await page.context().close();
+};
+
+test('la section Variants montre une ligne par property, les valeurs à constat et la valeur affichée, et « +N » replie le reste', async () => {
+  const { lecture, analyse } = jeuDeVariants();
+  const page = await ouvrirComposant(lecture, { image: false });
+  try {
+    assert.equal(await page.locator('.variants').count(), 0, 'pas de section avant l’analyse');
+    await envoyer(page, analyse);
+    assert.deepEqual(await page.locator('.axe-nom').allTextContents(), ['Severity', 'Variant']);
+    assert.equal(await page.locator('.variants-tete h3').textContent(), 'Variants5');
+    assert.deepEqual(await page.locator('.axe').nth(0).locator('.valeur-axe').allTextContents(), ['info1', 'error1', '+1']);
+    assert.deepEqual(await page.locator('.axe').nth(1).locator('.valeur-axe').allTextContents(), ['standard', 'outlined2']);
+    assert.equal(await page.locator('.valeur-axe.choisie').count(), 2);
+    assert.equal(await page.locator('.variants-affiche').textContent(), 'AffichéSeverity=info, Variant=standard');
+    await page.locator('.valeur-axe.plus').click();
+    assert.deepEqual(await page.locator('.axe').nth(0).locator('.valeur-axe').allTextContents(), ['info1', 'error1', 'warning']);
+    assert.equal(await page.locator('.vc-sous select').count(), 0);
+  } finally { await terminer(page); }
+});
+
+test('une puce choisit le variant qui garde le plus de valeurs affichées, sans changer la sélection', async () => {
+  const { lecture, analyse } = jeuDeVariants();
+  const page = await ouvrirComposant(lecture, { image: false });
+  try {
+    await envoyer(page, analyse);
+    await page.locator('.valeur-axe[data-propriete="Severity"][data-valeur="error"]').click();
+    assert.deepEqual(await lecturesDemandees(page), [[2, null], [3, 'alert:v2']]);
+    assert.equal(await page.evaluate(() => window.demandes.filter((demande) => demande.type === 'selectionner').length), 0);
+  } finally { await terminer(page); }
+});
+
+test('le lien Tableau croise deux properties ; une cellule sans variant est inactive', async () => {
+  const { lecture, analyse } = jeuDeVariants();
+  const page = await ouvrirComposant(lecture, { image: false });
+  try {
+    await envoyer(page, analyse);
+    await page.getByRole('button', { name: 'Tableau' }).click();
+    assert.equal(await page.locator('.tableau-cellule').count(), 6);
+    assert.equal(await page.locator('.tableau-cellule:disabled').count(), 1);
+    await page.getByRole('button', { name: 'Tableau' }).click();
+    assert.equal(await page.locator('.tableau-grille').count(), 0);
+    await page.getByRole('button', { name: 'Tableau' }).click();
+    await page.locator('.tableau-cellule').nth(3).click();
+    assert.deepEqual(await lecturesDemandees(page), [[2, null], [3, 'alert:v3']]);
+  } finally { await terminer(page); }
+});
+
+test('le bouton Constats ouvre le panneau, demande la taille ouverte sans la ranger, et compte les constats', async () => {
+  const { lecture, analyse } = jeuDeVariants();
+  const page = await ouvrirComposant(lecture, { image: false });
+  try {
+    await page.getByRole('button', { name: 'Constats' }).click();
+    assert.deepEqual(await page.evaluate(() => window.demandes.filter((demande) => demande.type === 'resize')), [{ type: 'resize', largeur: 1040, hauteur: 760, fin: false }]);
+    assert.equal(await page.locator('.arch-laterale').isVisible(), true);
+    assert.equal(await page.locator('.arch-resume .meta').textContent(), '5 variants, pas encore analysé');
+    assert.equal(await page.locator('.arch-laterale .alerte').count(), 1);
+    await envoyer(page, analyse);
+    assert.equal(await page.locator('.bouton-panneau .pastille-compte').textContent(), '2');
+    assert.equal(await page.locator('.bouton-panneau .pastille-compte.ton-corriger').count(), 1);
+    assert.equal(await page.getByRole('button', { name: 'Actualiser' }).isVisible(), true);
+    await page.getByRole('button', { name: 'Constats' }).click();
+    assert.equal(await page.locator('.arch-laterale').count(), 0);
+  } finally { await terminer(page); }
+});
+
+test('la frontière se tire aux flèches et garde la largeur minimale de la vue', async () => {
+  const { lecture } = jeuDeVariants();
+  const page = await ouvrirComposant(lecture, { image: false });
+  try {
+    await page.setViewportSize({ width: 1040, height: 760 });
+    await page.getByRole('button', { name: 'Constats' }).click();
+    const largeur = () => page.locator('.vc').evaluate((vue) => Math.round(vue.getBoundingClientRect().width));
+    assert.equal(await largeur(), 400);
+    await page.locator('.arch-poignee').focus();
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await largeur(), 424);
+    for (let fois = 0; fois < 10; fois += 1) await page.keyboard.press('ArrowLeft');
+    assert.equal(await largeur(), 320);
+  } finally { await terminer(page); }
 });

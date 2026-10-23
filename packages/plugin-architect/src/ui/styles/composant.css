@@ -25,7 +25,7 @@
   padding: 0 16px;
 }
 
-.application-etroite .produit-nom {
+.application-etroite .barre:not(.barre-panneau-ouvert) .produit-nom {
   display: none;
 }
 
@@ -119,9 +119,8 @@
   font-size: 12px;
 }
 
-/* La pastille d'un mode ; le choix d'un variant en reprend le dessin. */
-.vc-mode,
-.vc-variants {
+/* La pastille d'un mode. */
+.vc-mode {
   padding: 0 7px;
   border: 1px solid var(--bordure);
   border-radius: 99px;
@@ -129,11 +128,6 @@
   font-size: 10.5px;
   line-height: 17px;
   white-space: nowrap;
-}
-
-.vc-variants {
-  max-width: 100%;
-  background: transparent;
 }
 
 .vc-outils {
@@ -361,7 +355,7 @@
   display: block;
   overflow: hidden;
   direction: rtl;
-  font: 11.5px/1.5 var(--chasse-fixe);
+  font: 11px/1.5 var(--police-chemin);
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -566,4 +560,242 @@
 .vc-directes code {
   color: var(--texte-second);
   font: 11.5px var(--chasse-fixe);
+}
+
+/* La vue, la frontière et le panneau des constats. */
+.arch-corps-composant {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.arch-corps-composant > .vc {
+  overflow: auto;
+  flex: 0 0 auto;
+}
+
+.arch-laterale {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.arch-laterale > .container {
+  width: 100%;
+  min-height: 0;
+}
+
+.arch-poignee + .arch-laterale {
+  border-left: 0;
+}
+
+/* Le résumé du composant, en tête du panneau. */
+.arch-resume {
+  display: grid;
+  gap: var(--espace-serre);
+  padding-bottom: var(--espace-controle);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.arch-resume-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.arch-resume-titre {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espace-controle);
+  font-weight: 600;
+}
+
+/* La section Variants. Une ligne par property, une puce par valeur utile. */
+.variants {
+  margin: 4px 16px 12px;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  background: var(--fond);
+}
+
+.variants-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.variants-tete h3 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.variants-tete .meta {
+  margin-left: 6px;
+  color: var(--texte-second);
+  font-weight: 400;
+}
+
+.variants-corps {
+  padding: 8px 10px;
+}
+
+.variants-pied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 8px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--bordure);
+  font-size: 11px;
+}
+
+.variants-pied .meta {
+  color: var(--texte-second);
+}
+
+.variants-affiche {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.axes {
+  display: grid;
+  gap: 8px;
+}
+
+.axe {
+  display: grid;
+  align-items: start;
+  gap: 8px;
+  grid-template-columns: 56px minmax(0, 1fr);
+}
+
+.axe-nom {
+  color: var(--texte-second);
+  font-size: 11px;
+  line-height: 22px;
+}
+
+.axe-valeurs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.valeur-axe {
+  display: inline-flex;
+  height: 22px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  border: 1px solid var(--bordure);
+  border-radius: 11px;
+  background: none;
+  color: var(--texte);
+  font-size: 11px;
+}
+
+.valeur-axe.choisie {
+  border-color: color-mix(in srgb, var(--texte-marque) 60%, var(--bordure));
+  background: var(--fond-selection);
+}
+
+.valeur-axe .n {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--ton);
+  font-weight: 600;
+}
+
+/* `.plus` est aussi la pastille de Nomenclature : cette règle reprend ce que la pastille pose. */
+.valeur-axe.plus {
+  padding: 0 8px;
+  border-radius: 11px;
+  border-style: dashed;
+  background: none;
+  color: var(--texte-second);
+  font-weight: 400;
+}
+
+/* La ligne dont la liaison va changer : son segment vert se clique sans déplier la ligne. */
+.vc-ligne.corrige .ch-lien {
+  cursor: pointer;
+}
+
+/* Le tableau : deux properties croisées, une cellule par variant. */
+.tableau-variants {
+  display: grid;
+  gap: 4px;
+}
+
+.tableau-choix-ligne {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tableau-choix {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--texte-second);
+  font-size: 11px;
+}
+
+.tableau-choix select {
+  height: 22px;
+  font-size: 11px;
+}
+
+.tableau-grille {
+  display: grid;
+  align-items: center;
+  gap: 4px;
+}
+
+.tableau-tete {
+  color: var(--texte-second);
+  font-size: 11px;
+}
+
+.tableau-cellule {
+  display: inline-flex;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  background: none;
+  color: var(--texte);
+  font-size: 11px;
+}
+
+.tableau-cellule:disabled {
+  border-style: dashed;
+  opacity: 0.45;
+}
+
+.tableau-cellule.choisie {
+  border-color: color-mix(in srgb, var(--texte-marque) 60%, var(--bordure));
+  background: var(--fond-selection);
+}
+
+.tableau-cellule .n {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--ton);
+  font-weight: 600;
 }

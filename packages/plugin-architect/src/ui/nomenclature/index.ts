@@ -2,6 +2,7 @@
 import type { MessageDeNomenclature, UiMessage } from '../../messages/nomenclature';
 import { monterAAppliquer } from './aAppliquer';
 import { monterATrancher } from './aTrancher';
+import type { RegleRecue } from './reglesRecues';
 import { monterConfiguration } from './configuration';
 import { creerCoquille, type Coquille } from './coquille';
 import { monterFeuilles } from './feuilles';
@@ -14,6 +15,8 @@ export interface NomenclatureMontee {
   /** Les renommages cochés de Corrections, que la table des tokens montre dans le nom des variables. */
   readonly renommages: Reserve;
   recevoir(message: MessageDeNomenclature): void;
+  /** Pose les règles que le mode Composant a préparées, en tête de Questions. */
+  poserLesReglesRecues(regles: readonly RegleRecue[]): void;
 }
 
 export interface OptionsDeNomenclature {
@@ -30,8 +33,8 @@ export function monterNomenclature(hote: HTMLElement, envoyer: (message: UiMessa
   const coquille = creerCoquille(hote, envoyer, { poignee: false, enleverLeFiltre, rechercher, rechercherLeTerme });
   monterPremierLancement(coquille);
   const renommages = monterAAppliquer(coquille, { appartient });
-  monterATrancher(coquille);
+  const aTrancher = monterATrancher(coquille);
   monterConfiguration(coquille);
   monterFeuilles(coquille, monterRegles(coquille));
-  return { coquille, renommages, recevoir: (message) => coquille.frontiere.recevoir(message) };
+  return { coquille, renommages, recevoir: (message) => coquille.frontiere.recevoir(message), poserLesReglesRecues: aTrancher.poserLesReglesRecues };
 }
