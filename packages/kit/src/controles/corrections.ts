@@ -37,7 +37,8 @@ function constatsManquants(releve: ReleveDeComposant): Constat[] {
   for (const variant of releve.variants) {
     for (const layer of variant.layers) {
       if (formeReconnue(layer.nom) !== 'title' || layer.type !== 'TEXT') continue;
-      const peinture = layer.peintures.find((entree) => entree.visible && !layer.liaisons.some((liaison) => liaison.champ === entree.champ && liaison.indice === entree.indice));
+      const peinture = layer.peintures.find((entree) => entree.visible && entree.type === 'SOLID'
+        && !layer.liaisons.some((liaison) => liaison.champ === entree.champ && liaison.indice === entree.indice));
       if (!peinture) continue;
       resultat.push({
         id: `C25:${variant.id}:${layer.id}:${peinture.champ}:${peinture.indice}`, code: 'C25', type: 'corriger', famille: 'liaisons',
@@ -114,7 +115,8 @@ function corrigerRole(constat: Constat, releve: ReleveDeComposant, catalogue: Ca
 function corrigerLiaisonManquante(constat: Constat, releve: ReleveDeComposant, catalogue: CatalogueDeReference): Pick<Constat, 'correction' | 'question'> | undefined {
   const layer = layerDuConstat(constat, releve);
   const variant = variantDuConstat(constat, releve);
-  const peinture = layer?.peintures.find((entree) => entree.visible && !layer.liaisons.some((liaison) => liaison.champ === entree.champ && liaison.indice === entree.indice));
+  const peinture = layer?.peintures.find((entree) => entree.visible && entree.type === 'SOLID'
+    && !layer.liaisons.some((liaison) => liaison.champ === entree.champ && liaison.indice === entree.indice));
   if (!layer || !variant || !peinture) return undefined;
   const roleAttendu = layer.type === 'TEXT' ? 'foreground' : /icon/i.test(layer.nom) ? 'icon' : 'background';
   const rolesPossibles = formeReconnue(layer.nom) === 'title' ? new Set([roleAttendu, 'title']) : new Set([roleAttendu]);

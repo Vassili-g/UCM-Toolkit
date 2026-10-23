@@ -160,6 +160,23 @@ test('un layer title reçoit une correction si une seule des deux cibles existe'
   assert.equal(resultat?.correction?.cible.layer, 'layer-1');
 });
 
+test('C25 ignore un gradient visible et conserve l’indice du SOLID qui le suit', () => {
+  const r = releve({ Severity: 'info', Variant: 'standard' }, layer({ name: 'title', type: 'TEXT' }));
+  const cible = r.variants[0].layers[0];
+  cible.peintures = [
+    { champ: 'fills', indice: 0, type: 'GRADIENT_LINEAR', visible: true, opacite: 1, blendMode: 'NORMAL' },
+    { champ: 'fills', indice: 1, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' },
+  ];
+  const c = catalogue([{ cle: 'fg', nom: 'alert/color/info/standard/foreground', collection: 'components', type: 'COLOR', etat: 'presente' }]);
+  const resultat = proposerLesCorrections(r, c, []).find(({ code }) => code === 'C25');
+  assert.equal(resultat?.faits.indice, 1);
+  assert.deepEqual(resultat?.correction?.cible, { layer: 'layer-1', champ: 'fills', indice: 1 });
+  assert.equal(resultat?.correction?.apres.cle, 'fg');
+
+  cible.peintures = [cible.peintures[0]];
+  assert.equal(proposerLesCorrections(r, c, []).some(({ code }) => code === 'C25'), false);
+});
+
 test('C29 ne propose que si le catalogue porte exactement la valeur lue en pixels', () => {
   const r = releve({ LegacyMode: 'classic' }, layer({ champ: 'paddingTop', value: 8 }));
   const c = catalogue([{ cle: 'size-8', nom: 'layout/sizing/8', collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 8 } } }], true);
