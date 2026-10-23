@@ -56,7 +56,7 @@ test('C11 reconnaît les noms de l’axe d’état sans attribuer ce rôle à Va
   assert.equal(axeDePropriete('Label'), undefined);
 });
 
-test('C12 propose une question et un renommage de valeur pour Variant=Outlined avec les tokens outline', () => {
+test('C12 pose une question pour Variant=Outlined avec les tokens outline, sans précocher un style custom', () => {
   const composant = releve('Alert', [axe('Severity', ['info']), axe('Variant', ['Outlined'])]);
   composant.variants = [{ id: 'variant-1', nom: 'Variant=Outlined', valeurs: { Severity: 'info', Variant: 'Outlined' }, layers: [], modesEffectifs: {} }];
   composant.variants.push({ id: 'variant-2', nom: 'Variant=Outlined, Severity=info', valeurs: { Variant: 'Outlined', Severity: 'info' }, layers: [], modesEffectifs: {} });
@@ -67,13 +67,37 @@ test('C12 propose une question et un renommage de valeur pour Variant=Outlined a
   const resultat = constats[0];
   assert.deepEqual(resultat.variants, ['variant-1', 'variant-2']);
   assert.deepEqual(resultat?.question?.candidats, [{ nom: 'outline' }]);
-  assert.deepEqual(resultat?.correction, {
-    id: resultat?.id, sorte: 'nom-de-valeur', cible: { layer: 'Alert', champ: 'Variant' }, avant: 'Outlined',
-    apres: { nom: 'outline' },
-    aRelire: { regle: 'La valeur du variant reprend le nom porté par les tokens de cet axe.', avant: 'Outlined' },
-  });
+  assert.equal(resultat?.correction, undefined);
   assert.equal(controlerNommage(composant, catalogue('alert/color/info/outlined/background'))
     .some(({ code }) => code === 'C12'), false);
+});
+
+test('des tokens qui couvrent déjà chaque style ne proposent aucun renommage réciproque', () => {
+  const composant = releve('Alert', [axe('Severity', ['info']), axe('Variant', ['filled', 'outlined'])]);
+  composant.variants = [
+    { id: 'filled', nom: 'Variant=filled', valeurs: { Severity: 'info', Variant: 'filled' }, layers: [], modesEffectifs: {} },
+    { id: 'outlined', nom: 'Variant=outlined', valeurs: { Severity: 'info', Variant: 'outlined' }, layers: [], modesEffectifs: {} },
+  ];
+  const constats = controlerNommage(composant, catalogue(
+    'alert/color/info/filled/background', 'alert/color/info/outlined/background',
+  )).filter(({ code }) => code === 'C12' || code === 'C13');
+  assert.deepEqual(constats, []);
+});
+
+test('un style sans règle sémantique reste une question, même avec un token candidat unique', () => {
+  const composant = releve('Alert', [axe('Severity', ['info']), axe('Variant', ['Outlined'])]);
+  composant.variants = [{ id: 'outlined', nom: 'Variant=Outlined', valeurs: { Severity: 'info', Variant: 'Outlined' }, layers: [], modesEffectifs: {} }];
+  const resultat = controlerNommage(composant, catalogue('alert/color/info/filled/background'))
+    .find(({ code }) => code === 'C12');
+  assert.deepEqual(resultat?.question?.candidats, [{ nom: 'filled' }]);
+  assert.equal(resultat?.correction, undefined);
+});
+
+test('un alias de registre couvre déjà la valeur de l’axe State', () => {
+  const composant = releve('Button', [axe('State', ['normal'])]);
+  composant.variants = [{ id: 'normal', nom: 'State=normal', valeurs: { State: 'normal' }, layers: [], modesEffectifs: {} }];
+  assert.deepEqual(controlerNommage(composant, catalogue('button/color/primary/contained/md/default/foreground'))
+    .filter(({ code }) => code === 'C12' || code === 'C13'), []);
 });
 
 test('C13 demande un choix quand les tokens portent plusieurs noms pour la valeur du variant', () => {

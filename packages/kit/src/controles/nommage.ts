@@ -1,7 +1,7 @@
 /** Comparaison des axes du composant avec les noms de ses variables de référence. */
 import { reconnaitreLeChemin, type SegmentReconnu } from '../referentiel/grammaire.js';
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
-import { FAMILLES_PRIMITIVES } from '../referentiel/architecture.js';
+import { FAMILLES_PRIMITIVES, REGISTRE_PALETTES_COMPOSANT } from '../referentiel/architecture.js';
 import { REGISTRE_ETATS, REGISTRE_TAILLES, STATE_AXIS_NAMES } from '../referentiel/vocabulaire.js';
 import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
@@ -118,19 +118,34 @@ export function controlerNommage(releve: ReleveDeComposant, catalogue: Catalogue
     for (const ancienne of anciennes) {
       const variants = releve.variants.filter((variant) => variant.valeurs[propriete.nom] === ancienne);
       const candidatsParFamille = new Map<string, Set<string>>();
+      let dejaCouverte = false;
       for (const variant of variants) {
+        const tokensCorrespondants = new Map<string, TokenDuComposant[]>();
         for (const token of tokens) {
           if (!segmentDAxe(token, axe) || !correspondAuxAutresAxes(token, variant, axes, axe)) continue;
           const famille = token.lecture.find((segment) => segment.role === 'famille')?.terme;
           if (!famille) continue;
-          const segment = segmentDAxe(token, axe)!;
-          if (formeReconnue(segment) !== formeReconnue(ancienne)) {
-            const noms = candidatsParFamille.get(famille) ?? new Set<string>();
-            noms.add(segment);
-            candidatsParFamille.set(famille, noms);
+          const groupe = tokensCorrespondants.get(famille) ?? [];
+          groupe.push(token);
+          tokensCorrespondants.set(famille, groupe);
+        }
+        for (const [famille, groupe] of tokensCorrespondants) {
+          if (groupe.some((token) => {
+            const segment = segmentDAxe(token, axe)!;
+            const termeActuel = termeCanoniqueDeLAxe(axe, ancienne);
+            const termeDuToken = termeCanoniqueDeLAxe(axe, segment);
+            return formeReconnue(segment) === formeReconnue(ancienne)
+              || (!!termeActuel && termeActuel.id === termeDuToken?.id);
+          })) {
+            dejaCouverte = true;
+            continue;
           }
+          const noms = candidatsParFamille.get(famille) ?? new Set<string>();
+          for (const token of groupe) noms.add(segmentDAxe(token, axe)!);
+          candidatsParFamille.set(famille, noms);
         }
       }
+      if (dejaCouverte) continue;
       if (!candidatsParFamille.size) continue;
       const uniques = [...new Set([...candidatsParFamille.values()].flatMap((noms) => [...noms]))];
       const candidatUnique = candidatsParFamille.size === 1 && uniques.length === 1;
@@ -140,15 +155,18 @@ export function controlerNommage(releve: ReleveDeComposant, catalogue: Catalogue
       const constat = constatDuComposant(code, 'variants', 'verifier', identifiant,
         { jeu: releve.jeu.nom, propriete: propriete.nom, avant: ancienne }, variants.map(({ id: variantId }) => variantId));
       constat.question = { id, candidats: uniques.map((nom) => ({ nom })) };
-      if (candidatUnique) constat.correction = {
-        id, sorte: 'nom-de-valeur', cible: { layer: releve.jeu.cle, champ: propriete.nom }, avant: ancienne,
-        apres: { nom: uniques[0] },
-        aRelire: { regle: 'La valeur du variant reprend le nom porté par les tokens de cet axe.', avant: ancienne },
-      };
       constats.push(constat);
     }
   }
   return constats;
+}
+
+function termeCanoniqueDeLAxe(axe: AxeDuComposant, valeur: string) {
+  const registre = axe === 'etat' ? REGISTRE_ETATS
+    : axe === 'taille' ? REGISTRE_TAILLES
+      : axe === 'palette' ? REGISTRE_PALETTES_COMPOSANT
+        : undefined;
+  return registre ? termeReconnu(registre, valeur) : undefined;
 }
 
 function correspondAuxAutresAxes(
