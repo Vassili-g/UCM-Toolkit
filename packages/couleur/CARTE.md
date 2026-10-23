@@ -36,3 +36,7 @@ Moteur de couleur d'UCM Palettes : ucm-couleur, privé, lu en source.
 - mesurer-garantie.mjs : médiane de vingt garanties des courbes, hors des tests
 - mesurer-ancrage.mjs : effet de l'ancrage sur les voisines et les promesses, hors des tests
 - mesurer-limites.mjs : limites du Color shift sur six références, et leur durée, hors des tests
+
+## planche/
+- generer-planche.ts : génère `PLANCHE-DU-MOTEUR.html`, rampes du moteur à côté de Tailwind 3.4 (`npm run planche`)
+- tailwind-3.4.17.json : relevé des rampes de Tailwind 3.4, lu par la planche et publié par `exports` (`ucm-couleur/tailwind-3.4.17.json`) pour le hub

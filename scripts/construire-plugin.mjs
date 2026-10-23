@@ -30,6 +30,7 @@ const PAQUETS_TESTES = {
   ...PLUGINS,
   socle: "ucm-plugin-socle",
   couleur: "ucm-couleur",
+  hub: "ucm-hub",
   cli: "@ucm-kit/cli",
   adapter: "@ucm-kit/adapter-typescript",
 };

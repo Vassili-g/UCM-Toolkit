@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    // Les vues tournent dans un navigateur : elles seules lisent le DOM.
+    "lib": ["ES2020", "DOM"],
+    "types": []
+  },
+  "include": ["./*.ts"]
+}

@@ -12,7 +12,7 @@ test('la planche commitée est à jour', () => {
   const commitee = sansRetourChariot(readFileSync(CHEMIN_DE_LA_PLANCHE, 'utf8'));
   assert.ok(
     commitee === attendue,
-    'PLANCHE-DU-MOTEUR.html ne correspond plus au moteur. Régénérez-la : npm run planche --workspace ucm-couleur',
+    "La vue n'est plus à jour. Lancez `npm run vues`.",
   );
 });
 

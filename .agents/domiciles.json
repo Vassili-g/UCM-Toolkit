@@ -23,7 +23,8 @@
       "verifications": [
         "npm run test:paquet -- exporter",
         "npm run test --workspace @ucm-kit/core",
-        "node scripts/run-tests.cjs"
+        "node scripts/run-tests.cjs",
+        "npm run vues"
       ]
     },
     {
@@ -53,7 +54,8 @@
       "verifications": [
         "npm run test:paquet -- exporter",
         "npm run test --workspace @ucm-kit/core",
-        "node scripts/run-tests.cjs"
+        "node scripts/run-tests.cjs",
+        "npm run vues"
       ]
     },
     {
@@ -193,7 +195,8 @@
         "npm run test:paquet -- cli",
         "npm run test:paquet -- adapter",
         "npm run test --workspace @ucm-kit/core",
-        "node scripts/run-tests.cjs"
+        "node scripts/run-tests.cjs",
+        "npm run vues"
       ]
     },
     {
@@ -265,7 +268,8 @@
       ],
       "verifications": [
         "npm run test --workspace @ucm-kit/core",
-        "node scripts/run-tests.cjs"
+        "node scripts/run-tests.cjs",
+        "npm run vues"
       ]
     },
     {
@@ -297,7 +301,8 @@
       ],
       "verifications": [
         "npm run test --workspace @ucm-kit/core",
-        "node scripts/run-tests.cjs"
+        "node scripts/run-tests.cjs",
+        "npm run vues"
       ]
     },
     {
@@ -326,7 +331,8 @@
       "verifications": [
         "npm run test:paquet -- couleur",
         "npm run test --workspace @ucm-kit/core",
-        "node scripts/run-tests.cjs"
+        "node scripts/run-tests.cjs",
+        "npm run vues"
       ]
     },
     {
@@ -399,7 +405,8 @@
       "verifications": [
         "npm run test:paquet -- palettes",
         "npm run test:paquet -- socle",
-        "node scripts/run-tests.cjs"
+        "node scripts/run-tests.cjs",
+        "npm run vues"
       ]
     },
     {
@@ -448,12 +455,27 @@
         "npm run test --workspace @ucm-kit/core",
         "node scripts/run-tests.cjs"
       ]
+    },
+    {
+      "id": "hub",
+      "titre": "Hub UCM",
+      "fichier": "packages/hub/invariants/hub.md",
+      "chemins": [
+        "packages/hub/src/**"
+      ],
+      "specs": [],
+      "lies": [],
+      "verifications": [
+        "npm run test:paquet -- hub",
+        "npm run vues"
+      ]
     }
   ],
   "cartes": {
     "packages/adapter-typescript": "packages/adapter-typescript/CARTE.md",
     "packages/cli": "packages/cli/CARTE.md",
     "packages/couleur": "packages/couleur/CARTE.md",
+    "packages/hub": "packages/hub/CARTE.md",
     "packages/kit": "packages/kit/CARTE.md",
     "packages/plugin-architect": "packages/plugin-architect/CARTE.md",
     "packages/plugin-exporter": "packages/plugin-exporter/CARTE.md",
@@ -487,6 +509,7 @@
     "docs/notes/Recherches/Diff Sémantique/**",
     "docs/notes/Recherches/Evolutions globales/**",
     "docs/notes/Recherches/Guide des agents/**",
+    "docs/notes/Recherches/Hub UCM/**",
     "docs/notes/Recherches/Kits UCM et partage des donnees/**",
     "docs/notes/Recherches/Linter Dev/**",
     "docs/notes/Recherches/Optimisation Tokens/**",

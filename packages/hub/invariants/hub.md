@@ -1,0 +1,8 @@
+# Hub UCM
+
+- **Le hub lit le kit et le moteur de couleur et ne définit aucune règle.** Crans, variables, garanties, registres et définitions viennent de `@ucm-kit/core` et de `ucm-couleur`. Une règle qui manque entre d'abord dans le kit, puis le hub l'affiche. Borne : l'essai (`surface/divider`, table modifiée, garanties sans fonds survolés ou appuyés) n'est pas une règle du kit. Sans essai, les promesses jugées égalent `verifierPromesses`. Autorité : `src/modele/modele.ts` `construireModele`. Tests : `tests/hub.test.ts`. → [plan]
+- **Aucun cran n'est écrit en dur dans le hub.** La table des dossiers se lit par `TABLE_DES_DOSSIERS` et `sensDuTheme`, les variables par `VARIABLES_DE_PALETTE`. Borne : seul `CRANS_DU_CONTOUR_DISCRET`, l'essai de `surface/divider` absent du kit, porte des crans écrits ici. Autorité : `src/modele/modele.ts` `tableDuBanc`. Tests : `tests/hub.test.ts` (un cran changé dans la table change la couleur que la garantie juge) ; `/tests/referentielUnique.test.ts`. → [plan]
+- **La page est autonome et pèse moins de 1 Mo.** Aucune ressource externe : ni `http`, ni `<script src`, ni `<link`, ni `@import`, ni `url(`. Elle s'ouvre par un double clic. Autorité : `src/generer.ts` `genererHub`. Tests : `tests/hub.test.ts`. → [plan]
+- **La page commitée est égale à la page régénérée, fins de ligne mises à part.** Le kit se lit compilé : `npm run vues` le reconstruit quand `packages/kit/dist/.empreinte` diffère des sources. Même message d'échec que la planche et la vue illustrée : « La vue n'est plus à jour. Lancez `npm run vues`. » Autorité : `src/generer.ts` `genererHub`, `/scripts/vues.mjs`. Tests : `tests/hub.test.ts`. → [plan]
+
+[plan]: ../../../docs/notes/Recherches/Hub%20UCM/PLAN-HUB-UCM.md#2-principes

@@ -18,7 +18,7 @@ test('donnees-referentiel.js suit le référentiel', () => {
   assert.equal(
     commite,
     genererDonneesReferentiel(),
-    'donnees-referentiel.js est périmé. Le régénérer : npx tsx "docs/notes/Recherches/Archi Tokens Multi-marques/generer-donnees-referentiel.ts"',
+    "La vue n'est plus à jour. Lancez `npm run vues`.",
   );
 });
 

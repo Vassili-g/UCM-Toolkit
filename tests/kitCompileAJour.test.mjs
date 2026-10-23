@@ -91,7 +91,7 @@ test("un nom de paquet inconnu sort en erreur avec la liste des noms admis", () 
 
   const paquet = spawnSync(process.execPath, [script, "test", "inconnu"], { encoding: "utf8" });
   assert.notEqual(paquet.status, 0);
-  assert.match(paquet.stderr, /socle, couleur, cli, adapter/);
+  assert.match(paquet.stderr, /socle, couleur, hub, cli, adapter/);
 });
 
 test("verifier-kit donne la commande de reconstruction", () => {

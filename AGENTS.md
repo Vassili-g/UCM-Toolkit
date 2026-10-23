@@ -1,6 +1,6 @@
 # Guide agent
 
-Monorepo UCM : trois plugins Figma (exporteur de contrats et de tokens DTCG, Palettes, UCM Architect), le kit `@ucm-kit/core`, la CLI `@ucm-kit/cli`, l'adaptateur `@ucm-kit/adapter-typescript`, le moteur de couleur `ucm-couleur` et le socle des plugins.
+Monorepo UCM : trois plugins Figma (exporteur de contrats et de tokens DTCG, Palettes, UCM Architect), le kit `@ucm-kit/core`, la CLI `@ucm-kit/cli`, l'adaptateur `@ucm-kit/adapter-typescript`, le moteur de couleur `ucm-couleur`, le Hub UCM et le socle des plugins.
 
 Ce guide dit **ce que le produit garantit** et où le lire. [CONTRIBUTING.md](./CONTRIBUTING.md) dit **comment travailler**. Règle du produit → un fichier d'invariants ; règle de travail → `CONTRIBUTING.md`.
 
@@ -39,6 +39,7 @@ Maturité et priorités : [ROADMAP.md](./ROADMAP.md). Idées non décidées : [P
 | `cli` | [AGENTS.md](./packages/cli/AGENTS.md) | [CARTE.md](./packages/cli/CARTE.md) |
 | `adapter-typescript` | [AGENTS.md](./packages/adapter-typescript/AGENTS.md) | [CARTE.md](./packages/adapter-typescript/CARTE.md) |
 | `couleur` | [AGENTS.md](./packages/couleur/AGENTS.md) | [CARTE.md](./packages/couleur/CARTE.md) |
+| `hub` | [AGENTS.md](./packages/hub/AGENTS.md) | [CARTE.md](./packages/hub/CARTE.md) |
 | `plugin-socle` | [AGENTS.md](./packages/plugin-socle/AGENTS.md) | [CARTE.md](./packages/plugin-socle/CARTE.md) |
 | `plugin-palettes` | [AGENTS.md](./packages/plugin-palettes/AGENTS.md) | [CARTE.md](./packages/plugin-palettes/CARTE.md) |
 | `plugin-architect` | [AGENTS.md](./packages/plugin-architect/AGENTS.md) | [CARTE.md](./packages/plugin-architect/CARTE.md) |
@@ -80,12 +81,13 @@ npm run build
 ```sh
 npm run build:plugin -- palettes      # palettes, architect, exporter
 npm run galerie:plugin -- palettes    # les mêmes trois plugins
-npm run test:paquet -- socle          # les trois plugins, socle, couleur, cli, adapter
+npm run test:paquet -- socle          # les trois plugins, socle, couleur, hub, cli, adapter
 ```
 
 - Chaque paquet a son `scripts/run-tests.cjs` (`build/run-tests.cjs` dans le socle), qui découvre `tests/*.test.ts` et `tests/*.test.mjs` de son dossier. Tout bug corrigé reçoit un test de régression.
 - `npm run cascade` charge la feuille des tokens dans Chromium, Firefox et WebKit, hors de `npm test`. Moteurs : `npx playwright install chromium firefox webkit` ; le job `cascade` de `ci.yml` le lance.
 - `packages/kit/src/format/types.ts` changé → `npm run schema` : le schéma commité en est dérivé, et `packages/kit/tests/schema.test.ts` refuse une version périmée en la régénérant.
+- `npm run vues` : reconstruit le kit si son empreinte a changé, puis régénère le hub, la planche du moteur et les données de la vue illustrée ; écrit seulement ce qui change. Le test de fraîcheur de chaque page échoue avec « La vue n'est plus à jour » tant qu'elle est périmée.
 - `npm run agents:diff` : domiciles et documents liés à relire, vérifications à lancer, documents qui citent un chemin supprimé ou renommé.
 
 ### La frontière de recette

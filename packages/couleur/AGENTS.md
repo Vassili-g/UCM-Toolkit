@@ -2,7 +2,7 @@
 
 Moteur de couleur d'UCM Palettes : ucm-couleur, privé, lu en source.
 
-- Commandes : `npm run test:paquet -- couleur`, `npm run planche --workspace ucm-couleur` si le moteur ou ses crans changent.
+- Commandes : `npm run test:paquet -- couleur`, `npm run vues` si le moteur ou ses crans changent (régénère la planche).
 - Carte : [CARTE.md](./CARTE.md).
 
 <!-- domaines:debut -->

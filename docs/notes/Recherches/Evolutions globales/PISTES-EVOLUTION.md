@@ -32,6 +32,7 @@ repository consommateur. Les extensions du contrat relèvent du
 - [Assister l’implémentation](#4-assister-limplémentation)
 - [Partager et automatiser](#5-partager-et-automatiser)
 - [Choisir les expérimentations](#6-choisir-les-expérimentations)
+- [Ajuster les variables et les garanties du thème](#7-ajuster-les-variables-et-les-garanties-du-thème)
 
 ## Conditions communes aux modules proposés
 
@@ -1061,3 +1062,87 @@ composant serviraient à décider d’un essai plus large ; ils ne suffiraient p
 à annoncer un bénéfice pour toute une équipe. Une piste serait poursuivie si
 elle traite le besoin observé, respecte les responsabilités du concept et reste
 utilisable dans le périmètre de modules choisi par chaque consommateur.
+
+## 7. Ajuster les variables et les garanties du thème
+
+Ces deux pistes viennent de la relecture du Button et de l'Alert remappés sur
+le thème. Les mesures portent sur la recette de Palettes du
+mainteneur (format 12, huit palettes). Le
+[Hub UCM](../../../../packages/hub/HUB-UCM.html)
+rejoue ces mesures sur n'importe quelle recette : sa table des dossiers et ses
+exigences se modifient sans toucher au kit.
+
+### 7.1. Ajouter un contour discret sur fond teinté
+
+**Besoin et appui dans le code.** `surface/border` prend le cran de
+`surface/foreground` : 800 en Light, 950 en Dark
+(`TABLE_DES_DOSSIERS`, [dossiers.ts](../../../../packages/kit/src/emplois/dossiers.ts)).
+La garantie 4 lui demande 3:1 contre `surface/default`, `surface/hover`,
+`surface/pressed` et la page
+([garanties.ts](../../../../packages/kit/src/emplois/garanties.ts)). Ce contour
+sert à distinguer un élément : une puce sélectionnée, un champ posé sur un fond
+teinté. Il est trop appuyé pour encadrer une boîte déjà remplie, comme une Alert
+Filled ou l'en-tête teinté d'une carte. WCAG ne demande aucun contraste à ce
+contour, car le fond délimite déjà la boîte. `page/divider`, au cran 300, est
+défini sur la page et n'a pas d'équivalent sur un fond teinté.
+
+**Mesures.** En Light, contre les crans 100, 200 et 300 des fonds teintés :
+
+| Cran du contour | Contre 100 | Contre 200 | Contre 300 |
+|---|---|---|---|
+| 600 | 3,5 à 4,2 | 3,0 à 3,6 | 2,6 à 3,0 |
+| 700 | 5,0 à 5,5 | 4,3 à 4,8 | 3,6 à 3,9 |
+| 800 (actuel) | 7,0 à 7,8 | 6,1 à 6,7 | 5,1 à 5,5 |
+
+En Dark, contre le cran 500 du fond appuyé, le cran 800 donne 2,1 à 3,6 et le
+cran 900 donne 4,5 à 4,9.
+
+**Solutions des autres systèmes.** Primer publie deux contours par couleur
+d'affichage, `--display-blue-borderColor-muted` et
+`--display-blue-borderColor-emphasis`. Polaris publie
+`--p-color-border-critical` et `--p-color-border-critical-secondary`. Les noms
+viennent de [docs/references/design-systems](../../../references/design-systems/README.md).
+
+**Direction proposée.** Une variable `surface/divider`, sans garantie de
+contraste comme `page/divider`, placée un ou deux crans au-dessus du fond
+teinté au repos : 300 en Light sur le fond 100, 500 en Dark sur le fond 300.
+Le banc d'essai porte cette variable à titre d'essai, avec ces deux crans
+modifiables.
+
+**Coût.** La variable entre dans `VARIABLES_DE_PALETTE`, `TABLE_DES_DOSSIERS`,
+`SUPPORT_DES_VARIABLES` et les textes du thème du kit. Palettes l'écrit,
+Architect la reconnaît, et les fichiers déjà générés la reçoivent à la prochaine
+écriture. Le kit change de version.
+
+### 7.2. Juger les contrastes sur les états qui durent
+
+**Besoin et appui dans le code.** Trois garanties jugent un texte ou un contour
+contre le fond appuyé : la garantie 1 (`solid/foreground` contre
+`solid/pressed`), la garantie 3 (`surface/foreground` contre
+`surface/pressed`) et la garantie 4 (`surface/border` contre
+`surface/pressed`). L'état appuyé dure le temps d'un clic. Le mainteneur juge
+inutile d'y exiger le seuil. Ces fonds fixent pourtant le cran minimal des
+contours : sans `surface/pressed`, `surface/border` tiendrait 3:1 au cran 700
+avec plus de marge, et le cran 600 atteindrait 3,0 à 3,6 contre le fond survolé.
+
+WCAG ne prévoit pas d'exception explicite pour un état passager. La décision
+relève du mainteneur.
+
+**Solutions à comparer.**
+
+- Retirer `solid/pressed` et `surface/pressed` des fonds des garanties 1, 3
+  et 4. Les promesses de Palettes passent de seize à treize par mode et par
+  intensité.
+- Garder ces fonds et rendre leur échec informatif : la promesse reste
+  affichée sans compter dans le verdict de la palette.
+- Garder ces fonds avec un seuil abaissé, à fixer.
+
+**Direction proposée.** La deuxième solution garde la mesure visible dans
+Palettes et libère les crans. Le banc d'essai porte deux exigences
+modifiables, « Juger les fonds survolés » et « Juger les fonds appuyés », pour
+mesurer ce que chaque solution change sur une recette réelle.
+
+**Coût.** `GARANTIES` et `garantieJugeable` dans le kit ; `jugerLesRampes`,
+`compterManquees` et la garantie des courbes dans le moteur ; le compte des
+promesses affiché par Palettes et ses textes. Les tests des promesses comptent
+seize promesses par mode et par intensité, et changent avec la règle.

@@ -46,6 +46,7 @@ const DOMAINES = [
   "Interface d'UCM Palettes",
   'Explorateur de tokens',
   'UCM Nomenclature',
+  'Hub UCM',
 ];
 
 /**
@@ -396,7 +397,7 @@ const ENONCES_SPEC = [
   "La marque de version vient de la constante du kit.",
 ];
 
-test("les vingt domaines d'invariants sont là, dans l'ordre du manifeste, sous leur titre", () => {
+test("les vingt et un domaines d'invariants sont là, dans l'ordre du manifeste, sous leur titre", () => {
   const domaines = domainesDuManifeste();
   assert.deepEqual(domaines.map((d) => d.titre), DOMAINES);
 

@@ -37,6 +37,7 @@ Procédures qu'un agent charge à la demande.
 - pins-servis.mjs : versions que le registre sert
 - run-tests.cjs : découvreur de tests
 - agents-contexte.mjs : documents à lire avant de modifier un fichier et à relire après, calculés depuis `.agents/domiciles.json`
+- vues.mjs : `npm run vues`, reconstruit le kit si besoin et régénère le hub, la planche et les données de la vue illustrée
 - verifier-conservation.mjs : garde de conservation de la réécriture d'`AGENTS.md`
 
 ## .claude/
