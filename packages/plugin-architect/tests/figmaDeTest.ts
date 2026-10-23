@@ -204,6 +204,12 @@ export interface VariableDEcriture {
   readonly id: string;
   readonly key: string;
   readonly name: string;
+  /** Les scopes de la variable. Avec `valuesByMode`, ils la rendent écrivable : une affectation, `setValueForMode` et `remove` entrent dans `journal`. */
+  readonly scopes?: readonly string[];
+  readonly valuesByMode?: Record<string, unknown>;
+  /** L'identifiant de la collection locale qui porte la variable. */
+  readonly collection?: string;
+  readonly remote?: boolean;
 }
 
 export interface OptionsDeLEcriture {
@@ -229,7 +235,38 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
   const layers = new Map<string, Record<string, unknown>>();
   const donnees = new Map<string, string>();
   const variables = new Map<string, VariableDEcriture>();
-  for (const variable of [...(options.lisibles ?? []), ...(options.locales ?? []), ...(options.importables ?? [])]) variables.set(variable.id, variable);
+  /** Une variable à `scopes` ou `valuesByMode` devient écrivable : chaque écriture entre dans `journal`, celles de `refusees` lèvent. */
+  const equiper = (variable: VariableDEcriture): VariableDEcriture => {
+    if (variable.scopes === undefined && variable.valuesByMode === undefined) return variable;
+    let scopes = [...(variable.scopes ?? [])];
+    let valeurs = { ...variable.valuesByMode };
+    const brut: Record<string, unknown> = { id: variable.id, key: variable.key, name: variable.name, remote: variable.remote ?? false, variableCollectionId: variable.collection ?? '' };
+    Object.defineProperty(brut, 'scopes', {
+      enumerable: true,
+      get: () => scopes,
+      set: (suivants: string[]) => {
+        if (options.refusees?.has(variable.id)) throw new Error('Figma refuse');
+        journal.push(`scopes:${variable.id}:${suivants.join(',')}`);
+        scopes = [...suivants];
+      },
+    });
+    Object.defineProperty(brut, 'valuesByMode', { enumerable: true, get: () => valeurs });
+    brut.setValueForMode = (mode: string, valeur: { id: string }) => {
+      if (options.refusees?.has(variable.id)) throw new Error('Figma refuse');
+      journal.push(`mode:${variable.id}:${mode}:${valeur.id}`);
+      valeurs = { ...valeurs, [mode]: valeur };
+    };
+    brut.remove = () => {
+      if (options.refusees?.has(variable.id)) throw new Error('Figma refuse');
+      journal.push(`supprimer:${variable.id}`);
+      variables.delete(variable.id);
+      const rang = locales.indexOf(brut as unknown as VariableDEcriture);
+      if (rang >= 0) locales.splice(rang, 1);
+    };
+    return brut as unknown as VariableDEcriture;
+  };
+  const locales: VariableDEcriture[] = (options.locales ?? []).map(equiper);
+  for (const variable of [...(options.lisibles ?? []).map(equiper), ...locales, ...(options.importables ?? []).map(equiper)]) variables.set(variable.id, variable);
   let selection: unknown[] = [];
   const page: Record<string, unknown> = { id: '0:1', type: 'PAGE', parent: null };
   Object.defineProperty(page, 'selection', {
@@ -243,6 +280,8 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
   const api = {
     root: {
       getSharedPluginData: (espace: string, cle: string) => (espace === ESPACE_ARCHITECT && cle === CLE_ARCHITECTURE_DU_FICHIER ? (options.declaration ?? texteDeLArchitectureDuFichier(true)) : donnees.get(`${espace}/${cle}`) ?? ''),
+      /** Les layers du fichier que `filtre` retient, dans l'ordre de leur création. */
+      findAll: (filtre: (noeud: unknown) => boolean) => [...layers.values()].filter(filtre),
       setSharedPluginData(espace: string, cle: string, valeur: string) {
         if (options.refusees?.has('racine')) throw new Error('Figma refuse');
         journal.push(`donnee:${espace}/${cle}`);
@@ -250,6 +289,7 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
       },
     },
     currentPage: page,
+    async loadAllPagesAsync() {},
     async getNodeByIdAsync(id: string) {
       return layers.get(id) ?? null;
     },
@@ -259,13 +299,16 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
       },
       async getLocalVariablesAsync() {
         journal.push('locales');
-        return options.locales ?? [];
+        return locales;
       },
       async importVariableByKeyAsync(cle: string) {
         journal.push(`import:${cle}`);
         const trouvee = options.importables?.find((variable) => variable.key === cle);
         if (!trouvee) throw new Error('Clé absente de la bibliothèque');
         return trouvee;
+      },
+      createVariableAlias(variable: VariableDEcriture) {
+        return { type: 'VARIABLE_ALIAS', id: variable.id };
       },
       setBoundVariableForPaint(peinture: Record<string, unknown>, _champ: 'color', variable: VariableDEcriture) {
         journal.push(`peinture:${variable.key}`);
@@ -283,6 +326,10 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
     /** Les données partagées de la racine, par `espace/clé`. */
     donnees,
     selection: () => selection,
+    /** La variable de l'atelier d'identifiant `id`, écrivable si elle porte `scopes` ou `valuesByMode`. */
+    variable: (id: string) => variables.get(id) as (VariableDEcriture & { scopes: string[]; valuesByMode: Record<string, unknown>; setValueForMode(mode: string, valeur: unknown): void }) | undefined,
+    /** Les variables locales encore présentes. */
+    locales: () => locales,
     /** Un jeu de variants dont chaque variant porte l'un des noms ; renommer un variant entre dans `journal`. */
     jeuDeVariants(id: string, noms: readonly string[]): Record<string, unknown> {
       const jeu: Record<string, unknown> = { id, type: 'COMPONENT_SET', name: `Jeu ${id}`, parent: page, boundVariables: {} };

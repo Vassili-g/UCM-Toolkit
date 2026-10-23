@@ -20,9 +20,10 @@ export type LectureDuCatalogue =
   | { readonly etat: 'lu'; readonly catalogue: CatalogueDeReference }
   | { readonly etat: 'illisible'; readonly motif: string };
 
-function valeurDuCatalogue(source: ValeurSource, deLibrary = false): { alias: string } | { valeur: unknown } {
+/** `cles` donne, pour un alias du fichier, la clé de la variable visée quand le relevé la porte : le catalogue nomme les variables par leur clé. */
+function valeurDuCatalogue(source: ValeurSource, deLibrary = false, cles?: ReadonlyMap<string, string>): { alias: string } | { valeur: unknown } {
   switch (source.nature) {
-    case 'alias': return { alias: deLibrary ? (cleDeBibliotheque(source.cible) ?? source.cible) : source.cible };
+    case 'alias': return { alias: deLibrary ? (cleDeBibliotheque(source.cible) ?? source.cible) : (cles?.get(source.cible) ?? source.cible) };
     case 'couleur': return { valeur: source.couleur };
     case 'nombre': return { valeur: source.nombre };
     case 'texte': return { valeur: source.texte };
@@ -56,6 +57,7 @@ export async function lireLeCatalogueDeLibrary(figma: PortDeBibliotheque, librar
 /** Les variables locales du fichier, déjà lues : leurs valeurs sont présentes, sans library. */
 export function catalogueDuFichier(releve: Pick<Releve, 'collections' | 'variables'>, architecture: 'ucm' | 'libre'): CatalogueDeReference {
   const brutes = releve.collections.map((c) => ({ cle: c.id, nom: c.nom, modes: c.modes.map((m) => ({ id: m.id, nom: m.nom })), etat: 'lue' as const }));
+  const cles = new Map(releve.variables.map((v) => [v.id, v.cle ?? v.id] as const));
   const variables: VariableDuCatalogue[] = releve.variables.map((v) => ({
     cle: v.cle ?? v.id,
     nom: v.nom,
@@ -63,7 +65,7 @@ export function catalogueDuFichier(releve: Pick<Releve, 'collections' | 'variabl
     type: v.type as VariableDuCatalogue['type'],
     etat: 'presente',
     scopes: [...v.portees],
-    valeurs: Object.fromEntries(Object.entries(v.valeurs).map(([mode, valeur]) => [mode, valeurDuCatalogue(valeur)])),
+    valeurs: Object.fromEntries(Object.entries(v.valeurs).map(([mode, valeur]) => [mode, valeurDuCatalogue(valeur, false, cles)])),
   }));
   return { version: 1, library: null, collections: collectionsDeReference(brutes, architecture), variables };
 }

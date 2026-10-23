@@ -58,12 +58,15 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - souche.ts : réponse « non construit » d'un domaine pas encore fait
 - commun.ts, arbre.ts, composant.ts, nomenclature.ts, analyse.ts, configuration.ts, corrections.ts, questions.ts, ignores.ts : domaines construits ; `configuration.ts` lit et range le niveau d'accessibilité (`clientStorage`) et la library choisie ; `analyse.ts` lance l'analyse (relevé, catalogue, moteur, contrôles du kit dont accessibilité et typographie), passe ses constats par `proposerLesCorrections` du kit puis par les ignorés rangés, porte l'identité, les constats, les corrections de l'analyse courante et le panneau périmé ; `questions.ts` tire d'une réponse une correction exacte retenue dans l'analyse ; `ignores.ts` écarte un constat ou sa proposition et le rend ; `corrections.ts` écrit un lot de l'analyse courante non périmée, une opération à la fois, et sélectionne les layers d'un constat
 - bibliotheque.ts : library lue depuis un autre fichier : arbre depuis les noms, valeurs d'un groupe importées par lots de huit
-- accessibilite.ts, fiche.ts, preparation.ts, recherche.ts, regles.ts, structure.ts : souches
+- structure.ts : mode Tokens sans composant : `lire-structure` rend les constats de `controlerLeCatalogue` du kit et leurs corrections (scopes C63, alias de mode C60) ; `appliquer-structure` n'écrit que les corrections retenues du dernier constat, une opération à la fois
+- accessibilite.ts, fiche.ts, preparation.ts, recherche.ts, regles.ts : souches
 
 ## src/ecriture/
 - configuration.ts : range la library choisie, donnée partagée du nœud racine sous `CLES_D_ARCHITECT.libraryChoisie`
 - cleDuFichier.ts : range `figma.fileKey`, quand Figma le sert, sous `CLES_D_ARCHITECT.cleDuFichierDesTokens`
-- noms.ts : le seul fichier qui écrive dans le document : noms, règles, journal et point d'annulation ; un refus avant toute écriture quand une règle de nommage vient d'une version plus récente
+- journal.ts : range un lot du journal (entrées, puis référence) dans les données partagées ; le journal des noms (`journal`) et celui de structure (`journal-structure` : scopes, cible d'alias par mode, création de variables) ; `journaliserLesCreations` sert la création de B8
+- structure.ts : écrit les corrections `scope` et `alias-de-mode` après relecture, journal rangé avant, un point d'annulation ; défait le dernier lot de structure (`annulerLeDernierLotDeStructure`), sans supprimer une variable créée qui a gagné un usage
+- noms.ts : écrit les noms, les règles du fichier et le point d'annulation des renommages, avec le journal de `journal.ts` ; un refus avant toute écriture quand une règle de nommage vient d'une version plus récente
 - regles.ts : applique les corrections de sorte `regles` par `creerLesRegles` du socle ; relit avant d'écrire, saute `objet-change`, `instance-remplie` ou `erreur`, sans point d'annulation
 - liaisons.ts : écrit les corrections de sorte `liaison` (nombre, fill, stroke, texte par plage) après relecture, saute avec un motif ; importe la variable cible, une fois par clé et par lot ; `ecrireLeLot` pose le seul point d'annulation du lot, liaisons, règles et noms de valeurs ensemble
 - noms-de-valeurs.ts : écrit les corrections de sorte `nom-de-valeur` (C12) : renomme une valeur dans le nom de chaque variant du jeu après relecture ; une valeur cible déjà présente n'est jamais écrite (`fait-faux`)

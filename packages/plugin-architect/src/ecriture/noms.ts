@@ -15,7 +15,10 @@ import {
 import { inventaireDeLectures } from '../nomenclature/lecture';
 import { lecteurDeVariablesFigma } from '../nomenclature/lectureFigma';
 import type { CauseDeRefus } from '../messages/nomenclature';
-import { CLE_JOURNAL, effacerLeJournal, lireLesRegles, lireLeStockage, preparerJournal, rangerLesEcritures, type Journal, type RenommageJournal } from '../nomenclature/regles';
+import { effacerLeJournal, lireLesRegles, lireLeStockage, rangerLesEcritures, type Journal, type RenommageJournal } from '../nomenclature/regles';
+import { identifiantDeLot, nettoyer, ranger, retirer, type PortDeRegles } from './journal';
+
+export type { PortDeRegles } from './journal';
 
 export interface ObjetModifiable { readonly id: string; name: string; readonly remote: boolean }
 export interface VariableModifiable extends ObjetModifiable { readonly variableCollectionId: string }
@@ -277,50 +280,6 @@ function resultat(execution: Execution, annulable: boolean, erreur: boolean): Re
 
 // Le journal
 
-let compteurDeLots = 0;
-/** Un identifiant de lot unique : heure, compteur du processus et hasard, en base 36. */
-const identifiantDeLot = (): string => `${Date.now().toString(36)}${(compteurDeLots++).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-
-/** Les clés d'un lot rangé, et le texte de la référence qu'il a remplacée (vide : aucune). */
-interface LotRange { readonly cles: ReadonlySet<string>; readonly entrees: readonly string[]; readonly referenceAvant: string }
-
-/**
- * Range un lot du journal : ses entrées, puis la référence en dernier. Rend `undefined` quand le lot ne tient pas
- * ou qu'une écriture échoue ; il efface alors les clés neuves et remet la référence d'avant.
- */
-function ranger(stockage: PortDeRegles, journal: Journal, lot: string): LotRange | undefined {
-  const prepare = preparerJournal(journal, lot);
-  if (!prepare) return undefined;
-  const referenceAvant = stockage.lire(CLE_JOURNAL);
-  try {
-    for (const { cle, texte } of [...prepare.entrees, prepare.reference]) stockage.ecrire(cle, texte);
-  } catch {
-    // Une clé qui lève a pu être écrite : toutes celles du lot s'effacent.
-    for (const { cle } of prepare.entrees) { try { stockage.effacer(cle); } catch { /* orpheline, effacée au lot suivant */ } }
-    try {
-      if (stockage.lire(CLE_JOURNAL) !== referenceAvant) { if (referenceAvant) stockage.ecrire(CLE_JOURNAL, referenceAvant); else stockage.effacer(CLE_JOURNAL); }
-    } catch { /* la référence reste celle du lot raté, dont les entrées sont effacées */ }
-    return undefined;
-  }
-  const entrees = prepare.entrees.map(({ cle }) => cle);
-  return { cles: new Set([...entrees, CLE_JOURNAL]), entrees, referenceAvant };
-}
-
-/** Efface les clés du journal qui ne sont pas à `garder` ; une clé qui résiste reste orpheline, sans effet sur la lecture. */
-function nettoyer(stockage: PortDeRegles, garder: ReadonlySet<string>): void {
-  try {
-    for (const { cle } of effacerLeJournal(stockage.cles(), garder)) { try { stockage.effacer(cle); } catch { /* effacée au lot suivant */ } }
-  } catch { /* idem */ }
-}
-
-/** Un lot sans renommage effectif rend le journal d'avant : la référence reprend son texte, puis les entrées du lot partent. */
-function retirer(stockage: PortDeRegles, lot: LotRange): void {
-  try {
-    if (lot.referenceAvant) stockage.ecrire(CLE_JOURNAL, lot.referenceAvant); else stockage.effacer(CLE_JOURNAL);
-  } catch { return; }
-  for (const cle of lot.entrees) { try { stockage.effacer(cle); } catch { /* orpheline */ } }
-}
-
 const PREFIXE_DE_VARIABLE = 'variable:';
 /** Les paires du journal portent des identifiants Figma ; le contrôle des chemins nomme les variables par `cleDObjet`. */
 const paireDeLInventaire = ([a, b]: PaireEnConflit): PaireEnConflit => [cleDObjet('variable', a), cleDObjet('variable', b)];
@@ -515,14 +474,6 @@ export function creerPortEcriture(api: PluginAPI): PortEcriture {
       commitUndo: () => api.commitUndo(),
     };
   } };
-}
-
-/** Le stockage des règles du fichier : une clé par règle, dans l'espace d'Architect. Une écriture de règle n'ouvre pas de point d'annulation. */
-export interface PortDeRegles {
-  cles(): readonly string[];
-  lire(cle: string): string;
-  ecrire(cle: string, texte: string): void;
-  effacer(cle: string): void;
 }
 
 export function creerPortDeRegles(api: PluginAPI): PortDeRegles {
