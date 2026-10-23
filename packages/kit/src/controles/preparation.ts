@@ -2,10 +2,10 @@
  * Préparation des tokens d'un composant : les variables de `components` à créer, ce qu'elles visent dans `theme` et `layout`,
  * et les questions que le relevé ne tranche pas. Fonction pure ; l'identifiant, le stockage et la création sont ceux d'Architect.
  */
-import { cranDeLaVariable, DOSSIERS, VARIABLES_DU_THEME, type VariableDuTheme } from '../emplois/dossiers.js';
+import { cranDeLaVariable, DOSSIERS, ETATS, VARIABLES_DU_THEME, type VariableDuTheme } from '../emplois/dossiers.js';
 import { REGISTRE_PALETTES_COMPOSANT } from '../referentiel/architecture.js';
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
-import { REGISTRE_ETATS, REGISTRE_ROLES, REGISTRE_STATUTS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
+import { MODES, PROFILS, REGISTRE_ETATS, REGISTRE_ROLES, REGISTRE_STATUTS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
 import { variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Question } from './constat.js';
 import { axeDePropriete, axesDuReleve, type AxeDuComposant, type ProprieteDAxe } from './nommage.js';
@@ -18,7 +18,7 @@ export interface ViseDePreparation {
   /** Le nom complet de la variable visée. */
   nom: string;
   /** Une couleur du thème : sa variable de dossier, d'où viennent les crans. */
-  crans?: { light: number | 'texteDesBoutons' | undefined; dark: number | 'texteDesBoutons' | undefined };
+  crans?: Record<(typeof MODES)[number], number | 'texteDesBoutons' | undefined>;
   /** Une taille de `layout` : sa valeur en pixels. */
   valeur?: number;
 }
@@ -116,7 +116,7 @@ export function preparerLesTokens(
   const palettesDuTheme = (): { nom: string }[] => [...new Set(catalogue.variables
     .filter((variable) => variable.collection === theme?.cle && variable.nom.startsWith('theme/'))
     .map((variable) => variable.nom.split('/')[1]))].map((nom) => ({ nom }));
-  const intensitesDe = (palette: string): string[] => ['soft', 'vivid'].filter((intensite) =>
+  const intensitesDe = (palette: string): string[] => PROFILS.filter((intensite) =>
     catalogue.variables.some((variable) => variable.collection === theme?.cle && variable.nom.startsWith(`theme/${palette}/${intensite}/`)));
 
   function paletteDe(valeur: string | undefined): { segment?: string; theme?: string; attend?: string } {
@@ -140,8 +140,8 @@ export function preparerLesTokens(
     if (!termeReconnu(REGISTRE_STATUTS, palette)) return {};
     const presentes = intensitesDe(palette);
     if (presentes.length === 1) return { intensite: presentes[0] };
-    if (['soft', 'vivid'].includes(reponses.intensite)) return { intensite: reponses.intensite };
-    ajouterQuestion(questions, { id: 'intensite', candidats: [{ nom: 'soft' }, { nom: 'vivid' }], indice: 'Les statuts : soft ou vivid ?' });
+    if ((PROFILS as readonly string[]).includes(reponses.intensite)) return { intensite: reponses.intensite };
+    ajouterQuestion(questions, { id: 'intensite', candidats: PROFILS.map((nom) => ({ nom })), indice: 'Les statuts : soft ou vivid ?' });
     return { attend: 'intensite' };
   }
 
@@ -278,7 +278,7 @@ export function preparerLesTokens(
       if (!DOSSIERS.includes(dossier as (typeof DOSSIERS)[number])) attendus.push(`dossier:${styleValeur ?? '-'}`);
       else if (!intensite.attend) {
         const roleTheme = roleDeTheme(role);
-        const fin = roleTheme === 'background' ? (['default', 'hover', 'pressed'].includes(etat ?? 'default') ? (etat ?? 'default') : undefined) : roleTheme;
+        const fin = roleTheme === 'background' ? ((ETATS as readonly string[]).includes(etat ?? 'default') ? (etat ?? 'default') : undefined) : roleTheme;
         if (fin) {
           variable = `${dossier}/${fin}` as VariableDuTheme;
           cible = `theme/${palette.theme}/${intensite.intensite ? `${intensite.intensite}/` : ''}${variable}`;
