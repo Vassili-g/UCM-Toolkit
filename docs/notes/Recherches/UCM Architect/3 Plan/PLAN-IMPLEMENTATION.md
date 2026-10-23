@@ -602,7 +602,7 @@ de galerie quand le lot B n'est pas fait.
   `servir-de-modele` (K11) et range les constats de `modele-propose` dans
   l'analyse (Q-74).
 - [~ Codex] **U8 · Préparation et Configuration.** Vague 6 · U6 (1/2) commité dans `partage/main`. Codex, dans son clone, pendant qu'U6 (2/2) et U7 tournent dans l'arbre partagé.
-  Écrit en plus, par retouches courtes : `src/ui/etat.ts`, `src/ui/application.ts`, `src/ui/index.ts`, les index de `src/ui/textes/` et `src/ui/styles/`, `galerie/cadres.json`, l'index des états de galerie, la liste d'exceptions de `tests/loiDuVocabulaire.test.ts`.
+  Écrit en plus, par retouches courtes : `src/ui/etat.ts`, `src/ui/application.ts`, `src/ui/index.ts`, `src/ui/barre.ts`, `src/ui/composant/{analyse,corps}.ts`, les index de `src/ui/textes/` et `src/ui/styles/`, `scripts/build-ui.cjs` (`FEUILLES_DES_DOMAINES`), `galerie/cadres.json`, `galerie/etats.cjs`, `tests/galerie.test.ts`, `tests/interface/aide.mjs`, la liste d'exceptions de `tests/loiDuVocabulaire.test.ts`, la ligne de chaque dossier `src/ui/<d>/` créé dans `CARTE.md`, et les documents que `agents:diff` liste (`README.md`, `SPEC.md`, invariants du paquet).
   Textes hors maquette à écrire (skill `rediger-diagnostics-ucm`) : les codes de B8 (`MotifDeRefusDePreparation`, `MotifDeRefusDeLiaison`, `MotifDeRefusDeCreation`, `MotifDEchecDeCreation`, `MotifDeTexteRefuse`, `structure-annulee` : `journal`, `refus`, motifs des lignes sautées), Q-71 et Q-73.
   Domaines : `preparation`, `configuration`.
   Maquette : `g-*`, `cf-reglages`, `cf-historique` ; `PREPARER`, `CREER`,
