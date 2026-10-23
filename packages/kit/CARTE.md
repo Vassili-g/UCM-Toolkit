@@ -72,6 +72,9 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - navigateur.mjs : porte `@ucm-kit/core/lecteurs/navigateur` : lecteurs sans Node ni Ajv, pour un plugin ou une page
 - navigateur.d.mts : ce que cette porte promet à un consommateur TS
 
+## src/controles/
+- preparation.ts : `preparerLesTokens` : variables de `components` à créer pour un composant, ce qu'elles visent dans `theme` et `layout`, questions ouvertes
+
 ## scripts/
 - build-schema.ts : génère le schéma depuis `types.ts`
 - generer-refus.mjs : refus de version, rendus pour la relecture
