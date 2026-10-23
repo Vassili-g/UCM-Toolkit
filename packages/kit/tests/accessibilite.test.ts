@@ -208,3 +208,73 @@ test('borne : au-delà, un constat d information compte les combinaisons non mes
   assert.equal(borne.faits.borne, BORNE_DE_COMBINAISONS);
   assert.equal(borne.faits.combinaisonsNonMesurees, 6000 - BORNE_DE_COMBINAISONS);
 });
+
+test('faits du contraste : premier plan, fond et rapports de chaque mode ; une limite ne les porte pas', () => {
+  const liaison = { champ: 'fills' as const, indice: 0, porteur: 't', variable: { id: 'v', cle: 'vk', nom: 'texte', collection: 'ck', distante: false } };
+  const t = texte([solide('fills', gris(0))]);
+  t.texte!.plages[0].liaisons = [liaison];
+  const cat: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'ck', nom: 'theme', role: null, etat: 'lue', modes: [{ id: 'l', nom: 'Light' }, { id: 'd', nom: 'Dark' }] }],
+    variables: [{ cle: 'vk', nom: 'texte', collection: 'ck', type: 'COLOR', etat: 'presente', valeurs: { l: { valeur: gris(0) }, d: { valeur: gris(1) } } }],
+  };
+  const v = variant('a', [racine(), t]);
+  v.modesEffectifs = { ck: 'l' };
+  const c = parCode(cc(releve([v]), 'AA', cat), 'C49')[0];
+  assert.equal(c.faits.premierPlan, '#ffffff');
+  assert.equal(c.faits.fond, '#ffffff');
+  assert.equal(c.faits.rapport, 1);
+  const rapports = JSON.parse(String(c.faits.rapports)) as [string, number][];
+  assert.deepEqual(rapports.map(([e]) => e), ['theme en Light', 'theme en Dark']);
+  assert.ok(rapports[0][1] > 20);
+
+  const limite = cc(releve([variant('a', [racine([{ ...solide('fills', gris(1)), type: 'GRADIENT_LINEAR' }]), texte([solide('fills', gris(0.9))])])])).find((x) => x.limite);
+  assert.ok(limite);
+  assert.equal(limite.faits.premierPlan, undefined);
+  assert.equal(limite.faits.fond, undefined);
+  assert.equal(limite.faits.rapports, undefined);
+});
+
+test('regroupement : C49, C50, C51 et les limites forment un constat par groupe, sans variant dans l id', () => {
+  const clair = (id: string) => texte([solide('fills', gris(0.6))], 14, 400, id);
+  const bord = (id: string): LayerLu => ({
+    id, nom: 'Border', type: 'RECTANGLE', parent: 'r', visible: true, opacite: 1, dimensions: dims(), peintures: [solide('strokes', gris(0.85))],
+    strokeWeight: 1, liaisons: [], valeursEnDur: [],
+  });
+  const anneau = (id: string): LayerLu => ({ ...bord(id), nom: 'Focus ring', peintures: [solide('strokes', gris(0))] });
+  const degrade = racine([{ ...solide('fills', gris(1)), type: 'GRADIENT_LINEAR' }]);
+  const vs = ['a', 'b'].map((n) => variant(n, [racine(), clair(`t${n}`), bord(`b${n}`), anneau(`f${n}`)], { State: 'focus' }));
+  const constats = cc(releve([...vs, variant('c', [degrade, clair('tc')], { State: 'focus' }), variant('d', [degrade, clair('td')], { State: 'focus' })], ['focus']));
+  for (const code of ['C49', 'C50']) {
+    const groupes = parCode(constats, code).filter((x) => x.id !== 'C50:sans-anneau');
+    const attendus = code === 'C49' ? 1 : 1;
+    assert.equal(groupes.length, attendus, code);
+    assert.deepEqual(groupes[0].variants, ['a', 'b']);
+    assert.equal(groupes[0].layers.length, 2);
+    assert.ok(!groupes[0].id.includes(':a') && !groupes[0].id.endsWith(':b'));
+  }
+  const limites = constats.filter((x) => x.limite && x.code === 'C49');
+  assert.equal(limites.length, 1);
+  assert.deepEqual(limites[0].variants, ['c', 'd']);
+  const fins = parCode(cc(releve(['a', 'b'].map((n) => variant(n, [racine(), { ...anneau(`f${n}`), strokeWeight: 1 }], { State: 'focus' })), ['focus'])), 'C51');
+  assert.equal(fins.length, 1);
+  assert.deepEqual(fins[0].variants, ['a', 'b']);
+  // Négatif : un seul variant reste un constat simple ; un verdict différent ne se regroupe pas.
+  const seul = parCode(cc(releve([vs[0]])), 'C49');
+  assert.deepEqual(seul[0].variants, ['a']);
+  const deux = parCode(cc(releve([variant('a', [racine(), clair('x')]), variant('b', [racine(), texte([solide('fills', gris(0.6))], 24, 400, 'y')])])), 'C49');
+  assert.equal(deux.length, 2);
+});
+
+test('C50 sans anneau : layers porte la racine de chaque variant concerné', () => {
+  const vs = ['f1', 'f2'].map((n) => variant(n, [{ ...racine(), id: `r${n}` }], { State: 'focus' }));
+  const c = cc(releve(vs, ['focus'])).find((x) => x.id === 'C50:sans-anneau');
+  assert.ok(c);
+  assert.deepEqual(c.layers, ['rf1', 'rf2']);
+  assert.equal(c.faits.calque, 'Root');
+  const anneau: LayerLu = {
+    id: 'f', nom: 'Focus ring', type: 'RECTANGLE', parent: 'r', visible: true, opacite: 1, dimensions: dims(), peintures: [solide('strokes', gris(0))],
+    strokeWeight: 2, liaisons: [], valeursEnDur: [],
+  };
+  assert.equal(cc(releve([variant('f', [racine(), anneau], { State: 'focus' })], ['focus'])).find((x) => x.id === 'C50:sans-anneau'), undefined);
+});

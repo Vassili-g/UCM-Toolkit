@@ -656,7 +656,7 @@ finale.
 [profil]: ../../../../packages/plugin-architect/src/integrations/profilUcm.ts
 [architecture]: ../../../../packages/kit/src/referentiel/architecture.ts
 [mots]: ../../../../packages/kit/src/referentiel/ecriture-des-mots.ts
-[imports]: ../../../../packages/plugin-architect/src/integrations/contrats.ts
+[imports]: https://github.com/Vassili-g/UCM-Toolkit/blob/edc56f63c6/packages/plugin-architect/src/integrations/contrats.ts
 [vue-integrations]: ../../../../packages/plugin-architect/src/integrations/
 [lecture-explorateur]: ../../../../packages/plugin-architect/src/lecture.ts
 [inventaire]: ../../../../packages/plugin-socle/src/inventaireDeNoms.ts

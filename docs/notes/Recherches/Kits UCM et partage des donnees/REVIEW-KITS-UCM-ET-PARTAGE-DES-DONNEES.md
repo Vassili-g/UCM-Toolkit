@@ -337,7 +337,7 @@ Les liens pointent vers les fichiers de production et les contrôles qui étayen
 [noms-format]: ../../../../packages/kit/src/format/names.ts
 [diagnostic-contrastes]: ../../../../packages/kit/src/lecteurs/diagnostic-contrastes.mjs
 [profil]: ../../../../packages/plugin-architect/src/integrations/profilUcm.ts
-[imports]: ../../../../packages/plugin-architect/src/integrations/contrats.ts
+[imports]: https://github.com/Vassili-g/UCM-Toolkit/blob/edc56f63c6/packages/plugin-architect/src/integrations/contrats.ts
 [lecture-explorateur]: ../../../../packages/plugin-architect/src/lecture.ts
 [vue-integrations]: ../../../../packages/plugin-architect/src/integrations/
 [textes-explorateur]: ../../../../packages/plugin-architect/src/ui/textes/index.ts

@@ -51,6 +51,7 @@ export function controlerLAccessibilite(
 ): Constat[] {
   const constats: Constat[] = [];
   const limites = new Map<string, Constat>();
+  const groupes = new Map<string, GroupeMesure>();
   const desactives = releve.variants.filter((v) => etatDuVariant(v) === 'disabled');
   const mesures = releve.variants.filter((v) => etatDuVariant(v) !== 'disabled');
 
@@ -70,9 +71,9 @@ export function controlerLAccessibilite(
     reste -= prises.length;
     mesureesTotal += prises.length;
     nonMesurees += combinaisons.length - prises.length;
-    if (prises.length > 0) mesurerLeVariant(variant, prises, catalogue, options.niveau, constats, limites);
+    if (prises.length > 0) mesurerLeVariant(variant, prises, catalogue, options.niveau, groupes, limites);
   }
-  constats.push(...limites.values());
+  constats.push(...[...groupes.values()].map((g) => g.constat), ...limites.values());
   if (nonMesurees > 0) {
     constats.push({
       id: 'C49:borne', code: 'C49', type: 'info', famille: 'contraste', variants: [], layers: [], limite: true,
@@ -281,13 +282,22 @@ function ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag): Cible[] {
   return cibles;
 }
 
+type GroupeMesure = { constat: Constat; pire: number };
+
+function hexa(c: Rgba): string {
+  return `#${versRgb8(c).map((x) => x.toString(16).padStart(2, '0')).join('')}`;
+}
+
+const sansArrondi = (rapport: number) => Math.floor(rapport * 100) / 100;
+
 function mesurerLeVariant(
   variant: VariantLu, combinaisons: Combinaison[], catalogue: CatalogueDeReference, niveau: NiveauWcag,
-  constats: Constat[], limites: Map<string, Constat>,
+  groupes: Map<string, GroupeMesure>, limites: Map<string, Constat>,
 ): void {
   for (const cible of ciblesDeContraste(variant, niveau)) {
-    let pire: { rapport: number; etiquette: string } | null = null;
+    let pire: { rapport: number; etiquette: string; premierPlan: string; fond: string } | null = null;
     let echecs = 0;
+    const rapports: [string, number][] = [];
     const causes = new Set<Cause>();
     for (const combinaison of combinaisons) {
       const fond = fondEffectif(variant, cible.layer, catalogue, combinaison);
@@ -297,9 +307,10 @@ function mesurerLeVariant(
       const premier = composer(pile.couches, fond);
       if (!premier) continue;
       const rapport = contraste(versRgb8(premier), versRgb8(fond));
+      rapports.push([combinaison.etiquette, sansArrondi(rapport)]);
       if (atteintLeSeuil(rapport, cible.seuil)) continue;
       echecs++;
-      if (!pire || rapport < pire.rapport) pire = { rapport, etiquette: combinaison.etiquette };
+      if (!pire || rapport < pire.rapport) pire = { rapport, etiquette: combinaison.etiquette, premierPlan: hexa(premier), fond: hexa(fond) };
     }
     const base = `${cible.code}:${cible.layer.nom}:${cible.usage}${cible.plage ? `:${cible.plage.debut}-${cible.plage.fin}` : ''}`;
     for (const cause of causes) {
@@ -307,7 +318,7 @@ function mesurerLeVariant(
       const existant = limites.get(cle);
       if (existant) {
         if (!existant.variants.includes(variant.nom)) existant.variants.push(variant.nom);
-        existant.layers.push(cible.layer.id);
+        if (!existant.layers.includes(cible.layer.id)) existant.layers.push(cible.layer.id);
       } else {
         limites.set(cle, {
           id: cle, code: cible.code, type: 'info', famille: 'contraste', variants: [variant.nom], layers: [cible.layer.id],
@@ -315,17 +326,36 @@ function mesurerLeVariant(
         });
       }
     }
-    if (pire) {
-      constats.push({
-        id: `${base}:${variant.id}`, code: cible.code, type: 'corriger', famille: 'contraste',
-        variants: [variant.nom], layers: [cible.layer.id],
-        faits: {
-          usage: cible.usage, champ: cible.champ, calque: cible.layer.nom, rapport: Math.floor(pire.rapport * 100) / 100,
-          seuil: cible.seuil, niveau, mode: pire.etiquette, autresModes: echecs - 1,
-        },
-      });
+    if (!pire) continue;
+    const cle = `${base}:${cible.seuil}:${niveau}`;
+    const existant = groupes.get(cle);
+    if (existant) {
+      if (!existant.constat.variants.includes(variant.nom)) existant.constat.variants.push(variant.nom);
+      if (!existant.constat.layers.includes(cible.layer.id)) existant.constat.layers.push(cible.layer.id);
+      if (pire.rapport >= existant.pire) continue;
+      existant.pire = pire.rapport;
+      existant.constat.faits = faitsDeContraste(cible, niveau, pire, echecs, rapports);
+      continue;
     }
+    groupes.set(cle, {
+      pire: pire.rapport,
+      constat: {
+        id: cle, code: cible.code, type: 'corriger', famille: 'contraste', variants: [variant.nom], layers: [cible.layer.id],
+        faits: faitsDeContraste(cible, niveau, pire, echecs, rapports),
+      },
+    });
   }
+}
+
+function faitsDeContraste(
+  cible: Cible, niveau: NiveauWcag, pire: { rapport: number; etiquette: string; premierPlan: string; fond: string },
+  echecs: number, rapports: [string, number][],
+): Constat['faits'] {
+  return {
+    usage: cible.usage, champ: cible.champ, calque: cible.layer.nom, rapport: sansArrondi(pire.rapport),
+    seuil: cible.seuil, niveau, mode: pire.etiquette, autresModes: echecs - 1,
+    premierPlan: pire.premierPlan, fond: pire.fond, rapports: JSON.stringify(rapports),
+  };
 }
 
 /* ---------- C50 (anneau absent) et C51 ---------- */
@@ -345,21 +375,31 @@ function controlerLAnneau(variants: VariantLu[]): Constat[] {
   const espace = Number(recommandation?.parametres.espace ?? 2);
   const sansAnneau = variants.filter((v) => estEnFocus(v) && anneauxDuVariant(v).length === 0);
   if (sansAnneau.length > 0) {
+    const racines = sansAnneau.flatMap((v) => v.layers.filter((l) => l.parent === null));
     constats.push({
       id: 'C50:sans-anneau', code: 'C50', type: 'corriger', famille: 'contraste',
-      variants: sansAnneau.map((v) => v.nom), layers: [], faits: { anneauVisible: 0, variantsEnFocus: sansAnneau.length },
+      variants: sansAnneau.map((v) => v.nom), layers: racines.map((l) => l.id),
+      faits: { anneauVisible: 0, variantsEnFocus: sansAnneau.length, ...(racines[0] ? { calque: racines[0].nom } : {}) },
     });
   }
+  const fins = new Map<string, Constat>();
   for (const variant of variants) {
     for (const anneau of anneauxDuVariant(variant)) {
       if (anneau.strokeWeight === undefined || anneau.strokeWeight === epaisseur) continue;
-      constats.push({
-        id: `C51:${anneau.nom}:${variant.id}`, code: 'C51', type: 'verifier', famille: 'contraste',
-        variants: [variant.nom], layers: [anneau.id],
+      const id = `C51:${anneau.nom}:${anneau.strokeWeight}`;
+      const existant = fins.get(id);
+      if (existant) {
+        if (!existant.variants.includes(variant.nom)) existant.variants.push(variant.nom);
+        existant.layers.push(anneau.id);
+        continue;
+      }
+      fins.set(id, {
+        id, code: 'C51', type: 'verifier', famille: 'contraste', variants: [variant.nom], layers: [anneau.id],
         faits: { calque: anneau.nom, strokeWeight: anneau.strokeWeight, epaisseurRecommandee: epaisseur, espaceRecommande: espace },
       });
     }
   }
+  constats.push(...fins.values());
   return constats;
 }
 
