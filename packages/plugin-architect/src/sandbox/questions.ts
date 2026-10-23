@@ -25,7 +25,25 @@ const chaine = (valeur: unknown): string | undefined => (typeof valeur === 'stri
 /** La correction exacte qu'une réponse tire, ou `null` quand le relevé ne porte plus ce que le constat vise. */
 function correctionDeLaReponse(constat: Constat, reponse: string, releve: ReleveDeComposant | null): Correction | null {
   const candidat = constat.question?.candidats.find((entree) => (entree.cle !== undefined ? entree.cle === reponse : entree.nom === reponse));
-  if (!candidat || !releve || constat.layers.length !== 1 || constat.variants.length === 0) return null;
+  if (!candidat || !releve) return null;
+  if (constat.code === 'C12' || constat.code === 'C13') {
+    const jeu = chaine(constat.faits.jeu);
+    const propriete = chaine(constat.faits.propriete);
+    const ancienne = chaine(constat.faits.avant);
+    const declaration = propriete && releve.proprietes.filter((entree) => entree.nom === propriete && entree.type === 'VARIANT');
+    if (!jeu || jeu !== releve.jeu.nom || !releve.jeu.id || !propriete || !ancienne || !declaration || declaration.length !== 1
+      || !declaration[0].valeurs?.includes(ancienne) || declaration[0].valeurs.includes(candidat.nom)) return null;
+    const variantsAnciens = releve.variants.filter((entree) => entree.valeurs[propriete] === ancienne).map(({ id }) => id);
+    if (variantsAnciens.length === 0 || variantsAnciens.length !== constat.variants.length
+      || variantsAnciens.some((id) => !constat.variants.includes(id))) return null;
+    return {
+      id: constat.question?.id ?? constat.id, sorte: 'nom-de-valeur',
+      cible: { layer: releve.jeu.id, champ: propriete }, avant: ancienne,
+      apres: { nom: candidat.nom },
+      aRelire: { regle: 'Le designer a choisi cette valeur parmi les candidats du moteur.', avant: ancienne },
+    };
+  }
+  if (constat.layers.length !== 1 || constat.variants.length === 0) return null;
   const variant = releve.variants.find(({ id }) => id === constat.variants[0]);
   const layer = variant?.layers.find(({ id }) => id === constat.layers[0]);
   if (!variant || !layer) return null;

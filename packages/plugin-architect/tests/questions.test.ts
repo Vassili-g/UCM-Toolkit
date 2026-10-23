@@ -2,13 +2,15 @@
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
 
-import { controlerMapping, type CatalogueDeReference, type Constat, type ReleveDeComposant } from '@ucm-kit/core/controles';
+import { controlerMapping, controlerNommage, type CatalogueDeReference, type Constat, type ReleveDeComposant } from '@ucm-kit/core/controles';
+import { texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 import type { PluginMessage } from '../src/messages';
 import { commencerUneAnalyse, correctionsDeLAnalyse, reinitialiserLAnalyse, retenirLesCorrections } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
 import { traiterAvec as appliquer } from '../src/sandbox/corrections';
 import { traiter } from '../src/sandbox/questions';
+import { ecrireLesNomsDeValeurs, type ApiDeNomsDeValeurs } from '../src/ecriture/noms-de-valeurs';
 
 const liaison = { champ: 'fills', indice: 0, porteur: 'L1', variable: { id: 'V:0', cle: 'k-hover-actuel', nom: 'button/color/default/background', collection: 'c', distante: false } };
 const releve = {
@@ -42,6 +44,43 @@ test('une réponse choisit un candidat : correction exacte retenue dans l’anal
   };
   assert.deepEqual(b.envoyes, [{ type: 'question-repondue', analyse: b.analyse, question: 'C16:v1', correction: attendue }]);
   assert.deepEqual(correctionsDeLAnalyse(b.analyse)?.get('C16:v1'), attendue);
+});
+
+test('une réponse C12 issue du contrôle de nommage devient un renommage appliquable du jeu', async () => {
+  const releveNom = structuredClone(releve);
+  releveNom.jeu = { cle: 'jeu', id: 'jeu', nom: 'Alert' };
+  releveNom.proprietes = [
+    { nom: 'Severity', type: 'VARIANT', valeurs: ['info'], defaut: 'info' },
+    { nom: 'Variant', type: 'VARIANT', valeurs: ['Outlined'], defaut: 'Outlined' },
+  ];
+  releveNom.variants = [{ id: 'v1', nom: 'Variant=Outlined', valeurs: { Severity: 'info', Variant: 'Outlined' }, modesEffectifs: {}, layers: [] }];
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'components', nom: 'components', role: 'components', modes: [], etat: 'lue' }],
+    variables: [{ cle: 'outline', nom: 'alert/color/info/outline/background', collection: 'components', type: 'COLOR', etat: 'presente' }],
+  };
+  const constats = controlerNommage(releveNom, catalogue).filter(({ code }) => code === 'C12');
+  assert.equal(constats.length, 1);
+  assert.deepEqual(constats[0].question?.candidats, [{ nom: 'outline' }]);
+  const envoyes: PluginMessage[] = [];
+  const contexte: Contexte = { figma: {} as PluginAPI, envoyer: (message) => envoyes.push(message), surveillerLeDocument() {} };
+  const analyse = commencerUneAnalyse('Alert', ['jeu'], contexte);
+  retenirLesCorrections(analyse, constats, releveNom);
+
+  await traiter({ type: 'repondre', analyse, question: constats[0].id, reponse: 'outline' }, contexte);
+  const correction = (envoyes[0] as Extract<PluginMessage, { type: 'question-repondue' }>).correction;
+  assert.deepEqual(correction, {
+    id: constats[0].id, sorte: 'nom-de-valeur', cible: { layer: 'jeu', champ: 'Variant' },
+    avant: 'Outlined', apres: { nom: 'outline' },
+    aRelire: { regle: 'Le designer a choisi cette valeur parmi les candidats du moteur.', avant: 'Outlined' },
+  });
+  const variantes = [{ name: 'Variant=Outlined, Severity=info' }];
+  const api: ApiDeNomsDeValeurs = {
+    root: { getSharedPluginData: () => texteDeLArchitectureDuFichier(true) },
+    async getNodeByIdAsync(id) { return id === 'jeu' ? { type: 'COMPONENT_SET', children: variantes } : null; },
+  };
+  assert.deepEqual(await ecrireLesNomsDeValeurs(correction ? [correction] : [], api), { ecrites: [constats[0].id], sautees: [] });
+  assert.equal(variantes[0].name, 'Variant=outline, Severity=info');
 });
 
 test('une réponse à chaque constat de mapping cible sa peinture quand deux peintures lient le même token', async () => {
