@@ -60,7 +60,7 @@ export interface ContexteDeCartes {
   readonly constats: readonly Constat[];
 }
 
-type Genre = 'modele' | 'regles' | 'nom' | 'tailles' | 'texte' | 'jetons' | 'lier';
+type Genre = 'modele' | 'preparation' | 'regles' | 'nom' | 'tailles' | 'texte' | 'jetons' | 'lier';
 
 const segments = (nom: string): string[] => nom.split('/');
 
@@ -81,6 +81,7 @@ function segmentUnique(avant: string, apres: string): [number, string, string] |
 }
 
 function genreDe(constat: Constat, correction: Correction, contexte: ContexteDeCartes): { cle: string; genre: Genre; section: SectionDeCorrections } {
+  if (texte(constat.faits.preparation) !== null) return { cle: `preparation:${constat.faits.preparation}`, genre: 'preparation', section: 'liaisons' };
   if (texte(constat.faits.modele) !== null) return { cle: `modele:${constat.faits.modele}`, genre: 'modele', section: 'liaisons' };
   if (correction.sorte === 'regles') return { cle: `regles:${correction.id}`, genre: 'regles', section: 'regles' };
   if (correction.sorte === 'nom-de-valeur') return { cle: `nom:${correction.cible.champ ?? ''}:${correction.avant ?? ''}:${correction.apres.nom}`, genre: 'nom', section: 'noms' };
@@ -154,6 +155,9 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
     const questions = contexte.constats.filter((constat) => constat.question !== undefined && constat.faits.modele === modele).length;
     phrase = [T.copier, { variant: modele }];
     meta = [T.copieMeta(nomsDeVariants.length, lignes.length, questions)];
+  } else if (genre === 'preparation') {
+    phrase = [T.lierLesLayers(contexte.composant)];
+    meta = [T.layers([], identifiantsDeLayers.length), '. ', T.variablesEnAttente(Number(faitsPremiers.variablesNonPubliees ?? 0))];
   } else if (genre === 'nom') {
     phrase = [T.renommer, premiere.avant, T.en, premiere.apres];
     meta = [premiere.correction.cible.champ ?? ''];
@@ -172,7 +176,7 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
     ...(proprietes.length > 0 ? [{ etiquette: T.propriete, valeur: proprietes.join(', ') }] : []),
     ...(regles.length > 0 ? [{ etiquette: T.regle, valeur: regles.join(' ') }] : []),
   ];
-  return { cle, section, jetons, phrase, meta, lignes, layers: genre === 'regles' ? [] : uniques(constats.flatMap((constat) => constat.layers)), constats, faits, modele: genre === 'modele' };
+  return { cle, section, jetons, phrase, meta, lignes, layers: genre === 'regles' ? [] : uniques(constats.flatMap((constat) => constat.layers)), constats, faits, modele: genre === 'modele' || genre === 'preparation' };
 }
 
 /** Les cartes des corrections des constats, par intertitre puis dans l'ordre des constats. */

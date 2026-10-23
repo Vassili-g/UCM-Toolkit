@@ -21,6 +21,7 @@ const analyse = {
   constats: [{ id: 'preparation:tag-sans-token', code: 'C16', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits: {} }],
   lecture: { layersLus: 16, layersNonLus: 0, variantsNonLus: [], manquees: [] }, variants,
 };
+const identiteLiaisons = { ...identite, generation: 2 };
 const entree = [preferences(), etroite, choisir(tagDuJeu), composant(tagDuJeu), apercu(tagDuJeu), { message: analyse }, { clic: '.bouton-panneau' }, { clic: '[data-focus="directes"]' }, { clic: '#onglet-a-faire' }];
 
 const questions = [
@@ -47,6 +48,11 @@ const variables = [
   ['components/tag/size/corner-radius', 'layout/radius/2'],
   ['components/tag/color/info/soft/background', 'theme/info/soft/surface/default'],
 ];
+const analyseLiaisons = { ...analyse, analyse: identiteLiaisons, constats: variables.slice(0, 14).map(([nom], rang) => ({
+  id: `preparation:tag:${rang}`, code: 'C16', type: 'corriger', famille: 'liaisons', variants: [], layers: [`tag:layer:${rang}`],
+  faits: { preparation: 'tag', variablesNonPubliees: 2 },
+  correction: { id: `prep:${rang}`, sorte: 'liaison', cible: { layer: `tag:layer:${rang}`, champ: 'fills', indice: 0 }, avant: null, apres: { cle: `key:${rang}`, nom }, aRelire: { axes: {}, regle: 'Préparation de Tag', avant: null } },
+})) };
 const plan = {
   variables: variables.map(([nom, cible], rang) => ({
     nom, type: rang < 12 || rang === 15 ? 'COLOR' : 'FLOAT', vise: cible ? { nom: cible } : null, statut: rang === 15 ? 'existe' : 'a-creer', attend: [], concerne: [],
@@ -67,10 +73,10 @@ const ETATS = [
   { id: 'g-entree', titre: 'Préparer les tokens', quand: 'Tag est sélectionné et analysé.', regarder: 'Le bouton Préparer les tokens apparaît dans le panneau des constats.', existe: true, atteinte: entree },
   { id: 'g-preparer', titre: 'Répondre à la préparation', quand: 'Les questions du plan sont ouvertes.', regarder: 'Les termes UCM et leur description sont présentés avec les tokens visés.', existe: true, atteinte: [...entree, ouvrir, { message: { type: 'plan-de-preparation', analyse: identite, plan, refus: null } }, { clic: 'input[name="intensite"][value="soft"]' }, { message: { type: 'plan-de-preparation', analyse: identite, plan, refus: null } }, { clic: 'input[name="style:soft"][value="surface"]' }, { message: { type: 'plan-de-preparation', analyse: identite, plan, refus: null } }] },
   { id: 'g-pret', titre: 'Préparation rangée', quand: 'La préparation de Tag est rangée sur le poste.', regarder: 'La préparation propose de copier en texte ou de l’abandonner.', existe: true, atteinte: [...entree, ouvrir, preparations] },
-  { id: 'g-lier', titre: 'Liaisons préparées', quand: 'La préparation est revenue au composant.', regarder: 'Les liaisons préparées sont annoncées dans le panneau.', existe: true, atteinte: [...entree, ouvrir, { message: { type: 'liaisons-preparees', analyse: identite, preparation: rangee.id, corrections: Array.from({ length: 14 }, (_, rang) => ({ id: `prep:${rang}`, sorte: 'liaison', cible: { layer: 'tag:0', champ: 'fills', indice: 0 }, avant: null, apres: { cle: `key:${rang}`, nom: variables[rang][0] }, aRelire: { axes: {}, regle: 'préparé', avant: null } })), enAttente: [], ecartees: 0, refus: null } }] },
+  { id: 'g-lier', titre: 'Liaisons préparées', quand: 'La préparation est revenue au composant.', regarder: 'Les liaisons préparées sont annoncées dans le panneau.', existe: true, atteinte: [...entree, { message: { ...analyseLiaisons } }, { message: { type: 'liaisons-preparees', analyse: identiteLiaisons, preparation: rangee.id, corrections: Array.from({ length: 14 }, (_, rang) => ({ id: `prep:${rang}`, sorte: 'liaison', cible: { layer: 'tag:0', champ: 'fills', indice: 0 }, avant: null, apres: { cle: `key:${rang}`, nom: variables[rang][0] }, aRelire: { axes: {}, regle: 'préparé', avant: null } })), enAttente: [], ecartees: 0, refus: null } }, { clic: '#onglet-corrections' }] },
   { id: 'g-sans-cibles', titre: 'Cibles absentes', quand: 'Les tokens visés ne sont pas disponibles dans le fichier.', regarder: 'Une information indique que la collection theme manque.', existe: true, atteinte: [...entree, ouvrir, { message: { type: 'plan-de-preparation', analyse: identite, plan: null, refus: 'sans-cibles' } }], disposition: 'etroite' },
   { id: 'g-autre', titre: 'Autre composant', quand: 'Une préparation rangée vient d’un autre composant.', regarder: 'Les liaisons restent indisponibles pour ce composant.', existe: true, atteinte: [...entree, ouvrir, { message: { type: 'liaisons-preparees', analyse: identite, preparation: rangee.id, corrections: [], enAttente: [], ecartees: 0, refus: 'autre-composant' } }], disposition: 'etroite' },
-  { id: 'g-coller', titre: 'Préparation reçue', quand: 'Un autre designer a envoyé le texte de sa préparation.', regarder: 'Le texte peut être collé puis lu.', existe: true, atteinte: [...entree, ouvrir, preparations, { clic: '.prep-coller' }], disposition: 'etroite' },
+  { id: 'g-coller', titre: 'Préparation reçue', quand: 'Un autre designer a envoyé le texte de sa préparation.', regarder: 'Le texte peut être collé puis lu.', existe: true, atteinte: [...entree, ouvrir, { message: { type: 'preparations', preparations: [] } }, { clic: '.prep-coller' }, { message: { type: 'preparations', preparations: [] } }], disposition: 'etroite' },
   { id: 'g-preparation-copiee', titre: 'Texte copié', quand: 'Le designer copie une préparation rangée.', regarder: 'La préparation est transmise en texte.', existe: true, atteinte: [...entree, ouvrir, preparations, copier, { message: { type: 'preparation-texte', preparation: rangee.id, texte: '{"format":"ucm-preparation"}' } }] },
   { id: 'g-texte-refuse', titre: 'Texte refusé', quand: 'Le texte reçu ne décrit pas une préparation UCM.', regarder: 'Le motif de refus est présenté dans la zone de collage.', existe: true, atteinte: [...entree, ouvrir, preparations, coller, { message: { type: 'texte-refuse', motif: 'format' } }], disposition: 'etroite' },
 ];

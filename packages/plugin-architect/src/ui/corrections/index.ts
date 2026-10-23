@@ -301,7 +301,8 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
     for (const section of SECTIONS) {
       const deLaSection = cartes.filter((carte) => carte.section === section);
       if (deLaSection.length === 0) continue;
-      liste.append(creerIntertitre(T.intertitres[section]), ...deLaSection.map((carte) => creerLaCarte(carte, cartes.indexOf(carte), casesDeLignes, casesDeCartes)));
+      if (!deLaSection.every((carte) => carte.cle.startsWith('preparation:'))) liste.append(creerIntertitre(T.intertitres[section]));
+      liste.append(...deLaSection.map((carte) => creerLaCarte(carte, cartes.indexOf(carte), casesDeLignes, casesDeCartes)));
     }
     liste.append(pied(false));
     const pile = document.createElement('div');

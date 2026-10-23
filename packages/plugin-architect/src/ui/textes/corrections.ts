@@ -44,6 +44,8 @@ export const TEXTES_CORRECTIONS = {
     lierLeTexteDe: 'Lier le texte de ',
     auxTokensSansFond: ' aux tokens sans fond',
     lierLaTaille: (famille: string, composant: string): string => `Lier le ${famille} ${de(composant)} à ses tokens de taille`,
+    lierLesLayers: (composant: string): string => `Lier les layers de ${composant} à leurs tokens`,
+    variablesEnAttente: (nombre: number): string => `${nombre} variables pas encore publiées.`,
     lier: (layer: string): string => `Lier ${layer} à `,
     creerLesRegles: (composant: string): string => `Créer l’instance de règles ${de(composant)}`,
     renommer: 'Renommer la valeur ',

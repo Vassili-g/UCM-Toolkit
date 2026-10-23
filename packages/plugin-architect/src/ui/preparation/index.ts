@@ -40,10 +40,12 @@ export function monterPreparation(etat: Etat): Preparation {
   const corps = document.createElement('div'); corps.className = 'prep-corps feuille-contenu'; cadreCorps.append(corps);
   const pied = document.createElement('footer'); pied.className = 'prep-pied feuille-pied';
   const statut = document.createElement('span');
+  const coller = createButton({ label: T.preparationColler, variant: 'secondary', compact: true, onClick: () => { rangee = null; modeColle = true; rendre(); } });
+  coller.classList.add('prep-coller');
   const preparer = document.createElement('button');
   preparer.type = 'button'; preparer.className = 'btn btn-primary'; preparer.textContent = T.preparationAction;
   preparer.disabled = true;
-  pied.append(statut, preparer);
+  pied.append(statut, coller, preparer);
   feuille.append(entete, cadreCorps, pied); voile.append(feuille);
 
   const panneau = document.createElement('div');
@@ -90,7 +92,7 @@ export function monterPreparation(etat: Etat): Preparation {
   };
 
   function rendre(): void {
-    panneau.classList.remove('prep-rangee', 'prep-sans-cibles', 'prep-autre', 'prep-liaisons');
+    panneau.classList.remove('prep-rangee', 'prep-sans-cibles', 'prep-autre', 'prep-liaisons', 'prep-mode-colle');
     const nom = etat.composant.lecture?.sujet.nom ?? rangee?.source.jeu.nom ?? '';
     titre.textContent = T.preparationTitre(nom);
     corps.replaceChildren();
@@ -98,6 +100,7 @@ export function monterPreparation(etat: Etat): Preparation {
     statut.textContent = plan ? T.preparationQuestionsRestantes(nombreDeQuestions) : '';
     preparer.disabled = enCours || !plan || plan.variables.length === 0 || plan.questions.length > 0;
     preparer.hidden = rangee !== null || refus !== null;
+    coller.hidden = plan !== null || refus !== null || rangee !== null || modeColle;
     if (refus) {
       const message = document.createElement('p'); message.textContent = T.preparationRefus[refus as keyof typeof T.preparationRefus] ?? T.preparationRefus.inconnu; corps.append(message);
     }
@@ -168,6 +171,20 @@ export function monterPreparation(etat: Etat): Preparation {
         corps.append(section);
       }
     }
+    if (modeColle) {
+      voile.hidden = true;
+      panneau.classList.add('prep-mode-colle');
+      panneau.hidden = false; panneau.replaceChildren();
+      const section = creerSection(T.preparationZoneTexte, T.preparationDescriptionColler);
+      const zone = document.createElement('textarea'); zone.setAttribute('aria-label', T.preparationZoneTexte);
+      zone.textContent = T.preparationExempleTexte;
+      const lire = createButton({ label: T.preparationLire, variant: 'secondary', compact: true, onClick: () => versSandbox({ type: 'lire-texte', texte: zone.value }) });
+      lire.classList.add('prep-lire');
+      section.append(zone, lire);
+      if (refus) section.append(creerAlerte('info', { texte: T.preparationRefus[refus as keyof typeof T.preparationRefus] ?? T.preparationRefus.inconnu }));
+      panneau.append(section);
+      return;
+    }
     if (rangee) {
       const total = rangee.variables.length;
       const nomRangee = rangee.source.jeu.nom;
@@ -182,16 +199,6 @@ export function monterPreparation(etat: Etat): Preparation {
       return;
     }
     voile.hidden = modeColle || !voile.dataset.ouverte;
-    if (modeColle) {
-      panneau.hidden = false; panneau.replaceChildren();
-      const section = creerSection(T.preparationZoneTexte, T.preparationDescriptionColler);
-      const zone = document.createElement('textarea'); zone.setAttribute('aria-label', T.preparationZoneTexte);
-      zone.placeholder = T.preparationExempleTexte;
-      section.append(zone, bouton(T.preparationLire, () => versSandbox({ type: 'lire-texte', texte: zone.value }), 'prep-lire'));
-      if (refus) section.append(creerAlerte('info', { texte: T.preparationRefus[refus as keyof typeof T.preparationRefus] ?? T.preparationRefus.inconnu }));
-      panneau.append(section);
-      return;
-    }
     panneau.hidden = true;
   }
 
@@ -200,7 +207,7 @@ export function monterPreparation(etat: Etat): Preparation {
     element: voile,
     panneau,
     ouvrir() {
-      panneau.classList.remove('prep-rangee', 'prep-sans-cibles', 'prep-autre', 'prep-liaisons');
+      panneau.classList.remove('prep-rangee', 'prep-sans-cibles', 'prep-autre', 'prep-liaisons', 'prep-mode-colle');
       const boiteDuPanneau = document.querySelector('.arch-laterale')?.getBoundingClientRect();
       feuille.style.left = `${Math.max(12, (boiteDuPanneau?.left ?? 0) + 12)}px`;
       voile.dataset.ouverte = 'oui'; voile.hidden = false; panneau.hidden = true;

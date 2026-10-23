@@ -65,39 +65,77 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
   });
 
   const constats = monterLePanneau(app, vue);
+  const cacherSiNecessaire = (cible: HTMLElement, cacher: boolean): void => {
+    if (cible.hidden !== cacher) cible.hidden = cacher;
+  };
+  const classeSiNecessaire = (cible: Element, classe: string, ajouter: boolean): void => {
+    if (cible.classList.contains(classe) !== ajouter) cible.classList.toggle(classe, ajouter);
+  };
+  let ongletsMasques = false;
   const ajusterResultatPreparation = (): void => {
     const resultatPreparation = preparation.element.hidden && preparation.panneau.classList.contains('prep-rangee');
+    const resultatColler = preparation.panneau.classList.contains('prep-mode-colle');
     const resultatSansCibles = preparation.panneau.classList.contains('prep-sans-cibles');
-    const resultatAutreComposant = preparation.panneau.classList.contains('prep-autre') || preparation.panneau.classList.contains('prep-liaisons');
+    const resultatAutreComposant = preparation.panneau.classList.contains('prep-autre');
+    const resultatLiaisons = preparation.panneau.classList.contains('prep-liaisons');
     if (!resultatPreparation) {
-      if (resultatSansCibles) {
-        constats.element.hidden = true;
-        ouvrirPreparation.hidden = true;
+      const onglets = constats.element.querySelector<HTMLElement>('.onglets');
+      const panneaux = ['#panneau-corrections', '#panneau-questions', '#panneau-a-faire']
+        .map((selecteur) => constats.element.querySelector<HTMLElement>(selecteur));
+      if (resultatAutreComposant) {
+        if (onglets) cacherSiNecessaire(onglets, true);
+        for (const element of panneaux) if (element) cacherSiNecessaire(element, true);
+        ongletsMasques = true;
+      } else if (ongletsMasques) {
+        ongletsMasques = false;
+        if (onglets) cacherSiNecessaire(onglets, false);
+        for (const element of panneaux) if (element) cacherSiNecessaire(element, false);
+        constats.mettreAJour();
+      }
+      if (resultatColler) {
+        cacherSiNecessaire(constats.element, true);
+        cacherSiNecessaire(ouvrirPreparation, true);
+        if (constats.element.classList.contains('prep-resultat')) constats.element.classList.remove('prep-resultat');
+        classeSiNecessaire(constats.element, 'prep-autre', false);
+        if (preparation.panneau.style.top !== '12px') preparation.panneau.style.top = '12px';
+      } else if (resultatSansCibles) {
+        cacherSiNecessaire(constats.element, true);
+        cacherSiNecessaire(ouvrirPreparation, true);
         if (preparation.panneau.style.top !== '16px') preparation.panneau.style.top = '16px';
         if (constats.element.classList.contains('prep-resultat')) constats.element.classList.remove('prep-resultat');
         if (constats.element.classList.contains('prep-autre')) constats.element.classList.remove('prep-autre');
         if (preparation.panneau.classList.contains('prep-resultat')) preparation.panneau.classList.remove('prep-resultat');
       } else if (resultatAutreComposant) {
-        constats.element.hidden = false;
-        constats.element.classList.add('prep-autre');
+        cacherSiNecessaire(constats.element, false);
+        classeSiNecessaire(constats.element, 'prep-autre', true);
         if (preparation.panneau.style.top !== '53px') preparation.panneau.style.top = '53px';
-        constats.element.querySelector('.onglets')?.remove();
-        for (const selecteur of ['#panneau-corrections', '#panneau-questions', '#panneau-a-faire']) constats.element.querySelector(selecteur)?.remove();
-        ouvrirPreparation.hidden = true;
-      } else if (preparation.element.hidden && (constats.element.classList.contains('prep-resultat') || constats.element.classList.contains('prep-autre') || constats.element.hidden || preparation.panneau.classList.contains('prep-resultat'))) {
-        constats.element.hidden = false;
-        constats.element.classList.remove('prep-resultat');
-        constats.element.classList.remove('prep-autre');
-        preparation.panneau.classList.remove('prep-resultat');
+        cacherSiNecessaire(ouvrirPreparation, true);
+      } else if (resultatLiaisons) {
+        cacherSiNecessaire(constats.element, false);
+        if (constats.element.classList.contains('prep-resultat')) constats.element.classList.remove('prep-resultat');
+        classeSiNecessaire(constats.element, 'prep-autre', false);
+        if (!constats.element.classList.contains('constats-preparation-liaisons')) constats.element.classList.add('constats-preparation-liaisons');
+        if (preparation.panneau.classList.contains('prep-resultat')) preparation.panneau.classList.remove('prep-resultat');
         if (preparation.panneau.style.top !== '52px') preparation.panneau.style.top = '52px';
-        constats.mettreAJour();
+        cacherSiNecessaire(ouvrirPreparation, true);
+      } else if (preparation.element.hidden && (constats.element.classList.contains('prep-resultat') || constats.element.classList.contains('prep-autre') || constats.element.classList.contains('constats-preparation-liaisons') || constats.element.hidden || preparation.panneau.classList.contains('prep-resultat'))) {
+        cacherSiNecessaire(constats.element, false);
+        if (constats.element.classList.contains('prep-resultat')) constats.element.classList.remove('prep-resultat');
+        classeSiNecessaire(constats.element, 'prep-autre', false);
+        if (constats.element.classList.contains('constats-preparation-liaisons')) constats.element.classList.remove('constats-preparation-liaisons');
+        if (preparation.panneau.classList.contains('prep-resultat')) preparation.panneau.classList.remove('prep-resultat');
+        if (preparation.panneau.style.top !== '52px') preparation.panneau.style.top = '52px';
       }
       return;
     }
-    constats.element.hidden = false;
-    if (constats.element.classList.contains('prep-autre')) constats.element.classList.remove('prep-autre');
-    constats.element.querySelector('.onglets')?.remove();
-    for (const selecteur of ['#panneau-corrections', '#panneau-questions', '#panneau-a-faire']) constats.element.querySelector(selecteur)?.remove();
+    cacherSiNecessaire(constats.element, false);
+    classeSiNecessaire(constats.element, 'prep-autre', false);
+    const onglets = constats.element.querySelector<HTMLElement>('.onglets');
+    const panneaux = ['#panneau-corrections', '#panneau-questions', '#panneau-a-faire']
+      .map((selecteur) => constats.element.querySelector<HTMLElement>(selecteur));
+    if (onglets) cacherSiNecessaire(onglets, true);
+    for (const element of panneaux) if (element) cacherSiNecessaire(element, true);
+    ongletsMasques = true;
     ouvrirPreparation.remove();
     preparation.panneau.querySelector('.prep-coller')?.remove();
     if (!constats.element.classList.contains('prep-resultat')) constats.element.classList.add('prep-resultat');
