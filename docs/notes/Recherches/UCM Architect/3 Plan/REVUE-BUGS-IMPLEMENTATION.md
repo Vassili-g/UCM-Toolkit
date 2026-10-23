@@ -39,3 +39,11 @@ suite du kit est en cours de relevé.
 Les cas nouveaux seront consignés ici avec règle, reproduction, cause,
 correction, tests avant et après, commit et état. Les pistes sans preuve restent
 distinctes des bugs confirmés.
+
+### R01 · Critique · Annulation d'une création après lecture de texte refusée
+
+- Règle : `packages/plugin-architect/invariants/explorateur.md` garde une variable créée qui a gagné un usage ; `src/ecriture/structure.ts` prévoit `usage-illisible` quand ce contrôle échoue.
+- Chemin observé : `unLayerLieA` intercepte l'exception de `getStyledTextSegments` et rend `false`. `defaireLaLigne` supprime alors la variable et retire sa ligne du journal, même si un segment pouvait la lier.
+- Effet : l'annulation peut retirer une variable encore utilisée dans le fichier, avec perte de son identité et de sa valeur. Criticité **critique** pour cette suppression irréversible par le plugin.
+- Correction retenue : faire remonter le refus de lecture à `defaireLaLigne`, qui conserve la variable et le journal sous `usage-illisible`. Le contrôle des autres nœuds et les usages effectivement trouvés restent inchangés. Aucun nouveau message ni type public ; le motif existe déjà. Risque à vérifier : un texte illisible sans liaison empêche aussi l'annulation jusqu'à ce que Figma le rende lisible.
+- Reproduction par test avant correction, tests après correction et commit : en cours.
