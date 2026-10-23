@@ -120,9 +120,34 @@ couleur, forme, espacement, taille, texte.
 - **Sans token.** Le pied compte les valeurs qu'aucune variable ne lie, et les
   liste au clic.
 
-## Intégrations facultatives
+## Préparer les tokens d'un composant
 
-L'onglet Intégrations est retiré. Le profil d'architecture UCM (`src/integrations/profilUcm.ts`) et la lecture de la recette d'UCM Palettes (`lireLaRecette`) restent dans le code, sans écran ; le contrôle du fichier déclaré UCM les reprend.
+Un composant sans tokens de `components` montre **Préparer les tokens** dans
+le panneau des constats. Les composants et les tokens vivent souvent dans
+deux fichiers ; la préparation passe de l'un à l'autre.
+
+1. Dans le fichier des composants, cliquez **Préparer les tokens**. Chaque
+   choix porte son terme UCM, puis sa description. **Préparer** reste inactif
+   tant qu'une question reste ouverte.
+2. La préparation se range sur ce poste. Pour un autre poste, copiez-la en
+   texte ; l'autre designer clique **Coller une préparation** dans la Configuration.
+3. Dans le fichier des tokens, une alerte annonce les variables à créer.
+   **Voir les N variables** ouvre la liste ; **Créer N variables** ne crée que les
+   variables qui manquent dans `components`.
+4. Publiez la library : Assets, Libraries, Publish.
+5. Dans le fichier des composants, cliquez **Actualiser** : Corrections
+   propose de lier les nouvelles variables.
+
+L'Historique de la Configuration annule la dernière création, tant que le
+plugin reste ouvert. Une variable créée qu'un alias ou un layer du fichier
+emploie déjà n'est pas supprimée. Le plugin ne voit pas les usages dans
+d'autres fichiers.
+
+## Modules sans écran
+
+Le profil d'architecture UCM (`src/integrations/profilUcm.ts`) et la lecture
+de la recette d'UCM Palettes (`lireLaRecette`) restent dans le code, avec
+leurs tests, sans écran.
 
 ## Limites
 

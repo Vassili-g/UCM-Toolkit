@@ -607,7 +607,7 @@ de galerie quand le lot B n'est pas fait.
   liaisons aux autres variants » de la section Variants envoie
   `servir-de-modele` (K11) et range les constats de `modele-propose` dans
   l'analyse (Q-74).
-- [~ Claude 1] (1/2 : 286f30ba…ae468d26 ; 2/2 en partie : 584826b7) **U8 · Préparation et Configuration.** (1/2 : préparation dans le mode Composant, sept cadres `g-*` ; 2/2 : création dans le fichier des tokens, Configuration, Historique) Vague 6 · U6 (1/2) commité dans `partage/main`. Codex, dans son clone, pendant qu'U6 (2/2) et U7 tournent dans l'arbre partagé ; arrêté par sa limite le 23 octobre pendant (2/2), repris par Claude depuis son diff non commité (Q-78).
+- [~ Claude 1] (1/2 : 286f30ba…ae468d26 ; 2/2 : 584826b7, 1f2c39d3 ; reste le bouton Préparer, Q-81) **U8 · Préparation et Configuration.** (1/2 : préparation dans le mode Composant, sept cadres `g-*` ; 2/2 : création dans le fichier des tokens, Configuration, Historique) Vague 6 · U6 (1/2) commité dans `partage/main`. Codex, dans son clone, pendant qu'U6 (2/2) et U7 tournent dans l'arbre partagé ; arrêté par sa limite le 23 octobre pendant (2/2), repris par Claude depuis son diff non commité (Q-78).
   Écrit : toute la piste U d'Architect : `src/ui/**`, `galerie/**` (dont `build-galerie.cjs`), `scripts/build-ui.cjs`, `tests/interface/**`, `tests/galerie.test.ts`, `tests/loiDuVocabulaire.test.ts`, et les documents du paquet (`CARTE.md`, `README.md`, `SPEC.md`, invariants). Les fichiers communs avec U6 et U7 reçoivent des ajouts courts, sans reformatage. Arrêt seulement pour un besoin dans `src/sandbox/`, `src/messages/`, `src/ecriture/`, le kit ou le socle.
   Textes hors maquette à écrire (skill `rediger-diagnostics-ucm`) : les codes de B8 (`MotifDeRefusDePreparation`, `MotifDeRefusDeLiaison`, `MotifDeRefusDeCreation`, `MotifDEchecDeCreation`, `MotifDeTexteRefuse`, `structure-annulee` : `journal`, `refus`, motifs des lignes sautées), Q-71 et Q-73.
   Domaines : `preparation`, `configuration`.
@@ -1472,6 +1472,38 @@ Choix faits sans le mainteneur :
   commits sur `origin/main` : les hashes de U8 (1/2) et des deux correctifs
   d'Architect (`cc678b6d`, `4ab2ac80`) sont ceux du rejeu. Q-1 (un seul push
   à J-F) ne tient donc plus ; la publication npm reste à O2 · réversible : non.
+- Q-79 · recette, K · C20 · relevé par le mainteneur dans Figma : un layer
+  lié à `TileLink/Size/width` (collection `components`) recevait « vise la
+  collection Components, que ce composant ne lie pas ». C20 appliquait à la
+  variable liée la règle des cibles de `components` ; il juge maintenant la
+  cible de ses alias. La carte nomme la cible et le geste ; le lieu ne
+  répète plus le variant quand le layer est sa racine. Kit 0.12.12
+  (`4d361777`). C20 et C61 sortent encore ensemble sur une couleur primitive,
+  et C61 n'a pas de phrase dans À faire dans Figma · réversible : oui.
+- Q-80 · U8 · Textes hors maquette : « Le fichier n’a pas gardé le journal :
+  l’Historique ne peut pas défaire cette création. », « existe déjà, ne vise
+  pas », « Garder », « Remplacer », « Collection components », « N variables
+  restent à régler. », « N existent déjà. », « Les corrections d’un
+  composant se défont par Ctrl+Z dans Figma. ». Deux textes de la maquette
+  changent : `aideArchitecture` (cf-reglages) et `phraseHistorique`
+  (« Annulez la dernière écriture de chaque sorte sur les variables. »).
+  L'alerte compte les variables non créées (16), la feuille les `a-creer`
+  et `echec` (15), comme la maquette · réversible : oui.
+- Q-81 · U8 · Bouton « Préparer les tokens » · U8 (1/2) le montrait sur un
+  C16 sans correction, factice dans la galerie, et réécrivait la carte en
+  cherchant son texte dans le DOM ; neuf cadres Composant échouaient. Le
+  sandbox ajoute `sansTokens` au message `analyse` (aucune variable
+  `components/<jeu>/…` au catalogue), règle de la maquette (« Composant sans
+  tokens ») · réversible : oui.
+- Q-82 · U8 · Historique · aucun message ne relit le journal de structure :
+  la section « Dernière création » ne vit que pendant la session, et les
+  « Derniers scopes » de cf-historique sont des écarts déclarés. Après
+  l'annulation d'une création, la préparation rangée reste `creee` et
+  l'alerte ne revient pas. Question au mainteneur : un message qui relit le
+  journal, et la remise des états à `a-creer` · réversible : oui.
+- Q-83 · U8 · Tests d'interface de la préparation et de la Configuration
+  écrits, lancés seulement par `test:ui` (recette du mainteneur)
+  · réversible : oui.
 
 ### Revue des lots réalisés
 
