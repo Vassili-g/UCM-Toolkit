@@ -182,7 +182,11 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       etat.filtreDeLaBarre = false;
       app.rendre(['barre']);
     },
-    ouvrirLaConfiguration: () => branchements().ouvrirLaConfiguration(),
+    ouvrirLaConfiguration() {
+      // La Configuration vit dans la barre latérale du mode Tokens : le mode Composant n'en a pas.
+      if (etat.disposition === 'etroite') app.changerDisposition('large');
+      branchements().ouvrirLaConfiguration();
+    },
     basculerRepli(cle) {
       if (etat.replies.has(cle)) etat.replies.delete(cle);
       else etat.replies.add(cle);
