@@ -57,3 +57,23 @@ distinctes des bugs confirmés.
   absence d'usage. Solution : laisser remonter l'exception au traitement de
   l'annulation, qui possède déjà le motif et garde la ligne.
 - Commit : `14d17ce7`. État : corrigé, test ciblé relancé 31/31.
+
+### Vérification de la repasse
+
+Le kit, relancé seul, passe 924/924. Les tests racine repassent 467/467.
+Architect passe 937/941 après le nouveau test : les quatre échecs restent ceux
+de la base locale. Son build s'arrête sur les mêmes sept erreurs de typage dans
+`ui/analyse` et `ui/corrections`. `agents:diff` ne relève aucun chemin supprimé
+ou renommé. Le README Architect a été relu : son annonce de lecture seule était
+déjà périmée par les écritures terminées et a été corrigée.
+
+### Piste sans bug confirmé
+
+Pour C29, `ecriture/liaisons.ts` relit l'absence de liaison mais pas la valeur
+numérique depuis l'analyse. Si un designer modifie cette valeur entre l'analyse
+et l'application, le token proposé peut ne plus correspondre. La note E du plan
+énumère explicitement les faits à relire sans y inclure cette valeur ; la règle
+attendue demande donc une décision avant de modifier le contrat de correction.
+
+La lecture réelle des segments, l'annulation d'une variable créée et le point
+d'annulation du lot restent à vérifier dans Figma au jalon J-F.

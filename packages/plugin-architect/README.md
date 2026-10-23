@@ -2,9 +2,9 @@
 
 UCM Architect est le plugin de [UCM Toolkit](../../README.md) qui
 explique les variables d'un fichier Figma : collections, groupes, alias,
-modes et tokens d'un composant. Il fonctionne sur toute architecture de tokens, avec
-ou sans UCM, et n'écrit jamais dans le document. Le nom est provisoire ; il ne
-s'écrit que dans `manifest.json`, `src/ui/textes.ts` et `src/ui/index.html`.
+modes et tokens d'un composant. Il fonctionne sur toute architecture de tokens,
+avec ou sans UCM. Dans un fichier déclaré UCM, ses corrections peuvent écrire
+des noms, des scopes, des alias et des liaisons dans le document.
 
 ## Ouvrir le plugin
 

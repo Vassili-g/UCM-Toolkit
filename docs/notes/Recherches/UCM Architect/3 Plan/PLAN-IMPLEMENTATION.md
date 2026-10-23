@@ -1379,11 +1379,17 @@ leurs reproductions et leurs commits. La revue corrige les points suivants :
 | K8, B4 | La relecture de C24/C29 porte toutes les valeurs du variant, même sur un axe inconnu ; C25 ne vise qu'une peinture `SOLID` (`afc044dd`, `c7b1709a`). |
 | K5, B2, B5 | L'analyse UCM exécute C59 et les contrôles de structure du composant ; C59 relit le nom de la variable et cible la bonne liaison (`41ea4116`, `c933ccff`). |
 | K6 | Deux layers homonymes du même rôle reçoivent des questions de nom distinctes (`1c2cacde`). |
-| K5, B6 | Le catalogue du test de structure renseigne son mode pour isoler le constat de scope (`47c9ee40`). |
+| K5, B6 | Le catalogue du test de structure renseigne son mode pour isoler le constat de scope (`47c9ee40`). L'annulation d'une variable créée conserve la variable et le journal si la lecture des segments d'un texte échoue (`14d17ce7`). |
 
 Vérification sur le clone de revue : build du kit et d'Architect ; kit 924/924,
 Architect 940/940 ; tests racine 466/467, seul `versionSuitLeContenu` reste
 rouge jusqu'au lot V. La validation dans Figma reste au jalon J-F.
+
+La nouvelle repasse de la [revue](./REVUE-BUGS-IMPLEMENTATION.md) confirme R01
+sur B6. Sur l'arbre partagé, le kit passe 924/924 et les tests racine 467/467.
+Architect passe 937/941 : quatre échecs et sept erreurs de build proviennent
+des travaux locaux U6 et B8 encore ouverts. La validation de l'annulation
+dans Figma reste à faire.
 
 ## 10. Hors du plan
 
