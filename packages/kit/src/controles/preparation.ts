@@ -208,9 +208,11 @@ export function preparerLesTokens(
   }
 
   // Noms d'élément : un nom par défaut de Figma, ou deux layers de même rôle dans un variant.
+  const cleDeLayer = (variant: VariantLu, layer: LayerLu): string => `${variant.id}\u0000${layer.id}`;
   const aNommer = new Set<string>();
+  const nomsDupliquesDansUnRole = new Set<string>();
   for (const trouvaille of trouvailles) {
-    if (NOM_PAR_DEFAUT.test(trouvaille.layer.nom)) aNommer.add(trouvaille.layer.nom);
+    if (NOM_PAR_DEFAUT.test(trouvaille.layer.nom)) aNommer.add(cleDeLayer(trouvaille.variant, trouvaille.layer));
   }
   for (const variant of releve.variants) {
     const parRole = new Map<Role, Map<string, string>>();
@@ -219,11 +221,24 @@ export function preparerLesTokens(
       unites.set(trouvaille.unite, trouvaille.layer.nom);
       parRole.set(trouvaille.role, unites);
     }
-    for (const unites of parRole.values()) if (unites.size > 1) for (const nom of unites.values()) aNommer.add(nom);
+    for (const unites of parRole.values()) if (unites.size > 1) for (const nom of unites.values()) nomsDupliquesDansUnRole.add(nom);
   }
-  const elementDe = (layer: LayerLu): { element?: string; attend?: string } => {
-    if (!aNommer.has(layer.nom)) return {};
-    const id = `nom:${layer.nom}`;
+  for (const trouvaille of trouvailles) {
+    if (nomsDupliquesDansUnRole.has(trouvaille.layer.nom)) aNommer.add(cleDeLayer(trouvaille.variant, trouvaille.layer));
+  }
+  const homonymes = new Map<string, Map<string, Set<string>>>();
+  for (const trouvaille of trouvailles) {
+    const parVariant = homonymes.get(trouvaille.layer.nom) ?? new Map<string, Set<string>>();
+    const layers = parVariant.get(trouvaille.variant.id) ?? new Set<string>();
+    layers.add(trouvaille.layer.id);
+    parVariant.set(trouvaille.variant.id, layers);
+    homonymes.set(trouvaille.layer.nom, parVariant);
+  }
+  const identiteAmbigue = new Set([...homonymes].flatMap(([nom, parVariant]) =>
+    [...parVariant.values()].some((layers) => layers.size > 1) ? [nom] : []));
+  const elementDe = (variant: VariantLu, layer: LayerLu): { element?: string; attend?: string } => {
+    if (!aNommer.has(cleDeLayer(variant, layer))) return {};
+    const id = identiteAmbigue.has(layer.nom) ? `nom:${layer.nom}:${variant.id}:${layer.id}` : `nom:${layer.nom}`;
     if (reponses[id]) return { element: segmentDe(reponses[id]) };
     const propre = NOM_PAR_DEFAUT.test(layer.nom) ? [] : [{ nom: segmentDe(layer.nom) }];
     ajouterQuestion(questions, { id, candidats: propre, indice: `Le layer ${layer.nom} : quel nom ?` });
@@ -257,7 +272,7 @@ export function preparerLesTokens(
     const etat = etatDe(variant);
     const palette = paletteDe(valeurDeVariant(variant, axes.palette));
     const styleValeur = valeurDeVariant(variant, axes.style);
-    const element = elementDe(layer);
+    const element = elementDe(variant, layer);
     const attendus = [...attend, ...(element.attend ? [element.attend] : []), ...(palette.attend ? [palette.attend] : [])];
     const nom = [
       'components', composant, 'color', ...(element.element ? [element.element] : []),
@@ -309,7 +324,7 @@ export function preparerLesTokens(
     else if (champ === 'cornerRadius') { propriete = 'radius'; famille = 'radius'; }
     else if (champ === 'strokeWeight') { propriete = 'border-width'; famille = 'stroke'; }
     else { propriete = 'icon-size'; famille = 'icon'; }
-    const element = elementDe(layer);
+    const element = elementDe(variant, layer);
     const taille = valeurDeVariant(variant, axes.taille);
     const nom = [
       'components', composant, 'size', ...(element.element ? [element.element] : []),

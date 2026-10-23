@@ -83,6 +83,44 @@ test('un layer Frame 12 rend une question de nom, puis le nom devient un segment
   assert.equal(repondu.variables[0].nom, 'components/alert/color/badge/danger/soft/background');
 });
 
+test('des layers homonymes du même rôle gardent une question par layer, y compris entre variants ambigus', () => {
+  const composant = alert({ palettes: ['danger', 'success'] });
+  const [danger, success] = composant.variants;
+  danger.layers.push(
+    layer('danger:badge-1', 'badge', 'FRAME', { peintures: fond() }),
+    layer('danger:badge-2', 'badge', 'FRAME', { peintures: fond() }),
+  );
+  success.layers.push(layer('success:badge', 'badge', 'FRAME', { peintures: fond() }));
+  const entreesTheme = [...theme('soft'), ...themeDuStatut('success', 'soft')];
+  const ouverts = preparerLesTokens(composant, catalogue(...entreesTheme, ...sizing(['2', 8])), reponses);
+  const questions = ouverts.questions.filter(({ id }) => id.startsWith('nom:badge:'));
+  assert.equal(questions.length, 3);
+  assert.equal(new Set(questions.map(({ id }) => id)).size, 3);
+  assert.deepEqual(questions.map(({ id }) => id).sort(), [
+    'nom:badge:danger:danger:badge-1', 'nom:badge:danger:danger:badge-2', 'nom:badge:success:success:badge',
+  ]);
+
+  const reponsesDistinctes = Object.fromEntries(questions.map(({ id }, rang) => [id, ['badge-one', 'badge-two', 'badge-three'][rang]]));
+  const repondu = preparerLesTokens(composant, catalogue(...entreesTheme, ...sizing(['2', 8])), { ...reponses, ...reponsesDistinctes });
+  for (const [layerId, nom] of [['danger:badge-1', 'badge-one'], ['danger:badge-2', 'badge-two'], ['success:badge', 'badge-three']]) {
+    const variable = repondu.variables.find(({ concerne }) => concerne.some((lieu) => lieu.layer === layerId));
+    assert.ok(variable?.nom.includes(`/${nom}/`), `${layerId} doit recevoir ${nom}`);
+  }
+});
+
+test('un seul layer homonyme par variant garde la question de nom partagée historique', () => {
+  const composant = alert({ palettes: ['danger', 'success'] });
+  composant.variants.forEach((variant) => { variant.layers[0].nom = 'Frame 12'; });
+  const resultat = preparerLesTokens(composant, catalogue(...theme('soft'), ...themeDuStatut('success', 'soft'), ...sizing(['2', 8])), reponses);
+  assert.deepEqual(resultat.questions.filter(({ id }) => id.startsWith('nom:')).map(({ id }) => id), ['nom:Frame 12']);
+  const repondu = preparerLesTokens(composant, catalogue(...theme('soft'), ...themeDuStatut('success', 'soft'), ...sizing(['2', 8])), { ...reponses, 'nom:Frame 12': 'badge' });
+  assert.deepEqual(repondu.variables.filter(({ nom, concerne }) => nom.includes('/color/') && concerne.some(({ layer }) => layer === 'danger:f' || layer === 'success:f'))
+    .map(({ nom }) => nom).sort(), [
+    'components/alert/color/badge/danger/soft/background',
+    'components/alert/color/badge/success/soft/background',
+  ]);
+});
+
 test('une taille se lie seulement si un seul token de sizing a la valeur', () => {
   const avec = (jetons: EntreeDeVariable[]) => preparerLesTokens(alert(), catalogue(...theme('soft'), ...jetons), reponses);
   assert.equal(avec(sizing(['2', 8])).variables[2].vise?.nom, 'layout/sizing/2');
