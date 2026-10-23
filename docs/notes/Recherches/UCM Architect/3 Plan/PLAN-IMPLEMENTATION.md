@@ -674,7 +674,9 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   `src/integrations/contrats.ts`, de leurs tests propres
   (`tests/{comparaison,annexes,contrats}.test.ts`) et des seuls cas qui les
   importent dans `tests/{copie,explorationEtendue,integrationsUcm}.test.ts` ;
-  leurs lignes de `CARTE.md`, des invariants et du `SPEC.md` du paquet.
+  dans les tests de loi (`tests/loiDEcriture.test.ts` et tout autre), le
+  seul nom d'un fichier retiré dans une liste de fichiers, sans changer la
+  règle ; leurs lignes de `CARTE.md`, des invariants et du `SPEC.md` du paquet.
   Fait quand : aucun fichier de `src/` ne les importe avant le retrait (sinon
   le module reste et le compte rendu le dit) ; `profilUcm.ts` et
   `lireLaRecette` restent ; `agents:diff` ne liste aucun chemin mort.
