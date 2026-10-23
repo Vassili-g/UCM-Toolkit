@@ -25,7 +25,11 @@ function controlerLesFondsDeTexte(releve: ReleveDeComposant, catalogue: Catalogu
         const constat: Constat = {
           id: `C59:${variant.id}:${layer.id}:${liaison.champ}:${liaison.indice ?? liaison.plage?.debut ?? ''}`,
           code: 'C59', type: 'corriger', famille: 'liaisons', variants: [variant.id], layers: [layer.id],
-          faits: { variable: variable.nom, champ: liaison.champ, calque: layer.nom },
+          faits: {
+            variable: variable.nom, champ: liaison.champ, calque: layer.nom,
+            ...(liaison.indice === undefined ? {} : { indice: liaison.indice }),
+            ...(liaison.plage ? { plageDebut: liaison.plage.debut, plageFin: liaison.plage.fin } : {}),
+          },
         };
         const cibleNom = remplacerSuffixe(variable.nom, 'surface/foreground', 'page/foreground');
         const candidats = catalogue.variables.filter((entree) => entree.nom === cibleNom && entree.collection === variable.collection && entree.etat === 'presente');
@@ -156,7 +160,7 @@ function correctionDeLiaison(constat: Constat, layer: LayerLu, liaison: LiaisonL
   return {
     id: constat.id, sorte: 'liaison',
     cible: { layer: layer.id, champ: liaison.champ, ...(liaison.indice === undefined ? {} : { indice: liaison.indice }), ...(liaison.plage ? { plage: liaison.plage } : {}), variable: avant.cle },
-    avant: avant.cle, apres: { cle: apres.cle, nom: apres.nom },
-    aRelire: { regle, avant: avant.cle },
+    avant: avant.nom, apres: { cle: apres.cle, nom: apres.nom },
+    aRelire: { regle, avant: avant.nom },
   };
 }

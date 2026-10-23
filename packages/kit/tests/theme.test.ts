@@ -34,7 +34,28 @@ test('C59 propose page/foreground si surface/foreground n’a aucun fond de surf
   ]);
   const resultat = controlerLeTheme(r, c).find(({ code }) => code === 'C59');
   assert.equal(resultat?.correction?.apres.cle, 'fg-page');
-  assert.equal(resultat?.correction?.avant, 'fg-surface');
+  assert.equal(resultat?.correction?.avant, 'success/surface/foreground');
+  assert.equal(resultat?.correction?.aRelire.avant, 'success/surface/foreground');
+  assert.deepEqual(resultat?.correction?.cible, { layer: 'text', champ: 'fills', indice: 0, variable: 'fg-surface' });
+  assert.deepEqual(resultat?.faits, { variable: 'success/surface/foreground', champ: 'fills', calque: 'message', indice: 0 });
+});
+
+test('C59 pose une question avec la localisation exacte de la peinture concernée', () => {
+  const cible = layer('text', null, 'message', { key: 'fg-surface', name: 'success/surface/foreground', collection: 'themes' });
+  cible.liaisons = [0, 1].map((rang) => ({
+    ...cible.liaisons[0], indice: undefined, plage: rang === 0 ? { debut: 0, fin: 5 } : { debut: 5, fin: 10 },
+  }));
+  const r = releve(cible);
+  const c = cat([collection('themes', 'theme')], [
+    { cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    { cle: 'fg-page-1', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    { cle: 'fg-page-2', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+  ]);
+  const resultat = controlerLeTheme(r, c).filter(({ code }) => code === 'C59');
+  assert.equal(resultat.length, 2);
+  assert.deepEqual(resultat.map(({ faits }) => [faits.champ, faits.plageDebut, faits.plageFin]), [['fills', 0, 5], ['fills', 5, 10]]);
+  assert.equal(resultat[1].correction, undefined);
+  assert.deepEqual(resultat[1].question?.candidats.map(({ cle }) => cle), ['fg-page-1', 'fg-page-2']);
 });
 
 test('C59 disparaît quand un ancestor peint un fond surface visible', () => {

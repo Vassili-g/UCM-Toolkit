@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
 
-import { controlerMapping, controlerNommage, type CatalogueDeReference, type Constat, type ReleveDeComposant } from '@ucm-kit/core/controles';
+import { controlerLeTheme, controlerMapping, controlerNommage, type CatalogueDeReference, type Constat, type ReleveDeComposant } from '@ucm-kit/core/controles';
 import { texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 import type { PluginMessage } from '../src/messages';
@@ -11,6 +11,8 @@ import type { Contexte } from '../src/sandbox/contexte';
 import { traiterAvec as appliquer } from '../src/sandbox/corrections';
 import { traiter } from '../src/sandbox/questions';
 import { ecrireLesNomsDeValeurs, type ApiDeNomsDeValeurs } from '../src/ecriture/noms-de-valeurs';
+import { ecrireLesLiaisons, type ApiDeLiaisons } from '../src/ecriture/liaisons';
+import { atelierDEcriture, type VariableDEcriture } from './figmaDeTest';
 
 const liaison = { champ: 'fills', indice: 0, porteur: 'L1', variable: { id: 'V:0', cle: 'k-hover-actuel', nom: 'button/color/default/background', collection: 'c', distante: false } };
 const releve = {
@@ -81,6 +83,50 @@ test('une réponse C12 issue du contrôle de nommage devient un renommage appliq
   };
   assert.deepEqual(await ecrireLesNomsDeValeurs(correction ? [correction] : [], api), { ecrites: [constats[0].id], sautees: [] });
   assert.equal(variantes[0].name, 'Variant=outline, Severity=info');
+});
+
+test('C59 se corrige par le nom relu et sa question cible la plage exacte', async () => {
+  const releveTheme = structuredClone(releve);
+  const calque = releveTheme.variants[0].layers[0];
+  calque.type = 'TEXT';
+  calque.nom = 'message';
+  const ancienne = { id: 'old-id', cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', distante: false };
+  calque.liaisons = [{ champ: 'fills', indice: 0, porteur: 'L1', variable: ancienne }];
+  calque.peintures = [{ champ: 'fills', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' }];
+  const catalogue = (cibles: { cle: string; nom: string }[]): CatalogueDeReference => ({
+    version: 1, library: null,
+    collections: [{ cle: 'themes', nom: 'theme', role: 'theme', modes: [], etat: 'lue' }],
+    variables: [
+      { cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+      ...cibles.map(({ cle, nom }) => ({ cle, nom, collection: 'themes', type: 'COLOR' as const, etat: 'presente' as const })),
+    ],
+  });
+  const constats = controlerLeTheme(releveTheme, catalogue([{ cle: 'fg-page', nom: 'success/page/foreground' }])).filter(({ code }) => code === 'C59');
+  assert.equal(constats.length, 1);
+  assert.equal(constats[0].correction?.avant, 'success/surface/foreground');
+  const anciennesVariables: VariableDEcriture[] = [{ id: 'old-id', key: 'fg-surface', name: 'success/surface/foreground' }];
+  const cible: VariableDEcriture = { id: 'new-id', key: 'fg-page', name: 'success/page/foreground' };
+  const atelier = atelierDEcriture({ lisibles: anciennesVariables, importables: [cible] });
+  const jeu = atelier.jeuDeVariants('jeu', ['State=default']);
+  const variant = (jeu.children as Array<Record<string, unknown>>)[0];
+  const peinture = { type: 'SOLID', boundVariables: { color: { type: 'VARIABLE_ALIAS', id: 'old-id' } } };
+  const calqueEcrivable = atelier.layer('L1', 'TEXT', { fills: [peinture] }, variant);
+  const resultatEcriture = await ecrireLesLiaisons(constats.map(({ correction }) => correction!).filter(Boolean), atelier.api as unknown as ApiDeLiaisons);
+  assert.deepEqual(resultatEcriture, { ecrites: [constats[0].id], sautees: [] });
+  assert.deepEqual((calqueEcrivable.fills as Array<{ boundVariables: unknown }>)[0].boundVariables, { color: { type: 'VARIABLE_ALIAS', id: 'new-id' } });
+
+  const plageTheme = structuredClone(releveTheme);
+  const ciblePlage = plageTheme.variants[0].layers[0];
+  ciblePlage.liaisons = [0, 1].map((rang) => ({ champ: 'fills', porteur: 'L1', plage: rang === 0 ? { debut: 0, fin: 5 } : { debut: 5, fin: 10 }, variable: ancienne }));
+  const questions = controlerLeTheme(plageTheme, catalogue([
+    { cle: 'fg-page-1', nom: 'success/page/foreground' }, { cle: 'fg-page-2', nom: 'success/page/foreground' },
+  ])).filter(({ code }) => code === 'C59');
+  const b = banc();
+  retenirLesCorrections(b.analyse, questions, plageTheme);
+  await traiter({ type: 'repondre', analyse: b.analyse, question: questions[1].id, reponse: 'fg-page-2' }, b.contexte);
+  const reponse = b.envoyes.at(-1) as Extract<PluginMessage, { type: 'question-repondue' }>;
+  assert.deepEqual(reponse.correction?.cible, { layer: 'L1', champ: 'fills', plage: { debut: 5, fin: 10 }, variable: 'fg-surface' });
+  assert.equal(reponse.correction?.avant, 'success/surface/foreground');
 });
 
 test('une réponse à chaque constat de mapping cible sa peinture quand deux peintures lient le même token', async () => {

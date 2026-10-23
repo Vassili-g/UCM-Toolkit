@@ -49,7 +49,7 @@ function correctionDeLaReponse(constat: Constat, reponse: string, releve: Releve
   if (!variant || !layer) return null;
   const apres = { ...(candidat.cle === undefined ? {} : { cle: candidat.cle }), nom: candidat.nom };
   const regle = 'Le designer a choisi ce token parmi les candidats du moteur.';
-  const token = chaine(constat.faits.token);
+  const token = chaine(constat.faits.token) ?? (constat.code === 'C59' ? chaine(constat.faits.variable) : undefined);
   if (token) {
     const champLiaison = chaine(constat.faits.champ);
     if (!champLiaison) return null;
