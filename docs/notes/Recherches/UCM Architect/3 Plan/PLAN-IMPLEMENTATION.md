@@ -334,7 +334,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   à la main de Button et d'Alert rendent la table T ; aucun constat pour
   `alert/size/gap` sans axe de taille, un token partagé entre deux états, un
   rôle absent.
-- [ ] **K8 · Corrections exactes et questions.** Vague 2 · K3.
+- [x] (80463431 ; fusion d743e2a4 ; avant = nom, 0ca22691) **K8 · Corrections exactes et questions.** Vague 2 · K3.
   Écrit : `kit/src/controles/corrections.ts`, ses tests, et ses lignes d'export dans `kit/src/controles/index.ts`.
   Maquette : `c-corrections`, `c-modele`, `c-questions`, `x-button-corr`.
   Fait quand : C22, C24, C25, C29 ; une correction seulement si chaque nom
@@ -371,7 +371,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
 - [x] (b449d9a4) **K7 · Typographie et icônes.** Vague 4 · K0.
   Écrit : `kit/src/controles/typographie.ts`.
   Fait quand : C64 à C67, un test positif et un négatif par contrôle.
-- [~ Claude 2] **K6 · Préparation des tokens.** Vague 5 · K1, note P.
+- [x] (4eea6b4e, 79529298) **K6 · Préparation des tokens.** Vague 5 · K1, note P.
   Écrit : `kit/src/controles/preparation.ts`, ses tests, et ses lignes d'export dans `kit/src/controles/index.ts`.
   Maquette : `g-preparer`, `g-creer`.
   Fait quand : du relevé, du catalogue et des réponses, la liste des variables,
@@ -390,7 +390,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `monorepoCoherent` et `pinDocumente` compris ; le corpus
   `docs/references/design-systems/ucm/` régénéré par
   `node docs/references/design-systems/_outils/ucm.mjs` (il date la version du kit).
-  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`).
+  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`) ; V7 (0.12.6, après K6 et K8, `683d8e28`).
 
 ### Piste S · socle
 
@@ -518,7 +518,7 @@ de galerie quand le lot B n'est pas fait.
   ciblée ouverte, puce du filtre de l'arbre, onglets, pied ; Appliquer n'écrit
   que les noms affichés (M-11) ; les textes repris de l'explorateur disent
   « scope » ; comparateur sans écart.
-- [~ Claude 1] **U2 · Recherche, fiche d'une variable.** Vague 3 · U1.
+- [x] (a35cc6b9) **U2 · Recherche, fiche d'une variable.** Vague 3 · U1.
   Domaines : `recherche`, `fiche`.
   Maquette : `t-questions`, `t-terme`, `t-fiche` ; `LIGNES_BACKGROND`,
   `LIGNES_BACKGROUND`, `FICHE_VARIABLE`, `ETAPE`.
@@ -526,7 +526,7 @@ de galerie quand le lot B n'est pas fait.
   liens écrivent dans le champ ; fiche : chaîne d'alias, « Renommage à
   appliquer », « Utilisée par » ; ligne choisie d'un fond uniforme ;
   comparateur sans écart.
-- [ ] **U3 · À faire dans Figma, modes et scopes.** Vague 3 · U1.
+- [~ Claude 1] **U3 · À faire dans Figma, modes et scopes.** Vague 3 · U1.
   Domaines : `structure`.
   Maquette : `t-structure`, `t-portees` ; `AFAIRE_TOKENS`, `LIGNE_SCOPE`.
   Fait quand : constats typés, chemins dans une phrase ; cartes de modes et de
@@ -630,7 +630,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   doubles ; avant chaque écriture, les faits de la correction sont relus ; un
   objet changé ou un fait faux est sauté et compté ; un fichier qui ne déclare
   plus UCM ne reçoit rien ; un lot = un point d'annulation.
-- [ ] **B5 · Corrections, questions, Ignorer.** Vague 5 · B4, K8.
+- [~ Claude 2] **B5 · Corrections, questions, Ignorer.** Vague 5 · B4, K8.
   Domaines : `corrections`, `questions`, `ignores`. Écrit en plus : `src/ecriture/noms-de-valeurs.ts`, `src/ecriture/ignores.ts`, leurs tests.
   Fait quand : corrections de K8 dans le lot Appliquer ; renommer une valeur
   de variante (C12), une valeur déjà présente → question ; Ignorer et « Ne plus
@@ -1260,6 +1260,28 @@ Choix faits sans le mainteneur :
 - Q-51 · K6 · Reprise · K6 ne dépend que de K1 et de la note P ; Claude 2 le
   prend dans l'arbre partagé pendant que Codex fait K8 puis K5 ; son commit
   porte son lot V · réversible : oui.
+- Q-52 · K8 · Forme de `avant` · Codex y mettait la clé de la variable liée ;
+  l'orchestrateur la remplace par son nom, que B4 relit (`0ca22691`) ; un
+  renommage entre l'analyse et l'écriture saute donc `fait-faux`
+  · réversible : oui.
+- Q-53 · K6 · Choix de la préparation · crans lus dans le sens `normal` ; un
+  seul alias pour tous les modes de `components` ; `Size` absent des noms de
+  couleur, état absent des noms de taille ; rôle : contour → border, texte →
+  foreground, vecteur dans une instance → icon, sinon background ; l'état ne
+  joue que pour le fond ; `focus` et `selected` sans variable de thème → question ;
+  padding gauche et droit égaux → `padding-x` ; valeur 0 et rayons par coin
+  ignorés. Les libellés des questions restent à B8 et U8 · réversible : oui.
+- Q-54 · U2 · Copies de l'inspecteur · Nom Figma, Valeur, Hexadécimal, le
+  contraste d'une paire et les sections d'intégrations disparaissent avec
+  l'inspecteur ; la fiche de la maquette n'a pas de bouton de copie.
+  `app.copier` reste sans appelant ; O1 le retire si rien ne le reprend.
+  Question au mainteneur · réversible : oui.
+- Q-55 · U2 · Recherche et fiche · « Utilisée par » liste 10 variables puis
+  « Et N autres. » (hors maquette) ; note du tableau pour `vise:` : « N
+  variables visent X » (hors maquette) ; texte de la faute de Questions :
+  « Une lettre d'écart. background est employé dans 40 variables. » ; les
+  feuilles couvrent la barre latérale seule ; `fiche.css` répète des règles
+  de `nomenclature.css` (fusion en O1) · réversible : oui.
 
 ## 10. Hors du plan
 
