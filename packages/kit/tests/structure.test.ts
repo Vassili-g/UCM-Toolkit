@@ -1,0 +1,68 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { controlerLaStructure, type CatalogueDeReference, type ReleveDeComposant } from '../src/controles/index.js';
+
+const modes = [{ id: 'light', nom: 'Light' }, { id: 'dark', nom: 'Dark' }];
+const collection = (cle: string, role: 'theme' | 'components' | 'layout' | 'brands') => ({ cle, nom: cle, role, modes, etat: 'lue' as const });
+function cat(collections: CatalogueDeReference['collections'], variables: CatalogueDeReference['variables']): CatalogueDeReference {
+  return { version: 1, library: null, collections, variables };
+}
+function releve(nom = 'Button'): ReleveDeComposant {
+  return { version: 1, jeu: { cle: nom, id: nom, nom }, proprietes: [
+    { nom: 'Palette', type: 'VARIANT', valeurs: ['primary', 'secondary', 'tertiary'], defaut: 'primary' },
+    { nom: 'Style', type: 'VARIANT', valeurs: ['contained'], defaut: 'contained' },
+    { nom: 'State', type: 'VARIANT', valeurs: ['default'], defaut: 'default' },
+  ], variants: [], lecture: { layersLus: 0, layersNonLus: 0, variantsNonLus: [], manquees: [] }, espaceDeCouleur: 'srgb' };
+}
+const variable = (cle: string, nom: string, collection: string, valeurs?: CatalogueDeReference['variables'][number]['valeurs']) => ({ cle, nom, collection, type: 'COLOR' as const, etat: 'presente' as const, valeurs });
+
+test('C63 compare les scopes au chemin complet du thème', () => {
+  const c = cat([collection('theme', 'theme')], [
+    { ...variable('default', 'success/surface/default', 'theme'), scopes: ['TEXT_FILL'] },
+    { ...variable('foreground', 'success/surface/foreground', 'theme'), scopes: ['FRAME_FILL', 'SHAPE_FILL'] },
+  ]);
+  const resultats = controlerLaStructure(releve(), c).filter((constat) => constat.code === 'C63');
+  assert.equal(resultats.length, 2);
+  assert.equal(resultats.find(({ id }) => id.startsWith('C63:default'))?.correction?.apres.nom, 'FRAME_FILL,SHAPE_FILL');
+  assert.equal(resultats.find(({ id }) => id.startsWith('C63:foreground'))?.correction?.apres.nom, 'SHAPE_FILL,TEXT_FILL');
+});
+
+test('C63 questionne une valeur vide si deux palettes sœurs sont renseignées', () => {
+  const c = cat([collection('components', 'components')], [
+    variable('p', 'Button/color/primary/contained/default/ring', 'components', { dark: { valeur: null } }),
+    variable('s', 'Button/color/secondary/contained/default/ring', 'components', { dark: { valeur: '#111' } }),
+    variable('t', 'Button/color/tertiary/contained/default/ring', 'components', { dark: { valeur: '#222' } }),
+  ]);
+  const resultat = controlerLaStructure(releve(), c).find(({ faits }) => faits.variable === 'Button/color/primary/contained/default/ring');
+  assert.equal(resultat?.question?.candidats?.length, 2);
+  const incomplet = cat([collection('components', 'components')], [
+    variable('p', 'Button/color/primary/contained/default/ring', 'components', { dark: { valeur: null } }),
+    variable('s', 'Button/color/secondary/contained/default/ring', 'components', { dark: { valeur: '#111' } }),
+  ]);
+  assert.equal(controlerLaStructure(releve(), incomplet).some(({ faits }) => faits.variable === 'Button/color/primary/contained/default/ring'), false);
+});
+
+test('C63 signale seulement les doublons numériques de sizing', () => {
+  const c = cat([collection('layout', 'layout')], [
+    { ...variable('a', 'sizing/1,5', 'layout'), type: 'FLOAT', valeurs: { light: { valeur: 6 } } },
+    { ...variable('b', 'sizing/2', 'layout'), type: 'FLOAT', valeurs: { light: { valeur: 6 } } },
+  ]);
+  assert.equal(controlerLaStructure(releve(), c).some(({ question }) => question?.candidats?.length === 2), true);
+  c.variables[1].valeurs = { light: { valeur: 8 } };
+  assert.equal(controlerLaStructure(releve(), c).some(({ question }) => question?.candidats?.length === 2), false);
+});
+
+test('C63 redirige une primitive de composant vers le thème correspondant unique', () => {
+  const c = cat([collection('components', 'components'), collection('brands', 'brands'), collection('theme', 'theme')], [
+    variable('primary', 'Button/color/primary/contained/default/background', 'components', { dark: { alias: 'theme-primary' } }),
+    variable('secondary', 'Button/color/secondary/contained/default/background', 'components', { dark: { alias: 'brand-secondary' } }),
+    variable('theme-primary', 'primary/solid/default', 'theme'),
+    variable('theme-secondary', 'secondary/solid/default', 'theme'),
+    variable('brand-secondary', 'secondary/light/700', 'brands'),
+  ]);
+  const resultat = controlerLaStructure(releve(), c).find(({ id }) => id.startsWith('C63:secondary:'));
+  assert.equal(resultat?.correction?.avant, 'brand-secondary');
+  assert.equal(resultat?.correction?.apres.cle, 'theme-secondary');
+  const sansCible = cat(c.collections, c.variables.filter(({ cle }) => cle !== 'theme-secondary'));
+  assert.equal(controlerLaStructure(releve(), sansCible).find(({ id }) => id.startsWith('C63:secondary:'))?.correction, undefined);
+});
