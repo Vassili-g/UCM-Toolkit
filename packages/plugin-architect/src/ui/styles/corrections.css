@@ -34,3 +34,13 @@
 .constat-selection {
   color: var(--texte-second);
 }
+
+.liste .diff.preparation-liaison .chemin-apres {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.liste .diff.preparation-liaison .chemin-apres .meta {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}

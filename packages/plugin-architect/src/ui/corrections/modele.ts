@@ -98,9 +98,10 @@ function ligneDe(constat: Constat, correction: Correction, contexte: ContexteDeC
   if (correction.avant === null) {
     const variant = contexte.variants.find((candidat) => constat.variants.includes(candidat.id) || constat.variants.includes(candidat.nom));
     const valeurs = new Set(variant ? pairesDuNom(variant.nom).map(([, valeur]) => valeur.toLowerCase()) : []);
+    const ajout = texte(constat.faits.ajout);
     return {
       id: correction.id, constat, correction, avant: T.enDur(correction.cible.champ ?? ''), apres,
-      marquesAvant: [], marquesApres: apresSegments.flatMap((segment, rang) => (valeurs.has(segment.toLowerCase()) ? [rang] : [])),
+      marquesAvant: [], marquesApres: apresSegments.flatMap((segment, rang) => (ajout === segment || (ajout === null && valeurs.has(segment.toLowerCase())) ? [rang] : [])),
     };
   }
   const avant = sansPrefixe(correction.avant, contexte.composant);
@@ -112,7 +113,7 @@ function ligneDe(constat: Constat, correction: Correction, contexte: ContexteDeC
 const uniques = <Type>(valeurs: readonly Type[]): Type[] => [...new Set(valeurs)];
 
 function nomDuLayer(constat: Constat, layer: string, contexte: ContexteDeCartes): string | null {
-  return (constat.layers.length === 1 ? texte(constat.faits.calque) : null) ?? contexte.layers.get(layer) ?? null;
+  return (texte(constat.faits.preparation) !== null ? texte(constat.faits.calque) : constat.layers.length === 1 ? texte(constat.faits.calque) : null) ?? contexte.layers.get(layer) ?? null;
 }
 
 /** Les paires de property que tous les variants partagent : `Variant=outlined`. */
@@ -157,7 +158,7 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
     meta = [T.copieMeta(nomsDeVariants.length, lignes.length, questions)];
   } else if (genre === 'preparation') {
     phrase = [T.lierLesLayers(contexte.composant)];
-    meta = [T.layers([], identifiantsDeLayers.length), '. ', T.variablesEnAttente(Number(faitsPremiers.variablesNonPubliees ?? 0))];
+    meta = [T.layers([], uniques(constats.flatMap((constat) => constat.layers)).length), '. ', T.variablesEnAttente(Number(faitsPremiers.variablesNonPubliees ?? 0))];
   } else if (genre === 'nom') {
     phrase = [T.renommer, premiere.avant, T.en, premiere.apres];
     meta = [premiere.correction.cible.champ ?? ''];

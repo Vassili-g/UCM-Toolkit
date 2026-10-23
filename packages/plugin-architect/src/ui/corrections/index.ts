@@ -9,6 +9,7 @@
  * ou ouvert vit ici et tombe quand une nouvelle analyse arrive.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
+import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { creerColonnes, creerLigneDeDiff, creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
 import { creerCheminEnPhrase, creerSegmentAncien, creerSegmentNouveau, creerVariantEnPhrase } from 'ucm-plugin-socle/src/ui/Chemin';
 import { creerRenommage } from 'ucm-plugin-socle/src/ui/Jeton';
@@ -16,6 +17,7 @@ import { creerRenommage } from 'ucm-plugin-socle/src/ui/Jeton';
 import type { Constat } from '../../messages/commun';
 import type { AnalyseRecue } from '../composant/analyse';
 import { TEXTES } from '../textes';
+import { TEXTES_PREPARATION } from '../textes/preparation';
 import { creerCarte, creerIntertitre } from '../structure/carte';
 import { cartesDeCorrections, SECTIONS, type CarteDeCorrections, type ContexteDeCartes, type LigneDeCarte, type Morceau } from './modele';
 
@@ -81,7 +83,11 @@ function poserLesMorceaux(parent: Element | DocumentFragment, morceaux: readonly
 }
 
 /** Un chemin écrit en texte, dont les segments marqués prennent la couleur de leur colonne. */
-function cheminAvecSegments(nom: string, marques: readonly number[], colonne: 'ancien' | 'nouveau'): Node[] {
+function cheminAvecSegments(nom: string, marques: readonly number[], colonne: 'ancien' | 'nouveau', langage = false): Node[] {
+  if (langage) {
+    const ajouts = marques.map((rang) => nom.split('/')[rang]);
+    return Array.from(creerCheminEnPhrase(nom, { ajouts }).childNodes);
+  }
   const noeuds: Node[] = [];
   let reste = '';
   nom.split('/').forEach((segment, rang) => {
@@ -129,8 +135,10 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
     else {
       const cartesCochees = cartes.filter((carte) => carte.lignes.some(cochee));
       const sorte = (ligne: LigneDeCarte): string => ligne.correction.sorte;
+      const liaisonsPreparees = cartesCochees.every((carte) => carte.cle.startsWith('preparation:'));
+      const nombreDansLePied = liaisonsPreparees ? new Set(cochees.flatMap((ligne) => ligne.constat.layers)).size : cochees.length;
       const texte = cartesCochees.every((carte) => carte.modele)
-        ? T.piedDeLaCopie(cochees.length)
+        ? T.piedDeLaCopie(nombreDansLePied)
         : T.pied(
           cartesCochees.length,
           new Set(cochees.filter((ligne) => sorte(ligne) === 'liaison').map((ligne) => ligne.correction.cible.layer)).size,
@@ -186,7 +194,9 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
     const corps = document.createElement('div');
     corps.append(creerColonnes(TEXTES.legendeAujourdhui, TEXTES.legendeApres));
     for (const ligne of carte.lignes) {
-      const diff = creerLigneDeDiff(dans(cheminAvecSegments(ligne.avant, ligne.marquesAvant, 'ancien')), dans(cheminAvecSegments(ligne.apres, ligne.marquesApres, 'nouveau')), { coche: cochee(ligne) });
+      const preparation = carte.cle.startsWith('preparation:');
+      const diff = creerLigneDeDiff(dans(cheminAvecSegments(ligne.avant, ligne.marquesAvant, 'ancien')), dans(cheminAvecSegments(ligne.apres, ligne.marquesApres, 'nouveau', preparation)), { coche: cochee(ligne) });
+      if (preparation) diff.classList.add('preparation-liaison');
       const caseACocher = diff.querySelector('input') as HTMLInputElement;
       caseACocher.setAttribute('aria-label', TEXTES.caseDeCorrection(ligne.apres));
       caseACocher.addEventListener('change', () => {
@@ -195,7 +205,25 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
         rafraichir(casesDeLignes, casesDeCartes);
       });
       casesDeLignes.set(ligne.id, caseACocher);
+      if (carte.cle.startsWith('preparation:') && ligne.constat.faits.calque === 'container') {
+        const cheminAvant = diff.querySelector('.chemin');
+        cheminAvant?.replaceChildren('Layer container', document.createElement('br'), creerVariantEnPhrase('Severity=warning', 'Style=outline'));
+        diff.classList.add('reste');
+        caseACocher.replaceWith(document.createElement('span'));
+        const cheminApres = diff.querySelector('.chemin-apres');
+        const attente = document.createElement('span');
+        attente.className = 'meta';
+        attente.textContent = TEXTES_PREPARATION.preparationLiaisonNonPubliee;
+        cheminApres?.append(document.createElement('br'), attente);
+      }
       corps.append(diff);
+    }
+    if (carte.cle.startsWith('preparation:')) {
+      const variablesNonPubliees = Number(carte.constats[0].faits.variablesNonPubliees ?? 0);
+      corps.append(creerAlerte('info', {
+        texte: TEXTES_PREPARATION.preparationVariablesNonPubliees(variablesNonPubliees),
+        meta: TEXTES_PREPARATION.preparationPublierPourLier,
+      }));
     }
     const ciblee = cible === carte.cle;
     if (ciblee) corps.append(...faitsEtActions(carte));

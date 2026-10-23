@@ -67,6 +67,9 @@ export const TEXTES_PREPARATION = {
   preparationAutreFichier: 'Ouvrez le fichier des tokens, puis Architect. Elles y attendent d’être créées.',
   preparationLiaisonsPubliees: (nom: string, nombre: number) => `Les variables de ${nom} sont publiées. ${nombre} liaisons sont prêtes.`,
   preparationAnnulerCreation: 'Configuration › Historique annule la création.',
+  preparationLiaisonNonPubliee: 'Créée, pas encore publiée',
+  preparationVariablesNonPubliees: (nombre: number) => `${nombre} variables créées ne sont pas encore dans la library publiée.`,
+  preparationPublierPourLier: 'Publiez Intencial Tokens, puis cliquez Actualiser.',
   preparationLigneDesQuestions: 'Les questions portent sur les choix du composant.',
   preparationDescriptions: {
     soft: 'la rampe douce', vivid: 'la rampe vive', solid: 'le fond plein, celui du bouton',
