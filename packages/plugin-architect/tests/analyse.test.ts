@@ -253,3 +253,34 @@ test('le niveau rangé sert à l’analyse : AA laisse passer 4,8:1, AAA le sign
   assert.equal((await contraste(async () => 'AAA')).length, 1);
   assert.equal((await contraste(async () => { throw new Error('stockage'); })).length, 0);
 });
+
+test('l’analyse passe ses constats par proposerLesCorrections : une valeur en dur sans candidat devient une question', async () => {
+  const b = banc();
+  const base = lecteurs(complete());
+  const layer = { id: 'L1', nom: 'box', type: 'FRAME', parent: null, visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 1, hauteur: 1 }, peintures: [], liaisons: [], valeursEnDur: [{ champ: 'paddingLeft', valeur: 8 }] };
+  const releve = { ...releveDe('Alert'), variants: [{ id: 'v-Alert', nom: 'Alert', valeurs: {}, layers: [layer], modesEffectifs: {} }] } as unknown as ReleveDeComposant;
+  await traiterAvec({ ...base, releve: async () => ({ statut: 'lu', releve }) })({ type: 'analyser' }, b.contexte);
+  const [resultat] = deType(b, 'analyse');
+  const c29 = resultat.constats.find(({ code }) => code === 'C29');
+  assert.deepEqual(c29?.question?.candidats, []);
+  assert.equal(c29?.correction, undefined);
+});
+
+test('une clé d’Ignorer rangée garde le constat dans l’analyse et le nomme dans ignores ; la proposition retirée ne l’ignore pas', async () => {
+  const analyserAvec = async (cles: string[]) => {
+    reinitialiserLAnalyse();
+    const b = banc();
+    await traiterAvec({ ...lecteurs(complete([pointDeTest])), ignores: async () => cles })({ type: 'analyser' }, b.contexte);
+    return b;
+  };
+  const sans = await analyserAvec([]);
+  const id = deType(sans, 'analyse')[0].constats[0].id;
+  assert.deepEqual(deType(sans, 'ignores').map(({ constats }) => constats), [[]]);
+  const ignore = await analyserAvec([id]);
+  const [analyse] = deType(ignore, 'analyse');
+  assert.deepEqual(analyse.constats.map(({ id: idDuConstat }) => idDuConstat), [id]);
+  assert.deepEqual(deType(ignore, 'ignores'), [{ type: 'ignores', analyse: analyse.analyse, constats: [id] }]);
+  const propose = await analyserAvec([`proposition:${id}`]);
+  assert.equal(deType(propose, 'analyse')[0].constats.length, 1);
+  assert.deepEqual(deType(propose, 'ignores').map(({ constats }) => constats), [[]]);
+});

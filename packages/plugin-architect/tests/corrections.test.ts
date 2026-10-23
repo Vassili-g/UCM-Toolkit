@@ -73,15 +73,26 @@ test('les liaisons et les règles de l’analyse courante s’écrivent, puis pe
 test('une autre sorte est sautée non-pris-en-charge, un identifiant inconnu correction-inconnue', async () => {
   const b = banc();
   const e = ecritures();
-  const analyse = analyseAvec(b, correction('l1', 'liaison'), correction('n1', 'nom-de-valeur'), correction('s1', 'scope'), correction('a1', 'alias-de-mode'), correction('v1', 'variable'));
-  await traiterAvec(e.doubles)({ type: 'appliquer-corrections', analyse, ids: ['n1', 'l1', 's1', 'a1', 'v1', 'fantome'] }, b.contexte);
+  const analyse = analyseAvec(b, correction('l1', 'liaison'), correction('s1', 'scope'), correction('a1', 'alias-de-mode'), correction('v1', 'variable'));
+  await traiterAvec(e.doubles)({ type: 'appliquer-corrections', analyse, ids: ['l1', 's1', 'a1', 'v1', 'fantome'] }, b.contexte);
   assert.deepEqual(e.lots, [['l1']]);
   const [rendu] = deType(b.envoyes, 'corrections-appliquees');
   assert.equal(rendu.ecrites, 1);
   assert.deepEqual(rendu.sautees, [
-    { id: 'n1', motif: 'non-pris-en-charge' }, { id: 's1', motif: 'non-pris-en-charge' }, { id: 'a1', motif: 'non-pris-en-charge' },
+    { id: 's1', motif: 'non-pris-en-charge' }, { id: 'a1', motif: 'non-pris-en-charge' },
     { id: 'v1', motif: 'non-pris-en-charge' }, { id: 'fantome', motif: 'correction-inconnue' },
   ]);
+});
+
+test('une correction nom-de-valeur entre dans le lot et se compte dans le résumé', async () => {
+  const b = banc();
+  const e = ecritures();
+  const analyse = analyseAvec(b, correction('n1', 'nom-de-valeur'));
+  await traiterAvec(e.doubles)({ type: 'appliquer-corrections', analyse, ids: ['n1'] }, b.contexte);
+  assert.deepEqual(e.lots, [['n1']]);
+  const [rendu] = deType(b.envoyes, 'corrections-appliquees');
+  assert.equal(rendu.ecrites, 1);
+  assert.equal(rendu.resume, '1 valeur de variante renommée');
 });
 
 test('les sautées du lot sont rendues avec leur motif, comptées dans le résumé', async () => {

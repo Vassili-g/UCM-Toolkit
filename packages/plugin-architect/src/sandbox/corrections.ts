@@ -5,7 +5,7 @@
  * `appliquer-corrections` retrouve chaque identifiant dans l'analyse courante.
  * Une identité qui n'est plus la courante, ou une analyse périmée, n'écrit rien
  * et saute tout (`analyse-perimee`). Une correction de sorte `liaison` ou
- * `regles` s'écrit (`ecriture/liaisons.ts`) ; les autres sortes sont sautées
+ * `regles` ou `nom-de-valeur` s'écrit (`ecriture/liaisons.ts`, `ecriture/noms-de-valeurs.ts`) ; les autres sortes sont sautées
  * (`non-pris-en-charge`) jusqu'à leurs lots. Une seule opération court à la
  * fois, analyse comprise : une demande reçue pendant ce temps rend `occupe`. Le
  * lot écrit, `corrections-appliquees` part, puis l'analyse est périmée.
@@ -53,10 +53,11 @@ const pluriel = (nombre: number): string => (nombre > 1 ? 's' : '');
  * La ligne de réussite : ce qui est écrit, puis les corrections sautées et
  * pourquoi. `8 layers liés, 1 instance de règles créée` quand rien n'est sauté.
  */
-export function resumeDuLot(liaisons: number, regles: number, sautees: readonly { motif: string }[]): string {
+export function resumeDuLot(liaisons: number, regles: number, sautees: readonly { motif: string }[], noms = 0): string {
   const ecrit = [
     liaisons > 0 ? `${liaisons} layer${pluriel(liaisons)} lié${pluriel(liaisons)}` : '',
     regles > 0 ? `${regles} instance${pluriel(regles)} de règles créée${pluriel(regles)}` : '',
+    noms > 0 ? `${noms} valeur${pluriel(noms)} de variante renommée${pluriel(noms)}` : '',
   ].filter((morceau) => morceau !== '').join(', ');
   if (sautees.length === 0) return ecrit === '' ? 'Aucune correction écrite' : ecrit;
   const parMotif = new Map<string, number>();
@@ -85,7 +86,7 @@ async function appliquer(demande: Extract<DemandeDeCorrections, { type: 'appliqu
   }
   const ids = [...new Set(demande.ids)];
   const sautees: { id: string; motif: string }[] = [];
-  const compte = { liaison: 0, regles: 0 };
+  const compte = { liaison: 0, regles: 0, 'nom-de-valeur': 0 };
   let ecrit = false;
   try {
     const connues = correctionsDeLAnalyse(demande.analyse);
@@ -96,7 +97,7 @@ async function appliquer(demande: Extract<DemandeDeCorrections, { type: 'appliqu
       for (const id of ids) {
         const correction = connues.get(id);
         if (!correction) sautees.push({ id, motif: 'correction-inconnue' });
-        else if (correction.sorte === 'liaison' || correction.sorte === 'regles') aEcrire.push(correction);
+        else if (correction.sorte === 'liaison' || correction.sorte === 'regles' || correction.sorte === 'nom-de-valeur') aEcrire.push(correction);
         else sautees.push({ id, motif: 'non-pris-en-charge' });
       }
       if (aEcrire.length > 0) {
@@ -104,7 +105,7 @@ async function appliquer(demande: Extract<DemandeDeCorrections, { type: 'appliqu
           const lot = await ecritures.lot(aEcrire);
           for (const id of lot.ecrites) {
             const sorte = connues.get(id)?.sorte;
-            if (sorte === 'liaison' || sorte === 'regles') compte[sorte] += 1;
+            if (sorte === 'liaison' || sorte === 'regles' || sorte === 'nom-de-valeur') compte[sorte] += 1;
           }
           ecrit = lot.ecrites.length > 0;
           sautees.push(...lot.sautees);
@@ -118,9 +119,9 @@ async function appliquer(demande: Extract<DemandeDeCorrections, { type: 'appliqu
     contexte.envoyer({
       type: 'corrections-appliquees',
       analyse: demande.analyse,
-      ecrites: compte.liaison + compte.regles,
+      ecrites: compte.liaison + compte.regles + compte['nom-de-valeur'],
       sautees,
-      resume: resumeDuLot(compte.liaison, compte.regles, sautees),
+      resume: resumeDuLot(compte.liaison, compte.regles, sautees, compte['nom-de-valeur']),
     });
     if (ecrit) perimerApresUneEcriture(contexte);
   } finally {

@@ -8,7 +8,7 @@
  * et ceux du moteur, traduits. Rien n'est écrit dans le document, et un
  * résultat `partielle` ne produit jamais de contrat. Une seule opération court à
  * la fois, analyse ou écriture de corrections : une seconde demande reçoit
- * `occupe`. L'analyse retient les corrections de ses constats, par identifiant.
+ * `occupe`. Les constats passent par `proposerLesCorrections` du kit puis par les ignorés rangés dans le document ; l'analyse retient les corrections des constats visibles, par identifiant.
  *
  * Une analyse se périme de trois façons, et une seule fois : après une
  * écriture du plugin (`ecriture`), sur un changement de la page qui touche un
@@ -17,7 +17,7 @@
  * lui-même, au clic sur un constat, ne périme rien.
  */
 import {
-  controlerCouches, controlerLAccessibilite, controlerLaTypographie, controlerMapping, controlerNommage, controlerOublis,
+  controlerCouches, controlerLAccessibilite, controlerLaTypographie, controlerMapping, controlerNommage, controlerOublis, proposerLesCorrections,
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -31,6 +31,7 @@ import { constatsDuMoteur } from '../constatsDuMoteur';
 import { lireLesVariables } from '../lecture';
 import { sujetDe, type PortDuComposant } from '../lectureDuComposant';
 import { lireLaLibraryRangee } from '../ecriture/configuration';
+import { lireLesIgnores, separerLesIgnores } from '../ecriture/ignores';
 import type { NiveauDAccessibilite } from '../messages/configuration';
 import type { CauseDePeremption, DemandeDAnalyse, StatutDAnalyse } from '../messages/analyse';
 import type { IdentiteDAnalyse, OrigineDeSelection } from '../messages/commun';
@@ -50,6 +51,9 @@ interface AnalyseCourante {
   readonly noeuds: ReadonlySet<string>;
   /** Les corrections des constats rendus, par identifiant : l'écriture n'écrit que celles-là. */
   corrections: ReadonlyMap<string, Correction>;
+  /** Tous les constats de l'analyse, ignorés compris, par identifiant : Ignorer et les questions les retrouvent ici. */
+  constats: ReadonlyMap<string, Constat>;
+  releve: ReleveDeComposant | null;
   perimee: boolean;
 }
 
@@ -60,7 +64,7 @@ let courante: AnalyseCourante | null = null;
 export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte): IdentiteDAnalyse {
   generation += 1;
   const identite = { sujet, generation };
-  courante = { identite, noeuds: new Set(noeuds), corrections: new Map(), perimee: false };
+  courante = { identite, noeuds: new Set(noeuds), corrections: new Map(), constats: new Map(), releve: null, perimee: false };
   contexte.surveillerLeDocument();
   return identite;
 }
@@ -71,10 +75,46 @@ export function analyseCourante(): IdentiteDAnalyse | null {
 
 const memeIdentite = (a: IdentiteDAnalyse, b: IdentiteDAnalyse): boolean => a.sujet === b.sujet && a.generation === b.generation;
 
-/** Retient les corrections des constats que l'analyse `identite` vient de rendre ; une autre analyse courante les ignore. */
-export function retenirLesCorrections(identite: IdentiteDAnalyse, constats: readonly Constat[]): void {
+/**
+ * Retient les corrections des constats que l'analyse `identite` vient de rendre ;
+ * une autre analyse courante les ignore. `tous` ajoute les constats écartés
+ * (ignorés), `releve` sert à bâtir la correction qu'une réponse tire.
+ */
+export function retenirLesCorrections(identite: IdentiteDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null = null, tous: readonly Constat[] = constats): void {
   if (!courante || !memeIdentite(courante.identite, identite)) return;
   courante.corrections = new Map(constats.flatMap((constat) => (constat.correction ? [[constat.correction.id, constat.correction] as const] : [])));
+  courante.constats = new Map(tous.map((constat) => [constat.id, constat] as const));
+  courante.releve = releve;
+}
+
+/** Le constat de l'analyse `identite`, ignoré ou non ; `null` quand cette identité n'est plus la courante. */
+export function constatDeLAnalyse(identite: IdentiteDAnalyse, id: string): Constat | null {
+  if (!courante || !memeIdentite(courante.identite, identite)) return null;
+  return courante.constats.get(id) ?? null;
+}
+
+/** Le constat dont la question porte l'identifiant `question`. */
+export function constatDeLaQuestion(identite: IdentiteDAnalyse, question: string): Constat | null {
+  if (!courante || courante.perimee || !memeIdentite(courante.identite, identite)) return null;
+  return [...courante.constats.values()].find((constat) => constat.question?.id === question) ?? null;
+}
+
+export function releveDeLAnalyse(identite: IdentiteDAnalyse): ReleveDeComposant | null {
+  return courante && memeIdentite(courante.identite, identite) ? courante.releve : null;
+}
+
+/**
+ * Pose ou retire la correction `id` du lot de l'analyse `identite` : la réponse
+ * à une question en pose une, Annuler la réponse et Ignorer la retirent.
+ * `false` quand cette identité n'est plus la courante.
+ */
+export function fixerUneCorrection(identite: IdentiteDAnalyse, id: string, correction: Correction | null): boolean {
+  if (!courante || !memeIdentite(courante.identite, identite)) return false;
+  const suivantes = new Map(courante.corrections);
+  if (correction) suivantes.set(id, correction);
+  else suivantes.delete(id);
+  courante.corrections = suivantes;
+  return true;
 }
 
 /**
@@ -144,6 +184,8 @@ export interface Lecteurs {
   regles?(sujet: SujetAAnalyser, resultat: ResultatDAnalyse, contexte: Contexte): Promise<ReleveDesRegles>;
   /** Le niveau d'accessibilité rangé ; AA sans lecteur. */
   niveau?(contexte: Contexte): Promise<NiveauDAccessibilite>;
+  /** Les clés d'Ignorer rangées dans le document ; aucune sans lecteur. */
+  ignores?(contexte: Contexte): Promise<readonly string[]>;
 }
 
 const estUnVariant = (noeud: NoeudLu): boolean => noeud.type === 'COMPONENT' && noeud.parent?.type === 'COMPONENT_SET';
@@ -222,6 +264,7 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
   }),
   catalogue: catalogueDeFigma,
   niveau: ({ figma }) => lireLeNiveau(figma),
+  ignores: async ({ figma }) => lireLesIgnores(figma),
   regles: (sujet, resultat) => lireLesRegles(sujet.noeud as unknown as ComponentSetNode, (resultat as { export: ComponentExport }).export),
   moteur: (sujet, jeton, { figma }) => analyserLeComposant(async () => {}, {
     composant: sujet.noeud as unknown as ComponentSetNode,
@@ -268,16 +311,18 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
   const courant: Operation = { identite: new Promise((resolve) => { connaitre = resolve; }), connue: null, jeton: { leve: false } };
   operation = courant;
   let identite: IdentiteDAnalyse | null = null;
-  const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null): void => {
-    retenirLesCorrections(identite as IdentiteDAnalyse, constats);
+  const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats): void => {
+    retenirLesCorrections(identite as IdentiteDAnalyse, constats, releve, tous);
     contexte.envoyer({
       type: 'analyse',
       analyse: identite as IdentiteDAnalyse,
       statut,
-      constats,
+      // Ignorés compris : l'interface les range sous « Ignorés » d'après le message `ignores` qui suit.
+      constats: tous,
       lecture: releve?.lecture ?? null,
       variants: releve?.variants.map(({ id, nom }) => ({ id, nom })) ?? [],
     });
+    if (releve !== null) contexte.envoyer({ type: 'ignores', analyse: identite as IdentiteDAnalyse, constats: ecartes });
   };
   try {
     const sujet = await lecteurs.sujet(contexte).catch(() => null);
@@ -304,9 +349,12 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
     // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
     const reglesLues = resultat.etat === 'complete' ? await lecteurs.regles?.(sujet, resultat, contexte).catch(() => null) ?? null : null;
     retenirLesModeles(reglesLues);
-    const constats = [...controlesDuKit(releve, catalogue, niveau), ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))];
+    const brut = [...controlesDuKit(releve, catalogue, niveau), ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))];
+    const tous = proposerLesCorrections(releve, catalogue, brut);
+    const rangees = await lecteurs.ignores?.(contexte).catch((): readonly string[] => []) ?? [];
+    const { visibles, ignores } = separerLesIgnores(tous, rangees);
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0;
-    rendre(resultat.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete', constats, releve);
+    rendre(resultat.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete', visibles, releve, ignores, tous);
   } catch (erreur) {
     if (identite === null) {
       identite = commencerUneAnalyse('', [], contexte);

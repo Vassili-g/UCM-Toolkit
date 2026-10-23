@@ -24,6 +24,7 @@ import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, lireLArchitectureDuFichi
 import type { Annonce } from 'ucm-plugin-socle/src/composant/annonce';
 import type { ModeleDeRegles } from 'ucm-plugin-socle/src/composant/template/modele';
 
+import { ecrireLesNomsDeValeurs, type ApiDeNomsDeValeurs } from './noms-de-valeurs';
 import { ecrireLesRegles } from './regles';
 import type { PortDEcritureDesRegles, ReglesSautees } from './regles';
 
@@ -223,18 +224,21 @@ export interface OptionsDuLot {
 }
 
 /**
- * Écrit les corrections de sorte `liaison` puis `regles`, et pose un seul point
- * d'annulation après toutes les écritures. Sans écriture, aucun point.
+ * Écrit les corrections de sorte `liaison`, `regles` puis `nom-de-valeur`, et
+ * pose un seul point d'annulation après toutes les écritures. Sans écriture,
+ * aucun point. Les noms de valeurs passent en dernier : une liaison relit les
+ * valeurs du variant, que le renommage change.
  */
 export async function ecrireLeLot(corrections: readonly Correction[], options: OptionsDuLot = {}, api: ApiDeLiaisons = apiDeFigma()): Promise<ResultatDUnLot> {
   // Hors UCM, Architect ne fait que naviguer : ni liaison, ni instance de règles.
   if (lireLArchitectureDuFichier(api.root.getSharedPluginData(ESPACE_ARCHITECT, CLE_ARCHITECTURE_DU_FICHIER)) !== 'ucm') {
-    const visees = corrections.filter((correction) => correction.sorte === 'liaison' || correction.sorte === 'regles');
+    const visees = corrections.filter((correction) => correction.sorte === 'liaison' || correction.sorte === 'regles' || correction.sorte === 'nom-de-valeur');
     return { ecrites: [], sautees: visees.map(({ id }) => ({ id, motif: 'non-ucm' as const })) };
   }
   const liaisons = await ecrireLesLiaisons(corrections, api);
   const regles = await ecrireLesRegles(corrections, options.annoncer, options.modeles, options.portDeRegles);
-  const ecrites = [...liaisons.ecrites, ...regles.ecrites];
+  const noms = await ecrireLesNomsDeValeurs(corrections, api as unknown as ApiDeNomsDeValeurs);
+  const ecrites = [...liaisons.ecrites, ...regles.ecrites, ...noms.ecrites];
   if (ecrites.length > 0) {
     try {
       api.commitUndo();
@@ -242,5 +246,5 @@ export async function ecrireLeLot(corrections: readonly Correction[], options: O
       // Les écritures sont faites : un point d'annulation refusé ne les retire pas.
     }
   }
-  return { ecrites, sautees: [...liaisons.sautees, ...regles.sautees] };
+  return { ecrites, sautees: [...liaisons.sautees, ...regles.sautees, ...noms.sautees] };
 }

@@ -51,16 +51,18 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - contexte.ts : ce qu'un domaine reçoit : port vers l'interface, fenêtre, état partagé
 - lectureDeFigma.ts : ports de lecture sur `figma`, communs aux domaines
 - souche.ts : réponse « non construit » d'un domaine pas encore fait
-- commun.ts, arbre.ts, composant.ts, nomenclature.ts, analyse.ts, configuration.ts, corrections.ts : domaines construits ; `configuration.ts` lit et range le niveau d'accessibilité (`clientStorage`) et la library choisie ; `analyse.ts` lance l'analyse (relevé, catalogue, moteur, contrôles du kit dont accessibilité et typographie), porte l'identité, les corrections de l'analyse courante et le panneau périmé ; `corrections.ts` écrit un lot de l'analyse courante non périmée, une opération à la fois, et sélectionne les layers d'un constat
+- commun.ts, arbre.ts, composant.ts, nomenclature.ts, analyse.ts, configuration.ts, corrections.ts, questions.ts, ignores.ts : domaines construits ; `configuration.ts` lit et range le niveau d'accessibilité (`clientStorage`) et la library choisie ; `analyse.ts` lance l'analyse (relevé, catalogue, moteur, contrôles du kit dont accessibilité et typographie), passe ses constats par `proposerLesCorrections` du kit puis par les ignorés rangés, porte l'identité, les constats, les corrections de l'analyse courante et le panneau périmé ; `questions.ts` tire d'une réponse une correction exacte retenue dans l'analyse ; `ignores.ts` écarte un constat ou sa proposition et le rend ; `corrections.ts` écrit un lot de l'analyse courante non périmée, une opération à la fois, et sélectionne les layers d'un constat
 - bibliotheque.ts : library lue depuis un autre fichier : arbre depuis les noms, valeurs d'un groupe importées par lots de huit
-- accessibilite.ts, fiche.ts, ignores.ts, preparation.ts, questions.ts, recherche.ts, regles.ts, structure.ts : souches
+- accessibilite.ts, fiche.ts, preparation.ts, recherche.ts, regles.ts, structure.ts : souches
 
 ## src/ecriture/
 - configuration.ts : range la library choisie, donnée partagée du nœud racine sous `CLES_D_ARCHITECT.libraryChoisie`
 - cleDuFichier.ts : range `figma.fileKey`, quand Figma le sert, sous `CLES_D_ARCHITECT.cleDuFichierDesTokens`
 - noms.ts : le seul fichier qui écrive dans le document : noms, règles, journal et point d'annulation ; un refus avant toute écriture quand une règle de nommage vient d'une version plus récente
 - regles.ts : applique les corrections de sorte `regles` par `creerLesRegles` du socle ; relit avant d'écrire, saute `objet-change`, `instance-remplie` ou `erreur`, sans point d'annulation
-- liaisons.ts : écrit les corrections de sorte `liaison` (nombre, fill, stroke, texte par plage) après relecture, saute avec un motif ; importe la variable cible, une fois par clé et par lot ; `ecrireLeLot` pose le seul point d'annulation du lot, liaisons et règles ensemble
+- liaisons.ts : écrit les corrections de sorte `liaison` (nombre, fill, stroke, texte par plage) après relecture, saute avec un motif ; importe la variable cible, une fois par clé et par lot ; `ecrireLeLot` pose le seul point d'annulation du lot, liaisons, règles et noms de valeurs ensemble
+- noms-de-valeurs.ts : écrit les corrections de sorte `nom-de-valeur` (C12) : renomme une valeur dans le nom de chaque variant du jeu après relecture ; une valeur cible déjà présente n'est jamais écrite (`fait-faux`)
+- ignores.ts : range et lit les clés d'Ignorer (constat, `proposition:` + constat) à la racine du document sous `CLES_D_ARCHITECT.ignorer` ; rien hors UCM ni pour un constat `limite`
 - selection.ts : le seul changement de sélection du plugin, les layers d'un constat
 
 ## src/nomenclature/

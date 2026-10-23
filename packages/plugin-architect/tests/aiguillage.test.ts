@@ -54,7 +54,7 @@ test('aucun type de demande n’appartient à deux domaines', () => {
 });
 
 test('une souche répond non-construit, sans rien écrire', async () => {
-  for (const domaine of ['structure', 'questions', 'ignores', 'preparation'] as const) {
+  for (const domaine of ['structure', 'preparation'] as const) {
     const { contexte, envoyes } = contexteDeTest();
     await DOMAINES[domaine].traiter({} as never, contexte);
     assert.deepEqual(envoyes, [{ type: 'non-construit', domaine }]);

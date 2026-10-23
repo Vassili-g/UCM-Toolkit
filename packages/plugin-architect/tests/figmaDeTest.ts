@@ -227,6 +227,7 @@ export interface OptionsDeLEcriture {
 export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
   const journal: string[] = [];
   const layers = new Map<string, Record<string, unknown>>();
+  const donnees = new Map<string, string>();
   const variables = new Map<string, VariableDEcriture>();
   for (const variable of [...(options.lisibles ?? []), ...(options.locales ?? []), ...(options.importables ?? [])]) variables.set(variable.id, variable);
   let selection: unknown[] = [];
@@ -240,7 +241,14 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
     },
   });
   const api = {
-    root: { getSharedPluginData: (espace: string, cle: string) => (espace === ESPACE_ARCHITECT && cle === CLE_ARCHITECTURE_DU_FICHIER ? (options.declaration ?? texteDeLArchitectureDuFichier(true)) : '') },
+    root: {
+      getSharedPluginData: (espace: string, cle: string) => (espace === ESPACE_ARCHITECT && cle === CLE_ARCHITECTURE_DU_FICHIER ? (options.declaration ?? texteDeLArchitectureDuFichier(true)) : donnees.get(`${espace}/${cle}`) ?? ''),
+      setSharedPluginData(espace: string, cle: string, valeur: string) {
+        if (options.refusees?.has('racine')) throw new Error('Figma refuse');
+        journal.push(`donnee:${espace}/${cle}`);
+        donnees.set(`${espace}/${cle}`, valeur);
+      },
+    },
     currentPage: page,
     async getNodeByIdAsync(id: string) {
       return layers.get(id) ?? null;
@@ -272,7 +280,29 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
     api,
     page,
     journal,
+    /** Les données partagées de la racine, par `espace/clé`. */
+    donnees,
     selection: () => selection,
+    /** Un jeu de variants dont chaque variant porte l'un des noms ; renommer un variant entre dans `journal`. */
+    jeuDeVariants(id: string, noms: readonly string[]): Record<string, unknown> {
+      const jeu: Record<string, unknown> = { id, type: 'COMPONENT_SET', name: `Jeu ${id}`, parent: page, boundVariables: {} };
+      jeu.children = noms.map((nom, rang) => {
+        let valeur = nom;
+        const variant: Record<string, unknown> = { id: `${id}-v${rang}`, type: 'COMPONENT', parent: jeu };
+        Object.defineProperty(variant, 'name', {
+          enumerable: true,
+          get: () => valeur,
+          set: (suivante: string) => {
+            if (options.refusees?.has(`${id}-v${rang}`)) throw new Error('Figma refuse');
+            journal.push(`nom:${id}-v${rang}:${suivante}`);
+            valeur = suivante;
+          },
+        });
+        return variant;
+      });
+      layers.set(id, jeu);
+      return jeu;
+    },
     /** Un layer écrivable ; `parent` est la page par défaut. Chaque écriture entre dans `journal`. */
     layer(id: string, type: string, champs: Record<string, unknown> = {}, parent: Record<string, unknown> = page): Record<string, unknown> {
       const brut: Record<string, unknown> = { id, type, name: `Layer ${id}`, parent, boundVariables: {}, ...champs };
