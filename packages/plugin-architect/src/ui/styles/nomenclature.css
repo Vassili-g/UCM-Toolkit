@@ -179,6 +179,49 @@
   line-height: var(--libelle-interligne);
 }
 
+.reglage {
+  display: grid;
+  gap: var(--espace-controle);
+}
+
+.reglage-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.niveau-contraste {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond-arbre);
+}
+
+.niveau-contraste-choix {
+  height: 24px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: calc(var(--rayon) - 2px);
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.niveau-contraste-choix:hover:not([aria-pressed='true']) {
+  background: var(--fond-survol);
+  color: var(--texte);
+}
+
+.niveau-contraste-choix[aria-pressed='true'] {
+  background: var(--fond-selection);
+  color: var(--texte);
+}
+
 .config-liste {
   overflow: hidden;
   border: 1px solid var(--bordure);

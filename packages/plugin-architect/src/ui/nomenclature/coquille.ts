@@ -40,9 +40,13 @@ export interface Coquille {
   readonly premierLancement: HTMLElement;
   /** Le conteneur de la page Configuration. */
   readonly configuration: HTMLElement;
+  /** Affiche une préparation en attente au-dessus des onglets du mode Tokens. */
+  poserAlerteDePreparation(alerte: HTMLElement | null): void;
   etat(): EtatDeLEcran;
   /** Ouvre la page Configuration. */
   ouvrirLaConfiguration(): void;
+  /** Revient au travail depuis Configuration. */
+  fermerLaConfiguration(): void;
   /** Le filtre de l'arbre, `null` quand aucune collection ne filtre. */
   filtre(): FiltreDeCollection | null;
   /** Le compte de l'onglet Corrections sous un filtre : les noms que le filtre retient. `null` rend le compte du bilan. */
@@ -192,7 +196,9 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   ligneDuFiltre.hidden = true;
   const alerteDeLaLibrary = document.createElement('div');
   alerteDeLaLibrary.hidden = true;
-  ecranDesOnglets.append(alerteDeLaLibrary, onglets.liste, ligneDuFiltre, panneaux.aAppliquer.element, panneaux.aTrancher.element, panneaux.aFaire.element, panneaux.regles.element);
+  const alerteDePreparation = document.createElement('div');
+  alerteDePreparation.hidden = true;
+  ecranDesOnglets.append(alerteDeLaLibrary, alerteDePreparation, onglets.liste, ligneDuFiltre, panneaux.aAppliquer.element, panneaux.aTrancher.element, panneaux.aFaire.element, panneaux.regles.element);
   const travail = document.createElement('div');
   travail.className = 'page-stack';
   travail.append(bandeau, premierLancement, vueDAnalyse.element, ecranDesOnglets);
@@ -263,6 +269,11 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     configuration,
     etat: () => etat,
     ouvrirLaConfiguration,
+    fermerLaConfiguration,
+    poserAlerteDePreparation(alerte) {
+      alerteDePreparation.replaceChildren(...(alerte ? [alerte] : []));
+      alerteDePreparation.hidden = alerte === null;
+    },
     filtre: () => filtre,
     poserLeCompteDesCorrections(nombre) {
       if (nombre === compteDesCorrections) return;

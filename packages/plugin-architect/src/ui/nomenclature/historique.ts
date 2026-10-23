@@ -24,6 +24,7 @@ export interface Historique {
   readonly element: HTMLElement;
   /** Redessine le dernier renommage et le dernier import ; les cartes gardent leur état ouvert ou fermé. */
   poser(renommage: DernierRenommage | null, dernierImport: DernierImport | null): void;
+  poserCreation(element: HTMLElement | null): void;
   /** La ligne verte qui suit une annulation réussie ; `null` la retire. */
   reussite(retablis: number | null): void;
   /** Un bouton reste inactif tant que la réponse à sa demande n'est pas arrivée. */
@@ -191,6 +192,7 @@ export function creerHistorique(actions: ActionsDeLHistorique, maintenant: () =>
   let reussite: number | null = null;
   let derniers: { renommage: DernierRenommage | null; importe: DernierImport | null } = { renommage: null, importe: null };
   let enCours = { renommage: false, importe: false };
+  let creation: HTMLElement | null = null;
   let boutonDuRenommage: HTMLButtonElement | null = null;
   let boutonDeLImport: HTMLButtonElement | null = null;
 
@@ -297,6 +299,7 @@ export function creerHistorique(actions: ActionsDeLHistorique, maintenant: () =>
     if (reussite !== null) enfants.push(ligneDeReussite(reussite));
     if (derniers.renommage) enfants.push(sectionDuRenommage(derniers.renommage));
     if (derniers.importe) enfants.push(sectionDeLImport(derniers.importe));
+    if (creation) enfants.push(creation);
     if (enfants.length === 0) enfants.push(note(TEXTES.rienAAnnuler), note(TEXTES.rienAAnnulerExplication));
     element.replaceChildren(...enfants);
     synchroniser();
@@ -307,6 +310,10 @@ export function creerHistorique(actions: ActionsDeLHistorique, maintenant: () =>
     element,
     poser(renommage, importe) {
       derniers = { renommage, importe };
+      rendre();
+    },
+    poserCreation(element) {
+      creation = element;
       rendre();
     },
     reussite(retablis) {

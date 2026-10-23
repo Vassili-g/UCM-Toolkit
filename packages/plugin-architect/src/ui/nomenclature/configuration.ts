@@ -7,6 +7,8 @@ import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { createOnglets } from 'ucm-plugin-socle/src/ui/Onglets';
 import { createInterrupteur } from 'ucm-plugin-socle/src/ui/Interrupteur';
 import type { Bilan, CollectionVue, ProtectionVue } from '../../messages/nomenclature';
+import type { MessageDeConfiguration } from '../../messages/configuration';
+import type { MessageDePreparation } from '../../messages/preparation';
 import type { Coquille } from './coquille';
 import type { MessageAAfficher } from './frontiere';
 import { telecharger } from './telechargement';
@@ -15,6 +17,12 @@ import { creerHistorique } from './historique';
 import { annonceDUneAnnulation, lignesDUneAnnulationNonVerifiee, texteDUneAnnulationRefusee } from './annonce';
 import { lignesDeProtection } from './protection';
 import { TEXTES } from '../textes/nomenclature';
+import { versSandbox } from '../pont';
+
+export interface ConfigurationMontee {
+  recevoirConfiguration(message: MessageDeConfiguration): void;
+  recevoirCreation(message: Extract<MessageDePreparation, { type: 'variables-creees' }>, composant: string): void;
+}
 
 /** La taille d'import que `estUiMessage` accepte (`src/messages.ts`) : au-delà, le sandbox ignore la demande. */
 const LIMITE_D_IMPORT = 1_000_000;
@@ -55,7 +63,7 @@ function poserLaCollection(ligne: LigneDeCollection, collection: CollectionVue, 
 }
 
 /** Monte la page Configuration dans le conteneur de la coquille. */
-export function monterConfiguration(coquille: Coquille): void {
+export function monterConfiguration(coquille: Coquille, ouvrirLaPreparation: () => void = () => {}): ConfigurationMontee {
   const { frontiere } = coquille;
   /** Les demandes de cette page : seules leurs réponses s'y affichent. */
   const demandes = new Set<number>();
@@ -228,10 +236,54 @@ export function monterConfiguration(coquille: Coquille): void {
     return bloc;
   }
 
+  const librarySelect = document.createElement('select');
+  librarySelect.className = 'input';
+  librarySelect.setAttribute('aria-label', TEXTES.modeComposantLit);
+  librarySelect.addEventListener('change', () => {
+    const cle = librarySelect.value;
+    if (cle) versSandbox({ type: 'ranger-library', cle });
+  });
+  const libraryAide = document.createElement('p');
+  libraryAide.className = 'field-help';
+  const libraryLine = document.createElement('div'); libraryLine.className = 'reglage-ligne';
+  const libraryLabel = document.createElement('span'); libraryLabel.className = 'field-label'; libraryLabel.textContent = TEXTES.modeComposantLit;
+  libraryLine.append(libraryLabel, librarySelect);
+  const libraryReglage = document.createElement('div'); libraryReglage.className = 'reglage'; libraryReglage.append(libraryLine, libraryAide);
+  const librarySection = section(creerIntertitre(TEXTES.libraryDeTokens), libraryReglage);
+  libraryAide.hidden = true;
+
+  const niveauAa = document.createElement('button');
+  const niveauAaa = document.createElement('button');
+  const basculeNiveau = document.createElement('span');
+  basculeNiveau.className = 'niveau-contraste';
+  basculeNiveau.setAttribute('role', 'group');
+  basculeNiveau.setAttribute('aria-label', TEXTES.niveauDeContraste);
+  for (const [bouton, etiquette, niveau] of [[niveauAa, TEXTES.niveauAa, 'AA'], [niveauAaa, TEXTES.niveauAaa, 'AAA']] as const) {
+    bouton.type = 'button'; bouton.className = 'niveau-contraste-choix'; bouton.textContent = etiquette;
+    bouton.addEventListener('click', () => versSandbox({ type: 'ranger-niveau', niveau }));
+    basculeNiveau.append(bouton);
+  }
+  const niveauAide = document.createElement('p');
+  niveauAide.className = 'field-help';
+  niveauAide.textContent = TEXTES.seuilAa;
+  const niveauLine = document.createElement('div'); niveauLine.className = 'reglage-ligne';
+  const niveauLabel = document.createElement('span'); niveauLabel.className = 'field-label'; niveauLabel.textContent = TEXTES.niveauDeContraste;
+  niveauLine.append(niveauLabel, basculeNiveau);
+  const niveauReglage = document.createElement('div'); niveauReglage.className = 'reglage'; niveauReglage.append(niveauLine, niveauAide);
+  const niveauSection = section(creerIntertitre(TEXTES.accessibilite), niveauReglage);
+
+  const preparationAide = document.createElement('p');
+  preparationAide.className = 'field-help';
+  preparationAide.textContent = TEXTES.preparationRecueAide;
+  const collerPreparation = createButton({ label: TEXTES.collerUnePreparation, variant: 'secondary', compact: true, onClick: ouvrirLaPreparation });
+  const preparationSection = section(creerIntertitre(TEXTES.preparationRecue), preparationAide, collerPreparation);
+
   const panneauDesReglages = document.createElement('div');
   panneauDesReglages.className = 'page-stack';
+  const architectureSection = section(creerIntertitre(TEXTES.architectureDuFichier), architecture.element, etatArchitecture,
+    librarySection, niveauSection, preparationSection);
   panneauDesReglages.append(
-    section(creerIntertitre(TEXTES.architectureDuFichier), architecture.element, etatArchitecture),
+    architectureSection,
     section(creerIntertitre(TEXTES.collectionsAnalysees), sansCollection, liste, causes),
     section(creerIntertitre(TEXTES.reglesDeCeFichier), reglesBoutons),
   );
@@ -246,6 +298,32 @@ export function monterConfiguration(coquille: Coquille): void {
     phraseDeLOnglet.textContent = phrasesDesOnglets[id];
   });
   coquille.configuration.replaceChildren(message, onglets.liste, phraseDeLOnglet, panneauDesReglages, historique.element);
+
+  let derniereEcranConfiguration = false;
+  coquille.surChangement?.(() => {
+    const ouvert = coquille.etat().ecran === 'configuration';
+    if (ouvert && !derniereEcranConfiguration) versSandbox({ type: 'lire-configuration' });
+    derniereEcranConfiguration = ouvert;
+  });
+
+  let demandeStructure = 0;
+  let demandeStructureEnCours: number | null = null;
+  const ligneCreation = document.createElement('div');
+  ligneCreation.className = 'config-boutons config-ecartes';
+  const texteCreation = document.createElement('p');
+  texteCreation.className = 'config-renommage';
+  const annulerCreation = createButton({ label: TEXTES.annulerLaCreation, variant: 'secondary', compact: true, onClick: () => {
+    if (demandeStructureEnCours !== null) return;
+    demandeStructure += 1; demandeStructureEnCours = demandeStructure; annulerCreation.disabled = true;
+    versSandbox({ type: 'annuler-structure', demande: demandeStructure });
+  } });
+  ligneCreation.append(texteCreation, annulerCreation);
+  const aideCreation = document.createElement('p');
+  aideCreation.className = 'field-help'; aideCreation.textContent = TEXTES.creationPublieeAide;
+  const resultatCreation = document.createElement('p');
+  resultatCreation.className = 'historique-avertissement'; resultatCreation.setAttribute('role', 'status'); resultatCreation.hidden = true;
+  const sectionCreation = section(creerIntertitre(TEXTES.derniereCreationDeVariables), ligneCreation, aideCreation, resultatCreation);
+  sectionCreation.hidden = true;
 
   function lireLeBilan(bilan: Bilan | null): void {
     poserLArchitecture(bilan?.architecture ?? null);
@@ -326,4 +404,49 @@ export function monterConfiguration(coquille: Coquille): void {
     }
   });
   lireLeBilan(coquille.etat().bilan);
+
+  function recevoirConfiguration(message: MessageDeConfiguration): void {
+    if (message.type === 'configuration') {
+      librarySelect.replaceChildren(...message.candidates.map((candidate) => {
+        const option = document.createElement('option'); option.value = candidate.cle; option.textContent = candidate.nom; return option;
+      }));
+      librarySelect.value = message.library?.cle ?? '';
+      libraryAide.textContent = message.library ? TEXTES.libraryChoisieParceQue(message.library.liaisons) : '';
+      libraryAide.hidden = !message.library;
+      niveauAa.setAttribute('aria-pressed', String(message.niveau === 'AA'));
+      niveauAaa.setAttribute('aria-pressed', String(message.niveau === 'AAA'));
+      return;
+    }
+    if (message.demande !== demandeStructureEnCours) return;
+    demandeStructureEnCours = null; annulerCreation.disabled = false; resultatCreation.hidden = false;
+    if (message.refus === 'occupe') resultatCreation.textContent = TEXTES.annulationStructureOccupee;
+    else if (message.refus === 'hors-ucm') resultatCreation.textContent = TEXTES.annulationStructureHorsUcm;
+    else if (message.journal === 'absent') resultatCreation.textContent = TEXTES.annulationStructureJournalAbsent;
+    else if (message.journal === 'illisible') resultatCreation.textContent = TEXTES.annulationStructureJournalIllisible;
+    else if (message.sautees.length) {
+      resultatCreation.replaceChildren(...message.sautees.map((ligne) => {
+        const detail = document.createElement('span');
+        detail.textContent = ligne.motif === 'objet-change' ? TEXTES.annulationStructureObjetChange(ligne.variable)
+          : ligne.motif === 'usage-ajoute' ? TEXTES.annulationStructureUsageAjoute(ligne.variable)
+            : ligne.motif === 'usage-illisible' ? TEXTES.annulationStructureUsageIllisible(ligne.variable)
+              : TEXTES.annulationStructureErreur(ligne.variable);
+        return detail;
+      }));
+      if (message.limiteDesUsages) resultatCreation.append(document.createTextNode(` ${TEXTES.annulationStructureUsagesExternes}`));
+    } else resultatCreation.textContent = TEXTES.annulationStructureFaite(message.defaites);
+  }
+
+  function recevoirCreation(message: Extract<MessageDePreparation, { type: 'variables-creees' }>, composant = 'Tag'): void {
+    if (message.refus !== null) return;
+    const nombre = message.creees + message.gardees + message.remplacees;
+    const quand = TEXTES.quandLeLot(new Date().toISOString(), new Date());
+    texteCreation.textContent = TEXTES.creationDeVariablesHistorique(nombre, composant, quand);
+    annulerCreation.disabled = !message.journal || nombre === 0;
+    aideCreation.hidden = !message.journal;
+    resultatCreation.hidden = true;
+    sectionCreation.hidden = false;
+    historique.poserCreation(sectionCreation);
+  }
+
+  return { recevoirConfiguration, recevoirCreation };
 }
