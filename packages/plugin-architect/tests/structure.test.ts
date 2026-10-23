@@ -328,7 +328,7 @@ const catalogueAvecUnScopeFaux = (): CatalogueDeReference => ({
   version: 1,
   library: null,
   collections: [{ cle: COLLECTION, nom: 'theme', role: 'theme', modes: [{ id: CLAIR, nom: 'light' }], etat: 'lue' }],
-  variables: [{ cle: 'k-defaut', nom: 'success/surface/default', collection: COLLECTION, type: 'COLOR', etat: 'presente', scopes: ['TEXT_FILL'], valeurs: {} }],
+  variables: [{ cle: 'k-defaut', nom: 'success/surface/default', collection: COLLECTION, type: 'COLOR', etat: 'presente', scopes: ['TEXT_FILL'], valeurs: { [CLAIR]: { valeur: '#ffffff' } } }],
 });
 
 function acces(catalogue: CatalogueDeReference | null, ecrire: Acces['ecrire'] = async () => ({ ecrites: [], sautees: [] })): Acces & { appels: Correction[][] } {
