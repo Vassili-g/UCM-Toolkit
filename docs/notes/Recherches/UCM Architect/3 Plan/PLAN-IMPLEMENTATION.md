@@ -342,7 +342,12 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   destinataire ; sinon une question (C70, C76) ; `State=hover` lié au token du
   repos rend une question avec l'indice des autres variants `State=hover` ;
   chaque correction porte les faits à relire avant écriture (axes, règle,
-  cible).
+  cible). Forme lue par B4 : `avant` et `aRelire.avant` valent le nom de la
+  variable liée au champ, `null` sans liaison ; `apres.cle` est la clé de la
+  variable cible ; `cible.layer` est l'id du layer, `cible.champ` le champ de
+  Figma (`paddingLeft`, `fills`, `strokes`…), `cible.indice` l'indice de la
+  peinture, `cible.plage` la plage d'un texte ; `aRelire.axes` les valeurs du
+  variant.
 - [ ] **K5 · Full UCM, structure, scopes, modes.** Vague 3 · K3.
   Écrit : `kit/src/controles/{theme,structure}.ts`, leurs tests, et leurs lignes d'export dans `kit/src/controles/index.ts`.
   Lit : `docs/notes/Recherches/Plugin Architect/6 Contrôle de structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md`, cas (a), (b), (c), (f) ; `kit/src/emplois/dossiers.ts`.
@@ -366,7 +371,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
 - [x] (b449d9a4) **K7 · Typographie et icônes.** Vague 4 · K0.
   Écrit : `kit/src/controles/typographie.ts`.
   Fait quand : C64 à C67, un test positif et un négatif par contrôle.
-- [ ] **K6 · Préparation des tokens.** Vague 5 · K1, note P.
+- [~ Claude 2] **K6 · Préparation des tokens.** Vague 5 · K1, note P.
   Écrit : `kit/src/controles/preparation.ts`, ses tests, et ses lignes d'export dans `kit/src/controles/index.ts`.
   Maquette : `g-preparer`, `g-creer`.
   Fait quand : du relevé, du catalogue et des réponses, la liste des variables,
@@ -617,7 +622,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   Note : le catalogue (B10) n'a pas les noms de modes d'une collection de
   library ni la clé des cibles d'alias (Q-28) ; B9 les ajoute dans
   `src/catalogue.ts` si le contraste par mode en a besoin.
-- [~ Claude 2] **B4 · Écriture des liaisons.** `implementeur-exigeant` · vague 5 · B2,
+- [x] (f8572ddd) **B4 · Écriture des liaisons.** `implementeur-exigeant` · vague 5 · B2,
   K8, note E · hypothèse S-2.
   Domaines : `corrections`.
   Écrit : `src/ecriture/liaisons.ts` et ses tests.
@@ -1238,6 +1243,23 @@ Choix faits sans le mainteneur :
   C47, hors du plan) ; un constat par écart. Le meta de la maquette « 3
   règles » compte les propriétés ; `faits.regles` porte le nombre réel de
   règles du modèle · réversible : oui.
+- Q-48 · B4 · Hors UCM · `ecrireLeLot` n'écrit rien, ni liaison ni instance
+  de règles, dans un fichier qui ne déclare plus UCM (l'agent laissait passer
+  les règles ; corrigé par l'orchestrateur, §2 Périmètre) · réversible : oui.
+- Q-49 · B4 · Textes · `resume` suit la maquette (« 8 layers liés, 1 instance
+  de règles créée ») ; écrits hors maquette : « Aucune correction écrite »,
+  « N corrections sautées : 2 car <raison>… » et une raison par motif (« le
+  composant a changé depuis l’analyse », « ce que l’analyse avait lu n’est
+  plus vrai », « la variable cible est introuvable », « le fichier ne déclare
+  plus UCM », « l’instance de règles contient déjà des règles », « Figma a
+  refusé l’écriture », « l’analyse est périmée », « ce genre de correction
+  n’est pas encore pris en charge ») · réversible : oui.
+- Q-50 · B4 · Cause du `perime` · Figma peut émettre `nodechange` avant le
+  `perime ecriture` du plugin ; la cause rendue est alors `document`. À voir
+  à la recette · réversible : oui.
+- Q-51 · K6 · Reprise · K6 ne dépend que de K1 et de la note P ; Claude 2 le
+  prend dans l'arbre partagé pendant que Codex fait K8 puis K5 ; son commit
+  porte son lot V · réversible : oui.
 
 ## 10. Hors du plan
 
