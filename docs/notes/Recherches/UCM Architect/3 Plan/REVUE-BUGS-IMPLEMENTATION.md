@@ -23,3 +23,19 @@ Vérification finale : build du kit et d'Architect verts ; tests du kit 924/924 
 tests Architect 940/940. Les tests racine passent 466/467 : le seul échec est
 `versionSuitLeContenu`, qui attend la montée de version du lot V. `agents:diff`
 ne signale aucun document lié à modifier.
+
+## Nouvelle repasse depuis `7528c42e`
+
+Base : branche `main`, avec travaux locaux préexistants conservés. Ils touchent
+notamment les messages, le sandbox et l'interface Architect. Les tests racine
+passent 467/467. La suite Architect passe 936/940 : les quatre échecs portent
+sur la souche `preparation`, le nom de collection réservé dans cette préparation,
+le texte « calque » des corrections et cinq classes CSS de l'interface. Le build
+Architect s'arrête sur sept erreurs de type dans les modules d'interface locaux
+`ui/analyse` et `ui/corrections`. Ces échecs précèdent la nouvelle revue ; ils ne
+constituent pas des régressions attribuées aux lots terminés. Le résultat de la
+suite du kit est en cours de relevé.
+
+Les cas nouveaux seront consignés ici avec règle, reproduction, cause,
+correction, tests avant et après, commit et état. Les pistes sans preuve restent
+distinctes des bugs confirmés.
