@@ -229,11 +229,7 @@ async function unLayerLieA(api: ApiDeStructure, id: string): Promise<boolean> {
   return api.root.findAll((noeud) => {
     if (contientUnAlias(noeud.boundVariables, id) || contientUnAlias(noeud.fills, id) || contientUnAlias(noeud.strokes, id) || contientUnAlias(noeud.effects, id)) return true;
     if (noeud.type !== 'TEXT' || typeof noeud.getStyledTextSegments !== 'function') return false;
-    try {
-      return noeud.getStyledTextSegments(['boundVariables', 'fills']).some((segment) => contientUnAlias(segment.boundVariables, id) || contientUnAlias(segment.fills, id));
-    } catch {
-      return false;
-    }
+    return noeud.getStyledTextSegments(['boundVariables', 'fills']).some((segment) => contientUnAlias(segment.boundVariables, id) || contientUnAlias(segment.fills, id));
   }).length > 0;
 }
 

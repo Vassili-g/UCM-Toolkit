@@ -256,6 +256,20 @@ test('annuler une création : une variable qu’un layer du fichier utilise n’
   assert.ok(m.a.variable('V:20'));
 });
 
+test('annuler une création : un texte illisible conserve la variable et le journal', async () => {
+  const m = monde({ locales: [defaut(), creee()] });
+  const texte = m.a.layer('1:1', 'TEXT');
+  texte.getStyledTextSegments = () => { throw new Error('segments illisibles'); };
+  journaliserLesCreations(m.port, [creation]);
+
+  const rendu = await m.annuler();
+
+  assert.deepEqual(rendu.sautees, [{ variable: 'V:20', sorte: 'creation', motif: 'usage-illisible' }]);
+  assert.ok(m.a.variable('V:20'));
+  assert.equal(lireLeJournalDeStructure(m.port)?.lignes.length, 1);
+  assert.deepEqual(m.ecritures(), []);
+});
+
 test('annuler une création : une peinture liée compte comme un usage', async () => {
   const m = monde({ locales: [defaut(), creee()] });
   m.a.layer('1:1', 'FRAME', { fills: [{ type: 'SOLID', boundVariables: { color: alias('V:20') } }] });
