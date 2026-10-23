@@ -32,6 +32,7 @@ Tokens affiche Nomenclature à côté de l'arbre des variables.
 | [PLAN-IMPLEMENTATION.md](./3%20Plan/PLAN-IMPLEMENTATION.md) | Le plan de l'orchestrateur : décisions, méthode de travail parallèle avec Codex, pistes par paquet, vagues, fiches de lots, notes à écrire, jalons et questions de fin |
 | [PROMPT-CODEX-REVUE-DU-PLAN.md](./3%20Plan/PROMPT-CODEX-REVUE-DU-PLAN.md) | Le prompt de la revue de la première version du plan par Codex |
 | [REVUE-CODEX-DU-PLAN.md](./3%20Plan/REVUE-CODEX-DU-PLAN.md) | La revue de Codex sur la première version du plan |
+| [REVUE-BUGS-IMPLEMENTATION.md](./3%20Plan/REVUE-BUGS-IMPLEMENTATION.md) | Les bugs trouvés dans les contrôles du kit et leur usage par Architect, avec leur état de correction |
 
 Les recherches antérieures sur Nomenclature et sur le contrôle de structure des
 tokens restent dans [Plugin Architect](../Plugin%20Architect/README.md).
