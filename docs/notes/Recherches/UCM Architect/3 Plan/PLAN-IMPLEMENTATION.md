@@ -1422,7 +1422,6 @@ Choix faits sans le mainteneur :
   `ranger: true` pour ranger la préparation ; deux messages s'ajoutent à N1 :
   `plan-de-preparation` et `liaisons-preparees` (`lier-preparation`)
   · réversible : oui.
-
 - Q-74 · U6, K11 · C24 · le C24 de la conception (propagation depuis un
   variant modèle, carte `c-modele`) n'avait pas de producteur : le code C24
   du kit sert à une correction de rôle tirée de C17. K11 ajoute la
