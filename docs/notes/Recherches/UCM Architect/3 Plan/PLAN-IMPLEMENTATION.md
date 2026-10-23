@@ -657,7 +657,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   `plugin-exporter/tests/loiDuDocumentIntact.test.ts`.
   Fait quand : C43, C44, C45 ; C46 par `template/ecriture.ts` ; ajout et
   retrait d'une instance remplie refusés avec un motif.
-- [~ Claude 2] **B8 · Préparation, création, retour.** (avec l'annulation de la structure par l'Historique et le message `regles-recues`, Q-71) Vague 6 · K6, B6, B4, note P.
+- [x] (107b605c) **B8 · Préparation, création, retour.** (avec l'annulation de la structure par l'Historique et le message `regles-recues`, Q-71) Vague 6 · K6, B6, B4, note P.
   `implementeur-exigeant` (journal). Domaines : `preparation`, `configuration`. Écrit en plus : `src/ecriture/variables.ts`, `src/preparations.ts` (clientStorage), leurs tests.
   Fait quand : règles de la note P (identité, destination, versions du texte
   échangé, états par entrée, reprise sans doublon) ; création des seules
@@ -1372,6 +1372,14 @@ Choix faits sans le mainteneur :
 - Q-72 · K10, B5 · C12 avec un seul style candidat · aucun registre ne relie
   deux styles libres ; la proposition reste une question et B5 ne crée
   `nom-de-valeur` qu'après la réponse du designer · réversible : oui.
+- Q-73 · B8 · Couches et motifs · les couches du catalogue (`COUCHE_DES_*` de
+  `src/preparations.ts`) se tirent du kit, la loi d'écriture refusant un nom
+  de collection en dur ; l'annulation de structure rend `journal: 'absent' |
+  'illisible'` et `refus: 'occupe' | 'hors-ucm'`, pas `journal-impossible`,
+  qui reste un motif de l'écriture ; U8 écrit leurs phrases. `preparer` prend
+  `ranger: true` pour ranger la préparation ; deux messages s'ajoutent à N1 :
+  `plan-de-preparation` et `liaisons-preparees` (`lier-preparation`)
+  · réversible : oui.
 
 ### Revue des lots réalisés
 
