@@ -10,6 +10,8 @@ import { espaceDuReleve } from '../modele';
 import { TAILLE_COMPOSANT_PANNEAU_OUVERT, TAILLE_ETROITE, type Disposition } from '../fenetre';
 import type { Preferences } from '../preferences';
 import { contexteDeColonne, type Resultat } from '../resolution';
+import type { Constat } from '../messages/commun';
+import { noterLEnvoi } from './composant/analyse';
 import type { Etat, Filtres } from './etat';
 import { PREFIXE_TERME, retenirLesFormes } from './recherche/requete';
 import { versSandbox } from './pont';
@@ -79,6 +81,12 @@ export interface Application {
   actualiser(): void;
   /** Lance l'analyse du composant sélectionné. */
   analyser(): void;
+  /** Écrit dans Figma les corrections cochées ; `liaisons` compte celles qui lient un layer, pour la ligne d'écriture en cours. Sans effet pendant une écriture ou sur une analyse périmée. */
+  appliquer(ids: readonly string[], liaisons: number): void;
+  /** Sélectionne ces layers dans Figma : seul geste du plugin qui change la sélection. */
+  selectionner(layers: readonly string[]): void;
+  /** Range le choix de ne plus proposer la correction de ces constats : les constats restent, sans leur correction. */
+  ignorerLaProposition(constats: readonly Constat[]): void;
   /** Ouvre ou ferme le panneau des constats ; la fenêtre prend la taille du mode sans le ranger. */
   basculerLePanneau(): void;
   /** Donne sa largeur à la vue Composant quand la frontière se tire ; la fenêtre ne change pas. */
@@ -202,8 +210,26 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     analyser() {
       versSandbox({ type: 'analyser' });
     },
+    appliquer(ids, liaisons) {
+      const { analyse } = etat;
+      if (!analyse || analyse.perimee || analyse.ecriture !== null || ids.length === 0) return;
+      noterLEnvoi(etat, ids, liaisons);
+      versSandbox({ type: 'appliquer-corrections', analyse: analyse.identite, ids });
+      app.rendre(['barre', 'vue']);
+    },
+    selectionner(layers) {
+      const { analyse } = etat;
+      if (analyse && !analyse.perimee && layers.length > 0) versSandbox({ type: 'selectionner', analyse: analyse.identite, layers });
+    },
+    ignorerLaProposition(constats) {
+      const { analyse } = etat;
+      if (!analyse || analyse.perimee) return;
+      for (const constat of constats) versSandbox({ type: 'ignorer', analyse: analyse.identite, constat: constat.id, portee: 'proposition' });
+    },
     basculerLePanneau() {
       etat.panneau = { ...etat.panneau, ouvert: !etat.panneau.ouvert };
+      // La library choisie dit si l'analyse peut partir : le panneau la demande à son ouverture.
+      if (etat.panneau.ouvert) versSandbox({ type: 'lire-configuration' });
       const taille = etat.panneau.ouvert ? TAILLE_COMPOSANT_PANNEAU_OUVERT : TAILLE_ETROITE;
       versSandbox({ type: 'resize', largeur: taille.largeur, hauteur: taille.hauteur, fin: false });
       app.rendre(['barre', 'vue']);

@@ -94,6 +94,14 @@ couleur, forme, espacement, taille, texte.
   la fenêtre passe à 1040 × 760 sans ranger cette taille. Sa pastille compte
   les constats de la dernière analyse, dans la couleur du plus grave. La
   frontière entre la vue et le panneau se tire à la souris ou aux flèches.
+  Le panneau porte trois onglets, Corrections, Questions et À faire dans Figma,
+  chacun avec son compte. Corrections range ses cartes sous Liaisons, Tailles,
+  Règles d'usage et Noms de valeurs, toutes cochées ; Appliquer écrit les cartes
+  cochées, un seul lot que Ctrl+Z défait dans Figma. Ouvrir une carte
+  sélectionne ses layers dans Figma et les entoure dans l'aperçu. Après
+  l'écriture, ou un changement du composant, le panneau garde ses constats et
+  attend Actualiser ou Analyser. Une analyse partielle, annulée ou arrêtée ne
+  conclut jamais « aucun constat ».
 - **Sans token.** Le pied compte les valeurs qu'aucune variable ne lie, et les
   liste au clic.
 

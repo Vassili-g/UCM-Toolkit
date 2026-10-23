@@ -190,6 +190,12 @@
   outline-color: var(--cadre-portee);
 }
 
+/* La sélection que le plugin pose au clic sur un constat : le trait de 1 px de Figma. */
+.vc-cadre-selection {
+  outline: 1px solid var(--cadre-portee);
+  outline-offset: 0;
+}
+
 .vc-imbriques {
   display: flex;
   flex-wrap: wrap;
@@ -798,4 +804,13 @@
   gap: 3px;
   color: var(--ton);
   font-weight: 600;
+}
+
+/* Une valeur dont des variants n'ont pas été lus : son contour est tireté. */
+.valeur-axe.non-lu {
+  border-style: dashed;
+}
+
+.non-lu-texte {
+  color: var(--texte-second);
 }

@@ -51,6 +51,8 @@ export function proprietesDe(variants: readonly VariantDuJeu[], constats: readon
   const valeursDuVariant = new Map<string, Map<string, string>>();
   for (const variant of variants) {
     const paires = pairesDuNom(variant.nom);
+    // Le kit porte les variants d'un constat par identifiant ; les noms restent admis.
+    valeursDuVariant.set(variant.id, new Map(paires));
     valeursDuVariant.set(variant.nom, new Map(paires));
     for (const [nom, valeur] of paires) {
       const valeurs = valeursParPropriete.get(nom) ?? [];
@@ -111,6 +113,8 @@ export interface OptionsDeLaSection {
   readonly deplier: (propriete: string) => void;
   readonly basculerLeTableau: () => void;
   readonly croiser: (croisement: { lignes: string; colonnes: string }) => void;
+  /** Les variants qu'une analyse partielle n'a pas lus, par nom ou par identifiant : une valeur dont aucun variant n'a été lu porte « non lu ». */
+  readonly nonLus?: ReadonlySet<string>;
 }
 
 /** Un bouton à l'apparence du navigateur, comme la maquette le dessine. */
@@ -152,6 +156,15 @@ function ligneDeProperty(propriete: ProprieteDeVariants, options: OptionsDeLaSec
     puce.append(valeur.valeur);
     const nombre = compte(valeur.ton, valeur.nombre);
     if (nombre) puce.append(nombre);
+    // Une valeur est « non lu » quand aucun des variants qui la portent n'a été lu.
+    const porteurs = options.variants.filter((variant) => pairesDuNom(variant.nom).some(([cle, contenu]) => cle === propriete.nom && contenu === valeur.valeur));
+    if (porteurs.length > 0 && porteurs.every((variant) => options.nonLus?.has(variant.nom) || options.nonLus?.has(variant.id))) {
+      puce.classList.add('non-lu');
+      const mention = document.createElement('span');
+      mention.className = 'non-lu-texte';
+      mention.textContent = T.nonLu;
+      puce.append(mention);
+    }
     puce.addEventListener('click', () => {
       const variant = variantApresLeChoix(options.variants, options.affiche, propriete.nom, valeur.valeur);
       if (variant) options.choisir(variant);

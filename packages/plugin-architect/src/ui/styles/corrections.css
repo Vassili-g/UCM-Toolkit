@@ -1,0 +1,36 @@
+/*
+ * L'onglet Corrections : des cartes sous quatre intertitres, la ligne de réussite d'un lot écrit et le pied qui compte ce qui est
+ * coché. Les cartes sont celles de `structure.css` ; les lignes de diff, les chemins et la ligne de réussite viennent du socle.
+ */
+.liste {
+  display: grid;
+  gap: var(--espace-controle);
+}
+
+/* Le pied suit le défilement. Il annule la marge basse de la page pour ne pas la doubler. */
+.corrections-pied {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  margin-bottom: calc(-1 * var(--espace-page));
+  padding: var(--espace-bloc) 0 var(--espace-page);
+  border-top: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+.corrections-resume {
+  color: var(--texte-second);
+}
+
+.corrections-resume b {
+  color: var(--texte);
+  font-weight: 600;
+}
+
+/* « Sélectionnés dans Figma. » : la phrase que la carte ciblée ajoute à sa ligne grise. */
+.constat-selection {
+  color: var(--texte-second);
+}

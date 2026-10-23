@@ -107,8 +107,13 @@ export interface Etat {
   /** La dernière analyse du sandbox ; `null` avant la première. */
   analyse: AnalyseRecue | null;
   /** Le panneau des constats du mode Composant : fermé à l'ouverture, et la largeur que la frontière donne à la vue quand il est ouvert. */
-  panneau: { ouvert: boolean; largeurDeLaVue: number };
+  panneau: { ouvert: boolean; largeurDeLaVue: number; onglet: OngletDuPanneau };
+  /** La library de référence que la Configuration annonce ; `null` tant qu'elle n'a rien dit. */
+  reference: { readonly library: string | null; readonly candidates: number } | null;
 }
+
+/** Les trois onglets du panneau des constats. */
+export type OngletDuPanneau = 'corrections' | 'questions' | 'a-faire';
 
 export function etatInitial(): Etat {
   return {
@@ -128,7 +133,8 @@ export function etatInitial(): Etat {
     bibliotheque: null,
     composant: { demande: 0, statut: 'vide', message: '', lecture: null, index: null, pile: [], portee: null, apercu: null, selection: null, ignores: 0, empiler: false, deLaSelection: true },
     analyse: null,
-    panneau: { ouvert: false, largeurDeLaVue: 400 },
+    panneau: { ouvert: false, largeurDeLaVue: 400, onglet: 'corrections' },
+    reference: null,
   };
 }
 

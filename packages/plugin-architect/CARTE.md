@@ -42,6 +42,8 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - integrations/ : contrats et tokens importés, recette UCM Palettes, profil d'architecture UCM (les sept couches de `COLLECTIONS`)
 - ui/ : barre et sa bascule de mode, arbre et sa recherche, table, panneau latéral, bulle de chaîne et poignée des largeurs
 - ui/composant/ : analyse retenue (constats, pastille), section Variants, corps du mode Composant (vue, frontière tirable, panneau)
+- ui/analyse/ : panneau des constats : ses trois onglets et leurs comptes, l'écran de chaque état de l'analyse (vide, en cours, aucun constat, partielle, annulée, arrêtée, périmée, library à choisir, hors UCM)
+- ui/corrections/ : onglet Corrections : cartes cochables par section (Liaisons, Tailles, Règles d'usage, Noms de valeurs), carte d'un modèle, sélection au clic, pied, Appliquer et ligne de réussite avec les sautées
 - ui/bibliotheque/ : library d'un fichier sans variable locale : relevé bâti sur ses noms, valeurs importées à l'ouverture d'un groupe
 - ui/nomenclature/ : coquille de Nomenclature et sa frontière, onglets À appliquer, À trancher et Règles, feuilles, Configuration ; montée dans le panneau latéral du mode Tokens
 

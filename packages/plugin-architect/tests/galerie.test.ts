@@ -22,7 +22,7 @@ const racine = path.resolve(__dirname, '..');
  * Les messages du sandbox que l'interface d'Architect reçoit, par domaine. Ceux de Nomenclature ont leurs états
  * dans `nomenclatureSocle.test.ts`. Les domaines construits par les lots suivants ajoutent ici leur fichier.
  */
-const DOMAINES_DE_MESSAGES: readonly (readonly [string, string])[] = [['commun.ts', 'MessageDeCommun'], ['arbre.ts', 'MessageDArbre'], ['composant.ts', 'MessageDeComposant']];
+const DOMAINES_DE_MESSAGES: readonly (readonly [string, string])[] = [['commun.ts', 'MessageDeCommun'], ['arbre.ts', 'MessageDArbre'], ['composant.ts', 'MessageDeComposant'], ['analyse.ts', 'MessageDAnalyse'], ['corrections.ts', 'MessageDeCorrections'], ['ignores.ts', 'MessageDIgnores']];
 const { ETATS: TOUS } = require('../galerie/etats.cjs') as { ETATS: EtatDeGalerie[] };
 /** Les états d'Architect ; ceux de Nomenclature sont jugés par `nomenclatureSocle.test.ts`. */
 const ETATS = TOUS.filter((etat) => (etat as { domaine?: string }).domaine !== 'nomenclature');
@@ -45,10 +45,9 @@ test('tout message que le sandbox peut envoyer a un état où le regarder', () =
   // Les états de la recherche et de la fiche jouent des messages de Nomenclature, que ces domaines ne déclarent pas : ils n'ont aucun message propre.
   // Ceux de la library jouent aussi des messages de Nomenclature ; ses propres messages (`bibliotheque`, `valeurs`) entrent ici quand `bibliotheque-illisible` aura son état (e-biblio, lot U6).
   const avecMessages = ETATS.filter((etat) => !['recherche', 'fiche', 'structure', 'bibliotheque'].includes((etat as { domaine?: string }).domaine ?? ''));
-  // La vue composant joue déjà le message `analyse` ; les autres messages de l'analyse auront leurs états avec le panneau (lot U6), qui fera entrer `analyse.ts` dans DOMAINES_DE_MESSAGES.
-  const avantLePanneau = typesDeLUnion(fs.readFileSync(path.join(racine, 'src', 'messages', 'analyse.ts'), 'utf8'), 'MessageDAnalyse');
-  const ecarts = ecartsDesMessages(new Set([...declares, ...avantLePanneau]), avecMessages);
-  assert.deepEqual({ ...ecarts, jamaisRegardes: ecarts.jamaisRegardes.filter((type) => !avantLePanneau.has(type)) }, { jamaisRegardes: [], inventes: [] });
+  // `e-biblio` joue le message `configuration` : son domaine entre ici avec la Configuration (lot U8), qui joue aussi `structure-annulee`.
+  const avantLaConfiguration = new Set(['configuration']);
+  assert.deepEqual(ecartsDesMessages(new Set([...declares, ...avantLaConfiguration]), avecMessages), { jamaisRegardes: [], inventes: [] });
 });
 
 test('le décalque sert toutes les variables de thème que les feuilles demandent', () => {

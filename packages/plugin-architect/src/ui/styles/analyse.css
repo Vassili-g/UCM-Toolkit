@@ -1,0 +1,14 @@
+/*
+ * Le panneau des constats : ses onglets portent le compte de leur liste. Les classes du résumé du composant et de l'alerte sont celles
+ * de `composant.css` et du socle.
+ */
+.onglet .compte {
+  display: inline-block;
+  min-width: 16px;
+  margin-left: var(--espace-controle);
+  padding: 0 var(--espace-serre);
+  border-radius: 99px;
+  background: var(--fond-note);
+  color: var(--texte);
+  text-align: center;
+}

@@ -10,8 +10,9 @@ import { creerPastilleDeCompte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createSettingsButton } from 'ucm-plugin-socle/src/ui/EnTete';
 import type { Disposition } from '../fenetre';
 import type { Application, Composant } from './application';
-import { tonLePlusGrave } from './composant/analyse';
+import { libraryAChoisir, tonLePlusGrave } from './composant/analyse';
 import { TEXTES } from './textes';
+import { estHorsUcm } from './vues/horsUcm';
 
 const ESPACE_SVG = 'http://www.w3.org/2000/svg';
 
@@ -114,7 +115,7 @@ export function creerBarre(app: Application): Composant {
       actualiser.hidden = composant;
       annuler.hidden = composant || !enCours;
       actualiser.disabled = enCours;
-      analyser.hidden = !composant;
+      analyser.hidden = !composant || estHorsUcm(etat.architecture);
       constats.hidden = !composant;
       const analyse = etat.analyse;
       const analyseEnCours = analyse?.statut === 'en-cours';
@@ -122,7 +123,8 @@ export function creerBarre(app: Application): Composant {
       analyser.classList.toggle('btn-primary', !dejaAnalyse);
       analyser.classList.toggle('btn-secondary', dejaAnalyse);
       analyserTexte.textContent = dejaAnalyse ? TEXTES.actualiser : TEXTES.analyser;
-      analyser.disabled = analyseEnCours;
+      // Pas de relance pendant une analyse ni pendant l'écriture d'un lot ; sans library choisie, l'analyse n'a rien à lire.
+      analyser.disabled = analyseEnCours || (analyse?.ecriture ?? null) !== null || (!dejaAnalyse && libraryAChoisir(etat));
       constats.setAttribute('aria-pressed', String(etat.panneau.ouvert));
       constats.title = etat.panneau.ouvert ? TEXTES.constatsFermer : TEXTES.constatsOuvrir;
       const nombre = analyse && !analyseEnCours ? analyse.constats.length : 0;

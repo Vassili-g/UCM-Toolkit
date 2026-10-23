@@ -310,6 +310,9 @@ function recevoir(message: PluginMessage): void {
       }
       return;
     case 'selection':
+      // La sélection que le plugin pose au clic sur un constat garde la vue où elle est : l'aperçu entoure déjà les layers.
+      if (message.origine === 'plugin') return;
+      vueComposant.poserLaSelectionDuPlugin([]);
       vueComposant.recevoirSelection(message.sujet, message.ignores);
       return;
     case 'disposition':
@@ -318,15 +321,21 @@ function recevoir(message: PluginMessage): void {
     case 'declaration':
       etat.architecture = message.architecture;
       poserLAlerteHorsUcm();
-      app.rendre(['table']);
+      app.rendre(['table', 'barre']);
       return;
     case 'analyse-commencee':
     case 'analyse-en-cours':
     case 'analyse':
     case 'perime':
     case 'occupe':
+    case 'corrections-appliquees':
+    case 'ignores':
       recevoirUneAnalyse(etat, message);
       vueComposant.mettreAJour();
+      app.rendre(['barre']);
+      return;
+    case 'configuration':
+      etat.reference = { library: message.library?.cle ?? null, candidates: message.candidates.length };
       app.rendre(['barre']);
       return;
     case 'non-construit':

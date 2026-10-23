@@ -68,6 +68,8 @@ export interface VueComposant extends Composant {
    * `auClic` ; la vue ne change jamais la sélection.
    */
   poserLesCorrections(corrections: readonly CorrectionAffichee[], auClic: (calques: readonly string[]) => void): void;
+  /** Les layers que le plugin vient de sélectionner dans Figma au clic sur un constat : l'aperçu les entoure d'un trait de 1 px, jusqu'à la sélection suivante. */
+  poserLaSelectionDuPlugin(calques: readonly string[]): void;
   /** La sélection de Figma a changé : la vue suit, si elle est visible. */
   recevoirSelection(sujet: SujetSelectionne | null, ignores: number): void;
   recevoirLecture(demande: number, lecture: LectureDeComposant | null): void;
@@ -126,6 +128,7 @@ export function creerVueComposant(app: Application): VueComposant {
   let proprietesDepliees = new Set<string>();
   let tableau: { lignes: string; colonnes: string } | null = null;
   let corrections: readonly CorrectionAffichee[] = [];
+  let selectionDuPlugin: readonly string[] = [];
   let auClicDeCorrection: (calques: readonly string[]) => void = () => {};
   let filtre = '';
   let filtreOuvert = false;
@@ -346,7 +349,7 @@ export function creerVueComposant(app: Application): VueComposant {
   }
 
   /** Les cadres des calques dont la boîte coupe l'image, réduits du même facteur qu'elle. */
-  function poserLesCadres(calques: readonly string[], dePortee: boolean): void {
+  function poserLesCadres(calques: readonly string[], genre: 'survol' | 'portee' | 'selection'): void {
     const { lecture, apercu } = c;
     if (!cadres || !lecture || !apercu) return;
     const facteur = Math.min(1, LARGEUR_DE_LAPERCU / apercu.largeur, HAUTEUR_DE_LAPERCU / apercu.hauteur);
@@ -358,7 +361,8 @@ export function creerVueComposant(app: Application): VueComposant {
       if (x >= apercu.largeur || y >= apercu.hauteur || x + calque.boite.largeur <= 0 || y + calque.boite.hauteur <= 0) continue;
       const cadre = document.createElement('div');
       cadre.className = 'vc-cadre';
-      cadre.classList.toggle('vc-cadre-portee', dePortee);
+      cadre.classList.toggle('vc-cadre-portee', genre === 'portee');
+      cadre.classList.toggle('vc-cadre-selection', genre === 'selection');
       cadre.style.left = `${x * facteur}px`;
       cadre.style.top = `${y * facteur}px`;
       cadre.style.width = `${calque.boite.largeur * facteur}px`;
@@ -369,7 +373,7 @@ export function creerVueComposant(app: Application): VueComposant {
 
   function retirerLesCadresDeSurvol(): void {
     if (!cadres) return;
-    for (const cadre of Array.from(cadres.children)) if (cadre.classList.contains('vc-cadre') && !cadre.classList.contains('vc-cadre-portee')) cadre.remove();
+    for (const cadre of Array.from(cadres.children)) if (cadre.classList.contains('vc-cadre') && !cadre.classList.contains('vc-cadre-portee') && !cadre.classList.contains('vc-cadre-selection')) cadre.remove();
   }
 
   function zoneDApercu(lecture: LectureDeComposant, portee: string): HTMLElement | null {
@@ -391,7 +395,8 @@ export function creerVueComposant(app: Application): VueComposant {
     echelle.append(image);
     cadres = echelle;
     zone.append(echelle);
-    if (portee !== racineDe(lecture)) poserLesCadres([portee], true);
+    if (portee !== racineDe(lecture)) poserLesCadres([portee], 'portee');
+    poserLesCadres(selectionDuPlugin, 'selection');
     return zone;
   }
 
@@ -402,6 +407,7 @@ export function creerVueComposant(app: Application): VueComposant {
     return creerSectionVariants({
       variants: lecture.sujet.variants,
       constats: analyse.constats,
+      nonLus: new Set(analyse.lecture?.variantsNonLus ?? []),
       affiche: lecture.sujet.variants.find((variant) => variant.id === lu)?.nom,
       depliees: proprietesDepliees,
       tableau,
@@ -868,7 +874,7 @@ export function creerVueComposant(app: Application): VueComposant {
   const viser = (evenement: Event): void => {
     retirerLesCadresDeSurvol();
     const ligne = ligneVisee(evenement);
-    if (ligne) poserLesCadres(ligne.calques, false);
+    if (ligne) poserLesCadres(ligne.calques, 'survol');
   };
   element.addEventListener('mouseover', viser);
   element.addEventListener('focusin', viser);
@@ -879,6 +885,10 @@ export function creerVueComposant(app: Application): VueComposant {
     element,
     mettreAJour: rendre,
     activer: suivreLaSelection,
+    poserLaSelectionDuPlugin(calques) {
+      selectionDuPlugin = calques;
+      rendre();
+    },
     poserLesCorrections(liste, auClic) {
       corrections = liste;
       auClicDeCorrection = auClic;

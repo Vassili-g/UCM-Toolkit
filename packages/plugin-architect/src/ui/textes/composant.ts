@@ -54,6 +54,7 @@ export const TEXTES_COMPOSANT = {
     affiche: 'Affiché',
     copier: 'Copier ses liaisons aux autres variants',
     autres: (nombre: number) => `+${nombre}`,
+    nonLu: 'non lu',
     lignes: 'Lignes',
     colonnes: 'Colonnes',
   },
