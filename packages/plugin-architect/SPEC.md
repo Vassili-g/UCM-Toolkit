@@ -25,14 +25,11 @@ les préférences : vue compacte, intégrations actives,
 associations du profil, exceptions, et largeurs de l'arbre et des colonnes du
 nom et du type.
 
-La simulation remplace une valeur dans une copie du relevé, en mémoire.
-Réinitialiser rend le relevé lu dans Figma lui-même.
-
 ## Architecture libre
 
 Aucun nom de collection, de groupe ou de mode n'a de sens réservé. Une
 collection unique, des alias internes, plusieurs axes de modes et des
-valeurs directes sont des cas ordinaires. Un fichier sans recette ni contrat
+valeurs directes sont des cas ordinaires. Un fichier sans recette
 est complet : l'interface n'affiche aucune alerte d'absence d'UCM.
 
 L'arbre suit la distinction Figma entre collections et groupes. Un groupe
@@ -125,14 +122,6 @@ transparente ; la marque d'écart de la [vue composant](#vue-composant) donne
 la valeur que Figma rend. Une forme voisine, clé en plus ou opacité hors de 0 à 1, reste
 « non prise en charge ».
 
-### Comparer deux contextes
-
-L'onglet Comparer porte les sélecteurs de mode des deux contextes, un par
-famille à plusieurs modes. La comparaison nomme la première étape où les chaînes visent des variables
-différentes, et l'étape antérieure dont le mode a changé. Elle dit ensuite si
-les valeurs terminales sont égales. Quand l'un des contextes n'aboutit pas,
-aucune égalité n'est affirmée.
-
 ### Copier
 
 | Commande | Texte copié |
@@ -142,7 +131,6 @@ aucune égalité n'est affirmée.
 | Composantes | `rgba(r, g, b, a)`, composantes de Figma |
 | Chaîne | Une étape par ligne, puis la valeur ou le constat |
 | Donnée source | La valeur rangée du premier mode, en JSON |
-| Référence publiée | `{chemin}`, seulement avec un `tokens.json` importé qui le porte |
 
 Un refus du presse-papiers laisse le texte dans une zone sélectionnable. Le
 succès ne s'annonce qu'après une copie réussie.
@@ -154,10 +142,6 @@ autres familles au contexte actif. Les départs qui butent sur la même
 cause forment un constat : un par ensemble de variables d'un cycle, un par
 cible inaccessible. Chaque constat nomme la variable en cause et un geste ;
 aucune réparation n'est faite.
-
-Le rapport exporté (`ucm-explorateur/rapport`, version 1) garde le fichier, la
-révision, le contexte, la portée, les chemins et les constats, avec les
-identifiants Figma. Ce n'est ni un contrat ni un export de tokens.
 
 ## Contraste
 
@@ -223,28 +207,11 @@ les reprend une à une.
 
 | Intégration | Activation | Ce qu'elle ajoute |
 |---|---|---|
-| Contrats et `tokens.json` | Import de fichiers, en mémoire | Correspondance publiée, occurrences contractuelles, écarts avec l'export |
 | Recette UCM Palettes | Interrupteur, rangé dans les préférences | Classement de la recette ; association explicite d'une variable à un cran ; variables de dossier du cran |
 | Profil d'architecture UCM | Interrupteur et association de chaque collection à une couche | Couches visées, valeurs directes, portées, nuance attendue |
 
 Désactiver une intégration retire ses constats et ses sections de
 l'inspecteur, sans changer la table ni la navigation.
-
-**Contrats et tokens.** Un fichier dépasse 20 Mo, ou l'ensemble 50 Mo : il
-est refusé, et les imports précédents restent. Un contrat se juge par
-`@ucm-kit/core/lecteurs/navigateur`, comme `ucm check` le juge : la fenêtre de
-versions du kit, puis `champsInvalidesDuContrat`, champ par champ. Le JSON
-Schema n'est pas appliqué : son lecteur charge le schéma depuis le disque. Ses
-références se relèvent hors de `samples` et `meta`, chacune avec son adresse,
-ses variants et sa propriété. Une variable se rapproche d'un token par le
-chemin qu'UCM Exporter publie (`joinTokenPath` de `@ucm-kit/core/format`), jamais par sa
-valeur ; deux variables qui donnent le même chemin rendent un rapprochement
-ambigu. La comparaison avec l'export porte sur le type, puis sur l'alias ou
-la valeur de chaque mode ; un écart peut venir d'un export antérieur. Un mode
-que la comparaison n'a pas pu faire (pas de valeur dans Figma, alias avec
-opacité, forme, unité ou espace de couleur que l'explorateur ne compare pas)
-rend une limite avec sa cause. L'égalité ne s'affiche que si chaque mode
-annoncé a été comparé.
 
 **Recette UCM Palettes.** Le texte rangé sous `ucm_palettes/recette` se
 classe par `classerRecette` d'`ucm-couleur`, sans migration. La recette ne
@@ -287,13 +254,6 @@ Le profil annonce aussi les contrôles impossibles, avec une cause et la
 variable concernée : rôle de `theme` inconnu, mode non reconnu, valeur absente
 dans un mode ou cible dont la collection n'a pas de couche. Une limite n'est
 pas un écart et ne disparaît pas avec une exception du designer.
-
-## Relevés et simulation
-
-Le relevé s'exporte en JSON (`ucm-explorateur/releve`, version 1) et se
-réimporte pour comparaison. Deux variables se rapprochent par identifiant,
-puis par clé publiée. Un nom égal ne fait qu'une proposition, que le designer
-confirme. Un renommage reste un renommage.
 
 ## Interface
 
