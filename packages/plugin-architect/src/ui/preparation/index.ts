@@ -90,6 +90,7 @@ export function monterPreparation(etat: Etat): Preparation {
   };
 
   function rendre(): void {
+    panneau.classList.remove('prep-rangee', 'prep-sans-cibles', 'prep-autre', 'prep-liaisons');
     const nom = etat.composant.lecture?.sujet.nom ?? rangee?.source.jeu.nom ?? '';
     titre.textContent = T.preparationTitre(nom);
     corps.replaceChildren();
@@ -170,6 +171,7 @@ export function monterPreparation(etat: Etat): Preparation {
     if (rangee) {
       const total = rangee.variables.length;
       const nomRangee = rangee.source.jeu.nom;
+      panneau.classList.add('prep-rangee');
       panneau.hidden = false; panneau.replaceChildren();
       const copier = bouton(T.preparationCopie, () => versSandbox({ type: 'copier-preparation', preparation: rangee!.id }), 'prep-copier'); copier.className = 'btn-texte prep-copier';
       const abandonner = bouton(T.preparationAbandonner, () => versSandbox({ type: 'abandonner-preparation', preparation: rangee!.id }), 'prep-abandonner'); abandonner.className = 'btn-texte prep-abandonner';
@@ -198,6 +200,7 @@ export function monterPreparation(etat: Etat): Preparation {
     element: voile,
     panneau,
     ouvrir() {
+      panneau.classList.remove('prep-rangee', 'prep-sans-cibles', 'prep-autre', 'prep-liaisons');
       const boiteDuPanneau = document.querySelector('.arch-laterale')?.getBoundingClientRect();
       feuille.style.left = `${Math.max(12, (boiteDuPanneau?.left ?? 0) + 12)}px`;
       voile.dataset.ouverte = 'oui'; voile.hidden = false; panneau.hidden = true;
@@ -208,7 +211,7 @@ export function monterPreparation(etat: Etat): Preparation {
     recevoir(message) {
       if (message.type === 'plan-de-preparation') {
         plan = message.plan; refus = message.refus; enCours = false;
-        if (message.refus === 'sans-cibles') { voile.hidden = true; panneau.hidden = false; panneau.replaceChildren();
+        if (message.refus === 'sans-cibles') { voile.hidden = true; panneau.hidden = false; panneau.classList.add('prep-sans-cibles'); panneau.replaceChildren();
           panneau.append(creerAlerte('info', {
             titre: T.preparationVariablesACreer(plan?.variables.length ?? 16, etat.composant.lecture?.sujet.nom ?? 'Tag'),
             texte: T.preparationRefus['sans-cibles'], meta: T.preparationOuvrirFichierDesTokens,
@@ -226,11 +229,14 @@ export function monterPreparation(etat: Etat): Preparation {
         });
       } else if (message.type === 'texte-refuse') { refus = message.motif; modeColle = true; rendre(); }
       else if (message.type === 'liaisons-preparees') {
+        panneau.classList.remove('prep-rangee', 'prep-sans-cibles');
         refus = message.refus;
         if (message.refus === 'autre-composant') {
+          panneau.classList.add('prep-autre');
           panneau.hidden = false; panneau.replaceChildren();
           panneau.append(creerAlerte('info', { titre: T.preparationAutresComposants, texte: T.preparationSelectionnerLeComposant })); voile.hidden = true;
         } else {
+          panneau.classList.add('prep-liaisons');
           panneau.hidden = false;
           panneau.replaceChildren(creerAlerte('tenu', { texte: T.preparationLiaisonsPubliees(etat.composant.lecture?.sujet.nom ?? 'Tag', message.corrections.length) }));
           voile.hidden = true;

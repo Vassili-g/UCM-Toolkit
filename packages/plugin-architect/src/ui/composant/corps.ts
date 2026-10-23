@@ -66,15 +66,36 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
 
   const constats = monterLePanneau(app, vue);
   const ajusterResultatPreparation = (): void => {
-    const resultatPreparation = preparation.element.hidden && !preparation.panneau.hidden;
+    const resultatPreparation = preparation.element.hidden && preparation.panneau.classList.contains('prep-rangee');
+    const resultatSansCibles = preparation.panneau.classList.contains('prep-sans-cibles');
+    const resultatAutreComposant = preparation.panneau.classList.contains('prep-autre') || preparation.panneau.classList.contains('prep-liaisons');
     if (!resultatPreparation) {
-      if (preparation.element.hidden && (constats.element.classList.contains('prep-resultat') || preparation.panneau.classList.contains('prep-resultat'))) {
+      if (resultatSansCibles) {
+        constats.element.hidden = true;
+        ouvrirPreparation.hidden = true;
+        if (preparation.panneau.style.top !== '16px') preparation.panneau.style.top = '16px';
+        if (constats.element.classList.contains('prep-resultat')) constats.element.classList.remove('prep-resultat');
+        if (constats.element.classList.contains('prep-autre')) constats.element.classList.remove('prep-autre');
+        if (preparation.panneau.classList.contains('prep-resultat')) preparation.panneau.classList.remove('prep-resultat');
+      } else if (resultatAutreComposant) {
+        constats.element.hidden = false;
+        constats.element.classList.add('prep-autre');
+        if (preparation.panneau.style.top !== '53px') preparation.panneau.style.top = '53px';
+        constats.element.querySelector('.onglets')?.remove();
+        for (const selecteur of ['#panneau-corrections', '#panneau-questions', '#panneau-a-faire']) constats.element.querySelector(selecteur)?.remove();
+        ouvrirPreparation.hidden = true;
+      } else if (preparation.element.hidden && (constats.element.classList.contains('prep-resultat') || constats.element.classList.contains('prep-autre') || constats.element.hidden || preparation.panneau.classList.contains('prep-resultat'))) {
+        constats.element.hidden = false;
         constats.element.classList.remove('prep-resultat');
+        constats.element.classList.remove('prep-autre');
         preparation.panneau.classList.remove('prep-resultat');
+        if (preparation.panneau.style.top !== '52px') preparation.panneau.style.top = '52px';
         constats.mettreAJour();
       }
       return;
     }
+    constats.element.hidden = false;
+    if (constats.element.classList.contains('prep-autre')) constats.element.classList.remove('prep-autre');
     constats.element.querySelector('.onglets')?.remove();
     for (const selecteur of ['#panneau-corrections', '#panneau-questions', '#panneau-a-faire']) constats.element.querySelector(selecteur)?.remove();
     ouvrirPreparation.remove();
