@@ -585,6 +585,12 @@
   background: var(--fond);
 }
 
+/* La Configuration prend toute la fenêtre du mode Tokens : ni arbre, ni tableau, ni pied, et une colonne de 720 px au centre. */
+.corps-configuration { grid-template-columns: minmax(0, 1fr); }
+.corps-configuration > :not(.panneau-lateral), .corps-configuration + .pied { display: none; }
+.corps-configuration > .panneau-lateral { border-left: 0; }
+.corps-configuration .panneau-lateral > .container { max-width: 720px; margin: 0 auto; }
+
 /* Sous 1100 px, le panneau passe sous l'arbre et le centre, sur toute la largeur. */
 @media (max-width: 1099px) {
   .corps {

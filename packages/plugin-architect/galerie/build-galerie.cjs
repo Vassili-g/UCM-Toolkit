@@ -64,6 +64,17 @@ function poserLesCadresSeuls(galerie) {
   }
 }
 
+/**
+ * Les états dont le texte porte l'heure de la création de variables, que l'interface lit à la réception du message : la page voit
+ * « aujourd'hui à 14:31 », comme la maquette, quelle que soit l'heure de la capture.
+ */
+const ETATS_A_L_HEURE_FIGEE = ['cf-historique', 'annuler-creation'];
+const horlogeFigee = () => {
+  const maintenant = new Date();
+  maintenant.setHours(14, 31, 0, 0);
+  return `<script>{ const Reelle = Date; const figee = ${maintenant.getTime()}; globalThis.Date = class extends Reelle { constructor(...arguments_) { if (arguments_.length === 0) super(figee); else super(...arguments_); } static now() { return figee; } }; }</script>`;
+};
+
 module.exports = { GALERIES, STYLE_DU_CADRE_SEUL, cadresSeuls };
 
 if (require.main === module) {
@@ -76,6 +87,14 @@ if (require.main === module) {
         if (!fs.existsSync(fichier)) continue;
         const page = fs.readFileSync(fichier, 'utf8');
         fs.writeFileSync(fichier, page.replace('</head>', () => '<script>Date.now = () => Date.UTC(2026, 0, 1, 13, 2);</script></head>'));
+      }
+    }
+    for (const id of ETATS_A_L_HEURE_FIGEE) {
+      for (const nom of Object.keys(MODES)) {
+        const fichier = path.join(sortieDe(galerie), nom, `${id}.html`);
+        if (!fs.existsSync(fichier)) continue;
+        const page = fs.readFileSync(fichier, 'utf8');
+        fs.writeFileSync(fichier, page.replace('</head>', () => `${horlogeFigee()}</head>`));
       }
     }
   }

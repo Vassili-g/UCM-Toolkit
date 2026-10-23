@@ -301,7 +301,9 @@ export function creerHistorique(actions: ActionsDeLHistorique, maintenant: () =>
     if (derniers.importe) enfants.push(sectionDeLImport(derniers.importe));
     if (creation) enfants.push(creation);
     if (enfants.length === 0) enfants.push(note(TEXTES.rienAAnnuler), note(TEXTES.rienAAnnulerExplication));
-    element.replaceChildren(...enfants);
+    const aide = creer('p', TEXTES.correctionsDUnComposant);
+    aide.className = 'field-help';
+    element.replaceChildren(...enfants, aide);
     synchroniser();
   }
 

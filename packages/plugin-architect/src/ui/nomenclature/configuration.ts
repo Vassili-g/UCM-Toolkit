@@ -8,7 +8,6 @@ import { createOnglets } from 'ucm-plugin-socle/src/ui/Onglets';
 import { createInterrupteur } from 'ucm-plugin-socle/src/ui/Interrupteur';
 import type { Bilan, CollectionVue, ProtectionVue } from '../../messages/nomenclature';
 import type { MessageDeConfiguration } from '../../messages/configuration';
-import type { MessageDePreparation } from '../../messages/preparation';
 import type { Coquille } from './coquille';
 import type { MessageAAfficher } from './frontiere';
 import { telecharger } from './telechargement';
@@ -21,7 +20,7 @@ import { versSandbox } from '../pont';
 
 export interface ConfigurationMontee {
   recevoirConfiguration(message: MessageDeConfiguration): void;
-  recevoirCreation(message: Extract<MessageDePreparation, { type: 'variables-creees' }>, composant: string): void;
+  noterLaCreation(nombre: number, composant: string, journal: boolean): void;
 }
 
 /** La taille d'import que `estUiMessage` accepte (`src/messages.ts`) : au-delà, le sandbox ignore la demande. */
@@ -63,7 +62,7 @@ function poserLaCollection(ligne: LigneDeCollection, collection: CollectionVue, 
 }
 
 /** Monte la page Configuration dans le conteneur de la coquille. */
-export function monterConfiguration(coquille: Coquille, ouvrirLaPreparation: () => void = () => {}): ConfigurationMontee {
+export function monterConfiguration(coquille: Coquille, collerUnePreparation: () => void = () => {}): ConfigurationMontee {
   const { frontiere } = coquille;
   /** Les demandes de cette page : seules leurs réponses s'y affichent. */
   const demandes = new Set<number>();
@@ -255,11 +254,11 @@ export function monterConfiguration(coquille: Coquille, ouvrirLaPreparation: () 
   const niveauAa = document.createElement('button');
   const niveauAaa = document.createElement('button');
   const basculeNiveau = document.createElement('span');
-  basculeNiveau.className = 'niveau-contraste';
+  basculeNiveau.className = 'bascule';
   basculeNiveau.setAttribute('role', 'group');
   basculeNiveau.setAttribute('aria-label', TEXTES.niveauDeContraste);
   for (const [bouton, etiquette, niveau] of [[niveauAa, TEXTES.niveauAa, 'AA'], [niveauAaa, TEXTES.niveauAaa, 'AAA']] as const) {
-    bouton.type = 'button'; bouton.className = 'niveau-contraste-choix'; bouton.textContent = etiquette;
+    bouton.type = 'button'; bouton.className = 'bascule-choix'; bouton.textContent = etiquette;
     bouton.addEventListener('click', () => versSandbox({ type: 'ranger-niveau', niveau }));
     basculeNiveau.append(bouton);
   }
@@ -272,18 +271,24 @@ export function monterConfiguration(coquille: Coquille, ouvrirLaPreparation: () 
   const niveauReglage = document.createElement('div'); niveauReglage.className = 'reglage'; niveauReglage.append(niveauLine, niveauAide);
   const niveauSection = section(creerIntertitre(TEXTES.accessibilite), niveauReglage);
 
+  const boutonsEnLigne = (...boutons: HTMLElement[]): HTMLElement => {
+    const ligne = document.createElement('div');
+    ligne.append(...boutons);
+    return ligne;
+  };
   const preparationAide = document.createElement('p');
   preparationAide.className = 'field-help';
   preparationAide.textContent = TEXTES.preparationRecueAide;
-  const collerPreparation = createButton({ label: TEXTES.collerUnePreparation, variant: 'secondary', compact: true, onClick: ouvrirLaPreparation });
-  const preparationSection = section(creerIntertitre(TEXTES.preparationRecue), preparationAide, collerPreparation);
+  const collerPreparation = createButton({ label: TEXTES.collerUnePreparation, variant: 'secondary', compact: true, onClick: collerUnePreparation });
+  const preparationSection = section(creerIntertitre(TEXTES.preparationRecue), preparationAide, boutonsEnLigne(collerPreparation));
 
   const panneauDesReglages = document.createElement('div');
   panneauDesReglages.className = 'page-stack';
-  const architectureSection = section(creerIntertitre(TEXTES.architectureDuFichier), architecture.element, etatArchitecture,
-    librarySection, niveauSection, preparationSection);
   panneauDesReglages.append(
-    architectureSection,
+    section(creerIntertitre(TEXTES.architectureDuFichier), architecture.element, etatArchitecture),
+    librarySection,
+    niveauSection,
+    preparationSection,
     section(creerIntertitre(TEXTES.collectionsAnalysees), sansCollection, liste, causes),
     section(creerIntertitre(TEXTES.reglesDeCeFichier), reglesBoutons),
   );
@@ -317,11 +322,12 @@ export function monterConfiguration(coquille: Coquille, ouvrirLaPreparation: () 
     demandeStructure += 1; demandeStructureEnCours = demandeStructure; annulerCreation.disabled = true;
     versSandbox({ type: 'annuler-structure', demande: demandeStructure });
   } });
+  annulerCreation.setAttribute('data-action', 'annuler-creation');
   ligneCreation.append(texteCreation, annulerCreation);
   const aideCreation = document.createElement('p');
   aideCreation.className = 'field-help'; aideCreation.textContent = TEXTES.creationPublieeAide;
-  const resultatCreation = document.createElement('p');
-  resultatCreation.className = 'historique-avertissement'; resultatCreation.setAttribute('role', 'status'); resultatCreation.hidden = true;
+  const resultatCreation = document.createElement('div');
+  resultatCreation.setAttribute('role', 'status'); resultatCreation.hidden = true;
   const sectionCreation = section(creerIntertitre(TEXTES.derniereCreationDeVariables), ligneCreation, aideCreation, resultatCreation);
   sectionCreation.hidden = true;
 
@@ -405,6 +411,18 @@ export function monterConfiguration(coquille: Coquille, ouvrirLaPreparation: () 
   });
   lireLeBilan(coquille.etat().bilan);
 
+  /** Ce que l'annulation de structure a fait, une ligne par fait ; la limite des usages suit tout lot qui portait une création. */
+  function lignesDeLAnnulation(message: Extract<MessageDeConfiguration, { type: 'structure-annulee' }>): string[] {
+    if (message.refus === 'occupe') return [TEXTES.annulationStructureOccupee];
+    if (message.refus === 'hors-ucm') return [TEXTES.annulationStructureHorsUcm];
+    if (message.journal === 'absent') return [TEXTES.annulationStructureJournalAbsent];
+    if (message.journal === 'illisible') return [TEXTES.annulationStructureJournalIllisible];
+    const lignes = message.sautees.map((ligne) => TEXTES.annulationStructureSautee[ligne.motif](ligne.variable));
+    if (lignes.length === 0) lignes.push(TEXTES.annulationStructureFaite(message.defaites));
+    if (message.limiteDesUsages) lignes.push(TEXTES.annulationStructureUsagesExternes);
+    return lignes;
+  }
+
   function recevoirConfiguration(message: MessageDeConfiguration): void {
     if (message.type === 'configuration') {
       librarySelect.replaceChildren(...message.candidates.map((candidate) => {
@@ -418,35 +436,29 @@ export function monterConfiguration(coquille: Coquille, ouvrirLaPreparation: () 
       return;
     }
     if (message.demande !== demandeStructureEnCours) return;
-    demandeStructureEnCours = null; annulerCreation.disabled = false; resultatCreation.hidden = false;
-    if (message.refus === 'occupe') resultatCreation.textContent = TEXTES.annulationStructureOccupee;
-    else if (message.refus === 'hors-ucm') resultatCreation.textContent = TEXTES.annulationStructureHorsUcm;
-    else if (message.journal === 'absent') resultatCreation.textContent = TEXTES.annulationStructureJournalAbsent;
-    else if (message.journal === 'illisible') resultatCreation.textContent = TEXTES.annulationStructureJournalIllisible;
-    else if (message.sautees.length) {
-      resultatCreation.replaceChildren(...message.sautees.map((ligne) => {
-        const detail = document.createElement('span');
-        detail.textContent = ligne.motif === 'objet-change' ? TEXTES.annulationStructureObjetChange(ligne.variable)
-          : ligne.motif === 'usage-ajoute' ? TEXTES.annulationStructureUsageAjoute(ligne.variable)
-            : ligne.motif === 'usage-illisible' ? TEXTES.annulationStructureUsageIllisible(ligne.variable)
-              : TEXTES.annulationStructureErreur(ligne.variable);
-        return detail;
-      }));
-      if (message.limiteDesUsages) resultatCreation.append(document.createTextNode(` ${TEXTES.annulationStructureUsagesExternes}`));
-    } else resultatCreation.textContent = TEXTES.annulationStructureFaite(message.defaites);
+    demandeStructureEnCours = null; resultatCreation.hidden = false;
+    const retiree = message.refus === null && message.journal === 'lu' && message.restantes === 0;
+    annulerCreation.disabled = retiree;
+    aideCreation.hidden = retiree;
+    const lignes = lignesDeLAnnulation(message);
+    const refusee = message.refus !== null || message.journal !== 'lu' || message.sautees.length > 0;
+    resultatCreation.replaceChildren(...lignes.map((ligne) => {
+      const detail = document.createElement('p');
+      detail.className = refusee ? 'historique-avertissement' : 'field-help';
+      detail.textContent = ligne;
+      return detail;
+    }));
   }
 
-  function recevoirCreation(message: Extract<MessageDePreparation, { type: 'variables-creees' }>, composant = 'Tag'): void {
-    if (message.refus !== null) return;
-    const nombre = message.creees + message.gardees + message.remplacees;
-    const quand = TEXTES.quandLeLot(new Date().toISOString(), new Date());
-    texteCreation.textContent = TEXTES.creationDeVariablesHistorique(nombre, composant, quand);
-    annulerCreation.disabled = !message.journal || nombre === 0;
-    aideCreation.hidden = !message.journal;
+  function noterLaCreation(nombre: number, composant: string, journal: boolean): void {
+    const maintenant = new Date();
+    texteCreation.textContent = TEXTES.creationDeVariablesHistorique(nombre, composant, TEXTES.quandLeLot(maintenant.toISOString(), maintenant));
+    annulerCreation.disabled = !journal;
+    aideCreation.hidden = !journal;
     resultatCreation.hidden = true;
     sectionCreation.hidden = false;
     historique.poserCreation(sectionCreation);
   }
 
-  return { recevoirConfiguration, recevoirCreation };
+  return { recevoirConfiguration, noterLaCreation };
 }

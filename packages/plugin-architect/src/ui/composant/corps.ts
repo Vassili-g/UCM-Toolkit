@@ -172,7 +172,7 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
             meta.replaceChildren(premiereLigne, secondeLigne);
           }
         }
-        ouvrirPreparation.hidden = !etat.composant.lecture || !etat.analyse;
+        ouvrirPreparation.hidden = !etat.composant.lecture || !etat.analyse || !constatSansTokens;
         const resume = panneau.querySelector('.arch-resume');
         const ligneResume = resume?.querySelector('.arch-resume-ligne');
         if (ligneResume && !ligneResume.contains(ouvrirPreparation)) ligneResume.append(ouvrirPreparation);

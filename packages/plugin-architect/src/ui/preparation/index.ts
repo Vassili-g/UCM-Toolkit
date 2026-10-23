@@ -11,6 +11,8 @@ export interface Preparation {
   readonly element: HTMLElement;
   readonly panneau: HTMLElement;
   ouvrir(): void;
+  /** Ouvre la zone de texte d'une préparation reçue, sans passer par le bouton Préparer les tokens. */
+  ouvrirPourColler(): void;
   recevoir(message: MessageDePreparation): void;
 }
 
@@ -215,7 +217,15 @@ export function monterPreparation(etat: Etat): Preparation {
       versSandbox({ type: 'lire-preparations' });
       demander();
     },
+    ouvrirPourColler() {
+      panneau.classList.remove('prep-rangee', 'prep-sans-cibles', 'prep-autre', 'prep-liaisons');
+      voile.hidden = true; voile.dataset.ouverte = 'oui';
+      plan = null; rangee = null; refus = null; reponses = {}; modeColle = true; enCours = false;
+      rendre();
+    },
     recevoir(message) {
+      // Une lecture que le designer n'a pas demandée ne rouvre pas le panneau : le mode Tokens lit les préparations dès l'ouverture du plugin.
+      if (message.type === 'preparations' && message.nouvelle === undefined && voile.dataset.ouverte === undefined) return;
       if (message.type === 'plan-de-preparation') {
         plan = message.plan; refus = message.refus; enCours = false;
         if (message.refus === 'sans-cibles') { voile.hidden = true; panneau.hidden = false; panneau.classList.add('prep-sans-cibles'); panneau.replaceChildren();

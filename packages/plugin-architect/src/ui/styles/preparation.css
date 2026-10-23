@@ -88,3 +88,4 @@
 .prep-resultat .prep-copier > span { width: 89.5px; }
 .prep-resultat .prep-abandonner > span { left: -12px; width: 150.2px; }
 .constats-preparation-liaisons .onglets { margin-top: 49px; }
+.feuille-actions.creation-pied { margin-bottom: -16px; padding: 12px 0 16px; border-top: 1px solid var(--bordure); background: var(--fond); }

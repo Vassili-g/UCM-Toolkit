@@ -39,12 +39,16 @@ const RELEVE = `<script>
  */
 const MESSAGES_DU_SANDBOX = new Set(['preferences', 'preferences-rangees', 'progression', 'releve', 'lecture-echouee', 'annulation', 'selection', 'disposition', 'composant', 'apercu-du-composant', 'declaration', 'non-construit',
   // L'analyse, les corrections, les questions, les ignorés et la configuration.
-  'analyse-commencee', 'analyse-en-cours', 'analyse', 'perime', 'occupe', 'corrections-appliquees', 'modele-propose', 'question-repondue', 'ignores', 'configuration', 'structure-annulee']);
+  'analyse-commencee', 'analyse-en-cours', 'analyse', 'perime', 'occupe', 'corrections-appliquees', 'modele-propose', 'question-repondue', 'ignores', 'configuration', 'structure-annulee',
+  // La préparation des tokens et la création de ses variables.
+  'plan-de-preparation', 'preparations', 'preparation-texte', 'texte-refuse', 'variables-creees', 'liaisons-preparees']);
 
 /** Les demandes qu'un explorateur en lecture seule peut envoyer. */
 const DEMANDES_PERMISES = new Set(['lire-preferences', 'ranger-preferences', 'lire-releve', 'lire-structure', 'annuler', 'lire-composant', 'changer-disposition', 'resize',
   // L'analyse, les corrections, les questions, les ignorés et la configuration.
-  'analyser', 'annuler-analyse', 'appliquer-corrections', 'selectionner', 'servir-de-modele', 'repondre', 'annuler-reponse', 'ignorer', 'ne-plus-ignorer', 'lire-configuration', 'ranger-library', 'ranger-niveau', 'annuler-structure']);
+  'analyser', 'annuler-analyse', 'appliquer-corrections', 'selectionner', 'servir-de-modele', 'repondre', 'annuler-reponse', 'ignorer', 'ne-plus-ignorer', 'lire-configuration', 'ranger-library', 'ranger-niveau', 'annuler-structure',
+  // La préparation des tokens et la création de ses variables.
+  'preparer', 'lire-preparations', 'lire-texte', 'creer-variables', 'abandonner-preparation', 'copier-preparation', 'lier-preparation']);
 
 export async function ouvrir({ largeur = 1360, hauteur = 800, classe = '', presse = true } = {}) {
   const contexte = await navigateur.newContext({ viewport: { width: largeur, height: hauteur }, permissions: presse ? ['clipboard-read', 'clipboard-write'] : [] });

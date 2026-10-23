@@ -22,7 +22,7 @@ const racine = path.resolve(__dirname, '..');
  * Les messages du sandbox que l'interface d'Architect reçoit, par domaine. Ceux de Nomenclature ont leurs états
  * dans `nomenclatureSocle.test.ts`. Les domaines construits par les lots suivants ajoutent ici leur fichier.
  */
-const DOMAINES_DE_MESSAGES: readonly (readonly [string, string])[] = [['commun.ts', 'MessageDeCommun'], ['arbre.ts', 'MessageDArbre'], ['composant.ts', 'MessageDeComposant'], ['analyse.ts', 'MessageDAnalyse'], ['corrections.ts', 'MessageDeCorrections'], ['questions.ts', 'MessageDeQuestions'], ['ignores.ts', 'MessageDIgnores'], ['preparation.ts', 'MessageDePreparation']];
+const DOMAINES_DE_MESSAGES: readonly (readonly [string, string])[] = [['commun.ts', 'MessageDeCommun'], ['arbre.ts', 'MessageDArbre'], ['composant.ts', 'MessageDeComposant'], ['analyse.ts', 'MessageDAnalyse'], ['corrections.ts', 'MessageDeCorrections'], ['questions.ts', 'MessageDeQuestions'], ['ignores.ts', 'MessageDIgnores'], ['preparation.ts', 'MessageDePreparation'], ['configuration.ts', 'MessageDeConfiguration']];
 const { ETATS: TOUS } = require('../galerie/etats.cjs') as { ETATS: EtatDeGalerie[] };
 /** Les états d'Architect ; ceux de Nomenclature sont jugés par `nomenclatureSocle.test.ts`. */
 const ETATS = TOUS.filter((etat) => (etat as { domaine?: string }).domaine !== 'nomenclature');
@@ -41,16 +41,13 @@ test('un état atteignable dit ce qu’on regarde, et chaque étape porte un seu
 
 test('tout message que le sandbox peut envoyer a un état où le regarder', () => {
   const declares = new Set(DOMAINES_DE_MESSAGES.flatMap(([fichier, nom]) => [...typesDeLUnion(fs.readFileSync(path.join(racine, 'src', 'messages', fichier), 'utf8'), nom)]));
+  // Les états de préparation et de Configuration jouent aussi le bilan de Nomenclature et la lecture de structure, dont les états sont jugés ailleurs.
+  for (const type of ['initial', 'bilan', 'structure']) declares.add(type);
   assert.ok(declares.size > 0);
   // Les états de la recherche et de la fiche jouent des messages de Nomenclature, que ces domaines ne déclarent pas : ils n'ont aucun message propre.
   // Ceux de la library jouent aussi des messages de Nomenclature ; ses propres messages (`bibliotheque`, `valeurs`) entrent ici quand `bibliotheque-illisible` aura son état (e-biblio, lot U6).
   const avecMessages = ETATS.filter((etat) => !['recherche', 'fiche', 'structure', 'bibliotheque'].includes((etat as { domaine?: string }).domaine ?? ''));
-  // `e-biblio` joue le message `configuration` : son domaine entre ici avec la Configuration (lot U8), qui joue aussi `structure-annulee`.
-  const avantLaConfiguration = new Set(['configuration']);
-  // La cr?ation de variables appartient ? la seconde moiti? d'U8.
-  const avantLaCreationDesVariables = new Set(['variables-creees']);
-  const regardables = new Set([...declares, ...avantLaConfiguration].filter((type) => !avantLaCreationDesVariables.has(type)));
-  assert.deepEqual(ecartsDesMessages(regardables, avecMessages), { jamaisRegardes: [], inventes: [] });
+  assert.deepEqual(ecartsDesMessages(declares, avecMessages), { jamaisRegardes: [], inventes: [] });
 });
 
 test('le décalque sert toutes les variables de thème que les feuilles demandent', () => {

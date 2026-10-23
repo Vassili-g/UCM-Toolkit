@@ -56,7 +56,7 @@ async function banc() {
     dernierRenommage: null, dernierImport: null,
   }) as unknown as Bilan;
   frontiere.recevoir({ type: 'bilan', demande: frontiere.analyser(), bilan: bilanDe(1, []) });
-  const cases = configuration.children[3]!.children[1]!.children[2]!.children.map((ligne) => ligne.children[0]!);
+  const cases = configuration.children[3]!.children[4]!.children[2]!.children.map((ligne) => ligne.children[0]!);
   const decocher = (rang: number) => { cases[rang]!.checked = false; cases[rang]!.events.get('change')!(); };
   const repondues = new Set<number>();
   /** Le sandbox répond à la plus ancienne demande envoyée sans réponse. */
@@ -130,7 +130,7 @@ for (const [id, active, ligne] of [
     assert.equal(b.interrupteur.disabled, false);
     assert.equal(b.sectionArchitecture.children[2]!.textContent, ligne);
     assert.equal(b.sectionArchitecture.children[2]!.hidden, ligne === '');
-    assert.equal(b.configuration.children[3]!.children[1]!.children[0]!.textContent, 'Collections analysées');
+    assert.equal(b.configuration.children[3]!.children[4]!.children[0]!.textContent, 'Collections analysées');
   });
 }
 
@@ -168,7 +168,7 @@ test('la ligne d’une collection dit combien de variables gardent leur nom, et 
   ];
   const protections = [{ cause: 'marque-absente', nombre: 3 }, { cause: 'lecture-refusee', nombre: 40 }];
   b.frontiere.recevoir({ type: 'bilan', demande: b.frontiere.analyser(), bilan: { generation: 2, collections, protections, dernierRenommage: null, dernierImport: null } as unknown as Bilan });
-  const section = b.configuration.children[3]!.children[1]!;
+  const section = b.configuration.children[3]!.children[4]!;
   const detail = (rang: number) => section.children[2]!.children[rang]!.children[2]!.textContent;
   assert.deepEqual([detail(0), detail(1), detail(2)], ['420 variables', '346 variables, dont 120 gardent leur nom', '12 variables, qui gardent leur nom']);
   const causes = section.children[3]!;

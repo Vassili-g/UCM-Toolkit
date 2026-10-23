@@ -22,6 +22,7 @@ import { recevoirUneAnalyse } from './composant/analyse';
 import { creerCorpsDuComposant } from './composant/corps';
 import { creerFiche } from './fiche';
 import { monterPreparation } from './preparation';
+import { monterCreation } from './preparation/creation';
 import { collectionDuFiltre, etatInitial, poserReleve } from './etat';
 import { monterNomenclature } from './nomenclature';
 import { monterBibliotheque } from './bibliotheque';
@@ -91,6 +92,18 @@ const nomenclature = monterNomenclature(hoteDeNomenclature, versSandbox, {
   enleverLeFiltre: () => app.enleverLeFiltre(),
   rechercher: (texte) => app.rechercherParLien(texte),
   rechercherLeTerme: (mot, formes) => app.rechercherLeTerme(mot, formes),
+  collerUnePreparation: () => {
+    app.changerDisposition('etroite');
+    // La zone de texte vit dans le panneau des constats, que le mode Composant garde fermé à l'ouverture.
+    if (!etat.panneau.ouvert) app.basculerLePanneau();
+    preparation.ouvrirPourColler();
+  },
+});
+const creation = monterCreation({
+  coquille: nomenclature.coquille,
+  envoyer: versSandbox,
+  nomDuFichier: () => etat.releve?.fichier ?? null,
+  surCreation: nomenclature.noterLaCreation,
 });
 
 /** Le segment dont la carte vient d'être ouverte depuis la table ; il reste souligné tant que la carte est ciblée. */
@@ -182,6 +195,9 @@ const corps = document.createElement('div');
 corps.className = 'corps';
 corps.append(arbre.element, centre, lateral);
 
+/** La Configuration prend toute la fenêtre du mode Tokens : l'arbre, le tableau et le pied s'effacent. */
+nomenclature.coquille.surChangement(() => corps.classList.toggle('corps-configuration', nomenclature.coquille.etat().ecran === 'configuration'));
+
 const bulle = installerSurvol(app);
 const poignee = createResizeGrip(versSandbox);
 racine.replaceChildren(barre.element, corps, pied, annonce, bulle, poignee, preparation.element);
@@ -262,6 +278,8 @@ const demandeCourante = (demande: number): boolean => etat.lecture.statut === 'e
 function recevoir(message: PluginMessage): void {
   if (new Set(['plan-de-preparation', 'preparations', 'preparation-texte', 'texte-refuse', 'variables-creees', 'liaisons-preparees']).has(message.type)) {
     preparation.recevoir(message as MessageDePreparation);
+    if (message.type === 'preparations') creation.recevoirLesPreparations(message.preparations);
+    if (message.type === 'variables-creees') creation.recevoirLeResultat(message);
     return;
   }
   if (estMessageDeNomenclature(message)) {
@@ -346,7 +364,11 @@ function recevoir(message: PluginMessage): void {
       return;
     case 'configuration':
       etat.reference = { library: message.library?.cle ?? null, candidates: message.candidates.length };
+      nomenclature.recevoirConfiguration(message);
       app.rendre(['barre']);
+      return;
+    case 'structure-annulee':
+      nomenclature.recevoirConfiguration(message);
       return;
     case 'non-construit':
       return;
@@ -372,3 +394,4 @@ window.addEventListener('message', (evenement: MessageEvent) => {
 app.rendre();
 versSandbox({ type: 'lire-preferences' });
 app.actualiser();
+versSandbox({ type: 'lire-preparations' });
