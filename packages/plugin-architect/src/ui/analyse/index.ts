@@ -15,7 +15,7 @@ import { createOnglets } from 'ucm-plugin-socle/src/ui/Onglets';
 
 import type { LectureDeComposant } from '../../composant';
 import type { Application } from '../application';
-import { analyseDuComposant, aPreparer, libraryAChoisir, type AnalyseRecue } from '../composant/analyse';
+import { analyseDuComposant, aDesLiaisonsPreparees, aPreparer, libraryAChoisir, type AnalyseRecue } from '../composant/analyse';
 import { monterLesCorrections } from '../corrections';
 import { monterAFaire } from '../ignores';
 import { monterLesQuestions } from '../questions';
@@ -208,7 +208,7 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
       const nonLus = analyse.lecture?.layersNonLus;
       const titre = typeof nonLus === 'number' && nonLus > 0 ? T.partielleTitre(lus, lus + nonLus) : T.partielleTitreDesVariants(analyse.variants.length, analyse.variants.length + (analyse.lecture?.variantsNonLus.length ?? 0));
       sortie.push(creerAlerte('verifier', { titre, texte: T.partielleTexte }));
-    } else if (analyse.constats.length === 0 && !aPreparer(analyse) && !analyse.perimee && analyse.ecriture === null) {
+    } else if (analyse.constats.length === 0 && !aPreparer(analyse) && !aDesLiaisonsPreparees(analyse) && !analyse.perimee && analyse.ecriture === null) {
       return [...sortie, creerAlerte('tenu', { titre: T.aucunTitre(lecture.sujet.nom, variants), meta: T.aucunMeta })];
     }
     if (analyse.perimee) sortie.push(creerAlerte('info', { titre: T.perimeTitre, texte: T.perimeTexte }));

@@ -9,8 +9,9 @@
 import { creerPastilleDeCompte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createSettingsButton } from 'ucm-plugin-socle/src/ui/EnTete';
 import type { Disposition } from '../fenetre';
+import type { Constat } from '../messages/commun';
 import type { Application, Composant } from './application';
-import { aPreparer, libraryAChoisir, tonLePlusGrave } from './composant/analyse';
+import { aDesLiaisonsPreparees, aPreparer, libraryAChoisir, tonLePlusGrave } from './composant/analyse';
 import { TEXTES } from './textes';
 import { estHorsUcm } from './vues/horsUcm';
 
@@ -127,8 +128,8 @@ export function creerBarre(app: Application): Composant {
       analyser.disabled = analyseEnCours || (analyse?.ecriture ?? null) !== null || (!dejaAnalyse && libraryAChoisir(etat));
       constats.setAttribute('aria-pressed', String(etat.panneau.ouvert));
       constats.title = etat.panneau.ouvert ? TEXTES.constatsFermer : TEXTES.constatsOuvrir;
-      // La carte « sans tokens » du panneau compte comme un constat à corriger.
-      const constatsDuPanneau = analyse === null ? [] : aPreparer(analyse) ? [...analyse.constats, { type: 'corriger' as const }] : analyse.constats;
+      // La carte « sans tokens » compte comme un constat à corriger, la carte des liaisons préparées comme une information.
+      const constatsDuPanneau: Array<Pick<Constat, 'type'>> = analyse === null ? [] : [...analyse.constats, ...(aPreparer(analyse) ? [{ type: 'corriger' as const }] : []), ...(aDesLiaisonsPreparees(analyse) ? [{ type: 'info' as const }] : [])];
       const nombre = analyse && !analyseEnCours ? constatsDuPanneau.length : 0;
       const ton = analyse ? tonLePlusGrave(constatsDuPanneau) : null;
       pastille?.remove();

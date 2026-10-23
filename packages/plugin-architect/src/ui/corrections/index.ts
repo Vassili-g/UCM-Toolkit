@@ -19,7 +19,8 @@ import type { AnalyseRecue } from '../composant/analyse';
 import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION } from '../textes/preparation';
 import { creerCarte, creerIntertitre } from '../structure/carte';
-import { cartesDeCorrections, SECTIONS, type CarteDeCorrections, type ContexteDeCartes, type LigneDeCarte, type Morceau } from './modele';
+import { carteDesLiaisonsPreparees, variablesNonPublieesDeLaListe } from './liaisons';
+import { cartesDeCorrections, SECTIONS, type CarteDeCorrections, type ContexteDeCartes, type LigneDeCarte, type LigneEnAttente, type Morceau } from './modele';
 
 const T = TEXTES.correctionsDuComposant;
 
@@ -135,10 +136,8 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
     else {
       const cartesCochees = cartes.filter((carte) => carte.lignes.some(cochee));
       const sorte = (ligne: LigneDeCarte): string => ligne.correction.sorte;
-      const liaisonsPreparees = cartesCochees.every((carte) => carte.cle.startsWith('preparation:'));
-      const nombreDansLePied = liaisonsPreparees ? new Set(cochees.flatMap((ligne) => ligne.constat.layers)).size : cochees.length;
-      const texte = cartesCochees.every((carte) => carte.modele)
-        ? T.piedDeLaCopie(nombreDansLePied)
+      const texte = cartesCochees.every((carte) => carte.origine !== 'constats')
+        ? T.piedDeLaCopie(cochees.length)
         : T.pied(
           cartesCochees.length,
           new Set(cochees.filter((ligne) => sorte(ligne) === 'liaison').map((ligne) => ligne.correction.cible.layer)).size,
@@ -178,6 +177,7 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
       }
       blocs.push(faits);
     }
+    if (carte.constats.length === 0) return blocs;
     const actions = document.createElement('div');
     actions.className = 'constat-actions';
     const lien = document.createElement('button');
@@ -190,11 +190,28 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
     return blocs;
   }
 
+  /** Une liaison dont la variable n'est pas publiée : le layer et le variant comme Figma les nomme, aucune case, et pourquoi sous le chemin. */
+  function creerLaLigneEnAttente(entree: LigneEnAttente): HTMLElement {
+    const avant = document.createDocumentFragment();
+    if (entree.layer !== null) avant.append(T.layerNomme(entree.layer));
+    if (entree.layer !== null && entree.variant !== null) avant.append(document.createElement('br'));
+    if (entree.variant !== null) avant.append(creerVariantEnPhrase(entree.variant));
+    if (entree.layer === null && entree.variant === null) avant.append(T.layers([], 1));
+    const diff = creerLigneDeDiff(avant, dans(cheminAvecSegments(entree.variable, [], 'nouveau', true)), { reste: true });
+    diff.classList.add('preparation-liaison');
+    diff.querySelector('input')?.replaceWith(document.createElement('span'));
+    const attente = document.createElement('span');
+    attente.className = 'meta';
+    attente.textContent = TEXTES_PREPARATION.preparationLiaisonNonPubliee;
+    diff.querySelector('.chemin-apres')?.append(document.createElement('br'), attente);
+    return diff;
+  }
+
   function creerLaCarte(carte: CarteDeCorrections, rang: number, casesDeLignes: Map<string, HTMLInputElement>, casesDeCartes: Array<{ element: HTMLInputElement; ids: readonly string[] }>): HTMLElement {
     const corps = document.createElement('div');
     corps.append(creerColonnes(TEXTES.legendeAujourdhui, TEXTES.legendeApres));
+    const preparation = carte.origine === 'preparation';
     for (const ligne of carte.lignes) {
-      const preparation = carte.cle.startsWith('preparation:');
       const diff = creerLigneDeDiff(dans(cheminAvecSegments(ligne.avant, ligne.marquesAvant, 'ancien')), dans(cheminAvecSegments(ligne.apres, ligne.marquesApres, 'nouveau', preparation)), { coche: cochee(ligne) });
       if (preparation) diff.classList.add('preparation-liaison');
       const caseACocher = diff.querySelector('input') as HTMLInputElement;
@@ -205,23 +222,12 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
         rafraichir(casesDeLignes, casesDeCartes);
       });
       casesDeLignes.set(ligne.id, caseACocher);
-      if (carte.cle.startsWith('preparation:') && ligne.constat.faits.calque === 'container') {
-        const cheminAvant = diff.querySelector('.chemin');
-        cheminAvant?.replaceChildren('Layer container', document.createElement('br'), creerVariantEnPhrase('Severity=warning', 'Style=outline'));
-        diff.classList.add('reste');
-        caseACocher.replaceWith(document.createElement('span'));
-        const cheminApres = diff.querySelector('.chemin-apres');
-        const attente = document.createElement('span');
-        attente.className = 'meta';
-        attente.textContent = TEXTES_PREPARATION.preparationLiaisonNonPubliee;
-        cheminApres?.append(document.createElement('br'), attente);
-      }
       corps.append(diff);
     }
-    if (carte.cle.startsWith('preparation:')) {
-      const variablesNonPubliees = Number(carte.constats[0].faits.variablesNonPubliees ?? 0);
+    for (const entree of carte.attente) corps.append(creerLaLigneEnAttente(entree));
+    if (carte.attente.length > 0) {
       corps.append(creerAlerte('info', {
-        texte: TEXTES_PREPARATION.preparationVariablesNonPubliees(variablesNonPubliees),
+        texte: TEXTES_PREPARATION.preparationVariablesNonPubliees(variablesNonPublieesDeLaListe(carte.attente)),
         meta: TEXTES_PREPARATION.preparationPublierPourLier,
       }));
     }
@@ -243,18 +249,23 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
     meta.push(...Array.from(conteneur.childNodes));
 
     const ids = carte.lignes.map((ligne) => ligne.id);
-    const caseDeCarte = document.createElement('input');
-    caseDeCarte.type = 'checkbox';
-    caseDeCarte.className = 'case';
-    caseDeCarte.setAttribute('aria-label', TEXTES.caseDeCarte(carte.lignes[0].apres));
-    caseDeCarte.addEventListener('change', () => {
-      for (const id of ids) {
-        if (caseDeCarte.checked) decochees.delete(id);
-        else decochees.add(id);
-      }
-      rafraichir(casesDeLignes, casesDeCartes);
-    });
-    casesDeCartes.push({ element: caseDeCarte, ids });
+    // Une carte dont toutes les liaisons attendent leur publication n'a rien à cocher.
+    let caseDeCarte: HTMLInputElement | undefined;
+    if (carte.lignes.length > 0) {
+      const element = document.createElement('input');
+      element.type = 'checkbox';
+      element.className = 'case';
+      element.setAttribute('aria-label', TEXTES.caseDeCarte(carte.lignes[0].apres));
+      element.addEventListener('change', () => {
+        for (const id of ids) {
+          if (element.checked) decochees.delete(id);
+          else decochees.add(id);
+        }
+        rafraichir(casesDeLignes, casesDeCartes);
+      });
+      casesDeCartes.push({ element, ids });
+      caseDeCarte = element;
+    }
     return creerCarte({
       tete,
       meta,
@@ -329,7 +340,7 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
     for (const section of SECTIONS) {
       const deLaSection = cartes.filter((carte) => carte.section === section);
       if (deLaSection.length === 0) continue;
-      if (!deLaSection.every((carte) => carte.cle.startsWith('preparation:'))) liste.append(creerIntertitre(T.intertitres[section]));
+      if (!deLaSection.every((carte) => carte.origine === 'preparation')) liste.append(creerIntertitre(T.intertitres[section]));
       liste.append(...deLaSection.map((carte) => creerLaCarte(carte, cartes.indexOf(carte), casesDeLignes, casesDeCartes)));
     }
     liste.append(pied(false));
@@ -352,7 +363,8 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
       entree = suivante;
       const { analyse, contexte } = suivante;
       const restantes = analyse.constats.map((constat) => (constat.correction && analyse.appliquees.includes(constat.correction.id) ? { ...constat, correction: undefined } : constat));
-      cartes = cartesDeCorrections(restantes, { ...contexte, constats: analyse.constats });
+      const liaisons = analyse.liaisons === null ? null : carteDesLiaisonsPreparees(analyse.liaisons, analyse.appliquees, contexte);
+      cartes = [...(liaisons === null ? [] : [liaisons]), ...cartesDeCorrections(restantes, { ...contexte, constats: analyse.constats })];
       rendre();
       annoncerLaVue();
     },

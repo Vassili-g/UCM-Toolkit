@@ -84,10 +84,10 @@ export const TEXTES_PREPARATION = {
   preparationCollectionDeDestination: 'Collection components',
   preparationResteARegler: (nombre: number) => (nombre === 1 ? '1 variable reste à régler.' : `${nombre} variables restent à régler.`),
   preparationVoirLesVariables: (nombre: number) => `Voir les ${nombre} variables`,
-  preparationLiaisonsPubliees: (nom: string, nombre: number) => `Les variables de ${nom} sont publiées. ${nombre} liaisons sont prêtes.`,
+  preparationLiaisonsPubliees: (nom: string, nombre: number) => `Les variables de ${nom} sont publiées. ${nombre === 1 ? '1 liaison est prête.' : `${nombre} liaisons sont prêtes.`}`,
   preparationAnnulerCreation: 'Configuration › Historique annule la création.',
   preparationLiaisonNonPubliee: 'Créée, pas encore publiée',
-  preparationVariablesNonPubliees: (nombre: number) => `${nombre} variables créées ne sont pas encore dans la library publiée.`,
+  preparationVariablesNonPubliees: (nombre: number) => (nombre === 1 ? '1 variable créée n’est pas encore dans la library publiée.' : `${nombre} variables créées ne sont pas encore dans la library publiée.`),
   preparationPublierPourLier: 'Publiez Intencial Tokens, puis cliquez Actualiser.',
   preparationLigneDesQuestions: 'Les questions portent sur les choix du composant.',
   preparationDescriptions: {

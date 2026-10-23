@@ -70,24 +70,25 @@ const variablesRangee = [
   ['components/tag/color/danger/soft/page/foreground', 'theme/danger/soft/page/foreground'],
   ['components/tag/color/info/soft/background', 'theme/info/vivid/surface/default'],
 ];
-const couchesLiaisons = ['tag:0', 'tag:1', ...Array.from({ length: 12 }, (_, rang) => `tag:preparation:${rang}`)];
-const liaisonsVisibles = [
-  { nom: 'components/tag/color/danger/soft/background', variants: [], calque: undefined, ajout: 'background' },
-  { nom: 'components/tag/color/danger/soft/foreground', variants: [], calque: undefined, ajout: 'foreground' },
-  { nom: 'components/tag/color/warning/outline/border', variants: [], calque: 'container', ajout: undefined },
-];
-const analyseLiaisons = { ...analyse, analyse: identiteLiaisons, sansTokens: false, constats: liaisonsVisibles.map(({ nom, variants: variantsDuConstat, calque, ajout }, rang) => ({
-  id: `C25:preparation:tag:${rang}`, code: 'C25', type: 'corriger', famille: 'liaisons', variants: variantsDuConstat, layers: couchesLiaisons.slice(rang * 5, rang === 2 ? 14 : rang * 5 + 5),
-  faits: { preparation: 'tag', variablesNonPubliees: 2, ...(calque ? { calque } : {}), ...(ajout ? { ajout } : {}) },
-  correction: { id: `prep:${rang}`, sorte: 'liaison', cible: { layer: rang === 1 ? 'tag:1' : 'tag:0', champ: 'fills', indice: 0 }, avant: null, apres: { cle: `key:${rang}`, nom }, aRelire: { axes: {}, regle: 'Préparation de Tag', avant: null } },
-})) };
+/** Le Tag que le retour au composant décrit : sa racine porte le nom de layer que la ligne en attente cite. */
+const tagLie = { ...tagDuJeu, calques: tagDuJeu.calques.map((calque, rang) => (rang === 0 ? { ...calque, nom: 'container' } : calque)) };
+const analyseLiaisons = { ...analyse, analyse: identiteLiaisons, sansTokens: false };
+const REGLE_DE_LIAISON = 'La variable a été préparée pour ce layer.';
+const liaison = (layer, champ, nom, rang) => ({ id: `preparation:prep-tag:${layer}:${champ}:0`, sorte: 'liaison', cible: { layer, champ, indice: 0 }, avant: null, apres: { cle: `key:${rang}`, nom }, aRelire: { axes: {}, regle: REGLE_DE_LIAISON, avant: null } });
+/** Le message du sandbox : deux liaisons que la library publiée permet déjà, une dont la variable attend sa publication. */
+const liaisonsPreparees = {
+  type: 'liaisons-preparees', analyse: identiteLiaisons, preparation: 'prep-tag',
+  corrections: [liaison(tag.sujet.id, 'fills', 'components/tag/color/danger/soft/background', 0), liaison('tag:1', 'fills', 'components/tag/color/danger/soft/foreground', 1)],
+  enAttente: [{ variable: 'components/tag/color/warning/outline/border', layer: tag.sujet.id, variant: 'tag:variant:7', champ: 'strokes' }],
+  ecartees: 0, refus: null,
+};
 const plan = {
   variables: variables.map(([nom, cible], rang) => ({
     nom, type: rang < 12 || rang === 15 ? 'COLOR' : 'FLOAT', vise: cible ? { nom: cible } : null, statut: rang === 15 ? 'existe' : 'a-creer', attend: [], concerne: [],
   })),
   questions,
 };
-const source = { fichier: 'Tag', cleDuFichier: 'tag-file', jeu: { cle: 'tag', nom: 'Tag' } };
+const source = { fichier: 'Tag', cleDuFichier: 'tag-file', jeu: { cle: tag.sujet.id, nom: 'Tag' } };
 const creeLe = new Date();
 creeLe.setHours(14, 20, 0, 0);
 const rangeeAvec = (etats) => ({
@@ -124,7 +125,7 @@ const ETATS = [
   { id: 'g-entree', titre: 'Préparer les tokens', quand: 'Tag est sélectionné et analysé.', regarder: 'Le bouton Préparer les tokens apparaît dans le panneau des constats.', existe: true, atteinte: entree },
   { id: 'g-preparer', titre: 'Répondre à la préparation', quand: 'Les questions du plan sont ouvertes.', regarder: 'Les termes UCM et leur description sont présentés avec les tokens visés.', existe: true, atteinte: [...entree, ouvrir, { message: { type: 'plan-de-preparation', analyse: identite, plan, refus: null } }, { clic: 'input[name="intensite"][value="soft"]' }, { message: { type: 'plan-de-preparation', analyse: identite, plan, refus: null } }, { clic: 'input[name="style:soft"][value="surface"]' }, { message: { type: 'plan-de-preparation', analyse: identite, plan, refus: null } }] },
   { id: 'g-pret', titre: 'Préparation rangée', quand: 'La préparation de Tag est rangée sur le poste.', regarder: 'La préparation propose de copier en texte ou de l’abandonner.', existe: true, atteinte: [...entree, ouvrir, preparations] },
-  { id: 'g-lier', titre: 'Liaisons préparées', quand: 'La préparation est revenue au composant.', regarder: 'Les liaisons préparées sont annoncées dans le panneau.', existe: true, atteinte: [...entree, { message: { ...analyseLiaisons } }, { message: { type: 'liaisons-preparees', analyse: identiteLiaisons, preparation: rangee.id, corrections: Array.from({ length: 14 }, (_, rang) => ({ id: `prep:${rang}`, sorte: 'liaison', cible: { layer: 'tag:0', champ: 'fills', indice: 0 }, avant: null, apres: { cle: `key:${rang}`, nom: variables[rang][0] }, aRelire: { axes: {}, regle: 'préparé', avant: null } })), enAttente: [], ecartees: 0, refus: null } }, { clic: '#onglet-corrections' }] },
+  { id: 'g-lier', titre: 'Liaisons préparées', quand: 'La préparation est revenue au composant, après une nouvelle analyse.', regarder: 'Les liaisons préparées sont annoncées dans le panneau, et Corrections montre la carte : deux lignes cochées, une ligne sans case qui attend sa publication.', existe: true, atteinte: [preferences(), etroite, choisir(tagLie), composant(tagLie), apercu(tagLie), { message: analyse }, { clic: '.bouton-panneau' }, { clic: '[data-focus="directes"]' }, { clic: '#onglet-a-faire' }, rangements, { message: analyseLiaisons }, { message: liaisonsPreparees }, { clic: '#onglet-corrections' }] },
   { id: 'g-creer', titre: 'Variables préparées', quand: 'Le fichier des tokens reçoit une préparation rangée sur ce poste, et le designer ouvre la liste.', regarder: 'L’alerte annonce 16 variables à créer pour Tag ; la feuille liste les trois premières, celle qui existe déjà, Afficher les 12 autres et Créer 15 variables.', existe: true, atteinte: [...ouvertureTokens(), rangements, voirLesVariables] },
   { id: 'g-cree', titre: 'Variables créées', quand: 'Le designer crée les variables préparées dans le fichier des tokens.', regarder: 'La ligne de résultat de Corrections dit 15 variables créées pour Tag, la publication et l’Historique ; l’alerte des variables à créer a disparu.', existe: true, atteinte: [...ouvertureTokens(bilans.apresLApplication), rangements, voirLesVariables, creer, creations, rangementsApresCreation] },
   { id: 'g-a-regler', titre: 'Variables à régler', quand: 'La création laisse une variable qui existe déjà avec une autre cible et deux échecs.', regarder: 'La feuille reste ouverte : « 3 variables restent à régler. », la ligne qui existe déjà propose Garder et Remplacer, les deux échecs disent pourquoi.', existe: true, atteinte: [...ouvertureTokens(), rangements, voirLesVariables, creer, aReglerApresCreation, rangementsAReglerApresCreation] },
@@ -138,4 +139,4 @@ const ETATS = [
   { id: 'g-texte-refuse', titre: 'Texte refusé', quand: 'Le texte reçu ne décrit pas une préparation UCM.', regarder: 'Le motif de refus est présenté dans la zone de collage.', existe: true, atteinte: [...entree, ouvrir, preparations, coller, { message: { type: 'texte-refuse', motif: 'format' } }], disposition: 'etroite' },
 ];
 
-module.exports = { ETATS, rangeeAvec, variablesRangee };
+module.exports = { ETATS, rangeeAvec, variablesRangee, tagLie, analyseTag: analyse, analyseLiaisons, liaisonsPreparees, identite, identiteLiaisons };

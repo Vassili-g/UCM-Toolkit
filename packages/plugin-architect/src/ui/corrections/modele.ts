@@ -25,7 +25,8 @@ export const SECTIONS: readonly SectionDeCorrections[] = ['liaisons', 'tailles',
 
 export interface LigneDeCarte {
   readonly id: string;
-  readonly constat: Constat;
+  /** Le constat qui propose la correction ; `null` pour une liaison que la préparation propose. */
+  readonly constat: Constat | null;
   readonly correction: Correction;
   /** Le nom d'avant, sans préfixe du composant ; un texte comme « couleur en dur » quand rien n'était lié. */
   readonly avant: string;
@@ -35,8 +36,20 @@ export interface LigneDeCarte {
   readonly marquesApres: readonly number[];
 }
 
+/** Une liaison préparée dont la variable n'est pas dans la library publiée : le layer et le variant s'écrivent comme Figma les nomme. */
+export interface LigneEnAttente {
+  readonly variable: string;
+  /** Le nom du layer, ou `null` quand la lecture du composant ne le connaît pas. */
+  readonly layer: string | null;
+  readonly variant: string | null;
+}
+
+/** D'où vient une carte : des constats, d'un modèle de variant qu'on copie, ou des liaisons d'une préparation. */
+export type OrigineDeCarte = 'constats' | 'modele' | 'preparation';
+
 export interface CarteDeCorrections {
   readonly cle: string;
+  readonly origine: OrigineDeCarte;
   readonly section: SectionDeCorrections;
   readonly jetons: readonly [string, string] | null;
   readonly phrase: readonly Morceau[];
@@ -48,7 +61,8 @@ export interface CarteDeCorrections {
   readonly constats: readonly Constat[];
   /** Ce que la carte ciblée relit : la propriété et la règle. */
   readonly faits: ReadonlyArray<{ readonly etiquette: string; readonly valeur: string }>;
-  readonly modele: boolean;
+  /** Les liaisons sans case, sous les lignes cochables ; vide hors d'une carte de préparation. */
+  readonly attente: readonly LigneEnAttente[];
 }
 
 export interface ContexteDeCartes {
@@ -60,7 +74,7 @@ export interface ContexteDeCartes {
   readonly constats: readonly Constat[];
 }
 
-type Genre = 'modele' | 'preparation' | 'regles' | 'nom' | 'tailles' | 'texte' | 'jetons' | 'lier';
+type Genre = 'modele' | 'regles' | 'nom' | 'tailles' | 'texte' | 'jetons' | 'lier';
 
 const segments = (nom: string): string[] => nom.split('/');
 
@@ -81,7 +95,6 @@ function segmentUnique(avant: string, apres: string): [number, string, string] |
 }
 
 function genreDe(constat: Constat, correction: Correction, contexte: ContexteDeCartes): { cle: string; genre: Genre; section: SectionDeCorrections } {
-  if (texte(constat.faits.preparation) !== null) return { cle: `preparation:${constat.faits.preparation}`, genre: 'preparation', section: 'liaisons' };
   if (texte(constat.faits.modele) !== null) return { cle: `modele:${constat.faits.modele}`, genre: 'modele', section: 'liaisons' };
   if (correction.sorte === 'regles') return { cle: `regles:${correction.id}`, genre: 'regles', section: 'regles' };
   if (correction.sorte === 'nom-de-valeur') return { cle: `nom:${correction.cible.champ ?? ''}:${correction.avant ?? ''}:${correction.apres.nom}`, genre: 'nom', section: 'noms' };
@@ -112,8 +125,8 @@ function ligneDe(constat: Constat, correction: Correction, contexte: ContexteDeC
 
 const uniques = <Type>(valeurs: readonly Type[]): Type[] => [...new Set(valeurs)];
 
-function nomDuLayer(constat: Constat, layer: string, contexte: ContexteDeCartes): string | null {
-  return (texte(constat.faits.preparation) !== null ? texte(constat.faits.calque) : constat.layers.length === 1 ? texte(constat.faits.calque) : null) ?? contexte.layers.get(layer) ?? null;
+function nomDuLayer(constat: Constat | null, layer: string, contexte: ContexteDeCartes): string | null {
+  return (constat !== null && constat.layers.length === 1 ? texte(constat.faits.calque) : null) ?? contexte.layers.get(layer) ?? null;
 }
 
 /** Les paires de property que tous les variants partagent : `Variant=outlined`. */
@@ -124,7 +137,7 @@ function pairesCommunes(noms: readonly string[]): string {
 }
 
 function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, lignes: readonly LigneDeCarte[], contexte: ContexteDeCartes): CarteDeCorrections {
-  const constats = uniques(lignes.map((ligne) => ligne.constat));
+  const constats = uniques(lignes.flatMap((ligne) => (ligne.constat === null ? [] : [ligne.constat])));
   const nomsDeVariants = uniques(constats.flatMap((constat) => constat.variants.map((id) => contexte.variants.find((variant) => variant.id === id)?.nom ?? id)));
   const identifiantsDeLayers = uniques(lignes.map((ligne) => ligne.correction.cible.layer).filter((layer): layer is string => layer !== undefined));
   const noms = uniques(lignes.flatMap((ligne) => {
@@ -134,7 +147,7 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
   }));
   const variantsDeLaMeta: Morceau[] = nomsDeVariants.length === 0 ? [T.tousLesVariants] : nomsDeVariants.length === 1 ? [{ variant: nomsDeVariants[0] }] : [T.nVariants(nomsDeVariants.length)];
   const premiere = lignes[0];
-  const faitsPremiers = premiere.constat.faits;
+  const faitsPremiers = premiere.constat?.faits ?? {};
   let phrase: readonly Morceau[] = [];
   let jetons: [string, string] | null = null;
   let meta: Morceau[] = [...variantsDeLaMeta, ', ', T.layers(noms, identifiantsDeLayers.length)];
@@ -156,9 +169,6 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
     const questions = contexte.constats.filter((constat) => constat.question !== undefined && constat.faits.modele === modele).length;
     phrase = [T.copier, { variant: modele }];
     meta = [T.copieMeta(nomsDeVariants.length, lignes.length, questions)];
-  } else if (genre === 'preparation') {
-    phrase = [T.lierLesLayers(contexte.composant)];
-    meta = [T.layers([], uniques(constats.flatMap((constat) => constat.layers)).length), '. ', T.variablesEnAttente(Number(faitsPremiers.variablesNonPubliees ?? 0))];
   } else if (genre === 'nom') {
     phrase = [T.renommer, premiere.avant, T.en, premiere.apres];
     meta = [premiere.correction.cible.champ ?? ''];
@@ -177,7 +187,7 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
     ...(proprietes.length > 0 ? [{ etiquette: T.propriete, valeur: proprietes.join(', ') }] : []),
     ...(regles.length > 0 ? [{ etiquette: T.regle, valeur: regles.join(' ') }] : []),
   ];
-  return { cle, section, jetons, phrase, meta, lignes, layers: genre === 'regles' ? [] : uniques(constats.flatMap((constat) => constat.layers)), constats, faits, modele: genre === 'modele' || genre === 'preparation' };
+  return { cle, section, jetons, phrase, meta, lignes, layers: genre === 'regles' ? [] : uniques(constats.flatMap((constat) => constat.layers)), constats, faits, origine: genre === 'modele' ? 'modele' : 'constats', attente: [] };
 }
 
 /** Les cartes des corrections des constats, par intertitre puis dans l'ordre des constats. */

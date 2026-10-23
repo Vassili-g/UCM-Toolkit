@@ -18,7 +18,7 @@ import { estMessageDeNomenclature } from '../messages/nomenclature';
 import { creerApplication, type Branchements, type Zone } from './application';
 import { creerArbre } from './arbre';
 import { creerBarre } from './barre';
-import { recevoirUneAnalyse } from './composant/analyse';
+import { noterLaDemandeDesLiaisons, preparationALier, recevoirUneAnalyse } from './composant/analyse';
 import { creerCorpsDuComposant } from './composant/corps';
 import { creerFiche } from './fiche';
 import { monterPreparation } from './preparation';
@@ -272,14 +272,32 @@ branchements = {
   disposer: poserLaDisposition,
 };
 
+/** Demande les liaisons d'une préparation rangée pour l'analyse retenue, une seule fois par analyse. */
+function demanderLesLiaisons(): void {
+  const aLier = preparationALier(etat);
+  if (!aLier || !etat.analyse) return;
+  noterLaDemandeDesLiaisons(etat);
+  versSandbox({ type: 'lier-preparation', analyse: etat.analyse.identite, preparation: aLier.id });
+}
+
 /** Vrai quand la réponse vient de la lecture en cours ; une réponse d'une demande remplacée est ignorée. */
 const demandeCourante = (demande: number): boolean => etat.lecture.statut === 'en-cours' && etat.lecture.demande === demande;
 
 function recevoir(message: PluginMessage): void {
   if (new Set(['plan-de-preparation', 'preparations', 'preparation-texte', 'texte-refuse', 'variables-creees', 'liaisons-preparees']).has(message.type)) {
     preparation.recevoir(message as MessageDePreparation);
-    if (message.type === 'preparations') creation.recevoirLesPreparations(message.preparations);
+    if (message.type === 'preparations') {
+      etat.preparations = message.preparations;
+      creation.recevoirLesPreparations(message.preparations);
+      demanderLesLiaisons();
+    }
     if (message.type === 'variables-creees') creation.recevoirLeResultat(message);
+    if (message.type === 'liaisons-preparees') {
+      // La réponse d'une autre analyse est ignorée ici comme dans `recevoirUneAnalyse`.
+      recevoirUneAnalyse(etat, message);
+      vueComposant.mettreAJour();
+      app.rendre(['barre']);
+    }
     return;
   }
   if (estMessageDeNomenclature(message)) {
@@ -358,7 +376,13 @@ function recevoir(message: PluginMessage): void {
     case 'ignores':
     case 'question-repondue':
     case 'modele-propose':
-      recevoirUneAnalyse(etat, message);
+      {
+        const avant = etat.analyse?.identite;
+        recevoirUneAnalyse(etat, message);
+        // L'alerte des liaisons préparées dit l'analyse qui précède : une analyse neuve ou périmée la retire.
+        if (message.type === 'perime' || etat.analyse?.identite !== avant) preparation.retirerLesLiaisons();
+        if (message.type === 'analyse') demanderLesLiaisons();
+      }
       vueComposant.mettreAJour();
       app.rendre(['barre']);
       return;

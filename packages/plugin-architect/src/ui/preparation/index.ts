@@ -2,6 +2,7 @@ import type { PreparationDesTokens } from '@ucm-kit/core/controles';
 import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import type { MessageDePreparation, PreparationVue } from '../../messages/preparation';
+import { deLAnalyseCourante } from '../composant/analyse';
 import type { Etat } from '../etat';
 import { TEXTES_PREPARATION as T } from '../textes/preparation';
 import { versSandbox } from '../pont';
@@ -14,6 +15,8 @@ export interface Preparation {
   /** Ouvre la zone de texte d'une préparation reçue, sans passer par le bouton Préparer les tokens. */
   ouvrirPourColler(): void;
   recevoir(message: MessageDePreparation): void;
+  /** Retire l'alerte des liaisons préparées ou du refus : l'analyse qu'elle disait est remplacée ou périmée. */
+  retirerLesLiaisons(): void;
 }
 
 export function monterPreparation(etat: Etat): Preparation {
@@ -223,6 +226,12 @@ export function monterPreparation(etat: Etat): Preparation {
       plan = null; rangee = null; refus = null; reponses = {}; modeColle = true; enCours = false;
       rendre();
     },
+    retirerLesLiaisons() {
+      if (!panneau.classList.contains('prep-liaisons') && !panneau.classList.contains('prep-autre')) return;
+      panneau.classList.remove('prep-liaisons', 'prep-autre');
+      panneau.replaceChildren();
+      panneau.hidden = true;
+    },
     recevoir(message) {
       // Une lecture que le designer n'a pas demandée ne rouvre pas le panneau : le mode Tokens lit les préparations dès l'ouverture du plugin.
       if (message.type === 'preparations' && message.nouvelle === undefined && voile.dataset.ouverte === undefined) return;
@@ -248,19 +257,23 @@ export function monterPreparation(etat: Etat): Preparation {
         });
       } else if (message.type === 'texte-refuse') { refus = message.motif; modeColle = true; rendre(); }
       else if (message.type === 'liaisons-preparees') {
-        panneau.classList.remove('prep-rangee', 'prep-sans-cibles');
-        refus = message.refus;
-        if (message.refus === 'autre-composant') {
-          panneau.classList.add('prep-autre');
-          panneau.hidden = false; panneau.replaceChildren();
-          panneau.append(creerAlerte('info', { titre: T.preparationAutresComposants, texte: T.preparationSelectionnerLeComposant })); voile.hidden = true;
-        } else {
-          panneau.classList.add('prep-liaisons');
-          panneau.hidden = false;
-          const composant = etat.composant.lecture?.sujet.nom;
-          panneau.replaceChildren(...(composant === undefined ? [] : [creerAlerte('tenu', { texte: T.preparationLiaisonsPubliees(composant, message.corrections.length) })]));
-          voile.hidden = true;
-        }
+        // La réponse d'une autre analyse, remplacée depuis, ne dit rien de celle-ci.
+        if (!deLAnalyseCourante(etat, message.analyse)) return;
+        const composant = etat.composant.lecture?.sujet.nom;
+        const alerte = message.refus === 'autre-composant'
+          ? creerAlerte('info', { titre: T.preparationAutresComposants, texte: T.preparationSelectionnerLeComposant })
+          : message.refus !== null
+            ? creerAlerte('info', { texte: T.preparationRefus[message.refus] ?? T.preparationRefus.inconnu })
+            // Sans liaison cochable, il n'y a rien de prêt à annoncer : le panneau reste tel qu'il est.
+            : composant === undefined || message.corrections.length === 0 ? null : creerAlerte('tenu', { texte: T.preparationLiaisonsPubliees(composant, message.corrections.length) });
+        if (alerte === null) return;
+        panneau.classList.remove('prep-rangee', 'prep-sans-cibles', 'prep-autre', 'prep-liaisons');
+        const autreComposant = message.refus === 'autre-composant';
+        if (autreComposant) panneau.classList.add('prep-autre');
+        else panneau.classList.add('prep-liaisons');
+        panneau.hidden = false;
+        panneau.replaceChildren(alerte);
+        voile.hidden = true;
       } else if (message.type === 'variables-creees') {
         const composant = rangee?.source.jeu.nom ?? etat.composant.lecture?.sujet.nom;
         panneau.replaceChildren(...(composant === undefined ? [] : [creerAlerte('tenu', { titre: T.preparationVariablesCreees(message.creees, composant), meta: T.preparationAnnulerCreation })]));

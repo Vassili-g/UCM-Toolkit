@@ -14,6 +14,7 @@ import type { Disposition } from '../fenetre';
 import { arbreDeCollection, commencePar, segmentsDeGroupe, type NoeudDeGroupe } from '../groupes';
 import { indexer, modesDeFamille, type Index } from '../indexation';
 import type { SujetSelectionne } from '../messages';
+import type { PreparationVue } from '../messages/preparation';
 import type { Releve, TypeDeVariable, VariableRelevee } from '../modele';
 import { PREFERENCES_PAR_DEFAUT, type Preferences } from '../preferences';
 import { creerResolveur, type Contexte, type Resolveur } from '../resolution';
@@ -106,6 +107,8 @@ export interface Etat {
   composant: EtatDuComposant;
   /** La dernière analyse du sandbox ; `null` avant la première. */
   analyse: AnalyseRecue | null;
+  /** Les préparations rangées sur ce poste, les plus récentes d'abord, telles que le dernier message `preparations` les a rendues. */
+  preparations: readonly PreparationVue[];
   /** Le panneau des constats du mode Composant : fermé à l'ouverture, et la largeur que la frontière donne à la vue quand il est ouvert. */
   panneau: { ouvert: boolean; largeurDeLaVue: number; onglet: OngletDuPanneau };
   /** La library de référence que la Configuration annonce ; `null` tant qu'elle n'a rien dit. */
@@ -133,6 +136,7 @@ export function etatInitial(): Etat {
     bibliotheque: null,
     composant: { demande: 0, statut: 'vide', message: '', lecture: null, index: null, pile: [], portee: null, apercu: null, selection: null, ignores: 0, empiler: false, deLaSelection: true },
     analyse: null,
+    preparations: [],
     panneau: { ouvert: false, largeurDeLaVue: 400, onglet: 'corrections' },
     reference: null,
   };

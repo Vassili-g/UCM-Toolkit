@@ -1,15 +1,16 @@
 /**
  * Les interactions du domaine `preparation` dans le fichier des tokens : l'alerte des variables à créer, la feuille qui les liste, la
- * création et son résultat. Écrites au lot U8, lancées par `test:ui`. Le mode Composant (g-entree à g-coller) se rejoue par la galerie.
+ * création et son résultat ; puis, dans le fichier des composants, le retour de la préparation (`lier-preparation`) et la carte des
+ * liaisons préparées. Écrites au lot U8, lancées par `test:ui`. Les autres écrans du mode Composant se rejouent par la galerie.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { attendreLesDemandes, avecReleve, envoyer, exiger, fermer, lancerLeNavigateur, ouvrir } from './aide.mjs';
+import { attendreLesDemandes, avecReleve, envoyer, exiger, fermer, lancerLeNavigateur, ouvrir, ouvrirComposant } from './aide.mjs';
 
 lancerLeNavigateur();
 const { bilans, messages } = exiger('../../galerie/nomenclature/donnees.cjs');
 const { releveIntencial } = exiger('../../galerie/etats/nomenclature.cjs');
-const { rangeeAvec, variablesRangee } = exiger('../../galerie/etats/preparation.cjs');
+const { rangeeAvec, variablesRangee, tagLie, analyseTag, analyseLiaisons, liaisonsPreparees, identiteLiaisons } = exiger('../../galerie/etats/preparation.cjs');
 
 const aCreer = (rang) => (rang === 15 ? 'existe-identique' : 'a-creer');
 const preparations = (etat = aCreer, extras = {}) => ({ type: 'preparations', preparations: [{ ...rangeeAvec(etat), ...extras }] });
@@ -132,5 +133,101 @@ test('Abandonner la préparation demande son retrait au sandbox, et la feuille s
     await envoyer(page, { type: 'preparations', preparations: [] });
     assert.equal(await page.locator('.feuille-voile').count(), 0);
     assert.equal(await page.locator('[data-action="preparation-voir"]').count(), 0);
+  } finally { await fermer(page); }
+});
+
+/** Les demandes d'un type que l'interface a envoyées ; l'envoi se relève un instant après le geste. */
+const demandes = async (page, type) => {
+  await page.waitForTimeout(30);
+  return page.evaluate((cherche) => window.demandes.filter((demande) => demande.type === cherche), type);
+};
+
+/** Le mode Composant sur Tag, fenêtre assez large pour le panneau des constats. */
+async function ouvrirTag() {
+  const page = await ouvrirComposant(tagLie, { image: false });
+  await page.setViewportSize({ width: 1040, height: 760 });
+  return page;
+}
+const rangeeDeTag = { type: 'preparations', preparations: [rangeeAvec((rang) => (rang === 15 ? 'existe-identique' : 'a-creer'))] };
+const rangeeDUnAutreJeu = { type: 'preparations', preparations: [{ ...rangeeAvec(aCreer), source: { fichier: 'Autre', cleDuFichier: null, jeu: { cle: 'autre:jeu', nom: 'Autre' } } }] };
+
+test('lier-preparation part une fois par analyse, quand une préparation du même jeu est rangée', async () => {
+  const page = await ouvrirTag();
+  try {
+    await envoyer(page, rangeeDeTag);
+    await envoyer(page, analyseTag);
+    const premieres = await demandes(page, 'lier-preparation');
+    assert.deepEqual(premieres, [{ type: 'lier-preparation', analyse: analyseTag.analyse, preparation: 'prep-tag' }]);
+    await envoyer(page, rangeeDeTag);
+    await envoyer(page, analyseTag);
+    assert.equal((await demandes(page, 'lier-preparation')).length, 1);
+    await envoyer(page, { type: 'analyse-commencee', analyse: identiteLiaisons });
+    await envoyer(page, analyseLiaisons);
+    const toutes = await demandes(page, 'lier-preparation');
+    assert.deepEqual(toutes.map((demande) => demande.analyse.generation), [1, 2]);
+  } finally { await fermer(page); }
+});
+
+test('lier-preparation ne part pas sans préparation du même jeu, ni avant que l’analyse soit complète', async () => {
+  const page = await ouvrirTag();
+  try {
+    await envoyer(page, rangeeDUnAutreJeu);
+    await envoyer(page, analyseTag);
+    assert.deepEqual(await demandes(page, 'lier-preparation'), []);
+    await envoyer(page, { type: 'analyse-commencee', analyse: identiteLiaisons });
+    await envoyer(page, rangeeDeTag);
+    assert.deepEqual(await demandes(page, 'lier-preparation'), []);
+    await envoyer(page, { ...analyseLiaisons, statut: 'partielle' });
+    assert.deepEqual(await demandes(page, 'lier-preparation'), []);
+  } finally { await fermer(page); }
+});
+
+test('les liaisons préparées d’une autre analyse sont ignorées, celles de l’analyse retenue ouvrent Corrections', async () => {
+  const page = await ouvrirTag();
+  try {
+    await envoyer(page, rangeeDeTag);
+    await envoyer(page, analyseLiaisons);
+    await page.getByRole('button', { name: 'Constats' }).click();
+    assert.equal(await page.locator('.onglets').count(), 0);
+    await envoyer(page, { ...liaisonsPreparees, analyse: { ...identiteLiaisons, generation: 1 } });
+    assert.equal(await page.locator('.onglets').count(), 0);
+    await envoyer(page, liaisonsPreparees);
+    assert.equal(await page.locator('.onglets').count(), 1);
+    assert.equal(await page.locator('#onglet-corrections .compte').textContent(), '1');
+  } finally { await fermer(page); }
+});
+
+test('une liaison en attente n’a pas de case et dit qu’elle n’est pas publiée ; les autres se cochent et s’appliquent', async () => {
+  const page = await ouvrirTag();
+  try {
+    await envoyer(page, rangeeDeTag);
+    await envoyer(page, analyseLiaisons);
+    await envoyer(page, liaisonsPreparees);
+    await page.getByRole('button', { name: 'Constats' }).click();
+    const carte = page.locator('#panneau-corrections .liste .bloc').first();
+    assert.equal(await carte.locator('.diff input.case').count(), 2);
+    const enAttente = carte.locator('.diff.reste');
+    assert.equal(await enAttente.count(), 1);
+    assert.equal(await enAttente.locator('input').count(), 0);
+    assert.match(await enAttente.locator('.chemin').innerText(), /^Layer container\s+Severity=warning, Style=outline$/);
+    assert.match(await enAttente.locator('.chemin-apres').innerText(), /components\/tag\/color\/warning\/outline\/border\s+Créée, pas encore publiée$/);
+    assert.match(await carte.locator('.alerte').innerText(), /1 variable créée n’est pas encore dans la library publiée\./);
+    assert.match(await page.locator('.corrections-pied').innerText(), /^2 liaisons cochées/);
+    await page.getByRole('button', { name: 'Appliquer' }).click();
+    const [envoyee] = await demandes(page, 'appliquer-corrections');
+    assert.deepEqual([...envoyee.ids].sort(), liaisonsPreparees.corrections.map((correction) => correction.id).sort());
+  } finally { await fermer(page); }
+});
+
+test('une nouvelle analyse retire la carte des liaisons préparées', async () => {
+  const page = await ouvrirTag();
+  try {
+    await envoyer(page, rangeeDeTag);
+    await envoyer(page, analyseLiaisons);
+    await envoyer(page, liaisonsPreparees);
+    await page.getByRole('button', { name: 'Constats' }).click();
+    assert.equal(await page.locator('#panneau-corrections .liste .bloc').count(), 1);
+    await envoyer(page, { type: 'analyse-commencee', analyse: { ...identiteLiaisons, generation: 3 } });
+    assert.equal(await page.locator('#panneau-corrections .liste .bloc').count(), 0);
   } finally { await fermer(page); }
 });

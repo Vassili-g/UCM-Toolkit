@@ -12,10 +12,12 @@ import type { LectureDeComposant } from '../../composant';
 import type { PluginMessage } from '../../messages';
 import type { CauseDePeremption } from '../../messages/analyse';
 import type { Constat, Correction, IdentiteDAnalyse } from '../../messages/commun';
+import type { PreparationVue } from '../../messages/preparation';
+import type { LiaisonEnAttente } from '../../preparations';
 import type { Etat } from '../etat';
 
 /** Les messages qui touchent l'analyse retenue. */
-export type MessageRecuDeLAnalyse = Extract<PluginMessage, { type: 'analyse-commencee' | 'analyse-en-cours' | 'analyse' | 'perime' | 'occupe' | 'corrections-appliquees' | 'ignores' | 'question-repondue' | 'modele-propose' }>;
+export type MessageRecuDeLAnalyse = Extract<PluginMessage, { type: 'analyse-commencee' | 'analyse-en-cours' | 'analyse' | 'perime' | 'occupe' | 'corrections-appliquees' | 'ignores' | 'question-repondue' | 'modele-propose' | 'liaisons-preparees' }>;
 
 /** Le dernier lot écrit : la ligne de réussite du sandbox, et ce qui s'est écrit. */
 export interface LotEcrit {
@@ -23,6 +25,13 @@ export interface LotEcrit {
   readonly ecrites: number;
   /** Les identifiants des corrections envoyées que le sandbox n'a pas sautées. */
   readonly appliquees: readonly string[];
+}
+
+/** Les liaisons que le sandbox tire d'une préparation rangée pour l'analyse retenue ; `enAttente` n'a pas de case. */
+export interface LiaisonsPreparees {
+  readonly preparation: string;
+  readonly corrections: readonly Correction[];
+  readonly enAttente: readonly LiaisonEnAttente[];
 }
 
 export interface AnalyseRecue {
@@ -49,11 +58,18 @@ export interface AnalyseRecue {
   readonly lot: LotEcrit | null;
   /** Les corrections déjà écrites pour cette analyse. */
   readonly appliquees: readonly string[];
+  /** Les liaisons préparées reçues ; `null` avant la réponse, après un refus, et dès que l'analyse est périmée. */
+  readonly liaisons: LiaisonsPreparees | null;
+  /** Vrai dès que `lier-preparation` est parti pour cette analyse : il ne part qu'une fois. */
+  readonly liaisonsDemandees: boolean;
   /** L'heure de réception, en millisecondes. */
   readonly recueA: number;
 }
 
 const memeIdentite = (a: IdentiteDAnalyse, b: IdentiteDAnalyse): boolean => a.sujet === b.sujet && a.generation === b.generation;
+
+/** Vrai quand l'identité est celle de l'analyse retenue. */
+export const deLAnalyseCourante = (etat: Etat, identite: IdentiteDAnalyse): boolean => etat.analyse !== null && memeIdentite(etat.analyse.identite, identite);
 
 const visibles = (tous: readonly Constat[], ignores: readonly string[]): Constat[] => tous.filter((constat) => !ignores.includes(constat.id));
 
@@ -63,7 +79,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
   if (message.type === 'analyse-commencee') {
     etat.analyse = {
       identite: message.analyse, statut: 'en-cours', constats: [], tous: [], ignores: [], repondues: {}, variants: [], lecture: null, sansTokens: false, progression: null,
-      perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], recueA: Date.now(),
+      perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: Date.now(),
     };
     return;
   }
@@ -71,7 +87,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
   if (message.type === 'analyse' && (!courante || message.analyse.generation > courante.identite.generation)) {
     etat.analyse = {
       identite: message.analyse, statut: message.statut, constats: visibles(message.constats, []), tous: message.constats, ignores: [], repondues: {}, variants: message.variants,
-      lecture: message.lecture, sansTokens: message.sansTokens, progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], recueA: Date.now(),
+      lecture: message.lecture, sansTokens: message.sansTokens, progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: Date.now(),
     };
     return;
   }
@@ -103,9 +119,14 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       etat.analyse = { ...courante, tous, constats: visibles(tous, courante.ignores) };
       return;
     }
+    case 'liaisons-preparees':
+      // Une réponse qui arrive après la péremption n'est plus applicable.
+      if (courante.perimee) return;
+      etat.analyse = { ...courante, liaisons: message.refus === null ? { preparation: message.preparation, corrections: message.corrections, enAttente: message.enAttente } : null };
+      return;
     case 'perime':
       // Un changement du document après une écriture est un Ctrl+Z : la ligne « Ctrl+Z défait ce lot » n'a plus d'objet.
-      etat.analyse = { ...courante, perimee: true, cause: message.cause, lot: message.cause === 'ecriture' ? courante.lot : null };
+      etat.analyse = { ...courante, perimee: true, cause: message.cause, lot: message.cause === 'ecriture' ? courante.lot : null, liaisons: null };
       return;
     case 'occupe':
       etat.analyse = { ...courante, ecriture: null };
@@ -143,6 +164,24 @@ export function analyseDuComposant(etat: Etat, lecture: LectureDeComposant | nul
   const ids = new Set([lecture.sujet.id, ...lecture.sujet.variants.map((variant) => variant.id)]);
   return analyse.variants.some((variant) => ids.has(variant.id)) ? analyse : null;
 }
+
+/**
+ * La préparation rangée à lier au composant analysé, tant que la demande n'est pas partie : l'analyse est complète et non périmée,
+ * et la préparation vient du même jeu (`source.jeu.cle` est le sujet de l'analyse). Sans telle préparation, rien ne part.
+ */
+export function preparationALier(etat: Etat): PreparationVue | null {
+  const { analyse } = etat;
+  if (!analyse || analyse.statut !== 'complete' || analyse.perimee || analyse.liaisonsDemandees) return null;
+  return etat.preparations.find((preparation) => preparation.source.jeu.cle === analyse.identite.sujet) ?? null;
+}
+
+/** Note que `lier-preparation` est parti pour l'analyse retenue. */
+export function noterLaDemandeDesLiaisons(etat: Etat): void {
+  if (etat.analyse) etat.analyse = { ...etat.analyse, liaisonsDemandees: true };
+}
+
+/** Vrai quand l'analyse non périmée porte des liaisons préparées à montrer : une ligne cochable ou une ligne en attente. */
+export const aDesLiaisonsPreparees = (analyse: AnalyseRecue | null): boolean => analyse !== null && !analyse.perimee && analyse.liaisons !== null && analyse.liaisons.corrections.length + analyse.liaisons.enAttente.length > 0;
 
 /** Vrai quand le composant analysé n'a aucun token et que l'analyse n'est pas périmée : le panneau le dit et propose de les préparer. */
 export const aPreparer = (analyse: AnalyseRecue | null): boolean => analyse !== null && analyse.sansTokens && !analyse.perimee;
