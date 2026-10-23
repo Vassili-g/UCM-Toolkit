@@ -15,6 +15,7 @@ export const TYPES: readonly DemandeDeBibliotheque['type'][] = ['lire-bibliotheq
 /** Le nombre de calques liés, par clé de variable, tel que les lectures de calques l'ont établi ; vide tant qu'aucune n'a eu lieu. */
 let liaisonsConnues: ReadonlyMap<string, number> = new Map();
 export function retenirLesLiaisons(liaisons: ReadonlyMap<string, number>): void { liaisonsConnues = liaisons; }
+export function liaisonsRetenues(): ReadonlyMap<string, number> { return liaisonsConnues; }
 
 async function lireBibliotheque(demande: number, { figma, envoyer }: Contexte): Promise<void> {
   try {

@@ -83,3 +83,26 @@ test('les variables locales forment un catalogue sans library, valeurs présente
   assert.deepEqual(catalogue.variables[0].valeurs, { 'c1:a': { alias: 'VariableID:9' } });
   assert.equal(catalogue.variables[0].etat, 'presente');
 });
+
+test('library : les alias suivent la clé de leur cible, la cible est importée et les modes de la collection sont lus (Q-28)', async () => {
+  const lecture = await lireLeCatalogueDeLibrary(figma, 'Intencial');
+  if (lecture.etat !== 'lu') throw new Error('lecture attendue');
+  const fond = { ...variableFigma('v1', 'c1', 'surface/page', 'COLOR', { 'c1:clair': { type: 'VARIABLE_ALIAS', id: 'VariableID:v-bouton/9:9' } }), key: 'v-fond' };
+  const bouton = { ...variableFigma('v2', 'c2', 'bouton/fond', 'COLOR', { 'c2:base': { r: 0, g: 0, b: 1, a: 1 } }), key: 'v-bouton' };
+  const { port } = portDeTest([collectionFigma('c1', 'theme', ['clair', 'sombre'], ['v1']), collectionFigma('c2', 'components', ['base'], ['v2'])], [], [], [], { importables: [fond, bouton] });
+  const { catalogue } = await chargerLesValeurs(port, lecture.catalogue, ['v-fond']);
+  assert.deepEqual((variableDuCatalogue(catalogue, 'v-fond') as { valeurs: unknown }).valeurs, { 'c1:clair': { alias: 'v-bouton' } });
+  assert.equal((variableDuCatalogue(catalogue, 'v-bouton') as { etat: string }).etat, 'presente');
+  const theme = collectionDuCatalogue(catalogue, 'ct');
+  assert.ok(theme !== 'absente');
+  assert.deepEqual(theme.modes, [{ id: 'c1:clair', nom: 'clair' }, { id: 'c1:sombre', nom: 'sombre' }]);
+});
+
+test('library : une collection que le port ne lit pas garde ses modes vides, sans exception', async () => {
+  const lecture = await lireLeCatalogueDeLibrary(figma, 'Intencial');
+  if (lecture.etat !== 'lu') throw new Error('lecture attendue');
+  const fond = { ...variableFigma('v1', 'c1', 'surface/page', 'COLOR', { 'c1:a': { r: 1, g: 0, b: 0, a: 1 } }), key: 'v-fond' };
+  const { port } = portDeTest([], [], [], [], { importables: [fond] });
+  const { catalogue } = await chargerLesValeurs(port, lecture.catalogue, ['v-fond']);
+  assert.deepEqual((collectionDuCatalogue(catalogue, 'ct') as { modes: unknown }).modes, []);
+});

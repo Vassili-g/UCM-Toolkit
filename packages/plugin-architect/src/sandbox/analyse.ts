@@ -16,10 +16,10 @@
  * lui-même, au clic sur un constat, ne périme rien.
  */
 import {
-  controlerCouches, controlerMapping, controlerNommage, controlerOublis,
+  controlerCouches, controlerLAccessibilite, controlerLaTypographie, controlerMapping, controlerNommage, controlerOublis,
   type CatalogueDeReference, type Constat, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
-import { choisirLaLibrary, lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
+import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import type { JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
@@ -29,10 +29,14 @@ import type { NoeudLu } from '../consommateurs';
 import { constatsDuMoteur } from '../constatsDuMoteur';
 import { lireLesVariables } from '../lecture';
 import { sujetDe, type PortDuComposant } from '../lectureDuComposant';
+import { lireLaLibraryRangee } from '../ecriture/configuration';
+import type { NiveauDAccessibilite } from '../messages/configuration';
 import type { CauseDePeremption, DemandeDAnalyse, StatutDAnalyse } from '../messages/analyse';
 import type { IdentiteDAnalyse, OrigineDeSelection } from '../messages/commun';
 import { lireLeReleve, type IssueDuReleve } from '../releveDuComposant';
 import { lireLaDeclaration } from './commun';
+import { retenirLesLiaisons } from './bibliotheque';
+import { libraryDeReference, lireLeNiveau } from './configuration';
 import type { Contexte, Traiter } from './contexte';
 import { portDeLecture, selectionLue } from './lectureDeFigma';
 
@@ -114,6 +118,8 @@ export interface Lecteurs {
   releve(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte): Promise<IssueDuReleve>;
   catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte): Promise<CatalogueDeReference>;
   moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte): Promise<ResultatDAnalyse>;
+  /** Le niveau d'accessibilité rangé ; AA sans lecteur. */
+  niveau?(contexte: Contexte): Promise<NiveauDAccessibilite>;
 }
 
 const estUnVariant = (noeud: NoeudLu): boolean => noeud.type === 'COMPONENT' && noeud.parent?.type === 'COMPONENT_SET';
@@ -167,9 +173,8 @@ async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDAnnulati
   try {
     const lecture = await lireLesLibraries(figma as unknown as PortDeBibliotheque);
     if (lecture.etat === 'lue') {
-      const libraries = [...new Set(lecture.collections.map((collection) => collection.library))];
-      const choisie = libraries.length === 1 ? libraries[0] : choisirLaLibrary(lecture.collections, liaisons).choisie;
-      if (choisie !== null && choisie !== undefined) {
+      const choisie = libraryDeReference(lecture.collections, liaisons, lireLaLibraryRangee(figma));
+      if (choisie !== null) {
         const catalogue = await lireLeCatalogueDeLibrary(figma as unknown as PortDeBibliotheque, choisie);
         if (catalogue.etat === 'lu') return (await chargerLesValeurs(portDeLecture(figma), catalogue.catalogue, [...liaisons.keys()])).catalogue;
       }
@@ -192,6 +197,7 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
     espaceDeCouleur: contexte.figma.root.documentColorProfile === 'DISPLAY_P3' ? 'display-p3' : 'srgb',
   }),
   catalogue: catalogueDeFigma,
+  niveau: ({ figma }) => lireLeNiveau(figma),
   moteur: (sujet, jeton, { figma }) => analyserLeComposant(async () => {}, {
     composant: sujet.noeud as unknown as ComponentSetNode,
     page: figma.currentPage,
@@ -212,12 +218,14 @@ let operation: Operation | null = null;
 
 const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
 
-function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
+function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeReference, niveau: NiveauDAccessibilite): Constat[] {
   return [
     ...controlerNommage(releve, catalogue),
     ...controlerMapping(releve, catalogue),
     ...controlerCouches(releve, catalogue),
     ...controlerOublis(releve, catalogue),
+    ...controlerLAccessibilite(releve, catalogue, { niveau }),
+    ...controlerLaTypographie(releve, catalogue),
   ];
 }
 
@@ -260,12 +268,14 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
     const { releve } = issue;
     contexte.envoyer({ type: 'analyse-en-cours', analyse: identite, variantsLus: releve.variants.length, variantsTotal: releve.variants.length + releve.lecture.variantsNonLus.length });
 
+    retenirLesLiaisons(liaisonsParCle(releve));
+    const niveau = await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => 'AA') ?? 'AA';
     const catalogue = await lecteurs.catalogue(releve, jeton, contexte);
     if (jeton.leve) return rendre('annulee', [], null);
     const resultat = await lecteurs.moteur(sujet, jeton, contexte);
     if (resultat.etat === 'annulee' || jeton.leve) return rendre('annulee', [], null);
 
-    const constats = [...controlesDuKit(releve, catalogue), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))];
+    const constats = [...controlesDuKit(releve, catalogue, niveau), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))];
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0;
     rendre(resultat.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete', constats, releve);
   } catch (erreur) {

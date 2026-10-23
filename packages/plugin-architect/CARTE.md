@@ -12,7 +12,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 ## src/
 - code.ts : aiguillage des demandes de l'interface vers les domaines de `sandbox/` ; ouverture, déclaration UCM, sélection et panneau périmé
 - lecture.ts : collections et variables locales, cibles d'alias lues par identifiant, huit à la fois, importées par leur clé quand Figma ne les rend pas
-- catalogue.ts : catalogue de référence du mode Composant : library lue par noms, valeurs importées à la demande par clé, variables du fichier
+- catalogue.ts : catalogue de référence du mode Composant : library lue par noms, valeurs importées à la demande par clé (avec leurs cibles d'alias et les modes de leurs collections), variables du fichier
 - modele.ts : relevé sérialisable : collections, modes, extensions, valeurs typées, lectures manquées
 - groupes.ts : arbre des groupes, des seuls segments `/` des noms Figma
 - indexation.ts : index d'identité, familles de collections et références inverses par mode
@@ -49,11 +49,12 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - contexte.ts : ce qu'un domaine reçoit : port vers l'interface, fenêtre, état partagé
 - lectureDeFigma.ts : ports de lecture sur `figma`, communs aux domaines
 - souche.ts : réponse « non construit » d'un domaine pas encore fait
-- commun.ts, arbre.ts, composant.ts, nomenclature.ts, analyse.ts : domaines construits ; `analyse.ts` lance l'analyse (relevé, catalogue, moteur, contrôles du kit), porte l'identité et le panneau périmé
+- commun.ts, arbre.ts, composant.ts, nomenclature.ts, analyse.ts, configuration.ts : domaines construits ; `configuration.ts` lit et range le niveau d'accessibilité (`clientStorage`) et la library choisie ; `analyse.ts` lance l'analyse (relevé, catalogue, moteur, contrôles du kit dont accessibilité et typographie), porte l'identité et le panneau périmé
 - bibliotheque.ts : library lue depuis un autre fichier : arbre depuis les noms, valeurs d'un groupe importées par lots de huit
-- accessibilite.ts, configuration.ts, corrections.ts, fiche.ts, ignores.ts, preparation.ts, questions.ts, recherche.ts, regles.ts, structure.ts : souches
+- accessibilite.ts, corrections.ts, fiche.ts, ignores.ts, preparation.ts, questions.ts, recherche.ts, regles.ts, structure.ts : souches
 
 ## src/ecriture/
+- configuration.ts : range la library choisie, donnée partagée du nœud racine sous `CLES_D_ARCHITECT.libraryChoisie`
 - cleDuFichier.ts : range `figma.fileKey`, quand Figma le sert, sous `CLES_D_ARCHITECT.cleDuFichierDesTokens`
 - noms.ts : le seul fichier qui écrive dans le document : noms, règles, journal et point d'annulation ; un refus avant toute écriture quand une règle de nommage vient d'une version plus récente
 

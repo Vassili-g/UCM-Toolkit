@@ -191,3 +191,40 @@ test('une écriture du plugin périme l’analyse courante', async () => {
   perimerApresUneEcriture(b.contexte);
   assert.equal(deType(b, 'perime')[0].cause, 'ecriture');
 });
+
+/** Un relevé dont le texte gris (4,8:1 environ sur blanc) passe en AA, échoue en AAA, et n'a ni style ni variable. */
+function releveDeContraste(nom: string): ReleveDeComposant {
+  const peinture = (v: number) => ({ champ: 'fills' as const, indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', couleur: { r: v, g: v, b: v, a: 1 } });
+  const dimensions = { x: 0, y: 0, largeur: 100, hauteur: 48 };
+  const racine = { id: 'r', nom: 'Root', type: 'FRAME', parent: null, visible: true, opacite: 1, dimensions, peintures: [peinture(1)], liaisons: [], valeursEnDur: [] };
+  const texte = {
+    id: 't', nom: 'Label', type: 'TEXT', parent: 'r', visible: true, opacite: 1, dimensions, peintures: [], liaisons: [], valeursEnDur: [],
+    texte: { style: null, plages: [{ debut: 0, fin: 5, fontSize: 14, fontWeight: 400, peintures: [peinture(0.45)], liaisons: [] }] },
+  };
+  return { ...releveDe(nom), variants: [{ id: `v-${nom}`, nom: `${nom} défaut`, valeurs: {}, layers: [racine, texte], modesEffectifs: {} }] };
+}
+
+const lecteursDeContraste = (niveau?: Lecteurs['niveau']): Lecteurs => ({
+  ...lecteurs(complete()),
+  async releve(sujet) { return { statut: 'lu', releve: releveDeContraste(sujet.cle) }; },
+  ...(niveau ? { niveau } : {}),
+});
+
+test('l’analyse ajoute les constats de typographie à ceux du kit', async () => {
+  const b = banc();
+  await traiterAvec(lecteursDeContraste())({ type: 'analyser' }, b.contexte);
+  assert.ok(deType(b, 'analyse')[0].constats.some((c) => c.code === 'C64' && c.famille === 'typographie'));
+});
+
+test('le niveau rangé sert à l’analyse : AA laisse passer 4,8:1, AAA le signale', async () => {
+  const contraste = async (niveau?: Lecteurs['niveau']) => {
+    reinitialiserLAnalyse();
+    const b = banc();
+    await traiterAvec(lecteursDeContraste(niveau))({ type: 'analyser' }, b.contexte);
+    return deType(b, 'analyse')[0].constats.filter((c) => c.code === 'C49' && !c.limite);
+  };
+  assert.equal((await contraste()).length, 0);
+  assert.equal((await contraste(async () => 'AA')).length, 0);
+  assert.equal((await contraste(async () => 'AAA')).length, 1);
+  assert.equal((await contraste(async () => { throw new Error('stockage'); })).length, 0);
+});

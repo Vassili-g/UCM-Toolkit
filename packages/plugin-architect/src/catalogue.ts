@@ -6,7 +6,7 @@
 import { collectionsDeReference, type CatalogueDeReference, type VariableDuCatalogue } from '@ucm-kit/core/controles';
 import { CIBLES_DES_COLLECTIONS, type Collection } from '@ucm-kit/core/referentiel';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
-import { importerLesValeurs, type ValeurDeLibrary } from './lecture';
+import { cleDeBibliotheque, importerLesValeurs, type PortDeLecture, type ValeurDeLibrary } from './lecture';
 import type { Releve, ValeurSource } from './modele';
 
 /** La couche qui lie le plus de couches : celle du composant. */
@@ -20,9 +20,9 @@ export type LectureDuCatalogue =
   | { readonly etat: 'lu'; readonly catalogue: CatalogueDeReference }
   | { readonly etat: 'illisible'; readonly motif: string };
 
-function valeurDuCatalogue(source: ValeurSource): { alias: string } | { valeur: unknown } {
+function valeurDuCatalogue(source: ValeurSource, deLibrary = false): { alias: string } | { valeur: unknown } {
   switch (source.nature) {
-    case 'alias': return { alias: source.cible };
+    case 'alias': return { alias: deLibrary ? (cleDeBibliotheque(source.cible) ?? source.cible) : source.cible };
     case 'couleur': return { valeur: source.couleur };
     case 'nombre': return { valeur: source.nombre };
     case 'texte': return { valeur: source.texte };
@@ -68,30 +68,73 @@ export function catalogueDuFichier(releve: Pick<Releve, 'collections' | 'variabl
   return { version: 1, library: null, collections: collectionsDeReference(brutes, architecture), variables };
 }
 
+/** Les tours d'import qui suivent les alias d'une library jusqu'à leurs cibles ; au-delà, la cible reste non chargée. */
+const PROFONDEUR_D_ALIAS = 10;
+
 /**
- * Importe les valeurs des seules `cles` demandées parmi les variables non chargées. Une clé refusée passe à `inaccessible`
- * avec son motif ; une variable déjà présente ou inaccessible reste telle quelle. Le catalogue reçu n'est pas modifié.
+ * Importe les valeurs des seules `cles` demandées parmi les variables non chargées, puis celles que leurs alias visent. Une
+ * clé refusée passe à `inaccessible` avec son motif ; une variable déjà présente ou inaccessible reste telle quelle. Le
+ * catalogue reçu n'est pas modifié. Quand le port lit une collection, les modes de chaque collection de library touchée
+ * s'ajoutent au catalogue : sans eux, le contraste par mode n'a rien à comparer (Q-28). L'identifiant d'une cible d'alias
+ * porte la clé de la variable (`cleDeBibliotheque`) : la valeur du catalogue garde cette clé.
  */
 export async function chargerLesValeurs(
-  port: Parameters<typeof importerLesValeurs>[0],
+  port: Parameters<typeof importerLesValeurs>[0] & Partial<Pick<PortDeLecture, 'getVariableCollectionByIdAsync'>>,
   catalogue: CatalogueDeReference,
   cles: readonly string[],
 ): Promise<{ catalogue: CatalogueDeReference; motifs: Readonly<Record<string, string>> }> {
-  const demandees = new Set(cles);
-  const aImporter = catalogue.variables.filter((v) => v.etat === 'non-chargee' && demandees.has(v.cle)).map((v) => v.cle);
-  const importees: Record<string, ValeurDeLibrary> = aImporter.length > 0 ? await importerLesValeurs(port, aImporter) : {};
+  const nonChargees = new Set(catalogue.variables.filter((v) => v.etat === 'non-chargee').map((v) => v.cle));
+  const importees: Record<string, ValeurDeLibrary> = {};
+  let attendues = new Set(cles.filter((cle) => nonChargees.has(cle)));
+  for (let tour = 0; tour < PROFONDEUR_D_ALIAS && attendues.size > 0; tour += 1) {
+    const lot = [...attendues].filter((cle) => !(cle in importees));
+    Object.assign(importees, await importerLesValeurs(port, lot));
+    attendues = new Set();
+    for (const cle of lot) {
+      const lue = importees[cle];
+      if (lue === undefined || 'illisible' in lue) continue;
+      for (const valeur of Object.values(lue.valeurs)) {
+        if (valeur.nature !== 'alias') continue;
+        const cible = cleDeBibliotheque(valeur.cible) ?? valeur.cible;
+        if (nonChargees.has(cible) && !(cible in importees)) attendues.add(cible);
+      }
+    }
+  }
+
   const motifs: Record<string, string> = {};
+  const identifiants = new Map<string, string>();
   const variables = catalogue.variables.map((v): VariableDuCatalogue => {
     const lue = importees[v.cle];
     if (v.etat !== 'non-chargee' || lue === undefined) return v;
     if ('illisible' in lue) { motifs[v.cle] = lue.illisible; return { ...v, etat: 'inaccessible' }; }
+    identifiants.set(v.collection, lue.collection);
     return {
       ...v,
       etat: 'presente',
       scopes: [...lue.portees],
-      valeurs: Object.fromEntries(Object.entries(lue.valeurs).map(([mode, valeur]) => [mode, valeurDuCatalogue(valeur)])),
+      valeurs: Object.fromEntries(Object.entries(lue.valeurs).map(([mode, valeur]) => [mode, valeurDuCatalogue(valeur, true)])),
     };
   });
-  return { catalogue: { ...catalogue, variables }, motifs };
+  const modes = await lireLesModes(port, identifiants);
+  const collections = catalogue.collections.map((c) => (modes.has(c.cle) && c.modes.length === 0 ? { ...c, modes: modes.get(c.cle)! } : c));
+  return { catalogue: { ...catalogue, collections, variables }, motifs };
 }
 
+/** Les modes des collections dont on connaît l'identifiant, par clé de collection du catalogue. Une collection illisible n'en rend pas. */
+async function lireLesModes(
+  port: Partial<Pick<PortDeLecture, 'getVariableCollectionByIdAsync'>>,
+  identifiants: ReadonlyMap<string, string>,
+): Promise<Map<string, { id: string; nom: string }[]>> {
+  const rendus = new Map<string, { id: string; nom: string }[]>();
+  const lire = port.getVariableCollectionByIdAsync;
+  if (!lire) return rendus;
+  await Promise.all([...identifiants].map(async ([cle, id]) => {
+    try {
+      const collection = await lire.call(port, id);
+      if (collection) rendus.set(cle, collection.modes.map((m) => ({ id: m.modeId, nom: m.name })));
+    } catch {
+      // Sans ses modes, la collection reste lue sans mode : le contraste le dit en limite.
+    }
+  }));
+  return rendus;
+}
