@@ -1,0 +1,76 @@
+/*
+ * L'onglet Questions du panneau des constats reprend les cartes d'« À trancher » : mêmes marges, même effet sur deux lignes, même pied.
+ * La loi des styles ne lit pas `nomenclature.css` ; ces règles, sous `.liste-questions`, redisent donc celles des cartes de question
+ * pour que le panneau tienne sans elles. La ligne verte d'une réponse est celle du socle.
+ */
+.liste-questions .carte {
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.liste-questions .question {
+  display: grid;
+  gap: var(--espace-controle);
+  padding: var(--espace-bloc);
+}
+
+.liste-questions .question-proposition {
+  gap: var(--espace-serre);
+}
+
+.liste-questions .question-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.liste-questions .question-titre {
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.liste-questions .mot-retire {
+  color: var(--texte-danger);
+}
+
+.liste-questions .mot-retenu {
+  color: var(--texte-succes);
+}
+
+.liste-questions .renommage {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: var(--espace-controle);
+  margin: var(--espace-serre) 0;
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-radius: var(--rayon);
+  background: var(--fond-bloc);
+  font-family: var(--police-code);
+}
+
+.liste-questions .renommage .ancien {
+  color: var(--texte-second);
+  overflow-wrap: anywhere;
+}
+
+.liste-questions .renommage .nouveau {
+  color: var(--texte);
+  overflow-wrap: anywhere;
+}
+
+.liste-questions .question-pied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.liste-questions .question-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-serre) var(--espace-controle);
+}

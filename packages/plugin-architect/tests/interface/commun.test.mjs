@@ -55,7 +55,7 @@ test('un fichier hors UCM remplace les onglets de la barre latérale par l’ale
     await avecReleve(page, projetLibre());
     await envoyer(page, { type: 'declaration', architecture: 'absente' });
     assert.equal(await page.getByText('Ce fichier n’est pas déclaré UCM.').isVisible(), true);
-    assert.equal(await page.locator('.panneau-lateral .onglets').isVisible(), false);
+    assert.equal(await page.locator('.panneau-lateral .onglets:has(#onglet-a-appliquer)').isVisible(), false);
     assert.equal(await page.locator('.table-ligne .ch-lien').count(), 0);
     await page.getByRole('button', { name: 'Déclarer dans la Configuration' }).click();
     assert.equal(await page.getByText('Ce fichier n’est pas déclaré UCM.').isVisible(), false);

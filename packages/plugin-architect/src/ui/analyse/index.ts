@@ -6,8 +6,8 @@
  * partielle, annulée ou arrêtée ne dit jamais « aucun constat ».
  *
  * Les trois onglets, Corrections, Questions et À faire dans Figma, portent le
- * compte de ce que leur liste montre. Corrections est monté ici ; les deux
- * autres exposent leur panneau au lot qui les remplit.
+ * compte de ce que leur liste montre. Chacun a son module : `corrections/`,
+ * `questions/` et `ignores/` (À faire dans Figma, puis les constats ignorés).
  */
 import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
@@ -17,6 +17,8 @@ import type { LectureDeComposant } from '../../composant';
 import type { Application } from '../application';
 import { analyseDuComposant, libraryAChoisir, type AnalyseRecue } from '../composant/analyse';
 import { monterLesCorrections } from '../corrections';
+import { monterAFaire } from '../ignores';
+import { monterLesQuestions } from '../questions';
 import type { OngletDuPanneau } from '../etat';
 import { TEXTES } from '../textes';
 import type { VueComposant } from '../vues/composant';
@@ -29,8 +31,6 @@ const heure = (millisecondes: number): string => new Date(millisecondes).toLocal
 
 export interface PanneauDesConstats {
   readonly element: HTMLElement;
-  /** Les panneaux des onglets Questions et À faire dans Figma, que le lot qui les remplit monte. */
-  readonly panneaux: { readonly questions: HTMLElement; readonly aFaire: HTMLElement };
   mettreAJour(): void;
   /** Le panneau se ferme : la vue ne montre plus les liaisons à venir. */
   retirerLesLiaisonsDeLaVue(): void;
@@ -88,6 +88,23 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     auChangement: () => poserLesLiaisonsDansLaVue(),
   });
 
+  const questions = monterLesQuestions(panneaux.questions, {
+    repondre: (question, reponse) => app.repondre(question, reponse),
+    annuler: (question) => app.annulerLaReponse(question),
+    ouvrirCorrections: () => {
+      etat.panneau = { ...etat.panneau, onglet: 'corrections' };
+      app.rendre(['barre']);
+    },
+  });
+  const aFaire = monterAFaire(panneaux.aFaire, {
+    selectionner: (layers) => {
+      vue.poserLaSelectionDuPlugin(layers);
+      app.selectionner(layers);
+    },
+    ignorer: (constat) => app.ignorer(constat),
+    nePlusIgnorer: (constat) => app.nePlusIgnorer(constat),
+  });
+
   /** Ce que la vue montre déjà des liaisons à venir : la vue ne se redessine que si cela change. */
   let dansLaVue = '[]';
   function poserLesLiaisonsDansLaVue(): void {
@@ -134,10 +151,16 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
 
   /** Les comptes des trois onglets et leur contenu, pour une analyse rendue. */
   function montrerLesOnglets(lecture: LectureDeComposant, analyse: AnalyseRecue): HTMLElement[] {
-    corrections.poser({ analyse, contexte: contexteDe(lecture, analyse) });
-    const questions = analyse.constats.filter((constat) => constat.question !== undefined && constat.correction === undefined).length;
-    const aFaire = analyse.constats.filter((constat) => constat.question === undefined && constat.correction === undefined).length;
-    const nombres: Record<OngletDuPanneau, number> = { corrections: corrections.nombre(), questions, 'a-faire': aFaire };
+    const contexte = contexteDe(lecture, analyse);
+    // Une question répondue a déjà sa correction : Corrections la compte et l'applique avec les autres.
+    const avecLesReponses = analyse.constats.map((constat) => {
+      const reponse = constat.question === undefined ? undefined : analyse.repondues[constat.question.id];
+      return reponse === undefined ? constat : { ...constat, correction: reponse };
+    });
+    corrections.poser({ analyse: { ...analyse, constats: avecLesReponses }, contexte });
+    questions.poser({ analyse, contexte });
+    aFaire.poser({ analyse, contexte });
+    const nombres: Record<OngletDuPanneau, number> = { corrections: corrections.nombre(), questions: questions.nombre(), 'a-faire': aFaire.nombre() };
     for (const [id, pastille] of comptes) {
       pastille.textContent = String(nombres[id]);
       onglets.liste.querySelector(`#onglet-${id}`)?.setAttribute('aria-label', T.nomDeLOnglet(TEXTES.panneauDesConstats[id === 'corrections' ? 'ongletCorrections' : id === 'questions' ? 'ongletQuestions' : 'ongletAFaire'], nombres[id]));
@@ -193,7 +216,6 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
 
   return {
     element: colonne,
-    panneaux: { questions: panneaux.questions, aFaire: panneaux.aFaire },
     retirerLesLiaisonsDeLaVue() {
       if (dansLaVue === '[]') return;
       dansLaVue = '[]';

@@ -44,6 +44,8 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - ui/composant/ : analyse retenue (constats, pastille), section Variants, corps du mode Composant (vue, frontière tirable, panneau)
 - ui/analyse/ : panneau des constats : ses trois onglets et leurs comptes, l'écran de chaque état de l'analyse (vide, en cours, aucun constat, partielle, annulée, arrêtée, périmée, library à choisir, hors UCM)
 - ui/corrections/ : onglet Corrections : cartes cochables par section (Liaisons, Tailles, Règles d'usage, Noms de valeurs), carte d'un modèle, sélection au clic, pied, Appliquer et ligne de réussite avec les sautées
+- ui/questions/ : onglet Questions : une carte par question du moteur, candidats en boutons, ligne de réponse avec Ouvrir Corrections et Annuler la réponse, Plus tard
+- ui/ignores/ : onglet À faire dans Figma : constats sous cinq intertitres avec l'alerte typée, sélection au clic, Ignorer, section Ignorés avec Ne plus ignorer
 - ui/bibliotheque/ : library d'un fichier sans variable locale : relevé bâti sur ses noms, valeurs importées à l'ouverture d'un groupe
 - ui/nomenclature/ : coquille de Nomenclature et sa frontière, onglets À appliquer, À trancher et Règles, feuilles, Configuration ; montée dans le panneau latéral du mode Tokens
 

@@ -1,0 +1,31 @@
+/** Les textes de l'onglet Questions du panneau des constats : la carte d'une question, la ligne d'une réponse et ses deux gestes. */
+
+export const TEXTES_QUESTIONS = {
+  questionsDuComposant: {
+    aucuneQuestion: 'Aucune question à trancher.',
+    lier: 'Lier ',
+    renommer: 'Renommer ',
+    a: ' à ',
+    en: ' en ',
+    finDeLaQuestion: ' ?',
+    boutonLier: 'Lier',
+    boutonRenommer: 'Renommer',
+    lierA: (fin: string): string => `Lier à …/${fin}`,
+    renommerEn: (nom: string): string => `Renommer en ${nom}`,
+    plusTard: 'Plus tard',
+    sansVariable: (layer: string): string => `layer ${layer} sans variable. `,
+    liePar: (layer: string, token: string): string => `layer ${layer} lié à ${token}. `,
+    convientAussi: (autres: number): string => (autres > 1 ? ' conviennent aussi.' : ' convient aussi.'),
+    lesTokensEmploient: (valeur: string): string => `Les tokens emploient ${valeur}. `,
+    nVariants: (n: number): string => (n > 1 ? `${n} variants. ` : '1 variant. '),
+    codeADevoirModifier: 'Les développeurs devront modifier leur code.',
+    seraLie: (layer: string, token: string): string => `${layer} sera lié à ${token}.`,
+    seraRenomme: (avant: string, apres: string): string => `${avant} sera renommé en ${apres}.`,
+    appliquerDansCorrections: 'Appliquez-le dans l’onglet Corrections.',
+    ouvrirCorrections: 'Ouvrir Corrections',
+    annulerLaReponse: 'Annuler la réponse',
+    repondre: (reponse: string, titre: string): string => `${reponse} : ${titre}`,
+    annulerLaReponseDe: (titre: string): string => `Annuler la réponse à ${titre}`,
+    plusTardPour: (titre: string): string => `Plus tard : ${titre}`,
+  },
+};

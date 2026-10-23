@@ -98,7 +98,13 @@ couleur, forme, espacement, taille, texte.
   chacun avec son compte. Corrections range ses cartes sous Liaisons, Tailles,
   Règles d'usage et Noms de valeurs, toutes cochées ; Appliquer écrit les cartes
   cochées, un seul lot que Ctrl+Z défait dans Figma. Ouvrir une carte
-  sélectionne ses layers dans Figma et les entoure dans l'aperçu. Après
+  sélectionne ses layers dans Figma et les entoure dans l'aperçu. Questions
+  pose une carte par question du moteur : le titre cite le premier candidat,
+  les autres ont leur bouton, et rien n'est choisi avant le clic ; la réponse
+  passe sa correction dans Corrections, et Annuler la réponse la retire. À faire
+  dans Figma range les constats sans correction sous cinq intertitres, chacun
+  avec le type de son alerte ; Ignorer en écarte un, sauf une limite de lecture,
+  et les constats ignorés restent sous Ignorés, avec Ne plus ignorer. Après
   l'écriture, ou un changement du composant, le panneau garde ses constats et
   attend Actualiser ou Analyser. Une analyse partielle, annulée ou arrêtée ne
   conclut jamais « aucun constat ».

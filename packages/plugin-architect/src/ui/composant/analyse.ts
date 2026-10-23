@@ -11,11 +11,11 @@ import { TYPES_D_ALERTE, type TypeDAlerte } from '@ucm-kit/core/referentiel';
 import type { LectureDeComposant } from '../../composant';
 import type { PluginMessage } from '../../messages';
 import type { CauseDePeremption } from '../../messages/analyse';
-import type { Constat, IdentiteDAnalyse } from '../../messages/commun';
+import type { Constat, Correction, IdentiteDAnalyse } from '../../messages/commun';
 import type { Etat } from '../etat';
 
 /** Les messages qui touchent l'analyse retenue. */
-export type MessageRecuDeLAnalyse = Extract<PluginMessage, { type: 'analyse-commencee' | 'analyse-en-cours' | 'analyse' | 'perime' | 'occupe' | 'corrections-appliquees' | 'ignores' }>;
+export type MessageRecuDeLAnalyse = Extract<PluginMessage, { type: 'analyse-commencee' | 'analyse-en-cours' | 'analyse' | 'perime' | 'occupe' | 'corrections-appliquees' | 'ignores' | 'question-repondue' }>;
 
 /** Le dernier lot écrit : la ligne de réussite du sandbox, et ce qui s'est écrit. */
 export interface LotEcrit {
@@ -33,6 +33,8 @@ export interface AnalyseRecue {
   /** Tous les constats du message, ignorés compris. */
   readonly tous: readonly Constat[];
   readonly ignores: readonly string[];
+  /** Les corrections que les réponses du designer ont tirées, par identifiant de question. */
+  readonly repondues: Readonly<Record<string, Correction>>;
   readonly variants: ReadonlyArray<{ readonly id: string; readonly nom: string }>;
   readonly lecture: ReleveDeComposant['lecture'] | null;
   /** Les variants lus sur le total, pendant l'analyse. */
@@ -58,7 +60,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
   const courante = etat.analyse;
   if (message.type === 'analyse-commencee') {
     etat.analyse = {
-      identite: message.analyse, statut: 'en-cours', constats: [], tous: [], ignores: [], variants: [], lecture: null, progression: null,
+      identite: message.analyse, statut: 'en-cours', constats: [], tous: [], ignores: [], repondues: {}, variants: [], lecture: null, progression: null,
       perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], recueA: Date.now(),
     };
     return;
@@ -66,7 +68,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
   // Une analyse sans `analyse-commencee` ouvre la sienne quand sa génération est plus récente que celle retenue.
   if (message.type === 'analyse' && (!courante || message.analyse.generation > courante.identite.generation)) {
     etat.analyse = {
-      identite: message.analyse, statut: message.statut, constats: visibles(message.constats, []), tous: message.constats, ignores: [], variants: message.variants,
+      identite: message.analyse, statut: message.statut, constats: visibles(message.constats, []), tous: message.constats, ignores: [], repondues: {}, variants: message.variants,
       lecture: message.lecture, progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], recueA: Date.now(),
     };
     return;
@@ -85,6 +87,13 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
     case 'ignores':
       etat.analyse = { ...courante, ignores: message.constats, constats: visibles(courante.tous, message.constats) };
       return;
+    case 'question-repondue': {
+      const repondues: Record<string, Correction> = { ...courante.repondues };
+      if (message.correction === null) delete repondues[message.question];
+      else repondues[message.question] = message.correction;
+      etat.analyse = { ...courante, repondues };
+      return;
+    }
     case 'perime':
       // Un changement du document après une écriture est un Ctrl+Z : la ligne « Ctrl+Z défait ce lot » n'a plus d'objet.
       etat.analyse = { ...courante, perimee: true, cause: message.cause, lot: message.cause === 'ecriture' ? courante.lot : null };

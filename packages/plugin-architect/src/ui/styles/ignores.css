@@ -1,0 +1,13 @@
+/*
+ * L'onglet À faire dans Figma : les cartes sont celles de la structure (`structure.css`). Un constat ignoré se montre en carte muette, comme
+ * « Autres pistes » dans Nomenclature : bordure en tirets, texte gris, phrase à la taille du texte courant.
+ */
+.bloc.muette {
+  border-style: dashed;
+  color: var(--texte-second);
+}
+
+.bloc.muette .bloc-phrase {
+  font-size: inherit;
+  line-height: inherit;
+}

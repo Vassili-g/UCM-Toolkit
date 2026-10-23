@@ -87,6 +87,14 @@ export interface Application {
   selectionner(layers: readonly string[]): void;
   /** Range le choix de ne plus proposer la correction de ces constats : les constats restent, sans leur correction. */
   ignorerLaProposition(constats: readonly Constat[]): void;
+  /** Répond à une question du moteur : `reponse` est la clé du candidat choisi, sinon son nom. Sans effet sur une analyse périmée. */
+  repondre(question: string, reponse: string): void;
+  /** Retire la réponse à une question : la correction qu'elle avait tirée quitte Corrections. */
+  annulerLaReponse(question: string): void;
+  /** Écarte ce constat de À faire dans Figma. Sans effet sur une analyse périmée ou sur une limite de lecture. */
+  ignorer(constat: Constat): void;
+  /** Rend ce constat à À faire dans Figma. */
+  nePlusIgnorer(constat: Constat): void;
   /** Ouvre ou ferme le panneau des constats ; la fenêtre prend la taille du mode sans le ranger. */
   basculerLePanneau(): void;
   /** Donne sa largeur à la vue Composant quand la frontière se tire ; la fenêtre ne change pas. */
@@ -225,6 +233,22 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       const { analyse } = etat;
       if (!analyse || analyse.perimee) return;
       for (const constat of constats) versSandbox({ type: 'ignorer', analyse: analyse.identite, constat: constat.id, portee: 'proposition' });
+    },
+    repondre(question, reponse) {
+      const { analyse } = etat;
+      if (analyse && !analyse.perimee) versSandbox({ type: 'repondre', analyse: analyse.identite, question, reponse });
+    },
+    annulerLaReponse(question) {
+      const { analyse } = etat;
+      if (analyse && !analyse.perimee) versSandbox({ type: 'annuler-reponse', analyse: analyse.identite, question });
+    },
+    ignorer(constat) {
+      const { analyse } = etat;
+      if (analyse && !analyse.perimee && constat.limite !== true) versSandbox({ type: 'ignorer', analyse: analyse.identite, constat: constat.id, portee: 'constat' });
+    },
+    nePlusIgnorer(constat) {
+      const { analyse } = etat;
+      if (analyse && !analyse.perimee) versSandbox({ type: 'ne-plus-ignorer', analyse: analyse.identite, constat: constat.id });
     },
     basculerLePanneau() {
       etat.panneau = { ...etat.panneau, ouvert: !etat.panneau.ouvert };

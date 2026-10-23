@@ -27,6 +27,7 @@ test('la lecture de la structure se demande au relevé, sous son propre numéro'
   const page = await ouvrir();
   try {
     await avecReleve(page, releveDeStructure());
+    await page.waitForFunction(() => window.demandes.some((demande) => demande.type === 'lire-structure'));
     assert.deepEqual(await demandesDe(page, 'lire-structure'), [{ type: 'lire-structure', demande: 1 }]);
     assert.deepEqual(page.erreurs, []);
   } finally { await page.context().close(); }
@@ -63,7 +64,7 @@ test('Ouvrir la fiche montre la variable en cause dans l’explorateur', async (
   try {
     await page.locator('#onglet-a-faire').click();
     await page.locator('#panneau-a-faire .bloc-bouton').first().click();
-    await page.locator('#panneau-a-faire .constat-actions .btn').click();
+    await page.locator('#panneau-a-faire .constat-actions .btn:visible').click();
     assert.equal(await page.locator('.feuille-titre').textContent(), 'info/soft/page/border');
     assert.deepEqual(page.erreurs, []);
   } finally { await page.context().close(); }
@@ -107,11 +108,12 @@ test('Appliquer n’envoie que les lignes cochées, et la réponse dit ce qui s�
     await corrections.locator('.bloc').nth(1).locator('.diff .case').first().uncheck();
     assert.match(await page.locator('.structure-pied .structure-resume').textContent(), /^Appliquer écrit 3 corrections de modes et de scopes\.$/);
     await page.locator('.structure-pied .btn-primary').click();
+    await page.waitForFunction(() => window.demandes.some((demande) => demande.type === 'appliquer-structure'));
     const [envoi] = await demandesDe(page, 'appliquer-structure');
     assert.deepEqual(envoi.ids, ['mode:success/vivid/ring', 'scope:primary/surface/hover', 'scope:info/soft/surface/default']);
     assert.equal(await page.locator('.structure-pied .btn-primary').isDisabled(), true);
     await envoyer(page, { type: 'structure-appliquee', demande: envoi.demande, ecrites: 3, sautees: [] });
-    assert.equal(await page.locator('#panneau-a-appliquer .resultat').textContent().then((texte) => texte.includes('3 corrections écrites.')), true);
+    assert.equal(await page.locator('#panneau-a-appliquer .resultat:visible').textContent().then((texte) => texte.includes('3 corrections écrites.')), true);
     assert.equal((await demandesDe(page, 'lire-structure')).length, 2);
     assert.deepEqual(page.erreurs, []);
   } finally { await page.context().close(); }

@@ -282,14 +282,15 @@ function recevoir(message: PluginMessage): void {
       if (!demandeCourante(message.demande)) return;
       etat.lecture = { statut: 'attente' };
       poserReleve(etat, message.releve);
-      app.rendre();
-      structure.demander();
-      if (message.releve.variables.length === 0) bibliotheque.demander();
-      else if (etat.bibliotheque) {
+      // Le fichier a des variables locales : la library s'oublie avant le rendu, sinon l'arbre garde son titre de library.
+      if (message.releve.variables.length > 0 && etat.bibliotheque) {
         etat.bibliotheque = null;
         bibliotheque.quitter();
         nomenclature.coquille.poserLaLibrary(null);
       }
+      app.rendre();
+      structure.demander();
+      if (message.releve.variables.length === 0) bibliotheque.demander();
       return;
     case 'bibliotheque':
     case 'valeurs':
@@ -330,6 +331,7 @@ function recevoir(message: PluginMessage): void {
     case 'occupe':
     case 'corrections-appliquees':
     case 'ignores':
+    case 'question-repondue':
       recevoirUneAnalyse(etat, message);
       vueComposant.mettreAJour();
       app.rendre(['barre']);

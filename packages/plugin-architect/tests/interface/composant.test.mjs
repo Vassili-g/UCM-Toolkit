@@ -285,8 +285,11 @@ test('le bouton Constats ouvre le panneau, demande la taille ouverte sans la ran
   const { lecture, analyse } = jeuDeVariants();
   const page = await ouvrirComposant(lecture, { image: false });
   try {
+    await page.setViewportSize({ width: 1040, height: 760 });
     await page.getByRole('button', { name: 'Constats' }).click();
+    await page.waitForFunction(() => window.demandes.some((demande) => demande.type === 'resize'));
     assert.deepEqual(await page.evaluate(() => window.demandes.filter((demande) => demande.type === 'resize')), [{ type: 'resize', largeur: 1040, hauteur: 760, fin: false }]);
+    await page.locator('.arch-laterale').waitFor();
     assert.equal(await page.locator('.arch-laterale').isVisible(), true);
     assert.equal(await page.locator('.arch-resume .meta').textContent(), '5 variants, pas encore analysé');
     assert.equal(await page.locator('.arch-laterale .alerte').count(), 1);

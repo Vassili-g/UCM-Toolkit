@@ -37,10 +37,14 @@ const RELEVE = `<script>
  * Dans une page sans iframe, `parent` est la fenêtre elle-même : le relevé voit
  * aussi les messages que le test joue au nom du sandbox.
  */
-const MESSAGES_DU_SANDBOX = new Set(['preferences', 'preferences-rangees', 'progression', 'releve', 'lecture-echouee', 'annulation', 'selection', 'disposition', 'composant', 'apercu-du-composant', 'declaration', 'non-construit']);
+const MESSAGES_DU_SANDBOX = new Set(['preferences', 'preferences-rangees', 'progression', 'releve', 'lecture-echouee', 'annulation', 'selection', 'disposition', 'composant', 'apercu-du-composant', 'declaration', 'non-construit',
+  // L'analyse, les corrections, les questions, les ignorés et la configuration.
+  'analyse-commencee', 'analyse-en-cours', 'analyse', 'perime', 'occupe', 'corrections-appliquees', 'modele-propose', 'question-repondue', 'ignores', 'configuration', 'structure-annulee']);
 
 /** Les demandes qu'un explorateur en lecture seule peut envoyer. */
-const DEMANDES_PERMISES = new Set(['lire-preferences', 'ranger-preferences', 'lire-releve', 'lire-structure', 'annuler', 'lire-composant', 'changer-disposition', 'resize']);
+const DEMANDES_PERMISES = new Set(['lire-preferences', 'ranger-preferences', 'lire-releve', 'lire-structure', 'annuler', 'lire-composant', 'changer-disposition', 'resize',
+  // L'analyse, les corrections, les questions, les ignorés et la configuration.
+  'analyser', 'annuler-analyse', 'appliquer-corrections', 'selectionner', 'servir-de-modele', 'repondre', 'annuler-reponse', 'ignorer', 'ne-plus-ignorer', 'lire-configuration', 'ranger-library', 'ranger-niveau', 'annuler-structure']);
 
 export async function ouvrir({ largeur = 1360, hauteur = 800, classe = '', presse = true } = {}) {
   const contexte = await navigateur.newContext({ viewport: { width: largeur, height: hauteur }, permissions: presse ? ['clipboard-read', 'clipboard-write'] : [] });
@@ -53,9 +57,34 @@ export async function ouvrir({ largeur = 1360, hauteur = 800, classe = '', press
   return page;
 }
 
+/**
+ * Joue un message du sandbox, puis attend que l'interface ait fini : deux messages témoins, postés l'un après l'autre, passent derrière
+ * la réponse et derrière ce que l'interface a posté en réponse ; un dernier cadre d'animation laisse le rendu se faire.
+ */
 export async function envoyer(page, message) {
-  await page.evaluate((m) => window.postMessage({ pluginMessage: m }, '*'), message);
+  await page.evaluate(async (m) => {
+    const temoin = () => new Promise((resolve) => {
+      const id = `temoin-${Math.random()}`;
+      const ecouter = (evenement) => {
+        if (evenement.data !== id) return;
+        window.removeEventListener('message', ecouter);
+        resolve();
+      };
+      window.addEventListener('message', ecouter);
+      window.postMessage(id, '*');
+    });
+    window.postMessage({ pluginMessage: m }, '*');
+    await temoin();
+    await temoin();
+    await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+  }, message);
   await page.waitForTimeout(30);
+}
+
+/** Attend que l'interface ait envoyé `nombre` demandes de ce type, puis les rend. */
+export async function attendreLesDemandes(page, type, nombre = 1) {
+  await page.waitForFunction(([cherche, attendu]) => window.demandes.filter((demande) => demande.type === cherche).length >= attendu, [type, nombre]);
+  return page.evaluate((cherche) => window.demandes.filter((demande) => demande.type === cherche), type);
 }
 
 export async function avecReleve(page, releve, demande = 1) {

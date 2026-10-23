@@ -22,7 +22,7 @@ const racine = path.resolve(__dirname, '..');
  * Les messages du sandbox que l'interface d'Architect reçoit, par domaine. Ceux de Nomenclature ont leurs états
  * dans `nomenclatureSocle.test.ts`. Les domaines construits par les lots suivants ajoutent ici leur fichier.
  */
-const DOMAINES_DE_MESSAGES: readonly (readonly [string, string])[] = [['commun.ts', 'MessageDeCommun'], ['arbre.ts', 'MessageDArbre'], ['composant.ts', 'MessageDeComposant'], ['analyse.ts', 'MessageDAnalyse'], ['corrections.ts', 'MessageDeCorrections'], ['ignores.ts', 'MessageDIgnores']];
+const DOMAINES_DE_MESSAGES: readonly (readonly [string, string])[] = [['commun.ts', 'MessageDeCommun'], ['arbre.ts', 'MessageDArbre'], ['composant.ts', 'MessageDeComposant'], ['analyse.ts', 'MessageDAnalyse'], ['corrections.ts', 'MessageDeCorrections'], ['questions.ts', 'MessageDeQuestions'], ['ignores.ts', 'MessageDIgnores']];
 const { ETATS: TOUS } = require('../galerie/etats.cjs') as { ETATS: EtatDeGalerie[] };
 /** Les états d'Architect ; ceux de Nomenclature sont jugés par `nomenclatureSocle.test.ts`. */
 const ETATS = TOUS.filter((etat) => (etat as { domaine?: string }).domaine !== 'nomenclature');

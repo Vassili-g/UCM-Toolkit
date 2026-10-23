@@ -37,9 +37,9 @@ const pied = (page) => page.locator('.corrections-resume').innerText();
 test('quatre cartes sous quatre intertitres, toutes cochées, et un pied qui compte layers et instances', async () => {
   const page = await ouvrirLePanneau();
   try {
-    assert.deepEqual(await page.locator('.intertitre-structure h2').allTextContents(), ['Liaisons', 'Tailles', 'Règles d’usage']);
-    assert.equal(await page.locator('.liste .bloc').count(), 4);
-    assert.equal(await page.locator('.liste .bloc > .bloc-tete > input.case:checked').count(), 4);
+    assert.deepEqual(await page.locator('#panneau-corrections .intertitre-structure h2').allTextContents(), ['Liaisons', 'Tailles', 'Règles d’usage']);
+    assert.equal(await page.locator('#panneau-corrections .liste .bloc').count(), 4);
+    assert.equal(await page.locator('#panneau-corrections .liste .bloc > .bloc-tete > input.case:checked').count(), 4);
     assert.equal(await pied(page), '4 corrections cochées, 8 layers, 1 instance');
     assert.equal(await appliquer(page).isEnabled(), true);
   } finally { await terminer(page); }
@@ -49,9 +49,9 @@ test('Appliquer n’envoie que les corrections cochées, sous l’identité de l
   const page = await ouvrirLePanneau();
   try {
     // La première carte est ouverte : sa première ligne, celle de l'icône, se décoche.
-    await page.locator('.liste .bloc').first().locator('.diff input.case').first().uncheck();
+    await page.locator('#panneau-corrections .liste .bloc').first().locator('.diff input.case').first().uncheck();
     assert.equal(await pied(page), '4 corrections cochées, 7 layers, 1 instance');
-    assert.equal(await page.locator('.liste .bloc').first().locator('.bloc-tete input.case').evaluate((caseACocher) => caseACocher.indeterminate), true);
+    assert.equal(await page.locator('#panneau-corrections .liste .bloc').first().locator('.bloc-tete input.case').evaluate((caseACocher) => caseACocher.indeterminate), true);
     await appliquer(page).click();
     const envoyees = await demandes(page, 'appliquer-corrections');
     assert.equal(envoyees.length, 1);
@@ -63,7 +63,7 @@ test('Appliquer n’envoie que les corrections cochées, sous l’identité de l
 test('décocher une carte entière retire ses lignes du lot et rend le pied à « aucune »', async () => {
   const page = await ouvrirLePanneau();
   try {
-    for (const carte of await page.locator('.liste .bloc > .bloc-tete > input.case').all()) await carte.uncheck();
+    for (const carte of await page.locator('#panneau-corrections .liste .bloc > .bloc-tete > input.case').all()) await carte.uncheck();
     assert.equal(await pied(page), 'Aucune correction cochée.');
     assert.equal(await appliquer(page).isDisabled(), true);
     assert.deepEqual(await demandes(page, 'appliquer-corrections'), []);
@@ -76,7 +76,7 @@ test('la vue Composant montre en vert les liaisons cochées et les reprend quand
     const icone = page.locator("[data-focus^='ligne:components/alert/colors/info/standard/icon']");
     assert.match(await icone.innerText(), /colors\/success\/standard\/icon/);
     assert.equal(await icone.locator('.ch-ajout').count() > 0, true);
-    await page.locator('.liste .bloc').first().locator('.diff input.case').first().uncheck();
+    await page.locator('#panneau-corrections .liste .bloc').first().locator('.diff input.case').first().uncheck();
     assert.match(await icone.innerText(), /colors\/info\/standard\/icon/);
   } finally { await terminer(page); }
 });
@@ -85,7 +85,7 @@ test('ouvrir une carte sélectionne ses layers dans Figma et les entoure d’un 
   const page = await ouvrirLePanneau();
   try {
     assert.equal(await page.locator('.vc-cadre-selection').count(), 0);
-    const premiere = page.locator('.liste .bloc-bouton').first();
+    const premiere = page.locator('#panneau-corrections .liste .bloc-bouton').first();
     await premiere.click();
     await premiere.click();
     const envoyees = await demandes(page, 'selectionner');
@@ -106,7 +106,7 @@ test('ouvrir une carte sélectionne ses layers dans Figma et les entoure d’un 
 test('« Ne plus proposer » range la proposition de chaque constat de la carte', async () => {
   const page = await ouvrirLePanneau();
   try {
-    const premiere = page.locator('.liste .bloc-bouton').first();
+    const premiere = page.locator('#panneau-corrections .liste .bloc-bouton').first();
     await premiere.click();
     await premiere.click();
     await page.getByRole('button', { name: 'Ne plus proposer pour ces 2 layers' }).click();
@@ -135,7 +135,7 @@ test('un plugin occupé rend la liste et un Appliquer actif, sans rien écrire',
     await appliquer(page).click();
     await envoyer(page, { type: 'occupe', analyse: IDENTITE });
     assert.doesNotMatch(await texteDuPanneau(page), /Écriture de/);
-    assert.equal(await page.locator('.liste .bloc').count(), 4);
+    assert.equal(await page.locator('#panneau-corrections .liste .bloc').count(), 4);
     assert.equal(await appliquer(page).isEnabled(), true);
   } finally { await terminer(page); }
 });
@@ -175,10 +175,10 @@ test('les corrections sautées s’annoncent avec leur motif, dans la ligne de r
 test('une carte de modèle copie les liaisons du variant affiché ; Appliquer envoie ses lignes', async () => {
   const page = await ouvrirLePanneau(analyseModele, alertModele);
   try {
-    assert.match(await page.locator('.liste .bloc').first().locator('.bloc-pile').innerText(), /Copier les liaisons de\s+Severity=info, Variant=standard/);
-    assert.match(await page.locator('.liste .bloc').first().locator('.meta').innerText(), /3 variants, 3 liaisons exactes, 3 cas dans Questions/);
+    assert.match(await page.locator('#panneau-corrections .liste .bloc').first().locator('.bloc-pile').innerText(), /Copier les liaisons de\s+Severity=info, Variant=standard/);
+    assert.match(await page.locator('#panneau-corrections .liste .bloc').first().locator('.meta').innerText(), /3 variants, 3 liaisons exactes, 3 cas dans Questions/);
     assert.equal(await pied(page), '3 liaisons cochées');
-    assert.deepEqual(await page.locator('.liste .bloc').first().locator('.diff .chemin-apres').allInnerTexts(), ['colors/error/outlined/icon', 'colors/warning/standard/background', 'colors/success/filled/icon'].map((nom) => `→ ${nom}`).map((nom) => nom.replace('→ ', '')));
+    assert.deepEqual(await page.locator('#panneau-corrections .liste .bloc').first().locator('.diff .chemin-apres').allInnerTexts(), ['colors/error/outlined/icon', 'colors/warning/standard/background', 'colors/success/filled/icon'].map((nom) => `→ ${nom}`).map((nom) => nom.replace('→ ', '')));
     await appliquer(page).click();
     assert.equal((await demandes(page, 'appliquer-corrections'))[0].ids.length, 3);
   } finally { await terminer(page); }
