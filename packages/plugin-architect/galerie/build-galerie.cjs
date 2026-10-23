@@ -70,5 +70,13 @@ if (require.main === module) {
   for (const galerie of GALERIES) {
     construireGalerie(galerie);
     poserLesCadresSeuls(galerie);
+    for (const etat of galerie.etats.filter((element) => element.id.startsWith('g-'))) {
+      for (const nom of Object.keys(MODES)) {
+        const fichier = path.join(sortieDe(galerie), nom, `${etat.id}.html`);
+        if (!fs.existsSync(fichier)) continue;
+        const page = fs.readFileSync(fichier, 'utf8');
+        fs.writeFileSync(fichier, page.replace('</head>', () => '<script>Date.now = () => Date.UTC(2026, 0, 1, 13, 2);</script></head>'));
+      }
+    }
   }
 }

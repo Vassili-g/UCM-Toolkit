@@ -32,7 +32,7 @@
   {"cadre":"x-button","lot":"U7","largeur":640,"hauteur":760,"sorte":"seul","selecteurs":[],"zonesDeDonnees":[".arch-resume"],"ecartsDeclares":[{"texte":"6","raison":"La maquette compte 6 constats à faire dans Figma et en montre 7 : le plugin compte les 7 cartes qu’il montre."},{"texte":"7","raison":"Voir « 6 »."}]},
   {"cadre":"x-button-corr","lot":"U7","largeur":640,"hauteur":560,"sorte":"seul","selecteurs":[],"zonesDeDonnees":[".arch-resume",".liste > .question:nth-child(2)"],"ecartsDeclares":[{"texte":"6","raison":"La maquette compte 6 constats à faire dans Figma et en montre 7 : le plugin compte les 7 cartes de ses données."},{"texte":"7","raison":"Voir « 6 »."},{"texte":"C’est voulu","raison":"Le moteur ne pose aucune réponse « C’est voulu » : la question n’a que le candidat qu’il propose et « Plus tard »."}]},
   {"cadre":"g-entree","lot":"U8","largeur":1040,"hauteur":560,"sorte":"fenetre","selecteurs":[]},
-  {"cadre":"g-preparer","lot":"U8","largeur":1040,"hauteur":1000,"sorte":"fenetre","selecteurs":[]},
+  {"cadre":"g-preparer","lot":"U8","largeur":1040,"hauteur":1000,"sorte":"fenetre","selecteurs":[],"ecartsDeclares":[{"texte":"Brouillon","raison":"La maquette montre le libellé du prototype dans l’aperçu statique ; le plugin rend l’aperçu du composant sous forme d’image, sans libellé texte (Q-38)."}]},
   {"cadre":"g-pret","lot":"U8","largeur":1040,"hauteur":520,"sorte":"fenetre","selecteurs":[]},
   {"cadre":"g-lier","lot":"U8","largeur":1040,"hauteur":640,"sorte":"fenetre","selecteurs":[]},
   {"cadre":"g-creer","lot":"U8","largeur":1360,"hauteur":800,"sorte":"fenetre","selecteurs":[]},

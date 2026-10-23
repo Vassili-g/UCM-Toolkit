@@ -7,7 +7,7 @@
  * Un état qui porte `disposition: 'etroite'` va dans la galerie de la fenêtre
  * du mode Composant ; les autres vont dans celles du mode Tokens.
  */
-const DOMAINES = ['commun', 'arbre', 'recherche', 'fiche', 'nomenclature', 'structure', 'bibliotheque', 'composant', 'analyse', 'corrections', 'questions', 'ignores', 'accessibilite'];
+const DOMAINES = ['commun', 'arbre', 'recherche', 'fiche', 'nomenclature', 'structure', 'bibliotheque', 'composant', 'analyse', 'corrections', 'questions', 'ignores', 'accessibilite', 'preparation'];
 
 const ETATS = DOMAINES.flatMap((domaine) => require(`./etats/${domaine}.cjs`).ETATS.map((etat) => ({ ...etat, domaine })));
 

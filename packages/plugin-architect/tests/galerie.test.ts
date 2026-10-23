@@ -22,7 +22,7 @@ const racine = path.resolve(__dirname, '..');
  * Les messages du sandbox que l'interface d'Architect reçoit, par domaine. Ceux de Nomenclature ont leurs états
  * dans `nomenclatureSocle.test.ts`. Les domaines construits par les lots suivants ajoutent ici leur fichier.
  */
-const DOMAINES_DE_MESSAGES: readonly (readonly [string, string])[] = [['commun.ts', 'MessageDeCommun'], ['arbre.ts', 'MessageDArbre'], ['composant.ts', 'MessageDeComposant'], ['analyse.ts', 'MessageDAnalyse'], ['corrections.ts', 'MessageDeCorrections'], ['questions.ts', 'MessageDeQuestions'], ['ignores.ts', 'MessageDIgnores']];
+const DOMAINES_DE_MESSAGES: readonly (readonly [string, string])[] = [['commun.ts', 'MessageDeCommun'], ['arbre.ts', 'MessageDArbre'], ['composant.ts', 'MessageDeComposant'], ['analyse.ts', 'MessageDAnalyse'], ['corrections.ts', 'MessageDeCorrections'], ['questions.ts', 'MessageDeQuestions'], ['ignores.ts', 'MessageDIgnores'], ['preparation.ts', 'MessageDePreparation']];
 const { ETATS: TOUS } = require('../galerie/etats.cjs') as { ETATS: EtatDeGalerie[] };
 /** Les états d'Architect ; ceux de Nomenclature sont jugés par `nomenclatureSocle.test.ts`. */
 const ETATS = TOUS.filter((etat) => (etat as { domaine?: string }).domaine !== 'nomenclature');
@@ -47,7 +47,9 @@ test('tout message que le sandbox peut envoyer a un état où le regarder', () =
   const avecMessages = ETATS.filter((etat) => !['recherche', 'fiche', 'structure', 'bibliotheque'].includes((etat as { domaine?: string }).domaine ?? ''));
   // `e-biblio` joue le message `configuration` : son domaine entre ici avec la Configuration (lot U8), qui joue aussi `structure-annulee`.
   const avantLaConfiguration = new Set(['configuration']);
-  const regardables = new Set([...declares, ...avantLaConfiguration]);
+  // La cr?ation de variables appartient ? la seconde moiti? d'U8.
+  const avantLaCreationDesVariables = new Set(['variables-creees']);
+  const regardables = new Set([...declares, ...avantLaConfiguration].filter((type) => !avantLaCreationDesVariables.has(type)));
   assert.deepEqual(ecartsDesMessages(regardables, avecMessages), { jamaisRegardes: [], inventes: [] });
 });
 
