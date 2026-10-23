@@ -1144,9 +1144,10 @@ complété : une propriété ajoutée au composant après la création attend un
 règle écrite à la main.
 
 L'écriture vit dans un seul fichier, `plugin-socle/src/composant/template/ecriture.ts`, atteint par
-une seule porte, la demande `creer-regles`. `loiDuDocumentIntact.test.ts`
-l'exclut nommément de son balayage et refuse à tout autre fichier du moteur
-d'importer l'écriture, ou de poser un appel qui écrirait.
+deux portes : la demande `creer-regles`, et `plugin-architect/src/ecriture/regles.ts`, qui pose
+l'instance de règles d'un composant pour une correction d'Architect. `loiDuDocumentIntact.test.ts`
+l'exclut nommément de son balayage et refuse à tout autre fichier d'importer
+l'écriture, ou au moteur de poser un appel qui écrirait.
 
 ### Sélectionner et cadrer ne sont pas modifier
 

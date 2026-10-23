@@ -78,6 +78,31 @@ test('une analyse complète rend l’identité dans chaque message et les consta
   assert.deepEqual(resultat.variants, [{ id: 'v-Alert', nom: 'Alert défaut' }]);
 });
 
+test('une analyse rend C43 quand le composant n’a pas d’instance de règles, C45 quand elle ne dit pas ses propriétés', async () => {
+  const modele = { nom: 'Alert', sections: [{ tag: 'prop' as const, elements: [{ genre: 'regle' as const, tag: 'prop' as const, cible: 'severity.info' }] }] };
+  const avec = (instancePresente: boolean, documentees: string[]): Lecteurs => ({
+    ...lecteurs(complete()),
+    regles: async () => ({ composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente, modele, proprietes: ['severity'], documentees }),
+  });
+  const sans = banc();
+  await traiterAvec(avec(false, []))({ type: 'analyser' }, sans.contexte);
+  assert.deepEqual(deType(sans, 'analyse')[0].constats.map((c) => c.code), ['C43']);
+  reinitialiserLAnalyse();
+  const incomplete = banc();
+  await traiterAvec(avec(true, ['tone']))({ type: 'analyser' }, incomplete.contexte);
+  assert.deepEqual(deType(incomplete, 'analyse')[0].constats.map((c) => c.code), ['C45', 'C45']);
+  reinitialiserLAnalyse();
+  const juste = banc();
+  await traiterAvec(avec(true, ['severity']))({ type: 'analyser' }, juste.contexte);
+  assert.deepEqual(deType(juste, 'analyse')[0].constats, []);
+});
+
+test('une lecture des règles qui lève ne coûte que ses constats', async () => {
+  const b = banc();
+  await traiterAvec({ ...lecteurs(complete([pointDeTest])), regles: async () => { throw new Error('page illisible'); } })({ type: 'analyser' }, b.contexte);
+  assert.deepEqual(deType(b, 'analyse')[0].constats.map((c) => c.code), ['C44']);
+});
+
 test('une analyse lente d’Alert puis la sélection de Button : perime selection, la réponse porte l’ancienne identité', async () => {
   const b = banc();
   let ouvrir!: () => void;

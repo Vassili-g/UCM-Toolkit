@@ -26,6 +26,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - lectureDuComposant.ts : sujet d'une sélection, ses calques, ses frontières, ses liaisons, ses styles de texte
 - releveDuComposant.ts : relevé complet d'un jeu de variants pour les contrôles du kit (`ReleveDeComposant`), borné par le budget de layers de S3
 - constatsDuMoteur.ts : points à corriger du moteur de l'exporteur traduits en `Constat` du kit, par une table explicite (C30, C34, C35, C41, C42, C44)
+- regles.ts : règles d'usage d'un composant en lecture : C43 (pas d'instance de règles, avec sa correction de sorte `regles`) et C45 (propriété sans règle, règle sans propriété) ; retient le modèle de chaque correction
 - apercu.ts : image du sujet, exportée en mémoire, et boîte de chaque calque
 - fenetre.ts : deux dispositions de la fenêtre, une par mode, leurs bornes et leurs clés
 - rapport.ts : rapport versionné des diagnostics ; sans lecteur depuis A1
@@ -57,6 +58,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - configuration.ts : range la library choisie, donnée partagée du nœud racine sous `CLES_D_ARCHITECT.libraryChoisie`
 - cleDuFichier.ts : range `figma.fileKey`, quand Figma le sert, sous `CLES_D_ARCHITECT.cleDuFichierDesTokens`
 - noms.ts : le seul fichier qui écrive dans le document : noms, règles, journal et point d'annulation ; un refus avant toute écriture quand une règle de nommage vient d'une version plus récente
+- regles.ts : applique les corrections de sorte `regles` par `creerLesRegles` du socle ; relit avant d'écrire, saute `objet-change`, `instance-remplie` ou `erreur`, sans point d'annulation
 
 ## src/nomenclature/
 - session.ts : inventaire, lexique, règles et résultat, gardés dans le sandbox ; file des calculs

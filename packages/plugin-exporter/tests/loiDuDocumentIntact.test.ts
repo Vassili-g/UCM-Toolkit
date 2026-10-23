@@ -177,15 +177,15 @@ const SANS_TEMPLATE = [
   path.join(SOURCE, 'prevol.ts'),
 ];
 
-test('l’écriture n’est atteignable que par code.ts', () => {
+test('l’écriture n’est atteignable que par code.ts et par l’écriture d’Architect', () => {
   const fichiers = sandbox(tousLesFichiers);
-  const importeurs = fichiers.filter(
-    (fichier) => importsDe(fichier).some((cible) => /(^|\/)template\/ecriture$/.test(cible)),
-  );
+  const importeDeLEcriture = (fichier: string) => importsDe(fichier).some((cible) => /(^|\/)template\/ecriture$/.test(cible));
+  // Architect importe le même socle : sa seule porte est son dossier `src/ecriture/`.
+  const architect = tousLesFichiers(path.join(PAQUETS, 'plugin-architect', 'src')).filter(importeDeLEcriture);
   assert.deepEqual(
-    importeurs.map((fichier) => path.relative(PAQUETS, fichier)),
-    [path.join('plugin-exporter', 'src', 'code.ts')],
-    'un autre fichier que code.ts atteint l’écriture',
+    [...fichiers.filter(importeDeLEcriture), ...architect].map((fichier) => path.relative(PAQUETS, fichier)),
+    [path.join('plugin-exporter', 'src', 'code.ts'), path.join('plugin-architect', 'src', 'ecriture', 'regles.ts')],
+    'un autre fichier que code.ts et plugin-architect/src/ecriture/regles.ts atteint l’écriture',
   );
 
   const fautifs = fichiers

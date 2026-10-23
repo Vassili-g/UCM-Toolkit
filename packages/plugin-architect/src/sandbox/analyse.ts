@@ -21,7 +21,7 @@ import {
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
-import { analyserLeComposant, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import { analyserLeComposant, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import type { JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
@@ -33,6 +33,7 @@ import { lireLaLibraryRangee } from '../ecriture/configuration';
 import type { NiveauDAccessibilite } from '../messages/configuration';
 import type { CauseDePeremption, DemandeDAnalyse, StatutDAnalyse } from '../messages/analyse';
 import type { IdentiteDAnalyse, OrigineDeSelection } from '../messages/commun';
+import { constatsDeRegles, lireLesRegles, retenirLesModeles, type ReleveDesRegles } from '../regles';
 import { lireLeReleve, type IssueDuReleve } from '../releveDuComposant';
 import { lireLaDeclaration } from './commun';
 import { retenirLesLiaisons } from './bibliotheque';
@@ -118,6 +119,8 @@ export interface Lecteurs {
   releve(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte): Promise<IssueDuReleve>;
   catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte): Promise<CatalogueDeReference>;
   moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte): Promise<ResultatDAnalyse>;
+  /** Les règles d'usage du composant, lues avec le contrat du moteur ; sans lecteur, aucun constat C43 ni C45. */
+  regles?(sujet: SujetAAnalyser, resultat: ResultatDAnalyse, contexte: Contexte): Promise<ReleveDesRegles>;
   /** Le niveau d'accessibilité rangé ; AA sans lecteur. */
   niveau?(contexte: Contexte): Promise<NiveauDAccessibilite>;
 }
@@ -198,6 +201,7 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
   }),
   catalogue: catalogueDeFigma,
   niveau: ({ figma }) => lireLeNiveau(figma),
+  regles: (sujet, resultat) => lireLesRegles(sujet.noeud as unknown as ComponentSetNode, (resultat as { export: ComponentExport }).export),
   moteur: (sujet, jeton, { figma }) => analyserLeComposant(async () => {}, {
     composant: sujet.noeud as unknown as ComponentSetNode,
     page: figma.currentPage,
@@ -275,7 +279,10 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
     const resultat = await lecteurs.moteur(sujet, jeton, contexte);
     if (resultat.etat === 'annulee' || jeton.leve) return rendre('annulee', [], null);
 
-    const constats = [...controlesDuKit(releve, catalogue, niveau), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))];
+    // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
+    const reglesLues = resultat.etat === 'complete' ? await lecteurs.regles?.(sujet, resultat, contexte).catch(() => null) ?? null : null;
+    retenirLesModeles(reglesLues);
+    const constats = [...controlesDuKit(releve, catalogue, niveau), ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))];
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0;
     rendre(resultat.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete', constats, releve);
   } catch (erreur) {
