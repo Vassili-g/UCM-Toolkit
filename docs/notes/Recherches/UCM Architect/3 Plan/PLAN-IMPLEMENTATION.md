@@ -381,15 +381,15 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   Alert rend les variables de l'aperçu ; `Frame 12` rend une question ; une
   taille se lie seulement si un seul token de `layout` a la valeur.
 
-- [~ Codex] **K10 · Constats manquants du kit.** Codex · K3, K5.
+- [x] (9418f837 ; revue fa76117b) **K10 · Constats manquants du kit.** Codex · K3, K5.
   Écrit : `kit/src/controles/{nommage,structure}.ts` ou un fichier nouveau
   de `kit/src/controles/`, leurs tests, leurs lignes d'export dans
   `kit/src/controles/index.ts`.
   Fait quand : C12 et C13 (table T, A18 : `Variant=Outlined` et des tokens
-  en `outline`) rendent une question avec la correction de sorte
-  `nom-de-valeur` que B5 écrit (`cible.layer` = jeu de variants,
-  `cible.champ` = propriété, `avant` = ancienne valeur, `apres.nom` =
-  nouvelle) ; `controlerLeCatalogue` rend aussi les quatre constats que
+  en `outline`) rendent une question sans correction précochée. B5 produit
+  `nom-de-valeur` après le choix du designer (`cible.layer` = id du jeu de
+  variants, `cible.champ` = propriété, `avant` = ancienne valeur,
+  `apres.nom` = nouvelle) ; `controlerLeCatalogue` rend aussi les quatre constats que
   l'écran `t-structure` lit sous `faits.genre` : cible d'alias supprimée,
   library non activée, mode sans valeur, couleur sans alias (faits :
   `variable`, `cle`, `mode`, `library`, `voisine`, `cibleDeLaVoisine`,
@@ -1363,6 +1363,27 @@ Choix faits sans le mainteneur :
   L'annulation n'avait pas de message : B8 la branche à l'Historique ; les
   motifs `usage-ajoute`, `journal-impossible`, `occupe`, `usage-illisible`
   n'ont pas de texte avant U8 · réversible : oui.
+- Q-72 · K10, B5 · C12 avec un seul style candidat · aucun registre ne relie
+  deux styles libres ; la proposition reste une question et B5 ne crée
+  `nom-de-valeur` qu'après la réponse du designer · réversible : oui.
+
+### Revue des lots réalisés
+
+Le [journal de revue](./REVUE-BUGS-IMPLEMENTATION.md) classe les neuf défauts,
+leurs reproductions et leurs commits. La revue corrige les points suivants :
+
+| Lots | Corrections |
+|---|---|
+| K10, B5 | C12/C13 ignorent une valeur déjà couverte ; un candidat de style sans règle sémantique reste une question. Une réponse explicite produit `nom-de-valeur` (`fa76117b`, `a3124ae6`). |
+| K3, K8, B5 | C22/C24 et les réponses ciblent le champ, l'indice et la plage du constat (`22d4f13a`). |
+| K8, B4 | La relecture de C24/C29 porte toutes les valeurs du variant, même sur un axe inconnu ; C25 ne vise qu'une peinture `SOLID` (`afc044dd`, `c7b1709a`). |
+| K5, B2, B5 | L'analyse UCM exécute C59 et les contrôles de structure du composant ; C59 relit le nom de la variable et cible la bonne liaison (`41ea4116`, `c933ccff`). |
+| K6 | Deux layers homonymes du même rôle reçoivent des questions de nom distinctes (`1c2cacde`). |
+| K5, B6 | Le catalogue du test de structure renseigne son mode pour isoler le constat de scope (`47c9ee40`). |
+
+Vérification sur le clone de revue : build du kit et d'Architect ; kit 924/924,
+Architect 940/940 ; tests racine 466/467, seul `versionSuitLeContenu` reste
+rouge jusqu'au lot V. La validation dans Figma reste au jalon J-F.
 
 ## 10. Hors du plan
 
