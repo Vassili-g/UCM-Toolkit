@@ -396,6 +396,26 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `valeur`, voir `packages/plugin-architect/src/ui/structure/lecture.ts`) ;
   un test positif et un négatif par constat.
 
+- [~ Claude 2] **K11 · Propagation depuis un variant modèle (C24).** `implementeur` · arbre partagé · K8, B5 (Q-74).
+  Écrit : `kit/src/controles/propagation.ts`, son test, sa ligne d'export dans
+  `kit/src/controles/index.ts` ; `plugin-architect/src/messages/corrections.ts`,
+  `plugin-architect/src/sandbox/{corrections,analyse}.ts`,
+  `plugin-architect/tests/corrections.test.ts`.
+  Maquette : `c-modele`.
+  Fait quand : `proposerLaPropagation(releve, catalogue, variant)` lit chaque
+  liaison du variant modèle ; pour chaque autre variant, le layer de même
+  chemin et le même champ ; nom visé = nom de la variable du modèle dont
+  chaque segment d'axe prend la valeur de cet axe dans le variant visé ;
+  correction seulement si ce nom existe au catalogue, avec un seul candidat,
+  et que le champ n'y est pas déjà lié ; layer absent ou ambigu, nom absent →
+  question sans réponse cochée ; constats `C24`, famille `liaisons`,
+  `faits.modele` = nom du variant modèle, `faits.calque`, ids distincts de la
+  correction de rôle tirée de C17 ; corrections à la forme de K8. Sandbox :
+  `servir-de-modele { analyse, variant }` rend `modele-propose { analyse,
+  variant, constats }`, retient leurs corrections dans l'analyse pour
+  `appliquer-corrections` ; analyse périmée ou opération en cours → refus.
+  Vérifie : tests du kit, `npm run test:paquet -- architect`, tests racine (seul `versionSuitLeContenu` peut échouer, lot V10).
+
 ### Piste V · versions
 
 - [ ] **V · Lot de versions**, après chaque merge de Codex, par l'orchestrateur.
@@ -561,7 +581,7 @@ de galerie quand le lot B n'est pas fait.
   frontière tirable ; aperçu en haut ; Variants forme C, « +N », Tableau ;
   liaisons changées en vert, cliquables ; ouverture dans le mode du fichier et
   bascule ; comparateur sans écart.
-- [~ Claude 1] **U6 · Panneau des constats.** (1/2 : analyse, Corrections, clic, modèle, après, Ctrl+Z, e-* ; 2/2 : Questions, tranchée, À faire, Ignorés) Vague 4 · U5.
+- [~ Claude 1] (1/2 : 8668abc8) **U6 · Panneau des constats.** (1/2 : analyse, Corrections, clic, modèle, après, Ctrl+Z, e-* ; 2/2 : Questions, tranchée, À faire, Ignorés) Vague 4 · U5.
   Domaines : `analyse`, `corrections`, `questions`, `ignores`.
   Maquette : `c-corrections`, `c-clic`, `c-modele`, `c-questions`,
   `c-tranchee`, `c-afaire`, `c-apres`, `c-ctrlz`, `e-*` ; `CORR_ALERT`,
@@ -569,11 +589,18 @@ de galerie quand le lot B n'est pas fait.
   Fait quand : trois onglets, cartes du tour 3, alertes, ignorés, ligne de
   réussite avec les sautées, panneau périmé, états de l'analyse dont
   « annulée » ; sélection Figma dans l'aperçu ; comparateur sans écart.
+  (2/2) en plus : les dix tests d'interface rouges sur `8668abc8` (onglets
+  Réglages et Historique comptés sous `.panneau-lateral .onglets`, `resize`
+  lu avant son arrivée dans `composant.test.mjs`) ; `DEMANDES_PERMISES` et
+  `MESSAGES_DU_SANDBOX` de `tests/interface/aide.mjs` (Q-75).
 - [ ] **U7 · Contraste et accessibilité.** Vague 5 · U6.
   Domaines : `accessibilite`, `questions` (x-button-corr).
   Maquette : `x-alert`, `x-button`, `x-button-corr` ; `paire`.
   Fait quand : paire mesurée, rapport et seuil, autres modes, limites ;
-  questions d'état ; comparateur sans écart.
+  questions d'état ; comparateur sans écart ; le bouton « Copier ses
+  liaisons aux autres variants » de la section Variants envoie
+  `servir-de-modele` (K11) et range les constats de `modele-propose` dans
+  l'analyse (Q-74).
 - [~ Codex] **U8 · Préparation et Configuration.** Vague 6 · U6 (1/2) commité dans `partage/main`. Codex, dans son clone, pendant qu'U6 (2/2) et U7 tournent dans l'arbre partagé.
   Écrit en plus, par retouches courtes : `src/ui/etat.ts`, `src/ui/application.ts`, `src/ui/index.ts`, les index de `src/ui/textes/` et `src/ui/styles/`, `galerie/cadres.json`, l'index des états de galerie, la liste d'exceptions de `tests/loiDuVocabulaire.test.ts`.
   Textes hors maquette à écrire (skill `rediger-diagnostics-ucm`) : les codes de B8 (`MotifDeRefusDePreparation`, `MotifDeRefusDeLiaison`, `MotifDeRefusDeCreation`, `MotifDEchecDeCreation`, `MotifDeTexteRefuse`, `structure-annulee` : `journal`, `refus`, motifs des lignes sautées), Q-71 et Q-73.
@@ -1395,6 +1422,23 @@ Choix faits sans le mainteneur :
   `ranger: true` pour ranger la préparation ; deux messages s'ajoutent à N1 :
   `plan-de-preparation` et `liaisons-preparees` (`lier-preparation`)
   · réversible : oui.
+
+- Q-74 · U6, K11 · C24 · le C24 de la conception (propagation depuis un
+  variant modèle, carte `c-modele`) n'avait pas de producteur : le code C24
+  du kit sert à une correction de rôle tirée de C17. K11 ajoute la
+  propagation sous le même code, avec `faits.modele` ; la correction de rôle
+  garde son code. Question au mainteneur : donner un code propre à la
+  correction de rôle · réversible : oui.
+- Q-75 · U6 · Textes hors maquette : « Constats du composant », « Analyse
+  partielle : N variants lus sur M. », « L’analyse a été annulée. »,
+  « Cliquez Actualiser pour la relancer. », « Aucun constat n’a été
+  rendu. », « Noms de valeurs », « Aucune correction à proposer. », « Aucune
+  correction cochée. », « Renommer la valeur … en … », « Lier … à », « Ne
+  plus proposer pour ce layer », « Écriture en cours. », « non lu » sur une
+  puce de Variants. Le panneau demande la Configuration à chaque ouverture,
+  pour savoir si la library est choisie. Dix tests d'interface étaient déjà
+  rouges avant U6 (onglets de la Configuration, `resize`) : U6 (2/2) les
+  répare · réversible : oui.
 
 ### Revue des lots réalisés
 
