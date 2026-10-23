@@ -6,7 +6,7 @@
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
-import { creerCheminEnPhrase } from 'ucm-plugin-socle/src/ui/Chemin';
+import { creerCheminEnPhrase, creerVariantEnPhrase } from 'ucm-plugin-socle/src/ui/Chemin';
 
 import type { AnalyseRecue } from '../composant/analyse';
 import { poserLeTexteEnrichi } from '../ignores/texte';
@@ -52,7 +52,8 @@ function poserLeTitre(parent: HTMLElement, titre: readonly MorceauDeTitre[]): vo
       layer.className = 'ch ch-variable-vu';
       layer.textContent = morceau.olive;
       parent.append(layer);
-    } else if ('chemin' in morceau) parent.append(creerCheminEnPhrase(morceau.chemin, { vus: morceau.vus }));
+    } else if ('variant' in morceau) parent.append(creerVariantEnPhrase(morceau.variant));
+    else if ('chemin' in morceau) parent.append(creerCheminEnPhrase(morceau.chemin, { vus: morceau.vus }));
     else if ('retire' in morceau) parent.append(motCite(morceau.retire, 'mot-retire'));
     else parent.append(motCite(morceau.retenu, 'mot-retenu'));
   }
@@ -110,6 +111,7 @@ export function monterLesQuestions(hote: HTMLElement, options: OptionsDesQuestio
     const meta = document.createElement('span');
     meta.className = 'meta';
     poserLeTexteEnrichi(meta, carte.meta);
+    if (carte.indice !== null) meta.append(` ${carte.indice}`);
     const effet = document.createElement('div');
     effet.className = 'renommage';
     const ancien = document.createElement('span');

@@ -3,14 +3,18 @@
  * principal et les autres candidats. Le calcul ne touche pas au DOM. Deux questions existent aujourd'hui : un token à lier à un layer
  * (`candidats` : des variables du catalogue) et un nom de valeur à choisir (C12, C13 : des noms). Le candidat que le titre cite est le
  * premier du moteur ; rien ne part avant le clic, et chaque autre candidat a son bouton.
+ *
+ * Une liaison d'état (C16, un layer de State=hover lié au token du repos) a sa forme : le titre cite l'état et le token d'état, l'effet
+ * met en couleur le segment qui change, et l'indice du moteur (ce que font les autres variants du même état) suit la ligne grise.
  */
 import type { Constat, Correction } from '../../messages/commun';
+import { variantsEnPhrase } from '../ignores/modele';
 import { TEXTES } from '../textes';
 
 const T = TEXTES.questionsDuComposant;
 
 /** Un titre : du texte, le layer en olive, un chemin dont un terme est vu, un terme qui part ou un terme qui reste. */
-export type MorceauDeTitre = string | { readonly olive: string } | { readonly chemin: string; readonly vus: readonly string[] } | { readonly retire: string } | { readonly retenu: string };
+export type MorceauDeTitre = string | { readonly olive: string } | { readonly variant: string } | { readonly chemin: string; readonly vus: readonly string[] } | { readonly retire: string } | { readonly retenu: string };
 
 /** Un nom sur une ligne de l'effet : du texte, avec ce qui part ou ce qui arrive. */
 export type MorceauDEffet = string | { readonly ancien: string } | { readonly nouveau: string };
@@ -30,6 +34,8 @@ export interface CarteDeQuestion {
   readonly titreEnTexte: string;
   readonly origine: string | null;
   readonly meta: string;
+  /** Ce que le moteur a compté chez les autres variants ; posé en texte simple après la ligne grise. */
+  readonly indice: string | null;
   readonly ancien: readonly MorceauDEffet[];
   readonly nouveau: readonly MorceauDEffet[];
   readonly principal: ReponseProposee;
@@ -71,6 +77,42 @@ function effetDuChemin(nom: string, layer: string): MorceauDEffet[] {
   return morceaux;
 }
 
+/** Un nom de token où le segment `segment` prend la couleur d'un départ ou d'une arrivée. */
+function effetDuSegment(nom: string, segment: string, arrivee: boolean): MorceauDEffet[] {
+  const segments = nom.split('/');
+  const rang = segments.findIndex((candidat) => candidat.toLowerCase() === segment.toLowerCase());
+  if (rang < 0) return [nom];
+  const avant = segments.slice(0, rang).map((candidat) => `${candidat}/`).join('');
+  const apres = segments.slice(rang + 1).map((candidat) => `/${candidat}`).join('');
+  return [...(avant === '' ? [] : [avant]), arrivee ? { nouveau: segments[rang] } : { ancien: segments[rang] }, ...(apres === '' ? [] : [apres])];
+}
+
+function questionDEtat(constat: Constat, id: string, candidats: readonly { readonly cle?: string; readonly nom: string }[], indice: string, contexte: ContexteDeQuestions): CarteDeQuestion | null {
+  const axe = texte(constat.faits.axe);
+  const etat = texte(constat.faits.valeur);
+  const actuel = texte(constat.faits.token);
+  const segment = texte(constat.faits.segment);
+  if (candidats.length === 0 || axe === null || etat === null || actuel === null || segment === null) return null;
+  const premier = candidats[0];
+  const layer = contexte.layers.get(constat.layers[0] ?? '') ?? 'layer';
+  const champ = constat.faits.plageDebut !== undefined ? T.texte : constat.faits.champ === 'strokes' ? T.stroke : T.fill;
+  const noms = constat.variants.map((variant) => contexte.variants.find((candidat) => candidat.id === variant)?.nom ?? variant);
+  const lieu = noms.length === 0 ? '' : `${variantsEnPhrase(noms)}, `;
+  const variant = `${axe}=${etat}`;
+  return {
+    id, constat, origine: null,
+    titre: [T.lierLe(champ), { variant }, T.a, { chemin: premier.nom, vus: [etat] }, T.finDeLaQuestion],
+    titreEnTexte: `${T.lierLe(champ)}${variant}${T.a}${premier.nom}${T.finDeLaQuestion}`,
+    meta: `${lieu}${T.layerSuivi(layer)}${T.lieAuRepos}`,
+    indice,
+    ancien: effetDuSegment(actuel, segment, false),
+    nouveau: effetDuSegment(premier.nom, etat, true),
+    principal: { libelle: T.lierAuTokenDEtat(etat), reponse: reponseDe(premier) },
+    autres: candidats.slice(1).map((candidat) => ({ libelle: T.lierA(sansPrefixe(candidat.nom, contexte.composant).split('/').slice(-1)[0]), reponse: reponseDe(candidat) })),
+    reponseEnTexte: (correction) => T.seraLie(layer, correction.apres.nom),
+  };
+}
+
 function questionDeNom(constat: Constat, id: string, candidats: readonly { readonly cle?: string; readonly nom: string }[]): CarteDeQuestion | null {
   const propriete = texte(constat.faits.propriete);
   const avant = texte(constat.faits.avant);
@@ -78,7 +120,7 @@ function questionDeNom(constat: Constat, id: string, candidats: readonly { reado
   const premier = candidats[0];
   const variants = constat.variants.length;
   return {
-    id, constat, origine: propriete,
+    id, constat, origine: propriete, indice: null,
     titre: [T.renommer, { retire: avant }, T.en, { retenu: premier.nom }, T.finDeLaQuestion],
     titreEnTexte: `${T.renommer}${avant}${T.en}${premier.nom}${T.finDeLaQuestion}`,
     meta: `${T.lesTokensEmploient(premier.nom)}${T.nVariants(variants)}${T.codeADevoirModifier}`,
@@ -102,7 +144,7 @@ function questionDeLiaison(constat: Constat, id: string, candidats: readonly { r
   const suite = autres.length === 0 ? '' : `${autres.map((candidat) => sansPrefixe(candidat.nom, contexte.composant)).join(', ')}${T.convientAussi(autres.length)}`;
   const lieu = lie === null ? T.sansVariable(layer) : T.liePar(layer, sansPrefixe(lie, contexte.composant));
   return {
-    id, constat, origine: null,
+    id, constat, origine: null, indice: null,
     titre: [T.lier, { olive: layer }, T.a, { chemin: nom, vus: [layer] }, T.finDeLaQuestion],
     titreEnTexte: `${T.lier}${layer}${T.a}${nom}${T.finDeLaQuestion}`,
     meta: `${variants === '' ? `${lieu.charAt(0).toUpperCase()}${lieu.slice(1)}` : `${variants}, ${lieu}`}${suite}`,
@@ -119,6 +161,10 @@ export function carteDeQuestion(constat: Constat, contexte: ContexteDeQuestions)
   const { question } = constat;
   if (!question) return null;
   if (constat.code === 'C12' || constat.code === 'C13') return questionDeNom(constat, question.id, question.candidats);
+  if (constat.code === 'C16' && question.indice !== undefined) {
+    const etat = questionDEtat(constat, question.id, question.candidats, question.indice, contexte);
+    if (etat) return etat;
+  }
   return questionDeLiaison(constat, question.id, question.candidats, contexte);
 }
 

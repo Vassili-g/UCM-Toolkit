@@ -15,7 +15,7 @@ import type { Constat, Correction, IdentiteDAnalyse } from '../../messages/commu
 import type { Etat } from '../etat';
 
 /** Les messages qui touchent l'analyse retenue. */
-export type MessageRecuDeLAnalyse = Extract<PluginMessage, { type: 'analyse-commencee' | 'analyse-en-cours' | 'analyse' | 'perime' | 'occupe' | 'corrections-appliquees' | 'ignores' | 'question-repondue' }>;
+export type MessageRecuDeLAnalyse = Extract<PluginMessage, { type: 'analyse-commencee' | 'analyse-en-cours' | 'analyse' | 'perime' | 'occupe' | 'corrections-appliquees' | 'ignores' | 'question-repondue' | 'modele-propose' }>;
 
 /** Le dernier lot écrit : la ligne de réussite du sandbox, et ce qui s'est écrit. */
 export interface LotEcrit {
@@ -92,6 +92,13 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       if (message.correction === null) delete repondues[message.question];
       else repondues[message.question] = message.correction;
       etat.analyse = { ...courante, repondues };
+      return;
+    }
+    case 'modele-propose': {
+      // Les constats du modèle prennent la place de ceux qui portent le même identifiant ; les autres restent.
+      const nouveaux = new Map(message.constats.map((constat) => [constat.id, constat]));
+      const tous = [...courante.tous.map((constat) => nouveaux.get(constat.id) ?? constat), ...message.constats.filter((constat) => !courante.tous.some((connu) => connu.id === constat.id))];
+      etat.analyse = { ...courante, tous, constats: visibles(tous, courante.ignores) };
       return;
     }
     case 'perime':

@@ -332,6 +332,7 @@ function recevoir(message: PluginMessage): void {
     case 'corrections-appliquees':
     case 'ignores':
     case 'question-repondue':
+    case 'modele-propose':
       recevoirUneAnalyse(etat, message);
       vueComposant.mettreAJour();
       app.rendre(['barre']);

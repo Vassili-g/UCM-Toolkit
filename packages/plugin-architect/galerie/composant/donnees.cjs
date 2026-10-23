@@ -151,4 +151,4 @@ function releveHorsUcm() {
 /** Alert sans jeu de variants ni nom de variant : la vue n'a pas de section Variants. */
 const composantSansVariant = { ...alert, sujet: { ...alert.sujet, variant: null, variants: [] } };
 
-module.exports = { composantSansVariant, releveHorsUcm, alertEnJeu, analyseAlert, analyseSansVariants, enButton, analyseButton, IDENTITE };
+module.exports = { composantSansVariant, releveHorsUcm, alertEnJeu, analyseAlert, analyseSansVariants, enButton, analyseButton, IDENTITE, variantsDe, donnerDesIds };

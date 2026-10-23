@@ -113,6 +113,8 @@ export interface OptionsDeLaSection {
   readonly deplier: (propriete: string) => void;
   readonly basculerLeTableau: () => void;
   readonly croiser: (croisement: { lignes: string; colonnes: string }) => void;
+  /** Le variant affiché sert de modèle : ses liaisons se proposent aux autres. Inactif quand l'analyse est périmée. */
+  readonly copier: { readonly envoyer: () => void; readonly inactif: boolean };
   /** Les variants qu'une analyse partielle n'a pas lus, par nom ou par identifiant : une valeur dont aucun variant n'a été lu porte « non lu ». */
   readonly nonLus?: ReadonlySet<string>;
 }
@@ -304,6 +306,8 @@ export function creerSectionVariants(options: OptionsDeLaSection): HTMLElement |
   affiche.append(etiquette, nom);
   const copier = bouton(T.copier, 'variants-copier');
   copier.dataset.action = 'copier-les-liaisons';
+  copier.disabled = options.copier.inactif;
+  copier.addEventListener('click', options.copier.envoyer);
   pied.append(affiche, copier);
 
   section.append(tete, corps, pied);

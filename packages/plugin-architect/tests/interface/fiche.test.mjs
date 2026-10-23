@@ -61,7 +61,9 @@ test('la feuille ne couvre que la barre latérale, à toutes les tailles', async
     const page = await ouvrir({ largeur, hauteur });
     try {
       await avecReleve(page, cinqCollections());
-      await page.locator('[data-focus="nom:bouton-fond"]').click();
+      // À 560 × 480, la barre latérale recouvre la table : le clavier ouvre la fiche là où le pointeur n'atteint pas la ligne.
+      await page.locator('[data-focus="nom:bouton-fond"]').focus();
+      await page.keyboard.press('Enter');
       const voile = await page.locator('.feuille-voile').boundingBox();
       const laterale = await page.locator('.panneau-lateral').boundingBox();
       const recherche = await page.locator('.arbre .recherche').boundingBox();

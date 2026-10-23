@@ -404,11 +404,12 @@ export function creerVueComposant(app: Application): VueComposant {
     const analyse = analyseDe(etat, lecture);
     if (!analyse || portee !== racineDe(lecture)) return null;
     const lu = lecture.calques[0]?.id;
+    const affiche = lecture.sujet.variants.find((variant) => variant.id === lu);
     return creerSectionVariants({
       variants: lecture.sujet.variants,
       constats: analyse.constats,
       nonLus: new Set(analyse.lecture?.variantsNonLus ?? []),
-      affiche: lecture.sujet.variants.find((variant) => variant.id === lu)?.nom,
+      affiche: affiche?.nom,
       depliees: proprietesDepliees,
       tableau,
       choisir: (variant) => {
@@ -427,6 +428,12 @@ export function creerVueComposant(app: Application): VueComposant {
       croiser: (croisement) => {
         tableau = croisement;
         rendre();
+      },
+      copier: {
+        inactif: analyse.perimee || affiche === undefined,
+        envoyer: () => {
+          if (affiche !== undefined) app.servirDeModele(affiche.id);
+        },
       },
     });
   }

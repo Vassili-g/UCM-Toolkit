@@ -4,6 +4,13 @@ export const TEXTES_QUESTIONS = {
   questionsDuComposant: {
     aucuneQuestion: 'Aucune question à trancher.',
     lier: 'Lier ',
+    lierLe: (champ: string): string => `Lier le ${champ} de `,
+    fill: 'fill',
+    texte: 'texte',
+    stroke: 'stroke',
+    layerSuivi: (layer: string): string => `layer ${layer}. `,
+    lieAuRepos: 'Lié aujourd’hui au token du repos.',
+    lierAuTokenDEtat: (etat: string): string => `Lier au token ${etat}`,
     renommer: 'Renommer ',
     a: ' à ',
     en: ' en ',

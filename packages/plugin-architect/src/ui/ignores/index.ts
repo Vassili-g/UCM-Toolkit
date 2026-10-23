@@ -10,7 +10,7 @@ import type { Constat } from '../../messages/commun';
 import type { AnalyseRecue } from '../composant/analyse';
 import { creerCarte, creerIntertitre } from '../structure/carte';
 import { TEXTES } from '../textes';
-import { cartesDAFaire, estAFaire, SECTIONS_D_A_FAIRE, type CarteDAFaire, type ContexteDAFaire } from './modele';
+import { cartesDAFaire, estAFaire, SECTIONS_D_A_FAIRE, type CarteDAFaire, type ContexteDAFaire, type FaitDeCarte, type MesureDeCarte } from './modele';
 import { poserLeTexteEnrichi } from './texte';
 
 const T = TEXTES.aFaireDuComposant;
@@ -53,6 +53,53 @@ export function monterAFaire(hote: HTMLElement, options: OptionsDeAFaire): AFair
   let cible: string | null = null;
   const ouvertes = new Set<string>();
 
+  /** La mesure d'un contraste : le rapport en gras, puis le seuil et les modes en gris. */
+  function creerLaMesure(mesure: MesureDeCarte): HTMLElement {
+    const paire = document.createElement('span');
+    paire.className = 'paire';
+    if (mesure.echantillon !== null) {
+      const echantillon = document.createElement('span');
+      echantillon.className = 'paire-echantillon';
+      echantillon.style.color = mesure.echantillon.premierPlan;
+      echantillon.style.background = mesure.echantillon.fond;
+      echantillon.textContent = T.echantillon;
+      paire.append(echantillon);
+    }
+    const rapport = document.createElement('b');
+    rapport.textContent = mesure.rapport;
+    const seuil = document.createElement('span');
+    seuil.className = 'meta';
+    seuil.textContent = T.seuilEtModes(mesure.seuil, mesure.modes);
+    paire.append(rapport, seuil);
+    return paire;
+  }
+
+  function creerLesFaits(faits: readonly FaitDeCarte[]): HTMLElement {
+    const liste = document.createElement('div');
+    liste.className = 'constat-faits';
+    for (const fait of faits) {
+      const ligne = document.createElement('div');
+      ligne.className = 'constat-fait';
+      const libelle = document.createElement('span');
+      libelle.textContent = fait.libelle;
+      const valeur = document.createElement('span');
+      if ('mesure' in fait) valeur.append(creerLaMesure(fait.mesure));
+      else if ('lignes' in fait) {
+        const lignes = document.createElement('span');
+        lignes.className = 'mesures';
+        for (const texte of fait.lignes) {
+          const ligneDeMode = document.createElement('span');
+          ligneDeMode.textContent = texte;
+          lignes.append(ligneDeMode);
+        }
+        valeur.append(lignes);
+      } else valeur.textContent = fait.texte;
+      ligne.append(libelle, valeur);
+      liste.append(ligne);
+    }
+    return liste;
+  }
+
   function entete(carte: CarteDAFaire): HTMLElement {
     const ligne = document.createElement('span');
     ligne.className = 'constat-entete';
@@ -70,25 +117,26 @@ export function monterAFaire(hote: HTMLElement, options: OptionsDeAFaire): AFair
     lieu.className = 'constat-lieu';
     poserLeTexteEnrichi(lieu, carte.lieu);
     if (ciblee) {
-      lieu.append('. ');
+      if (carte.lieu !== '') lieu.append('. ');
       const marque = document.createElement('span');
       marque.className = 'constat-selection';
       marque.textContent = TEXTES.correctionsDuComposant.ciblee;
       lieu.append(marque);
     }
-    const meta: Node[] = [lieu];
+    const meta: Node[] = carte.lieu === '' && !ciblee ? [] : [lieu];
     if (carte.statut !== null) {
       const statut = document.createElement('span');
       statut.className = 'constat-statut';
       poserLeTexteEnrichi(statut, carte.statut);
-      meta.push(document.createElement('br'), statut);
+      meta.push(...(meta.length > 0 ? [document.createElement('br')] : []), statut);
     }
     let corps: HTMLElement | null = null;
     if (constat.limite !== true) {
       corps = document.createElement('div');
+      if (carte.faits.length > 0) corps.append(creerLesFaits(carte.faits));
       const actions = document.createElement('div');
       actions.className = 'constat-actions';
-      actions.append(boutonTexte(T.ignorer, T.ignorerCeConstat(carte.phrase.replace(/`/g, '')), () => options.ignorer(constat), inactif));
+      actions.append(boutonTexte(constat.layers.length === 1 ? T.ignorerCeLayer : T.ignorer, T.ignorerCeConstat(carte.phrase.replace(/`/g, '')), () => options.ignorer(constat), inactif));
       corps.append(actions);
     }
     const { element } = creerCarte({
@@ -136,6 +184,12 @@ export function monterAFaire(hote: HTMLElement, options: OptionsDeAFaire): AFair
       const deLaSection = aFaire.filter((carte) => carte.section === section);
       if (deLaSection.length === 0) continue;
       liste.append(creerIntertitre(T.intertitres[section]), ...deLaSection.map((carte) => creerLaCarte(carte, analyse.perimee)));
+      if (section === 'contraste' && deLaSection.some((carte) => typeof carte.constat.faits.rapport === 'number')) {
+        const note = document.createElement('p');
+        note.className = 'meta';
+        note.textContent = deLaSection.some((carte) => carte.constat.limite === true) ? T.noteDeMesureAvecLimite : T.noteDeMesure;
+        liste.append(note);
+      }
     }
     if (ignores.length > 0) {
       liste.append(creerIntertitre(T.ignores), ...cartesDAFaire(ignores, contexte).map((carte) => creerLaCarteIgnoree(carte, analyse.perimee)));

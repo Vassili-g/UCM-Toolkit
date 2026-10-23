@@ -90,6 +90,10 @@ couleur, forme, espacement, taille, texte.
   ligne par property : une puce pour la valeur affichée et pour chaque valeur
   qui porte un constat, « +N » pour les autres. Une puce relit le variant qui
   garde le plus de valeurs affichées ; **Tableau** croise deux properties.
+  **Copier ses liaisons aux autres variants** prend le variant affiché pour
+  modèle : ses liaisons se proposent aux autres variants dans Corrections, et
+  les cas douteux dans Questions. Le bouton est inactif quand l'analyse est
+  périmée.
 - **Constats.** Le bouton ouvre le panneau des constats, à droite de la vue, et
   la fenêtre passe à 1040 × 760 sans ranger cette taille. Sa pastille compte
   les constats de la dernière analyse, dans la couleur du plus grave. La
@@ -103,8 +107,13 @@ couleur, forme, espacement, taille, texte.
   les autres ont leur bouton, et rien n'est choisi avant le clic ; la réponse
   passe sa correction dans Corrections, et Annuler la réponse la retire. À faire
   dans Figma range les constats sans correction sous cinq intertitres, chacun
-  avec le type de son alerte ; Ignorer en écarte un, sauf une limite de lecture,
-  et les constats ignorés restent sous Ignorés, avec Ne plus ignorer. Après
+  avec le type de son alerte. Sous Contraste et accessibilité, une carte de
+  contraste ouverte donne le rapport mesuré sans arrondi, son seuil (AA ou AAA,
+  lu dans la Configuration) et le mode ; la zone cliquable, l'anneau de focus
+  et le texte sous 12 px sont des recommandations, les variants State=disabled
+  une information, et un fond ou une peinture que le plugin ne sait pas lire
+  une limite, jamais un verdict. Ignorer en écarte un, sauf une limite de
+  lecture, et les constats ignorés restent sous Ignorés, avec Ne plus ignorer. Après
   l'écriture, ou un changement du composant, le panneau garde ses constats et
   attend Actualiser ou Analyser. Une analyse partielle, annulée ou arrêtée ne
   conclut jamais « aucun constat ».

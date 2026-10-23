@@ -87,6 +87,12 @@ function constatsDuModele() {
 const constatsAlert = constatsDAlert();
 const analyseCorrections = { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: constatsAlert, lecture: null, variants: variantsAlert };
 const analyseModele = { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: constatsDuModele(), lecture: null, variants: variantsDuModele };
+/** L'analyse d'avant le geste : les 19 constats de base. Le sandbox y range ensuite ceux du modèle (`modele-propose`). */
+const dEntree = [5, 14, 13];
+const constatsAvantLeModele = [...dEntree.map((rang) => analyseAlert.constats[rang]), ...analyseAlert.constats.filter((_, rang) => !dEntree.includes(rang))];
+const analyseAvantLeModele = { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: constatsAvantLeModele, lecture: null, variants: variantsDuModele };
+/** Ce que le sandbox rend à `servir-de-modele` : les constats du modèle que `constatsDuModele` a changés ou ajoutés. */
+const modelePropose = { type: 'modele-propose', analyse: IDENTITE, variant: 'alert:0', constats: constatsDuModele().filter((constat) => constat.correction || constat.question || constat.id.startsWith('C40:')) };
 const aucunIgnore = { type: 'ignores', analyse: IDENTITE, constats: [] };
 const lesIds = constatsAlert.flatMap((constat) => (constat.correction ? [constat.correction.id] : []));
 
@@ -103,9 +109,9 @@ const ETATS = [
     existe: true, atteinte: [preferences(), etroite, choisir(alertTexteSuccess), composant(alertTexteSuccess), apercu(alertTexteSuccess), ...panneauOuvert.slice(5)],
   },
   {
-    id: 'c-modele', titre: 'Liaisons copiées depuis un variant', quand: 'Le variant affiché, info et standard, sert de modèle : ses liaisons se copient sur les autres variants.',
-    regarder: 'Une carte « Copier les liaisons de Severity=info, Variant=standard » ; le variant copié s’écrit comme Figma le nomme ; le segment qui change d’un variant à l’autre est en vert ; le pied compte les liaisons cochées.',
-    existe: true, atteinte: [preferences(), etroite, choisir(alertModele), composant(alertModele), apercu(alertModele), { message: analyseModele }, { message: aucunIgnore }, { clic: '.bouton-panneau' }],
+    id: 'c-modele', titre: 'Liaisons copiées depuis un variant', quand: 'Le designer clique « Copier ses liaisons aux autres variants » : le variant affiché, info et standard, sert de modèle, et le sandbox propose ses liaisons aux autres variants.',
+    regarder: 'Une carte « Copier les liaisons de Severity=info, Variant=standard » ; le variant copié s’écrit comme Figma le nomme ; le segment qui change d’un variant à l’autre est en vert ; le pied compte les liaisons cochées ; les constats d’avant le geste restent.',
+    existe: true, atteinte: [preferences(), etroite, choisir(alertModele), composant(alertModele), apercu(alertModele), { message: analyseAvantLeModele }, { message: aucunIgnore }, { clic: '[data-action="copier-les-liaisons"]' }, { message: modelePropose }, { clic: '.bouton-panneau' }],
   },
   {
     id: 'c-clic', titre: 'Un constat cliqué', quand: 'Le designer ouvre la carte « info devient success » : le plugin sélectionne ses deux layers dans Figma.',
@@ -140,4 +146,4 @@ const ETATS = [
   },
 ].map((etat) => ({ ...etat, disposition: 'etroite' }));
 
-module.exports = { ETATS, alertCorrections, alertModele, analyseModele, constatsAlert, analyseCorrections, aucunIgnore, panneauOuvert, appliquer, lot, perime, lesIds, nomDeVariant, CONTAINER, ICON, MESSAGE };
+module.exports = { ETATS, alertCorrections, alertModele, analyseModele, analyseAvantLeModele, modelePropose, constatsAlert, analyseCorrections, aucunIgnore, panneauOuvert, appliquer, lot, perime, lesIds, nomDeVariant, CONTAINER, ICON, MESSAGE };

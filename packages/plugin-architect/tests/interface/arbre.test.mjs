@@ -123,6 +123,9 @@ test('le clavier atteint l’arbre, la table et la recherche', async () => {
     assert.equal(await page.locator('.table-titre').textContent(), 'card');
     await page.locator('[data-focus="nom:carte-gap"]').focus();
     await page.keyboard.press('Enter');
+    // La fiche s'ouvre en feuille sur la barre latérale et garde le focus : Échap la ferme avant la recherche.
+    await page.keyboard.press('Escape');
+    await page.locator('.feuille-voile').waitFor({ state: 'detached' });
     assert.equal(await page.locator('.barre .recherche, .arbre > .note').count(), 0);
     await page.locator('.arbre .recherche').focus();
     await page.keyboard.type('papier');
@@ -131,7 +134,8 @@ test('le clavier atteint l’arbre, la table et la recherche', async () => {
 });
 
 test('une poignée règle la largeur d’une colonne et de l’arbre ; le nom et l’arbre se rangent, un double clic rend le défaut', async () => {
-  const page = await ouvrir();
+  // La barre latérale prend 640 px : la fenêtre doit laisser à la table la place de ses trois colonnes pour que leurs poignées restent visibles.
+  const page = await ouvrir({ largeur: 1800 });
   try {
     await avecReleve(page, projetLibre());
     const largeur = async (selecteur) => Math.round((await page.locator(selecteur).first().boundingBox()).width);

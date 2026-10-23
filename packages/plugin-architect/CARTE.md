@@ -37,11 +37,11 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - espace.ts : couleurs d'un document Display P3 ramenées en sRGB, pour le contraste et la copie hexadécimale ; conversion de Palettes (`p3VersRgb8` de `ucm-couleur`), hors du noyau, qui n'importe pas `ucm-couleur`
 - integrations/ : recette UCM Palettes, profil d'architecture UCM (les sept couches de `COLLECTIONS`)
 - ui/ : barre et sa bascule de mode, arbre et sa recherche, table, panneau latéral, bulle de chaîne et poignée des largeurs
-- ui/composant/ : analyse retenue (constats, pastille), section Variants, corps du mode Composant (vue, frontière tirable, panneau)
+- ui/composant/ : analyse retenue (constats, pastille ; `modele-propose` y range les constats d'un modèle), section Variants et son bouton de modèle, corps du mode Composant (vue, frontière tirable, panneau)
 - ui/analyse/ : panneau des constats : ses trois onglets et leurs comptes, l'écran de chaque état de l'analyse (vide, en cours, aucun constat, partielle, annulée, arrêtée, périmée, library à choisir, hors UCM)
 - ui/corrections/ : onglet Corrections : cartes cochables par section (Liaisons, Tailles, Règles d'usage, Noms de valeurs), carte d'un modèle, sélection au clic, pied, Appliquer et ligne de réussite avec les sautées
-- ui/questions/ : onglet Questions : une carte par question du moteur, candidats en boutons, ligne de réponse avec Ouvrir Corrections et Annuler la réponse, Plus tard
-- ui/ignores/ : onglet À faire dans Figma : constats sous cinq intertitres avec l'alerte typée, sélection au clic, Ignorer, section Ignorés avec Ne plus ignorer
+- ui/questions/ : onglet Questions : une carte par question du moteur (liaison, nom de valeur, liaison d'état avec l'indice du moteur), candidats en boutons, ligne de réponse avec Ouvrir Corrections et Annuler la réponse, Plus tard
+- ui/ignores/ : onglet À faire dans Figma : constats sous cinq intertitres avec l'alerte typée, mesure de contraste et recommandations d'accessibilité (C49 à C53), sélection au clic, Ignorer, section Ignorés avec Ne plus ignorer
 - ui/bibliotheque/ : library d'un fichier sans variable locale : relevé bâti sur ses noms, valeurs importées à l'ouverture d'un groupe
 - ui/nomenclature/ : coquille de Nomenclature et sa frontière, onglets À appliquer, À trancher et Règles, feuilles, Configuration ; montée dans le panneau latéral du mode Tokens
 

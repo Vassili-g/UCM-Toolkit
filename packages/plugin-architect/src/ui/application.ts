@@ -91,6 +91,8 @@ export interface Application {
   repondre(question: string, reponse: string): void;
   /** Retire la réponse à une question : la correction qu'elle avait tirée quitte Corrections. */
   annulerLaReponse(question: string): void;
+  /** Le variant affiché (son identifiant) sert de modèle : le sandbox propose ses liaisons aux autres variants. Sans effet sur une analyse périmée. */
+  servirDeModele(variant: string): void;
   /** Écarte ce constat de À faire dans Figma. Sans effet sur une analyse périmée ou sur une limite de lecture. */
   ignorer(constat: Constat): void;
   /** Rend ce constat à À faire dans Figma. */
@@ -174,7 +176,7 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     },
     choisirMode(famille, mode) {
       etat.contexte = { ...etat.contexte, [famille]: mode };
-      app.rendre(['table', 'vue']);
+      app.rendre(['table', 'fiche', 'vue']);
     },
     enleverLeFiltre() {
       etat.filtreDeLaBarre = false;
@@ -241,6 +243,10 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     annulerLaReponse(question) {
       const { analyse } = etat;
       if (analyse && !analyse.perimee) versSandbox({ type: 'annuler-reponse', analyse: analyse.identite, question });
+    },
+    servirDeModele(variant) {
+      const { analyse } = etat;
+      if (analyse && !analyse.perimee) versSandbox({ type: 'servir-de-modele', analyse: analyse.identite, variant });
     },
     ignorer(constat) {
       const { analyse } = etat;

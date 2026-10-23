@@ -47,9 +47,7 @@ test('tout message que le sandbox peut envoyer a un état où le regarder', () =
   const avecMessages = ETATS.filter((etat) => !['recherche', 'fiche', 'structure', 'bibliotheque'].includes((etat as { domaine?: string }).domaine ?? ''));
   // `e-biblio` joue le message `configuration` : son domaine entre ici avec la Configuration (lot U8), qui joue aussi `structure-annulee`.
   const avantLaConfiguration = new Set(['configuration']);
-  // `modele-propose` (K11) a son état quand le bouton de la section Variants l'envoie (lot U7), qui retire cette ligne.
-  const avantLeBoutonDuModele = new Set(['modele-propose']);
-  const regardables = new Set([...declares, ...avantLaConfiguration].filter((type) => !avantLeBoutonDuModele.has(type)));
+  const regardables = new Set([...declares, ...avantLaConfiguration]);
   assert.deepEqual(ecartsDesMessages(regardables, avecMessages), { jamaisRegardes: [], inventes: [] });
 });
 
