@@ -390,7 +390,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `monorepoCoherent` et `pinDocumente` compris ; le corpus
   `docs/references/design-systems/ucm/` régénéré par
   `node docs/references/design-systems/_outils/ucm.mjs` (il date la version du kit).
-  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`) ; V7 (0.12.6, après K6 et K8, `683d8e28`).
+  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`) ; V7 (0.12.6, après K6 et K8, `683d8e28`) ; V8 (0.12.7, après K5).
 
 ### Piste S · socle
 
