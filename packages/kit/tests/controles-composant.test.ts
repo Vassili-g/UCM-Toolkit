@@ -191,6 +191,19 @@ test('C20 juge la couche d’une dimension et C61 celle d’une couleur primitiv
   assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'primary/solid/background', collection: 'theme' }))), []);
 });
 
+test('C20 juge un token de components lié à un layer par la cible de ses alias', () => {
+  const r = releve('TileLink');
+  r.variants = [variante('default', {}, 'v0', { champ: 'width' })];
+  const lie = (alias?: string) => ({ nom: 'TileLink/Size/width', collection: 'components', type: 'FLOAT' as const, alias });
+  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu(lie('v1'), { nom: 'sizing/40', collection: 'layout', type: 'FLOAT' }))), []);
+  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu(lie()))), []);
+  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu(lie('absente')))), []);
+  const versPrimitive = controlerCouches(r, catalogueEtendu(lie('v1'), { nom: 'dimension/40', collection: 'primitives', type: 'FLOAT' }));
+  assert.deepEqual(codes(versPrimitive), ['C20']);
+  assert.deepEqual(versPrimitive[0].faits, { token: 'TileLink/Size/width', couche: 'primitives', nature: 'dimension', admises: 'theme,layout,typography', cible: 'dimension/40' });
+  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu(lie('v1'), { nom: 'icon/size/xl', collection: 'components', type: 'FLOAT' }))), ['C20']);
+});
+
 test('C21 repère une liaison isolée parmi trois frères et tait un partage égal', () => {
   const r = releve('Button');
   r.variants = [variante('a', {}, 'v0'), variante('b', {}, 'v0'), variante('c', {}, 'v1')];

@@ -132,12 +132,11 @@ function calqueDe(constat: Constat, contexte: ContexteDAFaire): string | null {
 /** Le lieu : les variants (sauf si la phrase les cite), le layer, puis ce que le constat désigne d'autre. */
 function lieuDe(constat: Constat, contexte: ContexteDAFaire, options: { readonly variantsDansLaPhrase: boolean; readonly apres?: readonly string[]; readonly sansLayer?: boolean }): string {
   const parties: string[] = [];
-  if (!options.variantsDansLaPhrase) {
-    const noms = nomsDesVariants(constat, contexte);
-    parties.push(noms.length === 0 ? T.tousLesVariants : noms.length === 1 ? noms[0] : T.nVariants(noms.length));
-  }
+  const noms = nomsDesVariants(constat, contexte);
+  if (!options.variantsDansLaPhrase) parties.push(noms.length === 0 ? T.tousLesVariants : noms.length === 1 ? noms[0] : T.nVariants(noms.length));
   const calque = options.sansLayer === true ? null : calqueDe(constat, contexte);
-  if (calque !== null) parties.push(T.layer(calque, parties.length === 0));
+  // Le layer racine d'un variant porte le nom du variant : le répéter n'apprend rien.
+  if (calque !== null && !noms.includes(calque)) parties.push(T.layer(calque, parties.length === 0));
   parties.push(...(options.apres ?? []));
   return parties.join(', ');
 }
@@ -244,8 +243,15 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
   const { faits } = constat;
   const noms = nomsDesVariants(constat, contexte);
   switch (constat.code) {
-    case 'C20':
-      return { phrase: T.mauvaiseCouche(texte(faits.token) ?? '', texte(faits.couche) ?? ''), lieu: lieuDe(constat, contexte, { variantsDansLaPhrase: false }), statut: T.mauvaiseCoucheStatut };
+    case 'C20': {
+      const [token, couche, cible] = [texte(faits.token) ?? '', texte(faits.couche) ?? '', texte(faits.cible)];
+      const liste = (texte(faits.admises) ?? '').split(',').filter(Boolean);
+      const admises = liste.length > 1 ? `${liste.slice(0, -1).join(', ')} ou ${liste[liste.length - 1]}` : liste.join('');
+      const lieu = lieuDe(constat, contexte, { variantsDansLaPhrase: false });
+      return cible
+        ? { phrase: T.mauvaiseCible(token, cible, couche), lieu, statut: T.mauvaiseCibleStatut(admises) }
+        : { phrase: T.mauvaiseCouche(token, couche), lieu, statut: T.mauvaiseCoucheStatut(admises) };
+    }
     case 'C31':
       return { phrase: T.variantAbsent(Object.entries(faits).map(([propriete, valeur]) => `${propriete}=${valeur}`).join(', ')), lieu: T.sectionVariants, statut: T.variantAbsentStatut };
     case 'C32': {

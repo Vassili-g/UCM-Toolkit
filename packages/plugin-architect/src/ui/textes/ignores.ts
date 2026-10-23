@@ -39,9 +39,11 @@ export const TEXTES_IGNORES = {
     layer: (nom: string, enTete: boolean): string => `${enTete ? 'Layer' : 'layer'} ${nom}`,
     sectionVariants: 'Section Variants',
     sectionTokens: 'Tokens du composant',
-    // C20 : un token vise une couche que les liaisons d'un composant n'admettent pas.
-    mauvaiseCouche: (token: string, couche: string): string => `\`${token}\` vise la collection \`${couche}\`, que ce composant ne lie pas.`,
-    mauvaiseCoucheStatut: 'Se règle dans le fichier des tokens, onglet À faire dans Figma',
+    // C20 : le layer est lié hors de `components`, ou le token de `components` qu'il porte vise une collection interdite.
+    mauvaiseCouche: (token: string, couche: string): string => `Ce layer est lié à \`${token}\`, de la collection \`${couche}\`.`,
+    mauvaiseCoucheStatut: (admises: string): string => `Liez-le à un token de components, ou de ${admises}`,
+    mauvaiseCible: (token: string, cible: string, couche: string): string => `\`${token}\` vise \`${cible}\`, de la collection \`${couche}\`.`,
+    mauvaiseCibleStatut: (admises: string): string => `Dans la fenêtre Variables, faites-le viser un token de ${admises}`,
     // C31, C32, C33 : un variant ou un token manque.
     variantAbsent: (paires: string): string => `${paires} n’existe pas.`,
     variantAbsentStatut: 'Créez le variant, ou ignorez ce constat',
