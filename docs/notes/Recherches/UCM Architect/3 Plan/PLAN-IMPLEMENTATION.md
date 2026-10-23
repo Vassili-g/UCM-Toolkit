@@ -416,7 +416,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `appliquer-corrections` ; analyse périmée ou opération en cours → refus.
   Vérifie : tests du kit, `npm run test:paquet -- architect`, tests racine (seul `versionSuitLeContenu` peut échouer, lot V10).
 
-- [~ Claude 2] **K12 · Faits et groupes du contraste.** `implementeur` · arbre partagé · K4, B9, U7 (Q-77).
+- [x] (ebefa7c0) **K12 · Faits et groupes du contraste.** `implementeur` · arbre partagé · K4, B9, U7 (Q-77).
   Écrit : `kit/src/controles/accessibilite.ts`, ses tests, `plugin-architect/tests/accessibilite.test.ts`.
   Fait quand : C49 et C50 mesurés portent `premierPlan`, `fond` et `rapports`
   (texte JSON des modes mesurés) ; C49, C50 et C51 regroupés entre variants
@@ -431,7 +431,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `monorepoCoherent` et `pinDocumente` compris ; le corpus
   `docs/references/design-systems/ucm/` régénéré par
   `node docs/references/design-systems/_outils/ucm.mjs` (il date la version du kit).
-  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`) ; V7 (0.12.6, après K6 et K8, `683d8e28`) ; V8 (0.12.7, après K5) ; V9 (0.12.8, après K10 et la revue, `104868cc`) ; V10 (0.12.9, après K11, `2cc85eac`).
+  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`) ; V7 (0.12.6, après K6 et K8, `683d8e28`) ; V8 (0.12.7, après K5) ; V9 (0.12.8, après K10 et la revue, `104868cc`) ; V10 (0.12.9, après K11, `2cc85eac`) ; V11 (0.12.10, après K12).
 
 ### Piste S · socle
 
