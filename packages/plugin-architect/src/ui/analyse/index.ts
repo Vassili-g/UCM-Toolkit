@@ -31,6 +31,7 @@ const heure = (millisecondes: number): string => new Date(millisecondes).toLocal
 
 export interface PanneauDesConstats {
   readonly element: HTMLElement;
+  readonly panneauAFaire: HTMLElement;
   mettreAJour(): void;
   /** Le panneau se ferme : la vue ne montre plus les liaisons à venir. */
   retirerLesLiaisonsDeLaVue(): void;
@@ -120,7 +121,7 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     });
   }
 
-  function resume(lecture: LectureDeComposant, etatDeLAnalyse: string): HTMLElement {
+  function resume(lecture: LectureDeComposant, etatDeLAnalyse: string, nombreDeVariants = lecture.sujet.variants.length): HTMLElement {
     const element = document.createElement('div');
     element.className = 'arch-resume';
     const ligne = document.createElement('div');
@@ -129,7 +130,7 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     titre.className = 'arch-resume-titre';
     const meta = document.createElement('span');
     meta.className = 'meta';
-    meta.textContent = P.resume(Math.max(1, lecture.sujet.variants.length), etatDeLAnalyse);
+    meta.textContent = P.resume(Math.max(1, nombreDeVariants), etatDeLAnalyse);
     titre.append(`${lecture.sujet.nom} `, meta);
     ligne.append(titre);
     element.append(ligne);
@@ -185,13 +186,13 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
 
     if (brute?.statut === 'en-cours') {
       const progression = brute.progression ? T.progression(brute.progression.lus, brute.progression.total) : P.enCours;
-      return [resume(lecture, progression), note(T.attendreLesConstats)];
+      return [resume(lecture, progression, brute.variants.length), note(T.attendreLesConstats)];
     }
     if (brute?.statut === 'arretee') {
       const message = String(brute.constats[0]?.faits.message ?? '');
-      return [resume(lecture, T.arretee), creerAlerte('bloquant', { titre: T.arreteTitre, texte: T.arreteTexte(message), meta: T.arreteMeta })];
+      return [resume(lecture, T.arretee, brute.variants.length), creerAlerte('bloquant', { titre: T.arreteTitre, texte: T.arreteTexte(message), meta: T.arreteMeta })];
     }
-    if (brute?.statut === 'annulee') return [resume(lecture, T.annulee), creerAlerte('info', { titre: T.annuleeTitre, texte: T.annuleeTexte, meta: T.annuleeMeta })];
+    if (brute?.statut === 'annulee') return [resume(lecture, T.annulee, brute.variants.length), creerAlerte('info', { titre: T.annuleeTitre, texte: T.annuleeTexte, meta: T.annuleeMeta })];
 
     const analyse = analyseDuComposant(etat, lecture);
     if (!analyse) {
@@ -201,7 +202,7 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
       return [resume(lecture, P.pasAnalyse), creerAlerte('info', { texte: P.avantAnalyse(variants, lecture.sujet.nom), meta: P.duree })];
     }
 
-    const sortie: HTMLElement[] = [resume(lecture, P.analyseA(heure(analyse.recueA)))];
+    const sortie: HTMLElement[] = [resume(lecture, P.analyseA(heure(analyse.recueA)), analyse.variants.length)];
     if (analyse.statut === 'partielle') {
       const lus = analyse.lecture?.layersLus ?? 0;
       const nonLus = analyse.lecture?.layersNonLus;
@@ -216,6 +217,7 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
 
   return {
     element: colonne,
+    panneauAFaire: panneaux.aFaire,
     retirerLesLiaisonsDeLaVue() {
       if (dansLaVue === '[]') return;
       dansLaVue = '[]';

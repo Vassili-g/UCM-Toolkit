@@ -13,6 +13,7 @@ import { createResizeGrip } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
 import type { Disposition } from '../fenetre';
 import type { PluginMessage } from '../messages';
+import type { MessageDePreparation } from '../messages/preparation';
 import { estMessageDeNomenclature } from '../messages/nomenclature';
 import { creerApplication, type Branchements, type Zone } from './application';
 import { creerArbre } from './arbre';
@@ -20,6 +21,7 @@ import { creerBarre } from './barre';
 import { recevoirUneAnalyse } from './composant/analyse';
 import { creerCorpsDuComposant } from './composant/corps';
 import { creerFiche } from './fiche';
+import { monterPreparation } from './preparation';
 import { collectionDuFiltre, etatInitial, poserReleve } from './etat';
 import { monterNomenclature } from './nomenclature';
 import { monterBibliotheque } from './bibliotheque';
@@ -46,7 +48,8 @@ const arbre = creerArbre(app);
 const table = creerTable(app);
 const fiche = creerFiche(app);
 const vueComposant = creerVueComposant(app);
-const corpsComposant = creerCorpsDuComposant(app, vueComposant);
+const preparation = monterPreparation(etat);
+const corpsComposant = creerCorpsDuComposant(app, vueComposant, preparation);
 const panneau = document.createElement('div');
 panneau.className = 'panneau';
 panneau.append(table.element);
@@ -181,15 +184,15 @@ corps.append(arbre.element, centre, lateral);
 
 const bulle = installerSurvol(app);
 const poignee = createResizeGrip(versSandbox);
-racine.replaceChildren(barre.element, corps, pied, annonce, bulle, poignee);
+racine.replaceChildren(barre.element, corps, pied, annonce, bulle, poignee, preparation.element);
 
 /** Monte le mode de la disposition sous la barre. L'annonce et la poignée restent dans les deux. */
 function poserLaDisposition(disposition: Disposition): void {
   if (etat.disposition === disposition) return;
   etat.disposition = disposition;
   racine.classList.toggle('application-etroite', disposition === 'etroite');
-  if (disposition === 'etroite') racine.replaceChildren(barre.element, corpsComposant.element, annonce, poignee);
-  else racine.replaceChildren(barre.element, corps, pied, annonce, bulle, poignee);
+  if (disposition === 'etroite') racine.replaceChildren(barre.element, corpsComposant.element, annonce, poignee, preparation.element);
+  else racine.replaceChildren(barre.element, corps, pied, annonce, bulle, poignee, preparation.element);
   app.rendre();
   corpsComposant.mettreAJour();
   vueComposant.activer();
@@ -257,6 +260,10 @@ branchements = {
 const demandeCourante = (demande: number): boolean => etat.lecture.statut === 'en-cours' && etat.lecture.demande === demande;
 
 function recevoir(message: PluginMessage): void {
+  if (new Set(['plan-de-preparation', 'preparations', 'preparation-texte', 'texte-refuse', 'variables-creees', 'liaisons-preparees']).has(message.type)) {
+    preparation.recevoir(message as MessageDePreparation);
+    return;
+  }
   if (estMessageDeNomenclature(message)) {
     nomenclature.recevoir(message);
     return;

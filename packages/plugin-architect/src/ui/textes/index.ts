@@ -20,8 +20,9 @@ import { TEXTES_IGNORES } from './ignores';
 import { TEXTES_QUESTIONS } from './questions';
 import { TEXTES_RECHERCHE } from './recherche';
 import { TEXTES_STRUCTURE } from './structure';
+import { TEXTES_PREPARATION } from './preparation';
 
 export { NOM_DU_PRODUIT } from './commun';
 export { titreDeConstat } from './fiche';
 
-export const TEXTES = { ...TEXTES_COMMUN, ...TEXTES_ARBRE, ...TEXTES_FICHE, ...TEXTES_RECHERCHE, ...TEXTES_COMPOSANT, ...TEXTES_STRUCTURE, ...TEXTES_BIBLIOTHEQUE, ...TEXTES_ANALYSE, ...TEXTES_CORRECTIONS, ...TEXTES_QUESTIONS, ...TEXTES_IGNORES };
+export const TEXTES = { ...TEXTES_COMMUN, ...TEXTES_ARBRE, ...TEXTES_FICHE, ...TEXTES_RECHERCHE, ...TEXTES_COMPOSANT, ...TEXTES_STRUCTURE, ...TEXTES_BIBLIOTHEQUE, ...TEXTES_ANALYSE, ...TEXTES_CORRECTIONS, ...TEXTES_QUESTIONS, ...TEXTES_IGNORES, ...TEXTES_PREPARATION };

@@ -93,6 +93,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - recherche/ : lecture du champ de l'arbre (texte, `terme:`, `vise:`), variables trouvées et lignes de la recherche
 - fiche/ : fiche d'une variable, à la place de l'inspecteur : chaîne d'alias, renommage à appliquer, « Utilisée par »
 - structure/ : onglet À faire dans Figma du mode Tokens (constats typés, chemins en phrase) et cartes de modes et de scopes en deux colonnes, sous Corrections
+- preparation/ : dialogue de préparation des tokens, texte partagé, création et liaisons au composant
 
 ## src/ui/vues/
 - composant.ts : vue composant : fil d'Ariane, en-tête, aperçu, section Variants, frontières, sections, pied ; montre les liaisons que les corrections cochées changent

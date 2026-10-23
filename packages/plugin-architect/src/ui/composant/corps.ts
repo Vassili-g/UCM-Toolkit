@@ -5,18 +5,22 @@
  * celle de la fenêtre. Le panneau est celui de `../analyse`.
  */
 import { creerPoigneeDeSeparation } from 'ucm-plugin-socle/src/ui/PoigneeDeSeparation';
+import { createButton } from 'ucm-plugin-socle/src/ui/Button';
+import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 
 import type { Application, Composant } from '../application';
 import { TEXTES } from '../textes';
 import { monterLePanneau } from '../analyse';
 import type { VueComposant } from '../vues/composant';
+import type { Preparation } from '../preparation';
+import { TEXTES_PREPARATION } from '../textes/preparation';
 
 /** Les largeurs que la frontière laisse à la vue et au panneau, en pixels. */
 const LARGEUR_MINIMALE_DE_LA_VUE = 320;
 const LARGEUR_MINIMALE_DU_PANNEAU = 320;
 const PAS_AU_CLAVIER = 24;
 
-export function creerCorpsDuComposant(app: Application, vue: VueComposant): Composant {
+export function creerCorpsDuComposant(app: Application, vue: VueComposant, preparation: Preparation): Composant {
   const { etat } = app;
   const element = document.createElement('div');
   element.className = 'arch-corps-composant';
@@ -27,6 +31,8 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant): Comp
   const panneau = document.createElement('aside');
   panneau.className = 'arch-laterale panneau-lateral';
   panneau.style.flex = '1 1 auto';
+  const ouvrirPreparation = createButton({ label: TEXTES_PREPARATION.preparationOuvrirBouton, variant: 'secondary', compact: true, onClick: () => { sectionTokens.hidden = true; constats.panneauAFaire.hidden = true; preparation.ouvrir(); } });
+  ouvrirPreparation.classList.add('prep-ouvrir');
 
   /** La largeur que la vue peut prendre sans écraser le panneau. */
   const borner = (largeur: number): number => Math.max(LARGEUR_MINIMALE_DE_LA_VUE, Math.min(largeur, element.clientWidth - poignee.offsetWidth - LARGEUR_MINIMALE_DU_PANNEAU));
@@ -54,7 +60,10 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant): Comp
   });
 
   const constats = monterLePanneau(app, vue);
-  panneau.append(constats.element);
+  const sectionTokens = document.createElement('section');
+  sectionTokens.className = 'page-stack prep-constats';
+  preparation.element.querySelector('.feuille-fermer')?.addEventListener('click', () => { sectionTokens.hidden = false; constats.panneauAFaire.hidden = false; });
+  panneau.append(preparation.panneau, constats.element);
 
   return {
     element,
@@ -64,7 +73,26 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant): Comp
       const enfants = ouvert ? [vue.element, poignee, panneau] : [vue.element];
       // Remettre la vue en place lui ferait perdre son défilement : la structure ne se refait que si elle change.
       if (element.children.length !== enfants.length || enfants.some((enfant, rang) => element.children[rang] !== enfant)) element.replaceChildren(...enfants);
-      if (ouvert) constats.mettreAJour();
+      if (ouvert) {
+        constats.mettreAJour();
+        const constatSansTokens = etat.analyse?.constats.find((constat) => constat.code === 'C16' && constat.type === 'corriger' && !constat.correction && !constat.question);
+        if (constatSansTokens && etat.composant.lecture && etat.analyse) {
+          const [resume, prochaineEtape] = TEXTES_PREPARATION.preparationAlerteMeta(etat.analyse.variants.length, etat.analyse.lecture?.layersLus ?? etat.composant.lecture.calques.length, etat.composant.lecture.sujet.nom);
+          const meta = document.createElement('span');
+          const premiereLigne = document.createElement('span'); premiereLigne.textContent = resume;
+          const secondeLigne = document.createElement('span'); secondeLigne.textContent = prochaineEtape;
+          meta.append(premiereLigne, secondeLigne);
+          sectionTokens.replaceChildren(creerAlerte('corriger', {
+            texte: TEXTES_PREPARATION.preparationAlerteTexte(etat.composant.lecture.sujet.nom),
+            meta,
+          }));
+          if (!constats.panneauAFaire.contains(sectionTokens)) constats.panneauAFaire.append(sectionTokens);
+        } else sectionTokens.remove();
+        ouvrirPreparation.hidden = !etat.composant.lecture || !etat.analyse;
+        const resume = panneau.querySelector('.arch-resume');
+        const ligneResume = resume?.querySelector('.arch-resume-ligne');
+        if (ligneResume && !ligneResume.contains(ouvrirPreparation)) ligneResume.append(ouvrirPreparation);
+      }
       else constats.retirerLesLiaisonsDeLaVue();
     },
   };
