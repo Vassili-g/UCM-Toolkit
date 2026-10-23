@@ -326,7 +326,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `kit/src/protocoles/nommage.ts`, `generer-donnees-referentiel.ts` et sa sortie.
   Fait quand : aucun texte du kit ne nomme l'explorateur ni Nomenclature comme
   produit ; `vueIllustree` passe.
-- [~ Codex] **K3 · Contrôles du composant.** Partiel : `e65e3a05` (1/3), `30125a65` (2/3), rejoués le 23 octobre sur `ee0dce95`, non fusionnés (les anciens `ed36234e`, `c18fe7fd` restent sous `codex-sauvegarde`, à supprimer après la fusion) ; Codex reprend la complétude (C31 à C33) et les relevés de la table T, puis K8, K5, K6. Vague 2 · K0, K1, note T.
+- [x] (e65e3a05, 30125a65, 21515da6 ; fusion bd68c35a) **K3 · Contrôles du composant.** Vague 2 · K0, K1, note T.
   Écrit : `kit/src/controles/{nommage,mapping,couche,oublis}.ts`.
   Fait quand : C7 à C11, C15 à C19 et C21, C20 et C61, C31 à C33, sur relevé et
   catalogue ; un test positif et un négatif par contrôle ; un token inutilisé
@@ -334,7 +334,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   à la main de Button et d'Alert rendent la table T ; aucun constat pour
   `alert/size/gap` sans axe de taille, un token partagé entre deux états, un
   rôle absent.
-- [ ] **K8 · Corrections exactes et questions.** Vague 2 · K3.
+- [~ Codex] **K8 · Corrections exactes et questions.** Vague 2 · K3.
   Écrit : `kit/src/controles/corrections.ts`.
   Maquette : `c-corrections`, `c-modele`, `c-questions`, `x-button-corr`.
   Fait quand : C22, C24, C25, C29 ; une correction seulement si chaque nom
@@ -385,7 +385,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `monorepoCoherent` et `pinDocumente` compris ; le corpus
   `docs/references/design-systems/ucm/` régénéré par
   `node docs/references/design-systems/_outils/ucm.mjs` (il date la version du kit).
-  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7).
+  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`).
 
 ### Piste S · socle
 
@@ -598,7 +598,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   ancêtres, propriétés de texte par plage, dimensions, styles, modes
   effectifs, espace de couleur) ; budget commun avec S3 ; test sur un jeu
   factice de six variants.
-- [ ] **B2 · Analyse.** Vague 4 · B1, B10, K3, S3.
+- [~ Claude 2] **B2 · Analyse.** Vague 4 · B1, B10, K3, S3.
   Domaines : `analyse`, `commun` (sélection, périmé).
   Fait quand : Analyser puis Actualiser lancent moteur et kit ; identité de
   l'analyse (sujet, génération) dans chaque message ; seconde analyse
