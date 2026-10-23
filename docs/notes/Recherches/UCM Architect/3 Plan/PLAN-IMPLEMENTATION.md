@@ -334,8 +334,8 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   à la main de Button et d'Alert rendent la table T ; aucun constat pour
   `alert/size/gap` sans axe de taille, un token partagé entre deux états, un
   rôle absent.
-- [~ Codex] **K8 · Corrections exactes et questions.** Vague 2 · K3.
-  Écrit : `kit/src/controles/corrections.ts`.
+- [ ] **K8 · Corrections exactes et questions.** Vague 2 · K3.
+  Écrit : `kit/src/controles/corrections.ts`, ses tests, et ses lignes d'export dans `kit/src/controles/index.ts`.
   Maquette : `c-corrections`, `c-modele`, `c-questions`, `x-button-corr`.
   Fait quand : C22, C24, C25, C29 ; une correction seulement si chaque nom
   calculé existe au catalogue, avec un seul candidat et un seul layer
@@ -344,7 +344,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   chaque correction porte les faits à relire avant écriture (axes, règle,
   cible).
 - [ ] **K5 · Full UCM, structure, scopes, modes.** Vague 3 · K3.
-  Écrit : `kit/src/controles/{theme,structure}.ts`.
+  Écrit : `kit/src/controles/{theme,structure}.ts`, leurs tests, et leurs lignes d'export dans `kit/src/controles/index.ts`.
   Lit : `docs/notes/Recherches/Plugin Architect/6 Contrôle de structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md`, cas (a), (b), (c), (f) ; `kit/src/emplois/dossiers.ts`.
   Maquette : `t-structure`, `t-portees`.
   Fait quand : C59, C60, C63 ; cas (a), (b), (c), (f), sans alias en boucle ;
@@ -367,7 +367,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   Écrit : `kit/src/controles/typographie.ts`.
   Fait quand : C64 à C67, un test positif et un négatif par contrôle.
 - [ ] **K6 · Préparation des tokens.** Vague 5 · K1, note P.
-  Écrit : `kit/src/controles/preparation.ts`.
+  Écrit : `kit/src/controles/preparation.ts`, ses tests, et ses lignes d'export dans `kit/src/controles/index.ts`.
   Maquette : `g-preparer`, `g-creer`.
   Fait quand : du relevé, du catalogue et des réponses, la liste des variables,
   de leurs cibles et des tokens visés, avec leurs crans ; chaque entrée exacte
