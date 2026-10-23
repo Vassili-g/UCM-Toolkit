@@ -381,6 +381,21 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   Alert rend les variables de l'aperçu ; `Frame 12` rend une question ; une
   taille se lie seulement si un seul token de `layout` a la valeur.
 
+- [ ] **K10 · Constats manquants du kit.** Codex · après B6 · K3, K5.
+  Écrit : `kit/src/controles/{nommage,structure}.ts` ou un fichier nouveau
+  de `kit/src/controles/`, leurs tests, leurs lignes d'export dans
+  `kit/src/controles/index.ts`.
+  Fait quand : C12 et C13 (table T, A18 : `Variant=Outlined` et des tokens
+  en `outline`) rendent une question avec la correction de sorte
+  `nom-de-valeur` que B5 écrit (`cible.layer` = jeu de variants,
+  `cible.champ` = propriété, `avant` = ancienne valeur, `apres.nom` =
+  nouvelle) ; `controlerLeCatalogue` rend aussi les quatre constats que
+  l'écran `t-structure` lit sous `faits.genre` : cible d'alias supprimée,
+  library non activée, mode sans valeur, couleur sans alias (faits :
+  `variable`, `cle`, `mode`, `library`, `voisine`, `cibleDeLaVoisine`,
+  `valeur`, voir `packages/plugin-architect/src/ui/structure/lecture.ts`) ;
+  un test positif et un négatif par constat.
+
 ### Piste V · versions
 
 - [ ] **V · Lot de versions**, après chaque merge de Codex, par l'orchestrateur.
@@ -526,18 +541,18 @@ de galerie quand le lot B n'est pas fait.
   liens écrivent dans le champ ; fiche : chaîne d'alias, « Renommage à
   appliquer », « Utilisée par » ; ligne choisie d'un fond uniforme ;
   comparateur sans écart.
-- [~ Claude 1] **U3 · À faire dans Figma, modes et scopes.** Vague 3 · U1.
+- [x] (8161d108) **U3 · À faire dans Figma, modes et scopes.** Vague 3 · U1.
   Domaines : `structure`.
   Maquette : `t-structure`, `t-portees` ; `AFAIRE_TOKENS`, `LIGNE_SCOPE`.
   Fait quand : constats typés, chemins dans une phrase ; cartes de modes et de
   scopes en Aujourd'hui et Après l'application ; comparateur sans écart.
-- [ ] **U4 · Library, règles reçues, hors UCM.** Vague 3 · U1.
+- [~ Claude 1] **U4 · Library, règles reçues, hors UCM.** (`t-hors` passe à U5 ; reprises Q-61, Q-63 et pastilles de À faire dans Figma) Vague 3 · U1.
   Domaines : `bibliotheque`, `nomenclature` (t-regle), `commun` (t-hors).
   Maquette : `t-bibliotheque`, `t-regle`, `t-hors` ; `REGLE_RECUE`.
   Fait quand : valeurs en attente en trait gris, onglets grisés, « Ouvrir
   Intencial Tokens » seulement si la clé est connue ; règles reçues en
   questions ; alerte hors UCM ; comparateur sans écart.
-- [ ] **U5 · Vue Composant et section Variants.** Vague 4 · S1, A1.
+- [~ Claude 2] **U5 · Vue Composant et section Variants.** (avec `t-hors`, Q-64) Vague 4 · S1, A1.
   Domaines : `commun` (barre, bouton Constats), `composant`.
   Maquette : `c-avant`, `c-replie`, `c-bouton-texte`, `c-gros`, colonne gauche
   de `c-corrections` ; `variants`, `COMPOSANTS`, `fenetreComposant`, `barre`,
@@ -1305,6 +1320,26 @@ Choix faits sans le mainteneur :
   encore C12 · réversible : oui.
 - Q-60 · B5 · Texte hors maquette · « N valeurs de variante renommées » dans
   la ligne de réussite · réversible : oui.
+- Q-61 · U3 · Emplacement d'un groupe dans le tableau · la maquette écrit le
+  parent seul (`theme`) ; U4 suit la maquette · réversible : oui.
+- Q-62 · U3 · Virgule d'un chemin en phrase · la maquette range la virgule
+  dans la puce (artefact de son motif) ; le plugin la garde dans la phrase ;
+  écart déclaré · réversible : oui.
+- Q-63 · U3 · Cadres `seul` · la galerie montrait toujours la fenêtre
+  entière ; U4 lui apprend à rendre la barre latérale seule, pour comparer
+  t-portees, x-button, x-button-corr, g-sans-cibles, g-autre, g-coller en
+  position · réversible : oui.
+- Q-64 · U4, U5 · Parallèle · U4 (mode Tokens) et U5 (mode Composant)
+  tournent ensemble ; `t-hors` passe à U5, qui possède le domaine `commun` ;
+  les fichiers d'aiguillage partagés ne reçoivent que des retouches courtes
+  · réversible : oui.
+- Q-65 · U3 · Textes hors maquette · « Rien à régler dans la fenêtre
+  Variables de Figma. », « N corrections écrites, M sautées. », « Aucune
+  correction de modes ou de scopes cochée. » ; cartes de structure repliées
+  par défaut ; pas de confirmation avant Appliquer · réversible : oui.
+- Q-66 · U3 · Constats sans producteur · l'écran lit quatre constats de
+  structure que le kit ne rend pas encore (cible supprimée, library non
+  activée, mode sans valeur, couleur sans alias) : lot K10 · réversible : oui.
 
 ## 10. Hors du plan
 
