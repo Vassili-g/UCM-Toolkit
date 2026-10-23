@@ -574,7 +574,9 @@ de galerie quand le lot B n'est pas fait.
   Maquette : `x-alert`, `x-button`, `x-button-corr` ; `paire`.
   Fait quand : paire mesurée, rapport et seuil, autres modes, limites ;
   questions d'état ; comparateur sans écart.
-- [ ] **U8 · Préparation et Configuration.** Vague 6 · U6.
+- [~ Codex] **U8 · Préparation et Configuration.** Vague 6 · U6 (1/2) commité dans `partage/main`. Codex, dans son clone, pendant qu'U6 (2/2) et U7 tournent dans l'arbre partagé.
+  Écrit en plus, par retouches courtes : `src/ui/etat.ts`, `src/ui/application.ts`, `src/ui/index.ts`, les index de `src/ui/textes/` et `src/ui/styles/`, `galerie/cadres.json`, l'index des états de galerie, la liste d'exceptions de `tests/loiDuVocabulaire.test.ts`.
+  Textes hors maquette à écrire (skill `rediger-diagnostics-ucm`) : les codes de B8 (`MotifDeRefusDePreparation`, `MotifDeRefusDeLiaison`, `MotifDeRefusDeCreation`, `MotifDEchecDeCreation`, `MotifDeTexteRefuse`, `structure-annulee` : `journal`, `refus`, motifs des lignes sautées), Q-71 et Q-73.
   Domaines : `preparation`, `configuration`.
   Maquette : `g-*`, `cf-reglages`, `cf-historique` ; `PREPARER`, `CREER`,
   `optionP`, `cibleP`, `SECTIONS_NOUVELLES`.
@@ -666,6 +668,17 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   encore publiée laisse sa ligne sans case ; règles reçues par le même
   chemin (C13) ; tests : deux fichiers homonymes, deux préparations, une
   création interrompue, un texte incompatible.
+
+- [~ Codex] **B11 · Modules sans lecteur.** Codex · retrait · aucune dépendance (Q-21).
+  Écrit : suppression de `src/{comparaison,releves,simulation,rapport}.ts` et
+  `src/integrations/contrats.ts`, de leurs tests propres
+  (`tests/{comparaison,annexes,contrats}.test.ts`) et des seuls cas qui les
+  importent dans `tests/{copie,explorationEtendue,integrationsUcm}.test.ts` ;
+  leurs lignes de `CARTE.md`, des invariants et du `SPEC.md` du paquet.
+  Fait quand : aucun fichier de `src/` ne les importe avant le retrait (sinon
+  le module reste et le compte rendu le dit) ; `profilUcm.ts` et
+  `lireLaRecette` restent ; `agents:diff` ne liste aucun chemin mort.
+  Vérifie : `npm run test:paquet -- architect`, `npm run build:plugin -- architect`, tests racine.
 
 ### Piste X · autres plugins
 
