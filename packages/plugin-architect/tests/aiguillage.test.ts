@@ -10,6 +10,7 @@ import { dispositionDeLOuverture, origineDeLaSelection, retenirLaSelectionDuPlug
 import { analyseCourante, commencerUneAnalyse, oublierLAnalyse, perimerApresUneEcriture, surChangementDuDocument, surSelection } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
 import { DOMAINES, tableDesTypes } from '../src/sandbox/index';
+import { souche } from '../src/sandbox/souche';
 import type { PluginMessage } from '../src/messages';
 
 const racine = path.resolve(__dirname, '..');
@@ -54,11 +55,9 @@ test('aucun type de demande n’appartient à deux domaines', () => {
 });
 
 test('une souche répond non-construit, sans rien écrire', async () => {
-  for (const domaine of ['preparation'] as const) {
-    const { contexte, envoyes } = contexteDeTest();
-    await DOMAINES[domaine].traiter({} as never, contexte);
-    assert.deepEqual(envoyes, [{ type: 'non-construit', domaine }]);
-  }
+  const { contexte, envoyes } = contexteDeTest();
+  await souche<never>('essai')({} as never, contexte);
+  assert.deepEqual(envoyes, [{ type: 'non-construit', domaine: 'essai' }]);
 });
 
 test('le mode d’ouverture suit le sujet de la sélection', () => {

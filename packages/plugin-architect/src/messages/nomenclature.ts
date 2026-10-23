@@ -242,17 +242,35 @@ export type MessageDeNomenclature =
   | { readonly type: 'refus'; readonly demande: number; readonly conflits: readonly ConflitVue[] }
   | { readonly type: 'application'; readonly demande: number; readonly resultat: ResultatVue }
   | { readonly type: 'regles-exportees'; readonly demande: number; readonly texte: string }
-  | { readonly type: 'erreur'; readonly demande: number; readonly code: CodeDErreur; readonly architecture?: ArchitectureDuFichier };
+  | { readonly type: 'erreur'; readonly demande: number; readonly code: CodeDErreur; readonly architecture?: ArchitectureDuFichier }
+  | MessageDeReglesRecues;
+
+/** Une règle préparée depuis un composant : le terme qui disparaît, le terme voulu, et un nom réel du composant avant et après. */
+export interface RegleRecue {
+  readonly ancien: string;
+  readonly nouveau: string;
+  readonly composant: string;
+  readonly exemple: { readonly ancien: string; readonly nouveau: string };
+}
+
+/**
+ * Les règles d'une préparation lue (`lire-texte`), que l'interface range en tête des questions de Nomenclature. L'interface lit ce
+ * message elle-même (`ui/nomenclature/reglesRecues.ts`), avant `estMessageDeNomenclature` : la session de Nomenclature ne le reçoit pas.
+ */
+export interface MessageDeReglesRecues {
+  readonly type: 'regles-recues';
+  readonly regles: readonly RegleRecue[];
+}
 
 /**
  * Les `type` des messages que le sandbox envoie à l'écran des noms. L'interface d'Architect s'en sert pour
  * lui confier ces messages ; `Record` oblige à lister chaque membre de `MessageDeNomenclature`.
  */
-const TYPES_DES_MESSAGES: Readonly<Record<MessageDeNomenclature['type'], true>> = {
+const TYPES_DES_MESSAGES: Readonly<Record<Exclude<MessageDeNomenclature, MessageDeReglesRecues>['type'], true>> = {
   initial: true, lecture: true, bilan: true, lignes: true, termes: true, fiche: true, 'noms-selection': true, diagnostic: true,
   simulation: true, refus: true, application: true, 'regles-exportees': true, erreur: true,
 };
-export const estMessageDeNomenclature = (brut: { readonly type: string }): brut is MessageDeNomenclature => Object.prototype.hasOwnProperty.call(TYPES_DES_MESSAGES, brut.type);
+export const estMessageDeNomenclature = (brut: { readonly type: string }): brut is Exclude<MessageDeNomenclature, MessageDeReglesRecues> => Object.prototype.hasOwnProperty.call(TYPES_DES_MESSAGES, brut.type);
 
 type Objet = Readonly<Record<string, unknown>>;
 const entierPositif = (valeur: unknown): boolean => typeof valeur === 'number' && Number.isSafeInteger(valeur) && valeur > 0;

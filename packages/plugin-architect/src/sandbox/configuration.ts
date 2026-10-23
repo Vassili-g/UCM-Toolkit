@@ -4,16 +4,24 @@
  * Le niveau est une préférence du designer, dans `clientStorage`, défaut AA. La library se range dans le document par
  * `ecriture/configuration.ts` : sans choix rangé, celle que `choisirLaLibrary` désigne, sinon aucune. Une library rangée
  * que Figma ne lit plus n'est pas retenue : l'analyse retombe sur le catalogue du fichier.
+ *
+ * `annuler-structure` défait le dernier lot du journal de structure (`ecriture/structure.ts`) : une autre opération en cours rend
+ * `occupe`, un fichier qui ne déclare plus UCM rend `hors-ucm`, et rien n'est touché dans les deux cas. Une annulation qui défait
+ * quelque chose périme l'analyse.
  */
 import { CLES_D_ARCHITECT, ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
 import { choisirLaLibrary, lireLesLibraries, type CollectionDeLibrary, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 
 import { lireLaLibraryRangee, rangerLaLibrary } from '../ecriture/configuration';
+import { creerPortDeRegles } from '../ecriture/noms';
+import { annulerLeDernierLotDeStructure, type ApiDeStructure } from '../ecriture/structure';
+import { perimerApresUneEcriture, prendreLaPlaceDUneEcriture } from './analyse';
 import { liaisonsRetenues } from './bibliotheque';
+import { lireLaDeclaration } from './commun';
 import type { DemandeDeConfiguration, LibraryConfiguree, NiveauDAccessibilite } from '../messages/configuration';
 import type { Contexte, Traiter } from './contexte';
 
-export const TYPES: readonly DemandeDeConfiguration['type'][] = ['lire-configuration', 'ranger-library', 'ranger-niveau'];
+export const TYPES: readonly DemandeDeConfiguration['type'][] = ['lire-configuration', 'ranger-library', 'ranger-niveau', 'annuler-structure'];
 
 export const CLE_DU_NIVEAU = `${ESPACE_ARCHITECT}.${CLES_D_ARCHITECT.niveauDeContraste}`;
 
@@ -54,6 +62,33 @@ async function lireLaConfiguration(contexte: Contexte): Promise<void> {
   contexte.envoyer({ type: 'configuration', library: candidates.find((candidate) => candidate.cle === choisie) ?? null, candidates, niveau });
 }
 
+async function annulerLaStructure(demande: number, contexte: Contexte): Promise<void> {
+  const { figma } = contexte;
+  const sans = { journal: 'absent' as const, defaites: 0, sautees: [], restantes: 0, limiteDesUsages: false };
+  if (lireLaDeclaration(figma) !== 'ucm') {
+    contexte.envoyer({ type: 'structure-annulee', demande, refus: 'hors-ucm', ...sans });
+    return;
+  }
+  const place = prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
+  if ('occupe' in place) {
+    contexte.envoyer({ type: 'structure-annulee', demande, refus: 'occupe', ...sans });
+    return;
+  }
+  let defait = false;
+  try {
+    const resultat = await annulerLeDernierLotDeStructure({ api: figma as unknown as ApiDeStructure, stockage: creerPortDeRegles(figma) });
+    defait = resultat.defaites > 0;
+    contexte.envoyer({ type: 'structure-annulee', demande, refus: null, ...resultat });
+  } catch {
+    // L'annulation a pu défaire des lignes avant de lever : l'analyse se périme, et le journal garde ce qui reste.
+    defait = true;
+    contexte.envoyer({ type: 'structure-annulee', demande, refus: null, ...sans, journal: 'illisible' });
+  } finally {
+    place.liberer();
+    if (defait) perimerApresUneEcriture(contexte);
+  }
+}
+
 export const traiter: Traiter<DemandeDeConfiguration> = async (demande, contexte) => {
   switch (demande.type) {
     case 'lire-configuration':
@@ -70,6 +105,9 @@ export const traiter: Traiter<DemandeDeConfiguration> = async (demande, contexte
         // Le niveau reste celui d'avant ; la configuration rendue le dit.
       }
       await lireLaConfiguration(contexte);
+      return;
+    case 'annuler-structure':
+      await annulerLaStructure(demande.demande, contexte);
       return;
   }
 };

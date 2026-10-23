@@ -36,6 +36,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - rapport.ts : rapport versionné des diagnostics ; sans lecteur depuis A1
 - releves.ts : relevé exporté, réimporté et comparé à un autre ; sans lecteur depuis A1
 - simulation.ts : une substitution dans une copie en mémoire ; sans lecteur depuis A1
+- preparations.ts : forme d'une préparation, texte échangé (`ucm-preparation`, jugé format, version, champs) et liste rangée dans `clientStorage` sous `CLE_DES_PREPARATIONS` ; couches du catalogue tirées du kit
 - preferences.ts : vue compacte et largeurs réglées, dans clientStorage
 - espace.ts : couleurs d'un document Display P3 ramenées en sRGB, pour le contraste et la copie hexadécimale ; conversion de Palettes (`p3VersRgb8` de `ucm-couleur`), hors du noyau, qui n'importe pas `ucm-couleur`
 - integrations/ : contrats et tokens importés, recette UCM Palettes, profil d'architecture UCM (les sept couches de `COLLECTIONS`)
@@ -56,10 +57,11 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - contexte.ts : ce qu'un domaine reçoit : port vers l'interface, fenêtre, état partagé
 - lectureDeFigma.ts : ports de lecture sur `figma`, communs aux domaines
 - souche.ts : réponse « non construit » d'un domaine pas encore fait
-- commun.ts, arbre.ts, composant.ts, nomenclature.ts, analyse.ts, configuration.ts, corrections.ts, questions.ts, ignores.ts : domaines construits ; `configuration.ts` lit et range le niveau d'accessibilité (`clientStorage`) et la library choisie ; `analyse.ts` lance l'analyse (relevé, catalogue, moteur, contrôles du kit dont accessibilité et typographie), passe ses constats par `proposerLesCorrections` du kit puis par les ignorés rangés, porte l'identité, les constats, les corrections de l'analyse courante et le panneau périmé ; `questions.ts` tire d'une réponse une correction exacte retenue dans l'analyse ; `ignores.ts` écarte un constat ou sa proposition et le rend ; `corrections.ts` écrit un lot de l'analyse courante non périmée, une opération à la fois, et sélectionne les layers d'un constat
+- commun.ts, arbre.ts, composant.ts, nomenclature.ts, analyse.ts, configuration.ts, corrections.ts, questions.ts, ignores.ts : domaines construits ; `configuration.ts` lit et range le niveau d'accessibilité (`clientStorage`) et la library choisie, et défait le dernier lot de structure depuis l'Historique (`annuler-structure`) ; `analyse.ts` lance l'analyse (relevé, catalogue, moteur, contrôles du kit dont accessibilité et typographie), passe ses constats par `proposerLesCorrections` du kit puis par les ignorés rangés, porte l'identité, les constats, les corrections de l'analyse courante et le panneau périmé ; `questions.ts` tire d'une réponse une correction exacte retenue dans l'analyse ; `ignores.ts` écarte un constat ou sa proposition et le rend ; `corrections.ts` écrit un lot de l'analyse courante non périmée, une opération à la fois, et sélectionne les layers d'un constat
 - bibliotheque.ts : library lue depuis un autre fichier : arbre depuis les noms, valeurs d'un groupe importées par lots de huit
 - structure.ts : mode Tokens sans composant : `lire-structure` rend les constats de `controlerLeCatalogue` du kit et leurs corrections (scopes C63, alias de mode C60) ; `appliquer-structure` n'écrit que les corrections retenues du dernier constat, une opération à la fois
-- accessibilite.ts, fiche.ts, preparation.ts, recherche.ts, regles.ts : souches
+- preparation.ts : plan de préparation des tokens tiré du kit (`preparer`), préparations rangées, texte échangé lu ou copié (`lire-texte` envoie aussi `regles-recues`), création des variables dans le fichier des tokens, retour au composant seulement pour la même clé de jeu (`lier-preparation`)
+- accessibilite.ts, fiche.ts, recherche.ts, regles.ts : souches
 
 ## src/ecriture/
 - configuration.ts : range la library choisie, donnée partagée du nœud racine sous `CLES_D_ARCHITECT.libraryChoisie`
@@ -72,6 +74,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - noms-de-valeurs.ts : écrit les corrections de sorte `nom-de-valeur` (C12) : renomme une valeur dans le nom de chaque variant du jeu après relecture ; une valeur cible déjà présente n'est jamais écrite (`fait-faux`)
 - ignores.ts : range et lit les clés d'Ignorer (constat, `proposition:` + constat) à la racine du document sous `CLES_D_ARCHITECT.ignorer` ; rien hors UCM ni pour un constat `limite`
 - selection.ts : le seul changement de sélection du plugin, les layers d'un constat
+- variables.ts : crée les seules variables manquantes d'une préparation dans la collection `components` reconnue par la déclaration UCM, alias de chaque mode compris ; une variable divergente reste telle quelle sans réponse ; un lot du journal de structure, un point d'annulation
 
 ## src/nomenclature/
 - session.ts : inventaire, lexique, règles et résultat, gardés dans le sandbox ; file des calculs

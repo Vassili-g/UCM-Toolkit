@@ -210,7 +210,12 @@ export interface VariableDEcriture {
   /** L'identifiant de la collection locale qui porte la variable. */
   readonly collection?: string;
   readonly remote?: boolean;
+  /** `resolvedType` de la variable : COLOR, FLOAT… */
+  readonly type?: string;
 }
+
+/** Une collection locale de l'atelier : ses modes s'identifient `${id}:${nom}`. */
+export interface CollectionDEcriture { readonly id: string; readonly name: string; readonly modes: readonly string[] }
 
 export interface OptionsDeLEcriture {
   /** Le texte que `getSharedPluginData` rend pour la déclaration du fichier ; celle d'un fichier UCM par défaut. */
@@ -223,6 +228,8 @@ export interface OptionsDeLEcriture {
   readonly lisibles?: readonly VariableDEcriture[];
   /** Les identifiants dont l'écriture lève. */
   readonly refusees?: ReadonlySet<string>;
+  /** Les collections locales du fichier. `createVariable` écrit dans l'une d'elles. */
+  readonly collections?: readonly CollectionDEcriture[];
 }
 
 /**
@@ -235,12 +242,13 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
   const layers = new Map<string, Record<string, unknown>>();
   const donnees = new Map<string, string>();
   const variables = new Map<string, VariableDEcriture>();
+  let compteurDeCreations = 0;
   /** Une variable à `scopes` ou `valuesByMode` devient écrivable : chaque écriture entre dans `journal`, celles de `refusees` lèvent. */
   const equiper = (variable: VariableDEcriture): VariableDEcriture => {
     if (variable.scopes === undefined && variable.valuesByMode === undefined) return variable;
     let scopes = [...(variable.scopes ?? [])];
     let valeurs = { ...variable.valuesByMode };
-    const brut: Record<string, unknown> = { id: variable.id, key: variable.key, name: variable.name, remote: variable.remote ?? false, variableCollectionId: variable.collection ?? '' };
+    const brut: Record<string, unknown> = { id: variable.id, key: variable.key, name: variable.name, remote: variable.remote ?? false, variableCollectionId: variable.collection ?? '', resolvedType: variable.type ?? 'COLOR' };
     Object.defineProperty(brut, 'scopes', {
       enumerable: true,
       get: () => scopes,
@@ -280,6 +288,8 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
   const api = {
     root: {
       getSharedPluginData: (espace: string, cle: string) => (espace === ESPACE_ARCHITECT && cle === CLE_ARCHITECTURE_DU_FICHIER ? (options.declaration ?? texteDeLArchitectureDuFichier(true)) : donnees.get(`${espace}/${cle}`) ?? ''),
+      /** Les clés de données partagées de `espace` : celles qu'`setSharedPluginData` a écrites avec un texte non vide. */
+      getSharedPluginDataKeys: (espace: string) => [...donnees].filter(([cle, valeur]) => cle.startsWith(`${espace}/`) && valeur !== '').map(([cle]) => cle.slice(espace.length + 1)),
       /** Les layers du fichier que `filtre` retient, dans l'ordre de leur création. */
       findAll: (filtre: (noeud: unknown) => boolean) => [...layers.values()].filter(filtre),
       setSharedPluginData(espace: string, cle: string, valeur: string) {
@@ -300,6 +310,21 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
       async getLocalVariablesAsync() {
         journal.push('locales');
         return locales;
+      },
+      async getLocalVariableCollectionsAsync() {
+        return (options.collections ?? []).map((collection) => ({
+          id: collection.id, name: collection.name, remote: false, modes: collection.modes.map((mode) => ({ modeId: `${collection.id}:${mode}`, name: mode })),
+        }));
+      },
+      /** Crée une variable écrivable ; `refusees` retient les noms dont la création lève. */
+      createVariable(nom: string, collection: { id: string }, type: string) {
+        if (options.refusees?.has(`creer:${nom}`)) throw new Error('Figma refuse');
+        compteurDeCreations += 1;
+        const creee = equiper({ id: `V:neuve-${compteurDeCreations}`, key: `k-neuve-${compteurDeCreations}`, name: nom, scopes: ['ALL_SCOPES'], valuesByMode: {}, collection: collection.id, type });
+        journal.push(`creer:${nom}`);
+        variables.set(creee.id, creee);
+        locales.push(creee);
+        return creee;
       },
       async importVariableByKeyAsync(cle: string) {
         journal.push(`import:${cle}`);

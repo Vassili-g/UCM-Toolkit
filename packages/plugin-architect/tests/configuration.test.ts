@@ -2,12 +2,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { CLES_D_ARCHITECT, ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
+import { CLES_D_ARCHITECT, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
+import { journaliserLesCreations } from '../src/ecriture/journal';
+import { creerPortDeRegles } from '../src/ecriture/noms';
 import type { PluginMessage } from '../src/messages';
 import { retenirLesLiaisons } from '../src/sandbox/bibliotheque';
 import { CLE_DU_NIVEAU, libraryDeReference, lireLeNiveau, traiter } from '../src/sandbox/configuration';
 import type { Contexte } from '../src/sandbox/contexte';
+import { commencerUneAnalyse, correctionsDeLAnalyse, prendreLaPlaceDUneEcriture, reinitialiserLAnalyse } from '../src/sandbox/analyse';
+import { atelierDEcriture, type VariableDEcriture } from './figmaDeTest';
 
 interface Collection { key: string; name: string; libraryName: string; variables: { key: string; name: string; resolvedType: string }[] }
 
@@ -104,4 +108,78 @@ test('une seule library lisible est celle de référence, une rangée lisible la
   assert.equal(libraryDeReference([collection('Alpha')], new Map(), null), 'Alpha');
   assert.equal(libraryDeReference([collection('Alpha'), collection('Beta')], new Map(), 'Beta'), 'Beta');
   assert.equal(libraryDeReference([collection('Alpha')], new Map(), 'Disparue'), 'Alpha');
+});
+
+// L'annulation de la structure depuis l'Historique
+
+const creee = (extras: Partial<VariableDEcriture> = {}): VariableDEcriture => ({ id: 'V:9', key: 'k-9', name: 'components/alert/size/padding-x', scopes: [], valuesByMode: {}, collection: 'C:3', type: 'FLOAT', ...extras });
+
+function banqueDeStructure(options: { declaration?: string; locales?: VariableDEcriture[]; avecJournal?: boolean } = {}) {
+  const a = atelierDEcriture({ locales: options.locales ?? [creee()], ...(options.declaration === undefined ? {} : { declaration: options.declaration }) });
+  const envoyes: PluginMessage[] = [];
+  const figma = a.api as unknown as PluginAPI;
+  const contexte: Contexte = { figma, envoyer: (m) => envoyes.push(m), surveillerLeDocument() {} };
+  if (options.avecJournal !== false) {
+    journaliserLesCreations(creerPortDeRegles(figma), [{ variable: 'V:9', nom: 'components/alert/size/padding-x', collection: 'C:3' }], { heure: () => 'h', lot: () => 'lot1' });
+  }
+  const annulee = () => envoyes.filter((m) => m.type === 'structure-annulee').at(-1) as Extract<PluginMessage, { type: 'structure-annulee' }>;
+  return { a, contexte, envoyes, annulee };
+}
+
+test('annuler-structure défait le dernier lot, périme l’analyse et dit la limite des autres fichiers', async () => {
+  reinitialiserLAnalyse();
+  const b = banqueDeStructure();
+  const identite = commencerUneAnalyse('jeu', ['n'], b.contexte);
+  await traiter({ type: 'annuler-structure', demande: 5 }, b.contexte);
+  assert.deepEqual(b.annulee(), { type: 'structure-annulee', demande: 5, refus: null, journal: 'lu', defaites: 1, sautees: [], restantes: 0, limiteDesUsages: true });
+  assert.deepEqual(b.a.locales(), []);
+  assert.equal(correctionsDeLAnalyse(identite), null);
+  assert.equal(b.envoyes.filter((m) => m.type === 'perime').length, 1);
+  reinitialiserLAnalyse();
+});
+
+test('annuler-structure sans journal ne touche à rien et ne périme rien', async () => {
+  reinitialiserLAnalyse();
+  const b = banqueDeStructure({ avecJournal: false });
+  commencerUneAnalyse('jeu', ['n'], b.contexte);
+  await traiter({ type: 'annuler-structure', demande: 1 }, b.contexte);
+  assert.deepEqual([b.annulee().journal, b.annulee().defaites, b.annulee().refus], ['absent', 0, null]);
+  assert.equal(b.a.locales().length, 1);
+  assert.equal(b.envoyes.some((m) => m.type === 'perime'), false);
+  reinitialiserLAnalyse();
+});
+
+test('annuler-structure : une variable devenue la cible d’un alias est sautée en usage-ajoute et reste au journal', async () => {
+  const utilisatrice: VariableDEcriture = { id: 'V:10', key: 'k-10', name: 'components/alert/size/autre', scopes: [], valuesByMode: { m: { type: 'VARIABLE_ALIAS', id: 'V:9' } }, collection: 'C:3', type: 'FLOAT' };
+  const b = banqueDeStructure({ locales: [creee(), utilisatrice] });
+  await traiter({ type: 'annuler-structure', demande: 2 }, b.contexte);
+  assert.deepEqual(b.annulee().sautees, [{ variable: 'V:9', sorte: 'creation', motif: 'usage-ajoute' }]);
+  assert.deepEqual([b.annulee().defaites, b.annulee().restantes], [0, 1]);
+  assert.equal(b.a.locales().length, 2);
+});
+
+test('annuler-structure : un fichier qu’on ne peut pas parcourir saute usage-illisible', async () => {
+  const b = banqueDeStructure();
+  (b.a.api as unknown as { loadAllPagesAsync(): Promise<void> }).loadAllPagesAsync = async () => { throw new Error('page illisible'); };
+  await traiter({ type: 'annuler-structure', demande: 3 }, b.contexte);
+  assert.deepEqual(b.annulee().sautees.map(({ motif }) => motif), ['usage-illisible']);
+  assert.equal(b.a.locales().length, 1);
+});
+
+test('annuler-structure : une autre opération en cours rend occupe, un fichier hors UCM rend hors-ucm, rien n’est touché', async () => {
+  const occupe = banqueDeStructure();
+  const place = prendreLaPlaceDUneEcriture({ sujet: 'autre', generation: 0 });
+  await traiter({ type: 'annuler-structure', demande: 1 }, occupe.contexte);
+  assert.equal(occupe.annulee().refus, 'occupe');
+  if ('liberer' in place) place.liberer();
+  assert.equal(occupe.a.locales().length, 1);
+
+  const hors = banqueDeStructure({ declaration: texteDeLArchitectureDuFichier(false) });
+  await traiter({ type: 'annuler-structure', demande: 2 }, hors.contexte);
+  assert.equal(hors.annulee().refus, 'hors-ucm');
+  assert.equal(hors.a.locales().length, 1);
+
+  // La place est rendue : une annulation suivante passe.
+  await traiter({ type: 'annuler-structure', demande: 3 }, occupe.contexte);
+  assert.equal(occupe.annulee().defaites, 1);
 });
