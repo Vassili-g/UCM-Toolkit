@@ -18,10 +18,90 @@ export function controlerLaStructure(releve: ReleveDeComposant, catalogue: Catal
 /** Les contrôles qui ne lisent que le catalogue : scopes, échelles et alias de mode. Le mode Tokens les lance sans composant. */
 export function controlerLeCatalogue(catalogue: CatalogueDeReference): Constat[] {
   return [
+    ...controlerLesAliasesManquants(catalogue),
+    ...controlerLesLibrariesInactives(catalogue),
+    ...controlerLesModesSansValeur(catalogue),
+    ...controlerLesCouleursSansAlias(catalogue),
     ...controlerLesScopes(catalogue),
     ...controlerLesEchelles(catalogue),
     ...controlerLesModes(catalogue),
   ];
+}
+
+function controlerLesAliasesManquants(catalogue: CatalogueDeReference): Constat[] {
+  const resultat: Constat[] = [];
+  for (const variable of catalogue.variables.filter((entree) => entree.etat === 'presente')) {
+    const collection = collectionDuCatalogue(catalogue, variable.collection);
+    if (!collection) continue;
+    for (const mode of collection.modes) {
+      const valeur = variable.valeurs?.[mode.id];
+      if (!valeur || !('alias' in valeur)) continue;
+      const cible = catalogue.variables.find(({ cle }) => cle === valeur.alias);
+      if (cible) continue;
+      const voisine = catalogue.variables.find((entree) => entree.cle !== variable.cle && entree.collection === variable.collection
+        && entree.nom.split('/').at(-1) === variable.nom.split('/').at(-1)
+        && entree.valeurs?.[mode.id] && 'alias' in entree.valeurs[mode.id]
+        && catalogue.variables.some(({ cle }) => cle === (entree.valeurs![mode.id] as { alias: string }).alias));
+      const cibleVoisine = voisine && 'alias' in voisine.valeurs![mode.id] ? catalogue.variables.find(({ cle }) => cle === (voisine.valeurs![mode.id] as { alias: string }).alias) : undefined;
+      resultat.push(constatGenre('C63', `${variable.cle}:${mode.id}:alias-supprime`, 'alias-supprime', {
+        variable: variable.nom, cle: variable.cle, mode: mode.nom,
+        ...(voisine && cibleVoisine ? { voisine: voisine.nom, cibleDeLaVoisine: cibleVoisine.nom } : {}),
+      }));
+    }
+  }
+  return resultat;
+}
+
+function controlerLesLibrariesInactives(catalogue: CatalogueDeReference): Constat[] {
+  if (!catalogue.library) return [];
+  return catalogue.variables.flatMap((variable) => {
+    if (variable.etat !== 'presente') return [];
+    const collection = collectionDuCatalogue(catalogue, variable.collection);
+    if (!collection) return [];
+    return collection.modes.flatMap((mode) => {
+      const valeur = variable.valeurs?.[mode.id];
+      if (!valeur || !('alias' in valeur)) return [];
+      const cible = catalogue.variables.find(({ cle }) => cle === valeur.alias);
+      const collectionCible = cible && collectionDuCatalogue(catalogue, cible.collection);
+      if (!cible || (cible.etat !== 'inaccessible' && collectionCible?.etat !== 'inaccessible')) return [];
+      return [constatGenre('C63', `${variable.cle}:${mode.id}:library-inactive`, 'library-inactive', {
+        variable: variable.nom, cle: variable.cle, mode: mode.nom, library: catalogue.library!.nom,
+      })];
+    });
+  });
+}
+
+function controlerLesModesSansValeur(catalogue: CatalogueDeReference): Constat[] {
+  return catalogue.variables.flatMap((variable) => {
+    if (variable.etat !== 'presente') return [];
+    const collection = collectionDuCatalogue(catalogue, variable.collection);
+    if (!collection) return [];
+    return collection.modes.flatMap((mode) => variable.valeurs?.[mode.id] === undefined
+      ? [constatGenre('C63', `${variable.cle}:${mode.id}:sans-valeur-en-mode`, 'sans-valeur-en-mode', {
+        variable: variable.nom, cle: variable.cle, mode: mode.nom,
+      })]
+      : []);
+  });
+}
+
+function controlerLesCouleursSansAlias(catalogue: CatalogueDeReference): Constat[] {
+  return catalogue.variables.flatMap((variable) => {
+    if (variable.etat !== 'presente' || variable.type !== 'COLOR' || roleCollection(catalogue, variable) !== 'components'
+      || !variable.nom.split('/').some((segment) => formeReconnue(segment) === 'color')) return [];
+    const collection = collectionDuCatalogue(catalogue, variable.collection);
+    if (!collection) return [];
+    return collection.modes.flatMap((mode) => {
+      const entree = variable.valeurs?.[mode.id];
+      if (!entree || !('valeur' in entree) || entree.valeur === null) return [];
+      return [constatGenre('C63', `${variable.cle}:${mode.id}:couleur-sans-alias`, 'couleur-sans-alias', {
+        variable: variable.nom, cle: variable.cle, mode: mode.nom, valeur: String(entree.valeur),
+      })];
+    });
+  });
+}
+
+function constatGenre(code: `C${number}`, id: string, genre: string, faits: Constat['faits']): Constat {
+  return { id: `${code}:${id}`, code, type: 'verifier', famille: 'liaisons', variants: [], layers: [], faits: { ...faits, genre } };
 }
 
 function controlerLesScopes(catalogue: CatalogueDeReference): Constat[] {
@@ -189,3 +269,4 @@ function memeEnsemble(gauche: readonly string[], droite: readonly string[]): boo
   return gauche.length === droite.length && gauche.every((valeur) => droite.includes(valeur));
 }
 function dedupliquer(variables: readonly VariableDuCatalogue[]): VariableDuCatalogue[] { return [...new Map(variables.map((variable) => [variable.cle, variable])).values()]; }
+function collectionDuCatalogue(catalogue: CatalogueDeReference, cle: string) { return catalogue.collections.find((entree) => entree.cle === cle); }

@@ -56,6 +56,37 @@ test('C11 reconnaît les noms de l’axe d’état sans attribuer ce rôle à Va
   assert.equal(axeDePropriete('Label'), undefined);
 });
 
+test('C12 propose une question et un renommage de valeur pour Variant=Outlined avec les tokens outline', () => {
+  const composant = releve('Alert', [axe('Severity', ['info']), axe('Variant', ['Outlined'])]);
+  composant.variants = [{ id: 'variant-1', nom: 'Variant=Outlined', valeurs: { Severity: 'info', Variant: 'Outlined' }, layers: [], modesEffectifs: {} }];
+  composant.variants.push({ id: 'variant-2', nom: 'Variant=Outlined, Severity=info', valeurs: { Variant: 'Outlined', Severity: 'info' }, layers: [], modesEffectifs: {} });
+  const constats = controlerNommage(composant, catalogue(
+    'alert/color/info/outline/background', 'alert/color/warning/filled/background',
+  )).filter(({ code }) => code === 'C12');
+  assert.equal(constats.length, 1);
+  const resultat = constats[0];
+  assert.deepEqual(resultat.variants, ['variant-1', 'variant-2']);
+  assert.deepEqual(resultat?.question?.candidats, [{ nom: 'outline' }]);
+  assert.deepEqual(resultat?.correction, {
+    id: resultat?.id, sorte: 'nom-de-valeur', cible: { layer: 'Alert', champ: 'Variant' }, avant: 'Outlined',
+    apres: { nom: 'outline' },
+    aRelire: { regle: 'La valeur du variant reprend le nom porté par les tokens de cet axe.', avant: 'Outlined' },
+  });
+  assert.equal(controlerNommage(composant, catalogue('alert/color/info/outlined/background'))
+    .some(({ code }) => code === 'C12'), false);
+});
+
+test('C13 demande un choix quand les tokens portent plusieurs noms pour la valeur du variant', () => {
+  const composant = releve('Alert', [axe('Severity', ['info']), axe('Variant', ['Outlined'])]);
+  composant.variants = [{ id: 'variant-1', nom: 'Variant=Outlined', valeurs: { Severity: 'info', Variant: 'Outlined' }, layers: [], modesEffectifs: {} }];
+  const resultat = controlerNommage(composant, catalogue('alert/color/info/outline/background', 'alert/color/info/bordered/border'))
+    .find(({ code }) => code === 'C13');
+  assert.deepEqual(resultat?.question?.candidats.map(({ nom }) => nom), ['outline', 'bordered']);
+  assert.equal(resultat?.correction, undefined);
+  assert.equal(controlerNommage(composant, catalogue('alert/color/info/outline/background'))
+    .some(({ code }) => code === 'C13'), false);
+});
+
 function catalogueEtendu(...variables: { nom: string; collection: string; scopes?: string[]; type?: 'COLOR' | 'FLOAT'; alias?: string }[]): CatalogueDeReference {
   return {
     version: 1, library: null,

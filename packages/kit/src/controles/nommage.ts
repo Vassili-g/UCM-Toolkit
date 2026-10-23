@@ -43,10 +43,17 @@ export function tokensDuComposant(releve: ReleveDeComposant, catalogue: Catalogu
     if (formeReconnue(segments[0]) !== formeReconnue(releve.jeu.nom)) return [];
     const pourLaGrammaire = [...segments];
     if (termeReconnu(FAMILLES_PRIMITIVES, segments[1])?.id === 'color') pourLaGrammaire[1] = 'color';
-    const reconnu = reconnaitreLeChemin('components', pourLaGrammaire, {
+    const lire = (axesSupplementaires: Record<string, readonly string[]> = {}) => reconnaitreLeChemin('components', pourLaGrammaire, {
       themes: 'chemin',
-      axes: Object.fromEntries(Object.entries(axes).map(([axe, propriete]) => [axe, propriete.valeurs ?? []])),
+      axes: { ...Object.fromEntries(Object.entries(axes).map(([axe, propriete]) => [axe, propriete.valeurs ?? []])), ...axesSupplementaires },
     });
+    let reconnu = lire();
+    if (!reconnu.conforme && axes.style) {
+      for (const segment of segments.slice(2)) {
+        reconnu = lire({ style: [...(axes.style.valeurs ?? []), segment] });
+        if (reconnu.conforme) break;
+      }
+    }
     return [{ variable, segments, lecture: reconnu.conforme ? reconnu.segments : [] }];
   });
 }
@@ -105,5 +112,54 @@ export function controlerNommage(releve: ReleveDeComposant, catalogue: Catalogue
       }
     }
   }
+  for (const [axe, propriete] of Object.entries(axes) as [AxeDuComposant, ProprieteDAxe][]) {
+    const anciennes = new Set(releve.variants.map((variant) => variant.valeurs[propriete.nom])
+      .filter((valeur): valeur is string => !!valeur && !!propriete.valeurs?.includes(valeur)));
+    for (const ancienne of anciennes) {
+      const variants = releve.variants.filter((variant) => variant.valeurs[propriete.nom] === ancienne);
+      const candidatsParFamille = new Map<string, Set<string>>();
+      for (const variant of variants) {
+        for (const token of tokens) {
+          if (!segmentDAxe(token, axe) || !correspondAuxAutresAxes(token, variant, axes, axe)) continue;
+          const famille = token.lecture.find((segment) => segment.role === 'famille')?.terme;
+          if (!famille) continue;
+          const segment = segmentDAxe(token, axe)!;
+          if (formeReconnue(segment) !== formeReconnue(ancienne)) {
+            const noms = candidatsParFamille.get(famille) ?? new Set<string>();
+            noms.add(segment);
+            candidatsParFamille.set(famille, noms);
+          }
+        }
+      }
+      if (!candidatsParFamille.size) continue;
+      const uniques = [...new Set([...candidatsParFamille.values()].flatMap((noms) => [...noms]))];
+      const candidatUnique = candidatsParFamille.size === 1 && uniques.length === 1;
+      const code = candidatUnique ? 'C12' : 'C13';
+      const identifiant = `${releve.jeu.cle}:${propriete.nom}:${ancienne}`;
+      const id = `${code}:${identifiant}`;
+      const constat = constatDuComposant(code, 'variants', 'verifier', identifiant,
+        { jeu: releve.jeu.nom, propriete: propriete.nom, avant: ancienne }, variants.map(({ id: variantId }) => variantId));
+      constat.question = { id, candidats: uniques.map((nom) => ({ nom })) };
+      if (candidatUnique) constat.correction = {
+        id, sorte: 'nom-de-valeur', cible: { layer: releve.jeu.cle, champ: propriete.nom }, avant: ancienne,
+        apres: { nom: uniques[0] },
+        aRelire: { regle: 'La valeur du variant reprend le nom porté par les tokens de cet axe.', avant: ancienne },
+      };
+      constats.push(constat);
+    }
+  }
   return constats;
+}
+
+function correspondAuxAutresAxes(
+  token: TokenDuComposant, variant: ReleveDeComposant['variants'][number],
+  axes: Partial<Record<AxeDuComposant, ProprieteDAxe>>, axeCible: AxeDuComposant,
+): boolean {
+  return (Object.entries(axes) as [AxeDuComposant, ProprieteDAxe][]).every(([axe, propriete]) => {
+    if (axe === axeCible) return true;
+    const valeur = variant.valeurs[propriete.nom];
+    if (!valeur) return false;
+    const segment = segmentDAxe(token, axe);
+    return !!segment && formeReconnue(segment) === formeReconnue(valeur);
+  });
 }

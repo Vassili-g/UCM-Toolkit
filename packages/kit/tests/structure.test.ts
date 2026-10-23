@@ -23,7 +23,7 @@ test('C63 compare les scopes au chemin complet du thème', () => {
     { ...variable('default', 'success/surface/default', 'theme'), scopes: ['TEXT_FILL'] },
     { ...variable('foreground', 'success/surface/foreground', 'theme'), scopes: ['FRAME_FILL', 'SHAPE_FILL'] },
   ]);
-  const resultats = controlerLaStructure(releve(), c).filter((constat) => constat.code === 'C63');
+  const resultats = controlerLaStructure(releve(), c).filter((constat) => constat.correction?.sorte === 'scope');
   assert.equal(resultats.length, 2);
   assert.equal(resultats.find(({ id }) => id.startsWith('C63:default'))?.correction?.apres.nom, 'FRAME_FILL,SHAPE_FILL');
   assert.equal(resultats.find(({ id }) => id.startsWith('C63:foreground'))?.correction?.apres.nom, 'SHAPE_FILL,TEXT_FILL');
@@ -35,13 +35,13 @@ test('C63 questionne une valeur vide si deux palettes sœurs sont renseignées',
     variable('s', 'Button/color/secondary/contained/default/ring', 'components', { dark: { valeur: '#111' } }),
     variable('t', 'Button/color/tertiary/contained/default/ring', 'components', { dark: { valeur: '#222' } }),
   ]);
-  const resultat = controlerLaStructure(releve(), c).find(({ faits }) => faits.variable === 'Button/color/primary/contained/default/ring');
+  const resultat = controlerLaStructure(releve(), c).find(({ faits }) => faits.genre === undefined && faits.variable === 'Button/color/primary/contained/default/ring');
   assert.equal(resultat?.question?.candidats?.length, 2);
   const incomplet = cat([collection('components', 'components')], [
     variable('p', 'Button/color/primary/contained/default/ring', 'components', { dark: { valeur: null } }),
     variable('s', 'Button/color/secondary/contained/default/ring', 'components', { dark: { valeur: '#111' } }),
   ]);
-  assert.equal(controlerLaStructure(releve(), incomplet).some(({ faits }) => faits.variable === 'Button/color/primary/contained/default/ring'), false);
+  assert.equal(controlerLaStructure(releve(), incomplet).some(({ faits }) => faits.genre === undefined && faits.variable === 'Button/color/primary/contained/default/ring'), false);
 });
 
 test('C63 signale seulement les doublons numériques de sizing', () => {
@@ -67,4 +67,46 @@ test('C63 redirige une primitive de composant vers le thème correspondant uniqu
   assert.equal(resultat?.correction?.apres.cle, 'theme-secondary');
   const sansCible = cat(c.collections, c.variables.filter(({ cle }) => cle !== 'theme-secondary'));
   assert.equal(controlerLaStructure(releve(), sansCible).find(({ id }) => id.startsWith('C63:secondary:'))?.correction, undefined);
+});
+
+test('le catalogue relève un alias supprimé et se tait quand sa cible existe', () => {
+  const c = cat([collection('theme', 'theme')], [
+    variable('source', 'success/surface/default', 'theme', { light: { alias: 'removed' } }),
+  ]);
+  const trouve = controlerLeCatalogue(c).find(({ faits }) => faits.genre === 'alias-supprime');
+  assert.equal(trouve?.faits.variable, 'success/surface/default');
+  assert.equal(trouve?.faits.cle, 'source');
+  c.variables.push(variable('removed', 'primitives/color/blue/500', 'theme'));
+  assert.equal(controlerLeCatalogue(c).some(({ faits }) => faits.genre === 'alias-supprime'), false);
+});
+
+test('le catalogue relève une library inactive et se tait sans alias absent', () => {
+  const c = cat([collection('components', 'components'), { ...collection('remote', 'theme'), etat: 'inaccessible' }], [
+    variable('source', 'Button/color/primary/background', 'components', { light: { alias: 'remote' } }),
+    { ...variable('remote', 'primary/solid/default', 'remote'), etat: 'inaccessible' },
+  ]);
+  c.library = { cle: 'lib', nom: 'Bibliothèque' };
+  assert.equal(controlerLeCatalogue(c).find(({ faits }) => faits.genre === 'library-inactive')?.faits.library, 'Bibliothèque');
+  c.variables[1].etat = 'presente';
+  c.collections[1].etat = 'lue';
+  assert.equal(controlerLeCatalogue(c).some(({ faits }) => faits.genre === 'library-inactive'), false);
+  c.variables[0].valeurs = { light: { alias: 'absent' } };
+  assert.equal(controlerLeCatalogue(c).some(({ faits }) => faits.genre === 'alias-supprime'), true);
+});
+
+test('le catalogue relève un mode sans valeur et se tait quand la valeur existe', () => {
+  const c = cat([collection('theme', 'theme')], [variable('source', 'success/surface/default', 'theme', { light: { valeur: '#fff' } })]);
+  assert.equal(controlerLeCatalogue(c).find(({ faits }) => faits.genre === 'sans-valeur-en-mode')?.faits.mode, 'Dark');
+  c.variables[0].valeurs = { light: { valeur: '#fff' }, dark: { valeur: '#000' } };
+  assert.equal(controlerLeCatalogue(c).some(({ faits }) => faits.genre === 'sans-valeur-en-mode'), false);
+});
+
+test('le catalogue relève une couleur sans alias et se tait pour un alias', () => {
+  const c = cat([collection('components', 'components')], [
+    variable('source', 'Button/color/primary/background', 'components', { light: { valeur: '#fff' } }),
+  ]);
+  assert.equal(controlerLeCatalogue(c).find(({ faits }) => faits.genre === 'couleur-sans-alias')?.faits.valeur, '#fff');
+  c.variables.push(variable('target', 'primitives/color/white/500', 'components'));
+  c.variables[0].valeurs = { light: { alias: 'target' } };
+  assert.equal(controlerLeCatalogue(c).some(({ faits }) => faits.genre === 'couleur-sans-alias'), false);
 });
