@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
 
-import type { Constat, ReleveDeComposant } from '@ucm-kit/core/controles';
+import { controlerMapping, type CatalogueDeReference, type Constat, type ReleveDeComposant } from '@ucm-kit/core/controles';
 
 import type { PluginMessage } from '../src/messages';
 import { commencerUneAnalyse, correctionsDeLAnalyse, reinitialiserLAnalyse, retenirLesCorrections } from '../src/sandbox/analyse';
@@ -17,7 +17,7 @@ const releve = {
   variants: [{ id: 'v1', nom: 'State=hover', valeurs: { State: 'hover' }, modesEffectifs: {}, layers: [{ id: 'L1', nom: 'bg', type: 'FRAME', parent: null, visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 1, hauteur: 1 }, peintures: [], liaisons: [liaison], valeursEnDur: [] }] }],
 } as unknown as ReleveDeComposant;
 const constat: Constat = {
-  id: 'C16:v1', code: 'C16', type: 'corriger', famille: 'liaisons', variants: ['v1'], layers: ['L1'], faits: { token: 'button/color/default/background', axe: 'State' },
+  id: 'C16:v1', code: 'C16', type: 'corriger', famille: 'liaisons', variants: ['v1'], layers: ['L1'], faits: { token: 'button/color/default/background', axe: 'State', champ: 'fills', indice: 0 },
   question: { id: 'C16:v1', candidats: [{ cle: 'k-hover', nom: 'button/color/hover/background' }, { cle: 'k-autre', nom: 'button/color/pressed/background' }] },
 };
 
@@ -42,6 +42,30 @@ test('une réponse choisit un candidat : correction exacte retenue dans l’anal
   };
   assert.deepEqual(b.envoyes, [{ type: 'question-repondue', analyse: b.analyse, question: 'C16:v1', correction: attendue }]);
   assert.deepEqual(correctionsDeLAnalyse(b.analyse)?.get('C16:v1'), attendue);
+});
+
+test('une réponse à chaque constat de mapping cible sa peinture quand deux peintures lient le même token', async () => {
+  const releveDouble = structuredClone(releve);
+  releveDouble.proprietes = [{ nom: 'State', type: 'VARIANT', valeurs: ['hover', 'default'], defaut: 'hover' }];
+  releveDouble.variants[0].layers[0].peintures = [0, 1].map((indice) => ({ champ: 'fills', indice, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' }));
+  releveDouble.variants[0].layers[0].liaisons.push({ ...liaison, indice: 1 });
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'components', nom: 'components', role: 'components', modes: [], etat: 'lue' }],
+    variables: [{ cle: 'k-hover-actuel', nom: 'button/color/default/background', collection: 'components', type: 'COLOR', etat: 'presente' }],
+  };
+  const mapping = controlerMapping(releveDouble, catalogue).filter(({ code }) => code === 'C16');
+  assert.equal(mapping.length, 2);
+  const constats = mapping.map((entree) => ({ ...entree, question: { id: entree.id, candidats: [{ cle: 'k-hover', nom: 'button/color/hover/background' }] } }));
+  const b = banc();
+  retenirLesCorrections(b.analyse, constats, releveDouble);
+
+  for (const constat of constats) {
+    await traiter({ type: 'repondre', analyse: b.analyse, question: constat.id, reponse: 'k-hover' }, b.contexte);
+  }
+
+  assert.deepEqual(b.envoyes.filter((message) => message.type === 'question-repondue')
+    .map((message) => message.type === 'question-repondue' ? message.correction?.cible.indice : undefined), [0, 1], JSON.stringify({ mapping, constats, envoyes: b.envoyes }));
 });
 
 test('une réponse hors des candidats est refusée, rien n’est retenu', async () => {

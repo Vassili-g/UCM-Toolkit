@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { proposerLesCorrections, type CatalogueDeReference, type Constat, type LayerLu, type ReleveDeComposant, type VariantLu } from '../src/controles/index.js';
+import { controlerMapping, proposerLesCorrections, type CatalogueDeReference, type Constat, type LayerLu, type ReleveDeComposant, type VariantLu } from '../src/controles/index.js';
 
 function releve(variantValeurs: Record<string, string>, layer: VariantLu['layers'][number]): ReleveDeComposant {
   return {
@@ -42,7 +42,7 @@ test('un axe produit une correction quand le nom cible existe une seule fois', (
     { cle: 'old', nom: 'alert/color/info/standard/background', collection: 'components', type: 'COLOR', etat: 'presente' },
     { cle: 'new', nom: 'alert/color/success/standard/background', collection: 'components', type: 'COLOR', etat: 'presente' },
   ]);
-  const resultat = proposerLesCorrections(r, c, [constat('C15', { axe: 'Severity', valeur: 'success', token: 'alert/color/info/standard/background' })]);
+  const resultat = proposerLesCorrections(r, c, [constat('C15', { axe: 'Severity', valeur: 'success', token: 'alert/color/info/standard/background', champ: 'fills', indice: 0 })]);
   assert.equal(resultat.find(({ code }) => code === 'C15')?.correction, undefined);
   assert.equal(resultat.find(({ code }) => code === 'C22')?.correction?.apres.cle, 'new');
   assert.equal(resultat.find(({ code }) => code === 'C22')?.correction?.cible.layer, 'layer-1');
@@ -54,7 +54,7 @@ test('un axe produit une correction quand le nom cible existe une seule fois', (
 test('un axe sans cible exacte garde C15 et rend C22 en question', () => {
   const r = releve({ Severity: 'success' }, layer({ token: 'alert/color/info/standard/background' }));
   const c = catalogue([{ cle: 'old', nom: 'alert/color/info/standard/background', collection: 'components', type: 'COLOR', etat: 'presente' }]);
-  const resultat = proposerLesCorrections(r, c, [constat('C15', { axe: 'Severity', valeur: 'success', token: 'alert/color/info/standard/background' })]);
+  const resultat = proposerLesCorrections(r, c, [constat('C15', { axe: 'Severity', valeur: 'success', token: 'alert/color/info/standard/background', champ: 'fills', indice: 0 })]);
   assert.equal(resultat.find(({ code }) => code === 'C22')?.correction, undefined);
   assert.deepEqual(resultat.find(({ code }) => code === 'C22')?.question?.candidats, []);
 });
@@ -70,7 +70,7 @@ test('State=hover lié au token default devient une question avec son indice', (
     { cle: 'old', nom: 'button/color/primary/contained/default/background', collection: 'components', type: 'COLOR', etat: 'presente' },
     { cle: 'hover', nom: 'button/color/primary/contained/hover/background', collection: 'components', type: 'COLOR', etat: 'presente' },
   ]);
-  const resultat = proposerLesCorrections(r, c, [constat('C16', { axe: 'State', valeur: 'hover', token: 'button/color/primary/contained/default/background' })]);
+  const resultat = proposerLesCorrections(r, c, [constat('C16', { axe: 'State', valeur: 'hover', token: 'button/color/primary/contained/default/background', champ: 'fills', indice: 0 })]);
   const question = resultat.find(({ code, question: candidat }) => code === 'C16' && !!candidat);
   assert.equal(resultat.filter(({ code }) => code === 'C16').length, 1);
   assert.equal(question?.correction, undefined);
@@ -84,9 +84,59 @@ test('un rôle attendu produit une correction sur son unique variable exacte', (
     { cle: 'old', nom: 'alert/color/info/background', collection: 'components', type: 'COLOR', etat: 'presente' },
     { cle: 'icon', nom: 'alert/color/info/icon', collection: 'components', type: 'COLOR', etat: 'presente' },
   ]);
-  const resultat = proposerLesCorrections(r, c, [constat('C17', { attendu: 'icon', token: 'alert/color/info/background' })]);
+  const resultat = proposerLesCorrections(r, c, [constat('C17', { attendu: 'icon', token: 'alert/color/info/background', champ: 'fills', indice: 0 })]);
   assert.equal(resultat.find(({ code }) => code === 'C17')?.correction, undefined);
   assert.equal(resultat.find(({ code }) => code === 'C24')?.correction?.apres.cle, 'icon');
+});
+
+test('C22 cible le champ et l’indice de chaque peinture du constat', () => {
+  const r = releve({ Severity: 'success' }, layer({ token: 'alert/color/info/standard/background' }));
+  r.proprietes[0].valeurs = ['info', 'success'];
+  const cible = r.variants[0].layers[0];
+  cible.peintures = [
+    { champ: 'fills', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' },
+    { champ: 'strokes', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' },
+  ];
+  cible.liaisons.push({ ...cible.liaisons[0], champ: 'strokes' });
+  const c = catalogue([
+    { cle: 'old', nom: 'alert/color/info/standard/background', collection: 'components', type: 'COLOR', etat: 'presente' },
+    { cle: 'new', nom: 'alert/color/success/standard/background', collection: 'components', type: 'COLOR', etat: 'presente' },
+  ]);
+  const mapping = controlerMapping(r, c).filter(({ code }) => code === 'C15');
+  assert.equal(mapping.length, 2);
+  const corrections = proposerLesCorrections(r, c, mapping).filter(({ code }) => code === 'C22');
+  assert.deepEqual(corrections.map(({ correction }) => [correction?.cible.champ, correction?.cible.indice]), [['fills', 0], ['strokes', 0]]);
+});
+
+test('C24 cible chaque peinture du constat quand deux peintures liées au même token ont des indices différents', () => {
+  const r = releve({ Severity: 'info' }, layer({ name: 'label', type: 'TEXT', token: 'alert/color/info/background' }));
+  const cible = r.variants[0].layers[0];
+  cible.peintures = [0, 1].map((indice) => ({ champ: 'fills', indice, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' }));
+  cible.liaisons.push({ ...cible.liaisons[0], indice: 1 });
+  const c = catalogue([
+    { cle: 'old', nom: 'alert/color/info/background', collection: 'components', type: 'COLOR', etat: 'presente' },
+    { cle: 'new', nom: 'alert/color/info/foreground', collection: 'components', type: 'COLOR', etat: 'presente' },
+  ]);
+  const mapping = controlerMapping(r, c).filter(({ code }) => code === 'C17');
+  assert.equal(mapping.length, 2);
+  const corrections = proposerLesCorrections(r, c, mapping).filter(({ code }) => code === 'C24');
+  assert.deepEqual(corrections.map(({ correction }) => correction?.cible.indice), [0, 1]);
+});
+
+test('C24 cible la plage exacte du constat quand une même variable est liée à plusieurs plages de texte', () => {
+  const r = releve({ Severity: 'info' }, layer({ name: 'label', type: 'TEXT', token: 'alert/color/info/background' }));
+  const cible = r.variants[0].layers[0];
+  cible.liaisons = [0, 1].map((rang) => ({
+    ...cible.liaisons[0], indice: undefined, plage: rang === 0 ? { debut: 0, fin: 5 } : { debut: 5, fin: 10 },
+  }));
+  const c = catalogue([
+    { cle: 'old', nom: 'alert/color/info/background', collection: 'components', type: 'COLOR', etat: 'presente' },
+    { cle: 'new', nom: 'alert/color/info/foreground', collection: 'components', type: 'COLOR', etat: 'presente' },
+  ]);
+  const mapping = controlerMapping(r, c).filter(({ code }) => code === 'C17');
+  assert.equal(mapping.length, 2);
+  const corrections = proposerLesCorrections(r, c, mapping).filter(({ code }) => code === 'C24');
+  assert.deepEqual(corrections.map(({ correction }) => correction?.cible.plage), [{ debut: 0, fin: 5 }, { debut: 5, fin: 10 }]);
 });
 
 test('un layer title avec title et foreground possibles reste une question', () => {

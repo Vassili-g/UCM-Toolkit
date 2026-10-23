@@ -76,7 +76,7 @@ function corrigerAxe(constat: Constat, releve: ReleveDeComposant, catalogue: Cat
   const nomAxe = chaine(constat.faits.axe);
   const variant = variantDuConstat(constat, releve);
   const layer = layerDuConstat(constat, releve);
-  const liaison = layer?.liaisons.find((entree) => entree.variable.nom === nomToken);
+  const liaison = layer && nomToken ? liaisonDuConstat(constat, layer, nomToken) : undefined;
   const axe = Object.entries(axesDuReleve(releve)).find(([, propriete]) => formeReconnue(propriete.nom) === formeReconnue(nomAxe ?? '')) as [AxeDuComposant, NonNullable<ReturnType<typeof axesDuReleve>[AxeDuComposant]>] | undefined;
   const token = tokensDuComposant(releve, catalogue).find((entree) => entree.variable.nom === nomToken);
   if (!nomToken || !variant || !layer || !liaison || !axe || !token) return undefined;
@@ -102,7 +102,7 @@ function corrigerRole(constat: Constat, releve: ReleveDeComposant, catalogue: Ca
   const nomToken = chaine(constat.faits.token);
   const role = chaine(constat.faits.attendu);
   const layer = layerDuConstat(constat, releve);
-  const liaison = layer?.liaisons.find((entree) => entree.variable.nom === nomToken);
+  const liaison = layer && nomToken ? liaisonDuConstat(constat, layer, nomToken) : undefined;
   if (!nomToken || !role || !layer || !liaison) return undefined;
   const segments = nomToken.split('/');
   segments[segments.length - 1] = role;
@@ -169,6 +169,16 @@ function correctionDeLiaison(constat: Constat, layer: LayerLu, liaison: LiaisonL
 
 function question(constat: Constat, candidats: readonly VariableDuCatalogue[]): Pick<Constat, 'question'> {
   return { question: { id: constat.id, candidats: candidats.map(({ cle, nom }) => ({ cle, nom })) } };
+}
+function liaisonDuConstat(constat: Constat, layer: LayerLu, nomToken: string): LiaisonLue | undefined {
+  const champ = chaine(constat.faits.champ);
+  if (!champ) return undefined;
+  const indice = typeof constat.faits.indice === 'number' ? constat.faits.indice : undefined;
+  const debut = typeof constat.faits.plageDebut === 'number' ? constat.faits.plageDebut : undefined;
+  const fin = typeof constat.faits.plageFin === 'number' ? constat.faits.plageFin : undefined;
+  return layer.liaisons.find((liaison) => liaison.variable.nom === nomToken && liaison.champ === champ
+    && liaison.indice === indice
+    && liaison.plage?.debut === debut && liaison.plage?.fin === fin);
 }
 function layerDuConstat(constat: Constat, releve: ReleveDeComposant): LayerLu | undefined {
   const layers = releve.variants.flatMap((variant) => variant.layers).filter((layer) => constat.layers.includes(layer.id));

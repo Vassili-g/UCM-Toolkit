@@ -93,13 +93,20 @@ export function controlerMapping(releve: ReleveDeComposant, catalogue: Catalogue
         const code = axe === 'etat' ? 'C16' : 'C15';
         constats.push(constatDuComposant(code, 'liaisons', 'corriger', `${lieu}:${axe}`, {
           axe: propriete.nom, valeur: dansLeVariant, token: variable.nom, segment: dansLeToken,
+          champ: liaison.champ,
+          ...(liaison.indice === undefined ? {} : { indice: liaison.indice }),
+          ...(liaison.plage ? { plageDebut: liaison.plage.debut, plageFin: liaison.plage.fin } : {}),
         }, [variant.id], [layer.id]));
       }
       const role = token.lecture.find((segment) => segment.role === 'role')?.terme
         ?? termeReconnu(REGISTRE_ROLES, token.segments.at(-1) ?? '')?.id;
       const attendu = roleAttendu(layer, liaison);
       if (role && attendu && role !== attendu && !(attendu === 'foreground' && role === 'text')) {
-        constats.push(constatDuComposant('C17', 'liaisons', 'corriger', lieu, { token: variable.nom, role, attendu }, [variant.id], [layer.id]));
+        constats.push(constatDuComposant('C17', 'liaisons', 'corriger', lieu, {
+          token: variable.nom, role, attendu, champ: liaison.champ,
+          ...(liaison.indice === undefined ? {} : { indice: liaison.indice }),
+          ...(liaison.plage ? { plageDebut: liaison.plage.debut, plageFin: liaison.plage.fin } : {}),
+        }, [variant.id], [layer.id]));
       }
     } else {
       const collection = catalogue.collections.find((entree) => entree.cle === variable.collection);

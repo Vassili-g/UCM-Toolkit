@@ -33,7 +33,13 @@ function correctionDeLaReponse(constat: Constat, reponse: string, releve: Releve
   const regle = 'Le designer a choisi ce token parmi les candidats du moteur.';
   const token = chaine(constat.faits.token);
   if (token) {
-    const liaison = layer.liaisons.find((entree) => entree.variable.nom === token);
+    const champLiaison = chaine(constat.faits.champ);
+    if (!champLiaison) return null;
+    const indice = typeof constat.faits.indice === 'number' ? constat.faits.indice : undefined;
+    const plageDebut = typeof constat.faits.plageDebut === 'number' ? constat.faits.plageDebut : undefined;
+    const plageFin = typeof constat.faits.plageFin === 'number' ? constat.faits.plageFin : undefined;
+    const liaison = layer.liaisons.find((entree) => entree.variable.nom === token && entree.champ === champLiaison
+      && entree.indice === indice && entree.plage?.debut === plageDebut && entree.plage?.fin === plageFin);
     if (!liaison) return null;
     return {
       id: constat.question?.id ?? constat.id, sorte: 'liaison',
