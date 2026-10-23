@@ -68,10 +68,15 @@ function correctionDeLaReponse(constat: Constat, reponse: string, releve: Releve
   const champ = chaine(constat.faits.champ);
   if (!champ) return null;
   const indice = typeof constat.faits.indice === 'number' ? constat.faits.indice : undefined;
+  const plage = typeof constat.faits.plageDebut === 'number' && typeof constat.faits.plageFin === 'number'
+    ? { debut: constat.faits.plageDebut, fin: constat.faits.plageFin } : undefined;
+  // Une question de propagation (C24) peut viser un champ déjà lié à une autre variable : la relecture doit la retrouver.
+  const lie = layer.liaisons.find((entree) => entree.champ === champ && entree.indice === indice
+    && entree.plage?.debut === plage?.debut && entree.plage?.fin === plage?.fin);
   return {
     id: constat.question?.id ?? constat.id, sorte: 'liaison',
-    cible: { layer: layer.id, champ, ...(indice === undefined ? {} : { indice }) },
-    avant: null, apres, aRelire: { axes: variant.valeurs, regle, avant: null },
+    cible: { layer: layer.id, champ, ...(indice === undefined ? {} : { indice }), ...(plage ? { plage } : {}), ...(lie ? { variable: lie.variable.cle } : {}) },
+    avant: lie?.variable.nom ?? null, apres, aRelire: { axes: variant.valeurs, regle, avant: lie?.variable.nom ?? null },
   };
 }
 

@@ -10,18 +10,24 @@
  * fois, analyse comprise : une demande reçue pendant ce temps rend `occupe`. Le
  * lot écrit, `corrections-appliquees` part, puis l'analyse est périmée.
  *
- * `selectionner` ignore une identité qui n'est pas celle de l'analyse courante.
+ * `servir-de-modele` rend `modele-propose` : les constats C24 de `proposerLaPropagation`
+ * du kit, dont les corrections sont retenues dans l'analyse courante pour
+ * `appliquer-corrections`. Analyse périmée : aucun constat. Rien ne s'écrit.
+ *
+ * `selectionner` et `servir-de-modele` ignorent une identité qui n'est pas celle de l'analyse courante.
  */
-import type { Correction } from '@ucm-kit/core/controles';
+import { proposerLaPropagation, type Correction } from '@ucm-kit/core/controles';
 
 import { ecrireLeLot, type ResultatDUnLot } from '../ecriture/liaisons';
 import { selectionnerLesLayers } from '../ecriture/selection';
 import type { DemandeDeCorrections } from '../messages/corrections';
-import { analyseCourante, correctionsDeLAnalyse, perimerApresUneEcriture, prendreLaPlaceDUneEcriture } from './analyse';
+import {
+  analyseCourante, catalogueDeLAnalyse, correctionsDeLAnalyse, perimerApresUneEcriture, prendreLaPlaceDUneEcriture, releveDeLAnalyse, retenirLaPropagation,
+} from './analyse';
 import { retenirLaSelectionDuPlugin } from './commun';
 import type { Contexte, Traiter } from './contexte';
 
-export const TYPES: readonly DemandeDeCorrections['type'][] = ['appliquer-corrections', 'selectionner'];
+export const TYPES: readonly DemandeDeCorrections['type'][] = ['appliquer-corrections', 'selectionner', 'servir-de-modele'];
 
 /** Les écritures du domaine : le sandbox donne celles de Figma, les tests des doubles. */
 export interface Ecritures {
@@ -74,8 +80,31 @@ export function traiterAvec(ecritures: Ecritures): Traiter<DemandeDeCorrections>
       if (courante && courante.sujet === demande.analyse.sujet && courante.generation === demande.analyse.generation) await ecritures.selectionner(demande.layers);
       return;
     }
+    if (demande.type === 'servir-de-modele') {
+      await servirDeModele(demande, contexte);
+      return;
+    }
     await appliquer(demande, ecritures, contexte);
   };
+}
+
+async function servirDeModele(demande: Extract<DemandeDeCorrections, { type: 'servir-de-modele' }>, contexte: Contexte): Promise<void> {
+  const courante = analyseCourante();
+  if (!courante || courante.sujet !== demande.analyse.sujet || courante.generation !== demande.analyse.generation) return;
+  const place = prendreLaPlaceDUneEcriture(demande.analyse);
+  if ('occupe' in place) {
+    contexte.envoyer({ type: 'occupe', analyse: await place.occupe });
+    return;
+  }
+  try {
+    const releve = releveDeLAnalyse(demande.analyse);
+    const catalogue = catalogueDeLAnalyse(demande.analyse);
+    const constats = releve && catalogue ? proposerLaPropagation(releve, catalogue, demande.variant) : [];
+    const retenu = retenirLaPropagation(demande.analyse, constats);
+    contexte.envoyer({ type: 'modele-propose', analyse: demande.analyse, variant: demande.variant, constats: retenu ? constats : [] });
+  } finally {
+    place.liberer();
+  }
 }
 
 async function appliquer(demande: Extract<DemandeDeCorrections, { type: 'appliquer-corrections' }>, ecritures: Ecritures, contexte: Contexte): Promise<void> {

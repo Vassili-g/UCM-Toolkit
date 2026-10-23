@@ -129,6 +129,29 @@ test('C59 se corrige par le nom relu et sa question cible la plage exacte', asyn
   assert.equal(reponse.correction?.avant, 'success/surface/foreground');
 });
 
+test('une réponse à une question de propagation (C24) garde la plage du texte et la liaison actuelle du champ', async () => {
+  const relevePlage = structuredClone(releve);
+  const calque = relevePlage.variants[0].layers[0];
+  calque.type = 'TEXT';
+  const ancienne = { id: 'old-id', cle: 'k-ancienne', nom: 'button/color/default/foreground', collection: 'c', distante: false };
+  calque.liaisons = [
+    { champ: 'fills', porteur: 'L1', plage: { debut: 0, fin: 5 }, variable: liaison.variable },
+    { champ: 'fills', porteur: 'L1', plage: { debut: 5, fin: 10 }, variable: ancienne },
+  ];
+  const question: Constat = {
+    id: 'C24:modele:v1:L1:fills:p5-10', code: 'C24', type: 'corriger', famille: 'liaisons', variants: ['v1'], layers: ['L1'],
+    faits: { modele: 'State=default', calque: 'bg', champ: 'fills', plageDebut: 5, plageFin: 10 },
+    question: { id: 'C24:modele:v1:L1:fills:p5-10', candidats: [{ cle: 'k-a', nom: 'button/color/hover/foreground' }, { cle: 'k-b', nom: 'button/color/hover/foreground' }] },
+  };
+  const b = banc();
+  retenirLesCorrections(b.analyse, [question], relevePlage);
+  await traiter({ type: 'repondre', analyse: b.analyse, question: question.id, reponse: 'k-b' }, b.contexte);
+  const reponse = b.envoyes.at(-1) as Extract<PluginMessage, { type: 'question-repondue' }>;
+  assert.deepEqual(reponse.correction?.cible, { layer: 'L1', champ: 'fills', plage: { debut: 5, fin: 10 }, variable: 'k-ancienne' });
+  assert.equal(reponse.correction?.avant, 'button/color/default/foreground');
+  assert.equal(reponse.correction?.aRelire.avant, 'button/color/default/foreground');
+});
+
 test('une réponse à chaque constat de mapping cible sa peinture quand deux peintures lient le même token', async () => {
   const releveDouble = structuredClone(releve);
   releveDouble.proprietes = [{ nom: 'State', type: 'VARIANT', valeurs: ['hover', 'default'], defaut: 'hover' }];

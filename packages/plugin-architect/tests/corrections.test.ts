@@ -2,14 +2,14 @@
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
 
-import type { Constat, Correction } from '@ucm-kit/core/controles';
+import type { CatalogueDeReference, Constat, Correction, ReleveDeComposant } from '@ucm-kit/core/controles';
 import type { ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 
 import { selectionnerLesLayers, type ApiDeSelection } from '../src/ecriture/selection';
 import type { PluginMessage } from '../src/messages';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
 import {
-  commencerUneAnalyse, correctionsDeLAnalyse, reinitialiserLAnalyse, retenirLesCorrections, surChangementDuDocument, traiterAvec as traiterAnalyse,
+  commencerUneAnalyse, correctionsDeLAnalyse, prendreLaPlaceDUneEcriture, reinitialiserLAnalyse, retenirLesCorrections, surChangementDuDocument, traiterAvec as traiterAnalyse,
 } from '../src/sandbox/analyse';
 import { origineDeLaSelection } from '../src/sandbox/commun';
 import type { Contexte } from '../src/sandbox/contexte';
@@ -259,4 +259,77 @@ test('la sélection posée par le domaine est reconnue comme celle du plugin, un
   await selectionnerLesLayers(['1:1'], retenirLaSelectionDuPlugin, a.api as unknown as ApiDeSelection);
   assert.equal(origineDeLaSelection(['1:1']), 'plugin');
   assert.equal(origineDeLaSelection(['1:1']), 'figma');
+});
+
+const SEVERITY_INFO = 'alert/colors/info/standard/background';
+const SEVERITY_ERROR = 'alert/colors/error/outlined/background';
+
+function leLayer(id: string, lie: boolean) {
+  return {
+    id, nom: 'container', type: 'FRAME', parent: null, visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 20, hauteur: 20 },
+    peintures: [{ champ: 'fills' as const, indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' }], valeursEnDur: [],
+    liaisons: lie ? [{ champ: 'fills', indice: 0, porteur: id, variable: { id: 'k-info', cle: 'k-info', nom: SEVERITY_INFO, collection: 'components', distante: false } }] : [],
+  };
+}
+
+const releveDuModele: ReleveDeComposant = {
+  version: 1, jeu: { cle: 'alert-set', id: 'alert-set', nom: 'Alert' },
+  proprietes: [
+    { nom: 'Severity', type: 'VARIANT', valeurs: ['info', 'error'], defaut: 'info' },
+    { nom: 'Variant', type: 'VARIANT', valeurs: ['standard', 'outlined'], defaut: 'standard' },
+  ],
+  variants: [
+    { id: 'm', nom: 'Severity=info, Variant=standard', valeurs: { Severity: 'info', Variant: 'standard' }, modesEffectifs: {}, layers: [leLayer('m-1', true)] },
+    { id: 'v', nom: 'Severity=error, Variant=outlined', valeurs: { Severity: 'error', Variant: 'outlined' }, modesEffectifs: {}, layers: [leLayer('v-1', false)] },
+  ],
+  lecture: { layersLus: 2, layersNonLus: 0, variantsNonLus: [], manquees: [] }, espaceDeCouleur: 'srgb',
+};
+const catalogueDuModele: CatalogueDeReference = {
+  version: 1, library: null, collections: [{ cle: 'components', nom: 'components', role: 'components', modes: [], etat: 'lue' }],
+  variables: [
+    { cle: 'k-info', nom: SEVERITY_INFO, collection: 'components', type: 'COLOR', etat: 'presente' },
+    { cle: 'k-error', nom: SEVERITY_ERROR, collection: 'components', type: 'COLOR', etat: 'presente' },
+  ],
+};
+
+function analyseDuModele(b: ReturnType<typeof banc>): IdentiteDAnalyse {
+  const identite = commencerUneAnalyse('Alert', ['jeu', 'm', 'v'], b.contexte);
+  retenirLesCorrections(identite, [], releveDuModele, [], catalogueDuModele);
+  return identite;
+}
+
+test('servir-de-modele rend modele-propose, puis appliquer-corrections accepte ses ids', async () => {
+  const b = banc();
+  const e = ecritures();
+  const analyse = analyseDuModele(b);
+  await traiterAvec(e.doubles)({ type: 'servir-de-modele', analyse, variant: 'm' }, b.contexte);
+  const [propose] = deType(b.envoyes, 'modele-propose');
+  assert.equal(propose.variant, 'm');
+  assert.deepEqual(propose.constats.map((constat) => constat.id), ['C24:modele:v:v-1:fills:0']);
+  assert.equal(correctionsDeLAnalyse(analyse)?.get('C24:modele:v:v-1:fills:0')?.apres.cle, 'k-error');
+  assert.deepEqual(e.lots, [], 'rien ne s’écrit en proposant');
+  await traiterAvec(e.doubles)({ type: 'appliquer-corrections', analyse, ids: ['C24:modele:v:v-1:fills:0'] }, b.contexte);
+  assert.deepEqual(e.lots, [['C24:modele:v:v-1:fills:0']]);
+  assert.equal(deType(b.envoyes, 'corrections-appliquees')[0].ecrites, 1);
+});
+
+test('servir-de-modele : une autre identité est ignorée, une analyse périmée ne rend aucun constat', async () => {
+  const b = banc();
+  const e = ecritures();
+  const analyse = analyseDuModele(b);
+  await traiterAvec(e.doubles)({ type: 'servir-de-modele', analyse: { sujet: 'Alert', generation: analyse.generation + 1 }, variant: 'm' }, b.contexte);
+  assert.deepEqual(deType(b.envoyes, 'modele-propose'), []);
+  surChangementDuDocument(['v'], b.contexte);
+  await traiterAvec(e.doubles)({ type: 'servir-de-modele', analyse, variant: 'm' }, b.contexte);
+  assert.deepEqual(deType(b.envoyes, 'modele-propose').map((m) => m.constats), [[]]);
+});
+
+test('servir-de-modele pendant une opération rend occupe', async () => {
+  const b = banc();
+  const analyse = analyseDuModele(b);
+  const place = prendreLaPlaceDUneEcriture(analyse);
+  await traiterAvec(ecritures().doubles)({ type: 'servir-de-modele', analyse, variant: 'm' }, b.contexte);
+  assert.deepEqual(deType(b.envoyes, 'occupe'), [{ type: 'occupe', analyse }]);
+  assert.deepEqual(deType(b.envoyes, 'modele-propose'), []);
+  if ('liberer' in place) place.liberer();
 });

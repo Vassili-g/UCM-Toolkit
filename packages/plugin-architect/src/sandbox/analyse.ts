@@ -54,6 +54,8 @@ interface AnalyseCourante {
   /** Tous les constats de l'analyse, ignorés compris, par identifiant : Ignorer et les questions les retrouvent ici. */
   constats: ReadonlyMap<string, Constat>;
   releve: ReleveDeComposant | null;
+  /** Le catalogue de l'analyse : la propagation depuis un modèle y cherche les variables visées. */
+  catalogue: CatalogueDeReference | null;
   perimee: boolean;
 }
 
@@ -64,7 +66,7 @@ let courante: AnalyseCourante | null = null;
 export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte): IdentiteDAnalyse {
   generation += 1;
   const identite = { sujet, generation };
-  courante = { identite, noeuds: new Set(noeuds), corrections: new Map(), constats: new Map(), releve: null, perimee: false };
+  courante = { identite, noeuds: new Set(noeuds), corrections: new Map(), constats: new Map(), releve: null, catalogue: null, perimee: false };
   contexte.surveillerLeDocument();
   return identite;
 }
@@ -80,11 +82,29 @@ const memeIdentite = (a: IdentiteDAnalyse, b: IdentiteDAnalyse): boolean => a.su
  * une autre analyse courante les ignore. `tous` ajoute les constats écartés
  * (ignorés), `releve` sert à bâtir la correction qu'une réponse tire.
  */
-export function retenirLesCorrections(identite: IdentiteDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null = null, tous: readonly Constat[] = constats): void {
+export function retenirLesCorrections(identite: IdentiteDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null = null, tous: readonly Constat[] = constats, catalogue: CatalogueDeReference | null = null): void {
   if (!courante || !memeIdentite(courante.identite, identite)) return;
+  courante.catalogue = catalogue;
   courante.corrections = new Map(constats.flatMap((constat) => (constat.correction ? [[constat.correction.id, constat.correction] as const] : [])));
   courante.constats = new Map(tous.map((constat) => [constat.id, constat] as const));
   courante.releve = releve;
+}
+
+/** Le catalogue de l'analyse `identite`, `null` quand elle n'est plus la courante ou n'en a pas lu. */
+export function catalogueDeLAnalyse(identite: IdentiteDAnalyse): CatalogueDeReference | null {
+  return courante && memeIdentite(courante.identite, identite) ? courante.catalogue : null;
+}
+
+/**
+ * Ajoute les corrections et les constats d'une propagation depuis un modèle à
+ * l'analyse `identite`, sans toucher aux autres. `false` quand cette identité
+ * n'est plus la courante ou que l'analyse est périmée.
+ */
+export function retenirLaPropagation(identite: IdentiteDAnalyse, constats: readonly Constat[]): boolean {
+  if (!courante || courante.perimee || !memeIdentite(courante.identite, identite)) return false;
+  courante.corrections = new Map([...courante.corrections, ...constats.flatMap((constat) => (constat.correction ? [[constat.correction.id, constat.correction] as const] : []))]);
+  courante.constats = new Map([...courante.constats, ...constats.map((constat) => [constat.id, constat] as const)]);
+  return true;
 }
 
 /** Le constat de l'analyse `identite`, ignoré ou non ; `null` quand cette identité n'est plus la courante. */
@@ -312,8 +332,9 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
   const courant: Operation = { identite: new Promise((resolve) => { connaitre = resolve; }), connue: null, jeton: { leve: false } };
   operation = courant;
   let identite: IdentiteDAnalyse | null = null;
+  let catalogueLu: CatalogueDeReference | null = null;
   const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats): void => {
-    retenirLesCorrections(identite as IdentiteDAnalyse, constats, releve, tous);
+    retenirLesCorrections(identite as IdentiteDAnalyse, constats, releve, tous, catalogueLu);
     contexte.envoyer({
       type: 'analyse',
       analyse: identite as IdentiteDAnalyse,
@@ -343,6 +364,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
     retenirLesLiaisons(liaisonsParCle(releve));
     const niveau = await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => 'AA') ?? 'AA';
     const catalogue = await lecteurs.catalogue(releve, jeton, contexte);
+    catalogueLu = catalogue;
     if (jeton.leve) return rendre('annulee', [], null);
     const resultat = await lecteurs.moteur(sujet, jeton, contexte);
     if (resultat.etat === 'annulee' || jeton.leve) return rendre('annulee', [], null);

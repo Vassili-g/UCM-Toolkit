@@ -18,5 +18,6 @@ export { controlerOublis } from './oublis.js';
 export { preparerLesTokens } from './preparation.js';
 export type { PreparationDesTokens, VariableAPreparer, ViseDePreparation, LieuDePreparation, ReponsesDePreparation } from './preparation.js';
 export { proposerLesCorrections } from './corrections.js';
+export { proposerLaPropagation } from './propagation.js';
 export { controlerLeTheme, controlerLesModes } from './theme.js';
 export { controlerLaStructure, controlerLeCatalogue } from './structure.js';
