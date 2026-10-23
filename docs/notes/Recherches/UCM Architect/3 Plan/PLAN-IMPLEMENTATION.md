@@ -416,6 +416,12 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `appliquer-corrections` ; analyse périmée ou opération en cours → refus.
   Vérifie : tests du kit, `npm run test:paquet -- architect`, tests racine (seul `versionSuitLeContenu` peut échouer, lot V10).
 
+- [~ Claude 2] **K12 · Faits et groupes du contraste.** `implementeur` · arbre partagé · K4, B9, U7 (Q-77).
+  Écrit : `kit/src/controles/accessibilite.ts`, ses tests, `plugin-architect/tests/accessibilite.test.ts`.
+  Fait quand : C49 et C50 mesurés portent `premierPlan`, `fond` et `rapports`
+  (texte JSON des modes mesurés) ; C49, C50 et C51 regroupés entre variants
+  comme C52 ; `C50:sans-anneau` porte le layer racine de chaque variant.
+
 ### Piste V · versions
 
 - [ ] **V · Lot de versions**, après chaque merge de Codex, par l'orchestrateur.
@@ -593,7 +599,7 @@ de galerie quand le lot B n'est pas fait.
   Réglages et Historique comptés sous `.panneau-lateral .onglets`, `resize`
   lu avant son arrivée dans `composant.test.mjs`) ; `DEMANDES_PERMISES` et
   `MESSAGES_DU_SANDBOX` de `tests/interface/aide.mjs` (Q-75).
-- [~ Claude 1] **U7 · Contraste et accessibilité.** (avec six tests d'interface rouges d'`arbre` et `fiche`) Vague 5 · U6.
+- [x] (4655b80c) **U7 · Contraste et accessibilité.** (avec six tests d'interface rouges d'`arbre` et `fiche`) Vague 5 · U6.
   Domaines : `accessibilite`, `questions` (x-button-corr).
   Maquette : `x-alert`, `x-button`, `x-button-corr` ; `paire`.
   Fait quand : paire mesurée, rapport et seuil, autres modes, limites ;
@@ -1451,6 +1457,16 @@ Choix faits sans le mainteneur :
   du moteur compte ; phrases par code d'À faire dans Figma écrites hors
   maquette (C20, C31 à C33, C49, C50, C64, C66). Question au mainteneur :
   faut-il les trois boutons · réversible : oui.
+- Q-77 · U7, K12 · Contraste · le kit ne rendait ni la paire de couleurs ni
+  les rapports des autres modes, émettait C49 à C51 par variant, et
+  `C50:sans-anneau` sans layer : K12 les ajoute ; `rapports` est un texte
+  JSON, `Constat.faits` n'acceptant que des scalaires. U7 écrit hors
+  maquette « N sous le seuil », la borne des combinaisons, C53 (« WCAG ne
+  lui demande pas de contraste »), « Lié aujourd’hui au token du repos. » ;
+  la note longue de la section s'affiche quand elle contient une limite ; le
+  bouton du modèle est inactif sur une analyse périmée, la maquette le garde
+  actif. « C’est voulu » de `x-button-corr` n'a pas de demande (comme Q-76).
+  C16 reste une question par variant · réversible : oui.
 
 ### Revue des lots réalisés
 
