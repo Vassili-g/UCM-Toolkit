@@ -72,7 +72,7 @@ test('un clic sur un terme vert de la table ouvre sa carte dans Corrections, cib
   try {
     assert.equal(await page.locator('.carte-ciblee').count(), 0);
     const termes = await page.locator('.table-ligne:nth-child(2) .ch-lien').allTextContents();
-    assert.deepEqual(termes, ['background', 'hover']);
+    assert.deepEqual(termes, ['background', 'hovered']);
     await page.locator('.table-ligne:nth-child(2) .ch-lien').first().click();
     const carte = page.locator('.carte-ciblee');
     assert.equal(await carte.count(), 1);

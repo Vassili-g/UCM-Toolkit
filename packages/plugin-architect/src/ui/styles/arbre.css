@@ -584,8 +584,29 @@
   font-weight: 600;
 }
 
-/* Le panneau latéral du mode Tokens : la colonne de droite, 640 px, où Nomenclature prend la place de l'inspecteur. */
+/*
+ * Le panneau latéral du mode Tokens : la colonne de droite, 640 px, où Nomenclature prend la place de l'inspecteur. Il a les couleurs de la
+ * maquette (`roles.css`), pas celles de l'explorateur, et réserve la place de sa barre de défilement comme le fait la maquette.
+ */
 .panneau-lateral {
+  --fond: var(--laterale-fond);
+  --fond-survol: var(--laterale-survol);
+  --fond-bloc: var(--laterale-bloc);
+  --fond-note: var(--laterale-note);
+  --fond-marque: var(--laterale-marque);
+  --fond-marque-survol: var(--laterale-marque-survol);
+  --fond-avertissement: var(--laterale-avertissement);
+  --fond-danger: var(--laterale-danger);
+  --bordure: var(--laterale-bordure);
+  --bordure-marque: var(--laterale-marque);
+  --bordure-visee: var(--laterale-bordure-visee);
+  --texte: var(--laterale-texte);
+  --texte-second: var(--laterale-texte-second);
+  --texte-marque: var(--laterale-texte-marque);
+  --texte-danger: var(--laterale-texte-danger);
+  --texte-avertissement: var(--laterale-texte-avertissement);
+  scrollbar-gutter: stable;
+  color: var(--texte);
   --corps: 11px;
   --corps-interligne: 16px;
   --libelle: 12px;

@@ -18,7 +18,7 @@ const { preferences, releve, groupe, chevron, constructeur, alias, nombre, coule
 function releveIntencial() {
   const c = constructeur('Intencial');
   c.collection('primitives', 'primitives', ['Valeur']);
-  c.collection('brands', 'brands', ['intencial', 'partenaire']);
+  c.collection('brands', 'brands', ['intencial', 'apicil']);
   c.collection('theme', 'theme', ['light', 'dark']);
   c.collection('layout', 'layout', ['Valeur']);
   c.collection('interface', 'Interface', ['Valeur']);
@@ -30,7 +30,7 @@ function releveIntencial() {
   for (const [nom, valeur] of theme) c.variable(`theme:${nom}`, 'theme', nom, 'COLOR', { light: couleur(valeur), dark: couleur(valeur) });
   c.variable('layout:sizing/4', 'layout', 'sizing/4', 'FLOAT', { Valeur: nombre(16) });
   remplir('primitives', 346, 0, ['Valeur']);
-  remplir('brands', 420, 0, ['intencial', 'partenaire']);
+  remplir('brands', 420, 0, ['intencial', 'apicil']);
   remplir('theme', 180, theme.length, ['light', 'dark']);
   remplir('layout', 60, 1, ['Valeur']);
   const cibles = { i1: 'primary/solid/default', i2: 'primary/solid/hover', i3: 'primary/solid/foreground', i4: 'primary/surface/default', i5: 'neutral/page/border', i7: 'primary/page/foreground', i8: 'neutral/elevation/raised', i9: 'neutral/elevation/page', i10: 'neutral/solid/hover' };
@@ -71,12 +71,14 @@ const appliquer = [clic('.noms-pied .btn-primary', '.feuille'), clic('.feuille-g
 
 const ETATS = [
   {
-    id: 't-renommages', titre: 'Tokens, Corrections filtrées par l’arbre', quand: 'La collection Interface passe à UCM : le designer clique le terme vert background d’une ligne du tableau des tokens.',
-    regarder: 'Les noms entiers après renommage, seul le terme nouveau en vert ; la carte de background ouverte et ciblée dans Corrections ; la puce « collection Interface » sous les onglets ; le pied compte les noms de Interface.',
+    id: 't-renommages', titre: 'Tokens, Corrections filtrées par l’arbre', quand: 'La collection Interface passe à UCM : le designer clique le terme vert background d’une ligne du tableau des tokens, pendant que la lecture des noms d’écriture continue.',
+    regarder: 'Les noms entiers après renommage, seul le terme nouveau en vert ; la carte de background ouverte et ciblée dans Corrections, avec ses trois noms de Interface ; la carte d’écriture ouverte, qui charge ses noms ; la puce « collection Interface » sous les onglets  ; le pied attend la fin de la lecture.',
     existe: true,
     atteinte: [
       preferences(), releve(releveIntencial()), groupe('interface'), chevron('interface'), { message: messages.initial(true) }, { message: messages.bilan(1, renommagesInterface), attendre: '.liste' },
-      ...pagesInterface({ fonds: 2, survols: 3, ecriture: 4, collection: 5, suiteEcriture: 7 }).map((message) => ({ message })),
+      ...pagesInterface({ fonds: 2, survols: 3, ecriture: 4, collection: 5, suiteEcriture: 7 }).slice(0, 4).map((message) => ({ message })),
+      { clic: '.liste .tete-bouton' },
+      { clic: '.autres' },
       { clic: '.table-ligne:nth-child(2) .ch-lien' },
     ],
   },

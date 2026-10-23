@@ -166,20 +166,24 @@ function fabriquerLaTete(groupe: GroupeVue): HTMLElement {
   return tete;
 }
 
-/** Un nom découpé en segments : seuls ceux de `marques` prennent la couleur de leur colonne. */
+/** Un nom découpé en segments : seuls ceux de `marques` prennent la couleur de leur colonne. Le texte entre deux segments marqués reste un seul morceau. */
 export function poserLesSegments(parent: HTMLElement, nom: string, marques: readonly number[], colonne: 'ancien' | 'nouveau'): void {
+  let texte = '';
   segmentsDeNom(nom, marques).forEach((segment, rang) => {
-    if (rang > 0) parent.append(document.createTextNode('/'));
     if (!segment.marque) {
-      parent.append(document.createTextNode(segment.texte));
+      texte += `${rang > 0 ? '/' : ''}${segment.texte}`;
       return;
     }
+    const devant = `${texte}${rang > 0 ? '/' : ''}`;
+    if (devant !== '') parent.append(document.createTextNode(devant));
+    texte = '';
     const marque = document.createElement('span');
     if (colonne === 'ancien') marque.className = 'seg-ancien';
     else marque.className = 'seg-nouveau';
     marque.textContent = segment.texte;
     parent.append(marque);
   });
+  if (texte !== '') parent.append(document.createTextNode(texte));
 }
 
 /** La ligne d'un nom : le nom actuel, puis le nom après l'application. Sous 520 px, le second passe sous le premier, précédé de « → ». */

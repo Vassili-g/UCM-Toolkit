@@ -44,6 +44,25 @@
   --sombre-ombre: #00000066;
   --sombre-damier-clair: #8a8a8a;
   --sombre-damier-fonce: #5a5a5a;
+  /*
+   * La barre latérale du mode Tokens (Nomenclature), d'après les replis sombres de Figma que la maquette lui donne : un fond plus clair que celui de
+   * l'explorateur, des textes pleins, un bleu vif pour ce qui se suit. `styles/arbre.css` les affecte aux rôles du socle sous `.panneau-lateral`, et à lui seul.
+   */
+  --laterale-fond: #2c2c2c;
+  --laterale-survol: #383838;
+  --laterale-bloc: #383838;
+  --laterale-note: #4d4d4d;
+  --laterale-marque: #0d99ff;
+  --laterale-marque-survol: #3ab0ff;
+  --laterale-avertissement: #4a3a10;
+  --laterale-danger: #4d1f17;
+  --laterale-bordure: #5e5e5e;
+  --laterale-bordure-visee: #666666;
+  --laterale-texte: #ffffff;
+  --laterale-texte-second: #b3b3b3;
+  --laterale-texte-marque: #7cc4f8;
+  --laterale-texte-danger: #ffafa3;
+  --laterale-texte-avertissement: #ffc470;
   /* La vue composant, d'après MAQUETTE-VUE-COMPOSANT.html : le violet d'un composant, le fond clair de son aperçu, l'encre d'une pastille claire et les deux cadres posés sur l'aperçu. */
   --sombre-composant: #b69cff;
   --sombre-apercu: #f7f8fa;

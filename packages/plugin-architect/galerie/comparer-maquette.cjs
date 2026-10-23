@@ -13,6 +13,15 @@
  * (code 1) sur un écart, un cadre absent de la galerie ou un sélecteur
  * obligatoire vide, et range les captures côte à côte dans `dist/fidelite/`.
  *
+ * Deux champs facultatifs du manifeste bornent un cadre dont la maquette
+ * contredit ses propres données (des totaux qui ne s'additionnent pas) :
+ * `zonesDeDonnees` liste des sélecteurs dont les descendants ne se comparent
+ * que sur leurs styles (police, taille, graisse, couleur, fond), ni en nombre,
+ * ni en position, ni en taille ; `ecartsDeclares` liste des textes
+ * (`{ texte, raison }`) dont la présence ou l'absence d'un côté n'est pas un
+ * écart. Le verdict imprime combien d'éléments chacun couvre, pour qu'un
+ * relecteur voie ce qui est borné.
+ *
  * Les pastilles roses (`.repere-n`) et les légendes de la maquette ne
  * s'implémentent jamais : le comparateur les ignore, ainsi que le contour
  * `.repere`. Les positions sont relatives au cadre ; la barre latérale d'un
@@ -89,27 +98,70 @@ function ecartsDuGroupe(nom, groupe) {
   return ecarts;
 }
 
+/** Les sélecteurs de zone de données qui contiennent l'élément ; vide hors de toute zone. */
+const zonesDe = (element) => element.zones ?? [];
+
+/**
+ * Compare les éléments des zones de données : par texte, dans l'ordre du
+ * document, sur les seuls styles. Un texte qui n'a pas de vis-à-vis de l'autre
+ * côté, ou un surplus d'un côté, ne compte pas.
+ */
+function ecartsDesZones(attendus, obtenus) {
+  const ecarts = [];
+  for (const [texte, groupe] of apparier(attendus, obtenus, (element) => element.texte)) {
+    const communs = Math.min(groupe.attendus.length, groupe.obtenus.length);
+    for (let rang = 0; rang < communs; rang += 1) {
+      const ou = communs > 1 ? `« ${texte} » ${rang + 1}` : `« ${texte} »`;
+      for (const style of STYLES) {
+        const attendu = groupe.attendus[rang].styles[style];
+        const obtenu = groupe.obtenus[rang].styles[style];
+        if (attendu !== obtenu) ecarts.push(`${ou} (zone de données) : ${style} ${attendu} dans la maquette, ${obtenu} dans le plugin`);
+      }
+    }
+  }
+  return ecarts;
+}
+
 /**
  * Compare le relevé de la maquette à celui du plugin pour un cadre. Un relevé
  * `null` est une page absente : la maquette n'a pas le cadre, ou la galerie
- * n'a pas l'état. Un relevé est `{ elements, parSelecteur }`.
+ * n'a pas l'état. Un relevé est `{ elements, parSelecteur }`. Le résultat porte
+ * aussi `bornes` : ce que chaque zone et chaque écart déclaré a couvert.
  */
 function comparerCadre(cadre, maquette, galerie) {
-  const resultat = { cadre: cadre.cadre, ecarts: [] };
+  const resultat = { cadre: cadre.cadre, ecarts: [], bornes: [] };
   if (!maquette) resultat.ecarts.push('cadre absent de la maquette');
   if (!galerie) resultat.ecarts.push('cadre absent de la galerie : aucun état de galerie ne porte cet identifiant');
   if (!maquette || !galerie) return resultat;
 
-  const textes = apparier(sansRepere(maquette.elements), sansRepere(galerie.elements), (element) => element.texte);
+  const zones = cadre.zonesDeDonnees ?? [];
+  const declares = cadre.ecartsDeclares ?? [];
+  const textesDeclares = new Set(declares.map(({ texte }) => texte));
+  const attendus = sansRepere(maquette.elements);
+  const obtenus = sansRepere(galerie.elements);
+
+  for (const { texte, raison } of declares) {
+    resultat.bornes.push(`écart déclaré « ${texte} » : ${attendus.filter((element) => element.texte === texte).length} dans la maquette, ${obtenus.filter((element) => element.texte === texte).length} dans le plugin (${raison})`);
+  }
+  for (const zone of zones) {
+    const dedans = (liste) => liste.filter((element) => !textesDeclares.has(element.texte) && zonesDe(element).includes(zone)).length;
+    resultat.bornes.push(`zone de données ${zone} : ${dedans(attendus)} éléments dans la maquette, ${dedans(obtenus)} dans le plugin, comparés sur les styles seuls`);
+  }
+
+  const libres = (liste) => liste.filter((element) => !textesDeclares.has(element.texte));
+  const horsZone = (liste) => libres(liste).filter((element) => zonesDe(element).length === 0);
+  const enZone = (liste) => libres(liste).filter((element) => zonesDe(element).length > 0);
+  const textes = apparier(horsZone(attendus), horsZone(obtenus), (element) => element.texte);
   for (const [texte, groupe] of textes) resultat.ecarts.push(...ecartsDuGroupe(`« ${texte} »`, groupe));
+  resultat.ecarts.push(...ecartsDesZones(enZone(attendus), enZone(obtenus)));
 
   for (const selecteur of cadre.selecteurs ?? []) {
-    const attendus = maquette.parSelecteur?.[selecteur] ?? [];
-    const obtenus = galerie.parSelecteur?.[selecteur] ?? [];
-    if (attendus.length === 0) resultat.ecarts.push(`sélecteur obligatoire ${selecteur} : aucun élément dans la maquette`);
-    if (obtenus.length === 0) resultat.ecarts.push(`sélecteur obligatoire ${selecteur} : aucun élément dans le plugin`);
-    if (attendus.length === 0 || obtenus.length === 0) continue;
-    resultat.ecarts.push(...ecartsDuGroupe(selecteur, { attendus: sansRepere(attendus), obtenus: sansRepere(obtenus) }));
+    const vus = maquette.parSelecteur?.[selecteur] ?? [];
+    const vusPlugin = galerie.parSelecteur?.[selecteur] ?? [];
+    if (vus.length === 0) resultat.ecarts.push(`sélecteur obligatoire ${selecteur} : aucun élément dans la maquette`);
+    if (vusPlugin.length === 0) resultat.ecarts.push(`sélecteur obligatoire ${selecteur} : aucun élément dans le plugin`);
+    if (vus.length === 0 || vusPlugin.length === 0) continue;
+    resultat.ecarts.push(...ecartsDuGroupe(selecteur, { attendus: sansRepere(vus), obtenus: sansRepere(vusPlugin) }));
   }
   return resultat;
 }
@@ -121,6 +173,9 @@ function verdict(resultats) {
   for (const { cadre, ecarts } of resultats) {
     total += ecarts.length;
     lignes.push(`${cadre} : ${ecarts.length === 0 ? 'aucun écart' : `${ecarts.length} écart${ecarts.length > 1 ? 's' : ''}`}`, ...ecarts.map((ecart) => `  ${ecart}`));
+  }
+  for (const { cadre, bornes = [] } of resultats) {
+    if (bornes.length > 0) lignes.push(`Borné dans ${cadre} :`, ...bornes.map((borne) => `  ${borne}`));
   }
   const echecs = resultats.filter((resultat) => resultat.ecarts.length > 0).length;
   lignes.push(`Total : ${total} écart${total > 1 ? 's' : ''}, ${echecs} cadre${echecs > 1 ? 's' : ''} en échec sur ${resultats.length}.`);
@@ -135,7 +190,7 @@ function verdict(resultats) {
  * argument. `id` désigne un cadre de la maquette (le document de son iframe) ;
  * sans `id`, c'est la page de galerie.
  */
-function releverDansLaPage({ id, selecteurs, styles }) {
+function releverDansLaPage({ id, selecteurs, styles, zones = [] }) {
   const racineDuCadre = id ? document.querySelector(`#${id} iframe`)?.contentDocument : document;
   if (!racineDuCadre?.body) return null;
   const elements = [];
@@ -151,6 +206,7 @@ function releverDansLaPage({ id, selecteurs, styles }) {
       styles: Object.fromEntries(styles.map((nom) => [nom, calcule[nom]])),
       classes: [...element.classList],
       dansPastille: element.closest('.repere-n') !== null,
+      zones: zones.filter((zone) => element.parentElement?.closest(zone) ?? false),
     };
   };
 
@@ -231,7 +287,7 @@ async function comparer(demandes) {
 
     for (const cadre of cadres) {
       const images = [];
-      const options = { id: cadre.cadre, selecteurs: cadre.selecteurs, styles: STYLES };
+      const options = { id: cadre.cadre, selecteurs: cadre.selecteurs, styles: STYLES, zones: cadre.zonesDeDonnees ?? [] };
       let maquette = null;
       if (presents.includes(cadre.cadre)) {
         maquette = await pageMaquette.evaluate(releverDansLaPage, options);
@@ -250,7 +306,7 @@ async function comparer(demandes) {
           await pageGalerie.waitForTimeout(250);
           await pageGalerie.screenshot({ path: path.join(SORTIE, `${cadre.cadre}-galerie.png`) });
           images.push({ fichier: `${cadre.cadre}-galerie.png`, legende: 'Plugin' });
-          galerie = await pageGalerie.evaluate(releverDansLaPage, { id: null, selecteurs: cadre.selecteurs, styles: STYLES });
+          galerie = await pageGalerie.evaluate(releverDansLaPage, { id: null, selecteurs: cadre.selecteurs, styles: STYLES, zones: cadre.zonesDeDonnees ?? [] });
         } finally {
           await pageGalerie.close();
         }

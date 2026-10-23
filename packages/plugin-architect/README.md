@@ -126,7 +126,11 @@ imprime les durées du noyau et du premier rendu sur 10 000 variables.
 chaque cadre de `galerie/cadres.json` à l'état de galerie du même identifiant,
 dans la maquette d'UCM Architect : il range les captures côte à côte dans
 `dist/fidelite/` et imprime chaque écart de taille, de police, de couleur ou
-de texte.
+de texte. Deux champs facultatifs d'un cadre bornent ce que la maquette
+contredit elle-même : `zonesDeDonnees` (sélecteurs dont les descendants ne se
+comparent que sur leurs styles) et `ecartsDeclares` (textes dont la présence
+d'un seul côté n'est pas un écart, chacun avec sa raison). Le comparateur
+imprime à la fin ce que chacun couvre.
 
 Après un échec de `test:ui` sur `dist/galerie-fixtures.cjs` introuvable,
 relancez `npm run galerie --workspace ucm-architect-plugin` : il compile les

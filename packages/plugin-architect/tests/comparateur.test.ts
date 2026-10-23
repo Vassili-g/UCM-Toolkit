@@ -10,6 +10,7 @@ interface Element {
   styles: Record<string, string>;
   classes: string[];
   dansPastille: boolean;
+  zones?: string[];
 }
 interface Releve {
   elements: Element[];
@@ -22,10 +23,13 @@ interface CadreDuManifeste {
   hauteur: number;
   sorte: string;
   selecteurs: string[];
+  zonesDeDonnees?: string[];
+  ecartsDeclares?: { texte: string; raison: string }[];
 }
+interface Resultat { cadre: string; ecarts: string[]; bornes?: string[] }
 const { comparerCadre, verdict } = require('../galerie/comparer-maquette.cjs') as {
-  comparerCadre: (cadre: CadreDuManifeste, maquette: Releve | null, galerie: Releve | null) => { cadre: string; ecarts: string[] };
-  verdict: (resultats: { cadre: string; ecarts: string[] }[]) => { ok: boolean; lignes: string[] };
+  comparerCadre: (cadre: CadreDuManifeste, maquette: Releve | null, galerie: Releve | null) => Resultat;
+  verdict: (resultats: Resultat[]) => { ok: boolean; lignes: string[] };
 };
 
 const manifeste = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../galerie/cadres.json'), 'utf8')) as CadreDuManifeste[];
@@ -130,6 +134,34 @@ test('un sélecteur apparié compare la boîte et les styles de ses éléments',
   assert.match(comparerCadre(avecSelecteur, maquette, galerie).ecarts[0], /\.vc-fil : y 20\.0 dans la maquette, 30\.0 dans le plugin/);
 });
 
+test('un écart de position ou de nombre dans une zone de données est ignoré, un écart de couleur est relevé', () => {
+  const avecZone = { ...cadre, zonesDeDonnees: ['.arbre'] };
+  const dedans = (texte: string, surcharge: Partial<Element> = {}) => element(texte, { zones: ['.arbre'], ...surcharge });
+  const maquette = releve(dedans('Button', { boite: [0, 0, 40, 16] }), element('Appliquer'));
+  const decale = releve(dedans('Extra'), dedans('Button', { boite: [0, 90, 60, 20] }), dedans('Button', { boite: [0, 120, 60, 20] }), element('Appliquer'));
+  assert.deepEqual(comparerCadre(avecZone, maquette, decale).ecarts, []);
+  const teinte = { styles: { ...element('').styles, color: 'rgb(1, 2, 3)' } };
+  const ecarts = comparerCadre(avecZone, maquette, releve(dedans('Button', teinte), element('Appliquer'))).ecarts;
+  assert.equal(ecarts.length, 1);
+  assert.match(ecarts[0], /« Button » \(zone de données\) : color rgb\(255, 255, 255\) dans la maquette, rgb\(1, 2, 3\) dans le plugin/);
+  const horsZone = comparerCadre(avecZone, releve(element('Button')), releve(element('Button', { boite: [0, 90, 60, 20] })));
+  assert.equal(horsZone.ecarts.length, 4, 'hors de la zone, la comparaison reste complète');
+  const bornes = comparerCadre(avecZone, maquette, decale).bornes ?? [];
+  assert.deepEqual(bornes, ['zone de données .arbre : 1 éléments dans la maquette, 3 dans le plugin, comparés sur les styles seuls']);
+  assert.match(verdict([comparerCadre(avecZone, maquette, decale)]).lignes.join('\n'), /Borné dans t-essai :\n {2}zone de données \.arbre : 1 éléments/);
+});
+
+test('un texte déclaré en écart n’est ni un écart ni comparé, et le verdict le compte', () => {
+  const declare = { ...cadre, ecartsDeclares: [{ texte: 'Chargement', raison: 'la maquette montre un état transitoire' }] };
+  const maquette = releve(element('Appliquer'), element('Chargement'));
+  const galerie = releve(element('Appliquer'), element('Extra'));
+  assert.deepEqual(comparerCadre(declare, maquette, releve(element('Appliquer'))).ecarts, []);
+  assert.deepEqual(comparerCadre(declare, maquette, galerie).ecarts, ['« Extra » : 1 dans le plugin, absent de la maquette']);
+  const resultat = comparerCadre(declare, maquette, releve(element('Appliquer')));
+  assert.deepEqual(resultat.bornes, ['écart déclaré « Chargement » : 1 dans la maquette, 0 dans le plugin (la maquette montre un état transitoire)']);
+  assert.match(verdict([resultat]).lignes.join('\n'), /écart déclaré « Chargement » : 1 dans la maquette, 0 dans le plugin/);
+});
+
 test('le manifeste décrit les 43 cadres, chacun avec sa taille, sa sorte et son lot', () => {
   assert.equal(manifeste.length, 43);
   assert.equal(new Set(manifeste.map((entree) => entree.cadre)).size, 43);
@@ -138,6 +170,7 @@ test('le manifeste décrit les 43 cadres, chacun avec sa taille, sa sorte et son
     assert.ok(['fenetre', 'seul'].includes(entree.sorte), entree.cadre);
     assert.match(entree.lot, /^U[1-8]$/, entree.cadre);
     assert.ok(Array.isArray(entree.selecteurs), entree.cadre);
+    assert.ok(Array.isArray(entree.zonesDeDonnees ?? []) && (entree.ecartsDeclares ?? []).every(({ texte, raison }) => texte !== '' && raison !== ''), entree.cadre);
   }
   assert.ok(!manifeste.some((entree) => entree.cadre === 's-planche'));
   assert.deepEqual(manifeste.filter((entree) => entree.sorte === 'seul').map((entree) => entree.cadre), ['t-portees', 'x-button', 'x-button-corr', 'g-sans-cibles', 'g-autre', 'g-coller']);
