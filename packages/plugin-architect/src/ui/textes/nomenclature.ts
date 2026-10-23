@@ -85,7 +85,7 @@ export const TEXTES = {
 
   architectureDuFichier: 'Architecture du fichier',
   fichierUcm: 'Ce fichier suit l’architecture UCM',
-  aideArchitecture: 'UCM Palettes n’écrit alors ses palettes ni dans theme, ni dans brands, ni dans utility. Ces collections ne portent que des alias.',
+  aideArchitecture: 'Activez-le pour qu’UCM Architect vérifie les tokens et les composants de ce fichier. Les collections theme, brands et utility contiennent alors seulement des alias.',
   architectureIllisible: 'La déclaration rangée dans ce fichier est illisible.',
   architectureFuture: 'Elle vient d’une version plus récente d’UCM Architect.',
   collectionsAnalysees: 'Collections analysées',

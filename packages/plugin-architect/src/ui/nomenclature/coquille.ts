@@ -121,6 +121,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     for (const ecouteur of [...ecouteurs]) ecouteur(message, etat);
     // Un fichier déjà analysé relance sa lecture à l'ouverture.
     if (message.type === 'initial' && message.dejaAnalyse) frontiere.analyser();
+    if (message.type === 'bilan') bilanRecu = true;
   }
 
   const frontiere = creerFrontiere({ envoyer, afficher: traiter });
@@ -204,7 +205,10 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   /** Le défilement et le focus de l'écran de travail, que le retour de la Configuration rend. */
   let pointDeLecture: { defilement: number; focus: HTMLElement | null } | null = null;
 
+  let bilanRecu = false;
   function ouvrirLaConfiguration(): void {
+    // Le switch de la déclaration attend le bilan : un fichier jamais analysé le demande ici.
+    if (!bilanRecu) frontiere.analyser();
     pointDeLecture = { defilement: document.scrollingElement?.scrollTop ?? 0, focus: document.activeElement as HTMLElement | null };
     appliquerLEtat(etatSuivant(etat, { type: 'configuration-ouverte' }));
   }
