@@ -8,9 +8,10 @@
  * balayage des appels : l'iframe n'a pas de global `figma`, et ses
  * `appendChild` construisent le panneau du plugin.
  *
- * Un seul import est permis : celui d'une variable par sa clé, dans
- * `lecture.ts`, pour lire la cible d'un alias que Figma ne rend pas par son
- * identifiant, et les valeurs d'un groupe de library que le mode Tokens ouvre.
+ * Deux fichiers importent une variable par sa clé : `lecture.ts`, pour lire la
+ * cible d'un alias que Figma ne rend pas par son identifiant et les valeurs d'un
+ * groupe de library que le mode Tokens ouvre, et `ecriture/liaisons.ts`, pour la
+ * variable cible d'une liaison. Seul `ecriture/selection.ts` change la sélection.
  *
  * `clientStorage` reçoit la taille de la fenêtre et les préférences du
  * designer, et `figma.ui.resize` redimensionne la fenêtre du plugin.
@@ -82,6 +83,13 @@ test('seule la lecture importe une variable, par sa clé', () => {
     return /importVariableByKeyAsync/.test(texte);
   });
   assert.deepEqual(importateurs.map((fichier) => path.relative(SOURCE, fichier)), ['lecture.ts']);
+});
+
+test('dans src/ecriture/, seul liaisons.ts importe une variable et seul selection.ts change la sélection', () => {
+  const lire = (fichier: string): string => fs.readFileSync(path.join(ECRITURE, fichier), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  const fichiersDEcriture = fs.readdirSync(ECRITURE).filter((nom) => nom.endsWith('.ts'));
+  assert.deepEqual(fichiersDEcriture.filter((nom) => /importVariableByKeyAsync/.test(lire(nom))), ['liaisons.ts']);
+  assert.deepEqual(fichiersDEcriture.filter((nom) => /\.selection\s*=(?!=)/.test(lire(nom))), ['selection.ts']);
 });
 
 test('seuls le routage et l’aperçu exportent une image', () => {

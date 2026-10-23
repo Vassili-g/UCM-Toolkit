@@ -6,8 +6,9 @@
  * library choisie, sinon les variables du fichier), lance le moteur de
  * l'exporteur, puis les contrôles du kit. Les constats rendus sont ceux du kit
  * et ceux du moteur, traduits. Rien n'est écrit dans le document, et un
- * résultat `partielle` ne produit jamais de contrat. Une seule analyse court à
- * la fois : une seconde demande reçoit `occupe`.
+ * résultat `partielle` ne produit jamais de contrat. Une seule opération court à
+ * la fois, analyse ou écriture de corrections : une seconde demande reçoit
+ * `occupe`. L'analyse retient les corrections de ses constats, par identifiant.
  *
  * Une analyse se périme de trois façons, et une seule fois : après une
  * écriture du plugin (`ecriture`), sur un changement de la page qui touche un
@@ -17,7 +18,7 @@
  */
 import {
   controlerCouches, controlerLAccessibilite, controlerLaTypographie, controlerMapping, controlerNommage, controlerOublis,
-  type CatalogueDeReference, type Constat, type ReleveDeComposant,
+  type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
@@ -47,6 +48,8 @@ interface AnalyseCourante {
   readonly identite: IdentiteDAnalyse;
   /** Les identifiants des nœuds du jeu analysé : le jeu, ses variants et leurs calques. */
   readonly noeuds: ReadonlySet<string>;
+  /** Les corrections des constats rendus, par identifiant : l'écriture n'écrit que celles-là. */
+  corrections: ReadonlyMap<string, Correction>;
   perimee: boolean;
 }
 
@@ -57,13 +60,31 @@ let courante: AnalyseCourante | null = null;
 export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte): IdentiteDAnalyse {
   generation += 1;
   const identite = { sujet, generation };
-  courante = { identite, noeuds: new Set(noeuds), perimee: false };
+  courante = { identite, noeuds: new Set(noeuds), corrections: new Map(), perimee: false };
   contexte.surveillerLeDocument();
   return identite;
 }
 
 export function analyseCourante(): IdentiteDAnalyse | null {
   return courante?.identite ?? null;
+}
+
+const memeIdentite = (a: IdentiteDAnalyse, b: IdentiteDAnalyse): boolean => a.sujet === b.sujet && a.generation === b.generation;
+
+/** Retient les corrections des constats que l'analyse `identite` vient de rendre ; une autre analyse courante les ignore. */
+export function retenirLesCorrections(identite: IdentiteDAnalyse, constats: readonly Constat[]): void {
+  if (!courante || !memeIdentite(courante.identite, identite)) return;
+  courante.corrections = new Map(constats.flatMap((constat) => (constat.correction ? [[constat.correction.id, constat.correction] as const] : [])));
+}
+
+/**
+ * Les corrections de l'analyse `identite`, par identifiant. `null` quand cette
+ * identité n'est plus la courante ou que l'analyse est périmée : rien ne s'écrit
+ * alors.
+ */
+export function correctionsDeLAnalyse(identite: IdentiteDAnalyse): ReadonlyMap<string, Correction> | null {
+  if (!courante || courante.perimee || !memeIdentite(courante.identite, identite)) return null;
+  return courante.corrections;
 }
 
 /** Oublie l'analyse courante, sans toucher à la génération. */
@@ -248,6 +269,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
   operation = courant;
   let identite: IdentiteDAnalyse | null = null;
   const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null): void => {
+    retenirLesCorrections(identite as IdentiteDAnalyse, constats);
     contexte.envoyer({
       type: 'analyse',
       analyse: identite as IdentiteDAnalyse,
@@ -295,6 +317,19 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
   } finally {
     operation = null;
   }
+}
+
+/**
+ * Une écriture prend l'unique place d'opération : une analyse ou une autre
+ * écriture demandée pendant ce temps rend `occupe`. Rend `occupe` avec
+ * l'identité de l'opération en cours quand la place est prise, sinon la
+ * libération à appeler quand l'écriture finit.
+ */
+export function prendreLaPlaceDUneEcriture(identite: IdentiteDAnalyse): { liberer(): void } | { occupe: Promise<IdentiteDAnalyse> } {
+  if (operation) return { occupe: operation.identite };
+  const prise: Operation = { identite: Promise.resolve(identite), connue: identite, jeton: { leve: false } };
+  operation = prise;
+  return { liberer: () => { if (operation === prise) operation = null; } };
 }
 
 function annuler(identite: IdentiteDAnalyse): void {

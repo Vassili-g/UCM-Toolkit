@@ -3,8 +3,12 @@
  * affectation lève, tout appel hors de la liste des lectures permises lève.
  * Un test qui passe par ces doubles prouve qu'aucun setter, aucune création
  * ni aucune écriture de données n'a été appelé. Le port de lecture permet un
- * seul import, celui d'une variable par sa clé.
+ * seul import, celui d'une variable par sa clé. `atelierDEcriture`, en fin de
+ * fichier, est l'exception : il écrit, et son journal ordonné prouve quoi et dans
+ * quel ordre.
  */
+import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
+
 import type { NoeudLu, StyleLu } from '../src/consommateurs';
 import type { CollectionFigma, PortDeLecture, VariableFigma } from '../src/lecture';
 import type { PortDuComposant } from '../src/lectureDuComposant';
@@ -191,6 +195,116 @@ export function atelierDeCalques() {
           pauses += 1;
         },
       }, ['selection', 'getNodeByIdAsync', 'getStyleByIdAsync', 'pause'], journal);
+    },
+  };
+}
+
+/** Une variable pour l'atelier d'écriture : son identifiant lie, sa clé s'importe. */
+export interface VariableDEcriture {
+  readonly id: string;
+  readonly key: string;
+  readonly name: string;
+}
+
+export interface OptionsDeLEcriture {
+  /** Le texte que `getSharedPluginData` rend pour la déclaration du fichier ; celle d'un fichier UCM par défaut. */
+  readonly declaration?: string;
+  /** Les variables locales du fichier. */
+  readonly locales?: readonly VariableDEcriture[];
+  /** Les variables qu'`importVariableByKeyAsync` rend ; toute autre clé lève. */
+  readonly importables?: readonly VariableDEcriture[];
+  /** Les variables que `getVariableByIdAsync` rend ; celles des listes précédentes s'y ajoutent. */
+  readonly lisibles?: readonly VariableDEcriture[];
+  /** Les identifiants dont l'écriture lève. */
+  readonly refusees?: ReadonlySet<string>;
+}
+
+/**
+ * Un atelier d'écriture : des layers que l'on peut lier, la sélection de la
+ * page, et un journal ordonné de chaque écriture, import et point d'annulation.
+ * Tout ce qui s'écrit passe par `journal`, pour que les tests prouvent l'ordre.
+ */
+export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
+  const journal: string[] = [];
+  const layers = new Map<string, Record<string, unknown>>();
+  const variables = new Map<string, VariableDEcriture>();
+  for (const variable of [...(options.lisibles ?? []), ...(options.locales ?? []), ...(options.importables ?? [])]) variables.set(variable.id, variable);
+  let selection: unknown[] = [];
+  const page: Record<string, unknown> = { id: '0:1', type: 'PAGE', parent: null };
+  Object.defineProperty(page, 'selection', {
+    enumerable: true,
+    get: () => selection,
+    set: (valeur: unknown[]) => {
+      journal.push(`selection:${valeur.map((layer) => (layer as { id: string }).id).join(',')}`);
+      selection = valeur;
+    },
+  });
+  const api = {
+    root: { getSharedPluginData: (espace: string, cle: string) => (espace === ESPACE_ARCHITECT && cle === CLE_ARCHITECTURE_DU_FICHIER ? (options.declaration ?? texteDeLArchitectureDuFichier(true)) : '') },
+    currentPage: page,
+    async getNodeByIdAsync(id: string) {
+      return layers.get(id) ?? null;
+    },
+    variables: {
+      async getVariableByIdAsync(id: string) {
+        return variables.get(id) ?? null;
+      },
+      async getLocalVariablesAsync() {
+        journal.push('locales');
+        return options.locales ?? [];
+      },
+      async importVariableByKeyAsync(cle: string) {
+        journal.push(`import:${cle}`);
+        const trouvee = options.importables?.find((variable) => variable.key === cle);
+        if (!trouvee) throw new Error('Clé absente de la bibliothèque');
+        return trouvee;
+      },
+      setBoundVariableForPaint(peinture: Record<string, unknown>, _champ: 'color', variable: VariableDEcriture) {
+        journal.push(`peinture:${variable.key}`);
+        return { ...peinture, boundVariables: { ...(peinture.boundVariables as object), color: { type: 'VARIABLE_ALIAS', id: variable.id } } };
+      },
+    },
+    commitUndo() {
+      journal.push('commitUndo');
+    },
+  };
+  return {
+    api,
+    page,
+    journal,
+    selection: () => selection,
+    /** Un layer écrivable ; `parent` est la page par défaut. Chaque écriture entre dans `journal`. */
+    layer(id: string, type: string, champs: Record<string, unknown> = {}, parent: Record<string, unknown> = page): Record<string, unknown> {
+      const brut: Record<string, unknown> = { id, type, name: `Layer ${id}`, parent, boundVariables: {}, ...champs };
+      for (const champ of ['fills', 'strokes']) {
+        let valeur = brut[champ];
+        delete brut[champ];
+        Object.defineProperty(brut, champ, {
+          enumerable: true,
+          get: () => valeur,
+          set: (suivante: unknown) => {
+            if (options.refusees?.has(id)) throw new Error('Figma refuse');
+            journal.push(`${champ}:${id}`);
+            valeur = suivante;
+          },
+        });
+      }
+      brut.setBoundVariable = (champ: string, variable: VariableDEcriture) => {
+        if (options.refusees?.has(id)) throw new Error('Figma refuse');
+        journal.push(`lier:${id}.${champ}:${variable.key}`);
+        brut.boundVariables = { ...(brut.boundVariables as object), [champ]: { type: 'VARIABLE_ALIAS', id: variable.id } };
+      };
+      if (type === 'TEXT') {
+        brut.segments ??= [{ start: 0, end: 5, fills: [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }] }];
+        brut.getStyledTextSegments = () => brut.segments;
+        brut.setRangeFills = (debut: number, fin: number, peintures: unknown[]) => {
+          if (options.refusees?.has(id)) throw new Error('Figma refuse');
+          journal.push(`plage:${id}[${debut}-${fin}]`);
+          brut.segments = (brut.segments as Array<{ start: number; end: number; fills: unknown }>).map((segment) => (segment.start === debut && segment.end === fin ? { ...segment, fills: peintures } : segment));
+        };
+      }
+      layers.set(id, brut);
+      return brut;
     },
   };
 }

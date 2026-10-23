@@ -1,6 +1,131 @@
-/** Souche du domaine `corrections` (les corrections) : toute demande reçoit `non-construit`. */
+/**
+ * Le domaine `corrections` : écrire un lot de corrections de l'analyse courante,
+ * et sélectionner les layers d'un constat.
+ *
+ * `appliquer-corrections` retrouve chaque identifiant dans l'analyse courante.
+ * Une identité qui n'est plus la courante, ou une analyse périmée, n'écrit rien
+ * et saute tout (`analyse-perimee`). Une correction de sorte `liaison` ou
+ * `regles` s'écrit (`ecriture/liaisons.ts`) ; les autres sortes sont sautées
+ * (`non-pris-en-charge`) jusqu'à leurs lots. Une seule opération court à la
+ * fois, analyse comprise : une demande reçue pendant ce temps rend `occupe`. Le
+ * lot écrit, `corrections-appliquees` part, puis l'analyse est périmée.
+ *
+ * `selectionner` ignore une identité qui n'est pas celle de l'analyse courante.
+ */
+import type { Correction } from '@ucm-kit/core/controles';
+
+import { ecrireLeLot, type ResultatDUnLot } from '../ecriture/liaisons';
+import { selectionnerLesLayers } from '../ecriture/selection';
 import type { DemandeDeCorrections } from '../messages/corrections';
-import { souche } from './souche';
+import { analyseCourante, correctionsDeLAnalyse, perimerApresUneEcriture, prendreLaPlaceDUneEcriture } from './analyse';
+import { retenirLaSelectionDuPlugin } from './commun';
+import type { Contexte, Traiter } from './contexte';
 
 export const TYPES: readonly DemandeDeCorrections['type'][] = ['appliquer-corrections', 'selectionner'];
-export const traiter = souche<DemandeDeCorrections>('corrections');
+
+/** Les écritures du domaine : le sandbox donne celles de Figma, les tests des doubles. */
+export interface Ecritures {
+  lot(corrections: readonly Correction[]): Promise<ResultatDUnLot>;
+  selectionner(layers: readonly string[]): Promise<unknown>;
+}
+
+const ECRITURES_DE_FIGMA: Ecritures = {
+  lot: (corrections) => ecrireLeLot(corrections),
+  selectionner: (layers) => selectionnerLesLayers(layers, retenirLaSelectionDuPlugin),
+};
+
+/** Pourquoi une correction est sautée, au bout de « car ». */
+const RAISONS: Readonly<Record<string, string>> = {
+  'analyse-perimee': 'l’analyse est périmée',
+  'correction-inconnue': 'l’analyse ne la contient plus',
+  'non-pris-en-charge': 'ce genre de correction n’est pas encore pris en charge',
+  'objet-change': 'le composant a changé depuis l’analyse',
+  'fait-faux': 'ce que l’analyse avait lu n’est plus vrai',
+  'cible-introuvable': 'la variable cible est introuvable',
+  'non-ucm': 'le fichier ne déclare plus UCM',
+  'instance-remplie': 'l’instance de règles contient déjà des règles',
+  erreur: 'Figma a refusé l’écriture',
+};
+
+const pluriel = (nombre: number): string => (nombre > 1 ? 's' : '');
+
+/**
+ * La ligne de réussite : ce qui est écrit, puis les corrections sautées et
+ * pourquoi. `8 layers liés, 1 instance de règles créée` quand rien n'est sauté.
+ */
+export function resumeDuLot(liaisons: number, regles: number, sautees: readonly { motif: string }[]): string {
+  const ecrit = [
+    liaisons > 0 ? `${liaisons} layer${pluriel(liaisons)} lié${pluriel(liaisons)}` : '',
+    regles > 0 ? `${regles} instance${pluriel(regles)} de règles créée${pluriel(regles)}` : '',
+  ].filter((morceau) => morceau !== '').join(', ');
+  if (sautees.length === 0) return ecrit === '' ? 'Aucune correction écrite' : ecrit;
+  const parMotif = new Map<string, number>();
+  for (const { motif } of sautees) parMotif.set(motif, (parMotif.get(motif) ?? 0) + 1);
+  const raisons = [...parMotif].map(([motif, nombre]) => `${nombre} car ${RAISONS[motif] ?? motif}`).join(', ');
+  return `${ecrit === '' ? 'Aucune correction écrite' : ecrit}. ${sautees.length} correction${pluriel(sautees.length)} sautée${pluriel(sautees.length)} : ${raisons}.`;
+}
+
+/** Le traitement du domaine sur des écritures données. */
+export function traiterAvec(ecritures: Ecritures): Traiter<DemandeDeCorrections> {
+  return async (demande, contexte) => {
+    if (demande.type === 'selectionner') {
+      const courante = analyseCourante();
+      if (courante && courante.sujet === demande.analyse.sujet && courante.generation === demande.analyse.generation) await ecritures.selectionner(demande.layers);
+      return;
+    }
+    await appliquer(demande, ecritures, contexte);
+  };
+}
+
+async function appliquer(demande: Extract<DemandeDeCorrections, { type: 'appliquer-corrections' }>, ecritures: Ecritures, contexte: Contexte): Promise<void> {
+  const place = prendreLaPlaceDUneEcriture(demande.analyse);
+  if ('occupe' in place) {
+    contexte.envoyer({ type: 'occupe', analyse: await place.occupe });
+    return;
+  }
+  const ids = [...new Set(demande.ids)];
+  const sautees: { id: string; motif: string }[] = [];
+  const compte = { liaison: 0, regles: 0 };
+  let ecrit = false;
+  try {
+    const connues = correctionsDeLAnalyse(demande.analyse);
+    if (connues === null) {
+      sautees.push(...ids.map((id) => ({ id, motif: 'analyse-perimee' })));
+    } else {
+      const aEcrire: Correction[] = [];
+      for (const id of ids) {
+        const correction = connues.get(id);
+        if (!correction) sautees.push({ id, motif: 'correction-inconnue' });
+        else if (correction.sorte === 'liaison' || correction.sorte === 'regles') aEcrire.push(correction);
+        else sautees.push({ id, motif: 'non-pris-en-charge' });
+      }
+      if (aEcrire.length > 0) {
+        try {
+          const lot = await ecritures.lot(aEcrire);
+          for (const id of lot.ecrites) {
+            const sorte = connues.get(id)?.sorte;
+            if (sorte === 'liaison' || sorte === 'regles') compte[sorte] += 1;
+          }
+          ecrit = lot.ecrites.length > 0;
+          sautees.push(...lot.sautees);
+        } catch {
+          // Le lot a pu écrire avant de lever : l'analyse se périme dans tous les cas.
+          ecrit = true;
+          sautees.push(...aEcrire.map(({ id }) => ({ id, motif: 'erreur' })));
+        }
+      }
+    }
+    contexte.envoyer({
+      type: 'corrections-appliquees',
+      analyse: demande.analyse,
+      ecrites: compte.liaison + compte.regles,
+      sautees,
+      resume: resumeDuLot(compte.liaison, compte.regles, sautees),
+    });
+    if (ecrit) perimerApresUneEcriture(contexte);
+  } finally {
+    place.liberer();
+  }
+}
+
+export const traiter = traiterAvec(ECRITURES_DE_FIGMA);
