@@ -17,7 +17,7 @@
  * lui-même, au clic sur un constat, ne périme rien.
  */
 import {
-  controlerCouches, controlerLAccessibilite, controlerLaTypographie, controlerMapping, controlerNommage, controlerOublis, proposerLesCorrections,
+  controlerCouches, controlerLAccessibilite, controlerLaStructure, controlerLaTypographie, controlerLeTheme, controlerMapping, controlerNommage, controlerOublis, proposerLesCorrections,
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -286,7 +286,7 @@ let operation: Operation | null = null;
 
 const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
 
-function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeReference, niveau: NiveauDAccessibilite): Constat[] {
+function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeReference, niveau: NiveauDAccessibilite, architectureUcm: boolean): Constat[] {
   return [
     ...controlerNommage(releve, catalogue),
     ...controlerMapping(releve, catalogue),
@@ -294,6 +294,7 @@ function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeReferen
     ...controlerOublis(releve, catalogue),
     ...controlerLAccessibilite(releve, catalogue, { niveau }),
     ...controlerLaTypographie(releve, catalogue),
+    ...(architectureUcm ? [...controlerLeTheme(releve, catalogue), ...controlerLaStructure(releve, catalogue)] : []),
   ];
 }
 
@@ -349,7 +350,11 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
     // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
     const reglesLues = resultat.etat === 'complete' ? await lecteurs.regles?.(sujet, resultat, contexte).catch(() => null) ?? null : null;
     retenirLesModeles(reglesLues);
-    const brut = [...controlesDuKit(releve, catalogue, niveau), ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))];
+    const architectureUcm = (() => {
+      try { return lireLaDeclaration(contexte.figma) === 'ucm'; }
+      catch { return false; }
+    })();
+    const brut = [...controlesDuKit(releve, catalogue, niveau, architectureUcm), ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))];
     const tous = proposerLesCorrections(releve, catalogue, brut);
     const rangees = await lecteurs.ignores?.(contexte).catch((): readonly string[] => []) ?? [];
     const { visibles, ignores } = separerLesIgnores(tous, rangees);

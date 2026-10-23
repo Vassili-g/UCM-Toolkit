@@ -37,9 +37,10 @@ interface Banc {
   envoyes: PluginMessage[];
 }
 
-function banc(): Banc {
+function banc(architecture: 'ucm' | 'libre' | 'absente' = 'absente'): Banc {
   const envoyes: PluginMessage[] = [];
-  return { envoyes, contexte: { figma: {} as PluginAPI, envoyer: (m) => envoyes.push(m), surveillerLeDocument() {} } };
+  const declaration = architecture === 'absente' ? '' : JSON.stringify({ version: 1, ucm: architecture === 'ucm' });
+  return { envoyes, contexte: { figma: { root: { getSharedPluginData: () => declaration } } as unknown as PluginAPI, envoyer: (m) => envoyes.push(m), surveillerLeDocument() {} } };
 }
 
 /** Des lectures sur des doubles : seul le moteur change d'un test à l'autre. */
@@ -239,6 +240,52 @@ test('l’analyse ajoute les constats de typographie à ceux du kit', async () =
   const b = banc();
   await traiterAvec(lecteursDeContraste())({ type: 'analyser' }, b.contexte);
   assert.ok(deType(b, 'analyse')[0].constats.some((c) => c.code === 'C64' && c.famille === 'typographie'));
+});
+
+test('l’analyse UCM ajoute C59 et C63 de structure, tandis que l’architecture libre les tait', async () => {
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [
+      { cle: 'theme', nom: 'Theme', role: 'theme', etat: 'lue', modes: [{ id: 'light', nom: 'Light' }] },
+      { cle: 'components', nom: 'Components', role: 'components', etat: 'lue', modes: [{ id: 'light', nom: 'Light' }] },
+      { cle: 'brands', nom: 'Brands', role: 'brands', etat: 'lue', modes: [{ id: 'light', nom: 'Light' }] },
+    ],
+    variables: [
+      { cle: 'surface-fg', nom: 'success/surface/foreground', collection: 'theme', type: 'COLOR', etat: 'presente', scopes: ['TEXT_FILL'] },
+      { cle: 'page-fg', nom: 'success/page/foreground', collection: 'theme', type: 'COLOR', etat: 'presente' },
+      { cle: 'surface-bg', nom: 'success/surface/default', collection: 'theme', type: 'COLOR', etat: 'presente' },
+      { cle: 'primary', nom: 'Button/color/primary/contained/default/background', collection: 'components', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: 'theme-primary' } } },
+      { cle: 'secondary', nom: 'Button/color/secondary/contained/default/background', collection: 'components', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: 'brand-secondary' } } },
+      { cle: 'theme-primary', nom: 'primary/solid/default', collection: 'theme', type: 'COLOR', etat: 'presente' },
+      { cle: 'theme-secondary', nom: 'secondary/solid/default', collection: 'theme', type: 'COLOR', etat: 'presente' },
+      { cle: 'brand-secondary', nom: 'secondary/light/700', collection: 'brands', type: 'COLOR', etat: 'presente' },
+    ],
+  };
+  const composant: ReleveDeComposant = {
+    ...releveDe('Button'),
+    proprietes: [
+      { nom: 'Palette', type: 'VARIANT', valeurs: ['primary', 'secondary'], defaut: 'primary' },
+      { nom: 'Style', type: 'VARIANT', valeurs: ['contained'], defaut: 'contained' },
+      { nom: 'State', type: 'VARIANT', valeurs: ['default'], defaut: 'default' },
+    ],
+    variants: [{ id: 'v-Button', nom: 'Button défaut', valeurs: {}, modesEffectifs: {}, layers: [{
+      id: 'text', nom: 'Message', type: 'TEXT', parent: null, visible: true, opacite: 1,
+      dimensions: { x: 0, y: 0, largeur: 20, hauteur: 10 }, peintures: [], valeursEnDur: [],
+      liaisons: [{ champ: 'fills', indice: 0, porteur: 'text', variable: { id: 'surface-fg', cle: 'surface-fg', nom: 'success/surface/foreground', collection: 'theme', distante: false } }],
+    }] }],
+  };
+  const base = lecteurs(complete());
+  const avec = { ...base, releve: async () => ({ statut: 'lu' as const, releve: composant }), catalogue: async () => catalogue };
+
+  const ucm = banc('ucm');
+  await traiterAvec(avec)({ type: 'analyser' }, ucm.contexte);
+  const constatsUcm = deType(ucm, 'analyse')[0].constats;
+  assert.ok(constatsUcm.some(({ code }) => code === 'C59'));
+  assert.ok(constatsUcm.some(({ code, id }) => code === 'C63' && id.includes('secondary')));
+
+  const libre = banc('libre');
+  await traiterAvec(avec)({ type: 'analyser' }, libre.contexte);
+  assert.equal(deType(libre, 'analyse')[0].constats.some(({ code }) => code === 'C59' || code === 'C63'), false);
 });
 
 test('le niveau rangé sert à l’analyse : AA laisse passer 4,8:1, AAA le signale', async () => {
