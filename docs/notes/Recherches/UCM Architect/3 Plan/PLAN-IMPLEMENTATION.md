@@ -405,7 +405,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `monorepoCoherent` et `pinDocumente` compris ; le corpus
   `docs/references/design-systems/ucm/` régénéré par
   `node docs/references/design-systems/_outils/ucm.mjs` (il date la version du kit).
-  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`) ; V7 (0.12.6, après K6 et K8, `683d8e28`) ; V8 (0.12.7, après K5).
+  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`) ; V7 (0.12.6, après K6 et K8, `683d8e28`) ; V8 (0.12.7, après K5) ; V9 (0.12.8, après K10 et la revue, `104868cc`).
 
 ### Piste S · socle
 
@@ -1073,6 +1073,12 @@ au moment de l'arrêt, non commités dans l'arbre partagé : aucun (U1 commité 
 qui passe les vérifications de leur fiche, ou repart de la fiche. K3 : voir
 sa ligne. Prochains lots : finir K3, fusionner Codex (lot V5), puis K8, K5,
 B2, U2 à U4, B6.
+
+**Relais du 23 octobre.** U6 et B8, interrompus vers 9 h 30 avec du travail
+non commité dans l'arbre, repartent de cet arbre : U6 en deux étapes (1/2 :
+analyse, Corrections, clic, modèle, après, Ctrl+Z, `e-*` ; 2/2 : Questions,
+tranchée, À faire, Ignorés), B8 en un lot. Restent ensuite U7, U8, O1, le
+jalon J-F et O2.
 
 Remplie pendant l'exécution. Une ligne par choix fait sans le mainteneur :
 `Q-n · lot · question · choix appliqué · réversible : oui ou non`.
