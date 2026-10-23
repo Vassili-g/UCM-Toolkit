@@ -45,7 +45,7 @@ function signature(variable: VariableDuCatalogue, catalogue: CatalogueDeReferenc
   const retenue = cible === 'absente' ? variable : cible;
   const collection = catalogue.collections.find((entree) => entree.cle === retenue.collection);
   const segments = retenue.nom.split('/');
-  if (collection?.role === 'theme' && segments.length > 2) return `${collection.role}:${segments.slice(2).map(formeReconnue).join('/')}`;
+  if (collection?.role === 'theme' && segments.length > 1) return `${collection.role}:${segments.slice(1).map(formeReconnue).join('/')}`;
   return `${collection?.role ?? retenue.collection}:${segments.map(formeReconnue).join('/')}`;
 }
 
