@@ -348,7 +348,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   Figma (`paddingLeft`, `fills`, `strokes`…), `cible.indice` l'indice de la
   peinture, `cible.plage` la plage d'un texte ; `aRelire.axes` les valeurs du
   variant.
-- [ ] **K5 · Full UCM, structure, scopes, modes.** Vague 3 · K3.
+- [x] (665cec7b, ce7a0c10 ; entrée du catalogue b6b6ed7f) **K5 · Full UCM, structure, scopes, modes.** Vague 3 · K3.
   Écrit : `kit/src/controles/{theme,structure}.ts`, leurs tests, et leurs lignes d'export dans `kit/src/controles/index.ts`.
   Lit : `docs/notes/Recherches/Plugin Architect/6 Contrôle de structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md`, cas (a), (b), (c), (f) ; `kit/src/emplois/dossiers.ts`.
   Maquette : `t-structure`, `t-portees`.
@@ -580,7 +580,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   Fait quand : arbre depuis les noms ; valeurs d'un groupe importées à son
   ouverture, par lots de huit ; loi d'import étendue ; `figma.fileKey` rangé
   sous sa clé quand il est servi.
-- [ ] **B6 · Journal étendu, scopes et modes.** `implementeur-exigeant` · vague
+- [~ Codex] **B6 · Journal étendu, scopes et modes.** `implementeur-exigeant` · vague
   3 · K5 fusionné.
   Domaines : `structure`. Écrit en plus : `src/ecriture/structure.ts`, `src/ecriture/journal.ts` (extrait du journal de `src/ecriture/noms.ts`, sans changer ses attendus), leurs tests.
   Fait quand : le journal range et l'Historique annule trois sortes nouvelles :
@@ -1282,6 +1282,15 @@ Choix faits sans le mainteneur :
   « Une lettre d'écart. background est employé dans 40 variables. » ; les
   feuilles couvrent la barre latérale seule ; `fiche.css` répète des règles
   de `nomenclature.css` (fusion en O1) · réversible : oui.
+- Q-56 · K5 · Deux entrées · `controlerLeCatalogue(catalogue)` (scopes C63,
+  échelles, alias de mode C60) sert le mode Tokens sans composant ;
+  `controlerLeTheme` et `controlerLaStructure` ne gardent que ce qui lit un
+  composant. Une correction de scope porte `avant` = scopes lus joints par
+  virgule, `apres.nom` = scopes attendus triés joints par virgule,
+  `cible.variable` = clé de la variable · réversible : oui.
+- Q-57 · B6 · Exécutant · Codex, dans son clone, sur des fichiers disjoints
+  de B5 (Claude 2) ; il tire `partage/main` avant de commencer
+  · réversible : oui.
 
 ## 10. Hors du plan
 
