@@ -581,7 +581,7 @@ de galerie quand le lot B n'est pas fait.
   frontière tirable ; aperçu en haut ; Variants forme C, « +N », Tableau ;
   liaisons changées en vert, cliquables ; ouverture dans le mode du fichier et
   bascule ; comparateur sans écart.
-- [~ Claude 1] (1/2 : 8668abc8) **U6 · Panneau des constats.** (1/2 : analyse, Corrections, clic, modèle, après, Ctrl+Z, e-* ; 2/2 : Questions, tranchée, À faire, Ignorés) Vague 4 · U5.
+- [x] (8668abc8, 1cb279bf) **U6 · Panneau des constats.** (1/2 : analyse, Corrections, clic, modèle, après, Ctrl+Z, e-* ; 2/2 : Questions, tranchée, À faire, Ignorés) Vague 4 · U5.
   Domaines : `analyse`, `corrections`, `questions`, `ignores`.
   Maquette : `c-corrections`, `c-clic`, `c-modele`, `c-questions`,
   `c-tranchee`, `c-afaire`, `c-apres`, `c-ctrlz`, `e-*` ; `CORR_ALERT`,
@@ -593,7 +593,7 @@ de galerie quand le lot B n'est pas fait.
   Réglages et Historique comptés sous `.panneau-lateral .onglets`, `resize`
   lu avant son arrivée dans `composant.test.mjs`) ; `DEMANDES_PERMISES` et
   `MESSAGES_DU_SANDBOX` de `tests/interface/aide.mjs` (Q-75).
-- [ ] **U7 · Contraste et accessibilité.** Vague 5 · U6.
+- [~ Claude 1] **U7 · Contraste et accessibilité.** (avec six tests d'interface rouges d'`arbre` et `fiche`) Vague 5 · U6.
   Domaines : `accessibilite`, `questions` (x-button-corr).
   Maquette : `x-alert`, `x-button`, `x-button-corr` ; `paire`.
   Fait quand : paire mesurée, rapport et seuil, autres modes, limites ;
@@ -696,7 +696,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   chemin (C13) ; tests : deux fichiers homonymes, deux préparations, une
   création interrompue, un texte incompatible.
 
-- [x] (Codex 16d39944…fb9dba0e, à fusionner) **B11 · Modules sans lecteur.** Codex · retrait · aucune dépendance (Q-21).
+- [x] (ca0cd12a…d7c1024c ; fusion 9fa428bb) **B11 · Modules sans lecteur.** Codex · retrait · aucune dépendance (Q-21).
   Écrit : suppression de `src/{comparaison,releves,simulation,rapport}.ts` et
   `src/integrations/contrats.ts`, de leurs tests propres
   (`tests/{comparaison,annexes,contrats}.test.ts`) et des seuls cas qui les
@@ -1438,6 +1438,19 @@ Choix faits sans le mainteneur :
   pour savoir si la library est choisie. Dix tests d'interface étaient déjà
   rouges avant U6 (onglets de la Configuration, `resize`) : U6 (2/2) les
   répare · réversible : oui.
+- Q-76 · U6 · Questions et À faire dans Figma · intertitres d'À faire par
+  famille du constat (liaisons, tailles, tokens et règles sous « Tokens »,
+  export sous « Visibilité ») ; « Plus tard » est local, la carte passe en fin
+  de liste jusqu'à l'analyse suivante, comme dans Nomenclature ; les boutons
+  « Autre token… », « Préparer une règle outline → outlined » et « Garder
+  Outlined » de la maquette et sa question « Préparer les tokens du stroke »
+  n'ont pas de demande : déclarés au comparateur, la réponse se limite aux
+  candidats du moteur (Q-59) ; une proposition retirée (« Ne plus proposer »)
+  laisse son constat dans À faire dans Figma ; la pastille de `c-afaire` dit
+  23 en rouge contre 19 en orange dans la maquette, car le constat Bloquant
+  du moteur compte ; phrases par code d'À faire dans Figma écrites hors
+  maquette (C20, C31 à C33, C49, C50, C64, C66). Question au mainteneur :
+  faut-il les trois boutons · réversible : oui.
 
 ### Revue des lots réalisés
 
