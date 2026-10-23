@@ -1,4 +1,4 @@
-/** Le contraste d'une paire, le rapport exporté et les préférences rangées. */
+/** Le contraste d'une paire et les préférences rangées. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -6,12 +6,10 @@ import { contraste } from '@ucm-kit/core/emplois';
 import { p3VersRgb8 } from 'ucm-couleur';
 
 import { jugerContraste, ratioAffiche } from '../src/contraste';
-import { diagnostiquer } from '../src/diagnostics';
 import { indexer } from '../src/indexation';
 import type { Releve } from '../src/modele';
 import { creerPreferences, PREFERENCES_PAR_DEFAUT, preferencesValides } from '../src/preferences';
-import { FORMAT_DU_RAPPORT, rapportDeDiagnostic } from '../src/rapport';
-import { creerResolveur, resoudre } from '../src/resolution';
+import { resoudre } from '../src/resolution';
 import { constructeur, projetLibre } from './fixtures';
 
 const index = indexer(projetLibre());
@@ -29,18 +27,6 @@ test('une transparence, une chaîne qui n’aboutit pas ou un fond non couleur n
   assert.deepEqual(jugerContraste(resoudre(index, 'voile', {}), resoudre(index, 'papier', {}), 3), { statut: 'non-juge', raison: 'transparence' });
   assert.deepEqual(jugerContraste(resoudre(index, 'legacy', {}), resoudre(index, 'papier', {}), 3), { statut: 'non-juge', raison: 'non-resolu' });
   assert.deepEqual(jugerContraste(resoudre(index, 'encre', {}), resoudre(index, 'zero', {}), 3), { statut: 'non-juge', raison: 'pas-une-couleur' });
-});
-
-test('le rapport est versionné et garde contexte, révision, portée, chaîne et constat', () => {
-  const contexte = { couleurs: 'couleurs:Jour' };
-  const rapport = rapportDeDiagnostic(index, contexte, diagnostiquer(creerResolveur(index), contexte));
-  assert.equal(rapport.format, FORMAT_DU_RAPPORT);
-  assert.equal(rapport.version, 1);
-  assert.deepEqual(rapport.contexte, [{ collection: 'couleurs', nom: 'Couleurs', mode: 'couleurs:Jour', nomDuMode: 'Jour' }]);
-  assert.deepEqual(rapport.portee.manquees, ['distante-absente']);
-  const inaccessible = rapport.constats.find((constat) => constat.nature === 'inaccessible');
-  assert.deepEqual(inaccessible?.chemin.map((etape) => etape.source), ['→ distante-absente']);
-  assert.equal(JSON.parse(JSON.stringify(rapport)).constats.length, 2);
 });
 
 test('les préférences illisibles prennent leur défaut, et les rangements gardent leur ordre', async () => {

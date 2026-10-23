@@ -9,7 +9,6 @@ import { versSrgb } from '../src/espace';
 import { indexer } from '../src/indexation';
 import { hexaDeCouleur, texteDeValeur, type Releve } from '../src/modele';
 import { resoudre } from '../src/resolution';
-import { exporterReleve, importerReleve } from '../src/releves';
 import { constructeur, projetLibre } from './fixtures';
 
 const index = indexer(projetLibre());
@@ -97,17 +96,4 @@ test('un noir et un blanc Display P3 se convertissent sans arrondi', () => {
   assert.deepEqual(versSrgb({ r: 0, g: 0, b: 0, a: 1 }, 'display-p3').arrondi, false);
   assert.deepEqual(versSrgb({ r: 1, g: 1, b: 1, a: 1 }, 'display-p3').arrondi, false);
   assert.deepEqual(versSrgb({ r: 0.8, g: 0.3, b: 0.3, a: 1 }, 'srgb'), { couleur: { r: 0.8, g: 0.3, b: 0.3, a: 1 }, arrondi: false });
-});
-
-test('un relevé importé sans espace se lit en sRGB, et un relevé Display P3 garde le sien', () => {
-  const ancien = JSON.parse(exporterReleve(fichierDeCouleurs().releve)) as { releve: Record<string, unknown> };
-  assert.equal('espace' in ancien.releve, false);
-  const importe = importerReleve(JSON.stringify(ancien));
-  assert.ok('releve' in importe);
-  if (!('releve' in importe)) return;
-  assert.equal(copieDeCouleur(indexer(importe.releve), 'opaque', 'composantes', 'srgb').texte, 'rgba(0.8, 0.3, 0.3, 1)');
-  const p3 = importerReleve(exporterReleve(fichierDeCouleurs('display-p3').releve));
-  assert.ok('releve' in p3);
-  if (!('releve' in p3)) return;
-  assert.equal(copieDeCouleur(indexer(p3.releve), 'opaque', 'composantes', 'display-p3').texte, 'color(display-p3 0.8 0.3 0.3)');
 });

@@ -10,7 +10,6 @@ import { lireLeVocabulaire } from '../src/lecture';
 import { lireLaRecette, validerAssociation, variablesDeLAssociation } from '../src/integrations/palettes';
 import { coucheRangee, controlerLeProfil, indexDuVocabulaire, nuanceAttendue, variableDuNom } from '../src/integrations/profilUcm';
 import type { VocabulaireDuReleve } from '../src/modele';
-import { exporterReleve, importerReleve } from '../src/releves';
 import { alias, constructeur, couleur, projetLibre } from './fixtures';
 import { couchesDuProfilAvecLimites, releveDuProfilAvecLimites } from './fixturesDesLimites';
 
@@ -248,19 +247,6 @@ test('le vocabulaire d’un relevé est indexé une fois ; un vocabulaire illisi
   assert.equal(indexDuVocabulaire(JOUR_EST_LIGHT), indexDuVocabulaire(JOUR_EST_LIGHT));
   assert.equal(indexDuVocabulaire({ personnalises: 3, ecartsUcm: null } as unknown as VocabulaireDuReleve), undefined);
   assert.equal(indexDuVocabulaire(null as unknown as VocabulaireDuReleve), undefined);
-});
-
-test('un relevé exporté sans vocabulaire se réimporte sans règle ; avec vocabulaire, il le garde', () => {
-  const releve = fichierEnMode('Jour').releve;
-  const sans = importerReleve(exporterReleve(releve));
-  assert.ok('releve' in sans);
-  if (!('releve' in sans)) return;
-  assert.equal(sans.releve.vocabulaire, undefined);
-  assert.equal(indexDuVocabulaire(sans.releve.vocabulaire), undefined);
-  const avec = importerReleve(exporterReleve({ ...releve, vocabulaire: JOUR_EST_LIGHT }));
-  assert.ok('releve' in avec);
-  if (!('releve' in avec)) return;
-  assert.deepEqual(avec.releve.vocabulaire, JOUR_EST_LIGHT);
 });
 
 /** Une racine qui ne sait que lire : toute autre méthode manque, et ses lectures sont journalisées. */

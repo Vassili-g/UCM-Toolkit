@@ -30,9 +30,11 @@ const GALERIES = [
 
 /** La barre latérale couvre la fenêtre : tout le reste de l'application disparaît, et la place de ses bordures avec lui. */
 const STYLE_DU_CADRE_SEUL = `<style>
-.application > :not(.corps) { display: none !important; }
+.application > :not(.corps):not(.arch-corps-composant) { display: none !important; }
 .corps { display: block !important; }
 .corps > :not(.panneau-lateral) { display: none !important; }
+.arch-corps-composant { display: block !important; }
+.arch-corps-composant > :not(.panneau-lateral) { display: none !important; }
 .panneau-lateral { height: 100%; border: 0 !important; }
 </style>`;
 

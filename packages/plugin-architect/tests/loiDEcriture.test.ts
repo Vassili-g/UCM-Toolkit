@@ -101,7 +101,7 @@ test('seuls le routage et l’aperçu exportent une image', () => {
 });
 
 test('le noyau ne lit ni Figma, ni le DOM, ni UCM', () => {
-  const noyau = ['modele.ts', 'groupes.ts', 'indexation.ts', 'resolution.ts', 'comparaison.ts', 'diagnostics.ts', 'copie.ts', 'simulation.ts', 'releves.ts', 'composant.ts'];
+  const noyau = ['modele.ts', 'groupes.ts', 'indexation.ts', 'resolution.ts', 'diagnostics.ts', 'copie.ts', 'composant.ts'];
   const fautes: string[] = [];
   for (const nom of noyau) {
     const texte = fs.readFileSync(path.join(SOURCE, nom), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
