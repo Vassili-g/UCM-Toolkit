@@ -630,7 +630,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   doubles ; avant chaque écriture, les faits de la correction sont relus ; un
   objet changé ou un fait faux est sauté et compté ; un fichier qui ne déclare
   plus UCM ne reçoit rien ; un lot = un point d'annulation.
-- [~ Claude 2] **B5 · Corrections, questions, Ignorer.** Vague 5 · B4, K8.
+- [x] (adb633a3) **B5 · Corrections, questions, Ignorer.** Vague 5 · B4, K8.
   Domaines : `corrections`, `questions`, `ignores`. Écrit en plus : `src/ecriture/noms-de-valeurs.ts`, `src/ecriture/ignores.ts`, leurs tests.
   Fait quand : corrections de K8 dans le lot Appliquer ; renommer une valeur
   de variante (C12), une valeur déjà présente → question ; Ignorer et « Ne plus
@@ -1291,6 +1291,20 @@ Choix faits sans le mainteneur :
 - Q-57 · B6 · Exécutant · Codex, dans son clone, sur des fichiers disjoints
   de B5 (Claude 2) ; il tire `partage/main` avant de commencer
   · réversible : oui.
+- Q-58 · B5 · Ignorés dans le protocole · le message `analyse` porte tous
+  les constats, ignorés compris ; chaque analyse lue envoie `ignores` (liste
+  vide comprise) ; l'interface (U6) sépare les deux. « Ne plus proposer »
+  range `proposition:<id du constat>` : le constat reste, sans sa correction
+  · réversible : oui.
+- Q-59 · B5 · Corrections nées d'une réponse · `cible` et `axes` relus dans le
+  relevé retenu (par `faits.token`, sinon `faits.champ` et `faits.indice`) ;
+  une réponse désigne un candidat par sa clé, sinon par son nom. Forme de
+  `nom-de-valeur` : `cible.layer` = jeu de variants, `cible.champ` =
+  propriété, `avant` = ancienne valeur, `apres.nom` = nouvelle ; les noms de
+  valeurs s'écrivent en dernier dans le lot. Aucun contrôle du kit ne produit
+  encore C12 · réversible : oui.
+- Q-60 · B5 · Texte hors maquette · « N valeurs de variante renommées » dans
+  la ligne de réussite · réversible : oui.
 
 ## 10. Hors du plan
 
