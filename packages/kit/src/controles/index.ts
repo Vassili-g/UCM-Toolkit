@@ -17,3 +17,4 @@ export { controlerCouches } from './couche.js';
 export { controlerOublis } from './oublis.js';
 export { preparerLesTokens } from './preparation.js';
 export type { PreparationDesTokens, VariableAPreparer, ViseDePreparation, LieuDePreparation, ReponsesDePreparation } from './preparation.js';
+export { proposerLesCorrections } from './corrections.js';
