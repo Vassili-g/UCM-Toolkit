@@ -21,8 +21,8 @@ const tagDuJeu = {
 };
 const analyse = {
   type: 'analyse', analyse: identite, statut: 'complete',
-  constats: [{ id: 'preparation:tag-sans-token', code: 'C16', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits: {} }],
-  lecture: { layersLus: 16, layersNonLus: 0, variantsNonLus: [], manquees: [] }, variants,
+  constats: [],
+  lecture: { layersLus: 16, layersNonLus: 0, variantsNonLus: [], manquees: [] }, variants, sansTokens: true,
 };
 const identiteLiaisons = { ...identite, generation: 2 };
 const entree = [preferences(), etroite, choisir(tagDuJeu), composant(tagDuJeu), apercu(tagDuJeu), { message: analyse }, { clic: '.bouton-panneau' }, { clic: '[data-focus="directes"]' }, { clic: '#onglet-a-faire' }];
@@ -76,8 +76,8 @@ const liaisonsVisibles = [
   { nom: 'components/tag/color/danger/soft/foreground', variants: [], calque: undefined, ajout: 'foreground' },
   { nom: 'components/tag/color/warning/outline/border', variants: [], calque: 'container', ajout: undefined },
 ];
-const analyseLiaisons = { ...analyse, analyse: identiteLiaisons, constats: liaisonsVisibles.map(({ nom, variants: variantsDuConstat, calque, ajout }, rang) => ({
-  id: `preparation:tag:${rang}`, code: 'C16', type: 'corriger', famille: 'liaisons', variants: variantsDuConstat, layers: couchesLiaisons.slice(rang * 5, rang === 2 ? 14 : rang * 5 + 5),
+const analyseLiaisons = { ...analyse, analyse: identiteLiaisons, sansTokens: false, constats: liaisonsVisibles.map(({ nom, variants: variantsDuConstat, calque, ajout }, rang) => ({
+  id: `C25:preparation:tag:${rang}`, code: 'C25', type: 'corriger', famille: 'liaisons', variants: variantsDuConstat, layers: couchesLiaisons.slice(rang * 5, rang === 2 ? 14 : rang * 5 + 5),
   faits: { preparation: 'tag', variablesNonPubliees: 2, ...(calque ? { calque } : {}), ...(ajout ? { ajout } : {}) },
   correction: { id: `prep:${rang}`, sorte: 'liaison', cible: { layer: rang === 1 ? 'tag:1' : 'tag:0', champ: 'fills', indice: 0 }, avant: null, apres: { cle: `key:${rang}`, nom }, aRelire: { axes: {}, regle: 'Préparation de Tag', avant: null } },
 })) };

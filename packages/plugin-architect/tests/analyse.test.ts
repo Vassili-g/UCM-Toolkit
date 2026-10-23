@@ -44,7 +44,7 @@ function banc(architecture: 'ucm' | 'libre' | 'absente' = 'absente'): Banc {
 }
 
 /** Des lectures sur des doubles : seul le moteur change d'un test à l'autre. */
-function lecteurs(moteur: (jeton: { readonly leve: boolean }) => Promise<ResultatDAnalyse>, nom = 'Alert'): Lecteurs {
+function lecteurs(moteur: (jeton: { readonly leve: boolean }) => Promise<ResultatDAnalyse>, nom = 'Alert', catalogue: CatalogueDeReference = catalogueVide): Lecteurs {
   return {
     async sujet() {
       return { cle: nom, noeud: { id: `jeu-${nom}` } as never, noeuds: [`jeu-${nom}`, `v-${nom}`] } satisfies SujetAAnalyser;
@@ -53,7 +53,7 @@ function lecteurs(moteur: (jeton: { readonly leve: boolean }) => Promise<Resulta
       return { statut: 'lu', releve: releveDe(sujet.cle) };
     },
     async catalogue() {
-      return catalogueVide;
+      return catalogue;
     },
     moteur: async (_sujet, jeton) => moteur(jeton),
   };
@@ -102,6 +102,36 @@ test('une lecture des règles qui lève ne coûte que ses constats', async () =>
   const b = banc();
   await traiterAvec({ ...lecteurs(complete([pointDeTest])), regles: async () => { throw new Error('page illisible'); } })({ type: 'analyser' }, b.contexte);
   assert.deepEqual(deType(b, 'analyse')[0].constats.map((c) => c.code), ['C44']);
+});
+
+function catalogueAvecUnToken(nom: string): CatalogueDeReference {
+  return {
+    version: 1, library: null,
+    collections: [{ cle: 'components', nom: 'Components', role: 'components', etat: 'lue', modes: [{ id: 'light', nom: 'Light' }] }],
+    variables: [{ cle: 'fond', nom, collection: 'components', type: 'COLOR', etat: 'presente' }],
+  };
+}
+
+test('sansTokens : vrai quand la collection components n’a aucune variable du jeu, faux dès qu’elle en a une', async () => {
+  const sans = banc();
+  await traiterAvec(lecteurs(complete()))({ type: 'analyser' }, sans.contexte);
+  assert.equal(deType(sans, 'analyse')[0].sansTokens, true);
+
+  reinitialiserLAnalyse();
+  const autreJeu = banc();
+  await traiterAvec(lecteurs(complete(), 'Alert', catalogueAvecUnToken('Button/color/info/background')))({ type: 'analyser' }, autreJeu.contexte);
+  assert.equal(deType(autreJeu, 'analyse')[0].sansTokens, true);
+
+  reinitialiserLAnalyse();
+  const avec = banc();
+  await traiterAvec(lecteurs(complete(), 'Alert', catalogueAvecUnToken('Alert/color/info/background')))({ type: 'analyser' }, avec.contexte);
+  assert.equal(deType(avec, 'analyse')[0].sansTokens, false);
+});
+
+test('sansTokens : faux quand le relevé n’est pas lu', async () => {
+  const b = banc();
+  await traiterAvec({ ...lecteurs(complete()), releve: async () => ({ statut: 'sans-sujet' }) })({ type: 'analyser' }, b.contexte);
+  assert.equal(deType(b, 'analyse')[0].sansTokens, false);
 });
 
 test('une analyse lente d’Alert puis la sélection de Button : perime selection, la réponse porte l’ancienne identité', async () => {

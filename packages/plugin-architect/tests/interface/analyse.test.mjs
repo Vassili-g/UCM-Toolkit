@@ -138,3 +138,23 @@ test('deux libraries sans choix demandent la Configuration ; un fichier hors UCM
     assert.equal(await page.getByRole('button', { name: 'Analyser' }).isHidden(), true);
   } finally { await terminer(page); }
 });
+
+test('Préparer les tokens suit sansTokens : un constat d’état sans correction ne l’offre pas, un composant sans token l’offre avec sa carte', async () => {
+  const page = await ouvrirLePanneau();
+  try {
+    const constatDEtat = { id: 'C16:v1', code: 'C16', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits: {} };
+    await envoyer(page, lu('complete', [constatDEtat]));
+    assert.equal(await page.locator('.prep-ouvrir').isHidden(), true);
+    await page.locator('#onglet-a-faire').click();
+    assert.doesNotMatch(await texteDuPanneau(page), /n’a pas de tokens/);
+
+    await envoyer(page, { ...lu('complete', []), sansTokens: true });
+    assert.equal(await page.locator('.prep-ouvrir').isVisible(), true);
+    assert.match(await texteDuPanneau(page), /Alert n’a pas de tokens\. Ses couleurs sont en dur\./);
+    assert.equal(await page.locator('#onglet-a-faire .compte').textContent(), '1');
+
+    await envoyer(page, { type: 'perime', analyse: IDENTITE, cause: 'document' });
+    assert.equal(await page.locator('.prep-ouvrir').isHidden(), true);
+    assert.doesNotMatch(await texteDuPanneau(page), /n’a pas de tokens/);
+  } finally { await terminer(page); }
+});

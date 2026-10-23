@@ -37,6 +37,8 @@ export interface AnalyseRecue {
   readonly repondues: Readonly<Record<string, Correction>>;
   readonly variants: ReadonlyArray<{ readonly id: string; readonly nom: string }>;
   readonly lecture: ReleveDeComposant['lecture'] | null;
+  /** Le composant n'a aucun token `components` : le panneau propose de les préparer. */
+  readonly sansTokens: boolean;
   /** Les variants lus sur le total, pendant l'analyse. */
   readonly progression: { readonly lus: number; readonly total: number } | null;
   /** Un changement du document ou de la sélection a rendu ces constats périmés ; l'interface les garde. */
@@ -60,7 +62,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
   const courante = etat.analyse;
   if (message.type === 'analyse-commencee') {
     etat.analyse = {
-      identite: message.analyse, statut: 'en-cours', constats: [], tous: [], ignores: [], repondues: {}, variants: [], lecture: null, progression: null,
+      identite: message.analyse, statut: 'en-cours', constats: [], tous: [], ignores: [], repondues: {}, variants: [], lecture: null, sansTokens: false, progression: null,
       perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], recueA: Date.now(),
     };
     return;
@@ -69,7 +71,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
   if (message.type === 'analyse' && (!courante || message.analyse.generation > courante.identite.generation)) {
     etat.analyse = {
       identite: message.analyse, statut: message.statut, constats: visibles(message.constats, []), tous: message.constats, ignores: [], repondues: {}, variants: message.variants,
-      lecture: message.lecture, progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], recueA: Date.now(),
+      lecture: message.lecture, sansTokens: message.sansTokens, progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], recueA: Date.now(),
     };
     return;
   }
@@ -81,7 +83,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
     case 'analyse':
       etat.analyse = {
         ...courante, statut: message.statut, constats: visibles(message.constats, courante.ignores), tous: message.constats, variants: message.variants,
-        lecture: message.lecture, progression: null, perimee: false, cause: null, recueA: Date.now(),
+        lecture: message.lecture, sansTokens: message.sansTokens, progression: null, perimee: false, cause: null, recueA: Date.now(),
       };
       return;
     case 'ignores':
@@ -141,6 +143,9 @@ export function analyseDuComposant(etat: Etat, lecture: LectureDeComposant | nul
   const ids = new Set([lecture.sujet.id, ...lecture.sujet.variants.map((variant) => variant.id)]);
   return analyse.variants.some((variant) => ids.has(variant.id)) ? analyse : null;
 }
+
+/** Vrai quand le composant analysé n'a aucun token et que l'analyse n'est pas périmée : le panneau le dit et propose de les préparer. */
+export const aPreparer = (analyse: AnalyseRecue | null): boolean => analyse !== null && analyse.sansTokens && !analyse.perimee;
 
 /** Vrai quand plusieurs libraries portent des variables et qu'aucune n'est liée au composant : l'analyse attend le choix de la Configuration. */
 export const libraryAChoisir = (etat: Etat): boolean => etat.reference !== null && etat.reference.library === null && etat.reference.candidates > 1;

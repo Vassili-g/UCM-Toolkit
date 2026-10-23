@@ -66,6 +66,7 @@ export const TEXTES_PREPARATION = {
   preparationCreationAfficherAutres: (nombre: number) => `Afficher les ${nombre} autres`,
   preparationCreationHistorique: 'La création se range dans l’Historique.',
   preparationVariablesACreer: (nombre: number, nom: string) => `${nombre} variables à créer pour ${nom}.`,
+  preparationVariablesACreerSansCompte: (nom: string) => `Variables à créer pour ${nom}.`,
   preparationAutresComposants: 'Les variables préparées viennent d’un autre Tag.',
   preparationSelectionnerLeComposant: 'Aucune liaison n’est proposée. Sélectionnez le Tag de la préparation.',
   preparationOuvrirFichierDesTokens: 'Ouvrez le fichier des tokens qui contient theme.',

@@ -10,6 +10,7 @@ import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import type { Application, Composant } from '../application';
 import { TEXTES } from '../textes';
 import { monterLePanneau } from '../analyse';
+import { analyseDuComposant, aPreparer } from './analyse';
 import type { VueComposant } from '../vues/composant';
 import type { Preparation } from '../preparation';
 import { TEXTES_PREPARATION } from '../textes/preparation';
@@ -158,21 +159,7 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
       if (ouvert) {
         constats.mettreAJour();
         ajusterResultatPreparation();
-        const constatSansTokens = etat.analyse?.constats.find((constat) => constat.code === 'C16' && constat.type === 'corriger' && !constat.correction && !constat.question);
-        if (constatSansTokens && etat.composant.lecture && etat.analyse) {
-          const carte = Array.from(constats.panneauAFaire.querySelectorAll('.bloc-constat')).find((element) => element.querySelector('.bloc-phrase')?.textContent === 'Constat C16.');
-          const phrase = carte?.querySelector('.bloc-phrase');
-          if (phrase) phrase.textContent = TEXTES_PREPARATION.preparationAlerteTexte(etat.composant.lecture.sujet.nom);
-          const meta = carte?.querySelector('.meta');
-          if (meta) {
-            meta.classList.add('prep-meta');
-            const [resume, prochaineEtape] = TEXTES_PREPARATION.preparationAlerteMeta(etat.analyse.variants.length, etat.analyse.lecture?.layersLus ?? etat.composant.lecture.calques.length, etat.composant.lecture.sujet.nom);
-            const premiereLigne = document.createElement('span'); premiereLigne.className = 'constat-lieu'; premiereLigne.textContent = resume;
-            const secondeLigne = document.createElement('span'); secondeLigne.textContent = prochaineEtape;
-            meta.replaceChildren(premiereLigne, secondeLigne);
-          }
-        }
-        ouvrirPreparation.hidden = !etat.composant.lecture || !etat.analyse || !constatSansTokens;
+        ouvrirPreparation.hidden = !aPreparer(analyseDuComposant(etat, etat.composant.lecture));
         const resume = panneau.querySelector('.arch-resume');
         const ligneResume = resume?.querySelector('.arch-resume-ligne');
         if (ligneResume && !ligneResume.contains(ouvrirPreparation)) ligneResume.append(ouvrirPreparation);

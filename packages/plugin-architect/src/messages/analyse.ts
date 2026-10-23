@@ -20,6 +20,8 @@ export type DemandeDAnalyse =
 export type MessageDAnalyse =
   | { type: 'analyse-commencee'; analyse: IdentiteDAnalyse }
   | { type: 'analyse-en-cours'; analyse: IdentiteDAnalyse; variantsLus: number; variantsTotal: number }
-  | { type: 'analyse'; analyse: IdentiteDAnalyse; statut: StatutDAnalyse; constats: readonly Constat[]; lecture: ReleveDeComposant['lecture'] | null; variants: readonly { id: string; nom: string }[] }
+  | { type: 'analyse'; analyse: IdentiteDAnalyse; statut: StatutDAnalyse; constats: readonly Constat[]; lecture: ReleveDeComposant['lecture'] | null; variants: readonly { id: string; nom: string }[];
+      /** Vrai quand le relevé et le catalogue sont lus et que la collection `components` n'a aucune variable du jeu. */
+      sansTokens: boolean }
   | { type: 'perime'; analyse: IdentiteDAnalyse; cause: CauseDePeremption }
   | { type: 'occupe'; analyse: IdentiteDAnalyse };

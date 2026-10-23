@@ -15,7 +15,7 @@ import { createOnglets } from 'ucm-plugin-socle/src/ui/Onglets';
 
 import type { LectureDeComposant } from '../../composant';
 import type { Application } from '../application';
-import { analyseDuComposant, libraryAChoisir, type AnalyseRecue } from '../composant/analyse';
+import { analyseDuComposant, aPreparer, libraryAChoisir, type AnalyseRecue } from '../composant/analyse';
 import { monterLesCorrections } from '../corrections';
 import { monterAFaire } from '../ignores';
 import { monterLesQuestions } from '../questions';
@@ -186,13 +186,13 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
 
     if (brute?.statut === 'en-cours') {
       const progression = brute.progression ? T.progression(brute.progression.lus, brute.progression.total) : P.enCours;
-      return [resume(lecture, progression, brute.variants.length), note(T.attendreLesConstats)];
+      return [resume(lecture, progression), note(T.attendreLesConstats)];
     }
     if (brute?.statut === 'arretee') {
       const message = String(brute.constats[0]?.faits.message ?? '');
-      return [resume(lecture, T.arretee, brute.variants.length), creerAlerte('bloquant', { titre: T.arreteTitre, texte: T.arreteTexte(message), meta: T.arreteMeta })];
+      return [resume(lecture, T.arretee), creerAlerte('bloquant', { titre: T.arreteTitre, texte: T.arreteTexte(message), meta: T.arreteMeta })];
     }
-    if (brute?.statut === 'annulee') return [resume(lecture, T.annulee, brute.variants.length), creerAlerte('info', { titre: T.annuleeTitre, texte: T.annuleeTexte, meta: T.annuleeMeta })];
+    if (brute?.statut === 'annulee') return [resume(lecture, T.annulee), creerAlerte('info', { titre: T.annuleeTitre, texte: T.annuleeTexte, meta: T.annuleeMeta })];
 
     const analyse = analyseDuComposant(etat, lecture);
     if (!analyse) {
@@ -208,7 +208,7 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
       const nonLus = analyse.lecture?.layersNonLus;
       const titre = typeof nonLus === 'number' && nonLus > 0 ? T.partielleTitre(lus, lus + nonLus) : T.partielleTitreDesVariants(analyse.variants.length, analyse.variants.length + (analyse.lecture?.variantsNonLus.length ?? 0));
       sortie.push(creerAlerte('verifier', { titre, texte: T.partielleTexte }));
-    } else if (analyse.constats.length === 0 && !analyse.perimee && analyse.ecriture === null) {
+    } else if (analyse.constats.length === 0 && !aPreparer(analyse) && !analyse.perimee && analyse.ecriture === null) {
       return [...sortie, creerAlerte('tenu', { titre: T.aucunTitre(lecture.sujet.nom, variants), meta: T.aucunMeta })];
     }
     if (analyse.perimee) sortie.push(creerAlerte('info', { titre: T.perimeTitre, texte: T.perimeTexte }));

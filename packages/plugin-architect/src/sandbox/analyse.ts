@@ -17,7 +17,7 @@
  * lui-même, au clic sur un constat, ne périme rien.
  */
 import {
-  controlerCouches, controlerLAccessibilite, controlerLaStructure, controlerLaTypographie, controlerLeTheme, controlerMapping, controlerNommage, controlerOublis, proposerLesCorrections,
+  controlerCouches, controlerLAccessibilite, controlerLaStructure, controlerLaTypographie, controlerLeTheme, controlerMapping, controlerNommage, controlerOublis, proposerLesCorrections, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -343,6 +343,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
       constats: tous,
       lecture: releve?.lecture ?? null,
       variants: releve?.variants.map(({ id, nom }) => ({ id, nom })) ?? [],
+      sansTokens: releve !== null && catalogueLu !== null && tokensDuComposant(releve, catalogueLu).length === 0,
     });
     if (releve !== null) contexte.envoyer({ type: 'ignores', analyse: identite as IdentiteDAnalyse, constats: ecartes });
   };

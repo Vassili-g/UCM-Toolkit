@@ -7,9 +7,10 @@
 import { creerGravite, marquerDuTon } from 'ucm-plugin-socle/src/ui/Alerte';
 
 import type { Constat } from '../../messages/commun';
-import type { AnalyseRecue } from '../composant/analyse';
+import { aPreparer, type AnalyseRecue } from '../composant/analyse';
 import { creerCarte, creerIntertitre } from '../structure/carte';
 import { TEXTES } from '../textes';
+import { TEXTES_PREPARATION } from '../textes/preparation';
 import { cartesDAFaire, estAFaire, SECTIONS_D_A_FAIRE, type CarteDAFaire, type ContexteDAFaire, type FaitDeCarte, type MesureDeCarte } from './modele';
 import { poserLeTexteEnrichi } from './texte';
 
@@ -165,15 +166,37 @@ export function monterAFaire(hote: HTMLElement, options: OptionsDeAFaire): AFair
     return element;
   }
 
+  /** Le composant n'a aucun token : l'analyse le dit, aucun constat du kit ne le porte. La carte ne s'ouvre pas, rien n'est à ignorer. */
+  function creerLaCarteSansTokens(analyse: AnalyseRecue, contexte: ContexteDAFaire): HTMLElement {
+    const phrase = document.createElement('span');
+    phrase.className = 'bloc-phrase';
+    phrase.textContent = TEXTES_PREPARATION.preparationAlerteTexte(contexte.composant);
+    const entetePhrase = document.createElement('span');
+    entetePhrase.className = 'constat-entete';
+    entetePhrase.append(creerGravite('corriger'), phrase);
+    const [resume, prochaineEtape] = TEXTES_PREPARATION.preparationAlerteMeta(analyse.variants.length, analyse.lecture?.layersLus ?? contexte.layers.size, contexte.composant);
+    const lieu = document.createElement('span');
+    lieu.className = 'constat-lieu';
+    lieu.textContent = resume;
+    const suite = document.createElement('span');
+    suite.textContent = prochaineEtape;
+    const { element } = creerCarte({ tete: [entetePhrase], meta: [lieu, suite], corps: null, deplie: false });
+    element.classList.add('bloc-constat');
+    element.querySelector('.bloc-pile > .meta')?.classList.add('prep-meta');
+    marquerDuTon(element, 'corriger');
+    return element;
+  }
+
   function rendre(): void {
     if (!entree) return;
     const { analyse, contexte } = entree;
     const aFaire = cartesDAFaire(analyse.constats.filter(estAFaire), contexte);
     const ignores = analyse.tous.filter((constat) => analyse.ignores.includes(constat.id));
-    restants = aFaire.length;
+    const sansTokens = aPreparer(analyse);
+    restants = aFaire.length + (sansTokens ? 1 : 0);
     const liste = document.createElement('div');
     liste.className = 'liste';
-    if (aFaire.length === 0 && ignores.length === 0) {
+    if (restants === 0 && ignores.length === 0) {
       const note = document.createElement('p');
       note.className = 'meta';
       note.textContent = T.rienAFaire;
@@ -182,8 +205,9 @@ export function monterAFaire(hote: HTMLElement, options: OptionsDeAFaire): AFair
     }
     for (const section of SECTIONS_D_A_FAIRE) {
       const deLaSection = aFaire.filter((carte) => carte.section === section);
-      if (deLaSection.length === 0) continue;
-      liste.append(creerIntertitre(T.intertitres[section]), ...deLaSection.map((carte) => creerLaCarte(carte, analyse.perimee)));
+      const carteSansTokens = section === 'tokens' && sansTokens ? [creerLaCarteSansTokens(analyse, contexte)] : [];
+      if (deLaSection.length === 0 && carteSansTokens.length === 0) continue;
+      liste.append(creerIntertitre(T.intertitres[section]), ...carteSansTokens, ...deLaSection.map((carte) => creerLaCarte(carte, analyse.perimee)));
       if (section === 'contraste' && deLaSection.some((carte) => typeof carte.constat.faits.rapport === 'number')) {
         const note = document.createElement('p');
         note.className = 'meta';

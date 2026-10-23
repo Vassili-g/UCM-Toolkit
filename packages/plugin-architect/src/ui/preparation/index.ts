@@ -229,8 +229,10 @@ export function monterPreparation(etat: Etat): Preparation {
       if (message.type === 'plan-de-preparation') {
         plan = message.plan; refus = message.refus; enCours = false;
         if (message.refus === 'sans-cibles') { voile.hidden = true; panneau.hidden = false; panneau.classList.add('prep-sans-cibles'); panneau.replaceChildren();
+          // Ce refus tombe avant le calcul du plan : il ne dit pas combien de variables attendent.
+          const composant = etat.composant.lecture?.sujet.nom;
           panneau.append(creerAlerte('info', {
-            titre: T.preparationVariablesACreer(plan?.variables.length ?? 16, etat.composant.lecture?.sujet.nom ?? 'Tag'),
+            ...(composant === undefined ? {} : { titre: T.preparationVariablesACreerSansCompte(composant) }),
             texte: T.preparationRefus['sans-cibles'], meta: T.preparationOuvrirFichierDesTokens,
           }));
         } else rendre();
@@ -255,12 +257,14 @@ export function monterPreparation(etat: Etat): Preparation {
         } else {
           panneau.classList.add('prep-liaisons');
           panneau.hidden = false;
-          panneau.replaceChildren(creerAlerte('tenu', { texte: T.preparationLiaisonsPubliees(etat.composant.lecture?.sujet.nom ?? 'Tag', message.corrections.length) }));
+          const composant = etat.composant.lecture?.sujet.nom;
+          panneau.replaceChildren(...(composant === undefined ? [] : [creerAlerte('tenu', { texte: T.preparationLiaisonsPubliees(composant, message.corrections.length) })]));
           voile.hidden = true;
         }
       } else if (message.type === 'variables-creees') {
-        const resultat = creerAlerte('tenu', { titre: T.preparationVariablesCreees(message.creees, rangee?.source.jeu.nom ?? 'Tag'), meta: T.preparationAnnulerCreation });
-        panneau.replaceChildren(resultat); panneau.hidden = false;
+        const composant = rangee?.source.jeu.nom ?? etat.composant.lecture?.sujet.nom;
+        panneau.replaceChildren(...(composant === undefined ? [] : [creerAlerte('tenu', { titre: T.preparationVariablesCreees(message.creees, composant), meta: T.preparationAnnulerCreation })]));
+        panneau.hidden = false;
       }
     },
   };

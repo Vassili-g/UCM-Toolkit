@@ -10,7 +10,7 @@ import { creerPastilleDeCompte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createSettingsButton } from 'ucm-plugin-socle/src/ui/EnTete';
 import type { Disposition } from '../fenetre';
 import type { Application, Composant } from './application';
-import { libraryAChoisir, tonLePlusGrave } from './composant/analyse';
+import { aPreparer, libraryAChoisir, tonLePlusGrave } from './composant/analyse';
 import { TEXTES } from './textes';
 import { estHorsUcm } from './vues/horsUcm';
 
@@ -127,8 +127,10 @@ export function creerBarre(app: Application): Composant {
       analyser.disabled = analyseEnCours || (analyse?.ecriture ?? null) !== null || (!dejaAnalyse && libraryAChoisir(etat));
       constats.setAttribute('aria-pressed', String(etat.panneau.ouvert));
       constats.title = etat.panneau.ouvert ? TEXTES.constatsFermer : TEXTES.constatsOuvrir;
-      const nombre = analyse && !analyseEnCours ? analyse.constats.length : 0;
-      const ton = analyse ? tonLePlusGrave(analyse.constats) : null;
+      // La carte « sans tokens » du panneau compte comme un constat à corriger.
+      const constatsDuPanneau = analyse === null ? [] : aPreparer(analyse) ? [...analyse.constats, { type: 'corriger' as const }] : analyse.constats;
+      const nombre = analyse && !analyseEnCours ? constatsDuPanneau.length : 0;
+      const ton = analyse ? tonLePlusGrave(constatsDuPanneau) : null;
       pastille?.remove();
       pastille = nombre > 0 && ton ? creerPastilleDeCompte(nombre, ton) : null;
       if (pastille) constats.append(pastille);
