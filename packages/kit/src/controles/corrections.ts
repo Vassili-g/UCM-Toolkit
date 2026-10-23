@@ -161,8 +161,9 @@ function correctionDeLiaison(constat: Constat, layer: LayerLu, liaison: LiaisonL
   return {
     id: constat.id, sorte: 'liaison',
     cible: { layer: layer.id, champ: liaison.champ, ...(liaison.indice === undefined ? {} : { indice: liaison.indice }), ...(liaison.plage ? { plage: liaison.plage } : {}), variable: liaison.variable.cle },
-    avant: liaison.variable.cle, apres: { cle: variable.cle, nom: variable.nom },
-    aRelire: { axes, regle, avant: liaison.variable.cle },
+    // `avant` porte le nom lu : l'écriture d'Architect le compare au nom de la variable encore liée.
+    avant: liaison.variable.nom, apres: { cle: variable.cle, nom: variable.nom },
+    aRelire: { axes, regle, avant: liaison.variable.nom },
   };
 }
 

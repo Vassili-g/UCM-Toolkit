@@ -46,6 +46,9 @@ test('un axe produit une correction quand le nom cible existe une seule fois', (
   assert.equal(resultat.find(({ code }) => code === 'C15')?.correction, undefined);
   assert.equal(resultat.find(({ code }) => code === 'C22')?.correction?.apres.cle, 'new');
   assert.equal(resultat.find(({ code }) => code === 'C22')?.correction?.cible.layer, 'layer-1');
+  // L'écriture d'Architect relit le nom de la variable encore liée, pas sa clé.
+  assert.equal(resultat.find(({ code }) => code === 'C22')?.correction?.avant, 'alert/color/info/standard/background');
+  assert.equal(resultat.find(({ code }) => code === 'C22')?.correction?.aRelire.avant, 'alert/color/info/standard/background');
 });
 
 test('un axe sans cible exacte garde C15 et rend C22 en question', () => {
