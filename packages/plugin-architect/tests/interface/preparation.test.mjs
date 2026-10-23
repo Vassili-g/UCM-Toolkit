@@ -10,7 +10,7 @@ import { attendreLesDemandes, avecReleve, envoyer, exiger, fermer, lancerLeNavig
 lancerLeNavigateur();
 const { bilans, messages } = exiger('../../galerie/nomenclature/donnees.cjs');
 const { releveIntencial } = exiger('../../galerie/etats/nomenclature.cjs');
-const { rangeeAvec, variablesRangee, tagLie, analyseTag, analyseLiaisons, liaisonsPreparees, identiteLiaisons } = exiger('../../galerie/etats/preparation.cjs');
+const { rangeeAvec, variablesRangee, tagLie, analyseTag, analyseLiaisons, liaisonsPreparees, identiteLiaisons, messageDuPlan, configuration } = exiger('../../galerie/etats/preparation.cjs');
 
 const aCreer = (rang) => (rang === 15 ? 'existe-identique' : 'a-creer');
 const preparations = (etat = aCreer, extras = {}) => ({ type: 'preparations', preparations: [{ ...rangeeAvec(etat), ...extras }] });
@@ -229,5 +229,69 @@ test('une nouvelle analyse retire la carte des liaisons préparées', async () =
     assert.equal(await page.locator('#panneau-corrections .liste .bloc').count(), 1);
     await envoyer(page, { type: 'analyse-commencee', analyse: { ...identiteLiaisons, generation: 3 } });
     assert.equal(await page.locator('#panneau-corrections .liste .bloc').count(), 0);
+  } finally { await fermer(page); }
+});
+
+test('lier-preparation ne part pas tant qu’aucune variable de la préparation n’a vu de création', async () => {
+  const page = await ouvrirTag();
+  try {
+    await envoyer(page, { type: 'preparations', preparations: [rangeeAvec(() => 'a-creer')] });
+    await envoyer(page, analyseTag);
+    assert.deepEqual(await demandes(page, 'lier-preparation'), []);
+  } finally { await fermer(page); }
+});
+
+test('la carte des liaisons nomme la library de la Configuration pour la publication', async () => {
+  const page = await ouvrirTag();
+  try {
+    await envoyer(page, configuration);
+    await envoyer(page, rangeeDeTag);
+    await envoyer(page, analyseLiaisons);
+    await envoyer(page, liaisonsPreparees);
+    await page.getByRole('button', { name: 'Constats' }).click();
+    assert.match(await page.locator('#panneau-corrections .alerte').innerText(), /Publiez Intencial Tokens, puis cliquez Actualiser\./);
+  } finally { await fermer(page); }
+});
+
+const ouvrirLaPreparation = async () => {
+  const page = await ouvrirTag();
+  await envoyer(page, analyseTag);
+  await page.locator('.bouton-panneau').click();
+  await page.locator('[data-focus="directes"]').click();
+  await page.locator('#onglet-a-faire').click();
+  await page.locator('.prep-ouvrir').click();
+  return page;
+};
+
+test('la feuille de préparation montre les cibles du plan, une ligne par taille et toutes les variables, sans donnée de maquette', async () => {
+  const page = await ouvrirLaPreparation();
+  try {
+    await envoyer(page, messageDuPlan);
+    const surface = page.locator('[data-preparation-question="dossier:soft"] .prep-option', { has: page.locator('input[value="surface"]') });
+    assert.equal(await surface.locator('.prep-cible').count(), 3);
+    assert.equal(await surface.locator('.prep-cible .cran').first().textContent(), 'cran 100, Dark 300');
+    assert.equal(await page.locator('[data-preparation-question="nom:Frame 12"] .prep-cible').count(), 0);
+    assert.equal(await page.locator('.fiche-bloc:has(> .fiche-liste) .diff').count(), 18);
+    assert.match(await page.locator('.fiche-bloc:has(> .fiche-liste)').last().locator('.fiche-bloc-tete').innerText(), /16 variables\s+10 savent déjà ce qu’elles visent/);
+    assert.match(await page.locator('.fiche-bloc:has(> .fiche-liste)').first().locator('.diff').last().innerText(), /aucun token ne vaut 13 px : une question/);
+  } finally { await fermer(page); }
+});
+
+test('sans aperçu dans le plan, une réponse ne montre aucune cible', async () => {
+  const page = await ouvrirLaPreparation();
+  try {
+    await envoyer(page, { ...messageDuPlan, apercus: {} });
+    assert.equal(await page.locator('.prep-cible').count(), 0);
+  } finally { await fermer(page); }
+});
+
+test('la zone de collage d’une préparation reçue est vide et ne porte qu’un placeholder', async () => {
+  const page = await ouvrirLaPreparation();
+  try {
+    await envoyer(page, { type: 'preparations', preparations: [] });
+    await page.locator('.prep-coller').click();
+    const zone = page.locator('.prep-mode-colle textarea');
+    assert.equal(await zone.inputValue(), '');
+    assert.match(await zone.getAttribute('placeholder'), /^\{ "format": "ucm-preparation"/);
   } finally { await fermer(page); }
 });

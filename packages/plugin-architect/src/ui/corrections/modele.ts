@@ -70,6 +70,8 @@ export interface ContexteDeCartes {
   readonly variants: ReadonlyArray<{ readonly id: string; readonly nom: string }>;
   /** Le nom d'un layer par son identifiant, quand la vue Composant le connaît. */
   readonly layers: ReadonlyMap<string, string>;
+  /** Le nom de la library de tokens choisie dans la Configuration, `null` quand aucune ne l'est. */
+  readonly library?: string | null;
   /** Tous les constats visibles, pour compter les cas d'un modèle qui sont des questions. */
   readonly constats: readonly Constat[];
 }

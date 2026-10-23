@@ -28,7 +28,7 @@ export function carteDesLiaisonsPreparees(liaisons: LiaisonsPreparees, appliquee
   }));
   const attente: LigneEnAttente[] = liaisons.enAttente.map((entree) => ({
     variable: entree.variable,
-    layer: contexte.layers.get(entree.layer) ?? null,
+    layer: entree.nomDuLayer,
     variant: contexte.variants.find((variant) => variant.id === entree.variant)?.nom ?? null,
   }));
   const layers = uniques([...corrections.flatMap((correction) => (correction.cible.layer === undefined ? [] : [correction.cible.layer])), ...liaisons.enAttente.map((entree) => entree.layer)]);

@@ -16,26 +16,23 @@
 .prep-section .fiche-bloc-tete { position: relative; top: 0; }
 .prep-section > p.meta { position: relative; top: -2px; }
 .prep-section:has(input[value="soft"]) .prep-option:has(input[value="soft"]) .titre { position: relative; top: -2px; }
-.prep-section:has(input[name="style:soft"]) .prep-option:has(input[value="surface"]) .titre { position: relative; top: -6px; }
-.prep-section:has(input[name="style:soft"]) .prep-option:has(input[value="surface"]) .option-cibles { position: relative; top: -4px; }
+.prep-section:has(input[name="dossier:soft"]) .prep-option:has(input[value="surface"]) .titre { position: relative; top: -6px; }
+.prep-section:has(input[name="dossier:soft"]) .prep-option:has(input[value="surface"]) .option-cibles { position: relative; top: -4px; }
 .prep-section[data-preparation-question="intensite"] .prep-option:has(input[value="vivid"]) .option-cibles { position: relative; top: 2px; }
-.prep-section[data-preparation-question="style:soft"] .prep-option:has(input[value="solid"]) .titre { position: relative; top: -2px; }
-.prep-section[data-preparation-question="style:soft"] .prep-option:has(input[value="surface"]) .prep-cible:nth-child(2) { position: relative; top: 1px; }
-.prep-section[data-preparation-question="style:soft"] .prep-option:has(input[value="surface"]) .prep-cible:nth-child(3) { position: relative; top: 2px; }
-.prep-section[data-preparation-question="style:outline"] .prep-option:has(input[value="surface"]) .titre { position: relative; top: -1px; }
-.prep-section[data-preparation-question="style:outline"] .prep-option:has(input[value="surface"]) .option-cibles { position: relative; top: 1px; }
-.prep-section[data-preparation-question="style:soft"] .prep-option:has(input[value="page"]) .titre { position: relative; top: -8px; }
-.prep-section[data-preparation-question="style:soft"] .prep-option:has(input[value="page"]) .option-cibles { position: relative; top: -6px; }
-.prep-section[data-preparation-question="style:outline"] .prep-option:has(input[value="solid"]) .titre { position: relative; top: -3px; }
-.prep-section[data-preparation-question="style:outline"] .prep-option:has(input[value="page"]) .titre { position: relative; top: 1px; }
-.prep-section[data-preparation-question="style:outline"] .prep-option:has(input[value="page"]) .option-cibles { position: relative; top: 3px; }
+.prep-section[data-preparation-question="dossier:soft"] .prep-option:has(input[value="solid"]) .titre { position: relative; top: -2px; }
+.prep-section[data-preparation-question="dossier:soft"] .prep-option:has(input[value="surface"]) .prep-cible:nth-child(2) { position: relative; top: 1px; }
+.prep-section[data-preparation-question="dossier:soft"] .prep-option:has(input[value="surface"]) .prep-cible:nth-child(3) { position: relative; top: 2px; }
+.prep-section[data-preparation-question="dossier:outline"] .prep-option:has(input[value="surface"]) .titre { position: relative; top: -1px; }
+.prep-section[data-preparation-question="dossier:outline"] .prep-option:has(input[value="surface"]) .option-cibles { position: relative; top: 1px; }
+.prep-section[data-preparation-question="dossier:soft"] .prep-option:has(input[value="page"]) .titre { position: relative; top: -8px; }
+.prep-section[data-preparation-question="dossier:soft"] .prep-option:has(input[value="page"]) .option-cibles { position: relative; top: -6px; }
+.prep-section[data-preparation-question="dossier:outline"] .prep-option:has(input[value="solid"]) .titre { position: relative; top: -3px; }
+.prep-section[data-preparation-question="dossier:outline"] .prep-option:has(input[value="page"]) .titre { position: relative; top: 1px; }
+.prep-section[data-preparation-question="dossier:outline"] .prep-option:has(input[value="page"]) .option-cibles { position: relative; top: 3px; }
 .prep-section[data-preparation-question^="nom:"] .fiche-bloc-tete h3 { position: relative; top: 1px; }
 .prep-section[data-preparation-question^="nom:"] > p.meta { top: 0; }
 .prep-section[data-preparation-question^="nom:"] .prep-option:has(input[value="badge"]) .titre { position: relative; top: 1px; }
 .prep-section[data-preparation-question^="nom:"] .prep-option:has(input[value="Autre nom…"]) .titre { position: relative; top: 3px; }
-.prep-corps > .prep-section:nth-child(5) .fiche-bloc-tete h3 { position: relative; top: 3px; }
-.prep-corps > .prep-section:nth-child(5) .fiche-liste { position: relative; top: 1px; }
-.prep-corps > .prep-section:nth-child(6) .fiche-liste { position: relative; top: -3px; }
 .prep-section h3 { width: max-content; font-size: 12px; font-weight: 600; line-height: 16px; }
 .prep-section h3 .prep-variant { color: inherit; font-family: "JetBrains Mono", Consolas, monospace; font-size: 11px; font-weight: 400; padding: 1px 5px; border-radius: 3px; background: var(--laterale-survol); }
 .prep-option, .option-prep { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 2px 8px; padding: 8px 10px; border: 1px solid var(--laterale-bordure); border-radius: var(--rayon); font-size: 11px; line-height: 16px; }

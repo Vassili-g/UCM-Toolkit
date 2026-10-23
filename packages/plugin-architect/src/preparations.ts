@@ -253,6 +253,8 @@ export async function trouverUnePreparation(stockage: PortDeStockage, id: string
 export interface LiaisonEnAttente {
   readonly variable: string;
   readonly layer: string;
+  /** Le nom du layer dans le relevé : la lecture du composant ne porte que les layers du variant affiché. */
+  readonly nomDuLayer: string;
   readonly variant: string;
   readonly champ: string;
 }
@@ -306,7 +308,7 @@ export function liaisonsDeLaPreparation(preparation: PreparationRangee, releve: 
       }
       if (cibles.length === 0) { ecartees += 1; continue; }
       for (const cible of cibles) {
-        if (cle === undefined) { enAttente.push({ variable: variable.nom, layer: layer.id, variant: variant.id, champ: lieu.champ }); continue; }
+        if (cle === undefined) { enAttente.push({ variable: variable.nom, layer: layer.id, nomDuLayer: layer.nom, variant: variant.id, champ: lieu.champ }); continue; }
         const suite = `${cible.champ}${cible.indice === undefined ? '' : `:${cible.indice}`}${cible.plage ? `:${cible.plage.debut}-${cible.plage.fin}` : ''}`;
         corrections.push({
           id: `preparation:${preparation.id}:${layer.id}:${suite}`, sorte: 'liaison', cible, avant: null, apres: { cle, nom: variable.nom },

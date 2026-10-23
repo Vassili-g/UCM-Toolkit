@@ -1501,6 +1501,16 @@ Choix faits sans le mainteneur :
   l'annulation d'une création, la préparation rangée reste `creee` et
   l'alerte ne revient pas. Question au mainteneur : un message qui relit le
   journal, et la remise des états à `a-creer` · réversible : oui.
+- Q-84 · U8 · Feuille de préparation sur les données du plan (Codex y
+  avait recopié les données de Tag de la maquette). Restent, à voir à la
+  recette : une question répondue sort du plan, son bloc disparaît et le
+  compte « N questions restent » se trompe ; une question `cible:` sans
+  candidat ne peut pas se répondre (pas de saisie libre) ; un aperçu de choix
+  reste vide tant qu'une autre question retient la variable ;
+  `preparation.css` garde des décalages tenus par des valeurs de Tag ;
+  Q-54 (`app.copier` sans appelant) et Q-55 (18 règles de `fiche.css`
+  répétées à l'identique plus loin dans `nomenclature.css`) reportés
+  · réversible : oui.
 - Q-83 · U8 · Tests d'interface de la préparation et de la Configuration
   écrits, lancés seulement par `test:ui` (recette du mainteneur)
   · réversible : oui.

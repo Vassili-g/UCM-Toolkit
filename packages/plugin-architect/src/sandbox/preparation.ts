@@ -11,7 +11,10 @@
  * de la préparation (`autre-composant` sinon) ; il retient les liaisons dans l'analyse, et `appliquer-corrections` les écrit par
  * `ecrireLeLot`. `lire-texte` envoie aussi `regles-recues` quand le texte porte des règles.
  */
-import { preparerLesTokens, type CatalogueDeReference } from '@ucm-kit/core/controles';
+import {
+  collectionDuCatalogue, preparerLesTokens, variableDuCatalogue,
+  type CatalogueDeReference, type LieuDePreparation, type PreparationDesTokens, type ReponsesDePreparation,
+} from '@ucm-kit/core/controles';
 import { formeReconnue } from '@ucm-kit/core/referentiel';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 
@@ -19,7 +22,8 @@ import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from 
 import { lireLaLibraryRangee } from '../ecriture/configuration';
 import { creerLesVariables, type OptionsDeCreation, type ResultatDeCreation } from '../ecriture/variables';
 import { lireLesVariables } from '../lecture';
-import type { DemandeDePreparation, MessageDePreparation, PreparationVue } from '../messages/preparation';
+import type { ApercusDePreparation, CibleApercue, DemandeDePreparation, MessageDePreparation, PreparationVue } from '../messages/preparation';
+import { hexaDeCouleur } from '../modele';
 import {
   COUCHE_DES_COMPOSANTS, COUCHE_DES_COULEURS, COUCHE_DES_TAILLES, identifiantDePreparation, liaisonsDeLaPreparation, lireLeTexte, lireLesPreparations, preparationDuPlan, rangerUnePreparation,
   reglesRecuesDeLaPreparation, retirerUnePreparation, texteDeLaPreparation, trouverUnePreparation,
@@ -116,9 +120,81 @@ async function envoyerLesPreparations(contexte: Contexte, nouvelle?: string): Pr
   contexte.envoyer({ type: 'preparations', preparations, ...(nouvelle === undefined ? {} : { nouvelle }) });
 }
 
+/** Le nombre de plans que le sandbox recalcule pour les aperçus : au-delà, les questions suivantes n'en ont pas. */
+const PLANS_D_APERCU_MAX = 40;
+
+const cleDuLieu = (lieu: LieuDePreparation): string => `${lieu.variant}\u0000${lieu.layer}\u0000${lieu.champ}\u0000${lieu.indice ?? ''}`;
+
+/** La couleur Light d'une variable du catalogue, alias suivis ; `undefined` quand une valeur manque en chemin. */
+function couleurDeLaCible(catalogue: CatalogueDeReference, nom: string): string | undefined {
+  let variable = variableDuCatalogue(catalogue, nom);
+  for (let tour = 0; tour < 10; tour += 1) {
+    if (variable === 'absente' || variable.type !== 'COLOR' || variable.etat !== 'presente' || !variable.valeurs) return undefined;
+    const collection = collectionDuCatalogue(catalogue, variable.collection);
+    const modes = collection === 'absente' ? [] : collection.modes;
+    const mode = modes.find((candidat) => candidat.nom.toLowerCase() === 'light') ?? modes[0];
+    const valeur = mode ? variable.valeurs[mode.id] : Object.values(variable.valeurs)[0];
+    if (!valeur) return undefined;
+    if ('alias' in valeur) { variable = variableDuCatalogue(catalogue, valeur.alias); continue; }
+    const couleur = valeur.valeur as { r?: unknown; g?: unknown; b?: unknown; a?: unknown } | null;
+    if (!couleur || typeof couleur.r !== 'number' || typeof couleur.g !== 'number' || typeof couleur.b !== 'number') return undefined;
+    return hexaDeCouleur({ r: couleur.r, g: couleur.g, b: couleur.b, a: typeof couleur.a === 'number' ? couleur.a : 1 }).hexa;
+  }
+  return undefined;
+}
+
+/**
+ * Pour chaque question et chaque candidat, ce que viseraient les variables qui attendent la question et n'ont encore aucune cible :
+ * le plan est recalculé avec cette seule réponse de plus. Une variable qui attend encore une autre question ne montre rien.
+ */
+function apercusDuPlan(releve: Releve, catalogue: CatalogueDeReference, reponses: ReponsesDePreparation, plan: PreparationDesTokens): ApercusDePreparation {
+  const apercus: Record<string, Record<string, CibleApercue[]>> = {};
+  let restants = PLANS_D_APERCU_MAX;
+  for (const question of plan.questions) {
+    const lieux = new Set(plan.variables
+      .filter((variable) => variable.vise === null && variable.attend.includes(question.id))
+      .flatMap((variable) => variable.concerne.map(cleDuLieu)));
+    if (lieux.size === 0) continue;
+    for (const candidat of question.candidats) {
+      if (restants === 0) return apercus;
+      restants -= 1;
+      const suppose = preparerLesTokens(releve, catalogue, { ...reponses, [question.id]: candidat.nom });
+      const roles = new Set<string>();
+      const cibles: CibleApercue[] = [];
+      for (const variable of suppose.variables) {
+        const { vise } = variable;
+        const role = variable.nom.split('/').at(-1) ?? variable.nom;
+        if (!vise || roles.has(role) || !variable.concerne.some((lieu) => lieux.has(cleDuLieu(lieu)))) continue;
+        roles.add(role);
+        const couleur = variable.type === 'COLOR' ? couleurDeLaCible(catalogue, vise.nom) : undefined;
+        cibles.push({
+          role, cible: vise.nom,
+          ...(vise.crans ? { crans: vise.crans } : {}), ...(vise.valeur === undefined ? {} : { valeur: vise.valeur }), ...(couleur === undefined ? {} : { couleur }),
+        });
+      }
+      if (cibles.length > 0) (apercus[question.id] ??= {})[candidat.nom] = cibles;
+    }
+  }
+  return apercus;
+}
+
+/** La valeur en dur, en pixels, de chaque variable `FLOAT` du plan, quand tous ses layers la portent à l'identique. */
+function mesuresDuPlan(releve: Releve, plan: PreparationDesTokens): Record<string, number> {
+  const mesures: Record<string, number> = {};
+  for (const variable of plan.variables) {
+    if (variable.type !== 'FLOAT') continue;
+    const valeurs = variable.concerne.map((lieu) => releve.variants.find((variant) => variant.id === lieu.variant)
+      ?.layers.find((layer) => layer.id === lieu.layer)?.valeursEnDur.find((dure) => dure.champ === lieu.champ)?.valeur);
+    const [premiere] = valeurs;
+    if (premiere !== undefined && valeurs.every((valeur) => valeur === premiere)) mesures[variable.nom] = premiere;
+  }
+  return mesures;
+}
+
 async function preparer(demande: Extract<DemandeDePreparation, { type: 'preparer' }>, acces: Acces, contexte: Contexte): Promise<void> {
   const { analyse } = demande;
-  const rendre = (plan: MessagePlan['plan'], refus: MessagePlan['refus']): void => contexte.envoyer({ type: 'plan-de-preparation', analyse, plan, refus });
+  const rendre = (plan: MessagePlan['plan'], refus: MessagePlan['refus'], detail: Pick<MessagePlan, 'apercus' | 'mesures'> = { apercus: {}, mesures: {} }): void =>
+    contexte.envoyer({ type: 'plan-de-preparation', analyse, plan, refus, ...detail });
   const releve = correctionsDeLAnalyse(analyse) === null ? null : releveDeLAnalyse(analyse);
   if (!releve) return rendre(null, 'analyse-perimee');
   if (lireLaDeclaration(contexte.figma) !== 'ucm') return rendre(null, 'hors-ucm');
@@ -130,13 +206,14 @@ async function preparer(demande: Extract<DemandeDePreparation, { type: 'preparer
   if (!catalogue.collections.some((collection) => collection.role === COUCHE_DES_COULEURS)) return rendre(null, 'sans-cibles');
 
   const plan = preparerLesTokens(releve, catalogue, demande.reponses);
-  if (demande.ranger !== true) return rendre(plan, null);
+  const detail = (): Pick<MessagePlan, 'apercus' | 'mesures'> => ({ apercus: apercusDuPlan(releve, catalogue, demande.reponses, plan), mesures: mesuresDuPlan(releve, plan) });
+  if (demande.ranger !== true) return rendre(plan, null, detail());
   const fichier = acces.fichier(contexte);
   const source: SourceDePreparation = { fichier: fichier.nom, cleDuFichier: fichier.cle, jeu: { cle: analyse.sujet, nom: releve.jeu.nom } };
   const modes = catalogue.collections.find((collection) => collection.role === COUCHE_DES_COMPOSANTS)?.modes.map((mode) => mode.nom) ?? [];
   const preparation = preparationDuPlan(plan, { id: acces.identifiant(), creeLe: acces.maintenant(), source, modes });
-  if (!preparation) return rendre(plan, plan.variables.length === 0 ? 'rien-a-preparer' : 'questions-ouvertes');
-  if (!await rangerUnePreparation(stockageDe(contexte), preparation)) return rendre(plan, 'rangement-impossible');
+  if (!preparation) return rendre(plan, plan.variables.length === 0 ? 'rien-a-preparer' : 'questions-ouvertes', detail());
+  if (!await rangerUnePreparation(stockageDe(contexte), preparation)) return rendre(plan, 'rangement-impossible', detail());
   await envoyerLesPreparations(contexte, preparation.id);
 }
 

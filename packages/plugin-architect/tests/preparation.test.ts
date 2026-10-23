@@ -136,6 +136,50 @@ test('preparer : sans réponse, le plan porte la question du dossier et rien ne 
   reinitialiserLAnalyse();
 });
 
+test('preparer : chaque candidat d’une question montre la cible qu’il donnerait, la couleur seulement quand le catalogue la porte', async () => {
+  reinitialiserLAnalyse();
+  const b = banc();
+  await b.traiter({ type: 'preparer', analyse: analyse(b), reponses: {} }, b.contexte);
+  const { apercus } = b.dernier('plan-de-preparation');
+  assert.deepEqual(Object.keys(apercus), ['dossier:soft']);
+  const parDossier = apercus['dossier:soft'];
+  assert.deepEqual(parDossier.surface.map(({ role, cible }) => [role, cible]), [['background', 'theme/danger/soft/surface/default']]);
+  assert.deepEqual(parDossier.solid.map(({ role, cible }) => [role, cible]), [['background', 'theme/danger/soft/solid/default']]);
+  assert.equal(parDossier.page, undefined);
+  assert.equal(typeof parDossier.surface[0].crans?.light, 'number');
+  assert.equal(parDossier.surface[0].couleur, undefined);
+
+  const coloree = catalogue();
+  coloree.collections = coloree.collections.map((collection) => (collection.role === 'theme' ? { ...collection, modes: [{ id: 'm-light', nom: 'Light' }, { id: 'm-dark', nom: 'Dark' }] } : collection));
+  coloree.variables = coloree.variables.map((variable) => {
+    if (variable.nom === 'theme/danger/soft/surface/default') return { ...variable, valeurs: { 'm-light': { alias: 'base' }, 'm-dark': { valeur: { r: 0, g: 0, b: 0, a: 1 } } } };
+    if (variable.nom === 'theme/danger/soft/solid/default') return { ...variable, etat: 'non-chargee' as const };
+    return variable;
+  }).concat({ cle: 'base', nom: 'primitives/rouge/100', collection: 'theme', type: 'COLOR', etat: 'presente', valeurs: { 'm-light': { valeur: { r: 1, g: 0.5, b: 0, a: 1 } } } });
+  const avecCouleur = banc({ catalogue: coloree });
+  await avecCouleur.traiter({ type: 'preparer', analyse: analyse(avecCouleur), reponses: {} }, avecCouleur.contexte);
+  const avecValeurs = avecCouleur.dernier('plan-de-preparation').apercus['dossier:soft'];
+  assert.equal(avecValeurs.surface[0].couleur, '#FF8000');
+  assert.equal(avecValeurs.solid[0].couleur, undefined);
+  reinitialiserLAnalyse();
+});
+
+test('preparer : une taille en dur est mesurée, et une question sans candidat n’a pas d’aperçu', async () => {
+  reinitialiserLAnalyse();
+  const b = banc();
+  const identite = commencerUneAnalyse('jeu-1', ['n'], b.contexte);
+  const arrondi = layer('container', { valeursEnDur: [{ champ: 'cornerRadius', valeur: 13 }] });
+  retenirLesCorrections(identite, [], { ...releve(), variants: [{ ...releve().variants[0], layers: [arrondi] }] });
+  await b.traiter({ type: 'preparer', analyse: identite, reponses: { 'dossier:soft': 'surface' } }, b.contexte);
+  const { plan, mesures, apercus } = b.dernier('plan-de-preparation');
+  const rayon = plan?.variables.find(({ type }) => type === 'FLOAT');
+  assert.equal(rayon?.nom, 'components/alert/size/radius');
+  assert.deepEqual(mesures, { 'components/alert/size/radius': 13 });
+  assert.deepEqual(plan?.questions.find(({ id }) => id.startsWith('cible:'))?.candidats, []);
+  assert.deepEqual(apercus, {});
+  reinitialiserLAnalyse();
+});
+
 test('lire-texte range la préparation reçue, envoie ses règles ; copier-preparation rend le même texte', async () => {
   const b = banc();
   const reglee = rangee('prep-7', { regles: [{ ancien: 'error', nouveau: 'danger', composant: 'alert' }] });

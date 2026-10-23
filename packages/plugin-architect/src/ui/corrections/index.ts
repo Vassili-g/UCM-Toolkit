@@ -228,7 +228,7 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
     if (carte.attente.length > 0) {
       corps.append(creerAlerte('info', {
         texte: TEXTES_PREPARATION.preparationVariablesNonPubliees(variablesNonPublieesDeLaListe(carte.attente)),
-        meta: TEXTES_PREPARATION.preparationPublierPourLier,
+        meta: TEXTES_PREPARATION.preparationPublierPourLier(entree?.contexte.library ?? null),
       }));
     }
     const ciblee = cible === carte.cle;

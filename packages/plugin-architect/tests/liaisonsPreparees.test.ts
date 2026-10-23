@@ -29,9 +29,9 @@ const texte = liaison('l:texte', 'fills', 'components/pastille/couleur/doux/text
 const liaisons = {
   preparation: 'p1', corrections: [fond, texte],
   enAttente: [
-    { variable: 'components/pastille/couleur/net/bordure', layer: 'l:fond', variant: 'v:2', champ: 'strokes' },
-    { variable: 'components/pastille/couleur/net/bordure', layer: 'l:texte', variant: 'v:2', champ: 'strokes' },
-    { variable: 'components/pastille/couleur/net/fond', layer: 'l:ailleurs', variant: 'v:9', champ: 'fills' },
+    { variable: 'components/pastille/couleur/net/bordure', layer: 'l:fond', nomDuLayer: 'socle', variant: 'v:2', champ: 'strokes' },
+    { variable: 'components/pastille/couleur/net/bordure', layer: 'l:texte', nomDuLayer: 'libelle', variant: 'v:2', champ: 'strokes' },
+    { variable: 'components/pastille/couleur/net/fond', layer: 'l:ailleurs', nomDuLayer: 'halo', variant: 'v:9', champ: 'fills' },
   ],
 };
 
@@ -45,9 +45,9 @@ test('la carte a une ligne cochable par correction et une ligne sans case par en
   assert.equal(carte.attente.length, 3);
 });
 
-test('une ligne en attente nomme son layer et son variant comme la lecture du composant, et se tait sur ce qu’elle ne connaît pas', () => {
-  const carte = carteDesLiaisonsPreparees(liaisons, [], contexte);
-  assert.deepEqual(carte?.attente.map(({ layer, variant }) => [layer, variant]), [['socle', 'Ton=net, Taille=grande'], ['libelle', 'Ton=net, Taille=grande'], [null, null]]);
+test('une ligne en attente nomme son layer d’après le message, même hors de la lecture du composant, et son variant d’après l’analyse', () => {
+  const carte = carteDesLiaisonsPreparees(liaisons, [], { ...contexte, layers: new Map() });
+  assert.deepEqual(carte?.attente.map(({ layer, variant }) => [layer, variant]), [['socle', 'Ton=net, Taille=grande'], ['libelle', 'Ton=net, Taille=grande'], ['halo', null]]);
 });
 
 test('la ligne de compte dit les layers distincts et les variables distinctes qui attendent', () => {
@@ -79,8 +79,8 @@ const message = (generation: number, refus: 'introuvable' | null = null) => ({
 const analyseComplete = (generation = identite.generation) => ({
   type: 'analyse' as const, analyse: { ...identite, generation }, statut: 'complete' as const, constats: [], lecture: null, variants: [], sansTokens: false,
 });
-const rangee = (cle: string): PreparationVue => ({
-  id: 'p1', source: { fichier: 'Pastille', cleDuFichier: null, jeu: { cle, nom: 'Pastille' } }, creeLe: '2026-10-23T10:00:00.000Z', variables: [], regles: [],
+const rangee = (cle: string, etat = 'creee'): PreparationVue => ({
+  id: 'p1', source: { fichier: 'Pastille', cleDuFichier: null, jeu: { cle, nom: 'Pastille' } }, creeLe: '2026-10-23T10:00:00.000Z', variables: [{ nom: 'components/pastille/couleur/doux/fond', etat }], regles: [],
 }) as unknown as PreparationVue;
 
 const liaisonsRetenues = (etat: Etat) => etat.analyse?.liaisons ?? null;
@@ -116,6 +116,15 @@ test('une nouvelle analyse, ou la péremption, retire les liaisons', () => {
   assert.equal(liaisonsRetenues(etat), null);
   recevoirUneAnalyse(etat, message(5));
   assert.equal(liaisonsRetenues(etat), null);
+});
+
+test('lier-preparation ne part pas tant qu’aucune variable de la préparation n’a vu de création, même sur un composant sans tokens', () => {
+  const etat = etatInitial();
+  recevoirUneAnalyse(etat, { ...analyseComplete(), sansTokens: true });
+  etat.preparations = [rangee(identite.sujet, 'a-creer')];
+  assert.equal(preparationALier(etat), null);
+  etat.preparations = [rangee(identite.sujet, 'creee')];
+  assert.equal(preparationALier(etat)?.id, 'p1');
 });
 
 test('lier-preparation ne se demande que pour une préparation du même jeu, sur une analyse complète non périmée, une seule fois', () => {

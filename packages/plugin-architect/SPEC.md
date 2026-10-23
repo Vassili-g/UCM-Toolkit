@@ -271,7 +271,9 @@ prépare passent par le même texte et arrivent dans Questions du mode Tokens.
 
 Le retour au composant n'a lieu que pour le jeu de variants qui a préparé :
 `source.jeu.cle` doit égaler la clé du sujet analysé (`autre-composant`
-sinon). Une variable créée mais pas encore publiée laisse sa ligne sans case.
+sinon), et seulement après une tentative de création dans le fichier des
+tokens : une préparation dont aucune variable n'a quitté `a-creer` ne propose
+rien. Une variable créée mais pas encore publiée laisse sa ligne sans case.
 
 Bornes : un fichier qui ne garde pas le journal ne peut pas annuler ses
 créations. Le plugin ne voit pas les usages d'une variable créée dans

@@ -146,6 +146,7 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
       composant: lecture.sujet.nom,
       variants: [...analyse.variants, ...lecture.sujet.variants.filter((variant) => !analyse.variants.some((lu) => lu.id === variant.id))],
       layers: new Map(lecture.calques.map((calque) => [calque.id, calque.nom])),
+      library: etat.reference?.nom ?? null,
       constats: analyse.constats,
     };
   }

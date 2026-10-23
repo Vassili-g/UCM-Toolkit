@@ -5,7 +5,7 @@
  * `preparer` calcule le plan à chaque réponse du designer ; avec `ranger: true` et aucune question ouverte, il range la préparation
  * et répond `preparations` avec `nouvelle`. Un refus est un code que l'interface écrit : le sandbox ne dit rien en phrases.
  */
-import type { Correction, PreparationDesTokens } from '@ucm-kit/core/controles';
+import type { Correction, PreparationDesTokens, ViseDePreparation } from '@ucm-kit/core/controles';
 
 import type { CollectionDeDestination, MotifDEchecDeCreation, MotifDeRefusDeCreation } from '../ecriture/variables';
 import type {
@@ -37,12 +37,35 @@ export interface PreparationVue extends Preparation {
   readonly regles: readonly ReglePreparee[];
 }
 
+/**
+ * Ce que viserait une variable qui attend une question si le designer répondait ainsi : `role` est le dernier segment de son nom,
+ * `crans` ou `valeur` ce que le kit en dit. `couleur` (hexadécimal, mode Light) n'est là que si le catalogue de l'analyse porte
+ * les valeurs de la cible et de ses alias.
+ */
+export interface CibleApercue {
+  readonly role: string;
+  readonly cible: string;
+  readonly crans?: ViseDePreparation['crans'];
+  readonly valeur?: number;
+  readonly couleur?: string;
+}
+
+/** Par identifiant de question puis par nom de candidat : une cible par rôle, la première du plan. Absent quand la réponse ne tranche rien. */
+export type ApercusDePreparation = Readonly<Record<string, Readonly<Record<string, readonly CibleApercue[]>>>>;
+
 export type MotifDeRefusDePreparation = 'hors-ucm' | 'analyse-perimee' | 'sans-cibles' | 'library-illisible' | 'questions-ouvertes' | 'rien-a-preparer' | 'rangement-impossible' | 'occupe';
 export type MotifDeRefusDeLiaison = 'introuvable' | 'analyse-perimee' | 'autre-composant' | 'hors-ucm' | 'library-illisible';
 
 export type MessageDePreparation =
-  /** Le plan de l'analyse `analyse` ; `plan` vaut `null` quand `refus` le dit. `questions-ouvertes` rend le plan avec ses questions. */
-  | { type: 'plan-de-preparation'; analyse: IdentiteDAnalyse; plan: PreparationDesTokens | null; refus: MotifDeRefusDePreparation | null }
+  /**
+   * Le plan de l'analyse `analyse` ; `plan` vaut `null` quand `refus` le dit. `questions-ouvertes` rend le plan avec ses questions.
+   * `apercus` montre la cible de chaque réponse possible ; `mesures` donne, par nom de variable `FLOAT`, la valeur en dur en pixels
+   * que ses layers portent, quand elle est la même partout.
+   */
+  | {
+    type: 'plan-de-preparation'; analyse: IdentiteDAnalyse; plan: PreparationDesTokens | null; refus: MotifDeRefusDePreparation | null;
+    apercus: ApercusDePreparation; mesures: Readonly<Record<string, number>>;
+  }
   /** Les préparations rangées, les plus récentes d'abord. `nouvelle` est l'identifiant de celle que ce message vient de ranger. */
   | { type: 'preparations'; preparations: readonly PreparationVue[]; nouvelle?: string }
   | { type: 'preparation-texte'; preparation: string; texte: string }

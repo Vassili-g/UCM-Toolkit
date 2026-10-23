@@ -1,9 +1,10 @@
-import type { PreparationDesTokens } from '@ucm-kit/core/controles';
+import type { PreparationDesTokens, Question } from '@ucm-kit/core/controles';
 import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
-import type { MessageDePreparation, PreparationVue } from '../../messages/preparation';
+import type { ApercusDePreparation, MessageDePreparation, PreparationVue } from '../../messages/preparation';
 import { deLAnalyseCourante } from '../composant/analyse';
 import type { Etat } from '../etat';
+import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION as T } from '../textes/preparation';
 import { versSandbox } from '../pont';
 import { copierTexte } from '../pressePapiers';
@@ -18,6 +19,8 @@ export interface Preparation {
   /** Retire l'alerte des liaisons préparées ou du refus : l'analyse qu'elle disait est remplacée ou périmée. */
   retirerLesLiaisons(): void;
 }
+
+const titreDeLaQuestion = (question: Question): string => question.indice ?? question.id;
 
 export function monterPreparation(etat: Etat): Preparation {
   const voile = document.createElement('div');
@@ -57,6 +60,8 @@ export function monterPreparation(etat: Etat): Preparation {
   panneau.className = 'prep-panneau page-stack';
   panneau.hidden = true;
   let plan: PreparationDesTokens | null = null;
+  let apercus: ApercusDePreparation = {};
+  let mesures: Readonly<Record<string, number>> = {};
   let rangee: PreparationVue | null = null;
   let refus: string | null = null;
   let reponses: Record<string, string> = {};
@@ -76,6 +81,34 @@ export function monterPreparation(etat: Etat): Preparation {
       if (rang < morceaux.length - 1) { const separateur = document.createElement('span'); separateur.className = 'prep-chemin-separateur'; separateur.textContent = '/'; parent.append(separateur); }
     });
   };
+  /** Le titre de chaque question que ces identifiants désignent dans le plan. */
+  const titresDesQuestions = (ids: readonly string[]): string[] => ids.map((id) => {
+    const question = plan?.questions.find((candidate) => candidate.id === id);
+    return question === undefined ? id : titreDeLaQuestion(question);
+  });
+  // Les questions de dossier portent l'identifiant `dossier:<valeur de style>` (kit, `preparerLesTokens`) : une seule note, sous la première, nomme la palette de l'exemple.
+  const noteDuDossier = (questions: readonly Question[]): { question: string; palette: string } | null => {
+    for (const question of questions) {
+      if (!question.id.startsWith('dossier:')) continue;
+      const palette = Object.values(apercus[question.id] ?? {}).flat()[0]?.cible.split('/')[1];
+      if (palette) return { question: question.id, palette };
+    }
+    return null;
+  };
+  const noteDeLaQuestion = (question: Question, exemple: { question: string; palette: string } | null): string | undefined => {
+    if (question.id === 'intensite') return T.preparationNoteIntensite;
+    if (question.id.startsWith('nom:')) return T.preparationNoteNom;
+    return exemple?.question === question.id ? T.preparationNoteDossier(exemple.palette) : undefined;
+  };
+  /** Ce qui reste à dire d'une taille : le token vise seul sa valeur, le designer l'a choisi, ou une question le retient. */
+  const noteDeLaTaille = (variable: PreparationDesTokens['variables'][number], mesure: number | undefined): string => {
+    if (variable.vise) {
+      return reponses[`cible:${variable.nom}`] !== undefined || mesure === undefined ? T.preparationTailleChoisi : T.preparationTailleSeul(variable.vise.nom.split('/')[1] ?? '', mesure);
+    }
+    const choix = plan?.questions.find((question) => question.id === `cible:${variable.nom}`);
+    if (!choix) return T.preparationAttente(titresDesQuestions(variable.attend));
+    return choix.candidats.length === 0 ? T.preparationTailleAucun(mesure) : T.preparationTaillePlusieurs(choix.candidats.length, mesure);
+  };
   const demander = (ranger = false): void => {
     if (!etat.analyse) return;
     enCours = true;
@@ -86,7 +119,7 @@ export function monterPreparation(etat: Etat): Preparation {
     const section = document.createElement('section'); section.className = 'prep-section fiche-bloc';
     const tete = document.createElement('div'); tete.className = 'fiche-bloc-tete';
     const h = document.createElement('h3');
-    const variante = /^(Style=[^ ]+)(.*)$/.exec(titreSection);
+    const variante = /^([^\s=:]+=\S+)(.*)$/.exec(titreSection);
     if (variante) {
       const terme = document.createElement('span'); terme.className = 'prep-variant'; terme.textContent = variante[1];
       h.append(terme, document.createTextNode(variante[2]));
@@ -110,8 +143,9 @@ export function monterPreparation(etat: Etat): Preparation {
       const message = document.createElement('p'); message.textContent = T.preparationRefus[refus as keyof typeof T.preparationRefus] ?? T.preparationRefus.inconnu; corps.append(message);
     }
     if (plan) {
+      const noteDeLExemple = noteDuDossier(plan.questions);
       for (const question of plan.questions) {
-        const bloc = creerSection(question.indice ?? question.id, T.preparationNotes[question.id]);
+        const bloc = creerSection(titreDeLaQuestion(question), noteDeLaQuestion(question, noteDeLExemple));
         bloc.dataset.preparationQuestion = question.id;
         for (const candidat of question.candidats) {
           const choix = document.createElement('label'); choix.className = 'prep-option option-prep';
@@ -126,12 +160,14 @@ export function monterPreparation(etat: Etat): Preparation {
           titreOption.append(terme, definition);
           choix.append(radio, titreOption);
           const cibles = document.createElement('div'); cibles.className = 'option-cibles';
-          for (const detail of T.preparationCibles[question.id]?.[candidat.nom] ?? []) {
+          for (const detail of apercus[question.id]?.[candidat.nom] ?? []) {
             const ligne = document.createElement('div'); ligne.className = 'prep-cible cible';
             const role = document.createElement('span'); role.textContent = detail.role;
-            const puce = document.createElement('span'); puce.className = 'puce-couleur'; puce.style.backgroundColor = detail.couleur;
+            const puce = document.createElement('span'); puce.className = 'puce-couleur';
+            if (detail.couleur !== undefined) puce.style.backgroundColor = detail.couleur;
             const cible = document.createElement('span'); cible.className = 'chemin-ligne'; chemin(detail.cible, cible);
-            const cran = document.createElement('span'); cran.className = 'cran'; cran.textContent = detail.cran;
+            const cran = document.createElement('span'); cran.className = 'cran';
+            cran.textContent = detail.crans ? T.preparationCrans(detail.crans.light, detail.crans.dark) : detail.valeur === undefined ? '' : T.preparationValeurEnPixels(detail.valeur);
             ligne.append(role, puce, cible, cran); cibles.append(ligne);
           }
           choix.append(cibles);
@@ -146,30 +182,32 @@ export function monterPreparation(etat: Etat): Preparation {
         const propriete = document.createElement('span'); propriete.textContent = T.preparationTaillesColonneFigma;
         const token = document.createElement('span'); token.textContent = T.preparationTaillesColonneToken;
         enTete.append(propriete, token); liste.append(enTete);
-        for (const donnee of T.preparationTaillesLignes) {
+        for (const variable of plan.variables.filter((candidate) => candidate.type === 'FLOAT')) {
+          const mesure = mesures[variable.nom] ?? variable.vise?.valeur;
+          const champs = [...new Set(variable.concerne.map((lieu) => TEXTES.correctionsDuComposant.champDeLaCarte(lieu.champ)))].join(' et ');
           const ligne = document.createElement('div'); ligne.className = 'diff sans-case';
-          const libelle = document.createElement('span'); libelle.className = 'chemin'; libelle.textContent = donnee.propriete;
+          const libelle = document.createElement('span'); libelle.className = 'chemin'; libelle.textContent = T.preparationTaillePropriete(champs, mesure);
           const cible = document.createElement('span'); cible.className = 'chemin-apres';
-          if (donnee.token) { chemin(donnee.token, cible); cible.append(document.createElement('br')); }
-          const note = document.createElement('span'); note.className = 'meta'; note.textContent = donnee.note;
+          if (variable.vise) { chemin(variable.vise.nom, cible); cible.append(document.createElement('br')); }
+          const note = document.createElement('span'); note.className = 'meta'; note.textContent = noteDeLaTaille(variable, mesure);
           cible.append(note); ligne.append(libelle, cible); liste.append(ligne);
         }
         tailles.append(liste); corps.append(tailles);
       }
       if (plan.variables.length) {
         const section = creerSection(T.preparationTableTitre(plan.variables.length));
-        const metaSection = document.createElement('span'); metaSection.className = 'meta'; metaSection.textContent = T.preparationTableMeta;
+        const metaSection = document.createElement('span'); metaSection.className = 'meta'; metaSection.textContent = T.preparationTableMeta(plan.variables.filter((variable) => variable.vise !== null).length);
         section.querySelector('.fiche-bloc-tete')?.append(metaSection);
         const liste = document.createElement('div'); liste.className = 'fiche-liste';
         const enteteTable = document.createElement('div'); enteteTable.className = 'colonnes-tete sans-case';
         const enteteVariable = document.createElement('span'); enteteVariable.textContent = T.preparationTableVariable;
         const enteteVise = document.createElement('span'); enteteVise.textContent = T.preparationTableVise;
         enteteTable.append(enteteVariable, enteteVise); liste.append(enteteTable);
-        for (const variable of plan.variables.slice(0, 2)) {
+        for (const variable of plan.variables) {
           const ligne = document.createElement('div'); ligne.className = 'diff sans-case';
           const nom = document.createElement('span'); nom.className = 'chemin'; chemin(variable.nom.replace(/^components\//, ''), nom);
           const cible = document.createElement('span'); cible.className = 'chemin-apres';
-          if (variable.vise?.nom) chemin(variable.vise.nom, cible); else { const attente = document.createElement('span'); attente.className = 'meta'; attente.textContent = T.preparationAttenteOutline; cible.append(attente); }
+          if (variable.vise?.nom) chemin(variable.vise.nom, cible); else { const attente = document.createElement('span'); attente.className = 'meta'; attente.textContent = T.preparationAttente(titresDesQuestions(variable.attend)); cible.append(attente); }
           ligne.append(nom, cible); liste.append(ligne);
         }
         section.append(liste);
@@ -182,7 +220,7 @@ export function monterPreparation(etat: Etat): Preparation {
       panneau.hidden = false; panneau.replaceChildren();
       const section = creerSection(T.preparationZoneTexte, T.preparationDescriptionColler);
       const zone = document.createElement('textarea'); zone.setAttribute('aria-label', T.preparationZoneTexte);
-      zone.textContent = T.preparationExempleTexte;
+      zone.placeholder = T.preparationEmplacementTexte;
       const lire = createButton({ label: T.preparationLire, variant: 'secondary', compact: true, onClick: () => versSandbox({ type: 'lire-texte', texte: zone.value }) });
       lire.classList.add('prep-lire');
       section.append(zone, lire);
@@ -216,14 +254,14 @@ export function monterPreparation(etat: Etat): Preparation {
       const boiteDuPanneau = document.querySelector('.arch-laterale')?.getBoundingClientRect();
       feuille.style.left = `${Math.max(12, (boiteDuPanneau?.left ?? 0) + 12)}px`;
       voile.dataset.ouverte = 'oui'; voile.hidden = false; panneau.hidden = true;
-      plan = null; rangee = null; refus = null; reponses = {}; modeColle = false; enCours = false;
+      plan = null; apercus = {}; mesures = {}; rangee = null; refus = null; reponses = {}; modeColle = false; enCours = false;
       versSandbox({ type: 'lire-preparations' });
       demander();
     },
     ouvrirPourColler() {
       panneau.classList.remove('prep-rangee', 'prep-sans-cibles', 'prep-autre', 'prep-liaisons');
       voile.hidden = true; voile.dataset.ouverte = 'oui';
-      plan = null; rangee = null; refus = null; reponses = {}; modeColle = true; enCours = false;
+      plan = null; apercus = {}; mesures = {}; rangee = null; refus = null; reponses = {}; modeColle = true; enCours = false;
       rendre();
     },
     retirerLesLiaisons() {
@@ -236,7 +274,7 @@ export function monterPreparation(etat: Etat): Preparation {
       // Une lecture que le designer n'a pas demandée ne rouvre pas le panneau : le mode Tokens lit les préparations dès l'ouverture du plugin.
       if (message.type === 'preparations' && message.nouvelle === undefined && voile.dataset.ouverte === undefined) return;
       if (message.type === 'plan-de-preparation') {
-        plan = message.plan; refus = message.refus; enCours = false;
+        plan = message.plan; refus = message.refus; enCours = false; apercus = message.apercus; mesures = message.mesures;
         if (message.refus === 'sans-cibles') { voile.hidden = true; panneau.hidden = false; panneau.classList.add('prep-sans-cibles'); panneau.replaceChildren();
           // Ce refus tombe avant le calcul du plan : il ne dit pas combien de variables attendent.
           const composant = etat.composant.lecture?.sujet.nom;
@@ -260,8 +298,9 @@ export function monterPreparation(etat: Etat): Preparation {
         // La réponse d'une autre analyse, remplacée depuis, ne dit rien de celle-ci.
         if (!deLAnalyseCourante(etat, message.analyse)) return;
         const composant = etat.composant.lecture?.sujet.nom;
+        const deLaPreparation = etat.preparations.find((candidate) => candidate.id === message.preparation)?.source.jeu.nom;
         const alerte = message.refus === 'autre-composant'
-          ? creerAlerte('info', { titre: T.preparationAutresComposants, texte: T.preparationSelectionnerLeComposant })
+          ? creerAlerte('info', { titre: T.preparationAutresComposants(deLaPreparation), texte: T.preparationSelectionnerLeComposant(deLaPreparation) })
           : message.refus !== null
             ? creerAlerte('info', { texte: T.preparationRefus[message.refus] ?? T.preparationRefus.inconnu })
             // Sans liaison cochable, il n'y a rien de prêt à annoncer : le panneau reste tel qu'il est.

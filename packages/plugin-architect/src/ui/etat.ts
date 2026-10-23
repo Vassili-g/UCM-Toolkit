@@ -112,7 +112,7 @@ export interface Etat {
   /** Le panneau des constats du mode Composant : fermé à l'ouverture, et la largeur que la frontière donne à la vue quand il est ouvert. */
   panneau: { ouvert: boolean; largeurDeLaVue: number; onglet: OngletDuPanneau };
   /** La library de référence que la Configuration annonce ; `null` tant qu'elle n'a rien dit. */
-  reference: { readonly library: string | null; readonly candidates: number } | null;
+  reference: { readonly library: string | null; readonly nom: string | null; readonly candidates: number } | null;
 }
 
 /** Les trois onglets du panneau des constats. */

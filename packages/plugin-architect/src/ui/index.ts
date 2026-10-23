@@ -387,7 +387,7 @@ function recevoir(message: PluginMessage): void {
       app.rendre(['barre']);
       return;
     case 'configuration':
-      etat.reference = { library: message.library?.cle ?? null, candidates: message.candidates.length };
+      etat.reference = { library: message.library?.cle ?? null, nom: message.library?.nom ?? null, candidates: message.candidates.length };
       nomenclature.recevoirConfiguration(message);
       app.rendre(['barre']);
       return;

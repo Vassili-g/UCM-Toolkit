@@ -167,12 +167,13 @@ export function analyseDuComposant(etat: Etat, lecture: LectureDeComposant | nul
 
 /**
  * La préparation rangée à lier au composant analysé, tant que la demande n'est pas partie : l'analyse est complète et non périmée,
- * et la préparation vient du même jeu (`source.jeu.cle` est le sujet de l'analyse). Sans telle préparation, rien ne part.
+ * et la préparation vient du même jeu (`source.jeu.cle` est le sujet de l'analyse) et a déjà vu une création de variables. Sans telle préparation, rien ne part.
  */
 export function preparationALier(etat: Etat): PreparationVue | null {
   const { analyse } = etat;
   if (!analyse || analyse.statut !== 'complete' || analyse.perimee || analyse.liaisonsDemandees) return null;
-  return etat.preparations.find((preparation) => preparation.source.jeu.cle === analyse.identite.sujet) ?? null;
+  // Tant qu'aucune création n'a été tentée dans le fichier des tokens, aucune variable n'existe : chaque ligne attendrait sa publication.
+  return etat.preparations.find((candidat) => candidat.source.jeu.cle === analyse.identite.sujet && candidat.variables.some((variable) => variable.etat !== 'a-creer')) ?? null;
 }
 
 /** Note que `lier-preparation` est parti pour l'analyse retenue. */

@@ -172,7 +172,9 @@ test('une variable publiée donne une liaison ; une variable pas encore publiée
   assert.deepEqual(publiee.enAttente, []);
   const attente = liaisonsDeLaPreparation(preparation(), releve(), new Map());
   assert.deepEqual(attente.corrections, []);
-  assert.deepEqual(attente.enAttente, [{ variable: 'components/alert/color/danger/soft/background', layer: 'l1', variant: 'v1', champ: 'fills' }]);
+  assert.deepEqual(attente.enAttente, [{ variable: 'components/alert/color/danger/soft/background', layer: 'l1', nomDuLayer: 'l1', variant: 'v1', champ: 'fills' }]);
+  const nomme = liaisonsDeLaPreparation(preparation(), releve([layer('l1', { nom: 'container' })]), new Map());
+  assert.equal(nomme.enAttente[0].nomDuLayer, 'container');
 });
 
 test('un layer disparu ou un champ déjà lié est écarté, non proposé de nouveau', () => {
