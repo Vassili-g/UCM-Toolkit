@@ -598,7 +598,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   ancêtres, propriétés de texte par plage, dimensions, styles, modes
   effectifs, espace de couleur) ; budget commun avec S3 ; test sur un jeu
   factice de six variants.
-- [~ Claude 2] **B2 · Analyse.** Vague 4 · B1, B10, K3, S3.
+- [x] (10420876) **B2 · Analyse.** Vague 4 · B1, B10, K3, S3.
   Domaines : `analyse`, `commun` (sélection, périmé).
   Fait quand : Analyser puis Actualiser lancent moteur et kit ; identité de
   l'analyse (sujet, génération) dans chaque message ; seconde analyse
@@ -609,9 +609,9 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   Actualiser. Le moteur s'appelle par `analyserLeComposant` (S3) ; un
   résultat `partielle` ne sert qu'aux constats du panneau, jamais à un contrat
   écrit (son `coverage` se dit complet).
-- [ ] **B9 · Branchement de l'accessibilité et de la typographie.** Vague 5 ·
+- [~ Claude 2] **B9 · Branchement de l'accessibilité et de la typographie.** Vague 5 ·
   K4, K7, B2.
-  Domaines : `accessibilite`, `configuration` (niveau).
+  Domaines : `accessibilite`, `configuration` (niveau, et library rangée : Q-43).
   Fait quand : constats de K4 et K7 dans l'analyse ; niveau AA ou AAA lu dans la
   Configuration.
   Note : le catalogue (B10) n'a pas les noms de modes d'une collection de
@@ -1201,6 +1201,23 @@ Choix faits sans le mainteneur :
 - Q-39 · U1 · Pied et compte · « Appliquer renomme 24 variables et 1
   collection de Interface. » et un compte de 25 (la collection est un
   renommage) ; la maquette dit 24 · réversible : oui.
+- Q-40 · B2 · Codes du moteur · le moteur ne porte aucun code : la table de
+  `constatsDuMoteur.ts` reconnaît ses points par leur famille et des mots de
+  leur titre (« variable introuvable », « masqué », « pilote ») ; une
+  reformulation du moteur peut changer le code rendu. Un point inconnu devient
+  C42, famille `export`, À vérifier ; un point `danger` est Bloquant. Reprise
+  possible : un code porté par chaque point du moteur, dans le socle
+  · réversible : oui.
+- Q-41 · B2 · Arrêt · l'analyse arrêtée (erreur du moteur, aucune sélection)
+  rend un seul Bloquant de code C42, famille `export` ; texte écrit hors
+  maquette : « Aucun composant n’est sélectionné. » · réversible : oui.
+- Q-42 · B2 · Progression · un seul `analyse-en-cours`, après le relevé : B1
+  n'a pas de rappel par variant · réversible : oui.
+- Q-43 · B9 · Library rangée · aucun lot ne branchait `ranger-library` ; B9
+  prend tout le domaine `configuration` : niveau dans `figma.clientStorage`
+  (préférence du designer), library dans les données partagées de la racine
+  du document (choix de l'équipe), par `src/ecriture/configuration.ts`
+  · réversible : oui.
 
 ## 10. Hors du plan
 
