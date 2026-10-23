@@ -1,36 +1,66 @@
-# Spécification de l'explorateur de tokens
+# Spécification d'UCM Architect
 
 UCM Architect lit les variables d'un fichier Figma et explique leurs
-valeurs : collections, groupes, alias, modes, tokens d'un composant. Ce document
-décrit ce que le plugin lit, comment il résout une chaîne et ce qu'il refuse
-de conclure. Le [plan d'implémentation](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/PLAN-IMPLEMENTATION.md)
-porte l'historique des décisions ; les invariants vérifiés sont dans
-[invariants/explorateur.md](./invariants/explorateur.md).
+valeurs : collections, groupes, alias, modes, tokens d'un composant. Dans un
+fichier déclaré UCM, il propose des corrections et les écrit après
+confirmation. Ce document décrit ce que le plugin lit, comment il résout une
+chaîne, ce qu'il écrit et ce qu'il refuse de conclure. Le
+[plan d'implémentation](../../docs/notes/Recherches/UCM%20Architect/3%20Plan/PLAN-IMPLEMENTATION.md)
+porte l'historique des décisions. Les invariants vérifiés sont dans
+[invariants/explorateur.md](./invariants/explorateur.md) et
+[invariants/nomenclature.md](./invariants/nomenclature.md).
 
-## Lecture seule
+## Lecture et écriture
 
-Le plugin ne crée, ne supprime et ne modifie aucun calque, aucune variable ni
-aucune collection, et ne range aucune donnée de plugin dans le fichier.
+La navigation lit seulement. L'arbre, la table, la fiche d'une variable et la
+vue composant ne changent rien au document.
 
-Il fait un seul import : la variable de bibliothèque qu'un alias vise, quand
-Figma ne la rend pas par son identifiant. L'alias est celui d'une variable du
-fichier, ou d'une variable liée à un calque du composant lu. L'import abonne
-le fichier à cette variable, sans créer de variable locale. Aucun composant
-ni aucun style n'est importé.
+Le plugin écrit dans un fichier qui se déclare UCM, et seulement par un geste
+du designer : Appliquer, Créer, une réponse, Ignorer, un choix de la
+Configuration, une annulation de l'Historique. Chaque écriture relit d'abord
+ce qu'elle va changer et saute ce qui a changé depuis l'analyse. Un fichier
+qui ne déclare plus UCM au moment d'écrire ne reçoit rien.
 
-Le plugin ne change ni la page courante, ni la sélection, ni la vue du
-designer. L'aperçu d'un composant s'exporte en mémoire par `exportAsync`.
-`figma.clientStorage` reçoit la taille de la fenêtre, une par disposition, et
-les préférences : vue compacte, intégrations actives,
-associations du profil, exceptions, et largeurs de l'arbre et des colonnes du
-nom et du type.
+| Écriture | Geste | Annulation |
+|---|---|---|
+| Nom d'une variable ou d'une collection locale | Appliquer, onglet Corrections du mode Tokens | Historique de la Configuration |
+| Scopes d'une variable, cible d'alias dans un mode | Appliquer, sous Modes et Scopes | Historique de la Configuration |
+| Variables créées dans `components` | Créer, depuis une préparation | Historique de la Configuration |
+| Liaison d'une variable à un layer du composant analysé | Appliquer, panneau des constats | Ctrl+Z dans Figma |
+| Nom d'une valeur de variante, instance de règles du composant | Appliquer, panneau des constats | Ctrl+Z dans Figma |
+| Constats ignorés, library choisie, déclaration UCM, clé du fichier des tokens | Ignorer, Configuration, ouverture du mode Tokens | Le geste inverse |
+
+Les écritures sur les variables entrent dans un journal rangé à la racine du
+document avant l'écriture. L'Historique n'annule que le dernier lot de chaque
+journal. Les écritures sur le composant posent un seul point d'annulation par
+lot, pour qu'un Ctrl+Z défasse le lot entier. Les données rangées dans le
+document vivent sous `ESPACE_ARCHITECT`, dans les données partagées de la
+racine.
+
+Le plugin importe deux sortes de variables de library : la cible d'un alias
+que Figma ne rend pas par son identifiant, et la cible d'une liaison qu'il
+écrit. L'import abonne le fichier à cette variable, sans créer de variable
+locale. Aucun composant ni aucun style n'est importé.
+
+Le plugin ne change ni la page courante ni la vue du designer. Il change la
+sélection à un seul moment : au clic sur un constat, il sélectionne ses layers
+de la page courante. L'aperçu d'un composant s'exporte en mémoire par
+`exportAsync`. `figma.clientStorage` reçoit la taille de la fenêtre, une par
+disposition, les préférences de l'interface, le niveau d'accessibilité (AA ou
+AAA) et les préparations de tokens.
 
 ## Architecture libre
 
-Aucun nom de collection, de groupe ou de mode n'a de sens réservé. Une
+La navigation ne réserve aucun nom de collection, de groupe ou de mode. Une
 collection unique, des alias internes, plusieurs axes de modes et des
-valeurs directes sont des cas ordinaires. Un fichier sans recette
-est complet : l'interface n'affiche aucune alerte d'absence d'UCM.
+valeurs directes sont des cas ordinaires.
+
+Les corrections, l'analyse d'un composant et la préparation suivent
+l'architecture UCM complète, et seulement dans un fichier qui la déclare. La
+déclaration se règle dans la Configuration (« Ce fichier suit l’architecture
+UCM »). Un fichier dont la déclaration est absente ou libre montre une alerte
+à la place des onglets de la barre latérale ; ses noms restent ceux
+d'aujourd'hui.
 
 L'arbre suit la distinction Figma entre collections et groupes. Un groupe
 vient des segments `/` du nom Figma, et de rien d'autre :
@@ -58,11 +88,14 @@ chevron replie l'arbre sans changer la table.
 | Calques du composant lu et styles de texte | `boundVariables`, peintures, effets, grilles, segments de texte | Réactions, valeurs par défaut des propriétés et calques masqués des instances non lus |
 | Modes d'un calque | `resolvedVariableModes`, `explicitVariableModes` | Les modes par défaut d'équipe ne sont pas exposés |
 | Valeur selon Figma | `resolveForConsumer` sur un calque existant | Aucune chaîne, la valeur seule |
+| Library d'un fichier sans variable locale | Noms par `figma.teamLibrary`, valeurs d'un groupe par `importVariableByKeyAsync` à son ouverture, par lots de huit | Modes sans nom avant l'import ; `LIMITE_PAR_GROUPE` variables importées par groupe |
+| Catalogue de référence d'une analyse | `theme`, `layout` et `components` de la library choisie : noms d'abord, valeurs importées à la demande des contrôles | Une entrée est présente, absente, non chargée ou inaccessible |
 
 Une cible que ni la lecture ni l'import ne rendent reste « introuvable » ;
 elle reste « refusée », avec son message, quand la lecture a levé. Ni l'une
-ni l'autre ne prouve une suppression. Le relevé ne lit pas les bibliothèques par `figma.teamLibrary` :
-ses listes ne donnent ni valeur ni chaîne.
+ni l'autre ne prouve une suppression. Les listes de `figma.teamLibrary` ne
+donnent ni valeur ni chaîne : le relevé d'un fichier qui a des variables
+locales ne s'en sert pas.
 
 Figma numérote les modes par fichier : le mode d'une bibliothèque peut porter
 l'identifiant d'un mode local. Quand plusieurs collections déclarent le même
@@ -94,9 +127,9 @@ Un mode d'une collection n'est jamais rapproché par son nom d'un mode d'une
 autre collection. Un mode d'extension lit la surcharge de l'extension, puis
 remonte au mode parent de la base.
 
-Le contexte actif donne à chaque famille son mode par défaut : l'onglet
-Comparer, qui le choisissait, est retiré. Une colonne de la table impose
-son mode à sa famille ; les autres familles suivent le contexte actif.
+Le contexte actif donne à chaque famille son mode par défaut. Une colonne de
+la table impose son mode à sa famille ; les autres familles suivent le
+contexte actif.
 
 Le résultat est l'un des états suivants, chacun avec les étapes connues :
 
@@ -124,31 +157,9 @@ la valeur que Figma rend. Une forme voisine, clé en plus ou opacité hors de 0 
 
 ### Copier
 
-| Commande | Texte copié |
-|---|---|
-| Valeur | Nombre sans unité, `true` ou `false`, texte tel quel, couleur en composantes |
-| Hexadécimal | Huit bits par canal ; l'annonce dit quand la conversion arrondit |
-| Composantes | `rgba(r, g, b, a)`, composantes de Figma |
-| Chaîne | Une étape par ligne, puis la valeur ou le constat |
-| Donnée source | La valeur rangée du premier mode, en JSON |
-
-Un refus du presse-papiers laisse le texte dans une zone sélectionnable. Le
-succès ne s'annonce qu'après une copie réussie.
-
-## Diagnostics
-
-Le diagnostic résout chaque variable dans chaque mode de sa collection, les
-autres familles au contexte actif. Les départs qui butent sur la même
-cause forment un constat : un par ensemble de variables d'un cycle, un par
-cible inaccessible. Chaque constat nomme la variable en cause et un geste ;
-aucune réparation n'est faite.
-
-## Contraste
-
-Le contraste se juge sur une paire choisie, dans le contexte actif,
-contre un seuil de 3, 4,5 ou 7. Seules deux couleurs opaques en sRGB se
-jugent ; le calcul et la comparaison au seuil sont ceux de
-`@ucm-kit/core/emplois`.
+Dans la vue composant, un clic sur la valeur d'une chaîne dépliée copie la
+valeur affichée. Un refus du presse-papiers laisse le texte dans une zone
+sélectionnable. Le succès ne s'annonce qu'après une copie réussie.
 
 ## Vue composant
 
@@ -203,22 +214,83 @@ Aucune de ces lectures n'a été essayée dans Figma. La
 [recette](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md)
 les reprend une à une.
 
-## Intégrations facultatives
+## Analyse et corrections
 
-| Intégration | Activation | Ce qu'elle ajoute |
+Analyser lit le relevé du jeu de variants et le catalogue de référence : la
+library choisie dans la Configuration, sinon les variables du fichier. Le
+moteur de l'exporteur (`analyserLeComposant` du socle) et les contrôles de
+`@ucm-kit/core/controles` jugent ce relevé. Leurs constats prennent un type
+de l'échelle commune (`TypeDAlerte` du kit). Une seule opération court à la
+fois, analyse ou écriture : une seconde demande reçoit `occupe`.
+
+Une correction ne se propose que si elle est exacte : une règle écrite donne
+un seul candidat. Sinon le constat devient une question, sans candidat choisi
+d'avance ; la réponse du designer produit la correction. Un constat sans
+correction ni question va dans À faire dans Figma. Le plugin ne calcule aucune
+correction dans l'interface.
+
+Avant d'écrire une liaison, le sandbox relit le layer, les valeurs du variant,
+la liaison du champ et la peinture que l'analyse a lus. Un écart saute la
+correction avec un motif (`objet-change`, `fait-faux`, `cible-introuvable`,
+`erreur`), et les autres s'écrivent. L'écriture périme l'analyse.
+
+Le contraste se mesure sur la paire que le kit tire du relevé, dans chaque
+mode, contre le seuil du niveau AA ou AAA de la Configuration. Le rapport
+s'affiche sans arrondi. Un fond ou une peinture que le plugin ne sait pas
+lire donne une limite, jamais un verdict.
+
+## Préparation
+
+Une préparation propose les variables `components` qu'un composant devrait
+porter, avec leur cible dans `theme` ou `layout`. Elle part du relevé, du
+catalogue et des réponses du designer. Le fichier des composants et celui des
+tokens sont deux fichiers : la préparation passe de l'un à l'autre par
+`figma.clientStorage` du poste, ou par un texte copié.
+
+| Étape | Fichier | Ce qui se passe |
 |---|---|---|
-| Recette UCM Palettes | Interrupteur, rangé dans les préférences | Classement de la recette ; association explicite d'une variable à un cran ; variables de dossier du cran |
-| Profil d'architecture UCM | Interrupteur et association de chaque collection à une couche | Couches visées, valeurs directes, portées, nuance attendue |
+| Préparer | Composants | Les questions (dossier d'une valeur de style, intensité, nom d'un élément, icône, taille sans token exact) se tranchent ; Préparer reste inactif tant qu'une question reste |
+| Ranger | Composants | La préparation se range sous `CLE_DES_PREPARATIONS`, ou se copie en texte |
+| Créer | Tokens | Seules les variables manquantes de `components` se créent, par le journal de structure |
+| Lier | Composants | Les variables publiées reviennent au composant en corrections de liaison |
 
-Désactiver une intégration retire ses constats et ses sections de
-l'inspecteur, sans changer la table ni la navigation.
+La destination est la collection `components` locale que la déclaration UCM
+reconnaît. Sans `theme` local, la création est refusée (`sans-cibles`). Deux
+collections candidates posent une question.
+
+Chaque variable préparée a un état : `a-creer`, `existe-identique`,
+`existe-divergente`, `creee` ou `echec`. L'état se lit dans le fichier au
+moment de créer, jamais dans un essai précédent. Une création interrompue se
+reprend sans doublon. Une variable existante qui vise une autre cible reste
+telle quelle, sauf réponse du designer.
+
+Le texte échangé est un JSON de `format` `ucm-preparation`. Il se juge dans
+l'ordre : format, puis version (une version supérieure est refusée
+`future`), puis chaque champ. Les règles de nommage que le mode Composant
+prépare passent par le même texte et arrivent dans Questions du mode Tokens.
+
+Le retour au composant n'a lieu que pour le jeu de variants qui a préparé :
+`source.jeu.cle` doit égaler la clé du sujet analysé (`autre-composant`
+sinon). Une variable créée mais pas encore publiée laisse sa ligne sans case.
+
+Bornes : un fichier qui ne garde pas le journal ne peut pas annuler ses
+créations. Le plugin ne voit pas les usages d'une variable créée dans
+d'autres fichiers : l'annulation peut supprimer une variable qu'un autre
+fichier emploie.
+
+## Modules sans écran
+
+Le profil d'architecture UCM (`src/integrations/profilUcm.ts`) et la lecture
+de la recette d'UCM Palettes (`src/integrations/palettes.ts`) restent dans le
+code, avec leurs tests, sans écran ni préférence pour les activer. Ce qui suit
+décrit leurs règles.
 
 **Recette UCM Palettes.** Le texte rangé sous `ucm_palettes/recette` se
 classe par `classerRecette` d'`ucm-couleur`, sans migration. La recette ne
 dit pas quelle variable porte quel cran : le designer associe une variable
 de couleur à une palette, une intensité, un thème et un cran. Aucune
 association ne se déduit d'une teinte ou d'une égalité de couleurs.
-L'inspecteur liste alors les variables de `theme` que la table en dossiers
+`variablesDeLAssociation` rend alors les variables de `theme` que la table en dossiers
 confie à ce cran (`variablesDuCran`, `@ucm-kit/core/emplois`), dans le sens du
 thème associé, normal ou inversé selon `texteDesBoutons` de la recette. Le
 neutre ajoute `page/foreground-main`, `page/foreground-subtle`, `scale/0`,
@@ -260,9 +332,8 @@ pas un écart et ne disparaît pas avec une exception du designer.
 L'interface est en français et toujours sombre. Les modes Light, Dark ou
 Jour des données ne changent que les valeurs et les pastilles. Le relevé
 conserve l'espace colorimétrique du document (`srgb` ou `display-p3`) ; un
-relevé ancien sans espace se lit en sRGB. Contraste, hexadécimal affiché,
-pastilles et couleurs de la vue composant ramènent Display P3 en sRGB. La
-copie des composantes conserve l'espace source.
+relevé ancien sans espace se lit en sRGB. Hexadécimal affiché, pastilles et
+couleurs de la vue composant ramènent Display P3 en sRGB.
 
 La fenêtre a deux dispositions, une par mode. La barre du haut porte le
 produit et la bascule « Tokens » / « Composant », présente dans les deux. Le
@@ -273,13 +344,11 @@ Chacune range sa taille sous sa propre clé.
 
 | Disposition | Mode | Ouverture | Minimum | Contenu sous la barre |
 |---|---|---|---|---|
-| Large | Tokens | 1360 × 800 | 560 × 480 | Arbre, onglets et panneau latéral de 640 px, où Nomenclature a pris la place de l'inspecteur jusqu'à la fiche (lot U2) ; Actualiser dans la barre |
-| Étroite | Composant | 520 × 760, 1040 × 760 panneau ouvert | 320 × 420 | La vue composant, sous une barre de 44 px |
+| Large | Tokens | 1360 × 800 | 560 × 480 | Arbre, table et barre latérale de 640 px : onglets Corrections, Questions, À faire dans Figma et Règles ; la fiche d'une variable s'ouvre en feuille sur la barre ; Actualiser dans la barre du haut |
+| Étroite | Composant | 520 × 760, 1040 × 760 panneau ouvert | 320 × 420 | La vue composant, sous une barre de 44 px ; le panneau des constats à droite, onglets Corrections, Questions et À faire dans Figma |
 
 La recherche est dans l'arbre, sous son titre, et porte sur toutes les
-collections. Le centre ne montre que la table : les onglets Comparer,
-Dépendants, Diagnostics, Intégrations et Relevés sont retirés, et les sections
-sur leurs calculs décrivent des modules conservés sans écran.
+collections. Le centre ne montre que la table.
 
 Dans la disposition large, sous 1100 px de large, le panneau latéral passe sous
 l'arbre et la table, sur toute la largeur. Le dessin suit la

@@ -607,7 +607,7 @@ de galerie quand le lot B n'est pas fait.
   liaisons aux autres variants » de la section Variants envoie
   `servir-de-modele` (K11) et range les constats de `modele-propose` dans
   l'analyse (Q-74).
-- [~ Codex] **U8 · Préparation et Configuration.** Vague 6 · U6 (1/2) commité dans `partage/main`. Codex, dans son clone, pendant qu'U6 (2/2) et U7 tournent dans l'arbre partagé.
+- [~ Claude 1] (1/2 : 286f30ba…ae468d26 ; 2/2 en partie : 584826b7) **U8 · Préparation et Configuration.** (1/2 : préparation dans le mode Composant, sept cadres `g-*` ; 2/2 : création dans le fichier des tokens, Configuration, Historique) Vague 6 · U6 (1/2) commité dans `partage/main`. Codex, dans son clone, pendant qu'U6 (2/2) et U7 tournent dans l'arbre partagé ; arrêté par sa limite le 23 octobre pendant (2/2), repris par Claude depuis son diff non commité (Q-78).
   Écrit : toute la piste U d'Architect : `src/ui/**`, `galerie/**` (dont `build-galerie.cjs`), `scripts/build-ui.cjs`, `tests/interface/**`, `tests/galerie.test.ts`, `tests/loiDuVocabulaire.test.ts`, et les documents du paquet (`CARTE.md`, `README.md`, `SPEC.md`, invariants). Les fichiers communs avec U6 et U7 reçoivent des ajouts courts, sans reformatage. Arrêt seulement pour un besoin dans `src/sandbox/`, `src/messages/`, `src/ecriture/`, le kit ou le socle.
   Textes hors maquette à écrire (skill `rediger-diagnostics-ucm`) : les codes de B8 (`MotifDeRefusDePreparation`, `MotifDeRefusDeLiaison`, `MotifDeRefusDeCreation`, `MotifDEchecDeCreation`, `MotifDeTexteRefuse`, `structure-annulee` : `journal`, `refus`, motifs des lignes sautées), Q-71 et Q-73.
   Domaines : `preparation`, `configuration`.
@@ -1467,6 +1467,11 @@ Choix faits sans le mainteneur :
   bouton du modèle est inactif sur une analyse périmée, la maquette le garde
   actif. « C’est voulu » de `x-button-corr` n'a pas de demande (comme Q-76).
   C16 reste une question par variant · réversible : oui.
+- Q-78 · U8 · Push avant J-F · à la demande du mainteneur, Codex a poussé
+  `origin/main` le 23 octobre (U8 1/2 compris), après avoir rejoué les
+  commits sur `origin/main` : les hashes de U8 (1/2) et des deux correctifs
+  d'Architect (`cc678b6d`, `4ab2ac80`) sont ceux du rejeu. Q-1 (un seul push
+  à J-F) ne tient donc plus ; la publication npm reste à O2 · réversible : non.
 
 ### Revue des lots réalisés
 

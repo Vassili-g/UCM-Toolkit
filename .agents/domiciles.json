@@ -418,12 +418,12 @@
         "packages/plugin-socle/src/bibliotheque.ts"
       ],
       "specs": [
-        "packages/plugin-architect/SPEC.md#lecture-seule",
+        "packages/plugin-architect/SPEC.md#lecture-et-écriture",
         "packages/plugin-architect/SPEC.md#architecture-libre",
         "packages/plugin-architect/SPEC.md#résolution",
         "packages/plugin-architect/SPEC.md#lecture",
         "packages/plugin-architect/SPEC.md#vue-composant",
-        "packages/plugin-architect/SPEC.md#intégrations-facultatives"
+        "packages/plugin-architect/SPEC.md#modules-sans-écran"
       ],
       "lies": [
         "packages/plugin-architect/README.md",
