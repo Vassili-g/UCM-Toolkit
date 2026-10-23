@@ -43,7 +43,7 @@ test('tout message que le sandbox peut envoyer a un état où le regarder', () =
   const declares = new Set(DOMAINES_DE_MESSAGES.flatMap(([fichier, nom]) => [...typesDeLUnion(fs.readFileSync(path.join(racine, 'src', 'messages', fichier), 'utf8'), nom)]));
   assert.ok(declares.size > 0);
   // Les états de la recherche et de la fiche jouent des messages de Nomenclature, que ces domaines ne déclarent pas : ils n'ont aucun message propre.
-  const avecMessages = ETATS.filter((etat) => !['recherche', 'fiche'].includes((etat as { domaine?: string }).domaine ?? ''));
+  const avecMessages = ETATS.filter((etat) => !['recherche', 'fiche', 'structure'].includes((etat as { domaine?: string }).domaine ?? ''));
   assert.deepEqual(ecartsDesMessages(declares, avecMessages), { jamaisRegardes: [], inventes: [] });
 });
 

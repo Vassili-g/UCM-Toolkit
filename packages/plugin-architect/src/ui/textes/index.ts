@@ -14,8 +14,9 @@ import { TEXTES_COMMUN } from './commun';
 import { TEXTES_COMPOSANT } from './composant';
 import { TEXTES_FICHE } from './fiche';
 import { TEXTES_RECHERCHE } from './recherche';
+import { TEXTES_STRUCTURE } from './structure';
 
 export { NOM_DU_PRODUIT } from './commun';
 export { titreDeConstat } from './fiche';
 
-export const TEXTES = { ...TEXTES_COMMUN, ...TEXTES_ARBRE, ...TEXTES_FICHE, ...TEXTES_RECHERCHE, ...TEXTES_COMPOSANT };
+export const TEXTES = { ...TEXTES_COMMUN, ...TEXTES_ARBRE, ...TEXTES_FICHE, ...TEXTES_RECHERCHE, ...TEXTES_COMPOSANT, ...TEXTES_STRUCTURE };

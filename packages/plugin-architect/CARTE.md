@@ -9,6 +9,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - tests/ : dont les lois d'écriture (`loiDEcriture`, `loiDEcritureDesNoms`), les doubles de Figma, `nomenclature*.test.ts` pour le code de Nomenclature et `interface/` pour Chromium
 - galerie/nomenclature/ : données des états de Nomenclature, joués dans la galerie d'Architect (`etats/nomenclature.cjs`)
 - galerie/recherche/ : fichier d'exemple des états de recherche et de fiche (`t-questions`, `t-terme`, `t-fiche`)
+- galerie/structure/ : relevé et message `structure` des états `t-structure` et `t-portees`
 
 ## src/
 - code.ts : aiguillage des demandes de l'interface vers les domaines de `sandbox/` ; ouverture, déclaration UCM, sélection et panneau périmé
@@ -81,6 +82,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - styles/ : feuilles, une par domaine, chargées dans l'ordre de `FEUILLES_DES_DOMAINES` (`scripts/build-ui.cjs`)
 - recherche/ : lecture du champ de l'arbre (texte, `terme:`, `vise:`), variables trouvées et lignes de la recherche
 - fiche/ : fiche d'une variable, à la place de l'inspecteur : chaîne d'alias, renommage à appliquer, « Utilisée par »
+- structure/ : onglet À faire dans Figma du mode Tokens (constats typés, chemins en phrase) et cartes de modes et de scopes en deux colonnes, sous Corrections
 
 ## src/ui/vues/
 - composant.ts : vue composant : fil d'Ariane, en-tête, aperçu, frontières, sections, pied

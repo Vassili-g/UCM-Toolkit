@@ -20,6 +20,8 @@ import { creerBarre } from './barre';
 import { creerFiche } from './fiche';
 import { collectionDuFiltre, etatInitial, poserReleve } from './etat';
 import { monterNomenclature } from './nomenclature';
+import { monterStructure } from './structure';
+import type { Noms } from './structure/lecture';
 import { versSandbox } from './pont';
 import { installerSurvol } from './survol';
 import { creerTable } from './table';
@@ -100,6 +102,21 @@ app.renommages = {
     app.rendre(['table']);
   },
 };
+
+/** Ce que l'écran de structure sait du relevé : le nom entier d'une variable (collection, puis nom), par son identifiant ou sa clé, et l'inverse. */
+const noms: Noms = {
+  nom(cle) {
+    const variable = etat.index?.variables.get(cle) ?? [...(etat.index?.variables.values() ?? [])].find((candidate) => candidate.cle === cle);
+    if (!variable) return null;
+    const collection = etat.index?.collections.get(variable.collection);
+    return collection ? `${collection.nom}/${variable.nom}` : variable.nom;
+  },
+  cle(nom) {
+    const trouvee = [...(etat.index?.variables.values() ?? [])].find((variable) => noms.nom(variable.id) === nom);
+    return trouvee?.id ?? null;
+  },
+};
+const structure = monterStructure(nomenclature.coquille, { envoyer: versSandbox, noms, ouvrirLaFiche: (cle) => app.suivre(cle) });
 
 /**
  * Les feuilles du socle couvrent la fenêtre. Ici elles ne couvrent que la barre latérale, où Nomenclature et la fiche d'une variable
@@ -211,6 +228,10 @@ function recevoir(message: PluginMessage): void {
     nomenclature.recevoir(message);
     return;
   }
+  if (message.type === 'structure' || message.type === 'structure-appliquee') {
+    structure.recevoir(message);
+    return;
+  }
   switch (message.type) {
     case 'preferences':
       etat.preferences = message.preferences;
@@ -229,6 +250,7 @@ function recevoir(message: PluginMessage): void {
       etat.lecture = { statut: 'attente' };
       poserReleve(etat, message.releve);
       app.rendre();
+      structure.demander();
       return;
     case 'lecture-echouee':
       if (demandeCourante(message.demande)) {

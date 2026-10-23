@@ -1,0 +1,166 @@
+/*
+ * « À faire dans Figma » et les corrections de modes et de scopes : des cartes sous des intertitres, comme celles des renommages. Ce
+ * domaine pose ses propres classes, aux valeurs des cartes de Corrections (`nomenclature.css`) : la loi des styles ne laisse pas une
+ * feuille de Nomenclature servir un autre domaine.
+ */
+.structure-liste {
+  display: grid;
+  gap: var(--espace-controle);
+}
+
+.intertitre-structure {
+  display: flex;
+  min-height: var(--hauteur-secondaire);
+  align-items: center;
+  margin-top: var(--espace-controle);
+}
+
+.intertitre-structure:first-child {
+  margin-top: 0;
+}
+
+.intertitre-structure h2 {
+  margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.bloc {
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.bloc-tete {
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: var(--espace-controle) var(--espace-bloc);
+}
+
+.bloc-tete.sans-coche {
+  grid-template-columns: 1fr;
+}
+
+.bloc-bouton {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+
+button.bloc-bouton {
+  cursor: pointer;
+}
+
+.bloc-bouton:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.bloc-pile {
+  display: grid;
+  min-width: 0;
+  gap: var(--espace-serre);
+}
+
+.bloc-droite {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.bloc-ligne {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-serre) var(--espace-controle);
+}
+
+.bloc-phrase {
+  font-size: var(--libelle);
+  line-height: var(--libelle-interligne);
+}
+
+.bloc-corps {
+  display: grid;
+  padding: var(--espace-serre) var(--espace-bloc) var(--espace-controle);
+  border-top: 1px solid var(--bordure);
+}
+
+/* Un constat : le type, puis la phrase, sous un seul bouton qui reste en haut de la carte. */
+.bloc-constat .bloc-bouton {
+  align-items: flex-start;
+}
+
+.constat-entete {
+  display: grid;
+  gap: 2px;
+}
+
+.constat-lieu,
+.constat-statut {
+  color: var(--texte-second);
+}
+
+.constat-faits {
+  display: grid;
+  gap: var(--espace-serre);
+  padding: var(--espace-controle) 0;
+}
+
+.constat-fait {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: var(--espace-controle);
+  align-items: baseline;
+}
+
+.constat-fait > span:first-child {
+  color: var(--texte-second);
+}
+
+.constat-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-controle) var(--espace-bloc);
+  padding-top: var(--espace-serre);
+}
+
+.structure-pied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+  padding: var(--espace-bloc) 0 var(--espace-page);
+  border-top: 1px solid var(--bordure);
+  background: var(--fond);
+}
+
+.structure-resume {
+  color: var(--texte-second);
+}
+
+.structure-resume b {
+  color: var(--texte);
+  font-weight: 600;
+}
+
+/* Un dossier cité dans une phrase de carte : en police de chemin, gras, sans fond. */
+.bloc .mot-cite {
+  padding: 0;
+  background: none;
+  color: var(--texte);
+  font-family: var(--police-chemin);
+  font-size: 11px;
+  font-weight: 600;
+}

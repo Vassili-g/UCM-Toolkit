@@ -40,7 +40,7 @@ const RELEVE = `<script>
 const MESSAGES_DU_SANDBOX = new Set(['preferences', 'preferences-rangees', 'progression', 'releve', 'lecture-echouee', 'annulation', 'selection', 'disposition', 'composant', 'apercu-du-composant', 'declaration', 'non-construit']);
 
 /** Les demandes qu'un explorateur en lecture seule peut envoyer. */
-const DEMANDES_PERMISES = new Set(['lire-preferences', 'ranger-preferences', 'lire-releve', 'annuler', 'lire-composant', 'changer-disposition', 'resize']);
+const DEMANDES_PERMISES = new Set(['lire-preferences', 'ranger-preferences', 'lire-releve', 'lire-structure', 'annuler', 'lire-composant', 'changer-disposition', 'resize']);
 
 export async function ouvrir({ largeur = 1360, hauteur = 800, classe = '', presse = true } = {}) {
   const contexte = await navigateur.newContext({ viewport: { width: largeur, height: hauteur }, permissions: presse ? ['clipboard-read', 'clipboard-write'] : [] });

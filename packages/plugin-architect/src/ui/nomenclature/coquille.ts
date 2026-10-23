@@ -16,6 +16,7 @@ import { ETAT_INITIAL, etatSuivant, type EtatDeLEcran, type Onglet } from './eta
 import { creerFrontiere, type Frontiere, type MessageAAfficher } from './frontiere';
 import { creerBandeau, creerPanneau, creerVueDAnalyse, type Panneau } from './panneaux';
 import { TEXTES } from '../textes/nomenclature';
+import { TEXTES_STRUCTURE } from '../textes/structure';
 
 /** Reçoit chaque message que la frontière rend, après la mise à jour de l'état. */
 export type Ecouteur = (message: MessageAAfficher, etat: EtatDeLEcran) => void;
@@ -37,6 +38,8 @@ export interface Coquille {
   filtre(): FiltreDeCollection | null;
   /** Le compte de l'onglet Corrections sous un filtre : les noms que le filtre retient. `null` rend le compte du bilan. */
   poserLeCompteDesCorrections(nombre: number | null): void;
+  /** Les comptes du domaine structure : les constats de « À faire dans Figma », et les corrections de modes et de scopes que Corrections ajoute à ses renommages. */
+  poserLesComptesDeStructure(comptes: { readonly aFaire: number; readonly corrections: number }): void;
   poserLeFiltre(filtre: FiltreDeCollection | null): void;
   /** Appelle le rappel à chaque changement de filtre ou d'état local (onglet, carte demandée) ; rend la fonction qui le retire. */
   surChangement(rappel: () => void): () => void;
@@ -79,6 +82,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   const surChangements = new Set<() => void>();
   let filtre: FiltreDeCollection | null = null;
   let compteDesCorrections: number | null = null;
+  let comptesDeStructure = { aFaire: 0, corrections: 0 };
   let deplierUneCarte: (cle: string) => void = () => {};
 
   function appliquerLEtat(suivant: EtatDeLEcran): boolean {
@@ -143,6 +147,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   }
   const compteAAppliquer = lierLeCompte('a-appliquer', TEXTES.nomDeLOngletAAppliquer);
   const compteATrancher = lierLeCompte('a-trancher', TEXTES.nomDeLOngletATrancher);
+  const compteAFaire = lierLeCompte('a-faire', TEXTES_STRUCTURE.nomDeLOngletAFaire);
 
   function poserLeCompte({ bouton, pastille, nom }: CompteDOnglet, nombre: number): void {
     pastille.hidden = nombre === 0;
@@ -187,9 +192,9 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     if (point.focus?.isConnected && point.focus !== document.body) point.focus.focus({ preventScroll: true });
   }
 
-  /** La puce du filtre se montre sous les onglets qui parlent des noms ; les règles valent pour tout le fichier. */
+  /** La puce du filtre se montre sous les onglets qui parlent des noms ; les règles valent pour tout le fichier, et les constats de À faire dans Figma ne suivent pas la collection de l'arbre. */
   function rendreLeFiltre(): void {
-    ligneDuFiltre.hidden = filtre === null || etat.onglet === 'regles';
+    ligneDuFiltre.hidden = filtre === null || etat.onglet === 'regles' || etat.onglet === 'a-faire';
     if (filtre === null) return;
     ligneDuFiltre.replaceChildren(TEXTES.filtre, creerPuceFiltre(TEXTES.filtreCollection, filtre.nom, TEXTES.enleverLeFiltre, options.enleverLeFiltre));
   }
@@ -208,8 +213,9 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     bandeau.hidden = !etat.fichierModifie || etat.ecranDeTravail === 'lecture';
     if (etat.analyse) vueDAnalyse.poser(etat.analyse.lues, etat.analyse.total);
 
-    poserLeCompte(compteAAppliquer, compteDesCorrections ?? etat.comptes.aAppliquer);
+    poserLeCompte(compteAAppliquer, (compteDesCorrections ?? etat.comptes.aAppliquer) + comptesDeStructure.corrections);
     poserLeCompte(compteATrancher, etat.comptes.aTrancher);
+    poserLeCompte(compteAFaire, comptesDeStructure.aFaire);
     for (const panneau of [panneaux.aAppliquer, panneaux.aTrancher, panneaux.aFaire, panneaux.regles]) panneau.poserEtat(etat.particulier);
     if (onglets.actif() !== etat.onglet) onglets.selectionner(etat.onglet);
     for (const rappel of [...surChangements]) rappel();
@@ -230,6 +236,11 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     poserLeCompteDesCorrections(nombre) {
       if (nombre === compteDesCorrections) return;
       compteDesCorrections = nombre;
+      rendre();
+    },
+    poserLesComptesDeStructure(comptes) {
+      if (comptes.aFaire === comptesDeStructure.aFaire && comptes.corrections === comptesDeStructure.corrections) return;
+      comptesDeStructure = comptes;
       rendre();
     },
     poserLeFiltre(suivant) {
