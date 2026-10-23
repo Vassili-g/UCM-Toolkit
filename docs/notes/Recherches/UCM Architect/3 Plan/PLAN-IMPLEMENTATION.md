@@ -595,7 +595,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   Fait quand : arbre depuis les noms ; valeurs d'un groupe importées à son
   ouverture, par lots de huit ; loi d'import étendue ; `figma.fileKey` rangé
   sous sa clé quand il est servi.
-- [~ Claude 2] **B6 · Journal étendu, scopes et modes.** `implementeur-exigeant` · vague
+- [x] (cd9a3a4d) **B6 · Journal étendu, scopes et modes.** `implementeur-exigeant` · vague
   3 · K5 fusionné.
   Domaines : `structure`. Écrit en plus : `src/ecriture/structure.ts`, `src/ecriture/journal.ts` (extrait du journal de `src/ecriture/noms.ts`, sans changer ses attendus), leurs tests.
   Fait quand : le journal range et l'Historique annule trois sortes nouvelles :
@@ -657,7 +657,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   `plugin-exporter/tests/loiDuDocumentIntact.test.ts`.
   Fait quand : C43, C44, C45 ; C46 par `template/ecriture.ts` ; ajout et
   retrait d'une instance remplie refusés avec un motif.
-- [ ] **B8 · Préparation, création, retour.** Vague 6 · K6, B6, B4, note P.
+- [~ Claude 2] **B8 · Préparation, création, retour.** (avec l'annulation de la structure par l'Historique et le message `regles-recues`, Q-71) Vague 6 · K6, B6, B4, note P.
   `implementeur-exigeant` (journal). Domaines : `preparation`, `configuration`. Écrit en plus : `src/ecriture/variables.ts`, `src/preparations.ts` (clientStorage), leurs tests.
   Fait quand : règles de la note P (identité, destination, versions du texte
   échangé, états par entrée, reprise sans doublon) ; création des seules
@@ -1355,6 +1355,14 @@ Choix faits sans le mainteneur :
   « Contour » → « Stroke » · réversible : oui.
 - Q-70 · B6, K10 · Échange · Codex n'avait pas commencé B6 ; Claude 2 le
   prend dans l'arbre partagé, Codex prend K10 · réversible : oui.
+- Q-71 · B6 · Journal de structure · une famille de clés à part
+  (`journal-structure:<lot>:<rang>`), un seul lot de structure à la fois (le
+  suivant remplace le précédent) ; lignes par identifiant Figma ; l'usage
+  d'une variable créée se cherche dans tout le fichier
+  (`loadAllPagesAsync`), un parcours qui échoue saute `usage-illisible`.
+  L'annulation n'avait pas de message : B8 la branche à l'Historique ; les
+  motifs `usage-ajoute`, `journal-impossible`, `occupe`, `usage-illisible`
+  n'ont pas de texte avant U8 · réversible : oui.
 
 ## 10. Hors du plan
 
