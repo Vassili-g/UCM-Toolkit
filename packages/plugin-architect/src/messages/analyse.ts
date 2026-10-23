@@ -5,7 +5,8 @@
  * `perime` ; l'interface garde les constats et ne relance rien avant
  * Actualiser ou Analyser.
  */
-import type { LectureDeComposant } from '../composant';
+import type { ReleveDeComposant } from '@ucm-kit/core/controles';
+
 import type { Constat, IdentiteDAnalyse } from './commun';
 
 export type StatutDAnalyse = 'complete' | 'partielle' | 'annulee' | 'arretee';
@@ -19,6 +20,6 @@ export type DemandeDAnalyse =
 export type MessageDAnalyse =
   | { type: 'analyse-commencee'; analyse: IdentiteDAnalyse }
   | { type: 'analyse-en-cours'; analyse: IdentiteDAnalyse; variantsLus: number; variantsTotal: number }
-  | { type: 'analyse'; analyse: IdentiteDAnalyse; statut: StatutDAnalyse; constats: readonly Constat[]; lecture: LectureDeComposant | null; variants: readonly { id: string; nom: string }[] }
+  | { type: 'analyse'; analyse: IdentiteDAnalyse; statut: StatutDAnalyse; constats: readonly Constat[]; lecture: ReleveDeComposant['lecture'] | null; variants: readonly { id: string; nom: string }[] }
   | { type: 'perime'; analyse: IdentiteDAnalyse; cause: CauseDePeremption }
   | { type: 'occupe'; analyse: IdentiteDAnalyse };

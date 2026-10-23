@@ -13,6 +13,7 @@
  * celle d'une demande remplacée depuis. Les domaines d'analyse portent à la
  * place `analyse` (`IdentiteDAnalyse`).
  */
+import type { Constat, Correction } from '@ucm-kit/core/controles';
 import type { ArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 
@@ -30,18 +31,7 @@ export interface IdentiteDAnalyse {
   readonly generation: number;
 }
 
-/**
- * Un constat de l'analyse. Le protocole ne lit que son identifiant ; le lot
- * qui construit les contrôles fixe le reste de la forme.
- */
-export interface Constat {
-  readonly id: string;
-}
-
-/** Une correction proposée ou appliquée. Même réserve que `Constat`. */
-export interface Correction {
-  readonly id: string;
-}
+export type { Constat, Correction };
 
 /** Une préparation de tokens. Même réserve que `Constat`. */
 export interface Preparation {

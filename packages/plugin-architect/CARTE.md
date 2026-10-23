@@ -25,6 +25,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - composant.ts : modèle pur de la vue composant : natures, lignes, sections, résumés, portée, préfixe
 - lectureDuComposant.ts : sujet d'une sélection, ses calques, ses frontières, ses liaisons, ses styles de texte
 - releveDuComposant.ts : relevé complet d'un jeu de variants pour les contrôles du kit (`ReleveDeComposant`), borné par le budget de layers de S3
+- constatsDuMoteur.ts : points à corriger du moteur de l'exporteur traduits en `Constat` du kit, par une table explicite (C30, C34, C35, C41, C42, C44)
 - apercu.ts : image du sujet, exportée en mémoire, et boîte de chaque calque
 - fenetre.ts : deux dispositions de la fenêtre, une par mode, leurs bornes et leurs clés
 - rapport.ts : rapport versionné des diagnostics ; sans lecteur depuis A1
@@ -48,7 +49,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - contexte.ts : ce qu'un domaine reçoit : port vers l'interface, fenêtre, état partagé
 - lectureDeFigma.ts : ports de lecture sur `figma`, communs aux domaines
 - souche.ts : réponse « non construit » d'un domaine pas encore fait
-- commun.ts, arbre.ts, composant.ts, nomenclature.ts, analyse.ts : domaines construits ; `analyse.ts` porte l'identité et le panneau périmé
+- commun.ts, arbre.ts, composant.ts, nomenclature.ts, analyse.ts : domaines construits ; `analyse.ts` lance l'analyse (relevé, catalogue, moteur, contrôles du kit), porte l'identité et le panneau périmé
 - bibliotheque.ts : library lue depuis un autre fichier : arbre depuis les noms, valeurs d'un groupe importées par lots de huit
 - accessibilite.ts, configuration.ts, corrections.ts, fiche.ts, ignores.ts, preparation.ts, questions.ts, recherche.ts, regles.ts, structure.ts : souches
 
