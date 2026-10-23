@@ -396,7 +396,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `valeur`, voir `packages/plugin-architect/src/ui/structure/lecture.ts`) ;
   un test positif et un négatif par constat.
 
-- [~ Claude 2] **K11 · Propagation depuis un variant modèle (C24).** `implementeur` · arbre partagé · K8, B5 (Q-74).
+- [x] (30885c1e) **K11 · Propagation depuis un variant modèle (C24).** `implementeur` · arbre partagé · K8, B5 (Q-74).
   Écrit : `kit/src/controles/propagation.ts`, son test, sa ligne d'export dans
   `kit/src/controles/index.ts` ; `plugin-architect/src/messages/corrections.ts`,
   `plugin-architect/src/sandbox/{corrections,analyse}.ts`,
@@ -425,7 +425,7 @@ racine (§4.7). Aucun lot K ne monte de version (lot V).
   `monorepoCoherent` et `pinDocumente` compris ; le corpus
   `docs/references/design-systems/ucm/` régénéré par
   `node docs/references/design-systems/_outils/ucm.mjs` (il date la version du kit).
-  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`) ; V7 (0.12.6, après K6 et K8, `683d8e28`) ; V8 (0.12.7, après K5) ; V9 (0.12.8, après K10 et la revue, `104868cc`).
+  Fait : V1 (kit 0.12.0, après K2) ; V2 (0.12.1, après K0) ; V3 (0.12.2, après K1 et K9) ; V4 (0.12.3, avec K4) ; V5 (0.12.4, avec K7) ; V6 (0.12.5, après K3, `1c7c5e02`) ; V7 (0.12.6, après K6 et K8, `683d8e28`) ; V8 (0.12.7, après K5) ; V9 (0.12.8, après K10 et la revue, `104868cc`) ; V10 (0.12.9, après K11, `2cc85eac`).
 
 ### Piste S · socle
 
@@ -696,7 +696,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
   chemin (C13) ; tests : deux fichiers homonymes, deux préparations, une
   création interrompue, un texte incompatible.
 
-- [~ Codex] **B11 · Modules sans lecteur.** Codex · retrait · aucune dépendance (Q-21).
+- [x] (Codex 16d39944…fb9dba0e, à fusionner) **B11 · Modules sans lecteur.** Codex · retrait · aucune dépendance (Q-21).
   Écrit : suppression de `src/{comparaison,releves,simulation,rapport}.ts` et
   `src/integrations/contrats.ts`, de leurs tests propres
   (`tests/{comparaison,annexes,contrats}.test.ts`) et des seuls cas qui les
