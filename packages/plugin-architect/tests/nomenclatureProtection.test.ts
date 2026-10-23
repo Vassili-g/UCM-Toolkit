@@ -32,12 +32,12 @@ test('une ligne par cause, dans l’ordre reçu, avec le texte de la note', () =
   assert.equal(parCause['marque-illisible'].nombre, '1 nom écrit par UCM Palettes');
   assert.equal(parCause['marque-illisible'].explication, 'Ce qu’UCM Palettes a noté dans ce fichier est illisible. Signalez ce fichier au mainteneur des plugins UCM.');
   assert.equal(parCause['marque-future'].explication,
-    'Ce fichier a été ouvert avec une version d’UCM Palettes plus récente que celle qu’UCM Nomenclature connaît. Mettez à jour UCM Nomenclature pour renommer ces variables.');
+    'Ce fichier a été ouvert avec une version d’UCM Palettes plus récente que celle qu’UCM Architect connaît. Mettez à jour UCM Architect pour renommer ces variables.');
   assert.equal(parCause['sans-regles'].explication,
     'Les variables d’UCM Palettes gardent leur nom tant que l’écriture des noms n’est pas enregistrée. Choisissez l’écriture, puis appuyez sur Continuer.');
   assert.equal(parCause['lecture-refusee'].nombre, '40 variables de couleur non vérifiées');
   assert.equal(parCause['lecture-refusee'].explication,
-    'UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse pour renommer ces variables.');
+    'UCM Architect n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse pour renommer ces variables.');
 });
 
 test('seule la ligne des non vérifiés a la pastille « Non vérifié » et le bouton Relancer l’analyse', () => {
@@ -60,9 +60,9 @@ test('la ligne d’une collection dit combien de ses variables gardent leur nom'
 
 test('un lot partiel ou refusé dit que la protection n’a pas pu être lue', () => {
   assert.equal(TEXTES.nonVerifieesNonRenommees(1),
-    '1 variable de couleur n’a pas été renommée. UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier.');
+    '1 variable de couleur n’a pas été renommée. UCM Architect n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier.');
   assert.equal(TEXTES.nonVerifieesNonRenommees(2),
-    '2 variables de couleur n’ont pas été renommées. UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier.');
+    '2 variables de couleur n’ont pas été renommées. UCM Architect n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier.');
   assert.equal(TEXTES.rienNAEteRenommeNonVerifie,
-    'Rien n’a été renommé. UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse.');
+    'Rien n’a été renommé. UCM Architect n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse.');
 });

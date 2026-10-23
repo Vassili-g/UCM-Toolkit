@@ -9,16 +9,14 @@ exporté depuis Figma ; le développeur écrit le comportement du composant.
 | Besoin | Outil | Point d'entrée |
 |---|---|---|
 | Créer des palettes Light et Dark, vérifier leurs contrastes et écrire leurs variables dans Figma | UCM Palettes | [Utilisation et installation](./packages/plugin-palettes/README.md) |
-| Comprendre la valeur d'un token, ses alias et les tokens d'un composant | UCM Architect | [Utilisation et installation](./packages/plugin-architect/README.md) |
+| Parcourir les variables, renommer les collections et les variables, analyser un composant et préparer ses tokens | UCM Architect | [Utilisation et installation](./packages/plugin-architect/README.md) |
 | Exporter un composant et ses règles d'usage, ou les variables du fichier | UCM Contract Exporter | [Ouvrir le plugin](#ouvrir-le-plugin) |
-| Harmoniser les noms des variables et des collections locales : une écriture, des termes communs | UCM Nomenclature | [Recherches sur UCM Nomenclature](./docs/notes/Recherches/Plugin%20Architect/README.md) |
 | Recevoir les exports et les contrôler dans GitHub ou GitLab | `@ucm-kit/cli` | [Brancher un repository](#brancher-un-repository) |
 | Appeler les validateurs depuis du code | `@ucm-kit/core` | [API du kit](./packages/kit/README.md) |
 | Comparer un contrat à une API TypeScript et dériver ses unions | `@ucm-kit/adapter-typescript` | [Adaptateur optionnel](./packages/adapter-typescript/README.md) |
 
 Les plugins s'utilisent séparément. Palettes écrit les couleurs ; l'exporteur
-publie les variables locales en tokens DTCG ; l'explorateur les explique en
-lecture seule ; UCM Nomenclature harmonise les noms des variables et des collections. L'explorateur fonctionne aussi
+publie les variables locales en tokens DTCG ; UCM Architect parcourt, renomme et corrige les variables, et analyse les composants. Il fonctionne aussi
 sans contrat UCM. [CONCEPT.md](./CONCEPT.md#les-produits-et-les-deux-périmètres)
 donne le rôle de chaque produit et distingue le périmètre agnostique, par
 défaut, du périmètre full UCM, en option.

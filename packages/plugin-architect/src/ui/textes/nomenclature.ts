@@ -37,7 +37,7 @@ function quandLeLot(iso: string, maintenant: Date): string {
 const INDICE_DE_FAUTE = 'Une lettre d’écart';
 
 export const TEXTES = {
-  marque: 'UCM Nomenclature',
+  marque: 'UCM Architect',
   titreConfiguration: 'Configuration',
   boutonConfiguration: 'Configuration',
   ouvrirLaConfiguration: 'Ouvrir la configuration',
@@ -87,7 +87,7 @@ export const TEXTES = {
   fichierUcm: 'Ce fichier suit l’architecture UCM',
   aideArchitecture: 'UCM Palettes n’écrit alors ses palettes ni dans theme, ni dans brands, ni dans utility. Ces collections ne portent que des alias.',
   architectureIllisible: 'La déclaration rangée dans ce fichier est illisible.',
-  architectureFuture: 'Elle vient d’une version plus récente d’UCM Nomenclature.',
+  architectureFuture: 'Elle vient d’une version plus récente d’UCM Architect.',
   collectionsAnalysees: 'Collections analysées',
   variablesDeLaCollection: (nombre: number): string => (nombre === 1 ? '1 variable' : `${nombre} variables`),
   /** La ligne d'une collection : « 346 variables, dont 120 gardent leur nom » ; `gardees` compte les variables protégées de la collection. */
@@ -135,7 +135,7 @@ export const TEXTES = {
   annulationDuRenommageRefusee: 'L’annulation a été refusée. Relancez l’analyse, puis annulez de nouveau.',
   annulationNonVerifiee: (nombre: number): string =>
     `${nombre === 1 ? '1 variable de couleur n’a pas pu être rétablie.' : `${nombre} variables de couleur n’ont pas pu être rétablies.`} `
-    + 'UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse, puis annulez de nouveau.',
+    + 'UCM Architect n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse, puis annulez de nouveau.',
   annulationDuRenommagePartielle: (retablis: number, sautes: number): string =>
     `${noms(retablis)} rétablis, ${sautes} n’ont pas pu l’être : un autre nom occupe leur place ou ils ont changé depuis. Le plugin les garde ; annulez de nouveau après avoir corrigé.`,
   /**
@@ -172,8 +172,8 @@ export const TEXTES = {
     'fichier-modifie': 'Le fichier a changé depuis l’analyse. Relancez l’analyse.',
     'generation-perimee': 'Les noms affichés ne correspondent plus au fichier. Relancez l’analyse, puis recommencez.',
     'regles-modifiees': 'Les règles ont changé depuis le calcul de cette liste. Relisez la liste, puis recommencez.',
-    'regles-futures': 'Une version plus récente d’UCM Nomenclature a rangé des règles dans ce fichier. Mettez le plugin à jour pour renommer.',
-    'import-illisible': 'Ce fichier de règles est illisible. Choisissez un fichier exporté depuis la Configuration d’UCM Nomenclature.',
+    'regles-futures': 'Une version plus récente d’UCM Architect a rangé des règles dans ce fichier. Mettez le plugin à jour pour renommer.',
+    'import-illisible': 'Ce fichier de règles est illisible. Choisissez un fichier exporté depuis la Configuration d’UCM Architect.',
     'mot-refuse': 'Ce terme ne peut pas s’écrire ainsi : retirez les espaces et les caractères / | . { } $.',
     'import-partiel': 'L’import s’est arrêté en route : les règles du fichier sont revenues à leur état d’avant.',
     echec: 'L’opération a échoué. Relancez l’analyse ; si le message revient, rouvrez le plugin.',
@@ -257,9 +257,9 @@ export const TEXTES = {
   explicationDeProtection: {
     'marque-absente': 'UCM Palettes écrit ces variables, et leur groupe garde son nom. Ouvrez UCM Palettes une fois dans ce fichier pour qu’il suive les règles, puis revenez ici.',
     'marque-illisible': 'Ce qu’UCM Palettes a noté dans ce fichier est illisible. Signalez ce fichier au mainteneur des plugins UCM.',
-    'marque-future': 'Ce fichier a été ouvert avec une version d’UCM Palettes plus récente que celle qu’UCM Nomenclature connaît. Mettez à jour UCM Nomenclature pour renommer ces variables.',
+    'marque-future': 'Ce fichier a été ouvert avec une version d’UCM Palettes plus récente que celle qu’UCM Architect connaît. Mettez à jour UCM Architect pour renommer ces variables.',
     'sans-regles': 'Les variables d’UCM Palettes gardent leur nom tant que l’écriture des noms n’est pas enregistrée. Choisissez l’écriture, puis appuyez sur Continuer.',
-    'lecture-refusee': 'UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse pour renommer ces variables.',
+    'lecture-refusee': 'UCM Architect n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse pour renommer ces variables.',
   } satisfies Record<CauseDeProtection, string>,
 
   aucunNomCoche: 'Aucun nom coché',
@@ -289,18 +289,18 @@ export const TEXTES = {
   rienNAEteRenomme: 'Rien n’a été renommé.',
   /** Un lot partiel : les variables dont la protection ne se lit pas. */
   nonVerifieesNonRenommees: (nombre: number): string =>
-    `${nombre === 1 ? '1 variable de couleur n’a pas été renommée.' : `${nombre} variables de couleur n’ont pas été renommées.`} UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier.`,
+    `${nombre === 1 ? '1 variable de couleur n’a pas été renommée.' : `${nombre} variables de couleur n’ont pas été renommées.`} UCM Architect n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier.`,
   /** Un lot refusé parce que toutes les variables sautées sont non vérifiées. */
-  rienNAEteRenommeNonVerifie: 'Rien n’a été renommé. UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse.',
+  rienNAEteRenommeNonVerifie: 'Rien n’a été renommé. UCM Architect n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse.',
   /** Une règle de nommage vient d'une version plus récente du plugin : le compte « À appliquer » cède la place à ce texte, et le bouton reste inactif. */
-  reglesFutures: 'Une version plus récente d’UCM Nomenclature a rangé des règles dans ce fichier. Mettez le plugin à jour pour renommer.',
+  reglesFutures: 'Une version plus récente d’UCM Architect a rangé des règles dans ce fichier. Mettez le plugin à jour pour renommer.',
   journalImpossible: 'Rien n’a été renommé : le fichier ne peut pas garder de quoi remettre ces noms. Cochez moins de noms, puis appliquez de nouveau.',
   bilanIllisible: 'Les noms sont changés, mais le plugin n’a pas pu relire le fichier. Relancez l’analyse.',
   nomsNonRetablis: (nombre: number): string =>
     nombre === 1 ? '1 nom n’a pas retrouvé son ancien nom : il a changé depuis le renommage.' : `${nombre} noms n’ont pas retrouvé leur ancien nom : ils ont changé depuis le renommage.`,
   annulationRefusee: 'Le dernier renommage n’a pas pu être annulé.',
   /** Une règle de nommage vient d'une version plus récente du plugin : l'annulation est refusée avant toute écriture, comme l'application. */
-  annulationRefuseeReglesFutures: 'Une version plus récente d’UCM Nomenclature a rangé des règles dans ce fichier. Mettez le plugin à jour pour annuler ce renommage.',
+  annulationRefuseeReglesFutures: 'Une version plus récente d’UCM Architect a rangé des règles dans ce fichier. Mettez le plugin à jour pour annuler ce renommage.',
 
   // U4a : onglet Règles, liste des termes.
   modifier: 'Modifier',

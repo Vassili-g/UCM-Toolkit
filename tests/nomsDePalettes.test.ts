@@ -1,6 +1,6 @@
 /// <reference types="@figma/plugin-typings" />
 /**
- * Aller-retour entre UCM Nomenclature et UCM Palettes sur un fichier inventé : des palettes écrites par Palettes en minuscules
+ * Aller-retour entre UCM Architect et UCM Palettes sur un fichier inventé : des palettes écrites par Palettes en minuscules
  * (liaison destination et liaison reprise, deux intensités, thèmes dans le chemin), des règles PascalCase et `colors` qui devient
  * `color`. Nomenclature calcule les renommages par le socle et les écrit par son code d'écriture ; le plan de Palettes, sur le
  * fichier renommé, ne renomme rien et donne les mêmes noms. Sans la marque de Palettes, les variables de Palettes restent
@@ -81,7 +81,7 @@ async function fichierEcritParPalettes(liaison: Liaison): Promise<FichierDePalet
   return { ...fichier, attendu };
 }
 
-/** Ce que fait UCM Nomenclature : lire le fichier, calculer par le socle, écrire par son code d'écriture. */
+/** Ce que fait UCM Architect : lire le fichier, calculer par le socle, écrire par son code d'écriture. */
 async function nomenclatureRenomme(figma: FauxFigma): Promise<{ libres: boolean; demandes: number; sautes: readonly string[] }> {
   const plugin = figma as unknown as PluginAPI;
   const stockage = creerPortDeRegles(plugin);

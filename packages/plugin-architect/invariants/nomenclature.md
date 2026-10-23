@@ -1,4 +1,4 @@
-# UCM Nomenclature
+# Nomenclature d'UCM Architect
 
 - **L'interrupteur « Ce fichier suit l’architecture UCM » de la Configuration range la déclaration `architecture` dans `ESPACE_ARCHITECT`.** Le kit en déclare la clé (`CLE_ARCHITECTURE_DU_FICHIER`), le lecteur et la forme versionnée. Le bilan porte son état lu. L'export et l'import des règles portent ce choix ; un import sans déclaration conserve celle du fichier. Une bascule ne change pas l'Historique.
 - **Nomenclature ne change dans le document que le `name` d'une variable ou d'une collection locale, ses données partagées dans `ESPACE_ARCHITECT` et le point d'annulation.** Seul `src/ecriture/noms.ts` le fait. Nomenclature ne lit ni page ni composant. Tests : `tests/loiDEcritureDesNoms.test.ts` refuse ailleurs toute création, suppression, setter de valeur, import, chargement de page et `.remove(`, interface comprise.

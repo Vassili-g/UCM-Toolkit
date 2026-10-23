@@ -1,5 +1,5 @@
 /*
- * Les règles propres à UCM Nomenclature. Les signaux du langage visuel commun
+ * Les règles propres à UCM Architect. Les signaux du langage visuel commun
  * (jetons, flèche, diff en deux colonnes, ligne de réussite, couleurs de place)
  * vivent dans `langage.css` du socle, que le build charge avant cette feuille.
  * Aucune couleur ne s'écrit ici : le terme en cause d'un nom lit les rôles d'avertissement du socle (voir la règle `mark`).

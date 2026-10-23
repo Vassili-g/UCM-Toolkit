@@ -31,7 +31,7 @@ Sous-chemin sans Figma : calcul de renommage sur un inventaire portable.
 
 - inventaire.ts : forme de l'inventaire, `estProtegee`, `palettesLibres`, `causeDeProtection`
 - chemins-publies.ts : renommages qui feraient disparaître un token de `tokens.json` ou un axe de modes de l'export (`axesDeLExport`)
-- calcul.ts : `nomsSelonLesRegles` et sa version synchrone, qu'UCM Nomenclature et UCM Palettes appellent ; `idsNonRenommables` en tire les noms figés
+- calcul.ts : `nomsSelonLesRegles` et sa version synchrone, qu'UCM Architect et UCM Palettes appellent ; `idsNonRenommables` en tire les noms figés
 
 ## src/emplois/
 Sous-chemin sans dépendance : vocabulaire qu'UCM Palettes et `ucm check` partagent.

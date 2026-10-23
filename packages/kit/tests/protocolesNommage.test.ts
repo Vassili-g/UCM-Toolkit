@@ -1,4 +1,4 @@
-/** Les entrées de l'espace qui changent un nom, lues comme UCM Nomenclature les range, et les clés que les deux côtés construisent. */
+/** Les entrées de l'espace qui changent un nom, lues comme UCM Architect les range, et les clés que les deux côtés construisent. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

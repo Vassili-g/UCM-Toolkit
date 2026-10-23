@@ -928,7 +928,7 @@ test('terme-ordinaire : une simulation rend effet null sans erreur, et un terme 
 // Les règles d'une version plus récente du plugin
 
 const FUTURE = JSON.stringify({ version: 2, terme: ['quux'], remplace: [['quuxed']] });
-const TEXTE_DES_REGLES_FUTURES = 'Une version plus récente d’UCM Nomenclature a rangé des règles dans ce fichier. Mettez le plugin à jour pour renommer.';
+const TEXTE_DES_REGLES_FUTURES = 'Une version plus récente d’UCM Architect a rangé des règles dans ce fichier. Mettez le plugin à jour pour renommer.';
 
 test('L12 : une entrée de nommage de version 2 refuse l’application avant toute écriture, et le bilan le dit', async () => {
   const { b } = await pretAAppliquer(FICHIER);

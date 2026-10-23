@@ -1,7 +1,7 @@
 /// <reference types="@figma/plugin-typings" />
 /**
  * Les fichiers inventés des lois entre produits (`loisEntreProduits.test.ts`) : un fichier où UCM Palettes a écrit une palette
- * d'une forme donnée, les règles de nommage d'UCM Nomenclature rangées pour une convention, et des variables du thème nommées
+ * d'une forme donnée, les règles de nommage d'UCM Architect rangées pour une convention, et des variables du thème nommées
  * selon cette convention. Le double de Figma accepte les doublons de noms par défaut : c'est UCM qui doit refuser un nom pris.
  */
 import assert from 'node:assert/strict';
@@ -66,7 +66,7 @@ const composantes = (hexa: string) => {
   return { r: r / 255, g: g / 255, b: b / 255, a: 1 };
 };
 
-/** Le texte de l'entrée `ecriture` que UCM Nomenclature range : la convention, sur les groupes et sur les variables. */
+/** Le texte de l'entrée `ecriture` que UCM Architect range : la convention, sur les groupes et sur les variables. */
 export function texteDesRegles(convention: Convention): string {
   return JSON.stringify({ version: 1, groupes: convention, variables: convention });
 }

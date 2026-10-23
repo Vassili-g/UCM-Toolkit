@@ -1,5 +1,5 @@
 /**
- * La coquille de l'écran d'UCM Nomenclature : les quatre onglets (Corrections,
+ * La coquille de l'écran de renommage : les quatre onglets (Corrections,
  * Questions, À faire dans Figma, Règles), la puce du filtre de l'arbre, les
  * écrans de lecture et de premier lancement, la page Configuration et le
  * bandeau du fichier modifié. L'en-tête du socle ne se montre que dans la

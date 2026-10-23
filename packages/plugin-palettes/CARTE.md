@@ -41,7 +41,7 @@ Plugin UCM Palettes : ucm-palettes-plugin, privé.
 - textes.ts : textes des planches : catalogue français, quelle que soit la langue de l'interface
 
 ## src/ecriture/
-- marque.ts : marque `nommage` que Palettes range à la racine de `ESPACE_PARTAGE` : il y nomme ses variables selon les règles, et UCM Nomenclature cesse alors de les protéger
+- marque.ts : marque `nommage` que Palettes range à la racine de `ESPACE_PARTAGE` : il y nomme ses variables selon les règles, et UCM Architect cesse alors de les protéger
 - recette.ts : rangement de la recette : validation, empreinte lue, commitUndo
 - planche.ts : dessin de la planche : page, cadres possédés remplacés à leur place, polices, calques étrangers, un commitUndo par dessin ; retrait du cadre d'une palette supprimée ; choix de la page des planches, qui y déplace les cadres possédés
 - restaurationDesVariables.ts : journal qui défait une écriture refusée par Figma et rend les restes qu'il n'a pas pu défaire

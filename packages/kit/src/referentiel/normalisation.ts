@@ -48,7 +48,7 @@ export function porteeDeLaGrammaire(nomDeCollection: string, groupe: readonly st
 }
 
 
-/** Remplace les formes tolérées, y compris une suite de mots (`border-radius` → `radius`), comme le moteur d'UCM Nomenclature. */
+/** Remplace les formes tolérées, y compris une suite de mots (`border-radius` → `radius`), comme le moteur d'UCM Architect. */
 function remplacerLesTermes(mots: readonly string[], categorie: CategorieDeNom): string[] {
   const registres = [...REGISTRES, ...REGISTRES_ARCHITECTURE].filter((registre) => registre !== REGISTRE_AXES_ETAT || categorie === 'proprietes');
   const formes = registres.flatMap((registre) => registre.termes).map((terme) => termePourCategorie(terme, categorie)).flatMap((terme) => (terme.toleres ?? [])

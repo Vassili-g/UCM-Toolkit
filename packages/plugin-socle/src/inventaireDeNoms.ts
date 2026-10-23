@@ -1,6 +1,6 @@
 /**
  * L'acquisition de l'inventaire depuis Figma : les ports de lecture, la lecture par lots et la lecture du suivi de Palettes.
- * Elle vit dans le socle parce que UCM Nomenclature et UCM Palettes construisent l'inventaire de la même façon. La forme de
+ * Elle vit dans le socle parce que UCM Architect et UCM Palettes construisent l'inventaire de la même façon. La forme de
  * l'inventaire, la protection et le calcul de renommage sont dans `@ucm-kit/core/nommage`.
  */
 import type { CategorieDeNom } from '@ucm-kit/core/referentiel';

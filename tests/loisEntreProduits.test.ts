@@ -1,6 +1,6 @@
 /// <reference types="@figma/plugin-typings" />
 /**
- * Les lois entre UCM Palettes, UCM Nomenclature et l'explorateur : un produit annonce ou lit ce qu'un autre écrit, quelle que
+ * Les lois entre UCM Palettes, UCM Architect et l'explorateur : un produit annonce ou lit ce qu'un autre écrit, quelle que
  * soit la convention de nommage du fichier. Chaque test de paquet passe seul ; ces lois croisent les produits.
  *
  * La matrice a cinq axes : la convention (chaque entrée de `CONVENTIONS`, sur les groupes et sur les variables), les
@@ -55,7 +55,7 @@ function pourChaqueForme(loi: string, formes: readonly FormeDePalette[], corps: 
   for (const forme of formes) test(`loi ${loi} · ${titreDeLaForme(forme)}`, { todo: todo(forme) }, () => corps(forme));
 }
 
-/** Ce que fait UCM Nomenclature sur le fichier : lire, calculer par le socle, proposer des renommages, et au besoin les écrire par son code d'écriture. */
+/** Ce que fait UCM Architect sur le fichier : lire, calculer par le socle, proposer des renommages, et au besoin les écrire par son code d'écriture. */
 async function nomenclature(fichier: Pick<FichierDeTest, 'figma'>) {
   const plugin = fichier.figma as unknown as PluginAPI;
   const stockage = creerPortDeRegles(plugin);
@@ -73,7 +73,7 @@ async function nomenclature(fichier: Pick<FichierDeTest, 'figma'>) {
   return { libres, demandes, appliquer: () => appliquerLesRenommages({ demandes, session, stockage }) };
 }
 
-/** Les renommages qu'UCM Nomenclature proposerait aux variables de Palettes. */
+/** Les renommages qu'UCM Architect proposerait aux variables de Palettes. */
 async function nomenclatureProposera(fichier: Pick<FichierDeTest, 'figma' | 'palette'>): Promise<{ readonly libres: boolean; readonly aLaPalette: readonly RenommageDemande[] }> {
   const { libres, demandes } = await nomenclature(fichier);
   const miennes = new Set(variablesDeLaPalette(fichier));
@@ -226,7 +226,7 @@ pourChaqueForme('3 annonce et écriture · reprise', croiser([B]), async (forme)
   for (const { vers } of annonce.aRenommer) assert.ok(apres.includes(vers), vers);
 });
 
-// La conversion se joue deux fois : sur des variables d'origine en minuscules, puis sur des variables qu'UCM Nomenclature a déjà renommées selon la convention.
+// La conversion se joue deux fois : sur des variables d'origine en minuscules, puis sur des variables qu'UCM Architect a déjà renommées selon la convention.
 for (const apresNomenclature of [false, true]) {
   pourChaqueForme(`3 annonce et écriture · conversion ${apresNomenclature ? 'après le passage de Nomenclature' : 'avant'}`, croiser([B, B_EN_CHEMIN]), async (forme) => {
     const fichier = await fichierDePalettes(forme, { regles: true, ecrite: false });

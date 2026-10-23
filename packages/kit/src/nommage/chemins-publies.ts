@@ -4,7 +4,7 @@
  * un token de `tokens.json`. Le contrôle des noms Figma exacts ne les voit pas (`bg/primary` et `Background/primary`
  * ont deux noms et un chemin).
  *
- * Le module est pur : il lit un inventaire et des renommages, et ne touche à aucun objet Figma. UCM Nomenclature et
+ * Le module est pur : il lit un inventaire et des renommages, et ne touche à aucun objet Figma. UCM Architect et
  * UCM Palettes contrôlent leurs noms par lui.
  *
  * Il contrôle aussi les axes de modes (`axesDeLExport`) : le nom d'une collection donne la clé de son axe, et l'export de tokens

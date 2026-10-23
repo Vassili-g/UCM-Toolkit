@@ -435,7 +435,7 @@
     },
     {
       "id": "nomenclature",
-      "titre": "UCM Nomenclature",
+      "titre": "Nomenclature d'UCM Architect",
       "fichier": "packages/plugin-architect/invariants/nomenclature.md",
       "chemins": [
         "packages/plugin-architect/src/nomenclature/**",

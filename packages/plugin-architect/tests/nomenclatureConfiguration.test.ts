@@ -90,13 +90,13 @@ test('une écriture refusée remet l’interrupteur à l’état relu par le san
   b.frontiere.recevoir({ type: 'erreur', demande: b.reglesEnvoyees.at(-1)!.demande, code: 'echec', architecture: 'future' });
   assert.equal(b.interrupteur.getAttribute('aria-checked'), 'false');
   assert.equal(b.interrupteur.disabled, false);
-  assert.equal(b.sectionArchitecture.children[2]!.textContent, 'Elle vient d’une version plus récente d’UCM Nomenclature.');
+  assert.equal(b.sectionArchitecture.children[2]!.textContent, 'Elle vient d’une version plus récente d’UCM Architect.');
 });
 
 test('une déclaration illisible ou future affiche OFF et reste remplaçable', async () => {
   for (const [architecture, texte] of [
     ['illisible', 'La déclaration rangée dans ce fichier est illisible.'],
-    ['future', 'Elle vient d’une version plus récente d’UCM Nomenclature.'],
+    ['future', 'Elle vient d’une version plus récente d’UCM Architect.'],
   ] as const) {
     const b = await banc();
     b.frontiere.recevoir({ type: 'bilan', demande: b.frontiere.analyser(), bilan: b.bilanDe(2, [], architecture) });
@@ -178,7 +178,7 @@ test('la ligne d’une collection dit combien de variables gardent leur nom, et 
     '3 noms écrits par UCM Palettes',
     'UCM Palettes écrit ces variables, et leur groupe garde son nom. Ouvrez UCM Palettes une fois dans ce fichier pour qu’il suive les règles, puis revenez ici.',
     '40 variables de couleur non vérifiées',
-    'UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse pour renommer ces variables.',
+    'UCM Architect n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse pour renommer ces variables.',
   ]);
   b.frontiere.recevoir({ type: 'bilan', demande: b.frontiere.analyser(), bilan: { generation: 3, collections, protections: [], dernierRenommage: null, dernierImport: null } as unknown as Bilan });
   assert.equal(section.children[3]!.hidden, true, 'sans protection, la zone des causes se masque');

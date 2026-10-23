@@ -12,8 +12,8 @@ for (const nombre of [1, 3]) {
     assert.deepEqual(lignes, lignesDUneAnnulationNonVerifiee(annonce, 'renommages'));
     assert.equal(lignes[0], '2 noms rétablis.');
     assert.equal(lignes[1], nombre === 1
-      ? '1 variable de couleur n’a pas pu être rétablie. UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse, puis annulez de nouveau.'
-      : '3 variables de couleur n’ont pas pu être rétablies. UCM Nomenclature n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse, puis annulez de nouveau.');
+      ? '1 variable de couleur n’a pas pu être rétablie. UCM Architect n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse, puis annulez de nouveau.'
+      : '3 variables de couleur n’ont pas pu être rétablies. UCM Architect n’a pas pu lire ce qu’UCM Palettes a noté dans ce fichier. Relancez l’analyse, puis annulez de nouveau.');
     assert.doesNotMatch(lignes.join(' '), /changé depuis|occupe/u);
   });
 }

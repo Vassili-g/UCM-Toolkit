@@ -171,13 +171,13 @@ Figma file: for each one, its address, its versions and the way a stored text
 is classified as absent, unreadable, refused, old, current or future. The
 `palettes` module covers the recipe, the variable tracking, the `nommage` mark
 and the `palette` and `cle` markers of a variable. The `nommage` module covers
-the rules that UCM Nomenclature stores to change a name (`ecriture`, `terme:`,
+the rules that UCM Architect stores to change a name (`ecriture`, `terme:`,
 `ecart:`, `ordinaire:`, `exclues`): the key constructors, the reader, and the
 entries of a newer version, which it lists as `futures`. A reader never
 migrates or rewrites the data. Like `format`, it depends on nothing: not Node,
 not Figma, not a third-party package.
 
-**`@ucm-kit/core/nommage`** computes the renaming that UCM Nomenclature and
+**`@ucm-kit/core/nommage`** computes the renaming that UCM Architect and
 UCM Palettes share. It takes an inventory of the names of a file and the rules
 read through `protocoles`, and returns the names the lexicon gives, after the
 check of the published paths: no rename may make a token of `tokens.json` or a

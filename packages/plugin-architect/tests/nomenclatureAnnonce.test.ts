@@ -47,7 +47,7 @@ test('L12 : une annulation refusée pour règles futures garde sa cause et dit d
   const refus = annonceDUneAnnulation({ ...annulation, statut: 'refuse', renommes: 0, annulable: false, cause: 'regles-futures' });
   assert.deepEqual(refus, { type: 'annulation-refusee', cause: 'regles-futures' });
   const texte = texteDUneAnnulationRefusee('regles-futures', TEXTES.annulationRefusee);
-  assert.equal(texte, 'Une version plus récente d’UCM Nomenclature a rangé des règles dans ce fichier. Mettez le plugin à jour pour annuler ce renommage.');
+  assert.equal(texte, 'Une version plus récente d’UCM Architect a rangé des règles dans ce fichier. Mettez le plugin à jour pour annuler ce renommage.');
   assert.equal(texteDUneAnnulationRefusee(undefined, TEXTES.annulationRefusee), TEXTES.annulationRefusee);
   assert.equal(texteDUneAnnulationRefusee('journal-impossible', TEXTES.annulationDuRenommageRefusee), TEXTES.annulationDuRenommageRefusee);
 });
