@@ -1,29 +1,19 @@
-/** Les textes de la fiche d'une variable : l'inspecteur actuel et les constats de chaîne. */
+/** Les textes de la fiche d'une variable, les constats d'une chaîne et les messages de copie. */
 import type { NatureDeConstat } from '../../diagnostics';
 
 export const TEXTES_FICHE = {
-  // Inspecteur
-  inspecteur: 'Inspecteur',
-  aucunToken: 'Choisissez une variable par son nom pour l’inspecter.',
-  valeurTerminale: 'Valeur terminale',
-  contexteSimule: 'Contexte simulé',
-  chaineDeResolution: 'Chaîne de résolution',
-  etape: (rang: number) => `Étape ${rang}`,
+  // Chaîne d'une valeur, que le survol rend aussi
   modeEtOrigine: (mode: string, origine: string) => `${mode} · ${origine}`,
   surcharge: (collection: string) => `surcharge de ${collection}`,
-  valeursParMode: 'Valeurs par mode',
-  provenance: 'Provenance',
-  identifiant: 'Identifiant',
-  clePubliee: 'Clé publiée',
-  collection: 'Collection',
-  description: 'Description',
-  portees: 'Portées',
-  syntaxe: 'Syntaxe de code',
-  locale: 'Locale',
-  distanteBibliotheque: 'Distante',
-  masquee: 'Masquée à la publication',
-  aucune: 'Aucune',
-  copier: 'Copier',
+  // Fiche d'une variable
+  valeur: 'Valeur',
+  dansLesModesAffiches: 'dans les modes affichés',
+  origineDeLaFiche: (collection: string, type: string) => `${collection}, ${type.toLocaleLowerCase('fr')}`,
+  renommageAAppliquer: 'Renommage à appliquer',
+  voirLaRegle: (avant: string, apres: string) => `Voir la règle ${avant} → ${apres}`,
+  utiliseePar: (nombre: number) => `Utilisée par ${nombre} variable${nombre > 1 ? 's' : ''}`,
+  afficherLesVariables: (nombre: number) => (nombre > 1 ? `Afficher ces ${nombre} variables dans le tableau des tokens` : 'Afficher cette variable dans le tableau des tokens'),
+  etAutres: (nombre: number) => `Et ${nombre} autre${nombre > 1 ? 's' : ''}.`,
   copies: {
     nom: 'Nom Figma',
     valeur: 'Valeur',
@@ -41,7 +31,6 @@ export const TEXTES_FICHE = {
     'pas-une-couleur': 'Cette variable n’est pas une couleur.',
     'sans-correspondance': 'Aucune référence publiée vérifiée : importez un tokens.json dans Intégrations.',
   },
-  dependantsDirects: (contexte: number, tous: number) => `${contexte} dans ce contexte · ${tous} dans tous les modes chargés`,
   // Constats d'une chaîne : constat, puis geste
   constat: {
     inaccessible: {
@@ -75,20 +64,6 @@ export const TEXTES_FICHE = {
       action: 'Raccourcissez la chaîne d’alias dans Figma.',
     },
   } satisfies Record<NatureDeConstat, { titre: string; action: string; detail: (...valeurs: never[]) => string }>,
-  // Dépendants et contraste de l'inspecteur
-  dependantsTitre: 'Variables dépendantes',
-  // Contraste
-  contrasteTitre: 'Contraste d’une paire',
-  contrasteAvec: 'Fond',
-  contrasteSeuil: 'Seuil',
-  contrasteRatio: (ratio: string, seuil: number, atteint: boolean) => `${ratio}:1 · ${atteint ? 'atteint' : 'manque'} ${seuil}:1`,
-  contrasteNonJuge: {
-    transparence: 'Non jugé : une des couleurs est transparente, et son fond réel n’est pas connu.',
-    'non-resolu': 'Non jugé : une des chaînes n’aboutit pas dans ce contexte.',
-    'pas-une-couleur': 'Non jugé : le fond choisi n’est pas une couleur.',
-    gamut: 'Non jugé : une composante sort de sRGB.',
-  },
-  choisirUnFond: 'Choisissez une variable de couleur comme fond.',
 };
 
 /** Le titre d'un constat de chaîne. */

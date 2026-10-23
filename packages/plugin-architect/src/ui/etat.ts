@@ -16,6 +16,7 @@ import type { SujetSelectionne } from '../messages';
 import type { Releve, TypeDeVariable, VariableRelevee } from '../modele';
 import { PREFERENCES_PAR_DEFAUT, type Preferences } from '../preferences';
 import { creerResolveur, type Contexte, type Resolveur } from '../resolution';
+import { variablesTrouvees } from './recherche/resultats';
 
 /** L'image d'un sujet, gardée sous une URL de blob, et la zone qu'elle couvre dans la page. */
 export interface ApercuRecu {
@@ -171,15 +172,13 @@ function texteCherche(etat: Etat, variable: VariableRelevee, valeur: (id: string
 
 /**
  * Les variables affichées : toute la collection, un groupe et ses
- * descendants, ou, pendant une recherche, toutes les collections.
+ * descendants, ou, pendant une recherche (texte, `terme:` ou `vise:`), toutes
+ * les collections.
  */
 export function variablesAffichees(etat: Etat, valeur: (id: string) => string): VariableRelevee[] {
   const { index, position } = etat;
   if (!index) return [];
-  const terme = position.recherche.trim().toLocaleLowerCase('fr');
-  if (terme) {
-    return index.releve.variables.filter((variable) => passeLesFiltres(etat, variable) && texteCherche(etat, variable, valeur).includes(terme));
-  }
+  if (position.recherche.trim()) return variablesTrouvees(index, position.recherche, (variable) => passeLesFiltres(etat, variable), (variable) => texteCherche(etat, variable, valeur));
   const collection = position.collection ? index.collections.get(position.collection) : undefined;
   if (!collection) return [];
   const liste: VariableRelevee[] = [];

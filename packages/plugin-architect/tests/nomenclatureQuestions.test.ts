@@ -105,7 +105,8 @@ test('un terme mal écrit propose de corriger, avec le nombre et la référence'
   const carte = carteDeQuestion(faute);
   if (carte.forme !== 'proposition') throw new Error('forme inattendue');
   assert.equal(texteDuTitre(carte.titre), 'Corriger contrashovered en contrasthovered ?');
-  assert.equal(carte.detail, 'Une lettre d’écart · 1 variable ; contrasthovered est employé dans 14 variables');
+  assert.equal(carte.detail, 'Une lettre d’écart. contrasthovered est employé dans 14 variables.');
+  assert.deepEqual(carte.voir, { libelle: 'Voir la variable', recherche: 'contrashovered' });
   assert.deepEqual(carte.pied.actions.map((action) => [action.libelle, action.poids]), [['Corriger', 'borde'], ['C’est voulu', 'texte']]);
   assert.deepEqual(reponses(carte), { corriger: { type: 'corriger', mots: ['contrasthovered'] }, voulu: { type: 'voulu' }, 'plus-tard': { type: 'plus-tard' } });
   assert.equal(poidsDuPied(carte).filter((poids) => poids === 'borde').length, 1);
@@ -116,6 +117,7 @@ test('des mots collés se séparent par des tirets, sans référence', () => {
   if (carte.forme !== 'proposition') throw new Error('forme inattendue');
   assert.equal(texteDuTitre(carte.titre), 'Séparer vspacingsmall en v-spacing-small ?');
   assert.equal(carte.detail, 'Mots collés · 3 variables');
+  assert.equal(carte.voir, null);
   assert.deepEqual(carte.pied.actions.map((action) => [action.libelle, action.poids]), [['Séparer', 'borde'], ['C’est un seul mot', 'texte']]);
   assert.deepEqual(reponses(carte), { separer: { type: 'corriger', mots: ['v', 'spacing', 'small'] }, 'seul-mot': { type: 'voulu' }, 'plus-tard': { type: 'plus-tard' } });
 });

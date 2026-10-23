@@ -8,6 +8,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - galerie/ : états de l'interface, à 1360 × 800, à 560 × 480 et à 520 × 760, un fichier d'états par domaine dans `etats/`, et comparaison à la maquette de la vue composant
 - tests/ : dont les lois d'écriture (`loiDEcriture`, `loiDEcritureDesNoms`), les doubles de Figma, `nomenclature*.test.ts` pour le code de Nomenclature et `interface/` pour Chromium
 - galerie/nomenclature/ : données des états de Nomenclature, joués dans la galerie d'Architect (`etats/nomenclature.cjs`)
+- galerie/recherche/ : fichier d'exemple des états de recherche et de fiche (`t-questions`, `t-terme`, `t-fiche`)
 
 ## src/
 - code.ts : aiguillage des demandes de l'interface vers les domaines de `sandbox/` ; ouverture, déclaration UCM, sélection et panneau périmé
@@ -35,7 +36,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - preferences.ts : vue compacte et largeurs réglées, dans clientStorage
 - espace.ts : couleurs d'un document Display P3 ramenées en sRGB, pour le contraste et la copie hexadécimale ; conversion de Palettes (`p3VersRgb8` de `ucm-couleur`), hors du noyau, qui n'importe pas `ucm-couleur`
 - integrations/ : contrats et tokens importés, recette UCM Palettes, profil d'architecture UCM (les sept couches de `COLLECTIONS`)
-- ui/ : barre et sa bascule de mode, arbre et sa recherche, table, panneau latéral, bulle de chaîne et poignée des largeurs ; `inspecteur.ts` n'est plus monté (U2)
+- ui/ : barre et sa bascule de mode, arbre et sa recherche, table, panneau latéral, bulle de chaîne et poignée des largeurs
 - ui/nomenclature/ : coquille de Nomenclature et sa frontière, onglets À appliquer, À trancher et Règles, feuilles, Configuration ; montée dans le panneau latéral du mode Tokens
 
 ## src/messages/
@@ -76,6 +77,8 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - roles.css : couleurs sombres, placées avant la feuille du socle
 - textes/ : catalogues des textes, un par domaine ; `index.ts` les réunit
 - styles/ : feuilles, une par domaine, chargées dans l'ordre de `FEUILLES_DES_DOMAINES` (`scripts/build-ui.cjs`)
+- recherche/ : lecture du champ de l'arbre (texte, `terme:`, `vise:`), variables trouvées et lignes de la recherche
+- fiche/ : fiche d'une variable, à la place de l'inspecteur : chaîne d'alias, renommage à appliquer, « Utilisée par »
 
 ## src/ui/vues/
 - composant.ts : vue composant : fil d'Ariane, en-tête, aperçu, frontières, sections, pied

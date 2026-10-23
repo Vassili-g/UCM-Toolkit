@@ -273,15 +273,6 @@ textarea {
   text-transform: uppercase;
 }
 
-/* Le titre d'une section : il se lit comme un titre, sans capitales. */
-.section:not(.carte-valeur) > .surtitre {
-  color: var(--texte);
-  font-size: var(--libelle);
-  font-weight: 600;
-  letter-spacing: 0;
-  line-height: var(--libelle-interligne);
-  text-transform: none;
-}
 
 .note {
   margin: 0;

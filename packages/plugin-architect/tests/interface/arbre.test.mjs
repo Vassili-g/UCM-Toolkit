@@ -104,7 +104,7 @@ test('dix mille variables : la table ne monte que les lignes visibles, et la rec
     const rendues = await page.locator('.table-ligne').count();
     assert.ok(rendues > 5 && rendues < 60, `${rendues} lignes rendues`);
     await page.locator('.recherche').fill('token-499');
-    assert.match(await page.locator('.table-tete .note').textContent(), /20 résultats dans toutes les collections/);
+    assert.match(await page.locator('.table-tete .note').textContent(), /20 variables/);
   } finally { await fermer(page); }
 });
 
@@ -126,7 +126,7 @@ test('le clavier atteint l’arbre, la table et la recherche', async () => {
     assert.equal(await page.locator('.barre .recherche, .arbre > .note').count(), 0);
     await page.locator('.arbre .recherche').focus();
     await page.keyboard.type('papier');
-    assert.match(await page.locator('.table-tete .note').textContent(), /1 résultat/);
+    assert.match(await page.locator('.table-tete .note').textContent(), /1 variable/);
   } finally { await fermer(page); }
 });
 

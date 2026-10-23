@@ -1,51 +1,4 @@
-/* Le seul geste plein de l'écran : copier la valeur terminale. */
-.bouton-principal {
-  border-color: var(--fond-marque);
-  background: var(--fond-marque);
-  color: var(--texte-sur-marque);
-}
 
-.bouton-principal:hover:not(:disabled) {
-  border-color: var(--fond-marque-survol);
-  background: var(--fond-marque-survol);
-}
-
-/* L'inspecteur épinglé. */
-.inspecteur {
-  display: grid;
-  min-height: 0;
-  align-content: start;
-  gap: var(--espace-page);
-  overflow: hidden auto;
-  padding: 20px;
-  grid-template-columns: minmax(0, 1fr);
-  border-left: 1px solid var(--bordure);
-  background: var(--fond);
-}
-
-.inspecteur-haut {
-  display: grid;
-  gap: 6px;
-}
-
-.inspecteur-tete {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espace-controle);
-}
-
-.section {
-  display: grid;
-  gap: var(--espace-controle);
-}
-
-.carte-valeur {
-  padding: 14px;
-  border: 1px solid var(--bordure);
-  border-radius: 8px;
-  background: var(--fond-bloc);
-}
 
 /* La chaîne en frise : un rail, un nœud par étape, la valeur au bout. */
 .chaine {
@@ -139,84 +92,207 @@
   font-weight: 600;
 }
 
-.proprietes {
-  display: grid;
-  margin: 0;
+/*
+ * La fiche d'une variable : une feuille posée sur la barre latérale seule. Les quatre marges viennent de `index.ts`, qui mesure la barre ;
+ * sans elles, la feuille couvre la fenêtre comme celle du socle.
+ */
+/* Les titres de la barre latérale ont l'interligne de la maquette, 20 px ; `commun.css` donne 28 px à l'explorateur. */
+.panneau-lateral {
+  --titre-interligne: 20px;
 }
 
-.propriete {
-  display: grid;
-  grid-template-columns: minmax(80px, 32%) minmax(0, 1fr);
-  gap: var(--espace-bloc);
-  padding: 6px 0;
-  border-bottom: 1px solid var(--filet);
+.feuille-voile {
+  inset: var(--lateral-haut, 0) var(--lateral-droite, 0) var(--lateral-bas, 0) var(--lateral-gauche, 0);
+  /* La feuille est posée sur le body, hors de `.panneau-lateral` : elle reprend ses couleurs et ses tailles, que `arbre.css` y pose. */
+  --fond: var(--laterale-fond);
+  --fond-survol: var(--laterale-survol);
+  --fond-bloc: var(--laterale-bloc);
+  --fond-note: var(--laterale-note);
+  --fond-marque: var(--laterale-marque);
+  --fond-marque-survol: var(--laterale-marque-survol);
+  --fond-avertissement: var(--laterale-avertissement);
+  --fond-danger: var(--laterale-danger);
+  --bordure: var(--laterale-bordure);
+  --bordure-marque: var(--laterale-marque);
+  --bordure-visee: var(--laterale-bordure-visee);
+  --texte: var(--laterale-texte);
+  --texte-second: var(--laterale-texte-second);
+  --texte-marque: var(--laterale-texte-marque);
+  --texte-danger: var(--laterale-texte-danger);
+  --texte-avertissement: var(--laterale-texte-avertissement);
+  --corps: 11px;
+  --corps-interligne: 16px;
+  --libelle: 12px;
+  --libelle-interligne: 16px;
+  --titre: 15px;
+  --titre-interligne: 20px;
+  --hauteur-secondaire: 24px;
+  color: var(--texte);
+  font-size: var(--corps);
+  line-height: var(--corps-interligne);
 }
 
-.propriete:last-child {
-  border-bottom: 0;
+.feuille-terme .feuille {
+  width: calc(100% - 24px);
+  margin: 0 12px;
 }
 
-.propriete-active .propriete-nom {
-  color: var(--texte-marque);
+.feuille-terme .feuille-titre {
+  flex: 0 1 auto;
+  font-family: var(--police-code);
 }
 
-.propriete-nom {
-  color: var(--texte-second);
+.feuille-terme .feuille-fermer {
+  margin-left: auto;
 }
 
-.propriete-valeur {
+.feuille-entete.avec-definition {
+  align-items: flex-start;
+  padding-top: var(--espace-bloc);
+  padding-bottom: var(--espace-bloc);
+}
+
+.titre-et-definition {
   display: grid;
   min-width: 0;
-  justify-items: start;
-  gap: 3px;
-  margin: 0;
-  overflow-wrap: anywhere;
+  flex: 1;
+  gap: 2px;
 }
 
-.liens {
+.titre-ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+.titre-et-definition .meta {
+  margin: 0;
+}
+
+.origine {
+  color: var(--texte-second);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.feuille-contenu {
   display: grid;
-  justify-items: start;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  gap: var(--espace-bloc);
 }
 
-.verdict {
+.fiche-bloc {
+  display: grid;
+  gap: var(--espace-serre);
+}
+
+.fiche-bloc-tete {
+  display: flex;
+  min-height: var(--hauteur-secondaire);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-controle);
+}
+
+.fiche-bloc-tete h3 {
   margin: 0;
+  font-size: var(--libelle);
+  font-weight: 600;
+  line-height: var(--libelle-interligne);
+}
+
+.fiche-liste {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.fiche-liste > * {
+  padding: var(--espace-controle) var(--espace-bloc);
+  border-top: 1px solid var(--bordure);
+}
+
+.fiche-liste > :first-child {
+  border-top: 0;
+}
+
+.fiche-liste .diff {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.btn-texte {
+  height: var(--hauteur-secondaire);
+  padding: 0 var(--espace-serre);
+  border: 0;
+  background: none;
+  color: var(--texte-second);
+  cursor: pointer;
   font-weight: 600;
 }
 
-/* Le bouton qui ferme l'inspecteur n'existe qu'en dessous de 900 px. */
-@media (min-width: 900px) {
-  .fermer-inspecteur {
-    display: none;
-  }
+.btn-texte:hover:not(:disabled) {
+  color: var(--texte);
 }
 
-/* Sous 900 px, l'inspecteur passe au-dessus du centre et se ferme. */
-@media (max-width: 899px) {
-  .inspecteur {
-    position: absolute;
-    z-index: 5;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    display: none;
-    width: min(350px, 90vw);
-    box-shadow: -12px 0 35px var(--ombre);
-  }
-
-  .inspecteur.inspecteur-ouvert {
-    display: grid;
-  }
+.btn-texte:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
 }
 
-/* Le verdict du contraste d'une paire se lit comme une note. */
-.verdict[data-contraste='atteint'] {
-  color: var(--texte-succes);
+/* La chaîne d'alias, dessinée comme dans la vue Composant : un rail, un nœud par variable, la valeur au bout. */
+.chaine-alias {
+  margin: 0;
+  padding: 4px 0 0 6px;
+  list-style: none;
 }
 
-.verdict[data-contraste='manque'] {
-  color: var(--texte-danger);
+.chaine-alias li {
+  position: relative;
+  padding: 0 0 8px 16px;
+  border-left: 1px solid var(--bordure);
+}
+
+.chaine-alias li:last-child {
+  padding-bottom: 0;
+  border-left-color: transparent;
+}
+
+.chaine-alias li::before {
+  position: absolute;
+  top: 5px;
+  left: -4px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--texte-second);
+  border-radius: 50%;
+  background: var(--fond);
+  content: '';
+}
+
+.chaine-alias li.terme::before {
+  background: var(--texte-second);
+}
+
+.chaine-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--texte-second);
+  font-size: 10.5px;
+  line-height: 17px;
+}
+
+.chaine-mode {
+  padding: 0 5px;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.chaine-valeur {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: 12px var(--police-chemin);
 }

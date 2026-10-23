@@ -34,6 +34,8 @@ function quandLeLot(iso: string, maintenant: Date): string {
   return `le ${date.getDate() === 1 ? '1er' : date.getDate()} ${MOIS[date.getMonth()]}${annee} ${heure}`;
 }
 
+const INDICE_DE_FAUTE = 'Une lettre d’écart';
+
 export const TEXTES = {
   marque: 'UCM Nomenclature',
   titreConfiguration: 'Configuration',
@@ -376,7 +378,7 @@ export const TEXTES = {
     synonymes: 'Synonymes',
     'branches-paralleles': 'Branches parallèles',
   } satisfies Record<IndiceDePaire, string>,
-  indiceDeFaute: 'Une lettre d’écart',
+  indiceDeFaute: INDICE_DE_FAUTE,
   indiceDeMotsColles: 'Mots collés',
   lesDeuxVisent: (cible: string): string => `Les deux visent ${cible}.`,
   /** « 1 variable ; contrasthovered est employé dans 14 variables » : le nombre du terme, puis celui de la référence. */
@@ -384,6 +386,11 @@ export const TEXTES = {
     const lesVariables = (valeur: number): string => nombreDeNoms(valeur, 0);
     return reference ? `${lesVariables(nombre)} ; ${reference.mot} est employé dans ${lesVariables(reference.nombre)}` : lesVariables(nombre);
   },
+
+  /** « Une lettre d'écart. background est employé dans 40 variables. » : l'indice, puis la référence ; le nombre du terme est dans le lien qui suit. */
+  detailDeFaute: (reference: { readonly mot: string; readonly nombre: number }): string => `${INDICE_DE_FAUTE}. ${reference.mot} est employé dans ${nombreDeNoms(reference.nombre, 0)}.`,
+  voirLesVariables: (nombre: number): string => (nombre > 1 ? `Voir les ${nombre} variables` : 'Voir la variable'),
+  filtrerLeTableau: 'Filtrer le tableau des tokens',
 
   /** « Abréviation · 12 variables à renommer · background déjà dans 40 » : l'indice, le nombre du terme écarté, puis celui du terme proposé. */
   detailDePaire: (indice: string, aRenommer: number, propose: string, dejaDans: number): string =>

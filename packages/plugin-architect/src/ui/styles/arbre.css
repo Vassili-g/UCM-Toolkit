@@ -250,8 +250,7 @@
   font-size: var(--petit);
 }
 
-.table-titre,
-.inspecteur-titre {
+.table-titre {
   margin: 0;
   font-weight: 600;
   overflow-wrap: anywhere;
@@ -260,12 +259,6 @@
 .table-titre {
   font-size: var(--titre);
   line-height: var(--titre-interligne);
-}
-
-.inspecteur-titre {
-  font-family: var(--chasse-fixe);
-  font-size: 14px;
-  line-height: 22px;
 }
 
 .accueil {
@@ -298,9 +291,7 @@
   flex-direction: column;
 }
 
-.filtres,
-.ligne-de-champs,
-.copies {
+.filtres {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -412,8 +403,7 @@
 }
 
 /* Ce qui se suit : un alias, ou une variable citée dans une liste. */
-.alias,
-.liens .lien {
+.alias {
   display: inline-flex;
   overflow: hidden;
   max-width: 100%;
@@ -434,8 +424,7 @@
   white-space: nowrap;
 }
 
-.alias:hover,
-.liens .lien:hover {
+.alias:hover {
   border-color: var(--texte-marque);
   background: var(--fond-selection);
   text-decoration: none;
@@ -486,11 +475,6 @@
   color: var(--texte-second);
 }
 
-.propriete-valeur > .valeur-resolue {
-  flex-wrap: wrap;
-  gap: 4px 8px;
-}
-
 .vide {
   padding: 32px;
   color: var(--texte-second);
@@ -514,15 +498,6 @@
   white-space: nowrap;
 }
 
-.valeur-grande {
-  gap: var(--espace-bloc);
-}
-
-.valeur-grande .valeur-texte {
-  font-size: 20px;
-  line-height: 32px;
-}
-
 .pastille {
   display: inline-block;
   overflow: hidden;
@@ -539,12 +514,6 @@
   border-color: color-mix(in srgb, var(--pastille-couleur) 84%, var(--texte));
 }
 
-.valeur-grande .pastille {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--rayon);
-}
-
 .pastille-remplissage {
   display: block;
   width: 100%;
@@ -555,11 +524,6 @@
   color: var(--texte-danger);
   font-family: var(--chasse-fixe);
   font-size: var(--petit);
-}
-
-.statut-echec.valeur-grande {
-  font-size: 15px;
-  line-height: 24px;
 }
 
 /* La bulle de la chaîne, au survol et au focus. */

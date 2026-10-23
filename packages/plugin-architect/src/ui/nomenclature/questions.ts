@@ -52,6 +52,8 @@ export type CarteDeQuestion =
       /** Vrai quand le terme proposé est un terme UCM. */
       readonly ucm: boolean;
       readonly detail: string;
+      /** Le lien qui écrit le terme de la question dans la recherche de l'arbre ; `null` quand la carte n'en a pas. */
+      readonly voir: { readonly libelle: string; readonly recherche: string } | null;
       /** Un nom réel avant → après ; `null` quand le bilan n'en donne pas. */
       readonly effet: LigneVue | null;
       readonly pied: PiedDeCarte;
@@ -83,6 +85,7 @@ function carteDePaire(question: QuestionDePaire): CarteDeQuestion {
     titre: { avant: TEXTES.titreDePaire.avant, ancien: ecarte.mot, entre: TEXTES.titreDePaire.entre, nouveau: propose.mot },
     ucm: propose.ucm,
     detail: question.cibleCommune === null ? detail : `${detail}. ${TEXTES.lesDeuxVisent(question.cibleCommune)}`,
+    voir: null,
     effet: question.effet,
     pied: {
       actions: [
@@ -104,7 +107,8 @@ function carteDEcriture(question: QuestionDEcriture): CarteDeQuestion {
     cle: question.cle,
     titre: { avant: titre.avant, ancien: question.terme.mot, entre: titre.entre, nouveau: question.proposition.join('-') },
     ucm: false,
-    detail: TEXTES.detailAvecIndice(faute ? TEXTES.indiceDeFaute : TEXTES.indiceDeMotsColles, TEXTES.detailDuTerme(question.terme.nombre, question.reference)),
+    detail: faute && question.reference ? TEXTES.detailDeFaute(question.reference) : TEXTES.detailAvecIndice(faute ? TEXTES.indiceDeFaute : TEXTES.indiceDeMotsColles, TEXTES.detailDuTerme(question.terme.nombre, question.reference)),
+    voir: faute ? { libelle: TEXTES.voirLesVariables(question.terme.nombre), recherche: question.terme.mot } : null,
     effet: question.effet,
     pied: {
       actions: [

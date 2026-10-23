@@ -34,7 +34,7 @@ function fichiers(dossier: string): string[] {
 
 test('aucune vue ne pose un mot hors du catalogue', () => {
   const balayes = fichiers(INTERFACE);
-  assert.ok(balayes.some((fichier) => fichier.endsWith('inspecteur.ts')), 'src/ui/ n’est plus balayé');
+  assert.ok(balayes.some((fichier) => fichier.endsWith('table.ts')), 'src/ui/ n’est plus balayé');
   const fautes: string[] = [];
   for (const fichier of balayes) {
     fs.readFileSync(fichier, 'utf8').split('\n').forEach((ligne, rang) => {

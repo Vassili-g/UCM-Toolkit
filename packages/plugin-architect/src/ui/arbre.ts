@@ -7,6 +7,7 @@
  */
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import { lignesVisibles, type LigneDArbre } from '../groupes';
+import { lignesDeRecherche } from './recherche/lignes';
 import type { Application, Composant } from './application';
 import { creerPoignee } from './poignee';
 import { TEXTES } from './textes';
@@ -99,6 +100,8 @@ export function creerArbre(app: Application): Composant {
   element.append(tete, recherche, liste.element, poignee);
 
   let lignes: LigneDArbre[] = [];
+  /** Vrai pendant une recherche : l'arbre ne liste que les collections qui ont un résultat, avec leur nombre. */
+  let enRecherche = false;
 
   function libelleDe(ligne: LigneDArbre): string {
     return ligne.noeud.libelle === '' ? TEXTES.segmentVide : ligne.noeud.libelle;
@@ -117,7 +120,17 @@ export function creerArbre(app: Application): Composant {
     rangee.setAttribute('role', 'listitem');
     rangee.style.paddingLeft = `${ligne.profondeur * 12}px`;
     rangee.style.setProperty('--profondeur', String(ligne.profondeur));
-    if (ligne.aDesEnfants) {
+    if (enRecherche) {
+      const chevron = document.createElement('button');
+      chevron.type = 'button';
+      chevron.className = 'chevron';
+      chevron.append(creerChevron());
+      chevron.disabled = true;
+      chevron.setAttribute('aria-expanded', 'true');
+      chevron.setAttribute('aria-hidden', 'true');
+      chevron.tabIndex = -1;
+      rangee.append(chevron);
+    } else if (ligne.aDesEnfants) {
       const chevron = document.createElement('button');
       chevron.type = 'button';
       chevron.className = 'chevron';
@@ -139,7 +152,7 @@ export function creerArbre(app: Application): Composant {
     choix.classList.toggle('arbre-groupe', ligne.profondeur > 0);
     choix.dataset.focus = `choix:${ligne.noeud.cle}`;
     choix.dataset.rang = String(rang);
-    const actif = !etat.position.recherche && etat.position.collection === ligne.noeud.collection && etat.position.groupe.length === ligne.noeud.segments.length && etat.position.groupe.every((segment, profondeur) => segment === ligne.noeud.segments[profondeur]);
+    const actif = !enRecherche && etat.position.collection === ligne.noeud.collection && etat.position.groupe.length === ligne.noeud.segments.length && etat.position.groupe.every((segment, profondeur) => segment === ligne.noeud.segments[profondeur]);
     if (actif) choix.setAttribute('aria-current', 'true');
     const libelle = document.createElement('span');
     libelle.className = 'arbre-libelle';
@@ -183,8 +196,10 @@ export function creerArbre(app: Application): Composant {
     mettreAJour() {
       poserLargeur(app.etat.preferences.largeurs.arbre);
       if (recherche.value !== app.etat.position.recherche) recherche.value = app.etat.position.recherche;
+      recherche.classList.toggle('recherche-active', app.rechercheParLien && app.etat.position.recherche.trim() !== '');
       recherche.disabled = !app.etat.index;
-      lignes = lignesVisibles(app.etat.arbres, app.etat.replies);
+      enRecherche = app.etat.position.recherche.trim() !== '';
+      lignes = enRecherche ? lignesDeRecherche(app) : lignesVisibles(app.etat.arbres, app.etat.replies);
       liste.poser(lignes.length, rendreLigne, true);
     },
   };

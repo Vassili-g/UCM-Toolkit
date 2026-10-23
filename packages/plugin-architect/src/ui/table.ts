@@ -22,11 +22,14 @@
  */
 import { creerChemin } from 'ucm-plugin-socle/src/ui/Chemin';
 import { familles, modesDeFamille } from '../indexation';
-import { espaceDuReleve, texteDeValeur, TYPES_DE_VARIABLE, type CollectionRelevee, type VariableRelevee } from '../modele';
+import { TYPES_DE_VARIABLE, type CollectionRelevee, type VariableRelevee } from '../modele';
 import { valeurPourLeMode } from '../resolution';
 import type { Application, Composant } from './application';
 import { FILTRES_PAR_DEFAUT, variablesAffichees, type Filtres } from './etat';
 import { creerPoignee } from './poignee';
+import { valeurCherchee } from './recherche/lignes';
+import { formesDeLaRequete } from './recherche/resultats';
+import { lireLaRecherche, segmentsCherches } from './recherche/requete';
 import { TEXTES } from './textes';
 import { nomDeCible, rendreValeurResolue } from './valeurs';
 import { creerListeVirtuelle } from './virtualisation';
@@ -100,6 +103,8 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
   element.append(filtres, liste.element, vide);
 
   let lignes: VariableRelevee[] = [];
+  /** Ce que dit la recherche en cours : les segments des noms qui répondent s'y colorent en rose. */
+  let requete = lireLaRecherche('');
   let modesDeLaCollection: CollectionRelevee['modes'] = [];
   let cleDeVue = '';
   /** Les colonnes de valeur affichées, par clé, et les largeurs réglées depuis l'ouverture. */
@@ -125,10 +130,7 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
     poserColonnes();
   }
 
-  const valeurCherchee = (id: string): string => {
-    const resultat = app.resultat(id);
-    return resultat.statut === 'resolu' ? texteDeValeur(resultat.valeur, app.etat.index ? espaceDuReleve(app.etat.index.releve) : 'srgb') : '';
-  };
+  const valeurDeLaRecherche = valeurCherchee(app);
 
   /** L'en-tête d'une colonne et sa poignée. `cle` désigne une colonne de valeur ; sans elle, `colonne` est le nom ou le type. */
   function cellule(texte: string, colonne: keyof typeof COLONNES, cle?: string): HTMLDivElement {
@@ -173,6 +175,16 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
     return contenu;
   }
 
+  /**
+   * L'en-tête de la colonne unique. Une recherche dont tous les résultats sont d'une collection à un seul mode le nomme, puisque la
+   * valeur est celle de ce mode ; sinon la colonne suit le contexte actif.
+   */
+  function titreDeLaColonneUnique(recherche: boolean, trouvees: readonly VariableRelevee[]): string {
+    const collections = new Set(trouvees.map((variable) => variable.collection));
+    const collection = recherche && collections.size === 1 ? app.etat.index?.collections.get([...collections][0]) : undefined;
+    return collection && collection.modes.length === 1 ? TEXTES.defautDeFamille(collection.modes[0].nom) : TEXTES.colonneContexte;
+  }
+
   function rendreLigne(rang: number): HTMLElement {
     const variable = lignes[rang];
     const { etat } = app;
@@ -195,7 +207,7 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
     const cible = app.renommages.cible();
     const ajouts = renommage ? [...renommage.cartes.keys()].map((rang) => segments[rang]) : [];
     const termeCible = cible?.variable === variable.id ? segments[cible.rang] : null;
-    bouton.append(creerChemin(segments.slice(debut).join('/'), { ajouts, lien: true, survol: termeCible }));
+    bouton.append(creerChemin(segments.slice(debut).join('/'), { ajouts, lien: true, survol: termeCible, vus: segmentsCherches(requete, variable.nom) }));
     bouton.addEventListener('click', (evenement) => {
       const terme = evenement.target instanceof Element ? evenement.target.closest('.ch-lien') : null;
       if (terme && renommage) {
@@ -209,12 +221,6 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
     });
     bouton.setAttribute('aria-label', TEXTES.ouvrir(nomDeCible(etat.index!, variable.id)));
     nom.append(bouton);
-    if (etat.position.recherche) {
-      const collection = document.createElement('span');
-      collection.className = 'note';
-      collection.textContent = etat.index?.collections.get(variable.collection)?.nom ?? '';
-      nom.append(collection);
-    }
     const type = document.createElement('div');
     type.className = 'cellule-type';
     type.setAttribute('role', 'cell');
@@ -304,13 +310,14 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
       const { index, position } = etat;
       const collection = position.collection ? index.collections.get(position.collection) : undefined;
       const recherche = position.recherche.trim() !== '';
-      lignes = variablesAffichees(etat, valeurCherchee);
+      lignes = variablesAffichees(etat, valeurDeLaRecherche);
       modesDeLaCollection = recherche || etat.preferences.vueCompacte || !collection ? [] : collection.modes;
       poserLesModes();
 
-      emplacement.textContent = recherche ? TEXTES.rechercheEtiquette : [collection?.nom ?? '', ...position.groupe.map((segment) => segment || TEXTES.segmentVide)].join(' / ');
-      titre.textContent = recherche ? TEXTES.resultatsDeRecherche : (position.groupe[position.groupe.length - 1] ?? collection?.nom ?? '') || TEXTES.segmentVide;
-      resume.textContent = recherche ? TEXTES.rechercheGlobale(lignes.length) : TEXTES.compte(lignes.length);
+      requete = lireLaRecherche(position.recherche);
+      emplacement.textContent = recherche ? TEXTES.emplacementDeLaRecherche : [collection?.nom ?? '', ...position.groupe.map((segment) => segment || TEXTES.segmentVide)].join(' / ');
+      titre.textContent = recherche ? TEXTES.titreDeLaRecherche : (position.groupe[position.groupe.length - 1] ?? collection?.nom ?? '') || TEXTES.segmentVide;
+      resume.textContent = !recherche ? TEXTES.compte(lignes.length) : requete.sorte === 'terme' ? TEXTES.noteDuTerme(lignes.length, formesDeLaRequete(requete)) : requete.sorte === 'vise' ? TEXTES.noteDeVise(lignes.length, requete.cible) : TEXTES.noteDeRecherche(lignes.length);
       poserFiltres();
 
       colonnesDeValeur = modesDeLaCollection.length === 0 ? [COLONNE_DU_CONTEXTE] : modesDeLaCollection.map((mode) => `${collection?.id}:${mode.id}`);
@@ -319,7 +326,7 @@ export function creerTable(app: Application): Composant & { readonly tete: HTMLE
         cellule(TEXTES.colonneNom, 'nom'),
         cellule(TEXTES.colonneType, 'type'),
         ...(modesDeLaCollection.length === 0
-          ? [cellule(TEXTES.colonneContexte, 'valeur', COLONNE_DU_CONTEXTE)]
+          ? [cellule(titreDeLaColonneUnique(recherche, lignes), 'valeur', COLONNE_DU_CONTEXTE)]
           : modesDeLaCollection.map((mode, rang) => cellule(mode.id === collection?.modeParDefaut ? TEXTES.defautDeFamille(mode.nom) : mode.nom, 'valeur', colonnesDeValeur[rang]))),
       );
 

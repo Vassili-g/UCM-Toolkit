@@ -16,7 +16,7 @@ import { poserLesSegments } from './aAppliquer';
 import type { Coquille } from './coquille';
 import { creerCarteDEcriture } from './ecriture';
 import type { MessageAAfficher } from './frontiere';
-import { segmentsDeNom } from './lignes';
+import { fusionnerLesTextes, segmentsDeNom } from './lignes';
 import { motAffiche } from './listeDesTermes';
 import { carteDeConflit } from './questions';
 import type { ReglesMontees } from './regles';
@@ -618,16 +618,14 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
       const lignes = donnees.emploi.exemples.map((ligne) => {
         const chemin = el('span');
         chemin.className = 'chemin';
-        segmentsDeNom(ligne.ancien, ligne.marques).forEach((segment, rang) => {
-          if (rang > 0) chemin.append(document.createTextNode('/'));
-          if (!segment.marque) {
-            chemin.append(document.createTextNode(segment.texte));
-            return;
-          }
+        const morceaux = segmentsDeNom(ligne.ancien, ligne.marques).flatMap((segment, rang): (string | HTMLElement)[] => {
+          const separateur = rang > 0 ? ['/'] : [];
+          if (!segment.marque) return [...separateur, segment.texte];
           const employe = el('span', '', segment.texte);
           employe.className = 'terme-employe';
-          chemin.append(employe);
+          return [...separateur, employe];
         });
+        chemin.append(...fusionnerLesTextes(morceaux));
         return chemin;
       });
       return creerLeBloc(TEXTES.titreDejaEmploye(donnees.emploi.nombre), lignes);
@@ -704,6 +702,23 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
       }
     }
 
+    /** Le bouton qui filtre le tableau des tokens sur le terme et sur les termes qu'il remplace. */
+    function creerLeFiltre(donnees: FicheVue): HTMLElement {
+      const ligne = el('div');
+      ligne.className = 'filtre-ligne';
+      const filtrer = createButton({
+        label: TEXTES.filtrerLeTableau,
+        variant: 'secondary',
+        compact: true,
+        // La feuille reste ouverte : le tableau est à côté, la feuille garde le terme sous les yeux.
+        onClick: () => {
+          coquille.rechercherLeTerme(donnees.mot, [donnees.mot, ...donnees.remplace.map(({ mot }) => mot)]);
+        },
+      });
+      ligne.append(enregistrerLeBouton(filtrer));
+      return ligne;
+    }
+
     function montrerLaFiche(): void {
       if (!fiche) return;
       const donnees = fiche;
@@ -715,7 +730,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
       zone.setAttribute('aria-live', 'polite');
 
       const corps = creerLeContenu();
-      corps.append(zone, ...blocsDeLaFiche(sorte, donnees).map((bloc) => creerLeBlocDeFiche(bloc, sorte, donnees)));
+      corps.append(creerLeFiltre(donnees), zone, ...blocsDeLaFiche(sorte, donnees).map((bloc) => creerLeBlocDeFiche(bloc, sorte, donnees)));
       feuille.remplacer({ titre: titreDeLaFiche(sorte, donnees), corps, pied: creerLePiedDeLaFiche(donnees, sorte) });
       poserLEntete(pastilleDeLaFiche(sorte, donnees, entree.statut === 'a-trancher'), definitionDeLaFiche(sorte, donnees));
     }

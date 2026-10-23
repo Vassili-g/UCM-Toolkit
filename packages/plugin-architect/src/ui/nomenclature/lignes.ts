@@ -30,6 +30,17 @@ export function segmentsDeNom(nom: string, marques: readonly number[]): SegmentD
   return nom.split('/').map((texte, rang) => ({ texte, marque: marques.includes(rang) }));
 }
 
+/** Réunit les textes voisins en un seul morceau : un nom coupé aux `/` n'a de nœud à part que pour son segment marqué. */
+export function fusionnerLesTextes<T extends Node | string>(morceaux: readonly T[]): Array<T | string> {
+  const fusion: Array<T | string> = [];
+  for (const morceau of morceaux) {
+    const dernier = fusion[fusion.length - 1];
+    if (typeof morceau === 'string' && typeof dernier === 'string') fusion[fusion.length - 1] = dernier + morceau;
+    else fusion.push(morceau);
+  }
+  return fusion;
+}
+
 /**
  * L'état de la file d'une carte : la génération du bilan qui l'a créée, le
  * nombre de noms de la carte, ceux déjà montrés, et si le sandbox a cessé d'en

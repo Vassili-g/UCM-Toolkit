@@ -21,10 +21,13 @@ export interface OptionsDeNomenclature {
   readonly appartient: (identifiant: string, collection: string) => boolean;
   /** Le geste de la croix de la puce du filtre de l'arbre. */
   readonly enleverLeFiltre: () => void;
+  /** Les liens qui écrivent dans la recherche de l'arbre. */
+  readonly rechercher: (texte: string) => void;
+  readonly rechercherLeTerme: (mot: string, formes: readonly string[]) => void;
 }
 
-export function monterNomenclature(hote: HTMLElement, envoyer: (message: UiMessage) => void, { appartient, enleverLeFiltre }: OptionsDeNomenclature): NomenclatureMontee {
-  const coquille = creerCoquille(hote, envoyer, { poignee: false, enleverLeFiltre });
+export function monterNomenclature(hote: HTMLElement, envoyer: (message: UiMessage) => void, { appartient, enleverLeFiltre, rechercher, rechercherLeTerme }: OptionsDeNomenclature): NomenclatureMontee {
+  const coquille = creerCoquille(hote, envoyer, { poignee: false, enleverLeFiltre, rechercher, rechercherLeTerme });
   monterPremierLancement(coquille);
   const renommages = monterAAppliquer(coquille, { appartient });
   monterATrancher(coquille);

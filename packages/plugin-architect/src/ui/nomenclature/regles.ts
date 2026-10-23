@@ -14,6 +14,7 @@ import { ORIGINES_DE_FILTRE, PLACES_DE_TERMES, TRIS_DE_TERMES, TYPES_DE_TERMES }
 import type { Bilan, LigneVue, OrigineDeFiltre, PlaceDuTerme, SectionDeTermes, TermeDeListe, TriDeTermes, TypeDeTerme } from '../../messages/nomenclature';
 import type { Coquille } from './coquille';
 import { creerIconeDeType } from './icones';
+import { fusionnerLesTextes } from './lignes';
 import {
   LISTE_INITIALE,
   bandeDeLaSection,
@@ -119,7 +120,7 @@ function poserLeSpecimen(cible: LigneDuResume, textes: { readonly specimen: stri
 
 /** L'exemple d'une ligne : le nom réel, la partie concernée dans un `span`, le reste en gris. */
 function poserLExemple(cible: LigneDuResume, exemple: LigneVue | null): void {
-  cible.exemple.replaceChildren(...(exemple?.ancien.split('/') ?? []).flatMap((segment, rang): (string | HTMLElement)[] => {
+  cible.exemple.replaceChildren(...fusionnerLesTextes((exemple?.ancien.split('/') ?? []).flatMap((segment, rang): (string | HTMLElement)[] => {
     const separateur = rang > 0 ? ['/'] : [];
     if (!exemple?.marques.includes(rang)) return [...separateur, segment];
     const concerne = document.createElement('span');
@@ -127,7 +128,7 @@ function poserLExemple(cible: LigneDuResume, exemple: LigneVue | null): void {
     if (cible.place !== null) teinter(concerne, cible.place, 'mot');
     concerne.textContent = segment;
     return [...separateur, concerne];
-  }));
+  })));
 }
 
 /** Le premier nom de collection que le kit reconnaît, tout entier concerné ; `null` si aucune. */

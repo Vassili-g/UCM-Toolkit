@@ -47,6 +47,10 @@ export interface Coquille {
   demanderUneCarte(cle: string): void;
   /** Branche le dépliage d'une carte de À appliquer. */
   surCarteDemandee(rappel: (cle: string) => void): void;
+  /** Écrit un texte dans la recherche de l'arbre, comme une recherche tapée. Sans hôte qui la porte, ne fait rien. */
+  rechercher(texte: string): void;
+  /** Filtre le tableau sur un terme, avec les formes que la fiche du terme énumère. */
+  rechercherLeTerme(mot: string, formes: readonly string[]): void;
 }
 
 interface CompteDOnglet {
@@ -60,6 +64,9 @@ export interface OptionsDeCoquille {
   readonly poignee?: boolean;
   /** Le geste de la croix de la puce du filtre. */
   readonly enleverLeFiltre?: () => void;
+  /** Les liens qui écrivent dans la recherche de l'arbre. */
+  readonly rechercher?: (texte: string) => void;
+  readonly rechercherLeTerme?: (mot: string, formes: readonly string[]) => void;
 }
 
 export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) => void, options: OptionsDeCoquille = {}): Coquille {
@@ -252,5 +259,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     surCarteDemandee(rappel) {
       deplierUneCarte = rappel;
     },
+    rechercher: (texte) => options.rechercher?.(texte),
+    rechercherLeTerme: (mot, formes) => options.rechercherLeTerme?.(mot, formes),
   };
 }

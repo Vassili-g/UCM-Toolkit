@@ -52,19 +52,23 @@ function poserLeTexte(element: HTMLElement, texte: string): void {
   );
 }
 
-/** Un nom découpé aux `/` : seuls les segments de `marques` prennent la couleur de leur ligne. */
+/** Un nom découpé aux `/` : seuls les segments de `marques` prennent la couleur de leur ligne. Le texte entre deux segments marqués reste un seul morceau. */
 function poserLesSegments(parent: HTMLElement, nom: string, marques: readonly number[], classe: 'seg-ancien' | 'seg-nouveau'): void {
+  let texte = '';
   segmentsDeNom(nom, marques).forEach((segment, rang) => {
-    if (rang > 0) parent.append(document.createTextNode('/'));
     if (!segment.marque) {
-      parent.append(document.createTextNode(segment.texte));
+      texte += `${rang > 0 ? '/' : ''}${segment.texte}`;
       return;
     }
+    const devant = `${texte}${rang > 0 ? '/' : ''}`;
+    if (devant !== '') parent.append(document.createTextNode(devant));
+    texte = '';
     const marque = document.createElement('span');
     marque.className = classe;
     marque.textContent = segment.texte;
     parent.append(marque);
   });
+  if (texte !== '') parent.append(document.createTextNode(texte));
 }
 
 /** L'effet d'une proposition : le nom actuel, puis `→` et le nom après, au même bord. */
@@ -306,6 +310,11 @@ export function monterATrancher(coquille: Coquille): void {
       const detail = document.createElement('span');
       detail.className = 'meta';
       detail.textContent = carte.detail;
+      const { voir } = carte;
+      if (voir) {
+        const lien = fabriquerBoutonTexte(voir.libelle, () => coquille.rechercher(voir.recherche));
+        detail.append(' ', lien);
+      }
       element.append(entete, detail);
       if (carte.effet) element.append(fabriquerRenommage(carte.effet));
     } else {

@@ -11,12 +11,13 @@ import type { Disposition } from '../fenetre';
 import type { Preferences } from '../preferences';
 import { contexteDeColonne, type Resultat } from '../resolution';
 import type { Etat, Filtres } from './etat';
+import { PREFIXE_TERME, retenirLesFormes } from './recherche/requete';
 import { versSandbox } from './pont';
 import { copierTexte } from './pressePapiers';
 import { TEXTES, titreDeConstat } from './textes';
 
 /** Les zones de l'écran, rendues séparément. */
-export type Zone = 'barre' | 'arbre' | 'table' | 'inspecteur' | 'vue' | 'pied';
+export type Zone = 'barre' | 'arbre' | 'table' | 'fiche' | 'vue' | 'pied';
 
 export interface Composant {
   readonly element: HTMLElement;
@@ -43,18 +44,18 @@ export interface Application {
   readonly etat: Etat;
   /** Branché par l'entrée une fois Nomenclature montée ; vide avant. */
   renommages: RenommagesCoches;
-  /**
-   * Les sections que les intégrations ajoutent à l'inspecteur. Une section
-   * rend `null` quand son intégration est désactivée ou sans donnée.
-   */
-  readonly sectionsDeLInspecteur: Array<(variable: string) => HTMLElement | null>;
+  /** Vrai quand le texte du champ de recherche vient d'un lien de l'écran et non de la frappe du designer : le champ prend alors la bordure bleue. */
+  rechercheParLien: boolean;
   /** Rend les zones demandées, toutes par défaut. */
   rendre(zones?: readonly Zone[]): void;
   /** Le résultat d'une variable dans le contexte actif, ou dans celui d'une colonne de mode. */
   resultat(variable: string, mode?: string | null): Resultat;
   /** Le résultat d'une variable dans le contexte B. */
   nouvelleDemande(): number;
+  /** Ouvre la fiche de la variable. */
   inspecter(variable: string): void;
+  /** Ferme la fiche ; la ligne choisie du tableau perd son fond. */
+  fermerLaFiche(): void;
   suivre(variable: string): void;
   ouvrirGroupe(collection: string, segments: readonly string[]): void;
   basculerRepli(cle: string): void;
@@ -66,7 +67,12 @@ export interface Application {
   enleverLeFiltre(): void;
   /** Ouvre la fenêtre de configuration de Nomenclature. */
   ouvrirLaConfiguration(): void;
+  /** Pose la recherche que le designer tape dans le champ de l'arbre. */
   rechercher(texte: string): void;
+  /** Écrit une recherche dans le champ de l'arbre, comme si le designer l'avait tapée, et ferme la fiche. */
+  rechercherParLien(texte: string): void;
+  /** Filtre le tableau sur un terme et sur les formes que sa fiche énumère. */
+  rechercherLeTerme(mot: string, formes: readonly string[]): void;
   filtrer(filtres: Partial<Filtres>): void;
   /** Passe de l'explorateur de tokens à la vue composant, ou l'inverse. Le sandbox donne à la fenêtre la taille de la disposition. */
   changerDisposition(disposition: Disposition): void;
@@ -90,12 +96,12 @@ export interface Branchements {
 
 export function creerApplication(etat: Etat, branchements: () => Branchements): Application {
   let compteur = 0;
-  const toutes: readonly Zone[] = ['barre', 'arbre', 'table', 'inspecteur', 'vue', 'pied'];
+  const toutes: readonly Zone[] = ['barre', 'arbre', 'table', 'fiche', 'vue', 'pied'];
 
   const app: Application = {
     etat,
     renommages: { de: () => undefined, cible: () => null, ouvrir: () => {} },
-    sectionsDeLInspecteur: [],
+    rechercheParLien: false,
     rendre(zones = toutes) {
       branchements().rendre(zones);
     },
@@ -110,7 +116,12 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     },
     inspecter(variable) {
       etat.position = { ...etat.position, inspectee: variable };
-      app.rendre(['table', 'inspecteur', 'vue', 'barre']);
+      app.rendre(['table', 'fiche', 'vue', 'barre']);
+    },
+    fermerLaFiche() {
+      if (etat.position.inspectee === null) return;
+      etat.position = { ...etat.position, inspectee: null };
+      app.rendre(['table', 'fiche', 'vue', 'barre']);
     },
     suivre(cible) {
       const variable = etat.index?.variables.get(cible);
@@ -154,8 +165,18 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       app.rendre(['arbre']);
     },
     rechercher(texte) {
+      app.rechercheParLien = false;
       etat.position = { ...etat.position, recherche: texte };
       app.rendre(['arbre', 'table', 'vue', 'pied']);
+    },
+    rechercherParLien(texte) {
+      app.rechercheParLien = true;
+      etat.position = { ...etat.position, recherche: texte, inspectee: null };
+      app.rendre();
+    },
+    rechercherLeTerme(mot, formes) {
+      retenirLesFormes(mot, formes);
+      app.rechercherParLien(`${PREFIXE_TERME}${mot}`);
     },
     filtrer(filtres) {
       etat.position = { ...etat.position, filtres: { ...etat.position.filtres, ...filtres } };

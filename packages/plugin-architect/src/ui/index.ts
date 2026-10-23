@@ -5,7 +5,7 @@
  *
  * La disposition large monte le mode Tokens : l'arbre, la table et le
  * panneau latéral, où l'écran de Nomenclature a pris la place de
- * l'inspecteur. La disposition étroite monte la vue composant. Le sandbox
+ * l'inspecteur ; la fiche d'une variable s'ouvre en feuille sur ce panneau. La disposition étroite monte la vue composant. Le sandbox
  * annonce celle de l'ouverture, et la bascule de la barre passe de l'une à
  * l'autre.
  */
@@ -17,6 +17,7 @@ import { estMessageDeNomenclature } from '../messages/nomenclature';
 import { creerApplication, type Branchements, type Zone } from './application';
 import { creerArbre } from './arbre';
 import { creerBarre } from './barre';
+import { creerFiche } from './fiche';
 import { collectionDuFiltre, etatInitial, poserReleve } from './etat';
 import { monterNomenclature } from './nomenclature';
 import { versSandbox } from './pont';
@@ -36,6 +37,7 @@ racine.className = 'application';
 const barre = creerBarre(app);
 const arbre = creerArbre(app);
 const table = creerTable(app);
+const fiche = creerFiche(app);
 const vueComposant = creerVueComposant(app);
 const panneau = document.createElement('div');
 panneau.className = 'panneau';
@@ -75,6 +77,8 @@ lateral.append(hoteDeNomenclature);
 const nomenclature = monterNomenclature(hoteDeNomenclature, versSandbox, {
   appartient: (identifiant, collection) => identifiant === collection || etat.index?.variables.get(identifiant)?.collection === collection,
   enleverLeFiltre: () => app.enleverLeFiltre(),
+  rechercher: (texte) => app.rechercherParLien(texte),
+  rechercherLeTerme: (mot, formes) => app.rechercherLeTerme(mot, formes),
 });
 
 /** Le segment dont la carte vient d'être ouverte depuis la table ; il reste souligné tant que la carte est ciblée. */
@@ -96,6 +100,26 @@ app.renommages = {
     app.rendre(['table']);
   },
 };
+
+/**
+ * Les feuilles du socle couvrent la fenêtre. Ici elles ne couvrent que la barre latérale, où Nomenclature et la fiche d'une variable
+ * les ouvrent : le tableau et l'arbre restent visibles. La feuille lit ces quatre marges (`fiche.css`) ; la place de la barre de
+ * défilement reste libre, comme dans la maquette.
+ */
+function poserLaZoneDesFeuilles(): void {
+  const style = document.documentElement.style;
+  const marges = ['--lateral-haut', '--lateral-droite', '--lateral-bas', '--lateral-gauche'];
+  if (!lateral.isConnected) {
+    for (const marge of marges) style.removeProperty(marge);
+    return;
+  }
+  const zone = lateral.getBoundingClientRect();
+  const { clientWidth, clientHeight } = document.documentElement;
+  const valeurs = [zone.top, clientWidth - (zone.left + lateral.clientLeft + lateral.clientWidth), clientHeight - zone.bottom, zone.left + lateral.clientLeft];
+  marges.forEach((marge, rang) => style.setProperty(marge, `${Math.max(0, valeurs[rang])}px`));
+}
+new ResizeObserver(poserLaZoneDesFeuilles).observe(lateral);
+window.addEventListener('resize', poserLaZoneDesFeuilles);
 
 /** La collection choisie dans l'arbre filtre la barre latérale : la coquille montre sa puce. */
 function poserLeFiltre(): void {
@@ -160,6 +184,7 @@ branchements = {
     if (demandees.has('barre')) barre.mettreAJour();
     if (demandees.has('arbre')) arbre.mettreAJour();
     if (demandees.has('table') || demandees.has('vue')) table.mettreAJour();
+    if (demandees.has('fiche')) fiche.mettreAJour();
     rendreAccueil();
     if (demandees.has('pied') || demandees.has('barre')) rendrePied();
     poserLeFiltre();
