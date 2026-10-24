@@ -77,6 +77,9 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - preparation.ts : `preparerLesTokens` : variables de `components` à créer pour un composant, ce qu'elles visent dans `theme` et `layout`, questions ouvertes
 - propagation.ts : `proposerLaPropagation` (C24) : liaisons d'un variant modèle reportées sur les autres variants par substitution des segments d'axe, en correction exacte ou en question
 
+## src/referentiel/
+- signes.ts : les signes des sortes d’objets (13 familles, identifiant, libellé, sens, tracé SVG, mot de repli), les reprises entre familles et `svgDuSigne` ; données seules, la tuile se pose dans le socle
+
 ## scripts/
 - build-schema.ts : génère le schéma depuis `types.ts`
 - generer-refus.mjs : refus de version, rendus pour la relecture
