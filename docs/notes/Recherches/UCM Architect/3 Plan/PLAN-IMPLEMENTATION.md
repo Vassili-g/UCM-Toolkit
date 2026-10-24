@@ -1552,6 +1552,15 @@ Choix faits sans le mainteneur :
   préparation ignore les palettes de la seconde. Question au mainteneur : une
   telle library est-elle une entrée permise ? Si oui, un lot la traite ; sinon
   Architect le signale · réversible : oui.
+- Q-87 · §11, lots G · Choix pris sur la recommandation de l'analyse Opus de
+  la note de couverture, sans le mainteneur : (1) première passe sur les
+  longueurs explicites seules ; (2) « proche » = écart non nul d'au plus
+  `min(2 px, 10 % × max(|v|, 1))`, même valeur dans tous les modes, deux
+  candidats au plus, jamais pour zéro ni dans la préparation, toujours une
+  question ; (3) une taille sans token exact reste en dur, aucune création
+  dans `layout` ; (4) l'analyse charge les valeurs de `layout` dont un C29 a
+  besoin ; (5) une question par variant dans le kit, regroupées à l'écran
+  · réversible : oui.
 
 ### Revue des lots réalisés
 
@@ -1597,10 +1606,11 @@ dans Figma reste à faire.
 
 ## 11. Lots de fiabilité
 
-Source : les deux notes du dossier `UCM Architect/Debug`, écrites le 24
-octobre, hors du dépôt commité : bugs 1 à 11 de
-`BUGS-ANALYSE-COMPOSANTS-TOKENS.md` et lots 2 à 4 de
-`OPTIMISATION-ANALYSE-90-VARIANTS.md`.
+Source : les notes du dossier `UCM Architect/Debug`, écrites le 24 octobre,
+hors du dépôt commité : bugs 1 à 12 de `BUGS-ANALYSE-COMPOSANTS-TOKENS.md`,
+lots 2 à 4 de `OPTIMISATION-ANALYSE-90-VARIANTS.md`, et
+`RECHERCHE-COUVERTURE-TOKENS-ET-PROXIMITE.md`, analysée par Opus en effort
+élevé (lots G, choix Q-87).
 Demandés par le mainteneur après la recette d'Alert et de Button (Q-85).
 Chaque lot reçoit un test qui échoue avant lui. L'orchestrateur relit chaque
 diff, lance le lot V après les lots du kit, puis commite par chemins.
@@ -1611,12 +1621,18 @@ des fichiers disjoints.
 
 | Vague | Lot | Agent | Fichiers |
 |---|---|---|---|
-| 1 | F1, F6 | exigeant, implementeur | kit `releve.ts`, `typographie.ts`, `preparation.ts`, `accessibilite.ts` ; Architect `releveDuComposant.ts`, `sandbox/analyse.ts`, `ui/analyse/` ‖ `ui/composant/analyse.ts`, `ui/composant/variants.ts` |
-| 2 | F2, F4 | implementeur, implementeur | kit `accessibilite.ts`, `typographie.ts` ‖ Architect `constatsDuMoteur.ts`, `sandbox/analyse.ts` (sujet, page) |
-| 3 | F3, F5 | implementeur, implementeur | kit `mapping.ts` ‖ Architect `code.ts` |
-| 4 | F7 | implementeur | kit `corrections.ts` ; Architect `catalogue.ts`, `sandbox/analyse.ts` (catalogue), `releveDuComposant.ts` |
+| 1 | F1, F6 | exigeant, implementeur | fait |
+| 2 | F2, F4 | implementeur, implementeur | kit `releve.ts`, `accessibilite.ts`, `typographie.ts` ‖ Architect `constatsDuMoteur.ts`, `sandbox/analyse.ts` (sujet, page, sélection) |
+| 3 | F3, G1 | implementeur, implementeur | kit `mapping.ts` ‖ kit `preparation.ts`, Architect `ui/preparation/`, `ui/textes/preparation.ts` |
+| 4 | F5, G3 | implementeur, exigeant | Architect `code.ts` ‖ kit `corrections.ts` |
+| 5 | G2, G4 | implementeur, implementeur | Architect `ui/preparation/` ‖ kit `corrections.ts`, Architect `sandbox/analyse.ts` (catalogue), `ui/ignores/` |
+| 6 | G5 | exigeant | kit `candidatsDeLongueur.ts` (nouveau), `corrections.ts`, `preparation.ts` |
+| 7 | G6 | exigeant | kit `constat.ts`, `corrections.ts` ; Architect `sandbox/questions.ts`, `ecriture/liaisons.ts`, `ui/questions/` |
+| 8 | F7 | implementeur | kit `corrections.ts` ; Architect `catalogue.ts`, `sandbox/analyse.ts`, `releveDuComposant.ts` |
 
-- [ ] **F1 · Une lecture manquée ne devient jamais un constat** (bugs 1, 3,
+Un lot du kit monte sa version dans son commit (script du lot V).
+
+- [x] (603596fe) **F1 · Une lecture manquée ne devient jamais un constat** (bugs 1, 3,
   4). Une liaison dont la variable ne se lit pas reste au relevé, marquée
   illisible : C66, C25, la préparation et le contraste la voient liée, et le
   contraste rend une limite. Un layer dont la boîte ne se lit pas ne donne
@@ -1633,7 +1649,7 @@ des fichiers disjoints.
   de tout autre sujet que le jeu et ses variants, périme l'analyse.
 - [ ] **F5 · Le maître d'une autre page se surveille** (bug 8). Le sandbox
   suit aussi la page du sujet analysé quand ce n'est pas la page courante.
-- [ ] **F6 · Le panneau garde sa péremption ; le tableau compte par
+- [x] (7e4ce4b4) **F6 · Le panneau garde sa péremption ; le tableau compte par
   identifiant** (bugs 10, 11). Le message `analyse` d'une analyse déjà
   périmée la laisse périmée. La cellule du tableau croisé compte les
   constats qui nomment le variant par son identifiant ou par son nom.
@@ -1644,6 +1660,36 @@ des fichiers disjoints.
   Critère : constats, corrections et questions égaux en profondeur sur les
   fixtures, avant et après.
 
+- [ ] **G1 · La préparation ne bloque plus sur une taille sans token exact**
+  (bug 12). Un lieu sans candidat exact sort du plan et reste en dur (C29
+  le garde dans À faire dans Figma) ; la préparation rend ces lieux à part.
+  La réponse libre à une question `cible:` disparaît. Des lieux de valeurs
+  différentes sous un même nom ne partagent plus une cible qui ne vaut que
+  pour une partie d'entre eux.
+- [ ] **G2 · Une question de nom sans candidat reçoit un champ de saisie.**
+  Jumeau du bug 12 : la question `nom:` d'un layer au nom par défaut n'avait
+  aucune réponse possible.
+- [ ] **G3 · C29 se limite aux longueurs explicites.** Padding, gap, rayon
+  commun et par coin, épaisseur commune ; non nulles ; visibles dans leur
+  variant (règle de F2) ; hors layer d'instance ; hors lecture manquée.
+  Largeur et hauteur sortent de C29 (provenance non lue).
+- [ ] **G4 · Les valeurs de layout se lisent en analyse.** Avec une library,
+  C29 n'avait jamais de candidat : seules les variables liées étaient
+  chargées. L'analyse charge les familles de `layout` dont un C29 a besoin ;
+  sans lecture complète, C29 dit « non vérifié », sans question.
+- [ ] **G5 · Un classement des candidats de longueur partagé.** C29 et la
+  préparation lisent les mêmes candidats exacts, valeur résolue dans tous
+  les modes, alias suivis. Aucune question « proche » encore.
+- [ ] **G6 · C29 proche : une question qui montre l'écart.** Écart non nul,
+  au plus `min(2 px, 10 % de la valeur)`, même valeur dans tous les modes ;
+  au plus le plus proche en dessous et au-dessus, rien de coché. La
+  correction née de la réponse relit la valeur avant d'écrire (`fait-faux`
+  si elle a changé). Questions regroupées sur les variants identiques, une
+  réponse par question.
+
 Hors de ces lots : le lot 1 (trace) et le lot 5 (relevé partagé avec le
 moteur) de l'optimisation attendent une mesure dans Figma ; le cas « plusieurs
 collections reconnues comme `theme` » est une question au mainteneur (Q-86).
+La couverture des couleurs ordinaires, de la typographie, de l'opacité, des
+dimensions et des contours par côté, et toute création dans `layout`
+(contraire à l'invariant de la préparation), restent hors de cette passe.
