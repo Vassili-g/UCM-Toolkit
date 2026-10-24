@@ -728,7 +728,7 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
 ### Piste O · orchestrateur
 
 - [x] (f32079e8) **O0 · Vague 0** : notes du §7, fiches exécutables, sondes envoyées.
-- [~ orchestrateur] (ROADMAP 9522c12b ; anciens noms e91a846c) **O1 · Documents de jalon** : cohérence générale de `agents:diff`,
+- [x] (ROADMAP 9522c12b ; anciens noms e91a846c ; SPEC cf7181b1, a6e4d88f, 4e8fdf36 ; Q-54 et Q-55 ea406d3d) **O1 · Documents de jalon** : cohérence générale de `agents:diff`,
   `SPEC.md` de l'explorateur devenu celui d'Architect, README de ce dossier,
   ROADMAP.
 - [ ] **O2 · Fin** (skill `publier-paquets`) : recette locale, commit final,
@@ -1547,6 +1547,11 @@ Choix faits sans le mainteneur :
   `button/colors/warning/…`, d'après le contrat exporté) ; aucun constat ne
   nomme encore une liaison à une variable absente du catalogue
   · réversible : oui.
+- Q-86 · §11 · Plusieurs collections reconnues comme `theme` (ou `layout`)
+  dans un catalogue : `preparerLesTokens` ne prend que la première, et la
+  préparation ignore les palettes de la seconde. Question au mainteneur : une
+  telle library est-elle une entrée permise ? Si oui, un lot la traite ; sinon
+  Architect le signale · réversible : oui.
 
 ### Revue des lots réalisés
 
