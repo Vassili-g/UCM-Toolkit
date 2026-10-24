@@ -49,6 +49,8 @@ interface AnalyseCourante {
   readonly identite: IdentiteDAnalyse;
   /** Les identifiants des nœuds du jeu analysé : le jeu, ses variants et leurs calques. */
   readonly noeuds: ReadonlySet<string>;
+  /** Les sujets que la sélection peut désigner sans périmer l'analyse : le jeu et ses variants. */
+  readonly admis: ReadonlySet<string>;
   /** Les corrections des constats rendus, par identifiant : l'écriture n'écrit que celles-là. */
   corrections: ReadonlyMap<string, Correction>;
   /** Tous les constats de l'analyse, ignorés compris, par identifiant : Ignorer et les questions les retrouvent ici. */
@@ -63,10 +65,11 @@ let generation = 0;
 let courante: AnalyseCourante | null = null;
 
 /** Ouvre une analyse : la génération monte, l'analyse précédente n'est plus la courante. */
-export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte): IdentiteDAnalyse {
+export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte, admis?: Iterable<string>): IdentiteDAnalyse {
   generation += 1;
   const identite = { sujet, generation };
-  courante = { identite, noeuds: new Set(noeuds), corrections: new Map(), constats: new Map(), releve: null, catalogue: null, perimee: false };
+  const tous = new Set(noeuds);
+  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, corrections: new Map(), constats: new Map(), releve: null, catalogue: null, perimee: false };
   contexte.surveillerLeDocument();
   return identite;
 }
@@ -181,7 +184,7 @@ export function surChangementDuDocument(noeudsTouches: Iterable<string>, context
  */
 export function surSelection(sujetId: string | null, origine: OrigineDeSelection, contexte: Contexte): void {
   if (!courante || origine === 'plugin' || sujetId === null) return;
-  if (!courante.noeuds.has(sujetId)) perimer('selection', contexte);
+  if (!courante.admis.has(sujetId)) perimer('selection', contexte);
 }
 
 
@@ -191,6 +194,8 @@ export interface SujetAAnalyser {
   readonly noeud: NoeudLu;
   /** Le jeu, ses variants et leurs calques. */
   readonly noeuds: readonly string[];
+  /** Le jeu et ses variants : une sélection d'un autre nœud, calque ou composant imbriqué, périme l'analyse. Absent : `noeuds`. */
+  readonly admis?: readonly string[];
 }
 
 /** Les lectures de Figma d'une analyse : le sandbox donne les siennes, les tests des doubles. */
@@ -229,7 +234,7 @@ async function sujetDeFigma(contexte: Contexte): Promise<SujetAAnalyser | null> 
   }
   const enfants = (jeu.children ?? []).map((enfant) => enfant.id);
   const cle = (jeu as unknown as { key?: unknown }).key;
-  return { cle: typeof cle === 'string' && cle !== '' ? cle : jeu.id, noeud: jeu, noeuds: [jeu.id, ...enfants, ...descendants.map((noeud) => noeud.id)] };
+  return { cle: typeof cle === 'string' && cle !== '' ? cle : jeu.id, noeud: jeu, noeuds: [jeu.id, ...enfants, ...descendants.map((noeud) => noeud.id)], admis: [jeu.id, ...enfants] };
 }
 
 function portDuComposant({ figma }: Contexte): PortDuComposant {
@@ -275,6 +280,20 @@ async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDAnnulati
   return catalogueDuFichier({ collections: [...(lues?.collections.values() ?? [])], variables: [...(lues?.variables.values() ?? [])] }, architecture);
 }
 
+/**
+ * La page qui porte `noeud` : on remonte `parent` jusqu'au nœud `PAGE`. Le
+ * maître d'une instance peut vivre sur une autre page que la page courante, et
+ * le moteur y cherche les règles d'usage. Sans page trouvée : `repli`.
+ */
+export function pageDuNoeud<T>(noeud: { readonly type?: string; readonly parent?: unknown } | null | undefined, repli: T): T {
+  let courant = noeud as { type?: string; parent?: unknown } | null | undefined;
+  for (let i = 0; courant && i < 1000; i += 1) {
+    if (courant.type === 'PAGE') return courant as unknown as T;
+    courant = courant.parent as typeof courant;
+  }
+  return repli;
+}
+
 const LECTEURS_DE_FIGMA: Lecteurs = {
   sujet: sujetDeFigma,
   releve: (sujet, jeton, contexte) => lireLeReleve(portDuComposant(contexte), sujet.noeud, {
@@ -288,7 +307,7 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
   regles: (sujet, resultat) => lireLesRegles(sujet.noeud as unknown as ComponentSetNode, (resultat as { export: ComponentExport }).export),
   moteur: (sujet, jeton, { figma }) => analyserLeComposant(async () => {}, {
     composant: sujet.noeud as unknown as ComponentSetNode,
-    page: figma.currentPage,
+    page: pageDuNoeud(sujet.noeud, figma.currentPage),
     budgetDeLayers: BUDGET_DE_LAYERS_PAR_DEFAUT,
     jeton,
     respirer: () => new Promise((resolve) => setTimeout(resolve, 0)),
@@ -349,7 +368,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
   };
   try {
     const sujet = await lecteurs.sujet(contexte).catch(() => null);
-    identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte);
+    identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis);
     courant.connue = identite;
     connaitre(identite);
     contexte.envoyer({ type: 'analyse-commencee', analyse: identite });

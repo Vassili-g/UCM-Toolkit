@@ -46,12 +46,23 @@ function regleDe(point: PointACorriger): Regle | null {
   return TABLE_DU_MOTEUR.find((regle) => regle.depuis === point.famille && (!regle.texte || regle.texte.test(texte))) ?? null;
 }
 
+/** FNV-1a 32 bits, en base 36 : une empreinte courte et stable du contenu d'un point. */
+function empreinte(texte: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < texte.length; i += 1) {
+    h ^= texte.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(36);
+}
+
 /**
  * Les constats d'un export du moteur, un par phrase distincte. `variants` sont
  * les identifiants des variants du relevé.
  */
 export function constatsDuMoteur(moteur: Pick<ComponentExport, 'warnings' | 'parties' | 'localisations'>, variants: ReadonlySet<string> = new Set()): Constat[] {
   const constats: Constat[] = [];
+  const vus = new Map<string, number>();
   for (const phrase of new Set(moteur.warnings)) {
     const point = moteur.parties.get(phrase);
     const regle = point ? regleDe(point) : null;
@@ -60,8 +71,12 @@ export function constatsDuMoteur(moteur: Pick<ComponentExport, 'warnings' | 'par
     const faits: Record<string, string | number> = point
       ? { titre: point.titre, impact: point.impact, action: point.action, geste: point.famille, ...(point.calque ? { calque: point.calque } : {}), ...(point.elements?.length ? { elements: point.elements.join(', ') } : {}) }
       : { message: phrase };
+    // L'identifiant vient du contenu, non du rang : Ignorer le range dans le document, et le moteur peut changer d'ordre d'une analyse à l'autre.
+    const base = `moteur:${code}:${empreinte(`${point?.titre ?? phrase}|${[...noeuds].sort().join(',')}`)}`;
+    const rang = (vus.get(base) ?? 0) + 1;
+    vus.set(base, rang);
     constats.push({
-      id: `moteur:${code}:${constats.length}`,
+      id: rang === 1 ? base : `${base}:${rang}`,
       code,
       type: point?.severite === 'danger' ? 'bloquant' : regle?.type ?? 'verifier',
       famille: regle?.famille ?? 'export',
