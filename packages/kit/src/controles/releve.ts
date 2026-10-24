@@ -72,3 +72,42 @@ export function liaisonsPropres(layer: Pick<LayerLu, 'liaisons'>): LiaisonLue[] 
 export function lectureManquee(releve: Pick<ReleveDeComposant, 'lecture'>, layerId: string, champ: string): boolean {
   return releve.lecture.manquees.some((manquee) => manquee.layer === layerId && manquee.champ === champ);
 }
+
+/**
+ * Les layers que le designer voit : le layer et tous ses ancêtres sont visibles.
+ * `LayerLu.visible` ne porte que la visibilité propre ; un layer sous un parent
+ * masqué reste donc `visible: true` dans le relevé. Tout contrôle qui juge ce
+ * que le designer voit (accessibilité, typographie, et les lecteurs qui
+ * suivront) passe par cette règle. Un parent absent du variant ne masque pas ;
+ * un cycle de `parent` s'arrête au premier layer déjà rencontré.
+ */
+export function layersVisiblesDuVariant(variant: VariantLu): LayerLu[] {
+  const parId = new Map(variant.layers.map((l) => [l.id, l]));
+  const verdicts = new Map<string, boolean>();
+  const estVisible = (layer: LayerLu): boolean => {
+    const chaine: LayerLu[] = [];
+    const vus = new Set<string>();
+    let courant: LayerLu | undefined = layer;
+    let resultat = true;
+    while (courant) {
+      const connu = verdicts.get(courant.id);
+      if (connu !== undefined) { resultat = connu; break; }
+      if (vus.has(courant.id)) break;
+      vus.add(courant.id);
+      chaine.push(courant);
+      if (!courant.visible) { resultat = false; break; }
+      courant = courant.parent === null ? undefined : parId.get(courant.parent);
+    }
+    // Un layer n'est masqué que par lui-même ou un ancêtre : on mémorise le verdict de la chaîne parcourue.
+    if (resultat) for (const l of chaine) verdicts.set(l.id, true);
+    else {
+      let masque = false;
+      for (let i = chaine.length - 1; i >= 0; i--) {
+        if (!chaine[i].visible) masque = true;
+        verdicts.set(chaine[i].id, !masque);
+      }
+    }
+    return resultat;
+  };
+  return variant.layers.filter(estVisible);
+}

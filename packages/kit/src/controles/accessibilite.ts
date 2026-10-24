@@ -11,7 +11,7 @@ import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
 import type { CatalogueDeReference, CollectionDuCatalogue } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
+import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 export type NiveauWcag = 'AA' | 'AAA';
 
@@ -101,7 +101,7 @@ function estInteractif(releve: ReleveDeComposant): boolean {
 }
 
 function layersVisibles(variant: VariantLu): LayerLu[] {
-  return variant.layers.filter((l) => l.visible);
+  return layersVisiblesDuVariant(variant);
 }
 
 function estGrandTexte(fontSize: number, fontWeight: number): boolean {

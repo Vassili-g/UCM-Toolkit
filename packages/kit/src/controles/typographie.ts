@@ -10,6 +10,7 @@ import type { CatalogueDeReference } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
+import { layersVisiblesDuVariant } from './releve.js';
 
 /** Champs Figma de la taille et de la graisse d'un texte. */
 const CHAMPS_DE_TEXTE = ['fontSize', 'fontWeight'] as const;
@@ -26,7 +27,7 @@ type Source = { variant: VariantLu; layer: LayerLu };
 export function controlerLaTypographie(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
   const variants = releve.variants;
   const constats: Constat[] = [];
-  const textes = sources(variants, (l) => l.type === 'TEXT' && l.visible);
+  const textes = sources(variants, (l) => l.type === 'TEXT');
   const icones = sources(variants, estIcone);
   constats.push(...controlerLesTextes(textes, catalogue));
   constats.push(...controlerLesTailleEtGraisse(textes, catalogue));
@@ -36,13 +37,13 @@ export function controlerLaTypographie(releve: ReleveDeComposant, catalogue: Cat
 }
 
 function estIcone(layer: LayerLu): boolean {
-  return layer.visible && (NOM_D_ICONE.test(layer.nom) || (layer.instanceDe?.pilotee ?? null) !== null);
+  return (NOM_D_ICONE.test(layer.nom) || (layer.instanceDe?.pilotee ?? null) !== null);
 }
 
 function sources(variants: VariantLu[], garde: (l: LayerLu) => boolean): Map<string, Source[]> {
   const parNom = new Map<string, Source[]>();
   for (const variant of variants) {
-    for (const layer of variant.layers) {
+    for (const layer of layersVisiblesDuVariant(variant)) {
       if (!garde(layer)) continue;
       const liste = parNom.get(layer.nom) ?? [];
       liste.push({ variant, layer });
