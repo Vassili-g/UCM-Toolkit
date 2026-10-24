@@ -1,5 +1,5 @@
 /**
- * Les états de l'onglet Questions du panneau des constats, et les données d'Alert que `ignores.cjs` reprend : les 9 constats à
+ * Les états des questions du panneau des constats, et les données d'Alert que `ignores.cjs` reprend : les 9 constats à
  * correction de `corrections.cjs` (4 cartes), deux questions du moteur et les douze constats à faire dans Figma de la maquette.
  *
  * La maquette montre trois questions ; la troisième, « Préparer les tokens du stroke », est celle de la préparation (lot U8), que
@@ -62,29 +62,29 @@ const analyseDeQuestions = { type: 'analyse', analyse: IDENTITE, statut: 'comple
 const ignoresDeQuestions = { type: 'ignores', analyse: IDENTITE, constats: [ignore.id] };
 
 const ouvrirLePanneau = [preferences(), etroite, choisir(alertCorrections), composant(alertCorrections), apercu(alertCorrections), { message: analyseDeQuestions }, { message: ignoresDeQuestions }, { clic: '.bouton-panneau' }];
-const ongletQuestions = { clic: '#onglet-questions' };
+const puceCouleurs = { clic: '.puce-element[data-element="couleurs"]' };
 const repondue = { message: { type: 'question-repondue', analyse: IDENTITE, question: 'q:C15:title', correction: correctionDeTitre } };
 
 const ETATS = [
   {
-    id: 'c-questions', titre: 'Questions du composant', quand: 'Alert est analysé ; le designer ouvre l’onglet Questions.',
+    id: 'c-questions', titre: 'Questions du composant', quand: 'Alert est analysé ; le designer choisit la puce Couleurs.',
     regarder: 'Une carte par question : le layer title en olive, le chemin proposé en gris, le segment nouveau en vert ; un seul bouton bordé, les autres candidats en liens, Plus tard à droite ; rien n’est choisi avant le clic.',
-    existe: true, atteinte: [...ouvrirLePanneau, ongletQuestions],
+    existe: true, atteinte: [...ouvrirLePanneau, puceCouleurs],
   },
   {
     id: 'c-tranchee', titre: 'Question répondue', quand: 'Le designer lie title au token proposé ; le sandbox rend la correction exacte.',
     regarder: 'La carte devient une ligne verte « title sera lié à colors/info/standard/title. » avec Ouvrir Corrections et Annuler la réponse ; la question suivante reste à trancher ; Corrections gagne une carte.',
-    existe: true, atteinte: [...ouvrirLePanneau, ongletQuestions, { clic: '.question .btn-secondary' }, repondue],
+    existe: true, atteinte: [...ouvrirLePanneau, puceCouleurs, { clic: '.question .btn-secondary' }, repondue],
   },
   {
     id: 'q-annulee', titre: 'Réponse annulée', quand: 'Le designer annule sa réponse ; le sandbox retire la correction.',
     regarder: 'La carte de la question revient avec ses boutons ; Corrections perd la carte que la réponse avait tirée.',
-    existe: true, atteinte: [...ouvrirLePanneau, ongletQuestions, { clic: '.question .btn-secondary' }, repondue, { clic: '.constat-actions .btn-texte:last-child' }, { message: { type: 'question-repondue', analyse: IDENTITE, question: 'q:C15:title', correction: null } }],
+    existe: true, atteinte: [...ouvrirLePanneau, puceCouleurs, { clic: '.question .btn-secondary' }, repondue, { clic: '.constat-actions .btn-texte:last-child' }, { message: { type: 'question-repondue', analyse: IDENTITE, question: 'q:C15:title', correction: null } }],
   },
   {
     id: 'q-perimee', titre: 'Questions d’une analyse périmée', quand: 'Le designer change la sélection dans Figma : l’analyse est périmée.',
     regarder: 'L’alerte « Le composant a changé depuis l’analyse » ; les questions ne se répondent plus : « Les constats datent d’avant le changement. » prend la place des cartes.',
-    existe: true, atteinte: [...ouvrirLePanneau, ongletQuestions, perime('selection')],
+    existe: true, atteinte: [...ouvrirLePanneau, puceCouleurs, perime('selection')],
   },
 ].map((etat) => ({ ...etat, disposition: 'etroite' }));
 

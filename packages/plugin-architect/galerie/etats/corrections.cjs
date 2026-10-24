@@ -1,9 +1,9 @@
 /**
- * Les états de l'onglet Corrections du panneau des constats, dans la fenêtre du mode Composant, et les données d'Alert qu'ils
+ * Les états des corrections du panneau des constats, dans la fenêtre du mode Composant, et les données d'Alert qu'ils
  * partagent avec `analyse.cjs` : un jeu de 11 variants, 24 constats, dont 9 portent une correction exacte.
  *
  * Les 19 premiers constats sont ceux de `donnees.cjs`, avec leurs variants et leurs types : la section Variants compte les mêmes
- * puces. Cinq constats sans variant s'y ajoutent, de quoi donner à chaque onglet le compte de la maquette. Les layers prennent les
+ * puces. Cinq constats sans variant s'y ajoutent, de quoi donner à chaque élément des points. Les layers prennent les
  * noms de la maquette : container, icon, message.
  */
 const { alertEnJeu, analyseAlert, IDENTITE } = require('../composant/donnees.cjs');
@@ -105,7 +105,7 @@ const perime = (cause) => ({ message: { type: 'perime', analyse: IDENTITE, cause
 const ETATS = [
   {
     id: 'c-corrections', titre: 'Corrections du composant', quand: 'Alert est analysé : 24 constats, dont 9 portent une correction ; le designer ouvre le panneau.',
-    regarder: 'Trois onglets avec leur compte ; quatre intertitres de cartes, la première ouverte ; les liaisons que les corrections cochées vont changer, le segment nouveau en vert dans la vue ; le pied compte 4 corrections, 8 layers et 1 instance.',
+    regarder: 'Le sommaire : Tout, Couleurs 18, Tailles et forme 2, Tokens du composant 3, Règles d’utilisation 1 ; Couleurs repliée, les autres sections ouvertes ; chaque carte de correction a son Appliquer ; Texte tenu, la coche seule ; le pied compte 4 corrections, 8 layers et 1 instance, et propose Appliquer tout.',
     existe: true, atteinte: [preferences(), etroite, choisir(alertTexteSuccess), composant(alertTexteSuccess), apercu(alertTexteSuccess), ...panneauOuvert.slice(5)],
   },
   {
@@ -114,13 +114,13 @@ const ETATS = [
     existe: true, atteinte: [preferences(), etroite, choisir(alertModele), composant(alertModele), apercu(alertModele), { message: analyseAvantLeModele }, { message: aucunIgnore }, { clic: '[data-action="copier-les-liaisons"]' }, { message: modelePropose }, { clic: '.bouton-panneau' }],
   },
   {
-    id: 'c-clic', titre: 'Un constat cliqué', quand: 'Le designer ouvre la carte « info devient success » : le plugin sélectionne ses deux layers dans Figma.',
+    id: 'c-clic', titre: 'Un constat cliqué', quand: 'Le designer choisit la puce Couleurs et ouvre la carte « info devient success » : le plugin sélectionne ses deux layers dans Figma.',
     regarder: 'La ligne grise de la carte ajoute « Sélectionnés dans Figma. » ; la carte montre la propriété, la règle et « Ne plus proposer pour ces 2 layers » ; l’aperçu entoure le layer sélectionné.',
-    existe: true, atteinte: [preferences(), etroite, choisir(alertTexteSuccess), composant(alertTexteSuccess), apercu(alertTexteSuccess), ...panneauOuvert.slice(5), { clic: '.bloc-bouton' }, { clic: '.bloc-bouton' }, { message: { type: 'selection', sujet: { id: alertCorrections.sujet.id, portee: CONTAINER }, ignores: 1, origine: 'plugin' } }],
+    existe: true, atteinte: [preferences(), etroite, choisir(alertTexteSuccess), composant(alertTexteSuccess), apercu(alertTexteSuccess), ...panneauOuvert.slice(5), { clic: '.puce-element[data-element="couleurs"]' }, { clic: '.bloc-bouton' }, { clic: '.bloc-bouton' }, { message: { type: 'selection', sujet: { id: alertCorrections.sujet.id, portee: CONTAINER }, ignores: 1, origine: 'plugin' } }],
   },
   {
     id: 'c-apres', titre: 'Après Appliquer', quand: 'Le designer applique les 4 corrections : le sandbox écrit, rend la ligne de réussite, puis périme l’analyse.',
-    regarder: 'L’alerte « Le composant a changé depuis l’analyse » ; Corrections à 0 ; la ligne de réussite avec « Ctrl+Z dans Figma défait ce lot. » ; Questions et À faire gardent leur compte.',
+    regarder: 'L’alerte « Le composant a changé depuis l’analyse » ; la ligne de réussite avec « Ctrl+Z dans Figma défait ce lot. » ; ni sommaire ni section tant que l’analyse est périmée.',
     existe: true, atteinte: [...panneauOuvert, appliquer, { message: lot }, perime('ecriture')],
   },
   {
@@ -130,7 +130,7 @@ const ETATS = [
   },
   {
     id: 'e-ecriture', titre: 'Écriture en cours', quand: 'Le designer clique Appliquer ; le sandbox n’a pas encore répondu.',
-    regarder: '« Écriture de 8 liaisons en cours. » sous les onglets ; le pied garde son décompte, Appliquer est inactif.',
+    regarder: '« Écriture de 8 liaisons en cours. » à la place de la liste ; le pied garde son décompte, Appliquer tout est inactif.',
     existe: true, atteinte: [...panneauOuvert, appliquer],
   },
   {

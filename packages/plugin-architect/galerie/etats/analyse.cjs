@@ -29,7 +29,7 @@ const lecturePartielle = { layersLus: 2000, layersNonLus: 640, variantsNonLus: v
 const ETATS = [
   {
     id: 'e-vide', titre: 'Panneau sans composant', quand: 'Rien n’est sélectionné dans Figma ; le panneau est ouvert.',
-    regarder: 'Une alerte d’information : « Sélectionnez un composant dans Figma. » ; ni résumé, ni onglets.',
+    regarder: 'Une alerte d’information : « Sélectionnez un composant dans Figma. » ; ni résumé, ni sommaire.',
     existe: true, atteinte: [preferences(), etroite, sansSelection, OUVRIR],
   },
   {
@@ -39,12 +39,12 @@ const ETATS = [
   },
   {
     id: 'e-aucun', titre: 'Aucun constat', quand: 'L’analyse est complète et ne trouve rien sur les 11 variants.',
-    regarder: 'Une alerte « Tenu » : « Aucun constat sur les 11 variants d’Alert. » et la liste de ce qui a été contrôlé ; ni onglets, ni pastille sur Constats.',
+    regarder: 'Une alerte « Tenu » : « Aucun constat sur les 11 variants d’Alert. » et la liste de ce qui a été contrôlé ; ni sommaire, ni pastille sur Constats.',
     existe: true, atteinte: [...alertLu, OUVRIR, lu('complete', [])],
   },
   {
     id: 'e-partiel', titre: 'Analyse partielle', quand: 'L’exporteur a lu 2 000 layers sur 2 640 ; les variants Severity=warning n’ont pas été lus.',
-    regarder: 'Une alerte « À vérifier » dit que les constats portent sur la partie lue ; jamais « aucun constat » ; les onglets gardent leur compte.',
+    regarder: 'Une alerte « À vérifier » dit que les constats portent sur la partie lue ; jamais « aucun constat » ; les puces gardent leur nombre de points.',
     existe: true, atteinte: [...alertAnalyse, OUVRIR, lu('partielle', constatsPartiels, lecturePartielle)],
   },
   {
@@ -60,7 +60,7 @@ const ETATS = [
   },
   {
     id: 'e-hors', titre: 'Composant hors UCM', quand: 'Le fichier n’est pas déclaré UCM ; le panneau est ouvert.',
-    regarder: 'Une alerte d’information et le bouton « Déclarer dans la Configuration » prennent la place des onglets.',
+    regarder: 'Une alerte d’information et le bouton « Déclarer dans la Configuration » prennent la place du sommaire.',
     existe: true, atteinte: [...alertLu, { message: { type: 'declaration', architecture: 'absente' } }, OUVRIR],
   },
   {

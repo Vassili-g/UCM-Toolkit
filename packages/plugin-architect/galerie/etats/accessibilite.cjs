@@ -13,8 +13,8 @@ const { constatsDeQuestions } = require('./questions.cjs');
 const constat = (id, code, type, famille, faits, variants = [], layers = [], reste = {}) => ({ id, code, type, famille, variants, layers, faits, ...reste });
 const message = (variants, constats) => ({ message: { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats, lecture: null, variants } });
 const ouvrirLePanneau = (lecture, analyse) => [preferences(), etroite, choisir(lecture), composant(lecture), apercu(lecture), analyse, { message: aucunIgnore }, { clic: '.bouton-panneau' }];
-const ongletAFaire = { clic: '#onglet-a-faire' };
-const ongletQuestions = { clic: '#onglet-questions' };
+const puceAccessibilite = { clic: '.puce-element[data-element="a11y"]' };
+const puceCouleurs = { clic: '.puce-element[data-element="couleurs"]' };
 const premiereCarte = { clic: '.bloc-constat .bloc-bouton' };
 
 /* Alert : trois constats de contraste, dont une limite de lecture. */
@@ -77,19 +77,19 @@ const analyseDeButton = message(variantsButton, [...questionsButton, ...accessib
 
 const ETATS = [
   {
-    id: 'x-alert', titre: 'Contraste d’Alert', quand: 'Alert est analysé ; le designer ouvre À faire dans Figma, puis la première carte du contraste.',
-    regarder: 'Un seul intertitre, Contraste et accessibilité ; la première carte ouverte montre la Mesure : le rapport en gras, puis le seuil et le mode ; le stroke dit son rapport au lieu du seuil dans sa ligne grise ; le dégradé est une information qui dit « n’a pas été mesuré » ; une note dit que ces mesures portent sur le dessin.',
-    existe: true, atteinte: [...ouvrirLePanneau(alertCorrections, analyseDAlert), ongletAFaire, premiereCarte],
+    id: 'x-alert', titre: 'Contraste d’Alert', quand: 'Alert est analysé ; le designer choisit la puce Accessibilité, puis ouvre la première carte du contraste.',
+    regarder: 'La section Accessibilité seule, sous sa bande ; la première carte ouverte montre la Mesure : le rapport en gras, puis le seuil et le mode ; le stroke dit son rapport au lieu du seuil dans sa ligne grise ; le dégradé est une information qui dit « n’a pas été mesuré » ; une note dit que ces mesures portent sur le dessin.',
+    existe: true, atteinte: [...ouvrirLePanneau(alertCorrections, analyseDAlert), puceAccessibilite, premiereCarte],
   },
   {
-    id: 'x-button', titre: 'Accessibilité de Button', quand: 'Button est analysé à 216 variants ; le designer ouvre À faire dans Figma.',
-    regarder: 'Sept cartes sous Contraste et accessibilité : l’anneau, la zone cliquable et le texte sous 12 px ; les recommandations disent « Recommandation » ; les 54 variants désactivés sont une information, jamais un manquement.',
-    existe: true, atteinte: [...ouvrirLePanneau(button, analyseDeButton), ongletAFaire],
+    id: 'x-button', titre: 'Accessibilité de Button', quand: 'Button est analysé à 216 variants ; le designer choisit la puce Accessibilité.',
+    regarder: 'Sept cartes dans la section Accessibilité : l’anneau, la zone cliquable et le texte sous 12 px ; les recommandations disent « Recommandation » ; les 54 variants désactivés sont une information, jamais un manquement.',
+    existe: true, atteinte: [...ouvrirLePanneau(button, analyseDeButton), puceAccessibilite],
   },
   {
-    id: 'x-button-corr', titre: 'Questions d’état de Button', quand: 'Button est analysé ; le designer ouvre Questions.',
+    id: 'x-button-corr', titre: 'Questions d’état de Button', quand: 'Button est analysé ; le designer choisit la puce Couleurs.',
     regarder: 'Deux cartes : le fill ou le texte de State=hover lié au token du repos ; la ligne grise dit ce que font les autres variants State=hover ; l’effet met le segment qui part en rouge et celui qui arrive en vert ; un seul bouton bordé.',
-    existe: true, atteinte: [...ouvrirLePanneau(button, analyseDeButton), ongletQuestions],
+    existe: true, atteinte: [...ouvrirLePanneau(button, analyseDeButton), puceCouleurs],
   },
 ].map((etat) => ({ ...etat, disposition: 'etroite' }));
 

@@ -316,6 +316,14 @@ test('le résumé ne parle de part cachée que si une carte cochée n’est pas 
   assert.match(comme(pied(banc).querySelector('.corrections-resume')).textContent, /^2 corrections cochées/);
 });
 
+test('un élément sans carte cochée visible dit « aucune », jamais « dont 0 »', () => {
+  const banc = monter();
+  choisir(banc, 'tokens');
+  const texte = comme(pied(banc).querySelector('.corrections-resume')).textContent;
+  assert.match(texte, /^4 corrections cochées, aucune dans Tokens du composant/);
+  assert.doesNotMatch(texte, /dont 0/);
+});
+
 test('une case décochée dans une vue reste décochée dans l’autre', () => {
   const banc = monter();
   choisir(banc, 'regles');

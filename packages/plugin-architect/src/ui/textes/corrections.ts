@@ -37,7 +37,7 @@ const CHAMPS_DE_LA_CARTE: Readonly<Record<string, string>> = {
 };
 
 /** Le pied dit ce que la vue d'un seul élément ne montre pas : le total des cochées, dont la part visible. */
-const dontDans = (cachees: { readonly dans: number; readonly element: string } | null): string => (cachees === null ? '' : `, dont ${cachees.dans} dans ${cachees.element}`);
+const dontDans = (cachees: { readonly dans: number; readonly element: string } | null): string => (cachees === null ? '' : cachees.dans === 0 ? `, aucune dans ${cachees.element}` : `, dont ${cachees.dans} dans ${cachees.element}`);
 
 export const TEXTES_CORRECTIONS = {
   correctionsDuComposant: {
