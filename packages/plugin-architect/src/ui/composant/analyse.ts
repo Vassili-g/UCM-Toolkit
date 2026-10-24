@@ -97,9 +97,10 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       etat.analyse = { ...courante, progression: { lus: message.variantsLus, total: message.variantsTotal } };
       return;
     case 'analyse':
+      // Le sandbox garde périmée l'analyse qu'un `perime` a atteinte : le message final ne la rend pas applicable.
       etat.analyse = {
         ...courante, statut: message.statut, constats: visibles(message.constats, courante.ignores), tous: message.constats, variants: message.variants,
-        lecture: message.lecture, sansTokens: message.sansTokens, progression: null, perimee: false, cause: null, recueA: Date.now(),
+        lecture: message.lecture, sansTokens: message.sansTokens, progression: null, recueA: Date.now(),
       };
       return;
     case 'ignores':

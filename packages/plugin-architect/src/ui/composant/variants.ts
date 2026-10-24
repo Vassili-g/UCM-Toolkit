@@ -205,6 +205,10 @@ function choixDePropriete(etiquette: string, proprietes: readonly ProprieteDeVar
   return libelle;
 }
 
+/** Les constats qui nomment le variant, par son identifiant (le cas du kit) ou par son nom ; chacun une fois. */
+export const constatsDuVariant = (variant: VariantDuJeu, constats: readonly Constat[]): Constat[] =>
+  constats.filter((constat) => constat.variants.some((cite) => cite === variant.id || cite === variant.nom));
+
 /** Une ligne par valeur de la première property, une colonne par valeur de la seconde ; une cellule choisit son variant. */
 function tableauDe(proprietes: readonly ProprieteDeVariants[], croisement: { lignes: string; colonnes: string }, options: OptionsDeLaSection): HTMLElement {
   const lignes = proprietes.find((propriete) => propriete.nom === croisement.lignes);
@@ -229,10 +233,6 @@ function tableauDe(proprietes: readonly ProprieteDeVariants[], croisement: { lig
     tete.textContent = colonne.valeur;
     grille.append(tete);
   }
-  const constatsParVariant = new Map<string, Constat[]>();
-  for (const constat of options.constats) {
-    for (const variant of constat.variants) constatsParVariant.set(variant, [...(constatsParVariant.get(variant) ?? []), constat]);
-  }
   for (const ligne of lignes.valeurs) {
     const tete = document.createElement('span');
     tete.className = 'tableau-tete';
@@ -246,7 +246,7 @@ function tableauDe(proprietes: readonly ProprieteDeVariants[], croisement: { lig
       if (variant && variant.nom === options.affiche) cellule.classList.add('choisie');
       cellule.disabled = variant === null;
       if (variant) {
-        const touches = constatsParVariant.get(variant.nom) ?? [];
+        const touches = constatsDuVariant(variant, options.constats);
         const nombre = compte(tonLePlusGrave(touches), touches.length);
         if (nombre) cellule.append(nombre);
         cellule.addEventListener('click', () => options.choisir(variant));
