@@ -49,7 +49,7 @@
   répètent pas son signe.</p>
   <nav class="sommaire">
     <a href="#stroke">1 · La carte du stroke d'Alert</a>
-    <a href="#rangement">2 · Le panneau, variante C</a>
+    <a href="#rangement">2 · Le panneau sans onglets</a>
     <a href="#langage">3 · Les signes des sortes d'objets</a>
     <a href="#kit">4 · Les signes dans le kit</a>
     <a href="#en-place">5 · Les signes en place</a>
@@ -66,15 +66,25 @@
     <div class="colonne"><span class="etiquette nouveau">1b · Proposé <span class="modifie">Modifié</span></span><div class="cadre" id="c-1b"></div></div>
   </div>
 
-  <h2 id="rangement">2 · Le panneau, variante C</h2>
-  <p>Les trois onglets par action restent. Chaque onglet range ses éléments dans les mêmes sections : Couleurs, Tailles
-  et forme, Texte, Tokens du composant, Variants et layers, Règles d'utilisation, Accessibilité. Un onglet ne montre que
-  ses sections occupées, puis les sections tenues.</p>
+  <h2 id="rangement">2 · Le panneau sans onglets</h2>
+  <p>Les trois onglets par action disparaissent. Deux rangements les remplacent. Tous deux rangent par élément : Couleurs,
+  Tailles et forme, Texte, Tokens du composant, Variants et layers, Règles d'utilisation, Accessibilité. Dans un
+  élément, les corrections viennent d'abord, puis les questions, puis ce qui se fait dans Figma. La forme de la carte dit
+  l'action : une case et Appliquer, des boutons de réponse, ou un liseré d'alerte.</p>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette">2a · Aujourd'hui</span><div class="cadre" id="c-2a"></div></div>
-    <div class="colonne"><span class="etiquette nouveau">2b · Corrections <span class="modifie">Modifié</span></span><div class="cadre" id="c-2b"></div></div>
-    <div class="colonne"><span class="etiquette nouveau">2c · Questions <span class="modifie">Modifié</span></span><div class="cadre" id="c-2c"></div></div>
-    <div class="colonne"><span class="etiquette nouveau">2d · À faire dans Figma <span class="modifie">Modifié</span></span><div class="cadre" id="c-2d"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">2b · Variante D, une liste par élément (recommandée) <span class="modifie">Modifié</span></span><div class="cadre" id="c-2b"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">2c · Variante E, un sommaire des éléments <span class="modifie">Modifié</span></span><div class="cadre" id="c-2c"></div></div>
+  </div>
+  <div class="reponse">
+    <h4>Réponse · Les deux rangements</h4>
+    <p><b>D, une liste par élément.</b> Une seule liste. Chaque élément est une section repliable. Les points bloquants
+    viennent en tête, hors des sections, comme dans le compte rendu de l'exporteur. Le designer descend la liste de haut
+    en bas. Ce rangement reprend celui de l'exporteur : sections par famille, ouvertes jusqu'à cinq points.</p>
+    <p><b>E, un sommaire des éléments.</b> Une colonne de 190 px liste les sept éléments, avec leur nombre de points ou
+    leur coche. Un clic montre un élément seul à droite. « Tout » montre la liste entière, comme D. Les sept éléments
+    tiennent en hauteur, là où sept onglets ne tenaient pas en largeur.</p>
+    <p>Proposition : D. E sert mieux un gros composant, comme Button et ses 41 constats, mais il prend 190 px au panneau.</p>
   </div>
 
   <h2 id="langage">3 · Les signes des sortes d'objets <span class="modifie">Modifié</span></h2>
@@ -108,10 +118,10 @@
   </div>
 
   <h2 id="en-place">5 · Les signes en place</h2>
-  <p>La fenêtre du mode Composant avec la variante C. La colonne de gauche remplace ses caractères par les tuiles. Le
+  <p>La fenêtre du mode Composant avec la variante D. La colonne de gauche remplace ses caractères par les tuiles. Le
   panneau ne pose un signe que sur la bande de chaque section.</p>
   <div class="colonnes">
-    <div class="colonne"><span class="etiquette nouveau">5a · Mode Composant, onglet Corrections <span class="modifie">Modifié</span></span><div class="cadre" id="c-5a"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">5a · Mode Composant, variante D <span class="modifie">Modifié</span></span><div class="cadre" id="c-5a"></div></div>
     <div class="colonne"><span class="etiquette nouveau">5b · Règles d'utilisation et tokens à créer <span class="modifie">Modifié</span></span><div class="cadre" id="c-5b"></div></div>
   </div>
 
@@ -120,12 +130,12 @@
     <tr><th>N°</th><th>Question</th><th>État</th></tr>
     <tr><td>R-1</td><td>Corriger la lecture du stroke weight, avec son test</td><td>Oui</td></tr>
     <tr><td>R-2</td><td>Lier un layer à une variable <code>layout</code>, ou au token d'Alert</td><td>Reformulée ci-dessous</td></tr>
-    <tr><td>R-3</td><td>Rangement du panneau</td><td>C, avec les modifications de la section 2</td></tr>
+    <tr><td>R-3</td><td>Rangement du panneau sans onglets</td><td>D ou E, section 2. Proposition : D</td></tr>
     <tr><td>R-4</td><td>Le mode Tokens garde ses onglets par action</td><td>Oui</td></tr>
     <tr><td>R-5</td><td>Une sorte d'objet reste grise</td><td>Reformulée ci-dessous</td></tr>
     <tr><td>R-6</td><td>Les tracés entrent dans le kit</td><td>Oui, section 4</td></tr>
     <tr><td>R-7</td><td>Les objets de Figma reprennent les signes de Figma</td><td>Oui</td></tr>
-    <tr><td>R-8</td><td>Un bouton Appliquer par carte, et Appliquer tout en pied</td><td>Proposé en 2b, à valider</td></tr>
+    <tr><td>R-8</td><td>Un bouton Appliquer par carte, et Appliquer tout en pied</td><td>Proposé en 2b et 2c, à valider</td></tr>
   </table>
 
   <div class="reponse">
@@ -384,24 +394,32 @@ const ligneStroke = (layer, fois) => diff(
 );
 const C_STROKE_PROP = carte({ phrase: 'Lier le stroke weight de container', meta: '8 variants, layer container', ouverte: true, classe: 'carte-stroke', bouton: true, corps: `${colonnesTete}${ligneStroke('container', 8)}` });
 
-// ---------- 2 · La variante C ----------
+// ---------- 2 · Les variantes D et E ----------
 const tenues = sec('texte', { tenue: true });
-const ONGLET_CORRECTIONS = `${resume}${ongletsAction('Corrections')}<div class="liste">
-  ${sec('couleurs', { nombre: 2, corps: `${C_SUCCESS(true)}${C_TEXTE(true)}` })}
-  ${sec('tailles', { nombre: 1, corps: C_PADDING_NEUF })}
-  ${sec('regles', { nombre: 1, corps: C_REGLES(true) })}
+const resumeD = '<div class="arch-resume"><div class="arch-resume-ligne"><span class="arch-resume-titre">Alert <span class="meta">11 variants, analysé à 13:31, 18 points</span></span></div></div>';
+const enTete = (cartes) => `<div class="en-tete-bloquants">${cartes}</div>`;
+const CORPS_D = {
+  couleurs: `${C_SUCCESS(true)}${C_TEXTE(true)}${Q_TITLE}${F_ICONE}`,
+  tailles: C_PADDING_NEUF,
+  regles: C_REGLES(true),
+};
+const LISTE_D = `${resumeD}<div class="liste">
+  ${enTete(F_DISPARUE)}
+  ${sec('couleurs', { nombre: 4, corps: CORPS_D.couleurs })}
+  ${sec('tailles', { nombre: 1, corps: CORPS_D.tailles })}
+  ${sec('tokens', { nombre: 3, ouverte: false })}
+  ${sec('variants', { nombre: 2, ouverte: false })}
+  ${sec('regles', { nombre: 1, corps: CORPS_D.regles })}
+  ${sec('a11y', { nombre: 6, ouverte: false })}
   ${tenues}
   ${piedCorrections('<b>4 corrections</b> cochées, 8 layers, 1 instance', 'Appliquer tout')}</div>`;
-const ONGLET_QUESTIONS = `${resume}${ongletsAction('Questions')}<div class="liste">
-  ${sec('couleurs', { nombre: 1, corps: Q_TITLE })}
-  ${sec('variants', { nombre: 1, corps: Q_OUTLINE })}
-  ${tenues}</div>`;
-const ONGLET_A_FAIRE = `${resume}${ongletsAction('À faire dans Figma')}<div class="liste">
-  ${sec('couleurs', { nombre: 1, corps: F_ICONE })}
-  ${sec('tokens', { nombre: 4, corps: `${F_COLORS}${F_GAP}${F_DISPARUE}${F_PREVUS}` })}
-  ${sec('variants', { nombre: 1, corps: F_WARNING })}
-  ${sec('a11y', { nombre: 6, ouverte: false })}
-  ${tenues}</div>`;
+
+const entreeRail = (cle, droite, actif = false) => `<button type="button" class="rail-entree${actif ? ' actif' : ''}">${cle === 'tout' ? '<span></span>' : sg(S[cle][0])}<span>${cle === 'tout' ? 'Tout' : S[cle][1]}</span><span>${droite}</span></button>`;
+const n = (nombre) => `<span class="rail-nombre">${nombre}</span>`;
+const RAIL = `<nav class="rail">${entreeRail('tout', n(18))}${entreeRail('couleurs', n(4), true)}${entreeRail('tailles', n(1))}${entreeRail('texte', ico('tenu'))}${entreeRail('tokens', `${ico('bloquant')}${n(4)}`)}${entreeRail('variants', n(2))}${entreeRail('regles', n(1))}${entreeRail('a11y', n(6))}</nav>`;
+const LISTE_E = `${resumeD}<div class="rail-panneau">${RAIL}<div class="liste">
+  ${sec('couleurs', { nombre: 4, corps: CORPS_D.couleurs })}
+  ${piedCorrections('<b>4 corrections</b> cochées, dont 2 ici', 'Appliquer tout')}</div></div>`;
 
 // ---------- 5b · Règles d'utilisation et préparation ----------
 const regle = (tag, texte) => `<div class="regle-ligne"><span class="tag">${tag}</span><span>${texte}</span></div>`;
@@ -416,7 +434,7 @@ const lignePrep = (token, cible, valeur) => diff(
   `<span class="ligne2"><span class="haut">${cible}</span><span class="bas"><span class="couche-mot">layout</span><span>${valeur}</span><span>existe</span></span></span>`,
 );
 const CARTE_PREPARATION = carte({ phrase: 'Créer 2 tokens de taille d’Alert', meta: 'Ils renvoient à des variables de layout qui existent.', ouverte: true, bouton: true, classe: 'prep', corps: `<div class="colonnes-tete"><span></span><span>Token d’Alert</span><span>Renvoie à</span></div>${lignePrep('alert/size/border-width', 'stroke/outline-weight', '1 px')}${lignePrep('alert/size/radius', 'radius/md', '6 px')}` });
-const ONGLET_REGLES = `${resume}${ongletsAction('Corrections', [5, 2, 12])}<div class="liste">
+const ONGLET_REGLES = `${resumeD}<div class="liste">
   ${sec('couleurs', { nombre: 2, ouverte: false })}
   ${sec('tailles', { nombre: 2, corps: `${C_PADDING_NEUF}${CARTE_PREPARATION}` })}
   ${sec('regles', { nombre: 1, corps: CARTE_REGLES_OUVERTE })}
@@ -496,23 +514,25 @@ const LEGENDES = {
     ['.carte-stroke .diff .chemin-apres .bas', 'La collection, la valeur et « existe », en mots. La section porte déjà le signe : la ligne n’en ajoute aucun.'],
   ],
   'c-2b': [
-    ['.section-element:nth-of-type(1) .bande-element', 'La bande d’une section : fond de bloc, grand signe, titre, nombre. Elle reprend la bande de section de Nomenclature.'],
-    ['.section-element:nth-of-type(1) .bloc:nth-of-type(1) .appliquer-carte', 'Chaque carte a son Appliquer. Il écrit cette carte seule.'],
-    ['.section-element:nth-of-type(1) .bloc:nth-of-type(2) .bloc-replier', 'Replié : le chevron pointe à droite.'],
-    ['.bande-element.tenue .ico', 'Texte est tenu : la coche seule, sans mot ni chevron.'],
-    ['.corrections-pied .btn-primary', 'Appliquer tout écrit les cartes cochées de toutes les sections.'],
+    ['.en-tete-bloquants .bloc', 'Un point bloquant vient en tête, hors des sections, comme dans l’exporteur.'],
+    ['.section-element:nth-of-type(2) .bande-element', 'La bande d’un élément : fond de bloc, signe de 24 px, titre, nombre de points. Elle reprend la bande de section de Nomenclature.'],
+    ['.section-element:nth-of-type(2) .appliquer-carte', 'Une correction : une case et son Appliquer.'],
+    ['.section-element:nth-of-type(2) .question', 'Une question : ses boutons de réponse. Elle suit les corrections de son élément.'],
+    ['.section-element:nth-of-type(2) .bloc-constat', 'À faire dans Figma : le liseré et le mot de l’alerte. Il vient en dernier.'],
+    ['.section-element:nth-of-type(4) .bande-element', 'Une section repliée : chevron à droite.'],
+    ['.bande-element.tenue .ico', 'Texte est tenu : la coche seule.'],
+    ['.corrections-pied .btn-primary', 'Appliquer tout écrit les corrections cochées de toutes les sections.'],
   ],
   'c-2c': [
-    ['.section-element:nth-of-type(2) .bande-element', 'Un onglet ne montre que ses sections occupées. La question sur Outlined va dans Variants et layers.'],
-  ],
-  'c-2d': [
-    ['.section-element:nth-of-type(4) .bande-element', 'Une section se replie. Repliée, son chevron pointe à droite.'],
+    ['.rail', 'Le sommaire : un élément par ligne, son nombre de points ou sa coche. Il tient en hauteur.'],
+    ['.rail-entree:nth-of-type(5) .ico', 'Un élément qui porte un point bloquant le montre dans le sommaire.'],
+    ['.rail-entree.actif', 'L’élément montré à droite. Tout montre la liste entière, comme la variante D.'],
   ],
   'c-5a': [
     ['.vc-tete h2 .signe', 'Alert est un component : signe de Figma. Le losange reste à Button, une instance.'],
     ['.vc-liste .vc-token:nth-of-type(3) .signe', 'Une couleur de texte : la tuile prend la couleur, le A prend l’encre lisible.'],
     ['.vc-section-tete[data-section="espacement"] + .vc-token + .vc-token .signe', 'padding-x montre ses deux côtés, comme Figma.'],
-    ['.arch-laterale .bande-element .signe', 'Le panneau pose ses signes sur les bandes de section, en 24 px. Les tuiles des lignes de gauche font 16 px.'],
+    ['.arch-laterale .bande-element .signe', 'Le panneau, variante D, pose ses signes sur les bandes de section, en 24 px. Les tuiles des lignes de gauche font 16 px.'],
   ],
   'c-5b': [
     ['.regle-ligne .a-completer', 'Un texte d’aide non rédigé reste souligné en pointillés. Il ne part pas dans le contrat.'],
@@ -523,12 +543,11 @@ const LEGENDES = {
 
 // ---------- Rendu ----------
 cadre('c-1a', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(`${resume}${ongletsAction('Corrections', [5, 2, 12])}<div class="liste">${intertitre('Liaisons')}${C_SUCCESS()}${C_TEXTE()}${intertitre('Tailles')}${C_PADDING}${C_STROKE_AUJ}${intertitre('Règles d’usage')}${C_REGLES()}${piedCorrections('<b>5 corrections</b> cochées, 44 layers, 1 instance')}</div>`)) });
-cadre('c-1b', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(`${resume}${ongletsAction('Corrections', [5, 2, 12])}<div class="liste">${sec('couleurs', { nombre: 2, corps: `${C_SUCCESS(true)}${C_TEXTE(true)}` })}${sec('tailles', { nombre: 2, corps: `${C_PADDING_NEUF}${C_STROKE_PROP}` })}${sec('regles', { nombre: 1, corps: C_REGLES(true) })}${tenues}${piedCorrections('<b>5 corrections</b> cochées, 16 layers, 1 instance', 'Appliquer tout')}</div>`)) });
+cadre('c-1b', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(`${resumeD}<div class="liste">${sec('couleurs', { nombre: 4, ouverte: false })}${sec('tailles', { nombre: 2, corps: `${C_PADDING_NEUF}${C_STROKE_PROP}` })}${sec('regles', { nombre: 1, ouverte: false })}${tenues}${piedCorrections('<b>5 corrections</b> cochées, 16 layers, 1 instance', 'Appliquer tout')}</div>`)) });
 
 cadre('c-2a', { largeur: 640, seul: true });
-cadre('c-2b', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(ONGLET_CORRECTIONS)) });
-cadre('c-2c', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(ONGLET_QUESTIONS)) });
-cadre('c-2d', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(ONGLET_A_FAIRE)) });
+cadre('c-2b', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(LISTE_D)) });
+cadre('c-2c', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(LISTE_E)) });
 
 // 3 : la planche des signes.
 const exempleCouleur = (id, taille) => (id === 'usage-inconnue' ? sg(id, { taille }) : sg(id, { taille, c: id === 'usage-fill' ? '#F0F9FF' : '#0369A1', clair: id === 'usage-fill' }));
@@ -565,7 +584,7 @@ function signesAGauche(doc) {
     pastille.outerHTML = sg(id, { c: couleur, clair });
   }
 }
-cadre('c-5a', { largeur: 1040, hauteur: 900, modifier: (doc) => { signesAGauche(doc); remplacerPanneau(panneau(ONGLET_CORRECTIONS))(doc); } });
+cadre('c-5a', { largeur: 1040, hauteur: 900, modifier: (doc) => { signesAGauche(doc); remplacerPanneau(panneau(LISTE_D))(doc); } });
 cadre('c-5b', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(ONGLET_REGLES)) });
 
 // R-5 : les signes gris, puis une couleur par famille à côté des alertes.

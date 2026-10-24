@@ -73,7 +73,7 @@ Proposition, montrée par le cadre 1b :
 
 ## 2. Ranger le panneau par sorte d'élément
 
-Le mainteneur a retenu la variante C, modifiée : voir la section 4.
+Le mainteneur a écarté les trois onglets par action. Deux rangements sans onglets, D et E, sont proposés en section 4.
 
 ### Aujourd'hui
 
@@ -221,10 +221,17 @@ la deuxième.
 le bas quand il est ouvert. La règle vaut pour la maquette et pour tous les
 plugins.
 
-**Panneau.** La variante C est retenue, avec quatre modifications :
+**Panneau.** Les trois onglets par action disparaissent. Deux rangements par
+élément les remplacent. Dans un élément, les corrections viennent d'abord, puis
+les questions, puis ce qui se fait dans Figma. La forme de la carte dit
+l'action : une case et Appliquer, des boutons de réponse, ou un liseré d'alerte.
 
-- Les trois onglets par action restent. Chaque onglet range ses éléments dans les sept sections, et ne montre que ses sections occupées, puis les sections tenues.
-- La bande d'une section reprend la bande de section de Nomenclature : fond de bloc, signe de 24 px, titre, nombre, chevron. Elle ne compte pas par action.
+- D, une liste par élément (proposée). Chaque élément est une section repliable. Les points bloquants viennent en tête, hors des sections, comme dans le compte rendu de l'exporteur.
+- E, un sommaire des éléments. Une colonne de 190 px liste les sept éléments avec leur nombre de points ou leur coche. Un clic montre un élément seul à droite ; « Tout » montre la liste de D.
+
+Dans les deux :
+
+- La bande d'une section reprend la bande de section de Nomenclature : fond de bloc, signe de 24 px, titre, nombre de points, chevron. Elle ne compte pas par action.
 - Une section tenue montre la coche seule, sans mot ni chevron.
 - Chaque carte de correction a son bouton Appliquer. Le bouton du pied devient « Appliquer tout » (R-8, à valider).
 
@@ -263,7 +270,7 @@ mot de repli. La section 4 de la maquette détaille ces étapes.
 |---|---|---|
 | R-1 | Corriger la lecture du stroke weight, avec son test | Oui |
 | R-2 | Un layer d'Alert en dur : le lier à la variable `layout`, ou au token d'Alert qui renvoie à elle ? | Reformulée dans la maquette, section 6. Proposition : le token d'Alert s'il existe avec ce rôle et cette valeur, sinon la variable `layout`. |
-| R-3 | Rangement du panneau | C, avec les modifications de la section 4 |
+| R-3 | Rangement du panneau sans onglets | D ou E. Proposition : D |
 | R-4 | Le mode Tokens garde ses onglets par action | Oui |
 | R-5 | Faut-il une couleur par famille de signes ? | Reformulée dans la maquette, section 6, avec une comparaison. Proposition : non. |
 | R-6 | Les tracés entrent dans le kit | Oui |

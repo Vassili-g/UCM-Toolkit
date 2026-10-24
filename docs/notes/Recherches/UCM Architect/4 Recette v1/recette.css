@@ -79,3 +79,14 @@
 /* Les repères de la maquette. */
 .repere { outline: 1px dashed #ff8ad8 !important; outline-offset: 2px; }
 .repere-n { position: absolute; z-index: 50; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #ff8ad8; color: #1a1a1a; font: 700 10px/16px Inter, sans-serif; text-align: center; pointer-events: none; }
+
+/* Variante D : les points bloquants en tête, hors des sections. */
+.en-tete-bloquants { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+/* Variante E : le sommaire des éléments, à gauche du panneau. */
+.rail-panneau { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 12px; align-items: start; }
+.rail { display: flex; flex-direction: column; gap: 2px; position: sticky; top: 0; }
+.rail-entree { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 8px; border: 0; border-radius: 5px; background: none; color: var(--texte); font: 12px Inter, system-ui, sans-serif; text-align: left; cursor: pointer; }
+.rail-entree > span:last-child { display: inline-flex; align-items: center; gap: 4px; }
+.rail-entree.actif { background: var(--fond-selection); font-weight: 600; }
+.rail-nombre { color: var(--texte-second); font-size: 11px; }
