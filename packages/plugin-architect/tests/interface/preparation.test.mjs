@@ -148,6 +148,9 @@ async function ouvrirTag() {
   await page.setViewportSize({ width: 1040, height: 760 });
   return page;
 }
+/** Les cartes de corrections : celles qui ont une case, hors des constats à faire dans Figma. */
+const CARTES_DE_CORRECTIONS = '.liste .bloc:has(> .bloc-tete > input.case)';
+
 const rangeeDeTag = { type: 'preparations', preparations: [rangeeAvec((rang) => (rang === 15 ? 'existe-identique' : 'a-creer'))] };
 const rangeeDUnAutreJeu = { type: 'preparations', preparations: [{ ...rangeeAvec(aCreer), source: { fichier: 'Autre', cleDuFichier: null, jeu: { cle: 'autre:jeu', nom: 'Autre' } } }] };
 
@@ -182,18 +185,18 @@ test('lier-preparation ne part pas sans préparation du même jeu, ni avant que 
   } finally { await fermer(page); }
 });
 
-test('les liaisons préparées d’une autre analyse sont ignorées, celles de l’analyse retenue ouvrent Corrections', async () => {
+test('les liaisons préparées d’une autre analyse sont ignorées, celles de l’analyse retenue ouvrent la section Tokens du composant', async () => {
   const page = await ouvrirTag();
   try {
     await envoyer(page, rangeeDeTag);
     await envoyer(page, analyseLiaisons);
     await page.getByRole('button', { name: 'Constats' }).click();
-    assert.equal(await page.locator('.onglets').count(), 0);
+    assert.equal(await page.locator('.sommaire-elements').count(), 0);
     await envoyer(page, { ...liaisonsPreparees, analyse: { ...identiteLiaisons, generation: 1 } });
-    assert.equal(await page.locator('.onglets').count(), 0);
+    assert.equal(await page.locator('.sommaire-elements').count(), 0);
     await envoyer(page, liaisonsPreparees);
-    assert.equal(await page.locator('.onglets').count(), 1);
-    assert.equal(await page.locator('#onglet-corrections .compte').textContent(), '1');
+    assert.equal(await page.locator('.sommaire-elements').count(), 1);
+    assert.equal(await page.locator('.puce-element[data-element="tokens"] .nombre').textContent(), '1');
   } finally { await fermer(page); }
 });
 
@@ -204,7 +207,7 @@ test('une liaison en attente n’a pas de case et dit qu’elle n’est pas publ
     await envoyer(page, analyseLiaisons);
     await envoyer(page, liaisonsPreparees);
     await page.getByRole('button', { name: 'Constats' }).click();
-    const carte = page.locator('#panneau-corrections .liste .bloc').first();
+    const carte = page.locator(CARTES_DE_CORRECTIONS).first();
     assert.equal(await carte.locator('.diff input.case').count(), 2);
     const enAttente = carte.locator('.diff.reste');
     assert.equal(await enAttente.count(), 1);
@@ -213,7 +216,7 @@ test('une liaison en attente n’a pas de case et dit qu’elle n’est pas publ
     assert.match(await enAttente.locator('.chemin-apres').innerText(), /components\/tag\/color\/warning\/outline\/border\s+Créée, pas encore publiée$/);
     assert.match(await carte.locator('.alerte').innerText(), /1 variable créée n’est pas encore dans la library publiée\./);
     assert.match(await page.locator('.corrections-pied').innerText(), /^2 liaisons cochées/);
-    await page.getByRole('button', { name: 'Appliquer' }).click();
+    await page.locator('.corrections-pied .btn-primary').click();
     const [envoyee] = await demandes(page, 'appliquer-corrections');
     assert.deepEqual([...envoyee.ids].sort(), liaisonsPreparees.corrections.map((correction) => correction.id).sort());
   } finally { await fermer(page); }
@@ -226,9 +229,9 @@ test('une nouvelle analyse retire la carte des liaisons préparées', async () =
     await envoyer(page, analyseLiaisons);
     await envoyer(page, liaisonsPreparees);
     await page.getByRole('button', { name: 'Constats' }).click();
-    assert.equal(await page.locator('#panneau-corrections .liste .bloc').count(), 1);
+    assert.equal(await page.locator(CARTES_DE_CORRECTIONS).count(), 1);
     await envoyer(page, { type: 'analyse-commencee', analyse: { ...identiteLiaisons, generation: 3 } });
-    assert.equal(await page.locator('#panneau-corrections .liste .bloc').count(), 0);
+    assert.equal(await page.locator(CARTES_DE_CORRECTIONS).count(), 0);
   } finally { await fermer(page); }
 });
 
@@ -249,7 +252,7 @@ test('la carte des liaisons nomme la library de la Configuration pour la publica
     await envoyer(page, analyseLiaisons);
     await envoyer(page, liaisonsPreparees);
     await page.getByRole('button', { name: 'Constats' }).click();
-    assert.match(await page.locator('#panneau-corrections .alerte').innerText(), /Publiez Intencial Tokens, puis cliquez Actualiser\./);
+    assert.match(await page.locator('.arch-laterale .liste .alerte').innerText(), /Publiez Intencial Tokens, puis cliquez Actualiser\./);
   } finally { await fermer(page); }
 });
 
@@ -258,7 +261,6 @@ const ouvrirLaPreparation = async () => {
   await envoyer(page, analyseTag);
   await page.locator('.bouton-panneau').click();
   await page.locator('[data-focus="directes"]').click();
-  await page.locator('#onglet-a-faire').click();
   await page.locator('.prep-ouvrir').click();
   return page;
 };

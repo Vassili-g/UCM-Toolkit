@@ -40,13 +40,19 @@ export interface OptionsDeCarte {
   readonly deplie: boolean;
   /** Appelée à chaque dépliage ou repli, avec l'état d'arrivée. */
   readonly auBasculement?: (deplie: boolean) => void;
+  /**
+   * Un bouton de la carte, entre la phrase et le chevron. Un bouton ne peut pas en contenir un autre : le chevron sort alors de la
+   * zone cliquable de la phrase et devient un second bouton, qui déplie comme elle. `nomDuChevron` le nomme.
+   */
+  readonly action?: HTMLElement;
+  readonly nomDuChevron?: string;
 }
 
 export interface Carte {
   readonly element: HTMLElement;
 }
 
-export function creerCarte({ tete, meta, caseACocher, corps, deplie, auBasculement }: OptionsDeCarte): Carte {
+export function creerCarte({ tete, meta, caseACocher, corps, deplie, auBasculement, action, nomDuChevron }: OptionsDeCarte): Carte {
   const element = document.createElement('div');
   element.className = 'bloc';
   const entete = document.createElement('div');
@@ -70,9 +76,23 @@ export function creerCarte({ tete, meta, caseACocher, corps, deplie, auBasculeme
   }
   const droite = document.createElement('span');
   droite.className = 'bloc-droite';
-  if (peutSeDeplier) droite.append(creerChevron());
-  bouton.append(pile, droite);
+  if (peutSeDeplier && !action) droite.append(creerChevron());
+  bouton.append(pile);
+  if (!action) bouton.append(droite);
   entete.append(...(caseACocher ? [caseACocher] : []), bouton);
+  let replier: HTMLButtonElement | null = null;
+  if (action) {
+    entete.classList.add('avec-action');
+    entete.append(action);
+    if (peutSeDeplier) {
+      replier = document.createElement('button');
+      replier.type = 'button';
+      replier.className = 'bloc-replier';
+      if (nomDuChevron) replier.setAttribute('aria-label', nomDuChevron);
+      replier.append(creerChevron());
+      entete.append(replier);
+    }
+  }
   element.append(entete);
 
   if (corps) {
@@ -80,12 +100,15 @@ export function creerCarte({ tete, meta, caseACocher, corps, deplie, auBasculeme
     const regler = (ouvert: boolean): void => {
       corps.hidden = !ouvert;
       bouton.setAttribute('aria-expanded', String(ouvert));
+      replier?.setAttribute('aria-expanded', String(ouvert));
     };
     regler(deplie);
-    bouton.addEventListener('click', () => {
+    const basculer = (): void => {
       regler(corps.hidden);
       auBasculement?.(!corps.hidden);
-    });
+    };
+    bouton.addEventListener('click', basculer);
+    replier?.addEventListener('click', basculer);
     element.append(corps);
   }
   return { element };

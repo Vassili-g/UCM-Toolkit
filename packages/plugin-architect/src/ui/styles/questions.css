@@ -1,45 +1,45 @@
 /*
- * L'onglet Questions du panneau des constats reprend les cartes d'« À trancher » : mêmes marges, même effet sur deux lignes, même pied.
- * La loi des styles ne lit pas `nomenclature.css` ; ces règles, sous `.liste-questions`, redisent donc celles des cartes de question
+ * Les questions du panneau des constats reprennent les cartes d'« À trancher » : mêmes marges, même effet sur deux lignes, même pied.
+ * La loi des styles ne lit pas `nomenclature.css` ; ces règles, sous `.liste`, redisent donc celles des cartes de question
  * pour que le panneau tienne sans elles. La ligne verte d'une réponse est celle du socle.
  */
-.liste-questions .carte {
+.liste .carte {
   border: 1px solid var(--bordure);
   border-radius: var(--rayon);
 }
 
-.liste-questions .question {
+.liste .question {
   display: grid;
   gap: var(--espace-controle);
   padding: var(--espace-bloc);
 }
 
-.liste-questions .question-proposition {
+.liste .question-proposition {
   gap: var(--espace-serre);
 }
 
-.liste-questions .question-entete {
+.liste .question-entete {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--espace-controle);
 }
 
-.liste-questions .question-titre {
+.liste .question-titre {
   font-size: var(--libelle);
   font-weight: 600;
   line-height: var(--libelle-interligne);
 }
 
-.liste-questions .mot-retire {
+.liste .mot-retire {
   color: var(--texte-danger);
 }
 
-.liste-questions .mot-retenu {
+.liste .mot-retenu {
   color: var(--texte-succes);
 }
 
-.liste-questions .renommage {
+.liste .renommage {
   display: grid;
   grid-template-columns: 12px minmax(0, 1fr);
   align-items: baseline;
@@ -51,42 +51,42 @@
   font-family: var(--police-code);
 }
 
-.liste-questions .renommage .ancien {
+.liste .renommage .ancien {
   color: var(--texte-second);
   overflow-wrap: anywhere;
 }
 
-.liste-questions .renommage .nouveau {
+.liste .renommage .nouveau {
   color: var(--texte);
   overflow-wrap: anywhere;
 }
 
-.liste-questions .question-pied {
+.liste .question-pied {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--espace-controle);
 }
 
-.liste-questions .question-actions {
+.liste .question-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--espace-serre) var(--espace-controle);
 }
 
-.liste-questions .question-candidat {
+.liste .question-candidat {
   display: inline-flex;
   align-items: center;
   gap: var(--espace-serre);
 }
 
-.liste-questions .question-candidat-token {
+.liste .question-candidat-token {
   color: var(--texte-second);
   font-family: var(--police-code);
   overflow-wrap: anywhere;
 }
 
-.liste-questions .question-groupe {
+.liste .question-groupe {
   font-weight: 600;
 }

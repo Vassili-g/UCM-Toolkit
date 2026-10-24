@@ -4,7 +4,10 @@ import test from 'node:test';
 
 import type { Constat } from '@ucm-kit/core/controles';
 
-import { ELEMENTS_DU_PANNEAU, elementDuConstat, elementsDuPanneau, sansLesBloquants, type IdDElement } from '../src/ui/panneau/elements';
+import { SIGNES } from '@ucm-kit/core/referentiel';
+
+import type { CarteDeCorrections } from '../src/ui/corrections/modele';
+import { ELEMENTS_DU_PANNEAU, SIGNE_DE_L_ELEMENT, elementDuConstat, elementsDuPanneau, sansLesBloquants, type IdDElement } from '../src/ui/panneau/elements';
 
 const { constatsAlert, alertCorrections } = require('../galerie/etats/corrections.cjs') as { constatsAlert: Constat[]; alertCorrections: { sujet: { nom: string; variants: Array<{ id: string; nom: string }> }; calques: Array<{ id: string; nom: string }> } };
 
@@ -131,4 +134,40 @@ test('un Bloquant seul fait de son élément le seul élément, les autres sont 
 test('sans constat, tous les éléments sont tenus', () => {
   const vide = elementsDuPanneau([], { ...contexte, constats: [] });
   assert.deepEqual(vide, { elements: [], bloquants: [], enTete: { corrections: [], questions: [], aFaire: [] }, tenus: [...ELEMENTS_DU_PANNEAU] });
+});
+
+test('chaque élément a un signe du kit', () => {
+  assert.deepEqual(Object.keys(SIGNE_DE_L_ELEMENT), [...ELEMENTS_DU_PANNEAU]);
+  for (const signe of Object.values(SIGNE_DE_L_ELEMENT)) assert.ok(SIGNES.some((candidat) => candidat.id === signe), signe);
+});
+
+test('une question répondue garde son groupe de questions, rangé avec son élément, sans changer les points', () => {
+  const question = constatsAlert.find((constat) => constat.question);
+  assert.ok(question?.question);
+  const reponse = { id: 'rep:1', sorte: 'liaison' as const, cible: { layer: question.layers[0], champ: 'fills' }, avant: null, apres: { nom: 'alert/colors/info/standard/title' }, aRelire: { regle: 'r', avant: null } };
+  const jeu = constatsAlert.map((constat) => (constat === question ? { ...constat, correction: reponse } : constat));
+  const sans = elementsDuPanneau(jeu, { ...contexte, constats: jeu });
+  const avec = elementsDuPanneau(jeu, { ...contexte, constats: jeu }, { reponses: { [question.question.id]: reponse } });
+  const couleurs = (panneau: typeof sans) => panneau.elements.find((element) => element.id === 'couleurs')!;
+  // Sans la réponse, la question disparaît de la liste des questions ; avec elle, sa ligne de réponse reste.
+  assert.equal(couleurs(sans).questions.length, 2);
+  assert.equal(couleurs(avec).questions.length, 3);
+  assert.equal(couleurs(avec).questions.some((groupe) => groupe.cartes.some((carte) => carte.id === question.question!.id)), true);
+  // La correction de la réponse est une carte de corrections ; les points ne comptent le constat qu'une fois.
+  assert.equal(couleurs(avec).points, 18);
+  assert.equal(couleurs(avec).points, couleurs(sans).points);
+});
+
+test('la préparation et le composant sans token sont des points de « Tokens du composant »', () => {
+  const preparee = { cle: 'preparation:p', origine: 'preparation', section: 'liaisons', jetons: null, phrase: [], meta: [], lignes: [], layers: [], constats: [], faits: [], attente: [] } as CarteDeCorrections;
+  const seul = elementsDuPanneau([], { ...contexte, constats: [] }, { preparee });
+  assert.deepEqual(seul.elements.map((element) => [element.id, element.points, element.preparee === preparee, element.sansTokens]), [['tokens', 1, true, false]]);
+  assert.deepEqual(seul.tenus, ['couleurs', 'tailles', 'texte', 'variants', 'regles', 'a11y']);
+  const sansTokens = elementsDuPanneau(constatsAlert, contexte, { preparee, sansTokens: true });
+  const tokens = sansTokens.elements.find((element) => element.id === 'tokens')!;
+  assert.deepEqual([tokens.points, tokens.constats.length, tokens.sansTokens, tokens.preparee === preparee], [5, 3, true, true]);
+  // Les autres éléments n'en portent rien, et les ajouts survivent au retrait des Bloquants.
+  assert.equal(sansTokens.elements.filter((element) => element.id !== 'tokens').some((element) => element.preparee !== null || element.sansTokens), false);
+  assert.equal(sansLesBloquants(tokens).sansTokens, true);
+  assert.equal(sansLesBloquants(tokens).points, 5);
 });

@@ -1,11 +1,11 @@
 /**
- * Les interactions du domaine `questions` : répondre à une question du moteur, voir la correction qu'elle tire passer dans Corrections,
- * annuler la réponse. Le panneau n'écrit rien : il envoie `repondre` et `annuler-reponse`, et ne retient que ce que le sandbox rend.
+ * Les interactions du domaine `questions` : répondre à une question du moteur, voir la correction qu'elle tire devenir une carte de
+ * corrections de sa section, annuler la réponse. Le panneau n'écrit rien : il envoie `repondre` et `annuler-reponse`, et ne retient que ce que le sandbox rend.
  * Ces tests jouent des messages et des demandes que `fermer` ne connaît pas : ils vérifient eux-mêmes les erreurs de la page.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { attendreLesDemandes, envoyer, exiger, lancerLeNavigateur, ouvrirComposant } from './aide.mjs';
+import { attendreLesDemandes, deplierLesSections, envoyer, exiger, lancerLeNavigateur, ouvrirComposant } from './aide.mjs';
 
 lancerLeNavigateur();
 const { alertCorrections } = exiger('../../galerie/etats/corrections.cjs');
@@ -30,23 +30,23 @@ async function ouvrirLesQuestions(analyse = analyseDeQuestions) {
   await envoyer(page, analyse);
   await envoyer(page, ignoresDeQuestions);
   await page.getByRole('button', { name: 'Constats' }).click();
-  await page.locator('#onglet-questions').click();
+  await deplierLesSections(page);
   return page;
 }
 
-const compte = (page, onglet) => page.locator(`#onglet-${onglet} .compte`).textContent();
+/** Les cartes de corrections de toutes les sections : celles qui ont une case. */
+const correctionsDuPanneau = (page) => page.locator('.liste .bloc:has(> .bloc-tete > input.case)');
 const demandes = async (page, type) => {
   await page.waitForTimeout(30);
   return page.evaluate((cherche) => window.demandes.filter((demande) => demande.type === cherche), type);
 };
-const cartes = (page) => page.locator('#panneau-questions .question');
+const cartes = (page) => page.locator('.arch-laterale .question');
 const reponses = (page) => page.evaluate(() => window.demandes.filter((demande) => demande.type === 'repondre').map(({ analyse, question, reponse }) => ({ analyse, question, reponse })));
 
 test('une carte par question, au modèle d’À trancher ; aucun candidat n’est choisi avant le clic', async () => {
   const page = await ouvrirLesQuestions();
   try {
     assert.equal(await cartes(page).count(), 2);
-    assert.equal(await compte(page, 'questions'), '2');
     const premiere = cartes(page).first();
     assert.equal(await premiere.locator('.question-titre').innerText(), 'Lier title à colors/info/standard/title ?');
     assert.deepEqual(await premiere.locator('.question-pied button').allInnerTexts(), ['Lier', 'Lier à …/foreground', 'Plus tard']);
@@ -74,19 +74,18 @@ test('un autre candidat a son bouton, et une question de nom répond par le nom 
   } finally { await terminer(page); }
 });
 
-test('la réponse du sandbox montre le résultat, passe la correction dans Corrections et compte une question de moins', async () => {
+test('la réponse du sandbox montre le résultat, ajoute la correction à sa section et compte une question de moins', async () => {
   const page = await ouvrirLesQuestions();
   try {
-    assert.equal(await compte(page, 'corrections'), '4');
+    assert.equal(await correctionsDuPanneau(page).count(), 4);
+    const pointsDeCouleurs = await page.locator('.puce-element[data-element="couleurs"] .nombre').textContent();
     await envoyer(page, repondue());
-    assert.equal(await page.locator('#panneau-questions .resultat').innerText().then((texte) => texte.replace(/\s+/g, ' ').trim()), '✓ title sera lié à colors/info/standard/title. Appliquez-le dans l’onglet Corrections.');
-    assert.deepEqual(await page.locator('#panneau-questions .constat-actions .btn-texte').allInnerTexts(), ['Ouvrir Corrections', 'Annuler la réponse']);
+    assert.equal(await page.locator('.arch-laterale .resultat').innerText().then((texte) => texte.replace(/s+/g, ' ').trim()), '✓ title sera lié à colors/info/standard/title. Appliquez-le avec les corrections de cette section.');
+    assert.deepEqual(await page.locator('.resultat + .constat-actions .btn-texte').allInnerTexts(), ['Annuler la réponse']);
     assert.equal(await cartes(page).count(), 1);
-    assert.equal(await compte(page, 'questions'), '1');
-    assert.equal(await compte(page, 'corrections'), '5');
-    await page.getByRole('button', { name: 'Ouvrir Corrections' }).click();
-    assert.equal(await page.locator('#onglet-corrections').getAttribute('aria-selected'), 'true');
-    assert.equal(await page.locator('#panneau-corrections .liste .bloc').count(), 5);
+    assert.equal(await correctionsDuPanneau(page).count(), 5);
+    // La question répondue reste un point : sa correction est celle du même constat.
+    assert.equal(await page.locator('.puce-element[data-element="couleurs"] .nombre').textContent(), pointsDeCouleurs);
   } finally { await terminer(page); }
 });
 
@@ -99,9 +98,8 @@ test('Annuler la réponse envoie annuler-reponse ; la réponse sans correction r
     assert.deepEqual({ analyse: envoi.analyse, question: envoi.question }, { analyse: IDENTITE, question: QUESTION });
     await envoyer(page, { type: 'question-repondue', analyse: IDENTITE, question: QUESTION, correction: null });
     assert.equal(await cartes(page).count(), 2);
-    assert.equal(await page.locator('#panneau-questions .resultat').count(), 0);
-    assert.equal(await compte(page, 'questions'), '2');
-    assert.equal(await compte(page, 'corrections'), '4');
+    assert.equal(await page.locator('.arch-laterale .resultat').count(), 0);
+    assert.equal(await correctionsDuPanneau(page).count(), 4);
   } finally { await terminer(page); }
 });
 
@@ -110,7 +108,7 @@ test('une réponse que le sandbox refuse laisse la carte où elle est', async ()
   try {
     await envoyer(page, { type: 'question-repondue', analyse: IDENTITE, question: QUESTION, correction: null });
     assert.equal(await cartes(page).count(), 2);
-    assert.equal(await compte(page, 'corrections'), '4');
+    assert.equal(await correctionsDuPanneau(page).count(), 4);
   } finally { await terminer(page); }
 });
 
@@ -119,18 +117,24 @@ test('un message d’une autre identité d’analyse est ignoré', async () => {
   try {
     await envoyer(page, repondue({ sujet: IDENTITE.sujet, generation: IDENTITE.generation + 1 }));
     await envoyer(page, { ...repondue(), analyse: { sujet: 'autre', generation: IDENTITE.generation } });
-    assert.equal(await page.locator('#panneau-questions .resultat').count(), 0);
-    assert.equal(await compte(page, 'questions'), '2');
-    assert.equal(await compte(page, 'corrections'), '4');
+    assert.equal(await page.locator('.arch-laterale .resultat').count(), 0);
+    assert.equal(await cartes(page).count(), 2);
+    assert.equal(await correctionsDuPanneau(page).count(), 4);
   } finally { await terminer(page); }
 });
 
-test('Plus tard range la carte en fin de liste, sans rien envoyer', async () => {
-  const page = await ouvrirLesQuestions();
+const dePlusieurs = (calque) => ({
+  id: `C15:${calque}`, code: 'C15', type: 'corriger', famille: 'liaisons', variants: ['Severity=info, Variant=standard'], layers: [`alert:l:${calque}`],
+  faits: { calque, champ: 'fills' }, question: { id: `q:C15:${calque}`, candidats: [{ cle: `cle-${calque}`, nom: `alert/colors/info/standard/${calque}` }] },
+});
+
+test('Plus tard range la carte en fin de liste de sa section, sans rien envoyer', async () => {
+  const page = await ouvrirLesQuestions({ ...analyseDeQuestions, constats: ['title', 'icon'].map(dePlusieurs) });
   try {
+    const avant = await cartes(page).locator('.question-titre').allInnerTexts();
+    assert.equal(avant.length, 2);
     await cartes(page).first().getByRole('button', { name: /^Plus tard :/ }).click();
-    assert.deepEqual(await cartes(page).locator('.question-titre').allInnerTexts(), ['Renommer Outlined en outline ?', 'Lier title à colors/info/standard/title ?']);
-    assert.equal(await compte(page, 'questions'), '2');
+    assert.deepEqual(await cartes(page).locator('.question-titre').allInnerTexts(), [...avant].reverse());
     assert.deepEqual(await demandes(page, 'repondre'), []);
   } finally { await terminer(page); }
 });
@@ -139,8 +143,8 @@ test('une analyse périmée ne laisse aucune réponse à donner', async () => {
   const page = await ouvrirLesQuestions();
   try {
     await envoyer(page, { type: 'perime', analyse: IDENTITE, cause: 'selection' });
-    assert.equal(await page.locator('#panneau-questions button').count(), 0);
-    assert.equal(await page.locator('#panneau-questions').innerText(), 'Les constats datent d’avant le changement.');
+    assert.equal(await page.locator('.arch-laterale .liste button').count(), 0);
+    assert.equal(await page.locator('.arch-laterale .liste').innerText(), 'Les constats datent d’avant le changement.');
     assert.deepEqual(await demandes(page, 'repondre'), []);
   } finally { await terminer(page); }
 });

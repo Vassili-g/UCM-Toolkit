@@ -1,17 +1,18 @@
 /**
- * L'onglet À faire dans Figma du panneau des constats : un constat par carte, sous l'intertitre de sa famille, puis les constats ignorés
- * sous leur intertitre. Le liseré, l'icône et le mot de la carte disent le type ; la phrase dit le problème, la ligne grise dit où il est
- * et où le régler. Rien ne s'écrit d'ici : le geste se fait dans Figma. Le clic sur une carte qui s'ouvre sélectionne ses layers. Ignorer
- * écarte le constat de la liste, Ne plus ignorer le rend ; une limite de lecture n'a pas de bouton Ignorer.
+ * Les constats à faire dans Figma du panneau des constats : un constat par carte, puis les constats ignorés sous leur intertitre. Le
+ * liseré, l'icône et le mot de la carte disent le type ; la phrase dit le problème, la ligne grise dit où il est et où le régler. Rien
+ * ne s'écrit d'ici : le geste se fait dans Figma. Le clic sur une carte qui s'ouvre sélectionne ses layers. Ignorer écarte le constat de
+ * la liste, Ne plus ignorer le rend ; une limite de lecture n'a pas de bouton Ignorer. Le panneau choisit les cartes à montrer ; ce module
+ * les dessine.
  */
 import { creerGravite, marquerDuTon } from 'ucm-plugin-socle/src/ui/Alerte';
 
 import type { Constat } from '../../messages/commun';
-import { aPreparer, type AnalyseRecue } from '../composant/analyse';
+import type { AnalyseRecue } from '../composant/analyse';
 import { creerCarte, creerIntertitre } from '../structure/carte';
 import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION } from '../textes/preparation';
-import { cartesDAFaire, estAFaire, SECTIONS_D_A_FAIRE, type CarteDAFaire, type ContexteDAFaire, type FaitDeCarte, type MesureDeCarte } from './modele';
+import { cartesDAFaire, type CarteDAFaire, type ContexteDAFaire, type FaitDeCarte, type MesureDeCarte } from './modele';
 import { poserLeTexteEnrichi } from './texte';
 
 const T = TEXTES.aFaireDuComposant;
@@ -21,6 +22,8 @@ export interface OptionsDeAFaire {
   readonly selectionner: (layers: readonly string[]) => void;
   readonly ignorer: (constat: Constat) => void;
   readonly nePlusIgnorer: (constat: Constat) => void;
+  /** Appelée quand une carte s'ouvre ou se ferme : le panneau se redessine. */
+  readonly redessiner: () => void;
 }
 
 export interface EntreeDeAFaire {
@@ -29,10 +32,14 @@ export interface EntreeDeAFaire {
 }
 
 export interface AFaire {
-  /** Montre l'onglet pour cette analyse. */
+  /** Retient l'analyse et son contexte. */
   poser(entree: EntreeDeAFaire): void;
-  /** Le nombre de constats qui restent à faire dans Figma. */
-  nombre(): number;
+  /** Dessine ces cartes ; la note de mesure suit celles du contraste. */
+  cartes(cartes: readonly CarteDAFaire[]): HTMLElement[];
+  /** La carte du composant sans token. */
+  carteSansTokens(): HTMLElement;
+  /** Les constats ignorés, sous leur intertitre ; rien quand il n'y en a pas. */
+  ignores(constats: readonly Constat[]): HTMLElement[];
 }
 
 function boutonTexte(libelle: string, nomAccessible: string, auClic: () => void, inactif: boolean): HTMLButtonElement {
@@ -46,10 +53,9 @@ function boutonTexte(libelle: string, nomAccessible: string, auClic: () => void,
   return bouton;
 }
 
-export function monterAFaire(hote: HTMLElement, options: OptionsDeAFaire): AFaire {
+export function monterAFaire(options: OptionsDeAFaire): AFaire {
   let identite = '';
   let entree: EntreeDeAFaire | null = null;
-  let restants = 0;
   /** La carte que le designer vient d'ouvrir : le plugin a sélectionné ses layers. */
   let cible: string | null = null;
   const ouvertes = new Set<string>();
@@ -151,7 +157,7 @@ export function monterAFaire(hote: HTMLElement, options: OptionsDeAFaire): AFair
           cible = constat.id;
           if (constat.layers.length > 0) options.selectionner(constat.layers);
         } else ouvertes.delete(constat.id);
-        rendre();
+        options.redessiner();
       },
     });
     element.classList.add('bloc-constat');
@@ -187,40 +193,6 @@ export function monterAFaire(hote: HTMLElement, options: OptionsDeAFaire): AFair
     return element;
   }
 
-  function rendre(): void {
-    if (!entree) return;
-    const { analyse, contexte } = entree;
-    const aFaire = cartesDAFaire(analyse.constats.filter(estAFaire), contexte);
-    const ignores = analyse.tous.filter((constat) => analyse.ignores.includes(constat.id));
-    const sansTokens = aPreparer(analyse);
-    restants = aFaire.length + (sansTokens ? 1 : 0);
-    const liste = document.createElement('div');
-    liste.className = 'liste';
-    if (restants === 0 && ignores.length === 0) {
-      const note = document.createElement('p');
-      note.className = 'meta';
-      note.textContent = T.rienAFaire;
-      hote.replaceChildren(note);
-      return;
-    }
-    for (const section of SECTIONS_D_A_FAIRE) {
-      const deLaSection = aFaire.filter((carte) => carte.section === section);
-      const carteSansTokens = section === 'tokens' && sansTokens ? [creerLaCarteSansTokens(analyse, contexte)] : [];
-      if (deLaSection.length === 0 && carteSansTokens.length === 0) continue;
-      liste.append(creerIntertitre(T.intertitres[section]), ...carteSansTokens, ...deLaSection.map((carte) => creerLaCarte(carte, analyse.perimee)));
-      if (section === 'contraste' && deLaSection.some((carte) => typeof carte.constat.faits.rapport === 'number')) {
-        const note = document.createElement('p');
-        note.className = 'meta';
-        note.textContent = deLaSection.some((carte) => carte.constat.limite === true) ? T.noteDeMesureAvecLimite : T.noteDeMesure;
-        liste.append(note);
-      }
-    }
-    if (ignores.length > 0) {
-      liste.append(creerIntertitre(T.ignores), ...cartesDAFaire(ignores, contexte).map((carte) => creerLaCarteIgnoree(carte, analyse.perimee)));
-    }
-    hote.replaceChildren(liste);
-  }
-
   return {
     poser(suivante) {
       const nouvelle = `${suivante.analyse.identite.sujet}:${suivante.analyse.identite.generation}`;
@@ -230,8 +202,25 @@ export function monterAFaire(hote: HTMLElement, options: OptionsDeAFaire): AFair
         cible = null;
       }
       entree = suivante;
-      rendre();
     },
-    nombre: () => restants,
+    cartes(cartes) {
+      if (!entree) return [];
+      const inactif = entree.analyse.perimee;
+      const sortie = cartes.map((carte) => creerLaCarte(carte, inactif));
+      const mesures = cartes.filter((carte) => carte.section === 'contraste');
+      if (mesures.some((carte) => typeof carte.constat.faits.rapport === 'number')) {
+        const note = document.createElement('p');
+        note.className = 'meta';
+        note.textContent = mesures.some((carte) => carte.constat.limite === true) ? T.noteDeMesureAvecLimite : T.noteDeMesure;
+        sortie.push(note);
+      }
+      return sortie;
+    },
+    carteSansTokens: () => creerLaCarteSansTokens(entree!.analyse, entree!.contexte),
+    ignores(constats) {
+      if (!entree || constats.length === 0) return [];
+      const { analyse, contexte } = entree;
+      return [creerIntertitre(T.ignores), ...cartesDAFaire(constats, contexte).map((carte) => creerLaCarteIgnoree(carte, analyse.perimee))];
+    },
   };
 }

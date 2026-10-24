@@ -132,3 +132,12 @@ export async function ouvrirComposant(lecture, { image = true } = {}) {
   }
   return page;
 }
+
+/**
+ * Déplie les sections du panneau des constats que l'ouverture a repliées (plus de cinq points) : leurs cartes ne se dessinent
+ * qu'ouvertes. Une section déjà ouverte ne bouge pas.
+ */
+export async function deplierLesSections(page) {
+  const repliees = page.locator('.bande-element[aria-expanded="false"]');
+  while (await repliees.count() > 0) await repliees.first().click();
+}

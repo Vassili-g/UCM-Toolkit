@@ -1,4 +1,4 @@
-/** Les textes du panneau des constats : ses états, ses onglets et l'alerte du composant périmé. Les textes des cartes de Corrections sont dans `corrections.ts`. */
+/** Les textes du panneau des constats : ses états et l'alerte du composant périmé. Les textes des cartes de Corrections sont dans `corrections.ts`. */
 
 /** « de » devant une consonne, « d’ » devant une voyelle ou un h. */
 export const de = (nom: string): string => (/^[aeiouyàâéèêîôûh]/i.test(nom) ? `d’${nom}` : `de ${nom}`);
@@ -10,11 +10,6 @@ const MOTS: Readonly<Record<number, string>> = { 2: 'Deux', 3: 'Trois', 4: 'Quat
 
 export const TEXTES_ANALYSE = {
   panneauDesConstats: {
-    etiquetteDesOnglets: 'Constats du composant',
-    ongletCorrections: 'Corrections',
-    ongletQuestions: 'Questions',
-    ongletAFaire: 'À faire dans Figma',
-    nomDeLOnglet: (onglet: string, compte: number): string => `${onglet}, ${compte}`,
     aucunComposant: 'Sélectionnez un composant dans Figma.',
     horsUcmTitre: 'Ce fichier n’est pas déclaré UCM.',
     horsUcmTexte: 'L’analyse des composants s’ouvre après la déclaration.',

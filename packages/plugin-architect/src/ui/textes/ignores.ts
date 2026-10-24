@@ -1,4 +1,4 @@
-/** Les textes de l'onglet À faire dans Figma du panneau des constats : ses cinq intertitres, la phrase de chaque constat, et les constats ignorés. */
+/** Les textes des constats à faire dans Figma du panneau des constats : la phrase de chaque constat, et les constats ignorés. */
 import { de } from './analyse';
 
 /** Les causes d'une limite de lecture du contraste, dite au présent après le sujet : « Le fill de … est un dégradé. » */
@@ -33,9 +33,7 @@ const NOMS_DE_LAYER_EN_PHRASE: Readonly<Record<string, string>> = { label: 'libe
 
 export const TEXTES_IGNORES = {
   aFaireDuComposant: {
-    intertitres: { tokens: 'Tokens', variants: 'Variants', contraste: 'Contraste et accessibilité', typographie: 'Typographie et icônes', visibilite: 'Visibilité' },
     ignores: 'Ignorés',
-    rienAFaire: 'Rien à faire dans Figma.',
     ignorer: 'Ignorer',
     ignorerCeLayer: 'Ignorer ce layer',
     nePlusIgnorer: 'Ne plus ignorer',

@@ -37,7 +37,7 @@ test('le panneau annonce chaque état de l’analyse, et ne dit « aucun constat
   const page = await ouvrirLePanneau();
   try {
     assert.equal(await page.locator('.arch-resume .meta').textContent(), '11 variants, pas encore analysé');
-    assert.equal(await page.locator('.onglets').count(), 0);
+    assert.equal(await page.locator('.sommaire-elements').count(), 0);
 
     await envoyer(page, { type: 'analyse-commencee', analyse: IDENTITE });
     await envoyer(page, { type: 'analyse-en-cours', analyse: IDENTITE, variantsLus: 5, variantsTotal: 11 });
@@ -67,20 +67,25 @@ test('le panneau annonce chaque état de l’analyse, et ne dit « aucun constat
     await envoyer(page, lu('complete', []));
     assert.match(await texteDuPanneau(page), /Aucun constat sur les 11 variants d’Alert\./);
     assert.equal(await page.locator('.arch-laterale .alerte.ton-tenu').count(), 1);
-    assert.equal(await page.locator('.onglets').count(), 0);
+    assert.equal(await page.locator('.sommaire-elements').count(), 0);
   } finally { await terminer(page); }
 });
 
-test('les trois onglets portent le compte de leur liste, et le panneau se ferme et se rouvre sur le même onglet', async () => {
+test('le sommaire porte le nombre de points de chaque élément, et le panneau se ferme et se rouvre sur le même élément', async () => {
   const page = await ouvrirLePanneau([analyseCorrections, aucunIgnore]);
   try {
-    assert.deepEqual(await page.locator('.onglet').evaluateAll((onglets) => onglets.map((onglet) => onglet.getAttribute('aria-label'))), ['Corrections, 4', 'Questions, 3', 'À faire dans Figma, 12']);
+    assert.equal(await page.locator('.onglets').count(), 0);
+    assert.deepEqual(await page.locator('.puce-element').evaluateAll((puces) => puces.map((puce) => puce.getAttribute('aria-label'))), [
+      'Tout, 24 points', 'Couleurs, 18 points', 'Tailles et forme, 2 points', 'Tokens du composant, 3 points', 'Règles d’utilisation, 1 point',
+    ]);
+    assert.equal(await page.locator('.arch-resume .meta').textContent().then((texte) => texte.endsWith('24 points')), true);
     assert.equal(await page.locator('.bouton-panneau .pastille-compte').textContent(), '24');
-    await page.getByRole('tab', { name: /Questions/ }).click();
-    assert.equal(await page.getByRole('tab', { name: /Questions/ }).getAttribute('aria-selected'), 'true');
+    await page.locator('.puce-element[data-element="tailles"]').click();
+    assert.equal(await page.locator('.puce-element[data-element="tailles"]').getAttribute('aria-pressed'), 'true');
+    assert.deepEqual(await page.locator('.section-element').evaluateAll((sections) => sections.map((section) => section.dataset.element)), ['tailles']);
     await page.getByRole('button', { name: 'Constats' }).click();
     await page.getByRole('button', { name: 'Constats' }).click();
-    assert.equal(await page.getByRole('tab', { name: /Questions/ }).getAttribute('aria-selected'), 'true');
+    assert.equal(await page.locator('.puce-element[data-element="tailles"]').getAttribute('aria-pressed'), 'true');
   } finally { await terminer(page); }
 });
 
@@ -110,7 +115,8 @@ test('un panneau périmé garde ses constats, dit pourquoi et ne relance rien', 
     assert.match(texte, /Cliquez Actualiser pour relire\./);
     assert.match(texte, /Les constats datent d’avant le changement\./);
     assert.equal(await page.locator('.bouton-panneau .pastille-compte').textContent(), '24');
-    assert.equal(await page.locator('.onglet').count(), 3);
+    assert.equal(await page.locator('.sommaire-elements').count(), 0);
+    assert.equal(await page.locator('.section-element').count(), 0);
     assert.equal(await page.locator('.corrections-pied').count(), 0);
     assert.equal((await demandes(page, 'analyser')).length, 0, 'rien ne se relance tout seul');
     assert.equal(await page.getByRole('button', { name: 'Actualiser' }).isEnabled(), true);
@@ -119,7 +125,7 @@ test('un panneau périmé garde ses constats, dit pourquoi et ne relance rien', 
   } finally { await terminer(page); }
 });
 
-test('deux libraries sans choix demandent la Configuration ; un fichier hors UCM remplace les onglets par la déclaration', async () => {
+test('deux libraries sans choix demandent la Configuration ; un fichier hors UCM remplace le sommaire par la déclaration', async () => {
   const page = await ouvrirLePanneau();
   try {
     assert.equal((await demandes(page, 'lire-configuration')).length, 1, 'le panneau demande la library à son ouverture');
@@ -134,7 +140,7 @@ test('deux libraries sans choix demandent la Configuration ; un fichier hors UCM
     await envoyer(page, { type: 'declaration', architecture: 'absente' });
     assert.match(await texteDuPanneau(page), /Ce fichier n’est pas déclaré UCM\./);
     assert.equal(await page.getByRole('button', { name: 'Déclarer dans la Configuration' }).isVisible(), true);
-    assert.equal(await page.locator('.onglet').count(), 0);
+    assert.equal(await page.locator('.sommaire-elements').count(), 0);
     assert.equal(await page.getByRole('button', { name: 'Analyser' }).isHidden(), true);
   } finally { await terminer(page); }
 });
@@ -145,13 +151,12 @@ test('Préparer les tokens suit sansTokens : un constat d’état sans correctio
     const constatDEtat = { id: 'C16:v1', code: 'C16', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits: {} };
     await envoyer(page, lu('complete', [constatDEtat]));
     assert.equal(await page.locator('.prep-ouvrir').isHidden(), true);
-    await page.locator('#onglet-a-faire').click();
     assert.doesNotMatch(await texteDuPanneau(page), /n’a pas de tokens/);
 
     await envoyer(page, { ...lu('complete', []), sansTokens: true });
     assert.equal(await page.locator('.prep-ouvrir').isVisible(), true);
     assert.match(await texteDuPanneau(page), /Alert n’a pas de tokens\. Ses couleurs sont en dur\./);
-    assert.equal(await page.locator('#onglet-a-faire .compte').textContent(), '1');
+    assert.equal(await page.locator('.puce-element[data-element="tokens"] .nombre').textContent(), '1');
 
     await envoyer(page, { type: 'perime', analyse: IDENTITE, cause: 'document' });
     assert.equal(await page.locator('.prep-ouvrir').isHidden(), true);

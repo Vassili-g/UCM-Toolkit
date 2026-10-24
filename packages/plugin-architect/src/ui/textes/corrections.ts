@@ -1,4 +1,4 @@
-/** Les textes de l'onglet Corrections du panneau des constats : intertitres, cartes, faits relus, pied et écriture en cours. */
+/** Les textes des corrections du panneau des constats : cartes, faits relus, pied et écriture en cours. */
 import { de } from './analyse';
 
 const pluriel = (n: number): string => (n > 1 ? 's' : '');
@@ -36,10 +36,11 @@ const CHAMPS_DE_LA_CARTE: Readonly<Record<string, string>> = {
   height: 'height',
 };
 
+/** Le pied dit ce que la vue d'un seul élément ne montre pas : le total des cochées, dont la part visible. */
+const dontDans = (cachees: { readonly dans: number; readonly element: string } | null): string => (cachees === null ? '' : `, dont ${cachees.dans} dans ${cachees.element}`);
+
 export const TEXTES_CORRECTIONS = {
   correctionsDuComposant: {
-    intertitres: { liaisons: 'Liaisons', tailles: 'Tailles', regles: 'Règles d’usage', noms: 'Noms de valeurs' },
-    aucuneCorrection: 'Aucune correction à proposer.',
     lierLeTexte: 'Lier le texte aux tokens sans fond',
     lierLeTexteDe: 'Lier le texte de ',
     auxTokensSansFond: ' aux tokens sans fond',
@@ -66,13 +67,15 @@ export const TEXTES_CORRECTIONS = {
     regle: 'Règle',
     duLayer: (champ: string, layer: string): string => `${champ} du layer ${layer}`,
     nePlusProposer: (layers: number): string => (layers > 1 ? `Ne plus proposer pour ces ${layers} layers` : 'Ne plus proposer pour ce layer'),
-    pied: (cartes: number, layers: number, instances: number, valeurs: number): { readonly gras: string; readonly suite: string } => ({
+    pied: (cartes: number, layers: number, instances: number, valeurs: number, cachees: { readonly dans: number; readonly element: string } | null = null): { readonly gras: string; readonly suite: string } => ({
       gras: `${cartes} correction${pluriel(cartes)}`,
-      suite: ` cochée${pluriel(cartes)}${layers > 0 ? `, ${layers} layer${pluriel(layers)}` : ''}${instances > 0 ? `, ${instances} instance${pluriel(instances)}` : ''}${valeurs > 0 ? `, ${valeurs} valeur${pluriel(valeurs)} de variante` : ''}`,
+      suite: ` cochée${pluriel(cartes)}${dontDans(cachees)}${layers > 0 ? `, ${layers} layer${pluriel(layers)}` : ''}${instances > 0 ? `, ${instances} instance${pluriel(instances)}` : ''}${valeurs > 0 ? `, ${valeurs} valeur${pluriel(valeurs)} de variante` : ''}`,
     }),
-    piedDeLaCopie: (liaisons: number): { readonly gras: string; readonly suite: string } => ({ gras: `${liaisons} liaison${pluriel(liaisons)}`, suite: ` cochée${pluriel(liaisons)}` }),
+    piedDeLaCopie: (liaisons: number, cachees: { readonly dans: number; readonly element: string } | null = null): { readonly gras: string; readonly suite: string } => ({ gras: `${liaisons} liaison${pluriel(liaisons)}`, suite: ` cochée${pluriel(liaisons)}${dontDans(cachees)}` }),
     aucuneCochee: 'Aucune correction cochée.',
     appliquer: 'Appliquer',
+    appliquerTout: 'Appliquer tout',
+    appliquerLaCarte: (carte: string): string => `Appliquer : ${carte}`,
     ecritureEnCours: (liaisons: number): string => `Écriture de ${liaisons} liaison${pluriel(liaisons)} en cours.`,
     ecritureSansLiaison: 'Écriture en cours.',
     ctrlZ: 'Ctrl+Z dans Figma défait ce lot.',

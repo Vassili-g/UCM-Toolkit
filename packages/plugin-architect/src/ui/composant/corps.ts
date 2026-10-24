@@ -37,7 +37,7 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
   preparation.panneau.style.left = '16px';
   preparation.panneau.style.right = '16px';
   preparation.panneau.style.margin = '0';
-  const ouvrirPreparation = createButton({ label: TEXTES_PREPARATION.preparationOuvrirBouton, variant: 'secondary', compact: true, onClick: () => { constats.panneauAFaire.hidden = true; preparation.ouvrir(); } });
+  const ouvrirPreparation = createButton({ label: TEXTES_PREPARATION.preparationOuvrirBouton, variant: 'secondary', compact: true, onClick: () => { constats.liste.hidden = true; preparation.ouvrir(); } });
   ouvrirPreparation.classList.add('prep-ouvrir');
 
   /** La largeur que la vue peut prendre sans écraser le panneau. */
@@ -72,7 +72,7 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
   const classeSiNecessaire = (cible: Element, classe: string, ajouter: boolean): void => {
     if (cible.classList.contains(classe) !== ajouter) cible.classList.toggle(classe, ajouter);
   };
-  let ongletsMasques = false;
+  let elementsMasques = false;
   const ajusterResultatPreparation = (): void => {
     const resultatPreparation = preparation.element.hidden && preparation.panneau.classList.contains('prep-rangee');
     const resultatColler = preparation.panneau.classList.contains('prep-mode-colle');
@@ -80,17 +80,14 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
     const resultatAutreComposant = preparation.panneau.classList.contains('prep-autre');
     const resultatLiaisons = preparation.panneau.classList.contains('prep-liaisons');
     if (!resultatPreparation) {
-      const onglets = constats.element.querySelector<HTMLElement>('.onglets');
-      const panneaux = ['#panneau-corrections', '#panneau-questions', '#panneau-a-faire']
-        .map((selecteur) => constats.element.querySelector<HTMLElement>(selecteur));
       if (resultatAutreComposant) {
-        if (onglets) cacherSiNecessaire(onglets, true);
-        for (const element of panneaux) if (element) cacherSiNecessaire(element, true);
-        ongletsMasques = true;
-      } else if (ongletsMasques) {
-        ongletsMasques = false;
-        if (onglets) cacherSiNecessaire(onglets, false);
-        for (const element of panneaux) if (element) cacherSiNecessaire(element, false);
+        cacherSiNecessaire(constats.sommaire, true);
+        cacherSiNecessaire(constats.liste, true);
+        elementsMasques = true;
+      } else if (elementsMasques) {
+        elementsMasques = false;
+        cacherSiNecessaire(constats.sommaire, false);
+        cacherSiNecessaire(constats.liste, false);
         constats.mettreAJour();
       }
       if (resultatColler) {
@@ -131,12 +128,9 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
     }
     cacherSiNecessaire(constats.element, false);
     classeSiNecessaire(constats.element, 'prep-autre', false);
-    const onglets = constats.element.querySelector<HTMLElement>('.onglets');
-    const panneaux = ['#panneau-corrections', '#panneau-questions', '#panneau-a-faire']
-      .map((selecteur) => constats.element.querySelector<HTMLElement>(selecteur));
-    if (onglets) cacherSiNecessaire(onglets, true);
-    for (const element of panneaux) if (element) cacherSiNecessaire(element, true);
-    ongletsMasques = true;
+    cacherSiNecessaire(constats.sommaire, true);
+    cacherSiNecessaire(constats.liste, true);
+    elementsMasques = true;
     ouvrirPreparation.remove();
     preparation.panneau.querySelector('.prep-coller')?.remove();
     if (!constats.element.classList.contains('prep-resultat')) constats.element.classList.add('prep-resultat');
@@ -145,7 +139,7 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
   const observateurPreparation = new MutationObserver(ajusterResultatPreparation);
   observateurPreparation.observe(preparation.panneau, { attributes: true, childList: true, subtree: true });
   observateurPreparation.observe(preparation.element, { attributes: true });
-  preparation.element.querySelector('.feuille-fermer')?.addEventListener('click', () => { constats.panneauAFaire.hidden = false; });
+  preparation.element.querySelector('.feuille-fermer')?.addEventListener('click', () => { constats.liste.hidden = false; });
   panneau.append(preparation.panneau, constats.element);
 
   return {

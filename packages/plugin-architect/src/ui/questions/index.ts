@@ -1,9 +1,9 @@
 /**
- * L'onglet Questions du panneau des constats : une carte par question du moteur, au modèle d'« À trancher » de Nomenclature. Le titre
- * cite le premier candidat, chaque autre candidat a son bouton, et rien n'est choisi avant le clic. Une réponse remplace la carte par sa
- * ligne verte (la correction qu'elle tire passe dans Corrections), avec deux gestes : ouvrir Corrections, annuler la réponse. « Plus tard »
+ * Les questions du panneau des constats : une carte par question du moteur, au modèle d'« À trancher » de Nomenclature. Le titre cite le
+ * premier candidat, chaque autre candidat a son bouton, et rien n'est choisi avant le clic. Une réponse remplace la carte par sa ligne
+ * verte (la correction qu'elle tire est une carte de corrections, dans la même section), avec un geste : annuler la réponse. « Plus tard »
  * range la carte en fin de liste jusqu'à la prochaine analyse. Les questions identiques de plusieurs variants se montrent en une carte, qui
- * envoie une réponse par question du groupe.
+ * envoie une réponse par question du groupe. Le panneau choisit les groupes à montrer ; ce module les dessine.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
@@ -12,7 +12,7 @@ import { creerCheminEnPhrase, creerVariantEnPhrase } from 'ucm-plugin-socle/src/
 import type { AnalyseRecue } from '../composant/analyse';
 import { poserLeTexteEnrichi } from '../ignores/texte';
 import { TEXTES } from '../textes';
-import { carteDeQuestion, estUneQuestion, regrouperLesCartes, reponsesDuGroupe, type CarteDeQuestion, type ContexteDeQuestions, type GroupeDeQuestions, type MorceauDEffet, type MorceauDeTitre, type ReponseProposee } from './modele';
+import { reponsesDuGroupe, type CarteDeQuestion, type GroupeDeQuestions, type MorceauDEffet, type MorceauDeTitre, type ReponseProposee } from './modele';
 
 const T = TEXTES.questionsDuComposant;
 
@@ -21,20 +21,15 @@ export interface OptionsDesQuestions {
   readonly repondre: (question: string, reponse: string) => void;
   /** Retire la réponse : la question revient à trancher. */
   readonly annuler: (question: string) => void;
-  /** Passe à l'onglet Corrections. */
-  readonly ouvrirCorrections: () => void;
-}
-
-export interface EntreeDesQuestions {
-  readonly analyse: AnalyseRecue;
-  readonly contexte: ContexteDeQuestions;
+  /** Appelée quand « Plus tard » change l'ordre des cartes : le panneau se redessine. */
+  readonly redessiner: () => void;
 }
 
 export interface Questions {
-  /** Montre l'onglet pour cette analyse. */
-  poser(entree: EntreeDesQuestions): void;
-  /** Le nombre de questions qui attendent une réponse. */
-  nombre(): number;
+  /** Retient l'analyse : ses réponses, et si elle est périmée. */
+  poser(analyse: AnalyseRecue): void;
+  /** Dessine ces groupes : les cartes à trancher, puis celles que « Plus tard » a reportées. */
+  cartes(groupes: readonly GroupeDeQuestions[]): HTMLElement[];
 }
 
 function motCite(texte: string, classe: 'mot-retire' | 'mot-retenu'): HTMLElement {
@@ -88,10 +83,9 @@ function boutonTexte(libelle: string, nomAccessible: string | null, auClic: () =
   return bouton;
 }
 
-export function monterLesQuestions(hote: HTMLElement, options: OptionsDesQuestions): Questions {
+export function monterLesQuestions(options: OptionsDesQuestions): Questions {
   let identite = '';
-  let entree: EntreeDesQuestions | null = null;
-  let restantes = 0;
+  let analyse: AnalyseRecue | null = null;
   const plusTard = new Set<string>();
 
   /** Une réponse au groupe : une demande `repondre` par question qu'il réunit. */
@@ -159,7 +153,7 @@ export function monterLesQuestions(hote: HTMLElement, options: OptionsDesQuestio
     droite.className = 'question-actions';
     droite.append(boutonTexte(T.plusTard, T.plusTardPour(carte.titreEnTexte), () => {
       for (const membre of groupe.cartes) plusTard.add(membre.id);
-      rendre();
+      options.redessiner();
     }, inactif));
     const pied = document.createElement('div');
     pied.className = 'question-pied';
@@ -176,57 +170,32 @@ export function monterLesQuestions(hote: HTMLElement, options: OptionsDesQuestio
     return element;
   }
 
-  /** La ligne verte d'une réponse, puis les deux gestes qui la suivent. */
+  /** La ligne verte d'une réponse, puis son geste : annuler. */
   function creerLaReponse(groupe: GroupeDeQuestions, texte: string, inactif: boolean): HTMLElement[] {
     const { carte } = groupe;
     const actions = document.createElement('div');
     actions.className = 'constat-actions';
-    actions.append(
-      boutonTexte(T.ouvrirCorrections, null, options.ouvrirCorrections, inactif),
-      boutonTexte(T.annulerLaReponse, T.annulerLaReponseDe(carte.titreEnTexte), () => { for (const membre of groupe.cartes) options.annuler(membre.id); }, inactif),
-    );
-    return [creerResultat(texte, T.appliquerDansCorrections), actions];
-  }
-
-  function rendre(): void {
-    if (!entree) return;
-    const { analyse, contexte } = entree;
-    const cartes = analyse.constats
-      .filter((constat) => estUneQuestion(constat) || (constat.question !== undefined && analyse.repondues[constat.question.id] !== undefined))
-      .flatMap((constat) => {
-        const carte = carteDeQuestion(constat, contexte);
-        return carte ? [carte] : [];
-      });
-    restantes = cartes.filter((carte) => analyse.repondues[carte.id] === undefined).length;
-    if (cartes.length === 0) {
-      const note = document.createElement('p');
-      note.className = 'meta';
-      note.textContent = T.aucuneQuestion;
-      hote.replaceChildren(note);
-      return;
-    }
-    const groupes = regrouperLesCartes(cartes, analyse.repondues);
-    const reportee = ({ carte }: GroupeDeQuestions): boolean => analyse.repondues[carte.id] === undefined && plusTard.has(carte.id);
-    const liste = document.createElement('div');
-    liste.className = 'liste liste-questions';
-    for (const groupe of [...groupes.filter((candidate) => !reportee(candidate)), ...groupes.filter(reportee)]) {
-      const reponse = analyse.repondues[groupe.carte.id];
-      if (reponse !== undefined) liste.append(...creerLaReponse(groupe, groupe.carte.reponseEnTexte(reponse), analyse.perimee));
-      else liste.append(creerLaCarte(groupe, analyse.perimee));
-    }
-    hote.replaceChildren(liste);
+    actions.append(boutonTexte(T.annulerLaReponse, T.annulerLaReponseDe(carte.titreEnTexte), () => { for (const membre of groupe.cartes) options.annuler(membre.id); }, inactif));
+    return [creerResultat(texte, T.appliquerAvecLesCorrections), actions];
   }
 
   return {
     poser(suivante) {
-      const nouvelle = `${suivante.analyse.identite.sujet}:${suivante.analyse.identite.generation}`;
+      const nouvelle = `${suivante.identite.sujet}:${suivante.identite.generation}`;
       if (nouvelle !== identite) {
         identite = nouvelle;
         plusTard.clear();
       }
-      entree = suivante;
-      rendre();
+      analyse = suivante;
     },
-    nombre: () => restantes,
+    cartes(groupes) {
+      if (!analyse) return [];
+      const { repondues, perimee } = analyse;
+      const reportee = ({ carte }: GroupeDeQuestions): boolean => repondues[carte.id] === undefined && plusTard.has(carte.id);
+      return [...groupes.filter((candidat) => !reportee(candidat)), ...groupes.filter(reportee)].flatMap((groupe) => {
+        const reponse = repondues[groupe.carte.id];
+        return reponse !== undefined ? creerLaReponse(groupe, groupe.carte.reponseEnTexte(reponse), perimee) : [creerLaCarte(groupe, perimee)];
+      });
+    },
   };
 }

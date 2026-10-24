@@ -1,8 +1,7 @@
-/** Les textes de l'onglet Questions du panneau des constats : la carte d'une question, la ligne d'une réponse et ses deux gestes. */
+/** Les textes des questions du panneau des constats : la carte d'une question et la ligne d'une réponse. */
 
 export const TEXTES_QUESTIONS = {
   questionsDuComposant: {
-    aucuneQuestion: 'Aucune question à trancher.',
     lier: 'Lier ',
     lierLe: (champ: string): string => `Lier le ${champ} de `,
     fill: 'fill',
@@ -34,8 +33,7 @@ export const TEXTES_QUESTIONS = {
     lierChangeLeRendu: 'Lier change le rendu de ce layer.',
     valeurChange: (layer: string, token: string, valeur: number, cible: number): string => `${layer} sera lié à ${token}. Sa valeur passe de ${valeur} px à ${cible} px.`,
     repondrePourLes: (variants: number): string => `Répondre pour les ${variants} variants`,
-    appliquerDansCorrections: 'Appliquez-le dans l’onglet Corrections.',
-    ouvrirCorrections: 'Ouvrir Corrections',
+    appliquerAvecLesCorrections: 'Appliquez-le avec les corrections de cette section.',
     annulerLaReponse: 'Annuler la réponse',
     repondre: (reponse: string, titre: string): string => `${reponse} : ${titre}`,
     annulerLaReponseDe: (titre: string): string => `Annuler la réponse à ${titre}`,

@@ -1,12 +1,12 @@
 /**
- * L'onglet Corrections du panneau des constats : une carte par règle, sous
- * quatre intertitres, la case de chaque ligne, le pied qui compte ce qui est
- * coché, la ligne de réussite d'un lot écrit et le message du composant périmé.
+ * Les corrections du panneau des constats : la carte de chaque règle, avec sa case par ligne et son bouton Appliquer, le pied qui
+ * compte ce qui est coché, la ligne de réussite d'un lot écrit et le message du composant périmé. Le panneau range les cartes dans
+ * les sections ; ce module les dessine et garde ce que le designer a coché ou ouvert.
  *
- * Appliquer n'envoie que les corrections cochées d'une carte visible. Le clic
- * sur une carte qui s'ouvre sélectionne ses layers dans Figma et dit « Sélectionnés dans Figma » ;
- * l'écran ne change jamais la sélection ailleurs. Ce que le designer a coché
- * ou ouvert vit ici et tombe quand une nouvelle analyse arrive.
+ * Appliquer, sur une carte, n'envoie que les lignes cochées de cette carte. « Appliquer tout », dans le pied, envoie toutes les lignes
+ * cochées, de toutes les cartes du panneau, qu'une section les montre ou non. Le clic sur une carte qui s'ouvre sélectionne ses layers
+ * dans Figma et dit « Sélectionnés dans Figma » ; l'écran ne change jamais la sélection ailleurs. Ce que le designer a coché ou ouvert
+ * tombe quand une nouvelle analyse arrive.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
@@ -18,9 +18,9 @@ import type { Constat } from '../../messages/commun';
 import type { AnalyseRecue } from '../composant/analyse';
 import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION } from '../textes/preparation';
-import { creerCarte, creerIntertitre } from '../structure/carte';
-import { carteDesLiaisonsPreparees, variablesNonPublieesDeLaListe } from './liaisons';
-import { cartesDeCorrections, SECTIONS, type CarteDeCorrections, type ContexteDeCartes, type LigneDeCarte, type LigneEnAttente, type Morceau } from './modele';
+import { creerCarte } from '../structure/carte';
+import { variablesNonPublieesDeLaListe } from './liaisons';
+import type { CarteDeCorrections, ContexteDeCartes, LigneDeCarte, LigneEnAttente, Morceau } from './modele';
 
 const T = TEXTES.correctionsDuComposant;
 
@@ -33,11 +33,21 @@ export interface OptionsDesCorrections {
   readonly ignorer: (constats: readonly Constat[]) => void;
   /** Appelée quand ce qui est coché change, pour que la vue Composant montre les liaisons à venir. */
   readonly auChangement: () => void;
+  /** Appelée quand une carte s'ouvre ou se ferme : le panneau se redessine. */
+  readonly redessiner: () => void;
 }
 
 export interface EntreeDesCorrections {
   readonly analyse: AnalyseRecue;
   readonly contexte: ContexteDeCartes;
+  /** Toutes les cartes du panneau, visibles ou non, dans l'ordre où le panneau les range : la première s'ouvre d'elle-même. */
+  readonly cartes: readonly CarteDeCorrections[];
+}
+
+/** Ce que la vue montre des cartes cochées quand un seul élément est choisi : ses cartes et son libellé. */
+export interface PartVisible {
+  readonly cartes: readonly CarteDeCorrections[];
+  readonly element: string;
 }
 
 /** Une liaison que la vue Composant montrera changée : le layer, le nom d'avant et celui d'après. */
@@ -48,14 +58,35 @@ export interface LiaisonAVenir {
 }
 
 export interface Corrections {
-  /** Montre l'onglet pour cette analyse. */
+  /** Retient les cartes de cette analyse. */
   poser(entree: EntreeDesCorrections): void;
-  /** Le nombre de cartes qui restent à appliquer. */
-  nombre(): number;
+  /** À appeler avant de dessiner : les cases d'un dessin précédent ne comptent plus. */
+  commencer(): void;
+  /** Dessine ces cartes. */
+  cartes(cartes: readonly CarteDeCorrections[]): HTMLElement[];
+  /** Le pied : le résumé de ce qui est coché dans tout le panneau, et « Appliquer tout ». `visible` dit la part que la vue montre, quand elle n'est pas entière. */
+  pied(visible: PartVisible | null, inactif?: boolean): HTMLElement;
   /** Les liaisons que les corrections cochées vont changer. */
   liaisonsAVenir(): readonly LiaisonAVenir[];
-  /** Ouvre la carte qui change ces layers et sélectionne ses layers ; vrai quand une carte l'a fait. */
-  ouvrirPourLesCalques(calques: readonly string[]): boolean;
+  /** Ouvre la carte qui change ces layers et sélectionne ses layers ; rend la carte, ou `null` quand aucune ne les change. Le panneau se redessine ensuite. */
+  ouvrirPourLesCalques(calques: readonly string[]): CarteDeCorrections | null;
+}
+
+/** La ligne de réussite du lot écrit, ou la note du composant périmé. */
+export function resultatApresPeremption(analyse: AnalyseRecue): HTMLElement {
+  if (analyse.lot) return creerResultat(analyse.lot.resume, analyse.lot.ecrites > 0 ? T.ctrlZ : undefined);
+  const element = document.createElement('p');
+  element.className = 'meta';
+  element.textContent = TEXTES.panneauDesConstats.perimeMeta;
+  return element;
+}
+
+/** Le message de l'écriture en cours. */
+export function noteDeLEcriture(analyse: AnalyseRecue): HTMLElement {
+  const element = document.createElement('p');
+  element.className = 'meta';
+  element.textContent = analyse.ecriture !== null && analyse.ecriture.liaisons > 0 ? T.ecritureEnCours(analyse.ecriture.liaisons) : T.ecritureSansLiaison;
+  return element;
 }
 
 /** Les morceaux de texte qui se suivent ne font qu'un nœud de texte : la ligne grise d'une carte se lit comme une phrase. */
@@ -113,20 +144,30 @@ const dans = (noeuds: Node[]): DocumentFragment => {
 
 const ecritLaLigne = (ligne: LigneDeCarte): boolean => ligne.correction.sorte === 'liaison' || ligne.correction.sorte === 'regles' || ligne.correction.sorte === 'nom-de-valeur';
 
-export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorrections): Corrections {
+export function monterLesCorrections(options: OptionsDesCorrections): Corrections {
   let entree: EntreeDesCorrections | null = null;
-  let cartes: CarteDeCorrections[] = [];
   let identite = '';
   const decochees = new Set<string>();
   const ouvertes = new Map<string, boolean>();
   let cible: string | null = null;
   let derniereAVenir = '';
+  let casesDeLignes = new Map<string, HTMLInputElement>();
+  let casesDeCartes: Array<{ element: HTMLInputElement; ids: readonly string[] }> = [];
+  let boutonsDeCartes: Array<{ element: HTMLButtonElement; carte: CarteDeCorrections }> = [];
+  let piedPose: { element: HTMLElement; visible: PartVisible | null; inactif: boolean } | null = null;
 
+  const cartesDuPanneau = (): readonly CarteDeCorrections[] => entree?.cartes ?? [];
   const cochee = (ligne: LigneDeCarte): boolean => !decochees.has(ligne.id);
-  const lignesCochees = (): LigneDeCarte[] => cartes.flatMap((carte) => carte.lignes.filter(cochee));
-  const estOuverte = (carte: CarteDeCorrections, rang: number): boolean => ouvertes.get(carte.cle) ?? rang === 0;
+  const lignesCochees = (cartes: readonly CarteDeCorrections[] = cartesDuPanneau()): LigneDeCarte[] => cartes.flatMap((carte) => carte.lignes.filter(cochee));
+  const estOuverte = (carte: CarteDeCorrections): boolean => ouvertes.get(carte.cle) ?? cartesDuPanneau()[0]?.cle === carte.cle;
 
-  function pied(inactif: boolean): HTMLElement {
+  /** Envoie ces lignes : celles qu'une écriture sait faire, et le nombre de liaisons qu'elles écrivent. */
+  function ecrire(lignes: readonly LigneDeCarte[]): void {
+    const aEcrire = lignes.filter(ecritLaLigne);
+    options.appliquer(aEcrire.map((ligne) => ligne.id), aEcrire.filter((ligne) => ligne.correction.sorte === 'liaison').length);
+  }
+
+  function creerLePied(visible: PartVisible | null, inactif: boolean): HTMLElement {
     const element = document.createElement('div');
     element.className = 'corrections-pied';
     const resume = document.createElement('span');
@@ -134,29 +175,32 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
     const cochees = lignesCochees();
     if (cochees.length === 0) resume.textContent = T.aucuneCochee;
     else {
-      const cartesCochees = cartes.filter((carte) => carte.lignes.some(cochee));
+      const cartesCochees = cartesDuPanneau().filter((carte) => carte.lignes.some(cochee));
       const sorte = (ligne: LigneDeCarte): string => ligne.correction.sorte;
+      const cles = new Set(visible?.cartes.map((carte) => carte.cle));
+      const cachees = visible !== null && cartesCochees.some((carte) => !cles.has(carte.cle))
+        ? { dans: cartesCochees.filter((carte) => cles.has(carte.cle)).length, element: visible.element }
+        : null;
       const texte = cartesCochees.every((carte) => carte.origine !== 'constats')
-        ? T.piedDeLaCopie(cochees.length)
+        ? T.piedDeLaCopie(cochees.length, cachees)
         : T.pied(
           cartesCochees.length,
           new Set(cochees.filter((ligne) => sorte(ligne) === 'liaison').map((ligne) => ligne.correction.cible.layer)).size,
           cochees.filter((ligne) => sorte(ligne) === 'regles').length,
           cochees.filter((ligne) => sorte(ligne) === 'nom-de-valeur').length,
+          cachees,
         );
       const gras = document.createElement('b');
       gras.textContent = texte.gras;
       resume.append(gras, texte.suite);
     }
     const appliquer = createButton({
-      label: T.appliquer,
+      label: T.appliquerTout,
       disabled: inactif || cochees.length === 0,
-      onClick: () => {
-        const aEcrire = lignesCochees().filter(ecritLaLigne);
-        options.appliquer(aEcrire.map((ligne) => ligne.id), aEcrire.filter((ligne) => ligne.correction.sorte === 'liaison').length);
-      },
+      onClick: () => ecrire(lignesCochees()),
     });
     element.append(resume, appliquer);
+    piedPose = { element, visible, inactif };
     return element;
   }
 
@@ -207,7 +251,7 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
     return diff;
   }
 
-  function creerLaCarte(carte: CarteDeCorrections, rang: number, casesDeLignes: Map<string, HTMLInputElement>, casesDeCartes: Array<{ element: HTMLInputElement; ids: readonly string[] }>): HTMLElement {
+  function creerLaCarte(carte: CarteDeCorrections): HTMLElement {
     const corps = document.createElement('div');
     corps.append(creerColonnes(TEXTES.legendeAujourdhui, TEXTES.legendeApres));
     const preparation = carte.origine === 'preparation';
@@ -219,12 +263,12 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
       caseACocher.addEventListener('change', () => {
         if (caseACocher.checked) decochees.delete(ligne.id);
         else decochees.add(ligne.id);
-        rafraichir(casesDeLignes, casesDeCartes);
+        rafraichir();
       });
       casesDeLignes.set(ligne.id, caseACocher);
       corps.append(diff);
     }
-    for (const entree of carte.attente) corps.append(creerLaLigneEnAttente(entree));
+    for (const attente of carte.attente) corps.append(creerLaLigneEnAttente(attente));
     if (carte.attente.length > 0) {
       corps.append(creerAlerte('info', {
         texte: TEXTES_PREPARATION.preparationVariablesNonPubliees(variablesNonPublieesDeLaListe(carte.attente)),
@@ -249,50 +293,69 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
     meta.push(...Array.from(conteneur.childNodes));
 
     const ids = carte.lignes.map((ligne) => ligne.id);
-    // Une carte dont toutes les liaisons attendent leur publication n'a rien à cocher.
+    // Une carte dont toutes les liaisons attendent leur publication n'a rien à cocher ni à appliquer.
     let caseDeCarte: HTMLInputElement | undefined;
+    let appliquerLaCarte: HTMLButtonElement | undefined;
     if (carte.lignes.length > 0) {
       const element = document.createElement('input');
       element.type = 'checkbox';
       element.className = 'case';
       element.setAttribute('aria-label', TEXTES.caseDeCarte(carte.lignes[0].apres));
+      const cochees = ids.filter((id) => !decochees.has(id)).length;
+      element.checked = cochees === ids.length;
+      element.indeterminate = cochees > 0 && cochees < ids.length;
       element.addEventListener('change', () => {
         for (const id of ids) {
           if (element.checked) decochees.delete(id);
           else decochees.add(id);
         }
-        rafraichir(casesDeLignes, casesDeCartes);
+        rafraichir();
       });
       casesDeCartes.push({ element, ids });
       caseDeCarte = element;
+      appliquerLaCarte = createButton({
+        label: T.appliquer,
+        variant: 'secondary',
+        compact: true,
+        disabled: !carte.lignes.some(cochee),
+        onClick: () => ecrire(lignesCochees([carte])),
+      }) as HTMLButtonElement;
+      appliquerLaCarte.classList.add('appliquer-carte');
+      appliquerLaCarte.setAttribute('aria-label', T.appliquerLaCarte(carte.lignes[0].apres));
+      boutonsDeCartes.push({ element: appliquerLaCarte, carte });
     }
     return creerCarte({
       tete,
       meta,
       caseACocher: caseDeCarte,
+      action: appliquerLaCarte,
+      nomDuChevron: TEXTES.elementsDuPanneau.deplierLaCarte,
       corps,
-      deplie: estOuverte(carte, rang),
+      deplie: estOuverte(carte),
       auBasculement: (ouvert) => {
         ouvertes.set(carte.cle, ouvert);
         if (ouvert) {
           cible = carte.cle;
           if (carte.layers.length > 0) options.selectionner(carte.layers);
         }
-        rendre();
+        options.redessiner();
       },
     }).element;
   }
 
   /** Reflète les cases dans les lignes et les cartes, puis recompte le pied. */
-  function rafraichir(casesDeLignes: Map<string, HTMLInputElement>, casesDeCartes: Array<{ element: HTMLInputElement; ids: readonly string[] }>): void {
+  function rafraichir(): void {
     for (const [id, caseACocher] of casesDeLignes) caseACocher.checked = !decochees.has(id);
     for (const { element, ids } of casesDeCartes) {
       const nombre = ids.filter((id) => !decochees.has(id)).length;
       element.checked = nombre === ids.length;
       element.indeterminate = nombre > 0 && nombre < ids.length;
     }
-    const ancien = hote.querySelector('.corrections-pied');
-    ancien?.replaceWith(pied(false));
+    for (const { element, carte } of boutonsDeCartes) element.disabled = !carte.lignes.some(cochee);
+    if (piedPose) {
+      const { element, visible, inactif } = piedPose;
+      element.replaceWith(creerLePied(visible, inactif));
+    }
     annoncerLaVue();
   }
 
@@ -311,46 +374,6 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
     });
   }
 
-  function note(texte: string): HTMLElement {
-    const element = document.createElement('p');
-    element.className = 'meta';
-    element.textContent = texte;
-    return element;
-  }
-
-  function rendre(): void {
-    if (!entree) return;
-    const { analyse } = entree;
-    if (analyse.ecriture !== null) {
-      hote.replaceChildren(note(analyse.ecriture.liaisons > 0 ? T.ecritureEnCours(analyse.ecriture.liaisons) : T.ecritureSansLiaison), pied(true));
-      return;
-    }
-    if (analyse.perimee) {
-      hote.replaceChildren(analyse.lot ? creerResultat(analyse.lot.resume, analyse.lot.ecrites > 0 ? T.ctrlZ : undefined) : note(TEXTES.panneauDesConstats.perimeMeta));
-      return;
-    }
-    if (cartes.length === 0) {
-      hote.replaceChildren(note(T.aucuneCorrection));
-      return;
-    }
-    const casesDeLignes = new Map<string, HTMLInputElement>();
-    const casesDeCartes: Array<{ element: HTMLInputElement; ids: readonly string[] }> = [];
-    const liste = document.createElement('div');
-    liste.className = 'liste';
-    for (const section of SECTIONS) {
-      const deLaSection = cartes.filter((carte) => carte.section === section);
-      if (deLaSection.length === 0) continue;
-      if (!deLaSection.every((carte) => carte.origine === 'preparation')) liste.append(creerIntertitre(T.intertitres[section]));
-      liste.append(...deLaSection.map((carte) => creerLaCarte(carte, cartes.indexOf(carte), casesDeLignes, casesDeCartes)));
-    }
-    liste.append(pied(false));
-    const pile = document.createElement('div');
-    pile.className = 'page-stack';
-    pile.append(liste);
-    hote.replaceChildren(pile);
-    rafraichir(casesDeLignes, casesDeCartes);
-  }
-
   return {
     poser(suivante) {
       const nouvelle = `${suivante.analyse.identite.sujet}:${suivante.analyse.identite.generation}`;
@@ -361,23 +384,24 @@ export function monterLesCorrections(hote: HTMLElement, options: OptionsDesCorre
         cible = null;
       }
       entree = suivante;
-      const { analyse, contexte } = suivante;
-      const restantes = analyse.constats.map((constat) => (constat.correction && analyse.appliquees.includes(constat.correction.id) ? { ...constat, correction: undefined } : constat));
-      const liaisons = analyse.liaisons === null ? null : carteDesLiaisonsPreparees(analyse.liaisons, analyse.appliquees, contexte);
-      cartes = [...(liaisons === null ? [] : [liaisons]), ...cartesDeCorrections(restantes, { ...contexte, constats: analyse.constats })];
-      rendre();
       annoncerLaVue();
     },
-    nombre: () => cartes.length,
+    commencer() {
+      casesDeLignes = new Map();
+      casesDeCartes = [];
+      boutonsDeCartes = [];
+      piedPose = null;
+    },
+    cartes: (cartes) => cartes.map(creerLaCarte),
+    pied: (visible, inactif = false) => creerLePied(visible, inactif),
     liaisonsAVenir,
     ouvrirPourLesCalques(calques) {
-      const carte = cartes.find((candidate) => candidate.lignes.some((ligne) => ligne.correction.cible.layer !== undefined && calques.includes(ligne.correction.cible.layer)));
-      if (!carte) return false;
+      const carte = cartesDuPanneau().find((candidate) => candidate.lignes.some((ligne) => ligne.correction.cible.layer !== undefined && calques.includes(ligne.correction.cible.layer)));
+      if (!carte) return null;
       ouvertes.set(carte.cle, true);
       cible = carte.cle;
       if (carte.layers.length > 0) options.selectionner(carte.layers);
-      rendre();
-      return true;
+      return carte;
     },
   };
 }

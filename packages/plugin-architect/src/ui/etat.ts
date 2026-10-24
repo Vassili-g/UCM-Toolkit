@@ -19,6 +19,7 @@ import type { Releve, TypeDeVariable, VariableRelevee } from '../modele';
 import { PREFERENCES_PAR_DEFAUT, type Preferences } from '../preferences';
 import { creerResolveur, type Contexte, type Resolveur } from '../resolution';
 import { variablesTrouvees } from './recherche/resultats';
+import type { IdDElement } from './textes/elements';
 
 /** L'image d'un sujet, gardée sous une URL de blob, et la zone qu'elle couvre dans la page. */
 export interface ApercuRecu {
@@ -110,13 +111,13 @@ export interface Etat {
   /** Les préparations rangées sur ce poste, les plus récentes d'abord, telles que le dernier message `preparations` les a rendues. */
   preparations: readonly PreparationVue[];
   /** Le panneau des constats du mode Composant : fermé à l'ouverture, et la largeur que la frontière donne à la vue quand il est ouvert. */
-  panneau: { ouvert: boolean; largeurDeLaVue: number; onglet: OngletDuPanneau };
+  panneau: { ouvert: boolean; largeurDeLaVue: number; element: ElementChoisi };
   /** La library de référence que la Configuration annonce ; `null` tant qu'elle n'a rien dit. */
   reference: { readonly library: string | null; readonly nom: string | null; readonly candidates: number } | null;
 }
 
-/** Les trois onglets du panneau des constats. */
-export type OngletDuPanneau = 'corrections' | 'questions' | 'a-faire';
+/** L'élément que le sommaire du panneau des constats montre seul, ou `tout` : tous les éléments. */
+export type ElementChoisi = 'tout' | IdDElement;
 
 export function etatInitial(): Etat {
   return {
@@ -137,7 +138,7 @@ export function etatInitial(): Etat {
     composant: { demande: 0, statut: 'vide', message: '', lecture: null, index: null, pile: [], portee: null, apercu: null, selection: null, ignores: 0, empiler: false, deLaSelection: true },
     analyse: null,
     preparations: [],
-    panneau: { ouvert: false, largeurDeLaVue: 400, onglet: 'corrections' },
+    panneau: { ouvert: false, largeurDeLaVue: 400, element: 'tout' },
     reference: null,
   };
 }

@@ -14,16 +14,28 @@
  * L'élément garde ses cartes Bloquant (la vue d'un élément les montre) ; `sansLesBloquants` les retire pour « Tout », qui les montre
  * en tête par `enTete`. Une carte qui mêle des constats Bloquant et d'autres reste dans sa section.
  *
- * `constats` sont les constats visibles : ni ignorés, ni appliqués, et une question répondue y porte déjà sa correction.
+ * `constats` sont les constats visibles : ni ignorés, ni appliqués, et une question répondue y porte déjà sa correction. Une question
+ * répondue garde sa ligne de réponse dans `questions`, rangée avec les questions de son élément : `reponses` dit lesquelles.
+ *
+ * Deux cartes ne viennent d'aucun constat : les liaisons d'une préparation et le composant sans token. Elles sont des points de
+ * l'élément `tokens`, un chacune, et ne comptent pas dans `constats`.
  */
 import { natureDe, type Nature } from '../../composant';
-import type { Constat } from '../../messages/commun';
+import type { Constat, Correction } from '../../messages/commun';
 import { cartesDeCorrections, type CarteDeCorrections, type ContexteDeCartes } from '../corrections/modele';
 import { carteDAFaire, estAFaire, type CarteDAFaire } from '../ignores/modele';
 import { carteDeQuestion, estUneQuestion, regrouperLesCartes, type GroupeDeQuestions } from '../questions/modele';
 import { ELEMENTS_DU_PANNEAU, type IdDElement } from '../textes/elements';
 
 export { ELEMENTS_DU_PANNEAU, type IdDElement };
+
+/**
+ * Le signe de la bande et de la puce de chaque élément. La teinte vient de la famille du signe, sauf pour `type-color`, dont la famille
+ * (`types-figma`) n'a pas de teinte : `signeDeLElement` y pose la teinte des couleurs.
+ */
+export const SIGNE_DE_L_ELEMENT: Readonly<Record<IdDElement, string>> = {
+  couleurs: 'type-color', tailles: 'radius', texte: 'text-style', tokens: 'variable', variants: 'component-set', regles: 'regles', a11y: 'contraste',
+};
 
 export interface ElementDuPanneau {
   readonly id: IdDElement;
@@ -36,6 +48,18 @@ export interface ElementDuPanneau {
   readonly points: number;
   /** Un de ses constats est Bloquant : la puce porte l'icône Bloquant. */
   readonly bloquant: boolean;
+  /** Les liaisons d'une préparation, carte de corrections sans constat ; seulement dans `tokens`. */
+  readonly preparee: CarteDeCorrections | null;
+  /** Le composant n'a aucun token : la carte qui propose de les préparer ; seulement dans `tokens`. */
+  readonly sansTokens: boolean;
+}
+
+/** Ce que le panneau sait au-delà des constats. */
+export interface AjoutsAuPanneau {
+  /** Les corrections que les réponses du designer ont tirées, par identifiant de question. */
+  readonly reponses?: Readonly<Record<string, Correction>>;
+  readonly preparee?: CarteDeCorrections | null;
+  readonly sansTokens?: boolean;
 }
 
 export interface PanneauParElements {
@@ -73,10 +97,11 @@ const garde = (constats: readonly Constat[]): boolean => !constats.every(estBloq
 /** Les constats que porte une entrée : ceux d'une carte de corrections, d'un groupe de questions ou d'un constat à faire. */
 type Entree = { readonly constats: readonly Constat[] };
 
-export function elementsDuPanneau(constats: readonly Constat[], contexte: ContexteDeCartes): PanneauParElements {
+export function elementsDuPanneau(constats: readonly Constat[], contexte: ContexteDeCartes, { reponses = {}, preparee = null, sansTokens = false }: AjoutsAuPanneau = {}): PanneauParElements {
   const corrections: Array<Entree & { carte: CarteDeCorrections }> = cartesDeCorrections(constats, { ...contexte, constats }).map((carte) => ({ carte, constats: carte.constats }));
-  const cartesDeQuestions = constats.filter(estUneQuestion).flatMap((constat) => carteDeQuestion(constat, contexte) ?? []);
-  const questions: Array<Entree & { groupe: GroupeDeQuestions }> = regrouperLesCartes(cartesDeQuestions, {}).map((groupe) => ({ groupe, constats: groupe.cartes.map((carte) => carte.constat) }));
+  const repondue = (constat: Constat): boolean => constat.question !== undefined && reponses[constat.question.id] !== undefined;
+  const cartesDeQuestions = constats.filter((constat) => estUneQuestion(constat) || repondue(constat)).flatMap((constat) => carteDeQuestion(constat, contexte) ?? []);
+  const questions: Array<Entree & { groupe: GroupeDeQuestions }> = regrouperLesCartes(cartesDeQuestions, reponses).map((groupe) => ({ groupe, constats: groupe.cartes.map((carte) => carte.constat) }));
   const aFaire: Array<Entree & { carte: CarteDAFaire }> = constats.filter(estAFaire).map((constat) => ({ carte: carteDAFaire(constat, contexte), constats: [constat] }));
 
   const premier = (entree: Entree): IdDElement => elementDuConstat(entree.constats[0]);
@@ -88,9 +113,10 @@ export function elementsDuPanneau(constats: readonly Constat[], contexte: Contex
     const mesAFaire = aFaire.filter((entree) => premier(entree) === id);
     const rangees = [...mesCorrections, ...mesQuestions, ...mesAFaire].flatMap((entree) => entree.constats);
     const tries = [...new Set(rangees)].sort((a, b) => (rang.get(a) ?? 0) - (rang.get(b) ?? 0));
+    const ajouts = id === 'tokens' ? { preparee, sansTokens } : { preparee: null, sansTokens: false };
     return {
       id, corrections: mesCorrections.map((entree) => entree.carte), questions: mesQuestions.map((entree) => entree.groupe), aFaire: mesAFaire.map((entree) => entree.carte),
-      constats: tries, points: tries.length, bloquant: tries.some(estBloquant),
+      constats: tries, points: tries.length + (ajouts.preparee === null ? 0 : 1) + (ajouts.sansTokens ? 1 : 0), bloquant: tries.some(estBloquant), ...ajouts,
     };
   });
   return {

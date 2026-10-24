@@ -99,16 +99,22 @@ couleur, forme, espacement, taille, texte.
   la fenêtre passe à 1040 × 760 sans ranger cette taille. Sa pastille compte
   les constats de la dernière analyse, dans la couleur du plus grave. La
   frontière entre la vue et le panneau se tire à la souris ou aux flèches.
-  Le panneau porte trois onglets, Corrections, Questions et À faire dans Figma,
-  chacun avec son compte. Corrections range ses cartes sous Liaisons, Tailles,
-  Règles d'usage et Noms de valeurs, toutes cochées ; Appliquer écrit les cartes
-  cochées, un seul lot que Ctrl+Z défait dans Figma. Ouvrir une carte
-  sélectionne ses layers dans Figma et les entoure dans l'aperçu. Questions
-  pose une carte par question du moteur : le titre cite le premier candidat,
+  Le panneau range l'analyse par élément du composant : Couleurs, Tailles et
+  forme, Texte, Tokens du composant, Variants et layers, Règles d'utilisation,
+  Accessibilité. Un sommaire de puces donne le nombre de points de « Tout » et
+  de chaque élément qui en a ; une puce choisie ne montre que son élément.
+  Sous « Tout », les points Bloquant viennent en tête, puis une section par
+  élément, puis les éléments tenus, réduits à leur coche. Une section s'ouvre
+  jusqu'à cinq points. Elle range ses cartes de corrections, toutes cochées,
+  puis ses questions, puis ses constats à faire dans Figma. Appliquer, sur une
+  carte, écrit les lignes cochées de cette carte ; Appliquer tout, dans le
+  pied, écrit toutes les lignes cochées, un seul lot que Ctrl+Z défait dans
+  Figma. Ouvrir une carte
+  sélectionne ses layers dans Figma et les entoure dans l'aperçu. Une question
+  du moteur a sa carte : le titre cite le premier candidat,
   les autres ont leur bouton, et rien n'est choisi avant le clic ; la réponse
-  passe sa correction dans Corrections, et Annuler la réponse la retire. À faire
-  dans Figma range les constats sans correction sous cinq intertitres, chacun
-  avec le type de son alerte. Sous Contraste et accessibilité, une carte de
+  devient une carte de corrections de la section, et Annuler la réponse la
+  retire. Un constat à faire dans Figma porte le type de son alerte. Sous Contraste et accessibilité, une carte de
   contraste ouverte donne le rapport mesuré sans arrondi, son seuil (AA ou AAA,
   lu dans la Configuration) et le mode ; la zone cliquable, l'anneau de focus
   et le texte sous 12 px sont des recommandations, les variants State=disabled
