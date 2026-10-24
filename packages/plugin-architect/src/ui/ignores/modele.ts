@@ -276,9 +276,130 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
         statut: T.sansTextStyleStatut,
       };
     case 'C66':
-      return faits.motif === 'pas-une-instance' || faits.motif === 'instance-locale'
-        ? { phrase: T.iconeSansLibrary(variantsEnPhrase(noms)), lieu: lieuDe(constat, contexte, { variantsDansLaPhrase: true }), statut: T.iconeSansLibraryStatut }
-        : null;
+      return icone(constat, contexte);
+    default:
+      return liaisonOuNom(constat, contexte);
+  }
+}
+
+/** C66 : l'icône d'un variant, par motif. */
+function icone(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
+  const { faits } = constat;
+  const variants = variantsEnPhrase(nomsDesVariants(constat, contexte));
+  const lieu = lieuDe(constat, contexte, { variantsDansLaPhrase: true });
+  const token = texte(faits.variable) ?? '';
+  switch (faits.motif) {
+    case 'pas-une-instance':
+    case 'instance-locale':
+      return { phrase: T.iconeSansLibrary(variants), lieu, statut: T.iconeSansLibraryStatut };
+    case 'taille-sans-variable':
+      return { phrase: T.iconeSansTaille(variants), lieu, statut: T.iconeTailleStatut };
+    case 'taille-hors-icone':
+      return { phrase: T.iconeTailleHorsIcon(variants, token), lieu, statut: T.iconeTailleStatut };
+    case 'couleur-sans-variable':
+      return { phrase: T.iconeSansCouleur(variants), lieu, statut: T.iconeCouleurStatut };
+    case 'couleur-hors-premier-plan':
+      return { phrase: T.iconeCouleurHorsPremierPlan(variants, token), lieu, statut: T.iconeCouleurStatut };
+    default:
+      return null;
+  }
+}
+
+/** Le champ peint d'un constat de liaison : « texte » pour une plage, sinon le fill ou le stroke. */
+const champPeint = (faits: Constat['faits']): string => (faits.plageDebut !== undefined ? 'texte' : T.proprieteDeFigma(texte(faits.champ) ?? 'fills'));
+
+/**
+ * Les constats de liaison et de nom qui restent sans proposition : une question sans candidat, ou un fait que seul Figma
+ * corrige. La phrase dit le fait lu ; le statut dit le geste.
+ */
+function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
+  const { faits } = constat;
+  const surLeLayer = lieuDe(constat, contexte, { variantsDansLaPhrase: false });
+  const sansLayer = lieuDe(constat, contexte, { variantsDansLaPhrase: false, sansLayer: true });
+  const token = (valeur: string | number | undefined): string => sansPrefixe(texte(valeur) ?? '', contexte.composant);
+  const nombreDeTokens = nombre(faits.tokens) ?? 1;
+  switch (constat.code) {
+    case 'C7':
+      return { phrase: T.valeurSansToken(`${texte(faits.axe) ?? ''}=${texte(faits.valeur) ?? ''}`), lieu: T.sectionTokens, statut: T.valeurSansTokenStatut };
+    case 'C8':
+    case 'C10':
+      return {
+        phrase: T.formeToleree(token(faits.token), texte(faits.segment) ?? '', texte(faits.attendu) ?? '', nombreDeTokens),
+        lieu: T.sectionTokens, statut: T.formeTolereeStatut(nombreDeTokens),
+      };
+    case 'C9':
+      return {
+        phrase: T.ecritureDuVariant(token(faits.token), texte(faits.segment) ?? '', texte(faits.valeur) ?? '', nombreDeTokens),
+        lieu: T.sectionTokens, statut: T.ecritureDuVariantStatut,
+      };
+    case 'C15':
+    case 'C16':
+    case 'C22': {
+      const axe = texte(faits.axe) ?? '';
+      return {
+        phrase: T.autreValeur(champPeint(faits), token(faits.token), `${axe}=${texte(faits.segment) ?? ''}`, `${axe}=${texte(faits.valeur) ?? ''}`),
+        lieu: surLeLayer, statut: T.autreValeurStatut,
+      };
+    }
+    case 'C17':
+    case 'C24': {
+      if (faits.modele !== undefined) return { phrase: T.sansModele(texte(faits.modele) ?? ''), lieu: surLeLayer, statut: T.sansModeleStatut };
+      const attendu = texte(faits.attendu) ?? '';
+      return { phrase: T.autreRole(champPeint(faits), token(faits.token), texte(faits.role) ?? '', attendu), lieu: surLeLayer, statut: T.autreRoleStatut(attendu) };
+    }
+    case 'C18':
+      return { phrase: T.scopeAbsent(token(faits.token), TEXTES.scopeDeFigma(texte(faits.portee) ?? '')), lieu: surLeLayer, statut: T.scopeAbsentStatut };
+    case 'C19':
+      return { phrase: T.autreComposant(texte(faits.token) ?? ''), lieu: surLeLayer, statut: T.autreComposantStatut(texte(faits.composant) ?? contexte.composant) };
+    case 'C21':
+      return { phrase: T.horsDeLaMajorite(token(faits.nom), nombre(faits.autres) ?? 0, token(faits.exemple)), lieu: surLeLayer, statut: T.horsDeLaMajoriteStatut };
+    case 'C25':
+      return { phrase: T.peintureSansToken(champPeint(faits), calqueDe(constat, contexte) ?? ''), lieu: sansLayer, statut: T.peintureSansTokenStatut };
+    case 'C29':
+      return {
+        phrase: T.tailleSansVariable(T.proprieteDeFigma(texte(faits.champ) ?? ''), calqueDe(constat, contexte) ?? '', nombre(faits.valeur) ?? 0),
+        lieu: sansLayer, statut: T.tailleSansVariableStatut,
+      };
+    case 'C43':
+      return { phrase: T.sansRegles, lieu: T.tousLesVariants, statut: T.sansReglesStatut };
+    case 'C45':
+      return faits.ecart === 'sans-propriete'
+        ? { phrase: T.regleSansPropriete(texte(faits.regle) ?? ''), lieu: T.tousLesVariants, statut: T.regleSansProprieteStatut }
+        : { phrase: T.proprieteSansRegle(texte(faits.propriete) ?? ''), lieu: T.tousLesVariants, statut: T.proprieteSansRegleStatut };
+    case 'C59':
+      return { phrase: T.texteSansSurface(calqueDe(constat, contexte) ?? '', token(faits.variable)), lieu: sansLayer, statut: T.texteSansSurfaceStatut };
+    case 'C60':
+      return { phrase: T.aliasDUnAutreMode(texte(faits.variable) ?? '', texte(faits.mode) ?? '', texte(faits.cible) ?? ''), lieu: T.sectionTokens, statut: T.aliasDUnAutreModeStatut };
+    case 'C63':
+      return structure(constat);
+    case 'C65': {
+      const propriete = T.proprieteDeFigma(texte(faits.champ) ?? '');
+      const layer = calqueDe(constat, contexte) ?? '';
+      return faits.motif === 'mauvaise-collection'
+        ? { phrase: T.typoHorsCollection(layer, propriete, texte(faits.collection) ?? ''), lieu: sansLayer, statut: T.typoHorsCollectionStatut }
+        : { phrase: T.typoSansLiaison(layer, propriete), lieu: sansLayer, statut: T.typoSansLiaisonStatut };
+    }
+    case 'C67':
+      return { phrase: T.iconeSansProperty(texte(faits.propriete) ?? ''), lieu: surLeLayer, statut: T.iconeSansPropertyStatut };
+    default:
+      return null;
+  }
+}
+
+/** C63 : la structure d'une variable du composant, par genre, avec les gestes du mode Tokens. */
+function structure(constat: Constat): Contenu | null {
+  const { faits } = constat;
+  const variable = texte(faits.variable) ?? '';
+  const mode = texte(faits.mode) ?? '';
+  switch (faits.genre) {
+    case 'alias-supprime':
+      return { phrase: T.aliasSupprime(variable), lieu: T.sectionTokens, statut: TEXTES.autreCible };
+    case 'library-inactive':
+      return { phrase: T.libraryInactive(variable), lieu: T.sectionTokens, statut: TEXTES.activerLaLibrary(texte(faits.library) ?? '') };
+    case 'sans-valeur-en-mode':
+      return { phrase: T.sansValeurEnMode(variable, mode), lieu: T.sectionTokens, statut: TEXTES.donnerUneValeurEnMode(mode) };
+    case 'couleur-sans-alias':
+      return { phrase: T.couleurSansAlias(variable), lieu: T.sectionTokens, statut: TEXTES.lierALaCouleur };
     default:
       return null;
   }
@@ -297,8 +418,8 @@ export function carteDAFaire(constat: Constat, contexte: ContexteDAFaire): Carte
   return { constat, section, phrase, lieu: lieuDe(constat, contexte, { variantsDansLaPhrase: nomme, apres: elements === null ? [] : [elements] }), statut: texte(faits.action), faits: [] };
 }
 
-/** Les constats à faire dans Figma : ceux qui n'ont ni correction ni question. */
-export const estAFaire = (constat: Constat): boolean => constat.correction === undefined && constat.question === undefined;
+/** Les constats à faire dans Figma : ni correction, ni question à trancher. Une question sans candidat ne se répond pas : elle reste ici. */
+export const estAFaire = (constat: Constat): boolean => constat.correction === undefined && (constat.question === undefined || constat.question.candidats.length === 0);
 
 /** Les cartes de ces constats, par intertitre puis dans l'ordre des constats. */
 export function cartesDAFaire(constats: readonly Constat[], contexte: ContexteDAFaire): CarteDAFaire[] {

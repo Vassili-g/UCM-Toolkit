@@ -1514,6 +1514,34 @@ Choix faits sans le mainteneur :
 - Q-83 · U8 · Tests d'interface de la préparation et de la Configuration
   écrits, lancés seulement par `test:ui` (recette du mainteneur)
   · réversible : oui.
+- Q-85 · recette, K, B, U · Constats d'Alert et de Button relevés par le
+  mainteneur dans Figma le 24 octobre. Causes et choix :
+  (1) une surcharge posée dans une instance (`.sizeWrapperButton`,
+  `circle-info`) se rattachait au layer de l'instance, qui attendait un rôle
+  `background` : 90 C17 sur Button. Le relevé garde le calque intérieur
+  (`LiaisonLue.surcharge`), une liaison par calque ; C17 en tire le rôle, une
+  icône admet `icon` ou `foreground`, la correction vise ce calque ; les
+  contrôles qui associent une liaison aux peintures du layer ne lisent plus
+  que `liaisonsPropres` ;
+  (2) C15 et C17 restaient à côté de C22 et C24, sans phrase : la source cède
+  la place à sa dérivée ;
+  (3) une question sans candidat n'allait nulle part : elle reste dans À faire
+  dans Figma ;
+  (4) phrases et gestes écrits hors maquette pour C7 à C10, C15 à C19, C21,
+  C22, C24, C25, C29, C43, C45, C59, C60, C63, C65, C66 et C67 ; C8, C9 et
+  C10 groupés par segment (12 cartes C10 de Button deviennent 3) ;
+  (5) `.Ring` n'était pas reconnu comme anneau (« State=Focus n'a pas
+  d'anneau visible ») : un point ou un tiret bas en tête est admis ;
+  (6) le catalogue d'une library ne suivait pas les alias jusqu'aux primitives
+  (« couleur que le plugin ne sait pas lire » sur tout fill d'Alert) : les
+  cibles hors catalogue se lisent par identifiant, sinon par clé ;
+  (7) C61 doublait C20 sur une couleur primitive : il n'est plus émis.
+  Kit 0.12.13, CLI 0.1.89, adaptateur 0.1.82. Reste au designer : « Size/* »
+  d'Alert et les `Color/Warning/Contained/{Focus,Pressed}/*` de Button sont
+  vraiment non liés (les layers visent `alert/sizes/*` et
+  `button/colors/warning/…`, d'après le contrat exporté) ; aucun constat ne
+  nomme encore une liaison à une variable absente du catalogue
+  · réversible : oui.
 
 ### Revue des lots réalisés
 
@@ -1556,3 +1584,56 @@ dans Figma reste à faire.
 | T3, T4, T8 à T11, T13 | Utilité faible, doublon de Palettes, ou seulement si la recette montre une lenteur |
 | G8 : fusion de l'exporteur | Écartée |
 | Thème clair | Décision : sombre seulement |
+
+## 11. Lots de fiabilité
+
+Source : les deux notes du dossier `UCM Architect/Debug`, écrites le 24
+octobre, hors du dépôt commité : bugs 1 à 11 de
+`BUGS-ANALYSE-COMPOSANTS-TOKENS.md` et lots 2 à 4 de
+`OPTIMISATION-ANALYSE-90-VARIANTS.md`.
+Demandés par le mainteneur après la recette d'Alert et de Button (Q-85).
+Chaque lot reçoit un test qui échoue avant lui. L'orchestrateur relit chaque
+diff, lance le lot V après les lots du kit, puis commite par chemins.
+
+Agents : `implementeur-exigeant` quand le lot change une règle lue par
+plusieurs contrôles, `implementeur` sinon ; deux au plus en même temps, sur
+des fichiers disjoints.
+
+| Vague | Lot | Agent | Fichiers |
+|---|---|---|---|
+| 1 | F1, F6 | exigeant, implementeur | kit `releve.ts`, `typographie.ts`, `preparation.ts`, `accessibilite.ts` ; Architect `releveDuComposant.ts`, `sandbox/analyse.ts`, `ui/analyse/` ‖ `ui/composant/analyse.ts`, `ui/composant/variants.ts` |
+| 2 | F2, F4 | implementeur, implementeur | kit `accessibilite.ts`, `typographie.ts` ‖ Architect `constatsDuMoteur.ts`, `sandbox/analyse.ts` (sujet, page) |
+| 3 | F3, F5 | implementeur, implementeur | kit `mapping.ts` ‖ Architect `code.ts` |
+| 4 | F7 | implementeur | kit `corrections.ts` ; Architect `catalogue.ts`, `sandbox/analyse.ts` (catalogue), `releveDuComposant.ts` |
+
+- [ ] **F1 · Une lecture manquée ne devient jamais un constat** (bugs 1, 3,
+  4). Une liaison dont la variable ne se lit pas reste au relevé, marquée
+  illisible : C66, C25, la préparation et le contraste la voient liée, et le
+  contraste rend une limite. Un layer dont la boîte ne se lit pas ne donne
+  pas de C52. Une lecture manquée rend l'analyse `partielle`, avec son titre
+  propre, jamais « Tenu ».
+- [ ] **F2 · Un layer sous un parent masqué est masqué** (bug 2). Une seule
+  règle du kit, la visibilité dans le variant par la chaîne des parents, pour
+  le texte minimal, l'anneau, le contraste et la typographie.
+- [ ] **F3 · C21 compare les alias de tous les modes** (bug 5). La signature
+  d'un token réunit les cibles de chaque mode, dans un ordre fixe.
+- [ ] **F4 · Identités et page du sujet** (bugs 6, 7, 9). Un point du moteur
+  a un identifiant tiré de son code et de son contenu, pas de son rang. Le
+  moteur reçoit la page du maître. La sélection d'un composant imbriqué, ou
+  de tout autre sujet que le jeu et ses variants, périme l'analyse.
+- [ ] **F5 · Le maître d'une autre page se surveille** (bug 8). Le sandbox
+  suit aussi la page du sujet analysé quand ce n'est pas la page courante.
+- [ ] **F6 · Le panneau garde sa péremption ; le tableau compte par
+  identifiant** (bugs 10, 11). Le message `analyse` d'une analyse déjà
+  périmée la laisse périmée. La cellule du tableau croisé compte les
+  constats qui nomment le variant par son identifiant ou par son nom.
+- [ ] **F7 · Analyse plus rapide, sorties identiques** (optimisation, lots 2
+  à 4). Index des layers, des variants et des variables pour
+  `proposerLesCorrections` ; un seul inventaire des libraries par analyse ;
+  lecture des variables liées par lots bornés, une promesse par identifiant.
+  Critère : constats, corrections et questions égaux en profondeur sur les
+  fixtures, avant et après.
+
+Hors de ces lots : le lot 1 (trace) et le lot 5 (relevé partagé avec le
+moteur) de l'optimisation attendent une mesure dans Figma ; le cas « plusieurs
+collections reconnues comme `theme` » est une question au mainteneur (Q-86).

@@ -9,7 +9,7 @@ import { MODES, PROFILS, REGISTRE_ETATS, REGISTRE_ROLES, REGISTRE_STATUTS, REGIS
 import { variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Question } from './constat.js';
 import { axeDePropriete, axesDuReleve, type AxeDuComposant, type ProprieteDAxe } from './nommage.js';
-import type { LayerLu, PeintureLue, ReleveDeComposant, VariantLu } from './releve.js';
+import { liaisonsPropres, type LayerLu, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /** Les réponses du designer, par identifiant de question : le nom d'un candidat, ou un texte libre pour un nom. */
 export type ReponsesDePreparation = Readonly<Record<string, string>>;
@@ -162,7 +162,7 @@ export function preparerLesTokens(
       const nonLiees = layer.type === 'TEXT'
         ? (layer.texte?.plages ?? []).flatMap((plage) => plage.peintures
           .filter((peinture) => !plage.liaisons.some((liaison) => liaison.champ === 'fills' && (liaison.indice ?? 0) === peinture.indice)))
-        : layer.peintures.filter((peinture) => !layer.liaisons.some((liaison) => !liaison.plage && liaison.champ === peinture.champ && (liaison.indice ?? 0) === peinture.indice));
+        : layer.peintures.filter((peinture) => !liaisonsPropres(layer).some((liaison) => !liaison.plage && liaison.champ === peinture.champ && (liaison.indice ?? 0) === peinture.indice));
       for (const peinture of nonLiees) {
         if (!peinture.visible || peinture.type !== 'SOLID') continue;
         let role: Role;
@@ -192,7 +192,7 @@ export function preparerLesTokens(
         }
       }
       // Icône : l'instance pilotée par une propriété INSTANCE_SWAP, sinon une question.
-      if (layer.instanceDe && layer.valeursEnDur.some(({ champ }) => champ === 'width') && !layer.liaisons.some(({ champ }) => champ === 'width')) {
+      if (layer.instanceDe && layer.valeursEnDur.some(({ champ }) => champ === 'width') && !liaisonsPropres(layer).some(({ champ }) => champ === 'width')) {
         const pilotee = layer.instanceDe.pilotee;
         const parSwap = !!pilotee && releve.proprietes.some((propriete) => propriete.type === 'INSTANCE_SWAP' && moinsLeSuffixe(propriete.nom) === moinsLeSuffixe(pilotee));
         const aDesVecteurs = variant.layers.some((enfant) => TYPES_VECTORIELS.has(enfant.type) && instanceAncetre(enfant)?.id === layer.id);

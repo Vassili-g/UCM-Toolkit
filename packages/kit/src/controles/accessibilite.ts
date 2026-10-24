@@ -11,7 +11,7 @@ import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
 import type { CatalogueDeReference, CollectionDuCatalogue } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
-import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu } from './releve.js';
+import { liaisonsPropres, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 export type NiveauWcag = 'AA' | 'AAA';
 
@@ -41,8 +41,11 @@ type Cible = {
 
 const OPAQUE = 1 - 1e-9;
 const AXE_D_ETAT = /^(state|etat|état)$/i;
-/** Un anneau se reconnaît à son nom seul, `ring` ou `focus-ring` (note P : le nom tranche). */
-const NOM_D_ANNEAU = /^(focus[-_ ]?)?ring$/i;
+/**
+ * Un anneau se reconnaît à son nom seul, `ring` ou `focus-ring` (note P : le nom tranche). Un point ou un tiret bas en tête,
+ * la marque Figma d'un layer privé (`.Ring`), ne change pas le nom.
+ */
+const NOM_D_ANNEAU = /^[._]?(focus[-_ ]?)?ring$/i;
 
 export function controlerLAccessibilite(
   releve: ReleveDeComposant,
@@ -233,7 +236,7 @@ function fondEffectif(
   while (courant) {
     if (courant.visible) {
       const fills = courant.peintures.filter((p) => p.champ === 'fills');
-      const pile = pileDePeintures(fills, courant.liaisons, courant.opacite, catalogue, variant, combinaison);
+      const pile = pileDePeintures(fills, liaisonsPropres(courant), courant.opacite, catalogue, variant, combinaison);
       if ('limite' in pile) return pile;
       couches.push(...pile.couches);
       if (pile.couches.some((c) => c.a >= OPAQUE)) break;
@@ -269,13 +272,13 @@ function ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag): Cible[] {
     if (estIcone(layer) && !anneau && aUnePeintureVisible(layer, 'fills')) {
       cibles.push({
         layer, code: 'C49', usage: 'icone', champ: 'fills', peintures: layer.peintures.filter((p) => p.champ === 'fills'),
-        liaisons: layer.liaisons, seuil: SEUILS_D_ACCESSIBILITE.nonTexte,
+        liaisons: liaisonsPropres(layer), seuil: SEUILS_D_ACCESSIBILITE.nonTexte,
       });
     }
     if (aUnePeintureVisible(layer, 'strokes') && (layer.strokeWeight ?? 0) > 0) {
       cibles.push({
         layer, code: 'C50', usage: anneau ? 'anneau' : 'stroke', champ: 'strokes',
-        peintures: layer.peintures.filter((p) => p.champ === 'strokes'), liaisons: layer.liaisons, seuil: SEUILS_D_ACCESSIBILITE.nonTexte,
+        peintures: layer.peintures.filter((p) => p.champ === 'strokes'), liaisons: liaisonsPropres(layer), seuil: SEUILS_D_ACCESSIBILITE.nonTexte,
       });
     }
   }

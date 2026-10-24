@@ -15,6 +15,8 @@ export interface LiaisonLue {
   indice?: number;
   plage?: { debut: number; fin: number };
   porteur: string;
+  /** Le layer de l'instance que la surcharge lie, quand ce n'est pas l'instance elle-même : `porteur` reste l'instance, seule lue. */
+  surcharge?: { id: string; nom: string; type: string };
   variable: { id: string; cle: string; nom: string; collection: string; distante: boolean };
 }
 
@@ -57,4 +59,9 @@ export interface ReleveDeComposant {
     manquees: { layer?: string; champ?: string; motif: string }[];
   };
   espaceDeCouleur: 'srgb' | 'display-p3';
+}
+
+/** Les liaisons que le layer porte sur ses propres champs : sans celles qu'une surcharge pose dans son instance. */
+export function liaisonsPropres(layer: Pick<LayerLu, 'liaisons'>): LiaisonLue[] {
+  return layer.liaisons.filter((liaison) => !liaison.surcharge);
 }

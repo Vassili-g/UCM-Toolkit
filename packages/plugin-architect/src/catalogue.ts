@@ -6,7 +6,7 @@
 import { collectionsDeReference, type CatalogueDeReference, type VariableDuCatalogue } from '@ucm-kit/core/controles';
 import { CIBLES_DES_COLLECTIONS, type Collection } from '@ucm-kit/core/referentiel';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
-import { cleDeBibliotheque, importerLesValeurs, type PortDeLecture, type ValeurDeLibrary } from './lecture';
+import { cleDeBibliotheque, convertirVariable, importerLesValeurs, type PortDeLecture, type ValeurDeLibrary } from './lecture';
 import type { Releve, ValeurSource } from './modele';
 
 /** La couche qui lie le plus de couches : celle du composant. */
@@ -79,26 +79,41 @@ const PROFONDEUR_D_ALIAS = 10;
  * catalogue reçu n'est pas modifié. Quand le port lit une collection, les modes de chaque collection de library touchée
  * s'ajoutent au catalogue : sans eux, le contraste par mode n'a rien à comparer (Q-28). L'identifiant d'une cible d'alias
  * porte la clé de la variable (`cleDeBibliotheque`) : la valeur du catalogue garde cette clé.
+ *
+ * Un alias qui sort des collections lues (un token de `theme` qui vise une primitive) se suit aussi : sa cible se lit par son
+ * identifiant, que Figma importe avec la variable qui la vise, sinon par sa clé. Elle entre au catalogue avec sa collection
+ * et ses modes ; sans elle, aucune couleur de la library ne se résout et le contraste ne se mesure pas.
  */
 export async function chargerLesValeurs(
-  port: Parameters<typeof importerLesValeurs>[0] & Partial<Pick<PortDeLecture, 'getVariableCollectionByIdAsync'>>,
+  port: Parameters<typeof importerLesValeurs>[0] & Partial<Pick<PortDeLecture, 'getVariableCollectionByIdAsync' | 'getVariableByIdAsync'>>,
   catalogue: CatalogueDeReference,
   cles: readonly string[],
 ): Promise<{ catalogue: CatalogueDeReference; motifs: Readonly<Record<string, string>> }> {
   const nonChargees = new Set(catalogue.variables.filter((v) => v.etat === 'non-chargee').map((v) => v.cle));
+  const connues = new Set(catalogue.variables.map((v) => v.cle));
   const importees: Record<string, ValeurDeLibrary> = {};
+  /** Les cibles hors du catalogue, par clé : leur identifiant d'abord, pour les lire sans import. */
+  const dehors = new Map<string, string>();
+  const horsCatalogue: Record<string, ValeurDeLibrary> = {};
   let attendues = new Set(cles.filter((cle) => nonChargees.has(cle)));
   for (let tour = 0; tour < PROFONDEUR_D_ALIAS && attendues.size > 0; tour += 1) {
-    const lot = [...attendues].filter((cle) => !(cle in importees));
-    Object.assign(importees, await importerLesValeurs(port, lot));
+    const lot = [...attendues].filter((cle) => !(cle in importees) && !(cle in horsCatalogue));
+    const internes = lot.filter((cle) => nonChargees.has(cle));
+    Object.assign(importees, await importerLesValeurs(port, internes));
+    Object.assign(horsCatalogue, await lireHorsCatalogue(port, lot.filter((cle) => !nonChargees.has(cle)), dehors));
     attendues = new Set();
     for (const cle of lot) {
-      const lue = importees[cle];
+      const lue = importees[cle] ?? horsCatalogue[cle];
       if (lue === undefined || 'illisible' in lue) continue;
       for (const valeur of Object.values(lue.valeurs)) {
         if (valeur.nature !== 'alias') continue;
         const cible = cleDeBibliotheque(valeur.cible) ?? valeur.cible;
-        if (nonChargees.has(cible) && !(cible in importees)) attendues.add(cible);
+        if (cible in importees || cible in horsCatalogue) continue;
+        if (nonChargees.has(cible)) attendues.add(cible);
+        else if (!connues.has(cible)) {
+          dehors.set(cible, valeur.cible);
+          attendues.add(cible);
+        }
       }
     }
   }
@@ -119,7 +134,45 @@ export async function chargerLesValeurs(
   });
   const modes = await lireLesModes(port, identifiants);
   const collections = catalogue.collections.map((c) => (modes.has(c.cle) && c.modes.length === 0 ? { ...c, modes: modes.get(c.cle)! } : c));
-  return { catalogue: { ...catalogue, collections, variables }, motifs };
+
+  // Les cibles hors du catalogue y entrent sous la collection qui les range, lue une fois, avec ses modes.
+  const ajoutees = new Map<string, CatalogueDeReference['collections'][number]>();
+  for (const [cle, lue] of Object.entries(horsCatalogue)) {
+    if ('illisible' in lue) continue;
+    let collection = ajoutees.get(lue.collection);
+    if (!collection) {
+      const lueDeFigma = await port.getVariableCollectionByIdAsync?.(lue.collection).catch(() => null) ?? null;
+      if (!lueDeFigma) continue;
+      [collection] = collectionsDeReference([{
+        cle: lueDeFigma.key || lueDeFigma.id, nom: lueDeFigma.name, modes: lueDeFigma.modes.map((m) => ({ id: m.modeId, nom: m.name })), etat: 'lue',
+      }], 'ucm');
+      ajoutees.set(lue.collection, collection);
+    }
+    variables.push({
+      cle, nom: lue.nom, collection: collection.cle, type: lue.type as VariableDuCatalogue['type'], etat: 'presente', scopes: [...lue.portees],
+      valeurs: Object.fromEntries(Object.entries(lue.valeurs).map(([mode, valeur]) => [mode, valeurDuCatalogue(valeur, true)])),
+    });
+  }
+  const nouvelles = [...ajoutees.values()].filter((ajoutee) => !collections.some((c) => c.cle === ajoutee.cle));
+  return { catalogue: { ...catalogue, collections: [...collections, ...nouvelles], variables }, motifs };
+}
+
+/** Les cibles d'alias hors du catalogue : par leur identifiant quand le port le lit, sinon par leur clé. */
+async function lireHorsCatalogue(
+  port: Parameters<typeof importerLesValeurs>[0] & Partial<Pick<PortDeLecture, 'getVariableByIdAsync'>>,
+  cles: readonly string[],
+  identifiants: ReadonlyMap<string, string>,
+): Promise<Record<string, ValeurDeLibrary>> {
+  const rendues: Record<string, ValeurDeLibrary> = {};
+  const parCle: string[] = [];
+  for (const cle of cles) {
+    const id = identifiants.get(cle);
+    const lue = id && port.getVariableByIdAsync ? await port.getVariableByIdAsync(id).catch(() => null) : null;
+    const convertie = lue ? convertirVariable(lue) : null;
+    if (convertie) rendues[cle] = convertie;
+    else parCle.push(cle);
+  }
+  return { ...rendues, ...(await importerLesValeurs(port, parCle)) };
 }
 
 /** Les modes des collections dont on connaît l'identifiant, par clé de collection du catalogue. Une collection illisible n'en rend pas. */

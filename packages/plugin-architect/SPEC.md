@@ -174,7 +174,7 @@ du relevé du fichier, et fonctionne dans un fichier sans variable locale.
 | Sélection multiple | Le premier calque décide du sujet ; le pied compte les autres |
 | Jeu de variants | La lecture porte sur `defaultVariant`. Un variant prend le nom de son jeu. Après une analyse, la section Variants relit un autre variant : une puce choisit celui qui garde le plus de valeurs du variant affiché. Le variant affiché peut servir de modèle : ses liaisons se proposent aux autres variants, sans rien écrire avant Appliquer |
 | Frontière | Toute `INSTANCE` strictement sous le sujet, une icône comprise. Ses calques ne sont pas parcourus : la vue nomme le composant, compte ses instances et l'ouvre au clic |
-| Surcharge du parent | Une liaison que le parent pose dans une instance frontière se lit sur le calque que `InstanceNode.overrides` désigne, pour les seuls champs surchargés. Elle se rattache au calque de l'instance |
+| Surcharge du parent | Une liaison que le parent pose dans une instance frontière se lit sur le calque que `InstanceNode.overrides` désigne, pour les seuls champs surchargés. Elle se rattache au calque de l'instance ; le relevé de l'analyse garde aussi le calque intérieur qu'elle peint (`surcharge`), qui donne le rôle attendu et reçoit la correction |
 | Ligne | Une par couple variable et chaîne de modes. Deux calques qui portent la même variable sous deux modes donnent deux lignes ; `×N` compte les calques |
 | Style de texte | Un calque de texte qui porte un style donne une ligne par style. Les variables du style ne font pas de liaison du calque |
 | Nature | Couleur, forme, espacement, taille, texte, d'après la propriété liée ; toute autre propriété va dans « Autre » |
@@ -226,8 +226,14 @@ fois, analyse ou écriture : une seconde demande reçoit `occupe`.
 Une correction ne se propose que si elle est exacte : une règle écrite donne
 un seul candidat. Sinon le constat devient une question, sans candidat choisi
 d'avance ; la réponse du designer produit la correction. Un constat sans
-correction ni question va dans À faire dans Figma. Le plugin ne calcule aucune
-correction dans l'interface.
+correction, ou dont la question n'a aucun candidat, va dans À faire dans
+Figma, avec sa phrase et son geste. Le plugin ne calcule aucune correction
+dans l'interface.
+
+Le catalogue d'une library ne lit que `components`, `theme` et `layout`. Les
+valeurs s'importent à la demande, puis les cibles de leurs alias, jusqu'aux
+primitives : une cible hors de ces collections se lit par son identifiant,
+sinon par sa clé, et entre au catalogue avec sa collection et ses modes.
 
 Avant d'écrire une liaison, le sandbox relit le layer, les valeurs du variant,
 la liaison du champ et la peinture que l'analyse a lus. Un écart saute la

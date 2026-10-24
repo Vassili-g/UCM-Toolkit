@@ -38,7 +38,7 @@ export function controlerCouches(releve: ReleveDeComposant, catalogue: Catalogue
     if (!collection?.role) continue;
     const nature = natureDeLaLiaison(liaison.champ, variable.type);
     const admises = ciblesAdmises('components', nature);
-    const lieuDeBase = `${variant.id}:${layer.id}:${liaison.champ}:${liaison.indice ?? ''}`;
+    const lieuDeBase = `${variant.id}:${layer.id}${liaison.surcharge ? `>${liaison.surcharge.id}` : ''}:${liaison.champ}:${liaison.indice ?? ''}`;
     const jugees = collection.role === 'components'
       ? ciblesDesAlias(catalogue, variable).map((cible) => ({ cible, couche: roleDe(cible) }))
       : [{ cible: null, couche: collection }];
@@ -46,10 +46,8 @@ export function controlerCouches(releve: ReleveDeComposant, catalogue: Catalogue
       if (!couche?.role || admises.includes(couche.role)) continue;
       const lieu = cible ? `${lieuDeBase}:${cible.cle}` : lieuDeBase;
       const faits = { token: variable.nom, couche: couche.nom, nature, admises: admises.join(','), ...(cible ? { cible: cible.nom } : {}) };
+      // Une couleur primitive (C61 de la conception) est le même écart : C20 seul le dit, une carte au lieu de deux.
       constats.push(constatDuComposant('C20', 'liaisons', 'corriger', lieu, faits, [variant.id], [layer.id]));
-      if (nature === 'couleur' && couche.role === 'primitives') {
-        constats.push(constatDuComposant('C61', 'liaisons', 'corriger', lieu, faits, [variant.id], [layer.id]));
-      }
     }
   }
   return constats;

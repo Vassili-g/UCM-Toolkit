@@ -7,7 +7,7 @@
 import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction } from './constat.js';
 import { axesDuReleve, tokensDuComposant, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
-import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
+import { liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /** Les noms des ancêtres depuis la racine du variant, puis celui du layer. */
 function cheminDuLayer(variant: VariantLu, layer: LayerLu): string[] {
@@ -59,7 +59,7 @@ export function proposerLaPropagation(releve: ReleveDeComposant, catalogue: Cata
   const tokens = tokensDuComposant(releve, catalogue);
   const constats: Constat[] = [];
   for (const layer of modele.layers) {
-    for (const liaison of layer.liaisons) {
+    for (const liaison of liaisonsPropres(layer)) {
       const source = catalogue.variables.find(({ cle }) => cle === liaison.variable.cle);
       if (!source || source.etat !== 'presente') continue;
       const token = tokens.find((entree) => entree.variable.cle === source.cle);

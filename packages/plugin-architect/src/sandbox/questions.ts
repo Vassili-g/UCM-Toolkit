@@ -56,12 +56,14 @@ function correctionDeLaReponse(constat: Constat, reponse: string, releve: Releve
     const indice = typeof constat.faits.indice === 'number' ? constat.faits.indice : undefined;
     const plageDebut = typeof constat.faits.plageDebut === 'number' ? constat.faits.plageDebut : undefined;
     const plageFin = typeof constat.faits.plageFin === 'number' ? constat.faits.plageFin : undefined;
+    const surcharge = chaine(constat.faits.surcharge);
     const liaison = layer.liaisons.find((entree) => entree.variable.nom === token && entree.champ === champLiaison
-      && entree.indice === indice && entree.plage?.debut === plageDebut && entree.plage?.fin === plageFin);
+      && entree.indice === indice && entree.plage?.debut === plageDebut && entree.plage?.fin === plageFin && entree.surcharge?.id === surcharge);
     if (!liaison) return null;
     return {
       id: constat.question?.id ?? constat.id, sorte: 'liaison',
-      cible: { layer: layer.id, champ: liaison.champ, ...(liaison.indice === undefined ? {} : { indice: liaison.indice }), ...(liaison.plage ? { plage: liaison.plage } : {}), variable: liaison.variable.cle },
+      // Une liaison posée par une surcharge s'écrit sur le layer de l'instance qu'elle peint.
+      cible: { layer: liaison.surcharge?.id ?? layer.id, champ: liaison.champ, ...(liaison.indice === undefined ? {} : { indice: liaison.indice }), ...(liaison.plage ? { plage: liaison.plage } : {}), variable: liaison.variable.cle },
       avant: liaison.variable.nom, apres, aRelire: { axes: variant.valeurs, regle, avant: liaison.variable.nom },
     };
   }

@@ -3,17 +3,21 @@ import { formeReconnue } from '../referentiel/reconnaissance.js';
 import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction } from './constat.js';
 import { axesDuReleve, segmentDAxe, tokensDuComposant, type AxeDuComposant } from './nommage.js';
-import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
+import { liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
-/** Enrichit les constats avec une correction exacte ou une question non tranchée. */
+/**
+ * Enrichit les constats avec une correction exacte ou une question non tranchée. C15 et C17 cèdent la place à C22 et C24, qui
+ * portent les mêmes faits et la proposition : un même écart ne se compte qu'une fois.
+ */
 export function proposerLesCorrections(releve: ReleveDeComposant, catalogue: CatalogueDeReference, constats: readonly Constat[]): Constat[] {
   const nouveaux = constats.flatMap((constat) => {
     if (constat.code === 'C15') return [constatDerive(constat, 'C22')];
     if (constat.code === 'C17') return [constatDerive(constat, 'C24')];
     return [];
   });
+  const gardes = constats.filter((constat) => constat.code !== 'C15' && constat.code !== 'C17');
   nouveaux.push(...constatsManquants(releve), ...constatsDeValeursEnDur(releve));
-  const enrichis = [...constats.filter((constat) => constat.code === 'C16'), ...nouveaux].map((constat) => {
+  const enrichis = [...gardes.filter((constat) => constat.code === 'C16'), ...nouveaux].map((constat) => {
     const proposition = constat.code === 'C16'
       ? corrigerAxe(constat, releve, catalogue)
       : constat.code === 'C22'
@@ -25,7 +29,7 @@ export function proposerLesCorrections(releve: ReleveDeComposant, catalogue: Cat
             : corrigerValeurEnDur(constat, releve, catalogue);
     return proposition ? { ...constat, ...proposition } : constat;
   });
-  return [...constats.filter((constat) => constat.code !== 'C16'), ...enrichis];
+  return [...gardes.filter((constat) => constat.code !== 'C16'), ...enrichis];
 }
 
 function constatDerive(source: Constat, code: 'C22' | 'C24'): Constat {
@@ -38,7 +42,7 @@ function constatsManquants(releve: ReleveDeComposant): Constat[] {
     for (const layer of variant.layers) {
       if (formeReconnue(layer.nom) !== 'title' || layer.type !== 'TEXT') continue;
       const peinture = layer.peintures.find((entree) => entree.visible && entree.type === 'SOLID'
-        && !layer.liaisons.some((liaison) => liaison.champ === entree.champ && liaison.indice === entree.indice));
+        && !liaisonsPropres(layer).some((liaison) => liaison.champ === entree.champ && liaison.indice === entree.indice));
       if (!peinture) continue;
       resultat.push({
         id: `C25:${variant.id}:${layer.id}:${peinture.champ}:${peinture.indice}`, code: 'C25', type: 'corriger', famille: 'liaisons',
@@ -116,7 +120,7 @@ function corrigerLiaisonManquante(constat: Constat, releve: ReleveDeComposant, c
   const layer = layerDuConstat(constat, releve);
   const variant = variantDuConstat(constat, releve);
   const peinture = layer?.peintures.find((entree) => entree.visible && entree.type === 'SOLID'
-    && !layer.liaisons.some((liaison) => liaison.champ === entree.champ && liaison.indice === entree.indice));
+    && !liaisonsPropres(layer).some((liaison) => liaison.champ === entree.champ && liaison.indice === entree.indice));
   if (!layer || !variant || !peinture) return undefined;
   const roleAttendu = layer.type === 'TEXT' ? 'foreground' : /icon/i.test(layer.nom) ? 'icon' : 'background';
   const rolesPossibles = formeReconnue(layer.nom) === 'title' ? new Set([roleAttendu, 'title']) : new Set([roleAttendu]);
@@ -162,7 +166,8 @@ function corrigerValeurEnDur(constat: Constat, releve: ReleveDeComposant, catalo
 function correctionDeLiaison(constat: Constat, layer: LayerLu, liaison: LiaisonLue, variable: VariableDuCatalogue, regle: string, axes: Record<string, string>): Correction {
   return {
     id: constat.id, sorte: 'liaison',
-    cible: { layer: layer.id, champ: liaison.champ, ...(liaison.indice === undefined ? {} : { indice: liaison.indice }), ...(liaison.plage ? { plage: liaison.plage } : {}), variable: liaison.variable.cle },
+    // Une liaison posée par une surcharge s'écrit sur le layer de l'instance qu'elle peint.
+    cible: { layer: liaison.surcharge?.id ?? layer.id, champ: liaison.champ, ...(liaison.indice === undefined ? {} : { indice: liaison.indice }), ...(liaison.plage ? { plage: liaison.plage } : {}), variable: liaison.variable.cle },
     // `avant` porte le nom lu : l'écriture d'Architect le compare au nom de la variable encore liée.
     avant: liaison.variable.nom, apres: { cle: variable.cle, nom: variable.nom },
     aRelire: { axes, regle, avant: liaison.variable.nom },
@@ -178,8 +183,9 @@ function liaisonDuConstat(constat: Constat, layer: LayerLu, nomToken: string): L
   const indice = typeof constat.faits.indice === 'number' ? constat.faits.indice : undefined;
   const debut = typeof constat.faits.plageDebut === 'number' ? constat.faits.plageDebut : undefined;
   const fin = typeof constat.faits.plageFin === 'number' ? constat.faits.plageFin : undefined;
+  const surcharge = chaine(constat.faits.surcharge);
   return layer.liaisons.find((liaison) => liaison.variable.nom === nomToken && liaison.champ === champ
-    && liaison.indice === indice
+    && liaison.indice === indice && liaison.surcharge?.id === surcharge
     && liaison.plage?.debut === debut && liaison.plage?.fin === fin);
 }
 function layerDuConstat(constat: Constat, releve: ReleveDeComposant): LayerLu | undefined {

@@ -23,10 +23,11 @@ function controlerLesFondsDeTexte(releve: ReleveDeComposant, catalogue: Catalogu
         if (!variable || collection(catalogue, variable)?.role !== 'theme' || cleDuTheme(variable.nom) !== 'surface/foreground') continue;
         if (aUnFondDeSurface(layer, layers, catalogue)) continue;
         const constat: Constat = {
-          id: `C59:${variant.id}:${layer.id}:${liaison.champ}:${liaison.indice ?? liaison.plage?.debut ?? ''}`,
+          id: `C59:${variant.id}:${layer.id}${liaison.surcharge ? `>${liaison.surcharge.id}` : ''}:${liaison.champ}:${liaison.indice ?? liaison.plage?.debut ?? ''}`,
           code: 'C59', type: 'corriger', famille: 'liaisons', variants: [variant.id], layers: [layer.id],
           faits: {
-            variable: variable.nom, champ: liaison.champ, calque: layer.nom,
+            variable: variable.nom, champ: liaison.champ, calque: liaison.surcharge?.nom ?? layer.nom,
+            ...(liaison.surcharge ? { surcharge: liaison.surcharge.id } : {}),
             ...(liaison.indice === undefined ? {} : { indice: liaison.indice }),
             ...(liaison.plage ? { plageDebut: liaison.plage.debut, plageFin: liaison.plage.fin } : {}),
           },
@@ -159,7 +160,7 @@ function question(constat: Constat, candidats: readonly VariableDuCatalogue[]): 
 function correctionDeLiaison(constat: Constat, layer: LayerLu, liaison: LiaisonLue, avant: VariableDuCatalogue, apres: VariableDuCatalogue, regle: string): Correction {
   return {
     id: constat.id, sorte: 'liaison',
-    cible: { layer: layer.id, champ: liaison.champ, ...(liaison.indice === undefined ? {} : { indice: liaison.indice }), ...(liaison.plage ? { plage: liaison.plage } : {}), variable: avant.cle },
+    cible: { layer: liaison.surcharge?.id ?? layer.id, champ: liaison.champ, ...(liaison.indice === undefined ? {} : { indice: liaison.indice }), ...(liaison.plage ? { plage: liaison.plage } : {}), variable: avant.cle },
     avant: avant.nom, apres: { cle: apres.cle, nom: apres.nom },
     aRelire: { regle, avant: avant.nom },
   };

@@ -111,8 +111,11 @@ async function nomDuMaitre(instance: NoeudLu): Promise<string> {
 
 type LiaisonLue = { propriete: string; variable: string; porteur: NoeudLu };
 
-/** Les liaisons que le parent pose dans une instance frontière, lues sur les calques que ses surcharges visent. */
-export async function liaisonsDesSurcharges(port: PortDuComposant, instance: NoeudLu): Promise<LiaisonLue[]> {
+/**
+ * Les liaisons que le parent pose dans une instance frontière, lues sur les calques que ses surcharges visent. Une même
+ * variable au même champ ne compte qu'une fois, sauf `parCalque`, qui en garde une par calque visé (le relevé de l'analyse).
+ */
+export async function liaisonsDesSurcharges(port: PortDuComposant, instance: NoeudLu, parCalque = false): Promise<LiaisonLue[]> {
   const liaisons: LiaisonLue[] = [];
   const vues = new Set<string>();
   for (const surcharge of instance.overrides ?? []) {
@@ -123,7 +126,7 @@ export async function liaisonsDesSurcharges(port: PortDuComposant, instance: Noe
     for (const liaison of liaisonsDuNoeud(vise)) {
       const champ = champSurcharge(liaison.propriete);
       const citee = champs.has(champ) || (!LUS_PAR_LEURS_OBJETS.has(champ) && champs.has('boundVariables'));
-      const cle = `${liaison.propriete}\u0000${liaison.variable}`;
+      const cle = `${parCalque ? `${vise.id}\u0000` : ''}${liaison.propriete}\u0000${liaison.variable}`;
       if (!citee || vues.has(cle)) continue;
       vues.add(cle);
       liaisons.push({ ...liaison, porteur: vise });

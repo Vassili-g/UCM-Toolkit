@@ -181,13 +181,13 @@ test('C19 signale un token d’un autre composant et garde celui du composant co
   assert.ok(!codes(controlerMapping(r, catalogueEtendu({ nom: 'button/color/background', collection: 'components' }))).includes('C19'));
 });
 
-test('C20 juge la couche d’une dimension et C61 celle d’une couleur primitive', () => {
+test('C20 juge la couche d’une dimension et celle d’une couleur primitive, sans C61 en double', () => {
   const r = releve('Button');
   r.variants = [variante('default', {}, 'v0', { champ: 'paddingLeft' })];
   assert.ok(codes(controlerCouches(r, catalogueEtendu({ nom: 'dimension/14', collection: 'primitives', type: 'FLOAT' }))).includes('C20'));
   assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'sizing/14', collection: 'layout', type: 'FLOAT' }))), []);
   r.variants = [variante('default', {}, 'v0')];
-  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'color/blue/500', collection: 'primitives' }))), ['C20', 'C61']);
+  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'color/blue/500', collection: 'primitives' }))), ['C20']);
   assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'primary/solid/background', collection: 'theme' }))), []);
 });
 

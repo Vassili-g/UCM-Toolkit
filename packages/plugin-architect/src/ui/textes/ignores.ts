@@ -19,6 +19,15 @@ const SUJETS_DE_CONTRASTE: Readonly<Record<string, string>> = {
   anneau: 'L’anneau de focus',
 };
 
+/** Les champs de Figma dans une phrase, par leur nom dans l'API : les mots du panneau Design, en anglais. */
+const PROPRIETES_DE_FIGMA: Readonly<Record<string, string>> = {
+  fills: 'fill', strokes: 'stroke', paddingLeft: 'padding left', paddingRight: 'padding right', paddingTop: 'padding top',
+  paddingBottom: 'padding bottom', itemSpacing: 'gap', counterAxisSpacing: 'gap', cornerRadius: 'radius', topLeftRadius: 'radius',
+  topRightRadius: 'radius', bottomLeftRadius: 'radius', bottomRightRadius: 'radius', strokeWeight: 'stroke weight', width: 'width',
+  height: 'height', minWidth: 'min width', maxWidth: 'max width', minHeight: 'min height', maxHeight: 'max height',
+  fontSize: 'font size', fontWeight: 'font weight', fontFamily: 'font family', lineHeight: 'line height', letterSpacing: 'letter spacing',
+};
+
 /** Le nom d'un layer dans une phrase : le layer `label` s'appelle « libellé » dans la maquette. */
 const NOMS_DE_LAYER_EN_PHRASE: Readonly<Record<string, string>> = { label: 'libellé' };
 
@@ -87,11 +96,75 @@ export const TEXTES_IGNORES = {
     noteDeMesure: 'Ces mesures portent sur le dessin du composant dans Figma.',
     noteDeMesureAvecLimite: 'Ces mesures portent sur le dessin du composant dans Figma. Elles ne prouvent pas la conformité de l’interface livrée.',
     contrasteNonMesure: (champ: string, variants: string, cause: string): string => `Le ${champ === 'strokes' ? 'stroke' : 'fill'} ${de(variants)} ${CAUSES_DE_LIMITE[cause] ?? 'n’a pas pu être lu'}. Le contraste n’a pas été mesuré.`,
+    proprieteDeFigma: (champ: string): string => PROPRIETES_DE_FIGMA[champ] ?? champ,
+    // C7 à C10 : les noms des tokens du composant, dans le fichier des tokens.
+    valeurSansToken: (paire: string): string => `Aucun token du composant ne prévoit ${paire}.`,
+    valeurSansTokenStatut: 'Créez les tokens, ou ignorez ce constat',
+    formeToleree: (token: string, segment: string, attendu: string, nombre: number): string => (nombre > 1
+      ? `${nombre} tokens écrivent \`${segment}\`, comme \`${token}\`. UCM écrit \`${attendu}\`.`
+      : `\`${token}\` écrit \`${segment}\`. UCM écrit \`${attendu}\`.`),
+    formeTolereeStatut: (nombre: number): string => (nombre > 1 ? 'Renommez-les dans le fichier des tokens' : 'Renommez-le dans le fichier des tokens'),
+    ecritureDuVariant: (token: string, segment: string, valeur: string, nombre: number): string => (nombre > 1
+      ? `${nombre} tokens écrivent \`${segment}\`, comme \`${token}\`. Le variant écrit \`${valeur}\`.`
+      : `\`${token}\` écrit \`${segment}\`. Le variant écrit \`${valeur}\`.`),
+    ecritureDuVariantStatut: 'Écrivez la valeur de la même façon dans le token et dans le variant',
+    // C15, C16, C22 : une liaison qui ne suit pas la valeur du variant.
+    autreValeur: (champ: string, token: string, paireDuToken: string, paireDuVariant: string): string =>
+      `Le ${champ} est lié à \`${token}\`, prévu pour ${paireDuToken}. Ce variant est ${paireDuVariant}.`,
+    autreValeurStatut: 'Créez le token de ce variant, puis liez-le',
+    // C17, C24 : un rôle qui ne convient pas au layer.
+    autreRole: (champ: string, token: string, role: string, attendu: string): string =>
+      `Le ${champ} est lié à \`${token}\`, un token ${role}. Un ${champ} de ce layer attend un token ${attendu}.`,
+    autreRoleStatut: (attendu: string): string => `Créez le token ${attendu}, puis liez-le`,
+    sansModele: (modele: string): string => `Le variant modèle ${modele} lie ce layer à un token que ce variant n’a pas.`,
+    sansModeleStatut: 'Créez le token, puis liez-le',
+    // C18, C19, C21 : une liaison permise, mais douteuse.
+    scopeAbsent: (token: string, scope: string): string => `\`${token}\` n’a pas le scope ${scope}.`,
+    scopeAbsentStatut: 'Ajoutez le scope dans la fenêtre Variables',
+    autreComposant: (token: string): string => `Ce layer est lié à \`${token}\`, un token d’un autre composant.`,
+    autreComposantStatut: (composant: string): string => `Liez-le à un token de ${composant}`,
+    horsDeLaMajorite: (token: string, autres: number, exemple: string): string =>
+      `Ce layer est lié à \`${token}\`. Dans ${autres} autres variants, il est lié à un token comme \`${exemple}\`.`,
+    horsDeLaMajoriteStatut: 'Vérifiez la liaison, ou ignorez ce constat',
+    // C25, C29 : une valeur sans variable, sans candidat unique.
+    peintureSansToken: (champ: string, layer: string): string => `Le ${champ} du layer ${layer} n’est lié à aucun token.`,
+    peintureSansTokenStatut: 'Liez-le à un token du composant',
+    tailleSansVariable: (propriete: string, layer: string, valeur: number): string => `Le ${propriete} du layer ${layer} vaut ${valeur} px, sans variable.`,
+    tailleSansVariableStatut: 'Liez-le à une variable de layout',
+    // C43, C45 : l'instance de règles.
+    sansRegles: 'Le composant n’a pas d’instance de règles.',
+    sansReglesStatut: 'Créez l’instance de règles',
+    proprieteSansRegle: (propriete: string): string => `La property \`${propriete}\` n’a pas de règle dans l’instance de règles.`,
+    proprieteSansRegleStatut: 'Ajoutez sa règle @prop ou @boolean',
+    regleSansPropriete: (regle: string): string => `La règle de \`${regle}\` vise une property que le composant n’a pas.`,
+    regleSansProprieteStatut: 'Reprenez le nom de la property dans la règle',
+    // C59, C60, C63 : le thème et la structure des variables.
+    texteSansSurface: (layer: string, token: string): string => `Le layer ${layer} est lié à \`${token}\`, mais aucune surface n’est posée dessous.`,
+    texteSansSurfaceStatut: 'Posez-le sur une surface, ou liez-le à un foreground de page',
+    aliasDUnAutreMode: (token: string, mode: string, cible: string): string => `En ${mode}, \`${token}\` vise \`${cible}\`, un token d’un autre mode.`,
+    aliasDUnAutreModeStatut: 'Choisissez une autre cible dans la fenêtre Variables',
+    aliasSupprime: (token: string): string => `\`${token}\` vise une variable supprimée.`,
+    libraryInactive: (token: string): string => `La cible de \`${token}\` est dans une library non activée.`,
+    sansValeurEnMode: (token: string, mode: string): string => `\`${token}\` n’a pas de valeur en ${mode}.`,
+    couleurSansAlias: (token: string): string => `\`${token}\` est une couleur du thème sans alias.`,
+    // C65, C67 : la typographie et les règles d'icônes.
+    typoHorsCollection: (layer: string, propriete: string, collection: string): string => `Le ${propriete} du layer ${layer} vise la collection ${collection}.`,
+    typoHorsCollectionStatut: 'Liez-le à une variable de typography',
+    typoSansLiaison: (layer: string, propriete: string): string => `Le ${propriete} du layer ${layer} n’a pas de variable, contrairement aux autres variants.`,
+    typoSansLiaisonStatut: 'Liez-le à une variable de typography',
+    iconeSansProperty: (propriete: string): string => `L’icône est pilotée par \`${propriete}\`, que le composant ne déclare pas.`,
+    iconeSansPropertyStatut: 'Ajoutez la property Instance swap au composant',
     // C64, C66 : le texte et les icônes.
     sansTextStyle: (layer: string, variants: string): string => `Le ${layer} ${de(variants)} n’a pas le text style des autres variants.`,
     styleAttendu: (style: string): string => `${style} attendu`,
     sansTextStyleStatut: 'Appliquez le text style dans Figma',
     iconeSansLibrary: (variants: string): string => `L’icône ${de(variants)} n’est pas une instance de la library d’icônes.`,
     iconeSansLibraryStatut: 'Remplacez-la par une icône de la library',
+    iconeSansTaille: (variants: string): string => `La taille de l’icône ${de(variants)} n’a pas de variable.`,
+    iconeTailleHorsIcon: (variants: string, token: string): string => `La taille de l’icône ${de(variants)} est liée à \`${token}\`, hors des tailles d’icône.`,
+    iconeTailleStatut: 'Liez-la à une taille de layout/icon',
+    iconeSansCouleur: (variants: string): string => `La couleur de l’icône ${de(variants)} n’a pas de token.`,
+    iconeCouleurHorsPremierPlan: (variants: string, token: string): string => `La couleur de l’icône ${de(variants)} est liée à \`${token}\`, qui n’est pas un foreground.`,
+    iconeCouleurStatut: 'Liez-la à un token icon ou foreground',
   },
 };

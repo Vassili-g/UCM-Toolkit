@@ -86,10 +86,23 @@ export function controlerNommage(releve: ReleveDeComposant, catalogue: Catalogue
     }
   }
 
+  // C8, C9 et C10 : un constat par segment à renommer, qui compte ses tokens ; `token` en nomme le premier.
+  const formes = new Map<string, Constat>();
+  const grouper = (code: 'C8' | 'C9' | 'C10', segment: string, faits: Record<string, string>, nom: string): void => {
+    const identifiant = `${segment}:${Object.values(faits).join(':')}`;
+    const connu = formes.get(`${code}:${identifiant}`);
+    if (connu) {
+      connu.faits.tokens = Number(connu.faits.tokens) + 1;
+      return;
+    }
+    const famille = code === 'C10' ? 'tailles' : 'tokens';
+    formes.set(`${code}:${identifiant}`, constatDuComposant(code, famille, code === 'C9' ? 'verifier' : 'corriger', identifiant, { token: nom, segment, ...faits, tokens: 1 }));
+  };
+  const formeToleree = (code: 'C8' | 'C10', segment: string, attendu: string, nom: string): void => grouper(code, segment, { attendu }, nom);
   for (const token of tokens) {
     const { segments, lecture, variable } = token;
     if (termeReconnu(FAMILLES_PRIMITIVES, segments[1])?.id === 'color' && formeReconnue(segments[1]) !== 'color') {
-      constats.push(constatDuComposant('C8', 'tokens', 'corriger', variable.cle, { token: variable.nom, segment: segments[1], attendu: 'color' }));
+      formeToleree('C8', segments[1], 'color', variable.nom);
     }
     for (const [rang, reconnu] of lecture.entries()) {
       const axe = reconnu.role;
@@ -98,20 +111,14 @@ export function controlerNommage(releve: ReleveDeComposant, catalogue: Catalogue
       const registre = axe === 'etat' ? REGISTRE_ETATS : axe === 'taille' ? REGISTRE_TAILLES : null;
       const terme = registre ? termeReconnu(registre, segment) : undefined;
       if (terme && formeReconnue(segment) !== formeReconnue(terme.id)) {
-        const code = axe === 'taille' ? 'C10' : 'C8';
-        constats.push(constatDuComposant(code, axe === 'taille' ? 'tailles' : 'tokens', 'corriger', `${variable.cle}:${rang}`, {
-          token: variable.nom, segment, attendu: terme.id,
-        }));
+        formeToleree(axe === 'taille' ? 'C10' : 'C8', segment, terme.id, variable.nom);
         continue;
       }
       const valeur = axes[axe]?.valeurs?.find((candidate) => formeReconnue(candidate) === formeReconnue(segment));
-      if (valeur && valeur !== segment && !terme) {
-        constats.push(constatDuComposant('C9', 'tokens', 'verifier', `${variable.cle}:${rang}`, {
-          token: variable.nom, segment, valeur,
-        }));
-      }
+      if (valeur && valeur !== segment && !terme) grouper('C9', segment, { valeur }, variable.nom);
     }
   }
+  constats.push(...formes.values());
   for (const [axe, propriete] of Object.entries(axes) as [AxeDuComposant, ProprieteDAxe][]) {
     const anciennes = new Set(releve.variants.map((variant) => variant.valeurs[propriete.nom])
       .filter((valeur): valeur is string => !!valeur && !!propriete.valeurs?.includes(valeur)));

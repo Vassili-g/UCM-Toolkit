@@ -273,9 +273,12 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
   try {
     layer.liaisons = await lecteur.liaisons(liaisonsDuNoeud(noeud), noeud.id);
     if (frontiere) {
-      const surchargees = await liaisonsDesSurcharges(port, noeud);
-      const lues = await lecteur.liaisons(surchargees.map(({ propriete, variable }) => ({ propriete, variable })), noeud.id);
-      const cle = (liaison: LiaisonLue): string => JSON.stringify([liaison.champ, liaison.indice, liaison.variable.id]);
+      const lues: LiaisonLue[] = [];
+      for (const { propriete, variable, porteur } of await liaisonsDesSurcharges(port, noeud, true)) {
+        const surcharge = porteur.id === noeud.id ? {} : { surcharge: { id: porteur.id, nom: porteur.name, type: porteur.type } };
+        lues.push(...(await lecteur.liaisons([{ propriete, variable }], noeud.id)).map((liaison) => ({ ...liaison, ...surcharge })));
+      }
+      const cle = (liaison: LiaisonLue): string => JSON.stringify([liaison.surcharge?.id ?? null, liaison.champ, liaison.indice, liaison.variable.id]);
       const connues = new Set(layer.liaisons.map(cle));
       layer.liaisons.push(...lues.filter((liaison) => !connues.has(cle(liaison))));
       const instance = await instanceDe(noeud, manquees);
@@ -284,7 +287,7 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
   } catch (erreur) {
     manquees.push({ layer: noeud.id, champ: 'liaisons', motif: messageDErreur(erreur) });
   }
-  layer.valeursEnDur = valeursEnDur(noeud, layer.liaisons, dimensions);
+  layer.valeursEnDur = valeursEnDur(noeud, layer.liaisons.filter((liaison) => !liaison.surcharge), dimensions);
   if (noeud.type === 'TEXT') layer.texte = await texteDe(lecteur, noeud, layer.liaisons, manquees);
   return layer;
 }
