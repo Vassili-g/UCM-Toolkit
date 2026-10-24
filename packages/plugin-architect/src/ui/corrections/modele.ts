@@ -44,6 +44,25 @@ export interface LigneEnAttente {
   readonly variant: string | null;
 }
 
+/**
+ * Une ligne d'une carte de tailles : un layer, les variants où il porte la même valeur en dur, et le token du composant qui la vaut.
+ * La case de la ligne coche toutes ses corrections.
+ */
+export interface GroupeDeTaille {
+  readonly cle: string;
+  readonly layer: string;
+  /** Le nombre de variants où le layer porte cette valeur. */
+  readonly fois: number;
+  readonly champ: string;
+  /** La valeur lue en dur, en pixels ; `null` quand le constat ne la donne pas. */
+  readonly valeur: number | null;
+  /** Le token, sans préfixe du composant. */
+  readonly apres: string;
+  readonly collection: string | null;
+  readonly valeurApres: number | null;
+  readonly ids: readonly string[];
+}
+
 /** D'où vient une carte : des constats, d'un modèle de variant qu'on copie, ou des liaisons d'une préparation. */
 export type OrigineDeCarte = 'constats' | 'modele' | 'preparation';
 
@@ -63,6 +82,8 @@ export interface CarteDeCorrections {
   readonly faits: ReadonlyArray<{ readonly etiquette: string; readonly valeur: string }>;
   /** Les liaisons sans case, sous les lignes cochables ; vide hors d'une carte de préparation. */
   readonly attente: readonly LigneEnAttente[];
+  /** Les lignes d'une carte de tailles, une par layer et par valeur ; absent hors d'une carte de tailles. */
+  readonly groupes?: readonly GroupeDeTaille[];
 }
 
 export interface ContexteDeCartes {
@@ -126,6 +147,28 @@ function ligneDe(constat: Constat, correction: Correction, contexte: ContexteDeC
 }
 
 const uniques = <Type>(valeurs: readonly Type[]): Type[] => [...new Set(valeurs)];
+const nombreOuNull = (valeur: unknown): number | null => (typeof valeur === 'number' ? valeur : null);
+
+/** Les lignes d'une carte de tailles : les corrections d'un même layer, d'une même valeur et d'un même token font une ligne. */
+function groupesDeTaille(lignes: readonly LigneDeCarte[], contexte: ContexteDeCartes): GroupeDeTaille[] {
+  const groupes = new Map<string, { groupe: Omit<GroupeDeTaille, 'fois' | 'ids'>; variants: Set<string>; ids: string[] }>();
+  for (const ligne of lignes) {
+    const { correction, constat } = ligne;
+    const layer = correction.cible.layer === undefined ? null : nomDuLayer(constat, correction.cible.layer, contexte);
+    const valeur = nombreOuNull(correction.aRelire.valeur) ?? nombreOuNull(constat?.faits.valeur);
+    const nom = layer ?? contexte.composant;
+    const cle = `${nom}\u0000${valeur ?? ''}\u0000${ligne.apres}`;
+    const entree = groupes.get(cle) ?? {
+      groupe: { cle, layer: nom, champ: correction.cible.champ ?? '', valeur, apres: ligne.apres, collection: correction.apres.collection ?? null, valeurApres: nombreOuNull(correction.apres.valeur) },
+      variants: new Set<string>(),
+      ids: [],
+    };
+    for (const variant of constat?.variants ?? []) entree.variants.add(variant);
+    entree.ids.push(ligne.id);
+    groupes.set(cle, entree);
+  }
+  return [...groupes.values()].map(({ groupe, variants, ids }) => ({ ...groupe, fois: Math.max(variants.size, 1), ids }));
+}
 
 function nomDuLayer(constat: Constat | null, layer: string, contexte: ContexteDeCartes): string | null {
   return (constat !== null && constat.layers.length === 1 ? texte(constat.faits.calque) : null) ?? contexte.layers.get(layer) ?? null;
@@ -153,6 +196,7 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
   let phrase: readonly Morceau[] = [];
   let jetons: [string, string] | null = null;
   let meta: Morceau[] = [...variantsDeLaMeta, ', ', T.layers(noms, identifiantsDeLayers.length)];
+  let groupes: GroupeDeTaille[] | undefined;
 
   if (genre === 'jetons') {
     const unique = segmentUnique(premiere.avant, premiere.apres);
@@ -161,8 +205,8 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
     const communes = pairesCommunes(nomsDeVariants);
     phrase = communes === '' ? [T.lierLeTexte] : [T.lierLeTexteDe, { variant: communes }, T.auxTokensSansFond];
   } else if (genre === 'tailles') {
-    phrase = [T.lierLaTaille(T.famille(premiere.correction.cible.champ ?? ''), contexte.composant)];
-    meta = [...variantsDeLaMeta, ', ', uniques(lignes.map((ligne) => T.champDeLaCarte(ligne.correction.cible.champ ?? ''))).join(' et ')];
+    groupes = groupesDeTaille(lignes, contexte);
+    phrase = [T.lierLaTaille(T.famille(premiere.correction.cible.champ ?? ''), uniques(groupes.map((groupe) => groupe.layer)), contexte.composant)];
   } else if (genre === 'regles') {
     phrase = [T.creerLesRegles(contexte.composant)];
     meta = [T.reglesMeta(Number(faitsPremiers.regles ?? 0), texte(faitsPremiers.proprietes) ?? '')];
@@ -189,7 +233,7 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
     ...(proprietes.length > 0 ? [{ etiquette: T.propriete, valeur: proprietes.join(', ') }] : []),
     ...(regles.length > 0 ? [{ etiquette: T.regle, valeur: regles.join(' ') }] : []),
   ];
-  return { cle, section, jetons, phrase, meta, lignes, layers: genre === 'regles' ? [] : uniques(constats.flatMap((constat) => constat.layers)), constats, faits, origine: genre === 'modele' ? 'modele' : 'constats', attente: [] };
+  return { cle, section, jetons, phrase, meta, lignes, layers: genre === 'regles' ? [] : uniques(constats.flatMap((constat) => constat.layers)), constats, faits, origine: genre === 'modele' ? 'modele' : 'constats', attente: [], ...(groupes ? { groupes } : {}) };
 }
 
 /** Les cartes des corrections des constats, par intertitre puis dans l'ordre des constats. */

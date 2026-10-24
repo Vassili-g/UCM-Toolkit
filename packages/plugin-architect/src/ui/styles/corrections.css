@@ -74,3 +74,42 @@
   outline: 2px solid var(--bordure-marque);
   outline-offset: -2px;
 }
+
+/* Une ligne d'une carte de tailles, en deux étages : le layer et ses variants, puis la valeur lue en dur ; le token, puis sa collection, sa valeur et « existe ». */
+.liste .diff.ligne-de-taille .taille-pile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.liste .diff.ligne-de-taille .taille-haut {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.liste .diff.ligne-de-taille .taille-bas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--texte-second);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 10.5px;
+}
+
+.liste .diff.ligne-de-taille .taille-fois,
+.liste .diff.ligne-de-taille .taille-collection {
+  color: var(--texte-second);
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 10.5px;
+}
+
+/* La valeur lue en dur : un fond hachuré, rien n'est lié. */
+.liste .diff.ligne-de-taille .taille-en-dur {
+  padding: 0 4px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(135deg, transparent 0 3px, color-mix(in srgb, var(--texte) 7%, transparent) 3px 5px);
+  font-family: "JetBrains Mono", Consolas, monospace;
+}

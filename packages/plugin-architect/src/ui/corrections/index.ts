@@ -20,7 +20,7 @@ import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION } from '../textes/preparation';
 import { creerCarte } from '../structure/carte';
 import { variablesNonPublieesDeLaListe } from './liaisons';
-import type { CarteDeCorrections, ContexteDeCartes, LigneDeCarte, LigneEnAttente, Morceau } from './modele';
+import type { CarteDeCorrections, ContexteDeCartes, GroupeDeTaille, LigneDeCarte, LigneEnAttente, Morceau } from './modele';
 
 const T = TEXTES.correctionsDuComposant;
 
@@ -251,11 +251,66 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     return diff;
   }
 
+  /**
+   * Une ligne d'une carte de tailles : le layer et ses variants, la valeur lue en dur, puis le token du composant avec sa collection,
+   * sa valeur et « existe », en mots. La case coche toutes les corrections de la ligne.
+   */
+  function creerLaLigneDeTaille(groupe: GroupeDeTaille): HTMLElement {
+    const deuxEtages = (haut: Node[], bas: Node[]): DocumentFragment => {
+      const pile = document.createElement('span');
+      pile.className = 'taille-pile';
+      const etageHaut = document.createElement('span');
+      etageHaut.className = 'taille-haut';
+      etageHaut.append(...haut);
+      const etageBas = document.createElement('span');
+      etageBas.className = 'taille-bas';
+      etageBas.append(...bas);
+      pile.append(etageHaut, etageBas);
+      return dans([pile]);
+    };
+    // Un littéral par classe : la loi des styles ne lit que les classes écrites en toutes lettres.
+    const morceau = (classe: 'fois' | 'en-dur' | 'collection' | null, texte: string): HTMLElement => {
+      const element = document.createElement('span');
+      if (classe === 'fois') element.className = 'taille-fois';
+      if (classe === 'en-dur') element.className = 'taille-en-dur';
+      if (classe === 'collection') element.className = 'taille-collection';
+      element.textContent = texte;
+      return element;
+    };
+    const avant = deuxEtages(
+      [document.createTextNode(groupe.layer), morceau('fois', T.fois(groupe.fois))],
+      [morceau('en-dur', groupe.valeur === null ? T.enDur(groupe.champ) : T.enDurEnPixels(groupe.valeur))],
+    );
+    const apres = deuxEtages(
+      [document.createTextNode(groupe.apres)],
+      [
+        ...(groupe.collection === null ? [] : [morceau('collection', groupe.collection)]),
+        ...(groupe.valeurApres === null ? [] : [morceau(null, T.enPixels(groupe.valeurApres))]),
+        morceau(null, T.existe),
+      ],
+    );
+    const cochee = groupe.ids.every((id) => !decochees.has(id));
+    const diff = creerLigneDeDiff(avant, apres, { coche: cochee });
+    diff.classList.add('ligne-de-taille');
+    const caseACocher = diff.querySelector('input') as HTMLInputElement;
+    caseACocher.setAttribute('aria-label', TEXTES.caseDeCorrection(groupe.apres));
+    caseACocher.addEventListener('change', () => {
+      for (const id of groupe.ids) {
+        if (caseACocher.checked) decochees.delete(id);
+        else decochees.add(id);
+      }
+      rafraichir();
+    });
+    for (const id of groupe.ids) casesDeLignes.set(id, caseACocher);
+    return diff;
+  }
+
   function creerLaCarte(carte: CarteDeCorrections): HTMLElement {
     const corps = document.createElement('div');
     corps.append(creerColonnes(TEXTES.legendeAujourdhui, TEXTES.legendeApres));
     const preparation = carte.origine === 'preparation';
-    for (const ligne of carte.lignes) {
+    for (const groupe of carte.groupes ?? []) corps.append(creerLaLigneDeTaille(groupe));
+    for (const ligne of carte.groupes ? [] : carte.lignes) {
       const diff = creerLigneDeDiff(dans(cheminAvecSegments(ligne.avant, ligne.marquesAvant, 'ancien')), dans(cheminAvecSegments(ligne.apres, ligne.marquesApres, 'nouveau', preparation)), { coche: cochee(ligne) });
       if (preparation) diff.classList.add('preparation-liaison');
       const caseACocher = diff.querySelector('input') as HTMLInputElement;
