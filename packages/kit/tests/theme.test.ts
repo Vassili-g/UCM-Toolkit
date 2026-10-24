@@ -92,3 +92,14 @@ test('C60 pose une question si l’alias mode boucle ou si la cible calculée ma
   assert.equal(resultat?.correction, undefined);
   assert.deepEqual(resultat?.question?.candidats, []);
 });
+
+test('C59 ne juge pas un texte posé sur un fond lié à une variable illisible', () => {
+  const fond: LayerLu = {
+    ...layer('fond', null, 'container'), type: 'FRAME',
+    liaisons: [{ champ: 'fills', indice: 0, porteur: 'fond', illisible: true, variable: { id: 'perdue', cle: '', nom: '', collection: '', distante: false } }],
+  };
+  const texte = layer('text', 'fond', 'message', { key: 'fg-surface', name: 'success/surface/foreground', collection: 'themes' });
+  const r = { ...releve(texte), variants: [{ id: 'v1', nom: 'Alert', valeurs: {}, modesEffectifs: {}, layers: [fond, texte] }] };
+  const c = cat([collection('themes', 'theme')], [{ cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' }]);
+  assert.equal(controlerLeTheme(r, c).find(({ code }) => code === 'C59'), undefined);
+});

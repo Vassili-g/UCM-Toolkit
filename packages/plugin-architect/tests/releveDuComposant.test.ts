@@ -132,7 +132,7 @@ test('un budget plus petit que le premier variant le lit quand même', async () 
   assert.equal(issue.statut === 'lu' && issue.releve.variants.length, 1);
 });
 
-test('un jeton levé rend « annulé » ; une variable illisible est une lecture manquée, pas un constat', async () => {
+test('un jeton levé rend « annulé » ; une variable illisible est une lecture manquée et reste une liaison illisible', async () => {
   const { a, jeu } = jeuFactice();
   const { port } = variables();
   assert.deepEqual(await lireLeReleve(a.port(port), jeu, { jeton: { leve: true } }), { statut: 'annule' });
@@ -143,7 +143,9 @@ test('un jeton levé rend « annulé » ; une variable illisible est une lecture
   if (issue.statut === 'lu') {
     assert.ok(issue.releve.lecture.manquees.length > 0);
     assert.ok(issue.releve.lecture.manquees.every((m) => m.motif === 'variable illisible'));
-    assert.equal(issue.releve.variants[0].layers[0].liaisons.length, 0);
+    const liaisons = issue.releve.variants[0].layers[0].liaisons;
+    assert.ok(liaisons.length > 0);
+    assert.ok(liaisons.every((liaison) => liaison.illisible === true && liaison.variable.cle === ''));
   }
 });
 

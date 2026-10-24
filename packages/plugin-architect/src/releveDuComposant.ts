@@ -12,7 +12,8 @@
  * Le budget compte les layers de variants, racine comprise, comme S3. Un
  * variant se lit en entier ou pas du tout ; le premier se lit toujours. Une
  * lecture qui échoue est comptée dans `lecture.manquees` et ne devient jamais
- * un constat.
+ * un constat : une variable liée qui ne se lit pas reste une liaison
+ * (`illisible`), et une boîte illisible ne donne aucune valeur en dur de taille.
  *
  * Une liaison se découpe en `champ`, `indice` et `plage` : `fills[0]` donne
  * le champ `fills` et l'indice 0 ; `fills[0].gradientStops[1].color` donne
@@ -108,7 +109,7 @@ const CHAMPS_NUMERIQUES = ['paddingLeft', 'paddingRight', 'paddingTop', 'padding
 const RAYONS = ['topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'] as const;
 
 /** Les champs numériques qu'aucune variable ne lie sur ce layer. */
-function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimensions: LayerLu['dimensions']): LayerLu['valeursEnDur'] {
+function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimensions: LayerLu['dimensions'] | null): LayerLu['valeursEnDur'] {
   const liees = new Set(liaisons.filter((liaison) => !liaison.plage).map((liaison) => liaison.champ));
   const liee = (...champs: string[]): boolean => champs.some((champ) => liees.has(champ));
   const donnees = brut(noeud);
@@ -120,12 +121,15 @@ function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimension
   if (estUnNombre(donnees.cornerRadius)) ajouter('cornerRadius', donnees.cornerRadius, ...RAYONS);
   else for (const coin of RAYONS) ajouter(coin, donnees[coin], 'cornerRadius');
   ajouter('strokeWeight', donnees.strokeWeight, 'strokeTopWeight', 'strokeRightWeight', 'strokeBottomWeight', 'strokeLeftWeight');
-  if (!liee('width')) valeurs.push({ champ: 'width', valeur: dimensions.largeur });
-  if (!liee('height')) valeurs.push({ champ: 'height', valeur: dimensions.hauteur });
+  if (dimensions) {
+    if (!liee('width')) valeurs.push({ champ: 'width', valeur: dimensions.largeur });
+    if (!liee('height')) valeurs.push({ champ: 'height', valeur: dimensions.hauteur });
+  }
   return valeurs;
 }
 
-function dimensionsDe(noeud: NoeudLu, manquees: Manquee[]): LayerLu['dimensions'] {
+/** `null` quand la boîte ne se lit pas : la manquée est consignée, le layer garde des dimensions nulles. */
+function dimensionsDe(noeud: NoeudLu, manquees: Manquee[]): LayerLu['dimensions'] | null {
   const donnees = brut(noeud);
   const boite = noeud.absoluteBoundingBox;
   if (boite) return { x: boite.x, y: boite.y, largeur: boite.width, hauteur: boite.height };
@@ -133,7 +137,7 @@ function dimensionsDe(noeud: NoeudLu, manquees: Manquee[]): LayerLu['dimensions'
     return { x: donnees.x as number, y: donnees.y as number, largeur: donnees.width as number, hauteur: donnees.height as number };
   }
   manquees.push({ layer: noeud.id, champ: 'dimensions', motif: 'boîte illisible' });
-  return { x: 0, y: 0, largeur: 0, hauteur: 0 };
+  return null;
 }
 
 /** Garde en mémoire les variables, collections et styles déjà demandés. */
@@ -185,7 +189,11 @@ class Lecteur {
     const liaisons: LiaisonLue[] = [];
     for (const { propriete, variable } of brutes) {
       const lue = await this.variable(variable, porteur, propriete);
-      if (lue) liaisons.push({ ...decouper(propriete), porteur, variable: lue });
+      liaisons.push(
+        lue
+          ? { ...decouper(propriete), porteur, variable: lue }
+          : { ...decouper(propriete), porteur, illisible: true, variable: { id: variable, cle: '', nom: '', collection: '', distante: false } },
+      );
     }
     return liaisons;
   }
@@ -264,7 +272,7 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     parent,
     visible: donnees.visible !== false,
     opacite: estUnNombre(donnees.opacity) ? donnees.opacity : 1,
-    dimensions,
+    dimensions: dimensions ?? { x: 0, y: 0, largeur: 0, hauteur: 0 },
     peintures: [...peinturesDe('fills', noeud.fills, noeud.id, manquees), ...peinturesDe('strokes', noeud.strokes, noeud.id, manquees)],
     liaisons: [],
     valeursEnDur: [],

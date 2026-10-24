@@ -6,7 +6,7 @@ import {
 } from '../emplois/dossiers.js';
 import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
-import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
+import { liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /** Détecte une couleur `surface/foreground` sans fond de surface dans un composant. Les alias de mode sont dans `controlerLesModes`. */
 export function controlerLeTheme(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
@@ -49,14 +49,16 @@ function aUnFondDeSurface(layer: LayerLu, layers: ReadonlyMap<string, LayerLu>, 
   while (courant && !visites.has(courant.id)) {
     visites.add(courant.id);
     const fondVisible = courant.peintures.some((peinture) => peinture.champ === 'fills' && peinture.visible
-      && liaisonsDuLayer(courant!).some((liaison) => liaison.champ === 'fills' && liaison.indice === peinture.indice && estFondDeSurface(liaison, catalogue)));
+      && liaisonsPropres(courant!).some((liaison) => liaison.champ === 'fills' && liaison.indice === peinture.indice && estFondDeSurface(liaison, catalogue)));
     if (fondVisible) return true;
     courant = courant.parent ? layers.get(courant.parent) : undefined;
   }
   return false;
 }
 
+/** Une liaison illisible peut être un fond de surface : C59 ne l'accuse pas sur ce qu'il n'a pas lu. */
 function estFondDeSurface(liaison: LiaisonLue, catalogue: CatalogueDeReference): boolean {
+  if (liaison.illisible) return true;
   const variable = catalogue.variables.find((entree) => entree.cle === liaison.variable.cle);
   return !!variable && collection(catalogue, variable)?.role === 'theme' && /^surface\/(default|hover|pressed)$/.test(cleDuTheme(variable.nom) ?? '');
 }

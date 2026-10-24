@@ -207,8 +207,14 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     if (analyse.statut === 'partielle') {
       const lus = analyse.lecture?.layersLus ?? 0;
       const nonLus = analyse.lecture?.layersNonLus;
-      const titre = typeof nonLus === 'number' && nonLus > 0 ? T.partielleTitre(lus, lus + nonLus) : T.partielleTitreDesVariants(analyse.variants.length, analyse.variants.length + (analyse.lecture?.variantsNonLus.length ?? 0));
-      sortie.push(creerAlerte('verifier', { titre, texte: T.partielleTexte }));
+      const echecs = analyse.lecture?.manquees.length ?? 0;
+      const rienNonLu = nonLus === 0 && (analyse.lecture?.variantsNonLus.length ?? 0) === 0;
+      if (rienNonLu && echecs > 0) {
+        sortie.push(creerAlerte('verifier', { titre: T.partielleDesLecturesTitre(echecs), texte: T.partielleDesLecturesTexte }));
+      } else {
+        const titre = typeof nonLus === 'number' && nonLus > 0 ? T.partielleTitre(lus, lus + nonLus) : T.partielleTitreDesVariants(analyse.variants.length, analyse.variants.length + (analyse.lecture?.variantsNonLus.length ?? 0));
+        sortie.push(creerAlerte('verifier', { titre, texte: T.partielleTexte }));
+      }
     } else if (analyse.constats.length === 0 && !aPreparer(analyse) && !aDesLiaisonsPreparees(analyse) && !analyse.perimee && analyse.ecriture === null) {
       return [...sortie, creerAlerte('tenu', { titre: T.aucunTitre(lecture.sujet.nom, variants), meta: T.aucunMeta })];
     }

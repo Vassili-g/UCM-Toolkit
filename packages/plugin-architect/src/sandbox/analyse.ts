@@ -381,7 +381,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
     const tous = proposerLesCorrections(releve, catalogue, brut);
     const rangees = await lecteurs.ignores?.(contexte).catch((): readonly string[] => []) ?? [];
     const { visibles, ignores } = separerLesIgnores(tous, rangees);
-    const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0;
+    const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
     rendre(resultat.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete', visibles, releve, ignores, tous);
   } catch (erreur) {
     if (identite === null) {

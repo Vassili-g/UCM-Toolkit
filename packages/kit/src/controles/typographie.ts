@@ -71,7 +71,9 @@ function liaisonsDuChamp(layer: LayerLu, champs: readonly string[]): LiaisonLue[
 
 type Lieu = { collection: string; role: string | null } | null;
 
+/** Une liaison illisible est liée, sans lieu connu : aucun contrôle ne la juge. */
 function lieuDeLaVariable(catalogue: CatalogueDeReference, liaison: LiaisonLue): Lieu {
+  if (liaison.illisible) return null;
   const variable = variableDuCatalogue(catalogue, liaison.variable.cle);
   const cleDeCollection = variable === 'absente' ? liaison.variable.collection : variable.collection;
   const collection = collectionDuCatalogue(catalogue, cleDeCollection);
@@ -95,7 +97,7 @@ function controlerLesTextes(textes: Map<string, Source[]>, catalogue: CatalogueD
     for (const source of liste) {
       const { layer } = source;
       if (layer.texte === undefined) continue;
-      const typographie = liaisonsDuChamp(layer, CHAMPS_DE_TYPOGRAPHIE).some((l) => lieuDeLaVariable(catalogue, l)?.role === 'typography');
+      const typographie = liaisonsDuChamp(layer, CHAMPS_DE_TYPOGRAPHIE).some((l) => l.illisible || lieuDeLaVariable(catalogue, l)?.role === 'typography');
       if (layer.texte.style === null && !typographie) {
         ajouter(groupes, `C64:${nom}:sans-style`, source, { calque: nom, motif: 'sans-style-ni-variables' }, base);
       }

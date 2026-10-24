@@ -11,7 +11,7 @@ import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
 import type { CatalogueDeReference, CollectionDuCatalogue } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { liaisonsPropres, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
+import { lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 export type NiveauWcag = 'AA' | 'AAA';
 
@@ -84,7 +84,7 @@ export function controlerLAccessibilite(
     });
   }
 
-  constats.push(...controlerLesCibles(mesures, estInteractif(releve)));
+  constats.push(...controlerLesCibles(mesures, estInteractif(releve), releve));
   constats.push(...controlerLeTexteMinimal(mesures));
   constats.push(...controlerLAnneau(mesures));
   return constats;
@@ -196,6 +196,7 @@ function pileDePeintures(
     if (p.blendMode !== 'NORMAL' && p.blendMode !== 'PASS_THROUGH') return { limite: 'peinture-superposee' };
     const liaison = liaisons.find((l) => l.champ === p.champ && (l.indice ?? 0) === p.indice);
     let couleur: Rgba | undefined = p.couleur;
+    if (liaison?.illisible) return { limite: 'mode-illisible' };
     if (liaison) {
       const lue = couleurDeLiaison(catalogue, variant, combinaison, liaison.variable.cle);
       if (lue === 'mode-illisible') return { limite: 'mode-illisible' };
@@ -408,12 +409,12 @@ function controlerLAnneau(variants: VariantLu[]): Constat[] {
 
 /* ---------- C52 et texte sous 12 px ---------- */
 
-function controlerLesCibles(variants: VariantLu[], interactif: boolean): Constat[] {
+function controlerLesCibles(variants: VariantLu[], interactif: boolean, releve: ReleveDeComposant): Constat[] {
   if (!interactif) return [];
   const groupes = new Map<string, Constat>();
   for (const variant of variants) {
     const racine = variant.layers.find((l) => l.parent === null);
-    if (!racine) continue;
+    if (!racine || lectureManquee(releve, racine.id, 'dimensions')) continue;
     const { largeur, hauteur } = racine.dimensions;
     const minimum = Math.min(largeur, hauteur);
     const seuil = minimum < CIBLE_MINIMALE_PX ? CIBLE_MINIMALE_PX : minimum < CIBLE_TACTILE_PX ? CIBLE_TACTILE_PX : null;

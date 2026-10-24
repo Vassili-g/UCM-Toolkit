@@ -37,6 +37,8 @@ export const TEXTES_ANALYSE = {
     partielleTitre: (lus: number, total: number): string => `Analyse partielle : ${nombre(lus)} layers lus sur ${nombre(total)}.`,
     partielleTitreDesVariants: (lus: number, total: number): string => `Analyse partielle : ${lus} variants lus sur ${total}.`,
     partielleTexte: 'Les constats portent sur la partie lue. Les variants non lus ne sont pas contrôlés.',
+    partielleDesLecturesTitre: (echecs: number): string => `Analyse partielle : ${echecs > 1 ? `${nombre(echecs)} lectures ont échoué` : '1 lecture a échoué'}.`,
+    partielleDesLecturesTexte: 'Les constats ne jugent pas ce qui n’a pas été lu.',
     perimeTitre: 'Le composant a changé depuis l’analyse.',
     perimeTexte: 'Cliquez Actualiser pour relire.',
     perimeMeta: 'Les constats datent d’avant le changement.',
