@@ -321,7 +321,7 @@ test('le chevron est un SVG décoratif de 12 px, posé par setAttribute', () => 
   assert.equal(chevron.getAttribute('height'), '12');
   assert.equal(chevron.children[0].getAttribute('d'), 'M3 4.5 6 7.5 9 4.5');
   assert.equal(chevron.classList.contains('retour'), false);
-  for (const sens of ['ouvert', 'suivant', 'retour'] as const) {
+  for (const sens of ['ouvert', 'replie', 'suivant', 'retour'] as const) {
     assert.equal((creerChevron(sens) as unknown as ElementDeTest).classList.contains(sens), true);
   }
 });

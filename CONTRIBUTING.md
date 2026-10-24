@@ -256,6 +256,10 @@ Quatre bornes, sans quoi la table ne tient pas :
   retomber pendant une analyse. La destination fait partie du sujet : les
   cartes se vident quand la clé de destination de `settings` change, et
   seulement alors ;
+- **un chevron pointe à droite quand l’élément est replié, vers le bas quand il
+  est ouvert**, dans tous les plugins. Le socle porte la règle
+  (`socle.css`, `creerChevron`) ; un plugin ne la redéfinit pas. Une liste
+  déroulante (`aria-haspopup`) garde la flèche vers le bas ;
 - **le compte rendu d’UCM Exporter se range par famille de point.** Les points
   bloquants (`severite: 'danger'`) viennent en tête, hors de toute section, et
   seuls portent une pastille. Les autres vont sous une ligne de total (« À

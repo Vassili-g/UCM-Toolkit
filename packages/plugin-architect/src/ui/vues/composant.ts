@@ -332,7 +332,7 @@ export function creerVueComposant(app: Application): VueComposant {
     tout.dataset.focus = 'outil:tout';
     tout.setAttribute('aria-label', T.toutDeplier);
     tout.title = T.toutDeplier;
-    tout.append(creerChevron(lignes.length > SEUIL_DE_REPLI ? undefined : 'ouvert'));
+    tout.append(creerChevron(lignes.length > SEUIL_DE_REPLI ? 'replie' : 'ouvert'));
     tout.addEventListener('click', () => {
       const toutes = sectionsDe(lignes);
       if (toutes.some((section) => !sectionOuverte(section.nature))) for (const section of toutes) sections.set(section.nature, true);

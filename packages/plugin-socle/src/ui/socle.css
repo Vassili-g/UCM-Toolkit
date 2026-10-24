@@ -620,8 +620,10 @@ select.input:hover {
 }
 
 /*
- * Le chevron : pointe en bas, tourne de 180° à l'ouverture. `suivant` et `retour`
- * sont déclarés après et l'emportent sur `aria-expanded`.
+ * Le chevron d'un élément qui se déplie : à droite replié, vers le bas ouvert.
+ * Une liste déroulante garde la flèche vers le bas et la retourne à
+ * l'ouverture. `ouvert`, `replie`, `suivant` et `retour` sont déclarés après et
+ * l'emportent sur `aria-expanded`.
  */
 .chevron-svg {
   display: block;
@@ -639,11 +641,27 @@ select.input:hover {
   stroke-width: 1.5;
 }
 
-[aria-expanded="true"] .chevron-svg,
-.chevron-svg.ouvert {
+[aria-expanded="false"] .chevron-svg {
+  transform: rotate(-90deg);
+}
+
+[aria-expanded="true"] .chevron-svg {
+  transform: none;
+}
+
+[aria-haspopup][aria-expanded="false"] .chevron-svg {
+  transform: none;
+}
+
+[aria-haspopup][aria-expanded="true"] .chevron-svg {
   transform: rotate(180deg);
 }
 
+svg.chevron-svg.ouvert {
+  transform: none;
+}
+
+svg.chevron-svg.replie,
 svg.chevron-svg.suivant {
   transform: rotate(-90deg);
 }

@@ -736,14 +736,6 @@ button.tete-bouton {
   outline-offset: -2px;
 }
 
-.bande-section[aria-expanded="true"] .chevron-svg {
-  transform: none;
-}
-
-.bande-section[aria-expanded="false"] .chevron-svg {
-  transform: rotate(-90deg);
-}
-
 .plus-dans-section {
   padding: var(--espace-controle) var(--espace-bloc);
   border-top: 1px solid var(--bordure);
