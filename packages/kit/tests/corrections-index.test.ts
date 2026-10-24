@@ -45,7 +45,8 @@ export function fixture(): { releve: ReleveDeComposant; catalogue: CatalogueDeRe
     constats.push({ ...fait('C15'), id: `C15:inconnu:${i}`, layers: ['absent'] });
   }
   const color = (cle: string, nom: string) => ({ cle, nom, collection: 'components', type: 'COLOR' as const, etat: 'presente' as const });
-  const nombre = (cle: string, nom: string, valeur: number) => ({ cle, nom, collection: 'layout', type: 'FLOAT' as const, etat: 'presente' as const, valeurs: { Light: { valeur } } });
+  // Les tokens de taille sont ceux du composant : C29 ne cherche plus dans `layout`.
+  const nombre = (cle: string, nom: string, valeur: number) => ({ cle, nom, collection: 'components', type: 'FLOAT' as const, etat: 'presente' as const, valeurs: { Light: { valeur } } });
   const catalogue: CatalogueDeReference = {
     version: 1, library: null,
     collections: [
@@ -58,9 +59,11 @@ export function fixture(): { releve: ReleveDeComposant; catalogue: CatalogueDeRe
       color('bg-pressed', `${BASE}/pressed/background`),
       ...ETATS.map((e) => color(`fg-${e}`, `${BASE}/${e}/foreground`)),
       color('fg-pressed-bis', `${BASE}/pressed/foreground`),
-      nombre('gap-4', 'layout/sizing/4', 4), nombre('pad-16', 'layout/sizing/16', 16),
-      nombre('radius-12a', 'layout/radius/12', 12), nombre('radius-12b', 'layout/radius/12', 12),
-      { cle: 'stroke-pending', nom: 'layout/stroke/2', collection: 'layout', type: 'FLOAT', etat: 'non-chargee' },
+      nombre('gap-4', 'button/size/gap', 4), nombre('pad-16', 'button/size/padding-left', 16),
+      nombre('radius-12a', 'button/size/radius', 12), nombre('radius-12b', 'button/size/radius', 12),
+      { cle: 'stroke-pending', nom: 'button/size/border-width', collection: 'components', type: 'FLOAT', etat: 'non-chargee' },
+      // Un token de `layout` de même valeur n'est jamais proposé.
+      { cle: 'layout-gap-40', nom: 'layout/sizing/40', collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 40 } } },
     ],
   };
   const releve: ReleveDeComposant = {
@@ -75,10 +78,11 @@ export function fixture(): { releve: ReleveDeComposant; catalogue: CatalogueDeRe
 }
 
 /**
- * Empreinte de la sortie de `proposerLesCorrections` au commit 34c64a65, avant les index, sur cette fixture : le déplacement
- * ne change aucune sortie, ni l'ordre.
+ * Empreinte de la sortie de `proposerLesCorrections` sur cette fixture, recalculée quand C29 a cessé de chercher dans `layout`
+ * (lot K1 de la recette v1). La précédente, prise au commit 34c64a65 avant les index, ne vaut plus : la règle a changé la
+ * sortie de C29, et la fixture, ses variables de taille.
  */
-const EMPREINTE_DE_HEAD = 'b14f0c2254cba85b4d60cb656d38b04254271ad4064caec2d35ecff596e8c28e';
+const EMPREINTE_DE_HEAD = '91f3dfff55816e3b6a470faf59b414e39b99c0f4fd4ef9799748d978ba7673fe';
 
 test('les index rendent la sortie de la version sans index, sur 90 variants', () => {
   const { releve, catalogue, constats } = fixture();

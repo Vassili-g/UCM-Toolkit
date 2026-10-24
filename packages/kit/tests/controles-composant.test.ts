@@ -181,14 +181,64 @@ test('C19 signale un token d’un autre composant et garde celui du composant co
   assert.ok(!codes(controlerMapping(r, catalogueEtendu({ nom: 'button/color/background', collection: 'components' }))).includes('C19'));
 });
 
-test('C20 juge la couche d’une dimension et celle d’une couleur primitive, sans C61 en double', () => {
+// Avant le lot K1, un lien direct vers `layout` ou `theme` passait, et un lien vers une primitive donnait C20 (puis C61, fondu
+// dans C20 pour n'avoir qu'une carte). Un layer ne se lie plus qu'aux tokens de son composant : tout lien direct hors de
+// `components` donne C80, et C20 ne juge plus que la cible des alias d'un token de `components`.
+test('C80 signale une taille liée directement à une primitive ou à layout, sans C20 en double', () => {
   const r = releve('Button');
   r.variants = [variante('default', {}, 'v0', { champ: 'paddingLeft' })];
-  assert.ok(codes(controlerCouches(r, catalogueEtendu({ nom: 'dimension/14', collection: 'primitives', type: 'FLOAT' }))).includes('C20'));
-  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'sizing/14', collection: 'layout', type: 'FLOAT' }))), []);
+  const versPrimitive = controlerCouches(r, catalogueEtendu({ nom: 'dimension/14', collection: 'primitives', type: 'FLOAT' }));
+  assert.deepEqual(codes(versPrimitive), ['C80']);
+  assert.equal(versPrimitive[0].famille, 'tailles');
+  assert.equal(versPrimitive[0].type, 'corriger');
+  assert.deepEqual(versPrimitive[0].faits, { token: 'dimension/14', couche: 'primitives', champ: 'paddingLeft', calque: 'container' });
+  assert.deepEqual([versPrimitive[0].variants, versPrimitive[0].layers], [['default'], ['layer-default']]);
+  const versLayout = controlerCouches(r, catalogueEtendu({ nom: 'sizing/14', collection: 'layout', type: 'FLOAT' }));
+  assert.deepEqual(codes(versLayout), ['C80']);
+  assert.deepEqual(versLayout[0].faits, { token: 'sizing/14', couche: 'layout', champ: 'paddingLeft', calque: 'container' });
+});
+
+test('C80 signale une couleur liée directement à theme ou à une primitive, en famille liaisons', () => {
+  const r = releve('Button');
   r.variants = [variante('default', {}, 'v0')];
-  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'color/blue/500', collection: 'primitives' }))), ['C20']);
-  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'primary/solid/background', collection: 'theme' }))), []);
+  const versTheme = controlerCouches(r, catalogueEtendu({ nom: 'primary/solid/background', collection: 'theme' }));
+  assert.deepEqual(codes(versTheme), ['C80']);
+  assert.equal(versTheme[0].famille, 'liaisons');
+  assert.deepEqual(versTheme[0].faits, { token: 'primary/solid/background', couche: 'theme', champ: 'fills', calque: 'container' });
+  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'color/blue/500', collection: 'primitives' }))), ['C80']);
+  // Une couleur de strokes suit la même règle.
+  r.variants = [variante('default', {}, 'v0', { champ: 'strokes' })];
+  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'primary/surface/border', collection: 'theme' }))), ['C80']);
+});
+
+test('C80 nomme le layer peint par une surcharge d’instance, pas l’instance', () => {
+  const r = releve('Button');
+  r.variants = [variante('default', {}, 'v0')];
+  r.variants[0].layers[0].liaisons[0].surcharge = { id: 'dedans', nom: 'glyph', type: 'VECTOR' };
+  const [constat] = controlerCouches(r, catalogueEtendu({ nom: 'primary/solid/background', collection: 'theme' }));
+  assert.equal(constat.faits.calque, 'glyph');
+  assert.ok(constat.id.includes('>dedans'));
+});
+
+test('C80 ne juge pas la typographie : fontSize lié à typography, comme lineHeight, ne donne rien', () => {
+  const r = releve('Button');
+  const lie = (champ: string) => { r.variants = [variante('default', {}, 'v0', { champ, nom: 'label', type: 'TEXT' })]; };
+  for (const champ of ['fontSize', 'fontWeight', 'fontFamily', 'lineHeight', 'letterSpacing']) {
+    lie(champ);
+    assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'body/md/font-size', collection: 'typography', type: 'FLOAT' }))), [], champ);
+  }
+  // Hors de la règle ne veut pas dire hors de tout jugement : une primitive de typographie reste C20, comme avant.
+  lie('lineHeight');
+  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'font-size/base', collection: 'primitives', type: 'FLOAT' }))), ['C20']);
+});
+
+test('C80 ne dit rien d’un token de components, ni d’un fichier sans rôle de collection', () => {
+  const r = releve('Button');
+  r.variants = [variante('default', {}, 'v0', { champ: 'paddingLeft' })];
+  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'button/size/padding-x', collection: 'components', type: 'FLOAT' }))), []);
+  const libre = catalogueEtendu({ nom: 'sizing/14', collection: 'layout', type: 'FLOAT' });
+  for (const collection of libre.collections) collection.role = null;
+  assert.deepEqual(codes(controlerCouches(r, libre)), []);
 });
 
 test('C20 juge un token de components lié à un layer par la cible de ses alias', () => {
@@ -292,7 +342,8 @@ test('table T : le relevé Alert rend les écarts de nom, de liaison, de couche 
   assert.equal(r.variants.length, 11);
   assert.ok(constats.some(({ code, variants }) => code === 'C15' && variants.includes('success-standard')));
   assert.ok(constats.some(({ code }) => code === 'C8'));
-  assert.ok(constats.some(({ code, faits }) => code === 'C20' && faits.token === 'dimension/14'));
+  // Le layer `gap` est lié directement à une primitive : C80 depuis le lot K1 (c'était C20).
+  assert.ok(constats.some(({ code, faits }) => code === 'C80' && faits.token === 'dimension/14'));
   assert.ok(constats.some(({ code, faits }) => code === 'C31' && faits.Severity === 'warning' && faits.Variant === 'filled'));
   assert.equal(constats.filter(({ code, faits }) => code === 'C32' && String(faits.token).includes('warning/filled')).length, 3);
   assert.ok(constats.some(({ code, variants }) => code === 'C21' && variants.includes('info-filled')));
@@ -332,7 +383,8 @@ test('table T : le relevé Button couvre les 216 variants et les écarts de surv
   assert.equal(r.variants.length, 216);
   assert.ok(constats.some(({ code, variants }) => code === 'C16' && variants.includes('contained-primary-hover-medium')));
   assert.ok(constats.some(({ code, faits }) => code === 'C10' && faits.token === 'button/size/medium/padding-x'));
-  assert.ok(constats.some(({ code, faits }) => code === 'C20' && faits.token === 'dimension/14'));
+  // Le layer `padding` est lié directement à une primitive : C80 depuis le lot K1 (c'était C20).
+  assert.ok(constats.some(({ code, faits }) => code === 'C80' && faits.token === 'dimension/14'));
   assert.ok(constats.some(({ code, variants, layers }) => code === 'C21' && variants.includes('text-primary-focus-small')
     && layers.some((layer) => layer.startsWith('layer-'))));
   assert.ok(!constats.some(({ code, faits }) => code === 'C16' && faits.token === 'button/color/background'));

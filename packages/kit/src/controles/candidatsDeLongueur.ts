@@ -1,6 +1,7 @@
 /**
- * Les variables de `layout` qui valent une longueur : le classement que C29 et la préparation des tokens partagent. L'index se
- * construit une fois par catalogue et suppose le catalogue figé après sa lecture.
+ * Les variables qui valent une longueur : le classement que C29 et la préparation des tokens partagent. C29 classe les tokens
+ * de `components` du composant (`candidatDeLongueur`, `classerLesCandidats`) ; la préparation cherche dans `layout` par
+ * l'index, qui se construit une fois par catalogue et suppose le catalogue figé après sa lecture.
  */
 import { formeReconnue } from '../referentiel/reconnaissance.js';
 import { cheminDansLaCollection, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
@@ -54,6 +55,12 @@ function valeurCommune(parMode: Record<string, number | undefined> | undefined):
   return valeurs.every((valeur) => valeur !== undefined && valeur === valeurs[0]) ? valeurs[0] : undefined;
 }
 
+/** Les valeurs d'une variable dans chaque mode, alias suivis ; la valeur commune seulement si tous les modes la partagent. */
+export function candidatDeLongueur(catalogue: CatalogueDeReference, variable: VariableDuCatalogue): CandidatDeLongueur {
+  const parMode = valeursParMode(variable, catalogue, 0, new Set()) ?? {};
+  return { variable, parMode, exacte: valeurCommune(parMode) };
+}
+
 /**
  * Par famille (`sizing`, `radius`, `stroke`, `icon`…), les variables `FLOAT` présentes des collections de rôle `layout`.
  * La famille est le premier segment du chemin dans la collection, lu par `formeReconnue`.
@@ -66,9 +73,7 @@ export function indexDeLongueurs(catalogue: CatalogueDeReference): IndexDeLongue
   for (const variable of catalogue.variables) {
     if (variable.etat !== 'presente' || variable.type !== 'FLOAT' || !cles.has(variable.collection)) continue;
     const famille = formeReconnue(cheminDansLaCollection(variable, catalogue)[0] ?? '');
-    const parMode = valeursParMode(variable, catalogue, 0, new Set()) ?? {};
-    const entree: CandidatDeLongueur = { variable, parMode, exacte: valeurCommune(parMode) };
-    index.set(famille, [...(index.get(famille) ?? []), entree]);
+    index.set(famille, [...(index.get(famille) ?? []), candidatDeLongueur(catalogue, variable)]);
   }
   indexParCatalogue.set(catalogue, index);
   return index;
@@ -96,7 +101,11 @@ function procheLe(candidats: readonly CandidatDeLongueur[], valeur: number, cote
  * commune à tous les modes est écartée d'au plus `min(2, 0,1 × max(|v|, 1))` px, jamais pour une valeur nulle.
  */
 export function candidatsDeLongueur(catalogue: CatalogueDeReference, famille: string, valeur: number): CandidatsDeLongueur {
-  const candidats = indexDeLongueurs(catalogue).get(famille) ?? [];
+  return classerLesCandidats(indexDeLongueurs(catalogue).get(famille) ?? [], valeur);
+}
+
+/** Le classement exact ou proche de `candidatsDeLongueur`, pour des candidats que l'appelant a déjà choisis. */
+export function classerLesCandidats(candidats: readonly CandidatDeLongueur[], valeur: number): CandidatsDeLongueur {
   const exacts = candidats.filter((candidat) => candidat.exacte === valeur).map((candidat) => candidat.variable);
   if (exacts.length > 0 || valeur === 0) return { exacts, proches: [] };
   const proches = [procheLe(candidats, valeur, 'dessous'), procheLe(candidats, valeur, 'dessus')].filter((candidat): candidat is CandidatProche => candidat !== undefined);

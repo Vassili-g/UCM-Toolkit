@@ -177,25 +177,61 @@ test('C25 ignore un gradient visible et conserve l’indice du SOLID qui le suit
   assert.equal(proposerLesCorrections(r, c, []).some(({ code }) => code === 'C25'), false);
 });
 
-test('C29 ne propose que si le catalogue porte exactement la valeur lue en pixels', () => {
-  const r = releve({ LegacyMode: 'classic' }, layer({ champ: 'paddingTop', value: 8 }));
-  const c = catalogue([{ cle: 'size-8', nom: 'layout/sizing/8', collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 8 } } }], true);
-  const resultat = proposerLesCorrections(r, c, [])[0];
-  assert.equal(resultat.correction?.apres.cle, 'size-8');
-  assert.deepEqual(resultat.correction?.aRelire.axes, { LegacyMode: 'classic' });
-  const faux = catalogue([{ cle: 'size-9', nom: 'layout/sizing/9', collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 9 } } }], true);
-  const sansCandidat = proposerLesCorrections(r, faux, []).find(({ code }) => code === 'C29');
-  assert.equal(sansCandidat?.correction, undefined);
-  assert.deepEqual(sansCandidat?.question?.candidats, []);
-  const mauvaisChamp = catalogue([{ cle: 'radius-8', nom: 'layout/radius/8', collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 8 } } }], true);
-  const incompatible = proposerLesCorrections(r, mauvaisChamp, []).find(({ code }) => code === 'C29');
-  assert.deepEqual(incompatible?.question?.candidats, []);
-  const modesDivergents = catalogue([{ cle: 'size-modes', nom: 'layout/sizing/8', collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 8 }, Dark: { valeur: 9 } } }], true);
-  assert.equal(proposerLesCorrections(r, modesDivergents, []).find(({ code }) => code === 'C29')?.correction, undefined);
-  const multiple = catalogue([
-    { cle: 'size-8a', nom: 'layout/sizing/8a', collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 8 } } },
-    { cle: 'size-8b', nom: 'layout/sizing/8b', collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 8 } } },
+// Depuis le lot K1, C29 cherche dans les tokens `components` du composant, jamais dans `layout`.
+const flottant = (cle: string, nom: string, valeurs: Record<string, { valeur: number } | { alias: string }>, collection = 'components'): CatalogueDeReference['variables'][number] =>
+  ({ cle, nom, collection, type: 'FLOAT', etat: 'presente', valeurs });
+const c29DuCatalogue = (r: ReleveDeComposant, c: CatalogueDeReference) => proposerLesCorrections(r, c, []).find(({ code }) => code === 'C29');
+
+test('C29 propose alert/size/border-width quand ce token du composant vaut la valeur lue', () => {
+  const r = releve({ LegacyMode: 'classic' }, layer({ champ: 'strokeWeight', value: 1 }));
+  const c = catalogue([
+    flottant('bw', 'alert/size/border-width', { Light: { valeur: 1 } }),
+    flottant('layout-1', 'layout/stroke/1', { Light: { valeur: 1 } }, 'layout'),
   ], true);
-  const questionMultiple = proposerLesCorrections(r, multiple, []).find(({ code }) => code === 'C29');
-  assert.deepEqual(questionMultiple?.question?.candidats.map(({ cle }) => cle), ['size-8a', 'size-8b']);
+  const resultat = c29DuCatalogue(r, c);
+  assert.equal(resultat?.question, undefined);
+  assert.deepEqual(resultat?.correction?.apres, { cle: 'bw', nom: 'alert/size/border-width', collection: 'components', valeur: 1 });
+  assert.deepEqual(resultat?.correction?.cible, { layer: 'layer-1', champ: 'strokeWeight' });
+  assert.deepEqual(resultat?.correction?.aRelire.axes, { LegacyMode: 'classic' });
+  assert.equal(resultat?.correction?.aRelire.valeur, 1);
+});
+
+test('C29 sans token exact du composant ne propose rien : ni correction ni question, le constat reste', () => {
+  const r = releve({ LegacyMode: 'classic' }, layer({ champ: 'paddingTop', value: 8 }));
+  const layoutSeul = catalogue([flottant('size-8', 'layout/sizing/8', { Light: { valeur: 8 } }, 'layout')], true);
+  const constat = c29DuCatalogue(r, layoutSeul);
+  assert.ok(constat, 'le constat reste');
+  assert.equal(constat.correction, undefined);
+  assert.equal(constat.question, undefined);
+  assert.equal(constat.faits.recherche, undefined);
+  const sansCandidat: Array<[string, CatalogueDeReference['variables']]> = [
+    ['une autre valeur, loin de la valeur lue', [flottant('pad-20', 'alert/size/padding-y', { Light: { valeur: 20 } })]],
+    ['une autre propriété', [flottant('radius-8', 'alert/size/radius', { Light: { valeur: 8 } })]],
+    ['des modes qui divergent', [flottant('pad-modes', 'alert/size/padding-y', { Light: { valeur: 8 }, Dark: { valeur: 9 } })]],
+  ];
+  for (const [cas, variables] of sansCandidat) {
+    const resultat = c29DuCatalogue(r, catalogue(variables, true));
+    assert.equal(resultat?.correction, undefined, cas);
+    assert.equal(resultat?.question, undefined, cas);
+  }
+});
+
+test('C29 avec deux tokens du composant exacts pose une question et ne corrige pas', () => {
+  const r = releve({ LegacyMode: 'classic' }, layer({ name: 'container', champ: 'strokeWeight', value: 1 }));
+  const multiple = catalogue([
+    flottant('bw', 'alert/size/border-width', { Light: { valeur: 1 } }),
+    flottant('bw-container', 'alert/size/container/border-width', { Light: { valeur: 1 } }),
+  ], true);
+  const resultat = c29DuCatalogue(r, multiple);
+  assert.equal(resultat?.correction, undefined);
+  assert.deepEqual(resultat?.question?.candidats.map(({ cle }) => cle), ['bw', 'bw-container']);
+});
+
+test('C29 suit l’alias d’un token du composant vers layout pour trouver sa valeur', () => {
+  const r = releve({ LegacyMode: 'classic' }, layer({ champ: 'strokeWeight', value: 1 }));
+  const c = catalogue([
+    flottant('layout-1', 'layout/stroke/1', { Light: { valeur: 1 } }, 'layout'),
+    flottant('bw', 'alert/size/border-width', { Light: { alias: 'layout-1' } }),
+  ], true);
+  assert.equal(c29DuCatalogue(r, c)?.correction?.apres.cle, 'bw');
 });

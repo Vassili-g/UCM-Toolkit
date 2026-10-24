@@ -1,10 +1,11 @@
 /** Propositions fondées sur une règle écrite et des faits relus. */
-import type { Collection } from '../referentiel/architecture.js';
-import { formeReconnue } from '../referentiel/reconnaissance.js';
-import { cheminDansLaCollection, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
-import { candidatsDeLongueur } from './candidatsDeLongueur.js';
+import { REGISTRE_PALETTES_COMPOSANT, type Collection } from '../referentiel/architecture.js';
+import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
+import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
+import { type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { candidatDeLongueur, classerLesCandidats } from './candidatsDeLongueur.js';
 import type { Constat, Correction } from './constat.js';
-import { axesDuReleve, segmentDAxe, tokensDuComposant, type AxeDuComposant } from './nommage.js';
+import { axesDuReleve, segmentDAxe, tokensDuComposant, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /**
@@ -51,7 +52,8 @@ interface IndexDeCorrection {
   axes(): ReturnType<typeof axesDuReleve>;
   tokens(): ReturnType<typeof tokensDuComposant>;
   couleursDuComposant(): readonly VariableDuCatalogue[];
-  layoutComplet(famille: FamilleDeLayout): boolean;
+  /** Le catalogue permet de conclure qu'aucun token de `components` ne manque à la recherche de C29. */
+  tokensDeTailleLus(): boolean;
 }
 
 function indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeReference): IndexDeCorrection {
@@ -74,10 +76,10 @@ function indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefere
   let axes: ReturnType<typeof axesDuReleve> | undefined;
   let tokens: ReturnType<typeof tokensDuComposant> | undefined;
   let couleurs: VariableDuCatalogue[] | undefined;
+  let lus: boolean | undefined;
   // `find` rend la première collection de la clé : l'index garde elle aussi la première.
   const roles = new Map<string, Collection | null>();
   for (const entree of catalogue.collections) if (!roles.has(entree.cle)) roles.set(entree.cle, entree.role);
-  const complets = new Map<FamilleDeLayout, boolean>();
   return {
     layers, variants, variablesParNom,
     axes: () => (axes ??= axesDuReleve(releve)),
@@ -86,14 +88,7 @@ function indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefere
       && roles.get(variable.collection) === 'components'
       && formeReconnue(variable.nom.split('/')[0]) === formeReconnue(releve.jeu.nom)
       && formeReconnue(variable.nom.split('/')[1] ?? '') === 'color')),
-    layoutComplet: (famille) => {
-      let complet = complets.get(famille);
-      if (complet === undefined) {
-        complet = rechercheDeLayoutComplete(catalogue, famille);
-        complets.set(famille, complet);
-      }
-      return complet;
-    },
+    tokensDeTailleLus: () => (lus ??= collectionDesComposantsLue(catalogue)),
   };
 }
 
@@ -144,8 +139,9 @@ function constatsDeValeursEnDur(releve: ReleveDeComposant): Constat[] {
 export type FamilleDeLayout = 'sizing' | 'radius' | 'stroke';
 
 /**
- * Les familles de la collection `layout` dont C29 a besoin pour juger ce relevé, avec les filtres de C29. Une analyse qui
- * lit une library ne charge les valeurs de ces familles que pour elles.
+ * Les familles de `layout` que C29 cherchait avant la règle des tokens du composant. Rien ne les lit plus dans le kit : le
+ * sandbox d'Architect appelle encore cette fonction pour charger des valeurs de `layout` dont C29 ne se sert plus, et doit
+ * passer à `clesDesTokensDeTailleAttendus`.
  */
 export function famillesDeLayoutAttendues(releve: ReleveDeComposant): FamilleDeLayout[] {
   const familles = new Set<FamilleDeLayout>();
@@ -156,23 +152,75 @@ export function famillesDeLayoutAttendues(releve: ReleveDeComposant): FamilleDeL
   return [...familles];
 }
 
-/**
- * Une variable de la famille peut valoir la valeur lue seulement si la recherche a tout lu : une collection `layout` absente
- * ou inaccessible, ou une variable de la famille non chargée ou inaccessible, empêche de conclure.
- */
-function rechercheDeLayoutComplete(catalogue: CatalogueDeReference, famille: FamilleDeLayout): boolean {
-  const layouts = catalogue.collections.filter((collection) => collection.role === 'layout');
-  if (layouts.length === 0 || layouts.some((collection) => collection.etat === 'inaccessible')) return false;
-  const cles = new Set(layouts.map((collection) => collection.cle));
-  return !catalogue.variables.some((variable) => cles.has(variable.collection) && variable.type === 'FLOAT'
-    && formeReconnue(cheminDansLaCollection(variable, catalogue)[0] ?? '') === famille && variable.etat !== 'presente');
-}
-
 function familleLayoutCompatible(champ: string): FamilleDeLayout | undefined {
   if (/^(padding(Left|Right|Top|Bottom)?|gap|itemSpacing|counterAxisSpacing)$/i.test(champ)) return 'sizing';
   if (/^(cornerRadius|radius|(top|bottom)(Left|Right)Radius)$/i.test(champ)) return 'radius';
   if (/^(strokeWeight|borderWidth)$/i.test(champ)) return 'stroke';
   return undefined;
+}
+
+/**
+ * Les propriétés de `components` (registre `proprietes-composant`) dont un token peut porter la valeur d'un champ. Un champ
+ * sans propriété pour le dire (`counterAxisSpacing` : le registre ne connaît pas le sens du second axe) n'a pas de candidat.
+ * `padding`, qui vaut les quatre côtés, n'est pas un candidat d'un seul côté.
+ */
+const PROPRIETES_PAR_CHAMP: Readonly<Record<string, readonly string[]>> = {
+  strokeweight: ['border-width'], borderwidth: ['border-width'],
+  cornerradius: ['radius'], radius: ['radius'],
+  topleftradius: ['radius'], toprightradius: ['radius'], bottomleftradius: ['radius'], bottomrightradius: ['radius'],
+  itemspacing: ['gap'], gap: ['gap'],
+  paddingleft: ['padding-left', 'padding-x'], paddingright: ['padding-right', 'padding-x'],
+  paddingtop: ['padding-top', 'padding-y'], paddingbottom: ['padding-bottom', 'padding-y'],
+};
+
+export function proprietesDeComposantDuChamp(champ: string): readonly string[] {
+  return PROPRIETES_PAR_CHAMP[champ.toLowerCase()] ?? [];
+}
+
+/** La collection `components` existe et se lit : sans elle, l'absence d'un token ne prouve rien. */
+function collectionDesComposantsLue(catalogue: CatalogueDeReference): boolean {
+  const collections = catalogue.collections.filter((collection) => collection.role === 'components');
+  return collections.length > 0 && collections.every((collection) => collection.etat !== 'inaccessible');
+}
+
+function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: string): boolean {
+  if (formeReconnue(segment) === formeReconnue(valeur)) return true;
+  const registre = axe === 'etat' ? REGISTRE_ETATS : axe === 'taille' ? REGISTRE_TAILLES : axe === 'palette' ? REGISTRE_PALETTES_COMPOSANT : undefined;
+  const terme = registre && termeReconnu(registre, segment)?.id;
+  return !!terme && terme === termeReconnu(registre, valeur)?.id;
+}
+
+/**
+ * Les tokens de taille du composant qui peuvent lier ce champ de ce layer dans ce variant, sans regarder leur valeur. Un
+ * segment d'axe du token doit valoir celui du variant ; un token sans segment pour un axe vaut pour toutes ses valeurs. Un
+ * segment d'élément doit nommer le layer. Un token dont le nom ne se lit pas ne se départage pas : il n'est pas retenu.
+ */
+function tokensDeTailleDuLayer(index: IndexDeCorrection, layer: LayerLu, variant: VariantLu | undefined, champ: string): TokenDuComposant[] {
+  const proprietes = proprietesDeComposantDuChamp(champ);
+  if (proprietes.length === 0) return [];
+  return index.tokens().filter((token) => {
+    if (token.variable.type !== 'FLOAT') return false;
+    const propriete = token.lecture.find((segment) => segment.role === 'propriete');
+    if (!propriete?.terme || !proprietes.includes(propriete.terme)) return false;
+    return token.lecture.every((segment) => {
+      if (segment.role === 'element') return formeReconnue(segment.segment) === formeReconnue(layer.nom);
+      if (segment.role !== 'palette' && segment.role !== 'style' && segment.role !== 'taille' && segment.role !== 'etat') return true;
+      const axe = index.axes()[segment.role];
+      const valeur = axe && variant?.valeurs[axe.nom];
+      return !!valeur && memeValeurDAxe(segment.role, segment.segment, valeur);
+    });
+  });
+}
+
+/**
+ * Les clés des tokens de `components` du composant que C29 peut proposer pour ce relevé. Une analyse qui lit une library n'en
+ * charge les valeurs que pour eux : un token lié nulle part n'est pas chargé autrement.
+ */
+export function clesDesTokensDeTailleAttendus(releve: ReleveDeComposant, catalogue: CatalogueDeReference): string[] {
+  const proprietes = new Set(constatsDeValeursEnDur(releve).flatMap((constat) => proprietesDeComposantDuChamp(String(constat.faits.champ))));
+  return tokensDuComposant(releve, catalogue)
+    .filter((token) => token.variable.type === 'FLOAT' && proprietes.has(token.lecture.find((segment) => segment.role === 'propriete')?.terme ?? ''))
+    .map((token) => token.variable.cle);
 }
 
 function corrigerAxe(constat: Constat, releve: ReleveDeComposant, catalogue: CatalogueDeReference, index: IndexDeCorrection): Pick<Constat, 'correction' | 'question'> | undefined {
@@ -241,10 +289,11 @@ function corrigerValeurEnDur(constat: Constat, releve: ReleveDeComposant, catalo
   const valeur = typeof constat.faits.valeur === 'number' ? constat.faits.valeur : undefined;
   const dure = layer?.valeursEnDur.find((entree) => entree.champ === champ && entree.valeur === valeur);
   if (!layer || !champ || valeur === undefined || !dure) return undefined;
-  const familleCherchee = familleLayoutCompatible(champ);
-  if (!familleCherchee) return undefined;
-  if (!index.layoutComplet(familleCherchee)) return { faits: { ...constat.faits, recherche: 'incomplete' } };
-  const { exacts, proches } = candidatsDeLongueur(catalogue, familleCherchee, valeur);
+  if (proprietesDeComposantDuChamp(champ).length === 0) return undefined;
+  // Un layer ne se lie qu'aux tokens de son composant : `layout` n'est jamais un candidat, même d'une valeur exacte.
+  const possibles = tokensDeTailleDuLayer(index, layer, variantDuConstat(constat, index), champ);
+  if (!index.tokensDeTailleLus() || possibles.some(({ variable }) => variable.etat !== 'presente')) return { faits: { ...constat.faits, recherche: 'incomplete' } };
+  const { exacts, proches } = classerLesCandidats(possibles.map(({ variable }) => candidatDeLongueur(catalogue, variable)), valeur);
   if (exacts.length === 0 && proches.length > 0) {
     // Un token proche change le rendu : le designer choisit, rien n'est proposé comme correction.
     return {
@@ -252,12 +301,14 @@ function corrigerValeurEnDur(constat: Constat, releve: ReleveDeComposant, catalo
       question: { id: constat.id, candidats: proches.map(({ variable, valeur: cible }) => ({ cle: variable.cle, nom: variable.nom, valeur: cible })) },
     };
   }
-  if (exacts.length !== 1) return question(constat, exacts);
+  // Sans token exact ni proche, le constat reste seul : la préparation propose de créer le token.
+  if (exacts.length === 0) return undefined;
+  if (exacts.length > 1) return question(constat, exacts);
   const candidate = exacts[0];
   return { correction: {
     id: constat.id, sorte: 'liaison', cible: { layer: layer.id, champ }, avant: null,
-    apres: { cle: candidate.cle, nom: candidate.nom },
-    aRelire: { axes: axesDuVariant(constat, index), regle: 'La variable layout porte la même valeur numérique en pixels que la valeur lue.', avant: null, valeur },
+    apres: { cle: candidate.cle, nom: candidate.nom, collection: catalogue.collections.find((entree) => entree.cle === candidate.collection)?.nom, valeur },
+    aRelire: { axes: axesDuVariant(constat, index), regle: 'Le token du composant porte la même valeur numérique en pixels que la valeur lue.', avant: null, valeur },
   } };
 }
 

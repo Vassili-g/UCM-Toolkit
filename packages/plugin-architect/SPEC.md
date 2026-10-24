@@ -236,12 +236,12 @@ primitives. Les variables liées au composant s'importent toujours ; celles de
 `layout` s'importent en plus, pour les seules familles (`sizing`, `radius`,
 `stroke`) qu'une valeur en dur met en jeu, afin que C29 trouve un token exact.
 Une cible hors de ces collections se lit par son identifiant, sinon par sa clé,
-et entre au catalogue avec sa collection et ses modes. Si `layout` reste illisible,
-C29 le dit (`faits.recherche = 'incomplete'`) au lieu de poser une question sans
-candidat.
+et entre au catalogue avec sa collection et ses modes. Si `components` reste
+illisible, ou si un token du composant dont la propriété sert le champ n'est pas
+chargé, C29 le dit (`faits.recherche = 'incomplete'`) au lieu de conclure.
 
-Sans token exact, C29 pose une question proche (`faits.proche = 1`) quand la
-famille a une variable dont la valeur, la même dans tous les modes, diffère de
+Sans token exact, C29 pose une question proche (`faits.proche = 1`) quand un
+token de `components` du composant, pour la propriété du champ, a une valeur, la même dans tous les modes, qui diffère de
 la valeur lue d'au plus `min(2, 0,1 × max(|v|, 1))` px. Elle propose au plus la
 plus proche en dessous et la plus proche au-dessus, jamais pour une valeur 0.
 Un token proche change le rendu : ce n'est pas une correction, rien n'est coché,

@@ -6,7 +6,8 @@ export interface Correction {
   sorte: 'liaison' | 'nom-de-valeur' | 'regles' | 'scope' | 'alias-de-mode' | 'variable';
   cible: { layer?: string; champ?: string; indice?: number; plage?: { debut: number; fin: number }; variable?: string; mode?: string };
   avant: string | null;
-  apres: { cle?: string; nom: string };
+  /** `collection` et `valeur` : le nom de la collection du token et sa valeur en pixels, posés par C29 pour que la carte les montre. */
+  apres: { cle?: string; nom: string; collection?: string; valeur?: number };
   /** `valeur` : la valeur numérique que l'analyse a lue sur le champ ; l'écriture saute la liaison si le champ en porte une autre. */
   aRelire: { axes?: Record<string, string>; regle: string; avant: string | null; valeur?: number };
 }

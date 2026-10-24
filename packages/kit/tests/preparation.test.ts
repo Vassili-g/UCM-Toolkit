@@ -240,3 +240,19 @@ test('une question de nom sans candidat se résout par un texte libre', () => {
   assert.deepEqual(repondu.questions, []);
   assert.ok(repondu.variables.some(({ nom }) => nom === 'components/alert/color/carte/danger/soft/background'));
 });
+
+// Règle du lot K1 : un layer ne se lie qu'aux tokens de son composant. La préparation crée la variable de `components` ;
+// `layout` et `theme` ne sont que ce qu'elle vise.
+test('la préparation ne propose aucune liaison directe vers layout ou theme : chaque lieu reçoit une variable de components', () => {
+  const resultat = preparerLesTokens(alert({ rayon: 12 }), catalogue(...theme('soft'), ...sizing(['2', 8]), ...rayons(['12', 12])), reponses);
+  assert.ok(resultat.variables.some(({ type }) => type === 'COLOR') && resultat.variables.some(({ type }) => type === 'FLOAT'));
+  for (const variable of resultat.variables) {
+    assert.match(variable.nom, /^components\/alert\//);
+    assert.match(variable.vise?.nom ?? '', /^(theme|layout)\//);
+    assert.ok(variable.concerne.length > 0, variable.nom);
+  }
+  // Une taille sans token exact reste en dur : elle n'est pas liée à un token proche de layout non plus.
+  const sansExact = preparerLesTokens(alert({ rayon: 13 }), catalogue(...complet('soft'), ...rayons(['14', 14])), reponses);
+  assert.ok(sansExact.variables.every(({ nom, vise }) => nom !== vise?.nom && !(vise?.nom ?? '').endsWith('/14')));
+  assert.equal(sansExact.sansCible?.length, 1);
+});

@@ -130,9 +130,13 @@ export const TEXTES_IGNORES = {
     peintureSansToken: (champ: string, layer: string): string => `Le ${champ} du layer ${layer} n’est lié à aucun token.`,
     peintureSansTokenStatut: 'Liez-le à un token du composant',
     tailleSansVariable: (propriete: string, layer: string, valeur: number): string => `Le ${propriete} du layer ${layer} vaut ${valeur} px, sans variable.`,
-    tailleSansVariableStatut: 'Ajoutez un token de layout qui vaut cette valeur, puis liez-le',
-    tailleSansVariableIllisible: (propriete: string, layer: string, valeur: number): string => `Le ${propriete} du layer ${layer} vaut ${valeur} px, sans variable. Les tokens de layout n’ont pas pu être lus.`,
+    tailleSansVariableStatut: 'Créez un token du composant qui vaut cette valeur, puis liez-le',
+    tailleSansVariableIllisible: (propriete: string, layer: string, valeur: number): string => `Le ${propriete} du layer ${layer} vaut ${valeur} px, sans variable. Les tokens du composant n’ont pas pu être lus.`,
     tailleSansVariableIllisibleStatut: 'Vérifiez la library de tokens dans la Configuration',
+    // C80 : une couleur ou une taille liée à une variable qui n'est pas un token du composant.
+    liaisonHorsDuComposant: (propriete: string, layer: string, token: string, couche: string): string =>
+      `Le ${propriete} du layer ${layer} est lié à \`${token}\`, un token de ${couche}.`,
+    liaisonHorsDuComposantStatut: 'Liez-le à un token du composant',
     // C43, C45 : l'instance de règles.
     sansRegles: 'Le composant n’a pas d’instance de règles.',
     sansReglesStatut: 'Créez l’instance de règles',

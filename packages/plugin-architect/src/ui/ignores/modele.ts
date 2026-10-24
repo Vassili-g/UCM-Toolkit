@@ -363,6 +363,11 @@ function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | nu
         lieu: sansLayer, statut: illisible ? T.tailleSansVariableIllisibleStatut : T.tailleSansVariableStatut,
       };
     }
+    case 'C80':
+      return {
+        phrase: T.liaisonHorsDuComposant(T.proprieteDeFigma(texte(faits.champ) ?? ''), calqueDe(constat, contexte) ?? '', texte(faits.token) ?? '', texte(faits.couche) ?? ''),
+        lieu: sansLayer, statut: T.liaisonHorsDuComposantStatut,
+      };
     case 'C43':
       return { phrase: T.sansRegles, lieu: T.tousLesVariants, statut: T.sansReglesStatut };
     case 'C45':
