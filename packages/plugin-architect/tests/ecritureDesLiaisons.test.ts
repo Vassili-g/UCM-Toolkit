@@ -226,3 +226,13 @@ test('un point d’annulation refusé ne retire pas les écritures', async () =>
   const rendu = await ecrireLeLot([liaison('c1', { layer: '1:1', champ: 'paddingLeft' })], {}, api);
   assert.deepEqual(rendu.ecrites, ['c1']);
 });
+
+test('une valeur lue par l’analyse qui a changé : sautée fait-faux ; la même valeur laisse écrire', async () => {
+  const a = atelier();
+  const frame = a.layer('1:1', 'FRAME', { cornerRadius: 12 });
+  const c29 = (id: string, valeur: number): Correction => liaison(id, { layer: '1:1', champ: 'cornerRadius' }, { aRelire: { regle: 'liaisons', avant: null, valeur } });
+  const rendu = await ecrireLesLiaisons([c29('lue-13', 13), c29('lue-12', 12)], a.api);
+  assert.deepEqual(rendu, { ecrites: ['lue-12'], sautees: [{ id: 'lue-13', motif: 'fait-faux' }] });
+  assert.deepEqual(frame.boundVariables, { cornerRadius: alias('V:1') });
+  assert.deepEqual(a.journal.filter((ligne) => ligne.startsWith('lier:')), ['lier:1:1.cornerRadius:k-cible']);
+});

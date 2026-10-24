@@ -74,3 +74,19 @@
   align-items: center;
   gap: var(--espace-serre) var(--espace-controle);
 }
+
+.liste-questions .question-candidat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-serre);
+}
+
+.liste-questions .question-candidat-token {
+  color: var(--texte-second);
+  font-family: var(--police-code);
+  overflow-wrap: anywhere;
+}
+
+.liste-questions .question-groupe {
+  font-weight: 600;
+}

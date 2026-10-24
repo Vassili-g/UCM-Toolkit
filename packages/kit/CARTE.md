@@ -73,7 +73,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - navigateur.d.mts : ce que cette porte promet à un consommateur TS
 
 ## src/controles/
-- candidatsDeLongueur.ts : `candidatsDeLongueur` : variables de `layout` qui valent une longueur, alias suivis, index par catalogue ; partagé par C29 et `preparerLesTokens`
+- candidatsDeLongueur.ts : `candidatsDeLongueur` : variables de `layout` qui valent une longueur, exactes ou proches (C29 seul), alias suivis, index par catalogue ; partagé par C29 et `preparerLesTokens`
 - preparation.ts : `preparerLesTokens` : variables de `components` à créer pour un composant, ce qu'elles visent dans `theme` et `layout`, questions ouvertes
 - propagation.ts : `proposerLaPropagation` (C24) : liaisons d'un variant modèle reportées sur les autres variants par substitution des segments d'axe, en correction exacte ou en question
 

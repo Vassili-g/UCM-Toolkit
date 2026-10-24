@@ -80,12 +80,56 @@ test('la famille est respectée, avec la collection et l’état de la variable'
   assert.deepEqual(cles(cat, 'stroke', 8), []);
 });
 
-test('l’index se construit une fois par catalogue, et les proches restent vides', () => {
+test('l’index se construit une fois par catalogue', () => {
   const cat = catalogue([variable('a', 'sizing/8', { l: { valeur: 8 } })]);
   const premier = indexDeLongueurs(cat);
   candidatsDeLongueur(cat, 'sizing', 8);
   candidatsDeLongueur(cat, 'radius', 4);
   assert.equal(indexDeLongueurs(cat), premier);
   assert.notEqual(indexDeLongueurs(catalogue([variable('a', 'sizing/8', { l: { valeur: 8 } })])), premier);
-  assert.deepEqual(candidatsDeLongueur(cat, 'sizing', 9).proches, []);
+});
+
+const proches = (cat: CatalogueDeReference, famille: string, valeur: number) =>
+  candidatsDeLongueur(cat, famille, valeur).proches.map(({ variable: { cle }, valeur: v, ecart }) => [cle, v, ecart]);
+const fixe = (cle: string, famille: string, valeur: number, over: Partial<VariableDuCatalogue> = {}) =>
+  variable(cle, `${famille}/${cle}`, { l: { valeur }, d: { valeur } }, over);
+
+test('sans exact, un token à 1 px de la valeur est proche, avec sa valeur et son écart', () => {
+  const cat = catalogue([fixe('r14', 'radius', 14)]);
+  assert.deepEqual(proches(cat, 'radius', 13), [['r14', 14, 1]]);
+  assert.deepEqual(candidatsDeLongueur(cat, 'radius', 13).exacts, []);
+});
+
+test('un exact écarte les proches', () => {
+  const cat = catalogue([fixe('r13', 'radius', 13), fixe('r14', 'radius', 14)]);
+  assert.deepEqual(candidatsDeLongueur(cat, 'radius', 13).proches, []);
+});
+
+test('un token qui diffère selon le mode n’est jamais proche', () => {
+  const cat = catalogue([variable('r', 'radius/r', { l: { valeur: 14 }, d: { valeur: 18 } })]);
+  assert.deepEqual(proches(cat, 'radius', 13), []);
+});
+
+test('l’écart est borné à 2 px et à un dixième de la valeur lue', () => {
+  const cat = catalogue([fixe('r16', 'radius', 16), fixe('s8', 'sizing', 8), fixe('s30', 'sizing', 30), fixe('p22', 'sizing', 22)]);
+  assert.deepEqual(proches(cat, 'radius', 13), [], '3 px, au-delà de 1,3');
+  assert.deepEqual(proches(cat, 'sizing', 9), [], '1 px dépasse un dixième de 9');
+  assert.deepEqual(proches(cat, 'sizing', 20), [['p22', 22, 2]], '2 px à la borne de 2 px');
+  assert.deepEqual(proches(cat, 'sizing', 27), [], '3 px dépasse 2 px');
+});
+
+test('au plus le plus proche en dessous et le plus proche au-dessus, le plus bas d’abord', () => {
+  const cat = catalogue([fixe('r14', 'radius', 14), fixe('r142', 'radius', 14.2), fixe('r12', 'radius', 12), fixe('r125', 'radius', 12.5)]);
+  assert.deepEqual(proches(cat, 'radius', 13), [['r125', 12.5, 0.5], ['r14', 14, 1]]);
+  assert.deepEqual(proches(catalogue([fixe('a', 'radius', 12), fixe('b', 'radius', 14)]), 'radius', 13), [['a', 12, 1], ['b', 14, 1]]);
+  assert.deepEqual(proches(catalogue([fixe('a', 'radius', 12), fixe('b', 'radius', 12.5)]), 'radius', 13), [['b', 12.5, 0.5]]);
+});
+
+test('à écart égal du même côté, l’ordre des noms départage', () => {
+  const cat = catalogue([fixe('z', 'radius', 14), fixe('a', 'radius', 14)]);
+  assert.deepEqual(proches(cat, 'radius', 13).map(([cle]) => cle), ['a']);
+});
+
+test('une valeur nulle n’a jamais de proche', () => {
+  assert.deepEqual(proches(catalogue([fixe('r1', 'radius', 1)]), 'radius', 0), []);
 });

@@ -4,6 +4,9 @@
  * (`candidats` : des variables du catalogue) et un nom de valeur à choisir (C12, C13 : des noms). Le candidat que le titre cite est le
  * premier du moteur ; rien ne part avant le clic, et chaque autre candidat a son bouton.
  *
+ * Une valeur de longueur sans token exact (C29 proche) a sa forme : le titre dit la valeur lue sans citer de candidat, chaque candidat a un
+ * bouton de même poids qui dit l'écart, et les questions identiques de plusieurs variants se montrent en un groupe.
+ *
  * Une liaison d'état (C16, un layer de State=hover lié au token du repos) a sa forme : le titre cite l'état et le token d'état, l'effet
  * met en couleur le segment qui change, et l'indice du moteur (ce que font les autres variants du même état) suit la ligne grise.
  */
@@ -23,6 +26,8 @@ export interface ReponseProposee {
   readonly libelle: string;
   /** Ce que `repondre` envoie : la clé du candidat, sinon son nom. */
   readonly reponse: string;
+  /** Le nom du token que le bouton adopte, écrit à côté du bouton d'un token proche. */
+  readonly token?: string;
 }
 
 export interface CarteDeQuestion {
@@ -42,6 +47,10 @@ export interface CarteDeQuestion {
   readonly autres: readonly ReponseProposee[];
   /** La ligne que la réponse tire : « title sera lié à colors/info/standard/title. » */
   readonly reponseEnTexte: (correction: Correction) => string;
+  /** Un token proche : aucun bouton n'est mis en avant, et la carte n'a pas de ligne d'effet. */
+  readonly proche: boolean;
+  /** Ce que deux cartes partagent pour se montrer en une seule ; `null` quand la carte reste seule. */
+  readonly groupe: string | null;
 }
 
 export interface ContexteDeQuestions {
@@ -51,6 +60,14 @@ export interface ContexteDeQuestions {
 }
 
 const texte = (valeur: string | number | undefined): string | null => (typeof valeur === 'string' && valeur !== '' ? valeur : null);
+const nombre = (valeur: string | number | undefined): number | null => (typeof valeur === 'number' && Number.isFinite(valeur) ? valeur : null);
+
+/** La famille de layout dont C29 cherche un token, d'après le champ lu : la règle du kit (`familleLayoutCompatible`). */
+function familleDeLayout(champ: string): string {
+  if (/radius/i.test(champ)) return 'radius';
+  if (/^(strokeWeight|borderWidth)$/i.test(champ)) return 'stroke';
+  return 'sizing';
+}
 
 function sansPrefixe(nom: string, composant: string): string {
   const prefixe = `${composant.toLowerCase()}/`;
@@ -110,6 +127,7 @@ function questionDEtat(constat: Constat, id: string, candidats: readonly { reado
     principal: { libelle: T.lierAuTokenDEtat(etat), reponse: reponseDe(premier) },
     autres: candidats.slice(1).map((candidat) => ({ libelle: T.lierA(sansPrefixe(candidat.nom, contexte.composant).split('/').slice(-1)[0]), reponse: reponseDe(candidat) })),
     reponseEnTexte: (correction) => T.seraLie(layer, correction.apres.nom),
+    proche: false, groupe: null,
   };
 }
 
@@ -129,6 +147,7 @@ function questionDeNom(constat: Constat, id: string, candidats: readonly { reado
     principal: { libelle: T.boutonRenommer, reponse: reponseDe(premier) },
     autres: candidats.slice(1).map((candidat) => ({ libelle: T.renommerEn(candidat.nom), reponse: reponseDe(candidat) })),
     reponseEnTexte: (correction) => T.seraRenomme(correction.avant ?? avant, correction.apres.nom),
+    proche: false, groupe: null,
   };
 }
 
@@ -153,6 +172,45 @@ function questionDeLiaison(constat: Constat, id: string, candidats: readonly { r
     principal: { libelle: T.boutonLier, reponse: reponseDe(premier) },
     autres: autres.map((candidat) => ({ libelle: T.lierA(sansPrefixe(candidat.nom, contexte.composant).split('/').slice(-1)[0]), reponse: reponseDe(candidat) })),
     reponseEnTexte: (correction) => T.seraLie(layer, sansPrefixe(correction.apres.nom, contexte.composant)),
+    proche: false, groupe: null,
+  };
+}
+
+type CandidatDeQuestion = { readonly cle?: string; readonly nom: string; readonly valeur?: number };
+
+/**
+ * C29 sans token exact : l'écart que chaque candidat apporte, jamais choisi d'avance. Le titre ne cite aucun candidat, et chaque bouton
+ * dit la valeur adoptée. Deux cartes qui ont même layer, même champ, même valeur et mêmes candidats partagent un groupe.
+ */
+function questionProche(constat: Constat, id: string, candidats: readonly CandidatDeQuestion[], contexte: ContexteDeQuestions): CarteDeQuestion | null {
+  const champ = texte(constat.faits.champ);
+  const valeur = nombre(constat.faits.valeur);
+  const cibles = candidats.map((candidat) => nombre(candidat.valeur));
+  if (candidats.length === 0 || champ === null || valeur === null || cibles.some((cible) => cible === null)) return null;
+  const layer = (constat.layers.length === 1 ? texte(constat.faits.calque) : null) ?? contexte.layers.get(constat.layers[0] ?? '') ?? texte(constat.faits.calque) ?? 'layer';
+  const propriete = TEXTES.aFaireDuComposant.proprieteDeFigma(champ);
+  const famille = familleDeLayout(champ);
+  const propositions: ReponseProposee[] = candidats.map((candidat, rang) => {
+    const cible = cibles[rang] as number;
+    return {
+      libelle: T.adopter(cible, cible > valeur ? '+' : '−', Number(Math.abs(cible - valeur).toFixed(2))),
+      reponse: reponseDe(candidat), token: sansPrefixe(candidat.nom, contexte.composant),
+    };
+  });
+  return {
+    id, constat, origine: null, indice: null,
+    titre: [T.leDeLayer(propriete), { olive: layer }, T.vautSansToken(valeur, famille)],
+    titreEnTexte: `${T.leDeLayer(propriete)}${layer}${T.vautSansToken(valeur, famille)}`,
+    meta: T.lierChangeLeRendu,
+    ancien: [], nouveau: [],
+    principal: propositions[0], autres: propositions.slice(1),
+    reponseEnTexte: (correction) => {
+      const rang = candidats.findIndex((candidat) => (candidat.cle !== undefined ? candidat.cle === correction.apres.cle : candidat.nom === correction.apres.nom));
+      const token = sansPrefixe(correction.apres.nom, contexte.composant);
+      return rang < 0 ? T.seraLie(layer, token) : T.valeurChange(layer, token, valeur, cibles[rang] as number);
+    },
+    proche: true,
+    groupe: JSON.stringify([layer, champ, valeur, candidats.map((candidat) => [reponseDe(candidat), candidat.valeur])]),
   };
 }
 
@@ -165,8 +223,38 @@ export function carteDeQuestion(constat: Constat, contexte: ContexteDeQuestions)
     const etat = questionDEtat(constat, question.id, question.candidats, question.indice, contexte);
     if (etat) return etat;
   }
+  if (constat.code === 'C29' && constat.faits.proche === 1) {
+    const proche = questionProche(constat, question.id, question.candidats, contexte);
+    if (proche) return proche;
+  }
   return questionDeLiaison(constat, question.id, question.candidats, contexte);
 }
+
+/** Des cartes que la liste montre en une : une par variant dans le kit, une seule à l'écran. */
+export interface GroupeDeQuestions {
+  /** La carte qui se montre : la première du groupe. */
+  readonly carte: CarteDeQuestion;
+  /** Toutes les cartes du groupe, dont la première. */
+  readonly cartes: readonly CarteDeQuestion[];
+}
+
+/**
+ * Regroupe les cartes qui portent le même `groupe`. Une carte répondue ne se mêle qu'aux cartes qui ont reçu le même token.
+ * Le groupe garde l'ordre de sa première carte. Aucune correction ne se calcule ici.
+ */
+export function regrouperLesCartes(cartes: readonly CarteDeQuestion[], repondues: Readonly<Record<string, Correction>>): GroupeDeQuestions[] {
+  const groupes = new Map<string, CarteDeQuestion[]>();
+  for (const carte of cartes) {
+    const reponse = repondues[carte.id];
+    const cle = carte.groupe === null ? `seule:${carte.id}` : `${carte.groupe}|${reponse === undefined ? 'a-trancher' : `repondue:${reponse.apres.cle ?? reponse.apres.nom}`}`;
+    groupes.set(cle, [...(groupes.get(cle) ?? []), carte]);
+  }
+  return [...groupes.values()].map((liste) => ({ carte: liste[0], cartes: liste }));
+}
+
+/** Ce que `repondre` envoie quand le designer répond au groupe : une demande par question. */
+export const reponsesDuGroupe = (groupe: GroupeDeQuestions, reponse: string): ReadonlyArray<{ readonly question: string; readonly reponse: string }> =>
+  groupe.cartes.map((carte) => ({ question: carte.id, reponse }));
 
 /** Les constats qui posent une question : ceux qui n'ont pas de correction, et dont la question a un candidat. */
 export const estUneQuestion = (constat: Constat): boolean => constat.question !== undefined && constat.correction === undefined && constat.question.candidats.length > 0;

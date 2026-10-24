@@ -240,8 +240,19 @@ et entre au catalogue avec sa collection et ses modes. Si `layout` reste illisib
 C29 le dit (`faits.recherche = 'incomplete'`) au lieu de poser une question sans
 candidat.
 
+Sans token exact, C29 pose une question proche (`faits.proche = 1`) quand la
+famille a une variable dont la valeur, la même dans tous les modes, diffère de
+la valeur lue d'au plus `min(2, 0,1 × max(|v|, 1))` px. Elle propose au plus la
+plus proche en dessous et la plus proche au-dessus, jamais pour une valeur 0.
+Un token proche change le rendu : ce n'est pas une correction, rien n'est coché,
+et la question montre l'écart de chaque candidat. Les questions identiques de
+plusieurs variants se montrent en une carte, qui envoie une réponse par
+question.
+
 Avant d'écrire une liaison, le sandbox relit le layer, les valeurs du variant,
-la liaison du champ et la peinture que l'analyse a lus. Un écart saute la
+la liaison du champ et la peinture que l'analyse a lus. Une correction de C29
+porte aussi la valeur lue (`aRelire.valeur`) : si le champ en a une autre, elle
+saute en `fait-faux`. Un écart saute la
 correction avec un motif (`objet-change`, `fait-faux`, `cible-introuvable`,
 `erreur`), et les autres s'écrivent. L'écriture périme l'analyse.
 

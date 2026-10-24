@@ -7,12 +7,14 @@ export interface Correction {
   cible: { layer?: string; champ?: string; indice?: number; plage?: { debut: number; fin: number }; variable?: string; mode?: string };
   avant: string | null;
   apres: { cle?: string; nom: string };
-  aRelire: { axes?: Record<string, string>; regle: string; avant: string | null };
+  /** `valeur` : la valeur numérique que l'analyse a lue sur le champ ; l'écriture saute la liaison si le champ en porte une autre. */
+  aRelire: { axes?: Record<string, string>; regle: string; avant: string | null; valeur?: number };
 }
 
 export interface Question {
   id: string;
-  candidats: { cle?: string; nom: string }[];
+  /** `valeur` : la valeur en pixels d'un candidat dont la valeur n'est pas celle lue (C29 proche). */
+  candidats: { cle?: string; nom: string; valeur?: number }[];
   indice?: string;
 }
 

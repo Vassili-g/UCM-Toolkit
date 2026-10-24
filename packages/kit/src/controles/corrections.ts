@@ -183,13 +183,20 @@ function corrigerValeurEnDur(constat: Constat, releve: ReleveDeComposant, catalo
   const familleCherchee = familleLayoutCompatible(champ);
   if (!familleCherchee) return undefined;
   if (!rechercheDeLayoutComplete(catalogue, familleCherchee)) return { faits: { ...constat.faits, recherche: 'incomplete' } };
-  const candidats = candidatsDeLongueur(catalogue, familleCherchee, valeur).exacts;
-  if (candidats.length !== 1) return question(constat, candidats);
-  const candidate = candidats[0];
+  const { exacts, proches } = candidatsDeLongueur(catalogue, familleCherchee, valeur);
+  if (exacts.length === 0 && proches.length > 0) {
+    // Un token proche change le rendu : le designer choisit, rien n'est proposé comme correction.
+    return {
+      faits: { ...constat.faits, proche: 1 },
+      question: { id: constat.id, candidats: proches.map(({ variable, valeur: cible }) => ({ cle: variable.cle, nom: variable.nom, valeur: cible })) },
+    };
+  }
+  if (exacts.length !== 1) return question(constat, exacts);
+  const candidate = exacts[0];
   return { correction: {
     id: constat.id, sorte: 'liaison', cible: { layer: layer.id, champ }, avant: null,
     apres: { cle: candidate.cle, nom: candidate.nom },
-    aRelire: { axes: axesDuVariant(constat, releve), regle: 'La variable layout porte la même valeur numérique en pixels que la valeur lue.', avant: null },
+    aRelire: { axes: axesDuVariant(constat, releve), regle: 'La variable layout porte la même valeur numérique en pixels que la valeur lue.', avant: null, valeur },
   } };
 }
 

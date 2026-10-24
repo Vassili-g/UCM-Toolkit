@@ -2,7 +2,8 @@
  * L'onglet Questions du panneau des constats : une carte par question du moteur, au modèle d'« À trancher » de Nomenclature. Le titre
  * cite le premier candidat, chaque autre candidat a son bouton, et rien n'est choisi avant le clic. Une réponse remplace la carte par sa
  * ligne verte (la correction qu'elle tire passe dans Corrections), avec deux gestes : ouvrir Corrections, annuler la réponse. « Plus tard »
- * range la carte en fin de liste jusqu'à la prochaine analyse.
+ * range la carte en fin de liste jusqu'à la prochaine analyse. Les questions identiques de plusieurs variants se montrent en une carte, qui
+ * envoie une réponse par question du groupe.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
@@ -11,7 +12,7 @@ import { creerCheminEnPhrase, creerVariantEnPhrase } from 'ucm-plugin-socle/src/
 import type { AnalyseRecue } from '../composant/analyse';
 import { poserLeTexteEnrichi } from '../ignores/texte';
 import { TEXTES } from '../textes';
-import { carteDeQuestion, estUneQuestion, type CarteDeQuestion, type ContexteDeQuestions, type MorceauDEffet, type MorceauDeTitre } from './modele';
+import { carteDeQuestion, estUneQuestion, regrouperLesCartes, reponsesDuGroupe, type CarteDeQuestion, type ContexteDeQuestions, type GroupeDeQuestions, type MorceauDEffet, type MorceauDeTitre, type ReponseProposee } from './modele';
 
 const T = TEXTES.questionsDuComposant;
 
@@ -93,7 +94,26 @@ export function monterLesQuestions(hote: HTMLElement, options: OptionsDesQuestio
   let restantes = 0;
   const plusTard = new Set<string>();
 
-  function creerLaCarte(carte: CarteDeQuestion, inactif: boolean): HTMLElement {
+  /** Une réponse au groupe : une demande `repondre` par question qu'il réunit. */
+  const repondreAuGroupe = (groupe: GroupeDeQuestions, reponse: string): void => {
+    for (const demande of reponsesDuGroupe(groupe, reponse)) options.repondre(demande.question, demande.reponse);
+  };
+
+  /** Le bouton d'un token proche, avec le nom du token à côté ; tous les candidats pèsent autant. */
+  function boutonDeProche(proposition: ReponseProposee, carte: CarteDeQuestion, groupe: GroupeDeQuestions, inactif: boolean): HTMLElement {
+    const bouton = createButton({ label: proposition.libelle, variant: 'secondary', compact: true, disabled: inactif, onClick: () => repondreAuGroupe(groupe, proposition.reponse) });
+    bouton.setAttribute('aria-label', T.repondre(proposition.libelle, carte.titreEnTexte));
+    const ensemble = document.createElement('span');
+    ensemble.className = 'question-candidat';
+    const nom = document.createElement('code');
+    nom.className = 'question-candidat-token';
+    nom.textContent = proposition.token ?? '';
+    ensemble.append(bouton, nom);
+    return ensemble;
+  }
+
+  function creerLaCarte(groupe: GroupeDeQuestions, inactif: boolean): HTMLElement {
+    const { carte } = groupe;
     const element = document.createElement('div');
     element.className = 'carte question question-proposition';
     const entete = document.createElement('div');
@@ -126,31 +146,44 @@ export function monterLesQuestions(hote: HTMLElement, options: OptionsDesQuestio
     poserLEffet(nouveau, carte.nouveau);
     effet.append(document.createElement('span'), ancien, fleche, nouveau);
 
-    const principal = createButton({ label: carte.principal.libelle, variant: 'secondary', compact: true, disabled: inactif, onClick: () => options.repondre(carte.id, carte.principal.reponse) });
-    principal.setAttribute('aria-label', T.repondre(carte.principal.libelle, carte.titreEnTexte));
     const gauche = document.createElement('span');
     gauche.className = 'question-actions';
-    gauche.append(principal, ...carte.autres.map((autre) => boutonTexte(autre.libelle, T.repondre(autre.libelle, carte.titreEnTexte), () => options.repondre(carte.id, autre.reponse), inactif)));
+    if (carte.proche) {
+      gauche.append(...[carte.principal, ...carte.autres].map((proposition) => boutonDeProche(proposition, carte, groupe, inactif)));
+    } else {
+      const principal = createButton({ label: carte.principal.libelle, variant: 'secondary', compact: true, disabled: inactif, onClick: () => repondreAuGroupe(groupe, carte.principal.reponse) });
+      principal.setAttribute('aria-label', T.repondre(carte.principal.libelle, carte.titreEnTexte));
+      gauche.append(principal, ...carte.autres.map((autre) => boutonTexte(autre.libelle, T.repondre(autre.libelle, carte.titreEnTexte), () => repondreAuGroupe(groupe, autre.reponse), inactif)));
+    }
     const droite = document.createElement('span');
     droite.className = 'question-actions';
     droite.append(boutonTexte(T.plusTard, T.plusTardPour(carte.titreEnTexte), () => {
-      plusTard.add(carte.id);
+      for (const membre of groupe.cartes) plusTard.add(membre.id);
       rendre();
     }, inactif));
     const pied = document.createElement('div');
     pied.className = 'question-pied';
     pied.append(gauche, droite);
-    element.append(entete, meta, effet, pied);
+    element.append(entete, meta);
+    if (groupe.cartes.length > 1) {
+      const nombreDeVariants = document.createElement('span');
+      nombreDeVariants.className = 'meta question-groupe';
+      nombreDeVariants.textContent = T.repondrePourLes(groupe.cartes.length);
+      element.append(nombreDeVariants);
+    }
+    if (carte.ancien.length > 0 || carte.nouveau.length > 0) element.append(effet);
+    element.append(pied);
     return element;
   }
 
   /** La ligne verte d'une réponse, puis les deux gestes qui la suivent. */
-  function creerLaReponse(carte: CarteDeQuestion, texte: string, inactif: boolean): HTMLElement[] {
+  function creerLaReponse(groupe: GroupeDeQuestions, texte: string, inactif: boolean): HTMLElement[] {
+    const { carte } = groupe;
     const actions = document.createElement('div');
     actions.className = 'constat-actions';
     actions.append(
       boutonTexte(T.ouvrirCorrections, null, options.ouvrirCorrections, inactif),
-      boutonTexte(T.annulerLaReponse, T.annulerLaReponseDe(carte.titreEnTexte), () => options.annuler(carte.id), inactif),
+      boutonTexte(T.annulerLaReponse, T.annulerLaReponseDe(carte.titreEnTexte), () => { for (const membre of groupe.cartes) options.annuler(membre.id); }, inactif),
     );
     return [creerResultat(texte, T.appliquerDansCorrections), actions];
   }
@@ -172,13 +205,14 @@ export function monterLesQuestions(hote: HTMLElement, options: OptionsDesQuestio
       hote.replaceChildren(note);
       return;
     }
-    const reportee = (carte: CarteDeQuestion): boolean => analyse.repondues[carte.id] === undefined && plusTard.has(carte.id);
+    const groupes = regrouperLesCartes(cartes, analyse.repondues);
+    const reportee = ({ carte }: GroupeDeQuestions): boolean => analyse.repondues[carte.id] === undefined && plusTard.has(carte.id);
     const liste = document.createElement('div');
     liste.className = 'liste liste-questions';
-    for (const carte of [...cartes.filter((candidate) => !reportee(candidate)), ...cartes.filter(reportee)]) {
-      const reponse = analyse.repondues[carte.id];
-      if (reponse !== undefined) liste.append(...creerLaReponse(carte, carte.reponseEnTexte(reponse), analyse.perimee));
-      else liste.append(creerLaCarte(carte, analyse.perimee));
+    for (const groupe of [...groupes.filter((candidate) => !reportee(candidate)), ...groupes.filter(reportee)]) {
+      const reponse = analyse.repondues[groupe.carte.id];
+      if (reponse !== undefined) liste.append(...creerLaReponse(groupe, groupe.carte.reponseEnTexte(reponse), analyse.perimee));
+      else liste.append(creerLaCarte(groupe, analyse.perimee));
     }
     hote.replaceChildren(liste);
   }

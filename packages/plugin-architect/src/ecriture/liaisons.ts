@@ -7,9 +7,10 @@
  * rien n'est écrit (`non-ucm`). Chaque correction relit ensuite ce que
  * l'analyse avait lu : le layer existe (`objet-change`), les valeurs de son
  * variant sont celles de `aRelire.axes` (`objet-change`), la liaison du champ
- * porte le nom de `aRelire.avant` (`fait-faux`), la peinture de l'indice existe
- * (`objet-change`) et est unie (`fait-faux`), la variable cible se trouve
- * (`cible-introuvable`). Une écriture de Figma qui lève saute la correction
+ * porte le nom de `aRelire.avant` (`fait-faux`), un champ numérique garde la
+ * valeur de `aRelire.valeur` quand elle est donnée (`fait-faux`), la peinture
+ * de l'indice existe (`objet-change`) et est unie (`fait-faux`), la variable
+ * cible se trouve (`cible-introuvable`). Une écriture de Figma qui lève saute la correction
  * (`erreur`) ; les autres s'écrivent.
  *
  * La variable cible se cherche d'abord parmi les variables locales, puis
@@ -101,7 +102,7 @@ async function nomLie(api: ApiDeLiaisons, alias: unknown): Promise<string | null
 
 /** Ce qu'une correction cible, relu dans le document : une valeur numérique, une peinture ou une plage de texte. */
 type Cible =
-  | { readonly genre: 'nombre'; readonly champ: string; readonly liaison: unknown }
+  | { readonly genre: 'nombre'; readonly champ: string; readonly valeur: number; readonly liaison: unknown }
   | { readonly genre: 'peinture'; readonly champ: 'fills' | 'strokes'; readonly indice: number; readonly peintures: unknown[]; readonly liaison: unknown }
   | { readonly genre: 'texte'; readonly debut: number; readonly fin: number; readonly indice: number; readonly peintures: unknown[]; readonly liaison: unknown };
 
@@ -131,8 +132,9 @@ function lireLaCible(layer: LayerEcrivable, cible: Correction['cible']): Lecture
     if (!estUnObjet(peinture) || peinture.type !== 'SOLID') return { saute: 'fait-faux' };
     return { cible: { genre: 'peinture', champ, indice: cible.indice, peintures: [...liste], liaison: liaisonDeLaPeinture(peinture) } };
   }
-  if (typeof (layer as unknown as Record<string, unknown>)[champ] !== 'number') return { saute: 'fait-faux' };
-  return { cible: { genre: 'nombre', champ, liaison: estUnObjet(layer.boundVariables) ? layer.boundVariables[champ] : undefined } };
+  const valeur = (layer as unknown as Record<string, unknown>)[champ];
+  if (typeof valeur !== 'number') return { saute: 'fait-faux' };
+  return { cible: { genre: 'nombre', champ, valeur, liaison: estUnObjet(layer.boundVariables) ? layer.boundVariables[champ] : undefined } };
 }
 
 /** Le layer et la cible relus, ou le motif de l'écart entre la correction et le document. */
@@ -144,6 +146,8 @@ async function relire(api: ApiDeLiaisons, correction: Correction): Promise<{ lay
   if (axes && !axesEgaux(axes, valeursDuVariant(layer))) return 'objet-change';
   const lue = lireLaCible(layer, correction.cible);
   if ('saute' in lue) return lue.saute;
+  // La valeur que l'analyse a lue a changé : lier un token choisi pour elle changerait un autre rendu.
+  if (lue.cible.genre === 'nombre' && correction.aRelire.valeur !== undefined && lue.cible.valeur !== correction.aRelire.valeur) return 'fait-faux';
   if ((await nomLie(api, lue.cible.liaison)) !== correction.aRelire.avant) return 'fait-faux';
   return { layer, cible: lue.cible };
 }

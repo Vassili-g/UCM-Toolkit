@@ -144,3 +144,26 @@ test('une analyse périmée ne laisse aucune réponse à donner', async () => {
     assert.deepEqual(await demandes(page, 'repondre'), []);
   } finally { await terminer(page); }
 });
+
+const procheDe = (variant) => ({
+  id: `C29:${variant}:fond:cornerRadius:13`, code: 'C29', type: 'corriger', famille: 'tailles', variants: [variant], layers: ['alert:l:container'],
+  faits: { calque: 'container', champ: 'cornerRadius', valeur: 13, proche: 1 },
+  question: { id: `q:C29:${variant}`, candidats: [{ cle: 'r12', nom: 'alert/radius/12', valeur: 12 }, { cle: 'r14', nom: 'alert/radius/14', valeur: 14 }] },
+});
+const analyseDeProches = { ...analyseDeQuestions, constats: ['Severity=info, Variant=standard', 'Severity=error, Variant=standard'].map(procheDe) };
+
+test('une question de token proche : un bouton de même poids par candidat, une seule carte pour deux variants, une réponse par question', async () => {
+  const page = await ouvrirLesQuestions(analyseDeProches);
+  try {
+    assert.equal(await cartes(page).count(), 1);
+    assert.equal(await cartes(page).locator('.question-titre').innerText(), 'Le radius de container vaut 13 px. Aucun token radius ne vaut cette valeur.');
+    assert.deepEqual(await cartes(page).locator('.question-pied button').allInnerTexts(), ['Adopter 12 px (−1 px)', 'Adopter 14 px (+1 px)', 'Plus tard']);
+    assert.deepEqual(await cartes(page).locator('.question-candidat-token').allInnerTexts(), ['radius/12', 'radius/14']);
+    assert.match(await cartes(page).innerText(), /Répondre pour les 2 variants/);
+    await cartes(page).getByRole('button', { name: /^Adopter 14 px/ }).click();
+    await attendreLesDemandes(page, 'repondre', 2);
+    assert.deepEqual((await reponses(page)).map(({ question, reponse }) => [question, reponse]), [
+      ['q:C29:Severity=info, Variant=standard', 'r14'], ['q:C29:Severity=error, Variant=standard', 'r14'],
+    ]);
+  } finally { await terminer(page); }
+});

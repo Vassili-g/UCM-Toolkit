@@ -159,3 +159,43 @@ test('un alias vers une primitive de 8 px rend C29 exact', () => {
   assert.equal(constat.correction?.apres.cle, 'md');
   assert.equal(constat.question, undefined);
 });
+
+const radiusLu = (valeur: number) => releve([layer('racine', null, { valeursEnDur: [{ champ: 'cornerRadius', valeur }] })]);
+const catalogueDeRayons = (variables: Array<[string, Record<string, { valeur: number }>]>): CatalogueDeReference => ({
+  version: 1, library: null,
+  collections: [{ cle: 'layout', nom: 'layout', role: 'layout', modes: [{ id: 'Light', nom: 'Light' }, { id: 'Dark', nom: 'Dark' }], etat: 'lue' }],
+  variables: variables.map(([cle, valeurs]) => ({ cle, nom: `radius/${cle}`, collection: 'layout', type: 'FLOAT' as const, etat: 'presente' as const, valeurs })),
+});
+const rayon13 = (cat: CatalogueDeReference) => proposerLesCorrections(radiusLu(13), cat, []).filter(({ code }) => code === 'C29')[0];
+
+test('sans exact, un token radius à 1 px donne une question proche : aucune correction, rien de coché, la valeur du candidat', () => {
+  const constat = rayon13(catalogueDeRayons([['r14', { Light: { valeur: 14 }, Dark: { valeur: 14 } }]]));
+  assert.equal(constat.correction, undefined);
+  assert.equal(constat.faits.proche, 1);
+  assert.deepEqual(constat.question?.candidats, [{ cle: 'r14', nom: 'radius/r14', valeur: 14 }]);
+});
+
+test('un token de 14 px en Light et de 18 px en Dark ne donne aucun candidat proche', () => {
+  const constat = rayon13(catalogueDeRayons([['r', { Light: { valeur: 14 }, Dark: { valeur: 18 } }]]));
+  assert.equal(constat.faits.proche, undefined);
+  assert.deepEqual(constat.question?.candidats, []);
+});
+
+test('un token de 16 px pour 13 px est trop loin : aucun candidat', () => {
+  const constat = rayon13(catalogueDeRayons([['r16', { Light: { valeur: 16 }, Dark: { valeur: 16 } }]]));
+  assert.equal(constat.faits.proche, undefined);
+  assert.deepEqual(constat.question?.candidats, []);
+});
+
+test('deux tokens de part et d’autre donnent deux candidats ; un exact reste une correction sans proche', () => {
+  const deux = rayon13(catalogueDeRayons([['r12', { Light: { valeur: 12 } }], ['r14', { Light: { valeur: 14 } }]]));
+  assert.deepEqual(deux.question?.candidats.map(({ cle, valeur }) => [cle, valeur]), [['r12', 12], ['r14', 14]]);
+  const exact = rayon13(catalogueDeRayons([['r13', { Light: { valeur: 13 } }], ['r14', { Light: { valeur: 14 } }]]));
+  assert.equal(exact.correction?.apres.cle, 'r13');
+  assert.equal(exact.faits.proche, undefined);
+});
+
+test('la correction exacte porte la valeur lue, relue à l’écriture', () => {
+  const [constat] = c29(releve([layer('racine', null, { valeursEnDur: [{ champ: 'paddingLeft', valeur: 8 }] })]));
+  assert.equal(constat.correction?.aRelire.valeur, 8);
+});

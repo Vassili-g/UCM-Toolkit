@@ -16,16 +16,17 @@ export interface CandidatDeLongueur {
   exacte: number | undefined;
 }
 
-/** Un candidat dont la valeur n'est pas celle cherchée, avec son écart en pixels. Rempli par la recherche des proches. */
+/** Une variable dont la valeur commune n'est pas celle cherchée, avec sa valeur et son écart absolu en pixels. */
 export interface CandidatProche {
   variable: VariableDuCatalogue;
+  valeur: number;
   ecart: number;
 }
 
 export interface CandidatsDeLongueur {
   /** Les variables dont tous les modes valent la valeur cherchée, dans l'ordre du catalogue. */
   exacts: readonly VariableDuCatalogue[];
-  /** Toujours vide : aucun calcul de proximité n'existe encore. */
+  /** Sans exact seulement : au plus la variable la plus proche en dessous et la plus proche au-dessus, la plus basse d'abord. */
   proches: readonly CandidatProche[];
 }
 
@@ -73,8 +74,31 @@ export function indexDeLongueurs(catalogue: CatalogueDeReference): IndexDeLongue
   return index;
 }
 
-/** Les candidats de `layout` pour une valeur en pixels, dans une famille. */
+/** Un token proche change le rendu : l'écart doit rester petit, en pixels et relativement à la valeur lue. */
+const ECART_MAX_EN_PIXELS = 2;
+const ECART_MAX_RELATIF = 0.1;
+/** Absorbe l'erreur des flottants sur une valeur à la borne. */
+const TOLERANCE = 1e-9;
+
+function procheLe(candidats: readonly CandidatDeLongueur[], valeur: number, cote: 'dessous' | 'dessus'): CandidatProche | undefined {
+  const borne = Math.min(ECART_MAX_EN_PIXELS, ECART_MAX_RELATIF * Math.max(Math.abs(valeur), 1)) + TOLERANCE;
+  return candidats
+    .flatMap(({ variable, exacte }) => {
+      if (exacte === undefined || exacte === valeur || (cote === 'dessous') !== (exacte < valeur)) return [];
+      const ecart = Math.abs(exacte - valeur);
+      return ecart <= borne ? [{ variable, valeur: exacte, ecart }] : [];
+    })
+    .sort((a, b) => a.ecart - b.ecart || (a.variable.nom < b.variable.nom ? -1 : a.variable.nom > b.variable.nom ? 1 : 0))[0];
+}
+
+/**
+ * Les candidats de `layout` pour une valeur en pixels, dans une famille. Sans exact, les proches : les variables dont la valeur
+ * commune à tous les modes est écartée d'au plus `min(2, 0,1 × max(|v|, 1))` px, jamais pour une valeur nulle.
+ */
 export function candidatsDeLongueur(catalogue: CatalogueDeReference, famille: string, valeur: number): CandidatsDeLongueur {
-  const exacts = (indexDeLongueurs(catalogue).get(famille) ?? []).filter((candidat) => candidat.exacte === valeur).map((candidat) => candidat.variable);
-  return { exacts, proches: [] };
+  const candidats = indexDeLongueurs(catalogue).get(famille) ?? [];
+  const exacts = candidats.filter((candidat) => candidat.exacte === valeur).map((candidat) => candidat.variable);
+  if (exacts.length > 0 || valeur === 0) return { exacts, proches: [] };
+  const proches = [procheLe(candidats, valeur, 'dessous'), procheLe(candidats, valeur, 'dessus')].filter((candidat): candidat is CandidatProche => candidat !== undefined);
+  return { exacts, proches };
 }
