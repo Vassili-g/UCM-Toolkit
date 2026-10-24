@@ -37,7 +37,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - espace.ts : couleurs d'un document Display P3 ramenées en sRGB, pour le contraste et la copie hexadécimale ; conversion de Palettes (`p3VersRgb8` de `ucm-couleur`), hors du noyau, qui n'importe pas `ucm-couleur`
 - integrations/ : recette UCM Palettes, profil d'architecture UCM (les sept couches de `COLLECTIONS`)
 - ui/ : barre et sa bascule de mode, arbre et sa recherche, table, panneau latéral, bulle de chaîne et poignée des largeurs
-- ui/composant/ : analyse retenue (constats, pastille ; `modele-propose` y range les constats d'un modèle), section Variants et son bouton de modèle, corps du mode Composant (vue, frontière tirable, panneau)
+- ui/composant/ : analyse retenue (constats, pastille ; `modele-propose` y range les constats d'un modèle), section Variants et son bouton de modèle, `signes.ts` (signe de chaque ligne et du titre de la colonne de gauche), corps du mode Composant (vue, frontière tirable, panneau)
 - ui/analyse/ : panneau des constats : ses trois onglets et leurs comptes, l'écran de chaque état de l'analyse (vide, en cours, aucun constat, partielle, annulée, arrêtée, périmée, library à choisir, hors UCM)
 - ui/panneau/ : `elements.ts` range les constats visibles par élément du composant (couleurs, tailles, texte, tokens, variants, règles, accessibilité) : cartes de corrections, puis questions, puis constats à faire ; nombre de points, Bloquants, éléments tenus
 - ui/corrections/ : onglet Corrections : cartes cochables par section (Liaisons, Tailles, Règles d'usage, Noms de valeurs), carte d'un modèle, carte des liaisons préparées (`liaisons.ts`), sélection au clic, pied, Appliquer et ligne de réussite avec les sautées

@@ -31,6 +31,7 @@ import {
 } from '../../composant';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import { creerChemin } from 'ucm-plugin-socle/src/ui/Chemin';
+import { creerSigne } from 'ucm-plugin-socle/src/ui/Signe';
 import { indexer, type Index } from '../../indexation';
 import type { PluginMessage, SujetSelectionne } from '../../messages';
 import { espaceDuReleve, texteDeValeur, type Couleur } from '../../modele';
@@ -39,6 +40,7 @@ import type { Resultat } from '../../resolution';
 import type { Application, Composant } from '../application';
 import { constatDeResultat } from '../chaine';
 import { analyseDe } from '../composant/analyse';
+import { signeDeLigne, signeDuTitre } from '../composant/signes';
 import { creerSectionVariants, proprietesDe } from '../composant/variants';
 import type { ApercuRecu } from '../etat';
 import { versSandbox } from '../pont';
@@ -285,10 +287,8 @@ export function creerVueComposant(app: Application): VueComposant {
     tete.className = 'vc-tete';
     const identite = document.createElement('div');
     const titre = document.createElement('h2');
-    const glyphe = document.createElement('span');
-    glyphe.setAttribute('aria-hidden', 'true');
-    glyphe.textContent = surLeSujet ? T.glyphes.composant : T.glyphes.calque;
-    titre.append(glyphe, surLeSujet ? lecture.sujet.nom : lecture.calques.find((calque) => calque.id === portee)?.nom ?? portee);
+    const calqueVise = lecture.calques.find((calque) => calque.id === portee);
+    titre.append(creerSigne(signeDuTitre(surLeSujet, calqueVise?.type)), surLeSujet ? lecture.sujet.nom : lecture.calques.find((calque) => calque.id === portee)?.nom ?? portee);
     const sous = document.createElement('div');
     sous.className = 'vc-sous';
     // Un jeu de variants n'écrit pas son variant ici : la section Variants le choisit et le nomme.
@@ -449,7 +449,7 @@ export function creerVueComposant(app: Application): VueComposant {
       bouton.dataset.focus = `frontiere:${frontiere.premiere}`;
       bouton.dataset.frontiere = frontiere.premiere;
       bouton.title = T.ouvrir(frontiere.nom);
-      bouton.append(`${T.glyphes.composant} ${frontiere.nom}`);
+      bouton.append(creerSigne('instance', { taille: 14 }), frontiere.nom);
       if (frontiere.fois > 1) {
         const fois = document.createElement('small');
         fois.textContent = T.fois(frontiere.fois);
@@ -493,32 +493,13 @@ export function creerVueComposant(app: Application): VueComposant {
 
   const couleurDe = (resultat: Resultat | null): Couleur | null => (resultat?.statut === 'resolu' && resultat.valeur.nature === 'couleur' ? resultat.valeur.couleur : null);
 
-  /** La pastille d'une ligne : pleine pour un fond, évidée pour un contour, marquée pour un texte, signe de la nature pour un nombre. */
-  function pastilleDe(ligne: LigneDeComposant): HTMLElement {
-    const pastille = document.createElement('i');
-    pastille.className = 'vc-pastille';
+  /** Le signe d'une ligne : la sorte d'objet qu'elle montre, en gris ; une couleur de token remplit la tuile. */
+  function signeDeLaLigne(lecture: LectureDeComposant, ligne: LigneDeComposant): HTMLElement {
     const couleur = couleurDe(ligne.resultat);
     const css = couleur ? couleurCss(couleur, espace()) : null;
-    if (couleur && css) {
-      if (ligne.libelles.length === 1 && ligne.libelles[0] === 'contour') {
-        pastille.classList.add('vc-pastille-contour');
-        pastille.style.borderColor = css;
-        return pastille;
-      }
-      pastille.style.background = css;
-      const claire = estClaire(couleur, espace());
-      pastille.classList.toggle('vc-pastille-claire', claire);
-      pastille.classList.toggle('vc-pastille-sombre', !claire);
-      if (ligne.libelles.length === 1 && ligne.libelles[0] === 'texte') pastille.textContent = T.glyphes.texte;
-      return pastille;
-    }
-    pastille.classList.add('vc-pastille-nombre');
-    if (ligne.type === 'COLOR' || (ligne.type === null && ligne.nature === 'couleur')) pastille.textContent = T.glyphes.couleurInconnue;
-    else if (ligne.libelles[0] === 'epaisseur') pastille.textContent = T.glyphes.epaisseur;
-    else if (ligne.genre === 'style' || ligne.nature === 'texte') pastille.textContent = T.glyphes.style;
-    else if (ligne.nature === 'forme' || ligne.nature === 'espacement' || ligne.nature === 'taille') pastille.textContent = T.glyphes[ligne.nature];
-    else pastille.textContent = T.glyphes.autre;
-    return pastille;
+    const { id, couleur: remplie } = signeDeLigne(lecture, ligne, css !== null);
+    if (!remplie || !couleur || !css) return creerSigne(id);
+    return creerSigne(id, { valeur: css, clair: estClaire(couleur, espace()) });
   }
 
   /** La chaîne d'un token : une étape par variable, puis la valeur à copier ou la cause de l'arrêt. */
@@ -678,7 +659,7 @@ export function creerVueComposant(app: Application): VueComposant {
     fois.className = 'vc-fois';
     if (ligne.calques.length > 1) fois.textContent = T.fois(ligne.calques.length);
 
-    bouton.append(pastilleDe(ligne), identite, fin, fois);
+    bouton.append(signeDeLaLigne(lecture, ligne), identite, fin, fois);
     bouton.addEventListener('click', (evenement) => {
       const segment = evenement.target instanceof Element ? evenement.target.closest('.ch-lien') : null;
       if (segment && changee) {

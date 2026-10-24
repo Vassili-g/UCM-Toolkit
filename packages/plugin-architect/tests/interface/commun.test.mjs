@@ -36,11 +36,11 @@ test('la bascule passe de l’explorateur de tokens à la vue composant, qui lit
     assert.deepEqual(await dispositions(), ['etroite']);
     assert.deepEqual(await lecturesDemandees(page), [[2, null]]);
     await envoyer(page, { type: 'composant', demande: 2, lecture: alert });
-    assert.equal(await page.locator('.vc-tete h2').textContent(), '◇Alert');
+    assert.equal(await page.locator('.vc-tete h2').textContent(), 'Alert');
     assert.equal(await page.locator('.arbre').count(), 0);
     assert.equal(await page.getByRole('button', { name: 'Actualiser' }).count(), 0);
     await envoyer(page, { type: 'disposition', disposition: 'etroite' });
-    assert.equal(await page.locator('.vc-tete h2').textContent(), '◇Alert');
+    assert.equal(await page.locator('.vc-tete h2').textContent(), 'Alert');
     await page.getByRole('button', { name: 'Tokens' }).click();
     assert.deepEqual(await dispositions(), ['etroite', 'large']);
     assert.equal(await page.locator('.vc').count(), 0);

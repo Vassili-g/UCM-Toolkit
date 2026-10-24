@@ -104,11 +104,6 @@
   font-weight: 600;
 }
 
-.vc-tete h2 span {
-  color: var(--texte-composant);
-  font-size: 12px;
-}
-
 .vc-sous {
   display: flex;
   flex-wrap: wrap;
@@ -327,34 +322,14 @@
   background: var(--fond-survol);
 }
 
+/* La couleur au bout d'une chaîne : un carré plein, sans signe. */
 .vc-pastille {
-  display: grid;
-  width: 16px;
-  height: 16px;
-  place-items: center;
+  display: block;
+  flex: none;
+  width: 14px;
+  height: 14px;
   border: 1px solid var(--bordure-pastille);
-  border-radius: 4px;
-  font: 700 9px/1 system-ui, sans-serif;
-  font-style: normal;
-}
-
-.vc-pastille-claire {
-  color: var(--encre);
-}
-
-.vc-pastille-sombre {
-  color: var(--texte-sur-marque);
-}
-
-.vc-pastille-contour {
-  border-width: 3px;
-  background: transparent;
-}
-
-.vc-pastille-nombre {
-  border-color: transparent;
-  color: var(--texte-second);
-  font: 11px/1 system-ui, sans-serif;
+  border-radius: 3px;
 }
 
 .vc-nom {
@@ -470,12 +445,6 @@
 
 .vc-copie:hover {
   color: var(--texte-marque);
-}
-
-.vc-copie .vc-pastille {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
 }
 
 .vc-rompue-texte {

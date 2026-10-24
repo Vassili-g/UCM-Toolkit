@@ -75,7 +75,8 @@ Choisissez **Composant** dans la barre, puis sélectionnez un composant, une ins
 vue composant affiche ses tokens, une ligne par token, groupés par nature :
 couleur, forme, espacement, taille, texte.
 
-- **Ligne.** La pastille, le nom du token sans le préfixe commun au
+- **Ligne.** Le signe de sa sorte (padding, radius, usage d'une couleur…),
+  gris, rempli de la couleur pour un token de couleur ; le nom du token sans le préfixe commun au
   composant, un point par étape de sa chaîne, la valeur, puis `×N` quand
   plusieurs calques le portent. Un clic déplie la chaîne : chaque alias avec
   sa collection et son mode, puis la valeur, qu'un clic copie.

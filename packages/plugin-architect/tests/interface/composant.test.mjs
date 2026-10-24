@@ -23,7 +23,7 @@ test('une sélection affiche le composant ; la disposition étroite monte la bar
     assert.deepEqual(await lecturesDemandees(page), [[2, null]]);
     assert.equal(await page.locator('.vc-vide p').textContent(), 'Lecture du composant…');
     await envoyer(page, { type: 'composant', demande: 2, lecture: alert });
-    assert.equal(await page.locator('.vc-tete h2').textContent(), '◇Alert');
+    assert.equal(await page.locator('.vc-tete h2').textContent(), 'Alert');
     assert.equal(await page.locator('.vc-sous').textContent(), 'info · standard');
     assert.equal(await page.locator('.vc-ligne').count(), 10);
     assert.deepEqual(await page.locator('.vc-section-tete span').allTextContents(), ['Couleur', 'Forme', 'Espacement', 'Taille', 'Texte']);
@@ -75,7 +75,7 @@ test('une réponse d’une lecture de composant remplacée est ignorée', async 
     await envoyer(page, { type: 'composant', demande: 2, lecture: alert });
     assert.equal(await page.locator('.vc-vide p').textContent(), 'Lecture du composant…');
     await envoyer(page, { type: 'composant', demande: 3, lecture: tag });
-    assert.equal(await page.locator('.vc-tete h2').textContent(), '◇Tag');
+    assert.equal(await page.locator('.vc-tete h2').textContent(), 'Tag');
     assert.deepEqual(await page.locator('.vc-mode').allTextContents(), ['Light', 'Apicil']);
     await envoyer(page, apercuDe(alert, 2));
     assert.equal(await page.locator('.vc-apercu').count(), 0);
@@ -107,7 +107,7 @@ test('le nom d’un calque qui contient du HTML s’insère comme du texte', asy
     await envoyer(page, { type: 'disposition', disposition: 'etroite' });
     await envoyer(page, choisir(lecture, lecture.calques[1].id));
     await envoyer(page, { type: 'composant', demande: 2, lecture });
-    assert.equal(await page.locator('.vc-tete h2').textContent(), `#${pirate}`);
+    assert.equal(await page.locator('.vc-tete h2').textContent(), pirate);
     assert.deepEqual(await page.locator('.vc-fil > *').allTextContents(), ['<b>Alert</b>', '›', pirate]);
     await page.locator('.vc-ligne').first().click();
     assert.match(await page.locator('.vc-sur-calques').first().textContent(), /<img src=x/);
@@ -145,30 +145,30 @@ test('une frontière envoie lire-composant avec son calque ; la miette revient s
   const stressTest = composantComplexe();
   const page = await ouvrirComposant(stressTest);
   try {
-    assert.deepEqual(await page.locator('.vc-imbriques button').allTextContents(), ['◇ Alert', '◇ Button×2', '◇ TileLink×7']);
+    assert.deepEqual(await page.locator('.vc-imbriques button').allTextContents(), ['Alert', 'Button×2', 'TileLink×7']);
     await page.getByTitle('Ouvrir Button').click();
     assert.deepEqual(await lecturesDemandees(page), [[2, null], [3, 'stresstest:19']]);
     const bouton = composantBouton();
     await envoyer(page, { type: 'composant', demande: 3, lecture: bouton });
-    assert.equal(await page.locator('.vc-tete h2').textContent(), '◇Button');
+    assert.equal(await page.locator('.vc-tete h2').textContent(), 'Button');
     assert.deepEqual(await page.locator('.vc-fil > *').allTextContents(), ['StressTest', '›', 'Button']);
     assert.equal(await page.locator('.vc-ligne').count(), 8);
     assert.deepEqual(await page.locator('.vc-mode').allTextContents(), ['intencial']);
     await page.locator('.vc-fil button').click();
-    assert.equal(await page.locator('.vc-tete h2').textContent(), '◇StressTest');
+    assert.equal(await page.locator('.vc-tete h2').textContent(), 'StressTest');
     assert.equal(await page.locator('.vc-fil').count(), 0);
     assert.equal(await page.locator('.vc-image').count(), 1);
 
     const saisie = stressTest.calques.find((calque) => calque.nom === 'UserInput').id;
     await envoyer(page, choisir(stressTest, saisie));
-    assert.equal(await page.locator('.vc-tete h2').textContent(), '#UserInput');
+    assert.equal(await page.locator('.vc-tete h2').textContent(), 'UserInput');
     assert.deepEqual(await page.locator('.vc-fil > *').allTextContents(), ['StressTest', '›', 'UserInput']);
     assert.equal(await page.locator('.vc-pied').textContent(), '14 tokens');
     assert.equal(await page.locator('.vc-cadre-portee').count(), 1);
-    assert.deepEqual(await page.locator('.vc-imbriques button').allTextContents(), ['◇ Button×2']);
+    assert.deepEqual(await page.locator('.vc-imbriques button').allTextContents(), ['Button×2']);
     assert.deepEqual(await lecturesDemandees(page), [[2, null], [3, 'stresstest:19']]);
     await page.locator('.vc-fil button').click();
-    assert.equal(await page.locator('.vc-tete h2').textContent(), '◇StressTest');
+    assert.equal(await page.locator('.vc-tete h2').textContent(), 'StressTest');
     assert.deepEqual(await lecturesDemandees(page), [[2, null], [3, 'stresstest:19']]);
   } finally { await fermer(page); }
 });

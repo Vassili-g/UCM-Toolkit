@@ -1,4 +1,4 @@
-/** Les textes de la vue Composant : les mots et les glyphes de MAQUETTE-VUE-COMPOSANT.html. */
+/** Les textes de la vue Composant : les mots et les glyphes de MAQUETTE-VUE-COMPOSANT.html. Les sortes d'objet sont des signes du socle, pas des glyphes. */
 import type { Nature } from '../../composant';
 
 export const TEXTES_COMPOSANT = {
@@ -32,16 +32,6 @@ export const TEXTES_COMPOSANT = {
     natures: { couleur: 'Couleur', forme: 'Forme', espacement: 'Espacement', taille: 'Taille', texte: 'Texte', autre: 'Autre' } satisfies Record<Nature, string>,
     libelles: { texte: 'Texte', fond: 'Fond', contour: 'Stroke', effet: 'Effet', rayon: 'Rayon', epaisseur: 'Épaisseur', opacite: 'Opacité', ecart: 'Écart', marge: 'Marge', taille: 'Taille', police: 'Texte', style: 'Style' } as Record<string, string>,
     glyphes: {
-      composant: '◇',
-      calque: '#',
-      forme: '◜',
-      espacement: '↔',
-      taille: '⤢',
-      epaisseur: '─',
-      style: 'Aa',
-      texte: 'A',
-      autre: '•',
-      couleurInconnue: '?',
       miette: '›',
       ecart: '≠',
     },
