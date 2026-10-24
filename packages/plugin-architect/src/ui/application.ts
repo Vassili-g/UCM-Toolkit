@@ -3,10 +3,7 @@
  * zones reçoivent l'application entière ; elles lisent l'état et appellent un
  * geste, sans modifier l'état elles-mêmes.
  */
-import { copier as texteACopier, type FormatDeCopie } from '../copie';
-import { versSrgb } from '../espace';
 import { clesDesAncetres, segmentsDeGroupe, type NoeudDeGroupe } from '../groupes';
-import { espaceDuReleve } from '../modele';
 import { TAILLE_COMPOSANT_PANNEAU_OUVERT, TAILLE_ETROITE, type Disposition } from '../fenetre';
 import type { Preferences } from '../preferences';
 import { contexteDeColonne, type Resultat } from '../resolution';
@@ -15,8 +12,6 @@ import { noterLEnvoi } from './composant/analyse';
 import type { Etat, Filtres } from './etat';
 import { PREFIXE_TERME, retenirLesFormes } from './recherche/requete';
 import { versSandbox } from './pont';
-import { copierTexte } from './pressePapiers';
-import { TEXTES, titreDeConstat } from './textes';
 
 /** Les zones de l'écran, rendues séparément. */
 export type Zone = 'barre' | 'arbre' | 'table' | 'fiche' | 'vue' | 'pied';
@@ -102,7 +97,6 @@ export interface Application {
   /** Donne sa largeur à la vue Composant quand la frontière se tire ; la fenêtre ne change pas. */
   poserLaLargeurDeLaVue(largeur: number): void;
   annulerLecture(): void;
-  copier(variable: string, format: FormatDeCopie, reference?: string | null): Promise<void>;
   /** Annonce un texte à la zone `aria-live` ; `zoneDeSecours` montre un texte à copier à la main. */
   annoncer(texte: string, zoneDeSecours?: string): void;
   rangerPreferences(preferences: Preferences): void;
@@ -275,23 +269,6 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     annulerLecture() {
       if (etat.lecture.statut !== 'en-cours') return;
       versSandbox({ type: 'annuler', demande: etat.lecture.demande });
-    },
-    async copier(variable, format, reference = null) {
-      if (!etat.index) return;
-      const resultat = app.resultat(variable);
-      const constat = resultat.statut === 'resolu' ? null : titreDeConstat(resultat.statut);
-      const espace = espaceDuReleve(etat.index.releve);
-      const copie = texteACopier(etat.index, variable, resultat, format, { constat, reference, versSrgb: (couleur) => versSrgb(couleur, espace) });
-      if (copie.texte === null) {
-        app.annoncer(TEXTES.copieImpossible[copie.raison ?? 'non-resolu']);
-        return;
-      }
-      const issue = await copierTexte(copie.texte);
-      if (issue === 'refusee') {
-        app.annoncer(TEXTES.copieRefusee, copie.texte);
-        return;
-      }
-      app.annoncer(copie.arrondi ? TEXTES.copieArrondie(copie.texte) : TEXTES.copieReussie(format === 'chaine' ? TEXTES.copies.chaine : copie.texte === '' ? TEXTES.chaineVide : copie.texte));
     },
     annoncer(texte, zoneDeSecours) {
       branchements().annoncer(texte, zoneDeSecours);

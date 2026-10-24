@@ -14,23 +14,8 @@ export const TEXTES_FICHE = {
   utiliseePar: (nombre: number) => `Utilisée par ${nombre} variable${nombre > 1 ? 's' : ''}`,
   afficherLesVariables: (nombre: number) => (nombre > 1 ? `Afficher ces ${nombre} variables dans le tableau des tokens` : 'Afficher cette variable dans le tableau des tokens'),
   etAutres: (nombre: number) => `Et ${nombre} autre${nombre > 1 ? 's' : ''}.`,
-  copies: {
-    nom: 'Nom Figma',
-    valeur: 'Valeur',
-    hexa: 'Hexadécimal',
-    composantes: 'Composantes',
-    chaine: 'Chaîne',
-    source: 'Donnée source',
-    reference: 'Référence publiée',
-  },
   copieReussie: (quoi: string) => `Copié : ${quoi}`,
-  copieArrondie: (hexa: string) => `Copié : ${hexa}. L’hexadécimal arrondit les composantes à 8 bits.`,
   copieRefusee: 'Le presse-papiers est refusé. Sélectionnez le texte ci-dessous puis copiez-le.',
-  copieImpossible: {
-    'non-resolu': 'Aucune valeur : la chaîne n’aboutit pas dans ce contexte.',
-    'pas-une-couleur': 'Cette variable n’est pas une couleur.',
-    'sans-correspondance': 'Aucune référence publiée vérifiée : importez un tokens.json dans Intégrations.',
-  },
   // Constats d'une chaîne : constat, puis geste
   constat: {
     inaccessible: {

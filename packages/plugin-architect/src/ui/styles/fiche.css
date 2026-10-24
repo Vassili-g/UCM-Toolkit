@@ -137,36 +137,16 @@
   margin: 0 12px;
 }
 
-.feuille-terme .feuille-titre {
-  flex: 0 1 auto;
-  font-family: var(--police-code);
-}
-
-.feuille-terme .feuille-fermer {
-  margin-left: auto;
-}
-
 .feuille-entete.avec-definition {
   align-items: flex-start;
   padding-top: var(--espace-bloc);
   padding-bottom: var(--espace-bloc);
 }
 
-.titre-et-definition {
-  display: grid;
-  min-width: 0;
-  flex: 1;
-  gap: 2px;
-}
-
 .titre-ligne {
   display: flex;
   align-items: center;
   gap: var(--espace-controle);
-}
-
-.titre-et-definition .meta {
-  margin: 0;
 }
 
 .origine {
@@ -185,58 +165,8 @@
   gap: var(--espace-serre);
 }
 
-.fiche-bloc-tete {
-  display: flex;
-  min-height: var(--hauteur-secondaire);
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espace-controle);
-}
-
-.fiche-bloc-tete h3 {
-  margin: 0;
-  font-size: var(--libelle);
-  font-weight: 600;
-  line-height: var(--libelle-interligne);
-}
-
-.fiche-liste {
-  display: grid;
-  overflow: hidden;
-  border: 1px solid var(--bordure);
-  border-radius: var(--rayon);
-}
-
-.fiche-liste > * {
-  padding: var(--espace-controle) var(--espace-bloc);
-  border-top: 1px solid var(--bordure);
-}
-
-.fiche-liste > :first-child {
-  border-top: 0;
-}
-
 .fiche-liste .diff {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-}
-
-.btn-texte {
-  height: var(--hauteur-secondaire);
-  padding: 0 var(--espace-serre);
-  border: 0;
-  background: none;
-  color: var(--texte-second);
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-texte:hover:not(:disabled) {
-  color: var(--texte);
-}
-
-.btn-texte:focus-visible {
-  outline: 2px solid var(--bordure-marque);
-  outline-offset: 2px;
 }
 
 /* La chaîne d'alias, dessinée comme dans la vue Composant : un rail, un nœud par variable, la valeur au bout. */

@@ -1344,13 +1344,18 @@ Choix faits sans le mainteneur :
   contraste d'une paire et les sections d'intégrations disparaissent avec
   l'inspecteur ; la fiche de la maquette n'a pas de bouton de copie.
   `app.copier` reste sans appelant ; O1 le retire si rien ne le reprend.
-  Question au mainteneur · réversible : oui.
+  Question au mainteneur · réversible : oui. Fait en O1 : `app.copier` et
+  ses trois textes retirés ; `src/copie.ts` reste, la vue Composant et la
+  fiche le lisent.
 - Q-55 · U2 · Recherche et fiche · « Utilisée par » liste 10 variables puis
   « Et N autres. » (hors maquette) ; note du tableau pour `vise:` : « N
   variables visent X » (hors maquette) ; texte de la faute de Questions :
   « Une lettre d'écart. background est employé dans 40 variables. » ; les
   feuilles couvrent la barre latérale seule ; `fiche.css` répète des règles
-  de `nomenclature.css` (fusion en O1) · réversible : oui.
+  de `nomenclature.css` (fusion en O1) · réversible : oui. Fait en O1 : 12
+  des 17 règles répétées à l'identique retirées de `fiche.css` ; les 5 autres
+  restent, car la loi des styles (`tests/stylesUi.test.ts`) ne lit pas
+  `nomenclature.css`.
 - Q-56 · K5 · Deux entrées · `controlerLeCatalogue(catalogue)` (scopes C63,
   échelles, alias de mode C60) sert le mode Tokens sans composant ;
   `controlerLeTheme` et `controlerLaStructure` ne gardent que ce qui lit un
