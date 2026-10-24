@@ -63,6 +63,13 @@
   --texte-groupe: var(--texte-groupe-sombre);
   --fond-variable: var(--fond-variable-sombre);
   --texte-variable: var(--texte-variable-sombre);
+  --teinte-tailles: var(--teinte-tailles-sombre);
+  --teinte-texte: var(--teinte-texte-sombre);
+  --teinte-tokens: var(--teinte-tokens-sombre);
+  --teinte-variants: var(--teinte-variants-sombre);
+  --teinte-regles: var(--teinte-regles-sombre);
+  --teinte-a11y: var(--teinte-a11y-sombre);
+  --part-de-teinte: var(--part-de-teinte-sombre);
 
   --corps: 12px;
   --corps-interligne: 18px;

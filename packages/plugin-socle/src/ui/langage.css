@@ -44,9 +44,11 @@
   /*
    * La couleur de famille d'un signe qui porte une information. Les valeurs claires
    * sont les sombres, assombries à teinte égale : 4,9:1 au moins sur #ffffff, 3,7:1
-   * sur la tuile (la teinte à 18 % sur le fond). `tokens` n'a pas de teinte, c'est
-   * la couleur du texte. `couleurs` est un arc-en-ciel, le même sur les deux fonds,
-   * avec une encre sombre : un seul rôle, pas de valeur `-sombre`.
+   * sur la tuile (la teinte à 18 % sur le fond). Sur fond sombre, la tuile prend
+   * 28 % de sa teinte et les teintes sont claires, pour se lire sur la bande grise
+   * d'une section. `tokens` n'a pas de teinte, c'est la couleur du texte.
+   * `couleurs` est un arc-en-ciel, le même sur les deux fonds, avec une encre
+   * sombre : un seul rôle, pas de valeur `-sombre`.
    */
   --teinte-tailles: #0f7f73;
   --teinte-texte: #4a5fe0;
@@ -54,12 +56,15 @@
   --teinte-variants: #8f3fe0;
   --teinte-regles: #8c5a10;
   --teinte-a11y: #d11f7c;
-  --teinte-tailles-sombre: #34d1bf;
-  --teinte-texte-sombre: #a5b4fc;
+  --teinte-tailles-sombre: #6ee7d8;
+  --teinte-texte-sombre: #c7d0fe;
   --teinte-tokens-sombre: #f4f4f5;
-  --teinte-variants-sombre: #c084fc;
-  --teinte-regles-sombre: #e2c08d;
-  --teinte-a11y-sombre: #f472b6;
+  --teinte-variants-sombre: #d6b4fe;
+  --teinte-regles-sombre: #f2dab0;
+  --teinte-a11y-sombre: #f9a8d4;
+  /* La part de la teinte dans le fond de la tuile. */
+  --part-de-teinte: 18%;
+  --part-de-teinte-sombre: 28%;
   --teinte-couleurs: conic-gradient(from 200deg, #ff8fb8, #ffd27a, #8be39a, #7cc4ff, #b9a0ff, #ff8fb8);
   /* L'encre d'un tracé posé sur une tuile claire ou sombre : l'arc-en-ciel et une valeur de couleur. */
   --encre-sur-clair: #1a1a1a;
@@ -87,6 +92,7 @@
   --teinte-variants: var(--teinte-variants-sombre);
   --teinte-regles: var(--teinte-regles-sombre);
   --teinte-a11y: var(--teinte-a11y-sombre);
+  --part-de-teinte: var(--part-de-teinte-sombre);
 }
 /* roles:fin */
 
@@ -239,7 +245,7 @@
   height: 16px;
   place-items: center;
   border-radius: 4px;
-  background: color-mix(in srgb, var(--texte) 9%, transparent);
+  background: color-mix(in srgb, var(--texte) 12%, transparent);
   color: var(--texte-second);
   vertical-align: -3px;
 }
@@ -251,7 +257,7 @@
 .signe-24 { width: 24px; height: 24px; border-radius: 6px; }
 .signe-24 svg { width: 15px; height: 15px; }
 
-.signe-informe { color: var(--teinte); background: color-mix(in srgb, var(--teinte) 18%, transparent); }
+.signe-informe { color: var(--teinte); background: color-mix(in srgb, var(--teinte) var(--part-de-teinte), transparent); }
 .signe-teinte-tailles { --teinte: var(--teinte-tailles); }
 .signe-teinte-texte { --teinte: var(--teinte-texte); }
 .signe-teinte-tokens { --teinte: var(--teinte-tokens); }
