@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crans clairs des palettes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fond: #161616; --bloc: #222; --bordure: #333; --texte: #eee; --second: #9a9a9a;
+    --ok: #5bc28a; --moyen: #f3b53f; --ko: #e5484d; --accent: #4ea1ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 80px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 19px; margin: 48px 0 6px; padding-top: 20px; border-top: 1px solid var(--bordure); }
+  h3 { font-size: 13px; margin: 18px 0 8px; color: var(--second); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  h4 { margin: 0 0 4px; font-size: 14px; }
+  p { margin: 6px 0; max-width: 860px; }
+  code { font-size: 12.5px; background: #2c2c2c; padding: 1px 5px; border-radius: 4px; }
+  .page code { background: #0000000f; }
+  .intro { color: var(--second); }
+  blockquote { margin: 10px 0; padding: 8px 14px; border-left: 3px solid var(--accent); background: #1d2530; max-width: 860px; color: #cfd8e3; }
+  blockquote p { margin: 2px 0; }
+  .position { border-left-color: var(--moyen); background: #2a2416; color: #ecdcb8; }
+  ul.faits { max-width: 880px; padding-left: 20px; margin: 8px 0; }
+  ul.faits li { margin: 3px 0; }
+  nav.sommaire { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 0; font-size: 13px; }
+  nav.sommaire a { color: var(--accent); text-decoration: none; }
+
+  .barre { position: sticky; top: 0; z-index: 5; background: rgba(22,22,22,.96); border-bottom: 1px solid var(--bordure); }
+  .barre .dedans { max-width: 1180px; margin: 0 auto; padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+  .barre label { font-size: 12px; color: var(--second); display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; max-width: 100%; }
+  select { background: #2a2a2a; color: var(--texte); border: 1px solid var(--bordure); border-radius: 6px; font: inherit; font-size: 13px; padding: 4px 8px; }
+  .bascule { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--bordure); border-radius: 6px; overflow: hidden; }
+  .bascule button { background: none; border: 0; color: var(--second); font: inherit; font-size: 13px; padding: 4px 10px; cursor: pointer; }
+  .bascule button[aria-pressed='true'] { background: #3a3a3a; color: var(--texte); font-weight: 600; }
+  .bascule button:disabled { opacity: .35; cursor: default; }
+  .local { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 10px 0; font-size: 12px; color: var(--second); }
+  input[type=range] { width: 220px; }
+
+  .page { border-radius: 10px; padding: 18px; border: 1px solid var(--bordure); color: #111; }
+  .page .sous, .page .note { color: #555; }
+  .grille { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+  .carte { background: var(--bloc); border: 1px solid var(--bordure); border-radius: 10px; padding: 14px; }
+  .sous { color: var(--second); font-size: 12px; margin: 0 0 10px; }
+  .note { font-size: 12px; color: var(--second); margin-top: 8px; }
+  .defile { overflow-x: auto; max-width: 100%; }
+
+  .rampe { display: grid; grid-template-columns: 120px repeat(11, minmax(0, 1fr)); gap: 4px; align-items: stretch; margin: 4px 0; }
+  .rampe .nom { font-size: 12px; color: #555; align-self: center; }
+  .rampe.choisie .nom { color: #111; font-weight: 600; }
+  .nuance { border-radius: 5px; padding: 6px 4px; font-size: 10.5px; line-height: 1.3; min-height: 50px; position: relative; }
+  .nuance b { display: block; font-size: 11.5px; }
+  .nuance.ancre { outline: 2px solid #111; outline-offset: 1px; }
+  .rangee { display: grid; grid-template-columns: 120px repeat(12, minmax(0, 1fr)); gap: 4px; margin: 4px 0; }
+  .rangee .nom { font-size: 12px; color: #555; align-self: center; }
+  .tuile { border-radius: 5px; min-height: 58px; padding: 5px 4px; font-size: 10.5px; line-height: 1.3; color: #333; }
+
+  table.mesures { border-collapse: collapse; font-size: 12.5px; margin: 8px 0; }
+  table.mesures th, table.mesures td { border: 1px solid var(--bordure); padding: 5px 9px; text-align: left; }
+  table.mesures th { color: var(--second); font-weight: 600; background: #1c1c1c; }
+  table.mesures tr.choisie td { background: #23272e; }
+  td.ok { color: var(--ok); } td.ko { color: var(--ko); } td.info { color: var(--second); } td.change { color: var(--moyen); }
+
+  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 10px; }
+  .badge.ok { color: #0b6b3a; background: #d6f5e3; } .badge.moyen { color: #7a5200; background: #fdefc8; } .badge.ko { color: #9b1c1f; background: #fde0e0; }
+  .fond { border-radius: 8px; padding: 10px 12px; margin: 6px 0; }
+  .fond .ligne { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-size: 13px; }
+  .etats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+  .etat { text-align: center; font-size: 11px; color: #555; }
+  .etat .faux { border-radius: 6px; padding: 7px 4px; font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+
+  .bouton { font: inherit; font-weight: 600; font-size: 14px; border: 0; border-radius: 6px; padding: 8px 14px; cursor: pointer; background: var(--repos); color: var(--encre); }
+  .bouton:hover { background: var(--survol); }
+  .bouton:active { background: var(--appui); }
+  .vivant { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #555; }
+
+  .alerte { border-radius: 8px; padding: 12px 14px; display: flex; gap: 10px; }
+  .alerte .pastille { width: 16px; height: 16px; border-radius: 50%; flex: 0 0 auto; margin-top: 3px; }
+  .alerte strong { display: block; font-size: 14px; }
+  .alerte p { margin: 2px 0 6px; font-size: 13px; }
+  .pastilles { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+  .etiquette { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+  .tag { font-size: 12px; padding: 3px 8px; border-radius: 6px; border: 1px solid; }
+
+  .arbre { font: 12.5px/1.6 ui-monospace, Consolas, monospace; }
+  .arbre .v { display: flex; align-items: center; gap: 8px; }
+  .arbre .pastille { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #fff2; flex: 0 0 auto; }
+  .arbre .cran { color: var(--second); margin-left: auto; }
+  .arbre .dossier { color: var(--second); margin-top: 6px; }
+  .questions li { margin: 6px 0; max-width: 860px; }
+  @media (max-width: 640px) {
+    .rampe, .rangee { grid-template-columns: 54px repeat(11, minmax(0, 1fr)); gap: 2px; }
+    .rangee { grid-template-columns: 54px repeat(12, minmax(0, 1fr)); }
+    .nuance, .tuile { font-size: 0; padding: 0; min-height: 36px; }
+    .nuance b { font-size: 8px; padding: 2px; }
+    .page { padding: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="barre"><div class="dedans">
+  <label>Palette <select id="palette"></select></label>
+  <label>Intensité <span class="bascule" data-cle="intensite"><button data-v="soft">Soft</button><button data-v="vivid">Vivid</button></span></label>
+  <label>Bas de la courbe <span class="bascule" data-cle="courbe"><button data-v="actuelle">Actuelle</button><button data-v="legere">Légère</button><button data-v="moyenne">Moyenne</button><button data-v="forte">Forte</button></span></label>
+  <label>Lissage 400 et 500 <span class="bascule" data-cle="lissage"><button data-v="non">Non</button><button data-v="oui">Oui</button></span></label>
+  <label>Crans clairs <span class="bascule" data-cle="moteur"><button data-v="actuel">Moteur actuel</button><button data-v="commune">Clarté commune</button></span></label>
+  <label>Fond de page <span class="bascule" data-cle="page"><button data-v="#FFFFFF">Blanc</button><button data-v="#F7F7F7">#F7F7F7</button></span></label>
+</div></div>
+<main>
+  <h1>Crans clairs des palettes</h1>
+  <p class="intro">Le mainteneur a testé ses palettes sur ses composants. Ses remarques touchent le moteur de couleur, la table des crans, le nom des variables et l'architecture des tokens.</p>
+  <p class="intro">Les couleurs viennent de sa configuration, <code>palettes-et-reglages.json</code>, calculée par le moteur actuel. Aucune solution n'est décidée.</p>
+  <p class="intro">La barre du haut change la palette, l'intensité, la courbe et la façon de produire les crans clairs. « Clarté commune » est une simulation hors du moteur, décrite à la section 2. Les boutons sont réels : survolez-les et appuyez dessus.</p>
+  <nav class="sommaire">
+    <a href="#s1">1. Crans clairs foncés</a><a href="#s2">2. Même cran, même clarté</a><a href="#s3">3. Texte de surface</a>
+    <a href="#s4">4. Bouton texte</a><a href="#s5">5. Fond léger</a><a href="#s6">6. Changement de contexte</a>
+    <a href="#s7">7. Contraste à l'appui</a><a href="#s8">8. Éléments sans survol</a><a href="#s9">9. Noms des variables</a>
+    <a href="#s10">10. Thème Dark</a><a href="#questions">Questions</a>
+  </nav>
+
+  <!-- 1 -->
+  <h2 id="s1">1. Les crans clairs paraissent foncés</h2>
+  <blockquote><p>« default (ou background-base) vise le cran 100, qui est quand même assez foncé. »</p><p>« Regarde la palette "ocean", elle est par défaut, sans modif. les crans clairs en vivid sont super foncés par rapport aux autres palettes. très bizarre non ? »</p></blockquote>
+  <blockquote class="position"><p>« impossible de diminuer la saturation, c'est trop fade là »</p><p>« il faudrait lisser pour pas avoir la cassure entre 300 et 400 (quels impacts?) »</p></blockquote>
+  <ul class="faits">
+    <li>La configuration d'Ocean porte un réglage de luminosité de −0,06 en Vivid. C'est le curseur « Luminosité » de la carte.</li>
+    <li>Ce réglage décale toute la rampe Vivid, crans clairs compris. Le 50 d'Ocean Vivid tombe à 0,895. Sans ce réglage, il serait à 0,953.</li>
+    <li>Le moteur décale aussi la clarté selon la teinte, surtout vers le 50. Le décalage va de −0,022 pour Deep à +0,025 pour Sun.</li>
+    <li>Le 50 de Sun touche le blanc pur et perd sa couleur. Avec une courbe plus claire, le 50 de Grass le touche aussi.</li>
+    <li>Le lissage éclaircit le 400 et le 500. Le 600 et les crans plus foncés ne changent pas.</li>
+  </ul>
+  <h3>Toutes les nuances de la palette choisie</h3>
+  <div id="rampes"></div>
+  <p class="note">Le cran encadré porte la couleur de référence de la palette.</p>
+  <h3>Ce que change le lissage</h3>
+  <div id="lissage"></div>
+  <h3>Écart de clarté médian entre deux crans voisins, sur tes palettes</h3>
+  <div id="ecarts"></div>
+
+  <!-- 2 -->
+  <h2 id="s2">2. Un même cran doit avoir la même clarté dans toutes les palettes</h2>
+  <blockquote class="position"><p>« Je suis pas encore sur de passer les surfaces sur les crans à partir de 50. et si on faisait ça il faudrait vérifier que toutes les teintes soient harmonisée à la perfection sur le cran 50 pour pas avoir des différence de luminosité perçue entre deux teintes sur ce cran. car ça se voit beaucoup »</p></blockquote>
+  <ul class="faits">
+    <li>Avec le moteur actuel, le 50 de tes palettes va de 0,895 à 1,000 de clarté.</li>
+    <li>« Clarté commune » ramène le 50, le 100 et le 200 de chaque palette à la clarté de la courbe. Le 300 et le 400 font la transition.</li>
+    <li>Cette simulation garde la teinte et la part de saturation de chaque cran. Elle ignore le décalage selon la teinte et le réglage de luminosité de la carte.</li>
+    <li>Le cran de la référence ne change pas.</li>
+  </ul>
+  <div class="local">Affichage <span class="bascule" id="vueHarmonie"><button data-v="couleur">Couleurs</button><button data-v="clarte">Clarté seule</button></span></div>
+  <div class="page" id="harmonie"></div>
+  <p class="note">« Clarté seule » peint chaque tuile en gris de même clarté OKLCH. Deux tuiles de gris différents n'ont pas la même clarté.</p>
+
+  <!-- 3 -->
+  <h2 id="s3">3. Le texte de surface à 800</h2>
+  <blockquote><p>« j'aimerais beaucoup que le texte de /surface soit aussi à 700 pour toutes les couleurs. »</p></blockquote>
+  <blockquote class="position"><p>« je pense qu'il faut laisser tomber les checks de contraste sur le fond pressed 300, j'estime que c'est pas utile, tant pis pour les normes »</p><p>« d'un côté le texte 800 rend bien aussi. Même sur un fond 100, mais ton fond 100 est plus clair que mon fond ocean 100. »</p></blockquote>
+  <ul class="faits">
+    <li>Le fond 100 d'Ocean Vivid est plus foncé à cause du réglage de luminosité de la section 1.</li>
+    <li>Choisissez Ocean puis « Clarté commune » pour voir son 100 sans ce réglage.</li>
+  </ul>
+  <div class="grille" id="textes"></div>
+
+  <!-- 4 -->
+  <h2 id="s4">4. Le bouton texte : son survol part du blanc</h2>
+  <blockquote><p>« En hover on lui affecte un surface/hover (logique) mais c'est hyper foncé alors qu'on partait du fond blanc, c'est beaucoup plus beau de partir de surface/default mais ça casserait la logique. »</p></blockquote>
+  <div class="page" id="boutonsTexte"></div>
+
+  <!-- 5 -->
+  <h2 id="s5">5. Un fond vraiment léger</h2>
+  <blockquote><p>« j'aimerais qu'il y ait un fond de couleur très très léger » sur les alertes outlined.</p></blockquote>
+  <blockquote class="position"><p>« je trouve que tous les fonds proposés sont trop foncés pour un fond "léger"... il y'a bien un problème de logique global, tous les sujets sont connectés, il faut trouver la bonne solution »</p></blockquote>
+  <ul class="faits">
+    <li>Le curseur fixe la clarté du fond léger pour toutes les palettes à la fois.</li>
+    <li>Chaque fond garde la teinte et la part de saturation du 50 de sa palette.</li>
+    <li>Le texte et le contour sont au 700 de chaque palette.</li>
+  </ul>
+  <div class="local">Clarté du fond léger <input type="range" id="clarteLegere" min="0.95" max="0.995" step="0.001"> <b id="valeurLegere"></b></div>
+  <div class="page grille" id="alertes"></div>
+
+  <!-- 6 -->
+  <h2 id="s6">6. Un composant conçu sur la page, posé dans une alerte</h2>
+  <blockquote><p>« le bouton text est posé sur une page, donc quand il est dans une alert teinte il a toujours ce problème qu'il devient posé sur un contexte différent de celui sur lequel il a été conçu. C'est un autre problème à résoudre. »</p></blockquote>
+  <div class="local">Survol et appui du bouton <span class="bascule" id="contexteTable"><button data-v="aujourdhui">Aujourd'hui : 200 et 300</button><button data-v="decalee700">Décalée : 100 et 200</button></span></div>
+  <div class="page grille" id="contextes"></div>
+  <h3>Pistes relevées</h3>
+  <ul class="faits">
+    <li>Une variante « sur surface » du bouton texte. Le nombre de variantes augmente.</li>
+    <li>Un mode Figma posé sur le conteneur. Le designer doit poser ce mode à la main.</li>
+    <li>Un survol translucide. Le mainteneur n'en est pas convaincu.</li>
+    <li>Un texte et un contour communs à <code>page</code> et <code>surface</code>. Le fond de survol reste à traiter.</li>
+  </ul>
+
+  <!-- 7 -->
+  <h2 id="s7">7. Le contraste à l'appui</h2>
+  <blockquote><p>« c'est pas possible que des éléments ne passent pas les textes actuellement, le plugin vérifie absolument tout ça et valide tout »</p></blockquote>
+  <ul class="faits">
+    <li>La table d'aujourd'hui passe partout : texte 800 sur les fonds 100, 200 et 300.</li>
+    <li>Le plugin le vérifie par sa garantie 3. Elle contrôle <code>surface/foreground</code> sur les trois fonds de <code>surface</code> et sur la page.</li>
+    <li>Les lignes « Hypothèse » ne sont pas en place. Elles mesurent un texte 700 ou des fonds décalés.</li>
+    <li>Le mainteneur veut retirer l'appui de la vérification. Il faudrait retirer <code>surface/pressed</code> des garanties 3 et 4 du kit.</li>
+  </ul>
+  <div class="local">Règle à l'appui <span class="bascule" id="regle"><button data-v="ignore">Non vérifié</button><button data-v="trois">3:1</button><button data-v="stricte">4,5:1</button></span></div>
+  <div id="contrastes"></div>
+  <p class="note">Contraste minimum du texte de <code>surface</code> sur chaque fond, et nombre de rampes sous le seuil, sur tes 12 palettes : 21 rampes, Soft et Vivid. Le fond léger est le 50.</p>
+
+  <!-- 8 -->
+  <h2 id="s8">8. Les éléments sans survol</h2>
+  <blockquote class="position"><p>« c'est très beau en version décalé, c'est subtile Mais le brief parlait d'éléments sans survols. »</p></blockquote>
+  <ul class="faits">
+    <li>Une étiquette, un tag ou un encart n'ont pas de survol. Seul leur fond au repos compte.</li>
+    <li>Le bouton teinté reste affiché pour comparer.</li>
+  </ul>
+  <div class="page grille" id="sansSurvol"></div>
+
+  <!-- 9 -->
+  <h2 id="s9">9. Les noms des variables</h2>
+  <blockquote class="position"><p>« il faut encore que je réfléchisse, c'est lié à tous les autres sujets... »</p></blockquote>
+  <ul class="faits">
+    <li>Dans un dossier, trois noms disent un état et deux noms disent un élément.</li>
+    <li>Un contour appartient au dossier du fond sur lequel il est posé. <code>solid</code> n'a donc pas de contour.</li>
+    <li><code>page</code> n'a pas de fond. Lui en donner rend floue sa différence avec <code>surface</code>.</li>
+    <li>Le fond léger est un niveau. Les noms <code>default</code>, <code>hover</code> et <code>pressed</code> sont des états.</li>
+  </ul>
+  <div class="local">Table des crans <span class="bascule" id="nomsTable"></span></div>
+  <div class="grille" id="noms"></div>
+
+  <!-- 10 -->
+  <h2 id="s10">10. Le thème Dark</h2>
+  <ul class="faits">
+    <li>La courbe Dark est celle de ta configuration. Elle ne change pas ici.</li>
+    <li>Le fond de page est <code>#121212</code>, celui de ta configuration.</li>
+    <li>Les thèmes inversés ne sont pas mesurés.</li>
+  </ul>
+  <div class="page grille" id="dark" style="background:#121212"></div>
+  <div id="contrastesDark"></div>
+
+  <h2 id="questions">Questions ouvertes</h2>
+  <ol class="questions">
+    <li>Le réglage de luminosité d'une palette doit-il épargner les crans clairs ?</li>
+    <li>Le 50, le 100 et le 200 prennent-ils une clarté commune à toutes les palettes ?</li>
+    <li>Quelle courbe du bas retenir, et avec ou sans lissage du 400 et du 500 ?</li>
+    <li>Quelle clarté pour un fond léger ?</li>
+    <li>Le texte de <code>surface</code> reste-t-il à 800 ou passe-t-il à 700 ?</li>
+    <li>Quelle table pour <code>surface</code> : 100, 200 et 300, ou 50, 100 et 200 ?</li>
+    <li>L'appui sort-il des garanties de contraste ?</li>
+    <li>Quel nom pour le fond léger, et quelle grammaire pour les noms ?</li>
+    <li>Comment traiter un composant conçu sur la page et posé dans une alerte teintée ?</li>
+    <li>Quelle table pour le thème Dark, et que deviennent les thèmes inversés ?</li>
+  </ol>
+</main>
+
+<script src="donnees-crans.js"></script>
+<script>
+const D = window.CRANS;
+const TABLES = {
+  aujourdhui: { nom: "Aujourd'hui", repos: 100, survol: 200, appui: 300, texte: 800 },
+  texte700: { nom: 'Hypothèse : texte 700', repos: 100, survol: 200, appui: 300, texte: 700 },
+  decalee800: { nom: 'Hypothèse : décalée, texte 800', repos: 50, survol: 100, appui: 200, texte: 800 },
+  decalee700: { nom: 'Hypothèse : décalée, texte 700', repos: 50, survol: 100, appui: 200, texte: 700 },
+};
+const TABLES_DARK = {
+  actuelle: { nom: "Aujourd'hui", repos: 300, survol: 400, appui: 500, texte: 950 },
+  intermediaire: { nom: 'Hypothèse : 200, 300, 400', repos: 200, survol: 300, appui: 400, texte: 900 },
+  proposee: { nom: 'Hypothèse : 100, 200, 300', repos: 100, survol: 200, appui: 300, texte: 800 },
+};
+const etat = { palette: 'Ocean', intensite: 'vivid', courbe: 'actuelle', lissage: 'non', moteur: 'actuel', page: '#FFFFFF',
+  vueHarmonie: 'couleur', clarteLegere: 0.985, contexteTable: 'aujourdhui', regle: 'ignore', nomsTable: 'aujourdhui' };
+try { Object.assign(etat, JSON.parse(localStorage.getItem('crans-clairs-2') || '{}')); } catch (e) {}
+const garder = () => { try { localStorage.setItem('crans-clairs-2', JSON.stringify(etat)); } catch (e) {} };
+
+// Couleur : WCAG et OKLCH.
+const $ = (id) => document.getElementById(id);
+const virgule = (x, d = 2) => x.toFixed(d).replace('.', ',');
+const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const lum = (h) => { const [r, g, b] = rgb(h).map(lin); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const contraste = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+function oklch(h) {
+  const [r, g, b] = rgb(h).map(lin);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const L = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s;
+  const A = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
+  const B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+  return { L, C: Math.hypot(A, B), H: (Math.atan2(B, A) * 180 / Math.PI + 360) % 360 };
+}
+function lineaire(L, C, H) {
+  const a = C * Math.cos(H * Math.PI / 180), b = C * Math.sin(H * Math.PI / 180);
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s];
+}
+const dansLeGamut = (v) => v.every((x) => x >= -1e-6 && x <= 1 + 1e-6);
+function plafond(L, H) { let bas = 0, haut = 0.4; for (let i = 0; i < 24; i++) { const mi = (bas + haut) / 2; if (dansLeGamut(lineaire(L, mi, H))) bas = mi; else haut = mi; } return bas; }
+function versHexa(L, C, H) {
+  const enc = (x) => { x = Math.min(1, Math.max(0, x)); return Math.round(255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055)); };
+  return '#' + lineaire(L, C, H).map(enc).map((n) => n.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+const gris = (h) => { const L = oklch(h).L; return versHexa(L, 0, 0); };
+const badge = (ratio) => `<span class="badge ${ratio >= 4.5 ? 'ok' : ratio >= 3 ? 'moyen' : 'ko'}">${virgule(ratio)}:1</span>`;
+
+// Données.
+const cleCourbe = (base = etat.courbe, lissage = etat.lissage) => (lissage === 'oui' && base !== 'actuelle' ? base + 'Lissee' : base);
+const palette = (nom = etat.palette) => D.palettes.find((p) => p.nom === nom) || D.palettes[0];
+const intensiteDe = (p, i = etat.intensite) => (p.light.actuelle.actuel.unique ? 'unique' : i);
+const rampeLight = (p = palette(), courbe = cleCourbe(), moteur = etat.moteur, i) => p.light[courbe][moteur][intensiteDe(p, i)];
+const cran = (n, p = palette(), mode = 'light') => (mode === 'light' ? rampeLight(p) : p.dark[intensiteDe(p)])[D.crans.indexOf(n)];
+const toutesLesRampes = (courbe = cleCourbe(), moteur = etat.moteur) => D.palettes.flatMap((p) => Object.values(p.light[courbe][moteur]));
+const mediane = (v) => [...v].sort((a, b) => a - b)[v.length >> 1];
+
+function etatsFiges(fonds, encre, base) {
+  return `<div class="etats">${fonds.map((f, i) => `<div class="etat"><div class="faux" style="background:${f || base};color:${encre};${f ? '' : 'outline:1px dashed #0002'}">Action</div>${['Repos', 'Survol', 'Appui'][i]} · ${f ? badge(contraste(encre, f)) : 'sans fond'}</div>`).join('')}</div>`;
+}
+const boutonVivant = (repos, survol, appui, encre, libelle = 'Bouton texte') => `<button class="bouton" style="--repos:${repos};--survol:${survol};--appui:${appui};--encre:${encre}">${libelle}</button>`;
+
+function rendreRampes() {
+  const p = palette();
+  const lignes = ['actuelle', 'legere', 'moyenne', 'forte'].map((base) => {
+    const cle = cleCourbe(base);
+    const r = rampeLight(p, cle);
+    const ancre = p.ancres[cle];
+    return `<div class="rampe ${base === etat.courbe ? 'choisie' : ''}"><div class="nom">${D.courbes[cle].nom}</div>${r.map((h, i) => {
+      const { L } = oklch(h);
+      return `<div class="nuance ${D.crans[i] === ancre ? 'ancre' : ''}" style="background:${h};color:${L > 0.62 ? '#222' : '#fff'}"><b>${D.crans[i]}</b>L ${virgule(L, 3)}</div>`;
+    }).join('')}</div>`;
+  });
+  $('rampes').innerHTML = `<div class="page" style="background:${etat.page}">${lignes.join('')}</div>`;
+
+  const base = etat.courbe === 'actuelle' ? 'moyenne' : etat.courbe;
+  const sans = base, avec = base + 'Lissee';
+  const lignesLissage = D.palettes.map((q) => {
+    const i = intensiteDe(q);
+    const r0 = q.light[sans][etat.moteur][i], r1 = q.light[avec][etat.moteur][i];
+    const c = (r, n) => contraste(r[D.crans.indexOf(n)], '#FFFFFF');
+    const cellule = (a, b, fmt) => `<td class="${fmt(a) === fmt(b) ? '' : 'change'}">${fmt(a)} → ${fmt(b)}</td>`;
+    return `<tr><td>${q.nom}</td>${cellule(q.ancres[sans], q.ancres[avec], String)}${cellule(c(r0, 400), c(r1, 400), (x) => virgule(x))}${cellule(c(r0, 500), c(r1, 500), (x) => virgule(x))}</tr>`;
+  }).join('');
+  $('lissage').innerHTML = `<p class="note">Courbe ${D.courbes[sans].nom.toLowerCase()}, sans puis avec lissage. Intensité ${etat.intensite === 'soft' ? 'Soft' : 'Vivid'}.</p><div class="defile"><table class="mesures"><tr><th>Palette</th><th>Cran de la référence</th><th>400 sur blanc</th><th>500 sur blanc</th></tr>${lignesLissage}</table></div>
+    <ul class="faits"><li>Une référence peut changer de cran. Sa couleur reste la même, son numéro change.</li><li>Le 400 et le 500 perdent du contraste sur le blanc. Ils ne portent aucune variable du thème Light. Un designer qui les emploie en primitive les verra plus clairs.</li><li>Le 600, l'anneau de focus et les crans 700 à 950 ne changent pas.</li></ul>`;
+
+  const paires = [[null, 50], [50, 100], [100, 200], [200, 300], [300, 400], [400, 500], [500, 600]];
+  const lignesEcarts = ['actuelle', 'legere', 'legereLissee', 'moyenne', 'moyenneLissee', 'forte', 'forteLissee'].map((cle) => {
+    const rs = toutesLesRampes(cle);
+    const L = (r, n) => (n === null ? 1 : oklch(r[D.crans.indexOf(n)]).L);
+    return `<tr class="${cle === cleCourbe() ? 'choisie' : ''}"><td>${D.courbes[cle].nom}</td>${paires.map(([a, b]) => `<td>${virgule(mediane(rs.map((r) => L(r, a) - L(r, b))), 3)}</td>`).join('')}</tr>`;
+  }).join('');
+  $('ecarts').innerHTML = `<div class="defile"><table class="mesures"><tr><th>Courbe</th>${paires.map(([a, b]) => `<th>${a ?? 'blanc'} → ${b}</th>`).join('')}</tr>${lignesEcarts}</table></div>`;
+}
+
+function rendreHarmonie() {
+  const vue = (h) => (etat.vueHarmonie === 'clarte' ? gris(h) : h);
+  const bloc = (n) => ['actuel', 'commune'].map((moteur) => {
+    const hs = D.palettes.map((p) => rampeLight(p, cleCourbe(), moteur)[D.crans.indexOf(n)]);
+    const Ls = hs.map((h) => oklch(h).L);
+    const ecart = Math.max(...Ls) - Math.min(...Ls);
+    return `<div class="rangee"><div class="nom"><b>${n}</b> · ${moteur === 'actuel' ? 'moteur actuel' : 'clarté commune'}<br>écart ${virgule(ecart, 3)}</div>${hs.map((h, i) => `<div class="tuile" style="background:${vue(h)}"><b>${D.palettes[i].nom}</b><br>L ${virgule(Ls[i], 3)}</div>`).join('')}</div>`;
+  }).join('');
+  $('harmonie').style.background = etat.page;
+  $('harmonie').innerHTML = [50, 100, 200].map(bloc).join('<div style="height:10px"></div>');
+}
+
+function rendreTextes() {
+  $('textes').innerHTML = [50, 100, 200, 300].map((n) => {
+    const fond = cran(n);
+    const ligne = (t) => `<div class="ligne" style="color:${cran(t)}"><span><b>Texte ${t}</b> sur le fond ${n}</span>${badge(contraste(cran(t), fond))}</div>`;
+    const phrase = (t) => `<p style="color:${cran(t)};margin:4px 0 10px;font-size:13px">Votre dossier a été transmis au service client.</p>`;
+    return `<div class="carte" style="background:${etat.page}"><div class="fond" style="background:${fond}">${ligne(700)}${phrase(700)}${ligne(800)}${phrase(800)}</div></div>`;
+  }).join('');
+}
+
+function rendreBoutonsTexte() {
+  const encre = cran(700);
+  const options = [
+    { titre: "Aujourd'hui", sous: 'Survol surface/hover (200), appui surface/pressed (300).', f: [200, 300] },
+    { titre: 'Emprunt du repos', sous: 'Survol surface/default (100), appui surface/hover (200). Les noms ne suivent plus les états.', f: [100, 200] },
+    { titre: 'Table décalée', sous: 'Surface en 50, 100, 200. Survol surface/hover (100), appui surface/pressed (200).', f: [100, 200] },
+  ];
+  $('boutonsTexte').style.background = etat.page;
+  $('boutonsTexte').innerHTML = `<div class="grille">${options.map((o) => `<div><h4>${o.titre}</h4><p class="sous">${o.sous}</p>
+    <div class="vivant">${boutonVivant('transparent', cran(o.f[0]), cran(o.f[1]), encre)} Survolez, appuyez.</div>
+    ${etatsFiges([null, cran(o.f[0]), cran(o.f[1])], encre, etat.page)}</div>`).join('')}</div>`;
+}
+
+// Le 50 de la clarté commune porte toujours une teinte ; celui du moteur peut toucher le blanc.
+function fondLeger(p) {
+  const { C, H, L } = oklch(rampeLight(p, cleCourbe(), 'commune')[0]);
+  const part = C / Math.max(plafond(L, H), 1e-4);
+  const cible = etat.clarteLegere;
+  return versHexa(cible, Math.min(1, part) * plafond(cible, H), H);
+}
+function rendreAlertes() {
+  $('clarteLegere').value = etat.clarteLegere;
+  $('valeurLegere').textContent = virgule(etat.clarteLegere, 3);
+  $('alertes').style.background = etat.page;
+  $('alertes').innerHTML = D.palettes.map((p) => {
+    const fond = fondLeger(p), encre = cran(700, p);
+    return `<div><div class="alerte" style="background:${fond};border:1px solid ${encre}"><span class="pastille" style="background:${encre}"></span>
+      <div><strong style="color:${encre}">${p.nom}</strong><p style="color:${encre}">Votre dossier a été transmis.</p></div></div>
+      <p class="note" style="margin:4px 0 0">${fond} · ${badge(contraste(encre, fond))}</p></div>`;
+  }).join('');
+}
+
+function rendreContextes() {
+  const t = TABLES[etat.contexteTable];
+  const survol = cran(t.survol), appui = cran(t.appui), encre = cran(700);
+  const conteneurs = [
+    { titre: 'Sur la page', fond: etat.page, contour: null },
+    { titre: 'Dans une alerte outlined, fond 50', fond: cran(50), contour: cran(700) },
+    { titre: 'Dans une alerte teintée, fond 100', fond: cran(100), contour: null },
+  ];
+  $('contextes').style.background = etat.page;
+  $('contextes').innerHTML = conteneurs.map((c) => `<div><h4>${c.titre}</h4>
+    <div class="alerte" style="background:${c.fond};${c.contour ? `border:1px solid ${c.contour}` : ''};display:block">
+      <div class="vivant">${boutonVivant('transparent', survol, appui, encre)}</div>${etatsFiges([null, survol, appui], encre, c.fond)}</div>
+    <p class="note">Écart de clarté entre le conteneur et le survol : <b>${virgule(oklch(c.fond).L - oklch(survol).L, 3)}</b>.</p></div>`).join('');
+}
+
+function bilan(tables, mode, rampes) {
+  return Object.fromEntries(Object.entries(tables).map(([cle, t]) => {
+    const i = (n) => D.crans.indexOf(n);
+    const sur = (fond) => { const v = rampes.map((r) => contraste(r[i(t.texte)], r[i(fond)])); return { min: Math.min(...v), sous45: v.filter((x) => x < 4.5).length, sous3: v.filter((x) => x < 3).length }; };
+    return [cle, { repos: sur(t.repos), survol: sur(t.survol), appui: sur(t.appui), leger: sur(50) }];
+  }));
+}
+function cellule(b, regle, n) {
+  if (regle === 'ignore') return `<td class="info">${virgule(b.min)} · non vérifié</td>`;
+  const seuil = regle === 'trois' ? 3 : 4.5, echecs = seuil === 3 ? b.sous3 : b.sous45;
+  return `<td class="${echecs ? 'ko' : 'ok'}">${virgule(b.min)} · ${echecs ? `${echecs}/${n} sous ${virgule(seuil, 1)}` : 'tout passe'}</td>`;
+}
+function rendreContrastes() {
+  let lignes = '';
+  for (const base of ['actuelle', 'legere', 'moyenne', 'forte']) {
+    const cle = cleCourbe(base), rampes = toutesLesRampes(cle), b = bilan(TABLES, 'light', rampes);
+    for (const [cleT, t] of Object.entries(TABLES)) {
+      lignes += `<tr class="${base === etat.courbe ? 'choisie' : ''}"><td>${D.courbes[cle].nom}</td><td>${t.nom} · ${t.repos}, ${t.survol}, ${t.appui} · texte ${t.texte}</td>${cellule(b[cleT].repos, 'stricte', rampes.length)}${cellule(b[cleT].survol, 'stricte', rampes.length)}${cellule(b[cleT].appui, etat.regle, rampes.length)}${cellule(b[cleT].leger, 'stricte', rampes.length)}</tr>`;
+    }
+  }
+  $('contrastes').innerHTML = `<p class="note">Crans clairs : ${etat.moteur === 'actuel' ? 'moteur actuel' : 'clarté commune'}.</p><div class="defile"><table class="mesures"><tr><th>Courbe</th><th>Table de surface</th><th>Repos</th><th>Survol</th><th>Appui</th><th>Fond léger (50)</th></tr>${lignes}</table></div>`;
+  const sombres = D.palettes.flatMap((p) => Object.values(p.dark)), bd = bilan(TABLES_DARK, 'dark', sombres);
+  $('contrastesDark').innerHTML = `<div class="defile"><table class="mesures"><tr><th>Table de surface en Dark</th><th>Repos</th><th>Survol</th><th>Appui</th></tr>${Object.entries(TABLES_DARK).map(([c, t]) => `<tr><td>${t.nom} · texte ${t.texte}</td>${cellule(bd[c].repos, 'stricte', sombres.length)}${cellule(bd[c].survol, 'stricte', sombres.length)}${cellule(bd[c].appui, etat.regle, sombres.length)}</tr>`).join('')}</table></div>`;
+}
+
+function rendreSansSurvol() {
+  $('sansSurvol').style.background = etat.page;
+  $('sansSurvol').innerHTML = Object.values(TABLES).map((t) => {
+    const fond = cran(t.repos), encre = cran(t.texte);
+    return `<div><h4>${t.nom}</h4><p class="sous">Fond ${t.repos}, texte et contour ${t.texte}.</p>
+      <div class="pastilles"><span class="etiquette" style="background:${fond};color:${encre}">Nouveau</span><span class="tag" style="background:${fond};color:${encre};border-color:${encre}">Filtre actif</span>${badge(contraste(encre, fond))}</div>
+      <div class="alerte" style="background:${fond}"><span class="pastille" style="background:${encre}"></span><div><strong style="color:${encre}">Encart</strong><p style="color:${encre}">Votre dossier a été transmis.</p></div></div>
+      <div class="vivant" style="margin-top:10px">${boutonVivant(cran(t.repos), cran(t.survol), cran(t.appui), encre, 'Bouton teinté')}</div></div>`;
+  }).join('');
+}
+
+function rendreNoms() {
+  const t = TABLES[etat.nomsTable];
+  const v = (nom, n, note = '') => `<div class="v"><span class="pastille" style="background:${n === null ? 'transparent' : cran(n)}"></span>${nom}<span class="cran">${n === null ? '' : n}${note}</span></div>`;
+  const dossier = (nom) => `<div class="dossier">${nom}/</div>`;
+  const options = [
+    { titre: 'A. Élément puis état', sous: "Le repos s'écrit sans suffixe.", lignes: [
+      dossier('solid'), v('background', 700), v('background-hover', 800), v('background-pressed', 900), v('foreground', null, ' blanc'),
+      dossier('surface'), v('background', t.repos), v('background-hover', t.survol), v('background-pressed', t.appui), v('background-subtle ?', 50), v('foreground', t.texte), v('border', t.texte),
+      dossier('page'), v('foreground', 700), v('border', 700), v('divider', 300)] },
+    { titre: 'A bis. Idée du mainteneur', sous: 'Le repos porte le suffixe base.', lignes: [
+      dossier('surface'), v('background-base', t.repos), v('background-hover', t.survol), v('background-pressed', t.appui), v('foreground', t.texte), v('border', t.texte)] },
+    { titre: 'B. Noms actuels', sous: 'Les états restent seuls. La règle des dossiers se documente.', lignes: [
+      dossier('solid'), v('default', 700), v('hover', 800), v('pressed', 900), v('foreground', null, ' blanc'),
+      dossier('surface'), v('default', t.repos), v('hover', t.survol), v('pressed', t.appui), v('subtle ?', 50), v('foreground', t.texte), v('border', t.texte),
+      dossier('page'), v('foreground', 700), v('border', 700), v('divider', 300)] },
+    { titre: "C. Élément d'abord", sous: 'Le dossier passe en second.', lignes: [
+      dossier('background'), v('solid', 700), v('solid-hover', 800), v('solid-pressed', 900), v('surface', t.repos), v('surface-hover', t.survol), v('surface-pressed', t.appui),
+      dossier('foreground'), v('solid', null, ' blanc'), v('surface', t.texte), v('page', 700),
+      dossier('border'), v('surface', t.texte), v('page', 700)] },
+  ];
+  $('noms').innerHTML = options.map((o) => `<div class="carte"><h4>${o.titre}</h4><p class="sous">${o.sous}</p><div class="arbre">${o.lignes.join('')}</div></div>`).join('')
+    + `<div class="carte"><h4>Règle des contours</h4><p class="sous">Un contour appartient au dossier du fond sur lequel il est posé.</p><div class="arbre">${dossier('solid')}${v('aucun contour', null)}${dossier('surface')}${v('border', t.texte)}${dossier('page')}${v('border', 700)}</div><p class="note">Le bouton outlined prend <code>page/border</code>.</p></div>`;
+}
+
+function rendreDark() {
+  $('dark').innerHTML = Object.values(TABLES_DARK).map((t) => {
+    const f = [cran(t.repos, palette(), 'dark'), cran(t.survol, palette(), 'dark'), cran(t.appui, palette(), 'dark')], encre = cran(t.texte, palette(), 'dark');
+    return `<div><h4 style="color:#eee">${t.nom}</h4><p class="sous" style="color:#aaa">Fonds ${t.repos}, ${t.survol}, ${t.appui}. Texte ${t.texte}.</p>
+      <div class="alerte" style="background:${f[0]};display:block"><strong style="color:${encre}">Information</strong><p style="color:${encre}">Votre dossier a été transmis. ${badge(contraste(encre, f[0]))}</p>
+      <div class="vivant">${boutonVivant(f[0], f[1], f[2], encre, 'Bouton teinté')}</div></div>${etatsFiges(f, encre, '#121212').replaceAll('color:#555', 'color:#aaa')}</div>`;
+  }).join('');
+}
+
+function marquer(conteneur, valeur) { conteneur.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(valeur === x.dataset.v))); }
+function rendre() {
+  document.querySelectorAll('.bascule[data-cle]').forEach((b) => marquer(b, etat[b.dataset.cle]));
+  ['vueHarmonie', 'contexteTable', 'regle', 'nomsTable'].forEach((id) => marquer($(id), etat[id]));
+  document.querySelectorAll('[data-cle="lissage"] button').forEach((x) => { x.disabled = etat.courbe === 'actuelle'; });
+  $('palette').value = etat.palette;
+  rendreRampes(); rendreHarmonie(); rendreTextes(); rendreBoutonsTexte(); rendreAlertes(); rendreContextes();
+  rendreContrastes(); rendreSansSurvol(); rendreNoms(); rendreDark();
+  garder();
+}
+
+$('palette').innerHTML = D.palettes.map((p) => `<option>${p.nom}</option>`).join('');
+$('palette').addEventListener('change', (e) => { etat.palette = e.target.value; rendre(); });
+$('nomsTable').innerHTML = Object.entries(TABLES).map(([c, t]) => `<button data-v="${c}">${t.nom}</button>`).join('');
+document.querySelectorAll('.bascule[data-cle]').forEach((b) => b.addEventListener('click', (e) => { const v = e.target.dataset.v; if (v && !e.target.disabled) { etat[b.dataset.cle] = v; rendre(); } }));
+['vueHarmonie', 'contexteTable', 'regle', 'nomsTable'].forEach((id) => $(id).addEventListener('click', (e) => { const v = e.target.dataset.v; if (v) { etat[id] = v; rendre(); } }));
+$('clarteLegere').addEventListener('input', (e) => { etat.clarteLegere = Number(e.target.value); rendreAlertes(); garder(); });
+rendre();
+</script>
+</body>
+</html>

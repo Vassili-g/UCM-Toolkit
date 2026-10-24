@@ -16,8 +16,9 @@ Pour modifier le produit, partez des références de
 | [Recette v10 de Palettes](./Plugin%20Palettes/Recette%20v10/README.md) | R2 à R6 implémentés ; R1 attend la décision D1 ; rampes Dark sans ancrage mesurées | Décision D1 du mainteneur, puis recette Figma |
 | [Référentiel UCM](./Référentiel%20UCM/README.md) | Lots 0 à 18 du [plan par lots](./Référentiel%20UCM/PLAN-IMPLEMENTATION.md) faits, kit 0.7.0 publié | Lot 19 : recette d'UCM Architect dans Figma, puis export des tokens |
 | [Nomenclature, ex-Architect](./Plugin%20Architect/README.md) | Repris depuis le début. La v1 normalise les noms ; l'architecture globale UCM et les explorations de la suite y sont regroupées | Le mainteneur parcourt les maquettes et les réflexions |
-| [UCM Architect](./UCM%20Architect/README.md) | Fusion de l'explorateur et de Nomenclature : préparation, grammaire des composants, maquettes validées, plan d'implémentation | Lancement du plan |
+| [UCM Architect](./UCM%20Architect/README.md) | Fusion de l'explorateur et de Nomenclature : préparation, grammaire des composants, maquettes, plans d'implémentation, recette v1, vitesse de l'analyse | Recette Figma de la recette v1 |
 | [Guide des agents](./Guide%20des%20agents/README.md) | Découpage d'`AGENTS.md` fait : index, guides et invariants par paquet, convention compacte | Essais Codex et `/context` du mainteneur |
+| [Crans clairs des palettes](./SUJETS%20IMPORTANTS%20%C3%A0%20trancher/README.md) | Remarques du mainteneur sur ses composants : crans clairs, texte de `surface`, noms des variables, contexte des composants ; maquette des solutions | Le mainteneur parcourt la maquette ; aucune solution décidée |
 | [Architecture multi-marques](Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle : collections, panneau des variables et rôles de `theme` | Actualiser les données du panneau après un export ; les évolutions ouvertes restent séparées dans le dossier |
 
 La [spécification de Palettes](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)
