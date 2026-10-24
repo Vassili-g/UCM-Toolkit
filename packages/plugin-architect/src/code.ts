@@ -14,7 +14,7 @@ import { TAILLE_PAR_DEFAUT } from './fenetre';
 import type { PluginMessage, UiRequest } from './messages';
 import { surChangementDuDocument, surSelection } from './sandbox/analyse';
 import { declarer, envoyerLaSelection, ouvrirLaFenetre } from './sandbox/commun';
-import type { Contexte } from './sandbox/contexte';
+import { creerLeSuivi, type Contexte } from './sandbox/contexte';
 import { DOMAINES, tableDesTypes } from './sandbox/index';
 import { annoncerLOuverture } from './sandbox/nomenclature';
 
@@ -24,30 +24,21 @@ function versUi(message: PluginMessage): void {
   figma.ui.postMessage(message);
 }
 
-let surveille = false;
-let pageSurveillee: PageNode | null = null;
-
 const surLesNoeuds = (evenement: NodeChangeEvent): void => {
   surChangementDuDocument(evenement.nodeChanges.map((changement) => changement.node.id), contexte);
 };
 
-/** Suit les changements de la page courante, et quitte la page précédente. */
-function suivreLaPage(): void {
-  if (!surveille || pageSurveillee === figma.currentPage) return;
-  pageSurveillee?.off('nodechange', surLesNoeuds);
-  pageSurveillee = figma.currentPage;
-  pageSurveillee.on('nodechange', surLesNoeuds);
-}
-
 /**
- * Abonne le sandbox aux changements de la page courante, à la première
+ * Abonne le sandbox aux changements de la page courante et de la page du sujet
+ * de l'analyse (le maître d'une instance peut vivre ailleurs), à la première
  * analyse. `documentchange` demanderait `loadAllPagesAsync`, que la loi
  * d'écriture refuse hors de `ecriture/` et qui coûte cher dans un gros
  * fichier : un jeu de variants se lit et se défait sur la page qui le porte.
  */
-function surveillerLeDocument(): void {
-  surveille = true;
-  suivreLaPage();
+const suivi = creerLeSuivi<PageNode>(() => figma.currentPage, surLesNoeuds);
+
+function surveillerLeDocument(page?: PageNode): void {
+  suivi.surveiller(page);
 }
 
 const contexte: Contexte = { figma, envoyer: versUi, surveillerLeDocument };
@@ -74,7 +65,7 @@ async function traiterMessage(message: UiRequest): Promise<void> {
 
 figma.on('selectionchange', aLaSelection);
 figma.on('currentpagechange', () => {
-  suivreLaPage();
+  suivi.recalculer();
   aLaSelection();
 });
 

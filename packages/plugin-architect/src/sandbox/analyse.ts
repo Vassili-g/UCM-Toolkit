@@ -65,12 +65,12 @@ let generation = 0;
 let courante: AnalyseCourante | null = null;
 
 /** Ouvre une analyse : la génération monte, l'analyse précédente n'est plus la courante. */
-export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte, admis?: Iterable<string>): IdentiteDAnalyse {
+export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte, admis?: Iterable<string>, page?: PageNode): IdentiteDAnalyse {
   generation += 1;
   const identite = { sujet, generation };
   const tous = new Set(noeuds);
   courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, corrections: new Map(), constats: new Map(), releve: null, catalogue: null, perimee: false };
-  contexte.surveillerLeDocument();
+  contexte.surveillerLeDocument(page);
   return identite;
 }
 
@@ -368,7 +368,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
   };
   try {
     const sujet = await lecteurs.sujet(contexte).catch(() => null);
-    identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis);
+    identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined);
     courant.connue = identite;
     connaitre(identite);
     contexte.envoyer({ type: 'analyse-commencee', analyse: identite });
