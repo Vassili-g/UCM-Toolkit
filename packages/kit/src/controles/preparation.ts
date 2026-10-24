@@ -6,7 +6,8 @@ import { cranDeLaVariable, DOSSIERS, ETATS, VARIABLES_DU_THEME, type VariableDuT
 import { REGISTRE_PALETTES_COMPOSANT } from '../referentiel/architecture.js';
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { MODES, PROFILS, REGISTRE_ETATS, REGISTRE_ROLES, REGISTRE_STATUTS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
-import { cheminDansLaCollection, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { candidatsDeLongueur } from './candidatsDeLongueur.js';
 import type { Question } from './constat.js';
 import { axeDePropriete, axesDuReleve, type AxeDuComposant, type ProprieteDAxe } from './nommage.js';
 import { liaisonsPropres, type LayerLu, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
@@ -109,18 +110,6 @@ function moinsLeSuffixe(nom: string): string {
   return nom.split('#')[0];
 }
 
-/** La valeur en pixels d'une variable : la même dans tous ses modes, en suivant les alias. */
-function valeurEnPixels(variable: VariableDuCatalogue, catalogue: CatalogueDeReference, profondeur = 0): number | undefined {
-  const entrees = Object.values(variable.valeurs ?? {});
-  if (!entrees.length || profondeur > 5) return undefined;
-  const valeurs = entrees.map((entree) => {
-    if ('valeur' in entree) return typeof entree.valeur === 'number' ? entree.valeur : undefined;
-    const cible = variableDuCatalogue(catalogue, entree.alias);
-    return cible === 'absente' ? undefined : valeurEnPixels(cible, catalogue, profondeur + 1);
-  });
-  return valeurs.every((valeur) => valeur !== undefined && valeur === valeurs[0]) ? valeurs[0] : undefined;
-}
-
 function roleDeTheme(role: Role): 'background' | 'foreground' | 'border' {
   return role === 'icon' ? 'foreground' : role;
 }
@@ -135,7 +124,6 @@ export function preparerLesTokens(
   const composant = segmentDe(releve.jeu.nom);
   const collectionDe = (role: string) => catalogue.collections.find((collection) => collection.role === role);
   const theme = collectionDe('theme');
-  const layout = collectionDe('layout');
 
   // Axes : ceux que le nommage reconnaît, plus un axe inconnu que le designer a dit vouloir en style.
   const axes: Partial<Record<AxeDuComposant, ProprieteDAxe>> = { ...axesDuReleve(releve) };
@@ -363,9 +351,7 @@ export function preparerLesTokens(
     else if (champ === 'cornerRadius') { propriete = 'radius'; famille = 'radius'; }
     else if (champ === 'strokeWeight') { propriete = 'border-width'; famille = 'stroke'; }
     else { propriete = 'icon-size'; famille = 'icon'; }
-    const candidats = catalogue.variables.filter((variable) =>
-      variable.collection === layout?.cle && variable.type === 'FLOAT' && cheminDansLaCollection(variable, catalogue)[0] === FAMILLES_DE_TAILLE[famille]
-      && valeurEnPixels(variable, catalogue) === valeur);
+    const candidats = candidatsDeLongueur(catalogue, FAMILLES_DE_TAILLE[famille], valeur).exacts;
     // Sans token exact, le lieu ne pose aucune question de nom : il reste en dur.
     const element = candidats.length > 0 ? elementDe(variant, layer) : { element: aNommer.has(cleDeLayer(variant, layer)) ? segmentDe(layer.nom) : undefined, attend: undefined };
     const taille = valeurDeVariant(variant, axes.taille);

@@ -141,3 +141,21 @@ test('C29 lit la famille d’une variable de layout nommée comme dans Figma, sa
   const [c29] = proposerLesCorrections(lu, catalogue, []).filter(({ code }) => code === 'C29');
   assert.equal(c29?.correction?.apres.nom, 'radius/13');
 });
+
+test('un alias vers une primitive de 8 px rend C29 exact', () => {
+  const cat: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [
+      { cle: 'layout', nom: 'layout', role: 'layout', modes: [{ id: 'm', nom: 'Valeur' }], etat: 'lue' },
+      { cle: 'prim', nom: 'primitives', role: 'primitives', modes: [{ id: 'p', nom: 'Valeur' }], etat: 'lue' },
+    ],
+    variables: [
+      { cle: 'p8', nom: 'spacing/8', collection: 'prim', type: 'FLOAT', etat: 'presente', valeurs: { p: { valeur: 8 } } },
+      { cle: 'md', nom: 'radius/md', collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { m: { alias: 'p8' } } },
+    ],
+  };
+  const lu = releve([layer('racine', null, { valeursEnDur: [{ champ: 'cornerRadius', valeur: 8 }] })]);
+  const [constat] = proposerLesCorrections(lu, cat, []).filter(({ code }) => code === 'C29');
+  assert.equal(constat.correction?.apres.cle, 'md');
+  assert.equal(constat.question, undefined);
+});

@@ -1,6 +1,7 @@
 /** Propositions fondées sur une règle écrite et des faits relus. */
 import { formeReconnue } from '../referentiel/reconnaissance.js';
 import { cheminDansLaCollection, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { candidatsDeLongueur } from './candidatsDeLongueur.js';
 import type { Constat, Correction } from './constat.js';
 import { axesDuReleve, segmentDAxe, tokensDuComposant, type AxeDuComposant } from './nommage.js';
 import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
@@ -182,13 +183,7 @@ function corrigerValeurEnDur(constat: Constat, releve: ReleveDeComposant, catalo
   const familleCherchee = familleLayoutCompatible(champ);
   if (!familleCherchee) return undefined;
   if (!rechercheDeLayoutComplete(catalogue, familleCherchee)) return { faits: { ...constat.faits, recherche: 'incomplete' } };
-  const candidats = catalogue.variables.filter((variable) => {
-    if (variable.etat !== 'presente' || variable.type !== 'FLOAT') return false;
-    if (catalogue.collections.find((entree) => entree.cle === variable.collection)?.role !== 'layout') return false;
-    if (formeReconnue(cheminDansLaCollection(variable, catalogue)[0] ?? '') !== familleCherchee) return false;
-    const valeurs = Object.values(variable.valeurs ?? {});
-    return valeurs.length > 0 && valeurs.every((entree) => 'valeur' in entree && entree.valeur === valeur);
-  });
+  const candidats = candidatsDeLongueur(catalogue, familleCherchee, valeur).exacts;
   if (candidats.length !== 1) return question(constat, candidats);
   const candidate = candidats[0];
   return { correction: {
