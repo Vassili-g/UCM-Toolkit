@@ -1561,6 +1561,20 @@ Choix faits sans le mainteneur :
   dans `layout` ; (4) l'analyse charge les valeurs de `layout` dont un C29 a
   besoin ; (5) une question par variant dans le kit, regroupées à l'écran
   · réversible : oui.
+- Q-88 · G4 · Convention des noms de variables. Figma nomme une variable
+  sans sa collection : `tokens.json` d'intencial-library publie
+  `layouts.sizing.0` pour la variable `sizing/0` de la collection `layouts`,
+  et Architect affiche `Size/padding-y` pour `Alert/Size/padding-y`. Le kit
+  lisait deux conventions : `structure.ts` sans préfixe, C29 et la
+  préparation avec (`layout/radius/13`), si bien qu'aucun candidat de taille
+  ne se trouvait dans un vrai fichier. `cheminDansLaCollection` lit
+  désormais les deux pour les tailles (`821ea7e7`). Reste la préparation :
+  elle nomme les variables à créer `components/<composant>/…`, qui
+  créeraient un dossier `components` dans la collection, et cherche ses
+  cibles sous `theme/<palette>/…`, par nom exact dans l'écriture. Question
+  au mainteneur : dans le fichier migré, le nom d'une variable commence-t-il
+  par sa collection ? Si non, lot G7 : noms créés et cibles sans préfixe
+  · réversible : oui.
 
 ### Revue des lots réalisés
 
@@ -1638,16 +1652,16 @@ Un lot du kit monte sa version dans son commit (script du lot V).
   contraste rend une limite. Un layer dont la boîte ne se lit pas ne donne
   pas de C52. Une lecture manquée rend l'analyse `partielle`, avec son titre
   propre, jamais « Tenu ».
-- [ ] **F2 · Un layer sous un parent masqué est masqué** (bug 2). Une seule
+- [x] (51c19dec) **F2 · Un layer sous un parent masqué est masqué** (bug 2). Une seule
   règle du kit, la visibilité dans le variant par la chaîne des parents, pour
   le texte minimal, l'anneau, le contraste et la typographie.
-- [ ] **F3 · C21 compare les alias de tous les modes** (bug 5). La signature
+- [x] (2e23c32b) **F3 · C21 compare les alias de tous les modes** (bug 5). La signature
   d'un token réunit les cibles de chaque mode, dans un ordre fixe.
-- [ ] **F4 · Identités et page du sujet** (bugs 6, 7, 9). Un point du moteur
+- [x] (06f41dd1) **F4 · Identités et page du sujet** (bugs 6, 7, 9). Un point du moteur
   a un identifiant tiré de son code et de son contenu, pas de son rang. Le
   moteur reçoit la page du maître. La sélection d'un composant imbriqué, ou
   de tout autre sujet que le jeu et ses variants, périme l'analyse.
-- [ ] **F5 · Le maître d'une autre page se surveille** (bug 8). Le sandbox
+- [x] (63de0af3) **F5 · Le maître d'une autre page se surveille** (bug 8). Le sandbox
   suit aussi la page du sujet analysé quand ce n'est pas la page courante.
 - [x] (7e4ce4b4) **F6 · Le panneau garde sa péremption ; le tableau compte par
   identifiant** (bugs 10, 11). Le message `analyse` d'une analyse déjà
@@ -1660,23 +1674,26 @@ Un lot du kit monte sa version dans son commit (script du lot V).
   Critère : constats, corrections et questions égaux en profondeur sur les
   fixtures, avant et après.
 
-- [ ] **G1 · La préparation ne bloque plus sur une taille sans token exact**
+- [x] (2e23c32b) **G1 · La préparation ne bloque plus sur une taille sans token exact**
   (bug 12). Un lieu sans candidat exact sort du plan et reste en dur (C29
   le garde dans À faire dans Figma) ; la préparation rend ces lieux à part.
   La réponse libre à une question `cible:` disparaît. Des lieux de valeurs
   différentes sous un même nom ne partagent plus une cible qui ne vaut que
   pour une partie d'entre eux.
-- [ ] **G2 · Une question de nom sans candidat reçoit un champ de saisie.**
+- [x] (821ea7e7) **G2 · Une question de nom sans candidat reçoit un champ de saisie.**
   Jumeau du bug 12 : la question `nom:` d'un layer au nom par défaut n'avait
   aucune réponse possible.
-- [ ] **G3 · C29 se limite aux longueurs explicites.** Padding, gap, rayon
+- [x] (821ea7e7) **G3 · C29 se limite aux longueurs explicites.** Padding, gap, rayon
   commun et par coin, épaisseur commune ; non nulles ; visibles dans leur
   variant (règle de F2) ; hors layer d'instance ; hors lecture manquée.
   Largeur et hauteur sortent de C29 (provenance non lue).
-- [ ] **G4 · Les valeurs de layout se lisent en analyse.** Avec une library,
+- [x] (821ea7e7) **G4 · Les valeurs de layout se lisent en analyse.** Avec une library,
   C29 n'avait jamais de candidat : seules les variables liées étaient
   chargées. L'analyse charge les familles de `layout` dont un C29 a besoin ;
   sans lecture complète, C29 dit « non vérifié », sans question.
+- [ ] **G7 · Noms de la préparation dans la convention de Figma** (attend
+  Q-88). La préparation bâtit `components/<composant>/…` et vise
+  `theme/<palette>/…` ; l'écriture retrouve ses cibles par ce nom exact.
 - [ ] **G5 · Un classement des candidats de longueur partagé.** C29 et la
   préparation lisent les mêmes candidats exacts, valeur résolue dans tous
   les modes, alias suivis. Aucune question « proche » encore.
