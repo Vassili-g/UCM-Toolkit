@@ -110,6 +110,22 @@ test('le relevé lit tous les variants, les propriétés et les faits de chaque 
   assert.deepEqual(instance.liaisons.map((l) => [l.champ, l.indice, l.porteur, l.variable.nom]), [['fills', 0, 'inst-SRepos', 'carte/fond']]);
 });
 
+test('l’épaisseur d’un layer sans contour visible n’est pas une valeur en dur', async () => {
+  const a = atelierDeCalques();
+  const contour = { type: 'SOLID', color: { r: 0, g: 0, b: 0 } };
+  const sansContour = a.calque('sans', 'FRAME', { absoluteBoundingBox: boite(0, 0, 10, 10), strokes: [], strokeWeight: 1 });
+  const masque = a.calque('masque', 'FRAME', { absoluteBoundingBox: boite(0, 0, 10, 10), strokes: [{ ...contour, visible: false }], strokeWeight: 1 });
+  const visible = a.calque('visible', 'FRAME', { absoluteBoundingBox: boite(0, 0, 10, 10), strokes: [contour], strokeWeight: 1 });
+  const lie = a.calque('lie', 'FRAME', { absoluteBoundingBox: boite(0, 0, 10, 10), strokes: [contour], strokeWeight: 1, boundVariables: { strokeTopWeight: alias('taille') } });
+  const variant = a.calque('v', 'COMPONENT', { name: 'Etat=Repos', absoluteBoundingBox: boite(0, 0, 40, 10), strokes: [], strokeWeight: 1 }, [sansContour, masque, visible, lie]);
+  const jeu = a.calque('jeu', 'COMPONENT_SET', { name: 'Alert', key: 'cle', defaultVariant: variant, componentPropertyDefinitions: { Etat: { type: 'VARIANT', defaultValue: 'Repos', variantOptions: ['Repos'] } } }, [variant]);
+  const issue = await lireLeReleve(a.port(variables().port), jeu);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  const epaisseurs = issue.releve.variants[0].layers.filter((layer) => layer.valeursEnDur.some((valeur) => valeur.champ === 'strokeWeight')).map((layer) => layer.id);
+  assert.deepEqual(epaisseurs, ['visible']);
+});
+
 test('un budget qui coupe au quatrième variant compte les layers non lus', async () => {
   const { a, jeu } = jeuFactice();
   const { port } = variables();

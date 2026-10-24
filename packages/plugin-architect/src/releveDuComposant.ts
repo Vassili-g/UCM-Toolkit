@@ -120,7 +120,9 @@ function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimension
   if (typeof donnees.layoutMode === 'string' && donnees.layoutMode !== 'NONE') for (const champ of CHAMPS_NUMERIQUES) ajouter(champ, donnees[champ]);
   if (estUnNombre(donnees.cornerRadius)) ajouter('cornerRadius', donnees.cornerRadius, ...RAYONS);
   else for (const coin of RAYONS) ajouter(coin, donnees[coin], 'cornerRadius');
-  ajouter('strokeWeight', donnees.strokeWeight, 'strokeTopWeight', 'strokeRightWeight', 'strokeBottomWeight', 'strokeLeftWeight');
+  // Figma donne une épaisseur (1 par défaut) à tout layer, même sans contour : sans contour visible, elle ne se voit pas.
+  const contourVisible = Array.isArray(donnees.strokes) && donnees.strokes.some((peinture) => estUnObjet(peinture) && peinture.visible !== false && peinture.opacity !== 0);
+  if (contourVisible) ajouter('strokeWeight', donnees.strokeWeight, 'strokeTopWeight', 'strokeRightWeight', 'strokeBottomWeight', 'strokeLeftWeight');
   if (dimensions) {
     if (!liee('width')) valeurs.push({ champ: 'width', valeur: dimensions.largeur });
     if (!liee('height')) valeurs.push({ champ: 'height', valeur: dimensions.hauteur });
