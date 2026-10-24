@@ -1667,7 +1667,7 @@ Un lot du kit monte sa version dans son commit (script du lot V).
   identifiant** (bugs 10, 11). Le message `analyse` d'une analyse déjà
   périmée la laisse périmée. La cellule du tableau croisé compte les
   constats qui nomment le variant par son identifiant ou par son nom.
-- [ ] **F7 · Analyse plus rapide, sorties identiques** (optimisation, lots 2
+- [x] (307c39e7) **F7 · Analyse plus rapide, sorties identiques** (optimisation, lots 2
   à 4). Index des layers, des variants et des variables pour
   `proposerLesCorrections` ; un seul inventaire des libraries par analyse ;
   lecture des variables liées par lots bornés, une promesse par identifiant.
@@ -1694,10 +1694,10 @@ Un lot du kit monte sa version dans son commit (script du lot V).
 - [ ] **G7 · Noms de la préparation dans la convention de Figma** (attend
   Q-88). La préparation bâtit `components/<composant>/…` et vise
   `theme/<palette>/…` ; l'écriture retrouve ses cibles par ce nom exact.
-- [ ] **G5 · Un classement des candidats de longueur partagé.** C29 et la
+- [x] (063ac3f7) **G5 · Un classement des candidats de longueur partagé.** C29 et la
   préparation lisent les mêmes candidats exacts, valeur résolue dans tous
   les modes, alias suivis. Aucune question « proche » encore.
-- [ ] **G6 · C29 proche : une question qui montre l'écart.** Écart non nul,
+- [x] (34c64a65) **G6 · C29 proche : une question qui montre l'écart.** Écart non nul,
   au plus `min(2 px, 10 % de la valeur)`, même valeur dans tous les modes ;
   au plus le plus proche en dessous et au-dessus, rien de coché. La
   correction née de la réponse relit la valeur avant d'écrire (`fait-faux`
