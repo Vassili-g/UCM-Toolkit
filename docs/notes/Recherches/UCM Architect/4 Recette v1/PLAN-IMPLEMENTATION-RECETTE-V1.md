@@ -26,15 +26,16 @@ agents à la fois. `V` relance les vérifications après chaque lot.
 
 | Lot | Agent | Dépend de | Fichiers principaux | Fait |
 |---|---|---|---|---|
-| K1 | `implementeur-exigeant` | — | `packages/kit/src/controles/couche.ts`, `corrections.ts` | |
-| K2 | `implementeur` | — | `packages/kit/src/referentiel/signes.ts` (nouveau), `referentiel/index.ts` | |
-| E1 | `executant` | K1, K2 | `packages/kit/package.json` | |
-| S1 | `implementeur-exigeant` | K2, E1 | `packages/plugin-socle/src/ui/Signe.ts` (nouveau), `langage.css` | |
-| A1 | `implementeur` | — | `packages/plugin-architect/src/ui/panneau/elements.ts` (nouveau) | |
-| A2 | `implementeur-exigeant` | S1 | `packages/plugin-architect/src/ui/vues/composant.ts`, `textes/composant.ts` | |
-| A3 | `implementeur-exigeant` | S1, A1 | `packages/plugin-architect/src/ui/analyse/index.ts`, `composant/corps.ts`, `corrections/`, `questions/`, `ignores/` | |
-| A4 | `implementeur` | K1, A3 | `packages/plugin-architect/src/ui/corrections/modele.ts`, `textes/corrections.ts` | |
-| G1 | `implementeur` | A2, A3, A4 | `packages/plugin-architect/galerie/etats/*.cjs`, `SPEC.md`, `CARTE.md`, invariants | |
+| K1 | `implementeur-exigeant` | — | `packages/kit/src/controles/couche.ts`, `corrections.ts` | C80, `d464a30d` |
+| K1b | `implementeur` | K1 | `packages/plugin-architect/src/sandbox/analyse.ts`, tests C29 d’Architect | `281b7555`, kit 0.13.1 |
+| K2 | `implementeur` | — | `packages/kit/src/referentiel/signes.ts` (nouveau), `referentiel/index.ts` | `11f7334c` |
+| E1 | `executant` | K1, K2 | `packages/kit/package.json` | `2772c61b` |
+| S1 | `implementeur-exigeant` | K2, E1 | `packages/plugin-socle/src/ui/Signe.ts` (nouveau), `langage.css` |`5fc14e83` |
+| A1 | `implementeur` | — | `packages/plugin-architect/src/ui/panneau/elements.ts` (nouveau) |`2fa2fae8` |
+| A2 | `implementeur-exigeant` | S1 | `packages/plugin-architect/src/ui/vues/composant.ts`, `textes/composant.ts` |`1d3be783` |
+| A3 | `implementeur-exigeant` | S1, A1 | `packages/plugin-architect/src/ui/analyse/index.ts`, `composant/corps.ts`, `corrections/`, `questions/`, `ignores/` |`311b097b` |
+| A4 | `implementeur` | K1, A3 | `packages/plugin-architect/src/ui/corrections/modele.ts`, `textes/corrections.ts` | `c60db7e5`, fait par l’orchestrateur (Sonnet indisponible) |
+| G1 | `implementeur` | A2, A3, A4 | `packages/plugin-architect/galerie/etats/*.cjs`, `SPEC.md`, `CARTE.md`, invariants | `ef12a1e7`, fait par l’orchestrateur (Sonnet indisponible) |
 | V | `verificateur` | chaque lot | — | |
 
 Ordre : K1 et K2 en parallèle, puis E1. Ensuite S1 et A1 en parallèle. Puis A2
@@ -90,6 +91,25 @@ token exact ne propose rien ; deux candidats donnent une question). `npm run
 test --workspace @ucm-kit/core` vert. Ne pas changer la version : E1 la
 change. Le test racine `versionSuitLeContenu` échoue tant qu'E1 n'est pas
 passé : c'est attendu. Ne rien commiter.
+
+## K1b · Les tokens du composant chargés par le sandbox
+
+Agent : `implementeur`. Suite de K1, qui a pris le code C80.
+
+- `src/sandbox/analyse.ts` charge encore les valeurs de `layout` pour les
+  familles que rend `famillesDeLayoutAttendues`. En mode library, les tokens
+  `components` non liés ne sont donc pas lus, et C29 répond « recherche
+  incomplète ». Charger les clés que rend `clesDesTokensDeTailleAttendus`
+  (kit, K1), puis retirer `famillesDeLayoutAttendues` du kit s'il n'a plus de
+  lecteur.
+- Réécrire les 12 tests d'Architect que K1 a rendus rouges (`analyse.test.ts`,
+  `c29EnAnalyse.test.ts`, `c29Proche.test.ts`) : leurs candidats viennent de
+  tokens `components` du composant, avec un token `layout` de même valeur en
+  témoin qui ne doit jamais être proposé.
+- Réécrire le paragraphe de `SPEC.md` sur l'import de `layout`.
+
+Critères de fin : `npm run test:paquet -- architect` et `npm run test
+--workspace @ucm-kit/core` verts. Ne rien commiter.
 
 ## K2 · Les signes dans le kit
 
@@ -258,5 +278,13 @@ Relu avant le lancement, avec quatre corrections :
 4. La règle de K1 avait trois lecteurs (C20, C29, préparation). K1 passe à
    `implementeur-exigeant` et vérifie la préparation.
 
-Reste ouvert : le nom du nouveau code de K1, à vérifier dans la conception, et
-la publication du kit, que le mainteneur décide avec le push.
+Reste ouvert après l'implémentation :
+
+- Le manifeste `galerie/cadres.json` compare encore les cadres du mode
+  Composant (lots U6 et U7) à l'ancienne maquette `2 Maquettes/MAQUETTE-ARCHITECT.html`.
+  Ces cadres montrent désormais le panneau sans onglets : `npm run fidelite`
+  y verra des écarts. Il faut les comparer à `MAQUETTE-RECETTE-V1.html` ou
+  les retirer.
+- `test:ui` n'a pas été lancé ; les tests d'interface adaptés par A2 et A3
+  attendent la recette du mainteneur.
+- La publication du kit (0.13.2) et le push, que le mainteneur décide.
