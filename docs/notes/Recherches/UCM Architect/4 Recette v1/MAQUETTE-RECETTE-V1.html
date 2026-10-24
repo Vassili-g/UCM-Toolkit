@@ -23,79 +23,135 @@
   .cadre iframe { display: block; border: 0; }
   .etiquette { display: table; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 4px; margin-bottom: 6px; background: #333; color: #ddd; }
   .etiquette.nouveau { background: #1d3a24; color: #a6e3b4; }
-  .etiquette.ecarte { background: #4a2020; color: #f5a8a8; }
+  .modifie { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 4px; background: #4a3412; color: #f5c38a; font-size: 12px; font-weight: 700; }
   ol.legende { list-style: none; padding: 0; margin: 8px 0 0; font-size: 13px; color: #e6e6e6; max-width: 640px; }
   ol.legende li { display: flex; gap: 8px; align-items: baseline; margin: 4px 0; }
   ol.legende .num { flex: 0 0 auto; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #ff8ad8; color: #1a1a1a; font: 700 10px/16px Inter, sans-serif; text-align: center; }
-  ul.argu { padding-left: 20px; margin: 10px 0 0; font-size: 13px; color: #cfcfcf; max-width: 640px; }
-  ul.argu li { margin: 4px 0; }
   table.t { border-collapse: collapse; margin-top: 12px; font-size: 13px; max-width: 1200px; }
   table.t th, table.t td { text-align: left; vertical-align: top; padding: 6px 12px; border-top: 1px solid var(--bordure); }
   table.t th { color: var(--second); font-weight: 600; border-top: 0; }
+  .reponse { max-width: 900px; margin: 16px 0 0; padding: 12px 16px; border-left: 3px solid #9fcfff; border-radius: 4px; background: #1b2430; font-size: 13.5px; }
+  .reponse h4 { margin: 0 0 6px; font-size: 13px; color: #9fcfff; }
+  .reponse ol, .reponse ul { margin: 6px 0; padding-left: 20px; }
+  .reponse li { margin: 3px 0; }
+  .chaine { font-family: Consolas, monospace; font-size: 12.5px; background: #222; padding: 6px 10px; border-radius: 4px; margin: 6px 0; display: block; white-space: pre; }
 </style>
 </head>
 <body>
 <main>
   <h1>Recette v1 d'Architect</h1>
-  <p class="intro">Trois demandes du mainteneur, après la recette d'Alert du 24 octobre. Chaque cadre part d'un écran réel
-  de la galerie d'Architect, figé par <code>Mesures/extraire-galerie.mjs</code>. Les repères roses renvoient à la légende
-  sous le cadre. L'analyse complète est dans <a href="./ANALYSE-RECETTE-V1.md">ANALYSE-RECETTE-V1.md</a>.</p>
+  <p class="intro">Deuxième version, après les retours du 24 octobre. Chaque cadre part d'un écran réel de la galerie
+  d'Architect, figé par <code>Mesures/extraire-galerie.mjs</code>. Les repères roses renvoient à la légende sous le
+  cadre. La marque <span class="modifie" style="margin:0">Modifié</span> signale un écran changé par ces retours.
+  L'analyse est dans <a href="./ANALYSE-RECETTE-V1.md">ANALYSE-RECETTE-V1.md</a>.</p>
+  <p class="intro">Deux règles valent pour tous les cadres. Un chevron pointe vers la droite quand l'élément est replié,
+  vers le bas quand il est ouvert. Un endroit montre un seul signe par catégorie : les éléments d'une section ne
+  répètent pas son signe.</p>
   <nav class="sommaire">
     <a href="#stroke">1 · La carte du stroke d'Alert</a>
-    <a href="#rangement">2 · Ranger le panneau par élément</a>
+    <a href="#rangement">2 · Le panneau, variante C</a>
     <a href="#langage">3 · Les signes des sortes d'objets</a>
-    <a href="#en-place">4 · Les signes en place</a>
-    <a href="#questions">5 · Questions au mainteneur</a>
+    <a href="#kit">4 · Les signes dans le kit</a>
+    <a href="#en-place">5 · Les signes en place</a>
+    <a href="#questions">6 · Questions au mainteneur</a>
   </nav>
 
   <h2 id="stroke">1 · La carte du stroke d'Alert</h2>
   <p>Figma donne une épaisseur de 1 à tout layer, même sans contour. Le relevé analysé par le kit la compte comme une
-  valeur en dur. La vue Composant, elle, ne la lit que sur un contour visible. La carte liste donc chaque layer sans
-  contour : le titre, le message, l'icône, les frames internes. Le contour d'Alert, lié, n'y figure pas.</p>
+  valeur en dur. La carte liste donc chaque layer sans contour. Le contour d'Alert, lié, n'y figure pas. R-1 corrige
+  cette lecture.</p>
   <p>La variable proposée existe déjà dans la collection <code>layout</code>. La carte ne le dit pas.</p>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette">1a · Aujourd'hui</span><div class="cadre" id="c-1a"></div></div>
-    <div class="colonne"><span class="etiquette nouveau">1b · Proposé</span><div class="cadre" id="c-1b"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">1b · Proposé <span class="modifie">Modifié</span></span><div class="cadre" id="c-1b"></div></div>
   </div>
 
-  <h2 id="rangement">2 · Ranger le panneau par élément</h2>
-  <p>Aujourd'hui, une même sorte d'élément se lit dans trois onglets, sous des intertitres différents. La demande : ranger
-  par sorte d'élément, puis par action. Le rangement par élément suit le travail du designer. Les onglets ne le portent
-  pas bien. Une seule liste en sections le porte.</p>
+  <h2 id="rangement">2 · Le panneau, variante C</h2>
+  <p>Les trois onglets par action restent. Chaque onglet range ses éléments dans les mêmes sections : Couleurs, Tailles
+  et forme, Texte, Tokens du composant, Variants et layers, Règles d'utilisation, Accessibilité. Un onglet ne montre que
+  ses sections occupées, puis les sections tenues.</p>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette">2a · Aujourd'hui</span><div class="cadre" id="c-2a"></div></div>
-    <div class="colonne"><span class="etiquette ecarte">2b · Variante A, onglets par élément</span><div class="cadre" id="c-2b"></div></div>
-    <div class="colonne"><span class="etiquette nouveau">2c · Variante B, sections par élément (recommandée)</span><div class="cadre" id="c-2c"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">2b · Corrections <span class="modifie">Modifié</span></span><div class="cadre" id="c-2b"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">2c · Questions <span class="modifie">Modifié</span></span><div class="cadre" id="c-2c"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">2d · À faire dans Figma <span class="modifie">Modifié</span></span><div class="cadre" id="c-2d"></div></div>
   </div>
-  <p style="margin-top:16px">Variante C, la moins chère : garder les trois onglets et leur donner les mêmes sept intertitres,
-  avec leurs signes. Elle unifie le vocabulaire. Une question reste loin de la correction qu'elle produit.</p>
 
-  <h2 id="langage">3 · Les signes des sortes d'objets</h2>
-  <p>Trois canaux, un sens chacun. La forme dit la sorte d'objet. La couleur dit un jugement ou un changement. Le mot
-  donne le nom exact. Une sorte d'objet ne prend jamais de couleur. Seule une valeur de couleur colore sa tuile.</p>
-  <p>Un objet de Figma garde le signe que Figma lui donne. Une règle d'utilisation reprend le signe de l'objet qu'elle
-  vise. Le kit porte chaque signe : identifiant, libellé, sens, tracé et mot de repli. Le socle pose la tuile.</p>
+  <h2 id="langage">3 · Les signes des sortes d'objets <span class="modifie">Modifié</span></h2>
+  <p>La forme dit la sorte d'objet. La couleur dit un jugement ou un changement. Le mot donne le nom exact. Seule une
+  valeur de couleur colore sa tuile. Un objet de Figma garde le signe que Figma lui donne. L'icône garde la même étoile
+  partout : couleur d'une icône, taille d'icône, <code>@icons</code>.</p>
+  <p>Les couches suivent l'ordre de la library : <code>primitives</code> en haut, <code>components</code> en bas.</p>
   <div class="colonnes"><div class="colonne"><div class="cadre" id="c-planche"></div></div></div>
 
-  <h2 id="en-place">4 · Les signes en place</h2>
-  <p>La fenêtre du mode Composant avec la variante B et les signes. La colonne de gauche remplace ses caractères par les
-  tuiles. Le panneau emploie les mêmes.</p>
-  <div class="colonnes">
-    <div class="colonne"><span class="etiquette nouveau">4a · Mode Composant, panneau en sections</span><div class="cadre" id="c-4a"></div></div>
-    <div class="colonne"><span class="etiquette nouveau">4b · Règles d'utilisation et tokens à créer</span><div class="cadre" id="c-4b"></div></div>
+  <h2 id="kit">4 · Les signes dans le kit</h2>
+  <div class="reponse">
+    <h4>Réponse · Comment les signes entrent dans le kit et servent à tous les plugins</h4>
+    <ol>
+      <li><b>Kit.</b> Un fichier <code>packages/kit/src/referentiel/signes.ts</code> liste chaque signe : identifiant,
+      famille, libellé, sens, tracé et mot de repli. Le tracé est une chaîne SVG sur une grille de 16. Une fonction pure,
+      <code>svgDuSigne(id)</code>, rend le SVG complet en texte. <code>@ucm-kit/core/referentiel</code> les exporte.</li>
+      <li><b>Test du kit.</b> Chaque identifiant est unique. Un tracé n'emploie que <code>path</code>, <code>rect</code>,
+      <code>circle</code> et <code>text</code>. Chaque famille a au moins un signe.</li>
+      <li><b>Socle.</b> <code>plugin-socle/src/ui/Signe.ts</code> pose la tuile à partir de <code>svgDuSigne</code>, en
+      trois tailles : 14, 16 et 24 px. <code>langage.css</code> porte ses styles. La loi des styles interdit à un plugin de
+      les redéfinir.</li>
+      <li><b>Garde des plugins.</b> Un test du socle refuse dans le code d'un plugin les anciens caractères de sorte
+      (◜ ↔ ⤢ ─ et les autres). Un plugin qui veut un signe nouveau l'ajoute au kit.</li>
+      <li><b>Plugins.</b> Architect remplace ses glyphes et ses icônes de type. L'exporteur et Palettes prennent les signes
+      là où ils montrent les mêmes objets : couleurs, tailles, composants, properties.</li>
+      <li><b>Hub UCM.</b> Le générateur lit <code>svgDuSigne</code> dans le kit construit et écrit le SVG dans la page.</li>
+      <li><b>CLI et rapports de la CI.</b> Ils écrivent le mot de repli.</li>
+      <li><b>Relecture.</b> La galerie du socle reçoit la planche de tous les signes, en sombre et en clair.</li>
+    </ol>
+    <p>Le kit change de version mineure et se publie. Les plugins le reçoivent à leur build suivant.</p>
   </div>
 
-  <h2 id="questions">5 · Questions au mainteneur</h2>
+  <h2 id="en-place">5 · Les signes en place</h2>
+  <p>La fenêtre du mode Composant avec la variante C. La colonne de gauche remplace ses caractères par les tuiles. Le
+  panneau ne pose un signe que sur la bande de chaque section.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette nouveau">5a · Mode Composant, onglet Corrections <span class="modifie">Modifié</span></span><div class="cadre" id="c-5a"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">5b · Règles d'utilisation et tokens à créer <span class="modifie">Modifié</span></span><div class="cadre" id="c-5b"></div></div>
+  </div>
+
+  <h2 id="questions">6 · Questions au mainteneur</h2>
   <table class="t">
-    <tr><th>N°</th><th>Question</th><th>Proposition</th></tr>
-    <tr><td>R-1</td><td>Corriger maintenant la lecture du stroke weight, avec son test ?</td><td>Oui. Une ligne dans <code>releveDuComposant.ts</code>, un test, pas de version du kit.</td></tr>
-    <tr><td>R-2</td><td>Une correction C29 lie un layer directement à une variable <code>layout</code>. Faut-il passer par un token d'Alert ?</td><td>Garder le lien direct. Le token d'Alert reste le travail de la préparation.</td></tr>
-    <tr><td>R-3</td><td>Variante A, B ou C pour le panneau du mode Composant ?</td><td>B.</td></tr>
-    <tr><td>R-4</td><td>Le mode Tokens garde-t-il ses onglets par action ?</td><td>Oui, pour cette recette.</td></tr>
-    <tr><td>R-5</td><td>Une sorte d'objet reste-t-elle sans couleur ?</td><td>Oui. Signe et tuile seulement.</td></tr>
-    <tr><td>R-6</td><td>Les tracés des signes entrent-ils dans le kit ?</td><td>Oui, comme données. Le Hub les lit aussi.</td></tr>
-    <tr><td>R-7</td><td>Les objets de Figma reprennent-ils les signes de Figma ?</td><td>Oui.</td></tr>
+    <tr><th>N°</th><th>Question</th><th>État</th></tr>
+    <tr><td>R-1</td><td>Corriger la lecture du stroke weight, avec son test</td><td>Oui</td></tr>
+    <tr><td>R-2</td><td>Lier un layer à une variable <code>layout</code>, ou au token d'Alert</td><td>Reformulée ci-dessous</td></tr>
+    <tr><td>R-3</td><td>Rangement du panneau</td><td>C, avec les modifications de la section 2</td></tr>
+    <tr><td>R-4</td><td>Le mode Tokens garde ses onglets par action</td><td>Oui</td></tr>
+    <tr><td>R-5</td><td>Une sorte d'objet reste grise</td><td>Reformulée ci-dessous</td></tr>
+    <tr><td>R-6</td><td>Les tracés entrent dans le kit</td><td>Oui, section 4</td></tr>
+    <tr><td>R-7</td><td>Les objets de Figma reprennent les signes de Figma</td><td>Oui</td></tr>
+    <tr><td>R-8</td><td>Un bouton Appliquer par carte, et Appliquer tout en pied</td><td>Proposé en 2b, à valider</td></tr>
   </table>
+
+  <div class="reponse">
+    <h4>R-2 · Où pointe le layer après une correction de taille</h4>
+    <p>Le layer container d'Alert a un stroke weight de 1 px, écrit à la main. Deux corrections sont possibles.</p>
+    <p><b>Lien direct.</b> Le layer reçoit la variable partagée de la collection <code>layout</code>. C'est ce que fait la
+    carte aujourd'hui.</p>
+    <span class="chaine">container  →  layout/stroke/outline-weight (1 px)</span>
+    <p><b>Lien par le token d'Alert.</b> Le layer reçoit un token d'Alert. Ce token renvoie à la variable partagée.</p>
+    <span class="chaine">container  →  alert/size/border-width  →  layout/stroke/outline-weight (1 px)</span>
+    <p>Le second lien laisse changer l'épaisseur d'Alert seul, sans toucher les autres composants. Les couleurs d'Alert
+    passent déjà par ses tokens, et son padding aussi (<code>alert/sizes/padding-x</code>).</p>
+    <p>Proposition. Si Alert a déjà un token de ce rôle et de cette valeur, la carte lie à lui. Sinon, elle lie à la
+    variable <code>layout</code>, et la préparation des tokens propose de créer le token d'Alert. Question : est-ce
+    l'ordre que tu veux ?</p>
+  </div>
+
+  <div class="reponse">
+    <h4>R-5 · Les signes restent-ils gris ?</h4>
+    <p>La question : faut-il donner une couleur à chaque famille de signes, par exemple bleu pour les tailles et orange
+    pour les objets de Figma ? Le cadre compare les deux. En haut, les signes gris. En bas, une couleur par famille, à
+    côté des alertes qui emploient déjà ces couleurs.</p>
+    <div class="cadre" id="c-r5" style="margin-top:8px"></div>
+    <p>Avec une couleur par famille, un signe de taille bleu se lit comme une Information, et un signe d'objet orange
+    comme un À corriger. Proposition : garder les signes gris.</p>
+  </div>
 </main>
 
 <script src="galerie/etats.js"></script>
@@ -103,58 +159,69 @@
 const G = window.GALERIE;
 
 // ---------- Les signes ----------
-const tx = (texte, taille = 9, x = 8, y = 11.4) => `<text x="${x}" y="${y}" font-size="${taille}" text-anchor="middle">${texte}</text>`;
+const tx = (texte, taille = 9, x = 8, y = 11.4, graisse = 650) => `<text x="${x}" y="${y}" font-size="${taille}" text-anchor="middle" font-weight="${graisse}">${texte}</text>`;
 const HEXA = 'M8 1.8 13.4 4.9v6.2L8 14.2 2.6 11.1V4.9z';
 const DOC = '<path d="M4 1.8h5.5L12.5 4.8V14.2H4z"/><path d="M9.5 1.8v3h3"/>';
-const ETAGES = { components: 0, theme: 1, brands: 2, utility: 2, layout: 2, typography: 2, primitives: 3 };
-// L'étage de la couche est une barre pleine ; les autres étages sont des traits fins.
-const pileTracee = (etage) => [2, 6, 10, 14].map((y, rang) => (rang === etage ? `<rect x="1.5" y="${y - 1.8}" width="13" height="3.6" rx="1" stroke="none" fill="currentColor"/>` : `<path d="M3 ${y}h10" stroke-width="1" opacity=".55"/>`)).join('');
-const pile = pileTracee;
+// L'étoile de l'icône, partout où une icône est en jeu.
+const ETOILE = 'M8 2.4 9.6 6.4 13.6 8 9.6 9.6 8 13.6 6.4 9.6 2.4 8 6.4 6.4z';
+const ETOILE_PETITE = 'M8 5.2 8.8 7.2 10.8 8 8.8 8.8 8 10.8 7.2 8.8 5.2 8 7.2 7.2z';
+// Les couches dans l'ordre de la library : primitives en haut, components en bas.
+const pile = (etage) => [2, 6, 10, 14].map((y, rang) => (rang === etage ? `<rect x="1.5" y="${y - 1.8}" width="13" height="3.6" rx="1" stroke="none" fill="currentColor"/>` : `<path d="M3 ${y}h10" stroke-width="1" opacity=".55"/>`)).join('');
+// Le padding comme Figma le dessine : un cadre léger, les côtés concernés en trait épais.
+const CADRE_LEGER = '<rect x="2.5" y="2.5" width="11" height="11" rx="1" stroke-width="1" opacity=".45" stroke-dasharray="1.6 1.4"/><rect x="6.2" y="6.2" width="3.6" height="3.6" rx=".5" fill="currentColor" stroke="none" opacity=".55"/>';
+const COTES = { haut: 'M2.5 2.5h11', bas: 'M2.5 13.5h11', gauche: 'M2.5 2.5v11', droite: 'M13.5 2.5v11' };
+const padding = (...cotes) => CADRE_LEGER + cotes.map((cote) => `<path d="${COTES[cote]}" stroke-width="2.2"/>`).join('');
 
 // [identifiant, libellé, tracé, sens]
 const FAMILLES = [
-  { titre: '1. Type de variable Figma', nouvelle: true, signes: [
+  { titre: '1. Type de variable Figma', signes: [
     ['type-color', 'Color', '<path d="M8 2s4.6 4.9 4.6 7.9a4.6 4.6 0 0 1-9.2 0C3.4 6.9 8 2 8 2z"/>', 'Variable de type Color.'],
     ['type-number', 'Number', '<path d="M6.2 2.5 5 13.5M11 2.5l-1.2 11M2.8 6h10.7M2.5 10h10.7"/>', 'Variable de type Number.'],
     ['type-string', 'String', '<path d="M4.5 4.5C3.4 5.3 3 6.5 3 8v3h2.6V8H3M10 4.5C8.9 5.3 8.5 6.5 8.5 8v3h2.6V8H8.5"/>', 'Variable de type String.'],
     ['type-boolean', 'Boolean', '<rect x="1.5" y="4.5" width="13" height="7" rx="3.5"/><circle cx="11" cy="8" r="1.8" fill="currentColor"/>', 'Variable de type Boolean.'],
   ] },
-  { titre: '2. Usage d\'une couleur', nouvelle: true, couleur: true, signes: [
+  { titre: '2. Usage d\'une couleur', couleur: true, signes: [
     ['usage-fill', 'fill', '', 'Couleur de fond d\'un layer.'],
     ['usage-texte', 'texte', tx('A', 9.5), 'Couleur d\'un texte.'],
-    ['usage-icone', 'icône', '<path d="M8 4.2 9.1 6.9 11.8 8 9.1 9.1 8 11.8 6.9 9.1 4.2 8 6.9 6.9z" fill="currentColor" stroke="none"/>', 'Couleur d\'une icône.'],
+    ['usage-icone', 'icône', `<path d="${ETOILE}" fill="currentColor" stroke="none"/>`, 'Couleur d\'une icône. L\'étoile est le signe de l\'icône.'],
     ['usage-stroke', 'stroke', '', 'Couleur d\'un contour.'],
     ['usage-effet', 'shadow', '<rect x="2.5" y="2.5" width="8.5" height="8.5" rx="1.5"/><path d="M13.5 5.5v7a1 1 0 0 1-1 1h-7"/>', 'Couleur d\'un effet.'],
     ['usage-inconnue', 'couleur non lue', '<path d="M8 2s4.6 4.9 4.6 7.9a4.6 4.6 0 0 1-9.2 0C3.4 6.9 8 2 8 2z" stroke-dasharray="2 1.6"/>', 'Couleur dont la valeur ne se résout pas.'],
   ] },
-  { titre: '3. Usage d\'un nombre', nouvelle: true, signes: [
-    ['padding', 'padding', '<rect x="2" y="2" width="12" height="12" rx="1.5"/><rect x="5.2" y="5.2" width="5.6" height="5.6" rx=".6" stroke-dasharray="1.6 1.4"/>', 'Marge intérieure d\'un auto layout.'],
+  { titre: '3. Usage d\'un nombre', signes: [
+    ['padding', 'padding', padding('haut', 'bas', 'gauche', 'droite'), 'Les quatre côtés.'],
+    ['padding-x', 'padding-x', padding('gauche', 'droite'), 'Left et right.'],
+    ['padding-y', 'padding-y', padding('haut', 'bas'), 'Top et bottom.'],
+    ['padding-top', 'padding-top', padding('haut'), 'Top seul.'],
+    ['padding-right', 'padding-right', padding('droite'), 'Right seul.'],
+    ['padding-bottom', 'padding-bottom', padding('bas'), 'Bottom seul.'],
+    ['padding-left', 'padding-left', padding('gauche'), 'Left seul.'],
     ['gap', 'gap', '<rect x="2" y="3" width="4" height="10" rx="1"/><rect x="10" y="3" width="4" height="10" rx="1"/><path d="M7 8h2"/>', 'Écart entre les enfants d\'un auto layout.'],
     ['width', 'width', '<path d="M2 4v8M14 4v8M4.3 8h7.4M5.8 6.5 4.3 8l1.5 1.5M10.2 6.5 11.7 8l-1.5 1.5"/>', 'Largeur fixée.'],
     ['height', 'height', '<path d="M4 2h8M4 14h8M8 4.3v7.4M6.5 5.8 8 4.3l1.5 1.5M6.5 10.2 8 11.7l1.5-1.5"/>', 'Hauteur fixée.'],
-    ['taille-icone', 'taille d\'icône', '<path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5"/><path d="M8 5.2 10.8 8 8 10.8 5.2 8z"/>', 'Côté d\'une icône.'],
+    ['taille-icone', 'taille d\'icône', `<path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5"/><path d="${ETOILE_PETITE}" fill="currentColor" stroke="none"/>`, 'Côté d\'une icône.'],
     ['radius', 'radius', '<path d="M3 13.5V8.5a5.5 5.5 0 0 1 5.5-5.5h5"/>', 'Rayon des coins.'],
     ['stroke-weight', 'stroke weight', '<path d="M2.5 3.8h11" stroke-width="1"/><path d="M2.5 7.8h11" stroke-width="1.9"/><path d="M2.5 12.2h11" stroke-width="2.8"/>', 'Épaisseur d\'un contour.'],
     ['opacity', 'opacity', '<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M2.5 2.5h5.5v5.5H2.5zM8 8h5.5v5.5H8z" fill="currentColor" stroke="none"/>', 'Opacité d\'un layer.'],
   ] },
-  { titre: '4. Typographie', nouvelle: true, signes: [
-    ['text-style', 'text style', tx('Aa', 8.5), 'Style de texte de Figma.'],
-    ['font-family', 'font family', tx('Ag', 8.5), 'Famille de police.'],
+  { titre: '4. Typographie', signes: [
+    ['text-style', 'text style', tx('Aa', 10.5, 8, 12), 'Style de texte de Figma.'],
+    ['font-family', 'font family', tx('Ag', 10.5, 8, 11.6), 'Famille de police.'],
     ['font-size', 'font size', tx('A', 5.5, 4.6, 12) + tx('A', 10.5, 10.6, 12), 'Corps du texte.'],
-    ['font-weight', 'font weight', '<text x="8" y="12" font-size="11" text-anchor="middle" font-weight="900">B</text>', 'Graisse.'],
+    ['font-weight', 'font weight', tx('B', 11, 8, 12, 900), 'Graisse.'],
     ['line-height', 'line height', '<path d="M2 4h7M2 8h7M2 12h7M12.5 3v10M11 4.5 12.5 3 14 4.5M11 11.5l1.5 1.5 1.5-1.5"/>', 'Hauteur de ligne.'],
     ['letter-spacing', 'letter spacing', tx('AV', 7, 8, 8.5) + '<path d="M2.5 12.5h11M4 11l-1.5 1.5L4 14M12 11l1.5 1.5L12 14"/>', 'Espace entre les lettres.'],
   ] },
-  { titre: '5. Couche UCM', nouvelle: true, signes: [
-    ['couche-components', 'components', pileTracee(0), 'Tokens d\'un composant. Étage du haut.'],
-    ['couche-theme', 'theme', pileTracee(1), 'Rôles de couleur par mode.'],
-    ['couche-layout', 'layout, typography, brands, utility', pileTracee(2), 'Valeurs partagées sous le thème.'],
-    ['couche-primitives', 'primitives', pileTracee(3), 'Valeurs brutes. Étage du bas.'],
+  { titre: '5. Couche UCM, dans l\'ordre de la library', signes: [
+    ['couche-primitives', 'primitives', pile(0), 'Valeurs brutes. Première collection.'],
+    ['couche-layout', 'layout, typography, brands, utility', pile(1), 'Valeurs partagées, lues dans primitives.'],
+    ['couche-theme', 'theme', pile(2), 'Rôles de couleur par mode.'],
+    ['couche-components', 'components', pile(3), 'Tokens d\'un composant. Dernière collection.'],
   ] },
-  { titre: '6. État d\'un token', nouvelle: true, signes: [
+  { titre: '6. État d\'un token', signes: [
     ['variable', 'variable liée', `<path d="${HEXA}"/>`, 'Une variable est liée. Signe de Figma.'],
     ['existe', 'existe', `<path d="${HEXA}"/><path d="m5.6 8.1 1.6 1.6 3.2-3.4"/>`, 'La variable proposée existe déjà.'],
-    ['a-creer', 'à créer', `<path d="${HEXA}" stroke-dasharray="2.2 1.6"/><path d="M8 5.6v4.8M5.6 8h4.8"/>`, 'La variable sera créée par la préparation.'],
+    ['a-creer', 'à créer', `<path d="${HEXA}" stroke-dasharray="2.2 1.6"/><path d="M8 5.6v4.8M5.6 8h4.8"/>`, 'La préparation créera la variable.'],
     ['en-dur', 'valeur en dur', `<path d="${HEXA}" stroke-dasharray="2.2 1.6"/><path d="m4.5 11.5 7-7"/>`, 'Aucune variable. La valeur est écrite dans le layer.'],
     ['alias', 'alias', '<circle cx="3.5" cy="8" r="1.7" fill="currentColor"/><circle cx="12.5" cy="8" r="1.7" fill="currentColor"/><path d="M5.6 8h4.8"/>', 'La variable renvoie à une autre.'],
     ['library', 'library', '<path d="M3 3.5A1.5 1.5 0 0 1 4.5 2h8.5v10H4.5A1.5 1.5 0 0 0 3 13.5zM3 13.5A1.5 1.5 0 0 0 4.5 15H13"/>', 'Vient d\'une library publiée.'],
@@ -164,8 +231,8 @@ const FAMILLES = [
     ['mode', 'mode', '<circle cx="8" cy="8" r="5.6"/><path d="M8 2.4a5.6 5.6 0 0 0 0 11.2z" fill="currentColor" stroke="none"/>', 'Mode d\'une collection : Light, Dark.'],
     ['scope', 'scope', '<circle cx="8" cy="8" r="4.3"/><path d="M8 1.5v3M8 11.5v3M1.5 8h3M11.5 8h3"/>', 'Scope de la variable, comme Figma le nomme.'],
   ] },
-  { titre: '7. Objet de Figma', nouvelle: true, signes: [
-    ['component-set', 'component set', '<rect x="1.5" y="1.5" width="13" height="13" rx="2" stroke-dasharray="2 1.6"/><path d="M8 4.5 9.4 6 8 7.4 6.6 6zM8 8.6 9.4 10 8 11.4 6.6 10z"/>', 'Le jeu de variants.'],
+  { titre: '7. Objet de Figma', signes: [
+    ['component-set', 'component set', '<rect x="1.2" y="1.2" width="13.6" height="13.6" rx="2" stroke-dasharray="2 1.6"/><path d="M8 3.6 9.4 5 8 6.4 6.6 5zM8 9.6 9.4 11 8 12.4 6.6 11zM5 6.6 6.4 8 5 9.4 3.6 8zM11 6.6 12.4 8 11 9.4 9.6 8z"/>', 'Le jeu de variants : le cadre en pointillés de Figma autour du component.'],
     ['component', 'component', '<path d="M8 1.8 10.1 3.9 8 6 5.9 3.9zM8 10l2.1 2.1L8 14.2l-2.1-2.1zM3.9 5.9 6 8l-2.1 2.1L1.8 8zM12.1 5.9 14.2 8l-2.1 2.1L10 8z"/>', 'Un composant principal. Signe de Figma.'],
     ['variant', 'variant', '<path d="M8 2.3 13.7 8 8 13.7 2.3 8z" fill="currentColor"/>', 'Un variant du jeu.'],
     ['instance', 'instance', '<path d="M8 2.3 13.7 8 8 13.7 2.3 8z"/>', 'Une instance, dont un composant imbriqué. Signe de Figma.'],
@@ -176,14 +243,14 @@ const FAMILLES = [
     ['slot', 'slot', '<rect x="2" y="3.5" width="12" height="9" rx="1.5" stroke-dasharray="2 1.6"/><path d="M8 6v4M6 8h4"/>', 'Un emplacement à remplir.'],
     ['selection', 'sélection de Figma', '<rect x="3.5" y="3.5" width="9" height="9"/><path d="M2 2h3v3H2zM11 2h3v3h-3zM2 11h3v3H2zM11 11h3v3h-3z" fill="currentColor" stroke="none"/>', 'Les layers que le plugin a sélectionnés.'],
   ] },
-  { titre: '8. Property de composant', nouvelle: true, signes: [
+  { titre: '8. Property de composant', signes: [
     ['prop-variant', 'variant property', '<path d="M8 2.3 13.7 8 8 13.7 2.3 8z"/><circle cx="8" cy="8" r="1.4" fill="currentColor" stroke="none"/>', 'Property de variant : Severity, Variant.'],
     ['prop-boolean', 'boolean property', '<rect x="1.5" y="4.5" width="13" height="7" rx="3.5"/><circle cx="11" cy="8" r="1.8" fill="currentColor"/>', 'Property vrai ou faux.'],
     ['prop-text', 'text property', '<path d="M3.5 4.5V3h9v1.5M8 3v10M6.3 13h3.4"/>', 'Property de texte.'],
-    ['prop-swap', 'instance swap', '<path d="M8 4.6 11.4 8 8 11.4 4.6 8z"/><path d="M2.3 6.2A6 6 0 0 1 11 2.6M13.7 9.8A6 6 0 0 1 5 13.4"/>', 'Property d\'échange d\'instance. Une prop d\'icône du contrat la prend aussi.'],
+    ['prop-swap', 'instance swap', '<path d="M8 4.6 11.4 8 8 11.4 4.6 8z"/><path d="M2.3 6.2A6 6 0 0 1 11 2.6M13.7 9.8A6 6 0 0 1 5 13.4"/>', 'Property d\'échange d\'instance.'],
     ['prop-slot', 'slot property', '<rect x="2" y="3.5" width="12" height="9" rx="1.5" stroke-dasharray="2 1.6"/><path d="M8 6v4M6 8h4"/>', 'Property de slot.'],
   ] },
-  { titre: '9. Règles d\'utilisation (.componentRules)', nouvelle: true, signes: [
+  { titre: '9. Règles d\'utilisation (.componentRules)', signes: [
     ['regles', 'instance de règles', '<rect x="3" y="2" width="10" height="12" rx="1.5"/><path d="M5.5 5.5h5M5.5 8h5M5.5 10.5h3"/>', 'L\'instance .componentRules posée à côté du composant.'],
     ['tag-usage', '@usage', '<path d="M2.5 4h11M2.5 8h11M2.5 12h7"/>', 'Quand employer le composant. Section GÉNÉRAL.'],
     ['tag-do', '@do', '<circle cx="8" cy="8" r="5.8"/><path d="m5.3 8.2 1.8 1.8 3.6-3.8"/>', 'Un emploi recommandé. Gris : le vert dit un changement.'],
@@ -191,35 +258,35 @@ const FAMILLES = [
     ['tag-pairs', '@pairs', '<circle cx="6" cy="8" r="4"/><circle cx="10" cy="8" r="4"/>', 'Un composant qui va avec celui-ci.'],
     ['prop-variant', '@prop', null, 'Sens d\'une valeur de property. Signe de la variant property. Section PROPRIÉTÉS.'],
     ['prop-boolean', '@boolean', null, 'Rôle d\'une property boolean. Section OPTIONS.'],
-    ['prop-swap', '@icons', null, 'Icônes admises. Signe de l\'instance swap. Section ICONES.'],
+    ['tag-icons', '@icons', `<path d="${ETOILE}"/>`, 'Icônes admises. L\'étoile de l\'icône. Section ICONES.'],
     ['tag-default', '@default', '<path d="M8 14.5V9.5M4.8 9.5h6.4L10 7.3V3H6v4.3z"/>', 'Valeur par défaut d\'une property.'],
     ['modifiable', 'modifiable', '<path d="M10.5 2.5l3 3-8 8h-3v-3zM9 4l3 3"/>', 'Le développeur peut changer la valeur.'],
     ['strict', 'strict', '<rect x="3.5" y="7" width="9" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/>', 'La valeur est imposée.'],
     ['a-completer', '[À compléter]', tx('…', 11, 8, 10.5), 'Texte d\'aide pas encore rédigé. Il ne part pas dans le contrat.'],
   ] },
-  { titre: '10. Sorte de proposition', nouvelle: true, signes: [
-    ['correction', 'correction', '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="m5 8.2 2 2 4-4.4"/>', 'Le plugin l\'applique. Une case la coche.'],
-    ['question', 'question', '<path d="M8 14V9.5M8 9.5 4 5M8 9.5 12 5"/><circle cx="4" cy="3.6" r="1.6"/><circle cx="12" cy="3.6" r="1.6"/>', 'Le designer choisit. Le « ? » reste à À vérifier.'],
+  { titre: '10. Sorte de proposition', signes: [
+    ['correction', 'correction', '<path d="M10.4 2.1a3.4 3.4 0 0 0-3.9 4.6L2.3 10.9a1.4 1.4 0 0 0 2 2l4.2-4.2a3.4 3.4 0 0 0 4.6-3.9l-2.1 2.1-1.9-.5-.5-1.9z"/>', 'Le plugin l\'applique.'],
+    ['question', 'question', tx('?', 12, 8, 12.4, 700), 'Le designer choisit.'],
     ['a-faire', 'à faire dans Figma', '<path d="M3.5 2.5 12.8 7.6 8.6 8.8 6.6 13z"/>', 'Le designer agit dans Figma.'],
     ['modele', 'copie d\'un modèle', '<rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/>', 'Les liaisons d\'un variant juste copiées aux autres.'],
     ['a-creer', 'préparation', null, 'Tokens du composant à créer. Signe de l\'état à créer.'],
-    ['ignore', 'ignoré', '<path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8s-2.4 4.5-6.5 4.5S1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/><path d="m2.5 13.5 11-11"/>', 'Le constat ne sera plus proposé.'],
+    ['ignore', 'ignoré', '<path d="M2.5 4.5h11M6 4.5V3h4v1.5M4 4.5l.7 9h6.6l.7-9M6.7 7v4.5M9.3 7v4.5"/>', 'Le constat ne sera plus proposé.'],
     ['plus-tard', 'plus tard', '<circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/>', 'La question attend.'],
     ['applique', 'appliqué', '<path d="m3 8.5 3.2 3.2L13 4.5"/>', 'L\'écriture a réussi.'],
     ['defait', 'défait', '<path d="M5.5 3.5 2.5 6.5l3 3M2.5 6.5h7a4 4 0 0 1 0 8H7"/>', 'Le designer a fait Ctrl+Z.'],
     ['perime', 'analyse périmée', '<path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.3v3h-3"/>', 'Le composant a changé depuis l\'analyse.'],
   ] },
-  { titre: '11. Accessibilité', nouvelle: true, signes: [
+  { titre: '11. Accessibilité', signes: [
     ['contraste', 'paire de contraste', '<rect x="2" y="2" width="8" height="8" rx="1" fill="currentColor"/><rect x="6" y="6" width="8" height="8" rx="1"/>', 'Un texte ou une icône sur son fond.'],
     ['focus', 'anneau de focus', '<rect x="4.5" y="4.5" width="7" height="7" rx="1.5"/><rect x="1.5" y="1.5" width="13" height="13" rx="3" stroke-dasharray="2 1.6"/>', 'Le contour du focus clavier.'],
     ['cible', 'cible tactile', '<circle cx="8" cy="8" r="2" fill="currentColor"/><circle cx="8" cy="8" r="5.7"/>', 'La surface qu\'un doigt touche.'],
   ] },
-  { titre: '12. Palettes', nouvelle: true, signes: [
+  { titre: '12. Palettes', signes: [
     ['palette', 'palette', '<rect x="1.5" y="4" width="4.3" height="8" rx="1" fill="currentColor" opacity=".35" stroke="none"/><rect x="5.85" y="4" width="4.3" height="8" fill="currentColor" opacity=".65" stroke="none"/><rect x="10.2" y="4" width="4.3" height="8" rx="1" fill="currentColor" stroke="none"/>', 'Une palette de primitives.'],
     ['cran', 'cran', '<path d="M2 13.5h3v-3h3v-3h3v-3h3"/>', 'Un pas de la palette : 50 à 950.'],
-    ['mode', 'Light, Dark', null, 'Un mode du thème. Signe du mode. soft et vivid restent des mots.'],
+    ['mode', 'Light, Dark', null, 'Un mode du thème. soft et vivid restent des mots.'],
   ] },
-  { titre: '13. Publication', nouvelle: true, signes: [
+  { titre: '13. Publication', signes: [
     ['contrat', 'contrat de composant', DOC + tx('{}', 5.5, 8.2, 12), 'Le .contract.json publié.'],
     ['dtcg', 'tokens DTCG', '<path d="M8 1.5 13.5 4.4 8 7.3 2.5 4.4z"/><path d="m2.5 8 5.5 2.9L13.5 8M2.5 11.6l5.5 2.9 5.5-2.9"/>', 'Les tokens exportés.'],
     ['css', 'feuille CSS', DOC + tx('#', 6, 8.2, 12.2), 'La feuille des custom properties.'],
@@ -230,42 +297,46 @@ const FAMILLES = [
 const TRACES = {};
 for (const famille of FAMILLES) for (const [id, , trace] of famille.signes) if (trace) TRACES[id] = trace;
 
-/** La tuile d'un signe ; `c` colore la tuile d'une valeur de couleur. */
-function sg(id, { taille = '', c = null, clair = false, titre = '' } = {}) {
+/** La tuile d'un signe ; `c` colore la tuile d'une valeur de couleur, `teinte` colore le tracé (R-5 seulement). */
+function sg(id, { taille = '', c = null, clair = false, teinte = null } = {}) {
   let classe = `signe ${taille}`;
   let style = '';
   if (c) {
     classe += id === 'usage-stroke' ? ' contour' : ` valeur ${clair ? 'clair' : 'sombre'}`;
     style = ` style="--c:${c}"`;
   }
+  if (teinte) style = ` style="color:${teinte};background:color-mix(in srgb, ${teinte} 16%, transparent)"`;
   if (id === 'a-creer' && !c) classe += ' absent';
-  return `<span class="${classe}"${style}${titre ? ` title="${titre}"` : ''}><svg viewBox="0 0 16 16" aria-hidden="true">${TRACES[id] ?? ''}</svg></span>`;
+  return `<span class="${classe}"${style}><svg viewBox="0 0 16 16" aria-hidden="true">${TRACES[id] ?? ''}</svg></span>`;
 }
-const couche = (nom) => `<span class="couche"><span class="signe"><svg viewBox="0 0 16 16" aria-hidden="true">${pile(ETAGES[nom])}</svg></span>${nom}</span>`;
-const etat = (id, mot) => `<span class="marque-etat">${sg(id, { taille: 's12' })}${mot}</span>`;
 
 // ---------- Les morceaux de l'interface réelle ----------
 const CHEVRON = '<svg class="chevron-svg" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"></path></svg>';
-const CHEVRON_HAUT = '<svg class="chevron-svg" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" style="transform:rotate(180deg)"><path d="M3 4.5 6 7.5 9 4.5"></path></svg>';
 const ICO = {
   bloquant: '<svg viewBox="0 0 12 12"><path d="M4 .5h4L11.5 4v4L8 11.5H4L.5 8V4z" fill="currentColor"/><path d="M3.3 6h5.4" stroke-width="1.6" style="stroke:var(--texte-sur-ton);fill:none"/></svg>',
   corriger: '<svg viewBox="0 0 12 12"><path d="M6 .6l5.6 10.4H.4z" fill="currentColor"></path><path d="M6 4.2v3.3" stroke-width="1.4" style="stroke:var(--texte-sur-ton);fill:none"></path><circle cx="6" cy="9.1" r=".8" style="fill:var(--texte-sur-ton)"></circle></svg>',
   verifier: '<svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 4.7a1.6 1.6 0 1 1 2.3 1.4c-.5.3-.8.6-.8 1.1" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="6" cy="8.9" r=".75" fill="currentColor"/></svg>',
+  info: '<svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.6" fill="currentColor"/><path d="M6 5.2v3.6" stroke-width="1.5" style="stroke:var(--texte-sur-ton)"/><circle cx="6" cy="3.4" r=".85" style="fill:var(--texte-sur-ton)"/></svg>',
   tenu: '<svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.6" fill="currentColor"/><path d="M3.4 6.1l1.8 1.8 3.5-3.7" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--texte-sur-ton)"/></svg>',
 };
-const LIB = { bloquant: 'Bloquant', corriger: 'À corriger', verifier: 'À vérifier', tenu: 'Tenu' };
+const LIB = { bloquant: 'Bloquant', corriger: 'À corriger', verifier: 'À vérifier', info: 'Information', tenu: 'Tenu' };
 const ico = (ton) => `<span class="ico ton-${ton}" aria-hidden="true">${ICO[ton]}</span>`;
 const gravite = (ton) => `<span class="gravite ton-${ton}">${ico(ton)}${LIB[ton]}</span>`;
 const variant = (texte) => `<span class="ch ch-inline ch-variant">${texte}</span>`;
 const mot = (m) => `<code class="mot-cite">${m}</code>`;
-const ch = (groupes, variable, { nouveau = null, ancien = null } = {}) => groupes.map((g) => (g === nouveau ? `<span class="seg-nouveau">${g}</span>` : g === ancien ? `<span class="seg-ancien">${g}</span>` : g)).join('/') + '/' + variable;
 
-function carte({ phrase = '', jetons = null, meta, corps = '', ouverte = false, coche = true, classe = '' }) {
+/** Une carte de correction. `bouton` ajoute l'Appliquer de la carte, entre la phrase et le chevron. */
+function carte({ phrase = '', jetons = null, meta, corps = '', ouverte = false, coche = true, classe = '', bouton = false }) {
   const ligne = jetons ? `<span class="jeton jeton-retire">${jetons[0]}</span><span class="fleche" aria-hidden="true">→</span><span class="jeton jeton-retenu">${jetons[1]}</span>` : `<span class="bloc-phrase">${phrase}</span>`;
-  return `<div class="bloc ${classe}"><div class="bloc-tete">${coche === null ? '' : `<input type="checkbox" class="case" ${coche ? 'checked' : ''}>`}<button class="bloc-bouton" type="button" aria-expanded="${ouverte}"><div class="bloc-pile"><span class="bloc-ligne">${ligne}</span><span class="meta">${meta}</span></div><span class="bloc-droite">${ouverte ? CHEVRON_HAUT : CHEVRON}</span></button></div>${ouverte ? `<div class="bloc-corps">${corps}</div>` : ''}</div>`;
+  const pile = `<div class="bloc-pile"><span class="bloc-ligne">${ligne}</span><span class="meta">${meta}</span></div>`;
+  const case_ = coche === null ? '' : `<input type="checkbox" class="case" ${coche ? 'checked' : ''}>`;
+  const tete = bouton
+    ? `<div class="bloc-tete avec-bouton">${case_}<button class="bloc-bouton" type="button" aria-expanded="${ouverte}">${pile}</button><button type="button" class="btn btn-secondary btn-compact appliquer-carte"><span>Appliquer</span></button><button type="button" class="bloc-replier" aria-expanded="${ouverte}" aria-label="Déplier">${CHEVRON}</button></div>`
+    : `<div class="bloc-tete">${case_}<button class="bloc-bouton" type="button" aria-expanded="${ouverte}">${pile}<span class="bloc-droite">${CHEVRON}</span></button></div>`;
+  return `<div class="bloc ${classe}">${tete}${ouverte ? `<div class="bloc-corps">${corps}</div>` : ''}</div>`;
 }
 const colonnesTete = '<div class="colonnes-tete"><span></span><span>Aujourd’hui</span><span>Après l’application</span></div>';
-const diff = (avant, apres, coche = true) => `<div class="diff"><input type="checkbox" class="case" ${coche ? 'checked' : ''}><span class="chemin">${avant}</span><span class="chemin-apres"><span class="fleche-ligne">→ </span>${apres}</span></div>`;
+const diff = (avant, apres, coche = true) => `<div class="diff">${coche === null ? '<span></span>' : `<input type="checkbox" class="case" ${coche ? 'checked' : ''}>`}<span class="chemin">${avant}</span><span class="chemin-apres"><span class="fleche-ligne">→ </span>${apres}</span></div>`;
 function constat(ton, phrase, lieu, statut) {
   return `<div class="bloc bloc-constat a-ton ton-${ton}"><div class="bloc-tete sans-coche"><button class="bloc-bouton" type="button" aria-expanded="false"><div class="bloc-pile"><span class="bloc-ligne"><span class="constat-entete">${gravite(ton)}<span class="bloc-phrase">${phrase}</span></span></span><span class="meta"><span class="constat-lieu">${lieu}</span><br><span class="constat-statut">${statut}</span></span></div><span class="bloc-droite">${CHEVRON}</span></button></div></div>`;
 }
@@ -275,69 +346,82 @@ function question({ titre, origine = '', meta, ancien, nouveau, principal, autre
 const resume = '<div class="arch-resume"><div class="arch-resume-ligne"><span class="arch-resume-titre">Alert <span class="meta">11 variants, analysé à 13:31</span></span></div></div>';
 const ongletsAction = (actif, comptes = [4, 2, 12]) => `<div class="onglets" role="tablist">${['Corrections', 'Questions', 'À faire dans Figma'].map((n, i) => `<button type="button" class="onglet" role="tab" aria-selected="${n === actif}">${n}<span class="compte">${comptes[i]}</span></button>`).join('')}</div>`;
 const intertitre = (t) => `<div class="intertitre-structure"><h2>${t}</h2></div>`;
-const piedCorrections = (resumeHtml) => `<div class="corrections-pied"><span class="corrections-resume">${resumeHtml}</span><button type="button" class="btn btn-primary"><span>Appliquer</span></button></div>`;
+const piedCorrections = (resumeHtml, bouton = 'Appliquer') => `<div class="corrections-pied"><span class="corrections-resume">${resumeHtml}</span><button type="button" class="btn btn-primary"><span>${bouton}</span></button></div>`;
 const panneau = (html) => `<div class="page-stack">${html}</div>`;
 
+/** Une section d'éléments : la bande, puis ses cartes. Une section tenue n'a ni chevron ni corps : la coche seule. */
+function section(signe, titre, { nombre = null, ouverte = true, corps = '', tenue = false } = {}) {
+  if (tenue) return `<div class="section-element"><div class="bande-element tenue">${sg(signe)}<span class="titre">${titre}</span>${ico('tenu')}</div></div>`;
+  return `<div class="section-element"><button type="button" class="bande-element" aria-expanded="${ouverte}">${sg(signe)}<span class="titre">${titre}</span><span class="nombre">${nombre ?? ''}</span>${CHEVRON}</button>${ouverte ? corps : ''}</div>`;
+}
+const S = {
+  couleurs: ['type-color', 'Couleurs'], tailles: ['radius', 'Tailles et forme'], texte: ['text-style', 'Texte'], tokens: ['variable', 'Tokens du composant'],
+  variants: ['component-set', 'Variants et layers'], regles: ['regles', 'Règles d’utilisation'], a11y: ['contraste', 'Accessibilité'],
+};
+const sec = (cle, options) => section(S[cle][0], S[cle][1], options);
+
 // Les cartes d'Alert que la galerie montre.
-const C_SUCCESS = carte({ jetons: ['info', 'success'], meta: `${variant('Severity=success, Variant=standard')}, layers icon et container` });
-const C_TEXTE = carte({ phrase: `Lier le texte de ${variant('Variant=outlined')} aux tokens sans fond`, meta: '4 variants, layer message' });
+const C_SUCCESS = (bouton = false) => carte({ jetons: ['info', 'success'], meta: `${variant('Severity=success, Variant=standard')}, layers icon et container`, bouton });
+const C_TEXTE = (bouton = false) => carte({ phrase: `Lier le texte de ${variant('Variant=outlined')} aux tokens sans fond`, meta: '4 variants, layer message', bouton });
 const C_PADDING = carte({ phrase: 'Lier le padding d’Alert à ses tokens de taille', meta: 'Tous les variants, left / right padding et top / bottom padding' });
-const C_REGLES = carte({ phrase: 'Créer l’instance de règles d’Alert', meta: '3 règles : Severity, Variant, Dismissible. Posée à côté du composant.' });
+const C_PADDING_NEUF = carte({ phrase: 'Lier le padding de container', meta: 'Tous les variants. Les variables existent dans layout.', bouton: true });
+const C_REGLES = (bouton = false) => carte({ phrase: 'Créer l’instance de règles d’Alert', meta: '3 règles : Severity, Variant, Dismissible. Posée à côté du composant.', bouton });
 const Q_TITLE = question({ titre: `Lier <span class="ch ch-variable-vu">title</span> à <span class="ch ch-inline">colors/info/standard/<span class="ch-variable-vu">title</span></span> ?`, meta: `${variant('Severity=info, Variant=standard')}, layer title sans variable.`, ancien: 'title, couleur en dur', nouveau: 'colors/info/standard/<span class="seg-nouveau">title</span>', principal: 'Lier', autre: 'Lier à …/foreground' });
 const Q_OUTLINE = question({ titre: `Renommer <code class="mot-cite mot-retire">Outlined</code> en <code class="mot-cite mot-retenu">outline</code> ?`, origine: 'Variant', meta: 'Les tokens emploient outline. 4 variants. Les développeurs devront modifier leur code.', ancien: 'Variant=<span class="seg-ancien">Outlined</span>', nouveau: 'Variant=<span class="seg-nouveau">outline</span>', principal: 'Renommer' });
 const F_ICONE = constat('verifier', `L’icône de ${variant('Severity=info, Variant=filled')} prend une couleur que les 10 autres variants n’emploient pas.`, 'Layer icon', 'Vérifiez la couleur dans Figma');
 const F_COLORS = constat('corriger', `Les tokens d’Alert sont rangés sous ${mot('colors')}. UCM attend ${mot('color')}.`, 'Tous les variants, 36 tokens', 'Se règle dans le fichier des tokens, onglet Corrections');
+const F_GAP = constat('corriger', `${mot('alert/size/gap')} vise une primitive au lieu de layout.`, 'Tous les variants, layer container', 'Se règle dans le fichier des tokens, onglet À faire dans Figma');
 const F_DISPARUE = constat('bloquant', 'Une variable liée a disparu de la library.', 'Tous les variants, layer container', 'Publiez la library, ou liez une autre variable');
+const F_PREVUS = constat('verifier', `Les tokens prévoient ${mot('warning/filled')}. Le variant n’existe pas.`, 'Tokens du composant', 'Créez le variant, ou supprimez les tokens');
 const F_WARNING = constat('verifier', `${variant('Severity=warning, Variant=filled')} n’existe pas.`, 'Section Variants', 'Créez le variant, ou ignorez ce constat');
-const F_CONTRASTE = constat('corriger', `Le texte de ${variant('Severity=warning, Variant=standard')} manque de contraste en Dark.`, 'Layer message, 3,1 pour 4,5', 'Changez la couleur du texte ou du fond');
 
 // ---------- 1 · La carte du stroke ----------
-const LAYERS_SANS_CONTOUR = ['title', 'message', 'icon', 'content', 'actions'];
 const lignesFausses = Array.from({ length: 9 }, () => diff('valeur en dur', 'Stroke/outline-weight')).join('');
 const C_STROKE_AUJ = carte({ phrase: 'Lier le stroke d’Alert à ses tokens de taille', meta: '8 variants, stroke weight', ouverte: true, classe: 'carte-stroke', corps: `${colonnesTete}${lignesFausses}<div class="diff"><span></span><span class="chemin meta">… 27 lignes de plus, toutes identiques</span><span></span></div>` });
-
 const ligneStroke = (layer, fois) => diff(
-  `<span class="ligne2"><span class="haut">${sg('frame', { taille: 's12' })}${layer}<span class="fois">×${fois}</span></span><span class="bas"><span class="en-dur">1 px en dur</span></span></span>`,
-  `<span class="ligne2"><span class="haut">stroke/outline-weight</span><span class="bas">${couche('layout')}<span>1 px</span>${etat('existe', 'existe')}</span></span>`,
+  `<span class="ligne2"><span class="haut">${layer}<span class="fois">×${fois}</span></span><span class="bas"><span class="en-dur">1 px en dur</span></span></span>`,
+  `<span class="ligne2"><span class="haut">stroke/outline-weight</span><span class="bas"><span class="couche-mot">layout</span><span>1 px</span><span>existe</span></span></span>`,
 );
-const C_STROKE_PROP = carte({ phrase: `${sg('stroke-weight')} Lier le stroke weight de container`, meta: '8 variants, layer container. La variable existe dans layout.', ouverte: true, classe: 'carte-stroke', corps: `${colonnesTete}${ligneStroke('container', 8)}` });
+const C_STROKE_PROP = carte({ phrase: 'Lier le stroke weight de container', meta: '8 variants, layer container', ouverte: true, classe: 'carte-stroke', bouton: true, corps: `${colonnesTete}${ligneStroke('container', 8)}` });
 
-// ---------- 2 · Le rangement ----------
-const DOMAINES = [
-  ['type-color', 'Couleurs'], ['radius', 'Tailles et forme'], ['text-style', 'Texte'], ['variable', 'Tokens du composant'],
-  ['component-set', 'Variants et layers'], ['regles', 'Règles d’utilisation'], ['contraste', 'Accessibilité'],
-];
-const ongletsDomaine = (actif) => `<div class="onglets debord" role="tablist">${[['type-color', 'Couleurs', 4], ['radius', 'Tailles et forme', 1], ['text-style', 'Texte', 0], ['variable', 'Tokens', 4], ['component-set', 'Variants', 2], ['regles', 'Règles', 1], ['contraste', 'Accessibilité', 6]].map(([s, n, c]) => `<button type="button" class="onglet" role="tab" aria-selected="${n === actif}" ${c === 0 ? 'aria-disabled="true" style="opacity:.45"' : ''}>${sg(s, { taille: 's12' })}${n}<span class="compte">${c}</span></button>`).join('')}</div>`;
+// ---------- 2 · La variante C ----------
+const tenues = sec('texte', { tenue: true });
+const ONGLET_CORRECTIONS = `${resume}${ongletsAction('Corrections')}<div class="liste">
+  ${sec('couleurs', { nombre: 2, corps: `${C_SUCCESS(true)}${C_TEXTE(true)}` })}
+  ${sec('tailles', { nombre: 1, corps: C_PADDING_NEUF })}
+  ${sec('regles', { nombre: 1, corps: C_REGLES(true) })}
+  ${tenues}
+  ${piedCorrections('<b>4 corrections</b> cochées, 8 layers, 1 instance', 'Appliquer tout')}</div>`;
+const ONGLET_QUESTIONS = `${resume}${ongletsAction('Questions')}<div class="liste">
+  ${sec('couleurs', { nombre: 1, corps: Q_TITLE })}
+  ${sec('variants', { nombre: 1, corps: Q_OUTLINE })}
+  ${tenues}</div>`;
+const ONGLET_A_FAIRE = `${resume}${ongletsAction('À faire dans Figma')}<div class="liste">
+  ${sec('couleurs', { nombre: 1, corps: F_ICONE })}
+  ${sec('tokens', { nombre: 4, corps: `${F_COLORS}${F_GAP}${F_DISPARUE}${F_PREVUS}` })}
+  ${sec('variants', { nombre: 1, corps: F_WARNING })}
+  ${sec('a11y', { nombre: 6, ouverte: false })}
+  ${tenues}</div>`;
 
-const compte = (id, n) => `<span title="${n}">${sg(id, { taille: 's12' })}${n}</span>`;
-function section(signe, nom, { comptes = [], ouverte = false, corps = '', tenu = false, alerte = null } = {}) {
-  const droite = tenu ? `<span class="tenu">${ico('tenu')}Tenu</span>` : `<span class="comptes">${alerte ? ico(alerte) : ''}${comptes.map(([id, n]) => compte(id, n)).join('')}</span>`;
-  return `<div class="section-el"><button type="button" class="section-el-tete" aria-expanded="${ouverte}">${sg(signe)}<span class="nom">${nom}</span>${droite}${tenu ? '' : ouverte ? CHEVRON_HAUT : CHEVRON}</button>${ouverte ? `<div class="section-el-corps">${corps}</div>` : ''}</div>`;
-}
-const sous = (id, mot) => `<div class="sous-tete">${sg(id, { taille: 's12' })}${mot}</div>`;
-const filtresAction = `<div class="filtres-action"><button type="button" class="filtre-action">${sg('correction', { taille: 's12' })}<b>4</b> corrections</button><button type="button" class="filtre-action">${sg('question', { taille: 's12' })}<b>2</b> questions</button><button type="button" class="filtre-action">${sg('a-faire', { taille: 's12' })}<b>12</b> à faire dans Figma</button></div>`;
-
-const C_TEXTE_SIGNE = carte({ phrase: `Lier le texte de ${variant('Variant=outlined')} aux tokens sans fond`, meta: '4 variants, layer message' });
-function panneauB({ regles = false } = {}) {
-  return `${resume}${filtresAction}<div class="liste" style="gap:0">
-    ${section('type-color', 'Couleurs', { ouverte: !regles, comptes: [['correction', 2], ['question', 1], ['a-faire', 1]], corps: `${sous('correction', 'Corrections')}${C_SUCCESS}${C_TEXTE_SIGNE}${sous('question', 'Questions')}${Q_TITLE}${sous('a-faire', 'À faire dans Figma')}${F_ICONE}` })}
-    ${section('radius', 'Tailles et forme', { ouverte: !regles, comptes: [['correction', 1]], corps: `${sous('correction', 'Corrections')}${carte({ phrase: 'Lier le padding de container', meta: 'Tous les variants, padding left / right et top / bottom. Les variables existent dans layout.' })}` })}
-    ${section('text-style', 'Texte', { tenu: true })}
-    ${section('variable', 'Tokens du composant', { alerte: 'bloquant', comptes: [['a-faire', 4]] })}
-    ${section('component-set', 'Variants et layers', { comptes: [['question', 1], ['a-faire', 1]] })}
-    ${section('regles', 'Règles d’utilisation', { ouverte: true, comptes: [['correction', 1]], corps: `${sous('correction', 'Corrections')}${regles ? CARTE_REGLES_OUVERTE : C_REGLES}` })}
-    ${section('contraste', 'Accessibilité', { alerte: 'corriger', comptes: [['a-faire', 6]] })}
-  </div><div class="pied-sections"><span class="resume"><b>4 corrections</b> cochées : Couleurs 2, Tailles et forme 1, Règles d’utilisation 1</span><button type="button" class="btn btn-primary"><span>Appliquer</span></button></div>`;
-}
-
-// ---------- 4b · Règles d'utilisation et préparation ----------
-const regle = (signe, tag, texte) => `<div class="regle-ligne">${sg(signe, { taille: 's12' })}<span class="tag">${tag}</span><span>${texte}</span></div>`;
-const CARTE_REGLES_OUVERTE = carte({ phrase: 'Créer l’instance de règles d’Alert', meta: '3 règles à rédiger. Posée à côté du composant.', ouverte: true, corps: `
-  ${regle('tag-usage', '@usage', '<span class="a-completer">[À compléter]</span>')}
-  ${regle('prop-variant', '@prop', `${mot('Severity')} : info, success, warning, error`)}
-  ${regle('prop-variant', '@prop', `${mot('Variant')} : standard, outlined, filled`)}
-  ${regle('prop-boolean', '@boolean', `${mot('Dismissible')}, défaut false ${etat('modifiable', 'modifiable')}`)}
-  ${regle('prop-swap', '@icons', `${mot('icon')}, piloté par Severity ${etat('strict', 'strict')}`)}` });
+// ---------- 5b · Règles d'utilisation et préparation ----------
+const regle = (tag, texte) => `<div class="regle-ligne"><span class="tag">${tag}</span><span>${texte}</span></div>`;
+const CARTE_REGLES_OUVERTE = carte({ phrase: 'Créer l’instance de règles d’Alert', meta: '5 règles, dont 1 à rédiger. Posée à côté du composant.', ouverte: true, bouton: true, corps: `
+  ${regle('@usage', '<span class="a-completer">[À compléter]</span>')}
+  ${regle('@prop', `${mot('Severity')} : info, success, warning, error`)}
+  ${regle('@prop', `${mot('Variant')} : standard, outlined, filled`)}
+  ${regle('@boolean', `${mot('Dismissible')}, défaut false<span class="drapeau">modifiable</span>`)}
+  ${regle('@icons', `${mot('icon')}, piloté par Severity<span class="drapeau">strict</span>`)}` });
+const lignePrep = (token, cible, valeur) => diff(
+  `<span class="ligne2"><span class="haut">${token}</span><span class="bas"><span class="couche-mot">components</span><span class="a-creer-mot">à créer</span></span></span>`,
+  `<span class="ligne2"><span class="haut">${cible}</span><span class="bas"><span class="couche-mot">layout</span><span>${valeur}</span><span>existe</span></span></span>`,
+);
+const CARTE_PREPARATION = carte({ phrase: 'Créer 2 tokens de taille d’Alert', meta: 'Ils renvoient à des variables de layout qui existent.', ouverte: true, bouton: true, classe: 'prep', corps: `<div class="colonnes-tete"><span></span><span>Token d’Alert</span><span>Renvoie à</span></div>${lignePrep('alert/size/border-width', 'stroke/outline-weight', '1 px')}${lignePrep('alert/size/radius', 'radius/md', '6 px')}` });
+const ONGLET_REGLES = `${resume}${ongletsAction('Corrections', [5, 2, 12])}<div class="liste">
+  ${sec('couleurs', { nombre: 2, ouverte: false })}
+  ${sec('tailles', { nombre: 2, corps: `${C_PADDING_NEUF}${CARTE_PREPARATION}` })}
+  ${sec('regles', { nombre: 1, corps: CARTE_REGLES_OUVERTE })}
+  ${tenues}
+  ${piedCorrections('<b>5 corrections</b> cochées, 8 layers, 2 tokens, 1 instance', 'Appliquer tout')}</div>`;
 
 // ---------- Cadres ----------
 const STYLE_SEUL = `<style>
@@ -406,104 +490,93 @@ const LEGENDES = {
     ['.carte-stroke .diff:nth-of-type(2) .chemin-apres', 'Rien ne dit que cette variable existe, ni dans quelle collection.'],
   ],
   'c-1b': [
-    ['.carte-stroke .bloc-phrase', 'Après la correction de la lecture, cette carte ne vient que d’un contour visible. Le cadre suppose container avec un contour de 1 px en dur.'],
+    ['.carte-stroke .bloc-phrase', 'Après R-1, cette carte ne vient que d’un contour visible. Le cadre suppose container avec un contour de 1 px en dur.'],
     ['.carte-stroke .diff .ligne2 .haut', 'Une ligne par layer, avec le nombre de variants.'],
     ['.carte-stroke .diff .en-dur', 'La valeur lue, sur un fond hachuré : rien n’est lié.'],
-    ['.carte-stroke .diff .couche', 'La couche UCM de la variable : layout, troisième étage.'],
-    ['.carte-stroke .diff .marque-etat', 'La variable existe. Une variable à créer porte un hexagone en pointillés, comme dans 4b.'],
+    ['.carte-stroke .diff .chemin-apres .bas', 'La collection, la valeur et « existe », en mots. La section porte déjà le signe : la ligne n’en ajoute aucun.'],
   ],
   'c-2b': [
-    ['.onglets.debord', 'Sept sortes d’éléments ne tiennent pas en 640 px. Les derniers onglets sortent du panneau.'],
-    ['.onglet[aria-disabled="true"]', 'Texte n’a aucun constat. Un onglet grisé encombre. Un onglet absent ferait bouger les autres.'],
-    ['.corrections-pied .corrections-resume', 'Appliquer devient ambigu. Ce bouton applique-t-il les corrections des autres onglets ?'],
+    ['.section-element:nth-of-type(1) .bande-element', 'La bande d’une section : fond de bloc, grand signe, titre, nombre. Elle reprend la bande de section de Nomenclature.'],
+    ['.section-element:nth-of-type(1) .bloc:nth-of-type(1) .appliquer-carte', 'Chaque carte a son Appliquer. Il écrit cette carte seule.'],
+    ['.section-element:nth-of-type(1) .bloc:nth-of-type(2) .bloc-replier', 'Replié : le chevron pointe à droite.'],
+    ['.bande-element.tenue .ico', 'Texte est tenu : la coche seule, sans mot ni chevron.'],
+    ['.corrections-pied .btn-primary', 'Appliquer tout écrit les cartes cochées de toutes les sections.'],
   ],
   'c-2c': [
-    ['.filtres-action', 'Les trois actions deviennent des filtres. Un clic pose une puce dans la recherche, avec sa croix.'],
-    ['.section-el:nth-of-type(1) .comptes', 'Chaque section compte ses éléments par action.'],
-    ['.section-el:nth-of-type(1) .sous-tete', 'Dans une section : corrections, puis questions, puis ce qui se fait dans Figma.'],
-    ['.section-el:nth-of-type(1) .question', 'Une question reste près de la correction qu’elle produira.'],
-    ['.section-el:nth-of-type(3) .tenu', 'Une section sans constat montre Tenu. Le designer voit ce qui a été contrôlé.'],
-    ['.section-el:nth-of-type(4) .comptes .ico', 'Une section repliée montre son alerte la plus grave.'],
-    ['.pied-sections .resume', 'Un seul Appliquer. Il nomme les sections concernées.'],
+    ['.section-element:nth-of-type(2) .bande-element', 'Un onglet ne montre que ses sections occupées. La question sur Outlined va dans Variants et layers.'],
   ],
-  'c-4a': [
-    ['.vc-tete h2 .signe', 'Alert est un component : signe de Figma. Le ◇ reste à Button, une instance.'],
+  'c-2d': [
+    ['.section-element:nth-of-type(4) .bande-element', 'Une section se replie. Repliée, son chevron pointe à droite.'],
+  ],
+  'c-5a': [
+    ['.vc-tete h2 .signe', 'Alert est un component : signe de Figma. Le losange reste à Button, une instance.'],
     ['.vc-liste .vc-token:nth-of-type(3) .signe', 'Une couleur de texte : la tuile prend la couleur, le A prend l’encre lisible.'],
-    ['.vc-section-tete[data-section="forme"] + .vc-token .signe', 'Radius, stroke weight, padding, gap : un tracé par usage, plus de caractère.'],
-    ['.vc-section-tete[data-section="texte"] + .vc-token .signe', 'Un text style garde Aa, dans la même tuile.'],
-    ['.arch-laterale .section-el-tete .signe', 'Le panneau ouvre ses sections avec les mêmes signes que la colonne de gauche.'],
+    ['.vc-section-tete[data-section="espacement"] + .vc-token + .vc-token .signe', 'padding-x montre ses deux côtés, comme Figma.'],
+    ['.arch-laterale .bande-element .signe', 'Le panneau pose ses signes sur les bandes de section, en 24 px. Les tuiles des lignes de gauche font 16 px.'],
   ],
-  'c-4b': [
-    ['.regle-ligne:nth-of-type(1) .a-completer', 'Un texte d’aide non rédigé reste souligné en pointillés. Il ne part pas dans le contrat.'],
-    ['.regle-ligne:nth-of-type(2) .signe', '@prop reprend le signe de la variant property qu’il décrit.'],
-    ['.regle-ligne:nth-of-type(4) .signe', '@boolean reprend le signe de la boolean property.'],
-    ['.prep .signe.absent', 'À créer : l’hexagone en pointillés, le même que dans la carte du stroke.'],
+  'c-5b': [
+    ['.regle-ligne .a-completer', 'Un texte d’aide non rédigé reste souligné en pointillés. Il ne part pas dans le contrat.'],
+    ['.regle-ligne:nth-of-type(4) .drapeau', 'modifiable et strict restent des mots. Aucune règle ne porte de signe : la section porte celui des règles.'],
+    ['.prep .a-creer-mot', 'À créer : un mot dans un cadre en pointillés.'],
   ],
 };
 
 // ---------- Rendu ----------
-// 1a : la carte telle que le designer l'a vue, sous les cartes de la galerie.
-cadre('c-1a', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(`${resume}${ongletsAction('Corrections', [5, 2, 12])}<div class="liste">${intertitre('Liaisons')}${C_SUCCESS}${C_TEXTE}${intertitre('Tailles')}${C_PADDING}${C_STROKE_AUJ}${intertitre('Règles d’usage')}${C_REGLES}${piedCorrections('<b>5 corrections</b> cochées, 44 layers, 1 instance')}</div>`)) });
-// 1b : la même liste, la carte réécrite.
-cadre('c-1b', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(`${resume}${ongletsAction('Corrections', [5, 2, 12])}<div class="liste">${intertitre('Liaisons')}${C_SUCCESS}${C_TEXTE}${intertitre('Tailles et forme')}${C_PADDING}${C_STROKE_PROP}${intertitre('Règles d’usage')}${C_REGLES}${piedCorrections('<b>5 corrections</b> cochées, 16 layers, 1 instance')}</div>`)) });
+cadre('c-1a', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(`${resume}${ongletsAction('Corrections', [5, 2, 12])}<div class="liste">${intertitre('Liaisons')}${C_SUCCESS()}${C_TEXTE()}${intertitre('Tailles')}${C_PADDING}${C_STROKE_AUJ}${intertitre('Règles d’usage')}${C_REGLES()}${piedCorrections('<b>5 corrections</b> cochées, 44 layers, 1 instance')}</div>`)) });
+cadre('c-1b', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(`${resume}${ongletsAction('Corrections', [5, 2, 12])}<div class="liste">${sec('couleurs', { nombre: 2, corps: `${C_SUCCESS(true)}${C_TEXTE(true)}` })}${sec('tailles', { nombre: 2, corps: `${C_PADDING_NEUF}${C_STROKE_PROP}` })}${sec('regles', { nombre: 1, corps: C_REGLES(true) })}${tenues}${piedCorrections('<b>5 corrections</b> cochées, 16 layers, 1 instance', 'Appliquer tout')}</div>`)) });
 
-// 2a : l'écran de la galerie, tel quel.
 cadre('c-2a', { largeur: 640, seul: true });
-// 2b : des onglets par élément.
-cadre('c-2b', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(`${resume}${ongletsDomaine('Couleurs')}<div class="liste">${sous('correction', 'Corrections')}${C_SUCCESS}${C_TEXTE}${sous('question', 'Questions')}${Q_TITLE}${sous('a-faire', 'À faire dans Figma')}${F_ICONE}${piedCorrections('<b>4 corrections</b> cochées, dont 2 dans d’autres onglets')}</div>`)) });
-// 2c : une liste en sections.
-cadre('c-2c', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(panneauB())) });
+cadre('c-2b', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(ONGLET_CORRECTIONS)) });
+cadre('c-2c', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(ONGLET_QUESTIONS)) });
+cadre('c-2d', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(ONGLET_A_FAIRE)) });
 
 // 3 : la planche des signes.
+const exempleCouleur = (id, taille) => (id === 'usage-inconnue' ? sg(id, { taille }) : sg(id, { taille, c: id === 'usage-fill' ? '#F0F9FF' : '#0369A1', clair: id === 'usage-fill' }));
 const PLANCHE = `<div style="padding:20px 24px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 28px;width:1500px">${FAMILLES.map((famille) => `
   <section><h3 style="margin:0 0 8px;font:650 13px Inter,sans-serif;color:var(--texte)">${famille.titre}</h3>
-  ${famille.signes.map(([id, libelle, , sens]) => {
-    const exemple = famille.couleur
-      ? (id === 'usage-inconnue' ? sg(id, { taille: 'grand' }) : sg(id, { taille: 'grand', c: id === 'usage-fill' ? '#F0F9FF' : '#0369A1', clair: id === 'usage-fill' }))
-      : sg(id, { taille: 'grand' });
-    return `<div style="display:grid;grid-template-columns:28px 16px 130px minmax(0,1fr);gap:8px;align-items:center;padding:3px 0;font-size:11.5px">${exemple}${famille.couleur ? sg(id, id === 'usage-inconnue' ? {} : { c: id === 'usage-fill' ? '#F0F9FF' : '#0369A1', clair: id === 'usage-fill' }) : sg(id)}<code style="font:500 11px var(--police-chemin);color:var(--texte)">${libelle}</code><span style="color:var(--texte-second)">${sens}</span></div>`;
-  }).join('')}</section>`).join('')}
+  ${famille.signes.map(([id, libelle, , sens]) => `<div style="display:grid;grid-template-columns:28px 16px 14px 130px minmax(0,1fr);gap:8px;align-items:center;padding:3px 0;font-size:11.5px">${famille.couleur ? exempleCouleur(id, 'grand') + exempleCouleur(id, '') + exempleCouleur(id, 's14') : sg(id, { taille: 'grand' }) + sg(id) + sg(id, { taille: 's14' })}<code style="font:500 11px var(--police-chemin);color:var(--texte)">${libelle}</code><span style="color:var(--texte-second)">${sens}</span></div>`).join('')}</section>`).join('')}
   <section><h3 style="margin:0 0 8px;font:650 13px Inter,sans-serif;color:var(--texte)">14. Signaux existants, inchangés</h3>
   <p style="margin:0 0 6px;font-size:11.5px;color:var(--texte-second)">Chemins gris, rose et olive. Changements vert et rouge. Décisions de nom de Nomenclature. Filtres. Boutons. Échelle des alertes :</p>
-  <div style="display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px">${['bloquant', 'corriger', 'verifier', 'tenu'].map(gravite).join('')}<span class="gravite ton-info"><span class="ico ton-info"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.6" fill="currentColor"/><path d="M6 5.2v3.6" stroke-width="1.5" style="stroke:var(--texte-sur-ton)"/><circle cx="6" cy="3.4" r=".85" style="fill:var(--texte-sur-ton)"/></svg></span>Information</span></div>
-  <p style="margin:12px 0 4px;font-size:11.5px;color:var(--texte-second)">Une couche UCM devant un chemin :</p>
-  <div style="display:flex;flex-direction:column;gap:4px">${['components', 'theme', 'layout', 'primitives'].map((c) => `<span>${couche(c)}</span>`).join('')}</div></section>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px">${['bloquant', 'corriger', 'verifier', 'info', 'tenu'].map(gravite).join('')}</div></section>
+  <section><h3 style="margin:0 0 8px;font:650 13px Inter,sans-serif;color:var(--texte)">Trois tailles</h3>
+  <p style="margin:0;font-size:11.5px;color:var(--texte-second)">24 px sur la bande d'une section. 16 px sur une ligne de token. 14 px dans un texte ou un bouton. La planche montre 28, 16 et 14.</p></section>
 </div>`;
 cadre('c-planche', { largeur: 1550, html: `<div class="application" style="display:block;height:auto;min-height:0">${PLANCHE}</div>` });
 
-// 4a : la fenêtre entière, colonne de gauche aux signes, panneau en sections.
-const SIGNE_PAR_LIBELLE = { 'Rayon': 'radius', 'Écart': 'gap', 'Marge': 'padding', 'Taille': 'taille-icone', 'Épaisseur': 'stroke-weight', 'Style': 'text-style' };
+// 5a : la fenêtre entière, colonne de gauche aux signes, onglet Corrections de la variante C.
+const SIGNE_PAR_LIBELLE = { 'Rayon': 'radius', 'Écart': 'gap', 'Taille': 'taille-icone', 'Épaisseur': 'stroke-weight', 'Style': 'text-style' };
 function signesAGauche(doc) {
   const titre = doc.querySelector('.vc-tete h2 [aria-hidden]');
   if (titre) titre.outerHTML = sg('component');
   const imbrique = doc.querySelector('.vc-imbriques button');
-  if (imbrique) imbrique.innerHTML = `${sg('instance', { taille: 's12' })} Button`;
+  if (imbrique) imbrique.innerHTML = `${sg('instance', { taille: 's14' })} Button`;
   for (const pastille of doc.querySelectorAll('.vc-ligne > .vc-pastille')) {
     const ligne = pastille.closest('.vc-ligne');
-    const sorte = (ligne.getAttribute('title') ?? '').split(' · ')[0];
+    const [sorte] = (ligne.getAttribute('title') ?? '').split(' · ');
     if (pastille.classList.contains('vc-pastille-nombre')) {
-      let id = SIGNE_PAR_LIBELLE[sorte] ?? 'text-style';
-      if (sorte === 'Marge') id = 'padding';
+      const cle = ligne.dataset.cle ?? '';
+      const id = sorte === 'Marge' ? (/padding-x/.test(cle) ? 'padding-x' : /padding-y/.test(cle) ? 'padding-y' : 'padding') : SIGNE_PAR_LIBELLE[sorte] ?? 'text-style';
       pastille.outerHTML = sg(id);
       continue;
     }
     const couleur = pastille.style.background;
     const clair = pastille.classList.contains('vc-pastille-claire');
-    const id = pastille.textContent === 'A' ? 'usage-texte' : sorte === 'Fond' && /icon/.test(ligne.getAttribute('title')) ? 'usage-icone' : 'usage-fill';
+    const id = pastille.textContent === 'A' ? 'usage-texte' : /icon/.test(ligne.getAttribute('title') ?? '') ? 'usage-icone' : 'usage-fill';
     pastille.outerHTML = sg(id, { c: couleur, clair });
   }
 }
-cadre('c-4a', { largeur: 1040, hauteur: 1000, modifier: (doc) => { signesAGauche(doc); remplacerPanneau(panneau(panneauB()))(doc); } });
+cadre('c-5a', { largeur: 1040, hauteur: 900, modifier: (doc) => { signesAGauche(doc); remplacerPanneau(panneau(ONGLET_CORRECTIONS))(doc); } });
+cadre('c-5b', { largeur: 640, seul: true, modifier: remplacerPanneau(panneau(ONGLET_REGLES)) });
 
-// 4b : le panneau seul, règles d'utilisation ouvertes, et la préparation des tokens.
-const PREPARATION = `<div class="prep" style="margin-top:4px">${sous('a-creer', 'Préparation des tokens d’Alert')}
-  <div class="bloc"><div class="bloc-tete"><input type="checkbox" class="case" checked><button class="bloc-bouton" type="button" aria-expanded="true"><div class="bloc-pile"><span class="bloc-ligne"><span class="bloc-phrase">Créer 2 tokens de taille d’Alert</span></span><span class="meta">Ils visent des variables de layout qui existent.</span></div><span class="bloc-droite">${CHEVRON_HAUT}</span></button></div><div class="bloc-corps">
-  ${diff(`<span class="ligne2"><span class="haut">${sg('a-creer', { taille: 's12' })}alert/size/border-width</span><span class="bas">${couche('components')}${etat('a-creer', 'à créer')}</span></span>`, `<span class="ligne2"><span class="haut">stroke/outline-weight</span><span class="bas">${couche('layout')}<span>1 px</span>${etat('existe', 'existe')}</span></span>`)}
-  ${diff(`<span class="ligne2"><span class="haut">${sg('a-creer', { taille: 's12' })}alert/size/radius</span><span class="bas">${couche('components')}${etat('a-creer', 'à créer')}</span></span>`, `<span class="ligne2"><span class="haut">radius/md</span><span class="bas">${couche('layout')}<span>6 px</span>${etat('existe', 'existe')}</span></span>`)}
-  </div></div></div>`;
-cadre('c-4b', { largeur: 640, seul: true, modifier: (doc) => {
-  remplacerPanneau(panneau(panneauB({ regles: true }).replace('<div class="pied-sections">', `${PREPARATION}<div class="pied-sections">`)))(doc);
-} });
+// R-5 : les signes gris, puis une couleur par famille à côté des alertes.
+const ECHANTILLON = ['padding-x', 'radius', 'stroke-weight', 'gap', 'component', 'instance', 'frame', 'text-style', 'prop-variant', 'prop-boolean'];
+const TEINTES = { 'padding-x': '#7cb7ff', radius: '#7cb7ff', 'stroke-weight': '#7cb7ff', gap: '#7cb7ff', component: '#f5a35c', instance: '#f5a35c', frame: '#f5a35c', 'text-style': '#e8cc6a', 'prop-variant': '#7fdc9c', 'prop-boolean': '#7fdc9c' };
+const R5 = `<div style="padding:16px 20px;display:grid;grid-template-columns:150px auto;gap:12px 16px;align-items:center;font-size:11.5px;width:760px">
+  <span style="color:var(--texte-second)">Gris, proposé</span><span style="display:flex;gap:8px">${ECHANTILLON.map((id) => sg(id)).join('')}</span>
+  <span style="color:var(--texte-second)">Une couleur par famille</span><span style="display:flex;gap:8px">${ECHANTILLON.map((id) => sg(id, { teinte: TEINTES[id] })).join('')}</span>
+  <span style="color:var(--texte-second)">Les alertes</span><span style="display:flex;gap:12px">${['info', 'corriger', 'verifier', 'tenu'].map(gravite).join('')}</span>
+</div>`;
+cadre('c-r5', { largeur: 780, hauteur: 130, html: `<div class="application" style="display:block;height:auto;min-height:0">${R5}</div>` });
 </script>
 </body>
 </html>

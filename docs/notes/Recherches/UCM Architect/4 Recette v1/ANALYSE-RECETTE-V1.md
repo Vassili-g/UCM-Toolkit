@@ -73,6 +73,8 @@ Proposition, montrée par le cadre 1b :
 
 ## 2. Ranger le panneau par sorte d'élément
 
+Le mainteneur a retenu la variante C, modifiée : voir la section 4.
+
 ### Aujourd'hui
 
 Trois onglets par action : Corrections, Questions, À faire dans Figma. Chaque
@@ -193,8 +195,8 @@ celui de la property boolean, `@icons` celui de l'instance swap.
 `@do` et `@dont` prennent ✓ et ✕ en gris. Le vert et le rouge appartiennent
 déjà aux changements.
 
-La question prend un signe de choix à deux branches. Le « ? » appartient déjà
-à À vérifier.
+La question prend un « ? » gris dans sa tuile. À vérifier garde son « ? »
+cerclé, en jaune.
 
 ### Où le ranger
 
@@ -210,14 +212,60 @@ Le tracé SVG entre dans le kit comme une donnée. Le kit ne dessine toujours
 rien : il ne crée aucun élément. Le Hub, généré hors des plugins, lit ainsi les
 mêmes signes que le socle.
 
-## 4. Questions au mainteneur
+## 4. Décisions du 24 octobre
 
-| N° | Question | Proposition |
+Le mainteneur a relu la première version de la maquette. La maquette montre
+la deuxième.
+
+**Chevrons.** Un chevron pointe vers la droite quand l'élément est replié, vers
+le bas quand il est ouvert. La règle vaut pour la maquette et pour tous les
+plugins.
+
+**Panneau.** La variante C est retenue, avec quatre modifications :
+
+- Les trois onglets par action restent. Chaque onglet range ses éléments dans les sept sections, et ne montre que ses sections occupées, puis les sections tenues.
+- La bande d'une section reprend la bande de section de Nomenclature : fond de bloc, signe de 24 px, titre, nombre, chevron. Elle ne compte pas par action.
+- Une section tenue montre la coche seule, sans mot ni chevron.
+- Chaque carte de correction a son bouton Appliquer. Le bouton du pied devient « Appliquer tout » (R-8, à valider).
+
+**Un signe par catégorie.** Un endroit montre un seul signe par catégorie. Les
+cartes, règles et lignes d'une section ne répètent pas son signe : l'état, la
+couche et les drapeaux `modifiable` et `strict` s'écrivent en mots. La liste des
+tokens de la vue Composant garde un signe par ligne, parce que chaque ligne est
+un token d'une sorte différente.
+
+**Tailles.** 24 px sur la bande d'une section, 16 px sur une ligne de token,
+14 px dans un texte ou un bouton. Le format 12 px disparaît.
+
+**Signes changés.**
+
+| Signe | Changement |
+|---|---|
+| icône (usage d'une couleur) | une étoile plus grande ; la même étoile sert à la taille d'icône et à `@icons` |
+| padding | sept signes, comme Figma : les quatre côtés, `padding-x`, `padding-y`, puis chaque côté seul |
+| couches UCM | l'ordre de la library : `primitives` en haut, `components` en bas |
+| component set | le cadre en pointillés de Figma autour du signe du component |
+| correction | une clé ; la case cochée se lisait comme une correction faite |
+| question | un « ? » |
+| ignoré | une poubelle |
+
+**Le kit.** Les signes entrent dans `packages/kit/src/referentiel/signes.ts` :
+identifiant, famille, libellé, sens, tracé et mot de repli. Une fonction pure,
+`svgDuSigne(id)`, rend le SVG en texte. Le socle pose la tuile
+(`plugin-socle/src/ui/Signe.ts`, styles dans `langage.css`). Un test du socle
+refuse dans un plugin les anciens caractères de sorte. Le Hub lit
+`svgDuSigne` dans le kit construit. La CLI et les rapports de la CI écrivent le
+mot de repli. La section 4 de la maquette détaille ces étapes.
+
+## 5. Questions au mainteneur
+
+| N° | Question | État |
 |---|---|---|
-| R-1 | Corriger maintenant la lecture du stroke weight, avec son test ? | Oui. Une ligne dans `releveDuComposant.ts`, un test, pas de version du kit. |
-| R-2 | Une correction C29 lie un layer d'Alert directement à une variable `layout`. Faut-il passer par un token d'Alert (`alert/size/border-width`) ? | Garder le lien direct pour C29. Le token d'Alert reste le travail de la préparation. |
-| R-3 | Ranger le panneau du mode Composant en sections par élément (B), en onglets par élément (A), ou garder les onglets avec des intertitres communs (C) ? | B. |
-| R-4 | Le mode Tokens garde-t-il ses onglets par action ? | Oui, pour cette recette. |
-| R-5 | Une sorte d'objet reste sans couleur, signe et tuile seulement ? | Oui. |
-| R-6 | Les tracés SVG des signes entrent-ils dans le kit ? | Oui, comme données, pour le Hub et les plugins. |
-| R-7 | Les objets de Figma reprennent-ils les signes de Figma ? | Oui. |
+| R-1 | Corriger la lecture du stroke weight, avec son test | Oui |
+| R-2 | Un layer d'Alert en dur : le lier à la variable `layout`, ou au token d'Alert qui renvoie à elle ? | Reformulée dans la maquette, section 6. Proposition : le token d'Alert s'il existe avec ce rôle et cette valeur, sinon la variable `layout`. |
+| R-3 | Rangement du panneau | C, avec les modifications de la section 4 |
+| R-4 | Le mode Tokens garde ses onglets par action | Oui |
+| R-5 | Faut-il une couleur par famille de signes ? | Reformulée dans la maquette, section 6, avec une comparaison. Proposition : non. |
+| R-6 | Les tracés entrent dans le kit | Oui |
+| R-7 | Les objets de Figma reprennent les signes de Figma | Oui |
+| R-8 | Un bouton Appliquer par carte, et Appliquer tout en pied | Proposé, à valider |
