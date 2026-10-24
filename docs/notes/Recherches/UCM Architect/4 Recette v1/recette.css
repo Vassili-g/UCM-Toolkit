@@ -83,10 +83,10 @@
 /* Variante D : les points bloquants en tête, hors des sections. */
 .en-tete-bloquants { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 
-/* Variante E : le sommaire des éléments, à gauche du panneau. */
-.rail-panneau { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 12px; align-items: start; }
-.rail { display: flex; flex-direction: column; gap: 2px; position: sticky; top: 0; }
-.rail-entree { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 8px; border: 0; border-radius: 5px; background: none; color: var(--texte); font: 12px Inter, system-ui, sans-serif; text-align: left; cursor: pointer; }
-.rail-entree > span:last-child { display: inline-flex; align-items: center; gap: 4px; }
-.rail-entree.actif { background: var(--fond-selection); font-weight: 600; }
-.rail-nombre { color: var(--texte-second); font-size: 11px; }
+/* Le sommaire des éléments, en haut du panneau : une puce par élément qui a des points. */
+.sommaire-elements { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 14px; }
+.puce-element { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 6px; border: 1px solid var(--bordure); border-radius: 14px; background: none; color: var(--texte); font: 500 12px Inter, system-ui, sans-serif; cursor: pointer; }
+.puce-element:first-child { padding-left: 10px; }
+.puce-element .nombre { color: var(--texte-second); font-size: 11px; }
+.puce-element .ico { width: 12px; height: 12px; }
+.puce-element.actif { border-color: var(--bordure-marque, var(--texte-marque)); background: var(--fond-selection); font-weight: 650; }

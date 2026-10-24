@@ -73,7 +73,7 @@ Proposition, montrée par le cadre 1b :
 
 ## 2. Ranger le panneau par sorte d'élément
 
-Le mainteneur a écarté les trois onglets par action. Deux rangements sans onglets, D et E, sont proposés en section 4.
+Le mainteneur a écarté les trois onglets par action. Le panneau prend un sommaire des éléments en haut : voir la section 4.
 
 ### Aujourd'hui
 
@@ -221,19 +221,39 @@ la deuxième.
 le bas quand il est ouvert. La règle vaut pour la maquette et pour tous les
 plugins.
 
-**Panneau.** Les trois onglets par action disparaissent. Deux rangements par
-élément les remplacent. Dans un élément, les corrections viennent d'abord, puis
-les questions, puis ce qui se fait dans Figma. La forme de la carte dit
-l'action : une case et Appliquer, des boutons de réponse, ou un liseré d'alerte.
-
-- D, une liste par élément (proposée). Chaque élément est une section repliable. Les points bloquants viennent en tête, hors des sections, comme dans le compte rendu de l'exporteur.
-- E, un sommaire des éléments. Une colonne de 190 px liste les sept éléments avec leur nombre de points ou leur coche. Un clic montre un élément seul à droite ; « Tout » montre la liste de D.
-
-Dans les deux :
+**Panneau.** Les trois onglets par action disparaissent. Un sommaire des
+éléments les remplace, en haut du panneau : une puce par élément qui a des
+points, avec son nombre, et les puces passent à la ligne. « Tout » montre la
+liste entière, les points bloquants en tête comme dans le compte rendu de
+l'exporteur, puis une section repliable par élément, puis les éléments tenus.
+Un clic sur une puce ne montre que cet élément. Dans un élément, les
+corrections viennent d'abord, puis les questions, puis ce qui se fait dans
+Figma. La forme de la carte dit l'action : une case et Appliquer, des boutons
+de réponse, ou un liseré d'alerte.
 
 - La bande d'une section reprend la bande de section de Nomenclature : fond de bloc, signe de 24 px, titre, nombre de points, chevron. Elle ne compte pas par action.
 - Une section tenue montre la coche seule, sans mot ni chevron.
-- Chaque carte de correction a son bouton Appliquer. Le bouton du pied devient « Appliquer tout » (R-8, à valider).
+- Chaque carte de correction a son bouton Appliquer. Le bouton du pied devient « Appliquer tout » (R-8, à valider). Il écrit aussi les corrections cochées des éléments cachés, et son résumé le dit.
+
+**Couleur des signes.** Un signe gris montre seulement : une ligne de token de
+la colonne de gauche, la planche. Un signe en couleur porte une information :
+la bande d'une section, une puce du sommaire. La couleur vient de la famille :
+arc-en-ciel pour Couleurs, sarcelle pour Tailles et forme, lavande pour Texte,
+blanc pour Tokens du composant, violet de Figma pour Variants et layers, sable
+pour Règles d'utilisation, rose vif pour Accessibilité. Ces teintes évitent
+celles des alertes. Les sortes de proposition et la publication restent
+grises (R-9 valide les teintes).
+
+**Un layer ne se lie qu'aux tokens de son composant.** Un layer d'Alert se lie
+à un token d'Alert de la collection `components`, qui renvoie ensuite à
+`layout`, `theme` ou `typography`. Un lien direct vers `layout` est interdit.
+Le kit ne tient pas cette règle aujourd'hui :
+
+- C20 (`packages/kit/src/controles/couche.ts`, `controlerCouches`) accepte un layer lié directement à une couche que `components` vise, comme `layout`. Il devra rendre À corriger pour tout lien hors des tokens du composant.
+- C29 (`packages/kit/src/controles/corrections.ts`, `corrigerValeurEnDur`) cherche sa correction dans `layout`. Il devra la chercher dans les tokens de taille d'Alert de même valeur. Sans token exact, aucune correction : la préparation propose de créer le token.
+
+Ce lot du kit attend R-10 : la règle vaut-elle aussi pour les couleurs et la
+typographie ?
 
 **Un signe par catégorie.** Un endroit montre un seul signe par catégorie. Les
 cartes, règles et lignes d'une section ne répètent pas son signe : l'état, la
@@ -268,11 +288,13 @@ mot de repli. La section 4 de la maquette détaille ces étapes.
 
 | N° | Question | État |
 |---|---|---|
-| R-1 | Corriger la lecture du stroke weight, avec son test | Oui |
-| R-2 | Un layer d'Alert en dur : le lier à la variable `layout`, ou au token d'Alert qui renvoie à elle ? | Reformulée dans la maquette, section 6. Proposition : le token d'Alert s'il existe avec ce rôle et cette valeur, sinon la variable `layout`. |
-| R-3 | Rangement du panneau sans onglets | D ou E. Proposition : D |
+| R-1 | Corriger la lecture du stroke weight, avec son test | Fait (`abb69c96`) |
+| R-2 | Un layer de composant ne se lie qu'aux tokens de son composant | Décidé. Lot du kit décrit en section 4 |
+| R-3 | Rangement du panneau | Sommaire des éléments en haut, en puces |
 | R-4 | Le mode Tokens garde ses onglets par action | Oui |
-| R-5 | Faut-il une couleur par famille de signes ? | Reformulée dans la maquette, section 6, avec une comparaison. Proposition : non. |
+| R-5 | Couleur des signes | Couleur de famille quand le signe informe, gris quand il montre seulement |
 | R-6 | Les tracés entrent dans le kit | Oui |
 | R-7 | Les objets de Figma reprennent les signes de Figma | Oui |
 | R-8 | Un bouton Appliquer par carte, et Appliquer tout en pied | Proposé, à valider |
+| R-9 | Les sept couleurs de famille | Proposées, à valider. Le blanc des tokens se distingue peu du gris |
+| R-10 | La règle de R-2 vaut-elle aussi pour les couleurs et la typographie ? | Proposition : oui |
