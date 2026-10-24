@@ -30,13 +30,29 @@ Tokens affiche Nomenclature à côté de l'arbre des variables.
 | Document | Contenu |
 |---|---|
 | [PLAN-IMPLEMENTATION.md](./3%20Plan/PLAN-IMPLEMENTATION.md) | Le plan de l'orchestrateur : décisions, méthode de travail parallèle avec Codex, pistes par paquet, vagues, fiches de lots, notes à écrire, jalons et questions de fin |
-| [PROMPT-CODEX-REVUE-DU-PLAN.md](./3%20Plan/PROMPT-CODEX-REVUE-DU-PLAN.md) | Le prompt de la revue de la première version du plan par Codex |
-| [REVUE-CODEX-DU-PLAN.md](./3%20Plan/REVUE-CODEX-DU-PLAN.md) | La revue de Codex sur la première version du plan |
-| [REVUE-BUGS-IMPLEMENTATION.md](./3%20Plan/REVUE-BUGS-IMPLEMENTATION.md) | Les bugs trouvés dans les contrôles du kit et leur usage par Architect, avec leur état de correction |
+
+## 4 Recette v1
+
+| Document | Contenu |
+|---|---|
+| [ANALYSE-RECETTE-V1.md](./4%20Recette%20v1/ANALYSE-RECETTE-V1.md) | La carte du stroke d'Alert (faux constat C29 sur les layers sans contour), le rangement du panneau par élément, la liste des signes des sortes d'objets, et les décisions R-1 à R-10 |
+| [MAQUETTE-RECETTE-V1.html](./4%20Recette%20v1/MAQUETTE-RECETTE-V1.html) | Les propositions sur les écrans réels figés de la galerie d'Architect, et la planche des signes |
+| [recette.css](./4%20Recette%20v1/recette.css) | La feuille des éléments nouveaux de la maquette |
+| [PLAN-IMPLEMENTATION-RECETTE-V1.md](./4%20Recette%20v1/PLAN-IMPLEMENTATION-RECETTE-V1.md) | Les lots K1 à G1, chacun avec son agent et son commit, et ce qui reste ouvert |
+| `Mesures/extraire-galerie.mjs` | Fige les états du mode Composant dans `galerie/` |
+| `Mesures/capturer.mjs` | Capture une page ou un élément, et rend les erreurs de la console |
+
+## 5 Vitesse de l'analyse
+
+| Document | Contenu |
+|---|---|
+| [RECHERCHE-VITESSE-ANALYSE.md](./5%20Vitesse%20de%20l'analyse/RECHERCHE-VITESSE-ANALYSE.md) | Où passe le temps de l'analyse d'un composant, les recherches sur Figma et la littérature, les leviers V1 à V9 et les décisions Q1 à Q3 |
+| [MAQUETTE-PROGRESSION.html](./5%20Vitesse%20de%20l'analyse/MAQUETTE-PROGRESSION.html) | La barre de progression, la phase en cours et les premiers points avant la fin |
+| [PLAN-IMPLEMENTATION.md](./5%20Vitesse%20de%20l'analyse/PLAN-IMPLEMENTATION.md) | Les lots L0 à L9, chacun avec son agent |
 
 Les recherches antérieures sur Nomenclature et sur le contrôle de structure des
 tokens restent dans [Plugin Architect](../Plugin%20Architect/README.md).
 
 ## Où en est le sujet
 
-Maquettes validées (`6cf27974`). Le plan d'implémentation attend son lancement.
+Le plan de la recette v1 est implémenté : panneau du mode Composant sans onglets, signes des sortes d'objets dans le kit et le socle, règle des tokens du composant (C80). Il attend la recette Figma du mainteneur.

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Progression de l'analyse</title>
+<style>
+  :root {
+    --page: #141414; --fond: #222222; --bloc: #2c2c2c; --note: #303030;
+    --bordure: #414141; --marque: #3867b3; --texte: #e6e6e6; --doux: #a3a3a3;
+    --avert: #382a20; --filet-avert: #e3ac7d;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px; background: var(--page); color: var(--texte); font: 12px/1.45 Inter, system-ui, sans-serif; }
+  h1 { font-size: 16px; margin: 0 0 4px; }
+  .intro { color: var(--doux); margin: 0 0 24px; max-width: 760px; }
+  .etats { display: flex; flex-wrap: wrap; gap: 24px; }
+  figure { margin: 0; width: 360px; max-width: 100%; }
+  figcaption { color: var(--doux); margin-bottom: 8px; }
+  .panneau { background: var(--fond); border: 1px solid var(--bordure); border-radius: 6px; padding: 12px; display: grid; gap: 10px; }
+  .resume { display: flex; justify-content: space-between; align-items: baseline; }
+  .resume b { font-size: 13px; }
+  .resume span { color: var(--doux); }
+  .progression { background: var(--bloc); border-radius: 6px; padding: 10px; display: grid; gap: 6px; }
+  .phase { display: flex; justify-content: space-between; }
+  .reste { color: var(--doux); }
+  .barre { height: 4px; background: var(--note); border-radius: 2px; overflow: hidden; }
+  .barre i { display: block; height: 100%; background: var(--marque); }
+  .annuler { justify-self: start; background: none; border: 1px solid var(--bordure); color: var(--texte); border-radius: 4px; padding: 4px 10px; font: inherit; }
+  .mention { background: var(--avert); border-left: 2px solid var(--filet-avert); border-radius: 4px; padding: 8px; }
+  .section { display: flex; justify-content: space-between; border-top: 1px solid var(--bordure); padding-top: 8px; }
+  .section span { color: var(--doux); }
+  .note { color: var(--doux); }
+  .changement { margin-top: 8px; color: var(--doux); }
+  .changement b { color: var(--texte); }
+</style>
+</head>
+<body>
+<h1>Progression de l'analyse</h1>
+<p class="intro">Le panneau du mode Composant pendant l'analyse du Button de 90 variants. Les valeurs de style sont celles de <code>roles.css</code>. Une maquette rapide : la forme, pas le pixel.</p>
+
+<div class="etats">
+  <figure>
+    <figcaption>1. Le relevé lit les variants.</figcaption>
+    <div class="panneau">
+      <div class="resume"><b>Button</b><span>90 variants</span></div>
+      <div class="progression">
+        <div class="phase"><span>Lecture des variants : 34 sur 90</span><span class="reste"></span></div>
+        <div class="barre"><i style="width: 12%"></i></div>
+        <button class="annuler" type="button">Annuler</button>
+      </div>
+      <p class="note">Les premiers points s'afficheront après la lecture des variants.</p>
+    </div>
+    <p class="changement"><b>Change :</b> la note « Les constats s'afficheront à la fin de l'analyse » laisse la place à une barre. Le compte avance à chaque variant.</p>
+  </figure>
+
+  <figure>
+    <figcaption>2. Les points du kit sont là ; le moteur continue.</figcaption>
+    <div class="panneau">
+      <div class="resume"><b>Button</b><span>12 points</span></div>
+      <div class="progression">
+        <div class="phase"><span>Lecture des composants imbriqués</span><span class="reste">environ 8 s</span></div>
+        <div class="barre"><i style="width: 58%"></i></div>
+        <button class="annuler" type="button">Annuler</button>
+      </div>
+      <div class="mention">L'analyse des composants imbriqués est en cours. D'autres points peuvent s'ajouter.</div>
+      <div class="section"><b>Couleurs</b><span>5 points</span></div>
+      <div class="section"><b>Tailles</b><span>4 points</span></div>
+      <div class="section"><b>Texte</b><span>3 points</span></div>
+    </div>
+    <p class="changement"><b>Change :</b> les sections se remplissent avant la fin (Q1). Le temps restant s'affiche seulement au-delà de 10 s. Aucune section n'est marquée « tenue » avant la fin.</p>
+  </figure>
+
+  <figure>
+    <figcaption>3. Fin de l'analyse.</figcaption>
+    <div class="panneau">
+      <div class="resume"><b>Button</b><span>15 points</span></div>
+      <div class="section"><b>Couleurs</b><span>5 points</span></div>
+      <div class="section"><b>Tailles</b><span>4 points</span></div>
+      <div class="section"><b>Texte</b><span>3 points</span></div>
+      <div class="section"><b>Variants</b><span>2 points</span></div>
+      <div class="section"><b>Règles</b><span>1 point</span></div>
+    </div>
+    <p class="changement"><b>Change :</b> la barre et la mention disparaissent. Le panneau est celui d'aujourd'hui. Annuler mène à l'écran « annulée », qui existe déjà.</p>
+  </figure>
+</div>
+
+<p class="intro" style="margin-top: 24px">Les phases dans l'ordre : Lecture des variants : n sur 90 · Lecture de la library · Lecture des composants imbriqués · Lecture de la structure · Vérification des règles. Les noms des phases du moteur reprennent les annonces de l'exporteur, déjà validées.</p>
+</body>
+</html>

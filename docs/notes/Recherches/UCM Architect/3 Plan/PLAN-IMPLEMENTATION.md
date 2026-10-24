@@ -9,7 +9,7 @@ agent ne lit ce plan. Un agent reçoit le socle commun (§4.5) et la fiche de so
 lot, copiés tels quels dans son prompt.
 
 Version 5. Elle intègre la revue d'Opus du 22 octobre et la revue de Codex
-([REVUE-CODEX-DU-PLAN.md](./REVUE-CODEX-DU-PLAN.md), constats A1 à A17), et les
+(`REVUE-CODEX-DU-PLAN.md`, retiré du dépôt, constats A1 à A17), et les
 réponses du mainteneur aux questions Q-1 à Q-5.
 
 Sources, de la plus forte à la plus faible :
@@ -1578,7 +1578,7 @@ Choix faits sans le mainteneur :
 
 ### Revue des lots réalisés
 
-Le [journal de revue](./REVUE-BUGS-IMPLEMENTATION.md) classe les neuf défauts,
+Le journal de revue (`REVUE-BUGS-IMPLEMENTATION.md`, retiré du dépôt) classait les neuf défauts,
 leurs reproductions et leurs commits. La revue corrige les points suivants :
 
 | Lots | Corrections |
@@ -1594,7 +1594,7 @@ Vérification sur le clone de revue : build du kit et d'Architect ; kit 924/924,
 Architect 940/940 ; tests racine 466/467, seul `versionSuitLeContenu` reste
 rouge jusqu'au lot V. La validation dans Figma reste au jalon J-F.
 
-La nouvelle repasse de la [revue](./REVUE-BUGS-IMPLEMENTATION.md) confirme R01
+La nouvelle repasse de la revue confirme R01
 sur B6. Sur l'arbre partagé, le kit passe 924/924 et les tests racine 467/467.
 Architect passe 937/941 : quatre échecs et sept erreurs de build proviennent
 des travaux locaux U6 et B8 encore ouverts. La validation de l'annulation
