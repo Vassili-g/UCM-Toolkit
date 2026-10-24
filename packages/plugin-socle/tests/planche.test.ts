@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { TYPES_D_ALERTE } from '@ucm-kit/core/referentiel';
+import { SIGNES, TYPES_D_ALERTE } from '@ucm-kit/core/referentiel';
 // L'import de type met la source de la planche sous le contrôle de `npm run typecheck`.
 import type { montrerLaPlanche } from '../galerie/planche/contenu';
 
@@ -14,7 +14,7 @@ const { construirePlanche } = require('../galerie/planche.cjs') as { construireP
 const _hote: Parameters<typeof montrerLaPlanche>[0] | null = null;
 void _hote;
 
-test('la planche est construite dans les trois modes, à la taille du cadre s-planche, avec le langage et les mots du kit', () => {
+test('la planche est construite dans les trois modes, à la taille du cadre s-planche, avec le langage et les mots du kit, puis la planche des signes', () => {
   const racine = fs.mkdtempSync(path.join(os.tmpdir(), 'ucm-planche-'));
   try {
     construirePlanche(racine);
@@ -26,6 +26,13 @@ test('la planche est construite dans les trois modes, à la taille du cadre s-pl
       assert.ok(page.includes(mode === 'clair' ? '<html lang="fr" class="">' : '<html lang="fr" class="figma-dark">'), mode);
       for (const { libelle } of TYPES_D_ALERTE) assert.ok(page.includes(libelle), `${mode} : « ${libelle} » vient du kit`);
       assert.ok(fs.readFileSync(path.join(sortie, mode, 'planche-1.html'), 'utf8').includes('width: 640px; height: 1900px'), mode);
+    }
+    const signes = path.join(racine, 'dist', 'galerie-signes');
+    for (const mode of ['clair', 'sombre', 'replis']) {
+      const page = fs.readFileSync(path.join(signes, mode, 'signes.html'), 'utf8');
+      assert.ok(page.includes('.signe-24 {'), `${mode} : la feuille des signes`);
+      assert.ok(page.includes('.planche-signe-id'), `${mode} : les coques de la planche des signes`);
+      for (const { id } of SIGNES) assert.ok(page.includes(id), `${mode} : « ${id} » vient du kit`);
     }
   } finally {
     fs.rmSync(racine, { recursive: true, force: true });

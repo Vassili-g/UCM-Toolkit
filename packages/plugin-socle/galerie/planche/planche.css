@@ -26,3 +26,10 @@
 
 .btn-texte { height: var(--hauteur-secondaire); padding: 0 var(--espace-serre); border: 0; background: none; color: var(--texte-second); cursor: pointer; font-weight: 600; }
 .bouton-panneau { display: inline-flex; align-items: center; gap: 6px; }
+
+/* La planche des signes : une rangée par signe, deux colonnes par famille. */
+.planche-signes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--espace-serre) var(--espace-page); }
+.planche-signe { display: flex; min-width: 0; align-items: center; gap: var(--espace-controle); }
+.planche-signe-id { flex: 1; min-width: 0; overflow: hidden; color: var(--texte-second); font-family: var(--police-chemin); font-size: var(--corps); text-overflow: ellipsis; white-space: nowrap; }
+.planche-signe-groupe { display: inline-flex; align-items: center; gap: var(--espace-serre); }
+.planche-signe-groupe + .planche-signe-groupe { margin-left: var(--espace-controle); }

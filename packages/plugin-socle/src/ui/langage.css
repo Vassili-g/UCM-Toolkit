@@ -41,6 +41,30 @@
   --fond-variable-sombre: rgb(58 62 28);
   --texte-variable-sombre: rgb(222 228 150);
 
+  /*
+   * La couleur de famille d'un signe qui porte une information. Les valeurs claires
+   * sont les sombres, assombries à teinte égale : 4,9:1 au moins sur #ffffff, 3,7:1
+   * sur la tuile (la teinte à 18 % sur le fond). `tokens` n'a pas de teinte, c'est
+   * la couleur du texte. `couleurs` est un arc-en-ciel, le même sur les deux fonds,
+   * avec une encre sombre : un seul rôle, pas de valeur `-sombre`.
+   */
+  --teinte-tailles: #0f7f73;
+  --teinte-texte: #4a5fe0;
+  --teinte-tokens: #27272a;
+  --teinte-variants: #8f3fe0;
+  --teinte-regles: #8c5a10;
+  --teinte-a11y: #d11f7c;
+  --teinte-tailles-sombre: #34d1bf;
+  --teinte-texte-sombre: #a5b4fc;
+  --teinte-tokens-sombre: #f4f4f5;
+  --teinte-variants-sombre: #c084fc;
+  --teinte-regles-sombre: #e2c08d;
+  --teinte-a11y-sombre: #f472b6;
+  --teinte-couleurs: conic-gradient(from 200deg, #ff8fb8, #ffd27a, #8be39a, #7cc4ff, #b9a0ff, #ff8fb8);
+  /* L'encre d'un tracé posé sur une tuile claire ou sombre : l'arc-en-ciel et une valeur de couleur. */
+  --encre-sur-clair: #1a1a1a;
+  --encre-sur-sombre: #ffffff;
+
   /* Une sélection bleue, adoucie : le fond d'une puce de filtre. */
   --fond-selection: color-mix(in srgb, var(--texte-marque) 18%, var(--fond));
   --police-chemin: "JetBrains Mono", Consolas, monospace;
@@ -57,6 +81,12 @@
   --texte-groupe: var(--texte-groupe-sombre);
   --fond-variable: var(--fond-variable-sombre);
   --texte-variable: var(--texte-variable-sombre);
+  --teinte-tailles: var(--teinte-tailles-sombre);
+  --teinte-texte: var(--teinte-texte-sombre);
+  --teinte-tokens: var(--teinte-tokens-sombre);
+  --teinte-variants: var(--teinte-variants-sombre);
+  --teinte-regles: var(--teinte-regles-sombre);
+  --teinte-a11y: var(--teinte-a11y-sombre);
 }
 /* roles:fin */
 
@@ -196,3 +226,45 @@
 /* La frontière entre deux vues : elle se tire à la souris. */
 .arch-poignee { flex: 0 0 7px; display: flex; align-items: center; justify-content: center; cursor: col-resize; background: var(--fond); border-left: 1px solid var(--bordure); }
 .arch-poignee::before { content: ""; width: 3px; height: 28px; border-radius: 2px; background: repeating-linear-gradient(to bottom, var(--texte-second) 0 2px, transparent 2px 5px); opacity: .8; }
+
+/* ---------- Les signes ----------
+   Une tuile par sorte d'objet. Grise quand elle montre seulement (une ligne de token), dans la couleur de sa
+   famille quand elle porte une information (bande de section, puce de sommaire). Trois tailles : 24 px (tracé
+   15), 16 px (tracé 12), 14 px (tracé 11). L'ordre des règles compte : la teinte, puis la valeur, puis l'absence
+   l'emportent chacune sur la précédente. */
+.signe {
+  display: inline-grid;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--texte) 9%, transparent);
+  color: var(--texte-second);
+  vertical-align: -3px;
+}
+.signe svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+/* Un mot posé dans le tracé : le SVG racine est sans remplissage. */
+.signe svg text { fill: currentColor; stroke: none; }
+.signe-14 { width: 14px; height: 14px; }
+.signe-14 svg { width: 11px; height: 11px; }
+.signe-24 { width: 24px; height: 24px; border-radius: 6px; }
+.signe-24 svg { width: 15px; height: 15px; }
+
+.signe-informe { color: var(--teinte); background: color-mix(in srgb, var(--teinte) 18%, transparent); }
+.signe-teinte-tailles { --teinte: var(--teinte-tailles); }
+.signe-teinte-texte { --teinte: var(--teinte-texte); }
+.signe-teinte-tokens { --teinte: var(--teinte-tokens); }
+.signe-teinte-variants { --teinte: var(--teinte-variants); }
+.signe-teinte-regles { --teinte: var(--teinte-regles); }
+.signe-teinte-a11y { --teinte: var(--teinte-a11y); }
+.signe-teinte-couleurs { background: var(--teinte-couleurs); color: var(--encre-sur-clair); }
+
+/* Une valeur de couleur de token : la tuile prend la couleur, le tracé l'encre lisible dessus. */
+.signe-valeur { background: var(--signe-valeur); border: 1px solid color-mix(in srgb, var(--texte) 18%, transparent); }
+.signe-clair { color: var(--encre-sur-clair); }
+.signe-sombre { color: var(--encre-sur-sombre); }
+/* Un contour : l'anneau de 3 px porte la couleur, le centre reste vide. */
+.signe-contour { background: transparent; border: 3px solid var(--signe-valeur); }
+/* Une variable à créer, sans couleur à montrer : la tuile n'est qu'un cadre en pointillés. */
+.signe-absent { background: transparent; outline: 1px dashed color-mix(in srgb, currentColor 70%, transparent); outline-offset: -1px; }

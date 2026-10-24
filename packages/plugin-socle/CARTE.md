@@ -3,7 +3,7 @@
 Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 
 ## ./
-- galerie/ : banc de galerie, sa capture et décalque du thème Figma ; `planche.cjs` et `planche/` : la planche des signaux du langage, sa source et ses coques
+- galerie/ : banc de galerie, sa capture et décalque du thème Figma ; `planche.cjs` et `planche/` : la planche des signaux du langage et la planche des signes, leurs sources et leurs coques
 - lois/ : lois des styles, du gabarit, du manifest et de la galerie, que le test de chaque plugin appelle
 - tests/ : build, manifest, fenêtre, banc et loi des styles, pour un plugin quelconque
 
@@ -59,10 +59,11 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 
 ## src/ui/
 - socle.css : échelle de texte, trame, rôles de couleur et replis sombres, avant la feuille de chaque plugin
-- langage.css : le langage visuel commun, après `socle.css` : rôles `--ton-*` et de place, classes de chemin, jeton, alerte, changement, filtre ; sa loi est dans `lois/styles.ts`
+- langage.css : le langage visuel commun, après `socle.css` : rôles `--ton-*`, `--teinte-*` et de place, classes de chemin, jeton, alerte, changement, filtre, signe ; sa loi est dans `lois/styles.ts`
 - Chemin.ts : chemin de token, chemin ou variant dans une phrase, segment qui part ou arrive, pastille de couleur
 - Jeton.ts : jeton d'un renommage, flèche, mot de place
 - Alerte.ts : les cinq types d'alerte, tirés de `TYPES_D_ALERTE` du kit : icône, gravité, alerte, liseré, pastille de compte, lien externe
 - Changement.ts : colonnes et ligne de diff, ligne de réussite, carte ciblée
 - Filtre.ts : puce de filtre et recherche active
+- Signe.ts : la tuile d'un signe de `SIGNES` (kit) : taille 14, 16 ou 24 px, gris ou dans la teinte de sa famille, valeur de couleur de token dans la tuile
 - PoigneeDeSeparation.ts : poignée entre deux vues

@@ -47,6 +47,7 @@ test('le langage définit les classes de chaque signal de la liste', () => {
     'ch-groupe', 'ch-variable', 'ch-groupe-vu', 'ch-variable-vu', 'ch-ajout', 'seg-ancien', 'seg-nouveau', 'ch-inline', 'ch-lien',
     'jeton', 'jeton-retire', 'jeton-retenu', 'fleche', 'puce-couleur', 'alerte', 'ton-bloquant', 'ton-corriger', 'ton-verifier', 'ton-info', 'ton-tenu',
     'gravite', 'resultat', 'colonnes-tete', 'diff', 'carte-ciblee', 'puce-filtre', 'recherche-active', 'pastille-compte', 'arch-poignee',
+    'signe', 'signe-14', 'signe-24', 'signe-informe', 'signe-teinte-couleurs', 'signe-valeur', 'signe-contour', 'signe-absent',
   ];
   assert.deepEqual(attendues.filter((classe) => !definies.has(classe)), []);
   // Une classe que le langage ne fait que placer (`.diff .case`) reste à qui la définit.
