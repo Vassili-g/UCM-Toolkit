@@ -268,7 +268,7 @@ export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDA
     if (lecture.etat === 'lue') {
       const choisie = libraryDeReference(lecture.collections, liaisons, lireLaLibraryRangee(figma));
       if (choisie !== null) {
-        const catalogue = await lireLeCatalogueDeLibrary(figma as unknown as PortDeBibliotheque, choisie);
+        const catalogue = await lireLeCatalogueDeLibrary(figma as unknown as PortDeBibliotheque, choisie, lecture);
         if (catalogue.etat === 'lu') {
           // C29 compare les valeurs en dur aux variables layout : on charge celles des familles que le relevé met en jeu.
           const familles = new Set<string>(famillesDeLayoutAttendues(releve));

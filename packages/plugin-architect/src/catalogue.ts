@@ -5,7 +5,7 @@
  */
 import { collectionsDeReference, type CatalogueDeReference, type VariableDuCatalogue } from '@ucm-kit/core/controles';
 import { CIBLES_DES_COLLECTIONS, type Collection } from '@ucm-kit/core/referentiel';
-import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
+import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { cleDeBibliotheque, convertirVariable, importerLesValeurs, type PortDeLecture, type ValeurDeLibrary } from './lecture';
 import type { Releve, ValeurSource } from './modele';
 
@@ -35,10 +35,11 @@ function valeurDuCatalogue(source: ValeurSource, deLibrary = false, cles?: Reado
 
 /**
  * Les collections `theme`, `layout` et `components` de la library, lues par leurs noms : chaque variable est `non-chargee`.
- * Une collection que Figma refuse de lire est `inaccessible`, sans variable.
+ * Une collection que Figma refuse de lire est `inaccessible`, sans variable. `dejaLue` évite un second inventaire des
+ * libraries quand l'appelant vient de le faire.
  */
-export async function lireLeCatalogueDeLibrary(figma: PortDeBibliotheque, library: string): Promise<LectureDuCatalogue> {
-  const lecture = await lireLesLibraries(figma);
+export async function lireLeCatalogueDeLibrary(figma: PortDeBibliotheque, library: string, dejaLue?: LectureDesLibraries): Promise<LectureDuCatalogue> {
+  const lecture = dejaLue ?? await lireLesLibraries(figma);
   if (lecture.etat === 'illisible') return { etat: 'illisible', motif: lecture.motif };
   const lues = lecture.collections.filter((collection) => collection.library === library);
   const illisibles = lecture.illisibles.filter((collection) => collection.library === library);

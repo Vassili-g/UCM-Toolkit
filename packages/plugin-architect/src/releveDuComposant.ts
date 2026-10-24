@@ -140,10 +140,13 @@ function dimensionsDe(noeud: NoeudLu, manquees: Manquee[]): LayerLu['dimensions'
   return null;
 }
 
-/** Garde en mémoire les variables, collections et styles déjà demandés. */
+/**
+ * Garde en mémoire les variables, collections et styles déjà demandés, et la lecture en cours de chacun : une même variable
+ * ne se lit jamais deux fois, même si deux demandes se croisent.
+ */
 class Lecteur {
-  private readonly variables = new Map<string, LiaisonLue['variable'] | null>();
-  private readonly collections = new Map<string, { nom: string; modes: Map<string, string> } | null>();
+  private readonly variables = new Map<string, Promise<{ lue: LiaisonLue['variable'] | null; erreur?: string }>>();
+  private readonly collections = new Map<string, Promise<{ nom: string; modes: Map<string, string> } | null>>();
   private readonly styles = new Map<string, string | null>();
 
   constructor(
@@ -151,37 +154,39 @@ class Lecteur {
     readonly manquees: Manquee[],
   ) {}
 
-  async collection(id: string) {
-    if (!this.collections.has(id)) {
-      try {
-        const collection = await this.port.variables.getVariableCollectionByIdAsync(id);
-        this.collections.set(id, collection ? { nom: collection.name, modes: new Map(collection.modes.map((mode) => [mode.modeId, mode.name])) } : null);
-      } catch (erreur) {
-        this.manquees.push({ champ: `collection ${id}`, motif: messageDErreur(erreur) });
-        this.collections.set(id, null);
-      }
+  collection(id: string) {
+    let lecture = this.collections.get(id);
+    if (!lecture) {
+      lecture = (async () => {
+        try {
+          const collection = await this.port.variables.getVariableCollectionByIdAsync(id);
+          return collection ? { nom: collection.name, modes: new Map(collection.modes.map((mode) => [mode.modeId, mode.name])) } : null;
+        } catch (erreur) {
+          this.manquees.push({ champ: `collection ${id}`, motif: messageDErreur(erreur) });
+          return null;
+        }
+      })();
+      this.collections.set(id, lecture);
     }
-    return this.collections.get(id) ?? null;
+    return lecture;
   }
 
   private async variable(id: string, layer: string, champ: string): Promise<LiaisonLue['variable'] | null> {
-    if (!this.variables.has(id)) {
-      let lue: LiaisonLue['variable'] | null = null;
-      try {
-        const variable = await this.port.variables.getVariableByIdAsync(id);
-        if (variable) {
+    const premiere = !this.variables.has(id);
+    if (premiere) {
+      this.variables.set(id, (async () => {
+        try {
+          const variable = await this.port.variables.getVariableByIdAsync(id);
+          if (!variable) return { lue: null };
           const collection = await this.collection(variable.variableCollectionId);
-          lue = { id: variable.id, cle: variable.key, nom: variable.name, collection: collection?.nom ?? variable.variableCollectionId, distante: variable.remote };
+          return { lue: { id: variable.id, cle: variable.key, nom: variable.name, collection: collection?.nom ?? variable.variableCollectionId, distante: variable.remote } };
+        } catch (erreur) {
+          return { lue: null, erreur: messageDErreur(erreur) };
         }
-      } catch (erreur) {
-        this.manquees.push({ layer, champ, motif: messageDErreur(erreur) });
-        this.variables.set(id, null);
-        return null;
-      }
-      this.variables.set(id, lue);
+      })());
     }
-    const lue = this.variables.get(id) ?? null;
-    if (!lue) this.manquees.push({ layer, champ, motif: 'variable illisible' });
+    const { lue, erreur } = await (this.variables.get(id) as Promise<{ lue: LiaisonLue['variable'] | null; erreur?: string }>);
+    if (!lue) this.manquees.push({ layer, champ, motif: premiere && erreur !== undefined ? erreur : 'variable illisible' });
     return lue;
   }
 
