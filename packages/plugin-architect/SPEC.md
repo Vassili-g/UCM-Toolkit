@@ -232,9 +232,10 @@ dans l'interface.
 
 Le catalogue d'une library ne lit que `components`, `theme` et `layout`. Les
 valeurs s'importent à la demande, puis les cibles de leurs alias, jusqu'aux
-primitives. Les variables liées au composant s'importent toujours ; celles de
-`layout` s'importent en plus, pour les seules familles (`sizing`, `radius`,
-`stroke`) qu'une valeur en dur met en jeu, afin que C29 trouve un token exact.
+primitives. Les variables liées au composant s'importent toujours. Les tokens de taille de
+`components` s'importent en plus, pour les seules propriétés qu'une valeur en dur
+met en jeu, afin que C29 trouve un token exact. Les valeurs de `layout` ne
+s'importent pas pour C29, qui ne les propose jamais.
 Une cible hors de ces collections se lit par son identifiant, sinon par sa clé,
 et entre au catalogue avec sa collection et ses modes. Si `components` reste
 illisible, ou si un token du composant dont la propriété sert le champ n'est pas

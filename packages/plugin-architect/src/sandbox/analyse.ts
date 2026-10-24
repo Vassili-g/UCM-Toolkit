@@ -17,10 +17,9 @@
  * lui-même, au clic sur un constat, ne périme rien.
  */
 import {
-  controlerCouches, controlerLAccessibilite, controlerLaStructure, controlerLaTypographie, controlerLeTheme, controlerMapping, controlerNommage, controlerOublis, cheminDansLaCollection, famillesDeLayoutAttendues, proposerLesCorrections, tokensDuComposant,
+  controlerCouches, controlerLAccessibilite, controlerLaStructure, controlerLaTypographie, controlerLeTheme, controlerMapping, controlerNommage, controlerOublis, clesDesTokensDeTailleAttendus, proposerLesCorrections, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
-import { formeReconnue } from '@ucm-kit/core/referentiel';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
@@ -31,7 +30,6 @@ import type { NoeudLu } from '../consommateurs';
 import { constatsDuMoteur } from '../constatsDuMoteur';
 import { lireLesVariables } from '../lecture';
 import { sujetDe, type PortDuComposant } from '../lectureDuComposant';
-import { COUCHE_DES_TAILLES } from '../preparations';
 import { lireLaLibraryRangee } from '../ecriture/configuration';
 import { lireLesIgnores, separerLesIgnores } from '../ecriture/ignores';
 import type { NiveauDAccessibilite } from '../messages/configuration';
@@ -270,13 +268,9 @@ export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDA
       if (choisie !== null) {
         const catalogue = await lireLeCatalogueDeLibrary(figma as unknown as PortDeBibliotheque, choisie, lecture);
         if (catalogue.etat === 'lu') {
-          // C29 compare les valeurs en dur aux variables layout : on charge celles des familles que le relevé met en jeu.
-          const familles = new Set<string>(famillesDeLayoutAttendues(releve));
-          const roles = new Map(catalogue.catalogue.collections.map((collection) => [collection.cle, collection.role] as const));
-          const layout = catalogue.catalogue.variables
-            .filter((variable) => roles.get(variable.collection) === COUCHE_DES_TAILLES && familles.has(formeReconnue(cheminDansLaCollection(variable, catalogue.catalogue)[0] ?? '')))
-            .map((variable) => variable.cle);
-          return (await chargerLesValeurs(portDeLecture(figma), catalogue.catalogue, [...liaisons.keys(), ...layout])).catalogue;
+          // C29 compare les valeurs en dur aux tokens de taille du composant : on charge celles-là, et chargerLesValeurs suit leurs alias.
+          const tailles = clesDesTokensDeTailleAttendus(releve, catalogue.catalogue);
+          return (await chargerLesValeurs(portDeLecture(figma), catalogue.catalogue, [...liaisons.keys(), ...tailles])).catalogue;
         }
       }
     }

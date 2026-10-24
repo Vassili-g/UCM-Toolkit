@@ -136,21 +136,7 @@ function constatsDeValeursEnDur(releve: ReleveDeComposant): Constat[] {
   return resultat;
 }
 
-export type FamilleDeLayout = 'sizing' | 'radius' | 'stroke';
-
-/**
- * Les familles de `layout` que C29 cherchait avant la règle des tokens du composant. Rien ne les lit plus dans le kit : le
- * sandbox d'Architect appelle encore cette fonction pour charger des valeurs de `layout` dont C29 ne se sert plus, et doit
- * passer à `clesDesTokensDeTailleAttendus`.
- */
-export function famillesDeLayoutAttendues(releve: ReleveDeComposant): FamilleDeLayout[] {
-  const familles = new Set<FamilleDeLayout>();
-  for (const constat of constatsDeValeursEnDur(releve)) {
-    const famille = familleLayoutCompatible(String(constat.faits.champ));
-    if (famille) familles.add(famille);
-  }
-  return [...familles];
-}
+type FamilleDeLayout = 'sizing' | 'radius' | 'stroke';
 
 function familleLayoutCompatible(champ: string): FamilleDeLayout | undefined {
   if (/^(padding(Left|Right|Top|Bottom)?|gap|itemSpacing|counterAxisSpacing)$/i.test(champ)) return 'sizing';

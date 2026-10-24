@@ -18,7 +18,7 @@ export { controlerCouches } from './couche.js';
 export { controlerOublis } from './oublis.js';
 export { preparerLesTokens } from './preparation.js';
 export type { PreparationDesTokens, VariableAPreparer, ViseDePreparation, LieuDePreparation, ReponsesDePreparation, TailleSansCible, CouleurSansCible } from './preparation.js';
-export { clesDesTokensDeTailleAttendus, famillesDeLayoutAttendues, proposerLesCorrections } from './corrections.js';
+export { clesDesTokensDeTailleAttendus, proposerLesCorrections } from './corrections.js';
 export { proposerLaPropagation } from './propagation.js';
 export { controlerLeTheme, controlerLesModes } from './theme.js';
 export { controlerLaStructure, controlerLeCatalogue } from './structure.js';

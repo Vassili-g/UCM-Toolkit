@@ -23,13 +23,21 @@ const releve = (...variants: string[]): ReleveDeComposant => ({
   variants: variants.map((id) => ({ id, nom: id, valeurs: {}, modesEffectifs: {}, layers: [layer(`${id}:fond`, 13)] })),
   lecture: { layersLus: variants.length, layersNonLus: 0, variantsNonLus: [], manquees: [] }, espaceDeCouleur: 'srgb',
 });
+// Les candidats sont des tokens de `components` du composant ; un token `layout` de 13 px sert de témoin et n'est jamais proposé.
 const rayon = (cle: string, valeur: number): CatalogueDeReference['variables'][number] => ({
-  cle, nom: `radius/${cle}`, collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur }, Dark: { valeur } },
+  cle, nom: 'alert/size/radius', collection: 'components', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur }, Dark: { valeur } },
 });
+const temoin: CatalogueDeReference['variables'][number] = {
+  cle: 'layout-radius-13', nom: 'layout/radius/13', collection: 'layout', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 13 }, Dark: { valeur: 13 } },
+};
+const modes = [{ id: 'Light', nom: 'Light' }, { id: 'Dark', nom: 'Dark' }];
 const catalogue = (...variables: CatalogueDeReference['variables']): CatalogueDeReference => ({
   version: 1, library: null,
-  collections: [{ cle: 'layout', nom: 'layout', role: 'layout', modes: [{ id: 'Light', nom: 'Light' }, { id: 'Dark', nom: 'Dark' }], etat: 'lue' }],
-  variables,
+  collections: [
+    { cle: 'components', nom: 'components', role: 'components', modes, etat: 'lue' },
+    { cle: 'layout', nom: 'layout', role: 'layout', modes, etat: 'lue' },
+  ],
+  variables: [...variables, temoin],
 });
 const c29 = (lu: ReleveDeComposant, cat: CatalogueDeReference): Constat[] => proposerLesCorrections(lu, cat, []).filter(({ code }) => code === 'C29');
 const contexteUi = (lu: ReleveDeComposant): ContexteDeQuestions => ({
@@ -50,7 +58,7 @@ test('une réponse à une question proche tire une correction qui porte la valeu
   const correction = correctionsDeLAnalyse(analyse)?.get(constat.id);
   assert.deepEqual(correction, {
     id: constat.id, sorte: 'liaison', cible: { layer: 'v1:fond', champ: 'cornerRadius' }, avant: null,
-    apres: { cle: 'r14', nom: 'radius/r14' },
+    apres: { cle: 'r14', nom: 'alert/size/radius' },
     aRelire: { axes: {}, regle: 'Le designer a choisi un token proche. La valeur change.', avant: null, valeur: 13 },
   });
 });
@@ -76,18 +84,18 @@ test('la carte d’une question proche : titre, un bouton par candidat avec son 
   assert.ok(carte);
   assert.equal(carte.titreEnTexte, 'Le radius de fond vaut 13 px. Aucun token radius ne vaut cette valeur.');
   assert.deepEqual([carte.principal, ...carte.autres].map(({ libelle, token }) => [libelle, token]), [
-    ['Adopter 12 px (−1 px)', 'radius/r12'], ['Adopter 14 px (+1 px)', 'radius/r14'],
+    ['Adopter 12 px (−1 px)', 'size/radius'], ['Adopter 14 px (+1 px)', 'size/radius'],
   ]);
   assert.equal(carte.meta, 'Lier change le rendu de ce layer.');
   assert.equal(carte.proche, true);
-  const correction = { id: constat.id, sorte: 'liaison', cible: {}, avant: null, apres: { cle: 'r14', nom: 'radius/r14' }, aRelire: { regle: '', avant: null, valeur: 13 } } as const;
-  assert.equal(carte.reponseEnTexte(correction), 'fond sera lié à radius/r14. Sa valeur passe de 13 px à 14 px.');
+  const correction = { id: constat.id, sorte: 'liaison', cible: {}, avant: null, apres: { cle: 'r14', nom: 'alert/size/radius' }, aRelire: { regle: '', avant: null, valeur: 13 } } as const;
+  assert.equal(carte.reponseEnTexte(correction), 'fond sera lié à size/radius. Sa valeur passe de 13 px à 14 px.');
 });
 
 test('le titre d’une question proche dit la famille du champ lu', () => {
   const lu = releve('v1');
   lu.variants[0].layers[0].valeursEnDur = [{ champ: 'paddingLeft', valeur: 13 }];
-  const sizing: CatalogueDeReference['variables'][number] = { ...rayon('s14', 14), nom: 'sizing/s14' };
+  const sizing: CatalogueDeReference['variables'][number] = { ...rayon('s14', 14), nom: 'alert/size/padding-left' };
   const [constat] = c29(lu, catalogue(sizing));
   assert.equal(carteDeQuestion(constat, contexteUi(lu))?.titreEnTexte, 'Le padding left de fond vaut 13 px. Aucun token sizing ne vaut cette valeur.');
 });

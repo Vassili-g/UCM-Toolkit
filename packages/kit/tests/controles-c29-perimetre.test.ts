@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { clesDesTokensDeTailleAttendus, famillesDeLayoutAttendues, proprietesDeComposantDuChamp } from '../src/controles/corrections.js';
+import { clesDesTokensDeTailleAttendus, proprietesDeComposantDuChamp } from '../src/controles/corrections.js';
 import { proposerLesCorrections, type CatalogueDeReference, type LayerLu, type ReleveDeComposant } from '../src/controles/index.js';
 import { REGISTRE_PROPRIETES_COMPOSANT } from '../src/referentiel/architecture.js';
 import { termeReconnu } from '../src/referentiel/reconnaissance.js';
@@ -136,13 +136,6 @@ test('une recherche complète sans candidat laisse le constat seul : ni correcti
   assert.equal(sans.correction, undefined);
   assert.equal(sans.question, undefined);
   assert.equal(sans.faits.recherche, undefined);
-});
-
-test('famillesDeLayoutAttendues rend les familles des seuls constats que C29 juge', () => {
-  const r = releve([layer('racine', null, { valeursEnDur: [
-    { champ: 'paddingLeft', valeur: 8 }, { champ: 'topLeftRadius', valeur: 4 }, { champ: 'strokeWeight', valeur: 0 }, { champ: 'width', valeur: 9 },
-  ] })]);
-  assert.deepEqual(famillesDeLayoutAttendues(r).sort(), ['radius', 'sizing']);
 });
 
 test('un token du composant qui renvoie à layout puis à une primitive de 8 px rend C29 exact, et dit sa collection', () => {
