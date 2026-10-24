@@ -39,6 +39,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - ui/ : barre et sa bascule de mode, arbre et sa recherche, table, panneau latéral, bulle de chaîne et poignée des largeurs
 - ui/composant/ : analyse retenue (constats, pastille ; `modele-propose` y range les constats d'un modèle), section Variants et son bouton de modèle, corps du mode Composant (vue, frontière tirable, panneau)
 - ui/analyse/ : panneau des constats : ses trois onglets et leurs comptes, l'écran de chaque état de l'analyse (vide, en cours, aucun constat, partielle, annulée, arrêtée, périmée, library à choisir, hors UCM)
+- ui/panneau/ : `elements.ts` range les constats visibles par élément du composant (couleurs, tailles, texte, tokens, variants, règles, accessibilité) : cartes de corrections, puis questions, puis constats à faire ; nombre de points, Bloquants, éléments tenus
 - ui/corrections/ : onglet Corrections : cartes cochables par section (Liaisons, Tailles, Règles d'usage, Noms de valeurs), carte d'un modèle, carte des liaisons préparées (`liaisons.ts`), sélection au clic, pied, Appliquer et ligne de réussite avec les sautées
 - ui/questions/ : onglet Questions : une carte par question du moteur (liaison, nom de valeur, liaison d'état avec l'indice du moteur), candidats en boutons, ligne de réponse avec Ouvrir Corrections et Annuler la réponse, Plus tard
 - ui/ignores/ : onglet À faire dans Figma : constats sous cinq intertitres avec l'alerte typée, mesure de contraste et recommandations d'accessibilité (C49 à C53), sélection au clic, Ignorer, section Ignorés avec Ne plus ignorer
@@ -88,7 +89,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 
 ## src/ui/
 - roles.css : couleurs sombres, placées avant la feuille du socle
-- textes/ : catalogues des textes, un par domaine ; `index.ts` les réunit
+- textes/ : catalogues des textes, un par domaine (`elements.ts` : les sept éléments du panneau et leurs libellés) ; `index.ts` les réunit
 - styles/ : feuilles, une par domaine, chargées dans l'ordre de `FEUILLES_DES_DOMAINES` (`scripts/build-ui.cjs`)
 - recherche/ : lecture du champ de l'arbre (texte, `terme:`, `vise:`), variables trouvées et lignes de la recherche
 - fiche/ : fiche d'une variable, à la place de l'inspecteur : chaîne d'alias, renommage à appliquer, « Utilisée par »

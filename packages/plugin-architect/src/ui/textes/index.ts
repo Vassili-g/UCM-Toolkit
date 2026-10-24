@@ -15,6 +15,7 @@ import { TEXTES_BIBLIOTHEQUE } from './bibliotheque';
 import { TEXTES_COMMUN } from './commun';
 import { TEXTES_COMPOSANT } from './composant';
 import { TEXTES_CORRECTIONS } from './corrections';
+import { TEXTES_ELEMENTS } from './elements';
 import { TEXTES_FICHE } from './fiche';
 import { TEXTES_IGNORES } from './ignores';
 import { TEXTES_QUESTIONS } from './questions';
@@ -25,4 +26,4 @@ import { TEXTES_PREPARATION } from './preparation';
 export { NOM_DU_PRODUIT } from './commun';
 export { titreDeConstat } from './fiche';
 
-export const TEXTES = { ...TEXTES_COMMUN, ...TEXTES_ARBRE, ...TEXTES_FICHE, ...TEXTES_RECHERCHE, ...TEXTES_COMPOSANT, ...TEXTES_STRUCTURE, ...TEXTES_BIBLIOTHEQUE, ...TEXTES_ANALYSE, ...TEXTES_CORRECTIONS, ...TEXTES_QUESTIONS, ...TEXTES_IGNORES, ...TEXTES_PREPARATION };
+export const TEXTES = { ...TEXTES_COMMUN, ...TEXTES_ARBRE, ...TEXTES_FICHE, ...TEXTES_RECHERCHE, ...TEXTES_COMPOSANT, ...TEXTES_STRUCTURE, ...TEXTES_BIBLIOTHEQUE, ...TEXTES_ANALYSE, ...TEXTES_CORRECTIONS, ...TEXTES_QUESTIONS, ...TEXTES_IGNORES, ...TEXTES_PREPARATION, ...TEXTES_ELEMENTS };
