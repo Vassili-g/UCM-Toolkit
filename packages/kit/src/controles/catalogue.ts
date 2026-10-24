@@ -52,3 +52,16 @@ export function variableDuCatalogue(
 export function collectionDuCatalogue(catalogue: CatalogueDeReference, cleOuNom: string): CollectionDuCatalogue | 'absente' {
   return catalogue.collections.find((collection) => collection.cle === cleOuNom || collection.nom === cleOuNom) ?? 'absente';
 }
+
+/**
+ * Les segments d'une variable dans sa collection. Figma nomme une variable sans sa collection (`radius/md` dans `layout`) ; un
+ * premier segment qui redit la collection (`layout/radius/md`, `layouts/radius/md`) est retiré, pour lire les deux écritures.
+ */
+export function cheminDansLaCollection(variable: Pick<VariableDuCatalogue, 'nom' | 'collection'>, catalogue: Pick<CatalogueDeReference, 'collections'>): string[] {
+  const segments = variable.nom.split('/');
+  if (segments.length < 2) return segments;
+  const collection = catalogue.collections.find((entree) => entree.cle === variable.collection);
+  const redit = collection !== undefined && collectionUcmReconnue(segments[0]) !== undefined
+    && (collectionUcmReconnue(segments[0]) === (collection.role ?? collectionUcmReconnue(collection.nom)));
+  return redit ? segments.slice(1) : segments;
+}

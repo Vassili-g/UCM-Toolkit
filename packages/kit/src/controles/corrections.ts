@@ -1,9 +1,9 @@
 /** Propositions fondées sur une règle écrite et des faits relus. */
 import { formeReconnue } from '../referentiel/reconnaissance.js';
-import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
+import { cheminDansLaCollection, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction } from './constat.js';
 import { axesDuReleve, segmentDAxe, tokensDuComposant, type AxeDuComposant } from './nommage.js';
-import { liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
+import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /**
  * Enrichit les constats avec une correction exacte ou une question non tranchée. C15 et C17 cèdent la place à C22 et C24, qui
@@ -53,12 +53,18 @@ function constatsManquants(releve: ReleveDeComposant): Constat[] {
   return resultat;
 }
 
+/**
+ * C29 ne juge que les longueurs que le designer a écrites. La largeur et la hauteur du relevé viennent de la boîte calculée
+ * (hug, fill) : rien ne prouve qu'une taille soit fixée, donc aucune n'est jugée. Un zéro n'est pas une taille à lier, un layer
+ * masqué ne se voit pas, et une valeur d'instance vient de son maître. Un champ dont la lecture a échoué n'est pas un constat.
+ */
 function constatsDeValeursEnDur(releve: ReleveDeComposant): Constat[] {
   const resultat: Constat[] = [];
   for (const variant of releve.variants) {
-    for (const layer of variant.layers) {
+    for (const layer of layersVisiblesDuVariant(variant)) {
+      if (layer.type === 'INSTANCE' && layer.parent !== null) continue;
       for (const valeur of layer.valeursEnDur) {
-        if (!familleLayoutCompatible(valeur.champ)) continue;
+        if (!familleLayoutCompatible(valeur.champ) || valeur.valeur === 0 || lectureManquee(releve, layer.id, valeur.champ)) continue;
         resultat.push({
           id: `C29:${variant.id}:${layer.id}:${valeur.champ}:${valeur.valeur}`, code: 'C29', type: 'corriger', famille: 'tailles',
           variants: [variant.id], layers: [layer.id], faits: { calque: layer.nom, champ: valeur.champ, valeur: valeur.valeur },
@@ -69,9 +75,36 @@ function constatsDeValeursEnDur(releve: ReleveDeComposant): Constat[] {
   return resultat;
 }
 
-function familleLayoutCompatible(champ: string): 'sizing' | 'radius' | 'stroke' | undefined {
-  if (/^(padding(Left|Right|Top|Bottom)?|gap|itemSpacing|counterAxisSpacing|width|height)$/i.test(champ)) return 'sizing';
-  if (/^(cornerRadius|radius)$/i.test(champ)) return 'radius';
+export type FamilleDeLayout = 'sizing' | 'radius' | 'stroke';
+
+/**
+ * Les familles de la collection `layout` dont C29 a besoin pour juger ce relevé, avec les filtres de C29. Une analyse qui
+ * lit une library ne charge les valeurs de ces familles que pour elles.
+ */
+export function famillesDeLayoutAttendues(releve: ReleveDeComposant): FamilleDeLayout[] {
+  const familles = new Set<FamilleDeLayout>();
+  for (const constat of constatsDeValeursEnDur(releve)) {
+    const famille = familleLayoutCompatible(String(constat.faits.champ));
+    if (famille) familles.add(famille);
+  }
+  return [...familles];
+}
+
+/**
+ * Une variable de la famille peut valoir la valeur lue seulement si la recherche a tout lu : une collection `layout` absente
+ * ou inaccessible, ou une variable de la famille non chargée ou inaccessible, empêche de conclure.
+ */
+function rechercheDeLayoutComplete(catalogue: CatalogueDeReference, famille: FamilleDeLayout): boolean {
+  const layouts = catalogue.collections.filter((collection) => collection.role === 'layout');
+  if (layouts.length === 0 || layouts.some((collection) => collection.etat === 'inaccessible')) return false;
+  const cles = new Set(layouts.map((collection) => collection.cle));
+  return !catalogue.variables.some((variable) => cles.has(variable.collection) && variable.type === 'FLOAT'
+    && formeReconnue(cheminDansLaCollection(variable, catalogue)[0] ?? '') === famille && variable.etat !== 'presente');
+}
+
+function familleLayoutCompatible(champ: string): FamilleDeLayout | undefined {
+  if (/^(padding(Left|Right|Top|Bottom)?|gap|itemSpacing|counterAxisSpacing)$/i.test(champ)) return 'sizing';
+  if (/^(cornerRadius|radius|(top|bottom)(Left|Right)Radius)$/i.test(champ)) return 'radius';
   if (/^(strokeWeight|borderWidth)$/i.test(champ)) return 'stroke';
   return undefined;
 }
@@ -140,17 +173,19 @@ function corrigerLiaisonManquante(constat: Constat, releve: ReleveDeComposant, c
   } };
 }
 
-function corrigerValeurEnDur(constat: Constat, releve: ReleveDeComposant, catalogue: CatalogueDeReference): Pick<Constat, 'correction' | 'question'> | undefined {
+function corrigerValeurEnDur(constat: Constat, releve: ReleveDeComposant, catalogue: CatalogueDeReference): Partial<Pick<Constat, 'correction' | 'question' | 'faits'>> | undefined {
   const layer = layerDuConstat(constat, releve);
   const champ = chaine(constat.faits.champ);
   const valeur = typeof constat.faits.valeur === 'number' ? constat.faits.valeur : undefined;
   const dure = layer?.valeursEnDur.find((entree) => entree.champ === champ && entree.valeur === valeur);
   if (!layer || !champ || valeur === undefined || !dure) return undefined;
+  const familleCherchee = familleLayoutCompatible(champ);
+  if (!familleCherchee) return undefined;
+  if (!rechercheDeLayoutComplete(catalogue, familleCherchee)) return { faits: { ...constat.faits, recherche: 'incomplete' } };
   const candidats = catalogue.variables.filter((variable) => {
     if (variable.etat !== 'presente' || variable.type !== 'FLOAT') return false;
     if (catalogue.collections.find((entree) => entree.cle === variable.collection)?.role !== 'layout') return false;
-    const famille = familleLayoutCompatible(champ);
-    if (!famille || formeReconnue(variable.nom.split('/')[1] ?? '') !== famille) return false;
+    if (formeReconnue(cheminDansLaCollection(variable, catalogue)[0] ?? '') !== familleCherchee) return false;
     const valeurs = Object.values(variable.valeurs ?? {});
     return valeurs.length > 0 && valeurs.every((entree) => 'valeur' in entree && entree.valeur === valeur);
   });

@@ -355,11 +355,14 @@ function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | nu
       return { phrase: T.horsDeLaMajorite(token(faits.nom), nombre(faits.autres) ?? 0, token(faits.exemple)), lieu: surLeLayer, statut: T.horsDeLaMajoriteStatut };
     case 'C25':
       return { phrase: T.peintureSansToken(champPeint(faits), calqueDe(constat, contexte) ?? ''), lieu: sansLayer, statut: T.peintureSansTokenStatut };
-    case 'C29':
+    case 'C29': {
+      const illisible = faits.recherche === 'incomplete';
+      const phrase = illisible ? T.tailleSansVariableIllisible : T.tailleSansVariable;
       return {
-        phrase: T.tailleSansVariable(T.proprieteDeFigma(texte(faits.champ) ?? ''), calqueDe(constat, contexte) ?? '', nombre(faits.valeur) ?? 0),
-        lieu: sansLayer, statut: T.tailleSansVariableStatut,
+        phrase: phrase(T.proprieteDeFigma(texte(faits.champ) ?? ''), calqueDe(constat, contexte) ?? '', nombre(faits.valeur) ?? 0),
+        lieu: sansLayer, statut: illisible ? T.tailleSansVariableIllisibleStatut : T.tailleSansVariableStatut,
       };
+    }
     case 'C43':
       return { phrase: T.sansRegles, lieu: T.tousLesVariants, statut: T.sansReglesStatut };
     case 'C45':

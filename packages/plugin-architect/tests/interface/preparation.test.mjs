@@ -290,7 +290,26 @@ test('une taille sans token exact reste en dur : le bouton Préparer est actif e
     });
     assert.equal(await page.locator('.prep-pied .btn-primary').isDisabled(), false);
     assert.match(await page.locator('[data-preparation-en-dur]').innerText(), /aucun token de radius ne vaut 13 px : reste en dur/);
-    assert.equal(await page.locator('[data-preparation-reste-en-dur]').innerText(), '1 valeur reste en dur : Architect ne crée pas de token dans layout. Elle reste dans À faire dans Figma.');
+    assert.equal(await page.locator('[data-preparation-reste-en-dur]').innerText(), '1 valeur reste en dur : Architect ne crée pas de token dans theme ni dans layout. Elle reste dans À faire dans Figma.');
+  } finally { await fermer(page); }
+});
+
+test('une question de nom sans candidat montre un champ ; une couleur sans cible reste en dur et compte au pied', async () => {
+  const page = await ouvrirLaPreparation();
+  try {
+    const { plan } = messageDuPlan;
+    await envoyer(page, {
+      ...messageDuPlan,
+      plan: {
+        ...plan, questions: [{ id: 'nom:Frame 12', candidats: [], indice: 'Le layer Frame 12 : quel nom ?' }], sansCible: [],
+        couleursSansCible: [{ nom: 'components/tag/color/background', champ: 'fills', hexa: '#FF0000', lieu: { variant: 'tag:variant:1', layer: 'tag:1', champ: 'fills' } }],
+      },
+    });
+    const saisie = page.locator('[data-preparation-question="nom:Frame 12"] [data-preparation-saisie]');
+    assert.equal(await saisie.locator('input').count(), 1);
+    assert.equal(await saisie.locator('button').innerText(), 'Retenir ce nom');
+    assert.match(await page.locator('[data-preparation-couleur-en-dur]').innerText(), /aucun token du thème ne vaut #FF0000 : reste en dur/);
+    assert.match(await page.locator('[data-preparation-reste-en-dur]').innerText(), /^1 valeur reste en dur/);
   } finally { await fermer(page); }
 });
 

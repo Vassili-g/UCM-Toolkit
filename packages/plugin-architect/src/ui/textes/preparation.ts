@@ -17,11 +17,14 @@ export const TEXTES_PREPARATION = {
   preparationNoteIntensite: 'La réponse vaut pour tous les statuts.',
   preparationNoteDossier: (palette: string) => `Exemple sur la palette ${palette}, en Light.`,
   preparationNoteNom: 'Le nom devient un segment des tokens.',
+  preparationNomLibelle: 'Nom de l’élément',
+  preparationNomBouton: 'Retenir ce nom',
   preparationTableTitre: (nombre: number) => `${nombre} variables`,
   preparationTableMeta: (nombre: number) => (nombre === 0 ? 'aucune ne sait encore ce qu’elle vise' : nombre === 1 ? '1 sait déjà ce qu’elle vise' : `${nombre} savent déjà ce qu’elles visent`),
   preparationTableVariable: 'Variable',
   preparationTableVise: 'Vise',
   preparationAttente: (titres: readonly string[]) => `attend la réponse à ${titres.map((titre) => `« ${titre} »`).join(' et ')}`,
+  preparationCouleursTitre: 'Couleurs',
   preparationTaillesTitre: 'Tailles',
   preparationTaillesColonneFigma: 'Propriété Figma',
   preparationTaillesColonneToken: 'Token',
@@ -29,9 +32,10 @@ export const TEXTES_PREPARATION = {
   preparationTailleSeul: (famille: string, valeur: number) => `le seul token de ${famille} à ${valeur} px`,
   preparationTailleChoisi: 'votre choix',
   preparationTailleEnDur: (famille: string, valeur: number) => `aucun token de ${famille} ne vaut ${valeur} px : reste en dur`,
+  preparationCouleurEnDur: (hexa: string) => `aucun token du thème ne vaut ${hexa} : reste en dur`,
   preparationResteEnDur: (nombre: number) => (nombre === 1
-    ? '1 valeur reste en dur : Architect ne crée pas de token dans layout. Elle reste dans À faire dans Figma.'
-    : `${nombre} valeurs restent en dur : Architect ne crée pas de token dans layout. Elles restent dans À faire dans Figma.`),
+    ? '1 valeur reste en dur : Architect ne crée pas de token dans theme ni dans layout. Elle reste dans À faire dans Figma.'
+    : `${nombre} valeurs restent en dur : Architect ne crée pas de token dans theme ni dans layout. Elles restent dans À faire dans Figma.`),
   preparationTaillePlusieurs: (nombre: number, valeur: number | undefined) => (valeur === undefined ? `${nombre} tokens conviennent : une question` : `${nombre} tokens valent ${valeur} px : une question`),
   preparationCrans: (clair: Cran, sombre: Cran) => (clair === undefined ? '' : sombre === undefined || sombre === clair ? cranClair(clair) : `${cranClair(clair)}, ${cranSombre(sombre)}`),
   preparationValeurEnPixels: (valeur: number) => `${valeur} px`,

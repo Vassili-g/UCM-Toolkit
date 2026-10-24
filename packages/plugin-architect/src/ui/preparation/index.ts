@@ -22,6 +22,19 @@ export interface Preparation {
 
 const titreDeLaQuestion = (question: Question): string => question.indice ?? question.id;
 
+/** Une question de nom sans candidat (un layer au nom par défaut) ne se répond que par une saisie. */
+export const demandeUneSaisie = (question: Question): boolean => question.id.startsWith('nom:') && question.candidats.length === 0;
+
+/** La réponse libre que porte un texte saisi ; un texte vide n'en porte aucune. */
+export const reponseSaisie = (texte: string): string | null => (texte.trim() === '' ? null : texte.trim());
+
+/** Les couleurs en dur, une ligne par nom et par hexadécimal : plusieurs lieux de même valeur n'en font qu'une. */
+export function couleursEnDur(couleurs: NonNullable<PreparationDesTokens['couleursSansCible']>): { nom: string; hexa: string }[] {
+  const lignes = new Map<string, { nom: string; hexa: string }>();
+  for (const { nom, hexa } of couleurs) lignes.set(`${nom}|${hexa}`, { nom, hexa });
+  return [...lignes.values()];
+}
+
 export function monterPreparation(etat: Etat): Preparation {
   const voile = document.createElement('div');
   voile.className = 'prep-voile feuille-terme';
@@ -158,6 +171,18 @@ export function monterPreparation(etat: Etat): Preparation {
       for (const question of plan.questions) {
         const bloc = creerSection(titreDeLaQuestion(question), noteDeLaQuestion(question, noteDeLExemple));
         bloc.dataset.preparationQuestion = question.id;
+        if (demandeUneSaisie(question)) {
+          const rangeeDeSaisie = document.createElement('div'); rangeeDeSaisie.dataset.preparationSaisie = 'oui';
+          const champ = document.createElement('input'); champ.type = 'text'; champ.className = 'input';
+          champ.setAttribute('aria-label', T.preparationNomLibelle); champ.placeholder = T.preparationNomLibelle;
+          const retenir = createButton({ label: T.preparationNomBouton, variant: 'secondary', compact: true, onClick: () => {
+            const texte = reponseSaisie(champ.value);
+            if (texte === null) return;
+            reponses[question.id] = texte; demander();
+          } });
+          champ.addEventListener('keydown', (evenement) => { if (evenement.key === 'Enter') retenir.click(); });
+          rangeeDeSaisie.append(champ, retenir); bloc.append(rangeeDeSaisie);
+        }
         for (const candidat of question.candidats) {
           const choix = document.createElement('label'); choix.className = 'prep-option option-prep';
           const radio = document.createElement('input'); radio.type = 'radio'; radio.name = question.id; radio.value = candidat.nom;
@@ -187,6 +212,20 @@ export function monterPreparation(etat: Etat): Preparation {
         corps.append(bloc);
       }
       const enDur = taillesEnDur();
+      const couleursDures = couleursEnDur(plan.couleursSansCible ?? []);
+      if (couleursDures.length > 0) {
+        const couleurs = creerSection(T.preparationCouleursTitre);
+        const liste = document.createElement('div'); liste.className = 'fiche-liste';
+        for (const couleur of couleursDures) {
+          const ligne = document.createElement('div'); ligne.className = 'diff sans-case'; ligne.dataset.preparationCouleurEnDur = 'oui';
+          const libelle = document.createElement('span'); libelle.className = 'chemin'; chemin(couleur.nom.replace(/^components\//, ''), libelle);
+          const cible = document.createElement('span'); cible.className = 'chemin-apres';
+          const note = document.createElement('span'); note.className = 'meta'; note.textContent = T.preparationCouleurEnDur(couleur.hexa);
+          cible.append(note); ligne.append(libelle, cible); liste.append(ligne);
+        }
+        couleurs.append(liste);
+        corps.append(couleurs);
+      }
       if (plan.variables.some((variable) => variable.type === 'FLOAT') || enDur.length > 0) {
         const tailles = creerSection(T.preparationTaillesTitre);
         const liste = document.createElement('div'); liste.className = 'fiche-liste';
@@ -212,9 +251,10 @@ export function monterPreparation(etat: Etat): Preparation {
           cible.append(note); ligne.append(libelle, cible); liste.append(ligne);
         }
         tailles.append(liste);
-        if (enDur.length > 0) { const reste = document.createElement('p'); reste.className = 'meta'; reste.dataset.preparationResteEnDur = 'oui'; reste.textContent = T.preparationResteEnDur(enDur.length); tailles.append(reste); }
         corps.append(tailles);
       }
+      const nombreEnDur = enDur.length + couleursDures.length;
+      if (nombreEnDur > 0) { const reste = document.createElement('p'); reste.className = 'meta'; reste.dataset.preparationResteEnDur = 'oui'; reste.textContent = T.preparationResteEnDur(nombreEnDur); corps.append(reste); }
       if (plan.variables.length) {
         const section = creerSection(T.preparationTableTitre(plan.variables.length));
         const metaSection = document.createElement('span'); metaSection.className = 'meta'; metaSection.textContent = T.preparationTableMeta(plan.variables.filter((variable) => variable.vise !== null).length);

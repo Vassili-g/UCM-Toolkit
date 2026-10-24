@@ -1,7 +1,7 @@
 /** Contrôles des scopes et des structures UCM du catalogue. */
 import { formeReconnue } from '../referentiel/reconnaissance.js';
 import { SUPPORT_DES_VARIABLES, VARIABLES_DU_THEME } from '../emplois/dossiers.js';
-import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
+import { cheminDansLaCollection, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
 import { controlerLesModes } from './theme.js';
 import { segmentDAxe, tokensDuComposant, type TokenDuComposant } from './nommage.js';
@@ -174,8 +174,8 @@ function controlerLesEchelles(catalogue: CatalogueDeReference): Constat[] {
   const resultats: Constat[] = [];
   for (const collection of catalogue.collections.filter((entree) => entree.role === 'layout' && entree.etat === 'lue')) {
     const echelle = catalogue.variables.filter((variable) => variable.collection === collection.cle && variable.etat === 'presente'
-      && variable.type === 'FLOAT' && formeReconnue(variable.nom.split('/')[0] ?? '') === 'sizing'
-      && nombre(variable.nom.split('/')[1] ?? '') !== undefined);
+      && variable.type === 'FLOAT' && formeReconnue(cheminDansLaCollection(variable, catalogue)[0] ?? '') === 'sizing'
+      && nombre(cheminDansLaCollection(variable, catalogue)[1] ?? '') !== undefined);
     for (const mode of collection.modes) {
       const parValeur = new Map<number, VariableDuCatalogue[]>();
       for (const variable of echelle) {

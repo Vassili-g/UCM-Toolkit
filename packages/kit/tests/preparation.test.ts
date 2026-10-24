@@ -162,11 +162,6 @@ test('une réponse libre à une question cible ne pose aucune cible', () => {
   const taille = 'components/alert/size/padding-x';
   const libreTaille = preparerLesTokens(alert(), catalogue(...theme('soft'), ...sizing(['4', 16])), { ...reponses, [`cible:${taille}`]: 'layout/sizing/4' });
   assert.deepEqual(libreTaille.variables.filter(({ type }) => type === 'FLOAT'), []);
-  const fond = 'components/alert/color/danger/soft/background';
-  const sansFond = catalogue(...theme('soft').filter(({ nom }) => !nom.endsWith('surface/default')), ...sizing(['2', 8]), { nom: 'theme/danger/soft/solid/default', collection: 'theme' });
-  const libreCouleur = preparerLesTokens(alert(), sansFond, { 'dossier:soft': 'page', [`cible:${fond}`]: 'theme/danger/soft/solid/default' });
-  assert.equal(libreCouleur.variables.find((variable) => variable.nom === fond)?.vise, null);
-  assert.ok(libreCouleur.questions.some(({ id }) => id === `cible:${fond}`));
   const jetons = catalogue(...theme('soft'), ...sizing(['2', 8], ['huit', 8]));
   const choisie = preparerLesTokens(alert(), jetons, { ...reponses, [`cible:${taille}`]: 'layout/sizing/huit' });
   assert.equal(choisie.variables.find((variable) => variable.nom === taille)?.vise?.nom, 'layout/sizing/huit');
@@ -201,10 +196,11 @@ test('une variable existante n’est réutilisée que si son alias égale le cho
   assert.equal(remplacee.variables[0].statut, 'a-remplacer');
 });
 
-test('une cible absente du catalogue devient une question', () => {
+test('une cible absente du catalogue laisse la couleur en dur, sans question', () => {
   const resultat = preparerLesTokens(alert(), catalogue(...complet('soft')), { 'dossier:soft': 'page' });
-  assert.deepEqual(resultat.questions.map(({ id }) => id), ['cible:components/alert/color/danger/soft/background', 'cible:components/alert/color/danger/soft/foreground']);
-  assert.equal(resultat.variables[1].vise, null);
+  assert.deepEqual(resultat.questions, []);
+  assert.deepEqual(resultat.couleursSansCible?.map(({ nom }) => nom), ['components/alert/color/danger/soft/background', 'components/alert/color/danger/soft/foreground']);
+  assert.equal(resultat.variables.some(({ type }) => type === 'COLOR'), false);
 });
 
 test('un état désactivé vise theme/disabled', () => {
@@ -216,4 +212,31 @@ test('un état désactivé vise theme/disabled', () => {
     ['components/alert/color/danger/soft/disabled/background', 'theme/disabled/background'],
     ['components/alert/color/danger/soft/disabled/foreground', 'theme/disabled/foreground'],
   ]);
+});
+
+const sansFond = () => catalogue(...theme('soft').filter(({ nom }) => !nom.endsWith('surface/default')), ...sizing(['2', 8]));
+
+test('une couleur dont aucun token du thème est la cible reste en dur : ni variable, ni question', () => {
+  const fond = 'components/alert/color/danger/soft/background';
+  const resultat = preparerLesTokens(alert(), sansFond(), reponses);
+  assert.deepEqual(resultat.questions, []);
+  assert.deepEqual(resultat.couleursSansCible?.map(({ nom, champ, hexa, lieu }) => [nom, champ, hexa, lieu.layer]), [[fond, 'fills', '#FF0000', 'danger:f']]);
+  assert.ok(!resultat.variables.some(({ nom }) => nom === fond));
+  assert.ok(resultat.variables.every(({ vise, attend }) => vise !== null && attend.length === 0));
+});
+
+test('une préparation où ne restent que des valeurs en dur n’a plus de question', () => {
+  const resultat = preparerLesTokens(alert({ rayon: 13 }), catalogue(...theme('soft').filter(({ nom }) => !nom.endsWith('surface/default')), ...sizing(['2', 8]), ...rayons(['14', 14])), reponses);
+  assert.deepEqual(resultat.questions, []);
+  assert.equal(resultat.couleursSansCible?.length, 1);
+  assert.equal(resultat.sansCible?.length, 1);
+});
+
+test('une question de nom sans candidat se résout par un texte libre', () => {
+  const composant = alert({ nomDuFond: 'Frame 12' });
+  const ouvert = preparerLesTokens(composant, catalogue(...complet('soft')), reponses);
+  assert.deepEqual(ouvert.questions.map(({ id, candidats }) => [id, candidats.length]), [['nom:Frame 12', 0]]);
+  const repondu = preparerLesTokens(composant, catalogue(...complet('soft')), { ...reponses, 'nom:Frame 12': 'carte' });
+  assert.deepEqual(repondu.questions, []);
+  assert.ok(repondu.variables.some(({ nom }) => nom === 'components/alert/color/carte/danger/soft/background'));
 });

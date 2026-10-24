@@ -232,8 +232,13 @@ dans l'interface.
 
 Le catalogue d'une library ne lit que `components`, `theme` et `layout`. Les
 valeurs s'importent à la demande, puis les cibles de leurs alias, jusqu'aux
-primitives : une cible hors de ces collections se lit par son identifiant,
-sinon par sa clé, et entre au catalogue avec sa collection et ses modes.
+primitives. Les variables liées au composant s'importent toujours ; celles de
+`layout` s'importent en plus, pour les seules familles (`sizing`, `radius`,
+`stroke`) qu'une valeur en dur met en jeu, afin que C29 trouve un token exact.
+Une cible hors de ces collections se lit par son identifiant, sinon par sa clé,
+et entre au catalogue avec sa collection et ses modes. Si `layout` reste illisible,
+C29 le dit (`faits.recherche = 'incomplete'`) au lieu de poser une question sans
+candidat.
 
 Avant d'écrire une liaison, le sandbox relit le layer, les valeurs du variant,
 la liaison du champ et la peinture que l'analyse a lus. Un écart saute la
@@ -255,7 +260,7 @@ tokens sont deux fichiers : la préparation passe de l'un à l'autre par
 
 | Étape | Fichier | Ce qui se passe |
 |---|---|---|
-| Préparer | Composants | Les questions (dossier d'une valeur de style, intensité, nom d'un élément, icône, choix entre plusieurs tokens de même valeur) se tranchent ; Préparer reste inactif tant qu'une question reste. Une taille sans token de `layout` qui la vaille exactement ne pose pas de question : elle reste en dur (`sansCible`) et la feuille le dit |
+| Préparer | Composants | Les questions (dossier d'une valeur de style, intensité, nom d'un élément, icône, choix entre plusieurs tokens de même valeur) se tranchent ; Préparer reste inactif tant qu'une question reste. Une taille sans token de `layout` qui la vaille exactement, ou une couleur dont aucun token du thème n'est la cible, ne pose pas de question : elle reste en dur (`sansCible`, `couleursSansCible`) et la feuille le dit. Une question de nom sans candidat (layer au nom par défaut) se répond par une saisie |
 | Ranger | Composants | La préparation se range sous `CLE_DES_PREPARATIONS`, ou se copie en texte |
 | Créer | Tokens | Seules les variables manquantes de `components` se créent, par le journal de structure |
 | Lier | Composants | Les variables publiées reviennent au composant en corrections de liaison |

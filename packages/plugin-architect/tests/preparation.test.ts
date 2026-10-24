@@ -13,6 +13,8 @@ import {
 import {
   commencerUneAnalyse, correctionsDeLAnalyse, prendreLaPlaceDUneEcriture, reinitialiserLAnalyse, retenirLesCorrections,
 } from '../src/sandbox/analyse';
+import { couleursEnDur, demandeUneSaisie, reponseSaisie } from '../src/ui/preparation';
+import { TEXTES_PREPARATION } from '../src/ui/textes/preparation';
 import type { Contexte } from '../src/sandbox/contexte';
 import { TYPES, traiterAvec, type Acces } from '../src/sandbox/preparation';
 import type { ResultatDeCreation } from '../src/ecriture/variables';
@@ -309,4 +311,26 @@ test('lier-preparation : seulement sur la même clé de jeu, jamais hors UCM, ja
   await illisible.traiter({ type: 'lier-preparation', analyse: analyse(illisible), preparation: 'prep-1' }, illisible.contexte);
   assert.equal(illisible.dernier('liaisons-preparees').refus, 'library-illisible');
   reinitialiserLAnalyse();
+});
+
+test('une question de nom sans candidat demande une saisie, et un texte vide n’envoie rien', () => {
+  assert.equal(demandeUneSaisie({ id: 'nom:Frame 12', candidats: [] }), true);
+  assert.equal(demandeUneSaisie({ id: 'nom:badge', candidats: [{ nom: 'badge' }] }), false);
+  assert.equal(demandeUneSaisie({ id: 'palette:-', candidats: [] }), false);
+  assert.equal(reponseSaisie('   '), null);
+  assert.equal(reponseSaisie(''), null);
+  assert.equal(reponseSaisie(' carte '), 'carte');
+});
+
+test('les couleurs en dur se comptent une fois par nom et par hexadécimal', () => {
+  const lieu = (layer: string) => ({ variant: 'v', layer, champ: 'fills' });
+  const lignes = couleursEnDur([
+    { nom: 'components/alert/color/background', champ: 'fills', hexa: '#FF0000', lieu: lieu('a') },
+    { nom: 'components/alert/color/background', champ: 'fills', hexa: '#FF0000', lieu: lieu('b') },
+    { nom: 'components/alert/color/foreground', champ: 'fills', hexa: '#00FF00', lieu: lieu('c') },
+  ]);
+  assert.equal(lignes.length, 2);
+  assert.equal(TEXTES_PREPARATION.preparationCouleurEnDur('#FF0000'), 'aucun token du thème ne vaut #FF0000 : reste en dur');
+  assert.equal(TEXTES_PREPARATION.preparationResteEnDur(1), '1 valeur reste en dur : Architect ne crée pas de token dans theme ni dans layout. Elle reste dans À faire dans Figma.');
+  assert.match(TEXTES_PREPARATION.preparationResteEnDur(3), /^3 valeurs restent en dur .* Elles restent/);
 });

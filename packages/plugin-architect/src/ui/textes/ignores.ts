@@ -22,8 +22,8 @@ const SUJETS_DE_CONTRASTE: Readonly<Record<string, string>> = {
 /** Les champs de Figma dans une phrase, par leur nom dans l'API : les mots du panneau Design, en anglais. */
 const PROPRIETES_DE_FIGMA: Readonly<Record<string, string>> = {
   fills: 'fill', strokes: 'stroke', paddingLeft: 'padding left', paddingRight: 'padding right', paddingTop: 'padding top',
-  paddingBottom: 'padding bottom', itemSpacing: 'gap', counterAxisSpacing: 'gap', cornerRadius: 'radius', topLeftRadius: 'radius',
-  topRightRadius: 'radius', bottomLeftRadius: 'radius', bottomRightRadius: 'radius', strokeWeight: 'stroke weight', width: 'width',
+  paddingBottom: 'padding bottom', itemSpacing: 'gap', counterAxisSpacing: 'gap', cornerRadius: 'radius', topLeftRadius: 'top left radius',
+  topRightRadius: 'top right radius', bottomLeftRadius: 'bottom left radius', bottomRightRadius: 'bottom right radius', strokeWeight: 'stroke weight', width: 'width',
   height: 'height', minWidth: 'min width', maxWidth: 'max width', minHeight: 'min height', maxHeight: 'max height',
   fontSize: 'font size', fontWeight: 'font weight', fontFamily: 'font family', lineHeight: 'line height', letterSpacing: 'letter spacing',
 };
@@ -130,7 +130,9 @@ export const TEXTES_IGNORES = {
     peintureSansToken: (champ: string, layer: string): string => `Le ${champ} du layer ${layer} n’est lié à aucun token.`,
     peintureSansTokenStatut: 'Liez-le à un token du composant',
     tailleSansVariable: (propriete: string, layer: string, valeur: number): string => `Le ${propriete} du layer ${layer} vaut ${valeur} px, sans variable.`,
-    tailleSansVariableStatut: 'Liez-le à une variable de layout',
+    tailleSansVariableStatut: 'Ajoutez un token de layout qui vaut cette valeur, puis liez-le',
+    tailleSansVariableIllisible: (propriete: string, layer: string, valeur: number): string => `Le ${propriete} du layer ${layer} vaut ${valeur} px, sans variable. Les tokens de layout n’ont pas pu être lus.`,
+    tailleSansVariableIllisibleStatut: 'Vérifiez la library de tokens dans la Configuration',
     // C43, C45 : l'instance de règles.
     sansRegles: 'Le composant n’a pas d’instance de règles.',
     sansReglesStatut: 'Créez l’instance de règles',

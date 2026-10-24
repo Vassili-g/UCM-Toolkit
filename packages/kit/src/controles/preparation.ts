@@ -6,7 +6,7 @@ import { cranDeLaVariable, DOSSIERS, ETATS, VARIABLES_DU_THEME, type VariableDuT
 import { REGISTRE_PALETTES_COMPOSANT } from '../referentiel/architecture.js';
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { MODES, PROFILS, REGISTRE_ETATS, REGISTRE_ROLES, REGISTRE_STATUTS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
-import { variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { cheminDansLaCollection, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Question } from './constat.js';
 import { axeDePropriete, axesDuReleve, type AxeDuComposant, type ProprieteDAxe } from './nommage.js';
 import { liaisonsPropres, type LayerLu, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
@@ -50,12 +50,25 @@ export interface TailleSansCible {
   lieu: LieuDePreparation;
 }
 
+/** Une couleur qu'aucun token du thème ne vise : elle ne devient ni variable ni question et reste en dur. */
+export interface CouleurSansCible {
+  /** Le nom que la variable aurait porté. */
+  nom: string;
+  /** Le champ Figma du lieu (`fills` ou `strokes`). */
+  champ: string;
+  /** L'hexadécimal de la peinture, en majuscules. */
+  hexa: string;
+  lieu: LieuDePreparation;
+}
+
 export interface PreparationDesTokens {
   /** Les couleurs d'abord, puis les tailles. */
   variables: VariableAPreparer[];
   questions: Question[];
   /** Les tailles sans token exact, laissées en dur : Architect ne crée aucun token dans `layout`. Toujours rendu par `preparerLesTokens` ; absent d'un plan fabriqué à la main. */
   sansCible?: TailleSansCible[];
+  /** Les couleurs sans token du thème pour cible, laissées en dur pour la même raison. Toujours rendu par `preparerLesTokens`. */
+  couleursSansCible?: CouleurSansCible[];
 }
 
 const NOM_PAR_DEFAUT = /^(frame|group|rectangle|ellipse|vector|line|polygon|star|component|instance|section|boolean|union|subtract|intersect|exclude|image)\s*\d+$/i;
@@ -72,6 +85,14 @@ interface Brouillon {
   ordre: 'couleur' | 'taille';
   /** Pour une taille : sa mesure, d'où vient le choix. */
   taille?: Omit<TailleSansCible, 'lieu' | 'nom'>;
+  /** Pour une couleur : l'hexadécimal de la peinture. */
+  hexa?: string;
+}
+
+function hexaDe(couleur: PeintureLue['couleur']): string {
+  if (!couleur) return '';
+  const canal = (valeur: number): string => Math.round(Math.min(1, Math.max(0, valeur)) * 255).toString(16).padStart(2, '0').toUpperCase();
+  return `#${canal(couleur.r)}${canal(couleur.g)}${canal(couleur.b)}`;
 }
 
 function ajouterQuestion(questions: Map<string, Question>, question: Question): void {
@@ -110,6 +131,7 @@ export function preparerLesTokens(
   const questions = new Map<string, Question>();
   const brouillons: Brouillon[] = [];
   const sansCible: TailleSansCible[] = [];
+  const couleursSansCible: CouleurSansCible[] = [];
   const composant = segmentDe(releve.jeu.nom);
   const collectionDe = (role: string) => catalogue.collections.find((collection) => collection.role === role);
   const theme = collectionDe('theme');
@@ -323,7 +345,7 @@ export function preparerLesTokens(
       : [];
     brouillons.push({
       nom, type: 'COLOR', choix, attend: attendus, concerne: { variant: variant.id, layer: layer.id, champ: peinture.champ, indice: peinture.indice },
-      ordre: 'couleur',
+      ordre: 'couleur', hexa: hexaDe(peinture.couleur),
     });
   }
 
@@ -342,7 +364,7 @@ export function preparerLesTokens(
     else if (champ === 'strokeWeight') { propriete = 'border-width'; famille = 'stroke'; }
     else { propriete = 'icon-size'; famille = 'icon'; }
     const candidats = catalogue.variables.filter((variable) =>
-      variable.collection === layout?.cle && variable.type === 'FLOAT' && variable.nom.startsWith(`layout/${FAMILLES_DE_TAILLE[famille]}/`)
+      variable.collection === layout?.cle && variable.type === 'FLOAT' && cheminDansLaCollection(variable, catalogue)[0] === FAMILLES_DE_TAILLE[famille]
       && valeurEnPixels(variable, catalogue) === valeur);
     // Sans token exact, le lieu ne pose aucune question de nom : il reste en dur.
     const element = candidats.length > 0 ? elementDe(variant, layer) : { element: aNommer.has(cleDeLayer(variant, layer)) ? segmentDe(layer.nom) : undefined, attend: undefined };
@@ -369,6 +391,11 @@ export function preparerLesTokens(
     // Une variable ne vaut qu'une mesure : des lieux de mesures différentes sous un même nom ne la partagent pas, ils restent en dur.
     if (groupe[0].ordre === 'taille' && new Set(groupe.map((brouillon) => brouillon.taille!.valeur)).size > 1) {
       for (const brouillon of groupe) sansCible.push({ nom, ...brouillon.taille!, lieu: brouillon.concerne });
+      continue;
+    }
+    // Une couleur dont aucun token du thème n'est la cible n'a pas de réponse possible : elle reste en dur.
+    if (groupe[0].ordre === 'couleur' && groupe.every((brouillon) => brouillon.choix.length === 0 && brouillon.attend.length === 0)) {
+      for (const brouillon of groupe) couleursSansCible.push({ nom, champ: brouillon.concerne.champ, hexa: brouillon.hexa ?? '', lieu: brouillon.concerne });
       continue;
     }
     const type = groupe[0].type;
@@ -413,5 +440,5 @@ export function preparerLesTokens(
     }
     variables.push({ nom, type, vise, statut, attend, concerne });
   }
-  return { variables, questions: [...questions.values()], sansCible };
+  return { variables, questions: [...questions.values()], sansCible, couleursSansCible };
 }
