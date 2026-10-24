@@ -208,6 +208,7 @@ export const REPRISES_DE_SIGNES: readonly RepriseDeSigne[] = [
       { id: 'prop-boolean', libelle: '@boolean' },
     ],
   },
+  { famille: 'usage-couleur', reprend: [{ id: 'type-color', libelle: 'Couleurs' }] },
   { famille: 'proposition', reprend: [{ id: 'a-creer', libelle: 'préparation' }] },
   { famille: 'palettes', reprend: [{ id: 'mode', libelle: 'Light, Dark' }] },
 ];

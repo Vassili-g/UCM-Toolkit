@@ -16,10 +16,8 @@ const T = TEXTES.elementsDuPanneau;
 
 /** Le signe d'un élément, 14 px dans une puce et 24 px dans une bande. `informe` le teinte ; les couleurs prennent l'arc-en-ciel des couleurs. */
 export function signeDeLElement(id: IdDElement, taille: TailleDeSigne, informe = true): HTMLElement {
-  const signe = creerSigne(SIGNE_DE_L_ELEMENT[id], { taille, informe });
-  // Le signe des couleurs vient de la famille `types-figma`, qui n'a pas de teinte : `informe` le laisse gris.
-  if (informe && id === 'couleurs') signe.classList.add('signe-teinte-couleurs');
-  return signe;
+  // `type-color` appartient aux types de Figma, sans teinte : l'usage d'une couleur le reprend pour porter l'arc-en-ciel.
+  return creerSigne(SIGNE_DE_L_ELEMENT[id], { taille, informe, ...(id === 'couleurs' ? { famille: 'usage-couleur' } : {}) });
 }
 
 function puce(id: ElementChoisi, libelle: string, points: number, bloquant: boolean, actif: boolean, choisir: (id: ElementChoisi) => void): HTMLElement {
