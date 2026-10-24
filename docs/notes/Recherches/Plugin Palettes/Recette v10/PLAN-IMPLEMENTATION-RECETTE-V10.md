@@ -7,13 +7,13 @@ de fin. Cocher la case d'une tâche quand son commit est fait.
 
 ## Avancement
 
-- [x] M1. Le moteur compare les fonds et calcule les zones quel que soit le départ (88097cf)
-- [x] M2. Les lecteurs du plugin passent au rôle `fond` (88097cf)
-- [x] H1. Un message ne déplace plus la page (abf3c88)
-- [x] R1. La roue des teintes à la largeur de la carte (Codex, 1f54417)
-- [x] T1. L'onglet s'appelle « Comparaison » (82434ac)
-- [ ] I1. Les tests d'interface suivent la paire Bleu et Azur
-- [x] S1. La spécification et les documents suivent (abace70)
+- [x] M1. Le moteur compare les fonds et calcule les zones quel que soit le départ (570cad7)
+- [x] M2. Les lecteurs du plugin passent au rôle `fond` (570cad7)
+- [x] H1. Un message ne déplace plus la page (73527c1)
+- [x] R1. La roue des teintes à la largeur de la carte (Codex, c0ea7bb)
+- [x] T1. L'onglet s'appelle « Comparaison » (25f1a39)
+- [X] I1. Les tests d'interface suivent la paire Bleu et Azur
+- [x] S1. La spécification et les documents suivent (04c5068)
 - [x] V1. Vérification finale (typecheck, 375 et 546 tests, galerie, build, style : verts ; test:ui non lancé)
 
 ## Décisions
@@ -56,7 +56,7 @@ M1, H1 et R1 touchent des fichiers disjoints, sauf `styles.css` pour H1 et R1
 
 ## M1. Le moteur compare les fonds et calcule les zones quel que soit le départ
 
-- [x] **Agent** : `implementeur` (Sonnet). Fait, commit 88097cf.
+- [x] **Agent** : `implementeur` (Sonnet). Fait, commit 570cad7.
 - **Fichiers** : `packages/couleur/src/alertes.ts`,
   `packages/couleur/src/harmonisation.ts`, `packages/couleur/src/index.ts` si
   un export s'ajoute, `packages/couleur/tests/alertes.test.ts`,
@@ -155,7 +155,7 @@ M2 : les lister dans le compte rendu sans les corriger.
 
 ## M2. Les lecteurs du plugin passent au rôle `fond`
 
-- [x] **Agent** : `implementeur` (Sonnet). Après M1 et H1. Fait, commit 88097cf.
+- [x] **Agent** : `implementeur` (Sonnet). Après M1 et H1. Fait, commit 570cad7.
 - **Fichiers** : `packages/plugin-palettes/src/i18n/fr.ts`, `en.ts`,
   `src/ui/harmonisation/cartePaires.ts`, `galerie/etats.cjs`, les tests de
   `packages/plugin-palettes/tests/` qui cassent,
@@ -198,7 +198,7 @@ ne rend rien hors des libellés de variables `surface/foreground`).
 
 ## H1. Un message ne déplace plus la page
 
-- [x] **Agent** : `implementeur` (Sonnet). Fait, commit abf3c88.
+- [x] **Agent** : `implementeur` (Sonnet). Fait, commit 73527c1.
 - **Fichiers** : `packages/plugin-palettes/src/harmonisation.ts`,
   `src/ui/ongletHarmonisation.ts`, `src/ui/harmonisation/cartePaires.ts`,
   `src/ui/harmonisation/carteComparaison.ts`,
@@ -316,7 +316,7 @@ vert, `npm run build --workspace ucm-palettes-plugin` vert.
 
 ## R1. La roue des teintes à la largeur de la carte
 
-- [x] **Agent** : `implementeur-exigeant` (interface à reproduire au pixel). Fait par Codex, commit 1f54417.
+- [x] **Agent** : `implementeur-exigeant` (interface à reproduire au pixel). Fait par Codex, commit c0ea7bb.
 - **Fichiers** : `packages/plugin-palettes/src/roueDesTeintes.ts`,
   `src/ui/harmonisation/carteRoue.ts`, `src/ui/styles.css` (section « Roue des
   teintes » seulement), `tests/roueDesTeintes.test.ts`,
@@ -447,7 +447,7 @@ horizontal : `document.documentElement.scrollWidth <= 400`.
 
 ## T1. L'onglet s'appelle « Comparaison »
 
-- [x] **Agent** : `executant` (Haiku). Après H1, qui modifie aussi `fr.ts` et `en.ts`. Fait, commit 82434ac.
+- [x] **Agent** : `executant` (Haiku). Après H1, qui modifie aussi `fr.ts` et `en.ts`. Fait, commit 25f1a39.
 - **Fichiers** : `packages/plugin-palettes/src/i18n/fr.ts`, `en.ts`,
   `galerie/etats.cjs`, `tests/interface/interface.test.mjs`.
 
