@@ -10,6 +10,6 @@ banc d'essai du moteur.
 
 ## État
 
-H0 est fait : le paquet `packages/hub/` et la commande `npm run vues`. H1, puis
-la maquette, viennent ensuite ; la maquette reprend l'écran « Studio Nord » de
-Palettes. D2 reste ouverte : le mainteneur juge sur pièce après H4 et H5.
+La maquette attend la relecture du mainteneur. Le développement n'est pas
+lancé. H0 est fait : le paquet `packages/hub/` et la commande `npm run vues`.
+D2 reste ouverte : le mainteneur juge sur pièce après H4 et H5.
