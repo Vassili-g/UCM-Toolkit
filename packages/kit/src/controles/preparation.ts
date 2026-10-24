@@ -11,7 +11,7 @@ import type { Question } from './constat.js';
 import { axeDePropriete, axesDuReleve, type AxeDuComposant, type ProprieteDAxe } from './nommage.js';
 import { liaisonsPropres, type LayerLu, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
-/** Les réponses du designer, par identifiant de question : le nom d'un candidat, ou un texte libre pour un nom. */
+/** Les réponses du designer, par identifiant de question : le nom d'un candidat, ou un texte libre pour un nom de layer ou de palette. */
 export type ReponsesDePreparation = Readonly<Record<string, string>>;
 
 export interface ViseDePreparation {
@@ -38,10 +38,24 @@ export interface VariableAPreparer {
   concerne: LieuDePreparation[];
 }
 
+/** Une taille qu’aucun token de `layout` ne vaut : elle ne devient ni variable ni question et reste en dur. */
+export interface TailleSansCible {
+  /** Le nom que la variable aurait porté. */
+  nom: string;
+  /** Le champ Figma du lieu (`width` pour la taille d'une icône). */
+  champ: string;
+  /** La famille de `layout` où aucun token ne vaut la valeur. */
+  famille: 'sizing' | 'radius' | 'stroke' | 'icon';
+  valeur: number;
+  lieu: LieuDePreparation;
+}
+
 export interface PreparationDesTokens {
   /** Les couleurs d'abord, puis les tailles. */
   variables: VariableAPreparer[];
   questions: Question[];
+  /** Les tailles sans token exact, laissées en dur : Architect ne crée aucun token dans `layout`. Toujours rendu par `preparerLesTokens` ; absent d'un plan fabriqué à la main. */
+  sansCible?: TailleSansCible[];
 }
 
 const NOM_PAR_DEFAUT = /^(frame|group|rectangle|ellipse|vector|line|polygon|star|component|instance|section|boolean|union|subtract|intersect|exclude|image)\s*\d+$/i;
@@ -56,6 +70,8 @@ interface Choix { nom: string; vise: ViseDePreparation }
 interface Brouillon {
   nom: string; type: 'COLOR' | 'FLOAT'; choix: Choix[]; attend: string[]; concerne: LieuDePreparation;
   ordre: 'couleur' | 'taille';
+  /** Pour une taille : sa mesure, d'où vient le choix. */
+  taille?: Omit<TailleSansCible, 'lieu' | 'nom'>;
 }
 
 function ajouterQuestion(questions: Map<string, Question>, question: Question): void {
@@ -93,6 +109,7 @@ export function preparerLesTokens(
 ): PreparationDesTokens {
   const questions = new Map<string, Question>();
   const brouillons: Brouillon[] = [];
+  const sansCible: TailleSansCible[] = [];
   const composant = segmentDe(releve.jeu.nom);
   const collectionDe = (role: string) => catalogue.collections.find((collection) => collection.role === role);
   const theme = collectionDe('theme');
@@ -324,19 +341,23 @@ export function preparerLesTokens(
     else if (champ === 'cornerRadius') { propriete = 'radius'; famille = 'radius'; }
     else if (champ === 'strokeWeight') { propriete = 'border-width'; famille = 'stroke'; }
     else { propriete = 'icon-size'; famille = 'icon'; }
-    const element = elementDe(variant, layer);
+    const candidats = catalogue.variables.filter((variable) =>
+      variable.collection === layout?.cle && variable.type === 'FLOAT' && variable.nom.startsWith(`layout/${FAMILLES_DE_TAILLE[famille]}/`)
+      && valeurEnPixels(variable, catalogue) === valeur);
+    // Sans token exact, le lieu ne pose aucune question de nom : il reste en dur.
+    const element = candidats.length > 0 ? elementDe(variant, layer) : { element: aNommer.has(cleDeLayer(variant, layer)) ? segmentDe(layer.nom) : undefined, attend: undefined };
     const taille = valeurDeVariant(variant, axes.taille);
     const nom = [
       'components', composant, 'size', ...(element.element ? [element.element] : []),
       ...(taille ? [termeReconnu(REGISTRE_TAILLES, taille)?.id ?? segmentDe(taille)] : []), propriete,
     ].join('/');
-    const candidats = catalogue.variables.filter((variable) =>
-      variable.collection === layout?.cle && variable.type === 'FLOAT' && variable.nom.startsWith(`layout/${FAMILLES_DE_TAILLE[famille]}/`)
-      && valeurEnPixels(variable, catalogue) === valeur);
+    const champDuLieu = champ === 'icon-width' ? 'width' : champ;
+    const lieu = { variant: variant.id, layer: layer.id, champ: champDuLieu };
+    if (candidats.length === 0) { sansCible.push({ nom, champ: champDuLieu, famille: FAMILLES_DE_TAILLE[famille], valeur, lieu }); continue; }
     brouillons.push({
       nom, type: 'FLOAT', choix: candidats.map((variable) => ({ nom: variable.nom, vise: { nom: variable.nom, valeur } })),
-      attend: element.attend ? [element.attend] : [], concerne: { variant: variant.id, layer: layer.id, champ: champ === 'icon-width' ? 'width' : champ },
-      ordre: 'taille',
+      attend: element.attend ? [element.attend] : [], concerne: lieu,
+      ordre: 'taille', taille: { champ: champDuLieu, famille: FAMILLES_DE_TAILLE[famille], valeur },
     });
   }
 
@@ -345,6 +366,11 @@ export function preparerLesTokens(
   const parNom = new Map<string, Brouillon[]>();
   for (const brouillon of brouillons) parNom.set(brouillon.nom, [...(parNom.get(brouillon.nom) ?? []), brouillon]);
   for (const [nom, groupe] of [...parNom.entries()].sort((a, b) => (a[1][0].ordre === b[1][0].ordre ? 0 : a[1][0].ordre === 'couleur' ? -1 : 1))) {
+    // Une variable ne vaut qu'une mesure : des lieux de mesures différentes sous un même nom ne la partagent pas, ils restent en dur.
+    if (groupe[0].ordre === 'taille' && new Set(groupe.map((brouillon) => brouillon.taille!.valeur)).size > 1) {
+      for (const brouillon of groupe) sansCible.push({ nom, ...brouillon.taille!, lieu: brouillon.concerne });
+      continue;
+    }
     const type = groupe[0].type;
     const attend = [...new Set(groupe.flatMap((brouillon) => brouillon.attend))];
     const concerne = groupe.map((brouillon) => brouillon.concerne);
@@ -356,9 +382,7 @@ export function preparerLesTokens(
       const id = `cible:${nom}`;
       const reponse = reponses[id];
       const choisi = reponse ? retenu.get(reponse) : undefined;
-      const libre = reponse && !retenu.size ? catalogue.variables.find((variable) => variable.nom === reponse && variable.type === type) : undefined;
       if (choisi) vise = choisi.vise;
-      else if (libre) vise = { nom: libre.nom };
       else {
         ajouterQuestion(questions, { id, candidats: [...retenu.values()].map((choix) => ({ nom: choix.nom })), indice: `${nom} : quel token ?` });
         attend.push(id);
@@ -389,5 +413,5 @@ export function preparerLesTokens(
     }
     variables.push({ nom, type, vise, statut, attend, concerne });
   }
-  return { variables, questions: [...questions.values()] };
+  return { variables, questions: [...questions.values()], sansCible };
 }

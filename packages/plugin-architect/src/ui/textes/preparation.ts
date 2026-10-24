@@ -28,7 +28,10 @@ export const TEXTES_PREPARATION = {
   preparationTaillePropriete: (champs: string, valeur: number | undefined) => (valeur === undefined ? champs : `${champs}, ${valeur} px`),
   preparationTailleSeul: (famille: string, valeur: number) => `le seul token de ${famille} à ${valeur} px`,
   preparationTailleChoisi: 'votre choix',
-  preparationTailleAucun: (valeur: number | undefined) => (valeur === undefined ? 'aucun token ne vaut cette valeur : une question' : `aucun token ne vaut ${valeur} px : une question`),
+  preparationTailleEnDur: (famille: string, valeur: number) => `aucun token de ${famille} ne vaut ${valeur} px : reste en dur`,
+  preparationResteEnDur: (nombre: number) => (nombre === 1
+    ? '1 valeur reste en dur : Architect ne crée pas de token dans layout. Elle reste dans À faire dans Figma.'
+    : `${nombre} valeurs restent en dur : Architect ne crée pas de token dans layout. Elles restent dans À faire dans Figma.`),
   preparationTaillePlusieurs: (nombre: number, valeur: number | undefined) => (valeur === undefined ? `${nombre} tokens conviennent : une question` : `${nombre} tokens valent ${valeur} px : une question`),
   preparationCrans: (clair: Cran, sombre: Cran) => (clair === undefined ? '' : sombre === undefined || sombre === clair ? cranClair(clair) : `${cranClair(clair)}, ${cranSombre(sombre)}`),
   preparationValeurEnPixels: (valeur: number) => `${valeur} px`,

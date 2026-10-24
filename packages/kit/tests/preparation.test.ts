@@ -128,7 +128,48 @@ test('une taille se lie seulement si un seul token de sizing a la valeur', () =>
   assert.equal(deux.variables[2].vise, null);
   assert.deepEqual(deux.questions.map(({ id, candidats }) => [id, candidats.length]), [['cible:components/alert/size/padding-x', 2]]);
   const aucun = avec(sizing(['4', 16]));
-  assert.deepEqual(aucun.questions.map(({ id, candidats }) => [id, candidats.length]), [['cible:components/alert/size/padding-x', 0]]);
+  assert.deepEqual(aucun.questions, []);
+  assert.deepEqual(aucun.variables.filter(({ type }) => type === 'FLOAT'), []);
+});
+
+const rayons = (...jetons: [string, number][]): EntreeDeVariable[] => jetons.map(([nom, valeur]) => ({ nom: `layout/radius/${nom}`, collection: 'layout', valeur }));
+
+test('une taille sans token exact reste en dur : ni variable, ni question, et la préparation reste possible', () => {
+  const resultat = preparerLesTokens(alert({ rayon: 13 }), catalogue(...complet('soft'), ...rayons(['14', 14])), reponses);
+  assert.deepEqual(resultat.questions, []);
+  assert.deepEqual(resultat.sansCible?.map(({ nom, champ, famille, valeur }) => [nom, champ, famille, valeur]), [['components/alert/size/radius', 'cornerRadius', 'radius', 13]]);
+  assert.ok(resultat.variables.every(({ vise, attend }) => vise !== null && attend.length === 0));
+  assert.ok(!resultat.variables.some(({ nom }) => nom.endsWith('/radius')));
+});
+
+test('des lieux de mesures différentes sous un même nom ne partagent pas une variable', () => {
+  const composant = alert({ palettes: ['danger', 'success'] });
+  const rayonDe = (palette: string, valeur: number) => composant.variants.find(({ id }) => id === palette)!.layers[0].valeursEnDur.push({ champ: 'cornerRadius', valeur });
+  rayonDe('danger', 12); rayonDe('success', 13);
+  const themes = [...themeDuStatut('danger', 'soft'), ...themeDuStatut('success', 'soft'), ...sizing(['2', 8])];
+  const un = preparerLesTokens(composant, catalogue(...themes, ...rayons(['12', 12])), reponses);
+  const rayon = un.variables.find(({ nom }) => nom === 'components/alert/size/radius');
+  assert.deepEqual(rayon?.concerne.map(({ variant }) => variant), ['danger']);
+  assert.equal(rayon?.vise?.nom, 'layout/radius/12');
+  assert.deepEqual(un.sansCible?.map(({ lieu, valeur }) => [lieu.variant, valeur]), [['success', 13]]);
+  assert.deepEqual(un.questions, []);
+  const deux = preparerLesTokens(composant, catalogue(...themes, ...rayons(['12', 12], ['13', 13])), reponses);
+  assert.ok(!deux.variables.some(({ nom }) => nom === 'components/alert/size/radius'));
+  assert.deepEqual(deux.sansCible?.map(({ valeur }) => valeur), [12, 13]);
+});
+
+test('une réponse libre à une question cible ne pose aucune cible', () => {
+  const taille = 'components/alert/size/padding-x';
+  const libreTaille = preparerLesTokens(alert(), catalogue(...theme('soft'), ...sizing(['4', 16])), { ...reponses, [`cible:${taille}`]: 'layout/sizing/4' });
+  assert.deepEqual(libreTaille.variables.filter(({ type }) => type === 'FLOAT'), []);
+  const fond = 'components/alert/color/danger/soft/background';
+  const sansFond = catalogue(...theme('soft').filter(({ nom }) => !nom.endsWith('surface/default')), ...sizing(['2', 8]), { nom: 'theme/danger/soft/solid/default', collection: 'theme' });
+  const libreCouleur = preparerLesTokens(alert(), sansFond, { 'dossier:soft': 'page', [`cible:${fond}`]: 'theme/danger/soft/solid/default' });
+  assert.equal(libreCouleur.variables.find((variable) => variable.nom === fond)?.vise, null);
+  assert.ok(libreCouleur.questions.some(({ id }) => id === `cible:${fond}`));
+  const jetons = catalogue(...theme('soft'), ...sizing(['2', 8], ['huit', 8]));
+  const choisie = preparerLesTokens(alert(), jetons, { ...reponses, [`cible:${taille}`]: 'layout/sizing/huit' });
+  assert.equal(choisie.variables.find((variable) => variable.nom === taille)?.vise?.nom, 'layout/sizing/huit');
 });
 
 test('un token qui vaut la taille par alias est reconnu', () => {

@@ -17,7 +17,7 @@ export { controlerMapping } from './mapping.js';
 export { controlerCouches } from './couche.js';
 export { controlerOublis } from './oublis.js';
 export { preparerLesTokens } from './preparation.js';
-export type { PreparationDesTokens, VariableAPreparer, ViseDePreparation, LieuDePreparation, ReponsesDePreparation } from './preparation.js';
+export type { PreparationDesTokens, VariableAPreparer, ViseDePreparation, LieuDePreparation, ReponsesDePreparation, TailleSansCible } from './preparation.js';
 export { proposerLesCorrections } from './corrections.js';
 export { proposerLaPropagation } from './propagation.js';
 export { controlerLeTheme, controlerLesModes } from './theme.js';

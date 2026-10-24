@@ -255,7 +255,7 @@ tokens sont deux fichiers : la préparation passe de l'un à l'autre par
 
 | Étape | Fichier | Ce qui se passe |
 |---|---|---|
-| Préparer | Composants | Les questions (dossier d'une valeur de style, intensité, nom d'un élément, icône, taille sans token exact) se tranchent ; Préparer reste inactif tant qu'une question reste |
+| Préparer | Composants | Les questions (dossier d'une valeur de style, intensité, nom d'un élément, icône, choix entre plusieurs tokens de même valeur) se tranchent ; Préparer reste inactif tant qu'une question reste. Une taille sans token de `layout` qui la vaille exactement ne pose pas de question : elle reste en dur (`sansCible`) et la feuille le dit |
 | Ranger | Composants | La préparation se range sous `CLE_DES_PREPARATIONS`, ou se copie en texte |
 | Créer | Tokens | Seules les variables manquantes de `components` se créent, par le journal de structure |
 | Lier | Composants | Les variables publiées reviennent au composant en corrections de liaison |

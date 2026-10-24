@@ -273,7 +273,24 @@ test('la feuille de préparation montre les cibles du plan, une ligne par taille
     assert.equal(await page.locator('[data-preparation-question="nom:Frame 12"] .prep-cible').count(), 0);
     assert.equal(await page.locator('.fiche-bloc:has(> .fiche-liste) .diff').count(), 18);
     assert.match(await page.locator('.fiche-bloc:has(> .fiche-liste)').last().locator('.fiche-bloc-tete').innerText(), /16 variables\s+10 savent déjà ce qu’elles visent/);
-    assert.match(await page.locator('.fiche-bloc:has(> .fiche-liste)').first().locator('.diff').last().innerText(), /aucun token ne vaut 13 px : une question/);
+  } finally { await fermer(page); }
+});
+
+test('une taille sans token exact reste en dur : le bouton Préparer est actif et la feuille le dit', async () => {
+  const page = await ouvrirLaPreparation();
+  try {
+    const { plan } = messageDuPlan;
+    const enDur = { nom: 'components/tag/size/corner-radius', champ: 'cornerRadius', famille: 'radius', valeur: 13, lieu: { variant: 'tag:variant:1', layer: 'tag:1', champ: 'cornerRadius' } };
+    await envoyer(page, {
+      ...messageDuPlan,
+      plan: {
+        ...plan, questions: [], sansCible: [enDur],
+        variables: plan.variables.filter(({ nom, vise }) => nom !== enDur.nom && vise !== null),
+      },
+    });
+    assert.equal(await page.locator('.prep-pied .btn-primary').isDisabled(), false);
+    assert.match(await page.locator('[data-preparation-en-dur]').innerText(), /aucun token de radius ne vaut 13 px : reste en dur/);
+    assert.equal(await page.locator('[data-preparation-reste-en-dur]').innerText(), '1 valeur reste en dur : Architect ne crée pas de token dans layout. Elle reste dans À faire dans Figma.');
   } finally { await fermer(page); }
 });
 

@@ -164,7 +164,7 @@ test('preparer : chaque candidat d’une question montre la cible qu’il donner
   reinitialiserLAnalyse();
 });
 
-test('preparer : une taille en dur est mesurée, et une question sans candidat n’a pas d’aperçu', async () => {
+test('preparer : une taille en dur sans token exact reste en dur, sans variable ni question, et la préparation se range', async () => {
   reinitialiserLAnalyse();
   const b = banc();
   const identite = commencerUneAnalyse('jeu-1', ['n'], b.contexte);
@@ -172,10 +172,10 @@ test('preparer : une taille en dur est mesurée, et une question sans candidat n
   retenirLesCorrections(identite, [], { ...releve(), variants: [{ ...releve().variants[0], layers: [arrondi] }] });
   await b.traiter({ type: 'preparer', analyse: identite, reponses: { 'dossier:soft': 'surface' } }, b.contexte);
   const { plan, mesures, apercus } = b.dernier('plan-de-preparation');
-  const rayon = plan?.variables.find(({ type }) => type === 'FLOAT');
-  assert.equal(rayon?.nom, 'components/alert/size/radius');
-  assert.deepEqual(mesures, { 'components/alert/size/radius': 13 });
-  assert.deepEqual(plan?.questions.find(({ id }) => id.startsWith('cible:'))?.candidats, []);
+  assert.equal(plan?.variables.some(({ type }) => type === 'FLOAT'), false);
+  assert.equal(plan?.questions.some(({ id }) => id.startsWith('cible:')), false);
+  assert.deepEqual(plan?.sansCible?.map(({ nom, champ, famille, valeur }) => [nom, champ, famille, valeur]), [['components/alert/size/radius', 'cornerRadius', 'radius', 13]]);
+  assert.deepEqual(mesures, {});
   assert.deepEqual(apercus, {});
   reinitialiserLAnalyse();
 });

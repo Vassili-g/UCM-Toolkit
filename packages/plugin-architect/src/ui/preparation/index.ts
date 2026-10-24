@@ -100,14 +100,25 @@ export function monterPreparation(etat: Etat): Preparation {
     if (question.id.startsWith('nom:')) return T.preparationNoteNom;
     return exemple?.question === question.id ? T.preparationNoteDossier(exemple.palette) : undefined;
   };
-  /** Ce qui reste à dire d'une taille : le token vise seul sa valeur, le designer l'a choisi, ou une question le retient. */
+  /** Ce qui reste à dire d'une taille : le token vise seul sa valeur, le designer l'a choisi, ou une question le retient. Une taille sans token exact n'est pas une variable : `sansCible` la porte. */
   const noteDeLaTaille = (variable: PreparationDesTokens['variables'][number], mesure: number | undefined): string => {
     if (variable.vise) {
       return reponses[`cible:${variable.nom}`] !== undefined || mesure === undefined ? T.preparationTailleChoisi : T.preparationTailleSeul(variable.vise.nom.split('/')[1] ?? '', mesure);
     }
     const choix = plan?.questions.find((question) => question.id === `cible:${variable.nom}`);
     if (!choix) return T.preparationAttente(titresDesQuestions(variable.attend));
-    return choix.candidats.length === 0 ? T.preparationTailleAucun(mesure) : T.preparationTaillePlusieurs(choix.candidats.length, mesure);
+    return T.preparationTaillePlusieurs(choix.candidats.length, mesure);
+  };
+  /** Les tailles en dur, une ligne par nom et par valeur : plusieurs lieux de même valeur n'en font qu'une. */
+  const taillesEnDur = (): { champs: string; famille: string; valeur: number }[] => {
+    const lignes = new Map<string, { champs: Set<string>; famille: string; valeur: number }>();
+    for (const taille of plan?.sansCible ?? []) {
+      const cle = `${taille.nom}|${taille.valeur}`;
+      const ligne = lignes.get(cle) ?? { champs: new Set<string>(), famille: taille.famille, valeur: taille.valeur };
+      ligne.champs.add(TEXTES.correctionsDuComposant.champDeLaCarte(taille.champ));
+      lignes.set(cle, ligne);
+    }
+    return [...lignes.values()].map(({ champs, famille, valeur }) => ({ champs: [...champs].join(' et '), famille, valeur }));
   };
   const demander = (ranger = false): void => {
     if (!etat.analyse) return;
@@ -175,7 +186,8 @@ export function monterPreparation(etat: Etat): Preparation {
         }
         corps.append(bloc);
       }
-      if (plan.variables.some((variable) => variable.type === 'FLOAT')) {
+      const enDur = taillesEnDur();
+      if (plan.variables.some((variable) => variable.type === 'FLOAT') || enDur.length > 0) {
         const tailles = creerSection(T.preparationTaillesTitre);
         const liste = document.createElement('div'); liste.className = 'fiche-liste';
         const enTete = document.createElement('div'); enTete.className = 'colonnes-tete sans-case';
@@ -192,7 +204,16 @@ export function monterPreparation(etat: Etat): Preparation {
           const note = document.createElement('span'); note.className = 'meta'; note.textContent = noteDeLaTaille(variable, mesure);
           cible.append(note); ligne.append(libelle, cible); liste.append(ligne);
         }
-        tailles.append(liste); corps.append(tailles);
+        for (const taille of enDur) {
+          const ligne = document.createElement('div'); ligne.className = 'diff sans-case'; ligne.dataset.preparationEnDur = 'oui';
+          const libelle = document.createElement('span'); libelle.className = 'chemin'; libelle.textContent = T.preparationTaillePropriete(taille.champs, taille.valeur);
+          const cible = document.createElement('span'); cible.className = 'chemin-apres';
+          const note = document.createElement('span'); note.className = 'meta'; note.textContent = T.preparationTailleEnDur(taille.famille, taille.valeur);
+          cible.append(note); ligne.append(libelle, cible); liste.append(ligne);
+        }
+        tailles.append(liste);
+        if (enDur.length > 0) { const reste = document.createElement('p'); reste.className = 'meta'; reste.dataset.preparationResteEnDur = 'oui'; reste.textContent = T.preparationResteEnDur(enDur.length); tailles.append(reste); }
+        corps.append(tailles);
       }
       if (plan.variables.length) {
         const section = creerSection(T.preparationTableTitre(plan.variables.length));

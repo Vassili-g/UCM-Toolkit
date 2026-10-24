@@ -53,14 +53,21 @@ function porteeCompatible(scopes: readonly string[], attendue: string): boolean 
   return scopes.includes(attendue) || scopes.includes('ALL_FILLS');
 }
 
-function signature(variable: VariableDuCatalogue, catalogue: CatalogueDeReference): string {
-  const alias = variable.valeurs && Object.values(variable.valeurs).find((valeur): valeur is { alias: string } => 'alias' in valeur);
-  const cible = alias ? variableDuCatalogue(catalogue, alias.alias) : 'absente';
-  const retenue = cible === 'absente' ? variable : cible;
+function signatureDeCible(retenue: VariableDuCatalogue, catalogue: CatalogueDeReference): string {
   const collection = catalogue.collections.find((entree) => entree.cle === retenue.collection);
   const segments = retenue.nom.split('/');
   if (collection?.role === 'theme' && segments.length > 1) return `${collection.role}:${segments.slice(1).map(formeReconnue).join('/')}`;
   return `${collection?.role ?? retenue.collection}:${segments.map(formeReconnue).join('/')}`;
+}
+
+/** Réunit la cible de chaque mode, triée : l'écart d'un seul mode change la signature, l'ordre des modes ne la change pas. */
+function signature(variable: VariableDuCatalogue, catalogue: CatalogueDeReference): string {
+  const modes = Object.values(variable.valeurs ?? {});
+  const cibles = (modes.length ? modes : [{ valeur: null }]).map((valeur) => {
+    const cible = 'alias' in valeur ? variableDuCatalogue(catalogue, valeur.alias) : 'absente';
+    return signatureDeCible(cible === 'absente' ? variable : cible, catalogue);
+  });
+  return [...new Set(cibles)].sort().join(' | ');
 }
 
 function ecartsDeFratrie(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
