@@ -99,6 +99,36 @@ test('le banc compare deux analyses indépendantes, leurs constats, corrections,
   );
 });
 
+test('le banc conserve une lecture partielle, ses manquées localisées et ses variants non lus', async () => {
+  let fabriques = 0;
+  const fabriquer = () => {
+    fabriques += 1;
+    const b = banc();
+    const releve = releveDe('Alert', {
+      layersLus: 2,
+      layersNonLus: 4,
+      variantsNonLus: ['Alert compact', 'Alert disabled'],
+      manquees: [{ layer: 'texte', champ: 'dimensions', motif: 'boîte illisible' }],
+    });
+    return {
+      b,
+      lectures: {
+        ...lecteurs(async () => ({ etat: 'partielle', export: exportDe([pointDeTest]), lus: 1, nonLus: 2 })),
+        releve: async () => ({ statut: 'lu' as const, releve }),
+      },
+    };
+  };
+  const reference = await verifierLaPariteDeLAnalyse(fabriquer);
+  assert.equal(fabriques, 2);
+  assert.deepEqual(reference.releve?.lecture, {
+    layersLus: 2,
+    layersNonLus: 4,
+    variantsNonLus: ['Alert compact', 'Alert disabled'],
+    manquees: [{ layer: 'texte', champ: 'dimensions', motif: 'boîte illisible' }],
+  });
+  assert.equal(reference.messages.find((message) => message.type === 'analyse')?.type, 'analyse');
+});
+
 test('une analyse complète rend l’identité dans chaque message et les constats du moteur traduits', async () => {
   const b = banc();
   await traiterAvec(lecteurs(complete([pointDeTest])))({ type: 'analyser' }, b.contexte);

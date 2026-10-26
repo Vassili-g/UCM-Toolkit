@@ -141,6 +141,15 @@ test('un budget qui coupe au quatrième variant compte les layers non lus', asyn
   });
 });
 
+test('deux acquisitions indépendantes gardent les textes à plages et instances surchargées', async () => {
+  const { a, jeu } = jeuFactice();
+  const premierPort = variables();
+  const premier = await lireLeReleve(a.port(premierPort.port), jeu);
+  const secondPort = variables();
+  const second = await lireLeReleve(a.port(secondPort.port), jeu);
+  assert.deepEqual(second, premier);
+});
+
 test('un budget plus petit que le premier variant le lit quand même', async () => {
   const { a, jeu } = jeuFactice();
   const { port } = variables();
