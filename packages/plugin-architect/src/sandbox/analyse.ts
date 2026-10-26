@@ -23,7 +23,7 @@ import {
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
-import { ouvrirLaMesure, fermerLaMesure, etape, attendrePourLaMesure, mesurerLeCalcul, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { ouvrirLaMesure, fermerLaMesure, etape, compter, attendrePourLaMesure, mesurerLeCalcul, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import type { JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
@@ -242,8 +242,8 @@ async function sujetDeFigma(contexte: Contexte): Promise<SujetAAnalyser | null> 
 function portDuComposant({ figma }: Contexte): PortDuComposant {
   return {
     selection: () => selectionLue(figma),
-    getNodeByIdAsync: (id) => figma.getNodeByIdAsync(id) as unknown as Promise<NoeudLu | null>,
-    getStyleByIdAsync: (id) => figma.getStyleByIdAsync(id) as never,
+    getNodeByIdAsync: (id) => attendrePourLaMesure(() => figma.getNodeByIdAsync(id), 'api') as unknown as Promise<NoeudLu | null>,
+    getStyleByIdAsync: (id) => attendrePourLaMesure(() => figma.getStyleByIdAsync(id), 'api') as never,
     variables: portDeLecture(figma),
     pause: () => new Promise((resolve) => setTimeout(resolve, 0)),
   };
@@ -321,7 +321,7 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
 };
 
 interface Operation {
-  cloreMesure?: (fin: string) => TraceDeMesure | null;
+  cloreMesure?: (fin: string, contenu?: string) => TraceDeMesure | null;
   /** Connue dès que le sujet est résolu ; une seconde demande l'attend pour répondre `occupe`. */
   readonly identite: Promise<IdentiteDAnalyse>;
   connue: IdentiteDAnalyse | null;
@@ -360,10 +360,10 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   if (demande.mesurer) ouvrirLaMesure();
   let mesureOuverte = demande.mesurer === true;
   let mesureClose: TraceDeMesure | null = null;
-  courant.cloreMesure = (fin) => {
+  courant.cloreMesure = (fin, contenu = '') => {
     if (!mesureOuverte) return mesureClose;
     mesureOuverte = false;
-    const trace = fermerLaMesure('');
+    const trace = fermerLaMesure(contenu);
     if (trace) trace.fin = fin;
     mesureClose = trace;
     return trace;
@@ -380,7 +380,9 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       variants: releve?.variants.map(({ id, nom }) => ({ id, nom })) ?? [],
       sansTokens: releve !== null && catalogueLu !== null && tokensDuComposant(releve, catalogueLu).length === 0,
     }), 'projection');
-    const mesure = courant.cloreMesure?.(statut);
+    const contenu = mesureOuverte ? JSON.stringify(sortie) : '';
+    if (mesureOuverte) compter('tailleSortieArchitect', contenu.length);
+    const mesure = courant.cloreMesure?.(statut, contenu);
     contexte.envoyer({ type: 'analyse', analyse: identite as IdentiteDAnalyse, statut, ...sortie, ...(mesure ? { mesure } : {}) });
     if (releve !== null) contexte.envoyer({ type: 'ignores', analyse: identite as IdentiteDAnalyse, constats: ecartes });
   };
@@ -402,7 +404,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     contexte.envoyer({ type: 'analyse-en-cours', analyse: identite, variantsLus: releve.variants.length, variantsTotal: releve.variants.length + releve.lecture.variantsNonLus.length });
 
     retenirLesLiaisons(liaisonsParCle(releve));
-    const niveau = await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => 'AA') ?? 'AA';
+    const niveau = await attendrePourLaMesure(async () => await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => 'AA') ?? 'AA');
     phase('catalogue');
     const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte), 'attente', 'catalogue');
     catalogueLu = catalogue;
@@ -423,7 +425,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     const brut = mesurerLeCalcul(() => [...controlesDuKit(releve, catalogue, niveau, architectureUcm), ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))], 'controles');
     phase('corrections');
     const tous = mesurerLeCalcul(() => proposerLesCorrections(releve, catalogue, brut), 'corrections');
-    const rangees = await lecteurs.ignores?.(contexte).catch((): readonly string[] => []) ?? [];
+    const rangees = await attendrePourLaMesure(async () => await lecteurs.ignores?.(contexte).catch((): readonly string[] => []) ?? []);
     const { visibles, ignores } = separerLesIgnores(tous, rangees);
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
     rendre(resultat.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete', visibles, releve, ignores, tous);

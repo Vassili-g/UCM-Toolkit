@@ -7,7 +7,7 @@
  * portée calcule sans mémoire. Le résultat est le même dans les deux cas ; seul
  * le nombre d'allers-retours vers Figma change.
  */
-import { compter } from './mesure';
+import { compter, attendrePourLaMesure } from './mesure';
 
 /**
  * Le jeton qu'un appelant lève pour demander l'arrêt de l'analyse : une
@@ -136,7 +136,7 @@ export async function respirerSiBesoin(): Promise<void> {
   if (!ouverte.respirer) return;
   if (Date.now() - ouverte.derniereRespiration < BUDGET_DE_CALCUL_MS) return;
   compter('respirations');
-  await ouverte.respirer();
+  await attendrePourLaMesure(() => ouverte.respirer!(), 'cession');
   ouverte.derniereRespiration = Date.now();
 }
 

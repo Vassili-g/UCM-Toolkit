@@ -21,6 +21,8 @@
  * Une cible que ni la lecture ni l'import ne rendent reste « introuvable »,
  * ou « refusée » quand la lecture a levé : elle n'est pas déclarée supprimée.
  */
+import { attendrePourLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+
 import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
 import { estCleDeNommage, lireReglesDeNommage } from '@ucm-kit/core/protocoles';
 
@@ -493,4 +495,15 @@ export async function lireLeReleve(port: PortDeLecture, fichier: string, revisio
     espace,
   };
   return { statut: 'lu', releve };
+}
+
+/** Compte les appels du port pendant une trace, en conservant le destinataire des méthodes Figma. */
+export function mesurerLePortDeLecture(variables: PortDeLecture): PortDeLecture {
+  return {
+    getLocalVariableCollectionsAsync: () => attendrePourLaMesure(() => variables.getLocalVariableCollectionsAsync(), 'api'),
+    getLocalVariablesAsync: () => attendrePourLaMesure(() => variables.getLocalVariablesAsync(), 'api'),
+    getVariableByIdAsync: (id) => attendrePourLaMesure(() => variables.getVariableByIdAsync(id), 'api'),
+    getVariableCollectionByIdAsync: (id) => attendrePourLaMesure(() => variables.getVariableCollectionByIdAsync(id), 'api'),
+    importVariableByKeyAsync: (cle) => attendrePourLaMesure(() => variables.importVariableByKeyAsync(cle), 'api'),
+  };
 }

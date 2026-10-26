@@ -8,11 +8,40 @@ import test from 'node:test';
 import handleExportComponent, { ETAPES_DE_L_ANALYSE } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import {
   abandonnerLaMesure, avancementCourant, avancer, compter, empreinteDuContrat, etape, fermerLaMesure,
-  ouvrirLaMesure,
+  ouvrirLaMesure, attendrePourLaMesure, mesurerLeCalcul,
   retenirLeMaximum,
 } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { node } from './aides/figmaFaux';
 import { tempsRestant } from '../src/ui/components/CarteCommande';
+
+test('les attentes, cessions et calculs mesurés restent séparés ; une attente tardive ne fuit pas vers la trace suivante', async () => {
+  const horloge = Date.now;
+  let instant = 0;
+  Date.now = () => instant;
+  try {
+    ouvrirLaMesure();
+    await attendrePourLaMesure(async () => { instant += 8; }, 'api', 'sujet');
+    await attendrePourLaMesure(async () => { instant += 3; }, 'cession');
+    mesurerLeCalcul(() => { instant += 17; }, 'controles');
+    const trace = fermerLaMesure('');
+    assert.equal(trace?.compteurs.appelsApiArchitect, 1);
+    assert.equal(trace?.compteurs.attentesArchitect, 1);
+    assert.equal(trace?.compteurs.msEnAttenteArchitect, 8);
+    assert.equal(trace?.compteurs.cessionsArchitect, 1);
+    assert.equal(trace?.compteurs.msEnCessionArchitect, 3);
+    assert.equal(trace?.compteurs.plusLongueTrancheArchitectMs, 17);
+    assert.deepEqual(trace?.phases, [{ nom: 'sujet', ms: 8 }, { nom: 'controles', ms: 17 }]);
+    ouvrirLaMesure();
+    let resoudre!: () => void;
+    const attente = attendrePourLaMesure(() => new Promise<void>((resolve) => { resoudre = resolve; }), 'api');
+    fermerLaMesure('');
+    ouvrirLaMesure();
+    instant += 100;
+    resoudre();
+    await attente;
+    assert.deepEqual(fermerLaMesure('')?.compteurs, {});
+  } finally { Date.now = horloge; abandonnerLaMesure(); }
+});
 
 /** Un composant seul, un texte, et le strict nécessaire du faux `figma`. */
 function monterUnComposant(texte = 'Suivant') {

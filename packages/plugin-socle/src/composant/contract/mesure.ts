@@ -26,7 +26,16 @@ export type Compteur =
   | 'msEnRespiration'
   | 'plusLongSilenceMs'
   | 'tailleIndex'
-  | 'porteeRefusee';
+  | 'porteeRefusee'
+  | 'appelsApiArchitect'
+  | 'proprietesDuReleve'
+  | 'attentesArchitect'
+  | 'msEnAttenteArchitect'
+  | 'cessionsArchitect'
+  | 'msEnCessionArchitect'
+  | 'tranchesSynchronesArchitect'
+  | 'plusLongueTrancheArchitectMs'
+  | 'tailleSortieArchitect';
 
 /**
  * Une étape attendue de l'analyse, et sa part du temps total supposé.
@@ -109,7 +118,7 @@ function poidsTotal(prevues: readonly EtapePrevue[]): number {
 }
 
 /** Les maximums ne se découpent pas par étape : une différence n'y dit rien. */
-const MAXIMUMS: ReadonlySet<Compteur> = new Set(['plusLongSilenceMs']);
+const MAXIMUMS: ReadonlySet<Compteur> = new Set(['plusLongSilenceMs', 'plusLongueTrancheArchitectMs']);
 
 function clore(ouverte: Trace, maintenant: number): void {
   if (!ouverte.enCours) return;
@@ -239,10 +248,13 @@ export async function attendrePourLaMesure<T>(appel: () => Promise<T>, nature: '
   const ouverte = trace;
   if (!ouverte) return appel();
   const debut = Date.now();
+  if (nature === 'api') compter('appelsApiArchitect');
+  compter(nature === 'cession' ? 'cessionsArchitect' : 'attentesArchitect');
   try { return await appel(); }
   finally {
     if (trace === ouverte) {
       const ms = Date.now() - debut;
+      compter(nature === 'cession' ? 'msEnCessionArchitect' : 'msEnAttenteArchitect', ms);
       if (phase) ouverte.phases.push({ nom: phase, ms });
     }
   }
@@ -254,7 +266,9 @@ export function mesurerLeCalcul<T>(calcul: () => T, phase?: string): T {
   const debut = Date.now();
   try { return calcul(); }
   finally {
+    compter('tranchesSynchronesArchitect');
     const ms = Date.now() - debut;
+    retenirLeMaximum('plusLongueTrancheArchitectMs', ms);
     if (phase) trace?.phases.push({ nom: phase, ms });
   }
 }

@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { ouvrirLaMesure, fermerLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { lireLeReleve } from '../src/releveDuComposant';
 import { atelierDeCalques, collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
 
@@ -240,4 +241,18 @@ test('un calque hors de tout composant n’a pas de relevé, et la lecture n’�
   const depuisUnVariant = await lireLeReleve(a.port(port), variants[2]);
   assert.equal(depuisUnVariant.statut === 'lu' && depuisUnVariant.releve.variants.length, 6);
   assert.ok(a.journal.every((appel) => ['getStyledTextSegments', 'getMainComponentAsync', 'pause', 'getNodeByIdAsync', 'getStyleByIdAsync'].includes(appel)));
+});
+
+test('la mesure du relevé compte ses propriétés et ses pauses existantes sans changer les faits', async () => {
+  const a = atelierDeCalques();
+  const enfants = Array.from({ length: 401 }, (_, rang) => a.calque(`n${rang}`, 'FRAME', { absoluteBoundingBox: boite(0, 0, 1, 1) }));
+  const racine = a.calque('racine', 'COMPONENT', { absoluteBoundingBox: boite(0, 0, 1, 1) }, enfants);
+  const port = a.port(variables().port);
+  const reference = await lireLeReleve(port, racine);
+  ouvrirLaMesure();
+  const courant = await lireLeReleve(port, racine);
+  const trace = fermerLaMesure('');
+  assert.deepEqual(courant, reference);
+  assert.ok((trace?.compteurs.proprietesDuReleve ?? 0) > 401);
+  assert.equal(trace?.compteurs.cessionsArchitect, 1);
 });

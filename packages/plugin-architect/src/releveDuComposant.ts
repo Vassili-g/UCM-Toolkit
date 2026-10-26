@@ -22,6 +22,7 @@
  */
 import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu } from '@ucm-kit/core/controles';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
+import { compter, attendrePourLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import type { JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { liaisonsDuNoeud, type NoeudLu } from './consommateurs';
@@ -48,7 +49,10 @@ type Etape = { noeud: NoeudLu; parent: string | null; frontiere: boolean };
 const estUnNombre = (valeur: unknown): valeur is number => typeof valeur === 'number' && Number.isFinite(valeur);
 const estUnObjet = (valeur: unknown): valeur is Brut => typeof valeur === 'object' && valeur !== null;
 const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
-const brut = (noeud: NoeudLu): Brut => noeud as unknown as Brut;
+const champLu = (noeud: NoeudLu, champ: string): unknown => {
+  compter('proprietesDuReleve');
+  return (noeud as unknown as Brut)[champ];
+};
 
 const estUnVariant = (noeud: NoeudLu): boolean => noeud.type === 'COMPONENT' && noeud.parent?.type === 'COMPONENT_SET';
 
@@ -112,17 +116,16 @@ const RAYONS = ['topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRi
 function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimensions: LayerLu['dimensions'] | null): LayerLu['valeursEnDur'] {
   const liees = new Set(liaisons.filter((liaison) => !liaison.plage).map((liaison) => liaison.champ));
   const liee = (...champs: string[]): boolean => champs.some((champ) => liees.has(champ));
-  const donnees = brut(noeud);
   const valeurs: LayerLu['valeursEnDur'] = [];
   const ajouter = (champ: string, valeur: unknown, ...aussi: string[]) => {
     if (estUnNombre(valeur) && !liee(champ, ...aussi)) valeurs.push({ champ, valeur });
   };
-  if (typeof donnees.layoutMode === 'string' && donnees.layoutMode !== 'NONE') for (const champ of CHAMPS_NUMERIQUES) ajouter(champ, donnees[champ]);
-  if (estUnNombre(donnees.cornerRadius)) ajouter('cornerRadius', donnees.cornerRadius, ...RAYONS);
-  else for (const coin of RAYONS) ajouter(coin, donnees[coin], 'cornerRadius');
+  if (typeof champLu(noeud, 'layoutMode') === 'string' && champLu(noeud, 'layoutMode') !== 'NONE') for (const champ of CHAMPS_NUMERIQUES) ajouter(champ, champLu(noeud, champ));
+  if (estUnNombre(champLu(noeud, 'cornerRadius'))) ajouter('cornerRadius', champLu(noeud, 'cornerRadius'), ...RAYONS);
+  else for (const coin of RAYONS) ajouter(coin, champLu(noeud, coin), 'cornerRadius');
   // Figma donne une épaisseur (1 par défaut) à tout layer, même sans contour : sans contour visible, elle ne se voit pas.
-  const contourVisible = Array.isArray(donnees.strokes) && donnees.strokes.some((peinture) => estUnObjet(peinture) && peinture.visible !== false && peinture.opacity !== 0);
-  if (contourVisible) ajouter('strokeWeight', donnees.strokeWeight, 'strokeTopWeight', 'strokeRightWeight', 'strokeBottomWeight', 'strokeLeftWeight');
+  const contourVisible = Array.isArray(champLu(noeud, 'strokes')) && (champLu(noeud, 'strokes') as unknown[]).some((peinture) => estUnObjet(peinture) && peinture.visible !== false && peinture.opacity !== 0);
+  if (contourVisible) ajouter('strokeWeight', champLu(noeud, 'strokeWeight'), 'strokeTopWeight', 'strokeRightWeight', 'strokeBottomWeight', 'strokeLeftWeight');
   if (dimensions) {
     if (!liee('width')) valeurs.push({ champ: 'width', valeur: dimensions.largeur });
     if (!liee('height')) valeurs.push({ champ: 'height', valeur: dimensions.hauteur });
@@ -132,11 +135,10 @@ function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimension
 
 /** `null` quand la boîte ne se lit pas : la manquée est consignée, le layer garde des dimensions nulles. */
 function dimensionsDe(noeud: NoeudLu, manquees: Manquee[]): LayerLu['dimensions'] | null {
-  const donnees = brut(noeud);
   const boite = noeud.absoluteBoundingBox;
   if (boite) return { x: boite.x, y: boite.y, largeur: boite.width, hauteur: boite.height };
-  if ([donnees.x, donnees.y, donnees.width, donnees.height].every(estUnNombre)) {
-    return { x: donnees.x as number, y: donnees.y as number, largeur: donnees.width as number, hauteur: donnees.height as number };
+  if ([champLu(noeud, 'x'), champLu(noeud, 'y'), champLu(noeud, 'width'), champLu(noeud, 'height')].every(estUnNombre)) {
+    return { x: champLu(noeud, 'x') as number, y: champLu(noeud, 'y') as number, largeur: champLu(noeud, 'width') as number, hauteur: champLu(noeud, 'height') as number };
   }
   manquees.push({ layer: noeud.id, champ: 'dimensions', motif: 'boîte illisible' });
   return null;
@@ -259,9 +261,9 @@ async function instanceDe(noeud: NoeudLu, manquees: Manquee[]): Promise<LayerLu[
       return undefined;
     }
     const jeu = estUnVariant(maitre) && maitre.parent ? maitre.parent : maitre;
-    const references = brut(noeud).componentPropertyReferences;
+    const references = champLu(noeud, 'componentPropertyReferences');
     const pilotee = estUnObjet(references) && typeof references.mainComponent === 'string' ? references.mainComponent : null;
-    return { cle: String(brut(jeu).key ?? ''), nom: jeu.name, distante: brut(maitre).remote === true, pilotee };
+    return { cle: String(champLu(jeu, 'key') ?? ''), nom: jeu.name, distante: champLu(maitre, 'remote') === true, pilotee };
   } catch (erreur) {
     manquees.push({ layer: noeud.id, champ: 'instanceDe', motif: messageDErreur(erreur) });
     return undefined;
@@ -270,21 +272,20 @@ async function instanceDe(noeud: NoeudLu, manquees: Manquee[]): Promise<LayerLu[
 
 async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape, manquees: Manquee[]): Promise<LayerLu> {
   const { noeud, parent, frontiere } = etape;
-  const donnees = brut(noeud);
   const dimensions = dimensionsDe(noeud, manquees);
   const layer: LayerLu = {
     id: noeud.id,
     nom: noeud.name,
     type: noeud.type,
     parent,
-    visible: donnees.visible !== false,
-    opacite: estUnNombre(donnees.opacity) ? donnees.opacity : 1,
+    visible: champLu(noeud, 'visible') !== false,
+    opacite: estUnNombre(champLu(noeud, 'opacity')) ? champLu(noeud, 'opacity') as number : 1,
     dimensions: dimensions ?? { x: 0, y: 0, largeur: 0, hauteur: 0 },
     peintures: [...peinturesDe('fills', noeud.fills, noeud.id, manquees), ...peinturesDe('strokes', noeud.strokes, noeud.id, manquees)],
     liaisons: [],
     valeursEnDur: [],
   };
-  if (estUnNombre(donnees.strokeWeight)) layer.strokeWeight = donnees.strokeWeight;
+  if (estUnNombre(champLu(noeud, 'strokeWeight'))) layer.strokeWeight = champLu(noeud, 'strokeWeight') as number;
   try {
     layer.liaisons = await lecteur.liaisons(liaisonsDuNoeud(noeud), noeud.id);
     if (frontiere) {
@@ -309,7 +310,7 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
 
 /** Les valeurs de variant d'un composant : `variantProperties`, sinon son nom `Propriété=Valeur, …`. */
 function valeursDuVariant(variant: NoeudLu): Record<string, string> {
-  const propres = brut(variant).variantProperties;
+  const propres = champLu(variant, 'variantProperties');
   if (estUnObjet(propres)) return Object.fromEntries(Object.entries(propres).map(([nom, valeur]) => [nom, String(valeur)]));
   if (!estUnVariant(variant)) return {};
   return Object.fromEntries(
@@ -325,7 +326,7 @@ const TYPES_DE_PROPRIETE = new Set(['VARIANT', 'BOOLEAN', 'TEXT', 'INSTANCE_SWAP
 function proprietesDe(jeu: NoeudLu, manquees: Manquee[]): ReleveDeComposant['proprietes'] {
   let definitions: unknown;
   try {
-    definitions = brut(jeu).componentPropertyDefinitions;
+    definitions = champLu(jeu, 'componentPropertyDefinitions');
   } catch (erreur) {
     manquees.push({ champ: 'componentPropertyDefinitions', motif: messageDErreur(erreur) });
     return [];
@@ -380,7 +381,7 @@ export async function lireLeReleve(port: PortDuComposant, depart: NoeudLu, optio
       for (const etape of etapes) {
         if (layers.length > 0 && layers.length % LOT === 0) {
           if (annule()) return { statut: 'annule' };
-          await port.pause();
+          await attendrePourLaMesure(() => port.pause(), 'cession');
         }
         layers.push(await lireLeLayer(port, lecteur, etape, manquees));
       }
@@ -397,7 +398,7 @@ export async function lireLeReleve(port: PortDuComposant, depart: NoeudLu, optio
     statut: 'lu',
     releve: {
       version: 1,
-      jeu: { cle: String(brut(jeu).key ?? ''), id: jeu.id, nom: jeu.name },
+      jeu: { cle: String(champLu(jeu, 'key') ?? ''), id: jeu.id, nom: jeu.name },
       proprietes: proprietesDe(jeu, manquees),
       variants,
       lecture: { layersLus, layersNonLus, variantsNonLus, manquees },
