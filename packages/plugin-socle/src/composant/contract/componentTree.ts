@@ -12,6 +12,12 @@ import { pousserSansNode } from './localisation';
 import type { ComposedInstances } from './exportableNodes';
 import { BINDING_PATTERNS, hasCompleteBinding } from './nodeBindings';
 
+function epuiser<T>(calcul: Generator<void, T>): T {
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
 /** Un variant du set : ses valeurs indexées par clés publiques + le node Figma. */
 export type VariantEntry = {
   /** Ex. { color: 'primary', variant: 'contained', state: 'default' }. */
@@ -48,9 +54,10 @@ export type WrapperReference = {
  * Décode le nom d'un variant Figma (« Color=Primary, State=Hover ») en
  * paires clé/valeur normalisées.
  */
-function parseVariantName(name: string): Record<string, string> {
+function* parseVariantName(name: string): Generator<void, Record<string, string>> {
   const variants: Record<string, string> = {};
   for (const entry of name.split(',')) {
+    yield;
     const separator = entry.indexOf('=');
     if (separator === -1) continue;
     const key = normalizePropKey(entry.slice(0, separator));
@@ -69,10 +76,16 @@ function parseVariantName(name: string): Record<string, string> {
  * puis `variantProperties` (plus fiable) écrase en cas de différence.
  */
 export function getVariantValues(component: ComponentNode): Record<string, string> {
-  const source = component.variantProperties ?? {};
-  const variants = parseVariantName(component.name);
+  return epuiser(getVariantValuesParEtapes(component));
+}
 
-  for (const [propertyName, value] of Object.entries(source)) {
+function* getVariantValuesParEtapes(component: ComponentNode): Generator<void, Record<string, string>> {
+  const source = component.variantProperties ?? {};
+  const variants = yield* parseVariantName(component.name);
+
+  for (const propertyName of Object.keys(source)) {
+    yield;
+    const value = source[propertyName];
     const key = normalizePropKey(propertyName);
     Object.defineProperty(variants, key, {
       value: normalizePropValue(value),
@@ -87,18 +100,28 @@ export function getVariantValues(component: ComponentNode): Record<string, strin
 
 /** Les axes variant du set (clés normalisées), dans l'ordre de déclaration. */
 export function getVariantAxes(componentSet: ComponentSetNode): string[] {
-  return Object.entries(componentSet.componentPropertyDefinitions)
-    .filter(([, definition]) => definition.type === 'VARIANT')
-    .map(([name]) => normalizePropKey(name));
+  return epuiser(getVariantAxesParEtapes(componentSet));
+}
+
+function* getVariantAxesParEtapes(componentSet: ComponentSetNode): Generator<void, string[]> {
+  const axes: string[] = [];
+  const definitions = componentSet.componentPropertyDefinitions;
+  for (const name of Object.keys(definitions)) {
+    yield;
+    if (definitions[name].type === 'VARIANT') axes.push(normalizePropKey(name));
+  }
+  return axes;
 }
 
 /** Remplace les clés Figma par les clés publiques décidées lors de l'extraction des props. */
-function remapVariantValues(
+function* remapVariantValues(
   values: Record<string, string>,
   publicKeyByRawKey: ReadonlyMap<string, string>,
-): Record<string, string> {
+): Generator<void, Record<string, string>> {
   const remapped: Record<string, string> = {};
-  for (const [rawKey, value] of Object.entries(values)) {
+  for (const rawKey of Object.keys(values)) {
+    yield;
+    const value = values[rawKey];
     Object.defineProperty(remapped, publicKeyByRawKey.get(rawKey) ?? rawKey, {
       value,
       enumerable: true,
@@ -133,27 +156,38 @@ export function groupComponentsByVariant(
   matrix: VariantMatrix;
   warnings: string[];
 } {
-  const warnings: string[] = [];
-  const components = componentSet.children.filter(
-    (node): node is ComponentNode => node.type === 'COMPONENT',
-  );
+  return epuiser(groupComponentsByVariantParEtapes(componentSet, publicKeyByRawKey));
+}
 
-  let axes = getVariantAxes(componentSet).map(
-    (rawKey) => publicKeyByRawKey.get(rawKey) ?? rawKey,
-  );
-  const variants: VariantEntry[] = components.map((component) => ({
-    values: remapVariantValues(getVariantValues(component), publicKeyByRawKey),
-    component,
-  }));
+function* groupComponentsByVariantParEtapes(componentSet: ComponentSetNode, publicKeyByRawKey: ReadonlyMap<string, string>): Generator<void, { matrix: VariantMatrix; warnings: string[] }> {
+  const warnings: string[] = [];
+  const components: ComponentNode[] = [];
+  for (const node of componentSet.children) {
+    yield;
+    if (node.type === 'COMPONENT') components.push(node);
+  }
+  const rawAxes = yield* getVariantAxesParEtapes(componentSet);
+  const axes: string[] = [];
+  for (const rawKey of rawAxes) {
+    yield;
+    axes.push(publicKeyByRawKey.get(rawKey) ?? rawKey);
+  }
+  const variants: VariantEntry[] = [];
+  for (const component of components) {
+    yield;
+    const values = yield* getVariantValuesParEtapes(component);
+    variants.push({ values: yield* remapVariantValues(values, publicKeyByRawKey), component });
+  }
 
   // Cas limite : si le set n'expose pas ses axes, on les découvre sur les
   // variants eux-mêmes pour ne jamais perdre d'information.
   if (axes.length === 0 && variants.length > 0) {
     const discovered = new Set<string>();
     for (const entry of variants) {
-      for (const key of Object.keys(entry.values)) discovered.add(key);
+      yield;
+      for (const key of Object.keys(entry.values)) { yield; discovered.add(key); }
     }
-    axes = Array.from(discovered);
+    for (const key of discovered) { yield; axes.push(key); }
   }
 
   if (components.length === 0) {
@@ -178,8 +212,13 @@ export function buildVariantMatrix(
   component: ComponentNode | ComponentSetNode,
   publicKeyByRawKey: ReadonlyMap<string, string> = new Map(),
 ): { matrix: VariantMatrix; warnings: string[] } {
+  return epuiser(buildVariantMatrixParEtapes(component, publicKeyByRawKey));
+}
+
+/** Même matrice ordonnée, interruptible dans les variants et les valeurs d'axes. */
+export function* buildVariantMatrixParEtapes(component: ComponentNode | ComponentSetNode, publicKeyByRawKey: ReadonlyMap<string, string> = new Map()): Generator<void, { matrix: VariantMatrix; warnings: string[] }> {
   if (component.type === 'COMPONENT_SET') {
-    return groupComponentsByVariant(component, publicKeyByRawKey);
+    return yield* groupComponentsByVariantParEtapes(component, publicKeyByRawKey);
   }
   return {
     matrix: { axes: [], variants: [{ values: {}, component }] },

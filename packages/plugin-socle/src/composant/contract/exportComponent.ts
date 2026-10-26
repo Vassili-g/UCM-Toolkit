@@ -7,7 +7,7 @@
  */
 import {
   buildFigmaVariantLabels,
-  buildVariantMatrix,
+  buildVariantMatrixParEtapes,
   findMissingVariantCombinations,
   findWrapperReference,
 } from './componentTree';
@@ -373,10 +373,10 @@ async function exporterLeComposant(
   await annoncer('Lecture des variants…');
   verifier();
   etape('variants');
-  const { matrix: matriceLue, warnings: matrixWarnings } = buildVariantMatrix(
+  const { matrix: matriceLue, warnings: matrixWarnings } = await calculerParTranches(buildVariantMatrixParEtapes(
     componentSet,
     propertyModel.publicVariantKeyByRawKey,
-  );
+  ));
   if (matriceLue.variants.length === 0) {
     throw new ComponentExportError(
       `Export impossible pour « ${componentSet.name} » : ce component set ne contient aucun `
