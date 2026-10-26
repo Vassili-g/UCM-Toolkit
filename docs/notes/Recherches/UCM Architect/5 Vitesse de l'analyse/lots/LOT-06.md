@@ -97,9 +97,11 @@ Empreinte `3b6271bb` identique à chaque mesure.
 | 6.0b (`a4d8bb33`) | 17,7 s | 7,9 s | 3,2 s | 2,0 s | 1,7 s | 9,9 s | 0,3 s |
 | 6.6 (`3722f14a`) | 19,4 s | 8,9 s | 3,8 s | 2,1 s | 1,8 s | 11,0 s | 0,0 s |
 | 6.8 (`b7b5b3dc`) | 18,2 s | non relevé | 3,3 s | 2,1 s | 1,9 s | 10,2 s | 0,0 s |
+| 6.12 (`47633c90`) | 13,7 s | non relevé | 3,2 s | 2,1 s | 1,7 s | 6,0 s | 0,0 s |
 
 - 6.0b : la reprise des libraries lues à la sélection est vérifiée en 23 ms, contre 2 à 6 s pour une lecture. La vérification reste.
 - 6.6 : mesure faite pendant que les suites de tests tournaient sur la même machine. Des étapes que 6.2 à 6.6 ne touchent pas ralentissent aussi (`compaction` 407 → 534 ms) : les durées ne se comparent pas. Les compteurs confirment le gain attendu : 2 486 propriétés lues par le relevé au lieu de 3 332, phase des règles de 303 à 6 ms. À remesurer machine au repos, sur décision du mainteneur.
+- 6.12 : le moteur passe de 10,2 à 6,0 s, l'analyse de 18,2 à 13,7 s (14,4 s du clic au rendu). `structure.vues` 4 304 → 2 012 ms, `structure.election` 801 → 286 ms, `structure.icones` 712 → 291 ms, `structure.typographie-exacte` 565 → 282 ms, `structure.couleurs` 963 → 799 ms. Le rejeu estimait 3,2 s de lectures en moins ; la mesure en montre 4,2 s. Restent `compaction` 449 ms et `wrapper` 445 ms dans le moteur, puis le relevé (3,2 s), les valeurs du catalogue (2,1 s, 417 appels) et les contrôles du kit (1,7 s, dont `controle-nommage` 972 ms et `controle-oublis` 516 ms).
 - 6.8 : l'attente cumulée du relevé passe de 8 961 à 3 809 ms (470 appels API au lieu de 492). Le moteur ne baisse pas : `structure.vues` reste à 4,3 s et `structure.couleurs` à 1,1 s, ce qui montre que leurs lectures ne sont ni les peintures ni les segments. Les règles lues dans le moteur (690 ms) absorbent la phase des règles supprimée (303 ms).
 
 ### Répartition des lectures du Button (6.11c)
