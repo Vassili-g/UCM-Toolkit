@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  BORNE_DE_COMBINAISONS, controlerLAccessibilite,
+  BORNE_DE_COMBINAISONS, controlerLAccessibilite, controlerLAccessibiliteParEtapes,
   type CatalogueDeReference, type LayerLu, type PeintureLue, type ReleveDeComposant, type VariantLu,
 } from '../src/controles/index';
 
@@ -34,6 +34,17 @@ const catalogueVide: CatalogueDeReference = { version: 1, library: null, collect
 const cc = (releveDuTest: ReleveDeComposant, niveau: 'AA' | 'AAA' = 'AA', catalogue = catalogueVide) =>
   controlerLAccessibilite(releveDuTest, catalogue, { niveau });
 const parCode = (constats: ReturnType<typeof cc>, code: string) => constats.filter((c) => c.code === code && !c.limite);
+
+test('le contraste par étapes conserve les rapports et cède au sein d’un variant', () => {
+  const layers = [racine(), ...Array.from({ length: 90 }, (_, i) => texte([solide('fills', gris(0.6))], 14, 400, `t-${i}`))];
+  const r = releve([variant('a', layers)]);
+  const calcul = controlerLAccessibiliteParEtapes(r, catalogueVide, { niveau: 'AA' });
+  let etapes = 0;
+  let resultat = calcul.next();
+  while (!resultat.done) { etapes += 1; resultat = calcul.next(); }
+  assert.ok(etapes >= 90);
+  assert.deepEqual(resultat.value, cc(r));
+});
 
 test('C49 : un texte gris clair sur blanc manque de contraste, un texte noir passe', () => {
   const mauvais = cc(releve([variant('a', [racine(), texte([solide('fills', gris(0.6))])])]));

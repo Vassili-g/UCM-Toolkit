@@ -7,10 +7,10 @@ export type { Constat, Correction, Question } from './constat.js';
 export type { TypeDAlerte } from '../referentiel/signaux.js';
 export type { NiveauWcag } from './accessibilite.js';
 export {
-  controlerLAccessibilite, BORNE_DE_COMBINAISONS, SEUILS_D_ACCESSIBILITE,
+  controlerLAccessibilite, controlerLAccessibiliteParEtapes, BORNE_DE_COMBINAISONS, SEUILS_D_ACCESSIBILITE,
   CIBLE_MINIMALE_PX, CIBLE_TACTILE_PX, TEXTE_MINIMAL_PX,
 } from './accessibilite.js';
-export { controlerLaTypographie } from './typographie.js';
+export { controlerLaTypographie, controlerLaTypographieParEtapes } from './typographie.js';
 export { axeDePropriete, axesDuReleve, tokensDuComposant, segmentDAxe, controlerNommage } from './nommage.js';
 export type { AxeDuComposant, TokenDuComposant } from './nommage.js';
 export { controlerMapping } from './mapping.js';

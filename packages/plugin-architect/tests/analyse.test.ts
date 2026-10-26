@@ -131,6 +131,29 @@ test('le relevé et le moteur reçoivent le même budget ; les cessions conserve
   assert.ok(pauses >= 8);
 });
 
+test('annuler au milieu du contrôle de contraste arrête avant tout résultat', async () => {
+  const b = banc();
+  const releve = releveDeContraste('Alert');
+  const texte = releve.variants[0].layers[1];
+  let mesures = 0;
+  const peinture = texte.texte!.plages[0].peintures[0];
+  const couleur = peinture.couleur;
+  Object.defineProperty(peinture, 'couleur', { get() { mesures += 1; return couleur; } });
+  for (let i = 0; i < 128; i += 1) releve.variants[0].layers.push({ ...texte, id: `texte-${i}`, nom: `Label ${i}` });
+  let horloge = 0;
+  const base = lecteurs(complete());
+  const traiter = traiterAvec({ ...base, releve: async () => ({ statut: 'lu', releve }) }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (mesures > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.ok(mesures > 0 && mesures < 129, `${mesures} contrastes mesurés`);
+  assert.equal(deType(b, 'analyse')[0].statut, 'annulee');
+  assert.deepEqual(deType(b, 'analyse')[0].constats, []);
+});
+
 test('annuler à une cession des contrôles ne rend aucun constat', async () => {
   const b = banc();
   let horloge = 0;

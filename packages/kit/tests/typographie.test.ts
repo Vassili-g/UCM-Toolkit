@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  controlerLaTypographie,
+  controlerLaTypographie, controlerLaTypographieParEtapes,
   type CatalogueDeReference, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu,
 } from '../src/controles/index';
 
@@ -41,6 +41,17 @@ const releve = (variants: VariantLu[], proprietes: ReleveDeComposant['proprietes
 const code = (r: ReleveDeComposant, c: string, limite = false) =>
   controlerLaTypographie(r, catalogue).filter((x) => x.code === c && !!x.limite === limite);
 const bien = (): LiaisonLue[] => [liaison('fontSize', 'body/small/font-size', 'typography')];
+
+test('la typographie par étapes conserve les constats ordonnés et cède par layer', () => {
+  const layers = Array.from({ length: 90 }, (_, i) => ({ ...texte(null), id: `t-${i}`, nom: `message-${i}` }));
+  const r = releve([variant('a', layers)]);
+  const calcul = controlerLaTypographieParEtapes(r, catalogue);
+  let etapes = 0;
+  let resultat = calcul.next();
+  while (!resultat.done) { etapes += 1; resultat = calcul.next(); }
+  assert.ok(etapes >= 90);
+  assert.deepEqual(resultat.value, controlerLaTypographie(r, catalogue));
+});
 
 test('C64 : un texte sans style ni variables est signalé, un texte avec style passe', () => {
   const mauvais = code(releve([variant('a', [texte(null)])]), 'C64');

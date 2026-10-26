@@ -17,7 +17,7 @@
  * lui-même, au clic sur un constat, ne périme rien.
  */
 import {
-  controlerCouches, controlerLAccessibilite, controlerLaStructure, controlerLaTypographie, controlerLeTheme, controlerMapping, controlerNommage, controlerOublis, clesDesTokensDeTailleAttendus, proposerLesCorrections, tokensDuComposant,
+  controlerCouches, controlerLAccessibiliteParEtapes, controlerLaStructure, controlerLaTypographieParEtapes, controlerLeTheme, controlerMapping, controlerNommage, controlerOublis, clesDesTokensDeTailleAttendus, proposerLesCorrections, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -342,21 +342,38 @@ const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? e
 
 /** Les contrôles du kit, dans l'ordre du produit ; le budget partagé se consulte avant chacun. */
 async function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeReference, niveau: NiveauDAccessibilite, architectureUcm: boolean, cooperation: ContexteCooperatif): Promise<Constat[]> {
-  const controles: Array<() => Constat[]> = [
-    () => controlerNommage(releve, catalogue),
-    () => controlerMapping(releve, catalogue),
-    () => controlerCouches(releve, catalogue),
-    () => controlerOublis(releve, catalogue),
-    () => controlerLAccessibilite(releve, catalogue, { niveau }),
-    () => controlerLaTypographie(releve, catalogue),
-    ...(architectureUcm ? [() => controlerLeTheme(releve, catalogue), () => controlerLaStructure(releve, catalogue)] : []),
+  const controles: Array<() => Constat[] | Promise<Constat[]>> = [
+    () => enUneTranche(() => controlerNommage(releve, catalogue)),
+    () => enUneTranche(() => controlerMapping(releve, catalogue)),
+    () => enUneTranche(() => controlerCouches(releve, catalogue)),
+    () => enUneTranche(() => controlerOublis(releve, catalogue)),
+    () => calculerParEtapes(controlerLAccessibiliteParEtapes(releve, catalogue, { niveau }), cooperation),
+    () => calculerParEtapes(controlerLaTypographieParEtapes(releve, catalogue), cooperation),
+    ...(architectureUcm ? [() => enUneTranche(() => controlerLeTheme(releve, catalogue)), () => enUneTranche(() => controlerLaStructure(releve, catalogue))] : []),
   ];
   const constats: Constat[] = [];
   for (const controler of controles) {
     await cooperation.cederSiBesoin();
-    constats.push(...mesurerLeCalcul(controler, 'controles', true));
+    constats.push(...await controler());
   }
   return constats;
+}
+
+const enUneTranche = (calcul: () => Constat[]): Constat[] => mesurerLeCalcul(calcul, 'controles', true);
+
+/** Un contrôle du kit conduit par tranches de 32 étapes ; le budget et le jeton se vérifient entre deux tranches. */
+async function calculerParEtapes<T>(calcul: Generator<void, T>, cooperation: ContexteCooperatif): Promise<T> {
+  for (;;) {
+    await cooperation.cederSiBesoin();
+    const fin = mesurerLeCalcul(() => {
+      for (let i = 0; i < 32; i += 1) {
+        const suivant = calcul.next();
+        if (suivant.done) return suivant;
+      }
+      return null;
+    }, 'controles', true);
+    if (fin) return fin.value;
+  }
 }
 
 /** L'unique constat d'une analyse arrêtée : le code C42 sert de réserve à la famille `export`. */

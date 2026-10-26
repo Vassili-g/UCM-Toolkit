@@ -25,14 +25,21 @@ const NOM_D_ICONE = /icon/i;
 type Source = { variant: VariantLu; layer: LayerLu };
 
 export function controlerLaTypographie(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
+  const calcul = controlerLaTypographieParEtapes(releve, catalogue);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+export function* controlerLaTypographieParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const variants = releve.variants;
   const constats: Constat[] = [];
-  const textes = sources(variants, (l) => l.type === 'TEXT');
-  const icones = sources(variants, estIcone);
-  constats.push(...controlerLesTextes(textes, catalogue));
-  constats.push(...controlerLesTailleEtGraisse(textes, catalogue));
-  constats.push(...controlerLesIcones(icones, catalogue));
-  constats.push(...controlerLesReglesIcones(icones, releve));
+  const textes = yield* sources(variants, (l) => l.type === 'TEXT');
+  const icones = yield* sources(variants, estIcone);
+  constats.push(...(yield* controlerLesTextes(textes, catalogue)));
+  constats.push(...(yield* controlerLesTailleEtGraisse(textes, catalogue)));
+  constats.push(...(yield* controlerLesIcones(icones, catalogue)));
+  constats.push(...(yield* controlerLesReglesIcones(icones, releve)));
   return constats;
 }
 
@@ -40,10 +47,11 @@ function estIcone(layer: LayerLu): boolean {
   return (NOM_D_ICONE.test(layer.nom) || (layer.instanceDe?.pilotee ?? null) !== null);
 }
 
-function sources(variants: VariantLu[], garde: (l: LayerLu) => boolean): Map<string, Source[]> {
+function* sources(variants: VariantLu[], garde: (l: LayerLu) => boolean): Generator<void, Map<string, Source[]>> {
   const parNom = new Map<string, Source[]>();
   for (const variant of variants) {
     for (const layer of layersVisiblesDuVariant(variant)) {
+      yield;
       if (!garde(layer)) continue;
       const liste = parNom.get(layer.nom) ?? [];
       liste.push({ variant, layer });
@@ -91,11 +99,12 @@ function valeurUnanime(autres: Source[], lire: (s: Source) => string | null): st
 
 /* ---------- C64 ---------- */
 
-function controlerLesTextes(textes: Map<string, Source[]>, catalogue: CatalogueDeReference): Constat[] {
+function* controlerLesTextes(textes: Map<string, Source[]>, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
   const base = { code: 'C64', type: 'verifier', famille: 'typographie' } as const;
   for (const [nom, liste] of textes) {
     for (const source of liste) {
+      yield;
       const { layer } = source;
       if (layer.texte === undefined) continue;
       const typographie = liaisonsDuChamp(layer, CHAMPS_DE_TYPOGRAPHIE).some((l) => l.illisible || lieuDeLaVariable(catalogue, l)?.role === 'typography');
@@ -116,11 +125,12 @@ function controlerLesTextes(textes: Map<string, Source[]>, catalogue: CatalogueD
 
 /* ---------- C65 ---------- */
 
-function controlerLesTailleEtGraisse(textes: Map<string, Source[]>, catalogue: CatalogueDeReference): Constat[] {
+function* controlerLesTailleEtGraisse(textes: Map<string, Source[]>, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
   const base = { code: 'C65', type: 'verifier', famille: 'typographie' } as const;
   for (const [nom, liste] of textes) {
     for (const source of liste) {
+      yield;
       for (const champ of CHAMPS_DE_TEXTE) {
         const liaisons = liaisonsDuChamp(source.layer, [champ]);
         for (const liaison of liaisons) {
@@ -155,11 +165,12 @@ function estUnPremierPlan(catalogue: CatalogueDeReference, liaison: LiaisonLue):
   return lieu.role === 'theme' && liaison.variable.nom.split('/').some((s) => SEGMENTS_DE_PREMIER_PLAN.includes(s));
 }
 
-function controlerLesIcones(icones: Map<string, Source[]>, catalogue: CatalogueDeReference): Constat[] {
+function* controlerLesIcones(icones: Map<string, Source[]>, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
   const base = { code: 'C66', type: 'verifier', famille: 'typographie' } as const;
   for (const [nom, liste] of icones) {
     for (const source of liste) {
+      yield;
       const { layer } = source;
       if (!layer.instanceDe?.distante) {
         ajouter(groupes, `C66:${nom}:pas-de-library`, source,
@@ -191,11 +202,12 @@ function controlerLesIcones(icones: Map<string, Source[]>, catalogue: CatalogueD
 /* ---------- C67 ---------- */
 
 /** Le relevé ne porte pas les règles `@icons` : il ne juge que la propriété qui pilote l'icône, et dit sa limite pour le reste. */
-function controlerLesReglesIcones(icones: Map<string, Source[]>, releve: ReleveDeComposant): Constat[] {
+function* controlerLesReglesIcones(icones: Map<string, Source[]>, releve: ReleveDeComposant): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
   const declarees = new Set(releve.proprietes.filter((p) => p.type === 'INSTANCE_SWAP').map((p) => p.nom));
   for (const [nom, liste] of icones) {
     for (const source of liste) {
+      yield;
       const propriete = source.layer.instanceDe?.pilotee ?? null;
       if (propriete !== null && !declarees.has(propriete)) {
         ajouter(groupes, `C67:${nom}:propriete-absente`, source,

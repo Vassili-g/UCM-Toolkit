@@ -52,6 +52,18 @@ export function controlerLAccessibilite(
   catalogue: CatalogueDeReference,
   options: { niveau: NiveauWcag },
 ): Constat[] {
+  const calcul = controlerLAccessibiliteParEtapes(releve, catalogue, options);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Le même calcul, découpé : une étape par variant, par cible et par combinaison de modes. */
+export function* controlerLAccessibiliteParEtapes(
+  releve: ReleveDeComposant,
+  catalogue: CatalogueDeReference,
+  options: { niveau: NiveauWcag },
+): Generator<void, Constat[]> {
   const constats: Constat[] = [];
   const limites = new Map<string, Constat>();
   const groupes = new Map<string, GroupeMesure>();
@@ -69,12 +81,13 @@ export function controlerLAccessibilite(
   let nonMesurees = 0;
   let mesureesTotal = 0;
   for (const variant of mesures) {
+    yield;
     const combinaisons = combinaisonsDeModes(variant, catalogue);
     const prises = combinaisons.slice(0, Math.max(0, reste));
     reste -= prises.length;
     mesureesTotal += prises.length;
     nonMesurees += combinaisons.length - prises.length;
-    if (prises.length > 0) mesurerLeVariant(variant, prises, catalogue, options.niveau, groupes, limites);
+    if (prises.length > 0) yield* mesurerLeVariant(variant, prises, catalogue, options.niveau, groupes, limites);
   }
   constats.push(...[...groupes.values()].map((g) => g.constat), ...limites.values());
   if (nonMesurees > 0) {
@@ -294,16 +307,18 @@ function hexa(c: Rgba): string {
 
 const sansArrondi = (rapport: number) => Math.floor(rapport * 100) / 100;
 
-function mesurerLeVariant(
+function* mesurerLeVariant(
   variant: VariantLu, combinaisons: Combinaison[], catalogue: CatalogueDeReference, niveau: NiveauWcag,
   groupes: Map<string, GroupeMesure>, limites: Map<string, Constat>,
-): void {
+): Generator<void, void> {
   for (const cible of ciblesDeContraste(variant, niveau)) {
+    yield;
     let pire: { rapport: number; etiquette: string; premierPlan: string; fond: string } | null = null;
     let echecs = 0;
     const rapports: [string, number][] = [];
     const causes = new Set<Cause>();
     for (const combinaison of combinaisons) {
+      yield;
       const fond = fondEffectif(variant, cible.layer, catalogue, combinaison);
       if ('limite' in fond) { causes.add(fond.limite); continue; }
       const pile = pileDePeintures(cible.peintures, cible.liaisons, cible.layer.opacite, catalogue, variant, combinaison);
