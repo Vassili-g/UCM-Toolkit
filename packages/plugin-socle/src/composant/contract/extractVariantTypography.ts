@@ -19,7 +19,7 @@ import { composedSlotDependenciesParEtapes } from './slotRelations';
 import { assignSlotsParEtapes } from './slotNames';
 import { insertVariantLeaf } from './extractVariantTokens';
 import { avancer } from './mesure';
-import { respirerSiBesoin } from './porteeDAnalyse';
+import { cheminsMemorises, memoriserLesChemins, respirerSiBesoin } from './porteeDAnalyse';
 import type {
   TextStyleDefinition,
   TextStyleUse,
@@ -116,8 +116,27 @@ export function textSlots(
   return etape.value;
 }
 
-/** Mêmes chemins de texte, interruptibles dans la construction et le parcours des slots. */
+/**
+ * Mêmes chemins de texte, interruptibles dans la construction et le parcours des slots.
+ *
+ * Dans une portée, la racine n'est calculée qu'une fois par contexte complet (`iconNames` et `composed`) :
+ * un second appel au même contexte reprend une copie des chemins, sans parcours ni cession. Un calcul
+ * interrompu ne range rien.
+ */
 export function* textSlotsParEtapes(layoutNode: SceneNode, iconNames: ReadonlySet<string> = new Set(), composed: ComposedInstances = new Map()): Generator<void, TextSlot[]> {
+  const connus = cheminsMemorises<TextSlot[]>(layoutNode, iconNames, composed);
+  if (connus) return copierLesChemins(connus);
+  const calcule = yield* calculerLesChemins(layoutNode, iconNames, composed);
+  memoriserLesChemins(layoutNode, iconNames, composed, copierLesChemins(calcule));
+  return calcule;
+}
+
+/** Les appelants gardent les chemins dans leurs sorties : chacun reçoit les siens. */
+function copierLesChemins(slots: readonly TextSlot[]): TextSlot[] {
+  return slots.map((slot) => ({ ...slot, slotPath: [...slot.slotPath] }));
+}
+
+function* calculerLesChemins(layoutNode: SceneNode, iconNames: ReadonlySet<string>, composed: ComposedInstances): Generator<void, TextSlot[]> {
   const resultat: TextSlot[] = [];
   const visit = function* (child: SceneNode, slotPath: string[], depth: number): Generator<void, void> {
     yield;

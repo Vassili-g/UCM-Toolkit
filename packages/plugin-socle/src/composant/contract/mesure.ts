@@ -18,6 +18,7 @@ export type Compteur =
   | 'pagesReutilisees'
   | 'nodesParcourus'
   | 'parcoursReutilises'
+  | 'cheminsDeTexteReutilises'
   | 'appelsGetAllNodes'
   | 'msGetAllNodes'
   | 'appelsFindAllWithCriteria'

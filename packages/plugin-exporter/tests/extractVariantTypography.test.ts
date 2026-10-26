@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { extractVariantTypography, textSlots } from 'ucm-plugin-socle/src/composant/contract/extractVariantTypography';
 import { extractLayout } from 'ucm-plugin-socle/src/composant/contract/extractLayout';
+import { abandonnerLaMesure, fermerLaMesure, ouvrirLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { dansUnePorteeDAnalyse } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 import { findLayoutNode } from 'ucm-plugin-socle/src/composant/contract/layoutNodes';
 import type { ChildStructure } from '@ucm-kit/core/format';
 import { collecterReferences } from '@ucm-kit/core/lecteurs';
@@ -526,4 +528,90 @@ test('textSlots situe les textes qu’un cadre de dépendances range à côté d
   };
   parcourir(layout.children, []);
   assert.ok(cheminsPublies.has(JSON.stringify(['userinput', 'label'])));
+});
+
+/** Un composant dont les chemins de texte changent avec l'icône nommée et avec la dépendance composée. */
+function composantAuxContextes() {
+  const bouton = node('INSTANCE', 'btn', 'Button', [node('TEXT', 'btn-txt', 'Interne', [], { characters: 'Interne' })]);
+  const texteDeLEtoile = node('TEXT', 'etoile-txt', 'Glyphe', [], { characters: '★' });
+  const etoile = node('FRAME', 'etoile', 'Star', [texteDeLEtoile], { layoutMode: 'HORIZONTAL' });
+  const titre = node('TEXT', 'titre', 'Titre', [], { characters: 'Titre' });
+  const cadre = node('FRAME', 'cadre', 'Barre', [bouton, etoile, titre], {
+    layoutMode: 'HORIZONTAL',
+    primaryAxisAlignItems: 'MIN',
+    counterAxisAlignItems: 'CENTER',
+  });
+  return node('COMPONENT', 'racine-contextes', 'Variant=Default', [cadre], {
+    layoutMode: 'VERTICAL',
+    primaryAxisAlignItems: 'MIN',
+    counterAxisAlignItems: 'MIN',
+  }) as ComponentNode;
+}
+
+const lireLesChemins = (racine: SceneNode, icones: ReadonlySet<string>, composed: Map<string, { component: string; figmaLayer: string }>) =>
+  textSlots(racine, icones, composed).map(({ slotPath, textNode, leaf }) => ({ slotPath, texte: textNode.id, feuille: leaf.id }));
+
+test('dans une portée, une même racine garde ses chemins de texte pour chaque contexte complet', async () => {
+  const contextes: Array<[string, ReadonlySet<string>, Map<string, { component: string; figmaLayer: string }>]> = [
+    ['sans rien', new Set(), new Map()],
+    ['dépendance composée', new Set(), new Map([['btn', { component: 'Button', figmaLayer: 'Button' }]])],
+    ['icône nommée', new Set(['Star']), new Map()],
+    ['les deux', new Set(['Star']), new Map([['btn', { component: 'Button', figmaLayer: 'Button' }]])],
+    ['dépendance voisine', new Set(), new Map([['btn', { component: 'Autre', figmaLayer: 'Button' }]])],
+  ];
+  const hors = contextes.map(([, icones, composed]) => lireLesChemins(composantAuxContextes(), icones, composed));
+  // Le test ne prouve rien si deux contextes donnent les mêmes chemins.
+  assert.notDeepEqual(hors[0].map((c) => c.slotPath), hors[1].map((c) => c.slotPath));
+  assert.notDeepEqual(hors[0].map((c) => c.slotPath), hors[2].map((c) => c.slotPath));
+
+  const racine = composantAuxContextes();
+  let natifs = 0;
+  const relever = (racine as any).findAll;
+  (racine as any).findAll = (...suite: unknown[]) => { natifs += 1; return relever(...suite); };
+  const refaire = (rang: number) => {
+    const [, icones, composed] = contextes[rang];
+    // Des ensembles reconstruits à chaque appel : la clé se compare par contenu.
+    return lireLesChemins(racine, new Set(icones), new Map(composed));
+  };
+  ouvrirLaMesure();
+  let premiers!: ReturnType<typeof lireLesChemins>[];
+  let secondes!: ReturnType<typeof lireLesChemins>[];
+  let compteurs;
+  try {
+    await dansUnePorteeDAnalyse({}, async () => {
+      premiers = contextes.map((_, rang) => refaire(rang));
+      const apres = natifs;
+      secondes = [...contextes.keys()].reverse().map(refaire).reverse();
+      assert.equal(natifs, apres, 'un contexte déjà calculé ne relit rien');
+    });
+    compteurs = fermerLaMesure('')!.compteurs;
+  } finally { abandonnerLaMesure(); }
+  assert.deepEqual(premiers.map((r) => r.map(({ slotPath, texte, feuille }) => ({ slotPath, texte, feuille }))),
+    hors.map((r) => r.map(({ slotPath, texte, feuille }) => ({ slotPath, texte, feuille }))));
+  assert.deepEqual(secondes, premiers);
+  assert.equal(compteurs.cheminsDeTexteReutilises, contextes.length);
+});
+
+test('les chemins repris sont des copies : modifier ceux d’un appelant ne change pas les suivants', async () => {
+  const racine = composantAuxContextes();
+  await dansUnePorteeDAnalyse({}, async () => {
+    const premier = textSlots(racine);
+    const attendu = JSON.stringify(premier.map(({ slotPath }) => slotPath));
+    premier[0].slotPath.push('intrus');
+    premier.pop();
+    const second = textSlots(racine);
+    assert.equal(JSON.stringify(second.map(({ slotPath }) => slotPath)), attendu);
+    second[0].slotPath.push('intrus');
+    assert.equal(JSON.stringify(textSlots(racine).map(({ slotPath }) => slotPath)), attendu);
+  });
+});
+
+test('hors portée, textSlots ne reprend rien d’un appel précédent', () => {
+  const racine = composantAuxContextes();
+  ouvrirLaMesure();
+  try {
+    const premiers = textSlots(racine).map(({ slotPath }) => slotPath);
+    assert.deepEqual(textSlots(racine).map(({ slotPath }) => slotPath), premiers);
+    assert.equal(fermerLaMesure('')!.compteurs.cheminsDeTexteReutilises, undefined);
+  } finally { abandonnerLaMesure(); }
 });

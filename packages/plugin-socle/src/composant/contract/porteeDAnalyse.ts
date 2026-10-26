@@ -79,11 +79,19 @@ export function creerContexteCooperatif(options: OptionsDeCooperation = {}): Con
   };
 }
 
+type ContexteMemorise = {
+  iconNames: ReadonlySet<string>;
+  composed: ReadonlyMap<string, object>;
+  valeur: unknown;
+};
+
 type Portee = {
   /** Le maître de chaque instance déjà demandée, par id d'instance. */
   maitres: Map<string, Promise<ComponentNode | null>>;
   /** Le parcours brut de chaque racine, par id : tous ses descendants, avant frontière ni filtre de visibilité. */
   parcours: Map<string, readonly SceneNode[]>;
+  /** Les chemins de texte de chaque racine, par id, avec le contexte complet qui les a produits. */
+  chemins: Map<string, ContexteMemorise[]>;
   cooperation: ContexteCooperatif;
 };
 
@@ -126,6 +134,7 @@ export async function dansUnePorteeDAnalyse<T>(
   const ouverte: Portee = {
     maitres: new Map(),
     parcours: new Map(),
+    chemins: new Map(),
     cooperation: options.cooperation ?? creerContexteCooperatif(options),
   };
   portee = ouverte;
@@ -183,6 +192,65 @@ export function descendantsBruts(racine: SceneNode): readonly SceneNode[] {
   compter('nodesParcourus', descendants.length);
   memoire?.set(racine.id, descendants);
   return descendants;
+}
+
+/** Vrai si les deux ensembles ont les mêmes éléments. */
+function memesNoms(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
+  if (a === b) return true;
+  if (a.size !== b.size) return false;
+  for (const nom of a) if (!b.has(nom)) return false;
+  return true;
+}
+
+/** Vrai si les deux tables portent les mêmes ids et, pour chacun, une dépendance de mêmes champs. */
+function memesDependances(a: ReadonlyMap<string, object>, b: ReadonlyMap<string, object>): boolean {
+  if (a === b) return true;
+  if (a.size !== b.size) return false;
+  for (const [id, x] of a) {
+    const y = b.get(id) as Record<string, unknown> | undefined;
+    if (!y) return false;
+    if (x === y) continue;
+    const champs = Object.keys(x);
+    if (champs.length !== Object.keys(y).length) return false;
+    for (const champ of champs) if ((x as Record<string, unknown>)[champ] !== y[champ]) return false;
+  }
+  return true;
+}
+
+/**
+ * Les chemins de texte déjà calculés pour cette racine dans ce contexte complet, ou undefined.
+ *
+ * Le contexte est la paire `iconNames` et `composed`, comparée par contenu : deux appels qui construisent
+ * chacun leurs ensembles reprennent la même valeur, et un contexte qui diffère par un nom ou une dépendance
+ * ne la reprend jamais. La valeur rendue est celle qu'a rangée `memoriserLesChemins`, sans copie.
+ */
+export function cheminsMemorises<T>(
+  racine: SceneNode,
+  iconNames: ReadonlySet<string>,
+  composed: ReadonlyMap<string, object>,
+): T | undefined {
+  const connus = typeof racine.id === 'string' ? porteeQuiMemorise()?.chemins.get(racine.id) : undefined;
+  const trouve = connus?.find((c) => memesNoms(c.iconNames, iconNames) && memesDependances(c.composed, composed));
+  if (!trouve) return undefined;
+  compter('cheminsDeTexteReutilises');
+  return trouve.valeur as T;
+}
+
+/**
+ * Range les chemins d'une racine pour son contexte. `iconNames` et `composed` sont recopiés : un appelant
+ * qui les modifie ensuite ne change pas la clé. Sans effet hors portée.
+ */
+export function memoriserLesChemins(
+  racine: SceneNode,
+  iconNames: ReadonlySet<string>,
+  composed: ReadonlyMap<string, object>,
+  valeur: unknown,
+): void {
+  const memoire = typeof racine.id === 'string' ? porteeQuiMemorise()?.chemins : undefined;
+  if (!memoire) return;
+  const connus = memoire.get(racine.id) ?? [];
+  connus.push({ iconNames: new Set(iconNames), composed: new Map(composed), valeur });
+  memoire.set(racine.id, connus);
 }
 
 function lireLeMaitre(instance: InstanceNode): Promise<ComponentNode | null> {

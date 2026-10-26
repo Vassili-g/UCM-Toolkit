@@ -173,8 +173,13 @@ test('le parcours brut de chaque racine se lit une fois par portée, sans change
     const avecPortee = await lire(false);
     const sansPortee = await lire(true);
     assert.equal(avecPortee.content, sansPortee.content);
-    // Les appels de `getAllNodes` restent les mêmes : seul le relevé natif est partagé entre eux.
-    assert.equal(avecPortee.compteurs.appelsGetAllNodes, sansPortee.compteurs.appelsGetAllNodes);
+    // Huit variants : l'exacte et les échantillons reprennent les chemins de texte déjà calculés.
+    assert.equal(sansPortee.compteurs.cheminsDeTexteReutilises, undefined);
+    assert.ok(avecPortee.compteurs.cheminsDeTexteReutilises! >= 16, `${avecPortee.compteurs.cheminsDeTexteReutilises} chemins repris`);
+    assert.ok(
+      avecPortee.compteurs.appelsGetAllNodes! < sansPortee.compteurs.appelsGetAllNodes!,
+      `${avecPortee.compteurs.appelsGetAllNodes} appels avec portée, ${sansPortee.compteurs.appelsGetAllNodes} sans`,
+    );
     assert.ok(
       avecPortee.compteurs.nodesParcourus! < sansPortee.compteurs.nodesParcourus!,
       `${avecPortee.compteurs.nodesParcourus} nodes avec portée, ${sansPortee.compteurs.nodesParcourus} sans`,
