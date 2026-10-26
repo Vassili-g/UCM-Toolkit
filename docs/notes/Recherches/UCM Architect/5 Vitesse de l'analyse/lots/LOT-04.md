@@ -35,7 +35,7 @@ Aucune case ne change le format publié. Seule 4.0e touche une signature export�
   Preuve de gain sans seuil : sur un catalogue dont les variables comptent leurs lectures de `nom` par un accesseur, cinq appels successifs de `tokensDuComposant` (les cinq sites de contrôle de la trace) lisent N noms au lieu de 5 N, et `releve.proprietes` n'est itéré qu'une fois pour les axes.
   Le catalogue de la phase `catalogue` n'est pas partagé : `chargerLesValeurs` rend un autre objet (`packages/plugin-architect/src/catalogue.ts:158`). 4.0e traite cet appel.
   Montée : kit d'un patch, avec CLI et adaptateur. Contrôles : kit, tests racine, Architect, exporteur. **Build Architect avec kit reconstruit.**
-- [ ] **4.0c | gpt-6-luna | medium** | **Claude Sonnet | medium** : réduire le coût par variable de `tokensDuComposant`, sans changer sa sortie ni son ordre.
+- [x] **4.0c | gpt-6-luna | medium** | **Claude Sonnet | medium** : réduire le coût par variable de `tokensDuComposant`, sans changer sa sortie ni son ordre.
   Dans la seule fonction `tokensDuComposant` (`nommage.ts`), quatre gestes sur la boucle des variables.
   `formeReconnue(releve.jeu.nom)` se calcule une fois avant la boucle ; elle se recalcule aujourd'hui à chaque variable.
   Le rôle de chaque collection vient d'une table `Map` construite une fois par appel, qui garde la première collection de chaque clé comme le fait `find` (même règle que `roles` dans `corrections.ts`), à la place de `catalogue.collections.find` par variable.

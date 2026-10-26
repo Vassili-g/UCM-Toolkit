@@ -142,6 +142,27 @@ const CAS: Cas[] = [
     },
   },
   {
+    nom: 'clé de collection en double : la première collection de la clé décide du rôle',
+    fabriquer: () => {
+      const catalogue: CatalogueDeReference = {
+        version: 1, library: null,
+        collections: [collection('a', 'layout'), collection('a', 'components'), collection('b', 'components'), collection('b', 'layout')],
+        variables: [variable('1', 'button/color/primary/background', 'a'), variable('2', 'button/color/primary/border', 'b'), variable('3', 'button/size/md/padding-x', 'b', 'FLOAT')],
+      };
+      return { catalogue, releve: avecDesVariants(releve('Button', [axe('Size', ['md'])]), catalogue) };
+    },
+  },
+  {
+    nom: 'jeu Button face à Button, button, BUTTON et Icon-Button',
+    fabriquer: () => {
+      const catalogue: CatalogueDeReference = { version: 1, library: null, collections: [collection('components', 'components')], variables: [
+        variable('1', 'Button/color/primary/background'), variable('2', 'button/color/primary/background'), variable('3', 'BUTTON/color/primary/background'), variable('4', 'Icon-Button/color/primary/background'),
+        variable('5', 'button-icon/color/primary/background'), variable('6', 'Button/colors/primary/border'),
+      ] };
+      return { catalogue, releve: avecDesVariants(releve('Button', [axe('Palette', ['primary'])]), catalogue) };
+    },
+  },
+  {
     nom: 'jeu au nom vide',
     fabriquer: () => {
       const catalogue: CatalogueDeReference = { version: 1, library: null, collections: [collection('components', 'components')], variables: [variable('1', ''), variable('2', 'x/y'), variable('3', '/x'), variable('4', '/')] };
@@ -174,7 +195,7 @@ test('à froid puis à chaud, tokensDuComposant et axesDuReleve rendent ce que r
     assert.equal(tokensDuComposant({ ...r }, catalogue), froid, `${nom} : relevé copié`);
     if (attendu.length > 0) nonVide += 1;
   }
-  assert.ok(nonVide >= 5, 'le corpus produit des tokens');
+  assert.ok(nonVide >= 7, 'le corpus produit des tokens');
 });
 
 test('le tableau rendu, le tableau segments de chaque token et les axes sont gelés', () => {
@@ -310,4 +331,46 @@ test('une variable de components dont le nom n’a pas de second segment ne fait
       () => controlerLeTheme(r, c), () => controlerLaStructure(r, c), () => proposerLesCorrections(r, c, constats), () => proposerLaPropagation(r, c, 'm'),
     ]) assert.doesNotThrow(lancer);
   }
+});
+
+test('sur 2 000 variables de 20 composants, le nom du jeu est lu une fois, aucune collection n’est cherchée par find et chaque nom est lu au plus deux fois', () => {
+  const COMPOSANTS = 20;
+  const PAR_COMPOSANT = 100;
+  const compteurs = { jeu: 0, find: 0 };
+  const nomsLus: number[] = [];
+  const variables: VariableDuCatalogue[] = [];
+  for (let c = 0; c < COMPOSANTS; c += 1) {
+    for (let j = 0; j < PAR_COMPOSANT; j += 1) {
+      const rang = variables.length;
+      const nom = `Composant${c}/color/primary/contained/default/partie-${j}`;
+      nomsLus.push(0);
+      variables.push(Object.defineProperty({ ...variable(`k${rang}`, ''), nom: undefined as never }, 'nom', { enumerable: true, get() { nomsLus[rang] += 1; return nom; } }));
+    }
+  }
+  const collections = new Proxy([collection('layout', 'layout'), collection('components', 'components')], {
+    get(cible, propriete, destinataire) {
+      if (propriete === 'find') compteurs.find += 1;
+      return Reflect.get(cible, propriete, destinataire);
+    },
+  });
+  const catalogue: CatalogueDeReference = { version: 1, library: null, collections, variables };
+  const fabriquerReleve = () => {
+    const r = releve('Composant7', [axe('Palette', ['primary']), axe('Style', ['contained']), axe('State', ['default'])]);
+    return Object.defineProperty({ ...r, jeu: undefined as never }, 'jeu', { enumerable: true, get() { compteurs.jeu += 1; return r.jeu; } });
+  };
+
+  const ancien = fabriquerReleve();
+  const attendu = tokensDeReference(ancien, catalogue);
+  assert.equal(compteurs.jeu, COMPOSANTS * PAR_COMPOSANT);
+  assert.equal(compteurs.find, COMPOSANTS * PAR_COMPOSANT);
+
+  compteurs.jeu = 0;
+  compteurs.find = 0;
+  nomsLus.fill(0);
+  const tokens = tokensDuComposant(fabriquerReleve(), catalogue);
+  assert.equal(tokens.length, PAR_COMPOSANT);
+  assert.deepEqual(tokens, attendu);
+  assert.equal(compteurs.jeu, 1);
+  assert.equal(compteurs.find, 0);
+  assert.ok(Math.max(...nomsLus) <= 2, `${Math.max(...nomsLus)} lectures du nom`);
 });

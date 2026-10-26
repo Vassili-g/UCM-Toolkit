@@ -72,27 +72,48 @@ export function tokensDuComposant(releve: ReleveDeComposant, catalogue: Catalogu
     parJeu = { longueur: releve.proprietes.length, parNom: new Map() };
     memoire.parProprietes.set(releve.proprietes, parJeu);
   }
-  const connus = parJeu.parNom.get(releve.jeu.nom);
+  const nomDuJeu = releve.jeu.nom;
+  const connus = parJeu.parNom.get(nomDuJeu);
   if (connus) return connus;
-  const tokens = calculerLesTokens(releve, catalogue);
+  const tokens = calculerLesTokens(releve, catalogue, nomDuJeu);
   for (const token of tokens) Object.freeze(token.segments);
   Object.freeze(tokens);
-  parJeu.parNom.set(releve.jeu.nom, tokens);
+  parJeu.parNom.set(nomDuJeu, tokens);
   return tokens;
 }
 
-function calculerLesTokens(releve: ReleveDeComposant, catalogue: CatalogueDeReference): TokenDuComposant[] {
+/**
+ * Un passage sur les variables du catalogue : ce qui ne dépend pas d'une variable se calcule avant la boucle, et le
+ * découpage du nom, la copie pour la grammaire et la lecture ne concernent que les variables retenues.
+ */
+function calculerLesTokens(releve: ReleveDeComposant, catalogue: CatalogueDeReference, nomDuJeu: string): TokenDuComposant[] {
   const axes = axesDuReleve(releve);
-  return catalogue.variables.flatMap((variable) => {
-    const collection = catalogue.collections.find((entree) => entree.cle === variable.collection);
-    if (collection?.role !== 'components') return [];
-    const segments = variable.nom.split('/');
-    if (formeReconnue(segments[0]) !== formeReconnue(releve.jeu.nom)) return [];
+  const formeDuJeu = formeReconnue(nomDuJeu);
+  // `find` rend la première collection de la clé : la table garde elle aussi la première.
+  const roles = new Map<string, string | null>();
+  for (const collection of catalogue.collections) {
+    if (!roles.has(collection.cle)) roles.set(collection.cle, collection.role);
+  }
+  const formesDesPremiersSegments = new Map<string, string>();
+  const valeursDAxes = Object.fromEntries(Object.entries(axes).map(([axe, propriete]) => [axe, propriete.valeurs ?? []]));
+  const tokens: TokenDuComposant[] = [];
+  for (const variable of catalogue.variables) {
+    if (roles.get(variable.collection) !== 'components') continue;
+    const nom = variable.nom;
+    const finDuPremier = nom.indexOf('/');
+    const premier = finDuPremier < 0 ? nom : nom.slice(0, finDuPremier);
+    let forme = formesDesPremiersSegments.get(premier);
+    if (forme === undefined) {
+      forme = formeReconnue(premier);
+      formesDesPremiersSegments.set(premier, forme);
+    }
+    if (forme !== formeDuJeu) continue;
+    const segments = nom.split('/');
     const pourLaGrammaire = [...segments];
     if (segments.length > 1 && termeReconnu(FAMILLES_PRIMITIVES, segments[1])?.id === 'color') pourLaGrammaire[1] = 'color';
     const lire = (axesSupplementaires: Record<string, readonly string[]> = {}) => reconnaitreLeChemin('components', pourLaGrammaire, {
       themes: 'chemin',
-      axes: { ...Object.fromEntries(Object.entries(axes).map(([axe, propriete]) => [axe, propriete.valeurs ?? []])), ...axesSupplementaires },
+      axes: { ...valeursDAxes, ...axesSupplementaires },
     });
     let reconnu = lire();
     if (!reconnu.conforme && axes.style) {
@@ -101,8 +122,9 @@ function calculerLesTokens(releve: ReleveDeComposant, catalogue: CatalogueDeRefe
         if (reconnu.conforme) break;
       }
     }
-    return [{ variable, segments, lecture: reconnu.conforme ? reconnu.segments : [] }];
-  });
+    tokens.push({ variable, segments, lecture: reconnu.conforme ? reconnu.segments : [] });
+  }
+  return tokens;
 }
 
 export function segmentDAxe(token: TokenDuComposant, axe: AxeDuComposant): string | undefined {
