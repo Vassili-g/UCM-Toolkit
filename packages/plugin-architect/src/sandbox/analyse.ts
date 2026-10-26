@@ -15,13 +15,23 @@
  * nœud du jeu analysé (`document`, dont le Ctrl+Z), sur une sélection Figma
  * d'un autre jeu de variants (`selection`). La sélection que le plugin pose
  * lui-même, au clic sur un constat, ne périme rien.
+ *
+ * Les nœuds surveillés viennent de la topologie du jeu (`topologie.ts` du
+ * socle), lue avec le sujet. L'écoute des pages s'ouvre avant cette lecture et
+ * garde les identifiants reçus jusqu'à ce que l'inventaire soit connu : un
+ * événement reçu dans l'intervalle périme l'analyse si son nœud y figure. La
+ * couverture de l'inventaire, trous de lecture et pages non écoutées compris,
+ * reste sur l'analyse (`analyseARelire`) : une analyse dont la couverture est
+ * incomplète ou inconnue doit être relue, jamais réutilisée.
  */
 import {
   controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
+import { doitEtreRelue, type Couverture } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
+import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { ouvrirLaMesure, fermerLaMesure, etape, compter, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
@@ -54,6 +64,8 @@ interface AnalyseCourante {
   readonly noeuds: ReadonlySet<string>;
   /** Les sujets que la sélection peut désigner sans périmer l'analyse : le jeu et ses variants. */
   readonly admis: ReadonlySet<string>;
+  /** Ce que la surveillance couvre : les trous de lecture du jeu et les pages non écoutées. */
+  readonly couverture: Couverture;
   /** Les corrections des constats rendus, par identifiant : l'écriture n'écrit que celles-là. */
   corrections: ReadonlyMap<string, Correction>;
   /** Tous les constats de l'analyse, ignorés compris, par identifiant : Ignorer et les questions les retrouvent ici. */
@@ -69,18 +81,41 @@ interface AnalyseCourante {
 let generation = 0;
 let courante: AnalyseCourante | null = null;
 
-/** Ouvre une analyse : la génération monte, l'analyse précédente n'est plus la courante. */
-export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte, admis?: Iterable<string>, page?: PageNode): IdentiteDAnalyse {
+/**
+ * Les nœuds touchés que l'écoute a reçus depuis le début d'une demande d'analyse, tant que son inventaire n'est pas
+ * connu ; `null` hors de cet intervalle.
+ */
+let evenementsRecus: Set<string> | null = null;
+
+/** Sans topologie lue, aucun trou n'est connu et rien n'est couvert : la couverture est inconnue. */
+const COUVERTURE_INCONNUE: Couverture = { instances: 'descendues', complete: false, trous: [] };
+
+/**
+ * Ouvre une analyse : la génération monte, l'analyse précédente n'est plus la courante. `couverture` est celle de
+ * l'inventaire `noeuds` ; les pages que Figma ne laisse pas écouter s'y ajoutent.
+ */
+export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte, admis?: Iterable<string>, page?: PageNode, couverture: Couverture = COUVERTURE_INCONNUE): IdentiteDAnalyse {
   generation += 1;
   const identite = { sujet, generation };
   const tous = new Set(noeuds);
-  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false };
-  contexte.surveillerLeDocument(page);
+  const nonEcoutees = contexte.surveillerLeDocument(page) ?? [];
+  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, couverture: avecLesPagesNonEcoutees(couverture, nonEcoutees), corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false };
   return identite;
 }
 
 export function analyseCourante(): IdentiteDAnalyse | null {
   return courante?.identite ?? null;
+}
+
+/** La couverture de la surveillance de l'analyse `identite` ; `null` quand cette identité n'est plus la courante. */
+export function couvertureDeLAnalyse(identite: IdentiteDAnalyse): Couverture | null {
+  return courante && memeIdentite(courante.identite, identite) ? courante.couverture : null;
+}
+
+/** Vrai quand une réutilisation de l'analyse `identite` doit relire Figma : couverture incomplète ou inconnue, ou analyse qui n'est plus la courante. */
+export function analyseARelire(identite: IdentiteDAnalyse): boolean {
+  const couverture = couvertureDeLAnalyse(identite);
+  return couverture === null || doitEtreRelue(couverture);
 }
 
 const memeIdentite = (a: IdentiteDAnalyse, b: IdentiteDAnalyse): boolean => a.sujet === b.sujet && a.generation === b.generation;
@@ -181,15 +216,27 @@ export function perimerApresUneEcriture(contexte: Contexte): void {
   perimer('ecriture', contexte);
 }
 
-/** `nodechange` de la page : les identifiants des nœuds touchés. Un seul qui appartient au jeu analysé suffit. */
+/**
+ * `nodechange` de la page : les identifiants des nœuds touchés. Un seul qui appartient au jeu analysé suffit. Tant
+ * qu'une demande d'analyse n'a pas son inventaire, les identifiants sont gardés pour `rejouerLesEvenementsRecus`.
+ */
 export function surChangementDuDocument(noeudsTouches: Iterable<string>, contexte: Contexte): void {
+  const touches = [...noeudsTouches];
+  if (evenementsRecus) for (const id of touches) evenementsRecus.add(id);
   if (!courante) return;
-  for (const id of noeudsTouches) {
+  for (const id of touches) {
     if (courante.noeuds.has(id)) {
       perimer('document', contexte);
       return;
     }
   }
+}
+
+/** L'inventaire de l'analyse courante est connu : les événements gardés se jugent contre lui, puis la garde se ferme. */
+function rejouerLesEvenementsRecus(contexte: Contexte): void {
+  const recus = evenementsRecus;
+  evenementsRecus = null;
+  if (recus) surChangementDuDocument(recus, contexte);
 }
 
 /**
@@ -211,6 +258,8 @@ export interface SujetAAnalyser {
   readonly noeuds: readonly string[];
   /** Le jeu et ses variants : une sélection d'un autre nœud, calque ou composant imbriqué, périme l'analyse. Absent : `noeuds`. */
   readonly admis?: readonly string[];
+  /** La couverture de `noeuds` ; absente, elle est inconnue et l'analyse doit être relue avant toute réutilisation. */
+  readonly couverture?: Couverture;
 }
 
 /** L'issue d'une lecture des libraries lancée en avance : une promesse qui ne rejette jamais, l'erreur y est une valeur. */
@@ -250,15 +299,10 @@ async function sujetDeFigma(contexte: Contexte): Promise<SujetAAnalyser | null> 
     sujet = maitre;
   }
   const jeu = sujet.type !== 'COMPONENT_SET' && estUnVariant(sujet) && sujet.parent ? sujet.parent : sujet;
-  let descendants: readonly { id: string }[] = [];
-  try {
-    descendants = (jeu as unknown as { findAll?: (filtre: () => boolean) => readonly { id: string }[] }).findAll?.(() => true) ?? [];
-  } catch {
-    // Sans la liste, seuls le jeu et ses variants font périmer l'analyse.
-  }
-  const enfants = (jeu.children ?? []).map((enfant) => enfant.id);
+  // Un `children` ou un `findAll` qui lève laisse un trou dans la couverture, et seuls les nœuds lus font périmer l'analyse.
+  const inventaire = inventaireDePeremption(lireLaTopologieDuJeu(jeu as unknown as NoeudALire));
   const cle = (jeu as unknown as { key?: unknown }).key;
-  return { cle: typeof cle === 'string' && cle !== '' ? cle : jeu.id, noeud: jeu, noeuds: [jeu.id, ...enfants, ...descendants.map((noeud) => noeud.id)], admis: [jeu.id, ...enfants] };
+  return { cle: typeof cle === 'string' && cle !== '' ? cle : jeu.id, noeud: jeu, noeuds: inventaire.noeuds, admis: inventaire.admis, couverture: inventaire.couverture };
 }
 
 function portDuComposant({ figma }: Contexte): PortDuComposant {
@@ -502,8 +546,11 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   };
   try {
     phase('sujet');
+    // L'écoute de la page courante précède la première lecture du document : l'inventaire n'est connu qu'après le sujet.
+    evenementsRecus = new Set();
+    contexte.surveillerLeDocument();
     const sujet = await attendrePourLaMesure(() => lecteurs.sujet(contexte).catch(() => null), 'attente', 'sujet');
-    identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined);
+    identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined, sujet?.couverture);
     courant.connue = identite;
     connaitre(identite);
     if (demande.mesurer && demande.demande !== undefined) {
@@ -511,6 +558,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       mesuresEnvoyees.set(demande.demande, { reception, identite, envois: { 'premier-affichage': Date.now() } });
     }
     contexte.envoyer({ type: 'analyse-commencee', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), ...(demande.mesurer ? { mesure: true } : {}) });
+    // `perime` part après `analyse-commencee` : l'interface ignore le message d'une identité qu'elle n'a pas retenue.
+    rejouerLesEvenementsRecus(contexte);
     courant.progresser('sujet');
     if (courant.jeton.leve) return rendre('annulee', [], null);
     if (!sujet) return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
@@ -587,6 +636,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (courant.jeton.leve) rendre('annulee', [], null);
     else rendre('arretee', [bloquant(messageDErreur(erreur))], null);
   } finally {
+    evenementsRecus = null;
     // Une analyse finie avant d'avoir attendu les libraries (arrêt, erreur) ne laisse pas leur lecture courir : le jeton ne sert plus.
     if (librariesEnCours) courant.jeton.leve = true;
     courant.cloreMesure?.('arretee');
@@ -644,5 +694,6 @@ export const traiter = traiterAvec(LECTEURS_DE_FIGMA);
 export function reinitialiserLAnalyse(): void {
   operation = null;
   courante = null;
+  evenementsRecus = null;
   mesuresEnvoyees.clear();
 }

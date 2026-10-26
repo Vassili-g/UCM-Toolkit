@@ -68,3 +68,12 @@ test('une page non chargée n’est pas suivie et ne bloque pas la page courante
   suivi.surveiller(b);
   assert.deepEqual([a.ecoutes, b.ecoutes], [1, 0]);
 });
+
+test('surveiller rend les pages voulues que Figma ne laisse pas écouter', () => {
+  const a = page('A');
+  const b = page('B', false);
+  const suivi = creerLeSuivi(() => a, rappel);
+  assert.deepEqual(suivi.surveiller(b), [b]);
+  assert.deepEqual(suivi.surveiller(a), []);
+  assert.deepEqual(suivi.surveiller(undefined), []);
+});

@@ -256,7 +256,8 @@ export interface NoeudDeTopologie {
   /**
    * `refuse` + `leve` : sous-arbre inconnu, et trou de la couverture.
    * `refuse` + `absent` : le type de nœud n'a pas d'enfants.
-   * `non-demande` : instance frontière non descendue.
+   * `non-demande` : instance frontière non descendue, ou enfants non lus parce
+   * que la lecture en bloc de la racine les couvre.
    */
   readonly enfants: Acquis<readonly IdDeNoeud[]> | Refuse | NonDemande;
   readonly frontiere: Frontiere;

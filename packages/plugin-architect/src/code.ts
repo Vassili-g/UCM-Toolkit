@@ -38,8 +38,8 @@ const surLesNoeuds = (evenement: NodeChangeEvent): void => {
  */
 const suivi = creerLeSuivi<PageNode>(() => figma.currentPage, surLesNoeuds);
 
-function surveillerLeDocument(page?: PageNode): void {
-  suivi.surveiller(page);
+function surveillerLeDocument(page?: PageNode): readonly string[] {
+  return suivi.surveiller(page).map((nonEcoutee) => nonEcoutee.id);
 }
 
 const contexte: Contexte = { figma, envoyer: versUi, surveillerLeDocument };

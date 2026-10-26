@@ -12,9 +12,10 @@ import type { LayerLu, ReleveDeComposant } from '@ucm-kit/core/controles';
 import { liaisonsDuNoeud, liaisonsDuStyle, modesDuNoeud, type NoeudLu } from '../src/consommateurs';
 import { lireLeComposant } from '../src/lectureDuComposant';
 import { lireLeReleve } from '../src/releveDuComposant';
-import { surChangementDuDocument, traiter, analyseCourante, reinitialiserLAnalyse } from '../src/sandbox/analyse';
+import { surChangementDuDocument, traiter, analyseCourante, couvertureDeLAnalyse, reinitialiserLAnalyse } from '../src/sandbox/analyse';
 import type { LectureDeComposant } from '../src/composant';
 import type { PluginMessage } from '../src/messages';
+import type { IdentiteDAnalyse } from '../src/messages/commun';
 import type { Contexte } from '../src/sandbox/contexte';
 import { espionDeChamps } from './accesDesChamps';
 import { atelierDeCalques, collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
@@ -236,16 +237,18 @@ test('la surveillance lit le type, le parent et l’identifiant, puis l’arbre 
   };
   await traiter({ type: 'analyser' }, contexte);
 
-  // L'abonnement suit la résolution du sujet : ces lectures sont toutes celles de la surveillance.
+  // L'abonnement du sujet suit sa résolution : ces lectures sont toutes celles de la surveillance. Le jeu et ses variants
+  // se lisent par type et nom pour la topologie ; les descendants n'ont que leur identifiant.
   assert.deepEqual(lusAvantLAbonnement, {
     TEXT: ['type', 'parent', 'id'],
-    COMPONENT: ['type', 'parent', 'id'],
-    COMPONENT_SET: ['type', 'parent', 'findAll(filtre)', 'children', 'key', 'id'],
+    COMPONENT: ['type', 'parent', 'id', 'name'],
+    COMPONENT_SET: ['type', 'parent', 'children', 'id', 'name', 'findAll(filtre)', 'key'],
     INSTANCE: ['id'],
     RECTANGLE: ['id'],
     FRAME: ['id'],
   });
   assert.equal(analyseCourante()?.sujet, 'cle-jeu');
+  assert.deepEqual(couvertureDeLAnalyse(analyseCourante() as IdentiteDAnalyse), { instances: 'descendues', complete: true });
 
   const avant = messages.length;
   surChangementDuDocument(['inconnu'], contexte);

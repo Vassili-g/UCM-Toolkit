@@ -27,6 +27,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - ressources.ts : mémoire des variables, collections, styles et maîtres d'instance lus par identifiant, une lecture par id et par demande, rendus en `FaitDeRessource` (acquis, `leve`, `introuvable`) ; `lireUneFoisParIdentifiant` mémorise l'appel natif et son refus, que le moteur lit pour les styles et les maîtres ; relevé d'Architect (variables, collections, style nommé, maître copié en `MaitreLu`) et `VariableNameResolver` la consomment
 - inventaires.ts : les inventaires d'une demande d'analyse, lus une fois pour tous ses lecteurs : collections et variables locales, scan des règles d'une page, libraries ; `creerInventairesDeLaDemande` crée l'objet que la demande oublie à sa fin
 - limiteur.ts : `executerAuPlus`, les requêtes d'une liste connue au plus `REQUETES_EN_VOL` (huit) à la fois, résultats à leur rang, arrêt par `avant` ; libraries, vagues d'alias et modes d'Architect l'emploient
+- topologie.ts : lecture de la topologie d'un jeu (jeu, enfants directs, descendants par `findAll`) avec sa couverture, et inventaire de péremption qu'Architect surveille ; un `children` ou un `findAll` qui lève devient un trou, une page non écoutée s'ajoute aux trous
 - faits.ts : faits ordinaires d'une analyse, sans type Figma : topologie, champs acquis, mixtes, refusés ou non demandés, segments, maîtres, ressources, provenance et couverture
 
 ## src/composant/contract/

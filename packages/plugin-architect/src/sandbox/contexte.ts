@@ -11,9 +11,10 @@ export interface Contexte {
   envoyer(message: PluginMessage): void;
   /**
    * Abonne le sandbox aux changements de la page courante et, quand elle diffère,
-   * de `page`, celle du sujet de l'analyse ; l'abonnement attend la première analyse.
+   * de `page`, celle du sujet de l'analyse. Rend les identifiants des pages voulues
+   * que Figma n'a pas laissé écouter ; `void` d'un double qui n'en dit rien.
    */
-  surveillerLeDocument(page?: PageNode): void;
+  surveillerLeDocument(page?: PageNode): readonly string[] | void;
 }
 
 /** Ce que le suivi demande à une page : `PageNode` en production, un double en test. */
@@ -23,8 +24,8 @@ export interface PageSuivable<E = NodeChangeEvent> {
 }
 
 export interface SuiviDesPages<P> {
-  /** Première analyse ou nouvelle analyse : la page courante et `page` (celle du sujet, si elle diffère). */
-  surveiller(page?: P): void;
+  /** Première analyse ou nouvelle analyse : la page courante et `page` (celle du sujet, si elle diffère). Rend les pages voulues qui ne sont pas écoutées. */
+  surveiller(page?: P): readonly P[];
   /** La page courante a changé : on la suit, et on quitte celle qui n'est plus ni courante ni celle du sujet. */
   recalculer(): void;
 }
@@ -33,15 +34,16 @@ export interface SuiviDesPages<P> {
  * Une écoute `nodechange` par page, sur la page courante et sur la page du
  * sujet de l'analyse. `page.on` lève sur une page non chargée (accès dynamique) ;
  * la loi d'écriture interdit `loadAsync` hors de `ecriture/` : une telle page
- * n'est pas suivie, et un changement de son maître n'atteint pas l'analyse.
+ * n'est pas suivie, et un changement de son maître n'atteint pas l'analyse :
+ * `surveiller` la rend, et l'analyse la porte comme trou `page-non-ecoutee`.
  */
 export function creerLeSuivi<P extends PageSuivable>(courante: () => P, rappel: (evenement: NodeChangeEvent) => void): SuiviDesPages<P> {
   let actif = false;
   let sujet: P | undefined;
   const ecoutees = new Set<P>();
 
-  function recalculer(): void {
-    if (!actif) return;
+  function recalculer(): readonly P[] {
+    if (!actif) return [];
     const voulues = new Set<P>([courante()]);
     if (sujet !== undefined) voulues.add(sujet);
     for (const page of [...ecoutees]) {
@@ -56,15 +58,16 @@ export function creerLeSuivi<P extends PageSuivable>(courante: () => P, rappel: 
         ecoutees.add(page);
       } catch { /* page non chargée : voir la limite ci-dessus */ }
     }
+    return [...voulues].filter((page) => !ecoutees.has(page));
   }
 
   return {
     surveiller(page) {
       actif = true;
       sujet = page;
-      recalculer();
+      return recalculer();
     },
-    recalculer,
+    recalculer() { recalculer(); },
   };
 }
 
