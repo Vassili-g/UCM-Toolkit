@@ -100,6 +100,10 @@ test('les index rendent la sortie de la version sans index, sur 90 variants', ()
   assert.equal(doublons.length, 2);
   assert.ok(doublons.every((constat) => !constat.correction && !constat.question));
   assert.equal(createHash('sha256').update(JSON.stringify(sortie)).digest('hex'), EMPREINTE_DE_HEAD);
+  const calcul = proposerLesCorrectionsParEtapes(releve, catalogue, constats);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  assert.equal(createHash('sha256').update(JSON.stringify(etape.value)).digest('hex'), EMPREINTE_DE_HEAD, 'la voie par étapes garde l’empreinte historique');
 });
 
 test('proposerLesCorrections ne modifie ni le relevé, ni le catalogue, ni les constats', () => {

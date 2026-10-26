@@ -3,9 +3,9 @@ import { REGISTRE_PALETTES_COMPOSANT, type Collection } from '../referentiel/arc
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
 import { type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
-import { candidatDeLongueur, classerLesCandidats } from './candidatsDeLongueur.js';
+import { candidatDeLongueurParEtapes, classerLesCandidatsParEtapes, type CandidatDeLongueur } from './candidatsDeLongueur.js';
 import type { Constat, Correction } from './constat.js';
-import { axesDuReleve, segmentDAxe, tokensDuComposant, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { axesDuReleve, axesDuReleveParEtapes, segmentDAxe, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /**
@@ -29,18 +29,18 @@ export function* proposerLesCorrectionsParEtapes(releve: ReleveDeComposant, cata
     yield;
   }
   const gardes = constats.filter((constat) => constat.code !== 'C15' && constat.code !== 'C17');
-  nouveaux.push(...constatsManquants(releve), ...constatsDeValeursEnDur(releve));
+  nouveaux.push(...constatsManquants(releve), ...(yield* constatsDeValeursEnDurParEtapes(releve)));
   const enrichis: Constat[] = [];
   for (const constat of [...gardes.filter((entree) => entree.code === 'C16'), ...nouveaux]) {
     const proposition = constat.code === 'C16'
-      ? corrigerAxe(constat, releve, catalogue, index)
+      ? yield* corrigerAxe(constat, releve, catalogue, index)
       : constat.code === 'C22'
-        ? corrigerAxe(constat, releve, catalogue, index)
+        ? yield* corrigerAxe(constat, releve, catalogue, index)
         : constat.code === 'C24'
           ? corrigerRole(constat, releve, catalogue, index)
           : constat.code === 'C25'
             ? corrigerLiaisonManquante(constat, releve, catalogue, index)
-            : corrigerValeurEnDur(constat, releve, catalogue, index);
+            : yield* corrigerValeurEnDur(constat, releve, catalogue, index);
     enrichis.push(proposition ? { ...constat, ...proposition } : constat);
     yield;
   }
@@ -61,7 +61,8 @@ interface IndexDeCorrection {
   readonly variants: ReadonlyMap<string, { variant: VariantLu; rang: number }>;
   readonly variablesParNom: ReadonlyMap<string, readonly VariableDuCatalogue[]>;
   axes(): ReturnType<typeof axesDuReleve>;
-  tokens(): ReturnType<typeof tokensDuComposant>;
+  axesParEtapes(): Generator<void, ReturnType<typeof axesDuReleve>>;
+  tokens(): Generator<void, ReturnType<typeof tokensDuComposant>>;
   couleursDuComposant(): readonly VariableDuCatalogue[];
   /** Le catalogue permet de conclure qu'aucun token de `components` ne manque à la recherche de C29. */
   tokensDeTailleLus(): boolean;
@@ -88,7 +89,6 @@ function* indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
     yield;
   }
   let axes: ReturnType<typeof axesDuReleve> | undefined;
-  let tokens: ReturnType<typeof tokensDuComposant> | undefined;
   let couleurs: VariableDuCatalogue[] | undefined;
   let lus: boolean | undefined;
   // `find` rend la première collection de la clé : l'index garde elle aussi la première.
@@ -100,7 +100,8 @@ function* indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
   return {
     layers, variants, variablesParNom,
     axes: () => (axes ??= axesDuReleve(releve)),
-    tokens: () => (tokens ??= tokensDuComposant(releve, catalogue)),
+    axesParEtapes: () => axesDuReleveParEtapes(releve),
+    tokens: () => tokensDuComposantParEtapes(releve, catalogue),
     couleursDuComposant: () => (couleurs ??= catalogue.variables.filter((variable) => variable.etat === 'presente' && variable.type === 'COLOR'
       && roles.get(variable.collection) === 'components'
       && formeReconnue(variable.nom.split('/')[0]) === formeReconnue(releve.jeu.nom)
@@ -137,11 +138,20 @@ function constatsManquants(releve: ReleveDeComposant): Constat[] {
  * masqué ne se voit pas, et une valeur d'instance vient de son maître. Un champ dont la lecture a échoué n'est pas un constat.
  */
 function constatsDeValeursEnDur(releve: ReleveDeComposant): Constat[] {
+  const calcul = constatsDeValeursEnDurParEtapes(releve);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+function* constatsDeValeursEnDurParEtapes(releve: ReleveDeComposant): Generator<void, Constat[]> {
   const resultat: Constat[] = [];
   for (const variant of releve.variants) {
     for (const layer of layersVisiblesDuVariant(variant)) {
+      yield;
       if (layer.type === 'INSTANCE' && layer.parent !== null) continue;
       for (const valeur of layer.valeursEnDur) {
+        yield;
         if (!familleLayoutCompatible(valeur.champ) || valeur.valeur === 0 || lectureManquee(releve, layer.id, valeur.champ)) continue;
         resultat.push({
           id: `C29:${variant.id}:${layer.id}:${valeur.champ}:${valeur.valeur}`, code: 'C29', type: 'corriger', famille: 'tailles',
@@ -198,21 +208,32 @@ function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: string): b
  * segment d'axe du token doit valoir celui du variant ; un token sans segment pour un axe vaut pour toutes ses valeurs. Un
  * segment d'élément doit nommer le layer. Un token dont le nom ne se lit pas ne se départage pas : il n'est pas retenu.
  */
-function tokensDeTailleDuLayer(index: IndexDeCorrection, layer: LayerLu, variant: VariantLu | undefined, champ: string): TokenDuComposant[] {
+function* tokensDeTailleDuLayer(index: IndexDeCorrection, layer: LayerLu, variant: VariantLu | undefined, champ: string): Generator<void, TokenDuComposant[]> {
   const proprietes = proprietesDeComposantDuChamp(champ);
   if (proprietes.length === 0) return [];
-  return index.tokens().filter((token) => {
-    if (token.variable.type !== 'FLOAT') return false;
+  const tokens = yield* index.tokens();
+  const retenus: TokenDuComposant[] = [];
+  for (const token of tokens) {
+    yield;
+    if (token.variable.type !== 'FLOAT') continue;
     const propriete = token.lecture.find((segment) => segment.role === 'propriete');
-    if (!propriete?.terme || !proprietes.includes(propriete.terme)) return false;
-    return token.lecture.every((segment) => {
-      if (segment.role === 'element') return formeReconnue(segment.segment) === formeReconnue(layer.nom);
-      if (segment.role !== 'palette' && segment.role !== 'style' && segment.role !== 'taille' && segment.role !== 'etat') return true;
-      const axe = index.axes()[segment.role];
+    if (!propriete?.terme || !proprietes.includes(propriete.terme)) continue;
+    let compatible = true;
+    for (const segment of token.lecture) {
+      yield;
+      if (segment.role === 'element') {
+        if (formeReconnue(segment.segment) !== formeReconnue(layer.nom)) { compatible = false; break; }
+        continue;
+      }
+      if (segment.role !== 'palette' && segment.role !== 'style' && segment.role !== 'taille' && segment.role !== 'etat') continue;
+      const axes = yield* index.axesParEtapes();
+      const axe = axes[segment.role];
       const valeur = axe && variant?.valeurs[axe.nom];
-      return !!valeur && memeValeurDAxe(segment.role, segment.segment, valeur);
-    });
-  });
+      if (!valeur || !memeValeurDAxe(segment.role, segment.segment, valeur)) { compatible = false; break; }
+    }
+    if (compatible) retenus.push(token);
+  }
+  return retenus;
 }
 
 /**
@@ -227,14 +248,15 @@ export function clesDesTokensDeTailleAttendus(releve: ReleveDeComposant, catalog
     .map((token) => token.variable.cle);
 }
 
-function corrigerAxe(constat: Constat, releve: ReleveDeComposant, catalogue: CatalogueDeReference, index: IndexDeCorrection): Pick<Constat, 'correction' | 'question'> | undefined {
+function* corrigerAxe(constat: Constat, releve: ReleveDeComposant, catalogue: CatalogueDeReference, index: IndexDeCorrection): Generator<void, Pick<Constat, 'correction' | 'question'> | undefined> {
   const nomToken = chaine(constat.faits.token);
   const nomAxe = chaine(constat.faits.axe);
   const variant = variantDuConstat(constat, index);
   const layer = layerDuConstat(constat, index);
   const liaison = layer && nomToken ? liaisonDuConstat(constat, layer, nomToken) : undefined;
   const axe = Object.entries(index.axes()).find(([, propriete]) => formeReconnue(propriete.nom) === formeReconnue(nomAxe ?? '')) as [AxeDuComposant, NonNullable<ReturnType<typeof axesDuReleve>[AxeDuComposant]>] | undefined;
-  const token = index.tokens().find((entree) => entree.variable.nom === nomToken);
+  const tokens = yield* index.tokens();
+  const token = tokens.find((entree) => entree.variable.nom === nomToken);
   if (!nomToken || !variant || !layer || !liaison || !axe || !token) return undefined;
   const valeur = variant.valeurs[axe[1].nom];
   const segmentActuel = segmentDAxe(token, axe[0]);
@@ -287,7 +309,7 @@ function corrigerLiaisonManquante(constat: Constat, releve: ReleveDeComposant, c
   } };
 }
 
-function corrigerValeurEnDur(constat: Constat, releve: ReleveDeComposant, catalogue: CatalogueDeReference, index: IndexDeCorrection): Partial<Pick<Constat, 'correction' | 'question' | 'faits'>> | undefined {
+function* corrigerValeurEnDur(constat: Constat, releve: ReleveDeComposant, catalogue: CatalogueDeReference, index: IndexDeCorrection): Generator<void, Partial<Pick<Constat, 'correction' | 'question' | 'faits'>> | undefined> {
   const layer = layerDuConstat(constat, index);
   const champ = chaine(constat.faits.champ);
   const valeur = typeof constat.faits.valeur === 'number' ? constat.faits.valeur : undefined;
@@ -295,9 +317,18 @@ function corrigerValeurEnDur(constat: Constat, releve: ReleveDeComposant, catalo
   if (!layer || !champ || valeur === undefined || !dure) return undefined;
   if (proprietesDeComposantDuChamp(champ).length === 0) return undefined;
   // Un layer ne se lie qu'aux tokens de son composant : `layout` n'est jamais un candidat, même d'une valeur exacte.
-  const possibles = tokensDeTailleDuLayer(index, layer, variantDuConstat(constat, index), champ);
-  if (!index.tokensDeTailleLus() || possibles.some(({ variable }) => variable.etat !== 'presente')) return { faits: { ...constat.faits, recherche: 'incomplete' } };
-  const { exacts, proches } = classerLesCandidats(possibles.map(({ variable }) => candidatDeLongueur(catalogue, variable)), valeur);
+  const possibles = yield* tokensDeTailleDuLayer(index, layer, variantDuConstat(constat, index), champ);
+  if (!index.tokensDeTailleLus()) return { faits: { ...constat.faits, recherche: 'incomplete' } };
+  for (const { variable } of possibles) {
+    yield;
+    if (variable.etat !== 'presente') return { faits: { ...constat.faits, recherche: 'incomplete' } };
+  }
+  const candidats: CandidatDeLongueur[] = [];
+  for (const { variable } of possibles) {
+    yield;
+    candidats.push(yield* candidatDeLongueurParEtapes(catalogue, variable));
+  }
+  const { exacts, proches } = yield* classerLesCandidatsParEtapes(candidats, valeur);
   if (exacts.length === 0 && proches.length > 0) {
     // Un token proche change le rendu : le designer choisit, rien n'est proposé comme correction.
     return {
@@ -307,7 +338,14 @@ function corrigerValeurEnDur(constat: Constat, releve: ReleveDeComposant, catalo
   }
   // Sans token exact ni proche, le constat reste seul : la préparation propose de créer le token.
   if (exacts.length === 0) return undefined;
-  if (exacts.length > 1) return question(constat, exacts);
+  if (exacts.length > 1) {
+    const choix: { cle: string; nom: string }[] = [];
+    for (const variable of exacts) {
+      yield;
+      choix.push({ cle: variable.cle, nom: variable.nom });
+    }
+    return { question: { id: constat.id, candidats: choix } };
+  }
   const candidate = exacts[0];
   return { correction: {
     id: constat.id, sorte: 'liaison', cible: { layer: layer.id, champ }, avant: null,

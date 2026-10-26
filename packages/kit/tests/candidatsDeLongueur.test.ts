@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { candidatsDeLongueur, indexDeLongueurs } from '../src/controles/candidatsDeLongueur.js';
+import { candidatsDeLongueur, indexDeLongueurs, candidatDeLongueur, candidatDeLongueurParEtapes, classerLesCandidats, classerLesCandidatsParEtapes } from '../src/controles/candidatsDeLongueur.js';
 import type { CatalogueDeReference, VariableDuCatalogue } from '../src/controles/index.js';
 
 type Valeurs = NonNullable<VariableDuCatalogue['valeurs']>;
@@ -15,6 +15,69 @@ const catalogue = (variables: VariableDuCatalogue[]): CatalogueDeReference => ({
   variables,
 });
 const cles = (cat: CatalogueDeReference, famille: string, valeur: number) => candidatsDeLongueur(cat, famille, valeur).exacts.map(({ cle }) => cle);
+
+function epuiser<T>(calcul: Generator<void, T>): T {
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+test('la résolution par étapes garde les modes et la priorité de la clé sur le nom', () => {
+  const nom = variable('nom', 'primitive', { m: { valeur: 22 } });
+  const cle = variable('primitive', 'spacing/8', { m: { valeur: 8 } });
+  const alias = variable('alias', 'radius/md', { l: { alias: 'primitive' }, d: { alias: 'spacing/8' } });
+  const cat = catalogue([nom, cle, alias]);
+  const attendu = { variable: alias, parMode: { l: 8, d: 8 }, exacte: 8 };
+  assert.deepEqual(epuiser(candidatDeLongueurParEtapes(cat, alias)), attendu);
+  assert.deepEqual(candidatDeLongueur(cat, alias), attendu);
+});
+
+test('le classement par étapes garde l’ordre exact et les égalités de proximité', () => {
+  const z = variable('z', 'z', undefined);
+  const a = variable('a', 'a', undefined);
+  const egal = variable('egal', 'a', undefined);
+  const haut = variable('haut', 'haut', undefined);
+  const candidats = [z, a, egal, haut].map((v) => ({ variable: v, parMode: { m: v === haut ? 14 : 12 }, exacte: v === haut ? 14 : 12 }));
+  for (const valeur of [0, 12, 13, 14, 20]) {
+    assert.deepEqual(epuiser(classerLesCandidatsParEtapes(candidats, valeur)), classerLesCandidats(candidats, valeur));
+  }
+  assert.deepEqual(epuiser(classerLesCandidatsParEtapes(candidats, 12)), { exacts: [z, a, egal], proches: [] });
+  assert.deepEqual(epuiser(classerLesCandidatsParEtapes(candidats, 13)), {
+    exacts: [], proches: [{ variable: a, valeur: 12, ecart: 1 }, { variable: haut, valeur: 14, ecart: 1 }],
+  });
+});
+
+test('la résolution répartit 2 000 modes entre ses étapes', () => {
+  let lectures = 0;
+  const v = variable('v', 'sizing/10', Object.fromEntries(Array.from({ length: 2000 }, (_, i) => [
+    `m${i}`, { get valeur() { lectures += 1; return 10; } },
+  ])));
+  const calcul = candidatDeLongueurParEtapes(catalogue([v]), v);
+  let etape;
+  do {
+    const avant = lectures;
+    etape = calcul.next();
+    assert.ok(lectures - avant <= 2);
+  } while (!etape.done);
+  assert.equal(lectures, 4000);
+  assert.equal(etape.value.exacte, 10);
+  assert.equal(Object.keys(etape.value.parMode).length, 2000);
+});
+
+test('le classement répartit 2 000 candidats entre ses étapes', () => {
+  let lectures = 0;
+  const variables = Array.from({ length: 2000 }, (_, i) => variable(`v${i}`, `sizing/${i}`, undefined));
+  const candidats = variables.map((v) => ({ variable: v, parMode: { m: 10 }, get exacte() { lectures += 1; return 10; } }));
+  const calcul = classerLesCandidatsParEtapes(candidats, 10);
+  let etape;
+  do {
+    const avant = lectures;
+    etape = calcul.next();
+    assert.ok(lectures - avant <= 1);
+  } while (!etape.done);
+  assert.equal(lectures, 2000);
+  assert.deepEqual(etape.value, { exacts: variables, proches: [] });
+});
 
 test('une variable qui vaut la valeur en direct est un candidat exact', () => {
   const cat = catalogue([variable('a', 'sizing/8', { l: { valeur: 8 }, d: { valeur: 8 } }), variable('b', 'sizing/12', { l: { valeur: 12 } })]);

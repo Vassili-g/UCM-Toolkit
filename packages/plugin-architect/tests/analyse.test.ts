@@ -312,6 +312,40 @@ test('annuler pendant l’index des corrections ne rend aucune correction', asyn
   assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
 });
 
+test('annuler pendant les résolutions C29 abandonne les candidats numériques restants', async () => {
+  const b = banc();
+  const releve = releveDe('Alert');
+  releve.variants[0].layers = [{
+    id: 'box', nom: 'Box', type: 'FRAME', parent: null, visible: true, opacite: 1,
+    dimensions: { x: 0, y: 0, largeur: 100, hauteur: 40 }, peintures: [], liaisons: [], valeursEnDur: [{ champ: 'paddingLeft', valeur: 10 }],
+  }];
+  let valeursLues = 0;
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'c', nom: 'components', role: 'components', etat: 'lue', modes: [{ id: 'm', nom: 'Mode' }] }],
+    variables: Array.from({ length: 256 }, (_, i) => ({
+      cle: `v${i}`, nom: 'alert/size/padding-x', collection: 'c', etat: 'presente', type: 'FLOAT',
+      valeurs: { m: { get valeur() { valeursLues += 1; return 10; } } },
+    })),
+  };
+  let horloge = 0;
+  const traiter = traiterAvec({
+    ...lecteurs(complete(), 'Alert', catalogue),
+    releve: async () => ({ statut: 'lu', releve }),
+  }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (valeursLues > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.ok(valeursLues > 0 && valeursLues < 2 * 256, `${valeursLues} valeurs de candidats lues`);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+  assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
+});
+
 test('annuler au milieu des signatures du mapping abandonne les modes restants', async () => {
   const b = banc();
   const releve = releveDe('Alert');

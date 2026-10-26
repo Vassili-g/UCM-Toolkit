@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { controlerMapping, proposerLesCorrections, type CatalogueDeReference, type Constat, type LayerLu, type ReleveDeComposant, type VariantLu } from '../src/controles/index.js';
+import { controlerMapping, proposerLesCorrections, proposerLesCorrectionsParEtapes, type CatalogueDeReference, type Constat, type LayerLu, type ReleveDeComposant, type VariantLu } from '../src/controles/index.js';
 
 function releve(variantValeurs: Record<string, string>, layer: VariantLu['layers'][number]): ReleveDeComposant {
   return {
@@ -35,6 +35,33 @@ function catalogue(variables: CatalogueDeReference['variables'], extraCollection
 function constat(code: string, faits: Constat['faits']): Constat {
   return { id: `${code}:test`, code: code as `C${number}`, type: 'corriger', famille: 'liaisons', variants: ['variant-1'], layers: ['layer-1'], faits };
 }
+
+test('C29 borne chaque avancée sur 2 000 tokens FLOAT et garde la lecture des tokens en cache', () => {
+  const cible = layer();
+  cible.valeursEnDur = [{ champ: 'paddingLeft', valeur: 10 }, { champ: 'paddingRight', valeur: 10 }];
+  const r = releve({}, cible);
+  const lectures = { noms: 0, types: 0, valeurs: 0 };
+  const c = catalogue(Array.from({ length: 2000 }, (_, i) => ({
+    cle: `v${i}`, get nom() { lectures.noms += 1; return 'alert/size/padding-x'; }, collection: 'components', etat: 'presente',
+    get type() { lectures.types += 1; return 'FLOAT' as const; },
+    valeurs: { m: { get valeur() { lectures.valeurs += 1; return 10; } } },
+  })));
+  const calcul = proposerLesCorrectionsParEtapes(r, c, []);
+  let resultat: IteratorResult<void, Constat[]>;
+  let etapes = 0;
+  let pire = 0;
+  do {
+    const avant = { ...lectures };
+    resultat = calcul.next();
+    pire = Math.max(pire, lectures.noms - avant.noms, lectures.types - avant.types, lectures.valeurs - avant.valeurs);
+    etapes += 1;
+  } while (!resultat.done);
+  assert.ok(pire <= 256, `${pire} lectures dans une avancée`);
+  assert.ok(etapes > 2000);
+  assert.equal(resultat.value.length, 2);
+  for (const constat of resultat.value) assert.equal(constat.question?.candidats.length, 2000);
+  assert.deepEqual(resultat.value, proposerLesCorrections(r, c, []));
+});
 
 test('un axe produit une correction quand le nom cible existe une seule fois', () => {
   const r = releve({ Severity: 'success' }, layer({ token: 'alert/color/info/standard/background' }));
