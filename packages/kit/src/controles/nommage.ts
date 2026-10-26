@@ -89,7 +89,7 @@ function calculerLesTokens(releve: ReleveDeComposant, catalogue: CatalogueDeRefe
     const segments = variable.nom.split('/');
     if (formeReconnue(segments[0]) !== formeReconnue(releve.jeu.nom)) return [];
     const pourLaGrammaire = [...segments];
-    if (termeReconnu(FAMILLES_PRIMITIVES, segments[1])?.id === 'color') pourLaGrammaire[1] = 'color';
+    if (segments.length > 1 && termeReconnu(FAMILLES_PRIMITIVES, segments[1])?.id === 'color') pourLaGrammaire[1] = 'color';
     const lire = (axesSupplementaires: Record<string, readonly string[]> = {}) => reconnaitreLeChemin('components', pourLaGrammaire, {
       themes: 'chemin',
       axes: { ...Object.fromEntries(Object.entries(axes).map(([axe, propriete]) => [axe, propriete.valeurs ?? []])), ...axesSupplementaires },
@@ -148,7 +148,7 @@ export function controlerNommage(releve: ReleveDeComposant, catalogue: Catalogue
   const formeToleree = (code: 'C8' | 'C10', segment: string, attendu: string, nom: string): void => grouper(code, segment, { attendu }, nom);
   for (const token of tokens) {
     const { segments, lecture, variable } = token;
-    if (termeReconnu(FAMILLES_PRIMITIVES, segments[1])?.id === 'color' && formeReconnue(segments[1]) !== 'color') {
+    if (segments.length > 1 && termeReconnu(FAMILLES_PRIMITIVES, segments[1])?.id === 'color' && formeReconnue(segments[1]) !== 'color') {
       formeToleree('C8', segments[1], 'color', variable.nom);
     }
     for (const [rang, reconnu] of lecture.entries()) {

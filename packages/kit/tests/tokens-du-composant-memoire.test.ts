@@ -14,7 +14,7 @@ import { FAMILLES_PRIMITIVES } from '../src/referentiel/architecture.js';
 import { reconnaitreLeChemin } from '../src/referentiel/grammaire.js';
 import { formeReconnue, termeReconnu } from '../src/referentiel/reconnaissance.js';
 
-/** Le calcul d'avant la mémoire, copié tel quel : l'oracle de parité. */
+/** Le calcul d'avant la mémoire, copié avec la seule garde du second segment : l'oracle de parité. */
 function axesDeReference(releve: ReleveDeComposant): Partial<Record<AxeDuComposant, ProprieteDAxe>> {
   const axes: Partial<Record<AxeDuComposant, ProprieteDAxe>> = {};
   for (const propriete of releve.proprietes) {
@@ -33,7 +33,7 @@ function tokensDeReference(releve: ReleveDeComposant, catalogue: CatalogueDeRefe
     const segments = variable.nom.split('/');
     if (formeReconnue(segments[0]) !== formeReconnue(releve.jeu.nom)) return [];
     const pourLaGrammaire = [...segments];
-    if (termeReconnu(FAMILLES_PRIMITIVES, segments[1])?.id === 'color') pourLaGrammaire[1] = 'color';
+    if (segments.length > 1 && termeReconnu(FAMILLES_PRIMITIVES, segments[1])?.id === 'color') pourLaGrammaire[1] = 'color';
     const lire = (axesSupplementaires: Record<string, readonly string[]> = {}) => reconnaitreLeChemin('components', pourLaGrammaire, {
       themes: 'chemin',
       axes: { ...Object.fromEntries(Object.entries(axes).map(([axe, propriete]) => [axe, propriete.valeurs ?? []])), ...axesSupplementaires },
@@ -131,12 +131,12 @@ const CAS: Cas[] = [
     },
   },
   {
-    nom: 'bords : clé de collection en double, collection sans rôle, nom sans séparateur, nom vide, nom qui commence par une barre (aucun ne porte le nom du jeu : le calcul d’avant lève alors)',
+    nom: 'bords : clé de collection en double, collection sans rôle, nom sans séparateur, nom vide, nom qui commence par une barre',
     fabriquer: () => {
       const catalogue: CatalogueDeReference = {
         version: 1, library: null,
         collections: [collection('components', 'components'), { ...collection('components', 'layout'), nom: 'doublon' }, { cle: 'libre', nom: 'libre', role: null, modes: [], etat: 'lue' }],
-        variables: [variable('1', 'card'), variable('2', ''), variable('3', '/button/color/primary/background'), variable('4', 'button/color/primary/background'), variable('5', 'button/color/primary/background', 'libre'), variable('6', 'button/color', 'inconnue')],
+        variables: [variable('1', 'button'), variable('2', 'card'), variable('3', '/button/color/primary/background'), variable('4', 'button/color/primary/background'), variable('5', 'button/color/primary/background', 'libre'), variable('6', 'button/color', 'inconnue')],
       };
       return { catalogue, releve: avecDesVariants(releve('button', [axe('Palette', ['primary'])]), catalogue) };
     },
@@ -144,7 +144,7 @@ const CAS: Cas[] = [
   {
     nom: 'jeu au nom vide',
     fabriquer: () => {
-      const catalogue: CatalogueDeReference = { version: 1, library: null, collections: [collection('components', 'components')], variables: [variable('1', 'x/y'), variable('2', '/x'), variable('3', '/')] };
+      const catalogue: CatalogueDeReference = { version: 1, library: null, collections: [collection('components', 'components')], variables: [variable('1', ''), variable('2', 'x/y'), variable('3', '/x'), variable('4', '/')] };
       return { catalogue, releve: releve('') };
     },
   },
@@ -288,4 +288,26 @@ test('cinq appels, comme les cinq sites de contrôle d’une analyse, lisent cha
   }
   assert.equal(lectures.noms, N);
   assert.equal(lectures.proprietes, 1);
+});
+
+test('une variable de components dont le nom n’a pas de second segment ne fait lever ni le calcul des tokens ni aucun contrôle', () => {
+  const catalogue: CatalogueDeReference = { version: 1, library: null, collections: [collection('components', 'components'), collection('theme', 'theme')], variables: [
+    variable('seul', 'button'), variable('complet', 'button/color/primary/background'), variable('theme', 'primary/solid/default', 'theme'),
+  ] };
+  const composant = avecDesVariants(releve('Button', [axe('Palette', ['primary'])]), catalogue);
+  const tokens = tokensDuComposant(composant, catalogue);
+  assert.deepEqual(tokens.map(({ variable: { cle }, segments }) => [cle, segments]), [['seul', ['button']], ['complet', ['button', 'color', 'primary', 'background']]]);
+  assert.deepEqual(tokens[0].lecture, []);
+
+  const vide: CatalogueDeReference = { ...catalogue, variables: [variable('vide', '')] };
+  const sansNom = avecDesVariants(releve(''), vide);
+  assert.deepEqual(tokensDuComposant(sansNom, vide).map(({ variable: { cle }, segments, lecture }) => [cle, segments, lecture]), [['vide', [''], []]]);
+
+  for (const [r, c] of [[composant, catalogue], [sansNom, vide]] as const) {
+    const constats = controlerNommage(r, c);
+    for (const lancer of [
+      () => controlerMapping(r, c), () => controlerCouches(r, c), () => controlerOublis(r, c), () => controlerLAccessibilite(r, c, { niveau: 'AA' }), () => controlerLaTypographie(r, c),
+      () => controlerLeTheme(r, c), () => controlerLaStructure(r, c), () => proposerLesCorrections(r, c, constats), () => proposerLaPropagation(r, c, 'm'),
+    ]) assert.doesNotThrow(lancer);
+  }
 });
