@@ -12,6 +12,7 @@ import exporterLeComposant, { ETAPES_DE_L_ANALYSE } from 'ucm-plugin-socle/src/c
 import { abandonnerLaMesure, avancementCourant, ouvrirLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import type { Avancement } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { BUDGET_DE_CALCUL_MS, respirerSiBesoin } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
+import { desactiverLaPorteePourLeBanc } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 import { conteneurDeRegles, handleExportComponent, node } from './aides/figmaFaux';
 import { sansDate } from './aides/parite';
 
@@ -29,6 +30,7 @@ function monterLeSet(nombre = 8) {
     defaultVariant: maitre,
   });
   const appels = new Map<string, number>();
+  const lecturesDesVariants = new Map<string, number>();
   const instance = (nom: string) => {
     const cree = node('INSTANCE', nom, [], {
       componentProperties: {},
@@ -56,6 +58,13 @@ function monterLeSet(nombre = 8) {
     counterAxisAlignItems: 'CENTER',
     variantProperties: { Taille: taille },
   }));
+  for (const variant of variants) {
+    const trouver = variant.findAll.bind(variant);
+    variant.findAll = (...arguments_: any[]) => {
+      lecturesDesVariants.set(variant.id, (lecturesDesVariants.get(variant.id) ?? 0) + 1);
+      return trouver(...arguments_);
+    };
+  }
   const racine = node('COMPONENT_SET', 'Root', variants, {
     componentPropertyDefinitions: {
       Taille: { type: 'VARIANT', variantOptions: tailles, defaultValue: 'T1' },
@@ -78,6 +87,7 @@ function monterLeSet(nombre = 8) {
   };
   return {
     appels,
+    lecturesDesVariants,
     restaurer: () => {
       (globalThis as { figma?: unknown }).figma = precedent;
     },
@@ -107,6 +117,40 @@ test('dans la portée, chaque instance ne demande son maître qu’une fois', as
     for (const [id, nombre] of fichier.appels) {
       assert.equal(nombre, 1, `l'instance ${id} a demandé son maître ${nombre} fois`);
     }
+  } finally {
+    fichier.restaurer();
+  }
+});
+
+test('les acquisitions comptent séparément les lectures de variants et les maîtres, avec et sans portée', async () => {
+  const fichier = monterLeSet(8);
+  const lire = async (sansPortee: boolean) => {
+    fichier.appels.clear();
+    fichier.lecturesDesVariants.clear();
+    desactiverLaPorteePourLeBanc(sansPortee);
+    try {
+      await exporterLeComposant();
+      return {
+        maitresParInstance: new Map(fichier.appels),
+        lecturesParVariant: new Map(fichier.lecturesDesVariants),
+      };
+    } finally {
+      desactiverLaPorteePourLeBanc(false);
+    }
+  };
+  try {
+    const avecPortee = await lire(false);
+    const sansPortee = await lire(true);
+    assert.equal(avecPortee.lecturesParVariant.size, 8);
+    assert.equal(sansPortee.lecturesParVariant.size, 8);
+    for (const variant of avecPortee.lecturesParVariant.keys()) {
+      assert.ok(avecPortee.lecturesParVariant.get(variant)! > 0, `variant non lu : ${variant}`);
+      assert.ok(sansPortee.lecturesParVariant.get(variant)! > 0, `variant non lu : ${variant}`);
+    }
+    assert.equal(avecPortee.maitresParInstance.size, 16);
+    assert.equal(sansPortee.maitresParInstance.size, 16);
+    assert.ok([...avecPortee.maitresParInstance.values()].every((nombre) => nombre === 1));
+    assert.ok([...sansPortee.maitresParInstance.values()].every((nombre) => nombre >= 1));
   } finally {
     fichier.restaurer();
   }

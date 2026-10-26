@@ -34,7 +34,7 @@ test('les valeurs Figma se convertissent sans coercition : zéro, faux, texte vi
 });
 
 test('les variables locales se lisent d’un appel, avec leurs modes, leur défaut et leur provenance', async () => {
-  const { port } = portDeTest(
+  const { port, appels } = portDeTest(
     [collectionFigma('c', 'Couleurs', ['Jour', 'Nuit'], ['a', 'b'], false, 'Nuit')],
     [variableFigma('a', 'c', 'surface', 'COLOR', { 'c:Jour': alias('b'), 'c:Nuit': { r: 0, g: 0, b: 0, a: 1 } }), variableFigma('b', 'c', 'papier', 'COLOR', { 'c:Jour': { r: 1, g: 1, b: 1, a: 1 }, 'c:Nuit': { r: 1, g: 1, b: 1, a: 1 } })],
   );
@@ -46,6 +46,8 @@ test('les variables locales se lisent d’un appel, avec leurs modes, leur défa
   assert.equal(issue.releve.collections[0].modeParDefaut, 'c:Nuit');
   assert.deepEqual(issue.releve.variables.map((variable) => [variable.id, variable.distante]), [['a', false], ['b', false]]);
   assert.deepEqual(issue.releve.manquees, []);
+  assert.equal(appels.get('local:collections'), 1);
+  assert.equal(appels.get('local:variables'), 1);
 });
 
 test('une cible distante se lit par identifiant, sa collection aussi, une seule fois chacune', async () => {

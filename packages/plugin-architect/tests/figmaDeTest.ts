@@ -81,9 +81,11 @@ export function portDeTest(collections: CollectionFigma[], locales: VariableFigm
   const figer = <T extends object>(objet: T): T => enLectureSeule({ ...objet, ...MUTATIONS } as T, ['resolveForConsumer']);
   const port: PortDeLecture = {
     async getLocalVariableCollectionsAsync() {
+      compter('local:collections');
       return collections.map(figer);
     },
     async getLocalVariablesAsync() {
+      compter('local:variables');
       return locales.map(figer);
     },
     async getVariableByIdAsync(id) {
