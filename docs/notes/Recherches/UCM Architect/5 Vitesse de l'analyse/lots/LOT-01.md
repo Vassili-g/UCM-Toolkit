@@ -4,7 +4,7 @@
 
 ## Tâches à committer
 
-- [ ] **1.1 | gpt-6.1-sol | medium** : ouvrir la trace avant la résolution du sujet et la fermer sur chaque fin ; horloge injectée et test d'annulation.
+- [x] **1.1 | gpt-6.1-sol | medium** : ouvrir la trace avant la résolution du sujet et la fermer sur chaque fin ; horloge injectée et test d'annulation.
 - [ ] **1.2 | gpt-6.1-sol | medium** : séparer dans la trace sujet, relevé, catalogue, moteur, règles, contrôles, corrections et projection ; vérifier les étapes imbriquées.
 - [ ] **1.3 | gpt-6-luna | low** : compter appels API, attentes, cessions, tranches synchrones et taille de sortie dans les ports instrumentés ; test avec horloge simulée.
 - [ ] **1.4 | gpt-6.1-sol | medium** : corréler clic, réception, premier affichage, premiers constats et final par identité de demande ; ignorer les acquittements tardifs.

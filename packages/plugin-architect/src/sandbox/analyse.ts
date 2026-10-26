@@ -23,6 +23,7 @@ import {
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import { ouvrirLaMesure, fermerLaMesure, etape, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import type { JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
@@ -158,6 +159,7 @@ export function oublierLAnalyse(): void {
 function perimer(cause: CauseDePeremption, contexte: Contexte): void {
   if (!courante || courante.perimee) return;
   courante.perimee = true;
+  if (operation?.connue && memeIdentite(operation.connue, courante.identite)) operation.cloreMesure?.('perimee');
   contexte.envoyer({ type: 'perime', analyse: courante.identite, cause });
 }
 
@@ -319,6 +321,7 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
 };
 
 interface Operation {
+  cloreMesure?: (fin: string) => TraceDeMesure | null;
   /** Connue dès que le sujet est résolu ; une seconde demande l'attend pour répondre `occupe`. */
   readonly identite: Promise<IdentiteDAnalyse>;
   connue: IdentiteDAnalyse | null;
@@ -346,7 +349,7 @@ function bloquant(message: string): Constat {
   return { id: 'export:arret', code: 'C42', type: 'bloquant', famille: 'export', variants: [], layers: [], faits: { message } };
 }
 
-async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
+async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract<DemandeDAnalyse, { type: 'analyser' }>): Promise<void> {
   if (operation) {
     contexte.envoyer({ type: 'occupe', analyse: await operation.identite });
     return;
@@ -354,12 +357,24 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
   let connaitre!: (identite: IdentiteDAnalyse) => void;
   const courant: Operation = { identite: new Promise((resolve) => { connaitre = resolve; }), connue: null, jeton: { leve: false } };
   operation = courant;
+  if (demande.mesurer) ouvrirLaMesure();
+  let mesureOuverte = demande.mesurer === true;
+  let mesureClose: TraceDeMesure | null = null;
+  courant.cloreMesure = (fin) => {
+    if (!mesureOuverte) return mesureClose;
+    mesureOuverte = false;
+    const trace = fermerLaMesure('');
+    if (trace) trace.fin = fin;
+    mesureClose = trace;
+    return trace;
+  };
   let identite: IdentiteDAnalyse | null = null;
   let catalogueLu: CatalogueDeReference | null = null;
   const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats): void => {
     retenirLesCorrections(identite as IdentiteDAnalyse, constats, releve, tous, catalogueLu);
     contexte.envoyer({
       type: 'analyse',
+      ...(courant.cloreMesure?.(statut) ? { mesure: mesureClose! } : {}),
       analyse: identite as IdentiteDAnalyse,
       statut,
       // Ignorés compris : l'interface les range sous « Ignorés » d'après le message `ignores` qui suit.
@@ -371,6 +386,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
     if (releve !== null) contexte.envoyer({ type: 'ignores', analyse: identite as IdentiteDAnalyse, constats: ecartes });
   };
   try {
+    etape('sujet');
     const sujet = await lecteurs.sujet(contexte).catch(() => null);
     identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined);
     courant.connue = identite;
@@ -414,6 +430,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs): Promise<void> {
     if (courant.jeton.leve) rendre('annulee', [], null);
     else rendre('arretee', [bloquant(messageDErreur(erreur))], null);
   } finally {
+    courant.cloreMesure?.('arretee');
     operation = null;
   }
 }
@@ -442,7 +459,7 @@ export function traiterAvec(lecteurs: Lecteurs): Traiter<DemandeDAnalyse> {
   return async (demande, contexte) => {
     switch (demande.type) {
       case 'analyser':
-        await analyser(contexte, lecteurs);
+        await analyser(contexte, lecteurs, demande);
         return;
       case 'annuler-analyse':
         annuler(demande.analyse);

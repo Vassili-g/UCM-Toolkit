@@ -6,6 +6,8 @@ import type { CatalogueDeReference, ReleveDeComposant } from '@ucm-kit/core/cont
 import { ComponentExportError, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
+import { etape, compter, fermerLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+
 import type { PluginMessage } from '../src/messages';
 import { constatsDuMoteur } from '../src/constatsDuMoteur';
 import { traiter as traiterLesQuestions } from '../src/sandbox/questions';
@@ -474,4 +476,61 @@ test('une clé d’Ignorer rangée garde le constat dans l’analyse et le nomme
   const propose = await analyserAvec([`proposition:${id}`]);
   assert.equal(deType(propose, 'analyse')[0].constats.length, 1);
   assert.deepEqual(deType(propose, 'ignores').map(({ constats }) => constats), [[]]);
+});
+
+test('la mesure couvre le sujet avant le moteur, ferme la trace et garde les sorties fonctionnelles', async () => {
+  const horloge = Date.now;
+  let instant = 100;
+  Date.now = () => instant;
+  try {
+    const executer = async (mesurer: boolean) => {
+      reinitialiserLAnalyse();
+      const b = banc();
+      const lectures = lecteurs(complete([pointDeTest]));
+      const sujet = lectures.sujet;
+      lectures.sujet = async (contexte) => { instant += 37; return sujet(contexte); };
+      lectures.moteur = async () => { etape('interne-du-moteur'); compter('nodesParcourus', 13); instant += 19; return complete([pointDeTest])(); };
+      await traiterAvec(lectures)({ type: 'analyser', mesurer }, b.contexte);
+      return deType(b, 'analyse')[0];
+    };
+    const sans = await executer(false);
+    const avec = await executer(true);
+    assert.equal(sans.mesure, undefined);
+    assert.deepEqual(avec.constats, sans.constats);
+    assert.deepEqual(avec.lecture, sans.lecture);
+    assert.deepEqual(avec.variants, sans.variants);
+    assert.equal(avec.sansTokens, sans.sansTokens);
+    assert.equal(avec.mesure?.etapes[0].nom, 'sujet');
+    assert.equal(avec.mesure?.etapes[0].ms, 37);
+    assert.equal(avec.mesure?.totalMs, 56);
+    assert.equal(avec.mesure?.fin, 'complete');
+    assert.equal(fermerLaMesure(''), null);
+  } finally { Date.now = horloge; }
+});
+
+test('un arrêt et une péremption ferment leur mesure', async () => {
+  const arret = banc();
+  await traiterAvec(lecteurs(async () => { throw new Error('refus'); }))({ type: 'analyser', mesurer: true }, arret.contexte);
+  assert.equal(deType(arret, 'analyse')[0].mesure?.fin, 'arretee');
+  assert.equal(fermerLaMesure(''), null);
+  const annulation = banc();
+  const lecturesAnnulees = lecteurs(complete());
+  const relever = lecturesAnnulees.releve;
+  lecturesAnnulees.releve = async (sujet, jeton, contexte) => {
+    await traitement({ type: 'annuler-analyse', analyse: analyseCourante()! }, contexte);
+    return relever(sujet, jeton, contexte);
+  };
+  const traitement = traiterAvec(lecturesAnnulees);
+  await traitement({ type: 'analyser', mesurer: true }, annulation.contexte);
+  assert.equal(deType(annulation, 'analyse')[0].mesure?.fin, 'annulee');
+  assert.equal(fermerLaMesure(''), null);
+
+  const b = banc();
+  const lectures = lecteurs(async () => {
+    surChangementDuDocument(['jeu-Alert'], b.contexte);
+    return complete([pointDeTest])();
+  });
+  await traiterAvec(lectures)({ type: 'analyser', mesurer: true }, b.contexte);
+  assert.equal(deType(b, 'analyse')[0].mesure?.fin, 'perimee');
+  assert.equal(fermerLaMesure(''), null);
 });

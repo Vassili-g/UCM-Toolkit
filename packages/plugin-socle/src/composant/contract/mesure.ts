@@ -45,6 +45,7 @@ export type TraceDeMesure = {
   etapes: EtapeMesuree[];
   compteurs: Partial<Record<Compteur, number>>;
   empreinte: string;
+  fin?: string;
 };
 
 /** Une étape close, et ce que chaque compteur additif a gagné pendant elle. */

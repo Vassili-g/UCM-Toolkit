@@ -5,6 +5,8 @@
  * `perime` ; l'interface garde les constats et ne relance rien avant
  * Actualiser ou Analyser.
  */
+import type { TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+
 import type { ReleveDeComposant } from '@ucm-kit/core/controles';
 
 import type { Constat, IdentiteDAnalyse } from './commun';
@@ -14,7 +16,7 @@ export type StatutDAnalyse = 'complete' | 'partielle' | 'annulee' | 'arretee';
 export type CauseDePeremption = 'ecriture' | 'document' | 'selection';
 
 export type DemandeDAnalyse =
-  | { type: 'analyser' }
+  | { type: 'analyser'; mesurer?: boolean }
   | { type: 'annuler-analyse'; analyse: IdentiteDAnalyse };
 
 export type MessageDAnalyse =
@@ -22,6 +24,6 @@ export type MessageDAnalyse =
   | { type: 'analyse-en-cours'; analyse: IdentiteDAnalyse; variantsLus: number; variantsTotal: number }
   | { type: 'analyse'; analyse: IdentiteDAnalyse; statut: StatutDAnalyse; constats: readonly Constat[]; lecture: ReleveDeComposant['lecture'] | null; variants: readonly { id: string; nom: string }[];
       /** Vrai quand le relevé et le catalogue sont lus et que la collection `components` n'a aucune variable du jeu. */
-      sansTokens: boolean }
+      sansTokens: boolean; mesure?: TraceDeMesure }
   | { type: 'perime'; analyse: IdentiteDAnalyse; cause: CauseDePeremption }
   | { type: 'occupe'; analyse: IdentiteDAnalyse };
