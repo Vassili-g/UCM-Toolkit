@@ -189,6 +189,7 @@ n'imposent aucun seuil de durée réelle.
 
 ## Ordre des lots obligatoires
 
+Les cases 4.0a et suivantes passent avant la suite du lot 2 (2.11), sur décision du mainteneur, d'après la trace Figma que [LOT-04](./LOT-04.md) résume.
 La chaîne principale est 0 à 11, puis 15. Les lots 12 à 14 sont des branches
 conditionnelles après leurs prérequis. Ils ne bloquent pas la validation sûre
 ni le recalcul ciblé. La recette Figma accompagne chaque build disponible ;
