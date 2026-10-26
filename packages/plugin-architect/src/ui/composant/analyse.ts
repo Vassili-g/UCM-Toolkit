@@ -64,6 +64,8 @@ export interface AnalyseRecue {
   readonly liaisonsDemandees: boolean;
   /** L'heure de réception, en millisecondes. */
   readonly recueA: number;
+  /** Du clic sur Analyser au résultat final, horloge de l'interface ; absente sans clic retenu pour cette demande. */
+  readonly dureeMs?: number;
 }
 
 const memeIdentite = (a: IdentiteDAnalyse, b: IdentiteDAnalyse): boolean => a.sujet === b.sujet && a.generation === b.generation;
@@ -79,6 +81,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
   const demande = demandes.get(etat);
   if ('demande' in message && message.demande !== undefined && demande && message.demande !== demande.id) return;
   if ((message.type === 'analyse' || message.type === 'occupe') && demande && message.demande === demande.id) demande.terminee = true;
+  const dureeMs = message.type === 'analyse' && demande && message.demande === demande.id ? Math.max(0, performance.now() - demande.debut) : undefined;
   if (message.type === 'analyse-commencee') {
     if (courante && message.analyse.generation <= courante.identite.generation) return;
     etat.analyse = {
@@ -92,6 +95,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
     etat.analyse = {
       identite: message.analyse, statut: message.statut, constats: visibles(message.constats, []), tous: message.constats, ignores: [], repondues: {}, variants: message.variants,
       lecture: message.lecture, sansTokens: message.sansTokens, progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: Date.now(),
+      ...(dureeMs !== undefined ? { dureeMs } : {}),
     };
     return;
   }
@@ -106,6 +110,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       etat.analyse = {
         ...courante, statut: message.statut, constats: visibles(message.constats, courante.ignores), tous: message.constats, variants: message.variants,
         lecture: message.lecture, sansTokens: message.sansTokens, progression: null, recueA: Date.now(),
+        ...(dureeMs !== undefined ? { dureeMs } : {}),
       };
       return;
     case 'ignores':

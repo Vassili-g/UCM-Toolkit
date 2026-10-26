@@ -313,11 +313,12 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
         alertes.push(creerAlerte('verifier', { titre, texte: T.partielleTexte }));
       }
     } else if (analyse.constats.length === 0 && !aPreparer(analyse) && !aDesLiaisonsPreparees(analyse) && !analyse.perimee && analyse.ecriture === null) {
-      return [resume(lecture, P.analyseA(heure(analyse.recueA)), analyse.variants.length), creerAlerte('tenu', { titre: T.aucunTitre(lecture.sujet.nom, variants), meta: T.aucunMeta })];
+      return [resume(lecture, P.analyseA(heure(analyse.recueA), analyse.dureeMs), analyse.variants.length), creerAlerte('tenu', { titre: T.aucunTitre(lecture.sujet.nom, variants), meta: T.aucunMeta })];
     }
     if (analyse.perimee) alertes.push(creerAlerte('info', { titre: T.perimeTitre, texte: T.perimeTexte }));
     const { points, enfants: elements } = montrerLesElements(lecture, analyse);
-    const etatDeLAnalyse = points > 0 ? `${P.analyseA(heure(analyse.recueA))}, ${TEXTES.elementsDuPanneau.points(points)}` : P.analyseA(heure(analyse.recueA));
+    const analyseA = P.analyseA(heure(analyse.recueA), analyse.dureeMs);
+    const etatDeLAnalyse = points > 0 ? `${analyseA}, ${TEXTES.elementsDuPanneau.points(points)}` : analyseA;
     return [resume(lecture, etatDeLAnalyse, analyse.variants.length), ...alertes, ...elements];
   }
 

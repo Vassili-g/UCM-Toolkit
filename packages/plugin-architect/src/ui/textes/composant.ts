@@ -1,6 +1,16 @@
 /** Les textes de la vue Composant : les mots et les glyphes de MAQUETTE-VUE-COMPOSANT.html. Les sortes d'objet sont des signes du socle, pas des glyphes. */
 import type { Nature } from '../../composant';
 
+/** « 42 s », « 2 min 22 s », « 3 min » ; sous la seconde, « moins d’une seconde ». */
+export function dureeLisible(ms: number): string {
+  const secondes = Math.round(ms / 1000);
+  if (secondes < 1) return 'moins d’une seconde';
+  if (secondes < 60) return `${secondes} s`;
+  const minutes = Math.floor(secondes / 60);
+  const reste = secondes % 60;
+  return reste === 0 ? `${minutes} min` : `${minutes} min ${reste} s`;
+}
+
 export const TEXTES_COMPOSANT = {
   // Vue composant : les mots et les glyphes de MAQUETTE-VUE-COMPOSANT.html
   composant: {
@@ -52,7 +62,7 @@ export const TEXTES_COMPOSANT = {
     resume: (variants: number, etat: string) => `${variants} variant${variants > 1 ? 's' : ''}, ${etat}`,
     pasAnalyse: 'pas encore analysé',
     enCours: 'analyse en cours',
-    analyseA: (heure: string) => `analysé à ${heure}`,
+    analyseA: (heure: string, dureeMs?: number) => `analysé à ${heure}${dureeMs === undefined ? '' : ` en ${dureeLisible(dureeMs)}`}`,
     avantAnalyse: (variants: number, nom: string) => `Analyser lit les ${variants} variants d’${nom}, leurs liaisons et leurs règles.`,
     duree: 'L’analyse dure quelques secondes.',
   },

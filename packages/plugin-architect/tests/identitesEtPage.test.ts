@@ -4,6 +4,7 @@ import test, { beforeEach } from 'node:test';
 
 import { etatInitial } from '../src/ui/etat';
 import { recevoirUneAnalyse, noterLaDemandeDAnalyse, acquitterLeRenduDeLAnalyse, demandeDAnalyseEnCours } from '../src/ui/composant/analyse';
+import { TEXTES_COMPOSANT, dureeLisible } from '../src/ui/textes/composant';
 import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 import { constatsDuMoteur } from '../src/constatsDuMoteur';
@@ -73,6 +74,22 @@ test('une ancienne demande ou génération ne remplace pas l’analyse retenue ;
   assert.equal(demandeDAnalyseEnCours(etat), 2);
   recevoirUneAnalyse(etat, { type: 'occupe', analyse: retenue!.identite, demande: 2 });
   assert.equal(demandeDAnalyseEnCours(etat), null);
+});
+
+test('le résultat final retient la durée depuis le clic de sa demande, et le résumé l’affiche', () => {
+  const etat = etatInitial();
+  const final = (demande?: number) => ({ type: 'analyse' as const, analyse: { sujet: 'Button', generation: 4 }, statut: 'complete' as const, constats: [], lecture: null, variants: [], sansTokens: false, ...(demande === undefined ? {} : { demande }) });
+  noterLaDemandeDAnalyse(etat, 4, false, performance.now() - 142_000);
+  recevoirUneAnalyse(etat, { type: 'analyse-commencee', demande: 4, analyse: { sujet: 'Button', generation: 4 } });
+  recevoirUneAnalyse(etat, final(4));
+  const duree = etat.analyse?.dureeMs ?? 0;
+  assert.ok(duree >= 142_000 && duree < 143_000);
+  assert.equal(TEXTES_COMPOSANT.panneau.analyseA('10:19', duree), 'analysé à 10:19 en 2 min 22 s');
+  const sansClic = etatInitial();
+  recevoirUneAnalyse(sansClic, final());
+  assert.equal(sansClic.analyse?.dureeMs, undefined);
+  assert.equal(TEXTES_COMPOSANT.panneau.analyseA('10:19', undefined), 'analysé à 10:19');
+  assert.deepEqual([400, 42_400, 180_000].map(dureeLisible), ['moins d’une seconde', '42 s', '3 min']);
 });
 
 test('les acquittements corrèlent demande et identité avec une seule horloge locale ; un rendu remplacé se tait', () => {
