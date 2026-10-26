@@ -12,7 +12,7 @@
 - [ ] **8.6 | gpt-6-luna | medium** | **Claude Sonnet | medium** : interrompre la couverture quand la page est quittée ou la file déborde ; test de retour sur page.
 - [ ] **8.7 | gpt-6-luna | medium** | **Claude Sonnet | medium** : porter Analyser et Actualiser jusqu'au sandbox ; test qu'Actualiser contourne les résultats précédents.
 - [ ] **8.8 | gpt-6.1-sol | high** | **Claude Sonnet | high** : invalider après changement de configuration et écriture, distinguer imports et changements externes ; tests Ctrl+Z et refus.
-- [ ] **8.9 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : rendre inapplicable une génération modifiée pendant lecture ou calcul ; tester avant réception de l'événement.
+- [ ] **8.9 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : rendre inapplicable une génération modifiée pendant lecture ou calcul ; tester avant réception de l'événement. Trancher aussi ce que 3.9 a laissé : aujourd'hui `perimer()` (`sandbox/analyse.ts`) laisse finir le calcul en cours, et un clic sur Analyser juste après la péremption reçoit `occupe` jusqu'à sa fin. Lever le jeton de l'opération non finalisée relancerait tout de suite ; cela change le test « une analyse lente d'Alert puis la sélection de Button ».
 
 Prérequis : 7. Nature : correction de fraîcheur, sans mémoire activée.
 Chemins : `packages/plugin-architect/src/code.ts`, `sandbox/contexte.ts`,
