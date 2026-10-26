@@ -90,19 +90,48 @@ function lieuDeLaVariable(catalogue: CatalogueDeReference, liaison: LiaisonLue):
   return { collection: collection.nom, role: collection.role };
 }
 
-/** Les autres variants portent tous la même valeur pour ce layer : elle est rendue, sinon `null`. */
-function valeurUnanime(autres: Source[], lire: (s: Source) => string | null): string | null | undefined {
-  if (autres.length < AUTRES_MINIMUM) return undefined;
-  const valeurs = new Set(autres.map(lire));
-  return valeurs.size === 1 ? [...valeurs][0] : undefined;
+/** Valeurs d'un champ sur les sources d'un groupe, comptées une fois ; chaque source retire sa propre part à la lecture. */
+export type Frequences<V> = { total: number; parValeur: Map<V, number> };
+
+/** Cède toutes les 256 sources parcourues. */
+export function* frequencesDuChamp<T, V>(sources: readonly T[], lire: (s: T) => V, retenue: (s: T) => boolean = () => true): Generator<void, Frequences<V>> {
+  const parValeur = new Map<V, number>();
+  let total = 0;
+  let parcourues = 0;
+  for (const source of sources) {
+    parcourues += 1;
+    if (parcourues % 256 === 0) yield;
+    if (!retenue(source)) continue;
+    const valeur = lire(source);
+    parValeur.set(valeur, (parValeur.get(valeur) ?? 0) + 1);
+    total += 1;
+  }
+  return { total, parValeur };
+}
+
+/**
+ * Les autres sources portent toutes la même valeur : elle est rendue, sinon `undefined` (`null` reste une valeur).
+ * `propre` est la valeur de la source jugée, qui doit figurer dans les fréquences.
+ */
+export function valeurUnanimeHorsContribution<V>(frequences: Frequences<V>, propre: V): V | undefined {
+  if (frequences.total - 1 < AUTRES_MINIMUM) return undefined;
+  const disparait = frequences.parValeur.get(propre) === 1;
+  if (frequences.parValeur.size - (disparait ? 1 : 0) !== 1) return undefined;
+  for (const [valeur, nombre] of frequences.parValeur) {
+    if (valeur !== propre || nombre > 1) return valeur;
+  }
+  return undefined;
 }
 
 /* ---------- C64 ---------- */
+
+const styleDuTexte = (s: Source): string | null => s.layer.texte?.style ?? null;
 
 function* controlerLesTextes(textes: Map<string, Source[]>, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
   const base = { code: 'C64', type: 'verifier', famille: 'typographie' } as const;
   for (const [nom, liste] of textes) {
+    const styles = yield* frequencesDuChamp(liste, styleDuTexte, (s) => s.layer.texte !== undefined);
     for (const source of liste) {
       yield;
       const { layer } = source;
@@ -111,8 +140,7 @@ function* controlerLesTextes(textes: Map<string, Source[]>, catalogue: Catalogue
       if (layer.texte.style === null && !typographie) {
         ajouter(groupes, `C64:${nom}:sans-style`, source, { calque: nom, motif: 'sans-style-ni-variables' }, base);
       }
-      const autres = liste.filter((s) => s !== source && s.layer.texte !== undefined);
-      const attendu = valeurUnanime(autres, (s) => s.layer.texte?.style ?? null);
+      const attendu = valeurUnanimeHorsContribution(styles, styleDuTexte(source));
       const lu = layer.texte.style;
       if (attendu && lu !== attendu) {
         ajouter(groupes, `C64:${nom}:style:${attendu}:${lu ?? 'aucun'}`, source,
@@ -125,10 +153,14 @@ function* controlerLesTextes(textes: Map<string, Source[]>, catalogue: Catalogue
 
 /* ---------- C65 ---------- */
 
+const liaisonLee = (s: Source, champ: string): 'liee' | null => (liaisonsDuChamp(s.layer, [champ]).length > 0 ? 'liee' : null);
+
 function* controlerLesTailleEtGraisse(textes: Map<string, Source[]>, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
   const base = { code: 'C65', type: 'verifier', famille: 'typographie' } as const;
   for (const [nom, liste] of textes) {
+    const liees = new Map<string, Frequences<'liee' | null>>();
+    for (const champ of CHAMPS_DE_TEXTE) liees.set(champ, yield* frequencesDuChamp(liste, (s) => liaisonLee(s, champ)));
     for (const source of liste) {
       yield;
       for (const champ of CHAMPS_DE_TEXTE) {
@@ -140,8 +172,7 @@ function* controlerLesTailleEtGraisse(textes: Map<string, Source[]>, catalogue: 
             { calque: nom, champ, motif: 'mauvaise-collection', variable: liaison.variable.nom, collection: lieu.collection, collectionAttendue: 'typography' }, base);
         }
         if (liaisons.length > 0) continue;
-        const autres = liste.filter((s) => s !== source);
-        const parVariant = valeurUnanime(autres, (s) => (liaisonsDuChamp(s.layer, [champ]).length > 0 ? 'liee' : null));
+        const parVariant = valeurUnanimeHorsContribution(liees.get(champ)!, liaisonLee(source, champ));
         if (parVariant === 'liee') {
           ajouter(groupes, `C65:${nom}:${champ}:sans-liaison`, source, { calque: nom, champ, motif: 'sans-liaison-comme-les-autres' }, base);
         }

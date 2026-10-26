@@ -5,6 +5,7 @@ import {
   controlerLaTypographie, controlerLaTypographieParEtapes,
   type CatalogueDeReference, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu,
 } from '../src/controles/index';
+import { frequencesDuChamp, valeurUnanimeHorsContribution } from '../src/controles/typographie';
 
 const dims = { x: 0, y: 0, largeur: 20, hauteur: 20 };
 const liaison = (champ: string, nom: string, collection: string): LiaisonLue =>
@@ -109,4 +110,120 @@ test('C67 : une icône pilotée par une propriété absente est signalée, sinon
   assert.equal(limite[0].type, 'info');
   assert.equal(limite[0].faits.cause, 'icones-permises-non-lues');
   assert.equal(code(releve([variant('a', [icone()])]), 'C67', true)[0].faits.cause, 'icone-non-pilotee');
+});
+
+/* ---------- fréquences hors contribution courante (4.3) ---------- */
+
+function draine<T>(calcul: Generator<void, T>): T {
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Règle d'avant les fréquences : les autres sources, une à une. */
+function unanimeDeReference<V>(valeurs: V[], indice: number): V | undefined {
+  const autres = valeurs.filter((_, i) => i !== indice);
+  if (autres.length < 2) return undefined;
+  const distinctes = new Set(autres);
+  return distinctes.size === 1 ? [...distinctes][0] : undefined;
+}
+
+test('la valeur unanime hors contribution égale la recherche parmi les autres, absence, null et valeur', () => {
+  const univers: (string | null)[] = [null, 'A', 'B'];
+  const suites: (string | null)[][] = [[]];
+  for (let longueur = 1; longueur <= 5; longueur += 1) {
+    for (const suite of suites.filter((s) => s.length === longueur - 1)) for (const v of univers) suites.push([...suite, v]);
+  }
+  for (const valeurs of suites) {
+    const frequences = draine(frequencesDuChamp(valeurs, (v) => v));
+    for (let i = 0; i < valeurs.length; i += 1) {
+      assert.deepEqual(valeurUnanimeHorsContribution(frequences, valeurs[i]), unanimeDeReference(valeurs, i), JSON.stringify([valeurs, i]));
+    }
+  }
+  const nulle = draine(frequencesDuChamp([null, null, null], (v) => v));
+  assert.equal(valeurUnanimeHorsContribution(nulle, null), null, 'null unanime reste une valeur');
+  const deux = draine(frequencesDuChamp(['A', 'A'], (v) => v));
+  assert.equal(valeurUnanimeHorsContribution(deux, 'A'), undefined, 'un seul autre ne suffit pas');
+});
+
+test('les fréquences écartent les sources non retenues et cèdent toutes les 256 sources', () => {
+  const sources = Array.from({ length: 600 }, (_, i) => ({ i, pair: i % 2 === 0 }));
+  const calcul = frequencesDuChamp(sources, (s) => s.pair, (s) => s.i < 500);
+  let cessions = 0;
+  let etape = calcul.next();
+  while (!etape.done) { cessions += 1; etape = calcul.next(); }
+  assert.equal(cessions, 2);
+  assert.equal(etape.value.total, 500);
+  assert.equal(etape.value.parValeur.get(true), 250);
+});
+
+function mesurer(taille: number): { styles: number; liaisons: number } {
+  const compteurs = { styles: 0, liaisons: 0 };
+  const layers = Array.from({ length: taille }, (_, i): LayerLu => {
+    const l = texte(i === 0 ? 'Body/Large' : 'Body/Small');
+    const style = l.texte!.style;
+    Object.defineProperty(l.texte, 'style', { get() { compteurs.styles += 1; return style; } });
+    const liaisons = l.liaisons;
+    Object.defineProperty(l, 'liaisons', { get() { compteurs.liaisons += 1; return liaisons; } });
+    return l;
+  });
+  const variants = layers.map((l, i) => variant(`v${i}`, [l]));
+  const constats = controlerLaTypographie(releve(variants), catalogue);
+  assert.deepEqual(constats.filter((c) => c.faits.motif === 'style-different').map((c) => c.variants), [['v0']]);
+  return compteurs;
+}
+
+test('lire un champ des autres sources croît linéairement avec leur nombre', () => {
+  const petit = mesurer(100);
+  const grand = mesurer(400);
+  assert.ok(grand.styles < 400 * 8, `lectures de style : ${grand.styles}`);
+  assert.ok(grand.styles / petit.styles < 5, `style ${petit.styles} -> ${grand.styles}`);
+  assert.ok(grand.liaisons < 400 * 24, `lectures de liaisons : ${grand.liaisons}`);
+  assert.ok(grand.liaisons / petit.liaisons < 5, `liaisons ${petit.liaisons} -> ${grand.liaisons}`);
+});
+
+test('C64 et C65 : sources sans texte, styles null et exclusions comme avant, sur des dispositions tirées au hasard', () => {
+  let graine = 7;
+  const alea = (n: number) => { graine = (graine * 1103515245 + 12345) % 2147483648; return graine % n; };
+  for (let essai = 0; essai < 300; essai += 1) {
+    const noms = ['message', 'titre'];
+    const variants: VariantLu[] = [];
+    const sources: { nom: string; variant: string; sansTexte: boolean; style: string | null; lie: { fontSize: boolean; fontWeight: boolean } }[] = [];
+    for (let v = 0; v < 1 + alea(7); v += 1) {
+      const layers: LayerLu[] = [];
+      for (const nom of noms) {
+        if (alea(4) === 0) continue;
+        const sansTexte = alea(5) === 0;
+        const style = [null, 'A', 'B'][alea(3)];
+        const lie = { fontSize: alea(2) === 0, fontWeight: alea(2) === 0 };
+        const l = texte(style, [
+          ...(lie.fontSize ? [liaison('fontSize', 'body/size', 'typography')] : []),
+          ...(lie.fontWeight ? [liaison('fontWeight', 'body/weight', 'typography')] : []),
+        ]);
+        l.nom = nom;
+        if (sansTexte) delete l.texte;
+        layers.push(l);
+        sources.push({ nom, variant: `v${v}`, sansTexte, style, lie });
+      }
+      variants.push(variant(`v${v}`, layers));
+    }
+    const attendus: string[] = [];
+    for (const s of sources) {
+      const memeNom = sources.filter((o) => o.nom === s.nom && o !== s);
+      if (!s.sansTexte) {
+        const unanime = unanimeDeReference(memeNom.filter((o) => !o.sansTexte).map((o) => o.style), -1);
+        if (unanime && s.style !== unanime) attendus.push(`C64:${s.nom}:style:${unanime}:${s.style ?? 'aucun'}|${s.variant}`);
+      }
+      for (const champ of ['fontSize', 'fontWeight'] as const) {
+        if (!s.sansTexte && s.lie[champ]) continue;
+        if (unanimeDeReference(memeNom.map((o) => (!o.sansTexte && o.lie[champ] ? 'liee' : null)), -1) === 'liee') {
+          attendus.push(`C65:${s.nom}:${champ}:sans-liaison|${s.variant}`);
+        }
+      }
+    }
+    const obtenus = controlerLaTypographie(releve(variants), catalogue)
+      .filter((c) => c.faits.motif === 'style-different' || c.faits.motif === 'sans-liaison-comme-les-autres')
+      .flatMap((c) => c.variants.map((v) => `${c.id}|${v}`));
+    assert.deepEqual(obtenus.sort(), attendus.sort(), `essai ${essai}`);
+  }
 });
