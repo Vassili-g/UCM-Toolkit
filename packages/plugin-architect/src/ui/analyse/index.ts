@@ -332,8 +332,12 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
       vue.poserLesCorrections([], () => {});
     },
     mettreAJour() {
+      // Remplacer les enfants peut ramener le défilement à zéro : celui du panneau et de ses parents est rendu après le dessin.
+      const defilements: Array<{ element: HTMLElement; haut: number; gauche: number }> = [];
+      for (let element: HTMLElement | null = colonne; element; element = element.parentElement) defilements.push({ element, haut: element.scrollTop, gauche: element.scrollLeft });
       pile.replaceChildren(...enfants());
       poserLesLiaisonsDansLaVue();
+      for (const { element, haut, gauche } of defilements) { element.scrollTop = haut; element.scrollLeft = gauche; }
     },
   };
 }

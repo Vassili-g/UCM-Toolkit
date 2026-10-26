@@ -39,7 +39,7 @@ import { versSrgb } from '../../espace';
 import type { Resultat } from '../../resolution';
 import type { Application, Composant } from '../application';
 import { constatDeResultat } from '../chaine';
-import { analyseDe } from '../composant/analyse';
+import { analyseApplicable, analyseDe } from '../composant/analyse';
 import { signeDeLigne, signeDuTitre } from '../composant/signes';
 import { creerSectionVariants, proprietesDe } from '../composant/variants';
 import type { ApercuRecu } from '../etat';
@@ -430,7 +430,7 @@ export function creerVueComposant(app: Application): VueComposant {
         rendre();
       },
       copier: {
-        inactif: analyse.perimee || affiche === undefined,
+        inactif: !analyseApplicable(analyse) || affiche === undefined,
         envoyer: () => {
           if (affiche !== undefined) app.servirDeModele(affiche.id);
         },

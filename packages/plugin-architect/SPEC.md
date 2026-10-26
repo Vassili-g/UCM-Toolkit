@@ -246,7 +246,10 @@ n'envoie aucun provisoire et ne lit pas le moteur. `analyse-provisoire` n'est
 pas un statut de `analyse` : seul `analyse` termine la demande. Seul un final
 `complete` ou `partielle` retient les corrections : avant lui, le sandbox
 refuse les réponses, Ignorer, la propagation, la préparation et les
-corrections.
+corrections. L'interface tient le même verrou : elle n'envoie aucune de ces
+demandes et désactive leurs cases et boutons ; replier et déplier restent
+permis. Au passage au final, les identifiants des constats, le défilement et les
+sections ouvertes ou fermées par le designer se conservent.
 
 Une correction ne se propose que si elle est exacte : une règle écrite donne
 un seul candidat. Sinon le constat devient une question, sans candidat choisi

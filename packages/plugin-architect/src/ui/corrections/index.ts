@@ -15,7 +15,7 @@ import { creerCheminEnPhrase, creerSegmentAncien, creerSegmentNouveau, creerVari
 import { creerRenommage } from 'ucm-plugin-socle/src/ui/Jeton';
 
 import type { Constat } from '../../messages/commun';
-import type { AnalyseRecue } from '../composant/analyse';
+import { analyseApplicable, type AnalyseRecue } from '../composant/analyse';
 import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION } from '../textes/preparation';
 import { creerCarte } from '../structure/carte';
@@ -159,6 +159,8 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
   const cartesDuPanneau = (): readonly CarteDeCorrections[] => entree?.cartes ?? [];
   const cochee = (ligne: LigneDeCarte): boolean => !decochees.has(ligne.id);
   const lignesCochees = (cartes: readonly CarteDeCorrections[] = cartesDuPanneau()): LigneDeCarte[] => cartes.flatMap((carte) => carte.lignes.filter(cochee));
+  /** Seule une analyse finale non périmée laisse cocher, appliquer ou écarter ; replier et déplier restent permis. */
+  const applicable = (): boolean => analyseApplicable(entree?.analyse ?? null);
   const estOuverte = (carte: CarteDeCorrections): boolean => ouvertes.get(carte.cle) ?? cartesDuPanneau()[0]?.cle === carte.cle;
 
   /** Envoie ces lignes : celles qu'une écriture sait faire, et le nombre de liaisons qu'elles écrivent. */
@@ -196,7 +198,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     }
     const appliquer = createButton({
       label: T.appliquerTout,
-      disabled: inactif || cochees.length === 0,
+      disabled: inactif || !applicable() || cochees.length === 0,
       onClick: () => ecrire(lignesCochees()),
     });
     element.append(resume, appliquer);
@@ -228,6 +230,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     lien.type = 'button';
     lien.className = 'btn-texte';
     lien.textContent = T.nePlusProposer(carte.layers.length);
+    lien.disabled = !applicable();
     lien.addEventListener('click', () => options.ignorer(carte.constats));
     actions.append(lien);
     blocs.push(actions);
@@ -294,6 +297,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     diff.classList.add('ligne-de-taille');
     const caseACocher = diff.querySelector('input') as HTMLInputElement;
     caseACocher.setAttribute('aria-label', TEXTES.caseDeCorrection(groupe.apres));
+    caseACocher.disabled = !applicable();
     caseACocher.addEventListener('change', () => {
       for (const id of groupe.ids) {
         if (caseACocher.checked) decochees.delete(id);
@@ -315,6 +319,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       if (preparation) diff.classList.add('preparation-liaison');
       const caseACocher = diff.querySelector('input') as HTMLInputElement;
       caseACocher.setAttribute('aria-label', TEXTES.caseDeCorrection(ligne.apres));
+      caseACocher.disabled = !applicable();
       caseACocher.addEventListener('change', () => {
         if (caseACocher.checked) decochees.delete(ligne.id);
         else decochees.add(ligne.id);
@@ -359,6 +364,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       const cochees = ids.filter((id) => !decochees.has(id)).length;
       element.checked = cochees === ids.length;
       element.indeterminate = cochees > 0 && cochees < ids.length;
+      element.disabled = !applicable();
       element.addEventListener('change', () => {
         for (const id of ids) {
           if (element.checked) decochees.delete(id);
@@ -372,7 +378,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
         label: T.appliquer,
         variant: 'secondary',
         compact: true,
-        disabled: !carte.lignes.some(cochee),
+        disabled: !applicable() || !carte.lignes.some(cochee),
         onClick: () => ecrire(lignesCochees([carte])),
       }) as HTMLButtonElement;
       appliquerLaCarte.classList.add('appliquer-carte');
@@ -406,7 +412,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       element.checked = nombre === ids.length;
       element.indeterminate = nombre > 0 && nombre < ids.length;
     }
-    for (const { element, carte } of boutonsDeCartes) element.disabled = !carte.lignes.some(cochee);
+    for (const { element, carte } of boutonsDeCartes) element.disabled = !applicable() || !carte.lignes.some(cochee);
     if (piedPose) {
       const { element, visible, inactif } = piedPose;
       element.replaceWith(creerLePied(visible, inactif));

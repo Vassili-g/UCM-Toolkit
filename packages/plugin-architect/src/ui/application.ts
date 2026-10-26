@@ -8,7 +8,7 @@ import { TAILLE_COMPOSANT_PANNEAU_OUVERT, TAILLE_ETROITE, type Disposition } fro
 import type { Preferences } from '../preferences';
 import { contexteDeColonne, type Resultat } from '../resolution';
 import type { Constat } from '../messages/commun';
-import { calculEnCours, noterLEnvoi, noterLaDemandeDAnalyse, demandeDAnalyseEnCours } from './composant/analyse';
+import { analyseApplicable, calculEnCours, noterLEnvoi, noterLaDemandeDAnalyse, demandeDAnalyseEnCours } from './composant/analyse';
 import type { Etat, Filtres } from './etat';
 import { PREFIXE_TERME, retenirLesFormes } from './recherche/requete';
 import { versSandbox } from './pont';
@@ -231,7 +231,7 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     },
     appliquer(ids, liaisons) {
       const { analyse } = etat;
-      if (!analyse || analyse.perimee || analyse.ecriture !== null || ids.length === 0) return;
+      if (!analyse || !analyseApplicable(analyse) || analyse.ecriture !== null || ids.length === 0) return;
       noterLEnvoi(etat, ids, liaisons);
       versSandbox({ type: 'appliquer-corrections', analyse: analyse.identite, ids });
       app.rendre(['barre', 'vue']);
@@ -242,28 +242,28 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     },
     ignorerLaProposition(constats) {
       const { analyse } = etat;
-      if (!analyse || analyse.perimee) return;
+      if (!analyse || !analyseApplicable(analyse)) return;
       for (const constat of constats) versSandbox({ type: 'ignorer', analyse: analyse.identite, constat: constat.id, portee: 'proposition' });
     },
     repondre(question, reponse) {
       const { analyse } = etat;
-      if (analyse && !analyse.perimee) versSandbox({ type: 'repondre', analyse: analyse.identite, question, reponse });
+      if (analyse && analyseApplicable(analyse)) versSandbox({ type: 'repondre', analyse: analyse.identite, question, reponse });
     },
     annulerLaReponse(question) {
       const { analyse } = etat;
-      if (analyse && !analyse.perimee) versSandbox({ type: 'annuler-reponse', analyse: analyse.identite, question });
+      if (analyse && analyseApplicable(analyse)) versSandbox({ type: 'annuler-reponse', analyse: analyse.identite, question });
     },
     servirDeModele(variant) {
       const { analyse } = etat;
-      if (analyse && !analyse.perimee) versSandbox({ type: 'servir-de-modele', analyse: analyse.identite, variant });
+      if (analyse && analyseApplicable(analyse)) versSandbox({ type: 'servir-de-modele', analyse: analyse.identite, variant });
     },
     ignorer(constat) {
       const { analyse } = etat;
-      if (analyse && !analyse.perimee && constat.limite !== true) versSandbox({ type: 'ignorer', analyse: analyse.identite, constat: constat.id, portee: 'constat' });
+      if (analyse && analyseApplicable(analyse) && constat.limite !== true) versSandbox({ type: 'ignorer', analyse: analyse.identite, constat: constat.id, portee: 'constat' });
     },
     nePlusIgnorer(constat) {
       const { analyse } = etat;
-      if (analyse && !analyse.perimee) versSandbox({ type: 'ne-plus-ignorer', analyse: analyse.identite, constat: constat.id });
+      if (analyse && analyseApplicable(analyse)) versSandbox({ type: 'ne-plus-ignorer', analyse: analyse.identite, constat: constat.id });
     },
     basculerLePanneau() {
       etat.panneau = { ...etat.panneau, ouvert: !etat.panneau.ouvert };

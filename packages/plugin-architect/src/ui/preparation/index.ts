@@ -134,7 +134,8 @@ export function monterPreparation(etat: Etat): Preparation {
     return [...lignes.values()].map(({ champs, famille, valeur }) => ({ champs: [...champs].join(' et '), famille, valeur }));
   };
   const demander = (ranger = false): void => {
-    if (!etat.analyse) return;
+    // Le plan ne part qu'avec un résultat final ; une analyse périmée reçoit le refus du sandbox, que la feuille dit.
+    if (!etat.analyse || (etat.analyse.statut !== 'complete' && etat.analyse.statut !== 'partielle')) return;
     enCours = true;
     versSandbox({ type: 'preparer', analyse: etat.analyse.identite, reponses: { ...reponses }, ...(ranger ? { ranger: true } : {}) });
     rendre();

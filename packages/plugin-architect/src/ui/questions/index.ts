@@ -9,7 +9,7 @@ import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
 import { creerCheminEnPhrase, creerVariantEnPhrase } from 'ucm-plugin-socle/src/ui/Chemin';
 
-import type { AnalyseRecue } from '../composant/analyse';
+import { analyseApplicable, type AnalyseRecue } from '../composant/analyse';
 import { poserLeTexteEnrichi } from '../ignores/texte';
 import { TEXTES } from '../textes';
 import { reponsesDuGroupe, type CarteDeQuestion, type GroupeDeQuestions, type MorceauDEffet, type MorceauDeTitre, type ReponseProposee } from './modele';
@@ -190,7 +190,8 @@ export function monterLesQuestions(options: OptionsDesQuestions): Questions {
     },
     cartes(groupes) {
       if (!analyse) return [];
-      const { repondues, perimee } = analyse;
+      const { repondues } = analyse;
+      const perimee = !analyseApplicable(analyse);
       const reportee = ({ carte }: GroupeDeQuestions): boolean => repondues[carte.id] === undefined && plusTard.has(carte.id);
       return [...groupes.filter((candidat) => !reportee(candidat)), ...groupes.filter(reportee)].flatMap((groupe) => {
         const reponse = repondues[groupe.carte.id];

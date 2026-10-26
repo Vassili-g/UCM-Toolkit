@@ -128,6 +128,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       etat.analyse = { ...courante, ignores: message.constats, constats: visibles(courante.tous, message.constats) };
       return;
     case 'question-repondue': {
+      if (!analyseApplicable(courante)) return;
       const repondues: Record<string, Correction> = { ...courante.repondues };
       if (message.correction === null) delete repondues[message.question];
       else repondues[message.question] = message.correction;
@@ -135,6 +136,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       return;
     }
     case 'modele-propose': {
+      if (!analyseApplicable(courante)) return;
       // Les constats du modèle prennent la place de ceux qui portent le même identifiant ; les autres restent.
       const nouveaux = new Map(message.constats.map((constat) => [constat.id, constat]));
       const tous = [...courante.tous.map((constat) => nouveaux.get(constat.id) ?? constat), ...message.constats.filter((constat) => !courante.tous.some((connu) => connu.id === constat.id))];
@@ -142,8 +144,8 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       return;
     }
     case 'liaisons-preparees':
-      // Une réponse qui arrive après la péremption n'est plus applicable.
-      if (courante.perimee) return;
+      // Une réponse qui arrive après la péremption, ou avant le résultat final, n'est pas applicable.
+      if (!analyseApplicable(courante)) return;
       etat.analyse = { ...courante, liaisons: message.refus === null ? { preparation: message.preparation, corrections: message.corrections, enAttente: message.enAttente } : null };
       return;
     case 'perime':
@@ -207,7 +209,10 @@ export function noterLaDemandeDesLiaisons(etat: Etat): void {
 export const aDesLiaisonsPreparees = (analyse: AnalyseRecue | null): boolean => analyse !== null && !analyse.perimee && analyse.liaisons !== null && analyse.liaisons.corrections.length + analyse.liaisons.enAttente.length > 0;
 
 /** Vrai quand le composant analysé n'a aucun token et que l'analyse n'est pas périmée : le panneau le dit et propose de les préparer. */
-export const aPreparer = (analyse: AnalyseRecue | null): boolean => analyse !== null && analyse.sansTokens && !analyse.perimee;
+export const aPreparer = (analyse: AnalyseRecue | null): boolean => analyseApplicable(analyse) && analyse!.sansTokens;
+
+/** Seul un résultat final non périmé autorise une action d'écriture : réponse, Ignorer, correction, modèle, préparation. */
+export const analyseApplicable = (analyse: AnalyseRecue | null): boolean => analyse !== null && (analyse.statut === 'complete' || analyse.statut === 'partielle') && !analyse.perimee;
 
 /** Vrai quand plusieurs libraries portent des variables et qu'aucune n'est liée au composant : l'analyse attend le choix de la Configuration. */
 export const libraryAChoisir = (etat: Etat): boolean => etat.reference !== null && etat.reference.library === null && etat.reference.candidates > 1;

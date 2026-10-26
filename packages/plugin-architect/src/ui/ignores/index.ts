@@ -8,7 +8,7 @@
 import { creerGravite, marquerDuTon } from 'ucm-plugin-socle/src/ui/Alerte';
 
 import type { Constat } from '../../messages/commun';
-import type { AnalyseRecue } from '../composant/analyse';
+import { analyseApplicable, type AnalyseRecue } from '../composant/analyse';
 import { creerCarte, creerIntertitre } from '../structure/carte';
 import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION } from '../textes/preparation';
@@ -205,7 +205,7 @@ export function monterAFaire(options: OptionsDeAFaire): AFaire {
     },
     cartes(cartes) {
       if (!entree) return [];
-      const inactif = entree.analyse.perimee;
+      const inactif = !analyseApplicable(entree.analyse);
       const sortie = cartes.map((carte) => creerLaCarte(carte, inactif));
       const mesures = cartes.filter((carte) => carte.section === 'contraste');
       if (mesures.some((carte) => typeof carte.constat.faits.rapport === 'number')) {
@@ -220,7 +220,7 @@ export function monterAFaire(options: OptionsDeAFaire): AFaire {
     ignores(constats) {
       if (!entree || constats.length === 0) return [];
       const { analyse, contexte } = entree;
-      return [creerIntertitre(T.ignores), ...cartesDAFaire(constats, contexte).map((carte) => creerLaCarteIgnoree(carte, analyse.perimee))];
+      return [creerIntertitre(T.ignores), ...cartesDAFaire(constats, contexte).map((carte) => creerLaCarteIgnoree(carte, !analyseApplicable(analyse)))];
     },
   };
 }

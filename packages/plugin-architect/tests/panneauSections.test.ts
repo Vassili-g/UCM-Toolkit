@@ -427,3 +427,27 @@ test('le sommaire et la liste sont deux hôtes durables que corps.ts peut masque
   assert.equal(comme(sommaire).hidden, true);
   assert.equal(comme(liste).hidden, true);
 });
+
+test('le passage par un résultat provisoire puis au final garde les sections ouvertes ou fermées par le designer', () => {
+  const banc = monter();
+  bande(sectionDe(banc, 'couleurs')).clic();
+  bande(sectionDe(banc, 'tailles')).clic();
+  banc.actualiser({ statut: 'provisoire' });
+  banc.actualiser({ statut: 'complete' });
+  assert.deepEqual(['couleurs', 'tailles'].map((id) => bande(sectionDe(banc, id)).getAttribute('aria-expanded')), ['true', 'false']);
+});
+
+test('le défilement du panneau se rend après le redessin, même quand le redessin le ramène à zéro', () => {
+  const banc = monter();
+  const pile = comme(banc.racine.children[0]);
+  const remplacer = pile.replaceChildren.bind(pile);
+  pile.replaceChildren = (...enfants) => {
+    (banc.racine as unknown as { scrollTop: number }).scrollTop = 0;
+    remplacer(...enfants);
+  };
+  (banc.racine as unknown as { scrollTop: number; scrollLeft: number }).scrollTop = 240;
+  (banc.racine as unknown as { scrollLeft: number }).scrollLeft = 12;
+  banc.actualiser({ statut: 'complete' });
+  assert.equal((banc.racine as unknown as { scrollTop: number }).scrollTop, 240);
+  assert.equal((banc.racine as unknown as { scrollLeft: number }).scrollLeft, 12);
+});
