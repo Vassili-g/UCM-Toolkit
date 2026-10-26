@@ -1,0 +1,42 @@
+# Lot 11 : contributions et agrégats maintenus
+
+[Sommaire des lots](./README.md).
+
+## Tâches à committer
+
+- [ ] **11.1 | gpt-6.1-sol | high** : conserver la provenance des contributions typographiques et remplacer les fréquences des anciens et nouveaux groupes.
+- [ ] **11.2 | gpt-6-luna | medium** : reconstruire les membres affectés au franchissement d'un seuil ; comparer au calcul complet.
+- [ ] **11.3 | gpt-6.1-sol | high** : remplacer rapports et limites de contraste affectés ; après suppression du pire cas, retrouver le suivant avec le même départage.
+- [ ] **11.4 | gpt-6.1-sol | high** : recalculer la couverture globale après ajout, retrait ou déplacement de variant et mode ; réaffecter le préfixe des 5 000.
+- [ ] **11.5 | gpt-6-luna | medium** : réaffecter le préfixe du budget de calques et préserver un constat encore porté par une autre occurrence.
+- [ ] **11.6 | gpt-6.1-sol | medium** : reconstruire localisations, questions et corrections exactes à partir des contributions retenues ; test de retrait.
+- [ ] **11.7 | gpt-6.1-sol | medium** : assembler dans l'ordre final, relire les ignorés et rattacher les corrections à la nouvelle identité.
+- [ ] **11.8 | gpt-6-luna | low** : compter groupes reconstruits et durée d'assemblage dans la trace ; tester les compteurs sur une mutation.
+
+Prérequis : 10. Nature : incrémentalité des groupes et de la restitution.
+Chemins : modules de requêtes, contrôles typographie/accessibilité du kit si
+nécessaire, projection d'Architect et tests de mutations.
+
+## Portée et preuves conservées
+
+- **Portée initiale répartie dans les cases ci-dessus** : conserver la provenance des contributions.
+  Remplacer les fréquences d'une source dans ses ancien et nouveau groupes,
+  reconstruire les membres concernés après franchissement d'un seuil.
+  Remplacer rapports et limites affectés ; supprimer le pire contraste doit
+  retrouver le suivant avec le départage de référence. Reconstruire un groupe
+  lorsqu'une maintenance fine ne réduit pas son coût.
+- **Portée initiale répartie dans les cases ci-dessus** : recalculer le plan global de couverture après ajout,
+  retrait ou ordre de variant/mode. Réaffecter le préfixe des 5 000 combinaisons
+  et celui du budget de calques avant de réutiliser des contributions.
+  Un constat encore produit par une occurrence reste présent après retrait
+  d'une autre. Reconstruire localisations, questions et corrections exactes.
+- **Portée initiale répartie dans les cases ci-dessus** : assembler le résultat final dans l'ordre de
+  référence et rattacher toutes les corrections à la nouvelle identité.
+  Relire les ignorés avant projection. Ne restaurer implicitement ni réponses
+  ni cases cochées d'une ancienne analyse. Réutiliser les mêmes fonctions pour
+  la reconstruction complète et la maintenance.
+
+Sortie : parité après retrait du pire cas, changement de groupe et déplacement
+des deux bornes. La trace compte groupes reconstruits et assemblage final.
+Chaque commit touchant le kit porte sa montée de version. Contrôles des paquets
+touchés. **Build Architect.**
