@@ -29,7 +29,7 @@
 - [x] **2.20c | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : découper la recherche des combinaisons manquantes ; garder cardinalité et cinq exemples ordonnés, puis annuler pendant la lecture des variants. Travail local : `componentTree.ts` du socle (`findMissingVariantCombinations`).
 - [x] **2.20d | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : découper les échantillons et les helpers de slots nécessaires ; garder textes, arguments, dépendances, surcharges et remplacements, puis annuler dans un gros variant. Travail local : `extractSamples.ts`, `slotNames.ts`, `slotRelations.ts` du socle.
 - [x] **2.20e | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : vérifier la parité du moteur raccordé, inventorier ses bornes natives et préparer version, changelog et pins du kit avant les commits isolés. Les montées de version suivent la règle du sommaire.
-- [ ] **2.21 | gpt-6-luna | low** | **Claude Haiku | low** : comparer les budgets 16, 25 et 50 ms sur le même corpus dans le banc existant ; garder sorties et nombres de cessions. Travail local : `scripts/mesurer-export.cjs` de l'exporteur. Les mesures sont déjà consignées plus bas ; les rejouer pour la preuve du commit.
+- [x] **2.21 | gpt-6-luna | low** | **Claude Haiku | low** : comparer les budgets 16, 25 et 50 ms sur le même corpus dans le banc existant ; garder sorties et nombres de cessions. Travail local : `scripts/mesurer-export.cjs` de l'exporteur. Les mesures sont déjà consignées plus bas ; les rejouer pour la preuve du commit.
 
 Prérequis : 1. Nature : correction du défaut de cession.
 La case 2.20 regroupe l'audit ; seules ses sous-cases portent les commits.
@@ -171,10 +171,15 @@ analyse et identités passent après correction. Style conforme ; build
 Architect livré avec les sources du lot.
 
 `scripts/mesurer-export.cjs` compare les budgets 16, 25 et 50 ms sur les
-mêmes 1 000 variants : médianes Node 165,70, 162,57 et 152,35 ms, contre
-156,32 ms sans pause ; 40, 27 et 17 cessions sur neuf essais. Le contrat
-reste identique. Ce corpus synthétique ne mesure pas les appels natifs Figma ;
-25 ms reste un choix provisoire, sans gain ni borne d'interaction établis.
+mêmes 1 000 variants, 101 pages, avec le moteur raccordé (commit de 2.21).
+Deux passes du banc, médianes Node de neuf essais (sans pause : 217,50 et
+213,52 ms) : 215,95 et 200,32 ms à 16 ms ; 202,46 et 202,62 ms à 25 ms ;
+194,26 et 210,96 ms à 50 ms. Cessions sur neuf essais : 84 et 80 à 16 ms,
+50 et 50 à 25 ms, 27 et 27 à 50 ms. Le contrat, hors date, est identique
+à celui sans pause pour les trois budgets (`assert.deepEqual` du banc).
+L'écart entre budgets reste dans le bruit d'une passe à l'autre. Un banc Node
+ne mesure pas les appels natifs de Figma ; 25 ms reste un choix provisoire,
+sans gain ni borne d'interaction établis.
 
 Sortie : l'horloge simulée provoque une cession avant la fin de 90 petits
 variants et une annulation au milieu d'un gros contrôle. Le contrat reste

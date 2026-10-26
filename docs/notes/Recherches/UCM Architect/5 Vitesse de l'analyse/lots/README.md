@@ -13,7 +13,7 @@ Un lot est fini quand toutes ses cases sont cochées dans des commits. Mettre so
 |---|---|
 | [0 : référence et banc de comparaison](./LOT-00.md) | Fini |
 | [1 : mesures du clic au rendu et progression](./LOT-01.md) | Fini |
-| [2 : coopération et annulation dans les boucles](./LOT-02.md) | Non fini (travail local non committé) |
+| [2 : coopération et annulation dans les boucles](./LOT-02.md) | Fini |
 | [3 : premiers constats et protocole de fin](./LOT-03.md) | Non fini |
 | [4 : supprimer les coûts algorithmiques du kit](./LOT-04.md) | Non fini |
 | [5 : mémoires sûres au sein d'une demande](./LOT-05.md) | Non fini |

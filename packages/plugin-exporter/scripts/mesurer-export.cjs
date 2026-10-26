@@ -125,6 +125,15 @@ async function main() {
   console.log(`Export de 1 000 variants sans instance, 101 pages : ${courant.ms.toFixed(2)} ms`
     + ` ; chargements des autres pages : ${chargesCourantes}`
     + (ancien ? ` ; ${reference} : ${ancien.ms.toFixed(2)} ms ; chargements : ${chargements - chargesCourantes}` : ''));
+  for (const budgetDeCalculMs of [16, 25, 50]) {
+    let cessions = 0;
+    const cooperation = await mesurer(() => contenu(() => exporter(undefined, {
+      horloge: () => performance.now(), budgetDeCalculMs,
+      respirer: async () => { cessions += 1; await new Promise((resolve) => setImmediate(resolve)); },
+    })));
+    assert.deepEqual(cooperation.resultat, courant.resultat);
+    console.log(`Budget coopératif ${budgetDeCalculMs} ms : ${cooperation.ms.toFixed(2)} ms ; ${cessions} cessions sur 9 essais ; contrat identique`);
+  }
 }
 
 main().catch((erreur) => { console.error(erreur); process.exitCode = 1; });
