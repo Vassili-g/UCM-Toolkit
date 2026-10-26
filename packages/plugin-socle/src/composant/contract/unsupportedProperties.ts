@@ -28,8 +28,10 @@
  * `opacity` et les effets ont pour autorités `flexLayout.rotationDegrees`,
  * `nodeBindings.resolveOpacity` et `effectStyles.ts`.
  */
+import type { PeintureLue } from '../analyse/faits';
 import { pointDe, sujet } from './localisation';
 import type { PointACorriger } from './localisation';
+import { peinturesDuNoeud } from './porteeDAnalyse';
 
 /** `boundVariables` et les propriétés visuelles ne sont pas typées champ par champ. */
 type FigmaPropertyBag = Record<string, unknown>;
@@ -49,11 +51,18 @@ export function estMixed(value: unknown): boolean {
       && String(value) === 'Symbol(figma.mixed)');
 }
 
-/** Les peintures visibles d'un champ, ou `null` quand Figma les dit « mixed ». */
-function peinturesVisibles(value: unknown): Paint[] | null {
-  if (estMixed(value)) return null;
-  if (!Array.isArray(value)) return [];
-  return (value as Paint[]).filter((paint) => paint && paint.visible !== false);
+/**
+ * Les peintures visibles d'un champ, ou `null` quand Figma les dit « mixed ». Un champ absent n'a aucune peinture ; une
+ * lecture qui lève fait échouer le calcul, comme avant la copie.
+ */
+function peinturesVisibles(node: SceneNode, champ: 'fills' | 'strokes'): readonly PeintureLue[] | null {
+  const lues = peinturesDuNoeud(node, champ);
+  if (lues.etat === 'mixte') return null;
+  if (lues.etat === 'refuse') {
+    if (lues.raison === 'leve') throw new Error(lues.message);
+    return [];
+  }
+  return lues.valeur.filter((paint) => paint.visible !== false);
 }
 
 /**
@@ -93,7 +102,7 @@ function proprietesNonPortees(node: SceneNode): ProprieteNonPortee[] {
   // reliée à une variable y entre. Un dégradé ou une image disparaît donc sans
   // que le relevé des couleurs s'en aperçoive.
   for (const champ of ['fills', 'strokes'] as const) {
-    const peintures = peinturesVisibles(values[champ]);
+    const peintures = peinturesVisibles(node, champ);
     const libelle = champ === 'fills' ? 'fill' : 'stroke';
     if (peintures === null) {
       relevees.push({

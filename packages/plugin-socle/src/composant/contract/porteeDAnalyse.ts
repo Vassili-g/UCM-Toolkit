@@ -7,6 +7,8 @@
  * portée calcule sans mémoire. Le résultat est le même dans les deux cas ; seul
  * le nombre d'allers-retours vers Figma change.
  */
+import { lireLesPeintures, type ChampDePeinture } from '../analyse/acquisition';
+import type { EtatEcrit, PeintureLue } from '../analyse/faits';
 import { lireUneFoisParIdentifiant, type LectureNative } from '../analyse/ressources';
 import { compter, attendrePourLaMesure, mesurerLeCalcul } from './mesure';
 
@@ -91,6 +93,8 @@ type Portee = {
   maitres: Map<string, Promise<LectureNative<object>>>;
   /** Le style de chaque identifiant déjà demandé, refus compris. */
   styles: Map<string, Promise<LectureNative<object>>>;
+  /** Les peintures copiées de chaque champ de chaque nœud, par id de nœud et champ, refus compris. */
+  peintures: Map<string, EtatEcrit<readonly PeintureLue[]>>;
   /** Le parcours brut de chaque racine, par id : tous ses descendants, avant frontière ni filtre de visibilité. */
   parcours: Map<string, readonly SceneNode[]>;
   /** Les chemins de texte de chaque racine, par id, avec le contexte complet qui les a produits. */
@@ -139,6 +143,7 @@ export async function dansUnePorteeDAnalyse<T>(
   const ouverte: Portee = {
     maitres: new Map(),
     styles: new Map(),
+    peintures: new Map(),
     parcours: new Map(),
     chemins: new Map(),
     filtres: new Map(),
@@ -177,6 +182,21 @@ export function maitreDe(instance: InstanceNode): Promise<ComponentNode | null> 
 export function styleDeLaPortee(id: string): Promise<BaseStyle | null> {
   return lireUneFoisParIdentifiant(porteeQuiMemorise()?.styles, id, () => figma.getStyleByIdAsync(id))
     .then((lu) => (lu.etat === 'lu' ? lu.natif as BaseStyle : null));
+}
+
+/**
+ * Les peintures copiées d'un nœud (`fills` ou `strokes`). Dans une portée, chaque champ de chaque nœud se lit une fois :
+ * l'extraction des couleurs et celle des propriétés non portées lisent les mêmes peintures. Chaque appelant garde son
+ * traitement d'une valeur mixte ou refusée.
+ */
+export function peinturesDuNoeud(noeud: { readonly id?: unknown }, champ: ChampDePeinture): EtatEcrit<readonly PeintureLue[]> {
+  const memoire = typeof noeud.id === 'string' ? porteeQuiMemorise()?.peintures : undefined;
+  const cle = `${noeud.id} ${champ}`;
+  const deja = memoire?.get(cle);
+  if (deja) return deja;
+  const lu = lireLesPeintures(noeud, champ);
+  memoire?.set(cle, lu);
+  return lu;
 }
 
 /** La portée qui garde ses mémoires, ou null : hors portée, portée refusée en cours, ou banc sans mémoire. */

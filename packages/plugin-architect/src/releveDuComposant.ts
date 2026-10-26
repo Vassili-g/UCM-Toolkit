@@ -21,8 +21,8 @@
  * plage et figure à la fois dans `layer.liaisons` et dans `texte.plages`.
  */
 import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu } from '@ucm-kit/core/controles';
-import { copierLaMiseEnPage, type ChampDeMiseEnPage, type ChampsDeMiseEnPage } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
-import { champDe, type MaitreLu, type ModeDeCollectionLu, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
+import { copierLaMiseEnPage, copierLesPeinturesParEtapes, lireLesPeinturesParEtapes, type ChampDeMiseEnPage, type ChampsDeMiseEnPage } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
+import { champDe, type EtatEcrit, type MaitreLu, type ModeDeCollectionLu, type PeintureLue as PeintureCopiee, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { creerMemoireDeRessources, type MemoireDeRessources } from 'ucm-plugin-socle/src/composant/analyse/ressources';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
@@ -95,28 +95,28 @@ function decouper(propriete: string): { champ: string; indice?: number; plage?: 
   return { champ: reste, ...(plage ? { plage } : {}) };
 }
 
-async function peinturesDe(champ: 'fills' | 'strokes', liste: unknown, layer: string, manquees: Manquee[], cooperation: ContexteCooperatif): Promise<PeintureLue[]> {
-  if (liste === undefined) return [];
-  if (!Array.isArray(liste)) {
+/**
+ * Les peintures d'un champ copié. Un champ que le nœud n'expose pas n'a aucune peinture ; une valeur mixte ou une lecture
+ * refusée est une manquée : le relevé ne dit pas quelles peintures le layer porte.
+ */
+async function peinturesDe(champ: 'fills' | 'strokes', copie: EtatEcrit<readonly PeintureCopiee[]>, layer: string, manquees: Manquee[], cooperation: ContexteCooperatif): Promise<PeintureLue[]> {
+  if (copie.etat === 'refuse' && copie.raison === 'absent') return [];
+  if (copie.etat !== 'acquis') {
     manquees.push({ layer, champ, motif: 'peintures mixtes ou illisibles' });
     return [];
   }
   const peintures: PeintureLue[] = [];
-  for (const [indice, peinture] of liste.entries()) {
+  for (const [indice, peinture] of copie.valeur.entries()) {
     await cooperation.cederSiBesoin();
-    if (!estUnObjet(peinture)) continue;
     const lue: PeintureLue = {
       champ,
       indice,
-      type: String(peinture.type),
+      type: peinture.type,
       visible: peinture.visible !== false,
       opacite: estUnNombre(peinture.opacity) ? peinture.opacity : 1,
-      blendMode: typeof peinture.blendMode === 'string' ? peinture.blendMode : 'NORMAL',
+      blendMode: peinture.blendMode ?? 'NORMAL',
     };
-    if (peinture.type === 'SOLID' && estUnObjet(peinture.color)) {
-      const { r, g, b, a } = peinture.color as { r: number; g: number; b: number; a?: number };
-      lue.couleur = { r, g, b, a: estUnNombre(a) ? a : 1 };
-    }
+    if (peinture.color) lue.couleur = { r: peinture.color.r, g: peinture.color.g, b: peinture.color.b, a: estUnNombre(peinture.color.a) ? peinture.color.a : 1 };
     peintures.push(lue);
   }
   return peintures;
@@ -140,7 +140,7 @@ const CHAMPS_NUMERIQUES = ['paddingLeft', 'paddingRight', 'paddingTop', 'padding
 const RAYONS = ['topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'] as const;
 
 /** Les champs numériques qu'aucune variable ne lie sur ce layer. */
-async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimensions: LayerLu['dimensions'] | null, epaisseur: number | undefined, manquees: Manquee[], cooperation: ContexteCooperatif): Promise<LayerLu['valeursEnDur']> {
+async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimensions: LayerLu['dimensions'] | null, epaisseur: number | undefined, contours: EtatEcrit<readonly PeintureCopiee[]>, manquees: Manquee[], cooperation: ContexteCooperatif): Promise<LayerLu['valeursEnDur']> {
   const liees = new Set<string>();
   for (const liaison of liaisons) {
     await cooperation.cederSiBesoin();
@@ -164,11 +164,10 @@ async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dim
     for (const coin of RAYONS) ajouter(coin, nombreDe(coins, coin, noeud.id, manquees), 'cornerRadius');
   }
   // Figma donne une épaisseur (1 par défaut) à tout layer, même sans contour : sans contour visible, elle ne se voit pas.
-  const contours = champLu(noeud, 'strokes');
   let contourVisible = false;
-  if (Array.isArray(contours)) for (const peinture of contours) {
+  if (contours.etat === 'acquis') for (const peinture of contours.valeur) {
     await cooperation.cederSiBesoin();
-    if (estUnObjet(peinture) && peinture.visible !== false && peinture.opacity !== 0) {
+    if (peinture.visible !== false && peinture.opacity !== 0) {
       contourVisible = true;
       break;
     }
@@ -336,7 +335,7 @@ async function texteDe(lecteur: Lecteur, noeud: NoeudLu, liaisons: readonly Liai
       fin: segment.end,
       fontSize: estUnNombre(segment.fontSize) ? segment.fontSize : 0,
       fontWeight: estUnNombre(segment.fontWeight) ? segment.fontWeight : 0,
-      peintures: await peinturesDe('fills', segment.fills, noeud.id, manquees, lecteur.cooperation),
+      peintures: await peinturesDe('fills', await copierLesPeinturesParEtapes(segment.fills, lecteur.cooperation), noeud.id, manquees, lecteur.cooperation),
       liaisons: liaisonsParPlage.get(`${segment.start}:${segment.end}`) ?? [],
     });
   }
@@ -366,26 +365,32 @@ async function instanceDe(noeud: NoeudLu, lecteur: Lecteur, manquees: Manquee[])
 async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape, manquees: Manquee[]): Promise<LayerLu> {
   const { noeud, parent, frontiere } = etape;
   const dimensions = dimensionsDe(noeud, manquees);
+  const [id, nom, type] = [noeud.id, noeud.name, noeud.type];
+  const visible = champLu(noeud, 'visible') !== false;
+  const opacite = estUnNombre(champLu(noeud, 'opacity')) ? champLu(noeud, 'opacity') as number : 1;
+  const compterLaLecture = () => compter('proprietesDuReleve');
+  const fills = await lireLesPeinturesParEtapes(noeud, 'fills', lecteur.cooperation, compterLaLecture);
   const layer: LayerLu = {
-    id: noeud.id,
-    nom: noeud.name,
-    type: noeud.type,
+    id,
+    nom,
+    type,
     parent,
-    visible: champLu(noeud, 'visible') !== false,
-    opacite: estUnNombre(champLu(noeud, 'opacity')) ? champLu(noeud, 'opacity') as number : 1,
+    visible,
+    opacite,
     dimensions: dimensions ?? { x: 0, y: 0, largeur: 0, hauteur: 0 },
-    peintures: await peinturesDe('fills', noeud.fills, noeud.id, manquees, lecteur.cooperation),
+    peintures: await peinturesDe('fills', fills, noeud.id, manquees, lecteur.cooperation),
     liaisons: [],
     valeursEnDur: [],
   };
-  for (const peinture of await peinturesDe('strokes', noeud.strokes, noeud.id, manquees, lecteur.cooperation)) {
+  const strokes = await lireLesPeinturesParEtapes(noeud, 'strokes', lecteur.cooperation, compterLaLecture);
+  for (const peinture of await peinturesDe('strokes', strokes, noeud.id, manquees, lecteur.cooperation)) {
     await lecteur.cooperation.cederSiBesoin();
     layer.peintures.push(peinture);
   }
   const epaisseur = nombreDe(miseEnPage(noeud, ['strokeWeight']), 'strokeWeight', noeud.id, manquees);
   if (epaisseur !== undefined) layer.strokeWeight = epaisseur;
   try {
-    layer.liaisons = await lecteur.liaisons(await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation), noeud.id);
+    layer.liaisons = await lecteur.liaisons(await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation, { fills, strokes }), noeud.id);
     if (frontiere) {
       const lues: LiaisonLue[] = [];
       for (const { propriete, variable, porteur } of await liaisonsDesSurcharges(port, noeud, true, lecteur.cooperation)) {
@@ -410,7 +415,7 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     if (erreur instanceof AnalyseAnnulee) throw erreur;
     manquees.push({ layer: noeud.id, champ: 'liaisons', motif: messageDErreur(erreur) });
   }
-  layer.valeursEnDur = await valeursEnDur(noeud, layer.liaisons, dimensions, epaisseur, manquees, lecteur.cooperation);
+  layer.valeursEnDur = await valeursEnDur(noeud, layer.liaisons, dimensions, epaisseur, strokes, manquees, lecteur.cooperation);
   if (noeud.type === 'TEXT') layer.texte = await texteDe(lecteur, noeud, layer.liaisons, manquees);
   return layer;
 }

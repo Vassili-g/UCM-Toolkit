@@ -6,6 +6,7 @@
  * dégradé, les effets, les grilles, les segments de texte et les propriétés
  * d'instance.
  */
+import type { EtatEcrit, PeintureLue as PeintureCopiee } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import type { ContexteCooperatif } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import type { ModeDeCalque } from './resolution';
@@ -123,12 +124,17 @@ function* liaisonsDesElements(elements: unknown, prefixe: string): Generator<Lia
 const LUS_PAR_LEURS_OBJETS = new Set(['fills', 'strokes', 'effects', 'layoutGrids', 'textRangeFills']);
 const CHAMPS_DE_TEXTE = new Set(['fontFamily', 'fontSize', 'fontStyle', 'fontWeight', 'letterSpacing', 'lineHeight', 'paragraphSpacing', 'paragraphIndent']);
 
-function* liaisonsDuNoeudParEtapes(noeud: NoeudLu): Generator<LiaisonBrute | undefined> {
+const valeurSiAcquise = <V>(etat: EtatEcrit<V>): V | undefined => (etat.etat === 'acquis' ? etat.valeur : undefined);
+
+/** Les peintures d'un nœud que l'appelant a déjà lues : leurs liaisons s'en tirent sans relire `fills` ni `strokes`. */
+export type PeinturesCopiees = { readonly fills: EtatEcrit<readonly PeintureCopiee[]>; readonly strokes: EtatEcrit<readonly PeintureCopiee[]> };
+
+function* liaisonsDuNoeudParEtapes(noeud: NoeudLu, copiees?: PeinturesCopiees): Generator<LiaisonBrute | undefined> {
   const texte = noeud.type === 'TEXT' && typeof noeud.getStyledTextSegments === 'function';
   const ignorer = texte ? new Set([...LUS_PAR_LEURS_OBJETS, ...CHAMPS_DE_TEXTE]) : LUS_PAR_LEURS_OBJETS;
   yield* liaisonsDe(noeud.boundVariables, '', ignorer);
-  yield* liaisonsDesPeintures(noeud.fills, 'fills');
-  yield* liaisonsDesPeintures(noeud.strokes, 'strokes');
+  yield* liaisonsDesPeintures(copiees ? valeurSiAcquise(copiees.fills) : noeud.fills, 'fills');
+  yield* liaisonsDesPeintures(copiees ? valeurSiAcquise(copiees.strokes) : noeud.strokes, 'strokes');
   yield* liaisonsDesElements(noeud.effects, 'effects');
   yield* liaisonsDesElements(noeud.layoutGrids, 'layoutGrids');
   if (texte && noeud.getStyledTextSegments) {
@@ -157,11 +163,14 @@ export function liaisonsDuNoeud(noeud: NoeudLu): LiaisonBrute[] {
   return liaisons;
 }
 
-/** Même lecture ordonnée que `liaisonsDuNoeud`, interruptible dans les peintures et les plages. */
-export async function liaisonsDuNoeudCooperatives(noeud: NoeudLu, cooperation: ContexteCooperatif): Promise<LiaisonBrute[]> {
+/**
+ * Même lecture ordonnée que `liaisonsDuNoeud`, interruptible dans les peintures et les plages. Avec `copiees`, `fills` et
+ * `strokes` ne se relisent pas ; une peinture mixte ou refusée n'a alors aucune liaison, comme une valeur qui n'est pas une liste.
+ */
+export async function liaisonsDuNoeudCooperatives(noeud: NoeudLu, cooperation: ContexteCooperatif, copiees?: PeinturesCopiees): Promise<LiaisonBrute[]> {
   const liaisons: LiaisonBrute[] = [];
   const vues = new Set<string>();
-  for (const liaison of liaisonsDuNoeudParEtapes(noeud)) {
+  for (const liaison of liaisonsDuNoeudParEtapes(noeud, copiees)) {
     await cooperation.cederSiBesoin();
     retenirLaLiaison(liaison, vues, liaisons);
   }

@@ -7,6 +7,7 @@
  * changerait d'un état à l'autre.
  */
 import { toRef } from '@ucm-kit/core/format';
+import type { PeintureLue } from '../analyse/faits';
 import { variableAliases } from '../variables';
 import type { TokenResolver } from '../variables';
 import { tokenKey } from './colorKeys';
@@ -24,6 +25,7 @@ import { paintSiteRole, roleKind } from './semantics';
 import { isIconLayer } from './slotNames';
 import type { StrokeAlignment, StrokeWidth } from '@ucm-kit/core/format';
 import { estUneRacineDeVariant, pousserLocalise, pousserPourLesVariants } from './localisation';
+import { peinturesDuNoeud } from './porteeDAnalyse';
 export type { TokenResolver } from '../variables';
 
 const BOUND_FIELDS = ['fills', 'strokes'] as const;
@@ -152,20 +154,13 @@ function colorRole(
  * aucune variable de couleur : `unsupportedProperties` la signale ailleurs, et
  * le geste demandé ici n'existerait pas.
  */
-function peint(paint: unknown): paint is SolidPaint {
-  return Boolean(
-    paint
-      && typeof paint === 'object'
-      && (paint as Paint).type === 'SOLID'
-      && (paint as Paint).visible !== false
-      && ((paint as SolidPaint).opacity ?? 1) > 0,
-  );
+function peint(paint: PeintureLue): boolean {
+  return paint.type === 'SOLID' && paint.visible !== false && (paint.opacity ?? 1) > 0;
 }
 
 /** La variable qu'une peinture porte elle-même, ou `null`. */
-function aliasDuPaint(paint: unknown): VariableAlias | null {
-  const bound = (paint as { boundVariables?: { color?: unknown } } | null)?.boundVariables?.color;
-  return variableAliases(bound)[0] ?? null;
+function aliasDuPaint(paint: PeintureLue): VariableAlias | null {
+  return (paint.boundVariables?.color as VariableAlias | undefined) ?? null;
 }
 
 /**
@@ -195,9 +190,12 @@ function lirePeintures(
 ): { aliases: VariableAlias[]; libres: number } {
   const duNode = variableAliases(getBinding(node, field));
   const values = node as unknown as Record<string, unknown>;
-  const liste = values[field];
+  const lues = peinturesDuNoeud(node, field);
+  // Une lecture qui lève fait échouer l'extraction, comme avant la copie : se taire perdrait une couleur.
+  if (lues.etat === 'refuse' && lues.raison === 'leve') throw new Error(lues.message);
   // `figma.mixed` ou champ absent : rien de lisible, donc rien à réclamer.
-  if (!Array.isArray(liste)) return { aliases: duNode, libres: 0 };
+  if (lues.etat !== 'acquis') return { aliases: duNode, libres: 0 };
+  const liste = lues.valeur;
   // Un contour d'épaisseur nulle ne trace rien. Ce qu'il publie ne change pas
   // pour autant : la réserve porte sur le geste demandé, pas sur le relevé.
   if (field === 'strokes' && values.strokeWeight === 0) return { aliases: duNode, libres: 0 };

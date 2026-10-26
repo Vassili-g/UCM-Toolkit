@@ -331,7 +331,7 @@ for (const source of ['variantProperties', 'nom'] as const) {
   });
 }
 
-for (const nombre of [128, 256]) for (const passe of ['fills', 'strokes', 'contours en dur', 'champs surchargés', 'peintures de plage', 'valeurs de variant', 'propriétés', 'options', 'modes de collection', 'styles de plages', 'enfants du jeu', 'enfants du variant'] as const) {
+for (const nombre of [128, 256]) for (const passe of ['fills', 'strokes', 'champs surchargés', 'peintures de plage', 'valeurs de variant', 'propriétés', 'options', 'modes de collection', 'styles de plages', 'enfants du jeu', 'enfants du variant'] as const) {
   test(`le relevé cède et s'annule pendant la passe ${passe} sur ${nombre} entrées sans changer sa sortie`, async () => {
     const a = atelierDeCalques();
     let travail = 0;
@@ -340,13 +340,6 @@ for (const nombre of [128, 256]) for (const passe of ['fills', 'strokes', 'conto
       get type() { travail += 1; return 'SOLID'; }, color: { r: 0, g: 0, b: 0 }, visible: false,
     }));
     const champs: Record<string, unknown> = { absoluteBoundingBox: boite(0, 0, 10, 10) };
-    if (passe === 'contours en dur') {
-      let lectureDesLiaisons = false;
-      Object.defineProperty(champs, 'absoluteBoundingBox', { enumerable: true, get() { lectureDesLiaisons = false; return boite(0, 0, 10, 10); } });
-      Object.defineProperty(champs, 'boundVariables', { enumerable: true, get() { lectureDesLiaisons = true; return {}; } });
-      champs.strokes = Array.from({ length: nombre }, () => ({ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, get opacity() { if (lectureDesLiaisons) travail += 1; return 0; } }));
-      champs.strokeWeight = 1;
-    }
     if (passe === 'champs surchargés') {
       const surcharges: string[] = new Array(nombre);
       for (let rang = 0; rang < nombre; rang += 1) Object.defineProperty(surcharges, rang, { get() { travail += 1; return 'fills'; } });
@@ -433,9 +426,11 @@ for (const nombre of [128, 256]) for (const passe of ['alias', 'arrêts', 'effet
   test(`les liaisons gardent leur ordre et cèdent pendant les ${passe} sur ${nombre} entrées`, async () => {
     let travail = 0;
     const lie = () => ({ get boundVariables() { travail += 1; return { color: alias('fond') }; } });
+    // Un arrêt de dégradé de Figma porte toujours sa couleur ; la copie des peintures refuse un arrêt qui n'en a pas.
+    const arret = () => Object.defineProperty({ position: 0, color: { r: 0, g: 0, b: 0, a: 1 } }, 'boundVariables', { enumerable: true, get() { travail += 1; return { color: alias('fond') }; } });
     const champs: Record<string, unknown> = {};
     if (passe === 'alias') champs.boundVariables = { componentProperties: Object.fromEntries(Array.from({ length: nombre }, (_, rang) => [String(rang), { get type() { travail += 1; return 'VARIABLE_ALIAS'; }, id: `v${rang}` }])) };
-    if (passe === 'arrêts') champs.fills = [{ type: 'GRADIENT_LINEAR', gradientStops: Array.from({ length: nombre }, lie) }];
+    if (passe === 'arrêts') champs.fills = [{ type: 'GRADIENT_LINEAR', gradientStops: Array.from({ length: nombre }, arret) }];
     if (passe === 'effets') champs.effects = Array.from({ length: nombre }, lie);
     if (passe === 'grilles') champs.layoutGrids = Array.from({ length: nombre }, lie);
     if (passe === 'plages') champs.getStyledTextSegments = () => Array.from({ length: nombre }, (_, rang) => ({ start: rang, end: rang + 1, boundVariables: { color: alias('fond') }, get fills() { travail += 1; return []; } }));
