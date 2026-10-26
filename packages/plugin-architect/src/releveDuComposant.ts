@@ -22,7 +22,8 @@
  */
 import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu } from '@ucm-kit/core/controles';
 import { copierLaMiseEnPage, type ChampDeMiseEnPage, type ChampsDeMiseEnPage } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
-import { champDe, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
+import { champDe, type ModeDeCollectionLu, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
+import { creerMemoireDeRessources, type MemoireDeRessources } from 'ucm-plugin-socle/src/composant/analyse/ressources';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
@@ -196,58 +197,55 @@ function dimensionsDe(noeud: NoeudLu, manquees: Manquee[]): LayerLu['dimensions'
  * ne se lit jamais deux fois, même si deux demandes se croisent.
  */
 class Lecteur {
-  private readonly variables = new Map<string, Promise<{ lue: LiaisonLue['variable'] | null; erreur?: string }>>();
-  private readonly collections = new Map<string, Promise<{ nom: string; modes: Map<string, string> } | null>>();
+  private readonly demandees = new Set<string>();
   private readonly styles = new Map<string, string | null>();
+  private readonly ressources: MemoireDeRessources;
 
   constructor(
     private readonly port: PortDuComposant,
     readonly manquees: Manquee[],
     readonly cooperation: ContexteCooperatif,
-  ) {}
+  ) {
+    this.ressources = creerMemoireDeRessources({
+      lectures: () => this.port.variables,
+      champsDeVariable: ['key', 'name', 'variableCollectionId'],
+      champsDeCollection: ['name', 'modes'],
+      cooperation,
+      propager: (erreur) => erreur instanceof AnalyseAnnulee,
+    });
+  }
 
-  collection(id: string) {
-    let lecture = this.collections.get(id);
-    if (!lecture) {
-      lecture = (async () => {
-        try {
-          const collection = await this.port.variables.getVariableCollectionByIdAsync(id);
-          if (!collection) return null;
-          const modes = new Map<string, string>();
-          for (const mode of collection.modes) {
-            await this.cooperation.cederSiBesoin();
-            modes.set(mode.modeId, mode.name);
-          }
-          return { nom: collection.name, modes };
-        } catch (erreur) {
-          if (erreur instanceof AnalyseAnnulee) throw erreur;
-          this.manquees.push({ champ: `collection ${id}`, motif: messageDErreur(erreur) });
-          return null;
-        }
-      })();
-      this.collections.set(id, lecture);
+  /** `null` quand la collection ne se lit pas : la manquée est consignée, une seule fois par collection. */
+  async collection(id: string): Promise<{ nom: string; modes: readonly ModeDeCollectionLu[] } | null> {
+    const fait = await this.ressources.collection(id);
+    if (fait.etat.etat === 'refuse') {
+      if (fait.etat.raison === 'leve' && !this.demandees.has(`collection ${id}`)) this.manquees.push({ champ: `collection ${id}`, motif: fait.etat.message ?? '' });
+      this.demandees.add(`collection ${id}`);
+      return null;
     }
-    return lecture;
+    this.demandees.add(`collection ${id}`);
+    const { name, modes } = fait.etat.valeur;
+    return { nom: name?.etat === 'acquis' ? name.valeur : '', modes: modes?.etat === 'acquis' ? modes.valeur : [] };
   }
 
   private async variable(id: string, layer: string, champ: string): Promise<LiaisonLue['variable'] | null> {
-    const premiere = !this.variables.has(id);
-    if (premiere) {
-      this.variables.set(id, (async () => {
-        try {
-          const variable = await this.port.variables.getVariableByIdAsync(id);
-          if (!variable) return { lue: null };
-          const collection = await this.collection(variable.variableCollectionId);
-          return { lue: { id: variable.id, cle: variable.key, nom: variable.name, collection: collection?.nom ?? variable.variableCollectionId, distante: variable.remote } };
-        } catch (erreur) {
-          if (erreur instanceof AnalyseAnnulee) throw erreur;
-          return { lue: null, erreur: messageDErreur(erreur) };
-        }
-      })());
+    const premiere = !this.demandees.has(`variable ${id}`);
+    this.demandees.add(`variable ${id}`);
+    const fait = await this.ressources.variable(id);
+    if (fait.etat.etat === 'refuse') {
+      this.manquees.push({ layer, champ, motif: premiere && fait.etat.raison === 'leve' ? fait.etat.message ?? '' : 'variable illisible' });
+      return null;
     }
-    const { lue, erreur } = await (this.variables.get(id) as Promise<{ lue: LiaisonLue['variable'] | null; erreur?: string }>);
-    if (!lue) this.manquees.push({ layer, champ, motif: premiere && erreur !== undefined ? erreur : 'variable illisible' });
-    return lue;
+    const { key, name, variableCollectionId } = fait.etat.valeur;
+    const identifiant = variableCollectionId?.etat === 'acquis' ? variableCollectionId.valeur : '';
+    const collection = await this.collection(identifiant);
+    return {
+      id,
+      cle: key?.etat === 'acquis' ? key.valeur : '',
+      nom: name?.etat === 'acquis' ? name.valeur : '',
+      collection: collection?.nom ?? identifiant,
+      distante: fait.provenance.origine === 'distante',
+    };
   }
 
   async liaisons(brutes: ReadonlyArray<{ propriete: string; variable: string }>, porteur: string): Promise<LiaisonLue[]> {
@@ -283,7 +281,10 @@ class Lecteur {
       await this.cooperation.cederSiBesoin();
       const idDeMode = effectifs[idDeCollection];
       const collection = await this.collection(idDeCollection);
-      if (collection) modes[collection.nom] = collection.modes.get(idDeMode) ?? idDeMode;
+      if (!collection) continue;
+      let nom: string | undefined;
+      for (let rang = collection.modes.length - 1; rang >= 0 && nom === undefined; rang -= 1) if (collection.modes[rang].modeId === idDeMode) nom = collection.modes[rang].name;
+      modes[collection.nom] = nom ?? idDeMode;
     }
     return modes;
   }

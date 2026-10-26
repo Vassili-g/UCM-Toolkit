@@ -39,7 +39,7 @@ export const CHAMPS_DE_MISE_EN_PAGE = [
 
 export type ChampDeMiseEnPage = (typeof CHAMPS_DE_MISE_EN_PAGE)[number];
 export type ChampsDeMiseEnPage = Pick<ChampsDeNoeud, ChampDeMiseEnPage>;
-export type ValeurScalaire = string | number | null;
+export type ValeurScalaire = string | number | boolean | null;
 
 const CHAMPS_TEXTE: ReadonlySet<string> = new Set<ChampDeMiseEnPage>(['layoutMode', 'layoutWrap', 'primaryAxisAlignItems', 'counterAxisAlignItems']);
 /** `counterAxisSpacing` vaut `null` sous un espacement automatique. */
@@ -48,10 +48,10 @@ const CHAMPS_NULLABLES: ReadonlySet<string> = new Set<ChampDeMiseEnPage>(['count
 const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
 
 /**
- * Lit un champ scalaire (chaîne, nombre ou `null`) du nœud, une seule fois.
+ * Lit un champ scalaire (chaîne, nombre, booléen ou `null`) du nœud, une seule fois.
  * `undefined` : le type de nœud n'expose pas le champ (`absent`). Une lecture
  * qui lève est refusée (`leve`). Le symbole `figma.mixed` et toute forme qui
- * n'est ni chaîne, ni nombre, ni `null` sont mixtes. `lue` est appelé avant
+ * n'est ni chaîne, ni nombre, ni booléen, ni `null` sont mixtes. `lue` est appelé avant
  * l'accès natif, pour que l'appelant compte ses lectures.
  */
 export function lireUnChamp(noeud: object, champ: string, lue?: () => void): EtatEcrit<ValeurScalaire> {
@@ -63,7 +63,7 @@ export function lireUnChamp(noeud: object, champ: string, lue?: () => void): Eta
     return refuse('leve', messageDErreur(erreur));
   }
   if (valeur === undefined) return refuse('absent');
-  if (valeur === null || typeof valeur === 'string' || typeof valeur === 'number') return acquis(valeur);
+  if (valeur === null || typeof valeur === 'string' || typeof valeur === 'number' || typeof valeur === 'boolean') return acquis(valeur);
   return MIXTE;
 }
 

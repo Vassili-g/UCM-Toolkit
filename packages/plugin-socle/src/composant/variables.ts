@@ -5,6 +5,9 @@
  */
 import { joinTokenPath, prefixeDeCollection } from '@ucm-kit/core/format';
 
+import { creerMemoireDeRessources } from './analyse/ressources';
+import type { EtatEcrit } from './analyse/faits';
+
 import {
   noterLesParties,
   noterSansNode,
@@ -15,6 +18,11 @@ import {
   sujet,
 } from './contract/localisation';
 import type { PointACorriger } from './contract/localisation';
+
+/** Le texte d'un champ copié ; vide quand le champ n'est pas acquis. */
+function textDe(etat: EtatEcrit<string> | undefined): string {
+  return etat?.etat === 'acquis' ? etat.valeur : '';
+}
 
 /**
  * Extrait tous les alias de variable d'une liaison, qu'elle soit simple
@@ -258,7 +266,12 @@ export type ResolverOptions = {
  */
 export class VariableNameResolver {
   private readonly namesByVariableId = new Map<string, Promise<string | null>>();
-  private readonly collectionNamesById = new Map<string, Promise<string | null>>();
+  /** Variables et collections lues par l'API : une lecture par identifiant, refus compris, pour la durée de ce résolveur. */
+  private readonly ressources = creerMemoireDeRessources({
+    lectures: () => figma.variables,
+    champsDeVariable: ['name', 'variableCollectionId'],
+    champsDeCollection: ['name'],
+  });
 
   constructor(private readonly options: ResolverOptions = {}) {}
 
@@ -313,8 +326,8 @@ export class VariableNameResolver {
     const known = index?.pathById.get(variableId);
     if (known) return known;
 
-    const variable = await figma.variables.getVariableByIdAsync(variableId).catch(() => null);
-    if (!variable) {
+    const lue = await this.ressources.variable(variableId);
+    if (lue.etat.etat !== 'acquis') {
       // Le sujet est la variable, qui n'est pas un node ; mais le message nomme
       // le calque où elle est reliée, et c'est là que le designer agit. Le clic
       // y mène quand l'appelant a passé le node : un style de texte n'en a pas.
@@ -331,10 +344,13 @@ export class VariableNameResolver {
       return null;
     }
 
-    const collectionName = await this.getCollectionName(variable.variableCollectionId);
+    const variable = lue.etat.valeur;
+    const variableName = textDe(variable.name);
+    const collectionId = textDe(variable.variableCollectionId);
+    const collectionName = await this.getCollectionName(collectionId);
     if (!collectionName) {
       if (warnings) {
-        pousserSansNode(warnings, `Variable « ${variable.name} »${location}`, {
+        pousserSansNode(warnings, `Variable « ${variableName} »${location}`, {
           famille: 'variables',
           manque: `sa collection est introuvable.`,
           impact: `Le développeur n'aura pas cette valeur.`,
@@ -343,19 +359,12 @@ export class VariableNameResolver {
       }
       return null;
     }
-    return joinTokenPath(collectionName, variable.name);
+    return joinTokenPath(collectionName, variableName);
   }
 
-  /** Nom d'une collection, également mis en cache. */
-  private getCollectionName(collectionId: string): Promise<string | null> {
-    const cached = this.collectionNamesById.get(collectionId);
-    if (cached) return cached;
-
-    const pending = figma.variables
-      .getVariableCollectionByIdAsync(collectionId)
-      .then((collection) => collection?.name ?? null)
-      .catch(() => null);
-    this.collectionNamesById.set(collectionId, pending);
-    return pending;
+  /** Nom d'une collection ; null si elle ne se lit pas ou n'a pas de nom. */
+  private async getCollectionName(collectionId: string): Promise<string | null> {
+    const lue = await this.ressources.collection(collectionId);
+    return lue.etat.etat === 'acquis' ? textDe(lue.etat.valeur.name) || null : null;
   }
 }
