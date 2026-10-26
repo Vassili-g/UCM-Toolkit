@@ -102,6 +102,54 @@ test('le banc compare deux analyses indépendantes, leurs constats, corrections,
   );
 });
 
+
+test('le relevé et le moteur reçoivent le même budget ; les cessions conservent constats et corrections', async () => {
+  let pauses = 0;
+  let horloge = 0;
+  const fabriquer = () => {
+    const b = banc();
+    let budgetDuReleve: unknown;
+    const lectures: Lecteurs = {
+      ...lecteurs(complete()),
+      releve: async (_sujet, _jeton, _contexte, _progresser, cooperation) => {
+        assert.ok(cooperation);
+        budgetDuReleve = cooperation;
+        return { statut: 'lu', releve: releveDeContraste('Alert') };
+      },
+      moteur: async (_sujet, _jeton, _contexte, _progresser, cooperation) => {
+        assert.equal(cooperation, budgetDuReleve);
+        await cooperation!.cederSiBesoin();
+        return { etat: 'complete', export: exportDe([pointDeTest]) };
+      },
+    };
+    return { b, lectures };
+  };
+  await verifierLaPariteDeLAnalyse(fabriquer, (lectures) => traiterAvec(lectures, {
+    horloge: () => horloge += 16, budgetDeCalculMs: 16,
+    respirer: async () => { pauses += 1; },
+  }));
+  assert.ok(pauses >= 8);
+});
+
+test('annuler à une cession des contrôles ne rend aucun constat', async () => {
+  const b = banc();
+  let horloge = 0;
+  let annulee = false;
+  const traiter = traiterAvec(lecteurs(complete([pointDeTest])), {
+    horloge: () => horloge += 25, budgetDeCalculMs: 25,
+    respirer: async () => {
+      if (deType(b, 'analyse-en-cours').slice(-1)[0]?.progression?.phase !== 'controles') return;
+      annulee = true;
+      await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.equal(annulee, true);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+});
+
 test('le banc conserve une lecture partielle, ses manquées localisées et ses variants non lus', async () => {
   let fabriques = 0;
   const fabriquer = () => {

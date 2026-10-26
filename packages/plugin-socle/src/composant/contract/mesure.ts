@@ -260,8 +260,11 @@ export async function attendrePourLaMesure<T>(appel: () => Promise<T>, nature: '
   }
 }
 
-/** Mesure un appel synchrone du pilote, sans inclure les attentes Figma. */
-export function mesurerLeCalcul<T>(calcul: () => T, phase?: string): T {
+/**
+ * Mesure un appel synchrone du pilote, sans inclure les attentes Figma. Avec `cumuler`, la durée s'ajoute à
+ * l'entrée précédente si elle porte la même phase : une phase découpée en tranches garde une seule durée.
+ */
+export function mesurerLeCalcul<T>(calcul: () => T, phase?: string, cumuler = false): T {
   if (!trace) return calcul();
   const debut = Date.now();
   try { return calcul(); }
@@ -269,6 +272,8 @@ export function mesurerLeCalcul<T>(calcul: () => T, phase?: string): T {
     compter('tranchesSynchronesArchitect');
     const ms = Date.now() - debut;
     retenirLeMaximum('plusLongueTrancheArchitectMs', ms);
-    if (phase) trace?.phases.push({ nom: phase, ms });
+    const derniere = trace?.phases.at(-1);
+    if (phase && cumuler && derniere?.nom === phase && derniere.compteurs === undefined) derniere.ms += ms;
+    else if (phase) trace?.phases.push({ nom: phase, ms });
   }
 }

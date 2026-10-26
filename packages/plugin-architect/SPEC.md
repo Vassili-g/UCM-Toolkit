@@ -223,6 +223,12 @@ moteur de l'exporteur (`analyserLeComposant` du socle) et les contrôles de
 de l'échelle commune (`TypeDAlerte` du kit). Une seule opération court à la
 fois, analyse ou écriture : une seconde demande reçoit `occupe`.
 
+Une analyse crée un seul contexte coopératif (`creerContexteCooperatif` du
+socle) : horloge, pause, budget de 25 ms et jeton d'annulation. Le relevé, le
+moteur et le pilote des contrôles le reçoivent et cèdent la main entre deux
+variants ou deux contrôles. L'annulation se relit juste après la pause. Le
+moteur seul ouvre la portée de mémoire.
+
 Une correction ne se propose que si elle est exacte : une règle écrite donne
 un seul candidat. Sinon le constat devient une question, sans candidat choisi
 d'avance ; la réponse du designer produit la correction. Un constat sans

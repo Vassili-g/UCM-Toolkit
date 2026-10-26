@@ -22,7 +22,7 @@ import {
   respirerSiBesoin,
   verifierLAnnulation,
 } from './porteeDAnalyse';
-import type { JetonDAnnulation } from './porteeDAnalyse';
+import type { ContexteCooperatif, JetonDAnnulation, OptionsDeCooperation } from './porteeDAnalyse';
 import { bornerLesVariants } from './budget';
 import { pousserLesImbriques, releverLesImbriques } from './imbriques';
 import type { ReleveDesImbriques } from './imbriques';
@@ -145,8 +145,9 @@ export type ResultatDAnalyse =
   | { etat: 'annulee' };
 
 /** Les options de `analyserLeComposant`. Sans `budgetDeLayers` : tout se lit. Sans `jeton` : jamais annulée. */
-export type OptionsDAnalyse = {
-  respirer?: () => Promise<void>;
+export type OptionsDAnalyse = OptionsDeCooperation & {
+  /** Le contexte d'une analyse plus large (Architect) ; il remplace celui que la portée créerait. */
+  cooperation?: ContexteCooperatif;
   composant?: ComponentNode | ComponentSetNode;
   page?: PageNode;
   /** Le nombre de layers de variants à ne pas dépasser, `BUDGET_DE_LAYERS_PAR_DEFAUT` pour la borne commune. */

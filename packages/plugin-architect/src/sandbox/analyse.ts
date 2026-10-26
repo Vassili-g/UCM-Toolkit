@@ -24,7 +24,7 @@ import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { ouvrirLaMesure, fermerLaMesure, etape, compter, attendrePourLaMesure, mesurerLeCalcul, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
-import type { JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
+import { creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation, type OptionsDeCooperation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
 import type { NoeudLu } from '../consommateurs';
@@ -204,9 +204,9 @@ export interface SujetAAnalyser {
 export interface Lecteurs {
   /** Le sujet de la sélection, `null` hors de tout composant. */
   sujet(contexte: Contexte): Promise<SujetAAnalyser | null>;
-  releve(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (fait: number, total: number) => void): Promise<IssueDuReleve>;
+  releve(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (fait: number, total: number) => void, cooperation?: ContexteCooperatif): Promise<IssueDuReleve>;
   catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte): Promise<CatalogueDeReference>;
-  moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (phase: PhaseDAnalyse) => void): Promise<ResultatDAnalyse>;
+  moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (phase: PhaseDAnalyse) => void, cooperation?: ContexteCooperatif): Promise<ResultatDAnalyse>;
   /** Les règles d'usage du composant, lues avec le contrat du moteur ; sans lecteur, aucun constat C43 ni C45. */
   regles?(sujet: SujetAAnalyser, resultat: ResultatDAnalyse, contexte: Contexte): Promise<ReleveDesRegles>;
   /** Le niveau d'accessibilité rangé ; AA sans lecteur. */
@@ -302,9 +302,10 @@ export function pageDuNoeud<T>(noeud: { readonly type?: string; readonly parent?
 
 const LECTEURS_DE_FIGMA: Lecteurs = {
   sujet: sujetDeFigma,
-  releve: (sujet, jeton, contexte, progresser) => lireLeReleve(portDuComposant(contexte), sujet.noeud, {
+  releve: (sujet, jeton, contexte, progresser, cooperation) => lireLeReleve(portDuComposant(contexte), sujet.noeud, {
     budgetDeLayers: BUDGET_DE_LAYERS_PAR_DEFAUT,
     jeton,
+    cooperation,
     progresser,
     espaceDeCouleur: contexte.figma.root.documentColorProfile === 'DISPLAY_P3' ? 'display-p3' : 'srgb',
   }),
@@ -312,13 +313,14 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
   niveau: ({ figma }) => lireLeNiveau(figma),
   ignores: async ({ figma }) => lireLesIgnores(figma),
   regles: (sujet, resultat) => lireLesRegles(sujet.noeud as unknown as ComponentSetNode, (resultat as { export: ComponentExport }).export),
-  moteur: (sujet, jeton, { figma }, progresser) => analyserLeComposant(async (texte) => {
+  moteur: (sujet, jeton, { figma }, progresser, cooperation) => analyserLeComposant(async (texte) => {
     progresser?.(texte.includes('variables') || texte.includes('exemples') || texte.includes('contrat') ? 'structure' : 'imbriques');
   }, {
     composant: sujet.noeud as unknown as ComponentSetNode,
     page: pageDuNoeud(sujet.noeud, figma.currentPage),
     budgetDeLayers: BUDGET_DE_LAYERS_PAR_DEFAUT,
     jeton,
+    cooperation,
     respirer: () => new Promise((resolve) => setTimeout(resolve, 0)),
   }),
 };
@@ -338,16 +340,23 @@ const mesuresEnvoyees = new Map<number, { reception: number; identite: IdentiteD
 
 const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
 
-function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeReference, niveau: NiveauDAccessibilite, architectureUcm: boolean): Constat[] {
-  return [
-    ...controlerNommage(releve, catalogue),
-    ...controlerMapping(releve, catalogue),
-    ...controlerCouches(releve, catalogue),
-    ...controlerOublis(releve, catalogue),
-    ...controlerLAccessibilite(releve, catalogue, { niveau }),
-    ...controlerLaTypographie(releve, catalogue),
-    ...(architectureUcm ? [...controlerLeTheme(releve, catalogue), ...controlerLaStructure(releve, catalogue)] : []),
+/** Les contrôles du kit, dans l'ordre du produit ; le budget partagé se consulte avant chacun. */
+async function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeReference, niveau: NiveauDAccessibilite, architectureUcm: boolean, cooperation: ContexteCooperatif): Promise<Constat[]> {
+  const controles: Array<() => Constat[]> = [
+    () => controlerNommage(releve, catalogue),
+    () => controlerMapping(releve, catalogue),
+    () => controlerCouches(releve, catalogue),
+    () => controlerOublis(releve, catalogue),
+    () => controlerLAccessibilite(releve, catalogue, { niveau }),
+    () => controlerLaTypographie(releve, catalogue),
+    ...(architectureUcm ? [() => controlerLeTheme(releve, catalogue), () => controlerLaStructure(releve, catalogue)] : []),
   ];
+  const constats: Constat[] = [];
+  for (const controler of controles) {
+    await cooperation.cederSiBesoin();
+    constats.push(...mesurerLeCalcul(controler, 'controles', true));
+  }
+  return constats;
 }
 
 /** L'unique constat d'une analyse arrêtée : le code C42 sert de réserve à la famille `export`. */
@@ -355,7 +364,7 @@ function bloquant(message: string): Constat {
   return { id: 'export:arret', code: 'C42', type: 'bloquant', famille: 'export', variants: [], layers: [], faits: { message } };
 }
 
-async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract<DemandeDAnalyse, { type: 'analyser' }>): Promise<void> {
+async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract<DemandeDAnalyse, { type: 'analyser' }>, optionsDeCooperation: Omit<OptionsDeCooperation, 'jeton'>): Promise<void> {
   if (operation) {
     contexte.envoyer({ type: 'occupe', analyse: await operation.identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}) });
     return;
@@ -365,6 +374,12 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   const courant: Operation = { identite: new Promise((resolve) => { connaitre = resolve; }), connue: null, jeton: { leve: false } };
   courant.demande = demande.demande;
   operation = courant;
+  // Un seul contexte par analyse : le relevé, le moteur et les contrôles se partagent son budget.
+  const cooperation = creerContexteCooperatif({
+    respirer: () => new Promise((resolve) => setTimeout(resolve, 0)),
+    ...optionsDeCooperation,
+    jeton: courant.jeton,
+  });
   if (demande.mesurer) ouvrirLaMesure();
   let mesureOuverte = demande.mesurer === true;
   let mesureClose: TraceDeMesure | null = null;
@@ -426,7 +441,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     const { jeton } = courant;
 
     phase('releve');
-    const issue = await attendrePourLaMesure(() => lecteurs.releve(sujet, jeton, contexte, (fait, total) => courant.progresser?.('releve', fait, total)), 'attente', 'releve');
+    const issue = await attendrePourLaMesure(() => lecteurs.releve(sujet, jeton, contexte, (fait, total) => courant.progresser?.('releve', fait, total), cooperation), 'attente', 'releve');
     if (issue.statut === 'annule' || jeton.leve) return rendre('annulee', [], null);
     if (issue.statut === 'sans-sujet') return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
     const { releve } = issue;
@@ -439,7 +454,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     catalogueLu = catalogue;
     if (jeton.leve) return rendre('annulee', [], null);
     phase('imbriques');
-    const resultat = await attendrePourLaMesure(() => lecteurs.moteur(sujet, jeton, contexte, courant.progresser), 'attente', 'moteur');
+    const resultat = await attendrePourLaMesure(() => lecteurs.moteur(sujet, jeton, contexte, courant.progresser, cooperation), 'attente', 'moteur');
     if (resultat.etat === 'annulee' || jeton.leve) return rendre('annulee', [], null);
 
     // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
@@ -451,9 +466,12 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       catch { return false; }
     })();
     phase('controles');
-    const brut = mesurerLeCalcul(() => [...controlesDuKit(releve, catalogue, niveau, architectureUcm), ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))], 'controles');
+    const controles = await controlesDuKit(releve, catalogue, niveau, architectureUcm, cooperation);
+    const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
     phase('corrections');
+    await cooperation.cederSiBesoin();
     const tous = mesurerLeCalcul(() => proposerLesCorrections(releve, catalogue, brut), 'corrections');
+    await cooperation.cederSiBesoin();
     const rangees = await attendrePourLaMesure(async () => await lecteurs.ignores?.(contexte).catch((): readonly string[] => []) ?? []);
     const { visibles, ignores } = separerLesIgnores(tous, rangees);
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
@@ -493,11 +511,11 @@ function annuler(demande: Extract<DemandeDAnalyse, { type: 'annuler-analyse' }>)
 }
 
 /** Le traitement du domaine sur des lectures données. */
-export function traiterAvec(lecteurs: Lecteurs): Traiter<DemandeDAnalyse> {
+export function traiterAvec(lecteurs: Lecteurs, optionsDeCooperation: Omit<OptionsDeCooperation, 'jeton'> = {}): Traiter<DemandeDAnalyse> {
   return async (demande, contexte) => {
     switch (demande.type) {
       case 'analyser':
-        await analyser(contexte, lecteurs, demande);
+        await analyser(contexte, lecteurs, demande, optionsDeCooperation);
         return;
       case 'analyse-rendue': {
         const envoyee = mesuresEnvoyees.get(demande.demande);

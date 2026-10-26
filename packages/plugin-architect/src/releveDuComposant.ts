@@ -23,7 +23,7 @@
 import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu } from '@ucm-kit/core/controles';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { compter, attendrePourLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
-import type { JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
+import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { liaisonsDuNoeud, type NoeudLu } from './consommateurs';
 import { LOT, liaisonsDesSurcharges, sujetDe, type PortDuComposant } from './lectureDuComposant';
@@ -34,6 +34,8 @@ export interface OptionsDuReleve {
   /** Défaut : `BUDGET_DE_LAYERS_PAR_DEFAUT`. */
   readonly budgetDeLayers?: number;
   readonly jeton?: JetonDAnnulation;
+  /** Le budget que l'analyse partage avec le moteur et les contrôles ; sans lui, le relevé ne cède qu'au pas de `LOT`. */
+  readonly cooperation?: ContexteCooperatif;
   /** L'espace du document ; le sandbox le lit dans `figma.root.documentColorProfile`. */
   readonly espaceDeCouleur?: EspaceDuReleve;
 }
@@ -348,6 +350,7 @@ function proprietesDe(jeu: NoeudLu, manquees: Manquee[]): ReleveDeComposant['pro
 export async function lireLeReleve(port: PortDuComposant, depart: NoeudLu, options: OptionsDuReleve = {}): Promise<IssueDuReleve> {
   const budget = options.budgetDeLayers ?? BUDGET_DE_LAYERS_PAR_DEFAUT;
   const annule = (): boolean => options.jeton?.leve === true;
+  const cooperation = options.cooperation ?? creerContexteCooperatif({ jeton: options.jeton });
   const trouve = sujetDe(depart);
   if (!trouve) return { statut: 'sans-sujet' };
   let { sujet } = trouve;
@@ -371,6 +374,12 @@ export async function lireLeReleve(port: PortDuComposant, depart: NoeudLu, optio
 
   for (const composant of composants) {
     if (annule()) return { statut: 'annule' };
+    try {
+      await cooperation.cederSiBesoin();
+    } catch (erreur) {
+      if (erreur instanceof AnalyseAnnulee) return { statut: 'annule' };
+      throw erreur;
+    }
     let etapes: Etape[] | null = null;
     try {
       etapes = parcourir(composant);

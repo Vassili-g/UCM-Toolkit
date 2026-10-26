@@ -101,7 +101,7 @@ let desactivee = false;
  * Le refus persiste même si la première portée se ferme avant lui.
  */
 export async function dansUnePorteeDAnalyse<T>(
-  options: OptionsDeCooperation,
+  options: OptionsDeCooperation & { cooperation?: ContexteCooperatif },
   corps: () => Promise<T>,
 ): Promise<T> {
   if (portee || porteesRefusees > 0) {
@@ -115,7 +115,7 @@ export async function dansUnePorteeDAnalyse<T>(
   }
   const ouverte: Portee = {
     maitres: new Map(),
-    cooperation: creerContexteCooperatif(options),
+    cooperation: options.cooperation ?? creerContexteCooperatif(options),
   };
   portee = ouverte;
   try {
