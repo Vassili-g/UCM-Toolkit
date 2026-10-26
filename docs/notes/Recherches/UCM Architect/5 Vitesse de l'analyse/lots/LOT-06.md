@@ -83,3 +83,15 @@ Les types sont dans `packages/plugin-socle/src/composant/analyse/faits.ts` ; `pa
 - Variables, collections, styles, maîtres, nœuds atteints par `getNodeByIdAsync` et variables de library sont des ressources indexées par identifiant, une fois par acquisition. Leur état vaut pour une acquisition : une ressource refusée peut être acquise dans la suivante (question 7). Les listes rendues par un seul appel (`getLocalVariablesAsync`, `getLocalVariableCollectionsAsync`, collections de library) sont des inventaires à part.
 - Le maître d'une instance est un seul fait sur le nœud : l'identifiant d'une ressource `maitres` (`id`, `key`, `nom`, `remote`, `jeu`), ou un refus (`introuvable`, `leve`). Chaque consommateur en tire son traitement actuel (question 8).
 - La provenance d'un champ de nœud ou de ressource est la propriété que nomme sa clé. Les autres faits portent leur appel natif et leur origine : `locale`, `distante`, `library` ou `inconnue` pour une ressource refusée.
+
+### Mesures Figma du Button (90 variants)
+
+Empreinte `3b6271bb` identique à chaque mesure.
+
+| Build | Total | Premiers constats | Relevé | Catalogue | Contrôles | Moteur | Règles |
+|---|---|---|---|---|---|---|---|
+| 6.0b (`a4d8bb33`) | 17,7 s | 7,9 s | 3,2 s | 2,0 s | 1,7 s | 9,9 s | 0,3 s |
+| 6.6 (`3722f14a`) | 19,4 s | 8,9 s | 3,8 s | 2,1 s | 1,8 s | 11,0 s | 0,0 s |
+
+- 6.0b : la reprise des libraries lues à la sélection est vérifiée en 23 ms, contre 2 à 6 s pour une lecture. La vérification reste.
+- 6.6 : mesure faite pendant que les suites de tests tournaient sur la même machine. Des étapes que 6.2 à 6.6 ne touchent pas ralentissent aussi (`compaction` 407 → 534 ms) : les durées ne se comparent pas. Les compteurs confirment le gain attendu : 2 486 propriétés lues par le relevé au lieu de 3 332, phase des règles de 303 à 6 ms. À remesurer machine au repos, sur décision du mainteneur.
