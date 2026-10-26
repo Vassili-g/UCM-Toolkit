@@ -1,9 +1,10 @@
 /**
- * Acquisition de deux familles de propriétés de nœud : la géométrie et la mise
+ * Acquisition de trois familles de propriétés de nœud : la géométrie et la mise
  * en page scalaires (`layoutMode`, espacements, rayons, épaisseurs de contour),
- * puis les peintures (`fills`, `strokes`). Un copieur lit un nœud côté Figma et
- * rend des états de `faits.ts` ; le relevé d'Architect et le moteur en tirent
- * chacun leur projection.
+ * les peintures (`fills`, `strokes`) et les segments de texte
+ * (`getStyledTextSegments`). Un copieur lit un nœud côté Figma et rend des états
+ * de `faits.ts` ; le relevé d'Architect et le moteur en tirent chacun leur
+ * projection.
  *
  * Un champ se lit une fois, au moment où l'appelant le demande : le copieur
  * ne lit jamais un champ qu'on ne lui a pas nommé, car un nœud n'expose que
@@ -13,7 +14,7 @@
  * famille ne porte d'objet indexé par un nom du designer : la copie n'a pas à
  * se défendre de `__proto__`.
  */
-import { MIXTE, acquis, refuse, type AliasDeVariable, type ArretDeDegradeLu, type ChampsDeNoeud, type CouleurLue, type EtatEcrit, type PeintureLue, type Refuse, type TableDesChamps } from './faits';
+import { MIXTE, acquis, refuse, type Acquis, type AliasDeVariable, type ArretDeDegradeLu, type ChampDeSegment, type ChampsDeNoeud, type CouleurLue, type EtatEcrit, type PeintureLue, type Refuse, type TableDesChamps } from './faits';
 
 export const CHAMPS_DE_MISE_EN_PAGE = [
   'layoutMode',
@@ -200,4 +201,103 @@ export function lireLesPeintures(noeud: object, champ: ChampDePeinture, lue?: ()
 export async function lireLesPeinturesParEtapes(noeud: object, champ: ChampDePeinture, cession: Cession, lue?: () => void): Promise<EtatEcrit<readonly PeintureLue[]>> {
   const lu = lireLeChamp(noeud, champ, lue);
   return 'etat' in lu ? lu : copierLesPeinturesParEtapes(lu.valeur, cession);
+}
+
+/**
+ * Une plage de `getStyledTextSegments` telle que Figma la rend : `debut` et `fin` (exclue), et la valeur lue de chaque
+ * champ demandé, sans copie. La copie d'une peinture (`PeintureLue`) perd `gradientTransform` et `imageHash` : deux
+ * plages que Figma garde séparées pour cela se confondraient dans une copie, d'où la comparaison sur la valeur lue.
+ */
+export interface PlageLue {
+  readonly debut: number;
+  readonly fin: number;
+  readonly valeurs: { readonly [C in ChampDeSegment]?: unknown };
+}
+
+/** Le refus porte sur l'appel entier : `absent` quand la méthode manque, `leve` quand l'appel ou la lecture d'une plage lève. */
+export type EtatDesSegments = Acquis<readonly PlageLue[]> | Refuse<'leve' | 'absent'>;
+
+/**
+ * Appelle `getStyledTextSegments(champs)` une seule fois et rend ses plages, dans l'ordre de Figma, en cédant la main
+ * après chaque plage. `champs` garde son ordre : c'est celui de l'appel natif.
+ *
+ * Une liste absente (`undefined` ou `null`) vaut un texte sans plage. Une valeur qui n'est pas une liste d'objets est
+ * refusée (`leve`). Une plage dont `start` ou `end` n'est pas un nombre garde la valeur lue : elle ne fusionne jamais.
+ */
+export function* lireLesSegmentsParEtapes(noeud: object, champs: readonly ChampDeSegment[]): Generator<undefined, EtatDesSegments> {
+  const plages: PlageLue[] = [];
+  try {
+    const lire = (noeud as { getStyledTextSegments?: unknown }).getStyledTextSegments;
+    if (typeof lire !== 'function') return refuse('absent');
+    const brutes: unknown = lire.call(noeud, [...champs]);
+    if (brutes === undefined || brutes === null) return acquis(plages);
+    if (!Array.isArray(brutes)) return refuse('leve', 'liste de segments attendue');
+    for (const brute of brutes) {
+      if (!estUnObjet(brute)) return refuse('leve', 'segment illisible');
+      const valeurs: { [C in ChampDeSegment]?: unknown } = {};
+      for (const champ of champs) valeurs[champ] = brute[champ];
+      plages.push({ debut: brute.start as number, fin: brute.end as number, valeurs });
+      yield;
+    }
+  } catch (erreur) {
+    return refuse('leve', messageDErreur(erreur));
+  }
+  return acquis(plages);
+}
+
+/** Même lecture que `lireLesSegmentsParEtapes`, sans céder la main. */
+export function lireLesSegments(noeud: object, champs: readonly ChampDeSegment[]): EtatDesSegments {
+  const lecture = lireLesSegmentsParEtapes(noeud, champs);
+  for (let etape = lecture.next(); ; etape = lecture.next()) if (etape.done) return etape.value;
+}
+
+/** Même lecture que `lireLesSegmentsParEtapes`, qui cède la main par `cession` : un texte n'a pas de borne de plages. */
+export async function lireLesSegmentsCooperatif(noeud: object, champs: readonly ChampDeSegment[], cession: Cession): Promise<EtatDesSegments> {
+  const lecture = lireLesSegmentsParEtapes(noeud, champs);
+  for (let etape = lecture.next(); ; etape = lecture.next()) {
+    if (etape.done) return etape.value;
+    await cession.cederSiBesoin();
+  }
+}
+
+/**
+ * Égalité profonde de deux valeurs lues : primitives par `===` (`NaN` égal à `NaN`), listes élément par élément,
+ * objets par leurs clés, quel que soit leur ordre. Une clé sans valeur vaut une clé absente.
+ */
+export function egalesEnProfondeur(a: unknown, b: unknown): boolean {
+  if (a === b || (a !== a && b !== b)) return true;
+  if (!estUnObjet(a) || !estUnObjet(b) || Array.isArray(a) !== Array.isArray(b)) return false;
+  const clesDeA = Object.keys(a).filter((cle) => a[cle] !== undefined);
+  const clesDeB = Object.keys(b).filter((cle) => b[cle] !== undefined);
+  return clesDeA.length === clesDeB.length && clesDeA.every((cle) => egalesEnProfondeur(a[cle], b[cle]));
+}
+
+/**
+ * Projette des plages lues pour un jeu de champs sur un sous-ensemble `champs`, et fusionne les plages voisines dont les
+ * valeurs projetées sont égales (`egalesEnProfondeur`) : le résultat est ce que `getStyledTextSegments(champs)` rend,
+ * puisque Figma coupe le texte dès qu'un des champs demandés change. Chaque champ de `champs` doit avoir été demandé
+ * dans la lecture des plages. Deux plages sont voisines quand `fin` de la première vaut `debut` de la seconde, tous deux
+ * des nombres ; la plage fusionnée garde les valeurs de la première. Cède la main après chaque plage.
+ */
+export function* projeterLesPlagesParEtapes(plages: readonly PlageLue[], champs: readonly ChampDeSegment[]): Generator<undefined, PlageLue[]> {
+  const projetees: PlageLue[] = [];
+  for (const plage of plages) {
+    const valeurs: { [C in ChampDeSegment]?: unknown } = {};
+    for (const champ of champs) valeurs[champ] = plage.valeurs[champ];
+    const derniere = projetees[projetees.length - 1];
+    const voisines = derniere !== undefined && typeof derniere.fin === 'number' && typeof plage.debut === 'number' && derniere.fin === plage.debut;
+    if (voisines && champs.every((champ) => egalesEnProfondeur(derniere.valeurs[champ], valeurs[champ]))) {
+      projetees[projetees.length - 1] = { debut: derniere.debut, fin: plage.fin, valeurs: derniere.valeurs };
+    } else {
+      projetees.push({ debut: plage.debut, fin: plage.fin, valeurs });
+    }
+    yield;
+  }
+  return projetees;
+}
+
+/** Même projection que `projeterLesPlagesParEtapes`, sans céder la main. */
+export function projeterLesPlages(plages: readonly PlageLue[], champs: readonly ChampDeSegment[]): PlageLue[] {
+  const projection = projeterLesPlagesParEtapes(plages, champs);
+  for (let etape = projection.next(); ; etape = projection.next()) if (etape.done) return etape.value;
 }

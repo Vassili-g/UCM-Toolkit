@@ -21,14 +21,14 @@
  * plage et figure à la fois dans `layer.liaisons` et dans `texte.plages`.
  */
 import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu } from '@ucm-kit/core/controles';
-import { copierLaMiseEnPage, copierLesPeinturesParEtapes, lireLesPeinturesParEtapes, type ChampDeMiseEnPage, type ChampsDeMiseEnPage } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
-import { champDe, type EtatEcrit, type MaitreLu, type ModeDeCollectionLu, type PeintureLue as PeintureCopiee, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
+import { copierLaMiseEnPage, copierLesPeinturesParEtapes, lireLesPeinturesParEtapes, lireLesSegmentsCooperatif, lireLesSegmentsParEtapes, type ChampDeMiseEnPage, type ChampsDeMiseEnPage, type EtatDesSegments, type PlageLue } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
+import { champDe, type ChampDeSegment, type EtatEcrit, type MaitreLu, type ModeDeCollectionLu, type PeintureLue as PeintureCopiee, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { creerMemoireDeRessources, type MemoireDeRessources } from 'ucm-plugin-socle/src/composant/analyse/ressources';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
-import { liaisonsDuNoeudCooperatives, type NoeudLu } from './consommateurs';
+import { liaisonsDuNoeudCooperatives, type NoeudLu, type SegmentsPartages } from './consommateurs';
 import { liaisonsDesSurcharges, type PortDuComposant } from './lectureDuComposant';
 import type { EspaceDuReleve } from './modele';
 
@@ -301,20 +301,45 @@ class Lecteur {
   }
 }
 
-type Segment = { start: number; end: number; fills?: unknown; fontSize?: unknown; fontWeight?: unknown; textStyleId?: unknown };
+/** Les champs de segments du relevé : `fontSize`, `fontWeight`, `fills` et `textStyleId` pour les plages, `boundVariables` et `fills` pour les liaisons. */
+const CHAMPS_DE_SEGMENT: readonly ChampDeSegment[] = ['fontSize', 'fontWeight', 'fills', 'boundVariables', 'textStyleId'];
 
-async function texteDe(lecteur: Lecteur, noeud: NoeudLu, liaisons: readonly LiaisonLue[], manquees: Manquee[]): Promise<LayerLu['texte']> {
-  let segments: Segment[] = [];
-  try {
-    segments = (noeud.getStyledTextSegments?.(['fontSize', 'fontWeight', 'fills', 'boundVariables', 'textStyleId']) ?? []) as unknown as Segment[];
-  } catch (erreur) {
-    manquees.push({ layer: noeud.id, champ: 'texte', motif: messageDErreur(erreur) });
+/**
+ * Les segments d'un calque texte, lus par un seul appel natif pour les liaisons de plage et pour les plages du texte.
+ * `parEtapes` sert les liaisons, `cooperatif` les plages, qui reprennent la lecture déjà faite si les liaisons l'ont menée jusque-là.
+ */
+class SegmentsDuTexte {
+  private lus: EtatDesSegments | undefined;
+
+  constructor(private readonly noeud: NoeudLu) {}
+
+  readonly parEtapes: SegmentsPartages = () => this.etapes();
+
+  private *etapes(): Generator<undefined, EtatDesSegments> {
+    if (this.lus) return this.lus;
+    const lus = yield* lireLesSegmentsParEtapes(this.noeud, CHAMPS_DE_SEGMENT);
+    this.lus = lus;
+    return lus;
   }
+
+  async cooperatif(cooperation: ContexteCooperatif): Promise<EtatDesSegments> {
+    if (this.lus) return this.lus;
+    const lus = await lireLesSegmentsCooperatif(this.noeud, CHAMPS_DE_SEGMENT, cooperation);
+    this.lus = lus;
+    return lus;
+  }
+}
+
+async function texteDe(lecteur: Lecteur, noeud: NoeudLu, liaisons: readonly LiaisonLue[], manquees: Manquee[], partages: SegmentsDuTexte): Promise<LayerLu['texte']> {
+  const lus = await partages.cooperatif(lecteur.cooperation);
+  let segments: readonly PlageLue[] = [];
+  if (lus.etat === 'acquis') segments = lus.valeur;
+  else if (lus.raison === 'leve') manquees.push({ layer: noeud.id, champ: 'texte', motif: lus.message ?? '' });
   const identifiants = new Set<unknown>();
   if (typeof noeud.textStyleId === 'string') identifiants.add(noeud.textStyleId);
   else for (const segment of segments) {
     await lecteur.cooperation.cederSiBesoin();
-    identifiants.add(segment.textStyleId);
+    identifiants.add(segment.valeurs.textStyleId);
   }
   const premier = identifiants.values().next().value;
   const unique = identifiants.size === 1 && typeof premier === 'string' && premier !== '' ? premier : null;
@@ -330,13 +355,14 @@ async function texteDe(lecteur: Lecteur, noeud: NoeudLu, liaisons: readonly Liai
   const plages: NonNullable<LayerLu['texte']>['plages'] = [];
   for (const segment of segments) {
     await lecteur.cooperation.cederSiBesoin();
+    const { fontSize, fontWeight, fills } = segment.valeurs;
     plages.push({
-      debut: segment.start,
-      fin: segment.end,
-      fontSize: estUnNombre(segment.fontSize) ? segment.fontSize : 0,
-      fontWeight: estUnNombre(segment.fontWeight) ? segment.fontWeight : 0,
-      peintures: await peinturesDe('fills', await copierLesPeinturesParEtapes(segment.fills, lecteur.cooperation), noeud.id, manquees, lecteur.cooperation),
-      liaisons: liaisonsParPlage.get(`${segment.start}:${segment.end}`) ?? [],
+      debut: segment.debut,
+      fin: segment.fin,
+      fontSize: estUnNombre(fontSize) ? fontSize : 0,
+      fontWeight: estUnNombre(fontWeight) ? fontWeight : 0,
+      peintures: await peinturesDe('fills', await copierLesPeinturesParEtapes(fills, lecteur.cooperation), noeud.id, manquees, lecteur.cooperation),
+      liaisons: liaisonsParPlage.get(`${segment.debut}:${segment.fin}`) ?? [],
     });
   }
   return {
@@ -389,8 +415,9 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
   }
   const epaisseur = nombreDe(miseEnPage(noeud, ['strokeWeight']), 'strokeWeight', noeud.id, manquees);
   if (epaisseur !== undefined) layer.strokeWeight = epaisseur;
+  const segments = noeud.type === 'TEXT' ? new SegmentsDuTexte(noeud) : undefined;
   try {
-    layer.liaisons = await lecteur.liaisons(await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation, { fills, strokes }), noeud.id);
+    layer.liaisons = await lecteur.liaisons(await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation, { fills, strokes }, segments?.parEtapes), noeud.id);
     if (frontiere) {
       const lues: LiaisonLue[] = [];
       for (const { propriete, variable, porteur } of await liaisonsDesSurcharges(port, noeud, true, lecteur.cooperation)) {
@@ -416,7 +443,7 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     manquees.push({ layer: noeud.id, champ: 'liaisons', motif: messageDErreur(erreur) });
   }
   layer.valeursEnDur = await valeursEnDur(noeud, layer.liaisons, dimensions, epaisseur, strokes, manquees, lecteur.cooperation);
-  if (noeud.type === 'TEXT') layer.texte = await texteDe(lecteur, noeud, layer.liaisons, manquees);
+  if (segments) layer.texte = await texteDe(lecteur, noeud, layer.liaisons, manquees, segments);
   return layer;
 }
 

@@ -7,8 +7,8 @@
  * portée calcule sans mémoire. Le résultat est le même dans les deux cas ; seul
  * le nombre d'allers-retours vers Figma change.
  */
-import { lireLesPeintures, type ChampDePeinture } from '../analyse/acquisition';
-import type { EtatEcrit, PeintureLue } from '../analyse/faits';
+import { lireLesPeintures, lireLesSegments, projeterLesPlages, type ChampDePeinture, type EtatDesSegments } from '../analyse/acquisition';
+import { acquis, cleDeSegments, type ChampDeSegment, type EtatEcrit, type PeintureLue } from '../analyse/faits';
 import { lireUneFoisParIdentifiant, type LectureNative } from '../analyse/ressources';
 import { compter, attendrePourLaMesure, mesurerLeCalcul } from './mesure';
 
@@ -95,6 +95,8 @@ type Portee = {
   styles: Map<string, Promise<LectureNative<object>>>;
   /** Les peintures copiées de chaque champ de chaque nœud, par id de nœud et champ, refus compris. */
   peintures: Map<string, EtatEcrit<readonly PeintureLue[]>>;
+  /** Les plages lues de chaque nœud texte pour un jeu de champs, par id de nœud et `cleDeSegments`, refus compris. */
+  segments: Map<string, EtatDesSegments>;
   /** Le parcours brut de chaque racine, par id : tous ses descendants, avant frontière ni filtre de visibilité. */
   parcours: Map<string, readonly SceneNode[]>;
   /** Les chemins de texte de chaque racine, par id, avec le contexte complet qui les a produits. */
@@ -144,6 +146,7 @@ export async function dansUnePorteeDAnalyse<T>(
     maitres: new Map(),
     styles: new Map(),
     peintures: new Map(),
+    segments: new Map(),
     parcours: new Map(),
     chemins: new Map(),
     filtres: new Map(),
@@ -197,6 +200,24 @@ export function peinturesDuNoeud(noeud: { readonly id?: unknown }, champ: ChampD
   const lu = lireLesPeintures(noeud, champ);
   memoire?.set(cle, lu);
   return lu;
+}
+
+/**
+ * Les plages d'un nœud texte pour `champs`, ce que rend `getStyledTextSegments(champs)`. Dans une portée, le nœud se lit
+ * une fois pour tout `groupe` (qui contient `champs`), et chaque appelant en projette ses champs : deux lecteurs qui
+ * demandent des champs différents au même nœud partagent un seul appel natif. Hors portée, ou sans identifiant de
+ * nœud, `champs` se lit seul, comme avant. Chaque appelant garde son traitement d'un refus (méthode absente, appel qui lève).
+ */
+export function plagesDuNoeud(noeud: { readonly id?: unknown }, champs: readonly ChampDeSegment[], groupe: readonly ChampDeSegment[]): EtatDesSegments {
+  const memoire = typeof noeud.id === 'string' ? porteeQuiMemorise()?.segments : undefined;
+  if (!memoire) return lireLesSegments(noeud, champs);
+  const cle = `${noeud.id} ${cleDeSegments(groupe)}`;
+  let lu = memoire.get(cle);
+  if (!lu) {
+    lu = lireLesSegments(noeud, groupe);
+    memoire.set(cle, lu);
+  }
+  return lu.etat === 'acquis' ? acquis(projeterLesPlages(lu.valeur, champs)) : lu;
 }
 
 /** La portée qui garde ses mémoires, ou null : hors portée, portée refusée en cours, ou banc sans mémoire. */

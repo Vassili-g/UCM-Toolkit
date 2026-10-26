@@ -31,7 +31,7 @@
 import type { PeintureLue } from '../analyse/faits';
 import { pointDe, sujet } from './localisation';
 import type { PointACorriger } from './localisation';
-import { peinturesDuNoeud } from './porteeDAnalyse';
+import { peinturesDuNoeud, plagesDuNoeud } from './porteeDAnalyse';
 
 /** `boundVariables` et les propriétés visuelles ne sont pas typées champ par champ. */
 type FigmaPropertyBag = Record<string, unknown>;
@@ -183,25 +183,23 @@ function proprietesNonPortees(node: SceneNode): ProprieteNonPortee[] {
   return relevees;
 }
 
+/** Les champs de segments que le moteur lit sur un texte : `valeursParPlage` les demande ensemble dans une portée d'analyse. */
+const CHAMPS_DE_PLAGE_DU_MOTEUR = ['listOptions', 'textStyleOverrides'] as const;
+
 /**
  * Les valeurs d'un champ sur chaque plage d'un calque texte.
  *
  * `getStyledTextSegments` manque sur un node qui n'est pas un texte, et peut
- * lever : la lecture rend alors une liste vide.
+ * lever : la lecture rend alors une liste vide. Dans une portée d'analyse, les
+ * deux champs se lisent par un seul appel (`plagesDuNoeud`) ; les deux lecteurs
+ * n'en tirent que l'ensemble des valeurs d'un champ.
  */
 export function valeursParPlage(
   node: SceneNode,
   champ: 'listOptions' | 'textStyleOverrides',
 ): unknown[] {
-  const lire = (node as unknown as {
-    getStyledTextSegments?: (champs: string[]) => Array<Record<string, unknown>>;
-  }).getStyledTextSegments;
-  if (typeof lire !== 'function') return [];
-  try {
-    return lire.call(node, [champ]).map((segment) => segment[champ]);
-  } catch {
-    return [];
-  }
+  const lues = plagesDuNoeud(node, [champ], CHAMPS_DE_PLAGE_DU_MOTEUR);
+  return lues.etat === 'acquis' ? lues.valeur.map((plage) => plage.valeurs[champ]) : [];
 }
 
 /**

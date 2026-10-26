@@ -6,6 +6,7 @@
  * dégradé, les effets, les grilles, les segments de texte et les propriétés
  * d'instance.
  */
+import { projeterLesPlagesParEtapes, type EtatDesSegments } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
 import type { EtatEcrit, PeintureLue as PeintureCopiee } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import type { ContexteCooperatif } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
@@ -129,7 +130,13 @@ const valeurSiAcquise = <V>(etat: EtatEcrit<V>): V | undefined => (etat.etat ===
 /** Les peintures d'un nœud que l'appelant a déjà lues : leurs liaisons s'en tirent sans relire `fills` ni `strokes`. */
 export type PeinturesCopiees = { readonly fills: EtatEcrit<readonly PeintureCopiee[]>; readonly strokes: EtatEcrit<readonly PeintureCopiee[]> };
 
-function* liaisonsDuNoeudParEtapes(noeud: NoeudLu, copiees?: PeinturesCopiees): Generator<LiaisonBrute | undefined> {
+/**
+ * Les segments d'un texte que l'appelant lit une fois pour deux usages : l'union des champs, dont les liaisons ne tirent
+ * que `boundVariables` et `fills`. La lecture cède la main à chaque plage.
+ */
+export type SegmentsPartages = () => Generator<undefined, EtatDesSegments>;
+
+function* liaisonsDuNoeudParEtapes(noeud: NoeudLu, copiees?: PeinturesCopiees, partages?: SegmentsPartages): Generator<LiaisonBrute | undefined> {
   const texte = noeud.type === 'TEXT' && typeof noeud.getStyledTextSegments === 'function';
   const ignorer = texte ? new Set([...LUS_PAR_LEURS_OBJETS, ...CHAMPS_DE_TEXTE]) : LUS_PAR_LEURS_OBJETS;
   yield* liaisonsDe(noeud.boundVariables, '', ignorer);
@@ -137,7 +144,17 @@ function* liaisonsDuNoeudParEtapes(noeud: NoeudLu, copiees?: PeinturesCopiees): 
   yield* liaisonsDesPeintures(copiees ? valeurSiAcquise(copiees.strokes) : noeud.strokes, 'strokes');
   yield* liaisonsDesElements(noeud.effects, 'effects');
   yield* liaisonsDesElements(noeud.layoutGrids, 'layoutGrids');
-  if (texte && noeud.getStyledTextSegments) {
+  if (texte && partages) {
+    const lus = yield* partages();
+    if (lus.etat === 'refuse') throw new Error(lus.message ?? 'segments illisibles');
+    const plages = yield* projeterLesPlagesParEtapes(lus.valeur, ['boundVariables', 'fills']);
+    for (const plage of plages) {
+      yield;
+      const nom = `texte[${plage.debut}–${plage.fin}]`;
+      yield* liaisonsDe(plage.valeurs.boundVariables, `${nom}.`);
+      yield* liaisonsDesPeintures(plage.valeurs.fills, `${nom}.fills`);
+    }
+  } else if (texte && noeud.getStyledTextSegments) {
     for (const segment of noeud.getStyledTextSegments(['boundVariables', 'fills'])) {
       yield;
       const plage = `texte[${segment.start}–${segment.end}]`;
@@ -166,11 +183,13 @@ export function liaisonsDuNoeud(noeud: NoeudLu): LiaisonBrute[] {
 /**
  * Même lecture ordonnée que `liaisonsDuNoeud`, interruptible dans les peintures et les plages. Avec `copiees`, `fills` et
  * `strokes` ne se relisent pas ; une peinture mixte ou refusée n'a alors aucune liaison, comme une valeur qui n'est pas une liste.
+ * Avec `partages`, les plages de texte viennent de cette lecture, projetée sur `boundVariables` et `fills` ; un refus de
+ * la lecture lève, comme l'appel direct.
  */
-export async function liaisonsDuNoeudCooperatives(noeud: NoeudLu, cooperation: ContexteCooperatif, copiees?: PeinturesCopiees): Promise<LiaisonBrute[]> {
+export async function liaisonsDuNoeudCooperatives(noeud: NoeudLu, cooperation: ContexteCooperatif, copiees?: PeinturesCopiees, partages?: SegmentsPartages): Promise<LiaisonBrute[]> {
   const liaisons: LiaisonBrute[] = [];
   const vues = new Set<string>();
-  for (const liaison of liaisonsDuNoeudParEtapes(noeud, copiees)) {
+  for (const liaison of liaisonsDuNoeudParEtapes(noeud, copiees, partages)) {
     await cooperation.cederSiBesoin();
     retenirLaLiaison(liaison, vues, liaisons);
   }
