@@ -220,6 +220,33 @@ test('annuler dans les cibles après le contraste arrête avant la fin des varia
   assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
 });
 
+test('annuler pendant le produit des variantes arrête les oublis avant la matrice complète', async () => {
+  const b = banc();
+  const releve = releveDe('Alert');
+  let valeursLues = 0;
+  const valeurs = Array.from({ length: 16 }, (_, i) => String(i));
+  for (let i = 0; i < valeurs.length; i += 1) {
+    Object.defineProperty(valeurs, i, { get() { valeursLues += 1; return String(i); } });
+  }
+  releve.proprietes = ['A', 'B', 'C'].map((nom) => ({ nom, type: 'VARIANT', valeurs, defaut: '0' }));
+  let horloge = 0;
+  const traiter = traiterAvec({
+    ...lecteurs(complete()),
+    releve: async () => ({ statut: 'lu', releve }),
+  }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (valeursLues > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.ok(valeursLues > 0 && valeursLues < 16 + 256 + 4096, `${valeursLues} valeurs du produit lues`);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+  assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
+});
+
 test('annuler pendant l’index des corrections ne rend aucune correction', async () => {
   const b = banc();
   const releve = releveDe('Alert');

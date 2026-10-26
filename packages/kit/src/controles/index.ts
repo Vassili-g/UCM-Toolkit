@@ -15,7 +15,7 @@ export { axeDePropriete, axesDuReleve, tokensDuComposant, segmentDAxe, controler
 export type { AxeDuComposant, TokenDuComposant } from './nommage.js';
 export { controlerMapping } from './mapping.js';
 export { controlerCouches } from './couche.js';
-export { controlerOublis } from './oublis.js';
+export { controlerOublis, controlerOublisParEtapes } from './oublis.js';
 export { preparerLesTokens } from './preparation.js';
 export type { PreparationDesTokens, VariableAPreparer, ViseDePreparation, LieuDePreparation, ReponsesDePreparation, TailleSansCible, CouleurSansCible } from './preparation.js';
 export { clesDesTokensDeTailleAttendus, proposerLesCorrections, proposerLesCorrectionsParEtapes } from './corrections.js';
