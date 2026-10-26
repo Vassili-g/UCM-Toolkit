@@ -170,3 +170,15 @@ test('après l’arrêt du moteur, le final arrêté retire les constats proviso
   assert.equal(analyseApplicable(etat.analyse), false);
   assert.deepEqual(envoisDe(etat), []);
 });
+
+test('le final partielle remplace le provisoire, garde les identifiants et rend les actions permises', () => {
+  const etat = analyseEn('provisoire');
+  const ids = etat.analyse!.constats.map(({ id }) => id);
+  const lecture = { layersLus: 2000, layersNonLus: 640, variantsNonLus: ['Severity=warning'], manquees: [{ layer: 'texte', champ: 'dimensions', motif: 'boîte illisible' }] };
+  recevoirUneAnalyse(etat, { type: 'analyse', analyse: IDENTITE, statut: 'partielle', constats: constatsAlert, lecture, variants, sansTokens: false });
+  assert.equal(etat.analyse!.statut, 'partielle');
+  assert.deepEqual(etat.analyse!.lecture, lecture);
+  assert.deepEqual(etat.analyse!.constats.map(({ id }) => id), ids);
+  assert.equal(analyseApplicable(etat.analyse), true);
+  assert.ok(envoisDe(etat).length > 0, 'les mêmes actions envoient leur demande');
+});

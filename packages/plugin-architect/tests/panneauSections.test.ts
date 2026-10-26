@@ -496,3 +496,14 @@ test('après l’arrêt du moteur pendant le provisoire, le panneau montre l’�
   assert.match(banc.racine.textContent, /Aucun autre contrôle n’a été fait\./);
   assert.doesNotMatch(banc.racine.textContent, /composants imbriqués est en cours/);
 });
+
+test('le final partielle après le provisoire montre l’alerte de couverture, les sections tenues et le pied', () => {
+  const banc = monter(constatsAlert, { statut: 'provisoire', progression: { lus: 11, total: 11, phase: 'imbriques', fraction: 0.35 } });
+  banc.actualiser({ statut: 'partielle', progression: null, lecture: { layersLus: 2000, layersNonLus: 640, variantsNonLus: ['Severity=warning'], manquees: [] } as never });
+  assert.match(banc.racine.textContent, /Analyse partielle : 2 000 layers lus sur 2 640\./);
+  assert.match(banc.racine.textContent, /Les variants non lus ne sont pas contrôlés\./);
+  assert.equal(banc.racine.querySelector('.progression-analyse'), null);
+  assert.doesNotMatch(banc.racine.textContent, /composants imbriqués est en cours/);
+  assert.equal(sections(banc).some((section) => bande(section).classes.has('tenue')), true);
+  assert.notEqual(banc.racine.querySelector('.corrections-pied'), null);
+});

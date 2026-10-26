@@ -1033,6 +1033,59 @@ test('une erreur du moteur après le provisoire rend arretee seule, sans correct
   for (const type of ['ignores', 'perime'] as const) assert.ok(!apres.some((m) => m.type === type), type);
 });
 
+test('une lecture incomplète menée à terme rend un final partielle après le provisoire : couverture, corrections retenues, actions permises', async () => {
+  const b = banc();
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'components', nom: 'components', role: 'components', etat: 'lue', modes: [{ id: 'Light', nom: 'Light' }, { id: 'Dark', nom: 'Dark' }] }],
+    variables: [
+      { cle: 'r12', nom: 'alert/size/radius', collection: 'components', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 12 }, Dark: { valeur: 12 } } },
+      { cle: 'r14', nom: 'alert/size/radius', collection: 'components', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 14 }, Dark: { valeur: 14 } } },
+    ],
+  };
+  const releve: ReleveDeComposant = {
+    ...releveDe('Alert', { layersLus: 2, layersNonLus: 4, variantsNonLus: ['Alert compact'], manquees: [{ layer: 'texte', champ: 'dimensions', motif: 'boîte illisible' }] }),
+    variants: [{
+      id: 'v-Alert', nom: 'Alert défaut', valeurs: {}, modesEffectifs: {},
+      layers: [{ id: 'root', nom: 'fond', type: 'FRAME', parent: null, visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 20, hauteur: 20 }, peintures: [], liaisons: [], valeursEnDur: [{ champ: 'cornerRadius', valeur: 13 }] }],
+    }],
+  };
+  const CONSTAT = 'C29:v-Alert:root:cornerRadius:13';
+  const effets = { lots: [] as string[][], rangements: [] as string[] };
+  const lectures: Lecteurs = { ...lecteurs(complete()), releve: async () => ({ statut: 'lu', releve }), catalogue: async () => catalogue };
+  await traiterAvec(lectures)({ type: 'analyser' }, b.contexte);
+
+  assert.deepEqual(b.envoyes.map(({ type }) => type).filter((type) => type === 'analyse-provisoire' || type === 'analyse'), ['analyse-provisoire', 'analyse']);
+  const [provisoire] = deType(b, 'analyse-provisoire');
+  const [final] = deType(b, 'analyse');
+  assert.equal(final.statut, 'partielle');
+  assert.deepEqual(final.analyse, provisoire.analyse);
+  assert.deepEqual(final.lecture, { layersLus: 2, layersNonLus: 4, variantsNonLus: ['Alert compact'], manquees: [{ layer: 'texte', champ: 'dimensions', motif: 'boîte illisible' }] });
+  assert.deepEqual(provisoire.lecture, final.lecture);
+  assert.ok(final.constats.some((constat) => constat.id === CONSTAT));
+
+  // Le final partielle finalise : les corrections sont retenues et les actions passent.
+  assert.ok(correctionsDeLAnalyse(final.analyse) !== null);
+  const corrections = traiterLesCorrections({
+    async lot(aEcrire) { effets.lots.push(aEcrire.map(({ id }) => id)); return { ecrites: aEcrire.map(({ id }) => id), sautees: [] }; },
+    async selectionner(layers) { return layers; },
+  });
+  const ignores = traiterLesIgnores(() => ({
+    ignorer: (constat, portee) => { effets.rangements.push(`ignorer:${portee}:${constat.id}`); return { ecrit: true, cles: [constat.id] }; },
+    nePlusIgnorer: () => ({ ecrit: true, cles: [] }),
+  }));
+  const avant = b.envoyes.length;
+  await traiterLesQuestions({ type: 'repondre', analyse: final.analyse, question: CONSTAT, reponse: 'r14' }, b.contexte);
+  await corrections({ type: 'servir-de-modele', analyse: final.analyse, variant: 'v-Alert' }, b.contexte);
+  await ignores({ type: 'ignorer', analyse: final.analyse, constat: CONSTAT, portee: 'constat' }, b.contexte);
+  const apres = b.envoyes.slice(avant);
+  assert.ok(apres.some((m) => m.type === 'question-repondue' && m.correction !== null));
+  assert.ok(apres.some((m) => m.type === 'modele-propose'));
+  assert.deepEqual(effets.rangements, [`ignorer:constat:${CONSTAT}`]);
+  await corrections({ type: 'appliquer-corrections', analyse: final.analyse, ids: [CONSTAT] }, b.contexte);
+  assert.ok(b.envoyes.slice(avant).some((m) => m.type === 'corrections-appliquees' && m.sautees.every(({ motif }) => motif !== 'analyse-perimee')));
+});
+
 test('un résultat partiel du moteur rend partielle, avec ses constats et la lecture', async () => {
   const b = banc();
   const lec = lecteurs(async () => ({ etat: 'partielle', export: exportDe([pointDeTest]), lus: 1, nonLus: 3 }));
