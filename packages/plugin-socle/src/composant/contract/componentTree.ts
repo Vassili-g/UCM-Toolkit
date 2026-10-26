@@ -236,30 +236,36 @@ export function findMissingVariantCombinations(
   componentSet: ComponentSetNode,
   exampleLimit = 5,
 ): MissingVariantSummary | null {
-  const components = componentSet.children.filter(
-    (node): node is ComponentNode => node.type === 'COMPONENT',
-  );
-  const rawVariants = components.map((component) => getVariantValues(component));
-  const axes = Object.entries(componentSet.componentPropertyDefinitions)
-    .filter(([, definition]) => definition.type === 'VARIANT')
-    .map(([figmaName, definition]) => {
-      const key = normalizePropKey(figmaName);
-      const valuesByKey = new Map<string, string>();
-      for (const value of definition.variantOptions ?? []) {
-        const normalized = normalizePropValue(value);
-        if (!valuesByKey.has(normalized)) valuesByKey.set(normalized, value.trim());
-      }
-      // Défense pour les vieux documents où `variantOptions` serait absent.
-      for (const variant of rawVariants) {
-        const normalized = variant[key];
-        if (normalized && !valuesByKey.has(normalized)) valuesByKey.set(normalized, normalized);
-      }
-      return {
-        key,
-        name: figmaName.replace(/#.*$/, '').trim(),
-        valuesByKey,
-      };
-    });
+  return epuiser(findMissingVariantCombinationsParEtapes(componentSet, exampleLimit));
+}
+
+/** Même compte et mêmes exemples, interruptibles pendant la lecture et le produit. */
+export function* findMissingVariantCombinationsParEtapes(componentSet: ComponentSetNode, exampleLimit = 5): Generator<void, MissingVariantSummary | null> {
+  const rawVariants: Record<string, string>[] = [];
+  for (const component of componentSet.children) {
+    yield;
+    if (component.type === 'COMPONENT') rawVariants.push(yield* getVariantValuesParEtapes(component));
+  }
+  const axes: Array<{ key: string; name: string; valuesByKey: Map<string, string> }> = [];
+  const definitions = componentSet.componentPropertyDefinitions;
+  for (const figmaName of Object.keys(definitions)) {
+    yield;
+    const definition = definitions[figmaName];
+    if (definition.type !== 'VARIANT') continue;
+    const key = normalizePropKey(figmaName);
+    const valuesByKey = new Map<string, string>();
+    for (const value of definition.variantOptions ?? []) {
+      yield;
+      const normalized = normalizePropValue(value);
+      if (!valuesByKey.has(normalized)) valuesByKey.set(normalized, value.trim());
+    }
+    for (const variant of rawVariants) {
+      yield;
+      const normalized = variant[key];
+      if (normalized && !valuesByKey.has(normalized)) valuesByKey.set(normalized, normalized);
+    }
+    axes.push({ key, name: figmaName.replace(/#.*$/, '').trim(), valuesByKey });
+  }
 
   if (axes.length < 2 || axes.some((axis) => axis.valuesByKey.size === 0)) return null;
 
@@ -267,7 +273,9 @@ export function findMissingVariantCombinations(
   const existing = new Set<string>();
   const presentExamples: string[] = [];
   for (const variant of rawVariants) {
-    const values = axes.map((axis) => variant[axis.key]);
+    yield;
+    const values: string[] = [];
+    for (const axis of axes) { yield; values.push(variant[axis.key]); }
     if (values.every((value, index) => axes[index].valuesByKey.has(value))) {
       const key = signature(values);
       if (!existing.has(key) && presentExamples.length < exampleLimit) {
@@ -288,7 +296,8 @@ export function findMissingVariantCombinations(
 
   const examples: string[] = [];
   const current: string[] = [];
-  const visit = (axisIndex: number): boolean => {
+  const visit = function* (axisIndex: number): Generator<void, boolean> {
+    yield;
     if (axisIndex === axes.length) {
       if (!existing.has(signature(current))) {
         examples.push(
@@ -300,12 +309,13 @@ export function findMissingVariantCombinations(
       return examples.length >= exampleLimit;
     }
     for (const value of axes[axisIndex].valuesByKey.keys()) {
+      yield;
       current[axisIndex] = value;
-      if (visit(axisIndex + 1)) return true;
+      if (yield* visit(axisIndex + 1)) return true;
     }
     return false;
   };
-  visit(0);
+  yield* visit(0);
 
   return {
     axes: axes.map((axis) => ({ name: axis.name, values: [...axis.valuesByKey.values()] })),

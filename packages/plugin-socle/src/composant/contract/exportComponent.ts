@@ -8,7 +8,7 @@
 import {
   buildFigmaVariantLabels,
   buildVariantMatrixParEtapes,
-  findMissingVariantCombinations,
+  findMissingVariantCombinationsParEtapes,
   findWrapperReference,
 } from './componentTree';
 import { indexContractedNames, scanComposedMatrix } from './composedComponents';
@@ -347,7 +347,7 @@ async function exporterLeComposant(
   markProjectionWarningsSince(warningCursor);
   warningCursor = warnings.length;
   const missingVariants = componentSet.type === 'COMPONENT_SET'
-    ? findMissingVariantCombinations(componentSet)
+    ? await calculerParTranches(findMissingVariantCombinationsParEtapes(componentSet))
     : null;
   if (missingVariants) {
     // Une matrice clairsemée est parfois voulue, parfois oubliée : le contrat ne

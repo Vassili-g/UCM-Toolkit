@@ -23,7 +23,7 @@ import { serializeJson, serializeJsonParEtapes } from 'ucm-plugin-socle/src/comp
 import type { ExtractedContractVariant } from '@ucm-kit/core/format';
 import { indexVariables, indexVariablesParEtapes } from 'ucm-plugin-socle/src/composant/variables';
 import { getAllNodes, getAllNodesParEtapes, contientUneInstanceRendue, contientUneInstanceRendueParEtapes } from 'ucm-plugin-socle/src/composant/contract/exportableNodes';
-import { buildVariantMatrix, buildVariantMatrixParEtapes } from 'ucm-plugin-socle/src/composant/contract/componentTree';
+import { buildVariantMatrix, buildVariantMatrixParEtapes, findMissingVariantCombinations, findMissingVariantCombinationsParEtapes } from 'ucm-plugin-socle/src/composant/contract/componentTree';
 import { extractPropertyBindings, extractPropertyBindingsParEtapes } from 'ucm-plugin-socle/src/composant/contract/propertyBindings';
 import { node } from './aides/figmaFaux';
 
@@ -310,7 +310,7 @@ test('la fin du moteur conserve le contrat avec cessions et annule avant de le r
   } finally { restaurer(); }
 });
 
-for (const passe of ['variables', 'calques', 'instances', 'liaisons', 'matrice'] as const) {
+for (const passe of ['variables', 'calques', 'instances', 'liaisons', 'matrice', 'combinaisons'] as const) {
   test(`la passe ${passe} cède pendant 128 puis 256 lectures et conserve son résultat`, async () => {
     for (const nombre of [128, 256]) {
       let lectures = 0;
@@ -339,11 +339,13 @@ for (const passe of ['variables', 'calques', 'instances', 'liaisons', 'matrice']
         : passe === 'calques' ? getAllNodes(composant)
           : passe === 'instances' ? contientUneInstanceRendue(composant)
             : passe === 'matrice' ? buildVariantMatrix(jeu, new Map([['state', 'status']]))
+              : passe === 'combinaisons' ? findMissingVariantCombinations(jeu)
             : extractPropertyBindings(matrice, new Map([['Label#1', 'label']]), []);
       const calcul = (): Generator<void, unknown> => passe === 'variables' ? indexVariablesParEtapes(variables, new Map())
         : passe === 'calques' ? getAllNodesParEtapes(composant)
           : passe === 'instances' ? contientUneInstanceRendueParEtapes(composant)
             : passe === 'matrice' ? buildVariantMatrixParEtapes(jeu, new Map([['state', 'status']]))
+              : passe === 'combinaisons' ? findMissingVariantCombinationsParEtapes(jeu)
             : extractPropertyBindingsParEtapes(matrice, new Map([['Label#1', 'label']]), []);
       const attendu = reference();
       assert.equal(lectures, nombre);
