@@ -28,6 +28,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - inventaires.ts : les inventaires d'une demande d'analyse, lus une fois pour tous ses lecteurs : collections et variables locales, scan des règles d'une page, libraries ; `creerInventairesDeLaDemande` crée l'objet que la demande oublie à sa fin
 - limiteur.ts : `executerAuPlus`, les requêtes d'une liste connue au plus `REQUETES_EN_VOL` (huit) à la fois, résultats à leur rang, arrêt par `avant` ; libraries, vagues d'alias et modes d'Architect l'emploient
 - topologie.ts : lecture de la topologie d'un jeu (jeu, enfants directs, descendants par `findAll`) avec sa couverture, et inventaire de péremption qu'Architect surveille ; un `children` ou un `findAll` qui lève devient un trou, une page non écoutée s'ajoute aux trous
+- proprietesEtEtats.ts : première famille de requêtes pures, le modèle de propriétés (`props`) et le modèle d'états (`stateModel`) : entrées en paramètres, résultat et points à pousser dans l'ordre de l'ancien chemin, dépendances déclarées ; `parsers.ts` et `semantics.ts` ré-exportent ses points d'entrée
 - faits.ts : faits ordinaires d'une analyse, sans type Figma : topologie, champs acquis, mixtes, refusés ou non demandés, segments, maîtres, ressources, provenance et couverture
 
 ## src/composant/contract/
@@ -41,7 +42,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - porteeDAnalyse.ts : mémoire des maîtres par instance, des styles par identifiant (`styleDeLaPortee`, `ressources.ts`), des peintures copiées par nœud et champ (`peinturesDuNoeud`), des champs lus par nœud (`champDuNoeud`, `etatDuChamp` : `name`, `layoutMode`, `boundVariables`, `layoutPositioning`), des plages de texte par nœud (`plagesDuNoeud` : un appel pour `listOptions` et `textStyleOverrides`) et du parcours brut, du parcours filtré et des chemins de texte par racine, et budget coopératif injectable partagé avec les lecteurs
 - mesure.ts : trace de chaque analyse : durées, compteurs, avancement de la barre
 - budget.ts : budget de layers et préfixe admis, voies synchrone et coopérative du même parcours
-- parsers.ts : propriétés Figma → API publique
+- parsers.ts : propriétés Figma → API publique (le modèle est dans `analyse/proprietesEtEtats.ts`)
 - merge*.ts : doc et icônes des règles, rangées sur leur axe
 - rulesModel.ts : modèle pur des règles d’usage
 - semantics.ts : vocabulaire sémantique partagé

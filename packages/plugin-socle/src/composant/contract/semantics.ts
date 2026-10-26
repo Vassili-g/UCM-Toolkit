@@ -10,46 +10,15 @@
  * Règle d'or : le mapping se décide sur les valeurs ou le rôle, jamais sur
  * le nom d'un composant, aucun cas particulier codé en dur.
  */
-import { pousserSansNode } from './localisation';
-import {
-  REGISTRE_ETATS,
-  SIZE_VALUES,
-  STATE_AXIS_NAMES as AXES_ETAT,
-  STATE_PRECEDENCE,
-  STATE_SELECTORS,
-  termeRetenu,
-} from '@ucm-kit/core/referentiel';
 import {
   kindDeNature,
   natureDuRole,
   roleDeRendu,
   tableDesRolesDeRendu,
 } from '@ucm-kit/core/format';
-import type {
-  RenderingRole,
-  RenderingSemantics,
-  StateDescriptor,
-  StateModel,
-} from '@ucm-kit/core/format';
+import type { RenderingRole, RenderingSemantics } from '@ucm-kit/core/format';
 
-/**
- * Les noms, une fois normalisés, d'un axe d'états : `State`, `States` ou
- * `Status` dans Figma. Unique liste : `parsers.ts` en retire l'axe des props,
- * `buildStateModel` le publie, et les deux lectures ne peuvent pas diverger.
- */
-export const STATE_AXIS_NAMES: readonly string[] = AXES_ETAT;
-
-/**
- * Nom sémantique d'un axe enum, ou null pour garder le nom brut.
- * Seule règle actuelle : toutes les valeurs sont des tailles → `size`.
- * La liste est faite pour grandir (emphasis, tone…) au fil des besoins.
- */
-export function semanticEnumName(values: string[]): string | null {
-  if (values.length >= 2 && values.every((value) => SIZE_VALUES.has(value))) {
-    return 'size';
-  }
-  return null;
-}
+export { STATE_AXIS_NAMES, buildStateModel, semanticEnumName } from '../analyse/proprietesEtEtats';
 
 /**
  * Rôle sémantique d'un calque. Un calque texte est toujours le `label`, peu
@@ -79,67 +48,6 @@ export function semanticSlotName(isText: boolean, isIconTarget = false): string 
  */
 export function indexedSlotName(base: string, index: number): string {
   return index === 0 ? base : `${base}-${index + 1}`;
-}
-
-/**
- * Construit le modèle d'interaction d'un composant à partir de ses axes et
- * de ses variants. Les états inconnus restent visibles dans le contrat, mais
- * leur déclencheur est nul et un warning demande une convention explicite.
- * Le canal `notices` distingue les termes tolérés des déclencheurs inconnus.
- */
-export function buildStateModel(
-  axes: string[],
-  variantValues: Array<Record<string, string>>,
-  warnings: string[],
-  notices: string[] = warnings,
-): StateModel | null {
-  const axis = axes.find((candidate) => STATE_AXIS_NAMES.includes(candidate));
-  if (!axis) return null;
-
-  const values = Array.from(
-    new Set(variantValues.map((entry) => entry[axis]).filter((value): value is string => Boolean(value))),
-  );
-  // Les valeurs d'axe viennent de Figma. Une `Map` n'a aucune clé héritée, là
-  // où un objet littéral laisserait un état « __proto__ » fixer son prototype
-  // au lieu d'occuper une clé : `precedence`, construit depuis `values`,
-  // citerait alors un état absent de `states` et le contrat se contredirait.
-  const states = new Map<string, StateDescriptor>();
-
-  for (const value of values) {
-    // Une seule définition de « cet état est reconnu » : la table est un objet
-    // littéral, donc `value in STATE_SELECTORS` répondrait vrai pour
-    // « constructor » et supprimerait l'avertissement que la ligne suivante doit
-    // produire.
-    const known = Object.prototype.hasOwnProperty.call(STATE_SELECTORS, value);
-    const selector = known ? STATE_SELECTORS[value] : '';
-    states.set(value, selector ? { selector } : {});
-    if (!known) {
-      pousserSansNode(warnings, `Propriété de variante « ${axis} »`, {
-        famille: 'proprietes',
-        manque: `l'état « ${value} » n'est pas reconnu.`,
-        impact: `Le développeur ne saura pas quand afficher ce variant.`,
-        action: `Renommez cette valeur en default, hover, focus, pressed ou disabled, puis `
-          + `réexportez.`,
-      });
-    } else {
-      const terme = termeRetenu(REGISTRE_ETATS, value);
-      if (terme && terme.id !== value) {
-        pousserSansNode(notices, `Propriété de variante « ${axis} »`, {
-          famille: 'proprietes',
-          manque: `l’état « ${value} » s’écrit « ${terme.id} » dans le vocabulaire UCM.`,
-          impact: `Le développeur recevra « ${value} » au lieu de « ${terme.id} ».`,
-          action: `Renommez la valeur en « ${terme.id} » dans Figma ou avec UCM Architect, puis réexportez.`,
-        });
-      }
-    }
-  }
-
-  const precedence = [
-    ...STATE_PRECEDENCE.filter((value) => values.includes(value)),
-    ...values.filter((value) => !(STATE_PRECEDENCE as readonly string[]).includes(value)),
-  ];
-
-  return { axis, states: Object.fromEntries(states), precedence };
 }
 
 /**

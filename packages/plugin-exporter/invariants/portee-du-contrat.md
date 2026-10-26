@@ -8,8 +8,8 @@
 - **Artefact : une entrée par ligne sur deux niveaux** (`serializeJson.ts`), sans seuil, forme jamais fonction du nombre de variants.
 - **Une propriété native garde son type** (`INSTANCE_SWAP`, `SLOT`) **et ses liaisons** `visible`, `characters`, `mainComponent` : définition dans `propertyBindingDefinitions`, `nodeId` dans `variants[].bindings`. Borne : aucun rapprochement par nom de calque. → [§P]
 - **Un enum renommé porte la même clé dans `props`, `variantAxes` et les arbres de variantes.** → [§P]
-- **Un axe possède sa clé publique** : `parsers.ts` la réserve avant les autres propriétés, ordre des déclarations Figma sans effet. Deux axes confondus par la normalisation : export refusé, aucun artefact, le designer en renomme un. → [SPEC](../SPEC.md#1-props)
-- **La convention `State`/`States`/`Status` porte sur le seul type `VARIANT`.** Autre type du même nom : reste une prop. Props et `stateModel` lisent la même liste. Autorité : `semantics.ts` `STATE_AXIS_NAMES`. → [§P]
+- **Un axe possède sa clé publique** : `analyse/proprietesEtEtats.ts` `lireLeModeleDeProprietes` la réserve avant les autres propriétés, ordre des déclarations Figma sans effet. Deux axes confondus par la normalisation : export refusé, aucun artefact, le designer en renomme un. → [SPEC](../SPEC.md#1-props)
+- **La convention `State`/`States`/`Status` porte sur le seul type `VARIANT`.** Autre type du même nom : reste une prop. Props et `stateModel` lisent la même liste. Autorité : `analyse/proprietesEtEtats.ts` `STATE_AXIS_NAMES`, ré-exporté par `semantics.ts`. → [§P]
 - **Axes d'API dans `props`, axe d'états dans `stateModel` ; une règle `@prop` suit cette répartition.** N'est une faute de frappe que ce que le contrat ne publie nulle part. → [§7]
 - **Une règle dont un calque lu contient `[À compléter]` n'est pas rédigée.** Hors contrat ; seul son warning sort : une ligne par tag, portant toutes les règles marquées de ce tag. Conteneur dont `component-name` porte le marqueur : ne documente aucun composant, `rulesContainerOwner` ne le rattache à personne. Autorité : `extractRules.ts` `MARQUEUR_A_COMPLETER`, `porteLeMarqueur`. → [§7]
 

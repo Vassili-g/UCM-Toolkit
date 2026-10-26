@@ -6,7 +6,7 @@
 
 - [x] **7.1 | gpt-6.1-sol | high** | **Claude Sonnet | high** : relever dans la table des sites diagnostics, faits lus, contexte et consommateurs, y compris après structure et compaction. Relevé : section « Sites d'émission (7.1) », 104 lignes.
 - [x] **7.2 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : classer les calculs requis par diagnostic, correction, règle ou publication ; vérifier C42 et l'arbre exact encore nécessaire. Classement : section « Classement des calculs (7.2) » (table, C42, arbre exact, conclusion).
-- [ ] **7.3 | gpt-6.1-sol | high** | **Claude Sonnet | high** : extraire une première famille de requêtes pures et déclarer ses dépendances ; comparer tous ses diagnostics ordonnés.
+- [x] **7.3 | gpt-6.1-sol | high** | **Claude Sonnet | high** : extraire une première famille de requêtes pures et déclarer ses dépendances ; comparer tous ses diagnostics ordonnés. Famille : modèle de propriétés et d'états, section « Première famille extraite (7.3) ».
 - [ ] **7.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : produire le résultat interne finalisé avec parties, localisations, props, états, imbrications, modèles et couverture ; test de parité complet.
 - [ ] **7.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : assembler contrat et échantillons exporteur depuis ce résultat ; comparer hors date avec l'ancien chemin.
 - [ ] **7.6 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : déplacer compaction et sérialisation après le calcul commun ; garder diagnostics tardifs et contrat ordonné.
@@ -388,3 +388,24 @@ Sans changer les constats, les corrections ni les modèles d'Architect :
 - La part de `echantillons` et de `serialisation` dans les 1 006 ms restants n'est pas connue. Le rejeu 6.11c estime 74 ms de lectures pour `echantillons`, sans le calcul.
 - Les phrases du site 81 (homonymes de styles de texte) peuvent différer entre les deux passes de typographie, puisque chaque passe arbitre avec son propre `styleIdByKey` et ne visite pas les mêmes textes. Retirer la première passe changerait peut-être cette phrase ; une exécution sur un set à styles homonymes le dirait.
 - L'effet de l'élision sur `props` et `stateModel` est renvoyé à 7.7. `stateModel.states.*` est protégé (`ENTREES_PROTEGEES`), mais `isNeutral` retire un `stateModel` ou une prop vide.
+
+### Première famille extraite (7.3)
+
+**Famille.** Le modèle de propriétés (`props`, `publicVariantKeyByRawKey`, `publicPropertyKeyByFigmaName`) et le modèle d'états (`stateModel`), avec les sites 20 à 22 et 28 à 29. Raisons du choix : ces deux fonctions ne lisent aucun objet Figma, leurs sites n'ont pas de node, et `modeleDeRegles` (7.2) lit leurs sorties. Ces points passent par `pousserSansNode`, qui n'écrit que dans les registres de parties du canal : ils ne consultent ni `estUneRacineDeVariant` ni `sousUnImbriqueSansRegles`, donc l'état caché de `localisation.ts` ne les touche pas. Le site 30 (`mergeWrapperProps`) reste hors de la famille.
+
+**Module.** `packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts` :
+
+- `lireLeModeleDeProprietes(definitions)` et `lireLeModeleDEtats(axes, valeursDesVariants)` rendent le résultat et des points `{ sujet, constat }` (avec `canal: 'avertissements' | 'notices'` pour les états), dans l'ordre où l'ancien chemin les poussait. `pousserLesPoints` les pousse avec `pousserSansNode`.
+- `DEPENDANCES_DE_PROPRIETES_ET_ETATS` liste, par requête, ses entrées (`componentPropertyDefinitions` ; axes et valeurs de la matrice) et les constantes du référentiel lues. Un test vérifie que ces constantes existent.
+- `extractContractPropertyModel` et `buildStateModel` gardent leur signature et appellent la requête, puis poussent ses points dans les canaux reçus ; `parsers.ts` et `semantics.ts` les ré-exportent. Les noms de clés (`normalizePropKey`, `normalizePropValue`, `definePropOn`, `isStateProperty`, `semanticEnumName`, `STATE_AXIS_NAMES`) ont suivi dans le module pour éviter un import circulaire.
+- `remplacerLesRequetesPourLeBanc` installe l'ancien chemin à la place des requêtes. Seul le banc l'appelle.
+
+**Preuves.**
+
+- Parité sur les fixtures de l'exporteur : `tests/aides/parite.ts` `verifierLaPariteDesRequetes` rejoue chaque export de `handleExportComponent` avec l'ancien chemin (copie dans `plugin-socle/tests/aides/cheminAvantLesRequetes.ts`) et compare contrat hors date, messages, parties et localisations, dans l'ordre. Une altération de la copie fait échouer `exportComponent.test.ts` (deux tests).
+- Parité d'Architect : `plugin-architect/tests/pariteDesRequetesDuMoteur.test.ts` rejoue l'analyse complète d'un monde fabriqué dont l'axe `State` et deux propriétés produisent les messages de la famille, et compare messages, constats, corrections, modèles et relevé.
+- Requête pure : `plugin-socle/tests/proprietesEtEtats.test.ts`, sur des entrées gelées, sans double Figma : points ordonnés, canaux, absence d'axe d'états, comparaison ancien/nouveau sur des définitions et des états fabriqués, y compris `constructor` et `__proto__`.
+- Rejeu de la capture du 26 octobre : statut `complete`, message `analyse` final (sans `mesure` ni `generation`) identique avant et après. Cette capture n'émet aucun message de la famille : la preuve des messages repose sur les tests ci-dessus.
+- `test:paquet -- socle` 157 tests, `ucm-exporter-plugin` 1149, `ucm-architect-plugin` 1260, `npm run typecheck`, sans échec.
+
+**Ce qui reste.** Les copies du chemin d'avant et le point d'entrée du banc disparaissent avec 7.8. Les autres fonctions pures nommées en 7.1 restent à extraire dans les cases suivantes : `buildRules`, les `merge*` de documentation, `mergeIconRules`, `pointsDesImbriques`. Aucune requête ne tourne encore sans appel explicite : les lots 9 et 10 liront `DEPENDANCES_DE_PROPRIETES_ET_ETATS` pour invalider.
