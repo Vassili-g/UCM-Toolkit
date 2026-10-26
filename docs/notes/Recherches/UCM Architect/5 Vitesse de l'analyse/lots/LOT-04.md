@@ -72,6 +72,13 @@ Estimation défendable pour 4.0b seule, si chaque appel coûte 43 s et que la le
 Limites : 43 s est une mesure unique sur un seul catalogue. Les 82 s restants des contrôles (299 moins 5 fois 43) ne sont pas attribués. `catalogue` et `moteur` ne bougent pas. L'écart avec les 142 s de la revue critique pour le même Button n'est pas expliqué ; un catalogue plus petit à l'époque rendrait la mesure actuelle propre à ce fichier.
 La mesure Figma qui suit 4.0a doit trancher quatre points : la durée de chaque étape `controle-<nom>` (Structure près de 86 s, Nommage, Mapping et Oublis chacun d'au moins 43 s), N et M, `msTokensDeTailleCatalogue` (proche de 0 ou de 43 s), et le contrôle qui porte les 82 s restants. S'ils sont dans Accessibilité, Couches, Typographie ou Thème, la case 4.1 (index de `variableDuCatalogue`, appelé à chaque liaison) passe devant 2.11, sur décision du mainteneur. Après 4.0b, la durée de `controle-nommage` mesure le calcul unique ; comparée après 4.0c puis après 4.0d, elle donne la part de chacun.
 
+#### Mesure après 4.0e
+
+Même Button, build `b7ceebef` (4.0a à 4.0e, sans 2.11 à 2.17) : 26,4 s au total, empreinte `3b6271bb` identique à la trace précédente. Plus longue tranche synchrone : 1,1 s.
+N vaut 756 variables et M 192 tokens ; `msTokensDeTailleCatalogue` vaut 6 ms. Le coût de 43 s par appel venait donc de la lecture de grammaire des M tokens, que 4.0d mémorise, et non du nombre de variables.
+Phases : moteur 16,5 s, contrôles 3,5 s (Nommage 1,1 s et Mapping 1,0 s, chacun en une tranche ; les autres sous 0,6 s), relevé 3,3 s, catalogue 2,1 s.
+Dans le moteur, `getAllNodes` est appelé 7 265 fois pour 90 variants (`structure.vues` : 2 898 appels, 6,8 s). Les lots 5 (parcours brut par racine) et 7 (échantillons, compaction et sérialisation hors du chemin d'Architect) visent ce reste. Les cases 4.1 et 4.2 gardent leur place dans l'ordre du plan.
+
 #### Découpage du travail local de Codex
 
 Le commit de référence `f0859af4` découpe `axesDuReleve` et `tokensDuComposant` en générateurs (`axesDuReleveParEtapes`, `tokensDuComposantParEtapes`) que Nommage, Mapping, Oublis, Structure et les corrections consomment.
