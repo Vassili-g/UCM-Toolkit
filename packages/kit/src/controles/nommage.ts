@@ -24,17 +24,64 @@ export function axeDePropriete(nom: string): AxeDuComposant | undefined {
   return undefined;
 }
 
-export function axesDuReleve(releve: ReleveDeComposant): Partial<Record<AxeDuComposant, ProprieteDAxe>> {
-  const axes: Partial<Record<AxeDuComposant, ProprieteDAxe>> = {};
+type AxesDuReleve = Partial<Record<AxeDuComposant, ProprieteDAxe>>;
+
+/**
+ * Les deux mémoires ci-dessous partagent un résultat entre les contrôles, les corrections et la propagation d'une même
+ * analyse. Leur clé est un tableau du relevé ou du catalogue, qu'une analyse ne modifie pas : un relevé copié par
+ * `{ ...releve }` garde le même tableau `proprietes` et retrouve donc l'entrée. Un tableau remplacé ou dont la longueur
+ * change écarte l'entrée. Les résultats rendus sont gelés, parce que tous les lecteurs les partagent.
+ */
+const axesMemorises = new WeakMap<ReleveDeComposant['proprietes'], { longueur: number; axes: AxesDuReleve }>();
+
+export function axesDuReleve(releve: ReleveDeComposant): AxesDuReleve {
+  const connus = axesMemorises.get(releve.proprietes);
+  if (connus && connus.longueur === releve.proprietes.length) return connus.axes;
+  const axes: AxesDuReleve = {};
   for (const propriete of releve.proprietes) {
     if (propriete.type !== 'VARIANT') continue;
     const axe = axeDePropriete(propriete.nom);
     if (axe && !axes[axe]) axes[axe] = propriete;
   }
+  Object.freeze(axes);
+  axesMemorises.set(releve.proprietes, { longueur: releve.proprietes.length, axes });
   return axes;
 }
 
+interface TokensMemorises {
+  readonly variables: CatalogueDeReference['variables'];
+  readonly nombreDeVariables: number;
+  readonly collections: CatalogueDeReference['collections'];
+  readonly nombreDeCollections: number;
+  /** Par tableau `proprietes`, puis par nom du jeu. */
+  readonly parProprietes: WeakMap<ReleveDeComposant['proprietes'], { longueur: number; parNom: Map<string, TokenDuComposant[]> }>;
+}
+
+const tokensMemorises = new WeakMap<CatalogueDeReference, TokensMemorises>();
+
 export function tokensDuComposant(releve: ReleveDeComposant, catalogue: CatalogueDeReference): TokenDuComposant[] {
+  const { variables, collections } = catalogue;
+  let memoire = tokensMemorises.get(catalogue);
+  if (!memoire || memoire.variables !== variables || memoire.nombreDeVariables !== variables.length
+    || memoire.collections !== collections || memoire.nombreDeCollections !== collections.length) {
+    memoire = { variables, nombreDeVariables: variables.length, collections, nombreDeCollections: collections.length, parProprietes: new WeakMap() };
+    tokensMemorises.set(catalogue, memoire);
+  }
+  let parJeu = memoire.parProprietes.get(releve.proprietes);
+  if (!parJeu || parJeu.longueur !== releve.proprietes.length) {
+    parJeu = { longueur: releve.proprietes.length, parNom: new Map() };
+    memoire.parProprietes.set(releve.proprietes, parJeu);
+  }
+  const connus = parJeu.parNom.get(releve.jeu.nom);
+  if (connus) return connus;
+  const tokens = calculerLesTokens(releve, catalogue);
+  for (const token of tokens) Object.freeze(token.segments);
+  Object.freeze(tokens);
+  parJeu.parNom.set(releve.jeu.nom, tokens);
+  return tokens;
+}
+
+function calculerLesTokens(releve: ReleveDeComposant, catalogue: CatalogueDeReference): TokenDuComposant[] {
   const axes = axesDuReleve(releve);
   return catalogue.variables.flatMap((variable) => {
     const collection = catalogue.collections.find((entree) => entree.cle === variable.collection);
