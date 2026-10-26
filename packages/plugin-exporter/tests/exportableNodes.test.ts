@@ -8,8 +8,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { contientUneInstanceRendue, getAllNodes, getAllNodesParEtapes } from 'ucm-plugin-socle/src/composant/contract/exportableNodes';
-import { localisationsDe } from 'ucm-plugin-socle/src/composant/contract/localisation';
+import { localisationsDe, partiesDe, raisonsSansNode } from 'ucm-plugin-socle/src/composant/contract/localisation';
 import { abandonnerLaMesure, fermerLaMesure, ouvrirLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { textSlots } from 'ucm-plugin-socle/src/composant/contract/extractVariantTypography';
 import { dansUnePorteeDAnalyse } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;
@@ -332,4 +333,62 @@ test('masqués statiques et dynamiques : chaque contexte garde ses calques et so
   assert.deepEqual(imbriquee.ids, libre.ids.filter((id) => id !== 'interne'));
   assert.deepEqual(imbriquee.avertissements, libre.avertissements);
   assert.deepEqual(racine, { ids: ['root'], avertissements: [] });
+});
+
+/** Ce qu'une destination retient d'un diagnostic : phrases dans l'ordre, cibles, parties et raisons. */
+const releveDuCanal = (canal: string[]) => ({
+  phrases: [...canal],
+  localisations: [...localisationsDe(canal)],
+  parties: [...partiesDe(canal)],
+  raisons: [...raisonsSansNode(canal)],
+});
+
+test('chaque destination qui partage une racine reçoit ses diagnostics, parties et localisations, avec ou sans mémoire', async () => {
+  // Deux calques masqués portent chacun une variable : deux diagnostics, dans l'ordre du parcours.
+  const racine = () => {
+    const masque = (id: string, nom: string): TestNode => ({
+      type: 'FRAME', id, name: nom, visible: false,
+      children: [{ type: 'RECTANGLE', id: `${id}-fond`, name: `${nom} fond`, boundVariables: { fills: [alias(id)] } }],
+    });
+    const arbre = tree('Root', [
+      masque('m1', 'Archive'),
+      { type: 'TEXT', id: 'titre', name: 'Titre' },
+      masque('m2', 'Ancien'),
+    ]);
+    (arbre as unknown as { id: string }).id = 'root';
+    return arbre;
+  };
+  const imbriquee = new Map([['dep', { component: 'Autre', figmaLayer: 'Dépendance' }]]);
+  // Deux destinations, un contexte différent chacune, puis la première rejouée, avec des chemins de texte entre deux.
+  const jouer = (racineCommune: ComponentNode) => {
+    const a: string[] = [];
+    const b: string[] = [];
+    const c: string[] = [];
+    getAllNodes(racineCommune, a);
+    textSlots(racineCommune);
+    getAllNodes(racineCommune, b, imbriquee);
+    textSlots(racineCommune, new Set(), imbriquee);
+    getAllNodes(racineCommune, c);
+    getAllNodes(racineCommune, a);
+    return [a, b, c].map(releveDuCanal);
+  };
+
+  const sansMemoire = jouer(racine());
+  assert.deepEqual(sansMemoire[0].phrases.length, 2);
+  assert.match(sansMemoire[0].phrases[0], /« Archive »/);
+  assert.match(sansMemoire[0].phrases[1], /« Ancien »/);
+  assert.deepEqual(sansMemoire[0].localisations.map(([, ids]) => ids), [['m1'], ['m2']]);
+  assert.equal(sansMemoire[0].parties.length, 2);
+
+  const commune = racine();
+  let natifs = 0;
+  const relever = (commune as unknown as { findAll: (p: (n: TestNode) => boolean) => TestNode[] }).findAll;
+  (commune as unknown as { findAll: unknown }).findAll = (p: (n: TestNode) => boolean) => { natifs += 1; return relever(p); };
+  let avecMemoire!: ReturnType<typeof jouer>;
+  await dansUnePorteeDAnalyse({}, async () => { avecMemoire = jouer(commune); });
+  assert.equal(natifs, 1, 'le relevé brut est partagé entre les destinations');
+  assert.deepEqual(avecMemoire, sansMemoire);
+  // Un canal ne reçoit rien d'un autre : le diagnostic se rejoue, il ne se transporte pas.
+  assert.deepEqual(avecMemoire[1].phrases, sansMemoire[1].phrases);
+  assert.notEqual(avecMemoire[0].phrases, avecMemoire[2].phrases);
 });

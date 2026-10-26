@@ -14,14 +14,14 @@ import type { Avancement } from 'ucm-plugin-socle/src/composant/contract/mesure'
 import { BUDGET_DE_CALCUL_MS, respirerSiBesoin } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 import { desactiverLaPorteePourLeBanc } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 import { conteneurDeRegles, handleExportComponent, node } from './aides/figmaFaux';
-import { sansDate } from './aides/parite';
+import { sansDate, sortieComparable } from './aides/parite';
 
 /**
  * Un set `Root` de `nombre` variants. Chaque variant embarque deux instances de
  * `Branch`, contracté par un conteneur de règles posé sur la même page.
  * `appels` compte les `getMainComponentAsync` par id d'instance.
  */
-function monterLeSet(nombre = 8) {
+function monterLeSet(nombre = 8, avecMasque = false) {
   const maitre = node('COMPONENT', 'Taille=Défaut', [node('TEXT', 'Leaf', [], { characters: 'Feuille' })], {
     layoutMode: 'HORIZONTAL',
   });
@@ -50,6 +50,9 @@ function monterLeSet(nombre = 8) {
   const tailles = Array.from({ length: nombre }, (_, rang) => `T${rang + 1}`);
   const variants = tailles.map((taille) => node('COMPONENT', `Taille=${taille}`, [
     node('TEXT', 'Glyph', [], { characters: taille }),
+    ...(avecMasque ? [node('FRAME', 'Archive', [
+      node('RECTANGLE', 'Ancien fond', [], { boundVariables: { fills: [{ type: 'VARIABLE_ALIAS', id: 'legacy' }] } }),
+    ], { visible: false })] : []),
     instance('Branch A'),
     instance('Branch B'),
   ], {
@@ -151,6 +154,23 @@ test('les acquisitions comptent séparément les lectures de variants et les ma�
     assert.equal(sansPortee.maitresParInstance.size, 16);
     assert.ok([...avecPortee.maitresParInstance.values()].every((nombre) => nombre === 1));
     assert.ok([...sansPortee.maitresParInstance.values()].every((nombre) => nombre >= 1));
+  } finally {
+    fichier.restaurer();
+  }
+});
+
+test('un calque masqué qui porte une variable donne le même diagnostic, ses parties et ses cibles avec et sans portée', async () => {
+  const fichier = monterLeSet(8, true);
+  try {
+    const avecPortee = await exporterLeComposant();
+    desactiverLaPorteePourLeBanc(true);
+    let sansPortee: Awaited<ReturnType<typeof exporterLeComposant>>;
+    try { sansPortee = await exporterLeComposant(); } finally { desactiverLaPorteePourLeBanc(false); }
+    const diagnostic = avecPortee.warnings.filter((message) => message.includes('« Archive »'));
+    assert.equal(diagnostic.length, 1, 'un diagnostic par phrase, jamais un par variant');
+    assert.equal(avecPortee.localisations.get(diagnostic[0])!.length, 8, 'chaque variant reste une cible');
+    assert.ok(avecPortee.parties.has(diagnostic[0]));
+    assert.deepEqual(sortieComparable(avecPortee), sortieComparable(sansPortee));
   } finally {
     fichier.restaurer();
   }
