@@ -46,6 +46,7 @@ export type TraceDeMesure = {
   compteurs: Partial<Record<Compteur, number>>;
   empreinte: string;
   fin?: string;
+  phases?: EtapeMesuree[];
 };
 
 /** Une étape close, et ce que chaque compteur additif a gagné pendant elle. */
@@ -66,6 +67,7 @@ const ESTIMATION_APRES_FRACTION = 0.05;
 
 type Trace = {
   debut: number;
+  phases: EtapeMesuree[];
   etapes: EtapeMesuree[];
   enCours: { nom: string; debut: number; compteurs: Partial<Record<Compteur, number>> } | null;
   compteurs: Partial<Record<Compteur, number>>;
@@ -90,6 +92,7 @@ export function ouvrirLaMesure(prevues: readonly EtapePrevue[] | null = null): v
   const debut = Date.now();
   trace = {
     debut,
+    phases: [],
     etapes: [],
     enCours: null,
     compteurs: {},
@@ -214,7 +217,7 @@ export function empreinteDuContrat(content: string): string {
 export function fermerLaMesure(content: string): TraceDeMesure | null {
   if (!trace) return null;
   const maintenant = Date.now();
-  const { debut, etapes, compteurs } = trace;
+  const { debut, etapes, compteurs, phases } = trace;
   clore(trace, maintenant);
   trace = null;
   return {
@@ -222,10 +225,36 @@ export function fermerLaMesure(content: string): TraceDeMesure | null {
     etapes,
     compteurs,
     empreinte: empreinteDuContrat(content),
+    ...(phases.length ? { phases } : {}),
   };
 }
 
 /** Jette la trace ouverte sans rien imprimer : l'analyse a échoué ou a été annulée. */
 export function abandonnerLaMesure(): void {
   trace = null;
+}
+
+/** Une réponse tardive ne compte jamais dans la trace de l'analyse suivante. */
+export async function attendrePourLaMesure<T>(appel: () => Promise<T>, nature: 'api' | 'attente' | 'cession' = 'attente', phase?: string): Promise<T> {
+  const ouverte = trace;
+  if (!ouverte) return appel();
+  const debut = Date.now();
+  try { return await appel(); }
+  finally {
+    if (trace === ouverte) {
+      const ms = Date.now() - debut;
+      if (phase) ouverte.phases.push({ nom: phase, ms });
+    }
+  }
+}
+
+/** Mesure un appel synchrone du pilote, sans inclure les attentes Figma. */
+export function mesurerLeCalcul<T>(calcul: () => T, phase?: string): T {
+  if (!trace) return calcul();
+  const debut = Date.now();
+  try { return calcul(); }
+  finally {
+    const ms = Date.now() - debut;
+    if (phase) trace?.phases.push({ nom: phase, ms });
+  }
 }

@@ -23,7 +23,7 @@ import {
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
-import { ouvrirLaMesure, fermerLaMesure, etape, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { ouvrirLaMesure, fermerLaMesure, etape, attendrePourLaMesure, mesurerLeCalcul, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import type { JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
@@ -370,24 +370,23 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   };
   let identite: IdentiteDAnalyse | null = null;
   let catalogueLu: CatalogueDeReference | null = null;
+  const phase = (nom: string): void => { etape(nom); };
   const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats): void => {
-    retenirLesCorrections(identite as IdentiteDAnalyse, constats, releve, tous, catalogueLu);
-    contexte.envoyer({
-      type: 'analyse',
-      ...(courant.cloreMesure?.(statut) ? { mesure: mesureClose! } : {}),
-      analyse: identite as IdentiteDAnalyse,
-      statut,
-      // Ignorés compris : l'interface les range sous « Ignorés » d'après le message `ignores` qui suit.
+    phase('projection');
+    mesurerLeCalcul(() => retenirLesCorrections(identite as IdentiteDAnalyse, constats, releve, tous, catalogueLu), 'projection');
+    const sortie = mesurerLeCalcul(() => ({
       constats: tous,
       lecture: releve?.lecture ?? null,
       variants: releve?.variants.map(({ id, nom }) => ({ id, nom })) ?? [],
       sansTokens: releve !== null && catalogueLu !== null && tokensDuComposant(releve, catalogueLu).length === 0,
-    });
+    }), 'projection');
+    const mesure = courant.cloreMesure?.(statut);
+    contexte.envoyer({ type: 'analyse', analyse: identite as IdentiteDAnalyse, statut, ...sortie, ...(mesure ? { mesure } : {}) });
     if (releve !== null) contexte.envoyer({ type: 'ignores', analyse: identite as IdentiteDAnalyse, constats: ecartes });
   };
   try {
-    etape('sujet');
-    const sujet = await lecteurs.sujet(contexte).catch(() => null);
+    phase('sujet');
+    const sujet = await attendrePourLaMesure(() => lecteurs.sujet(contexte).catch(() => null), 'attente', 'sujet');
     identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined);
     courant.connue = identite;
     connaitre(identite);
@@ -395,7 +394,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (!sujet) return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
     const { jeton } = courant;
 
-    const issue = await lecteurs.releve(sujet, jeton, contexte);
+    phase('releve');
+    const issue = await attendrePourLaMesure(() => lecteurs.releve(sujet, jeton, contexte), 'attente', 'releve');
     if (issue.statut === 'annule' || jeton.leve) return rendre('annulee', [], null);
     if (issue.statut === 'sans-sujet') return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
     const { releve } = issue;
@@ -403,21 +403,26 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
 
     retenirLesLiaisons(liaisonsParCle(releve));
     const niveau = await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => 'AA') ?? 'AA';
-    const catalogue = await lecteurs.catalogue(releve, jeton, contexte);
+    phase('catalogue');
+    const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte), 'attente', 'catalogue');
     catalogueLu = catalogue;
     if (jeton.leve) return rendre('annulee', [], null);
-    const resultat = await lecteurs.moteur(sujet, jeton, contexte);
+    phase('moteur');
+    const resultat = await attendrePourLaMesure(() => lecteurs.moteur(sujet, jeton, contexte), 'attente', 'moteur');
     if (resultat.etat === 'annulee' || jeton.leve) return rendre('annulee', [], null);
 
     // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
-    const reglesLues = resultat.etat === 'complete' ? await lecteurs.regles?.(sujet, resultat, contexte).catch(() => null) ?? null : null;
+    phase('regles');
+    const reglesLues = resultat.etat === 'complete' ? await attendrePourLaMesure(async () => await lecteurs.regles?.(sujet, resultat, contexte).catch(() => null) ?? null, 'attente', 'regles') : null;
     retenirLesModeles(reglesLues);
     const architectureUcm = (() => {
       try { return lireLaDeclaration(contexte.figma) === 'ucm'; }
       catch { return false; }
     })();
-    const brut = [...controlesDuKit(releve, catalogue, niveau, architectureUcm), ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))];
-    const tous = proposerLesCorrections(releve, catalogue, brut);
+    phase('controles');
+    const brut = mesurerLeCalcul(() => [...controlesDuKit(releve, catalogue, niveau, architectureUcm), ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))], 'controles');
+    phase('corrections');
+    const tous = mesurerLeCalcul(() => proposerLesCorrections(releve, catalogue, brut), 'corrections');
     const rangees = await lecteurs.ignores?.(contexte).catch((): readonly string[] => []) ?? [];
     const { visibles, ignores } = separerLesIgnores(tous, rangees);
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;

@@ -503,6 +503,8 @@ test('la mesure couvre le sujet avant le moteur, ferme la trace et garde les sor
     assert.equal(avec.mesure?.etapes[0].nom, 'sujet');
     assert.equal(avec.mesure?.etapes[0].ms, 37);
     assert.equal(avec.mesure?.totalMs, 56);
+    assert.ok(avec.mesure?.etapes.some(({ nom }) => nom === 'interne-du-moteur'));
+    assert.deepEqual(avec.mesure?.phases?.map(({ nom }) => nom), ['sujet', 'releve', 'catalogue', 'moteur', 'regles', 'controles', 'corrections', 'projection', 'projection']);
     assert.equal(avec.mesure?.fin, 'complete');
     assert.equal(fermerLaMesure(''), null);
   } finally { Date.now = horloge; }
