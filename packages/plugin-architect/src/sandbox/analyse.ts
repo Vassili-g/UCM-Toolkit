@@ -17,7 +17,7 @@
  * lui-même, au clic sur un constat, ne périme rien.
  */
 import {
-  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructure, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
+  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -352,7 +352,7 @@ async function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeR
     ['controle-typographie', () => calculerParEtapes(controlerLaTypographieParEtapes(releve, catalogue), cooperation)],
     ...(architectureUcm ? [
       ['controle-theme', () => calculerParEtapes(controlerLeThemeParEtapes(releve, catalogue), cooperation)] satisfies Controle,
-      ['controle-structure', () => enUneTranche(() => controlerLaStructure(releve, catalogue))] satisfies Controle,
+      ['controle-structure', () => calculerParEtapes(controlerLaStructureParEtapes(releve, catalogue), cooperation)] satisfies Controle,
     ] : []),
   ];
   const constats: Constat[] = [];
@@ -363,8 +363,6 @@ async function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeR
   }
   return constats;
 }
-
-const enUneTranche = (calcul: () => Constat[]): Constat[] => mesurerLeCalcul(calcul, 'controles', true);
 
 /** Un calcul du kit (contrôle ou corrections) conduit par tranches de 32 étapes ; le budget et le jeton se vérifient entre deux tranches. */
 async function calculerParEtapes<T>(calcul: Generator<void, T>, cooperation: ContexteCooperatif, phase: 'controles' | 'corrections' = 'controles'): Promise<T> {

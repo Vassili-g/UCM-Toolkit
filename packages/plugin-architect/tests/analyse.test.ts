@@ -414,6 +414,43 @@ test('annuler au milieu de la remontée des fonds du thème abandonne les ancêt
   assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
 });
 
+test('annuler au milieu d’un groupe de 256 valeurs de la structure abandonne les sœurs restantes', async () => {
+  const b = banc('ucm');
+  const releve = releveDe('Button');
+  const palettes = Array.from({ length: 257 }, (_, i) => `p${i}`);
+  releve.proprietes = [{ nom: 'Severity', type: 'VARIANT', valeurs: palettes, defaut: 'p0' }];
+  let valeursLues = 0;
+  // Seule la structure est comptée : les autres contrôles ne lisent pas ces valeurs par ce chemin.
+  const modes = [{ id: 'light', nom: 'Light' }, { id: 'dark', nom: 'Dark' }];
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'c', nom: 'components', role: 'components', etat: 'lue', modes }],
+    variables: palettes.map((palette, i) => {
+      const valeurs = i === 0 ? { light: { valeur: '#000' }, dark: { valeur: null } } : { light: { valeur: '#000' }, dark: { valeur: '#111' } };
+      return {
+        cle: `v${i}`, nom: `Button/color/${palette}/contained/default/ring`, collection: 'c', etat: 'presente' as const, type: 'COLOR' as const,
+        get valeurs() { if (/structure/.test(new Error().stack ?? '')) valeursLues += 1; return valeurs; },
+      };
+    }),
+  };
+  let horloge = 0;
+  const traiter = traiterAvec({
+    ...lecteurs(complete(), 'Button', catalogue),
+    releve: async () => ({ statut: 'lu', releve }),
+  }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (valeursLues > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.ok(valeursLues > 0 && valeursLues < 256, `${valeursLues} valeurs lues`);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+  assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
+});
+
 test('annuler à une cession des contrôles ne rend aucun constat', async () => {
   const b = banc();
   let horloge = 0;

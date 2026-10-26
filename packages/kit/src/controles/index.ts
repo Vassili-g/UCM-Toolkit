@@ -20,5 +20,5 @@ export { preparerLesTokens } from './preparation.js';
 export type { PreparationDesTokens, VariableAPreparer, ViseDePreparation, LieuDePreparation, ReponsesDePreparation, TailleSansCible, CouleurSansCible } from './preparation.js';
 export { clesDesTokensDeTailleAttendus, proposerLesCorrections, proposerLesCorrectionsParEtapes } from './corrections.js';
 export { proposerLaPropagation } from './propagation.js';
-export { controlerLeTheme, controlerLesModes } from './theme.js';
-export { controlerLaStructure, controlerLeCatalogue } from './structure.js';
+export { controlerLeTheme, controlerLeThemeParEtapes, controlerLesModes } from './theme.js';
+export { controlerLaStructure, controlerLaStructureParEtapes, controlerLeCatalogue } from './structure.js';

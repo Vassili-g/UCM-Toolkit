@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { controlerLaStructure as structureDuComposant, controlerLeCatalogue, type CatalogueDeReference, type ReleveDeComposant } from '../src/controles/index.js';
+import { controlerLaStructure as structureDuComposant, controlerLaStructureParEtapes, controlerLeCatalogue, type CatalogueDeReference, type ReleveDeComposant } from '../src/controles/index.js';
 
 const modes = [{ id: 'light', nom: 'Light' }, { id: 'dark', nom: 'Dark' }];
 const collection = (cle: string, role: 'theme' | 'components' | 'layout' | 'brands') => ({ cle, nom: cle, role, modes, etat: 'lue' as const });
@@ -17,6 +17,52 @@ function releve(nom = 'Button'): ReleveDeComposant {
 const variable = (cle: string, nom: string, collection: string, valeurs?: CatalogueDeReference['variables'][number]['valeurs']) => ({ cle, nom, collection, type: 'COLOR' as const, etat: 'presente' as const, valeurs });
 
 const controlerLaStructure = (r: ReleveDeComposant, c: CatalogueDeReference) => [...structureDuComposant(r, c), ...controlerLeCatalogue(c)];
+
+test('la structure par étapes conserve les questions de valeurs vides avant les contournements', () => {
+  const r = releve();
+  const c = cat([collection('components', 'components'), collection('brands', 'brands'), collection('theme', 'theme')], [
+    variable('p', 'Button/color/primary/contained/default/ring', 'components', { dark: { valeur: null } }),
+    variable('s', 'Button/color/secondary/contained/default/ring', 'components', { dark: { valeur: '#111' } }),
+    variable('t', 'Button/color/tertiary/contained/default/ring', 'components', { dark: { valeur: '#222' } }),
+    variable('primary', 'Button/color/primary/contained/default/background', 'components', { dark: { alias: 'theme-primary' } }),
+    variable('secondary', 'Button/color/secondary/contained/default/background', 'components', { dark: { alias: 'brand-secondary' } }),
+    variable('theme-primary', 'primary/solid/default', 'theme'),
+    variable('theme-secondary', 'secondary/solid/default', 'theme'),
+    variable('brand-secondary', 'secondary/light/700', 'brands'),
+  ]);
+  const attendu = [
+    {
+      id: 'C63:p:dark:vide', code: 'C63', type: 'verifier', famille: 'liaisons', variants: [], layers: [],
+      faits: { variable: 'Button/color/primary/contained/default/ring', mode: 'Dark', soeurs: 2 },
+      question: {
+        id: 'C63:p:dark:vide', candidats: [
+          { cle: 's', nom: 'Button/color/secondary/contained/default/ring' }, { cle: 't', nom: 'Button/color/tertiary/contained/default/ring' },
+        ], indice: 'Les autres palettes de ce groupe ont une valeur dans ce mode.',
+      },
+    },
+    {
+      id: 'C63:secondary:dark:theme', code: 'C63', type: 'corriger', famille: 'liaisons', variants: [], layers: [],
+      faits: { variable: 'Button/color/secondary/contained/default/background', mode: 'Dark', cible: 'secondary/light/700' },
+      correction: {
+        id: 'C63:secondary:dark:theme', sorte: 'alias-de-mode', cible: { variable: 'secondary', mode: 'dark' }, avant: 'brand-secondary',
+        apres: { cle: 'theme-secondary', nom: 'secondary/solid/default' },
+        aRelire: { axes: { mode: 'Dark' }, regle: 'Un composant UCM vise le thème, pas une primitive à segment de mode.', avant: 'brand-secondary' },
+      },
+    },
+  ];
+  const epuiser = () => {
+    const calcul = controlerLaStructureParEtapes(r, c);
+    let etape = calcul.next();
+    while (!etape.done) etape = calcul.next();
+    return etape.value;
+  };
+  assert.deepEqual(epuiser(), attendu);
+  assert.deepEqual(structureDuComposant(r, c), attendu);
+  c.variables[2].etat = 'non-chargee';
+  r.lecture.layersNonLus = 1;
+  assert.deepEqual(epuiser(), attendu.slice(1));
+  assert.deepEqual(structureDuComposant(r, c), attendu.slice(1));
+});
 
 test('C63 compare les scopes au chemin complet du thème', () => {
   const c = cat([collection('theme', 'theme')], [
