@@ -507,3 +507,26 @@ test('le final partielle après le provisoire montre l’alerte de couverture, l
   assert.equal(sections(banc).some((section) => bande(section).classes.has('tenue')), true);
   assert.notEqual(banc.racine.querySelector('.corrections-pied'), null);
 });
+
+test('une péremption pendant le provisoire garde les constats consultables sous l’alerte périmée, sans barre, mention, tenue ni pied', () => {
+  const banc = monter(constatsAlert, { statut: 'provisoire', progression: { lus: 11, total: 11, phase: 'imbriques', fraction: 0.35 } });
+  banc.actualiser({ perimee: true, cause: 'document' });
+  assert.ok(sections(banc).length > 0);
+  assert.equal(sections(banc).some((section) => bande(section).classes.has('tenue')), false);
+  assert.equal(banc.racine.querySelector('.corrections-pied'), null);
+  assert.equal(banc.racine.querySelector('.progression-analyse'), null);
+  assert.match(banc.racine.textContent, /Le composant a changé depuis l’analyse\./);
+  assert.match(banc.racine.textContent, /Cliquez Actualiser pour relire\./);
+  assert.match(banc.racine.textContent, /24 points/);
+  assert.doesNotMatch(banc.racine.textContent, /composants imbriqués est en cours|Annuler|analysé à/);
+  assert.ok(boutonsDeCartes(banc.racine).length > 0);
+  assert.equal(boutonsDeCartes(banc.racine).every((bouton) => bouton.disabled), true, 'aucune écriture possible');
+});
+
+test('une péremption pendant en-cours remplace la progression par l’alerte périmée', () => {
+  const banc = monter([], { statut: 'en-cours', progression: { lus: 5, total: 11, phase: 'releve', fraction: 0.14 } });
+  banc.actualiser({ perimee: true, cause: 'selection' });
+  assert.equal(banc.racine.querySelector('.progression-analyse'), null);
+  assert.match(banc.racine.textContent, /Le composant a changé depuis l’analyse\./);
+  assert.doesNotMatch(banc.racine.textContent, /Annuler|s’afficheront à la fin/);
+});

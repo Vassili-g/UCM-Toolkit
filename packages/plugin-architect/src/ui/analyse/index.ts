@@ -226,7 +226,7 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     if (!rendu) return;
     const { analyse, panneau, cartes, ignores } = rendu;
     corrections.commencer();
-    if (analyse.perimee) {
+    if (analyse.perimee && analyse.statut !== 'provisoire') {
       sommaireHote.replaceChildren();
       listeHote.replaceChildren(resultatApresPeremption(analyse));
       return;
@@ -306,6 +306,9 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     }
     if (brute?.statut === 'annulee') return [resume(lecture, T.annulee), creerAlerte('info', { titre: T.annuleeTitre, texte: T.annuleeTexte, meta: T.annuleeMeta })];
 
+    if (brute?.perimee && brute.statut === 'en-cours' && demandeDAnalyseEnCours(etat) === null) {
+      return [resume(lecture, P.pasAnalyse), creerAlerte('info', { titre: T.perimeTitre, texte: T.perimeTexte })];
+    }
     const analyse = analyseDuComposant(etat, lecture);
     if (!analyse) {
       if (etat.reference && libraryAChoisir(etat)) {
@@ -331,8 +334,9 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     }
     if (analyse.perimee) alertes.push(creerAlerte('info', { titre: T.perimeTitre, texte: T.perimeTexte }));
     const { points, enfants: elements } = montrerLesElements(lecture, analyse);
-    const analyseA = P.analyseA(heure(analyse.recueA), analyse.dureeMs);
-    const etatDeLAnalyse = points > 0 ? `${analyseA}, ${TEXTES.elementsDuPanneau.points(points)}` : analyseA;
+    // Un provisoire périmé n'a pas d'heure d'analyse à dire : seuls ses points sont connus.
+    const analyseA = analyse.statut === 'provisoire' ? P.pasAnalyse : P.analyseA(heure(analyse.recueA), analyse.dureeMs);
+    const etatDeLAnalyse = points > 0 ? `${analyse.statut === 'provisoire' ? '' : `${analyseA}, `}${TEXTES.elementsDuPanneau.points(points)}` : analyseA;
     return [resume(lecture, etatDeLAnalyse, analyse.variants.length), ...alertes, ...elements];
   }
 

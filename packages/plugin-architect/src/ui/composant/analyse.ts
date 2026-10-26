@@ -76,8 +76,8 @@ export const deLAnalyseCourante = (etat: Etat, identite: IdentiteDAnalyse): bool
 
 const visibles = (tous: readonly Constat[], ignores: readonly string[]): Constat[] => tous.filter((constat) => !ignores.includes(constat.id));
 
-/** Vrai tant que le résultat final manque, provisoire reçu ou non. */
-export const calculEnCours = (analyse: Pick<AnalyseRecue, 'statut'>): boolean => analyse.statut === 'en-cours' || analyse.statut === 'provisoire';
+/** Vrai tant que le résultat final manque, provisoire reçu ou non. Une analyse périmée ne calcule plus pour l'interface : son final sera refusé, Analyser redevient possible. */
+export const calculEnCours = (analyse: Pick<AnalyseRecue, 'statut' | 'perimee'>): boolean => (analyse.statut === 'en-cours' || analyse.statut === 'provisoire') && !analyse.perimee;
 
 /** Retient le message du sandbox. `occupe` ne change que l'écriture en cours. */
 export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): void {
@@ -117,8 +117,8 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       etat.analyse = { ...courante, statut: 'provisoire', constats: visibles(message.constats, message.ignores), tous: message.constats, ignores: message.ignores, variants: message.variants, lecture: message.lecture };
       return;
     case 'analyse':
-      // Une analyse déjà finie (annulée, arrêtée ou finale) ne reprend pas un message tardif de la même identité.
-      if (!calculEnCours(courante)) return;
+      // Une analyse déjà finie ou périmée ne reprend pas un final tardif de la même identité : les constats reçus restent, non applicables.
+      if (courante.perimee || (courante.statut !== 'en-cours' && courante.statut !== 'provisoire')) return;
       // Le sandbox garde périmée l'analyse qu'un `perime` a atteinte : le message final ne la rend pas applicable.
       etat.analyse = {
         ...courante, statut: message.statut, constats: visibles(message.constats, courante.ignores), tous: message.constats, variants: message.variants,

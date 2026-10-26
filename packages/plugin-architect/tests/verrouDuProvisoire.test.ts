@@ -14,7 +14,7 @@ poserLeDom();
 // Les modules de l'interface lisent `document` à l'appel, pas à l'import : ils se chargent après `poserLeDom`.
 import type { PluginMessage } from '../src/messages';
 import { creerApplication } from '../src/ui/application';
-import { analyseApplicable, recevoirUneAnalyse, type AnalyseRecue } from '../src/ui/composant/analyse';
+import { analyseApplicable, calculEnCours, recevoirUneAnalyse, type AnalyseRecue } from '../src/ui/composant/analyse';
 import { monterLesCorrections } from '../src/ui/corrections';
 import type { ContexteDeCartes } from '../src/ui/corrections/modele';
 import { etatInitial } from '../src/ui/etat';
@@ -181,4 +181,32 @@ test('le final partielle remplace le provisoire, garde les identifiants et rend 
   assert.deepEqual(etat.analyse!.constats.map(({ id }) => id), ids);
   assert.equal(analyseApplicable(etat.analyse), true);
   assert.ok(envoisDe(etat).length > 0, 'les mêmes actions envoient leur demande');
+});
+
+test('une péremption pendant le provisoire garde les constats, sort du calcul et refuse tout final tardif', () => {
+  const etat = analyseEn('provisoire');
+  const ids = etat.analyse!.constats.map(({ id }) => id);
+  recevoirUneAnalyse(etat, { type: 'perime', analyse: IDENTITE, cause: 'document' });
+  assert.equal(etat.analyse!.perimee, true);
+  assert.equal(calculEnCours(etat.analyse!), false, 'Analyser redevient possible');
+  assert.deepEqual(etat.analyse!.constats.map(({ id }) => id), ids);
+  const avant = JSON.stringify(etat.analyse);
+  for (const statut of ['complete', 'partielle', 'annulee', 'arretee'] as const) recevoirUneAnalyse(etat, { type: 'analyse', analyse: IDENTITE, statut, constats: [], lecture: null, variants: [], sansTokens: false });
+  recevoirUneAnalyse(etat, { type: 'analyse-provisoire', analyse: IDENTITE, constats: [], ignores: [], lecture: null as never, variants });
+  assert.equal(JSON.stringify(etat.analyse), avant);
+  assert.equal(analyseApplicable(etat.analyse), false);
+  assert.deepEqual(envoisDe(etat), []);
+});
+
+test('une péremption pendant en-cours sort du calcul sans constat et refuse le final tardif', () => {
+  const etat = etatInitial();
+  recevoirUneAnalyse(etat, { type: 'analyse-commencee', analyse: IDENTITE });
+  assert.equal(calculEnCours(etat.analyse!), true);
+  recevoirUneAnalyse(etat, { type: 'perime', analyse: IDENTITE, cause: 'selection' });
+  assert.equal(calculEnCours(etat.analyse!), false);
+  recevoirUneAnalyse(etat, { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: constatsAlert, lecture: null, variants, sansTokens: false });
+  assert.equal(etat.analyse!.statut, 'en-cours');
+  assert.deepEqual(etat.analyse!.constats, []);
+  assert.equal(analyseApplicable(etat.analyse), false);
+  assert.deepEqual(envoisDe(etat), []);
 });

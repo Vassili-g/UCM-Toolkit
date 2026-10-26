@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { TEXTES_ANALYSE } from '../src/ui/textes/analyse';
 import type { Constat } from '../src/messages/commun';
-import { recevoirUneAnalyse, type MessageRecuDeLAnalyse } from '../src/ui/composant/analyse';
+import { analyseApplicable, recevoirUneAnalyse, type MessageRecuDeLAnalyse } from '../src/ui/composant/analyse';
 import { constatsDuVariant } from '../src/ui/composant/variants';
 import type { Etat } from '../src/ui/etat';
 
@@ -13,14 +13,15 @@ const constat = (id: string, variants: string[]): Constat => ({ id, variants } a
 const message = (type: string, reste: object = {}): MessageRecuDeLAnalyse =>
   ({ type, analyse: identite, statut: 'complete', constats: [], variants: [], lecture: null, sansTokens: false, ...reste }) as unknown as MessageRecuDeLAnalyse;
 
-test('le message final d’une analyse ne rend pas applicable une identité déjà périmée', () => {
+test('le message final d’une analyse est refusé pour une identité déjà périmée, qui reste non applicable', () => {
   const etat = { analyse: null } as unknown as Etat;
   recevoirUneAnalyse(etat, message('analyse-commencee'));
   recevoirUneAnalyse(etat, message('perime', { cause: 'document' }));
   recevoirUneAnalyse(etat, message('analyse'));
   assert.equal(etat.analyse?.perimee, true);
   assert.equal(etat.analyse?.cause, 'document');
-  assert.equal(etat.analyse?.statut, 'complete');
+  assert.equal(etat.analyse?.statut, 'en-cours');
+  assert.equal(analyseApplicable(etat.analyse), false);
 });
 
 test('une identité nouvelle part non périmée', () => {
