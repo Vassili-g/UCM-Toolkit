@@ -249,18 +249,22 @@ export function abandonnerLaMesure(): void {
   trace = null;
 }
 
-/** Une réponse tardive ne compte jamais dans la trace de l'analyse suivante. */
-export async function attendrePourLaMesure<T>(appel: () => Promise<T>, nature: 'api' | 'attente' | 'cession' = 'attente', phase?: string): Promise<T> {
+/**
+ * Une réponse tardive ne compte jamais dans la trace de l'analyse suivante. La nature `parallele` mesure une attente qui
+ * chevauche une autre : elle ouvre sa phase, sans entrer dans les compteurs d'attente, que le chevauchement compterait
+ * deux fois.
+ */
+export async function attendrePourLaMesure<T>(appel: () => Promise<T>, nature: 'api' | 'attente' | 'cession' | 'parallele' = 'attente', phase?: string): Promise<T> {
   const ouverte = trace;
   if (!ouverte) return appel();
   const debut = Date.now();
   if (nature === 'api') compter('appelsApiArchitect');
-  compter(nature === 'cession' ? 'cessionsArchitect' : 'attentesArchitect');
+  if (nature !== 'parallele') compter(nature === 'cession' ? 'cessionsArchitect' : 'attentesArchitect');
   try { return await appel(); }
   finally {
     if (trace === ouverte) {
       const ms = Date.now() - debut;
-      compter(nature === 'cession' ? 'msEnCessionArchitect' : 'msEnAttenteArchitect', ms);
+      if (nature !== 'parallele') compter(nature === 'cession' ? 'msEnCessionArchitect' : 'msEnAttenteArchitect', ms);
       if (phase) ouverte.phases.push({ nom: phase, ms });
     }
   }

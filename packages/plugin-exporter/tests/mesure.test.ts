@@ -47,6 +47,25 @@ test('les attentes, cessions et calculs mesurés restent séparés ; une attente
   } finally { Date.now = horloge; abandonnerLaMesure(); }
 });
 
+test('une attente parallèle ouvre sa phase sans entrer dans les compteurs d’attente', async () => {
+  const horloge = Date.now;
+  let instant = 0;
+  Date.now = () => instant;
+  try {
+    ouvrirLaMesure();
+    let finir!: () => void;
+    const libraries = attendrePourLaMesure(() => new Promise<void>((resolve) => { finir = resolve; }), 'parallele', 'libraries');
+    instant += 30;
+    await attendrePourLaMesure(async () => { instant += 10; }, 'attente', 'releve');
+    finir();
+    await libraries;
+    const trace = fermerLaMesure('');
+    assert.equal(trace?.compteurs.attentesArchitect, 1);
+    assert.equal(trace?.compteurs.msEnAttenteArchitect, 10);
+    assert.deepEqual(trace?.phases, [{ nom: 'releve', ms: 10 }, { nom: 'libraries', ms: 40 }]);
+  } finally { Date.now = horloge; abandonnerLaMesure(); }
+});
+
 test('mesurerSousCompteur ajoute la durée au compteur sans ouvrir de phase, et se tait hors d’une trace', () => {
   const horloge = Date.now;
   let instant = 0;

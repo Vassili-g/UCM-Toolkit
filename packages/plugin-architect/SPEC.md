@@ -236,8 +236,17 @@ seuil se vérifie entre unités de travail : les appels Figma, l'énumération d
 clés d'un objet et une étape du kit peuvent le dépasser. Le moteur seul ouvre
 la portée de mémoire.
 
-L'analyse enchaîne le relevé, le catalogue, les contrôles du kit, la lecture
-des ignorés, puis envoie `analyse-provisoire` : les constats des contrôles du
+L'analyse annonce le relevé, puis le catalogue, puis les contrôles du kit. Elle
+lance la lecture des libraries avec le relevé, car elle n'en dépend pas : le
+catalogue attend ce qui reste de cette lecture, puis choisit la library d'après
+les liaisons du relevé. Le jeton et le budget de l'analyse s'appliquent aux
+deux lectures ; une annulation ou un arrêt avant le catalogue arrête celle des
+libraries, et une erreur de sa part garde le repli sur les variables du
+fichier. Dans la trace de mesure, la phase `libraries` donne la durée totale de
+la lecture, et l'étape `catalogue-attente-libraries` ce qui en restait après le
+relevé : leur différence est la part de la lecture qui a couru pendant le
+relevé. Viennent ensuite la lecture des
+ignorés, puis `analyse-provisoire` : les constats des contrôles du
 kit, sans correction ni question, et les identifiants ignorés. Elle lance
 ensuite le moteur, lit les règles, propose les corrections et envoie
 `analyse`. Le message final range les constats comme avant : contrôles du kit,

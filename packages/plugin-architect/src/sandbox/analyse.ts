@@ -20,7 +20,7 @@ import {
   controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
-import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
+import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { ouvrirLaMesure, fermerLaMesure, etape, compter, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
@@ -211,12 +211,20 @@ export interface SujetAAnalyser {
   readonly admis?: readonly string[];
 }
 
+/** L'issue d'une lecture des libraries lancée en avance : une promesse qui ne rejette jamais, l'erreur y est une valeur. */
+export type LibrariesEnAvance = Promise<{ readonly lecture: LectureDesLibraries } | { readonly erreur: unknown }>;
+
 /** Les lectures de Figma d'une analyse : le sandbox donne les siennes, les tests des doubles. */
 export interface Lecteurs {
   /** Le sujet de la sélection, `null` hors de tout composant. */
   sujet(contexte: Contexte): Promise<SujetAAnalyser | null>;
   releve(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (fait: number, total: number) => void, cooperation?: ContexteCooperatif): Promise<IssueDuReleve>;
-  catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif): Promise<CatalogueDeReference>;
+  /**
+   * Les libraries activées, lues sans le relevé. L'analyse les lance avec le relevé et passe leur issue à `catalogue` ;
+   * sans ce lecteur, `catalogue` les lit après le relevé.
+   */
+  bibliotheques?(contexte: Contexte, cooperation?: ContexteCooperatif): Promise<LectureDesLibraries>;
+  catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance): Promise<CatalogueDeReference>;
   moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (phase: PhaseDAnalyse) => void, cooperation?: ContexteCooperatif): Promise<ResultatDAnalyse>;
   /** Les règles d'usage du composant, lues avec le contrat du moteur ; sans lecteur, aucun constat C43 ni C45. */
   regles?(sujet: SujetAAnalyser, resultat: ResultatDAnalyse, contexte: Contexte): Promise<ReleveDesRegles>;
@@ -271,11 +279,26 @@ function liaisonsParCle(releve: ReleveDeComposant): Map<string, number> {
   return comptes;
 }
 
-export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif): Promise<CatalogueDeReference> {
+/**
+ * Le catalogue de référence : la library choisie, sinon les variables du fichier. Avec `libraries`, la lecture des
+ * libraries est déjà lancée : la fonction attend son issue au lieu de la relancer, et une erreur y garde le repli sur
+ * le fichier.
+ */
+export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance): Promise<CatalogueDeReference> {
   const { figma } = contexte;
   const liaisons = liaisonsParCle(releve);
   try {
-    const lecture = await lireLesLibraries(figma as unknown as PortDeBibliotheque, cooperation);
+    let lecture: LectureDesLibraries;
+    if (libraries) {
+      // Ce qui reste à attendre des libraries après le relevé ; sa durée, avec celle de la phase `libraries`, donne le chevauchement.
+      etape('catalogue-attente-libraries');
+      const issue = await libraries;
+      if ('erreur' in issue) throw issue.erreur;
+      lecture = issue.lecture;
+      etape('catalogue-valeurs');
+    } else {
+      lecture = await lireLesLibraries(figma as unknown as PortDeBibliotheque, cooperation);
+    }
     if (lecture.etat === 'lue') {
       const choisie = libraryDeReference(lecture.collections, liaisons, lireLaLibraryRangee(figma));
       if (choisie !== null) {
@@ -321,6 +344,7 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
     progresser,
     espaceDeCouleur: contexte.figma.root.documentColorProfile === 'DISPLAY_P3' ? 'display-p3' : 'srgb',
   }),
+  bibliotheques: ({ figma }, cooperation) => lireLesLibraries(figma as unknown as PortDeBibliotheque, cooperation),
   catalogue: catalogueDeFigma,
   niveau: ({ figma }) => lireLeNiveau(figma),
   ignores: async ({ figma }) => lireLesIgnores(figma),
@@ -440,6 +464,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   const phase = (nom: PhaseDAnalyse): void => { etape(nom); courant.progresser?.(nom); };
   let identite: IdentiteDAnalyse | null = null;
   let catalogueLu: CatalogueDeReference | null = null;
+  let libraries: LibrariesEnAvance | undefined;
+  let librariesEnCours = false;
   const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats): void => {
     phase('projection');
     const sansTokens = (lu: ReleveDeComposant | null): boolean => {
@@ -483,6 +509,15 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     const { jeton } = courant;
 
     phase('releve');
+    // La lecture des libraries ne dépend pas du relevé : elle court pendant lui, et `catalogue` en attend l'issue.
+    // Elle partage le jeton et le budget de l'analyse ; `libraries` ne rejette jamais.
+    if (lecteurs.bibliotheques) {
+      const lire = lecteurs.bibliotheques;
+      librariesEnCours = true;
+      libraries = attendrePourLaMesure(async () => lire(contexte, cooperation), 'parallele', 'libraries')
+        .then((lecture) => ({ lecture }), (erreur: unknown) => ({ erreur }))
+        .finally(() => { librariesEnCours = false; });
+    }
     const issue = await attendrePourLaMesure(() => lecteurs.releve(sujet, jeton, contexte, (fait, total) => courant.progresser?.('releve', fait, total), cooperation), 'attente', 'releve');
     if (issue.statut === 'annule' || jeton.leve) return rendre('annulee', [], null);
     if (issue.statut === 'sans-sujet') return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
@@ -492,7 +527,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     retenirLesLiaisons(liaisonsParCle(releve));
     const niveau = await attendrePourLaMesure(async () => await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => 'AA') ?? 'AA');
     phase('catalogue');
-    const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte, cooperation), 'attente', 'catalogue');
+    const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries), 'attente', 'catalogue');
     catalogueLu = catalogue;
     compter('variablesDuCatalogue', catalogue.variables.length);
     if (jeton.leve) return rendre('annulee', [], null);
@@ -544,6 +579,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (courant.jeton.leve) rendre('annulee', [], null);
     else rendre('arretee', [bloquant(messageDErreur(erreur))], null);
   } finally {
+    // Une analyse finie avant d'avoir attendu les libraries (arrêt, erreur) ne laisse pas leur lecture courir : le jeton ne sert plus.
+    if (librariesEnCours) courant.jeton.leve = true;
     courant.cloreMesure?.('arretee');
     operation = null;
   }
