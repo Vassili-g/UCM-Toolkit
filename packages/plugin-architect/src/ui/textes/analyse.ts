@@ -32,6 +32,7 @@ export const TEXTES_ANALYSE = {
     progression: (lus: number, total: number): string => `analyse en cours, ${lus} variants sur ${total}`,
     arretee: 'analyse arrêtée',
     annulee: 'analyse annulée',
+    provisoire: 'L’analyse des composants imbriqués est en cours. D’autres points peuvent s’ajouter.',
     attendreLesConstats: 'Les constats s’afficheront à la fin de l’analyse.',
     arreteTitre: 'L’analyse s’est arrêtée.',
     arreteTexte: (message: string): string => `Message de l’exporteur : ${message.replace(/\.$/, '')}, puis cliquez Actualiser.`,

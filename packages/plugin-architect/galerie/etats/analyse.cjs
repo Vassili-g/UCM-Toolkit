@@ -56,8 +56,8 @@ const ETATS = [
     existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, enCours({ phase: 'regles', fraction: 0.7 })],
   },
   {
-    id: 'analyse-premiers-constats', titre: 'Premiers constats reçus', quand: 'Les contrôles du relevé ont rendu leurs constats ; le résultat final manque encore.',
-    regarder: 'Le panneau garde la progression et Annuler ; aucun constat n’est encore compté ni affiché.',
+    id: 'analyse-premiers-constats', titre: 'Premiers constats reçus', quand: 'Les contrôles du relevé ont rendu leurs constats ; la lecture des composants imbriqués continue.',
+    regarder: 'Les premiers constats sont visibles sous la barre de progression et Annuler, avec la mention « L’analyse des composants imbriqués est en cours. D’autres points peuvent s’ajouter. » ; aucune section tenue ni pied de corrections ; aucune carte n’est applicable.',
     existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, { message: { type: 'analyse-provisoire', analyse: IDENTITE, constats: constatsPartiels, ignores: [], lecture: lecturePartielle, variants } }],
   },
   {

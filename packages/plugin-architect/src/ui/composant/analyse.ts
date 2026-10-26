@@ -177,14 +177,15 @@ export function noterLEnvoi(etat: Etat, ids: readonly string[], liaisons: number
  */
 export function analyseDe(etat: Etat, lecture: LectureDeComposant | null): AnalyseRecue | null {
   const analyse = analyseDuComposant(etat, lecture);
-  if (!analyse || analyse.ecriture !== null || analyse.constats.length === 0) return null;
+  if (!analyse || analyse.statut === 'provisoire' || analyse.ecriture !== null || analyse.constats.length === 0) return null;
   return analyse;
 }
 
 /** Comme `analyseDe`, mais aussi pour une analyse sans constat ou pendant l'écriture : le panneau en a besoin. */
 export function analyseDuComposant(etat: Etat, lecture: LectureDeComposant | null): AnalyseRecue | null {
   const { analyse } = etat;
-  if (!analyse || !lecture || calculEnCours(analyse)) return null;
+  // Un résultat provisoire se montre ; seul le calcul sans constat n'a rien à rendre.
+  if (!analyse || !lecture || analyse.statut === 'en-cours') return null;
   const ids = new Set([lecture.sujet.id, ...lecture.sujet.variants.map((variant) => variant.id)]);
   return analyse.variants.some((variant) => ids.has(variant.id)) ? analyse : null;
 }

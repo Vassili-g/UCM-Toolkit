@@ -451,3 +451,25 @@ test('le défilement du panneau se rend après le redessin, même quand le redes
   assert.equal((banc.racine as unknown as { scrollTop: number }).scrollTop, 240);
   assert.equal((banc.racine as unknown as { scrollLeft: number }).scrollLeft, 12);
 });
+
+test('pendant le provisoire, le panneau montre les constats avec la barre, Annuler et la mention, sans section tenue ni pied', () => {
+  const banc = monter(constatsAlert, { statut: 'provisoire', progression: { lus: 11, total: 11, phase: 'imbriques', fraction: 0.35 } });
+  assert.ok(sections(banc).length > 0, 'les constats provisoires sont rangés par section');
+  assert.equal(sections(banc).some((section) => bande(section).classes.has('tenue')), false, 'aucune section tenue');
+  assert.equal(banc.racine.querySelector('.corrections-pied'), null, 'le pied des corrections est masqué');
+  assert.notEqual(banc.racine.querySelector('.progression-analyse'), null);
+  assert.match(banc.racine.textContent, /Lecture des composants imbriqués, 24 points/);
+  assert.match(banc.racine.textContent, /Annuler/);
+  assert.match(banc.racine.textContent, /L’analyse des composants imbriqués est en cours\. D’autres points peuvent s’ajouter\./);
+  assert.doesNotMatch(banc.racine.textContent, /s’afficheront à la fin/);
+});
+
+test('au final, la mention, la barre, Annuler, les sections tenues et le pied reviennent ou disparaissent', () => {
+  const banc = monter(constatsAlert, { statut: 'provisoire', progression: { lus: 11, total: 11, phase: 'imbriques', fraction: 0.35 } });
+  banc.actualiser({ statut: 'complete', progression: null });
+  assert.equal(banc.racine.querySelector('.progression-analyse'), null);
+  assert.doesNotMatch(banc.racine.textContent, /composants imbriqués est en cours/);
+  assert.doesNotMatch(banc.racine.textContent, /Annuler/);
+  assert.equal(sections(banc).some((section) => bande(section).classes.has('tenue')), true);
+  assert.notEqual(banc.racine.querySelector('.corrections-pied'), null);
+});

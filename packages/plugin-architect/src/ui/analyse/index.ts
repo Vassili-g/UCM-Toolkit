@@ -255,11 +255,13 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     });
     const cartesEnTete = tout ? cartesDe(panneau.enTete) : [];
     const enTete = cartesEnTete.length > 0 ? [creerEnTeteDesBloquants(cartesEnTete)] : [];
-    const tenus = tout ? panneau.tenus.map(creerSectionTenue) : [];
+    // Une section tenue dirait que le moteur a tout contrôlé : elle attend le résultat final.
+    const provisoire = analyse.statut === 'provisoire';
+    const tenus = tout && !provisoire ? panneau.tenus.map(creerSectionTenue) : [];
     const ignoresMontres = tout ? ignores : ignores.filter((constat) => elementDuConstat(constat) === choisi);
     const visible = tout ? null : { cartes: montres.flatMap(correctionsDe), element: TEXTES.elementsDuPanneau.libelles[choisi] };
     sommaireHote.replaceChildren(...(panneau.elements.length > 0 ? [creerSommaire(panneau.elements, choisi, choisir)] : []));
-    listeHote.replaceChildren(...enTete, ...sections, ...tenus, ...aFaire.ignores(ignoresMontres), ...(cartes.length > 0 ? [corrections.pied(visible)] : []));
+    listeHote.replaceChildren(...enTete, ...sections, ...tenus, ...aFaire.ignores(ignoresMontres), ...(cartes.length > 0 && !provisoire ? [corrections.pied(visible)] : []));
   }
 
   /** Le sommaire et la liste d'une analyse rendue. */
@@ -275,16 +277,28 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     if (!lecture) return [creerAlerte('info', { texte: T.aucunComposant })];
     const variants = Math.max(1, lecture.sujet.variants.length);
 
-    if ((brute && calculEnCours(brute)) || demandeDAnalyseEnCours(etat) !== null) {
-      const enCours = brute && calculEnCours(brute) ? brute.progression : null;
-      const libelle = enCours?.phase ? T.phases[enCours.phase] : enCours ? T.progression(enCours.lus, enCours.total) : P.enCours;
-      const progression = enCours?.fait !== undefined && enCours.total > 0 ? T.compteDeLecture(libelle, enCours.fait, enCours.total) : libelle;
+    /** Le libellé de la phase en cours, la barre et Annuler : les mêmes avant et après les premiers constats. */
+    const progressionDe = (enCours: AnalyseRecue['progression']): { readonly libelle: string; readonly barre: HTMLElement; readonly annuler: HTMLElement } => {
+      const phase = enCours?.phase ? T.phases[enCours.phase] : enCours ? T.progression(enCours.lus, enCours.total) : P.enCours;
+      const libelle = enCours?.fait !== undefined && enCours.total > 0 ? T.compteDeLecture(phase, enCours.fait, enCours.total) : phase;
       const barre = document.createElement('progress');
       barre.className = 'progression-analyse';
       barre.max = 1;
       barre.value = enCours?.fraction ?? 0;
-      barre.setAttribute('aria-label', progression);
-      return [resume(lecture, progression), barre, bouton(TEXTES.annuler, () => app.annulerAnalyse()), note(T.attendreLesConstats)];
+      barre.setAttribute('aria-label', libelle);
+      return { libelle, barre, annuler: bouton(TEXTES.annuler, () => app.annulerAnalyse()) };
+    };
+
+    if (brute?.statut === 'provisoire' && !brute.perimee) {
+      // Les premiers constats sont là, le moteur lit encore : la progression reste, les sections se remplissent, aucune n'est tenue.
+      const { libelle, barre, annuler } = progressionDe(brute.progression);
+      const { points, enfants: elements } = montrerLesElements(lecture, brute);
+      const etatDeLAnalyse = points > 0 ? `${libelle}, ${TEXTES.elementsDuPanneau.points(points)}` : libelle;
+      return [resume(lecture, etatDeLAnalyse, brute.variants.length), barre, annuler, creerAlerte('verifier', { texte: T.provisoire }), ...elements];
+    }
+    if ((brute && calculEnCours(brute)) || demandeDAnalyseEnCours(etat) !== null) {
+      const { libelle, barre, annuler } = progressionDe(brute && calculEnCours(brute) ? brute.progression : null);
+      return [resume(lecture, libelle), barre, annuler, note(T.attendreLesConstats)];
     }
     if (brute?.statut === 'arretee') {
       const message = String(brute.constats[0]?.faits.message ?? '');
