@@ -59,7 +59,16 @@ interface TokensMemorises {
 
 const tokensMemorises = new WeakMap<CatalogueDeReference, TokensMemorises>();
 
-export function tokensDuComposant(releve: ReleveDeComposant, catalogue: CatalogueDeReference): TokenDuComposant[] {
+/**
+ * `types` écarte une variable dont le type n'est pas listé avant tout calcul sur son nom. Le résultat est alors un sous-ensemble de
+ * l'appel sans filtre, dans le même ordre ; il n'entre pas dans la mémoire, qui ne garde que des résultats complets.
+ */
+export function tokensDuComposant(releve: ReleveDeComposant, catalogue: CatalogueDeReference, options: { readonly types?: readonly VariableDuCatalogue['type'][] } = {}): TokenDuComposant[] {
+  if (options.types) {
+    const tokens = calculerLesTokens(releve, catalogue, releve.jeu.nom, options.types);
+    for (const token of tokens) Object.freeze(token.segments);
+    return Object.freeze(tokens) as TokenDuComposant[];
+  }
   const { variables, collections } = catalogue;
   let memoire = tokensMemorises.get(catalogue);
   if (!memoire || memoire.variables !== variables || memoire.nombreDeVariables !== variables.length
@@ -86,7 +95,7 @@ export function tokensDuComposant(releve: ReleveDeComposant, catalogue: Catalogu
  * Un passage sur les variables du catalogue : ce qui ne dépend pas d'une variable se calcule avant la boucle, et le
  * découpage du nom, la copie pour la grammaire et la lecture ne concernent que les variables retenues.
  */
-function calculerLesTokens(releve: ReleveDeComposant, catalogue: CatalogueDeReference, nomDuJeu: string): TokenDuComposant[] {
+function calculerLesTokens(releve: ReleveDeComposant, catalogue: CatalogueDeReference, nomDuJeu: string, types?: readonly VariableDuCatalogue['type'][]): TokenDuComposant[] {
   const axes = axesDuReleve(releve);
   const formeDuJeu = formeReconnue(nomDuJeu);
   // `find` rend la première collection de la clé : la table garde elle aussi la première.
@@ -98,6 +107,7 @@ function calculerLesTokens(releve: ReleveDeComposant, catalogue: CatalogueDeRefe
   const valeursDAxes = Object.fromEntries(Object.entries(axes).map(([axe, propriete]) => [axe, propriete.valeurs ?? []]));
   const tokens: TokenDuComposant[] = [];
   for (const variable of catalogue.variables) {
+    if (types && !types.includes(variable.type)) continue;
     if (roles.get(variable.collection) !== 'components') continue;
     const nom = variable.nom;
     const finDuPremier = nom.indexOf('/');

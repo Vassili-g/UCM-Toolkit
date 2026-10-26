@@ -221,8 +221,9 @@ function tokensDeTailleDuLayer(index: IndexDeCorrection, layer: LayerLu, variant
  */
 export function clesDesTokensDeTailleAttendus(releve: ReleveDeComposant, catalogue: CatalogueDeReference): string[] {
   const proprietes = new Set(constatsDeValeursEnDur(releve).flatMap((constat) => proprietesDeComposantDuChamp(String(constat.faits.champ))));
-  return tokensDuComposant(releve, catalogue)
-    .filter((token) => token.variable.type === 'FLOAT' && proprietes.has(token.lecture.find((segment) => segment.role === 'propriete')?.terme ?? ''))
+  if (proprietes.size === 0) return [];
+  return tokensDuComposant(releve, catalogue, { types: ['FLOAT'] })
+    .filter((token) => proprietes.has(token.lecture.find((segment) => segment.role === 'propriete')?.terme ?? ''))
     .map((token) => token.variable.cle);
 }
 
