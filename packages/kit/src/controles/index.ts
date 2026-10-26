@@ -14,7 +14,7 @@ export { controlerLaTypographie, controlerLaTypographieParEtapes } from './typog
 export { axeDePropriete, axesDuReleve, tokensDuComposant, segmentDAxe, controlerNommage } from './nommage.js';
 export type { AxeDuComposant, TokenDuComposant } from './nommage.js';
 export { controlerMapping } from './mapping.js';
-export { controlerCouches } from './couche.js';
+export { controlerCouches, controlerCouchesParEtapes } from './couche.js';
 export { controlerOublis, controlerOublisParEtapes } from './oublis.js';
 export { preparerLesTokens } from './preparation.js';
 export type { PreparationDesTokens, VariableAPreparer, ViseDePreparation, LieuDePreparation, ReponsesDePreparation, TailleSansCible, CouleurSansCible } from './preparation.js';

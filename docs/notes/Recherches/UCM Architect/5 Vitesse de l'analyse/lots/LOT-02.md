@@ -13,7 +13,7 @@
 - [x] **2.7 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : céder dans la matérialisation des modes et le comptage du budget ; conserver produit, ordre et limites. Travail local : `accessibilite.ts` du kit (`combinaisonsDeModes`).
 - [x] **2.8 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper les contrôles de cible, texte minimal et anneau ; comparer leurs constats et couper pendant C52. Travail local : `accessibilite.ts` du kit (`controlerLesCibles`, `controlerLeTexteMinimal`, `controlerLAnneau`).
 - [x] **2.9 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper Oublis et son produit plafonné ; comparer C31 à C33 puis annuler dans la construction. Travail local : `oublis.ts` du kit.
-- [ ] **2.10 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper Couches entre variants, calques et liaisons ; comparer C80/C20 et annuler dans 128 liaisons. Travail local : `couche.ts` du kit.
+- [x] **2.10 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper Couches entre variants, calques et liaisons ; comparer C80/C20 et annuler dans 128 liaisons. Travail local : `couche.ts` du kit.
 - [ ] **2.11 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper Mapping entre liaisons, modes et fratrie ; comparer les sorties et annuler dans 256 modes. Travail local : `mapping.ts` du kit.
 - [ ] **2.12 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper Nommage et partager ses lectures d'axes et de tokens ; comparer l'ordre des candidats et annuler dans 256 tokens. Travail local : `nommage.ts` du kit.
 - [ ] **2.13 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper Thème C59 dans l'index, les liaisons, les candidats et les fonds ; tester 256 ancêtres. Travail local : `theme.ts` du kit.

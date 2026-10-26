@@ -247,6 +247,39 @@ test('annuler pendant le produit des variantes arrête les oublis avant la matri
   assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
 });
 
+test('annuler au milieu des couches abandonne les liaisons restantes', async () => {
+  const b = banc();
+  const releve = releveDe('Alert');
+  let typesLus = 0;
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'p', nom: 'primitives', role: 'primitives', etat: 'lue', modes: [] }],
+    variables: [{ cle: 'v', nom: 'red', collection: 'p', etat: 'presente', get type() { typesLus += 1; return 'COLOR' as const; } }],
+  };
+  releve.variants[0].layers = Array.from({ length: 128 }, (_, i) => ({
+    id: `layer-${i}`, nom: `Layer ${i}`, type: 'FRAME', parent: null, visible: true, opacite: 1,
+    dimensions: { x: 0, y: 0, largeur: 100, hauteur: 40 }, peintures: [], valeursEnDur: [],
+    liaisons: [{ champ: 'fills', indice: 0, porteur: `layer-${i}`, variable: { id: 'v', cle: 'v', nom: 'red', collection: 'p', distante: false } }],
+  }));
+  let horloge = 0;
+  const traiter = traiterAvec({
+    ...lecteurs(complete(), 'Alert', catalogue),
+    releve: async () => ({ statut: 'lu', releve }),
+  }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (typesLus > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.ok(typesLus > 0 && typesLus < 128, `${typesLus} types lus`);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+  assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
+});
+
+
 test('annuler pendant l’index des corrections ne rend aucune correction', async () => {
   const b = banc();
   const releve = releveDe('Alert');

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  axeDePropriete, controlerNommage, controlerMapping, controlerCouches, controlerOublis, controlerOublisParEtapes,
+  axeDePropriete, controlerNommage, controlerMapping, controlerCouches, controlerCouchesParEtapes, controlerOublis, controlerOublisParEtapes,
   type CatalogueDeReference, type ReleveDeComposant, type VariantLu,
 } from '../src/controles/index.js';
 
@@ -141,6 +141,36 @@ function variante(id: string, valeurs: Record<string, string>, cle: string, opti
 }
 
 const codes = (constats: ReturnType<typeof controlerMapping>): string[] => constats.map(({ code }) => code);
+
+test('les couches par étapes conservent l’ordre des liaisons et des cibles distinctes', () => {
+  const r = releve('Button');
+  r.variants = [variante('direct', {}, 'v0'), variante('alias', {}, 'v1')];
+  const c = catalogueEtendu(
+    { nom: 'primitive', collection: 'primitives' },
+    { nom: 'button/color/background', collection: 'components' },
+    { nom: 'layout/color', collection: 'layout' },
+  );
+  c.variables[1].valeurs = { premier: { alias: 'v2' }, second: { alias: 'v0' }, doublon: { alias: 'v2' }, absent: { alias: 'introuvable' } };
+  const attendu = [
+    {
+      id: 'C80:direct:layer-direct:fills:0', code: 'C80', type: 'corriger', famille: 'liaisons', variants: ['direct'], layers: ['layer-direct'],
+      faits: { token: 'primitive', couche: 'primitives', champ: 'fills', calque: 'container' },
+    },
+    {
+      id: 'C20:alias:layer-alias:fills:0:v2', code: 'C20', type: 'corriger', famille: 'liaisons', variants: ['alias'], layers: ['layer-alias'],
+      faits: { token: 'button/color/background', couche: 'layout', nature: 'couleur', admises: 'theme', cible: 'layout/color' },
+    },
+    {
+      id: 'C20:alias:layer-alias:fills:0:v0', code: 'C20', type: 'corriger', famille: 'liaisons', variants: ['alias'], layers: ['layer-alias'],
+      faits: { token: 'button/color/background', couche: 'primitives', nature: 'couleur', admises: 'theme', cible: 'primitive' },
+    },
+  ];
+  const calcul = controlerCouchesParEtapes(r, c);
+  let resultat = calcul.next();
+  while (!resultat.done) resultat = calcul.next();
+  assert.deepEqual(resultat.value, attendu);
+  assert.deepEqual(controlerCouches(r, c), attendu);
+});
 
 test('C15 compare la palette du token à la valeur du variant', () => {
   const r = releve('Alert', [axe('Severity', ['info', 'success'])]);

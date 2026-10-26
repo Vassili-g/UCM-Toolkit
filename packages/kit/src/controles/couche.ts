@@ -8,7 +8,6 @@
 import { ciblesAdmises, type NatureDeCible } from '../referentiel/architecture.js';
 import { variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { liaisonsDuReleve } from './mapping.js';
 import { constatDuComposant } from './nommage.js';
 import type { ReleveDeComposant } from './releve.js';
 
@@ -24,9 +23,10 @@ function estUneProprieteDeTexte(champ: string): boolean {
 }
 
 /** Les cibles distinctes des alias d'une variable, dans tous ses modes ; une cible absente du catalogue n'est pas jugée. */
-function ciblesDesAlias(catalogue: CatalogueDeReference, variable: VariableDuCatalogue): VariableDuCatalogue[] {
+function* ciblesDesAlias(catalogue: CatalogueDeReference, variable: VariableDuCatalogue): Generator<void, VariableDuCatalogue[]> {
   const cibles = new Map<string, VariableDuCatalogue>();
   for (const valeur of Object.values(variable.valeurs ?? {})) {
+    yield;
     if (!('alias' in valeur)) continue;
     const cible = variableDuCatalogue(catalogue, valeur.alias);
     if (cible !== 'absente') cibles.set(cible.cle, cible);
@@ -35,29 +35,44 @@ function ciblesDesAlias(catalogue: CatalogueDeReference, variable: VariableDuCat
 }
 
 export function controlerCouches(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
+  const calcul = controlerCouchesParEtapes(releve, catalogue);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Cède entre variants, layers, liaisons et cibles d'alias sans changer l'ordre des constats. */
+export function* controlerCouchesParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const constats: Constat[] = [];
   const roleDe = (variable: VariableDuCatalogue) => catalogue.collections.find((entree) => entree.cle === variable.collection);
-  for (const { variant, layer, liaison } of liaisonsDuReleve(releve)) {
-    const variable = variableDuCatalogue(catalogue, liaison.variable.cle);
-    if (variable === 'absente') continue;
-    const collection = roleDe(variable);
-    if (!collection?.role) continue;
-    const nature = natureDeLaLiaison(liaison.champ, variable.type);
-    const lieuDeBase = `${variant.id}:${layer.id}${liaison.surcharge ? `>${liaison.surcharge.id}` : ''}:${liaison.champ}:${liaison.indice ?? ''}`;
-    if (collection.role !== 'components' && nature !== 'typographie' && !estUneProprieteDeTexte(liaison.champ) && (variable.type === 'COLOR' || variable.type === 'FLOAT')) {
-      const faits = { token: variable.nom, couche: collection.nom, champ: liaison.champ, calque: (liaison.surcharge ?? layer).nom };
-      constats.push(constatDuComposant('C80', nature === 'couleur' ? 'liaisons' : 'tailles', 'corriger', lieuDeBase, faits, [variant.id], [layer.id]));
-      continue;
-    }
-    const admises = ciblesAdmises('components', nature);
-    const jugees = collection.role === 'components'
-      ? ciblesDesAlias(catalogue, variable).map((cible) => ({ cible, couche: roleDe(cible) }))
-      : [{ cible: null, couche: collection }];
-    for (const { cible, couche } of jugees) {
-      if (!couche?.role || admises.includes(couche.role)) continue;
-      const lieu = cible ? `${lieuDeBase}:${cible.cle}` : lieuDeBase;
-      const faits = { token: variable.nom, couche: couche.nom, nature, admises: admises.join(','), ...(cible ? { cible: cible.nom } : {}) };
-      constats.push(constatDuComposant('C20', 'liaisons', 'corriger', lieu, faits, [variant.id], [layer.id]));
+  for (const variant of releve.variants) {
+    yield;
+    for (const layer of variant.layers) {
+      yield;
+      for (const liaison of layer.liaisons) {
+        yield;
+        const variable = variableDuCatalogue(catalogue, liaison.variable.cle);
+        if (variable === 'absente') continue;
+        const collection = roleDe(variable);
+        if (!collection?.role) continue;
+        const nature = natureDeLaLiaison(liaison.champ, variable.type);
+        const lieuDeBase = `${variant.id}:${layer.id}${liaison.surcharge ? `>${liaison.surcharge.id}` : ''}:${liaison.champ}:${liaison.indice ?? ''}`;
+        if (collection.role !== 'components' && nature !== 'typographie' && !estUneProprieteDeTexte(liaison.champ) && (variable.type === 'COLOR' || variable.type === 'FLOAT')) {
+          const faits = { token: variable.nom, couche: collection.nom, champ: liaison.champ, calque: (liaison.surcharge ?? layer).nom };
+          constats.push(constatDuComposant('C80', nature === 'couleur' ? 'liaisons' : 'tailles', 'corriger', lieuDeBase, faits, [variant.id], [layer.id]));
+          continue;
+        }
+        const admises = ciblesAdmises('components', nature);
+        const cibles = collection.role === 'components' ? yield* ciblesDesAlias(catalogue, variable) : [null];
+        for (const cible of cibles) {
+          yield;
+          const couche = cible ? roleDe(cible) : collection;
+          if (!couche?.role || admises.includes(couche.role)) continue;
+          const lieu = cible ? `${lieuDeBase}:${cible.cle}` : lieuDeBase;
+          const faits = { token: variable.nom, couche: couche.nom, nature, admises: admises.join(','), ...(cible ? { cible: cible.nom } : {}) };
+          constats.push(constatDuComposant('C20', 'liaisons', 'corriger', lieu, faits, [variant.id], [layer.id]));
+        }
+      }
     }
   }
   return constats;
