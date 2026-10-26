@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   BORNE_DE_COMBINAISONS, controlerLAccessibilite, controlerLAccessibiliteParEtapes,
-  type CatalogueDeReference, type LayerLu, type PeintureLue, type ReleveDeComposant, type VariantLu,
+  type CatalogueDeReference, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu,
 } from '../src/controles/index';
 import { collectionDuCatalogue, variableDuCatalogue } from '../src/controles/catalogue';
-import { couleurDeLiaison, type Combinaison } from '../src/controles/accessibilite';
+import { liaisonsPropres } from '../src/controles/releve';
+import { composer, couleurDeLiaison, fondEffectif, pileDePeintures, type Combinaison } from '../src/controles/accessibilite';
 
 const gris = (v: number) => ({ r: v, g: v, b: v, a: 1 });
 const solide = (champ: 'fills' | 'strokes', couleur: { r: number; g: number; b: number; a: number }, opacite = 1): PeintureLue =>
@@ -631,4 +632,163 @@ test('la mesure du contraste lit chaque variable une fois par contexte de modes,
   }
   assert.ok(lectures.reference > 1000, `${lectures.reference} lectures sans mémoire`);
   assert.ok(lectures.memoire < 60, `${lectures.memoire} lectures avec la mémoire`);
+});
+
+/* ---------- fonds et visibilité mutualisés (4.7) ---------- */
+
+/** Le fond d'avant la mémoire : les layers indexés à chaque appel, la chaîne des ancêtres relue. */
+function fondDeReference(variant: VariantLu, layer: LayerLu, catalogue: CatalogueDeReference, combinaison: Combinaison): unknown {
+  const parId = new Map(variant.layers.map((l) => [l.id, l]));
+  const couches: { r: number; g: number; b: number; a: number }[] = [];
+  let courant = layer.parent ? parId.get(layer.parent) : undefined;
+  while (courant) {
+    if (courant.visible) {
+      const fills = courant.peintures.filter((p) => p.champ === 'fills');
+      const pile = pileDePeintures(fills, liaisonsPropres(courant), courant.opacite, catalogue, variant, combinaison);
+      if ('limite' in pile) return pile;
+      couches.push(...pile.couches);
+      if (pile.couches.some((c) => c.a >= 1 - 1e-9)) break;
+    }
+    courant = courant.parent ? parId.get(courant.parent) : undefined;
+  }
+  return composer(couches, null) ?? { limite: 'fond-indetermine' };
+}
+
+function catalogueDeFonds(): CatalogueDeReference {
+  const modes = (...ids: string[]) => ids.map((id) => ({ id, nom: `Mode ${id}` }));
+  const v = (cle: string, collection: string, valeurs: Valeurs) =>
+    ({ cle, nom: cle, collection, type: 'COLOR' as const, etat: 'presente' as const, valeurs });
+  return {
+    version: 1, library: null,
+    collections: [
+      { cle: 'A', nom: 'A', role: null, etat: 'lue', modes: modes('a1', 'a2') },
+      { cle: 'B', nom: 'B', role: null, etat: 'lue', modes: modes('b1', 'b2') },
+      { cle: 'Z', nom: 'Z', role: null, etat: 'lue', modes: modes('z1', 'z2') },
+    ],
+    variables: [
+      v('xa', 'A', { a1: rouge(1), a2: rouge(0.2) }),
+      v('yb', 'B', { b1: { valeur: { r: 0.9, g: 0.9, b: 0.9, a: 0.5 } }, b2: { alias: 'xa' } }),
+      v('zz', 'Z', { z1: rouge(0.1), z2: rouge(0.8) }),
+    ],
+  };
+}
+
+type OptionsDArbre = { opaciteM?: number; parentM?: string | null; visibleM?: boolean; intermediaire?: boolean };
+
+/** R (liée à A) porte M (liée à B, semi-transparente) qui porte le texte T ; S est un autre texte sous R. */
+function arbreDeFonds(options: OptionsDArbre = {}): VariantLu {
+  const { opaciteM = 0.6, parentM = 'R', visibleM = true, intermediaire = false } = options;
+  const lie = (porteur: string, cle: string): LiaisonLue => ({ champ: 'fills', indice: 0, porteur, variable: { id: cle, cle, nom: cle, collection: 'x', distante: false } });
+  const base = { type: 'FRAME', visible: true, opacite: 1, dimensions: dims(), valeursEnDur: [] as LayerLu['valeursEnDur'] };
+  const racineLiee: LayerLu = { ...base, id: 'R', nom: 'Root', parent: null, peintures: [solide('fills', gris(1))], liaisons: [lie('R', 'xa')] };
+  const layers: LayerLu[] = [
+    racineLiee,
+    { ...base, id: 'M', nom: 'Mid', parent: intermediaire ? 'F' : parentM, visible: visibleM, opacite: opaciteM, peintures: [solide('fills', gris(0.5), 0.5)], liaisons: [lie('M', 'yb')] },
+    { ...texte([solide('fills', gris(0))], 14, 400, 'T'), parent: 'M' },
+    { ...texte([solide('fills', gris(0))], 14, 400, 'S'), parent: 'R' },
+  ];
+  if (intermediaire) layers.push({ ...base, id: 'F', nom: 'Frame', parent: 'R', peintures: [], liaisons: [] });
+  return variant('v', layers);
+}
+
+const combinaisonsDeFonds = (): Combinaison[] => {
+  const resultat: Combinaison[] = [];
+  for (const a of ['a1', 'a2', undefined]) for (const b of ['b1', 'b2']) for (const z of ['z1', 'z2']) {
+    const modes = new Map<string, string>();
+    if (a) modes.set('A', a);
+    modes.set('B', b);
+    modes.set('Z', z);
+    resultat.push({ modes, etiquette: `${a}/${b}/${z}` });
+  }
+  return resultat;
+};
+
+test('le fond égale celui d\'avant dans deux contextes qui ne diffèrent que par un mode, un ancêtre, une opacité ou une visibilité', () => {
+  const catalogue = catalogueDeFonds();
+  const variantes: [string, VariantLu][] = [
+    ['base', arbreDeFonds()],
+    ['opacité', arbreDeFonds({ opaciteM: 0.4 })],
+    ['ancêtre intermédiaire', arbreDeFonds({ intermediaire: true })],
+    ['sans racine', arbreDeFonds({ parentM: null })],
+    ['parent inconnu', arbreDeFonds({ parentM: 'absent' })],
+    ['ancêtre masqué', arbreDeFonds({ visibleM: false })],
+  ];
+  const fondsDeLaBase = new Set<string>();
+  for (const sens of [1, -1]) {
+    const combos = sens === 1 ? combinaisonsDeFonds() : [...combinaisonsDeFonds()].reverse();
+    for (const [nom, v] of sens === 1 ? variantes : [...variantes].reverse()) {
+      for (const layerId of ['T', 'S', 'M', 'R']) {
+        const layer = v.layers.find((l) => l.id === layerId)!;
+        for (const combinaison of combos) {
+          const attendu = fondDeReference(v, layer, catalogue, combinaison);
+          assert.deepEqual(fondEffectif(v, layer, catalogue, combinaison), attendu, `${nom} ${layerId} ${combinaison.etiquette}`);
+          if (nom === 'base' && layerId === 'T') fondsDeLaBase.add(JSON.stringify(attendu));
+        }
+      }
+    }
+  }
+  assert.ok(fondsDeLaBase.size >= 3, 'les modes changent le fond du texte');
+});
+
+test('deux combinaisons qui s\'accordent sur les modes des ancêtres partagent un fond, une qui en change un non', () => {
+  const catalogue = catalogueDeFonds();
+  const v = arbreDeFonds();
+  const texteT = v.layers.find((l) => l.id === 'T')!;
+  const combinaison = (a: string, b: string, z: string): Combinaison => ({ modes: new Map([['A', a], ['B', b], ['Z', z]]), etiquette: '' });
+  const un = fondEffectif(v, texteT, catalogue, combinaison('a1', 'b1', 'z1'));
+  assert.equal(fondEffectif(v, texteT, catalogue, combinaison('a1', 'b1', 'z2')), un, 'Z n\'est lue par aucun ancêtre');
+  assert.notDeepEqual(fondEffectif(v, texteT, catalogue, combinaison('a2', 'b1', 'z1')), un, 'A est lue par la racine');
+  assert.notDeepEqual(fondEffectif(v, texteT, catalogue, combinaison('a1', 'b2', 'z1')), un, 'B est lue par M');
+  assert.ok(Object.isFrozen(un));
+});
+
+test('la mémoire des fonds suit le tableau des layers et le catalogue', () => {
+  const catalogue = catalogueDeFonds();
+  const v = arbreDeFonds();
+  const texteT = v.layers.find((l) => l.id === 'T')!;
+  const combinaison: Combinaison = { modes: new Map([['A', 'a1'], ['B', 'b1']]), etiquette: '' };
+  const avant = fondEffectif(v, texteT, catalogue, combinaison);
+  v.layers = v.layers.map((l) => (l.id === 'M' ? { ...l, opacite: 0.1 } : l));
+  assert.deepEqual(fondEffectif(v, texteT, catalogue, combinaison), fondDeReference(v, texteT, catalogue, combinaison));
+  assert.notDeepEqual(fondEffectif(v, texteT, catalogue, combinaison), avant, 'une opacité différente change le fond');
+  v.layers.push({ ...v.layers[0], id: 'R2', parent: null, peintures: [solide('fills', gris(0))], liaisons: [] });
+  v.layers = [...v.layers.slice(0, 1), { ...v.layers[1], parent: 'R2' }, ...v.layers.slice(2)];
+  assert.deepEqual(fondEffectif(v, texteT, catalogue, combinaison), fondDeReference(v, texteT, catalogue, combinaison));
+  const autre = catalogueDeFonds();
+  autre.variables = autre.variables.map((x) => (x.cle === 'xa' ? { ...x, valeurs: { a1: rouge(0.3), a2: rouge(0.3) } } : x));
+  assert.deepEqual(fondEffectif(v, texteT, autre, combinaison), fondDeReference(v, texteT, autre, combinaison), 'un autre catalogue relit');
+});
+
+test('le fond lit les ancêtres une fois par contexte de modes, pas une fois par cible et par combinaison', () => {
+  const lectures = { memoire: 0, reference: 0 };
+  const compter = (cle: keyof typeof lectures) => {
+    const v = arbreDeFonds();
+    for (const ancetre of v.layers.filter((l) => l.id === 'M' || l.id === 'R')) {
+      const { peintures } = ancetre;
+      Object.defineProperty(ancetre, 'peintures', { enumerable: true, get() { lectures[cle] += 1; return peintures; } });
+    }
+    return v;
+  };
+  const catalogue = catalogueDeFonds();
+  const memoire = compter('memoire');
+  const reference = compter('reference');
+  for (const combinaison of combinaisonsDeFonds()) for (let rang = 0; rang < 20; rang++) {
+    for (const id of ['T', 'S']) {
+      fondEffectif(memoire, memoire.layers.find((l) => l.id === id)!, catalogue, combinaison);
+      fondDeReference(reference, reference.layers.find((l) => l.id === id)!, catalogue, combinaison);
+    }
+  }
+  assert.ok(lectures.reference > 500, `${lectures.reference} lectures sans mémoire`);
+  assert.ok(lectures.memoire <= 16, `${lectures.memoire} lectures avec la mémoire`);
+});
+
+test('les layers visibles se calculent une fois par variant pour tous les contrôles d\'accessibilité', () => {
+  let lectures = 0;
+  const layers = [racine(), ...Array.from({ length: 200 }, (_, i) => texte([solide('fills', gris(0))], 14, 400, `t${i}`))];
+  for (const layer of layers) {
+    const { visible } = layer;
+    Object.defineProperty(layer, 'visible', { enumerable: true, get() { lectures += 1; return visible; } });
+  }
+  cc(releve([variant('a', layers)]));
+  assert.ok(lectures <= 2 * layers.length, `${lectures} lectures de visibilité pour ${layers.length} layers`);
 });

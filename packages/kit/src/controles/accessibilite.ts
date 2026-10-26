@@ -90,10 +90,10 @@ export const CIBLE_MINIMALE_PX = 24;
 export const CIBLE_TACTILE_PX = 44;
 export const TEXTE_MINIMAL_PX = 12;
 
-type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-illisible' | 'couleur-absente';
+export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-illisible' | 'couleur-absente';
 export type Rgba = { r: number; g: number; b: number; a: number };
 export type Combinaison = { modes: Map<string, string>; etiquette: string };
-type Pile = { couches: Rgba[] } | { limite: Cause };
+export type Pile = { couches: Rgba[] } | { limite: Cause };
 type Cible = {
   layer: LayerLu; code: 'C49' | 'C50'; usage: 'texte' | 'grand-texte' | 'icone' | 'stroke' | 'anneau';
   champ: 'fills' | 'strokes'; peintures: PeintureLue[]; liaisons: LiaisonLue[]; seuil: number; plage?: { debut: number; fin: number };
@@ -172,8 +172,11 @@ function estInteractif(releve: ReleveDeComposant): boolean {
     && (p.valeurs ?? []).some((v) => v.toLowerCase() !== 'default' && (ETATS as readonly string[]).includes(v.toLowerCase())));
 }
 
-function layersVisibles(variant: VariantLu): LayerLu[] {
-  return layersVisiblesDuVariant(variant);
+/** Les layers visibles d'un variant, calculés une fois pour tous les contrôles d'accessibilité ; la liste est gelée. */
+function layersVisibles(variant: VariantLu): readonly LayerLu[] {
+  const memoire = memoireDuVariant(variant);
+  memoire.visibles ??= Object.freeze(layersVisiblesDuVariant(variant));
+  return memoire.visibles;
 }
 
 function estGrandTexte(fontSize: number, fontWeight: number): boolean {
@@ -296,6 +299,18 @@ function modeDeLaCollection(variant: VariantLu, combinaison: Combinaison, collec
   return combinaison.modes.get(collection.cle) ?? modeEffectif(variant, collection) ?? collection.modes[0]?.id;
 }
 
+/** Les collections que la chaîne d'alias d'une variable peut atteindre, tous modes confondus, calculées une fois par catalogue. */
+function clotureDeLaVariable(catalogue: CatalogueDeReference, memoire: MemoireDesCouleurs, cle: string): CollectionDuCatalogue[] {
+  let cloture = memoire.clotures.get(cle);
+  if (!cloture) {
+    const atteintes = new Map<string, CollectionDuCatalogue>();
+    collectionsAtteintes(catalogue, cle, new Set(), atteintes);
+    cloture = [...atteintes.values()];
+    memoire.clotures.set(cle, cloture);
+  }
+  return cloture;
+}
+
 /**
  * La couleur d'une liaison dans une combinaison, alias suivis jusqu'à 10 renvois. Elle ne dépend, pour un catalogue donné, que de
  * la variable, du nombre de renvois déjà faits et du mode choisi pour chaque collection que sa chaîne d'alias peut atteindre
@@ -307,14 +322,7 @@ export function couleurDeLiaison(
 ): Rgba | 'mode-illisible' {
   if (profondeur > 10) return 'mode-illisible';
   const memoire = memoireDesCouleurs(catalogue);
-  let cloture = memoire.clotures.get(cle);
-  if (!cloture) {
-    const atteintes = new Map<string, CollectionDuCatalogue>();
-    collectionsAtteintes(catalogue, cle, new Set(), atteintes);
-    cloture = [...atteintes.values()];
-    memoire.clotures.set(cle, cloture);
-  }
-  const contexte = cloture.map((collection) => modeDeLaCollection(variant, combinaison, collection) ?? SANS_MODE).join(SEPARATEUR);
+  const contexte = clotureDeLaVariable(catalogue, memoire, cle).map((collection) => modeDeLaCollection(variant, combinaison, collection) ?? SANS_MODE).join(SEPARATEUR);
   const signature = `${profondeur}${SEPARATEUR}${cle}${SEPARATEUR}${contexte}`;
   const connue = memoire.couleurs.get(signature);
   if (connue !== undefined) return connue;
@@ -341,7 +349,7 @@ function resoudreLaCouleur(
 }
 
 /** Les couches unies d'une liste de peintures, de la plus haute à la première opaque. */
-function pileDePeintures(
+export function pileDePeintures(
   peintures: PeintureLue[], liaisons: LiaisonLue[], opaciteDuLayer: number,
   catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison,
 ): Pile {
@@ -371,7 +379,7 @@ function pileDePeintures(
 }
 
 /** Compose des couches (de la plus haute à la plus basse) sur une base ; sans base, la dernière doit être opaque. */
-function composer(couches: Rgba[], base: Rgba | null): Rgba | null {
+export function composer(couches: Rgba[], base: Rgba | null): Rgba | null {
   let resultat = base;
   for (let i = couches.length - 1; i >= 0; i--) {
     const c = couches[i];
@@ -388,12 +396,106 @@ function composer(couches: Rgba[], base: Rgba | null): Rgba | null {
   return resultat;
 }
 
-function fondEffectif(
+/**
+ * Mémoire d'un variant : ses layers par identifiant, les layers visibles et les fonds déjà calculés. Elle vaut tant que le tableau
+ * `layers` est le même avec la même longueur ; un layer modifié en place sans changer le tableau n'est pas vu.
+ */
+interface MemoireDuVariant {
+  readonly layers: readonly LayerLu[];
+  readonly nombreDeLayers: number;
+  readonly parId: Map<string, LayerLu>;
+  visibles?: readonly LayerLu[];
+  fonds?: FondsMemorises;
+}
+
+/** Les fonds d'un variant pour un catalogue, avec la même règle de validité que l'index des variables. */
+interface FondsMemorises {
+  readonly catalogue: CatalogueDeReference;
+  readonly variables: readonly VariableDuCatalogue[];
+  readonly nombreDeVariables: number;
+  readonly collections: readonly CollectionDuCatalogue[];
+  readonly nombreDeCollections: number;
+  /** Par identifiant du premier ancêtre : les collections que les liaisons de remplissage de sa chaîne peuvent atteindre. */
+  readonly chaines: Map<string, CollectionDuCatalogue[]>;
+  readonly fonds: Map<string, Rgba | { limite: Cause }>;
+}
+
+const memoiresDesVariants = new WeakMap<VariantLu, MemoireDuVariant>();
+/** Au-delà, les fonds d'un variant sont vidés en entier. */
+const PLAFOND_DE_FONDS = 50_000;
+
+function memoireDuVariant(variant: VariantLu): MemoireDuVariant {
+  const { layers } = variant;
+  const connue = memoiresDesVariants.get(variant);
+  if (connue && connue.layers === layers && connue.nombreDeLayers === layers.length) return connue;
+  const neuve: MemoireDuVariant = { layers, nombreDeLayers: layers.length, parId: new Map(layers.map((l) => [l.id, l] as const)) };
+  memoiresDesVariants.set(variant, neuve);
+  return neuve;
+}
+
+function fondsDuVariant(memoire: MemoireDuVariant, catalogue: CatalogueDeReference): FondsMemorises {
+  const { variables, collections } = catalogue;
+  const connus = memoire.fonds;
+  if (connus && connus.catalogue === catalogue && connus.variables === variables && connus.nombreDeVariables === variables.length
+    && connus.collections === collections && connus.nombreDeCollections === collections.length) return connus;
+  const neufs: FondsMemorises = {
+    catalogue, variables, nombreDeVariables: variables.length, collections, nombreDeCollections: collections.length,
+    chaines: new Map(), fonds: new Map(),
+  };
+  memoire.fonds = neufs;
+  return neufs;
+}
+
+/** Les collections des variables liées aux remplissages de tous les ancêtres de départ, dans l'ordre de la chaîne. */
+function collectionsDeLaChaine(
+  parId: ReadonlyMap<string, LayerLu>, depart: string, catalogue: CatalogueDeReference,
+): CollectionDuCatalogue[] {
+  const memoireDesModes = memoireDesCouleurs(catalogue);
+  const collections = new Map<string, CollectionDuCatalogue>();
+  const vus = new Set<string>();
+  let courant = depart ? parId.get(depart) : undefined;
+  while (courant && !vus.has(courant.id)) {
+    vus.add(courant.id);
+    for (const liaison of liaisonsPropres(courant)) {
+      if (liaison.champ !== 'fills') continue;
+      for (const collection of clotureDeLaVariable(catalogue, memoireDesModes, liaison.variable.cle)) collections.set(collection.cle, collection);
+    }
+    courant = courant.parent ? parId.get(courant.parent) : undefined;
+  }
+  return [...collections.values()];
+}
+
+/**
+ * Le fond d'un layer : les remplissages de ses ancêtres composés jusqu'au premier opaque. Il ne dépend que de la chaîne des
+ * ancêtres, donc du premier d'entre eux, et du mode choisi pour chaque collection que leurs liaisons peuvent atteindre : les layers
+ * de même parent, dans toute combinaison qui s'accorde sur ces modes, partagent le résultat, rendu gelé. Opacités, peintures et
+ * visibilités des ancêtres sont celles du tableau `layers` du variant.
+ */
+export function fondEffectif(
   variant: VariantLu, layer: LayerLu, catalogue: CatalogueDeReference, combinaison: Combinaison,
 ): Rgba | { limite: Cause } {
-  const parId = new Map(variant.layers.map((l) => [l.id, l]));
+  const memoire = memoireDuVariant(variant);
+  const fonds = fondsDuVariant(memoire, catalogue);
+  const depart = layer.parent || '';
+  let collections = fonds.chaines.get(depart);
+  if (!collections) {
+    collections = collectionsDeLaChaine(memoire.parId, depart, catalogue);
+    fonds.chaines.set(depart, collections);
+  }
+  const signature = [depart, ...collections.map((collection) => modeDeLaCollection(variant, combinaison, collection) ?? SANS_MODE)].join(SEPARATEUR);
+  const connu = fonds.fonds.get(signature);
+  if (connu !== undefined) return connu;
+  const fond = Object.freeze(calculerLeFond(variant, memoire.parId, depart, catalogue, combinaison));
+  if (fonds.fonds.size >= PLAFOND_DE_FONDS) fonds.fonds.clear();
+  fonds.fonds.set(signature, fond);
+  return fond;
+}
+
+function calculerLeFond(
+  variant: VariantLu, parId: ReadonlyMap<string, LayerLu>, depart: string, catalogue: CatalogueDeReference, combinaison: Combinaison,
+): Rgba | { limite: Cause } {
   const couches: Rgba[] = [];
-  let courant = layer.parent ? parId.get(layer.parent) : undefined;
+  let courant = depart ? parId.get(depart) : undefined;
   while (courant) {
     if (courant.visible) {
       const fills = courant.peintures.filter((p) => p.champ === 'fills');
