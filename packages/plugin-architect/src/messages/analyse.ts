@@ -27,6 +27,11 @@ export type DemandeDAnalyse =
 export type MessageDAnalyse =
   | { type: 'analyse-commencee'; analyse: IdentiteDAnalyse; demande?: number; mesure?: true }
   | { type: 'analyse-en-cours'; analyse: IdentiteDAnalyse; variantsLus: number; variantsTotal: number; demande?: number; progression?: ProgressionDAnalyse }
+  /**
+   * Les premiers constats, publiés une fois par analyse avant la fin du calcul. Ce n'est pas un statut de `analyse` : il ne porte ni
+   * `statut`, ni `sansTokens`, ni correction, et l'interface ne le prend jamais pour un résultat final.
+   */
+  | { type: 'analyse-provisoire'; analyse: IdentiteDAnalyse; demande?: number; constats: readonly Constat[]; ignores: readonly string[]; lecture: ReleveDeComposant['lecture']; variants: readonly { id: string; nom: string }[] }
   | { type: 'analyse'; analyse: IdentiteDAnalyse; statut: StatutDAnalyse; constats: readonly Constat[]; lecture: ReleveDeComposant['lecture'] | null; variants: readonly { id: string; nom: string }[];
       /** Vrai quand le relevé et le catalogue sont lus et que la collection `components` n'a aucune variable du jeu. */
       sansTokens: boolean; demande?: number; progression?: ProgressionDAnalyse; mesure?: TraceDeMesure }

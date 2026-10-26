@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
 
 import { etatInitial } from '../src/ui/etat';
-import { recevoirUneAnalyse, noterLaDemandeDAnalyse, acquitterLeRenduDeLAnalyse, demandeDAnalyseEnCours } from '../src/ui/composant/analyse';
+import type { Constat } from '../src/messages/commun';
+import { calculEnCours, recevoirUneAnalyse, noterLaDemandeDAnalyse, acquitterLeRenduDeLAnalyse, demandeDAnalyseEnCours } from '../src/ui/composant/analyse';
 import { TEXTES_COMPOSANT, dureeLisible } from '../src/ui/textes/composant';
 import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
@@ -74,6 +75,56 @@ test('une ancienne demande ou génération ne remplace pas l’analyse retenue ;
   assert.equal(demandeDAnalyseEnCours(etat), 2);
   recevoirUneAnalyse(etat, { type: 'occupe', analyse: retenue!.identite, demande: 2 });
   assert.equal(demandeDAnalyseEnCours(etat), null);
+});
+
+test('le provisoire s’ajoute à l’analyse en cours sans valoir résultat final ; double envoi et provisoire tardif sont refusés', () => {
+  const etat = etatInitial();
+  const identite = { sujet: 'Button', generation: 5 };
+  const constat = (id: string) => ({ id, code: 'C1', type: 'corriger' as const, faits: {}, portee: [] }) as unknown as Constat;
+  const provisoire = (constats: readonly Constat[], ignores: readonly string[] = [], demande?: number) => ({
+    type: 'analyse-provisoire' as const, analyse: identite, constats, ignores, lecture: null as never, variants: [{ id: 'v1', nom: 'v1' }], ...(demande === undefined ? {} : { demande }),
+  });
+  noterLaDemandeDAnalyse(etat, 5, false, 0);
+  recevoirUneAnalyse(etat, { type: 'analyse-commencee', demande: 5, analyse: identite });
+  recevoirUneAnalyse(etat, provisoire([constat('a'), constat('b')], ['b'], 5));
+  assert.equal(etat.analyse?.statut, 'provisoire');
+  assert.deepEqual(etat.analyse?.tous.map(({ id }) => id), ['a', 'b']);
+  assert.deepEqual(etat.analyse?.constats.map(({ id }) => id), ['a'], 'les ignorés du provisoire restent hors des constats visibles');
+  assert.equal(demandeDAnalyseEnCours(etat), 5, 'la demande reste en cours : le provisoire ne la termine pas');
+  assert.equal(calculEnCours(etat.analyse!), true);
+  // Un progrès continue de s'enregistrer ; un second provisoire de la même analyse ne remplace pas le premier.
+  recevoirUneAnalyse(etat, { type: 'analyse-en-cours', analyse: identite, variantsLus: 3, variantsTotal: 9 });
+  assert.equal(etat.analyse?.progression?.lus, 3);
+  const premier = etat.analyse;
+  recevoirUneAnalyse(etat, provisoire([constat('c')], [], 5));
+  assert.equal(etat.analyse, premier);
+  // Le provisoire d'une demande plus ancienne est refusé.
+  recevoirUneAnalyse(etat, provisoire([constat('d')], [], 4));
+  assert.equal(etat.analyse, premier);
+  // Le final remplace le provisoire, garde ses ignorés et termine la demande.
+  recevoirUneAnalyse(etat, { type: 'analyse', analyse: identite, statut: 'partielle', constats: [constat('a'), constat('b')], lecture: null, variants: [{ id: 'v1', nom: 'v1' }], sansTokens: false, demande: 5 });
+  assert.equal(etat.analyse?.statut, 'partielle', 'partielle reste un statut final distinct de provisoire');
+  assert.equal(calculEnCours(etat.analyse!), false);
+  assert.deepEqual(etat.analyse?.constats.map(({ id }) => id), ['a']);
+  assert.equal(demandeDAnalyseEnCours(etat), null);
+  // Un provisoire tardif, après le final de la même identité, ne rouvre rien.
+  const final = etat.analyse;
+  recevoirUneAnalyse(etat, provisoire([constat('e')], [], 5));
+  assert.equal(etat.analyse, final);
+  // Une identité plus ancienne est refusée, une génération plus récente ouvre sa propre analyse provisoire.
+  recevoirUneAnalyse(etat, { ...provisoire([constat('f')]), analyse: { sujet: 'Button', generation: 4 } });
+  assert.equal(etat.analyse, final);
+  recevoirUneAnalyse(etat, { ...provisoire([constat('g')], ['g']), analyse: { sujet: 'Button', generation: 6 } });
+  assert.equal(etat.analyse?.identite.generation, 6);
+  assert.equal(etat.analyse?.statut, 'provisoire');
+  assert.equal(etat.analyse?.perimee, false);
+  assert.deepEqual(etat.analyse?.constats, []);
+  // Une analyse périmée ne reçoit plus de provisoire.
+  recevoirUneAnalyse(etat, { type: 'analyse-commencee', analyse: { sujet: 'Button', generation: 7 } });
+  recevoirUneAnalyse(etat, { type: 'perime', analyse: { sujet: 'Button', generation: 7 }, cause: 'document' });
+  const perimee = etat.analyse;
+  recevoirUneAnalyse(etat, { ...provisoire([constat('h')]), analyse: { sujet: 'Button', generation: 7 } });
+  assert.equal(etat.analyse, perimee);
 });
 
 test('le résultat final retient la durée depuis le clic de sa demande, et le résumé l’affiche', () => {

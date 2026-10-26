@@ -11,7 +11,7 @@ import { createSettingsButton } from 'ucm-plugin-socle/src/ui/EnTete';
 import type { Disposition } from '../fenetre';
 import type { Constat } from '../messages/commun';
 import type { Application, Composant } from './application';
-import { aDesLiaisonsPreparees, aPreparer, libraryAChoisir, tonLePlusGrave } from './composant/analyse';
+import { aDesLiaisonsPreparees, calculEnCours, aPreparer, libraryAChoisir, tonLePlusGrave } from './composant/analyse';
 import { TEXTES } from './textes';
 import { estHorsUcm } from './vues/horsUcm';
 
@@ -119,7 +119,7 @@ export function creerBarre(app: Application): Composant {
       analyser.hidden = !composant || estHorsUcm(etat.architecture);
       constats.hidden = !composant;
       const analyse = etat.analyse;
-      const analyseEnCours = analyse?.statut === 'en-cours';
+      const analyseEnCours = analyse !== null && calculEnCours(analyse);
       const dejaAnalyse = analyse !== null && !analyseEnCours;
       analyser.classList.toggle('btn-primary', !dejaAnalyse);
       analyser.classList.toggle('btn-secondary', dejaAnalyse);

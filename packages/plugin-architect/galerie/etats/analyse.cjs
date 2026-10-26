@@ -56,6 +56,11 @@ const ETATS = [
     existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, enCours({ phase: 'regles', fraction: 0.7 })],
   },
   {
+    id: 'analyse-premiers-constats', titre: 'Premiers constats reçus', quand: 'Les contrôles du relevé ont rendu leurs constats ; le résultat final manque encore.',
+    regarder: 'Le panneau garde la progression et Annuler ; aucun constat n’est encore compté ni affiché.',
+    existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, { message: { type: 'analyse-provisoire', analyse: IDENTITE, constats: constatsPartiels, ignores: [], lecture: lecturePartielle, variants } }],
+  },
+  {
     id: 'analyse-perimee-en-cours', titre: 'Analyse périmée pendant la lecture', quand: 'Le document change pendant la lecture des variants.',
     regarder: 'L’alerte de péremption remplace la progression ; aucun constat n’est rendu.',
     existe: true, atteinte: [...alertLu, OUVRIR, ...LECTURE_DES_VARIANTS, perime('document')],

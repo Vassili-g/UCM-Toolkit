@@ -39,7 +39,7 @@ const RELEVE = `<script>
  */
 const MESSAGES_DU_SANDBOX = new Set(['preferences', 'preferences-rangees', 'progression', 'releve', 'lecture-echouee', 'annulation', 'selection', 'disposition', 'composant', 'apercu-du-composant', 'declaration', 'non-construit',
   // L'analyse, les corrections, les questions, les ignorés et la configuration.
-  'analyse-commencee', 'analyse-en-cours', 'analyse', 'perime', 'occupe', 'corrections-appliquees', 'modele-propose', 'question-repondue', 'ignores', 'configuration', 'structure-annulee',
+  'analyse-commencee', 'analyse-en-cours', 'analyse-provisoire', 'analyse', 'perime', 'occupe', 'corrections-appliquees', 'modele-propose', 'question-repondue', 'ignores', 'configuration', 'structure-annulee',
   // La préparation des tokens et la création de ses variables.
   'plan-de-preparation', 'preparations', 'preparation-texte', 'texte-refuse', 'variables-creees', 'liaisons-preparees']);
 

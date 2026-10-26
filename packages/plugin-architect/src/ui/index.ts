@@ -370,6 +370,7 @@ function recevoir(message: PluginMessage): void {
       return;
     case 'analyse-commencee':
     case 'analyse-en-cours':
+    case 'analyse-provisoire':
     case 'analyse':
     case 'perime':
     case 'occupe':

@@ -17,7 +17,7 @@ import type { LiaisonEnAttente } from '../../preparations';
 import type { Etat } from '../etat';
 
 /** Les messages qui touchent l'analyse retenue. */
-export type MessageRecuDeLAnalyse = Extract<PluginMessage, { type: 'analyse-commencee' | 'analyse-en-cours' | 'analyse' | 'perime' | 'occupe' | 'corrections-appliquees' | 'ignores' | 'question-repondue' | 'modele-propose' | 'liaisons-preparees' }>;
+export type MessageRecuDeLAnalyse = Extract<PluginMessage, { type: 'analyse-commencee' | 'analyse-en-cours' | 'analyse-provisoire' | 'analyse' | 'perime' | 'occupe' | 'corrections-appliquees' | 'ignores' | 'question-repondue' | 'modele-propose' | 'liaisons-preparees' }>;
 
 /** Le dernier lot écrit : la ligne de réussite du sandbox, et ce qui s'est écrit. */
 export interface LotEcrit {
@@ -36,7 +36,8 @@ export interface LiaisonsPreparees {
 
 export interface AnalyseRecue {
   readonly identite: IdentiteDAnalyse;
-  readonly statut: 'en-cours' | 'complete' | 'partielle' | 'annulee' | 'arretee';
+  /** `provisoire` : les premiers constats sont reçus, le résultat final manque ; ce n'est pas `partielle`, qui dit une lecture incomplète terminée. */
+  readonly statut: 'en-cours' | 'provisoire' | 'complete' | 'partielle' | 'annulee' | 'arretee';
   /** Les constats visibles : les ignorés n'y sont pas. */
   readonly constats: readonly Constat[];
   /** Tous les constats du message, ignorés compris. */
@@ -75,6 +76,9 @@ export const deLAnalyseCourante = (etat: Etat, identite: IdentiteDAnalyse): bool
 
 const visibles = (tous: readonly Constat[], ignores: readonly string[]): Constat[] => tous.filter((constat) => !ignores.includes(constat.id));
 
+/** Vrai tant que le résultat final manque, provisoire reçu ou non. */
+export const calculEnCours = (analyse: Pick<AnalyseRecue, 'statut'>): boolean => analyse.statut === 'en-cours' || analyse.statut === 'provisoire';
+
 /** Retient le message du sandbox. `occupe` ne change que l'écriture en cours. */
 export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): void {
   const courante = etat.analyse;
@@ -91,10 +95,12 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
     return;
   }
   // Une analyse sans `analyse-commencee` ouvre la sienne quand sa génération est plus récente que celle retenue.
-  if (message.type === 'analyse' && (!courante || message.analyse.generation > courante.identite.generation)) {
+  if ((message.type === 'analyse' || message.type === 'analyse-provisoire') && (!courante || message.analyse.generation > courante.identite.generation)) {
+    const provisoire = message.type === 'analyse-provisoire';
+    const ignores = provisoire ? message.ignores : [];
     etat.analyse = {
-      identite: message.analyse, statut: message.statut, constats: visibles(message.constats, []), tous: message.constats, ignores: [], repondues: {}, variants: message.variants,
-      lecture: message.lecture, sansTokens: message.sansTokens, progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: Date.now(),
+      identite: message.analyse, statut: provisoire ? 'provisoire' : message.statut, constats: visibles(message.constats, ignores), tous: message.constats, ignores, repondues: {}, variants: message.variants,
+      lecture: message.lecture, sansTokens: provisoire ? false : message.sansTokens, progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: Date.now(),
       ...(dureeMs !== undefined ? { dureeMs } : {}),
     };
     return;
@@ -102,8 +108,13 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
   if (!courante || !memeIdentite(courante.identite, message.analyse)) return;
   switch (message.type) {
     case 'analyse-en-cours':
-      if (courante.statut !== 'en-cours' || courante.perimee) return;
+      if (!calculEnCours(courante) || courante.perimee) return;
       etat.analyse = { ...courante, progression: { lus: message.variantsLus, total: message.variantsTotal, ...message.progression, ...(message.progression ? { fraction: Math.max(courante.progression?.fraction ?? 0, Math.min(0.99, message.progression.fraction)) } : {}) } };
+      return;
+    case 'analyse-provisoire':
+      // Un seul provisoire par analyse : un second, un tardif après le final et celui d'une analyse périmée sont refusés.
+      if (courante.statut !== 'en-cours' || courante.perimee) return;
+      etat.analyse = { ...courante, statut: 'provisoire', constats: visibles(message.constats, message.ignores), tous: message.constats, ignores: message.ignores, variants: message.variants, lecture: message.lecture };
       return;
     case 'analyse':
       // Le sandbox garde périmée l'analyse qu'un `perime` a atteinte : le message final ne la rend pas applicable.
@@ -171,7 +182,7 @@ export function analyseDe(etat: Etat, lecture: LectureDeComposant | null): Analy
 /** Comme `analyseDe`, mais aussi pour une analyse sans constat ou pendant l'écriture : le panneau en a besoin. */
 export function analyseDuComposant(etat: Etat, lecture: LectureDeComposant | null): AnalyseRecue | null {
   const { analyse } = etat;
-  if (!analyse || !lecture || analyse.statut === 'en-cours') return null;
+  if (!analyse || !lecture || calculEnCours(analyse)) return null;
   const ids = new Set([lecture.sujet.id, ...lecture.sujet.variants.map((variant) => variant.id)]);
   return analyse.variants.some((variant) => ids.has(variant.id)) ? analyse : null;
 }
