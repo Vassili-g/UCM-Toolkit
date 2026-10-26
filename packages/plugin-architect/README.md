@@ -201,6 +201,26 @@ désactive la mesure. Les durées du sandbox et de l'interface utilisent chacune
 leur horloge ; les acquittements mesurent les allers-retours. Le rendu est
 acquitté après deux frames, sans mesure du compositeur.
 
+Pour relever un composant et chronométrer les lectures de Figma, construisez le plugin
+avec le drapeau de capture, puis cliquez Analyser. L'analyse finit, puis le plugin
+capture le jeu, ses variants, leurs descendants, les maîtres d'instance, les variables,
+les styles, les libraries et les règles de la page, et lit 10 000 fois chaque propriété
+d'un nœud de chaque sorte pour en rendre la durée moyenne. L'interface télécharge
+`capture-architect-<date>.json` et écrit un résumé en console. Le fichier contient des
+données du document : rangez-le dans `_local/`, hors de git.
+
+```sh
+npm run build:plugin -- architect
+cd packages/plugin-architect
+npx esbuild src/ui/index.ts --bundle --outfile=dist/ui.js --format=iife --platform=browser --target=chrome80 --minify "--banner:js=globalThis.UCM_ARCHITECT_MESURER=true;globalThis.UCM_ARCHITECT_CAPTURER=true;"
+node scripts/build-ui.cjs
+```
+
+Le build normal embarque le code de capture sans le lancer : sans
+`UCM_ARCHITECT_CAPTURER`, l'interface n'envoie pas `capturer` et ignore le message de
+capture. `tests/outils/capture.ts` rebâtit un double de nœuds depuis le fichier, pour
+rejouer le relevé et le moteur hors de Figma.
+
 `npm run fidelite --workspace ucm-architect-plugin -- [<cadre>…]` compare
 chaque cadre de `galerie/cadres.json` à l'état de galerie du même identifiant,
 dans la maquette d'UCM Architect : il range les captures côte à côte dans

@@ -35,6 +35,7 @@ import { creerTable } from './table';
 import { TEXTES } from './textes';
 import { creerVueComposant } from './vues/composant';
 import { creerAlerteHorsUcm, estHorsUcm } from './vues/horsUcm';
+import { estUneCapture, recevoirLaCapture } from './capture';
 
 const etat = etatInitial();
 let branchements: Branchements;
@@ -414,6 +415,10 @@ window.addEventListener('message', (evenement: MessageEvent) => {
   const brut: unknown = evenement.data?.pluginMessage;
   if (estReglesRecues(brut)) {
     nomenclature.poserLesReglesRecues(brut.regles);
+    return;
+  }
+  if (estUneCapture(brut)) {
+    recevoirLaCapture(brut);
     return;
   }
   const message = brut as PluginMessage | undefined;

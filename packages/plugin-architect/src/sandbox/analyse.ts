@@ -40,7 +40,7 @@ import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type 
 import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
 import type { NoeudLu } from '../consommateurs';
 import { constatsDuMoteur } from '../constatsDuMoteur';
-import { lireLesVariables } from '../lecture';
+import { enregistrerLesImports, lireLesVariables } from '../lecture';
 import { sujetDe, type PortDuComposant } from '../lectureDuComposant';
 import { lireLaLibraryRangee } from '../ecriture/configuration';
 import { lireLesIgnores, separerLesIgnores } from '../ecriture/ignores';
@@ -50,6 +50,7 @@ import type { IdentiteDAnalyse, OrigineDeSelection } from '../messages/commun';
 import { constatsDeRegles, lireLesRegles, retenirLesModeles, type ReleveDesRegles } from '../regles';
 import { lireLeReleve, type IssueDuReleve } from '../releveDuComposant';
 import { lireLesLibrariesAuClic } from './anticipation';
+import { capturerSiDemande } from './capture';
 import { lireLaDeclaration } from './commun';
 import { retenirLesLiaisons } from './bibliotheque';
 import { libraryDeReference, lireLeNiveau } from './configuration';
@@ -493,6 +494,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   // Les inventaires de la demande : ils meurent avec elle, Actualiser et l'analyse suivante relisent.
   const inventaires = creerInventairesDeLaDemande();
   if (demande.mesurer) ouvrirLaMesure();
+  const importsEnregistres = enregistrerLesImports(demande.capturer === true);
   let mesureOuverte = demande.mesurer === true;
   let mesureClose: TraceDeMesure | null = null;
   courant.cloreMesure = (fin, contenu = '') => {
@@ -628,6 +630,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     const { visibles, ignores } = separerLesIgnores(tous, rangees);
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
     rendre(resultat.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete', visibles, releve, ignores, tous);
+    // La capture suit l'envoi de la trace et garde la place d'opération : une écriture demandée pendant ce temps rend `occupe`.
+    await capturerSiDemande(demande, contexte, { noeud: sujet.noeud, page: pageDuNoeud(sujet.noeud, contexte.figma.currentPage), imports: importsEnregistres });
   } catch (erreur) {
     if (identite === null) {
       identite = commencerUneAnalyse('', [], contexte);
@@ -640,6 +644,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     // Une analyse finie avant d'avoir attendu les libraries (arrêt, erreur) ne laisse pas leur lecture courir : le jeton ne sert plus.
     if (librariesEnCours) courant.jeton.leve = true;
     courant.cloreMesure?.('arretee');
+    enregistrerLesImports(false);
     operation = null;
   }
 }

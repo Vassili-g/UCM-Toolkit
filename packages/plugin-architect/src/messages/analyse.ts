@@ -20,7 +20,7 @@ export type ProgressionDAnalyse = { phase: PhaseDAnalyse; fraction: number; fait
 export type RenduDAnalyse = 'premier-affichage' | 'premiers-constats' | 'resultat-final';
 
 export type DemandeDAnalyse =
-  | { type: 'analyser'; demande?: number; mesurer?: boolean }
+  | { type: 'analyser'; demande?: number; mesurer?: boolean; capturer?: boolean }
   | { type: 'annuler-analyse'; analyse?: IdentiteDAnalyse; demande?: number }
   | { type: 'analyse-rendue'; demande: number; analyse: IdentiteDAnalyse; rendu: RenduDAnalyse; depuisClicMs: number; receptionAuRenduMs: number };
 

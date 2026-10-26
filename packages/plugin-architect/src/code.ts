@@ -42,7 +42,7 @@ function surveillerLeDocument(page?: PageNode): readonly string[] {
   return suivi.surveiller(page).map((nonEcoutee) => nonEcoutee.id);
 }
 
-const contexte: Contexte = { figma, envoyer: versUi, surveillerLeDocument };
+const contexte: Contexte = { figma, envoyer: versUi, surveillerLeDocument, envoyerLaCapture: (message) => figma.ui.postMessage(message) };
 
 const domaineDe = tableDesTypes();
 const ouverture = ouvrirLaFenetre(contexte);

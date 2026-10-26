@@ -82,7 +82,7 @@ test('seule la lecture importe une variable, par sa clé', () => {
     const texte = fs.readFileSync(fichier, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
     return /importVariableByKeyAsync/.test(texte);
   });
-  assert.deepEqual(importateurs.map((fichier) => path.relative(SOURCE, fichier)), ['lecture.ts']);
+  assert.deepEqual(importateurs.map((fichier) => path.relative(SOURCE, fichier).split(path.sep).join('/')).sort(), ['lecture.ts']);
 });
 
 test('dans src/ecriture/, seul liaisons.ts importe une variable et seul selection.ts change la sélection', () => {

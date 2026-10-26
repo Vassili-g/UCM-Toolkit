@@ -485,6 +485,20 @@ export async function lireLeReleve(port: PortDeLecture, fichier: string, revisio
   return { statut: 'lu', releve };
 }
 
+/** Un import que l'analyse a fait : la variable rendue, ou l'erreur levée. */
+export type ImportsEnregistres = Map<string, { readonly valeur: unknown } | { readonly erreur: unknown }>;
+
+let importsEnregistres: ImportsEnregistres | null = null;
+
+/**
+ * Le build de capture demande, avant l'analyse, l'enregistrement des imports que le port de lecture fait : la capture les lit
+ * après coup au lieu d'en faire elle-même, un import abonnant le fichier à la variable. `false` éteint l'enregistrement.
+ */
+export function enregistrerLesImports(actif: boolean): ImportsEnregistres | null {
+  importsEnregistres = actif ? new Map() : null;
+  return importsEnregistres;
+}
+
 /** Compte les appels du port pendant une trace, en conservant le destinataire des méthodes Figma. */
 export function mesurerLePortDeLecture(variables: PortDeLecture): PortDeLecture {
   return {
@@ -492,6 +506,11 @@ export function mesurerLePortDeLecture(variables: PortDeLecture): PortDeLecture 
     getLocalVariablesAsync: () => attendrePourLaMesure(() => variables.getLocalVariablesAsync(), 'api'),
     getVariableByIdAsync: (id) => attendrePourLaMesure(() => variables.getVariableByIdAsync(id), 'api'),
     getVariableCollectionByIdAsync: (id) => attendrePourLaMesure(() => variables.getVariableCollectionByIdAsync(id), 'api'),
-    importVariableByKeyAsync: (cle) => attendrePourLaMesure(() => variables.importVariableByKeyAsync(cle), 'api'),
+    importVariableByKeyAsync: (cle) => {
+      const appel = attendrePourLaMesure(() => variables.importVariableByKeyAsync(cle), 'api');
+      const enregistrement = importsEnregistres;
+      if (!enregistrement) return appel;
+      return appel.then((valeur) => { enregistrement.set(cle, { valeur }); return valeur; }, (erreur: unknown) => { enregistrement.set(cle, { erreur }); throw erreur; });
+    },
   };
 }

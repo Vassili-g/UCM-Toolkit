@@ -4,6 +4,7 @@
  * Un domaine range son état dans son propre module.
  */
 import type { PluginMessage } from '../messages';
+import type { MessageDeCapture } from './capture';
 
 export interface Contexte {
   readonly figma: PluginAPI;
@@ -15,6 +16,11 @@ export interface Contexte {
    * que Figma n'a pas laissé écouter ; `void` d'un double qui n'en dit rien.
    */
   surveillerLeDocument(page?: PageNode): readonly string[] | void;
+  /**
+   * L'envoi de la capture vers l'interface, hors de `PluginMessage` : le build de capture le fournit, pas le build normal. Sans
+   * lui, la capture ne s'exécute pas.
+   */
+  envoyerLaCapture?(message: MessageDeCapture): void;
 }
 
 /** Ce que le suivi demande à une page : `PageNode` en production, un double en test. */

@@ -221,7 +221,8 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       const demande = app.nouvelleDemande();
       const mesurer = (globalThis as typeof globalThis & { UCM_ARCHITECT_MESURER?: boolean }).UCM_ARCHITECT_MESURER === true;
       noterLaDemandeDAnalyse(etat, demande, mesurer);
-      versSandbox({ type: 'analyser', demande, ...(mesurer ? { mesurer: true } : {}) });
+      const capturer = (globalThis as typeof globalThis & { UCM_ARCHITECT_CAPTURER?: boolean }).UCM_ARCHITECT_CAPTURER === true;
+      versSandbox({ type: 'analyser', demande, ...(mesurer ? { mesurer: true } : {}), ...(capturer ? { capturer: true } : {}) });
       app.rendre(['vue', 'barre']);
     },
     annulerAnalyse() {
