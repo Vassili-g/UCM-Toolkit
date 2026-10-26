@@ -7,7 +7,7 @@
  * portée calcule sans mémoire. Le résultat est le même dans les deux cas ; seul
  * le nombre d'allers-retours vers Figma change.
  */
-import { compter, attendrePourLaMesure } from './mesure';
+import { compter, attendrePourLaMesure, mesurerLeCalcul } from './mesure';
 
 /**
  * Le jeton qu'un appelant lève pour demander l'arrêt de l'analyse : une
@@ -177,6 +177,31 @@ export async function respirerSiBesoin(): Promise<void> {
   const ouverte = portee;
   if (!ouverte || porteesRefusees > 0) return;
   await ouverte.cooperation.cederSiBesoin();
+}
+
+/**
+ * Épuise un calcul par étapes dans la portée de l'analyse courante. Une tranche enchaîne les étapes jusqu'à ce que
+ * le budget soit écoulé ou le jeton levé (`doitCeder`), puis cède : une étape peut couvrir bien des entrées, un
+ * nombre fixe d'étapes par tranche ne bornerait pas sa durée. Hors portée, le calcul va jusqu'au bout.
+ */
+export async function calculerParTranches<T>(calcul: Generator<void, T>): Promise<T> {
+  let fin: IteratorResult<void, T> | null = null;
+  try {
+    while (!fin) {
+      await respirerSiBesoin();
+      fin = mesurerLeCalcul(() => {
+        for (;;) {
+          const suivant = calcul.next();
+          if (suivant.done) return suivant;
+          const ouverte = portee;
+          if (ouverte && porteesRefusees === 0 && ouverte.cooperation.doitCeder()) return null;
+        }
+      });
+    }
+    return fin.value as T;
+  } finally {
+    if (!fin) calcul.return(undefined as T);
+  }
 }
 
 /**

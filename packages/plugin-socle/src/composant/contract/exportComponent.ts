@@ -13,11 +13,12 @@ import {
 } from './componentTree';
 import { indexContractedNames, scanComposedMatrix } from './composedComponents';
 import { extractRules } from './extractRules';
-import { contientUneInstanceRendue } from './exportableNodes';
+import { contientUneInstanceRendueParEtapes } from './exportableNodes';
 import { avancer, etape } from './mesure';
 import type { EtapePrevue } from './mesure';
 import {
   AnalyseAnnulee,
+  calculerParTranches,
   dansUnePorteeDAnalyse,
   respirerSiBesoin,
   verifierLAnnulation,
@@ -33,17 +34,17 @@ import { buildContractPropertySurface } from './propertySurface';
 export { mergeWrapperProps } from './propertySurface';
 import { mergeBooleanDescriptions } from './mergeBooleanDescriptions';
 import { mergeEnumDefaults } from './mergeEnumDefaults';
-import { extractPropertyBindings } from './propertyBindings';
-import { compactVariants, intern, signature } from './compactVariants';
-import { CATALOGUES_DE_VUES, elideContract, elideNeutrals } from './elideNeutrals';
-import { serializeJson } from './serializeJson';
+import { extractPropertyBindingsParEtapes } from './propertyBindings';
+import { compactVariantsParEtapes, internParEtapes, signatureParEtapes } from './compactVariants';
+import { CATALOGUES_DE_VUES, elideContractParEtapes, elideNeutralsParEtapes } from './elideNeutrals';
+import { serializeJsonParEtapes } from './serializeJson';
 import { extractVariantSample } from './extractSamples';
 import { mergeIconRules } from './mergeIconRules';
 export { mergeIconRules } from './mergeIconRules';
 import { mergePropDescriptions } from './mergePropDescriptions';
 export { mergePropDescriptions } from './mergePropDescriptions';
 import { buildStateModel, renderingSemanticsFor } from './semantics';
-import { indexVariables, VariableNameResolver } from '../variables';
+import { indexVariablesParEtapes, VariableNameResolver } from '../variables';
 import { codeIdentifier } from '@ucm-kit/core/format';
 import { CONTRACT_VERSION } from '@ucm-kit/core/format';
 import type { Annonce } from '../annonce';
@@ -399,8 +400,13 @@ async function exporterLeComposant(
   await annoncer('Lecture des composants imbriqués…');
   verifier();
   etape('index');
-  const contientDesInstances = matrix.variants.some(({ component }) =>
-    contientUneInstanceRendue(component));
+  let contientDesInstances = false;
+  for (const { component } of matrix.variants) {
+    await respirerSiBesoin();
+    if (!await calculerParTranches(contientUneInstanceRendueParEtapes(component))) continue;
+    contientDesInstances = true;
+    break;
+  }
   const contractes = contientDesInstances
     ? await indexContractedNames(
       matrix.variants.map((entry) => entry.component),
@@ -471,13 +477,13 @@ async function exporterLeComposant(
   reporterLocalisations(stateNotices, warnings);
   warningCursor = warnings.length;
 
-  const { bindings: propertyBindings, applied: appliedByVariant } = extractPropertyBindings(
+  const { bindings: propertyBindings, applied: appliedByVariant } = await calculerParTranches(extractPropertyBindingsParEtapes(
     matrix,
     publicPropertyKeyByFigmaName,
     warnings,
     composed,
     mainByInstanceId,
-  );
+  ));
   markProjectionWarningsSince(warningCursor);
   warningCursor = warnings.length;
 
@@ -500,7 +506,12 @@ async function exporterLeComposant(
     figma.variables.getLocalVariableCollectionsAsync(),
     figma.variables.getLocalVariablesAsync(),
   ]);
-  const index = indexVariables(variables, new Map(collections.map((c) => [c.id, c])));
+  const collectionById = new Map<string, VariableCollection>();
+  for (const collection of collections) {
+    await respirerSiBesoin();
+    collectionById.set(collection.id, collection);
+  }
+  const index = await calculerParTranches(indexVariablesParEtapes(variables, collectionById));
   const resolver = new VariableNameResolver({ index, warnings });
 
   const extracted = await extractStructure(
@@ -631,7 +642,7 @@ async function exporterLeComposant(
   await annoncer('Écriture du contrat…');
   verifier();
   etape('compaction');
-  const compacted = compactVariants(extracted.variants, propertyBindings);
+  const compacted = await calculerParTranches(compactVariantsParEtapes(extracted.variants, propertyBindings));
 
   // Le lien Figma absent ne se signale pas. Distribué par la Community, le
   // plugin n'a pas `enablePrivatePluginApi`, donc jamais la clé du fichier : le
@@ -684,11 +695,13 @@ async function exporterLeComposant(
   // sauté), elle ajoute son entrée. Une seule forme, donc un seul chemin de
   // lecture chez le consommateur.
   const viewStructures = compacted.viewStructures;
-  const structureIds = new Map(
-    Object.entries(viewStructures).map(([id, value]) => [signature(value), id] as const),
-  );
-  const projectionPropre = elideNeutrals(projectionDeReference, 'viewStructures.*');
-  const structureView = intern(projectionPropre, 'st', structureIds, viewStructures);
+  const structureIds = new Map<string, string>();
+  for (const id of Object.keys(viewStructures)) {
+    await respirerSiBesoin();
+    structureIds.set(await calculerParTranches(signatureParEtapes(viewStructures[id])), id);
+  }
+  const projectionPropre = await calculerParTranches(elideNeutralsParEtapes(projectionDeReference, 'viewStructures.*'));
+  const structureView = await calculerParTranches(internParEtapes(projectionPropre, 'st', structureIds, viewStructures));
   // Les étiquettes Figma des axes viennent de la source, jamais d'une relecture
   // des noms publiés : reconstruire un nom depuis la table et le comparer ne
   // valide pas l'appariement axe ↔ étiquette, qu'une permutation traverse sans
@@ -698,7 +711,7 @@ async function exporterLeComposant(
     ? compacted.variants.map(({ figmaName: _figmaName, ...reste }) => reste)
     : compacted.variants;
 
-  const contract: Contract = elideContract<Contract>({
+  const contract: Contract = await calculerParTranches(elideContractParEtapes<Contract>({
     name: componentSet.name || 'Component',
     meta: {
       ...meta,
@@ -731,12 +744,12 @@ async function exporterLeComposant(
     composes: composesPlacees,
     samples: compacted.samples,
     ...(intent ? { intent } : {}),
-  }, CATALOGUES_DE_VUES);
+  }, CATALOGUES_DE_VUES));
 
   etape('serialisation');
   const sortie: ComponentExport = {
     filename: componentContractFilename(contract.name),
-    content: serializeJson(contract),
+    content: await calculerParTranches(serializeJsonParEtapes(contract)),
     warningCount: allWarnings.length,
     warnings: allWarnings,
     localisations,

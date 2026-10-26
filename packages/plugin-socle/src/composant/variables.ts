@@ -126,20 +126,6 @@ export type VariableIndex = {
 };
 
 /**
- * Chemins des ancêtres d'un token, du plus court au plus long.
- * `['a','b','c']` → `['a', 'a.b']`. La feuille elle-même n'en fait pas partie.
- */
-function ancestorPaths(segments: string[]): string[] {
-  const ancestors: string[] = [];
-  let current = '';
-  for (let depth = 0; depth < segments.length - 1; depth += 1) {
-    current = current ? `${current}.${segments[depth]}` : segments[depth];
-    ancestors.push(current);
-  }
-  return ancestors;
-}
-
-/**
  * Construit l'index sans rien signaler : ce sont les commandes qui décident
  * de quoi avertir. L'export tokens les signale toutes (il exporte tout) ;
  * l'export composant ne signale que celles qu'un calque lie réellement, sinon
@@ -149,6 +135,14 @@ export function indexVariables(
   variables: Variable[],
   collectionById: Map<string, VariableCollection>,
 ): VariableIndex {
+  const calcul = indexVariablesParEtapes(variables, collectionById);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Même index de collisions, interruptible entre variables et ancêtres de chemin. */
+export function* indexVariablesParEtapes(variables: Variable[], collectionById: Map<string, VariableCollection>): Generator<void, VariableIndex> {
   const pathById = new Map<string, string>();
   const variableByPath = new Map<string, Variable>();
   const ambiguous = new Map<string, AmbiguousVariable>();
@@ -165,15 +159,29 @@ export function indexVariables(
   const groupOwnerByPath = new Map<string, string>();
 
   for (const variable of variables) {
+    yield;
     const collection = collectionById.get(variable.variableCollectionId);
     const path = joinTokenPath(collection?.name ?? '', variable.name);
     const segments = path.split('.').filter(Boolean);
-    const ancestors = ancestorPaths(segments);
+    const ancestors: string[] = [];
+    let current = '';
+    for (let depth = 0; depth < segments.length - 1; depth += 1) {
+      yield;
+      current = current ? `${current}.${segments[depth]}` : segments[depth];
+      ancestors.push(current);
+    }
+    let ancestorOccupe: string | undefined;
+    for (const ancestor of ancestors) {
+      yield;
+      if (!variableByPath.has(ancestor)) continue;
+      ancestorOccupe = ancestor;
+      break;
+    }
     const occupiedPath =
       // Collision exacte : deux variables donnent la même feuille.
       (variableByPath.has(path) ? path : null)
       // Une feuille existante ne peut pas devenir le parent d'un groupe.
-      ?? ancestors.find((ancestor) => variableByPath.has(ancestor))
+      ?? ancestorOccupe
       // Une nouvelle feuille ne peut pas remplacer le groupe implicite d'une
       // variable déjà rencontrée plus profondément.
       ?? groupOwnerByPath.get(path)
@@ -196,6 +204,7 @@ export function indexVariables(
     pathById.set(variable.id, path);
     // Le premier occupant d'un groupe reste le sien : ne jamais l'écraser.
     for (const ancestor of ancestors) {
+      yield;
       if (!groupOwnerByPath.has(ancestor)) groupOwnerByPath.set(ancestor, path);
     }
   }

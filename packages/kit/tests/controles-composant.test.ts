@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { liaisonsDuReleve } from '../src/controles/mapping.js';
 import {
   axeDePropriete, axesDuReleve, axesDuReleveParEtapes, tokensDuComposant, tokensDuComposantParEtapes,
   controlerNommage, controlerNommageParEtapes, controlerMapping, controlerMappingParEtapes, controlerCouches, controlerCouchesParEtapes, controlerOublis, controlerOublisParEtapes,
@@ -76,24 +77,6 @@ test('le nommage par étapes conserve les constats et candidats ordonnés', () =
   ];
   assert.deepEqual(epuiser(controlerNommageParEtapes(r, c)), attendu);
   assert.deepEqual(controlerNommage(r, c), attendu);
-});
-
-test('mapping et oublis cèdent avant la lecture de tous les tokens partagés', () => {
-  for (const controler of [controlerMappingParEtapes, controlerOublisParEtapes]) {
-    const r = releve('Alert');
-    const c = catalogue();
-    let nomsLus = 0;
-    c.variables = Array.from({ length: 256 }, (_, i) => ({
-      cle: `v${i}`, get nom() { nomsLus += 1; return 'alert/color/background'; }, collection: 'composants', type: 'COLOR', etat: 'presente',
-    }));
-    const calcul = controler(r, c);
-    for (let i = 0; i < 16; i += 1) assert.equal(calcul.next().done, false);
-    assert.ok(nomsLus > 0 && nomsLus < 256, `${controler.name} : ${nomsLus} noms lus`);
-    const avantAnnulation = nomsLus;
-    calcul.return([]);
-    assert.equal(calcul.next().done, true);
-    assert.equal(nomsLus, avantAnnulation);
-  }
 });
 
 test('mapping et oublis cèdent avant la lecture de tous les tokens partagés', () => {
@@ -231,6 +214,17 @@ function variante(id: string, valeurs: Record<string, string>, cle: string, opti
 }
 
 const codes = (constats: ReturnType<typeof controlerMapping>): string[] => constats.map(({ code }) => code);
+
+test('le parcours commun des liaisons conserve variants, layers et indices dans leur ordre', () => {
+  const r = releve('Alert');
+  const a = variante('a', {}, 'v0');
+  const b = variante('b', {}, 'v1');
+  a.layers[0].liaisons.push({ ...a.layers[0].liaisons[0], indice: 1 });
+  a.layers.push({ ...b.layers[0], liaisons: [] }, b.layers[0]);
+  r.variants = [{ ...a, id: 'vide', layers: [] }, a, b];
+  const attendu = r.variants.flatMap((variant) => variant.layers.flatMap((layer) => layer.liaisons.map((liaison) => ({ variant, layer, liaison }))));
+  assert.deepEqual(liaisonsDuReleve(r), attendu);
+});
 
 test('le mapping par étapes conserve les écarts ordonnés puis la fratrie', () => {
   const r = releve('Alert', [axe('Severity', ['info', 'success'])]);
@@ -452,6 +446,93 @@ test('C32 trouve un token inutilisé et un frère non chargé, sans exiger ses v
   assert.equal(controlerOublis(r, c).filter(({ code, faits }) => code === 'C32' && faits.motif === 'inutilise').length, 0);
 });
 
+test('les oublis par étapes conservent les identifiants, faits et ordre de C31 à C33', () => {
+  const r = releve('Button', [axe('State', ['default', 'hover']), axe('Size', ['sm', 'md'])]);
+  r.variants = [
+    variante('default', { State: 'default', Size: 'sm' }, 'v0'),
+    variante('hover', { State: 'hover', Size: 'sm' }, 'v0'),
+  ];
+  const c = catalogue('button/color/default/background', 'button/size/sm/gap');
+  const attendu = [
+    {
+      id: 'C31:State=default,Size=md', code: 'C31', type: 'verifier', famille: 'variants', variants: [], layers: [],
+      faits: { State: 'default', Size: 'md' },
+    },
+    {
+      id: 'C31:State=hover,Size=md', code: 'C31', type: 'verifier', famille: 'variants', variants: [], layers: [],
+      faits: { State: 'hover', Size: 'md' },
+    },
+    {
+      id: 'C32:v1', code: 'C32', type: 'verifier', famille: 'tokens', variants: [], layers: [],
+      faits: { token: 'button/size/sm/gap', motif: 'inutilise' },
+    },
+    {
+      id: 'C33:hover:color', code: 'C33', type: 'verifier', famille: 'variants', variants: ['hover'], layers: [],
+      faits: { variant: 'hover', famille: 'color' },
+    },
+  ];
+  const calcul = controlerOublisParEtapes(r, c);
+  let resultat = calcul.next();
+  while (!resultat.done) resultat = calcul.next();
+  assert.deepEqual(resultat.value, attendu);
+  assert.deepEqual(controlerOublis(r, c), attendu);
+});
+
+test('la matrice des oublis conserve sa borne de 4 096 combinaisons', () => {
+  const valeurs = Array.from({ length: 16 }, (_, i) => String(i));
+  const r = releve('Button', ['A', 'B', 'C'].map((nom) => axe(nom, valeurs)));
+  const c = catalogue();
+  const calcul = controlerOublisParEtapes(r, c);
+  let resultat = calcul.next();
+  while (!resultat.done) resultat = calcul.next();
+  assert.equal(resultat.value.length, 4096);
+  assert.deepEqual(resultat.value, controlerOublis(r, c));
+  r.proprietes.push(axe('D', ['0', '1']));
+  assert.deepEqual(controlerOublis(r, c), []);
+  const depasse = controlerOublisParEtapes(r, c);
+  let fin = depasse.next();
+  while (!fin.done) fin = depasse.next();
+  assert.deepEqual(fin.value, []);
+});
+
+for (const passe of ['C31', 'C32', 'C33', 'liaisons'] as const) {
+  test(`les oublis découpent les recherches ${passe} quand leur entrée grandit`, () => {
+    for (const nombre of [128, 256]) {
+      let lectures = 0;
+      const r = releve('Button', [axe('State', passe === 'C31' ? ['default'] : [])]);
+      const c = passe === 'C31' || passe === 'liaisons' ? catalogue() : catalogue('button/color/default/background');
+      const valeurs = () => ({ get State() { lectures += 1; return 'hover'; } });
+      r.variants = Array.from({ length: passe === 'C33' || passe === 'liaisons' ? 1 : nombre }, (_, rang) => variante(`v${rang}`, valeurs(), 'v0'));
+      if (passe === 'C33') c.variables = Array.from({ length: nombre }, (_, rang) => ({ ...c.variables[0], cle: `t${rang}` }));
+      if (passe === 'liaisons') r.variants[0].layers[0].liaisons = Array.from({ length: nombre }, () => ({
+        champ: 'fills', porteur: 'layer', variable: { id: 'v', get cle() { lectures += 1; return 'v0'; }, nom: '', collection: '', distante: false },
+      }));
+      const attendu = controlerOublis(r, c);
+      const total = lectures;
+      assert.ok(total >= nombre, `${passe}: ${total}`);
+      lectures = 0;
+      const calcul = controlerOublisParEtapes(r, c);
+      let etape = calcul.next();
+      let avant = 0;
+      while (!etape.done) {
+        assert.ok(lectures - avant <= 2, `${passe}: ${lectures - avant} lectures dans une avancée`);
+        avant = lectures;
+        etape = calcul.next();
+      }
+      assert.equal(lectures, total);
+      assert.deepEqual(etape.value, attendu);
+      lectures = 0;
+      const annule = controlerOublisParEtapes(r, c);
+      while (lectures < 25) assert.equal(annule.next().done, false);
+      annule.return([]);
+      const arret = lectures;
+      assert.equal(annule.next().done, true);
+      assert.equal(lectures, arret);
+      assert.ok(arret <= 26 && arret < total);
+    }
+  });
+}
+
 test('C33 trouve un variant sans token de sa famille et accepte un token partagé', () => {
   const r = releve('Button', [axe('State', ['default', 'hover'])]);
   r.variants = [variante('default', { State: 'default' }, 'v0'), variante('hover', { State: 'hover' }, 'v0')];
@@ -543,53 +624,3 @@ test('table T : le relevé Button couvre les 216 variants et les écarts de surv
     && layers.some((layer) => layer.startsWith('layer-'))));
   assert.ok(!constats.some(({ code, faits }) => code === 'C16' && faits.token === 'button/color/background'));
 });
-
-test('les oublis par étapes conservent les identifiants, faits et ordre de C31 à C33', () => {
-  const r = releve('Button', [axe('State', ['default', 'hover']), axe('Size', ['sm', 'md'])]);
-  r.variants = [
-    variante('default', { State: 'default', Size: 'sm' }, 'v0'),
-    variante('hover', { State: 'hover', Size: 'sm' }, 'v0'),
-  ];
-  const c = catalogue('button/color/default/background', 'button/size/sm/gap');
-  const attendu = [
-    {
-      id: 'C31:State=default,Size=md', code: 'C31', type: 'verifier', famille: 'variants', variants: [], layers: [],
-      faits: { State: 'default', Size: 'md' },
-    },
-    {
-      id: 'C31:State=hover,Size=md', code: 'C31', type: 'verifier', famille: 'variants', variants: [], layers: [],
-      faits: { State: 'hover', Size: 'md' },
-    },
-    {
-      id: 'C32:v1', code: 'C32', type: 'verifier', famille: 'tokens', variants: [], layers: [],
-      faits: { token: 'button/size/sm/gap', motif: 'inutilise' },
-    },
-    {
-      id: 'C33:hover:color', code: 'C33', type: 'verifier', famille: 'variants', variants: ['hover'], layers: [],
-      faits: { variant: 'hover', famille: 'color' },
-    },
-  ];
-  const calcul = controlerOublisParEtapes(r, c);
-  let resultat = calcul.next();
-  while (!resultat.done) resultat = calcul.next();
-  assert.deepEqual(resultat.value, attendu);
-  assert.deepEqual(controlerOublis(r, c), attendu);
-});
-
-test('la matrice des oublis conserve sa borne de 4 096 combinaisons', () => {
-  const valeurs = Array.from({ length: 16 }, (_, i) => String(i));
-  const r = releve('Button', ['A', 'B', 'C'].map((nom) => axe(nom, valeurs)));
-  const c = catalogue();
-  const calcul = controlerOublisParEtapes(r, c);
-  let resultat = calcul.next();
-  while (!resultat.done) resultat = calcul.next();
-  assert.equal(resultat.value.length, 4096);
-  assert.deepEqual(resultat.value, controlerOublis(r, c));
-  r.proprietes.push(axe('D', ['0', '1']));
-  assert.deepEqual(controlerOublis(r, c), []);
-  const depasse = controlerOublisParEtapes(r, c);
-  let fin = depasse.next();
-  while (!fin.done) fin = depasse.next();
-  assert.deepEqual(fin.value, []);
-});
-

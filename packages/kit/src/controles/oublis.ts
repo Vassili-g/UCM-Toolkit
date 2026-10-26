@@ -3,8 +3,7 @@ import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
 import type { CatalogueDeReference } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { liaisonsDuReleve } from './mapping.js';
-import { axesDuReleve, axesDuReleveParEtapes, constatDuComposant, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { axesDuReleve, axesDuReleveParEtapes, constatDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import type { ReleveDeComposant, VariantLu } from './releve.js';
 
 function memeValeur(axe: AxeDuComposant, gauche: string, droite: string): boolean {
@@ -14,14 +13,22 @@ function memeValeur(axe: AxeDuComposant, gauche: string, droite: string): boolea
   return !!(premier && second && premier === second) || formeReconnue(gauche) === formeReconnue(droite);
 }
 
-function tokenDuVariant(
+function* tokenDuVariant(
   token: TokenDuComposant, variant: VariantLu,
   axes: ReturnType<typeof axesDuReleve>,
-): boolean {
-  return (Object.entries(axes) as [AxeDuComposant, NonNullable<typeof axes[AxeDuComposant]>][]).every(([axe, propriete]) => {
-    const segment = segmentDAxe(token, axe);
-    return !segment || !!variant.valeurs[propriete.nom] && memeValeur(axe, segment, variant.valeurs[propriete.nom]);
-  });
+): Generator<void, boolean> {
+  for (const [axe, propriete] of Object.entries(axes) as [AxeDuComposant, NonNullable<typeof axes[AxeDuComposant]>][]) {
+    yield;
+    let segment: string | undefined;
+    for (const [rang, partie] of token.lecture.entries()) {
+      yield;
+      if (partie.role !== axe) continue;
+      segment = token.segments[rang];
+      break;
+    }
+    if (segment && !(variant.valeurs[propriete.nom] && memeValeur(axe, segment, variant.valeurs[propriete.nom]))) return false;
+  }
+  return true;
 }
 
 function* combinaisons(axes: ReleveDeComposant['proprietes']): Generator<void, Record<string, string>[]> {
@@ -34,7 +41,13 @@ function* combinaisons(axes: ReleveDeComposant['proprietes']): Generator<void, R
     for (const combinaison of resultat) {
       for (const valeur of axe.valeurs) {
         yield;
-        suivantes.push({ ...combinaison, [axe.nom]: valeur });
+        const suivante: Record<string, string> = {};
+        for (const nom of Object.keys(combinaison)) {
+          yield;
+          Object.defineProperty(suivante, nom, { value: combinaison[nom], enumerable: true, writable: true, configurable: true });
+        }
+        Object.defineProperty(suivante, axe.nom, { value: valeur, enumerable: true, writable: true, configurable: true });
+        suivantes.push(suivante);
       }
     }
     resultat = suivantes;
@@ -49,28 +62,71 @@ export function controlerOublis(releve: ReleveDeComposant, catalogue: CatalogueD
   return etape.value;
 }
 
-/** Cède pendant la construction du produit des variants, puis entre combinaisons, tokens et variants. */
+/** Cède pendant la construction de la matrice et entre les vérifications de couverture. */
 export function* controlerOublisParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const constats: Constat[] = [];
   const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0;
   if (!lectureComplete) return constats;
   const axes = yield* axesDuReleveParEtapes(releve);
   const tokens = yield* tokensDuComposantParEtapes(releve, catalogue);
-  const collection = catalogue.collections.find((entree) => entree.role === 'components');
+  let collection: CatalogueDeReference['collections'][number] | undefined;
+  for (const entree of catalogue.collections) {
+    yield;
+    if (entree.role !== 'components') continue;
+    collection = entree;
+    break;
+  }
 
   const matrice = yield* combinaisons(releve.proprietes);
   for (const combinaison of matrice) {
     yield;
-    if (!Object.keys(combinaison).length || releve.variants.some((variant) => Object.entries(combinaison).every(([axe, valeur]) => variant.valeurs[axe] === valeur))) continue;
-    constats.push(constatDuComposant('C31', 'variants', 'verifier', Object.entries(combinaison).map(([nom, valeur]) => `${nom}=${valeur}`).join(','), combinaison));
+    const noms = Object.keys(combinaison);
+    if (!noms.length) continue;
+    let presente = false;
+    for (const variant of releve.variants) {
+      yield;
+      let correspond = true;
+      for (const nom of noms) {
+        yield;
+        if (variant.valeurs[nom] === combinaison[nom]) continue;
+        correspond = false;
+        break;
+      }
+      if (!correspond) continue;
+      presente = true;
+      break;
+    }
+    if (presente) continue;
+    const coordonnees: string[] = [];
+    for (const nom of noms) {
+      yield;
+      coordonnees.push(`${nom}=${combinaison[nom]}`);
+    }
+    constats.push(constatDuComposant('C31', 'variants', 'verifier', coordonnees.join(','), combinaison));
   }
 
   if (collection?.etat !== 'lue') return constats;
-  const liees = new Set(liaisonsDuReleve(releve).map(({ liaison }) => liaison.variable.cle));
+  const liees = new Set<string>();
+  for (const variant of releve.variants) {
+    yield;
+    for (const layer of variant.layers) {
+      yield;
+      for (const liaison of layer.liaisons) {
+        yield;
+        liees.add(liaison.variable.cle);
+      }
+    }
+  }
   for (const token of tokens) {
     yield;
     if (!token.lecture.length) continue;
-    const sansVariant = !releve.variants.some((variant) => tokenDuVariant(token, variant, axes));
+    let sansVariant = true;
+    for (const variant of releve.variants) {
+      yield;
+      if (!(yield* tokenDuVariant(token, variant, axes))) continue;
+      sansVariant = false;
+      break;
+    }
     if (!sansVariant && liees.has(token.variable.cle)) continue;
     constats.push(constatDuComposant('C32', 'tokens', 'verifier', token.variable.cle, {
       token: token.variable.nom, motif: sansVariant ? 'sans-variant' : 'inutilise',
@@ -81,7 +137,13 @@ export function* controlerOublisParEtapes(releve: ReleveDeComposant, catalogue: 
   for (const token of tokens) {
     yield;
     if (!token.lecture.length) continue;
-    const famille = token.lecture.find((segment) => segment.role === 'famille')?.terme;
+    let famille: string | undefined;
+    for (const segment of token.lecture) {
+      yield;
+      if (segment.role !== 'famille') continue;
+      famille = segment.terme;
+      break;
+    }
     if (!famille) continue;
     const groupe = familles.get(famille) ?? [];
     groupe.push(token);
@@ -90,7 +152,15 @@ export function* controlerOublisParEtapes(releve: ReleveDeComposant, catalogue: 
   for (const variant of releve.variants) {
     yield;
     for (const [famille, groupe] of familles) {
-      if (groupe.some((token) => tokenDuVariant(token, variant, axes))) continue;
+      yield;
+      let couvert = false;
+      for (const token of groupe) {
+        yield;
+        if (!(yield* tokenDuVariant(token, variant, axes))) continue;
+        couvert = true;
+        break;
+      }
+      if (couvert) continue;
       constats.push(constatDuComposant('C33', 'variants', 'verifier', `${variant.id}:${famille}`, {
         variant: variant.nom, famille,
       }, [variant.id]));

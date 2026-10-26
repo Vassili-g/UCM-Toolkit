@@ -1,6 +1,6 @@
 /** Situe les component properties sur les calques qu'elles contrôlent. */
 import type { VariantMatrix } from './componentTree';
-import { getAllNodes } from './exportableNodes';
+import { getAllNodesParEtapes } from './exportableNodes';
 import { pointDe, pousserNote, sujet } from './localisation';
 import type { ComposedInstances } from './exportableNodes';
 import type { ExtractedPropertyBinding } from '@ucm-kit/core/format';
@@ -48,10 +48,11 @@ const USAGE_DE_LA_LIAISON = {
   mainComponent: 'l’instance affichée',
 } as const;
 
-function pathFrom(node: SceneNode, root: ComponentNode): string[] {
+function* pathFrom(node: SceneNode, root: ComponentNode): Generator<void, string[]> {
   const path: string[] = [];
   let current: BaseNode | null | undefined = node;
   while (current && current !== root) {
+    yield;
     if ('name' in current) path.unshift(current.name);
     current = current.parent;
   }
@@ -70,6 +71,20 @@ export function extractPropertyBindings(
   composed: ComposedInstances = new Map(),
   mainByInstanceId: ReadonlyMap<string, ComponentNode> = new Map(),
 ): PropertyBindingScan {
+  const calcul = extractPropertyBindingsParEtapes(matrix, publicKeyByFigmaName, warnings, composed, mainByInstanceId);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Mêmes liaisons et valeurs appliquées, interruptibles dans le parcours des calques. */
+export function* extractPropertyBindingsParEtapes(
+  matrix: VariantMatrix,
+  publicKeyByFigmaName: ReadonlyMap<string, string>,
+  warnings: string[],
+  composed: ComposedInstances = new Map(),
+  mainByInstanceId: ReadonlyMap<string, ComponentNode> = new Map(),
+): Generator<void, PropertyBindingScan> {
   const bindings: ExtractedPropertyBinding[] = [];
   const applied: AppliedPropertyValues = new Map();
   // Une clé qu'un même variant renseigne deux fois différemment n'a pas de
@@ -78,13 +93,16 @@ export function extractPropertyBindings(
   const unresolved = new Set<string>();
 
   for (const entry of matrix.variants) {
+    yield;
     // `getAllNodes` inclut déjà la racine. La préfixer publierait deux fois une
     // component property portée directement par le variant.
-    const nodes = getAllNodes(entry.component, [], composed);
+    const nodes = yield* getAllNodesParEtapes(entry.component, [], composed);
     for (const node of nodes) {
+      yield;
       const references = node.componentPropertyReferences;
       if (!references) continue;
       for (const target of ['visible', 'characters', 'mainComponent'] as const) {
+        yield;
         const figmaPropName = references[target];
         if (!figmaPropName) continue;
         const prop = publicKeyByFigmaName.get(figmaPropName);
@@ -117,7 +135,7 @@ export function extractPropertyBindings(
           target,
           nodeId: node.id,
           variantNodeId: entry.component.id,
-          figmaPath: pathFrom(node, entry.component),
+          figmaPath: yield* pathFrom(node, entry.component),
         });
 
         const value = appliedValue(node, target, mainByInstanceId);

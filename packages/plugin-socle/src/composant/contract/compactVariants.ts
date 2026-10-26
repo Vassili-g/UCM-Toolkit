@@ -4,7 +4,7 @@
  * Les ids courts sont attribués dans l'ordre de la matrice : deux exports du
  * même document produisent donc le même JSON, sans hash opaque ni héritage.
  */
-import { elideNeutrals, isNeutral } from './elideNeutrals';
+import { elideNeutralsParEtapes, isNeutral } from './elideNeutrals';
 import type {
   ComposedDependency,
   ContractSample,
@@ -49,12 +49,31 @@ type CompactedVariants = {
  * distinctes. Seul l'ordre des clés cesse de compter.
  */
 export function signature(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(signature).join(',')}]`;
+  const calcul = signatureParEtapes(value);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Signature identique à `signature`, avec une étape par valeur parcourue. */
+export function* signatureParEtapes(value: unknown): Generator<void, string> {
+  yield;
+  if (Array.isArray(value)) {
+    const items: string[] = new Array(value.length);
+    for (let rang = 0; rang < value.length; rang += 1) {
+      yield;
+      if (rang in value) items[rang] = yield* signatureParEtapes(value[rang]);
+    }
+    return `[${items.join(',')}]`;
+  }
   if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';
-  const entries = Object.entries(value as Record<string, unknown>).sort(
-    ([a], [b]) => (a < b ? -1 : 1),
-  );
-  return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${signature(item)}`).join(',')}}`;
+  const cles = Object.keys(value as object).sort();
+  const items: string[] = [];
+  for (const key of cles) {
+    yield;
+    items.push(`${JSON.stringify(key)}:${yield* signatureParEtapes((value as Record<string, unknown>)[key])}`);
+  }
+  return `{${items.join(',')}}`;
 }
 
 /** Catalogue une valeur JSON exacte et retourne sa clé courte et déterministe. */
@@ -64,7 +83,15 @@ export function intern<T>(
   idsBySignature: Map<string, string>,
   catalog: Record<string, T>,
 ): string {
-  const key = signature(value);
+  const calcul = internParEtapes(value, prefix, idsBySignature, catalog);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Catalogue la même valeur exacte en cédant pendant sa signature. */
+export function* internParEtapes<T>(value: T, prefix: string, idsBySignature: Map<string, string>, catalog: Record<string, T>): Generator<void, string> {
+  const key = yield* signatureParEtapes(value);
   const known = idsBySignature.get(key);
   if (known) return known;
   const id = `${prefix}${idsBySignature.size + 1}`;
@@ -102,11 +129,11 @@ function catalogue<T>(prefix: string, chemin: string): Catalogue<T> {
  * référencée. Une partie qui n'est que du vide n'est pas cataloguée du tout :
  * son renvoi reste absent, à la règle commune.
  */
-function ranger<T>(cat: Catalogue<T>, value: T | undefined): string | undefined {
+function* ranger<T>(cat: Catalogue<T>, value: T | undefined): Generator<void, string | undefined> {
   if (value === undefined) return undefined;
-  const propre = elideNeutrals(value, cat.chemin);
+  const propre = yield* elideNeutralsParEtapes(value, cat.chemin);
   if (isNeutral(propre)) return undefined;
-  return intern(propre, cat.prefix, cat.ids, cat.entries);
+  return yield* internParEtapes(propre, cat.prefix, cat.ids, cat.entries);
 }
 
 /**
@@ -119,10 +146,11 @@ function ranger<T>(cat: Catalogue<T>, value: T | undefined): string | undefined 
  * occurrences, et la même fin sur toutes. Une définition qui ne vise pas un
  * calque d'instance n'en a pas, et ses `nodeId` restent écrits en entier.
  */
-function finCommune(nodeIds: readonly string[]): string | undefined {
+function* finCommune(nodeIds: readonly string[]): Generator<void, string | undefined> {
   if (nodeIds.length < 2) return undefined;
   let commune: string | undefined;
   for (const nodeId of nodeIds) {
+    yield;
     const separator = nodeId.lastIndexOf(';');
     if (separator === -1) return undefined;
     const fin = nodeId.slice(separator);
@@ -145,6 +173,14 @@ export function compactVariants(
   expandedVariants: readonly ExtractedContractVariant[],
   expandedBindings: readonly ExtractedPropertyBinding[],
 ): CompactedVariants {
+  const calcul = compactVariantsParEtapes(expandedVariants, expandedBindings);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Mêmes catalogues et ids que `compactVariants`, interruptibles dans chaque bloc. */
+export function* compactVariantsParEtapes(expandedVariants: readonly ExtractedContractVariant[], expandedBindings: readonly ExtractedPropertyBinding[]): Generator<void, CompactedVariants> {
   const structures = catalogue<VariantStructure>('st', 'viewStructures.*');
   const typographies = catalogue<TextStyleUse[]>('ty', 'viewTypographies.*');
   const composes = catalogue<ComposedDependency[]>('cp', 'viewComposes.*');
@@ -165,8 +201,9 @@ export function compactVariants(
   const bindingsByVariant = new Map<string, VariantPropertyBinding[]>();
 
   for (const binding of expandedBindings) {
+    yield;
     const { nodeId, variantNodeId, ...definition } = binding;
-    const definitionId = intern(
+    const definitionId = yield* internParEtapes(
       definition,
       'b',
       bindingIds,
@@ -187,7 +224,8 @@ export function compactVariants(
   // n'en garderait qu'une, et le calque perdu resterait visible.
   const suffixByDefinition = new Map<string, string>();
   for (const [definitionId, nodeIds] of nodeIdsByDefinition) {
-    const fin = finCommune(nodeIds);
+    yield;
+    const fin = yield* finCommune(nodeIds);
     if (!fin) continue;
     suffixByDefinition.set(definitionId, fin);
     propertyBindingDefinitions[definitionId].nodeSuffix = fin;
@@ -201,7 +239,9 @@ export function compactVariants(
     };
   };
 
-  const variants = expandedVariants.map((variant): ContractVariant => {
+  const variants: ContractVariant[] = [];
+  for (const variant of expandedVariants) {
+    yield;
     const {
       structure, typography, composes: composed, icons: iconPlacements, paintPlacements: paints,
       effects, sample, tokens, strokes, ...identity
@@ -211,32 +251,38 @@ export function compactVariants(
       structure, typography, composes: composed, icons: iconPlacements, paintPlacements: paints,
       effects,
     };
-    vue.structure = ranger(structures, parts.structure) ?? '';
-    vue.typography = ranger(typographies, parts.typography);
-    vue.composes = ranger(composes, parts.composes);
-    vue.icons = ranger(icons, parts.icons);
-    vue.paintPlacements = ranger(paintPlacements, parts.paintPlacements);
-    vue.effects = ranger(effets, parts.effects);
+    vue.structure = (yield* ranger(structures, parts.structure)) ?? '';
+    vue.typography = yield* ranger(typographies, parts.typography);
+    vue.composes = yield* ranger(composes, parts.composes);
+    vue.icons = yield* ranger(icons, parts.icons);
+    vue.paintPlacements = yield* ranger(paintPlacements, parts.paintPlacements);
+    vue.effects = yield* ranger(effets, parts.effects);
     // La vue reste dédupliquée elle aussi : deux variants qui rendent la même
     // chose partagent un jeu de renvois identique, donc une seule entrée.
-    const view = intern(elideNeutrals(vue), 'v', viewIds, variantViews);
+    const vuePropre = yield* elideNeutralsParEtapes(vue);
+    const view = yield* internParEtapes(vuePropre, 'v', viewIds, variantViews);
     // `sample` est déstructuré à part et catalogué à part : le laisser dans la
     // vue ferait diverger deux variants au rendu identique dès que leur contenu
     // de maquette diffère, et le laisser dans le reste le recopierait en clair
     // sur chaque variant.
     const bindings = bindingsByVariant.get(variant.nodeId);
     const sampleId = sample && Object.keys(sample).length > 0
-      ? intern(sample, 's', sampleIds, samples)
+      ? yield* internParEtapes(sample, 's', sampleIds, samples)
       : null;
-    return {
+    const raccourcies: VariantPropertyBinding[] = [];
+    for (const binding of bindings ?? []) {
+      yield;
+      raccourcies.push(raccourcir(binding));
+    }
+    variants.push({
       ...identity,
       ...(tokens && Object.keys(tokens).length > 0 ? { tokens } : {}),
       ...(strokes && Object.keys(strokes).length > 0 ? { strokes } : {}),
       view,
-      ...(bindings && bindings.length > 0 ? { bindings: bindings.map(raccourcir) } : {}),
+      ...(bindings && bindings.length > 0 ? { bindings: raccourcies } : {}),
       ...(sampleId ? { sample: sampleId } : {}),
-    };
-  });
+    });
+  }
 
   return {
     variants,

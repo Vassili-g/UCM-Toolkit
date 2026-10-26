@@ -128,21 +128,32 @@ export function getAllNodes(
   warnings: string[] = [],
   composed: ComposedInstances = new Map(),
 ): SceneNode[] {
-  // `Date.now()` rend des millisecondes entières : un appel de 0,1 ms compte
-  // 0 ou 1. Sur des milliers d'appels, la somme reste une estimation sans biais.
-  const debut = Date.now();
-  try {
-    return releverLesNodes(root, warnings, composed);
-  } finally {
-    compter('msGetAllNodes', Date.now() - debut);
-  }
+  const calcul = getAllNodesParEtapes(root, warnings, composed);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
 }
 
-function releverLesNodes(
+/** Même parcours rendable, interruptible après le relevé natif de Figma. */
+export function* getAllNodesParEtapes(
   root: SceneNode,
-  warnings: string[],
-  composed: ComposedInstances,
-): SceneNode[] {
+  warnings: string[] = [],
+  composed: ComposedInstances = new Map(),
+): Generator<void, SceneNode[]> {
+  const calcul = releverLesNodesParEtapes(root, warnings, composed);
+  try {
+    while (true) {
+      const debut = Date.now();
+      let etape: IteratorResult<void, SceneNode[]>;
+      try { etape = calcul.next(); }
+      finally { compter('msGetAllNodes', Date.now() - debut); }
+      if (etape.done) return etape.value;
+      yield;
+    }
+  } finally { calcul.return([]); }
+}
+
+function* releverLesNodesParEtapes(root: SceneNode, warnings: string[], composed: ComposedInstances): Generator<void, SceneNode[]> {
   // La racine elle-même peut être un composant unifié : c'est la forme d'un
   // slot qui rend directement sa dépendance. `hasAncestorIn` ne teste que les
   // ancêtres stricts et ne la couvre donc pas ; sans cette ligne, le parent
@@ -152,7 +163,19 @@ function releverLesNodes(
 
   const descendants = 'findAll' in root ? root.findAll(() => true) : [];
   compter('nodesParcourus', descendants.length);
-  if (composed.size === 0 && !descendants.some(isStaticallyHidden)) return [root, ...descendants];
+  if (composed.size === 0) {
+    let tousVisibles = true;
+    const visibles = [root];
+    for (const node of descendants) {
+      yield;
+      if (isStaticallyHidden(node)) {
+        tousVisibles = false;
+        break;
+      }
+      visibles.push(node);
+    }
+    if (tousVisibles) return visibles;
+  }
   const ignoredBindings = new Map<SceneNode, boolean>();
   const exportable: SceneNode[] = [root];
   type Etat = { hidden: SceneNode | null; composed: boolean };
@@ -161,15 +184,17 @@ function releverLesNodes(
 
   // Un ancêtre se lit une fois par parcours. La pile accepte aussi un relevé
   // dont les descendants précèdent leurs parents, sans récursion profonde.
-  const etatDe = (node: BaseNode | null): Etat => {
+  const etatDe = function* (node: BaseNode | null): Generator<void, Etat> {
     const chemin: BaseNode[] = [];
     let parent = node;
     while (parent && !etats.has(parent)) {
+      yield;
       chemin.push(parent);
       parent = parent.parent;
     }
     let etat = parent ? etats.get(parent)! : visible;
     while (chemin.length > 0) {
+      yield;
       const courant = chemin.pop()!;
       etat = {
         hidden: etat.hidden ?? ('visible' in courant && isStaticallyHidden(courant as SceneNode)
@@ -182,10 +207,11 @@ function releverLesNodes(
   };
 
   for (const node of descendants) {
+    yield;
     // L'instance composée elle-même n'est pas élaguée : seul son contenu l'est.
-    if (etatDe(node.parent).composed) continue;
+    if ((yield* etatDe(node.parent)).composed) continue;
 
-    const hidden = etatDe(node).hidden;
+    const hidden = (yield* etatDe(node)).hidden;
     if (!hidden) {
       exportable.push(node);
       continue;
@@ -194,6 +220,7 @@ function releverLesNodes(
   }
 
   for (const [hidden, hasBindings] of ignoredBindings) {
+    yield;
     if (!hasBindings) continue;
     const sujetDuCalque = sujet('Layer', hidden);
     pousserUneFois(
@@ -223,20 +250,32 @@ function releverLesNodes(
  * servent pas `findAllWithCriteria`.
  */
 export function contientUneInstanceRendue(racine: SceneNode): boolean {
+  const calcul = contientUneInstanceRendueParEtapes(racine);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Même détection, interruptible entre instances et ancêtres après le filtre natif. */
+export function* contientUneInstanceRendueParEtapes(racine: SceneNode): Generator<void, boolean> {
   if (!('findAll' in racine)) return false;
   const parCriteres = (racine as Partial<ChildrenMixin>).findAllWithCriteria;
   if (typeof parCriteres === 'function') compter('appelsFindAllWithCriteria');
   const instances = typeof parCriteres === 'function'
     ? (parCriteres.call(racine, { types: ['INSTANCE'] }) as SceneNode[])
     : racine.findAll((node) => node.type === 'INSTANCE');
-  return instances.some((instance) => {
+  for (const instance of instances) {
+    yield;
+    let masque = false;
     let courant: BaseNode | null = instance;
     while (courant && courant !== racine) {
-      if (isStaticallyHidden(courant as SceneNode)) return false;
+      yield;
+      if (isStaticallyHidden(courant as SceneNode)) { masque = true; break; }
       courant = courant.parent;
     }
-    return true;
-  });
+    if (!masque) return true;
+  }
+  return false;
 }
 
 /**

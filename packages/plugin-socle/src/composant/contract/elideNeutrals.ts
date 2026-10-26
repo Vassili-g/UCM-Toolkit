@@ -109,18 +109,36 @@ export function estProtege(path: string | readonly string[]): boolean {
  * placement vide sortirait du motif qui le protège.
  */
 export function elideNeutrals<T>(value: T, path: string | readonly string[] = ''): T {
-  return elider(value, segmentsDe(path));
+  const calcul = elideNeutralsParEtapes(value, path);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
 }
 
-function elider<T>(value: T, segments: readonly string[]): T {
-  if (Array.isArray(value)) return value.map((item) => elider(item, segments)) as unknown as T;
+/** Même élision en un passage, interruptible entre les valeurs du contrat. */
+export function* elideNeutralsParEtapes<T>(value: T, path: string | readonly string[] = ''): Generator<void, T> {
+  return yield* elider(value, segmentsDe(path));
+}
+
+function* elider<T>(value: T, segments: readonly string[]): Generator<void, T> {
+  yield;
+  if (Array.isArray(value)) {
+    const result = new Array(value.length);
+    for (let rang = 0; rang < value.length; rang += 1) {
+      yield;
+      if (rang in value) result[rang] = yield* elider(value[rang], segments);
+    }
+    return result as T;
+  }
   if (value === null || typeof value !== 'object') return value;
   const result: Record<string, unknown> = {};
-  for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+  for (const key of Object.keys(value as object)) {
+    yield;
+    const item = (value as Record<string, unknown>)[key];
     const chemin = [...segments, key];
     if (isNeutral(item) && !estProtege(chemin)) continue;
     Object.defineProperty(result, key, {
-      value: elider(item, chemin),
+      value: yield* elider(item, chemin),
       enumerable: true,
       writable: true,
       configurable: true,
@@ -140,11 +158,21 @@ function elider<T>(value: T, segments: readonly string[]): T {
  * catalogue lui-même est vide.
  */
 export function elideContract<T extends object>(contract: T, dejaElides: readonly string[]): T {
+  const calcul = elideContractParEtapes(contract, dejaElides);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Élide le contrat sans repasser ses catalogues, avec une cession par valeur. */
+export function* elideContractParEtapes<T extends object>(contract: T, dejaElides: readonly string[]): Generator<void, T> {
   const result: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(contract)) {
+  for (const key of Object.keys(contract)) {
+    yield;
+    const value = (contract as Record<string, unknown>)[key];
     if (isNeutral(value)) continue;
     Object.defineProperty(result, key, {
-      value: dejaElides.includes(key) ? value : elideNeutrals(value, key),
+      value: dejaElides.includes(key) ? value : yield* elideNeutralsParEtapes(value, key),
       enumerable: true,
       writable: true,
       configurable: true,

@@ -15,8 +15,15 @@ import {
   bornerLesVariants, bornerLesVariantsParTranches,
 } from 'ucm-plugin-socle/src/composant/contract/budget';
 import {
-  AnalyseAnnulee, dansUnePorteeDAnalyse, respirerSiBesoin,
+  AnalyseAnnulee, calculerParTranches, dansUnePorteeDAnalyse, respirerSiBesoin,
 } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
+import { compactVariants, compactVariantsParEtapes, signature, signatureParEtapes } from 'ucm-plugin-socle/src/composant/contract/compactVariants';
+import { elideNeutrals, elideNeutralsParEtapes } from 'ucm-plugin-socle/src/composant/contract/elideNeutrals';
+import { serializeJson, serializeJsonParEtapes } from 'ucm-plugin-socle/src/composant/contract/serializeJson';
+import type { ExtractedContractVariant } from '@ucm-kit/core/format';
+import { indexVariables, indexVariablesParEtapes } from 'ucm-plugin-socle/src/composant/variables';
+import { getAllNodes, getAllNodesParEtapes, contientUneInstanceRendue, contientUneInstanceRendueParEtapes } from 'ucm-plugin-socle/src/composant/contract/exportableNodes';
+import { extractPropertyBindings, extractPropertyBindingsParEtapes } from 'ucm-plugin-socle/src/composant/contract/propertyBindings';
 import { node } from './aides/figmaFaux';
 
 const OPTIONS = ['A', 'B', 'C', 'D'];
@@ -217,4 +224,150 @@ test('un point de respiration lève sur un jeton levé, avant la fin du budget d
     jeton.leve = true;
     await assert.rejects(respirerSiBesoin(), AnalyseAnnulee);
   });
+});
+
+for (const passe of ['signature', 'élision', 'compaction', 'sérialisation'] as const) {
+  test(`${passe} découpe un bloc croissant et conserve la sortie synchrone`, async () => {
+    for (const nombre of [128, 256]) {
+      let lectures = 0;
+      const bloc = { valeurs: Array.from({ length: nombre }, (_, rang) => ({ get valeur() { lectures += 1; return rang; } })) };
+      const extrait = {
+        nodeId: 'v', figmaName: 'Etat=Repos', values: { etat: 'repos' },
+        structure: { children: Array.from({ length: nombre }, (_, rang) => ({ get slot() { lectures += 1; return `s${rang}`; } })) },
+        typography: [], composes: [], icons: {}, paintPlacements: { fills: {}, strokes: {} },
+      } as unknown as ExtractedContractVariant;
+      const reference = () => passe === 'signature' ? signature(bloc)
+        : passe === 'élision' ? elideNeutrals(bloc)
+          : passe === 'compaction' ? compactVariants([extrait], []) : serializeJson({ catalogue: { entree: bloc } });
+      const calcul = (): Generator<void, unknown> => passe === 'signature' ? signatureParEtapes(bloc)
+        : passe === 'élision' ? elideNeutralsParEtapes(bloc)
+          : passe === 'compaction' ? compactVariantsParEtapes([extrait], []) : serializeJsonParEtapes({ catalogue: { entree: bloc } });
+      const attendu = reference();
+      assert.equal(lectures, nombre);
+      lectures = 0;
+      const parEtapes = calcul();
+      let avant = 0;
+      let etape = parEtapes.next();
+      while (!etape.done) {
+        assert.ok(lectures - avant <= 1, `${passe}: ${lectures - avant} lectures dans une avancée`);
+        avant = lectures;
+        etape = parEtapes.next();
+      }
+      assert.deepEqual(etape.value, attendu);
+      lectures = 0;
+      let precedent = 0;
+      const cessions: number[] = [];
+      const courant = await dansUnePorteeDAnalyse({
+        horloge: () => lectures, budgetDeCalculMs: 25,
+        respirer: async () => {
+          cessions.push(lectures);
+          assert.ok(lectures - precedent <= 25);
+          precedent = lectures;
+        },
+      }, () => calculerParTranches(calcul()));
+      assert.deepEqual(courant, attendu);
+      assert.equal(cessions[0], 25);
+      assert.equal(lectures, nombre);
+      lectures = 0;
+      const jeton = { leve: false };
+      await assert.rejects(dansUnePorteeDAnalyse({
+        jeton, horloge: () => lectures, budgetDeCalculMs: 25,
+        respirer: async () => { jeton.leve = true; },
+      }, () => calculerParTranches(calcul())), AnalyseAnnulee);
+      assert.equal(lectures, 25);
+    }
+  });
+}
+
+test('la fin du moteur conserve le contrat avec cessions et annule avant de le rendre', async () => {
+  const restaurer = monterFigma();
+  try {
+    const attendu = await analyserLeComposant();
+    assert.equal(attendu.etat, 'complete');
+    if (attendu.etat !== 'complete') return;
+    let ecriture = false;
+    let horloge = 0;
+    let cessions = 0;
+    const annoncer = (message: string) => { if (message.startsWith('Écriture')) ecriture = true; };
+    const courant = await analyserLeComposant(annoncer, {
+      horloge: () => ecriture ? horloge++ : 0, budgetDeCalculMs: 25,
+      respirer: async () => { assert.equal(ecriture, true); cessions += 1; },
+    });
+    assert.ok(cessions > 0);
+    assert.equal(courant.etat, 'complete');
+    if (courant.etat !== 'complete') return;
+    assert.equal(sansDate(courant.export.content), sansDate(attendu.export.content));
+    assert.deepEqual(courant.export.warnings, attendu.export.warnings);
+    ecriture = false;
+    horloge = 0;
+    const jeton = { leve: false };
+    const annule = await analyserLeComposant(annoncer, {
+      jeton, horloge: () => ecriture ? horloge++ : 0, budgetDeCalculMs: 25,
+      respirer: async () => { jeton.leve = true; },
+    });
+    assert.deepEqual(annule, { etat: 'annulee' });
+  } finally { restaurer(); }
+});
+
+for (const passe of ['variables', 'calques', 'instances', 'liaisons'] as const) {
+  test(`la passe ${passe} cède pendant 128 puis 256 lectures et conserve son résultat`, async () => {
+    for (const nombre of [128, 256]) {
+      let lectures = 0;
+      const variables = Array.from({ length: nombre }, (_, rang) => ({
+        id: `v${rang}`, variableCollectionId: 'c', get name() { lectures += 1; return `groupe/v${rang}`; },
+      })) as Variable[];
+      const enfants = Array.from({ length: nombre }, () => {
+        const enfant = node(passe === 'instances' ? 'INSTANCE' : 'TEXT', `n`, [], { characters: 'Label' });
+        Object.defineProperty(enfant, passe === 'liaisons' ? 'componentPropertyReferences' : 'visible', {
+          get() { lectures += 1; return passe === 'liaisons' ? { characters: 'Label#1' } : passe !== 'instances'; },
+        });
+        return enfant;
+      });
+      const composant = node('COMPONENT', 'Seul', enfants);
+      const matrice = { axes: [], variants: [{ component: composant, values: {} }] };
+      const reference = () => passe === 'variables' ? indexVariables(variables, new Map())
+        : passe === 'calques' ? getAllNodes(composant)
+          : passe === 'instances' ? contientUneInstanceRendue(composant)
+            : extractPropertyBindings(matrice, new Map([['Label#1', 'label']]), []);
+      const calcul = (): Generator<void, unknown> => passe === 'variables' ? indexVariablesParEtapes(variables, new Map())
+        : passe === 'calques' ? getAllNodesParEtapes(composant)
+          : passe === 'instances' ? contientUneInstanceRendueParEtapes(composant)
+            : extractPropertyBindingsParEtapes(matrice, new Map([['Label#1', 'label']]), []);
+      const attendu = reference();
+      assert.equal(lectures, nombre);
+      lectures = 0;
+      let precedent = 0;
+      const cessions: number[] = [];
+      const courant = await dansUnePorteeDAnalyse({
+        horloge: () => lectures, budgetDeCalculMs: 25,
+        respirer: async () => { cessions.push(lectures); assert.ok(lectures - precedent <= 25); precedent = lectures; },
+      }, () => calculerParTranches(calcul()));
+      assert.deepEqual(courant, attendu);
+      assert.equal(cessions[0], 25);
+      lectures = 0;
+      const jeton = { leve: false };
+      await assert.rejects(dansUnePorteeDAnalyse({
+        jeton, horloge: () => lectures, budgetDeCalculMs: 25, respirer: async () => { jeton.leve = true; },
+      }, () => calculerParTranches(calcul())), AnalyseAnnulee);
+      assert.equal(lectures, 25);
+    }
+  });
+}
+
+test('le moteur annule pendant son index des variables locales', async () => {
+  const restaurer = monterFigma();
+  try {
+    const api = (globalThis as any).figma.variables;
+    const [modele] = await api.getLocalVariablesAsync();
+    let lectures = 0;
+    api.getLocalVariablesAsync = async () => Array.from({ length: 256 }, (_, rang) => ({
+      ...modele, id: `v${rang}`, get name() { lectures += 1; return `groupe/v${rang}`; },
+    }));
+    const jeton = { leve: false };
+    const issue = await analyserLeComposant(undefined, {
+      jeton, horloge: () => lectures, budgetDeCalculMs: 25, respirer: async () => { jeton.leve = true; },
+    });
+    assert.deepEqual(issue, { etat: 'annulee' });
+    assert.equal(lectures, 25);
+  } finally { restaurer(); }
 });
