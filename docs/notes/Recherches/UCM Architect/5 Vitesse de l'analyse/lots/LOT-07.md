@@ -61,7 +61,7 @@ Relevé du code de `packages/plugin-socle/src/composant/contract/` et de `packag
 
 | Rang | Famille du point | Texte reconnu | Code, type, famille du constat |
 |---|---|---|---|
-| 1 | `variables` | `variable introuvable` ou `utilisent? une variable introuvable` | C41, `bloquant`, `liaisons` |
+| 1 | `variables` | `[Vv]ariable introuvable` | C41, `bloquant`, `liaisons` |
 | 2 | `variables` | tout | C30, `corriger`, `liaisons` |
 | 3 | `disposition` | `masqué` | C35, `verifier`, `visibilite` |
 | 4 | `proprietes` | `pilote` | C35, `verifier`, `visibilite` |
@@ -73,7 +73,7 @@ Relevé du code de `packages/plugin-socle/src/composant/contract/` et de `packag
 - Le défaut vaut aussi pour une phrase sans parties : `faits` ne porte alors que `message`. Un point de `severite: 'danger'` devient `bloquant` quelle que soit la règle.
 - Les rangs 6 et défaut donnent le même constat ; seule la voie diffère.
 - La colonne « famille, code » du relevé donne le résultat de cette table pour chaque site. Quatre faits se lisent dans le code :
-  - Le titre du résolveur commence par « Variable introuvable ». L'expression du rang 1 est sensible à la casse et cherche `variable introuvable` en minuscule. Le site 34 donne donc C30. Seuls les sites 66 et 67, dont le texte contient `variable introuvable :` ou `utilisent une variable introuvable`, donnent C41.
+  - Le titre du résolveur commence par « Variable introuvable ». L'expression du rang 1 accepte la majuscule depuis `2f9c28a1` : le site 34 donne C41, comme les sites 66 et 67.
   - Aucun titre émis aujourd'hui ne contient `pilote` en famille `proprietes`. Le seul titre qui le contient, celui du site 27, est en famille `disposition`. Le rang 4 ne reconnaît rien dans le code actuel.
   - Les expressions lisent aussi les noms de calque, puisque le titre contient `Layer « nom »`.
   - Le catalogue des codes C30 à C45 n'est pas dans le kit : `Constat.code` y est un gabarit `C${number}` (`packages/kit/src/controles/constat.ts`). Les codes du moteur ne sont écrits que dans `constatsDuMoteur.ts` (C30, C34, C35, C41, C42, C44) et `regles.ts` (C43, C45).
@@ -140,7 +140,7 @@ Le résolveur reçoit `W` à sa construction. Ses messages n'entrent pas dans `E
 | N° | Site | Condition, famille, code | Faits lus | Contexte |
 |---|---|---|---|---|
 | 33 | `loadName`, branche ambiguë | le nom de la variable donne le même token qu'une autre, ou un groupe qui lui sert de feuille ; `fichier`, C42 (défaut) | `index.ambiguous` (issu de `getLocalVariablesAsync` et des collections locales) | sans node ; `usage.nodeName` et `usage.field` dans l'impact |
-| 34 | `loadName`, branche non acquise | `getVariableByIdAsync` refuse ; `variables`, C30 (voir la table : le titre commence par « Variable introuvable ») | variable par identifiant, via `ressources.ts` | Layer de `usage.nodeId` (`pousserVersLeCalque`) ; sans `nodeId` (style de texte ou d'effets), sans node et déclaré `nom-publie` |
+| 34 | `loadName`, branche non acquise | `getVariableByIdAsync` refuse ; `variables`, C41 | variable par identifiant, via `ressources.ts` | Layer de `usage.nodeId` (`pousserVersLeCalque`) ; sans `nodeId` (style de texte ou d'effets), sans node et déclaré `nom-publie` |
 | 35 | `loadName`, collection | `getVariableCollectionByIdAsync` refuse ; `variables`, C30 | collection par identifiant | sans node |
 
 #### Groupe E : couleurs et élection (étapes `structure.couleurs`, `structure.election`)
