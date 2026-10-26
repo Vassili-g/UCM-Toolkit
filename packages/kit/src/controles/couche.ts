@@ -6,7 +6,7 @@
  * La typographie reste hors de cette règle : sa variable se juge sur sa collection, comme un token de `components`.
  */
 import { ciblesAdmises, type NatureDeCible } from '../referentiel/architecture.js';
-import { variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import { constatDuComposant } from './nommage.js';
 import type { ReleveDeComposant } from './releve.js';
@@ -44,7 +44,7 @@ export function controlerCouches(releve: ReleveDeComposant, catalogue: Catalogue
 /** Cède entre variants, layers, liaisons et cibles d'alias sans changer l'ordre des constats. */
 export function* controlerCouchesParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const constats: Constat[] = [];
-  const roleDe = (variable: VariableDuCatalogue) => catalogue.collections.find((entree) => entree.cle === variable.collection);
+  const roleDe = (variable: VariableDuCatalogue) => collectionParCle(catalogue, variable.collection);
   for (const variant of releve.variants) {
     yield;
     for (const layer of variant.layers) {

@@ -4,7 +4,7 @@ import {
   TABLE_DES_DOSSIERS, VARIABLES_DU_THEME,
   type ModeDuTheme, type SensDuTheme,
 } from '../emplois/dossiers.js';
-import { variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { collectionParCle, variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
 
@@ -204,7 +204,7 @@ function cleDuTheme(nom: string): string | undefined {
 function remplacerSuffixe(nom: string, suffixe: string, remplacement: string): string {
   return nom.endsWith(suffixe) ? `${nom.slice(0, -suffixe.length)}${remplacement}` : nom;
 }
-function collection(catalogue: CatalogueDeReference, variable: VariableDuCatalogue) { return catalogue.collections.find((entree) => entree.cle === variable.collection); }
+function collection(catalogue: CatalogueDeReference, variable: VariableDuCatalogue) { return collectionParCle(catalogue, variable.collection); }
 function question(constat: Constat, candidats: readonly VariableDuCatalogue[]): Question { return { id: constat.id, candidats: candidats.map(({ cle, nom }) => ({ cle, nom })) }; }
 function correctionDeLiaison(constat: Constat, layer: LayerLu, liaison: LiaisonLue, avant: VariableDuCatalogue, apres: VariableDuCatalogue, regle: string): Correction {
   return {

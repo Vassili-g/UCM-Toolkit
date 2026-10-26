@@ -65,3 +65,45 @@ test('1 000 recherches lisent chaque variable une fois, pas 1 000 fois', () => {
   assert.equal(lectures.cle, 1000);
   assert.equal(lectures.nom, 1000);
 });
+
+import { collectionDuCatalogue, cheminDansLaCollection, type CollectionDuCatalogue } from '../src/controles/index.js';
+import { collectionParCle } from '../src/controles/catalogue.js';
+
+function collectionDe(cle: string, nom: string, role: CollectionDuCatalogue['role'] = null): CollectionDuCatalogue {
+  return { cle, nom, role, modes: [], etat: 'lue' };
+}
+
+test('collections : première occurrence clé ou nom, parité avec la recherche linéaire', () => {
+  const collections = [collectionDe('a', 'x'), collectionDe('x', 'b'), collectionDe('c', 'x'), collectionDe('a', 'b'), collectionDe('', '')];
+  const c: CatalogueDeReference = { version: 1, library: null, collections, variables: [] };
+  for (const requete of ['a', 'x', 'b', 'c', 'inconnue', '']) {
+    const attendu = collections.find((e) => e.cle === requete || e.nom === requete) ?? 'absente';
+    assert.equal(collectionDuCatalogue(c, requete), attendu, `cleOuNom ${requete}`);
+    assert.equal(collectionParCle(c, requete), collections.find((e) => e.cle === requete), `cle ${requete}`);
+  }
+  assert.equal(collectionDuCatalogue(c, 'x'), collections[0], 'le nom d\'une collection précédente l\'emporte sur la clé d\'une suivante');
+  collections.push(collectionDe('z', 'z'));
+  assert.equal(collectionDuCatalogue(c, 'z'), collections[5]);
+});
+
+test('1 000 recherches de collection lisent chaque collection une fois', () => {
+  let lectures = 0;
+  const collections = Array.from({ length: 200 }, (_, i) => {
+    const e = collectionDe(`k${i}`, `n${i}`);
+    Object.defineProperty(e, 'cle', { get: () => { lectures++; return `k${i}`; }, enumerable: true });
+    return e;
+  });
+  const c: CatalogueDeReference = { version: 1, library: null, collections, variables: [] };
+  for (let i = 0; i < 1000; i++) {
+    assert.equal(collectionParCle(c, `k${i % 200}`), collections[i % 200]);
+    assert.equal(collectionDuCatalogue(c, `n${i % 200}`), collections[i % 200]);
+  }
+  assert.equal(lectures, 200);
+});
+
+test('cheminDansLaCollection garde sa sortie avec l\'index', () => {
+  const c: CatalogueDeReference = { version: 1, library: null, collections: [collectionDe('l', 'layout', 'layout')], variables: [] };
+  assert.deepEqual(cheminDansLaCollection(variable('1', 'layout/radius/md', 'l'), c), ['radius', 'md']);
+  assert.deepEqual(cheminDansLaCollection(variable('2', 'radius/md', 'l'), c), ['radius', 'md']);
+  assert.deepEqual(cheminDansLaCollection(variable('3', 'layout/radius/md', 'autre'), c), ['layout', 'radius', 'md']);
+});

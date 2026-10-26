@@ -3,7 +3,7 @@ import { reconnaitreLeChemin, type SegmentReconnu } from '../referentiel/grammai
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { FAMILLES_PRIMITIVES, REGISTRE_PALETTES_COMPOSANT } from '../referentiel/architecture.js';
 import { REGISTRE_ETATS, REGISTRE_TAILLES, STATE_AXIS_NAMES } from '../referentiel/vocabulaire.js';
-import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
+import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import type { ReleveDeComposant } from './releve.js';
 
@@ -122,11 +122,6 @@ function figer(tokens: TokenDuComposant[]): TokenDuComposant[] {
 function* calculerLesTokensParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference, nomDuJeu: string, types?: readonly VariableDuCatalogue['type'][]): Generator<void, TokenDuComposant[]> {
   const axes = yield* axesDuReleveParEtapes(releve);
   const formeDuJeu = formeReconnue(nomDuJeu);
-  // `find` rend la première collection de la clé : la table garde elle aussi la première.
-  const roles = new Map<string, string | null>();
-  for (const collection of catalogue.collections) {
-    if (!roles.has(collection.cle)) roles.set(collection.cle, collection.role);
-  }
   const formesDesPremiersSegments = new Map<string, string>();
   const valeursDAxes = Object.fromEntries(Object.entries(axes).map(([axe, propriete]) => [axe, propriete.valeurs ?? []]));
   const tokens: TokenDuComposant[] = [];
@@ -135,7 +130,7 @@ function* calculerLesTokensParEtapes(releve: ReleveDeComposant, catalogue: Catal
     parcourues += 1;
     if (parcourues % 256 === 0) yield;
     if (types && !types.includes(variable.type)) continue;
-    if (roles.get(variable.collection) !== 'components') continue;
+    if (collectionParCle(catalogue, variable.collection)?.role !== 'components') continue;
     const nom = variable.nom;
     const finDuPremier = nom.indexOf('/');
     const premier = finDuPremier < 0 ? nom : nom.slice(0, finDuPremier);

@@ -1,7 +1,7 @@
 /** Contrôles des scopes et des structures UCM du catalogue. */
 import { formeReconnue } from '../referentiel/reconnaissance.js';
 import { SUPPORT_DES_VARIABLES, VARIABLES_DU_THEME } from '../emplois/dossiers.js';
-import { cheminDansLaCollection, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { cheminDansLaCollection, collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
 import { controlerLesModes } from './theme.js';
 import { segmentDAxe, tokensDuComposantParEtapes, type TokenDuComposant } from './nommage.js';
@@ -37,6 +37,11 @@ export function controlerLeCatalogue(catalogue: CatalogueDeReference): Constat[]
 
 function controlerLesAliasesManquants(catalogue: CatalogueDeReference): Constat[] {
   const resultat: Constat[] = [];
+  const derniers = new Map<string, string | undefined>();
+  const dernierSegment = (nom: string) => {
+    if (!derniers.has(nom)) derniers.set(nom, nom.split('/').at(-1));
+    return derniers.get(nom);
+  };
   for (const variable of catalogue.variables.filter((entree) => entree.etat === 'presente')) {
     const collection = collectionDuCatalogue(catalogue, variable.collection);
     if (!collection) continue;
@@ -46,7 +51,7 @@ function controlerLesAliasesManquants(catalogue: CatalogueDeReference): Constat[
       const cible = catalogue.variables.find(({ cle }) => cle === valeur.alias);
       if (cible) continue;
       const voisine = catalogue.variables.find((entree) => entree.cle !== variable.cle && entree.collection === variable.collection
-        && entree.nom.split('/').at(-1) === variable.nom.split('/').at(-1)
+        && dernierSegment(entree.nom) === dernierSegment(variable.nom)
         && entree.valeurs?.[mode.id] && 'alias' in entree.valeurs[mode.id]
         && catalogue.variables.some(({ cle }) => cle === (entree.valeurs![mode.id] as { alias: string }).alias));
       const cibleVoisine = voisine && 'alias' in voisine.valeurs![mode.id] ? catalogue.variables.find(({ cle }) => cle === (voisine.valeurs![mode.id] as { alias: string }).alias) : undefined;
@@ -200,9 +205,11 @@ function* controlerLesValeursVides(releve: ReleveDeComposant, catalogue: Catalog
 function controlerLesEchelles(catalogue: CatalogueDeReference): Constat[] {
   const resultats: Constat[] = [];
   for (const collection of catalogue.collections.filter((entree) => entree.role === 'layout' && entree.etat === 'lue')) {
-    const echelle = catalogue.variables.filter((variable) => variable.collection === collection.cle && variable.etat === 'presente'
-      && variable.type === 'FLOAT' && formeReconnue(cheminDansLaCollection(variable, catalogue)[0] ?? '') === 'sizing'
-      && nombre(cheminDansLaCollection(variable, catalogue)[1] ?? '') !== undefined);
+    const echelle = catalogue.variables.filter((variable) => {
+      if (variable.collection !== collection.cle || variable.etat !== 'presente' || variable.type !== 'FLOAT') return false;
+      const chemin = cheminDansLaCollection(variable, catalogue);
+      return formeReconnue(chemin[0] ?? '') === 'sizing' && nombre(chemin[1] ?? '') !== undefined;
+    });
     for (const mode of collection.modes) {
       const parValeur = new Map<number, VariableDuCatalogue[]>();
       for (const variable of echelle) {
@@ -242,14 +249,14 @@ function* controlerLesContournements(releve: ReleveDeComposant, catalogue: Catal
     const token = parCle.get(variable.cle);
     const palette = token && segmentDAxe(token, 'palette');
     if (!token || !palette) continue;
-    const collection = catalogue.collections.find((entree) => entree.cle === variable.collection);
+    const collection = collectionParCle(catalogue, variable.collection);
     if (!collection) continue;
     for (const mode of collection.modes) {
       yield;
       const valeur = variable.valeurs?.[mode.id];
       if (!valeur || !('alias' in valeur)) continue;
       const cible = yield* chercherVariable(catalogue, (entree) => entree.cle === valeur.alias);
-      const collectionCible = catalogue.collections.find((entree) => entree.cle === cible?.collection);
+      const collectionCible = cible && collectionParCle(catalogue, cible.collection);
       if (!cible || roleCollection(catalogue, cible) !== 'brands') continue;
       let contientUnMode = false;
       for (const partie of cible.nom.split('/')) {
@@ -265,7 +272,7 @@ function* controlerLesContournements(releve: ReleveDeComposant, catalogue: Catal
       for (const soeur of tokens) {
         yield;
         if (soeur.variable.cle === variable.cle || signatureSansPalette(soeur) !== signatureSansPalette(token) || segmentDAxe(soeur, 'palette') === palette) continue;
-        const collectionSoeur = catalogue.collections.find((entree) => entree.cle === soeur.variable.collection);
+        const collectionSoeur = collectionParCle(catalogue, soeur.variable.collection);
         const alias = soeur.variable.valeurs?.[mode.id];
         if (!alias || !('alias' in alias)) continue;
         const theme = yield* chercherVariable(catalogue, (entree) => entree.cle === alias.alias && roleCollection(catalogue, entree) === 'theme');
@@ -326,7 +333,7 @@ function nombre(texte: string): number | undefined {
 function cleDuTheme(nom: string): keyof typeof SUPPORT_DES_VARIABLES | undefined {
   return [...VARIABLES_DU_THEME].sort((a, b) => b.length - a.length).find((cle) => nom === cle || nom.endsWith(`/${cle}`)) as keyof typeof SUPPORT_DES_VARIABLES | undefined;
 }
-function roleCollection(catalogue: CatalogueDeReference, variable: VariableDuCatalogue) { return catalogue.collections.find((entree) => entree.cle === variable.collection)?.role; }
+function roleCollection(catalogue: CatalogueDeReference, variable: VariableDuCatalogue) { return collectionParCle(catalogue, variable.collection)?.role; }
 function memeEnsemble(gauche: readonly string[], droite: readonly string[]): boolean {
   return gauche.length === droite.length && gauche.every((valeur) => droite.includes(valeur));
 }
@@ -340,4 +347,4 @@ function* chercherVariable(catalogue: CatalogueDeReference, predicat: (variable:
   }
   return undefined;
 }
-function collectionDuCatalogue(catalogue: CatalogueDeReference, cle: string) { return catalogue.collections.find((entree) => entree.cle === cle); }
+function collectionDuCatalogue(catalogue: CatalogueDeReference, cle: string) { return collectionParCle(catalogue, cle); }

@@ -2,7 +2,7 @@
 import { REGISTRE_PALETTES_COMPOSANT, type Collection } from '../referentiel/architecture.js';
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
-import { type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import { candidatDeLongueurParEtapes, classerLesCandidatsParEtapes, type CandidatDeLongueur } from './candidatsDeLongueur.js';
 import type { Constat, Correction } from './constat.js';
 import { axesDuReleve, axesDuReleveParEtapes, segmentDAxe, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
@@ -91,12 +91,6 @@ function* indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
   let axes: ReturnType<typeof axesDuReleve> | undefined;
   let couleurs: VariableDuCatalogue[] | undefined;
   let lus: boolean | undefined;
-  // `find` rend la première collection de la clé : l'index garde elle aussi la première.
-  const roles = new Map<string, Collection | null>();
-  for (const entree of catalogue.collections) {
-    if (!roles.has(entree.cle)) roles.set(entree.cle, entree.role);
-    yield;
-  }
   return {
     layers, variants, variablesParNom,
     axes: () => (axes ??= axesDuReleve(releve)),
@@ -111,7 +105,7 @@ function* indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
           parcourues += 1;
           if (parcourues % 256 === 0) yield;
           if (variable.etat === 'presente' && variable.type === 'COLOR'
-            && roles.get(variable.collection) === 'components'
+            && collectionParCle(catalogue, variable.collection)?.role === 'components'
             && formeReconnue(variable.nom.split('/')[0]) === formeReconnue(releve.jeu.nom)
             && formeReconnue(variable.nom.split('/')[1] ?? '') === 'color') lues.push(variable);
         }
@@ -396,7 +390,7 @@ function* corrigerValeurEnDur(constat: Constat, releve: ReleveDeComposant, catal
   const candidate = exacts[0];
   return { correction: {
     id: constat.id, sorte: 'liaison', cible: { layer: layer.id, champ }, avant: null,
-    apres: { cle: candidate.cle, nom: candidate.nom, collection: catalogue.collections.find((entree) => entree.cle === candidate.collection)?.nom, valeur },
+    apres: { cle: candidate.cle, nom: candidate.nom, collection: collectionParCle(catalogue, candidate.collection)?.nom, valeur },
     aRelire: { axes: axesDuVariant(constat, index), regle: 'Le token du composant porte la même valeur numérique en pixels que la valeur lue.', avant: null, valeur },
   } };
 }

@@ -1,6 +1,6 @@
 {
   "name": "@ucm-kit/core",
-  "version": "0.13.22",
+  "version": "0.13.23",
   "description": "Le format de contrat UCM et ses lecteurs : types, version, règles de nommage, schéma et validateurs.",
   "type": "module",
   "license": "MIT",

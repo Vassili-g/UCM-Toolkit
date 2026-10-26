@@ -1,7 +1,7 @@
 /** Écarts entre les liaisons lues et les axes, rôles et portées du composant. */
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { REGISTRE_ETATS, REGISTRE_ROLES, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
-import { variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import { axesDuReleveParEtapes, constatDuComposant, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant } from './nommage.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
@@ -66,7 +66,7 @@ function porteeCompatible(scopes: readonly string[], attendue: string): boolean 
 }
 
 function signatureDeCible(retenue: VariableDuCatalogue, catalogue: CatalogueDeReference): string {
-  const collection = catalogue.collections.find((entree) => entree.cle === retenue.collection);
+  const collection = collectionParCle(catalogue, retenue.collection);
   const segments = retenue.nom.split('/');
   if (collection?.role === 'theme' && segments.length > 1) return `${collection.role}:${segments.slice(1).map(formeReconnue).join('/')}`;
   return `${collection?.role ?? retenue.collection}:${segments.map(formeReconnue).join('/')}`;
@@ -185,7 +185,7 @@ export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue:
         }, [variant.id], [layer.id]));
       }
     } else {
-      const collection = catalogue.collections.find((entree) => entree.cle === variable.collection);
+      const collection = collectionParCle(catalogue, variable.collection);
       if (collection?.role === 'components' && formeReconnue(variable.nom.split('/')[0]) !== formeReconnue(releve.jeu.nom)) {
         constats.push(constatDuComposant('C19', 'liaisons', 'corriger', lieu, { token: variable.nom, composant: releve.jeu.nom }, [variant.id], [layer.id]));
       }

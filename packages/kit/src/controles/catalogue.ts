@@ -88,8 +88,43 @@ export function variableDuCatalogue(
   return (collection === undefined ? memes[0] : memes.find((variable) => variable.collection === collection)) ?? 'absente';
 }
 
+interface IndexDesCollections {
+  readonly collections: readonly CollectionDuCatalogue[];
+  readonly nombre: number;
+  readonly parCle: Map<string, CollectionDuCatalogue>;
+  readonly parCleOuNom: Map<string, CollectionDuCatalogue>;
+}
+
+const indexDesCollectionsMemorises = new WeakMap<object, IndexDesCollections>();
+
+/**
+ * Même règle de validité que l'index des variables. Une collection entre dans `parCleOuNom` sous sa clé et sous son nom, sans
+ * remplacer une entrée déjà là : la première collection de la liste dont la clé ou le nom égale la requête l'emporte.
+ */
+function indexDesCollections(catalogue: Pick<CatalogueDeReference, 'collections'>): IndexDesCollections {
+  const { collections } = catalogue;
+  const connu = indexDesCollectionsMemorises.get(catalogue);
+  if (connu && connu.collections === collections && connu.nombre === collections.length) return connu;
+  const parCle = new Map<string, CollectionDuCatalogue>();
+  const parCleOuNom = new Map<string, CollectionDuCatalogue>();
+  for (const collection of collections) {
+    const { cle, nom } = collection;
+    if (!parCle.has(cle)) parCle.set(cle, collection);
+    if (!parCleOuNom.has(cle)) parCleOuNom.set(cle, collection);
+    if (!parCleOuNom.has(nom)) parCleOuNom.set(nom, collection);
+  }
+  const index = { collections, nombre: collections.length, parCle, parCleOuNom };
+  indexDesCollectionsMemorises.set(catalogue, index);
+  return index;
+}
+
+/** La première collection de cette clé, sans repli sur le nom. */
+export function collectionParCle(catalogue: Pick<CatalogueDeReference, 'collections'>, cle: string): CollectionDuCatalogue | undefined {
+  return indexDesCollections(catalogue).parCle.get(cle);
+}
+
 export function collectionDuCatalogue(catalogue: CatalogueDeReference, cleOuNom: string): CollectionDuCatalogue | 'absente' {
-  return catalogue.collections.find((collection) => collection.cle === cleOuNom || collection.nom === cleOuNom) ?? 'absente';
+  return indexDesCollections(catalogue).parCleOuNom.get(cleOuNom) ?? 'absente';
 }
 
 /**
@@ -99,7 +134,7 @@ export function collectionDuCatalogue(catalogue: CatalogueDeReference, cleOuNom:
 export function cheminDansLaCollection(variable: Pick<VariableDuCatalogue, 'nom' | 'collection'>, catalogue: Pick<CatalogueDeReference, 'collections'>): string[] {
   const segments = variable.nom.split('/');
   if (segments.length < 2) return segments;
-  const collection = catalogue.collections.find((entree) => entree.cle === variable.collection);
+  const collection = collectionParCle(catalogue, variable.collection);
   const redit = collection !== undefined && collectionUcmReconnue(segments[0]) !== undefined
     && (collectionUcmReconnue(segments[0]) === (collection.role ?? collectionUcmReconnue(collection.nom)));
   return redit ? segments.slice(1) : segments;
