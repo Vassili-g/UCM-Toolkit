@@ -17,7 +17,7 @@
  * lui-même, au clic sur un constat, ne périme rien.
  */
 import {
-  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructure, controlerLaTypographieParEtapes, controlerLeTheme, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
+  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructure, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -351,7 +351,7 @@ async function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeR
     ['controle-accessibilite', () => calculerParEtapes(controlerLAccessibiliteParEtapes(releve, catalogue, { niveau }), cooperation)],
     ['controle-typographie', () => calculerParEtapes(controlerLaTypographieParEtapes(releve, catalogue), cooperation)],
     ...(architectureUcm ? [
-      ['controle-theme', () => enUneTranche(() => controlerLeTheme(releve, catalogue))] satisfies Controle,
+      ['controle-theme', () => calculerParEtapes(controlerLeThemeParEtapes(releve, catalogue), cooperation)] satisfies Controle,
       ['controle-structure', () => enUneTranche(() => controlerLaStructure(releve, catalogue))] satisfies Controle,
     ] : []),
   ];

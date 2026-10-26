@@ -376,6 +376,44 @@ test('annuler pendant les tokens du nommage abandonne le catalogue restant', asy
   assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
 });
 
+test('annuler au milieu de la remontée des fonds du thème abandonne les ancêtres restants', async () => {
+  const b = banc('ucm');
+  const releve = releveDe('Alert');
+  let visiblesLus = 0;
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 't', nom: 'themes', role: 'theme', etat: 'lue', modes: [] }],
+    variables: [{ cle: 'fg', nom: 'success/surface/foreground', collection: 't', etat: 'presente', type: 'COLOR' }],
+  };
+  const dimensions = { x: 0, y: 0, largeur: 100, hauteur: 40 };
+  // Les ancêtres sont masqués : l'accessibilité les saute, seule la remontée du thème lit leurs peintures.
+  const ancetres = Array.from({ length: 256 }, (_, i) => ({
+    id: `a${i}`, nom: `Ancêtre ${i}`, type: 'FRAME' as const, parent: i === 0 ? null : `a${i - 1}`, visible: false, opacite: 1,
+    dimensions, valeursEnDur: [], liaisons: [],
+    peintures: [{ champ: 'fills' as const, indice: 0, type: 'SOLID' as const, get visible() { visiblesLus += 1; return true; }, opacite: 1, blendMode: 'NORMAL' as const }],
+  }));
+  releve.variants[0].layers = [...ancetres, {
+    id: 'texte', nom: 'Message', type: 'TEXT', parent: 'a255', visible: true, opacite: 1, dimensions, peintures: [], valeursEnDur: [],
+    liaisons: [{ champ: 'fills', indice: 0, porteur: 'texte', variable: { id: 'fg', cle: 'fg', nom: 'success/surface/foreground', collection: 't', distante: false } }],
+  }];
+  let horloge = 0;
+  const traiter = traiterAvec({
+    ...lecteurs(complete(), 'Alert', catalogue),
+    releve: async () => ({ statut: 'lu', releve }),
+  }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (visiblesLus > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.ok(visiblesLus > 0 && visiblesLus < 256, `${visiblesLus} ancêtres lus`);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+  assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
+});
+
 test('annuler à une cession des contrôles ne rend aucun constat', async () => {
   const b = banc();
   let horloge = 0;

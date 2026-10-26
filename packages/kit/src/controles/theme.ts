@@ -6,22 +6,34 @@ import {
 } from '../emplois/dossiers.js';
 import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
-import { liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
+import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
 
 /** Détecte une couleur `surface/foreground` sans fond de surface dans un composant. Les alias de mode sont dans `controlerLesModes`. */
 export function controlerLeTheme(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
-  return controlerLesFondsDeTexte(releve, catalogue);
+  const calcul = controlerLeThemeParEtapes(releve, catalogue);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
 }
 
-function controlerLesFondsDeTexte(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
+/** Cède dans les liaisons, les fonds ancêtres et les candidats ; C60 reste dans `controlerLesModes`. */
+export function* controlerLeThemeParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const resultats: Constat[] = [];
   for (const variant of releve.variants) {
-    const layers = new Map(variant.layers.map((layer) => [layer.id, layer]));
+    yield;
+    const layers = new Map<string, LayerLu>();
     for (const layer of variant.layers) {
+      yield;
+      layers.set(layer.id, layer);
+    }
+    for (const layer of variant.layers) {
+      yield;
       for (const liaison of liaisonsDuLayer(layer)) {
-        const variable = catalogue.variables.find((entree) => entree.cle === liaison.variable.cle);
+        yield;
+        if (!liaison) continue;
+        const variable = yield* trouverVariable(catalogue, liaison.variable.cle);
         if (!variable || collection(catalogue, variable)?.role !== 'theme' || cleDuTheme(variable.nom) !== 'surface/foreground') continue;
-        if (aUnFondDeSurface(layer, layers, catalogue)) continue;
+        if (yield* aUnFondDeSurface(layer, layers, catalogue)) continue;
         const constat: Constat = {
           id: `C59:${variant.id}:${layer.id}${liaison.surcharge ? `>${liaison.surcharge.id}` : ''}:${liaison.champ}:${liaison.indice ?? liaison.plage?.debut ?? ''}`,
           code: 'C59', type: 'corriger', famille: 'liaisons', variants: [variant.id], layers: [layer.id],
@@ -33,9 +45,22 @@ function controlerLesFondsDeTexte(releve: ReleveDeComposant, catalogue: Catalogu
           },
         };
         const cibleNom = remplacerSuffixe(variable.nom, 'surface/foreground', 'page/foreground');
-        const candidats = catalogue.variables.filter((entree) => entree.nom === cibleNom && entree.collection === variable.collection && entree.etat === 'presente');
+        const candidats: VariableDuCatalogue[] = [];
+        let parcourues = 0;
+        for (const entree of catalogue.variables) {
+          parcourues += 1;
+          if (parcourues % 256 === 0) yield;
+          if (entree.nom === cibleNom && entree.collection === variable.collection && entree.etat === 'presente') candidats.push(entree);
+        }
         if (candidats.length === 1) constat.correction = correctionDeLiaison(constat, layer, liaison, variable, candidats[0], 'Un texte lié à surface/foreground doit être posé sur un fond de surface visible.');
-        else constat.question = question(constat, candidats);
+        else {
+          const choix: { cle: string; nom: string }[] = [];
+          for (const candidat of candidats) {
+            yield;
+            choix.push({ cle: candidat.cle, nom: candidat.nom });
+          }
+          constat.question = { id: constat.id, candidats: choix };
+        }
         resultats.push(constat);
       }
     }
@@ -43,23 +68,30 @@ function controlerLesFondsDeTexte(releve: ReleveDeComposant, catalogue: Catalogu
   return resultats;
 }
 
-function aUnFondDeSurface(layer: LayerLu, layers: ReadonlyMap<string, LayerLu>, catalogue: CatalogueDeReference): boolean {
+function* aUnFondDeSurface(layer: LayerLu, layers: ReadonlyMap<string, LayerLu>, catalogue: CatalogueDeReference): Generator<void, boolean> {
   let courant: LayerLu | undefined = layer;
   const visites = new Set<string>();
   while (courant && !visites.has(courant.id)) {
+    yield;
     visites.add(courant.id);
-    const fondVisible = courant.peintures.some((peinture) => peinture.champ === 'fills' && peinture.visible
-      && liaisonsPropres(courant!).some((liaison) => liaison.champ === 'fills' && liaison.indice === peinture.indice && estFondDeSurface(liaison, catalogue)));
-    if (fondVisible) return true;
+    for (const peinture of courant.peintures) {
+      yield;
+      if (peinture.champ !== 'fills' || !peinture.visible) continue;
+      for (const liaison of courant.liaisons) {
+        yield;
+        if (liaison.surcharge || liaison.champ !== 'fills' || liaison.indice !== peinture.indice) continue;
+        if (yield* estFondDeSurface(liaison, catalogue)) return true;
+      }
+    }
     courant = courant.parent ? layers.get(courant.parent) : undefined;
   }
   return false;
 }
 
 /** Une liaison illisible peut être un fond de surface : C59 ne l'accuse pas sur ce qu'il n'a pas lu. */
-function estFondDeSurface(liaison: LiaisonLue, catalogue: CatalogueDeReference): boolean {
+function* estFondDeSurface(liaison: LiaisonLue, catalogue: CatalogueDeReference): Generator<void, boolean> {
   if (liaison.illisible) return true;
-  const variable = catalogue.variables.find((entree) => entree.cle === liaison.variable.cle);
+  const variable = yield* trouverVariable(catalogue, liaison.variable.cle);
   return !!variable && collection(catalogue, variable)?.role === 'theme' && /^surface\/(default|hover|pressed)$/.test(cleDuTheme(variable.nom) ?? '');
 }
 
@@ -148,8 +180,23 @@ function aliasEnBoucle(catalogue: CatalogueDeReference, cle: string, nomMode: st
   return false;
 }
 
-function liaisonsDuLayer(layer: LayerLu): LiaisonLue[] {
-  return [...layer.liaisons, ...(layer.texte?.plages.flatMap((plage) => plage.liaisons) ?? [])];
+/** Cède toutes les 256 variables parcourues : un parcours bref ne doit pas coûter une tranche par variable. */
+function* trouverVariable(catalogue: CatalogueDeReference, cle: string): Generator<void, VariableDuCatalogue | undefined> {
+  let parcourues = 0;
+  for (const variable of catalogue.variables) {
+    parcourues += 1;
+    if (parcourues % 256 === 0) yield;
+    if (variable.cle === cle) return variable;
+  }
+  return undefined;
+}
+
+function* liaisonsDuLayer(layer: LayerLu): Generator<LiaisonLue | undefined> {
+  yield* layer.liaisons;
+  for (const plage of layer.texte?.plages ?? []) {
+    yield;
+    yield* plage.liaisons;
+  }
 }
 function cleDuTheme(nom: string): string | undefined {
   return [...VARIABLES_DU_THEME].sort((a, b) => b.length - a.length).find((cle) => nom === cle || nom.endsWith(`/${cle}`));

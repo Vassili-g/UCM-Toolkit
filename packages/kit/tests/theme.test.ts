@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { controlerLeTheme as fondsDuComposant, controlerLesModes } from '../src/controles/theme.js';
+import { controlerLeTheme as fondsDuComposant, controlerLeThemeParEtapes, controlerLesModes } from '../src/controles/theme.js';
 import type { CatalogueDeReference, LayerLu, ReleveDeComposant } from '../src/controles/index.js';
 
 const modes = [{ id: 'light', nom: 'Light' }, { id: 'dark', nom: 'Dark' }];
@@ -25,6 +25,44 @@ function layer(id: string, parent: string | null, name: string, variable?: { key
 const collection = (cle: string, role: 'theme' | 'brands', ms = modes) => ({ cle, nom: cle, role, modes: ms, etat: 'lue' as const });
 
 const controlerLeTheme = (r: Parameters<typeof fondsDuComposant>[0], c: Parameters<typeof fondsDuComposant>[1]) => [...fondsDuComposant(r, c), ...controlerLesModes(c)];
+
+test('le thème par étapes conserve les constats, corrections et questions dans l’ordre des plages', () => {
+  const texte = layer('text', null, 'message', { key: 'fg-surface', name: 'success/surface/foreground', collection: 'themes' });
+  texte.texte = { style: null, plages: [{
+    debut: 5, fin: 10, fontSize: 14, fontWeight: 400, peintures: [],
+    liaisons: [{
+      champ: 'fills', porteur: 'text', plage: { debut: 5, fin: 10 },
+      variable: { id: 'warning', cle: 'warning', nom: 'warning/surface/foreground', collection: 'themes', distante: false },
+    }],
+  }] };
+  const r = releve(texte);
+  const c = cat([collection('themes', 'theme')], [
+    { cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    { cle: 'fg-page', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    { cle: 'warning', nom: 'warning/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+  ]);
+  const attendu = [
+    {
+      id: 'C59:v1:text:fills:0', code: 'C59', type: 'corriger', famille: 'liaisons', variants: ['v1'], layers: ['text'],
+      faits: { variable: 'success/surface/foreground', champ: 'fills', calque: 'message', indice: 0 },
+      correction: {
+        id: 'C59:v1:text:fills:0', sorte: 'liaison', cible: { layer: 'text', champ: 'fills', indice: 0, variable: 'fg-surface' },
+        avant: 'success/surface/foreground', apres: { cle: 'fg-page', nom: 'success/page/foreground' },
+        aRelire: { regle: 'Un texte lié à surface/foreground doit être posé sur un fond de surface visible.', avant: 'success/surface/foreground' },
+      },
+    },
+    {
+      id: 'C59:v1:text:fills:5', code: 'C59', type: 'corriger', famille: 'liaisons', variants: ['v1'], layers: ['text'],
+      faits: { variable: 'warning/surface/foreground', champ: 'fills', calque: 'message', plageDebut: 5, plageFin: 10 },
+      question: { id: 'C59:v1:text:fills:5', candidats: [] },
+    },
+  ];
+  const calcul = controlerLeThemeParEtapes(r, c);
+  let resultat = calcul.next();
+  while (!resultat.done) resultat = calcul.next();
+  assert.deepEqual(resultat.value, attendu);
+  assert.deepEqual(fondsDuComposant(r, c), attendu);
+});
 
 test('C59 propose page/foreground si surface/foreground n’a aucun fond de surface', () => {
   const r = releve(layer('text', null, 'message', { key: 'fg-surface', name: 'success/surface/foreground', collection: 'themes' }));
