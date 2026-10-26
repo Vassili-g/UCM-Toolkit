@@ -55,6 +55,41 @@ test('C49 : un texte gris clair sur blanc manque de contraste, un texte noir pas
   assert.equal(parCode(cc(releve([variant('a', [racine(), texte([solide('fills', gris(0))])])])), 'C49').length, 0);
 });
 
+test('le produit des modes conserve l’ordre effectif et les faits de contraste', () => {
+  const t = texte([solide('fills', gris(0))]);
+  t.texte!.plages[0].liaisons = ['c1', 'c2'].map((collection, indice) => ({
+    champ: 'fills', indice, porteur: 't', variable: { id: collection, cle: collection, nom: collection, collection, distante: false },
+  }));
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: ['c1', 'c2'].map((cle) => ({
+      cle, nom: cle, role: null, etat: 'lue', modes: [{ id: 'm0', nom: 'M0' }, { id: 'm1', nom: 'M1' }],
+    })),
+    variables: ['c1', 'c2'].map((cle) => ({
+      cle, nom: cle, collection: cle, type: 'COLOR', etat: 'presente', valeurs: { m0: { valeur: gris(0) }, m1: { valeur: gris(1) } },
+    })),
+  };
+  const v = variant('a', [racine(), t]);
+  v.modesEffectifs = { c1: 'm1', c2: 'm1' };
+  const r = releve([v]);
+  const attendu = [{
+    id: 'C49:Label:texte:0-5:4.5:AA', code: 'C49', type: 'corriger', famille: 'contraste', variants: ['a'], layers: ['t'],
+    faits: {
+      usage: 'texte', champ: 'fills', calque: 'Label', rapport: 1, seuil: 4.5, niveau: 'AA',
+      mode: 'c1 en M1, c2 en M1', autresModes: 1, premierPlan: '#ffffff', fond: '#ffffff',
+      rapports: JSON.stringify([
+        ['c1 en M1, c2 en M1', 1], ['c1 en M1, c2 en M0', 1],
+        ['c1 en M0, c2 en M1', 21], ['c1 en M0, c2 en M0', 21],
+      ]),
+    },
+  }];
+  const calcul = controlerLAccessibiliteParEtapes(r, catalogue, { niveau: 'AA' });
+  let resultat = calcul.next();
+  while (!resultat.done) resultat = calcul.next();
+  assert.deepEqual(resultat.value, attendu);
+  assert.deepEqual(cc(r, 'AA', catalogue), attendu);
+});
+
 test('seuils sans arrondi : un grand texte à 3,9:1 passe en AA et échoue en AAA', () => {
   // Gris 0.6 sur blanc : environ 2,85:1 ; on cherche un gris proche de 3,9:1.
   const lum = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);

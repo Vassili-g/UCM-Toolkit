@@ -154,6 +154,42 @@ test('annuler au milieu du contrôle de contraste arrête avant tout résultat',
   assert.deepEqual(deType(b, 'analyse')[0].constats, []);
 });
 
+test('annuler pendant la matérialisation des modes arrête avant la fin du produit', async () => {
+  const b = banc();
+  const releve = releveDeContraste('Alert');
+  const texte = releve.variants[0].layers[1];
+  let nomsLus = 0;
+  const modes = Array.from({ length: 8 }, (_, i) => ({ id: `m${i}`, get nom() { nomsLus += 1; return `M${i}`; } }));
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: ['c1', 'c2', 'c3'].map((cle) => ({ cle, nom: cle, role: null, etat: 'lue', modes })),
+    variables: ['c1', 'c2', 'c3'].map((cle) => ({
+      cle, nom: cle, collection: cle, type: 'COLOR', etat: 'presente',
+      valeurs: Object.fromEntries(modes.map(({ id }) => [id, { valeur: { r: 1, g: 1, b: 1, a: 1 } }])),
+    })),
+  };
+  texte.texte!.plages[0].liaisons = catalogue.variables.map((variable, indice) => ({
+    champ: 'fills', indice, porteur: texte.id,
+    variable: { id: variable.cle, cle: variable.cle, nom: variable.nom, collection: variable.collection, distante: false },
+  }));
+  let horloge = 0;
+  const traiter = traiterAvec({
+    ...lecteurs(complete(), 'Alert', catalogue),
+    releve: async () => ({ statut: 'lu', releve }),
+  }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (nomsLus > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.ok(nomsLus > 0 && nomsLus < 8 + 64 + 512, `${nomsLus} combinaisons matérialisées`);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+  assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
+});
+
 test('annuler pendant l’index des corrections ne rend aucune correction', async () => {
   const b = banc();
   const releve = releveDe('Alert');

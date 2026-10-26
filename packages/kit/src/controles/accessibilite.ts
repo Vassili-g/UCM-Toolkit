@@ -82,7 +82,7 @@ export function* controlerLAccessibiliteParEtapes(
   let mesureesTotal = 0;
   for (const variant of mesures) {
     yield;
-    const combinaisons = combinaisonsDeModes(variant, catalogue);
+    const combinaisons = yield* combinaisonsDeModes(variant, catalogue);
     const prises = combinaisons.slice(0, Math.max(0, reste));
     reste -= prises.length;
     mesureesTotal += prises.length;
@@ -157,7 +157,7 @@ function modeEffectif(variant: VariantLu, collection: CollectionDuCatalogue): st
 }
 
 /** Le mode effectif du variant d'abord, puis les autres modes de chaque collection atteinte. */
-function combinaisonsDeModes(variant: VariantLu, catalogue: CatalogueDeReference): Combinaison[] {
+function* combinaisonsDeModes(variant: VariantLu, catalogue: CatalogueDeReference): Generator<void, Combinaison[]> {
   const atteintes = new Map<string, CollectionDuCatalogue>();
   const vues = new Set<string>();
   for (const layer of layersVisibles(variant)) {
@@ -168,10 +168,17 @@ function combinaisonsDeModes(variant: VariantLu, catalogue: CatalogueDeReference
     const effectif = modeEffectif(variant, collection);
     const modes = [...collection.modes].sort((a, b) => Number(b.id === effectif) - Number(a.id === effectif));
     if (modes.length === 0) continue;
-    combinaisons = combinaisons.flatMap((c) => modes.map((m) => ({
-      modes: new Map(c.modes).set(collection.cle, m.id),
-      etiquette: [c.etiquette, `${collection.nom} en ${m.nom}`].filter(Boolean).join(', '),
-    })));
+    const suivantes: Combinaison[] = [];
+    for (const combinaison of combinaisons) {
+      for (const mode of modes) {
+        yield;
+        suivantes.push({
+          modes: new Map(combinaison.modes).set(collection.cle, mode.id),
+          etiquette: [combinaison.etiquette, `${collection.nom} en ${mode.nom}`].filter(Boolean).join(', '),
+        });
+      }
+    }
+    combinaisons = suivantes;
   }
   return combinaisons;
 }
