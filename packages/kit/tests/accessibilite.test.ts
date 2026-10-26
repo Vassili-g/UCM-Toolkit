@@ -383,3 +383,94 @@ test('C50 sans anneau : layers porte la racine de chaque variant concerné', () 
   };
   assert.equal(cc(releve([variant('f', [racine(), anneau], { State: 'focus' })], ['focus'])).find((x) => x.id === 'C50:sans-anneau'), undefined);
 });
+
+/* ---------- préfixe des combinaisons de modes (4.4) ---------- */
+
+/** Une collection par entrée de `tailles`, de `tailles[i]` modes ; la variable de c1 porte la couleur du texte, les autres sont atteintes sans être lues. */
+function fixtureDeModes(tailles: number[], onLitLeNom?: () => void) {
+  const collections = tailles.map((n, i) => ({
+    cle: `c${i + 1}`, nom: `c${i + 1}`, role: null, etat: 'lue' as const,
+    modes: Array.from({ length: n }, (_, m) => {
+      const mode = { id: `m${m}`, nom: `M${m}` };
+      if (onLitLeNom) Object.defineProperty(mode, 'nom', { enumerable: true, get() { onLitLeNom(); return `M${m}`; } });
+      return mode;
+    }),
+  }));
+  const cat: CatalogueDeReference = {
+    version: 1, library: null, collections,
+    variables: collections.map((c, i) => ({
+      cle: `v${c.cle}`, nom: `v${c.cle}`, collection: c.cle, type: 'COLOR' as const, etat: 'presente' as const,
+      valeurs: Object.fromEntries(c.modes.map((m) => [m.id, { valeur: gris(i === 0 && m.id === 'm4' ? 0.97 : 0.9) }])),
+    })),
+  };
+  const t = texte([solide('fills', gris(0))]);
+  t.texte!.plages[0].liaisons = collections.map((c, i) => ({
+    champ: 'fills', indice: i, porteur: 't', variable: { id: c.cle, cle: `v${c.cle}`, nom: `v${c.cle}`, collection: c.cle, distante: false },
+  }));
+  return { cat, t, collections };
+}
+
+/** Le produit d'avant : chaque niveau matérialisé, le mode effectif de chaque collection en tête. */
+function produitDeReference(tailles: number[], effectifs: Record<string, string>): string[] {
+  let etiquettes = [''];
+  tailles.forEach((n, i) => {
+    const cle = `c${i + 1}`;
+    const modes = Array.from({ length: n }, (_, m) => `m${m}`).sort((a, b) => Number(b === effectifs[cle]) - Number(a === effectifs[cle]));
+    etiquettes = etiquettes.flatMap((e) => modes.map((m) => [e, `${cle} en M${m.slice(1)}`].filter(Boolean).join(', ')));
+  });
+  return etiquettes;
+}
+
+test('C49 : le préfixe de 5 000 combinaisons garde l\'ordre du produit, le mode effectif en tête, et le premier pire cas', () => {
+  const tailles = [9, 9, 9, 9];
+  const { cat, t } = fixtureDeModes(tailles);
+  const effectifs = { c1: 'm2', c2: 'm3' };
+  const variants = [0, 1].map((i) => ({ ...variant(`v${i}`, [racine(), { ...t, id: `t${i}` }]), modesEffectifs: effectifs }));
+  const constats = cc(releve(variants), 'AA', cat);
+  const reference = produitDeReference(tailles, effectifs);
+  assert.equal(reference.length, 6561);
+  const texteC49 = constats.find((c) => c.code === 'C49' && c.faits.usage === 'texte')!;
+  assert.deepEqual(texteC49.variants, ['v0']);
+  const rapports = JSON.parse(String(texteC49.faits.rapports)) as [string, number][];
+  assert.deepEqual(rapports.map(([e]) => e), reference.slice(0, BORNE_DE_COMBINAISONS));
+  assert.equal(texteC49.faits.mode, reference.find((e) => e.startsWith('c1 en M4')), 'le premier des pires cas');
+  assert.equal(texteC49.faits.autresModes, BORNE_DE_COMBINAISONS - 1);
+  const borne = constats.find((c) => c.id === 'C49:borne')!;
+  assert.equal(borne.faits.combinaisonsMesurees, BORNE_DE_COMBINAISONS);
+  assert.equal(borne.faits.combinaisonsNonMesurees, 2 * 6561 - BORNE_DE_COMBINAISONS);
+});
+
+test('C49 : la borne coupe le troisième variant au milieu de son produit', () => {
+  const { cat, t } = fixtureDeModes([10, 10, 20]);
+  const variants = [0, 1, 2].map((i) => variant(`v${i}`, [racine(), { ...t, id: `t${i}` }]));
+  const constats = cc(releve(variants), 'AA', cat);
+  const texteC49 = constats.find((c) => c.code === 'C49' && c.faits.usage === 'texte')!;
+  assert.deepEqual(texteC49.variants, ['v0', 'v1', 'v2']);
+  const borne = constats.find((c) => c.id === 'C49:borne')!;
+  assert.equal(borne.faits.combinaisonsMesurees, BORNE_DE_COMBINAISONS);
+  assert.equal(borne.faits.combinaisonsNonMesurees, 1000);
+  const exact = cc(releve([variants[0], variants[1]]), 'AA', cat);
+  assert.equal(exact.find((c) => c.id === 'C49:borne'), undefined, 'deux variants de 2 000 tiennent sous la borne');
+});
+
+test('C49 : l\'espace suit le préfixe retenu, pas le produit des modes', () => {
+  const mesure = (tailles: number[]) => {
+    let nomsLus = 0;
+    const { cat, t } = fixtureDeModes(tailles, () => { nomsLus += 1; });
+    const r = releve([variant('v0', [racine(), t])]);
+    const calcul = controlerLAccessibiliteParEtapes(r, cat, { niveau: 'AA' });
+    let etapes = 0;
+    let etape = calcul.next();
+    while (!etape.done) { etapes += 1; etape = calcul.next(); }
+    const borne = etape.value.find((c) => c.id === 'C49:borne')!;
+    return { nomsLus, etapes, nonMesurees: borne.faits.combinaisonsNonMesurees };
+  };
+  const moyen = mesure([10, 10, 10, 10, 10, 10]);
+  const grand = mesure([10, 10, 10, 10, 10, 10, 10, 10]);
+  assert.equal(moyen.nomsLus, BORNE_DE_COMBINAISONS * 6, 'un nom lu par collection et par combinaison produite');
+  assert.equal(grand.nomsLus, BORNE_DE_COMBINAISONS * 8);
+  assert.equal(moyen.nonMesurees, 1_000_000 - BORNE_DE_COMBINAISONS);
+  assert.equal(grand.nonMesurees, 100_000_000 - BORNE_DE_COMBINAISONS);
+  assert.ok(grand.etapes < BORNE_DE_COMBINAISONS * 4, `${grand.etapes} étapes`);
+  assert.ok(grand.etapes < moyen.etapes * 1.2, `${moyen.etapes} puis ${grand.etapes} étapes pour un produit cent fois plus grand`);
+});

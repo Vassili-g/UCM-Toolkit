@@ -82,11 +82,10 @@ export function* controlerLAccessibiliteParEtapes(
   let mesureesTotal = 0;
   for (const variant of mesures) {
     yield;
-    const combinaisons = yield* combinaisonsDeModes(variant, catalogue);
-    const prises = combinaisons.slice(0, Math.max(0, reste));
+    const { prises, total } = yield* combinaisonsDeModes(variant, catalogue, Math.max(0, reste));
     reste -= prises.length;
     mesureesTotal += prises.length;
-    nonMesurees += combinaisons.length - prises.length;
+    nonMesurees += total - prises.length;
     if (prises.length > 0) yield* mesurerLeVariant(variant, prises, catalogue, options.niveau, groupes, limites);
   }
   constats.push(...[...groupes.values()].map((g) => g.constat), ...limites.values());
@@ -156,31 +155,49 @@ function modeEffectif(variant: VariantLu, collection: CollectionDuCatalogue): st
   return collection.modes.find((m) => m.id === brut || m.nom === brut)?.id ?? null;
 }
 
-/** Le mode effectif du variant d'abord, puis les autres modes de chaque collection atteinte. */
-function* combinaisonsDeModes(variant: VariantLu, catalogue: CatalogueDeReference): Generator<void, Combinaison[]> {
+/**
+ * Le mode effectif du variant d'abord, puis les autres modes de chaque collection atteinte.
+ * Rend les `limite` premières combinaisons dans l'ordre du produit (la première collection varie le plus lentement) et le
+ * nombre total, calculé sans produire le produit : l'espace suit `limite`, pas le produit.
+ */
+function* combinaisonsDeModes(
+  variant: VariantLu, catalogue: CatalogueDeReference, limite: number,
+): Generator<void, { prises: Combinaison[]; total: number }> {
   const atteintes = new Map<string, CollectionDuCatalogue>();
   const vues = new Set<string>();
   for (const layer of layersVisibles(variant)) {
     for (const liaison of liaisonsDeCouleur(layer)) collectionsAtteintes(catalogue, liaison.variable.cle, vues, atteintes);
   }
-  let combinaisons: Combinaison[] = [{ modes: new Map(), etiquette: '' }];
+  const colonnes: { collection: CollectionDuCatalogue; modes: CollectionDuCatalogue['modes'] }[] = [];
+  let total = 1;
   for (const collection of atteintes.values()) {
     const effectif = modeEffectif(variant, collection);
     const modes = [...collection.modes].sort((a, b) => Number(b.id === effectif) - Number(a.id === effectif));
     if (modes.length === 0) continue;
-    const suivantes: Combinaison[] = [];
-    for (const combinaison of combinaisons) {
-      for (const mode of modes) {
-        yield;
-        suivantes.push({
-          modes: new Map(combinaison.modes).set(collection.cle, mode.id),
-          etiquette: [combinaison.etiquette, `${collection.nom} en ${mode.nom}`].filter(Boolean).join(', '),
-        });
-      }
-    }
-    combinaisons = suivantes;
+    colonnes.push({ collection, modes });
+    total *= modes.length;
   }
-  return combinaisons;
+  const prises: Combinaison[] = [];
+  const rangs = colonnes.map(() => 0);
+  const voulues = Math.min(total, limite);
+  for (let n = 0; n < voulues; n++) {
+    yield;
+    const modes = new Map<string, string>();
+    const etiquettes: string[] = [];
+    for (let i = 0; i < colonnes.length; i++) {
+      const { collection } = colonnes[i];
+      const mode = colonnes[i].modes[rangs[i]];
+      modes.set(collection.cle, mode.id);
+      etiquettes.push(`${collection.nom} en ${mode.nom}`);
+    }
+    prises.push({ modes, etiquette: etiquettes.join(', ') });
+    for (let i = colonnes.length - 1; i >= 0; i--) {
+      rangs[i] += 1;
+      if (rangs[i] < colonnes[i].modes.length) break;
+      rangs[i] = 0;
+    }
+  }
+  return { prises, total };
 }
 
 function couleurDeLiaison(
