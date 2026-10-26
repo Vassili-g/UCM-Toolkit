@@ -8,7 +8,7 @@
 - [x] **1.2 | gpt-6.1-sol | medium** : séparer dans la trace sujet, relevé, catalogue, moteur, règles, contrôles, corrections et projection ; vérifier les étapes imbriquées.
 - [x] **1.3 | gpt-6-luna | low** : compter appels API, attentes, cessions, tranches synchrones et taille de sortie dans les ports instrumentés ; test avec horloge simulée.
 - [x] **1.4 | gpt-6.1-sol | medium** : corréler clic, réception, premier affichage, premiers constats et final par identité de demande ; ignorer les acquittements tardifs.
-- [ ] **1.5 | gpt-6.1-sol | medium** : transmettre phase, compte et progression monotone ; publier une phase nouvelle au même pourcentage et réserver 100 % au final.
+- [x] **1.5 | gpt-6.1-sol | medium** : transmettre phase, compte et progression monotone ; publier une phase nouvelle au même pourcentage et réserver 100 % au final.
 - [ ] **1.6 | gpt-6-luna | low** : brancher les textes de progression prévus par la maquette, puis couvrir les phases par tests sans navigateur.
 - [ ] **1.7 | gpt-6-luna | low** : créer les états de galerie avec compte, sans compte, annulé et périmé ; vérifier les écrans indiqués par la galerie.
 - [ ] **1.8 | gpt-6.1-sol | medium** : relier les traces au banc de mesure Architect et documenter leur activation dans le README existant ; comparer mesure active et inactive.

@@ -34,7 +34,7 @@ import { sujetDe, type PortDuComposant } from '../lectureDuComposant';
 import { lireLaLibraryRangee } from '../ecriture/configuration';
 import { lireLesIgnores, separerLesIgnores } from '../ecriture/ignores';
 import type { NiveauDAccessibilite } from '../messages/configuration';
-import type { CauseDePeremption, DemandeDAnalyse, StatutDAnalyse } from '../messages/analyse';
+import type { CauseDePeremption, DemandeDAnalyse, StatutDAnalyse, PhaseDAnalyse, ProgressionDAnalyse } from '../messages/analyse';
 import type { IdentiteDAnalyse, OrigineDeSelection } from '../messages/commun';
 import { constatsDeRegles, lireLesRegles, retenirLesModeles, type ReleveDesRegles } from '../regles';
 import { lireLeReleve, type IssueDuReleve } from '../releveDuComposant';
@@ -204,9 +204,9 @@ export interface SujetAAnalyser {
 export interface Lecteurs {
   /** Le sujet de la sélection, `null` hors de tout composant. */
   sujet(contexte: Contexte): Promise<SujetAAnalyser | null>;
-  releve(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte): Promise<IssueDuReleve>;
+  releve(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (fait: number, total: number) => void): Promise<IssueDuReleve>;
   catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte): Promise<CatalogueDeReference>;
-  moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte): Promise<ResultatDAnalyse>;
+  moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (phase: PhaseDAnalyse) => void): Promise<ResultatDAnalyse>;
   /** Les règles d'usage du composant, lues avec le contrat du moteur ; sans lecteur, aucun constat C43 ni C45. */
   regles?(sujet: SujetAAnalyser, resultat: ResultatDAnalyse, contexte: Contexte): Promise<ReleveDesRegles>;
   /** Le niveau d'accessibilité rangé ; AA sans lecteur. */
@@ -302,16 +302,19 @@ export function pageDuNoeud<T>(noeud: { readonly type?: string; readonly parent?
 
 const LECTEURS_DE_FIGMA: Lecteurs = {
   sujet: sujetDeFigma,
-  releve: (sujet, jeton, contexte) => lireLeReleve(portDuComposant(contexte), sujet.noeud, {
+  releve: (sujet, jeton, contexte, progresser) => lireLeReleve(portDuComposant(contexte), sujet.noeud, {
     budgetDeLayers: BUDGET_DE_LAYERS_PAR_DEFAUT,
     jeton,
+    progresser,
     espaceDeCouleur: contexte.figma.root.documentColorProfile === 'DISPLAY_P3' ? 'display-p3' : 'srgb',
   }),
   catalogue: catalogueDeFigma,
   niveau: ({ figma }) => lireLeNiveau(figma),
   ignores: async ({ figma }) => lireLesIgnores(figma),
   regles: (sujet, resultat) => lireLesRegles(sujet.noeud as unknown as ComponentSetNode, (resultat as { export: ComponentExport }).export),
-  moteur: (sujet, jeton, { figma }) => analyserLeComposant(async () => {}, {
+  moteur: (sujet, jeton, { figma }, progresser) => analyserLeComposant(async (texte) => {
+    progresser?.(texte.includes('variables') || texte.includes('exemples') || texte.includes('contrat') ? 'structure' : 'imbriques');
+  }, {
     composant: sujet.noeud as unknown as ComponentSetNode,
     page: pageDuNoeud(sujet.noeud, figma.currentPage),
     budgetDeLayers: BUDGET_DE_LAYERS_PAR_DEFAUT,
@@ -321,6 +324,7 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
 };
 
 interface Operation {
+  progresser?: (phase: PhaseDAnalyse, fait?: number, total?: number) => void;
   demande?: number;
   cloreMesure?: (fin: string, contenu?: string) => TraceDeMesure | null;
   /** Connue dès que le sujet est résolu ; une seconde demande l'attend pour répondre `occupe`. */
@@ -372,9 +376,19 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     mesureClose = trace;
     return trace;
   };
+  let progression: ProgressionDAnalyse = { phase: 'sujet', fraction: 0 };
+  let dernierProgres = '';
+  courant.progresser = (phase, fait, total) => {
+    const fractions: Record<PhaseDAnalyse, number> = { sujet: 0, releve: 0.05, catalogue: 0.25, imbriques: 0.5, structure: 0.65, regles: 0.8, controles: 0.35, corrections: 0.9, projection: 0.98 };
+    progression = { phase, fraction: Math.max(progression.fraction, fractions[phase] + (phase === 'releve' && total ? 0.19 * Math.min(fait ?? 0, total) / total : 0)), ...(fait !== undefined && total !== undefined ? { fait, total } : {}) };
+    const cle = JSON.stringify(progression);
+    if (!identite || cle === dernierProgres) return;
+    dernierProgres = cle;
+    contexte.envoyer({ type: 'analyse-en-cours', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), variantsLus: phase === 'releve' ? fait ?? 0 : 0, variantsTotal: phase === 'releve' ? total ?? 0 : 0, progression });
+  };
+  const phase = (nom: PhaseDAnalyse): void => { etape(nom); courant.progresser?.(nom); };
   let identite: IdentiteDAnalyse | null = null;
   let catalogueLu: CatalogueDeReference | null = null;
-  const phase = (nom: string): void => { etape(nom); };
   const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats): void => {
     phase('projection');
     mesurerLeCalcul(() => retenirLesCorrections(identite as IdentiteDAnalyse, constats, releve, tous, catalogueLu), 'projection');
@@ -392,7 +406,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       envoyee.envois['resultat-final'] = Date.now();
       if (tous.length && envoyee.envois['premiers-constats'] === undefined) envoyee.envois['premiers-constats'] = Date.now();
     }
-    contexte.envoyer({ type: 'analyse', analyse: identite as IdentiteDAnalyse, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), statut, ...sortie, ...(mesure ? { mesure } : {}) });
+    contexte.envoyer({ type: 'analyse', analyse: identite as IdentiteDAnalyse, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), statut, ...sortie, progression: { phase: 'projection', fraction: 1 }, ...(mesure ? { mesure } : {}) });
     if (releve !== null) contexte.envoyer({ type: 'ignores', analyse: identite as IdentiteDAnalyse, constats: ecartes });
   };
   try {
@@ -406,16 +420,17 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       mesuresEnvoyees.set(demande.demande, { reception, identite, envois: { 'premier-affichage': Date.now() } });
     }
     contexte.envoyer({ type: 'analyse-commencee', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), ...(demande.mesurer ? { mesure: true } : {}) });
+    courant.progresser('sujet');
     if (courant.jeton.leve) return rendre('annulee', [], null);
     if (!sujet) return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
     const { jeton } = courant;
 
     phase('releve');
-    const issue = await attendrePourLaMesure(() => lecteurs.releve(sujet, jeton, contexte), 'attente', 'releve');
+    const issue = await attendrePourLaMesure(() => lecteurs.releve(sujet, jeton, contexte, (fait, total) => courant.progresser?.('releve', fait, total)), 'attente', 'releve');
     if (issue.statut === 'annule' || jeton.leve) return rendre('annulee', [], null);
     if (issue.statut === 'sans-sujet') return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
     const { releve } = issue;
-    contexte.envoyer({ type: 'analyse-en-cours', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), variantsLus: releve.variants.length, variantsTotal: releve.variants.length + releve.lecture.variantsNonLus.length });
+    courant.progresser('releve', releve.variants.length, releve.variants.length + releve.lecture.variantsNonLus.length);
 
     retenirLesLiaisons(liaisonsParCle(releve));
     const niveau = await attendrePourLaMesure(async () => await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => 'AA') ?? 'AA');
@@ -423,8 +438,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte), 'attente', 'catalogue');
     catalogueLu = catalogue;
     if (jeton.leve) return rendre('annulee', [], null);
-    phase('moteur');
-    const resultat = await attendrePourLaMesure(() => lecteurs.moteur(sujet, jeton, contexte), 'attente', 'moteur');
+    phase('imbriques');
+    const resultat = await attendrePourLaMesure(() => lecteurs.moteur(sujet, jeton, contexte, courant.progresser), 'attente', 'moteur');
     if (resultat.etat === 'annulee' || jeton.leve) return rendre('annulee', [], null);
 
     // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.

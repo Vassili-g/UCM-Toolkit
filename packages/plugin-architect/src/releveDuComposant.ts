@@ -30,6 +30,7 @@ import { LOT, liaisonsDesSurcharges, sujetDe, type PortDuComposant } from './lec
 import type { EspaceDuReleve } from './modele';
 
 export interface OptionsDuReleve {
+  readonly progresser?: (fait: number, total: number) => void;
   /** Défaut : `BUDGET_DE_LAYERS_PAR_DEFAUT`. */
   readonly budgetDeLayers?: number;
   readonly jeton?: JetonDAnnulation;
@@ -387,6 +388,7 @@ export async function lireLeReleve(port: PortDuComposant, depart: NoeudLu, optio
       }
       layersLus += layers.length;
       variants.push({ id: composant.id, nom: composant.name, valeurs: valeursDuVariant(composant), layers, modesEffectifs: await lecteur.modes(composant) });
+      options.progresser?.(variants.length, composants.length);
       continue;
     }
     coupe = true;

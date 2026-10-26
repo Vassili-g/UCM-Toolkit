@@ -10,7 +10,7 @@ import { TYPES_D_ALERTE, type TypeDAlerte } from '@ucm-kit/core/referentiel';
 
 import type { LectureDeComposant } from '../../composant';
 import type { PluginMessage } from '../../messages';
-import type { CauseDePeremption, RenduDAnalyse } from '../../messages/analyse';
+import type { CauseDePeremption, ProgressionDAnalyse, RenduDAnalyse } from '../../messages/analyse';
 import type { Constat, Correction, IdentiteDAnalyse } from '../../messages/commun';
 import type { PreparationVue } from '../../messages/preparation';
 import type { LiaisonEnAttente } from '../../preparations';
@@ -49,7 +49,7 @@ export interface AnalyseRecue {
   /** Le composant n'a aucun token `components` : le panneau propose de les préparer. */
   readonly sansTokens: boolean;
   /** Les variants lus sur le total, pendant l'analyse. */
-  readonly progression: { readonly lus: number; readonly total: number } | null;
+  readonly progression: ({ readonly lus: number; readonly total: number } & Partial<ProgressionDAnalyse>) | null;
   /** Un changement du document ou de la sélection a rendu ces constats périmés ; l'interface les garde. */
   readonly perimee: boolean;
   readonly cause: CauseDePeremption | null;
@@ -99,7 +99,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
   switch (message.type) {
     case 'analyse-en-cours':
       if (courante.statut !== 'en-cours' || courante.perimee) return;
-      etat.analyse = { ...courante, progression: { lus: message.variantsLus, total: message.variantsTotal } };
+      etat.analyse = { ...courante, progression: { lus: message.variantsLus, total: message.variantsTotal, ...message.progression, ...(message.progression ? { fraction: Math.max(courante.progression?.fraction ?? 0, Math.min(0.99, message.progression.fraction)) } : {}) } };
       return;
     case 'analyse':
       // Le sandbox garde périmée l'analyse qu'un `perime` a atteinte : le message final ne la rend pas applicable.

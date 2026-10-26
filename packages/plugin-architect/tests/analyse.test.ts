@@ -557,3 +557,26 @@ test('annuler par demande avant la résolution du sujet ferme une mesure annulé
   assert.equal(resultat.mesure?.fin, 'annulee');
   assert.equal(fermerLaMesure(''), null);
 });
+
+test('les phases passent même au même pourcentage, la fraction ne recule pas et seule la fin vaut 100 %', async () => {
+  const b = banc();
+  const lectures = lecteurs(complete());
+  lectures.releve = async (_sujet, _jeton, _contexte, progresser) => {
+    progresser?.(1, 11);
+    progresser?.(2, 11);
+    return { statut: 'lu', releve: releveDe('Alert') };
+  };
+  lectures.moteur = async (_sujet, _jeton, _contexte, progresser) => {
+    progresser?.('structure');
+    progresser?.('imbriques');
+    progresser?.('structure');
+    return complete()();
+  };
+  await traiterAvec(lectures)({ type: 'analyser', demande: 9 }, b.contexte);
+  const progres = deType(b, 'analyse-en-cours').map(({ progression }) => progression!);
+  assert.ok(progres.some((p, i) => i > 0 && p.phase !== progres[i - 1].phase && p.fraction === progres[i - 1].fraction));
+  assert.ok(progres.some((p) => p.fait === 2 && p.total === 11));
+  assert.ok(progres.every((p, i) => p.fraction < 1 && (i === 0 || p.fraction >= progres[i - 1].fraction)));
+  assert.ok(b.envoyes.every((m) => !('demande' in m) || m.demande === 9));
+  assert.equal(deType(b, 'analyse')[0].progression?.fraction, 1);
+});

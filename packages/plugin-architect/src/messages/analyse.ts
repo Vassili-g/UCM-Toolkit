@@ -15,6 +15,8 @@ export type StatutDAnalyse = 'complete' | 'partielle' | 'annulee' | 'arretee';
 /** Ce qui a rendu l'analyse périmée : une écriture du plugin, un changement du document, une autre sélection. */
 export type CauseDePeremption = 'ecriture' | 'document' | 'selection';
 
+export type PhaseDAnalyse = 'sujet' | 'releve' | 'catalogue' | 'imbriques' | 'structure' | 'regles' | 'controles' | 'corrections' | 'projection';
+export type ProgressionDAnalyse = { phase: PhaseDAnalyse; fraction: number; fait?: number; total?: number };
 export type RenduDAnalyse = 'premier-affichage' | 'premiers-constats' | 'resultat-final';
 
 export type DemandeDAnalyse =
@@ -24,9 +26,9 @@ export type DemandeDAnalyse =
 
 export type MessageDAnalyse =
   | { type: 'analyse-commencee'; analyse: IdentiteDAnalyse; demande?: number; mesure?: true }
-  | { type: 'analyse-en-cours'; analyse: IdentiteDAnalyse; variantsLus: number; variantsTotal: number; demande?: number }
+  | { type: 'analyse-en-cours'; analyse: IdentiteDAnalyse; variantsLus: number; variantsTotal: number; demande?: number; progression?: ProgressionDAnalyse }
   | { type: 'analyse'; analyse: IdentiteDAnalyse; statut: StatutDAnalyse; constats: readonly Constat[]; lecture: ReleveDeComposant['lecture'] | null; variants: readonly { id: string; nom: string }[];
       /** Vrai quand le relevé et le catalogue sont lus et que la collection `components` n'a aucune variable du jeu. */
-      sansTokens: boolean; demande?: number; mesure?: TraceDeMesure }
+      sansTokens: boolean; demande?: number; progression?: ProgressionDAnalyse; mesure?: TraceDeMesure }
   | { type: 'perime'; analyse: IdentiteDAnalyse; cause: CauseDePeremption }
   | { type: 'occupe'; analyse: IdentiteDAnalyse; demande?: number };
