@@ -243,7 +243,10 @@ ensuite le moteur, lit les règles, propose les corrections et envoie
 `analyse`. Le message final range les constats comme avant : contrôles du kit,
 règles, moteur. Une annulation pendant le catalogue ou les contrôles du kit
 n'envoie aucun provisoire et ne lit pas le moteur. `analyse-provisoire` n'est
-pas un statut de `analyse` : seul `analyse` termine la demande.
+pas un statut de `analyse` : seul `analyse` termine la demande. Seul un final
+`complete` ou `partielle` retient les corrections : avant lui, le sandbox
+refuse les réponses, Ignorer, la propagation, la préparation et les
+corrections.
 
 Une correction ne se propose que si elle est exacte : une règle écrite donne
 un seul candidat. Sinon le constat devient une question, sans candidat choisi

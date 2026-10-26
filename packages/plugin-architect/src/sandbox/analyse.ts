@@ -59,6 +59,8 @@ interface AnalyseCourante {
   releve: ReleveDeComposant | null;
   /** Le catalogue de l'analyse : la propagation depuis un modèle y cherche les variables visées. */
   catalogue: CatalogueDeReference | null;
+  /** Vrai dès que le résultat final complet ou partiel a retenu ses corrections ; ni le provisoire, ni une fin annulée ou arrêtée n'y suffisent. */
+  finalisee: boolean;
   perimee: boolean;
 }
 
@@ -70,7 +72,7 @@ export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, con
   generation += 1;
   const identite = { sujet, generation };
   const tous = new Set(noeuds);
-  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, corrections: new Map(), constats: new Map(), releve: null, catalogue: null, perimee: false };
+  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false };
   contexte.surveillerLeDocument(page);
   return identite;
 }
@@ -88,6 +90,7 @@ const memeIdentite = (a: IdentiteDAnalyse, b: IdentiteDAnalyse): boolean => a.su
  */
 export function retenirLesCorrections(identite: IdentiteDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null = null, tous: readonly Constat[] = constats, catalogue: CatalogueDeReference | null = null): void {
   if (!courante || !memeIdentite(courante.identite, identite)) return;
+  courante.finalisee = true;
   courante.catalogue = catalogue;
   courante.corrections = new Map(constats.flatMap((constat) => (constat.correction ? [[constat.correction.id, constat.correction] as const] : [])));
   courante.constats = new Map(tous.map((constat) => [constat.id, constat] as const));
@@ -96,7 +99,7 @@ export function retenirLesCorrections(identite: IdentiteDAnalyse, constats: read
 
 /** Le catalogue de l'analyse `identite`, `null` quand elle n'est plus la courante ou n'en a pas lu. */
 export function catalogueDeLAnalyse(identite: IdentiteDAnalyse): CatalogueDeReference | null {
-  return courante && memeIdentite(courante.identite, identite) ? courante.catalogue : null;
+  return courante && courante.finalisee && memeIdentite(courante.identite, identite) ? courante.catalogue : null;
 }
 
 /**
@@ -105,7 +108,7 @@ export function catalogueDeLAnalyse(identite: IdentiteDAnalyse): CatalogueDeRefe
  * n'est plus la courante ou que l'analyse est périmée.
  */
 export function retenirLaPropagation(identite: IdentiteDAnalyse, constats: readonly Constat[]): boolean {
-  if (!courante || courante.perimee || !memeIdentite(courante.identite, identite)) return false;
+  if (!courante || !courante.finalisee || courante.perimee || !memeIdentite(courante.identite, identite)) return false;
   courante.corrections = new Map([...courante.corrections, ...constats.flatMap((constat) => (constat.correction ? [[constat.correction.id, constat.correction] as const] : []))]);
   courante.constats = new Map([...courante.constats, ...constats.map((constat) => [constat.id, constat] as const)]);
   return true;
@@ -113,18 +116,18 @@ export function retenirLaPropagation(identite: IdentiteDAnalyse, constats: reado
 
 /** Le constat de l'analyse `identite`, ignoré ou non ; `null` quand cette identité n'est plus la courante. */
 export function constatDeLAnalyse(identite: IdentiteDAnalyse, id: string): Constat | null {
-  if (!courante || !memeIdentite(courante.identite, identite)) return null;
+  if (!courante || !courante.finalisee || !memeIdentite(courante.identite, identite)) return null;
   return courante.constats.get(id) ?? null;
 }
 
 /** Le constat dont la question porte l'identifiant `question`. */
 export function constatDeLaQuestion(identite: IdentiteDAnalyse, question: string): Constat | null {
-  if (!courante || courante.perimee || !memeIdentite(courante.identite, identite)) return null;
+  if (!courante || !courante.finalisee || courante.perimee || !memeIdentite(courante.identite, identite)) return null;
   return [...courante.constats.values()].find((constat) => constat.question?.id === question) ?? null;
 }
 
 export function releveDeLAnalyse(identite: IdentiteDAnalyse): ReleveDeComposant | null {
-  return courante && memeIdentite(courante.identite, identite) ? courante.releve : null;
+  return courante && courante.finalisee && memeIdentite(courante.identite, identite) ? courante.releve : null;
 }
 
 /**
@@ -133,7 +136,7 @@ export function releveDeLAnalyse(identite: IdentiteDAnalyse): ReleveDeComposant 
  * `false` quand cette identité n'est plus la courante.
  */
 export function fixerUneCorrection(identite: IdentiteDAnalyse, id: string, correction: Correction | null): boolean {
-  if (!courante || !memeIdentite(courante.identite, identite)) return false;
+  if (!courante || !courante.finalisee || !memeIdentite(courante.identite, identite)) return false;
   const suivantes = new Map(courante.corrections);
   if (correction) suivantes.set(id, correction);
   else suivantes.delete(id);
@@ -143,12 +146,20 @@ export function fixerUneCorrection(identite: IdentiteDAnalyse, id: string, corre
 
 /**
  * Les corrections de l'analyse `identite`, par identifiant. `null` quand cette
- * identité n'est plus la courante ou que l'analyse est périmée : rien ne s'écrit
- * alors.
+ * identité n'est plus la courante, que l'analyse est périmée ou que son résultat
+ * final manque : rien ne s'écrit alors.
  */
 export function correctionsDeLAnalyse(identite: IdentiteDAnalyse): ReadonlyMap<string, Correction> | null {
-  if (!courante || courante.perimee || !memeIdentite(courante.identite, identite)) return null;
+  if (!courante || !courante.finalisee || courante.perimee || !memeIdentite(courante.identite, identite)) return null;
   return courante.corrections;
+}
+
+/**
+ * Vrai quand l'analyse `identite` est la courante et que son résultat final a retenu ses corrections. Pendant le provisoire, ou après une fin
+ * annulée ou arrêtée, aucune réponse, aucun Ignorer ni aucune préparation ne s'appuie sur elle.
+ */
+export function analyseFinalisee(identite: IdentiteDAnalyse): boolean {
+  return courante !== null && courante.finalisee && memeIdentite(courante.identite, identite);
 }
 
 /** Oublie l'analyse courante, sans toucher à la génération. */
@@ -437,7 +448,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       compter('tokensDuComposant', nombre);
       return nombre === 0;
     };
-    mesurerLeCalcul(() => retenirLesCorrections(identite as IdentiteDAnalyse, constats, releve, tous, catalogueLu), 'projection');
+    if (statut === 'complete' || statut === 'partielle') mesurerLeCalcul(() => retenirLesCorrections(identite as IdentiteDAnalyse, constats, releve, tous, catalogueLu), 'projection');
     const sortie = mesurerLeCalcul(() => ({
       constats: tous,
       lecture: releve?.lecture ?? null,

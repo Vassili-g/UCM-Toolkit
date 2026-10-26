@@ -15,7 +15,7 @@
 import type { Constat, Correction, ReleveDeComposant } from '@ucm-kit/core/controles';
 
 import type { DemandeDeQuestions } from '../messages/questions';
-import { analyseCourante, constatDeLaQuestion, fixerUneCorrection, releveDeLAnalyse } from './analyse';
+import { analyseCourante, analyseFinalisee, constatDeLaQuestion, fixerUneCorrection, releveDeLAnalyse } from './analyse';
 import type { Traiter } from './contexte';
 
 export const TYPES: readonly DemandeDeQuestions['type'][] = ['repondre', 'annuler-reponse'];
@@ -91,6 +91,7 @@ function correctionDeLaReponse(constat: Constat, reponse: string, releve: Releve
 export const traiter: Traiter<DemandeDeQuestions> = async (demande, contexte) => {
   const courante = analyseCourante();
   if (!courante || courante.sujet !== demande.analyse.sujet || courante.generation !== demande.analyse.generation) return;
+  if (!analyseFinalisee(demande.analyse)) return;
   const constat = constatDeLaQuestion(demande.analyse, demande.question);
   const repondu = (correction: Correction | null): void => contexte.envoyer({ type: 'question-repondue', analyse: demande.analyse, question: demande.question, correction });
   if (!constat) return repondu(null);

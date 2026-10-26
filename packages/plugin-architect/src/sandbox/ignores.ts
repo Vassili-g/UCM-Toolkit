@@ -14,7 +14,7 @@ import type { Constat } from '@ucm-kit/core/controles';
 
 import { constatsIgnores, ignorerUnConstat, nePlusIgnorer, type PortDIgnores, type ResultatDIgnorer } from '../ecriture/ignores';
 import type { DemandeDIgnores } from '../messages/ignores';
-import { analyseCourante, constatDeLAnalyse, fixerUneCorrection, prendreLaPlaceDUneEcriture } from './analyse';
+import { analyseCourante, analyseFinalisee, constatDeLAnalyse, fixerUneCorrection, prendreLaPlaceDUneEcriture } from './analyse';
 import type { Contexte, Traiter } from './contexte';
 
 export const TYPES: readonly DemandeDIgnores['type'][] = ['ignorer', 'ne-plus-ignorer'];
@@ -34,6 +34,7 @@ export function traiterAvec(rangement: (contexte: Contexte) => Rangement): Trait
   return async (demande, contexte) => {
     const courante = analyseCourante();
     if (!courante || courante.sujet !== demande.analyse.sujet || courante.generation !== demande.analyse.generation) return;
+    if (!analyseFinalisee(demande.analyse)) return;
     const place = prendreLaPlaceDUneEcriture(demande.analyse);
     if ('occupe' in place) {
       contexte.envoyer({ type: 'occupe', analyse: await place.occupe });

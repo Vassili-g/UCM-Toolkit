@@ -14,6 +14,11 @@ import { etape, compter, fermerLaMesure, ouvrirLaMesure, abandonnerLaMesure } fr
 import type { PluginMessage } from '../src/messages';
 import { constatsDuMoteur } from '../src/constatsDuMoteur';
 import { traiter as traiterLesQuestions } from '../src/sandbox/questions';
+import { traiterAvec as traiterLesCorrections } from '../src/sandbox/corrections';
+import { traiterAvec as traiterLesIgnores } from '../src/sandbox/ignores';
+import { traiterAvec as traiterLaPreparation } from '../src/sandbox/preparation';
+import { rangerUnePreparation, type PreparationRangee } from '../src/preparations';
+import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 import { capturerLAnalyse, verifierLaPariteDeLAnalyse } from './parite';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
 import { analyseCourante, catalogueDeFigma, correctionsDeLAnalyse, perimerApresUneEcriture, reinitialiserLAnalyse, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
@@ -756,6 +761,109 @@ test('le banc compare une question C29 avec candidats puis sa correction et son 
     aRelire: { axes: {}, regle: 'Le designer a choisi un token proche. La valeur change.', avant: null, valeur: 13 },
   }]]);
   assert.ok(reference.messages.some((message) => message.type === 'question-repondue' && message.correction?.aRelire.valeur === 13));
+});
+
+test('chaque demande d’écriture forgée pendant le provisoire est refusée sans effet ; après le final, les mêmes demandes passent', async () => {
+  const stockage = new Map<string, unknown>();
+  const effets = { depots: 0, lots: [] as string[][], rangements: [] as string[], creations: 0 };
+  const envoyes: PluginMessage[] = [];
+  const figma = {
+    clientStorage: { async getAsync(cle: string) { return stockage.get(cle); }, async setAsync(cle: string, valeur: unknown) { stockage.set(cle, valeur); effets.depots += 1; } },
+    root: { getSharedPluginData: (espace: string, cle: string) => (espace === ESPACE_ARCHITECT && cle === CLE_ARCHITECTURE_DU_FICHIER ? texteDeLArchitectureDuFichier(true) : '') },
+  };
+  const contexte: Contexte = { figma: figma as unknown as PluginAPI, envoyer: (m) => envoyes.push(m), surveillerLeDocument() {} };
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'components', nom: 'components', role: 'components', etat: 'lue', modes: [{ id: 'Light', nom: 'Light' }, { id: 'Dark', nom: 'Dark' }] }],
+    variables: [
+      { cle: 'r12', nom: 'alert/size/radius', collection: 'components', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 12 }, Dark: { valeur: 12 } } },
+      { cle: 'r14', nom: 'alert/size/radius', collection: 'components', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 14 }, Dark: { valeur: 14 } } },
+    ],
+  };
+  const releve: ReleveDeComposant = {
+    ...releveDe('Alert'),
+    variants: [{
+      id: 'v-Alert', nom: 'Alert défaut', valeurs: {}, modesEffectifs: {},
+      layers: [{ id: 'root', nom: 'fond', type: 'FRAME', parent: null, visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 20, hauteur: 20 }, peintures: [], liaisons: [], valeursEnDur: [{ champ: 'cornerRadius', valeur: 13 }] }],
+    }],
+  };
+  const CONSTAT = 'C29:v-Alert:root:cornerRadius:13';
+  const corrections = traiterLesCorrections({
+    async lot(aEcrire) { effets.lots.push(aEcrire.map(({ id }) => id)); return { ecrites: aEcrire.map(({ id }) => id), sautees: [] }; },
+    async selectionner(layers) { return layers; },
+  });
+  const ignores = traiterLesIgnores(() => ({
+    ignorer: (constat, portee) => { effets.rangements.push(`ignorer:${portee}:${constat.id}`); return { ecrit: true, cles: [constat.id] }; },
+    nePlusIgnorer: (id) => { effets.rangements.push(`ne-plus-ignorer:${id}`); return { ecrit: true, cles: [] }; },
+  }));
+  const preparation = traiterLaPreparation({
+    catalogue: async () => catalogue,
+    publiees: async () => new Map(),
+    creer: async () => { effets.creations += 1; return { refus: null, collections: [], etats: {}, echecs: [], divergentes: [], creees: 0, remplacees: 0, gardees: 0, sautees: 0, journal: true }; },
+    fichier: () => ({ nom: 'Composants', cle: 'abc' }),
+    identifiant: () => 'prep-2',
+    maintenant: () => '2026-10-23T10:00:00.000Z',
+  });
+  const rangee: PreparationRangee = { id: 'prep-1', creeLe: '2026-10-23T10:00:00.000Z', regles: [], source: { fichier: 'Composants', cleDuFichier: 'abc', jeu: { cle: 'Alert', nom: 'Alert' } }, variables: [] };
+  await rangerUnePreparation(figma.clientStorage, rangee);
+
+  /** Toutes les demandes qui écrivent ou qui s'appuient sur les corrections de l'analyse, dans l'ordre où le final les accepte. */
+  const forger = async (analyse: IdentiteDAnalyse): Promise<PluginMessage[]> => {
+    const avant = envoyes.length;
+    await traiterLesQuestions({ type: 'repondre', analyse, question: CONSTAT, reponse: 'r14' }, contexte);
+    await traiterLesQuestions({ type: 'annuler-reponse', analyse, question: CONSTAT }, contexte);
+    await traiterLesQuestions({ type: 'repondre', analyse, question: CONSTAT, reponse: 'r14' }, contexte);
+    await ignores({ type: 'ignorer', analyse, constat: CONSTAT, portee: 'constat' }, contexte);
+    await ignores({ type: 'ignorer', analyse, constat: CONSTAT, portee: 'proposition' }, contexte);
+    await ignores({ type: 'ne-plus-ignorer', analyse, constat: CONSTAT }, contexte);
+    await corrections({ type: 'servir-de-modele', analyse, variant: 'v-Alert' }, contexte);
+    await preparation({ type: 'preparer', analyse, reponses: {}, ranger: true }, contexte);
+    await preparation({ type: 'lier-preparation', analyse, preparation: 'prep-1' }, contexte);
+    await preparation({ type: 'creer-variables', preparation: 'prep-1', reponses: {} }, contexte);
+    await corrections({ type: 'appliquer-corrections', analyse, ids: [CONSTAT] }, contexte);
+    return envoyes.slice(avant);
+  };
+  const types = (messages: readonly PluginMessage[]) => messages.map(({ type }) => type);
+
+  let pendantLeProvisoire: PluginMessage[] = [];
+  let correctionsAvant: unknown = 'jamais lu';
+  const lectures: Lecteurs = {
+    ...lecteurs(complete()),
+    releve: async () => ({ statut: 'lu', releve }),
+    catalogue: async () => catalogue,
+    moteur: async () => {
+      // Le moteur ne démarre qu'après l'envoi du provisoire.
+      assert.deepEqual(types(envoyes).filter((type) => type === 'analyse-provisoire' || type === 'analyse'), ['analyse-provisoire']);
+      const analyse = analyseCourante()!;
+      effets.depots = 0;
+      pendantLeProvisoire = await forger(analyse);
+      correctionsAvant = correctionsDeLAnalyse(analyse);
+      return { etat: 'complete', export: exportDe() };
+    },
+  };
+  await traiterAvec(lectures)({ type: 'analyser' }, contexte);
+
+  // Pendant le provisoire : aucune écriture, aucun stockage, aucune correction retenue, aucune réponse de succès.
+  assert.deepEqual(effets, { depots: 0, lots: [], rangements: [], creations: 0 });
+  assert.equal(correctionsAvant, null);
+  const parType = (type: PluginMessage['type']) => pendantLeProvisoire.filter((m) => m.type === type);
+  for (const type of ['question-repondue', 'ignores', 'corrections-appliquees', 'modele-propose', 'preparations', 'perime'] as const) assert.deepEqual(parType(type), [], type);
+  assert.deepEqual(parType('plan-de-preparation').map((m) => m.type === 'plan-de-preparation' && m.refus), ['analyse-perimee']);
+  assert.deepEqual(parType('liaisons-preparees').map((m) => m.type === 'liaisons-preparees' && m.refus), ['analyse-perimee']);
+  assert.deepEqual(parType('variables-creees').map((m) => m.type === 'variables-creees' && m.refus), ['occupe']);
+
+  // Après le final, les mêmes demandes passent.
+  const [final] = envoyes.filter((m): m is Extract<PluginMessage, { type: 'analyse' }> => m.type === 'analyse');
+  assert.equal(final.statut, 'complete');
+  const apres = await forger(final.analyse);
+  assert.deepEqual(effets.rangements, [`ignorer:constat:${CONSTAT}`, `ignorer:proposition:${CONSTAT}`, `ne-plus-ignorer:${CONSTAT}`]);
+  assert.deepEqual(effets.lots, [[CONSTAT]]);
+  assert.equal(effets.creations, 1);
+  assert.ok(apres.some((m) => m.type === 'question-repondue' && m.correction !== null));
+  assert.ok(apres.some((m) => m.type === 'modele-propose'));
+  assert.ok(apres.some((m) => m.type === 'corrections-appliquees' && m.ecrites === 1));
+  assert.ok(apres.every((m) => !(m.type === 'plan-de-preparation' && m.refus === 'analyse-perimee')));
+  assert.ok(apres.every((m) => !(m.type === 'liaisons-preparees' && m.refus === 'analyse-perimee')));
 });
 
 test('une analyse complète rend l’identité dans chaque message et les constats du moteur traduits', async () => {
