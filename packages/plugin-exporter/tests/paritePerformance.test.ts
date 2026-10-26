@@ -196,6 +196,9 @@ test('le parcours brut de chaque racine se lit une fois par portée, sans change
     // Huit variants : l'exacte et les échantillons reprennent les chemins de texte déjà calculés.
     assert.equal(sansPortee.compteurs.cheminsDeTexteReutilises, undefined);
     assert.ok(avecPortee.compteurs.cheminsDeTexteReutilises! >= 16, `${avecPortee.compteurs.cheminsDeTexteReutilises} chemins repris`);
+    // Les filtres déjà calculés pour une racine et un `composed` sont repris, et ne comptent plus comme appels.
+    assert.equal(sansPortee.compteurs.parcoursFiltresReutilises, undefined);
+    assert.ok(avecPortee.compteurs.parcoursFiltresReutilises! > 0, 'aucun filtre repris');
     assert.ok(
       avecPortee.compteurs.appelsGetAllNodes! < sansPortee.compteurs.appelsGetAllNodes!,
       `${avecPortee.compteurs.appelsGetAllNodes} appels avec portée, ${sansPortee.compteurs.appelsGetAllNodes} sans`,

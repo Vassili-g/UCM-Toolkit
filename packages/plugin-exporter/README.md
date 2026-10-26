@@ -169,9 +169,10 @@ même trace part dans la console du plugin
   dépôt est configuré. L'écart entre leur somme et `totalMs` est la lecture
   des réglages avant la première étape ;
 - `compteurs` : pages chargées, balayées et reprises de la mémoire, nodes
-  parcourus, parcours et chemins de texte repris de la mémoire, appels à
-  `getAllNodes`, à `findAllWithCriteria` et à `getMainComponentAsync`, maîtres
-  repris de la mémoire, respirations et taille de l'index. Un compteur absent vaut zéro ;
+  parcourus, parcours, filtres de parcours et chemins de texte repris de la
+  mémoire, appels à `getAllNodes` (filtres réellement calculés), à
+  `findAllWithCriteria` et à `getMainComponentAsync`, maîtres repris de la
+  mémoire, respirations et taille de l'index. Un compteur absent vaut zéro ;
 - `empreinte` : un condensé du contrat produit, date d'export exclue. Deux
   analyses du même composant qui donnent deux empreintes ont produit deux
   contrats différents.

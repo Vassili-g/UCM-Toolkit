@@ -13,7 +13,7 @@
 import { variableAliases } from '../variables';
 import { getBinding } from './nodeBindings';
 import { compter } from './mesure';
-import { descendantsBruts } from './porteeDAnalyse';
+import { descendantsBruts, memoriserLeParcoursFiltre, parcoursFiltreMemorise } from './porteeDAnalyse';
 import type { ComposedDependency } from '@ucm-kit/core/format';
 import { noter, phraseDe, pointDe, pousserNote, sujet } from './localisation';
 import type { PointACorriger, Sujet } from './localisation';
@@ -60,6 +60,29 @@ function pousserUneFois(warnings: string[], point: PointACorriger, sujetDuPoint:
   }
   pousserNote(warnings, point, sujetDuPoint);
 }
+
+/**
+ * Le diagnostic d'un calque masqué sans liaison de visibilité dont le contenu porte une variable. Une
+ * seule fonction l'émet, au premier calcul comme à chaque reprise de la mémoire.
+ */
+function signalerUnMasque(warnings: string[], hidden: SceneNode): void {
+  const sujetDuCalque = sujet('Layer', hidden);
+  pousserUneFois(
+    warnings,
+    pointDe(sujetDuCalque.texte, {
+      famille: 'disposition',
+      manque: `il est masqué, et aucune propriété booléenne ni variable ne pilote sa `
+        + `visibilité.`,
+      impact: `Le contrat l'exclut avec tout son contenu : le développeur ne le rendra jamais.`,
+      action: `Si le composant doit pouvoir l'afficher, reliez sa visibilité à une boolean `
+        + `property ou à une variable, puis réexportez.`,
+    }),
+    sujetDuCalque,
+  );
+}
+
+/** Ce que la portée garde d'un parcours rendable : les calques, et les masqués à signaler dans l'ordre. */
+type ParcoursFiltre = { readonly nodes: readonly SceneNode[]; readonly masques: readonly SceneNode[] };
 
 /**
  * Les composants unifiés imbriqués d'un sous-arbre : id de l'instance →
@@ -164,6 +187,14 @@ export function* getAllNodesParEtapes(
 }
 
 function* releverLesNodesParEtapes(root: SceneNode, warnings: string[], composed: ComposedInstances): Generator<void, SceneNode[]> {
+  // Une reprise rend une copie des calques et rejoue, dans le canal de l'appelant, les diagnostics du
+  // calcul d'origine, dans le même ordre. Elle ne compte pas dans `appelsGetAllNodes`, qui compte les
+  // filtres calculés.
+  const connu = parcoursFiltreMemorise<ParcoursFiltre>(root, composed);
+  if (connu) {
+    for (const masque of connu.masques) signalerUnMasque(warnings, masque);
+    return connu.nodes.slice();
+  }
   // La racine elle-même peut être un composant unifié : c'est la forme d'un
   // slot qui rend directement sa dépendance. `hasAncestorIn` ne teste que les
   // ancêtres stricts et ne la couvre donc pas ; sans cette ligne, le parent
@@ -183,7 +214,10 @@ function* releverLesNodesParEtapes(root: SceneNode, warnings: string[], composed
       }
       visibles.push(node);
     }
-    if (tousVisibles) return visibles;
+    if (tousVisibles) {
+      memoriserLeParcoursFiltre(root, composed, { nodes: visibles.slice(), masques: [] } satisfies ParcoursFiltre);
+      return visibles;
+    }
   }
   const ignoredBindings = new Map<SceneNode, boolean>();
   const exportable: SceneNode[] = [root];
@@ -228,23 +262,14 @@ function* releverLesNodesParEtapes(root: SceneNode, warnings: string[], composed
     ignoredBindings.set(hidden, (ignoredBindings.get(hidden) ?? false) || hasVariableBindings(node));
   }
 
+  const masques: SceneNode[] = [];
   for (const [hidden, hasBindings] of ignoredBindings) {
     yield;
     if (!hasBindings) continue;
-    const sujetDuCalque = sujet('Layer', hidden);
-    pousserUneFois(
-      warnings,
-      pointDe(sujetDuCalque.texte, {
-        famille: 'disposition',
-        manque: `il est masqué, et aucune propriété booléenne ni variable ne pilote sa `
-          + `visibilité.`,
-        impact: `Le contrat l'exclut avec tout son contenu : le développeur ne le rendra jamais.`,
-        action: `Si le composant doit pouvoir l'afficher, reliez sa visibilité à une boolean `
-          + `property ou à une variable, puis réexportez.`,
-      }),
-      sujetDuCalque,
-    );
+    masques.push(hidden);
+    signalerUnMasque(warnings, hidden);
   }
+  memoriserLeParcoursFiltre(root, composed, { nodes: exportable.slice(), masques } satisfies ParcoursFiltre);
 
   return exportable;
 }

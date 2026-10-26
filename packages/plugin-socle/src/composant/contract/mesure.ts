@@ -19,6 +19,7 @@ export type Compteur =
   | 'nodesParcourus'
   | 'parcoursReutilises'
   | 'cheminsDeTexteReutilises'
+  | 'parcoursFiltresReutilises'
   | 'appelsGetAllNodes'
   | 'msGetAllNodes'
   | 'appelsFindAllWithCriteria'

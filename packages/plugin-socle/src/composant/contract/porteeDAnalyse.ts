@@ -92,6 +92,8 @@ type Portee = {
   parcours: Map<string, readonly SceneNode[]>;
   /** Les chemins de texte de chaque racine, par id, avec le contexte complet qui les a produits. */
   chemins: Map<string, ContexteMemorise[]>;
+  /** Le parcours rendable de chaque racine, par id, avec le contenu de `composed` qui l'a filtré. */
+  filtres: Map<string, Array<{ composed: ReadonlyMap<string, object>; valeur: unknown }>>;
   cooperation: ContexteCooperatif;
 };
 
@@ -135,6 +137,7 @@ export async function dansUnePorteeDAnalyse<T>(
     maitres: new Map(),
     parcours: new Map(),
     chemins: new Map(),
+    filtres: new Map(),
     cooperation: options.cooperation ?? creerContexteCooperatif(options),
   };
   portee = ouverte;
@@ -250,6 +253,29 @@ export function memoriserLesChemins(
   if (!memoire) return;
   const connus = memoire.get(racine.id) ?? [];
   connus.push({ iconNames: new Set(iconNames), composed: new Map(composed), valeur });
+  memoire.set(racine.id, connus);
+}
+
+/**
+ * Le parcours rendable déjà filtré pour cette racine et ce contenu de `composed`, ou undefined.
+ *
+ * Seul le contenu de `composed` entre dans la clé : le filtre ne lit ni les noms d'icônes ni le canal de
+ * diagnostics. La valeur est rendue telle que `memoriserLeParcoursFiltre` l'a rangée, sans copie.
+ */
+export function parcoursFiltreMemorise<T>(racine: SceneNode, composed: ReadonlyMap<string, object>): T | undefined {
+  const connus = typeof racine.id === 'string' ? porteeQuiMemorise()?.filtres.get(racine.id) : undefined;
+  const trouve = connus?.find((c) => memesDependances(c.composed, composed));
+  if (!trouve) return undefined;
+  compter('parcoursFiltresReutilises');
+  return trouve.valeur as T;
+}
+
+/** Range le parcours rendable d'une racine pour son `composed`, recopié. Sans effet hors portée. */
+export function memoriserLeParcoursFiltre(racine: SceneNode, composed: ReadonlyMap<string, object>, valeur: unknown): void {
+  const memoire = typeof racine.id === 'string' ? porteeQuiMemorise()?.filtres : undefined;
+  if (!memoire) return;
+  const connus = memoire.get(racine.id) ?? [];
+  connus.push({ composed: new Map(composed), valeur });
   memoire.set(racine.id, connus);
 }
 

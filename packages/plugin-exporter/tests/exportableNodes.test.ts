@@ -392,3 +392,53 @@ test('chaque destination qui partage une racine reçoit ses diagnostics, parties
   assert.deepEqual(avecMemoire[1].phrases, sansMemoire[1].phrases);
   assert.notEqual(avecMemoire[0].phrases, avecMemoire[2].phrases);
 });
+
+test('le filtre d’une racine se reprend par contenu de composed, sur les deux voies, et rend des copies', async () => {
+  const racine = arbreDesMasques();
+  const ids = (nodes: readonly { id?: string }[]) => nodes.map((n) => n.id);
+  const attendu = ids(getAllNodes(racine, [], contextes().imbriquee));
+
+  ouvrirLaMesure();
+  let compteurs;
+  try {
+    await dansUnePorteeDAnalyse({}, async () => {
+      const premier = getAllNodes(racine, [], contextes().imbriquee);
+      // Une autre instance au même contenu reprend le filtre ; un contenu différent le recalcule.
+      const repris = getAllNodes(racine, [], contextes().imbriquee);
+      const parEtapes = lire(racine, 'imbriquee', true).ids;
+      const autre = getAllNodes(racine, [], contextes().deux);
+      assert.deepEqual(ids(premier), attendu);
+      assert.deepEqual(ids(repris), attendu);
+      assert.deepEqual(parEtapes, attendu);
+      assert.notDeepEqual(ids(autre), attendu);
+      // Chaque appelant reçoit son tableau : en modifier un ne change ni la mémoire ni les suivants.
+      premier.length = 0;
+      repris.push(racine);
+      assert.deepEqual(ids(getAllNodes(racine, [], contextes().imbriquee)), attendu);
+    });
+    compteurs = fermerLaMesure('')!.compteurs;
+  } finally { abandonnerLaMesure(); }
+  // Trois calculs seulement : le premier, le contexte `deux`, et les reprises ne comptent pas.
+  assert.equal(compteurs.appelsGetAllNodes, 2);
+  assert.equal(compteurs.parcoursFiltresReutilises, 3);
+});
+
+test('un calcul de filtre interrompu ne range rien', async () => {
+  const racine = arbreDesMasques();
+  ouvrirLaMesure();
+  let compteurs;
+  try {
+    await dansUnePorteeDAnalyse({}, async () => {
+      const avertissements: string[] = [];
+      const calcul = getAllNodesParEtapes(racine, avertissements, contextes().libre);
+      calcul.next();
+      calcul.return([]);
+      // Le calcul d'origine n'a rien rangé : l'appel suivant recalcule, et émet ses diagnostics.
+      const complet = lire(racine, 'libre', false);
+      assert.equal(complet.avertissements.length, 1);
+      assert.equal(lire(racine, 'libre', false).avertissements.length, 1);
+    });
+    compteurs = fermerLaMesure('')!.compteurs;
+  } finally { abandonnerLaMesure(); }
+  assert.equal(compteurs.parcoursFiltresReutilises, 1);
+});
