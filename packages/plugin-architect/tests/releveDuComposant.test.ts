@@ -174,6 +174,40 @@ test('retirer puis ajouter un variant change le préfixe admis par le budget', a
   assert.ok(modifie.releve.lecture.layersNonLus < avant.releve.lecture.layersNonLus);
 });
 
+test('un identifiant refusé à la première acquisition est relu à la suivante', async () => {
+  const a = atelierDeCalques();
+  const fond = a.calque('fond', 'RECTANGLE', {
+    absoluteBoundingBox: boite(0, 0, 10, 10),
+    fills: [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: alias('fond') } }],
+  });
+  const variant = a.calque('v', 'COMPONENT', { name: 'Etat=Repos', absoluteBoundingBox: boite(0, 0, 10, 10) }, [fond]);
+  const jeu = a.calque('jeu', 'COMPONENT_SET', {
+    name: 'Alert', key: 'cle-jeu', defaultVariant: variant,
+    componentPropertyDefinitions: { Etat: { type: 'VARIANT', defaultValue: 'Repos', variantOptions: ['Repos'] } },
+  }, [variant]);
+  const lectureRefusee = portDeTest(
+    [collectionFigma('c', 'Composants', ['Valeur'], ['fond'])],
+    [variableFigma('fond', 'c', 'carte/fond', 'COLOR', { 'c:Valeur': { r: 1, g: 0, b: 0, a: 1 } })],
+    [], [], { refusees: new Set(['fond']) },
+  );
+  const premiere = await lireLeReleve(a.port(lectureRefusee.port), jeu);
+  assert.equal(premiere.statut, 'lu');
+  if (premiere.statut !== 'lu') return;
+  assert.ok(premiere.releve.lecture.manquees.some(({ layer, motif }) => layer === 'fond' && motif === 'Accès refusé à la bibliothèque'));
+
+  const lectureRetablie = portDeTest(
+    [collectionFigma('c', 'Composants', ['Valeur'], ['fond'])],
+    [variableFigma('fond', 'c', 'carte/fond', 'COLOR', { 'c:Valeur': { r: 1, g: 0, b: 0, a: 1 } })],
+  );
+  const seconde = await lireLeReleve(a.port(lectureRetablie.port), jeu);
+  assert.equal(seconde.statut, 'lu');
+  if (seconde.statut !== 'lu') return;
+  assert.deepEqual(seconde.releve.lecture.manquees, []);
+  assert.equal(seconde.releve.variants[0].layers.find(({ id }) => id === 'fond')?.liaisons[0].variable.cle, 'cle-fond');
+  assert.equal(lectureRefusee.appels.get('fond'), 1);
+  assert.equal(lectureRetablie.appels.get('fond'), 1);
+});
+
 test('un budget plus petit que le premier variant le lit quand même', async () => {
   const { a, jeu } = jeuFactice();
   const { port } = variables();

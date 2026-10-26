@@ -11,7 +11,7 @@ Un lot est fini quand toutes ses cases sont cochées dans des commits. Mettre so
 
 | Lot | État |
 |---|---|
-| [0 : référence et banc de comparaison](./LOT-00.md) | Non fini (travail local non committé) |
+| [0 : référence et banc de comparaison](./LOT-00.md) | Fini |
 | [1 : mesures du clic au rendu et progression](./LOT-01.md) | Non fini (travail local non committé) |
 | [2 : coopération et annulation dans les boucles](./LOT-02.md) | Non fini (travail local non committé) |
 | [3 : premiers constats et protocole de fin](./LOT-03.md) | Non fini |
@@ -66,7 +66,7 @@ et son code sont committés ensemble, par chemins explicites. Une mesure Figma
 indisponible reste non cochée et n'arrête pas les travaux locaux indépendants.
 
 Les preuves consignées dans les lots décrivent l'arbre de travail actuel : les
-lots 0 à 2 contiennent des changements non committés. Aucune nouvelle case
+lots 1 et 2 contiennent des changements non committés. Aucune nouvelle case
 n'est cochée sur la seule base de ces preuves. Leur découpage en commits doit
 préserver les modifications du mainteneur et laisser chaque commit vérifiable.
 Pour ces cases, isoler et contrôler le travail présent avant de coder ce qui

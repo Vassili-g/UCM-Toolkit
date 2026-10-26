@@ -9,7 +9,7 @@
 - [x] **0.3 | gpt-6-luna | low** : ajouter les fixtures de texte à plages, surcharge d'instance et lectures manquées ; deux acquisitions fraîches donnent la même sortie.
 - [x] **0.4 | gpt-6-luna | low** : ajouter les fixtures de budget, retrait et ajout de variant ; comparer préfixe admis, couverture et nombre non lu.
 - [x] **0.5 | gpt-6-luna | low** : compter listes locales, lectures par identifiant, descendants et maîtres dans les doubles ; vérifier les compteurs sans seuil temporel.
-- [ ] **0.6 | gpt-6.1-sol | medium** : couvrir questions, réponses, ignorés, corrections et échec de ressource suivi d'une réussite ; comparer les sorties complètes.
+- [x] **0.6 | gpt-6.1-sol | medium** : couvrir questions, réponses, ignorés, corrections et échec de ressource suivi d'une réussite ; comparer les sorties complètes.
 
 Prérequis : aucun. Nature : caractérisation à sortie identique.
 Chemins : `packages/plugin-architect/tests/analyse.test.ts`,
@@ -20,7 +20,7 @@ du dernier chemin complet.
 
 ## Portée et preuves conservées
 
-- **Acquis localement, non commité** : étendre le banc actuel pour capturer toutes les
+- **Acquis** : le banc capture toutes les
   sorties du contrat de parité, notamment `parties`, localisations et modèles
   de règles. Produire deux exécutions indépendantes sur les mêmes doubles ;
   garder la voie actuelle comme oracle pendant la migration.
@@ -33,7 +33,7 @@ du dernier chemin complet.
   modèle et ignoré. Contrôles : Architect 1 067 tests, exporteur 1 081 tests,
   typecheck des deux paquets ; extraction du helper revérifiée sur les 19 tests
   d'analyse. Aucun écran changé.
-- **Acquis localement, non commité** : compléter le corpus avec les cas du tableau qui
+- **Acquis** : le corpus couvre les cas du tableau qui
   manquent, selon les constructeurs et attentes relus en 0.1 et 0.2.
   Ajouter les compteurs de lectures et de requêtes aux doubles, sans assertion
   sur un gain encore inconnu.
@@ -52,25 +52,20 @@ du dernier chemin complet.
   40 tests ciblés passent. Les compteurs décrivent les appels ; ils ne promettent
   aucun gain de durée.
 
-Cas à raccorder au banc en 0.3 à 0.6, avec les constructeurs
-existants :
+Corpus vérifié avec les constructeurs existants :
 
-- `releveDuComposant.test.ts`, `jeuFactice()` : comparer deux relevés frais du
-  texte à plages adjacentes et de l'instance surchargée ; reprendre les budgets
-  existants de 10 et 1 layers sans dupliquer leurs attentes de forme. Ajouter
-  un retrait puis un ajout de variant qui change le préfixe admis.
-- `analyse.test.ts`, `lecteurs()` et `tests/parite.ts` : passer une lecture
-  partielle avec `manquees` localisé et deux variants non lus ; comparer aussi
-  un cas avec question et candidats, d'après les fixtures de corrections
-  existantes, puis sa correction et son `aRelire` après réponse.
-- `figmaDeTest.ts`, `portDeTest()` compte déjà les appels par identifiant et
-  les imports ; compléter seulement les lectures locales et les propriétés
-  effectivement absentes de ses compteurs. Ajouter le refus puis la réussite
-  du même identifiant entre deux acquisitions indépendantes.
-- `paritePerformance.test.ts`, `monterLeSet()` : réutiliser les variants et les
-  instances existants pour compter les lectures supplémentaires ; le compteur
-  des maîtres est déjà présent. Les comparaisons d'export avec et sans portée
-  couvrent désormais aussi les parties et localisations de tout le corpus.
+- `releveDuComposant.test.ts`, `jeuFactice()` : deux relevés frais du texte à
+  plages adjacentes et de l'instance surchargée ; budgets de 10 et 1 layers ;
+  retrait puis ajout de variant qui change le préfixe admis.
+- `analyse.test.ts`, `lecteurs()` et `tests/parite.ts` : lecture partielle avec
+  `manquees` localisé et deux variants non lus ; question avec candidats,
+  correction et `aRelire` après réponse.
+- `figmaDeTest.ts`, `portDeTest()` compte les listes locales, les appels par
+  identifiant et les imports. Le même identifiant est refusé puis lu dans
+  deux acquisitions indépendantes.
+- `paritePerformance.test.ts`, `monterLeSet()` : les variants et les instances
+  comptent leurs lectures. Les comparaisons d'export avec et sans portée
+  couvrent les parties et localisations de tout le corpus.
 
 Couverture existante à conserver : `constatsDuMoteur.test.ts` exerce la table
 et le repli C42 ; `regles.test.ts` exerce C43/C45 et le modèle exact ;

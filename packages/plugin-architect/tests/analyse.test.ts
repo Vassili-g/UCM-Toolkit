@@ -8,6 +8,7 @@ import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/co
 
 import type { PluginMessage } from '../src/messages';
 import { constatsDuMoteur } from '../src/constatsDuMoteur';
+import { traiter as traiterLesQuestions } from '../src/sandbox/questions';
 import { verifierLaPariteDeLAnalyse } from './parite';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
 import { analyseCourante, perimerApresUneEcriture, reinitialiserLAnalyse, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
@@ -127,6 +128,52 @@ test('le banc conserve une lecture partielle, ses manquées localisées et ses v
     manquees: [{ layer: 'texte', champ: 'dimensions', motif: 'boîte illisible' }],
   });
   assert.equal(reference.messages.find((message) => message.type === 'analyse')?.type, 'analyse');
+});
+
+test('le banc compare une question C29 avec candidats puis sa correction et son aRelire', async () => {
+  const fabriquer = () => {
+    const b = banc();
+    const releve: ReleveDeComposant = {
+      ...releveDe('Alert'),
+      variants: [{
+        id: 'v-Alert', nom: 'Alert défaut', valeurs: {}, modesEffectifs: {},
+        layers: [{
+          id: 'root', nom: 'fond', type: 'FRAME', parent: null, visible: true, opacite: 1,
+          dimensions: { x: 0, y: 0, largeur: 20, hauteur: 20 }, peintures: [], liaisons: [],
+          valeursEnDur: [{ champ: 'cornerRadius', valeur: 13 }],
+        }],
+      }],
+    };
+    const catalogue: CatalogueDeReference = {
+      version: 1, library: null,
+      collections: [{ cle: 'components', nom: 'components', role: 'components', etat: 'lue', modes: [{ id: 'Light', nom: 'Light' }, { id: 'Dark', nom: 'Dark' }] }],
+      variables: [
+        { cle: 'r12', nom: 'alert/size/radius', collection: 'components', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 12 }, Dark: { valeur: 12 } } },
+        { cle: 'r14', nom: 'alert/size/radius', collection: 'components', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 14 }, Dark: { valeur: 14 } } },
+      ],
+    };
+    return {
+      b,
+      lectures: {
+        ...lecteurs(complete()),
+        releve: async () => ({ statut: 'lu' as const, releve }),
+        catalogue: async () => catalogue,
+      },
+    };
+  };
+  const reference = await verifierLaPariteDeLAnalyse(fabriquer, traiterAvec, async (b, identite) => {
+    const resultat = b.envoyes.find((message) => message.type === 'analyse');
+    assert.ok(resultat?.type === 'analyse');
+    const constat = resultat.constats.find(({ code }) => code === 'C29');
+    assert.deepEqual(constat?.question?.candidats.map(({ cle, valeur }) => [cle, valeur]), [['r12', 12], ['r14', 14]]);
+    await traiterLesQuestions({ type: 'repondre', analyse: identite, question: constat!.id, reponse: 'r14' }, b.contexte);
+  });
+  assert.deepEqual(reference.corrections, [['C29:v-Alert:root:cornerRadius:13', {
+    id: 'C29:v-Alert:root:cornerRadius:13', sorte: 'liaison', cible: { layer: 'root', champ: 'cornerRadius' }, avant: null,
+    apres: { cle: 'r14', nom: 'alert/size/radius' },
+    aRelire: { axes: {}, regle: 'Le designer a choisi un token proche. La valeur change.', avant: null, valeur: 13 },
+  }]]);
+  assert.ok(reference.messages.some((message) => message.type === 'question-repondue' && message.correction?.aRelire.valeur === 13));
 });
 
 test('une analyse complète rend l’identité dans chaque message et les constats du moteur traduits', async () => {
