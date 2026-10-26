@@ -331,11 +331,10 @@ for (const source of ['variantProperties', 'nom'] as const) {
   });
 }
 
-for (const passe of ['fills', 'strokes', 'contours en dur', 'champs surchargés', 'peintures de plage', 'valeurs de variant', 'propriétés', 'options', 'modes de collection', 'styles de plages', 'enfants du jeu'] as const) {
-  test(`le relevé cède et s'annule pendant la passe ${passe} sans changer sa sortie`, async () => {
+for (const nombre of [128, 256]) for (const passe of ['fills', 'strokes', 'contours en dur', 'champs surchargés', 'peintures de plage', 'valeurs de variant', 'propriétés', 'options', 'modes de collection', 'styles de plages', 'enfants du jeu', 'enfants du variant'] as const) {
+  test(`le relevé cède et s'annule pendant la passe ${passe} sur ${nombre} entrées sans changer sa sortie`, async () => {
     const a = atelierDeCalques();
     let travail = 0;
-    const nombre = 256;
     const valeur = (rang: number) => ({ toString() { travail += 1; return String(rang); } });
     const peintures = Array.from({ length: nombre }, () => ({
       get type() { travail += 1; return 'SOLID'; }, color: { r: 0, g: 0, b: 0 }, visible: false,
@@ -374,7 +373,7 @@ for (const passe of ['fills', 'strokes', 'contours en dur', 'champs surchargés'
       return Array.from({ length: nombre }, (_, rang) => ({ start: rang, end: rang + 1, get textStyleId() { travail += 1; return ''; } }));
     };
     const enfant = a.calque('contenu', texte ? 'TEXT' : passe === 'champs surchargés' ? 'INSTANCE' : 'FRAME', champs);
-    const variant = a.calque('v', 'COMPONENT', passe === 'valeurs de variant' || passe === 'modes de collection' ? champs : { absoluteBoundingBox: boite(0, 0, 10, 10) }, passe === 'valeurs de variant' ? [] : [enfant]);
+    const variant = a.calque('v', 'COMPONENT', passe === 'valeurs de variant' || passe === 'modes de collection' ? champs : { absoluteBoundingBox: boite(0, 0, 10, 10) }, passe === 'valeurs de variant' ? [] : passe === 'enfants du variant' ? Array.from({ length: nombre }, (_, rang) => a.calque(`frere-${rang}`, 'FRAME', { absoluteBoundingBox: boite(0, 0, 1, 1), get children() { travail += 1; return []; } })) : [enfant]);
     const enfants = passe === 'enfants du jeu' ? Array.from({ length: nombre }, (_, rang) => a.calque(`ignore-${rang}`, 'FRAME', { get type() { travail += 1; return 'FRAME'; } })).concat([variant]) : [variant];
     const jeu = a.calque('jeu', 'COMPONENT_SET', { componentPropertyDefinitions: definitions }, enfants);
     const port = a.port(portDeTest(collections, []).port);
@@ -405,10 +404,10 @@ for (const passe of ['fills', 'strokes', 'contours en dur', 'champs surchargés'
   });
 }
 
-test('les valeurs tirées du nom cèdent pendant leur découpage', async () => {
+for (const nombre of [128, 256]) test(`les valeurs tirées du nom cèdent pendant leur découpage sur ${nombre} entrées`, async () => {
   const a = atelierDeCalques();
   let dansLesValeurs = false;
-  const paires = Array.from({ length: 256 }, (_, rang) => [`Axe${rang}`, String(rang)]);
+  const paires = Array.from({ length: nombre }, (_, rang) => [`Axe${rang}`, String(rang)]);
   const variant = a.calque('v', 'COMPONENT', {
     absoluteBoundingBox: boite(0, 0, 10, 10),
     name: paires.map(([nom, valeur]) => `${nom}=${valeur}`).join(', '),
@@ -430,10 +429,9 @@ test('les valeurs tirées du nom cèdent pendant leur découpage', async () => {
   assert.equal(horloge, 26);
 });
 
-for (const passe of ['alias', 'arrêts', 'effets', 'grilles', 'plages'] as const) {
-  test(`les liaisons gardent leur ordre et cèdent pendant les ${passe}`, async () => {
+for (const nombre of [128, 256]) for (const passe of ['alias', 'arrêts', 'effets', 'grilles', 'plages'] as const) {
+  test(`les liaisons gardent leur ordre et cèdent pendant les ${passe} sur ${nombre} entrées`, async () => {
     let travail = 0;
-    const nombre = 256;
     const lie = () => ({ get boundVariables() { travail += 1; return { color: alias('fond') }; } });
     const champs: Record<string, unknown> = {};
     if (passe === 'alias') champs.boundVariables = { componentProperties: Object.fromEntries(Array.from({ length: nombre }, (_, rang) => [String(rang), { get type() { travail += 1; return 'VARIABLE_ALIAS'; }, id: `v${rang}` }])) };
