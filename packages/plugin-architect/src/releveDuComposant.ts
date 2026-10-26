@@ -21,6 +21,8 @@
  * plage et figure à la fois dans `layer.liaisons` et dans `texte.plages`.
  */
 import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu } from '@ucm-kit/core/controles';
+import { copierLaMiseEnPage, type ChampDeMiseEnPage, type ChampsDeMiseEnPage } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
+import { champDe, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
@@ -119,11 +121,25 @@ async function peinturesDe(champ: 'fills' | 'strokes', liste: unknown, layer: st
   return peintures;
 }
 
+/** Copie des champs de mise en page, une lecture chacun, comptée comme les autres propriétés du relevé. */
+const miseEnPage = <K extends ChampDeMiseEnPage>(noeud: NoeudLu, champs: readonly K[]) => copierLaMiseEnPage(noeud, champs, () => compter('proprietesDuReleve'));
+
+/**
+ * Le nombre fini d'un champ copié ; `undefined` sinon. Un champ mixte ou absent n'est pas une valeur en dur. Une
+ * lecture qui a levé est consignée dans `manquees` et ne devient jamais un constat.
+ */
+function nombreDe<K extends ChampDeMiseEnPage>(table: TableDesChamps<Pick<ChampsDeMiseEnPage, K>>, champ: K, layer: string, manquees: Manquee[]): number | undefined {
+  const etat = champDe(table, champ);
+  if (etat.etat === 'acquis') return estUnNombre(etat.valeur) ? etat.valeur : undefined;
+  if (etat.etat === 'refuse' && etat.raison === 'leve') manquees.push({ layer, champ, motif: etat.message ?? 'lecture refusée' });
+  return undefined;
+}
+
 const CHAMPS_NUMERIQUES = ['paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom', 'itemSpacing'] as const;
 const RAYONS = ['topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'] as const;
 
 /** Les champs numériques qu'aucune variable ne lie sur ce layer. */
-async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimensions: LayerLu['dimensions'] | null, cooperation: ContexteCooperatif): Promise<LayerLu['valeursEnDur']> {
+async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimensions: LayerLu['dimensions'] | null, epaisseur: number | undefined, manquees: Manquee[], cooperation: ContexteCooperatif): Promise<LayerLu['valeursEnDur']> {
   const liees = new Set<string>();
   for (const liaison of liaisons) {
     await cooperation.cederSiBesoin();
@@ -134,9 +150,18 @@ async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dim
   const ajouter = (champ: string, valeur: unknown, ...aussi: string[]) => {
     if (estUnNombre(valeur) && !liee(champ, ...aussi)) valeurs.push({ champ, valeur });
   };
-  if (typeof champLu(noeud, 'layoutMode') === 'string' && champLu(noeud, 'layoutMode') !== 'NONE') for (const champ of CHAMPS_NUMERIQUES) ajouter(champ, champLu(noeud, champ));
-  if (estUnNombre(champLu(noeud, 'cornerRadius'))) ajouter('cornerRadius', champLu(noeud, 'cornerRadius'), ...RAYONS);
-  else for (const coin of RAYONS) ajouter(coin, champLu(noeud, coin), 'cornerRadius');
+  const mode = champDe(miseEnPage(noeud, ['layoutMode']), 'layoutMode');
+  if (mode.etat === 'acquis' && typeof mode.valeur === 'string' && mode.valeur !== 'NONE') {
+    const espacements = miseEnPage(noeud, CHAMPS_NUMERIQUES);
+    for (const champ of CHAMPS_NUMERIQUES) ajouter(champ, nombreDe(espacements, champ, noeud.id, manquees));
+  }
+  const rayon = miseEnPage(noeud, ['cornerRadius']);
+  const commun = nombreDe(rayon, 'cornerRadius', noeud.id, manquees);
+  if (commun !== undefined) ajouter('cornerRadius', commun, ...RAYONS);
+  else {
+    const coins = miseEnPage(noeud, RAYONS);
+    for (const coin of RAYONS) ajouter(coin, nombreDe(coins, coin, noeud.id, manquees), 'cornerRadius');
+  }
   // Figma donne une épaisseur (1 par défaut) à tout layer, même sans contour : sans contour visible, elle ne se voit pas.
   const contours = champLu(noeud, 'strokes');
   let contourVisible = false;
@@ -147,7 +172,7 @@ async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dim
       break;
     }
   }
-  if (contourVisible) ajouter('strokeWeight', champLu(noeud, 'strokeWeight'), 'strokeTopWeight', 'strokeRightWeight', 'strokeBottomWeight', 'strokeLeftWeight');
+  if (contourVisible) ajouter('strokeWeight', epaisseur, 'strokeTopWeight', 'strokeRightWeight', 'strokeBottomWeight', 'strokeLeftWeight');
   if (dimensions) {
     if (!liee('width')) valeurs.push({ champ: 'width', valeur: dimensions.largeur });
     if (!liee('height')) valeurs.push({ champ: 'height', valeur: dimensions.hauteur });
@@ -344,7 +369,8 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     await lecteur.cooperation.cederSiBesoin();
     layer.peintures.push(peinture);
   }
-  if (estUnNombre(champLu(noeud, 'strokeWeight'))) layer.strokeWeight = champLu(noeud, 'strokeWeight') as number;
+  const epaisseur = nombreDe(miseEnPage(noeud, ['strokeWeight']), 'strokeWeight', noeud.id, manquees);
+  if (epaisseur !== undefined) layer.strokeWeight = epaisseur;
   try {
     layer.liaisons = await lecteur.liaisons(await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation), noeud.id);
     if (frontiere) {
@@ -371,7 +397,7 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     if (erreur instanceof AnalyseAnnulee) throw erreur;
     manquees.push({ layer: noeud.id, champ: 'liaisons', motif: messageDErreur(erreur) });
   }
-  layer.valeursEnDur = await valeursEnDur(noeud, layer.liaisons, dimensions, lecteur.cooperation);
+  layer.valeursEnDur = await valeursEnDur(noeud, layer.liaisons, dimensions, epaisseur, manquees, lecteur.cooperation);
   if (noeud.type === 'TEXT') layer.texte = await texteDe(lecteur, noeud, layer.liaisons, manquees);
   return layer;
 }

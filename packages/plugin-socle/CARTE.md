@@ -23,6 +23,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - variables.ts : index commun, collisions et alias
 
 ## src/composant/analyse/
+- acquisition.ts : copieur de la mise en page scalaire d'un nœud (`layoutMode`, espacements, rayons, épaisseurs de contour) en états de `faits.ts` ; le relevé d'Architect et `contract/nodeBindings.ts` en tirent chacun leur projection
 - faits.ts : faits ordinaires d'une analyse, sans type Figma : topologie, champs acquis, mixtes, refusés ou non demandés, segments, maîtres, ressources, provenance et couverture
 
 ## src/composant/contract/

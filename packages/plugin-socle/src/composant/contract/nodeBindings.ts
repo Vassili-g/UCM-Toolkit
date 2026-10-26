@@ -6,6 +6,7 @@
  * `exportableNodes.ts`.
  */
 import { toRef } from '@ucm-kit/core/format';
+import { lireUnChamp } from '../analyse/acquisition';
 import { firstVariableAlias } from '../variables';
 import type { TokenResolver } from '../variables';
 import {
@@ -163,8 +164,23 @@ type InapplicableReason =
 
 /** Vrai si le node dispose réellement ses enfants (auto-layout ou grille). */
 function distributesChildren(node: SceneNode): boolean {
-  const mode = (node as unknown as Record<string, unknown>).layoutMode;
-  return typeof mode === 'string' && mode !== 'NONE';
+  const mode = lireUnChamp(node, 'layoutMode');
+  return mode.etat === 'acquis' && typeof mode.valeur === 'string' && mode.valeur !== 'NONE';
+}
+
+/**
+ * Vrai si le node expose le champ, valeur mixte comprise. Un type de node qui
+ * ne l'expose pas, ou une lecture qui lève, ne réclame aucune variable.
+ */
+function isReadable(node: SceneNode, field: string): boolean {
+  const state = lireUnChamp(node, field);
+  return state.etat === 'acquis' || state.etat === 'mixte';
+}
+
+/** Vrai si le champ vaut exactement cette valeur ; un champ mixte ou illisible ne vaut rien. */
+function fieldEquals(node: SceneNode, field: string, expected: unknown): boolean {
+  const state = lireUnChamp(node, field);
+  return state.etat === 'acquis' && state.valeur === expected;
 }
 
 /**
@@ -174,12 +190,12 @@ function distributesChildren(node: SceneNode): boolean {
  * « Auto ». Une liaison qui y survit exporterait un écart que le rendu n'a pas.
  */
 function distributesAsGrid(node: SceneNode): boolean {
-  return (node as unknown as Record<string, unknown>).layoutMode === 'GRID';
+  return fieldEquals(node, 'layoutMode', 'GRID');
 }
 
 /** Vrai si l'auto layout passe à la ligne. Sans wrap, il n'y a aucune ligne à espacer. */
 function wrapsChildren(node: SceneNode): boolean {
-  return (node as unknown as Record<string, unknown>).layoutWrap === 'WRAP';
+  return fieldEquals(node, 'layoutWrap', 'WRAP');
 }
 
 /**
@@ -188,7 +204,7 @@ function wrapsChildren(node: SceneNode): boolean {
  * `itemSpacing` sous un espacement « Auto » de l'axe principal.
  */
 function distributesRowsBySpaceBetween(node: SceneNode): boolean {
-  return (node as unknown as Record<string, unknown>).counterAxisAlignContent === 'SPACE_BETWEEN';
+  return fieldEquals(node, 'counterAxisAlignContent', 'SPACE_BETWEEN');
 }
 
 /**
@@ -197,8 +213,7 @@ function distributesRowsBySpaceBetween(node: SceneNode): boolean {
  * conseiller de le relier à une variable n'y changerait rien.
  */
 function distributesBySpaceBetween(node: SceneNode): boolean {
-  const alignment = (node as unknown as Record<string, unknown>).primaryAxisAlignItems;
-  return alignment === 'SPACE_BETWEEN';
+  return fieldEquals(node, 'primaryAxisAlignItems', 'SPACE_BETWEEN');
 }
 
 /**
@@ -242,8 +257,7 @@ function inapplicableReason(
  * son panneau ne montre pas.
  */
 export function exposesAnyField(node: SceneNode, alternatives: FieldAlternatives): boolean {
-  const values = node as unknown as Record<string, unknown>;
-  return alternatives.some((fields) => fields.some((field) => values[field] !== undefined))
+  return alternatives.some((fields) => fields.some((field) => isReadable(node, field)))
     || alternatives.some((fields) =>
       fields.some((field) => Boolean(firstVariableAlias(getBinding(node, field)))));
 }
@@ -280,9 +294,8 @@ export function getBinding(node: SceneNode, field: string): unknown {
  * avertissement demandant un token qui ne changerait pas le rendu.
  */
 function hasImplicitDefaultValue(node: SceneNode, alternatives: FieldAlternatives): boolean {
-  const values = node as unknown as Record<string, unknown>;
   return alternatives.some((fields) =>
-    fields.every((field) => field in IMPLICIT_DEFAULTS && values[field] === IMPLICIT_DEFAULTS[field]),
+    fields.every((field) => field in IMPLICIT_DEFAULTS && fieldEquals(node, field, IMPLICIT_DEFAULTS[field])),
   );
 }
 

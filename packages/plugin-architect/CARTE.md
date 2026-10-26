@@ -27,7 +27,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - consommateurs.ts : liaisons d'un calque et d'un style, et modes effectifs d'un calque
 - composant.ts : modèle pur de la vue composant : natures, lignes, sections, résumés, portée, préfixe
 - lectureDuComposant.ts : sujet d'une sélection, ses calques, ses frontières, ses liaisons, ses styles de texte
-- releveDuComposant.ts : relevé complet d'un jeu de variants pour les contrôles du kit (`ReleveDeComposant`), borné par le budget de layers de S3
+- releveDuComposant.ts : relevé complet d'un jeu de variants pour les contrôles du kit (`ReleveDeComposant`), borné par le budget de layers de S3 ; lit la mise en page scalaire par `acquisition.ts` du socle
 - constatsDuMoteur.ts : points à corriger du moteur de l'exporteur traduits en `Constat` du kit, par une table explicite (C30, C34, C35, C41, C42, C44)
 - regles.ts : règles d'usage d'un composant en lecture : C43 (pas d'instance de règles, avec sa correction de sorte `regles`) et C45 (propriété sans règle, règle sans propriété) ; retient le modèle de chaque correction
 - apercu.ts : image du sujet, exportée en mémoire, et boîte de chaque calque
