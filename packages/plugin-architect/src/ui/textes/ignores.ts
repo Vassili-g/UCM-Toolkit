@@ -79,7 +79,7 @@ export const TEXTES_IGNORES = {
     sansAnneau: (variants: string, pluriel: boolean): string => `${variants} ${pluriel ? 'n’ont' : 'n’a'} pas d’anneau visible.`,
     sansAnneauStatut: 'Ajoutez l’anneau dans Figma',
     // C49 (borne), C51, C52, C53 : l'accessibilité, hors rapport.
-    combinaisonsNonMesurees: (mesurees: number, nonMesurees: number): string => `Le contraste n’a été mesuré que sur ${mesurees} combinaisons de modes. ${nonMesurees} autres n’ont pas été mesurées.`,
+    combinaisonsNonMesurees: (mesurees: number, nonMesurees: string): string => `Le contraste n’a été mesuré que sur ${mesurees} combinaisons de modes. ${nonMesurees} autres n’ont pas été mesurées.`,
     recommandation: 'Recommandation',
     texteTropPetit: (layer: string, variants: string, taille: number, seuil: number): string => `Le ${NOMS_DE_LAYER_EN_PHRASE[layer] ?? layer} ${de(variants)} a un font size de ${taille} px. UCM recommande au moins ${seuil} px.`,
     anneauTropFin: (poids: number, espace: number, trait: number): string => `L’anneau a un stroke weight de ${poids} px. UCM recommande ${espace} px d’écart et ${trait} px de trait.`,

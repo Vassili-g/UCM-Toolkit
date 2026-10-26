@@ -169,7 +169,7 @@ function contraste(constat: Constat, contexte: ContexteDAFaire): Contenu {
   const variants = variantsEnPhrase(noms);
   const { faits } = constat;
   if (constat.limite && faits.borne !== undefined) {
-    return { phrase: T.combinaisonsNonMesurees(nombre(faits.combinaisonsMesurees) ?? 0, nombre(faits.combinaisonsNonMesurees) ?? 0), lieu: '', statut: null };
+    return { phrase: T.combinaisonsNonMesurees(nombre(faits.combinaisonsMesurees) ?? 0, texte(faits.combinaisonsNonMesurees) ?? '0'), lieu: '', statut: null };
   }
   if (constat.limite) {
     return { phrase: T.contrasteNonMesure(texte(faits.champ) ?? 'fills', variants, texte(faits.cause) ?? ''), lieu: lieuDe(constat, contexte, { variantsDansLaPhrase: true }), statut: null };

@@ -474,3 +474,33 @@ test('C49 : l\'espace suit le préfixe retenu, pas le produit des modes', () => 
   assert.ok(grand.etapes < BORNE_DE_COMBINAISONS * 4, `${grand.etapes} étapes`);
   assert.ok(grand.etapes < moyen.etapes * 1.2, `${moyen.etapes} puis ${grand.etapes} étapes pour un produit cent fois plus grand`);
 });
+
+/* ---------- cardinalité au-delà des entiers exacts (4.5) ---------- */
+
+/** Le constat de borne d'un composant dont chaque variant atteint `collections` collections de `modes` modes. */
+function bornePour(collections: number, modes: number, nombreDeVariants = 1) {
+  const { cat, t } = fixtureDeModes(Array.from({ length: collections }, () => modes));
+  const variants = Array.from({ length: nombreDeVariants }, (_, i) => variant(`v${i}`, [racine(), { ...t, id: `t${i}` }]));
+  return cc(releve(variants), 'AA', cat).find((c) => c.id === 'C49:borne')!;
+}
+
+test('C49 : un compte exact reste un nombre, jusqu\'à 2^53 combinaisons', () => {
+  assert.equal(bornePour(40, 2).faits.combinaisonsNonMesurees, 2 ** 40 - BORNE_DE_COMBINAISONS);
+  assert.equal(bornePour(53, 2).faits.combinaisonsNonMesurees, 2 ** 53 - BORNE_DE_COMBINAISONS);
+});
+
+test('C49 : au-delà de 2^53 − 1, le compte est la chaîne exacte de ses chiffres, jamais un nombre arrondi', () => {
+  assert.equal(bornePour(54, 2).faits.combinaisonsNonMesurees, '18014398509476984');
+  assert.equal(bornePour(34, 3).faits.combinaisonsNonMesurees, '16677181699661569', '3^34 − 5000, impair donc non représentable en flottant');
+});
+
+test('C49 : la somme de plusieurs variants est exacte, même quand chacun tient dans un nombre exact', () => {
+  assert.equal(bornePour(33, 3, 3).faits.combinaisonsNonMesurees, '16677181699661569');
+});
+
+test('C49 : un produit au-delà de la plage des flottants garde tous ses chiffres', () => {
+  const attendu = '11505236063118821809467553221049758295155052665230762065499525194094891251552061640493342548634082305351687288311769174890162545204122663839542235560926343960177145179191391057683342054479750023644997308933440369205641643669917624414330439074612943178454432683813523087356623740062701843509462805095950344776824';
+  const faits = bornePour(1030, 2).faits;
+  assert.equal(faits.combinaisonsNonMesurees, attendu, '2^1030 − 5000');
+  assert.equal(faits.combinaisonsMesurees, BORNE_DE_COMBINAISONS);
+});

@@ -18,6 +18,66 @@ export type NiveauWcag = 'AA' | 'AAA';
 /** Borne des mesures : variants × combinaisons de modes. Au-delà, un constat d'information compte le reste. */
 export const BORNE_DE_COMBINAISONS = 5000;
 
+/**
+ * Entier naturel exact de taille quelconque, en tranches de six chiffres décimaux, la moins significative d'abord.
+ * Le nombre de combinaisons de modes est un produit : au-delà de 2^53 un flottant l'arrondirait sans le dire.
+ */
+type Compte = number[];
+const TRANCHE = 1_000_000;
+
+const compte = (n: number): Compte => [n];
+const estNul = (c: Compte): boolean => c.length === 1 && c[0] === 0;
+
+function normaliser(c: Compte): Compte {
+  while (c.length > 1 && c[c.length - 1] === 0) c.pop();
+  return c;
+}
+
+/** `facteur` est un entier de moins de 2^31. */
+function multiplier(c: Compte, facteur: number): Compte {
+  const produit: Compte = [];
+  let retenue = 0;
+  for (const tranche of c) {
+    const v = tranche * facteur + retenue;
+    produit.push(v % TRANCHE);
+    retenue = Math.floor(v / TRANCHE);
+  }
+  while (retenue > 0) {
+    produit.push(retenue % TRANCHE);
+    retenue = Math.floor(retenue / TRANCHE);
+  }
+  return normaliser(produit);
+}
+
+function additionner(a: Compte, b: Compte): Compte {
+  const somme: Compte = [];
+  let retenue = 0;
+  for (let i = 0; i < Math.max(a.length, b.length) || retenue > 0; i++) {
+    const v = (a[i] ?? 0) + (b[i] ?? 0) + retenue;
+    somme.push(v % TRANCHE);
+    retenue = Math.floor(v / TRANCHE);
+  }
+  return somme;
+}
+
+/** `petit` est un entier de moins d'une tranche, au plus égal à `c`. */
+function retirer(c: Compte, petit: number): Compte {
+  const reste = [...c];
+  reste[0] -= petit;
+  for (let i = 0; i < reste.length - 1 && reste[i] < 0; i++) {
+    reste[i] += TRANCHE;
+    reste[i + 1] -= 1;
+  }
+  return normaliser(reste);
+}
+
+/** Un nombre tant qu'il est exact (jusqu'à `Number.MAX_SAFE_INTEGER`), sinon la chaîne de ses chiffres. */
+function compteEnFait(c: Compte): number | string {
+  const chiffres = [...c].reverse().map((tranche, i) => (i === 0 ? String(tranche) : String(tranche).padStart(6, '0'))).join('');
+  const maximum = String(Number.MAX_SAFE_INTEGER);
+  return chiffres.length < maximum.length || (chiffres.length === maximum.length && chiffres <= maximum) ? Number(chiffres) : chiffres;
+}
+
 /** Seuils WCAG 2 : texte, grand texte, non-texte (1.4.11). */
 export const SEUILS_D_ACCESSIBILITE = {
   texte: { AA: 4.5, AAA: 7 },
@@ -78,21 +138,21 @@ export function* controlerLAccessibiliteParEtapes(
   }
 
   let reste = BORNE_DE_COMBINAISONS;
-  let nonMesurees = 0;
+  let nonMesurees = compte(0);
   let mesureesTotal = 0;
   for (const variant of mesures) {
     yield;
     const { prises, total } = yield* combinaisonsDeModes(variant, catalogue, Math.max(0, reste));
     reste -= prises.length;
     mesureesTotal += prises.length;
-    nonMesurees += total - prises.length;
+    nonMesurees = additionner(nonMesurees, retirer(total, prises.length));
     if (prises.length > 0) yield* mesurerLeVariant(variant, prises, catalogue, options.niveau, groupes, limites);
   }
   constats.push(...[...groupes.values()].map((g) => g.constat), ...limites.values());
-  if (nonMesurees > 0) {
+  if (!estNul(nonMesurees)) {
     constats.push({
       id: 'C49:borne', code: 'C49', type: 'info', famille: 'contraste', variants: [], layers: [], limite: true,
-      faits: { borne: BORNE_DE_COMBINAISONS, combinaisonsMesurees: mesureesTotal, combinaisonsNonMesurees: nonMesurees },
+      faits: { borne: BORNE_DE_COMBINAISONS, combinaisonsMesurees: mesureesTotal, combinaisonsNonMesurees: compteEnFait(nonMesurees) },
     });
   }
 
@@ -159,27 +219,28 @@ function modeEffectif(variant: VariantLu, collection: CollectionDuCatalogue): st
  * Le mode effectif du variant d'abord, puis les autres modes de chaque collection atteinte.
  * Rend les `limite` premières combinaisons dans l'ordre du produit (la première collection varie le plus lentement) et le
  * nombre total, calculé sans produire le produit : l'espace suit `limite`, pas le produit.
+ * Le total est un `Compte` exact : un produit peut dépasser les entiers qu'un flottant représente.
  */
 function* combinaisonsDeModes(
   variant: VariantLu, catalogue: CatalogueDeReference, limite: number,
-): Generator<void, { prises: Combinaison[]; total: number }> {
+): Generator<void, { prises: Combinaison[]; total: Compte }> {
   const atteintes = new Map<string, CollectionDuCatalogue>();
   const vues = new Set<string>();
   for (const layer of layersVisibles(variant)) {
     for (const liaison of liaisonsDeCouleur(layer)) collectionsAtteintes(catalogue, liaison.variable.cle, vues, atteintes);
   }
   const colonnes: { collection: CollectionDuCatalogue; modes: CollectionDuCatalogue['modes'] }[] = [];
-  let total = 1;
+  let total = compte(1);
   for (const collection of atteintes.values()) {
     const effectif = modeEffectif(variant, collection);
     const modes = [...collection.modes].sort((a, b) => Number(b.id === effectif) - Number(a.id === effectif));
     if (modes.length === 0) continue;
     colonnes.push({ collection, modes });
-    total *= modes.length;
+    total = multiplier(total, modes.length);
   }
   const prises: Combinaison[] = [];
   const rangs = colonnes.map(() => 0);
-  const voulues = Math.min(total, limite);
+  const voulues = total.length === 1 ? Math.min(total[0], limite) : limite;
   for (let n = 0; n < voulues; n++) {
     yield;
     const modes = new Map<string, string>();
