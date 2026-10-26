@@ -4,14 +4,14 @@
 
 ## Tâches à committer
 
-- [ ] **4.1 | gpt-6.1-sol | medium** : indexer les variables du catalogue par clé puis nom, avec priorité et doublons inchangés ; test de collisions.
-- [ ] **4.2 | gpt-6.1-sol | medium** : indexer collections et segments une seule fois par contenu immuable ; vérifier ordre et coût en opérations.
-- [ ] **4.3 | gpt-6.1-sol | medium** : remplacer les recherches typographiques par fréquences de groupe et champ hors contribution courante ; test absence, null et exclusions.
-- [ ] **4.4 | gpt-6.1-sol | medium** : produire seulement le préfixe de 5 000 combinaisons de modes, dans l'ordre global ; test de croissance en espace.
-- [ ] **4.5 | gpt-6.1-sol | high** : établir la cardinalité au-delà des entiers exacts et sa représentation ; isoler toute correction visible avec test rouge.
-- [ ] **4.6 | gpt-6.1-sol | medium** : mémoriser la résolution d'alias par variable, contexte et profondeur restante ; comparer cycles, refus et diagnostics.
-- [ ] **4.7 | gpt-6.1-sol | medium** : mutualiser les faits de fond et visibilité dont les modes, ancêtres et opacités sont explicites ; tester deux contextes différents.
-- [ ] **4.8 | gpt-6-luna | low** : vérifier les versions, changelogs et pins de 4.1 à 4.7 ; corriger un écart isolé et relancer le contrôle de version, sans publication.
+- [ ] **4.1 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : indexer les variables du catalogue par clé puis nom, avec priorité et doublons inchangés ; test de collisions.
+- [ ] **4.2 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : indexer collections et segments une seule fois par contenu immuable ; vérifier ordre et coût en opérations.
+- [ ] **4.3 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : remplacer les recherches typographiques par fréquences de groupe et champ hors contribution courante ; test absence, null et exclusions.
+- [ ] **4.4 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : produire seulement le préfixe de 5 000 combinaisons de modes, dans l'ordre global ; test de croissance en espace.
+- [ ] **4.5 | gpt-6.1-sol | high** | **Claude Sonnet | high** : établir la cardinalité au-delà des entiers exacts et sa représentation ; isoler toute correction visible avec test rouge. Si la représentation change une sortie publiée, s'arrêter et rendre la question au mainteneur : le format publié ne change pas.
+- [ ] **4.6 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : mémoriser la résolution d'alias par variable, contexte et profondeur restante ; comparer cycles, refus et diagnostics.
+- [ ] **4.7 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : mutualiser les faits de fond et visibilité dont les modes, ancêtres et opacités sont explicites ; tester deux contextes différents.
+- [ ] **4.8 | gpt-6-luna | low** | **Claude Haiku | low** : vérifier les versions, changelogs et pins de 4.1 à 4.7 ; corriger un écart isolé et relancer le contrôle de version, sans publication.
 
 Prérequis : 0 et 2. Nature : transformations à sortie identique.
 Chemins : `packages/kit/src/controles/catalogue.ts`, `typographie.ts`,

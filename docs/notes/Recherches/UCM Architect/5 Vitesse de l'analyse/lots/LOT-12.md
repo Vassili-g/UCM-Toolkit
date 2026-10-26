@@ -4,12 +4,12 @@
 
 ## Tâches à committer
 
-- [ ] **12.1 | gpt-6.1-sol | medium** : sélectionner un contrôle répétitif d'après les compteurs et enregistrer ses entrées exactes dans le banc.
-- [ ] **12.2 | gpt-6.1-sol | high** : signer valeurs, liaisons, noms lus, modes, ancêtres, frontières et options ; le hash n'écarte pas la comparaison exacte.
-- [ ] **12.3 | gpt-6.1-sol | medium** : partager le résultat relatif et rattacher séparément chaque occurrence ; test de localisations et corrections.
-- [ ] **12.4 | gpt-6.1-sol | high** : factoriser les rapports de contraste par collections atteignables et branches d'alias ; reconstruire le préfixe logique admis.
-- [ ] **12.5 | gpt-6.1-sol | medium** : tester hash constant, corpus répétitif et corpus distinct ; comparer sorties, mémoire et opérations.
-- [ ] **12.6 | gpt-6-luna | low** : préparer le build candidat et les compteurs pour une mesure Figma par le mainteneur ; garder le calcul direct disponible.
+- [ ] **12.1 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : sélectionner un contrôle répétitif d'après les compteurs et enregistrer ses entrées exactes dans le banc.
+- [ ] **12.2 | gpt-6.1-sol | high** | **Claude Sonnet | high** : signer valeurs, liaisons, noms lus, modes, ancêtres, frontières et options ; le hash n'écarte pas la comparaison exacte.
+- [ ] **12.3 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : partager le résultat relatif et rattacher séparément chaque occurrence ; test de localisations et corrections.
+- [ ] **12.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : factoriser les rapports de contraste par collections atteignables et branches d'alias ; reconstruire le préfixe logique admis.
+- [ ] **12.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : tester hash constant, corpus répétitif et corpus distinct ; comparer sorties, mémoire et opérations.
+- [ ] **12.6 | gpt-6-luna | low** | **Claude Haiku | low** : préparer le build candidat et les compteurs pour une mesure Figma par le mainteneur ; garder le calcul direct disponible.
 
 Prérequis : 7 ; intégrer ensuite aux révisions du lot 10. Nature : partage
 de résultats purs. Chemins : modules de requêtes, accessibilité/typographie,

@@ -4,15 +4,15 @@
 
 ## Tâches à committer
 
-- [ ] **9.1 | gpt-6.1-sol | high** : séparer faits et requêtes retenus de l'état affiché ; test que réponses et cases ne reviennent pas d'une génération antérieure.
-- [ ] **9.2 | gpt-6.1-sol | high** : préparer une révision de travail et promouvoir seulement après lecture, calcul et identité valides ; tests de fins annulée, arrêtée et périmée.
-- [ ] **9.3 | gpt-6.1-sol | medium** : retenir les invalidations et retenter les lectures refusées ou partielles ; test échec puis disponibilité.
-- [ ] **9.4 | gpt-6.1-sol | high** : valider ressources et ensembles avant réutilisation d'un sujet ; test de modification sans notification couvrante.
-- [ ] **9.5 | gpt-6.1-sol | medium** : appliquer d'abord l'invalidation du sujet entier ; parité avec reconstruction après mutation locale et globale.
-- [ ] **9.6 | gpt-6.1-sol | medium** : réutiliser seulement les requêtes pures dont les entrées revalidées sont égales ; compter celles qui ne rejouent pas.
-- [ ] **9.7 | gpt-6.1-sol | medium** : reconstruire sur Actualiser et conserver après changement de library les seules requêtes indépendantes validées.
-- [ ] **9.8 | gpt-6.1-sol | medium** : borner sujets, octets et arêtes ; protéger l'actif, évincer le moins récent et nettoyer les orphelins.
-- [ ] **9.9 | gpt-6-luna | low** : tester actif trop gros, fermeture de session, perte de suivi et absence de persistance clientStorage ; mesurer les maxima.
+- [ ] **9.1 | gpt-6.1-sol | high** | **Claude Sonnet | high** : séparer faits et requêtes retenus de l'état affiché ; test que réponses et cases ne reviennent pas d'une génération antérieure.
+- [ ] **9.2 | gpt-6.1-sol | high** | **Claude Sonnet | high** : préparer une révision de travail et promouvoir seulement après lecture, calcul et identité valides ; tests de fins annulée, arrêtée et périmée.
+- [ ] **9.3 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : retenir les invalidations et retenter les lectures refusées ou partielles ; test échec puis disponibilité.
+- [ ] **9.4 | gpt-6.1-sol | high** | **Claude Opus | high** : valider ressources et ensembles avant réutilisation d'un sujet ; test de modification sans notification couvrante.
+- [ ] **9.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : appliquer d'abord l'invalidation du sujet entier ; parité avec reconstruction après mutation locale et globale.
+- [ ] **9.6 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : réutiliser seulement les requêtes pures dont les entrées revalidées sont égales ; compter celles qui ne rejouent pas.
+- [ ] **9.7 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : reconstruire sur Actualiser et conserver après changement de library les seules requêtes indépendantes validées.
+- [ ] **9.8 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : borner sujets, octets et arêtes ; protéger l'actif, évincer le moins récent et nettoyer les orphelins.
+- [ ] **9.9 | gpt-6-luna | low** | **Claude Sonnet | low** : tester actif trop gros, fermeture de session, perte de suivi et absence de persistance clientStorage ; mesurer les maxima.
 
 Prérequis : 8. Nature : mémoire validée entre demandes.
 Chemins nouveaux proposés : `packages/plugin-socle/src/composant/analyse/session.ts`,

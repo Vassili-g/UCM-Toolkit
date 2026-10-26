@@ -4,14 +4,14 @@
 
 ## Tâches à committer
 
-- [ ] **13.1 | gpt-6.1-sol | high** : définir version, identité et numéros de lots du protocole ; seuls des faits ordinaires et tables de ressources traversent le pont.
-- [ ] **13.2 | gpt-6-luna | medium** : borner la file à deux lots immuables et exiger un acquittement avant le troisième ; tests de saturation.
-- [ ] **13.3 | gpt-6.1-sol | high** : démarrer le worker depuis l'iframe et transmettre les requêtes prêtes pendant l'acquisition ; mesurer son démarrage.
-- [ ] **13.4 | gpt-6.1-sol | high** : finaliser les contrôles transversaux après fermeture des données requises ; aucune absence globale depuis un catalogue ouvert.
-- [ ] **13.5 | gpt-6-luna | medium** : rejeter retards, doublons et anciennes générations ; assembler dans l'ordre de référence.
-- [ ] **13.6 | gpt-6.1-sol | high** : annuler aux points coopératifs ou terminer le worker ; replier sur le même calcul local après échec.
-- [ ] **13.7 | gpt-6-luna | low** : tester erreurs, réordonnancement et annulation du protocole sans navigateur ; compter copies et octets des trois contextes.
-- [ ] **13.8 | gpt-6.1-sol | medium** : produire le build distribuable avec manifest et ressources du worker ; préparer la recette Figma du mainteneur.
+- [ ] **13.1 | gpt-6.1-sol | high** | **Claude Sonnet | high** : définir version, identité et numéros de lots du protocole ; seuls des faits ordinaires et tables de ressources traversent le pont.
+- [ ] **13.2 | gpt-6-luna | medium** | **Claude Sonnet | medium** : borner la file à deux lots immuables et exiger un acquittement avant le troisième ; tests de saturation.
+- [ ] **13.3 | gpt-6.1-sol | high** | **Claude Sonnet | high** : démarrer le worker depuis l'iframe et transmettre les requêtes prêtes pendant l'acquisition ; mesurer son démarrage.
+- [ ] **13.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : finaliser les contrôles transversaux après fermeture des données requises ; aucune absence globale depuis un catalogue ouvert.
+- [ ] **13.5 | gpt-6-luna | medium** | **Claude Sonnet | medium** : rejeter retards, doublons et anciennes générations ; assembler dans l'ordre de référence.
+- [ ] **13.6 | gpt-6.1-sol | high** | **Claude Sonnet | high** : annuler aux points coopératifs ou terminer le worker ; replier sur le même calcul local après échec.
+- [ ] **13.7 | gpt-6-luna | low** | **Claude Sonnet | low** : tester erreurs, réordonnancement et annulation du protocole sans navigateur ; compter copies et octets des trois contextes.
+- [ ] **13.8 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : produire le build distribuable avec manifest et ressources du worker ; préparer la recette Figma du mainteneur.
 
 Prérequis : 7 et 2. Nature : exécuteur alternatif des mêmes fonctions pures.
 Chemins proposés : `packages/plugin-architect/src/analyse/worker.ts`,

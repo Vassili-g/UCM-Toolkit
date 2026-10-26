@@ -4,17 +4,17 @@
 
 ## Tâches à committer
 
-- [ ] **15.1 | gpt-6-luna | low** : exécuter agents:diff et dresser les autorités et chemins à relire ; signaler les liens vers le plan supprimé.
-- [ ] **15.2 | gpt-6.1-sol | medium** : mettre à jour la spec Architect pour les comportements modifiés ; relire ses liens et exemples.
-- [ ] **15.3 | gpt-6-luna | low** : mettre à jour les invariants et cartes des modules ajoutés selon leur domicile ; vérifier chaque chemin.
-- [ ] **15.4 | gpt-6.1-sol | high** : auditer acquisition et couverture des événements ; consigner les écarts avec leur test manquant.
-- [ ] **15.5 | gpt-6.1-sol | high** : auditer pureté, promotion, clés, ordre et limites ; consigner les écarts avec leur test manquant.
-- [ ] **15.6 | gpt-6.1-sol | medium** : retirer l'ancien chemin de production après parité en gardant voie complète et comparateurs du banc.
-- [ ] **15.7 | gpt-6-luna | low** : vérifier que la trace inclut suivi, rétention, copies et rendu ; créer une case distincte pour chaque compteur manquant.
-- [ ] **15.8 | gpt-6-luna | low** : lancer une seule vérification complète sur arbre stable et consigner ses résultats ; créer une case distincte pour chaque défaillance à corriger.
-- [ ] **15.9 | gpt-6-luna | low** : préparer les builds comparables et commandes de collecte dans le banc.
-- [ ] **15.10 | gpt-6-luna | low** : remettre au mainteneur la liste des écrans à vérifier : progression, provisoire, fins, périmé, corrections, questions et Actualiser.
-- [ ] **15.11 | gpt-6-luna | low** : vérifier les versions finales, changelogs et pins des paquets modifiés, puis préparer le push unique et les commandes de publication.
+- [ ] **15.1 | gpt-6-luna | low** | **Claude Haiku | low** : exécuter agents:diff et dresser les autorités et chemins à relire ; signaler les liens vers le plan supprimé.
+- [ ] **15.2 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : mettre à jour la spec Architect pour les comportements modifiés ; relire ses liens et exemples.
+- [ ] **15.3 | gpt-6-luna | low** | **Claude Sonnet | low** : mettre à jour les invariants et cartes des modules ajoutés selon leur domicile ; vérifier chaque chemin.
+- [ ] **15.4 | gpt-6.1-sol | high** | **Claude Opus | high** : auditer acquisition et couverture des événements ; consigner les écarts avec leur test manquant.
+- [ ] **15.5 | gpt-6.1-sol | high** | **Claude Opus | high** : auditer pureté, promotion, clés, ordre et limites ; consigner les écarts avec leur test manquant.
+- [ ] **15.6 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : retirer l'ancien chemin de production après parité en gardant voie complète et comparateurs du banc.
+- [ ] **15.7 | gpt-6-luna | low** | **Claude Haiku | low** : vérifier que la trace inclut suivi, rétention, copies et rendu ; créer une case distincte pour chaque compteur manquant.
+- [ ] **15.8 | gpt-6-luna | low** | **Claude Haiku | low** : lancer une seule vérification complète sur arbre stable et consigner ses résultats ; créer une case distincte pour chaque défaillance à corriger. Le `verificateur` lance les commandes ; la conversation principale écrit les cases de défaillance.
+- [ ] **15.9 | gpt-6-luna | low** | **Claude Haiku | low** : préparer les builds comparables et commandes de collecte dans le banc.
+- [ ] **15.10 | gpt-6-luna | low** | **Claude Haiku | low** : remettre au mainteneur la liste des écrans à vérifier : progression, provisoire, fins, périmé, corrections, questions et Actualiser.
+- [ ] **15.11 | gpt-6-luna | low** | **Claude Haiku | low** : vérifier les versions finales, changelogs et pins des paquets modifiés, puis préparer le push unique et les commandes de publication. Le push et la publication restent à la conversation principale.
 
 Prérequis : 11 et branches retenues. Nature : vérification et documentation.
 
@@ -58,9 +58,9 @@ gestes Figma ; l'agent analyse ensuite les traces fournies.
 - [ ] **R7 | mainteneur | sans modèle** : comparer les trois chemins après variable ou alias partagé, règle hors jeu, premier candidat ajouté, variant ou mode près d'une borne.
 - [ ] **R8 | mainteneur | sans modèle** : comparer les trois chemins après AA/AAA, changement de library, correction puis Ctrl+Z, retour sur page et ressource redevenue lisible.
 - [ ] **R9 | mainteneur | sans modèle** : éprouver éviction et perte de worker, puis une longue série sur un sujet et une alternance dépassant la rétention ; relever suivi entre clics et temps cumulé.
-- [ ] **R10 | gpt-6.1-sol | medium** : analyser les traces R1 à R5, séparer acquisition et calcul, puis proposer budgets et bornes de rétention avec leur dispersion.
-- [ ] **R11 | gpt-6.1-sol | medium** : analyser R6 à R9 par scénario, comparer aux cibles proposées de 250 ms sans changement et 500 ms après modification locale sur le Button, relectures comprises.
-- [ ] **R12 | gpt-6.1-sol | high** : décider l'activation de chaque branche sur son gain net mesuré et la parité ; garder la branche désactivée sans preuve de gain. Ne pas additionner les économies de passes recouvrantes.
+- [ ] **R10 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : analyser les traces R1 à R5, séparer acquisition et calcul, puis proposer budgets et bornes de rétention avec leur dispersion.
+- [ ] **R11 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : analyser R6 à R9 par scénario, comparer aux cibles proposées de 250 ms sans changement et 500 ms après modification locale sur le Button, relectures comprises.
+- [ ] **R12 | gpt-6.1-sol | high** | **Claude Opus | high** : décider l'activation de chaque branche sur son gain net mesuré et la parité ; garder la branche désactivée sans preuve de gain. Ne pas additionner les économies de passes recouvrantes. Décision prise par la conversation principale.
 
 La clôture locale demande la parité et les contrôles du lot 15. La validation
 de performance demande en plus cette recette avec tous les mécanismes retenus

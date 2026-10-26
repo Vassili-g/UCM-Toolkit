@@ -4,15 +4,15 @@
 
 ## Tâches à committer
 
-- [ ] **10.1 | gpt-6.1-sol | high** : définir clé de requête, session du document, version d'algorithme et révisions ; exclure la génération d'interface.
-- [ ] **10.2 | gpt-6.1-sol | high** : enregistrer les dépendances réellement lues et remplacer les arêtes conditionnelles au recalcul ; test de branche changée.
-- [ ] **10.3 | gpt-6-luna | medium** : suivre ensembles ordonnés, recherches vides et priorités ; tester le premier candidat apparu après absence.
-- [ ] **10.4 | gpt-6.1-sol | high** : ajouter les arêtes inverses et valider à la demande ; égalité exacte arrête la propagation sans perdre diagnostics ni limites.
-- [ ] **10.5 | gpt-6.1-sol | medium** : séparer rapport numérique, verdict AA/AAA et présentation des noms ; tester un changement de seuil seul.
-- [ ] **10.6 | gpt-6.1-sol | high** : invalider par propriété, fonds, descendants et groupe typographique ; compter requêtes et arêtes visitées.
-- [ ] **10.7 | gpt-6.1-sol | high** : traiter frontières, ordre, budget et couverture de modes ; repli large si portée inconnue ou coût fin supérieur à la reconstruction.
-- [ ] **10.8 | gpt-6.1-sol | medium** : comparer après chaque ajout, suppression, déplacement, renommage, alias et mode à la reconstruction complète.
-- [ ] **10.9 | gpt-6-luna | low** : ajouter les compteurs de propagation arrêtée, requêtes rejouées et arêtes visitées au banc de mutations.
+- [ ] **10.1 | gpt-6.1-sol | high** | **Claude Sonnet | high** : définir clé de requête, session du document, version d'algorithme et révisions ; exclure la génération d'interface.
+- [ ] **10.2 | gpt-6.1-sol | high** | **Claude Opus | high** : enregistrer les dépendances réellement lues et remplacer les arêtes conditionnelles au recalcul ; test de branche changée.
+- [ ] **10.3 | gpt-6-luna | medium** | **Claude Sonnet | medium** : suivre ensembles ordonnés, recherches vides et priorités ; tester le premier candidat apparu après absence.
+- [ ] **10.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : ajouter les arêtes inverses et valider à la demande ; égalité exacte arrête la propagation sans perdre diagnostics ni limites.
+- [ ] **10.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : séparer rapport numérique, verdict AA/AAA et présentation des noms ; tester un changement de seuil seul.
+- [ ] **10.6 | gpt-6.1-sol | high** | **Claude Sonnet | high** : invalider par propriété, fonds, descendants et groupe typographique ; compter requêtes et arêtes visitées.
+- [ ] **10.7 | gpt-6.1-sol | high** | **Claude Sonnet | high** : traiter frontières, ordre, budget et couverture de modes ; repli large si portée inconnue ou coût fin supérieur à la reconstruction.
+- [ ] **10.8 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : comparer après chaque ajout, suppression, déplacement, renommage, alias et mode à la reconstruction complète.
+- [ ] **10.9 | gpt-6-luna | low** | **Claude Haiku | low** : ajouter les compteurs de propagation arrêtée, requêtes rejouées et arêtes visitées au banc de mutations.
 
 Prérequis : 9. Nature : incrémentalité du calcul pur.
 Chemins nouveaux proposés : `packages/plugin-socle/src/composant/analyse/requetes.ts`,

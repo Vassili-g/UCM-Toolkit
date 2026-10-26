@@ -4,14 +4,14 @@
 
 ## Tâches à committer
 
-- [ ] **11.1 | gpt-6.1-sol | high** : conserver la provenance des contributions typographiques et remplacer les fréquences des anciens et nouveaux groupes.
-- [ ] **11.2 | gpt-6-luna | medium** : reconstruire les membres affectés au franchissement d'un seuil ; comparer au calcul complet.
-- [ ] **11.3 | gpt-6.1-sol | high** : remplacer rapports et limites de contraste affectés ; après suppression du pire cas, retrouver le suivant avec le même départage.
-- [ ] **11.4 | gpt-6.1-sol | high** : recalculer la couverture globale après ajout, retrait ou déplacement de variant et mode ; réaffecter le préfixe des 5 000.
-- [ ] **11.5 | gpt-6-luna | medium** : réaffecter le préfixe du budget de calques et préserver un constat encore porté par une autre occurrence.
-- [ ] **11.6 | gpt-6.1-sol | medium** : reconstruire localisations, questions et corrections exactes à partir des contributions retenues ; test de retrait.
-- [ ] **11.7 | gpt-6.1-sol | medium** : assembler dans l'ordre final, relire les ignorés et rattacher les corrections à la nouvelle identité.
-- [ ] **11.8 | gpt-6-luna | low** : compter groupes reconstruits et durée d'assemblage dans la trace ; tester les compteurs sur une mutation.
+- [ ] **11.1 | gpt-6.1-sol | high** | **Claude Sonnet | high** : conserver la provenance des contributions typographiques et remplacer les fréquences des anciens et nouveaux groupes.
+- [ ] **11.2 | gpt-6-luna | medium** | **Claude Sonnet | medium** : reconstruire les membres affectés au franchissement d'un seuil ; comparer au calcul complet.
+- [ ] **11.3 | gpt-6.1-sol | high** | **Claude Sonnet | high** : remplacer rapports et limites de contraste affectés ; après suppression du pire cas, retrouver le suivant avec le même départage.
+- [ ] **11.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : recalculer la couverture globale après ajout, retrait ou déplacement de variant et mode ; réaffecter le préfixe des 5 000.
+- [ ] **11.5 | gpt-6-luna | medium** | **Claude Sonnet | medium** : réaffecter le préfixe du budget de calques et préserver un constat encore porté par une autre occurrence.
+- [ ] **11.6 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : reconstruire localisations, questions et corrections exactes à partir des contributions retenues ; test de retrait.
+- [ ] **11.7 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : assembler dans l'ordre final, relire les ignorés et rattacher les corrections à la nouvelle identité.
+- [ ] **11.8 | gpt-6-luna | low** | **Claude Sonnet | low** : compter groupes reconstruits et durée d'assemblage dans la trace ; tester les compteurs sur une mutation.
 
 Prérequis : 10. Nature : incrémentalité des groupes et de la restitution.
 Chemins : modules de requêtes, contrôles typographie/accessibilité du kit si

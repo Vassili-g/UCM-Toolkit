@@ -49,6 +49,9 @@ publier aucune version intermédiaire sur npm. À la clôture, pousser tous les
 commits une fois, puis publier seulement les versions finales des paquets
 modifiés, dans l'ordre prescrit par cette skill.
 
+Aucun changelog de paquet n'existe. Dans une case, « changelog » désigne ce
+manque : ne créer aucun fichier, le domicile attend la décision du mainteneur.
+
 Chaque case indique le modèle et l'effort de départ. `gpt-6-luna low` convient
 aux ajouts bornés et aux tests dont les attentes sont fixées ;
 `gpt-6-luna medium` aux changements locaux avec oracle ;
@@ -57,6 +60,27 @@ aux ajouts bornés et aux tests dont les attentes sont fixées ;
 dépendances. Réattribuer seulement après un
 blocage nommé et documenté. Ces profils suivent la documentation officielle
 d'[OpenAI sur le choix des modèles](https://developers.openai.com/api/docs/guides/model-selection).
+
+Chaque case ouverte porte en plus un profil Claude, après le profil OpenAI :
+`**2.1 | gpt-6.1-sol | medium** | **Claude Sonnet | medium**`. Sous Claude
+Code, ce second profil fait foi. L'orchestrateur choisit l'agent de
+[`.claude/agents/`](../../../../../../.claude/agents/) d'après ce couple et passe
+l'effort au lancement :
+
+| Profil | Agent | Tâches |
+|---|---|---|
+| Haiku, low | `executant`, ou `verificateur` pour une commande seule | contrôle de version sans arbitrage, commande à sortie longue, état de galerie ou mesure déjà présents en local, compteur ajouté à un banc existant, build et commandes de collecte, liste remise au mainteneur |
+| Sonnet, low | `implementeur` | ajout borné, état de galerie, test dont les attentes sont fixées, build préparé |
+| Sonnet, medium | `implementeur` | changement local avec oracle de parité, isolement d'un travail local déjà prouvé |
+| Sonnet, high | `implementeur-exigeant` | frontière entre paquets, plusieurs lecteurs d'une règle, fraîcheur, ordre ou départage |
+| Opus, high | conversation principale, ou `implementeur` lancé avec `model: opus` | types dont dépendent les lots suivants, couverture des événements Figma, dépendances lues, audits, décision d'activation |
+
+Opus est réservé aux sept cases où une erreur passe la parité sur les doubles :
+6.2, 8.1, 9.4, 10.2, 15.4, 15.5 et R12. Un oubli de couverture ou de dépendance
+y rend un résultat périmé sans faire échouer un test existant. Réattribuer
+seulement après un blocage nommé et documenté dans le fichier du lot.
+Sous Claude Code, l'agent ne commite pas : la conversation principale relit
+son diff, fait relancer les contrôles par un `verificateur`, puis commite.
 
 L'orchestrateur transmet le sommaire, le fichier du lot, ses chemins, les
 lectures rendues par `npm run agents:lire -- <chemins>`, ses prédécesseurs et sa
@@ -71,6 +95,27 @@ n'est cochée sur la seule base de ces preuves. Leur découpage en commits doit
 préserver les modifications du mainteneur et laisser chaque commit vérifiable.
 Pour ces cases, isoler et contrôler le travail présent avant de coder ce qui
 manque.
+
+`git add -p` est interactif et indisponible aux agents. Isoler une case ainsi :
+
+1. Avant la première case, l'orchestrateur enregistre l'état complet sans
+   toucher l'arbre : `git stash store -m "lots 1-2 avant isolement" $(git stash create)`.
+2. L'agent de la case écrit dans le scratchpad un patch qui garde, parmi
+   `git diff -- <chemins de la case>`, les seuls hunks de sa case. Plusieurs
+   cases partagent un fichier : `corrections.ts` pour 2.6, 2.15 et 2.16,
+   `accessibilite.ts` pour 2.5, 2.7, 2.8 et 2.18, `analyse.test.ts` pour
+   presque toutes.
+3. L'orchestrateur lance `git apply --cached --check <patch>`, puis
+   `git apply --cached <patch>`.
+4. Il éprouve l'index seul : `git stash push --keep-index`, contrôles ciblés,
+   relecture de `git diff --cached --stat`, commit de l'index, puis
+   `git stash pop`. Ce stash déplace aussi les fichiers du mainteneur :
+   l'employer seulement quand aucune autre session ne travaille dans l'arbre.
+
+Chaque case qui touche `packages/kit/src/` monte le kit d'un patch, avec la
+CLI et l'adaptateur, comme `b0e847e7`. La première porte le kit 0.13.3, la
+suivante 0.13.4. La montée locale actuelle, 0.13.3 pour l'ensemble, ne fixe
+que le point de départ de cette suite.
 
 État à préserver : la revue critique contient une modification du mainteneur ;
 `PLAN-IMPLEMENTATION.md` a été supprimé par le mainteneur. Ne restaurer ni ne

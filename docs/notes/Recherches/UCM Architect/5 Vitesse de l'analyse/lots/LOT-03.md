@@ -4,16 +4,16 @@
 
 ## Tâches à committer
 
-- [ ] **3.1 | gpt-6.1-sol | medium** : définir un message provisoire distinct de partielle ; tester génération, double envoi et rejet d'un message tardif.
-- [ ] **3.2 | gpt-6.1-sol | high** : ordonner contrôles du kit, lecture des ignorés, provisoire puis moteur ; vérifier l'ordre final et la même sortie sans provisoire.
-- [ ] **3.3 | gpt-6.1-sol | medium** : interdire côté sandbox corrections, réponses, Ignorer et préparation applicable tant que le résultat est provisoire ; test d'écriture forgée.
-- [ ] **3.4 | gpt-6.1-sol | medium** : appliquer le même verrou dans l'interface et conserver identifiants, défilement et sections ouvertes au passage au final.
-- [ ] **3.5 | gpt-6-luna | low** : afficher la mention de la maquette et masquer les sections tenues pendant le provisoire ; état de galerie dédié.
-- [ ] **3.6 | gpt-6-luna | medium** : retirer le provisoire après Annuler ; tester le rejet de tout final tardif.
-- [ ] **3.7 | gpt-6-luna | medium** : retirer le provisoire après arrêt du moteur ; tester l'état arrêté et ses actions interdites.
-- [ ] **3.8 | gpt-6-luna | medium** : publier les sorties finales partielles après lecture incomplète terminée ; tester couverture et corrections.
-- [ ] **3.9 | gpt-6-luna | medium** : conserver les constats consultables après péremption ; refuser un final tardif de même identité.
-- [ ] **3.10 | gpt-6-luna | low** : ajouter les états de galerie des quatre fins et lancer le build Architect pour la vérification du mainteneur.
+- [ ] **3.1 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : définir un message provisoire distinct de partielle ; tester génération, double envoi et rejet d'un message tardif.
+- [ ] **3.2 | gpt-6.1-sol | high** | **Claude Sonnet | high** : ordonner contrôles du kit, lecture des ignorés, provisoire puis moteur ; vérifier l'ordre final et la même sortie sans provisoire.
+- [ ] **3.3 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : interdire côté sandbox corrections, réponses, Ignorer et préparation applicable tant que le résultat est provisoire ; test d'écriture forgée.
+- [ ] **3.4 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : appliquer le même verrou dans l'interface et conserver identifiants, défilement et sections ouvertes au passage au final.
+- [ ] **3.5 | gpt-6-luna | low** | **Claude Sonnet | low** : afficher la mention de la maquette et masquer les sections tenues pendant le provisoire ; état de galerie dédié.
+- [ ] **3.6 | gpt-6-luna | medium** | **Claude Sonnet | medium** : retirer le provisoire après Annuler ; tester le rejet de tout final tardif.
+- [ ] **3.7 | gpt-6-luna | medium** | **Claude Sonnet | medium** : retirer le provisoire après arrêt du moteur ; tester l'état arrêté et ses actions interdites.
+- [ ] **3.8 | gpt-6-luna | medium** | **Claude Sonnet | medium** : publier les sorties finales partielles après lecture incomplète terminée ; tester couverture et corrections.
+- [ ] **3.9 | gpt-6-luna | medium** | **Claude Sonnet | medium** : conserver les constats consultables après péremption ; refuser un final tardif de même identité.
+- [ ] **3.10 | gpt-6-luna | low** | **Claude Sonnet | low** : ajouter les états de galerie des quatre fins et lancer le build Architect pour la vérification du mainteneur.
 
 Prérequis : 2. Nature : protocole et écran nouveau.
 Chemins : `packages/plugin-architect/src/sandbox/analyse.ts`,

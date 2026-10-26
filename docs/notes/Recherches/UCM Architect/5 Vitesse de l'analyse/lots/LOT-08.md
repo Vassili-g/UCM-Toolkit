@@ -4,15 +4,15 @@
 
 ## Tâches à committer
 
-- [ ] **8.1 | gpt-6.1-sol | high** : établir la matrice de couverture des événements pour nœuds, héritage et pages ; tests de portée inconnue.
-- [ ] **8.2 | gpt-6.1-sol | medium** : établir les relectures obligatoires de variables, collections, styles, maîtres, règles et libraries ; test de ressource externe modifiée.
-- [ ] **8.3 | gpt-6.1-sol | medium** : vérifier la documentation Figma puis brancher seulement les événements dont la couverture est établie, dont stylechange si pertinent.
-- [ ] **8.4 | gpt-6.1-sol | high** : accumuler les changements après la première péremption et hors analyse active ; tests d'événement retardé et de série de mutations.
-- [ ] **8.5 | gpt-6-luna | medium** : conserver anciens parents et topologie des suppressions ; élargir l'invalidation si parent ou événement manque.
-- [ ] **8.6 | gpt-6-luna | medium** : interrompre la couverture quand la page est quittée ou la file déborde ; test de retour sur page.
-- [ ] **8.7 | gpt-6-luna | medium** : porter Analyser et Actualiser jusqu'au sandbox ; test qu'Actualiser contourne les résultats précédents.
-- [ ] **8.8 | gpt-6.1-sol | high** : invalider après changement de configuration et écriture, distinguer imports et changements externes ; tests Ctrl+Z et refus.
-- [ ] **8.9 | gpt-6.1-sol | medium** : rendre inapplicable une génération modifiée pendant lecture ou calcul ; tester avant réception de l'événement.
+- [ ] **8.1 | gpt-6.1-sol | high** | **Claude Opus | high** : établir la matrice de couverture des événements pour nœuds, héritage et pages ; tests de portée inconnue.
+- [ ] **8.2 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : établir les relectures obligatoires de variables, collections, styles, maîtres, règles et libraries ; test de ressource externe modifiée.
+- [ ] **8.3 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : vérifier la documentation Figma puis brancher seulement les événements dont la couverture est établie, dont stylechange si pertinent. Confier d'abord la lecture de la documentation Figma à un `chercheur`.
+- [ ] **8.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : accumuler les changements après la première péremption et hors analyse active ; tests d'événement retardé et de série de mutations.
+- [ ] **8.5 | gpt-6-luna | medium** | **Claude Sonnet | medium** : conserver anciens parents et topologie des suppressions ; élargir l'invalidation si parent ou événement manque.
+- [ ] **8.6 | gpt-6-luna | medium** | **Claude Sonnet | medium** : interrompre la couverture quand la page est quittée ou la file déborde ; test de retour sur page.
+- [ ] **8.7 | gpt-6-luna | medium** | **Claude Sonnet | medium** : porter Analyser et Actualiser jusqu'au sandbox ; test qu'Actualiser contourne les résultats précédents.
+- [ ] **8.8 | gpt-6.1-sol | high** | **Claude Sonnet | high** : invalider après changement de configuration et écriture, distinguer imports et changements externes ; tests Ctrl+Z et refus.
+- [ ] **8.9 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : rendre inapplicable une génération modifiée pendant lecture ou calcul ; tester avant réception de l'événement.
 
 Prérequis : 7. Nature : correction de fraîcheur, sans mémoire activée.
 Chemins : `packages/plugin-architect/src/code.ts`, `sandbox/contexte.ts`,

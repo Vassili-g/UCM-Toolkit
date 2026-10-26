@@ -4,16 +4,16 @@
 
 ## Tâches à committer
 
-- [ ] **6.1 | gpt-6.1-sol | medium** : inventorier les champs consommés par relevé, moteur, budget et surveillance dans les modules existants ; fixer leurs projections en tests.
-- [ ] **6.2 | gpt-6.1-sol | high** : définir les faits ordinaires avec identité, topologie, provenance, champs acquis ou refusés et couverture ; aucun objet Figma dans les types.
-- [ ] **6.3 | gpt-6-luna | medium** : centraliser une famille de propriétés de nœuds et ses refus ; comparer les deux lecteurs avant d'en ajouter une autre.
-- [ ] **6.4 | gpt-6-luna | medium** : centraliser variables et collections promises ou refusées ; tests de collision, alias et ressource redevenue lisible.
-- [ ] **6.5 | gpt-6-luna | medium** : centraliser styles et maîtres avec déduplication par identité ; comparer frontières d'instance et localisations.
-- [ ] **6.6 | gpt-6.1-sol | high** : séparer inventaires locaux, règles par page et libraries par demande ; borner à huit requêtes indépendantes en vol.
-- [ ] **6.7 | gpt-6-luna | medium** : faire consommer les faits de peinture au relevé et au moteur ; comparer fills, strokes et refus.
-- [ ] **6.8 | gpt-6.1-sol | high** : projeter les segments de texte par consommateur et fusionner les plages adjacentes prouvées ; conserver deux lectures si nécessaire.
-- [ ] **6.9 | gpt-6.1-sol | medium** : dériver l'inventaire de péremption de la topologie et écouter les pages autorisées avant lecture longue ; test de couverture inconnue.
-- [ ] **6.10 | gpt-6-luna | low** : comparer dans le banc parcours natif indexé et parcours coopératif explicite ; ne fixer aucun gagnant avant Figma.
+- [ ] **6.1 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : inventorier les champs consommés par relevé, moteur, budget et surveillance dans les modules existants ; fixer leurs projections en tests.
+- [ ] **6.2 | gpt-6.1-sol | high** | **Claude Opus | high** : définir les faits ordinaires avec identité, topologie, provenance, champs acquis ou refusés et couverture ; aucun objet Figma dans les types. Les cases 6.3 à 6.9 reposent sur ces types.
+- [ ] **6.3 | gpt-6-luna | medium** | **Claude Sonnet | medium** : centraliser une famille de propriétés de nœuds et ses refus ; comparer les deux lecteurs avant d'en ajouter une autre.
+- [ ] **6.4 | gpt-6-luna | medium** | **Claude Sonnet | medium** : centraliser variables et collections promises ou refusées ; tests de collision, alias et ressource redevenue lisible.
+- [ ] **6.5 | gpt-6-luna | medium** | **Claude Sonnet | medium** : centraliser styles et maîtres avec déduplication par identité ; comparer frontières d'instance et localisations.
+- [ ] **6.6 | gpt-6.1-sol | high** | **Claude Sonnet | high** : séparer inventaires locaux, règles par page et libraries par demande ; borner à huit requêtes indépendantes en vol.
+- [ ] **6.7 | gpt-6-luna | medium** | **Claude Sonnet | medium** : faire consommer les faits de peinture au relevé et au moteur ; comparer fills, strokes et refus.
+- [ ] **6.8 | gpt-6.1-sol | high** | **Claude Sonnet | high** : projeter les segments de texte par consommateur et fusionner les plages adjacentes prouvées ; conserver deux lectures si nécessaire.
+- [ ] **6.9 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : dériver l'inventaire de péremption de la topologie et écouter les pages autorisées avant lecture longue ; test de couverture inconnue.
+- [ ] **6.10 | gpt-6-luna | low** | **Claude Sonnet | low** : comparer dans le banc parcours natif indexé et parcours coopératif explicite ; ne fixer aucun gagnant avant Figma.
 
 Prérequis : 4 et 5. Nature : extraction progressive à sortie identique.
 Chemins nouveaux proposés : `packages/plugin-socle/src/composant/analyse/faits.ts`,
