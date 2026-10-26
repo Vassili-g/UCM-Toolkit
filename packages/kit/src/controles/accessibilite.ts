@@ -97,9 +97,9 @@ export function* controlerLAccessibiliteParEtapes(
     });
   }
 
-  constats.push(...controlerLesCibles(mesures, estInteractif(releve), releve));
-  constats.push(...controlerLeTexteMinimal(mesures));
-  constats.push(...controlerLAnneau(mesures));
+  constats.push(...yield* controlerLesCibles(mesures, estInteractif(releve), releve));
+  constats.push(...yield* controlerLeTexteMinimal(mesures));
+  constats.push(...yield* controlerLAnneau(mesures));
   return constats;
 }
 
@@ -390,27 +390,51 @@ function estEnFocus(variant: VariantLu): boolean {
   return etatDuVariant(variant)?.startsWith('focus') ?? false;
 }
 
-function anneauxDuVariant(variant: VariantLu): LayerLu[] {
-  return layersVisibles(variant).filter((l) => NOM_D_ANNEAU.test(l.nom) && l.type !== 'TEXT' && l.peintures.some((p) => p.visible));
+function* anneauxDuVariant(variant: VariantLu): Generator<void, LayerLu[]> {
+  const anneaux: LayerLu[] = [];
+  for (const layer of layersVisibles(variant)) {
+    yield;
+    if (NOM_D_ANNEAU.test(layer.nom) && layer.type !== 'TEXT' && layer.peintures.some((p) => p.visible)) anneaux.push(layer);
+  }
+  return anneaux;
 }
 
-function controlerLAnneau(variants: VariantLu[]): Constat[] {
+function* controlerLAnneau(variants: VariantLu[]): Generator<void, Constat[]> {
   const constats: Constat[] = [];
   const recommandation = RECOMMANDATIONS.find((r) => r.id === 'anneau-de-focus');
   const epaisseur = Number(recommandation?.parametres.epaisseur ?? 2);
   const espace = Number(recommandation?.parametres.espace ?? 2);
-  const sansAnneau = variants.filter((v) => estEnFocus(v) && anneauxDuVariant(v).length === 0);
+  const sansAnneau: VariantLu[] = [];
+  for (const variant of variants) {
+    yield;
+    if (estEnFocus(variant) && (yield* anneauxDuVariant(variant)).length === 0) sansAnneau.push(variant);
+  }
   if (sansAnneau.length > 0) {
-    const racines = sansAnneau.flatMap((v) => v.layers.filter((l) => l.parent === null));
+    const racines: LayerLu[] = [];
+    const noms: string[] = [];
+    const identifiants: string[] = [];
+    for (const variant of sansAnneau) {
+      yield;
+      noms.push(variant.nom);
+      for (const layer of variant.layers) {
+        yield;
+        if (layer.parent !== null) continue;
+        racines.push(layer);
+        identifiants.push(layer.id);
+      }
+    }
     constats.push({
       id: 'C50:sans-anneau', code: 'C50', type: 'corriger', famille: 'contraste',
-      variants: sansAnneau.map((v) => v.nom), layers: racines.map((l) => l.id),
+      variants: noms, layers: identifiants,
       faits: { anneauVisible: 0, variantsEnFocus: sansAnneau.length, ...(racines[0] ? { calque: racines[0].nom } : {}) },
     });
   }
   const fins = new Map<string, Constat>();
   for (const variant of variants) {
-    for (const anneau of anneauxDuVariant(variant)) {
+    yield;
+    const anneaux = yield* anneauxDuVariant(variant);
+    for (const anneau of anneaux) {
+      yield;
       if (anneau.strokeWeight === undefined || anneau.strokeWeight === epaisseur) continue;
       const id = `C51:${anneau.nom}:${anneau.strokeWeight}`;
       const existant = fins.get(id);
@@ -431,11 +455,16 @@ function controlerLAnneau(variants: VariantLu[]): Constat[] {
 
 /* ---------- C52 et texte sous 12 px ---------- */
 
-function controlerLesCibles(variants: VariantLu[], interactif: boolean, releve: ReleveDeComposant): Constat[] {
+function* controlerLesCibles(variants: VariantLu[], interactif: boolean, releve: ReleveDeComposant): Generator<void, Constat[]> {
   if (!interactif) return [];
   const groupes = new Map<string, Constat>();
   for (const variant of variants) {
-    const racine = variant.layers.find((l) => l.parent === null);
+    yield;
+    let racine: LayerLu | undefined;
+    for (const layer of variant.layers) {
+      yield;
+      if (layer.parent === null) { racine = layer; break; }
+    }
     if (!racine || lectureManquee(releve, racine.id, 'dimensions')) continue;
     const { largeur, hauteur } = racine.dimensions;
     const minimum = Math.min(largeur, hauteur);
@@ -452,12 +481,15 @@ function controlerLesCibles(variants: VariantLu[], interactif: boolean, releve: 
   return [...groupes.values()];
 }
 
-function controlerLeTexteMinimal(variants: VariantLu[]): Constat[] {
+function* controlerLeTexteMinimal(variants: VariantLu[]): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
   for (const variant of variants) {
+    yield;
     for (const layer of layersVisibles(variant)) {
+      yield;
       if (layer.type !== 'TEXT') continue;
       for (const plage of layer.texte?.plages ?? []) {
+        yield;
         if (plage.fontSize >= TEXTE_MINIMAL_PX) continue;
         const id = `C49:taille:${layer.nom}:${plage.fontSize}`;
         const existant = groupes.get(id);

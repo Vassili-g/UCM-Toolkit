@@ -55,6 +55,48 @@ test('C49 : un texte gris clair sur blanc manque de contraste, un texte noir pas
   assert.equal(parCode(cc(releve([variant('a', [racine(), texte([solide('fills', gris(0))])])])), 'C49').length, 0);
 });
 
+test('les contrôles finaux par étapes conservent les groupes et leur ordre', () => {
+  const anneau: LayerLu = {
+    id: 'anneau', nom: 'Focus ring', type: 'RECTANGLE', parent: 'r', visible: true, opacite: 1,
+    dimensions: dims(), peintures: [solide('strokes', gris(0))], strokeWeight: 1, liaisons: [], valeursEnDur: [],
+  };
+  const petitTexte = texte([solide('fills', gris(0))], 11);
+  const r = releve([
+    variant('disabled', [racine()], { State: 'disabled' }),
+    variant('a', [racine(undefined, dims(20, 20)), petitTexte], { State: 'focus' }),
+    variant('b', [racine(undefined, dims(36, 36)), { ...petitTexte, id: 'tb' }, anneau], { State: 'focus' }),
+    variant('c', [racine(undefined, dims(20, 20)), { ...petitTexte, id: 'tc' }], { State: 'focus' }),
+  ], ['default', 'hover', 'focus', 'disabled']);
+  const attendu = [
+    { id: 'C53', code: 'C53', type: 'info', famille: 'contraste', variants: ['disabled'], layers: [], faits: { variantsExclus: 1 } },
+    {
+      id: 'C52:20x20:24', code: 'C52', type: 'corriger', famille: 'contraste', variants: ['a', 'c'], layers: ['r', 'r'],
+      faits: { largeur: 20, hauteur: 20, seuil: 24 },
+    },
+    {
+      id: 'C52:36x36:44', code: 'C52', type: 'verifier', famille: 'contraste', variants: ['b'], layers: ['r'],
+      faits: { largeur: 36, hauteur: 36, seuil: 44 },
+    },
+    {
+      id: 'C49:taille:Label:11', code: 'C49', type: 'verifier', famille: 'contraste', variants: ['a', 'b', 'c'], layers: ['t', 'tb', 'tc'],
+      faits: { calque: 'Label', fontSize: 11, seuil: 12 },
+    },
+    {
+      id: 'C50:sans-anneau', code: 'C50', type: 'corriger', famille: 'contraste', variants: ['a', 'c'], layers: ['r', 'r'],
+      faits: { anneauVisible: 0, variantsEnFocus: 2, calque: 'Root' },
+    },
+    {
+      id: 'C51:Focus ring:1', code: 'C51', type: 'verifier', famille: 'contraste', variants: ['b'], layers: ['anneau'],
+      faits: { calque: 'Focus ring', strokeWeight: 1, epaisseurRecommandee: 2, espaceRecommande: 2 },
+    },
+  ];
+  const calcul = controlerLAccessibiliteParEtapes(r, catalogueVide, { niveau: 'AA' });
+  let resultat = calcul.next();
+  while (!resultat.done) resultat = calcul.next();
+  assert.deepEqual(resultat.value, attendu);
+  assert.deepEqual(cc(r), attendu);
+});
+
 test('le produit des modes conserve l’ordre effectif et les faits de contraste', () => {
   const t = texte([solide('fills', gris(0))]);
   t.texte!.plages[0].liaisons = ['c1', 'c2'].map((collection, indice) => ({

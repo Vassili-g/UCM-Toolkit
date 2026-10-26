@@ -190,6 +190,36 @@ test('annuler pendant la matérialisation des modes arrête avant la fin du prod
   assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
 });
 
+test('annuler dans les cibles après le contraste arrête avant la fin des variants', async () => {
+  const b = banc();
+  const releve = releveDeContraste('Alert');
+  let ciblesLues = 0;
+  releve.proprietes = [{ nom: 'State', type: 'VARIANT', valeurs: ['default', 'hover'], defaut: 'default' }];
+  const modele = releve.variants[0];
+  releve.variants = Array.from({ length: 90 }, (_, i) => ({
+    ...modele, id: `v-${i}`, nom: `variant ${i}`, valeurs: { State: 'default' },
+    layers: modele.layers.map((layer) => layer.parent === null ? {
+      ...layer, dimensions: { ...layer.dimensions, get largeur() { ciblesLues += 1; return 20; }, hauteur: 20 },
+    } : layer),
+  }));
+  let horloge = 0;
+  const traiter = traiterAvec({
+    ...lecteurs(complete()),
+    releve: async () => ({ statut: 'lu', releve }),
+  }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (ciblesLues > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.ok(ciblesLues > 0 && ciblesLues < 90, `${ciblesLues} cibles lues`);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+  assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
+});
+
 test('annuler pendant l’index des corrections ne rend aucune correction', async () => {
   const b = banc();
   const releve = releveDe('Alert');
