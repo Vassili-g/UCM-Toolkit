@@ -518,8 +518,23 @@ export interface BancDeCout {
   readonly repetitionsParPropriete: number;
   readonly repetitionsParMethode: number;
   readonly mesures: readonly MesureDeLecture[];
+  /** Les deux parcours du jeu entier ; absent quand le jeu n'a pas `findAll`. */
+  readonly parcours?: ComparaisonDesParcours;
   readonly dureeMs: number;
 }
+
+/**
+ * Le parcours natif (`findAll(() => true)`, un appel) et le parcours explicite (une pile, `children` lu par nœud, la main
+ * passée dès que le calcul dépasse `BUDGET_DU_PARCOURS_MS`) sur le même jeu. `calculMs` exclut les cessions. `memeOrdre` dit
+ * si les deux rendent les mêmes identifiants dans le même ordre : sans lui, les durées ne se comparent pas.
+ */
+export interface ComparaisonDesParcours {
+  readonly natif: { readonly noeuds: number; readonly calculMs: number };
+  readonly explicite: { readonly noeuds: number; readonly calculMs: number; readonly cessions: number };
+  readonly memeOrdre: boolean;
+}
+
+export const BUDGET_DU_PARCOURS_MS = 25;
 
 export const REPETITIONS_PAR_PROPRIETE = 10_000;
 export const REPETITIONS_PAR_METHODE = 1_000;
@@ -605,7 +620,44 @@ export async function mesurerLeCoutDesLectures(jeuAMesurer: object, options: Opt
   if (typeof premierVariant.findAll === 'function') {
     await mesurerUneMethode(premierVariant.type, 'findAll(() => true)', 5, () => (premierVariant.findAll as (filtre: () => boolean) => unknown)(() => true), false);
   }
-  return { horloge: horloge.nom, repetitionsParPropriete: parPropriete, repetitionsParMethode: parMethode, mesures, dureeMs: horloge.maintenant() - debut };
+  const parcours = typeof jeu.findAll === 'function' ? await comparerLesParcours(jeu, horloge, ceder) : undefined;
+  return { horloge: horloge.nom, repetitionsParPropriete: parPropriete, repetitionsParMethode: parMethode, mesures, ...(parcours ? { parcours } : {}), dureeMs: horloge.maintenant() - debut };
+}
+
+/** Le préordre de `findAll` : chaque nœud avant ses enfants, les enfants dans leur ordre, instances descendues. */
+export async function comparerLesParcours(jeu: LectureNoeud, horloge: Horloge, ceder: () => Promise<void>): Promise<ComparaisonDesParcours> {
+  const t0 = horloge.maintenant();
+  const natifs = (jeu.findAll as (filtre: () => boolean) => readonly LectureNoeud[])(() => true);
+  const natifMs = horloge.maintenant() - t0;
+  const idsNatifs = natifs.map((noeud) => noeud.id);
+  await ceder();
+
+  const explicites: string[] = [];
+  let calculMs = 0;
+  let cessions = 0;
+  let tranche = horloge.maintenant();
+  const pile: LectureNoeud[] = [];
+  const empiler = (noeud: LectureNoeud): void => {
+    let enfants: unknown;
+    try { enfants = noeud.children; } catch { enfants = undefined; }
+    if (Array.isArray(enfants)) for (let i = enfants.length - 1; i >= 0; i -= 1) pile.push(enfants[i] as LectureNoeud);
+  };
+  empiler(jeu);
+  while (pile.length > 0) {
+    const noeud = pile.pop()!;
+    explicites.push(noeud.id);
+    empiler(noeud);
+    const maintenant = horloge.maintenant();
+    if (maintenant - tranche >= BUDGET_DU_PARCOURS_MS) {
+      calculMs += maintenant - tranche;
+      cessions += 1;
+      await ceder();
+      tranche = horloge.maintenant();
+    }
+  }
+  calculMs += horloge.maintenant() - tranche;
+  const memeOrdre = idsNatifs.length === explicites.length && idsNatifs.every((id, rang) => id === explicites[rang]);
+  return { natif: { noeuds: idsNatifs.length, calculMs: natifMs }, explicite: { noeuds: explicites.length, calculMs, cessions }, memeOrdre };
 }
 
 /** Ce que l'interface télécharge : le nom du fichier, son contenu, et de quoi résumer la capture en console. */

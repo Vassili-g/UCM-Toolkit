@@ -205,7 +205,10 @@ Pour relever un composant et chronométrer les lectures de Figma, construisez le
 avec le drapeau de capture, puis cliquez Analyser. L'analyse finit, puis le plugin
 capture le jeu, ses variants, leurs descendants, les maîtres d'instance, les variables,
 les styles, les libraries et les règles de la page, et lit 10 000 fois chaque propriété
-d'un nœud de chaque sorte pour en rendre la durée moyenne. L'interface télécharge
+d'un nœud de chaque sorte pour en rendre la durée moyenne. Il compare aussi, sur le jeu entier, le parcours natif
+(`findAll`) et un parcours explicite qui lit `children` nœud par nœud et passe la main
+toutes les 25 ms ; le champ `parcours` du banc donne leurs durées de calcul et vérifie
+qu'ils rendent les mêmes nœuds dans le même ordre. L'interface télécharge
 `capture-architect-<date>.json` et écrit un résumé en console. Le fichier contient des
 données du document : rangez-le dans `_local/`, hors de git.
 

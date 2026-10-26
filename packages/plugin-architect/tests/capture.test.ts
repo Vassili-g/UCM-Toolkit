@@ -11,7 +11,7 @@ import { analyserLeComposant } from 'ucm-plugin-socle/src/composant/contract/exp
 import type { Contexte } from '../src/sandbox/contexte';
 import { traiter, type Lecteurs } from '../src/sandbox/analyse';
 import {
-  JEUX_DE_SEGMENTS, PROPRIETES_DE_NOEUD, capturerLeComposant, capturerSiDemande, choisirLHorloge, mesurerLeCoutDesLectures, nomDeLaCapture,
+  BUDGET_DU_PARCOURS_MS, JEUX_DE_SEGMENTS, PROPRIETES_DE_NOEUD, capturerLeComposant, comparerLesParcours, capturerSiDemande, choisirLHorloge, mesurerLeCoutDesLectures, nomDeLaCapture,
   type CaptureArchitect, type MessageDeCapture,
 } from '../src/sandbox/capture';
 import { enregistrerLesImports, mesurerLePortDeLecture } from '../src/lecture';
@@ -189,6 +189,28 @@ test('le banc lit chaque propriété sur un nœud de chaque sorte et chronomètr
   assert.equal(banc.mesures.find((mesure) => mesure.lecture === 'layoutMode' && mesure.type === 'COMPONENT')?.microsecondesParLecture, 50, 'une durée de 0,5 ms sur 10 lectures vaut 50 microsecondes par lecture');
   assert.ok(cessions >= banc.mesures.length, 'la main passe après chaque propriété et chaque lot');
   assert.equal(banc.horloge, 'performance.now');
+});
+
+test('le banc compare parcours natif et parcours explicite sur le jeu entier, dans le même ordre', async () => {
+  const monde = fabriquerLeMonde();
+  const banc = await mesurerLeCoutDesLectures(monde.jeu, { ceder: async () => {}, repetitionsParPropriete: 1, repetitionsParMethode: 1 });
+  const attendus = (monde.jeu as unknown as { findAll(filtre: () => boolean): unknown[] }).findAll(() => true).length;
+  assert.ok(attendus > 3, 'le jeu a des descendants au-delà de ses variants');
+  assert.deepEqual(banc.parcours?.natif.noeuds, attendus);
+  assert.deepEqual(banc.parcours?.explicite.noeuds, attendus);
+  assert.equal(banc.parcours?.memeOrdre, true);
+});
+
+test('le parcours explicite passe la main quand sa tranche dépasse le budget, hors du temps de calcul', async () => {
+  const monde = fabriquerLeMonde();
+  let tic = 0;
+  const horloge = { nom: 'performance.now' as const, maintenant: () => (tic += BUDGET_DU_PARCOURS_MS) };
+  let cessions = 0;
+  const parcours = await comparerLesParcours(monde.jeu as never, horloge, async () => { cessions += 1; tic += 1000; });
+  assert.equal(parcours.memeOrdre, true);
+  assert.equal(parcours.explicite.cessions, parcours.explicite.noeuds, 'chaque nœud dépasse le budget : une cession par nœud');
+  assert.equal(cessions, parcours.explicite.cessions + 1, 'une cession de plus sépare les deux parcours');
+  assert.ok(parcours.explicite.calculMs < 1000, 'les 1000 ms de chaque cession ne comptent pas dans le calcul');
 });
 
 test('l’horloge du banc est performance.now quand il existe, sinon Date.now', () => {
