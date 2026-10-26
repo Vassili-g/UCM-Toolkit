@@ -50,6 +50,27 @@ test('une pause remet le budget à son heure de fin et une portée fermée ne co
   assert.equal(pauses, 2);
 });
 
+test('doitCeder annonce le budget écoulé ou le jeton levé, sans céder lui-même', async () => {
+  let horloge = 0;
+  let pauses = 0;
+  const jeton = { leve: false };
+  const contexte = creerContexteCooperatif({ horloge: () => horloge, respirer: async () => { pauses += 1; }, jeton, budgetDeCalculMs: 25 });
+  assert.equal(contexte.doitCeder(), false);
+  horloge = 24;
+  assert.equal(contexte.doitCeder(), false);
+  horloge = 25;
+  assert.equal(contexte.doitCeder(), true);
+  assert.equal(pauses, 0);
+  await contexte.cederSiBesoin();
+  assert.equal(pauses, 1);
+  assert.equal(contexte.doitCeder(), false);
+  jeton.leve = true;
+  assert.equal(contexte.doitCeder(), true);
+  assert.throws(() => contexte.verifier(), AnalyseAnnulee);
+  const sansPause = creerContexteCooperatif({ horloge: () => horloge + 1000 });
+  assert.equal(sansPause.doitCeder(), false);
+});
+
 test('une portée refusée ne respire pas avec l’annulation de la portée ouverte', async () => {
   const maintenant = Date.now;
   let horloge = 0;

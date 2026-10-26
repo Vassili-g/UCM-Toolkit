@@ -364,16 +364,20 @@ async function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeR
   return constats;
 }
 
-/** Un calcul du kit (contrôle ou corrections) conduit par tranches de 32 étapes ; le budget et le jeton se vérifient entre deux tranches. */
+/**
+ * Un calcul du kit (contrôle ou corrections) conduit par tranches : une tranche enchaîne les étapes jusqu'à ce que le
+ * budget soit écoulé ou le jeton levé, puis cède. Une étape du kit peut couvrir 256 variables : un nombre fixe
+ * d'étapes par tranche ne bornerait pas sa durée.
+ */
 async function calculerParEtapes<T>(calcul: Generator<void, T>, cooperation: ContexteCooperatif, phase: 'controles' | 'corrections' = 'controles'): Promise<T> {
   for (;;) {
     await cooperation.cederSiBesoin();
     const fin = mesurerLeCalcul(() => {
-      for (let i = 0; i < 32; i += 1) {
+      for (;;) {
         const suivant = calcul.next();
         if (suivant.done) return suivant;
+        if (cooperation.doitCeder()) return null;
       }
-      return null;
     }, phase, true);
     if (fin) return fin.value;
   }

@@ -44,6 +44,11 @@ export interface ContexteCooperatif {
   verifier(): void;
   /** Rend la main si le budget est écoulé ; relit le jeton avant et après la pause. */
   cederSiBesoin(): Promise<void> | void;
+  /**
+   * Vrai quand `cederSiBesoin` céderait ou lèverait : budget écoulé avec une pause injectée, ou jeton levé. Un pilote
+   * synchrone le consulte entre deux étapes pour s'arrêter au budget plutôt qu'après un nombre fixe d'étapes.
+   */
+  doitCeder(): boolean;
 }
 
 /**
@@ -67,6 +72,9 @@ export function creerContexteCooperatif(options: OptionsDeCooperation = {}): Con
         verifier();
         derniereCession = horloge();
       });
+    },
+    doitCeder() {
+      return options.jeton?.leve === true || (options.respirer !== undefined && horloge() - derniereCession >= budget);
     },
   };
 }
