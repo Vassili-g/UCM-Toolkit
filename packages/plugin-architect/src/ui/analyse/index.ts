@@ -15,7 +15,7 @@ import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import type { LectureDeComposant } from '../../composant';
 import type { Constat } from '../../messages/commun';
 import type { Application } from '../application';
-import { analyseDuComposant, aDesLiaisonsPreparees, aPreparer, libraryAChoisir, type AnalyseRecue } from '../composant/analyse';
+import { demandeDAnalyseEnCours, analyseDuComposant, aDesLiaisonsPreparees, aPreparer, libraryAChoisir, type AnalyseRecue } from '../composant/analyse';
 import { monterLesCorrections, noteDeLEcriture, resultatApresPeremption } from '../corrections';
 import { carteDesLiaisonsPreparees } from '../corrections/liaisons';
 import type { CarteDeCorrections, ContexteDeCartes } from '../corrections/modele';
@@ -275,9 +275,16 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     if (!lecture) return [creerAlerte('info', { texte: T.aucunComposant })];
     const variants = Math.max(1, lecture.sujet.variants.length);
 
-    if (brute?.statut === 'en-cours') {
-      const progression = brute.progression ? T.progression(brute.progression.lus, brute.progression.total) : P.enCours;
-      return [resume(lecture, progression), note(T.attendreLesConstats)];
+    if (brute?.statut === 'en-cours' || demandeDAnalyseEnCours(etat) !== null) {
+      const enCours = brute?.statut === 'en-cours' ? brute.progression : null;
+      const libelle = enCours?.phase ? T.phases[enCours.phase] : enCours ? T.progression(enCours.lus, enCours.total) : P.enCours;
+      const progression = enCours?.fait !== undefined && enCours.total > 0 ? T.compteDeLecture(libelle, enCours.fait, enCours.total) : libelle;
+      const barre = document.createElement('progress');
+      barre.className = 'progression-analyse';
+      barre.max = 1;
+      barre.value = enCours?.fraction ?? 0;
+      barre.setAttribute('aria-label', progression);
+      return [resume(lecture, progression), barre, bouton(TEXTES.annuler, () => app.annulerAnalyse()), note(T.attendreLesConstats)];
     }
     if (brute?.statut === 'arretee') {
       const message = String(brute.constats[0]?.faits.message ?? '');

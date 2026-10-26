@@ -11,6 +11,12 @@
   margin: 4px 0 14px;
 }
 
+.progression-analyse {
+  width: 100%;
+  height: 4px;
+  accent-color: var(--texte-second);
+}
+
 .puce-element {
   display: inline-flex;
   height: 28px;

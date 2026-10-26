@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { TEXTES_ANALYSE } from '../src/ui/textes/analyse';
 import type { Constat } from '../src/messages/commun';
 import { recevoirUneAnalyse, type MessageRecuDeLAnalyse } from '../src/ui/composant/analyse';
 import { constatsDuVariant } from '../src/ui/composant/variants';
@@ -33,4 +34,13 @@ test('la cellule compte les constats par identifiant ou par nom, chacun une fois
   const variant = { id: 'v1', nom: 'Severity=info' } as never;
   const constats = [constat('a', ['v1']), constat('b', ['Severity=info']), constat('c', ['v1', 'Severity=info']), constat('d', ['v2'])];
   assert.deepEqual(constatsDuVariant(variant, constats).map(({ id }) => id), ['a', 'b', 'c']);
+});
+
+test('les phases de progression reprennent les textes de la maquette avec ou sans compte', () => {
+  const textes = TEXTES_ANALYSE.panneauDesConstats;
+  assert.equal(textes.compteDeLecture(textes.phases.releve, 5, 11), 'Lecture des variants : 5 sur 11');
+  assert.equal(textes.phases.catalogue, 'Lecture de la library');
+  assert.equal(textes.phases.imbriques, 'Lecture des composants imbriqués');
+  assert.equal(textes.phases.structure, 'Lecture de la structure');
+  for (const phase of ['regles', 'controles', 'corrections', 'projection'] as const) assert.equal(textes.phases[phase], 'Vérification des règles');
 });
