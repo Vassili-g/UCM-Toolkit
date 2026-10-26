@@ -38,15 +38,54 @@ export function collectionsDeReference(
   }));
 }
 
+interface IndexDesVariables {
+  readonly variables: readonly VariableDuCatalogue[];
+  readonly nombre: number;
+  readonly parCle: Map<string, VariableDuCatalogue>;
+  readonly parNom: Map<string, VariableDuCatalogue[]>;
+}
+
+const indexMemorises = new WeakMap<CatalogueDeReference, IndexDesVariables>();
+
+/**
+ * Construit une fois par catalogue, comme la mémoire de `tokensDuComposant` : la clé de validité est le tableau `variables` et sa
+ * longueur. Une variable modifiée en place sans changer le tableau n'est pas vue. Chaque liste garde l'ordre du catalogue, donc le
+ * premier doublon gagne.
+ */
+function indexDesVariables(catalogue: CatalogueDeReference): IndexDesVariables {
+  const { variables } = catalogue;
+  const connu = indexMemorises.get(catalogue);
+  if (connu && connu.variables === variables && connu.nombre === variables.length) return connu;
+  const parCle = new Map<string, VariableDuCatalogue>();
+  const parNom = new Map<string, VariableDuCatalogue[]>();
+  for (const variable of variables) {
+    const { cle, nom } = variable;
+    if (!parCle.has(cle)) parCle.set(cle, variable);
+    const memes = parNom.get(nom);
+    if (memes) memes.push(variable); else parNom.set(nom, [variable]);
+  }
+  const index = { variables, nombre: variables.length, parCle, parNom };
+  indexMemorises.set(catalogue, index);
+  return index;
+}
+
+/** La première variable de cette clé, sans repli sur le nom. */
+export function variableParCle(catalogue: CatalogueDeReference, cle: string): VariableDuCatalogue | undefined {
+  return indexDesVariables(catalogue).parCle.get(cle);
+}
+
 /** Une clé désigne toujours une variable ; un nom se cherche dans sa collection si elle est précisée. */
 export function variableDuCatalogue(
   catalogue: CatalogueDeReference,
   cleOuNom: string,
   collection?: string,
 ): VariableDuCatalogue | 'absente' {
-  const parCle = catalogue.variables.find((variable) => variable.cle === cleOuNom);
+  const index = indexDesVariables(catalogue);
+  const parCle = index.parCle.get(cleOuNom);
   if (parCle) return parCle;
-  return catalogue.variables.find((variable) => variable.nom === cleOuNom && (collection === undefined || variable.collection === collection)) ?? 'absente';
+  const memes = index.parNom.get(cleOuNom);
+  if (!memes) return 'absente';
+  return (collection === undefined ? memes[0] : memes.find((variable) => variable.collection === collection)) ?? 'absente';
 }
 
 export function collectionDuCatalogue(catalogue: CatalogueDeReference, cleOuNom: string): CollectionDuCatalogue | 'absente' {

@@ -87,7 +87,7 @@ Il s'en écarte sur deux points. `f0859af4` ne partage aucune lecture entre cont
 
 ### Cases du lot
 
-- [ ] **4.1 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : indexer les variables du catalogue par clé puis nom, avec priorité et doublons inchangés ; test de collisions. Recoupe 4.0c, qui remplace seulement la recherche de collection de `tokensDuComposant` ; 4.1 indexe `variableDuCatalogue` pour les autres contrôles.
+- [x] **4.1 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : indexer les variables du catalogue par clé puis nom, avec priorité et doublons inchangés ; test de collisions. Recoupe 4.0c, qui remplace seulement la recherche de collection de `tokensDuComposant` ; 4.1 indexe `variableDuCatalogue` pour les autres contrôles.
 - [ ] **4.2 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : indexer collections et segments une seule fois par contenu immuable ; vérifier ordre et coût en opérations. Recoupe 4.0b et 4.0c, qui mémorisent les tokens du composant et construisent une table des rôles de collection dans `tokensDuComposant` ; 4.2 réemploie cette table au lieu d'en construire une seconde.
 - [ ] **4.3 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : remplacer les recherches typographiques par fréquences de groupe et champ hors contribution courante ; test absence, null et exclusions.
 - [ ] **4.4 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : produire seulement le préfixe de 5 000 combinaisons de modes, dans l'ordre global ; test de croissance en espace.

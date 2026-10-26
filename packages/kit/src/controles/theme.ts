@@ -4,7 +4,7 @@ import {
   TABLE_DES_DOSSIERS, VARIABLES_DU_THEME,
   type ModeDuTheme, type SensDuTheme,
 } from '../emplois/dossiers.js';
-import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
+import { variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
 
@@ -105,7 +105,7 @@ export function controlerLesModes(catalogue: CatalogueDeReference): Constat[] {
       for (const mode of theme.modes) {
         const valeur = variable.valeurs?.[mode.id];
         if (!valeur || !('alias' in valeur)) continue;
-        const cible = catalogue.variables.find((entree) => entree.cle === valeur.alias);
+        const cible = variableParCle(catalogue, valeur.alias);
         if (!cible) continue;
         const collectionCible = collection(catalogue, cible);
         if (!collectionCible) continue;
@@ -169,7 +169,7 @@ function aliasEnBoucle(catalogue: CatalogueDeReference, cle: string, nomMode: st
     if (courante === source) return true;
     if (visitees.has(courante)) return true;
     visitees.add(courante);
-    const variable = catalogue.variables.find((entree) => entree.cle === courante);
+    const variable = variableParCle(catalogue, courante);
     if (!variable?.valeurs) return false;
     const modes = collection(catalogue, variable)?.modes ?? [];
     const idMode = modes.find((mode) => formeReconnue(mode.nom) === formeReconnue(nomMode))?.id;
