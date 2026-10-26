@@ -149,7 +149,7 @@ test('les premiers constats s’acquittent au provisoire, et le final ne les acq
   const analyse = { sujet: 'Button', generation: 3 };
   recevoirUneAnalyse(etat, { type: 'analyse-commencee', demande: 9, mesure: true, analyse });
   const constat = { id: 'C8:a', code: 'C8', famille: 'nommage', type: 'erreur', message: 'x' } as unknown as Constat;
-  const provisoire = { type: 'analyse-provisoire' as const, demande: 9, analyse, constats: [constat], ignores: [], lecture: null, variants: [] };
+  const provisoire = { type: 'analyse-provisoire' as const, demande: 9, analyse, constats: [constat], ignores: [], lecture: { layersLus: 1, layersNonLus: 0, variantsNonLus: [], manquees: [] }, variants: [] };
   recevoirUneAnalyse(etat, provisoire);
   let instant = 9_500;
   const envoyes: Array<{ rendu: string; depuisClicMs: number }> = [];
