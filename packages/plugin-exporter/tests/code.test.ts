@@ -363,9 +363,11 @@ test('une analyse de composant envoie son avancement, puis sa trace au pied de p
   assert.deepEqual(h.traces.map((trace) => JSON.parse(trace)), [envoyee.trace]);
 });
 
-function calculerSansContact(ms: number): void {
+/** Rend la durée réellement passée : sous charge, elle dépasse `ms`. */
+function calculerSansContact(ms: number): number {
   const debut = Date.now();
   while (Date.now() - debut < ms) { /* le sandbox calcule sans parler à l'interface */ }
+  return Date.now() - debut;
 }
 
 test('la trace relève le temps passé à rendre la main et le plus long silence envers l’interface', async () => {
@@ -378,17 +380,19 @@ test('la trace relève le temps passé à rendre la main et le plus long silence
     h.temporisations.delete(id);
     rappel();
     await respiration;
-    calculerSansContact(40);
+    avant = calculerSansContact(40);
     (annoncer as (texte: string) => void)('Écriture du contrat…');
-    calculerSansContact(40);
+    apres = calculerSansContact(40);
     return resultat('exemple.contract.json');
   };
+  let avant = 0;
+  let apres = 0;
   await h.envoyer({ type: 'analyser-composant', operation: 1 });
 
-  // L'annonce coupe les 80 ms de calcul en deux silences de 40 ms.
+  // L'annonce coupe le calcul en deux silences : le plus long couvre au moins l'un d'eux, jamais leur somme.
   const envoyee = h.messages.find(({ type }) => type === 'mesure') as Extract<PluginMessage, { type: 'mesure' }>;
   const { plusLongSilenceMs = 0, msEnRespiration } = envoyee.trace.compteurs;
-  assert.ok(plusLongSilenceMs >= 40 && plusLongSilenceMs < 80, `${plusLongSilenceMs} ms de silence`);
+  assert.ok(plusLongSilenceMs >= Math.min(avant, apres) && plusLongSilenceMs < avant + apres, `${plusLongSilenceMs} ms de silence pour ${avant} + ${apres} ms`);
   assert.equal(typeof msEnRespiration, 'number');
 });
 
