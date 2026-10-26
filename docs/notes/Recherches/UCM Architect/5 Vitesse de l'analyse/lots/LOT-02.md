@@ -4,7 +4,7 @@
 
 ## Tâches à committer
 
-- [ ] **2.1 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : injecter horloge, pause, budget et jeton dans un contexte commun ; relire le jeton après pause et tester la fermeture de portée. Travail local : `porteeDAnalyse.ts` du socle, `porteeDAnalyse.test.ts` de l'exporteur.
+- [x] **2.1 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : injecter horloge, pause, budget et jeton dans un contexte commun ; relire le jeton après pause et tester la fermeture de portée. Travail local : `porteeDAnalyse.ts` du socle, `porteeDAnalyse.test.ts` de l'exporteur.
 - [ ] **2.2 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : transmettre ce contexte au relevé, au moteur et au pilote sans seconde portée globale ; comparer les sorties avec cessions imposées. Travail local : `sandbox/analyse.ts`, `exportComponent.ts` du socle.
 - [ ] **2.3 | gpt-6-luna | medium** | **Claude Sonnet | medium** : rendre interruptibles le parcours des enfants et le budget des variants ; tester une chaîne profonde et 90 variants. Travail local : `releveDuComposant.ts` (`parcourir`), `budget.ts` (`bornerLesVariants`).
 - [ ] **2.4 | gpt-6-luna | medium** | **Claude Sonnet | medium** : céder dans les lectures de layers, liaisons, surcharges, plages et modes ; tester arrêt avant leur fin et parité du relevé. Travail local : `releveDuComposant.ts`, `lectureDuComposant.ts`, `consommateurs.ts`.

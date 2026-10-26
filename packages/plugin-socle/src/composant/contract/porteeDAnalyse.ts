@@ -30,13 +30,51 @@ export function verifierLAnnulation(jeton?: JetonDAnnulation): void {
   if (jeton?.leve) throw new AnalyseAnnulee();
 }
 
+/** Ce qu'une analyse injecte pour céder la main : horloge, pause, budget et jeton. */
+export interface OptionsDeCooperation {
+  /** Rend la main au sandbox, et lève si l'analyse est annulée. */
+  readonly respirer?: () => Promise<void>;
+  readonly jeton?: JetonDAnnulation;
+  readonly horloge?: () => number;
+  readonly budgetDeCalculMs?: number;
+}
+
+export interface ContexteCooperatif {
+  /** Lève `AnalyseAnnulee` si le jeton est levé. */
+  verifier(): void;
+  /** Rend la main si le budget est écoulé ; relit le jeton avant et après la pause. */
+  cederSiBesoin(): Promise<void> | void;
+}
+
+/**
+ * Un budget de calcul que les boucles et les variants se partagent. Le jeton se
+ * relit après la pause, pas au prochain appel : une annulation levée pendant la
+ * pause arrête le calcul avant l'unité suivante. Une attente Figma reste
+ * indivisible.
+ */
+export function creerContexteCooperatif(options: OptionsDeCooperation = {}): ContexteCooperatif {
+  const horloge = options.horloge ?? (() => Date.now());
+  const budget = options.budgetDeCalculMs ?? BUDGET_DE_CALCUL_MS;
+  let derniereCession = horloge();
+  const verifier = () => verifierLAnnulation(options.jeton);
+  return {
+    verifier,
+    cederSiBesoin() {
+      verifier();
+      if (!options.respirer || horloge() - derniereCession < budget) return;
+      compter('respirations');
+      return attendrePourLaMesure(() => options.respirer!(), 'cession').then(() => {
+        verifier();
+        derniereCession = horloge();
+      });
+    },
+  };
+}
+
 type Portee = {
   /** Le maître de chaque instance déjà demandée, par id d'instance. */
   maitres: Map<string, Promise<ComponentNode | null>>;
-  /** Rend la main au sandbox, et lève si l'analyse est annulée. */
-  respirer?: () => Promise<void>;
-  jeton?: JetonDAnnulation;
-  derniereRespiration: number;
+  cooperation: ContexteCooperatif;
 };
 
 /**
@@ -47,7 +85,7 @@ type Portee = {
  * fin de l'étape. Ce seuil se vérifie aux points de respiration ; un bloc
  * synchrone ou un appel Figma peut le dépasser.
  */
-export const BUDGET_DE_CALCUL_MS = 200;
+export const BUDGET_DE_CALCUL_MS = 25;
 
 let portee: Portee | null = null;
 let porteesRefusees = 0;
@@ -63,7 +101,7 @@ let desactivee = false;
  * Le refus persiste même si la première portée se ferme avant lui.
  */
 export async function dansUnePorteeDAnalyse<T>(
-  options: { respirer?: () => Promise<void>; jeton?: JetonDAnnulation },
+  options: OptionsDeCooperation,
   corps: () => Promise<T>,
 ): Promise<T> {
   if (portee || porteesRefusees > 0) {
@@ -77,9 +115,7 @@ export async function dansUnePorteeDAnalyse<T>(
   }
   const ouverte: Portee = {
     maitres: new Map(),
-    respirer: options.respirer,
-    jeton: options.jeton,
-    derniereRespiration: Date.now(),
+    cooperation: creerContexteCooperatif(options),
   };
   portee = ouverte;
   try {
@@ -132,12 +168,7 @@ function lireLeMaitre(instance: InstanceNode): Promise<ComponentNode | null> {
 export async function respirerSiBesoin(): Promise<void> {
   const ouverte = portee;
   if (!ouverte || porteesRefusees > 0) return;
-  verifierLAnnulation(ouverte.jeton);
-  if (!ouverte.respirer) return;
-  if (Date.now() - ouverte.derniereRespiration < BUDGET_DE_CALCUL_MS) return;
-  compter('respirations');
-  await attendrePourLaMesure(() => ouverte.respirer!(), 'cession');
-  ouverte.derniereRespiration = Date.now();
+  await ouverte.cooperation.cederSiBesoin();
 }
 
 /**

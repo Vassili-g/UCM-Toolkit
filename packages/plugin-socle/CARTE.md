@@ -30,7 +30,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - serializeJson.ts : une entrée par ligne, sur deux niveaux
 - layoutNodes.ts : élection du node de layout, une fois par variant
 - exportableNodes.ts : parcours de l'arbre, hors dépendances composées
-- porteeDAnalyse.ts : ce qu'une analyse garde le temps d'un export : un maître par instance
+- porteeDAnalyse.ts : mémoire des maîtres par instance et contexte coopératif injectable (horloge, pause, budget, jeton)
 - mesure.ts : trace de chaque analyse : durées, compteurs, avancement de la barre
 - budget.ts : le budget de layers d'une analyse, sa borne par défaut, et les variants qu'il laisse lire
 - parsers.ts : propriétés Figma → API publique
