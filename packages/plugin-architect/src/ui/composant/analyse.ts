@@ -253,7 +253,10 @@ export function acquitterLeRenduDeLAnalyse(
   const demande = demandes.get(etat);
   if (!demande?.mesurer || !('demande' in message) || message.demande !== demande.id || !deLAnalyseCourante(etat, message.analyse)) return;
   const reception = recueA ?? horloge();
-  const rendus: RenduDAnalyse[] = message.type === 'analyse-commencee' ? ['premier-affichage'] : message.type === 'analyse' ? [...(message.constats.length ? ['premiers-constats' as const] : []), 'resultat-final'] : [];
+  // Les premiers constats sont ceux du provisoire quand il en porte ; le final ne les acquitte qu'à défaut.
+  const rendus: RenduDAnalyse[] = message.type === 'analyse-commencee' ? ['premier-affichage']
+    : message.type === 'analyse-provisoire' ? (message.constats.length ? ['premiers-constats'] : [])
+    : message.type === 'analyse' ? [...(message.constats.length ? ['premiers-constats' as const] : []), 'resultat-final'] : [];
   for (const rendu of rendus) {
     if (demande.rendus.has(rendu)) continue;
     demande.rendus.add(rendu);

@@ -143,6 +143,28 @@ test('le résultat final retient la durée depuis le clic de sa demande, et le r
   assert.deepEqual([400, 42_400, 180_000].map(dureeLisible), ['moins d’une seconde', '42 s', '3 min']);
 });
 
+test('les premiers constats s’acquittent au provisoire, et le final ne les acquitte pas une seconde fois', () => {
+  const etat = etatInitial();
+  noterLaDemandeDAnalyse(etat, 9, true, 0);
+  const analyse = { sujet: 'Button', generation: 3 };
+  recevoirUneAnalyse(etat, { type: 'analyse-commencee', demande: 9, mesure: true, analyse });
+  const constat = { id: 'C8:a', code: 'C8', famille: 'nommage', type: 'erreur', message: 'x' } as unknown as Constat;
+  const provisoire = { type: 'analyse-provisoire' as const, demande: 9, analyse, constats: [constat], ignores: [], lecture: null, variants: [] };
+  recevoirUneAnalyse(etat, provisoire);
+  let instant = 9_500;
+  const envoyes: Array<{ rendu: string; depuisClicMs: number }> = [];
+  const frames: Array<() => void> = [];
+  const acquitter = (message: Parameters<typeof acquitterLeRenduDeLAnalyse>[1]) => acquitterLeRenduDeLAnalyse(etat, message, (m) => envoyes.push(m), (rendre) => frames.push(rendre), () => instant);
+  acquitter(provisoire);
+  frames.splice(0).forEach((rendre) => rendre());
+  const final = { type: 'analyse' as const, demande: 9, analyse, statut: 'complete' as const, constats: [constat], lecture: null, variants: [], sansTokens: false };
+  recevoirUneAnalyse(etat, final);
+  instant = 24_000;
+  acquitter(final);
+  frames.splice(0).forEach((rendre) => rendre());
+  assert.deepEqual(envoyes.map(({ rendu, depuisClicMs }) => [rendu, depuisClicMs]), [['premiers-constats', 9_500], ['resultat-final', 24_000]]);
+});
+
 test('les acquittements corrèlent demande et identité avec une seule horloge locale ; un rendu remplacé se tait', () => {
   const etat = etatInitial();
   noterLaDemandeDAnalyse(etat, 7, true, 1000);
