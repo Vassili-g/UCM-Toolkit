@@ -8,7 +8,7 @@
 - [x] **5.2 | gpt-6.1-sol | high** | **Claude Sonnet | high** : appliquer après ce parcours les frontières composées et les filtres de visibilité selon chaque contexte ; comparer masqués statiques et dynamiques.
 - [x] **5.3 | gpt-6-luna | medium** | **Claude Sonnet | medium** : mémoriser les chemins de texte par contexte complet composé et noms d'icônes ; tester deux contextes sur la même racine.
 - [x] **5.4 | gpt-6-luna | medium** | **Claude Sonnet | medium** : rejouer diagnostics, parties et localisations par destination ; comparer la sortie ordonnée.
-- [ ] **5.5 | gpt-6-luna | low** | **Claude Haiku | low** : vérifier fermeture de portée, appel hors portée et portée imbriquée ; garder les attentes du banc inchangées.
+- [x] **5.5 | gpt-6-luna | low** | **Claude Haiku | low** : vérifier fermeture de portée, appel hors portée et portée imbriquée ; garder les attentes du banc inchangées.
 - [ ] **5.6 | gpt-6.1-sol | high** | **Claude Sonnet | high** : mémoriser dans la portée le résultat filtré de `getAllNodes` par racine et contenu de `composed`, avec les calques masqués qui portent des variables ; rejouer leurs avertissements dans le canal de chaque appelant. Ajoutée d'après la trace Figma : `structure.vues` coûte 5,4 s et ses appels viennent de `structureTree.ts`, `slotNames.ts`, `slotRelations.ts`, `layoutNodes.ts` et `extractLayout.ts` ; `extractIconLayers.ts` relève de la même clé. Preuve : le test de 5.4 (trois destinations) reste identique, compteur de résultats repris, contrat identique hors date.
 
 Prérequis : 2. Nature : déplacement à sortie identique.
