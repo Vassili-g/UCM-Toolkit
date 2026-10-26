@@ -21,6 +21,7 @@ import {
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
+import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { ouvrirLaMesure, fermerLaMesure, etape, compter, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
@@ -225,10 +226,11 @@ export interface Lecteurs {
    * sans ce lecteur, `catalogue` les lit après le relevé.
    */
   bibliotheques?(contexte: Contexte, cooperation?: ContexteCooperatif): Promise<LectureDesLibraries>;
-  catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance): Promise<CatalogueDeReference>;
-  moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (phase: PhaseDAnalyse) => void, cooperation?: ContexteCooperatif): Promise<ResultatDAnalyse>;
+  /** `inventaires` est celui de la demande : les libraries et les variables locales s'y lisent une fois pour tous les lecteurs. */
+  catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance, inventaires?: InventairesDeLaDemande): Promise<CatalogueDeReference>;
+  moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (phase: PhaseDAnalyse) => void, cooperation?: ContexteCooperatif, inventaires?: InventairesDeLaDemande): Promise<ResultatDAnalyse>;
   /** Les règles d'usage du composant, lues avec le contrat du moteur ; sans lecteur, aucun constat C43 ni C45. */
-  regles?(sujet: SujetAAnalyser, resultat: ResultatDAnalyse, contexte: Contexte): Promise<ReleveDesRegles>;
+  regles?(sujet: SujetAAnalyser, resultat: ResultatDAnalyse, contexte: Contexte, inventaires?: InventairesDeLaDemande): Promise<ReleveDesRegles>;
   /** Le niveau d'accessibilité rangé ; AA sans lecteur. */
   niveau?(contexte: Contexte): Promise<NiveauDAccessibilite>;
   /** Les clés d'Ignorer rangées dans le document ; aucune sans lecteur. */
@@ -283,9 +285,10 @@ function liaisonsParCle(releve: ReleveDeComposant): Map<string, number> {
 /**
  * Le catalogue de référence : la library choisie, sinon les variables du fichier. Avec `libraries`, la lecture des
  * libraries est déjà lancée : la fonction attend son issue au lieu de la relancer, et une erreur y garde le repli sur
- * le fichier.
+ * le fichier. Avec `inventaires`, la lecture des libraries et celle des variables locales, quand une autre de la
+ * demande les a faites, sont reprises.
  */
-export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance): Promise<CatalogueDeReference> {
+export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance, inventaires?: InventairesDeLaDemande): Promise<CatalogueDeReference> {
   const { figma } = contexte;
   const liaisons = liaisonsParCle(releve);
   try {
@@ -298,7 +301,8 @@ export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDA
       lecture = issue.lecture;
       etape('catalogue-valeurs');
     } else {
-      lecture = await lireLesLibraries(figma as unknown as PortDeBibliotheque, cooperation);
+      const lireLesLibrariesDuFichier = () => lireLesLibraries(figma as unknown as PortDeBibliotheque, cooperation);
+      lecture = await (inventaires ? inventaires.libraries(lireLesLibrariesDuFichier) : lireLesLibrariesDuFichier());
     }
     if (lecture.etat === 'lue') {
       const choisie = libraryDeReference(lecture.collections, liaisons, lireLaLibraryRangee(figma));
@@ -316,7 +320,7 @@ export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDA
     // La library ne se lit pas : le catalogue du fichier ouvert suit.
   }
   const port = portDeLecture(figma);
-  const locales = await port.getLocalVariablesAsync();
+  const locales = await (inventaires ? inventaires.variablesLocales(() => port.getLocalVariablesAsync()) : port.getLocalVariablesAsync());
   const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => jeton.leve });
   const architecture = lireLaDeclaration(figma) === 'ucm' ? 'ucm' : 'libre';
   return catalogueDuFichier({ collections: [...(lues?.collections.values() ?? [])], variables: [...(lues?.variables.values() ?? [])] }, architecture);
@@ -349,8 +353,8 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
   catalogue: catalogueDeFigma,
   niveau: ({ figma }) => lireLeNiveau(figma),
   ignores: async ({ figma }) => lireLesIgnores(figma),
-  regles: (sujet, resultat) => lireLesRegles(sujet.noeud as unknown as ComponentSetNode, (resultat as { export: ComponentExport }).export),
-  moteur: (sujet, jeton, { figma }, progresser, cooperation) => analyserLeComposant(async (texte) => {
+  regles: (sujet, resultat, _contexte, inventaires) => lireLesRegles(sujet.noeud as unknown as ComponentSetNode, (resultat as { export: ComponentExport }).export, inventaires),
+  moteur: (sujet, jeton, { figma }, progresser, cooperation, inventaires) => analyserLeComposant(async (texte) => {
     progresser?.(texte.includes('variables') || texte.includes('exemples') || texte.includes('contrat') ? 'structure' : 'imbriques');
   }, {
     composant: sujet.noeud as unknown as ComponentSetNode,
@@ -358,6 +362,7 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
     budgetDeLayers: BUDGET_DE_LAYERS_PAR_DEFAUT,
     jeton,
     cooperation,
+    inventaires,
     respirer: () => new Promise((resolve) => setTimeout(resolve, 0)),
   }),
 };
@@ -441,6 +446,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     ...optionsDeCooperation,
     jeton: courant.jeton,
   });
+  // Les inventaires de la demande : ils meurent avec elle, Actualiser et l'analyse suivante relisent.
+  const inventaires = creerInventairesDeLaDemande();
   if (demande.mesurer) ouvrirLaMesure();
   let mesureOuverte = demande.mesurer === true;
   let mesureClose: TraceDeMesure | null = null;
@@ -515,7 +522,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (lecteurs.bibliotheques) {
       const lire = lecteurs.bibliotheques;
       librariesEnCours = true;
-      libraries = attendrePourLaMesure(async () => lire(contexte, cooperation), 'parallele', 'libraries')
+      libraries = attendrePourLaMesure(async () => inventaires.libraries(() => lire(contexte, cooperation)), 'parallele', 'libraries')
         .then((lecture) => ({ lecture }), (erreur: unknown) => ({ erreur }))
         .finally(() => { librariesEnCours = false; });
     }
@@ -528,7 +535,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     retenirLesLiaisons(liaisonsParCle(releve));
     const niveau = await attendrePourLaMesure(async () => await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => 'AA') ?? 'AA');
     phase('catalogue');
-    const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries), 'attente', 'catalogue');
+    const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries, inventaires), 'attente', 'catalogue');
     catalogueLu = catalogue;
     compter('variablesDuCatalogue', catalogue.variables.length);
     if (jeton.leve) return rendre('annulee', [], null);
@@ -555,12 +562,12 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (jeton.leve) return rendre('annulee', [], null);
 
     phase('imbriques');
-    const resultat = await attendrePourLaMesure(() => lecteurs.moteur(sujet, jeton, contexte, courant.progresser, cooperation), 'attente', 'moteur');
+    const resultat = await attendrePourLaMesure(() => lecteurs.moteur(sujet, jeton, contexte, courant.progresser, cooperation, inventaires), 'attente', 'moteur');
     if (resultat.etat === 'annulee' || jeton.leve) return rendre('annulee', [], null);
 
     // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
     phase('regles');
-    const reglesLues = resultat.etat === 'complete' ? await attendrePourLaMesure(async () => await lecteurs.regles?.(sujet, resultat, contexte).catch(() => null) ?? null, 'attente', 'regles') : null;
+    const reglesLues = resultat.etat === 'complete' ? await attendrePourLaMesure(async () => await lecteurs.regles?.(sujet, resultat, contexte, inventaires).catch(() => null) ?? null, 'attente', 'regles') : null;
     retenirLesModeles(reglesLues);
     etape('controle-fusion');
     const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);

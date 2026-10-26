@@ -12,6 +12,7 @@ import {
   findWrapperReference,
 } from './componentTree';
 import { indexContractedNames, scanComposedMatrix } from './composedComponents';
+import type { InventairesDeLaDemande } from '../analyse/inventaires';
 import { extractRules } from './extractRules';
 import { contientUneInstanceRendueParEtapes } from './exportableNodes';
 import { avancer, etape } from './mesure';
@@ -157,6 +158,8 @@ export type OptionsDAnalyse = OptionsDeCooperation & {
   /** Le nombre de layers de variants à ne pas dépasser, `BUDGET_DE_LAYERS_PAR_DEFAUT` pour la borne commune. */
   budgetDeLayers?: number;
   jeton?: JetonDAnnulation;
+  /** Les inventaires de la demande d'Architect : le scan des règles et la liste des variables locales s'y lisent une fois pour tous ses lecteurs. Sans eux, le moteur lit seul. */
+  inventaires?: InventairesDeLaDemande;
 };
 
 /** Erreur « métier » : son message est affiché tel quel à l'utilisateur. */
@@ -293,7 +296,7 @@ export async function analyserLeComposant(
   const page = options.page ?? figma.currentPage;
   try {
     return await dansUnePorteeDAnalyse(options, () => exporterLeComposant(
-      annoncer, composant, page, options.budgetDeLayers, options.jeton,
+      annoncer, composant, page, options.budgetDeLayers, options.jeton, options.inventaires,
     ));
   } catch (erreur) {
     if (erreur instanceof AnalyseAnnulee) return { etat: 'annulee' };
@@ -307,6 +310,7 @@ async function exporterLeComposant(
   page: PageNode,
   budgetDeLayers?: number,
   jeton?: JetonDAnnulation,
+  inventaires?: InventairesDeLaDemande,
 ): Promise<ResultatDAnalyse> {
   const verifier = () => verifierLAnnulation(jeton);
   verifier();
@@ -316,7 +320,8 @@ async function exporterLeComposant(
 
   // Les règles enrichissent l'intention et la documentation, mais ne sont plus
   // une précondition d'export. Leur absence reste visible dans les diagnostics.
-  const rules = await extractRules(componentSet, page);
+  const scanDesRegles = () => extractRules(componentSet, page);
+  const rules = await (inventaires ? inventaires.reglesDeLaPage(page, componentSet, scanDesRegles) : scanDesRegles());
   const warnings: string[] = [...rules.warnings];
   reporterLocalisations(rules.warnings, warnings);
   // Sous-ensemble qui mesure réellement la projection UCM. Les avertissements
@@ -505,9 +510,11 @@ async function exporterLeComposant(
   // lit les chemins sans un aller-retour par variable, et il sait quelles
   // variables partagent un nom, les seules qu'un contrat ne doit jamais citer.
   etape('variables');
+  const lireLesCollections = () => figma.variables.getLocalVariableCollectionsAsync();
+  const lireLesVariables = () => figma.variables.getLocalVariablesAsync();
   const [collections, variables] = await Promise.all([
-    figma.variables.getLocalVariableCollectionsAsync(),
-    figma.variables.getLocalVariablesAsync(),
+    inventaires ? inventaires.collectionsLocales(lireLesCollections) : lireLesCollections(),
+    inventaires ? inventaires.variablesLocales(lireLesVariables) : lireLesVariables(),
   ]);
   const collectionById = new Map<string, VariableCollection>();
   for (const collection of collections) {

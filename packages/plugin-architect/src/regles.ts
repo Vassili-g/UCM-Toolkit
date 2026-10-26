@@ -14,6 +14,7 @@
  */
 import { nomCompacte } from '@ucm-kit/core/referentiel';
 import type { Constat, Correction } from '@ucm-kit/core/controles';
+import type { InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { extractRules } from 'ucm-plugin-socle/src/composant/contract/extractRules';
 import type { ComponentExport } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { extractContractPropertyModel } from 'ucm-plugin-socle/src/composant/contract/parsers';
@@ -120,13 +121,17 @@ function pageDe(node: BaseNode): PageNode {
  * Lit les règles du composant sur la page qui le porte, avec le contrat que
  * l'analyse du moteur vient de produire. Le contrat est restreint à ce que le
  * composant déclare, comme à la création : un composant imbriqué n'ajoute pas
- * ses propriétés à celles de son parent.
+ * ses propriétés à celles de son parent. Avec `inventaires`, le scan de la page est celui que le moteur de la même
+ * demande a déjà lu.
  */
 export async function lireLesRegles(
   composant: ComponentNode | ComponentSetNode,
   exportDuMoteur: Pick<ComponentExport, 'content' | 'imbriques'>,
+  inventaires?: InventairesDeLaDemande,
 ): Promise<ReleveDesRegles> {
-  const lues = await extractRules(composant, pageDe(composant));
+  const page = pageDe(composant);
+  const scanDesRegles = () => extractRules(composant, page);
+  const lues = await (inventaires ? inventaires.reglesDeLaPage(page, composant, scanDesRegles) : scanDesRegles());
   const contrat = JSON.parse(exportDuMoteur.content) as ContratLu;
   const declarees = clesDeclarees(composant);
   const surface = declarees ? new Set([...declarees, ...exportDuMoteur.imbriques.auParent]) : null;

@@ -6,6 +6,7 @@
 import { collectionsDeReference, type CatalogueDeReference, type VariableDuCatalogue } from '@ucm-kit/core/controles';
 import { CIBLES_DES_COLLECTIONS, type Collection } from '@ucm-kit/core/referentiel';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
+import { executerAuPlus } from 'ucm-plugin-socle/src/composant/analyse/limiteur';
 import { cleDeBibliotheque, convertirVariable, importerLesValeurs, type PortDeLecture, type ValeurDeLibrary } from './lecture';
 import type { Releve, ValeurSource } from './modele';
 
@@ -184,13 +185,13 @@ async function lireLesModes(
   const rendus = new Map<string, { id: string; nom: string }[]>();
   const lire = port.getVariableCollectionByIdAsync;
   if (!lire) return rendus;
-  await Promise.all([...identifiants].map(async ([cle, id]) => {
+  await executerAuPlus([...identifiants], async ([cle, id]) => {
     try {
       const collection = await lire.call(port, id);
       if (collection) rendus.set(cle, collection.modes.map((m) => ({ id: m.modeId, nom: m.name })));
     } catch {
       // Sans ses modes, la collection reste lue sans mode : le contraste le dit en limite.
     }
-  }));
+  });
   return rendus;
 }

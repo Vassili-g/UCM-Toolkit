@@ -4,6 +4,7 @@
  * référence (mode Composant). Les valeurs se lisent plus tard, variable par variable.
  */
 
+import { executerAuPlus } from './composant/analyse/limiteur';
 import type { ContexteCooperatif } from './composant/contract/porteeDAnalyse';
 
 export type TypeDeVariable = 'COLOR' | 'FLOAT' | 'STRING' | 'BOOLEAN';
@@ -33,12 +34,9 @@ export type LectureDesLibraries =
 
 function motifDe(erreur: unknown): string { return erreur instanceof Error ? erreur.message : String(erreur); }
 
-/** Lectures de collections demandées à Figma en même temps. */
-const LECTURES_EN_VOL = 8;
-
 /**
  * Une collection qui lève est dite illisible avec son motif ; les autres se lisent. Avec `cooperation`, la lecture cède avant
- * chaque demande et s'arrête sur un jeton levé ; au plus 8 lectures sont en vol, et les résultats gardent l'ordre des collections.
+ * chaque demande et s'arrête sur un jeton levé ; au plus `REQUETES_EN_VOL` lectures sont en vol, et les résultats gardent l'ordre des collections.
  */
 export async function lireLesLibraries(figma: PortDeBibliotheque, cooperation?: ContexteCooperatif): Promise<LectureDesLibraries> {
   const { teamLibrary } = figma;
@@ -47,17 +45,13 @@ export async function lireLesLibraries(figma: PortDeBibliotheque, cooperation?: 
   let disponibles;
   try { disponibles = await teamLibrary.getAvailableLibraryVariableCollectionsAsync(); }
   catch (erreur) { return { etat: 'illisible', motif: motifDe(erreur) }; }
-  const lectures: PromiseSettledResult<readonly { key: string; name: string; resolvedType: string }[]>[] = new Array(disponibles.length);
-  let prochain = 0;
-  const lire = async (): Promise<void> => {
-    while (prochain < disponibles.length) {
-      await cooperation?.cederSiBesoin();
-      const rang = prochain++;
-      lectures[rang] = await Promise.resolve().then(() => teamLibrary.getVariablesInLibraryCollectionAsync(disponibles[rang].key))
-        .then((value) => ({ status: 'fulfilled' as const, value }), (reason: unknown) => ({ status: 'rejected' as const, reason }));
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(LECTURES_EN_VOL, disponibles.length) }, lire));
+  const { resultats: lectures } = await executerAuPlus(
+    disponibles,
+    (collection): Promise<PromiseSettledResult<readonly { key: string; name: string; resolvedType: string }[]>> =>
+      Promise.resolve().then(() => teamLibrary.getVariablesInLibraryCollectionAsync(collection.key))
+        .then((value) => ({ status: 'fulfilled' as const, value }), (reason: unknown) => ({ status: 'rejected' as const, reason })),
+    { avant: () => cooperation?.cederSiBesoin() },
+  );
   const collections: CollectionDeLibrary[] = [];
   const illisibles: CollectionIllisible[] = [];
   disponibles.forEach((collection, rang) => {

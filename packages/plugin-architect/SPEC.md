@@ -236,6 +236,21 @@ seuil se vérifie entre unités de travail : les appels Figma, l'énumération d
 clés d'un objet et une étape du kit peuvent le dépasser. Le moteur seul ouvre
 la portée de mémoire.
 
+Chaque demande crée aussi ses inventaires (`creerInventairesDeLaDemande` du
+socle) et les passe au catalogue, au moteur et à la lecture des règles. Le local
+est la liste des collections et des variables du fichier : le catalogue du
+fichier et le moteur la lisent une fois pour eux deux. Les règles sont le scan
+de la page par `extractRules` : le moteur le lit, la lecture des règles le
+reprend. Les libraries sont le résultat de `lireLesLibraries`, lancé avec le
+relevé puis repris par le catalogue. Un refus se partage comme un succès. Les
+inventaires s'oublient avec la demande : « Analyser », « Actualiser » et une
+analyse après une correction relisent le fichier. Le compteur
+`inventairesReutilises` compte les lectures reprises. Les requêtes
+indépendantes que l'analyse lance depuis une liste connue (collections de
+library, identifiants d'une vague d'alias, modes des collections importées) ne
+dépassent pas `REQUETES_EN_VOL`, soit huit en vol. Les lectures que le parcours
+du moteur lance nœud par nœud ne passent pas par cette borne.
+
 L'analyse annonce le relevé, puis le catalogue, puis les contrôles du kit. Elle
 lance la lecture des libraries avec le relevé, car elle n'en dépend pas : le
 catalogue attend ce qui reste de cette lecture, puis choisit la library d'après

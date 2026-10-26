@@ -21,6 +21,7 @@
  * Une cible que ni la lecture ni l'import ne rendent reste « introuvable »,
  * ou « refusée » quand la lecture a levé : elle n'est pas déclarée supprimée.
  */
+import { executerAuPlus, REQUETES_EN_VOL } from 'ucm-plugin-socle/src/composant/analyse/limiteur';
 import { attendrePourLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 
 import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
@@ -42,7 +43,7 @@ import {
 import type { ModeDeCalque } from './resolution';
 
 /** Le nombre de lectures par identifiant en vol au même moment. */
-export const CONCURRENCE = 8;
+export const CONCURRENCE = REQUETES_EN_VOL;
 
 /** Ce que la lecture lit d'une variable Figma. */
 export interface VariableFigma {
@@ -263,23 +264,10 @@ export function separerLesModes(collections: Map<string, CollectionRelevee>, var
   return renommes;
 }
 
-/** Exécute `taches` au plus `limite` à la fois, en vérifiant l'annulation entre chaque tâche. */
+/** Exécute `tache` au plus `limite` à la fois, en vérifiant l'annulation entre chaque tâche. Rend faux si l'annulation a arrêté la liste. */
 async function parLots<T>(elements: readonly T[], limite: number, tache: (element: T) => Promise<void>, annulee: () => boolean): Promise<boolean> {
-  let suivant = 0;
-  let arrete = false;
-  const ouvrier = async (): Promise<void> => {
-    while (suivant < elements.length) {
-      if (annulee()) {
-        arrete = true;
-        return;
-      }
-      const element = elements[suivant];
-      suivant += 1;
-      await tache(element);
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(limite, elements.length) }, ouvrier));
-  return !arrete && !annulee();
+  const { complet } = await executerAuPlus(elements, tache, { limite, avant: () => !annulee() });
+  return complet && !annulee();
 }
 
 /** Le message d'une lecture qui lève, sans pile ni détail interne. */
