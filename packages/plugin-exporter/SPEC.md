@@ -47,6 +47,14 @@ Le routeur exécute une seule analyse ou publication à la fois. Chaque commande
 conserve son résultat et la demande de publication indique lequel envoyer.
 L'annulation se vérifie aussi après le dernier appel asynchrone du moteur.
 
+Le moteur partage son budget coopératif avec la matrice, la recherche des
+combinaisons manquantes, l'index des variables, les liaisons natives et les
+échantillons. La compaction, les signatures, l'élision et la sérialisation
+cèdent aussi dans leurs blocs JSON. Leurs API synchrones épuisent les mêmes
+parcours. Une annulation ne produit aucun artefact. Le budget se vérifie entre
+étapes : les appels Figma, l'énumération et le tri natifs des clés, les opérations
+sur une chaîne et l'assemblage final des fragments restent indivisibles.
+
 Un changement des identifiants sélectionnés invalide le contrat conservé et
 annule son analyse en cours, même si le nouveau composant porte le même nom.
 La seconde notification d'une sélection inchangée conserve le résultat.

@@ -67,14 +67,16 @@ import {
 import type { PointACorriger } from './localisation';
 
 /** Union ordonnée des dépendances exactes, avec leur cardinalité maximale. */
-function mergeVariantDependencies(
+async function mergeVariantDependencies(
   variants: ReadonlyArray<ExtractedContractVariant>,
-): ComposedDependency[] {
+): Promise<ComposedDependency[]> {
   const result: ComposedDependency[] = [];
   const maximumBySignature = new Map<string, number>();
   for (const variant of variants) {
+    await respirerSiBesoin();
     const occurrences = new Map<string, number>();
     for (const dependency of variant.composes) {
+      await respirerSiBesoin();
       const signature = JSON.stringify([
         dependency.component,
         dependency.figmaLayer,
@@ -91,18 +93,19 @@ function mergeVariantDependencies(
   return result;
 }
 
-function iconPaths(children: readonly ChildStructure[], figmaName: string): string[][] {
+async function iconPaths(children: readonly ChildStructure[], figmaName: string): Promise<string[][]> {
   const paths: string[][] = [];
-  const visit = (entries: readonly ChildStructure[], parent: string[]) => {
+  const visit = async (entries: readonly ChildStructure[], parent: string[]) => {
     for (const entry of entries) {
+      await respirerSiBesoin();
       const path = [...parent, entry.slot];
       if (entry.figmaLayer === figmaName || (!entry.figmaLayer && entry.slot === figmaName)) {
         paths.push(path);
       }
-      if (entry.children) visit(entry.children, path);
+      if (entry.children) await visit(entry.children, path);
     }
   };
-  visit(children, []);
+  await visit(children, []);
   return paths;
 }
 
@@ -542,7 +545,9 @@ async function exporterLeComposant(
   markProjectionWarningsSince(warningCursor);
   warningCursor = warnings.length;
   for (const variant of extracted.variants) {
+    await respirerSiBesoin();
     for (const [key, definition] of Object.entries(icons)) {
+      await respirerSiBesoin();
       const exactLayer = extracted.iconLayers.find(
         (layer) => layer.figmaLayer === definition.figmaName,
       );
@@ -551,7 +556,7 @@ async function exporterLeComposant(
       // icône présente dans le second ne doit pas être inventée dans le premier.
       const active = exactLayer?.variantNodeIds.includes(variant.nodeId) ?? false;
       if (!active) continue;
-      const paths = iconPaths(variant.structure.children ?? [], definition.figmaName);
+      const paths = await iconPaths(variant.structure.children ?? [], definition.figmaName);
       if (paths.length === 1) {
         variant.icons[key] = { figmaName: definition.figmaName, slotPath: paths[0] };
         continue;
@@ -596,9 +601,10 @@ async function exporterLeComposant(
   // Chaque séquence se lit sur son arbre, pas sur l'ordre où l'extraction a rangé ses
   // trouvailles : celui-ci dépend de l'ordonnancement des `await`, et deux
   // cadres frères pourraient se doubler sans qu'aucun design ait changé.
-  const composesPlacees = mergeVariantDependencies(extracted.variants);
+  const composesPlacees = await mergeVariantDependencies(extracted.variants);
   const placees = new Set(composesPlacees);
   for (const dependency of scannedComposes) {
+    await respirerSiBesoin();
     if (placees.has(dependency)) continue;
     const message = pousserSansNode(
       warnings,
@@ -757,6 +763,7 @@ async function exporterLeComposant(
     localisationsDeclarees,
     imbriques,
   };
+  verifier();
   return bornee?.bilan
     ? { etat: 'partielle', export: sortie, ...bornee.bilan }
     : { etat: 'complete', export: sortie };

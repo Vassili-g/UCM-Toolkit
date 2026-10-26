@@ -225,11 +225,16 @@ fois, analyse ou écriture : une seconde demande reçoit `occupe`.
 
 Une analyse crée un seul contexte coopératif (`creerContexteCooperatif` du
 socle) : horloge, pause, budget de 25 ms et jeton d'annulation. Le relevé, le
-moteur et le pilote des contrôles le reçoivent et cèdent la main entre deux
-variants ou deux contrôles. Le parcours des enfants d'un variant, le décompte
-des layers du budget, les lectures de layers, de liaisons, de surcharges,
-de plages de texte et de modes cèdent aussi. L'annulation se relit juste après la pause. Le
-moteur seul ouvre la portée de mémoire.
+moteur, les contrôles du kit et le calcul des corrections le reçoivent et
+cèdent la main entre deux étapes. Le parcours des enfants d'un variant, le
+décompte des layers du budget, les lectures de layers, de peintures et de leurs
+liaisons, de surcharges, de plages de texte, de modes, de propriétés et de
+valeurs de variant cèdent aussi. Les contrôles et les corrections du kit sont
+des générateurs ; `calculerParEtapes` enchaîne leurs étapes jusqu'à ce que le
+budget soit écoulé, puis cède. L'annulation se relit juste après la pause. Le
+seuil se vérifie entre unités de travail : les appels Figma, l'énumération des
+clés d'un objet et une étape du kit peuvent le dépasser. Le moteur seul ouvre
+la portée de mémoire.
 
 Une correction ne se propose que si elle est exacte : une règle écrite donne
 un seul candidat. Sinon le constat devient une question, sans candidat choisi
