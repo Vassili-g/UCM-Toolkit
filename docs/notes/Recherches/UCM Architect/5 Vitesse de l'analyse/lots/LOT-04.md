@@ -12,7 +12,7 @@ Chaque case est un commit. Une case qui modifie `packages/kit/src/` porte sa pro
 Aucune case ne change le format publié. Seule 4.0e touche une signature exportée du kit, par un paramètre optionnel.
 4.0a ne dépend d'aucune autre. 4.0b à 4.0e se commitent sans attendre la mesure Figma de 4.0a.
 
-- [ ] **4.0a | gpt-6-luna | medium** | **Claude Sonnet | low** : mesurer chaque contrôle du kit et la lecture des tokens dans la trace, sans toucher au kit.
+- [x] **4.0a | gpt-6-luna | medium** | **Claude Sonnet | low** : mesurer chaque contrôle du kit et la lecture des tokens dans la trace, sans toucher au kit.
   `controlesDuKit` (`packages/plugin-architect/src/sandbox/analyse.ts`) ouvre `etape('controle-<nom>')` avant chaque contrôle, dans l'ordre du produit : `controle-nommage`, `controle-mapping`, `controle-couches`, `controle-oublis`, `controle-accessibilite`, `controle-typographie`, puis `controle-theme` et `controle-structure` en architecture UCM.
   Une étape `controle-fusion`, ouverte après le dernier contrôle, porte la réunion de `brut`.
   `phases` ne change pas : `mesurerLeCalcul(..., 'controles', true)` cumule toujours dans l'unique entrée `controles`, et le test qui attend `['sujet', 'releve', 'catalogue', 'moteur', 'regles', 'controles', 'corrections', 'projection', 'projection']` passe sans modification.

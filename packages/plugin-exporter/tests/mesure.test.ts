@@ -8,7 +8,7 @@ import test from 'node:test';
 import handleExportComponent, { ETAPES_DE_L_ANALYSE } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import {
   abandonnerLaMesure, avancementCourant, avancer, compter, empreinteDuContrat, etape, fermerLaMesure,
-  ouvrirLaMesure, attendrePourLaMesure, mesurerLeCalcul,
+  ouvrirLaMesure, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur,
   retenirLeMaximum,
 } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { node } from './aides/figmaFaux';
@@ -44,6 +44,24 @@ test('les attentes, cessions et calculs mesurés restent séparés ; une attente
     resoudre();
     await attente;
     assert.deepEqual(fermerLaMesure('')?.compteurs, {});
+  } finally { Date.now = horloge; abandonnerLaMesure(); }
+});
+
+test('mesurerSousCompteur ajoute la durée au compteur sans ouvrir de phase, et se tait hors d’une trace', () => {
+  const horloge = Date.now;
+  let instant = 0;
+  Date.now = () => instant;
+  try {
+    assert.equal(mesurerSousCompteur('msTokensDeTailleCatalogue', () => { instant += 99; return 'hors trace'; }), 'hors trace');
+    ouvrirLaMesure();
+    etape('catalogue');
+    assert.equal(mesurerSousCompteur('msTokensDeTailleCatalogue', () => { instant += 4; return 'a'; }), 'a');
+    assert.throws(() => mesurerSousCompteur('msTokensDeTailleCatalogue', () => { instant += 6; throw new Error('refus'); }), /refus/);
+    const trace = fermerLaMesure('');
+    assert.equal(trace?.compteurs.msTokensDeTailleCatalogue, 10);
+    assert.deepEqual(trace?.etapes, [{ nom: 'catalogue', ms: 10, compteurs: { msTokensDeTailleCatalogue: 10 } }]);
+    assert.equal(trace?.phases, undefined);
+    assert.equal(trace?.compteurs.tranchesSynchronesArchitect, undefined);
   } finally { Date.now = horloge; abandonnerLaMesure(); }
 });
 

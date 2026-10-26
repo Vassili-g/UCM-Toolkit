@@ -2,20 +2,24 @@
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
 
-import type { CatalogueDeReference, ReleveDeComposant } from '@ucm-kit/core/controles';
+import {
+  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructure, controlerLaTypographieParEtapes, controlerLeTheme, controlerMapping, controlerNommage, controlerOublisParEtapes, tokensDuComposant,
+  type CatalogueDeReference, type ReleveDeComposant,
+} from '@ucm-kit/core/controles';
 import { ComponentExportError, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
-import { etape, compter, fermerLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { etape, compter, fermerLaMesure, ouvrirLaMesure, abandonnerLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 
 import type { PluginMessage } from '../src/messages';
 import { constatsDuMoteur } from '../src/constatsDuMoteur';
 import { traiter as traiterLesQuestions } from '../src/sandbox/questions';
 import { verifierLaPariteDeLAnalyse } from './parite';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
-import { analyseCourante, correctionsDeLAnalyse, perimerApresUneEcriture, reinitialiserLAnalyse, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
+import { analyseCourante, catalogueDeFigma, correctionsDeLAnalyse, perimerApresUneEcriture, reinitialiserLAnalyse, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
 import { origineDeLaSelection, retenirLaSelectionDuPlugin } from '../src/sandbox/commun';
 import type { Contexte } from '../src/sandbox/contexte';
+import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
 
 const catalogueVide: CatalogueDeReference = { version: 1, library: null, collections: [], variables: [] };
 
@@ -610,8 +614,9 @@ test('l’analyse ajoute les constats de typographie à ceux du kit', async () =
   assert.ok(deType(b, 'analyse')[0].constats.some((c) => c.code === 'C64' && c.famille === 'typographie'));
 });
 
-test('l’analyse UCM ajoute C59 et C63 de structure, tandis que l’architecture libre les tait', async () => {
-  const catalogue: CatalogueDeReference = {
+/** Un catalogue UCM qui déclenche la structure : thème, composants et marques, des alias entre eux. */
+function catalogueDeStructure(): CatalogueDeReference {
+  return {
     version: 1, library: null,
     collections: [
       { cle: 'theme', nom: 'Theme', role: 'theme', etat: 'lue', modes: [{ id: 'light', nom: 'Light' }] },
@@ -629,7 +634,11 @@ test('l’analyse UCM ajoute C59 et C63 de structure, tandis que l’architectur
       { cle: 'brand-secondary', nom: 'secondary/light/700', collection: 'brands', type: 'COLOR', etat: 'presente' },
     ],
   };
-  const composant: ReleveDeComposant = {
+}
+
+/** Un bouton à trois axes et un texte lié à `success/surface/foreground`. */
+function composantDeStructure(): ReleveDeComposant {
+  return {
     ...releveDe('Button'),
     proprietes: [
       { nom: 'Palette', type: 'VARIANT', valeurs: ['primary', 'secondary'], defaut: 'primary' },
@@ -642,6 +651,11 @@ test('l’analyse UCM ajoute C59 et C63 de structure, tandis que l’architectur
       liaisons: [{ champ: 'fills', indice: 0, porteur: 'text', variable: { id: 'surface-fg', cle: 'surface-fg', nom: 'success/surface/foreground', collection: 'theme', distante: false } }],
     }] }],
   };
+}
+
+test('l’analyse UCM ajoute C59 et C63 de structure, tandis que l’architecture libre les tait', async () => {
+  const catalogue = catalogueDeStructure();
+  const composant = composantDeStructure();
   const base = lecteurs(complete());
   const avec = { ...base, releve: async () => ({ statut: 'lu' as const, releve: composant }), catalogue: async () => catalogue };
 
@@ -735,6 +749,115 @@ test('la mesure couvre le sujet avant le moteur, ferme la trace et garde les sor
     assert.equal(avec.mesure?.fin, 'complete');
     assert.equal(fermerLaMesure(''), null);
   } finally { Date.now = horloge; }
+});
+
+/** Un relevé et un catalogue dont chaque lecture avance l'horloge simulée : l'avance d'un contrôle dit ce qu'il a lu. */
+function fixtureAvecHorloge(horloge: { instant: number }) {
+  const releve = composantDeStructure();
+  const catalogue = catalogueDeStructure();
+  const { variants } = releve;
+  const { variables } = catalogue;
+  Object.defineProperty(releve, 'variants', { get() { horloge.instant += 7; return variants; } });
+  Object.defineProperty(catalogue, 'variables', { get() { horloge.instant += 11; return variables; } });
+  return { releve, catalogue };
+}
+
+const epuiser = <T>(calcul: Generator<void, T>): T => {
+  for (;;) {
+    const suivant = calcul.next();
+    if (suivant.done) return suivant.value;
+  }
+};
+
+test('chaque contrôle du kit ouvre son étape et porte l’avance de son seul contrôle, la fusion la sienne ; la trace ne change aucune sortie', async () => {
+  const dateNow = Date.now;
+  const horloge = { instant: 100 };
+  Date.now = () => horloge.instant;
+  try {
+    const avanceDeChaqueControle = (architectureUcm: boolean) => {
+      const { releve, catalogue } = fixtureAvecHorloge(horloge);
+      const controles: Array<[string, () => unknown]> = [
+        ['nommage', () => controlerNommage(releve, catalogue)],
+        ['mapping', () => controlerMapping(releve, catalogue)],
+        ['couches', () => epuiser(controlerCouchesParEtapes(releve, catalogue))],
+        ['oublis', () => epuiser(controlerOublisParEtapes(releve, catalogue))],
+        ['accessibilite', () => epuiser(controlerLAccessibiliteParEtapes(releve, catalogue, { niveau: 'AA' }))],
+        ['typographie', () => epuiser(controlerLaTypographieParEtapes(releve, catalogue))],
+        ...(architectureUcm ? [['theme', () => controlerLeTheme(releve, catalogue)], ['structure', () => controlerLaStructure(releve, catalogue)]] as Array<[string, () => unknown]> : []),
+      ];
+      return controles.map(([nom, controler]) => {
+        const avant = horloge.instant;
+        controler();
+        return [`controle-${nom}`, horloge.instant - avant] as const;
+      });
+    };
+    const analyser = async (architecture: 'ucm' | 'libre', mesurer: boolean) => {
+      reinitialiserLAnalyse();
+      const { releve, catalogue } = fixtureAvecHorloge(horloge);
+      const b = banc(architecture);
+      const lectures: Lecteurs = { ...lecteurs(complete()), releve: async () => ({ statut: 'lu', releve }), catalogue: async () => catalogue };
+      await traiterAvec(lectures)({ type: 'analyser', mesurer }, b.contexte);
+      return deType(b, 'analyse')[0];
+    };
+
+    for (const architecture of ['ucm', 'libre'] as const) {
+      const attendu = avanceDeChaqueControle(architecture === 'ucm');
+      assert.deepEqual(attendu.map(([nom]) => nom), architecture === 'ucm'
+        ? ['controle-nommage', 'controle-mapping', 'controle-couches', 'controle-oublis', 'controle-accessibilite', 'controle-typographie', 'controle-theme', 'controle-structure']
+        : ['controle-nommage', 'controle-mapping', 'controle-couches', 'controle-oublis', 'controle-accessibilite', 'controle-typographie']);
+      const sans = await analyser(architecture, false);
+      const avec = await analyser(architecture, true);
+      const etapes = avec.mesure!.etapes.filter(({ nom }) => nom.startsWith('controle-'));
+      assert.deepEqual(etapes.map(({ nom }) => nom), [...attendu.map(([nom]) => nom), 'controle-fusion']);
+      assert.deepEqual(etapes.slice(0, -1).map(({ nom, ms }) => [nom, ms]), attendu.map(([nom, ms]) => [nom, ms]));
+      // La fusion lit `releve.variants` une fois, pour les identifiants de variants du moteur.
+      assert.equal(etapes.at(-1)!.ms, 7);
+      assert.ok(new Set(attendu.map(([, ms]) => ms)).size > 1 && attendu.some(([, ms]) => ms > 0), 'la fixture distingue les contrôles');
+      assert.deepEqual(avec.mesure!.phases!.map(({ nom }) => nom), ['sujet', 'releve', 'catalogue', 'moteur', 'regles', 'controles', 'corrections', 'projection', 'projection']);
+      assert.deepEqual(avec.constats, sans.constats);
+      assert.deepEqual(avec.lecture, sans.lecture);
+      assert.deepEqual(avec.variants, sans.variants);
+      assert.equal(avec.sansTokens, sans.sansTokens);
+      const { releve, catalogue } = fixtureAvecHorloge(horloge);
+      assert.equal(avec.mesure!.compteurs.variablesDuCatalogue, catalogue.variables.length);
+      assert.equal(avec.mesure!.compteurs.tokensDuComposant, tokensDuComposant(releve, catalogue).length);
+      assert.ok((avec.mesure!.compteurs.tokensDuComposant ?? 0) > 0);
+    }
+  } finally { Date.now = dateNow; }
+});
+
+test('msTokensDeTailleCatalogue vaut l’avance simulée de l’appel qui attend les tokens de taille de la library', async () => {
+  const dateNow = Date.now;
+  const horloge = { instant: 500 };
+  Date.now = () => horloge.instant;
+  try {
+    const dimensions = { x: 0, y: 0, largeur: 20, hauteur: 20 };
+    const jeu = { cle: 'alert-set', id: 'alert-set', nom: 'Alert' };
+    let lecturesDuJeu = 0;
+    const releve = {
+      version: 1, proprietes: [],
+      variants: [{ id: 'v1', nom: 'Alert', valeurs: {}, modesEffectifs: {}, layers: [{
+        id: 'racine', nom: 'racine', type: 'FRAME', parent: null, visible: true, opacite: 1, dimensions,
+        peintures: [], liaisons: [], valeursEnDur: [{ champ: 'paddingLeft', valeur: 8 }],
+      }] }],
+      lecture: { layersLus: 1, layersNonLus: 0, variantsNonLus: [], manquees: [] }, espaceDeCouleur: 'srgb',
+    } as unknown as ReleveDeComposant;
+    Object.defineProperty(releve, 'jeu', { get() { lecturesDuJeu += 1; horloge.instant += 5; return jeu; } });
+    const bibliotheque = [{ key: 'cc', name: 'components', libraryName: 'Intencial', variables: [{ key: 'v-pad', name: 'alert/size/padding-left', resolvedType: 'FLOAT' }, { key: 'v-rayon', name: 'alert/size/radius', resolvedType: 'FLOAT' }] }];
+    const teamLibrary = {
+      async getAvailableLibraryVariableCollectionsAsync() { return bibliotheque.map(({ key, name, libraryName }) => ({ key, name, libraryName })); },
+      async getVariablesInLibraryCollectionAsync() { return bibliotheque[0].variables; },
+    };
+    const marge = { ...variableFigma('VariableID:v-pad/1:3', 'comp', 'alert/size/padding-left', 'FLOAT', { 'comp:Valeur': 8 }, true), key: 'v-pad' };
+    const { port } = portDeTest([], [], [], [collectionFigma('comp', 'components', ['Valeur'], [], true)], { importables: [marge] });
+    const contexte = { figma: { teamLibrary, root: { getSharedPluginData: () => '' }, variables: port } as never } as unknown as Contexte;
+
+    ouvrirLaMesure();
+    await catalogueDeFigma(releve, { leve: false }, contexte);
+    const trace = fermerLaMesure('');
+    assert.ok(lecturesDuJeu > 0);
+    assert.equal(trace?.compteurs.msTokensDeTailleCatalogue, 5 * lecturesDuJeu);
+  } finally { Date.now = dateNow; abandonnerLaMesure(); }
 });
 
 test('un arrêt et une péremption ferment leur mesure', async () => {

@@ -35,7 +35,10 @@ export type Compteur =
   | 'msEnCessionArchitect'
   | 'tranchesSynchronesArchitect'
   | 'plusLongueTrancheArchitectMs'
-  | 'tailleSortieArchitect';
+  | 'tailleSortieArchitect'
+  | 'variablesDuCatalogue'
+  | 'tokensDuComposant'
+  | 'msTokensDeTailleCatalogue';
 
 /**
  * Une étape attendue de l'analyse, et sa part du temps total supposé.
@@ -258,6 +261,14 @@ export async function attendrePourLaMesure<T>(appel: () => Promise<T>, nature: '
       if (phase) ouverte.phases.push({ nom: phase, ms });
     }
   }
+}
+
+/** Ajoute au compteur `nom` la durée de `calcul`, sans ouvrir de phase ; sans effet sur le résultat hors d'une trace ouverte. */
+export function mesurerSousCompteur<T>(nom: Compteur, calcul: () => T): T {
+  if (!trace) return calcul();
+  const debut = Date.now();
+  try { return calcul(); }
+  finally { compter(nom, Date.now() - debut); }
 }
 
 /**

@@ -23,7 +23,7 @@ import {
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
-import { ouvrirLaMesure, fermerLaMesure, etape, compter, attendrePourLaMesure, mesurerLeCalcul, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { ouvrirLaMesure, fermerLaMesure, etape, compter, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation, type OptionsDeCooperation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
@@ -271,7 +271,7 @@ export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDA
         const catalogue = await lireLeCatalogueDeLibrary(figma as unknown as PortDeBibliotheque, choisie, lecture);
         if (catalogue.etat === 'lu') {
           // C29 compare les valeurs en dur aux tokens de taille du composant : on charge celles-là, et chargerLesValeurs suit leurs alias.
-          const tailles = clesDesTokensDeTailleAttendus(releve, catalogue.catalogue);
+          const tailles = mesurerSousCompteur('msTokensDeTailleCatalogue', () => clesDesTokensDeTailleAttendus(releve, catalogue.catalogue));
           return (await chargerLesValeurs(portDeLecture(figma), catalogue.catalogue, [...liaisons.keys(), ...tailles])).catalogue;
         }
       }
@@ -340,20 +340,25 @@ const mesuresEnvoyees = new Map<number, { reception: number; identite: IdentiteD
 
 const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
 
-/** Les contrôles du kit, dans l'ordre du produit ; le budget partagé se consulte avant chacun. */
+/** Les contrôles du kit, dans l'ordre du produit ; le budget partagé se consulte avant chacun, et chacun ouvre l'étape qui porte son nom. */
 async function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeReference, niveau: NiveauDAccessibilite, architectureUcm: boolean, cooperation: ContexteCooperatif): Promise<Constat[]> {
-  const controles: Array<() => Constat[] | Promise<Constat[]>> = [
-    () => enUneTranche(() => controlerNommage(releve, catalogue)),
-    () => enUneTranche(() => controlerMapping(releve, catalogue)),
-    () => calculerParEtapes(controlerCouchesParEtapes(releve, catalogue), cooperation),
-    () => calculerParEtapes(controlerOublisParEtapes(releve, catalogue), cooperation),
-    () => calculerParEtapes(controlerLAccessibiliteParEtapes(releve, catalogue, { niveau }), cooperation),
-    () => calculerParEtapes(controlerLaTypographieParEtapes(releve, catalogue), cooperation),
-    ...(architectureUcm ? [() => enUneTranche(() => controlerLeTheme(releve, catalogue)), () => enUneTranche(() => controlerLaStructure(releve, catalogue))] : []),
+  type Controle = [nom: string, controler: () => Constat[] | Promise<Constat[]>];
+  const controles: Controle[] = [
+    ['controle-nommage', () => enUneTranche(() => controlerNommage(releve, catalogue))],
+    ['controle-mapping', () => enUneTranche(() => controlerMapping(releve, catalogue))],
+    ['controle-couches', () => calculerParEtapes(controlerCouchesParEtapes(releve, catalogue), cooperation)],
+    ['controle-oublis', () => calculerParEtapes(controlerOublisParEtapes(releve, catalogue), cooperation)],
+    ['controle-accessibilite', () => calculerParEtapes(controlerLAccessibiliteParEtapes(releve, catalogue, { niveau }), cooperation)],
+    ['controle-typographie', () => calculerParEtapes(controlerLaTypographieParEtapes(releve, catalogue), cooperation)],
+    ...(architectureUcm ? [
+      ['controle-theme', () => enUneTranche(() => controlerLeTheme(releve, catalogue))] satisfies Controle,
+      ['controle-structure', () => enUneTranche(() => controlerLaStructure(releve, catalogue))] satisfies Controle,
+    ] : []),
   ];
   const constats: Constat[] = [];
-  for (const controler of controles) {
+  for (const [nom, controler] of controles) {
     await cooperation.cederSiBesoin();
+    etape(nom);
     constats.push(...await controler());
   }
   return constats;
@@ -423,12 +428,18 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   let catalogueLu: CatalogueDeReference | null = null;
   const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats): void => {
     phase('projection');
+    const sansTokens = (lu: ReleveDeComposant | null): boolean => {
+      if (lu === null || catalogueLu === null) return false;
+      const nombre = tokensDuComposant(lu, catalogueLu).length;
+      compter('tokensDuComposant', nombre);
+      return nombre === 0;
+    };
     mesurerLeCalcul(() => retenirLesCorrections(identite as IdentiteDAnalyse, constats, releve, tous, catalogueLu), 'projection');
     const sortie = mesurerLeCalcul(() => ({
       constats: tous,
       lecture: releve?.lecture ?? null,
       variants: releve?.variants.map(({ id, nom }) => ({ id, nom })) ?? [],
-      sansTokens: releve !== null && catalogueLu !== null && tokensDuComposant(releve, catalogueLu).length === 0,
+      sansTokens: sansTokens(releve),
     }), 'projection');
     const contenu = mesureOuverte ? JSON.stringify(sortie) : '';
     if (mesureOuverte) compter('tailleSortieArchitect', contenu.length);
@@ -469,6 +480,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     phase('catalogue');
     const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte), 'attente', 'catalogue');
     catalogueLu = catalogue;
+    compter('variablesDuCatalogue', catalogue.variables.length);
     if (jeton.leve) return rendre('annulee', [], null);
     phase('imbriques');
     const resultat = await attendrePourLaMesure(() => lecteurs.moteur(sujet, jeton, contexte, courant.progresser, cooperation), 'attente', 'moteur');
@@ -484,6 +496,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     })();
     phase('controles');
     const controles = await controlesDuKit(releve, catalogue, niveau, architectureUcm, cooperation);
+    etape('controle-fusion');
     const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
     phase('corrections');
     await cooperation.cederSiBesoin();
