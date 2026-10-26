@@ -117,6 +117,8 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       etat.analyse = { ...courante, statut: 'provisoire', constats: visibles(message.constats, message.ignores), tous: message.constats, ignores: message.ignores, variants: message.variants, lecture: message.lecture };
       return;
     case 'analyse':
+      // Une analyse déjà finie (annulée, arrêtée ou finale) ne reprend pas un message tardif de la même identité.
+      if (!calculEnCours(courante)) return;
       // Le sandbox garde périmée l'analyse qu'un `perime` a atteinte : le message final ne la rend pas applicable.
       etat.analyse = {
         ...courante, statut: message.statut, constats: visibles(message.constats, courante.ignores), tous: message.constats, variants: message.variants,

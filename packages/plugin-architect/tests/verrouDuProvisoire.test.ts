@@ -138,3 +138,24 @@ test('pendant le provisoire, cases et boutons d’écriture des modules sont dé
   assert.ok(provisoire.corrections.some((carte) => carte.querySelector('.bloc-bouton')), 'le dépliage reste présent');
   assert.ok(actions([provisoire.pied]).every((action) => action.disabled), 'Tout appliquer est désactivé');
 });
+
+test('après Annuler pendant le provisoire, le final annulé retire les constats provisoires', () => {
+  const etat = analyseEn('provisoire');
+  assert.ok(etat.analyse!.constats.length > 0);
+  recevoirUneAnalyse(etat, { type: 'analyse', analyse: IDENTITE, statut: 'annulee', constats: [], lecture: null, variants: [], sansTokens: false });
+  assert.equal(etat.analyse!.statut, 'annulee');
+  assert.deepEqual([etat.analyse!.constats, etat.analyse!.tous], [[], []]);
+});
+
+test('une analyse annulée, arrêtée ou finale refuse tout provisoire et tout final tardif de la même identité', () => {
+  for (const fin of ['annulee', 'arretee', 'complete', 'partielle'] as const) {
+    const etat = analyseEn('provisoire');
+    recevoirUneAnalyse(etat, { type: 'analyse', analyse: IDENTITE, statut: fin, constats: fin === 'complete' || fin === 'partielle' ? constatsAlert : [], lecture: null, variants, sansTokens: false });
+    const avant = JSON.stringify(etat.analyse);
+    recevoirUneAnalyse(etat, { type: 'analyse-provisoire', analyse: IDENTITE, constats: constatsAlert, ignores: [], lecture: null as never, variants });
+    recevoirUneAnalyse(etat, { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: constatsAlert, lecture: null, variants, sansTokens: false });
+    recevoirUneAnalyse(etat, { type: 'analyse', analyse: IDENTITE, statut: 'partielle', constats: [], lecture: null, variants: [], sansTokens: false });
+    assert.equal(JSON.stringify(etat.analyse), avant, fin);
+    assert.equal(etat.analyse!.statut, fin);
+  }
+});

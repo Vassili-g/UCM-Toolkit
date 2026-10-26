@@ -143,8 +143,12 @@ test('lier-preparation ne se demande que pour une préparation du même jeu, sur
   assert.equal(preparationALier(etat), null);
   recevoirUneAnalyse(etat, { ...analyseComplete(4), statut: 'partielle' });
   assert.equal(preparationALier(etat), null);
+  // Un second final de la même identité est tardif : il ne rend pas l'analyse complète.
   recevoirUneAnalyse(etat, analyseComplete(4));
+  assert.equal(preparationALier(etat), null);
+  recevoirUneAnalyse(etat, { type: 'analyse-commencee', analyse: { ...identite, generation: 5 } });
+  recevoirUneAnalyse(etat, analyseComplete(5));
   assert.equal(preparationALier(etat)?.id, 'p1');
-  recevoirUneAnalyse(etat, { type: 'perime', analyse: { ...identite, generation: 4 }, cause: 'document' });
+  recevoirUneAnalyse(etat, { type: 'perime', analyse: { ...identite, generation: 5 }, cause: 'document' });
   assert.equal(preparationALier(etat), null);
 });
