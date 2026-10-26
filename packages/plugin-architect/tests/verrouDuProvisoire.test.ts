@@ -159,3 +159,14 @@ test('une analyse annulée, arrêtée ou finale refuse tout provisoire et tout f
     assert.equal(etat.analyse!.statut, fin);
   }
 });
+
+test('après l’arrêt du moteur, le final arrêté retire les constats provisoires et aucune action n’envoie de demande', () => {
+  const etat = analyseEn('provisoire');
+  assert.ok(etat.analyse!.constats.length > 0);
+  const bloquant = { id: 'C0:0', code: 'C0', type: 'bloquant', famille: 'export', variants: [], layers: [], faits: { message: 'boum' } } as Constat;
+  recevoirUneAnalyse(etat, { type: 'analyse', analyse: IDENTITE, statut: 'arretee', constats: [bloquant], lecture: null, variants: [], sansTokens: false });
+  assert.equal(etat.analyse!.statut, 'arretee');
+  assert.deepEqual(etat.analyse!.constats.map(({ id }) => id), ['C0:0']);
+  assert.equal(analyseApplicable(etat.analyse), false);
+  assert.deepEqual(envoisDe(etat), []);
+});

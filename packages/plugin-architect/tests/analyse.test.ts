@@ -1003,6 +1003,36 @@ test('une erreur du moteur rend arretee avec un seul constat bloquant', async ()
   }
 });
 
+test('une erreur du moteur après le provisoire rend arretee seule, sans correction retenue ni écriture possible', async () => {
+  const b = banc();
+  const effets = { lots: [] as string[][], rangements: [] as string[] };
+  const corrections = traiterLesCorrections({
+    async lot(aEcrire) { effets.lots.push(aEcrire.map(({ id }) => id)); return { ecrites: aEcrire.map(({ id }) => id), sautees: [] }; },
+    async selectionner(layers) { return layers; },
+  });
+  const ignores = traiterLesIgnores(() => ({
+    ignorer: (constat, portee) => { effets.rangements.push(`ignorer:${portee}:${constat.id}`); return { ecrit: true, cles: [constat.id] }; },
+    nePlusIgnorer: (id) => { effets.rangements.push(`ne-plus-ignorer:${id}`); return { ecrit: true, cles: [] }; },
+  }));
+  await traiterAvec(lecteurs(async () => { throw new Error('boum'); }))({ type: 'analyser' }, b.contexte);
+  const types = b.envoyes.map(({ type }) => type).filter((type) => type === 'analyse-provisoire' || type === 'analyse');
+  assert.deepEqual(types, ['analyse-provisoire', 'analyse']);
+  const [final] = deType(b, 'analyse');
+  assert.equal(final.statut, 'arretee');
+  assert.deepEqual(final.constats.map(({ famille, type }) => [famille, type]), [['export', 'bloquant']]);
+  assert.equal(correctionsDeLAnalyse(final.analyse), null);
+  const avant = b.envoyes.length;
+  const constat = final.constats[0].id;
+  await corrections({ type: 'appliquer-corrections', analyse: final.analyse, ids: [constat] }, b.contexte);
+  await corrections({ type: 'servir-de-modele', analyse: final.analyse, variant: 'v-Alert' }, b.contexte);
+  await ignores({ type: 'ignorer', analyse: final.analyse, constat, portee: 'constat' }, b.contexte);
+  assert.deepEqual(effets, { lots: [], rangements: [] });
+  const apres = b.envoyes.slice(avant);
+  assert.deepEqual(apres.filter((m) => m.type === 'corrections-appliquees').map((m) => m.type === 'corrections-appliquees' && [m.ecrites, m.sautees.map(({ motif }) => motif)]), [[0, ['analyse-perimee']]]);
+  assert.deepEqual(apres.filter((m) => m.type === 'modele-propose').map((m) => m.type === 'modele-propose' && m.constats), [[]]);
+  for (const type of ['ignores', 'perime'] as const) assert.ok(!apres.some((m) => m.type === type), type);
+});
+
 test('un résultat partiel du moteur rend partielle, avec ses constats et la lecture', async () => {
   const b = banc();
   const lec = lecteurs(async () => ({ etat: 'partielle', export: exportDe([pointDeTest]), lus: 1, nonLus: 3 }));

@@ -483,3 +483,16 @@ test('après Annuler pendant le provisoire, le panneau montre l’écran annulé
   assert.match(banc.racine.textContent, /Aucun constat n’a été rendu\./);
   assert.doesNotMatch(banc.racine.textContent, /composants imbriqués est en cours/);
 });
+
+test('après l’arrêt du moteur pendant le provisoire, le panneau montre l’écran arrêté et plus les constats provisoires', () => {
+  const banc = monter(constatsAlert, { statut: 'provisoire', progression: { lus: 11, total: 11, phase: 'imbriques', fraction: 0.35 } });
+  const bloquantDuMoteur = { id: 'C0:0', code: 'C0', type: 'bloquant', famille: 'export', variants: [], layers: [], faits: { message: 'boum' } } as Constat;
+  banc.actualiser({ statut: 'arretee', constats: [bloquantDuMoteur], tous: [bloquantDuMoteur], variants: [], progression: null });
+  assert.equal(sections(banc).length, 0);
+  assert.equal(banc.racine.querySelector('.progression-analyse'), null);
+  assert.equal(banc.racine.querySelector('.corrections-pied'), null);
+  assert.match(banc.racine.textContent, /L’analyse s’est arrêtée\./);
+  assert.match(banc.racine.textContent, /Message de l’exporteur : boum/);
+  assert.match(banc.racine.textContent, /Aucun autre contrôle n’a été fait\./);
+  assert.doesNotMatch(banc.racine.textContent, /composants imbriqués est en cours/);
+});
