@@ -63,6 +63,73 @@ test('C29 borne chaque avancée sur 2 000 tokens FLOAT et garde la lecture des t
   assert.deepEqual(resultat.value, proposerLesCorrections(r, c, []));
 });
 
+test('C25 borne chaque avancée sur 2 000 couleurs et construit son cache une fois pour deux layers', () => {
+  const r = releve({}, layer({ name: 'title', type: 'TEXT', painted: true }));
+  r.variants[0].layers.push({ ...layer({ name: 'title', type: 'TEXT', painted: true }), id: 'layer-2' });
+  const lectures = { noms: 0, types: 0 };
+  const c = catalogue(Array.from({ length: 2000 }, (_, i) => ({
+    cle: `v${i}`, get nom() { lectures.noms += 1; return 'alert/color/foreground'; }, collection: 'components', etat: 'presente',
+    get type() { lectures.types += 1; return 'COLOR' as const; },
+  })));
+  const calcul = proposerLesCorrectionsParEtapes(r, c, []);
+  let resultat: IteratorResult<void, Constat[]>;
+  let pire = 0;
+  do {
+    const avant = { ...lectures };
+    resultat = calcul.next();
+    pire = Math.max(pire, lectures.noms - avant.noms, lectures.types - avant.types);
+  } while (!resultat.done);
+  assert.ok(pire <= 768, `${pire} lectures dans une avancée`);
+  assert.equal(lectures.types, 2000, 'le cache de couleurs se construit une seule fois');
+  assert.equal(resultat.value.length, 2);
+  for (const constat of resultat.value) assert.equal(constat.question?.candidats.length, 2000);
+  assert.deepEqual(resultat.value, proposerLesCorrections(r, c, []));
+});
+
+test('C25 garde les faits et candidats ordonnés en excluant les autres couleurs', () => {
+  const r = releve({ State: 'hover' }, layer({ name: 'title', type: 'TEXT', painted: true }));
+  const variable = (cle: string, nom: string): CatalogueDeReference['variables'][number] => ({ cle, nom, collection: 'components', type: 'COLOR', etat: 'presente' });
+  const c = catalogue([
+    variable('fg', 'alert/color/hover/foreground'), variable('title', 'alert/color/hover/title'),
+    variable('etat', 'alert/color/default/foreground'), variable('autre', 'other/color/hover/foreground'),
+    { ...variable('non-chargee', 'alert/color/hover/foreground'), etat: 'non-chargee' },
+    { ...variable('float', 'alert/color/hover/foreground'), type: 'FLOAT' },
+  ]);
+  const attendu = [{
+    id: 'C25:variant-1:layer-1:fills:0', code: 'C25', type: 'corriger', famille: 'liaisons', variants: ['variant-1'], layers: ['layer-1'],
+    faits: { calque: 'title', champ: 'fills', indice: 0 },
+    question: { id: 'C25:variant-1:layer-1:fills:0', candidats: [{ cle: 'fg', nom: 'alert/color/hover/foreground' }, { cle: 'title', nom: 'alert/color/hover/title' }] },
+  }];
+  const calcul = proposerLesCorrectionsParEtapes(r, c, []);
+  let resultat = calcul.next();
+  while (!resultat.done) resultat = calcul.next();
+  assert.deepEqual(resultat.value, attendu);
+  assert.deepEqual(proposerLesCorrections(r, c, []), attendu);
+});
+
+test('C25 borne la recherche de peinture sur 2 000 liaisons', () => {
+  const cible = layer({ name: 'title', type: 'TEXT', painted: true });
+  cible.peintures.push({ ...cible.peintures[0], indice: 2001 });
+  let indicesLus = 0;
+  cible.liaisons = Array.from({ length: 2000 }, (_, i) => ({
+    champ: 'fills', get indice() { indicesLus += 1; return i === 1999 ? 0 : i + 1; }, porteur: 'layer-1',
+    variable: { id: 'v', cle: 'v', nom: 'v', collection: 'components', distante: false },
+  }));
+  const r = releve({}, cible);
+  const calcul = proposerLesCorrectionsParEtapes(r, catalogue([]), []);
+  let etape;
+  let pire = 0;
+  do {
+    const avant = indicesLus;
+    etape = calcul.next();
+    pire = Math.max(pire, indicesLus - avant);
+  } while (!etape.done);
+  assert.ok(pire <= 256, `${pire} liaisons lues dans une avancée`);
+  assert.ok(indicesLus >= 4000);
+  assert.equal(etape.value[0].faits.indice, 2001);
+  assert.deepEqual(etape.value, proposerLesCorrections(r, catalogue([]), []));
+});
+
 test('un axe produit une correction quand le nom cible existe une seule fois', () => {
   const r = releve({ Severity: 'success' }, layer({ token: 'alert/color/info/standard/background' }));
   const c = catalogue([

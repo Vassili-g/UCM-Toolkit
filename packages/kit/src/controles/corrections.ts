@@ -6,7 +6,7 @@ import { type CatalogueDeReference, type VariableDuCatalogue } from './catalogue
 import { candidatDeLongueurParEtapes, classerLesCandidatsParEtapes, type CandidatDeLongueur } from './candidatsDeLongueur.js';
 import type { Constat, Correction } from './constat.js';
 import { axesDuReleve, axesDuReleveParEtapes, segmentDAxe, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
-import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
+import { layersVisiblesDuVariant, lectureManquee, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /**
  * Enrichit les constats avec une correction exacte ou une question non tranchée. C15 et C17 cèdent la place à C22 et C24, qui
@@ -29,7 +29,7 @@ export function* proposerLesCorrectionsParEtapes(releve: ReleveDeComposant, cata
     yield;
   }
   const gardes = constats.filter((constat) => constat.code !== 'C15' && constat.code !== 'C17');
-  nouveaux.push(...constatsManquants(releve), ...(yield* constatsDeValeursEnDurParEtapes(releve)));
+  nouveaux.push(...(yield* constatsManquantsParEtapes(releve)), ...(yield* constatsDeValeursEnDurParEtapes(releve)));
   const enrichis: Constat[] = [];
   for (const constat of [...gardes.filter((entree) => entree.code === 'C16'), ...nouveaux]) {
     const proposition = constat.code === 'C16'
@@ -39,7 +39,7 @@ export function* proposerLesCorrectionsParEtapes(releve: ReleveDeComposant, cata
         : constat.code === 'C24'
           ? corrigerRole(constat, releve, catalogue, index)
           : constat.code === 'C25'
-            ? corrigerLiaisonManquante(constat, releve, catalogue, index)
+            ? yield* corrigerLiaisonManquante(constat, releve, catalogue, index)
             : yield* corrigerValeurEnDur(constat, releve, catalogue, index);
     enrichis.push(proposition ? { ...constat, ...proposition } : constat);
     yield;
@@ -63,7 +63,7 @@ interface IndexDeCorrection {
   axes(): ReturnType<typeof axesDuReleve>;
   axesParEtapes(): Generator<void, ReturnType<typeof axesDuReleve>>;
   tokens(): Generator<void, ReturnType<typeof tokensDuComposant>>;
-  couleursDuComposant(): readonly VariableDuCatalogue[];
+  couleursDuComposant(): Generator<void, readonly VariableDuCatalogue[]>;
   /** Le catalogue permet de conclure qu'aucun token de `components` ne manque à la recherche de C29. */
   tokensDeTailleLus(): boolean;
 }
@@ -102,10 +102,23 @@ function* indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
     axes: () => (axes ??= axesDuReleve(releve)),
     axesParEtapes: () => axesDuReleveParEtapes(releve),
     tokens: () => tokensDuComposantParEtapes(releve, catalogue),
-    couleursDuComposant: () => (couleurs ??= catalogue.variables.filter((variable) => variable.etat === 'presente' && variable.type === 'COLOR'
-      && roles.get(variable.collection) === 'components'
-      && formeReconnue(variable.nom.split('/')[0]) === formeReconnue(releve.jeu.nom)
-      && formeReconnue(variable.nom.split('/')[1] ?? '') === 'color')),
+    // Cède toutes les 256 variables parcourues ; le cache n'est rangé qu'à la fin, donc construit une fois pour tous les calques.
+    couleursDuComposant: function* () {
+      if (couleurs === undefined) {
+        const lues: VariableDuCatalogue[] = [];
+        let parcourues = 0;
+        for (const variable of catalogue.variables) {
+          parcourues += 1;
+          if (parcourues % 256 === 0) yield;
+          if (variable.etat === 'presente' && variable.type === 'COLOR'
+            && roles.get(variable.collection) === 'components'
+            && formeReconnue(variable.nom.split('/')[0]) === formeReconnue(releve.jeu.nom)
+            && formeReconnue(variable.nom.split('/')[1] ?? '') === 'color') lues.push(variable);
+        }
+        couleurs = lues;
+      }
+      return couleurs;
+    },
     tokensDeTailleLus: () => (lus ??= collectionDesComposantsLue(catalogue)),
   };
 }
@@ -115,13 +128,13 @@ function presentesDeLaCollection(index: IndexDeCorrection, nom: string, collecti
   return (index.variablesParNom.get(nom) ?? []).filter((variable) => variable.collection === collection && variable.etat === 'presente');
 }
 
-function constatsManquants(releve: ReleveDeComposant): Constat[] {
+function* constatsManquantsParEtapes(releve: ReleveDeComposant): Generator<void, Constat[]> {
   const resultat: Constat[] = [];
   for (const variant of releve.variants) {
     for (const layer of variant.layers) {
+      yield;
       if (formeReconnue(layer.nom) !== 'title' || layer.type !== 'TEXT') continue;
-      const peinture = layer.peintures.find((entree) => entree.visible && entree.type === 'SOLID'
-        && !liaisonsPropres(layer).some((liaison) => liaison.champ === entree.champ && liaison.indice === entree.indice));
+      const peinture = yield* premierePeintureSansLiaison(layer);
       if (!peinture) continue;
       resultat.push({
         id: `C25:${variant.id}:${layer.id}:${peinture.champ}:${peinture.indice}`, code: 'C25', type: 'corriger', famille: 'liaisons',
@@ -289,19 +302,53 @@ function corrigerRole(constat: Constat, releve: ReleveDeComposant, catalogue: Ca
   return { correction: correctionDeLiaison(constat, layer, liaison, candidats[0], `Le rôle ${role} est attendu pour ce layer.`, axesDuVariant(constat, index)) };
 }
 
-function corrigerLiaisonManquante(constat: Constat, releve: ReleveDeComposant, catalogue: CatalogueDeReference, index: IndexDeCorrection): Pick<Constat, 'correction' | 'question'> | undefined {
+/** Cède toutes les 256 peintures et liaisons parcourues ; une liaison de surcharge ne lie pas la peinture du layer. */
+function* premierePeintureSansLiaison(layer: LayerLu): Generator<void, LayerLu['peintures'][number] | undefined> {
+  let parcourues = 0;
+  for (const peinture of layer.peintures) {
+    parcourues += 1;
+    if (parcourues % 256 === 0) yield;
+    if (!peinture.visible || peinture.type !== 'SOLID') continue;
+    let liee = false;
+    for (const liaison of layer.liaisons) {
+      parcourues += 1;
+      if (parcourues % 256 === 0) yield;
+      if (liaison.surcharge || liaison.champ !== peinture.champ || liaison.indice !== peinture.indice) continue;
+      liee = true;
+      break;
+    }
+    if (!liee) return peinture;
+  }
+  return undefined;
+}
+
+function* corrigerLiaisonManquante(constat: Constat, releve: ReleveDeComposant, catalogue: CatalogueDeReference, index: IndexDeCorrection): Generator<void, Pick<Constat, 'correction' | 'question'> | undefined> {
   const layer = layerDuConstat(constat, index);
   const variant = variantDuConstat(constat, index);
-  const peinture = layer?.peintures.find((entree) => entree.visible && entree.type === 'SOLID'
-    && !liaisonsPropres(layer).some((liaison) => liaison.champ === entree.champ && liaison.indice === entree.indice));
+  const peinture = layer ? yield* premierePeintureSansLiaison(layer) : undefined;
   if (!layer || !variant || !peinture) return undefined;
   const roleAttendu = layer.type === 'TEXT' ? 'foreground' : /icon/i.test(layer.nom) ? 'icon' : 'background';
   const rolesPossibles = formeReconnue(layer.nom) === 'title' ? new Set([roleAttendu, 'title']) : new Set([roleAttendu]);
-  const axes = index.axes();
+  const axes = yield* index.axesParEtapes();
   const valeursAxes = Object.values(axes).map((propriete) => variant.valeurs[propriete.nom]).filter((valeur): valeur is string => !!valeur);
   const suffixes = [...rolesPossibles].map((role) => `/${[...valeursAxes, role].join('/')}`);
-  const candidats = index.couleursDuComposant().filter((variable) => suffixes.some((suffixe) => variable.nom.endsWith(suffixe)));
-  if (candidats.length !== 1) return question(constat, candidats);
+  const couleurs = yield* index.couleursDuComposant();
+  const candidats: VariableDuCatalogue[] = [];
+  let parcourues = 0;
+  for (const variable of couleurs) {
+    parcourues += 1;
+    if (parcourues % 256 === 0) yield;
+    if (suffixes.some((suffixe) => variable.nom.endsWith(suffixe))) candidats.push(variable);
+  }
+  if (candidats.length !== 1) {
+    const choix: { cle: string; nom: string }[] = [];
+    for (const candidat of candidats) {
+      parcourues += 1;
+      if (parcourues % 256 === 0) yield;
+      choix.push({ cle: candidat.cle, nom: candidat.nom });
+    }
+    return { question: { id: constat.id, candidats: choix } };
+  }
   return { correction: {
     id: constat.id, sorte: 'liaison', cible: { layer: layer.id, champ: peinture.champ, indice: peinture.indice }, avant: null,
     apres: { cle: candidats[0].cle, nom: candidats[0].nom },
