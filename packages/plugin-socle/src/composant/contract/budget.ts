@@ -8,7 +8,7 @@
  * ou pas du tout. Sans budget, l'analyse lit tout.
  */
 import type { VariantEntry } from './componentTree';
-import { respirerSiBesoin } from './porteeDAnalyse';
+import { descendantsBruts, respirerSiBesoin } from './porteeDAnalyse';
 
 /** La borne par défaut, partagée avec le relevé d'Architect ; une analyse sans budget ne s'en sert pas. */
 export const BUDGET_DE_LAYERS_PAR_DEFAUT = 2000;
@@ -21,7 +21,7 @@ export type BilanDeBudget = {
 };
 
 function compterLesLayers(variant: ComponentNode): number {
-  return 1 + ('findAll' in variant ? variant.findAll(() => true).length : 0);
+  return 1 + descendantsBruts(variant).length;
 }
 
 /**

@@ -168,13 +168,17 @@ function porteeQuiMemorise(): Portee | null {
  * visibilité : il est lu une fois par racine et par portée, et chaque appelant
  * applique ensuite son propre contexte sur le tableau rendu, qu'il ne modifie pas.
  * Un node sans `findAll` n'a pas de descendants. Seul le relevé effectif
- * compte dans `nodesParcourus`.
+ * compte dans `nodesParcourus`, un relevé repris compte dans `parcoursReutilises`.
+ * Une exception de `findAll` traverse : rien n'est mémorisé et l'appelant la voit.
  */
 export function descendantsBruts(racine: SceneNode): readonly SceneNode[] {
   if (!('findAll' in racine)) return [];
   const memoire = typeof racine.id === 'string' ? porteeQuiMemorise()?.parcours : undefined;
   const deja = memoire?.get(racine.id);
-  if (deja) return deja;
+  if (deja) {
+    compter('parcoursReutilises');
+    return deja;
+  }
   const descendants = racine.findAll(() => true);
   compter('nodesParcourus', descendants.length);
   memoire?.set(racine.id, descendants);

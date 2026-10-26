@@ -17,6 +17,7 @@ export type Compteur =
   | 'pagesBalayees'
   | 'pagesReutilisees'
   | 'nodesParcourus'
+  | 'parcoursReutilises'
   | 'appelsGetAllNodes'
   | 'msGetAllNodes'
   | 'appelsFindAllWithCriteria'

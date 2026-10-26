@@ -7,7 +7,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { contientUneInstanceRendue, getAllNodes } from 'ucm-plugin-socle/src/composant/contract/exportableNodes';
+import { contientUneInstanceRendue, getAllNodes, getAllNodesParEtapes } from 'ucm-plugin-socle/src/composant/contract/exportableNodes';
 import { localisationsDe } from 'ucm-plugin-socle/src/composant/contract/localisation';
 import { abandonnerLaMesure, fermerLaMesure, ouvrirLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { dansUnePorteeDAnalyse } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
@@ -239,7 +239,97 @@ test('dans une portée, une racine parcourue sous deux contextes ne relève qu�
   assert.equal(relevesNatifs.nombre, 1);
   assert.equal(compteurs.appelsGetAllNodes, 2);
   assert.equal(compteurs.nodesParcourus, 5);
+  assert.equal(compteurs.parcoursReutilises, 1);
   assert.deepEqual(dansLaPortee, horsPortee);
   assert.deepEqual(dansLaPortee.libre, ['root', 'cadre', 'texte', 'dependency', 'interne']);
   assert.deepEqual(dansLaPortee.compose, ['root', 'cadre', 'texte', 'dependency']);
+});
+
+/**
+ * Un set aux masqués de toutes sortes : statique sans liaison, statique dont le contenu porte une variable,
+ * piloté par une propriété, piloté par une variable, et deux instances qui contiennent du texte.
+ */
+function arbreDesMasques() {
+  const root = tree('Root', [
+    { type: 'FRAME', id: 'cadre', name: 'Cadre', children: [{ type: 'TEXT', id: 'texte', name: 'Texte' }] },
+    { type: 'INSTANCE', id: 'dependency', name: 'Dépendance', children: [{ type: 'TEXT', id: 'interne', name: 'Interne' }] },
+    { type: 'FRAME', id: 'repere', name: 'Repère', visible: false, children: [{ type: 'TEXT', id: 'sous-repere', name: 'Sous repère' }] },
+    { type: 'FRAME', id: 'ancien', name: 'Ancien', visible: false, children: [
+      { type: 'RECTANGLE', id: 'ancien-fond', name: 'Ancien fond', boundVariables: { fills: [alias('legacy')] } },
+    ] },
+    { type: 'FRAME', id: 'par-prop', name: 'Par prop', visible: false, componentPropertyReferences: { visible: 'Afficher' }, children: [
+      { type: 'TEXT', id: 'sous-prop', name: 'Sous prop', boundVariables: { fills: [alias('a')] } },
+    ] },
+    { type: 'FRAME', id: 'par-variable', name: 'Par variable', visible: false, boundVariables: { visible: alias('v') }, children: [
+      { type: 'TEXT', id: 'sous-variable', name: 'Sous variable' },
+    ] },
+    { type: 'INSTANCE', id: 'ancre', name: 'Ancre', children: [{ type: 'TEXT', id: 'sous-ancre', name: 'Sous ancre' }] },
+  ]);
+  (root as unknown as { id: string }).id = 'root';
+  return root;
+}
+
+const contextes = () => ({
+  libre: new Map(),
+  imbriquee: new Map([['dependency', { component: 'Autre', figmaLayer: 'Dépendance' }]]),
+  ancre: new Map([['ancre', { component: 'Ancre', figmaLayer: 'Ancre' }]]),
+  racine: new Map([['root', { component: 'Soi', figmaLayer: 'Root' }]]),
+  deux: new Map([
+    ['dependency', { component: 'Autre', figmaLayer: 'Dépendance' }],
+    ['ancre', { component: 'Ancre', figmaLayer: 'Ancre' }],
+  ]),
+});
+type Nom = keyof ReturnType<typeof contextes>;
+
+function lire(root: ComponentNode, nom: Nom, parEtapes: boolean) {
+  const avertissements: string[] = [];
+  const composed = contextes()[nom];
+  if (!parEtapes) return { ids: getAllNodes(root, avertissements, composed).map((n) => n.id), avertissements };
+  const calcul = getAllNodesParEtapes(root, avertissements, composed);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return { ids: etape.value.map((n) => n.id), avertissements };
+}
+
+test('les contextes successifs sur une même racine rendent chacun le résultat qu’ils auraient hors portée', async () => {
+  const sequences: Nom[][] = [
+    ['libre', 'imbriquee', 'racine', 'libre'],
+    ['racine', 'libre', 'deux', 'imbriquee', 'ancre', 'racine'],
+    ['deux', 'ancre', 'libre', 'libre', 'imbriquee'],
+  ];
+  for (const parEtapes of [false, true]) {
+    for (const sequence of sequences) {
+      const attendu = sequence.map((nom) => lire(arbreDesMasques(), nom, parEtapes));
+      const root = arbreDesMasques();
+      let natifs = 0;
+      const relever = (root as unknown as { findAll: (p: (n: TestNode) => boolean) => TestNode[] }).findAll;
+      (root as unknown as { findAll: unknown }).findAll = (p: (n: TestNode) => boolean) => { natifs += 1; return relever(p); };
+      let obtenu!: ReturnType<typeof lire>[];
+      await dansUnePorteeDAnalyse({}, async () => { obtenu = sequence.map((nom) => lire(root, nom, parEtapes)); });
+      assert.deepEqual(obtenu, attendu, `séquence ${sequence.join(' > ')}${parEtapes ? ' par étapes' : ''}`);
+      assert.equal(natifs, 1);
+    }
+  }
+});
+
+test('masqués statiques et dynamiques : chaque contexte garde ses calques et son diagnostic', async () => {
+  const root = arbreDesMasques();
+  let libre!: ReturnType<typeof lire>;
+  let imbriquee!: ReturnType<typeof lire>;
+  let racine!: ReturnType<typeof lire>;
+  await dansUnePorteeDAnalyse({}, async () => {
+    libre = lire(root, 'libre', false);
+    imbriquee = lire(root, 'imbriquee', false);
+    racine = lire(root, 'racine', false);
+  });
+  // Le repère et l'ancien, masqués sans liaison, disparaissent ; la propriété et la variable gardent leurs calques.
+  assert.deepEqual(libre.ids, [
+    'root', 'cadre', 'texte', 'dependency', 'interne', 'par-prop', 'sous-prop', 'par-variable', 'sous-variable', 'ancre', 'sous-ancre',
+  ]);
+  // Seul l'ancien porte une variable sous un masque statique : un diagnostic, et le même quel que soit le contexte.
+  assert.equal(libre.avertissements.length, 1);
+  assert.match(libre.avertissements[0], /« Ancien »/);
+  assert.deepEqual(imbriquee.ids, libre.ids.filter((id) => id !== 'interne'));
+  assert.deepEqual(imbriquee.avertissements, libre.avertissements);
+  assert.deepEqual(racine, { ids: ['root'], avertissements: [] });
 });

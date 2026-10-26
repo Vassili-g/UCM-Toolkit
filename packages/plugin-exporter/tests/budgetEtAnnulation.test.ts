@@ -105,6 +105,36 @@ test('le budget coopératif cède pendant 90 comptes de variants et garde le pr�
   assert.deepEqual(courant, reference);
 });
 
+test('le budget rend le même bilan dans une portée et hors portée, et reprend le relevé d’un variant déjà lu', async () => {
+  let relevesNatifs = 0;
+  const variants = Array.from({ length: 6 }, (_, rang) => ({
+    component: { id: `b-${rang}`, findAll: () => { relevesNatifs += 1; return Array(rang + 1).fill({}); } },
+  })) as unknown as Parameters<typeof bornerLesVariants>[0];
+  const borner = () => bornerLesVariants(variants, variants[0].component, 12, () => {});
+  const horsPortee = borner();
+  assert.equal(relevesNatifs, 6);
+  relevesNatifs = 0;
+  let dansLaPortee!: ReturnType<typeof borner>;
+  let deuxieme!: ReturnType<typeof borner>;
+  await dansUnePorteeDAnalyse({}, async () => { dansLaPortee = borner(); deuxieme = borner(); });
+  assert.deepEqual(dansLaPortee, horsPortee);
+  assert.deepEqual(deuxieme, horsPortee);
+  assert.equal(relevesNatifs, 6);
+  assert.deepEqual(horsPortee.bilan, { lus: 9, nonLus: 18 });
+});
+
+test('un relevé qui lève après la coupe donne le même nonLus inconnu dans une portée et hors portée', async () => {
+  const variants = Array.from({ length: 6 }, (_, rang) => ({
+    component: { id: `c-${rang}`, findAll: () => { if (rang === 4) throw new Error('illisible'); return Array(rang + 1).fill({}); } },
+  })) as unknown as Parameters<typeof bornerLesVariants>[0];
+  const borner = () => bornerLesVariants(variants, variants[0].component, 7, () => {});
+  const horsPortee = borner();
+  let dansLaPortee!: ReturnType<typeof borner>;
+  await dansUnePorteeDAnalyse({}, async () => { dansLaPortee = borner(); });
+  assert.deepEqual(horsPortee.bilan, { lus: 5, nonLus: 'inconnu' });
+  assert.deepEqual(dansLaPortee, horsPortee);
+});
+
 test('le budget interrompt son décompte dès le retour de la pause annulée', async () => {
   let horloge = 0;
   let comptes = 0;
