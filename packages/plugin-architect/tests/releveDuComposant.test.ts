@@ -150,6 +150,30 @@ test('deux acquisitions indépendantes gardent les textes à plages et instances
   assert.deepEqual(second, premier);
 });
 
+test('retirer puis ajouter un variant change le préfixe admis par le budget', async () => {
+  const { a, jeu, variants } = jeuFactice();
+  const avant = await lireLeReleve(a.port(variables().port), jeu, { budgetDeLayers: 1 });
+  assert.equal(avant.statut, 'lu');
+  if (avant.statut !== 'lu') return;
+  assert.deepEqual(avant.releve.variants.map(({ id }) => id), [variants[0].id]);
+  assert.equal(avant.releve.lecture.variantsNonLus.length, 5);
+
+  const varianteAjoutee = a.calque('v-ajoute', 'COMPONENT', {
+    name: 'Taille=XL, Etat=Repos', absoluteBoundingBox: boite(0, 0, 120, 40),
+  });
+  const setModifie = a.calque('jeu-modifie', 'COMPONENT_SET', {
+    name: 'Button', key: 'cle-jeu', defaultVariant: variants[0],
+    componentPropertyDefinitions: { Taille: { type: 'VARIANT', defaultValue: 'S', variantOptions: ['S', 'XL'] } },
+  }, [variants[0], varianteAjoutee]);
+  const modifie = await lireLeReleve(a.port(variables().port), setModifie, { budgetDeLayers: 1 });
+  assert.equal(modifie.statut, 'lu');
+  if (modifie.statut !== 'lu') return;
+  assert.deepEqual(modifie.releve.variants.map(({ id }) => id), [variants[0].id]);
+  assert.deepEqual(modifie.releve.lecture.variantsNonLus, ['Taille=XL, Etat=Repos']);
+  assert.equal(modifie.releve.lecture.layersLus, avant.releve.lecture.layersLus);
+  assert.ok(modifie.releve.lecture.layersNonLus < avant.releve.lecture.layersNonLus);
+});
+
 test('un budget plus petit que le premier variant le lit quand même', async () => {
   const { a, jeu } = jeuFactice();
   const { port } = variables();
