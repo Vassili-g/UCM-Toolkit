@@ -14,7 +14,7 @@ import { etape, compter, fermerLaMesure, ouvrirLaMesure, abandonnerLaMesure } fr
 import type { PluginMessage } from '../src/messages';
 import { constatsDuMoteur } from '../src/constatsDuMoteur';
 import { traiter as traiterLesQuestions } from '../src/sandbox/questions';
-import { verifierLaPariteDeLAnalyse } from './parite';
+import { capturerLAnalyse, verifierLaPariteDeLAnalyse } from './parite';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
 import { analyseCourante, catalogueDeFigma, correctionsDeLAnalyse, perimerApresUneEcriture, reinitialiserLAnalyse, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
 import { origineDeLaSelection, retenirLaSelectionDuPlugin } from '../src/sandbox/commun';
@@ -74,6 +74,13 @@ const deType = <T extends PluginMessage['type']>(b: Banc, type: T) => b.envoyes.
 
 beforeEach(() => reinitialiserLAnalyse());
 
+/** Une annulation pendant les contrôles du kit ou avant eux : aucun provisoire ne part et le moteur n'a pas commencé sa lecture. */
+function sansProvisoireNiMoteur(b: Banc): void {
+  assert.equal(deType(b, 'analyse-provisoire').length, 0);
+  const phases = deType(b, 'analyse-en-cours').map((m) => m.progression?.phase);
+  assert.deepEqual(phases.filter((phase) => phase === 'imbriques' || phase === 'structure' || phase === 'regles'), []);
+}
+
 test('le banc compare deux analyses indépendantes, leurs constats, corrections, modèles, ignorés et couverture dans leur ordre', async () => {
   let doubles = 0;
   const fabriquer = () => {
@@ -106,6 +113,63 @@ test('le banc compare deux analyses indépendantes, leurs constats, corrections,
   );
 });
 
+
+test('le provisoire part après les contrôles du kit et avant le moteur ; le final garde l’ordre contrôles, règles, moteur et ne change pas sans lui', async () => {
+  const fabriquer = (sansProvisoire: boolean) => () => {
+    const b = banc();
+    if (sansProvisoire) {
+      const envoyer = b.contexte.envoyer;
+      b.contexte.envoyer = (message) => { if (message.type !== 'analyse-provisoire') envoyer(message); };
+    }
+    const lectures: Lecteurs = {
+      ...lecteurs(async () => ({ etat: 'complete', export: exportDe([pointDeTest]) })),
+      releve: async () => ({ statut: 'lu', releve: releveDeContraste('Alert') }),
+      regles: async () => ({
+        composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false,
+        modele: { nom: 'Alert', sections: [{ tag: 'prop', elements: [{ genre: 'regle', tag: 'prop', cible: 'severity.info' }] }] },
+        proprietes: ['severity'], documentees: [],
+      }),
+      ignores: async () => ['C64:Label:sans-style'],
+    };
+    return { b, lectures };
+  };
+  reinitialiserLAnalyse();
+  const avec = fabriquer(false)();
+  const ordre: string[] = [];
+  const base = avec.lectures;
+  avec.lectures = {
+    ...base,
+    ignores: async (contexte) => { ordre.push('ignores'); return base.ignores!(contexte); },
+    moteur: async (...appel) => { ordre.push('moteur'); return base.moteur(...appel); },
+    regles: async (...appel) => { ordre.push('regles'); return base.regles!(...appel); },
+  };
+  const envoyer = avec.b.contexte.envoyer;
+  avec.b.contexte.envoyer = (message) => { if (message.type === 'analyse-provisoire' || message.type === 'analyse') ordre.push(message.type); envoyer(message); };
+  await traiterAvec(avec.lectures)({ type: 'analyser' }, avec.b.contexte);
+  assert.deepEqual(ordre, ['ignores', 'analyse-provisoire', 'moteur', 'regles', 'analyse']);
+
+  const [provisoire] = deType(avec.b, 'analyse-provisoire');
+  const [final] = deType(avec.b, 'analyse');
+  assert.equal(deType(avec.b, 'analyse-provisoire').length, 1);
+  assert.deepEqual(provisoire.analyse, final.analyse);
+  assert.ok(provisoire.constats.length > 0, 'les contrôles du kit rendent un constat');
+  assert.ok(provisoire.constats.every((constat) => constat.correction === undefined && constat.question === undefined), 'aucune correction applicable avant la fin');
+  assert.deepEqual(provisoire.lecture, final.lecture);
+  assert.deepEqual(provisoire.variants, final.variants);
+  assert.equal(correctionsDeLAnalyse(provisoire.analyse)?.size, final.constats.filter((constat) => constat.correction).length);
+  // Le final range les constats comme avant : contrôles du kit, puis règles, puis moteur.
+  const codes = final.constats.map(({ code }) => code);
+  assert.deepEqual(final.constats.slice(0, provisoire.constats.length).map(({ id }) => id), provisoire.constats.map(({ id }) => id));
+  assert.deepEqual(codes, ['C64', 'C43', 'C44'], 'contrôle du kit, règles (C43), moteur');
+  assert.deepEqual(provisoire.ignores, ['C64:Label:sans-style'], 'le provisoire dit déjà quels constats sont ignorés');
+  assert.deepEqual(provisoire.constats.map(({ code }) => code), ['C64']);
+
+  // Sans provisoire, le final, les ignorés et ce que le sandbox retient sont les mêmes.
+  const sans = await capturerLAnalyse(fabriquer(true));
+  const avecProvisoire = await capturerLAnalyse(fabriquer(false));
+  assert.deepEqual(avecProvisoire.messages.filter((message) => message.type !== 'analyse-provisoire'), sans.messages);
+  assert.deepEqual({ ...avecProvisoire, messages: null }, { ...sans, messages: null });
+});
 
 test('le relevé et le moteur reçoivent le même budget ; les cessions conservent constats et corrections', async () => {
   let pauses = 0;
@@ -154,6 +218,7 @@ test('annuler pendant la construction des cibles de contraste abandonne les plag
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  sansProvisoireNiMoteur(b);
   assert.ok(plagesLues > 0 && plagesLues < 600, `${plagesLues} plages lues`);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
@@ -171,14 +236,17 @@ test('annuler au milieu du contrôle de contraste arrête avant tout résultat',
   Object.defineProperty(peinture, 'couleur', { get() { mesures += 1; return couleur; } });
   for (let i = 0; i < 128; i += 1) releve.variants[0].layers.push({ ...texte, id: `texte-${i}`, nom: `Label ${i}` });
   let horloge = 0;
+  let moteurLu = false;
   const base = lecteurs(complete());
-  const traiter = traiterAvec({ ...base, releve: async () => ({ statut: 'lu', releve }) }, {
+  const traiter = traiterAvec({ ...base, releve: async () => ({ statut: 'lu', releve }), moteur: async () => { moteurLu = true; return { etat: 'complete', export: exportDe() }; } }, {
     horloge: () => horloge += 2, budgetDeCalculMs: 1,
     respirer: async () => {
       if (mesures > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  sansProvisoireNiMoteur(b);
+  assert.equal(moteurLu, false);
   assert.ok(mesures > 0 && mesures < 129, `${mesures} contrastes mesurés`);
   assert.equal(deType(b, 'analyse')[0].statut, 'annulee');
   assert.deepEqual(deType(b, 'analyse')[0].constats, []);
@@ -213,6 +281,7 @@ test('annuler pendant la matérialisation des modes arrête avant la fin du prod
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  sansProvisoireNiMoteur(b);
   assert.ok(nomsLus > 0 && nomsLus < 8 + 64 + 512, `${nomsLus} combinaisons matérialisées`);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
@@ -243,6 +312,7 @@ test('annuler dans les cibles après le contraste arrête avant la fin des varia
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  sansProvisoireNiMoteur(b);
   assert.ok(ciblesLues > 0 && ciblesLues < 90, `${ciblesLues} cibles lues`);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
@@ -270,6 +340,7 @@ test('annuler pendant le produit des variantes arrête les oublis avant la matri
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  sansProvisoireNiMoteur(b);
   assert.ok(valeursLues > 0 && valeursLues < 16 + 256 + 4096, `${valeursLues} valeurs du produit lues`);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
@@ -302,6 +373,7 @@ test('annuler au milieu des couches abandonne les liaisons restantes', async () 
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  sansProvisoireNiMoteur(b);
   assert.ok(typesLus > 0 && typesLus < 128, `${typesLus} types lus`);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
@@ -332,6 +404,7 @@ test('annuler pendant l’index des corrections ne rend aucune correction', asyn
   });
   await traiter({ type: 'analyser' }, b.contexte);
   assert.equal(annulee, true);
+  assert.equal(deType(b, 'analyse-provisoire').length, 1);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
   assert.deepEqual(resultat.constats, []);
@@ -365,6 +438,8 @@ test('annuler pendant les résolutions C29 abandonne les candidats numériques r
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  // Le calcul des corrections suit le provisoire : l'annulation arrive après lui, et rien d'applicable n'est retenu.
+  assert.equal(deType(b, 'analyse-provisoire').length, 1);
   assert.ok(valeursLues > 0 && valeursLues < 2 * 256, `${valeursLues} valeurs de candidats lues`);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
@@ -400,6 +475,8 @@ test('annuler pendant les couleurs C25 abandonne le catalogue restant', async ()
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  // Le calcul des corrections suit le provisoire : l'annulation arrive après lui, et rien d'applicable n'est retenu.
+  assert.equal(deType(b, 'analyse-provisoire').length, 1);
   assert.ok(typesLus > 0 && typesLus < 12000, `${typesLus} couleurs lues`);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
@@ -435,6 +512,7 @@ test('annuler au milieu des signatures du mapping abandonne les modes restants',
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  sansProvisoireNiMoteur(b);
   assert.ok(aliasLus > 0 && aliasLus < 256, `${aliasLus} alias lus`);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
@@ -468,6 +546,7 @@ test('annuler pendant la découverte des collections de la library arrête avant
     },
   });
   await traiter({ type: 'analyser' }, contexte);
+  sansProvisoireNiMoteur(b);
   assert.ok(demandes > 0 && demandes < 90, `${demandes} collections demandées`);
   assert.equal(fichierLu, false);
   assert.equal(moteurLu, false);
@@ -498,6 +577,7 @@ test('annuler pendant les tokens du nommage abandonne le catalogue restant', asy
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  sansProvisoireNiMoteur(b);
   assert.ok(nomsLus > 0 && nomsLus < 256, `${nomsLus} noms de tokens lus`);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
@@ -536,6 +616,7 @@ test('annuler au milieu de la remontée des fonds du thème abandonne les ancêt
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  sansProvisoireNiMoteur(b);
   assert.ok(visiblesLus > 0 && visiblesLus < 256, `${visiblesLus} ancêtres lus`);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
@@ -573,6 +654,7 @@ test('annuler au milieu d’un groupe de 256 valeurs de la structure abandonne l
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  sansProvisoireNiMoteur(b);
   assert.ok(valeursLues > 0 && valeursLues < 256, `${valeursLues} valeurs lues`);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
@@ -593,6 +675,7 @@ test('annuler à une cession des contrôles ne rend aucun constat', async () => 
     },
   });
   await traiter({ type: 'analyser' }, b.contexte);
+  sansProvisoireNiMoteur(b);
   assert.equal(annulee, true);
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
@@ -1011,7 +1094,7 @@ test('la mesure couvre le sujet avant le moteur, ferme la trace et garde les sor
     assert.equal(avec.mesure?.etapes[0].ms, 37);
     assert.equal(avec.mesure?.totalMs, 56);
     assert.ok(avec.mesure?.etapes.some(({ nom }) => nom === 'interne-du-moteur'));
-    assert.deepEqual(avec.mesure?.phases?.map(({ nom }) => nom), ['sujet', 'releve', 'catalogue', 'moteur', 'regles', 'controles', 'corrections', 'projection', 'projection']);
+    assert.deepEqual(avec.mesure?.phases?.map(({ nom }) => nom), ['sujet', 'releve', 'catalogue', 'controles', 'moteur', 'regles', 'controles', 'corrections', 'projection', 'projection']);
     assert.equal(avec.mesure?.compteurs.nodesParcourus, 13);
     assert.ok((avec.mesure?.compteurs.tailleSortieArchitect ?? 0) > 0);
     assert.equal(avec.mesure?.fin, 'complete');
@@ -1081,7 +1164,7 @@ test('chaque contrôle du kit ouvre son étape et porte l’avance de son seul c
       // La fusion lit `releve.variants` une fois, pour les identifiants de variants du moteur.
       assert.equal(etapes.at(-1)!.ms, 7);
       assert.ok(new Set(attendu.map(([, ms]) => ms)).size > 1 && attendu.some(([, ms]) => ms > 0), 'la fixture distingue les contrôles');
-      assert.deepEqual(avec.mesure!.phases!.map(({ nom }) => nom), ['sujet', 'releve', 'catalogue', 'moteur', 'regles', 'controles', 'corrections', 'projection', 'projection']);
+      assert.deepEqual(avec.mesure!.phases!.map(({ nom }) => nom), ['sujet', 'releve', 'catalogue', 'controles', 'moteur', 'regles', 'controles', 'corrections', 'projection', 'projection']);
       assert.deepEqual(avec.constats, sans.constats);
       assert.deepEqual(avec.lecture, sans.lecture);
       assert.deepEqual(avec.variants, sans.variants);

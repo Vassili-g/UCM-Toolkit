@@ -5,7 +5,7 @@
 ## Tâches à committer
 
 - [x] **3.1 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : définir un message provisoire distinct de partielle ; tester génération, double envoi et rejet d'un message tardif.
-- [ ] **3.2 | gpt-6.1-sol | high** | **Claude Sonnet | high** : ordonner contrôles du kit, lecture des ignorés, provisoire puis moteur ; vérifier l'ordre final et la même sortie sans provisoire.
+- [x] **3.2 | gpt-6.1-sol | high** | **Claude Sonnet | high** : ordonner contrôles du kit, lecture des ignorés, provisoire puis moteur ; vérifier l'ordre final et la même sortie sans provisoire.
 - [ ] **3.3 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : interdire côté sandbox corrections, réponses, Ignorer et préparation applicable tant que le résultat est provisoire ; test d'écriture forgée.
 - [ ] **3.4 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : appliquer le même verrou dans l'interface et conserver identifiants, défilement et sections ouvertes au passage au final.
 - [ ] **3.5 | gpt-6-luna | low** | **Claude Sonnet | low** : afficher la mention de la maquette et masquer les sections tenues pendant le provisoire ; état de galerie dédié.

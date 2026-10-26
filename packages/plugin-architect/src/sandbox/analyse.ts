@@ -485,6 +485,28 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     catalogueLu = catalogue;
     compter('variablesDuCatalogue', catalogue.variables.length);
     if (jeton.leve) return rendre('annulee', [], null);
+
+    // Les contrôles du kit passent avant le moteur : leurs constats partent en provisoire, sans correction, pendant que le moteur lit les composants imbriqués.
+    const architectureUcm = (() => {
+      try { return lireLaDeclaration(contexte.figma) === 'ucm'; }
+      catch { return false; }
+    })();
+    phase('controles');
+    const controles = await controlesDuKit(releve, catalogue, niveau, architectureUcm, cooperation);
+    if (jeton.leve) return rendre('annulee', [], null);
+    // Les ignorés se lisent avant le premier envoi : le provisoire dit déjà lesquels ne comptent pas. Son étape garde leur coût hors du dernier contrôle.
+    etape('provisoire');
+    const rangees = await attendrePourLaMesure(async () => await lecteurs.ignores?.(contexte).catch((): readonly string[] => []) ?? []);
+    if (jeton.leve) return rendre('annulee', [], null);
+    const envoyee = demande.demande === undefined ? undefined : mesuresEnvoyees.get(demande.demande);
+    if (envoyee && controles.length) envoyee.envois['premiers-constats'] = Date.now();
+    contexte.envoyer({
+      type: 'analyse-provisoire', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}),
+      constats: controles, ignores: separerLesIgnores(controles, rangees).ignores, lecture: releve.lecture, variants: releve.variants.map(({ id, nom }) => ({ id, nom })),
+    });
+    await cooperation.cederSiBesoin();
+    if (jeton.leve) return rendre('annulee', [], null);
+
     phase('imbriques');
     const resultat = await attendrePourLaMesure(() => lecteurs.moteur(sujet, jeton, contexte, courant.progresser, cooperation), 'attente', 'moteur');
     if (resultat.etat === 'annulee' || jeton.leve) return rendre('annulee', [], null);
@@ -493,12 +515,6 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     phase('regles');
     const reglesLues = resultat.etat === 'complete' ? await attendrePourLaMesure(async () => await lecteurs.regles?.(sujet, resultat, contexte).catch(() => null) ?? null, 'attente', 'regles') : null;
     retenirLesModeles(reglesLues);
-    const architectureUcm = (() => {
-      try { return lireLaDeclaration(contexte.figma) === 'ucm'; }
-      catch { return false; }
-    })();
-    phase('controles');
-    const controles = await controlesDuKit(releve, catalogue, niveau, architectureUcm, cooperation);
     etape('controle-fusion');
     const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
     phase('corrections');
@@ -506,7 +522,6 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     const tous = await calculerParEtapes(proposerLesCorrectionsParEtapes(releve, catalogue, brut), cooperation, 'corrections');
     if (jeton.leve) return rendre('annulee', [], null);
     await cooperation.cederSiBesoin();
-    const rangees = await attendrePourLaMesure(async () => await lecteurs.ignores?.(contexte).catch((): readonly string[] => []) ?? []);
     const { visibles, ignores } = separerLesIgnores(tous, rangees);
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
     rendre(resultat.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete', visibles, releve, ignores, tous);

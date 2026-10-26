@@ -236,6 +236,15 @@ seuil se vérifie entre unités de travail : les appels Figma, l'énumération d
 clés d'un objet et une étape du kit peuvent le dépasser. Le moteur seul ouvre
 la portée de mémoire.
 
+L'analyse enchaîne le relevé, le catalogue, les contrôles du kit, la lecture
+des ignorés, puis envoie `analyse-provisoire` : les constats des contrôles du
+kit, sans correction ni question, et les identifiants ignorés. Elle lance
+ensuite le moteur, lit les règles, propose les corrections et envoie
+`analyse`. Le message final range les constats comme avant : contrôles du kit,
+règles, moteur. Une annulation pendant le catalogue ou les contrôles du kit
+n'envoie aucun provisoire et ne lit pas le moteur. `analyse-provisoire` n'est
+pas un statut de `analyse` : seul `analyse` termine la demande.
+
 Une correction ne se propose que si elle est exacte : une règle écrite donne
 un seul candidat. Sinon le constat devient une question, sans candidat choisi
 d'avance ; la réponse du designer produit la correction. Un constat sans
