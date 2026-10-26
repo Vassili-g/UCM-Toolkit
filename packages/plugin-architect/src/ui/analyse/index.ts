@@ -60,13 +60,6 @@ function bouton(libelle: string, onClick: () => void): HTMLElement {
   return createButton({ label: libelle, variant: 'secondary', compact: true, onClick });
 }
 
-function note(texte: string): HTMLElement {
-  const element = document.createElement('p');
-  element.className = 'meta';
-  element.textContent = texte;
-  return element;
-}
-
 /** Les cartes de corrections d'un élément : celles d'une préparation d'abord. */
 const correctionsDe = (element: Pick<ElementDuPanneau, 'corrections'> & { readonly preparee?: CarteDeCorrections | null }): readonly CarteDeCorrections[] =>
   [...(element.preparee ? [element.preparee] : []), ...element.corrections];
@@ -298,7 +291,7 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     }
     if ((brute && calculEnCours(brute)) || demandeDAnalyseEnCours(etat) !== null) {
       const { libelle, barre, annuler } = progressionDe(brute && calculEnCours(brute) ? brute.progression : null);
-      return [resume(lecture, libelle), barre, annuler, note(T.attendreLesConstats)];
+      return [resume(lecture, libelle), barre, annuler];
     }
     if (brute?.statut === 'arretee') {
       const message = String(brute.constats[0]?.faits.message ?? '');

@@ -42,7 +42,7 @@ test('le panneau annonce chaque état de l’analyse, et ne dit « aucun constat
     await envoyer(page, { type: 'analyse-commencee', analyse: IDENTITE });
     await envoyer(page, { type: 'analyse-en-cours', analyse: IDENTITE, variantsLus: 5, variantsTotal: 11 });
     assert.equal(await page.locator('.arch-resume .meta').textContent(), '11 variants, analyse en cours, 5 variants sur 11');
-    assert.match(await texteDuPanneau(page), /Les constats s’afficheront à la fin de l’analyse\./);
+    assert.doesNotMatch(await texteDuPanneau(page), /s’afficheront à la fin/);
     assert.equal(await page.getByRole('button', { name: 'Analyser' }).isDisabled(), true);
 
     const lecture = { layersLus: 2000, layersNonLus: 640, variantsNonLus: ['Severity=warning, Variant=standard'], manquees: [] };
