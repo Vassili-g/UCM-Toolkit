@@ -24,7 +24,7 @@ import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { ouvrirLaMesure, fermerLaMesure, etape, compter, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
-import { creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation, type OptionsDeCooperation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
+import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation, type OptionsDeCooperation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
 import type { NoeudLu } from '../consommateurs';
@@ -205,7 +205,7 @@ export interface Lecteurs {
   /** Le sujet de la sélection, `null` hors de tout composant. */
   sujet(contexte: Contexte): Promise<SujetAAnalyser | null>;
   releve(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (fait: number, total: number) => void, cooperation?: ContexteCooperatif): Promise<IssueDuReleve>;
-  catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte): Promise<CatalogueDeReference>;
+  catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif): Promise<CatalogueDeReference>;
   moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (phase: PhaseDAnalyse) => void, cooperation?: ContexteCooperatif): Promise<ResultatDAnalyse>;
   /** Les règles d'usage du composant, lues avec le contrat du moteur ; sans lecteur, aucun constat C43 ni C45. */
   regles?(sujet: SujetAAnalyser, resultat: ResultatDAnalyse, contexte: Contexte): Promise<ReleveDesRegles>;
@@ -260,11 +260,11 @@ function liaisonsParCle(releve: ReleveDeComposant): Map<string, number> {
   return comptes;
 }
 
-export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte): Promise<CatalogueDeReference> {
+export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif): Promise<CatalogueDeReference> {
   const { figma } = contexte;
   const liaisons = liaisonsParCle(releve);
   try {
-    const lecture = await lireLesLibraries(figma as unknown as PortDeBibliotheque);
+    const lecture = await lireLesLibraries(figma as unknown as PortDeBibliotheque, cooperation);
     if (lecture.etat === 'lue') {
       const choisie = libraryDeReference(lecture.collections, liaisons, lireLaLibraryRangee(figma));
       if (choisie !== null) {
@@ -276,7 +276,8 @@ export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDA
         }
       }
     }
-  } catch {
+  } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) throw erreur;
     // La library ne se lit pas : le catalogue du fichier ouvert suit.
   }
   const port = portDeLecture(figma);
@@ -480,7 +481,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     retenirLesLiaisons(liaisonsParCle(releve));
     const niveau = await attendrePourLaMesure(async () => await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => 'AA') ?? 'AA');
     phase('catalogue');
-    const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte), 'attente', 'catalogue');
+    const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte, cooperation), 'attente', 'catalogue');
     catalogueLu = catalogue;
     compter('variablesDuCatalogue', catalogue.variables.length);
     if (jeton.leve) return rendre('annulee', [], null);

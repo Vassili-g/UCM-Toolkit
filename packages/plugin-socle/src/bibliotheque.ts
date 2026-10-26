@@ -4,6 +4,8 @@
  * référence (mode Composant). Les valeurs se lisent plus tard, variable par variable.
  */
 
+import type { ContexteCooperatif } from './composant/contract/porteeDAnalyse';
+
 export type TypeDeVariable = 'COLOR' | 'FLOAT' | 'STRING' | 'BOOLEAN';
 
 /** Ce que la lecture demande à Figma ; `teamLibrary` manque sans la permission du manifest. */
@@ -31,17 +33,35 @@ export type LectureDesLibraries =
 
 function motifDe(erreur: unknown): string { return erreur instanceof Error ? erreur.message : String(erreur); }
 
-/** Une collection qui lève est dite illisible avec son motif ; les autres se lisent. */
-export async function lireLesLibraries(figma: PortDeBibliotheque): Promise<LectureDesLibraries> {
+/** Lectures de collections demandées à Figma en même temps. */
+const LECTURES_EN_VOL = 8;
+
+/**
+ * Une collection qui lève est dite illisible avec son motif ; les autres se lisent. Avec `cooperation`, la lecture cède avant
+ * chaque demande et s'arrête sur un jeton levé ; au plus 8 lectures sont en vol, et les résultats gardent l'ordre des collections.
+ */
+export async function lireLesLibraries(figma: PortDeBibliotheque, cooperation?: ContexteCooperatif): Promise<LectureDesLibraries> {
   const { teamLibrary } = figma;
   if (!teamLibrary) return { etat: 'illisible', motif: 'La permission teamlibrary manque : les libraries ne se lisent pas.' };
+  await cooperation?.cederSiBesoin();
   let disponibles;
   try { disponibles = await teamLibrary.getAvailableLibraryVariableCollectionsAsync(); }
   catch (erreur) { return { etat: 'illisible', motif: motifDe(erreur) }; }
-  const lectures = await Promise.allSettled(disponibles.map((collection) => teamLibrary.getVariablesInLibraryCollectionAsync(collection.key)));
+  const lectures: PromiseSettledResult<readonly { key: string; name: string; resolvedType: string }[]>[] = new Array(disponibles.length);
+  let prochain = 0;
+  const lire = async (): Promise<void> => {
+    while (prochain < disponibles.length) {
+      await cooperation?.cederSiBesoin();
+      const rang = prochain++;
+      lectures[rang] = await Promise.resolve().then(() => teamLibrary.getVariablesInLibraryCollectionAsync(disponibles[rang].key))
+        .then((value) => ({ status: 'fulfilled' as const, value }), (reason: unknown) => ({ status: 'rejected' as const, reason }));
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(LECTURES_EN_VOL, disponibles.length) }, lire));
   const collections: CollectionDeLibrary[] = [];
   const illisibles: CollectionIllisible[] = [];
   disponibles.forEach((collection, rang) => {
+    cooperation?.verifier();
     const base = { cle: collection.key, nom: collection.name, library: collection.libraryName };
     const lecture = lectures[rang];
     if (lecture.status === 'rejected') { illisibles.push({ ...base, motif: motifDe(lecture.reason) }); return; }

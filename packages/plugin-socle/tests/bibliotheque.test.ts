@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { AnalyseAnnulee } from '../src/composant/contract/porteeDAnalyse';
 import { choisirLaLibrary, lireLesLibraries, type CollectionDeLibrary, type PortDeBibliotheque } from '../src/bibliotheque';
 
 const disponibles = [
@@ -47,6 +48,28 @@ test('sans teamLibrary, la lecture est illisible', async () => {
 test('une liste des collections qui lève rend illisible', async () => {
   const lecture = await lireLesLibraries({ teamLibrary: { getAvailableLibraryVariableCollectionsAsync: async () => { throw new Error('hors ligne'); }, getVariablesInLibraryCollectionAsync: async () => [] } });
   assert.deepEqual(lecture, { etat: 'illisible', motif: 'hors ligne' });
+});
+
+test('au plus 8 lectures de collection sont en vol, et les résultats gardent l’ordre des collections', async () => {
+  const catalogue = Array.from({ length: 40 }, (_, rang) => ({ key: `c${rang}`, name: `Collection ${rang}`, libraryName: 'Lib' }));
+  let enVol = 0;
+  let maximum = 0;
+  const lecture = await lireLesLibraries({ teamLibrary: {
+    getAvailableLibraryVariableCollectionsAsync: async () => catalogue,
+    getVariablesInLibraryCollectionAsync: async (cle) => {
+      enVol += 1;
+      maximum = Math.max(maximum, enVol);
+      // Les premières collections répondent le plus tard : l'ordre d'arrivée n'est pas l'ordre des collections.
+      await new Promise((resolve) => setTimeout(resolve, 20 - Number(cle.slice(1)) % 20));
+      enVol -= 1;
+      if (cle === 'c5') throw new Error('refusé');
+      return [{ key: `v-${cle}`, name: cle, resolvedType: 'FLOAT' }];
+    },
+  } });
+  assert.equal(maximum, 8);
+  assert.ok(lecture.etat === 'lue');
+  assert.deepEqual(lecture.collections.map((c) => c.cle), catalogue.map((c) => c.key).filter((cle) => cle !== 'c5'));
+  assert.deepEqual(lecture.illisibles.map((c) => [c.cle, c.motif]), [['c5', 'refusé']]);
 });
 
 const collections: CollectionDeLibrary[] = [

@@ -416,6 +416,40 @@ test('annuler au milieu des signatures du mapping abandonne les modes restants',
   assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
 });
 
+test('annuler pendant la découverte des collections de la library arrête avant le moteur, sans repli sur le fichier', async () => {
+  const b = banc();
+  let demandes = 0;
+  let fichierLu = false;
+  const teamLibrary = {
+    async getAvailableLibraryVariableCollectionsAsync() { return Array.from({ length: 90 }, (_, i) => ({ key: `c${i}`, name: `Collection ${i}`, libraryName: 'Lib' })); },
+    async getVariablesInLibraryCollectionAsync() { demandes += 1; return []; },
+  };
+  const contexte: Contexte = {
+    figma: { teamLibrary, root: { getSharedPluginData: () => '' }, variables: { getLocalVariablesAsync: async () => { fichierLu = true; return []; } } } as unknown as PluginAPI,
+    envoyer: (m) => b.envoyes.push(m), surveillerLeDocument() {},
+  };
+  let horloge = 0;
+  let moteurLu = false;
+  let pauses = 0;
+  const traiter = traiterAvec({
+    ...lecteurs(complete()),
+    catalogue: catalogueDeFigma,
+    moteur: async () => { moteurLu = true; return { etat: 'complete', export: exportDe() }; },
+  }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (++pauses >= 12) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, contexte);
+  assert.ok(demandes > 0 && demandes < 90, `${demandes} collections demandées`);
+  assert.equal(fichierLu, false);
+  assert.equal(moteurLu, false);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+});
+
 test('annuler pendant les tokens du nommage abandonne le catalogue restant', async () => {
   const b = banc();
   const releve = releveDe('Alert');
