@@ -387,7 +387,8 @@ function recevoir(message: PluginMessage): void {
       vueComposant.mettreAJour();
       app.rendre(['barre']);
       acquitterLeRenduDeLAnalyse(etat, message, versSandbox, undefined, undefined, recueA);
-      if (message.type === 'analyse' && message.mesure) console.info('Analyse : mesure sandbox', message.demande, message.analyse, message.mesure);
+      // Un seul objet par trace : `npm run mesure -- --traces` lit le tableau de ces objets copiés depuis la console.
+      if (message.type === 'analyse' && message.mesure) console.info('Analyse : mesure sandbox', { type: 'analyse-mesuree', demande: message.demande, analyse: message.analyse, ...message.mesure });
       return;
     case 'configuration':
       etat.reference = { library: message.library?.cle ?? null, nom: message.library?.nom ?? null, candidates: message.candidates.length };

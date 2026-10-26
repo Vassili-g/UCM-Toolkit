@@ -11,7 +11,7 @@
 - [x] **1.5 | gpt-6.1-sol | medium** : transmettre phase, compte et progression monotone ; publier une phase nouvelle au même pourcentage et réserver 100 % au final.
 - [x] **1.6 | gpt-6-luna | low** : brancher les textes de progression prévus par la maquette, puis couvrir les phases par tests sans navigateur.
 - [x] **1.7 | gpt-6-luna | low** | **Claude Haiku | low** : créer les états de galerie avec compte, sans compte, annulé et périmé ; vérifier les écrans indiqués par la galerie. Travail local : `galerie/etats/analyse.cjs`. Le mainteneur vérifie les écrans ; aucun agent ne lance `test:ui`.
-- [ ] **1.8 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : relier les traces au banc de mesure Architect et documenter leur activation dans le README existant ; comparer mesure active et inactive. Travail local : `scripts/mesurer.mjs` et `README.md` d'Architect.
+- [x] **1.8 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : relier les traces au banc de mesure Architect et documenter leur activation dans le README existant ; comparer mesure active et inactive. Travail local : `scripts/mesurer.mjs` et `README.md` d'Architect.
 
 Prérequis : 0. Nature : instrumentation et écran nouveau.
 Chemins : `packages/plugin-socle/src/composant/contract/mesure.ts`,

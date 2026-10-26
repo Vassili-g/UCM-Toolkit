@@ -191,6 +191,16 @@ npm run mesure --workspace ucm-architect-plugin
 `dist/galerie-etroite/` à 364 × 724 pour la vue composant. `mesure`
 imprime les durées du noyau et du premier rendu sur 10 000 variables.
 
+Pour mesurer une analyse de composant dans Figma, exécutez
+`globalThis.UCM_ARCHITECT_MESURER = true` dans la console de l'interface, puis
+cliquez Analyser. Les traces de console portent le numéro de demande et
+l'identité d'analyse. Copiez les objets dans un tableau JSON, puis lancez
+`npm run mesure --workspace ucm-architect-plugin -- --traces <fichier.json>`
+pour afficher leurs phases et compteurs sans navigateur. Affecter `false`
+désactive la mesure. Les durées du sandbox et de l'interface utilisent chacune
+leur horloge ; les acquittements mesurent les allers-retours. Le rendu est
+acquitté après deux frames, sans mesure du compositeur.
+
 `npm run fidelite --workspace ucm-architect-plugin -- [<cadre>…]` compare
 chaque cadre de `galerie/cadres.json` à l'état de galerie du même identifiant,
 dans la maquette d'UCM Architect : il range les captures côte à côte dans

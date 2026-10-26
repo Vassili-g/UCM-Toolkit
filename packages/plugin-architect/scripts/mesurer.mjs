@@ -16,6 +16,20 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Activer globalThis.UCM_ARCHITECT_MESURER = true dans l'interface, puis copier ses traces de console en tableau JSON.
+if (process.argv[2] === '--traces') {
+  const traces = JSON.parse(readFileSync(process.argv[3], 'utf8'));
+  for (const trace of traces) {
+    console.log(`Demande ${trace.demande ?? '?'} : ${trace.rendu ?? trace.fin ?? 'analyse'}`);
+    if (trace.phases) console.table(trace.phases);
+    if (trace.compteurs) console.table(trace.compteurs);
+    for (const cle of ['totalMs', 'depuisClicMs', 'receptionAuRenduMs', 'receptionAAcquittementMs', 'allerRetourMs']) {
+      if (trace[cle] !== undefined) console.log(`${cle} : ${trace[cle]} ms`);
+    }
+  }
+  process.exit(0);
+}
+
 const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const exiger = createRequire(import.meta.url);
 const sortie = path.join(racine, 'dist', 'mesure-noyau.cjs');
