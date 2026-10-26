@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import test from 'node:test';
-import { proposerLesCorrections, type CatalogueDeReference, type Constat, type LayerLu, type ReleveDeComposant, type VariantLu } from '../src/controles/index.js';
+import { proposerLesCorrections, proposerLesCorrectionsParEtapes, type CatalogueDeReference, type Constat, type LayerLu, type ReleveDeComposant, type VariantLu } from '../src/controles/index.js';
 
 /**
  * 90 variants de dix layers : les trois états du jeu Button, avec C15, C16, C17, C25 (exact, multiple) et C29 (exact,
@@ -107,4 +107,29 @@ test('proposerLesCorrections ne modifie ni le relevé, ni le catalogue, ni les c
   const avant = JSON.stringify({ releve, catalogue, constats });
   proposerLesCorrections(releve, catalogue, constats);
   assert.equal(JSON.stringify({ releve, catalogue, constats }), avant);
+});
+
+test('la voie par étapes rend la sortie de la voie synchrone, C25 et C29 compris, et cède pendant l’index', () => {
+  const { releve, catalogue, constats } = fixture();
+  const calcul = proposerLesCorrectionsParEtapes(releve, catalogue, constats);
+  let etapes = 0;
+  let resultat = calcul.next();
+  while (!resultat.done) { etapes += 1; resultat = calcul.next(); }
+  // L'index seul compte plus de 900 layers, sans compter les constats.
+  assert.ok(etapes > 900, `${etapes} étapes`);
+  const attendu = proposerLesCorrections(releve, catalogue, constats);
+  assert.deepEqual(resultat.value, attendu);
+  assert.ok(resultat.value.some(({ code }) => code === 'C25') && resultat.value.some(({ code }) => code === 'C29'));
+});
+
+test('la voie par étapes cède avant d’avoir fini l’index', () => {
+  const { releve, catalogue, constats } = fixture();
+  let layersLus = 0;
+  for (const variant of releve.variants) {
+    const layers = variant.layers;
+    variant.layers = new Proxy(layers, { get(cible, cle, recepteur) { if (cle === Symbol.iterator) layersLus += 1; return Reflect.get(cible, cle, recepteur); } });
+  }
+  const calcul = proposerLesCorrectionsParEtapes(releve, catalogue, constats);
+  calcul.next();
+  assert.ok(layersLus < 3, `${layersLus} variants lus à la première étape`);
 });

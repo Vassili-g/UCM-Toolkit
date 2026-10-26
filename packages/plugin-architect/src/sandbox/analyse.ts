@@ -17,7 +17,7 @@
  * lui-même, au clic sur un constat, ne périme rien.
  */
 import {
-  controlerCouches, controlerLAccessibiliteParEtapes, controlerLaStructure, controlerLaTypographieParEtapes, controlerLeTheme, controlerMapping, controlerNommage, controlerOublis, clesDesTokensDeTailleAttendus, proposerLesCorrections, tokensDuComposant,
+  controlerCouches, controlerLAccessibiliteParEtapes, controlerLaStructure, controlerLaTypographieParEtapes, controlerLeTheme, controlerMapping, controlerNommage, controlerOublis, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -361,8 +361,8 @@ async function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeR
 
 const enUneTranche = (calcul: () => Constat[]): Constat[] => mesurerLeCalcul(calcul, 'controles', true);
 
-/** Un contrôle du kit conduit par tranches de 32 étapes ; le budget et le jeton se vérifient entre deux tranches. */
-async function calculerParEtapes<T>(calcul: Generator<void, T>, cooperation: ContexteCooperatif): Promise<T> {
+/** Un calcul du kit (contrôle ou corrections) conduit par tranches de 32 étapes ; le budget et le jeton se vérifient entre deux tranches. */
+async function calculerParEtapes<T>(calcul: Generator<void, T>, cooperation: ContexteCooperatif, phase: 'controles' | 'corrections' = 'controles'): Promise<T> {
   for (;;) {
     await cooperation.cederSiBesoin();
     const fin = mesurerLeCalcul(() => {
@@ -371,7 +371,7 @@ async function calculerParEtapes<T>(calcul: Generator<void, T>, cooperation: Con
         if (suivant.done) return suivant;
       }
       return null;
-    }, 'controles', true);
+    }, phase, true);
     if (fin) return fin.value;
   }
 }
@@ -487,7 +487,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
     phase('corrections');
     await cooperation.cederSiBesoin();
-    const tous = mesurerLeCalcul(() => proposerLesCorrections(releve, catalogue, brut), 'corrections');
+    const tous = await calculerParEtapes(proposerLesCorrectionsParEtapes(releve, catalogue, brut), cooperation, 'corrections');
+    if (jeton.leve) return rendre('annulee', [], null);
     await cooperation.cederSiBesoin();
     const rangees = await attendrePourLaMesure(async () => await lecteurs.ignores?.(contexte).catch((): readonly string[] => []) ?? []);
     const { visibles, ignores } = separerLesIgnores(tous, rangees);

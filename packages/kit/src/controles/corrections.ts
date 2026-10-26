@@ -13,15 +13,25 @@ import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, type LayerLu,
  * portent les mêmes faits et la proposition : un même écart ne se compte qu'une fois.
  */
 export function proposerLesCorrections(releve: ReleveDeComposant, catalogue: CatalogueDeReference, constats: readonly Constat[]): Constat[] {
-  const index = indexerLeReleve(releve, catalogue);
-  const nouveaux = constats.flatMap((constat) => {
-    if (constat.code === 'C15') return [constatDerive(constat, 'C22')];
-    if (constat.code === 'C17') return [constatDerive(constat, 'C24')];
-    return [];
-  });
+  const calcul = proposerLesCorrectionsParEtapes(releve, catalogue, constats);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** La voie coopérative reprend exactement le calcul de la voie synchrone : une étape par entrée d'index et par constat enrichi. */
+export function* proposerLesCorrectionsParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference, constats: readonly Constat[]): Generator<void, Constat[]> {
+  const index = yield* indexerLeReleve(releve, catalogue);
+  const nouveaux: Constat[] = [];
+  for (const constat of constats) {
+    if (constat.code === 'C15') nouveaux.push(constatDerive(constat, 'C22'));
+    if (constat.code === 'C17') nouveaux.push(constatDerive(constat, 'C24'));
+    yield;
+  }
   const gardes = constats.filter((constat) => constat.code !== 'C15' && constat.code !== 'C17');
   nouveaux.push(...constatsManquants(releve), ...constatsDeValeursEnDur(releve));
-  const enrichis = [...gardes.filter((constat) => constat.code === 'C16'), ...nouveaux].map((constat) => {
+  const enrichis: Constat[] = [];
+  for (const constat of [...gardes.filter((entree) => entree.code === 'C16'), ...nouveaux]) {
     const proposition = constat.code === 'C16'
       ? corrigerAxe(constat, releve, catalogue, index)
       : constat.code === 'C22'
@@ -31,8 +41,9 @@ export function proposerLesCorrections(releve: ReleveDeComposant, catalogue: Cat
           : constat.code === 'C25'
             ? corrigerLiaisonManquante(constat, releve, catalogue, index)
             : corrigerValeurEnDur(constat, releve, catalogue, index);
-    return proposition ? { ...constat, ...proposition } : constat;
-  });
+    enrichis.push(proposition ? { ...constat, ...proposition } : constat);
+    yield;
+  }
   return [...gardes.filter((constat) => constat.code !== 'C16'), ...enrichis];
 }
 
@@ -56,22 +67,25 @@ interface IndexDeCorrection {
   tokensDeTailleLus(): boolean;
 }
 
-function indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeReference): IndexDeCorrection {
+function* indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, IndexDeCorrection> {
   const layers = new Map<string, LayerLu[]>();
   const variants = new Map<string, { variant: VariantLu; rang: number }>();
-  releve.variants.forEach((variant, rang) => {
+  for (const [rang, variant] of releve.variants.entries()) {
     if (!variants.has(variant.id)) variants.set(variant.id, { variant, rang });
     for (const layer of variant.layers) {
       const memes = layers.get(layer.id);
       if (memes) memes.push(layer);
       else layers.set(layer.id, [layer]);
+      yield;
     }
-  });
+    yield;
+  }
   const variablesParNom = new Map<string, VariableDuCatalogue[]>();
   for (const variable of catalogue.variables) {
     const memes = variablesParNom.get(variable.nom);
     if (memes) memes.push(variable);
     else variablesParNom.set(variable.nom, [variable]);
+    yield;
   }
   let axes: ReturnType<typeof axesDuReleve> | undefined;
   let tokens: ReturnType<typeof tokensDuComposant> | undefined;
@@ -79,7 +93,10 @@ function indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefere
   let lus: boolean | undefined;
   // `find` rend la première collection de la clé : l'index garde elle aussi la première.
   const roles = new Map<string, Collection | null>();
-  for (const entree of catalogue.collections) if (!roles.has(entree.cle)) roles.set(entree.cle, entree.role);
+  for (const entree of catalogue.collections) {
+    if (!roles.has(entree.cle)) roles.set(entree.cle, entree.role);
+    yield;
+  }
   return {
     layers, variants, variablesParNom,
     axes: () => (axes ??= axesDuReleve(releve)),

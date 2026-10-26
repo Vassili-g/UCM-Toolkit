@@ -13,7 +13,7 @@ import { constatsDuMoteur } from '../src/constatsDuMoteur';
 import { traiter as traiterLesQuestions } from '../src/sandbox/questions';
 import { verifierLaPariteDeLAnalyse } from './parite';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
-import { analyseCourante, perimerApresUneEcriture, reinitialiserLAnalyse, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
+import { analyseCourante, correctionsDeLAnalyse, perimerApresUneEcriture, reinitialiserLAnalyse, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
 import { origineDeLaSelection, retenirLaSelectionDuPlugin } from '../src/sandbox/commun';
 import type { Contexte } from '../src/sandbox/contexte';
 
@@ -152,6 +152,34 @@ test('annuler au milieu du contrôle de contraste arrête avant tout résultat',
   assert.ok(mesures > 0 && mesures < 129, `${mesures} contrastes mesurés`);
   assert.equal(deType(b, 'analyse')[0].statut, 'annulee');
   assert.deepEqual(deType(b, 'analyse')[0].constats, []);
+});
+
+test('annuler pendant l’index des corrections ne rend aucune correction', async () => {
+  const b = banc();
+  const releve = releveDe('Alert');
+  for (let i = 0; i < 256; i += 1) {
+    releve.variants[0].layers.push({
+      id: `extra-${i}`, nom: `extra-${i}`, type: 'FRAME', parent: null, visible: true, opacite: 1,
+      dimensions: { x: 0, y: 0, largeur: 10, hauteur: 10 }, peintures: [], valeursEnDur: [], liaisons: [],
+    });
+  }
+  let pauses = 0;
+  let annulee = false;
+  let horloge = 0;
+  const traiter = traiterAvec({ ...lecteurs(complete()), releve: async () => ({ statut: 'lu', releve }) }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (annulee || deType(b, 'analyse-en-cours').slice(-1)[0]?.progression?.phase !== 'corrections' || ++pauses < 3) return;
+      annulee = true;
+      await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.equal(annulee, true);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+  assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
 });
 
 test('annuler à une cession des contrôles ne rend aucun constat', async () => {
