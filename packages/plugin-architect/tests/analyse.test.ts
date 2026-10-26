@@ -347,6 +347,35 @@ test('annuler au milieu des signatures du mapping abandonne les modes restants',
   assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
 });
 
+test('annuler pendant les tokens du nommage abandonne le catalogue restant', async () => {
+  const b = banc();
+  const releve = releveDe('Alert');
+  let nomsLus = 0;
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'c', nom: 'components', role: 'components', etat: 'lue', modes: [] }],
+    variables: Array.from({ length: 256 }, (_, i) => ({
+      cle: `v${i}`, get nom() { nomsLus += 1; return 'alert/color/background'; }, collection: 'c', etat: 'presente', type: 'COLOR',
+    })),
+  };
+  let horloge = 0;
+  const traiter = traiterAvec({
+    ...lecteurs(complete(), 'Alert', catalogue),
+    releve: async () => ({ statut: 'lu', releve }),
+  }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (nomsLus > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.ok(nomsLus > 0 && nomsLus < 256, `${nomsLus} noms de tokens lus`);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+  assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
+});
+
 test('annuler à une cession des contrôles ne rend aucun constat', async () => {
   const b = banc();
   let horloge = 0;

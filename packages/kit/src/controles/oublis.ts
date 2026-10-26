@@ -4,7 +4,7 @@ import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js'
 import type { CatalogueDeReference } from './catalogue.js';
 import type { Constat } from './constat.js';
 import { liaisonsDuReleve } from './mapping.js';
-import { axesDuReleve, constatDuComposant, segmentDAxe, tokensDuComposant, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { axesDuReleve, axesDuReleveParEtapes, constatDuComposant, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import type { ReleveDeComposant, VariantLu } from './releve.js';
 
 function memeValeur(axe: AxeDuComposant, gauche: string, droite: string): boolean {
@@ -54,8 +54,8 @@ export function* controlerOublisParEtapes(releve: ReleveDeComposant, catalogue: 
   const constats: Constat[] = [];
   const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0;
   if (!lectureComplete) return constats;
-  const axes = axesDuReleve(releve);
-  const tokens = tokensDuComposant(releve, catalogue);
+  const axes = yield* axesDuReleveParEtapes(releve);
+  const tokens = yield* tokensDuComposantParEtapes(releve, catalogue);
   const collection = catalogue.collections.find((entree) => entree.role === 'components');
 
   const matrice = yield* combinaisons(releve.proprietes);

@@ -17,7 +17,7 @@
  * lui-même, au clic sur un constat, ne périme rien.
  */
 import {
-  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructure, controlerLaTypographieParEtapes, controlerLeTheme, controlerMappingParEtapes, controlerNommage, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
+  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructure, controlerLaTypographieParEtapes, controlerLeTheme, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -344,7 +344,7 @@ const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? e
 async function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeReference, niveau: NiveauDAccessibilite, architectureUcm: boolean, cooperation: ContexteCooperatif): Promise<Constat[]> {
   type Controle = [nom: string, controler: () => Constat[] | Promise<Constat[]>];
   const controles: Controle[] = [
-    ['controle-nommage', () => enUneTranche(() => controlerNommage(releve, catalogue))],
+    ['controle-nommage', () => calculerParEtapes(controlerNommageParEtapes(releve, catalogue), cooperation)],
     ['controle-mapping', () => calculerParEtapes(controlerMappingParEtapes(releve, catalogue), cooperation)],
     ['controle-couches', () => calculerParEtapes(controlerCouchesParEtapes(releve, catalogue), cooperation)],
     ['controle-oublis', () => calculerParEtapes(controlerOublisParEtapes(releve, catalogue), cooperation)],

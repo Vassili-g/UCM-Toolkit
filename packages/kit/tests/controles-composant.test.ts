@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  axeDePropriete, controlerNommage, controlerMapping, controlerMappingParEtapes, controlerCouches, controlerCouchesParEtapes, controlerOublis, controlerOublisParEtapes,
+  axeDePropriete, axesDuReleve, axesDuReleveParEtapes, tokensDuComposant, tokensDuComposantParEtapes,
+  controlerNommage, controlerNommageParEtapes, controlerMapping, controlerMappingParEtapes, controlerCouches, controlerCouchesParEtapes, controlerOublis, controlerOublisParEtapes,
   type CatalogueDeReference, type ReleveDeComposant, type VariantLu,
 } from '../src/controles/index.js';
 
@@ -22,6 +23,95 @@ function catalogue(...noms: string[]): CatalogueDeReference {
 
 const axe = (nom: string, valeurs: string[]): ReleveDeComposant['proprietes'][number] => ({
   nom, type: 'VARIANT', valeurs, defaut: valeurs[0],
+});
+
+function epuiser<T>(calcul: Generator<void, T>): T {
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+test('les axes et tokens par étapes conservent priorité, références et lecture du style', () => {
+  const r = releve('Alert', [
+    axe('Severity', ['info', 'warning']), axe('Variant', ['Outlined']), axe('Style', ['standard']),
+    { nom: 'State', type: 'TEXT', defaut: 'default' },
+  ]);
+  const c = catalogue('alert/color/info/outline/background', 'other/color/background');
+  c.variables.push({ cle: 'hors-components', nom: 'alert/color/background', collection: 'absente', type: 'COLOR', etat: 'presente' });
+  const axes = epuiser(axesDuReleveParEtapes(r));
+  assert.deepEqual(axes, { palette: r.proprietes[0], style: r.proprietes[1] });
+  assert.deepEqual(axes, axesDuReleve(r));
+  const tokens = epuiser(tokensDuComposantParEtapes(r, c));
+  assert.deepEqual(tokens, tokensDuComposant(r, c));
+  assert.equal(tokens.length, 1);
+  assert.equal(tokens[0].variable, c.variables[0]);
+  assert.deepEqual(tokens[0].segments, ['alert', 'color', 'info', 'outline', 'background']);
+  assert.deepEqual(tokens[0].lecture, [
+    { segment: 'alert', role: 'composant', registre: 'composants' },
+    { segment: 'color', role: 'famille', registre: 'familles-composant', terme: 'color' },
+    { segment: 'info', role: 'palette', registre: 'palettes-composant', terme: 'info' },
+    { segment: 'outline', role: 'style', registre: 'styles-composant' },
+    { segment: 'background', role: 'role', registre: 'roles', terme: 'background' },
+  ]);
+});
+
+test('le nommage par étapes conserve les constats et candidats ordonnés', () => {
+  const r = releve('Alert', [axe('Severity', ['info', 'warning']), axe('Variant', ['Outlined'])]);
+  r.variants = [variante('a', { Severity: 'info', Variant: 'Outlined' }, 'v0'), variante('b', { Severity: 'info', Variant: 'Outlined' }, 'v0')];
+  const c = catalogue('alert/colors/info/outline/background', 'alert/color/warning/filled/background');
+  const attendu = [
+    {
+      id: 'C7:style:Outlined', code: 'C7', famille: 'variants', type: 'verifier', variants: [], layers: [],
+      faits: { axe: 'Variant', valeur: 'Outlined' },
+    },
+    {
+      id: 'C8:colors:color', code: 'C8', famille: 'tokens', type: 'corriger', variants: [], layers: [],
+      faits: { token: 'alert/colors/info/outline/background', segment: 'colors', attendu: 'color', tokens: 1 },
+    },
+    {
+      id: 'C12:Alert:Variant:Outlined', code: 'C12', famille: 'variants', type: 'verifier', variants: ['a', 'b'], layers: [],
+      faits: { jeu: 'Alert', propriete: 'Variant', avant: 'Outlined' },
+      question: { id: 'C12:Alert:Variant:Outlined', candidats: [{ nom: 'outline' }] },
+    },
+  ];
+  assert.deepEqual(epuiser(controlerNommageParEtapes(r, c)), attendu);
+  assert.deepEqual(controlerNommage(r, c), attendu);
+});
+
+test('mapping et oublis cèdent avant la lecture de tous les tokens partagés', () => {
+  for (const controler of [controlerMappingParEtapes, controlerOublisParEtapes]) {
+    const r = releve('Alert');
+    const c = catalogue();
+    let nomsLus = 0;
+    c.variables = Array.from({ length: 256 }, (_, i) => ({
+      cle: `v${i}`, get nom() { nomsLus += 1; return 'alert/color/background'; }, collection: 'composants', type: 'COLOR', etat: 'presente',
+    }));
+    const calcul = controler(r, c);
+    for (let i = 0; i < 16; i += 1) assert.equal(calcul.next().done, false);
+    assert.ok(nomsLus > 0 && nomsLus < 256, `${controler.name} : ${nomsLus} noms lus`);
+    const avantAnnulation = nomsLus;
+    calcul.return([]);
+    assert.equal(calcul.next().done, true);
+    assert.equal(nomsLus, avantAnnulation);
+  }
+});
+
+test('mapping et oublis cèdent avant la lecture de tous les tokens partagés', () => {
+  for (const controler of [controlerMappingParEtapes, controlerOublisParEtapes]) {
+    const r = releve('Alert');
+    const c = catalogue();
+    let nomsLus = 0;
+    c.variables = Array.from({ length: 256 }, (_, i) => ({
+      cle: `v${i}`, get nom() { nomsLus += 1; return 'alert/color/background'; }, collection: 'composants', type: 'COLOR', etat: 'presente',
+    }));
+    const calcul = controler(r, c);
+    for (let i = 0; i < 16; i += 1) assert.equal(calcul.next().done, false);
+    assert.ok(nomsLus > 0 && nomsLus < 256, `${controler.name} : ${nomsLus} noms lus`);
+    const avantAnnulation = nomsLus;
+    calcul.return([]);
+    assert.equal(calcul.next().done, true);
+    assert.equal(nomsLus, avantAnnulation);
+  }
 });
 
 test('C7 signale une valeur d’axe absente, mais ignore un axe que les tokens ne portent pas', () => {

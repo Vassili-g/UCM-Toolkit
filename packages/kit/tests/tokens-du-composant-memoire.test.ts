@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  axeDePropriete, axesDuReleve, controlerCouches, controlerLAccessibilite, controlerLaStructure, controlerLaTypographie, controlerLeTheme, controlerMapping, controlerNommage, controlerOublis,
+  axeDePropriete, axesDuReleve, tokensDuComposantParEtapes, controlerCouches, controlerLAccessibilite, controlerLaStructure, controlerLaTypographie, controlerLeTheme, controlerMapping, controlerNommage, controlerOublis,
   proposerLaPropagation, proposerLesCorrections, tokensDuComposant,
   type AxeDuComposant, type CatalogueDeReference, type ReleveDeComposant, type TokenDuComposant, type VariableDuCatalogue,
 } from '../src/controles/index.js';
@@ -373,4 +373,30 @@ test('sur 2 000 variables de 20 composants, le nom du jeu est lu une fois, aucun
   assert.equal(compteurs.jeu, 1);
   assert.equal(compteurs.find, 0);
   assert.ok(Math.max(...nomsLus) <= 2, `${Math.max(...nomsLus)} lectures du nom`);
+});
+
+test('une annulation pendant tokensDuComposantParEtapes ne laisse aucune entrée en mémoire', () => {
+  let nomsLus = 0;
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'c', nom: 'components', role: 'components', modes: [], etat: 'lue' }],
+    variables: Array.from({ length: 256 }, (_, i) => ({
+      cle: `v${i}`, get nom() { nomsLus += 1; return 'alert/color/background'; }, collection: 'c', type: 'COLOR' as const, etat: 'presente' as const,
+    })),
+  };
+  const releve: ReleveDeComposant = {
+    version: 1, jeu: { cle: 'Alert', id: 'Alert', nom: 'Alert' }, proprietes: [], variants: [],
+    lecture: { layersLus: 0, layersNonLus: 0, variantsNonLus: [], manquees: [] }, espaceDeCouleur: 'srgb',
+  };
+  const calcul = tokensDuComposantParEtapes(releve, catalogue);
+  for (let i = 0; i < 16; i += 1) assert.equal(calcul.next().done, false);
+  assert.ok(nomsLus > 0 && nomsLus < 256, `${nomsLus} noms lus`);
+  calcul.return([]);
+  const apresAnnulation = nomsLus;
+  const complet = tokensDuComposant(releve, catalogue);
+  assert.equal(complet.length, 256);
+  assert.ok(nomsLus - apresAnnulation >= 256, 'le calcul suivant reprend tout');
+  const apresCalcul = nomsLus;
+  assert.equal(tokensDuComposant(releve, catalogue), complet);
+  assert.equal(nomsLus, apresCalcul);
 });

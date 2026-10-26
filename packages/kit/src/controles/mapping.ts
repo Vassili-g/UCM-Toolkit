@@ -3,7 +3,7 @@ import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { REGISTRE_ETATS, REGISTRE_ROLES, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
 import { variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { axesDuReleve, constatDuComposant, segmentDAxe, tokensDuComposant, type AxeDuComposant } from './nommage.js';
+import { axesDuReleveParEtapes, constatDuComposant, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant } from './nommage.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
 
 export interface LiaisonDuComposant { variant: VariantLu; layer: LayerLu; liaison: LiaisonLue }
@@ -139,10 +139,10 @@ export function controlerMapping(releve: ReleveDeComposant, catalogue: Catalogue
   return etape.value;
 }
 
-/** Cède dans les liaisons, les modes et la fratrie ; les axes et les tokens se lisent d'un bloc, mémorisés par le kit. */
+/** Cède dans les axes, les tokens, les liaisons, les modes et la fratrie ; les constats gardent leur ordre. */
 export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
-  const axes = axesDuReleve(releve);
-  const tokens = new Map(tokensDuComposant(releve, catalogue).map((token) => [token.variable.cle, token]));
+  const axes = yield* axesDuReleveParEtapes(releve);
+  const tokens = new Map((yield* tokensDuComposantParEtapes(releve, catalogue)).map((token) => [token.variable.cle, token]));
   const constats: Constat[] = [];
   for (const lue of parcourirLesLiaisons(releve)) {
     yield;

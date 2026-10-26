@@ -15,7 +15,7 @@
 - [x] **2.9 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper Oublis et son produit plafonné ; comparer C31 à C33 puis annuler dans la construction. Travail local : `oublis.ts` du kit.
 - [x] **2.10 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper Couches entre variants, calques et liaisons ; comparer C80/C20 et annuler dans 128 liaisons. Travail local : `couche.ts` du kit.
 - [x] **2.11 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper Mapping entre liaisons, modes et fratrie ; comparer les sorties et annuler dans 256 modes. Travail local : `mapping.ts` du kit.
-- [ ] **2.12 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper Nommage et partager ses lectures d'axes et de tokens ; comparer l'ordre des candidats et annuler dans 256 tokens. Travail local : `nommage.ts` du kit.
+- [x] **2.12 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper Nommage et partager ses lectures d'axes et de tokens ; comparer l'ordre des candidats et annuler dans 256 tokens. Travail local : `nommage.ts` du kit.
 - [ ] **2.13 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper Thème C59 dans l'index, les liaisons, les candidats et les fonds ; tester 256 ancêtres. Travail local : `theme.ts` du kit.
 - [ ] **2.14 | gpt-6-luna | medium** | **Claude Sonnet | medium** : découper les deux branches Structure d'Architect ; comparer questions, corrections et lecture partielle. Travail local : `structure.ts` du kit.
 - [ ] **2.15 | gpt-6-luna | medium** | **Claude Sonnet | medium** : borner chaque avancée C29 sur 2 000 tokens FLOAT ; garder l'empreinte des 90 variants. Travail local : `corrections.ts` (C29) et `candidatsDeLongueur.ts` du kit.
