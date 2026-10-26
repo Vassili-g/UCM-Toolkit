@@ -9,6 +9,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { contientUneInstanceRendue, getAllNodes } from 'ucm-plugin-socle/src/composant/contract/exportableNodes';
 import { localisationsDe } from 'ucm-plugin-socle/src/composant/contract/localisation';
+import { abandonnerLaMesure, fermerLaMesure, ouvrirLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { dansUnePorteeDAnalyse } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id }) as VariableAlias;
 
@@ -201,4 +203,43 @@ test('sans findAllWithCriteria, le repli sur findAll juge de même', () => {
     { type: 'INSTANCE', name: 'Masquée', visible: false },
     { type: 'FRAME', name: 'Branch', children: [{ type: 'INSTANCE', name: 'Leaf' }] },
   ]), true);
+});
+
+test('dans une portée, une racine parcourue sous deux contextes ne relève qu’une fois ses descendants', async () => {
+  const root = tree('Root', [
+    { type: 'FRAME', id: 'cadre', name: 'Cadre', children: [{ type: 'TEXT', id: 'texte', name: 'Texte' }] },
+    { type: 'INSTANCE', id: 'dependency', name: 'Dépendance', children: [{ type: 'TEXT', id: 'interne', name: 'Interne' }] },
+    { type: 'FRAME', id: 'masque', name: 'Masque', visible: false },
+  ]);
+  (root as unknown as { id: string }).id = 'root';
+  const relevesNatifs = { nombre: 0 };
+  const relever = (root as unknown as { findAll: (predicat: (node: TestNode) => boolean) => TestNode[] }).findAll;
+  (root as unknown as { findAll: unknown }).findAll = (predicat: (node: TestNode) => boolean) => {
+    relevesNatifs.nombre += 1;
+    return relever(predicat);
+  };
+  const composee = new Map([['dependency', { component: 'Other', figmaLayer: 'Dépendance' }]]);
+  const lireLesDeux = () => ({
+    libre: getAllNodes(root).map((node) => node.id),
+    compose: getAllNodes(root, [], composee).map((node) => node.id),
+  });
+
+  const horsPortee = lireLesDeux();
+  assert.equal(relevesNatifs.nombre, 2);
+
+  relevesNatifs.nombre = 0;
+  ouvrirLaMesure();
+  let dansLaPortee!: ReturnType<typeof lireLesDeux>;
+  let compteurs;
+  try {
+    await dansUnePorteeDAnalyse({}, async () => { dansLaPortee = lireLesDeux(); });
+    compteurs = fermerLaMesure('')!.compteurs;
+  } finally { abandonnerLaMesure(); }
+
+  assert.equal(relevesNatifs.nombre, 1);
+  assert.equal(compteurs.appelsGetAllNodes, 2);
+  assert.equal(compteurs.nodesParcourus, 5);
+  assert.deepEqual(dansLaPortee, horsPortee);
+  assert.deepEqual(dansLaPortee.libre, ['root', 'cadre', 'texte', 'dependency', 'interne']);
+  assert.deepEqual(dansLaPortee.compose, ['root', 'cadre', 'texte', 'dependency']);
 });

@@ -13,6 +13,7 @@
 import { variableAliases } from '../variables';
 import { getBinding } from './nodeBindings';
 import { compter } from './mesure';
+import { descendantsBruts } from './porteeDAnalyse';
 import type { ComposedDependency } from '@ucm-kit/core/format';
 import { noter, phraseDe, pointDe, pousserNote, sujet } from './localisation';
 import type { PointACorriger, Sujet } from './localisation';
@@ -170,8 +171,7 @@ function* releverLesNodesParEtapes(root: SceneNode, warnings: string[], composed
   compter('appelsGetAllNodes');
   if (composed.has(root.id)) return [root];
 
-  const descendants = 'findAll' in root ? root.findAll(() => true) : [];
-  compter('nodesParcourus', descendants.length);
+  const descendants = descendantsBruts(root);
   if (composed.size === 0) {
     let tousVisibles = true;
     const visibles = [root];

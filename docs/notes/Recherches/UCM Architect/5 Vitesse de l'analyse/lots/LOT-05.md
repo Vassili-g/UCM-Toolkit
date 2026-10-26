@@ -4,7 +4,7 @@
 
 ## Tâches à committer
 
-- [ ] **5.1 | gpt-6-luna | medium** | **Claude Sonnet | medium** : garder le parcours brut par racine dans la portée ; prouver une seule traversée de racine répétée.
+- [x] **5.1 | gpt-6-luna | medium** | **Claude Sonnet | medium** : garder le parcours brut par racine dans la portée ; prouver une seule traversée de racine répétée.
 - [ ] **5.2 | gpt-6.1-sol | high** | **Claude Sonnet | high** : appliquer après ce parcours les frontières composées et les filtres de visibilité selon chaque contexte ; comparer masqués statiques et dynamiques.
 - [ ] **5.3 | gpt-6-luna | medium** | **Claude Sonnet | medium** : mémoriser les chemins de texte par contexte complet composé et noms d'icônes ; tester deux contextes sur la même racine.
 - [ ] **5.4 | gpt-6-luna | medium** | **Claude Sonnet | medium** : rejouer diagnostics, parties et localisations par destination ; comparer la sortie ordonnée.

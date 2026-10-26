@@ -82,6 +82,8 @@ export function creerContexteCooperatif(options: OptionsDeCooperation = {}): Con
 type Portee = {
   /** Le maître de chaque instance déjà demandée, par id d'instance. */
   maitres: Map<string, Promise<ComponentNode | null>>;
+  /** Le parcours brut de chaque racine, par id : tous ses descendants, avant frontière ni filtre de visibilité. */
+  parcours: Map<string, readonly SceneNode[]>;
   cooperation: ContexteCooperatif;
 };
 
@@ -123,6 +125,7 @@ export async function dansUnePorteeDAnalyse<T>(
   }
   const ouverte: Portee = {
     maitres: new Map(),
+    parcours: new Map(),
     cooperation: options.cooperation ?? creerContexteCooperatif(options),
   };
   portee = ouverte;
@@ -142,9 +145,7 @@ export async function dansUnePorteeDAnalyse<T>(
  * demandé qu'une fois.
  */
 export function maitreDe(instance: InstanceNode): Promise<ComponentNode | null> {
-  const memoire = portee && porteesRefusees === 0 && !desactivee && typeof instance.id === 'string'
-    ? portee.maitres
-    : null;
+  const memoire = typeof instance.id === 'string' ? porteeQuiMemorise()?.maitres : undefined;
   const deja = memoire?.get(instance.id);
   if (deja) {
     compter('maitresReutilises');
@@ -153,6 +154,31 @@ export function maitreDe(instance: InstanceNode): Promise<ComponentNode | null> 
   const lecture = lireLeMaitre(instance);
   memoire?.set(instance.id, lecture);
   return lecture;
+}
+
+/** La portée qui garde ses mémoires, ou null : hors portée, portée refusée en cours, ou banc sans mémoire. */
+function porteeQuiMemorise(): Portee | null {
+  return portee && porteesRefusees === 0 && !desactivee ? portee : null;
+}
+
+/**
+ * Tous les descendants d'une racine, dans l'ordre de `findAll`, sans la racine.
+ *
+ * Le relevé natif de Figma ne dépend ni des frontières composées ni de la
+ * visibilité : il est lu une fois par racine et par portée, et chaque appelant
+ * applique ensuite son propre contexte sur le tableau rendu, qu'il ne modifie pas.
+ * Un node sans `findAll` n'a pas de descendants. Seul le relevé effectif
+ * compte dans `nodesParcourus`.
+ */
+export function descendantsBruts(racine: SceneNode): readonly SceneNode[] {
+  if (!('findAll' in racine)) return [];
+  const memoire = typeof racine.id === 'string' ? porteeQuiMemorise()?.parcours : undefined;
+  const deja = memoire?.get(racine.id);
+  if (deja) return deja;
+  const descendants = racine.findAll(() => true);
+  compter('nodesParcourus', descendants.length);
+  memoire?.set(racine.id, descendants);
+  return descendants;
 }
 
 function lireLeMaitre(instance: InstanceNode): Promise<ComponentNode | null> {

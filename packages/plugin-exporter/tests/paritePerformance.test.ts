@@ -9,7 +9,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import exporterLeComposant, { ETAPES_DE_L_ANALYSE } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
-import { abandonnerLaMesure, avancementCourant, ouvrirLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { abandonnerLaMesure, avancementCourant, fermerLaMesure, ouvrirLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import type { Avancement } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { BUDGET_DE_CALCUL_MS, respirerSiBesoin } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 import { desactiverLaPorteePourLeBanc } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
@@ -151,6 +151,34 @@ test('les acquisitions comptent séparément les lectures de variants et les ma�
     assert.equal(sansPortee.maitresParInstance.size, 16);
     assert.ok([...avecPortee.maitresParInstance.values()].every((nombre) => nombre === 1));
     assert.ok([...sansPortee.maitresParInstance.values()].every((nombre) => nombre >= 1));
+  } finally {
+    fichier.restaurer();
+  }
+});
+
+test('le parcours brut de chaque racine se lit une fois par portée, sans changer le contrat', async () => {
+  const fichier = monterLeSet(8);
+  const lire = async (sansPortee: boolean) => {
+    desactiverLaPorteePourLeBanc(sansPortee);
+    ouvrirLaMesure();
+    try {
+      const { content } = await exporterLeComposant();
+      return { content: sansDate(content), compteurs: fermerLaMesure(content)!.compteurs };
+    } finally {
+      abandonnerLaMesure();
+      desactiverLaPorteePourLeBanc(false);
+    }
+  };
+  try {
+    const avecPortee = await lire(false);
+    const sansPortee = await lire(true);
+    assert.equal(avecPortee.content, sansPortee.content);
+    // Les appels de `getAllNodes` restent les mêmes : seul le relevé natif est partagé entre eux.
+    assert.equal(avecPortee.compteurs.appelsGetAllNodes, sansPortee.compteurs.appelsGetAllNodes);
+    assert.ok(
+      avecPortee.compteurs.nodesParcourus! < sansPortee.compteurs.nodesParcourus!,
+      `${avecPortee.compteurs.nodesParcourus} nodes avec portée, ${sansPortee.compteurs.nodesParcourus} sans`,
+    );
   } finally {
     fichier.restaurer();
   }
