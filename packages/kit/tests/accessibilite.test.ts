@@ -55,6 +55,23 @@ test('C49 : un texte gris clair sur blanc manque de contraste, un texte noir pas
   assert.equal(parCode(cc(releve([variant('a', [racine(), texte([solide('fills', gris(0))])])])), 'C49').length, 0);
 });
 
+test('la construction des cibles cède avant de lire toutes les plages de texte', () => {
+  const layer = texte([solide('fills', gris(0.6))]);
+  let plagesLues = 0;
+  const plages: NonNullable<LayerLu['texte']>['plages'] = Array.from({ length: 256 }, (_, rang) => ({
+    debut: rang, fin: rang + 1, fontSize: 14, fontWeight: 400, peintures: [], liaisons: [],
+  }));
+  for (const plage of plages) Object.defineProperty(plage, 'peintures', { enumerable: true, get: () => { plagesLues += 1; return [solide('fills', gris(0.6))]; } });
+  layer.texte!.plages = plages;
+  const r = releve([variant('a', [racine(), layer])]);
+  const calcul = controlerLAccessibiliteParEtapes(r, catalogueVide, { niveau: 'AA' });
+  for (let i = 0; i < 10; i += 1) assert.equal(calcul.next().done, false);
+  assert.ok(plagesLues > 0 && plagesLues < 256, `${plagesLues} plages lues`);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  assert.deepEqual(etape.value, cc(r));
+});
+
 test('les contrôles finaux par étapes conservent les groupes et leur ordre', () => {
   const anneau: LayerLu = {
     id: 'anneau', nom: 'Focus ring', type: 'RECTANGLE', parent: 'r', visible: true, opacite: 1,

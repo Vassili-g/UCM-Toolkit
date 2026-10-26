@@ -135,6 +135,32 @@ test('le relevé et le moteur reçoivent le même budget ; les cessions conserve
   assert.ok(pauses >= 8);
 });
 
+test('annuler pendant la construction des cibles de contraste abandonne les plages restantes', async () => {
+  const b = banc();
+  const releve = releveDeContraste('Alert');
+  const texte = releve.variants[0].layers[1];
+  let plagesLues = 0;
+  const modele = texte.texte!.plages[0];
+  texte.texte!.plages = Array.from({ length: 600 }, (_, rang) => {
+    const plage = { ...modele, debut: rang, fin: rang + 1 };
+    Object.defineProperty(plage, 'peintures', { enumerable: true, get() { plagesLues += 1; return modele.peintures; } });
+    return plage;
+  });
+  let horloge = 0;
+  const traiter = traiterAvec({ ...lecteurs(complete()), releve: async () => ({ statut: 'lu', releve }) }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (plagesLues > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.ok(plagesLues > 0 && plagesLues < 600, `${plagesLues} plages lues`);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+  assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
+});
+
 test('annuler au milieu du contrôle de contraste arrête avant tout résultat', async () => {
   const b = banc();
   const releve = releveDeContraste('Alert');

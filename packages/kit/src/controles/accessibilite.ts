@@ -274,11 +274,14 @@ function versRgb8(c: Rgba): Rgb8 {
 
 /* ---------- C49 et C50 ---------- */
 
-function ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag): Cible[] {
+/** Cède par layer visible et par plage de texte ; la liste rendue est celle de la voie synchrone. */
+function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag): Generator<void, Cible[]> {
   const cibles: Cible[] = [];
   for (const layer of layersVisibles(variant)) {
+    yield;
     if (layer.type === 'TEXT') {
       for (const plage of layer.texte?.plages ?? []) {
+        yield;
         const grand = estGrandTexte(plage.fontSize, plage.fontWeight);
         cibles.push({
           layer, code: 'C49', usage: grand ? 'grand-texte' : 'texte', champ: 'fills',
@@ -318,7 +321,8 @@ function* mesurerLeVariant(
   variant: VariantLu, combinaisons: Combinaison[], catalogue: CatalogueDeReference, niveau: NiveauWcag,
   groupes: Map<string, GroupeMesure>, limites: Map<string, Constat>,
 ): Generator<void, void> {
-  for (const cible of ciblesDeContraste(variant, niveau)) {
+  const cibles = yield* ciblesDeContraste(variant, niveau);
+  for (const cible of cibles) {
     yield;
     let pire: { rapport: number; etiquette: string; premierPlan: string; fond: string } | null = null;
     let echecs = 0;
