@@ -22,6 +22,9 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - annonce.ts : le type `Annonce`, par lequel le moteur dit son étape sans dépendre de l'UI
 - variables.ts : index commun, collisions et alias
 
+## src/composant/analyse/
+- faits.ts : faits ordinaires d'une analyse, sans type Figma : topologie, champs acquis, mixtes, refusés ou non demandés, segments, maîtres, ressources, provenance et couverture
+
 ## src/composant/contract/
 - exportComponent.ts : orchestration et métadonnées
 - componentTree.ts : axes, matrice et wrapper de layout
