@@ -9,6 +9,9 @@ const { alertCorrections, constatsAlert, panneauOuvert, perime } = require('./co
 const variants = analyseAlert.variants;
 const lu = (statut, constats, lecture = null, lus = variants) => ({ message: { type: 'analyse', analyse: IDENTITE, statut, constats, lecture, variants: lus } });
 const OUVRIR = { clic: '.bouton-panneau' };
+const COMMENCEE = { message: { type: 'analyse-commencee', analyse: IDENTITE } };
+const enCours = (progression, variantsLus = 0, variantsTotal = 0) => ({ message: { type: 'analyse-en-cours', analyse: IDENTITE, variantsLus, variantsTotal, progression } });
+const LECTURE_DES_VARIANTS = [COMMENCEE, enCours({ phase: 'releve', fraction: 0.14, fait: 5, total: 11 }, 5, 11)];
 const alertLu = [preferences(), etroite, choisir(alertEnJeu), composant(alertEnJeu), apercu(alertEnJeu)];
 const alertAnalyse = [preferences(), etroite, choisir(alertCorrections), composant(alertCorrections), apercu(alertCorrections)];
 
@@ -34,8 +37,28 @@ const ETATS = [
   },
   {
     id: 'e-cours', titre: 'Analyse en cours', quand: 'L’analyse a lu 5 variants sur 11.',
-    regarder: 'Le résumé dit « analyse en cours, 5 variants sur 11 » ; une ligne grise annonce que les constats viendront à la fin ; Analyser est inactif.',
-    existe: true, atteinte: [...alertLu, OUVRIR, { message: { type: 'analyse-commencee', analyse: IDENTITE } }, { message: { type: 'analyse-en-cours', analyse: IDENTITE, variantsLus: 5, variantsTotal: 11 } }],
+    regarder: 'Le résumé dit « Lecture des variants : 5 sur 11 » ; la barre reste sous 100 %, Annuler est disponible et Analyser est inactif.',
+    existe: true, atteinte: [...alertLu, OUVRIR, ...LECTURE_DES_VARIANTS],
+  },
+  {
+    id: 'analyse-library-en-cours', titre: 'Lecture de la library', quand: 'Le relevé est lu et la library est en cours de lecture.',
+    regarder: 'Le résumé dit « Lecture de la library », sans compte ni temps restant ; Annuler est disponible.',
+    existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, enCours({ phase: 'catalogue', fraction: 0.25 })],
+  },
+  {
+    id: 'analyse-structure-en-cours', titre: 'Lecture de la structure', quand: 'Le moteur a traversé les composants imbriqués et lit la structure.',
+    regarder: 'Le résumé dit « Lecture de la structure » ; la barre a avancé et ne montre aucun temps restant.',
+    existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, enCours({ phase: 'imbriques', fraction: 0.35 }), enCours({ phase: 'structure', fraction: 0.5 })],
+  },
+  {
+    id: 'analyse-regles-en-cours', titre: 'Vérification des règles', quand: 'Les lectures sont terminées et les règles sont vérifiées.',
+    regarder: 'Le résumé dit « Vérification des règles » ; la barre reste sous 100 % et Annuler est disponible.',
+    existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, enCours({ phase: 'regles', fraction: 0.7 })],
+  },
+  {
+    id: 'analyse-perimee-en-cours', titre: 'Analyse périmée pendant la lecture', quand: 'Le document change pendant la lecture des variants.',
+    regarder: 'L’alerte de péremption remplace la progression ; aucun constat n’est rendu.',
+    existe: true, atteinte: [...alertLu, OUVRIR, ...LECTURE_DES_VARIANTS, perime('document')],
   },
   {
     id: 'e-aucun', titre: 'Aucun constat', quand: 'L’analyse est complète et ne trouve rien sur les 11 variants.',
@@ -56,7 +79,7 @@ const ETATS = [
   {
     id: 'analyse-annulee', titre: 'Analyse annulée', quand: 'Le designer a annulé l’analyse avant la fin.',
     regarder: 'Une alerte d’information dit que l’analyse a été annulée et qu’aucun constat n’a été rendu ; jamais « aucun constat » en vert.',
-    existe: true, atteinte: [...alertLu, OUVRIR, lu('annulee', [], null, [])],
+    existe: true, atteinte: [...alertLu, OUVRIR, ...LECTURE_DES_VARIANTS, lu('annulee', [], null, [])],
   },
   {
     id: 'e-hors', titre: 'Composant hors UCM', quand: 'Le fichier n’est pas déclaré UCM ; le panneau est ouvert.',
