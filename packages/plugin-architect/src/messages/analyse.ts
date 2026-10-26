@@ -15,15 +15,18 @@ export type StatutDAnalyse = 'complete' | 'partielle' | 'annulee' | 'arretee';
 /** Ce qui a rendu l'analyse périmée : une écriture du plugin, un changement du document, une autre sélection. */
 export type CauseDePeremption = 'ecriture' | 'document' | 'selection';
 
+export type RenduDAnalyse = 'premier-affichage' | 'premiers-constats' | 'resultat-final';
+
 export type DemandeDAnalyse =
-  | { type: 'analyser'; mesurer?: boolean }
-  | { type: 'annuler-analyse'; analyse: IdentiteDAnalyse };
+  | { type: 'analyser'; demande?: number; mesurer?: boolean }
+  | { type: 'annuler-analyse'; analyse?: IdentiteDAnalyse; demande?: number }
+  | { type: 'analyse-rendue'; demande: number; analyse: IdentiteDAnalyse; rendu: RenduDAnalyse; depuisClicMs: number; receptionAuRenduMs: number };
 
 export type MessageDAnalyse =
-  | { type: 'analyse-commencee'; analyse: IdentiteDAnalyse }
-  | { type: 'analyse-en-cours'; analyse: IdentiteDAnalyse; variantsLus: number; variantsTotal: number }
+  | { type: 'analyse-commencee'; analyse: IdentiteDAnalyse; demande?: number; mesure?: true }
+  | { type: 'analyse-en-cours'; analyse: IdentiteDAnalyse; variantsLus: number; variantsTotal: number; demande?: number }
   | { type: 'analyse'; analyse: IdentiteDAnalyse; statut: StatutDAnalyse; constats: readonly Constat[]; lecture: ReleveDeComposant['lecture'] | null; variants: readonly { id: string; nom: string }[];
       /** Vrai quand le relevé et le catalogue sont lus et que la collection `components` n'a aucune variable du jeu. */
-      sansTokens: boolean; mesure?: TraceDeMesure }
+      sansTokens: boolean; demande?: number; mesure?: TraceDeMesure }
   | { type: 'perime'; analyse: IdentiteDAnalyse; cause: CauseDePeremption }
-  | { type: 'occupe'; analyse: IdentiteDAnalyse };
+  | { type: 'occupe'; analyse: IdentiteDAnalyse; demande?: number };

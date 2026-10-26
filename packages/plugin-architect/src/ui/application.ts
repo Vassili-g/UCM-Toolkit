@@ -8,7 +8,7 @@ import { TAILLE_COMPOSANT_PANNEAU_OUVERT, TAILLE_ETROITE, type Disposition } fro
 import type { Preferences } from '../preferences';
 import { contexteDeColonne, type Resultat } from '../resolution';
 import type { Constat } from '../messages/commun';
-import { noterLEnvoi } from './composant/analyse';
+import { noterLEnvoi, noterLaDemandeDAnalyse, demandeDAnalyseEnCours } from './composant/analyse';
 import type { Etat, Filtres } from './etat';
 import { PREFIXE_TERME, retenirLesFormes } from './recherche/requete';
 import { versSandbox } from './pont';
@@ -76,6 +76,7 @@ export interface Application {
   actualiser(): void;
   /** Lance l'analyse du composant sélectionné. */
   analyser(): void;
+  annulerAnalyse(): void;
   /** Écrit dans Figma les corrections cochées ; `liaisons` compte celles qui lient un layer, pour la ligne d'écriture en cours. Sans effet pendant une écriture ou sur une analyse périmée. */
   appliquer(ids: readonly string[], liaisons: number): void;
   /** Sélectionne ces layers dans Figma : seul geste du plugin qui change la sélection. */
@@ -216,7 +217,17 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       app.rendre(['barre', 'pied', 'table']);
     },
     analyser() {
-      versSandbox({ type: 'analyser' });
+      if (demandeDAnalyseEnCours(etat) !== null) return;
+      const demande = app.nouvelleDemande();
+      const mesurer = (globalThis as typeof globalThis & { UCM_ARCHITECT_MESURER?: boolean }).UCM_ARCHITECT_MESURER === true;
+      noterLaDemandeDAnalyse(etat, demande, mesurer);
+      versSandbox({ type: 'analyser', demande, ...(mesurer ? { mesurer: true } : {}) });
+      app.rendre(['vue', 'barre']);
+    },
+    annulerAnalyse() {
+      const demande = demandeDAnalyseEnCours(etat);
+      if (demande !== null) versSandbox({ type: 'annuler-analyse', demande });
+      else if (etat.analyse?.statut === 'en-cours') versSandbox({ type: 'annuler-analyse', analyse: etat.analyse.identite });
     },
     appliquer(ids, liaisons) {
       const { analyse } = etat;

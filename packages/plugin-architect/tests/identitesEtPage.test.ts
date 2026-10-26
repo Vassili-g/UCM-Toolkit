@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
 
+import { etatInitial } from '../src/ui/etat';
+import { recevoirUneAnalyse, noterLaDemandeDAnalyse, acquitterLeRenduDeLAnalyse, demandeDAnalyseEnCours } from '../src/ui/composant/analyse';
 import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 import { constatsDuMoteur } from '../src/constatsDuMoteur';
@@ -54,4 +56,43 @@ test('défaut 9 : sélectionner un nœud imbriqué périme l’analyse, un varia
   assert.equal(envoyes.filter((m) => m.type === 'perime').length, 0);
   surSelection('imbrique', 'figma', contexte);
   assert.equal(envoyes.filter((m) => m.type === 'perime').length, 1);
+});
+
+test('une ancienne demande ou génération ne remplace pas l’analyse retenue ; un progrès tardif est ignoré', () => {
+  const etat = etatInitial();
+  noterLaDemandeDAnalyse(etat, 2, false, 0);
+  recevoirUneAnalyse(etat, { type: 'analyse-commencee', demande: 2, analyse: { sujet: 'Alert', generation: 2 } });
+  const retenue = etat.analyse;
+  recevoirUneAnalyse(etat, { type: 'analyse-commencee', demande: 1, analyse: { sujet: 'Button', generation: 3 } });
+  assert.equal(etat.analyse, retenue);
+  recevoirUneAnalyse(etat, { type: 'analyse-commencee', analyse: { sujet: 'Button', generation: 1 } });
+  assert.equal(etat.analyse, retenue);
+  recevoirUneAnalyse(etat, { type: 'perime', analyse: retenue!.identite, cause: 'document' });
+  recevoirUneAnalyse(etat, { type: 'analyse-en-cours', analyse: retenue!.identite, variantsLus: 7, variantsTotal: 8 });
+  assert.equal(etat.analyse?.progression, null);
+  assert.equal(demandeDAnalyseEnCours(etat), 2);
+  recevoirUneAnalyse(etat, { type: 'occupe', analyse: retenue!.identite, demande: 2 });
+  assert.equal(demandeDAnalyseEnCours(etat), null);
+});
+
+test('les acquittements corrèlent demande et identité avec une seule horloge locale ; un rendu remplacé se tait', () => {
+  const etat = etatInitial();
+  noterLaDemandeDAnalyse(etat, 7, true, 1000);
+  const message = { type: 'analyse-commencee' as const, demande: 7, mesure: true as const, analyse: { sujet: 'Alert', generation: 2 } };
+  recevoirUneAnalyse(etat, message);
+  let instant = 1010;
+  const frames: Array<() => void> = [];
+  const envoyes: unknown[] = [];
+  acquitterLeRenduDeLAnalyse(etat, message, (m) => envoyes.push(m), (rendre) => frames.push(rendre), () => instant);
+  acquitterLeRenduDeLAnalyse(etat, message, (m) => envoyes.push(m), (rendre) => frames.push(rendre), () => instant);
+  assert.equal(frames.length, 1);
+  instant = 1034;
+  frames.shift()!();
+  assert.deepEqual(envoyes, [{ type: 'analyse-rendue', demande: 7, analyse: message.analyse, rendu: 'premier-affichage', depuisClicMs: 34, receptionAuRenduMs: 24 }]);
+  const final = { type: 'analyse' as const, demande: 7, analyse: message.analyse, statut: 'complete' as const, constats: [], lecture: null, variants: [], sansTokens: false };
+  recevoirUneAnalyse(etat, final);
+  acquitterLeRenduDeLAnalyse(etat, final, (m) => envoyes.push(m), (rendre) => frames.push(rendre), () => instant);
+  noterLaDemandeDAnalyse(etat, 8, true, 1040);
+  frames.shift()!();
+  assert.equal(envoyes.length, 1);
 });

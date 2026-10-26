@@ -18,7 +18,7 @@ import { estMessageDeNomenclature } from '../messages/nomenclature';
 import { creerApplication, type Branchements, type Zone } from './application';
 import { creerArbre } from './arbre';
 import { creerBarre } from './barre';
-import { noterLaDemandeDesLiaisons, preparationALier, recevoirUneAnalyse } from './composant/analyse';
+import { acquitterLeRenduDeLAnalyse, noterLaDemandeDesLiaisons, preparationALier, recevoirUneAnalyse } from './composant/analyse';
 import { creerCorpsDuComposant } from './composant/corps';
 import { creerFiche } from './fiche';
 import { monterPreparation } from './preparation';
@@ -284,6 +284,7 @@ function demanderLesLiaisons(): void {
 const demandeCourante = (demande: number): boolean => etat.lecture.statut === 'en-cours' && etat.lecture.demande === demande;
 
 function recevoir(message: PluginMessage): void {
+  const recueA = performance.now();
   if (new Set(['plan-de-preparation', 'preparations', 'preparation-texte', 'texte-refuse', 'variables-creees', 'liaisons-preparees']).has(message.type)) {
     preparation.recevoir(message as MessageDePreparation);
     if (message.type === 'preparations') {
@@ -385,6 +386,8 @@ function recevoir(message: PluginMessage): void {
       }
       vueComposant.mettreAJour();
       app.rendre(['barre']);
+      acquitterLeRenduDeLAnalyse(etat, message, versSandbox, undefined, undefined, recueA);
+      if (message.type === 'analyse' && message.mesure) console.info('Analyse : mesure sandbox', message.demande, message.analyse, message.mesure);
       return;
     case 'configuration':
       etat.reference = { library: message.library?.cle ?? null, nom: message.library?.nom ?? null, candidates: message.candidates.length };

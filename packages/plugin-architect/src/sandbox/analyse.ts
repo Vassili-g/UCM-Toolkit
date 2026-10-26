@@ -44,7 +44,7 @@ import { libraryDeReference, lireLeNiveau } from './configuration';
 import type { Contexte, Traiter } from './contexte';
 import { portDeLecture, selectionLue } from './lectureDeFigma';
 
-export const TYPES: readonly DemandeDAnalyse['type'][] = ['analyser', 'annuler-analyse'];
+export const TYPES: readonly DemandeDAnalyse['type'][] = ['analyser', 'annuler-analyse', 'analyse-rendue'];
 
 interface AnalyseCourante {
   readonly identite: IdentiteDAnalyse;
@@ -321,6 +321,7 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
 };
 
 interface Operation {
+  demande?: number;
   cloreMesure?: (fin: string, contenu?: string) => TraceDeMesure | null;
   /** Connue dès que le sujet est résolu ; une seconde demande l'attend pour répondre `occupe`. */
   readonly identite: Promise<IdentiteDAnalyse>;
@@ -329,6 +330,7 @@ interface Operation {
 }
 
 let operation: Operation | null = null;
+const mesuresEnvoyees = new Map<number, { reception: number; identite: IdentiteDAnalyse; envois: Partial<Record<import('../messages/analyse').RenduDAnalyse, number>> }>();
 
 const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
 
@@ -351,11 +353,13 @@ function bloquant(message: string): Constat {
 
 async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract<DemandeDAnalyse, { type: 'analyser' }>): Promise<void> {
   if (operation) {
-    contexte.envoyer({ type: 'occupe', analyse: await operation.identite });
+    contexte.envoyer({ type: 'occupe', analyse: await operation.identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}) });
     return;
   }
+  const reception = Date.now();
   let connaitre!: (identite: IdentiteDAnalyse) => void;
   const courant: Operation = { identite: new Promise((resolve) => { connaitre = resolve; }), connue: null, jeton: { leve: false } };
+  courant.demande = demande.demande;
   operation = courant;
   if (demande.mesurer) ouvrirLaMesure();
   let mesureOuverte = demande.mesurer === true;
@@ -383,7 +387,12 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     const contenu = mesureOuverte ? JSON.stringify(sortie) : '';
     if (mesureOuverte) compter('tailleSortieArchitect', contenu.length);
     const mesure = courant.cloreMesure?.(statut, contenu);
-    contexte.envoyer({ type: 'analyse', analyse: identite as IdentiteDAnalyse, statut, ...sortie, ...(mesure ? { mesure } : {}) });
+    const envoyee = demande.demande === undefined ? undefined : mesuresEnvoyees.get(demande.demande);
+    if (envoyee) {
+      envoyee.envois['resultat-final'] = Date.now();
+      if (tous.length && envoyee.envois['premiers-constats'] === undefined) envoyee.envois['premiers-constats'] = Date.now();
+    }
+    contexte.envoyer({ type: 'analyse', analyse: identite as IdentiteDAnalyse, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), statut, ...sortie, ...(mesure ? { mesure } : {}) });
     if (releve !== null) contexte.envoyer({ type: 'ignores', analyse: identite as IdentiteDAnalyse, constats: ecartes });
   };
   try {
@@ -392,7 +401,12 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined);
     courant.connue = identite;
     connaitre(identite);
-    contexte.envoyer({ type: 'analyse-commencee', analyse: identite });
+    if (demande.mesurer && demande.demande !== undefined) {
+      mesuresEnvoyees.clear();
+      mesuresEnvoyees.set(demande.demande, { reception, identite, envois: { 'premier-affichage': Date.now() } });
+    }
+    contexte.envoyer({ type: 'analyse-commencee', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), ...(demande.mesurer ? { mesure: true } : {}) });
+    if (courant.jeton.leve) return rendre('annulee', [], null);
     if (!sujet) return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
     const { jeton } = courant;
 
@@ -401,7 +415,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (issue.statut === 'annule' || jeton.leve) return rendre('annulee', [], null);
     if (issue.statut === 'sans-sujet') return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
     const { releve } = issue;
-    contexte.envoyer({ type: 'analyse-en-cours', analyse: identite, variantsLus: releve.variants.length, variantsTotal: releve.variants.length + releve.lecture.variantsNonLus.length });
+    contexte.envoyer({ type: 'analyse-en-cours', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), variantsLus: releve.variants.length, variantsTotal: releve.variants.length + releve.lecture.variantsNonLus.length });
 
     retenirLesLiaisons(liaisonsParCle(releve));
     const niveau = await attendrePourLaMesure(async () => await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => 'AA') ?? 'AA');
@@ -455,9 +469,11 @@ export function prendreLaPlaceDUneEcriture(identite: IdentiteDAnalyse): { libere
   return { liberer: () => { if (operation === prise) operation = null; } };
 }
 
-function annuler(identite: IdentiteDAnalyse): void {
+function annuler(demande: Extract<DemandeDAnalyse, { type: 'annuler-analyse' }>): void {
+  const identite = demande.analyse;
+  if (operation && demande.demande !== undefined && operation.demande === demande.demande) { operation.jeton.leve = true; return; }
   const connue = operation?.connue;
-  if (!operation || !connue || connue.sujet !== identite.sujet || connue.generation !== identite.generation) return;
+  if (!operation || !connue || !identite || connue.sujet !== identite.sujet || connue.generation !== identite.generation) return;
   operation.jeton.leve = true;
 }
 
@@ -468,8 +484,17 @@ export function traiterAvec(lecteurs: Lecteurs): Traiter<DemandeDAnalyse> {
       case 'analyser':
         await analyser(contexte, lecteurs, demande);
         return;
+      case 'analyse-rendue': {
+        const envoyee = mesuresEnvoyees.get(demande.demande);
+        const envoi = envoyee?.envois[demande.rendu];
+        if (!envoyee || envoi === undefined || !memeIdentite(envoyee.identite, demande.analyse)) return;
+        delete envoyee.envois[demande.rendu];
+        console.info('Analyse : acquittement sandbox', { ...demande, receptionAAcquittementMs: Date.now() - envoyee.reception, allerRetourMs: Date.now() - envoi });
+        if (Object.keys(envoyee.envois).length === 0) mesuresEnvoyees.delete(demande.demande);
+        return;
+      }
       case 'annuler-analyse':
-        annuler(demande.analyse);
+        annuler(demande);
         return;
     }
   };
@@ -481,4 +506,5 @@ export const traiter = traiterAvec(LECTEURS_DE_FIGMA);
 export function reinitialiserLAnalyse(): void {
   operation = null;
   courante = null;
+  mesuresEnvoyees.clear();
 }

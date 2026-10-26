@@ -538,3 +538,22 @@ test('un arrêt et une péremption ferment leur mesure', async () => {
   assert.equal(deType(b, 'analyse')[0].mesure?.fin, 'perimee');
   assert.equal(fermerLaMesure(''), null);
 });
+
+test('annuler par demande avant la résolution du sujet ferme une mesure annulée', async () => {
+  const b = banc();
+  let resoudre!: () => void;
+  const attente = new Promise<void>((resolve) => { resoudre = resolve; });
+  const lectures = lecteurs(complete());
+  const sujet = lectures.sujet;
+  lectures.sujet = async (contexte) => { await attente; return sujet(contexte); };
+  const traiter = traiterAvec(lectures);
+  const analyse = traiter({ type: 'analyser', demande: 44, mesurer: true }, b.contexte);
+  await traiter({ type: 'annuler-analyse', demande: 43 }, b.contexte);
+  await traiter({ type: 'annuler-analyse', demande: 44 }, b.contexte);
+  resoudre();
+  await analyse;
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.equal(resultat.mesure?.fin, 'annulee');
+  assert.equal(fermerLaMesure(''), null);
+});

@@ -10,7 +10,7 @@ import { TYPES_D_ALERTE, type TypeDAlerte } from '@ucm-kit/core/referentiel';
 
 import type { LectureDeComposant } from '../../composant';
 import type { PluginMessage } from '../../messages';
-import type { CauseDePeremption } from '../../messages/analyse';
+import type { CauseDePeremption, RenduDAnalyse } from '../../messages/analyse';
 import type { Constat, Correction, IdentiteDAnalyse } from '../../messages/commun';
 import type { PreparationVue } from '../../messages/preparation';
 import type { LiaisonEnAttente } from '../../preparations';
@@ -76,7 +76,11 @@ const visibles = (tous: readonly Constat[], ignores: readonly string[]): Constat
 /** Retient le message du sandbox. `occupe` ne change que l'écriture en cours. */
 export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): void {
   const courante = etat.analyse;
+  const demande = demandes.get(etat);
+  if ('demande' in message && message.demande !== undefined && demande && message.demande !== demande.id) return;
+  if ((message.type === 'analyse' || message.type === 'occupe') && demande && message.demande === demande.id) demande.terminee = true;
   if (message.type === 'analyse-commencee') {
+    if (courante && message.analyse.generation <= courante.identite.generation) return;
     etat.analyse = {
       identite: message.analyse, statut: 'en-cours', constats: [], tous: [], ignores: [], repondues: {}, variants: [], lecture: null, sansTokens: false, progression: null,
       perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: Date.now(),
@@ -94,6 +98,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
   if (!courante || !memeIdentite(courante.identite, message.analyse)) return;
   switch (message.type) {
     case 'analyse-en-cours':
+      if (courante.statut !== 'en-cours' || courante.perimee) return;
       etat.analyse = { ...courante, progression: { lus: message.variantsLus, total: message.variantsTotal } };
       return;
     case 'analyse':
@@ -204,3 +209,41 @@ export function tonLePlusGrave(constats: readonly Pick<Constat, 'type'>[]): Type
   }
   return meilleur;
 }
+
+type DemandeRetenue = { id: number; debut: number; mesurer: boolean; terminee: boolean; rendus: Set<RenduDAnalyse> };
+const demandes = new WeakMap<Etat, DemandeRetenue>();
+
+/** Le clic est horodaté dans l'interface ; aucun instant du sandbox n'est soustrait de cette horloge. */
+export function noterLaDemandeDAnalyse(etat: Etat, id: number, mesurer: boolean, maintenant = performance.now()): void {
+  demandes.set(etat, { id, debut: maintenant, mesurer, terminee: false, rendus: new Set() });
+}
+
+/** Acquitte après une occasion de peinture ; la durée inclut l'attente des frames, sans prétendre mesurer le compositeur. */
+export function acquitterLeRenduDeLAnalyse(
+  etat: Etat, message: MessageRecuDeLAnalyse,
+  envoyer: (message: Extract<import('../../messages/analyse').DemandeDAnalyse, { type: 'analyse-rendue' }>) => void,
+  planifier: (rendre: () => void) => void = (rendre) => requestAnimationFrame(() => requestAnimationFrame(rendre)),
+  horloge: () => number = () => performance.now(),
+  recueA?: number,
+): void {
+  const demande = demandes.get(etat);
+  if (!demande?.mesurer || !('demande' in message) || message.demande !== demande.id || !deLAnalyseCourante(etat, message.analyse)) return;
+  const reception = recueA ?? horloge();
+  const rendus: RenduDAnalyse[] = message.type === 'analyse-commencee' ? ['premier-affichage'] : message.type === 'analyse' ? [...(message.constats.length ? ['premiers-constats' as const] : []), 'resultat-final'] : [];
+  for (const rendu of rendus) {
+    if (demande.rendus.has(rendu)) continue;
+    demande.rendus.add(rendu);
+    planifier(() => {
+      if (demandes.get(etat) !== demande || !deLAnalyseCourante(etat, message.analyse)) return;
+      const maintenant = horloge();
+      const trace = { type: 'analyse-rendue' as const, demande: demande.id, analyse: message.analyse, rendu, depuisClicMs: maintenant - demande.debut, receptionAuRenduMs: maintenant - reception };
+      console.info('Analyse : rendu interface', trace);
+      envoyer(trace);
+    });
+  }
+}
+
+export const demandeDAnalyseEnCours = (etat: Etat): number | null => {
+  const demande = demandes.get(etat);
+  return demande && !demande.terminee ? demande.id : null;
+};
