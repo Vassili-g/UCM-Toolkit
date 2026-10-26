@@ -7,7 +7,7 @@
  * qu'on ajoutera.
  */
 import assert from 'node:assert/strict';
-import exporterLeComposant from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import exporterLeComposant, { type ComponentExport } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { desactiverLaPorteePourLeBanc } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 /** Le contrat sérialisé, date d'export remplacée par une valeur fixe. */
@@ -15,21 +15,29 @@ export function sansDate(content: string): string {
   return content.replace(/("exportedAt"\s*:\s*)"[^"]*"/, '$1"-"');
 }
 
-/**
- * Réexporte la sélection courante sans mémoire, et compare au contrat produit
- * dans la portée.
- */
-export async function verifierLaParite(avecPortee: string, contexte: string): Promise<void> {
+/** Les entrées des Map gardent l'ordre d'émission dans la comparaison. */
+export function sortieComparable(resultat: ComponentExport) {
+  return {
+    ...resultat,
+    content: sansDate(resultat.content),
+    parties: [...resultat.parties],
+    localisations: [...resultat.localisations],
+    localisationsDeclarees: [...resultat.localisationsDeclarees],
+  };
+}
+
+/** Réexporte la sélection sans mémoire et compare toutes les sorties. */
+export async function verifierLaParite(avecPortee: ComponentExport, contexte: string): Promise<void> {
   desactiverLaPorteePourLeBanc(true);
-  let sansPortee: string;
+  let sansPortee: ComponentExport;
   try {
-    sansPortee = (await exporterLeComposant()).content;
+    sansPortee = await exporterLeComposant();
   } finally {
     desactiverLaPorteePourLeBanc(false);
   }
-  assert.equal(
-    sansDate(avecPortee),
-    sansDate(sansPortee),
+  assert.deepEqual(
+    sortieComparable(avecPortee),
+    sortieComparable(sansPortee),
     `${contexte} : le contrat produit dans la portée d'analyse diffère de celui produit sans mémoire`,
   );
 }

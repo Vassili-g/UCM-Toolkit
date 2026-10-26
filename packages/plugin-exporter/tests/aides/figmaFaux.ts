@@ -59,7 +59,7 @@ export async function handleExportComponent() {
   verifierLeSchema(contrat, 'sortie du moteur');
   verifierLeLecteur(contrat, 'sortie du moteur');
   verifierLaSerialisation(resultat.content, 'sortie du moteur');
-  await verifierLaParite(resultat.content, 'sortie du moteur');
+  await verifierLaParite(resultat, 'sortie du moteur');
   return resultat;
 }
 
