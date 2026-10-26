@@ -38,7 +38,7 @@ import { extractPropertyBindingsParEtapes } from './propertyBindings';
 import { compactVariantsParEtapes, internParEtapes, signatureParEtapes } from './compactVariants';
 import { CATALOGUES_DE_VUES, elideContractParEtapes, elideNeutralsParEtapes } from './elideNeutrals';
 import { serializeJsonParEtapes } from './serializeJson';
-import { extractVariantSample } from './extractSamples';
+import { extractVariantSampleParEtapes } from './extractSamples';
 import { mergeIconRules } from './mergeIconRules';
 export { mergeIconRules } from './mergeIconRules';
 import { mergePropDescriptions } from './mergePropDescriptions';
@@ -627,7 +627,7 @@ async function exporterLeComposant(
     await respirerSiBesoin();
     const component = componentsById.get(variant.nodeId);
     if (!component) continue;
-    const sample = extractVariantSample(
+    const sample = await calculerParTranches(extractVariantSampleParEtapes(
       { component, paths: extracted.exactPathsByVariant.get(component) ?? new Map() },
       appliedByVariant.get(variant.nodeId),
       extracted.targetedLayers,
@@ -635,7 +635,7 @@ async function exporterLeComposant(
       mainByInstanceId,
       swapDefaults,
       propertySurfaces,
-    );
+    ));
     if (Object.keys(sample).length > 0) variant.sample = sample;
   }
 

@@ -10,12 +10,13 @@ import { normalizeName, toRef } from '@ucm-kit/core/format';
 import { firstVariableAlias } from '../variables';
 import type { TokenResolver } from '../variables';
 import type { VariantMatrix } from './componentTree';
-import { textNodes } from './exportableNodes';
+import { getAllNodesParEtapes } from './exportableNodes';
 import type { ComposedInstances } from './exportableNodes';
 import type { VariantLayoutNodes } from './layoutNodes';
 import { normalizePropValue } from './parsers';
-import { publishedSlots, publishesChildren } from './structureTree';
-import { composedSlotDependencies } from './slotRelations';
+import { publishesChildrenParEtapes } from './structureTree';
+import { composedSlotDependenciesParEtapes } from './slotRelations';
+import { assignSlotsParEtapes } from './slotNames';
 import { insertVariantLeaf } from './extractVariantTokens';
 import { avancer } from './mesure';
 import { respirerSiBesoin } from './porteeDAnalyse';
@@ -109,21 +110,38 @@ export function textSlots(
   iconNames: ReadonlySet<string> = new Set(),
   composed: ComposedInstances = new Map(),
 ): TextSlot[] {
-  const visit = (child: SceneNode, slotPath: string[], depth: number): TextSlot[] => {
-    if (composed.has(child.id)) return [];
-    if (publishesChildren(child, iconNames, composed, depth)) {
-      return publishedSlots(child, iconNames, composed).flatMap(({ child: branch, slot }) =>
-        visit(branch, [...slotPath, slot], depth + 1));
-    }
-    // Une feuille qui enveloppe une dépendance ne porte aucun texte à nous :
-    // `describeNode` s'y arrête de la même façon.
-    if (composedSlotDependencies(child, composed).length > 0) return [];
-    const texts = textNodes(child, [], composed);
-    return texts.length === 0 ? [] : [{ slotPath, textNode: texts[0], leaf: child }];
-  };
+  const calcul = textSlotsParEtapes(layoutNode, iconNames, composed);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
 
-  return publishedSlots(layoutNode, iconNames, composed)
-    .flatMap(({ child, slot }) => visit(child, [slot], 1));
+/** Mêmes chemins de texte, interruptibles dans la construction et le parcours des slots. */
+export function* textSlotsParEtapes(layoutNode: SceneNode, iconNames: ReadonlySet<string> = new Set(), composed: ComposedInstances = new Map()): Generator<void, TextSlot[]> {
+  const resultat: TextSlot[] = [];
+  const visit = function* (child: SceneNode, slotPath: string[], depth: number): Generator<void, void> {
+    yield;
+    if (composed.has(child.id)) return;
+    if (yield* publishesChildrenParEtapes(child, iconNames, composed, depth)) {
+      const slots = yield* assignSlotsParEtapes(child, iconNames, [], composed);
+      for (const { child: branch, slot } of slots) {
+        yield;
+        yield* visit(branch, [...slotPath, slot], depth + 1);
+      }
+      return;
+    }
+    if ((yield* composedSlotDependenciesParEtapes(child, composed)).length > 0) return;
+    const nodes = child.type === 'TEXT' ? [child] : yield* getAllNodesParEtapes(child, [], composed);
+    for (const textNode of nodes) {
+      yield;
+      if (textNode.type !== 'TEXT') continue;
+      resultat.push({ slotPath, textNode, leaf: child });
+      break;
+    }
+  };
+  const slots = yield* assignSlotsParEtapes(layoutNode, iconNames, [], composed);
+  for (const { child, slot } of slots) { yield; yield* visit(child, [slot], 1); }
+  return resultat;
 }
 
 /** Lit les liaisons du style lui-même, jamais celles recopiées sur le calque. */

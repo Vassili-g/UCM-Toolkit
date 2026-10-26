@@ -11,10 +11,10 @@
  * attribuer à une icône un slot que le contrat ne contient pas.
  */
 import { normalizeName } from '@ucm-kit/core/format';
-import { getAllNodes } from './exportableNodes';
+import { getAllNodes, getAllNodesParEtapes } from './exportableNodes';
 import type { ComposedInstances } from './exportableNodes';
 import { indexedSlotName, semanticSlotName } from './semantics';
-import { composedSlotDependencies } from './slotRelations';
+import { composedSlotDependenciesParEtapes } from './slotRelations';
 
 /** Un enfant direct du node de layout, et le slot qu'il occupe. */
 export type SlotAssignment = {
@@ -44,17 +44,22 @@ export function isIconLayer(node: SceneNode, iconNames: ReadonlySet<string>): bo
  * le test que `extractLayout`, `extractVariantTypography` et les signatures
  * appliquent tous : le déplacer ferait bouger tous les chemins de slots.
  */
-function baseSlotName(
+function* baseSlotName(
   child: SceneNode,
   iconNames: ReadonlySet<string>,
   composed: ComposedInstances,
-): string {
-  const isDependency = composedSlotDependencies(child, composed).length > 0;
+): Generator<void, string> {
+  const isDependency = (yield* composedSlotDependenciesParEtapes(child, composed)).length > 0;
   // `getAllNodes` renvoie le calque lui-même en plus de ses descendants : un
   // slot qui est un texte est donc reconnu comme un slot qui en contient un.
-  const contents = isDependency ? [] : getAllNodes(child, [], composed);
-  const hasText = contents.some((node) => node.type === 'TEXT');
-  const hasIcon = contents.some((node) => isIconLayer(node, iconNames));
+  const contents = isDependency ? [] : yield* getAllNodesParEtapes(child, [], composed);
+  let hasText = false;
+  let hasIcon = false;
+  for (const node of contents) {
+    yield;
+    if (node.type === 'TEXT') hasText = true;
+    if (isIconLayer(node, iconNames)) hasIcon = true;
+  }
 
   const layerName = normalizeName(child.name).replace(/\./g, '-') || 'unnamed';
   return semanticSlotName(hasText, hasIcon) ?? layerName;
@@ -77,20 +82,30 @@ export function assignSlots(
   warnings: string[] = [],
   composed: ComposedInstances = new Map(),
 ): SlotAssignment[] {
-  const exportable = new Set(getAllNodes(layoutNode, warnings, composed));
-  const children = 'children' in layoutNode
-    ? layoutNode.children.filter((child) => exportable.has(child))
-    : [];
+  const calcul = assignSlotsParEtapes(layoutNode, iconNames, warnings, composed);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
 
+/** Mêmes noms de slots, interruptibles dans les branches et les homonymes. */
+export function* assignSlotsParEtapes(layoutNode: SceneNode, iconNames: ReadonlySet<string>, warnings: string[] = [], composed: ComposedInstances = new Map()): Generator<void, SlotAssignment[]> {
+  const nodes = yield* getAllNodesParEtapes(layoutNode, warnings, composed);
+  const exportable = new Set<SceneNode>();
+  for (const node of nodes) { yield; exportable.add(node); }
+  const assignments: SlotAssignment[] = [];
   const reserves = new Set<string>();
-  return children.map((child) => {
-    const baseName = baseSlotName(child, iconNames, composed);
+  for (const child of 'children' in layoutNode ? layoutNode.children : []) {
+    yield;
+    if (!exportable.has(child)) continue;
+    const baseName = yield* baseSlotName(child, iconNames, composed);
     let index = 0;
-    while (reserves.has(indexedSlotName(baseName, index))) index += 1;
+    while (reserves.has(indexedSlotName(baseName, index))) { yield; index += 1; }
     const slot = indexedSlotName(baseName, index);
     reserves.add(slot);
-    return { child, slot };
-  });
+    assignments.push({ child, slot });
+  }
+  return assignments;
 }
 
 /**

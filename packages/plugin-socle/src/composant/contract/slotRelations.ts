@@ -5,7 +5,7 @@
  * profondément que son premier calque. Ces deux relations sont analysées ici
  * sans extraire de token ni connaître le nom du composant concerné.
  */
-import { getAllNodes, hasAncestorIn } from './exportableNodes';
+import { getAllNodes, nearestAncestorInParEtapes } from './exportableNodes';
 import type { ComposedInstances } from './exportableNodes';
 import { normalizePropKey } from './parsers';
 import type { ComposedDependency, VisibilityTarget } from '@ucm-kit/core/format';
@@ -18,14 +18,25 @@ export function composedSlotDependencies(
   child: SceneNode,
   composed: ComposedInstances,
 ): ComposedDependency[] {
+  const calcul = composedSlotDependenciesParEtapes(child, composed);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Mêmes dépendances directes, interruptibles dans les ancêtres. */
+export function* composedSlotDependenciesParEtapes(child: SceneNode, composed: ComposedInstances): Generator<void, ComposedDependency[]> {
   const direct = composed.get(child.id);
   if (direct) return [direct];
   if (composed.size === 0 || !('findAll' in child)) return [];
-
-  return child.findAll((node) => composed.has(node.id))
-    .filter((node) => !hasAncestorIn(node, child, composed))
-    .map((node) => composed.get(node.id))
-    .filter((dependency): dependency is ComposedDependency => Boolean(dependency));
+  const resultat: ComposedDependency[] = [];
+  for (const node of child.findAll((node) => composed.has(node.id))) {
+    yield;
+    if (yield* nearestAncestorInParEtapes(node, child, composed)) continue;
+    const dependency = composed.get(node.id);
+    if (dependency) resultat.push(dependency);
+  }
+  return resultat;
 }
 
 /** Vrai si `node` appartient au sous-arbre de `ancestor`, racine comprise. */

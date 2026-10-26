@@ -15,12 +15,12 @@
  * slots que `structure.children` ne contient pas.
  */
 import { variableAliases } from '../variables';
-import { getAllNodes } from './exportableNodes';
+import { getAllNodes, getAllNodesParEtapes } from './exportableNodes';
 import type { ComposedInstances } from './exportableNodes';
 import { estUnTrace, getBinding } from './nodeBindings';
-import { assignSlots, isIconLayer } from './slotNames';
+import { assignSlots, assignSlotsParEtapes, isIconLayer } from './slotNames';
 import type { SlotAssignment } from './slotNames';
-import { composedSlotDependencies } from './slotRelations';
+import { composedSlotDependencies, composedSlotDependenciesParEtapes } from './slotRelations';
 import { pointDe, sujet } from './localisation';
 import type { PointACorriger } from './localisation';
 
@@ -113,21 +113,30 @@ export function publishesChildren(
   composed: ComposedInstances,
   depth = 0,
 ): boolean {
-  if (composed.has(node.id)) return false;
-  if (node.type === 'TEXT') return false;
-  if (isIconLayer(node, iconNames)) return false;
-  if (depth >= MAX_STRUCTURE_DEPTH) return false;
+  const calcul = publishesChildrenParEtapes(node, iconNames, composed, depth);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
 
-  const assignments = assignSlots(node, iconNames, [], composed);
+/** Même décision de descente, interruptible dans les descendants et les slots. */
+export function* publishesChildrenParEtapes(node: SceneNode, iconNames: ReadonlySet<string>, composed: ComposedInstances, depth = 0): Generator<void, boolean> {
+  if (composed.has(node.id) || node.type === 'TEXT' || isIconLayer(node, iconNames) || depth >= MAX_STRUCTURE_DEPTH) return false;
+  const assignments = yield* assignSlotsParEtapes(node, iconNames, [], composed);
   if (assignments.length === 0) return false;
-
-  if (composedSlotDependencies(node, composed).length > 0) {
-    return assignments.some(
-      ({ child }) => composedSlotDependencies(child, composed).length > 0,
-    );
+  if ((yield* composedSlotDependenciesParEtapes(node, composed)).length > 0) {
+    for (const { child } of assignments) {
+      yield;
+      if ((yield* composedSlotDependenciesParEtapes(child, composed)).length > 0) return true;
+    }
+    return false;
   }
-
-  return informationDescendants(node, iconNames, composed).length > 0;
+  const descendants = yield* getAllNodesParEtapes(node, [], composed);
+  for (const descendant of descendants) {
+    yield;
+    if (descendant !== node && carriesContractInformation(descendant, iconNames, composed)) return true;
+  }
+  return false;
 }
 
 /**

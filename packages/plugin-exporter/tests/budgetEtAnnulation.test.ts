@@ -24,6 +24,7 @@ import type { ExtractedContractVariant } from '@ucm-kit/core/format';
 import { indexVariables, indexVariablesParEtapes } from 'ucm-plugin-socle/src/composant/variables';
 import { getAllNodes, getAllNodesParEtapes, contientUneInstanceRendue, contientUneInstanceRendueParEtapes } from 'ucm-plugin-socle/src/composant/contract/exportableNodes';
 import { buildVariantMatrix, buildVariantMatrixParEtapes, findMissingVariantCombinations, findMissingVariantCombinationsParEtapes } from 'ucm-plugin-socle/src/composant/contract/componentTree';
+import { extractVariantSample, extractVariantSampleParEtapes } from 'ucm-plugin-socle/src/composant/contract/extractSamples';
 import { extractPropertyBindings, extractPropertyBindingsParEtapes } from 'ucm-plugin-socle/src/composant/contract/propertyBindings';
 import { node } from './aides/figmaFaux';
 
@@ -310,17 +311,17 @@ test('la fin du moteur conserve le contrat avec cessions et annule avant de le r
   } finally { restaurer(); }
 });
 
-for (const passe of ['variables', 'calques', 'instances', 'liaisons', 'matrice', 'combinaisons'] as const) {
+for (const passe of ['variables', 'calques', 'instances', 'liaisons', 'matrice', 'combinaisons', 'échantillons'] as const) {
   test(`la passe ${passe} cède pendant 128 puis 256 lectures et conserve son résultat`, async () => {
     for (const nombre of [128, 256]) {
       let lectures = 0;
       const variables = Array.from({ length: nombre }, (_, rang) => ({
         id: `v${rang}`, variableCollectionId: 'c', get name() { lectures += 1; return `groupe/v${rang}`; },
       })) as Variable[];
-      const enfants = Array.from({ length: nombre }, () => {
+      const enfants = Array.from({ length: nombre }, (_, rang) => {
         const enfant = node(passe === 'instances' ? 'INSTANCE' : 'TEXT', `n`, [], { characters: 'Label' });
-        Object.defineProperty(enfant, passe === 'liaisons' ? 'componentPropertyReferences' : 'visible', {
-          get() { lectures += 1; return passe === 'liaisons' ? { characters: 'Label#1' } : passe !== 'instances'; },
+        Object.defineProperty(enfant, passe === 'liaisons' ? 'componentPropertyReferences' : passe === 'échantillons' ? 'characters' : 'visible', {
+          get() { lectures += 1; return passe === 'liaisons' ? { characters: 'Label#1' } : passe === 'échantillons' ? `Texte${rang}` : passe !== 'instances'; },
         });
         return enfant;
       });
@@ -340,14 +341,17 @@ for (const passe of ['variables', 'calques', 'instances', 'liaisons', 'matrice',
           : passe === 'instances' ? contientUneInstanceRendue(composant)
             : passe === 'matrice' ? buildVariantMatrix(jeu, new Map([['state', 'status']]))
               : passe === 'combinaisons' ? findMissingVariantCombinations(jeu)
+                : passe === 'échantillons' ? extractVariantSample({ component: composant, paths: new Map() }, undefined, new Set(), new Map(), new Map())
             : extractPropertyBindings(matrice, new Map([['Label#1', 'label']]), []);
       const calcul = (): Generator<void, unknown> => passe === 'variables' ? indexVariablesParEtapes(variables, new Map())
         : passe === 'calques' ? getAllNodesParEtapes(composant)
           : passe === 'instances' ? contientUneInstanceRendueParEtapes(composant)
             : passe === 'matrice' ? buildVariantMatrixParEtapes(jeu, new Map([['state', 'status']]))
               : passe === 'combinaisons' ? findMissingVariantCombinationsParEtapes(jeu)
+                : passe === 'échantillons' ? extractVariantSampleParEtapes({ component: composant, paths: new Map() }, undefined, new Set(), new Map(), new Map())
             : extractPropertyBindingsParEtapes(matrice, new Map([['Label#1', 'label']]), []);
       const attendu = reference();
+      if (passe === 'échantillons') assert.equal((attendu as { text?: unknown[] }).text?.length, nombre);
       assert.equal(lectures, nombre);
       lectures = 0;
       let precedent = 0;

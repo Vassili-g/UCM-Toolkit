@@ -32,7 +32,7 @@ import type {
 } from './composedComponents';
 import type { ComposedInstances } from './exportableNodes';
 import type { PublishedNodePaths } from './extractLayout';
-import { textSlots } from './extractVariantTypography';
+import { textSlotsParEtapes } from './extractVariantTypography';
 import {
   isStateProperty,
   normalizePropKey,
@@ -81,8 +81,16 @@ function componentPropertiesOf(instance: InstanceNode): ComponentProperties {
  * garde de confinement de la remontée.
  */
 export function isVisibleInSample(node: SceneNode, owner: SceneNode): boolean {
+  const calcul = visibleParEtapes(node, owner);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+function* visibleParEtapes(node: SceneNode, owner: SceneNode): Generator<void, boolean> {
   let current: BaseNode | null | undefined = node;
   while (current) {
+    yield;
     if ('visible' in current && current.visible === false) return false;
     if (current === owner) return true;
     current = current.parent;
@@ -104,13 +112,14 @@ export function isVisibleInSample(node: SceneNode, owner: SceneNode): boolean {
  * retirerait la clé d'`args` et la cible de `viaProps` sans que `swaps`
  * reprenne la main.
  */
-function swapTargets(
+function* swapTargets(
   scope: InstanceNode,
   composed: ComposedInstances,
-): Map<string, InstanceNode> {
+): Generator<void, Map<string, InstanceNode>> {
   const cibles = new Map<string, InstanceNode>();
   const stack: SceneNode[] = [scope];
   while (stack.length > 0) {
+    yield;
     const node = stack.pop();
     if (!node) break;
     if (node !== scope) {
@@ -125,6 +134,7 @@ function swapTargets(
     }
     const children = 'children' in node ? node.children : [];
     for (let index = children.length - 1; index >= 0; index -= 1) {
+      yield;
       stack.push(children[index]);
     }
   }
@@ -155,16 +165,18 @@ function swapReferenceOf(node: SceneNode): string | undefined {
  * la règle 1 refuse. `propertyBindings.appliedValue` porte la même règle pour
  * le composant exporté.
  */
-function argumentsOf(
+function* argumentsOf(
   properties: ComponentProperties,
   model: ContractPropertyModel,
   args: Record<string, string | boolean>,
-  resolveSwap: (figmaName: string) => InstanceNode | undefined,
+  resolveSwap: (figmaName: string) => Generator<void, InstanceNode | undefined>,
   mainByInstanceId: ReadonlyMap<string, ComponentNode>,
   viaProps: Set<string>,
   acceptedKeys?: ReadonlySet<string>,
-): void {
-  for (const [figmaName, property] of Object.entries(properties)) {
+): Generator<void, void> {
+  for (const figmaName of Object.keys(properties)) {
+    yield;
+    const property = properties[figmaName];
     const brute = normalizePropKey(figmaName);
     // Une variant property est indexée sans son « #id », les autres avec.
     const key = model.publicPropertyKeyByFigmaName.get(figmaName)
@@ -182,7 +194,7 @@ function argumentsOf(
     } else if (property.type === 'TEXT' && typeof property.value === 'string') {
       value = property.value;
     } else if (property.type === 'INSTANCE_SWAP') {
-      cible = resolveSwap(figmaName);
+      cible = yield* resolveSwap(figmaName);
       const main = cible ? mainByInstanceId.get(cible.id) : undefined;
       // Un remplacement qu'on ne sait pas nommer est omis, jamais deviné : la
       // règle 2 interdit de dégrader, et `swaps` reste alors le seul relevé.
@@ -232,23 +244,23 @@ type InstanceArguments = {
  * dépendance n'expose de remplacement natif ne parcourt aucun sous-arbre de
  * plus qu'avant.
  */
-function instanceArguments(
+function* instanceArguments(
   instance: InstanceNode,
   surface: DependencyPropertySurface,
   composed: ComposedInstances,
   mainByInstanceId: ReadonlyMap<string, ComponentNode>,
-): InstanceArguments {
+): Generator<void, InstanceArguments> {
   const args: Record<string, string | boolean> = {};
   const viaProps = new Set<string>();
   const resolveurPour = (scope: InstanceNode) => {
     let cibles: Map<string, InstanceNode> | null = null;
-    return (figmaName: string): InstanceNode | undefined => {
-      cibles ??= swapTargets(scope, composed);
+    return function* (figmaName: string): Generator<void, InstanceNode | undefined> {
+      cibles ??= yield* swapTargets(scope, composed);
       return cibles.get(figmaName);
     };
   };
 
-  argumentsOf(
+  yield* argumentsOf(
     componentPropertiesOf(instance), surface.direct, args,
     resolveurPour(instance), mainByInstanceId, viaProps,
   );
@@ -260,17 +272,19 @@ function instanceArguments(
     } catch {
       exposees = [];
     }
-    const wrappers = exposees.filter((exposee) => {
+    const wrappers: InstanceNode[] = [];
+    for (const exposee of exposees) {
+      yield;
       const main = mainByInstanceId.get(exposee.id);
-      if (!main) return false;
+      if (!main) continue;
       const owner = main.parent?.type === 'COMPONENT_SET' ? main.parent : main;
-      return owner.id === surface.wrapperOwnerId;
-    });
+      if (owner.id === surface.wrapperOwnerId) wrappers.push(exposee);
+    }
     // Zéro ou plusieurs correspondances ne donnent aucune réponse fiable :
     // jamais de première occurrence arbitraire.
     if (wrappers.length === 1) {
       const wrapper = wrappers[0];
-      argumentsOf(
+      yield* argumentsOf(
         componentPropertiesOf(wrapper), surface.wrapper.model, args,
         resolveurPour(wrapper), mainByInstanceId, viaProps,
         surface.wrapper.acceptedKeys,
@@ -290,14 +304,14 @@ function instanceArguments(
  * runtime qui n'expose pas le tableau : rien de tout cela ne doit interrompre un
  * export dont ce champ n'est qu'un complément.
  */
-function overridesOf(
+function* overridesOf(
   instance: InstanceNode,
   root: SceneNode,
   nodesById: ReadonlyMap<string, SceneNode>,
-): Array<{ node: SceneNode; override: SampleOverride }> {
+): Generator<void, Array<{ node: SceneNode; override: SampleOverride }>> {
   // Une instance que la maquette ne montre pas n'affiche aucun de ses textes.
   // Le calcul se fait une fois pour tout le relevé, pas par surcharge.
-  const instanceVisible = isVisibleInSample(instance, root);
+  const instanceVisible = yield* visibleParEtapes(instance, root);
   let releves: readonly { id: string; overriddenFields: NodeChangeProperty[] }[] = [];
   try {
     releves = instance.overrides ?? [];
@@ -313,6 +327,7 @@ function overridesOf(
   // cas rejoint alors `args`.
   const resultats: Array<{ node: SceneNode; override: SampleOverride }> = [];
   for (const releve of releves) {
+    yield;
     const node = nodesById.get(releve.id);
     if (!node || node === instance) continue;
     const champs = new Set<string>(releve.overriddenFields ?? []);
@@ -322,7 +337,7 @@ function overridesOf(
       champs.has('characters')
       && node.type === 'TEXT'
       && instanceVisible
-      && isVisibleInSample(node, instance)
+      && (yield* visibleParEtapes(node, instance))
     ) {
       override.text = node.characters;
       porte = true;
@@ -355,29 +370,52 @@ export function extractVariantSample(
   swapDefaults: SwapDefaults = new Map(),
   propertySurfaces: DependencyPropertySurfaces = new Map(),
 ): ContractSample {
+  const calcul = extractVariantSampleParEtapes(source, applied, iconNames, composed, mainByInstanceId, swapDefaults, propertySurfaces);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Même échantillon complet, interruptible dans les textes et les dépendances. */
+export function* extractVariantSampleParEtapes(
+  source: SampleSource,
+  applied: Record<string, string | boolean> | undefined,
+  iconNames: ReadonlySet<string>,
+  composed: ComposedInstances,
+  mainByInstanceId: ReadonlyMap<string, ComponentNode>,
+  swapDefaults: SwapDefaults = new Map(),
+  propertySurfaces: DependencyPropertySurfaces = new Map(),
+): Generator<void, ContractSample> {
   const sample: ContractSample = {};
 
-  if (applied && Object.keys(applied).length > 0) sample.args = { ...applied };
+  if (applied && Object.keys(applied).length > 0) {
+    const args: Record<string, string | boolean> = {};
+    for (const cle of Object.keys(applied)) { yield; Object.defineProperty(args, cle, { value: applied[cle], enumerable: true, writable: true, configurable: true }); }
+    sample.args = args;
+  }
 
   // Un texte que porte une TEXT property est déjà dans `args` : le republier
   // ici donnerait deux propriétaires au même fait.
   const texts: SampleText[] = [];
-  for (const { slotPath, textNode, leaf } of textSlots(source.component, iconNames, composed)) {
+  const slots = yield* textSlotsParEtapes(source.component, iconNames, composed);
+  for (const { slotPath, textNode, leaf } of slots) {
+    yield;
     if (textNode.componentPropertyReferences?.characters) continue;
-    if (!isVisibleInSample(textNode, source.component)) continue;
+    if (!(yield* visibleParEtapes(textNode, source.component))) continue;
     // `figmaLayer` qui vaut le texte lui-même est le cas ordinaire : Figma nomme
     // un calque texte d'après ce qu'il dit tant que personne ne l'a renommé. Le
     // signal reste entier sans être écrit deux fois : son absence dit « jamais
     // renommé », exactement ce que la redondance disait.
+    const texte = textNode.characters;
     texts.push({
       slotPath,
-      ...(leaf.name === textNode.characters ? {} : { figmaLayer: leaf.name }),
-      value: textNode.characters,
+      ...(leaf.name === texte ? {} : { figmaLayer: leaf.name }),
+      value: texte,
     });
   }
   if (texts.length > 0) sample.text = texts;
 
-  const composes = dependencySamples(
+  const composes = yield* dependencySamples(
     source,
     composed,
     mainByInstanceId,
@@ -415,21 +453,22 @@ export function extractVariantSample(
  * `mergeIconRules` y pose `runtimeProp` plutôt qu'une prop de synthèse, et ce
  * relevé-ci ne rouvre pas le choix que celui-là a fermé.
  */
-function swapsOf(
+function* swapsOf(
   instance: InstanceNode,
   root: SceneNode,
   defaults: MasterInstanceDefaults,
   composed: ComposedInstances,
   mainByInstanceId: ReadonlyMap<string, ComponentNode>,
   viaProps: ReadonlySet<string>,
-): SampleSwap[] {
+): Generator<void, SampleSwap[]> {
   const swaps: SampleSwap[] = [];
   const stack: Array<{
     node: SceneNode;
     indexes: readonly number[];
     visible: boolean;
-  }> = [{ node: instance, indexes: [], visible: isVisibleInSample(instance, root) }];
+  }> = [{ node: instance, indexes: [], visible: yield* visibleParEtapes(instance, root) }];
   while (stack.length > 0) {
+    yield;
     const current = stack.pop();
     if (!current) break;
     if (
@@ -455,6 +494,7 @@ function swapsOf(
     if (current.node.type === 'SLOT') continue;
     const children = 'children' in current.node ? current.node.children : [];
     for (let index = children.length - 1; index >= 0; index -= 1) {
+      yield;
       const child = children[index];
       stack.push({
         node: child,
@@ -477,14 +517,14 @@ function swapsOf(
  * reconnaissance supplémentaire, seulement de rattacher chacune à son plus
  * proche ancêtre contracté.
  */
-function dependencySamples(
+function* dependencySamples(
   source: SampleSource,
   composed: ComposedInstances,
   mainByInstanceId: ReadonlyMap<string, ComponentNode>,
   swapDefaults: SwapDefaults,
   propertySurfaces: DependencyPropertySurfaces,
-): SampleInstance[] {
-  const index = indexSampleDependencies(source.component, composed);
+): Generator<void, SampleInstance[]> {
+  const index = yield* indexSampleDependencies(source.component, composed);
   if (index.entries.length === 0) return [];
 
   // `propertySurfaces` est l'unique autorité sur la surface publique d'une
@@ -503,20 +543,21 @@ function dependencySamples(
   const enfantsPar = new Map<string, SampleInstance[]>();
 
   for (const { instance, dependency, parent } of index.entries) {
+    yield;
     const echantillon: SampleInstance = {
       figmaLayer: instance.name,
       component: dependency.component,
     };
     const surface = surfaceOf(instance);
     const { args, viaProps } = surface
-      ? instanceArguments(instance, surface, composed, mainByInstanceId)
+      ? yield* instanceArguments(instance, surface, composed, mainByInstanceId)
       : { args: {}, viaProps: new Set<string>() };
     if (Object.keys(args).length > 0) echantillon.args = args;
 
     const main = mainByInstanceId.get(instance.id);
     const defauts = main ? swapDefaults.get(main.id) : undefined;
     const swaps = defauts
-      ? swapsOf(instance, source.component, defauts, composed, mainByInstanceId, viaProps)
+      ? yield* swapsOf(instance, source.component, defauts, composed, mainByInstanceId, viaProps)
       : [];
     if (swaps.length > 0) echantillon.swaps = swaps;
 
@@ -535,8 +576,10 @@ function dependencySamples(
     enfantsPar.set(parent.id, fratrie);
   }
 
-  attribuerSurcharges(
-    index.entries.map(({ instance }) => instance),
+  const instances: InstanceNode[] = [];
+  for (const entree of index.entries) { yield; instances.push(entree.instance); }
+  yield* attribuerSurcharges(
+    instances,
     source.component,
     echantillons,
     index.nodesById,
@@ -544,6 +587,7 @@ function dependencySamples(
   );
 
   for (const [id, enfants] of enfantsPar) {
+    yield;
     const parent = echantillons.get(id);
     if (parent && enfants.length > 0) parent.composes = enfants;
   }
@@ -563,14 +607,14 @@ type IndexedSampleDependency = {
  * Transporter le propriétaire pendant la descente évite de remonter les parents
  * pour chaque dépendance et chaque surcharge. L'ordre reste celui du document.
  */
-function indexSampleDependencies(
+function* indexSampleDependencies(
   root: ComponentNode,
   composed: ComposedInstances,
-): {
+): Generator<void, {
   entries: IndexedSampleDependency[];
   nodesById: Map<string, SceneNode>;
   ownerByNodeId: Map<string, InstanceNode>;
-} {
+}> {
   const entries: IndexedSampleDependency[] = [];
   const nodesById = new Map<string, SceneNode>();
   const ownerByNodeId = new Map<string, InstanceNode>();
@@ -579,6 +623,7 @@ function indexSampleDependencies(
     { node: root, owner: null },
   ];
   while (stack.length > 0) {
+    yield;
     const current = stack.pop();
     if (!current) break;
     const { node, owner } = current;
@@ -597,6 +642,7 @@ function indexSampleDependencies(
 
     const children = 'children' in node ? node.children : [];
     for (let index = children.length - 1; index >= 0; index -= 1) {
+      yield;
       stack.push({ node: children[index], owner: childOwner });
     }
   }
@@ -613,17 +659,20 @@ function indexSampleDependencies(
  * router plutôt que présumer rend la lecture juste dans les deux cas, et le
  * dédoublonnage par node absorbe une éventuelle double déclaration.
  */
-function attribuerSurcharges(
+function* attribuerSurcharges(
   instances: readonly InstanceNode[],
   root: SceneNode,
   echantillons: ReadonlyMap<string, SampleInstance>,
   nodesById: ReadonlyMap<string, SceneNode>,
   ownerByNodeId: ReadonlyMap<string, InstanceNode>,
-): void {
+): Generator<void, void> {
   const vues = new Set<string>();
 
   for (const instance of instances) {
-    for (const { node, override } of overridesOf(instance, root, nodesById)) {
+    yield;
+    const surcharges = yield* overridesOf(instance, root, nodesById);
+    for (const { node, override } of surcharges) {
+      yield;
       if (vues.has(node.id)) continue;
       vues.add(node.id);
       const proprietaire = ownerByNodeId.get(node.id);

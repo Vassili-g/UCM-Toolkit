@@ -239,7 +239,7 @@ test('quarante variants donnent le même contrat et les mêmes avertissements, a
       avec = await exporterLeComposant(() => {}, {
         respirer: () => {
           respirations += 1;
-          return new Promise((resolve) => setTimeout(resolve, 0));
+          return Promise.resolve();
         },
       });
     } finally {
@@ -281,7 +281,8 @@ test('à chaque respiration, l’avancement compte les variants de chaque passe 
   // La typographie de référence tait son compte : seule la passe exacte compte
   // sous « Lecture de la typographie… ».
   const unParVariant = [0, 1, 2, 3, 4, 5, 6, 7];
-  assert.deepEqual(Object.fromEntries(comptesParPasse), {
+  const comptesDistincts = [...comptesParPasse].map(([nom, comptes]) => [nom, comptes.filter((compte, rang) => rang === 0 || compte !== comptes[rang - 1])]);
+  assert.deepEqual(Object.fromEntries(comptesDistincts), {
     'Lecture de la mise en page…': unParVariant,
     'Lecture de chaque variant…': unParVariant,
     'Lecture de la typographie…': unParVariant,

@@ -99,10 +99,19 @@ export function nearestAncestorIn(
   root: SceneNode,
   composed: ComposedInstances,
 ): ComposedDependency | null {
+  const calcul = nearestAncestorInParEtapes(node, root, composed);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Même ancêtre strict, avec une étape par parent. */
+export function* nearestAncestorInParEtapes(node: SceneNode, root: SceneNode, composed: ComposedInstances): Generator<void, ComposedDependency | null> {
   if (composed.size === 0) return null;
 
   let current: BaseNode | null | undefined = node.parent;
   while (current && current !== root) {
+    yield;
     const dependency = composed.get(current.id);
     if (dependency) return dependency;
     current = current.parent;
