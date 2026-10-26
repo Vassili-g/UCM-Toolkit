@@ -24,6 +24,8 @@ const cas: ReadonlyArray<[string, PointACorriger, { code: string; type: string; 
   ['C35 calque masqué', point('disposition', 'Layer « icon-close » : il est masqué, et aucune propriété ne pilote sa visibilité.'), { code: 'C35', type: 'verifier', famille: 'visibilite' }],
   ['C35 propriété', point('proprietes', 'Component Set « Alert » : la propriété « Show » ne pilote aucun calque.'), { code: 'C35', type: 'verifier', famille: 'visibilite' }],
   ['C41', point('variables', 'padding : certains côtés utilisent une variable introuvable.'), { code: 'C41', type: 'bloquant', famille: 'liaisons' }],
+  // Le résolveur ouvre son titre par la majuscule : il tombait en C30.
+  ['C41 du résolveur', point('variables', 'Variable introuvable sur le calque « Border » (stroke)'), { code: 'C41', type: 'bloquant', famille: 'liaisons' }],
   ['C42', point('non-exportes', 'Layer « Border » : l’alignement du stroke est illisible.'), { code: 'C42', type: 'verifier', famille: 'export' }],
   ['C44', point('regles', 'Règles : le marqueur « À compléter » est resté.'), { code: 'C44', type: 'corriger', famille: 'regles' }],
 ];

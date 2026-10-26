@@ -30,7 +30,7 @@ interface Regle {
 
 /** L'ordre compte : la première règle qui reconnaît le point l'emporte. */
 export const TABLE_DU_MOTEUR: readonly Regle[] = [
-  { code: 'C41', famille: 'liaisons', type: 'bloquant', depuis: 'variables', texte: /variable introuvable|utilisent? une variable introuvable/ },
+  { code: 'C41', famille: 'liaisons', type: 'bloquant', depuis: 'variables', texte: /[Vv]ariable introuvable/ },
   { code: 'C30', famille: 'liaisons', type: 'corriger', depuis: 'variables' },
   { code: 'C35', famille: 'visibilite', type: 'verifier', depuis: 'disposition', texte: /masqué/ },
   { code: 'C35', famille: 'visibilite', type: 'verifier', depuis: 'proprietes', texte: /pilote/ },
