@@ -5,7 +5,7 @@
 ## Tâches à committer
 
 - [x] **0.1 | gpt-6-luna | low** : étendre le comparateur exporteur aux parties, localisations et diagnostics imbriqués, dans leur ordre ; test sensible à une permutation.
-- [ ] **0.2 | gpt-6.1-sol | medium** : établir les deux fabriques Architect indépendantes et comparer messages, constats, corrections, modèles et catalogue ; test de divergence volontaire.
+- [x] **0.2 | gpt-6.1-sol | medium** : établir les deux fabriques Architect indépendantes et comparer messages, constats, corrections, modèles et catalogue ; test de divergence volontaire.
 - [ ] **0.3 | gpt-6-luna | low** : ajouter les fixtures de texte à plages, surcharge d'instance et lectures manquées ; deux acquisitions fraîches donnent la même sortie.
 - [ ] **0.4 | gpt-6-luna | low** : ajouter les fixtures de budget, retrait et ajout de variant ; comparer préfixe admis, couverture et nombre non lu.
 - [ ] **0.5 | gpt-6-luna | low** : compter listes locales, lectures par identifiant, descendants et maîtres dans les doubles ; vérifier les compteurs sans seuil temporel.

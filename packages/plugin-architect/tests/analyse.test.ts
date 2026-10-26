@@ -7,6 +7,8 @@ import { ComponentExportError, type ComponentExport, type ResultatDAnalyse } fro
 import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 import type { PluginMessage } from '../src/messages';
+import { constatsDuMoteur } from '../src/constatsDuMoteur';
+import { verifierLaPariteDeLAnalyse } from './parite';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
 import { analyseCourante, perimerApresUneEcriture, reinitialiserLAnalyse, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
 import { origineDeLaSelection, retenirLaSelectionDuPlugin } from '../src/sandbox/commun';
@@ -64,6 +66,38 @@ const attendre = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms
 const deType = <T extends PluginMessage['type']>(b: Banc, type: T) => b.envoyes.filter((m) => m.type === type) as Array<Extract<PluginMessage, { type: T }>>;
 
 beforeEach(() => reinitialiserLAnalyse());
+
+test('le banc compare deux analyses indépendantes, leurs constats, corrections, modèles, ignorés et couverture dans leur ordre', async () => {
+  let doubles = 0;
+  const fabriquer = () => {
+    doubles += 1;
+    const b = banc();
+    const moteur = exportDe([pointDeTest]);
+    moteur.localisations = new Map([[phraseDe(pointDeTest), ['v-Alert', 'texte']]]);
+    const lectures: Lecteurs = {
+      ...lecteurs(async () => ({ etat: 'complete', export: moteur })),
+      releve: async () => ({ statut: 'lu', releve: releveDeContraste('Alert') }),
+      catalogue: async () => ({ ...catalogueVide, collections: [{ cle: 'c', nom: 'Modes', role: null, etat: 'lue', modes: [{ id: 'dark', nom: 'Dark' }, { id: 'light', nom: 'Light' }] }] }),
+      regles: async () => ({
+        composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false,
+        modele: { nom: 'Alert', sections: [{ tag: 'prop', elements: [{ genre: 'regle', tag: 'prop', cible: 'severity.info' }] }] },
+        proprietes: ['severity'], documentees: [],
+      }),
+      ignores: async () => constatsDuMoteur(moteur).map(({ id }) => id),
+    };
+    return { b, lectures };
+  };
+  const reference = await verifierLaPariteDeLAnalyse(fabriquer);
+  assert.equal(doubles, 2);
+  assert.equal(reference.modeles.length, 1);
+  assert.equal(reference.corrections.length, 1);
+  assert.ok(reference.constatsRetenus.some((c) => c?.code === 'C44' && c.layers.includes('texte')));
+  assert.ok(reference.messages.some((m) => m.type === 'ignores' && m.constats.length === 1));
+  await assert.rejects(
+    () => verifierLaPariteDeLAnalyse(fabriquer, (lectures) => traiterAvec({ ...lectures, ignores: async () => [] })),
+    assert.AssertionError,
+  );
+});
 
 test('une analyse complète rend l’identité dans chaque message et les constats du moteur traduits', async () => {
   const b = banc();
