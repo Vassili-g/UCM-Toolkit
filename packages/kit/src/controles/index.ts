@@ -13,7 +13,7 @@ export {
 export { controlerLaTypographie, controlerLaTypographieParEtapes } from './typographie.js';
 export { axeDePropriete, axesDuReleve, tokensDuComposant, segmentDAxe, controlerNommage } from './nommage.js';
 export type { AxeDuComposant, TokenDuComposant } from './nommage.js';
-export { controlerMapping } from './mapping.js';
+export { controlerMapping, controlerMappingParEtapes } from './mapping.js';
 export { controlerCouches, controlerCouchesParEtapes } from './couche.js';
 export { controlerOublis, controlerOublisParEtapes } from './oublis.js';
 export { preparerLesTokens } from './preparation.js';

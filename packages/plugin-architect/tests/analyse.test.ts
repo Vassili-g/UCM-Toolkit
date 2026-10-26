@@ -312,6 +312,41 @@ test('annuler pendant l’index des corrections ne rend aucune correction', asyn
   assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
 });
 
+test('annuler au milieu des signatures du mapping abandonne les modes restants', async () => {
+  const b = banc();
+  const releve = releveDe('Alert');
+  let aliasLus = 0;
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'c', nom: 'components', role: 'components', etat: 'lue', modes: [] }],
+    variables: [{
+      cle: 'v', nom: 'alert/color/background', collection: 'c', etat: 'presente', type: 'COLOR',
+      valeurs: Object.fromEntries(Array.from({ length: 256 }, (_, i) => [`m${i}`, { get alias() { aliasLus += 1; return 'absente'; } }])),
+    }],
+  };
+  releve.variants[0].layers = [{
+    id: 'layer', nom: 'Container', type: 'FRAME', parent: null, visible: true, opacite: 1,
+    dimensions: { x: 0, y: 0, largeur: 100, hauteur: 40 }, peintures: [], valeursEnDur: [],
+    liaisons: [{ champ: 'fills', indice: 0, porteur: 'layer', variable: { id: 'v', cle: 'v', nom: 'alert/color/background', collection: 'c', distante: false } }],
+  }];
+  let horloge = 0;
+  const traiter = traiterAvec({
+    ...lecteurs(complete(), 'Alert', catalogue),
+    releve: async () => ({ statut: 'lu', releve }),
+  }, {
+    horloge: () => horloge += 2, budgetDeCalculMs: 1,
+    respirer: async () => {
+      if (aliasLus > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
+    },
+  });
+  await traiter({ type: 'analyser' }, b.contexte);
+  assert.ok(aliasLus > 0 && aliasLus < 256, `${aliasLus} alias lus`);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+  assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
+});
+
 test('annuler à une cession des contrôles ne rend aucun constat', async () => {
   const b = banc();
   let horloge = 0;

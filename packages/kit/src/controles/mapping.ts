@@ -9,7 +9,19 @@ import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve
 export interface LiaisonDuComposant { variant: VariantLu; layer: LayerLu; liaison: LiaisonLue }
 
 export function liaisonsDuReleve(releve: ReleveDeComposant): LiaisonDuComposant[] {
-  return releve.variants.flatMap((variant) => variant.layers.flatMap((layer) => layer.liaisons.map((liaison) => ({ variant, layer, liaison }))));
+  const liaisons: LiaisonDuComposant[] = [];
+  for (const liaison of parcourirLesLiaisons(releve)) if (liaison) liaisons.push(liaison);
+  return liaisons;
+}
+
+function* parcourirLesLiaisons(releve: ReleveDeComposant): Generator<LiaisonDuComposant | undefined> {
+  for (const variant of releve.variants) {
+    yield;
+    for (const layer of variant.layers) {
+      yield;
+      for (const liaison of layer.liaisons) yield { variant, layer, liaison };
+    }
+  }
 }
 
 function memeValeur(axe: AxeDuComposant, gauche: string, droite: string): boolean {
@@ -61,34 +73,56 @@ function signatureDeCible(retenue: VariableDuCatalogue, catalogue: CatalogueDeRe
 }
 
 /** Réunit la cible de chaque mode, triée : l'écart d'un seul mode change la signature, l'ordre des modes ne la change pas. */
-function signature(variable: VariableDuCatalogue, catalogue: CatalogueDeReference): string {
+function* signature(variable: VariableDuCatalogue, catalogue: CatalogueDeReference): Generator<void, string> {
   const modes = Object.values(variable.valeurs ?? {});
-  const cibles = (modes.length ? modes : [{ valeur: null }]).map((valeur) => {
+  const cibles: string[] = [];
+  for (const valeur of modes.length ? modes : [{ valeur: null }]) {
+    yield;
     const cible = 'alias' in valeur ? variableDuCatalogue(catalogue, valeur.alias) : 'absente';
-    return signatureDeCible(cible === 'absente' ? variable : cible, catalogue);
-  });
+    cibles.push(signatureDeCible(cible === 'absente' ? variable : cible, catalogue));
+  }
   return [...new Set(cibles)].sort().join(' | ');
 }
 
-function ecartsDeFratrie(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
+function* ecartsDeFratrie(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const groupes = new Map<string, { variant: VariantLu; layer: LayerLu; liaison: LiaisonLue; signe: string }[]>();
-  for (const { variant, layer, liaison } of liaisonsDuReleve(releve)) {
+  for (const lue of parcourirLesLiaisons(releve)) {
+    yield;
+    if (!lue) continue;
+    const { variant, layer, liaison } = lue;
     const variable = variableDuCatalogue(catalogue, liaison.variable.cle);
     if (variable === 'absente') continue;
     // Les liaisons d'une instance se départagent par le layer intérieur qu'elles peignent.
     const cle = `${formeReconnue(layer.nom)}:${liaison.surcharge ? formeReconnue(liaison.surcharge.nom) : ''}:${liaison.champ}:${liaison.indice ?? ''}:${liaison.plage?.debut ?? ''}`;
     const groupe = groupes.get(cle) ?? [];
-    groupe.push({ variant, layer, liaison, signe: signature(variable, catalogue) });
+    const signe = yield* signature(variable, catalogue);
+    groupe.push({ variant, layer, liaison, signe });
     groupes.set(cle, groupe);
   }
   const constats: Constat[] = [];
   for (const groupe of groupes.values()) {
+    yield;
     const occurrences = new Map<string, number>();
-    for (const entree of groupe) occurrences.set(entree.signe, (occurrences.get(entree.signe) ?? 0) + 1);
-    const majoritaires = [...occurrences].filter(([, nombre]) => nombre >= 2).sort((a, b) => b[1] - a[1]);
-    if (!majoritaires.length || majoritaires[0][1] <= groupe.length / 2) continue;
-    const exemple = groupe.find((entree) => entree.signe === majoritaires[0][0])?.liaison.variable.nom ?? '';
     for (const entree of groupe) {
+      yield;
+      occurrences.set(entree.signe, (occurrences.get(entree.signe) ?? 0) + 1);
+    }
+    const majoritaires: [string, number][] = [];
+    for (const occurrence of occurrences) {
+      yield;
+      if (occurrence[1] >= 2) majoritaires.push(occurrence);
+    }
+    majoritaires.sort((a, b) => b[1] - a[1]);
+    if (!majoritaires.length || majoritaires[0][1] <= groupe.length / 2) continue;
+    let exemple = '';
+    for (const entree of groupe) {
+      yield;
+      if (entree.signe !== majoritaires[0][0]) continue;
+      exemple = entree.liaison.variable.nom;
+      break;
+    }
+    for (const entree of groupe) {
+      yield;
       if (entree.signe === majoritaires[0][0]) continue;
       constats.push(constatDuComposant('C21', 'liaisons', 'verifier', `${entree.variant.id}:${entree.layer.id}:${entree.liaison.surcharge?.id ?? ''}:${entree.liaison.champ}`, {
         nom: entree.liaison.variable.nom, majorite: majoritaires[0][0], autres: majoritaires[0][1], exemple, champ: entree.liaison.champ,
@@ -99,20 +133,37 @@ function ecartsDeFratrie(releve: ReleveDeComposant, catalogue: CatalogueDeRefere
 }
 
 export function controlerMapping(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
+  const calcul = controlerMappingParEtapes(releve, catalogue);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Cède dans les liaisons, les modes et la fratrie ; les axes et les tokens se lisent d'un bloc, mémorisés par le kit. */
+export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const axes = axesDuReleve(releve);
   const tokens = new Map(tokensDuComposant(releve, catalogue).map((token) => [token.variable.cle, token]));
   const constats: Constat[] = [];
-  for (const { variant, layer, liaison } of liaisonsDuReleve(releve)) {
+  for (const lue of parcourirLesLiaisons(releve)) {
+    yield;
+    if (!lue) continue;
+    const { variant, layer, liaison } = lue;
     const variable = variableDuCatalogue(catalogue, liaison.variable.cle);
     if (variable === 'absente') continue;
     const lieu = `${variant.id}:${layer.id}${liaison.surcharge ? `>${liaison.surcharge.id}` : ''}:${liaison.champ}:${liaison.indice ?? ''}:${liaison.plage?.debut ?? ''}`;
     const token = tokens.get(variable.cle);
     if (token) {
       for (const [axe, propriete] of Object.entries(axes) as [AxeDuComposant, NonNullable<typeof axes[AxeDuComposant]>][]) {
+        yield;
         const dansLeToken = segmentDAxe(token, axe);
         const dansLeVariant = variant.valeurs[propriete.nom];
         if (!dansLeToken || !dansLeVariant || memeValeur(axe, dansLeToken, dansLeVariant)) continue;
-        if (!(propriete.valeurs ?? []).some((valeur) => memeValeur(axe, valeur, dansLeToken))) continue;
+        let appartientALAxe = false;
+        for (const valeur of propriete.valeurs ?? []) {
+          yield;
+          if (memeValeur(axe, valeur, dansLeToken)) { appartientALAxe = true; break; }
+        }
+        if (!appartientALAxe) continue;
         const code = axe === 'etat' ? 'C16' : 'C15';
         constats.push(constatDuComposant(code, 'liaisons', 'corriger', `${lieu}:${axe}`, {
           axe: propriete.nom, valeur: dansLeVariant, token: variable.nom, segment: dansLeToken,
@@ -146,5 +197,6 @@ export function controlerMapping(releve: ReleveDeComposant, catalogue: Catalogue
       }, [variant.id], [layer.id]));
     }
   }
-  return [...constats, ...ecartsDeFratrie(releve, catalogue)];
+  const fratrie = yield* ecartsDeFratrie(releve, catalogue);
+  return [...constats, ...fratrie];
 }

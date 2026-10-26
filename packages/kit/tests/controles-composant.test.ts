@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  axeDePropriete, controlerNommage, controlerMapping, controlerCouches, controlerCouchesParEtapes, controlerOublis, controlerOublisParEtapes,
+  axeDePropriete, controlerNommage, controlerMapping, controlerMappingParEtapes, controlerCouches, controlerCouchesParEtapes, controlerOublis, controlerOublisParEtapes,
   type CatalogueDeReference, type ReleveDeComposant, type VariantLu,
 } from '../src/controles/index.js';
 
@@ -141,6 +141,40 @@ function variante(id: string, valeurs: Record<string, string>, cle: string, opti
 }
 
 const codes = (constats: ReturnType<typeof controlerMapping>): string[] => constats.map(({ code }) => code);
+
+test('le mapping par étapes conserve les écarts ordonnés puis la fratrie', () => {
+  const r = releve('Alert', [axe('Severity', ['info', 'success'])]);
+  r.variants = ['a', 'b', 'c'].map((id) => variante(id, { Severity: 'success' }, id === 'c' ? 'v1' : 'v0'));
+  const c = catalogueEtendu(
+    { nom: 'alert/color/info/background', collection: 'components', scopes: ['TEXT_FILL'], alias: 'v2' },
+    { nom: 'alert/color/success/foreground', collection: 'components', alias: 'v3' },
+    { nom: 'default/background', collection: 'theme' },
+    { nom: 'default/foreground', collection: 'theme' },
+  );
+  const attendu: ReturnType<typeof controlerMapping> = ['a', 'b'].flatMap((id): ReturnType<typeof controlerMapping> => [
+    {
+      id: `C15:${id}:layer-${id}:fills:0::palette`, code: 'C15', type: 'corriger', famille: 'liaisons', variants: [id], layers: [`layer-${id}`],
+      faits: { axe: 'Severity', valeur: 'success', token: 'alert/color/info/background', segment: 'info', champ: 'fills', indice: 0 },
+    },
+    {
+      id: `C18:${id}:layer-${id}:fills:0:`, code: 'C18', type: 'verifier', famille: 'liaisons', variants: [id], layers: [`layer-${id}`],
+      faits: { token: 'alert/color/info/background', champ: 'fills', portee: 'FRAME_FILL' },
+    },
+  ]);
+  attendu.push({
+    id: 'C17:c:layer-c:fills:0:', code: 'C17', type: 'corriger', famille: 'liaisons', variants: ['c'], layers: ['layer-c'],
+    faits: { token: 'alert/color/success/foreground', role: 'foreground', attendu: 'background', champ: 'fills', indice: 0 },
+  });
+  attendu.push({
+    id: 'C21:c:layer-c::fills', code: 'C21', type: 'verifier', famille: 'liaisons', variants: ['c'], layers: ['layer-c'],
+    faits: { nom: 'v1', majorite: 'theme:background', autres: 2, exemple: 'v0', champ: 'fills' },
+  });
+  const calcul = controlerMappingParEtapes(r, c);
+  let resultat = calcul.next();
+  while (!resultat.done) resultat = calcul.next();
+  assert.deepEqual(resultat.value, attendu);
+  assert.deepEqual(controlerMapping(r, c), attendu);
+});
 
 test('les couches par étapes conservent l’ordre des liaisons et des cibles distinctes', () => {
   const r = releve('Button');
