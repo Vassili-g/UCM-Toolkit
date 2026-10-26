@@ -5,7 +5,7 @@
 ## Tâches à committer
 
 - [x] **7.1 | gpt-6.1-sol | high** | **Claude Sonnet | high** : relever dans la table des sites diagnostics, faits lus, contexte et consommateurs, y compris après structure et compaction. Relevé : section « Sites d'émission (7.1) », 104 lignes.
-- [ ] **7.2 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : classer les calculs requis par diagnostic, correction, règle ou publication ; vérifier C42 et l'arbre exact encore nécessaire.
+- [x] **7.2 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : classer les calculs requis par diagnostic, correction, règle ou publication ; vérifier C42 et l'arbre exact encore nécessaire. Classement : section « Classement des calculs (7.2) » (table, C42, arbre exact, conclusion).
 - [ ] **7.3 | gpt-6.1-sol | high** | **Claude Sonnet | high** : extraire une première famille de requêtes pures et déclarer ses dépendances ; comparer tous ses diagnostics ordonnés.
 - [ ] **7.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : produire le résultat interne finalisé avec parties, localisations, props, états, imbrications, modèles et couverture ; test de parité complet.
 - [ ] **7.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : assembler contrat et échantillons exporteur depuis ce résultat ; comparer hors date avec l'ancien chemin.
@@ -287,3 +287,104 @@ Le contrat que lit `lireLesRegles` a traversé `elideContract` et `serializeJson
 #### Pour 7.7 : lecture du contrat par Architect
 
 `JSON.parse` du contrat : `packages/plugin-architect/src/regles.ts` `lireLesRegles`, à la ligne `const contrat = JSON.parse(exportDuMoteur.content) as ContratLu`. `sandbox/analyse.ts` `LECTEURS_DE_FIGMA.regles` lui passe `resultat.export`. L'exporteur a un second `JSON.parse` du même contenu pour la création des règles (`plugin-exporter/src/code.ts`, `JSON.parse(analyse.content) as ContratLu`), que le lot ne vise pas.
+
+### Classement des calculs (7.2)
+
+Relevé du code, sans changement. Les numéros de sites sont ceux de 7.1. Quatre colonnes disent qui lit le calcul :
+
+- **Diag.** : le calcul émet un message, ou produit ce qu'un site d'émission lit.
+- **Corr.** : le calcul alimente `modeleDeRegles`, que la correction `regles:creer` retient (`regles.ts` `lireLesRegles`, `retenirLesModeles`). `proposerLesCorrectionsParEtapes` (`packages/kit/src/controles/corrections.ts`) ne lit que `releve` et `catalogue` : elle ne touche que C15, C16, C17, C22, C24, C25 et les valeurs en dur, et `constatsDuMoteur` ne pose aucune `correction` sur un constat du moteur. Aucun autre calcul du moteur ne nourrit donc une correction d'Architect.
+- **Règles** : le calcul alimente `lireLesRegles` : `ReleveDesRegles.instancePresente`, `documentees`, `proprietes` et `modele` (C43, C45).
+- **Pub.** : le calcul alimente le contrat de l'exporteur.
+
+Une cellule vide dit que le consommateur ne lit pas le calcul. La colonne Figma donne la durée mesurée de l'étape (trace 6.0b du Button, `_local/vitesse-analyse/trace-button-6-0b.md`) ; plusieurs calculs partagent une étape. La trace nomme huit étapes, soit 8 849 ms sur les 9 855 ms du moteur. Les 1 006 ms restants se répartissent sur les autres étapes, chacune sous 407 ms. Pour ces étapes, la colonne donne les lectures estimées du rejeu 6.11c (`_local/vitesse-analyse/rejeu-6-11c.txt`, avant 6.12), qui ne chiffrent pas le calcul.
+
+| Calcul | Étape | Produit | Diag. | Corr. | Règles | Pub. | Figma |
+|---|---|---|---|---|---|---|---|
+| `extractRules.ts` `extractRules`, `rulesModel.ts` `buildRules` | `regles` | `rules` : `intent`, `iconRules`, descriptions, défauts, `tagsARediger` | 1 à 18 ; 83 à 87, 90, 92, 99 (lus dans `rules`) | | oui : `conteneurDuComposant`, `propDescriptions`, `booleanDescriptions` | oui : `intent`, descriptions des props | `regles` 606 ms (676 ms en 6.6) |
+| `exportComponent.ts` `exporterLeComposant` avec `parsers.ts` `collidingVariantAxes` | `regles` | erreur levée si deux axes se confondent | 19 | | | | dans `regles` |
+| `parsers.ts` `extractContractPropertyModel` | `regles` | `propertyModel` : `props`, `publicVariantKeyByRawKey` | 20 à 22 | oui | oui | oui | dans `regles` |
+| `componentTree.ts` `findMissingVariantCombinationsParEtapes` | `regles` | nombre de combinaisons absentes | 23 | | | | dans `regles` |
+| `componentTree.ts` `buildVariantMatrixParEtapes` | `variants` | `matrix`, `matrixWarnings` | 24, 25 (erreur levée) | oui : valeurs d'états | oui | oui | sous 407 ms ; 27 ms de lectures |
+| `budget.ts` `bornerLesVariantsParTranches` | `variants` | `matrix` bornée, `bilan` (`etat: 'partielle'`) | | | oui : `etat` complet requis pour lire les règles | oui | sous 407 ms |
+| `exportableNodes.ts` `contientUneInstanceRendueParEtapes`, `composedComponents.ts` `indexContractedNames` | `index` | `contractes` | via 101 et `auParent` | oui : `auParent` | oui | oui | sous 407 ms ; 254 ms de lectures |
+| `composedComponents.ts` `scanComposedMatrix` | `composition` | `scannedComposes`, `composed`, `mainByInstanceId`, `swapDefaults`, `propertySurfaces` | 26 ; 100 (lit `scannedComposes`) | oui : `auParent` | oui | oui | sous 407 ms ; 20 ms de lectures |
+| `componentTree.ts` `findWrapperReference` | `wrapper` | `wrapper` | 27 | oui : props du wrapper | oui | oui | `wrapper` 491 ms |
+| `semantics.ts` `buildStateModel` | `wrapper` | `stateModel` | 28, 29 | oui : `axis`, clés de `states` | oui | oui | dans `wrapper` |
+| `propertySurface.ts` `buildContractPropertySurface` | `wrapper` | `props`, `publicPropertyKeyByFigmaName` | 30 | oui : `type`, `values` | oui | oui | dans `wrapper` |
+| `imbriques.ts` `releverLesImbriques` | `wrapper` | `imbriques` : `auParent`, `sansRegles`, `sansPorteur` | 48 (silence des dessins), 101 | oui : `auParent` | oui | | dans `wrapper` |
+| `propertyBindings.ts` `extractPropertyBindingsParEtapes` | `wrapper` | `propertyBindings`, `appliedByVariant` | 31 | | | oui : `propertyBindingDefinitions`, échantillons | dans `wrapper` |
+| `exporterLeComposant`, aucune propriété de composant | `wrapper` | message | 32 | | | | dans `wrapper` |
+| `variables.ts` `indexVariablesParEtapes`, `VariableNameResolver` | `variables` | `index`, `resolver` | 33 à 35 ; 34, 66, 67 (C41) | | | oui : noms de tokens | sous 407 ms ; 0,2 ms de lectures |
+| `extractVariantTokens.ts` `extractVariantTokens`, `extractSlotTokens.ts` `getSlotTokens`, `warnPeinturesLibres`, `strokeAlignment` | `structure.couleurs` | `tokensByComponent`, `strokesByComponent`, `paintNodeIdsByComponent`, `discoveredRoles`, `variantTokens`, `variantStrokes` | 36 (sans effet), 37 à 44 | | | oui, sauf `variantTokens` et `variantStrokes` | 963 ms |
+| `layoutNodes.ts` `electVariantLayoutNodes` | `structure.election` | `layoutNodes` | 45 | | | oui | 801 ms |
+| `extractIconLayers.ts` `extractIconLayers` | `structure.icones` | `iconLayers`, `targetedLayers` | 61 et suivants (tailles) ; lu par 88 à 98 | | | oui : `icons` | 712 ms |
+| `extractStructure.ts` `proprietairesDAxeDeTailles`, `extractLayout.ts` `extractLayout` sur le layout de référence | `structure.reference` | `layout`, `placedComposes` | 46 à 68 sur le layout élu | | | oui : `structure.view` | sous 407 ms ; 18 ms de lectures |
+| `extractLayout.ts` `extractLayout` sur la racine de chaque variant | `structure.vues` | arbre exact `variants[].structure.children`, `composes`, `exactPaths`, `effectCarriers`, `paintPlacements` | 47 à 68 ; 98 (lit l'arbre) ; 100 (lit `composes`) ; 27 | | | oui : `viewStructures`, `viewComposes`, `viewPaintPlacements` | 4 304 ms |
+| `effectStyles.ts` `extractEffectStyles` | `structure.effets` | `effectStyles`, usages par variant | 69 à 73 | | | oui | sous 407 ms ; 0,2 ms de lectures |
+| `extractVariantTypography.ts` `extractVariantTypography`, première passe | `structure.typographie` | `variantTypography` (jeté), `textStyles` | 74 à 82 ; 80 (propre à cette passe) | | | `textStyles` seulement | sous 407 ms ; 104 ms de lectures |
+| `extractVariantTypography` sur l'arbre exact | `structure.typographie-exacte` | `typographyByComponent`, `textStyles` | 74 à 79, 81, 82 | | | oui | 565 ms |
+| `extractSizes.ts` `extractSizeDimensions` | `structure.tailles` | `sizes` | 61, 68 (via `nodeBindings.ts`) | | | oui | sous 407 ms ; 14 ms de lectures |
+| `mergePropDescriptions.ts`, `mergeBooleanDescriptions.ts`, `mergeEnumDefaults.ts` | `structure.tailles` (encore ouverte) | descriptions et défauts dans `props` et `stateModel` | 83 à 87 | | | oui | dans `structure.tailles` |
+| `mergeIconRules.ts` `mergeIconRules` | `structure.tailles` | `icons`, props runtime de type `icon` | 88 à 97 | | | oui | dans `structure.tailles` |
+| `exporterLeComposant`, boucle des icônes avec `iconPaths` | `structure.tailles` | `variant.icons` | 98 | | | oui : `viewIcons` | dans `structure.tailles` |
+| `exporterLeComposant`, test d'intention | `structure.tailles` | message | 99 | | | | dans `structure.tailles` |
+| `exporterLeComposant` `mergeVariantDependencies`, boucle de `scannedComposes` | `structure.tailles` | `composesPlacees` | 100 | | | oui : `composes` | dans `structure.tailles` |
+| `extractSamples.ts` `extractVariantSampleParEtapes` | `echantillons` | `variant.sample` | | | | oui : `samples` | sous 407 ms ; 74 ms de lectures |
+| `compactVariants.ts` `compactVariantsParEtapes` | `compaction` | vues compactées | | | | oui | `compaction` 407 ms, avec les quatre lignes suivantes |
+| `imbriques.ts` `pousserLesImbriques` | `compaction` | points du canal `B` | 101 | | | oui | dans `compaction` |
+| jonction : dédoublonnage, `reporterLocalisations`, `localisationsDe`, `partiesDe` | `compaction` | `warnings`, `localisations`, `parties` | 102 (lus par `constatsDuMoteur`) | | | oui : `meta.diagnostics` | dans `compaction` |
+| jonction : `raisonsSansNode`, `warningCount`, `filename` | `compaction` | `localisationsDeclarees`, `warningCount`, `filename` | | | | oui | dans `compaction` |
+| `buildMeta`, `buildFigmaVariantLabels`, `renderingSemanticsFor`, `signatureParEtapes`, `elideNeutralsParEtapes`, `internParEtapes` | `compaction` | `meta`, `figmaVariantLabels`, `rendering`, `viewStructures`, `structure.view` | | | | oui | dans `compaction` |
+| `elideNeutrals.ts` `elideContractParEtapes` | `compaction` | `contract` élidé, dont `props` et `stateModel` | | à vérifier en 7.7 : le modèle lit le contrat élidé | à vérifier en 7.7 | oui | dans `compaction` |
+| `serializeJson.ts` `serializeJsonParEtapes` | `serialisation` | `content` | | oui, par `JSON.parse` dans `lireLesRegles` | oui | oui | sous 407 ms |
+
+Les étapes `echantillons` et `serialisation` n'ont pas de durée isolée dans la trace 6.0b. Leur somme, avec les sept autres étapes sous 407 ms, vaut 1 006 ms.
+
+#### Vérification de C42
+
+`constatsDuMoteur.ts` donne C42 par deux voies, qui rendent le même constat (`type: 'verifier'`, famille `export`) :
+
+- **Table** (`TABLE_DU_MOTEUR`, famille de point `non-exportes`) : les sites 39, 41, 47 et 70.
+- **Défaut** (`CODE_DU_POINT_INCONNU`) : 37 sites, ceux dont la famille est `disposition` sans « masqué », `imbriques`, `styles` ou `fichier` : 26, 33, 45, 46, 48 à 51, 53 à 55, 57 à 60, 62, 71 à 76, 78 à 82, 88, 89, 91, 93 à 98 et 100.
+- **Bloquants** : les sites 19 et 25 (erreurs levées, reprises par `bloquant()` dans `sandbox/analyse.ts`), 101 (famille `imbriques`, `severite: 'danger'`) et 103 (`export:arret`).
+- Toute phrase future qu'aucune règle ne reconnaît prend aussi C42 (site 102).
+
+Le code C42 n'est lu que dans `constatsDuMoteur.ts` et dans `sandbox/analyse.ts` `bloquant`. L'interface affiche un constat du moteur d'après `faits.titre`, `faits.message`, `faits.action` et `faits.elements` (`ui/ignores/modele.ts`), sans `case 'C42'`. L'identifiant `moteur:C42:<empreinte>` range un constat ignoré : changer le code d'un site changerait l'identifiant, et le constat réapparaîtrait chez le designer qui l'a ignoré.
+
+Aucun calcul lourd ne sert seulement à produire un C42. Chaque calcul qui émet du C42 produit aussi une sortie lue ailleurs :
+
+- `scanComposedMatrix` (site 26) et `electVariantLayoutNodes` (site 45) n'émettent que du C42, mais leurs sorties alimentent `composed`, `layoutNodes` et la plupart des étapes suivantes.
+- `mergeIconRules` émet du C42 pour huit de ses dix sites (88, 89, 91, 93 à 97) ; les sites 90 et 92 sont C44. Il produit `icons`, que le contrat publie.
+- `extractEffectStyles` et `extractVariantTypography` mêlent C42 et C30 (sites 69 et 77) et produisent `effectStyles` et `textStyles`, publiés.
+- La boucle des icônes (98), le test de `scannedComposes` (100), `pousserLesImbriques` (101) et `warnUndeclaredDrawing` (48) n'émettent que du C42, mais ils comparent des résultats calculés pour d'autres raisons. Seule la boucle des icônes écrit une sortie (`variant.icons`), publiée.
+
+#### Vérification de l'arbre exact
+
+Les résultats de l'arbre exact ne servent à un diagnostic que par deux lectures dans `exportComponent.ts` `exporterLeComposant` : `iconPaths(variant.structure.children)` pour le site 98, et `mergeVariantDependencies` avec `variant.composes` pour le site 100. `compactVariants.ts` et `extractSamples.ts` les lisent pour le contrat. 7.1 est confirmé sur ce point.
+
+Le parcours qui produit l'arbre a une autre portée. La boucle de `structure.vues` (`extractStructure.ts`) appelle `extractLayout(entry.component, …, warnings, …)` sur la racine de chaque variant, avec le canal `E`. Ce parcours émet les sites 47 à 68 pour les calques des variants que le layout de référence n'atteint pas. Il passe aussi `exactEffects`, d'où viennent les sites 69 à 73, et il appelle `getAllNodes` (site 27). Le test `messagesDeRacine.test.ts` le dit en commentaire : « Extrait chaque racine dans le même canal, comme le fait la vue exacte de chaque variant ». Le parcours de référence (`structure.reference`) part du layout élu, non de la racine ; il ne voit ni les autres variants ni les wrappers que l'élection écarte, et il appelle `warnMissingDirection` et `warnIntermediateBounds` avec d'autres arguments.
+
+Sans l'arbre exact, Architect perdrait :
+
+- les constats des sites 98 et 100 : une icône déclarée sans chemin ou à chemins multiples dans un variant, et une dépendance scannée que le contrat ne décrit pas ;
+- si le parcours disparaissait avec l'arbre, tous les constats des sites 47 à 73 propres aux variants et aux calques hors du layout élu. Le texte des sites groupés changerait aussi, puisque `estUneRacineDeVariant` choisit entre le texte groupé et le texte par calque.
+
+Le parcours reste donc nécessaire. Seules les sorties que rien ne lit pour un diagnostic se retirent : `exactPaths` (échantillons et `paintPlacements`) et les structures de contrat bâties après le parcours.
+
+#### Conclusion
+
+Sans changer les constats, les corrections ni les modèles d'Architect :
+
+- **Les calculs de publication seule peuvent ne pas tourner** : `extractVariantSampleParEtapes`, `compactVariantsParEtapes`, `buildMeta`, `buildFigmaVariantLabels`, `renderingSemanticsFor`, les signatures, l'élision, l'internage, `raisonsSansNode`, `warningCount`, `filename` et `serializeJsonParEtapes`. La jonction (`warnings`, `parties`, `localisations`) et `pousserLesImbriques` restent. La trace 6.0b donne 407 ms pour `compaction`, et `echantillons` avec `serialisation` pèsent moins de 1 006 ms ensemble : le gain a pour borne haute 1,4 s sur les 9,9 s du moteur.
+- **Les trois arbres `variantTokens`, `variantStrokes` et `variantTypography` sont bâtis puis jetés** par `exporterLeComposant` (`_variantTokens`, `_variantStrokes`, `_variantTypography`), pour l'exporteur comme pour Architect. Leur construction (`insertVariantLeaf`) et le site 36, dont le canal est déjà jeté, n'ont aucun consommateur. La passe `structure.typographie` reste, parce qu'elle seule émet le site 80 et fixe l'ordre de `textStyles` ; seul son arbre `variantTypography` est inutile.
+- **Le parcours des variants (`structure.vues`, 4 304 ms) reste.** Il porte les sites 47 à 73 et 98 à 100. Son gain relève des lectures (6.12 : 2 529 ms estimés à 689 ms), non d'un calcul à retirer.
+- **Le modèle de règles dépend de `props`, de `stateModel` et de `imbriques.auParent`** : `extractContractPropertyModel`, `buildContractPropertySurface`, `buildStateModel` et `releverLesImbriques` doivent donc tourner, comme `findWrapperReference` qui les alimente. `mergeIconRules` n'y contribue pas : ses props runtime sont de type `icon`, que `groupesDeCibles` et `clesBooleennes` (`template/modele.ts`) ne retiennent pas. Les fusions de descriptions (83 à 87) n'y contribuent pas non plus : `modeleDeRegles` lit `type`, `values`, `axis` et les clés de `states`.
+- **Le `JSON.parse` de `lireLesRegles` disparaît avec la sérialisation**, à condition que 7.7 établisse que l'élision ne change pas le modèle. Son coût n'est pas isolé dans la trace.
+
+#### Points non établis
+
+- Le coût de `insertVariantLeaf` et celui de `JSON.parse(content)` ne sont pas isolés par la trace 6.0b.
+- La part de `echantillons` et de `serialisation` dans les 1 006 ms restants n'est pas connue. Le rejeu 6.11c estime 74 ms de lectures pour `echantillons`, sans le calcul.
+- Les phrases du site 81 (homonymes de styles de texte) peuvent différer entre les deux passes de typographie, puisque chaque passe arbitre avec son propre `styleIdByKey` et ne visite pas les mêmes textes. Retirer la première passe changerait peut-être cette phrase ; une exécution sur un set à styles homonymes le dirait.
+- L'effet de l'élision sur `props` et `stateModel` est renvoyé à 7.7. `stateModel.states.*` est protégé (`ENTREES_PROTEGEES`), mais `isNeutral` retire un `stateModel` ou une prop vide.
