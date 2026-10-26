@@ -226,7 +226,8 @@ fois, analyse ou écriture : une seconde demande reçoit `occupe`.
 Une analyse crée un seul contexte coopératif (`creerContexteCooperatif` du
 socle) : horloge, pause, budget de 25 ms et jeton d'annulation. Le relevé, le
 moteur et le pilote des contrôles le reçoivent et cèdent la main entre deux
-variants ou deux contrôles. L'annulation se relit juste après la pause. Le
+variants ou deux contrôles. Le parcours des enfants d'un variant et le décompte
+des layers du budget cèdent aussi. L'annulation se relit juste après la pause. Le
 moteur seul ouvre la portée de mémoire.
 
 Une correction ne se propose que si elle est exacte : une règle écrite donne

@@ -22,11 +22,11 @@
  */
 import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu } from '@ucm-kit/core/controles';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
-import { compter, attendrePourLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { liaisonsDuNoeud, type NoeudLu } from './consommateurs';
-import { LOT, liaisonsDesSurcharges, sujetDe, type PortDuComposant } from './lectureDuComposant';
+import { liaisonsDesSurcharges, sujetDe, type PortDuComposant } from './lectureDuComposant';
 import type { EspaceDuReleve } from './modele';
 
 export interface OptionsDuReleve {
@@ -34,7 +34,7 @@ export interface OptionsDuReleve {
   /** Défaut : `BUDGET_DE_LAYERS_PAR_DEFAUT`. */
   readonly budgetDeLayers?: number;
   readonly jeton?: JetonDAnnulation;
-  /** Le budget que l'analyse partage avec le moteur et les contrôles ; sans lui, le relevé ne cède qu'au pas de `LOT`. */
+  /** Le budget que l'analyse partage avec le moteur et les contrôles ; sans lui, le relevé en crée un qui cède par `port.pause`. */
   readonly cooperation?: ContexteCooperatif;
   /** L'espace du document ; le sandbox le lit dans `figma.root.documentColorProfile`. */
   readonly espaceDeCouleur?: EspaceDuReleve;
@@ -60,16 +60,20 @@ const champLu = (noeud: NoeudLu, champ: string): unknown => {
 const estUnVariant = (noeud: NoeudLu): boolean => noeud.type === 'COMPONENT' && noeud.parent?.type === 'COMPONENT_SET';
 
 /** Les layers d'un variant, racine d'abord ; une instance sous la racine n'est pas descendue. */
-function parcourir(racine: NoeudLu): Etape[] {
+async function parcourir(racine: NoeudLu, cooperation: ContexteCooperatif): Promise<Etape[]> {
   const etapes: Etape[] = [];
   const aVisiter: Array<{ noeud: NoeudLu; parent: string | null }> = [{ noeud: racine, parent: null }];
   while (aVisiter.length > 0) {
+    await cooperation.cederSiBesoin();
     const { noeud, parent } = aVisiter.pop() as { noeud: NoeudLu; parent: string | null };
     const frontiere = noeud.type === 'INSTANCE' && noeud.id !== racine.id;
     etapes.push({ noeud, parent, frontiere });
     if (frontiere) continue;
     const enfants = noeud.children ?? [];
-    for (let rang = enfants.length - 1; rang >= 0; rang -= 1) aVisiter.push({ noeud: enfants[rang], parent: noeud.id });
+    for (let rang = enfants.length - 1; rang >= 0; rang -= 1) {
+      await cooperation.cederSiBesoin();
+      aVisiter.push({ noeud: enfants[rang], parent: noeud.id });
+    }
   }
   return etapes;
 }
@@ -348,9 +352,18 @@ function proprietesDe(jeu: NoeudLu, manquees: Manquee[]): ReleveDeComposant['pro
  * lit comme un jeu d'un variant. Une annulation ne rend aucun résultat partiel.
  */
 export async function lireLeReleve(port: PortDuComposant, depart: NoeudLu, options: OptionsDuReleve = {}): Promise<IssueDuReleve> {
+  try {
+    return await lireLeReleveInterruptible(port, depart, options);
+  } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) return { statut: 'annule' };
+    throw erreur;
+  }
+}
+
+async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu, options: OptionsDuReleve): Promise<IssueDuReleve> {
   const budget = options.budgetDeLayers ?? BUDGET_DE_LAYERS_PAR_DEFAUT;
   const annule = (): boolean => options.jeton?.leve === true;
-  const cooperation = options.cooperation ?? creerContexteCooperatif({ jeton: options.jeton });
+  const cooperation = options.cooperation ?? creerContexteCooperatif({ jeton: options.jeton, respirer: () => port.pause() });
   const trouve = sujetDe(depart);
   if (!trouve) return { statut: 'sans-sujet' };
   let { sujet } = trouve;
@@ -374,25 +387,18 @@ export async function lireLeReleve(port: PortDuComposant, depart: NoeudLu, optio
 
   for (const composant of composants) {
     if (annule()) return { statut: 'annule' };
-    try {
-      await cooperation.cederSiBesoin();
-    } catch (erreur) {
-      if (erreur instanceof AnalyseAnnulee) return { statut: 'annule' };
-      throw erreur;
-    }
+    await cooperation.cederSiBesoin();
     let etapes: Etape[] | null = null;
     try {
-      etapes = parcourir(composant);
+      etapes = await parcourir(composant, cooperation);
     } catch (erreur) {
+      if (erreur instanceof AnalyseAnnulee) throw erreur;
       manquees.push({ layer: composant.id, champ: 'children', motif: messageDErreur(erreur) });
     }
     if (!coupe && etapes && (variants.length === 0 || layersLus + etapes.length <= budget)) {
       const layers: LayerLu[] = [];
       for (const etape of etapes) {
-        if (layers.length > 0 && layers.length % LOT === 0) {
-          if (annule()) return { statut: 'annule' };
-          await attendrePourLaMesure(() => port.pause(), 'cession');
-        }
+        await cooperation.cederSiBesoin();
         layers.push(await lireLeLayer(port, lecteur, etape, manquees));
       }
       layersLus += layers.length;

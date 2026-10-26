@@ -4,10 +4,58 @@ import test from 'node:test';
 
 import { ouvrirLaMesure, fermerLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { lireLeReleve } from '../src/releveDuComposant';
+import { creerContexteCooperatif } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 import { atelierDeCalques, collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id });
 const boite = (x: number, y: number, width: number, height: number) => ({ x, y, width, height });
+
+test('90 petits variants partagent le budget et gardent le même relevé avec ou sans cessions', async () => {
+  const a = atelierDeCalques();
+  const variants = Array.from({ length: 90 }, (_, rang) => a.calque(`v-${rang}`, 'COMPONENT', { absoluteBoundingBox: boite(0, 0, 10, 10) }));
+  const jeu = a.calque('jeu', 'COMPONENT_SET', {}, variants);
+  const { port } = portDeTest([], []);
+  const reference = await lireLeReleve(a.port(port), jeu, { cooperation: creerContexteCooperatif({ horloge: () => 0 }) });
+  let horloge = 0;
+  let faits = 0;
+  const cessions: number[] = [];
+  const courant = await lireLeReleve(a.port(port), jeu, {
+    progresser: (fait) => { faits = fait; },
+    cooperation: creerContexteCooperatif({
+      horloge: () => horloge++, budgetDeCalculMs: 25,
+      respirer: async () => { cessions.push(faits); },
+    }),
+  });
+  assert.ok(cessions.length > 0);
+  assert.ok(cessions.some((fait) => fait > 0 && fait < 90), JSON.stringify(cessions));
+  assert.deepEqual(courant, reference);
+});
+
+test('une annulation pendant le parcours profond arrête avant de lire les layers', async () => {
+  const a = atelierDeCalques();
+  let visites = 0;
+  let dimensionsLues = 0;
+  let racine = a.calque('feuille', 'FRAME', { get absoluteBoundingBox() { dimensionsLues += 1; return boite(0, 0, 1, 1); } });
+  for (let rang = 0; rang < 1500; rang += 1) {
+    const enfant = racine;
+    racine = a.calque(`niveau-${rang}`, rang === 1499 ? 'COMPONENT' : 'FRAME', {
+      get children() { visites += 1; return [enfant]; },
+    }, [enfant]);
+  }
+  const { port } = portDeTest([], []);
+  const jeton = { leve: false };
+  let horloge = 0;
+  const issue = await lireLeReleve(a.port(port), racine, {
+    jeton,
+    cooperation: creerContexteCooperatif({
+      jeton, horloge: () => horloge++, budgetDeCalculMs: 25,
+      respirer: async () => { jeton.leve = true; },
+    }),
+  });
+  assert.deepEqual(issue, { statut: 'annule' });
+  assert.ok(visites > 0 && visites < 1500, `${visites} visites`);
+  assert.equal(dimensionsLues, 0);
+});
 
 function variables() {
   return portDeTest(
@@ -249,10 +297,13 @@ test('la mesure du relevé compte ses propriétés et ses pauses existantes sans
   const racine = a.calque('racine', 'COMPONENT', { absoluteBoundingBox: boite(0, 0, 1, 1) }, enfants);
   const port = a.port(variables().port);
   const reference = await lireLeReleve(port, racine);
+  let horloge = 0;
   ouvrirLaMesure();
-  const courant = await lireLeReleve(port, racine);
+  const courant = await lireLeReleve(port, racine, {
+    cooperation: creerContexteCooperatif({ horloge: () => horloge += 25, budgetDeCalculMs: 25, respirer: () => port.pause() }),
+  });
   const trace = fermerLaMesure('');
   assert.deepEqual(courant, reference);
   assert.ok((trace?.compteurs.proprietesDuReleve ?? 0) > 401);
-  assert.equal(trace?.compteurs.cessionsArchitect, 1);
+  assert.ok((trace?.compteurs.cessionsArchitect ?? 0) > 401);
 });

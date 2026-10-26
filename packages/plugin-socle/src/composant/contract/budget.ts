@@ -8,6 +8,7 @@
  * ou pas du tout. Sans budget, l'analyse lit tout.
  */
 import type { VariantEntry } from './componentTree';
+import { respirerSiBesoin } from './porteeDAnalyse';
 
 /** La borne par défaut, partagée avec le relevé d'Architect ; une analyse sans budget ne s'en sert pas. */
 export const BUDGET_DE_LAYERS_PAR_DEFAUT = 2000;
@@ -38,16 +39,47 @@ export function bornerLesVariants(
   budget: number,
   verifier: () => void,
 ): { gardes: VariantEntry[]; bilan: BilanDeBudget | null } {
+  const parcours = parcourirLeBudget(variants, reference, budget, verifier);
+  let etape = parcours.next();
+  while (!etape.done) etape = parcours.next();
+  return etape.value;
+}
+
+/** Même préfixe que la voie synchrone, avec un point coopératif avant chaque compte Figma. */
+export async function bornerLesVariantsParTranches(
+  variants: readonly VariantEntry[],
+  reference: ComponentNode | null,
+  budget: number,
+  verifier: () => void,
+): Promise<{ gardes: VariantEntry[]; bilan: BilanDeBudget | null }> {
+  const parcours = parcourirLeBudget(variants, reference, budget, verifier);
+  let etape = parcours.next();
+  while (!etape.done) {
+    await respirerSiBesoin();
+    etape = parcours.next();
+  }
+  return etape.value;
+}
+
+function* parcourirLeBudget(
+  variants: readonly VariantEntry[],
+  reference: ComponentNode | null,
+  budget: number,
+  verifier: () => void,
+): Generator<void, { gardes: VariantEntry[]; bilan: BilanDeBudget | null }> {
   const gardes = new Set<VariantEntry>();
   let lus = 0;
   const premier = variants.find((entry) => entry.component === reference) ?? variants[0];
   if (premier) {
+    yield;
+    verifier();
     gardes.add(premier);
     lus += compterLesLayers(premier.component);
   }
   let nonLus: number | 'inconnu' = 0;
   let coupe = false;
   for (const entry of variants) {
+    yield;
     verifier();
     if (entry === premier) continue;
     if (!coupe) {

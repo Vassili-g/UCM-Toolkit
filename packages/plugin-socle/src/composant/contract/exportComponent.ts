@@ -23,7 +23,7 @@ import {
   verifierLAnnulation,
 } from './porteeDAnalyse';
 import type { ContexteCooperatif, JetonDAnnulation, OptionsDeCooperation } from './porteeDAnalyse';
-import { bornerLesVariants } from './budget';
+import { bornerLesVariantsParTranches } from './budget';
 import { pousserLesImbriques, releverLesImbriques } from './imbriques';
 import type { ReleveDesImbriques } from './imbriques';
 import { TAGS_D_INTENTION } from './rulesModel';
@@ -390,7 +390,7 @@ async function exporterLeComposant(
   // ne voit qu'une matrice plus courte, et n'a rien à dire des variants absents.
   const bornee = budgetDeLayers === undefined
     ? null
-    : bornerLesVariants(matriceLue.variants, referenceComponent, budgetDeLayers, verifier);
+    : await bornerLesVariantsParTranches(matriceLue.variants, referenceComponent, budgetDeLayers, verifier);
   const matrix = bornee ? { ...matriceLue, variants: bornee.gardes } : matriceLue;
 
   // La composition se relève avant toute extraction : un composant unifié

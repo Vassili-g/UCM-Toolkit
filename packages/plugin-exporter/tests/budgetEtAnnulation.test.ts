@@ -12,6 +12,7 @@ import {
 } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import {
   BUDGET_DE_LAYERS_PAR_DEFAUT,
+  bornerLesVariants, bornerLesVariantsParTranches,
 } from 'ucm-plugin-socle/src/composant/contract/budget';
 import {
   AnalyseAnnulee, dansUnePorteeDAnalyse, respirerSiBesoin,
@@ -77,6 +78,37 @@ function monterFigma() {
 
 /** Le contrat sans sa date : deux exports du même composant diffèrent par elle. */
 const sansDate = (contenu: string) => contenu.replace(/"exportedAt":\s*"[^"]*"/, '"exportedAt": "-"');
+
+test('le budget coopératif cède pendant 90 comptes de variants et garde le préfixe de la voie synchrone', async () => {
+  let horloge = 0;
+  let comptes = 0;
+  const variants = Array.from({ length: 90 }, (_, rang) => ({
+    component: { id: `v-${rang}`, findAll: () => { comptes += 1; horloge += 1; return []; } },
+  })) as unknown as Parameters<typeof bornerLesVariants>[0];
+  const cessions: number[] = [];
+  const courant = await dansUnePorteeDAnalyse({
+    horloge: () => horloge, budgetDeCalculMs: 25,
+    respirer: async () => { cessions.push(comptes); },
+  }, () => bornerLesVariantsParTranches(variants, variants[0].component, 50, () => {}));
+  assert.equal(comptes, 90);
+  assert.deepEqual(cessions, [25, 50, 75]);
+  const reference = bornerLesVariants(variants, variants[0].component, 50, () => {});
+  assert.deepEqual(courant, reference);
+});
+
+test('le budget interrompt son décompte dès le retour de la pause annulée', async () => {
+  let horloge = 0;
+  let comptes = 0;
+  const jeton = { leve: false };
+  const variants = Array.from({ length: 90 }, (_, rang) => ({
+    component: { id: `v-${rang}`, findAll: () => { comptes += 1; horloge += 1; return []; } },
+  })) as unknown as Parameters<typeof bornerLesVariants>[0];
+  await assert.rejects(dansUnePorteeDAnalyse({
+    jeton, horloge: () => horloge, budgetDeCalculMs: 25,
+    respirer: async () => { jeton.leve = true; },
+  }, () => bornerLesVariantsParTranches(variants, variants[0].component, 50, () => {})), AnalyseAnnulee);
+  assert.equal(comptes, 25);
+});
 
 test('sans budget ni jeton, l’analyse rend la sortie de l’export, complète', async () => {
   const restaurer = monterFigma();
