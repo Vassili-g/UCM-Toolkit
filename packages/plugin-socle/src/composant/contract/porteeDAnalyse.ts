@@ -7,6 +7,7 @@
  * portée calcule sans mémoire. Le résultat est le même dans les deux cas ; seul
  * le nombre d'allers-retours vers Figma change.
  */
+import { lireUneFoisParIdentifiant, type LectureNative } from '../analyse/ressources';
 import { compter, attendrePourLaMesure, mesurerLeCalcul } from './mesure';
 
 /**
@@ -86,8 +87,10 @@ type ContexteMemorise = {
 };
 
 type Portee = {
-  /** Le maître de chaque instance déjà demandée, par id d'instance. */
-  maitres: Map<string, Promise<ComponentNode | null>>;
+  /** Le maître de chaque instance déjà demandée, par id d'instance, refus compris. */
+  maitres: Map<string, Promise<LectureNative<object>>>;
+  /** Le style de chaque identifiant déjà demandé, refus compris. */
+  styles: Map<string, Promise<LectureNative<object>>>;
   /** Le parcours brut de chaque racine, par id : tous ses descendants, avant frontière ni filtre de visibilité. */
   parcours: Map<string, readonly SceneNode[]>;
   /** Les chemins de texte de chaque racine, par id, avec le contexte complet qui les a produits. */
@@ -135,6 +138,7 @@ export async function dansUnePorteeDAnalyse<T>(
   }
   const ouverte: Portee = {
     maitres: new Map(),
+    styles: new Map(),
     parcours: new Map(),
     chemins: new Map(),
     filtres: new Map(),
@@ -158,14 +162,21 @@ export async function dansUnePorteeDAnalyse<T>(
  */
 export function maitreDe(instance: InstanceNode): Promise<ComponentNode | null> {
   const memoire = typeof instance.id === 'string' ? porteeQuiMemorise()?.maitres : undefined;
-  const deja = memoire?.get(instance.id);
-  if (deja) {
-    compter('maitresReutilises');
-    return deja;
-  }
-  const lecture = lireLeMaitre(instance);
-  memoire?.set(instance.id, lecture);
-  return lecture;
+  return lireUneFoisParIdentifiant(memoire, instance.id, () => {
+    if (typeof instance.getMainComponentAsync !== 'function') return undefined;
+    compter('appelsGetMainComponentAsync');
+    return instance.getMainComponentAsync();
+  }, { reutilise: () => compter('maitresReutilises') }).then((lu) => (lu.etat === 'lu' ? lu.natif as ComponentNode : null));
+}
+
+/**
+ * Le style d'un identifiant, ou null quand Figma ne le sert pas ou qu'il lève. Dans une portée, chaque identifiant n'est
+ * demandé qu'une fois : le moteur lit un même style de texte pour la typographie de référence, puis pour l'exacte.
+ * Chaque appelant garde son traitement d'un style absent ou de mauvais type.
+ */
+export function styleDeLaPortee(id: string): Promise<BaseStyle | null> {
+  return lireUneFoisParIdentifiant(porteeQuiMemorise()?.styles, id, () => figma.getStyleByIdAsync(id))
+    .then((lu) => (lu.etat === 'lu' ? lu.natif as BaseStyle : null));
 }
 
 /** La portée qui garde ses mémoires, ou null : hors portée, portée refusée en cours, ou banc sans mémoire. */
@@ -277,16 +288,6 @@ export function memoriserLeParcoursFiltre(racine: SceneNode, composed: ReadonlyM
   const connus = memoire.get(racine.id) ?? [];
   connus.push({ composed: new Map(composed), valeur });
   memoire.set(racine.id, connus);
-}
-
-function lireLeMaitre(instance: InstanceNode): Promise<ComponentNode | null> {
-  if (typeof instance.getMainComponentAsync !== 'function') return Promise.resolve(null);
-  compter('appelsGetMainComponentAsync');
-  try {
-    return instance.getMainComponentAsync().catch(() => null);
-  } catch {
-    return Promise.resolve(null);
-  }
 }
 
 /**

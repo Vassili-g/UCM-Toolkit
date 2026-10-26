@@ -24,7 +24,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 
 ## src/composant/analyse/
 - acquisition.ts : copieur de la mise en page scalaire d'un nœud (`layoutMode`, espacements, rayons, épaisseurs de contour) en états de `faits.ts` ; le relevé d'Architect et `contract/nodeBindings.ts` en tirent chacun leur projection
-- ressources.ts : mémoire des variables et collections lues par identifiant, une lecture par id et par demande, rendues en `FaitDeRessource` (acquis, `leve`, `introuvable`) ; relevé d'Architect et `VariableNameResolver` la consomment
+- ressources.ts : mémoire des variables, collections, styles et maîtres d'instance lus par identifiant, une lecture par id et par demande, rendus en `FaitDeRessource` (acquis, `leve`, `introuvable`) ; `lireUneFoisParIdentifiant` mémorise l'appel natif et son refus, que le moteur lit pour les styles et les maîtres ; relevé d'Architect (variables, collections, style nommé, maître copié en `MaitreLu`) et `VariableNameResolver` la consomment
 - faits.ts : faits ordinaires d'une analyse, sans type Figma : topologie, champs acquis, mixtes, refusés ou non demandés, segments, maîtres, ressources, provenance et couverture
 
 ## src/composant/contract/
@@ -35,7 +35,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - serializeJson.ts : une entrée par ligne, sur deux niveaux
 - layoutNodes.ts : élection du node de layout, une fois par variant
 - exportableNodes.ts : parcours de l'arbre, hors dépendances composées
-- porteeDAnalyse.ts : mémoire des maîtres par instance et du parcours brut, du parcours filtré et des chemins de texte par racine, et budget coopératif injectable partagé avec les lecteurs
+- porteeDAnalyse.ts : mémoire des maîtres par instance, des styles par identifiant (`styleDeLaPortee`, `ressources.ts`) et du parcours brut, du parcours filtré et des chemins de texte par racine, et budget coopératif injectable partagé avec les lecteurs
 - mesure.ts : trace de chaque analyse : durées, compteurs, avancement de la barre
 - budget.ts : budget de layers et préfixe admis, voies synchrone et coopérative du même parcours
 - parsers.ts : propriétés Figma → API publique

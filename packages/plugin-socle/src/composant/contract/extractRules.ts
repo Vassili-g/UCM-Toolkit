@@ -41,6 +41,7 @@ import {
   ruleTagFromValue,
 } from './rulesModel';
 import type { RuleEntry, RuleTag, RulesResult } from './rulesModel';
+import { maitreDe } from './porteeDAnalyse';
 export {
   buildRules,
   hasUsableRules,
@@ -310,7 +311,7 @@ export function nomDuCatalogue(main: ComponentNode | null): string {
  * à la page : c'est ce qui permet à `rulesContainerOwner` de rester synchrone.
  */
 async function isRuleInstance(instance: InstanceNode): Promise<boolean> {
-  const main = await instance.getMainComponentAsync().catch(() => null);
+  const main = await maitreDe(instance);
   return nomDuCatalogue(main) === MAITRES_COMPACTES.regle;
 }
 

@@ -19,7 +19,7 @@ import { composedSlotDependenciesParEtapes } from './slotRelations';
 import { assignSlotsParEtapes } from './slotNames';
 import { insertVariantLeaf } from './extractVariantTokens';
 import { avancer } from './mesure';
-import { cheminsMemorises, memoriserLesChemins, respirerSiBesoin } from './porteeDAnalyse';
+import { cheminsMemorises, memoriserLesChemins, respirerSiBesoin, styleDeLaPortee } from './porteeDAnalyse';
 import type {
   TextStyleDefinition,
   TextStyleUse,
@@ -313,7 +313,7 @@ export async function extractVariantTypography(
   composed: ComposedInstances = new Map(),
   iconNames: ReadonlySet<string> = new Set(),
   allowedSlotPaths?: ReadonlySet<string>,
-  loadStyle: TextStyleLoader = (id) => figma.getStyleByIdAsync(id),
+  loadStyle: TextStyleLoader = styleDeLaPortee,
   pathNotices: string[] = warnings,
 ): Promise<{
   textStyles: Record<string, TextStyleDefinition>;

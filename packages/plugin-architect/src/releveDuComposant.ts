@@ -22,7 +22,7 @@
  */
 import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu } from '@ucm-kit/core/controles';
 import { copierLaMiseEnPage, type ChampDeMiseEnPage, type ChampsDeMiseEnPage } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
-import { champDe, type ModeDeCollectionLu, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
+import { champDe, type MaitreLu, type ModeDeCollectionLu, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { creerMemoireDeRessources, type MemoireDeRessources } from 'ucm-plugin-socle/src/composant/analyse/ressources';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
@@ -207,7 +207,11 @@ class Lecteur {
     readonly cooperation: ContexteCooperatif,
   ) {
     this.ressources = creerMemoireDeRessources({
-      lectures: () => this.port.variables,
+      lectures: () => ({
+        getVariableByIdAsync: (id) => this.port.variables.getVariableByIdAsync(id),
+        getVariableCollectionByIdAsync: (id) => this.port.variables.getVariableCollectionByIdAsync(id),
+        getStyleByIdAsync: (id) => this.port.getStyleByIdAsync(id),
+      }),
       champsDeVariable: ['key', 'name', 'variableCollectionId'],
       champsDeCollection: ['name', 'modes'],
       cooperation,
@@ -264,14 +268,22 @@ class Lecteur {
 
   async style(id: string, layer: string): Promise<string | null> {
     if (!this.styles.has(id)) {
-      try {
-        this.styles.set(id, (await this.port.getStyleByIdAsync(id))?.name ?? null);
-      } catch (erreur) {
-        this.manquees.push({ layer, champ: 'textStyleId', motif: messageDErreur(erreur) });
-        this.styles.set(id, null);
-      }
+      const { etat } = await this.ressources.style(id);
+      const nom = etat.etat === 'acquis' ? etat.valeur.name : undefined;
+      const motif = etat.etat === 'refuse' ? etat : nom?.etat === 'refuse' ? nom : null;
+      if (motif?.raison === 'leve') this.manquees.push({ layer, champ: 'textStyleId', motif: motif.message ?? '' });
+      this.styles.set(id, nom?.etat === 'acquis' && typeof nom.valeur === 'string' ? nom.valeur : null);
     }
     return this.styles.get(id) ?? null;
+  }
+
+  /** Le maître de l'instance et son jeu ; un refus rend la phrase de la manquée `instanceDe`. */
+  async maitre(instance: NoeudLu): Promise<{ maitre: MaitreLu } | { motif: string }> {
+    const lu = await this.ressources.maitre(instance as { id: string; getMainComponentAsync?(): Promise<object | null> });
+    if (lu.etat === 'refuse') return { motif: lu.raison === 'leve' ? lu.message ?? '' : 'composant source introuvable' };
+    const fait = await this.ressources.faitDuMaitre(instance.id, lu.natif);
+    if (fait.etat.etat === 'acquis') return { maitre: fait.etat.valeur };
+    return { motif: fait.etat.etat === 'refuse' && fait.etat.raison === 'leve' ? fait.etat.message ?? '' : 'composant source introuvable' };
   }
 
   async modes(noeud: NoeudLu): Promise<Record<string, string>> {
@@ -334,17 +346,17 @@ async function texteDe(lecteur: Lecteur, noeud: NoeudLu, liaisons: readonly Liai
   };
 }
 
-async function instanceDe(noeud: NoeudLu, manquees: Manquee[]): Promise<LayerLu['instanceDe'] | undefined> {
+async function instanceDe(noeud: NoeudLu, lecteur: Lecteur, manquees: Manquee[]): Promise<LayerLu['instanceDe'] | undefined> {
+  const lu = await lecteur.maitre(noeud);
+  if ('motif' in lu) {
+    manquees.push({ layer: noeud.id, champ: 'instanceDe', motif: lu.motif });
+    return undefined;
+  }
   try {
-    const maitre = await noeud.getMainComponentAsync?.();
-    if (!maitre) {
-      manquees.push({ layer: noeud.id, champ: 'instanceDe', motif: 'composant source introuvable' });
-      return undefined;
-    }
-    const jeu = estUnVariant(maitre) && maitre.parent ? maitre.parent : maitre;
     const references = champLu(noeud, 'componentPropertyReferences');
     const pilotee = estUnObjet(references) && typeof references.mainComponent === 'string' ? references.mainComponent : null;
-    return { cle: String(champLu(jeu, 'key') ?? ''), nom: jeu.name, distante: champLu(maitre, 'remote') === true, pilotee };
+    const publie = lu.maitre.jeu ?? lu.maitre;
+    return { cle: publie.key, nom: publie.nom, distante: lu.maitre.remote, pilotee };
   } catch (erreur) {
     manquees.push({ layer: noeud.id, champ: 'instanceDe', motif: messageDErreur(erreur) });
     return undefined;
@@ -391,7 +403,7 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
         await lecteur.cooperation.cederSiBesoin();
         if (!connues.has(cle(liaison))) layer.liaisons.push(liaison);
       }
-      const instance = await instanceDe(noeud, manquees);
+      const instance = await instanceDe(noeud, lecteur, manquees);
       if (instance) layer.instanceDe = instance;
     }
   } catch (erreur) {

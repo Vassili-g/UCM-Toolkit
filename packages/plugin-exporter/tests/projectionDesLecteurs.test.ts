@@ -125,7 +125,7 @@ test('le moteur lit ces champs dans cet ordre et en tire ce contrat', async () =
       FRAME: ['visible', 'componentPropertyReferences', 'boundVariables', 'parent', 'in visible', 'id', 'name', 'type', 'in children', 'children'],
       STYLE: ['type', 'name', 'boundVariables', 'paragraphSpacing', 'paragraphIndent', 'textCase', 'textDecoration', 'fontName', 'textWrapStyle', 'leadingTrim'],
     });
-    assert.deepEqual(jeu.appels, ['getLocalVariableCollectionsAsync()', 'getLocalVariablesAsync()', 'getStyleByIdAsync(style-label)', 'getStyleByIdAsync(style-label)']);
+    assert.deepEqual(jeu.appels, ['getLocalVariableCollectionsAsync()', 'getLocalVariablesAsync()', 'getStyleByIdAsync(style-label)'], 'la typographie de référence et la typographie exacte partagent un seul appel par style');
   } finally {
     jeu.restaurer();
   }

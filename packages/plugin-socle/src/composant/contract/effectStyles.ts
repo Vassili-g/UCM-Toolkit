@@ -23,6 +23,7 @@ import {
   pousserPourLesVariants,
   pousserSansNode,
 } from './localisation';
+import { styleDeLaPortee } from './porteeDAnalyse';
 
 /** Un calque publié qui porte des effets, et son chemin dans la vue. */
 export type EffectCarrier = { node: SceneNode; slotPath: string[] };
@@ -252,7 +253,7 @@ export async function extractEffectStyles(
   carriersByComponent: ReadonlyMap<ComponentNode, readonly EffectCarrier[]>,
   resolver: TokenResolver,
   warnings: string[],
-  loadStyle: EffectStyleLoader = (id) => figma.getStyleByIdAsync(id),
+  loadStyle: EffectStyleLoader = styleDeLaPortee,
 ): Promise<{
   effectStyles: Record<string, EffectStyleDefinition>;
   usesByComponent: Map<ComponentNode, EffectStyleUse[]>;
