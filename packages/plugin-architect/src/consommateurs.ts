@@ -6,6 +6,8 @@
  * dégradé, les effets, les grilles, les segments de texte et les propriétés
  * d'instance.
  */
+import type { ContexteCooperatif } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
+
 import type { ModeDeCalque } from './resolution';
 
 /** Ce que la lecture prend d'un calque Figma. */
@@ -68,74 +70,102 @@ export interface StyleLu {
 const estObjet = (valeur: unknown): valeur is Record<string, unknown> => typeof valeur === 'object' && valeur !== null;
 const idDAlias = (valeur: unknown): string | null => (estObjet(valeur) && valeur.type === 'VARIABLE_ALIAS' && typeof valeur.id === 'string' ? valeur.id : null);
 
-/** Les liaisons d'un objet `boundVariables`, champ par champ ; un tableau rend une entrée par alias. */
-function liaisonsDe(boundVariables: unknown, prefixe: string, ignorer: ReadonlySet<string> = new Set()): Array<{ propriete: string; variable: string }> {
-  if (!estObjet(boundVariables)) return [];
-  const liaisons: Array<{ propriete: string; variable: string }> = [];
-  for (const [champ, valeur] of Object.entries(boundVariables)) {
+type LiaisonBrute = { propriete: string; variable: string };
+
+function* liaisonsDe(boundVariables: unknown, prefixe: string, ignorer: ReadonlySet<string> = new Set()): Generator<LiaisonBrute | undefined> {
+  if (!estObjet(boundVariables)) return;
+  for (const champ of Object.keys(boundVariables)) {
+    yield;
     if (ignorer.has(champ)) continue;
+    const valeur = boundVariables[champ];
     if (champ === 'componentProperties' && estObjet(valeur)) {
-      for (const [propriete, alias] of Object.entries(valeur)) {
-        const id = idDAlias(alias);
-        if (id) liaisons.push({ propriete: `${prefixe}componentProperties.${propriete}`, variable: id });
+      for (const propriete of Object.keys(valeur)) {
+        yield;
+        const id = idDAlias(valeur[propriete]);
+        if (id) yield { propriete: `${prefixe}componentProperties.${propriete}`, variable: id };
       }
       continue;
     }
     for (const alias of Array.isArray(valeur) ? valeur : [valeur]) {
+      yield;
       const id = idDAlias(alias);
-      if (id) liaisons.push({ propriete: `${prefixe}${champ}`, variable: id });
+      if (id) yield { propriete: `${prefixe}${champ}`, variable: id };
     }
   }
-  return liaisons;
 }
 
-/** Les liaisons d'une liste de peintures, arrêts de dégradé compris. `figma.mixed` n'est pas un tableau et se saute. */
-function liaisonsDesPeintures(peintures: unknown, prefixe: string): Array<{ propriete: string; variable: string }> {
-  if (!Array.isArray(peintures)) return [];
-  return peintures.flatMap((peinture, rang) => {
-    if (!estObjet(peinture)) return [];
-    const propres = liaisonsDe(peinture.boundVariables, `${prefixe}[${rang}].`).map((liaison) => ({ ...liaison, propriete: liaison.propriete.replace(/\.color$/, '') }));
-    const arrets = Array.isArray(peinture.gradientStops)
-      ? peinture.gradientStops.flatMap((arret, rangDArret) => (estObjet(arret) ? liaisonsDe(arret.boundVariables, `${prefixe}[${rang}].gradientStops[${rangDArret}].`) : []))
-      : [];
-    return [...propres, ...arrets];
-  });
+function* liaisonsDesPeintures(peintures: unknown, prefixe: string): Generator<LiaisonBrute | undefined> {
+  if (!Array.isArray(peintures)) return;
+  for (let rang = 0; rang < peintures.length; rang += 1) {
+    yield;
+    const peinture = peintures[rang];
+    if (!estObjet(peinture)) continue;
+    for (const liaison of liaisonsDe(peinture.boundVariables, `${prefixe}[${rang}].`)) {
+      yield liaison ? { ...liaison, propriete: liaison.propriete.replace(/\.color$/, '') } : undefined;
+    }
+    if (!Array.isArray(peinture.gradientStops)) continue;
+    for (const [rangDArret, arret] of peinture.gradientStops.entries()) {
+      yield;
+      if (estObjet(arret)) yield* liaisonsDe(arret.boundVariables, `${prefixe}[${rang}].gradientStops[${rangDArret}].`);
+    }
+  }
 }
 
-/** Les liaisons d'une liste d'effets ou de grilles. */
-function liaisonsDesElements(elements: unknown, prefixe: string): Array<{ propriete: string; variable: string }> {
-  if (!Array.isArray(elements)) return [];
-  return elements.flatMap((element, rang) => (estObjet(element) ? liaisonsDe(element.boundVariables, `${prefixe}[${rang}].`) : []));
+function* liaisonsDesElements(elements: unknown, prefixe: string): Generator<LiaisonBrute | undefined> {
+  if (!Array.isArray(elements)) return;
+  for (const [rang, element] of elements.entries()) {
+    yield;
+    if (estObjet(element)) yield* liaisonsDe(element.boundVariables, `${prefixe}[${rang}].`);
+  }
 }
 
 /** Les champs de `boundVariables` lus ailleurs : par les peintures, les effets, les grilles ou les segments de texte. */
 const LUS_PAR_LEURS_OBJETS = new Set(['fills', 'strokes', 'effects', 'layoutGrids', 'textRangeFills']);
 const CHAMPS_DE_TEXTE = new Set(['fontFamily', 'fontSize', 'fontStyle', 'fontWeight', 'letterSpacing', 'lineHeight', 'paragraphSpacing', 'paragraphIndent']);
 
-/** Toutes les liaisons d'un calque, une par couple propriété–variable. */
-export function liaisonsDuNoeud(noeud: NoeudLu): Array<{ propriete: string; variable: string }> {
+function* liaisonsDuNoeudParEtapes(noeud: NoeudLu): Generator<LiaisonBrute | undefined> {
   const texte = noeud.type === 'TEXT' && typeof noeud.getStyledTextSegments === 'function';
   const ignorer = texte ? new Set([...LUS_PAR_LEURS_OBJETS, ...CHAMPS_DE_TEXTE]) : LUS_PAR_LEURS_OBJETS;
-  const liaisons = [
-    ...liaisonsDe(noeud.boundVariables, '', ignorer),
-    ...liaisonsDesPeintures(noeud.fills, 'fills'),
-    ...liaisonsDesPeintures(noeud.strokes, 'strokes'),
-    ...liaisonsDesElements(noeud.effects, 'effects'),
-    ...liaisonsDesElements(noeud.layoutGrids, 'layoutGrids'),
-  ];
+  yield* liaisonsDe(noeud.boundVariables, '', ignorer);
+  yield* liaisonsDesPeintures(noeud.fills, 'fills');
+  yield* liaisonsDesPeintures(noeud.strokes, 'strokes');
+  yield* liaisonsDesElements(noeud.effects, 'effects');
+  yield* liaisonsDesElements(noeud.layoutGrids, 'layoutGrids');
   if (texte && noeud.getStyledTextSegments) {
     for (const segment of noeud.getStyledTextSegments(['boundVariables', 'fills'])) {
+      yield;
       const plage = `texte[${segment.start}–${segment.end}]`;
-      liaisons.push(...liaisonsDe(segment.boundVariables, `${plage}.`), ...liaisonsDesPeintures(segment.fills, `${plage}.fills`));
+      yield* liaisonsDe(segment.boundVariables, `${plage}.`);
+      yield* liaisonsDesPeintures(segment.fills, `${plage}.fills`);
     }
   }
+}
+
+function retenirLaLiaison(liaison: LiaisonBrute | undefined, vues: Set<string>, liaisons: LiaisonBrute[]): void {
+  if (!liaison) return;
+  const cle = `${liaison.propriete}\u0000${liaison.variable}`;
+  if (vues.has(cle)) return;
+  vues.add(cle);
+  liaisons.push(liaison);
+}
+
+/** Toutes les liaisons d'un calque, une par couple propriété–variable. */
+export function liaisonsDuNoeud(noeud: NoeudLu): LiaisonBrute[] {
+  const liaisons: LiaisonBrute[] = [];
   const vues = new Set<string>();
-  return liaisons.filter((liaison) => {
-    const cle = `${liaison.propriete}\u0000${liaison.variable}`;
-    if (vues.has(cle)) return false;
-    vues.add(cle);
-    return true;
-  });
+  for (const liaison of liaisonsDuNoeudParEtapes(noeud)) retenirLaLiaison(liaison, vues, liaisons);
+  return liaisons;
+}
+
+/** Même lecture ordonnée que `liaisonsDuNoeud`, interruptible dans les peintures et les plages. */
+export async function liaisonsDuNoeudCooperatives(noeud: NoeudLu, cooperation: ContexteCooperatif): Promise<LiaisonBrute[]> {
+  const liaisons: LiaisonBrute[] = [];
+  const vues = new Set<string>();
+  for (const liaison of liaisonsDuNoeudParEtapes(noeud)) {
+    await cooperation.cederSiBesoin();
+    retenirLaLiaison(liaison, vues, liaisons);
+  }
+  return liaisons;
 }
 
 /** Les liaisons d'un style local. */
@@ -145,7 +175,7 @@ export function liaisonsDuStyle(style: StyleLu): Array<{ propriete: string; vari
     ...liaisonsDesElements(style.effects, 'effects'),
     ...liaisonsDesElements(style.layoutGrids, 'layoutGrids'),
     ...liaisonsDe(style.boundVariables, ''),
-  ];
+  ].filter((liaison): liaison is LiaisonBrute => liaison !== undefined);
 }
 
 /** Les modes effectifs d'un calque, explicites ou hérités, sans contexte fictif. */

@@ -25,8 +25,8 @@ import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/cont
 import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
-import { liaisonsDuNoeud, type NoeudLu } from './consommateurs';
-import { liaisonsDesSurcharges, sujetDe, type PortDuComposant } from './lectureDuComposant';
+import { liaisonsDuNoeudCooperatives, type NoeudLu } from './consommateurs';
+import { liaisonsDesSurcharges, type PortDuComposant } from './lectureDuComposant';
 import type { EspaceDuReleve } from './modele';
 
 export interface OptionsDuReleve {
@@ -92,14 +92,16 @@ function decouper(propriete: string): { champ: string; indice?: number; plage?: 
   return { champ: reste, ...(plage ? { plage } : {}) };
 }
 
-function peinturesDe(champ: 'fills' | 'strokes', liste: unknown, layer: string, manquees: Manquee[]): PeintureLue[] {
+async function peinturesDe(champ: 'fills' | 'strokes', liste: unknown, layer: string, manquees: Manquee[], cooperation: ContexteCooperatif): Promise<PeintureLue[]> {
   if (liste === undefined) return [];
   if (!Array.isArray(liste)) {
     manquees.push({ layer, champ, motif: 'peintures mixtes ou illisibles' });
     return [];
   }
-  return liste.flatMap((peinture, indice) => {
-    if (!estUnObjet(peinture)) return [];
+  const peintures: PeintureLue[] = [];
+  for (const [indice, peinture] of liste.entries()) {
+    await cooperation.cederSiBesoin();
+    if (!estUnObjet(peinture)) continue;
     const lue: PeintureLue = {
       champ,
       indice,
@@ -112,16 +114,21 @@ function peinturesDe(champ: 'fills' | 'strokes', liste: unknown, layer: string, 
       const { r, g, b, a } = peinture.color as { r: number; g: number; b: number; a?: number };
       lue.couleur = { r, g, b, a: estUnNombre(a) ? a : 1 };
     }
-    return [lue];
-  });
+    peintures.push(lue);
+  }
+  return peintures;
 }
 
 const CHAMPS_NUMERIQUES = ['paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom', 'itemSpacing'] as const;
 const RAYONS = ['topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'] as const;
 
 /** Les champs numériques qu'aucune variable ne lie sur ce layer. */
-function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimensions: LayerLu['dimensions'] | null): LayerLu['valeursEnDur'] {
-  const liees = new Set(liaisons.filter((liaison) => !liaison.plage).map((liaison) => liaison.champ));
+async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimensions: LayerLu['dimensions'] | null, cooperation: ContexteCooperatif): Promise<LayerLu['valeursEnDur']> {
+  const liees = new Set<string>();
+  for (const liaison of liaisons) {
+    await cooperation.cederSiBesoin();
+    if (!liaison.plage && !liaison.surcharge) liees.add(liaison.champ);
+  }
   const liee = (...champs: string[]): boolean => champs.some((champ) => liees.has(champ));
   const valeurs: LayerLu['valeursEnDur'] = [];
   const ajouter = (champ: string, valeur: unknown, ...aussi: string[]) => {
@@ -131,7 +138,15 @@ function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimension
   if (estUnNombre(champLu(noeud, 'cornerRadius'))) ajouter('cornerRadius', champLu(noeud, 'cornerRadius'), ...RAYONS);
   else for (const coin of RAYONS) ajouter(coin, champLu(noeud, coin), 'cornerRadius');
   // Figma donne une épaisseur (1 par défaut) à tout layer, même sans contour : sans contour visible, elle ne se voit pas.
-  const contourVisible = Array.isArray(champLu(noeud, 'strokes')) && (champLu(noeud, 'strokes') as unknown[]).some((peinture) => estUnObjet(peinture) && peinture.visible !== false && peinture.opacity !== 0);
+  const contours = champLu(noeud, 'strokes');
+  let contourVisible = false;
+  if (Array.isArray(contours)) for (const peinture of contours) {
+    await cooperation.cederSiBesoin();
+    if (estUnObjet(peinture) && peinture.visible !== false && peinture.opacity !== 0) {
+      contourVisible = true;
+      break;
+    }
+  }
   if (contourVisible) ajouter('strokeWeight', champLu(noeud, 'strokeWeight'), 'strokeTopWeight', 'strokeRightWeight', 'strokeBottomWeight', 'strokeLeftWeight');
   if (dimensions) {
     if (!liee('width')) valeurs.push({ champ: 'width', valeur: dimensions.largeur });
@@ -163,6 +178,7 @@ class Lecteur {
   constructor(
     private readonly port: PortDuComposant,
     readonly manquees: Manquee[],
+    readonly cooperation: ContexteCooperatif,
   ) {}
 
   collection(id: string) {
@@ -171,8 +187,15 @@ class Lecteur {
       lecture = (async () => {
         try {
           const collection = await this.port.variables.getVariableCollectionByIdAsync(id);
-          return collection ? { nom: collection.name, modes: new Map(collection.modes.map((mode) => [mode.modeId, mode.name])) } : null;
+          if (!collection) return null;
+          const modes = new Map<string, string>();
+          for (const mode of collection.modes) {
+            await this.cooperation.cederSiBesoin();
+            modes.set(mode.modeId, mode.name);
+          }
+          return { nom: collection.name, modes };
         } catch (erreur) {
+          if (erreur instanceof AnalyseAnnulee) throw erreur;
           this.manquees.push({ champ: `collection ${id}`, motif: messageDErreur(erreur) });
           return null;
         }
@@ -192,6 +215,7 @@ class Lecteur {
           const collection = await this.collection(variable.variableCollectionId);
           return { lue: { id: variable.id, cle: variable.key, nom: variable.name, collection: collection?.nom ?? variable.variableCollectionId, distante: variable.remote } };
         } catch (erreur) {
+          if (erreur instanceof AnalyseAnnulee) throw erreur;
           return { lue: null, erreur: messageDErreur(erreur) };
         }
       })());
@@ -204,6 +228,7 @@ class Lecteur {
   async liaisons(brutes: ReadonlyArray<{ propriete: string; variable: string }>, porteur: string): Promise<LiaisonLue[]> {
     const liaisons: LiaisonLue[] = [];
     for (const { propriete, variable } of brutes) {
+      await this.cooperation.cederSiBesoin();
       const lue = await this.variable(variable, porteur, propriete);
       liaisons.push(
         lue
@@ -228,7 +253,10 @@ class Lecteur {
 
   async modes(noeud: NoeudLu): Promise<Record<string, string>> {
     const modes: Record<string, string> = {};
-    for (const [idDeCollection, idDeMode] of Object.entries(noeud.resolvedVariableModes ?? {})) {
+    const effectifs = noeud.resolvedVariableModes ?? {};
+    for (const idDeCollection of Object.keys(effectifs)) {
+      await this.cooperation.cederSiBesoin();
+      const idDeMode = effectifs[idDeCollection];
       const collection = await this.collection(idDeCollection);
       if (collection) modes[collection.nom] = collection.modes.get(idDeMode) ?? idDeMode;
     }
@@ -245,18 +273,38 @@ async function texteDe(lecteur: Lecteur, noeud: NoeudLu, liaisons: readonly Liai
   } catch (erreur) {
     manquees.push({ layer: noeud.id, champ: 'texte', motif: messageDErreur(erreur) });
   }
-  const identifiants = typeof noeud.textStyleId === 'string' ? [noeud.textStyleId] : [...new Set(segments.map((segment) => segment.textStyleId))];
-  const unique = identifiants.length === 1 && typeof identifiants[0] === 'string' && identifiants[0] !== '' ? identifiants[0] : null;
-  return {
-    style: unique ? await lecteur.style(unique, noeud.id) : null,
-    plages: segments.map((segment) => ({
+  const identifiants = new Set<unknown>();
+  if (typeof noeud.textStyleId === 'string') identifiants.add(noeud.textStyleId);
+  else for (const segment of segments) {
+    await lecteur.cooperation.cederSiBesoin();
+    identifiants.add(segment.textStyleId);
+  }
+  const premier = identifiants.values().next().value;
+  const unique = identifiants.size === 1 && typeof premier === 'string' && premier !== '' ? premier : null;
+  const liaisonsParPlage = new Map<string, LiaisonLue[]>();
+  for (const liaison of liaisons) {
+    await lecteur.cooperation.cederSiBesoin();
+    if (!liaison.plage) continue;
+    const cle = `${liaison.plage.debut}:${liaison.plage.fin}`;
+    const groupe = liaisonsParPlage.get(cle) ?? [];
+    groupe.push(liaison);
+    liaisonsParPlage.set(cle, groupe);
+  }
+  const plages: NonNullable<LayerLu['texte']>['plages'] = [];
+  for (const segment of segments) {
+    await lecteur.cooperation.cederSiBesoin();
+    plages.push({
       debut: segment.start,
       fin: segment.end,
       fontSize: estUnNombre(segment.fontSize) ? segment.fontSize : 0,
       fontWeight: estUnNombre(segment.fontWeight) ? segment.fontWeight : 0,
-      peintures: peinturesDe('fills', segment.fills, noeud.id, manquees),
-      liaisons: liaisons.filter((liaison) => liaison.plage?.debut === segment.start && liaison.plage.fin === segment.end),
-    })),
+      peintures: await peinturesDe('fills', segment.fills, noeud.id, manquees, lecteur.cooperation),
+      liaisons: liaisonsParPlage.get(`${segment.start}:${segment.end}`) ?? [],
+    });
+  }
+  return {
+    style: unique ? await lecteur.style(unique, noeud.id) : null,
+    plages,
   };
 }
 
@@ -288,49 +336,76 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     visible: champLu(noeud, 'visible') !== false,
     opacite: estUnNombre(champLu(noeud, 'opacity')) ? champLu(noeud, 'opacity') as number : 1,
     dimensions: dimensions ?? { x: 0, y: 0, largeur: 0, hauteur: 0 },
-    peintures: [...peinturesDe('fills', noeud.fills, noeud.id, manquees), ...peinturesDe('strokes', noeud.strokes, noeud.id, manquees)],
+    peintures: await peinturesDe('fills', noeud.fills, noeud.id, manquees, lecteur.cooperation),
     liaisons: [],
     valeursEnDur: [],
   };
+  for (const peinture of await peinturesDe('strokes', noeud.strokes, noeud.id, manquees, lecteur.cooperation)) {
+    await lecteur.cooperation.cederSiBesoin();
+    layer.peintures.push(peinture);
+  }
   if (estUnNombre(champLu(noeud, 'strokeWeight'))) layer.strokeWeight = champLu(noeud, 'strokeWeight') as number;
   try {
-    layer.liaisons = await lecteur.liaisons(liaisonsDuNoeud(noeud), noeud.id);
+    layer.liaisons = await lecteur.liaisons(await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation), noeud.id);
     if (frontiere) {
       const lues: LiaisonLue[] = [];
-      for (const { propriete, variable, porteur } of await liaisonsDesSurcharges(port, noeud, true)) {
+      for (const { propriete, variable, porteur } of await liaisonsDesSurcharges(port, noeud, true, lecteur.cooperation)) {
+        await lecteur.cooperation.cederSiBesoin();
         const surcharge = porteur.id === noeud.id ? {} : { surcharge: { id: porteur.id, nom: porteur.name, type: porteur.type } };
         lues.push(...(await lecteur.liaisons([{ propriete, variable }], noeud.id)).map((liaison) => ({ ...liaison, ...surcharge })));
       }
       const cle = (liaison: LiaisonLue): string => JSON.stringify([liaison.surcharge?.id ?? null, liaison.champ, liaison.indice, liaison.variable.id]);
-      const connues = new Set(layer.liaisons.map(cle));
-      layer.liaisons.push(...lues.filter((liaison) => !connues.has(cle(liaison))));
+      const connues = new Set<string>();
+      for (const liaison of layer.liaisons) {
+        await lecteur.cooperation.cederSiBesoin();
+        connues.add(cle(liaison));
+      }
+      for (const liaison of lues) {
+        await lecteur.cooperation.cederSiBesoin();
+        if (!connues.has(cle(liaison))) layer.liaisons.push(liaison);
+      }
       const instance = await instanceDe(noeud, manquees);
       if (instance) layer.instanceDe = instance;
     }
   } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) throw erreur;
     manquees.push({ layer: noeud.id, champ: 'liaisons', motif: messageDErreur(erreur) });
   }
-  layer.valeursEnDur = valeursEnDur(noeud, layer.liaisons.filter((liaison) => !liaison.surcharge), dimensions);
+  layer.valeursEnDur = await valeursEnDur(noeud, layer.liaisons, dimensions, lecteur.cooperation);
   if (noeud.type === 'TEXT') layer.texte = await texteDe(lecteur, noeud, layer.liaisons, manquees);
   return layer;
 }
 
 /** Les valeurs de variant d'un composant : `variantProperties`, sinon son nom `Propriété=Valeur, …`. */
-function valeursDuVariant(variant: NoeudLu): Record<string, string> {
+async function valeursDuVariant(variant: NoeudLu, cooperation: ContexteCooperatif): Promise<Record<string, string>> {
   const propres = champLu(variant, 'variantProperties');
-  if (estUnObjet(propres)) return Object.fromEntries(Object.entries(propres).map(([nom, valeur]) => [nom, String(valeur)]));
+  if (estUnObjet(propres)) {
+    const valeurs: Record<string, string> = {};
+    for (const nom of Object.keys(propres)) {
+      await cooperation.cederSiBesoin();
+      Object.defineProperty(valeurs, nom, { value: String(propres[nom]), enumerable: true, configurable: true, writable: true });
+    }
+    return valeurs;
+  }
   if (!estUnVariant(variant)) return {};
-  return Object.fromEntries(
-    variant.name.split(',').flatMap((morceau) => {
-      const coupe = morceau.indexOf('=');
-      return coupe < 0 ? [] : [[morceau.slice(0, coupe).trim(), morceau.slice(coupe + 1).trim()]];
-    }),
-  );
+  const valeurs: Record<string, string> = {};
+  const nom = variant.name;
+  let debut = 0;
+  while (debut <= nom.length) {
+    await cooperation.cederSiBesoin();
+    const virgule = nom.indexOf(',', debut);
+    const morceau = nom.slice(debut, virgule < 0 ? nom.length : virgule);
+    const coupe = morceau.indexOf('=');
+    if (coupe >= 0) Object.defineProperty(valeurs, morceau.slice(0, coupe).trim(), { value: morceau.slice(coupe + 1).trim(), enumerable: true, configurable: true, writable: true });
+    if (virgule < 0) break;
+    debut = virgule + 1;
+  }
+  return valeurs;
 }
 
 const TYPES_DE_PROPRIETE = new Set(['VARIANT', 'BOOLEAN', 'TEXT', 'INSTANCE_SWAP']);
 
-function proprietesDe(jeu: NoeudLu, manquees: Manquee[]): ReleveDeComposant['proprietes'] {
+async function proprietesDe(jeu: NoeudLu, manquees: Manquee[], cooperation: ContexteCooperatif): Promise<ReleveDeComposant['proprietes']> {
   let definitions: unknown;
   try {
     definitions = champLu(jeu, 'componentPropertyDefinitions');
@@ -339,12 +414,21 @@ function proprietesDe(jeu: NoeudLu, manquees: Manquee[]): ReleveDeComposant['pro
     return [];
   }
   if (!estUnObjet(definitions)) return [];
-  return Object.entries(definitions).flatMap(([nom, definition]) => {
-    if (!estUnObjet(definition) || typeof definition.type !== 'string' || !TYPES_DE_PROPRIETE.has(definition.type)) return [];
+  const proprietes: ReleveDeComposant['proprietes'] = [];
+  for (const nom of Object.keys(definitions)) {
+    await cooperation.cederSiBesoin();
+    const definition = definitions[nom];
+    if (!estUnObjet(definition) || typeof definition.type !== 'string' || !TYPES_DE_PROPRIETE.has(definition.type)) continue;
     const defaut = typeof definition.defaultValue === 'boolean' ? definition.defaultValue : String(definition.defaultValue ?? '');
-    const valeurs = Array.isArray(definition.variantOptions) ? definition.variantOptions.map(String) : undefined;
-    return [{ nom, type: definition.type as ReleveDeComposant['proprietes'][number]['type'], ...(valeurs ? { valeurs } : {}), defaut }];
-  });
+    const options = definition.variantOptions;
+    const valeurs: string[] = Array.isArray(options) ? new Array(options.length) : [];
+    if (Array.isArray(options)) for (let rang = 0; rang < options.length; rang += 1) {
+      await cooperation.cederSiBesoin();
+      if (rang in options) valeurs[rang] = String(options[rang]);
+    }
+    proprietes.push({ nom, type: definition.type as ReleveDeComposant['proprietes'][number]['type'], ...(Array.isArray(definition.variantOptions) ? { valeurs } : {}), defaut });
+  }
+  return proprietes;
 }
 
 /**
@@ -362,23 +446,32 @@ export async function lireLeReleve(port: PortDuComposant, depart: NoeudLu, optio
 
 async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu, options: OptionsDuReleve): Promise<IssueDuReleve> {
   const budget = options.budgetDeLayers ?? BUDGET_DE_LAYERS_PAR_DEFAUT;
-  const annule = (): boolean => options.jeton?.leve === true;
   const cooperation = options.cooperation ?? creerContexteCooperatif({ jeton: options.jeton, respirer: () => port.pause() });
-  const trouve = sujetDe(depart);
-  if (!trouve) return { statut: 'sans-sujet' };
-  let { sujet } = trouve;
+  const annule = (): boolean => options.jeton?.leve === true;
+  let sujet: NoeudLu | null = depart;
+  while (sujet && !['COMPONENT', 'COMPONENT_SET', 'INSTANCE'].includes(sujet.type)) {
+    await cooperation.cederSiBesoin();
+    sujet = sujet.parent;
+  }
+  if (!sujet) return { statut: 'sans-sujet' };
   if (sujet.type === 'INSTANCE') {
     const maitre = await sujet.getMainComponentAsync?.().catch(() => null);
     if (!maitre) return { statut: 'sans-sujet' };
     sujet = maitre;
   }
   const jeu = sujet.type === 'COMPONENT_SET' ? sujet : estUnVariant(sujet) && sujet.parent ? sujet.parent : sujet;
-  const composants = jeu.type === 'COMPONENT_SET' ? (jeu.children ?? []).filter((enfant) => enfant.type === 'COMPONENT') : [jeu];
+  const composants: NoeudLu[] = [];
+  if (jeu.type === 'COMPONENT_SET') {
+    for (const enfant of jeu.children ?? []) {
+      await cooperation.cederSiBesoin();
+      if (enfant.type === 'COMPONENT') composants.push(enfant);
+    }
+  } else composants.push(jeu);
   if (composants.length === 0) return { statut: 'sans-sujet' };
   if (annule()) return { statut: 'annule' };
 
   const manquees: Manquee[] = [];
-  const lecteur = new Lecteur(port, manquees);
+  const lecteur = new Lecteur(port, manquees, cooperation);
   const variants: VariantLu[] = [];
   const variantsNonLus: string[] = [];
   let layersLus = 0;
@@ -386,8 +479,8 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
   let coupe = false;
 
   for (const composant of composants) {
-    if (annule()) return { statut: 'annule' };
     await cooperation.cederSiBesoin();
+    if (annule()) return { statut: 'annule' };
     let etapes: Etape[] | null = null;
     try {
       etapes = await parcourir(composant, cooperation);
@@ -402,7 +495,7 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
         layers.push(await lireLeLayer(port, lecteur, etape, manquees));
       }
       layersLus += layers.length;
-      variants.push({ id: composant.id, nom: composant.name, valeurs: valeursDuVariant(composant), layers, modesEffectifs: await lecteur.modes(composant) });
+      variants.push({ id: composant.id, nom: composant.name, valeurs: await valeursDuVariant(composant, cooperation), layers, modesEffectifs: await lecteur.modes(composant) });
       options.progresser?.(variants.length, composants.length);
       continue;
     }
@@ -411,12 +504,15 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
     layersNonLus = etapes && layersNonLus !== 'inconnu' ? layersNonLus + etapes.length : 'inconnu';
   }
 
+  const proprietes = await proprietesDe(jeu, manquees, cooperation);
+  cooperation.verifier();
+
   return {
     statut: 'lu',
     releve: {
       version: 1,
       jeu: { cle: String(champLu(jeu, 'key') ?? ''), id: jeu.id, nom: jeu.name },
-      proprietes: proprietesDe(jeu, manquees),
+      proprietes,
       variants,
       lecture: { layersLus, layersNonLus, variantsNonLus, manquees },
       espaceDeCouleur: options.espaceDeCouleur ?? 'srgb',

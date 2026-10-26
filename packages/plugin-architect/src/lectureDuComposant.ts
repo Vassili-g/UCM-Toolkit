@@ -17,9 +17,10 @@
  */
 import { boiteDe } from './apercu';
 import { champDe, natureDe, type CalqueDuComposant, type LectureDeComposant, type LiaisonDuComposant, type StyleDeTexte } from './composant';
-import { liaisonsDuNoeud, liaisonsDuStyle, modesDuNoeud, type NoeudLu, type StyleLu } from './consommateurs';
+import { liaisonsDuNoeudCooperatives, liaisonsDuNoeud, liaisonsDuStyle, modesDuNoeud, type NoeudLu, type StyleLu } from './consommateurs';
 import { convertirValeur, lireLesVariables, separerLesModes, traduireLesModes, type PortDeLecture, type SuiviDeLecture, type VariableFigma } from './lecture';
 import { FORMAT_DU_RELEVE, hexaDeCouleur } from './modele';
+import type { ContexteCooperatif } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 /** Le nombre de calques lus entre deux pauses. */
 export const LOT = 400;
@@ -115,15 +116,24 @@ type LiaisonLue = { propriete: string; variable: string; porteur: NoeudLu };
  * Les liaisons que le parent pose dans une instance frontière, lues sur les calques que ses surcharges visent. Une même
  * variable au même champ ne compte qu'une fois, sauf `parCalque`, qui en garde une par calque visé (le relevé de l'analyse).
  */
-export async function liaisonsDesSurcharges(port: PortDuComposant, instance: NoeudLu, parCalque = false): Promise<LiaisonLue[]> {
+export async function liaisonsDesSurcharges(port: PortDuComposant, instance: NoeudLu, parCalque = false, cooperation?: ContexteCooperatif): Promise<LiaisonLue[]> {
   const liaisons: LiaisonLue[] = [];
   const vues = new Set<string>();
   for (const surcharge of instance.overrides ?? []) {
-    const champs = new Set(surcharge.overriddenFields);
-    if (![...champs].some(surchargeLue)) continue;
+    await cooperation?.cederSiBesoin();
+    const champs = new Set<string>();
+    let lue = false;
+    for (const champ of surcharge.overriddenFields) {
+      await cooperation?.cederSiBesoin();
+      champs.add(champ);
+      if (surchargeLue(champ)) lue = true;
+    }
+    if (!lue) continue;
     const vise = surcharge.id === instance.id ? instance : await port.getNodeByIdAsync(surcharge.id);
     if (!vise) continue;
-    for (const liaison of liaisonsDuNoeud(vise)) {
+    const duNoeud = cooperation ? await liaisonsDuNoeudCooperatives(vise, cooperation) : liaisonsDuNoeud(vise);
+    for (const liaison of duNoeud) {
+      await cooperation?.cederSiBesoin();
       const champ = champSurcharge(liaison.propriete);
       const citee = champs.has(champ) || (!LUS_PAR_LEURS_OBJETS.has(champ) && champs.has('boundVariables'));
       const cle = `${parCalque ? `${vise.id}\u0000` : ''}${liaison.propriete}\u0000${liaison.variable}`;

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { ouvrirLaMesure, fermerLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { liaisonsDuNoeud, liaisonsDuNoeudCooperatives } from '../src/consommateurs';
 import { lireLeReleve } from '../src/releveDuComposant';
 import { creerContexteCooperatif } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 import { atelierDeCalques, collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
@@ -27,6 +28,7 @@ test('90 petits variants partagent le budget et gardent le même relevé avec ou
     }),
   });
   assert.ok(cessions.length > 0);
+  assert.equal(cessions[0], 0);
   assert.ok(cessions.some((fait) => fait > 0 && fait < 90), JSON.stringify(cessions));
   assert.deepEqual(courant, reference);
 });
@@ -307,3 +309,154 @@ test('la mesure du relevé compte ses propriétés et ses pauses existantes sans
   assert.ok((trace?.compteurs.proprietesDuReleve ?? 0) > 401);
   assert.ok((trace?.compteurs.cessionsArchitect ?? 0) > 401);
 });
+
+for (const source of ['variantProperties', 'nom'] as const) {
+  test(`les valeurs de variant gardent les clés propres et les doublons depuis ${source}`, async () => {
+    const a = atelierDeCalques();
+    const paires = [['__proto__', 'premier'], ['constructor', 'constructeur'], ['Etat', 'Repos'], ['__proto__', 'dernier']];
+    const variant = a.calque('v', 'COMPONENT', {
+      absoluteBoundingBox: boite(0, 0, 10, 10),
+      name: paires.map(([nom, valeur]) => `${nom}=${valeur}`).join(', '),
+      ...(source === 'variantProperties' ? { variantProperties: Object.fromEntries(paires) } : {}),
+    });
+    const jeu = a.calque('jeu', 'COMPONENT_SET', {}, [variant]);
+    const issue = await lireLeReleve(a.port(portDeTest([], []).port), jeu);
+    assert.equal(issue.statut, 'lu');
+    if (issue.statut !== 'lu') return;
+    assert.deepEqual(issue.releve.variants[0].valeurs, Object.fromEntries(paires));
+    assert.equal(Object.getPrototypeOf(issue.releve.variants[0].valeurs), Object.prototype);
+    assert.deepEqual(Object.getOwnPropertyDescriptor(issue.releve.variants[0].valeurs, '__proto__'), {
+      value: 'dernier', enumerable: true, configurable: true, writable: true,
+    });
+  });
+}
+
+for (const passe of ['fills', 'strokes', 'contours en dur', 'champs surchargés', 'peintures de plage', 'valeurs de variant', 'propriétés', 'options', 'modes de collection', 'styles de plages', 'enfants du jeu'] as const) {
+  test(`le relevé cède et s'annule pendant la passe ${passe} sans changer sa sortie`, async () => {
+    const a = atelierDeCalques();
+    let travail = 0;
+    const nombre = 256;
+    const valeur = (rang: number) => ({ toString() { travail += 1; return String(rang); } });
+    const peintures = Array.from({ length: nombre }, () => ({
+      get type() { travail += 1; return 'SOLID'; }, color: { r: 0, g: 0, b: 0 }, visible: false,
+    }));
+    const champs: Record<string, unknown> = { absoluteBoundingBox: boite(0, 0, 10, 10) };
+    if (passe === 'contours en dur') {
+      let lectureDesLiaisons = false;
+      Object.defineProperty(champs, 'absoluteBoundingBox', { enumerable: true, get() { lectureDesLiaisons = false; return boite(0, 0, 10, 10); } });
+      Object.defineProperty(champs, 'boundVariables', { enumerable: true, get() { lectureDesLiaisons = true; return {}; } });
+      champs.strokes = Array.from({ length: nombre }, () => ({ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, get opacity() { if (lectureDesLiaisons) travail += 1; return 0; } }));
+      champs.strokeWeight = 1;
+    }
+    if (passe === 'champs surchargés') {
+      const surcharges: string[] = new Array(nombre);
+      for (let rang = 0; rang < nombre; rang += 1) Object.defineProperty(surcharges, rang, { get() { travail += 1; return 'fills'; } });
+      champs.overrides = [{ id: 'contenu', overriddenFields: surcharges }];
+    }
+    const definitions: Record<string, unknown> = {};
+    let collections = [] as ReturnType<typeof collectionFigma>[];
+    if (passe === 'fills' || passe === 'strokes') champs[passe] = peintures;
+    if (passe === 'valeurs de variant') {
+      const propres = {};
+      for (let rang = 0; rang < nombre; rang += 1) Object.defineProperty(propres, `Axe${rang}`, { enumerable: true, get() { travail += 1; return String(rang); } });
+      champs.variantProperties = propres;
+    }
+    if (passe === 'propriétés') for (let rang = 0; rang < nombre; rang += 1) Object.defineProperty(definitions, `Axe${rang}`, { enumerable: true, get() { travail += 1; return { type: 'TEXT', defaultValue: String(rang) }; } });
+    if (passe === 'options') definitions.Etat = { type: 'VARIANT', defaultValue: '0', variantOptions: Array.from({ length: nombre }, (_, rang) => valeur(rang)) };
+    if (passe === 'modes de collection') {
+      champs.resolvedVariableModes = { c: 'm0' };
+      collections = [{ ...collectionFigma('c', 'Composants', ['Repos'], []), modes: Array.from({ length: nombre }, (_, rang) => ({ modeId: `m${rang}`, get name() { travail += 1; return `Mode${rang}`; } })) }];
+    }
+    const texte = passe === 'peintures de plage' || passe === 'styles de plages';
+    if (texte) champs.getStyledTextSegments = (demandes: string[]) => {
+      if (!demandes.includes('fontSize')) return [];
+      if (passe === 'peintures de plage') return [{ start: 0, end: 1, fills: peintures }];
+      return Array.from({ length: nombre }, (_, rang) => ({ start: rang, end: rang + 1, get textStyleId() { travail += 1; return ''; } }));
+    };
+    const enfant = a.calque('contenu', texte ? 'TEXT' : passe === 'champs surchargés' ? 'INSTANCE' : 'FRAME', champs);
+    const variant = a.calque('v', 'COMPONENT', passe === 'valeurs de variant' || passe === 'modes de collection' ? champs : { absoluteBoundingBox: boite(0, 0, 10, 10) }, passe === 'valeurs de variant' ? [] : [enfant]);
+    const enfants = passe === 'enfants du jeu' ? Array.from({ length: nombre }, (_, rang) => a.calque(`ignore-${rang}`, 'FRAME', { get type() { travail += 1; return 'FRAME'; } })).concat([variant]) : [variant];
+    const jeu = a.calque('jeu', 'COMPONENT_SET', { componentPropertyDefinitions: definitions }, enfants);
+    const port = a.port(portDeTest(collections, []).port);
+    const reference = await lireLeReleve(port, jeu, { cooperation: creerContexteCooperatif({ horloge: () => 0 }) });
+    assert.equal(reference.statut, 'lu');
+    const total = travail;
+    assert.ok(total >= nombre, `${passe}: ${total}`);
+    travail = 0;
+    let precedent = 0;
+    const cessions: number[] = [];
+    const courant = await lireLeReleve(port, jeu, {
+      cooperation: creerContexteCooperatif({ horloge: () => travail, budgetDeCalculMs: 25, respirer: async () => {
+        cessions.push(travail);
+        assert.ok(travail - precedent <= 26, `${passe}: ${travail - precedent} lectures entre cessions`);
+        precedent = travail;
+      } }),
+    });
+    assert.ok(cessions.length > 0);
+    assert.ok(cessions[0] < total);
+    assert.deepEqual(courant, reference);
+    travail = 0;
+    const jeton = { leve: false };
+    const issue = await lireLeReleve(port, jeu, {
+      cooperation: creerContexteCooperatif({ jeton, horloge: () => travail, budgetDeCalculMs: 25, respirer: async () => { jeton.leve = true; } }),
+    });
+    assert.deepEqual(issue, { statut: 'annule' });
+    assert.ok(travail >= 25 && travail <= 26 && travail < total, `${passe}: ${travail}/${total}`);
+  });
+}
+
+test('les valeurs tirées du nom cèdent pendant leur découpage', async () => {
+  const a = atelierDeCalques();
+  let dansLesValeurs = false;
+  const paires = Array.from({ length: 256 }, (_, rang) => [`Axe${rang}`, String(rang)]);
+  const variant = a.calque('v', 'COMPONENT', {
+    absoluteBoundingBox: boite(0, 0, 10, 10),
+    name: paires.map(([nom, valeur]) => `${nom}=${valeur}`).join(', '),
+    get variantProperties() { dansLesValeurs = true; return undefined; },
+  });
+  const jeu = a.calque('jeu', 'COMPONENT_SET', {}, [variant]);
+  const port = a.port(portDeTest([], []).port);
+  const reference = await lireLeReleve(port, jeu, { cooperation: creerContexteCooperatif({ horloge: () => 0 }) });
+  assert.equal(reference.statut, 'lu');
+  if (reference.statut !== 'lu') return;
+  assert.deepEqual(reference.releve.variants[0].valeurs, Object.fromEntries(paires));
+  dansLesValeurs = false;
+  let horloge = 0;
+  const jeton = { leve: false };
+  const issue = await lireLeReleve(port, jeu, {
+    cooperation: creerContexteCooperatif({ jeton, horloge: () => dansLesValeurs ? horloge++ : 0, budgetDeCalculMs: 25, respirer: async () => { jeton.leve = true; } }),
+  });
+  assert.deepEqual(issue, { statut: 'annule' });
+  assert.equal(horloge, 26);
+});
+
+for (const passe of ['alias', 'arrêts', 'effets', 'grilles', 'plages'] as const) {
+  test(`les liaisons gardent leur ordre et cèdent pendant les ${passe}`, async () => {
+    let travail = 0;
+    const nombre = 256;
+    const lie = () => ({ get boundVariables() { travail += 1; return { color: alias('fond') }; } });
+    const champs: Record<string, unknown> = {};
+    if (passe === 'alias') champs.boundVariables = { componentProperties: Object.fromEntries(Array.from({ length: nombre }, (_, rang) => [String(rang), { get type() { travail += 1; return 'VARIABLE_ALIAS'; }, id: `v${rang}` }])) };
+    if (passe === 'arrêts') champs.fills = [{ type: 'GRADIENT_LINEAR', gradientStops: Array.from({ length: nombre }, lie) }];
+    if (passe === 'effets') champs.effects = Array.from({ length: nombre }, lie);
+    if (passe === 'grilles') champs.layoutGrids = Array.from({ length: nombre }, lie);
+    if (passe === 'plages') champs.getStyledTextSegments = () => Array.from({ length: nombre }, (_, rang) => ({ start: rang, end: rang + 1, boundVariables: { color: alias('fond') }, get fills() { travail += 1; return []; } }));
+    const a = atelierDeCalques();
+    const noeud = a.calque('contenu', passe === 'plages' ? 'TEXT' : 'FRAME', champs);
+    const reference = liaisonsDuNoeud(noeud);
+    travail = 0;
+    const cessions: number[] = [];
+    const courant = await liaisonsDuNoeudCooperatives(noeud, creerContexteCooperatif({ horloge: () => travail, budgetDeCalculMs: 25, respirer: async () => { cessions.push(travail); } }));
+    assert.deepEqual(courant, reference);
+    assert.equal(courant.length, nombre);
+    assert.ok(cessions.length > 0 && cessions[0] < nombre, `${passe}: ${cessions}`);
+    travail = 0;
+    const jeton = { leve: false };
+    const variant = a.calque('v', 'COMPONENT', { absoluteBoundingBox: boite(0, 0, 10, 10) }, [noeud]);
+    const issue = await lireLeReleve(a.port(variables().port), variant, {
+      cooperation: creerContexteCooperatif({ jeton, horloge: () => travail, budgetDeCalculMs: 25, respirer: async () => { jeton.leve = true; } }),
+    });
+    assert.deepEqual(issue, { statut: 'annule' });
+    assert.ok(travail >= 25 && travail < nombre, `${passe}: ${travail}`);
+  });
+}
