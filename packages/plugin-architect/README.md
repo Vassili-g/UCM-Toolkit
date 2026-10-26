@@ -219,7 +219,12 @@ node scripts/build-ui.cjs
 Le build normal embarque le code de capture sans le lancer : sans
 `UCM_ARCHITECT_CAPTURER`, l'interface n'envoie pas `capturer` et ignore le message de
 capture. `tests/outils/capture.ts` rebâtit un double de nœuds depuis le fichier, pour
-rejouer le relevé et le moteur hors de Figma.
+rejouer le relevé et le moteur hors de Figma. Le rejeu compte chaque lecture par étape, par
+champ et par fonction appelante, et la pondère par le banc de la même capture :
+
+```sh
+npx tsx scripts/rejouer-la-capture.ts <capture.json> [--json <sortie.json>]
+```
 
 `npm run fidelite --workspace ucm-architect-plugin -- [<cadre>…]` compare
 chaque cadre de `galerie/cadres.json` à l'état de galerie du même identifiant,

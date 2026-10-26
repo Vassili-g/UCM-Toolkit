@@ -105,3 +105,4 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 
 ## scripts/
 - mesurer.mjs : mesure sur 10 000 variables, hors des tests
+- rejouer-la-capture.ts : rejoue l'analyse sur une capture et compte ses lectures par étape, champ et appelant, pondérées par le banc

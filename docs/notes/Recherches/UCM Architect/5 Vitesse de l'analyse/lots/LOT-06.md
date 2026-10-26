@@ -19,8 +19,8 @@ Les cases 6.0 et 6.0b ont été ajoutées d'après la trace Figma du Button : la
 - [x] **6.9 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : dériver l'inventaire de péremption de la topologie et écouter les pages autorisées avant lecture longue ; test de couverture inconnue. Dérivé : `topologie.ts` (socle) lit le jeu, ses enfants directs et un `findAll` (instances descendues) et en tire les mêmes identifiants surveillés qu'avant, avec leur `Couverture` ; un `children` ou un `findAll` qui lève devient un trou `enfants` au lieu d'une liste vide, et une page que `creerLeSuivi` n'a pas pu écouter un trou `page-non-ecoutee`. `analyser` écoute la page courante avant de lire le sujet, garde les nœuds touchés reçus jusqu'à l'inventaire et les juge contre lui ; `analyseARelire` rend vrai pour une couverture incomplète ou inconnue, sans texte ni écran nouveau. Reste au lot 8 : les maîtres des instances imbriquées, les variables, styles et libraries n'ont aucune couverture, et l'ajout d'un nœud après l'inventaire n'est pas établi. Les deux compteurs de layers ne sont pas projetés depuis `instances`.
 - [ ] **6.10 | gpt-6-luna | low** | **Claude Sonnet | low** : comparer dans le banc parcours natif indexé et parcours coopératif explicite ; ne fixer aucun gagnant avant Figma.
 - [x] **6.11a | gpt-6-luna | medium** | **Claude Sonnet | medium** : ajouter au build de mesure une capture du Button : toutes les propriétés que relevé et moteur lisent sur le jeu, ses variants, leurs descendants et les ressources atteintes (variables, styles, maîtres), sortie dans la console, à garder dans `_local/` et jamais commitée ; et un banc de coût qui lit 10 000 fois chaque propriété sur un nœud type et rend la durée moyenne par lecture. Ajoutée d'après la mesure du build 6.8 : 6.7 et 6.8 n'ont pas réduit le moteur, et la trace ne dit pas quelles lectures coûtent.
-- [x] **6.11b | mainteneur | sans modèle** : lancer la capture et le banc de coût sur le Button dans Figma ; remettre les deux sorties. Remises le 2026-10-26 en un fichier, rangé dans `_local/vitesse-analyse/` : 2 195 nœuds, 496 variables, 3 styles, aucune troncature. Le banc mesure 15 à 60 µs pour une propriété ordinaire, 0,2 µs pour `id` et `type`, jusqu'à 321 µs pour `boundVariables` d'une instance et 587 µs pour `getMainComponentAsync`.
-- [ ] **6.11c | gpt-6-luna | medium** | **Claude Sonnet | medium** : rejouer relevé et moteur sur la capture avec un double qui compte chaque lecture par champ, par nœud et par fonction appelante ; croiser avec les coûts unitaires pour répartir `structure.vues` (4,3 s), `structure.couleurs`, l'élection et le relevé ; valider la répartition contre les durées mesurées et la consigner ici.
+- [x] **6.11b | mainteneur | sans modèle** : lancer la capture et le banc de coût sur le Button dans Figma ; remettre les deux sorties. Remises en un fichier, rangé dans `_local/vitesse-analyse/` : 2 195 nœuds, 496 variables, 3 styles, aucune troncature. Le banc mesure 15 à 60 µs pour une propriété ordinaire, 0,2 µs pour `id` et `type`, jusqu'à 321 µs pour `boundVariables` d'une instance et 587 µs pour `getMainComponentAsync`.
+- [x] **6.11c | gpt-6-luna | medium** | **Claude Sonnet | medium** : rejouer relevé et moteur sur la capture avec un double qui compte chaque lecture par champ, par nœud et par fonction appelante ; croiser avec les coûts unitaires pour répartir `structure.vues` (4,3 s), `structure.couleurs`, l'élection et le relevé ; valider la répartition contre les durées mesurées et la consigner ici. Rejeu : `plugin-architect/scripts/rejouer-la-capture.ts`. Répartition : section « Répartition des lectures du Button (6.11c) ».
 - [ ] **6.12 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : selon la répartition de 6.11c, faire lire à `extractLayout` et aux étapes de structure les champs répétés par une copie mémorisée dans la portée, comme les peintures en 6.7 ; sortie identique, compteurs de lectures avant et après. Si 6.11c ne montre pas de lectures répétées, écarter la case avec son motif.
 
 Prérequis : 4 et 5. Nature : extraction progressive à sortie identique.
@@ -101,3 +101,31 @@ Empreinte `3b6271bb` identique à chaque mesure.
 - 6.0b : la reprise des libraries lues à la sélection est vérifiée en 23 ms, contre 2 à 6 s pour une lecture. La vérification reste.
 - 6.6 : mesure faite pendant que les suites de tests tournaient sur la même machine. Des étapes que 6.2 à 6.6 ne touchent pas ralentissent aussi (`compaction` 407 → 534 ms) : les durées ne se comparent pas. Les compteurs confirment le gain attendu : 2 486 propriétés lues par le relevé au lieu de 3 332, phase des règles de 303 à 6 ms. À remesurer machine au repos, sur décision du mainteneur.
 - 6.8 : l'attente cumulée du relevé passe de 8 961 à 3 809 ms (470 appels API au lieu de 492). Le moteur ne baisse pas : `structure.vues` reste à 4,3 s et `structure.couleurs` à 1,1 s, ce qui montre que leurs lectures ne sont ni les peintures ni les segments. Les règles lues dans le moteur (690 ms) absorbent la phase des règles supprimée (303 ms).
+
+### Répartition des lectures du Button (6.11c)
+
+Rejeu de l'analyse complète sur la capture de 6.11b : statut `complete`, 163 821 lectures, 5,9 s estimées dans Figma au coût unitaire du banc. Le relevé n'y pèse que 0,6 s. Ses 3,3 s mesurées sont des attentes d'appels de ressources et des cessions, que le banc ne chiffre pas.
+
+| Étape du moteur | Mesurée (6.0b) | Lectures | Estimée | Part expliquée |
+|---|---|---|---|---|
+| `structure.vues` | 4 304 ms | 60 163 | 2 529 ms | 59 % |
+| `structure.couleurs` | 963 ms | 18 042 | 642 ms | 67 % |
+| `structure.election` | 801 ms | 7 018 | 565 ms | 71 % |
+| `structure.icones` | 712 ms | 13 070 | 464 ms | 65 % |
+| `structure.typographie-exacte` | 565 ms | 13 914 | 238 ms | 42 % |
+| `wrapper` | 491 ms | 11 123 | 220 ms | 45 % |
+| `compaction` | 407 ms | 186 | 7 ms | 2 % |
+
+Les lectures expliquent 60 à 70 % des étapes de structure. Le reste est du calcul ; `compaction` n'est que du calcul. Le coût d'un `findAll` est pris sur un nœud du banc, quelle que soit la taille du sous-arbre : sa part est une borne basse.
+
+Dans tout le moteur, 3,9 s estimées sur 5,3 s relisent un champ déjà lu sur le même nœud pendant la demande :
+
+| Champ relu | Relectures | Estimée | Lecteurs principaux |
+|---|---|---|---|
+| `boundVariables` | 7 362 | 1 789 ms | `getBinding` (`nodeBindings.ts`) lit l'objet entier pour chaque champ demandé ; vues, élection, couleurs, icônes |
+| `name` | 16 438 | 1 080 ms | `isIconLayer` et `baseSlotName` (`slotNames.ts`), `describeNode` (`extractLayout.ts`), `nodeBindings.ts` |
+| `layoutMode` | 7 194 | 307 ms | `isLinearAutoLayout`, `isGridAutoLayout`, `menuDeDimensionnement` (`flexLayout.ts`) |
+| `parent` | 2 339 | 111 ms | `pathFrom` (`propertyBindings.ts`) |
+| autres | | 609 ms | `componentPropertyReferences`, `children`, `layoutPositioning`, `visible`, `dashPattern`, dimensionnement |
+
+6.12 vise donc `boundVariables`, `name` et `layoutMode`, dans cet ordre.
