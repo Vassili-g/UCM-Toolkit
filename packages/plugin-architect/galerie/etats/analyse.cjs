@@ -28,6 +28,8 @@ const constatsPartiels = constatsAlert
     return { ...reste, ...(correction && GARDEES.has(correction.id) ? { correction } : {}), ...lier, ...(question && QUESTIONS.has(reste.id) ? { question } : {}) };
   });
 const lecturePartielle = { layersLus: 2000, layersNonLus: 640, variantsNonLus: variants.filter((variant) => variant.nom.startsWith('Severity=warning')).map((variant) => variant.nom), manquees: [] };
+/** Les premiers constats des contrôles du relevé, avant le résultat final. */
+const PROVISOIRE = { message: { type: 'analyse-provisoire', analyse: IDENTITE, constats: constatsPartiels, ignores: [], lecture: lecturePartielle, variants } };
 
 const ETATS = [
   {
@@ -58,7 +60,28 @@ const ETATS = [
   {
     id: 'analyse-premiers-constats', titre: 'Premiers constats reçus', quand: 'Les contrôles du relevé ont rendu leurs constats ; la lecture des composants imbriqués continue.',
     regarder: 'Les premiers constats sont visibles sous la barre de progression et Annuler, avec la mention « L’analyse des composants imbriqués est en cours. D’autres points peuvent s’ajouter. » ; aucune section tenue ni pied de corrections ; aucune carte n’est applicable.',
-    existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, { message: { type: 'analyse-provisoire', analyse: IDENTITE, constats: constatsPartiels, ignores: [], lecture: lecturePartielle, variants } }],
+    existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, PROVISOIRE],
+  },
+  {
+    id: 'analyse-provisoire-annulee', titre: 'Annulée après les premiers constats', quand: 'Le designer annule l’analyse alors que les premiers constats sont affichés.',
+    regarder: 'Les constats provisoires disparaissent ; l’alerte d’information dit que l’analyse a été annulée et qu’aucun constat n’a été rendu ; ni barre, ni mention, ni section.',
+    existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, PROVISOIRE, lu('annulee', [], null, [])],
+  },
+  {
+    id: 'analyse-provisoire-arretee', titre: 'Arrêtée après les premiers constats', quand: 'Le moteur s’arrête sur une erreur alors que les premiers constats sont affichés.',
+    regarder: 'Les constats provisoires disparaissent ; l’alerte « Bloquant » reprend le message de l’exporteur et dit qu’aucun autre contrôle n’a été fait ; ni barre, ni mention, ni section.',
+    existe: true,
+    atteinte: [...alertLu, OUVRIR, COMMENCEE, PROVISOIRE, lu('arretee', [{ id: 'C0:0', code: 'C0', type: 'bloquant', famille: 'export', variants: [], layers: [], faits: { message: 'le moteur a rencontré une erreur de lecture' } }], null, [])],
+  },
+  {
+    id: 'analyse-provisoire-partielle', titre: 'Partielle après les premiers constats', quand: 'La lecture est restée incomplète (2 000 layers lus sur 2 640) mais l’analyse est allée à son terme.',
+    regarder: 'La barre et la mention disparaissent ; l’alerte « À vérifier » dit que les constats portent sur la partie lue ; les sections tenues et le pied des corrections reviennent ; les corrections sont applicables.',
+    existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, PROVISOIRE, lu('partielle', constatsPartiels, lecturePartielle)],
+  },
+  {
+    id: 'analyse-provisoire-perimee', titre: 'Périmée après les premiers constats', quand: 'Le document change alors que les premiers constats sont affichés et que le moteur lit encore.',
+    regarder: 'L’alerte « Le composant a changé depuis l’analyse. » s’ajoute aux constats provisoires, qui restent consultables ; ni barre, ni mention, ni Annuler, ni section tenue, ni pied ; aucune carte n’est applicable ; Analyser est actif.',
+    existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, PROVISOIRE, perime('document')],
   },
   {
     id: 'analyse-perimee-en-cours', titre: 'Analyse périmée pendant la lecture', quand: 'Le document change pendant la lecture des variants.',

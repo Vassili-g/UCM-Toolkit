@@ -13,7 +13,7 @@
 - [x] **3.7 | gpt-6-luna | medium** | **Claude Sonnet | medium** : retirer le provisoire après arrêt du moteur ; tester l'état arrêté et ses actions interdites.
 - [x] **3.8 | gpt-6-luna | medium** | **Claude Sonnet | medium** : publier les sorties finales partielles après lecture incomplète terminée ; tester couverture et corrections.
 - [x] **3.9 | gpt-6-luna | medium** | **Claude Sonnet | medium** : conserver les constats consultables après péremption ; refuser un final tardif de même identité.
-- [ ] **3.10 | gpt-6-luna | low** | **Claude Sonnet | low** : ajouter les états de galerie des quatre fins et lancer le build Architect pour la vérification du mainteneur.
+- [x] **3.10 | gpt-6-luna | low** | **Claude Sonnet | low** : ajouter les états de galerie des quatre fins et lancer le build Architect pour la vérification du mainteneur.
 
 Prérequis : 2. Nature : protocole et écran nouveau.
 Chemins : `packages/plugin-architect/src/sandbox/analyse.ts`,
