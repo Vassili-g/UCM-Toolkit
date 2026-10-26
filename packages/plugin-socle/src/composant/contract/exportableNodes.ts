@@ -13,7 +13,7 @@
 import { variableAliases } from '../variables';
 import { getBinding } from './nodeBindings';
 import { compter } from './mesure';
-import { descendantsBruts, memoriserLeParcoursFiltre, parcoursFiltreMemorise } from './porteeDAnalyse';
+import { champDuNoeud, descendantsBruts, memoriserLeParcoursFiltre, parcoursFiltreMemorise } from './porteeDAnalyse';
 import type { ComposedDependency } from '@ucm-kit/core/format';
 import { noter, phraseDe, pointDe, pousserNote, sujet } from './localisation';
 import type { PointACorriger, Sujet } from './localisation';
@@ -44,7 +44,7 @@ function containsVariableAlias(value: unknown): boolean {
 }
 
 function hasVariableBindings(node: SceneNode): boolean {
-  return containsVariableAlias(node.boundVariables);
+  return containsVariableAlias(champDuNoeud(node, 'boundVariables'));
 }
 
 /**

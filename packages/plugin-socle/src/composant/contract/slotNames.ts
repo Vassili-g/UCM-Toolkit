@@ -13,6 +13,7 @@
 import { normalizeName } from '@ucm-kit/core/format';
 import { getAllNodes, getAllNodesParEtapes } from './exportableNodes';
 import type { ComposedInstances } from './exportableNodes';
+import { champDuNoeud } from './porteeDAnalyse';
 import { indexedSlotName, semanticSlotName } from './semantics';
 import { composedSlotDependenciesParEtapes } from './slotRelations';
 
@@ -28,7 +29,7 @@ export type SlotAssignment = {
  * rendre, jamais le calque qui l'entoure.
  */
 export function isIconLayer(node: SceneNode, iconNames: ReadonlySet<string>): boolean {
-  return iconNames.has(node.name)
+  return iconNames.has(champDuNoeud<string>(node, 'name'))
     && node.type !== 'TEXT'
     && node.type !== 'COMPONENT'
     && node.type !== 'COMPONENT_SET';
@@ -61,7 +62,7 @@ function* baseSlotName(
     if (isIconLayer(node, iconNames)) hasIcon = true;
   }
 
-  const layerName = normalizeName(child.name).replace(/\./g, '-') || 'unnamed';
+  const layerName = normalizeName(champDuNoeud<string>(child, 'name')).replace(/\./g, '-') || 'unnamed';
   return semanticSlotName(hasText, hasIcon) ?? layerName;
 }
 

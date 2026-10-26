@@ -6,7 +6,7 @@
  * `exportableNodes.ts`.
  */
 import { toRef } from '@ucm-kit/core/format';
-import { lireUnChamp } from '../analyse/acquisition';
+import { champDuNoeud, etatDuChamp } from './porteeDAnalyse';
 import { firstVariableAlias } from '../variables';
 import type { TokenResolver } from '../variables';
 import {
@@ -164,7 +164,7 @@ type InapplicableReason =
 
 /** Vrai si le node dispose réellement ses enfants (auto-layout ou grille). */
 function distributesChildren(node: SceneNode): boolean {
-  const mode = lireUnChamp(node, 'layoutMode');
+  const mode = etatDuChamp(node, 'layoutMode');
   return mode.etat === 'acquis' && typeof mode.valeur === 'string' && mode.valeur !== 'NONE';
 }
 
@@ -173,13 +173,13 @@ function distributesChildren(node: SceneNode): boolean {
  * ne l'expose pas, ou une lecture qui lève, ne réclame aucune variable.
  */
 function isReadable(node: SceneNode, field: string): boolean {
-  const state = lireUnChamp(node, field);
+  const state = etatDuChamp(node, field);
   return state.etat === 'acquis' || state.etat === 'mixte';
 }
 
 /** Vrai si le champ vaut exactement cette valeur ; un champ mixte ou illisible ne vaut rien. */
 function fieldEquals(node: SceneNode, field: string, expected: unknown): boolean {
-  const state = lireUnChamp(node, field);
+  const state = etatDuChamp(node, field);
   return state.etat === 'acquis' && state.valeur === expected;
 }
 
@@ -284,7 +284,7 @@ export function fieldLabel(field: string): string {
  * passage par un Record générique.
  */
 export function getBinding(node: SceneNode, field: string): unknown {
-  const bindings = node.boundVariables as unknown as Record<string, unknown> | undefined;
+  const bindings = champDuNoeud<Record<string, unknown> | undefined>(node, 'boundVariables');
   return bindings?.[field];
 }
 
@@ -513,7 +513,7 @@ async function resolveGroup<K extends string>(
       const tokens = await Promise.all(
         aliases.map((alias, index) =>
           resolver.resolve(alias, {
-            nodeName: node.name,
+            nodeName: champDuNoeud<string>(node, 'name'),
             nodeId: node.id,
             field: `${label}, ${fieldLabel(fields[index])}`,
           }),

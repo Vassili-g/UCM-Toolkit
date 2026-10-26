@@ -54,13 +54,19 @@ const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? e
  * `undefined` : le type de nœud n'expose pas le champ (`absent`). Une lecture
  * qui lève est refusée (`leve`). Le symbole `figma.mixed` et toute forme qui
  * n'est ni chaîne, ni nombre, ni booléen, ni `null` sont mixtes. `lue` est appelé avant
- * l'accès natif, pour que l'appelant compte ses lectures.
+ * l'accès natif, pour que l'appelant compte ses lectures. `lire` remplace l'accès natif
+ * (la lecture mémorisée de la portée d'analyse) ; il lève comme lui.
  */
-export function lireUnChamp(noeud: object, champ: string, lue?: () => void): EtatEcrit<ValeurScalaire> {
+export function lireUnChamp(
+  noeud: object,
+  champ: string,
+  lue?: () => void,
+  lire: (noeud: object, champ: string) => unknown = (n, c) => (n as Record<string, unknown>)[c],
+): EtatEcrit<ValeurScalaire> {
   lue?.();
   let valeur: unknown;
   try {
-    valeur = (noeud as Record<string, unknown>)[champ];
+    valeur = lire(noeud, champ);
   } catch (erreur) {
     return refuse('leve', messageDErreur(erreur));
   }

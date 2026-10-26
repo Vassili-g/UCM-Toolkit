@@ -38,7 +38,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - serializeJson.ts : une entrée par ligne, sur deux niveaux
 - layoutNodes.ts : élection du node de layout, une fois par variant
 - exportableNodes.ts : parcours de l'arbre, hors dépendances composées
-- porteeDAnalyse.ts : mémoire des maîtres par instance, des styles par identifiant (`styleDeLaPortee`, `ressources.ts`), des peintures copiées par nœud et champ (`peinturesDuNoeud`), des plages de texte par nœud (`plagesDuNoeud` : un appel pour `listOptions` et `textStyleOverrides`) et du parcours brut, du parcours filtré et des chemins de texte par racine, et budget coopératif injectable partagé avec les lecteurs
+- porteeDAnalyse.ts : mémoire des maîtres par instance, des styles par identifiant (`styleDeLaPortee`, `ressources.ts`), des peintures copiées par nœud et champ (`peinturesDuNoeud`), des champs lus par nœud (`champDuNoeud`, `etatDuChamp` : `name`, `layoutMode`, `boundVariables`, `layoutPositioning`), des plages de texte par nœud (`plagesDuNoeud` : un appel pour `listOptions` et `textStyleOverrides`) et du parcours brut, du parcours filtré et des chemins de texte par racine, et budget coopératif injectable partagé avec les lecteurs
 - mesure.ts : trace de chaque analyse : durées, compteurs, avancement de la barre
 - budget.ts : budget de layers et préfixe admis, voies synchrone et coopérative du même parcours
 - parsers.ts : propriétés Figma → API publique

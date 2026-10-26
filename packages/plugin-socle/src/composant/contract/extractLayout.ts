@@ -15,7 +15,7 @@
 import { firstVariableAlias } from '../variables';
 import type { TokenResolver } from '../variables';
 import { getAllNodes, textNodes } from './exportableNodes';
-import { maitreDe } from './porteeDAnalyse';
+import { champDuNoeud, maitreDe } from './porteeDAnalyse';
 import type { ComposedInstances } from './exportableNodes';
 import {
   BINDING_PATTERNS,
@@ -127,7 +127,7 @@ type LayoutStructure = Omit<
 function autoLayoutDirection(node: SceneNode): LayoutDirection | null {
   if (isGridAutoLayout(node)) return 'grid';
   if (!isLinearAutoLayout(node)) return null;
-  const mode = (node as unknown as Record<string, unknown>).layoutMode;
+  const mode = champDuNoeud(node, 'layoutMode');
   if (mode === 'HORIZONTAL') return 'flex-row';
   if (mode === 'VERTICAL') return 'flex-column';
   return null;
@@ -465,7 +465,8 @@ async function describeNode(
     ...applyRotation(child),
   };
   publishedNodePaths.set(child.id, [...path]);
-  if (slot !== child.name) entry.figmaLayer = child.name;
+  const nom = champDuNoeud<string>(child, 'name');
+  if (slot !== nom) entry.figmaLayer = nom;
 
   const dependencies = composedSlotDependencies(child, composed);
   const estUneDependance = composed.has(child.id);
@@ -553,7 +554,7 @@ async function describeNode(
 
   // ---- Une dépendance : le contrat la nomme, et s'arrête là --------------
   if (estUneDependance) {
-    entry.figmaLayer = child.name;
+    entry.figmaLayer = champDuNoeud<string>(child, 'name');
     const dependency = dependencies[0] ?? composed.get(child.id);
     if (dependency) {
       entry.composes = dependency.component;
@@ -625,7 +626,7 @@ async function describeNode(
   } else if (dependencies.length === 0 && textNodes(child, warnings, composed).length === 0) {
     // Le nom du calque est gardé même quand il s'agit d'un placeholder d'icône.
     // Une règle `@icons` peut ensuite qualifier cette icône par son nom Figma.
-    entry.figmaLayer = child.name;
+    entry.figmaLayer = champDuNoeud<string>(child, 'name');
     entry.optional = true;
   }
 

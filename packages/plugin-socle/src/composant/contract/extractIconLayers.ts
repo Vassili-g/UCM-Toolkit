@@ -19,6 +19,7 @@ import { fixedDimensions } from './flexLayout';
 import type { VariantLayoutNodes } from './layoutNodes';
 import { BINDING_PATTERNS, resolveField } from './nodeBindings';
 import { normalizePropKey, normalizePropValue } from './parsers';
+import { champDuNoeud } from './porteeDAnalyse';
 import { assignSlots, iconSlotsByLayer, isIconLayer } from './slotNames';
 
 /** Ce que la matrice complète apprend sur un nom de calque graphique. */
@@ -109,9 +110,10 @@ export async function extractIconLayers(
 
     const occurrences = new Map<string, number>();
     for (const node of layers) {
-      occurrences.set(node.name, (occurrences.get(node.name) ?? 0) + 1);
-      const summary = summaries.get(node.name) ?? newAccumulator();
-      summaries.set(node.name, summary);
+      const nom = champDuNoeud<string>(node, 'name');
+      occurrences.set(nom, (occurrences.get(nom) ?? 0) + 1);
+      const summary = summaries.get(nom) ?? newAccumulator();
+      summaries.set(nom, summary);
 
       const reference = node.componentPropertyReferences?.visible;
       summary.visibilityProps.add(reference ? normalizePropKey(reference) : null);

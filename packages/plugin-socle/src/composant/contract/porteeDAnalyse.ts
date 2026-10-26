@@ -7,7 +7,7 @@
  * portée calcule sans mémoire. Le résultat est le même dans les deux cas ; seul
  * le nombre d'allers-retours vers Figma change.
  */
-import { lireLesPeintures, lireLesSegments, projeterLesPlages, type ChampDePeinture, type EtatDesSegments } from '../analyse/acquisition';
+import { lireLesPeintures, lireLesSegments, lireUnChamp, projeterLesPlages, type ChampDePeinture, type EtatDesSegments, type ValeurScalaire } from '../analyse/acquisition';
 import { acquis, cleDeSegments, type ChampDeSegment, type EtatEcrit, type PeintureLue } from '../analyse/faits';
 import { lireUneFoisParIdentifiant, type LectureNative } from '../analyse/ressources';
 import { compter, attendrePourLaMesure, mesurerLeCalcul } from './mesure';
@@ -95,6 +95,8 @@ type Portee = {
   styles: Map<string, Promise<LectureNative<object>>>;
   /** Les peintures copiées de chaque champ de chaque nœud, par id de nœud et champ, refus compris. */
   peintures: Map<string, EtatEcrit<readonly PeintureLue[]>>;
+  /** Les champs lus de chaque nœud, par id de nœud puis champ, tels que Figma les a rendus. Une lecture qui lève n'y entre pas. */
+  champs: Map<string, Map<string, unknown>>;
   /** Les plages lues de chaque nœud texte pour un jeu de champs, par id de nœud et `cleDeSegments`, refus compris. */
   segments: Map<string, EtatDesSegments>;
   /** Le parcours brut de chaque racine, par id : tous ses descendants, avant frontière ni filtre de visibilité. */
@@ -146,6 +148,7 @@ export async function dansUnePorteeDAnalyse<T>(
     maitres: new Map(),
     styles: new Map(),
     peintures: new Map(),
+    champs: new Map(),
     segments: new Map(),
     parcours: new Map(),
     chemins: new Map(),
@@ -200,6 +203,35 @@ export function peinturesDuNoeud(noeud: { readonly id?: unknown }, champ: ChampD
   const lu = lireLesPeintures(noeud, champ);
   memoire?.set(cle, lu);
   return lu;
+}
+
+/**
+ * La valeur d'un champ du nœud, ce que rend `noeud[champ]`. Dans une portée, chaque champ de chaque nœud se lit une fois :
+ * le moteur relit sans cesse `name`, `layoutMode` et `boundVariables` du même nœud, et Figma facture chaque lecture.
+ * Une valeur absente (`undefined`) se mémorise aussi. Une lecture qui lève lève comme avant et n'est pas mémorisée.
+ *
+ * La valeur est partagée entre les lecteurs, là où Figma rendait une copie neuve de `boundVariables` à chaque lecture :
+ * un appelant ne la modifie pas, ni elle ni ses alias. Un appelant qui veut la modifier la copie d'abord.
+ */
+export function champDuNoeud<T = unknown>(noeud: object, champ: string): T {
+  const ouverte = porteeQuiMemorise();
+  const id = ouverte ? (noeud as { readonly id?: unknown }).id : undefined;
+  if (!ouverte || typeof id !== 'string') return (noeud as Record<string, T>)[champ];
+  let champs = ouverte.champs.get(id);
+  if (!champs) {
+    champs = new Map();
+    ouverte.champs.set(id, champs);
+  } else if (champs.has(champ)) {
+    return champs.get(champ) as T;
+  }
+  const valeur = (noeud as Record<string, T>)[champ];
+  champs.set(champ, valeur);
+  return valeur;
+}
+
+/** `lireUnChamp` sur la lecture mémorisée de la portée : mêmes états, un accès natif par nœud et champ. */
+export function etatDuChamp(noeud: object, champ: string): EtatEcrit<ValeurScalaire> {
+  return lireUnChamp(noeud, champ, undefined, champDuNoeud);
 }
 
 /**

@@ -18,6 +18,7 @@ import type {
   SizeBounds,
 } from '@ucm-kit/core/format';
 import { estUneRacineDeVariant, pousserLocalise, pousserPourLesVariants } from './localisation';
+import { champDuNoeud } from './porteeDAnalyse';
 import type { Constat } from './localisation';
 
 type FlexContainerProperties = {
@@ -38,7 +39,7 @@ type FigmaPropertyBag = Record<string, unknown>;
 
 /** Vrai pour les deux auto-layouts que le contrat sait traduire en Flex. */
 export function isLinearAutoLayout(node: SceneNode): boolean {
-  const mode = (node as unknown as FigmaPropertyBag).layoutMode;
+  const mode = champDuNoeud(node, 'layoutMode');
   return mode === 'HORIZONTAL' || mode === 'VERTICAL';
 }
 
@@ -52,7 +53,7 @@ export function isLinearAutoLayout(node: SceneNode): boolean {
  * pistes et la place de chaque enfant.
  */
 export function isGridAutoLayout(node: SceneNode): boolean {
-  return (node as unknown as FigmaPropertyBag).layoutMode === 'GRID';
+  return champDuNoeud(node, 'layoutMode') === 'GRID';
 }
 
 /** Nombre de pistes d'une grille, quand Figma l'expose. */
@@ -292,7 +293,7 @@ export function layoutConstraints(node: SceneNode): LayoutConstraints | null {
 
 /** Vrai si Figma sort ce calque du flux de son parent. */
 export function isAbsolutePositioned(node: SceneNode): boolean {
-  return asPropertyBag(node).layoutPositioning === 'ABSOLUTE';
+  return champDuNoeud(node, 'layoutPositioning') === 'ABSOLUTE';
 }
 
 /** Les conteneurs dont les enfants portent des contraintes relatives à eux. */
@@ -456,7 +457,7 @@ function alignSelf(value: unknown): AlignSelf | null {
  * réglage courant, pas une contradiction.
  */
 function childSizing(parent: SceneNode, child: SceneNode): { main: unknown; cross: unknown } {
-  const parentMode = asPropertyBag(parent).layoutMode;
+  const parentMode = champDuNoeud(parent, 'layoutMode');
   const menu = menuDeDimensionnement(child, parent);
   if (parentMode === 'HORIZONTAL') return { main: menu.horizontal, cross: menu.vertical };
   if (parentMode === 'VERTICAL') return { main: menu.vertical, cross: menu.horizontal };
@@ -484,7 +485,7 @@ export function menuDeDimensionnement(
   const menu = { horizontal: values.layoutSizingHorizontal, vertical: values.layoutSizingVertical };
   if (!parent || !isLinearAutoLayout(parent) || isAbsolutePositioned(node)) return menu;
 
-  const principal = asPropertyBag(parent).layoutMode === 'HORIZONTAL' ? 'horizontal' : 'vertical';
+  const principal = champDuNoeud(parent, 'layoutMode') === 'HORIZONTAL' ? 'horizontal' : 'vertical';
   const secondaire = principal === 'horizontal' ? 'vertical' : 'horizontal';
   if (menu[secondaire] === 'FIXED' && values.layoutAlign === 'STRETCH') menu[secondaire] = 'FILL';
   if (menu[principal] === 'FIXED' && values.layoutGrow === 1) menu[principal] = 'FILL';
