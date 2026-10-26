@@ -38,6 +38,7 @@ import type { CauseDePeremption, DemandeDAnalyse, StatutDAnalyse, PhaseDAnalyse,
 import type { IdentiteDAnalyse, OrigineDeSelection } from '../messages/commun';
 import { constatsDeRegles, lireLesRegles, retenirLesModeles, type ReleveDesRegles } from '../regles';
 import { lireLeReleve, type IssueDuReleve } from '../releveDuComposant';
+import { lireLesLibrariesAuClic } from './anticipation';
 import { lireLaDeclaration } from './commun';
 import { retenirLesLiaisons } from './bibliotheque';
 import { libraryDeReference, lireLeNiveau } from './configuration';
@@ -344,7 +345,7 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
     progresser,
     espaceDeCouleur: contexte.figma.root.documentColorProfile === 'DISPLAY_P3' ? 'display-p3' : 'srgb',
   }),
-  bibliotheques: ({ figma }, cooperation) => lireLesLibraries(figma as unknown as PortDeBibliotheque, cooperation),
+  bibliotheques: ({ figma }, cooperation) => lireLesLibrariesAuClic(figma, cooperation),
   catalogue: catalogueDeFigma,
   niveau: ({ figma }) => lireLeNiveau(figma),
   ignores: async ({ figma }) => lireLesIgnores(figma),

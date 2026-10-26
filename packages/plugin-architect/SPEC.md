@@ -245,7 +245,27 @@ libraries, et une erreur de sa part garde le repli sur les variables du
 fichier. Dans la trace de mesure, la phase `libraries` donne la durée totale de
 la lecture, et l'étape `catalogue-attente-libraries` ce qui en restait après le
 relevé : leur différence est la part de la lecture qui a couru pendant le
-relevé. Viennent ensuite la lecture des
+relevé.
+
+La lecture des libraries commence plus tôt encore : la vue Composant la lance
+quand elle lit un composant d'un fichier qui n'est pas hors UCM. Une seule
+lecture court à la fois ; elle a son jeton et sa coopération, hors de toute
+portée d'analyse, et une sélection qui la suit de moins de 60 s ne la relance
+pas. Au clic sur Analyser, une lecture encore en cours s'attend. Une lecture
+finie se vérifie : l'analyse relit les collections, leurs variables, leurs clés,
+leurs noms et leurs types, et reprend la lecture anticipée si cette liste est
+identique, sinon la nouvelle liste, qui remplace l'ancienne. Les valeurs des
+variables se chargent toujours au clic. Le changement de page, une erreur de
+l'anticipation ou une lecture illisible l'abandonnent sans message : le clic
+lit alors seul. Les compteurs `librariesAnticipeesReprises` et
+`librariesAnticipeesRelues` disent ce que le clic a fait, et
+`msVerificationDesLibraries` la durée de la relecture de vérification. Le bouton
+du mode Composant envoie le même message sous « Analyser » et sous
+« Actualiser » : le sandbox ne distingue pas les deux, et les deux reprennent
+la lecture anticipée. Figma ne publie ni version, ni date, ni événement de
+library ; la vérification de la liste est le seul contrôle de fraîcheur, et une
+valeur republiée sans changement de nom, de clé ni de type n'y paraît pas.
+Viennent ensuite la lecture des
 ignorés, puis `analyse-provisoire` : les constats des contrôles du
 kit, sans correction ni question, et les identifiants ignorés. Elle lance
 ensuite le moteur, lit les règles, propose les corrections et envoie

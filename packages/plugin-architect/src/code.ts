@@ -14,6 +14,7 @@ import { TAILLE_PAR_DEFAUT } from './fenetre';
 import type { PluginMessage, UiRequest } from './messages';
 import { surChangementDuDocument, surSelection } from './sandbox/analyse';
 import { declarer, envoyerLaSelection, ouvrirLaFenetre } from './sandbox/commun';
+import { abandonnerLesLibrariesAnticipees } from './sandbox/anticipation';
 import { creerLeSuivi, type Contexte } from './sandbox/contexte';
 import { DOMAINES, tableDesTypes } from './sandbox/index';
 import { annoncerLOuverture } from './sandbox/nomenclature';
@@ -65,6 +66,7 @@ async function traiterMessage(message: UiRequest): Promise<void> {
 
 figma.on('selectionchange', aLaSelection);
 figma.on('currentpagechange', () => {
+  abandonnerLesLibrariesAnticipees();
   suivi.recalculer();
   aLaSelection();
 });

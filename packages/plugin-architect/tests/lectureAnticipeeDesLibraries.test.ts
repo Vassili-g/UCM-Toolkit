@@ -11,11 +11,14 @@ import type { ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/e
 
 import type { PluginMessage } from '../src/messages';
 import { catalogueDeFigma, reinitialiserLAnalyse, traiterAvec, type Lecteurs } from '../src/sandbox/analyse';
+import { abandonnerLesLibrariesAnticipees, anticiperLesLibraries, lireLesLibrariesAuClic, RECENCE_DE_L_ANTICIPATION_MS } from '../src/sandbox/anticipation';
+import { traiter as traiterLeComposant } from '../src/sandbox/composant';
+import { fermerLaMesure, ouvrirLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import type { Contexte } from '../src/sandbox/contexte';
 import { capturerLAnalyse } from './parite';
 import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
 
-beforeEach(() => reinitialiserLAnalyse());
+beforeEach(() => { reinitialiserLAnalyse(); abandonnerLesLibrariesAnticipees(); });
 
 const attendre = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 const dimensions = { x: 0, y: 0, largeur: 20, hauteur: 20 };
@@ -30,12 +33,14 @@ const releveLie = (): ReleveDeComposant => ({
   lecture: { layersLus: 1, layersNonLus: 0, variantsNonLus: [], manquees: [] }, espaceDeCouleur: 'srgb',
 });
 
+type BibliothequeDeTest = Array<{ key: string; name: string; libraryName: string; variables: Array<{ key: string; name: string; resolvedType: string }> }>;
+
 interface Journal { readonly evenements: string[]; inventaires: number; lecturesDeCollection: number }
 
 /** Une library de `collections` collections, dont chaque lecture dure `delai` ms ; la première porte la variable liée. */
-function figmaAvecLibrary(journal: Journal, options: { delai?: number; inventaire?: number; collections?: number } = {}) {
+function figmaAvecLibrary(journal: Journal, options: { delai?: number; inventaire?: number; collections?: number; bibliotheque?: BibliothequeDeTest } = {}) {
   const { delai = 0, inventaire = delai, collections = 1 } = options;
-  const bibliotheque = Array.from({ length: collections }, (_, i) => ({
+  const bibliotheque: BibliothequeDeTest = options.bibliotheque ?? Array.from({ length: collections }, (_, i) => ({
     key: i === 0 ? 'cc' : `c${i}`, name: i === 0 ? 'components' : `autre${i}`, libraryName: 'Intencial',
     variables: i === 0 ? [{ key: 'v-bouton', name: 'alert/color/info/background', resolvedType: 'COLOR' }] : [],
   }));
@@ -200,4 +205,190 @@ test('catalogueDeFigma attend une lecture anticipée au lieu de relire les libra
   const catalogue: CatalogueDeReference = await catalogueDeFigma(releveLie(), { leve: false }, contexte, undefined, Promise.resolve({ lecture }));
   assert.equal(catalogue.library?.nom, 'Intencial');
   assert.equal(journal.inventaires, 1);
+});
+
+/* 6.0b : la lecture des libraries anticipée à la sélection d'un composant. */
+
+const bibliothequeDe = (): BibliothequeDeTest => [
+  { key: 'cc', name: 'components', libraryName: 'Intencial', variables: [{ key: 'v-bouton', name: 'alert/color/info/background', resolvedType: 'COLOR' }, { key: 'v-rayon', name: 'alert/size/radius', resolvedType: 'FLOAT' }] },
+  { key: 'ct', name: 'theme', libraryName: 'Intencial', variables: [{ key: 'v-fond', name: 'surface/color/background', resolvedType: 'COLOR' }] },
+];
+
+const neuf = (): Journal => ({ evenements: [], inventaires: 0, lecturesDeCollection: 0 });
+const figmaDe = (journal: Journal, bibliotheque = bibliothequeDe(), options: { delai?: number } = {}) => figmaAvecLibrary(journal, { ...options, bibliotheque }) as unknown as PluginAPI;
+
+/** Attend que les 2 collections de `bibliothequeDe` soient lues, puis que la lecture anticipée se déclare finie. */
+async function attendreLaFin(journal: Journal): Promise<void> {
+  while (journal.evenements.filter((evenement) => evenement === 'libraries:fin').length < 2) await attendre(2);
+  await attendre(5);
+}
+
+/** Une trace ouverte autour de `corps` : les compteurs de la lecture au clic. */
+async function avecTrace<T>(corps: () => Promise<T>) {
+  ouvrirLaMesure();
+  const resultat = await corps();
+  return { resultat, compteurs: fermerLaMesure('')!.compteurs };
+}
+
+test('une lecture anticipée finie est reprise au clic quand la liste est identique', async () => {
+  const journal = neuf();
+  const figma = figmaDe(journal);
+  anticiperLesLibraries(figma);
+  await attendreLaFin(journal);
+  const un = await avecTrace(() => lireLesLibrariesAuClic(figma));
+  const deux = await avecTrace(() => lireLesLibrariesAuClic(figma));
+  assert.equal(un.compteurs.librariesAnticipeesReprises, 1);
+  assert.equal(un.compteurs.librariesAnticipeesRelues, undefined);
+  assert.ok(un.compteurs.msVerificationDesLibraries !== undefined, 'la trace donne la durée de la vérification');
+  assert.equal(deux.resultat, un.resultat, 'la même lecture, pas une copie');
+  assert.equal(journal.inventaires, 3, 'une lecture anticipée, une vérification par clic');
+  const fraiche = await lireLesLibraries(figma as never);
+  assert.deepEqual(un.resultat, fraiche);
+});
+
+test('une variable ajoutée, renommée ou de type changé fait relire : la nouvelle liste est celle de l’analyse', async () => {
+  const changements: Array<[string, (bibliotheque: BibliothequeDeTest) => void]> = [
+    ['ajoutée', (b) => { b[0].variables.push({ key: 'v-neuve', name: 'alert/size/gap', resolvedType: 'FLOAT' }); }],
+    ['renommée', (b) => { b[0].variables[0].name = 'alert/color/info/fond'; }],
+    ['de type changé', (b) => { b[0].variables[1].resolvedType = 'STRING'; }],
+    ['retirée', (b) => { b[1].variables.pop(); }],
+    ['collection ajoutée', (b) => { b.push({ key: 'cb', name: 'brands', libraryName: 'Intencial', variables: [] }); }],
+  ];
+  for (const [nom, changer] of changements) {
+    abandonnerLesLibrariesAnticipees();
+    const journal = neuf();
+    const bibliotheque = bibliothequeDe();
+    const figma = figmaDe(journal, bibliotheque);
+    anticiperLesLibraries(figma);
+    await attendreLaFin(journal);
+    const avant = await lireLesLibraries(figma as never);
+    changer(bibliotheque);
+    const apres = await lireLesLibraries(figma as never);
+    assert.notDeepEqual(apres, avant, nom);
+    const clic = await avecTrace(() => lireLesLibrariesAuClic(figma));
+    assert.deepEqual(clic.resultat, apres, nom);
+    assert.equal(clic.compteurs.librariesAnticipeesRelues, 1, nom);
+    assert.equal(clic.compteurs.librariesAnticipeesReprises, undefined, nom);
+    // La lecture relue remplace l'anticipée : le clic suivant la reprend.
+    const suivant = await avecTrace(() => lireLesLibrariesAuClic(figma));
+    assert.equal(suivant.compteurs.librariesAnticipeesReprises, 1, nom);
+  }
+});
+
+test('une lecture anticipée encore en cours s’attend au clic, sans relire', async () => {
+  const journal = neuf();
+  const figma = figmaDe(journal, bibliothequeDe(), { delai: 30 });
+  anticiperLesLibraries(figma);
+  await attendre(5);
+  const clic = await avecTrace(() => lireLesLibrariesAuClic(figma));
+  assert.equal(journal.inventaires, 1);
+  assert.equal(journal.lecturesDeCollection, 2);
+  assert.equal(clic.compteurs.librariesAnticipeesReprises, 1);
+  assert.equal(clic.compteurs.msVerificationDesLibraries, undefined);
+  assert.equal(clic.resultat.etat, 'lue');
+});
+
+test('une erreur de la lecture anticipée est sans effet : le clic relit normalement', async () => {
+  const rejets: unknown[] = [];
+  const surRejet = (raison: unknown) => rejets.push(raison);
+  process.on('unhandledRejection', surRejet);
+  try {
+    const journal = neuf();
+    const figma = figmaDe(journal, bibliothequeDe());
+    const teamLibrary = (figma as unknown as { teamLibrary: { getAvailableLibraryVariableCollectionsAsync(): Promise<unknown> } }).teamLibrary;
+    const lire = teamLibrary.getAvailableLibraryVariableCollectionsAsync;
+    teamLibrary.getAvailableLibraryVariableCollectionsAsync = async () => { throw new Error('réseau coupé'); };
+    anticiperLesLibraries(figma);
+    await attendre(80);
+    teamLibrary.getAvailableLibraryVariableCollectionsAsync = lire;
+    const clic = await avecTrace(() => lireLesLibrariesAuClic(figma));
+    assert.equal(clic.resultat.etat, 'lue');
+    assert.equal(clic.compteurs.librariesAnticipeesReprises, undefined);
+    assert.equal(clic.compteurs.msVerificationDesLibraries, undefined);
+    await attendre(5);
+    assert.deepEqual(rejets, []);
+  } finally { process.off('unhandledRejection', surRejet); }
+});
+
+test('abandonner la lecture anticipée l’arrête et le clic relit', async () => {
+  const journal = neuf();
+  const figma = figmaDe(journal, Array.from({ length: 40 }, (_, i) => ({ key: `c${i}`, name: `n${i}`, libraryName: 'Intencial', variables: [] })), { delai: 20 });
+  anticiperLesLibraries(figma);
+  while (journal.lecturesDeCollection === 0) await attendre(2);
+  abandonnerLesLibrariesAnticipees();
+  const lues = journal.lecturesDeCollection;
+  await attendre(100);
+  assert.ok(lues <= 8 && journal.lecturesDeCollection === lues, `${lues} lectures, puis ${journal.lecturesDeCollection}`);
+  const clic = await avecTrace(() => lireLesLibrariesAuClic(figma));
+  assert.equal(clic.resultat.etat, 'lue');
+  assert.equal(journal.inventaires, 2);
+  assert.equal(clic.compteurs.librariesAnticipeesReprises, undefined);
+});
+
+test('la sélection d’un composant lance une seule lecture ; une lecture récente n’est pas relancée', async () => {
+  const journal = neuf();
+  const figma = figmaDe(journal, bibliothequeDe(), { delai: 10 });
+  const composant = { id: 'jeu', type: 'COMPONENT_SET', name: 'Alert', parent: null, children: [] };
+  const racine = (figma as unknown as { root: { getSharedPluginData(): string } }).root;
+  racine.getSharedPluginData = () => JSON.stringify({ version: 1, ucm: true });
+  const selection: unknown[] = [composant];
+  Object.assign(figma, { currentPage: { selection }, getNodeByIdAsync: async () => null, getStyleByIdAsync: async () => null });
+  const { contexte } = contexteDe(figma);
+  await Promise.all([traiterLeComposant({ type: 'lire-composant', demande: 1, calque: null }, contexte), traiterLeComposant({ type: 'lire-composant', demande: 2, calque: null }, contexte)]);
+  await traiterLeComposant({ type: 'lire-composant', demande: 3, calque: null }, contexte);
+  await attendre(60);
+  assert.equal(journal.inventaires, 1);
+  // Passé le délai de récence, une sélection relance la lecture.
+  const maintenant = Date.now;
+  Date.now = () => maintenant() + RECENCE_DE_L_ANTICIPATION_MS + 1;
+  try { await traiterLeComposant({ type: 'lire-composant', demande: 4, calque: null }, contexte); } finally { Date.now = maintenant; }
+  await attendre(60);
+  assert.equal(journal.inventaires, 2);
+});
+
+test('rien ne se lit sans composant ni hors d’un fichier UCM', async () => {
+  const journal = neuf();
+  const figma = figmaDe(journal, bibliothequeDe());
+  const racine = (figma as unknown as { root: { getSharedPluginData(): string } }).root;
+  const selection: unknown[] = [];
+  Object.assign(figma, { currentPage: { selection }, getNodeByIdAsync: async () => null, getStyleByIdAsync: async () => null });
+  const { contexte } = contexteDe(figma);
+  const lire = (demande: number) => traiterLeComposant({ type: 'lire-composant', demande, calque: null }, contexte);
+  racine.getSharedPluginData = () => JSON.stringify({ version: 1, ucm: true });
+  await lire(1);
+  selection.push({ id: 'cadre', type: 'FRAME', name: 'Cadre', parent: { id: 'page', type: 'PAGE', parent: null } });
+  await lire(2);
+  selection[0] = { id: 'jeu', type: 'COMPONENT_SET', name: 'Alert', parent: null, children: [] };
+  racine.getSharedPluginData = () => JSON.stringify({ version: 1, ucm: false });
+  await lire(3);
+  racine.getSharedPluginData = () => '';
+  await lire(4);
+  await attendre(30);
+  assert.equal(journal.inventaires, 0);
+});
+
+test('la sortie de l’analyse est celle de l’analyse sans anticipation, que la liste ait changé ou non', async () => {
+  const sortie = async (anticiper: 'non' | 'identique' | 'changee') => {
+    abandonnerLesLibrariesAnticipees();
+    const journal = neuf();
+    const bibliotheque = bibliothequeDe();
+    const figma = figmaAvecLibrary(journal, { bibliotheque, delai: 5 }) as unknown as PluginAPI;
+    if (anticiper !== 'non') {
+      // La liste de l'anticipation porte une collection de plus que celle du clic.
+      if (anticiper === 'changee') bibliotheque.push({ key: 'cx', name: 'extra', libraryName: 'Intencial', variables: [] });
+      anticiperLesLibraries(figma);
+      await attendre(40);
+      if (anticiper === 'changee') bibliotheque.pop();
+    }
+    const { contexte, envoyes } = contexteDe(figma);
+    const lecteurs: Lecteurs = {
+      ...lectures(journal, false, releveLent(journal, 20)),
+      bibliotheques: (ctx, cooperation) => lireLesLibrariesAuClic(ctx.figma, cooperation),
+    };
+    return capturerLAnalyse(() => ({ b: { contexte, envoyes }, lectures: lecteurs }));
+  };
+  const sans = await sortie('non');
+  assert.equal(sans.catalogue?.library?.nom, 'Intencial');
+  assert.deepEqual(await sortie('identique'), sans);
+  assert.deepEqual(await sortie('changee'), sans);
 });

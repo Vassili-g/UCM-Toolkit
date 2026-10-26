@@ -41,7 +41,10 @@ export type Compteur =
   | 'tailleSortieArchitect'
   | 'variablesDuCatalogue'
   | 'tokensDuComposant'
-  | 'msTokensDeTailleCatalogue';
+  | 'msTokensDeTailleCatalogue'
+  | 'librariesAnticipeesReprises'
+  | 'librariesAnticipeesRelues'
+  | 'msVerificationDesLibraries';
 
 /**
  * Une étape attendue de l'analyse, et sa part du temps total supposé.
