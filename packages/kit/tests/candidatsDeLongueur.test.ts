@@ -196,3 +196,105 @@ test('à écart égal du même côté, l’ordre des noms départage', () => {
 test('une valeur nulle n’a jamais de proche', () => {
   assert.deepEqual(proches(catalogue([fixe('r1', 'radius', 1)]), 'radius', 0), []);
 });
+
+/* ---------- mémoire des résolutions d'alias (4.6) ---------- */
+
+/** La résolution d'avant la mémoire : un parcours du catalogue par alias, le chemin parcouru pour seul contexte. */
+function valeursDeReference(
+  variable: VariableDuCatalogue, cat: CatalogueDeReference, profondeur: number, vus: ReadonlySet<string>,
+): Record<string, number | undefined> | undefined {
+  if (profondeur > 5 || vus.has(variable.cle)) return undefined;
+  const suivis = new Set(vus).add(variable.cle);
+  const resultat: Record<string, number | undefined> = {};
+  for (const [mode, entree] of Object.entries(variable.valeurs ?? {})) {
+    if ('valeur' in entree) { resultat[mode] = typeof entree.valeur === 'number' ? entree.valeur : undefined; continue; }
+    const cible = cat.variables.find((v) => v.cle === entree.alias) ?? cat.variables.find((v) => v.nom === entree.alias);
+    resultat[mode] = communeDeReference(cible === undefined ? undefined : valeursDeReference(cible, cat, profondeur + 1, suivis));
+  }
+  return resultat;
+}
+
+function communeDeReference(parMode: Record<string, number | undefined> | undefined): number | undefined {
+  const valeurs = Object.values(parMode ?? {});
+  if (valeurs.length === 0) return undefined;
+  for (const valeur of valeurs) if (valeur === undefined || valeur !== valeurs[0]) return undefined;
+  return valeurs[0];
+}
+
+function candidatDeReference(cat: CatalogueDeReference, v: VariableDuCatalogue) {
+  const parMode = valeursDeReference(v, cat, 0, new Set()) ?? {};
+  return { variable: v, parMode, exacte: communeDeReference(parMode) };
+}
+
+test('la mémoire des résolutions rend ce que rendait le parcours seul, sur des catalogues d\'alias tirés au hasard', () => {
+  let graine = 11;
+  const alea = (n: number) => { graine = (graine * 1103515245 + 12345) % 2147483648; return Math.floor(graine / 65536) % n; };
+  for (let essai = 0; essai < 600; essai += 1) {
+    const n = 3 + alea(10);
+    const variables = Array.from({ length: n }, (_, i) => {
+      const valeurs: Valeurs = {};
+      for (const mode of ['l', 'd']) {
+        const tirage = alea(20);
+        valeurs[mode] = tirage < 8 ? { valeur: alea(2) === 0 ? 8 : 12 }
+          : tirage < 17 ? { alias: alea(3) === 0 ? `nom${alea(n)}` : `v${alea(n)}` }
+            : tirage < 18 ? { alias: 'absente' } : { valeur: 'texte' };
+      }
+      return variable(`v${i}`, `nom${i}`, alea(10) === 0 ? undefined : valeurs);
+    });
+    const cat = catalogue(variables);
+    const ordre = variables.map((v, i) => ({ v, i, cle: alea(1000) })).sort((a, b) => a.cle - b.cle);
+    for (const { v } of ordre) {
+      assert.deepEqual(candidatDeLongueur(cat, v), candidatDeReference(cat, v), `essai ${essai}, ${v.cle}`);
+    }
+    for (const v of variables) assert.deepEqual(candidatDeLongueur(cat, v), candidatDeReference(cat, v), `essai ${essai}, ${v.cle}, à chaud`);
+  }
+});
+
+test('un chemin qui croise une variable déjà visitée ne reprend pas un résultat calculé sans elle', () => {
+  const cat = catalogue([
+    variable('a', 'sizing/a', { l: { alias: 'b' }, d: { alias: 'b' } }),
+    variable('b', 'sizing/b', { l: { alias: 'c' }, d: { alias: 'c' } }),
+    variable('c', 'sizing/c', { l: { alias: 'd' }, d: { alias: 'd' } }),
+    variable('d', 'sizing/d', { l: { alias: 'e' }, d: { alias: 'e' } }),
+    variable('e', 'sizing/e', { l: { alias: 'f' }, d: { alias: 'f' } }),
+    variable('f', 'sizing/f', { l: { alias: 'c' }, d: { valeur: 8 } }),
+    variable('g', 'sizing/g', { l: { alias: 'd' }, d: { alias: 'd' } }),
+  ]);
+  for (const nom of ['g', 'a', 'g', 'c', 'a', 'd']) {
+    const v = cat.variables.find((x) => x.cle === nom)!;
+    assert.deepEqual(candidatDeLongueur(cat, v), candidatDeReference(cat, v), nom);
+  }
+});
+
+test('les alias partagés se résolvent une fois par catalogue, et la variable visée se trouve par l\'index', () => {
+  const lectures = { memoire: 0, reference: 0, cles: 0 };
+  const construire = (cle: 'memoire' | 'reference', compterLesCles: boolean) => {
+    const chaine = [
+      variable('p0', 'primitive/p0', { v: { valeur: 8 } }, { collection: 'primitives' }),
+      ...[1, 2, 3].map((i) => variable(`p${i}`, `primitive/p${i}`, { v: { alias: `p${i - 1}` } }, { collection: 'primitives' })),
+    ].map((v) => {
+      const { valeurs } = v;
+      const compte = { ...v };
+      Object.defineProperty(compte, 'valeurs', { enumerable: true, get() { lectures[cle] += 1; return valeurs; } });
+      return compte as VariableDuCatalogue;
+    });
+    const tokens = Array.from({ length: 300 }, (_, i) => variable(`t${i}`, `radius/t${i}`, { l: { alias: 'p3' }, d: { alias: 'p3' } }));
+    const remplissage = Array.from({ length: 700 }, (_, i) => variable(`r${i}`, `remplissage/${i}`, { l: { valeur: i } }));
+    const toutes = [...tokens, ...remplissage, ...chaine].map((v) => {
+      if (!compterLesCles) return v;
+      const cleDeLaVariable = v.cle;
+      Object.defineProperty(v, 'cle', { enumerable: true, get() { lectures.cles += 1; return cleDeLaVariable; } });
+      return v;
+    });
+    return catalogue(toutes);
+  };
+  const avecMemoire = construire('memoire', true);
+  const index = indexDeLongueurs(avecMemoire);
+  const sansMemoire = construire('reference', false);
+  for (const v of sansMemoire.variables.filter((x) => x.collection === 'layout')) candidatDeReference(sansMemoire, v);
+  assert.equal(index.get('radius')?.length, 300);
+  assert.ok(index.get('radius')?.every((c) => c.exacte === 8));
+  assert.ok(lectures.reference >= 300 * 2 * 4, `${lectures.reference} lectures sans mémoire`);
+  assert.ok(lectures.memoire <= 4, `${lectures.memoire} lectures avec la mémoire`);
+  assert.ok(lectures.cles < 8000, `${lectures.cles} lectures de clé pour 1 004 variables`);
+});

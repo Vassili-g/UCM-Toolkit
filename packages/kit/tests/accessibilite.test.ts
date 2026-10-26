@@ -5,6 +5,8 @@ import {
   BORNE_DE_COMBINAISONS, controlerLAccessibilite, controlerLAccessibiliteParEtapes,
   type CatalogueDeReference, type LayerLu, type PeintureLue, type ReleveDeComposant, type VariantLu,
 } from '../src/controles/index';
+import { collectionDuCatalogue, variableDuCatalogue } from '../src/controles/catalogue';
+import { couleurDeLiaison, type Combinaison } from '../src/controles/accessibilite';
 
 const gris = (v: number) => ({ r: v, g: v, b: v, a: 1 });
 const solide = (champ: 'fills' | 'strokes', couleur: { r: number; g: number; b: number; a: number }, opacite = 1): PeintureLue =>
@@ -503,4 +505,130 @@ test('C49 : un produit au-delà de la plage des flottants garde tous ses chiffre
   const faits = bornePour(1030, 2).faits;
   assert.equal(faits.combinaisonsNonMesurees, attendu, '2^1030 − 5000');
   assert.equal(faits.combinaisonsMesurees, BORNE_DE_COMBINAISONS);
+});
+
+/* ---------- mémoire des résolutions d'alias (4.6) ---------- */
+
+type Valeurs = NonNullable<CatalogueDeReference['variables'][number]['valeurs']>;
+const rouge = (r: number) => ({ valeur: { r, g: 0, b: 0, a: 1 } });
+
+/** La résolution d'avant la mémoire, sur les mêmes catalogues. */
+function couleurDeReference(catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison, cle: string, profondeur = 0): unknown {
+  if (profondeur > 10) return 'mode-illisible';
+  const variable = variableDuCatalogue(catalogue, cle);
+  if (variable === 'absente' || variable.etat !== 'presente' || !variable.valeurs) return 'mode-illisible';
+  const collection = collectionDuCatalogue(catalogue, variable.collection);
+  if (collection === 'absente' || collection.etat !== 'lue') return 'mode-illisible';
+  const brut = variant.modesEffectifs[collection.cle] ?? variant.modesEffectifs[collection.nom];
+  const effectif = brut === undefined ? null : collection.modes.find((m) => m.id === brut || m.nom === brut)?.id ?? null;
+  const modeId = combinaison.modes.get(collection.cle) ?? effectif ?? collection.modes[0]?.id;
+  const valeur = modeId !== undefined ? variable.valeurs[modeId] : undefined;
+  if (!valeur) return 'mode-illisible';
+  if ('alias' in valeur) return couleurDeReference(catalogue, variant, combinaison, valeur.alias, profondeur + 1);
+  const c = valeur.valeur as { r?: unknown; g?: unknown; b?: unknown; a?: unknown } | null;
+  if (!c || typeof c !== 'object' || typeof c.r !== 'number' || typeof c.g !== 'number' || typeof c.b !== 'number') return 'mode-illisible';
+  return { r: c.r, g: c.g, b: c.b, a: typeof c.a === 'number' ? c.a : 1 };
+}
+
+function catalogueDAlias(): CatalogueDeReference {
+  const modes = (...ids: string[]) => ids.map((id) => ({ id, nom: `Mode ${id}` }));
+  const v = (cle: string, collection: string, valeurs: Valeurs | undefined, over: Partial<CatalogueDeReference['variables'][number]> = {}) =>
+    ({ cle, nom: `${cle}-nom`, collection, type: 'COLOR' as const, etat: 'presente' as const, ...(valeurs ? { valeurs } : {}), ...over });
+  const chaine = Array.from({ length: 13 }, (_, i) => v(`k${i}`, 'C', { c1: i === 12 ? rouge(0.5) : { alias: `k${i + 1}` } }));
+  return {
+    version: 1, library: null,
+    collections: [
+      { cle: 'A', nom: 'A', role: null, etat: 'lue', modes: modes('a1', 'a2') },
+      { cle: 'B', nom: 'B', role: null, etat: 'lue', modes: modes('b1', 'b2') },
+      { cle: 'C', nom: 'C', role: null, etat: 'lue', modes: modes('c1') },
+      { cle: 'D', nom: 'D', role: null, etat: 'inaccessible', modes: modes('d1') },
+      { cle: 'E', nom: 'E', role: null, etat: 'lue', modes: [] },
+    ],
+    variables: [
+      v('x', 'A', { a1: { alias: 'y' }, a2: rouge(0.2) }),
+      v('y', 'B', { b1: { alias: 'z' }, b2: { alias: 'x' } }),
+      v('z', 'C', { c1: rouge(0.4) }),
+      v('w', 'A', { a1: { alias: 'nope' }, a2: { alias: 'nc' } }),
+      v('nc', 'C', { c1: rouge(0.1) }, { etat: 'non-chargee' }),
+      v('soi', 'C', { c1: { alias: 'soi' } }),
+      v('d', 'D', { d1: rouge(0.3) }),
+      v('e', 'E', { e1: rouge(0.3) }),
+      v('texte', 'C', { c1: { valeur: 'rouge' } }),
+      v('vide', 'C', undefined),
+      v('parNom', 'A', { a1: { alias: 'z-nom' }, a2: { alias: 'x-nom' } }),
+      ...chaine,
+    ],
+  };
+}
+
+function combinaisonsDeTest(): Combinaison[] {
+  const resultat: Combinaison[] = [];
+  for (const a of [undefined, 'a1', 'a2']) for (const b of [undefined, 'b1', 'b2']) for (const c of [undefined, 'c1']) {
+    const modes = new Map<string, string>();
+    if (a) modes.set('A', a);
+    if (b) modes.set('B', b);
+    if (c) modes.set('C', c);
+    resultat.push({ modes, etiquette: [a, b, c].join('/') });
+  }
+  return resultat;
+}
+
+const variantsDeTest = (): VariantLu[] => ([{}, { A: 'a2' }, { B: 'Mode b2', A: 'a2' }, { C: 'inconnu' }] as Record<string, string>[]).map((modesEffectifs, i) => ({ ...variant(`v${i}`, []), modesEffectifs }));
+
+test('la couleur d\'une liaison égale la résolution d\'avant : alias, chaînes, cycles, profondeur, absents, non chargés, contextes', () => {
+  const cles = [...catalogueDAlias().variables.map((v) => v.cle), 'nope', 'y-nom', 'x-nom'];
+  for (const sens of [1, -1]) {
+    const dans = <T>(liste: T[]) => (sens === 1 ? liste : [...liste].reverse());
+    const catalogue = catalogueDAlias();
+    for (const profondeur of dans([0, 1, 5, 10, 11])) {
+      for (const variantCourant of dans(variantsDeTest())) {
+        for (const combinaison of dans(combinaisonsDeTest())) {
+          for (const cle of dans(cles)) {
+            assert.deepEqual(
+              couleurDeLiaison(catalogue, variantCourant, combinaison, cle, profondeur),
+              couleurDeReference(catalogue, variantCourant, combinaison, cle, profondeur),
+              `${cle} profondeur ${profondeur} ${combinaison.etiquette} ${variantCourant.nom}`,
+            );
+          }
+        }
+      }
+    }
+  }
+});
+
+test('la mémoire des couleurs suit les tableaux du catalogue : un tableau remplacé ou allongé est relu', () => {
+  const catalogue = catalogueDAlias();
+  const combinaison = combinaisonsDeTest()[0];
+  const [libre] = variantsDeTest();
+  assert.deepEqual(couleurDeLiaison(catalogue, libre, combinaison, 'z'), { r: 0.4, g: 0, b: 0, a: 1 });
+  catalogue.variables = catalogue.variables.map((v) => (v.cle === 'z' ? { ...v, valeurs: { c1: rouge(0.9) } } : v));
+  assert.deepEqual(couleurDeLiaison(catalogue, libre, combinaison, 'z'), { r: 0.9, g: 0, b: 0, a: 1 });
+  catalogue.variables.push({ cle: 'z2', nom: 'z2', collection: 'C', type: 'COLOR', etat: 'presente', valeurs: { c1: rouge(0.7) } });
+  assert.deepEqual(couleurDeLiaison(catalogue, libre, combinaison, 'z2'), { r: 0.7, g: 0, b: 0, a: 1 });
+  const autre = catalogueDAlias();
+  assert.deepEqual(couleurDeLiaison(autre, libre, combinaison, 'z'), { r: 0.4, g: 0, b: 0, a: 1 }, 'deux catalogues ne partagent rien');
+  assert.ok(Object.isFrozen(couleurDeLiaison(autre, libre, combinaison, 'z')));
+});
+
+test('la mesure du contraste lit chaque variable une fois par contexte de modes, pas une fois par combinaison', () => {
+  const lectures = { memoire: 0, reference: 0 };
+  const compter = (cle: keyof typeof lectures) => {
+    const catalogue = catalogueDAlias();
+    catalogue.variables = catalogue.variables.map((v) => {
+      if (!v.valeurs) return v;
+      const { valeurs } = v;
+      const compte = { ...v };
+      Object.defineProperty(compte, 'valeurs', { enumerable: true, get() { lectures[cle] += 1; return valeurs; } });
+      return compte;
+    });
+    return catalogue;
+  };
+  const memoire = compter('memoire');
+  const reference = compter('reference');
+  for (const variantCourant of variantsDeTest()) for (const combinaison of combinaisonsDeTest()) for (let rang = 0; rang < 20; rang++) {
+    couleurDeLiaison(memoire, variantCourant, combinaison, 'x');
+    couleurDeReference(reference, variantCourant, combinaison, 'x');
+  }
+  assert.ok(lectures.reference > 1000, `${lectures.reference} lectures sans mémoire`);
+  assert.ok(lectures.memoire < 60, `${lectures.memoire} lectures avec la mémoire`);
 });

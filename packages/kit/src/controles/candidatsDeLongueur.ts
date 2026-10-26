@@ -4,7 +4,7 @@
  * l'index, qui se construit une fois par catalogue et suppose le catalogue figé après sa lecture.
  */
 import { formeReconnue } from '../referentiel/reconnaissance.js';
-import { cheminDansLaCollection, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { cheminDansLaCollection, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 
 /** Au-delà, une chaîne d'alias est lue comme sans valeur. */
 const PROFONDEUR_MAX = 5;
@@ -35,18 +35,80 @@ export type IndexDeLongueurs = ReadonlyMap<string, readonly CandidatDeLongueur[]
 
 const indexParCatalogue = new WeakMap<CatalogueDeReference, IndexDeLongueurs>();
 
+type ValeursParMode = Record<string, number | undefined>;
+
+/** Ce qu'une résolution a rencontré : les variables visitées, et si un cycle l'a coupée. */
+interface Parcours {
+  readonly visitees: Set<string>;
+  coupee: boolean;
+}
+
+interface ResolutionMemorisee {
+  readonly valeurs: Readonly<ValeursParMode> | undefined;
+  readonly visitees: ReadonlySet<string>;
+}
+
+interface MemoireDesResolutions {
+  readonly variables: readonly VariableDuCatalogue[];
+  readonly nombre: number;
+  /** Par variable (l'objet, pas sa clé, qui peut se répéter), puis par profondeur. */
+  readonly resolutions: Map<VariableDuCatalogue, (ResolutionMemorisee | undefined)[]>;
+}
+
+const memoiresDesResolutions = new WeakMap<CatalogueDeReference, MemoireDesResolutions>();
+
+/** Même règle de validité que l'index des variables : le tableau `variables` et sa longueur. */
+function memoireDesResolutions(catalogue: CatalogueDeReference): MemoireDesResolutions {
+  const { variables } = catalogue;
+  const connue = memoiresDesResolutions.get(catalogue);
+  if (connue && connue.variables === variables && connue.nombre === variables.length) return connue;
+  const neuve = { variables, nombre: variables.length, resolutions: new Map<VariableDuCatalogue, (ResolutionMemorisee | undefined)[]>() };
+  memoiresDesResolutions.set(catalogue, neuve);
+  return neuve;
+}
+
+const croise = (a: ReadonlySet<string>, b: ReadonlySet<string>): boolean => {
+  for (const cle of a) if (b.has(cle)) return true;
+  return false;
+};
+
+/**
+ * Les valeurs d'une variable dans chaque mode, alias suivis. Un renvoi (`profondeur` > 0) se mémorise par variable et profondeur
+ * quand aucun cycle ne l'a coupé : son résultat ne change alors que si le chemin parcouru avant lui (`vus`) croise une variable
+ * qu'il a visitée, et la mémoire ne le rend que sinon. Le résultat mémorisé est gelé ; celui de la variable de départ ne l'est pas.
+ */
 function* valeursParMode(
-  variable: VariableDuCatalogue, catalogue: CatalogueDeReference, profondeur: number, vus: ReadonlySet<string>,
-): Generator<void, Record<string, number | undefined> | undefined> {
-  if (profondeur > PROFONDEUR_MAX || vus.has(variable.cle)) return undefined;
+  variable: VariableDuCatalogue, catalogue: CatalogueDeReference, profondeur: number, vus: ReadonlySet<string>, appelant?: Parcours,
+): Generator<void, ValeursParMode | undefined> {
+  if (profondeur > PROFONDEUR_MAX) return undefined;
+  if (vus.has(variable.cle)) {
+    if (appelant) appelant.coupee = true;
+    return undefined;
+  }
+  const memoire = profondeur > 0 ? memoireDesResolutions(catalogue) : undefined;
+  const connue = memoire?.resolutions.get(variable)?.[profondeur];
+  if (connue && !croise(vus, connue.visitees)) {
+    if (appelant) for (const cle of connue.visitees) appelant.visitees.add(cle);
+    return connue.valeurs as ValeursParMode | undefined;
+  }
+  const parcours: Parcours = { visitees: new Set([variable.cle]), coupee: false };
   const suivis = new Set(vus).add(variable.cle);
-  const resultat: Record<string, number | undefined> = {};
+  const resultat: ValeursParMode = {};
   for (const [mode, entree] of Object.entries(variable.valeurs ?? {})) {
     yield;
     if ('valeur' in entree) { resultat[mode] = typeof entree.valeur === 'number' ? entree.valeur : undefined; continue; }
-    const cible = yield* variableDeLAlias(catalogue, entree.alias);
-    const valeursCibles = cible === undefined ? undefined : yield* valeursParMode(cible, catalogue, profondeur + 1, suivis);
+    const cible = variableDuCatalogue(catalogue, entree.alias);
+    const valeursCibles = cible === undefined || cible === 'absente' ? undefined : yield* valeursParMode(cible, catalogue, profondeur + 1, suivis, parcours);
     resultat[mode] = yield* valeurCommune(valeursCibles);
+  }
+  if (appelant) {
+    for (const cle of parcours.visitees) appelant.visitees.add(cle);
+    if (parcours.coupee) appelant.coupee = true;
+  }
+  if (memoire && !parcours.coupee) {
+    const parProfondeur = memoire.resolutions.get(variable) ?? [];
+    parProfondeur[profondeur] = { valeurs: Object.freeze(resultat), visitees: parcours.visitees };
+    memoire.resolutions.set(variable, parProfondeur);
   }
   return resultat;
 }
@@ -59,18 +121,6 @@ function* valeurCommune(parMode: Record<string, number | undefined> | undefined)
     if (valeur === undefined || valeur !== valeurs[0]) return undefined;
   }
   return valeurs[0];
-}
-
-function* variableDeLAlias(catalogue: CatalogueDeReference, cleOuNom: string): Generator<void, VariableDuCatalogue | undefined> {
-  for (const variable of catalogue.variables) {
-    yield;
-    if (variable.cle === cleOuNom) return variable;
-  }
-  for (const variable of catalogue.variables) {
-    yield;
-    if (variable.nom === cleOuNom) return variable;
-  }
-  return undefined;
 }
 
 /** Les valeurs d'une variable dans chaque mode, alias suivis ; la valeur commune seulement si tous les modes la partagent. */

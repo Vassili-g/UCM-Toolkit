@@ -8,7 +8,7 @@
 import { ETATS } from '../emplois/dossiers.js';
 import { atteintLeSeuil, contraste, type Rgb8 } from '../emplois/contraste.js';
 import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
-import type { CatalogueDeReference, CollectionDuCatalogue } from './catalogue.js';
+import type { CatalogueDeReference, CollectionDuCatalogue, VariableDuCatalogue } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
@@ -91,8 +91,8 @@ export const CIBLE_TACTILE_PX = 44;
 export const TEXTE_MINIMAL_PX = 12;
 
 type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-illisible' | 'couleur-absente';
-type Rgba = { r: number; g: number; b: number; a: number };
-type Combinaison = { modes: Map<string, string>; etiquette: string };
+export type Rgba = { r: number; g: number; b: number; a: number };
+export type Combinaison = { modes: Map<string, string>; etiquette: string };
 type Pile = { couches: Rgba[] } | { limite: Cause };
 type Cible = {
   layer: LayerLu; code: 'C49' | 'C50'; usage: 'texte' | 'grand-texte' | 'icone' | 'stroke' | 'anneau';
@@ -261,21 +261,83 @@ function* combinaisonsDeModes(
   return { prises, total };
 }
 
-function couleurDeLiaison(
+interface MemoireDesCouleurs {
+  readonly variables: readonly VariableDuCatalogue[];
+  readonly nombreDeVariables: number;
+  readonly collections: readonly CollectionDuCatalogue[];
+  readonly nombreDeCollections: number;
+  readonly clotures: Map<string, CollectionDuCatalogue[]>;
+  readonly couleurs: Map<string, Rgba | 'mode-illisible'>;
+}
+
+const memoiresDesCouleurs = new WeakMap<CatalogueDeReference, MemoireDesCouleurs>();
+/** Séparateur des éléments d'une clé de mémoire, et marque d'une collection sans mode : aucun identifiant ne les contient. */
+const SEPARATEUR = String.fromCharCode(1);
+const SANS_MODE = String.fromCharCode(2);
+/** Au-delà, la mémoire des couleurs est vidée en entier. */
+const PLAFOND_DE_COULEURS = 100_000;
+
+/** Même règle de validité que l'index des variables : les tableaux `variables` et `collections`, avec leurs longueurs. */
+function memoireDesCouleurs(catalogue: CatalogueDeReference): MemoireDesCouleurs {
+  const { variables, collections } = catalogue;
+  const connue = memoiresDesCouleurs.get(catalogue);
+  if (connue && connue.variables === variables && connue.nombreDeVariables === variables.length
+    && connue.collections === collections && connue.nombreDeCollections === collections.length) return connue;
+  const neuve = {
+    variables, nombreDeVariables: variables.length, collections, nombreDeCollections: collections.length,
+    clotures: new Map<string, CollectionDuCatalogue[]>(), couleurs: new Map<string, Rgba | 'mode-illisible'>(),
+  };
+  memoiresDesCouleurs.set(catalogue, neuve);
+  return neuve;
+}
+
+/** Le mode qu'une combinaison choisit pour une collection : le sien, sinon l'effectif du variant, sinon le premier. */
+function modeDeLaCollection(variant: VariantLu, combinaison: Combinaison, collection: CollectionDuCatalogue): string | undefined {
+  return combinaison.modes.get(collection.cle) ?? modeEffectif(variant, collection) ?? collection.modes[0]?.id;
+}
+
+/**
+ * La couleur d'une liaison dans une combinaison, alias suivis jusqu'à 10 renvois. Elle ne dépend, pour un catalogue donné, que de
+ * la variable, du nombre de renvois déjà faits et du mode choisi pour chaque collection que sa chaîne d'alias peut atteindre
+ * (`collectionsAtteintes`, tous modes confondus) : deux combinaisons ou deux variants qui s'accordent sur ces modes partagent le
+ * résultat, rendu gelé.
+ */
+export function couleurDeLiaison(
   catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison, cle: string, profondeur = 0,
 ): Rgba | 'mode-illisible' {
   if (profondeur > 10) return 'mode-illisible';
+  const memoire = memoireDesCouleurs(catalogue);
+  let cloture = memoire.clotures.get(cle);
+  if (!cloture) {
+    const atteintes = new Map<string, CollectionDuCatalogue>();
+    collectionsAtteintes(catalogue, cle, new Set(), atteintes);
+    cloture = [...atteintes.values()];
+    memoire.clotures.set(cle, cloture);
+  }
+  const contexte = cloture.map((collection) => modeDeLaCollection(variant, combinaison, collection) ?? SANS_MODE).join(SEPARATEUR);
+  const signature = `${profondeur}${SEPARATEUR}${cle}${SEPARATEUR}${contexte}`;
+  const connue = memoire.couleurs.get(signature);
+  if (connue !== undefined) return connue;
+  const couleur = resoudreLaCouleur(catalogue, variant, combinaison, cle, profondeur);
+  if (memoire.couleurs.size >= PLAFOND_DE_COULEURS) memoire.couleurs.clear();
+  memoire.couleurs.set(signature, couleur);
+  return couleur;
+}
+
+function resoudreLaCouleur(
+  catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison, cle: string, profondeur: number,
+): Rgba | 'mode-illisible' {
   const variable = variableDuCatalogue(catalogue, cle);
   if (variable === 'absente' || variable.etat !== 'presente' || !variable.valeurs) return 'mode-illisible';
   const collection = collectionDuCatalogue(catalogue, variable.collection);
   if (collection === 'absente' || collection.etat !== 'lue') return 'mode-illisible';
-  const modeId = combinaison.modes.get(collection.cle) ?? modeEffectif(variant, collection) ?? collection.modes[0]?.id;
+  const modeId = modeDeLaCollection(variant, combinaison, collection);
   const valeur = modeId !== undefined ? variable.valeurs[modeId] : undefined;
   if (!valeur) return 'mode-illisible';
   if ('alias' in valeur) return couleurDeLiaison(catalogue, variant, combinaison, valeur.alias, profondeur + 1);
   const c = valeur.valeur as Partial<Rgba> | null;
   if (!c || typeof c !== 'object' || typeof c.r !== 'number' || typeof c.g !== 'number' || typeof c.b !== 'number') return 'mode-illisible';
-  return { r: c.r, g: c.g, b: c.b, a: typeof c.a === 'number' ? c.a : 1 };
+  return Object.freeze({ r: c.r, g: c.g, b: c.b, a: typeof c.a === 'number' ? c.a : 1 });
 }
 
 /** Les couches unies d'une liste de peintures, de la plus haute à la première opaque. */
