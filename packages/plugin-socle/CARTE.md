@@ -37,6 +37,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - validation.ts : `egalesExactement`, égalité exacte de deux sorties lues (ordre des listes, des clés, des `Map` et `Set` compris, `Object.is` pour les primitives, identité pour un objet qui n'est pas simple), et `ecartsDesSorties`, les sorties relues qui diffèrent de leur version retenue ; Architect en tire la validation d'une entrée de session avant réutilisation
 - retention.ts : les bornes de la session d'analyse (sujets, octets estimés, arêtes) et `estimerLesOctets`, estimation pure, déterministe et plafonnée ; `session.ts` évince le moins récent, jamais le sujet rangé, et ne retient pas un sujet qui dépasse seul une borne
 - revisions.ts : la révision de travail d'une demande d'analyse : contenu préparé hors de la session, promu seulement quand l'appelant le dit valide, sinon jeté ; la session garde l'entrée d'avant
+- requetes.ts : l'ossature des requêtes pures incrémentales : clé d'une requête (nom, arguments en forme canonique, session du document, version d'algorithme, jamais la génération d'interface ni l'identité d'analyse) et registre de révisions (révision globale, `revisionVerifiee` et `revisionChangee` par valeur ; un fait ou un résultat égal exactement ne monte rien) ; sans dépendances ni validation à la demande
 - faits.ts : faits ordinaires d'une analyse, sans type Figma : topologie, champs acquis, mixtes, refusés ou non demandés, segments, maîtres, ressources, provenance et couverture
 
 ## src/composant/contract/
