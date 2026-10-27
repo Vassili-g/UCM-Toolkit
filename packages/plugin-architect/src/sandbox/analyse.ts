@@ -24,8 +24,9 @@
  * reste sur l'analyse (`analyseARelire`) : une analyse dont la couverture est
  * incomplète ou inconnue doit être relue, jamais réutilisée.
  *
- * La session (`sessionDesAnalyses`) retient d'un sujet, à la fin d'une analyse complète, les sorties des lecteurs, les
- * requêtes pures calculées sur elles et le suivi de l'acquisition. Elle est séparée de `AnalyseCourante`, qui porte
+ * La session (`sessionDesAnalyses`) retient d'un sujet les sorties des lecteurs, les requêtes pures calculées sur elles et
+ * le suivi de l'acquisition. Une demande prépare une révision de travail ; la session ne la reçoit qu'à la promotion
+ * (`promouvoirLaRevision`), et une révision jetée la laisse telle quelle. Elle est séparée de `AnalyseCourante`, qui porte
  * l'état affiché d'une génération : réponses, corrections fixées et péremption ne passent jamais dans la session.
  */
 import {
@@ -38,6 +39,7 @@ import { porteeDesChangements, porteeDesChangementsDeStyle, type AnciensParents,
 import { creerLeJournal, type JournalDeChangements, type OrigineDEcriture, type RaisonDInterruption } from 'ucm-plugin-socle/src/composant/analyse/journal';
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { creerLaSession, type EntreeDeSession, type RequeteRetenue, type SessionDAnalyse } from 'ucm-plugin-socle/src/composant/analyse/session';
+import { ouvrirUneRevision, type RevisionDeTravail } from 'ucm-plugin-socle/src/composant/analyse/revisions';
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
@@ -127,14 +129,20 @@ export function sessionDesAnalyses(): SessionDAnalyse<SortiesDeSession, Requetes
 
 const sansPublication = ({ pourLaPublication, ...reste }: ResultatInterne): Omit<ResultatInterne, 'pourLaPublication'> => reste;
 
+export type RevisionDAnalyse = RevisionDeTravail<SortiesDeSession, RequetesDeSession>;
+
 /**
- * Range dans la session ce que l'analyse `identite` vient de calculer, avec le suivi de son acquisition. Sans effet quand
- * cette identité n'est plus la courante : le suivi ne se lit que sur elle.
+ * Promeut la révision de l'analyse `identite` dans la session, ou la jette. La promotion exige une fin `complete`, une
+ * identité encore courante (même sujet, même génération), une analyse non périmée (génération inapplicable comprise) et
+ * rien au journal depuis son curseur qui l'invalide : écriture, interruption de page, débordement. Un changement de
+ * portée `sujet` ou `inconnue` a déjà périmé l'analyse à sa réception. Un changement reçu après la promotion n'y change
+ * rien : l'entrée promue passe alors par la validation de la demande suivante.
  */
-function retenirEnSession(identite: IdentiteDAnalyse, sorties: SortiesDeSession, requetes: RequetesDeSession): void {
-  if (!courante || !memeIdentite(courante.identite, identite)) return;
-  const { curseur, noeuds, admis, parents, pages, couverture } = courante;
-  session.retenir(identite.sujet, { sorties, requetes, suivi: { curseur, noeuds, admis, parents, pages, couverture } });
+function promouvoirLaRevision(revision: RevisionDAnalyse, identite: IdentiteDAnalyse, statut: StatutDAnalyse, sorties: SortiesDeSession, requetes: RequetesDeSession): void {
+  if (statut !== 'complete' || !courante || !memeIdentite(courante.identite, identite)) return revision.jeter();
+  const { curseur, noeuds, admis, parents, pages, couverture, perimee } = courante;
+  revision.preparer({ sorties, requetes, suivi: { curseur, noeuds, admis, parents, pages, couverture } });
+  revision.promouvoir(!perimee && !ecritureDepuisLAnalyse(identite) && !couvertureInterrompue(identite));
 }
 
 /**
@@ -729,6 +737,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   };
   const phase = (nom: PhaseDAnalyse): void => { etape(nom); courant.progresser?.(nom); };
   let identite: IdentiteDAnalyse | null = null;
+  let revision: RevisionDAnalyse | null = null;
   let catalogueLu: CatalogueDeReference | null = null;
   let libraries: LibrariesEnAvance | undefined;
   let librariesEnCours = false;
@@ -769,6 +778,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     const sujet = await attendrePourLaMesure(() => lecteurs.sujet(contexte).catch(() => null), 'attente', 'sujet');
     identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined, sujet?.couverture, curseur, sujet?.parents);
     courant.connue = identite;
+    revision = ouvrirUneRevision(session, identite.sujet);
     connaitre(identite);
     if (demande.mesurer && demande.demande !== undefined) {
       mesuresEnvoyees.clear();
@@ -852,9 +862,9 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
     const statutFinal: StatutDAnalyse = resultat.interne.couverture.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete';
     rendre(statutFinal, visibles, releve, ignores, tous);
-    if (statutFinal === 'complete') {
+    if (revision) {
       const lecturesDuKit: NomDEntree[] = ['releve', 'catalogue'];
-      retenirEnSession(identite, { releve, catalogue, moteur: sansPublication(resultat.interne), regles: reglesLues, niveau, architectureUcm, ignores: rangees }, {
+      promouvoirLaRevision(revision, identite, statutFinal, { releve, catalogue, moteur: sansPublication(resultat.interne), regles: reglesLues, niveau, architectureUcm, ignores: rangees }, {
         controles: { resultat: controles, entrees: [...lecturesDuKit, 'niveau', 'architectureUcm'] },
         corrections: { resultat: tous, entrees: [...lecturesDuKit, 'moteur', 'regles', 'controles'] },
         projection: { resultat: { visibles, ignores }, entrees: ['corrections', 'ignores'] },
@@ -871,6 +881,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     else rendre('arretee', [bloquant(messageDErreur(erreur))], null);
   } finally {
     changementsEnAttente = null;
+    // Une révision non promue (fin annulée, arrêtée, erreur) est jetée : la session garde l'entrée d'avant.
+    (revision as RevisionDAnalyse | null)?.jeter();
     // Une analyse finie avant d'avoir attendu les libraries (arrêt, erreur) ne laisse pas leur lecture courir : le jeton ne sert plus.
     if (librariesEnCours) courant.jeton.leve = true;
     courant.cloreMesure?.('arretee');

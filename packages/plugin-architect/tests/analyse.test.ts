@@ -22,7 +22,7 @@ import { rangerUnePreparation, type PreparationRangee } from '../src/preparation
 import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 import { capturerLAnalyse, verifierLaPariteDeLAnalyse } from './parite';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
-import { analyseCourante, catalogueDeFigma, correctionsDeLAnalyse, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
+import { analyseCourante, catalogueDeFigma, commencerUneAnalyse, correctionsDeLAnalyse, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
 import { origineDeLaSelection, retenirLaSelectionDuPlugin } from '../src/sandbox/commun';
 import type { Contexte } from '../src/sandbox/contexte';
 import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
@@ -1606,5 +1606,80 @@ test('une analyse suivante du même sujet ne retrouve ni la correction fixée ni
   assert.ok(recente.constats.find(({ code }) => code === 'C29')?.question, 'la question redevient sans réponse');
   const entreeApres = sessionDesAnalyses().entree('Alert');
   assert.ok(entreeApres && entreeApres.rang > entreeAvant.rang, 'la session retient toujours le sujet, remplacé par la nouvelle génération');
+  assert.deepEqual(sessionDesAnalyses().sujets(), ['Alert']);
+});
+
+/** Une première analyse complète retient l'entrée d'Alert ; la seconde, avec le moteur donné, est celle qu'on juge. */
+async function secondeAnalyse(moteur: (jeton: { readonly leve: boolean }, b: Banc) => Promise<ResultatSansPublication>) {
+  const premiere = banc();
+  await traiterAvec(lecteurs(complete()))({ type: 'analyser' }, premiere.contexte);
+  const retenue = sessionDesAnalyses().entree('Alert');
+  assert.ok(retenue, 'la première analyse complète est promue');
+  const seconde = banc();
+  await traiterAvec(lecteurs((jeton) => moteur(jeton, seconde)))({ type: 'analyser' }, seconde.contexte);
+  return { retenue, seconde };
+}
+
+const entreeInchangee = (retenue: unknown): void => assert.equal(sessionDesAnalyses().entree('Alert'), retenue, 'l’entrée d’avant reste telle quelle');
+
+test('une révision complète, valide et encore courante est promue et remplace l’entrée du sujet', async () => {
+  const { retenue, seconde } = await secondeAnalyse(complete());
+  assert.equal(deType(seconde, 'analyse')[0].statut, 'complete');
+  const promue = sessionDesAnalyses().entree('Alert');
+  assert.ok(promue && promue !== retenue && promue.rang > retenue.rang);
+  assert.ok(promue.suivi.curseur >= retenue.suivi.curseur);
+});
+
+test('une fin annulée ne promeut rien', async () => {
+  const { retenue, seconde } = await secondeAnalyse(async (jeton) => { (jeton as { leve: boolean }).leve = true; return { etat: 'annulee' }; });
+  assert.equal(deType(seconde, 'analyse')[0].statut, 'annulee');
+  entreeInchangee(retenue);
+});
+
+test('une fin arrêtée ne promeut rien', async () => {
+  const { retenue, seconde } = await secondeAnalyse(async () => { throw new Error('le moteur lève'); });
+  assert.equal(deType(seconde, 'analyse')[0].statut, 'arretee');
+  entreeInchangee(retenue);
+});
+
+test('une fin partielle ne promeut rien', async () => {
+  const { retenue, seconde } = await secondeAnalyse(async () => ({ etat: 'calculee', interne: { ...exportDe(), couverture: { etat: 'partielle', lus: 1, nonLus: 2 } } as unknown as ResultatInterne }));
+  assert.equal(deType(seconde, 'analyse')[0].statut, 'partielle');
+  entreeInchangee(retenue);
+});
+
+test('une analyse périmée pendant le calcul ne promeut rien', async () => {
+  const { retenue, seconde } = await secondeAnalyse(async (_jeton, b) => {
+    surChangementDuDocument(['v-Alert'], b.contexte);
+    return complete()();
+  });
+  assert.equal(deType(seconde, 'perime').length, 1);
+  assert.equal(deType(seconde, 'analyse')[0].statut, 'complete');
+  entreeInchangee(retenue);
+});
+
+test('une génération rendue inapplicable à la cession, avant le résultat final, ne promeut rien', async () => {
+  const { retenue, seconde } = await secondeAnalyse(async (_jeton, b) => {
+    setTimeout(() => surChangementDuDocument(['v-Alert'], b.contexte), 0);
+    return complete()();
+  });
+  assert.deepEqual(seconde.envoyes.map((m) => m.type).filter((type) => type === 'perime' || type === 'analyse'), ['perime', 'analyse']);
+  entreeInchangee(retenue);
+});
+
+test('une écriture du plugin pendant le calcul ne promeut rien', async () => {
+  const { retenue } = await secondeAnalyse(async (_jeton, b) => {
+    perimerApresUneEcriture(b.contexte);
+    return complete()();
+  });
+  entreeInchangee(retenue);
+});
+
+test('la révision d’un sujet finie après le passage à un autre sujet ne promeut rien', async () => {
+  const { retenue } = await secondeAnalyse(async (_jeton, b) => {
+    commencerUneAnalyse('Button', ['jeu-Button', 'v-Button'], b.contexte);
+    return complete()();
+  });
+  entreeInchangee(retenue);
   assert.deepEqual(sessionDesAnalyses().sujets(), ['Alert']);
 });

@@ -33,6 +33,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - couverture.ts : matrice de couverture des événements, par entrée lue (`nodechange` sous condition de page, `stylechange` pour les styles locaux, ou relecture à chaque demande), et portée d'un changement reçu (sujet, hors sujet, inconnue) d'après l'inventaire, les ancêtres, les anciens parents (suppression, déplacement), les maîtres suivis ou les styles suivis ; `relecturesObligatoires` liste les ressources d'une acquisition à relire avant réutilisation et les maîtres qu'un événement couvre
 - journal.ts : journal ordonné des changements de nœuds et de styles reçus (type, identifiant, propriétés, identifiant du parent à la réception, sans objet Figma), avec curseur, oubli par curseur, débordement à une borne et interruptions d'écoute de page (`couvertureDepuis`), écritures du plugin (`ecritureDepuis`)
 - session.ts : la session d'analyse, une entrée par sujet : sorties des lecteurs, requêtes pures avec le nom de leurs entrées, suivi de l'acquisition (curseur, inventaire, couverture) ; types génériques, aucun champ d'état affiché (réponses, corrections fixées, identité de génération)
+- revisions.ts : la révision de travail d'une demande d'analyse : contenu préparé hors de la session, promu seulement quand l'appelant le dit valide, sinon jeté ; la session garde l'entrée d'avant
 - faits.ts : faits ordinaires d'une analyse, sans type Figma : topologie, champs acquis, mixtes, refusés ou non demandés, segments, maîtres, ressources, provenance et couverture
 
 ## src/composant/contract/
