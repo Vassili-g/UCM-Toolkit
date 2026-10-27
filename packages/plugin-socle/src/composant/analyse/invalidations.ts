@@ -7,7 +7,9 @@
  * avant lui, et les ancêtres d'un nœud se reconstruisent par les identifiants de parent que le journal garde. Un parent
  * qu'aucune de ces sources ne connaît n'a pas d'ancêtre suivi : le changement est hors du sujet.
  *
- * Les maîtres hors de l'inventaire n'ont pas d'événement démontré (matrice de couverture) : ils ne se jugent pas ici.
+ * Les maîtres locaux d'une page écoutée se jugent comme l'inventaire, par `suivi.maitres` : le maître, ses descendants et
+ * tout nœud créé dessous touchent le sujet. Les autres maîtres n'ont pas d'événement démontré (matrice de couverture) : ils
+ * ne se jugent pas ici et la validation les relit ou refuse la reprise.
  */
 import { porteeDesChangements, type AnciensParents, type ChangementRecu, type NoeudDEvenement } from './couverture';
 import type { IdDeNoeud } from './faits';
@@ -51,7 +53,7 @@ export function raisonsDInvalidation(suivi: SuiviRetenu, depuis: number, journal
     for (let courant = id; courant !== null && chaine.length < PROFONDEUR_MAX; courant = parentConnu(courant)) chaine.push(courant);
     return chaine.reduceRight<NoeudDEvenement | null>((parent, courant) => ({ id: courant, parent }), null);
   };
-  const suivis = { noeuds: suivi.noeuds, maitres: new Set<IdDeNoeud>() };
+  const suivis = { noeuds: suivi.noeuds, maitres: suivi.maitres ?? new Set<IdDeNoeud>() };
 
   for (const entree of journal.depuis(depuis)) {
     if (entree.nature === 'ecriture') raisons.add('ecriture');

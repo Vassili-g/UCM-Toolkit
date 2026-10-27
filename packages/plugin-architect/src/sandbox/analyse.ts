@@ -32,15 +32,15 @@
  *
  * Une demande Analyser ne reprend le résultat du moteur d'une entrée qu'après `validerLEntree` : relevé, catalogue,
  * dépendances du moteur et règles relus égaux à ceux de l'entrée, et rien dans le jeu que la relecture ne couvre pas
- * (instance, style). Le reste du chemin, contrôles, corrections et projection, se rejoue sur les sorties relues.
+ * (maître distant ou hors page écoutée, style illisible). Le reste du chemin, contrôles, corrections et projection, se rejoue sur les sorties relues.
  */
 import {
   controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
-import { doitEtreRelue, type Couverture } from 'ucm-plugin-socle/src/composant/analyse/faits';
-import { porteeDesChangements, porteeDesChangementsDeStyle, type AnciensParents, type ChangementDeStyleRecu, type ChangementRecu } from 'ucm-plugin-socle/src/composant/analyse/couverture';
+import { acquis, doitEtreRelue, type Couverture, type FaitDeRessource, type MaitreLu } from 'ucm-plugin-socle/src/composant/analyse/faits';
+import { porteeDesChangements, porteeDesChangementsDeStyle, relecturesObligatoires, type AnciensParents, type ChangementDeStyleRecu, type ChangementRecu } from 'ucm-plugin-socle/src/composant/analyse/couverture';
 import { creerLeJournal, type JournalDeChangements, type OrigineDEcriture, type RaisonDInterruption } from 'ucm-plugin-socle/src/composant/analyse/journal';
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { creerLaSession, type EntreeDeSession, type RequeteRetenue, type SessionDAnalyse } from 'ucm-plugin-socle/src/composant/analyse/session';
@@ -50,6 +50,7 @@ import { ecartsDesSorties, egalesExactement, type EcartDeSortie } from 'ucm-plug
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import { nomsDeLaPage } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
 import { extractRules, type ExtractedRules } from 'ucm-plugin-socle/src/composant/contract/extractRules';
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import { ouvrirLaMesure, fermerLaMesure, etape, compter, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
@@ -68,7 +69,7 @@ import type { IdentiteDAnalyse, OrigineDeSelection } from '../messages/commun';
 import { constatsDeRegles, lireLesRegles, retenirLesModeles, type ReleveDesRegles } from '../regles';
 import { lireLeReleve, type IssueDuReleve } from '../releveDuComposant';
 import { abandonnerLesLibrariesAnticipees, lireLesLibrariesAuClic } from './anticipation';
-import { capturerSiDemande } from './capture';
+import { capturerSiDemande, PROPRIETES_DE_STYLE } from './capture';
 import { lireLaDeclaration } from './commun';
 import { retenirLesLiaisons } from './bibliotheque';
 import { libraryDeReference, lireLeNiveau } from './configuration';
@@ -91,6 +92,11 @@ interface AnalyseCourante {
   readonly parents: ReadonlyMap<string, string>;
   /** Les pages que l'écoute de l'analyse couvre : celle du sujet et la page courante à l'ouverture. */
   readonly pages: ReadonlySet<string>;
+  /**
+   * Les maîtres locaux des instances du jeu, sur une page écoutée, et leurs descendants : un changement dessous touche le
+   * sujet. Connus après la lecture des dépendances (`suivreLesMaitres`), vides avant.
+   */
+  maitres: ReadonlySet<string>;
   /** Les corrections des constats rendus, par identifiant : l'écriture n'écrit que celles-là. */
   corrections: ReadonlyMap<string, Correction>;
   /** Tous les constats de l'analyse, ignorés compris, par identifiant : Ignorer et les questions les retrouvent ici. */
@@ -109,10 +115,38 @@ let courante: AnalyseCourante | null = null;
 /** Le résultat du moteur tel que la session le retient : sans `pourLaPublication`, qui tient des nœuds Figma. */
 export type MoteurRetenu = Omit<ResultatInterne, 'pourLaPublication'>;
 
+/** Un style de texte ou d'effet du jeu, avec sa définition lue par identifiant. */
+export interface StyleDeDependance {
+  /** `mixte` pour un texte dont le style ne se lit pas en un identifiant. */
+  readonly id: string;
+  /** Les propriétés de `PROPRIETES_DE_STYLE`, en valeurs simples ; `null` quand le style ne se lit pas (mixte, introuvable, refusé). */
+  readonly definition: unknown;
+}
+
+/** Le maître d'une ou plusieurs instances du jeu, tel que `getMainComponentAsync` le rend. */
+export interface MaitreDeDependance {
+  readonly id: string;
+  /** Combien d'instances du jeu ont ce maître. */
+  readonly instances: number;
+  /** Vrai pour un maître de library ; `null` quand `remote` ne se lit pas. */
+  readonly remote: boolean | null;
+  /** La page du maître ; `null` sans page (maître distant). */
+  readonly page: string | null;
+  /** Le maître local, ou son jeu de variants, et tous leurs descendants. Vide pour un maître distant ou d'origine inconnue. */
+  readonly noeuds: readonly string[];
+  /**
+   * Les instances sous le maître local (son jeu compris). Le moteur en lit les maîtres, leur page et leurs propres
+   * instances, hors de `noeuds` : aucun événement ni aucune dépendance ne les couvre. 0 pour un maître distant, non lu.
+   */
+  readonly instancesImbriquees: number;
+  /** Ce que le moteur lit de la page du maître local, par la même fonction (`nomsDeLaPage`) : les noms de composant des conteneurs de règles. `null` sans page ou pour un maître distant. */
+  readonly nomsDeLaPage: readonly string[] | null;
+}
+
 /**
  * Ce que le moteur lit hors du jeu, du relevé et du catalogue, lu avant lui à chaque demande : le scan des règles de la
- * page du sujet, l'index des variables et collections locales, et les instances et styles du jeu, dont le moteur lit les
- * maîtres et les définitions sans que la validation puisse les relire.
+ * page du sujet, l'index des variables et collections locales, la définition des styles du jeu et le maître de ses
+ * instances. La validation les compare ; ce qu'elle ne peut pas relire refuse la reprise.
  */
 export interface DependancesDuMoteur {
   /** Le scan des règles (`extractRules`), ses nœuds réduits à leur identifiant. */
@@ -120,9 +154,12 @@ export interface DependancesDuMoteur {
   readonly collectionsLocales: readonly { readonly id: string; readonly nom: string }[];
   /** Dans l'ordre de `getLocalVariablesAsync` : le premier occupant d'un nom de token garde ce nom dans l'index du moteur. */
   readonly variablesLocales: readonly { readonly id: string; readonly nom: string; readonly collection: string }[];
-  /** Les styles de texte et d'effet du jeu et de ses calques, dans l'ordre du parcours ; `mixte` pour un texte dont le style ne se lit pas en un identifiant. */
-  readonly styles: readonly string[];
+  /** Les styles de texte et d'effet du jeu et de ses calques, dans l'ordre du parcours. */
+  readonly styles: readonly StyleDeDependance[];
+  /** Les instances du jeu et de ses calques, y compris celles dont le maître ne se lit pas. */
   readonly instances: number;
+  /** Les maîtres lus, dans l'ordre du parcours, un par identifiant. */
+  readonly maitres: readonly MaitreDeDependance[];
 }
 
 /** Ce que les lecteurs ont rendu à une analyse complète. */
@@ -171,8 +208,8 @@ export type RevisionDAnalyse = RevisionDeTravail<SortiesDeSession, RequetesDeSes
  */
 function promouvoirLaRevision(revision: RevisionDAnalyse, identite: IdentiteDAnalyse, statut: StatutDAnalyse, sorties: SortiesDeSession, requetes: RequetesDeSession): void {
   if (statut !== 'complete' || !courante || !memeIdentite(courante.identite, identite)) return revision.jeter();
-  const { curseur, noeuds, admis, parents, pages, couverture, perimee } = courante;
-  revision.preparer({ sorties, requetes, suivi: { curseur, noeuds, admis, parents, pages, couverture } });
+  const { curseur, noeuds, admis, parents, pages, couverture, maitres, perimee } = courante;
+  revision.preparer({ sorties, requetes, suivi: { curseur, noeuds, admis, parents, pages, couverture, maitres } });
   revision.promouvoir(!perimee && !ecritureDepuisLAnalyse(identite) && !couvertureInterrompue(identite));
 }
 
@@ -184,13 +221,18 @@ export type RaisonDeRelecture = 'releve-incomplet' | 'catalogue-inaccessible' | 
  * - `couverture-de-la-demande` : l'écoute de la demande est incomplète ou interrompue, ou une écriture suit son curseur ;
  * - `page-des-regles` : le jeu n'a pas de page, et le moteur balaierait les règles de la page courante ;
  * - `page-non-suivie` : la page du jeu n'est pas une des pages que l'entrée écoutait ;
- * - `non-couvert:maitres`, `non-couvert:styles` : le jeu porte une instance ou un style de texte ou d'effet. Le moteur lit
- *   le maître ou la définition, qu'aucun événement ne couvre et que la validation ne relit pas ;
+ * - `non-couvert:maitres` : une instance du jeu a un maître que ni le journal ni la validation ne couvrent. Seul un maître
+ *   local, sur une page que l'entrée et la demande écoutent, est suivi par le journal (matrice de couverture) : un maître
+ *   de library peut changer par une mise à jour sans événement, et sa définition n'est pas relue ;
+ * - `non-couvert:maitres-autres-instances` : un maître local contient lui-même des instances. Le moteur en lit les maîtres,
+ *   leur page et leurs instances, que ni le journal ni les dépendances ne couvrent ;
+ * - `non-couvert:styles` : un style du jeu ne se lit pas par identifiant (mixte, introuvable, refusé). Sa définition,
+ *   sinon, est relue avec les dépendances et comparée ;
  * - `lecture-refusee:dependances`, `lecture-refusee:regles` : la relecture a levé ;
  * - `different:<sortie>` : le relevé, le catalogue, les dépendances ou les règles relus diffèrent de ceux de l'entrée.
  */
 export type RaisonDeNonReprise =
-  | 'couverture-de-la-demande' | 'page-des-regles' | 'page-non-suivie' | 'non-couvert:maitres' | 'non-couvert:styles'
+  | 'couverture-de-la-demande' | 'page-des-regles' | 'page-non-suivie' | 'non-couvert:maitres' | 'non-couvert:maitres-autres-instances' | 'non-couvert:styles'
   | 'lecture-refusee:dependances' | 'lecture-refusee:regles' | EcartDeSortie<'releve' | 'catalogue' | 'dependances' | 'regles'>;
 
 export type EtatDeLEntree =
@@ -256,6 +298,40 @@ export interface SortiesRelues {
 /** La lecture des règles sur la surface d'un moteur ; `refusee` quand le lecteur a levé. */
 export type RelireLesRegles = (moteur: MoteurRetenu) => Promise<{ readonly regles: ReleveDesRegles | null; readonly refusee: boolean }>;
 
+/**
+ * Les maîtres des instances du jeu que le journal couvre sur les `pages` écoutées (`relecturesObligatoires`, 8.2), et
+ * les identifiants que `SuivisDuSujet.maitres` doit porter : chaque maître suivi et ses descendants.
+ */
+function maitresSuivisParLeJournal(dependances: DependancesDuMoteur | null, pages: ReadonlySet<string>): { readonly maitres: ReadonlySet<string>; readonly noeuds: ReadonlySet<string> } {
+  const aucun = { maitres: new Set<string>(), noeuds: new Set<string>() };
+  if (!dependances || dependances.maitres.length === 0) return aucun;
+  const faits: Record<string, FaitDeRessource<MaitreLu>> = {};
+  const pageDe = new Map<string, string | null>();
+  for (const { id, remote, page } of dependances.maitres) {
+    pageDe.set(id, page);
+    faits[id] = {
+      id,
+      provenance: { appel: { appel: 'getMainComponentAsync', instance: id }, origine: remote === null ? 'inconnue' : remote ? 'distante' : 'locale' },
+      etat: acquis({ id, key: '', nom: '', remote: remote === true, jeu: null }),
+    };
+  }
+  const { maitresSuivis } = relecturesObligatoires(
+    { noeudsParIdentifiant: {}, variables: {}, collections: {}, styles: {}, maitres: faits, variablesDeLibrary: {}, inventaires: {} },
+    { ecoutees: pages, pageDe: (id) => pageDe.get(id) ?? null },
+  );
+  const suivis = new Set(maitresSuivis);
+  const noeuds = new Set<string>();
+  for (const maitre of dependances.maitres) if (suivis.has(maitre.id)) for (const id of [maitre.id, ...maitre.noeuds]) noeuds.add(id);
+  return { maitres: suivis, noeuds };
+}
+
+/** Un maître est couvert quand l'entrée le suivait et que la demande l'écoute encore : le journal a vu tout ce qui lui est arrivé depuis le curseur de l'entrée. */
+function instancesCouvertes(dependances: DependancesDuMoteur, retenus: ReadonlySet<string>, maintenant: ReadonlySet<string>): number {
+  let couvertes = 0;
+  for (const { id, instances } of dependances.maitres) if (retenus.has(id) && maintenant.has(id)) couvertes += instances;
+  return couvertes;
+}
+
 function raisonsDeNonReprise({ sorties, suivi }: EntreeDeSessionDAnalyse, sujet: SujetAAnalyser, identite: IdentiteDAnalyse, relues: SortiesRelues): RaisonDeNonReprise[] {
   const raisons: RaisonDeNonReprise[] = [];
   if (analyseARelire(identite)) raisons.push('couverture-de-la-demande');
@@ -263,9 +339,15 @@ function raisonsDeNonReprise({ sorties, suivi }: EntreeDeSessionDAnalyse, sujet:
   if (typeof page !== 'string') raisons.push('page-des-regles');
   else if (!suivi.pages.has(page)) raisons.push('page-non-suivie');
   if (relues.dependances === null) raisons.push('lecture-refusee:dependances');
-  const instanceDansLeReleve = relues.releve.variants.some(({ layers }) => layers.some((layer) => layer.instanceDe !== undefined));
-  if (instanceDansLeReleve || (relues.dependances?.instances ?? 0) > 0) raisons.push('non-couvert:maitres');
-  if ((relues.dependances?.styles.length ?? 0) > 0) raisons.push('non-couvert:styles');
+  const { dependances } = relues;
+  if (dependances) {
+    const instancesDuReleve = relues.releve.variants.reduce((total, { layers }) => total + layers.filter((layer) => layer.instanceDe !== undefined).length, 0);
+    const pagesEcoutees = courante && memeIdentite(courante.identite, identite) ? courante.pages : new Set<string>();
+    const couvertes = instancesCouvertes(dependances, suivi.maitres ?? new Set(), maitresSuivisParLeJournal(dependances, pagesEcoutees).maitres);
+    if (couvertes !== dependances.instances || instancesDuReleve > dependances.instances) raisons.push('non-couvert:maitres');
+    if (dependances.maitres.some(({ instancesImbriquees }) => instancesImbriquees > 0)) raisons.push('non-couvert:maitres-autres-instances');
+    if (dependances.styles.some(({ definition }) => definition === null)) raisons.push('non-couvert:styles');
+  }
   raisons.push(...ecartsDesSorties<'releve' | 'catalogue' | 'dependances'>([
     { nom: 'releve', retenue: sorties.releve, relue: relues.releve },
     { nom: 'catalogue', retenue: sorties.catalogue, relue: relues.catalogue },
@@ -337,7 +419,7 @@ export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, con
   const nonEcoutees = contexte.surveillerLeDocument(page) ?? [];
   const pages = new Set<string>();
   for (const candidate of [page, contexte.figma.currentPage]) if (typeof candidate?.id === 'string') pages.add(candidate.id);
-  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, couverture: avecLesPagesNonEcoutees(couverture, nonEcoutees), curseur, parents, pages, corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false };
+  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, couverture: avecLesPagesNonEcoutees(couverture, nonEcoutees), curseur, parents, pages, maitres: new Set(), corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false };
   return identite;
 }
 
@@ -535,7 +617,21 @@ function parentsVusParLeJournal(): Map<string, string | null> {
 function jugerLesNoeuds(changements: readonly ChangementRecu[], contexte: Contexte, depuisLeCurseur: ReadonlyMap<string, string | null>): void {
   if (!courante || courante.perimee || changements.length === 0) return;
   const anciens = ancienParents(depuisLeCurseur) ?? undefined;
-  if (porteeDesChangements(changements, { noeuds: courante.noeuds, maitres: new Set() }, anciens).portee !== 'hors-sujet') perimer('document', contexte);
+  if (porteeDesChangements(changements, { noeuds: courante.noeuds, maitres: courante.maitres }, anciens).portee !== 'hors-sujet') perimer('document', contexte);
+}
+
+/**
+ * Les dépendances de l'analyse `identite` sont lues : ses maîtres locaux suivis, avec leurs descendants, entrent dans ce
+ * qui touche le sujet. Les changements déjà au journal depuis le curseur se rejugent contre eux, parce qu'un événement
+ * reçu avant cette lecture a pu viser un maître que l'on ne connaissait pas.
+ */
+function suivreLesMaitres(identite: IdentiteDAnalyse, noeuds: ReadonlySet<string>, contexte: Contexte): void {
+  if (!courante || !memeIdentite(courante.identite, identite) || noeuds.size === 0) return;
+  courante.maitres = noeuds;
+  if (courante.perimee || !journal) return;
+  const { curseur, admis, parents, pages, couverture, maitres } = courante;
+  const raisons = raisonsDInvalidation({ curseur, noeuds: courante.noeuds, admis, parents, pages, couverture, maitres }, curseur, journal);
+  if (raisons.includes('sujet-touche') || raisons.includes('portee-inconnue')) perimer('document', contexte);
 }
 
 /** Périme l'analyse courante pour un changement de style : elle ne sait pas quels styles elle a lus. */
@@ -734,10 +830,61 @@ export function pageDuNoeud<T>(noeud: { readonly type?: string; readonly parent?
 
 /** Un nœud tel que le parcours des dépendances le lit. */
 interface NoeudDeDependance {
+  readonly id?: unknown;
   readonly type?: string;
+  readonly parent?: unknown;
+  readonly remote?: unknown;
   readonly textStyleId?: unknown;
   readonly effectStyleId?: unknown;
   findAll?(filtre: (noeud: NoeudDeDependance) => boolean): readonly NoeudDeDependance[];
+  getMainComponentAsync?(): Promise<NoeudDeDependance | null>;
+}
+
+/** Une valeur de style en données simples : les paints, effets et grilles de Figma deviennent des objets comparables. */
+function valeurSimple(valeur: unknown): unknown {
+  const texte = JSON.stringify(valeur);
+  return texte === undefined ? null : JSON.parse(texte) as unknown;
+}
+
+/** La définition du style `id`, `null` quand il ne se lit pas : un identifiant mixte, un style introuvable ou refusé. */
+async function definitionDuStyle(figma: PluginAPI, id: string): Promise<unknown> {
+  if (id === 'mixte') return null;
+  try {
+    const style = await (figma as unknown as { getStyleByIdAsync?(id: string): Promise<Record<string, unknown> | null> }).getStyleByIdAsync?.(id);
+    if (!style) return null;
+    const definition: Record<string, unknown> = {};
+    for (const propriete of PROPRIETES_DE_STYLE) definition[propriete] = valeurSimple(style[propriete]);
+    return definition;
+  } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) throw erreur;
+    return null;
+  }
+}
+
+/** Le maître d'une instance tel que le moteur le lira ; `null` quand il ne se lit pas. */
+async function decrireLeMaitre(maitre: NoeudDeDependance): Promise<Omit<MaitreDeDependance, 'instances'> | null> {
+  try {
+    if (typeof maitre.id !== 'string') return null;
+    const remote = typeof maitre.remote === 'boolean' ? maitre.remote : null;
+    const pageId = pageDuNoeud<{ readonly id?: unknown } | null>(maitre as { type?: string; parent?: unknown }, null)?.id;
+    const noeuds: string[] = [];
+    let instancesImbriquees = 0;
+    let noms: readonly string[] | null = null;
+    if (remote === false) {
+      // Un variant se lit avec son jeu : le moteur en lit les propriétés et les autres variants.
+      const parent = maitre.parent as NoeudDeDependance | null | undefined;
+      const racine = maitre.type === 'COMPONENT' && parent?.type === 'COMPONENT_SET' ? parent : maitre;
+      for (const noeud of [racine, ...(racine.findAll?.(() => true) ?? [])]) {
+        if (typeof noeud.id === 'string') noeuds.push(noeud.id);
+        if (noeud !== racine && noeud.type === 'INSTANCE') instancesImbriquees += 1;
+      }
+      const page = pageDuNoeud<PageNode | null>(maitre as { type?: string; parent?: unknown }, null);
+      if (page) noms = [...nomsDeLaPage(page)];
+    }
+    return { id: maitre.id, remote, page: typeof pageId === 'string' ? pageId : null, noeuds, instancesImbriquees, nomsDeLaPage: noms };
+  } catch {
+    return null;
+  }
 }
 
 const idDuNoeud = (noeud: { readonly id: string } | null): string | null => noeud?.id ?? null;
@@ -757,7 +904,9 @@ function reglesSansNoeuds(regles: ExtractedRules): unknown {
 /**
  * Les dépendances du moteur, lues dans Figma. Avec `inventaires`, le scan des règles et les listes locales sont ceux que
  * le moteur de la même demande reprend. Les styles et les instances viennent d'un parcours du jeu par `findAll` ; un
- * texte dont `textStyleId` n'est pas une chaîne compte comme `mixte`. Un champ qui lève fait lever la lecture.
+ * texte dont `textStyleId` n'est pas une chaîne compte comme `mixte`. Chaque style se relit par identifiant (local ou
+ * distant), et chaque instance par `getMainComponentAsync` : un style ou un maître qui ne se lit pas manque à la liste et
+ * refuse la reprise. Les scans et les listes qui lèvent font lever la lecture.
  */
 export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Contexte, inventaires?: InventairesDeLaDemande, cooperation?: ContexteCooperatif): Promise<DependancesDuMoteur> {
   const composant = sujet.noeud as unknown as ComponentSetNode;
@@ -771,25 +920,52 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
     inventaires ? inventaires.variablesLocales(lireLesVariables) : lireLesVariables(),
   ]);
   const jeu = sujet.noeud as unknown as NoeudDeDependance;
-  const styles: string[] = [];
-  let instances = 0;
+  const identifiants: string[] = [];
+  const lesInstances: NoeudDeDependance[] = [];
   for (const noeud of [jeu, ...(jeu.findAll?.(() => true) ?? [])]) {
     await cooperation?.cederSiBesoin();
-    if (noeud.type === 'INSTANCE') instances += 1;
+    if (noeud.type === 'INSTANCE') lesInstances.push(noeud);
     if (noeud.type === 'TEXT') {
       const style = noeud.textStyleId;
-      if (typeof style !== 'string') styles.push('mixte');
-      else if (style !== '') styles.push(style);
+      if (typeof style !== 'string') identifiants.push('mixte');
+      else if (style !== '') identifiants.push(style);
     }
     const effet = noeud.effectStyleId;
-    if (typeof effet === 'string' && effet !== '') styles.push(effet);
+    if (typeof effet === 'string' && effet !== '') identifiants.push(effet);
+  }
+  const definitions = new Map<string, unknown>();
+  const styles: StyleDeDependance[] = [];
+  for (const id of identifiants) {
+    await cooperation?.cederSiBesoin();
+    if (!definitions.has(id)) definitions.set(id, await definitionDuStyle(figma, id));
+    styles.push({ id, definition: definitions.get(id) });
+  }
+  const lus = new Map<string, { maitre: Omit<MaitreDeDependance, 'instances'>; instances: number }>();
+  for (const instance of lesInstances) {
+    await cooperation?.cederSiBesoin();
+    let natif: NoeudDeDependance | null = null;
+    try {
+      natif = await instance.getMainComponentAsync?.() ?? null;
+    } catch (erreur) {
+      if (erreur instanceof AnalyseAnnulee) throw erreur;
+    }
+    const id = natif?.id;
+    if (!natif || typeof id !== 'string') continue;
+    const deja = lus.get(id);
+    if (deja) {
+      deja.instances += 1;
+      continue;
+    }
+    const maitre = await decrireLeMaitre(natif);
+    if (maitre) lus.set(id, { maitre, instances: 1 });
   }
   return {
     regles: reglesSansNoeuds(regles),
     collectionsLocales: collections.map(({ id, name }) => ({ id, nom: name })),
     variablesLocales: variables.map(({ id, name, variableCollectionId }) => ({ id, nom: name, collection: variableCollectionId })),
     styles,
-    instances,
+    instances: lesInstances.length,
+    maitres: [...lus.values()].map(({ maitre, instances }) => ({ ...maitre, instances })),
   };
 }
 
@@ -1068,6 +1244,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       }), 'attente', 'dependances')
       : undefined;
     if (jeton.leve) return rendre('annulee', [], null);
+    if (dependances) suivreLesMaitres(identite, maitresSuivisParLeJournal(dependances, courante?.pages ?? new Set()).noeuds, contexte);
     // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
     const lireLesReglesDe: RelireLesRegles = (surface) => attendrePourLaMesure(async () => {
       if (!lecteurs.regles) return { regles: null, refusee: false };

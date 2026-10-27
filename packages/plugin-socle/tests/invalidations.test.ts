@@ -67,3 +67,12 @@ test('un point d’évaluation plus récent n’examine que ce qui suit', () => 
   journal.signalerUneEcriture('configuration');
   assert.deepEqual(raisonsDInvalidation(suivi(), point, journal), ['ecriture']);
 });
+
+test('un maître local suivi, ses descendants et un calque créé dessous touchent le sujet ; sans maître suivi, ils sont hors du sujet', () => {
+  const avecMaitre = { ...suivi(), maitres: new Set(['maitre', 'maitre/fond']) };
+  assert.deepEqual(raisons([noeud('PROPERTY_CHANGE', 'maitre/fond', 'maitre')], avecMaitre), ['sujet-touche']);
+  assert.deepEqual(raisons([noeud('CREATE', 'neuf', 'maitre/fond')], avecMaitre), ['sujet-touche']);
+  assert.deepEqual(raisons([noeud('DELETE', 'maitre/fond', null)], avecMaitre), ['sujet-touche']);
+  assert.deepEqual(raisons([noeud('PROPERTY_CHANGE', 'maitre/fond', 'maitre')]), []);
+  assert.deepEqual(raisons([noeud('PROPERTY_CHANGE', 'autre', 'page')], avecMaitre), [], 'un nœud d’ailleurs reste hors du sujet');
+});

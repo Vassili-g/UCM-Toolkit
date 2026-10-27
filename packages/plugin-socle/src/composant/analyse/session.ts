@@ -36,6 +36,12 @@ export interface SuiviRetenu {
   readonly parents: ReadonlyMap<string, string>;
   readonly pages: ReadonlySet<string>;
   readonly couverture: Couverture;
+  /**
+   * Les identifiants des maîtres locaux des instances du sujet, sur une page écoutée, et de leurs descendants
+   * (`relecturesObligatoires(...).maitresSuivis`). Absent : aucun maître n'est suivi, un changement sous un maître ne
+   * touche pas le sujet.
+   */
+  readonly maitres?: ReadonlySet<string>;
 }
 
 /** Ce que l'appelant range pour un sujet. */

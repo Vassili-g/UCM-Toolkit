@@ -49,6 +49,7 @@ function fichierDeDepart(): Fichier {
       variablesLocales: [{ id: 'VariableID:1', nom: 'alert/size/radius', collection: 'c1' }],
       styles: [],
       instances: 0,
+      maitres: [],
     },
     regles: { composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false, modele: { nom: 'Alert', sections: [] }, proprietes: [], documentees: [] },
   };
@@ -192,11 +193,11 @@ test('les mêmes calques dans un autre ordre sont un écart du relevé', async (
   await refuseeEtComplete((fichier) => { fichier.layers = [...fichier.layers].reverse(); }, ['different:releve']);
 });
 
-test('un jeu qui porte une instance ne reprend jamais le moteur, et un maître distant changé se voit au relevé', async () => {
+test('un jeu dont le maître est distant ne reprend jamais le moteur, et un maître distant changé se voit au relevé', async () => {
   const { fichier, appels, demander } = preparer();
   const maitre = { cle: 'icone', nom: 'Icon', distante: true, pilotee: null };
   fichier.layers = [...fichier.layers, layer('icone', fichier.variable, maitre)];
-  fichier.dependances = { ...fichier.dependances, instances: 1 };
+  fichier.dependances = { ...fichier.dependances, instances: 1, maitres: [{ id: 'M:icone', instances: 1, remote: true, page: null, noeuds: [], instancesImbriquees: 0, nomsDeLaPage: null }] };
   await demander();
   await demander();
   assert.equal(appels.moteur, 2, 'sans changement, le maître n’est pas revalidé : le moteur est relancé');
@@ -207,8 +208,86 @@ test('un jeu qui porte une instance ne reprend jamais le moteur, et un maître d
   assert.deepEqual(analysee, await demander('actualiser'));
 });
 
-test('un style de texte ou d’effet empêche la reprise', async () => {
-  await refuseeEtComplete((fichier) => { fichier.dependances = { ...fichier.dependances, styles: ['S:texte'] }; }, ['non-couvert:styles', 'different:dependances']);
+test('un style dont la définition ne se lit pas empêche la reprise', async () => {
+  await refuseeEtComplete((fichier) => { fichier.dependances = { ...fichier.dependances, styles: [{ id: 'S:texte', definition: null }] }; }, ['non-couvert:styles', 'different:dependances']);
+});
+
+test('un style lisible, local ou distant, laisse reprendre le moteur ; sa définition changée sans événement se voit aux dépendances', async () => {
+  const definition = { name: 'Body', remote: true, fontSize: 14 };
+  const { fichier, appels, demander } = preparer();
+  fichier.dependances = { ...fichier.dependances, styles: [{ id: 'S:distant', definition }] };
+  await demander();
+  await demander();
+  assert.equal(appels.moteur, 1, 'un style lisible et égal laisse reprendre');
+  fichier.dependances = { ...fichier.dependances, styles: [{ id: 'S:distant', definition: { ...definition, fontSize: 16 } }] };
+  const analysee = await demander();
+  assert.equal(appels.moteur, 2);
+  assert.deepEqual(appels.etats[1], { etat: 'invalide', raisons: ['different:dependances'] });
+  assert.deepEqual(analysee, await demander('actualiser'));
+});
+
+const maitreLocal = { id: 'M:icone', instances: 1, remote: false, page: 'page-1', noeuds: ['M:icone', 'M:icone/fond'], instancesImbriquees: 0, nomsDeLaPage: ['icon'] };
+const instanceDe = { cle: 'icone', nom: 'Icon', distante: false, pilotee: null };
+
+function fichierAvecUnMaitreLocal() {
+  const prepare = preparer();
+  prepare.fichier.layers = [...prepare.fichier.layers, layer('icone', prepare.fichier.variable, instanceDe)];
+  prepare.fichier.dependances = { ...prepare.fichier.dependances, instances: 1, maitres: [maitreLocal] };
+  return prepare;
+}
+
+test('une instance d’un maître local, sur une page écoutée, laisse reprendre le moteur', async () => {
+  const { appels, demander } = fichierAvecUnMaitreLocal();
+  await demander();
+  assert.equal(sessionDesAnalyses().entree('Alert')?.suivi.maitres?.has('M:icone/fond'), true, 'le maître et ses descendants sont suivis');
+  await demander();
+  assert.equal(appels.moteur, 1);
+});
+
+test('un maître local sur une page que l’entrée n’écoutait pas, ou une instance sans maître lu, refuse la reprise', async () => {
+  const autrePage = fichierAvecUnMaitreLocal();
+  autrePage.fichier.dependances = { ...autrePage.fichier.dependances, maitres: [{ ...maitreLocal, page: 'page-2' }] };
+  await autrePage.demander();
+  await autrePage.demander();
+  assert.equal(autrePage.appels.moteur, 2);
+  assert.deepEqual(autrePage.appels.etats[1], { etat: 'invalide', raisons: ['non-couvert:maitres'] });
+
+  reinitialiserLAnalyse();
+  const sansMaitre = fichierAvecUnMaitreLocal();
+  sansMaitre.fichier.dependances = { ...sansMaitre.fichier.dependances, instances: 2 };
+  await sansMaitre.demander();
+  await sansMaitre.demander();
+  assert.equal(sansMaitre.appels.moteur, 2);
+  assert.deepEqual(sansMaitre.appels.etats[1], { etat: 'invalide', raisons: ['non-couvert:maitres'] });
+});
+
+test('un maître local qui contient une instance refuse la reprise : ses maîtres et leur page ne sont ni suivis ni relus', async () => {
+  const { fichier, appels, demander } = fichierAvecUnMaitreLocal();
+  fichier.dependances = { ...fichier.dependances, maitres: [{ ...maitreLocal, instancesImbriquees: 1 }] };
+  await demander();
+  await demander();
+  assert.equal(appels.moteur, 2);
+  assert.deepEqual(appels.etats[1], { etat: 'invalide', raisons: ['non-couvert:maitres-autres-instances'] });
+});
+
+test('les noms de composant de la page du maître, relus, se comparent à ceux de l’entrée', async () => {
+  const { fichier, appels, demander } = fichierAvecUnMaitreLocal();
+  await demander();
+  fichier.dependances = { ...fichier.dependances, maitres: [{ ...maitreLocal, nomsDeLaPage: ['icon', 'badge'] }] };
+  const analysee = await demander();
+  assert.equal(appels.moteur, 2);
+  assert.deepEqual(appels.etats[1], { etat: 'invalide', raisons: ['different:dependances'] });
+  assert.deepEqual(analysee, await demander('actualiser'));
+});
+
+test('une page écoutée par la demande seule ne couvre pas un maître que l’entrée ne suivait pas', async () => {
+  const { fichier, appels, demander } = fichierAvecUnMaitreLocal();
+  fichier.dependances = { ...fichier.dependances, maitres: [{ ...maitreLocal, page: 'page-2' }] };
+  await demander();
+  fichier.dependances = { ...fichier.dependances, maitres: [maitreLocal] };
+  await demander();
+  assert.equal(appels.moteur, 2);
+  assert.deepEqual(appels.etats[1], { etat: 'invalide', raisons: ['non-couvert:maitres', 'different:dependances'] });
 });
 
 test('les règles de la page, l’index des variables locales et les règles d’usage relus se comparent à ceux de l’entrée', async () => {
@@ -267,19 +346,28 @@ test('une entrée invalidée par le journal ne se valide pas : le chemin complet
   assert.deepEqual(appels.etats[1], { etat: 'invalide', raisons: ['sujet-touche'] });
 });
 
-test('le lecteur de Figma rend le scan des règles, les listes locales, les styles et les instances du jeu', async () => {
+test('le lecteur de Figma rend le scan des règles, les listes locales, la définition des styles et le maître des instances du jeu', async () => {
   let scans = 0;
-  const page = { id: 'page-1', type: 'PAGE', findAllWithCriteria: ({ types }: { types: string[] }) => { if (types.includes('INSTANCE')) scans += 1; return []; } };
+  const nomDeComposant = { name: 'component-name', type: 'TEXT', characters: 'Icon', parent: { type: 'INSTANCE', parent: null as unknown } };
+  const page = { id: 'page-1', type: 'PAGE', findAllWithCriteria: ({ types }: { types: string[] }) => { if (types.includes('INSTANCE')) scans += 1; return types.includes('TEXT') ? [nomDeComposant] : []; } };
+  nomDeComposant.parent.parent = page;
+  const fondDuMaitre = { id: 'M:icone/fond', type: 'RECTANGLE' };
+  const maitre = { id: 'M:icone', type: 'COMPONENT', remote: false, parent: page, findAll: () => [fondDuMaitre, { id: 'M:icone/bouton', type: 'INSTANCE' }] };
   const calques = [
     { id: 'texte', type: 'TEXT', textStyleId: 'S:texte' },
     { id: 'ombre', type: 'FRAME', effectStyleId: 'S:ombre' },
-    { id: 'icone', type: 'INSTANCE' },
+    { id: 'icone', type: 'INSTANCE', getMainComponentAsync: async () => maitre },
     { id: 'mele', type: 'TEXT', textStyleId: Symbol('mixed') },
     { id: 'nu', type: 'TEXT', textStyleId: '', effectStyleId: '' },
   ];
   const jeu = { id: 'jeu', type: 'COMPONENT_SET', name: 'Alert', parent: page, componentPropertyDefinitions: {}, findAll: (filtre: (noeud: unknown) => boolean) => calques.filter(filtre) };
+  const styles: Record<string, object> = {
+    'S:texte': { name: 'Body', type: 'TEXT', remote: true, fontSize: 14, paints: [{ type: 'SOLID' }] },
+    'S:ombre': { name: 'Ombre', type: 'EFFECT', remote: false, effects: [] },
+  };
   const figma = {
     currentPage: page,
+    getStyleByIdAsync: async (id: string) => styles[id] ?? null,
     variables: {
       getLocalVariableCollectionsAsync: async () => [{ id: 'c1', name: 'components' }],
       getLocalVariablesAsync: async () => [{ id: 'v1', name: 'alert/size/radius', variableCollectionId: 'c1' }],
@@ -287,9 +375,22 @@ test('le lecteur de Figma rend le scan des règles, les listes locales, les styl
   };
   const inventaires = creerInventairesDeLaDemande();
   const contexte = { figma } as unknown as Contexte;
-  const lues = await dependancesDeFigma({ cle: 'Alert', noeud: jeu as never, noeuds: ['jeu'] }, contexte, inventaires);
-  assert.deepEqual(lues.styles, ['S:texte', 'S:ombre', 'mixte']);
+  // `nomsDeLaPage` lit le global `figma`, comme le moteur.
+  const global = globalThis as { figma?: unknown };
+  const avant = global.figma;
+  global.figma = { skipInvisibleInstanceChildren: false };
+  let lues: DependancesDuMoteur;
+  try {
+    lues = await dependancesDeFigma({ cle: 'Alert', noeud: jeu as never, noeuds: ['jeu'] }, contexte, inventaires);
+  } finally {
+    global.figma = avant;
+  }
+  assert.deepEqual(lues.styles.map(({ id }) => id), ['S:texte', 'S:ombre', 'mixte']);
+  assert.deepEqual(lues.styles[0].definition, { id: null, name: 'Body', type: 'TEXT', key: null, remote: true, description: null, boundVariables: null, fontName: null, fontSize: 14, lineHeight: null, letterSpacing: null, textCase: null, textDecoration: null, paragraphSpacing: null, paragraphIndent: null, textWrapStyle: null, leadingTrim: null, paints: [{ type: 'SOLID' }], effects: null, layoutGrids: null });
+  assert.equal((lues.styles[1].definition as { remote: unknown }).remote, false);
+  assert.equal(lues.styles[2].definition, null, 'un style mixte ne se lit pas');
   assert.equal(lues.instances, 1);
+  assert.deepEqual(lues.maitres, [{ id: 'M:icone', instances: 1, remote: false, page: 'page-1', noeuds: ['M:icone', 'M:icone/fond', 'M:icone/bouton'], instancesImbriquees: 1, nomsDeLaPage: ['icon'] }]);
   assert.deepEqual(lues.collectionsLocales, [{ id: 'c1', nom: 'components' }]);
   assert.deepEqual(lues.variablesLocales, [{ id: 'v1', nom: 'alert/size/radius', collection: 'c1' }]);
   assert.deepEqual((lues.regles as { releve: unknown }).releve, { conteneurDuComposant: false, conteneurVierge: null, maitreLocal: null, instanceSource: null });
