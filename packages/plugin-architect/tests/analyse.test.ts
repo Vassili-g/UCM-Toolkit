@@ -22,7 +22,7 @@ import { rangerUnePreparation, type PreparationRangee } from '../src/preparation
 import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 import { capturerLAnalyse, verifierLaPariteDeLAnalyse } from './parite';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
-import { analyseCourante, catalogueDeFigma, correctionsDeLAnalyse, perimerApresUneEcriture, reinitialiserLAnalyse, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
+import { analyseCourante, catalogueDeFigma, correctionsDeLAnalyse, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
 import { origineDeLaSelection, retenirLaSelectionDuPlugin } from '../src/sandbox/commun';
 import type { Contexte } from '../src/sandbox/contexte';
 import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
@@ -1532,4 +1532,79 @@ test('les phases passent même au même pourcentage, la fraction ne recule pas e
   assert.ok(progres.every((p, i) => p.fraction < 1 && (i === 0 || p.fraction >= progres[i - 1].fraction)));
   assert.ok(b.envoyes.every((m) => !('demande' in m) || m.demande === 9));
   assert.equal(deType(b, 'analyse')[0].progression?.fraction, 1);
+});
+
+/** Un relevé et un catalogue où le rayon 13 appelle une question C29 : deux tokens de rayon proches, le designer choisit. */
+function lecteursAvecQuestion(): Lecteurs {
+  const releve: ReleveDeComposant = {
+    ...releveDe('Alert'),
+    variants: [{
+      id: 'v-Alert', nom: 'Alert défaut', valeurs: {}, modesEffectifs: {},
+      layers: [{
+        id: 'root', nom: 'fond', type: 'FRAME', parent: null, visible: true, opacite: 1,
+        dimensions: { x: 0, y: 0, largeur: 20, hauteur: 20 }, peintures: [], liaisons: [],
+        valeursEnDur: [{ champ: 'cornerRadius', valeur: 13 }],
+      }],
+    }],
+  };
+  const catalogue: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'components', nom: 'components', role: 'components', etat: 'lue', modes: [{ id: 'Light', nom: 'Light' }, { id: 'Dark', nom: 'Dark' }] }],
+    variables: [
+      { cle: 'r12', nom: 'alert/size/radius', collection: 'components', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 12 }, Dark: { valeur: 12 } } },
+      { cle: 'r14', nom: 'alert/size/radius', collection: 'components', type: 'FLOAT', etat: 'presente', valeurs: { Light: { valeur: 14 }, Dark: { valeur: 14 } } },
+    ],
+  };
+  return { ...lecteurs(complete()), releve: async () => ({ statut: 'lu' as const, releve }), catalogue: async () => catalogue };
+}
+
+test('la session retient les sorties, les requêtes et le suivi du sujet, sans rien de l’état affiché', async () => {
+  const b = banc();
+  await traiterAvec(lecteursAvecQuestion())({ type: 'analyser', demande: 1 }, b.contexte);
+  const entree = sessionDesAnalyses().entree('Alert');
+  assert.ok(entree, 'une analyse complète retient son sujet');
+  assert.deepEqual(Object.keys(entree).sort(), ['rang', 'requetes', 'sorties', 'suivi', 'sujet']);
+  assert.deepEqual(Object.keys(entree.sorties).sort(), ['architectureUcm', 'catalogue', 'ignores', 'moteur', 'niveau', 'regles', 'releve']);
+  assert.deepEqual(Object.keys(entree.requetes).sort(), ['controles', 'corrections', 'projection']);
+  assert.deepEqual(Object.keys(entree.suivi).sort(), ['admis', 'couverture', 'curseur', 'noeuds', 'pages', 'parents']);
+  assert.ok(!('pourLaPublication' in entree.sorties.moteur), 'les nœuds Figma du moteur ne sont pas retenus');
+  assert.deepEqual(entree.requetes.projection.entrees, ['corrections', 'ignores']);
+  assert.ok(entree.requetes.corrections.entrees.includes('moteur'));
+  assert.ok(entree.requetes.projection.resultat.visibles.some(({ code }) => code === 'C29'));
+});
+
+test('une fin partielle ou annulée ne remplit pas la session', async () => {
+  const partielle = banc();
+  await traiterAvec(lecteurs(async () => ({ etat: 'calculee', interne: { ...exportDe(), couverture: { etat: 'partielle', lus: 1, nonLus: 2 } } as unknown as ResultatInterne })))({ type: 'analyser' }, partielle.contexte);
+  assert.equal(deType(partielle, 'analyse')[0].statut, 'partielle');
+  assert.deepEqual(sessionDesAnalyses().sujets(), []);
+  const annulee = banc();
+  await traiterAvec(lecteurs(async (jeton) => { (jeton as { leve: boolean }).leve = true; return { etat: 'annulee' }; }))({ type: 'analyser' }, annulee.contexte);
+  assert.equal(deType(annulee, 'analyse')[0].statut, 'annulee');
+  assert.deepEqual(sessionDesAnalyses().sujets(), []);
+});
+
+test('une analyse suivante du même sujet ne retrouve ni la correction fixée ni la réponse d’une génération antérieure', async () => {
+  const premiere = banc();
+  await traiterAvec(lecteursAvecQuestion())({ type: 'analyser', demande: 1 }, premiere.contexte);
+  const ancienne = deType(premiere, 'analyse')[0];
+  const constat = ancienne.constats.find(({ code }) => code === 'C29');
+  assert.ok(constat?.question, 'le rayon 13 pose une question');
+  await traiterLesQuestions({ type: 'repondre', analyse: ancienne.analyse, question: constat.id, reponse: 'r14' }, premiere.contexte);
+  assert.equal(correctionsDeLAnalyse(ancienne.analyse)?.size, 1, 'la réponse fixe une correction sur la génération affichée');
+  const entreeAvant = sessionDesAnalyses().entree('Alert');
+  assert.ok(entreeAvant);
+  assert.equal(entreeAvant.requetes.projection.resultat.visibles.find(({ code }) => code === 'C29')?.correction, undefined, 'la session ne garde pas la réponse');
+
+  const seconde = banc();
+  await traiterAvec(lecteursAvecQuestion())({ type: 'analyser', demande: 2 }, seconde.contexte);
+  const recente = deType(seconde, 'analyse')[0];
+  assert.notEqual(recente.analyse.generation, ancienne.analyse.generation);
+  assert.equal(correctionsDeLAnalyse(ancienne.analyse), null, 'la génération antérieure n’est plus la courante');
+  assert.equal(correctionsDeLAnalyse(recente.analyse)?.size, 0, 'aucune correction fixée ne revient');
+  assert.equal(recente.constats.find(({ code }) => code === 'C29')?.correction, undefined);
+  assert.ok(recente.constats.find(({ code }) => code === 'C29')?.question, 'la question redevient sans réponse');
+  const entreeApres = sessionDesAnalyses().entree('Alert');
+  assert.ok(entreeApres && entreeApres.rang > entreeAvant.rang, 'la session retient toujours le sujet, remplacé par la nouvelle génération');
+  assert.deepEqual(sessionDesAnalyses().sujets(), ['Alert']);
 });

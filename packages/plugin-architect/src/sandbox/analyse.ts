@@ -23,6 +23,10 @@
  * couverture de l'inventaire, trous de lecture et pages non écoutées compris,
  * reste sur l'analyse (`analyseARelire`) : une analyse dont la couverture est
  * incomplète ou inconnue doit être relue, jamais réutilisée.
+ *
+ * La session (`sessionDesAnalyses`) retient d'un sujet, à la fin d'une analyse complète, les sorties des lecteurs, les
+ * requêtes pures calculées sur elles et le suivi de l'acquisition. Elle est séparée de `AnalyseCourante`, qui porte
+ * l'état affiché d'une génération : réponses, corrections fixées et péremption ne passent jamais dans la session.
  */
 import {
   controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
@@ -33,6 +37,7 @@ import { doitEtreRelue, type Couverture } from 'ucm-plugin-socle/src/composant/a
 import { porteeDesChangements, porteeDesChangementsDeStyle, type AnciensParents, type ChangementDeStyleRecu, type ChangementRecu } from 'ucm-plugin-socle/src/composant/analyse/couverture';
 import { creerLeJournal, type JournalDeChangements, type OrigineDEcriture, type RaisonDInterruption } from 'ucm-plugin-socle/src/composant/analyse/journal';
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
+import { creerLaSession, type EntreeDeSession, type RequeteRetenue, type SessionDAnalyse } from 'ucm-plugin-socle/src/composant/analyse/session';
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
@@ -90,6 +95,47 @@ interface AnalyseCourante {
 
 let generation = 0;
 let courante: AnalyseCourante | null = null;
+
+/** Ce que les lecteurs ont rendu à une analyse complète. Le résultat du moteur perd `pourLaPublication`, qui tient des nœuds Figma. */
+export interface SortiesDeSession {
+  readonly releve: ReleveDeComposant;
+  readonly catalogue: CatalogueDeReference;
+  readonly moteur: Omit<ResultatInterne, 'pourLaPublication'>;
+  readonly regles: ReleveDesRegles | null;
+  readonly niveau: NiveauDAccessibilite;
+  readonly architectureUcm: boolean;
+  readonly ignores: readonly string[];
+}
+
+type NomDEntree = keyof SortiesDeSession | 'controles' | 'corrections';
+
+/** Les requêtes pures de l'analyse, avec ce que chacune a lu. Les constats sont ceux du kit, sans réponse ni correction fixée. */
+export interface RequetesDeSession extends Record<string, RequeteRetenue<unknown, NomDEntree>> {
+  readonly controles: RequeteRetenue<readonly Constat[], NomDEntree>;
+  readonly corrections: RequeteRetenue<readonly Constat[], NomDEntree>;
+  readonly projection: RequeteRetenue<{ readonly visibles: readonly Constat[]; readonly ignores: readonly string[] }, NomDEntree>;
+}
+
+export type EntreeDeSessionDAnalyse = EntreeDeSession<SortiesDeSession, RequetesDeSession>;
+
+const session: SessionDAnalyse<SortiesDeSession, RequetesDeSession> = creerLaSession();
+
+/** La session d'analyse : une entrée par sujet, remplie par les analyses complètes. */
+export function sessionDesAnalyses(): SessionDAnalyse<SortiesDeSession, RequetesDeSession> {
+  return session;
+}
+
+const sansPublication = ({ pourLaPublication, ...reste }: ResultatInterne): Omit<ResultatInterne, 'pourLaPublication'> => reste;
+
+/**
+ * Range dans la session ce que l'analyse `identite` vient de calculer, avec le suivi de son acquisition. Sans effet quand
+ * cette identité n'est plus la courante : le suivi ne se lit que sur elle.
+ */
+function retenirEnSession(identite: IdentiteDAnalyse, sorties: SortiesDeSession, requetes: RequetesDeSession): void {
+  if (!courante || !memeIdentite(courante.identite, identite)) return;
+  const { curseur, noeuds, admis, parents, pages, couverture } = courante;
+  session.retenir(identite.sujet, { sorties, requetes, suivi: { curseur, noeuds, admis, parents, pages, couverture } });
+}
 
 /**
  * Les changements reçus depuis le début d'une demande d'analyse, tant que son inventaire n'est pas connu ; `null` hors
@@ -804,7 +850,16 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (jeton.leve) return rendre('annulee', [], null);
     verifierLaGeneration(contexte);
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
-    rendre(resultat.interne.couverture.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete', visibles, releve, ignores, tous);
+    const statutFinal: StatutDAnalyse = resultat.interne.couverture.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete';
+    rendre(statutFinal, visibles, releve, ignores, tous);
+    if (statutFinal === 'complete') {
+      const lecturesDuKit: NomDEntree[] = ['releve', 'catalogue'];
+      retenirEnSession(identite, { releve, catalogue, moteur: sansPublication(resultat.interne), regles: reglesLues, niveau, architectureUcm, ignores: rangees }, {
+        controles: { resultat: controles, entrees: [...lecturesDuKit, 'niveau', 'architectureUcm'] },
+        corrections: { resultat: tous, entrees: [...lecturesDuKit, 'moteur', 'regles', 'controles'] },
+        projection: { resultat: { visibles, ignores }, entrees: ['corrections', 'ignores'] },
+      });
+    }
     // La capture suit l'envoi de la trace et garde la place d'opération : une écriture demandée pendant ce temps rend `occupe`.
     await capturerSiDemande(demande, contexte, { noeud: sujet.noeud, page: pageDuNoeud(sujet.noeud, contexte.figma.currentPage), imports: importsEnregistres });
   } catch (erreur) {
@@ -877,5 +932,6 @@ export function reinitialiserLAnalyse(): void {
   courante = null;
   changementsEnAttente = null;
   journal = null;
+  session.vider();
   mesuresEnvoyees.clear();
 }
