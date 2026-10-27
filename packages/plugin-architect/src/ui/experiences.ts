@@ -24,6 +24,8 @@ export function installerLesExperiences(options: OptionsDExperiencesDeLInterface
   const arreter = options.clearInterval ?? ((id) => clearInterval(id as ReturnType<typeof setInterval>));
   let tic: unknown = null;
   globale.ucmExperience = (code: string) => options.envoyer({ type: 'experience', code });
+  // La console de Figma s'ouvre sur un autre contexte que l'iframe de l'interface : des boutons évitent de le chercher.
+  if (typeof document !== 'undefined' && document.body) poserLePanneau((code) => options.envoyer({ type: 'experience', code }));
   return {
     recevoir(brut) {
       if (!estUnSignalDExperience(brut)) return false;
@@ -32,4 +34,21 @@ export function installerLesExperiences(options: OptionsDExperiencesDeLInterface
       return true;
     },
   };
+}
+
+const CODES_DU_PANNEAU = ['E1', 'E2', 'E3', 'E4', 'E4-fin', 'E5', 'E5-fin', 'E6'] as const;
+
+/** Une rangée de boutons fixée en bas de la fenêtre, un par expérience ; les résultats restent dans la console. */
+function poserLePanneau(lancer: (code: string) => void): void {
+  const panneau = document.createElement('div');
+  panneau.setAttribute('style', 'position:fixed;left:4px;bottom:4px;z-index:99999;display:flex;gap:4px;flex-wrap:wrap;padding:4px;background:#222;border-radius:4px;');
+  for (const code of CODES_DU_PANNEAU) {
+    const bouton = document.createElement('button');
+    bouton.type = 'button';
+    bouton.textContent = code;
+    bouton.setAttribute('style', 'font:11px sans-serif;padding:2px 6px;');
+    bouton.addEventListener('click', () => lancer(code));
+    panneau.append(bouton);
+  }
+  document.body.append(panneau);
 }
