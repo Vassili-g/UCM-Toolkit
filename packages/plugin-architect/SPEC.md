@@ -248,7 +248,7 @@ inventaires portent aussi la mémoire de ressources de la demande
 (`MemoireDeRessources`) : le relevé, les dépendances et le moteur y lisent
 chaque variable, collection, style et maître par identifiant une seule fois, le
 premier lecteur faisant l'appel, et `decrireLeMaitre` y lit les noms d'une page
-une fois par page. Les imports du catalogue peuvent rendre lisible une variable que le relevé a vue refusée : le catalogue fini, la mémoire efface ces refus et le moteur relit chaque identifiant une fois. Le relevé précède les dépendances, qui précèdent le moteur :
+une fois par page. Les imports du catalogue peuvent rendre lisible une variable que le relevé a vue refusée : l'analyse lance le catalogue puis appelle `attendreLesImports` avec sa fin. Toute lecture de variable ou de collection qui n'a pas eu lieu attend alors cette fin, et les refus déjà rangés s'effacent : le moteur lit chaque identifiant une fois, après les imports, comme s'il suivait le catalogue. Les styles et les maîtres n'attendent pas. Le relevé précède les dépendances, qui précèdent le moteur :
 la copie que le moteur reprend date du relevé de la même demande. Les
 inventaires s'oublient avec la demande : « Analyser », « Actualiser » et une
 analyse après une correction relisent le fichier. Le compteur
@@ -296,13 +296,21 @@ valeur republiée sans changement de nom, de clé ni de type n'y paraît pas.
 Viennent ensuite la lecture des
 ignorés, puis `analyse-provisoire` : les constats des contrôles du
 kit, sans correction ni question, et les identifiants ignorés. Elle lit
-ensuite les dépendances du moteur, lance le moteur, lit les règles, propose les
-corrections et envoie `analyse`. Une demande Analyser reprend à la place le
+ensuite les règles et le résultat du moteur, propose les corrections et envoie
+`analyse`. Le catalogue se lance sans être attendu : les dépendances du moteur,
+puis le moteur, se lisent pendant ses appels, les dépendances d'abord pour ne
+jamais être plus récentes que lui, et les contrôles du kit commencent à sa
+clôture. Une demande qui peut valider une entrée (Analyser, lecteur de
+dépendances, entrée `utilisable` au lancement du catalogue) lit seulement les
+dépendances pendant le catalogue, car la validation peut dispenser le moteur de
+tourner. Les phases que le moteur annonce pendant le catalogue ou les
+contrôles s'annoncent après `imbriques`, dans l'ordre où il les a rendues ; le
+provisoire part quand les contrôles ont fini, que le moteur ait fini ou non. Une demande Analyser reprend à la place le
 résultat du moteur de l'analyse complète précédente du même jeu quand
 `validerLEntree` l'accepte : relevé, catalogue, dépendances et règles relus
 égaux à ceux retenus, chaque instance ayant un maître local suivi du journal et sans instance propre, et chaque style se lisant par identifiant. Le message final range les constats comme avant : contrôles du kit,
 règles, moteur. Une annulation pendant le catalogue ou les contrôles du kit
-n'envoie aucun provisoire et ne lit pas le moteur. `analyse-provisoire` n'est
+n'envoie aucun provisoire ; le moteur lancé avec le catalogue reçoit le jeton et s'arrête avant que la demande rende la place. `analyse-provisoire` n'est
 pas un statut de `analyse` : seul `analyse` termine la demande. Seul un final
 `complete` ou `partielle` retient les corrections : avant lui, le sandbox
 refuse les réponses, Ignorer, la propagation, la préparation et les

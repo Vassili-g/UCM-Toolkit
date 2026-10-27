@@ -1385,6 +1385,14 @@ async function calculerParEtapes<T>(calcul: Generator<void, T>, cooperation: Con
   }
 }
 
+/** L'issue d'une lecture lancée avant d'être attendue : sa valeur, ou l'erreur que l'analyse relève à sa place. */
+type Anticipe<T> = { readonly valeur: T } | { readonly erreur: unknown };
+
+function reprendre<T>(anticipe: Anticipe<T>): T {
+  if ('erreur' in anticipe) throw anticipe.erreur;
+  return anticipe.valeur;
+}
+
 /** L'unique constat d'une analyse arrêtée : le code C42 sert de réserve à la famille `export`. */
 function bloquant(message: string): Constat {
   return { id: 'export:arret', code: 'C42', type: 'bloquant', famille: 'export', variants: [], layers: [], faits: { message } };
@@ -1466,6 +1474,14 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   };
   const phase = (nom: PhaseDAnalyse): void => { etape(nom); courant.progresser?.(nom); };
   const lecturesRefusees: string[] = [];
+  // Les lectures lancées avant d'être attendues : leur issue se range sans rejet, et l'analyse les reprend à leur place d'avant.
+  const anticipees = new Set<Promise<unknown>>();
+  const anticiper = <T>(travail: () => Promise<T>): Promise<Anticipe<T>> => {
+    const lancee = travail().then((valeur): Anticipe<T> => ({ valeur }), (erreur: unknown): Anticipe<T> => ({ erreur }));
+    anticipees.add(lancee);
+    void lancee.then(() => anticipees.delete(lancee));
+    return lancee;
+  };
   let identite: IdentiteDAnalyse | null = null;
   let revision: RevisionDAnalyse | null = null;
   let catalogueLu: CatalogueDeReference | null = null;
@@ -1543,10 +1559,28 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     retenirLesLiaisons(liaisonsParCle(releve));
     const niveau = await attendrePourLaMesure(async () => await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => { lecturesRefusees.push('niveau'); return 'AA'; }) ?? 'AA');
     phase('catalogue');
-    const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries, inventaires), 'attente', 'catalogue');
+    const catalogueEnCours = attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries, inventaires), 'attente', 'catalogue');
+    // Les imports du catalogue rendent lisible ce que le relevé a vu refusé : la mémoire fait attendre leur fin à toute lecture de
+    // variable ou de collection qui n'a pas eu lieu, et le moteur, qui tourne pendant eux, les lit comme s'il les suivait.
+    inventaires.ressources?.attendreLesImports(catalogueEnCours);
+    // Ni les dépendances ni le moteur ne lisent le relevé ou le catalogue : ils courent pendant les appels du catalogue, les
+    // dépendances d'abord et le moteur quand elles sont lues (9.4 : elles ne sont jamais plus récentes que lui). Une entrée qui peut
+    // se valider garde le moteur pour après la validation, qui peut le dispenser de tourner.
+    const annonces: { ouvert: boolean; vues: PhaseDAnalyse[] } = { ouvert: false, vues: [] };
+    const lireLesDependances = lecteurs.dependances;
+    const dependancesEnCours = lireLesDependances ? anticiper(() => attendrePourLaMesure(() => lireLesDependances(sujet, contexte, inventaires, cooperation), 'parallele', 'dependances')) : null;
+    const lancerLeMoteur = (nature: 'attente' | 'parallele') => attendrePourLaMesure(
+      () => lecteurs.moteur(sujet, jeton, contexte, (nom) => { if (annonces.ouvert) courant.progresser?.(nom); else annonces.vues.push(nom); }, cooperation, inventaires),
+      nature, 'moteur',
+    );
+    const moteurEnCours = !reutilisationPermise(demande) || !lireLesDependances || etatDeLEntree(sujet.cle).etat !== 'utilisable'
+      ? anticiper(async (): Promise<ResultatSansPublication> => {
+        await dependancesEnCours;
+        return jeton.leve ? { etat: 'annulee' } : lancerLeMoteur('parallele');
+      })
+      : null;
+    const catalogue = await catalogueEnCours;
     catalogueLu = catalogue;
-    // Les imports du catalogue rendent lisible ce que le relevé a vu refusé : le moteur relit une fois ces identifiants.
-    inventaires.ressources?.oublierLesRefus();
     compter('variablesDuCatalogue', catalogue.variables.length);
     if (jeton.leve) return rendre('annulee', [], null);
 
@@ -1572,14 +1606,18 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     let validation = null as ValidationDeLEntree | null;
     const lireLesDependancesEtValider = async (): Promise<void> => {
       phase('imbriques');
-      const lireLesDependances = lecteurs.dependances;
-      dependances = lireLesDependances
-        ? await attendrePourLaMesure(() => lireLesDependances(sujet, contexte, inventaires, cooperation).catch((erreur: unknown) => {
+      // Les phases du moteur, tues pendant le catalogue et les contrôles, s'annoncent ici dans l'ordre où il les a rendues.
+      annonces.ouvert = true;
+      for (const nom of annonces.vues) courant.progresser?.(nom);
+      if (dependancesEnCours) {
+        try {
+          dependances = reprendre(await dependancesEnCours);
+        } catch (erreur) {
           if (erreur instanceof AnalyseAnnulee) throw erreur;
           lecturesRefusees.push('dependances');
-          return null;
-        }), 'attente', 'dependances')
-        : undefined;
+          dependances = null;
+        }
+      }
       if (jeton.leve) return;
       if (dependances) suivreLesMaitres(identite as IdentiteDAnalyse, maitresSuivisParLeJournal(dependances, courante?.pages ?? new Set()).noeuds, contexte);
       // Seule une validation `valide` reprend le moteur retenu (les requêtes pures ne la demandent pas) ; Actualiser et un sujet sans lecteur de dépendances n'en demandent pas.
@@ -1619,7 +1657,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       phase('regles');
       ({ moteur, regles: reglesLues } = validation);
     } else {
-      const resultat = await attendrePourLaMesure(() => lecteurs.moteur(sujet, jeton, contexte, courant.progresser, cooperation, inventaires), 'attente', 'moteur');
+      const resultat = moteurEnCours ? reprendre(await moteurEnCours) : await lancerLeMoteur('attente');
       if (resultat.etat === 'annulee' || jeton.leve) return rendre('annulee', [], null);
       moteur = sansPublication(resultat.interne);
       phase('regles');
@@ -1679,6 +1717,12 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     (revision as RevisionDAnalyse | null)?.jeter();
     // Une analyse finie avant d'avoir attendu les libraries (arrêt, erreur) ne laisse pas leur lecture courir : le jeton ne sert plus.
     if (librariesEnCours) courant.jeton.leve = true;
+    // Il en va de même des dépendances et du moteur lancés pendant le catalogue : ils s'arrêtent avant que la place se libère,
+    // pour que la demande suivante ne trouve ni leur portée ouverte ni leurs lectures en vol.
+    if (anticipees.size > 0) {
+      courant.jeton.leve = true;
+      await Promise.all(anticipees);
+    }
     courant.cloreMesure?.('arretee');
     enregistrerLesImports(false);
     operation = null;

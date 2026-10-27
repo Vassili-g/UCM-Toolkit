@@ -191,7 +191,7 @@ test('la lecture d’un maître se fait une fois par instance, avec l’appel et
   assert.equal(reutilisations, 1);
 });
 
-test('oublierLesRefus fait relire une variable et une collection refusées, une fois, et garde les ressources lues', async () => {
+test('attendreLesImports fait relire après eux un refus rangé, fait attendre toute lecture neuve, et garde les ressources lues', async () => {
   const lisible = { importee: false };
   const appels: string[] = [];
   const lectures: LecturesDeRessources = {
@@ -202,12 +202,25 @@ test('oublierLesRefus fait relire une variable et une collection refusées, une 
   assert.equal((await memoire.variable('tard')).etat.etat, 'refuse');
   assert.equal((await memoire.collection('lib')).etat.etat, 'refuse');
   await memoire.variable('bonne');
+  let finir!: () => void;
+  memoire.attendreLesImports(new Promise<void>((resolve) => { finir = resolve; }));
+  const pendant = [memoire.variable('tard'), memoire.collection('lib'), memoire.variable('neuve')];
+  const lueAvant = await Promise.race([Promise.all(pendant), new Promise<string>((resolve) => setTimeout(() => resolve('attend'), 20))]);
+  assert.equal(lueAvant, 'attend', 'tant que les imports courent, une lecture qui n’a pas eu lieu ne part pas');
+  assert.deepEqual(appels, ['variable(tard)', 'collection(lib)', 'variable(bonne)']);
+  assert.equal((await memoire.variable('bonne')).etat.etat, 'acquis', 'une ressource déjà acquise se rend sans attendre');
   lisible.importee = true;
-  assert.equal((await memoire.variable('tard')).etat.etat, 'refuse', 'avant l’oubli, le refus se transmet');
-  memoire.oublierLesRefus();
-  assert.equal((await memoire.variable('tard')).etat.etat, 'acquis');
-  assert.equal((await memoire.collection('lib')).etat.etat, 'acquis');
+  finir();
+  const [tard, lib, neuve] = await Promise.all(pendant);
+  assert.deepEqual([tard.etat.etat, lib.etat.etat, neuve.etat.etat], ['acquis', 'acquis', 'acquis']);
   await memoire.variable('bonne');
   await memoire.variable('tard');
-  assert.deepEqual(appels, ['variable(tard)', 'collection(lib)', 'variable(bonne)', 'variable(tard)', 'collection(lib)']);
+  assert.deepEqual(appels, ['variable(tard)', 'collection(lib)', 'variable(bonne)', 'variable(tard)', 'collection(lib)', 'variable(neuve)']);
+});
+
+test('un rejet de la fin des imports lève l’attente comme une fin normale', async () => {
+  const lectures: LecturesDeRessources = { getVariableByIdAsync: async (id) => variable(id, id, 'c'), getVariableCollectionByIdAsync: async () => null };
+  const memoire = creerMemoireDeRessources({ lectures: () => lectures });
+  memoire.attendreLesImports(Promise.reject(new Error('catalogue annulé')));
+  assert.equal((await memoire.variable('a')).etat.etat, 'acquis');
 });

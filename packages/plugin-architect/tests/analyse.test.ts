@@ -120,7 +120,7 @@ test('le banc compare deux analyses indépendantes, leurs constats, corrections,
 });
 
 
-test('le provisoire part après les contrôles du kit et avant le moteur ; le final garde l’ordre contrôles, règles, moteur et ne change pas sans lui', async () => {
+test('le provisoire part après les contrôles du kit, le moteur part avec le catalogue ; le final garde l’ordre contrôles, règles, moteur et ne change pas sans lui', async () => {
   const fabriquer = (sansProvisoire: boolean) => () => {
     const b = banc();
     if (sansProvisoire) {
@@ -152,7 +152,7 @@ test('le provisoire part après les contrôles du kit et avant le moteur ; le fi
   const envoyer = avec.b.contexte.envoyer;
   avec.b.contexte.envoyer = (message) => { if (message.type === 'analyse-provisoire' || message.type === 'analyse') ordre.push(message.type); envoyer(message); };
   await traiterAvec(avec.lectures)({ type: 'analyser' }, avec.b.contexte);
-  assert.deepEqual(ordre, ['ignores', 'analyse-provisoire', 'moteur', 'regles', 'analyse']);
+  assert.deepEqual(ordre, ['moteur', 'ignores', 'analyse-provisoire', 'regles', 'analyse']);
 
   const [provisoire] = deType(avec.b, 'analyse-provisoire');
   const [final] = deType(avec.b, 'analyse');
@@ -243,8 +243,9 @@ test('annuler au milieu du contrôle de contraste arrête avant tout résultat',
   for (let i = 0; i < 128; i += 1) releve.variants[0].layers.push({ ...texte, id: `texte-${i}`, nom: `Label ${i}` });
   let horloge = 0;
   let moteurLu = false;
+  let jetonDuMoteur: { readonly leve: boolean } | null = null;
   const base = lecteurs(complete());
-  const traiter = traiterAvec({ ...base, releve: async () => ({ statut: 'lu', releve }), moteur: async () => { moteurLu = true; return { etat: 'calculee', interne: exportDe() }; } }, {
+  const traiter = traiterAvec({ ...base, releve: async () => ({ statut: 'lu', releve }), moteur: async (_sujet, jeton) => { moteurLu = true; jetonDuMoteur = jeton; return { etat: 'calculee', interne: exportDe() }; } }, {
     horloge: () => horloge += 2, budgetDeCalculMs: 1,
     respirer: async () => {
       if (mesures > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
@@ -252,7 +253,8 @@ test('annuler au milieu du contrôle de contraste arrête avant tout résultat',
   });
   await traiter({ type: 'analyser' }, b.contexte);
   sansProvisoireNiMoteur(b);
-  assert.equal(moteurLu, false);
+  assert.equal(moteurLu, true, 'le moteur part avec le catalogue, avant les contrôles');
+  assert.equal(jetonDuMoteur!.leve, true, 'l’annulation lui parvient par le jeton de l’analyse');
   assert.ok(mesures > 0 && mesures < 129, `${mesures} contrastes mesurés`);
   assert.equal(deType(b, 'analyse')[0].statut, 'annulee');
   assert.deepEqual(deType(b, 'analyse')[0].constats, []);
@@ -526,7 +528,7 @@ test('annuler au milieu des signatures du mapping abandonne les modes restants',
   assert.equal(correctionsDeLAnalyse(resultat.analyse)?.size ?? 0, 0);
 });
 
-test('annuler pendant la découverte des collections de la library arrête avant le moteur, sans repli sur le fichier', async () => {
+test('annuler pendant la découverte des collections de la library arrête le moteur lancé avec elle, sans repli sur le fichier', async () => {
   const b = banc();
   let demandes = 0;
   let fichierLu = false;
@@ -539,12 +541,12 @@ test('annuler pendant la découverte des collections de la library arrête avant
     envoyer: (m) => b.envoyes.push(m), surveillerLeDocument() {},
   };
   let horloge = 0;
-  let moteurLu = false;
+  let jetonDuMoteur: { readonly leve: boolean } | null = null;
   let pauses = 0;
   const traiter = traiterAvec({
     ...lecteurs(complete()),
     catalogue: catalogueDeFigma,
-    moteur: async () => { moteurLu = true; return { etat: 'calculee', interne: exportDe() }; },
+    moteur: async (_sujet, jeton) => { jetonDuMoteur = jeton; return { etat: 'calculee', interne: exportDe() }; },
   }, {
     horloge: () => horloge += 2, budgetDeCalculMs: 1,
     respirer: async () => {
@@ -555,7 +557,7 @@ test('annuler pendant la découverte des collections de la library arrête avant
   sansProvisoireNiMoteur(b);
   assert.ok(demandes > 0 && demandes < 90, `${demandes} collections demandées`);
   assert.equal(fichierLu, false);
-  assert.equal(moteurLu, false);
+  assert.equal(jetonDuMoteur!.leve, true, 'le moteur, lancé avec le catalogue, reçoit l’annulation par le jeton');
   const resultat = deType(b, 'analyse')[0];
   assert.equal(resultat.statut, 'annulee');
   assert.deepEqual(resultat.constats, []);
@@ -833,7 +835,8 @@ test('chaque demande d’écriture forgée pendant le provisoire est refusée sa
     releve: async () => ({ statut: 'lu', releve }),
     catalogue: async () => catalogue,
     moteur: async () => {
-      // Le moteur ne démarre qu'après l'envoi du provisoire.
+      // Le moteur part avec le catalogue : il attend l'envoi du provisoire pour que la forge tombe pendant lui.
+      while (!types(envoyes).includes('analyse-provisoire')) await attendre(0);
       assert.deepEqual(types(envoyes).filter((type) => type === 'analyse-provisoire' || type === 'analyse'), ['analyse-provisoire']);
       const analyse = analyseCourante()!;
       effets.depots = 0;
@@ -1352,7 +1355,7 @@ test('la mesure couvre le sujet avant le moteur, ferme la trace et garde les sor
     assert.equal(avec.mesure?.etapes[0].ms, 37);
     assert.equal(avec.mesure?.totalMs, 56);
     assert.ok(avec.mesure?.etapes.some(({ nom }) => nom === 'interne-du-moteur'));
-    assert.deepEqual(avec.mesure?.phases?.map(({ nom }) => nom), ['sujet', 'releve', 'catalogue', 'controles', 'moteur', 'regles', 'controles', 'corrections', 'projection', 'projection']);
+    assert.deepEqual(avec.mesure?.phases?.map(({ nom }) => nom), ['sujet', 'releve', 'catalogue', 'moteur', 'controles', 'regles', 'controles', 'corrections', 'projection', 'projection']);
     assert.equal(avec.mesure?.compteurs.nodesParcourus, 13);
     assert.ok((avec.mesure?.compteurs.tailleSortieArchitect ?? 0) > 0);
     assert.equal(avec.mesure?.fin, 'complete');
@@ -1422,7 +1425,7 @@ test('chaque contrôle du kit ouvre son étape et porte l’avance de son seul c
       // La fusion lit `releve.variants` une fois, pour les identifiants de variants du moteur.
       assert.equal(etapes.at(-1)!.ms, 7);
       assert.ok(new Set(attendu.map(([, ms]) => ms)).size > 1 && attendu.some(([, ms]) => ms > 0), 'la fixture distingue les contrôles');
-      assert.deepEqual(avec.mesure!.phases!.map(({ nom }) => nom), ['sujet', 'releve', 'catalogue', 'controles', 'moteur', 'regles', 'controles', 'corrections', 'projection', 'projection']);
+      assert.deepEqual(avec.mesure!.phases!.map(({ nom }) => nom), ['sujet', 'releve', 'catalogue', 'moteur', 'controles', 'regles', 'controles', 'corrections', 'projection', 'projection']);
       assert.deepEqual(avec.constats, sans.constats);
       assert.deepEqual(avec.lecture, sans.lecture);
       assert.deepEqual(avec.variants, sans.variants);

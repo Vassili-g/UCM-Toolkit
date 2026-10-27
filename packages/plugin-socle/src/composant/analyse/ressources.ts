@@ -128,11 +128,15 @@ export interface MemoireDeRessources {
   /** La copie du maître rendu pour cette instance, par identifiant de maître ; un maître refusé n'a pas de fait. */
   faitDuMaitre(instance: IdDeNoeud, natif: object): Promise<FaitDuMaitre>;
   /**
-   * Retire les variables et collections refusées jusqu'ici : la prochaine lecture de chacune appelle Figma, puis se
-   * mémorise. L'analyse l'appelle quand le catalogue a importé des variables, qui rendent lisible ce que le relevé
-   * avait vu refusé ; un refus d'avant les imports ne se transmet pas au moteur.
+   * Met les variables et collections hors d'atteinte des imports du catalogue, qui rendent lisible ce que le relevé avait
+   * vu refusé. L'analyse l'appelle en lançant le catalogue, avec sa fin :
+   * - toute lecture qui n'a pas encore eu lieu attend `fin`, puis appelle Figma comme si elle suivait le catalogue ;
+   * - un refus rangé jusqu'ici s'oublie et suit la même règle : une relecture, après `fin`, puis mémorisée ;
+   * - une ressource acquise avant l'appel reste acquise.
+   * Un rejet de `fin` lève l'attente comme une fin normale. Les styles et les maîtres sont hors de cette attente : les
+   * imports ne les changent pas.
    */
-  oublierLesRefus(): void;
+  attendreLesImports(fin: Promise<unknown>): void;
 }
 
 /** La table pendant sa copie, avant qu'elle ne soit rendue en lecture seule. */
@@ -230,11 +234,15 @@ export function creerMemoireDeRessources(options: OptionsDeLaMemoire): MemoireDe
   const faitsDeMaitre = new Map<string, Promise<FaitDuMaitre>>();
   const refuses = { variables: new Set<string>(), collections: new Set<string>() };
 
+  /** La fin des imports du catalogue tant qu'ils courent (`attendreLesImports`), sinon `null`. */
+  let imports: Promise<void> | null = null;
+
   async function lire<T extends object>(
     id: string,
     appel: 'getVariableByIdAsync' | 'getVariableCollectionByIdAsync',
     copier: (ressource: object) => Promise<{ table: T; origine: Origine }>,
   ): Promise<FaitDeRessource<T>> {
+    if (imports) await imports;
     const fait = await lireLaRessource(id, appel, copier);
     if (fait.etat.etat === 'refuse') (appel === 'getVariableByIdAsync' ? refuses.variables : refuses.collections).add(id);
     return fait;
@@ -271,7 +279,10 @@ export function creerMemoireDeRessources(options: OptionsDeLaMemoire): MemoireDe
     lireUneFoisParIdentifiant(stylesNatifs, id, () => options.lectures().getStyleByIdAsync?.(id), { propager: options.propager });
 
   return {
-    oublierLesRefus: () => {
+    attendreLesImports: (fin) => {
+      const attente = fin.then(() => undefined, () => undefined);
+      imports = attente;
+      void attente.then(() => { if (imports === attente) imports = null; });
       for (const id of refuses.variables) variables.delete(id);
       for (const id of refuses.collections) collections.delete(id);
       refuses.variables.clear();
