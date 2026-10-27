@@ -285,9 +285,12 @@ library ; la vérification de la liste est le seul contrôle de fraîcheur, et u
 valeur republiée sans changement de nom, de clé ni de type n'y paraît pas.
 Viennent ensuite la lecture des
 ignorés, puis `analyse-provisoire` : les constats des contrôles du
-kit, sans correction ni question, et les identifiants ignorés. Elle lance
-ensuite le moteur, lit les règles, propose les corrections et envoie
-`analyse`. Le message final range les constats comme avant : contrôles du kit,
+kit, sans correction ni question, et les identifiants ignorés. Elle lit
+ensuite les dépendances du moteur, lance le moteur, lit les règles, propose les
+corrections et envoie `analyse`. Une demande Analyser reprend à la place le
+résultat du moteur de l'analyse complète précédente du même jeu quand
+`validerLEntree` l'accepte : relevé, catalogue, dépendances et règles relus
+égaux à ceux retenus, et ni instance ni style dans le jeu. Le message final range les constats comme avant : contrôles du kit,
 règles, moteur. Une annulation pendant le catalogue ou les contrôles du kit
 n'envoie aucun provisoire et ne lit pas le moteur. `analyse-provisoire` n'est
 pas un statut de `analyse` : seul `analyse` termine la demande. Seul un final

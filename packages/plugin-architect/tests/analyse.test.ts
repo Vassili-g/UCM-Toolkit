@@ -1564,7 +1564,7 @@ test('la session retient les sorties, les requêtes et le suivi du sujet, sans r
   const entree = sessionDesAnalyses().entree('Alert');
   assert.ok(entree, 'une analyse complète retient son sujet');
   assert.deepEqual(Object.keys(entree).sort(), ['rang', 'requetes', 'sorties', 'suivi', 'sujet']);
-  assert.deepEqual(Object.keys(entree.sorties).sort(), ['architectureUcm', 'catalogue', 'ignores', 'lecturesRefusees', 'moteur', 'niveau', 'regles', 'releve']);
+  assert.deepEqual(Object.keys(entree.sorties).sort(), ['architectureUcm', 'catalogue', 'dependances', 'ignores', 'lecturesRefusees', 'moteur', 'niveau', 'regles', 'releve']);
   assert.deepEqual(Object.keys(entree.requetes).sort(), ['controles', 'corrections', 'projection']);
   assert.deepEqual(Object.keys(entree.suivi).sort(), ['admis', 'couverture', 'curseur', 'noeuds', 'pages', 'parents']);
   assert.ok(!('pourLaPublication' in entree.sorties.moteur), 'les nœuds Figma du moteur ne sont pas retenus');

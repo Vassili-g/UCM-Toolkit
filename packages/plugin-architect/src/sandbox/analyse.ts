@@ -29,6 +29,10 @@
  * (`promouvoirLaRevision`), et une révision jetée la laisse telle quelle. Le journal marque d'invalides les sujets retenus qu'il
  * a touchés (`etatDeLEntree`), et la marque survit aux demandes annulées, arrêtées ou périmées. Elle est séparée de `AnalyseCourante`, qui porte
  * l'état affiché d'une génération : réponses, corrections fixées et péremption ne passent jamais dans la session.
+ *
+ * Une demande Analyser ne reprend le résultat du moteur d'une entrée qu'après `validerLEntree` : relevé, catalogue,
+ * dépendances du moteur et règles relus égaux à ceux de l'entrée, et rien dans le jeu que la relecture ne couvre pas
+ * (instance, style). Le reste du chemin, contrôles, corrections et projection, se rejoue sur les sorties relues.
  */
 import {
   controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
@@ -42,9 +46,11 @@ import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-pl
 import { creerLaSession, type EntreeDeSession, type RequeteRetenue, type SessionDAnalyse } from 'ucm-plugin-socle/src/composant/analyse/session';
 import { raisonsDInvalidation, type RaisonDInvalidation } from 'ucm-plugin-socle/src/composant/analyse/invalidations';
 import { ouvrirUneRevision, type RevisionDeTravail } from 'ucm-plugin-socle/src/composant/analyse/revisions';
+import { ecartsDesSorties, egalesExactement, type EcartDeSortie } from 'ucm-plugin-socle/src/composant/analyse/validation';
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import { extractRules, type ExtractedRules } from 'ucm-plugin-socle/src/composant/contract/extractRules';
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import { ouvrirLaMesure, fermerLaMesure, etape, compter, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation, type OptionsDeCooperation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
@@ -100,16 +106,37 @@ interface AnalyseCourante {
 let generation = 0;
 let courante: AnalyseCourante | null = null;
 
-/** Ce que les lecteurs ont rendu à une analyse complète. Le résultat du moteur perd `pourLaPublication`, qui tient des nœuds Figma. */
+/** Le résultat du moteur tel que la session le retient : sans `pourLaPublication`, qui tient des nœuds Figma. */
+export type MoteurRetenu = Omit<ResultatInterne, 'pourLaPublication'>;
+
+/**
+ * Ce que le moteur lit hors du jeu, du relevé et du catalogue, lu avant lui à chaque demande : le scan des règles de la
+ * page du sujet, l'index des variables et collections locales, et les instances et styles du jeu, dont le moteur lit les
+ * maîtres et les définitions sans que la validation puisse les relire.
+ */
+export interface DependancesDuMoteur {
+  /** Le scan des règles (`extractRules`), ses nœuds réduits à leur identifiant. */
+  readonly regles: unknown;
+  readonly collectionsLocales: readonly { readonly id: string; readonly nom: string }[];
+  /** Dans l'ordre de `getLocalVariablesAsync` : le premier occupant d'un nom de token garde ce nom dans l'index du moteur. */
+  readonly variablesLocales: readonly { readonly id: string; readonly nom: string; readonly collection: string }[];
+  /** Les styles de texte et d'effet du jeu et de ses calques, dans l'ordre du parcours ; `mixte` pour un texte dont le style ne se lit pas en un identifiant. */
+  readonly styles: readonly string[];
+  readonly instances: number;
+}
+
+/** Ce que les lecteurs ont rendu à une analyse complète. */
 export interface SortiesDeSession {
   readonly releve: ReleveDeComposant;
   readonly catalogue: CatalogueDeReference;
-  readonly moteur: Omit<ResultatInterne, 'pourLaPublication'>;
+  readonly moteur: MoteurRetenu;
   readonly regles: ReleveDesRegles | null;
+  /** `null` sans lecteur de dépendances : l'entrée ne se valide alors jamais. */
+  readonly dependances: DependancesDuMoteur | null;
   readonly niveau: NiveauDAccessibilite;
   readonly architectureUcm: boolean;
   readonly ignores: readonly string[];
-  /** Les lecteurs (`regles`, `niveau`, `ignores`) dont la lecture a levé et dont la sortie est une valeur par défaut. */
+  /** Les lecteurs (`regles`, `niveau`, `ignores`, `dependances`) dont la lecture a levé et dont la sortie est une valeur par défaut. */
   readonly lecturesRefusees: readonly string[];
 }
 
@@ -131,7 +158,7 @@ export function sessionDesAnalyses(): SessionDAnalyse<SortiesDeSession, Requetes
   return session;
 }
 
-const sansPublication = ({ pourLaPublication, ...reste }: ResultatInterne): Omit<ResultatInterne, 'pourLaPublication'> => reste;
+const sansPublication = ({ pourLaPublication, ...reste }: ResultatInterne): MoteurRetenu => reste;
 
 export type RevisionDAnalyse = RevisionDeTravail<SortiesDeSession, RequetesDeSession>;
 
@@ -152,10 +179,24 @@ function promouvoirLaRevision(revision: RevisionDAnalyse, identite: IdentiteDAna
 /** Pourquoi une entrée retenue ne se réutilise pas, quoi qu'en dise le journal : une lecture refusée ou une couverture incomplète. */
 export type RaisonDeRelecture = 'releve-incomplet' | 'catalogue-inaccessible' | 'moteur-partiel' | 'couverture-incomplete' | `lecture-refusee:${string}`;
 
+/**
+ * Pourquoi la validation refuse une entrée `utilisable` à la demande courante :
+ * - `couverture-de-la-demande` : l'écoute de la demande est incomplète ou interrompue, ou une écriture suit son curseur ;
+ * - `page-des-regles` : le jeu n'a pas de page, et le moteur balaierait les règles de la page courante ;
+ * - `page-non-suivie` : la page du jeu n'est pas une des pages que l'entrée écoutait ;
+ * - `non-couvert:maitres`, `non-couvert:styles` : le jeu porte une instance ou un style de texte ou d'effet. Le moteur lit
+ *   le maître ou la définition, qu'aucun événement ne couvre et que la validation ne relit pas ;
+ * - `lecture-refusee:dependances`, `lecture-refusee:regles` : la relecture a levé ;
+ * - `different:<sortie>` : le relevé, le catalogue, les dépendances ou les règles relus diffèrent de ceux de l'entrée.
+ */
+export type RaisonDeNonReprise =
+  | 'couverture-de-la-demande' | 'page-des-regles' | 'page-non-suivie' | 'non-couvert:maitres' | 'non-couvert:styles'
+  | 'lecture-refusee:dependances' | 'lecture-refusee:regles' | EcartDeSortie<'releve' | 'catalogue' | 'dependances' | 'regles'>;
+
 export type EtatDeLEntree =
   | { readonly etat: 'absent' }
   | { readonly etat: 'utilisable' }
-  | { readonly etat: 'invalide'; readonly raisons: readonly RaisonDInvalidation[] }
+  | { readonly etat: 'invalide'; readonly raisons: readonly (RaisonDInvalidation | RaisonDeNonReprise)[] }
   | { readonly etat: 'a-relire'; readonly raisons: readonly RaisonDeRelecture[] };
 
 function raisonsDeRelecture({ sorties, suivi }: EntreeDeSessionDAnalyse): RaisonDeRelecture[] {
@@ -188,16 +229,73 @@ function evaluerLesInvalidations(sujets: Iterable<string> = session.sujets()): v
 /**
  * Ce que 9.4 consulte avant de valider une entrée : `absent` sans entrée, `invalide` quand le journal a touché le sujet
  * depuis son curseur, `a-relire` quand une lecture refusée ou une couverture incomplète la rend irréutilisable,
- * `utilisable` sinon. `utilisable` n'est pas encore `validée` : les ressources sans événement se revalident ensuite.
+ * `utilisable` sinon. `utilisable` n'est pas encore `valide` : les ressources sans événement se revalident par `validerLEntree`.
  */
 export function etatDeLEntree(sujet: string): EtatDeLEntree {
   const entree = session.entree(sujet);
   if (!entree) return { etat: 'absent' };
   evaluerLesInvalidations([sujet]);
-  const invalidations = session.invalidations(sujet) as RaisonDInvalidation[];
+  const invalidations = session.invalidations(sujet) as (RaisonDInvalidation | RaisonDeNonReprise)[];
   if (invalidations.length > 0) return { etat: 'invalide', raisons: invalidations };
   const relectures = raisonsDeRelecture(entree);
   return relectures.length > 0 ? { etat: 'a-relire', raisons: relectures } : { etat: 'utilisable' };
+}
+
+/** L'issue de la validation. Seul `valide` permet de reprendre le résultat du moteur retenu ; `regles` est la relecture, égale à celle de l'entrée. */
+export type ValidationDeLEntree =
+  | { readonly etat: 'valide'; readonly moteur: MoteurRetenu; readonly regles: ReleveDesRegles | null }
+  | { readonly etat: 'invalide'; readonly raisons: readonly RaisonDeNonReprise[] };
+
+/** Ce que la demande courante a déjà lu avant le moteur : la validation ne relit ni le relevé ni le catalogue. `dependances` vaut `null` quand sa lecture a levé. */
+export interface SortiesRelues {
+  readonly releve: ReleveDeComposant;
+  readonly catalogue: CatalogueDeReference;
+  readonly dependances: DependancesDuMoteur | null;
+}
+
+/** La lecture des règles sur la surface d'un moteur ; `refusee` quand le lecteur a levé. */
+export type RelireLesRegles = (moteur: MoteurRetenu) => Promise<{ readonly regles: ReleveDesRegles | null; readonly refusee: boolean }>;
+
+function raisonsDeNonReprise({ sorties, suivi }: EntreeDeSessionDAnalyse, sujet: SujetAAnalyser, identite: IdentiteDAnalyse, relues: SortiesRelues): RaisonDeNonReprise[] {
+  const raisons: RaisonDeNonReprise[] = [];
+  if (analyseARelire(identite)) raisons.push('couverture-de-la-demande');
+  const page = pageDuNoeud<{ readonly id?: unknown } | null>(sujet.noeud, null)?.id;
+  if (typeof page !== 'string') raisons.push('page-des-regles');
+  else if (!suivi.pages.has(page)) raisons.push('page-non-suivie');
+  if (relues.dependances === null) raisons.push('lecture-refusee:dependances');
+  const instanceDansLeReleve = relues.releve.variants.some(({ layers }) => layers.some((layer) => layer.instanceDe !== undefined));
+  if (instanceDansLeReleve || (relues.dependances?.instances ?? 0) > 0) raisons.push('non-couvert:maitres');
+  if ((relues.dependances?.styles.length ?? 0) > 0) raisons.push('non-couvert:styles');
+  raisons.push(...ecartsDesSorties<'releve' | 'catalogue' | 'dependances'>([
+    { nom: 'releve', retenue: sorties.releve, relue: relues.releve },
+    { nom: 'catalogue', retenue: sorties.catalogue, relue: relues.catalogue },
+    { nom: 'dependances', retenue: sorties.dependances, relue: relues.dependances },
+  ]));
+  return raisons;
+}
+
+/**
+ * Valide l'entrée du sujet avant que la demande `identite` reprenne le résultat de son moteur. `null` quand l'entrée n'est
+ * pas `utilisable` (`etatDeLEntree`) : rien à valider, la demande suit le chemin complet. Sinon chaque condition de
+ * `RaisonDeNonReprise` se vérifie ; quand aucune ne manque, les règles se relisent sur le moteur retenu et se comparent
+ * à celles de l'entrée. Une entrée refusée reçoit ses raisons comme marque d'invalidation, levée par la promotion suivante.
+ */
+export async function validerLEntree(sujet: SujetAAnalyser, identite: IdentiteDAnalyse, relues: SortiesRelues, relireLesRegles: RelireLesRegles): Promise<ValidationDeLEntree | null> {
+  const entree = session.entree(sujet.cle);
+  if (!entree || etatDeLEntree(sujet.cle).etat !== 'utilisable') return null;
+  const raisons = raisonsDeNonReprise(entree, sujet, identite, relues);
+  let regles = entree.sorties.regles;
+  if (raisons.length === 0) {
+    const relu = await relireLesRegles(entree.sorties.moteur);
+    if (relu.refusee) raisons.push('lecture-refusee:regles');
+    else raisons.push(...ecartsDesSorties([{ nom: 'regles' as const, retenue: entree.sorties.regles, relue: relu.regles }]));
+    regles = relu.regles;
+  }
+  if (raisons.length > 0) {
+    session.invalider(sujet.cle, raisons);
+    return { etat: 'invalide', raisons };
+  }
+  return { etat: 'valide', moteur: entree.sorties.moteur, regles };
 }
 
 /**
@@ -524,7 +622,9 @@ export interface Lecteurs {
   catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance, inventaires?: InventairesDeLaDemande): Promise<CatalogueDeReference>;
   moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (phase: PhaseDAnalyse) => void, cooperation?: ContexteCooperatif, inventaires?: InventairesDeLaDemande): Promise<ResultatSansPublication>;
   /** Les règles d'usage du composant, lues avec les props, le modèle d'états et les imbriqués du moteur ; sans lecteur, aucun constat C43 ni C45. */
-  regles?(sujet: SujetAAnalyser, interne: ResultatInterne, contexte: Contexte, inventaires?: InventairesDeLaDemande): Promise<ReleveDesRegles>;
+  regles?(sujet: SujetAAnalyser, interne: MoteurRetenu, contexte: Contexte, inventaires?: InventairesDeLaDemande): Promise<ReleveDesRegles>;
+  /** Ce que le moteur lit hors du relevé et du catalogue, lu avant lui. Sans ce lecteur, aucune demande ne valide ni ne reprend une entrée de session. */
+  dependances?(sujet: SujetAAnalyser, contexte: Contexte, inventaires?: InventairesDeLaDemande, cooperation?: ContexteCooperatif): Promise<DependancesDuMoteur>;
   /** Le niveau d'accessibilité rangé ; AA sans lecteur. */
   niveau?(contexte: Contexte): Promise<NiveauDAccessibilite>;
   /** Les clés d'Ignorer rangées dans le document ; aucune sans lecteur. */
@@ -632,6 +732,67 @@ export function pageDuNoeud<T>(noeud: { readonly type?: string; readonly parent?
   return repli;
 }
 
+/** Un nœud tel que le parcours des dépendances le lit. */
+interface NoeudDeDependance {
+  readonly type?: string;
+  readonly textStyleId?: unknown;
+  readonly effectStyleId?: unknown;
+  findAll?(filtre: (noeud: NoeudDeDependance) => boolean): readonly NoeudDeDependance[];
+}
+
+const idDuNoeud = (noeud: { readonly id: string } | null): string | null => noeud?.id ?? null;
+
+/**
+ * Le scan des règles, chaque nœud de son relevé réduit à son identifiant. Un nœud qu'un autre champ porterait se compare
+ * par identité, et la validation refuse alors l'entrée.
+ */
+function reglesSansNoeuds(regles: ExtractedRules): unknown {
+  const { releve } = regles;
+  return {
+    ...regles,
+    releve: { conteneurDuComposant: releve.conteneurDuComposant, conteneurVierge: idDuNoeud(releve.conteneurVierge), maitreLocal: idDuNoeud(releve.maitreLocal), instanceSource: idDuNoeud(releve.instanceSource) },
+  };
+}
+
+/**
+ * Les dépendances du moteur, lues dans Figma. Avec `inventaires`, le scan des règles et les listes locales sont ceux que
+ * le moteur de la même demande reprend. Les styles et les instances viennent d'un parcours du jeu par `findAll` ; un
+ * texte dont `textStyleId` n'est pas une chaîne compte comme `mixte`. Un champ qui lève fait lever la lecture.
+ */
+export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Contexte, inventaires?: InventairesDeLaDemande, cooperation?: ContexteCooperatif): Promise<DependancesDuMoteur> {
+  const composant = sujet.noeud as unknown as ComponentSetNode;
+  const page = pageDuNoeud(sujet.noeud, figma.currentPage);
+  const scanDesRegles = () => extractRules(composant, page);
+  const lireLesCollections = () => figma.variables.getLocalVariableCollectionsAsync();
+  const lireLesVariables = () => figma.variables.getLocalVariablesAsync();
+  const [regles, collections, variables] = await Promise.all([
+    inventaires ? inventaires.reglesDeLaPage(page, composant, scanDesRegles) : scanDesRegles(),
+    inventaires ? inventaires.collectionsLocales(lireLesCollections) : lireLesCollections(),
+    inventaires ? inventaires.variablesLocales(lireLesVariables) : lireLesVariables(),
+  ]);
+  const jeu = sujet.noeud as unknown as NoeudDeDependance;
+  const styles: string[] = [];
+  let instances = 0;
+  for (const noeud of [jeu, ...(jeu.findAll?.(() => true) ?? [])]) {
+    await cooperation?.cederSiBesoin();
+    if (noeud.type === 'INSTANCE') instances += 1;
+    if (noeud.type === 'TEXT') {
+      const style = noeud.textStyleId;
+      if (typeof style !== 'string') styles.push('mixte');
+      else if (style !== '') styles.push(style);
+    }
+    const effet = noeud.effectStyleId;
+    if (typeof effet === 'string' && effet !== '') styles.push(effet);
+  }
+  return {
+    regles: reglesSansNoeuds(regles),
+    collectionsLocales: collections.map(({ id, name }) => ({ id, nom: name })),
+    variablesLocales: variables.map(({ id, name, variableCollectionId }) => ({ id, nom: name, collection: variableCollectionId })),
+    styles,
+    instances,
+  };
+}
+
 export const LECTEURS_DE_FIGMA: Lecteurs = {
   sujet: sujetDeFigma,
   releve: (sujet, jeton, contexte, progresser, cooperation) => lireLeReleve(portDuComposant(contexte), sujet.noeud, {
@@ -646,6 +807,7 @@ export const LECTEURS_DE_FIGMA: Lecteurs = {
   niveau: ({ figma }) => lireLeNiveau(figma),
   ignores: async ({ figma }) => lireLesIgnores(figma),
   regles: (sujet, interne, _contexte, inventaires) => lireLesRegles(sujet.noeud as unknown as ComponentSetNode, interne, inventaires),
+  dependances: dependancesDeFigma,
   moteur: async (sujet, jeton, { figma }, progresser, cooperation, inventaires) => {
     const resultat = await analyserLeComposant(async (texte) => {
       progresser?.(texte.includes('variables') ? 'structure' : 'imbriques');
@@ -895,15 +1057,50 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (jeton.leve) return rendre('annulee', [], null);
 
     phase('imbriques');
-    const resultat = await attendrePourLaMesure(() => lecteurs.moteur(sujet, jeton, contexte, courant.progresser, cooperation, inventaires), 'attente', 'moteur');
-    if (resultat.etat === 'annulee' || jeton.leve) return rendre('annulee', [], null);
-
+    // Les dépendances se lisent avant le moteur : un changement survenu après cette lecture diffère de ce que l'entrée retient,
+    // et la validation suivante le voit. `undefined` sans lecteur, `null` quand la lecture lève.
+    const lireLesDependances = lecteurs.dependances;
+    const dependances = lireLesDependances
+      ? await attendrePourLaMesure(() => lireLesDependances(sujet, contexte, inventaires, cooperation).catch((erreur: unknown) => {
+        if (erreur instanceof AnalyseAnnulee) throw erreur;
+        lecturesRefusees.push('dependances');
+        return null;
+      }), 'attente', 'dependances')
+      : undefined;
+    if (jeton.leve) return rendre('annulee', [], null);
     // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
-    phase('regles');
-    const reglesLues = resultat.interne.couverture.etat === 'complete' ? await attendrePourLaMesure(async () => await lecteurs.regles?.(sujet, resultat.interne, contexte, inventaires).catch(() => { lecturesRefusees.push('regles'); return null; }) ?? null, 'attente', 'regles') : null;
+    const lireLesReglesDe: RelireLesRegles = (surface) => attendrePourLaMesure(async () => {
+      if (!lecteurs.regles) return { regles: null, refusee: false };
+      try {
+        return { regles: await lecteurs.regles(sujet, surface, contexte, inventaires), refusee: false };
+      } catch {
+        return { regles: null, refusee: true };
+      }
+    }, 'attente', 'regles');
+    // Seule une validation `valide` reprend le moteur retenu ; Actualiser et un sujet sans lecteur de dépendances n'en demandent pas.
+    const validation = reutilisationPermise(demande) && dependances !== undefined
+      ? await validerLEntree(sujet, identite, { releve, catalogue, dependances }, lireLesReglesDe)
+      : null;
+    if (jeton.leve) return rendre('annulee', [], null);
+    let moteur: MoteurRetenu;
+    let reglesLues: ReleveDesRegles | null = null;
+    if (validation?.etat === 'valide') {
+      phase('regles');
+      ({ moteur, regles: reglesLues } = validation);
+    } else {
+      const resultat = await attendrePourLaMesure(() => lecteurs.moteur(sujet, jeton, contexte, courant.progresser, cooperation, inventaires), 'attente', 'moteur');
+      if (resultat.etat === 'annulee' || jeton.leve) return rendre('annulee', [], null);
+      moteur = sansPublication(resultat.interne);
+      phase('regles');
+      if (moteur.couverture.etat === 'complete') {
+        const lues = await lireLesReglesDe(resultat.interne);
+        if (lues.refusee) lecturesRefusees.push('regles');
+        reglesLues = lues.regles;
+      }
+    }
     retenirLesModeles(reglesLues);
     etape('controle-fusion');
-    const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.interne, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
+    const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(moteur, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
     phase('corrections');
     await cooperation.cederSiBesoin();
     const tous = await calculerParEtapes(proposerLesCorrectionsParEtapes(releve, catalogue, brut), cooperation, 'corrections');
@@ -917,11 +1114,11 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (jeton.leve) return rendre('annulee', [], null);
     verifierLaGeneration(contexte);
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
-    const statutFinal: StatutDAnalyse = resultat.interne.couverture.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete';
+    const statutFinal: StatutDAnalyse = moteur.couverture.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete';
     rendre(statutFinal, visibles, releve, ignores, tous);
     if (revision) {
       const lecturesDuKit: NomDEntree[] = ['releve', 'catalogue'];
-      promouvoirLaRevision(revision, identite, statutFinal, { releve, catalogue, moteur: sansPublication(resultat.interne), regles: reglesLues, niveau, architectureUcm, ignores: rangees, lecturesRefusees }, {
+      promouvoirLaRevision(revision, identite, statutFinal, { releve, catalogue, moteur, regles: reglesLues, dependances: dependances ?? null, niveau, architectureUcm, ignores: rangees, lecturesRefusees }, {
         controles: { resultat: controles, entrees: [...lecturesDuKit, 'niveau', 'architectureUcm'] },
         corrections: { resultat: tous, entrees: [...lecturesDuKit, 'moteur', 'regles', 'controles'] },
         projection: { resultat: { visibles, ignores }, entrees: ['corrections', 'ignores'] },
