@@ -12,7 +12,7 @@
  * `variants`, les autres dans `layers`.
  */
 import type { Constat, TypeDAlerte } from '@ucm-kit/core/controles';
-import type { ComponentExport } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import type { FamilleDePoint } from 'ucm-plugin-socle/src/composant/contract/famillesDePoint';
 import type { PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
@@ -60,7 +60,7 @@ function empreinte(texte: string): string {
  * Les constats d'un export du moteur, un par phrase distincte. `variants` sont
  * les identifiants des variants du relevé.
  */
-export function constatsDuMoteur(moteur: Pick<ComponentExport, 'warnings' | 'parties' | 'localisations'>, variants: ReadonlySet<string> = new Set()): Constat[] {
+export function constatsDuMoteur(moteur: Pick<ResultatInterne, 'warnings' | 'parties' | 'localisations'>, variants: ReadonlySet<string> = new Set()): Constat[] {
   const constats: Constat[] = [];
   const vus = new Map<string, number>();
   for (const phrase of new Set(moteur.warnings)) {

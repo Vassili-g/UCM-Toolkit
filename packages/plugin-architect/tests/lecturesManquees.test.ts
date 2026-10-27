@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
 
 import type { CatalogueDeReference, ReleveDeComposant } from '@ucm-kit/core/controles';
-import type { ComponentExport, ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import type { ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 
 import type { PluginMessage } from '../src/messages';
 import { lireLeReleve } from '../src/releveDuComposant';
@@ -120,7 +121,7 @@ async function statutAvec(lecture: Partial<ReleveDeComposant['lecture']>) {
     async catalogue() {
       return catalogueVide;
     },
-    moteur: async (): Promise<ResultatDAnalyse> => ({ etat: 'complete', export: { warnings: [], parties: new Map(), localisations: new Map() } as unknown as ComponentExport }),
+    moteur: async (): Promise<ResultatSansPublication> => ({ etat: 'calculee', interne: { warnings: [], parties: new Map(), localisations: new Map(), couverture: { etat: 'complete' } } as unknown as ResultatInterne }),
   };
   await traiterAvec(lecteurs)({ type: 'analyser' }, contexte);
   const analyse = envoyes.find((m) => m.type === 'analyse');

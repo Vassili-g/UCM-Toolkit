@@ -9,7 +9,8 @@ import type { CatalogueDeReference, ReleveDeComposant } from '@ucm-kit/core/cont
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { creerInventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { extractRules } from 'ucm-plugin-socle/src/composant/contract/extractRules';
-import type { ComponentExport, ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import type { ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 
 import type { PluginMessage } from '../src/messages';
 import { lireLesRegles } from '../src/regles';
@@ -25,8 +26,8 @@ const releve: ReleveDeComposant = {
   lecture: { layersLus: 0, layersNonLus: 0, variantsNonLus: [], manquees: [] }, espaceDeCouleur: 'srgb',
 };
 
-const exportVide = { warnings: [], parties: new Map(), localisations: new Map() } as unknown as ComponentExport;
-const moteurVide = async (): Promise<ResultatDAnalyse> => ({ etat: 'complete', export: exportVide });
+const interneVide = { warnings: [], parties: new Map(), localisations: new Map(), couverture: { etat: 'complete' } } as unknown as ResultatInterne;
+const moteurVide = async (): Promise<ResultatSansPublication> => ({ etat: 'calculee', interne: interneVide });
 
 /** Un fichier sans library dont `variables` est la liste locale que le port rend, et que le test peut faire évoluer. */
 function fichier(variables: ReturnType<typeof variableFigma>[], teamLibrary?: PortDeBibliotheque['teamLibrary']) {
@@ -55,7 +56,7 @@ function lecteurs(contexte: Contexte, vus: { variables: number[]; collections: n
       ]);
       vus.collections.push(collections.length);
       vus.variables.push(variables.length);
-      return { etat: 'complete', export: exportVide };
+      return { etat: 'calculee', interne: interneVide };
     },
     ...extra,
   };
@@ -142,16 +143,16 @@ function pageAvecRegles() {
   return { scans, page: page as unknown as PageNode, composant };
 }
 
-const exportDuMoteur = { content: JSON.stringify({ props: {} }), imbriques: { auParent: [] } } as unknown as ComponentExport;
+const surfaceDuMoteur = { props: {}, stateModel: null, imbriques: { auParent: [] } } as unknown as Parameters<typeof lireLesRegles>[1];
 
 test('le scan des règles lu par le moteur est repris par la lecture des règles, au même relevé', async () => {
   const { scans, page, composant } = pageAvecRegles();
   const inventaires = creerInventairesDeLaDemande();
   // Ce que le moteur fait au début de sa demande.
   await inventaires.reglesDeLaPage(page, composant, () => extractRules(composant, page));
-  const partage = await lireLesRegles(composant, exportDuMoteur, inventaires);
+  const partage = await lireLesRegles(composant, surfaceDuMoteur, inventaires);
   assert.equal(scans.nombre, 1);
-  const seul = await lireLesRegles(composant, exportDuMoteur);
+  const seul = await lireLesRegles(composant, surfaceDuMoteur);
   assert.equal(scans.nombre, 2, 'sans inventaires, la lecture des règles scanne la page elle-même');
   assert.deepEqual(partage, seul);
 });
@@ -159,7 +160,7 @@ test('le scan des règles lu par le moteur est repris par la lecture des règles
 test('la lecture des règles qui passe la première lit pour le moteur', async () => {
   const { scans, page, composant } = pageAvecRegles();
   const inventaires = creerInventairesDeLaDemande();
-  await lireLesRegles(composant, exportDuMoteur, inventaires);
+  await lireLesRegles(composant, surfaceDuMoteur, inventaires);
   await inventaires.reglesDeLaPage(page, composant, () => extractRules(composant, page));
   assert.equal(scans.nombre, 1);
 });

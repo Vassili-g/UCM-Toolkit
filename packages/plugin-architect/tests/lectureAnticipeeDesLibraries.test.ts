@@ -7,7 +7,7 @@ import test, { beforeEach } from 'node:test';
 
 import type { CatalogueDeReference, ReleveDeComposant } from '@ucm-kit/core/controles';
 import { lireLesLibraries } from 'ucm-plugin-socle/src/bibliotheque';
-import type { ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import type { ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 
 import type { PluginMessage } from '../src/messages';
 import { catalogueDeFigma, reinitialiserLAnalyse, traiterAvec, type Lecteurs } from '../src/sandbox/analyse';
@@ -68,7 +68,7 @@ function contexteDe(figma: unknown): { contexte: Contexte; envoyes: PluginMessag
   return { envoyes, contexte: { figma: figma as PluginAPI, envoyer: (message) => envoyes.push(message), surveillerLeDocument() {} } };
 }
 
-const moteurComplet = async (): Promise<ResultatDAnalyse> => ({ etat: 'complete', export: { warnings: [], parties: new Map(), localisations: new Map() } as never });
+const moteurComplet = async (): Promise<ResultatSansPublication> => ({ etat: 'calculee', interne: { warnings: [], parties: new Map(), localisations: new Map(), couverture: { etat: 'complete' } } as never });
 
 /** Les lectures de l'analyse avec le vrai `catalogueDeFigma` ; `enAvance` ajoute le lecteur des libraries. */
 function lectures(journal: Journal, enAvance: boolean, releve: Lecteurs['releve']): Lecteurs {

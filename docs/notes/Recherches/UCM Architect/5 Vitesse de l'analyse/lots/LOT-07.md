@@ -10,7 +10,7 @@
 - [x] **7.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : produire le résultat interne finalisé avec parties, localisations, props, états, imbrications, modèles et couverture ; test de parité complet. Résultat : `plugin-socle/src/composant/analyse/resultat.ts` (`calculerLAnalyse`, `ResultatInterne`), section « Résultat interne (7.4) » ; parité dans `plugin-exporter/tests/aides/parite.ts` `verifierLeResultatInterne` et test de la jonction dans `plugin-socle/tests/resultat.test.ts`.
 - [x] **7.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : assembler contrat et échantillons exporteur depuis ce résultat ; comparer hors date avec l'ancien chemin. Résultat : `plugin-socle/src/composant/contract/publication.ts` (`publierLeContrat`), section « Publication depuis le résultat (7.5) » ; comparaison dans `plugin-exporter/tests/aides/parite.ts` `verifierLaPublication`.
 - [x] **7.6 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : déplacer compaction et sérialisation après le calcul commun ; garder diagnostics tardifs et contrat ordonné. Résultat : option `publier: false` de `analyserLeComposant` (`exportComponent.ts`), section « Analyse sans publication (7.6) » ; preuve dans `plugin-exporter/tests/aides/parite.ts` `verifierLAnalyseSansPublication`.
-- [ ] **7.7 | gpt-6.1-sol | high** | **Claude Sonnet | high** : brancher Architect sur surface et règles sans JSON.parse du contrat ; comparer corrections, questions et modèles.
+- [x] **7.7 | gpt-6.1-sol | high** | **Claude Sonnet | high** : brancher Architect sur surface et règles sans JSON.parse du contrat ; comparer corrections, questions et modèles. Résultat : `LECTEURS_DE_FIGMA.moteur` passe `publier: false` et `lireLesRegles` lit le résultat interne (`contratDesReglesDe`), section « Architect sur le résultat interne (7.7) » ; preuve dans `plugin-architect/tests/pariteDeLInterne.test.ts`.
 - [ ] **7.8 | gpt-6-luna | low** | **Claude Sonnet | low** : retirer l'ancien chemin de production après parité ; garder le comparateur et exécuter les builds Architect et exporteur.
 
 Prérequis : 6. Nature : extraction à sortie identique.
@@ -469,3 +469,22 @@ Sans changer les constats, les corrections ni les modèles d'Architect :
 - `test:paquet -- socle` 170 tests, exporteur 1150, Architect 1260, `npm run typecheck`, sans échec.
 
 **Ce qui reste.** 7.7 fait passer Architect à `publier: false` et lit `props`, `stateModel`, `imbriques` et `rules` du résultat. 7.8 retire les copies d'avant.
+
+
+### Architect sur le résultat interne (7.7)
+
+**Branchement.** `LECTEURS_DE_FIGMA.moteur` appelle `analyserLeComposant` avec `publier: false` et rend `ResultatSansPublication`. `constatsDuMoteur` lit `warnings`, `parties` et `localisations` du résultat interne. `lireLesRegles(composant, surface, inventaires)` lit `props`, `stateModel` et `imbriques` : le `JSON.parse(content)` disparaît. Le statut `partielle` vient de `interne.couverture`, et les règles ne se lisent que pour une couverture `complete`. Aucun `ComponentExport` n'est fabriqué. Les autres lecteurs de `resultat.export` d'Architect étaient des doubles de test : ils rendent maintenant `{ etat: 'calculee', interne }`. `capture.test.ts` appelle `analyserLeComposant` avec publication, pour comparer des contrats.
+
+**Réponse sur l'élision.** L'élision change la lecture dans deux cas dégénérés : un enum dont `values` est vide perd `values` (`groupesDeCibles` lit `prop.values.length` et lève), et un `stateModel` dont `states` est vide perd `states` (`Object.keys(etats.states)` lève). Dans l'ancienne voie, `lireLesRegles` rejetait et `analyser` avalait l'erreur : ni C43 ni C45. Lu sans élision, le modèle se serait construit. `contratDesReglesDe` (`src/regles.ts`) applique `elideContract` aux `props` et au `stateModel`, sur une copie : le modèle et les erreurs sont ceux du contrat publié. Les entrées protégées (`stateModel.states.*`) sont conservées, comme dans le contrat. Que ces deux cas lèvent est un comportement conservé, à trancher hors de ce lot.
+
+**Progression.** Les annonces « Préparation des exemples… » et « Écriture du contrat… » déclenchaient la dernière phase `structure`. Le lecteur émet cette phase après le calcul. Les messages d'avancement restent ceux de l'ancienne voie.
+
+**Preuves.**
+
+- `plugin-architect/tests/pariteDeLInterne.test.ts` : sur le monde fabriqué et sur le monde à états inconnus et propriétés en conflit, l'analyse complète d'Architect rend des messages, constats retenus, corrections, modèles de règles, relevé et catalogue identiques à l'ancienne voie, qui reste en copie de test (`tests/aides/voieAvantLInterne.ts`, contrat publié et `JSON.parse`).
+- Même fichier : la trace d'Architect ne compte aucune étape de `ETAPES_DE_PUBLICATION`, alors que celle de l'ancienne voie les compte.
+- `plugin-architect/tests/contratDesRegles.test.ts` (8 tests) : le modèle lu sur la surface est celui du contrat élidé, sérialisé et relu, y compris pour un enum sans valeur et un `stateModel` sans état.
+- Altérations vérifiées : une lecture sans élision fait échouer 5 tests ; `publier: true` fait échouer 3 tests. Le code est rétabli.
+- `test:paquet -- socle` 170 tests, exporteur 1150, Architect 1271, `npm run typecheck`, sans échec.
+
+**Ce qui reste.** 7.8 retire l'ancien chemin de production, `publierAvant` et `voieAvantLInterne.ts`, et exécute les builds Architect et exporteur.

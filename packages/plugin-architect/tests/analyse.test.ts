@@ -6,7 +6,8 @@ import {
   controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructure, controlerLaTypographieParEtapes, controlerLeTheme, controlerMapping, controlerNommage, controlerOublisParEtapes, tokensDuComposant,
   type CatalogueDeReference, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
-import { ComponentExportError, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import { ComponentExportError, type ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 import { etape, compter, fermerLaMesure, ouvrirLaMesure, abandonnerLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
@@ -39,9 +40,9 @@ function releveDe(nom: string, lecture: Partial<ReleveDeComposant['lecture']> = 
   };
 }
 
-function exportDe(points: readonly PointACorriger[] = []): ComponentExport {
+function exportDe(points: readonly PointACorriger[] = []): ResultatInterne {
   const phrases = points.map(phraseDe);
-  return { warnings: phrases, parties: new Map(points.map((p, i) => [phrases[i], p])), localisations: new Map() } as unknown as ComponentExport;
+  return { warnings: phrases, parties: new Map(points.map((p, i) => [phrases[i], p])), localisations: new Map(), couverture: { etat: 'complete' } } as unknown as ResultatInterne;
 }
 
 const pointDeTest: PointACorriger = { famille: 'regles', titre: 'Règles : « À compléter » est resté.', impact: 'Impact.', action: 'Action.' };
@@ -58,7 +59,7 @@ function banc(architecture: 'ucm' | 'libre' | 'absente' = 'absente'): Banc {
 }
 
 /** Des lectures sur des doubles : seul le moteur change d'un test à l'autre. */
-function lecteurs(moteur: (jeton: { readonly leve: boolean }) => Promise<ResultatDAnalyse>, nom = 'Alert', catalogue: CatalogueDeReference = catalogueVide): Lecteurs {
+function lecteurs(moteur: (jeton: { readonly leve: boolean }) => Promise<ResultatSansPublication>, nom = 'Alert', catalogue: CatalogueDeReference = catalogueVide): Lecteurs {
   return {
     async sujet() {
       return { cle: nom, noeud: { id: `jeu-${nom}` } as never, noeuds: [`jeu-${nom}`, `v-${nom}`] } satisfies SujetAAnalyser;
@@ -73,7 +74,7 @@ function lecteurs(moteur: (jeton: { readonly leve: boolean }) => Promise<Resulta
   };
 }
 
-const complete = (points: readonly PointACorriger[] = []) => async (): Promise<ResultatDAnalyse> => ({ etat: 'complete', export: exportDe(points) });
+const complete = (points: readonly PointACorriger[] = []) => async (): Promise<ResultatSansPublication> => ({ etat: 'calculee', interne: exportDe(points) });
 const attendre = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const deType = <T extends PluginMessage['type']>(b: Banc, type: T) => b.envoyes.filter((m) => m.type === type) as Array<Extract<PluginMessage, { type: T }>>;
 
@@ -94,7 +95,7 @@ test('le banc compare deux analyses indépendantes, leurs constats, corrections,
     const moteur = exportDe([pointDeTest]);
     moteur.localisations = new Map([[phraseDe(pointDeTest), ['v-Alert', 'texte']]]);
     const lectures: Lecteurs = {
-      ...lecteurs(async () => ({ etat: 'complete', export: moteur })),
+      ...lecteurs(async () => ({ etat: 'calculee', interne: moteur })),
       releve: async () => ({ statut: 'lu', releve: releveDeContraste('Alert') }),
       catalogue: async () => ({ ...catalogueVide, collections: [{ cle: 'c', nom: 'Modes', role: null, etat: 'lue', modes: [{ id: 'dark', nom: 'Dark' }, { id: 'light', nom: 'Light' }] }] }),
       regles: async () => ({
@@ -127,7 +128,7 @@ test('le provisoire part après les contrôles du kit et avant le moteur ; le fi
       b.contexte.envoyer = (message) => { if (message.type !== 'analyse-provisoire') envoyer(message); };
     }
     const lectures: Lecteurs = {
-      ...lecteurs(async () => ({ etat: 'complete', export: exportDe([pointDeTest]) })),
+      ...lecteurs(async () => ({ etat: 'calculee', interne: exportDe([pointDeTest]) })),
       releve: async () => ({ statut: 'lu', releve: releveDeContraste('Alert') }),
       regles: async () => ({
         composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false,
@@ -192,7 +193,7 @@ test('le relevé et le moteur reçoivent le même budget ; les cessions conserve
       moteur: async (_sujet, _jeton, _contexte, _progresser, cooperation) => {
         assert.equal(cooperation, budgetDuReleve);
         await cooperation!.cederSiBesoin();
-        return { etat: 'complete', export: exportDe([pointDeTest]) };
+        return { etat: 'calculee', interne: exportDe([pointDeTest]) };
       },
     };
     return { b, lectures };
@@ -243,7 +244,7 @@ test('annuler au milieu du contrôle de contraste arrête avant tout résultat',
   let horloge = 0;
   let moteurLu = false;
   const base = lecteurs(complete());
-  const traiter = traiterAvec({ ...base, releve: async () => ({ statut: 'lu', releve }), moteur: async () => { moteurLu = true; return { etat: 'complete', export: exportDe() }; } }, {
+  const traiter = traiterAvec({ ...base, releve: async () => ({ statut: 'lu', releve }), moteur: async () => { moteurLu = true; return { etat: 'calculee', interne: exportDe() }; } }, {
     horloge: () => horloge += 2, budgetDeCalculMs: 1,
     respirer: async () => {
       if (mesures > 0) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, b.contexte);
@@ -543,7 +544,7 @@ test('annuler pendant la découverte des collections de la library arrête avant
   const traiter = traiterAvec({
     ...lecteurs(complete()),
     catalogue: catalogueDeFigma,
-    moteur: async () => { moteurLu = true; return { etat: 'complete', export: exportDe() }; },
+    moteur: async () => { moteurLu = true; return { etat: 'calculee', interne: exportDe() }; },
   }, {
     horloge: () => horloge += 2, budgetDeCalculMs: 1,
     respirer: async () => {
@@ -701,7 +702,7 @@ test('le banc conserve une lecture partielle, ses manquées localisées et ses v
     return {
       b,
       lectures: {
-        ...lecteurs(async () => ({ etat: 'partielle', export: exportDe([pointDeTest]), lus: 1, nonLus: 2 })),
+        ...lecteurs(async () => ({ etat: 'calculee', interne: { ...exportDe([pointDeTest]), couverture: { etat: 'partielle', lus: 1, nonLus: 2 } } })),
         releve: async () => ({ statut: 'lu' as const, releve }),
       },
     };
@@ -838,7 +839,7 @@ test('chaque demande d’écriture forgée pendant le provisoire est refusée sa
       effets.depots = 0;
       pendantLeProvisoire = await forger(analyse);
       correctionsAvant = correctionsDeLAnalyse(analyse);
-      return { etat: 'complete', export: exportDe() };
+      return { etat: 'calculee', interne: exportDe() };
     },
   };
   await traiterAvec(lectures)({ type: 'analyser' }, contexte);
@@ -1088,7 +1089,7 @@ test('une lecture incomplète menée à terme rend un final partielle après le 
 
 test('un résultat partiel du moteur rend partielle, avec ses constats et la lecture', async () => {
   const b = banc();
-  const lec = lecteurs(async () => ({ etat: 'partielle', export: exportDe([pointDeTest]), lus: 1, nonLus: 3 }));
+  const lec = lecteurs(async () => ({ etat: 'calculee', interne: { ...exportDe([pointDeTest]), couverture: { etat: 'partielle', lus: 1, nonLus: 3 } } }));
   await traiterAvec({ ...lec, releve: async (sujet) => ({ statut: 'lu', releve: releveDe(sujet.cle, { variantsNonLus: ['x', 'y', 'z'] }) }) })({ type: 'analyser' }, b.contexte);
   const [resultat] = deType(b, 'analyse');
   assert.equal(resultat.statut, 'partielle');

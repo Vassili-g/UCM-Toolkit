@@ -12,26 +12,9 @@ import type { Contexte } from '../src/sandbox/contexte';
 import { traiter, type Lecteurs } from '../src/sandbox/analyse';
 import { modeleDEtatsAvant, modeleDeProprietesAvant } from '../../plugin-socle/tests/aides/cheminAvantLesRequetes';
 import { capturerLAnalyse } from './parite';
-import { fabriquerLeMonde } from './outils/mondeFabrique';
+import { monterLeMonde } from './outils/mondeAvecEtats';
 
 const globale = globalThis as { figma?: unknown };
-
-/** Le jeu `Button` du monde fabriqué, avec un axe `State` aux valeurs inconnues et deux propriétés qui se confondent. */
-function monterLeMonde() {
-  const monde = fabriquerLeMonde();
-  const jeu = monde.jeu as unknown as { children: Array<{ name: string; variantProperties: Record<string, string> }>; componentPropertyDefinitions: unknown };
-  for (const variant of jeu.children) {
-    variant.variantProperties = { State: variant.variantProperties.Etat };
-    variant.name = `State=${variant.variantProperties.State}`;
-  }
-  jeu.componentPropertyDefinitions = {
-    State: { type: 'VARIANT', defaultValue: 'Repos', variantOptions: ['Repos', 'Survol', 'Inactif'] },
-    'Avec icone#1:2': { type: 'BOOLEAN', defaultValue: true },
-    'Icon Left#1:3': { type: 'TEXT', defaultValue: 'a' },
-    'icon-left#1:4': { type: 'TEXT', defaultValue: 'b' },
-  };
-  return monde;
-}
 
 async function analyser() {
   const monde = monterLeMonde();

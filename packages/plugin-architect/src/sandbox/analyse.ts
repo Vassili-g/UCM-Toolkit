@@ -33,7 +33,8 @@ import { doitEtreRelue, type Couverture } from 'ucm-plugin-socle/src/composant/a
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
-import { analyserLeComposant, type ComponentExport, type ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import { analyserLeComposant, type ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import { ouvrirLaMesure, fermerLaMesure, etape, compter, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation, type OptionsDeCooperation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
@@ -278,9 +279,9 @@ export interface Lecteurs {
   bibliotheques?(contexte: Contexte, cooperation?: ContexteCooperatif): Promise<LectureDesLibraries>;
   /** `inventaires` est celui de la demande : les libraries et les variables locales s'y lisent une fois pour tous les lecteurs. */
   catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance, inventaires?: InventairesDeLaDemande): Promise<CatalogueDeReference>;
-  moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (phase: PhaseDAnalyse) => void, cooperation?: ContexteCooperatif, inventaires?: InventairesDeLaDemande): Promise<ResultatDAnalyse>;
-  /** Les règles d'usage du composant, lues avec le contrat du moteur ; sans lecteur, aucun constat C43 ni C45. */
-  regles?(sujet: SujetAAnalyser, resultat: ResultatDAnalyse, contexte: Contexte, inventaires?: InventairesDeLaDemande): Promise<ReleveDesRegles>;
+  moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (phase: PhaseDAnalyse) => void, cooperation?: ContexteCooperatif, inventaires?: InventairesDeLaDemande): Promise<ResultatSansPublication>;
+  /** Les règles d'usage du composant, lues avec les props, le modèle d'états et les imbriqués du moteur ; sans lecteur, aucun constat C43 ni C45. */
+  regles?(sujet: SujetAAnalyser, interne: ResultatInterne, contexte: Contexte, inventaires?: InventairesDeLaDemande): Promise<ReleveDesRegles>;
   /** Le niveau d'accessibilité rangé ; AA sans lecteur. */
   niveau?(contexte: Contexte): Promise<NiveauDAccessibilite>;
   /** Les clés d'Ignorer rangées dans le document ; aucune sans lecteur. */
@@ -385,12 +386,12 @@ export function pageDuNoeud<T>(noeud: { readonly type?: string; readonly parent?
   return repli;
 }
 
-const LECTEURS_DE_FIGMA: Lecteurs = {
+export const LECTEURS_DE_FIGMA: Lecteurs = {
   sujet: sujetDeFigma,
   releve: (sujet, jeton, contexte, progresser, cooperation) => lireLeReleve(portDuComposant(contexte), sujet.noeud, {
-    budgetDeLayers: BUDGET_DE_LAYERS_PAR_DEFAUT,
-    jeton,
-    cooperation,
+      budgetDeLayers: BUDGET_DE_LAYERS_PAR_DEFAUT,
+      jeton,
+      cooperation,
     progresser,
     espaceDeCouleur: contexte.figma.root.documentColorProfile === 'DISPLAY_P3' ? 'display-p3' : 'srgb',
   }),
@@ -398,18 +399,24 @@ const LECTEURS_DE_FIGMA: Lecteurs = {
   catalogue: catalogueDeFigma,
   niveau: ({ figma }) => lireLeNiveau(figma),
   ignores: async ({ figma }) => lireLesIgnores(figma),
-  regles: (sujet, resultat, _contexte, inventaires) => lireLesRegles(sujet.noeud as unknown as ComponentSetNode, (resultat as { export: ComponentExport }).export, inventaires),
-  moteur: (sujet, jeton, { figma }, progresser, cooperation, inventaires) => analyserLeComposant(async (texte) => {
-    progresser?.(texte.includes('variables') || texte.includes('exemples') || texte.includes('contrat') ? 'structure' : 'imbriques');
-  }, {
-    composant: sujet.noeud as unknown as ComponentSetNode,
-    page: pageDuNoeud(sujet.noeud, figma.currentPage),
-    budgetDeLayers: BUDGET_DE_LAYERS_PAR_DEFAUT,
-    jeton,
-    cooperation,
-    inventaires,
-    respirer: () => new Promise((resolve) => setTimeout(resolve, 0)),
-  }),
+  regles: (sujet, interne, _contexte, inventaires) => lireLesRegles(sujet.noeud as unknown as ComponentSetNode, interne, inventaires),
+  moteur: async (sujet, jeton, { figma }, progresser, cooperation, inventaires) => {
+    const resultat = await analyserLeComposant(async (texte) => {
+      progresser?.(texte.includes('variables') ? 'structure' : 'imbriques');
+    }, {
+      composant: sujet.noeud as unknown as ComponentSetNode,
+      page: pageDuNoeud(sujet.noeud, figma.currentPage),
+      budgetDeLayers: BUDGET_DE_LAYERS_PAR_DEFAUT,
+      jeton,
+      cooperation,
+      inventaires,
+      respirer: () => new Promise((resolve) => setTimeout(resolve, 0)),
+      publier: false,
+    });
+    // La phase « structure » finissait avec les annonces de la publication, que ce lecteur n'émet plus.
+    if (resultat.etat === 'calculee') progresser?.('structure');
+    return resultat;
+  },
 };
 
 interface Operation {
@@ -618,10 +625,10 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
 
     // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
     phase('regles');
-    const reglesLues = resultat.etat === 'complete' ? await attendrePourLaMesure(async () => await lecteurs.regles?.(sujet, resultat, contexte, inventaires).catch(() => null) ?? null, 'attente', 'regles') : null;
+    const reglesLues = resultat.interne.couverture.etat === 'complete' ? await attendrePourLaMesure(async () => await lecteurs.regles?.(sujet, resultat.interne, contexte, inventaires).catch(() => null) ?? null, 'attente', 'regles') : null;
     retenirLesModeles(reglesLues);
     etape('controle-fusion');
-    const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.export, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
+    const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.interne, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
     phase('corrections');
     await cooperation.cederSiBesoin();
     const tous = await calculerParEtapes(proposerLesCorrectionsParEtapes(releve, catalogue, brut), cooperation, 'corrections');
@@ -629,7 +636,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     await cooperation.cederSiBesoin();
     const { visibles, ignores } = separerLesIgnores(tous, rangees);
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
-    rendre(resultat.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete', visibles, releve, ignores, tous);
+    rendre(resultat.interne.couverture.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete', visibles, releve, ignores, tous);
     // La capture suit l'envoi de la trace et garde la place d'opération : une écriture demandée pendant ce temps rend `occupe`.
     await capturerSiDemande(demande, contexte, { noeud: sujet.noeud, page: pageDuNoeud(sujet.noeud, contexte.figma.currentPage), imports: importsEnregistres });
   } catch (erreur) {

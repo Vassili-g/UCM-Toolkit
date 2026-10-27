@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
 
 import type { CatalogueDeReference, Constat, Correction, ReleveDeComposant } from '@ucm-kit/core/controles';
-import type { ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import type { ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 
 import { selectionnerLesLayers, type ApiDeSelection } from '../src/ecriture/selection';
 import type { PluginMessage } from '../src/messages';
@@ -150,7 +150,7 @@ test('une demande pendant une écriture rend occupe, y compris une analyse ; la 
   const premiere = traiter({ type: 'appliquer-corrections', analyse, ids: ['l1'] }, b.contexte);
   await new Promise((resolve) => setTimeout(resolve, 5));
   await traiter({ type: 'appliquer-corrections', analyse, ids: ['l1'] }, b.contexte);
-  await traiterAnalyse({ sujet: async () => null, releve: async () => ({ statut: 'sans-sujet' }), catalogue: async () => ({ version: 1, library: null, collections: [], variables: [] }), moteur: async () => ({ etat: 'annulee' }) as ResultatDAnalyse })({ type: 'analyser' }, b.contexte);
+  await traiterAnalyse({ sujet: async () => null, releve: async () => ({ statut: 'sans-sujet' }), catalogue: async () => ({ version: 1, library: null, collections: [], variables: [] }), moteur: async () => ({ etat: 'annulee' }) as ResultatSansPublication })({ type: 'analyser' }, b.contexte);
   assert.deepEqual(deType(b.envoyes, 'occupe'), [{ type: 'occupe', analyse }, { type: 'occupe', analyse }]);
   assert.deepEqual(e.lots, [['l1']]);
   ouvrir();
@@ -169,7 +169,7 @@ test('une demande pendant une analyse rend occupe avec l’identité de l’anal
     sujet: async () => ({ cle: 'Alert', noeud: { id: 'jeu' } as never, noeuds: ['jeu'] }),
     releve: async () => { await porte; return { statut: 'sans-sujet' }; },
     catalogue: async () => ({ version: 1, library: null, collections: [], variables: [] }),
-    moteur: async () => ({ etat: 'annulee' }) as ResultatDAnalyse,
+    moteur: async () => ({ etat: 'annulee' }) as ResultatSansPublication,
   })({ type: 'analyser' }, b.contexte);
   await new Promise((resolve) => setTimeout(resolve, 5));
   const courante = commencerUneAnalyse('Alert', ['jeu'], b.contexte);
@@ -196,7 +196,7 @@ test('une analyse retient les corrections de ses constats, par identifiant', asy
     sujet: async () => ({ cle: 'Alert', noeud: { id: 'jeu-Alert' } as never, noeuds: ['jeu-Alert'] }),
     releve: async () => ({ statut: 'lu', releve: { version: 1, jeu: { cle: 'Alert', id: 'jeu-Alert', nom: 'Alert' }, proprietes: [], variants: [{ id: 'v', nom: 'v', valeurs: {}, layers: [], modesEffectifs: {} }], lecture: { layersLus: 0, layersNonLus: 0, variantsNonLus: [], manquees: [] }, espaceDeCouleur: 'srgb' } }),
     catalogue: async () => ({ version: 1, library: null, collections: [], variables: [] }),
-    moteur: async () => ({ etat: 'complete', export: { warnings: [], parties: new Map(), localisations: new Map() } }) as unknown as ResultatDAnalyse,
+    moteur: async () => ({ etat: 'calculee', interne: { warnings: [], parties: new Map(), localisations: new Map(), couverture: { etat: 'complete' } } }) as unknown as ResultatSansPublication,
     regles: async () => ({ composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false, modele, proprietes: [], documentees: [] }),
   })({ type: 'analyser' }, b.contexte);
   const [rendu] = deType(b.envoyes, 'analyse');

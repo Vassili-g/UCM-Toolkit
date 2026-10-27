@@ -4,7 +4,7 @@ import test, { beforeEach } from 'node:test';
 
 import type { CatalogueDeReference, ReleveDeComposant } from '@ucm-kit/core/controles';
 import type { Couverture } from 'ucm-plugin-socle/src/composant/analyse/faits';
-import type { ResultatDAnalyse } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import type { ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 
 import type { PluginMessage } from '../src/messages';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
@@ -15,7 +15,7 @@ import type { Contexte } from '../src/sandbox/contexte';
 import { atelierDeCalques } from './figmaDeTest';
 
 const catalogueVide: CatalogueDeReference = { version: 1, library: null, collections: [], variables: [] };
-const moteur = async (): Promise<ResultatDAnalyse> => ({ etat: 'complete', export: { warnings: [], parties: new Map(), localisations: new Map() } as never });
+const moteur = async (): Promise<ResultatSansPublication> => ({ etat: 'calculee', interne: { warnings: [], parties: new Map(), localisations: new Map(), couverture: { etat: 'complete' } } as never });
 const complete: Couverture = { instances: 'descendues', complete: true };
 
 const releve = (): ReleveDeComposant => ({

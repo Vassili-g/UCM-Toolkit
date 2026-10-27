@@ -16,7 +16,8 @@ import { nomCompacte } from '@ucm-kit/core/referentiel';
 import type { Constat, Correction } from '@ucm-kit/core/controles';
 import type { InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { extractRules } from 'ucm-plugin-socle/src/composant/contract/extractRules';
-import type { ComponentExport } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
+import { elideContract } from 'ucm-plugin-socle/src/composant/contract/elideNeutrals';
 import { extractContractPropertyModel } from 'ucm-plugin-socle/src/composant/contract/parsers';
 import { modeleDeRegles, nombreDeRegles, restreindreAuParent } from 'ucm-plugin-socle/src/composant/template/modele';
 import type { ContratLu, ModeleDeRegles } from 'ucm-plugin-socle/src/composant/template/modele';
@@ -117,24 +118,36 @@ function pageDe(node: BaseNode): PageNode {
   return (courant as PageNode | null) ?? figma.currentPage;
 }
 
+/** Ce que la lecture des règles prend du résultat interne du moteur. */
+export type SurfaceDuMoteur = Pick<ResultatInterne, 'props' | 'stateModel' | 'imbriques'>;
+
 /**
- * Lit les règles du composant sur la page qui le porte, avec le contrat que
- * l'analyse du moteur vient de produire. Le contrat est restreint à ce que le
+ * Les `props` et le `stateModel` tels que le contrat publié les écrit : le
+ * contrat n'écrit ni `null`, ni `{}`, ni `[]` (`elideContract`), et le modèle
+ * des règles se lit sur cette forme. Une copie : le résultat interne n'est pas modifié.
+ */
+export function contratDesReglesDe(surface: Pick<SurfaceDuMoteur, 'props' | 'stateModel'>): ContratLu {
+  return elideContract({ props: surface.props, stateModel: surface.stateModel }, []) as ContratLu;
+}
+
+/**
+ * Lit les règles du composant sur la page qui le porte, avec la surface que
+ * l'analyse du moteur vient de produire. Les `props` sont restreintes à ce que le
  * composant déclare, comme à la création : un composant imbriqué n'ajoute pas
  * ses propriétés à celles de son parent. Avec `inventaires`, le scan de la page est celui que le moteur de la même
  * demande a déjà lu.
  */
 export async function lireLesRegles(
   composant: ComponentNode | ComponentSetNode,
-  exportDuMoteur: Pick<ComponentExport, 'content' | 'imbriques'>,
+  surfaceDuMoteur: SurfaceDuMoteur,
   inventaires?: InventairesDeLaDemande,
 ): Promise<ReleveDesRegles> {
   const page = pageDe(composant);
   const scanDesRegles = () => extractRules(composant, page);
   const lues = await (inventaires ? inventaires.reglesDeLaPage(page, composant, scanDesRegles) : scanDesRegles());
-  const contrat = JSON.parse(exportDuMoteur.content) as ContratLu;
+  const contrat = contratDesReglesDe(surfaceDuMoteur);
   const declarees = clesDeclarees(composant);
-  const surface = declarees ? new Set([...declarees, ...exportDuMoteur.imbriques.auParent]) : null;
+  const surface = declarees ? new Set([...declarees, ...surfaceDuMoteur.imbriques.auParent]) : null;
   const modele = modeleDeRegles(composant.name, surface ? restreindreAuParent(contrat, surface) : contrat);
   return {
     composant: { id: composant.id, nom: composant.name },
