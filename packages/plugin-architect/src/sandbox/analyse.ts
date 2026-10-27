@@ -136,10 +136,10 @@ export interface StyleDeDependance {
   readonly definition: unknown;
 }
 
-/** Le maître d'une ou plusieurs instances du jeu, tel que `getMainComponentAsync` le rend. */
+/** Le maître d'une ou plusieurs instances du jeu, ou d'une instance sous un autre maître local, tel que `getMainComponentAsync` le rend. */
 export interface MaitreDeDependance {
   readonly id: string;
-  /** Combien d'instances du jeu ont ce maître. */
+  /** Combien d'instances du jeu ont ce maître ; 0 pour un maître atteint seulement sous un autre maître. */
   readonly instances: number;
   /** Vrai pour un maître de library ; `null` quand `remote` ne se lit pas. */
   readonly remote: boolean | null;
@@ -148,12 +148,18 @@ export interface MaitreDeDependance {
   /** Le maître local, ou son jeu de variants, et tous leurs descendants. Vide pour un maître distant ou d'origine inconnue. */
   readonly noeuds: readonly string[];
   /**
-   * Les instances sous le maître local (son jeu compris). Le moteur en lit les maîtres, leur page et leurs propres
-   * instances, hors de `noeuds` : aucun événement ni aucune dépendance ne les couvre. 0 pour un maître distant, non lu.
+   * Les instances sous le maître local (son jeu compris). Leurs maîtres entrent à leur tour dans `DependancesDuMoteur.maitres`.
+   * 0 pour un maître distant, non parcouru.
    */
   readonly instancesImbriquees: number;
   /** Ce que le moteur lit de la page du maître local, par la même fonction (`nomsDeLaPage`) : les noms de composant des conteneurs de règles. `null` sans page ou pour un maître distant. */
   readonly nomsDeLaPage: readonly string[] | null;
+  /**
+   * Les liaisons de chaque nœud de `noeuds`, dans le même ordre : `boundVariables` en valeurs simples, `null` sans liaison.
+   * `NodeChangeProperty` ne nomme pas `boundVariables` : tant que E4 n'a pas montré qu'un changement de liaison émet un
+   * `nodechange`, elles se relisent et se comparent. Vide pour un maître distant.
+   */
+  readonly liaisons: readonly unknown[];
 }
 
 /**
@@ -171,8 +177,16 @@ export interface DependancesDuMoteur {
   readonly styles: readonly StyleDeDependance[];
   /** Les instances du jeu et de ses calques, y compris celles dont le maître ne se lit pas. */
   readonly instances: number;
-  /** Les maîtres lus, dans l'ordre du parcours, un par identifiant. */
+  /**
+   * La fermeture des maîtres, un par identifiant : ceux des instances du jeu dans l'ordre du parcours, puis, niveau par
+   * niveau, ceux des instances sous un maître local déjà lu. Le moteur lit ces maîtres-là à travers les composants imbriqués.
+   */
   readonly maitres: readonly MaitreDeDependance[];
+  /**
+   * Les instances sous un maître local dont le maître ne se lit pas, ou qui restent au-delà de `PROFONDEUR_DES_MAITRES` :
+   * la fermeture ne sait pas ce que le moteur lit à travers elles.
+   */
+  readonly imbriqueesNonLues: number;
 }
 
 /** Ce que les lecteurs ont rendu à une analyse complète. */
@@ -352,11 +366,12 @@ export type RaisonDeRelecture = 'releve-incomplet' | 'catalogue-inaccessible' | 
  * - `couverture-de-la-demande` : l'écoute de la demande est incomplète ou interrompue, ou une écriture suit son curseur ;
  * - `page-des-regles` : le jeu n'a pas de page, et le moteur balaierait les règles de la page courante ;
  * - `page-non-suivie` : la page du jeu n'est pas une des pages que l'entrée écoutait ;
- * - `non-couvert:maitres` : une instance du jeu a un maître que ni le journal ni la validation ne couvrent. Seul un maître
- *   local, sur une page que l'entrée et la demande écoutent, est suivi par le journal (matrice de couverture) : un maître
- *   de library peut changer par une mise à jour sans événement, et sa définition n'est pas relue ;
- * - `non-couvert:maitres-autres-instances` : un maître local contient lui-même des instances. Le moteur en lit les maîtres,
- *   leur page et leurs instances, que ni le journal ni les dépendances ne couvrent ;
+ * - `non-couvert:maitres` : un maître de la fermeture (maîtres des instances du jeu, puis des instances sous un maître
+ *   local) n'est pas couvert par le journal, ou une instance du jeu n'a pas de maître lu. Seul un maître local, sur une
+ *   page que l'entrée et la demande écoutent, est suivi par le journal (matrice de couverture) : un maître de library peut
+ *   changer par une mise à jour sans événement, et sa définition n'est pas relue ;
+ * - `non-couvert:maitres-autres-instances` : la fermeture est incomplète. Une instance sous un maître local n'a pas de
+ *   maître lu, ou reste au-delà de `PROFONDEUR_DES_MAITRES` (`DependancesDuMoteur.imbriqueesNonLues`) ;
  * - `non-couvert:styles` : un style du jeu ne se lit pas par identifiant (mixte, introuvable, refusé). Sa définition,
  *   sinon, est relue avec les dépendances et comparée ;
  * - `lecture-refusee:dependances`, `lecture-refusee:regles` : la relecture a levé ;
@@ -456,11 +471,18 @@ function maitresSuivisParLeJournal(dependances: DependancesDuMoteur | null, page
   return { maitres: suivis, noeuds };
 }
 
-/** Un maître est couvert quand l'entrée le suivait et que la demande l'écoute encore : le journal a vu tout ce qui lui est arrivé depuis le curseur de l'entrée. */
-function instancesCouvertes(dependances: DependancesDuMoteur, retenus: ReadonlySet<string>, maintenant: ReadonlySet<string>): number {
-  let couvertes = 0;
-  for (const { id, instances } of dependances.maitres) if (retenus.has(id) && maintenant.has(id)) couvertes += instances;
-  return couvertes;
+/**
+ * Vrai quand chaque maître de la fermeture est couvert et que chaque instance du jeu a un maître lu. Un maître est couvert
+ * quand l'entrée le suivait et que la demande l'écoute encore : le journal a vu tout ce qui lui est arrivé depuis le curseur
+ * de l'entrée.
+ */
+function maitresCouverts(dependances: DependancesDuMoteur, retenus: ReadonlySet<string>, maintenant: ReadonlySet<string>): boolean {
+  let instancesLues = 0;
+  for (const { id, instances } of dependances.maitres) {
+    if (!retenus.has(id) || !maintenant.has(id)) return false;
+    instancesLues += instances;
+  }
+  return instancesLues === dependances.instances;
 }
 
 function raisonsDeNonReprise({ sorties, suivi }: EntreeDeSessionDAnalyse, sujet: SujetAAnalyser, identite: IdentiteDAnalyse, relues: SortiesRelues): RaisonDeNonReprise[] {
@@ -474,9 +496,9 @@ function raisonsDeNonReprise({ sorties, suivi }: EntreeDeSessionDAnalyse, sujet:
   if (dependances) {
     const instancesDuReleve = relues.releve.variants.reduce((total, { layers }) => total + layers.filter((layer) => layer.instanceDe !== undefined).length, 0);
     const pagesEcoutees = courante && memeIdentite(courante.identite, identite) ? courante.pages : new Set<string>();
-    const couvertes = instancesCouvertes(dependances, suivi.maitres ?? new Set(), maitresSuivisParLeJournal(dependances, pagesEcoutees).maitres);
-    if (couvertes !== dependances.instances || instancesDuReleve > dependances.instances) raisons.push('non-couvert:maitres');
-    if (dependances.maitres.some(({ instancesImbriquees }) => instancesImbriquees > 0)) raisons.push('non-couvert:maitres-autres-instances');
+    const couverts = maitresCouverts(dependances, suivi.maitres ?? new Set(), maitresSuivisParLeJournal(dependances, pagesEcoutees).maitres);
+    if (!couverts || instancesDuReleve > dependances.instances) raisons.push('non-couvert:maitres');
+    if (dependances.imbriqueesNonLues > 0) raisons.push('non-couvert:maitres-autres-instances');
     if (dependances.styles.some(({ definition }) => definition === null)) raisons.push('non-couvert:styles');
   }
   raisons.push(...ecartsDesSorties<'releve' | 'catalogue' | 'dependances'>([
@@ -984,6 +1006,7 @@ interface NoeudDeDependance {
   readonly remote?: unknown;
   readonly textStyleId?: unknown;
   readonly effectStyleId?: unknown;
+  readonly boundVariables?: unknown;
   findAll?(filtre: (noeud: NoeudDeDependance) => boolean): readonly NoeudDeDependance[];
   getMainComponentAsync?(): Promise<NoeudDeDependance | null>;
 }
@@ -1009,28 +1032,51 @@ async function definitionDuStyle(figma: PluginAPI, id: string): Promise<unknown>
   }
 }
 
-/** Le maître d'une instance tel que le moteur le lira ; `null` quand il ne se lit pas. */
-async function decrireLeMaitre(maitre: NoeudDeDependance): Promise<Omit<MaitreDeDependance, 'instances'> | null> {
+/**
+ * Les niveaux de maîtres que `dependancesDeFigma` lit sous les maîtres des instances du jeu. Au-delà, les instances qui
+ * restent comptent dans `imbriqueesNonLues` et refusent la reprise.
+ */
+export const PROFONDEUR_DES_MAITRES = 8;
+
+/**
+ * Le maître d'une instance tel que le moteur le lira, avec les instances qu'il contient (son jeu compris) ; `null` quand
+ * il ne se lit pas. Un maître distant ou d'origine inconnue n'est pas parcouru.
+ */
+async function decrireLeMaitre(maitre: NoeudDeDependance): Promise<{ readonly maitre: Omit<MaitreDeDependance, 'instances'>; readonly imbriquees: readonly NoeudDeDependance[] } | null> {
   try {
     if (typeof maitre.id !== 'string') return null;
     const remote = typeof maitre.remote === 'boolean' ? maitre.remote : null;
     const pageId = pageDuNoeud<{ readonly id?: unknown } | null>(maitre as { type?: string; parent?: unknown }, null)?.id;
     const noeuds: string[] = [];
-    let instancesImbriquees = 0;
+    const liaisons: unknown[] = [];
+    const imbriquees: NoeudDeDependance[] = [];
     let noms: readonly string[] | null = null;
     if (remote === false) {
       // Un variant se lit avec son jeu : le moteur en lit les propriétés et les autres variants.
       const parent = maitre.parent as NoeudDeDependance | null | undefined;
       const racine = maitre.type === 'COMPONENT' && parent?.type === 'COMPONENT_SET' ? parent : maitre;
       for (const noeud of [racine, ...(racine.findAll?.(() => true) ?? [])]) {
-        if (typeof noeud.id === 'string') noeuds.push(noeud.id);
-        if (noeud !== racine && noeud.type === 'INSTANCE') instancesImbriquees += 1;
+        if (typeof noeud.id === 'string') {
+          noeuds.push(noeud.id);
+          liaisons.push(valeurSimple(noeud.boundVariables));
+        }
+        if (noeud !== racine && noeud.type === 'INSTANCE') imbriquees.push(noeud);
       }
       const page = pageDuNoeud<PageNode | null>(maitre as { type?: string; parent?: unknown }, null);
       if (page) noms = [...nomsDeLaPage(page)];
     }
-    return { id: maitre.id, remote, page: typeof pageId === 'string' ? pageId : null, noeuds, instancesImbriquees, nomsDeLaPage: noms };
+    return { maitre: { id: maitre.id, remote, page: typeof pageId === 'string' ? pageId : null, noeuds, instancesImbriquees: imbriquees.length, nomsDeLaPage: noms, liaisons }, imbriquees };
   } catch {
+    return null;
+  }
+}
+
+/** Le maître d'une instance, `null` quand il ne se lit pas ; l'annulation de l'analyse passe. */
+async function maitreDeLInstance(instance: NoeudDeDependance): Promise<NoeudDeDependance | null> {
+  try {
+    return await instance.getMainComponentAsync?.() ?? null;
+  } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) throw erreur;
     return null;
   }
 }
@@ -1054,7 +1100,9 @@ function reglesSansNoeuds(regles: ExtractedRules): unknown {
  * le moteur de la même demande reprend. Les styles et les instances viennent d'un parcours du jeu par `findAll` ; un
  * texte dont `textStyleId` n'est pas une chaîne compte comme `mixte`. Chaque style se relit par identifiant (local ou
  * distant), et chaque instance par `getMainComponentAsync` : un style ou un maître qui ne se lit pas manque à la liste et
- * refuse la reprise. Les scans et les listes qui lèvent font lever la lecture.
+ * refuse la reprise. Les instances sous un maître local lu donnent à leur tour leur maître, niveau par niveau, jusqu'à
+ * `PROFONDEUR_DES_MAITRES` : le moteur lit ces maîtres à travers les composants imbriqués. Les scans et les listes qui
+ * lèvent font lever la lecture.
  */
 export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Contexte, inventaires?: InventairesDeLaDemande, cooperation?: ContexteCooperatif): Promise<DependancesDuMoteur> {
   const composant = sujet.noeud as unknown as ComponentSetNode;
@@ -1089,14 +1137,11 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
     styles.push({ id, definition: definitions.get(id) });
   }
   const lus = new Map<string, { maitre: Omit<MaitreDeDependance, 'instances'>; instances: number }>();
+  // Les instances sous les maîtres lus à ce niveau : leurs maîtres forment le niveau suivant de la fermeture.
+  let sousLesMaitres: NoeudDeDependance[] = [];
   for (const instance of lesInstances) {
     await cooperation?.cederSiBesoin();
-    let natif: NoeudDeDependance | null = null;
-    try {
-      natif = await instance.getMainComponentAsync?.() ?? null;
-    } catch (erreur) {
-      if (erreur instanceof AnalyseAnnulee) throw erreur;
-    }
+    const natif = await maitreDeLInstance(instance);
     const id = natif?.id;
     if (!natif || typeof id !== 'string') continue;
     const deja = lus.get(id);
@@ -1104,9 +1149,34 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
       deja.instances += 1;
       continue;
     }
-    const maitre = await decrireLeMaitre(natif);
-    if (maitre) lus.set(id, { maitre, instances: 1 });
+    const decrit = await decrireLeMaitre(natif);
+    if (!decrit) continue;
+    lus.set(id, { maitre: decrit.maitre, instances: 1 });
+    sousLesMaitres.push(...decrit.imbriquees);
   }
+  let imbriqueesNonLues = 0;
+  for (let niveau = 0; niveau < PROFONDEUR_DES_MAITRES && sousLesMaitres.length > 0; niveau += 1) {
+    const suivantes: NoeudDeDependance[] = [];
+    for (const instance of sousLesMaitres) {
+      await cooperation?.cederSiBesoin();
+      const natif = await maitreDeLInstance(instance);
+      const id = natif?.id;
+      if (!natif || typeof id !== 'string') {
+        imbriqueesNonLues += 1;
+        continue;
+      }
+      if (lus.has(id)) continue;
+      const decrit = await decrireLeMaitre(natif);
+      if (!decrit) {
+        imbriqueesNonLues += 1;
+        continue;
+      }
+      lus.set(id, { maitre: decrit.maitre, instances: 0 });
+      suivantes.push(...decrit.imbriquees);
+    }
+    sousLesMaitres = suivantes;
+  }
+  imbriqueesNonLues += sousLesMaitres.length;
   return {
     regles: reglesSansNoeuds(regles),
     collectionsLocales: collections.map(({ id, name }) => ({ id, nom: name })),
@@ -1114,6 +1184,7 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
     styles,
     instances: lesInstances.length,
     maitres: [...lus.values()].map(({ maitre, instances }) => ({ ...maitre, instances })),
+    imbriqueesNonLues,
   };
 }
 

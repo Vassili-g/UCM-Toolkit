@@ -1,7 +1,8 @@
 /**
  * Parité de la session (corpus « Sessions » du contrat de parité) : après une série de mutations locales et globales,
  * Analyser après Analyser affiche ce qu'Actualiser affiche sur le même état. Une seule fixture, rejouée pour chaque cas :
- * un jeu avec une instance d'un maître local, un style de texte, des variables liées et un catalogue.
+ * un jeu avec une instance d'un maître local, un style de texte, des variables liées et un catalogue. Le maître peut porter
+ * lui-même une instance, dont le maître (local, distant, sur une autre page ou illisible) entre dans la fermeture.
  *
  * Les dépendances sont lues par `dependancesDeFigma` sur un faux graphe de nœuds : le maître et le style que le test
  * mute sont ceux que la production relit. Une reprise effective est un Analyser qui ne rappelle pas le moteur.
@@ -29,7 +30,7 @@ function moteurDe(fichier: Fichier): ResultatInterne {
   const calques = fichier.layers.map(({ id, nom, peintures, texte }) => `${id}=${nom}:${peintures.length}:${texte?.plages[0]?.fontSize ?? ''}`).join(',');
   const point: PointACorriger = {
     famille: 'variables',
-    titre: `Variable « ${fichier.variable.nom} », maître « ${fichier.maitre.contenu} », page « ${fichier.nomsDeLaPage.join('+')} », style « ${fichier.style.nom} ${fichier.style.taille} », calques ${calques} : à vérifier.`,
+    titre: `Variable « ${fichier.variable.nom} », maître « ${fichier.maitre.contenu}@${fichier.maitre.liaison}${fichier.maitre.imbrique ? ` > ${fichier.imbrique.id}:${fichier.imbrique.contenu}@${fichier.imbrique.liaison}` : ''} », page « ${fichier.nomsDeLaPage.join('+')} », style « ${fichier.style.nom} ${fichier.style.taille} », calques ${calques} : à vérifier.`,
     impact: 'Impact.',
     action: 'Action.',
   };
@@ -43,8 +44,12 @@ function figmaDe(fichier: Fichier) {
     id: PAGE, type: 'PAGE',
     findAllWithCriteria: ({ types }) => (types.includes('TEXT') ? fichier.nomsDeLaPage.map((nom) => ({ name: 'component-name', type: 'TEXT', characters: nom, parent: { type: 'INSTANCE', parent: page } })) : []),
   };
-  const fondDuMaitre = { id: 'M:icone/fond', type: 'RECTANGLE' };
-  const dansLeMaitre = [fondDuMaitre, ...(fichier.maitre.imbrique ? [{ id: 'M:icone/bouton', type: 'INSTANCE' }] : [])];
+  const liee = (variable: string) => ({ fills: [{ type: 'VARIABLE_ALIAS', id: variable }] });
+  const fondDuMaitre = { id: 'M:icone/fond', type: 'RECTANGLE', boundVariables: liee(fichier.maitre.liaison) };
+  const { imbrique } = fichier;
+  const pageDuMaitreImbrique = imbrique.page === PAGE ? page : { id: imbrique.page, type: 'PAGE', findAllWithCriteria: () => [] };
+  const maitreImbrique = imbrique.id === '' ? null : { id: imbrique.id, type: 'COMPONENT', remote: imbrique.remote, parent: imbrique.remote ? null : pageDuMaitreImbrique, findAll: () => [{ id: `${imbrique.id}/fond`, type: 'RECTANGLE', boundVariables: liee(imbrique.liaison) }] };
+  const dansLeMaitre = [fondDuMaitre, ...(fichier.maitre.imbrique ? [{ id: 'M:icone/bouton', type: 'INSTANCE', getMainComponentAsync: async () => maitreImbrique }] : [])];
   const maitre = { id: 'M:icone', type: 'COMPONENT', remote: fichier.maitre.remote, parent: fichier.maitre.remote ? null : page, findAll: () => dansLeMaitre };
   const calques = [
     { id: 'titre', type: 'TEXT', textStyleId: 'S:texte' },
@@ -131,6 +136,8 @@ interface Mutation {
   evenements?(contexte: Contexte): void;
 }
 
+const avecUneInstanceImbriquee = (fichier: Fichier): void => { fichier.maitre.imbrique = true; };
+
 const MUTATIONS: readonly Mutation[] = [
   { nom: 'aucune mutation', reprise: true, muter() {} },
   { nom: 'un changement d’un autre composant de la page', reprise: true, muter() {}, evenements: (c) => surChangementDuDocument([noeud('PROPERTY_CHANGE', 'autre', [PAGE], ['fills'])], c) },
@@ -187,12 +194,40 @@ const MUTATIONS: readonly Mutation[] = [
     muter: (f) => { f.nomsDeLaPage = ['icon', 'badge']; },
     evenements: (c) => surChangementDuDocument([noeud('PROPERTY_CHANGE', 'regle-badge', [PAGE], ['characters'])], c),
   },
+  // Fermeture des maîtres (16.3) : le maître du jeu porte une instance d'un autre maître. Un calque d'un maître local
+  // change toujours avec un `nodechange` ; le maître de l'instance et les noms de la page se comparent aussi sans événement.
+  { nom: 'maître local à instance imbriquée inchangé', reprise: true, depart: avecUneInstanceImbriquee, muter() {} },
   {
-    nom: 'maître local qui contient une instance', reprise: false,
-    depart: (f) => { f.maitre.imbrique = true; },
-    muter: (f) => { f.maitre = { ...f.maitre, contenu: 'carré' }; },
+    nom: 'calque d’un maître imbriqué', reprise: false, depart: avecUneInstanceImbriquee,
+    muter: (f) => { f.imbrique = { ...f.imbrique, contenu: 'creux' }; },
     evenements: (c) => surChangementDuDocument([noeud('PROPERTY_CHANGE', 'M:bouton/fond', ['M:bouton', PAGE], ['fills'])], c),
   },
+  {
+    nom: 'instance imbriquée passée à un autre maître', reprise: false, depart: avecUneInstanceImbriquee,
+    muter: (f) => { f.imbrique = { ...f.imbrique, id: 'M:badge' }; },
+    evenements: (c) => surChangementDuDocument([noeud('PROPERTY_CHANGE', 'M:icone/bouton', ['M:icone', PAGE], ['mainComponent'])], c),
+  },
+  { nom: 'instance imbriquée passée à un autre maître, sans événement', reprise: false, depart: avecUneInstanceImbriquee, muter: (f) => { f.imbrique = { ...f.imbrique, id: 'M:badge' }; } },
+  {
+    nom: 'nom contracté écrit sur la page des maîtres imbriqués', reprise: false, depart: avecUneInstanceImbriquee,
+    muter: (f) => { f.nomsDeLaPage = ['icon', 'bouton']; },
+    evenements: (c) => surChangementDuDocument([noeud('PROPERTY_CHANGE', 'regle-bouton', [PAGE], ['characters'])], c),
+  },
+  { nom: 'nom contracté écrit sur la page des maîtres imbriqués, sans événement', reprise: false, depart: avecUneInstanceImbriquee, muter: (f) => { f.nomsDeLaPage = ['icon', 'bouton']; } },
+  {
+    nom: 'maître imbriqué de library sans événement', reprise: false,
+    depart: (f) => { avecUneInstanceImbriquee(f); f.imbrique.remote = true; },
+    muter: (f) => { f.imbrique = { ...f.imbrique, contenu: 'creux' }; },
+  },
+  {
+    nom: 'maître imbriqué sur une page non écoutée', reprise: false,
+    depart: (f) => { avecUneInstanceImbriquee(f); f.imbrique.page = 'page-2'; },
+    muter: (f) => { f.imbrique = { ...f.imbrique, contenu: 'creux' }; },
+  },
+  // `NodeChangeProperty` ne nomme pas `boundVariables` : jusqu'au résultat de E4, une liaison changée seule n'a pas d'événement démontré.
+  { nom: 'liaison d’un calque d’un maître local changée sans événement', reprise: false, muter: (f) => { f.maitre = { ...f.maitre, liaison: 'VariableID:2' }; } },
+  { nom: 'liaison d’un calque d’un maître imbriqué changée sans événement', reprise: false, depart: avecUneInstanceImbriquee, muter: (f) => { f.imbrique = { ...f.imbrique, liaison: 'VariableID:2' }; } },
+  { nom: 'instance imbriquée dont le maître ne se lit pas', reprise: false, depart: (f) => { avecUneInstanceImbriquee(f); f.imbrique.id = ''; }, muter() {} },
   { nom: 'maître de library sans événement', reprise: false, depart: (f) => { f.maitre.remote = true; }, muter: (f) => { f.maitre = { ...f.maitre, contenu: 'carré' }; } },
   {
     nom: 'library choisie', reprise: true,
@@ -277,23 +312,26 @@ test('des Analyser enchaînés, sans Actualiser entre eux, affichent chacun ce q
   }
 });
 
-test('un changement sous un maître local reçu avant la lecture des dépendances périme l’analyse et ne laisse aucune entrée', async () => {
-  const fichier = fichierDeDepart();
-  const appels = { moteur: 0 };
-  const b = banc(fichier);
-  const lectures = lecteursDe(fichier, appels);
-  await traiterAvec({
-    ...lectures,
-    async dependances(sujet, contexte, inventaires, cooperation) {
-      // Le maître n'est pas encore connu : l'événement ne vise aucun nœud suivi quand il arrive.
-      surChangementDuDocument([noeud('PROPERTY_CHANGE', 'M:icone/fond', ['M:icone', PAGE], ['fills'])], b.contexte);
-      assert.equal(b.envoyes.some(({ type }) => type === 'perime'), false);
-      return dependancesDeFigma(sujet, contexte, inventaires, cooperation);
-    },
-  })({ type: 'analyser', demande: 1 }, b.contexte);
-  assert.deepEqual(b.envoyes.filter(({ type }) => type === 'perime').map((message) => ('cause' in message ? message.cause : null)), ['document']);
-  assert.equal(sessionDesAnalyses().entree('Alert'), null, 'une analyse périmée pendant son calcul ne promeut rien');
-});
+for (const [sous, calque, parents] of [['un maître local', 'M:icone/fond', ['M:icone', PAGE]], ['un maître imbriqué', 'M:bouton/fond', ['M:bouton', PAGE]]] as const) {
+  test(`un changement sous ${sous} reçu avant la lecture des dépendances périme l’analyse et ne laisse aucune entrée`, async () => {
+    const fichier = fichierDeDepart();
+    avecUneInstanceImbriquee(fichier);
+    const appels = { moteur: 0 };
+    const b = banc(fichier);
+    const lectures = lecteursDe(fichier, appels);
+    await traiterAvec({
+      ...lectures,
+      async dependances(sujet, contexte, inventaires, cooperation) {
+        // Le maître n'est pas encore connu : l'événement ne vise aucun nœud suivi quand il arrive.
+        surChangementDuDocument([noeud('PROPERTY_CHANGE', calque, parents, ['fills'])], b.contexte);
+        assert.equal(b.envoyes.some(({ type }) => type === 'perime'), false);
+        return dependancesDeFigma(sujet, contexte, inventaires, cooperation);
+      },
+    })({ type: 'analyser', demande: 1 }, b.contexte);
+    assert.deepEqual(b.envoyes.filter(({ type }) => type === 'perime').map((message) => ('cause' in message ? message.cause : null)), ['document']);
+    assert.equal(sessionDesAnalyses().entree('Alert'), null, 'une analyse périmée pendant son calcul ne promeut rien');
+  });
+}
 
 /** Une demande mesurée : ce que l'interface affiche, sans la trace, et les compteurs de requêtes de cette trace. */
 async function mesuree(fichier: Fichier, appels: { moteur: number }, intention: 'analyser' | 'actualiser', ignores: readonly string[] = []) {
@@ -428,11 +466,16 @@ test('la trace dit si le moteur est repris, ou pourquoi il ne l’est pas', asyn
   fichier.valeur = 14;
   assert.deepEqual((await mesuree(fichier, appels, 'analyser')).moteur, ['nonReprise:different:catalogue=1']);
 
-  // Une raison de la validation : le maître local contient une instance.
+  // Un maître local qui contient une instance d'un maître local suivi : la fermeture couvre tout, le moteur est repris.
   const imbrique = fichierDeDepart();
-  imbrique.maitre.imbrique = true;
+  avecUneInstanceImbriquee(imbrique);
   await mesuree(imbrique, appels, 'analyser');
-  assert.ok((await mesuree(imbrique, appels, 'analyser')).moteur.includes('nonReprise:non-couvert:maitres-autres-instances=1'));
+  assert.deepEqual((await mesuree(imbrique, appels, 'analyser')).moteur, ['repriseDuMoteur=1']);
+
+  // Une raison de la validation : une instance sous le maître n'a pas de maître lu, la fermeture est incomplète.
+  imbrique.imbrique.id = '';
+  await mesuree(imbrique, appels, 'analyser');
+  assert.deepEqual((await mesuree(imbrique, appels, 'analyser')).moteur, ['nonReprise:non-couvert:maitres-autres-instances=1']);
 
   // Les raisons du journal : l'entrée est invalidée avant la validation.
   const modifie = fichierDeDepart();

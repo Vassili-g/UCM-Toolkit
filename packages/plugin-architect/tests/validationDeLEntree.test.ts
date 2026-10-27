@@ -50,6 +50,7 @@ function fichierDeDepart(): Fichier {
       styles: [],
       instances: 0,
       maitres: [],
+      imbriqueesNonLues: 0,
     },
     regles: { composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false, modele: { nom: 'Alert', sections: [] }, proprietes: [], documentees: [] },
   };
@@ -197,7 +198,7 @@ test('un jeu dont le maître est distant ne reprend jamais le moteur, et un maî
   const { fichier, appels, demander } = preparer();
   const maitre = { cle: 'icone', nom: 'Icon', distante: true, pilotee: null };
   fichier.layers = [...fichier.layers, layer('icone', fichier.variable, maitre)];
-  fichier.dependances = { ...fichier.dependances, instances: 1, maitres: [{ id: 'M:icone', instances: 1, remote: true, page: null, noeuds: [], instancesImbriquees: 0, nomsDeLaPage: null }] };
+  fichier.dependances = { ...fichier.dependances, instances: 1, maitres: [{ id: 'M:icone', instances: 1, remote: true, page: null, noeuds: [], instancesImbriquees: 0, nomsDeLaPage: null, liaisons: [] }] };
   await demander();
   await demander();
   assert.equal(appels.moteur, 2, 'sans changement, le maître n’est pas revalidé : le moteur est relancé');
@@ -226,7 +227,7 @@ test('un style lisible, local ou distant, laisse reprendre le moteur ; sa défin
   assert.deepEqual(analysee, await demander('actualiser'));
 });
 
-const maitreLocal = { id: 'M:icone', instances: 1, remote: false, page: 'page-1', noeuds: ['M:icone', 'M:icone/fond'], instancesImbriquees: 0, nomsDeLaPage: ['icon'] };
+const maitreLocal = { id: 'M:icone', instances: 1, remote: false, page: 'page-1', noeuds: ['M:icone', 'M:icone/fond'], instancesImbriquees: 0, nomsDeLaPage: ['icon'], liaisons: [null, null] };
 const instanceDe = { cle: 'icone', nom: 'Icon', distante: false, pilotee: null };
 
 function fichierAvecUnMaitreLocal() {
@@ -261,13 +262,32 @@ test('un maître local sur une page que l’entrée n’écoutait pas, ou une in
   assert.deepEqual(sansMaitre.appels.etats[1], { etat: 'invalide', raisons: ['non-couvert:maitres'] });
 });
 
-test('un maître local qui contient une instance refuse la reprise : ses maîtres et leur page ne sont ni suivis ni relus', async () => {
+test('un maître local dont les instances ont leur maître dans la fermeture, local et suivi, laisse reprendre le moteur', async () => {
   const { fichier, appels, demander } = fichierAvecUnMaitreLocal();
-  fichier.dependances = { ...fichier.dependances, maitres: [{ ...maitreLocal, instancesImbriquees: 1 }] };
+  const imbrique = { id: 'M:bouton', instances: 0, remote: false, page: 'page-1', noeuds: ['M:bouton', 'M:bouton/fond'], instancesImbriquees: 0, nomsDeLaPage: ['icon'], liaisons: [null, null] };
+  fichier.dependances = { ...fichier.dependances, maitres: [{ ...maitreLocal, instancesImbriquees: 1 }, imbrique] };
   await demander();
+  assert.equal(sessionDesAnalyses().entree('Alert')?.suivi.maitres?.has('M:bouton/fond'), true, 'le maître imbriqué et ses descendants sont suivis');
   await demander();
-  assert.equal(appels.moteur, 2);
-  assert.deepEqual(appels.etats[1], { etat: 'invalide', raisons: ['non-couvert:maitres-autres-instances'] });
+  assert.equal(appels.moteur, 1);
+});
+
+test('un maître imbriqué distant ou sur une page non écoutée, ou une fermeture incomplète, refuse la reprise', async () => {
+  const cas: Array<{ nom: string; imbrique: object; nonLues: number; raisons: string[] }> = [
+    { nom: 'distant', imbrique: { remote: true, page: null, noeuds: [], nomsDeLaPage: null, liaisons: [] }, nonLues: 0, raisons: ['non-couvert:maitres'] },
+    { nom: 'autre page', imbrique: { page: 'page-2' }, nonLues: 0, raisons: ['non-couvert:maitres'] },
+    { nom: 'instance sans maître lu', imbrique: {}, nonLues: 1, raisons: ['non-couvert:maitres-autres-instances'] },
+  ];
+  for (const { nom, imbrique, nonLues, raisons } of cas) {
+    reinitialiserLAnalyse();
+    const { fichier, appels, demander } = fichierAvecUnMaitreLocal();
+    const maitre = { id: 'M:bouton', instances: 0, remote: false, page: 'page-1', noeuds: ['M:bouton', 'M:bouton/fond'], instancesImbriquees: 0, nomsDeLaPage: ['icon'], liaisons: [null, null], ...imbrique };
+    fichier.dependances = { ...fichier.dependances, maitres: [{ ...maitreLocal, instancesImbriquees: 1 }, maitre], imbriqueesNonLues: nonLues };
+    await demander();
+    await demander();
+    assert.equal(appels.moteur, 2, nom);
+    assert.deepEqual(appels.etats[1], { etat: 'invalide', raisons }, nom);
+  }
 });
 
 test('les noms de composant de la page du maître, relus, se comparent à ceux de l’entrée', async () => {
@@ -351,8 +371,14 @@ test('le lecteur de Figma rend le scan des règles, les listes locales, la défi
   const nomDeComposant = { name: 'component-name', type: 'TEXT', characters: 'Icon', parent: { type: 'INSTANCE', parent: null as unknown } };
   const page = { id: 'page-1', type: 'PAGE', findAllWithCriteria: ({ types }: { types: string[] }) => { if (types.includes('INSTANCE')) scans += 1; return types.includes('TEXT') ? [nomDeComposant] : []; } };
   nomDeComposant.parent.parent = page;
-  const fondDuMaitre = { id: 'M:icone/fond', type: 'RECTANGLE' };
-  const maitre = { id: 'M:icone', type: 'COMPONENT', remote: false, parent: page, findAll: () => [fondDuMaitre, { id: 'M:icone/bouton', type: 'INSTANCE' }] };
+  const fondDuMaitre = { id: 'M:icone/fond', type: 'RECTANGLE', boundVariables: { fills: [{ type: 'VARIABLE_ALIAS', id: 'v1' }] } };
+  // Sous le maître : une instance d'un maître local, qui contient une instance d'un maître distant, et une instance sans maître lisible.
+  const distant = { id: 'M:fleche', type: 'COMPONENT', remote: true, parent: null };
+  const imbrique = { id: 'M:bouton', type: 'COMPONENT', remote: false, parent: page, findAll: () => [{ id: 'M:bouton/fleche', type: 'INSTANCE', getMainComponentAsync: async () => distant }] };
+  const maitre = {
+    id: 'M:icone', type: 'COMPONENT', remote: false, parent: page,
+    findAll: () => [fondDuMaitre, { id: 'M:icone/bouton', type: 'INSTANCE', getMainComponentAsync: async () => imbrique }, { id: 'M:icone/orpheline', type: 'INSTANCE', getMainComponentAsync: async () => { throw new Error('Maître introuvable'); } }],
+  };
   const calques = [
     { id: 'texte', type: 'TEXT', textStyleId: 'S:texte' },
     { id: 'ombre', type: 'FRAME', effectStyleId: 'S:ombre' },
@@ -390,7 +416,12 @@ test('le lecteur de Figma rend le scan des règles, les listes locales, la défi
   assert.equal((lues.styles[1].definition as { remote: unknown }).remote, false);
   assert.equal(lues.styles[2].definition, null, 'un style mixte ne se lit pas');
   assert.equal(lues.instances, 1);
-  assert.deepEqual(lues.maitres, [{ id: 'M:icone', instances: 1, remote: false, page: 'page-1', noeuds: ['M:icone', 'M:icone/fond', 'M:icone/bouton'], instancesImbriquees: 1, nomsDeLaPage: ['icon'] }]);
+  assert.deepEqual(lues.maitres, [
+    { id: 'M:icone', instances: 1, remote: false, page: 'page-1', noeuds: ['M:icone', 'M:icone/fond', 'M:icone/bouton', 'M:icone/orpheline'], instancesImbriquees: 2, nomsDeLaPage: ['icon'], liaisons: [null, { fills: [{ type: 'VARIABLE_ALIAS', id: 'v1' }] }, null, null] },
+    { id: 'M:bouton', instances: 0, remote: false, page: 'page-1', noeuds: ['M:bouton', 'M:bouton/fleche'], instancesImbriquees: 1, nomsDeLaPage: ['icon'], liaisons: [null, null] },
+    { id: 'M:fleche', instances: 0, remote: true, page: null, noeuds: [], instancesImbriquees: 0, nomsDeLaPage: null, liaisons: [] },
+  ], 'la fermeture : le maître du jeu, puis les maîtres atteints sous lui, niveau par niveau');
+  assert.equal(lues.imbriqueesNonLues, 1, 'l’instance dont le maître ne se lit pas');
   assert.deepEqual(lues.collectionsLocales, [{ id: 'c1', nom: 'components' }]);
   assert.deepEqual(lues.variablesLocales, [{ id: 'v1', nom: 'alert/size/radius', collection: 'c1' }]);
   assert.deepEqual((lues.regles as { releve: unknown }).releve, { conteneurDuComposant: false, conteneurVierge: null, maitreLocal: null, instanceSource: null });
