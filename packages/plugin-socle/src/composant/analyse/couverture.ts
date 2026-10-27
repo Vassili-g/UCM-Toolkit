@@ -112,7 +112,9 @@ export type RaisonDePorteeInconnue =
   | 'ancetres-illisibles'
   | 'parent-de-suppression-inconnu'
   | 'style-cree'
-  | 'styles-lus-inconnus';
+  | 'styles-lus-inconnus'
+  | 'journal-deborde'
+  | 'ancien-parent-inconnu';
 
 export type PorteeDuChangement =
   | { readonly portee: 'sujet' }
@@ -128,6 +130,32 @@ const TYPES_DE_STYLE_CONNUS: ReadonlySet<string> = new Set(['STYLE_CREATE', 'STY
 
 function estSuivi(id: string, suivis: SuivisDuSujet): boolean {
   return suivis.noeuds.has(id) || suivis.maitres.has(id);
+}
+
+/**
+ * Ce que l'appelant sait des parents d'avant le changement : la topologie lue avec l'analyse, puis les parents que le
+ * journal a vus depuis son curseur. `deborde` : le journal a perdu des changements depuis ce curseur.
+ */
+export interface AnciensParents {
+  /** Le parent connu ; `null` : le nœud est apparu depuis le curseur sans parent lisible ; `undefined` : jamais vu. */
+  parentDe(id: IdDeNoeud): IdDeNoeud | null | undefined;
+  readonly deborde: boolean;
+}
+
+type Remontee = 'sujet' | 'apparu-sans-parent' | 'jamais-vu';
+
+/** Remonte les anciens parents de `id` jusqu'à un identifiant suivi ou jusqu'au premier ancêtre qu'on ne connaît plus. */
+function remonterLesAnciensParents(id: IdDeNoeud, suivis: SuivisDuSujet, anciens: AnciensParents): Remontee {
+  const vus = new Set<IdDeNoeud>();
+  for (let courant = id; !vus.has(courant);) {
+    vus.add(courant);
+    const parent = anciens.parentDe(courant);
+    if (parent === undefined) return 'jamais-vu';
+    if (parent === null) return 'apparu-sans-parent';
+    if (estSuivi(parent, suivis)) return 'sujet';
+    courant = parent;
+  }
+  return 'apparu-sans-parent';
 }
 
 /** Remonte les parents du nœud. Un parent qui lève, ou un nœud supprimé en chemin, rend la portée inconnue. */
@@ -147,24 +175,38 @@ function porteeParLesAncetres(noeud: NoeudDEvenement, suivis: SuivisDuSujet): Po
 /**
  * La portée d'un changement reçu. Un identifiant suivi touche le sujet quel que
  * soit le type. Une suppression hors de l'inventaire ne dit plus où vivait le
- * nœud : sans maître suivi, elle ne peut toucher que des nœuds inventoriés et
- * reste hors du sujet ; avec un maître suivi, elle a pu en retirer un calque.
+ * nœud. Avec `anciens`, ses anciens parents la situent : un ancêtre suivi touche
+ * le sujet, un nœud apparu depuis le curseur sans parent connu est de portée
+ * inconnue. Sans eux, une suppression reste hors du sujet, sauf avec un maître
+ * suivi : elle a pu en retirer un calque. Un journal débordé rend toute portée
+ * inconnue.
  */
-export function porteeDuChangement(changement: ChangementRecu, suivis: SuivisDuSujet): PorteeDuChangement {
+export function porteeDuChangement(changement: ChangementRecu, suivis: SuivisDuSujet, anciens?: AnciensParents): PorteeDuChangement {
   if (estSuivi(changement.id, suivis)) return SUJET;
+  if (anciens?.deborde) return inconnue('journal-deborde');
   if (!TYPES_CONNUS.has(changement.type)) return inconnue('type-inconnu');
   if (changement.type === 'DELETE') {
+    if (anciens) {
+      const avant = remonterLesAnciensParents(changement.id, suivis, anciens);
+      if (avant === 'sujet') return SUJET;
+      if (avant === 'apparu-sans-parent') return inconnue('ancien-parent-inconnu');
+    }
     return suivis.maitres.size === 0 ? HORS_SUJET : inconnue('parent-de-suppression-inconnu');
   }
   if (!changement.node) return inconnue('ancetres-illisibles');
-  return porteeParLesAncetres(changement.node, suivis);
+  const maintenant = porteeParLesAncetres(changement.node, suivis);
+  if (maintenant.portee !== 'hors-sujet' || !anciens || !changement.properties?.includes('parent')) return maintenant;
+  // Un nœud déplacé hors du sujet n'a plus d'ancêtre suivi : son ancien parent le situe.
+  const avant = remonterLesAnciensParents(changement.id, suivis, anciens);
+  if (avant === 'sujet') return SUJET;
+  return avant === 'apparu-sans-parent' ? inconnue('ancien-parent-inconnu') : HORS_SUJET;
 }
 
 /** La portée d'une série : le sujet dès qu'un changement le touche, sinon inconnue dès qu'une portée l'est. */
-export function porteeDesChangements(changements: Iterable<ChangementRecu>, suivis: SuivisDuSujet): PorteeDuChangement {
+export function porteeDesChangements(changements: Iterable<ChangementRecu>, suivis: SuivisDuSujet, anciens?: AnciensParents): PorteeDuChangement {
   let resultat: PorteeDuChangement = HORS_SUJET;
   for (const changement of changements) {
-    const portee = porteeDuChangement(changement, suivis);
+    const portee = porteeDuChangement(changement, suivis, anciens);
     if (portee.portee === 'sujet') return portee;
     if (portee.portee === 'inconnue' && resultat.portee === 'hors-sujet') resultat = portee;
   }

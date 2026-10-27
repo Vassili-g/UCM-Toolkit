@@ -30,7 +30,7 @@ import {
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { doitEtreRelue, type Couverture } from 'ucm-plugin-socle/src/composant/analyse/faits';
-import { porteeDesChangements, porteeDesChangementsDeStyle, type ChangementDeStyleRecu, type ChangementRecu } from 'ucm-plugin-socle/src/composant/analyse/couverture';
+import { porteeDesChangements, porteeDesChangementsDeStyle, type AnciensParents, type ChangementDeStyleRecu, type ChangementRecu } from 'ucm-plugin-socle/src/composant/analyse/couverture';
 import { creerLeJournal, type JournalDeChangements } from 'ucm-plugin-socle/src/composant/analyse/journal';
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
@@ -72,6 +72,8 @@ interface AnalyseCourante {
   readonly couverture: Couverture;
   /** Le curseur du journal à l'ouverture de l'écoute de la demande : `depuis(curseur)` rend ce qui a changé depuis. */
   readonly curseur: number;
+  /** Le parent de chaque sommet de l'inventaire, tel que la topologie l'a lu : de quoi situer une suppression ou un déplacement. */
+  readonly parents: ReadonlyMap<string, string>;
   /** Les corrections des constats rendus, par identifiant : l'écriture n'écrit que celles-là. */
   corrections: ReadonlyMap<string, Correction>;
   /** Tous les constats de l'analyse, ignorés compris, par identifiant : Ignorer et les questions les retrouvent ici. */
@@ -119,12 +121,12 @@ const COUVERTURE_INCONNUE: Couverture = { instances: 'descendues', complete: fal
  * Ouvre une analyse : la génération monte, l'analyse précédente n'est plus la courante. `couverture` est celle de
  * l'inventaire `noeuds` ; les pages que Figma ne laisse pas écouter s'y ajoutent.
  */
-export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte, admis?: Iterable<string>, page?: PageNode, couverture: Couverture = COUVERTURE_INCONNUE, curseur: number = ouvrirLeJournal().marquer()): IdentiteDAnalyse {
+export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte, admis?: Iterable<string>, page?: PageNode, couverture: Couverture = COUVERTURE_INCONNUE, curseur: number = ouvrirLeJournal().marquer(), parents: ReadonlyMap<string, string> = new Map()): IdentiteDAnalyse {
   generation += 1;
   const identite = { sujet, generation };
   const tous = new Set(noeuds);
   const nonEcoutees = contexte.surveillerLeDocument(page) ?? [];
-  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, couverture: avecLesPagesNonEcoutees(couverture, nonEcoutees), curseur, corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false };
+  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, couverture: avecLesPagesNonEcoutees(couverture, nonEcoutees), curseur, parents, corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false };
   return identite;
 }
 
@@ -250,10 +252,41 @@ export function perimerApresUneEcriture(contexte: Contexte): void {
 const enChangement = (changement: string | ChangementRecu): ChangementRecu =>
   typeof changement === 'string' ? { type: 'PROPERTY_CHANGE', id: changement, node: { id: changement, parent: null } } : changement;
 
+/**
+ * Les anciens parents que connaît l'analyse courante : la topologie de l'inventaire, puis `depuisLeCurseur`, ce que le
+ * journal a vu de ses nœuds. Un nœud vu sans parent lisible (supprimé, illisible) vaut `null`.
+ */
+function ancienParents(depuisLeCurseur: ReadonlyMap<string, string | null>): AnciensParents | null {
+  if (!courante || !journal) return null;
+  const { parents, curseur } = courante;
+  const perdu = journal.debordeDepuis(curseur);
+  return {
+    deborde: perdu,
+    parentDe(id) {
+      const vu = depuisLeCurseur.get(id);
+      if (typeof vu === 'string') return vu;
+      return parents.get(id) ?? (vu === null ? null : undefined);
+    },
+  };
+}
+
+/** Ce que le journal a appris des parents depuis le curseur de l'analyse courante : le dernier parent lisible de chaque nœud. */
+function parentsVusParLeJournal(): Map<string, string | null> {
+  const vus = new Map<string, string | null>();
+  if (!courante || !journal) return vus;
+  for (const entree of journal.depuis(courante.curseur)) {
+    if (entree.nature !== 'noeud') continue;
+    if (entree.parent !== null) vus.set(entree.id, entree.parent);
+    else if (!vus.has(entree.id)) vus.set(entree.id, null);
+  }
+  return vus;
+}
+
 /** Périme l'analyse courante quand un changement touche le jeu analysé ou que sa portée est inconnue. */
-function jugerLesNoeuds(changements: readonly ChangementRecu[], contexte: Contexte): void {
-  if (!courante || changements.length === 0) return;
-  if (porteeDesChangements(changements, { noeuds: courante.noeuds, maitres: new Set() }).portee !== 'hors-sujet') perimer('document', contexte);
+function jugerLesNoeuds(changements: readonly ChangementRecu[], contexte: Contexte, depuisLeCurseur: ReadonlyMap<string, string | null>): void {
+  if (!courante || courante.perimee || changements.length === 0) return;
+  const anciens = ancienParents(depuisLeCurseur) ?? undefined;
+  if (porteeDesChangements(changements, { noeuds: courante.noeuds, maitres: new Set() }, anciens).portee !== 'hors-sujet') perimer('document', contexte);
 }
 
 /** Périme l'analyse courante pour un changement de style : elle ne sait pas quels styles elle a lus. */
@@ -264,15 +297,16 @@ function jugerLesStyles(changements: readonly ChangementDeStyleRecu[], contexte:
 
 /**
  * `nodechange` de la page. Le journal inscrit chaque changement, même sans analyse courante ou après sa péremption.
- * Ensuite la portée décide : un nœud de l'inventaire, un calque sous l'un d'eux, ou une portée inconnue périme
- * l'analyse. Tant qu'une demande d'analyse n'a pas son inventaire, les changements sont gardés pour
+ * La portée décide avant l'inscription : un nœud de l'inventaire, un calque sous l'un d'eux, un nœud supprimé ou déplacé
+ * dont l'ancien parent est dans l'inventaire, ou une portée inconnue (dont un journal débordé) périme l'analyse. Tant qu'une demande d'analyse n'a pas son inventaire, les changements sont gardés pour
  * `rejouerLesEvenementsRecus`.
  */
 export function surChangementDuDocument(recus: Iterable<string | ChangementRecu>, contexte: Contexte): void {
   const changements = [...recus].map(enChangement);
+  // La décision lit les parents d'avant ces changements : elle précède leur inscription.
+  jugerLesNoeuds(changements, contexte, parentsVusParLeJournal());
   journal?.enregistrer(changements.map((changement) => ({ nature: 'noeud', ...changement })));
   if (changementsEnAttente) changementsEnAttente.noeuds.push(...changements);
-  jugerLesNoeuds(changements, contexte);
 }
 
 /**
@@ -292,7 +326,8 @@ function rejouerLesEvenementsRecus(contexte: Contexte): void {
   const attente = changementsEnAttente;
   changementsEnAttente = null;
   if (!attente) return;
-  jugerLesNoeuds(attente.noeuds, contexte);
+  // Le journal ne contient alors que ces changements : leurs anciens parents ne viennent que de la topologie.
+  jugerLesNoeuds(attente.noeuds, contexte, new Map());
   jugerLesStyles(attente.styles, contexte);
 }
 
@@ -317,6 +352,8 @@ export interface SujetAAnalyser {
   readonly admis?: readonly string[];
   /** La couverture de `noeuds` ; absente, elle est inconnue et l'analyse doit être relue avant toute réutilisation. */
   readonly couverture?: Couverture;
+  /** Le parent des sommets de l'inventaire (variants → jeu). Absent : aucun ancien parent connu. */
+  readonly parents?: ReadonlyMap<string, string>;
 }
 
 /** L'issue d'une lecture des libraries lancée en avance : une promesse qui ne rejette jamais, l'erreur y est une valeur. */
@@ -357,9 +394,12 @@ async function sujetDeFigma(contexte: Contexte): Promise<SujetAAnalyser | null> 
   }
   const jeu = sujet.type !== 'COMPONENT_SET' && estUnVariant(sujet) && sujet.parent ? sujet.parent : sujet;
   // Un `children` ou un `findAll` qui lève laisse un trou dans la couverture, et seuls les nœuds lus font périmer l'analyse.
-  const inventaire = inventaireDePeremption(lireLaTopologieDuJeu(jeu as unknown as NoeudALire));
+  const topologie = lireLaTopologieDuJeu(jeu as unknown as NoeudALire);
+  const inventaire = inventaireDePeremption(topologie);
+  const parents = new Map<string, string>();
+  for (const noeud of Object.values(topologie.topologie)) if (noeud.parent !== null) parents.set(noeud.id, noeud.parent);
   const cle = (jeu as unknown as { key?: unknown }).key;
-  return { cle: typeof cle === 'string' && cle !== '' ? cle : jeu.id, noeud: jeu, noeuds: inventaire.noeuds, admis: inventaire.admis, couverture: inventaire.couverture };
+  return { cle: typeof cle === 'string' && cle !== '' ? cle : jeu.id, noeud: jeu, noeuds: inventaire.noeuds, admis: inventaire.admis, couverture: inventaire.couverture, parents };
 }
 
 function portDuComposant({ figma }: Contexte): PortDuComposant {
@@ -611,11 +651,13 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   try {
     phase('sujet');
     // L'écoute de la page courante précède la première lecture du document : l'inventaire n'est connu qu'après le sujet.
+    // Le journal n'a plus besoin de ce qui précède l'analyse précédente, la seule à retenir un curseur.
+    if (courante) ouvrirLeJournal().oublierAvant(courante.curseur);
     const curseur = ouvrirLeJournal().marquer();
     changementsEnAttente = { noeuds: [], styles: [] };
     contexte.surveillerLeDocument();
     const sujet = await attendrePourLaMesure(() => lecteurs.sujet(contexte).catch(() => null), 'attente', 'sujet');
-    identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined, sujet?.couverture, curseur);
+    identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined, sujet?.couverture, curseur, sujet?.parents);
     courant.connue = identite;
     connaitre(identite);
     if (demande.mesurer && demande.demande !== undefined) {

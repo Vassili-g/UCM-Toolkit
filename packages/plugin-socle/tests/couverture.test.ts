@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import {
   doitSeRelire, MATRICE_DE_COUVERTURE, porteeDesChangements, porteeDesChangementsDeStyle, porteeDuChangement, relecturesObligatoires,
-  type ChangementRecu, type EntreeLue, type NoeudDEvenement, type SuivisDuSujet,
+  type AnciensParents, type ChangementRecu, type EntreeLue, type NoeudDEvenement, type SuivisDuSujet,
 } from '../src/composant/analyse/couverture';
 import type { Ressources } from '../src/composant/analyse/faits';
 
@@ -177,4 +177,51 @@ test('un maître local sur une page qui n\'est plus écoutée se relit', () => {
   const relectures = relecturesObligatoires(ressources(), { ecoutees: new Set(), pageDe: () => 'page-sujet' });
   assert.deepEqual(relectures.maitresSuivis, []);
   assert.deepEqual(relectures.maitres, ['local', 'ailleurs', 'distant', 'refuse']);
+});
+
+/** Une table d'anciens parents : `null` marque un nœud apparu sans parent lisible. */
+const anciens = (parents: Record<string, string | null>, deborde = false): AnciensParents => ({
+  parentDe: (id) => (id in parents ? parents[id] : undefined),
+  deborde,
+});
+
+test('la suppression d’un calque créé sous un variant touche le sujet par son ancien parent', () => {
+  const sujet = suivis(['jeu', 'v1']);
+  const suppression: ChangementRecu = { type: 'DELETE', id: 'neuf', node: { id: 'neuf', removed: true } };
+  assert.deepEqual(porteeDuChangement(suppression, sujet), { portee: 'hors-sujet' }, 'sans table, comme avant');
+  assert.deepEqual(porteeDuChangement(suppression, sujet, anciens({ neuf: 'v1' })), { portee: 'sujet' });
+  assert.deepEqual(porteeDuChangement(suppression, sujet, anciens({ neuf: 'cadre', cadre: 'v1' })), { portee: 'sujet' }, 'par un ancêtre');
+});
+
+test('une suppression ailleurs reste hors du sujet, même avec la table', () => {
+  const sujet = suivis(['jeu', 'v1']);
+  const suppression: ChangementRecu = { type: 'DELETE', id: 'autre', node: { id: 'autre', removed: true } };
+  assert.deepEqual(porteeDuChangement(suppression, sujet, anciens({})), { portee: 'hors-sujet' });
+  assert.deepEqual(porteeDuChangement(suppression, sujet, anciens({ autre: 'page', page: 'doc' })), { portee: 'hors-sujet' });
+});
+
+test('une suppression dont l’ancien parent est inconnu est de portée inconnue si le nœud est apparu depuis le curseur ou si un maître est suivi', () => {
+  const suppression: ChangementRecu = { type: 'DELETE', id: 'neuf', node: { id: 'neuf', removed: true } };
+  assert.deepEqual(porteeDuChangement(suppression, suivis(['jeu']), anciens({ neuf: null })), { portee: 'inconnue', raison: 'ancien-parent-inconnu' });
+  assert.deepEqual(porteeDuChangement(suppression, suivis(['jeu'], ['icone']), anciens({})), { portee: 'inconnue', raison: 'parent-de-suppression-inconnu' });
+  assert.deepEqual(porteeDuChangement(suppression, suivis(['jeu']), anciens({ neuf: 'cadre', cadre: null })), { portee: 'inconnue', raison: 'ancien-parent-inconnu' }, 'un ancêtre apparu sans parent');
+});
+
+test('un calque déplacé hors du variant touche le sujet par son ancien parent', () => {
+  const sujet = suivis(['jeu', 'v1']);
+  const deplace: ChangementRecu = { type: 'PROPERTY_CHANGE', id: 'neuf', properties: ['parent'], node: chaine('neuf', 'autre-cadre', 'page') };
+  assert.deepEqual(porteeDuChangement(deplace, sujet), { portee: 'hors-sujet' }, 'sans table, il paraît ailleurs');
+  assert.deepEqual(porteeDuChangement(deplace, sujet, anciens({ neuf: 'v1' })), { portee: 'sujet' });
+  assert.deepEqual(porteeDuChangement(deplace, sujet, anciens({ neuf: null })), { portee: 'inconnue', raison: 'ancien-parent-inconnu' });
+  const autreProp: ChangementRecu = { ...deplace, properties: ['fills'] };
+  assert.deepEqual(porteeDuChangement(autreProp, sujet, anciens({ neuf: 'v1' })), { portee: 'hors-sujet' }, 'seul un changement de parent relit l’ancien parent');
+});
+
+test('un journal débordé rend la portée inconnue, sauf pour un identifiant suivi', () => {
+  const sujet = suivis(['jeu']);
+  const perdu = anciens({}, true);
+  assert.deepEqual(porteeDuChangement({ type: 'PROPERTY_CHANGE', id: 'x', node: chaine('x', 'page') }, sujet, perdu), { portee: 'inconnue', raison: 'journal-deborde' });
+  assert.deepEqual(porteeDuChangement({ type: 'DELETE', id: 'x' }, sujet, perdu), { portee: 'inconnue', raison: 'journal-deborde' });
+  assert.deepEqual(porteeDuChangement({ type: 'DELETE', id: 'jeu' }, sujet, perdu), { portee: 'sujet' });
+  assert.deepEqual(porteeDesChangements([{ type: 'PROPERTY_CHANGE', id: 'x', node: chaine('x', 'page') }], sujet, perdu), { portee: 'inconnue', raison: 'journal-deborde' });
 });

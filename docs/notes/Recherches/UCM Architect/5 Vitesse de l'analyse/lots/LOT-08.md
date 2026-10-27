@@ -8,7 +8,7 @@
 - [x] **8.2 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : établir les relectures obligatoires de variables, collections, styles, maîtres, règles et libraries ; test de ressource externe modifiée. Résultat : `relecturesObligatoires` dans `couverture.ts`, section « Relectures obligatoires (8.2) ».
 - [x] **8.3 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : vérifier la documentation Figma puis brancher seulement les événements dont la couverture est établie, dont stylechange si pertinent. Confier d'abord la lecture de la documentation Figma à un `chercheur`. Résultat : `stylechange` branché dans `code.ts` et `surChangementDeStyle` (`sandbox/analyse.ts`), `porteeDesChangementsDeStyle` dans `couverture.ts`, section « Événements branchés (8.3) ». Aucun autre événement.
 - [x] **8.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : accumuler les changements après la première péremption et hors analyse active ; tests d'événement retardé et de série de mutations. Résultat : `plugin-socle/src/composant/analyse/journal.ts`, `surChangementDuDocument` et `surChangementDeStyle` de `sandbox/analyse.ts`, section « Journal des changements (8.4) ».
-- [ ] **8.5 | gpt-6-luna | medium** | **Claude Sonnet | medium** : conserver anciens parents et topologie des suppressions ; élargir l'invalidation si parent ou événement manque.
+- [x] **8.5 | gpt-6-luna | medium** | **Claude Sonnet | medium** : conserver anciens parents et topologie des suppressions ; élargir l'invalidation si parent ou événement manque. Résultat : `AnciensParents` dans `porteeDuChangement` (`couverture.ts`), table d'anciens parents d'`analyse.ts`, section « Anciens parents (8.5) ».
 - [ ] **8.6 | gpt-6-luna | medium** | **Claude Sonnet | medium** : interrompre la couverture quand la page est quittée ou la file déborde ; test de retour sur page.
 - [ ] **8.7 | gpt-6-luna | medium** | **Claude Sonnet | medium** : porter Analyser et Actualiser jusqu'au sandbox ; test qu'Actualiser contourne les résultats précédents.
 - [ ] **8.8 | gpt-6.1-sol | high** | **Claude Sonnet | high** : invalider après changement de configuration et écriture, distinguer imports et changements externes ; tests Ctrl+Z et refus.
@@ -133,3 +133,17 @@ Branchement dans `sandbox/analyse.ts` :
 - `code.ts` passe les `nodeChanges` entiers (type, id, nœud, propriétés). Les tests qui passent un identifiant seul le font lire comme un changement de propriété d'un nœud sans parent.
 
 Preuves : `journal.test.ts` (ordre, curseurs, entrée sans objet Figma, parent illisible, débordement, oubli) et `peremptionDeLAnalyse.test.ts` (calque sous un variant, portée inconnue, événement retardé, série de mutations après la péremption, journal qui survit à l'analyse suivante).
+
+## Anciens parents (8.5)
+
+Une suppression ne donne plus son parent, et un déplacement hors du jeu ne donne que le nouveau. `porteeDuChangement(changement, suivis, anciens?)` reçoit un résolveur `AnciensParents { parentDe(id), deborde }` : `parentDe` rend le parent connu, `null` pour un nœud apparu depuis le curseur sans parent lisible, `undefined` pour un nœud jamais vu.
+
+- `DELETE` : en remontant les anciens parents, un ancêtre suivi touche le sujet ; un nœud (ou un ancêtre) apparu sans parent connu est de portée inconnue (`ancien-parent-inconnu`) ; sinon hors sujet, ou inconnue si un maître est suivi comme avant.
+- Déplacement (`PROPERTY_CHANGE` avec `parent`) hors du sujet : même remontée depuis l'ancien parent.
+- Journal débordé depuis le curseur de l'analyse : toute portée hors identifiant suivi est inconnue (`journal-deborde`).
+
+Architect : la table couvre l'inventaire (variants → jeu, lus avec la topologie, `SujetAAnalyser.parents`) puis les parents que le journal a vus depuis le curseur de l'analyse, le dernier lisible l'emportant. La décision précède l'inscription du lot au journal, pour lire les parents d'avant. Le rejeu des changements d'avant l'inventaire n'a que la topologie. Chaque demande d'analyse appelle `oublierAvant(curseur de l'analyse précédente)` : le journal garde ce que les deux dernières analyses lisent.
+
+Limite : les descendants de l'inventaire n'ont que leur identifiant, sans parent lu. Leur suppression périme par l'identifiant ; un calque apparu après l'analyse se situe par le journal.
+
+Preuves : `couverture.test.ts` (suppression, déplacement, ailleurs, ancien parent inconnu avec maître suivi, débordement) et `peremptionDeLAnalyse.test.ts` (mêmes cas dans Architect, débordement à 5000, oubli).

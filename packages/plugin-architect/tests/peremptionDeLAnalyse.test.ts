@@ -187,6 +187,66 @@ test('le journal survit à l’analyse suivante, et le curseur d’une analyse d
   assert.deepEqual(journalDesChangements()!.depuis(second).map((entree) => entree.id), ['pendant'], 'les changements reçus pendant la demande suivent son curseur');
 });
 
+/** Inscrit une création au journal sans la juger : une création vue sous un variant périme l'analyse, donc seul le journal la montre à la suppression. */
+const inscrireSansJuger = (id: string, parent: string | null): void => {
+  journalDesChangements()!.enregistrer([{ nature: 'noeud', type: 'CREATE', id, ...(parent === null ? {} : { node: { id, parent: { id: parent, parent: null } } }) }]);
+};
+const suppression = (id: string) => ({ type: 'DELETE', id, node: { id, removed: true } });
+
+test('la suppression d’un calque créé après l’analyse sous un variant périme l’analyse, son identifiant étant hors de l’inventaire', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  inscrireSansJuger('neuf', 'v');
+  surChangementDuDocument([suppression('neuf')], b.contexte);
+  assert.deepEqual(perimes(b).map((message) => message.cause), ['document']);
+});
+
+test('le déplacement hors du variant d’un calque créé après l’analyse périme l’analyse', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  inscrireSansJuger('neuf', 'v');
+  surChangementDuDocument([{ type: 'PROPERTY_CHANGE', id: 'neuf', properties: ['parent'], node: { id: 'neuf', parent: { id: 'ailleurs', parent: null } } }], b.contexte);
+  assert.equal(perimes(b).length, 1);
+});
+
+test('une suppression ailleurs ne périme pas l’analyse, qu’elle soit vue ou non', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  inscrireSansJuger('autre', 'cadre-externe');
+  surChangementDuDocument([suppression('autre'), suppression('jamais-vu')], b.contexte);
+  assert.deepEqual(perimes(b), []);
+});
+
+test('la suppression d’un nœud apparu sans parent lisible depuis le curseur périme l’analyse', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  inscrireSansJuger('fantome', null);
+  surChangementDuDocument([suppression('fantome')], b.contexte);
+  assert.equal(perimes(b).length, 1);
+});
+
+test('un journal débordé depuis le curseur de l’analyse rend toute portée inconnue : l’analyse est périmée', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  const curseur = curseurDeLAnalyse(analyseCourante() as IdentiteDAnalyse) as number;
+  surChangementDuDocument(Array.from({ length: 5001 }, (_, rang) => `ailleurs-${rang}`), b.contexte);
+  assert.equal(journalDesChangements()!.debordeDepuis(curseur), true);
+  assert.deepEqual(perimes(b), [], 'le débordement se constate au changement suivant');
+  surChangementDuDocument(['ailleurs'], b.contexte);
+  assert.equal(perimes(b).length, 1);
+});
+
+test('chaque demande d’analyse oublie le journal d’avant l’analyse précédente', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  surChangementDuDocument(['ancien'], b.contexte);
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  surChangementDuDocument(['recent'], b.contexte);
+  assert.deepEqual(journalDesChangements()!.depuis(0).map((entree) => entree.id), ['ancien', 'recent'], 'l’analyse précédente retient encore « ancien »');
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  assert.deepEqual(journalDesChangements()!.depuis(0).map((entree) => entree.id), ['recent'], 'la troisième demande retire ce qui précède la deuxième analyse');
+});
+
 test('une analyse arrêtée avant son inventaire ne garde aucun événement', async () => {
   const b = banc();
   const arret: Lecteurs = { ...lecteurs(b), sujet: async () => { throw new Error('sujet illisible'); } };
