@@ -12,6 +12,7 @@ export const TEXTES_COMMUN = {
   configurationAide: 'Ouvrir la configuration des noms',
   analyser: 'Analyser',
   analyserAide: 'Lire le composant et contrôler ses liaisons',
+  actualiserLAnalyseAide: 'Relire ce qui a changé depuis l’analyse. Maj+clic : tout relire depuis le début',
   constats: 'Constats',
   constatsOuvrir: 'Ouvrir le panneau des constats',
   constatsFermer: 'Fermer le panneau des constats',

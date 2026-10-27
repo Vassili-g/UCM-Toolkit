@@ -276,8 +276,10 @@ l'anticipation ou une lecture illisible l'abandonnent sans message : le clic
 lit alors seul. Les compteurs `librariesAnticipeesReprises` et
 `librariesAnticipeesRelues` disent ce que le clic a fait, et
 `msVerificationDesLibraries` la durée de la relecture de vérification. Le bouton
-du mode Composant envoie `intention: 'analyser'` avant la première analyse et
-`intention: 'actualiser'` ensuite ; une demande sans intention vaut Analyser.
+du mode Composant envoie `intention: 'analyser'`, y compris quand il se lit
+Actualiser une fois le composant analysé : la reprise validée reste ainsi le
+geste ordinaire. Seul Maj+clic sur Actualiser envoie `intention: 'actualiser'`,
+que l'infobulle annonce. Une demande sans intention vaut Analyser.
 Actualiser abandonne la lecture anticipée et lit seul ; Analyser la reprend.
 `reutilisationPermise` (`sandbox/analyse.ts`) est le seul point où une mémoire
 entre demandes se branche. Figma ne publie ni version, ni date, ni événement de

@@ -1,4 +1,4 @@
-/** Le geste Actualiser du mode Composant envoie l'intention `actualiser` au sandbox, le geste Analyser l'intention `analyser`. */
+/** Le bouton du mode Composant envoie `analyser`, qui permet la reprise validée ; seul Maj+clic sur Actualiser envoie `actualiser`. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -22,13 +22,14 @@ function monter() {
   const app = creerApplication(etat, () => ({ rendre() {} }) as never);
   const barre = creerBarre(app);
   const bouton = comme(comme(barre.element).querySelector('.btn-compact'));
-  const cliquer = (): Extract<UiRequest, { type: 'analyser' }> => {
+  const cliquer = (maj = false): Extract<UiRequest, { type: 'analyser' }> => {
     envois.length = 0;
     barre.mettreAJour?.();
-    bouton.clic();
+    if (maj) bouton.dispatchEvent(Object.assign(new Event('click', { cancelable: true }), { shiftKey: true }));
+    else bouton.clic();
     return envois.find((m): m is Extract<UiRequest, { type: 'analyser' }> => m.type === 'analyser')!;
   };
-  return { etat, cliquer };
+  return { etat, cliquer, bouton };
 }
 
 test('avant toute analyse, le bouton envoie Analyser', () => {
@@ -36,16 +37,31 @@ test('avant toute analyse, le bouton envoie Analyser', () => {
   assert.equal(cliquer().intention, 'analyser');
 });
 
-test('une fois le composant analysé, le même bouton se lit Actualiser et envoie actualiser', () => {
-  const { etat, cliquer } = monter();
-  recevoirUneAnalyse(etat, { type: 'analyse-commencee', analyse: IDENTITE });
-  recevoirUneAnalyse(etat, { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: [], lecture: null, variants: [], sansTokens: false });
-  assert.equal(cliquer().intention, 'actualiser');
+/** Un bouton monté sur une analyse finie (`complete`) ou périmée. */
+function apresUneAnalyse(fin: 'complete' | 'perimee') {
+  const monte = monter();
+  recevoirUneAnalyse(monte.etat, { type: 'analyse-commencee', analyse: IDENTITE });
+  if (fin === 'complete') recevoirUneAnalyse(monte.etat, { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: [], lecture: null, variants: [], sansTokens: false });
+  else recevoirUneAnalyse(monte.etat, { type: 'perime', analyse: IDENTITE, cause: 'document' });
+  return monte;
+}
+
+test('une fois le composant analysé, le clic sur Actualiser envoie analyser et son infobulle nomme Maj+clic', () => {
+  const { cliquer, bouton } = apresUneAnalyse('complete');
+  assert.equal(cliquer().intention, 'analyser');
+  assert.match(String(bouton.title), /Maj\+clic/);
 });
 
-test('une analyse périmée se relit par Actualiser', () => {
-  const { etat, cliquer } = monter();
-  recevoirUneAnalyse(etat, { type: 'analyse-commencee', analyse: IDENTITE });
-  recevoirUneAnalyse(etat, { type: 'perime', analyse: IDENTITE, cause: 'document' });
-  assert.equal(cliquer().intention, 'actualiser');
+test('une fois le composant analysé, Maj+clic sur Actualiser envoie actualiser', () => {
+  assert.equal(apresUneAnalyse('complete').cliquer(true).intention, 'actualiser');
+});
+
+test('une analyse périmée se reprend par le clic et se reconstruit par Maj+clic', () => {
+  assert.equal(apresUneAnalyse('perimee').cliquer().intention, 'analyser');
+  assert.equal(apresUneAnalyse('perimee').cliquer(true).intention, 'actualiser');
+});
+
+test('avant toute analyse, Maj+clic envoie aussi analyser', () => {
+  const { cliquer } = monter();
+  assert.equal(cliquer(true).intention, 'analyser');
 });

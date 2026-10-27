@@ -90,10 +90,12 @@ export function creerBarre(app: Application): Composant {
   analyser.title = TEXTES.analyserAide;
   const analyserTexte = document.createElement('span');
   analyser.append(analyserTexte);
-  // Le bouton se lit Actualiser une fois le composant analysé : c'est alors l'intention qu'il envoie.
-  analyser.addEventListener('click', () => {
+  // Le bouton se lit Actualiser une fois le composant analysé. Le clic reprend l'analyse retenue après validation ; seul
+  // Maj+clic force la reconstruction complète, qui ignore tout résultat retenu.
+  analyser.addEventListener('click', (evenement) => {
     const analyse = app.etat.analyse;
-    app.analyser(analyse !== null && !calculEnCours(analyse) ? 'actualiser' : 'analyser');
+    const dejaAnalyse = analyse !== null && !calculEnCours(analyse);
+    app.analyser(dejaAnalyse && (evenement as MouseEvent).shiftKey === true ? 'actualiser' : 'analyser');
   });
 
   const constats = document.createElement('button');
@@ -128,6 +130,7 @@ export function creerBarre(app: Application): Composant {
       analyser.classList.toggle('btn-primary', !dejaAnalyse);
       analyser.classList.toggle('btn-secondary', dejaAnalyse);
       analyserTexte.textContent = dejaAnalyse ? TEXTES.actualiser : TEXTES.analyser;
+      analyser.title = dejaAnalyse ? TEXTES.actualiserLAnalyseAide : TEXTES.analyserAide;
       // Pas de relance pendant une analyse ni pendant l'écriture d'un lot ; sans library choisie, l'analyse n'a rien à lire.
       analyser.disabled = analyseEnCours || (analyse?.ecriture ?? null) !== null || (!dejaAnalyse && libraryAChoisir(etat));
       constats.setAttribute('aria-pressed', String(etat.panneau.ouvert));

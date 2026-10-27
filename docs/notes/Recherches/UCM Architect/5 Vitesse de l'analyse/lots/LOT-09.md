@@ -205,3 +205,11 @@ Preuves : `retention.test.ts` du socle (estimation, éviction par sujets, octets
 **Maxima.** La trace compte `sujetsRetenus`, `octetsRetenus`, `aretesRetenues` (session après promotion) et `entreesDuJournal`, par `retenirLeMaximum`. La promotion précède désormais l'envoi du résultat, pour que la trace, fermée à l'envoi, les porte.
 
 Altérations : sans rognage du journal, le test du journal échoue ; sans vidage de la session à la fermeture, le test de fermeture échoue.
+
+## Geste de la reprise (correctif après recette)
+
+La recette du mainteneur a montré que la reprise n'était jamais atteinte. Depuis 8.7, le bouton du mode Composant envoyait `actualiser` dès qu'une analyse existait, et seule `analyser` permet la reprise. Un clic sur Actualiser d'un Button déjà analysé, sans changement, prenait donc 16 s.
+
+Décision du mainteneur : le clic envoie `analyser`, donc la reprise validée. Maj+clic envoie `actualiser`, la reconstruction complète, et l'infobulle l'annonce. Test : `tests/intentionDAnalyseDeLInterface.test.ts`.
+
+Même atteinte, la reprise relit le relevé, les valeurs du catalogue et les dépendances (9.4) : environ 6 à 7 s sur le Button. Le lot 16 étudie ce qui la rapproche de la cible de 250 ms.
