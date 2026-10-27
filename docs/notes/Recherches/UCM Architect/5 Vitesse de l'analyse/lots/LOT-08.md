@@ -10,7 +10,7 @@
 - [x] **8.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : accumuler les changements après la première péremption et hors analyse active ; tests d'événement retardé et de série de mutations. Résultat : `plugin-socle/src/composant/analyse/journal.ts`, `surChangementDuDocument` et `surChangementDeStyle` de `sandbox/analyse.ts`, section « Journal des changements (8.4) ».
 - [x] **8.5 | gpt-6-luna | medium** | **Claude Sonnet | medium** : conserver anciens parents et topologie des suppressions ; élargir l'invalidation si parent ou événement manque. Résultat : `AnciensParents` dans `porteeDuChangement` (`couverture.ts`), table d'anciens parents d'`analyse.ts`, section « Anciens parents (8.5) ».
 - [x] **8.6 | gpt-6-luna | medium** | **Claude Sonnet | medium** : interrompre la couverture quand la page est quittée ou la file déborde ; test de retour sur page. Résultat : `signaler` et `couvertureDepuis` (`journal.ts`), `surInterruptionDePage` et `couvertureInterrompue` (`sandbox/analyse.ts`), section « Interruption de couverture (8.6) ».
-- [ ] **8.7 | gpt-6-luna | medium** | **Claude Sonnet | medium** : porter Analyser et Actualiser jusqu'au sandbox ; test qu'Actualiser contourne les résultats précédents.
+- [x] **8.7 | gpt-6-luna | medium** | **Claude Sonnet | medium** : porter Analyser et Actualiser jusqu'au sandbox ; test qu'Actualiser contourne les résultats précédents. Résultat : `intention` de `DemandeDAnalyse`, `reutilisationPermise` (`sandbox/analyse.ts`), envoi par `barre.ts` et `application.ts`, section « Analyser et Actualiser (8.7) ».
 - [ ] **8.8 | gpt-6.1-sol | high** | **Claude Sonnet | high** : invalider après changement de configuration et écriture, distinguer imports et changements externes ; tests Ctrl+Z et refus.
 - [ ] **8.9 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : rendre inapplicable une génération modifiée pendant lecture ou calcul ; tester avant réception de l'événement. Trancher aussi ce que 3.9 a laissé : aujourd'hui `perimer()` (`sandbox/analyse.ts`) laisse finir le calcul en cours, et un clic sur Analyser juste après la péremption reçoit `occupe` jusqu'à sa fin. Lever le jeton de l'opération non finalisée relancerait tout de suite ; cela change le test « une analyse lente d'Alert puis la sélection de Button ».
 
@@ -159,3 +159,13 @@ Une page qui n'est plus écoutée n'envoie rien, et son retour ne rend pas ce qu
 Limite : un `page.on` qui lève est signalé à chaque tentative, donc une page jamais chargée ajoute une interruption par demande d'analyse.
 
 Preuves : `journal.test.ts` (pages voulues, débordement) et `peremptionDeLAnalyse.test.ts` (retour sur la page A après une analyse sur B, page restée écoutée, débordement).
+
+## Analyser et Actualiser (8.7)
+
+Le message `analyser` porte `intention: 'analyser' | 'actualiser'` ; absente, elle vaut `analyser`. Le bouton du mode Composant est le même sous les deux noms : `barre.ts` envoie `actualiser` quand une analyse existe et ne calcule plus (périmée comprise), `analyser` sinon. `app.analyser(intention)` la range dans le message.
+
+Le sandbox lit l'intention par `intentionDe` et décide par `reutilisationPermise(demande)`, le point que le lot 9 lira. Aujourd'hui, la seule mémoire entre demandes est la lecture des libraries anticipée à la sélection : une demande `actualiser` l'abandonne (`abandonnerLesLibrariesAnticipees`) avant tout et relit. Les inventaires de la demande, les mémoires de `ressources.ts` et les autres résultats meurent déjà avec la demande. Aucune mémoire n'est créée.
+
+Limite : une sélection suivante relance l'anticipation, que la prochaine demande `analyser` reprend.
+
+Preuves : `lectureAnticipeeDesLibraries.test.ts` (Analyser reprend la lecture finie ou en cours, Actualiser relit sans compteur de reprise ; défaut `analyser`) et `intentionDAnalyseDeLInterface.test.ts` (le bouton envoie `analyser`, puis `actualiser` après une analyse ou une péremption). Altération : sans l'abandon, le premier test échoue.

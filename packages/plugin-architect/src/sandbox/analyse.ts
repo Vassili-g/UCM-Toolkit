@@ -48,11 +48,11 @@ import { sujetDe, type PortDuComposant } from '../lectureDuComposant';
 import { lireLaLibraryRangee } from '../ecriture/configuration';
 import { lireLesIgnores, separerLesIgnores } from '../ecriture/ignores';
 import type { NiveauDAccessibilite } from '../messages/configuration';
-import type { CauseDePeremption, DemandeDAnalyse, StatutDAnalyse, PhaseDAnalyse, ProgressionDAnalyse } from '../messages/analyse';
+import type { CauseDePeremption, DemandeDAnalyse, IntentionDAnalyse, StatutDAnalyse, PhaseDAnalyse, ProgressionDAnalyse } from '../messages/analyse';
 import type { IdentiteDAnalyse, OrigineDeSelection } from '../messages/commun';
 import { constatsDeRegles, lireLesRegles, retenirLesModeles, type ReleveDesRegles } from '../regles';
 import { lireLeReleve, type IssueDuReleve } from '../releveDuComposant';
-import { lireLesLibrariesAuClic } from './anticipation';
+import { abandonnerLesLibrariesAnticipees, lireLesLibrariesAuClic } from './anticipation';
 import { capturerSiDemande } from './capture';
 import { lireLaDeclaration } from './commun';
 import { retenirLesLiaisons } from './bibliotheque';
@@ -597,11 +597,22 @@ function bloquant(message: string): Constat {
   return { id: 'export:arret', code: 'C42', type: 'bloquant', famille: 'export', variants: [], layers: [], faits: { message } };
 }
 
+/** L'intention d'une demande ; un ancien émetteur n'en envoie pas et demande un Analyser. */
+export const intentionDe = (demande: Extract<DemandeDAnalyse, { type: 'analyser' }>): IntentionDAnalyse => demande.intention ?? 'analyser';
+
+/**
+ * Vrai quand la demande peut reprendre un résultat d'une demande précédente, après validation. Actualiser n'en reprend aucun.
+ * Point unique : toute mémoire entre demandes se branche ici, et seulement ici.
+ */
+export const reutilisationPermise = (demande: Extract<DemandeDAnalyse, { type: 'analyser' }>): boolean => intentionDe(demande) === 'analyser';
+
 async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract<DemandeDAnalyse, { type: 'analyser' }>, optionsDeCooperation: Omit<OptionsDeCooperation, 'jeton'>): Promise<void> {
   if (operation) {
     contexte.envoyer({ type: 'occupe', analyse: await operation.identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}) });
     return;
   }
+  // Seule mémoire entre demandes aujourd'hui : les libraries lues à la sélection. Actualiser les abandonne et relit.
+  if (!reutilisationPermise(demande)) abandonnerLesLibrariesAnticipees();
   const reception = Date.now();
   let connaitre!: (identite: IdentiteDAnalyse) => void;
   const courant: Operation = { identite: new Promise((resolve) => { connaitre = resolve; }), connue: null, jeton: { leve: false } };

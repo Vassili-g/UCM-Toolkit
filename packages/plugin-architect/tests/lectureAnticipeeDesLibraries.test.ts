@@ -10,8 +10,8 @@ import { lireLesLibraries } from 'ucm-plugin-socle/src/bibliotheque';
 import type { ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 
 import type { PluginMessage } from '../src/messages';
-import { catalogueDeFigma, reinitialiserLAnalyse, traiterAvec, type Lecteurs } from '../src/sandbox/analyse';
-import { abandonnerLesLibrariesAnticipees, anticiperLesLibraries, lireLesLibrariesAuClic, RECENCE_DE_L_ANTICIPATION_MS } from '../src/sandbox/anticipation';
+import { catalogueDeFigma, intentionDe, reinitialiserLAnalyse, reutilisationPermise, traiterAvec, type Lecteurs } from '../src/sandbox/analyse';
+import { abandonnerLesLibrariesAnticipees, anticiperLesLibraries, lireLesLibrariesAuClic, RECENCE_DE_L_ANTICIPATION_MS, uneLectureAnticipeeExiste } from '../src/sandbox/anticipation';
 import { traiter as traiterLeComposant } from '../src/sandbox/composant';
 import { fermerLaMesure, ouvrirLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import type { Contexte } from '../src/sandbox/contexte';
@@ -391,4 +391,47 @@ test('la sortie de l’analyse est celle de l’analyse sans anticipation, que l
   assert.equal(sans.catalogue?.library?.nom, 'Intencial');
   assert.deepEqual(await sortie('identique'), sans);
   assert.deepEqual(await sortie('changee'), sans);
+});
+
+/* 8.7 : Actualiser ne reprend aucune lecture d'une demande précédente. */
+
+test('l’intention d’une demande est Analyser par défaut, et seul Analyser permet la réutilisation', () => {
+  assert.equal(intentionDe({ type: 'analyser' }), 'analyser');
+  assert.equal(reutilisationPermise({ type: 'analyser' }), true);
+  assert.equal(reutilisationPermise({ type: 'analyser', intention: 'analyser' }), true);
+  assert.equal(reutilisationPermise({ type: 'analyser', intention: 'actualiser' }), false);
+});
+
+test('Actualiser abandonne la lecture anticipée et relit ; Analyser la reprend', async () => {
+  const demander = async (intention: 'analyser' | 'actualiser', fini: boolean) => {
+    abandonnerLesLibrariesAnticipees();
+    reinitialiserLAnalyse();
+    const journal = neuf();
+    const figma = figmaDe(journal, bibliothequeDe(), { delai: fini ? 0 : 30 });
+    anticiperLesLibraries(figma);
+    if (fini) await attendreLaFin(journal);
+    const { contexte, envoyes } = contexteDe(figma);
+    const lecteurs: Lecteurs = { ...lectures(journal, false, releveLent(journal, 5)), bibliotheques: (ctx, cooperation) => lireLesLibrariesAuClic(ctx.figma, cooperation) };
+    await traiterAvec(lecteurs)({ type: 'analyser', intention, mesurer: true }, contexte);
+    const finale = envoyes.find((m): m is Extract<PluginMessage, { type: 'analyse' }> => m.type === 'analyse')!;
+    return { journal, compteurs: finale.mesure!.compteurs, anticipee: uneLectureAnticipeeExiste(figma), catalogue: finale.statut };
+  };
+  // Lecture anticipée finie : Analyser la vérifie et la reprend, Actualiser ne la consulte pas.
+  const reprise = await demander('analyser', true);
+  assert.equal(reprise.compteurs.librariesAnticipeesReprises, 1);
+  assert.equal(reprise.anticipee, true);
+  const relue = await demander('actualiser', true);
+  assert.equal(relue.compteurs.librariesAnticipeesReprises, undefined);
+  assert.equal(relue.compteurs.librariesAnticipeesRelues, undefined);
+  assert.equal(relue.compteurs.msVerificationDesLibraries, undefined);
+  assert.equal(relue.anticipee, false);
+  assert.equal(relue.journal.inventaires, 2, 'l’anticipation, puis la relecture de la demande');
+  // Lecture anticipée en cours : Analyser l'attend, Actualiser lit pour son compte.
+  const attendue = await demander('analyser', false);
+  assert.equal(attendue.journal.inventaires, 1);
+  assert.equal(attendue.compteurs.librariesAnticipeesReprises, 1);
+  const actualisee = await demander('actualiser', false);
+  assert.equal(actualisee.journal.inventaires, 2);
+  assert.equal(actualisee.compteurs.librariesAnticipeesReprises, undefined);
+  assert.equal(actualisee.catalogue, 'complete');
 });

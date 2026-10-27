@@ -7,6 +7,7 @@ import { clesDesAncetres, segmentsDeGroupe, type NoeudDeGroupe } from '../groupe
 import { TAILLE_COMPOSANT_PANNEAU_OUVERT, TAILLE_ETROITE, type Disposition } from '../fenetre';
 import type { Preferences } from '../preferences';
 import { contexteDeColonne, type Resultat } from '../resolution';
+import type { IntentionDAnalyse } from '../messages/analyse';
 import type { Constat } from '../messages/commun';
 import { analyseApplicable, calculEnCours, noterLEnvoi, noterLaDemandeDAnalyse, demandeDAnalyseEnCours } from './composant/analyse';
 import type { Etat, Filtres } from './etat';
@@ -74,8 +75,8 @@ export interface Application {
   /** Passe de l'explorateur de tokens à la vue composant, ou l'inverse. Le sandbox donne à la fenêtre la taille de la disposition. */
   changerDisposition(disposition: Disposition): void;
   actualiser(): void;
-  /** Lance l'analyse du composant sélectionné. */
-  analyser(): void;
+  /** Lance l'analyse du composant sélectionné ; `actualiser` dit au sandbox de ne reprendre aucun résultat précédent. */
+  analyser(intention?: IntentionDAnalyse): void;
   annulerAnalyse(): void;
   /** Écrit dans Figma les corrections cochées ; `liaisons` compte celles qui lient un layer, pour la ligne d'écriture en cours. Sans effet pendant une écriture ou sur une analyse périmée. */
   appliquer(ids: readonly string[], liaisons: number): void;
@@ -216,13 +217,13 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       versSandbox({ type: 'lire-releve', demande });
       app.rendre(['barre', 'pied', 'table']);
     },
-    analyser() {
+    analyser(intention = 'analyser') {
       if (demandeDAnalyseEnCours(etat) !== null) return;
       const demande = app.nouvelleDemande();
       const mesurer = (globalThis as typeof globalThis & { UCM_ARCHITECT_MESURER?: boolean }).UCM_ARCHITECT_MESURER === true;
       noterLaDemandeDAnalyse(etat, demande, mesurer);
       const capturer = (globalThis as typeof globalThis & { UCM_ARCHITECT_CAPTURER?: boolean }).UCM_ARCHITECT_CAPTURER === true;
-      versSandbox({ type: 'analyser', demande, ...(mesurer ? { mesurer: true } : {}), ...(capturer ? { capturer: true } : {}) });
+      versSandbox({ type: 'analyser', demande, intention, ...(mesurer ? { mesurer: true } : {}), ...(capturer ? { capturer: true } : {}) });
       app.rendre(['vue', 'barre']);
     },
     annulerAnalyse() {

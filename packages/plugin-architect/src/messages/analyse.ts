@@ -19,8 +19,14 @@ export type PhaseDAnalyse = 'sujet' | 'releve' | 'catalogue' | 'imbriques' | 'st
 export type ProgressionDAnalyse = { phase: PhaseDAnalyse; fraction: number; fait?: number; total?: number };
 export type RenduDAnalyse = 'premier-affichage' | 'premiers-constats' | 'resultat-final';
 
+/**
+ * Ce que le designer a demandé. Analyser autorise la réutilisation après validation ; Actualiser contourne les résultats des demandes
+ * précédentes et réacquiert les entrées. Absente, la demande est un Analyser.
+ */
+export type IntentionDAnalyse = 'analyser' | 'actualiser';
+
 export type DemandeDAnalyse =
-  | { type: 'analyser'; demande?: number; mesurer?: boolean; capturer?: boolean }
+  | { type: 'analyser'; demande?: number; intention?: IntentionDAnalyse; mesurer?: boolean; capturer?: boolean }
   | { type: 'annuler-analyse'; analyse?: IdentiteDAnalyse; demande?: number }
   | { type: 'analyse-rendue'; demande: number; analyse: IdentiteDAnalyse; rendu: RenduDAnalyse; depuisClicMs: number; receptionAuRenduMs: number };
 

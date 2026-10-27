@@ -90,7 +90,11 @@ export function creerBarre(app: Application): Composant {
   analyser.title = TEXTES.analyserAide;
   const analyserTexte = document.createElement('span');
   analyser.append(analyserTexte);
-  analyser.addEventListener('click', () => app.analyser());
+  // Le bouton se lit Actualiser une fois le composant analysé : c'est alors l'intention qu'il envoie.
+  analyser.addEventListener('click', () => {
+    const analyse = app.etat.analyse;
+    app.analyser(analyse !== null && !calculEnCours(analyse) ? 'actualiser' : 'analyser');
+  });
 
   const constats = document.createElement('button');
   constats.type = 'button';
