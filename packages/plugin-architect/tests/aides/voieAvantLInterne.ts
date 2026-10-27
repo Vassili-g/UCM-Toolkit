@@ -13,7 +13,7 @@ import { modeleDeRegles, restreindreAuParent } from 'ucm-plugin-socle/src/compos
 import type { ContratLu } from 'ucm-plugin-socle/src/composant/template/modele';
 import type { InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { proprietesDuModele, type ReleveDesRegles } from '../../src/regles';
-import { pageDuNoeud, type Lecteurs, type MoteurRetenu } from '../../src/sandbox/analyse';
+import { pageDuNoeud, type Lecteurs } from '../../src/sandbox/analyse';
 
 function clesDeclarees(composant: ComponentNode | ComponentSetNode): ReadonlySet<string> | null {
   const porteur = composant.type === 'COMPONENT' && composant.parent?.type === 'COMPONENT_SET' ? composant.parent : composant;
@@ -52,7 +52,7 @@ export async function lireLesReglesAvant(
 }
 
 /** Les contrats publiés, par résultat interne : l'ancienne voie relit le contrat de la même analyse. */
-const publies = new WeakMap<MoteurRetenu, ComponentExport>();
+const publies = new WeakMap<object, ComponentExport>();
 
 /** Les lecteurs d'avant : le moteur publie, les règles se lisent dans le contrat publié. */
 export const LECTEURS_AVANT: Pick<Lecteurs, 'moteur' | 'regles'> = {

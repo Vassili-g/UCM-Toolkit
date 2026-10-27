@@ -43,6 +43,7 @@ import { acquis, doitEtreRelue, type Couverture, type FaitDeRessource, type Mait
 import { porteeDesChangements, porteeDesChangementsDeStyle, relecturesObligatoires, type AnciensParents, type ChangementDeStyleRecu, type ChangementRecu } from 'ucm-plugin-socle/src/composant/analyse/couverture';
 import { creerLeJournal, type JournalDeChangements, type OrigineDEcriture, type RaisonDInterruption } from 'ucm-plugin-socle/src/composant/analyse/journal';
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
+import { BORNES_DE_RETENTION, type BornesDeRetention } from 'ucm-plugin-socle/src/composant/analyse/retention';
 import { creerLaSession, type EntreeDeSession, type RequeteRetenue, type SessionDAnalyse } from 'ucm-plugin-socle/src/composant/analyse/session';
 import { raisonsDInvalidation, type RaisonDInvalidation } from 'ucm-plugin-socle/src/composant/analyse/invalidations';
 import { ouvrirUneRevision, type RevisionDeTravail } from 'ucm-plugin-socle/src/composant/analyse/revisions';
@@ -112,8 +113,18 @@ interface AnalyseCourante {
 let generation = 0;
 let courante: AnalyseCourante | null = null;
 
-/** Le résultat du moteur tel que la session le retient : sans `pourLaPublication`, qui tient des nœuds Figma. */
-export type MoteurRetenu = Omit<ResultatInterne, 'pourLaPublication'>;
+/**
+ * Le relevé des règles tel que la session le retient : les nœuds Figma de `ReleveDeSource` (conteneur vierge, maître local,
+ * instance source) y sont réduits à leur identifiant. Aucune requête reprise ni validation ne les lit : les règles se relisent
+ * sur la page, et seul `lireLesRegles` lit le scan frais.
+ */
+export type RelevesDeSourceRetenu = { readonly conteneurDuComposant: boolean; readonly conteneurVierge: string | null; readonly maitreLocal: string | null; readonly instanceSource: string | null };
+
+/** Le résultat du moteur tel que la session le retient : sans `pourLaPublication` ni nœud Figma (voir `sansPublication`). */
+export type MoteurRetenu = Omit<ResultatInterne, 'pourLaPublication' | 'rules'> & { rules: Omit<ExtractedRules, 'releve'> & { releve: RelevesDeSourceRetenu } };
+
+/** Ce que la lecture des règles prend du moteur : un résultat interne ou un résultat retenu. */
+export type SurfaceDuMoteurRetenu = Pick<MoteurRetenu, 'props' | 'stateModel' | 'imbriques'>;
 
 /** Un style de texte ou d'effet du jeu, avec sa définition lue par identifiant. */
 export interface StyleDeDependance {
@@ -235,14 +246,33 @@ export function creerLesRequetes(entree: EntreeDeSessionDAnalyse | null, actuell
   };
 }
 
-const session: SessionDAnalyse<SortiesDeSession, RequetesDeSession> = creerLaSession();
+let bornesDeRetention: BornesDeRetention = BORNES_DE_RETENTION;
+
+/** Pour les tests : change les bornes de la session jusqu'à `reinitialiserLAnalyse`. */
+export function fixerLesBornesDeRetention(bornes: Partial<BornesDeRetention>): void {
+  bornesDeRetention = { ...BORNES_DE_RETENTION, ...bornes };
+}
+
+const session: SessionDAnalyse<SortiesDeSession, RequetesDeSession> = creerLaSession({
+  bornes: () => bornesDeRetention,
+  // Les ressources que la validation relit : chacune est une arête entre l'entrée et ce qu'elle suppose de Figma.
+  aretes: ({ sorties: { dependances } }) => dependances ? dependances.collectionsLocales.length + dependances.variablesLocales.length + dependances.styles.length + dependances.maitres.length : 0,
+});
 
 /** La session d'analyse : une entrée par sujet, remplie par les analyses complètes. */
 export function sessionDesAnalyses(): SessionDAnalyse<SortiesDeSession, RequetesDeSession> {
   return session;
 }
 
-const sansPublication = ({ pourLaPublication, ...reste }: ResultatInterne): MoteurRetenu => reste;
+/**
+ * Le résultat du moteur sans `pourLaPublication` et sans les nœuds Figma que `rules.releve` porte. Les doubles de test
+ * du moteur n'ont pas de `rules` : ils passent tels quels.
+ */
+function sansPublication({ pourLaPublication, rules, ...reste }: ResultatInterne): MoteurRetenu {
+  if (!rules) return reste as MoteurRetenu;
+  const { releve } = rules;
+  return { ...reste, rules: { ...rules, releve: { conteneurDuComposant: releve.conteneurDuComposant, conteneurVierge: idDuNoeud(releve.conteneurVierge), maitreLocal: idDuNoeud(releve.maitreLocal), instanceSource: idDuNoeud(releve.instanceSource) } } };
+}
 
 export type RevisionDAnalyse = RevisionDeTravail<SortiesDeSession, RequetesDeSession>;
 
@@ -343,7 +373,7 @@ export interface SortiesRelues {
 }
 
 /** La lecture des règles sur la surface d'un moteur ; `refusee` quand le lecteur a levé. */
-export type RelireLesRegles = (moteur: MoteurRetenu) => Promise<{ readonly regles: ReleveDesRegles | null; readonly refusee: boolean }>;
+export type RelireLesRegles = (moteur: SurfaceDuMoteurRetenu) => Promise<{ readonly regles: ReleveDesRegles | null; readonly refusee: boolean }>;
 
 /**
  * Les maîtres des instances du jeu que le journal couvre sur les `pages` écoutées (`relecturesObligatoires`, 8.2), et
@@ -767,7 +797,7 @@ export interface Lecteurs {
   catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance, inventaires?: InventairesDeLaDemande): Promise<CatalogueDeReference>;
   moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (phase: PhaseDAnalyse) => void, cooperation?: ContexteCooperatif, inventaires?: InventairesDeLaDemande): Promise<ResultatSansPublication>;
   /** Les règles d'usage du composant, lues avec les props, le modèle d'états et les imbriqués du moteur ; sans lecteur, aucun constat C43 ni C45. */
-  regles?(sujet: SujetAAnalyser, interne: MoteurRetenu, contexte: Contexte, inventaires?: InventairesDeLaDemande): Promise<ReleveDesRegles>;
+  regles?(sujet: SujetAAnalyser, interne: SurfaceDuMoteurRetenu, contexte: Contexte, inventaires?: InventairesDeLaDemande): Promise<ReleveDesRegles>;
   /** Ce que le moteur lit hors du relevé et du catalogue, lu avant lui. Sans ce lecteur, aucune demande ne valide ni ne reprend une entrée de session. */
   dependances?(sujet: SujetAAnalyser, contexte: Contexte, inventaires?: InventairesDeLaDemande, cooperation?: ContexteCooperatif): Promise<DependancesDuMoteur>;
   /** Le niveau d'accessibilité rangé ; AA sans lecteur. */
@@ -1213,9 +1243,10 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   try {
     phase('sujet');
     // L'écoute de la page courante précède la première lecture du document : l'inventaire n'est connu qu'après le sujet.
-    // Le journal n'a plus besoin de ce qui précède l'analyse précédente, la seule à retenir un curseur.
+    // Le journal n'a plus besoin de ce qui précède le curseur le plus ancien que la session ou l'analyse précédente retient.
     evaluerLesInvalidations();
-    if (courante) ouvrirLeJournal().oublierAvant(courante.curseur);
+    const plusAncien = Math.min(courante?.curseur ?? Infinity, ...session.sujets().map((sujet) => session.evalueJusqua(sujet) ?? Infinity));
+    if (Number.isFinite(plusAncien)) ouvrirLeJournal().oublierAvant(plusAncien);
     const curseur = ouvrirLeJournal().marquer();
     changementsEnAttente = { noeuds: [], styles: [] };
     contexte.surveillerLeDocument();
@@ -1444,6 +1475,7 @@ export function reinitialiserLAnalyse(): void {
   courante = null;
   changementsEnAttente = null;
   journal = null;
+  bornesDeRetention = BORNES_DE_RETENTION;
   session.vider();
   mesuresEnvoyees.clear();
 }

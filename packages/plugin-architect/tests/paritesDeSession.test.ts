@@ -17,7 +17,7 @@ import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/co
 import type { PluginMessage } from '../src/messages';
 import { modelesDeLAnalyse, type ReleveDesRegles } from '../src/regles';
 import {
-  analyseCourante, correctionsDeLAnalyse, dependancesDeFigma, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDeStyle, surChangementDuDocument, traiterAvec,
+  analyseCourante, correctionsDeLAnalyse, dependancesDeFigma, fixerLesBornesDeRetention, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDeStyle, surChangementDuDocument, traiterAvec,
   type Lecteurs,
 } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
@@ -453,4 +453,84 @@ test('une écriture du document, elle, invalide le sujet entier même quand rien
   const analysee = await mesuree(fichier, appels, 'analyser');
   assert.equal(appels.moteur, 2);
   assert.deepEqual(analysee.reprises, { non: 0, rejouees: 3 });
+});
+
+class FauxNoeud {
+  constructor(readonly id: string) {}
+  async getMainComponentAsync() { return null; }
+}
+
+/** Une valeur que la session ne doit pas porter : fonction, ou objet qui n'est ni simple, ni liste, ni `Map`, ni `Set`. */
+function noeudsFigmaDans(valeur: unknown, chemin: string, vus = new Set<unknown>()): string[] {
+  if (typeof valeur === 'function') return [chemin];
+  if (typeof valeur !== 'object' || valeur === null || vus.has(valeur)) return [];
+  vus.add(valeur);
+  const prototype = Object.getPrototypeOf(valeur) as unknown;
+  if (prototype !== Object.prototype && prototype !== null && !Array.isArray(valeur) && !(valeur instanceof Map) && !(valeur instanceof Set)) return [chemin];
+  const enfants: [string, unknown][] = valeur instanceof Map ? [...valeur].map(([cle, v]) => [String(cle), v])
+    : valeur instanceof Set ? [...valeur].map((v, i) => [String(i), v]) : Object.entries(valeur);
+  return enfants.flatMap(([cle, v]) => noeudsFigmaDans(v, `${chemin}.${cle}`, vus));
+}
+
+test('l’entrée retenue ne porte aucun nœud Figma : les nœuds des règles sont réduits à leur identifiant', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const lecteurs = lecteursDe(fichier, appels);
+  const b = banc(fichier);
+  await traiterAvec({
+    ...lecteurs,
+    moteur: async () => {
+      const interne = moteurDe(fichier) as unknown as Record<string, unknown>;
+      interne.rules = { intent: null, warnings: [], releve: { conteneurDuComposant: false, conteneurVierge: new FauxNoeud('vierge'), maitreLocal: new FauxNoeud('maitre'), instanceSource: null }, aRediger: 0, tagsARediger: [] };
+      interne.pourLaPublication = { noeud: new FauxNoeud('publication') };
+      return { etat: 'calculee', interne: interne as unknown as ResultatInterne };
+    },
+  })({ type: 'analyser', demande: 1 }, b.contexte);
+  const entree = sessionDesAnalyses().entree('Alert');
+  assert.ok(entree);
+  assert.deepEqual(noeudsFigmaDans({ sorties: entree.sorties, requetes: entree.requetes, suivi: entree.suivi }, 'entree'), []);
+  assert.deepEqual(entree.sorties.moteur.rules.releve, { conteneurDuComposant: false, conteneurVierge: 'vierge', maitreLocal: 'maitre', instanceSource: null });
+  assert.equal('pourLaPublication' in entree.sorties.moteur, false);
+});
+
+/** Les lecteurs d'un sujet nommé : le même jeu, une clé de sujet différente. */
+const lecteursDuSujet = (cle: string, fichier: Fichier, appels: { moteur: number }): Lecteurs => ({
+  ...lecteursDe(fichier, appels),
+  sujet: async () => ({ cle, noeud: figmaDe(fichier).jeu as never, noeuds: ['jeu-Alert', 'v-Alert', ...fichier.layers.map(({ id }) => id)], couverture: { instances: 'descendues', complete: true, trous: [] } }),
+});
+
+async function analyserLeSujet(cle: string, fichier: Fichier, appels: { moteur: number }) {
+  const b = banc(fichier);
+  await traiterAvec(lecteursDuSujet(cle, fichier, appels))({ type: 'analyser', demande: 1 }, b.contexte);
+  return b;
+}
+
+test('au-delà de la borne de sujets, le moins récent est évincé avec sa marque, et le sujet analysé reste', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  fixerLesBornesDeRetention({ sujets: 2 });
+  await analyserLeSujet('S1', fichier, appels);
+  sessionDesAnalyses().invalider('S1', ['style']);
+  await analyserLeSujet('S2', fichier, appels);
+  await analyserLeSujet('S3', fichier, appels);
+  assert.deepEqual(sessionDesAnalyses().sujets(), ['S3', 'S2']);
+  assert.equal(sessionDesAnalyses().entree('S1'), null);
+  assert.deepEqual(sessionDesAnalyses().invalidations('S1'), [], 'la marque du sujet évincé est retirée avec lui');
+  assert.equal(sessionDesAnalyses().evalueJusqua('S1'), null);
+});
+
+test('un sujet qui dépasse seul la borne s’affiche en entier, n’est pas retenu et perd son entrée précédente', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await analyserLeSujet('S1', fichier, appels);
+  await analyserLeSujet('S2', fichier, appels);
+  assert.deepEqual(sessionDesAnalyses().sujets(), ['S2', 'S1']);
+  fixerLesBornesDeRetention({ octets: 100 });
+  const b = await analyserLeSujet('S1', fichier, appels);
+  assert.equal(b.envoyes.some((message) => message.type === 'analyse' && message.statut === 'complete'), true, 'l’analyse va jusqu’au bout');
+  assert.equal(sessionDesAnalyses().entree('S1'), null);
+  assert.equal(appels.moteur, 2, 'cette analyse a repris l’entrée d’avant, que sa promotion retire ensuite');
+  await analyserLeSujet('S1', fichier, appels);
+  assert.equal(appels.moteur, 3, 'sans entrée retenue, le sujet se calcule en entier à chaque fois');
+  assert.deepEqual(sessionDesAnalyses().sujets(), ['S2'], 'les autres sujets restent');
 });

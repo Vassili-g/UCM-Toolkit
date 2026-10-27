@@ -20,8 +20,8 @@ const contenu = (releve: string, curseur = 0) => ({
 test('retenir range une entrée par sujet et la remplace sans en garder l’ancienne', () => {
   const session = creerLaSession<Sorties, Requetes>();
   assert.equal(session.entree('A'), null);
-  const premiere = session.retenir('A', contenu('un'));
-  const seconde = session.retenir('A', contenu('deux', 5));
+  const premiere = session.retenir('A', contenu('un'))!;
+  const seconde = session.retenir('A', contenu('deux', 5))!;
   assert.equal(session.entree('A'), seconde);
   assert.equal(seconde.sorties.releve, 'deux');
   assert.equal(seconde.suivi.curseur, 5);
@@ -52,7 +52,7 @@ test('oublier retire un sujet et vider les retire tous', () => {
 
 test('l’entrée ne porte que sujet, rang, sorties, requêtes et suivi', () => {
   const session = creerLaSession<Sorties, Requetes>();
-  const entree = session.retenir('A', { ...contenu('a'), corrections: new Map(), reponses: {}, generation: 3 } as never);
+  const entree = session.retenir('A', { ...contenu('a'), corrections: new Map(), reponses: {}, generation: 3 } as never)!;
   assert.deepEqual(Object.keys(entree).sort(), ['rang', 'requetes', 'sorties', 'suivi', 'sujet']);
 });
 

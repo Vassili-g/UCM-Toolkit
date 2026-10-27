@@ -17,9 +17,12 @@
  * périmer la demande suivante ne l'efface pas.
  *
  * Le module ne connaît aucun type Figma ni aucun type du kit : l'appelant donne les types des sorties et des requêtes.
- * Il ne décide de rien (promotion, validation, éviction viennent après) ; il range et rend.
+ * Il ne décide ni de la promotion ni de la validation ; il range et rend, dans les bornes de `retention.ts`. Ranger un sujet
+ * hors des bornes évince les sujets les moins récents, jamais celui qu'on range. Un sujet qui dépasse seul une borne n'est pas
+ * retenu, et son entrée précédente est retirée avec sa marque d'invalidation : l'appelant l'analyse sans rétention.
  */
 import type { Couverture } from './faits';
+import { BORNES_DE_RETENTION, estimerLesOctets, type BornesDeRetention } from './retention';
 
 /** Une requête pure déjà calculée : son résultat et les noms des `sorties` ou paramètres qu'elle a lus. */
 export interface RequeteRetenue<R, Nom extends string = string> {
@@ -58,8 +61,13 @@ export interface EntreeDeSession<Sorties extends object, Requetes extends Record
 }
 
 export interface SessionDAnalyse<Sorties extends object, Requetes extends Record<string, RequeteRetenue<unknown>>> {
-  /** Range le contenu du sujet, en remplaçant l'entrée précédente. */
-  retenir(sujet: string, contenu: ContenuDeSession<Sorties, Requetes>): EntreeDeSession<Sorties, Requetes>;
+  /**
+   * Range le contenu du sujet, en remplaçant l'entrée précédente, et évince au besoin les sujets les moins récents pour
+   * tenir les bornes. `null` quand le contenu dépasse seul une borne : rien n'est retenu et l'entrée précédente est retirée.
+   */
+  retenir(sujet: string, contenu: ContenuDeSession<Sorties, Requetes>): EntreeDeSession<Sorties, Requetes> | null;
+  /** Ce que la session retient : sujets, octets estimés, arêtes. */
+  mesure(): { readonly sujets: number; readonly octets: number; readonly aretes: number };
   /** L'entrée du sujet, `null` sans entrée. Lire ne change pas son rang. */
   entree(sujet: string): EntreeDeSession<Sorties, Requetes> | null;
   /** Ajoute des raisons d'invalidation à l'entrée du sujet ; sans effet sans entrée. */
@@ -83,18 +91,56 @@ interface Marques {
   evalueJusqua: number;
 }
 
-export function creerLaSession<Sorties extends object, Requetes extends Record<string, RequeteRetenue<unknown>>>(): SessionDAnalyse<Sorties, Requetes> {
+export interface OptionsDeSession<Sorties extends object, Requetes extends Record<string, RequeteRetenue<unknown>>> {
+  /** Les bornes en vigueur, relues à chaque rangement ; `BORNES_DE_RETENTION` par défaut. */
+  readonly bornes?: () => BornesDeRetention;
+  /** Les arêtes que le contenu porte en plus des entrées de ses requêtes (ressources de dépendance retenues). */
+  readonly aretes?: (contenu: ContenuDeSession<Sorties, Requetes>) => number;
+}
+
+export function creerLaSession<Sorties extends object, Requetes extends Record<string, RequeteRetenue<unknown>>>(
+  options: OptionsDeSession<Sorties, Requetes> = {},
+): SessionDAnalyse<Sorties, Requetes> {
   const entrees = new Map<string, EntreeDeSession<Sorties, Requetes>>();
   const marques = new Map<string, Marques>();
+  const couts = new Map<string, { octets: number; aretes: number }>();
+  const bornes = options.bornes ?? (() => BORNES_DE_RETENTION);
   let rang = 0;
+  const retirer = (sujet: string): boolean => {
+    marques.delete(sujet);
+    couts.delete(sujet);
+    return entrees.delete(sujet);
+  };
+  const total = (): { sujets: number; octets: number; aretes: number } => {
+    let octets = 0;
+    let aretes = 0;
+    for (const cout of couts.values()) { octets += cout.octets; aretes += cout.aretes; }
+    return { sujets: entrees.size, octets, aretes };
+  };
   return {
-    retenir(sujet, { sorties, requetes, suivi }) {
+    retenir(sujet, contenu) {
+      const { sorties, requetes, suivi } = contenu;
+      const limites = bornes();
+      const octets = estimerLesOctets({ sorties, requetes, suivi }, limites.octets);
+      const aretes = Object.values(requetes).reduce((somme, { entrees: lues }) => somme + lues.length, 0) + (options.aretes?.(contenu) ?? 0);
+      if (octets > limites.octets || aretes > limites.aretes || limites.sujets < 1) {
+        retirer(sujet);
+        return null;
+      }
       rang += 1;
       const entree = { sujet, rang, sorties, requetes, suivi };
       entrees.set(sujet, entree);
       marques.set(sujet, { raisons: new Set(), evalueJusqua: suivi.curseur });
+      couts.set(sujet, { octets, aretes });
+      // Les moins récents partent d'abord ; le sujet rangé tient seul dans les bornes, la boucle s'arrête donc.
+      for (const { sujet: ancien } of [...entrees.values()].sort((a, b) => a.rang - b.rang)) {
+        const courant = total();
+        if (courant.sujets <= limites.sujets && courant.octets <= limites.octets && courant.aretes <= limites.aretes) break;
+        if (ancien !== sujet) retirer(ancien);
+      }
       return entree;
     },
+    mesure: total,
     entree: (sujet) => entrees.get(sujet) ?? null,
     invalider(sujet, raisons) {
       for (const raison of raisons) marques.get(sujet)?.raisons.add(raison);
@@ -105,14 +151,12 @@ export function creerLaSession<Sorties extends object, Requetes extends Record<s
       const m = marques.get(sujet);
       if (m) m.evalueJusqua = Math.max(m.evalueJusqua, curseur);
     },
-    oublier(sujet) {
-      marques.delete(sujet);
-      return entrees.delete(sujet);
-    },
+    oublier: retirer,
     sujets: () => [...entrees.values()].sort((a, b) => b.rang - a.rang).map(({ sujet }) => sujet),
     vider() {
       entrees.clear();
       marques.clear();
+      couts.clear();
     },
   };
 }
