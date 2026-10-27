@@ -29,7 +29,7 @@ function monter() {
     else bouton.clic();
     return envois.find((m): m is Extract<UiRequest, { type: 'analyser' }> => m.type === 'analyser')!;
   };
-  return { etat, cliquer, bouton };
+  return { etat, cliquer, bouton, barre };
 }
 
 test('avant toute analyse, le bouton envoie Analyser', () => {
@@ -64,4 +64,18 @@ test('une analyse périmée se reprend par le clic et se reconstruit par Maj+cli
 test('avant toute analyse, Maj+clic envoie aussi analyser', () => {
   const { cliquer } = monter();
   assert.equal(cliquer(true).intention, 'analyser');
+});
+
+test('une autre sélection relit le bouton Analyser, un variant du jeu analysé le garde Actualiser', () => {
+  const monte = monter();
+  monte.etat.composant.selection = { id: 'Alert', portee: 'Alert' };
+  recevoirUneAnalyse(monte.etat, { type: 'analyse-commencee', analyse: IDENTITE });
+  recevoirUneAnalyse(monte.etat, { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: [], lecture: null, variants: [{ id: 'v1', nom: 'Type=Info' }], sansTokens: false });
+  const libelle = () => { monte.barre.mettreAJour?.(); return String(monte.bouton.textContent); };
+  assert.equal(libelle(), 'Actualiser');
+  monte.etat.composant.selection = { id: 'v1', portee: 'calque' };
+  assert.equal(libelle(), 'Actualiser');
+  monte.etat.composant.selection = { id: 'Button', portee: 'Button' };
+  assert.equal(libelle(), 'Analyser');
+  assert.equal(monte.cliquer(true).intention, 'analyser');
 });

@@ -11,7 +11,7 @@ import { createSettingsButton } from 'ucm-plugin-socle/src/ui/EnTete';
 import type { Disposition } from '../fenetre';
 import type { Constat } from '../messages/commun';
 import type { Application, Composant } from './application';
-import { aDesLiaisonsPreparees, calculEnCours, aPreparer, libraryAChoisir, tonLePlusGrave } from './composant/analyse';
+import { aDesLiaisonsPreparees, calculEnCours, aPreparer, libraryAChoisir, selectionSurLAnalyse, tonLePlusGrave } from './composant/analyse';
 import { TEXTES } from './textes';
 import { estHorsUcm } from './vues/horsUcm';
 
@@ -94,7 +94,7 @@ export function creerBarre(app: Application): Composant {
   // Maj+clic force la reconstruction complète, qui ignore tout résultat retenu.
   analyser.addEventListener('click', (evenement) => {
     const analyse = app.etat.analyse;
-    const dejaAnalyse = analyse !== null && !calculEnCours(analyse);
+    const dejaAnalyse = analyse !== null && !calculEnCours(analyse) && selectionSurLAnalyse(analyse, app.etat.composant.selection?.id ?? null);
     app.analyser(dejaAnalyse && (evenement as MouseEvent).shiftKey === true ? 'actualiser' : 'analyser');
   });
 
@@ -126,7 +126,8 @@ export function creerBarre(app: Application): Composant {
       constats.hidden = !composant;
       const analyse = etat.analyse;
       const analyseEnCours = analyse !== null && calculEnCours(analyse);
-      const dejaAnalyse = analyse !== null && !analyseEnCours;
+      // Une autre sélection appelle une nouvelle analyse : le bouton se relit Analyser, même si le panneau garde l'ancienne.
+      const dejaAnalyse = analyse !== null && !analyseEnCours && selectionSurLAnalyse(analyse, etat.composant.selection?.id ?? null);
       analyser.classList.toggle('btn-primary', !dejaAnalyse);
       analyser.classList.toggle('btn-secondary', dejaAnalyse);
       analyserTexte.textContent = dejaAnalyse ? TEXTES.actualiser : TEXTES.analyser;

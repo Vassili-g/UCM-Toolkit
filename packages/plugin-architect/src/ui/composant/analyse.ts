@@ -67,6 +67,17 @@ export interface AnalyseRecue {
   readonly recueA: number;
   /** Du clic sur Analyser au résultat final, horloge de l'interface ; absente sans clic retenu pour cette demande. */
   readonly dureeMs?: number;
+  /** Le sujet que la sélection désignait à l'ouverture de l'analyse ; absent d'une analyse ouverte sans sélection connue. */
+  readonly selection?: string;
+}
+
+/**
+ * Vrai quand la sélection courante désigne encore le jeu analysé : le sujet sélectionné à l'ouverture, ou l'un des variants
+ * lus. Sans sélection connue, rien ne dit qu'elle a changé.
+ */
+export function selectionSurLAnalyse(analyse: Pick<AnalyseRecue, 'selection' | 'variants'>, selection: string | null): boolean {
+  if (selection === null || analyse.selection === undefined) return true;
+  return selection === analyse.selection || analyse.variants.some((variant) => variant.id === selection);
 }
 
 const memeIdentite = (a: IdentiteDAnalyse, b: IdentiteDAnalyse): boolean => a.sujet === b.sujet && a.generation === b.generation;
@@ -91,6 +102,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
     etat.analyse = {
       identite: message.analyse, statut: 'en-cours', constats: [], tous: [], ignores: [], repondues: {}, variants: [], lecture: null, sansTokens: false, progression: null,
       perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: Date.now(),
+      ...(etat.composant.selection ? { selection: etat.composant.selection.id } : {}),
     };
     return;
   }
@@ -102,6 +114,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       identite: message.analyse, statut: provisoire ? 'provisoire' : message.statut, constats: visibles(message.constats, ignores), tous: message.constats, ignores, repondues: {}, variants: message.variants,
       lecture: message.lecture, sansTokens: provisoire ? false : message.sansTokens, progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: Date.now(),
       ...(dureeMs !== undefined ? { dureeMs } : {}),
+      ...(etat.composant.selection ? { selection: etat.composant.selection.id } : {}),
     };
     return;
   }
