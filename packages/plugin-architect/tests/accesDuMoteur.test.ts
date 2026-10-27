@@ -1,12 +1,13 @@
 /**
- * La fermeture des maîtres (16.3), éprouvée avec le vrai moteur. Un monde fabriqué place sous le jeu `Carte` une instance
+ * La fermeture des maîtres (16.3) et la relecture des maîtres distants (16.4), éprouvées avec le vrai moteur. Un monde fabriqué place sous le jeu `Carte` une instance
  * de `Bouton`, maître local contracté, qui embarque une instance d'`Icone` (contractée aussi), elle-même porteuse d'une
  * instance de `Point`, et une instance de `Fleche`. Le moteur traverse ces maîtres par `indexContractedNames`,
  * `indexMasterInstances`, `scanComposedInstances` et `findWrapperReference`.
  *
  * L'enregistrement des accès range chaque lecture du moteur dans la région qui la couvre au second clic. Sur le monde
  * tout local, le second Analyser reprend le moteur et affiche ce qu'Actualiser affiche ; une mutation d'un maître
- * imbriqué, avec son événement, relance le moteur.
+ * imbriqué, avec son événement, relance le moteur. Avec `Fleche` distante, sa relecture laisse reprendre le moteur, et le
+ * calque de son instance changé sans événement le relance.
  */
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
@@ -41,7 +42,7 @@ const regles = (id: string, nom: string) => noeud(id, 'INSTANCE', { name: '.comp
 ]);
 
 function fabriquerLeMondeImbrique({ flecheDistante }: { flecheDistante: boolean }) {
-  const etat = { trace: 'rond' };
+  const etat = { trace: 'rond', trait: 'trait' };
   const point = noeud('point', 'COMPONENT', { name: 'Point', key: 'cle-point', remote: false, visible: true, absoluteBoundingBox: boite(0, 0, 4, 4) }, [noeud('point-fond', 'RECTANGLE', { visible: true, fills: [noir] })]);
   const icone = jeuDeVariants('icone', 'Icone', [
     noeud('icone-trace', 'VECTOR', { visible: true, get name() { return `trace ${etat.trace}`; }, fills: [noir] }),
@@ -51,7 +52,8 @@ function fabriquerLeMondeImbrique({ flecheDistante }: { flecheDistante: boolean 
   const bouton = jeuDeVariants('bouton', 'Bouton', [
     noeud('bouton-texte', 'TEXT', { name: 'Libellé', visible: true, characters: 'Valider', fontSize: 14, textStyleId: '', fills: [noir], getStyledTextSegments: () => [] }),
     instanceDe('bouton-icone', 'Icone', () => icone.variant, [noeud('bouton-icone-trace', 'VECTOR', { visible: true, fills: [noir] })]),
-    instanceDe('bouton-fleche', 'Fleche', () => fleche, [noeud('bouton-fleche-trait', 'VECTOR', { visible: true, fills: [noir] })]),
+    // Le calque de l'instance suit son maître : une mise à jour de library le change sans événement.
+    instanceDe('bouton-fleche', 'Fleche', () => fleche, [noeud('bouton-fleche-trait', 'VECTOR', { visible: true, get name() { return etat.trait; }, fills: [noir] })]),
   ], { layoutMode: 'HORIZONTAL', itemSpacing: 4 });
   const variantDeCarte = (id: string, etatDeCarte: string) => noeud(id, 'COMPONENT', { name: `Etat=${etatDeCarte}`, visible: true, absoluteBoundingBox: boite(0, 0, 120, 40), variantProperties: { Etat: etatDeCarte }, fills: [noir] }, [
     instanceDe(`${id}-bouton`, 'Bouton', () => bouton.variant, [noeud(`${id}-bouton-texte`, 'TEXT', { name: 'Libellé', visible: true, characters: 'Valider', textStyleId: '', getStyledTextSegments: () => [] })]),
@@ -107,7 +109,7 @@ test('chaque nœud que le moteur lit à travers les maîtres imbriqués est dans
   const bilan = await enregistrerLesAccesDuMoteur(await capturer(fabriquerLeMondeImbrique({ flecheDistante: true })));
   assert.deepEqual(bilan.horsCouverture, []);
   assert.ok(bilan.noeuds.fermeture > 0 && bilan.noeuds.jeu > 0);
-  assert.deepEqual(Object.keys(bilan.distants), ['fleche'], 'seul le maître distant reste hors du journal, objet de 16.4');
+  assert.deepEqual(Object.keys(bilan.distants), ['fleche'], 'seul le maître distant reste hors du journal : ses champs lus sont relus');
   assert.equal(bilan.dependances.maitresLus, 5, 'deux instances du jeu, puis les trois instances sous Bouton et Icone');
 });
 
@@ -149,8 +151,12 @@ test('sur des maîtres imbriqués tous locaux, le second Analyser reprend le mot
   assert.equal(apres.affiche, (await demander(monde, 'actualiser')).affiche);
 });
 
-test('sur le même monde, un maître imbriqué distant refuse la reprise par non-couvert:maitres, sans le refus des instances sous un maître', async () => {
+test('sur le même monde, un maître imbriqué distant relu laisse reprendre le moteur ; le calque de son instance changé sans événement le relance, affichage égal à Actualiser', async () => {
   const monde = fabriquerLeMondeImbrique({ flecheDistante: true });
   await demander(monde, 'analyser');
-  assert.deepEqual((await demander(monde, 'analyser')).moteur, ['nonReprise:non-couvert:maitres']);
+  assert.deepEqual((await demander(monde, 'analyser')).moteur, ['repriseDuMoteur']);
+  monde.etat.trait = 'trait épais';
+  const apres = await demander(monde, 'analyser');
+  assert.deepEqual(apres.moteur, ['nonReprise:different:dependances']);
+  assert.equal(apres.affiche, (await demander(monde, 'actualiser')).affiche);
 });

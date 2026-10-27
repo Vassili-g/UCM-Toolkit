@@ -14,6 +14,8 @@ export interface Fichier {
   maitre: { contenu: string; remote: boolean; imbrique: boolean; liaison: string };
   /** Le maître de l'instance sous le maître : son identifiant (vide quand il ne se lit pas), son contenu, son origine, sa page et la liaison de son calque. */
   imbrique: { id: string; contenu: string; remote: boolean; page: string; liaison: string };
+  /** Le nom du calque sous l'instance `icone` du jeu : il suit le maître de l'instance. */
+  calqueDInstance: string;
   /** Les noms de composant que les conteneurs de règles de la page écrivent. */
   nomsDeLaPage: string[];
   style: { nom: string; taille: number; remote: boolean };
@@ -44,6 +46,7 @@ export function fichierDeDepart(): Fichier {
     ],
     maitre: { contenu: 'rond', remote: false, imbrique: false, liaison: 'VariableID:1' },
     imbrique: { id: 'M:bouton', contenu: 'plein', remote: false, page: 'page-1', liaison: 'VariableID:1' },
+    calqueDInstance: 'trait',
     nomsDeLaPage: ['icon'],
     style: { nom: 'Body', taille: 14, remote: false },
   };

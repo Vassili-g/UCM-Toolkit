@@ -1,5 +1,5 @@
 /**
- * L'enregistrement des accès du moteur (16.3) : sur le double d'une capture, chaque lecture que le lecteur `moteur` fait
+ * L'enregistrement des accès du moteur (16.3, 16.4) : sur le double d'une capture, chaque lecture que le lecteur `moteur` fait
  * d'un nœud se range dans la région qui la couvre au second clic. Une lecture hors de ces régions serait un résultat repris
  * sans que rien ne l'ait revu.
  *
@@ -8,10 +8,14 @@
  * - `fermeture` : les maîtres locaux suivis et leurs descendants (`suivi.maitres`), suivis au journal. Un champ de liaison
  *   (`CHAMPS_DE_LIAISON`) n'y est couvert que si `dependancesDeFigma` le relit sur le même nœud : la matrice de couverture
  *   du socle ne lui reconnaît aucun événement ;
- * - `distant` : un maître distant de la fermeture, que la validation refuse jusqu'à 16.4, qui en relira les champs ;
+ * - `distant` : un maître distant de la fermeture. Chaque champ lu doit être relu par `dependancesDeFigma` sur le même
+ *   nœud : une mise à jour de library le change sans événement ;
  * - `comparee` : un couple nœud et champ que `dependancesDeFigma`, lancé seul sur le même état, lit aussi hors des deux
  *   premières régions. Tout ce que ce lecteur lit là aboutit dans une sortie comparée : scan des règles, noms de la page,
  *   page et origine d'un maître.
+ *
+ * Dans le jeu et la fermeture, un nœud sous une instance dont le maître n'est pas suivi (`sousUneInstance`) suit la même
+ * règle que le maître distant : son contenu suit le maître sans `nodechange`.
  *
  * Le moteur et les dépendances se rejouent chacun seul, mémoire des pages vidée avant : une lecture d'un autre lecteur ne
  * s'attribue à aucun des deux, et l'index des noms contractés relit ses pages.
@@ -34,10 +38,7 @@ export interface BilanDesAcces {
   readonly horsCouverture: readonly string[];
   /** Les champs lus sur chaque maître distant, par identifiant. */
   readonly distants: Record<string, readonly string[]>;
-  /**
-   * Les nœuds de la fermeture que le moteur lit sous une instance posée dans un maître, avec leurs champs lus. Figma n'émet aucun `nodechange`
-   * quand ils changent par leur propre maître : ils ne sont couverts que si ce maître l'est.
-   */
+  /** Les nœuds du jeu et de la fermeture que le moteur lit sous une instance dont le maître n'est pas suivi, avec leurs champs lus. */
   readonly sousUneInstance: readonly string[];
   /** Les lectures de nœuds de `dependancesDeFigma` seul, et ses appels de `getMainComponentAsync`. */
   readonly dependances: { readonly lectures: number; readonly maitresLus: number };
@@ -104,10 +105,15 @@ export async function enregistrerLesAccesDuMoteur(capture: CaptureArchitect): Pr
     const lusSurLesDistants: Record<string, string[]> = {};
     const sousUneInstance: string[] = [];
     const parentCapture = (id: string): string | undefined => (capture.noeuds[id]?.proprietes.parent as { id?: string } | undefined)?.id;
-    const estSousUneInstance = (id: string): boolean => {
+    const maitreCapture = (id: string): string | undefined => (capture.noeuds[id]?.maitre as { id?: string } | undefined)?.id;
+    /** Vrai sous une instance dont le maître n'est pas suivi au journal : son contenu change sans événement. */
+    const sousUneInstanceNonSuivie = (id: string): boolean => {
       for (let courant = parentCapture(id); courant !== undefined; courant = parentCapture(courant)) {
         const type = capture.noeuds[courant]?.type;
-        if (type === 'INSTANCE') return true;
+        if (type === 'INSTANCE') {
+          const maitre = maitreCapture(courant);
+          if (maitre === undefined || !fermeture.has(maitre)) return true;
+        }
         if (type === 'COMPONENT' || type === 'COMPONENT_SET') return false;
       }
       return false;
@@ -118,7 +124,9 @@ export async function enregistrerLesAccesDuMoteur(capture: CaptureArchitect): Pr
       for (const champ of lus) {
         const relu = parPhase.dependances.get(noeud)?.has(champ) ?? false;
         const liaisonNonRelue = regionDuNoeud === 'fermeture' && CHAMPS_DE_LIAISON.has(champ) && !relu;
-        const region = liaisonNonRelue ? 'hors' : regionDuNoeud ?? (relu ? 'comparee' : 'hors');
+        // Sous une instance non suivie, et sur un maître distant, tout champ lu doit être relu.
+        const sansEvenement = (regionDuNoeud === 'distant' || (regionDuNoeud !== null && sousUneInstanceNonSuivie(noeud))) && !relu;
+        const region = liaisonNonRelue || sansEvenement ? 'hors' : regionDuNoeud ?? (relu ? 'comparee' : 'hors');
         regions.add(region);
         champs[region][champ] = (champs[region][champ] ?? 0) + 1;
         if (region === 'hors') horsCouverture.push(`${noeud}.${champ}`);
@@ -126,7 +134,7 @@ export async function enregistrerLesAccesDuMoteur(capture: CaptureArchitect): Pr
       // Un nœud dont un champ sort des régions compte comme hors couverture.
       noeuds[regions.has('hors') ? 'hors' : [...regions][0] ?? 'hors'] += 1;
       if (regionDuNoeud === 'distant') lusSurLesDistants[noeud] = [...lus].sort();
-      if (regionDuNoeud === 'fermeture' && estSousUneInstance(noeud)) sousUneInstance.push(`${noeud} : ${[...lus].sort().join(', ')}`);
+      if (regionDuNoeud !== null && sousUneInstanceNonSuivie(noeud)) sousUneInstance.push(`${noeud} : ${[...lus].sort().join(', ')}`);
     }
     return { noeuds, champs, horsCouverture: horsCouverture.sort(), distants: lusSurLesDistants, sousUneInstance: sousUneInstance.sort(), dependances: { lectures: lecturesDesDependances, maitresLus } };
   } finally {

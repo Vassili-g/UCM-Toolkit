@@ -30,7 +30,7 @@ function moteurDe(fichier: Fichier): ResultatInterne {
   const calques = fichier.layers.map(({ id, nom, peintures, texte }) => `${id}=${nom}:${peintures.length}:${texte?.plages[0]?.fontSize ?? ''}`).join(',');
   const point: PointACorriger = {
     famille: 'variables',
-    titre: `Variable « ${fichier.variable.nom} », maître « ${fichier.maitre.contenu}@${fichier.maitre.liaison}${fichier.maitre.imbrique ? ` > ${fichier.imbrique.id}:${fichier.imbrique.contenu}@${fichier.imbrique.liaison}` : ''} », page « ${fichier.nomsDeLaPage.join('+')} », style « ${fichier.style.nom} ${fichier.style.taille} », calques ${calques} : à vérifier.`,
+    titre: `Variable « ${fichier.variable.nom} », maître « ${fichier.maitre.contenu}@${fichier.maitre.liaison}/${fichier.calqueDInstance}${fichier.maitre.imbrique ? ` > ${fichier.imbrique.id}:${fichier.imbrique.contenu}@${fichier.imbrique.liaison}` : ''} », page « ${fichier.nomsDeLaPage.join('+')} », style « ${fichier.style.nom} ${fichier.style.taille} », calques ${calques} : à vérifier.`,
     impact: 'Impact.',
     action: 'Action.',
   };
@@ -48,12 +48,15 @@ function figmaDe(fichier: Fichier) {
   const fondDuMaitre = { id: 'M:icone/fond', type: 'RECTANGLE', boundVariables: liee(fichier.maitre.liaison) };
   const { imbrique } = fichier;
   const pageDuMaitreImbrique = imbrique.page === PAGE ? page : { id: imbrique.page, type: 'PAGE', findAllWithCriteria: () => [] };
-  const maitreImbrique = imbrique.id === '' ? null : { id: imbrique.id, type: 'COMPONENT', remote: imbrique.remote, parent: imbrique.remote ? null : pageDuMaitreImbrique, findAll: () => [{ id: `${imbrique.id}/fond`, type: 'RECTANGLE', boundVariables: liee(imbrique.liaison) }] };
+  const maitreImbrique = imbrique.id === '' ? null : { id: imbrique.id, type: 'COMPONENT', name: imbrique.contenu, remote: imbrique.remote, parent: imbrique.remote ? null : pageDuMaitreImbrique, findAll: () => [{ id: `${imbrique.id}/fond`, type: 'RECTANGLE', boundVariables: liee(imbrique.liaison) }] };
   const dansLeMaitre = [fondDuMaitre, ...(fichier.maitre.imbrique ? [{ id: 'M:icone/bouton', type: 'INSTANCE', getMainComponentAsync: async () => maitreImbrique }] : [])];
-  const maitre = { id: 'M:icone', type: 'COMPONENT', remote: fichier.maitre.remote, parent: fichier.maitre.remote ? null : page, findAll: () => dansLeMaitre };
+  const maitre = { id: 'M:icone', type: 'COMPONENT', name: fichier.maitre.contenu, remote: fichier.maitre.remote, parent: fichier.maitre.remote ? null : page, findAll: () => dansLeMaitre };
+  // Le calque de l'instance suit son maître : une mise à jour de library le change sans événement.
+  const calqueDInstance = { id: 'I:icone;trait', type: 'VECTOR', name: fichier.calqueDInstance, visible: true };
   const calques = [
     { id: 'titre', type: 'TEXT', textStyleId: 'S:texte' },
-    { id: 'icone', type: 'INSTANCE', getMainComponentAsync: async () => maitre },
+    { id: 'icone', type: 'INSTANCE', getMainComponentAsync: async () => maitre, findAll: () => [calqueDInstance] },
+    calqueDInstance,
   ];
   const jeu = { id: 'jeu-Alert', type: 'COMPONENT_SET', name: 'Alert', parent: page, componentPropertyDefinitions: {}, findAll: (filtre: (noeud: unknown) => boolean) => calques.filter(filtre) };
   const figma = {
@@ -214,6 +217,7 @@ const MUTATIONS: readonly Mutation[] = [
     evenements: (c) => surChangementDuDocument([noeud('PROPERTY_CHANGE', 'regle-bouton', [PAGE], ['characters'])], c),
   },
   { nom: 'nom contracté écrit sur la page des maîtres imbriqués, sans événement', reprise: false, depart: avecUneInstanceImbriquee, muter: (f) => { f.nomsDeLaPage = ['icon', 'bouton']; } },
+  { nom: 'maître imbriqué de library inchangé', reprise: true, depart: (f) => { avecUneInstanceImbriquee(f); f.imbrique.remote = true; }, muter() {} },
   {
     nom: 'maître imbriqué de library sans événement', reprise: false,
     depart: (f) => { avecUneInstanceImbriquee(f); f.imbrique.remote = true; },
@@ -228,7 +232,10 @@ const MUTATIONS: readonly Mutation[] = [
   { nom: 'liaison d’un calque d’un maître local changée sans événement', reprise: false, muter: (f) => { f.maitre = { ...f.maitre, liaison: 'VariableID:2' }; } },
   { nom: 'liaison d’un calque d’un maître imbriqué changée sans événement', reprise: false, depart: avecUneInstanceImbriquee, muter: (f) => { f.imbrique = { ...f.imbrique, liaison: 'VariableID:2' }; } },
   { nom: 'instance imbriquée dont le maître ne se lit pas', reprise: false, depart: (f) => { avecUneInstanceImbriquee(f); f.imbrique.id = ''; }, muter() {} },
+  // Maîtres de library (16.4) : relus et comparés, une mise à jour de library n'ayant pas d'événement démontré (E5).
+  { nom: 'maître de library inchangé', reprise: true, depart: (f) => { f.maitre.remote = true; }, muter() {} },
   { nom: 'maître de library sans événement', reprise: false, depart: (f) => { f.maitre.remote = true; }, muter: (f) => { f.maitre = { ...f.maitre, contenu: 'carré' }; } },
+  { nom: 'calque d’une instance de library changé sans événement', reprise: false, depart: (f) => { f.maitre.remote = true; }, muter: (f) => { f.calqueDInstance = 'trait épais'; } },
   {
     nom: 'library choisie', reprise: true,
     muter: (f) => { f.library = { nom: 'Intencial', cle: 'k-lib' }; },
@@ -471,6 +478,12 @@ test('la trace dit si le moteur est repris, ou pourquoi il ne l’est pas', asyn
   avecUneInstanceImbriquee(imbrique);
   await mesuree(imbrique, appels, 'analyser');
   assert.deepEqual((await mesuree(imbrique, appels, 'analyser')).moteur, ['repriseDuMoteur=1']);
+
+  // Un maître de library relu égal : le moteur est repris.
+  const distant = fichierDeDepart();
+  distant.maitre.remote = true;
+  await mesuree(distant, appels, 'analyser');
+  assert.deepEqual((await mesuree(distant, appels, 'analyser')).moteur, ['repriseDuMoteur=1']);
 
   // Une raison de la validation : une instance sous le maître n'a pas de maître lu, la fermeture est incomplète.
   imbrique.imbrique.id = '';
