@@ -19,7 +19,7 @@ Un lot est fini quand toutes ses cases sont cochées dans des commits. Mettre so
 | [5 : mémoires sûres au sein d'une demande](./LOT-05.md) | Fini |
 | [6 : faits ordinaires et acquisition commune](./LOT-06.md) | Fini |
 | [7 : diagnostics finalisés et publication séparée](./LOT-07.md) | Fini |
-| [8 : couverture des dépendances et Actualiser](./LOT-08.md) | Non fini |
+| [8 : couverture des dépendances et Actualiser](./LOT-08.md) | Fini |
 | [9 : réutilisation avec invalidation large et rétention bornée](./LOT-09.md) | Non fini |
 | [10 : graphe de requêtes et recalcul ciblé](./LOT-10.md) | Non fini |
 | [11 : contributions et agrégats maintenus](./LOT-11.md) | Non fini |

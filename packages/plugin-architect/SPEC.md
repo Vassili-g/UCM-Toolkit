@@ -221,7 +221,8 @@ library choisie dans la Configuration, sinon les variables du fichier. Le
 moteur de l'exporteur (`analyserLeComposant` du socle) et les contrôles de
 `@ucm-kit/core/controles` jugent ce relevé. Leurs constats prennent un type
 de l'échelle commune (`TypeDAlerte` du kit). Une seule opération court à la
-fois, analyse ou écriture : une seconde demande reçoit `occupe`.
+fois, analyse ou écriture : une seconde demande reçoit `occupe`, sauf quand l'opération
+en cours est une analyse déjà périmée : son calcul est annulé et la nouvelle demande est servie.
 
 Une analyse crée un seul contexte coopératif (`creerContexteCooperatif` du
 socle) : horloge, pause, budget de 25 ms et jeton d'annulation. Le relevé, le

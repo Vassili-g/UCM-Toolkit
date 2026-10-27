@@ -278,6 +278,18 @@ export function perimerApresUneEcriture(contexte: Contexte, origine: OrigineDEcr
   perimer('ecriture', contexte);
 }
 
+/**
+ * Dernier contrôle avant le résultat final, après une cession de la main : les changements du nœud et du style se jugent à
+ * leur réception, donc déjà ; reste ce que le journal sait sans nœud. Une écriture du plugin ou un journal débordé depuis le
+ * curseur de l'analyse la rendent inapplicable (`perimee`), le résultat restant lisible. Les interruptions de page ne comptent
+ * pas ici : `surveillerLeDocument` en inscrit une à chaque demande pour une page que Figma refuse, et cette couverture
+ * incomplète est déjà dite par `analyseARelire`.
+ */
+function verifierLaGeneration(contexte: Contexte): void {
+  if (!courante || courante.perimee || !journal) return;
+  if (journal.ecritureDepuis(courante.curseur)) perimer('document', contexte);
+}
+
 /** Un identifiant seul (tests) se lit comme une propriété changée d'un nœud sans parent : hors de l'inventaire, il n'a pas de portée. */
 const enChangement = (changement: string | ChangementRecu): ChangementRecu =>
   typeof changement === 'string' ? { type: 'PROPERTY_CHANGE', id: changement, node: { id: changement, parent: null } } : changement;
@@ -552,6 +564,8 @@ interface Operation {
   readonly identite: Promise<IdentiteDAnalyse>;
   connue: IdentiteDAnalyse | null;
   readonly jeton: { leve: boolean };
+  /** Se résout quand l'opération a rendu la place ; absent d'une écriture, qui ne s'interrompt pas. */
+  fini?: Promise<void>;
 }
 
 let operation: Operation | null = null;
@@ -617,6 +631,13 @@ export const intentionDe = (demande: Extract<DemandeDAnalyse, { type: 'analyser'
 export const reutilisationPermise = (demande: Extract<DemandeDAnalyse, { type: 'analyser' }>): boolean => intentionDe(demande) === 'analyser';
 
 async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract<DemandeDAnalyse, { type: 'analyser' }>, optionsDeCooperation: Omit<OptionsDeCooperation, 'jeton'>): Promise<void> {
+  // Une analyse déjà périmée ne sert plus à personne : sa suite annulée, la nouvelle demande est servie. Une opération non périmée,
+  // et toute écriture, gardent la réponse `occupe`.
+  if (operation?.fini && operation.connue && courante?.perimee && memeIdentite(operation.connue, courante.identite)) {
+    operation.jeton.leve = true;
+    await operation.fini;
+    return analyser(contexte, lecteurs, demande, optionsDeCooperation);
+  }
   if (operation) {
     contexte.envoyer({ type: 'occupe', analyse: await operation.identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}) });
     return;
@@ -628,6 +649,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   const courant: Operation = { identite: new Promise((resolve) => { connaitre = resolve; }), connue: null, jeton: { leve: false } };
   courant.demande = demande.demande;
   operation = courant;
+  let terminer!: () => void;
+  courant.fini = new Promise<void>((resolve) => { terminer = resolve; });
   // Un seul contexte par analyse : le relevé, le moteur et les contrôles se partagent son budget.
   const cooperation = creerContexteCooperatif({
     respirer: () => new Promise((resolve) => setTimeout(resolve, 0)),
@@ -774,6 +797,12 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (jeton.leve) return rendre('annulee', [], null);
     await cooperation.cederSiBesoin();
     const { visibles, ignores } = separerLesIgnores(tous, rangees);
+    // Les événements déjà émis par Figma n'arrivent qu'à la prochaine macrotâche : sans cette cession, le résultat partirait comme
+    // applicable alors que le sujet a changé pendant le calcul. Aucune barrière atomique : un changement émis après la cession
+    // périme l'analyse par le chemin ordinaire.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    if (jeton.leve) return rendre('annulee', [], null);
+    verifierLaGeneration(contexte);
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
     rendre(resultat.interne.couverture.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete', visibles, releve, ignores, tous);
     // La capture suit l'envoi de la trace et garde la place d'opération : une écriture demandée pendant ce temps rend `occupe`.
@@ -792,6 +821,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     courant.cloreMesure?.('arretee');
     enregistrerLesImports(false);
     operation = null;
+    terminer();
   }
 }
 

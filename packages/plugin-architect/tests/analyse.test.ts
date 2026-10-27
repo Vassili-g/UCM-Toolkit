@@ -952,6 +952,68 @@ test('une analyse lente d’Alert puis la sélection de Button : perime selectio
   assert.equal(alert.sujet, 'Alert');
 });
 
+test('un clic sur Analyser après la péremption annule le calcul périmé et sert la nouvelle demande, sans occupe', async () => {
+  const b = banc();
+  let appels = 0;
+  const traiter = traiterAvec(lecteurs(async (jeton) => {
+    appels += 1;
+    if (appels > 1) return complete()();
+    while (!jeton.leve) await attendre(2);
+    return { etat: 'annulee' };
+  }));
+  const premiere = traiter({ type: 'analyser', demande: 1 }, b.contexte);
+  await attendre(5);
+  const alert = analyseCourante() as IdentiteDAnalyse;
+  surSelection('jeu-Button', 'figma', b.contexte);
+  assert.equal(deType(b, 'perime').length, 1);
+  // La péremption seule ne lève rien : le calcul continue.
+  await attendre(10);
+  assert.equal(deType(b, 'analyse').length, 0);
+  await traiter({ type: 'analyser', demande: 2 }, b.contexte);
+  await premiere;
+  assert.equal(deType(b, 'occupe').length, 0);
+  const finals = deType(b, 'analyse');
+  assert.deepEqual(finals.map((m) => [m.demande, m.statut]), [[1, 'annulee'], [2, 'complete']]);
+  assert.deepEqual(finals[0].analyse, alert);
+  assert.equal(finals[1].analyse.generation, alert.generation + 1);
+});
+
+test('un clic sur Analyser pendant un calcul non périmé rend occupe, et le calcul continue', async () => {
+  const b = banc();
+  let ouvrir!: () => void;
+  const porte = new Promise<void>((resolve) => { ouvrir = resolve; });
+  const traiter = traiterAvec(lecteurs(async () => { await porte; return complete()(); }));
+  const premiere = traiter({ type: 'analyser', demande: 1 }, b.contexte);
+  await attendre(5);
+  await traiter({ type: 'analyser', demande: 2 }, b.contexte);
+  assert.equal(deType(b, 'occupe').length, 1);
+  ouvrir();
+  await premiere;
+  assert.deepEqual(deType(b, 'analyse').map((m) => m.statut), ['complete']);
+});
+
+test('un changement du sujet émis pendant le calcul et reçu seulement à la cession rend la génération inapplicable avant le résultat final', async () => {
+  const b = banc();
+  // L'événement part pendant le moteur et n'est livré qu'à la macrotâche suivante : le calcul ne l'a pas vu.
+  const traiter = traiterAvec(lecteurs(async () => {
+    setTimeout(() => surChangementDuDocument(['v-Alert'], b.contexte), 0);
+    return complete()();
+  }));
+  await traiter({ type: 'analyser' }, b.contexte);
+  const identite = analyseCourante() as IdentiteDAnalyse;
+  const ordre = b.envoyes.map((m) => m.type).filter((type) => type === 'perime' || type === 'analyse');
+  assert.deepEqual(ordre, ['perime', 'analyse'], 'la péremption précède le résultat, qui reste lisible');
+  assert.equal(deType(b, 'analyse')[0].statut, 'complete');
+  assert.equal(correctionsDeLAnalyse(identite), null, 'aucune correction ne s’appuie sur cette génération');
+});
+
+test('sans changement pendant le calcul, la génération est finalisée et applicable', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(complete()))({ type: 'analyser' }, b.contexte);
+  assert.equal(deType(b, 'perime').length, 0);
+  assert.notEqual(correctionsDeLAnalyse(analyseCourante() as IdentiteDAnalyse), null);
+});
+
 test('une seconde analyse pendant une analyse rend occupe et ne lance rien', async () => {
   const b = banc();
   let ouvrir!: () => void;
