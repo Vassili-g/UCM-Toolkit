@@ -1372,19 +1372,37 @@ async function controlesDuKit(
   return { constats, parFamille };
 }
 
+/** Bornes du nombre d'étapes enchaînées entre deux lectures de l'horloge. */
+const ETAPES_MAX_ENTRE_DEUX_LECTURES = 4096;
+
 /**
  * Un calcul du kit (contrôle ou corrections) conduit par tranches : une tranche enchaîne les étapes jusqu'à ce que le
  * budget soit écoulé ou le jeton levé, puis cède. Une étape du kit peut couvrir 256 variables : un nombre fixe
  * d'étapes par tranche ne bornerait pas sa durée.
+ *
+ * L'horloge se lit toutes les N étapes, pas à chaque étape (une lecture coûte plus qu'une étape vide). N part de 1 et
+ * double tant que, au coût mesuré d'une étape, la fenêtre suivante tient dans la moitié du budget restant ; il
+ * redescend sinon. Une fenêtre dépasse donc le budget d'une étape au plus, à coût d'étape constant. Le jeton ne change
+ * pas pendant une fenêtre synchrone : aucune étape n'attend celui qui se lève à la cession.
  */
-async function calculerParEtapes<T>(calcul: Generator<void, T>, cooperation: ContexteCooperatif, phase: 'controles' | 'corrections' = 'controles'): Promise<T> {
+export async function calculerParEtapes<T>(calcul: Generator<void, T>, cooperation: ContexteCooperatif, phase: 'controles' | 'corrections' = 'controles'): Promise<T> {
+  let fenetre = 1;
   for (;;) {
     await cooperation.cederSiBesoin();
     const fin = mesurerLeCalcul(() => {
+      let restant = cooperation.restantMs();
       for (;;) {
-        const suivant = calcul.next();
-        if (suivant.done) return suivant;
+        for (let fait = 0; fait < fenetre; fait++) {
+          const suivant = calcul.next();
+          if (suivant.done) return suivant;
+        }
+        const apres = cooperation.restantMs();
         if (cooperation.doitCeder()) return null;
+        // Coût moyen d'une étape de la fenêtre ; une horloge qui n'a pas avancé ne borne rien : la fenêtre double.
+        const coutParEtape = (restant - apres) / fenetre;
+        const cible = coutParEtape > 0 ? Math.floor(apres / 2 / coutParEtape) : ETAPES_MAX_ENTRE_DEUX_LECTURES;
+        fenetre = Math.max(1, Math.min(cible, fenetre * 2, ETAPES_MAX_ENTRE_DEUX_LECTURES));
+        restant = apres;
       }
     }, phase, true);
     if (fin) return fin.value;

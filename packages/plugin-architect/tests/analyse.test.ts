@@ -22,7 +22,7 @@ import { rangerUnePreparation, type PreparationRangee } from '../src/preparation
 import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 import { capturerLAnalyse, verifierLaPariteDeLAnalyse } from './parite';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
-import { analyseCourante, catalogueDeFigma, commencerUneAnalyse, correctionsDeLAnalyse, etatDeLEntree, surChangementDeStyle, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
+import { analyseCourante, catalogueDeFigma, commencerUneAnalyse, correctionsDeLAnalyse, etatDeLEntree, surChangementDeStyle, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDuDocument, surSelection, traiterAvec, calculerParEtapes, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
 import { origineDeLaSelection, retenirLaSelectionDuPlugin } from '../src/sandbox/commun';
 import type { Contexte } from '../src/sandbox/contexte';
 import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
@@ -1775,4 +1775,35 @@ test('une lecture du relevé refusée ne laisse aucune entrée ; disponible ensu
 test('une couverture incomplète ou inconnue rend l’entrée à relire', async () => {
   await analyserAvec(lecteurs(complete()));
   assert.deepEqual(etatDeLEntree('Alert'), { etat: 'a-relire', raisons: ['couverture-incomplete'] });
+});
+
+test('calculerParEtapes lit l’horloge toutes les N étapes, rend la même valeur et borne la tranche', async () => {
+  const ETAPES = 20_000;
+  const COUT_MS = 0.001;
+  const BUDGET = 25;
+  const piloter = async () => {
+    let temps = 0;
+    let lectures = 0;
+    let derniereCession = 0;
+    let plusLongue = 0;
+    let etapes = 0;
+    const lire = () => { lectures += 1; return BUDGET - (temps - derniereCession); };
+    const cooperation = {
+      verifier() {},
+      cederSiBesoin() { if (BUDGET - (temps - derniereCession) <= 0) { plusLongue = Math.max(plusLongue, temps - derniereCession); derniereCession = temps; } },
+      doitCeder: () => { lectures += 1; return BUDGET - (temps - derniereCession) <= 0; },
+      restantMs: lire,
+    };
+    function* calcul(): Generator<void, number> {
+      for (let rang = 0; rang < ETAPES; rang++) { etapes += 1; temps += COUT_MS; yield; }
+      return etapes;
+    }
+    const valeur = await calculerParEtapes(calcul(), cooperation);
+    plusLongue = Math.max(plusLongue, temps - derniereCession);
+    return { valeur, lectures, plusLongue };
+  };
+  const adaptatif = await piloter();
+  assert.equal(adaptatif.valeur, ETAPES, 'toutes les étapes sont faites, la valeur est celle du générateur');
+  assert.ok(adaptatif.lectures < ETAPES / 20, `${adaptatif.lectures} lectures pour ${ETAPES} étapes`);
+  assert.ok(adaptatif.plusLongue <= BUDGET + COUT_MS, `plus longue tranche ${adaptatif.plusLongue} ms`);
 });

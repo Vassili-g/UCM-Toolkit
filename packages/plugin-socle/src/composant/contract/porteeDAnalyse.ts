@@ -53,6 +53,11 @@ export interface ContexteCooperatif {
    * synchrone le consulte entre deux étapes pour s'arrêter au budget plutôt qu'après un nombre fixe d'étapes.
    */
   doitCeder(): boolean;
+  /**
+   * Ce qui reste du budget avant la prochaine cession, en ms ; négatif une fois écoulé, infini sans pause injectée. Un
+   * pilote synchrone y règle le nombre d'étapes entre deux lectures de l'horloge.
+   */
+  restantMs(): number;
 }
 
 /**
@@ -79,6 +84,9 @@ export function creerContexteCooperatif(options: OptionsDeCooperation = {}): Con
     },
     doitCeder() {
       return options.jeton?.leve === true || (options.respirer !== undefined && horloge() - derniereCession >= budget);
+    },
+    restantMs() {
+      return options.respirer === undefined ? Infinity : budget - (horloge() - derniereCession);
     },
   };
 }

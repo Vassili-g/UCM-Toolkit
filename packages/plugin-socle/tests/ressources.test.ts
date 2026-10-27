@@ -109,7 +109,7 @@ test('les modes d’une collection se copient avec une cession par mode, et une 
   const modes = Array.from({ length: 5 }, (_, rang) => ({ modeId: `m${rang}`, name: `Mode ${rang}`, ...(rang === 1 ? { parentModeId: 'm0' } : {}) }));
   const { lectures } = monterLesLectures({}, { c: { name: 'Composants', remote: true, modes }, forme: { name: 'x', modes: 'pas une liste' } });
   let cessions = 0;
-  const cooperation = { verifier() {}, cederSiBesoin() { cessions += 1; }, doitCeder: () => false };
+  const cooperation = { verifier() {}, cederSiBesoin() { cessions += 1; }, doitCeder: () => false, restantMs: () => Infinity };
   const memoire = creerMemoireDeRessources({ lectures: () => lectures, cooperation });
   const fait = await memoire.collection('c');
   assert.equal(cessions, 5);
