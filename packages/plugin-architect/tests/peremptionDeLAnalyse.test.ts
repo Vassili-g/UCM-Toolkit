@@ -9,9 +9,10 @@ import type { ResultatSansPublication } from 'ucm-plugin-socle/src/composant/con
 import type { PluginMessage } from '../src/messages';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
 import {
-  analyseARelire, analyseCourante, couvertureDeLAnalyse, curseurDeLAnalyse, journalDesChangements, reinitialiserLAnalyse, surChangementDeStyle, surChangementDuDocument, traiter, traiterAvec, type Lecteurs, type SujetAAnalyser,
+  analyseARelire, analyseCourante, couvertureDeLAnalyse, couvertureInterrompue, curseurDeLAnalyse, journalDesChangements, reinitialiserLAnalyse, surChangementDeStyle, surInterruptionDePage, surChangementDuDocument, traiter, traiterAvec, type Lecteurs, type SujetAAnalyser,
 } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
+import { creerLeSuivi, type PageSuivable } from '../src/sandbox/contexte';
 import { atelierDeCalques } from './figmaDeTest';
 
 const catalogueVide: CatalogueDeReference = { version: 1, library: null, collections: [], variables: [] };
@@ -245,6 +246,61 @@ test('chaque demande d’analyse oublie le journal d’avant l’analyse précé
   assert.deepEqual(journalDesChangements()!.depuis(0).map((entree) => entree.id), ['ancien', 'recent'], 'l’analyse précédente retient encore « ancien »');
   await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
   assert.deepEqual(journalDesChangements()!.depuis(0).map((entree) => entree.id), ['recent'], 'la troisième demande retire ce qui précède la deuxième analyse');
+});
+
+interface PageDeTest extends PageSuivable { readonly id: string }
+const pageDeTest = (id: string): PageDeTest => ({ id, on() {}, off() {} });
+
+/** Un banc dont la page courante se pilote et dont le suivi réel signale ses arrêts d'écoute au journal. */
+function bancAvecPages(depart: PageDeTest) {
+  const envoyes: PluginMessage[] = [];
+  let page = depart;
+  let contexte!: Contexte;
+  const suivi = creerLeSuivi<PageDeTest>(() => page, () => {}, (arretee, raison) => surInterruptionDePage(arretee.id, raison, contexte));
+  contexte = {
+    figma: { root: { getSharedPluginData: () => '' }, get currentPage() { return page; } } as unknown as PluginAPI,
+    envoyer: (message) => envoyes.push(message),
+    surveillerLeDocument: (sujet) => suivi.surveiller(sujet as unknown as PageDeTest | undefined).map((nonEcoutee) => nonEcoutee.id),
+  };
+  const b: Banc = { contexte, envoyes, journal: [] };
+  return { b, aller(cible: PageDeTest) { page = cible; suivi.recalculer(); } };
+}
+
+test('retour sur une page : ce qui a changé pendant son absence est manqué, la couverture de l’analyse de cette page est interrompue', async () => {
+  const A = pageDeTest('A');
+  const B = pageDeTest('B');
+  const { b, aller } = bancAvecPages(A);
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  const analyseA = analyseCourante() as IdentiteDAnalyse;
+  const curseurA = curseurDeLAnalyse(analyseA) as number;
+  const pagesDeA = ['A'];
+  assert.equal(couvertureInterrompue(analyseA), false);
+  aller(B);
+  assert.deepEqual(perimes(b).map((message) => message.cause), ['document'], 'la page de l’analyse n’est plus écoutée');
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  aller(A);
+  assert.deepEqual(journalDesChangements()!.couvertureDepuis(curseurA, pagesDeA), { etat: 'interrompue', raisons: ['page-quittee'] }, 'aucun événement n’est arrivé');
+  assert.deepEqual(journalDesChangements()!.couvertureDepuis(curseurA, ['Z']), { etat: 'continue' });
+});
+
+test('une page restée écoutée garde la couverture continue', async () => {
+  const A = pageDeTest('A');
+  const { b } = bancAvecPages(A);
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  const analyse = analyseCourante() as IdentiteDAnalyse;
+  surChangementDuDocument(['ailleurs'], b.contexte);
+  assert.equal(couvertureInterrompue(analyse), false);
+  assert.equal(analyseARelire(analyse), false);
+  assert.deepEqual(perimes(b), []);
+});
+
+test('un journal débordé interrompt la couverture de l’analyse, donc elle est à relire', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  const analyse = analyseCourante() as IdentiteDAnalyse;
+  surChangementDuDocument(Array.from({ length: 5001 }, (_, rang) => `ailleurs-${rang}`), b.contexte);
+  assert.equal(analyseARelire(analyse), true);
+  assert.deepEqual(journalDesChangements()!.couvertureDepuis(curseurDeLAnalyse(analyse) as number, []), { etat: 'interrompue', raisons: ['journal-deborde'] });
 });
 
 test('une analyse arrêtée avant son inventaire ne garde aucun événement', async () => {

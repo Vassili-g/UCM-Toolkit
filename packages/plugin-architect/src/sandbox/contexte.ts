@@ -43,7 +43,12 @@ export interface SuiviDesPages<P> {
  * n'est pas suivie, et un changement de son maître n'atteint pas l'analyse :
  * `surveiller` la rend, et l'analyse la porte comme trou `page-non-ecoutee`.
  */
-export function creerLeSuivi<P extends PageSuivable>(courante: () => P, rappel: (evenement: NodeChangeEvent) => void): SuiviDesPages<P> {
+export function creerLeSuivi<P extends PageSuivable>(
+  courante: () => P,
+  rappel: (evenement: NodeChangeEvent) => void,
+  /** Appelée à chaque arrêt d'écoute d'une page : ce qu'elle a manqué ne se rattrape pas. */
+  surInterruption: (page: P, raison: 'page-quittee' | 'page-non-ecoutee') => void = () => {},
+): SuiviDesPages<P> {
   let actif = false;
   let sujet: P | undefined;
   const ecoutees = new Set<P>();
@@ -56,13 +61,17 @@ export function creerLeSuivi<P extends PageSuivable>(courante: () => P, rappel: 
       if (voulues.has(page)) continue;
       ecoutees.delete(page);
       try { page.off('nodechange', rappel); } catch { /* page déchargée ou supprimée */ }
+      surInterruption(page, 'page-quittee');
     }
     for (const page of voulues) {
       if (ecoutees.has(page)) continue;
       try {
         page.on('nodechange', rappel);
         ecoutees.add(page);
-      } catch { /* page non chargée : voir la limite ci-dessus */ }
+      } catch {
+        // page non chargée : voir la limite ci-dessus
+        surInterruption(page, 'page-non-ecoutee');
+      }
     }
     return [...voulues].filter((page) => !ecoutees.has(page));
   }

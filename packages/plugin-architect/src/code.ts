@@ -13,7 +13,7 @@
  */
 import { TAILLE_PAR_DEFAUT } from './fenetre';
 import type { PluginMessage, UiRequest } from './messages';
-import { surChangementDeStyle, surChangementDuDocument, surSelection } from './sandbox/analyse';
+import { surChangementDeStyle, surInterruptionDePage, surChangementDuDocument, surSelection } from './sandbox/analyse';
 import { declarer, envoyerLaSelection, ouvrirLaFenetre } from './sandbox/commun';
 import { abandonnerLesLibrariesAnticipees } from './sandbox/anticipation';
 import { creerLeSuivi, type Contexte } from './sandbox/contexte';
@@ -46,7 +46,7 @@ const surLesStyles = (evenement: StyleChangeEvent): void => {
  * d'écriture refuse hors de `ecriture/` et qui coûte cher dans un gros
  * fichier : un jeu de variants se lit et se défait sur la page qui le porte.
  */
-const suivi = creerLeSuivi<PageNode>(() => figma.currentPage, surLesNoeuds);
+const suivi = creerLeSuivi<PageNode>(() => figma.currentPage, surLesNoeuds, (page, raison) => surInterruptionDePage(page.id, raison, contexte));
 
 function surveillerLeDocument(page?: PageNode): readonly string[] {
   return suivi.surveiller(page).map((nonEcoutee) => nonEcoutee.id);

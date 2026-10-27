@@ -72,3 +72,24 @@ test('oublierAvant retire les entrées que plus aucun curseur ne lit, et rend de
   journal.oublierAvant(3);
   assert.deepEqual(journal.depuis(0).map((e) => e.id), ['d'], 'une entrée postérieure au curseur reste');
 });
+
+test('une interruption de page est une entrée sans objet Figma ; la couverture ne dépend que des pages voulues', () => {
+  const journal = creerLeJournal({ borne: 10 });
+  const avant = journal.marquer();
+  assert.deepEqual(journal.couvertureDepuis(avant, ['A']), { etat: 'continue' });
+  journal.signaler('B', 'page-quittee');
+  assert.deepEqual(journal.couvertureDepuis(avant, ['A']), { etat: 'continue' }, 'une autre page');
+  journal.signaler('A', 'page-quittee');
+  journal.signaler('A', 'page-non-ecoutee');
+  assert.deepEqual(journal.couvertureDepuis(avant, ['A']), { etat: 'interrompue', raisons: ['page-quittee', 'page-non-ecoutee'] });
+  assert.deepEqual(journal.couvertureDepuis(journal.marquer(), ['A']), { etat: 'continue' }, 'un curseur postérieur');
+  assert.deepEqual(journal.depuis(0).map((e) => [e.nature, e.page, e.raison]), [['interruption', 'B', 'page-quittee'], ['interruption', 'A', 'page-quittee'], ['interruption', 'A', 'page-non-ecoutee']]);
+});
+
+test('un débordement interrompt la couverture de tout curseur antérieur à la perte', () => {
+  const journal = creerLeJournal({ borne: 1 });
+  const avant = journal.marquer();
+  journal.enregistrer([noeud('a'), noeud('b')]);
+  assert.deepEqual(journal.couvertureDepuis(avant, []), { etat: 'interrompue', raisons: ['journal-deborde'] });
+  assert.deepEqual(journal.couvertureDepuis(journal.marquer(), []), { etat: 'continue' });
+});

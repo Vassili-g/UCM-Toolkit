@@ -31,7 +31,7 @@ import {
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { doitEtreRelue, type Couverture } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { porteeDesChangements, porteeDesChangementsDeStyle, type AnciensParents, type ChangementDeStyleRecu, type ChangementRecu } from 'ucm-plugin-socle/src/composant/analyse/couverture';
-import { creerLeJournal, type JournalDeChangements } from 'ucm-plugin-socle/src/composant/analyse/journal';
+import { creerLeJournal, type JournalDeChangements, type RaisonDInterruption } from 'ucm-plugin-socle/src/composant/analyse/journal';
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
@@ -74,6 +74,8 @@ interface AnalyseCourante {
   readonly curseur: number;
   /** Le parent de chaque sommet de l'inventaire, tel que la topologie l'a lu : de quoi situer une suppression ou un déplacement. */
   readonly parents: ReadonlyMap<string, string>;
+  /** Les pages que l'écoute de l'analyse couvre : celle du sujet et la page courante à l'ouverture. */
+  readonly pages: ReadonlySet<string>;
   /** Les corrections des constats rendus, par identifiant : l'écriture n'écrit que celles-là. */
   corrections: ReadonlyMap<string, Correction>;
   /** Tous les constats de l'analyse, ignorés compris, par identifiant : Ignorer et les questions les retrouvent ici. */
@@ -126,7 +128,9 @@ export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, con
   const identite = { sujet, generation };
   const tous = new Set(noeuds);
   const nonEcoutees = contexte.surveillerLeDocument(page) ?? [];
-  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, couverture: avecLesPagesNonEcoutees(couverture, nonEcoutees), curseur, parents, corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false };
+  const pages = new Set<string>();
+  for (const candidate of [page, contexte.figma.currentPage]) if (typeof candidate?.id === 'string') pages.add(candidate.id);
+  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, couverture: avecLesPagesNonEcoutees(couverture, nonEcoutees), curseur, parents, pages, corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false };
   return identite;
 }
 
@@ -147,7 +151,23 @@ export function couvertureDeLAnalyse(identite: IdentiteDAnalyse): Couverture | n
 /** Vrai quand une réutilisation de l'analyse `identite` doit relire Figma : couverture incomplète ou inconnue, ou analyse qui n'est plus la courante. */
 export function analyseARelire(identite: IdentiteDAnalyse): boolean {
   const couverture = couvertureDeLAnalyse(identite);
-  return couverture === null || doitEtreRelue(couverture);
+  if (couverture === null || doitEtreRelue(couverture)) return true;
+  return couvertureInterrompue(identite);
+}
+
+/** Vrai quand une page de l'analyse a cessé d'être écoutée, ou que le journal a perdu des changements, depuis son curseur. */
+export function couvertureInterrompue(identite: IdentiteDAnalyse): boolean {
+  if (!courante || !journal || !memeIdentite(courante.identite, identite)) return false;
+  return journal.couvertureDepuis(courante.curseur, courante.pages).etat === 'interrompue';
+}
+
+/**
+ * Une page a cessé d'être écoutée (quittée, ou que Figma refuse d'écouter). Le journal l'inscrit ; l'analyse courante
+ * dont c'est une page ne reçoit plus ses changements et se périme.
+ */
+export function surInterruptionDePage(page: string, raison: RaisonDInterruption, contexte: Contexte): void {
+  ouvrirLeJournal().signaler(page, raison);
+  if (courante?.pages.has(page)) perimer('document', contexte);
 }
 
 const memeIdentite = (a: IdentiteDAnalyse, b: IdentiteDAnalyse): boolean => a.sujet === b.sujet && a.generation === b.generation;

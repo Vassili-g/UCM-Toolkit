@@ -9,7 +9,7 @@
 - [x] **8.3 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : vérifier la documentation Figma puis brancher seulement les événements dont la couverture est établie, dont stylechange si pertinent. Confier d'abord la lecture de la documentation Figma à un `chercheur`. Résultat : `stylechange` branché dans `code.ts` et `surChangementDeStyle` (`sandbox/analyse.ts`), `porteeDesChangementsDeStyle` dans `couverture.ts`, section « Événements branchés (8.3) ». Aucun autre événement.
 - [x] **8.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : accumuler les changements après la première péremption et hors analyse active ; tests d'événement retardé et de série de mutations. Résultat : `plugin-socle/src/composant/analyse/journal.ts`, `surChangementDuDocument` et `surChangementDeStyle` de `sandbox/analyse.ts`, section « Journal des changements (8.4) ».
 - [x] **8.5 | gpt-6-luna | medium** | **Claude Sonnet | medium** : conserver anciens parents et topologie des suppressions ; élargir l'invalidation si parent ou événement manque. Résultat : `AnciensParents` dans `porteeDuChangement` (`couverture.ts`), table d'anciens parents d'`analyse.ts`, section « Anciens parents (8.5) ».
-- [ ] **8.6 | gpt-6-luna | medium** | **Claude Sonnet | medium** : interrompre la couverture quand la page est quittée ou la file déborde ; test de retour sur page.
+- [x] **8.6 | gpt-6-luna | medium** | **Claude Sonnet | medium** : interrompre la couverture quand la page est quittée ou la file déborde ; test de retour sur page. Résultat : `signaler` et `couvertureDepuis` (`journal.ts`), `surInterruptionDePage` et `couvertureInterrompue` (`sandbox/analyse.ts`), section « Interruption de couverture (8.6) ».
 - [ ] **8.7 | gpt-6-luna | medium** | **Claude Sonnet | medium** : porter Analyser et Actualiser jusqu'au sandbox ; test qu'Actualiser contourne les résultats précédents.
 - [ ] **8.8 | gpt-6.1-sol | high** | **Claude Sonnet | high** : invalider après changement de configuration et écriture, distinguer imports et changements externes ; tests Ctrl+Z et refus.
 - [ ] **8.9 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : rendre inapplicable une génération modifiée pendant lecture ou calcul ; tester avant réception de l'événement. Trancher aussi ce que 3.9 a laissé : aujourd'hui `perimer()` (`sandbox/analyse.ts`) laisse finir le calcul en cours, et un clic sur Analyser juste après la péremption reçoit `occupe` jusqu'à sa fin. Lever le jeton de l'opération non finalisée relancerait tout de suite ; cela change le test « une analyse lente d'Alert puis la sélection de Button ».
@@ -147,3 +147,15 @@ Architect : la table couvre l'inventaire (variants → jeu, lus avec la topologi
 Limite : les descendants de l'inventaire n'ont que leur identifiant, sans parent lu. Leur suppression périme par l'identifiant ; un calque apparu après l'analyse se situe par le journal.
 
 Preuves : `couverture.test.ts` (suppression, déplacement, ailleurs, ancien parent inconnu avec maître suivi, débordement) et `peremptionDeLAnalyse.test.ts` (mêmes cas dans Architect, débordement à 5000, oubli).
+
+## Interruption de couverture (8.6)
+
+Une page qui n'est plus écoutée n'envoie rien, et son retour ne rend pas ce qui a été manqué. `creerLeSuivi` reçoit un rappel `surInterruption(page, raison)`, appelé à chaque `page.off` (`page-quittee`) et à chaque `page.on` qui lève (`page-non-ecoutee`). `code.ts` le branche sur `surInterruptionDePage`, qui inscrit une entrée `interruption` au journal.
+
+- `couvertureDepuis(curseur, pages)` rend `continue`, ou `interrompue` avec ses raisons : interruption d'une de ces pages après le curseur, ou `journal-deborde` (une perte à la borne, ou une interruption perdue, interrompt tout curseur antérieur).
+- L'analyse courante retient ses pages (celle du sujet, la page courante à l'ouverture). `couvertureInterrompue(identite)` lit le journal depuis son curseur ; `analyseARelire` l'inclut. L'analyse se périme (cause `document`) quand une de ses pages cesse d'être écoutée.
+- Aucune mémoire de résultat : le lot 9 lira `couvertureDepuis` avec le curseur et les pages qu'il retient.
+
+Limite : un `page.on` qui lève est signalé à chaque tentative, donc une page jamais chargée ajoute une interruption par demande d'analyse.
+
+Preuves : `journal.test.ts` (pages voulues, débordement) et `peremptionDeLAnalyse.test.ts` (retour sur la page A après une analyse sur B, page restée écoutée, débordement).

@@ -8,6 +8,9 @@
  *
  * Au-delà de `borne` entrées, les suivantes ne sont plus gardées : `debordeDepuis(curseur)` dit si des changements
  * postérieurs au curseur manquent, et le lecteur ne peut plus s'y fier.
+ *
+ * Une page qui cesse d'être écoutée n'envoie plus rien, et son retour ne rend pas ce qui a été manqué : le suivi
+ * inscrit une interruption. `couvertureDepuis` dit si la couverture d'un curseur sur des pages a tenu.
  */
 import type { NoeudDEvenement } from './couverture';
 import type { IdDeNoeud } from './faits';
@@ -21,12 +24,24 @@ export interface ChangementAJournaliser {
   readonly node?: NoeudDEvenement;
 }
 
+export type RaisonDInterruption = 'page-quittee' | 'page-non-ecoutee';
+
+/** Pourquoi une couverture est interrompue : une page cessée d'être écoutée, ou des changements perdus à la borne. */
+export type RaisonDeCouvertureInterrompue = RaisonDInterruption | 'journal-deborde';
+
+export type CouvertureDepuis =
+  | { readonly etat: 'continue' }
+  | { readonly etat: 'interrompue'; readonly raisons: readonly RaisonDeCouvertureInterrompue[] };
+
 export interface EntreeDeJournal {
   /** Numéro d'ordre, croissant d'une entrée à la suivante. */
   readonly revision: number;
-  readonly nature: 'noeud' | 'style';
+  readonly nature: 'noeud' | 'style' | 'interruption';
   readonly type: string;
   readonly id: string;
+  /** Pour une interruption : la page et la raison. */
+  readonly page?: IdDeNoeud;
+  readonly raison?: RaisonDInterruption;
   readonly properties?: readonly string[];
   /** Le parent à la réception ; `null` pour un style, un nœud supprimé ou un parent illisible. */
   readonly parent: IdDeNoeud | null;
@@ -34,6 +49,10 @@ export interface EntreeDeJournal {
 
 export interface JournalDeChangements {
   enregistrer(changements: Iterable<ChangementAJournaliser>): void;
+  /** Inscrit l'arrêt d'écoute d'une page. */
+  signaler(page: IdDeNoeud, raison: RaisonDInterruption): void;
+  /** `interrompue` si une interruption de l'une de ces pages ou un débordement est postérieur au curseur. */
+  couvertureDepuis(curseur: number, pages: Iterable<IdDeNoeud>): CouvertureDepuis;
   /** Le curseur courant : `depuis(curseur)` rend ce qui arrive ensuite. */
   marquer(): number;
   /** Les entrées postérieures au curseur, dans l'ordre de réception. */
@@ -76,6 +95,23 @@ export function creerLeJournal({ borne }: { readonly borne: number }): JournalDe
           parent: parentDe(changement),
         });
       }
+    },
+    signaler(page, raison) {
+      revision += 1;
+      if (entrees.length >= borne) {
+        premierePerdue ??= revision;
+        return;
+      }
+      entrees.push({ revision, nature: 'interruption', type: 'INTERRUPTION', id: page, page, raison, parent: null });
+    },
+    couvertureDepuis(curseur, pages) {
+      const voulues = new Set(pages);
+      const raisons = new Set<RaisonDeCouvertureInterrompue>();
+      for (const entree of entrees) {
+        if (entree.revision > curseur && entree.nature === 'interruption' && entree.page !== undefined && voulues.has(entree.page)) raisons.add(entree.raison!);
+      }
+      if (premierePerdue !== null && premierePerdue > curseur) raisons.add('journal-deborde');
+      return raisons.size === 0 ? { etat: 'continue' } : { etat: 'interrompue', raisons: [...raisons] };
     },
     marquer: () => revision,
     depuis: (curseur) => entrees.filter((entree) => entree.revision > curseur),
