@@ -30,12 +30,11 @@ test('extractStructure survit à un composant sans node de layout', async () => 
   // Aucun blocage : la structure est vide et le manque est signalé.
   assert.equal(structure.layout, 'flex-row');
   assert.deepEqual(structure.children, []);
-  assert.deepEqual(structure.variantTokens, {});
   assert.deepEqual(Array.from(collecterReferences(structure)).sort(), []);
   assert.ok(warnings.some((w) => w.includes('aucun cadre en auto layout n’y a été trouvé')));
 });
 
-test('extractStructure ne recopie pas la couleur du label hors de variantTokens', async () => {
+test('extractStructure ne recopie pas la couleur du label sur le slot', async () => {
   const texte = {
     type: 'TEXT',
     name: 'Suivant',
@@ -66,21 +65,13 @@ test('extractStructure ne recopie pas la couleur du label hors de variantTokens'
     }),
   );
 
-  // La couleur du label vit dans `variantTokens`, et nulle part ailleurs : elle
-  // dépend du variant, alors qu'un slot est unique. La recopier sur le slot
-  // fige la valeur du variant de référence pour tous les autres.
+  // La couleur du label dépend du variant, alors qu'un slot est unique. La
+  // recopier sur le slot fige la valeur du variant de référence pour tous les
+  // autres.
   const label = structure.children.find((child) => child.slot === 'label');
   assert.ok(label, 'le slot label doit exister');
   assert.equal('color' in label, false);
-  assert.deepEqual(structure.variantTokens, {
-    primary: {
-      background: '{components.button.colors.primary.contained.default.background}',
-      foreground: '{components.button.colors.primary.contained.default.foreground}',
-    },
-  });
   assert.deepEqual(Array.from(collecterReferences(structure)).sort(), [
-    '{components.button.colors.primary.contained.default.background}',
-    '{components.button.colors.primary.contained.default.foreground}',
     '{components.button.sizes.medium.gap}',
   ]);
 });
@@ -347,9 +338,6 @@ test('les variantes aux mêmes coordonnées gardent leurs propres couleurs et st
       strokes: { border: { color: '{colors.second.border}', width: null, align: null } },
     },
   ]);
-  assert.deepEqual(structure.variantTokens, {
-    focus: { background: '{colors.first.background}' },
-  });
   assert.equal(
     warnings.some((warning) => warning.includes('Les deux restent dans la liste exacte')),
     false,

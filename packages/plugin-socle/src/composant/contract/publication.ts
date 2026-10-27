@@ -134,9 +134,6 @@ export async function publierLeContrat(
     message,
   }));
   const {
-    variantTokens: _variantTokens,
-    variantStrokes: _variantStrokes,
-    variantTypography: _variantTypography,
     sizes,
     variantAxes,
     ...projectionDeReference

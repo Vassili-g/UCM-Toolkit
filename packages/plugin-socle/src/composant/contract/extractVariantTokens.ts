@@ -1,11 +1,8 @@
 /**
  * Extraction des tokens de couleur/contour de chaque variant du composant.
  *
- * Résultat : l'arbre `variantTokens`, imbriqué selon les axes du set
- * (ex. couleur → variante → état), avec pour feuilles les couleurs rangées par
- * clé. Les strokes sont exportés dans un arbre parallèle afin que les
- * consommateurs historiques de `variantTokens` gardent partout des références
- * de tokens sous forme de chaînes.
+ * Résultat : les couleurs et les contours de chaque variant, rangés par clé
+ * (`tokensByComponent`, `strokesByComponent`).
  *
  * Les clés se décident ici, une seule fois, sur toute la matrice
  * (`colorKeys.ts`) : lues variant par variant, elles changeraient d'un état à
@@ -14,11 +11,10 @@
 import { resolveColorKeys } from './colorKeys';
 import type { VariantEntry, VariantMatrix } from './componentTree';
 import type { ComposedInstances } from './exportableNodes';
-import { normalizePropValue } from './parsers';
 import { getSlotTokens } from './extractSlotTokens';
 import type { TokenResolver, VariantColor, VariantStrokeColor } from './extractSlotTokens';
 import { toRef } from '@ucm-kit/core/format';
-import type { SlotStrokes, SlotTokens, VariantStrokes, VariantTokens } from '@ucm-kit/core/format';
+import type { SlotStrokes, SlotTokens } from '@ucm-kit/core/format';
 import {
   declarerLesRacinesDeVariants,
   estUneRacineDeVariant,
@@ -28,61 +24,6 @@ import {
 } from './localisation';
 export { getSlotTokens } from './extractSlotTokens';
 export type { VariantTokenLeaves } from './extractSlotTokens';
-
-/**
- * Insère une feuille dans l'ordre des axes ; une valeur absente devient
- * `default`. Rend `false` si la case est déjà occupée, sans perdre l'occurrence
- * conservée dans `variants`. Les clés Figma sont testées en propriétés propres
- * pour que `constructor`, `toString` et `__proto__` ne touchent pas le prototype.
- */
-export function insertVariantLeaf<T>(
-  tree: Record<string, unknown>,
-  axes: string[],
-  values: Record<string, string>,
-  leaf: T,
-  warnings: string[],
-): boolean {
-  const has = (node: Record<string, unknown>, key: string) =>
-    Object.prototype.hasOwnProperty.call(node, key);
-  const set = (node: Record<string, unknown>, key: string, value: unknown) => {
-    Object.defineProperty(node, key, {
-      value, enumerable: true, writable: true, configurable: true,
-    });
-  };
-
-  let node = tree;
-  let inserted = false;
-  axes.forEach((axis, index) => {
-    const key = values[axis] || 'default';
-    if (index === axes.length - 1) {
-      // Deux variants aux mêmes valeurs d'axes : on conserve le premier et on
-      // le signale, ne jamais perdre d'information en silence.
-      if (has(node, key)) {
-        pousserSansNode(
-          warnings,
-          `Variants « ${axes.map((a) => values[a] || 'default').join(' / ')} »`,
-          {
-            famille: 'proprietes',
-            manque: `deux variants portent les mêmes valeurs une fois normalisées `
-              + `(majuscules et espaces ignorés).`,
-            impact: `Les deux variants sont exportés, mais une partie du contrat ne permet `
-              + `pas de les distinguer.`,
-            action: `Donnez-leur des valeurs qui diffèrent autrement que par les majuscules `
-              + `ou les espaces, puis réexportez.`,
-          },
-        );
-        return;
-      }
-      set(node, key, leaf);
-      inserted = true;
-      return;
-    }
-    const branch = has(node, key) ? node[key] : null;
-    if (!branch || typeof branch !== 'object' || Array.isArray(branch)) set(node, key, {});
-    node = node[key] as Record<string, unknown>;
-  });
-  return inserted;
-}
 
 /** Feuille de peintures : une référence de token par clé. */
 function paintLeaf(colors: readonly VariantColor[], keys: ReadonlyMap<string, string>): SlotTokens {
@@ -123,8 +64,8 @@ function placementNodeIds(
 }
 
 /**
- * Point d'entrée : construit l'arbre complet des tokens de variantes
- * (tous les axes, toutes les couleurs).
+ * Point d'entrée : relève les tokens de toutes les variantes (tous les axes,
+ * toutes les couleurs).
  */
 export async function extractVariantTokens(
   matrix: VariantMatrix,
@@ -134,8 +75,6 @@ export async function extractVariantTokens(
   iconNames: ReadonlySet<string> = new Set(),
   notices: string[] = warnings,
 ): Promise<{
-  variantTokens: VariantTokens;
-  variantStrokes: VariantStrokes;
   /** Feuille exacte de chaque node, y compris lorsque ses coordonnées sont dupliquées. */
   tokensByComponent: Map<ComponentNode, SlotTokens>;
   /** Strokes exacts de chaque node, avec la même garantie que `tokensByComponent`. */
@@ -145,8 +84,6 @@ export async function extractVariantTokens(
   /** Rôle de rendu relevé pour chaque clé, un côté par arbre, sur toute la matrice. */
   discoveredRoles: { fills: Map<string, string>; strokes: Map<string, string> };
 }> {
-  const variantTokens: VariantTokens = {};
-  const variantStrokes: VariantStrokes = {};
   const tokensByComponent = new Map<ComponentNode, SlotTokens>();
   const strokesByComponent = new Map<ComponentNode, SlotStrokes>();
   const paintNodeIdsByComponent = new Map<ComponentNode, VariantPaintNodeIds>();
@@ -156,9 +93,6 @@ export async function extractVariantTokens(
   // consommateur peindrait le mauvais côté sans un mot.
   const discoveredRoles = { fills: new Map<string, string>(), strokes: new Map<string, string>() };
   const reportedRoleConflicts = new Set<string>();
-  // Un Component Set a toujours au moins un axe, mais on se protège d'une
-  // liste vide pour ne jamais perdre un variant en silence.
-  const axes = matrix.axes.length > 0 ? matrix.axes : ['variant'];
 
   // Les appels à l'API Figma restent parallèles, mais rien n'est écrit ici :
   // chaque variant collecte même ses propres avertissements. L'ordre où les
@@ -189,13 +123,10 @@ export async function extractVariantTokens(
   // Première passe, séquentielle : c'est la matrice qui fixe l'ordre des clés,
   // celui des avertissements et le sens de « premier conservé » dans les seuls
   // arbres historiques. Aucun variant réel n'est écarté de la vue exacte.
-  const reserved: Record<string, unknown> = {};
   const exact: Array<{
     entry: VariantEntry;
     leaf: (typeof collected)[number]['leaf'];
-    values: Record<string, string>;
   }> = [];
-  const retained: typeof exact = [];
   for (const { entry, leaf, variantWarnings } of collected) {
     warnings.push(...variantWarnings);
     reporterLocalisations(variantWarnings, warnings);
@@ -207,17 +138,7 @@ export async function extractVariantTokens(
         action: 'Reliez ses fills et ses strokes à des variables Figma, puis réexportez.',
       });
     }
-    // La clé de repli suit la même normalisation que toutes les valeurs
-    // d'axes : l'arbre reste homogène même sans axe déclaré.
-    const values = matrix.axes.length > 0
-      ? entry.values
-      : { variant: normalizePropValue(entry.component.name) };
-    const exactEntry = { entry, leaf, values };
-    exact.push(exactEntry);
-    // Cet index n'est pas sérialisé : un doublon de coordonnées n'y perd aucune
-    // donnée et ne demande aucune correction au designer. L'arbre reste tenu en
-    // interne pour les extracteurs qui s'en servent et leurs tests.
-    if (insertVariantLeaf(reserved, axes, values, true, [])) retained.push(exactEntry);
+    exact.push({ entry, leaf });
   }
 
   // Deuxième passe : les clés se décident sur toutes les feuilles exactes. Un
@@ -275,16 +196,7 @@ export async function extractVariantTokens(
     relever(leaf.strokes, 'strokes');
   }
 
-  // Les index historiques gardent leur forme : quand deux variants occupent la
-  // même coordonnée, la première passe a déjà choisi et documenté le premier.
-  for (const { entry, values } of retained) {
-    insertVariantLeaf(variantTokens, axes, values, tokensByComponent.get(entry.component) ?? {}, []);
-    insertVariantLeaf(variantStrokes, axes, values, strokesByComponent.get(entry.component) ?? {}, []);
-  }
-
   return {
-    variantTokens,
-    variantStrokes,
     tokensByComponent,
     strokesByComponent,
     paintNodeIdsByComponent,

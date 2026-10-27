@@ -64,7 +64,7 @@ async function contractFor(reference: any, iconNames: string[], rules: IconRule[
 
 /** L'invariant commun aux trois cas : un slot publié existe dans le contrat. */
 function assertSlotsExist(
-  structure: ContractStructure,
+  structure: Pick<ContractStructure, 'children'>,
   icons: Record<string, IconDefinition>,
 ): void {
   const slots = new Set(structure.children.map((child) => child.slot));

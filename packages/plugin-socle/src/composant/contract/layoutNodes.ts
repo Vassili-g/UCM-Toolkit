@@ -7,7 +7,7 @@
  * dimensions peut désigner deux nodes différents dès que le variant porte
  * autant de dimensions liées que le wrapper. Le contrat aurait alors trois
  * lectures d'un même arbre : `structure.children` d'un côté, les slots des
- * icônes et les chemins de `variantTypography` de l'autre.
+ * icônes et les chemins de la typographie de l'autre.
  *
  * L'élection a donc lieu ici, une seule fois par variant, et les extractions
  * consultent son résultat sans jamais le recalculer. C'est la même règle que

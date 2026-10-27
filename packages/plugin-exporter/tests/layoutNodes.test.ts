@@ -110,16 +110,6 @@ test('un seul node de layout sert les slots, la typographie et les icônes', asy
   // Et la typographie les retrouve : une seconde élection la faisait disparaître
   // entièrement, en accusant le variant de référence de diverger de lui-même.
   assert.deepEqual(Object.keys(textStyles), ['label.large']);
-  assert.deepEqual(structure.variantTypography, {
-    a: [
-      { slotPath: ['label'], style: 'label.large' },
-      { slotPath: ['label-2'], style: 'label.large' },
-    ],
-    b: [
-      { slotPath: ['label'], style: 'label.large' },
-      { slotPath: ['label-2'], style: 'label.large' },
-    ],
-  });
   // Une matrice homogène ne produit aucun diagnostic de divergence.
   assert.deepEqual(
     warnings.filter((warning) => /diffère du variant de référence|Parties texte différentes|Auto layout différent/.test(warning)),

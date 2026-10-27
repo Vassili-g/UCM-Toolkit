@@ -95,7 +95,7 @@ test('un doublon d’axes garde toutes ses couleurs dans la vue exacte', async (
   const warnings: string[] = [];
   const first = variante('Color=Primary', 'Primary', 'premiere');
   const second = variante('Color=primary', 'primary', 'seconde');
-  const { variantTokens, tokensByComponent } = await extractVariantTokens(
+  const { tokensByComponent } = await extractVariantTokens(
     {
       axes: ['color'],
       variants: [
@@ -110,17 +110,10 @@ test('un doublon d’axes garde toutes ses couleurs dans la vue exacte', async (
     warnings,
   );
 
-  // Deux variantes se normalisent pareil : l'index interne garde la première,
-  // mais il n'est pas sérialisé et les deux feuilles exactes restent
+  // Deux variantes se normalisent pareil : les deux feuilles exactes restent
   // contractuelles sans demander un renommage au designer.
   assert.deepEqual(warnings, []);
 
-  const references = collecterReferences(variantTokens);
-  assert.equal(
-    references.has('{components.button.colors.secondary.background}'),
-    false,
-    'l’index historique ne peut porter que la première coordonnée',
-  );
   assert.deepEqual(tokensByComponent.get(second), {
     background: '{components.button.colors.secondary.background}',
   });

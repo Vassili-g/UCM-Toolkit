@@ -11,7 +11,7 @@
 - [x] **7.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : assembler contrat et échantillons exporteur depuis ce résultat ; comparer hors date avec l'ancien chemin. Résultat : `plugin-socle/src/composant/contract/publication.ts` (`publierLeContrat`), section « Publication depuis le résultat (7.5) » ; comparaison dans `plugin-exporter/tests/aides/parite.ts` `verifierLaPublication`.
 - [x] **7.6 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : déplacer compaction et sérialisation après le calcul commun ; garder diagnostics tardifs et contrat ordonné. Résultat : option `publier: false` de `analyserLeComposant` (`exportComponent.ts`), section « Analyse sans publication (7.6) » ; preuve dans `plugin-exporter/tests/aides/parite.ts` `verifierLAnalyseSansPublication`.
 - [x] **7.7 | gpt-6.1-sol | high** | **Claude Sonnet | high** : brancher Architect sur surface et règles sans JSON.parse du contrat ; comparer corrections, questions et modèles. Résultat : `LECTEURS_DE_FIGMA.moteur` passe `publier: false` et `lireLesRegles` lit le résultat interne (`contratDesReglesDe`), section « Architect sur le résultat interne (7.7) » ; preuve dans `plugin-architect/tests/pariteDeLInterne.test.ts`.
-- [ ] **7.8 | gpt-6-luna | low** | **Claude Sonnet | low** : retirer l'ancien chemin de production après parité ; garder le comparateur et exécuter les builds Architect et exporteur.
+- [x] **7.8 | gpt-6-luna | low** | **Claude Sonnet | low** : retirer l'ancien chemin de production après parité ; garder le comparateur et exécuter les builds Architect et exporteur. Résultat : les trois arbres par variante ne sont plus bâtis ; section « Retrait de l'ancien chemin (7.8) ».
 
 Prérequis : 6. Nature : extraction à sortie identique.
 Chemins : `packages/plugin-socle/src/composant/contract/exportComponent.ts`,
@@ -488,3 +488,13 @@ Sans changer les constats, les corrections ni les modèles d'Architect :
 - `test:paquet -- socle` 170 tests, exporteur 1150, Architect 1271, `npm run typecheck`, sans échec.
 
 **Ce qui reste.** 7.8 retire l'ancien chemin de production, `publierAvant` et `voieAvantLInterne.ts`, et exécute les builds Architect et exporteur.
+
+### Retrait de l'ancien chemin (7.8)
+
+**Retiré.** Les arbres `variantTokens`, `variantStrokes` et `variantTypography` ne sont plus bâtis, ni leur index de coordonnées. `insertVariantLeaf` disparaît. `extractVariantTokens` et `extractVariantTypography` ne les rendent plus ; `extractStructure` rend un `StructureDeReference`, le type publié sans ces trois champs. `publication.ts` n'a plus à les jeter. Le contrat publié et ses messages ne changent pas : `insertVariantLeaf` recevait une liste d'avertissements jetée.
+
+**Gardé.** La passe `structure.typographie` : elle émet le site 80 et fixe l'ordre de `textStyles`. Les copies du banc (`tests/aides/cheminAvant*.ts`, `voieAvantLInterne.ts`), `publierAvant` et le point d'entrée du banc restent, comme le comparateur. Les types `VariantTokens`, `VariantStrokes` et `VariantTypography` restent dans le kit : ils décrivent le format publié.
+
+**Tests.** Les assertions sur les arbres sont retirées ou lues sur `tokensByComponent`, `strokesByComponent` et `typographyByComponent`. Deux tests disparaissent : la clé de repli de l'arbre sans axe, et `insertVariantLeaf` sur les clés héritées de `Object.prototype`.
+
+**Contrôles.** `test:paquet -- socle` 172 tests, exporteur 1148, Architect 1271, `npm run typecheck`, `build:plugin -- architect` et `build:plugin -- exporter`, sans échec.

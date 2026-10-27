@@ -126,16 +126,6 @@ test('extractVariantTypography lie les styles à leurs tokens sur chaque variant
     },
   );
 
-  assert.deepEqual(result.variantTypography, {
-    big: [
-      { slotPath: ['label', 'label'], style: 'body.large' },
-      { slotPath: ['label', 'label-2'], style: 'body.small' },
-    ],
-    small: [
-      { slotPath: ['label', 'label'], style: 'body.medium' },
-      { slotPath: ['label', 'label-2'], style: 'body.small' },
-    ],
-  });
   assert.deepEqual(result.textStyles['body.large'], {
     figmaName: 'Body/Large',
     tokens: {
@@ -171,9 +161,6 @@ test('un texte sans style et une liaison incomplète avertissent sans valeur bru
     } as unknown as BaseStyle),
   );
 
-  assert.deepEqual(result.variantTypography, {
-    big: [{ slotPath: ['label', 'label-2'], style: 'body.small' }],
-  });
   assert.deepEqual(result.textStyles['body.small'].tokens, {
     fontSize: '{typography.body.small.fontsize}',
   });
@@ -227,9 +214,6 @@ test('deux variantes aux mêmes coordonnées gardent leurs usages typographiques
   assert.deepEqual(result.typographyByComponent.get(second), [
     { slotPath: ['label'], style: 'body.second' },
   ]);
-  assert.deepEqual(result.variantTypography, {
-    focus: [{ slotPath: ['label'], style: 'body.first' }],
-  });
 });
 
 /** Un variant d'un seul calque texte, sous l'axe `state`. */

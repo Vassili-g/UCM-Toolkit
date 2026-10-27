@@ -118,9 +118,6 @@ export async function publierAvant(
     message,
   }));
   const {
-    variantTokens: _variantTokens,
-    variantStrokes: _variantStrokes,
-    variantTypography: _variantTypography,
     sizes,
     variantAxes,
     ...projectionDeReference

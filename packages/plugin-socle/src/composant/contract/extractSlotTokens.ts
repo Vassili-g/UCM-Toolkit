@@ -290,7 +290,7 @@ export async function getSlotTokens(
     // `getAllNodes` conserve l'instance d'un composant unifié pour que la
     // structure puisse la décrire comme un slot. Ses couleurs, elles, ne sont
     // pas les nôtres : elles appartiennent à son propre contrat, et les relever
-    // ici les ferait entrer dans `variantTokens` et dans `tokensUsed` du parent
+    // ici les ferait entrer dans `tokensUsed` du parent
     //, le contrat annoncerait une couleur qu'aucun de ses calques ne peint.
     if (composed.has(node.id)) continue;
     for (const field of BOUND_FIELDS) {

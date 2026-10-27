@@ -13,18 +13,15 @@ import type { VariantMatrix } from './componentTree';
 import { getAllNodesParEtapes } from './exportableNodes';
 import type { ComposedInstances } from './exportableNodes';
 import type { VariantLayoutNodes } from './layoutNodes';
-import { normalizePropValue } from './parsers';
 import { publishesChildrenParEtapes } from './structureTree';
 import { composedSlotDependenciesParEtapes } from './slotRelations';
 import { assignSlotsParEtapes } from './slotNames';
-import { insertVariantLeaf } from './extractVariantTokens';
 import { avancer } from './mesure';
 import { cheminsMemorises, memoriserLesChemins, respirerSiBesoin, styleDeLaPortee } from './porteeDAnalyse';
 import type {
   TextStyleDefinition,
   TextStyleUse,
   TypographyTokens,
-  VariantTypography,
 } from '@ucm-kit/core/format';
 import { pousserLocalise, pousserSansNode } from './localisation';
 import {
@@ -317,21 +314,17 @@ export async function extractVariantTypography(
   pathNotices: string[] = warnings,
 ): Promise<{
   textStyles: Record<string, TextStyleDefinition>;
-  variantTypography: VariantTypography;
   /** Usages exacts par node, même si deux variants partagent leurs coordonnées. */
   typographyByComponent: Map<ComponentNode, TextStyleUse[]>;
 }> {
   // Les clés viennent du nom normalisé d'un text style Figma. Une `Map` n'a
   // aucune clé héritée : dans un objet littéral, un style nommé « __proto__ »
-  // fixerait le prototype au lieu d'occuper une clé, et `variantTypography`
-  // citerait un style absent de `textStyles`. Même structure que sa jumelle
+  // fixerait le prototype au lieu d'occuper une clé. Même structure que sa jumelle
   // `styleIdByKey`, qui arbitre déjà les homonymes.
   const textStyles = new Map<string, TextStyleDefinition>();
   const styleIdByKey = new Map<string, string>();
   const styleCache = new Map<string, Promise<LoadedStyle | null>>();
-  const variantTypography: VariantTypography = {};
   const typographyByComponent = new Map<ComponentNode, TextStyleUse[]>();
-  const axes = matrix.axes.length > 0 ? matrix.axes : ['variant'];
 
   for (const [rang, entry] of matrix.variants.entries()) {
     avancer(rang, matrix.variants.length);
@@ -385,19 +378,11 @@ export async function extractVariantTypography(
       }
     }
 
-    const values = matrix.axes.length > 0
-      ? entry.values
-      : { variant: normalizePropValue(entry.component.name) };
     typographyByComponent.set(entry.component, uses);
-    // Cet index reste un détail interne depuis la v9. Les usages exacts sont
-    // tous conservés dans les vues, même si deux variants partagent les mêmes
-    // coordonnées normalisées.
-    insertVariantLeaf(variantTypography, axes, values, uses, []);
   }
 
   return {
     textStyles: Object.fromEntries(textStyles),
-    variantTypography,
     typographyByComponent,
   };
 }

@@ -3,7 +3,6 @@ import test from 'node:test';
 import {
   extractVariantTokens,
   getSlotTokens,
-  insertVariantLeaf,
 } from 'ucm-plugin-socle/src/composant/contract/extractVariantTokens';
 import { localisationsDe, partiesDe } from 'ucm-plugin-socle/src/composant/contract/localisation';
 import { renderingSemanticsFor } from 'ucm-plugin-socle/src/composant/contract/semantics';
@@ -230,12 +229,8 @@ test('deux variants aux mêmes axes gardent leurs feuilles sans diagnostic d’i
     warnings,
   );
 
-  // L'index interne conserve le premier, mais il n'est pas sérialisé :
-  // les deux feuilles exactes restent disponibles et aucune perte n'est à
+  // Les deux feuilles exactes restent disponibles et aucune perte n'est à
   // corriger dans Figma.
-  assert.deepEqual(trees.variantTokens, {
-    focus: { background: '{components.button.colors.a.background}' },
-  });
   assert.deepEqual(trees.tokensByComponent.get(first), {
     background: '{components.button.colors.a.background}',
   });
@@ -278,36 +273,12 @@ test('extractVariantTokens suit l’ordre de la matrice, pas l’ordre de résol
     warnings,
   );
 
-  assert.deepEqual(Object.keys(trees.variantTokens), ['default', 'hover', 'focus']);
-  assert.deepEqual(Object.keys(trees.variantStrokes), ['default', 'hover', 'focus']);
   // Les avertissements aussi entrent dans le contrat : leur ordre suit la matrice.
   assert.deepEqual(warnings, [
     'Variant « State=Default » : aucun fill ni stroke n’est relié à une variable. Aucune couleur n’est exportée pour lui. Reliez ses fills et ses strokes à des variables Figma, puis réexportez.',
     'Variant « State=Hover » : aucun fill ni stroke n’est relié à une variable. Aucune couleur n’est exportée pour lui. Reliez ses fills et ses strokes à des variables Figma, puis réexportez.',
     'Variant « State=Focus » : aucun fill ni stroke n’est relié à une variable. Aucune couleur n’est exportée pour lui. Reliez ses fills et ses strokes à des variables Figma, puis réexportez.',
   ]);
-});
-
-test('extractVariantTokens normalise la clé de repli quand le set n’expose aucun axe', async () => {
-  const node = {
-    type: 'RECTANGLE',
-    name: 'Icon Only',
-    boundVariables: { fills: [colorAlias] },
-    findAll: () => [],
-  } as unknown as ComponentNode;
-  const resolver = {
-    resolve: async (alias: VariableAlias | null | undefined) =>
-      alias?.id === 'color' ? 'components.button.colors.primary.default.background' : null,
-  };
-
-  const trees = await extractVariantTokens(
-    { axes: [], variants: [{ values: {}, component: node }] },
-    resolver,
-    [],
-  );
-
-  // La clé « icon-only » suit la même normalisation que les valeurs d'axes.
-  assert.deepEqual(Object.keys(trees.variantTokens), ['icon-only']);
 });
 
 test('extractVariantTokens ajoute la largeur du stroke à tokensUsed', async () => {
@@ -334,16 +305,6 @@ test('extractVariantTokens ajoute la largeur du stroke à tokensUsed', async () 
   );
 
   assert.deepEqual(trees, {
-    variantTokens: { focus: {} },
-    variantStrokes: {
-      focus: {
-        ring: {
-          color: '{components.button.colors.primary.focus.ring}',
-          width: '{layouts.stroke.ring}',
-          align: 'outside',
-        },
-      },
-    },
     tokensByComponent: new Map([[node, {}]]),
     strokesByComponent: new Map([[node, {
       ring: {
@@ -358,29 +319,10 @@ test('extractVariantTokens ajoute la largeur du stroke à tokensUsed', async () 
     }]]),
     discoveredRoles: { fills: new Map(), strokes: new Map() },
   });
-  assert.deepEqual(Array.from(collecterReferences(trees)).sort(), [
+  assert.deepEqual(Array.from(collecterReferences(Array.from(trees.strokesByComponent.values()))).sort(), [
     '{components.button.colors.primary.focus.ring}',
     '{layouts.stroke.ring}',
   ]);
-  assert.deepEqual(warnings, []);
-});
-
-test('une valeur d’axe héritée d’Object.prototype reste une clé comme une autre', () => {
-  const warnings: string[] = [];
-  const arbre: Record<string, unknown> = {};
-
-  insertVariantLeaf(arbre, ['variant'], { variant: 'constructor' }, { background: '{a.b}' }, warnings);
-  insertVariantLeaf(arbre, ['tone', 'state'], { tone: '__proto__', state: 'default' }, { background: '{c.d}' }, warnings);
-
-  // Lus et écrits en propriétés propres : sans cela « constructor » passait pour
-  // un doublon et « __proto__ » écrivait dans le prototype, l'arbre sortait
-  // amputé, sans un mot. La comparaison passe par le JSON produit : un objet
-  // littéral `{ __proto__: … }` fixerait lui aussi un prototype au lieu d'une clé.
-  assert.deepEqual(Object.keys(arbre), ['constructor', '__proto__']);
-  assert.equal(
-    JSON.stringify(arbre),
-    '{"constructor":{"background":"{a.b}"},"__proto__":{"default":{"background":"{c.d}"}}}',
-  );
   assert.deepEqual(warnings, []);
 });
 
@@ -464,7 +406,7 @@ test('la couleur portée par une dépendance n’entre pas dans le contrat du co
 
   // `getAllNodes` conserve l'instance pour que la structure la décrive comme un
   // slot ; sa couleur, elle, appartient au contrat de l'Alert. La relever ici
-  // la ferait entrer dans `variantTokens` et dans `tokensUsed` du parent : le
+  // la ferait entrer dans `tokensUsed` du parent : le
   // contrat annoncerait une couleur qu'aucun de ses calques ne peint.
   assert.deepEqual(tokens.paints, [
     { token: 'components.page.colors.background', role: 'background', nodeIds: ['panneau'] },
@@ -609,13 +551,11 @@ test('un variant à plusieurs surfaces publie TOUTES ses couleurs', async () => 
     warnings,
   );
 
-  assert.deepEqual(trees.variantTokens, {
-    default: {
-      'userinput.background': '{components.stresstest.info.userinput.colors.background}',
-      'divider.background': '{components.stresstest.info.divider.colors.background}',
-    },
+  assert.deepEqual(trees.tokensByComponent.get(racine), {
+    'userinput.background': '{components.stresstest.info.userinput.colors.background}',
+    'divider.background': '{components.stresstest.info.divider.colors.background}',
   });
-  assert.deepEqual(Object.keys(trees.variantStrokes.default as object).sort(), [
+  assert.deepEqual(Object.keys(trees.strokesByComponent.get(racine) as object).sort(), [
     'base.border',
     'userinput.border',
   ]);
@@ -721,8 +661,8 @@ test('deux tokens qui finissent pareil, l’un en fill l’autre en stroke, gard
   );
   const rendering = renderingSemanticsFor(trees.discoveredRoles);
 
-  assert.deepEqual(Object.keys(trees.variantTokens.default as object), ['background']);
-  assert.deepEqual(Object.keys(trees.variantStrokes.default as object), ['background']);
+  assert.deepEqual(Object.keys(trees.tokensByComponent.get(racine) as object), ['background']);
+  assert.deepEqual(Object.keys(trees.strokesByComponent.get(racine) as object), ['background']);
   // La peinture porte déjà le nom de son rôle et n'a rien à publier ; le contour
   // dit le sien, de son côté. Aucune des deux tables ne parle pour l'autre.
   assert.deepEqual(rendering.keyRoles, { strokes: { background: 'border' } });
@@ -757,7 +697,7 @@ test('un token dont le nom déclare un fill peint un contour, sans un mot', asyn
   assert.deepEqual(warnings.filter((warning) => warning.includes('dernier segment')), []);
 });
 
-test('un doublon d’axes garde une clé stable dans les vues exactes et l’index historique', async () => {
+test('un doublon d’axes garde une clé stable dans les vues exactes', async () => {
   const makeNode = (name: string, id: string) => ({
     type: 'RECTANGLE',
     name,
@@ -786,11 +726,11 @@ test('un doublon d’axes garde une clé stable dans les vues exactes et l’ind
   );
 
   // Les couleurs ne cohabitent dans aucune feuille exacte : elles partagent
-  // donc la clé simple. L'index interne garde la première occurrence, mais il
-  // n'est pas sérialisé.
-  assert.deepEqual(trees.variantTokens, {
-    focus: { background: '{components.card.base.colors.background}' },
-  });
+  // donc la clé simple.
+  assert.deepEqual(Array.from(trees.tokensByComponent.values()), [
+    { background: '{components.card.base.colors.background}' },
+    { background: '{components.card.autre.colors.background}' },
+  ]);
   assert.deepEqual(warnings, []);
 });
 

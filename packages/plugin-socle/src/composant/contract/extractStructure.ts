@@ -40,6 +40,16 @@ import type {
 } from '@ucm-kit/core/format';
 
 /**
+ * Structure de référence que le moteur manipule : les trois arbres par
+ * variante (`variantTokens`, `variantStrokes`, `variantTypography`) ne sont plus
+ * bâtis, aucune publication ne les lit.
+ */
+export type StructureDeReference = Omit<
+  ContractStructure,
+  'variantTokens' | 'variantStrokes' | 'variantTypography'
+>;
+
+/**
  * Situe chaque clé de couleur par les chemins de l'arbre publié.
  *
  * Le chemin d'une peinture est celui du calque publié qui la porte : une couleur
@@ -121,7 +131,7 @@ export async function extractStructure(
   imbriques?: ReleveDesImbriques,
   annoncer: Annonce = () => {},
 ): Promise<{
-  structure: ContractStructure;
+  structure: StructureDeReference;
   textStyles: Record<string, TextStyleDefinition>;
   effectStyles: Record<string, EffectStyleDefinition>;
   iconLayers: IconLayerSummary[];
@@ -170,8 +180,6 @@ export async function extractStructure(
   // inventaire qui distingue l'encre d'une icône de la surface d'un cadre.
   const iconTargets = new Set(iconNames);
   const {
-    variantTokens,
-    variantStrokes,
     tokensByComponent,
     strokesByComponent,
     paintNodeIdsByComponent,
@@ -383,13 +391,10 @@ export async function extractStructure(
       ...(radius ? { radius } : {}),
     };
 
-  const structure: ContractStructure = {
+  const structure: StructureDeReference = {
     ...slots,
     ...dimensions,
     variantAxes: matrix.axes,
-    variantTokens,
-    variantStrokes,
-    variantTypography: typography.variantTypography,
   };
 
   return {
