@@ -502,12 +502,12 @@ export function enregistrerLesImports(actif: boolean): ImportsEnregistres | null
 /** Compte les appels du port pendant une trace, en conservant le destinataire des méthodes Figma. */
 export function mesurerLePortDeLecture(variables: PortDeLecture): PortDeLecture {
   return {
-    getLocalVariableCollectionsAsync: () => attendrePourLaMesure(() => variables.getLocalVariableCollectionsAsync(), 'api'),
-    getLocalVariablesAsync: () => attendrePourLaMesure(() => variables.getLocalVariablesAsync(), 'api'),
-    getVariableByIdAsync: (id) => attendrePourLaMesure(() => variables.getVariableByIdAsync(id), 'api'),
-    getVariableCollectionByIdAsync: (id) => attendrePourLaMesure(() => variables.getVariableCollectionByIdAsync(id), 'api'),
+    getLocalVariableCollectionsAsync: () => attendrePourLaMesure(() => variables.getLocalVariableCollectionsAsync(), 'api', undefined, 'getLocalVariableCollectionsAsync'),
+    getLocalVariablesAsync: () => attendrePourLaMesure(() => variables.getLocalVariablesAsync(), 'api', undefined, 'getLocalVariablesAsync'),
+    getVariableByIdAsync: (id) => attendrePourLaMesure(() => variables.getVariableByIdAsync(id), 'api', undefined, 'getVariableByIdAsync'),
+    getVariableCollectionByIdAsync: (id) => attendrePourLaMesure(() => variables.getVariableCollectionByIdAsync(id), 'api', undefined, 'getVariableCollectionByIdAsync'),
     importVariableByKeyAsync: (cle) => {
-      const appel = attendrePourLaMesure(() => variables.importVariableByKeyAsync(cle), 'api');
+      const appel = attendrePourLaMesure(() => variables.importVariableByKeyAsync(cle), 'api', undefined, 'importVariableByKeyAsync');
       const enregistrement = importsEnregistres;
       if (!enregistrement) return appel;
       return appel.then((valeur) => { enregistrement.set(cle, { valeur }); return valeur; }, (erreur: unknown) => { enregistrement.set(cle, { erreur }); throw erreur; });

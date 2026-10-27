@@ -176,7 +176,7 @@ export function maitreDe(instance: InstanceNode): Promise<ComponentNode | null> 
   return lireUneFoisParIdentifiant(memoire, instance.id, () => {
     if (typeof instance.getMainComponentAsync !== 'function') return undefined;
     compter('appelsGetMainComponentAsync');
-    return instance.getMainComponentAsync();
+    return attendrePourLaMesure(() => instance.getMainComponentAsync(), 'parallele', undefined, 'getMainComponentAsync');
   }, { reutilise: () => compter('maitresReutilises') }).then((lu) => (lu.etat === 'lu' ? lu.natif as ComponentNode : null));
 }
 

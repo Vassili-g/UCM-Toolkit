@@ -900,8 +900,8 @@ async function sujetDeFigma(contexte: Contexte): Promise<SujetAAnalyser | null> 
 function portDuComposant({ figma }: Contexte): PortDuComposant {
   return {
     selection: () => selectionLue(figma),
-    getNodeByIdAsync: (id) => attendrePourLaMesure(() => figma.getNodeByIdAsync(id), 'api') as unknown as Promise<NoeudLu | null>,
-    getStyleByIdAsync: (id) => attendrePourLaMesure(() => figma.getStyleByIdAsync(id), 'api') as never,
+    getNodeByIdAsync: (id) => attendrePourLaMesure(() => figma.getNodeByIdAsync(id), 'api', undefined, 'getNodeByIdAsync') as unknown as Promise<NoeudLu | null>,
+    getStyleByIdAsync: (id) => attendrePourLaMesure(() => figma.getStyleByIdAsync(id), 'api', undefined, 'getStyleByIdAsync') as never,
     variables: portDeLecture(figma),
     pause: () => new Promise((resolve) => setTimeout(resolve, 0)),
   };

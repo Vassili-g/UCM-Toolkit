@@ -6,6 +6,7 @@
 
 import { executerAuPlus } from './composant/analyse/limiteur';
 import type { ContexteCooperatif } from './composant/contract/porteeDAnalyse';
+import { attendrePourLaMesure } from './composant/contract/mesure';
 
 export type TypeDeVariable = 'COLOR' | 'FLOAT' | 'STRING' | 'BOOLEAN';
 
@@ -43,12 +44,12 @@ export async function lireLesLibraries(figma: PortDeBibliotheque, cooperation?: 
   if (!teamLibrary) return { etat: 'illisible', motif: 'La permission teamlibrary manque : les libraries ne se lisent pas.' };
   await cooperation?.cederSiBesoin();
   let disponibles;
-  try { disponibles = await teamLibrary.getAvailableLibraryVariableCollectionsAsync(); }
+  try { disponibles = await attendrePourLaMesure(() => teamLibrary.getAvailableLibraryVariableCollectionsAsync(), 'parallele', undefined, 'teamLibrary.getAvailableLibraryVariableCollectionsAsync'); }
   catch (erreur) { return { etat: 'illisible', motif: motifDe(erreur) }; }
   const { resultats: lectures } = await executerAuPlus(
     disponibles,
     (collection): Promise<PromiseSettledResult<readonly { key: string; name: string; resolvedType: string }[]>> =>
-      Promise.resolve().then(() => teamLibrary.getVariablesInLibraryCollectionAsync(collection.key))
+      Promise.resolve().then(() => attendrePourLaMesure(() => teamLibrary.getVariablesInLibraryCollectionAsync(collection.key), 'parallele', undefined, 'teamLibrary.getVariablesInLibraryCollectionAsync'))
         .then((value) => ({ status: 'fulfilled' as const, value }), (reason: unknown) => ({ status: 'rejected' as const, reason })),
     { avant: () => cooperation?.cederSiBesoin() },
   );

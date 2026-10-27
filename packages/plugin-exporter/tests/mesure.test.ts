@@ -308,3 +308,60 @@ test('une analyse sans publication ne trace que les étapes de ETAPES_SANS_PUBLI
     restaurer();
   }
 });
+
+test('chaque appel d\'API nommé garde ses appels, son attente, son attente maximale et son maximum en vol', async () => {
+  const horloge = Date.now;
+  let instant = 0;
+  Date.now = () => instant;
+  try {
+    ouvrirLaMesure();
+    let finir!: () => void;
+    const lent = attendrePourLaMesure(() => new Promise<void>((resolve) => { finir = resolve; }), 'api', undefined, 'getVariableByIdAsync');
+    const court = attendrePourLaMesure(async () => { instant += 4; }, 'api', undefined, 'getVariableByIdAsync');
+    await court;
+    instant += 10;
+    finir();
+    await lent;
+    await attendrePourLaMesure(async () => { instant += 2; }, 'api', undefined, 'getNodeByIdAsync');
+    const trace = fermerLaMesure('');
+    assert.ok(trace);
+    assert.equal(trace.compteurs['api:getVariableByIdAsync:appels'], 2);
+    assert.equal(trace.compteurs['api:getVariableByIdAsync:enVolMax'], 2);
+    assert.equal(trace.compteurs['api:getVariableByIdAsync:msAttenteMax'], 14);
+    assert.equal(trace.compteurs['api:getVariableByIdAsync:msAttente'], 18);
+    assert.equal(trace.compteurs['api:getNodeByIdAsync:enVolMax'], 1);
+    assert.equal(trace.compteurs['api:getNodeByIdAsync:msAttente'], 2);
+  } finally {
+    Date.now = horloge;
+    abandonnerLaMesure();
+  }
+});
+
+test('les cessions gardent leur durée moyenne et maximale, les tranches synchrones leur histogramme et l\'étape de la plus longue', async () => {
+  const horloge = Date.now;
+  let instant = 0;
+  Date.now = () => instant;
+  try {
+    ouvrirLaMesure();
+    await attendrePourLaMesure(async () => { instant += 6; }, 'cession');
+    await attendrePourLaMesure(async () => { instant += 20; }, 'cession');
+    etape('relevé');
+    mesurerLeCalcul(() => { instant += 10; });
+    mesurerLeCalcul(() => { instant += 25; });
+    etape('moteur');
+    mesurerLeCalcul(() => { instant += 60; });
+    const trace = fermerLaMesure('');
+    assert.ok(trace);
+    assert.equal(trace.compteurs.msCessionMoyenne, 13);
+    assert.equal(trace.compteurs.msCessionMax, 20);
+    assert.equal(trace.compteurs['tranches<25'], 1);
+    assert.equal(trace.compteurs.tranches25a50, 1);
+    assert.equal(trace.compteurs['tranches>50'], 1);
+    assert.equal(trace.compteurs['etapePlusLongueTranche:moteur'], 60);
+    assert.equal(trace.compteurs['etapePlusLongueTranche:relevé'], 25);
+    assert.equal(trace.etapes.find((entree) => entree.nom === 'moteur')?.compteurs?.['etapePlusLongueTranche:moteur'], undefined);
+  } finally {
+    Date.now = horloge;
+    abandonnerLaMesure();
+  }
+});

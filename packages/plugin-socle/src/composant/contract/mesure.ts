@@ -57,7 +57,16 @@ export type Compteur =
   | 'msTokensDeTailleCatalogue'
   | 'librariesAnticipeesReprises'
   | 'librariesAnticipeesRelues'
-  | 'msVerificationDesLibraries';
+  | 'msVerificationDesLibraries'
+  | 'msCessionMoyenne'
+  | 'msCessionMax'
+  | 'tranches<25'
+  | 'tranches25a50'
+  | 'tranches>50'
+  /** La plus longue tranche synchrone vue dans l'étape nommée, en ms : l'étape de la plus longue est la plus grande valeur. */
+  | `etapePlusLongueTranche:${string}`
+  /** Par méthode d'API : `api:getVariableByIdAsync:appels`, `:msAttente`, `:msAttenteMax`, `:enVolMax`. */
+  | `api:${string}`;
 
 /**
  * Une étape attendue de l'analyse, et sa part du temps total supposé.
@@ -111,6 +120,8 @@ type Trace = {
   atteinte: number;
   /** Où se mesure le rythme ; null tant que l'étape qui le marque n'est pas ouverte. */
   origine: { instant: number; fraction: number } | null;
+  /** Les appels d'API en vol, par méthode nommée. */
+  enVol: Map<string, number>;
 };
 
 let trace: Trace | null = null;
@@ -132,6 +143,7 @@ export function ouvrirLaMesure(prevues: readonly EtapePrevue[] | null = null): v
     boucle: null,
     atteinte: 0,
     origine: prevues?.some((prevue) => prevue.origineDuRythme) ? null : { instant: debut, fraction: 0 },
+    enVol: new Map(),
   };
 }
 
@@ -140,7 +152,9 @@ function poidsTotal(prevues: readonly EtapePrevue[]): number {
 }
 
 /** Les maximums ne se découpent pas par étape : une différence n'y dit rien. */
-const MAXIMUMS: ReadonlySet<Compteur> = new Set(['plusLongSilenceMs', 'plusLongueTrancheArchitectMs']);
+const MAXIMUMS: ReadonlySet<Compteur> = new Set(['plusLongSilenceMs', 'plusLongueTrancheArchitectMs', 'msCessionMax', 'msCessionMoyenne']);
+const estUnMaximum = (cle: Compteur): boolean =>
+  MAXIMUMS.has(cle) || cle.startsWith('etapePlusLongueTranche:') || cle.endsWith(':msAttenteMax') || cle.endsWith(':enVolMax');
 
 function clore(ouverte: Trace, maintenant: number): void {
   if (!ouverte.enCours) return;
@@ -148,7 +162,7 @@ function clore(ouverte: Trace, maintenant: number): void {
   const gagnes: Partial<Record<Compteur, number>> = {};
   for (const [cle, valeur] of Object.entries(ouverte.compteurs) as Array<[Compteur, number]>) {
     const gain = valeur - (auDebut[cle] ?? 0);
-    if (gain > 0 && !MAXIMUMS.has(cle)) gagnes[cle] = gain;
+    if (gain > 0 && !estUnMaximum(cle)) gagnes[cle] = gain;
   }
   ouverte.etapes.push({
     nom,
@@ -250,6 +264,8 @@ export function fermerLaMesure(content: string): TraceDeMesure | null {
   const maintenant = Date.now();
   const { debut, etapes, compteurs, phases } = trace;
   clore(trace, maintenant);
+  const cessions = compteurs.cessionsArchitect ?? 0;
+  if (cessions > 0) compteurs.msCessionMoyenne = Math.round((compteurs.msEnCessionArchitect ?? 0) / cessions);
   trace = null;
   return {
     totalMs: maintenant - debut,
@@ -268,18 +284,30 @@ export function abandonnerLaMesure(): void {
 /**
  * Une réponse tardive ne compte jamais dans la trace de l'analyse suivante. La nature `parallele` mesure une attente qui
  * chevauche une autre : elle ouvre sa phase, sans entrer dans les compteurs d'attente, que le chevauchement compterait
- * deux fois.
+ * deux fois. Avec `methode`, un appel d'API compte aussi sous son nom : appels, attente cumulée, attente maximale et maximum en vol.
  */
-export async function attendrePourLaMesure<T>(appel: () => Promise<T>, nature: 'api' | 'attente' | 'cession' | 'parallele' = 'attente', phase?: string): Promise<T> {
+export async function attendrePourLaMesure<T>(appel: () => Promise<T>, nature: 'api' | 'attente' | 'cession' | 'parallele' = 'attente', phase?: string, methode?: string): Promise<T> {
   const ouverte = trace;
   if (!ouverte) return appel();
   const debut = Date.now();
   if (nature === 'api') compter('appelsApiArchitect');
+  if (methode) {
+    const enVol = (ouverte.enVol.get(methode) ?? 0) + 1;
+    ouverte.enVol.set(methode, enVol);
+    compter(`api:${methode}:appels`);
+    retenirLeMaximum(`api:${methode}:enVolMax`, enVol);
+  }
   if (nature !== 'parallele') compter(nature === 'cession' ? 'cessionsArchitect' : 'attentesArchitect');
   try { return await appel(); }
   finally {
+    if (methode) ouverte.enVol.set(methode, (ouverte.enVol.get(methode) ?? 1) - 1);
     if (trace === ouverte) {
       const ms = Date.now() - debut;
+      if (methode) {
+        compter(`api:${methode}:msAttente`, ms);
+        retenirLeMaximum(`api:${methode}:msAttenteMax`, ms);
+      }
+      if (nature === 'cession') retenirLeMaximum('msCessionMax', ms);
       if (nature !== 'parallele') compter(nature === 'cession' ? 'msEnCessionArchitect' : 'msEnAttenteArchitect', ms);
       if (phase) ouverte.phases.push({ nom: phase, ms });
     }
@@ -306,6 +334,8 @@ export function mesurerLeCalcul<T>(calcul: () => T, phase?: string, cumuler = fa
     compter('tranchesSynchronesArchitect');
     const ms = Date.now() - debut;
     retenirLeMaximum('plusLongueTrancheArchitectMs', ms);
+    compter(ms < 25 ? 'tranches<25' : ms <= 50 ? 'tranches25a50' : 'tranches>50');
+    retenirLeMaximum(`etapePlusLongueTranche:${trace?.enCours?.nom ?? 'hors-etape'}`, ms);
     const derniere = trace?.phases.at(-1);
     if (phase && cumuler && derniere?.nom === phase && derniere.compteurs === undefined) derniere.ms += ms;
     else if (phase) trace?.phases.push({ nom: phase, ms });
