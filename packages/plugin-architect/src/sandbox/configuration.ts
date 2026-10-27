@@ -7,7 +7,8 @@
  *
  * `annuler-structure` défait le dernier lot du journal de structure (`ecriture/structure.ts`) : une autre opération en cours rend
  * `occupe`, un fichier qui ne déclare plus UCM rend `hors-ucm`, et rien n'est touché dans les deux cas. Une annulation qui défait
- * quelque chose périme l'analyse.
+ * quelque chose périme l'analyse. Un changement effectif de library ou de niveau la périme aussi et s'inscrit au journal
+ * (origine `configuration`) ; un refus d'écriture ou une valeur identique ne change rien.
  */
 import { CLES_D_ARCHITECT, ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
 import { choisirLaLibrary, lireLesLibraries, type CollectionDeLibrary, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -94,18 +95,25 @@ export const traiter: Traiter<DemandeDeConfiguration> = async (demande, contexte
     case 'lire-configuration':
       await lireLaConfiguration(contexte);
       return;
-    case 'ranger-library':
-      rangerLaLibrary(contexte.figma, demande.cle);
+    case 'ranger-library': {
+      // Seul un choix rangé et différent de l'ancien change la configuration ; un refus d'écriture ou le même choix n'invalide rien.
+      const avant = lireLaLibraryRangee(contexte.figma);
+      if (rangerLaLibrary(contexte.figma, demande.cle) && avant !== demande.cle) perimerApresUneEcriture(contexte, 'configuration');
       await lireLaConfiguration(contexte);
       return;
-    case 'ranger-niveau':
+    }
+    case 'ranger-niveau': {
+      const avant = await lireLeNiveau(contexte.figma);
+      const apres: NiveauDAccessibilite = demande.niveau === 'AAA' ? 'AAA' : 'AA';
       try {
-        await contexte.figma.clientStorage.setAsync(CLE_DU_NIVEAU, demande.niveau === 'AAA' ? 'AAA' : 'AA');
+        await contexte.figma.clientStorage.setAsync(CLE_DU_NIVEAU, apres);
+        if (avant !== apres) perimerApresUneEcriture(contexte, 'configuration');
       } catch {
         // Le niveau reste celui d'avant ; la configuration rendue le dit.
       }
       await lireLaConfiguration(contexte);
       return;
+    }
     case 'annuler-structure':
       await annulerLaStructure(demande.demande, contexte);
       return;

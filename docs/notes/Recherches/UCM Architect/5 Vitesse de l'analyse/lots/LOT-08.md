@@ -11,7 +11,7 @@
 - [x] **8.5 | gpt-6-luna | medium** | **Claude Sonnet | medium** : conserver anciens parents et topologie des suppressions ; élargir l'invalidation si parent ou événement manque. Résultat : `AnciensParents` dans `porteeDuChangement` (`couverture.ts`), table d'anciens parents d'`analyse.ts`, section « Anciens parents (8.5) ».
 - [x] **8.6 | gpt-6-luna | medium** | **Claude Sonnet | medium** : interrompre la couverture quand la page est quittée ou la file déborde ; test de retour sur page. Résultat : `signaler` et `couvertureDepuis` (`journal.ts`), `surInterruptionDePage` et `couvertureInterrompue` (`sandbox/analyse.ts`), section « Interruption de couverture (8.6) ».
 - [x] **8.7 | gpt-6-luna | medium** | **Claude Sonnet | medium** : porter Analyser et Actualiser jusqu'au sandbox ; test qu'Actualiser contourne les résultats précédents. Résultat : `intention` de `DemandeDAnalyse`, `reutilisationPermise` (`sandbox/analyse.ts`), envoi par `barre.ts` et `application.ts`, section « Analyser et Actualiser (8.7) ».
-- [ ] **8.8 | gpt-6.1-sol | high** | **Claude Sonnet | high** : invalider après changement de configuration et écriture, distinguer imports et changements externes ; tests Ctrl+Z et refus.
+- [x] **8.8 | gpt-6.1-sol | high** | **Claude Sonnet | high** : invalider après changement de configuration et écriture, distinguer imports et changements externes ; tests Ctrl+Z et refus. Résultat : `signalerUneEcriture` et `ecritureDepuis` (`journal.ts`), `perimerApresUneEcriture(contexte, origine)` et `ecritureDepuisLAnalyse` (`sandbox/analyse.ts`), `ranger-library` et `ranger-niveau` (`sandbox/configuration.ts`), section « Écritures, configuration et imports (8.8) ».
 - [ ] **8.9 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : rendre inapplicable une génération modifiée pendant lecture ou calcul ; tester avant réception de l'événement. Trancher aussi ce que 3.9 a laissé : aujourd'hui `perimer()` (`sandbox/analyse.ts`) laisse finir le calcul en cours, et un clic sur Analyser juste après la péremption reçoit `occupe` jusqu'à sa fin. Lever le jeton de l'opération non finalisée relancerait tout de suite ; cela change le test « une analyse lente d'Alert puis la sélection de Button ».
 
 Prérequis : 7. Nature : correction de fraîcheur, sans mémoire activée.
@@ -169,3 +169,15 @@ Le sandbox lit l'intention par `intentionDe` et décide par `reutilisationPermis
 Limite : une sélection suivante relance l'anticipation, que la prochaine demande `analyser` reprend.
 
 Preuves : `lectureAnticipeeDesLibraries.test.ts` (Analyser reprend la lecture finie ou en cours, Actualiser relit sans compteur de reprise ; défaut `analyser`) et `intentionDAnalyseDeLInterface.test.ts` (le bouton envoie `analyser`, puis `actualiser` après une analyse ou une péremption). Altération : sans l'abandon, le premier test échoue.
+
+## Écritures, configuration et imports (8.8)
+
+Le journal reçoit une entrée `ecriture` (origine `ecriture` ou `configuration`), sans identifiant de nœud : sa portée est le sujet entier. `perimerApresUneEcriture` l'inscrit avant de périmer, même sans analyse courante, et `ecritureDepuisLAnalyse` / `analyseARelire` disent qu'une écriture suit le curseur de l'analyse. Un journal débordé suppose une écriture. L'événement Figma de l'écriture, en retard ou absent, n'y change rien. La cause du message `perime` reste `ecriture`.
+
+- Configuration : `ranger-library` périme seulement si l'écriture a réussi et que la library diffère de la rangée ; `ranger-niveau` seulement si `setAsync` a réussi et que le niveau diffère. Valeur identique, refus d'écriture ou stockage qui lève ne changent rien. Avant 8.8, aucun des deux ne périmait.
+- Ctrl+Z : il arrive comme un changement ordinaire. Après une correction, l'écriture périme ; une analyse faite ensuite a un curseur postérieur à l'écriture, et l'annulation qui suit s'inscrit et la périme.
+- Imports : l'analyse n'importe que des variables (`importVariableByKeyAsync`), et Figma n'émet ni `nodechange` ni `stylechange` pour elles. Il n'y a rien à exempter ; `enregistrerLesImports` ne sert qu'à la capture. L'analyse n'importe aucun style. Un `STYLE_CREATE` reste donc un changement externe qui périme (8.3). Un changement externe d'un nœud du sujet pendant l'analyse la périme, comme avant.
+
+Limite : l'inscription ne distingue pas une écriture sans effet (une correction dont toutes les lignes sont sautées n'appelle pas `perimerApresUneEcriture`, `ecrit` étant faux).
+
+Preuves : `peremptionDeLAnalyse.test.ts` (entrée `ecriture` postérieure au curseur, sans analyse, Ctrl+Z, import et changement externe), `configuration.test.ts` (effective, identique, refus), `journal.test.ts` du socle. Altérations : sans le test d'égalité de la library ou sans l'inscription au journal, les tests échouent.

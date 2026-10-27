@@ -93,3 +93,16 @@ test('un débordement interrompt la couverture de tout curseur antérieur à la 
   assert.deepEqual(journal.couvertureDepuis(avant, []), { etat: 'interrompue', raisons: ['journal-deborde'] });
   assert.deepEqual(journal.couvertureDepuis(journal.marquer(), []), { etat: 'continue' });
 });
+
+test('une écriture s’inscrit avec son origine ; un débordement la rend invisible mais ecritureDepuis le dit', () => {
+  const journal = creerLeJournal({ borne: 1 });
+  const curseur = journal.marquer();
+  assert.equal(journal.ecritureDepuis(curseur), false);
+  journal.signalerUneEcriture('configuration');
+  assert.deepEqual(journal.depuis(curseur).map((entree) => [entree.nature, entree.origine]), [['ecriture', 'configuration']]);
+  assert.equal(journal.ecritureDepuis(curseur), true);
+  assert.equal(journal.ecritureDepuis(journal.marquer()), false);
+  const plein = journal.marquer();
+  journal.signalerUneEcriture('ecriture');
+  assert.equal(journal.ecritureDepuis(plein), true, 'perdue à la borne : on suppose une écriture');
+});

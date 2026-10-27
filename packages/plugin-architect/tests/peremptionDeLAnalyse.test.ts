@@ -9,7 +9,7 @@ import type { ResultatSansPublication } from 'ucm-plugin-socle/src/composant/con
 import type { PluginMessage } from '../src/messages';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
 import {
-  analyseARelire, analyseCourante, couvertureDeLAnalyse, couvertureInterrompue, curseurDeLAnalyse, journalDesChangements, reinitialiserLAnalyse, surChangementDeStyle, surInterruptionDePage, surChangementDuDocument, traiter, traiterAvec, type Lecteurs, type SujetAAnalyser,
+  analyseARelire, analyseCourante, couvertureDeLAnalyse, couvertureInterrompue, curseurDeLAnalyse, ecritureDepuisLAnalyse, journalDesChangements, perimerApresUneEcriture, reinitialiserLAnalyse, surChangementDeStyle, surInterruptionDePage, surChangementDuDocument, traiter, traiterAvec, type Lecteurs, type SujetAAnalyser,
 } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
 import { creerLeSuivi, type PageSuivable } from '../src/sandbox/contexte';
@@ -377,4 +377,58 @@ test('un children qui lève sur le jeu laisse l’analyse continuer avec une cou
   assert.equal(analyseARelire(analyse), true);
   surChangementDuDocument(['variant'], contexte);
   assert.equal(envoyes.filter((message) => message.type === 'perime').length, 1, 'les nœuds que findAll a rendus restent surveillés');
+});
+
+/* 8.8 : écritures, Ctrl+Z et imports. */
+
+const curseurCourant = (): number => curseurDeLAnalyse(analyseCourante() as IdentiteDAnalyse) as number;
+
+test('une écriture entre au journal avec le sujet entier pour portée, même si son événement Figma n’arrive pas', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  const analyse = analyseCourante() as IdentiteDAnalyse;
+  assert.equal(ecritureDepuisLAnalyse(analyse), false);
+  assert.equal(analyseARelire(analyse), false);
+  perimerApresUneEcriture(b.contexte);
+  assert.deepEqual(journalDesChangements()!.depuis(curseurCourant()).map((entree) => [entree.nature, entree.origine]), [['ecriture', 'ecriture']]);
+  assert.equal(ecritureDepuisLAnalyse(analyse), true);
+  assert.equal(analyseARelire(analyse), true);
+  assert.deepEqual(perimes(b).map((message) => message.cause), ['ecriture']);
+});
+
+test('une écriture sans analyse courante entre aussi au journal', () => {
+  const b = banc();
+  perimerApresUneEcriture(b.contexte, 'configuration');
+  assert.deepEqual(journalDesChangements()!.depuis(0).map((entree) => [entree.nature, entree.origine]), [['ecriture', 'configuration']]);
+  assert.deepEqual(perimes(b), []);
+});
+
+test('une correction puis Ctrl+Z : l’écriture périme, l’annulation arrive comme un changement du sujet et périme l’analyse faite entre les deux', async () => {
+  const b = banc();
+  const lire = lecteurs(b, { couverture: complete });
+  await traiterAvec(lire)({ type: 'analyser' }, b.contexte);
+  perimerApresUneEcriture(b.contexte);
+  assert.equal(perimes(b).length, 1);
+  // Une analyse faite après l'écriture, avant l'annulation : son curseur dépasse l'écriture.
+  await traiterAvec(lire)({ type: 'analyser' }, b.contexte);
+  const analyse = analyseCourante() as IdentiteDAnalyse;
+  assert.equal(ecritureDepuisLAnalyse(analyse), false, 'l’écriture précède le curseur de cette analyse');
+  assert.equal(perimes(b).length, 1);
+  surChangementDuDocument([{ type: 'PROPERTY_CHANGE', id: 'calque', node: { id: 'calque', parent: { id: 'v', parent: null } } }], b.contexte);
+  assert.equal(perimes(b).length, 2, 'le Ctrl+Z périme l’analyse suivante');
+  assert.deepEqual(journalDesChangements()!.depuis(curseurCourant()).map((entree) => entree.id), ['calque']);
+});
+
+test('un import de variable fait par l’analyse ne périme rien, un changement externe pendant l’analyse la périme', async () => {
+  const importees: string[] = [];
+  const importer = async (cle: string): Promise<void> => { importees.push(cle); };
+  // Figma n'émet ni nodechange ni stylechange pour un import de variable : rien à exempter, rien ne périme.
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete, releve: () => { void importer('k1'); } }))({ type: 'analyser' }, b.contexte);
+  assert.deepEqual(importees, ['k1']);
+  assert.deepEqual(perimes(b), []);
+  assert.equal(ecritureDepuisLAnalyse(analyseCourante() as IdentiteDAnalyse), false);
+  const externe = banc();
+  await traiterAvec(lecteurs(externe, { couverture: complete, releve: (contexte) => { void importer('k2'); surChangementDuDocument(['calque'], contexte); } }))({ type: 'analyser' }, externe.contexte);
+  assert.equal(perimes(externe).length, 1);
 });

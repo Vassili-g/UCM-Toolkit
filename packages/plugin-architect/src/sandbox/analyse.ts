@@ -31,7 +31,7 @@ import {
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { doitEtreRelue, type Couverture } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { porteeDesChangements, porteeDesChangementsDeStyle, type AnciensParents, type ChangementDeStyleRecu, type ChangementRecu } from 'ucm-plugin-socle/src/composant/analyse/couverture';
-import { creerLeJournal, type JournalDeChangements, type RaisonDInterruption } from 'ucm-plugin-socle/src/composant/analyse/journal';
+import { creerLeJournal, type JournalDeChangements, type OrigineDEcriture, type RaisonDInterruption } from 'ucm-plugin-socle/src/composant/analyse/journal';
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
@@ -152,7 +152,13 @@ export function couvertureDeLAnalyse(identite: IdentiteDAnalyse): Couverture | n
 export function analyseARelire(identite: IdentiteDAnalyse): boolean {
   const couverture = couvertureDeLAnalyse(identite);
   if (couverture === null || doitEtreRelue(couverture)) return true;
-  return couvertureInterrompue(identite);
+  return couvertureInterrompue(identite) || ecritureDepuisLAnalyse(identite);
+}
+
+/** Vrai quand une écriture du plugin ou un changement de configuration est postérieur au curseur de l'analyse `identite`. */
+export function ecritureDepuisLAnalyse(identite: IdentiteDAnalyse): boolean {
+  if (!courante || !journal || !memeIdentite(courante.identite, identite)) return false;
+  return journal.ecritureDepuis(courante.curseur);
 }
 
 /** Vrai quand une page de l'analyse a cessé d'être écoutée, ou que le journal a perdu des changements, depuis son curseur. */
@@ -263,8 +269,12 @@ function perimer(cause: CauseDePeremption, contexte: Contexte): void {
   contexte.envoyer({ type: 'perime', analyse: courante.identite, cause });
 }
 
-/** À appeler quand le plugin vient d'écrire dans le document pour l'analyse courante. */
-export function perimerApresUneEcriture(contexte: Contexte): void {
+/**
+ * À appeler quand le plugin vient d'écrire (document) ou de changer effectivement la configuration. L'écriture entre au journal avec le
+ * sujet entier pour portée, même sans analyse courante ; l'analyse courante se périme. Un refus ou une valeur identique n'appelle pas.
+ */
+export function perimerApresUneEcriture(contexte: Contexte, origine: OrigineDEcriture = 'ecriture'): void {
+  ouvrirLeJournal().signalerUneEcriture(origine);
   perimer('ecriture', contexte);
 }
 

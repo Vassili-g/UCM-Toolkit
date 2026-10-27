@@ -10,7 +10,7 @@ import type { PluginMessage } from '../src/messages';
 import { retenirLesLiaisons } from '../src/sandbox/bibliotheque';
 import { CLE_DU_NIVEAU, libraryDeReference, lireLeNiveau, traiter } from '../src/sandbox/configuration';
 import type { Contexte } from '../src/sandbox/contexte';
-import { commencerUneAnalyse, correctionsDeLAnalyse, prendreLaPlaceDUneEcriture, reinitialiserLAnalyse } from '../src/sandbox/analyse';
+import { commencerUneAnalyse, correctionsDeLAnalyse, curseurDeLAnalyse, journalDesChangements, prendreLaPlaceDUneEcriture, reinitialiserLAnalyse } from '../src/sandbox/analyse';
 import { atelierDEcriture, type VariableDEcriture } from './figmaDeTest';
 
 interface Collection { key: string; name: string; libraryName: string; variables: { key: string; name: string; resolvedType: string }[] }
@@ -182,4 +182,33 @@ test('annuler-structure : une autre opération en cours rend occupe, un fichier 
   // La place est rendue : une annulation suivante passe.
   await traiter({ type: 'annuler-structure', demande: 3 }, occupe.contexte);
   assert.equal(occupe.annulee().defaites, 1);
+});
+
+// 8.8 : seul un changement effectif de configuration invalide.
+
+async function changements(b: ReturnType<typeof banc>, demande: Parameters<typeof traiter>[0]) {
+  reinitialiserLAnalyse();
+  const envoyes: PluginMessage[] = [];
+  const contexte: Contexte = { ...b.contexte, envoyer: (m) => envoyes.push(m) };
+  const identite = commencerUneAnalyse('jeu', ['n'], contexte);
+  await traiter(demande, contexte);
+  const entrees = journalDesChangements()!.depuis(curseurDeLAnalyse(identite) as number).filter((entree) => entree.nature === 'ecriture');
+  return { perimes: envoyes.filter((m) => m.type === 'perime').length, entrees: entrees.map((entree) => entree.origine) };
+}
+
+test('une library différente, écrite, périme l’analyse et entre au journal ; la même ou un refus d’écriture ne change rien', async () => {
+  assert.deepEqual(await changements(banc(deux), { type: 'ranger-library', cle: 'Alpha' }), { perimes: 1, entrees: ['configuration'] });
+  assert.deepEqual(await changements(banc(deux, { donnees: new Map([[CLE_RANGEE, 'Alpha']]) }), { type: 'ranger-library', cle: 'Alpha' }), { perimes: 0, entrees: [] });
+  assert.deepEqual(await changements(banc(deux, { donnees: new Map([[CLE_RANGEE, 'Alpha']]) }), { type: 'ranger-library', cle: 'Beta' }), { perimes: 1, entrees: ['configuration'] });
+  const refus = banc(deux);
+  (refus.figma.root as unknown as { setSharedPluginData(): void }).setSharedPluginData = () => { throw new Error('refus'); };
+  assert.deepEqual(await changements(refus, { type: 'ranger-library', cle: 'Alpha' }), { perimes: 0, entrees: [] });
+  reinitialiserLAnalyse();
+});
+
+test('un autre niveau périme l’analyse ; le même niveau ou un stockage qui lève ne change rien', async () => {
+  assert.deepEqual(await changements(banc(deux), { type: 'ranger-niveau', niveau: 'AAA' }), { perimes: 1, entrees: ['configuration'] });
+  assert.deepEqual(await changements(banc(deux), { type: 'ranger-niveau', niveau: 'AA' }), { perimes: 0, entrees: [] });
+  assert.deepEqual(await changements(banc(deux, { stockageQuiLeve: true }), { type: 'ranger-niveau', niveau: 'AAA' }), { perimes: 0, entrees: [] });
+  reinitialiserLAnalyse();
 });
