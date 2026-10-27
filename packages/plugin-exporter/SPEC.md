@@ -501,7 +501,7 @@ ne produit aucun diagnostic. Elle est décrite ici et dans le format ; l’écri
 chaque export ferait relire au designer le fonctionnement interne de l’exporteur
 pour lui dire qu’il n’a rien à faire.
 
-Le classement se fait au moment d’écrire, dans `exportComponent.ts` : une perte
+Le classement se fait au moment d’écrire, dans `analyse/resultat.ts` et `exportComponent.ts` : une perte
 de projection portable l’emporte sur le reste, de sorte qu’un même texte relevé
 des deux côtés dégrade bien `coverage.portable`. Les messages sont dédoublonnés
 par leur texte : deux extracteurs qui concluent la même chose ne le disent

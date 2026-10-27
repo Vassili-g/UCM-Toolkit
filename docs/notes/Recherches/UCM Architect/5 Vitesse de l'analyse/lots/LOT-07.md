@@ -7,7 +7,7 @@
 - [x] **7.1 | gpt-6.1-sol | high** | **Claude Sonnet | high** : relever dans la table des sites diagnostics, faits lus, contexte et consommateurs, y compris après structure et compaction. Relevé : section « Sites d'émission (7.1) », 104 lignes.
 - [x] **7.2 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : classer les calculs requis par diagnostic, correction, règle ou publication ; vérifier C42 et l'arbre exact encore nécessaire. Classement : section « Classement des calculs (7.2) » (table, C42, arbre exact, conclusion).
 - [x] **7.3 | gpt-6.1-sol | high** | **Claude Sonnet | high** : extraire une première famille de requêtes pures et déclarer ses dépendances ; comparer tous ses diagnostics ordonnés. Famille : modèle de propriétés et d'états, section « Première famille extraite (7.3) ».
-- [ ] **7.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : produire le résultat interne finalisé avec parties, localisations, props, états, imbrications, modèles et couverture ; test de parité complet.
+- [x] **7.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : produire le résultat interne finalisé avec parties, localisations, props, états, imbrications, modèles et couverture ; test de parité complet. Résultat : `plugin-socle/src/composant/analyse/resultat.ts` (`calculerLAnalyse`, `ResultatInterne`), section « Résultat interne (7.4) » ; parité dans `plugin-exporter/tests/aides/parite.ts` `verifierLeResultatInterne` et test de la jonction dans `plugin-socle/tests/resultat.test.ts`.
 - [ ] **7.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : assembler contrat et échantillons exporteur depuis ce résultat ; comparer hors date avec l'ancien chemin.
 - [ ] **7.6 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : déplacer compaction et sérialisation après le calcul commun ; garder diagnostics tardifs et contrat ordonné.
 - [ ] **7.7 | gpt-6.1-sol | high** | **Claude Sonnet | high** : brancher Architect sur surface et règles sans JSON.parse du contrat ; comparer corrections, questions et modèles.
@@ -409,3 +409,30 @@ Sans changer les constats, les corrections ni les modèles d'Architect :
 - `test:paquet -- socle` 157 tests, `ucm-exporter-plugin` 1149, `ucm-architect-plugin` 1260, `npm run typecheck`, sans échec.
 
 **Ce qui reste.** Les copies du chemin d'avant et le point d'entrée du banc disparaissent avec 7.8. Les autres fonctions pures nommées en 7.1 restent à extraire dans les cases suivantes : `buildRules`, les `merge*` de documentation, `mergeIconRules`, `pointsDesImbriques`. Aucune requête ne tourne encore sans appel explicite : les lots 9 et 10 liront `DEPENDANCES_DE_PROPRIETES_ET_ETATS` pour invalider.
+
+
+### Résultat interne (7.4)
+
+**Module.** `packages/plugin-socle/src/composant/analyse/resultat.ts`. `calculerLAnalyse` exécute les étapes `regles` à `structure.tailles` (jusqu'au site 100), puis `joindreLesCanaux` fait la jonction. `exporterLeComposant` appelle `calculerLAnalyse`, puis exécute `echantillons`, `compaction` et `serialisation` en lisant le résultat. Les annonces, les étapes et leurs textes gardent leur ordre. `ComponentExportError` a déménagé dans ce module pour éviter un import circulaire ; `exportComponent.ts` la ré-exporte.
+
+**Ordre.** La jonction passe avant `echantillons`. `extractSamples.ts`, `compactVariants.ts`, `elideNeutrals.ts` et `serializeJson.ts` n'écrivent dans aucun canal, et `pousserLesImbriques` ne lit que `componentSet` et le relevé des imbriqués. L'ordre B, W, E de `allWarnings` et les registres de localisation sont donc ceux de l'ancien chemin.
+
+**Champs de `ResultatInterne`.**
+
+- `warnings`, `parties`, `localisations`, `localisationsDeclarees` : la jonction.
+- `projectionWarnings` : l'ensemble qui décide le code `UCM_PORTABLE_PROJECTION_WARNING` et `coverage.portable`.
+- `props` (après les fusions de documentation et d'icônes), `stateModel`, `imbriques`, `rules`.
+- `couverture` : `complete`, ou `partielle` avec `lus` et `nonLus`, d'après `bornee?.bilan` (`couvertureDe`).
+- `pourLaPublication` : `componentSet`, `matrix`, `extracted`, `propertyModel`, `propertyBindings`, `appliedByVariant`, `composed`, `mainByInstanceId`, `swapDefaults`, `propertySurfaces`, `icons`, `composesPlacees`, `intent`.
+
+`ResultatDAnalyse` gagne un champ facultatif `interne` sur `complete` et `partielle`. Ni Architect ni l'exporteur ne le lisent.
+
+**Preuves.**
+
+- `plugin-exporter/tests/aides/parite.ts` `verifierLeResultatInterne` s'exécute dans `verifierLaParite`, donc pour chaque export du banc. Il compare à la sortie publiée, dans l'ordre : `warnings`, `parties`, `localisations`, `localisationsDeclarees`, `imbriques`, `props`, `stateModel` et intention (face au contrat, après l'élision de production), codes de diagnostic, `coverage.portable`, couverture complète. Le contrat de la seconde analyse est celui de la première, hors date.
+- `plugin-exporter/tests/budgetEtAnnulation.test.ts` : couverture `partielle` avec `lus` 6 et `nonLus` 6, puis `nonLus` `inconnu`.
+- `plugin-socle/tests/resultat.test.ts` (4 tests) : `couvertureDe`, ordre bloquants, principal, structure avec dédoublonnage, ensemble de projection, absence d'imbriqué.
+- Altérations vérifiées : inverser l'ordre bloquants/principal fait échouer 2 tests du socle et 1 de l'exporteur ; mettre `stateModel` à `null` dans le résultat fait échouer 1 test de l'exporteur. Le code est rétabli.
+- `test:paquet -- socle` 170 tests, exporteur 1149, Architect 1260, `npm run typecheck`, sans échec.
+
+**Ce qui reste.** 7.5 assemble le contrat et les échantillons depuis `pourLaPublication`. 7.6 déplace la compaction et la sérialisation après le calcul commun et sort la publication de `exportComponent.ts`. 7.7 branche Architect sur `props`, `stateModel`, `imbriques` et `rules` du résultat, sans `JSON.parse(content)`. 7.8 retire l'ancien chemin. Aucun calcul n'est retiré ici : les trois arbres jetés et les calculs de publication tournent toujours pour Architect. `interne` garde `pourLaPublication` (nœuds Figma, arbre exact) vivant tant que le résultat l'est.

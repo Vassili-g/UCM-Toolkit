@@ -29,10 +29,11 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - limiteur.ts : `executerAuPlus`, les requêtes d'une liste connue au plus `REQUETES_EN_VOL` (huit) à la fois, résultats à leur rang, arrêt par `avant` ; libraries, vagues d'alias et modes d'Architect l'emploient
 - topologie.ts : lecture de la topologie d'un jeu (jeu, enfants directs, descendants par `findAll`) avec sa couverture, et inventaire de péremption qu'Architect surveille ; un `children` ou un `findAll` qui lève devient un trou, une page non écoutée s'ajoute aux trous
 - proprietesEtEtats.ts : première famille de requêtes pures, le modèle de propriétés (`props`) et le modèle d'états (`stateModel`) : entrées en paramètres, résultat et points à pousser dans l'ordre de l'ancien chemin, dépendances déclarées ; `parsers.ts` et `semantics.ts` ré-exportent ses points d'entrée
+- resultat.ts : `calculerLAnalyse`, étapes `regles` à `structure.tailles` de l'analyse d'un composant, et son résultat interne (messages joints, parties, localisations, `props`, `stateModel`, imbriqués, règles, couverture, entrées de la publication) ; `joindreLesCanaux` joint les canaux dans l'ordre bloquants, principal, structure
 - faits.ts : faits ordinaires d'une analyse, sans type Figma : topologie, champs acquis, mixtes, refusés ou non demandés, segments, maîtres, ressources, provenance et couverture
 
 ## src/composant/contract/
-- exportComponent.ts : orchestration et métadonnées
+- exportComponent.ts : orchestration et métadonnées ; échantillons, compaction et sérialisation après `calculerLAnalyse`
 - componentTree.ts : axes, matrice et wrapper de layout
 - compactVariants.ts : catalogue par partie de vue, et liaisons exactes
 - elideNeutrals.ts : ce que le contrat n’écrit pas : null, {} et []

@@ -182,6 +182,8 @@ test('un budget dépassé arrête la lecture des variants et compte les layers l
     if (resultat.etat !== 'partielle') return;
     assert.equal(resultat.lus, 6);
     assert.equal(resultat.nonLus, 6);
+    assert.deepEqual(resultat.interne?.couverture, { etat: 'partielle', lus: 6, nonLus: 6 });
+    assert.deepEqual(resultat.interne?.warnings, resultat.export.warnings);
     const contrat = JSON.parse(resultat.export.content);
     assert.equal(contrat.variants.length, 2);
     // Rien n'est inventé pour la partie non lue : aucun point ne nomme les variants C et D.
@@ -211,6 +213,7 @@ test('un compte impossible des variants non lus se dit inconnu', async () => {
     if (resultat.etat !== 'partielle') return;
     assert.equal(resultat.lus, 6);
     assert.equal(resultat.nonLus, 'inconnu');
+    assert.deepEqual(resultat.interne?.couverture, { etat: 'partielle', lus: 6, nonLus: 'inconnu' });
   } finally { restaurer(); }
 });
 

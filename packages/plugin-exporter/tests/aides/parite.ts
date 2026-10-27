@@ -7,8 +7,12 @@
  * qu'on ajoutera.
  */
 import assert from 'node:assert/strict';
-import exporterLeComposant, { type ComponentExport } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import exporterLeComposant, {
+  analyserLeComposant,
+  type ComponentExport,
+} from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { remplacerLesRequetesPourLeBanc } from 'ucm-plugin-socle/src/composant/analyse/proprietesEtEtats';
+import { elideContract } from 'ucm-plugin-socle/src/composant/contract/elideNeutrals';
 import { desactiverLaPorteePourLeBanc } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 import { modeleDEtatsAvant, modeleDeProprietesAvant } from '../../../plugin-socle/tests/aides/cheminAvantLesRequetes';
 
@@ -63,4 +67,55 @@ export async function verifierLaParite(avecPortee: ComponentExport, contexte: st
     `${contexte} : le contrat produit dans la portée d'analyse diffère de celui produit sans mémoire`,
   );
   await verifierLaPariteDesRequetes(avecPortee, contexte);
+  await verifierLeResultatInterne(avecPortee, contexte);
+}
+
+/**
+ * Réanalyse la sélection et compare le résultat interne à la sortie publiée,
+ * champ à champ et dans l'ordre : messages, parties, localisations, imbriqués,
+ * `props` et `stateModel` du contrat, codes de diagnostic et couverture
+ * portable. Le contrat de cette seconde analyse doit être celui de la première,
+ * hors date.
+ */
+export async function verifierLeResultatInterne(sortie: ComponentExport, contexte: string): Promise<void> {
+  const resultat = await analyserLeComposant();
+  assert.equal(resultat.etat, 'complete', `${contexte} : l'analyse sans budget est complète`);
+  if (resultat.etat !== 'complete') return;
+  const interne = resultat.interne;
+  assert.ok(interne, `${contexte} : le résultat interne accompagne l'export`);
+  if (!interne) return;
+  assert.equal(sansDate(resultat.export.content), sansDate(sortie.content), `${contexte} : contrat hors date`);
+  assert.deepEqual(interne.warnings, sortie.warnings, `${contexte} : warnings`);
+  assert.deepEqual([...interne.parties], [...sortie.parties], `${contexte} : parties`);
+  assert.deepEqual([...interne.localisations], [...sortie.localisations], `${contexte} : localisations`);
+  assert.deepEqual(
+    [...interne.localisationsDeclarees],
+    [...sortie.localisationsDeclarees],
+    `${contexte} : localisations déclarées`,
+  );
+  assert.deepEqual(interne.imbriques, sortie.imbriques, `${contexte} : imbriqués`);
+  assert.deepEqual(interne.couverture, { etat: 'complete' }, `${contexte} : couverture`);
+
+  const contrat = JSON.parse(sortie.content);
+  const lisible = JSON.parse(JSON.stringify(
+    elideContract({ props: interne.props, stateModel: interne.stateModel, intent: interne.rules.intent }, []),
+  ));
+  assert.deepEqual(
+    { props: contrat.props, stateModel: contrat.stateModel, intent: contrat.intent },
+    { props: lisible.props, stateModel: lisible.stateModel, intent: lisible.intent },
+    `${contexte} : props, stateModel et intention du contrat`,
+  );
+  assert.deepEqual(
+    contrat.meta.diagnostics.map((diagnostic: { code: string; message: string }) => [diagnostic.code, diagnostic.message]),
+    interne.warnings.map((message) => [
+      interne.projectionWarnings.has(message) ? 'UCM_PORTABLE_PROJECTION_WARNING' : 'UCM_EXPORT_NOTICE',
+      message,
+    ]),
+    `${contexte} : codes de diagnostic`,
+  );
+  assert.equal(
+    contrat.meta.coverage.portable,
+    interne.projectionWarnings.size > 0 ? 'partial' : 'complete',
+    `${contexte} : couverture portable`,
+  );
 }
