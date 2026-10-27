@@ -270,8 +270,10 @@ portée d'analyse, et une sélection qui la suit de moins de 60 s ne la relance
 pas. Au clic sur Analyser, une lecture encore en cours s'attend. Une lecture
 finie se vérifie : l'analyse relit les collections, leurs variables, leurs clés,
 leurs noms et leurs types, et reprend la lecture anticipée si cette liste est
-identique, sinon la nouvelle liste, qui remplace l'ancienne. Les valeurs des
-variables se chargent toujours au clic. Le changement de page, une erreur de
+identique, sinon la nouvelle liste, qui remplace l'ancienne. Cette vérification
+court dans la lecture que l'analyse lance avec le relevé : elle ne le précède
+pas, et le catalogue n'en reçoit la liste qu'une fois la vérification finie. Les
+valeurs des variables se chargent toujours au clic. Le changement de page, une erreur de
 l'anticipation ou une lecture illisible l'abandonnent sans message : le clic
 lit alors seul. Les compteurs `librariesAnticipeesReprises` et
 `librariesAnticipeesRelues` disent ce que le clic a fait, et

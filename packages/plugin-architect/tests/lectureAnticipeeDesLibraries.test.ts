@@ -1,6 +1,7 @@
 /**
  * L'analyse lance la lecture des libraries avec le relevé (6.0) : même sortie qu'en séquence, les deux attentes se
- * chevauchent, une annulation ou un arrêt arrête la lecture, une erreur garde le repli sur le fichier.
+ * chevauchent, une annulation ou un arrêt arrête la lecture, une erreur garde le repli sur le fichier. La vérification
+ * d'une lecture anticipée finie (6.0b) suit la même règle (16.5) : elle court avec le relevé, le catalogue en attend la fin.
  */
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
@@ -434,4 +435,107 @@ test('Actualiser abandonne la lecture anticipée et relit ; Analyser la reprend'
   assert.equal(actualisee.journal.inventaires, 2);
   assert.equal(actualisee.compteurs.librariesAnticipeesReprises, undefined);
   assert.equal(actualisee.catalogue, 'complete');
+});
+
+/* 16.5 : la vérification d'une lecture anticipée finie court avec le relevé, hors du chemin critique. */
+
+type ListeDeLibraries = Awaited<ReturnType<typeof lireLesLibraries>>;
+
+/**
+ * Une lecture anticipée finie, puis une analyse dont la vérification dure `verification` ms et le relevé `releve` ms. Le journal
+ * ne garde que l'analyse ; `liste` est ce que le catalogue reçoit des libraries, et l'instant où il l'a reçue.
+ */
+async function analyserApresUneAnticipation(options: { verification: number; releve: number; avant?: (bibliotheque: BibliothequeDeTest) => void; mesurer?: boolean; annuleePendantLaVerification?: boolean }) {
+  abandonnerLesLibrariesAnticipees();
+  reinitialiserLAnalyse();
+  const journal = neuf();
+  const bibliotheque = bibliothequeDe();
+  const figma = figmaDe(journal, bibliotheque);
+  anticiperLesLibraries(figma);
+  await attendreLaFin(journal);
+  options.avant?.(bibliotheque);
+  journal.evenements.length = 0;
+  journal.lecturesDeCollection = 0;
+  const teamLibrary = (figma as unknown as { teamLibrary: { getAvailableLibraryVariableCollectionsAsync(): Promise<unknown> } }).teamLibrary;
+  const inventaire = teamLibrary.getAvailableLibraryVariableCollectionsAsync.bind(teamLibrary);
+  teamLibrary.getAvailableLibraryVariableCollectionsAsync = async () => { await attendre(options.verification); return inventaire(); };
+  const { contexte, envoyes } = contexteDe(figma);
+  let liste: ListeDeLibraries | null = null;
+  let catalogueLu: CatalogueDeReference | null = null;
+  const base = lectures(journal, false, releveLent(journal, options.releve));
+  const lecteurs: Lecteurs = {
+    ...base,
+    bibliotheques: async (ctx, cooperation) => {
+      journal.evenements.push('verification:debut');
+      try { return await lireLesLibrariesAuClic(ctx.figma, cooperation); }
+      finally { journal.evenements.push('verification:fin'); }
+    },
+    catalogue: async (releve, jeton, ctx, cooperation, libraries, inventaires) => {
+      journal.evenements.push('catalogue:debut');
+      const issue = await libraries!;
+      if ('lecture' in issue) liste = issue.lecture;
+      journal.evenements.push('catalogue:liste');
+      catalogueLu = await catalogueDeFigma(releve, jeton, ctx, cooperation, libraries, inventaires);
+      journal.evenements.push('catalogue:fin');
+      return catalogueLu;
+    },
+  };
+  const traiter = traiterAvec(lecteurs);
+  const analyse = traiter({ type: 'analyser', demande: 5, intention: 'analyser', ...(options.mesurer ? { mesurer: true } : {}) }, contexte);
+  if (options.annuleePendantLaVerification) {
+    while (!journal.evenements.includes('verification:debut')) await attendre(1);
+    await traiter({ type: 'annuler-analyse', demande: 5 }, contexte);
+  }
+  await analyse;
+  const finale = envoyes.find((m): m is Extract<PluginMessage, { type: 'analyse' }> => m.type === 'analyse')!;
+  return { journal, figma, bibliotheque, liste: liste as ListeDeLibraries | null, catalogue: catalogueLu as CatalogueDeReference | null, finale };
+}
+
+const rang = (journal: Journal, evenement: string) => journal.evenements.indexOf(evenement);
+
+test('la vérification lente ne retarde pas le relevé, et le catalogue attend sa fin', async () => {
+  const { journal, liste, catalogue, finale } = await analyserApresUneAnticipation({ verification: 150, releve: 30 });
+  assert.ok(rang(journal, 'verification:debut') >= 0 && rang(journal, 'verification:debut') < rang(journal, 'releve:fin'), 'la vérification part avant la fin du relevé');
+  assert.ok(rang(journal, 'releve:fin') < rang(journal, 'verification:fin'), 'le relevé finit sans attendre la vérification');
+  assert.ok(rang(journal, 'catalogue:debut') < rang(journal, 'verification:fin'), 'le catalogue commence avant la fin de la vérification');
+  assert.ok(rang(journal, 'verification:fin') < rang(journal, 'catalogue:liste'), 'le catalogue ne reçoit la liste qu’une fois vérifiée');
+  assert.equal(liste?.etat, 'lue');
+  assert.equal(catalogue?.library?.nom, 'Intencial');
+  assert.equal(finale.statut, 'complete');
+});
+
+test('une liste changée pendant la vérification donne un catalogue sur la liste fraîche', async () => {
+  const { figma, liste, finale } = await analyserApresUneAnticipation({
+    verification: 60, releve: 10,
+    avant: (bibliotheque) => { bibliotheque[0].variables.push({ key: 'v-neuve', name: 'alert/size/gap', resolvedType: 'FLOAT' }); },
+  });
+  const fraiche = await lireLesLibraries(figma as never);
+  assert.deepEqual(liste, fraiche);
+  assert.ok(liste?.etat === 'lue' && liste.collections[0].variables.some((variable) => variable.cle === 'v-neuve'), 'la variable ajoutée est dans la liste du catalogue');
+  assert.equal(finale.statut, 'complete');
+});
+
+test('une annulation pendant la vérification arrête les lectures et ne construit aucun catalogue', async () => {
+  const rejets: unknown[] = [];
+  const surRejet = (raison: unknown) => rejets.push(raison);
+  process.on('unhandledRejection', surRejet);
+  try {
+    const { journal, finale } = await analyserApresUneAnticipation({ verification: 120, releve: 40, annuleePendantLaVerification: true });
+    assert.equal(finale.statut, 'annulee');
+    assert.equal(rang(journal, 'catalogue:debut'), -1);
+    await attendre(250);
+    assert.equal(journal.lecturesDeCollection, 0, 'aucune collection relue après l’annulation');
+    assert.deepEqual(rejets, []);
+  } finally { process.off('unhandledRejection', surRejet); }
+});
+
+test('la trace montre la vérification en parallèle : la phase libraries la compte, l’attente du catalogue non', async () => {
+  const { finale } = await analyserApresUneAnticipation({ verification: 100, releve: 300, mesurer: true });
+  const trace = finale.mesure!;
+  const phase = trace.phases!.find(({ nom }) => nom === 'libraries')!;
+  const attente = trace.etapes.find(({ nom }) => nom === 'catalogue-attente-libraries')!;
+  assert.ok(trace.compteurs.msVerificationDesLibraries! >= 90, `vérification ${trace.compteurs.msVerificationDesLibraries} ms`);
+  assert.ok(phase.ms >= 90, `phase libraries ${phase.ms} ms`);
+  assert.ok(attente.ms < 100, `attente du catalogue ${attente.ms} ms, sur un relevé de 300 ms`);
+  assert.equal(trace.compteurs.librariesAnticipeesReprises, 1);
 });
