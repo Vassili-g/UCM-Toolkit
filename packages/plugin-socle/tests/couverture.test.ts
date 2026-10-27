@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  doitSeRelire, MATRICE_DE_COUVERTURE, porteeDesChangements, porteeDuChangement,
+  doitSeRelire, MATRICE_DE_COUVERTURE, porteeDesChangements, porteeDuChangement, relecturesObligatoires,
   type ChangementRecu, type EntreeLue, type NoeudDEvenement, type SuivisDuSujet,
 } from '../src/composant/analyse/couverture';
+import type { Ressources } from '../src/composant/analyse/faits';
 
 const suivis = (noeuds: readonly string[], maitres: readonly string[] = []): SuivisDuSujet => ({
   noeuds: new Set(noeuds), maitres: new Set(maitres),
@@ -100,3 +101,48 @@ test('une série touche le sujet dès un changement, sinon garde la première po
   assert.deepEqual(porteeDesChangements([], sujet), { portee: 'hors-sujet' });
 });
 
+/** Une ressource acquise, avec son origine. */
+function fait<V>(id: string, valeur: V, origine: 'locale' | 'distante' | 'library' | 'inconnue' = 'locale') {
+  return { id, provenance: { appel: { appel: 'propriete' as const, nom: id }, origine }, etat: { etat: 'acquis' as const, valeur } };
+}
+
+const maitre = (id: string, remote: boolean) => ({ id, key: `cle-${id}`, nom: id, remote, jeu: null });
+
+function ressources(): Ressources {
+  return {
+    noeudsParIdentifiant: {},
+    variables: { 'v:1': fait('v:1', {}, 'distante') },
+    collections: { 'c:1': fait('c:1', {}) },
+    styles: { 's:1': fait('s:1', {}) },
+    maitres: {
+      local: fait('local', maitre('local', false)),
+      ailleurs: fait('ailleurs', maitre('ailleurs', false)),
+      distant: fait('distant', maitre('distant', true), 'distante'),
+      refuse: { id: 'refuse', provenance: { appel: { appel: 'propriete', nom: 'refuse' }, origine: 'inconnue' }, etat: { etat: 'refuse', raison: 'leve' } },
+    },
+    variablesDeLibrary: { 'cle-collection': fait('cle-collection', []) },
+    inventaires: { variablesLocales: { provenance: { appel: { appel: 'propriete', nom: 'x' }, origine: 'locale' }, etat: { etat: 'acquis', valeur: [] } } },
+  };
+}
+
+test('une ressource externe modifiée sans événement se relit : variables, styles, libraries, maîtres distants ou hors page', () => {
+  const pages = { ecoutees: new Set(['page-sujet']), pageDe: (id: string) => (id === 'local' ? 'page-sujet' : id === 'ailleurs' ? 'page-autre' : null) };
+  const relectures = relecturesObligatoires(ressources(), pages);
+  assert.deepEqual(relectures, {
+    variables: ['v:1'],
+    collections: ['c:1'],
+    styles: ['s:1'],
+    maitres: ['ailleurs', 'distant', 'refuse'],
+    variablesDeLibrary: ['cle-collection'],
+    inventaires: ['variablesLocales'],
+    maitresSuivis: ['local'],
+  });
+  // Aucun événement reçu : la portée ne touche pas le sujet, mais les relectures restent dues.
+  assert.deepEqual(porteeDesChangements([], suivis(['jeu'], relectures.maitresSuivis)), { portee: 'hors-sujet' });
+});
+
+test('un maître local sur une page qui n\'est plus écoutée se relit', () => {
+  const relectures = relecturesObligatoires(ressources(), { ecoutees: new Set(), pageDe: () => 'page-sujet' });
+  assert.deepEqual(relectures.maitresSuivis, []);
+  assert.deepEqual(relectures.maitres, ['local', 'ailleurs', 'distant', 'refuse']);
+});

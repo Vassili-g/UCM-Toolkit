@@ -17,7 +17,7 @@
  * l'instance quand son maître change. Une portée qu'on ne peut établir est
  * `inconnue`, et l'appelant invalide largement.
  */
-import type { IdDeNoeud } from './faits';
+import type { FaitDeRessource, IdDeNoeud, Ressources } from './faits';
 
 /** Les entrées que lit une analyse, de la plus proche du sujet à la plus lointaine. */
 export type EntreeLue =
@@ -159,3 +159,49 @@ export function porteeDesChangements(changements: Iterable<ChangementRecu>, suiv
   return resultat;
 }
 
+/** Ce que l'appelant sait des pages : celles qu'il écoute, et la page d'un maître local (`null` : inconnue). */
+export interface PagesDuSuivi {
+  readonly ecoutees: ReadonlySet<IdDeNoeud>;
+  pageDe(maitre: IdDeNoeud): IdDeNoeud | null;
+}
+
+/**
+ * Les ressources d'une acquisition qu'une nouvelle demande doit relire avant
+ * toute réutilisation, et les maîtres dont un événement suffit. Variables,
+ * collections, styles, libraries et inventaires se relisent toujours. Un maître
+ * se relit s'il est distant, refusé, ou s'il vit sur une page non écoutée.
+ */
+export interface RelecturesObligatoires {
+  readonly variables: readonly string[];
+  readonly collections: readonly string[];
+  readonly styles: readonly string[];
+  readonly maitres: readonly IdDeNoeud[];
+  /** Par clé de collection de library. */
+  readonly variablesDeLibrary: readonly string[];
+  readonly inventaires: readonly (keyof Ressources['inventaires'])[];
+  /** Les maîtres locaux sur une page écoutée : à passer dans `SuivisDuSujet.maitres`. */
+  readonly maitresSuivis: readonly IdDeNoeud[];
+}
+
+function maitreSuivi(fait: FaitDeRessource<{ readonly remote: boolean }>, pages: PagesDuSuivi): boolean {
+  if (fait.etat.etat !== 'acquis') return false;
+  const page = pages.pageDe(fait.id);
+  const pageEcoutee = page !== null && pages.ecoutees.has(page);
+  return !doitSeRelire('maitre', { pageEcoutee, locale: fait.provenance.origine === 'locale' && !fait.etat.valeur.remote });
+}
+
+export function relecturesObligatoires(ressources: Ressources, pages: PagesDuSuivi): RelecturesObligatoires {
+  const maitres: IdDeNoeud[] = [];
+  const maitresSuivis: IdDeNoeud[] = [];
+  for (const fait of Object.values(ressources.maitres)) (maitreSuivi(fait, pages) ? maitresSuivis : maitres).push(fait.id);
+  return {
+    variables: Object.keys(ressources.variables),
+    collections: Object.keys(ressources.collections),
+    styles: Object.keys(ressources.styles),
+    maitres,
+    variablesDeLibrary: Object.keys(ressources.variablesDeLibrary),
+    inventaires: (Object.keys(ressources.inventaires) as (keyof Ressources['inventaires'])[])
+      .filter((cle) => ressources.inventaires[cle] !== undefined),
+    maitresSuivis,
+  };
+}

@@ -5,7 +5,7 @@
 ## Tâches à committer
 
 - [x] **8.1 | gpt-6.1-sol | high** | **Claude Opus | high** : établir la matrice de couverture des événements pour nœuds, héritage et pages ; tests de portée inconnue. Résultat : `plugin-socle/src/composant/analyse/couverture.ts`, test `plugin-socle/tests/couverture.test.ts`, section « Matrice de couverture (8.1) ».
-- [ ] **8.2 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : établir les relectures obligatoires de variables, collections, styles, maîtres, règles et libraries ; test de ressource externe modifiée.
+- [x] **8.2 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : établir les relectures obligatoires de variables, collections, styles, maîtres, règles et libraries ; test de ressource externe modifiée. Résultat : `relecturesObligatoires` dans `couverture.ts`, section « Relectures obligatoires (8.2) ».
 - [ ] **8.3 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : vérifier la documentation Figma puis brancher seulement les événements dont la couverture est établie, dont stylechange si pertinent. Confier d'abord la lecture de la documentation Figma à un `chercheur`.
 - [ ] **8.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : accumuler les changements après la première péremption et hors analyse active ; tests d'événement retardé et de série de mutations.
 - [ ] **8.5 | gpt-6-luna | medium** | **Claude Sonnet | medium** : conserver anciens parents et topologie des suppressions ; élargir l'invalidation si parent ou événement manque.
@@ -74,3 +74,14 @@ de barrière atomique. Contrôle : Architect/socle. **Build Architect.**
 **Branchement.** Aucun : 8.4 accumule les changements avec cette portée, 8.5 ajoute l'ancienne topologie des suppressions. Les maîtres suivis viennent des faits acquis (`maitreDe`).
 
 **Preuves.** `couverture.test.ts`, 9 tests : relectures obligatoires, conditions de page et d'origine, calque créé sous un variant, changement sous un maître suivi, changement hors du sujet, quatre portées inconnues, série.
+
+## Relectures obligatoires (8.2)
+
+`relecturesObligatoires(ressources, pages)` lit les `Ressources` d'une acquisition et rend ce qu'une nouvelle demande doit relire avant toute réutilisation :
+
+- toutes les variables, collections et styles, les variables de chaque collection de library et chaque inventaire demandé ;
+- les maîtres distants, refusés, d'origine inconnue ou dont la page n'est pas écoutée.
+
+Les autres maîtres, locaux et sur une page écoutée, sont rendus dans `maitresSuivis`. L'appelant les passe dans `SuivisDuSujet.maitres` : un changement sous l'un d'eux touche alors le sujet. Les règles de page suivent leur page, et leur maître suit la règle des maîtres.
+
+Preuves, dans `couverture.test.ts` : une variable distante, un style, une library et un maître distant figurent dans les relectures alors qu'aucun événement n'a touché le sujet ; un maître local sur une page qui n'est plus écoutée repasse en relecture.
