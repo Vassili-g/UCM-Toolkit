@@ -73,6 +73,7 @@ import { abandonnerLesLibrariesAnticipees, lireLesLibrariesAuClic } from './anti
 import { capturerSiDemande, PROPRIETES_DE_STYLE } from './capture';
 import { lireLaDeclaration } from './commun';
 import { retenirLesLiaisons } from './bibliotheque';
+import { FAMILLES_DE_CONTROLES, FAMILLES_UCM, PROJECTIONS, type NomDeFamille } from './projectionsDesControles';
 import { libraryDeReference, lireLeNiveau } from './configuration';
 import type { Contexte, Traiter } from './contexte';
 import { portDeLecture, selectionLue } from './lectureDeFigma';
@@ -188,12 +189,22 @@ export interface SortiesDeSession {
   readonly lecturesRefusees: readonly string[];
 }
 
-type NomDeRequete = 'controles' | 'corrections' | 'projection';
-type NomDEntree = keyof SortiesDeSession | NomDeRequete;
+type NomDeRequete = NomDeFamille | 'corrections' | 'projection';
+/** `controles` : les constats des familles du kit, rassemblés dans l'ordre du produit ; `corrections` les lit. */
+type NomDEntree = keyof SortiesDeSession | NomDeRequete | 'controles';
 
-/** Les requêtes pures de l'analyse, avec ce que chacune a lu. Les constats sont ceux du kit, sans réponse ni correction fixée. */
+/**
+ * Les requêtes pures de l'analyse, avec ce que chacune a lu. Les constats sont ceux du kit, sans réponse ni correction fixée.
+ * Une famille de contrôles est une requête ; `controle-theme` et `controle-structure` n'y figurent que pour une architecture
+ * UCM (clés de l'index) : une entrée qui ne les porte pas ne les a pas jugées.
+ */
 export interface RequetesDeSession extends Record<string, RequeteRetenue<unknown, NomDEntree>> {
-  readonly controles: RequeteRetenue<readonly Constat[], NomDEntree>;
+  readonly 'controle-nommage': RequeteRetenue<readonly Constat[], NomDEntree>;
+  readonly 'controle-mapping': RequeteRetenue<readonly Constat[], NomDEntree>;
+  readonly 'controle-couches': RequeteRetenue<readonly Constat[], NomDEntree>;
+  readonly 'controle-oublis': RequeteRetenue<readonly Constat[], NomDEntree>;
+  readonly 'controle-accessibilite': RequeteRetenue<readonly Constat[], NomDEntree>;
+  readonly 'controle-typographie': RequeteRetenue<readonly Constat[], NomDEntree>;
   readonly corrections: RequeteRetenue<readonly Constat[], NomDEntree>;
   readonly projection: RequeteRetenue<{ readonly visibles: readonly Constat[]; readonly ignores: readonly string[] }, NomDEntree>;
 }
@@ -201,30 +212,48 @@ export interface RequetesDeSession extends Record<string, RequeteRetenue<unknown
 export type EntreeDeSessionDAnalyse = EntreeDeSession<SortiesDeSession, RequetesDeSession>;
 
 /**
- * Tout ce que chaque requête lit, et rien d'autre : la comparaison de la reprise et l'entrée retenue en session partent de
- * cette liste. Aucune requête ne lit un état de module, l'heure ni un ordre d'itération rempli ailleurs : les mémoires du
- * kit sont des `WeakMap` par catalogue ou relevé, qui ne changent pas un résultat.
- * - `controles` : le relevé et le catalogue, le niveau d'accessibilité, la déclaration UCM de l'architecture ;
+ * Ce que chaque requête lit, et rien d'autre : l'entrée retenue en session part de cette liste. Aucune requête ne lit un
+ * état de module, l'heure ni un ordre d'itération rempli ailleurs : les mémoires du kit sont des `WeakMap` par catalogue ou
+ * relevé, qui ne changent pas un résultat.
+ * - une famille de contrôles : le relevé et le catalogue, dont elle ne lit qu'une part (`projectionsDesControles.ts`) ; le
+ *   niveau d'accessibilité pour l'accessibilité ;
  * - `corrections` : les constats du moteur et des règles s'ajoutent aux contrôles, d'où `moteur` et `regles` ;
  * - `projection` : les ignorés rangés écartent des constats des corrections.
  */
 const ENTREES_DES_REQUETES: Readonly<Record<NomDeRequete, readonly NomDEntree[]>> = {
-  controles: ['releve', 'catalogue', 'niveau', 'architectureUcm'],
+  'controle-nommage': ['releve', 'catalogue'],
+  'controle-mapping': ['releve', 'catalogue'],
+  'controle-couches': ['releve', 'catalogue'],
+  'controle-oublis': ['releve', 'catalogue'],
+  'controle-accessibilite': ['releve', 'catalogue', 'niveau'],
+  'controle-typographie': ['releve', 'catalogue'],
+  'controle-theme': ['releve', 'catalogue'],
+  'controle-structure': ['releve', 'catalogue'],
   corrections: ['releve', 'catalogue', 'moteur', 'regles', 'controles'],
   projection: ['corrections', 'ignores'],
 };
 
 /**
- * Rend la fonction qui, pour chaque requête de la demande, reprend le résultat de l'entrée `valide` quand toutes ses
- * entrées égalent (`egalesExactement`) les valeurs `actuelles`, et le calcule sinon. `entree` vaut `null` hors d'une
- * validation `valide` : rien ne se reprend alors. Une valeur absente de `actuelles` ne vaut jamais égale. Les résultats
- * des requêtes amont s'y inscrivent, repris ou recalculés : une requête amont rejouée dont le résultat reste égal ne
- * rejoue pas celles qui la lisent. Compte chaque requête dans `requetesNonRejouees` ou `requetesRejouees`.
+ * Rend les deux fonctions par lesquelles `analyser` passe ses requêtes, sur l'entrée `entree` (`null` hors d'une validation
+ * `valide` : rien ne se reprend alors) et les valeurs `actuelles` de la demande. Chacune compte la requête dans
+ * `requetesNonRejouees` ou `requetesRejouees`.
+ * - `famille` reprend le résultat de l'entrée quand la part des données que la famille lit est égale (`egalesExactement`) à
+ *   celle de l'entrée, projection fraîche contre projection retenue ; la famille se calcule toujours sur les données entières.
+ *   La projection retenue se recalcule sur le relevé et le catalogue de l'entrée : la session ne la double pas. Quand le
+ *   relevé, le catalogue et le niveau sont égaux en entier, les projections le sont aussi, sans être calculées. Une famille
+ *   que l'entrée n'a pas jugée (UCM déclarée depuis) se calcule.
+ * - `requete` reprend `corrections` ou `projection` quand toutes leurs entrées égalent les valeurs `actuelles`. Une valeur
+ *   absente de `actuelles` ne vaut jamais égale. Le résultat de chaque requête s'y inscrit, repris ou recalculé : une requête
+ *   amont rejouée dont le résultat reste égal ne rejoue pas celles qui la lisent. `controles` y est le rassemblement des
+ *   familles, posé par l'appelant.
  */
 export function creerLesRequetes(entree: EntreeDeSessionDAnalyse | null, actuelles: Map<NomDEntree, unknown>) {
   const egales = new Map<NomDEntree, boolean>();
-  const retenue = (nom: NomDEntree): unknown => (nom === 'controles' || nom === 'corrections' || nom === 'projection' ? entree?.requetes[nom].resultat : entree?.sorties[nom]);
-  const egale = (nom: NomDEntree): boolean => {
+  const retenue = (nom: Exclude<NomDEntree, NomDeFamille>): unknown => {
+    if (nom === 'controles') return entree && FAMILLES_DE_CONTROLES.flatMap((famille) => (entree.requetes[famille] as RequeteRetenue<readonly Constat[]> | undefined)?.resultat ?? []);
+    return nom === 'corrections' || nom === 'projection' ? entree?.requetes[nom].resultat : entree?.sorties[nom];
+  };
+  const egale = (nom: Exclude<NomDEntree, NomDeFamille>): boolean => {
     let issue = egales.get(nom);
     if (issue === undefined) {
       issue = actuelles.has(nom) && egalesExactement(retenue(nom), actuelles.get(nom));
@@ -232,9 +261,26 @@ export function creerLesRequetes(entree: EntreeDeSessionDAnalyse | null, actuell
     }
     return issue;
   };
-  return async <N extends NomDeRequete>(nom: N, calculer: () => Promise<RequetesDeSession[N]['resultat']>): Promise<RequetesDeSession[N]['resultat']> => {
+  const entreesIdentiques = (): boolean => egale('releve') && egale('catalogue') && egale('niveau');
+  const projectionInchangee = (nom: NomDeFamille, retenu: EntreeDeSessionDAnalyse): boolean => {
+    if (entreesIdentiques()) return true;
+    if (!actuelles.has('releve') || !actuelles.has('catalogue') || !actuelles.has('niveau')) return false;
+    const fraiche = PROJECTIONS[nom](actuelles.get('releve') as ReleveDeComposant, actuelles.get('catalogue') as CatalogueDeReference, { niveau: actuelles.get('niveau') as NiveauDAccessibilite });
+    const gardee = PROJECTIONS[nom](retenu.sorties.releve, retenu.sorties.catalogue, { niveau: retenu.sorties.niveau });
+    return egalesExactement(fraiche, gardee);
+  };
+  const famille = async (nom: NomDeFamille, calculer: () => Promise<Constat[]>): Promise<readonly Constat[]> => {
+    const gardee = entree?.requetes[nom] as RequeteRetenue<readonly Constat[]> | undefined;
+    if (entree && gardee && projectionInchangee(nom, entree)) {
+      compter('requetesNonRejouees');
+      return gardee.resultat;
+    }
+    compter('requetesRejouees');
+    return calculer();
+  };
+  const requete = async <N extends 'corrections' | 'projection'>(nom: N, calculer: () => Promise<RequetesDeSession[N]['resultat']>): Promise<RequetesDeSession[N]['resultat']> => {
     let resultat: RequetesDeSession[N]['resultat'];
-    if (entree && ENTREES_DES_REQUETES[nom].every(egale)) {
+    if (entree && ENTREES_DES_REQUETES[nom].every((lue) => egale(lue as Exclude<NomDEntree, NomDeFamille>))) {
       resultat = entree.requetes[nom].resultat as RequetesDeSession[N]['resultat'];
       compter('requetesNonRejouees');
     } else {
@@ -244,6 +290,7 @@ export function creerLesRequetes(entree: EntreeDeSessionDAnalyse | null, actuell
     actuelles.set(nom, resultat);
     return resultat;
   };
+  return { famille, requete };
 }
 
 let bornesDeRetention: BornesDeRetention = BORNES_DE_RETENTION;
@@ -1099,28 +1146,36 @@ const mesuresEnvoyees = new Map<number, { reception: number; identite: IdentiteD
 
 const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
 
-/** Les contrôles du kit, dans l'ordre du produit ; le budget partagé se consulte avant chacun, et chacun ouvre l'étape qui porte son nom. */
-async function controlesDuKit(releve: ReleveDeComposant, catalogue: CatalogueDeReference, niveau: NiveauDAccessibilite, architectureUcm: boolean, cooperation: ContexteCooperatif): Promise<Constat[]> {
-  type Controle = [nom: string, controler: () => Constat[] | Promise<Constat[]>];
-  const controles: Controle[] = [
-    ['controle-nommage', () => calculerParEtapes(controlerNommageParEtapes(releve, catalogue), cooperation)],
-    ['controle-mapping', () => calculerParEtapes(controlerMappingParEtapes(releve, catalogue), cooperation)],
-    ['controle-couches', () => calculerParEtapes(controlerCouchesParEtapes(releve, catalogue), cooperation)],
-    ['controle-oublis', () => calculerParEtapes(controlerOublisParEtapes(releve, catalogue), cooperation)],
-    ['controle-accessibilite', () => calculerParEtapes(controlerLAccessibiliteParEtapes(releve, catalogue, { niveau }), cooperation)],
-    ['controle-typographie', () => calculerParEtapes(controlerLaTypographieParEtapes(releve, catalogue), cooperation)],
-    ...(architectureUcm ? [
-      ['controle-theme', () => calculerParEtapes(controlerLeThemeParEtapes(releve, catalogue), cooperation)] satisfies Controle,
-      ['controle-structure', () => calculerParEtapes(controlerLaStructureParEtapes(releve, catalogue), cooperation)] satisfies Controle,
-    ] : []),
-  ];
+/**
+ * Les contrôles du kit, famille par famille dans l'ordre du produit ; le budget partagé se consulte avant chacune, et chacune
+ * ouvre l'étape qui porte son nom. `famille` décide de la reprendre ou de la calculer (`creerLesRequetes`). Rend les constats
+ * rassemblés et ceux de chaque famille jugée.
+ */
+async function controlesDuKit(
+  releve: ReleveDeComposant, catalogue: CatalogueDeReference, niveau: NiveauDAccessibilite, architectureUcm: boolean, cooperation: ContexteCooperatif,
+  famille: (nom: NomDeFamille, calculer: () => Promise<Constat[]>) => Promise<readonly Constat[]>,
+): Promise<{ constats: Constat[]; parFamille: Partial<Record<NomDeFamille, readonly Constat[]>> }> {
+  const calculs: Record<NomDeFamille, () => Generator<void, Constat[]>> = {
+    'controle-nommage': () => controlerNommageParEtapes(releve, catalogue),
+    'controle-mapping': () => controlerMappingParEtapes(releve, catalogue),
+    'controle-couches': () => controlerCouchesParEtapes(releve, catalogue),
+    'controle-oublis': () => controlerOublisParEtapes(releve, catalogue),
+    'controle-accessibilite': () => controlerLAccessibiliteParEtapes(releve, catalogue, { niveau }),
+    'controle-typographie': () => controlerLaTypographieParEtapes(releve, catalogue),
+    'controle-theme': () => controlerLeThemeParEtapes(releve, catalogue),
+    'controle-structure': () => controlerLaStructureParEtapes(releve, catalogue),
+  };
   const constats: Constat[] = [];
-  for (const [nom, controler] of controles) {
+  const parFamille: Partial<Record<NomDeFamille, readonly Constat[]>> = {};
+  for (const nom of FAMILLES_DE_CONTROLES) {
+    if (!architectureUcm && FAMILLES_UCM.includes(nom)) continue;
     await cooperation.cederSiBesoin();
     etape(nom);
-    constats.push(...await controler());
+    const resultat = await famille(nom, () => calculerParEtapes(calculs[nom](), cooperation));
+    parFamille[nom] = resultat;
+    constats.push(...resultat);
   }
-  return constats;
+  return { constats, parFamille };
 }
 
 /**
@@ -1335,10 +1390,11 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       await lireLesDependancesEtValider();
       if (jeton.leve) return rendre('annulee', [], null);
     }
-    const requete = creerLesRequetes(validation?.etat === 'valide' ? session.entree(sujet.cle) : null, actuelles);
+    const { famille, requete } = creerLesRequetes(validation?.etat === 'valide' ? session.entree(sujet.cle) : null, actuelles);
     // Les contrôles du kit passent avant le moteur : leurs constats partent en provisoire, sans correction, pendant que le moteur lit les composants imbriqués.
     phase('controles');
-    const controles = await requete('controles', () => controlesDuKit(releve, catalogue, niveau, architectureUcm, cooperation));
+    const { constats: controles, parFamille } = await controlesDuKit(releve, catalogue, niveau, architectureUcm, cooperation, famille);
+    actuelles.set('controles', controles);
     if (jeton.leve) return rendre('annulee', [], null);
     // Les ignorés se lisent avant le premier envoi : le provisoire dit déjà lesquels ne comptent pas. Son étape garde leur coût hors du dernier contrôle.
     etape('provisoire');
@@ -1396,7 +1452,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     // La promotion précède l'envoi du résultat : la trace qu'il porte se ferme à l'envoi et doit déjà compter ce que la session retient.
     if (revision) {
       promouvoirLaRevision(revision, identite, statutFinal, { releve, catalogue, moteur, regles: reglesLues, dependances: dependances ?? null, niveau, architectureUcm, ignores: rangees, lecturesRefusees }, {
-        controles: { resultat: controles, entrees: ENTREES_DES_REQUETES.controles },
+        ...Object.fromEntries(Object.entries(parFamille).map(([nom, resultat]) => [nom, { resultat, entrees: ENTREES_DES_REQUETES[nom as NomDeFamille] }])) as Record<NomDeFamille, RequeteRetenue<readonly Constat[], NomDEntree>>,
         corrections: { resultat: tous, entrees: ENTREES_DES_REQUETES.corrections },
         projection: { resultat: { visibles, ignores }, entrees: ENTREES_DES_REQUETES.projection },
       });

@@ -9,7 +9,6 @@
 import assert from 'node:assert/strict';
 import test, { after, before, beforeEach } from 'node:test';
 
-import type { CatalogueDeReference, LayerLu, ReleveDeComposant } from '@ucm-kit/core/controles';
 import type { ChangementRecu, NoeudDEvenement } from 'ucm-plugin-socle/src/composant/analyse/couverture';
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
@@ -21,62 +20,9 @@ import {
   type Lecteurs,
 } from '../src/sandbox/analyse';
 import { creerLeSuivi, type Contexte } from '../src/sandbox/contexte';
+import { base, catalogueDe, fichierDeDepart, releveDe, type Fichier } from './aides/fichierDeSession';
 
 const PAGE = 'page-1';
-
-interface Fichier {
-  variable: { id: string; cle: string; nom: string };
-  valeur: number;
-  niveau: 'AA' | 'AAA';
-  library: { nom: string; cle: string } | null;
-  layers: LayerLu[];
-  maitre: { contenu: string; remote: boolean; imbrique: boolean };
-  /** Les noms de composant que les conteneurs de règles de la page écrivent. */
-  nomsDeLaPage: string[];
-  style: { nom: string; taille: number; remote: boolean };
-}
-
-const base = (id: string, variable: Fichier['variable'], extra: Partial<LayerLu> = {}): LayerLu => ({
-  id, nom: id, type: 'FRAME', parent: null, visible: true, opacite: 1,
-  dimensions: { x: 0, y: 0, largeur: 20, hauteur: 20 }, peintures: [],
-  liaisons: [{ champ: 'cornerRadius', porteur: id, variable: { ...variable, collection: 'components', distante: false } }],
-  valeursEnDur: [],
-  ...extra,
-});
-
-function fichierDeDepart(): Fichier {
-  const variable = { id: 'VariableID:1', cle: 'k-rayon', nom: 'alert/size/radius' };
-  return {
-    variable,
-    valeur: 12,
-    niveau: 'AA',
-    library: null,
-    layers: [
-      base('fond', variable),
-      base('bord', variable),
-      base('titre', variable, { type: 'TEXT', texte: { style: 'Body', plages: [{ debut: 0, fin: 5, fontSize: 14, fontWeight: 400, peintures: [], liaisons: [] }] } }),
-      base('icone', variable, { type: 'INSTANCE', instanceDe: { cle: 'icone', nom: 'Icon', distante: false, pilotee: null } }),
-    ],
-    maitre: { contenu: 'rond', remote: false, imbrique: false },
-    nomsDeLaPage: ['icon'],
-    style: { nom: 'Body', taille: 14, remote: false },
-  };
-}
-
-const releveDe = (fichier: Fichier): ReleveDeComposant => structuredClone({
-  version: 1 as const,
-  jeu: { cle: 'Alert', id: 'jeu-Alert', nom: 'Alert' },
-  proprietes: [],
-  variants: [{ id: 'v-Alert', nom: 'Alert défaut', valeurs: {}, layers: fichier.layers, modesEffectifs: {} }],
-  lecture: { layersLus: fichier.layers.length, layersNonLus: 0, variantsNonLus: [], manquees: [] },
-  espaceDeCouleur: 'srgb' as const,
-});
-
-const catalogueDe = (fichier: Fichier): CatalogueDeReference => structuredClone({
-  version: 1 as const, library: fichier.library,
-  collections: [{ cle: 'c1', nom: 'components', role: 'components' as const, etat: 'lue' as const, modes: [{ id: 'Light', nom: 'Light' }] }],
-  variables: [{ cle: fichier.variable.cle, nom: fichier.variable.nom, collection: 'components', type: 'FLOAT' as const, etat: 'presente' as const, valeurs: { Light: { valeur: fichier.valeur } } }],
-});
 
 /** Le moteur nomme tout ce que le test mute : un résultat repris après une mutation garderait l'ancien état. */
 function moteurDe(fichier: Fichier): ResultatInterne {
@@ -274,7 +220,7 @@ async function muterPuisAnalyser(m: Mutation, fichier: Fichier, appels: { moteur
   } else {
     assert.equal(appels.moteur, avant + 1, `${m.nom} : le moteur est relancé`);
     assert.notEqual(promue.sorties.moteur, retenue.sorties.moteur, `${m.nom} : rien du moteur retenu ne sert`);
-    assert.notEqual(promue.requetes.controles.resultat, retenue.requetes.controles.resultat, `${m.nom} : les requêtes sont recalculées avec lui`);
+    assert.notEqual(promue.requetes['controle-nommage'].resultat, retenue.requetes['controle-nommage'].resultat, `${m.nom} : les requêtes sont recalculées avec lui`);
   }
   return analysee;
 }
@@ -359,38 +305,38 @@ async function mesuree(fichier: Fichier, appels: { moteur: number }, intention: 
   };
 }
 
-test('Analyser deux fois sans changement ne rejoue aucune des trois requêtes et affiche ce qu’Actualiser affiche', async () => {
+test('Analyser deux fois sans changement ne rejoue aucune des huit requêtes (six familles du kit, corrections, projection) et affiche ce qu’Actualiser affiche', async () => {
   const fichier = fichierDeDepart();
   const appels = { moteur: 0 };
   const premiere = await mesuree(fichier, appels, 'analyser');
-  assert.deepEqual(premiere.reprises, { non: 0, rejouees: 3 }, 'sans entrée retenue, tout se calcule');
+  assert.deepEqual(premiere.reprises, { non: 0, rejouees: 8 }, 'sans entrée retenue, tout se calcule');
   const seconde = await mesuree(fichier, appels, 'analyser');
-  assert.deepEqual(seconde.reprises, { non: 3, rejouees: 0 });
+  assert.deepEqual(seconde.reprises, { non: 8, rejouees: 0 });
   assert.equal(appels.moteur, 1);
   const actualisee = await mesuree(fichier, appels, 'actualiser');
-  assert.deepEqual(actualisee.reprises, { non: 0, rejouees: 3 }, 'Actualiser ne reprend rien');
+  assert.deepEqual(actualisee.reprises, { non: 0, rejouees: 8 }, 'Actualiser ne reprend rien');
   assert.equal(JSON.stringify(seconde.affiche), JSON.stringify(actualisee.affiche));
 });
 
-test('le niveau AA puis AAA rejoue les contrôles, qui le lisent, et pas les requêtes dont les entrées restent égales', async () => {
+test('le niveau AA puis AAA rejoue l’accessibilité, qui le lit, et pas les autres familles ni les requêtes dont les entrées restent égales', async () => {
   const fichier = fichierDeDepart();
   const appels = { moteur: 0 };
   await mesuree(fichier, appels, 'analyser');
   fichier.niveau = 'AAA';
   const analysee = await mesuree(fichier, appels, 'analyser');
   assert.equal(appels.moteur, 1, 'le moteur est repris');
-  assert.deepEqual(analysee.reprises, { non: 2, rejouees: 1 }, 'les contrôles rejouent ; leur résultat est égal, les corrections et la projection se reprennent');
+  assert.deepEqual(analysee.reprises, { non: 7, rejouees: 1 }, 'l’accessibilité rejoue ; son résultat est égal, les corrections et la projection se reprennent');
   const actualisee = await mesuree(fichier, appels, 'actualiser');
   assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
 });
 
-test('des ignorés rangés changés rejouent la projection, qui les lit, et pas les contrôles ni les corrections', async () => {
+test('des ignorés rangés changés rejouent la projection, qui les lit, et pas les familles de contrôles ni les corrections', async () => {
   const fichier = fichierDeDepart();
   const appels = { moteur: 0 };
   const premiere = await mesuree(fichier, appels, 'analyser');
   assert.ok(premiere.constats.length > 0, 'la fixture produit un constat à ignorer');
   const analysee = await mesuree(fichier, appels, 'analyser', [premiere.constats[0]]);
-  assert.deepEqual(analysee.reprises, { non: 2, rejouees: 1 });
+  assert.deepEqual(analysee.reprises, { non: 7, rejouees: 1 });
   const actualisee = await mesuree(fichier, appels, 'actualiser', [premiere.constats[0]]);
   assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
 });
@@ -402,7 +348,7 @@ test('une entrée invalidée ne reprend aucune requête, même quand leurs entr�
   fichier.valeur = 14;
   const analysee = await mesuree(fichier, appels, 'analyser');
   assert.equal(appels.moteur, 2);
-  assert.deepEqual(analysee.reprises, { non: 0, rejouees: 3 });
+  assert.deepEqual(analysee.reprises, { non: 0, rejouees: 8 });
 });
 
 /** Tout ce que l'entrée de session porte comme objet : une reconstruction n'en garde aucun. */
@@ -415,12 +361,12 @@ test('Actualiser après un Analyser qui a tout repris remplace l’entrée par u
   const appels = { moteur: 0 };
   await mesuree(fichier, appels, 'analyser');
   const reprise = await mesuree(fichier, appels, 'analyser');
-  assert.deepEqual(reprise.reprises, { non: 3, rejouees: 0 });
+  assert.deepEqual(reprise.reprises, { non: 8, rejouees: 0 });
   const avant = sessionDesAnalyses().entree('Alert')!;
   const anciens = new Set(objetsDeLEntree(avant));
   const actualisee = await mesuree(fichier, appels, 'actualiser');
   assert.equal(appels.moteur, 2, 'Actualiser rappelle le moteur');
-  assert.deepEqual(actualisee.reprises, { non: 0, rejouees: 3 });
+  assert.deepEqual(actualisee.reprises, { non: 0, rejouees: 8 });
   const apres = sessionDesAnalyses().entree('Alert')!;
   assert.notEqual(apres, avant);
   assert.ok(apres.rang > avant.rang);
@@ -429,7 +375,7 @@ test('Actualiser après un Analyser qui a tout repris remplace l’entrée par u
   assert.equal(JSON.stringify(actualisee.affiche), JSON.stringify(reprise.affiche));
 });
 
-test('une library choisie autre garde le moteur et rejoue les requêtes qui lisent le catalogue, pour le même affichage qu’Actualiser', async () => {
+test('une library choisie autre garde le moteur et les familles qui ne lisent pas la library, et rejoue les corrections, qui lisent le catalogue entier, pour le même affichage qu’Actualiser', async () => {
   const fichier = fichierDeDepart();
   const appels = { moteur: 0 };
   await mesuree(fichier, appels, 'analyser');
@@ -440,7 +386,7 @@ test('une library choisie autre garde le moteur et rejoue les requêtes qui lise
   const analysee = await mesuree(fichier, appels, 'analyser');
   assert.equal(appels.moteur, 1, 'le moteur ne lit pas la library : il est repris');
   assert.equal(sessionDesAnalyses().entree('Alert')!.sorties.moteur, moteurRetenu);
-  assert.ok(analysee.reprises.rejouees >= 2, 'contrôles et corrections lisent le catalogue');
+  assert.deepEqual(analysee.reprises, { non: 7, rejouees: 1 }, 'aucune famille ne lit la library ; les corrections lisent le catalogue entier ; la projection reprend avec des corrections égales');
   const actualisee = await mesuree(fichier, appels, 'actualiser');
   assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
 });
@@ -452,7 +398,7 @@ test('une écriture du document, elle, invalide le sujet entier même quand rien
   perimerApresUneEcriture(banc(fichier).contexte);
   const analysee = await mesuree(fichier, appels, 'analyser');
   assert.equal(appels.moteur, 2);
-  assert.deepEqual(analysee.reprises, { non: 0, rejouees: 3 });
+  assert.deepEqual(analysee.reprises, { non: 0, rejouees: 8 });
 });
 
 class FauxNoeud {

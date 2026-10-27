@@ -1269,10 +1269,14 @@ test('l’analyse UCM ajoute C59 et C63 de structure, tandis que l’architectur
   const constatsUcm = deType(ucm, 'analyse')[0].constats;
   assert.ok(constatsUcm.some(({ code }) => code === 'C59'));
   assert.ok(constatsUcm.some(({ code, id }) => code === 'C63' && id.includes('secondary')));
+  const retenues = () => sessionDesAnalyses().entree(sessionDesAnalyses().sujets()[0])!.requetes;
+  const famillesUcm = ['controle-structure', 'controle-theme'];
+  assert.deepEqual(famillesUcm.filter((famille) => famille in retenues()), famillesUcm, 'l’entrée retient les deux familles que seule une architecture UCM lance');
 
   const libre = banc('libre');
   await traiterAvec(avec)({ type: 'analyser' }, libre.contexte);
   assert.equal(deType(libre, 'analyse')[0].constats.some(({ code }) => code === 'C59' || code === 'C63'), false);
+  assert.deepEqual(famillesUcm.filter((famille) => famille in retenues()), [], 'une architecture libre ne les lance pas');
 });
 
 test('le niveau rangé sert à l’analyse : AA laisse passer 4,8:1, AAA le signale', async () => {
@@ -1565,7 +1569,7 @@ test('la session retient les sorties, les requêtes et le suivi du sujet, sans r
   assert.ok(entree, 'une analyse complète retient son sujet');
   assert.deepEqual(Object.keys(entree).sort(), ['rang', 'requetes', 'sorties', 'suivi', 'sujet']);
   assert.deepEqual(Object.keys(entree.sorties).sort(), ['architectureUcm', 'catalogue', 'dependances', 'ignores', 'lecturesRefusees', 'moteur', 'niveau', 'regles', 'releve']);
-  assert.deepEqual(Object.keys(entree.requetes).sort(), ['controles', 'corrections', 'projection']);
+  assert.deepEqual(Object.keys(entree.requetes).sort(), ['controle-accessibilite', 'controle-couches', 'controle-mapping', 'controle-nommage', 'controle-oublis', 'controle-typographie', 'corrections', 'projection']);
   assert.deepEqual(Object.keys(entree.suivi).sort(), ['admis', 'couverture', 'curseur', 'maitres', 'noeuds', 'pages', 'parents']);
   assert.ok(!('pourLaPublication' in entree.sorties.moteur), 'les nœuds Figma du moteur ne sont pas retenus');
   assert.deepEqual(entree.requetes.projection.entrees, ['corrections', 'ignores']);
