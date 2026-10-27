@@ -17,7 +17,7 @@ import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/co
 import type { PluginMessage } from '../src/messages';
 import { modelesDeLAnalyse, type ReleveDesRegles } from '../src/regles';
 import {
-  analyseCourante, correctionsDeLAnalyse, dependancesDeFigma, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDeStyle, surChangementDuDocument, traiterAvec,
+  analyseCourante, correctionsDeLAnalyse, dependancesDeFigma, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDeStyle, surChangementDuDocument, traiterAvec,
   type Lecteurs,
 } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
@@ -243,7 +243,11 @@ const MUTATIONS: readonly Mutation[] = [
     evenements: (c) => surChangementDuDocument([noeud('PROPERTY_CHANGE', 'M:bouton/fond', ['M:bouton', PAGE], ['fills'])], c),
   },
   { nom: 'maître de library sans événement', reprise: false, depart: (f) => { f.maitre.remote = true; }, muter: (f) => { f.maitre = { ...f.maitre, contenu: 'carré' }; } },
-  { nom: 'library choisie', reprise: false, muter: (f) => { f.library = { nom: 'Intencial', cle: 'k-lib' }; } },
+  {
+    nom: 'library choisie', reprise: true,
+    muter: (f) => { f.library = { nom: 'Intencial', cle: 'k-lib' }; },
+    evenements: (c) => perimerApresUneEcriture(c, 'configuration'),
+  },
   { nom: 'niveau AA puis AAA', reprise: true, muter: (f) => { f.niveau = 'AAA'; } },
   {
     nom: 'plusieurs mutations avant l’Analyser', reprise: false,
@@ -396,6 +400,56 @@ test('une entrée invalidée ne reprend aucune requête, même quand leurs entr�
   const appels = { moteur: 0 };
   await mesuree(fichier, appels, 'analyser');
   fichier.valeur = 14;
+  const analysee = await mesuree(fichier, appels, 'analyser');
+  assert.equal(appels.moteur, 2);
+  assert.deepEqual(analysee.reprises, { non: 0, rejouees: 3 });
+});
+
+/** Tout ce que l'entrée de session porte comme objet : une reconstruction n'en garde aucun. */
+function objetsDeLEntree(entree: NonNullable<ReturnType<ReturnType<typeof sessionDesAnalyses>['entree']>>): unknown[] {
+  return [...Object.values(entree.sorties), ...Object.values(entree.requetes).map(({ resultat }) => resultat)].filter((valeur) => typeof valeur === 'object' && valeur !== null);
+}
+
+test('Actualiser après un Analyser qui a tout repris remplace l’entrée par une reconstruction complète : rien d’antérieur n’y survit', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await mesuree(fichier, appels, 'analyser');
+  const reprise = await mesuree(fichier, appels, 'analyser');
+  assert.deepEqual(reprise.reprises, { non: 3, rejouees: 0 });
+  const avant = sessionDesAnalyses().entree('Alert')!;
+  const anciens = new Set(objetsDeLEntree(avant));
+  const actualisee = await mesuree(fichier, appels, 'actualiser');
+  assert.equal(appels.moteur, 2, 'Actualiser rappelle le moteur');
+  assert.deepEqual(actualisee.reprises, { non: 0, rejouees: 3 });
+  const apres = sessionDesAnalyses().entree('Alert')!;
+  assert.notEqual(apres, avant);
+  assert.ok(apres.rang > avant.rang);
+  const gardes = objetsDeLEntree(apres).filter((objet) => anciens.has(objet));
+  assert.deepEqual(gardes, [], 'ni moteur, ni requête, ni dépendances, ni relevé de l’entrée précédente');
+  assert.equal(JSON.stringify(actualisee.affiche), JSON.stringify(reprise.affiche));
+});
+
+test('une library choisie autre garde le moteur et rejoue les requêtes qui lisent le catalogue, pour le même affichage qu’Actualiser', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await mesuree(fichier, appels, 'analyser');
+  const moteurRetenu = sessionDesAnalyses().entree('Alert')!.sorties.moteur;
+  fichier.library = { nom: 'Intencial', cle: 'k-lib' };
+  // Le réglage de la library entre au journal comme une écriture de configuration.
+  perimerApresUneEcriture(banc(fichier).contexte, 'configuration');
+  const analysee = await mesuree(fichier, appels, 'analyser');
+  assert.equal(appels.moteur, 1, 'le moteur ne lit pas la library : il est repris');
+  assert.equal(sessionDesAnalyses().entree('Alert')!.sorties.moteur, moteurRetenu);
+  assert.ok(analysee.reprises.rejouees >= 2, 'contrôles et corrections lisent le catalogue');
+  const actualisee = await mesuree(fichier, appels, 'actualiser');
+  assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
+});
+
+test('une écriture du document, elle, invalide le sujet entier même quand rien d’autre n’a changé', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await mesuree(fichier, appels, 'analyser');
+  perimerApresUneEcriture(banc(fichier).contexte);
   const analysee = await mesuree(fichier, appels, 'analyser');
   assert.equal(appels.moteur, 2);
   assert.deepEqual(analysee.reprises, { non: 0, rejouees: 3 });

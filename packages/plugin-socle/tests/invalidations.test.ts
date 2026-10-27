@@ -65,6 +65,8 @@ test('un point d’évaluation plus récent n’examine que ce qui suit', () => 
   assert.deepEqual(raisonsDInvalidation(suivi(), 0, journal), ['sujet-touche']);
   assert.deepEqual(raisonsDInvalidation(suivi(), point, journal), []);
   journal.signalerUneEcriture('configuration');
+  assert.deepEqual(raisonsDInvalidation(suivi(), point, journal), [], 'un réglage de configuration n’invalide pas le sujet');
+  journal.signalerUneEcriture('ecriture');
   assert.deepEqual(raisonsDInvalidation(suivi(), point, journal), ['ecriture']);
 });
 

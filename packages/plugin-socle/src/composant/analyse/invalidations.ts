@@ -10,6 +10,9 @@
  * Les maîtres locaux d'une page écoutée se jugent comme l'inventaire, par `suivi.maitres` : le maître, ses descendants et
  * tout nœud créé dessous touchent le sujet. Les autres maîtres n'ont pas d'événement démontré (matrice de couverture) : ils
  * ne se jugent pas ici et la validation les relit ou refuse la reprise.
+ *
+ * Une écriture d'origine `configuration` n'invalide rien : le niveau et la library choisie se retrouvent dans les sorties
+ * relues et comparées par la validation et les requêtes. Toute autre écriture invalide le sujet entier.
  */
 import { porteeDesChangements, type AnciensParents, type ChangementRecu, type NoeudDEvenement } from './couverture';
 import type { IdDeNoeud } from './faits';
@@ -56,7 +59,8 @@ export function raisonsDInvalidation(suivi: SuiviRetenu, depuis: number, journal
   const suivis = { noeuds: suivi.noeuds, maitres: suivi.maitres ?? new Set<IdDeNoeud>() };
 
   for (const entree of journal.depuis(depuis)) {
-    if (entree.nature === 'ecriture') raisons.add('ecriture');
+    // Un réglage de configuration (library choisie, niveau) ne touche pas au sujet : ce qui le lit se compare à la validation.
+    if (entree.nature === 'ecriture') { if (entree.origine !== 'configuration') raisons.add('ecriture'); }
     else if (entree.nature === 'style') raisons.add('style');
     else if (entree.nature === 'noeud') {
       const changement: ChangementRecu = {

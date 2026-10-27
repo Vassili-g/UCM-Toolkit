@@ -10,7 +10,7 @@
 - [x] **9.4 | gpt-6.1-sol | high** | **Claude Opus | high** : valider ressources et ensembles avant réutilisation d'un sujet ; test de modification sans notification couvrante. Résultat : `validation.ts` du socle (`egalesExactement`), lecteur `dependances` et `validerLEntree` d'Architect ; une demande Analyser reprend le moteur retenu seulement sur `valide`, section « Validation avant réutilisation (9.4) ».
 - [x] **9.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : appliquer d'abord l'invalidation du sujet entier ; parité avec reconstruction après mutation locale et globale. Résultat : maîtres locaux suivis et définitions de styles relues dans la validation (le refus `non-couvert` ne vise plus que le maître distant ou hors page écoutée, le maître qui contient des instances et le style illisible), tout refus ou invalidation jette l'entrée entière, banc `paritesDeSession.test.ts` ; section « Invalidation du sujet entier et parité (9.5) ».
 - [x] **9.6 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : réutiliser seulement les requêtes pures dont les entrées revalidées sont égales ; compter celles qui ne rejouent pas. Résultat : `creerLesRequetes` (`sandbox/analyse.ts`) reprend `controles`, `corrections` ou `projection` d'une entrée `valide` quand toutes leurs entrées égalent les valeurs actuelles (`egalesExactement`) ; compteurs `requetesNonRejouees` et `requetesRejouees`, section « Requêtes pures (9.6) ».
-- [ ] **9.7 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : reconstruire sur Actualiser et conserver après changement de library les seules requêtes indépendantes validées.
+- [x] **9.7 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : reconstruire sur Actualiser et conserver après changement de library les seules requêtes indépendantes validées. Résultat : Actualiser remplace l'entrée en entier (test) ; une écriture d'origine `configuration` n'invalide plus le sujet, et un catalogue d'une autre library n'empêche plus de reprendre le moteur ; section « Actualiser et library (9.7) ».
 - [ ] **9.8 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : borner sujets, octets et arêtes ; protéger l'actif, évincer le moins récent et nettoyer les orphelins.
 - [ ] **9.9 | gpt-6-luna | low** | **Claude Sonnet | low** : tester actif trop gros, fermeture de session, perte de suivi et absence de persistance clientStorage ; mesurer les maxima.
 
@@ -161,3 +161,17 @@ Altérations vérifiées : sans `suivi.maitres` dans `raisonsDInvalidation`, les
 Limites : le résultat repris est l'objet de l'entrée, partagé avec la génération précédente ; rien ne le modifie après le calcul. Les entrées sont des listes écrites une fois, `ENTREES_DES_REQUETES` : une requête qui lirait une donnée nouvelle doit l'y ajouter, sans quoi elle serait reprise à tort.
 
 Preuves : `paritesDeSession.test.ts` (Analyser deux fois : 3 reprises, affichage égal à Actualiser, qui n'en reprend aucune ; niveau AA vers AAA : 1 rejouée, 2 reprises ; ignorés changés : projection seule rejouée ; valeur de variable : 3 rejouées) et la série des parités de 9.5, inchangée. Altérations : sans `niveau` dans les entrées de `controles`, le test du niveau échoue ; sans `ignores` dans celles de `projection`, le test des ignorés échoue.
+
+## Actualiser et library (9.7)
+
+**Actualiser.** Il ne lit aucune entrée (`reutilisationPermise` faux) et sa fin `complete` promeut une reconstruction qui remplace l'entrée. Le test garde les objets de l'entrée précédente (sorties et résultats de requêtes) et vérifie qu'aucun ne figure dans la nouvelle.
+
+**Library.** Le moteur ne lit ni le catalogue ni la library choisie : `lireLaLibraryRangee` n'est lue que par le lecteur `catalogue` d'Architect (et la préparation), et rien du moteur (`exportComponent.ts`, `porteeDAnalyse.ts`) ne lit ce réglage. Deux changements :
+- `raisonsDInvalidation` ne pose plus `ecriture` pour une écriture d'origine `configuration` (`ranger-library`, `ranger-niveau`). Le niveau est une entrée comparée de `controles`, la library un champ du catalogue. Toute autre écriture invalide le sujet entier.
+- La validation (9.4) ne compare plus le catalogue quand sa `library` diffère de celle de l'entrée : tout le catalogue change alors par construction. Si la library est la même, la comparaison reste exacte.
+
+Effet : le moteur et les règles se reprennent. `controles` et `corrections` lisent le catalogue et se rejouent ; `projection` se reprend si les corrections rendent le même résultat. Le gain réel est le moteur, la partie coûteuse.
+
+Limites : un niveau changé par `ranger-niveau` suit le même chemin et se rejoue par comparaison. Une analyse en cours au moment du réglage reste périmée (`perimerApresUneEcriture`) et ne promeut rien.
+
+Preuves : `paritesDeSession.test.ts` (Actualiser après des reprises ; library choisie avec écriture de configuration : moteur repris, au moins deux requêtes rejouées, affichage égal à Actualiser ; écriture ordinaire : tout se rejoue) et `invalidations.test.ts` du socle. Altérations : une écriture de configuration qui invalide, ou un catalogue toujours comparé, fait échouer trois tests de parité.

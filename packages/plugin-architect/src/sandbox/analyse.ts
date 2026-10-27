@@ -397,7 +397,9 @@ function raisonsDeNonReprise({ sorties, suivi }: EntreeDeSessionDAnalyse, sujet:
   }
   raisons.push(...ecartsDesSorties<'releve' | 'catalogue' | 'dependances'>([
     { nom: 'releve', retenue: sorties.releve, relue: relues.releve },
-    { nom: 'catalogue', retenue: sorties.catalogue, relue: relues.catalogue },
+    // Une library choisie autre change tout le catalogue. Le moteur ne lit ni le catalogue ni la library choisie : seules les
+    // requêtes qui le lisent se rejouent, par la comparaison de leurs entrées (`creerLesRequetes`).
+    ...(egalesExactement(sorties.catalogue.library, relues.catalogue.library) ? [{ nom: 'catalogue' as const, retenue: sorties.catalogue, relue: relues.catalogue }] : []),
     { nom: 'dependances', retenue: sorties.dependances, relue: relues.dependances },
   ]));
   return raisons;
