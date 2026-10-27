@@ -5,7 +5,12 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import handleExportComponent, { ETAPES_DE_L_ANALYSE } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
+import handleExportComponent, {
+  analyserLeComposant,
+  ETAPES_DE_L_ANALYSE,
+  ETAPES_DE_PUBLICATION,
+  ETAPES_SANS_PUBLICATION,
+} from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import {
   abandonnerLaMesure, avancementCourant, avancer, compter, empreinteDuContrat, etape, fermerLaMesure,
   ouvrirLaMesure, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur,
@@ -282,5 +287,24 @@ test('l’empreinte ignore la date d’export et suit le composant', async () =>
     assert.notEqual(empreinteDuContrat(second), empreinteDuContrat(premier));
   } finally {
     restaurerB();
+  }
+});
+
+test('une analyse sans publication ne trace que les étapes de ETAPES_SANS_PUBLICATION', async () => {
+  const restaurer = monterUnComposant();
+  try {
+    ouvrirLaMesure(ETAPES_SANS_PUBLICATION);
+    const resultat = await analyserLeComposant(async () => {}, { publier: false });
+    assert.equal(resultat.etat, 'calculee');
+    const trace = fermerLaMesure('');
+    assert.ok(trace);
+    assert.deepEqual(trace.etapes.map((entree) => entree.nom), ETAPES_SANS_PUBLICATION.map((prevue) => prevue.nom));
+    assert.ok(ETAPES_SANS_PUBLICATION.every((prevue) => !ETAPES_DE_PUBLICATION.includes(prevue.nom)));
+    assert.equal(
+      ETAPES_SANS_PUBLICATION.length + ETAPES_DE_PUBLICATION.length,
+      ETAPES_DE_L_ANALYSE.length,
+    );
+  } finally {
+    restaurer();
   }
 });

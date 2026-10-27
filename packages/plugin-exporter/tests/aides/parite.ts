@@ -14,7 +14,7 @@ import exporterLeComposant, {
 } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { remplacerLesRequetesPourLeBanc } from 'ucm-plugin-socle/src/composant/analyse/proprietesEtEtats';
 import { elideContract } from 'ucm-plugin-socle/src/composant/contract/elideNeutrals';
-import { calculerLAnalyse } from 'ucm-plugin-socle/src/composant/analyse/resultat';
+import { calculerLAnalyse, type ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import { publierLeContrat } from 'ucm-plugin-socle/src/composant/contract/publication';
 import { publierAvant } from '../../../plugin-socle/tests/aides/cheminAvantLaPublication';
 import { dansUnePorteeDAnalyse, desactiverLaPorteePourLeBanc } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
@@ -72,6 +72,8 @@ export async function verifierLaParite(avecPortee: ComponentExport, contexte: st
   );
   await verifierLaPariteDesRequetes(avecPortee, contexte);
   await verifierLeResultatInterne(avecPortee, contexte);
+  await verifierLaPublication(contexte);
+  await verifierLAnalyseSansPublication(contexte);
 }
 
 /**
@@ -141,4 +143,53 @@ export async function verifierLaPublication(contexte: string): Promise<void> {
       `${contexte} : la publication de publierLeContrat diffère de l'ancienne publication`,
     );
   });
+}
+
+/**
+ * Une analyse sans publication rend le même résultat interne que la voie
+ * publiée, hors des entrées de la publication seule, et n'annonce aucune étape
+ * de publication. Les annonces gardent l'ordre de la voie publiée.
+ */
+export async function verifierLAnalyseSansPublication(contexte: string): Promise<void> {
+  const annoncesPubliees: string[] = [];
+  const publiee = await analyserLeComposant(async (texte) => { annoncesPubliees.push(texte); });
+  const annoncesSansPublication: string[] = [];
+  const sans = await analyserLeComposant(async (texte) => { annoncesSansPublication.push(texte); }, { publier: false });
+  assert.equal(publiee.etat, 'complete', `${contexte} : voie publiée`);
+  assert.equal(sans.etat, 'calculee', `${contexte} : voie sans publication`);
+  if (publiee.etat !== 'complete' || sans.etat !== 'calculee' || !publiee.interne) return;
+
+  const { pourLaPublication: publieePour, ...publieeInterne } = publiee.interne;
+  const { pourLaPublication: sansPour, ...sansInterne } = sans.interne;
+  assert.deepEqual(
+    comparable(sansInterne),
+    comparable(publieeInterne),
+    `${contexte} : le résultat interne diffère sans publication`,
+  );
+  for (const cle of ['propertyModel', 'icons', 'composesPlacees', 'intent'] as const) {
+    assert.deepEqual(sansPour[cle], publieePour[cle], `${contexte} : ${cle}`);
+  }
+  assert.deepEqual(
+    sansPour.matrix.variants.map((entree) => entree.component.id),
+    publieePour.matrix.variants.map((entree) => entree.component.id),
+    `${contexte} : variants lus`,
+  );
+  const publication = ['Préparation des exemples…', 'Écriture du contrat…'];
+  assert.deepEqual(
+    annoncesSansPublication,
+    annoncesPubliees.filter((texte) => !publication.includes(texte)),
+    `${contexte} : annonces`,
+  );
+  assert.ok(annoncesPubliees.length - annoncesSansPublication.length === publication.length, `${contexte} : annonces de publication`);
+}
+
+/** Les Map et Set se comparent par leurs entrées, dans l'ordre. */
+function comparable(interne: Omit<ResultatInterne, 'pourLaPublication'>) {
+  return {
+    ...interne,
+    parties: [...interne.parties],
+    localisations: [...interne.localisations],
+    localisationsDeclarees: [...interne.localisationsDeclarees],
+    projectionWarnings: [...interne.projectionWarnings],
+  };
 }

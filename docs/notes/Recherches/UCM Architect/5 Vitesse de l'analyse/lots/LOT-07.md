@@ -9,7 +9,7 @@
 - [x] **7.3 | gpt-6.1-sol | high** | **Claude Sonnet | high** : extraire une première famille de requêtes pures et déclarer ses dépendances ; comparer tous ses diagnostics ordonnés. Famille : modèle de propriétés et d'états, section « Première famille extraite (7.3) ».
 - [x] **7.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : produire le résultat interne finalisé avec parties, localisations, props, états, imbrications, modèles et couverture ; test de parité complet. Résultat : `plugin-socle/src/composant/analyse/resultat.ts` (`calculerLAnalyse`, `ResultatInterne`), section « Résultat interne (7.4) » ; parité dans `plugin-exporter/tests/aides/parite.ts` `verifierLeResultatInterne` et test de la jonction dans `plugin-socle/tests/resultat.test.ts`.
 - [x] **7.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : assembler contrat et échantillons exporteur depuis ce résultat ; comparer hors date avec l'ancien chemin. Résultat : `plugin-socle/src/composant/contract/publication.ts` (`publierLeContrat`), section « Publication depuis le résultat (7.5) » ; comparaison dans `plugin-exporter/tests/aides/parite.ts` `verifierLaPublication`.
-- [ ] **7.6 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : déplacer compaction et sérialisation après le calcul commun ; garder diagnostics tardifs et contrat ordonné.
+- [x] **7.6 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : déplacer compaction et sérialisation après le calcul commun ; garder diagnostics tardifs et contrat ordonné. Résultat : option `publier: false` de `analyserLeComposant` (`exportComponent.ts`), section « Analyse sans publication (7.6) » ; preuve dans `plugin-exporter/tests/aides/parite.ts` `verifierLAnalyseSansPublication`.
 - [ ] **7.7 | gpt-6.1-sol | high** | **Claude Sonnet | high** : brancher Architect sur surface et règles sans JSON.parse du contrat ; comparer corrections, questions et modèles.
 - [ ] **7.8 | gpt-6-luna | low** | **Claude Sonnet | low** : retirer l'ancien chemin de production après parité ; garder le comparateur et exécuter les builds Architect et exporteur.
 
@@ -450,3 +450,22 @@ Sans changer les constats, les corrections ni les modèles d'Architect :
 - `test:paquet -- socle` 170 tests, exporteur 1149, Architect 1260, `npm run typecheck`, sans échec.
 
 **Ce qui reste.** 7.6 déplace la compaction et la sérialisation après le calcul commun. 7.7 branche Architect sur le résultat. 7.8 retire `publierAvant` avec les autres copies d'avant. Architect exécute encore `publierLeContrat` : le banc n'a pas de chemin qui l'évite.
+
+
+### Analyse sans publication (7.6)
+
+**Forme.** La compaction et la sérialisation suivaient déjà le calcul commun depuis 7.5. `OptionsDAnalyse` gagne `publier?: boolean` (vrai par défaut). Avec `publier: false`, `analyserLeComposant` s'arrête après `calculerLAnalyse` et rend `ResultatSansPublication` : `{ etat: 'calculee', interne }` ou `{ etat: 'annulee' }`. Une surcharge de `analyserLeComposant` type ce retour ; `handleExportComponent` et l'exporteur gardent leurs types sans cast. Aucun appelant de production ne passe `publier: false` : Architect bascule en 7.7.
+
+**Étapes.** `echantillons`, `compaction` et `serialisation` ne sont ni annoncées ni tracées. `ETAPES_DE_PUBLICATION` les nomme et `ETAPES_SANS_PUBLICATION` donne la liste prévue sans elles, pour une barre qui atteint 100 % à la fin de `structure.tailles`.
+
+**Diagnostics tardifs.** Les bloquants des imbriqués (groupe I) sont joints dans `calculerLAnalyse` : ils restent dans `interne.warnings`, avec leur ordre.
+
+**Preuves.**
+
+- `verifierLAnalyseSansPublication`, dans `verifierLaParite` donc pour chaque export du banc : le résultat interne sans publication est identique à celui de la voie publiée (messages, parties, localisations, imbriqués, `props`, `stateModel`, règles, couverture, ensemble de projection), dans l'ordre. `propertyModel`, `icons`, `composesPlacees`, `intent` et les variants lus de `pourLaPublication` le sont aussi. Les annonces sont celles de la voie publiée, moins « Préparation des exemples… » et « Écriture du contrat… ».
+- `plugin-exporter/tests/mesure.test.ts` : la trace d'une analyse sans publication ne contient que les étapes de `ETAPES_SANS_PUBLICATION`.
+- Altérations vérifiées : vider `warnings` dans le résultat sans publication fait échouer 40 tests de l'exporteur ; ne plus s'arrêter après `calculerLAnalyse` fait échouer 1 test. Le code est rétabli.
+- Correction de 7.5 : `verifierLaPublication` n'était pas appelée par `verifierLaParite`. L'appel est ajouté ; la publication se compare désormais à l'ancien chemin sur chaque export du banc.
+- `test:paquet -- socle` 170 tests, exporteur 1150, Architect 1260, `npm run typecheck`, sans échec.
+
+**Ce qui reste.** 7.7 fait passer Architect à `publier: false` et lit `props`, `stateModel`, `imbriques` et `rules` du résultat. 7.8 retire les copies d'avant.

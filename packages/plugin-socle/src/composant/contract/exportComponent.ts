@@ -61,6 +61,14 @@ export type ResultatDAnalyse =
   | { etat: 'partielle'; export: ComponentExport; lus: number; nonLus: number | 'inconnu'; interne?: ResultatInterne }
   | { etat: 'annulee' };
 
+/**
+ * Comment une analyse sans publication a fini : `calculee` rend le résultat
+ * interne, sans contrat ni échantillons ; `annulee` comme pour `ResultatDAnalyse`.
+ */
+export type ResultatSansPublication =
+  | { etat: 'calculee'; interne: ResultatInterne }
+  | { etat: 'annulee' };
+
 /** Les options de `analyserLeComposant`. Sans `budgetDeLayers` : tout se lit. Sans `jeton` : jamais annulée. */
 export type OptionsDAnalyse = OptionsDeCooperation & {
   /** Le contexte d'une analyse plus large (Architect) ; il remplace celui que la portée créerait. */
@@ -72,6 +80,11 @@ export type OptionsDAnalyse = OptionsDeCooperation & {
   jeton?: JetonDAnnulation;
   /** Les inventaires de la demande d'Architect : le scan des règles et la liste des variables locales s'y lisent une fois pour tous ses lecteurs. Sans eux, le moteur lit seul. */
   inventaires?: InventairesDeLaDemande;
+  /**
+   * Faux : l'analyse s'arrête après `calculerLAnalyse` et rend `ResultatSansPublication`, sans
+   * annoncer ni tracer les étapes de `ETAPES_DE_PUBLICATION`. Vrai par défaut.
+   */
+  publier?: boolean;
 };
 
 /** Message bloquant, formulé comme une action Figma plutôt que comme un concept mathématique. */
@@ -130,6 +143,13 @@ export const ETAPES_DE_L_ANALYSE: readonly EtapePrevue[] = [
   { nom: 'serialisation', poids: 1 },
 ];
 
+/** Les étapes que `publierLeContrat` ouvre ; une analyse sans publication ne les traverse pas. */
+export const ETAPES_DE_PUBLICATION: readonly string[] = ['echantillons', 'compaction', 'serialisation'];
+
+/** Les étapes d'une analyse sans publication : la barre y atteint 100 % à la fin de `structure.tailles`. */
+export const ETAPES_SANS_PUBLICATION: readonly EtapePrevue[] =
+  ETAPES_DE_L_ANALYSE.filter((prevue) => !ETAPES_DE_PUBLICATION.includes(prevue.nom));
+
 /**
  * Point d'entrée de la commande : crée le contrat du composant sélectionné.
  *
@@ -146,7 +166,7 @@ export const ETAPES_DE_L_ANALYSE: readonly EtapePrevue[] = [
  */
 export async function handleExportComponent(
   annoncer: Annonce = () => {},
-  options: Omit<OptionsDAnalyse, 'budgetDeLayers' | 'jeton'> = {},
+  options: Omit<OptionsDAnalyse, 'budgetDeLayers' | 'jeton' | 'publier'> = {},
 ): Promise<ComponentExport> {
   const resultat = await analyserLeComposant(annoncer, options);
   if (resultat.etat === 'annulee') throw new Error('analyse annulée sans jeton');
@@ -160,14 +180,26 @@ export async function handleExportComponent(
  * étape annoncée, entre deux variants du budget et aux points de respiration.
  */
 export async function analyserLeComposant(
+  annoncer?: Annonce,
+  options?: OptionsDAnalyse & { publier?: true },
+): Promise<ResultatDAnalyse>;
+export async function analyserLeComposant(
+  annoncer: Annonce,
+  options: OptionsDAnalyse & { publier: false },
+): Promise<ResultatSansPublication>;
+export async function analyserLeComposant(
+  annoncer: Annonce,
+  options: OptionsDAnalyse,
+): Promise<ResultatDAnalyse | ResultatSansPublication>;
+export async function analyserLeComposant(
   annoncer: Annonce = () => {},
   options: OptionsDAnalyse = {},
-): Promise<ResultatDAnalyse> {
+): Promise<ResultatDAnalyse | ResultatSansPublication> {
   const composant = options.composant ?? getSelectedComponent();
   const page = options.page ?? figma.currentPage;
   try {
     return await dansUnePorteeDAnalyse(options, () => exporterLeComposant(
-      annoncer, composant, page, options.budgetDeLayers, options.jeton, options.inventaires,
+      annoncer, composant, page, options.budgetDeLayers, options.jeton, options.inventaires, options.publier !== false,
     ));
   } catch (erreur) {
     if (erreur instanceof AnalyseAnnulee) return { etat: 'annulee' };
@@ -182,9 +214,14 @@ async function exporterLeComposant(
   budgetDeLayers?: number,
   jeton?: JetonDAnnulation,
   inventaires?: InventairesDeLaDemande,
-): Promise<ResultatDAnalyse> {
+  publier = true,
+): Promise<ResultatDAnalyse | ResultatSansPublication> {
   const verifier = () => verifierLAnnulation(jeton);
   const interne = await calculerLAnalyse(annoncer, componentSet, page, budgetDeLayers, jeton, inventaires);
+  if (!publier) {
+    verifier();
+    return { etat: 'calculee', interne };
+  }
   const sortie = await publierLeContrat(interne, annoncer, verifier);
   return interne.couverture.etat === 'partielle'
     ? { etat: 'partielle', export: sortie, lus: interne.couverture.lus, nonLus: interne.couverture.nonLus, interne }

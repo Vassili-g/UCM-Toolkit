@@ -33,7 +33,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - faits.ts : faits ordinaires d'une analyse, sans type Figma : topologie, champs acquis, mixtes, refusés ou non demandés, segments, maîtres, ressources, provenance et couverture
 
 ## src/composant/contract/
-- exportComponent.ts : orchestration : `calculerLAnalyse`, puis `publierLeContrat`
+- exportComponent.ts : orchestration : `calculerLAnalyse`, puis `publierLeContrat` sauf avec l'option `publier: false`
 - publication.ts : `publierLeContrat`, qui écrit le contrat depuis le résultat interne : échantillons, compaction, métadonnées, élision, signatures, sérialisation, `ComponentExport`
 - componentTree.ts : axes, matrice et wrapper de layout
 - compactVariants.ts : catalogue par partie de vue, et liaisons exactes
