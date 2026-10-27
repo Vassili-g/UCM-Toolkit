@@ -50,7 +50,8 @@ function figmaDe(fichier: Fichier) {
   const pageDuMaitreImbrique = imbrique.page === PAGE ? page : { id: imbrique.page, type: 'PAGE', findAllWithCriteria: () => [] };
   const maitreImbrique = imbrique.id === '' ? null : { id: imbrique.id, type: 'COMPONENT', name: imbrique.contenu, remote: imbrique.remote, parent: imbrique.remote ? null : pageDuMaitreImbrique, findAll: () => [{ id: `${imbrique.id}/fond`, type: 'RECTANGLE', boundVariables: liee(imbrique.liaison) }] };
   const dansLeMaitre = [fondDuMaitre, ...(fichier.maitre.imbrique ? [{ id: 'M:icone/bouton', type: 'INSTANCE', getMainComponentAsync: async () => maitreImbrique }] : [])];
-  const maitre = { id: 'M:icone', type: 'COMPONENT', name: fichier.maitre.contenu, remote: fichier.maitre.remote, parent: fichier.maitre.remote ? null : page, findAll: () => dansLeMaitre };
+  // `name` se lit au moment de la lecture, comme dans Figma : une lecture tardive voit un changement fait pendant le calcul.
+  const maitre = { id: 'M:icone', type: 'COMPONENT', get name() { return fichier.maitre.contenu; }, remote: fichier.maitre.remote, parent: fichier.maitre.remote ? null : page, findAll: () => dansLeMaitre };
   // Le calque de l'instance suit son maître : une mise à jour de library le change sans événement.
   const calqueDInstance = { id: 'I:icone;trait', type: 'VECTOR', name: fichier.calqueDInstance, visible: true };
   const calques = [
@@ -317,6 +318,27 @@ test('des Analyser enchaînés, sans Actualiser entre eux, affichent chacun ce q
     assert.equal(JSON.stringify(affichee), JSON.stringify(reconstruite), `${nom} : même objet affiché`);
     assert.deepEqual(affichee, reconstruite, nom);
   }
+});
+
+test('un champ sans événement changé pendant le calcul du moteur ne laisse pas reprendre ce moteur au clic suivant', async () => {
+  // Les dépendances se lisent avant le moteur : une lecture après lui retiendrait la valeur nouvelle avec un moteur calculé
+  // sur l'ancienne, et la validation suivante reprendrait ce moteur périmé (16.7 attend la mémoire de champs de 16.12).
+  const fichier = fichierDeDepart();
+  fichier.maitre.remote = true;
+  const appels = { moteur: 0 };
+  const lecteurs = lecteursDe(fichier, appels);
+  await traiterAvec({
+    ...lecteurs,
+    async moteur(...args) {
+      const calcule = await lecteurs.moteur(...args);
+      // Une mise à jour de library pendant le calcul : aucun événement.
+      fichier.maitre = { ...fichier.maitre, contenu: 'carré' };
+      return calcule;
+    },
+  })({ type: 'analyser', demande: 1 }, banc(fichier).contexte);
+  const analysee = await demander(fichier, appels, 'analyser');
+  assert.equal(appels.moteur, 2, 'le moteur est relancé');
+  assert.equal(JSON.stringify(analysee), JSON.stringify(await demander(fichier, appels, 'actualiser')));
 });
 
 for (const [sous, calque, parents] of [['un maître local', 'M:icone/fond', ['M:icone', PAGE]], ['un maître imbriqué', 'M:bouton/fond', ['M:bouton', PAGE]]] as const) {
