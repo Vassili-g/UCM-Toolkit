@@ -340,3 +340,63 @@ test('un changement sous un maître local reçu avant la lecture des dépendance
   assert.deepEqual(b.envoyes.filter(({ type }) => type === 'perime').map((message) => ('cause' in message ? message.cause : null)), ['document']);
   assert.equal(sessionDesAnalyses().entree('Alert'), null, 'une analyse périmée pendant son calcul ne promeut rien');
 });
+
+/** Une demande mesurée : ce que l'interface affiche, sans la trace, et les compteurs de requêtes de cette trace. */
+async function mesuree(fichier: Fichier, appels: { moteur: number }, intention: 'analyser' | 'actualiser', ignores: readonly string[] = []) {
+  const b = banc(fichier);
+  await traiterAvec({ ...lecteursDe(fichier, appels), ignores: async () => [...ignores] })({ type: 'analyser', intention, demande: 1, mesurer: true }, b.contexte);
+  const final = b.envoyes.find((message) => message.type === 'analyse' && message.statut === 'complete');
+  assert.ok(final && 'mesure' in final && typeof final.mesure === 'object', 'la trace de la demande est rendue');
+  const affiche = affichage(b);
+  return {
+    affiche: { ...affiche, messages: affiche.messages.map((message) => { const { mesure, ...reste } = message as PluginMessage & { mesure?: unknown }; return reste; }) },
+    reprises: { non: final.mesure.compteurs.requetesNonRejouees ?? 0, rejouees: final.mesure.compteurs.requetesRejouees ?? 0 },
+    constats: 'constats' in final ? final.constats.map(({ id }) => id) : [],
+  };
+}
+
+test('Analyser deux fois sans changement ne rejoue aucune des trois requêtes et affiche ce qu’Actualiser affiche', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const premiere = await mesuree(fichier, appels, 'analyser');
+  assert.deepEqual(premiere.reprises, { non: 0, rejouees: 3 }, 'sans entrée retenue, tout se calcule');
+  const seconde = await mesuree(fichier, appels, 'analyser');
+  assert.deepEqual(seconde.reprises, { non: 3, rejouees: 0 });
+  assert.equal(appels.moteur, 1);
+  const actualisee = await mesuree(fichier, appels, 'actualiser');
+  assert.deepEqual(actualisee.reprises, { non: 0, rejouees: 3 }, 'Actualiser ne reprend rien');
+  assert.equal(JSON.stringify(seconde.affiche), JSON.stringify(actualisee.affiche));
+});
+
+test('le niveau AA puis AAA rejoue les contrôles, qui le lisent, et pas les requêtes dont les entrées restent égales', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await mesuree(fichier, appels, 'analyser');
+  fichier.niveau = 'AAA';
+  const analysee = await mesuree(fichier, appels, 'analyser');
+  assert.equal(appels.moteur, 1, 'le moteur est repris');
+  assert.deepEqual(analysee.reprises, { non: 2, rejouees: 1 }, 'les contrôles rejouent ; leur résultat est égal, les corrections et la projection se reprennent');
+  const actualisee = await mesuree(fichier, appels, 'actualiser');
+  assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
+});
+
+test('des ignorés rangés changés rejouent la projection, qui les lit, et pas les contrôles ni les corrections', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const premiere = await mesuree(fichier, appels, 'analyser');
+  assert.ok(premiere.constats.length > 0, 'la fixture produit un constat à ignorer');
+  const analysee = await mesuree(fichier, appels, 'analyser', [premiere.constats[0]]);
+  assert.deepEqual(analysee.reprises, { non: 2, rejouees: 1 });
+  const actualisee = await mesuree(fichier, appels, 'actualiser', [premiere.constats[0]]);
+  assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
+});
+
+test('une entrée invalidée ne reprend aucune requête, même quand leurs entrées lues sont égales', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await mesuree(fichier, appels, 'analyser');
+  fichier.valeur = 14;
+  const analysee = await mesuree(fichier, appels, 'analyser');
+  assert.equal(appels.moteur, 2);
+  assert.deepEqual(analysee.reprises, { non: 0, rejouees: 3 });
+});

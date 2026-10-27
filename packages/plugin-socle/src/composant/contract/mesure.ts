@@ -42,6 +42,8 @@ export type Compteur =
   | 'tailleSortieArchitect'
   | 'variablesDuCatalogue'
   | 'tokensDuComposant'
+  | 'requetesNonRejouees'
+  | 'requetesRejouees'
   | 'msTokensDeTailleCatalogue'
   | 'librariesAnticipeesReprises'
   | 'librariesAnticipeesRelues'

@@ -177,7 +177,8 @@ export interface SortiesDeSession {
   readonly lecturesRefusees: readonly string[];
 }
 
-type NomDEntree = keyof SortiesDeSession | 'controles' | 'corrections';
+type NomDeRequete = 'controles' | 'corrections' | 'projection';
+type NomDEntree = keyof SortiesDeSession | NomDeRequete;
 
 /** Les requêtes pures de l'analyse, avec ce que chacune a lu. Les constats sont ceux du kit, sans réponse ni correction fixée. */
 export interface RequetesDeSession extends Record<string, RequeteRetenue<unknown, NomDEntree>> {
@@ -187,6 +188,52 @@ export interface RequetesDeSession extends Record<string, RequeteRetenue<unknown
 }
 
 export type EntreeDeSessionDAnalyse = EntreeDeSession<SortiesDeSession, RequetesDeSession>;
+
+/**
+ * Tout ce que chaque requête lit, et rien d'autre : la comparaison de la reprise et l'entrée retenue en session partent de
+ * cette liste. Aucune requête ne lit un état de module, l'heure ni un ordre d'itération rempli ailleurs : les mémoires du
+ * kit sont des `WeakMap` par catalogue ou relevé, qui ne changent pas un résultat.
+ * - `controles` : le relevé et le catalogue, le niveau d'accessibilité, la déclaration UCM de l'architecture ;
+ * - `corrections` : les constats du moteur et des règles s'ajoutent aux contrôles, d'où `moteur` et `regles` ;
+ * - `projection` : les ignorés rangés écartent des constats des corrections.
+ */
+const ENTREES_DES_REQUETES: Readonly<Record<NomDeRequete, readonly NomDEntree[]>> = {
+  controles: ['releve', 'catalogue', 'niveau', 'architectureUcm'],
+  corrections: ['releve', 'catalogue', 'moteur', 'regles', 'controles'],
+  projection: ['corrections', 'ignores'],
+};
+
+/**
+ * Rend la fonction qui, pour chaque requête de la demande, reprend le résultat de l'entrée `valide` quand toutes ses
+ * entrées égalent (`egalesExactement`) les valeurs `actuelles`, et le calcule sinon. `entree` vaut `null` hors d'une
+ * validation `valide` : rien ne se reprend alors. Une valeur absente de `actuelles` ne vaut jamais égale. Les résultats
+ * des requêtes amont s'y inscrivent, repris ou recalculés : une requête amont rejouée dont le résultat reste égal ne
+ * rejoue pas celles qui la lisent. Compte chaque requête dans `requetesNonRejouees` ou `requetesRejouees`.
+ */
+export function creerLesRequetes(entree: EntreeDeSessionDAnalyse | null, actuelles: Map<NomDEntree, unknown>) {
+  const egales = new Map<NomDEntree, boolean>();
+  const retenue = (nom: NomDEntree): unknown => (nom === 'controles' || nom === 'corrections' || nom === 'projection' ? entree?.requetes[nom].resultat : entree?.sorties[nom]);
+  const egale = (nom: NomDEntree): boolean => {
+    let issue = egales.get(nom);
+    if (issue === undefined) {
+      issue = actuelles.has(nom) && egalesExactement(retenue(nom), actuelles.get(nom));
+      egales.set(nom, issue);
+    }
+    return issue;
+  };
+  return async <N extends NomDeRequete>(nom: N, calculer: () => Promise<RequetesDeSession[N]['resultat']>): Promise<RequetesDeSession[N]['resultat']> => {
+    let resultat: RequetesDeSession[N]['resultat'];
+    if (entree && ENTREES_DES_REQUETES[nom].every(egale)) {
+      resultat = entree.requetes[nom].resultat as RequetesDeSession[N]['resultat'];
+      compter('requetesNonRejouees');
+    } else {
+      compter('requetesRejouees');
+      resultat = await calculer();
+    }
+    actuelles.set(nom, resultat);
+    return resultat;
+  };
+}
 
 const session: SessionDAnalyse<SortiesDeSession, RequetesDeSession> = creerLaSession();
 
@@ -1211,17 +1258,59 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     compter('variablesDuCatalogue', catalogue.variables.length);
     if (jeton.leve) return rendre('annulee', [], null);
 
-    // Les contrôles du kit passent avant le moteur : leurs constats partent en provisoire, sans correction, pendant que le moteur lit les composants imbriqués.
+    // Les valeurs actuelles que les requêtes comparent à celles de l'entrée retenue (`creerLesRequetes`).
+    const actuelles = new Map<NomDEntree, unknown>([['releve', releve], ['catalogue', catalogue], ['niveau', niveau]]);
     const architectureUcm = (() => {
       try { return lireLaDeclaration(contexte.figma) === 'ucm'; }
       catch { return false; }
     })();
+    actuelles.set('architectureUcm', architectureUcm);
+    // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
+    const lireLesReglesDe: RelireLesRegles = (surface) => attendrePourLaMesure(async () => {
+      if (!lecteurs.regles) return { regles: null, refusee: false };
+      try {
+        return { regles: await lecteurs.regles(sujet, surface, contexte, inventaires), refusee: false };
+      } catch {
+        return { regles: null, refusee: true };
+      }
+    }, 'attente', 'regles');
+    // Ce que le moteur lit hors du relevé et du catalogue se lit avant lui, puis la validation décide de reprendre le sien.
+    // `undefined` sans lecteur de dépendances, `null` quand sa lecture lève : l'entrée ne se valide alors pas.
+    let dependances = undefined as DependancesDuMoteur | null | undefined;
+    let validation = null as ValidationDeLEntree | null;
+    const lireLesDependancesEtValider = async (): Promise<void> => {
+      phase('imbriques');
+      const lireLesDependances = lecteurs.dependances;
+      dependances = lireLesDependances
+        ? await attendrePourLaMesure(() => lireLesDependances(sujet, contexte, inventaires, cooperation).catch((erreur: unknown) => {
+          if (erreur instanceof AnalyseAnnulee) throw erreur;
+          lecturesRefusees.push('dependances');
+          return null;
+        }), 'attente', 'dependances')
+        : undefined;
+      if (jeton.leve) return;
+      if (dependances) suivreLesMaitres(identite as IdentiteDAnalyse, maitresSuivisParLeJournal(dependances, courante?.pages ?? new Set()).noeuds, contexte);
+      // Seule une validation `valide` reprend le moteur retenu ; Actualiser et un sujet sans lecteur de dépendances n'en demandent pas.
+      validation = reutilisationPermise(demande) && dependances !== undefined
+        ? await validerLEntree(sujet, identite as IdentiteDAnalyse, { releve, catalogue, dependances }, lireLesReglesDe)
+        : null;
+    };
+    // Une requête n'est reprise que sur une entrée `valide`. Une entrée `utilisable` se valide donc avant les contrôles, et le
+    // provisoire part avec les contrôles retenus. Sans entrée utilisable, la lecture reste après le provisoire.
+    const validerAvantLesControles = reutilisationPermise(demande) && etatDeLEntree(sujet.cle).etat === 'utilisable';
+    if (validerAvantLesControles) {
+      await lireLesDependancesEtValider();
+      if (jeton.leve) return rendre('annulee', [], null);
+    }
+    const requete = creerLesRequetes(validation?.etat === 'valide' ? session.entree(sujet.cle) : null, actuelles);
+    // Les contrôles du kit passent avant le moteur : leurs constats partent en provisoire, sans correction, pendant que le moteur lit les composants imbriqués.
     phase('controles');
-    const controles = await controlesDuKit(releve, catalogue, niveau, architectureUcm, cooperation);
+    const controles = await requete('controles', () => controlesDuKit(releve, catalogue, niveau, architectureUcm, cooperation));
     if (jeton.leve) return rendre('annulee', [], null);
     // Les ignorés se lisent avant le premier envoi : le provisoire dit déjà lesquels ne comptent pas. Son étape garde leur coût hors du dernier contrôle.
     etape('provisoire');
     const rangees = await attendrePourLaMesure(async () => await lecteurs.ignores?.(contexte).catch((): readonly string[] => { lecturesRefusees.push('ignores'); return []; }) ?? []);
+    actuelles.set('ignores', rangees);
     if (jeton.leve) return rendre('annulee', [], null);
     const envoyee = demande.demande === undefined ? undefined : mesuresEnvoyees.get(demande.demande);
     if (envoyee && controles.length) envoyee.envois['premiers-constats'] = Date.now();
@@ -1232,32 +1321,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     await cooperation.cederSiBesoin();
     if (jeton.leve) return rendre('annulee', [], null);
 
-    phase('imbriques');
-    // Les dépendances se lisent avant le moteur : un changement survenu après cette lecture diffère de ce que l'entrée retient,
-    // et la validation suivante le voit. `undefined` sans lecteur, `null` quand la lecture lève.
-    const lireLesDependances = lecteurs.dependances;
-    const dependances = lireLesDependances
-      ? await attendrePourLaMesure(() => lireLesDependances(sujet, contexte, inventaires, cooperation).catch((erreur: unknown) => {
-        if (erreur instanceof AnalyseAnnulee) throw erreur;
-        lecturesRefusees.push('dependances');
-        return null;
-      }), 'attente', 'dependances')
-      : undefined;
-    if (jeton.leve) return rendre('annulee', [], null);
-    if (dependances) suivreLesMaitres(identite, maitresSuivisParLeJournal(dependances, courante?.pages ?? new Set()).noeuds, contexte);
-    // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
-    const lireLesReglesDe: RelireLesRegles = (surface) => attendrePourLaMesure(async () => {
-      if (!lecteurs.regles) return { regles: null, refusee: false };
-      try {
-        return { regles: await lecteurs.regles(sujet, surface, contexte, inventaires), refusee: false };
-      } catch {
-        return { regles: null, refusee: true };
-      }
-    }, 'attente', 'regles');
-    // Seule une validation `valide` reprend le moteur retenu ; Actualiser et un sujet sans lecteur de dépendances n'en demandent pas.
-    const validation = reutilisationPermise(demande) && dependances !== undefined
-      ? await validerLEntree(sujet, identite, { releve, catalogue, dependances }, lireLesReglesDe)
-      : null;
+    if (!validerAvantLesControles) await lireLesDependancesEtValider();
     if (jeton.leve) return rendre('annulee', [], null);
     let moteur: MoteurRetenu;
     let reglesLues: ReleveDesRegles | null = null;
@@ -1275,15 +1339,19 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
         reglesLues = lues.regles;
       }
     }
+    actuelles.set('moteur', moteur);
+    actuelles.set('regles', reglesLues);
     retenirLesModeles(reglesLues);
-    etape('controle-fusion');
-    const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(moteur, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
-    phase('corrections');
-    await cooperation.cederSiBesoin();
-    const tous = await calculerParEtapes(proposerLesCorrectionsParEtapes(releve, catalogue, brut), cooperation, 'corrections');
+    const tous = await requete('corrections', async () => {
+      etape('controle-fusion');
+      const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(moteur, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
+      phase('corrections');
+      await cooperation.cederSiBesoin();
+      return calculerParEtapes(proposerLesCorrectionsParEtapes(releve, catalogue, brut), cooperation, 'corrections');
+    });
     if (jeton.leve) return rendre('annulee', [], null);
     await cooperation.cederSiBesoin();
-    const { visibles, ignores } = separerLesIgnores(tous, rangees);
+    const { visibles, ignores } = await requete('projection', async () => separerLesIgnores(tous, rangees));
     // Les événements déjà émis par Figma n'arrivent qu'à la prochaine macrotâche : sans cette cession, le résultat partirait comme
     // applicable alors que le sujet a changé pendant le calcul. Aucune barrière atomique : un changement émis après la cession
     // périme l'analyse par le chemin ordinaire.
@@ -1294,11 +1362,10 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     const statutFinal: StatutDAnalyse = moteur.couverture.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete';
     rendre(statutFinal, visibles, releve, ignores, tous);
     if (revision) {
-      const lecturesDuKit: NomDEntree[] = ['releve', 'catalogue'];
       promouvoirLaRevision(revision, identite, statutFinal, { releve, catalogue, moteur, regles: reglesLues, dependances: dependances ?? null, niveau, architectureUcm, ignores: rangees, lecturesRefusees }, {
-        controles: { resultat: controles, entrees: [...lecturesDuKit, 'niveau', 'architectureUcm'] },
-        corrections: { resultat: tous, entrees: [...lecturesDuKit, 'moteur', 'regles', 'controles'] },
-        projection: { resultat: { visibles, ignores }, entrees: ['corrections', 'ignores'] },
+        controles: { resultat: controles, entrees: ENTREES_DES_REQUETES.controles },
+        corrections: { resultat: tous, entrees: ENTREES_DES_REQUETES.corrections },
+        projection: { resultat: { visibles, ignores }, entrees: ENTREES_DES_REQUETES.projection },
       });
     }
     // La capture suit l'envoi de la trace et garde la place d'opération : une écriture demandée pendant ce temps rend `occupe`.
