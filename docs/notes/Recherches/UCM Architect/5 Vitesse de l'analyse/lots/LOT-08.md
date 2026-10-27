@@ -7,7 +7,7 @@
 - [x] **8.1 | gpt-6.1-sol | high** | **Claude Opus | high** : établir la matrice de couverture des événements pour nœuds, héritage et pages ; tests de portée inconnue. Résultat : `plugin-socle/src/composant/analyse/couverture.ts`, test `plugin-socle/tests/couverture.test.ts`, section « Matrice de couverture (8.1) ».
 - [x] **8.2 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : établir les relectures obligatoires de variables, collections, styles, maîtres, règles et libraries ; test de ressource externe modifiée. Résultat : `relecturesObligatoires` dans `couverture.ts`, section « Relectures obligatoires (8.2) ».
 - [x] **8.3 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : vérifier la documentation Figma puis brancher seulement les événements dont la couverture est établie, dont stylechange si pertinent. Confier d'abord la lecture de la documentation Figma à un `chercheur`. Résultat : `stylechange` branché dans `code.ts` et `surChangementDeStyle` (`sandbox/analyse.ts`), `porteeDesChangementsDeStyle` dans `couverture.ts`, section « Événements branchés (8.3) ». Aucun autre événement.
-- [ ] **8.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : accumuler les changements après la première péremption et hors analyse active ; tests d'événement retardé et de série de mutations.
+- [x] **8.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : accumuler les changements après la première péremption et hors analyse active ; tests d'événement retardé et de série de mutations. Résultat : `plugin-socle/src/composant/analyse/journal.ts`, `surChangementDuDocument` et `surChangementDeStyle` de `sandbox/analyse.ts`, section « Journal des changements (8.4) ».
 - [ ] **8.5 | gpt-6-luna | medium** | **Claude Sonnet | medium** : conserver anciens parents et topologie des suppressions ; élargir l'invalidation si parent ou événement manque.
 - [ ] **8.6 | gpt-6-luna | medium** | **Claude Sonnet | medium** : interrompre la couverture quand la page est quittée ou la file déborde ; test de retour sur page.
 - [ ] **8.7 | gpt-6-luna | medium** | **Claude Sonnet | medium** : porter Analyser et Actualiser jusqu'au sandbox ; test qu'Actualiser contourne les résultats précédents.
@@ -115,3 +115,21 @@ Essais Figma utiles à la recette :
 - modifier le maître d'une instance du jeu depuis une autre page : l'analyse doit se périmer ou se relire ;
 - modifier un style de library publié : vérifier qu'aucun `stylechange` n'arrive dans le fichier consommateur ;
 - modifier un style local de texte et un style d'effet utilisés par le jeu : l'analyse se périme.
+
+## Journal des changements (8.4)
+
+`creerLeJournal({ borne })` (`journal.ts`) tient la liste ordonnée des changements reçus, nœuds et styles. Une entrée garde `nature`, `type`, `id`, `properties`, `revision` et `parent`, l'identifiant du parent lu à la réception (`null` pour un style, un nœud supprimé ou un parent illisible). Aucun objet Figma n'y entre.
+
+- `marquer()` rend le curseur courant et `depuis(curseur)` les entrées postérieures : le lot 9 lit par là.
+- `oublierAvant(curseur)` retire les entrées que plus aucun curseur ne lit. Architect ne l'appelle pas encore : le lot 9 dit quel curseur il retient.
+- Au-delà de la borne (5000 côté Architect), les changements suivants ne sont plus gardés et `debordeDepuis(curseur)` le dit. Le lot 8.6 en tirera l'interruption de la couverture.
+
+Branchement dans `sandbox/analyse.ts` :
+
+- Le journal s'ouvre à la première demande d'analyse. Il inscrit tout changement reçu ensuite, sans analyse courante, après la péremption ou entre deux analyses. `reinitialiserLAnalyse` le ferme, pour les tests.
+- L'analyse courante retient `curseur`, pris quand l'écoute de la demande s'ouvre (`curseurDeLAnalyse`).
+- La péremption passe par `porteeDesChangements(changements, { noeuds, maitres: ∅ })` : un identifiant de l'inventaire, un calque créé ou déplacé sous l'un d'eux, ou une portée inconnue périme. Cela corrige le manque connu de 8.1 : un calque créé sous un variant a un identifiant hors inventaire.
+- Avant l'inventaire, les changements restent en mémoire (`changementsEnAttente`, avec leurs nœuds) et se rejouent à l'inventaire. Le journal seul ne suffirait pas : il garde le parent direct, pas la chaîne d'ancêtres que la décision lit.
+- `code.ts` passe les `nodeChanges` entiers (type, id, nœud, propriétés). Les tests qui passent un identifiant seul le font lire comme un changement de propriété d'un nœud sans parent.
+
+Preuves : `journal.test.ts` (ordre, curseurs, entrée sans objet Figma, parent illisible, débordement, oubli) et `peremptionDeLAnalyse.test.ts` (calque sous un variant, portée inconnue, événement retardé, série de mutations après la péremption, journal qui survit à l'analyse suivante).

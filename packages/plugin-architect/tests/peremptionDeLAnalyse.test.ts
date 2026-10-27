@@ -9,7 +9,7 @@ import type { ResultatSansPublication } from 'ucm-plugin-socle/src/composant/con
 import type { PluginMessage } from '../src/messages';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
 import {
-  analyseARelire, analyseCourante, couvertureDeLAnalyse, reinitialiserLAnalyse, surChangementDeStyle, surChangementDuDocument, traiter, traiterAvec, type Lecteurs, type SujetAAnalyser,
+  analyseARelire, analyseCourante, couvertureDeLAnalyse, curseurDeLAnalyse, journalDesChangements, reinitialiserLAnalyse, surChangementDeStyle, surChangementDuDocument, traiter, traiterAvec, type Lecteurs, type SujetAAnalyser,
 } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
 import { atelierDeCalques } from './figmaDeTest';
@@ -124,6 +124,67 @@ test('un stylechange sans analyse courante ne périme rien', () => {
   const b = banc();
   surChangementDeStyle([{ type: 'STYLE_CREATE', id: 'S:1' }], b.contexte);
   assert.deepEqual(perimes(b), []);
+});
+
+const sousLeVariant = (id: string, type = 'CREATE') => ({ type, id, node: { id, parent: { id: 'v', parent: { id: 'jeu', parent: null } } } });
+
+test('un calque créé sous un variant périme l’analyse, alors que son identifiant est hors de l’inventaire', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  surChangementDuDocument([{ type: 'CREATE', id: 'ailleurs', node: { id: 'ailleurs', parent: { id: 'autre-page', parent: null } } }], b.contexte);
+  assert.deepEqual(perimes(b), [], 'un calque créé hors du jeu ne périme pas');
+  surChangementDuDocument([sousLeVariant('neuf')], b.contexte);
+  assert.deepEqual(perimes(b).map((message) => message.cause), ['document']);
+});
+
+test('un changement à portée inconnue périme l’analyse', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  surChangementDuDocument([{ type: 'REORDER', id: 'x' }], b.contexte);
+  assert.deepEqual(perimes(b).map((message) => message.cause), ['document']);
+});
+
+test('un événement retardé, après la fin de l’analyse ou après sa péremption, entre au journal', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  const analyse = analyseCourante() as IdentiteDAnalyse;
+  const curseur = curseurDeLAnalyse(analyse) as number;
+  const journal = journalDesChangements()!;
+  surChangementDuDocument(['ailleurs'], b.contexte);
+  assert.deepEqual(journal.depuis(curseur).map((entree) => entree.id), ['ailleurs'], 'hors inventaire : journalisé sans périmer');
+  assert.deepEqual(perimes(b), []);
+  surChangementDuDocument(['calque'], b.contexte);
+  assert.equal(perimes(b).length, 1);
+  surChangementDuDocument(['retard'], b.contexte);
+  assert.deepEqual(journal.depuis(curseur).map((entree) => entree.id), ['ailleurs', 'calque', 'retard'], 'après la péremption aussi');
+  assert.equal(perimes(b).length, 1, 'la péremption reste notifiée une fois');
+});
+
+test('une série de mutations après la première péremption est journalisée en entier, dans l’ordre', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  const curseur = curseurDeLAnalyse(analyseCourante() as IdentiteDAnalyse) as number;
+  surChangementDuDocument(['calque'], b.contexte);
+  surChangementDuDocument([sousLeVariant('c1'), sousLeVariant('c2', 'PROPERTY_CHANGE')], b.contexte);
+  surChangementDeStyle([{ type: 'STYLE_PROPERTY_CHANGE', id: 'S:1', properties: ['fontSize'] }], b.contexte);
+  surChangementDuDocument([{ type: 'DELETE', id: 'c1', node: { id: 'c1', removed: true } }], b.contexte);
+  const entrees = journalDesChangements()!.depuis(curseur);
+  assert.deepEqual(entrees.map((entree) => `${entree.nature}:${entree.type}:${entree.id}`), [
+    'noeud:PROPERTY_CHANGE:calque', 'noeud:CREATE:c1', 'noeud:PROPERTY_CHANGE:c2', 'style:STYLE_PROPERTY_CHANGE:S:1', 'noeud:DELETE:c1',
+  ]);
+  assert.deepEqual(entrees.map((entree) => entree.parent), [null, 'v', 'v', null, null]);
+  assert.equal(perimes(b).length, 1);
+});
+
+test('le journal survit à l’analyse suivante, et le curseur d’une analyse date du début de sa demande', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  const premier = curseurDeLAnalyse(analyseCourante() as IdentiteDAnalyse) as number;
+  surChangementDuDocument(['ailleurs'], b.contexte);
+  await traiterAvec(lecteurs(b, { couverture: complete, sujet: (contexte) => surChangementDuDocument(['pendant'], contexte) }))({ type: 'analyser' }, b.contexte);
+  const second = curseurDeLAnalyse(analyseCourante() as IdentiteDAnalyse) as number;
+  assert.deepEqual(journalDesChangements()!.depuis(premier).map((entree) => entree.id), ['ailleurs', 'pendant']);
+  assert.deepEqual(journalDesChangements()!.depuis(second).map((entree) => entree.id), ['pendant'], 'les changements reçus pendant la demande suivent son curseur');
 });
 
 test('une analyse arrêtée avant son inventaire ne garde aucun événement', async () => {

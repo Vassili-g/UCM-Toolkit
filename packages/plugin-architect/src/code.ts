@@ -27,7 +27,12 @@ function versUi(message: PluginMessage): void {
 }
 
 const surLesNoeuds = (evenement: NodeChangeEvent): void => {
-  surChangementDuDocument(evenement.nodeChanges.map((changement) => changement.node.id), contexte);
+  surChangementDuDocument(evenement.nodeChanges.map((changement) => ({
+    type: changement.type,
+    id: changement.node.id,
+    node: changement.node,
+    ...('properties' in changement ? { properties: changement.properties } : {}),
+  })), contexte);
 };
 
 const surLesStyles = (evenement: StyleChangeEvent): void => {

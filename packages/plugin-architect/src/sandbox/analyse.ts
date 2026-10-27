@@ -30,7 +30,8 @@ import {
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { doitEtreRelue, type Couverture } from 'ucm-plugin-socle/src/composant/analyse/faits';
-import { porteeDesChangementsDeStyle, type ChangementDeStyleRecu } from 'ucm-plugin-socle/src/composant/analyse/couverture';
+import { porteeDesChangements, porteeDesChangementsDeStyle, type ChangementDeStyleRecu, type ChangementRecu } from 'ucm-plugin-socle/src/composant/analyse/couverture';
+import { creerLeJournal, type JournalDeChangements } from 'ucm-plugin-socle/src/composant/analyse/journal';
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
@@ -69,6 +70,8 @@ interface AnalyseCourante {
   readonly admis: ReadonlySet<string>;
   /** Ce que la surveillance couvre : les trous de lecture du jeu et les pages non écoutées. */
   readonly couverture: Couverture;
+  /** Le curseur du journal à l'ouverture de l'écoute de la demande : `depuis(curseur)` rend ce qui a changé depuis. */
+  readonly curseur: number;
   /** Les corrections des constats rendus, par identifiant : l'écriture n'écrit que celles-là. */
   corrections: ReadonlyMap<string, Correction>;
   /** Tous les constats de l'analyse, ignorés compris, par identifiant : Ignorer et les questions les retrouvent ici. */
@@ -85,13 +88,29 @@ let generation = 0;
 let courante: AnalyseCourante | null = null;
 
 /**
- * Les nœuds touchés que l'écoute a reçus depuis le début d'une demande d'analyse, tant que son inventaire n'est pas
- * connu ; `null` hors de cet intervalle.
+ * Les changements reçus depuis le début d'une demande d'analyse, tant que son inventaire n'est pas connu ; `null` hors
+ * de cet intervalle. Le journal les garde aussi, mais sans l'ascendance des nœuds que la décision lit.
  */
-let evenementsRecus: Set<string> | null = null;
+let changementsEnAttente: { noeuds: ChangementRecu[]; styles: ChangementDeStyleRecu[] } | null = null;
 
-/** Les changements de style reçus pendant la même fenêtre que `evenementsRecus` ; `null` hors de cet intervalle. */
-let changementsDeStyleRecus: ChangementDeStyleRecu[] | null = null;
+/** Borne du journal : au-delà, ses lecteurs savent qu'il manque des changements (`debordeDepuis`). */
+const BORNE_DU_JOURNAL = 5000;
+
+/**
+ * Le journal des changements reçus depuis la première analyse : il survit à la péremption et à l'analyse suivante.
+ * `null` avant la première demande d'analyse.
+ */
+let journal: JournalDeChangements | null = null;
+
+function ouvrirLeJournal(): JournalDeChangements {
+  journal ??= creerLeJournal({ borne: BORNE_DU_JOURNAL });
+  return journal;
+}
+
+/** Le journal des changements, `null` avant la première analyse. */
+export function journalDesChangements(): JournalDeChangements | null {
+  return journal;
+}
 
 /** Sans topologie lue, aucun trou n'est connu et rien n'est couvert : la couverture est inconnue. */
 const COUVERTURE_INCONNUE: Couverture = { instances: 'descendues', complete: false, trous: [] };
@@ -100,17 +119,22 @@ const COUVERTURE_INCONNUE: Couverture = { instances: 'descendues', complete: fal
  * Ouvre une analyse : la génération monte, l'analyse précédente n'est plus la courante. `couverture` est celle de
  * l'inventaire `noeuds` ; les pages que Figma ne laisse pas écouter s'y ajoutent.
  */
-export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte, admis?: Iterable<string>, page?: PageNode, couverture: Couverture = COUVERTURE_INCONNUE): IdentiteDAnalyse {
+export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, contexte: Contexte, admis?: Iterable<string>, page?: PageNode, couverture: Couverture = COUVERTURE_INCONNUE, curseur: number = ouvrirLeJournal().marquer()): IdentiteDAnalyse {
   generation += 1;
   const identite = { sujet, generation };
   const tous = new Set(noeuds);
   const nonEcoutees = contexte.surveillerLeDocument(page) ?? [];
-  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, couverture: avecLesPagesNonEcoutees(couverture, nonEcoutees), corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false };
+  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, couverture: avecLesPagesNonEcoutees(couverture, nonEcoutees), curseur, corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false };
   return identite;
 }
 
 export function analyseCourante(): IdentiteDAnalyse | null {
   return courante?.identite ?? null;
+}
+
+/** Le curseur du journal au début de la demande de l'analyse `identite` ; `null` quand cette identité n'est plus la courante. */
+export function curseurDeLAnalyse(identite: IdentiteDAnalyse): number | null {
+  return courante && memeIdentite(courante.identite, identite) ? courante.curseur : null;
 }
 
 /** La couverture de la surveillance de l'analyse `identite` ; `null` quand cette identité n'est plus la courante. */
@@ -222,42 +246,54 @@ export function perimerApresUneEcriture(contexte: Contexte): void {
   perimer('ecriture', contexte);
 }
 
-/**
- * `nodechange` de la page : les identifiants des nœuds touchés. Un seul qui appartient au jeu analysé suffit. Tant
- * qu'une demande d'analyse n'a pas son inventaire, les identifiants sont gardés pour `rejouerLesEvenementsRecus`.
- */
-export function surChangementDuDocument(noeudsTouches: Iterable<string>, contexte: Contexte): void {
-  const touches = [...noeudsTouches];
-  if (evenementsRecus) for (const id of touches) evenementsRecus.add(id);
+/** Un identifiant seul (tests) se lit comme une propriété changée d'un nœud sans parent : hors de l'inventaire, il n'a pas de portée. */
+const enChangement = (changement: string | ChangementRecu): ChangementRecu =>
+  typeof changement === 'string' ? { type: 'PROPERTY_CHANGE', id: changement, node: { id: changement, parent: null } } : changement;
+
+/** Périme l'analyse courante quand un changement touche le jeu analysé ou que sa portée est inconnue. */
+function jugerLesNoeuds(changements: readonly ChangementRecu[], contexte: Contexte): void {
+  if (!courante || changements.length === 0) return;
+  if (porteeDesChangements(changements, { noeuds: courante.noeuds, maitres: new Set() }).portee !== 'hors-sujet') perimer('document', contexte);
+}
+
+/** Périme l'analyse courante pour un changement de style : elle ne sait pas quels styles elle a lus. */
+function jugerLesStyles(changements: readonly ChangementDeStyleRecu[], contexte: Contexte): void {
   if (!courante) return;
-  for (const id of touches) {
-    if (courante.noeuds.has(id)) {
-      perimer('document', contexte);
-      return;
-    }
-  }
+  if (porteeDesChangementsDeStyle(changements, null).portee !== 'hors-sujet') perimer('document', contexte);
 }
 
 /**
- * `stylechange` : les changements de style. L'analyse ne sait pas quels styles ses lecteurs ont lus (le relevé, le
- * moteur et les effets les chargent chacun) : tout changement de style d'un type connu la périme. Gardés comme les
- * nœuds tant que l'inventaire n'est pas connu.
+ * `nodechange` de la page. Le journal inscrit chaque changement, même sans analyse courante ou après sa péremption.
+ * Ensuite la portée décide : un nœud de l'inventaire, un calque sous l'un d'eux, ou une portée inconnue périme
+ * l'analyse. Tant qu'une demande d'analyse n'a pas son inventaire, les changements sont gardés pour
+ * `rejouerLesEvenementsRecus`.
+ */
+export function surChangementDuDocument(recus: Iterable<string | ChangementRecu>, contexte: Contexte): void {
+  const changements = [...recus].map(enChangement);
+  journal?.enregistrer(changements.map((changement) => ({ nature: 'noeud', ...changement })));
+  if (changementsEnAttente) changementsEnAttente.noeuds.push(...changements);
+  jugerLesNoeuds(changements, contexte);
+}
+
+/**
+ * `stylechange` : les changements de style, inscrits au journal comme les nœuds. L'analyse ne sait pas quels styles
+ * ses lecteurs ont lus (le relevé, le moteur et les effets les chargent chacun) : tout changement de style d'un type
+ * connu la périme.
  */
 export function surChangementDeStyle(changements: Iterable<ChangementDeStyleRecu>, contexte: Contexte): void {
   const recus = [...changements];
-  if (changementsDeStyleRecus) changementsDeStyleRecus.push(...recus);
-  if (!courante) return;
-  if (porteeDesChangementsDeStyle(recus, null).portee !== 'hors-sujet') perimer('document', contexte);
+  journal?.enregistrer(recus.map((changement) => ({ nature: 'style', ...changement })));
+  if (changementsEnAttente) changementsEnAttente.styles.push(...recus);
+  jugerLesStyles(recus, contexte);
 }
 
-/** L'inventaire de l'analyse courante est connu : les événements gardés se jugent contre lui, puis la garde se ferme. */
+/** L'inventaire de l'analyse courante est connu : les changements gardés se jugent contre lui, puis la garde se ferme. */
 function rejouerLesEvenementsRecus(contexte: Contexte): void {
-  const recus = evenementsRecus;
-  const recusDeStyle = changementsDeStyleRecus;
-  evenementsRecus = null;
-  changementsDeStyleRecus = null;
-  if (recus) surChangementDuDocument(recus, contexte);
-  if (recusDeStyle) surChangementDeStyle(recusDeStyle, contexte);
+  const attente = changementsEnAttente;
+  changementsEnAttente = null;
+  if (!attente) return;
+  jugerLesNoeuds(attente.noeuds, contexte);
+  jugerLesStyles(attente.styles, contexte);
 }
 
 /**
@@ -575,11 +611,11 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   try {
     phase('sujet');
     // L'écoute de la page courante précède la première lecture du document : l'inventaire n'est connu qu'après le sujet.
-    evenementsRecus = new Set();
-    changementsDeStyleRecus = [];
+    const curseur = ouvrirLeJournal().marquer();
+    changementsEnAttente = { noeuds: [], styles: [] };
     contexte.surveillerLeDocument();
     const sujet = await attendrePourLaMesure(() => lecteurs.sujet(contexte).catch(() => null), 'attente', 'sujet');
-    identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined, sujet?.couverture);
+    identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined, sujet?.couverture, curseur);
     courant.connue = identite;
     connaitre(identite);
     if (demande.mesurer && demande.demande !== undefined) {
@@ -667,8 +703,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (courant.jeton.leve) rendre('annulee', [], null);
     else rendre('arretee', [bloquant(messageDErreur(erreur))], null);
   } finally {
-    evenementsRecus = null;
-    changementsDeStyleRecus = null;
+    changementsEnAttente = null;
     // Une analyse finie avant d'avoir attendu les libraries (arrêt, erreur) ne laisse pas leur lecture courir : le jeton ne sert plus.
     if (librariesEnCours) courant.jeton.leve = true;
     courant.cloreMesure?.('arretee');
@@ -727,7 +762,7 @@ export const traiter = traiterAvec(LECTEURS_DE_FIGMA);
 export function reinitialiserLAnalyse(): void {
   operation = null;
   courante = null;
-  evenementsRecus = null;
-  changementsDeStyleRecus = null;
+  changementsEnAttente = null;
+  journal = null;
   mesuresEnvoyees.clear();
 }
