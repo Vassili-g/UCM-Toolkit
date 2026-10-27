@@ -1,10 +1,11 @@
 /**
  * Les variables, collections, styles et maîtres d'instance qu'une demande d'analyse lit par identifiant, une fois chacun.
  *
- * `creerMemoireDeRessources` rend une mémoire que le lecteur crée au début de sa demande et oublie à la fin : une
- * ressource refusée n'y survit pas, la demande suivante la relit et la trouve lisible si Figma la sert alors. La
- * mémoire garde la promesse de chaque identifiant, donc deux demandes simultanées pour une même variable ne font
- * qu'un appel natif, refus compris.
+ * `creerMemoireDeRessources` rend une mémoire que la demande crée à son début et oublie à sa fin : une ressource
+ * refusée n'y survit pas, la demande suivante la relit et la trouve lisible si Figma la sert alors. Une demande
+ * d'Architect n'en crée qu'une (`InventairesDeLaDemande.ressources`) : le relevé, les dépendances et le moteur y lisent
+ * chacun une variable, un style ou un maître une seule fois, le premier lecteur donnant la lecture. La mémoire garde la
+ * promesse de chaque identifiant, donc deux lecteurs simultanés d'une même variable ne font qu'un appel natif, refus compris.
  *
  * Elle copie en `FaitDeRessource` les seuls champs que le lecteur nomme, plus `remote` pour l'origine. Elle ne lit
  * ni `valuesByMode` ni aucun alias : suivre un alias est l'affaire du lecteur, par un autre identifiant. Chaque
@@ -84,6 +85,11 @@ export interface InstanceLue {
   getMainComponentAsync?(): Promise<object | null>;
 }
 
+export interface OptionsDeLaLectureDuMaitre {
+  readonly lire?: () => Promise<object | null> | undefined;
+  readonly reutilise?: () => void;
+}
+
 /** Les deux lectures natives que la mémoire appelle. Un nœud de test sans l'une d'elles lève à l'appel : refus `leve`. */
 export interface LecturesDeRessources {
   getVariableByIdAsync(id: string): Promise<object | null>;
@@ -114,10 +120,19 @@ export interface MemoireDeRessources {
   styleNatif(id: string): Promise<LectureNative<object>>;
   /** La copie des champs demandés du style, par identifiant de style. */
   style(id: string): Promise<FaitDeStyle>;
-  /** L'appel natif et son refus, par identifiant d'instance ; l'objet rendu reste au lecteur. */
-  maitre(instance: InstanceLue): Promise<LectureNative<object>>;
+  /**
+   * L'appel natif et son refus, par identifiant d'instance ; l'objet rendu reste au lecteur. `lire` remplace l'appel de
+   * l'instance (le moteur y met son appel mesuré), `reutilise` signale une lecture déjà faite.
+   */
+  maitre(instance: InstanceLue, options?: OptionsDeLaLectureDuMaitre): Promise<LectureNative<object>>;
   /** La copie du maître rendu pour cette instance, par identifiant de maître ; un maître refusé n'a pas de fait. */
   faitDuMaitre(instance: IdDeNoeud, natif: object): Promise<FaitDuMaitre>;
+  /**
+   * Retire les variables et collections refusées jusqu'ici : la prochaine lecture de chacune appelle Figma, puis se
+   * mémorise. L'analyse l'appelle quand le catalogue a importé des variables, qui rendent lisible ce que le relevé
+   * avait vu refusé ; un refus d'avant les imports ne se transmet pas au moteur.
+   */
+  oublierLesRefus(): void;
 }
 
 /** La table pendant sa copie, avant qu'elle ne soit rendue en lecture seule. */
@@ -213,8 +228,19 @@ export function creerMemoireDeRessources(options: OptionsDeLaMemoire): MemoireDe
   const stylesNatifs = new Map<string, Promise<LectureNative<object>>>();
   const maitres = new Map<string, Promise<LectureNative<object>>>();
   const faitsDeMaitre = new Map<string, Promise<FaitDuMaitre>>();
+  const refuses = { variables: new Set<string>(), collections: new Set<string>() };
 
   async function lire<T extends object>(
+    id: string,
+    appel: 'getVariableByIdAsync' | 'getVariableCollectionByIdAsync',
+    copier: (ressource: object) => Promise<{ table: T; origine: Origine }>,
+  ): Promise<FaitDeRessource<T>> {
+    const fait = await lireLaRessource(id, appel, copier);
+    if (fait.etat.etat === 'refuse') (appel === 'getVariableByIdAsync' ? refuses.variables : refuses.collections).add(id);
+    return fait;
+  }
+
+  async function lireLaRessource<T extends object>(
     id: string,
     appel: 'getVariableByIdAsync' | 'getVariableCollectionByIdAsync',
     copier: (ressource: object) => Promise<{ table: T; origine: Origine }>,
@@ -245,6 +271,12 @@ export function creerMemoireDeRessources(options: OptionsDeLaMemoire): MemoireDe
     lireUneFoisParIdentifiant(stylesNatifs, id, () => options.lectures().getStyleByIdAsync?.(id), { propager: options.propager });
 
   return {
+    oublierLesRefus: () => {
+      for (const id of refuses.variables) variables.delete(id);
+      for (const id of refuses.collections) collections.delete(id);
+      refuses.variables.clear();
+      refuses.collections.clear();
+    },
     styleNatif,
     style: (id) => memoriser(styles, id, async () => {
       const lu = await styleNatif(id);
@@ -254,7 +286,8 @@ export function creerMemoireDeRessources(options: OptionsDeLaMemoire): MemoireDe
       for (const champ of champsDeStyle) table[champ] = lireUnTexte(lu.natif, champ);
       return { id, provenance: provenance('inconnue'), etat: acquis(table) };
     }),
-    maitre: (instance) => lireUneFoisParIdentifiant(maitres, instance.id, () => instance.getMainComponentAsync?.(), { propager: options.propager }),
+    maitre: (instance, lecture) =>
+      lireUneFoisParIdentifiant(maitres, instance.id, lecture?.lire ?? (() => instance.getMainComponentAsync?.()), { propager: options.propager, reutilise: lecture?.reutilise }),
     faitDuMaitre: async (instance, natif) => {
       const id = texteOuVide(natif, 'id');
       if (typeof id !== 'string') return { id: '', provenance: provenanceDuMaitre(instance, 'inconnue'), etat: id };

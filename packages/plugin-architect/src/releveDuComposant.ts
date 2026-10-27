@@ -41,6 +41,8 @@ export interface OptionsDuReleve {
   readonly cooperation?: ContexteCooperatif;
   /** L'espace du document ; le sandbox le lit dans `figma.root.documentColorProfile`. */
   readonly espaceDeCouleur?: EspaceDuReleve;
+  /** La mémoire de ressources de la demande, que le moteur lit après lui ; sans elle, le relevé garde la sienne. */
+  readonly ressources?: MemoireDeRessources;
 }
 
 export type IssueDuReleve =
@@ -204,8 +206,9 @@ class Lecteur {
     private readonly port: PortDuComposant,
     readonly manquees: Manquee[],
     readonly cooperation: ContexteCooperatif,
+    ressources?: MemoireDeRessources,
   ) {
-    this.ressources = creerMemoireDeRessources({
+    this.ressources = ressources ?? creerMemoireDeRessources({
       lectures: () => ({
         getVariableByIdAsync: (id) => this.port.variables.getVariableByIdAsync(id),
         getVariableCollectionByIdAsync: (id) => this.port.variables.getVariableCollectionByIdAsync(id),
@@ -542,7 +545,7 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
   if (annule()) return { statut: 'annule' };
 
   const manquees: Manquee[] = [];
-  const lecteur = new Lecteur(port, manquees, cooperation);
+  const lecteur = new Lecteur(port, manquees, cooperation, options.ressources);
   const variants: VariantLu[] = [];
   const variantsNonLus: string[] = [];
   let layersLus = 0;

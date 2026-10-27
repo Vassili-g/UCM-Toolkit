@@ -5,7 +5,7 @@
  */
 import { joinTokenPath, prefixeDeCollection } from '@ucm-kit/core/format';
 
-import { creerMemoireDeRessources } from './analyse/ressources';
+import { creerMemoireDeRessources, type MemoireDeRessources } from './analyse/ressources';
 import type { EtatEcrit } from './analyse/faits';
 
 import {
@@ -250,6 +250,8 @@ export type ResolverOptions = {
   index?: VariableIndex;
   /** Avertissements du contrat en cours ; une variable ambiguë n'y est nommée qu'une fois. */
   warnings?: string[];
+  /** La mémoire de ressources de la demande d'analyse, partagée avec le relevé ; sans elle, le résolveur garde la sienne. */
+  ressources?: MemoireDeRessources;
 };
 
 /**
@@ -266,14 +268,16 @@ export type ResolverOptions = {
  */
 export class VariableNameResolver {
   private readonly namesByVariableId = new Map<string, Promise<string | null>>();
-  /** Variables et collections lues par l'API : une lecture par identifiant, refus compris, pour la durée de ce résolveur. */
-  private readonly ressources = creerMemoireDeRessources({
-    lectures: () => figma.variables,
-    champsDeVariable: ['name', 'variableCollectionId'],
-    champsDeCollection: ['name'],
-  });
+  /** Variables et collections lues par l'API : une lecture par identifiant, refus compris, pour la durée de ce résolveur ou de la demande qui lui prête la sienne. */
+  private readonly ressources: MemoireDeRessources;
 
-  constructor(private readonly options: ResolverOptions = {}) {}
+  constructor(private readonly options: ResolverOptions = {}) {
+    this.ressources = options.ressources ?? creerMemoireDeRessources({
+      lectures: () => figma.variables,
+      champsDeVariable: ['name', 'variableCollectionId'],
+      champsDeCollection: ['name'],
+    });
+  }
 
   /** Résout un alias (ou null) en nom de token (ou null). */
   resolve(

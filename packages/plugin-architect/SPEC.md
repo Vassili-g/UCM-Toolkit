@@ -244,6 +244,12 @@ fichier et le moteur la lisent une fois pour eux deux. Les règles sont le scan
 de la page par `extractRules` : le moteur le lit, la lecture des règles le
 reprend. Les libraries sont le résultat de `lireLesLibraries`, lancé avec le
 relevé puis repris par le catalogue. Un refus se partage comme un succès. Les
+inventaires portent aussi la mémoire de ressources de la demande
+(`MemoireDeRessources`) : le relevé, les dépendances et le moteur y lisent
+chaque variable, collection, style et maître par identifiant une seule fois, le
+premier lecteur faisant l'appel, et `decrireLeMaitre` y lit les noms d'une page
+une fois par page. Les imports du catalogue peuvent rendre lisible une variable que le relevé a vue refusée : le catalogue fini, la mémoire efface ces refus et le moteur relit chaque identifiant une fois. Le relevé précède les dépendances, qui précèdent le moteur :
+la copie que le moteur reprend date du relevé de la même demande. Les
 inventaires s'oublient avec la demande : « Analyser », « Actualiser » et une
 analyse après une correction relisent le fichier. Le compteur
 `inventairesReutilises` compte les lectures reprises. Les requêtes

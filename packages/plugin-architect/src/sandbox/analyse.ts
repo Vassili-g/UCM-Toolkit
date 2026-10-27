@@ -897,7 +897,8 @@ export type LibrariesEnAvance = Promise<{ readonly lecture: LectureDesLibraries 
 export interface Lecteurs {
   /** Le sujet de la sélection, `null` hors de tout composant. */
   sujet(contexte: Contexte): Promise<SujetAAnalyser | null>;
-  releve(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (fait: number, total: number) => void, cooperation?: ContexteCooperatif): Promise<IssueDuReleve>;
+  /** `inventaires` est celui de la demande : sa mémoire de ressources est celle que le moteur lit ensuite. */
+  releve(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (fait: number, total: number) => void, cooperation?: ContexteCooperatif, inventaires?: InventairesDeLaDemande): Promise<IssueDuReleve>;
   /**
    * Les libraries activées, lues sans le relevé. L'analyse les lance avec le relevé et passe leur issue à `catalogue` ;
    * sans ce lecteur, `catalogue` les lit après le relevé.
@@ -1038,11 +1039,17 @@ function valeurSimple(valeur: unknown): unknown {
   return texte === undefined ? null : JSON.parse(texte) as unknown;
 }
 
-/** La définition du style `id`, `null` quand il ne se lit pas : un identifiant mixte, un style introuvable ou refusé. */
-async function definitionDuStyle(figma: PluginAPI, id: string): Promise<unknown> {
+/** La définition du style `id`, `null` quand il ne se lit pas : un identifiant mixte, un style introuvable ou refusé. Avec la mémoire de la demande, le style est celui que le relevé et le moteur lisent. */
+async function definitionDuStyle(figma: PluginAPI, id: string, inventaires?: InventairesDeLaDemande): Promise<unknown> {
   if (id === 'mixte') return null;
   try {
-    const style = await (figma as unknown as { getStyleByIdAsync?(id: string): Promise<Record<string, unknown> | null> }).getStyleByIdAsync?.(id);
+    let style: Record<string, unknown> | null | undefined;
+    if (inventaires?.ressources) {
+      const lu = await inventaires.ressources.styleNatif(id);
+      style = lu.etat === 'lu' ? lu.natif as Record<string, unknown> : null;
+    } else {
+      style = await (figma as unknown as { getStyleByIdAsync?(id: string): Promise<Record<string, unknown> | null> }).getStyleByIdAsync?.(id);
+    }
     if (!style) return null;
     const definition: Record<string, unknown> = {};
     for (const propriete of PROPRIETES_DE_STYLE) definition[propriete] = valeurSimple(style[propriete]);
@@ -1103,7 +1110,7 @@ export const PROFONDEUR_DES_MAITRES = 8;
  * Le maître d'une instance tel que le moteur le lira, avec les instances qu'il contient (son jeu compris) ; `null` quand
  * il ne se lit pas. Un maître distant ou d'origine inconnue n'est pas parcouru.
  */
-async function decrireLeMaitre(maitre: NoeudDeDependance): Promise<{ readonly maitre: Omit<MaitreDeDependance, 'instances'>; readonly imbriquees: readonly NoeudDeDependance[] } | null> {
+async function decrireLeMaitre(maitre: NoeudDeDependance, inventaires?: InventairesDeLaDemande): Promise<{ readonly maitre: Omit<MaitreDeDependance, 'instances'>; readonly imbriquees: readonly NoeudDeDependance[] } | null> {
   try {
     if (typeof maitre.id !== 'string') return null;
     const remote = typeof maitre.remote === 'boolean' ? maitre.remote : null;
@@ -1124,7 +1131,7 @@ async function decrireLeMaitre(maitre: NoeudDeDependance): Promise<{ readonly ma
         if (noeud !== racine && noeud.type === 'INSTANCE') imbriquees.push(noeud);
       }
       const page = pageDuNoeud<PageNode | null>(maitre as { type?: string; parent?: unknown }, null);
-      if (page) noms = [...nomsDeLaPage(page)];
+      if (page) noms = [...(inventaires ? inventaires.nomsDeLaPage(page, () => nomsDeLaPage(page)) : nomsDeLaPage(page))];
     }
     const definition = remote === true ? definitionDuMaitreDistant(maitre) : null;
     return { maitre: { id: maitre.id, remote, page: typeof pageId === 'string' ? pageId : null, noeuds, instancesImbriquees: imbriquees.length, nomsDeLaPage: noms, liaisons, definition }, imbriquees };
@@ -1134,8 +1141,12 @@ async function decrireLeMaitre(maitre: NoeudDeDependance): Promise<{ readonly ma
 }
 
 /** Le maître d'une instance, `null` quand il ne se lit pas ; l'annulation de l'analyse passe. */
-async function maitreDeLInstance(instance: NoeudDeDependance): Promise<NoeudDeDependance | null> {
+async function maitreDeLInstance(instance: NoeudDeDependance, inventaires?: InventairesDeLaDemande): Promise<NoeudDeDependance | null> {
   try {
+    if (inventaires?.ressources && typeof instance.id === 'string') {
+      const lu = await inventaires.ressources.maitre({ id: instance.id, getMainComponentAsync: instance.getMainComponentAsync?.bind(instance) });
+      return lu.etat === 'lu' ? lu.natif as NoeudDeDependance : null;
+    }
     return await instance.getMainComponentAsync?.() ?? null;
   } catch (erreur) {
     if (erreur instanceof AnalyseAnnulee) throw erreur;
@@ -1196,7 +1207,7 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
   const styles: StyleDeDependance[] = [];
   for (const id of identifiants) {
     await cooperation?.cederSiBesoin();
-    if (!definitions.has(id)) definitions.set(id, await definitionDuStyle(figma, id));
+    if (!definitions.has(id)) definitions.set(id, await definitionDuStyle(figma, id, inventaires));
     styles.push({ id, definition: definitions.get(id) });
   }
   const lus = new Map<string, { maitre: Omit<MaitreDeDependance, 'instances'>; instances: number }>();
@@ -1211,7 +1222,7 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
   let sousLesMaitres: NoeudDeDependance[] = [];
   for (const instance of lesInstances) {
     await cooperation?.cederSiBesoin();
-    const natif = await maitreDeLInstance(instance);
+    const natif = await maitreDeLInstance(instance, inventaires);
     const id = natif?.id;
     if (!natif || typeof id !== 'string') continue;
     noterLeMaitre(instance, natif);
@@ -1220,7 +1231,7 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
       deja.instances += 1;
       continue;
     }
-    const decrit = await decrireLeMaitre(natif);
+    const decrit = await decrireLeMaitre(natif, inventaires);
     if (!decrit) continue;
     lus.set(id, { maitre: decrit.maitre, instances: 1 });
     sousLesMaitres.push(...decrit.imbriquees);
@@ -1230,7 +1241,7 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
     const suivantes: NoeudDeDependance[] = [];
     for (const instance of sousLesMaitres) {
       await cooperation?.cederSiBesoin();
-      const natif = await maitreDeLInstance(instance);
+      const natif = await maitreDeLInstance(instance, inventaires);
       const id = natif?.id;
       if (!natif || typeof id !== 'string') {
         imbriqueesNonLues += 1;
@@ -1238,7 +1249,7 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
       }
       noterLeMaitre(instance, natif);
       if (lus.has(id)) continue;
-      const decrit = await decrireLeMaitre(natif);
+      const decrit = await decrireLeMaitre(natif, inventaires);
       if (!decrit) {
         imbriqueesNonLues += 1;
         continue;
@@ -1273,10 +1284,11 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
 
 export const LECTEURS_DE_FIGMA: Lecteurs = {
   sujet: sujetDeFigma,
-  releve: (sujet, jeton, contexte, progresser, cooperation) => lireLeReleve(portDuComposant(contexte), sujet.noeud, {
+  releve: (sujet, jeton, contexte, progresser, cooperation, inventaires) => lireLeReleve(portDuComposant(contexte), sujet.noeud, {
       budgetDeLayers: BUDGET_DE_LAYERS_PAR_DEFAUT,
       jeton,
       cooperation,
+      ressources: inventaires?.ressources,
     progresser,
     espaceDeCouleur: contexte.figma.root.documentColorProfile === 'DISPLAY_P3' ? 'display-p3' : 'srgb',
   }),
@@ -1415,7 +1427,21 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     jeton: courant.jeton,
   });
   // Les inventaires de la demande : ils meurent avec elle, Actualiser et l'analyse suivante relisent.
-  const inventaires = creerInventairesDeLaDemande();
+  // Une seule mémoire de ressources par demande : le relevé, les dépendances et le moteur y lisent chaque variable, style et maître une fois.
+  const portDeLaDemande = portDuComposant(contexte);
+  const inventaires = creerInventairesDeLaDemande({
+    ressources: {
+      lectures: () => ({
+        getVariableByIdAsync: (id) => portDeLaDemande.variables.getVariableByIdAsync(id),
+        getVariableCollectionByIdAsync: (id) => portDeLaDemande.variables.getVariableCollectionByIdAsync(id),
+        getStyleByIdAsync: (id) => portDeLaDemande.getStyleByIdAsync(id),
+      }),
+      champsDeVariable: ['key', 'name', 'variableCollectionId'],
+      champsDeCollection: ['name', 'modes'],
+      cooperation,
+      propager: (erreur) => erreur instanceof AnalyseAnnulee,
+    },
+  });
   if (demande.mesurer) ouvrirLaMesure();
   const importsEnregistres = enregistrerLesImports(demande.capturer === true);
   let mesureOuverte = demande.mesurer === true;
@@ -1508,7 +1534,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
         .then((lecture) => ({ lecture }), (erreur: unknown) => ({ erreur }))
         .finally(() => { librariesEnCours = false; });
     }
-    const issue = await attendrePourLaMesure(() => lecteurs.releve(sujet, jeton, contexte, (fait, total) => courant.progresser?.('releve', fait, total), cooperation), 'attente', 'releve');
+    const issue = await attendrePourLaMesure(() => lecteurs.releve(sujet, jeton, contexte, (fait, total) => courant.progresser?.('releve', fait, total), cooperation, inventaires), 'attente', 'releve');
     if (issue.statut === 'annule' || jeton.leve) return rendre('annulee', [], null);
     if (issue.statut === 'sans-sujet') return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
     const { releve } = issue;
@@ -1519,6 +1545,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     phase('catalogue');
     const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries, inventaires), 'attente', 'catalogue');
     catalogueLu = catalogue;
+    // Les imports du catalogue rendent lisible ce que le relevé a vu refusé : le moteur relit une fois ces identifiants.
+    inventaires.ressources?.oublierLesRefus();
     compter('variablesDuCatalogue', catalogue.variables.length);
     if (jeton.leve) return rendre('annulee', [], null);
 

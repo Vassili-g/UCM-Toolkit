@@ -107,3 +107,39 @@ test('la trace compte les lectures reprises, et se tait hors d’une trace', asy
     assert.equal(fermerLaMesure('')?.compteurs.inventairesReutilises, 2);
   } finally { abandonnerLaMesure(); }
 });
+
+test('les noms d’une page se lisent une fois par page et par demande, une page sans identifiant se relit', () => {
+  const inventaires = creerInventairesDeLaDemande();
+  const lectures: string[] = [];
+  const noms = (page: string) => () => { lectures.push(page); return new Set([page]); };
+  const premiere = inventaires.nomsDeLaPage({ id: 'p1' }, noms('p1'));
+  assert.equal(inventaires.nomsDeLaPage({ id: 'p1' }, noms('p1')), premiere);
+  inventaires.nomsDeLaPage({ id: 'p2' }, noms('p2'));
+  inventaires.nomsDeLaPage({}, noms('sans'));
+  inventaires.nomsDeLaPage({}, noms('sans'));
+  assert.deepEqual(lectures, ['p1', 'p2', 'sans', 'sans']);
+  const suivante = creerInventairesDeLaDemande();
+  assert.notEqual(suivante.nomsDeLaPage({ id: 'p1' }, noms('p1')), premiere, 'une autre demande relit la page');
+  assert.deepEqual(lectures, ['p1', 'p2', 'sans', 'sans', 'p1']);
+});
+
+test('une page dont la lecture lève lève pour tous les lecteurs de la demande, sans relire', () => {
+  const inventaires = creerInventairesDeLaDemande();
+  let lectures = 0;
+  const lire = () => { lectures += 1; throw new Error('page illisible'); };
+  assert.throws(() => inventaires.nomsDeLaPage({ id: 'p' }, lire), /page illisible/);
+  assert.throws(() => inventaires.nomsDeLaPage({ id: 'p' }, lire), /page illisible/);
+  assert.equal(lectures, 1);
+});
+
+test('la mémoire de ressources n’existe que pour une demande qui en donne les lectures, et ne survit pas à elle', async () => {
+  assert.equal(creerInventairesDeLaDemande().ressources, undefined);
+  const appels: string[] = [];
+  const options = { lectures: () => ({ getVariableByIdAsync: async (id: string) => { appels.push(id); return { key: id, name: id, variableCollectionId: 'c' }; }, getVariableCollectionByIdAsync: async () => null }) };
+  const premiere = creerInventairesDeLaDemande({ ressources: options });
+  await premiere.ressources!.variable('v');
+  await premiere.ressources!.variable('v');
+  assert.deepEqual(appels, ['v']);
+  await creerInventairesDeLaDemande({ ressources: options }).ressources!.variable('v');
+  assert.deepEqual(appels, ['v', 'v'], 'la demande suivante relit');
+});

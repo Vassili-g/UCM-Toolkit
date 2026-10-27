@@ -151,3 +151,63 @@ test('le résolveur du moteur lit une collection une fois pour deux variables, e
     (globalThis as { figma?: unknown }).figma = precedent;
   }
 });
+
+test('un résolveur qui reçoit la mémoire de la demande ne relit pas ce qu’un autre lecteur y a lu, et la demande suivante relit', async () => {
+  const { appels, lectures } = monterLesLectures({ v1: variable('v1', 'fond', 'c') }, { c: { id: 'c', name: 'Composants', remote: false, modes: [] } });
+  const demande = () => creerMemoireDeRessources({ lectures: () => lectures, champsDeVariable: ['key', 'name', 'variableCollectionId'], champsDeCollection: ['name', 'modes'] });
+  const partagee = demande();
+  // Le relevé de la demande a lu la variable et sa collection avant le moteur.
+  await partagee.variable('v1');
+  await partagee.collection('c');
+  const moteur = new VariableNameResolver({ ressources: partagee });
+  assert.equal(await moteur.resolveById('v1'), 'composants.fond');
+  assert.deepEqual(appels, ['variable(v1)', 'collection(c)'], 'le résolveur n’ajoute aucun appel');
+  const suivante = new VariableNameResolver({ ressources: demande() });
+  assert.equal(await suivante.resolveById('v1'), 'composants.fond');
+  assert.deepEqual(appels, ['variable(v1)', 'collection(c)', 'variable(v1)', 'collection(c)'], 'une autre demande relit');
+});
+
+test('un refus rangé par un lecteur de la demande reste un refus pour le résolveur', async () => {
+  const { appels, lectures } = monterLesLectures({ perdue: new Error('refus de Figma') }, {});
+  const partagee = creerMemoireDeRessources({ lectures: () => lectures });
+  assert.equal((await partagee.variable('perdue')).etat.etat, 'refuse');
+  assert.equal(await new VariableNameResolver({ ressources: partagee }).resolveById('perdue'), null);
+  assert.deepEqual(appels, ['variable(perdue)']);
+});
+
+test('la lecture d’un maître se fait une fois par instance, avec l’appel et le signal du lecteur qui la demande', async () => {
+  const appels: string[] = [];
+  const maitre = { id: 'm', type: 'COMPONENT' };
+  const instance = { id: 'i', getMainComponentAsync: async () => { appels.push('natif'); return maitre; } };
+  const memoire = creerMemoireDeRessources({ lectures: () => ({ getVariableByIdAsync: async () => null, getVariableCollectionByIdAsync: async () => null }) });
+  let reutilisations = 0;
+  const premier = await memoire.maitre(instance, { lire: () => { appels.push('mesure'); return instance.getMainComponentAsync(); }, reutilise: () => { reutilisations += 1; } });
+  const second = await memoire.maitre(instance, { lire: () => { appels.push('autre'); return undefined; }, reutilise: () => { reutilisations += 1; } });
+  const sansOptions = await memoire.maitre(instance);
+  assert.equal(premier.etat === 'lu' ? premier.natif : null, maitre);
+  assert.equal(second, premier);
+  assert.equal(sansOptions, premier);
+  assert.deepEqual(appels, ['mesure', 'natif']);
+  assert.equal(reutilisations, 1);
+});
+
+test('oublierLesRefus fait relire une variable et une collection refusées, une fois, et garde les ressources lues', async () => {
+  const lisible = { importee: false };
+  const appels: string[] = [];
+  const lectures: LecturesDeRessources = {
+    getVariableByIdAsync: async (id) => { appels.push(`variable(${id})`); return id === 'bonne' || lisible.importee ? variable(id, id, 'c') : null; },
+    getVariableCollectionByIdAsync: async (id) => { appels.push(`collection(${id})`); return lisible.importee ? { id, name: 'Lib', remote: true, modes: [] } : null; },
+  };
+  const memoire = creerMemoireDeRessources({ lectures: () => lectures });
+  assert.equal((await memoire.variable('tard')).etat.etat, 'refuse');
+  assert.equal((await memoire.collection('lib')).etat.etat, 'refuse');
+  await memoire.variable('bonne');
+  lisible.importee = true;
+  assert.equal((await memoire.variable('tard')).etat.etat, 'refuse', 'avant l’oubli, le refus se transmet');
+  memoire.oublierLesRefus();
+  assert.equal((await memoire.variable('tard')).etat.etat, 'acquis');
+  assert.equal((await memoire.collection('lib')).etat.etat, 'acquis');
+  await memoire.variable('bonne');
+  await memoire.variable('tard');
+  assert.deepEqual(appels, ['variable(tard)', 'collection(lib)', 'variable(bonne)', 'variable(tard)', 'collection(lib)']);
+});

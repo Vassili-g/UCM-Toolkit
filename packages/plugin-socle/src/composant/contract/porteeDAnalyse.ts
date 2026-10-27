@@ -9,7 +9,7 @@
  */
 import { lireLesPeintures, lireLesSegments, lireUnChamp, projeterLesPlages, type ChampDePeinture, type EtatDesSegments, type ValeurScalaire } from '../analyse/acquisition';
 import { acquis, cleDeSegments, type ChampDeSegment, type EtatEcrit, type PeintureLue } from '../analyse/faits';
-import { lireUneFoisParIdentifiant, type LectureNative } from '../analyse/ressources';
+import { lireUneFoisParIdentifiant, type LectureNative, type MemoireDeRessources } from '../analyse/ressources';
 import { compter, attendrePourLaMesure, mesurerLeCalcul } from './mesure';
 
 /**
@@ -89,6 +89,11 @@ type ContexteMemorise = {
 };
 
 type Portee = {
+  /**
+   * La mémoire de ressources de la demande d'Architect, quand elle en a une : maîtres et styles s'y lisent alors, et la
+   * portée ne garde rien d'eux. Le relevé et les dépendances y ont déjà lu les mêmes.
+   */
+  ressources?: MemoireDeRessources;
   /** Le maître de chaque instance déjà demandée, par id d'instance, refus compris. */
   maitres: Map<string, Promise<LectureNative<object>>>;
   /** Le style de chaque identifiant déjà demandé, refus compris. */
@@ -132,7 +137,7 @@ let desactivee = false;
  * Le refus persiste même si la première portée se ferme avant lui.
  */
 export async function dansUnePorteeDAnalyse<T>(
-  options: OptionsDeCooperation & { cooperation?: ContexteCooperatif },
+  options: OptionsDeCooperation & { cooperation?: ContexteCooperatif; inventaires?: { readonly ressources?: MemoireDeRessources } },
   corps: () => Promise<T>,
 ): Promise<T> {
   if (portee || porteesRefusees > 0) {
@@ -145,6 +150,7 @@ export async function dansUnePorteeDAnalyse<T>(
     }
   }
   const ouverte: Portee = {
+    ressources: options.inventaires?.ressources,
     maitres: new Map(),
     styles: new Map(),
     peintures: new Map(),
@@ -169,15 +175,21 @@ export async function dansUnePorteeDAnalyse<T>(
  * `getMainComponentAsync` lève sur une instance orpheline, et une méthode
  * absente vaut une instance orpheline : aucun des appelants ne fait échouer
  * l'export pour un node cassé. Dans une portée, chaque id d'instance n'est
- * demandé qu'une fois.
+ * demandé qu'une fois, et une fois pour toute la demande d'Architect quand la
+ * portée reçoit sa mémoire de ressources (celle du relevé et des dépendances).
  */
 export function maitreDe(instance: InstanceNode): Promise<ComponentNode | null> {
-  const memoire = typeof instance.id === 'string' ? porteeQuiMemorise()?.maitres : undefined;
-  return lireUneFoisParIdentifiant(memoire, instance.id, () => {
+  const portee = porteeQuiMemorise();
+  const lire = () => {
     if (typeof instance.getMainComponentAsync !== 'function') return undefined;
     compter('appelsGetMainComponentAsync');
     return attendrePourLaMesure(() => instance.getMainComponentAsync(), 'parallele', undefined, 'getMainComponentAsync');
-  }, { reutilise: () => compter('maitresReutilises') }).then((lu) => (lu.etat === 'lu' ? lu.natif as ComponentNode : null));
+  };
+  const reutilise = () => compter('maitresReutilises');
+  const lecture = portee?.ressources
+    ? portee.ressources.maitre(instance, { lire, reutilise })
+    : lireUneFoisParIdentifiant(typeof instance.id === 'string' ? portee?.maitres : undefined, instance.id, lire, { reutilise });
+  return lecture.then((lu) => (lu.etat === 'lu' ? lu.natif as ComponentNode : null));
 }
 
 /**
@@ -186,7 +198,8 @@ export function maitreDe(instance: InstanceNode): Promise<ComponentNode | null> 
  * Chaque appelant garde son traitement d'un style absent ou de mauvais type.
  */
 export function styleDeLaPortee(id: string): Promise<BaseStyle | null> {
-  return lireUneFoisParIdentifiant(porteeQuiMemorise()?.styles, id, () => figma.getStyleByIdAsync(id))
+  const portee = porteeQuiMemorise();
+  return (portee?.ressources ? portee.ressources.styleNatif(id) : lireUneFoisParIdentifiant(portee?.styles, id, () => figma.getStyleByIdAsync(id)))
     .then((lu) => (lu.etat === 'lu' ? lu.natif as BaseStyle : null));
 }
 

@@ -425,7 +425,7 @@ export async function calculerLAnalyse(
     collectionById.set(collection.id, collection);
   }
   const index = await calculerParTranches(indexVariablesParEtapes(variables, collectionById));
-  const resolver = new VariableNameResolver({ index, warnings });
+  const resolver = new VariableNameResolver({ index, warnings, ressources: inventaires?.ressources });
 
   const extracted = await extractStructure(
     matrix,
