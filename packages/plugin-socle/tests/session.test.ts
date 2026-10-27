@@ -55,3 +55,25 @@ test('l’entrée ne porte que sujet, rang, sorties, requêtes et suivi', () => 
   const entree = session.retenir('A', { ...contenu('a'), corrections: new Map(), reponses: {}, generation: 3 } as never);
   assert.deepEqual(Object.keys(entree).sort(), ['rang', 'requetes', 'sorties', 'suivi', 'sujet']);
 });
+
+test('les raisons d’invalidation s’ajoutent sans doublon et durent jusqu’à la promotion qui remplace l’entrée', () => {
+  const session = creerLaSession<Sorties, Requetes>();
+  assert.deepEqual(session.invalidations('A'), []);
+  session.invalider('A', ['style']);
+  assert.deepEqual(session.invalidations('A'), [], 'sans entrée, rien à marquer');
+  session.retenir('A', contenu('a', 4));
+  assert.equal(session.evalueJusqua('A'), 4);
+  session.invalider('A', ['style', 'ecriture']);
+  session.invalider('A', ['style']);
+  assert.deepEqual(session.invalidations('A'), ['style', 'ecriture']);
+  session.avancerLEvaluation('A', 9);
+  session.avancerLEvaluation('A', 7);
+  assert.equal(session.evalueJusqua('A'), 9);
+  session.retenir('A', contenu('a2', 12));
+  assert.deepEqual(session.invalidations('A'), []);
+  assert.equal(session.evalueJusqua('A'), 12);
+  session.invalider('A', ['style']);
+  session.oublier('A');
+  assert.equal(session.evalueJusqua('A'), null);
+  assert.deepEqual(session.invalidations('A'), []);
+});

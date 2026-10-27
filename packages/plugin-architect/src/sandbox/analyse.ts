@@ -26,7 +26,8 @@
  *
  * La session (`sessionDesAnalyses`) retient d'un sujet les sorties des lecteurs, les requêtes pures calculées sur elles et
  * le suivi de l'acquisition. Une demande prépare une révision de travail ; la session ne la reçoit qu'à la promotion
- * (`promouvoirLaRevision`), et une révision jetée la laisse telle quelle. Elle est séparée de `AnalyseCourante`, qui porte
+ * (`promouvoirLaRevision`), et une révision jetée la laisse telle quelle. Le journal marque d'invalides les sujets retenus qu'il
+ * a touchés (`etatDeLEntree`), et la marque survit aux demandes annulées, arrêtées ou périmées. Elle est séparée de `AnalyseCourante`, qui porte
  * l'état affiché d'une génération : réponses, corrections fixées et péremption ne passent jamais dans la session.
  */
 import {
@@ -39,6 +40,7 @@ import { porteeDesChangements, porteeDesChangementsDeStyle, type AnciensParents,
 import { creerLeJournal, type JournalDeChangements, type OrigineDEcriture, type RaisonDInterruption } from 'ucm-plugin-socle/src/composant/analyse/journal';
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { creerLaSession, type EntreeDeSession, type RequeteRetenue, type SessionDAnalyse } from 'ucm-plugin-socle/src/composant/analyse/session';
+import { raisonsDInvalidation, type RaisonDInvalidation } from 'ucm-plugin-socle/src/composant/analyse/invalidations';
 import { ouvrirUneRevision, type RevisionDeTravail } from 'ucm-plugin-socle/src/composant/analyse/revisions';
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
@@ -107,6 +109,8 @@ export interface SortiesDeSession {
   readonly niveau: NiveauDAccessibilite;
   readonly architectureUcm: boolean;
   readonly ignores: readonly string[];
+  /** Les lecteurs (`regles`, `niveau`, `ignores`) dont la lecture a levé et dont la sortie est une valeur par défaut. */
+  readonly lecturesRefusees: readonly string[];
 }
 
 type NomDEntree = keyof SortiesDeSession | 'controles' | 'corrections';
@@ -143,6 +147,57 @@ function promouvoirLaRevision(revision: RevisionDAnalyse, identite: IdentiteDAna
   const { curseur, noeuds, admis, parents, pages, couverture, perimee } = courante;
   revision.preparer({ sorties, requetes, suivi: { curseur, noeuds, admis, parents, pages, couverture } });
   revision.promouvoir(!perimee && !ecritureDepuisLAnalyse(identite) && !couvertureInterrompue(identite));
+}
+
+/** Pourquoi une entrée retenue ne se réutilise pas, quoi qu'en dise le journal : une lecture refusée ou une couverture incomplète. */
+export type RaisonDeRelecture = 'releve-incomplet' | 'catalogue-inaccessible' | 'moteur-partiel' | 'couverture-incomplete' | `lecture-refusee:${string}`;
+
+export type EtatDeLEntree =
+  | { readonly etat: 'absent' }
+  | { readonly etat: 'utilisable' }
+  | { readonly etat: 'invalide'; readonly raisons: readonly RaisonDInvalidation[] }
+  | { readonly etat: 'a-relire'; readonly raisons: readonly RaisonDeRelecture[] };
+
+function raisonsDeRelecture({ sorties, suivi }: EntreeDeSessionDAnalyse): RaisonDeRelecture[] {
+  const raisons: RaisonDeRelecture[] = [];
+  const { lecture } = sorties.releve;
+  if (lecture.manquees.length > 0 || lecture.layersNonLus !== 0 || lecture.variantsNonLus.length > 0) raisons.push('releve-incomplet');
+  if (sorties.catalogue.collections.some(({ etat }) => etat === 'inaccessible') || sorties.catalogue.variables.some(({ etat }) => etat === 'inaccessible')) raisons.push('catalogue-inaccessible');
+  if (sorties.moteur.couverture.etat !== 'complete') raisons.push('moteur-partiel');
+  if (doitEtreRelue(suivi.couverture)) raisons.push('couverture-incomplete');
+  for (const lecteur of sorties.lecturesRefusees) raisons.push(`lecture-refusee:${lecteur}`);
+  return raisons;
+}
+
+/**
+ * Pose sur chaque entrée retenue les raisons que le journal donne depuis le dernier point évalué, puis avance ce point.
+ * Les raisons restent jusqu'à la promotion d'une nouvelle entrée : une demande annulée, arrêtée ou périmée ne les efface pas.
+ * Sans relecture de Figma. Appelée à l'ouverture de chaque demande, avant que le journal oublie ses vieilles entrées.
+ */
+function evaluerLesInvalidations(sujets: Iterable<string> = session.sujets()): void {
+  if (!journal) return;
+  const fin = journal.marquer();
+  for (const sujet of sujets) {
+    const entree = session.entree(sujet);
+    if (!entree) continue;
+    session.invalider(sujet, raisonsDInvalidation(entree.suivi, session.evalueJusqua(sujet) ?? entree.suivi.curseur, journal));
+    session.avancerLEvaluation(sujet, fin);
+  }
+}
+
+/**
+ * Ce que 9.4 consulte avant de valider une entrée : `absent` sans entrée, `invalide` quand le journal a touché le sujet
+ * depuis son curseur, `a-relire` quand une lecture refusée ou une couverture incomplète la rend irréutilisable,
+ * `utilisable` sinon. `utilisable` n'est pas encore `validée` : les ressources sans événement se revalident ensuite.
+ */
+export function etatDeLEntree(sujet: string): EtatDeLEntree {
+  const entree = session.entree(sujet);
+  if (!entree) return { etat: 'absent' };
+  evaluerLesInvalidations([sujet]);
+  const invalidations = session.invalidations(sujet) as RaisonDInvalidation[];
+  if (invalidations.length > 0) return { etat: 'invalide', raisons: invalidations };
+  const relectures = raisonsDeRelecture(entree);
+  return relectures.length > 0 ? { etat: 'a-relire', raisons: relectures } : { etat: 'utilisable' };
 }
 
 /**
@@ -736,6 +791,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     contexte.envoyer({ type: 'analyse-en-cours', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), variantsLus: phase === 'releve' ? fait ?? 0 : 0, variantsTotal: phase === 'releve' ? total ?? 0 : 0, progression });
   };
   const phase = (nom: PhaseDAnalyse): void => { etape(nom); courant.progresser?.(nom); };
+  const lecturesRefusees: string[] = [];
   let identite: IdentiteDAnalyse | null = null;
   let revision: RevisionDAnalyse | null = null;
   let catalogueLu: CatalogueDeReference | null = null;
@@ -771,6 +827,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     phase('sujet');
     // L'écoute de la page courante précède la première lecture du document : l'inventaire n'est connu qu'après le sujet.
     // Le journal n'a plus besoin de ce qui précède l'analyse précédente, la seule à retenir un curseur.
+    evaluerLesInvalidations();
     if (courante) ouvrirLeJournal().oublierAvant(courante.curseur);
     const curseur = ouvrirLeJournal().marquer();
     changementsEnAttente = { noeuds: [], styles: [] };
@@ -809,7 +866,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     courant.progresser('releve', releve.variants.length, releve.variants.length + releve.lecture.variantsNonLus.length);
 
     retenirLesLiaisons(liaisonsParCle(releve));
-    const niveau = await attendrePourLaMesure(async () => await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => 'AA') ?? 'AA');
+    const niveau = await attendrePourLaMesure(async () => await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => { lecturesRefusees.push('niveau'); return 'AA'; }) ?? 'AA');
     phase('catalogue');
     const catalogue = await attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries, inventaires), 'attente', 'catalogue');
     catalogueLu = catalogue;
@@ -826,7 +883,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (jeton.leve) return rendre('annulee', [], null);
     // Les ignorés se lisent avant le premier envoi : le provisoire dit déjà lesquels ne comptent pas. Son étape garde leur coût hors du dernier contrôle.
     etape('provisoire');
-    const rangees = await attendrePourLaMesure(async () => await lecteurs.ignores?.(contexte).catch((): readonly string[] => []) ?? []);
+    const rangees = await attendrePourLaMesure(async () => await lecteurs.ignores?.(contexte).catch((): readonly string[] => { lecturesRefusees.push('ignores'); return []; }) ?? []);
     if (jeton.leve) return rendre('annulee', [], null);
     const envoyee = demande.demande === undefined ? undefined : mesuresEnvoyees.get(demande.demande);
     if (envoyee && controles.length) envoyee.envois['premiers-constats'] = Date.now();
@@ -843,7 +900,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
 
     // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
     phase('regles');
-    const reglesLues = resultat.interne.couverture.etat === 'complete' ? await attendrePourLaMesure(async () => await lecteurs.regles?.(sujet, resultat.interne, contexte, inventaires).catch(() => null) ?? null, 'attente', 'regles') : null;
+    const reglesLues = resultat.interne.couverture.etat === 'complete' ? await attendrePourLaMesure(async () => await lecteurs.regles?.(sujet, resultat.interne, contexte, inventaires).catch(() => { lecturesRefusees.push('regles'); return null; }) ?? null, 'attente', 'regles') : null;
     retenirLesModeles(reglesLues);
     etape('controle-fusion');
     const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(resultat.interne, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
@@ -864,7 +921,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     rendre(statutFinal, visibles, releve, ignores, tous);
     if (revision) {
       const lecturesDuKit: NomDEntree[] = ['releve', 'catalogue'];
-      promouvoirLaRevision(revision, identite, statutFinal, { releve, catalogue, moteur: sansPublication(resultat.interne), regles: reglesLues, niveau, architectureUcm, ignores: rangees }, {
+      promouvoirLaRevision(revision, identite, statutFinal, { releve, catalogue, moteur: sansPublication(resultat.interne), regles: reglesLues, niveau, architectureUcm, ignores: rangees, lecturesRefusees }, {
         controles: { resultat: controles, entrees: [...lecturesDuKit, 'niveau', 'architectureUcm'] },
         corrections: { resultat: tous, entrees: [...lecturesDuKit, 'moteur', 'regles', 'controles'] },
         projection: { resultat: { visibles, ignores }, entrees: ['corrections', 'ignores'] },

@@ -12,6 +12,10 @@
  * Une entrée ne garde jamais ce qui appartient à une génération affichée : réponses aux questions, corrections fixées,
  * cases cochées, identité de génération, péremption. Une analyse suivante du même sujet ne les retrouve donc pas.
  *
+ * L'invalidation d'une entrée est une marque à part, hors de l'entrée : les raisons posées et le curseur du journal
+ * jusqu'où elles ont été évaluées. Une marque reste jusqu'à ce qu'une promotion remplace l'entrée ; annuler, arrêter ou
+ * périmer la demande suivante ne l'efface pas.
+ *
  * Le module ne connaît aucun type Figma ni aucun type du kit : l'appelant donne les types des sorties et des requêtes.
  * Il ne décide de rien (promotion, validation, éviction viennent après) ; il range et rend.
  */
@@ -52,6 +56,14 @@ export interface SessionDAnalyse<Sorties extends object, Requetes extends Record
   retenir(sujet: string, contenu: ContenuDeSession<Sorties, Requetes>): EntreeDeSession<Sorties, Requetes>;
   /** L'entrée du sujet, `null` sans entrée. Lire ne change pas son rang. */
   entree(sujet: string): EntreeDeSession<Sorties, Requetes> | null;
+  /** Ajoute des raisons d'invalidation à l'entrée du sujet ; sans effet sans entrée. */
+  invalider(sujet: string, raisons: readonly string[]): void;
+  /** Les raisons d'invalidation de l'entrée du sujet, sans doublon ; vide quand l'entrée est intacte ou absente. */
+  invalidations(sujet: string): readonly string[];
+  /** Le curseur du journal jusqu'où l'invalidation du sujet est évaluée (celui du suivi au départ) ; `null` sans entrée. */
+  evalueJusqua(sujet: string): number | null;
+  /** Avance le curseur jusqu'où l'invalidation du sujet est évaluée. */
+  avancerLEvaluation(sujet: string, curseur: number): void;
   /** Retire l'entrée du sujet ; vrai quand il y en avait une. */
   oublier(sujet: string): boolean;
   /** Les sujets retenus, du plus récent au plus ancien. */
@@ -60,19 +72,41 @@ export interface SessionDAnalyse<Sorties extends object, Requetes extends Record
   vider(): void;
 }
 
+interface Marques {
+  readonly raisons: Set<string>;
+  evalueJusqua: number;
+}
+
 export function creerLaSession<Sorties extends object, Requetes extends Record<string, RequeteRetenue<unknown>>>(): SessionDAnalyse<Sorties, Requetes> {
   const entrees = new Map<string, EntreeDeSession<Sorties, Requetes>>();
+  const marques = new Map<string, Marques>();
   let rang = 0;
   return {
     retenir(sujet, { sorties, requetes, suivi }) {
       rang += 1;
       const entree = { sujet, rang, sorties, requetes, suivi };
       entrees.set(sujet, entree);
+      marques.set(sujet, { raisons: new Set(), evalueJusqua: suivi.curseur });
       return entree;
     },
     entree: (sujet) => entrees.get(sujet) ?? null,
-    oublier: (sujet) => entrees.delete(sujet),
+    invalider(sujet, raisons) {
+      for (const raison of raisons) marques.get(sujet)?.raisons.add(raison);
+    },
+    invalidations: (sujet) => [...(marques.get(sujet)?.raisons ?? [])],
+    evalueJusqua: (sujet) => marques.get(sujet)?.evalueJusqua ?? null,
+    avancerLEvaluation(sujet, curseur) {
+      const m = marques.get(sujet);
+      if (m) m.evalueJusqua = Math.max(m.evalueJusqua, curseur);
+    },
+    oublier(sujet) {
+      marques.delete(sujet);
+      return entrees.delete(sujet);
+    },
     sujets: () => [...entrees.values()].sort((a, b) => b.rang - a.rang).map(({ sujet }) => sujet),
-    vider: () => entrees.clear(),
+    vider() {
+      entrees.clear();
+      marques.clear();
+    },
   };
 }

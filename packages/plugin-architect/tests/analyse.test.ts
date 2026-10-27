@@ -22,7 +22,7 @@ import { rangerUnePreparation, type PreparationRangee } from '../src/preparation
 import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 import { capturerLAnalyse, verifierLaPariteDeLAnalyse } from './parite';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
-import { analyseCourante, catalogueDeFigma, commencerUneAnalyse, correctionsDeLAnalyse, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
+import { analyseCourante, catalogueDeFigma, commencerUneAnalyse, correctionsDeLAnalyse, etatDeLEntree, surChangementDeStyle, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDuDocument, surSelection, traiterAvec, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
 import { origineDeLaSelection, retenirLaSelectionDuPlugin } from '../src/sandbox/commun';
 import type { Contexte } from '../src/sandbox/contexte';
 import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
@@ -1564,7 +1564,7 @@ test('la session retient les sorties, les requêtes et le suivi du sujet, sans r
   const entree = sessionDesAnalyses().entree('Alert');
   assert.ok(entree, 'une analyse complète retient son sujet');
   assert.deepEqual(Object.keys(entree).sort(), ['rang', 'requetes', 'sorties', 'suivi', 'sujet']);
-  assert.deepEqual(Object.keys(entree.sorties).sort(), ['architectureUcm', 'catalogue', 'ignores', 'moteur', 'niveau', 'regles', 'releve']);
+  assert.deepEqual(Object.keys(entree.sorties).sort(), ['architectureUcm', 'catalogue', 'ignores', 'lecturesRefusees', 'moteur', 'niveau', 'regles', 'releve']);
   assert.deepEqual(Object.keys(entree.requetes).sort(), ['controles', 'corrections', 'projection']);
   assert.deepEqual(Object.keys(entree.suivi).sort(), ['admis', 'couverture', 'curseur', 'noeuds', 'pages', 'parents']);
   assert.ok(!('pourLaPublication' in entree.sorties.moteur), 'les nœuds Figma du moteur ne sont pas retenus');
@@ -1682,4 +1682,90 @@ test('la révision d’un sujet finie après le passage à un autre sujet ne pro
   });
   entreeInchangee(retenue);
   assert.deepEqual(sessionDesAnalyses().sujets(), ['Alert']);
+});
+
+/** Des lectures dont la couverture est complète : sans elle, toute entrée serait à relire. */
+function lecteursCouverts(moteur: (jeton: { readonly leve: boolean }) => Promise<ResultatSansPublication> = complete()): Lecteurs {
+  const base = lecteurs(moteur);
+  return { ...base, sujet: async () => ({ cle: 'Alert', noeud: { id: 'jeu-Alert' } as never, noeuds: ['jeu-Alert', 'v-Alert'], couverture: { instances: 'descendues', complete: true, trous: [] } }) };
+}
+const annuleeParLeMoteur = (): Lecteurs => lecteursCouverts(async (jeton) => { (jeton as { leve: boolean }).leve = true; return { etat: 'annulee' }; });
+const analyserAvec = async (lectures: Lecteurs) => { const b = banc(); await traiterAvec(lectures)({ type: 'analyser' }, b.contexte); return b; };
+
+test('l’état d’une entrée : absent sans analyse, utilisable après une analyse complète couverte', async () => {
+  assert.deepEqual(etatDeLEntree('Alert'), { etat: 'absent' });
+  const b = await analyserAvec(lecteursCouverts());
+  assert.deepEqual(etatDeLEntree('Alert'), { etat: 'utilisable' });
+  assert.deepEqual(etatDeLEntree('Button'), { etat: 'absent' });
+  assert.equal(deType(b, 'analyse')[0].statut, 'complete');
+});
+
+test('un changement du sujet invalide l’entrée, et une demande annulée, arrêtée ou périmée ne l’efface pas', async () => {
+  const b = await analyserAvec(lecteursCouverts());
+  const entree = sessionDesAnalyses().entree('Alert');
+  surChangementDuDocument(['v-Alert'], b.contexte);
+  await analyserAvec(annuleeParLeMoteur());
+  assert.deepEqual(etatDeLEntree('Alert'), { etat: 'invalide', raisons: ['sujet-touche'] });
+  await analyserAvec(lecteursCouverts(async () => { throw new Error('le moteur lève'); }));
+  assert.deepEqual(etatDeLEntree('Alert'), { etat: 'invalide', raisons: ['sujet-touche'] });
+  const perimee = banc();
+  await traiterAvec(lecteursCouverts(async () => { surChangementDuDocument(['v-Alert'], perimee.contexte); return complete()(); }))({ type: 'analyser' }, perimee.contexte);
+  assert.equal(etatDeLEntree('Alert').etat, 'invalide');
+  assert.equal(sessionDesAnalyses().entree('Alert'), entree, 'seule une promotion remplace l’entrée');
+  await analyserAvec(lecteursCouverts());
+  assert.deepEqual(etatDeLEntree('Alert'), { etat: 'utilisable' });
+  assert.notEqual(sessionDesAnalyses().entree('Alert'), entree);
+});
+
+test('une écriture, un changement de style, un calque créé sous le sujet ou un type inconnu invalident ; un nœud d’une autre page non', async () => {
+  const cas: Array<[string, boolean, (b: Banc) => void]> = [
+    ['écriture', true, (b) => perimerApresUneEcriture(b.contexte)],
+    ['style', true, (b) => surChangementDeStyle([{ type: 'STYLE_PROPERTY_CHANGE', id: 'S:1' }], b.contexte)],
+    ['calque créé sous le jeu', true, (b) => surChangementDuDocument([{ type: 'CREATE', id: 'neuf', node: { id: 'neuf', parent: { id: 'v-Alert', parent: null } } }], b.contexte)],
+    ['changement d’un type inconnu', true, (b) => surChangementDuDocument([{ type: 'AUTRE', id: 'x', node: { id: 'x', parent: { id: 'page-1', parent: null } } }], b.contexte)],
+    ['nœud d’une autre page', false, (b) => surChangementDuDocument([{ type: 'PROPERTY_CHANGE', id: 'x', node: { id: 'x', parent: { id: 'page-1', parent: null } } }], b.contexte)],
+  ];
+  for (const [nom, invalide, agir] of cas) {
+    reinitialiserLAnalyse();
+    const b = await analyserAvec(lecteursCouverts());
+    agir(b);
+    await analyserAvec(annuleeParLeMoteur());
+    assert.equal(etatDeLEntree('Alert').etat, invalide ? 'invalide' : 'utilisable', nom);
+  }
+});
+
+test('une lecture refusée en fin d’analyse rend l’entrée à relire ; disponible à l’analyse suivante, elle est relue et promue utilisable', async () => {
+  let lectures = 0;
+  const avecRegles = (regles: Lecteurs['regles']): Lecteurs => {
+    const base = lecteursCouverts();
+    return { ...base, releve: async (...appel) => { lectures += 1; return base.releve(...appel); }, regles };
+  };
+  await analyserAvec(avecRegles(async () => { throw new Error('règles illisibles'); }));
+  assert.deepEqual(etatDeLEntree('Alert'), { etat: 'a-relire', raisons: ['lecture-refusee:regles'] });
+  const refusee = sessionDesAnalyses().entree('Alert');
+  await analyserAvec(avecRegles(async () => ({ composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false, modele: { nom: 'Alert', sections: [] }, proprietes: [], documentees: [] })));
+  assert.equal(lectures, 2, 'la seconde analyse relit Figma au lieu de réutiliser');
+  assert.deepEqual(etatDeLEntree('Alert'), { etat: 'utilisable' });
+  assert.notEqual(sessionDesAnalyses().entree('Alert'), refusee);
+});
+
+test('une lecture du relevé refusée ne laisse aucune entrée ; disponible ensuite, l’analyse relit et promeut une entrée utilisable', async () => {
+  let disponible = false;
+  const base = lecteursCouverts();
+  const lectures: Lecteurs = { ...base, releve: async (...appel) => {
+    const lu = await base.releve(...appel);
+    if (lu.statut !== 'lu' || disponible) return lu;
+    return { ...lu, releve: { ...lu.releve, lecture: { ...lu.releve.lecture, manquees: [{ layer: 'texte', champ: 'fills', motif: 'refusé' }] } } };
+  } };
+  const premiere = await analyserAvec(lectures);
+  assert.equal(deType(premiere, 'analyse')[0].statut, 'partielle');
+  assert.deepEqual(etatDeLEntree('Alert'), { etat: 'absent' });
+  disponible = true;
+  await analyserAvec(lectures);
+  assert.deepEqual(etatDeLEntree('Alert'), { etat: 'utilisable' });
+});
+
+test('une couverture incomplète ou inconnue rend l’entrée à relire', async () => {
+  await analyserAvec(lecteurs(complete()));
+  assert.deepEqual(etatDeLEntree('Alert'), { etat: 'a-relire', raisons: ['couverture-incomplete'] });
 });
