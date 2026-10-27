@@ -9,7 +9,7 @@ import type { ResultatSansPublication } from 'ucm-plugin-socle/src/composant/con
 import type { PluginMessage } from '../src/messages';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
 import {
-  analyseARelire, analyseCourante, couvertureDeLAnalyse, reinitialiserLAnalyse, surChangementDuDocument, traiter, traiterAvec, type Lecteurs, type SujetAAnalyser,
+  analyseARelire, analyseCourante, couvertureDeLAnalyse, reinitialiserLAnalyse, surChangementDeStyle, surChangementDuDocument, traiter, traiterAvec, type Lecteurs, type SujetAAnalyser,
 } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
 import { atelierDeCalques } from './figmaDeTest';
@@ -101,6 +101,29 @@ test('les événements gardés ne passent pas à l’analyse suivante, ni après
   assert.equal(perimes(b).length, 1, 'un nœud hors inventaire est ignoré une fois l’inventaire connu');
   surChangementDuDocument(['calque'], b.contexte);
   assert.equal(perimes(b).length, 2);
+});
+
+test('un stylechange périme l’analyse courante : elle ne sait pas quels styles ses lecteurs ont lus', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  surChangementDeStyle([], b.contexte);
+  assert.deepEqual(perimes(b), [], 'aucun changement, aucune péremption');
+  surChangementDeStyle([{ type: 'STYLE_PROPERTY_CHANGE', id: 'S:1', properties: ['fontSize'] }], b.contexte);
+  assert.deepEqual(perimes(b).map((message) => message.cause), ['document']);
+});
+
+test('un stylechange reçu avant l’inventaire est rejoué, puis la garde se ferme', async () => {
+  const b = banc();
+  await traiterAvec(lecteurs(b, { couverture: complete, sujet: () => surChangementDeStyle([{ type: 'STYLE_DELETE', id: 'S:1' }], b.contexte) }))({ type: 'analyser' }, b.contexte);
+  assert.deepEqual(perimes(b).map((message) => message.cause), ['document']);
+  await traiterAvec(lecteurs(b, { couverture: complete }))({ type: 'analyser' }, b.contexte);
+  assert.equal(perimes(b).length, 1, 'la seconde analyse ne rejoue pas le changement de la première');
+});
+
+test('un stylechange sans analyse courante ne périme rien', () => {
+  const b = banc();
+  surChangementDeStyle([{ type: 'STYLE_CREATE', id: 'S:1' }], b.contexte);
+  assert.deepEqual(perimes(b), []);
 });
 
 test('une analyse arrêtée avant son inventaire ne garde aucun événement', async () => {

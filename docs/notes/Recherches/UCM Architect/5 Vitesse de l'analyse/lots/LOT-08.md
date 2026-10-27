@@ -6,7 +6,7 @@
 
 - [x] **8.1 | gpt-6.1-sol | high** | **Claude Opus | high** : établir la matrice de couverture des événements pour nœuds, héritage et pages ; tests de portée inconnue. Résultat : `plugin-socle/src/composant/analyse/couverture.ts`, test `plugin-socle/tests/couverture.test.ts`, section « Matrice de couverture (8.1) ».
 - [x] **8.2 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : établir les relectures obligatoires de variables, collections, styles, maîtres, règles et libraries ; test de ressource externe modifiée. Résultat : `relecturesObligatoires` dans `couverture.ts`, section « Relectures obligatoires (8.2) ».
-- [ ] **8.3 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : vérifier la documentation Figma puis brancher seulement les événements dont la couverture est établie, dont stylechange si pertinent. Confier d'abord la lecture de la documentation Figma à un `chercheur`.
+- [x] **8.3 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : vérifier la documentation Figma puis brancher seulement les événements dont la couverture est établie, dont stylechange si pertinent. Confier d'abord la lecture de la documentation Figma à un `chercheur`. Résultat : `stylechange` branché dans `code.ts` et `surChangementDeStyle` (`sandbox/analyse.ts`), `porteeDesChangementsDeStyle` dans `couverture.ts`, section « Événements branchés (8.3) ». Aucun autre événement.
 - [ ] **8.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : accumuler les changements après la première péremption et hors analyse active ; tests d'événement retardé et de série de mutations.
 - [ ] **8.5 | gpt-6-luna | medium** | **Claude Sonnet | medium** : conserver anciens parents et topologie des suppressions ; élargir l'invalidation si parent ou événement manque.
 - [ ] **8.6 | gpt-6-luna | medium** | **Claude Sonnet | medium** : interrompre la couverture quand la page est quittée ou la file déborde ; test de retour sur page.
@@ -58,7 +58,7 @@ de barrière atomique. Contrôle : Architect/socle. **Build Architect.**
 | `regles` | `nodechange` | instances de règles sur une page écoutée |
 | `maitre` | `nodechange` | maître local, sur une page écoutée |
 | `variable`, `collection` | relecture | aucun événement sans `documentchange`, qui exige `loadAllPagesAsync` |
-| `style` | relecture | `stylechange` reste à vérifier (8.3) |
+| `style` | `stylechange` | style local, sans page demandée ; un style distant, refusé ou d'origine inconnue se relit |
 | `inventaire` | relecture | les listes locales n'ont pas d'événement |
 | `library` | relecture | une library change hors du fichier |
 
@@ -85,3 +85,33 @@ de barrière atomique. Contrôle : Architect/socle. **Build Architect.**
 Les autres maîtres, locaux et sur une page écoutée, sont rendus dans `maitresSuivis`. L'appelant les passe dans `SuivisDuSujet.maitres` : un changement sous l'un d'eux touche alors le sujet. Les règles de page suivent leur page, et leur maître suit la règle des maîtres.
 
 Preuves, dans `couverture.test.ts` : une variable distante, un style, une library et un maître distant figurent dans les relectures alors qu'aucun événement n'a touché le sujet ; un maître local sur une page qui n'est plus écoutée repasse en relecture.
+
+## Événements branchés (8.3)
+
+Faits vérifiés sur developers.figma.com :
+
+- `figma.on('stylechange')` fonctionne sans `loadAllPagesAsync` ; la page [migrating-to-dynamic-loading](https://developers.figma.com/docs/plugins/migrating-to-dynamic-loading/) le recommande.
+- `StyleChangeEvent { styleChanges }` ([StyleChangeEvent](https://developers.figma.com/docs/plugins/api/figma/#stylechangeevent)). Les types sont `STYLE_CREATE`, `STYLE_DELETE` (`style` vaut `null`) et `STYLE_PROPERTY_CHANGE { properties }` ([StyleChange](https://developers.figma.com/docs/plugins/api/StyleChange)). `StyleChangeProperty` compte 21 propriétés (`name`, `type`, `paint`, `effects`, `fontSize`, `lineHeight`…), aucune pour une variable liée au style.
+- `BaseDocumentChange.id` donne l'identifiant du style ([DocumentChange](https://developers.figma.com/docs/plugins/api/DocumentChange)).
+- Rien ne dit qu'un style distant (library) émet l'événement.
+- `documentchange` exige `loadAllPagesAsync` : interdit ici. Aucun événement de variable ni de collection n'existe. `NodeChangeProperty` ne nomme pas `boundVariables`.
+- `documentchange` n'est pas appelé quand un sous-calque d'instance change par son maître, ni quand un nœud change par son style : une valeur héritée passe par le maître, un nœud stylé par son style.
+- Les rappels `.on` sont asynchrones et groupés.
+
+Branché :
+
+- `code.ts` s'abonne à `stylechange` et passe `styleChanges` à `surChangementDeStyle`.
+- `porteeDesChangementsDeStyle(changements, stylesSuivis)` : un `STYLE_PROPERTY_CHANGE` ou un `STYLE_DELETE` d'un style suivi touche le sujet. Un `STYLE_CREATE` est de portée inconnue, car un style créé peut changer une recherche par nom que rien ne suit. Un type inconnu l'est aussi. `stylesSuivis` vaut `null` quand l'appelant ne sait pas quels styles il a lus : tout changement l'est alors.
+- `relecturesObligatoires` sépare `styles` (distants, refusés, d'origine inconnue : à relire) et `stylesSuivis` (locaux acquis). Une acquisition réelle marque aujourd'hui l'origine d'un style `inconnue` : ses styles restent donc en relecture.
+- Architect ne sait pas quels styles ses lecteurs ont lus : le relevé, le moteur et les effets les chargent chacun, sans les exposer. Il passe `null` : tout changement de style d'un type connu périme l'analyse courante, cause `document`. Un changement reçu avant l'inventaire est gardé avec les nœuds (`changementsDeStyleRecus`) et rejoué à l'inventaire.
+
+Reste en relecture : variables, collections, liaisons de variables, inventaires, libraries, styles distants. Un style lié à une variable qui change n'émet rien.
+
+Preuves : `couverture.test.ts` (style suivi modifié ou supprimé, création, type futur, styles inconnus, style distant en relecture) et `peremptionDeLAnalyse.test.ts` (péremption, changement gardé avant l'inventaire puis rejoué, aucune analyse courante). Le cas « un style non lu ne périme pas l'analyse » n'est pas prouvé : il suppose de connaître les styles lus, ce qu'Architect ne peut pas encore.
+
+Essais Figma utiles à la recette :
+
+- lier ou délier une variable sur un calque du jeu : voir si `nodechange` s'émet et ce qu'il nomme ;
+- modifier le maître d'une instance du jeu depuis une autre page : l'analyse doit se périmer ou se relire ;
+- modifier un style de library publié : vérifier qu'aucun `stylechange` n'arrive dans le fichier consommateur ;
+- modifier un style local de texte et un style d'effet utilisés par le jeu : l'analyse se périme.

@@ -30,6 +30,7 @@ import {
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { doitEtreRelue, type Couverture } from 'ucm-plugin-socle/src/composant/analyse/faits';
+import { porteeDesChangementsDeStyle, type ChangementDeStyleRecu } from 'ucm-plugin-socle/src/composant/analyse/couverture';
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
@@ -88,6 +89,9 @@ let courante: AnalyseCourante | null = null;
  * connu ; `null` hors de cet intervalle.
  */
 let evenementsRecus: Set<string> | null = null;
+
+/** Les changements de style reçus pendant la même fenêtre que `evenementsRecus` ; `null` hors de cet intervalle. */
+let changementsDeStyleRecus: ChangementDeStyleRecu[] | null = null;
 
 /** Sans topologie lue, aucun trou n'est connu et rien n'est couvert : la couverture est inconnue. */
 const COUVERTURE_INCONNUE: Couverture = { instances: 'descendues', complete: false, trous: [] };
@@ -234,11 +238,26 @@ export function surChangementDuDocument(noeudsTouches: Iterable<string>, context
   }
 }
 
+/**
+ * `stylechange` : les changements de style. L'analyse ne sait pas quels styles ses lecteurs ont lus (le relevé, le
+ * moteur et les effets les chargent chacun) : tout changement de style d'un type connu la périme. Gardés comme les
+ * nœuds tant que l'inventaire n'est pas connu.
+ */
+export function surChangementDeStyle(changements: Iterable<ChangementDeStyleRecu>, contexte: Contexte): void {
+  const recus = [...changements];
+  if (changementsDeStyleRecus) changementsDeStyleRecus.push(...recus);
+  if (!courante) return;
+  if (porteeDesChangementsDeStyle(recus, null).portee !== 'hors-sujet') perimer('document', contexte);
+}
+
 /** L'inventaire de l'analyse courante est connu : les événements gardés se jugent contre lui, puis la garde se ferme. */
 function rejouerLesEvenementsRecus(contexte: Contexte): void {
   const recus = evenementsRecus;
+  const recusDeStyle = changementsDeStyleRecus;
   evenementsRecus = null;
+  changementsDeStyleRecus = null;
   if (recus) surChangementDuDocument(recus, contexte);
+  if (recusDeStyle) surChangementDeStyle(recusDeStyle, contexte);
 }
 
 /**
@@ -557,6 +576,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     phase('sujet');
     // L'écoute de la page courante précède la première lecture du document : l'inventaire n'est connu qu'après le sujet.
     evenementsRecus = new Set();
+    changementsDeStyleRecus = [];
     contexte.surveillerLeDocument();
     const sujet = await attendrePourLaMesure(() => lecteurs.sujet(contexte).catch(() => null), 'attente', 'sujet');
     identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined, sujet?.couverture);
@@ -648,6 +668,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     else rendre('arretee', [bloquant(messageDErreur(erreur))], null);
   } finally {
     evenementsRecus = null;
+    changementsDeStyleRecus = null;
     // Une analyse finie avant d'avoir attendu les libraries (arrêt, erreur) ne laisse pas leur lecture courir : le jeton ne sert plus.
     if (librariesEnCours) courant.jeton.leve = true;
     courant.cloreMesure?.('arretee');
@@ -707,5 +728,6 @@ export function reinitialiserLAnalyse(): void {
   operation = null;
   courante = null;
   evenementsRecus = null;
+  changementsDeStyleRecus = null;
   mesuresEnvoyees.clear();
 }

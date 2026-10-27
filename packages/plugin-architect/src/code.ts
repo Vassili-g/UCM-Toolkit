@@ -8,11 +8,12 @@
  * `clientStorage` reçoit la taille de la fenêtre et les préférences.
  *
  * Figma ne signale pas les changements de variables sans charger toutes les
- * pages (`documentchange`) : le relevé se relit au geste « Actualiser ».
+ * pages (`documentchange`) : le relevé se relit au geste « Actualiser ». Seul
+ * `stylechange` s'ajoute à `nodechange`, pour les styles.
  */
 import { TAILLE_PAR_DEFAUT } from './fenetre';
 import type { PluginMessage, UiRequest } from './messages';
-import { surChangementDuDocument, surSelection } from './sandbox/analyse';
+import { surChangementDeStyle, surChangementDuDocument, surSelection } from './sandbox/analyse';
 import { declarer, envoyerLaSelection, ouvrirLaFenetre } from './sandbox/commun';
 import { abandonnerLesLibrariesAnticipees } from './sandbox/anticipation';
 import { creerLeSuivi, type Contexte } from './sandbox/contexte';
@@ -27,6 +28,10 @@ function versUi(message: PluginMessage): void {
 
 const surLesNoeuds = (evenement: NodeChangeEvent): void => {
   surChangementDuDocument(evenement.nodeChanges.map((changement) => changement.node.id), contexte);
+};
+
+const surLesStyles = (evenement: StyleChangeEvent): void => {
+  surChangementDeStyle(evenement.styleChanges, contexte);
 };
 
 /**
@@ -65,6 +70,8 @@ async function traiterMessage(message: UiRequest): Promise<void> {
 }
 
 figma.on('selectionchange', aLaSelection);
+// `stylechange` ne demande pas `loadAllPagesAsync` ; il ne dit rien d'une variable liée à un style ni d'un style de library.
+figma.on('stylechange', surLesStyles);
 figma.on('currentpagechange', () => {
   abandonnerLesLibrariesAnticipees();
   suivi.recalculer();

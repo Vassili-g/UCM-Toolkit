@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  doitSeRelire, MATRICE_DE_COUVERTURE, porteeDesChangements, porteeDuChangement, relecturesObligatoires,
+  doitSeRelire, MATRICE_DE_COUVERTURE, porteeDesChangements, porteeDesChangementsDeStyle, porteeDuChangement, relecturesObligatoires,
   type ChangementRecu, type EntreeLue, type NoeudDEvenement, type SuivisDuSujet,
 } from '../src/composant/analyse/couverture';
 import type { Ressources } from '../src/composant/analyse/faits';
@@ -22,7 +22,7 @@ function chaine(id: string, ...parents: string[]): NoeudDEvenement {
 const ecoutee = { pageEcoutee: true, locale: true };
 
 test('les entrées sans événement se relisent toujours, même sur une page écoutée', () => {
-  const sansEvenement: readonly EntreeLue[] = ['liaisons-de-variables', 'variable', 'collection', 'style', 'inventaire', 'library'];
+  const sansEvenement: readonly EntreeLue[] = ['liaisons-de-variables', 'variable', 'collection', 'inventaire', 'library'];
   for (const entree of sansEvenement) assert.equal(doitSeRelire(entree, ecoutee), true, entree);
   for (const entree of ['noeud', 'page', 'regles', 'maitre', 'valeur-heritee'] as const) {
     assert.equal(doitSeRelire(entree, ecoutee), false, entree);
@@ -32,8 +32,30 @@ test('les entrées sans événement se relisent toujours, même sur une page éc
 test('chaque entrée de la matrice porte un motif de relecture ou une condition', () => {
   for (const [entree, couverture] of Object.entries(MATRICE_DE_COUVERTURE)) {
     if (couverture.suivi === 'relecture') assert.ok(couverture.motif.length > 0, entree);
-    else assert.ok(['page-ecoutee', 'locale-et-page-ecoutee'].includes(couverture.condition), entree);
+    else assert.ok(['page-ecoutee', 'locale-et-page-ecoutee', 'locale'].includes(couverture.condition), entree);
   }
+});
+
+test('un style local est couvert par stylechange sans page écoutée ; un style distant se relit', () => {
+  assert.deepEqual(MATRICE_DE_COUVERTURE.style, { suivi: 'stylechange', condition: 'locale' });
+  assert.equal(doitSeRelire('style', { pageEcoutee: false, locale: true }), false);
+  assert.equal(doitSeRelire('style', { pageEcoutee: true, locale: false }), true);
+});
+
+test('un style suivi modifié ou supprimé touche le sujet ; un autre style reste hors du sujet', () => {
+  const suivis = new Set(['S:1']);
+  assert.deepEqual(porteeDesChangementsDeStyle([{ type: 'STYLE_PROPERTY_CHANGE', id: 'S:1', properties: ['fontSize'] }], suivis), { portee: 'sujet' });
+  assert.deepEqual(porteeDesChangementsDeStyle([{ type: 'STYLE_DELETE', id: 'S:1' }], suivis), { portee: 'sujet' });
+  assert.deepEqual(porteeDesChangementsDeStyle([{ type: 'STYLE_PROPERTY_CHANGE', id: 'S:2' }, { type: 'STYLE_DELETE', id: 'S:3' }], suivis), { portee: 'hors-sujet' });
+  assert.deepEqual(porteeDesChangementsDeStyle([], suivis), { portee: 'hors-sujet' });
+});
+
+test('un style créé, un type futur ou des styles lus inconnus rendent la portée inconnue', () => {
+  const suivis = new Set(['S:1']);
+  assert.deepEqual(porteeDesChangementsDeStyle([{ type: 'STYLE_CREATE', id: 'S:9' }], suivis), { portee: 'inconnue', raison: 'style-cree' });
+  assert.deepEqual(porteeDesChangementsDeStyle([{ type: 'STYLE_FUTUR', id: 'S:9' }], suivis), { portee: 'inconnue', raison: 'type-inconnu' });
+  assert.deepEqual(porteeDesChangementsDeStyle([{ type: 'STYLE_PROPERTY_CHANGE', id: 'S:2' }], null), { portee: 'inconnue', raison: 'styles-lus-inconnus' });
+  assert.deepEqual(porteeDesChangementsDeStyle([{ type: 'STYLE_CREATE', id: 'S:9' }, { type: 'STYLE_PROPERTY_CHANGE', id: 'S:1' }], suivis), { portee: 'sujet' });
 });
 
 test('une page non écoutée et un maître distant se relisent', () => {
@@ -113,7 +135,12 @@ function ressources(): Ressources {
     noeudsParIdentifiant: {},
     variables: { 'v:1': fait('v:1', {}, 'distante') },
     collections: { 'c:1': fait('c:1', {}) },
-    styles: { 's:1': fait('s:1', {}) },
+    styles: {
+      's:1': fait('s:1', {}),
+      's:distant': fait('s:distant', {}, 'distante'),
+      's:inconnu': fait('s:inconnu', {}, 'inconnue'),
+      's:refuse': { id: 's:refuse', provenance: { appel: { appel: 'propriete', nom: 's' }, origine: 'inconnue' }, etat: { etat: 'refuse', raison: 'leve' } },
+    },
     maitres: {
       local: fait('local', maitre('local', false)),
       ailleurs: fait('ailleurs', maitre('ailleurs', false)),
@@ -131,7 +158,8 @@ test('une ressource externe modifiée sans événement se relit : variables, sty
   assert.deepEqual(relectures, {
     variables: ['v:1'],
     collections: ['c:1'],
-    styles: ['s:1'],
+    styles: ['s:distant', 's:inconnu', 's:refuse'],
+    stylesSuivis: ['s:1'],
     maitres: ['ailleurs', 'distant', 'refuse'],
     variablesDeLibrary: ['cle-collection'],
     inventaires: ['variablesLocales'],
@@ -139,6 +167,10 @@ test('une ressource externe modifiée sans événement se relit : variables, sty
   });
   // Aucun événement reçu : la portée ne touche pas le sujet, mais les relectures restent dues.
   assert.deepEqual(porteeDesChangements([], suivis(['jeu'], relectures.maitresSuivis)), { portee: 'hors-sujet' });
+  // Le style local acquis est suivi par stylechange ; le style distant n'émet pas d'événement documenté et reste en relecture.
+  const stylesSuivis = new Set(relectures.stylesSuivis);
+  assert.deepEqual(porteeDesChangementsDeStyle([{ type: 'STYLE_PROPERTY_CHANGE', id: 's:1' }], stylesSuivis), { portee: 'sujet' });
+  assert.deepEqual(porteeDesChangementsDeStyle([{ type: 'STYLE_PROPERTY_CHANGE', id: 's:distant' }], stylesSuivis), { portee: 'hors-sujet' });
 });
 
 test('un maître local sur une page qui n\'est plus écoutée se relit', () => {
