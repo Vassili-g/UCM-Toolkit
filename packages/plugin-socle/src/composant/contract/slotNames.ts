@@ -96,7 +96,7 @@ export function* assignSlotsParEtapes(layoutNode: SceneNode, iconNames: Readonly
   for (const node of nodes) { yield; exportable.add(node); }
   const assignments: SlotAssignment[] = [];
   const reserves = new Set<string>();
-  for (const child of 'children' in layoutNode ? layoutNode.children : []) {
+  for (const child of 'children' in layoutNode ? champDuNoeud<readonly SceneNode[]>(layoutNode, 'children') : []) {
     yield;
     if (!exportable.has(child)) continue;
     const baseName = yield* baseSlotName(child, iconNames, composed);

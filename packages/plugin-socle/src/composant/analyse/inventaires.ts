@@ -14,9 +14,41 @@
  * pas. Les lectures par identifiant (variables, styles, maîtres) restent à `ressources.ts`, dont l'inventaire porte la
  * mémoire de la demande : une analyse la crée avec ses lectures, un moteur lancé seul n'en a pas et garde la sienne.
  * Les noms de composant d'une page se lisent une fois par page et par demande.
+ *
+ * Les champs des noeuds ont aussi une mémoire de la demande (`champs`) : le relevé, les dépendances et le moteur lisent
+ * chacun `name`, `parent`, `fills`, `boundVariables` et les autres champs du même nœud, et Figma facture chaque lecture.
+ * Elle garde la valeur que Figma a rendue la première fois pendant la demande, `figma.mixed` compris, et la rend aux
+ * lecteurs suivants : ils voient tous la même. Elle ne sert pas d'une demande à l'autre.
  */
+import { lectureNative, type LecteurDeChamp } from './acquisition';
 import { compter } from '../contract/mesure';
 import { creerMemoireDeRessources, type MemoireDeRessources, type OptionsDeLaMemoire } from './ressources';
+
+/**
+ * Lit `noeud[champ]` une fois par nœud et par champ, sur l'identifiant du nœud. Une valeur absente (`undefined`) se
+ * mémorise aussi ; une lecture qui lève lève comme avant et n'est pas mémorisée. Sans identifiant textuel, la lecture est
+ * directe. La valeur est partagée entre les lecteurs, là où Figma rend une copie neuve de `boundVariables`, `fills` ou
+ * `children` à chaque lecture : un appelant ne la modifie pas.
+ */
+export type MemoireDeChamps = LecteurDeChamp;
+
+export function creerMemoireDeChamps(): MemoireDeChamps {
+  const noeuds = new Map<string, Map<string, unknown>>();
+  return <T = unknown>(noeud: object, champ: string): T => {
+    const id = (noeud as { readonly id?: unknown }).id;
+    if (typeof id !== 'string') return lectureNative<T>(noeud, champ);
+    let champs = noeuds.get(id);
+    if (!champs) {
+      champs = new Map();
+      noeuds.set(id, champs);
+    } else if (champs.has(champ)) {
+      return champs.get(champ) as T;
+    }
+    const valeur = lectureNative<T>(noeud, champ);
+    champs.set(champ, valeur);
+    return valeur;
+  };
+}
 
 export interface InventairesDeLaDemande {
   /** Les collections locales du fichier, une lecture par demande. */
@@ -34,6 +66,8 @@ export interface InventairesDeLaDemande {
   nomsDeLaPage<T>(page: { readonly id?: unknown }, lire: () => T): T;
   /** Les variables, collections, styles et maîtres lus par identifiant, une fois chacun par demande ; absente sans options. */
   readonly ressources?: MemoireDeRessources;
+  /** Les champs des nœuds, une lecture par nœud et par champ pour toute la demande. */
+  readonly champs: MemoireDeChamps;
 }
 
 export interface OptionsDesInventaires {
@@ -84,5 +118,6 @@ export function creerInventairesDeLaDemande(options: OptionsDesInventaires = {})
       return rendre();
     },
     ressources: options.ressources ? creerMemoireDeRessources(options.ressources) : undefined,
+    champs: creerMemoireDeChamps(),
   };
 }

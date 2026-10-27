@@ -25,7 +25,7 @@ import { paintSiteRole, roleKind } from './semantics';
 import { isIconLayer } from './slotNames';
 import type { StrokeAlignment, StrokeWidth } from '@ucm-kit/core/format';
 import { estUneRacineDeVariant, pousserLocalise, pousserPourLesVariants } from './localisation';
-import { peinturesDuNoeud } from './porteeDAnalyse';
+import { champDuNoeud, peinturesDuNoeud } from './porteeDAnalyse';
 export type { TokenResolver } from '../variables';
 
 const BOUND_FIELDS = ['fills', 'strokes'] as const;
@@ -198,7 +198,7 @@ function lirePeintures(
   const liste = lues.valeur;
   // Un contour d'épaisseur nulle ne trace rien. Ce qu'il publie ne change pas
   // pour autant : la réserve porte sur le geste demandé, pas sur le relevé.
-  if (field === 'strokes' && values.strokeWeight === 0) return { aliases: duNode, libres: 0 };
+  if (field === 'strokes' && champDuNoeud(node, 'strokeWeight') === 0) return { aliases: duNode, libres: 0 };
   // Le node connaît une liaison qu'aucune peinture ne déclare : la lecture
   // exacte est incomplète, et seul le repli garantit qu'aucune ne se perd.
   if (liste.filter((paint) => aliasDuPaint(paint)).length < duNode.length) {

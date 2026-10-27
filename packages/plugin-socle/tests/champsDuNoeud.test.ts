@@ -1,15 +1,17 @@
 /**
  * La mémoire des champs d'un nœud dans la portée d'analyse : `name`, `layoutMode` et `boundVariables` que plusieurs
  * lecteurs relisent sur le même nœud ne coûtent qu'un accès natif. Hors portée, chaque lecture passe ; une lecture
- * qui lève lève toujours, et ne se mémorise pas.
+ * qui lève lève toujours, et ne se mémorise pas. Les portées qui reçoivent les inventaires d'une même demande
+ * (16.12) partagent cette mémoire avec le relevé et les dépendances ; elle meurt avec la demande.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { getBinding } from '../src/composant/contract/nodeBindings';
 import { isGridAutoLayout, isLinearAutoLayout } from '../src/composant/contract/flexLayout';
-import { champDuNoeud, dansUnePorteeDAnalyse, etatDuChamp } from '../src/composant/contract/porteeDAnalyse';
+import { champDuNoeud, dansUnePorteeDAnalyse, etatDuChamp, peinturesDuNoeud } from '../src/composant/contract/porteeDAnalyse';
 import { isIconLayer } from '../src/composant/contract/slotNames';
+import { creerInventairesDeLaDemande, creerMemoireDeChamps } from '../src/composant/analyse/inventaires';
 
 const ALIAS = { type: 'VARIABLE_ALIAS', id: 'VariableID:1:2' };
 
@@ -124,4 +126,50 @@ test('la mémoire s’oublie avec la portée', async () => {
   await dansUnePorteeDAnalyse({}, async () => { champDuNoeud(noeud, 'name'); });
   await dansUnePorteeDAnalyse({}, async () => { champDuNoeud(noeud, 'name'); });
   assert.equal(lectures.name, 2);
+});
+
+test('la mémoire de champs d’une demande rend la valeur que Figma a rendue, figma.mixed, absence et nœud sans identifiant compris', () => {
+  const mixte = Symbol('figma.mixed');
+  const lire = creerMemoireDeChamps();
+  const { noeud, lectures } = noeudCompte('1:1', { fills: () => mixte, dashPattern: () => undefined, name: () => 'icon' });
+  assert.equal(lire(noeud, 'fills'), mixte);
+  assert.equal(lire(noeud, 'fills'), mixte);
+  assert.equal(lire(noeud, 'dashPattern'), undefined);
+  assert.equal(lire(noeud, 'dashPattern'), undefined);
+  assert.equal(lire(noeud, 'name'), 'icon');
+  assert.deepEqual(lectures, { fills: 1, dashPattern: 1, name: 1 });
+  const sansId = noeudCompte(undefined, { name: () => 'icon' });
+  lire(sansId.noeud, 'name');
+  lire(sansId.noeud, 'name');
+  assert.equal(sansId.lectures.name, 2);
+  let essais = 0;
+  const casse = noeudCompte('1:2', { parent: () => { essais += 1; if (essais < 2) throw new Error('nœud supprimé'); return null; } });
+  assert.throws(() => lire(casse.noeud, 'parent'), /nœud supprimé/);
+  assert.equal(lire(casse.noeud, 'parent'), null);
+  assert.equal(lire(casse.noeud, 'parent'), null);
+  assert.equal(casse.lectures.parent, 2);
+});
+
+test('deux portées qui reçoivent les inventaires d’une même demande partagent la mémoire de champs ; une autre demande relit', async () => {
+  const { noeud, lectures } = noeudCompte('1:1', champs());
+  const inventaires = creerInventairesDeLaDemande();
+  await dansUnePorteeDAnalyse({ inventaires }, async () => { champDuNoeud(noeud, 'name'); });
+  inventaires.champs(noeud, 'name');
+  await dansUnePorteeDAnalyse({ inventaires }, async () => { champDuNoeud(noeud, 'name'); });
+  assert.equal(lectures.name, 1);
+  await dansUnePorteeDAnalyse({ inventaires: creerInventairesDeLaDemande() }, async () => { champDuNoeud(noeud, 'name'); });
+  await dansUnePorteeDAnalyse({}, async () => { champDuNoeud(noeud, 'name'); });
+  assert.equal(lectures.name, 3);
+});
+
+test('les peintures du moteur partent de la lecture de fills que la demande a déjà faite', async () => {
+  const { noeud, lectures } = noeudCompte('1:1', { fills: () => [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }], strokes: () => [] });
+  const inventaires = creerInventairesDeLaDemande();
+  inventaires.champs(noeud, 'fills');
+  await dansUnePorteeDAnalyse({ inventaires }, async () => {
+    const lues = peinturesDuNoeud(noeud, 'fills');
+    assert.equal(lues.etat, 'acquis');
+    peinturesDuNoeud(noeud, 'fills');
+  });
+  assert.equal(lectures.fills, 1);
 });

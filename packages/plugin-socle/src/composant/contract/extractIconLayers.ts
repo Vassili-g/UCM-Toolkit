@@ -115,9 +115,10 @@ export async function extractIconLayers(
       const summary = summaries.get(nom) ?? newAccumulator();
       summaries.set(nom, summary);
 
-      const reference = node.componentPropertyReferences?.visible;
+      const references = champDuNoeud<SceneNode['componentPropertyReferences']>(node, 'componentPropertyReferences');
+      const reference = references?.visible;
       summary.visibilityProps.add(reference ? normalizePropKey(reference) : null);
-      const swapReference = node.componentPropertyReferences?.mainComponent;
+      const swapReference = references?.mainComponent;
       summary.swapProps.add(swapReference ? normalizePropKey(swapReference) : null);
       summary.slots.add(slotByLayer.get(node) ?? null);
       // La taille se relève ici parce qu'une icône absente du variant de
@@ -129,7 +130,7 @@ export async function extractIconLayers(
       // dimension figée à citer, et `slotSize` exige les deux côtés sur la même
       // variable, un seul axe figé ne pourrait donc que produire un
       // avertissement, pour une valeur que le contrat n'a pas à porter.
-      const fixed = fixedDimensions(node, (node.parent ?? undefined) as SceneNode | undefined);
+      const fixed = fixedDimensions(node, (champDuNoeud<BaseNode | null>(node, 'parent') ?? undefined) as SceneNode | undefined);
       summary.sizes.add(
         fixed.width && fixed.height
           ? await resolveField(node, BINDING_PATTERNS.slotSize, 'width et height', resolver, warnings)

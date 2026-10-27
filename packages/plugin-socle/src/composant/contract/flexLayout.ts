@@ -487,8 +487,8 @@ export function menuDeDimensionnement(
 
   const principal = champDuNoeud(parent, 'layoutMode') === 'HORIZONTAL' ? 'horizontal' : 'vertical';
   const secondaire = principal === 'horizontal' ? 'vertical' : 'horizontal';
-  if (menu[secondaire] === 'FIXED' && values.layoutAlign === 'STRETCH') menu[secondaire] = 'FILL';
-  if (menu[principal] === 'FIXED' && values.layoutGrow === 1) menu[principal] = 'FILL';
+  if (menu[secondaire] === 'FIXED' && champDuNoeud(node, 'layoutAlign') === 'STRETCH') menu[secondaire] = 'FILL';
+  if (menu[principal] === 'FIXED' && champDuNoeud(node, 'layoutGrow') === 1) menu[principal] = 'FILL';
   return menu;
 }
 
@@ -662,7 +662,7 @@ export function flexItemProperties(
   // précise, et un consommateur qui suivrait `layoutAlign` étirerait un
   // composant que Figma garde hug. Un HUG n'annule que l'étirement : `MIN`,
   // `CENTER` et `MAX` alignent un enfant sans rien dire de sa taille.
-  const rawAlign = values.layoutAlign;
+  const rawAlign = champDuNoeud(child, 'layoutAlign');
   if (sizing.cross === 'FILL') {
     result.alignSelf = 'stretch';
   } else if (rawAlign !== undefined && rawAlign !== 'INHERIT') {
@@ -696,7 +696,7 @@ export function flexItemProperties(
   if (sizing.main === 'FILL') return { ...result, flexGrow: 1 };
   if (sizing.main === 'HUG') return result;
 
-  const rawGrow = values.layoutGrow;
+  const rawGrow = champDuNoeud(child, 'layoutGrow');
   if (rawGrow === undefined || rawGrow === 0) return result;
   if (rawGrow === 1) return { ...result, flexGrow: 1 };
 

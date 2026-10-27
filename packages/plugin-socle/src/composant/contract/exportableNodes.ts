@@ -20,7 +20,7 @@ import type { PointACorriger, Sujet } from './localisation';
 
 /** Vrai si la visibilité peut changer via l'API publique ou un mode de variable. */
 function hasDynamicVisibility(node: SceneNode): boolean {
-  return Boolean(node.componentPropertyReferences?.visible)
+  return Boolean(champDuNoeud<SceneNode['componentPropertyReferences']>(node, 'componentPropertyReferences')?.visible)
     || variableAliases(getBinding(node, 'visible')).length > 0;
 }
 
@@ -33,7 +33,7 @@ function hasDynamicVisibility(node: SceneNode): boolean {
  * que le contrat déclare invisible.
  */
 export function isStaticallyHidden(node: SceneNode): boolean {
-  return node.visible === false && !hasDynamicVisibility(node);
+  return champDuNoeud(node, 'visible') === false && !hasDynamicVisibility(node);
 }
 
 /** Détecte une liaison, y compris dans `boundVariables.componentProperties`. */

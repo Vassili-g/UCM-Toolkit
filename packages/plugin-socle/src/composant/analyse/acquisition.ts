@@ -49,6 +49,12 @@ const CHAMPS_NULLABLES: ReadonlySet<string> = new Set<ChampDeMiseEnPage>(['count
 
 const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
 
+/** Ce qui lit `noeud[champ]` : l'accès natif, ou la mémoire de champs de la demande qui le rend une fois par nœud et champ. */
+export type LecteurDeChamp = <T = unknown>(noeud: object, champ: string) => T;
+
+/** L'accès natif, pour une lecture qui n'a pas de mémoire. */
+export const lectureNative: LecteurDeChamp = <T = unknown>(noeud: object, champ: string): T => (noeud as Record<string, T>)[champ];
+
 /**
  * Lit un champ scalaire (chaîne, nombre, booléen ou `null`) du nœud, une seule fois.
  * `undefined` : le type de nœud n'expose pas le champ (`absent`). Une lecture
@@ -61,7 +67,7 @@ export function lireUnChamp(
   noeud: object,
   champ: string,
   lue?: () => void,
-  lire: (noeud: object, champ: string) => unknown = (n, c) => (n as Record<string, unknown>)[c],
+  lire: LecteurDeChamp = lectureNative,
 ): EtatEcrit<ValeurScalaire> {
   lue?.();
   let valeur: unknown;
@@ -81,10 +87,10 @@ export function lireUnChamp(
  * `null` hors `counterAxisSpacing` sont mixtes : la forme n'est pas celle que
  * `ChampsDeNoeud` annonce.
  */
-export function copierLaMiseEnPage<K extends ChampDeMiseEnPage>(noeud: object, champs: readonly K[], lue?: () => void): TableDesChamps<Pick<ChampsDeMiseEnPage, K>> {
+export function copierLaMiseEnPage<K extends ChampDeMiseEnPage>(noeud: object, champs: readonly K[], lue?: () => void, lire?: LecteurDeChamp): TableDesChamps<Pick<ChampsDeMiseEnPage, K>> {
   const table: { [C in K]?: EtatEcrit<ChampsDeMiseEnPage[C]> } = {};
   for (const champ of champs) {
-    const lu = lireUnChamp(noeud, champ, lue);
+    const lu = lireUnChamp(noeud, champ, lue, lire);
     const attendu = CHAMPS_TEXTE.has(champ) ? 'string' : 'number';
     const bonneForme = lu.etat !== 'acquis' || (lu.valeur === null ? CHAMPS_NULLABLES.has(champ) : typeof lu.valeur === attendu);
     table[champ] = (bonneForme ? lu : MIXTE) as EtatEcrit<ChampsDeMiseEnPage[K]>;
@@ -187,25 +193,25 @@ export async function copierLesPeinturesParEtapes(valeur: unknown, cession: Cess
   }
 }
 
-/** Lit `fills` ou `strokes` du nœud, une seule fois. Une lecture qui lève est refusée (`leve`). `lue` est appelé avant l'accès natif. */
-function lireLeChamp(noeud: object, champ: ChampDePeinture, lue?: () => void): { valeur: unknown } | Refuse<'leve'> {
+/** Lit `fills` ou `strokes` du nœud, une seule fois. Une lecture qui lève est refusée (`leve`). `lue` est appelé avant l'accès natif ; `lire` remplace cet accès. */
+function lireLeChamp(noeud: object, champ: ChampDePeinture, lue?: () => void, lire: LecteurDeChamp = lectureNative): { valeur: unknown } | Refuse<'leve'> {
   lue?.();
   try {
-    return { valeur: (noeud as Record<string, unknown>)[champ] };
+    return { valeur: lire(noeud, champ) };
   } catch (erreur) {
     return refuse('leve', messageDErreur(erreur));
   }
 }
 
 /** Lit `fills` ou `strokes` du nœud, une seule fois, et le copie. */
-export function lireLesPeintures(noeud: object, champ: ChampDePeinture, lue?: () => void): EtatEcrit<readonly PeintureLue[]> {
-  const lu = lireLeChamp(noeud, champ, lue);
+export function lireLesPeintures(noeud: object, champ: ChampDePeinture, lue?: () => void, lire?: LecteurDeChamp): EtatEcrit<readonly PeintureLue[]> {
+  const lu = lireLeChamp(noeud, champ, lue, lire);
   return 'etat' in lu ? lu : copierLesPeintures(lu.valeur);
 }
 
 /** Même lecture que `lireLesPeintures`, avec la copie qui cède la main. */
-export async function lireLesPeinturesParEtapes(noeud: object, champ: ChampDePeinture, cession: Cession, lue?: () => void): Promise<EtatEcrit<readonly PeintureLue[]>> {
-  const lu = lireLeChamp(noeud, champ, lue);
+export async function lireLesPeinturesParEtapes(noeud: object, champ: ChampDePeinture, cession: Cession, lue?: () => void, lire?: LecteurDeChamp): Promise<EtatEcrit<readonly PeintureLue[]>> {
+  const lu = lireLeChamp(noeud, champ, lue, lire);
   return 'etat' in lu ? lu : copierLesPeinturesParEtapes(lu.valeur, cession);
 }
 

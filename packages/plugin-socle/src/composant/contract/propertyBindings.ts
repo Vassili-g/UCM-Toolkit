@@ -2,6 +2,7 @@
 import type { VariantMatrix } from './componentTree';
 import { getAllNodesParEtapes } from './exportableNodes';
 import { pointDe, pousserNote, sujet } from './localisation';
+import { champDuNoeud } from './porteeDAnalyse';
 import type { ComposedInstances } from './exportableNodes';
 import type { ExtractedPropertyBinding } from '@ucm-kit/core/format';
 
@@ -34,7 +35,7 @@ function appliedValue(
   target: 'visible' | 'characters' | 'mainComponent',
   mainByInstanceId: ReadonlyMap<string, ComponentNode>,
 ): string | boolean | undefined {
-  if (target === 'visible') return node.visible !== false;
+  if (target === 'visible') return champDuNoeud(node, 'visible') !== false;
   if (target === 'characters') return node.type === 'TEXT' ? node.characters : undefined;
   const main = mainByInstanceId.get(node.id);
   if (!main) return undefined;
@@ -53,8 +54,8 @@ function* pathFrom(node: SceneNode, root: ComponentNode): Generator<void, string
   let current: BaseNode | null | undefined = node;
   while (current && current !== root) {
     yield;
-    if ('name' in current) path.unshift(current.name);
-    current = current.parent;
+    if ('name' in current) path.unshift(champDuNoeud<string>(current, 'name'));
+    current = champDuNoeud<BaseNode | null>(current, 'parent');
   }
   return path;
 }
@@ -99,7 +100,7 @@ export function* extractPropertyBindingsParEtapes(
     const nodes = yield* getAllNodesParEtapes(entry.component, [], composed);
     for (const node of nodes) {
       yield;
-      const references = node.componentPropertyReferences;
+      const references = champDuNoeud<SceneNode['componentPropertyReferences']>(node, 'componentPropertyReferences');
       if (!references) continue;
       for (const target of ['visible', 'characters', 'mainComponent'] as const) {
         yield;

@@ -23,7 +23,7 @@ import type { ContractPropertySurface } from './propertySurface';
 import type { ComposedDependency } from '@ucm-kit/core/format';
 import { pousserLocalise, reporterLocalisations } from './localisation';
 import { avancer, compter } from './mesure';
-import { maitreDe, respirerSiBesoin } from './porteeDAnalyse';
+import { champDuNoeud, maitreDe, respirerSiBesoin } from './porteeDAnalyse';
 
 /** Noms compactés des composants qui possèdent leur propre contrat. */
 export type ContractedNames = ReadonlySet<string>;
@@ -294,7 +294,7 @@ async function calculerLIndex(
         noms = entree.noms;
         nomsParPage.set(cleDePage, noms);
       }
-      const nom = nomCompacte(proprietaire.name);
+      const nom = nomCompacte(champDuNoeud<string>(proprietaire, 'name'));
       const cle = typeof proprietaire.id === 'string' ? proprietaire.id : proprietaire;
       const dejaJuge = juges.has(cle);
       if (!dejaJuge) juges.set(cle, noms.has(nom));
@@ -338,7 +338,7 @@ function toutesLesInstances(racine: SceneNode): InstanceNode[] {
 function pageDe(node: BaseNode): PageNode | null {
   try {
     let courant: BaseNode | null = node;
-    while (courant && courant.type !== 'PAGE') courant = courant.parent;
+    while (courant && courant.type !== 'PAGE') courant = champDuNoeud<BaseNode | null>(courant, 'parent');
     return courant?.type === 'PAGE' ? courant : null;
   } catch {
     // Figma annonce des nodes qu'il ne sert plus : un maître illisible n'a pas
@@ -448,12 +448,13 @@ async function contractedOwner(
     return { name: null, main: null };
   }
 
-  return { name: estContracte(owner, contracted, main) ? owner.name : null, main };
+  return { name: estContracte(owner, contracted, main) ? champDuNoeud<string>(owner, 'name') : null, main };
 }
 
 /** Nom du composant unifié derrière un maître : celui du SET quand il existe. */
 export function ownerComponentName(main: ComponentNode): string {
-  return componentOwner(main)?.name ?? '';
+  const proprietaire = componentOwner(main);
+  return proprietaire ? champDuNoeud<string>(proprietaire, 'name') : '';
 }
 
 /** Une instance rencontrée dans un maître, avec sa position et son nom de calque. */
@@ -503,18 +504,18 @@ function masterInstances(root: SceneNode): MasterInstance[] {
 /** Le Component ou Component Set qui possède l'API publique d'un maître. */
 function componentOwner(main: ComponentNode): ComponentNode | ComponentSetNode | null {
   try {
-    const parent = main.parent;
+    const parent = champDuNoeud<BaseNode | null>(main, 'parent');
     return parent?.type === 'COMPONENT_SET' ? parent : main;
   } catch { return null; }
 }
 
 function estLocal(owner: Proprietaire, main: ComponentNode | Proprietaire = owner): boolean {
-  try { return owner.remote !== true && main.remote !== true; } catch { return false; }
+  try { return champDuNoeud(owner, 'remote') !== true && champDuNoeud(main, 'remote') !== true; } catch { return false; }
 }
 
 /** Les homonymes locaux partagent leur verdict ; un maître distant reste exclu. */
 export function estContracte(owner: Proprietaire, noms: ContractedNames, main: Proprietaire = owner): boolean {
-  try { return estLocal(owner, main) && noms.has(nomCompacte(owner.name)); } catch { return false; }
+  try { return estLocal(owner, main) && noms.has(nomCompacte(champDuNoeud<string>(owner, 'name'))); } catch { return false; }
 }
 
 /**
@@ -660,8 +661,8 @@ export async function scanComposedInstances(
 
   const dependencyByInstance = new Map<InstanceNode, ComposedDependency>();
   for (const [instance, component] of ownerByInstance) {
-    const dependency: ComposedDependency = { component, figmaLayer: instance.name };
-    const visibility = instance.componentPropertyReferences?.visible;
+    const dependency: ComposedDependency = { component, figmaLayer: champDuNoeud<string>(instance, 'name') };
+    const visibility = champDuNoeud<InstanceNode['componentPropertyReferences']>(instance, 'componentPropertyReferences')?.visible;
     if (visibility) dependency.visibilityProp = normalizePropKey(visibility);
     dependencyByInstance.set(instance, dependency);
   }

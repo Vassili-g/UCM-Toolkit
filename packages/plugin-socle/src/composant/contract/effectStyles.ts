@@ -23,7 +23,7 @@ import {
   pousserPourLesVariants,
   pousserSansNode,
 } from './localisation';
-import { styleDeLaPortee } from './porteeDAnalyse';
+import { champDuNoeud, styleDeLaPortee } from './porteeDAnalyse';
 
 /** Un calque publié qui porte des effets, et son chemin dans la vue. */
 export type EffectCarrier = { node: SceneNode; slotPath: string[] };
@@ -51,7 +51,7 @@ function effetsVisibles(valeur: unknown): EffetFigma[] {
 }
 
 function styleIdDe(node: SceneNode): string {
-  const id = (node as unknown as { effectStyleId?: unknown }).effectStyleId;
+  const id = champDuNoeud(node, 'effectStyleId');
   return typeof id === 'string' ? id : '';
 }
 

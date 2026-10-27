@@ -6,7 +6,7 @@
  * dégradé, les effets, les grilles, les segments de texte et les propriétés
  * d'instance.
  */
-import { projeterLesPlagesParEtapes, type EtatDesSegments } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
+import { lectureNative, projeterLesPlagesParEtapes, type EtatDesSegments, type LecteurDeChamp } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
 import type { EtatEcrit, PeintureLue as PeintureCopiee } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import type { ContexteCooperatif } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
@@ -136,12 +136,12 @@ export type PeinturesCopiees = { readonly fills: EtatEcrit<readonly PeintureCopi
  */
 export type SegmentsPartages = () => Generator<undefined, EtatDesSegments>;
 
-function* liaisonsDuNoeudParEtapes(noeud: NoeudLu, copiees?: PeinturesCopiees, partages?: SegmentsPartages): Generator<LiaisonBrute | undefined> {
+function* liaisonsDuNoeudParEtapes(noeud: NoeudLu, copiees?: PeinturesCopiees, partages?: SegmentsPartages, lire: LecteurDeChamp = lectureNative): Generator<LiaisonBrute | undefined> {
   const texte = noeud.type === 'TEXT' && typeof noeud.getStyledTextSegments === 'function';
   const ignorer = texte ? new Set([...LUS_PAR_LEURS_OBJETS, ...CHAMPS_DE_TEXTE]) : LUS_PAR_LEURS_OBJETS;
-  yield* liaisonsDe(noeud.boundVariables, '', ignorer);
-  yield* liaisonsDesPeintures(copiees ? valeurSiAcquise(copiees.fills) : noeud.fills, 'fills');
-  yield* liaisonsDesPeintures(copiees ? valeurSiAcquise(copiees.strokes) : noeud.strokes, 'strokes');
+  yield* liaisonsDe(lire(noeud, 'boundVariables'), '', ignorer);
+  yield* liaisonsDesPeintures(copiees ? valeurSiAcquise(copiees.fills) : lire(noeud, 'fills'), 'fills');
+  yield* liaisonsDesPeintures(copiees ? valeurSiAcquise(copiees.strokes) : lire(noeud, 'strokes'), 'strokes');
   yield* liaisonsDesElements(noeud.effects, 'effects');
   yield* liaisonsDesElements(noeud.layoutGrids, 'layoutGrids');
   if (texte && partages) {
@@ -186,10 +186,10 @@ export function liaisonsDuNoeud(noeud: NoeudLu): LiaisonBrute[] {
  * Avec `partages`, les plages de texte viennent de cette lecture, projetée sur `boundVariables` et `fills` ; un refus de
  * la lecture lève, comme l'appel direct.
  */
-export async function liaisonsDuNoeudCooperatives(noeud: NoeudLu, cooperation: ContexteCooperatif, copiees?: PeinturesCopiees, partages?: SegmentsPartages): Promise<LiaisonBrute[]> {
+export async function liaisonsDuNoeudCooperatives(noeud: NoeudLu, cooperation: ContexteCooperatif, copiees?: PeinturesCopiees, partages?: SegmentsPartages, lire?: LecteurDeChamp): Promise<LiaisonBrute[]> {
   const liaisons: LiaisonBrute[] = [];
   const vues = new Set<string>();
-  for (const liaison of liaisonsDuNoeudParEtapes(noeud, copiees, partages)) {
+  for (const liaison of liaisonsDuNoeudParEtapes(noeud, copiees, partages, lire)) {
     await cooperation.cederSiBesoin();
     retenirLaLiaison(liaison, vues, liaisons);
   }

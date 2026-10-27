@@ -18,7 +18,7 @@ import { findWrapperReference } from './componentTree';
 import type { WrapperReference } from './componentTree';
 import { getAllNodes } from './exportableNodes';
 import { avancer } from './mesure';
-import { maitreDe, respirerSiBesoin } from './porteeDAnalyse';
+import { champDuNoeud, maitreDe, respirerSiBesoin } from './porteeDAnalyse';
 import type { ComposedInstances } from './exportableNodes';
 import { BINDING_PATTERNS, hasCompleteBinding } from './nodeBindings';
 import { pousserLocalise } from './localisation';
@@ -89,7 +89,7 @@ async function instanceOwnerId(instance: InstanceNode): Promise<string | null> {
   const main = await maitreDe(instance);
   if (!main) return null;
   try {
-    const parent = main.parent;
+    const parent = champDuNoeud<BaseNode | null>(main, 'parent');
     return parent?.type === 'COMPONENT_SET' ? parent.id : main.id;
   } catch { return null; }
 }

@@ -43,6 +43,7 @@ import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } f
 import { acquis, doitEtreRelue, type Couverture, type FaitDeRessource, type MaitreLu } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { porteeDesChangements, porteeDesChangementsDeStyle, relecturesObligatoires, type AnciensParents, type ChangementDeStyleRecu, type ChangementRecu } from 'ucm-plugin-socle/src/composant/analyse/couverture';
 import { creerLeJournal, type JournalDeChangements, type OrigineDEcriture, type RaisonDInterruption } from 'ucm-plugin-socle/src/composant/analyse/journal';
+import { lectureNative, type LecteurDeChamp } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
 import { creerInventairesDeLaDemande, type InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { BORNES_DE_RETENTION, type BornesDeRetention } from 'ucm-plugin-socle/src/composant/analyse/retention';
 import { creerLaSession, type EntreeDeSession, type RequeteRetenue, type SessionDAnalyse } from 'ucm-plugin-socle/src/composant/analyse/session';
@@ -1061,9 +1062,9 @@ async function definitionDuStyle(figma: PluginAPI, id: string, inventaires?: Inv
 }
 
 /** Une valeur lue d'un nœud, en données simples : `mixte` pour `figma.mixed`, `{ illisible }` quand la lecture lève. */
-function champSimple(noeud: object, champ: string): unknown {
+function champSimple(noeud: object, champ: string, lire: LecteurDeChamp): unknown {
   try {
-    const valeur = (noeud as Record<string, unknown>)[champ];
+    const valeur = lire(noeud, champ);
     return typeof valeur === 'symbol' ? 'mixte' : valeurSimple(valeur);
   } catch (erreur) {
     if (erreur instanceof AnalyseAnnulee) throw erreur;
@@ -1072,10 +1073,10 @@ function champSimple(noeud: object, champ: string): unknown {
 }
 
 /** L'identifiant du nœud que porte `champ` (parent, variant par défaut), `null` sans nœud, `{ illisible }` quand la lecture lève. */
-function identifiantDuChamp(noeud: object, champ: string): unknown {
+function identifiantDuChamp(noeud: object, champ: string, lire: LecteurDeChamp): unknown {
   try {
-    const cible = (noeud as Record<string, unknown>)[champ];
-    return cible ? champSimple(cible, 'id') : null;
+    const cible = lire<object | null | undefined>(noeud, champ);
+    return cible ? champSimple(cible, 'id', lectureNative) : null;
   } catch (erreur) {
     if (erreur instanceof AnalyseAnnulee) throw erreur;
     return { illisible: erreur instanceof Error ? erreur.message : String(erreur) };
@@ -1092,11 +1093,11 @@ export const CHAMPS_DU_MAITRE_DISTANT = ['name', 'remote', 'componentPropertyDef
 export const CHAMPS_SOUS_UNE_INSTANCE = ['type', 'name', 'visible', 'boundVariables', 'componentPropertyReferences', 'fills', 'strokes', 'strokeWeight'] as const;
 
 /** Ce que le moteur lit d'un maître distant : ses champs, son parent, et les champs de son jeu de variants s'il en a un. */
-function definitionDuMaitreDistant(maitre: NoeudDeDependance): unknown {
-  const champs = (noeud: object) => Object.fromEntries(CHAMPS_DU_MAITRE_DISTANT.map((champ) => [champ, champSimple(noeud, champ)]));
-  const parent = maitre.parent as NoeudDeDependance | null | undefined;
-  const parentLu = parent ? { id: champSimple(parent, 'id'), type: champSimple(parent, 'type') } : null;
-  const jeu = parent?.type === 'COMPONENT_SET' ? { ...champs(parent), defaultVariant: identifiantDuChamp(parent, 'defaultVariant') } : null;
+function definitionDuMaitreDistant(maitre: NoeudDeDependance, lire: LecteurDeChamp): unknown {
+  const champs = (noeud: object) => Object.fromEntries(CHAMPS_DU_MAITRE_DISTANT.map((champ) => [champ, champSimple(noeud, champ, lire)]));
+  const parent = lire<NoeudDeDependance | null | undefined>(maitre, 'parent');
+  const parentLu = parent ? { id: champSimple(parent, 'id', lectureNative), type: champSimple(parent, 'type', lire) } : null;
+  const jeu = parent?.type === 'COMPONENT_SET' ? { ...champs(parent), defaultVariant: identifiantDuChamp(parent, 'defaultVariant', lectureNative) } : null;
   return { ...champs(maitre), parent: parentLu, jeu };
 }
 
@@ -1113,7 +1114,9 @@ export const PROFONDEUR_DES_MAITRES = 8;
 async function decrireLeMaitre(maitre: NoeudDeDependance, inventaires?: InventairesDeLaDemande): Promise<{ readonly maitre: Omit<MaitreDeDependance, 'instances'>; readonly imbriquees: readonly NoeudDeDependance[] } | null> {
   try {
     if (typeof maitre.id !== 'string') return null;
-    const remote = typeof maitre.remote === 'boolean' ? maitre.remote : null;
+    const lire = inventaires?.champs ?? lectureNative;
+    const remoteLu = lire(maitre, 'remote');
+    const remote = typeof remoteLu === 'boolean' ? remoteLu : null;
     const pageId = pageDuNoeud<{ readonly id?: unknown } | null>(maitre as { type?: string; parent?: unknown }, null)?.id;
     const noeuds: string[] = [];
     const liaisons: unknown[] = [];
@@ -1121,19 +1124,19 @@ async function decrireLeMaitre(maitre: NoeudDeDependance, inventaires?: Inventai
     let noms: readonly string[] | null = null;
     if (remote === false) {
       // Un variant se lit avec son jeu : le moteur en lit les propriétés et les autres variants.
-      const parent = maitre.parent as NoeudDeDependance | null | undefined;
-      const racine = maitre.type === 'COMPONENT' && parent?.type === 'COMPONENT_SET' ? parent : maitre;
+      const parent = lire<NoeudDeDependance | null | undefined>(maitre, 'parent');
+      const racine = lire(maitre, 'type') === 'COMPONENT' && parent?.type === 'COMPONENT_SET' ? parent : maitre;
       for (const noeud of [racine, ...(racine.findAll?.(() => true) ?? [])]) {
         if (typeof noeud.id === 'string') {
           noeuds.push(noeud.id);
-          liaisons.push(valeurSimple(noeud.boundVariables));
+          liaisons.push(valeurSimple(lire(noeud, 'boundVariables')));
         }
-        if (noeud !== racine && noeud.type === 'INSTANCE') imbriquees.push(noeud);
+        if (noeud !== racine && lire(noeud, 'type') === 'INSTANCE') imbriquees.push(noeud);
       }
       const page = pageDuNoeud<PageNode | null>(maitre as { type?: string; parent?: unknown }, null);
       if (page) noms = [...(inventaires ? inventaires.nomsDeLaPage(page, () => nomsDeLaPage(page)) : nomsDeLaPage(page))];
     }
-    const definition = remote === true ? definitionDuMaitreDistant(maitre) : null;
+    const definition = remote === true ? definitionDuMaitreDistant(maitre, lire) : null;
     return { maitre: { id: maitre.id, remote, page: typeof pageId === 'string' ? pageId : null, noeuds, instancesImbriquees: imbriquees.length, nomsDeLaPage: noms, liaisons, definition }, imbriquees };
   } catch {
     return null;
@@ -1190,17 +1193,19 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
     inventaires ? inventaires.variablesLocales(lireLesVariables) : lireLesVariables(),
   ]);
   const jeu = sujet.noeud as unknown as NoeudDeDependance;
+  const lire = inventaires?.champs ?? lectureNative;
   const identifiants: string[] = [];
   const lesInstances: NoeudDeDependance[] = [];
   for (const noeud of [jeu, ...(jeu.findAll?.(() => true) ?? [])]) {
     await cooperation?.cederSiBesoin();
-    if (noeud.type === 'INSTANCE') lesInstances.push(noeud);
-    if (noeud.type === 'TEXT') {
-      const style = noeud.textStyleId;
+    const type = lire(noeud, 'type');
+    if (type === 'INSTANCE') lesInstances.push(noeud);
+    if (type === 'TEXT') {
+      const style = lire(noeud, 'textStyleId');
       if (typeof style !== 'string') identifiants.push('mixte');
       else if (style !== '') identifiants.push(style);
     }
-    const effet = noeud.effectStyleId;
+    const effet = lire(noeud, 'effectStyleId');
     if (typeof effet === 'string' && effet !== '') identifiants.push(effet);
   }
   const definitions = new Map<string, unknown>();
@@ -1216,7 +1221,7 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
   const instancesDistantes: NoeudDeDependance[] = [];
   const noterLeMaitre = (instance: NoeudDeDependance, natif: NoeudDeDependance) => {
     maitreLu.set(instance.id, natif.id as string);
-    if (natif.remote === true) instancesDistantes.push(instance);
+    if (lire(natif, 'remote') === true) instancesDistantes.push(instance);
   };
   // Les instances sous les maîtres lus à ce niveau : leurs maîtres forment le niveau suivant de la fermeture.
   let sousLesMaitres: NoeudDeDependance[] = [];
@@ -1267,7 +1272,7 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
       await cooperation?.cederSiBesoin();
       if (calquesVus.has(calque.id)) continue;
       calquesVus.add(calque.id);
-      calquesDesInstancesDistantes.push([calque.id, identifiantDuChamp(calque, 'parent'), ...CHAMPS_SOUS_UNE_INSTANCE.map((champ) => champSimple(calque, champ)), maitreLu.get(calque.id) ?? null]);
+      calquesDesInstancesDistantes.push([calque.id, identifiantDuChamp(calque, 'parent', lire), ...CHAMPS_SOUS_UNE_INSTANCE.map((champ) => champSimple(calque, champ, lire)), maitreLu.get(calque.id) ?? null]);
     }
   }
   return {
@@ -1289,6 +1294,7 @@ export const LECTEURS_DE_FIGMA: Lecteurs = {
       jeton,
       cooperation,
       ressources: inventaires?.ressources,
+      champs: inventaires?.champs,
     progresser,
     espaceDeCouleur: contexte.figma.root.documentColorProfile === 'DISPLAY_P3' ? 'display-p3' : 'srgb',
   }),

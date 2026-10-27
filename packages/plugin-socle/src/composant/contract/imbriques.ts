@@ -18,6 +18,7 @@ import type { ComposedInstances } from './exportableNodes';
 import { noter, pousserNote } from './localisation';
 import type { PointACorriger } from './localisation';
 import { extractContractPropertyModel } from './parsers';
+import { champDuNoeud } from './porteeDAnalyse';
 import { estUnDessinNonDeclare } from './structureTree';
 
 /** Un composant imbriqué sans règles, ses propriétés et ses instances. */
@@ -67,7 +68,7 @@ export function estUnePieceInterne(nom: string): boolean {
  */
 function porteurDuMaitre(main: ComponentNode): ComponentNode | ComponentSetNode | null {
   try {
-    const parent = main.parent;
+    const parent = champDuNoeud<BaseNode | null>(main, 'parent');
     return parent?.type === 'COMPONENT_SET' ? parent : main;
   } catch { return null; }
 }
@@ -83,7 +84,7 @@ function clesDeclareesParLePorteur(
   porteur: ComponentNode | ComponentSetNode,
 ): string[] | null {
   try {
-    const { props } = extractContractPropertyModel(porteur.componentPropertyDefinitions, []);
+    const { props } = extractContractPropertyModel(champDuNoeud<ComponentSetNode['componentPropertyDefinitions']>(porteur, 'componentPropertyDefinitions'), []);
     return Object.keys(props);
   } catch {
     return null;
@@ -137,7 +138,7 @@ function aQuiAppartient(
     let courant: BaseNode | null = instance;
     while (courant && courant.id !== composant.id) {
       if (courant.type === 'INSTANCE') chaine.unshift(courant);
-      courant = courant.parent;
+      courant = champDuNoeud<BaseNode | null>(courant, 'parent');
     }
   } catch {
     return 'illisible';
@@ -146,7 +147,7 @@ function aQuiAppartient(
   for (const maillon of chaine) {
     const porteur = porteurs.get(maillon.id);
     if (!porteur) return 'illisible';
-    if (estUnePieceInterne(porteur.name)) continue;
+    if (estUnePieceInterne(champDuNoeud<string>(porteur, 'name'))) continue;
     if (estContracte(porteur, contractes, maitres.get(maillon.id))) return 'elaguee';
     proche = { composant: porteur, maillon };
   }
@@ -273,8 +274,8 @@ export function releverLesImbriques(sources: SourcesDuReleve): ReleveDesImbrique
       return typeof sienne === 'object' && sienne !== null && sienne.composant === proprietaire;
     }).map((autre) => autre.id);
     const groupe: ImbriqueSansRegles = {
-      nom: proprietaire.name,
-      distant: proprietaire.remote === true,
+      nom: champDuNoeud<string>(proprietaire, 'name'),
+      distant: champDuNoeud(proprietaire, 'remote') === true,
       cles: [...declarees],
       nodeIds,
     };
@@ -406,7 +407,7 @@ export function sousUnImbriqueSansRegles(canal: readonly string[], node: SceneNo
     let courant: BaseNode | null = node;
     while (courant) {
       if (ids.has(courant.id)) return true;
-      courant = courant.parent;
+      courant = champDuNoeud<BaseNode | null>(courant, 'parent');
     }
   } catch {
     return false;

@@ -511,7 +511,7 @@ async function describeNode(
   }
 
   // ---- Visibilités -------------------------------------------------------
-  const directVisibility = child.componentPropertyReferences?.visible;
+  const directVisibility = champDuNoeud<SceneNode['componentPropertyReferences']>(child, 'componentPropertyReferences')?.visible;
   // Une seule dépendance peut prêter sa visibilité au slot. À plusieurs, la
   // retenir en masquerait les autres : chaque branche publie alors la sienne.
   const dependencyVisibility = dependencies.length === 1
@@ -664,7 +664,7 @@ function warnIntermediateBounds(
           + `puis réexportez.`,
       });
     }
-    const parent: BaseNode | null = current.parent;
+    const parent: BaseNode | null = champDuNoeud<BaseNode | null>(current, 'parent');
     current = parent && 'type' in parent ? (parent as SceneNode) : null;
   }
 }

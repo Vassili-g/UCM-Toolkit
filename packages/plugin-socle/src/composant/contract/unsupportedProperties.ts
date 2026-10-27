@@ -31,7 +31,7 @@
 import type { PeintureLue } from '../analyse/faits';
 import { pointDe, sujet } from './localisation';
 import type { PointACorriger } from './localisation';
-import { peinturesDuNoeud, plagesDuNoeud } from './porteeDAnalyse';
+import { champDuNoeud, peinturesDuNoeud, plagesDuNoeud } from './porteeDAnalyse';
 
 /** `boundVariables` et les propriétés visuelles ne sont pas typées champ par champ. */
 type FigmaPropertyBag = Record<string, unknown>;
@@ -164,7 +164,8 @@ function proprietesNonPortees(node: SceneNode): ProprieteNonPortee[] {
     });
   }
 
-  if (Array.isArray(values.dashPattern) && values.dashPattern.length > 0) {
+  const pointilles = champDuNoeud(node, 'dashPattern');
+  if (Array.isArray(pointilles) && pointilles.length > 0) {
     relevees.push({
       champ: 'dash',
       manque: 'le pointillé de son stroke, qui sera rendu en trait plein',

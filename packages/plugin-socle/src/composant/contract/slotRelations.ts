@@ -8,6 +8,7 @@
 import { getAllNodes, nearestAncestorInParEtapes } from './exportableNodes';
 import type { ComposedInstances } from './exportableNodes';
 import { normalizePropKey } from './parsers';
+import { champDuNoeud } from './porteeDAnalyse';
 import type { ComposedDependency, VisibilityTarget } from '@ucm-kit/core/format';
 
 /**
@@ -44,7 +45,7 @@ function belongsTo(node: SceneNode, ancestor: SceneNode): boolean {
   let current: BaseNode | null | undefined = node;
   while (current) {
     if (current === ancestor) return true;
-    current = current.parent;
+    current = champDuNoeud<BaseNode | null>(current, 'parent');
   }
   return false;
 }
@@ -61,8 +62,8 @@ export function figmaPath(node: SceneNode, root: SceneNode): string[] {
   const path: string[] = [];
   let current: BaseNode | null | undefined = node;
   while (current && current !== root) {
-    if ('name' in current) path.unshift(current.name);
-    current = current.parent;
+    if ('name' in current) path.unshift(champDuNoeud<string>(current, 'name'));
+    current = champDuNoeud<BaseNode | null>(current, 'parent');
   }
   return path;
 }
@@ -97,7 +98,7 @@ export function nestedSlotVisibility(
     (node) =>
       node !== child
       && !composed.has(node.id)
-      && Boolean(node.componentPropertyReferences?.visible),
+      && Boolean(champDuNoeud<SceneNode['componentPropertyReferences']>(node, 'componentPropertyReferences')?.visible),
   );
   if (targets.length === 0) return {};
 
@@ -111,7 +112,7 @@ export function nestedSlotVisibility(
       .every((node) => belongsTo(node, target) || belongsTo(target, node));
     if (controlsWholeSlot) {
       return {
-        visibilityProp: normalizePropKey(target.componentPropertyReferences!.visible!),
+        visibilityProp: normalizePropKey(champDuNoeud<SceneNode['componentPropertyReferences']>(target, 'componentPropertyReferences')!.visible!),
       };
     }
   }
@@ -121,7 +122,7 @@ export function nestedSlotVisibility(
   if (restantes.length === 0) return {};
   return {
     visibilityTargets: restantes.map((target) => ({
-      visibilityProp: normalizePropKey(target.componentPropertyReferences!.visible!),
+      visibilityProp: normalizePropKey(champDuNoeud<SceneNode['componentPropertyReferences']>(target, 'componentPropertyReferences')!.visible!),
       figmaPath: figmaPath(target, child),
     })),
   };

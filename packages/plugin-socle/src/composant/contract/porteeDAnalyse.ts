@@ -9,6 +9,7 @@
  */
 import { lireLesPeintures, lireLesSegments, lireUnChamp, projeterLesPlages, type ChampDePeinture, type EtatDesSegments, type ValeurScalaire } from '../analyse/acquisition';
 import { acquis, cleDeSegments, type ChampDeSegment, type EtatEcrit, type PeintureLue } from '../analyse/faits';
+import { creerMemoireDeChamps, type MemoireDeChamps } from '../analyse/inventaires';
 import { lireUneFoisParIdentifiant, type LectureNative, type MemoireDeRessources } from '../analyse/ressources';
 import { compter, attendrePourLaMesure, mesurerLeCalcul } from './mesure';
 
@@ -100,8 +101,11 @@ type Portee = {
   styles: Map<string, Promise<LectureNative<object>>>;
   /** Les peintures copiées de chaque champ de chaque nœud, par id de nœud et champ, refus compris. */
   peintures: Map<string, EtatEcrit<readonly PeintureLue[]>>;
-  /** Les champs lus de chaque nœud, par id de nœud puis champ, tels que Figma les a rendus. Une lecture qui lève n'y entre pas. */
-  champs: Map<string, Map<string, unknown>>;
+  /**
+   * Les champs lus de chaque nœud, tels que Figma les a rendus. Ceux de la demande d'Architect quand la portée reçoit ses
+   * inventaires (le relevé et les dépendances y ont déjà lu les mêmes), sinon une mémoire de la portée.
+   */
+  champs: MemoireDeChamps;
   /** Les plages lues de chaque nœud texte pour un jeu de champs, par id de nœud et `cleDeSegments`, refus compris. */
   segments: Map<string, EtatDesSegments>;
   /** Le parcours brut de chaque racine, par id : tous ses descendants, avant frontière ni filtre de visibilité. */
@@ -137,7 +141,7 @@ let desactivee = false;
  * Le refus persiste même si la première portée se ferme avant lui.
  */
 export async function dansUnePorteeDAnalyse<T>(
-  options: OptionsDeCooperation & { cooperation?: ContexteCooperatif; inventaires?: { readonly ressources?: MemoireDeRessources } },
+  options: OptionsDeCooperation & { cooperation?: ContexteCooperatif; inventaires?: { readonly ressources?: MemoireDeRessources; readonly champs?: MemoireDeChamps } },
   corps: () => Promise<T>,
 ): Promise<T> {
   if (portee || porteesRefusees > 0) {
@@ -154,7 +158,7 @@ export async function dansUnePorteeDAnalyse<T>(
     maitres: new Map(),
     styles: new Map(),
     peintures: new Map(),
-    champs: new Map(),
+    champs: options.inventaires?.champs ?? creerMemoireDeChamps(),
     segments: new Map(),
     parcours: new Map(),
     chemins: new Map(),
@@ -213,33 +217,23 @@ export function peinturesDuNoeud(noeud: { readonly id?: unknown }, champ: ChampD
   const cle = `${noeud.id} ${champ}`;
   const deja = memoire?.get(cle);
   if (deja) return deja;
-  const lu = lireLesPeintures(noeud, champ);
+  const lu = lireLesPeintures(noeud, champ, undefined, champDuNoeud);
   memoire?.set(cle, lu);
   return lu;
 }
 
 /**
  * La valeur d'un champ du nœud, ce que rend `noeud[champ]`. Dans une portée, chaque champ de chaque nœud se lit une fois :
- * le moteur relit sans cesse `name`, `layoutMode` et `boundVariables` du même nœud, et Figma facture chaque lecture.
- * Une valeur absente (`undefined`) se mémorise aussi. Une lecture qui lève lève comme avant et n'est pas mémorisée.
+ * le moteur relit sans cesse `name`, `parent` ou `boundVariables` du même nœud, et Figma facture chaque lecture. Une portée
+ * ouverte avec les inventaires d'une demande lit dans leur mémoire de champs (`MemoireDeChamps`), que le relevé et les
+ * dépendances de la même demande ont déjà remplie. Hors portée, la lecture est directe.
  *
  * La valeur est partagée entre les lecteurs, là où Figma rendait une copie neuve de `boundVariables` à chaque lecture :
  * un appelant ne la modifie pas, ni elle ni ses alias. Un appelant qui veut la modifier la copie d'abord.
  */
 export function champDuNoeud<T = unknown>(noeud: object, champ: string): T {
   const ouverte = porteeQuiMemorise();
-  const id = ouverte ? (noeud as { readonly id?: unknown }).id : undefined;
-  if (!ouverte || typeof id !== 'string') return (noeud as Record<string, T>)[champ];
-  let champs = ouverte.champs.get(id);
-  if (!champs) {
-    champs = new Map();
-    ouverte.champs.set(id, champs);
-  } else if (champs.has(champ)) {
-    return champs.get(champ) as T;
-  }
-  const valeur = (noeud as Record<string, T>)[champ];
-  champs.set(champ, valeur);
-  return valeur;
+  return ouverte ? ouverte.champs<T>(noeud, champ) : (noeud as Record<string, T>)[champ];
 }
 
 /** `lireUnChamp` sur la lecture mémorisée de la portée : mêmes états, un accès natif par nœud et champ. */

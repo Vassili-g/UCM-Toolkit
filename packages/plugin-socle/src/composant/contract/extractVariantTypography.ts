@@ -17,7 +17,7 @@ import { publishesChildrenParEtapes } from './structureTree';
 import { composedSlotDependenciesParEtapes } from './slotRelations';
 import { assignSlotsParEtapes } from './slotNames';
 import { avancer } from './mesure';
-import { cheminsMemorises, memoriserLesChemins, respirerSiBesoin, styleDeLaPortee } from './porteeDAnalyse';
+import { champDuNoeud, cheminsMemorises, memoriserLesChemins, respirerSiBesoin, styleDeLaPortee } from './porteeDAnalyse';
 import type {
   TextStyleDefinition,
   TextStyleUse,
@@ -167,7 +167,7 @@ async function loadTextStyle(
   warnings: string[],
   loadStyle: TextStyleLoader,
 ): Promise<LoadedStyle | null> {
-  const styleId = textNode.textStyleId;
+  const styleId = champDuNoeud(textNode, 'textStyleId');
   if (typeof styleId !== 'string' || !styleId) {
     pousserLocalise(warnings, 'Layer', textNode, {
       famille: 'styles',
@@ -343,7 +343,8 @@ export async function extractVariantTypography(
         });
         continue;
       }
-      const styleId = typeof textNode.textStyleId === 'string' ? textNode.textStyleId : '';
+      const styleIdLu = champDuNoeud(textNode, 'textStyleId');
+      const styleId = typeof styleIdLu === 'string' ? styleIdLu : '';
       let pending = styleCache.get(styleId);
       if (!pending) {
         pending = loadTextStyle(textNode, resolver, warnings, loadStyle);

@@ -21,7 +21,7 @@
  * plage et figure à la fois dans `layer.liaisons` et dans `texte.plages`.
  */
 import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu } from '@ucm-kit/core/controles';
-import { copierLaMiseEnPage, copierLesPeinturesParEtapes, lireLesPeinturesParEtapes, lireLesSegmentsCooperatif, lireLesSegmentsParEtapes, type ChampDeMiseEnPage, type ChampsDeMiseEnPage, type EtatDesSegments, type PlageLue } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
+import { copierLaMiseEnPage, copierLesPeinturesParEtapes, lectureNative, lireLesPeinturesParEtapes, lireLesSegmentsCooperatif, lireLesSegmentsParEtapes, type ChampDeMiseEnPage, type ChampsDeMiseEnPage, type EtatDesSegments, type LecteurDeChamp, type PlageLue } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
 import { champDe, type ChampDeSegment, type EtatEcrit, type MaitreLu, type ModeDeCollectionLu, type PeintureLue as PeintureCopiee, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { creerMemoireDeRessources, type MemoireDeRessources } from 'ucm-plugin-socle/src/composant/analyse/ressources';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
@@ -43,6 +43,8 @@ export interface OptionsDuReleve {
   readonly espaceDeCouleur?: EspaceDuReleve;
   /** La mémoire de ressources de la demande, que le moteur lit après lui ; sans elle, le relevé garde la sienne. */
   readonly ressources?: MemoireDeRessources;
+  /** La mémoire de champs de la demande (`name`, `parent`, `children`, `fills`, `strokes`, `boundVariables`…), que les dépendances et le moteur lisent aussi ; sans elle, chaque lecture est directe. */
+  readonly champs?: LecteurDeChamp;
 }
 
 export type IssueDuReleve =
@@ -57,15 +59,15 @@ type Etape = { noeud: NoeudLu; parent: string | null; frontiere: boolean };
 const estUnNombre = (valeur: unknown): valeur is number => typeof valeur === 'number' && Number.isFinite(valeur);
 const estUnObjet = (valeur: unknown): valeur is Brut => typeof valeur === 'object' && valeur !== null;
 const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
-const champLu = (noeud: NoeudLu, champ: string): unknown => {
+const champLu = (noeud: NoeudLu, champ: string, lire: LecteurDeChamp = lectureNative): unknown => {
   compter('proprietesDuReleve');
-  return (noeud as unknown as Brut)[champ];
+  return lire(noeud, champ);
 };
 
-const estUnVariant = (noeud: NoeudLu): boolean => noeud.type === 'COMPONENT' && noeud.parent?.type === 'COMPONENT_SET';
+const estUnVariant = (noeud: NoeudLu, lire: LecteurDeChamp = lectureNative): boolean => noeud.type === 'COMPONENT' && lire<NoeudLu | null>(noeud, 'parent')?.type === 'COMPONENT_SET';
 
 /** Les layers d'un variant, racine d'abord ; une instance sous la racine n'est pas descendue. */
-async function parcourir(racine: NoeudLu, cooperation: ContexteCooperatif): Promise<Etape[]> {
+async function parcourir(racine: NoeudLu, cooperation: ContexteCooperatif, lire: LecteurDeChamp): Promise<Etape[]> {
   const etapes: Etape[] = [];
   const aVisiter: Array<{ noeud: NoeudLu; parent: string | null }> = [{ noeud: racine, parent: null }];
   while (aVisiter.length > 0) {
@@ -74,7 +76,7 @@ async function parcourir(racine: NoeudLu, cooperation: ContexteCooperatif): Prom
     const frontiere = noeud.type === 'INSTANCE' && noeud.id !== racine.id;
     etapes.push({ noeud, parent, frontiere });
     if (frontiere) continue;
-    const enfants = noeud.children ?? [];
+    const enfants = lire<readonly NoeudLu[] | undefined>(noeud, 'children') ?? [];
     for (let rang = enfants.length - 1; rang >= 0; rang -= 1) {
       await cooperation.cederSiBesoin();
       aVisiter.push({ noeud: enfants[rang], parent: noeud.id });
@@ -125,7 +127,7 @@ async function peinturesDe(champ: 'fills' | 'strokes', copie: EtatEcrit<readonly
 }
 
 /** Copie des champs de mise en page, une lecture chacun, comptée comme les autres propriétés du relevé. */
-const miseEnPage = <K extends ChampDeMiseEnPage>(noeud: NoeudLu, champs: readonly K[]) => copierLaMiseEnPage(noeud, champs, () => compter('proprietesDuReleve'));
+const miseEnPage = <K extends ChampDeMiseEnPage>(noeud: NoeudLu, champs: readonly K[], lire?: LecteurDeChamp) => copierLaMiseEnPage(noeud, champs, () => compter('proprietesDuReleve'), lire);
 
 /**
  * Le nombre fini d'un champ copié ; `undefined` sinon. Un champ mixte ou absent n'est pas une valeur en dur. Une
@@ -207,6 +209,8 @@ class Lecteur {
     readonly manquees: Manquee[],
     readonly cooperation: ContexteCooperatif,
     ressources?: MemoireDeRessources,
+    /** Ce qui lit un champ de nœud : la mémoire de la demande, ou l'accès direct. */
+    readonly lire: LecteurDeChamp = lectureNative,
   ) {
     this.ressources = ressources ?? creerMemoireDeRessources({
       lectures: () => ({
@@ -339,7 +343,8 @@ async function texteDe(lecteur: Lecteur, noeud: NoeudLu, liaisons: readonly Liai
   if (lus.etat === 'acquis') segments = lus.valeur;
   else if (lus.raison === 'leve') manquees.push({ layer: noeud.id, champ: 'texte', motif: lus.message ?? '' });
   const identifiants = new Set<unknown>();
-  if (typeof noeud.textStyleId === 'string') identifiants.add(noeud.textStyleId);
+  const styleDuTexte = lecteur.lire(noeud, 'textStyleId');
+  if (typeof styleDuTexte === 'string') identifiants.add(styleDuTexte);
   else for (const segment of segments) {
     await lecteur.cooperation.cederSiBesoin();
     identifiants.add(segment.valeurs.textStyleId);
@@ -381,7 +386,7 @@ async function instanceDe(noeud: NoeudLu, lecteur: Lecteur, manquees: Manquee[])
     return undefined;
   }
   try {
-    const references = champLu(noeud, 'componentPropertyReferences');
+    const references = champLu(noeud, 'componentPropertyReferences', lecteur.lire);
     const pilotee = estUnObjet(references) && typeof references.mainComponent === 'string' ? references.mainComponent : null;
     const publie = lu.maitre.jeu ?? lu.maitre;
     return { cle: publie.key, nom: publie.nom, distante: lu.maitre.remote, pilotee };
@@ -394,11 +399,11 @@ async function instanceDe(noeud: NoeudLu, lecteur: Lecteur, manquees: Manquee[])
 async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape, manquees: Manquee[]): Promise<LayerLu> {
   const { noeud, parent, frontiere } = etape;
   const dimensions = dimensionsDe(noeud, manquees);
-  const [id, nom, type] = [noeud.id, noeud.name, noeud.type];
-  const visible = champLu(noeud, 'visible') !== false;
+  const [id, nom, type] = [noeud.id, lecteur.lire<string>(noeud, 'name'), noeud.type];
+  const visible = champLu(noeud, 'visible', lecteur.lire) !== false;
   const opacite = estUnNombre(champLu(noeud, 'opacity')) ? champLu(noeud, 'opacity') as number : 1;
   const compterLaLecture = () => compter('proprietesDuReleve');
-  const fills = await lireLesPeinturesParEtapes(noeud, 'fills', lecteur.cooperation, compterLaLecture);
+  const fills = await lireLesPeinturesParEtapes(noeud, 'fills', lecteur.cooperation, compterLaLecture, lecteur.lire);
   const layer: LayerLu = {
     id,
     nom,
@@ -411,16 +416,16 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     liaisons: [],
     valeursEnDur: [],
   };
-  const strokes = await lireLesPeinturesParEtapes(noeud, 'strokes', lecteur.cooperation, compterLaLecture);
+  const strokes = await lireLesPeinturesParEtapes(noeud, 'strokes', lecteur.cooperation, compterLaLecture, lecteur.lire);
   for (const peinture of await peinturesDe('strokes', strokes, noeud.id, manquees, lecteur.cooperation)) {
     await lecteur.cooperation.cederSiBesoin();
     layer.peintures.push(peinture);
   }
-  const epaisseur = nombreDe(miseEnPage(noeud, ['strokeWeight']), 'strokeWeight', noeud.id, manquees);
+  const epaisseur = nombreDe(miseEnPage(noeud, ['strokeWeight'], lecteur.lire), 'strokeWeight', noeud.id, manquees);
   if (epaisseur !== undefined) layer.strokeWeight = epaisseur;
   const segments = noeud.type === 'TEXT' ? new SegmentsDuTexte(noeud) : undefined;
   try {
-    layer.liaisons = await lecteur.liaisons(await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation, { fills, strokes }, segments?.parEtapes), noeud.id);
+    layer.liaisons = await lecteur.liaisons(await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation, { fills, strokes }, segments?.parEtapes, lecteur.lire), noeud.id);
     if (frontiere) {
       const lues: LiaisonLue[] = [];
       for (const { propriete, variable, porteur } of await liaisonsDesSurcharges(port, noeud, true, lecteur.cooperation)) {
@@ -451,7 +456,7 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
 }
 
 /** Les valeurs de variant d'un composant : `variantProperties`, sinon son nom `Propriété=Valeur, …`. */
-async function valeursDuVariant(variant: NoeudLu, cooperation: ContexteCooperatif): Promise<Record<string, string>> {
+async function valeursDuVariant(variant: NoeudLu, cooperation: ContexteCooperatif, lire: LecteurDeChamp): Promise<Record<string, string>> {
   const propres = champLu(variant, 'variantProperties');
   if (estUnObjet(propres)) {
     const valeurs: Record<string, string> = {};
@@ -461,9 +466,9 @@ async function valeursDuVariant(variant: NoeudLu, cooperation: ContexteCooperati
     }
     return valeurs;
   }
-  if (!estUnVariant(variant)) return {};
+  if (!estUnVariant(variant, lire)) return {};
   const valeurs: Record<string, string> = {};
-  const nom = variant.name;
+  const nom = lire<string>(variant, 'name');
   let debut = 0;
   while (debut <= nom.length) {
     await cooperation.cederSiBesoin();
@@ -479,10 +484,10 @@ async function valeursDuVariant(variant: NoeudLu, cooperation: ContexteCooperati
 
 const TYPES_DE_PROPRIETE = new Set(['VARIANT', 'BOOLEAN', 'TEXT', 'INSTANCE_SWAP']);
 
-async function proprietesDe(jeu: NoeudLu, manquees: Manquee[], cooperation: ContexteCooperatif): Promise<ReleveDeComposant['proprietes']> {
+async function proprietesDe(jeu: NoeudLu, manquees: Manquee[], cooperation: ContexteCooperatif, lire: LecteurDeChamp): Promise<ReleveDeComposant['proprietes']> {
   let definitions: unknown;
   try {
-    definitions = champLu(jeu, 'componentPropertyDefinitions');
+    definitions = champLu(jeu, 'componentPropertyDefinitions', lire);
   } catch (erreur) {
     manquees.push({ champ: 'componentPropertyDefinitions', motif: messageDErreur(erreur) });
     return [];
@@ -522,10 +527,11 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
   const budget = options.budgetDeLayers ?? BUDGET_DE_LAYERS_PAR_DEFAUT;
   const cooperation = options.cooperation ?? creerContexteCooperatif({ jeton: options.jeton, respirer: () => port.pause() });
   const annule = (): boolean => options.jeton?.leve === true;
+  const lire = options.champs ?? lectureNative;
   let sujet: NoeudLu | null = depart;
   while (sujet && !['COMPONENT', 'COMPONENT_SET', 'INSTANCE'].includes(sujet.type)) {
     await cooperation.cederSiBesoin();
-    sujet = sujet.parent;
+    sujet = lire<NoeudLu | null>(sujet, 'parent');
   }
   if (!sujet) return { statut: 'sans-sujet' };
   if (sujet.type === 'INSTANCE') {
@@ -533,10 +539,11 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
     if (!maitre) return { statut: 'sans-sujet' };
     sujet = maitre;
   }
-  const jeu = sujet.type === 'COMPONENT_SET' ? sujet : estUnVariant(sujet) && sujet.parent ? sujet.parent : sujet;
+  const parentDuVariant = sujet.type !== 'COMPONENT_SET' && estUnVariant(sujet, lire) ? lire<NoeudLu | null>(sujet, 'parent') : null;
+  const jeu = sujet.type === 'COMPONENT_SET' ? sujet : parentDuVariant ?? sujet;
   const composants: NoeudLu[] = [];
   if (jeu.type === 'COMPONENT_SET') {
-    for (const enfant of jeu.children ?? []) {
+    for (const enfant of lire<readonly NoeudLu[] | undefined>(jeu, 'children') ?? []) {
       await cooperation.cederSiBesoin();
       if (enfant.type === 'COMPONENT') composants.push(enfant);
     }
@@ -545,7 +552,7 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
   if (annule()) return { statut: 'annule' };
 
   const manquees: Manquee[] = [];
-  const lecteur = new Lecteur(port, manquees, cooperation, options.ressources);
+  const lecteur = new Lecteur(port, manquees, cooperation, options.ressources, lire);
   const variants: VariantLu[] = [];
   const variantsNonLus: string[] = [];
   let layersLus = 0;
@@ -557,7 +564,7 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
     if (annule()) return { statut: 'annule' };
     let etapes: Etape[] | null = null;
     try {
-      etapes = await parcourir(composant, cooperation);
+      etapes = await parcourir(composant, cooperation, lire);
     } catch (erreur) {
       if (erreur instanceof AnalyseAnnulee) throw erreur;
       manquees.push({ layer: composant.id, champ: 'children', motif: messageDErreur(erreur) });
@@ -569,7 +576,7 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
         layers.push(await lireLeLayer(port, lecteur, etape, manquees));
       }
       layersLus += layers.length;
-      variants.push({ id: composant.id, nom: composant.name, valeurs: await valeursDuVariant(composant, cooperation), layers, modesEffectifs: await lecteur.modes(composant) });
+      variants.push({ id: composant.id, nom: composant.name, valeurs: await valeursDuVariant(composant, cooperation, lire), layers, modesEffectifs: await lecteur.modes(composant) });
       options.progresser?.(variants.length, composants.length);
       continue;
     }
@@ -578,7 +585,7 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
     layersNonLus = etapes && layersNonLus !== 'inconnu' ? layersNonLus + etapes.length : 'inconnu';
   }
 
-  const proprietes = await proprietesDe(jeu, manquees, cooperation);
+  const proprietes = await proprietesDe(jeu, manquees, cooperation, lire);
   cooperation.verifier();
 
   return {
