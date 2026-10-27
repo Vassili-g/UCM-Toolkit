@@ -5,14 +5,17 @@
 ## Tâches à committer
 
 - [x] **10.1 | gpt-6.1-sol | high** | **Claude Sonnet | high** : définir clé de requête, session du document, version d'algorithme et révisions ; exclure la génération d'interface. Résultat : `requetes.ts` du socle (clé canonique, `creerLaSessionDuDocument`, `VERSION_DE_L_ALGORITHME`, registre de révisions), sans dépendances ni validation ; mesure du calcul local des trois requêtes consignée, section « Clés et révisions (10.1) ».
-- [ ] **10.2 | gpt-6.1-sol | high** | **Claude Opus | high** : enregistrer les dépendances réellement lues et remplacer les arêtes conditionnelles au recalcul ; test de branche changée.
-- [ ] **10.3 | gpt-6-luna | medium** | **Claude Sonnet | medium** : suivre ensembles ordonnés, recherches vides et priorités ; tester le premier candidat apparu après absence.
-- [ ] **10.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : ajouter les arêtes inverses et valider à la demande ; égalité exacte arrête la propagation sans perdre diagnostics ni limites.
-- [ ] **10.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : séparer rapport numérique, verdict AA/AAA et présentation des noms ; tester un changement de seuil seul.
-- [ ] **10.6 | gpt-6.1-sol | high** | **Claude Sonnet | high** : invalider par propriété, fonds, descendants et groupe typographique ; compter requêtes et arêtes visitées.
-- [ ] **10.7 | gpt-6.1-sol | high** | **Claude Sonnet | high** : traiter frontières, ordre, budget et couverture de modes ; repli large si portée inconnue ou coût fin supérieur à la reconstruction.
-- [ ] **10.8 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : comparer après chaque ajout, suppression, déplacement, renommage, alias et mode à la reconstruction complète.
-- [ ] **10.9 | gpt-6-luna | low** | **Claude Haiku | low** : ajouter les compteurs de propagation arrêtée, requêtes rejouées et arêtes visitées au banc de mutations.
+- [ ] ~~**10.2 | gpt-6.1-sol | high** | **Claude Opus | high** : enregistrer les dépendances réellement lues et remplacer les arêtes conditionnelles au recalcul ; test de branche changée.~~ Écartée, voir « Décision du mainteneur ».
+- [ ] ~~**10.3 | gpt-6-luna | medium** | **Claude Sonnet | medium** : suivre ensembles ordonnés, recherches vides et priorités ; tester le premier candidat apparu après absence.~~ Écartée, voir « Décision du mainteneur ».
+- [ ] ~~**10.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : ajouter les arêtes inverses et valider à la demande ; égalité exacte arrête la propagation sans perdre diagnostics ni limites.~~ Écartée, voir « Décision du mainteneur ».
+- [ ] ~~**10.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : séparer rapport numérique, verdict AA/AAA et présentation des noms ; tester un changement de seuil seul.~~ Écartée, voir « Décision du mainteneur ».
+- [ ] ~~**10.6 | gpt-6.1-sol | high** | **Claude Sonnet | high** : invalider par propriété, fonds, descendants et groupe typographique ; compter requêtes et arêtes visitées.~~ Écartée, voir « Décision du mainteneur ».
+- [ ] ~~**10.7 | gpt-6.1-sol | high** | **Claude Sonnet | high** : traiter frontières, ordre, budget et couverture de modes ; repli large si portée inconnue ou coût fin supérieur à la reconstruction.~~ Écartée, voir « Décision du mainteneur ».
+- [ ] ~~**10.8 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : comparer après chaque ajout, suppression, déplacement, renommage, alias et mode à la reconstruction complète.~~ Écartée, voir « Décision du mainteneur ».
+- [ ] ~~**10.9 | gpt-6-luna | low** | **Claude Haiku | low** : ajouter les compteurs de propagation arrêtée, requêtes rejouées et arêtes visitées au banc de mutations.~~ Écartée, voir « Décision du mainteneur ».
+- [ ] **L1 | gpt-6.1-sol | high** | **Claude Sonnet | high** : remplacer la requête `controles` par une requête par famille du kit, chacune avec la projection des entrées qu'elle lit ; prouver la projection par l'enregistrement des accès et par des perturbations hors projection.
+- [ ] **L2 | gpt-6.1-sol | high** | **Claude Sonnet | high** : reprendre une famille dont la projection fraîche égale la projection retenue, même quand la validation refuse la reprise du moteur ; ordre des constats inchangé.
+- [ ] **L3 | gpt-6-luna | medium** | **Claude Sonnet | medium** : banc de mutations locales (peinture, texte, nom, ajout de calque) comparé à Actualiser, avec les familles reprises et rejouées comptées dans la trace.
 
 Prérequis : 9. Nature : incrémentalité du calcul pur.
 Chemins nouveaux proposés : `packages/plugin-socle/src/composant/analyse/requetes.ts`,
@@ -77,3 +80,13 @@ Contrôle : socle/Architect et exporteur si requêtes partagées. **Build Archit
 Limites : aucun appelant n'utilise encore ce module. Les dépendances lues pendant un calcul sont celles de 10.2, les arêtes inverses et la validation à la demande celles de 10.4. Les clés d'objet `generation` et `identite` sont refusées par leur nom : un argument qui les nommerait autrement ne serait pas détecté. La session du document n'est créée nulle part avant 10.2.
 
 Preuves : `requetes.test.ts` du socle (13 tests : ordre des clés d'objet, `Map` et `Set`, `-0` et `NaN`, chaînes à séparateurs, arguments refusés, deux sessions, deux versions, forme de la clé et génération refusée, fait égal ou différent, résultat égal, `verifier`, genres de clé). Altérations vérifiées : clés non triées fait échouer le test de l'ordre ; `poserLEntree` qui monte toujours en fait échouer deux ; une clé sans version en fait échouer deux, sans session trois ; sans la garde `generation` et `identite`, le test de forme échoue.
+
+## Décision du mainteneur
+
+Les cases 10.2 à 10.9 sont écartées. Motif, d'après la mesure du Button dans Figma (build 6.12, LOT-06) et celle de 10.1 :
+
+- le graphe ne porte que les requêtes pures qui suivent le moteur : contrôles du kit (1,7 s dans Figma, dont `controle-nommage` 972 ms et `controle-oublis` 516 ms), corrections et projection (moins de 0,3 s) ;
+- après une modification locale, la relecture du relevé et du catalogue (5,3 s) et le moteur (6,0 s) se rejouent entiers. Le graphe fin gagnerait au mieux 1,5 à 1,8 s sur environ 13 s, et la cible de 0,5 s reste hors de portée ;
+- seize cases, des montées du kit et un mécanisme où un oubli de dépendance rend un résultat périmé, pour ce gain.
+
+La voie légère L1 à L3 garde l'essentiel de ce gain : un contrôle du kit par famille, repris quand la part des entrées qu'il lit est égale. Le module de 10.1 reste en place. Un moteur incrémental, hors de ce plan, rendrait le graphe fin utile à nouveau.
