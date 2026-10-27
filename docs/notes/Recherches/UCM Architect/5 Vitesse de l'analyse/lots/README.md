@@ -21,7 +21,7 @@ Un lot est fini quand toutes ses cases sont cochées dans des commits. Mettre so
 | [7 : diagnostics finalisés et publication séparée](./LOT-07.md) | Fini |
 | [8 : couverture des dépendances et Actualiser](./LOT-08.md) | Fini |
 | [9 : réutilisation avec invalidation large et rétention bornée](./LOT-09.md) | Fini |
-| [10 : graphe de requêtes et recalcul ciblé](./LOT-10.md) | Graphe fin écarté ; voie légère L1 à L3 non finie |
+| [10 : graphe de requêtes et recalcul ciblé](./LOT-10.md) | Graphe fin écarté ; voie légère faite |
 | [11 : contributions et agrégats maintenus](./LOT-11.md) | Écarté (décision du mainteneur) |
 | [12 : signatures par contrôle et factorisation des modes](./LOT-12.md) | Non fini (conditionnel) |
 | [13 : worker unique, transport par lots et repli](./LOT-13.md) | Non fini (conditionnel) |

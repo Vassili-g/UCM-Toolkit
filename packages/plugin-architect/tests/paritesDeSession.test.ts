@@ -145,6 +145,11 @@ const MUTATIONS: readonly Mutation[] = [
     evenements: (c) => surChangementDuDocument([noeud('PROPERTY_CHANGE', 'titre', ['v-Alert', 'jeu-Alert'], ['characters'])], c),
   },
   {
+    nom: 'contenu d’un texte', reprise: false,
+    muter: (f) => { f.layers[2] = { ...f.layers[2], texte: { style: 'Body', plages: [{ debut: 0, fin: 9, fontSize: 14, fontWeight: 400, peintures: [], liaisons: [] }] } }; },
+    evenements: (c) => surChangementDuDocument([noeud('PROPERTY_CHANGE', 'titre', ['v-Alert', 'jeu-Alert'], ['characters'])], c),
+  },
+  {
     nom: 'nom d’un calque', reprise: false,
     muter: (f) => { f.layers[1] = { ...f.layers[1], nom: 'contour' }; },
     evenements: (c) => surChangementDuDocument([noeud('PROPERTY_CHANGE', 'bord', ['v-Alert', 'jeu-Alert'], ['name'])], c),
@@ -300,6 +305,13 @@ async function mesuree(fichier: Fichier, appels: { moteur: number }, intention: 
   return {
     affiche: { ...affiche, messages: affiche.messages.map((message) => { const { mesure, ...reste } = message as PluginMessage & { mesure?: unknown }; return reste; }) },
     reprises: { non: final.mesure.compteurs.requetesNonRejouees ?? 0, rejouees: final.mesure.compteurs.requetesRejouees ?? 0 },
+    /** Ce que la trace dit du moteur : `repriseDuMoteur`, ou les raisons de non-reprise. */
+    moteur: Object.entries(final.mesure.compteurs).filter(([nom]) => nom === 'repriseDuMoteur' || nom.startsWith('nonReprise:')).map(([nom, n]) => `${nom}=${n}`).sort(),
+    /** Les requêtes que la trace compte sous leur nom, reprises puis rejouées, dans l'ordre alphabétique. */
+    parRequete: {
+      reprises: Object.keys(final.mesure.compteurs).filter((nom) => nom.startsWith('reprise:')).map((nom) => nom.slice('reprise:'.length)).sort(),
+      rejouees: Object.keys(final.mesure.compteurs).filter((nom) => nom.startsWith('rejeu:')).map((nom) => nom.slice('rejeu:'.length)).sort(),
+    },
     constats: 'constats' in final ? final.constats.map(({ id }) => id) : [],
   };
 }
@@ -369,6 +381,76 @@ test('une peinture changée sur une entrée invalidée ne rejoue que l’accessi
   const actualisee = await mesuree(fichier, appels, 'actualiser');
   assert.deepEqual(actualisee.reprises, { non: 0, rejouees: 8 });
   assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
+});
+
+/** Les requêtes de l'analyse, dans l'ordre alphabétique : six familles du kit, corrections et projection. */
+const REQUETES = ['controle-accessibilite', 'controle-couches', 'controle-mapping', 'controle-nommage', 'controle-oublis', 'controle-typographie', 'corrections', 'projection'];
+
+/** Le banc des mutations locales d'un calque, sur une entrée invalidée par le journal : chaque requête est comptée sous son nom, reprise ou rejouée. */
+const MUTATIONS_LOCALES: ReadonlyArray<{ nom: string; mutation: string; rejouees: string[] }> = [
+  { nom: 'peinture', mutation: 'peinture d’un calque', rejouees: ['controle-accessibilite', 'corrections', 'projection'] },
+  { nom: 'taille du texte', mutation: 'texte d’un calque', rejouees: ['controle-accessibilite', 'corrections', 'projection'] },
+  // Les constats de contraste nomment la plage de texte (`0-5`) : sa fin change leurs identifiants, donc les corrections et la projection.
+  { nom: 'contenu du texte', mutation: 'contenu d’un texte', rejouees: ['controle-accessibilite', 'corrections', 'projection'] },
+  { nom: 'nom d’un calque', mutation: 'nom d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'controle-mapping', 'controle-typographie', 'corrections', 'projection'] },
+  { nom: 'ajout d’un calque', mutation: 'ajout d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'controle-mapping', 'controle-oublis', 'controle-typographie', 'corrections', 'projection'] },
+];
+
+for (const { nom, mutation: nomDeLaMutation, rejouees } of MUTATIONS_LOCALES) {
+  test(`banc de mutations locales, ${nom} : la trace compte chaque requête reprise ou rejouée, et l’affichage est celui d’Actualiser`, async () => {
+    const fichier = fichierDeDepart();
+    const appels = { moteur: 0 };
+    await mesuree(fichier, appels, 'analyser');
+    const mutation = MUTATIONS.find((candidate) => candidate.nom === nomDeLaMutation)!;
+    mutation.muter(fichier);
+    mutation.evenements?.(contexteDesEvenements(fichier));
+    assert.equal(etatDeLEntree('Alert').etat, 'invalide');
+    const analysee = await mesuree(fichier, appels, 'analyser');
+    assert.equal(appels.moteur, 2, 'le moteur est rejoué');
+    assert.deepEqual(analysee.parRequete.rejouees, rejouees, 'requêtes rejouées');
+    assert.deepEqual(analysee.parRequete.reprises, REQUETES.filter((requete) => !rejouees.includes(requete)), 'requêtes reprises');
+    assert.deepEqual(analysee.reprises, { non: REQUETES.length - rejouees.length, rejouees: rejouees.length }, 'les totaux sont la somme des compteurs par requête');
+    const actualisee = await mesuree(fichier, appels, 'actualiser');
+    assert.deepEqual(actualisee.parRequete, { reprises: [], rejouees: REQUETES }, 'Actualiser rejoue chacune');
+    assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
+  });
+}
+
+test('la trace dit si le moteur est repris, ou pourquoi il ne l’est pas', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const premiere = await mesuree(fichier, appels, 'analyser');
+  assert.deepEqual(premiere.moteur, ['nonReprise:entree-absente=1'], 'sans entrée');
+  assert.deepEqual((await mesuree(fichier, appels, 'analyser')).moteur, ['repriseDuMoteur=1']);
+  assert.deepEqual((await mesuree(fichier, appels, 'actualiser')).moteur, [], 'Actualiser ne valide rien');
+
+  // Une raison de la validation : le catalogue relu diffère, sans événement.
+  fichier.valeur = 14;
+  assert.deepEqual((await mesuree(fichier, appels, 'analyser')).moteur, ['nonReprise:different:catalogue=1']);
+
+  // Une raison de la validation : le maître local contient une instance.
+  const imbrique = fichierDeDepart();
+  imbrique.maitre.imbrique = true;
+  await mesuree(imbrique, appels, 'analyser');
+  assert.ok((await mesuree(imbrique, appels, 'analyser')).moteur.includes('nonReprise:non-couvert:maitres-autres-instances=1'));
+
+  // Les raisons du journal : l'entrée est invalidée avant la validation.
+  const modifie = fichierDeDepart();
+  await mesuree(modifie, appels, 'analyser');
+  const mutation = MUTATIONS.find(({ nom }) => nom === 'nom d’un calque')!;
+  mutation.muter(modifie);
+  mutation.evenements?.(contexteDesEvenements(modifie));
+  const etat = etatDeLEntree('Alert');
+  assert.equal(etat.etat, 'invalide');
+  const attendues = etat.etat === 'invalide' ? etat.raisons.map((raison) => `nonReprise:${raison}=1`).sort() : [];
+  assert.ok(attendues.length > 0);
+  assert.deepEqual((await mesuree(modifie, appels, 'analyser')).moteur, attendues);
+
+  // Une entrée à relire.
+  const incomplet = fichierDeDepart();
+  incomplet.catalogueIncomplet = true;
+  await mesuree(incomplet, appels, 'analyser');
+  assert.deepEqual((await mesuree(incomplet, appels, 'analyser')).moteur, ['nonReprise:catalogue-inaccessible=1']);
 });
 
 test('un nom de calque changé rejoue les quatre familles qui le lisent (mapping, couches, accessibilité, typographie), pas le nommage ni les oublis', async () => {

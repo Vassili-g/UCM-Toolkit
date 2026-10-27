@@ -239,7 +239,7 @@ const ENTREES_DES_REQUETES: Readonly<Record<NomDeRequete, readonly NomDEntree[]>
  * état (`null` pour Actualiser et sans entrée : rien ne se reprend alors) et les valeurs `actuelles` de la demande.
  * Une requête est une fonction pure de ses entrées : son résultat retenu vaut pour les entrées que la demande a lues, et la
  * comparaison suffit, que l'entrée soit invalidée par le journal, à relire ou refusée par la validation. Chacune compte la requête dans
- * `requetesNonRejouees` ou `requetesRejouees`.
+ * `requetesNonRejouees` ou `requetesRejouees`, et sous son nom (`reprise:<requête>`, `rejeu:<requête>`).
  * - `famille` reprend le résultat de l'entrée quand la part des données que la famille lit est égale (`egalesExactement`) à
  *   celle de l'entrée, projection fraîche contre projection retenue ; la famille se calcule toujours sur les données entières.
  *   La projection retenue se recalcule sur le relevé et le catalogue de l'entrée : la session ne la double pas. Quand le
@@ -276,9 +276,11 @@ export function creerLesRequetes(entree: EntreeDeSessionDAnalyse | null, actuell
     const gardee = entree?.requetes[nom] as RequeteRetenue<readonly Constat[]> | undefined;
     if (entree && gardee && projectionInchangee(nom, entree)) {
       compter('requetesNonRejouees');
+      compter(`reprise:${nom}`);
       return gardee.resultat;
     }
     compter('requetesRejouees');
+    compter(`rejeu:${nom}`);
     return calculer();
   };
   const requete = async <N extends 'corrections' | 'projection'>(nom: N, calculer: () => Promise<RequetesDeSession[N]['resultat']>): Promise<RequetesDeSession[N]['resultat']> => {
@@ -286,8 +288,10 @@ export function creerLesRequetes(entree: EntreeDeSessionDAnalyse | null, actuell
     if (entree && ENTREES_DES_REQUETES[nom].every((lue) => egale(lue as Exclude<NomDEntree, NomDeFamille>))) {
       resultat = entree.requetes[nom].resultat as RequetesDeSession[N]['resultat'];
       compter('requetesNonRejouees');
+      compter(`reprise:${nom}`);
     } else {
       compter('requetesRejouees');
+      compter(`rejeu:${nom}`);
       resultat = await calculer();
     }
     actuelles.set(nom, resultat);
@@ -507,6 +511,21 @@ export async function validerLEntree(sujet: SujetAAnalyser, identite: IdentiteDA
     return { etat: 'invalide', raisons };
   }
   return { etat: 'valide', moteur: entree.sorties.moteur, regles };
+}
+
+/**
+ * Dit dans la trace pourquoi le moteur est repris ou ne l'est pas : `repriseDuMoteur`, ou un `nonReprise:<raison>` par raison.
+ * Une entrée absente, invalidée par le journal ou à relire n'a pas été validée : ses raisons sont celles de `etatDeLEntree`.
+ */
+function compterLaValidation(sujet: string, validation: ValidationDeLEntree | null): void {
+  if (validation?.etat === 'valide') return compter('repriseDuMoteur');
+  if (validation) {
+    for (const raison of validation.raisons) compter(`nonReprise:${raison}`);
+    return;
+  }
+  const etat = etatDeLEntree(sujet);
+  if (etat.etat === 'absent') compter('nonReprise:entree-absente');
+  else if (etat.etat !== 'utilisable') for (const raison of etat.raisons) compter(`nonReprise:${raison}`);
 }
 
 /**
@@ -1385,6 +1404,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       validation = reutilisationPermise(demande) && dependances !== undefined
         ? await validerLEntree(sujet, identite as IdentiteDAnalyse, { releve, catalogue, dependances }, lireLesReglesDe)
         : null;
+      if (reutilisationPermise(demande) && dependances !== undefined) compterLaValidation(sujet.cle, validation);
     };
     // Les requêtes pures se reprennent de l'entrée promue du sujet, quel que soit son état : leurs entrées se comparent aux
     // valeurs lues par cette demande, jamais à celles de l'entrée. Actualiser ne reprend rien. Les contrôles précèdent donc la

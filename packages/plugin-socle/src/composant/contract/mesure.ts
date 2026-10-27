@@ -44,6 +44,12 @@ export type Compteur =
   | 'tokensDuComposant'
   | 'requetesNonRejouees'
   | 'requetesRejouees'
+  /** Une requête pure d'Architect reprise ou rejouée, sous son nom : `reprise:controle-nommage`, `rejeu:corrections`. */
+  | `reprise:${string}`
+  | `rejeu:${string}`
+  /** Le moteur d'une entrée de session repris par la validation, ou la raison pour laquelle il ne l'est pas : `nonReprise:different:releve`. */
+  | 'repriseDuMoteur'
+  | `nonReprise:${string}`
   | 'sujetsRetenus'
   | 'octetsRetenus'
   | 'aretesRetenues'

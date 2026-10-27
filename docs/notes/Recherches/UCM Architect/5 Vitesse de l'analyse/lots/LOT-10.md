@@ -15,7 +15,7 @@
 - [ ] ~~**10.9 | gpt-6-luna | low** | **Claude Haiku | low** : ajouter les compteurs de propagation arrêtée, requêtes rejouées et arêtes visitées au banc de mutations.~~ Écartée, voir « Décision du mainteneur ».
 - [x] **L1 | gpt-6.1-sol | high** | **Claude Sonnet | high** : remplacer la requête `controles` par une requête par famille du kit, chacune avec la projection des entrées qu'elle lit ; prouver la projection par l'enregistrement des accès et par des perturbations hors projection. Résultat : huit requêtes `controle-*` (six, plus `controle-theme` et `controle-structure` pour une architecture UCM) remplacent `controles` ; chacune se reprend quand sa projection (`GABARITS`, `sandbox/projectionsDesControles.ts`) égale celle de l'entrée ; `corrections` lit le rassemblement des familles ; compteurs par famille ; section « Contrôles par famille (L1) ».
 - [x] **L2 | gpt-6.1-sol | high** | **Claude Sonnet | high** : reprendre une famille dont la projection fraîche égale la projection retenue, même quand la validation refuse la reprise du moteur ; ordre des constats inchangé. Résultat : `analyser` passe l'entrée promue du sujet à `creerLesRequetes` pour tout état (`utilisable`, `invalide`, `a-relire`), sauf pour Actualiser ; la validation ne conditionne plus que le moteur ; `corrections` et `projection` se reprennent quand leurs entrées lues égalent celles de l'entrée ; la lecture des dépendances repasse après le provisoire ; section « Reprise sans validation (L2) ».
-- [ ] **L3 | gpt-6-luna | medium** | **Claude Sonnet | medium** : banc de mutations locales (peinture, texte, nom, ajout de calque) comparé à Actualiser, avec les familles reprises et rejouées comptées dans la trace.
+- [x] **L3 | gpt-6-luna | medium** | **Claude Sonnet | medium** : banc de mutations locales (peinture, texte, nom, ajout de calque) comparé à Actualiser, avec les familles reprises et rejouées comptées dans la trace. Résultat : la trace compte chaque requête sous son nom (`reprise:<requête>`, `rejeu:<requête>`), le moteur sous `repriseDuMoteur` ou `nonReprise:<raison>` ; cinq mutations locales (peinture, taille et contenu d'un texte, nom, ajout de calque) comparées à Actualiser ; section « Banc des mutations locales et trace (L3) ».
 
 Prérequis : 9. Nature : incrémentalité du calcul pur.
 Chemins nouveaux proposés : `packages/plugin-socle/src/composant/analyse/requetes.ts`,
@@ -149,3 +149,24 @@ Affichage identique à Actualiser dans chaque cas, et parités inchangées.
 **Altérations.** Une reprise qui ne compare pas la projection (`projectionInchangee` toujours vrai) fait échouer 7 tests ; une reprise limitée aux entrées `valide` en fait échouer 10.
 
 **Limites.** Une famille retenue par une entrée dont le relevé avait changé n'est jamais comparée à un état intermédiaire : seule la dernière entrée promue sert. Le coût de la double projection (32 ms pour les huit sur 2 Mo, voir L1) se paie à chaque Analyser dont le relevé ou le catalogue a changé.
+
+## Banc des mutations locales et trace (L3)
+
+**Compteurs de la trace** (`Compteur`, `mesure.ts` du socle ; noms stables) :
+- `reprise:<requête>` et `rejeu:<requête>`, une fois par requête et par demande, pour les six familles (`controle-nommage` … `controle-typographie`, plus `controle-theme` et `controle-structure` en UCM), `corrections` et `projection`. Les totaux `requetesNonRejouees` et `requetesRejouees` en sont la somme.
+- `repriseDuMoteur` quand la validation reprend le moteur de l'entrée.
+- `nonReprise:<raison>`, une fois par raison, quand il ne l'est pas : les raisons de `validerLEntree` (`different:releve`, `different:catalogue`, `non-couvert:maitres-autres-instances`, `non-couvert:styles`, `page-non-suivie`, `lecture-refusee:regles`…), celles de l'entrée non validée (`ecriture` et les autres raisons du journal, `catalogue-inaccessible` et les autres raisons de relecture) et `entree-absente` sans entrée. Actualiser ne valide pas : aucun de ces compteurs. Ils s'inscrivent dans l'étape en cours au moment de la validation (aucune étape nouvelle).
+
+**Banc** (`tests/paritesDeSession.test.ts`, fixture hors UCM, entrée invalidée par le journal, moteur rappelé). Chaque cas compare l'affichage à Actualiser, qui rejoue les huit requêtes, et les compteurs par requête aux totaux.
+
+| Mutation | Requêtes rejouées (les autres sont reprises) |
+|---|---|
+| Peinture | accessibilité, corrections, projection |
+| Taille du texte | accessibilité, corrections, projection |
+| Contenu du texte (fin de plage) | accessibilité, corrections, projection : les identifiants des constats de contraste nomment la plage |
+| Nom d'un calque | mapping, couches, accessibilité, typographie, corrections, projection |
+| Ajout d'un calque lié | mapping, couches, oublis, accessibilité, typographie, corrections, projection |
+
+Le contenu du texte entre aussi dans la parité de toutes les mutations. Un test vérifie les compteurs du moteur : sans entrée, entrée valide, Actualiser, catalogue relu autre, maître qui contient une instance, entrée invalidée par le journal (raisons de `etatDeLEntree`), entrée à relire. Retirer l'un des compteurs `rejeu:` fait échouer 5 tests.
+
+**Limite.** Les noms de raison sont ceux du code : une raison nouvelle apparaît sous son nom sans changer le type, mais elle n'est testée que si un cas la produit.
