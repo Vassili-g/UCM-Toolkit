@@ -19,6 +19,8 @@ import { abandonnerLesLibrariesAnticipees } from './sandbox/anticipation';
 import { creerLeSuivi, type Contexte } from './sandbox/contexte';
 import { DOMAINES, tableDesTypes } from './sandbox/index';
 import { annoncerLOuverture } from './sandbox/nomenclature';
+import { importerParCle, type PortDeLecture } from './lecture';
+import { creerLesExperiences, variablesDeLaSelection, type NoeudDeCollecte, type VariableDExperience } from './sandbox/experiences';
 
 figma.showUI(__html__, { themeColors: false, visible: false, width: TAILLE_PAR_DEFAUT.largeur, height: TAILLE_PAR_DEFAUT.hauteur });
 
@@ -53,6 +55,24 @@ function surveillerLeDocument(page?: PageNode): readonly string[] {
 }
 
 const contexte: Contexte = { figma, envoyer: versUi, surveillerLeDocument, envoyerLaCapture: (message) => figma.ui.postMessage(message) };
+
+// Le build d'expériences (lot 16) : sans `UCM_ARCHITECT_EXPERIENCES` dans la bannière du sandbox, `traiter` rend faux et ne touche à rien.
+const experiences = creerLesExperiences({
+  actif: (globalThis as { UCM_ARCHITECT_EXPERIENCES?: unknown }).UCM_ARCHITECT_EXPERIENCES === true,
+  maintenant: () => Date.now(),
+  attendre: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  sortie: (objet) => console.log(JSON.stringify(objet)),
+  variablesDeLaSelection: () => variablesDeLaSelection(figma.currentPage.selection as unknown as readonly NoeudDeCollecte[], (id) => figma.variables.getVariableByIdAsync(id) as Promise<VariableDExperience | null>),
+  getVariableByIdAsync: (id) => figma.variables.getVariableByIdAsync(id) as Promise<VariableDExperience | null>,
+  importerParCle: (cle) => importerParCle(figma.variables as unknown as PortDeLecture, cle) as unknown as Promise<VariableDExperience>,
+  lireLesLibraries: () => figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync(),
+  page: {
+    on: (type, rappel) => figma.currentPage.on(type, rappel as unknown as (evenement: NodeChangeEvent) => void),
+    off: (type, rappel) => figma.currentPage.off(type, rappel as unknown as (evenement: NodeChangeEvent) => void),
+  },
+  signaler: (etat) => figma.ui.postMessage({ type: 'experience-signal', etat }),
+});
+
 
 const domaineDe = tableDesTypes();
 const ouverture = ouvrirLaFenetre(contexte);
@@ -95,6 +115,7 @@ figma.on('close', () => {
 
 figma.ui.onmessage = async (message: UiRequest) => {
   if (!message || typeof message.type !== 'string') return;
+  if (experiences.traiter(message)) return;
   try {
     await traiterMessage(message);
   } catch (erreur) {

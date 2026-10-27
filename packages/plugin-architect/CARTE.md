@@ -59,6 +59,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - lectureDeFigma.ts : ports de lecture sur `figma`, communs aux domaines
 - souche.ts : réponse « non construit » d'un domaine pas encore fait
 - commun.ts, arbre.ts, composant.ts, nomenclature.ts, analyse.ts, configuration.ts, corrections.ts, questions.ts, ignores.ts : domaines construits ; `configuration.ts` lit et range le niveau d'accessibilité (`clientStorage`) et la library choisie, et défait le dernier lot de structure depuis l'Historique (`annuler-structure`) ; `analyse.ts` lance l'analyse (relevé, catalogue, moteur, contrôles du kit dont accessibilité et typographie), crée les inventaires de la demande que le catalogue, le moteur et la lecture des règles partagent, passe ses constats par `proposerLesCorrections` du kit puis par les ignorés rangés, porte l'identité, les constats, les corrections de l'analyse courante, le panneau périmé et la couverture de sa surveillance ; `questions.ts` tire d'une réponse une correction exacte retenue dans l'analyse ; `ignores.ts` écarte un constat ou sa proposition et le rend ; `corrections.ts` écrit un lot de l'analyse courante non périmée, une opération à la fraction à la fois, et sélectionne les layers d'un constat ; `servir-de-modele` rend les constats de `proposerLaPropagation` et retient leurs corrections sans écrire
+- experiences.ts : dans le build d'expériences seulement (`UCM_ARCHITECT_EXPERIENCES`) : joue E1 à E6 du lot 16 sur demande de l'interface et écrit un objet JSON par expérience en console ; n'écrit jamais dans le document
 - capture.ts : dans le build de capture seulement (`capturer: true`), après l'analyse : relève en JSON les nœuds, plages de texte, maîtres, variables, styles, libraries et règles de page que le relevé et le moteur lisent, puis chronomètre 10 000 lectures de chaque propriété ; l'envoi passe par `Contexte.envoyerLaCapture`, hors de `PluginMessage`
 - projectionsDesControles.ts : pour chaque famille de contrôles du kit, le gabarit de la part du relevé et du catalogue qu'elle lit et la projection qui en découle ; `creerLesRequetes` les compare pour reprendre une famille
 - anticipation.ts : lecture des libraries lancée à la sélection d'un composant, reprise ou relue au clic sur Analyser, abandonnée au changement de page
@@ -98,6 +99,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - fiche/ : fiche d'une variable, à la place de l'inspecteur : chaîne d'alias, renommage à appliquer, « Utilisée par »
 - structure/ : onglet À faire dans Figma du mode Tokens (constats typés, chemins en phrase) et cartes de modes et de scopes en deux colonnes, sous Corrections
 - preparation/ : dialogue de préparation des tokens, texte partagé, création et liaisons au composant
+- experiences.ts : pose `ucmExperience` et envoie un tic toutes les 16 ms pendant E3, seulement si `UCM_ARCHITECT_EXPERIENCES` vaut `true`
 - capture.ts : reçoit `capture-architect` du sandbox et le télécharge, seulement si `UCM_ARCHITECT_CAPTURER` vaut `true`
 
 ## src/ui/vues/

@@ -246,6 +246,31 @@ Après un échec de `test:ui` sur `dist/galerie-fixtures.cjs` introuvable,
 relancez `npm run galerie --workspace ucm-architect-plugin` : il compile les
 fixtures que les tests d'interface lisent.
 
+## Build d'expériences
+
+Un build jamais distribué joue les expériences E1 à E6 du lot 16 de la vitesse de l'analyse (`docs/notes/Recherches/UCM Architect/5 Vitesse de l'analyse/lots/LOT-16.md`, section « Expériences Figma ») et écrit un objet JSON par expérience dans la console de Figma. Les deux bundles portent la bannière `UCM_ARCHITECT_EXPERIENCES=true` ; sans elle, l'interface ne pose pas `ucmExperience` et le sandbox ignore ses messages.
+
+```sh
+npm run build:plugin -- architect
+cd packages/plugin-architect
+npx esbuild src/code.ts --bundle --outfile=dist/code.js --platform=browser --target=chrome80 --sourcemap "--banner:js=globalThis.UCM_ARCHITECT_EXPERIENCES=true;"
+npx esbuild src/ui/index.ts --bundle --outfile=dist/ui.js --format=iife --platform=browser --target=chrome80 --minify "--banner:js=globalThis.UCM_ARCHITECT_EXPERIENCES=true;"
+node scripts/build-ui.cjs
+```
+
+Sélectionnez le jeu de variants du Button, ouvrez la console de développement, puis tapez `ucmExperience('E1')`. Les expériences lisent les variables liées à la sélection, ses descendants compris, et les cibles de leurs alias.
+
+| Commande | Ce qu'elle fait |
+|---|---|
+| `ucmExperience('E1')` | importe les clés avec 1, 4, 8, 16 et 32 imports en vol, trois fois chacun |
+| `ucmExperience('E2')` | compare identifiant et `valuesByMode` entre `getVariableByIdAsync` et l'import, avec leurs durées ; à refaire après une mise à jour de library publiée non acceptée |
+| `ucmExperience('E3')` | l'interface envoie un message toutes les 16 ms pendant 300 `getVariableByIdAsync` à la suite ; le résultat donne les messages reçus et attendus |
+| `ucmExperience('E4')`, puis `ucmExperience('E4-fin')` | journalise les `nodechange` de la page pendant vos gestes ; la sortie de départ liste les six gestes |
+| `ucmExperience('E5')`, puis `ucmExperience('E5-fin')` | même écoute pendant que vous republiez l'icône d'un maître distant et acceptez la mise à jour |
+| `ucmExperience('E6')` | relit la liste des libraries 0, 5, 10, 20, 30 et 60 s après une lecture, trois séries (environ 7 minutes) |
+
+Aucune expérience n'écrit dans le document. E1 et E2 importent des variables de library par clé, ce que l'analyse fait déjà. Copiez chaque objet de la console dans `_local/vitesse-analyse/`, hors de git.
+
 ## Licence
 
 [MIT](../../LICENSE).

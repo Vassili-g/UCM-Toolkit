@@ -499,6 +499,9 @@ export function enregistrerLesImports(actif: boolean): ImportsEnregistres | null
   return importsEnregistres;
 }
 
+/** L'import d'une variable par clé, pour le build d'expériences : `lecture.ts` reste le seul fichier à importer. */
+export const importerParCle = (variables: Pick<PortDeLecture, 'importVariableByKeyAsync'>, cle: string): Promise<VariableFigma> => variables.importVariableByKeyAsync(cle);
+
 /** Compte les appels du port pendant une trace, en conservant le destinataire des méthodes Figma. */
 export function mesurerLePortDeLecture(variables: PortDeLecture): PortDeLecture {
   return {
