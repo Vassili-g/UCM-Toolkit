@@ -9,11 +9,15 @@
 import assert from 'node:assert/strict';
 import exporterLeComposant, {
   analyserLeComposant,
+  getSelectedComponent,
   type ComponentExport,
 } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { remplacerLesRequetesPourLeBanc } from 'ucm-plugin-socle/src/composant/analyse/proprietesEtEtats';
 import { elideContract } from 'ucm-plugin-socle/src/composant/contract/elideNeutrals';
-import { desactiverLaPorteePourLeBanc } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
+import { calculerLAnalyse } from 'ucm-plugin-socle/src/composant/analyse/resultat';
+import { publierLeContrat } from 'ucm-plugin-socle/src/composant/contract/publication';
+import { publierAvant } from '../../../plugin-socle/tests/aides/cheminAvantLaPublication';
+import { dansUnePorteeDAnalyse, desactiverLaPorteePourLeBanc } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 import { modeleDEtatsAvant, modeleDeProprietesAvant } from '../../../plugin-socle/tests/aides/cheminAvantLesRequetes';
 
 /** Le contrat sérialisé, date d'export remplacée par une valeur fixe. */
@@ -118,4 +122,23 @@ export async function verifierLeResultatInterne(sortie: ComponentExport, context
     interne.projectionWarnings.size > 0 ? 'partial' : 'complete',
     `${contexte} : couverture portable`,
   );
+}
+
+/**
+ * Publie un même résultat interne avec `publierLeContrat` et avec la copie de
+ * l'ancienne publication (`cheminAvantLaPublication.ts`), puis compare les deux
+ * `ComponentExport` : contrat hors date, messages, parties, localisations et
+ * imbriqués, dans l'ordre.
+ */
+export async function verifierLaPublication(contexte: string): Promise<void> {
+  await dansUnePorteeDAnalyse({}, async () => {
+    const interne = await calculerLAnalyse(async () => {}, getSelectedComponent(), figma.currentPage);
+    const nouveau = await publierLeContrat(interne, async () => {}, () => {});
+    const avant = await publierAvant(interne, async () => {}, () => {});
+    assert.deepEqual(
+      sortieComparable(nouveau),
+      sortieComparable(avant),
+      `${contexte} : la publication de publierLeContrat diffère de l'ancienne publication`,
+    );
+  });
 }

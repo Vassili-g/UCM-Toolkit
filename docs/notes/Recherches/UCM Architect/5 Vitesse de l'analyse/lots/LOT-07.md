@@ -8,7 +8,7 @@
 - [x] **7.2 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : classer les calculs requis par diagnostic, correction, règle ou publication ; vérifier C42 et l'arbre exact encore nécessaire. Classement : section « Classement des calculs (7.2) » (table, C42, arbre exact, conclusion).
 - [x] **7.3 | gpt-6.1-sol | high** | **Claude Sonnet | high** : extraire une première famille de requêtes pures et déclarer ses dépendances ; comparer tous ses diagnostics ordonnés. Famille : modèle de propriétés et d'états, section « Première famille extraite (7.3) ».
 - [x] **7.4 | gpt-6.1-sol | high** | **Claude Sonnet | high** : produire le résultat interne finalisé avec parties, localisations, props, états, imbrications, modèles et couverture ; test de parité complet. Résultat : `plugin-socle/src/composant/analyse/resultat.ts` (`calculerLAnalyse`, `ResultatInterne`), section « Résultat interne (7.4) » ; parité dans `plugin-exporter/tests/aides/parite.ts` `verifierLeResultatInterne` et test de la jonction dans `plugin-socle/tests/resultat.test.ts`.
-- [ ] **7.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : assembler contrat et échantillons exporteur depuis ce résultat ; comparer hors date avec l'ancien chemin.
+- [x] **7.5 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : assembler contrat et échantillons exporteur depuis ce résultat ; comparer hors date avec l'ancien chemin. Résultat : `plugin-socle/src/composant/contract/publication.ts` (`publierLeContrat`), section « Publication depuis le résultat (7.5) » ; comparaison dans `plugin-exporter/tests/aides/parite.ts` `verifierLaPublication`.
 - [ ] **7.6 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : déplacer compaction et sérialisation après le calcul commun ; garder diagnostics tardifs et contrat ordonné.
 - [ ] **7.7 | gpt-6.1-sol | high** | **Claude Sonnet | high** : brancher Architect sur surface et règles sans JSON.parse du contrat ; comparer corrections, questions et modèles.
 - [ ] **7.8 | gpt-6-luna | low** | **Claude Sonnet | low** : retirer l'ancien chemin de production après parité ; garder le comparateur et exécuter les builds Architect et exporteur.
@@ -436,3 +436,17 @@ Sans changer les constats, les corrections ni les modèles d'Architect :
 - `test:paquet -- socle` 170 tests, exporteur 1149, Architect 1260, `npm run typecheck`, sans échec.
 
 **Ce qui reste.** 7.5 assemble le contrat et les échantillons depuis `pourLaPublication`. 7.6 déplace la compaction et la sérialisation après le calcul commun et sort la publication de `exportComponent.ts`. 7.7 branche Architect sur `props`, `stateModel`, `imbriques` et `rules` du résultat, sans `JSON.parse(content)`. 7.8 retire l'ancien chemin. Aucun calcul n'est retiré ici : les trois arbres jetés et les calculs de publication tournent toujours pour Architect. `interne` garde `pourLaPublication` (nœuds Figma, arbre exact) vivant tant que le résultat l'est.
+
+
+### Publication depuis le résultat (7.5)
+
+**Module.** `packages/plugin-socle/src/composant/contract/publication.ts`. `publierLeContrat(interne, annoncer, verifier)` exécute les étapes `echantillons`, `compaction` et `serialisation` et rend le `ComponentExport`. Elle ne lit que le `ResultatInterne`, dont `pourLaPublication`, et n'émet aucun message. `exporterLeComposant` se réduit à `calculerLAnalyse`, puis `publierLeContrat`. `buildMeta` et `componentContractFilename` ont suivi dans le module ; `exportComponent.ts` ré-exporte `componentContractFilename`.
+
+**Preuves.**
+
+- `plugin-socle/tests/aides/cheminAvantLaPublication.ts` recopie la publication d'avant, sans changement de corps. `plugin-exporter/tests/aides/parite.ts` `verifierLaPublication` calcule un résultat interne, le publie par les deux chemins et compare les `ComponentExport` : contrat hors date, messages, parties, localisations, imbriqués, dans l'ordre. Elle s'exécute dans `verifierLaParite`, donc pour chaque export du banc.
+- `verifierLeResultatInterne` (7.4) reste vert sur la sortie de `publierLeContrat`.
+- Altérations vérifiées : `warningCount` plus un fait échouer 1 test de l'exporteur ; un échantillon vidé en fait échouer 4. Le code est rétabli.
+- `test:paquet -- socle` 170 tests, exporteur 1149, Architect 1260, `npm run typecheck`, sans échec.
+
+**Ce qui reste.** 7.6 déplace la compaction et la sérialisation après le calcul commun. 7.7 branche Architect sur le résultat. 7.8 retire `publierAvant` avec les autres copies d'avant. Architect exécute encore `publierLeContrat` : le banc n'a pas de chemin qui l'évite.
