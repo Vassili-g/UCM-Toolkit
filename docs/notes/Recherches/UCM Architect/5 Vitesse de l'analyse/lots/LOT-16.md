@@ -2,7 +2,7 @@
 
 [Sommaire des lots](./README.md).
 
-État : proposé, à valider par le mainteneur.
+État : validé par le mainteneur. Ordre retenu : 16.1, 16.2, puis la reprise (16.3 à 16.5) ; les cases conditionnelles attendent R16.1.
 
 Ce lot vise la cible du mainteneur : 5 s du clic au rendu sur le Button (90 variants), mesuré à 14,2 s (build 9.9). Il couvre aussi le second clic sans changement (14,2 s, reprise refusée), Actualiser (16 s) et la sélection suivie d'une attente (18 s après 30 s). Les preuves sont dans les sections qui suivent les cases.
 
