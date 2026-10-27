@@ -17,10 +17,10 @@ import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/co
 import type { PluginMessage } from '../src/messages';
 import { modelesDeLAnalyse, type ReleveDesRegles } from '../src/regles';
 import {
-  analyseCourante, correctionsDeLAnalyse, dependancesDeFigma, fixerLesBornesDeRetention, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDeStyle, surChangementDuDocument, traiterAvec,
+  analyseCourante, correctionsDeLAnalyse, dependancesDeFigma, fermerLaSession, fixerLesBornesDeRetention, journalDesChangements, surInterruptionDePage, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDeStyle, surChangementDuDocument, traiterAvec,
   type Lecteurs,
 } from '../src/sandbox/analyse';
-import type { Contexte } from '../src/sandbox/contexte';
+import { creerLeSuivi, type Contexte } from '../src/sandbox/contexte';
 
 const PAGE = 'page-1';
 
@@ -533,4 +533,90 @@ test('un sujet qui dépasse seul la borne s’affiche en entier, n’est pas ret
   await analyserLeSujet('S1', fichier, appels);
   assert.equal(appels.moteur, 3, 'sans entrée retenue, le sujet se calcule en entier à chaque fois');
   assert.deepEqual(sessionDesAnalyses().sujets(), ['S2'], 'les autres sujets restent');
+});
+
+/** Une demande Analyser sur un contexte donné, avec les lecteurs de la fixture. */
+async function analyserSur(fichier: Fichier, appels: { moteur: number }, contexte: Contexte): Promise<void> {
+  await traiterAvec(lecteursDe(fichier, appels))({ type: 'analyser', intention: 'analyser', demande: 1 }, contexte);
+}
+
+test('une perte de suivi ramène l’entrée au chemin complet : page non écoutée, journal débordé, page quittée', async () => {
+  const cas: Array<{ nom: string; perdre(contexte: Contexte): Contexte }> = [
+    { nom: 'page non écoutée', perdre: (c) => ({ ...c, surveillerLeDocument: () => ['0:9'] }) },
+    { nom: 'journal débordé', perdre: (c) => { surChangementDuDocument(Array.from({ length: 5001 }, (_, rang) => `ailleurs-${rang}`), c); return c; } },
+    { nom: 'page quittée', perdre: (c) => { surInterruptionDePage(PAGE, 'page-quittee', c); return c; } },
+  ];
+  for (const { nom, perdre } of cas) {
+    reinitialiserLAnalyse();
+    const fichier = fichierDeDepart();
+    const appels = { moteur: 0 };
+    await analyserSur(fichier, appels, banc(fichier).contexte);
+    await analyserSur(fichier, appels, perdre(banc(fichier).contexte));
+    assert.equal(appels.moteur, 2, `${nom} : le moteur est relancé`);
+  }
+});
+
+test('le journal est rogné au plus ancien curseur retenu : des changements sans rapport ne s’accumulent pas', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await analyserSur(fichier, appels, banc(fichier).contexte);
+  surChangementDuDocument([noeud('PROPERTY_CHANGE', 'autre', [PAGE], ['fills']), noeud('PROPERTY_CHANGE', 'autre', [PAGE], ['name'])], banc(fichier).contexte);
+  await analyserSur(fichier, appels, banc(fichier).contexte);
+  assert.equal(journalDesChangements()!.depuis(0).length, 2, 'la deuxième demande garde ce que la première a pu voir');
+  await analyserSur(fichier, appels, banc(fichier).contexte);
+  assert.equal(journalDesChangements()!.depuis(0).length, 0, 'la troisième retire ce que l’entrée et l’analyse affichée ont dépassé');
+  assert.equal(appels.moteur, 1);
+});
+
+test('la fermeture de la session retire les écoutes, vide session et journal, et une analyse en cours ne promeut rien', async () => {
+  const retraits: string[] = [];
+  const page = { id: PAGE, on() {}, off(type: string) { retraits.push(type); } };
+  const suivi = creerLeSuivi<typeof page>(() => page, () => {});
+  suivi.surveiller(page);
+  suivi.fermer();
+  assert.deepEqual(retraits, ['nodechange']);
+  suivi.fermer();
+  assert.deepEqual(retraits, ['nodechange'], 'un second arrêt ne retire rien');
+
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await analyserSur(fichier, appels, banc(fichier).contexte);
+  assert.ok(sessionDesAnalyses().entree('Alert'));
+  fermerLaSession();
+  assert.equal(sessionDesAnalyses().entree('Alert'), null);
+  assert.equal(journalDesChangements(), null);
+  assert.equal(analyseCourante(), null);
+  await analyserSur(fichier, appels, banc(fichier).contexte);
+  assert.equal(appels.moteur, 2, 'après la fermeture, l’analyse suivante est complète');
+});
+
+test('aucune analyse n’écrit dans clientStorage', async () => {
+  const fichier = fichierDeDepart();
+  const ecritures: string[] = [];
+  const contexte = banc(fichier).contexte;
+  (contexte.figma as unknown as { clientStorage: unknown }).clientStorage = { setAsync: async (cle: string) => { ecritures.push(cle); }, getAsync: async () => undefined };
+  const appels = { moteur: 0 };
+  await analyserSur(fichier, appels, contexte);
+  await analyserSur(fichier, appels, contexte);
+  await traiterAvec(lecteursDe(fichier, appels))({ type: 'analyser', intention: 'actualiser', demande: 2 }, contexte);
+  assert.deepEqual(ecritures, []);
+});
+
+test('la trace porte les maxima de la session au moment de la promotion', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const b = banc(fichier);
+  const lecteurs = lecteursDe(fichier, appels);
+  // Un changement sans rapport avec le sujet, reçu pendant la lecture : il entre au journal sans périmer l'analyse.
+  await traiterAvec({ ...lecteurs, catalogue: async (...args) => { surChangementDuDocument([noeud('PROPERTY_CHANGE', 'autre', [PAGE], ['fills'])], b.contexte); return lecteurs.catalogue(...args); } })({ type: 'analyser', intention: 'analyser', demande: 1, mesurer: true }, b.contexte);
+  const final = b.envoyes.find((message) => message.type === 'analyse' && message.statut === 'complete');
+  assert.ok(final && 'mesure' in final && typeof final.mesure === 'object');
+  const { compteurs } = final.mesure;
+  const retenu = sessionDesAnalyses().mesure();
+  assert.equal(compteurs.sujetsRetenus, 1);
+  assert.equal(compteurs.octetsRetenus, retenu.octets);
+  assert.equal(compteurs.aretesRetenues, retenu.aretes);
+  assert.ok((compteurs.octetsRetenus ?? 0) > 0 && (compteurs.aretesRetenues ?? 0) > 0);
+  assert.equal(compteurs.entreesDuJournal, journalDesChangements()!.depuis(0).length);
+  assert.ok((compteurs.entreesDuJournal ?? 0) >= 1);
 });

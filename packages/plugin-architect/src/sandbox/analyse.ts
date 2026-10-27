@@ -54,7 +54,7 @@ import { analyserLeComposant, type ResultatSansPublication } from 'ucm-plugin-so
 import { nomsDeLaPage } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
 import { extractRules, type ExtractedRules } from 'ucm-plugin-socle/src/composant/contract/extractRules';
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
-import { ouvrirLaMesure, fermerLaMesure, etape, compter, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { ouvrirLaMesure, fermerLaMesure, etape, compter, retenirLeMaximum, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation, type OptionsDeCooperation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
@@ -1393,14 +1393,20 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     verifierLaGeneration(contexte);
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
     const statutFinal: StatutDAnalyse = moteur.couverture.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete';
-    rendre(statutFinal, visibles, releve, ignores, tous);
+    // La promotion précède l'envoi du résultat : la trace qu'il porte se ferme à l'envoi et doit déjà compter ce que la session retient.
     if (revision) {
       promouvoirLaRevision(revision, identite, statutFinal, { releve, catalogue, moteur, regles: reglesLues, dependances: dependances ?? null, niveau, architectureUcm, ignores: rangees, lecturesRefusees }, {
         controles: { resultat: controles, entrees: ENTREES_DES_REQUETES.controles },
         corrections: { resultat: tous, entrees: ENTREES_DES_REQUETES.corrections },
         projection: { resultat: { visibles, ignores }, entrees: ENTREES_DES_REQUETES.projection },
       });
+      const retenu = session.mesure();
+      retenirLeMaximum('sujetsRetenus', retenu.sujets);
+      retenirLeMaximum('octetsRetenus', retenu.octets);
+      retenirLeMaximum('aretesRetenues', retenu.aretes);
+      retenirLeMaximum('entreesDuJournal', journal?.depuis(0).length ?? 0);
     }
+    rendre(statutFinal, visibles, releve, ignores, tous);
     // La capture suit l'envoi de la trace et garde la place d'opération : une écriture demandée pendant ce temps rend `occupe`.
     await capturerSiDemande(demande, contexte, { noeud: sujet.noeud, page: pageDuNoeud(sujet.noeud, contexte.figma.currentPage), imports: importsEnregistres });
   } catch (erreur) {
@@ -1468,6 +1474,18 @@ export function traiterAvec(lecteurs: Lecteurs, optionsDeCooperation: Omit<Optio
 }
 
 export const traiter = traiterAvec(LECTEURS_DE_FIGMA);
+
+/**
+ * Fermeture du plugin : l'analyse en cours s'arrête, et la session, le journal et l'analyse courante sont vidés. Une analyse
+ * qui finit après ne promeut rien (plus d'analyse courante). Les écoutes de Figma se retirent dans `code.ts`.
+ */
+export function fermerLaSession(): void {
+  if (operation) operation.jeton.leve = true;
+  courante = null;
+  changementsEnAttente = null;
+  journal = null;
+  session.vider();
+}
 
 /** Pour les tests : oublie l'opération en cours et l'analyse courante. */
 export function reinitialiserLAnalyse(): void {

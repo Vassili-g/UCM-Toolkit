@@ -13,7 +13,7 @@
  */
 import { TAILLE_PAR_DEFAUT } from './fenetre';
 import type { PluginMessage, UiRequest } from './messages';
-import { surChangementDeStyle, surInterruptionDePage, surChangementDuDocument, surSelection } from './sandbox/analyse';
+import { fermerLaSession, surChangementDeStyle, surInterruptionDePage, surChangementDuDocument, surSelection } from './sandbox/analyse';
 import { declarer, envoyerLaSelection, ouvrirLaFenetre } from './sandbox/commun';
 import { abandonnerLesLibrariesAnticipees } from './sandbox/anticipation';
 import { creerLeSuivi, type Contexte } from './sandbox/contexte';
@@ -77,10 +77,20 @@ async function traiterMessage(message: UiRequest): Promise<void> {
 figma.on('selectionchange', aLaSelection);
 // `stylechange` ne demande pas `loadAllPagesAsync` ; il ne dit rien d'une variable liée à un style ni d'un style de library.
 figma.on('stylechange', surLesStyles);
-figma.on('currentpagechange', () => {
+const aLaPage = (): void => {
   abandonnerLesLibrariesAnticipees();
   suivi.recalculer();
   aLaSelection();
+};
+figma.on('currentpagechange', aLaPage);
+// Fermer le plugin retire les écoutes et vide la session d'analyse : rien n'en survit, et rien n'est écrit dans `clientStorage`.
+figma.on('close', () => {
+  figma.off('selectionchange', aLaSelection);
+  figma.off('stylechange', surLesStyles);
+  figma.off('currentpagechange', aLaPage);
+  suivi.fermer();
+  abandonnerLesLibrariesAnticipees();
+  fermerLaSession();
 });
 
 figma.ui.onmessage = async (message: UiRequest) => {

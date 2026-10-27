@@ -34,6 +34,8 @@ export interface SuiviDesPages<P> {
   surveiller(page?: P): readonly P[];
   /** La page courante a changé : on la suit, et on quitte celle qui n'est plus ni courante ni celle du sujet. */
   recalculer(): void;
+  /** Fermeture du plugin : retire toutes les écoutes, sans les signaler comme des interruptions. Une surveillance ultérieure repart de zéro. */
+  fermer(): void;
 }
 
 /**
@@ -83,6 +85,14 @@ export function creerLeSuivi<P extends PageSuivable>(
       return recalculer();
     },
     recalculer() { recalculer(); },
+    fermer() {
+      for (const page of ecoutees) {
+        try { page.off('nodechange', rappel); } catch { /* page déchargée ou supprimée */ }
+      }
+      ecoutees.clear();
+      actif = false;
+      sujet = undefined;
+    },
   };
 }
 

@@ -12,7 +12,7 @@
 - [x] **9.6 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : réutiliser seulement les requêtes pures dont les entrées revalidées sont égales ; compter celles qui ne rejouent pas. Résultat : `creerLesRequetes` (`sandbox/analyse.ts`) reprend `controles`, `corrections` ou `projection` d'une entrée `valide` quand toutes leurs entrées égalent les valeurs actuelles (`egalesExactement`) ; compteurs `requetesNonRejouees` et `requetesRejouees`, section « Requêtes pures (9.6) ».
 - [x] **9.7 | gpt-6.1-sol | medium** | **Claude Sonnet | high** : reconstruire sur Actualiser et conserver après changement de library les seules requêtes indépendantes validées. Résultat : Actualiser remplace l'entrée en entier (test) ; une écriture d'origine `configuration` n'invalide plus le sujet, et un catalogue d'une autre library n'empêche plus de reprendre le moteur ; section « Actualiser et library (9.7) ».
 - [x] **9.8 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : borner sujets, octets et arêtes ; protéger l'actif, évincer le moins récent et nettoyer les orphelins. Résultat : `retention.ts` du socle (bornes, estimation plafonnée), éviction du moins récent dans `session.ts`, nœuds Figma des règles réduits à leur identifiant, journal rogné au curseur le plus ancien retenu ; section « Rétention (9.8) ».
-- [ ] **9.9 | gpt-6-luna | low** | **Claude Sonnet | low** : tester actif trop gros, fermeture de session, perte de suivi et absence de persistance clientStorage ; mesurer les maxima.
+- [x] **9.9 | gpt-6-luna | low** | **Claude Sonnet | low** : tester actif trop gros, fermeture de session, perte de suivi et absence de persistance clientStorage ; mesurer les maxima. Résultat : écoute `close` dans `code.ts` (écoutes retirées, `fermerLaSession`), quatre compteurs de maxima dans la trace, tests de perte de suivi, de rognage du journal et d'absence d'écriture `clientStorage`; section « Fermeture, pertes de suivi et maxima (9.9) ».
 
 Prérequis : 8. Nature : mémoire validée entre demandes.
 Chemins nouveaux proposés : `packages/plugin-socle/src/composant/analyse/session.ts`,
@@ -191,3 +191,17 @@ Preuves : `paritesDeSession.test.ts` (Actualiser après des reprises ; library c
 Limites : l'estimation est approximative (pas de taille d'objet réelle du moteur JavaScript). Aucun test n'observe le journal rogné, qui n'est pas exporté. Aucune persistance : fermer le plugin retire la session.
 
 Preuves : `retention.test.ts` du socle (estimation, éviction par sujets, octets, arêtes, marque retirée, sujet seul trop gros), `paritesDeSession.test.ts` (éviction et marque dans l'analyse, sujet trop gros affiché en entier mais non retenu, forme de l'entrée parcourue sans nœud ni fonction). Altérations : éviction du plus récent, et rules.releve non réduit, font échouer ces tests.
+
+## Fermeture, pertes de suivi et maxima (9.9)
+
+**Fermeture.** `code.ts` écoute `close` : il retire `selectionchange`, `stylechange` et `currentpagechange`, appelle `suivi.fermer()` (retire les `nodechange` de chaque page écoutée, sans les signaler comme interruptions), abandonne les libraries anticipées et appelle `fermerLaSession()` (lève le jeton de l'opération, vide analyse courante, journal et session). Sans analyse courante, une analyse en cours ne promeut rien.
+
+**Pertes de suivi.** Page non écoutée, journal débordé et page quittée ramènent chacune la demande suivante au chemin complet (moteur relancé) ; le cas `page-non-suivie` avait déjà son test (`validationDeLEntree.test.ts`). L'actif trop gros est testé en 9.8, avec l'analyse suivante du même sujet en chemin complet.
+
+**Journal.** Le rognage est observé par `journalDesChangements().depuis(0)` : deux changements sans rapport restent à la deuxième demande et disparaissent à la troisième.
+
+**Persistance.** Aucune analyse, Analyser ou Actualiser, n'appelle `clientStorage.setAsync`. Limite : le test utilise les lecteurs de la fixture, donc il ne couvre pas le lecteur du niveau, qui ne fait que lire.
+
+**Maxima.** La trace compte `sujetsRetenus`, `octetsRetenus`, `aretesRetenues` (session après promotion) et `entreesDuJournal`, par `retenirLeMaximum`. La promotion précède désormais l'envoi du résultat, pour que la trace, fermée à l'envoi, les porte.
+
+Altérations : sans rognage du journal, le test du journal échoue ; sans vidage de la session à la fermeture, le test de fermeture échoue.
