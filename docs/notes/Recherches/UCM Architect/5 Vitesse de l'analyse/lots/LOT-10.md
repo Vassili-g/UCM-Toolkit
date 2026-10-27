@@ -14,7 +14,7 @@
 - [ ] ~~**10.8 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : comparer après chaque ajout, suppression, déplacement, renommage, alias et mode à la reconstruction complète.~~ Écartée, voir « Décision du mainteneur ».
 - [ ] ~~**10.9 | gpt-6-luna | low** | **Claude Haiku | low** : ajouter les compteurs de propagation arrêtée, requêtes rejouées et arêtes visitées au banc de mutations.~~ Écartée, voir « Décision du mainteneur ».
 - [x] **L1 | gpt-6.1-sol | high** | **Claude Sonnet | high** : remplacer la requête `controles` par une requête par famille du kit, chacune avec la projection des entrées qu'elle lit ; prouver la projection par l'enregistrement des accès et par des perturbations hors projection. Résultat : huit requêtes `controle-*` (six, plus `controle-theme` et `controle-structure` pour une architecture UCM) remplacent `controles` ; chacune se reprend quand sa projection (`GABARITS`, `sandbox/projectionsDesControles.ts`) égale celle de l'entrée ; `corrections` lit le rassemblement des familles ; compteurs par famille ; section « Contrôles par famille (L1) ».
-- [ ] **L2 | gpt-6.1-sol | high** | **Claude Sonnet | high** : reprendre une famille dont la projection fraîche égale la projection retenue, même quand la validation refuse la reprise du moteur ; ordre des constats inchangé.
+- [x] **L2 | gpt-6.1-sol | high** | **Claude Sonnet | high** : reprendre une famille dont la projection fraîche égale la projection retenue, même quand la validation refuse la reprise du moteur ; ordre des constats inchangé. Résultat : `analyser` passe l'entrée promue du sujet à `creerLesRequetes` pour tout état (`utilisable`, `invalide`, `a-relire`), sauf pour Actualiser ; la validation ne conditionne plus que le moteur ; `corrections` et `projection` se reprennent quand leurs entrées lues égalent celles de l'entrée ; la lecture des dépendances repasse après le provisoire ; section « Reprise sans validation (L2) ».
 - [ ] **L3 | gpt-6-luna | medium** | **Claude Sonnet | medium** : banc de mutations locales (peinture, texte, nom, ajout de calque) comparé à Actualiser, avec les familles reprises et rejouées comptées dans la trace.
 
 Prérequis : 9. Nature : incrémentalité du calcul pur.
@@ -123,3 +123,29 @@ Collections : cle, nom, role. Une famille qui retrouve une variable par `variabl
 - Une entrée `valide` a un relevé et un catalogue égaux à ceux de la demande : dans L1, la projection n'arbitre que le niveau et la présence des familles UCM. Le gain des projections vient de L2, qui reprend une famille quand la validation refuse le moteur.
 - Un gabarit est une liste écrite une fois : un champ nouveau lu par une famille du kit doit y entrer, sinon la famille serait reprise à tort. Les tests ne l'attrapent que sur les branches que les deux jeux atteignent.
 - Coût d'une projection sur 180 variants, 630 calques et 6 000 variables (2 Mo de JSON) : 2 à 8 ms par famille, 32 ms pour les huit, doublés quand le relevé a changé (fraîche et retenue). Les contrôles locaux coûtent environ 150 ms sur le Button.
+
+## Reprise sans validation (L2)
+
+**Règle.** Une requête pure est une fonction de ses entrées. Son résultat retenu vaut pour les entrées que la demande vient de lire dès que celles-ci égalent, pour une famille leur projection, pour `corrections` et `projection` leurs entrées entières. Le journal, `a-relire` et la validation du moteur parlent d'autre chose : de la fraîcheur des ressources que le moteur lit hors du relevé et du catalogue. `analyser` passe donc `session.entree(sujet.cle)` à `creerLesRequetes` quand l'intention est Analyser, quel que soit l'état de l'entrée. Actualiser passe `null`. Les entrées sont promues complètes (`promouvoirLaRevision`), jamais partielles.
+
+**Conséquences.**
+- La lecture des dépendances et la validation repassent après le provisoire : elles ne précèdent plus les contrôles (`validerAvantLesControles` disparaît). Le provisoire part avec les familles reprises, comme avant.
+- Le moteur rejoué peut égaler le retenu : `corrections` se reprend alors si le relevé et le catalogue sont égaux aussi (écriture du document sans autre changement : 8 reprises, moteur rappelé).
+- Aucun cas `a-relire` n'est exclu. Un catalogue ou un relevé incomplet retenu ne rend pas faux le résultat d'une famille : la projection fraîche vient de la lecture de la demande, et deux projections égales donnent le même résultat. Un catalogue incomplet retenu puis relu à l'identique reprend les huit requêtes, moteur rappelé.
+
+**Comptes** (`tests/paritesDeSession.test.ts`, fixture hors UCM : six familles, corrections, projection).
+
+| Cas | Reprises, rejouées |
+|---|---|
+| Peinture d'un calque, entrée invalidée, moteur rappelé | 5, 3 : l'accessibilité, les corrections (le moteur de la fixture nomme les peintures) et la projection |
+| Nom d'un calque | 2, 6 : mapping, couches, accessibilité, typographie, corrections, projection (cinq familles avec le thème en UCM) |
+| Valeur d'une variable | 6, 2 : l'accessibilité et les corrections |
+| Écriture du document seule | 8, 0, moteur rappelé |
+| Catalogue incomplet retenu, relu à l'identique | 8, 0 ; la variable refusée devenue lisible : 1, 7 |
+| Niveau AA vers AAA, ignorés changés, library autre | inchangés : 7, 1 |
+
+Affichage identique à Actualiser dans chaque cas, et parités inchangées.
+
+**Altérations.** Une reprise qui ne compare pas la projection (`projectionInchangee` toujours vrai) fait échouer 7 tests ; une reprise limitée aux entrées `valide` en fait échouer 10.
+
+**Limites.** Une famille retenue par une entrée dont le relevé avait changé n'est jamais comparée à un état intermédiaire : seule la dernière entrée promue sert. Le coût de la double projection (32 ms pour les huit sur 2 Mo, voir L1) se paie à chaque Analyser dont le relevé ou le catalogue a changé.

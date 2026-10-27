@@ -16,7 +16,7 @@ import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/co
 import type { PluginMessage } from '../src/messages';
 import { modelesDeLAnalyse, type ReleveDesRegles } from '../src/regles';
 import {
-  analyseCourante, correctionsDeLAnalyse, dependancesDeFigma, fermerLaSession, fixerLesBornesDeRetention, journalDesChangements, surInterruptionDePage, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDeStyle, surChangementDuDocument, traiterAvec,
+  analyseCourante, correctionsDeLAnalyse, dependancesDeFigma, etatDeLEntree, fermerLaSession, fixerLesBornesDeRetention, journalDesChangements, surInterruptionDePage, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDeStyle, surChangementDuDocument, traiterAvec,
   type Lecteurs,
 } from '../src/sandbox/analyse';
 import { creerLeSuivi, type Contexte } from '../src/sandbox/contexte';
@@ -220,7 +220,6 @@ async function muterPuisAnalyser(m: Mutation, fichier: Fichier, appels: { moteur
   } else {
     assert.equal(appels.moteur, avant + 1, `${m.nom} : le moteur est relancé`);
     assert.notEqual(promue.sorties.moteur, retenue.sorties.moteur, `${m.nom} : rien du moteur retenu ne sert`);
-    assert.notEqual(promue.requetes['controle-nommage'].resultat, retenue.requetes['controle-nommage'].resultat, `${m.nom} : les requêtes sont recalculées avec lui`);
   }
   return analysee;
 }
@@ -341,14 +340,64 @@ test('des ignorés rangés changés rejouent la projection, qui les lit, et pas 
   assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
 });
 
-test('une entrée invalidée ne reprend aucune requête, même quand leurs entrées lues sont égales', async () => {
+test('une entrée invalidée rejoue le moteur et ne rejoue que les requêtes dont les entrées lues ont changé', async () => {
   const fichier = fichierDeDepart();
   const appels = { moteur: 0 };
   await mesuree(fichier, appels, 'analyser');
   fichier.valeur = 14;
   const analysee = await mesuree(fichier, appels, 'analyser');
   assert.equal(appels.moteur, 2);
-  assert.deepEqual(analysee.reprises, { non: 0, rejouees: 8 });
+  // La valeur n'est lue que par l'accessibilité (et la structure, absente ici) ; les corrections lisent le catalogue entier ;
+  // leur résultat reste égal, donc la projection se reprend.
+  assert.deepEqual(analysee.reprises, { non: 6, rejouees: 2 });
+  const actualisee = await mesuree(fichier, appels, 'actualiser');
+  assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
+});
+
+test('une peinture changée sur une entrée invalidée ne rejoue que l’accessibilité, et les corrections et la projection qui la suivent', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await mesuree(fichier, appels, 'analyser');
+  const mutation = MUTATIONS.find(({ nom }) => nom === 'peinture d’un calque')!;
+  mutation.muter(fichier);
+  mutation.evenements?.(contexteDesEvenements(fichier));
+  assert.equal(etatDeLEntree('Alert').etat, 'invalide');
+  const analysee = await mesuree(fichier, appels, 'analyser');
+  assert.equal(appels.moteur, 2, 'le moteur est rejoué');
+  // Le moteur de la fixture nomme le nombre de peintures : ses constats changent, donc les corrections et la projection aussi.
+  assert.deepEqual(analysee.reprises, { non: 5, rejouees: 3 });
+  const actualisee = await mesuree(fichier, appels, 'actualiser');
+  assert.deepEqual(actualisee.reprises, { non: 0, rejouees: 8 });
+  assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
+});
+
+test('un nom de calque changé rejoue les quatre familles qui le lisent (mapping, couches, accessibilité, typographie), pas le nommage ni les oublis', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await mesuree(fichier, appels, 'analyser');
+  const mutation = MUTATIONS.find(({ nom }) => nom === 'nom d’un calque')!;
+  mutation.muter(fichier);
+  mutation.evenements?.(contexteDesEvenements(fichier));
+  const analysee = await mesuree(fichier, appels, 'analyser');
+  assert.deepEqual(analysee.reprises, { non: 2, rejouees: 6 }, 'quatre familles, les corrections et la projection');
+  const actualisee = await mesuree(fichier, appels, 'actualiser');
+  assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
+});
+
+test('un catalogue incomplet retenu n’interdit pas la reprise : la comparaison porte sur ce que la demande vient de lire', async () => {
+  const fichier = fichierDeDepart();
+  fichier.catalogueIncomplet = true;
+  const appels = { moteur: 0 };
+  await mesuree(fichier, appels, 'analyser');
+  assert.equal(etatDeLEntree('Alert').etat, 'a-relire');
+  const inchangee = await mesuree(fichier, appels, 'analyser');
+  assert.equal(appels.moteur, 2, 'une entrée à relire ne reprend pas le moteur');
+  assert.deepEqual(inchangee.reprises, { non: 8, rejouees: 0 }, 'le moteur rendu égale le retenu : tout se reprend');
+  const complet = { ...fichier, catalogueIncomplet: false };
+  const complete = await mesuree(complet, appels, 'analyser');
+  assert.deepEqual(complete.reprises, { non: 1, rejouees: 7 }, 'une variable de moins change la liste que les six familles parcourent, et les corrections ; la projection se reprend');
+  const actualisee = await mesuree(complet, appels, 'actualiser');
+  assert.equal(JSON.stringify(complete.affiche), JSON.stringify(actualisee.affiche));
 });
 
 /** Tout ce que l'entrée de session porte comme objet : une reconstruction n'en garde aucun. */
@@ -397,8 +446,8 @@ test('une écriture du document, elle, invalide le sujet entier même quand rien
   await mesuree(fichier, appels, 'analyser');
   perimerApresUneEcriture(banc(fichier).contexte);
   const analysee = await mesuree(fichier, appels, 'analyser');
-  assert.equal(appels.moteur, 2);
-  assert.deepEqual(analysee.reprises, { non: 0, rejouees: 8 });
+  assert.equal(appels.moteur, 2, 'le moteur est rejoué');
+  assert.deepEqual(analysee.reprises, { non: 8, rejouees: 0 }, 'ses entrées lues sont égales à celles de l’entrée : les requêtes se reprennent');
 });
 
 class FauxNoeud {

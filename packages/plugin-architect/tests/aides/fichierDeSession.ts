@@ -14,6 +14,8 @@ export interface Fichier {
   /** Les noms de composant que les conteneurs de règles de la page écrivent. */
   nomsDeLaPage: string[];
   style: { nom: string; taille: number; remote: boolean };
+  /** Une variable du catalogue que Figma refuse de lire : l'entrée retenue est à relire. */
+  catalogueIncomplet?: boolean;
 }
 
 export const base = (id: string, variable: Fichier['variable'], extra: Partial<LayerLu> = {}): LayerLu => ({
@@ -55,5 +57,8 @@ export const releveDe = (fichier: Fichier): ReleveDeComposant => structuredClone
 export const catalogueDe = (fichier: Fichier): CatalogueDeReference => structuredClone({
   version: 1 as const, library: fichier.library,
   collections: [{ cle: 'c1', nom: 'components', role: 'components' as const, etat: 'lue' as const, modes: [{ id: 'Light', nom: 'Light' }] }],
-  variables: [{ cle: fichier.variable.cle, nom: fichier.variable.nom, collection: 'components', type: 'FLOAT' as const, etat: 'presente' as const, valeurs: { Light: { valeur: fichier.valeur } } }],
+  variables: [
+    { cle: fichier.variable.cle, nom: fichier.variable.nom, collection: 'components', type: 'FLOAT' as const, etat: 'presente' as const, valeurs: { Light: { valeur: fichier.valeur } } },
+    ...(fichier.catalogueIncomplet ? [{ cle: 'k-refusee', nom: 'alert/size/refusee', collection: 'components', type: 'FLOAT' as const, etat: 'inaccessible' as const }] : []),
+  ],
 });

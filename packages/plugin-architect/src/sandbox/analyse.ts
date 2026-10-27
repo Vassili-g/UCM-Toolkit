@@ -32,7 +32,8 @@
  *
  * Une demande Analyser ne reprend le résultat du moteur d'une entrée qu'après `validerLEntree` : relevé, catalogue,
  * dépendances du moteur et règles relus égaux à ceux de l'entrée, et rien dans le jeu que la relecture ne couvre pas
- * (maître distant ou hors page écoutée, style illisible). Le reste du chemin, contrôles, corrections et projection, se rejoue sur les sorties relues.
+ * (maître distant ou hors page écoutée, style illisible). Contrôles, corrections et projection ne dépendent pas de cette validation : chaque requête
+ * pure se reprend de l'entrée du sujet quand les entrées qu'elle lit égalent celles que la demande vient de lire (`creerLesRequetes`).
  */
 import {
   controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
@@ -234,8 +235,10 @@ const ENTREES_DES_REQUETES: Readonly<Record<NomDeRequete, readonly NomDEntree[]>
 };
 
 /**
- * Rend les deux fonctions par lesquelles `analyser` passe ses requêtes, sur l'entrée `entree` (`null` hors d'une validation
- * `valide` : rien ne se reprend alors) et les valeurs `actuelles` de la demande. Chacune compte la requête dans
+ * Rend les deux fonctions par lesquelles `analyser` passe ses requêtes, sur l'entrée promue `entree` du sujet, quel que soit son
+ * état (`null` pour Actualiser et sans entrée : rien ne se reprend alors) et les valeurs `actuelles` de la demande.
+ * Une requête est une fonction pure de ses entrées : son résultat retenu vaut pour les entrées que la demande a lues, et la
+ * comparaison suffit, que l'entrée soit invalidée par le journal, à relire ou refusée par la validation. Chacune compte la requête dans
  * `requetesNonRejouees` ou `requetesRejouees`.
  * - `famille` reprend le résultat de l'entrée quand la part des données que la famille lit est égale (`egalesExactement`) à
  *   celle de l'entrée, projection fraîche contre projection retenue ; la famille se calcule toujours sur les données entières.
@@ -1378,19 +1381,15 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
         : undefined;
       if (jeton.leve) return;
       if (dependances) suivreLesMaitres(identite as IdentiteDAnalyse, maitresSuivisParLeJournal(dependances, courante?.pages ?? new Set()).noeuds, contexte);
-      // Seule une validation `valide` reprend le moteur retenu ; Actualiser et un sujet sans lecteur de dépendances n'en demandent pas.
+      // Seule une validation `valide` reprend le moteur retenu (les requêtes pures ne la demandent pas) ; Actualiser et un sujet sans lecteur de dépendances n'en demandent pas.
       validation = reutilisationPermise(demande) && dependances !== undefined
         ? await validerLEntree(sujet, identite as IdentiteDAnalyse, { releve, catalogue, dependances }, lireLesReglesDe)
         : null;
     };
-    // Une requête n'est reprise que sur une entrée `valide`. Une entrée `utilisable` se valide donc avant les contrôles, et le
-    // provisoire part avec les contrôles retenus. Sans entrée utilisable, la lecture reste après le provisoire.
-    const validerAvantLesControles = reutilisationPermise(demande) && etatDeLEntree(sujet.cle).etat === 'utilisable';
-    if (validerAvantLesControles) {
-      await lireLesDependancesEtValider();
-      if (jeton.leve) return rendre('annulee', [], null);
-    }
-    const { famille, requete } = creerLesRequetes(validation?.etat === 'valide' ? session.entree(sujet.cle) : null, actuelles);
+    // Les requêtes pures se reprennent de l'entrée promue du sujet, quel que soit son état : leurs entrées se comparent aux
+    // valeurs lues par cette demande, jamais à celles de l'entrée. Actualiser ne reprend rien. Les contrôles précèdent donc la
+    // lecture des dépendances, et le provisoire part avec les familles reprises.
+    const { famille, requete } = creerLesRequetes(reutilisationPermise(demande) ? session.entree(sujet.cle) : null, actuelles);
     // Les contrôles du kit passent avant le moteur : leurs constats partent en provisoire, sans correction, pendant que le moteur lit les composants imbriqués.
     phase('controles');
     const { constats: controles, parFamille } = await controlesDuKit(releve, catalogue, niveau, architectureUcm, cooperation, famille);
@@ -1410,7 +1409,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     await cooperation.cederSiBesoin();
     if (jeton.leve) return rendre('annulee', [], null);
 
-    if (!validerAvantLesControles) await lireLesDependancesEtValider();
+    await lireLesDependancesEtValider();
     if (jeton.leve) return rendre('annulee', [], null);
     let moteur: MoteurRetenu;
     let reglesLues: ReleveDesRegles | null = null;
