@@ -27,6 +27,7 @@ Un lot est fini quand toutes ses cases sont cochées dans des commits. Mettre so
 | [13 : worker unique, transport par lots et repli](./LOT-13.md) | Non fini (conditionnel) |
 | [14 : worker conservé et différences versionnées](./LOT-14.md) | Non fini (conditionnel) |
 | [15 : clôture locale et recette du mainteneur](./LOT-15.md) | Non fini |
+| [16 : vers une analyse de 5 s](./LOT-16.md) | Proposé, à valider par le mainteneur |
 
 ## Exécution et attribution
 
