@@ -61,7 +61,6 @@
 .bloc-tete.avec-selection > .bloc-bouton { flex: 1 1 auto; min-width: 0; }
 .bouton-selectionner { flex: 0 0 auto; margin: 8px 4px 0 0; display: inline-flex; align-items: center; gap: 4px; }
 .bouton-selectionner svg { width: 14px; height: 14px; }
-.bouton-selectionner.fait { color: var(--texte-succes); }
 
 /* Ligne grise sous la bande d'une section : ce que la section ne mesure pas. */
 .section-note { margin: -2px 0 8px 2px; color: var(--texte-second); font-size: 11px; line-height: 16px; }
