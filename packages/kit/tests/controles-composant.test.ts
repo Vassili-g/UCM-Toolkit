@@ -228,7 +228,8 @@ test('le parcours commun des liaisons conserve variants, layers et indices dans 
 
 test('le mapping par étapes conserve les écarts ordonnés puis la fratrie', () => {
   const r = releve('Alert', [axe('Severity', ['info', 'success'])]);
-  r.variants = ['a', 'b', 'c'].map((id) => variante(id, { Severity: 'success' }, id === 'c' ? 'v1' : 'v0'));
+  // Le variant `c` vise `success` avec `Severity=info` : C15 le relève, et son token n'est plus celui de son variant, donc C21 le garde.
+  r.variants = ['a', 'b', 'c'].map((id) => variante(id, { Severity: id === 'c' ? 'info' : 'success' }, id === 'c' ? 'v1' : 'v0'));
   const c = catalogueEtendu(
     { nom: 'alert/color/info/background', collection: 'components', scopes: ['TEXT_FILL'], alias: 'v2' },
     { nom: 'alert/color/success/foreground', collection: 'components', alias: 'v3' },
@@ -245,6 +246,10 @@ test('le mapping par étapes conserve les écarts ordonnés puis la fratrie', ()
       faits: { token: 'alert/color/info/background', champ: 'fills', portee: 'FRAME_FILL' },
     },
   ]);
+  attendu.push({
+    id: 'C15:c:layer-c:fills:0::palette', code: 'C15', type: 'corriger', famille: 'liaisons', variants: ['c'], layers: ['layer-c'],
+    faits: { axe: 'Severity', valeur: 'info', token: 'alert/color/success/foreground', segment: 'success', champ: 'fills', indice: 0 },
+  });
   attendu.push({
     id: 'C17:c:layer-c:fills:0:', code: 'C17', type: 'corriger', famille: 'liaisons', variants: ['c'], layers: ['layer-c'],
     faits: { token: 'alert/color/success/foreground', role: 'foreground', attendu: 'background', champ: 'fills', indice: 0 },
@@ -581,7 +586,8 @@ test('table T : le relevé Alert rend les écarts de nom, de liaison, de couche 
   assert.ok(constats.some(({ code, faits }) => code === 'C80' && faits.token === 'dimension/14'));
   assert.ok(constats.some(({ code, faits }) => code === 'C31' && faits.Severity === 'warning' && faits.Variant === 'filled'));
   assert.equal(constats.filter(({ code, faits }) => code === 'C32' && String(faits.token).includes('warning/filled')).length, 3);
-  assert.ok(constats.some(({ code, variants }) => code === 'C21' && variants.includes('info-filled')));
+  // Le variant `info-filled` porte `alert/color/info/filled/icon` : ses valeurs sont les siennes, C21 ne le vise plus (lot K1).
+  assert.ok(!constats.some(({ code, variants }) => code === 'C21' && variants.includes('info-filled')));
   assert.ok(!constats.some(({ code, faits }) => code === 'C7' && faits.valeur === 'gap'));
 });
 
@@ -620,7 +626,7 @@ test('table T : le relevé Button couvre les 216 variants et les écarts de surv
   assert.ok(constats.some(({ code, faits }) => code === 'C10' && faits.token === 'button/size/medium/padding-x'));
   // Le layer `padding` est lié directement à une primitive : C80 depuis le lot K1 (c'était C20).
   assert.ok(constats.some(({ code, faits }) => code === 'C80' && faits.token === 'dimension/14'));
-  assert.ok(constats.some(({ code, variants, layers }) => code === 'C21' && variants.includes('text-primary-focus-small')
-    && layers.some((layer) => layer.startsWith('layer-'))));
+  // Le label de `text-primary-focus-small` porte `button/color/primary/text/sm/focus/foreground` : ses valeurs sont les siennes, C21 ne le vise plus (lot K1).
+  assert.ok(!constats.some(({ code, variants }) => code === 'C21' && variants.includes('text-primary-focus-small')));
   assert.ok(!constats.some(({ code, faits }) => code === 'C16' && faits.token === 'button/color/background'));
 });

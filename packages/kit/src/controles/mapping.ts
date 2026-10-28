@@ -3,7 +3,7 @@ import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { REGISTRE_ETATS, REGISTRE_ROLES, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { axesDuReleveParEtapes, constatDuComposant, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant } from './nommage.js';
+import { axesDuReleveParEtapes, constatDuComposant, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant, type ProprieteDAxe, type TokenDuComposant } from './nommage.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
 
 export interface LiaisonDuComposant { variant: VariantLu; layer: LayerLu; liaison: LiaisonLue }
@@ -84,7 +84,31 @@ function* signature(variable: VariableDuCatalogue, catalogue: CatalogueDeReferen
   return [...new Set(cibles)].sort().join(' | ');
 }
 
+/**
+ * Une liaison dont le token porte, sur chaque axe qu'il nomme, la valeur de son variant est juste : elle reste dans le groupe
+ * et dans le compte de la majorité, mais C21 ne la vise pas. Un token sans segment d'axe n'est jamais juste.
+ */
+function* porteLesValeursDeSonVariant(
+  variant: VariantLu, variable: VariableDuCatalogue,
+  axes: Partial<Record<AxeDuComposant, ProprieteDAxe>>, tokens: Map<string, TokenDuComposant>,
+): Generator<void, boolean> {
+  const token = tokens.get(variable.cle);
+  if (!token) return false;
+  let lus = 0;
+  for (const [axe, propriete] of Object.entries(axes) as [AxeDuComposant, NonNullable<typeof axes[AxeDuComposant]>][]) {
+    yield;
+    const dansLeToken = segmentDAxe(token, axe);
+    const dansLeVariant = variant.valeurs[propriete.nom];
+    if (!dansLeToken || !dansLeVariant) continue;
+    if (!memeValeur(axe, dansLeToken, dansLeVariant)) return false;
+    lus += 1;
+  }
+  return lus > 0;
+}
+
 function* ecartsDeFratrie(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
+  const axes = yield* axesDuReleveParEtapes(releve);
+  const tokens = new Map((yield* tokensDuComposantParEtapes(releve, catalogue)).map((token) => [token.variable.cle, token]));
   const groupes = new Map<string, { variant: VariantLu; layer: LayerLu; liaison: LiaisonLue; signe: string }[]>();
   for (const lue of parcourirLesLiaisons(releve)) {
     yield;
@@ -124,6 +148,8 @@ function* ecartsDeFratrie(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
     for (const entree of groupe) {
       yield;
       if (entree.signe === majoritaires[0][0]) continue;
+      const variable = variableDuCatalogue(catalogue, entree.liaison.variable.cle);
+      if (variable !== 'absente' && (yield* porteLesValeursDeSonVariant(entree.variant, variable, axes, tokens))) continue;
       constats.push(constatDuComposant('C21', 'liaisons', 'verifier', `${entree.variant.id}:${entree.layer.id}:${entree.liaison.surcharge?.id ?? ''}:${entree.liaison.champ}`, {
         nom: entree.liaison.variable.nom, majorite: majoritaires[0][0], autres: majoritaires[0][1], exemple, champ: entree.liaison.champ,
       }, [entree.variant.id], [entree.layer.id]));

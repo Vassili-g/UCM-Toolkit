@@ -19,7 +19,7 @@ export function axeDePropriete(nom: string): AxeDuComposant | undefined {
   const forme = formeReconnue(nom);
   if (STATE_AXIS_NAMES.some((nomDAxe) => forme === formeReconnue(nomDAxe))) return 'etat';
   if (['size', 'sizes', 'taille'].includes(forme)) return 'taille';
-  if (['palette', 'severity', 'intent'].includes(forme)) return 'palette';
+  if (['palette', 'severity', 'intent', 'color'].includes(forme)) return 'palette';
   if (['style', 'variant', 'appearance'].includes(forme)) return 'style';
   return undefined;
 }

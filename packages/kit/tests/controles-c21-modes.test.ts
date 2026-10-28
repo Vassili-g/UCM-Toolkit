@@ -65,3 +65,69 @@ test('C21 rend le même résultat quel que soit l’ordre des modes', () => {
 test('C21 ne signale rien quand les trois tokens visent les mêmes rôles dans tous les modes', () => {
   assert.deepEqual(c21(catalogue({}, 'light-dark')), []);
 });
+
+/** Un anneau de focus lié par variant : `Button/Color/<couleur>/<variant>/Focus/ring`, qui renvoie à `cible`. */
+interface Anneau { couleur: string; variant: string; cible: string; valeurs?: Record<string, string> }
+
+function anneaux(liste: Anneau[]): { releve: ReleveDeComposant; catalogue: CatalogueDeReference } {
+  const jetons = liste.map(({ couleur, variant }) => `Button/Color/${couleur}/${variant}/Focus/ring`);
+  const variants: VariantLu[] = liste.map(({ couleur, variant, valeurs }, i) => ({
+    id: `v${i}`, nom: `v${i}`, valeurs: { Color: couleur, Variant: variant, State: 'Focus', ...valeurs },
+    layers: [{
+      id: `l${i}`, nom: 'Ring', type: 'FRAME', parent: null, visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 100, hauteur: 40 },
+      peintures: [], valeursEnDur: [],
+      liaisons: [{ champ: 'strokes', indice: 0, porteur: 'instance', variable: { id: `id:${jetons[i]}`, cle: jetons[i], nom: jetons[i], collection: 'components', distante: true } }],
+    }],
+    modesEffectifs: {},
+  }));
+  const cibles = [...new Set(liste.map(({ cible }) => cible))];
+  const theme = cibles.map((nom): VariableDuCatalogue => ({ cle: nom, nom, collection: 'theme', type: 'COLOR', etat: 'presente' }));
+  const composants = liste.map((_, i): VariableDuCatalogue => ({
+    cle: jetons[i], nom: jetons[i], collection: 'components', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: liste[i].cible } },
+  }));
+  return {
+    releve: {
+      version: 1, jeu: { cle: 'button', id: 'jeu', nom: 'Button' }, variants,
+      proprietes: [
+        { nom: 'Color', type: 'VARIANT', valeurs: ['Info', 'Success', 'Warning', 'Error', 'Primary', 'Secondary'], defaut: 'Primary' },
+        { nom: 'Variant', type: 'VARIANT', valeurs: ['Contained', 'Outlined', 'Text'], defaut: 'Contained' },
+        { nom: 'State', type: 'VARIANT', valeurs: ['Default', 'Focus'], defaut: 'Default' },
+      ],
+      lecture: { layersLus: 0, layersNonLus: 0, variantsNonLus: [], manquees: [] }, espaceDeCouleur: 'srgb',
+    },
+    catalogue: {
+      version: 1, library: null,
+      collections: [
+        { cle: 'components', nom: 'components', role: 'components', modes: [], etat: 'lue' },
+        { cle: 'theme', nom: 'theme', role: 'theme', modes: [], etat: 'lue' },
+      ],
+      variables: [...theme, ...composants],
+    },
+  };
+}
+
+const VARIANTS = ['Contained', 'Outlined', 'Text'];
+const juste = (couleur: string, cible: string): Anneau[] => VARIANTS.map((variant) => ({ couleur, variant, cible }));
+const STATUTS = ['Info', 'Success', 'Warning', 'Error'].flatMap((statut) => juste(statut, `${statut}/Vivid/ring`));
+const MARQUES = ['Primary', 'Secondary'].flatMap((marque) => juste(marque, `${marque}/ring`));
+const c21De = ({ releve, catalogue }: ReturnType<typeof anneaux>) => controlerMapping(releve, catalogue).filter((constat) => constat.code === 'C21');
+
+test('C21 ne vise pas une liaison dont le token porte les valeurs de son variant', () => {
+  assert.deepEqual(c21De(anneaux([...STATUTS, ...MARQUES])), []);
+});
+
+test('C21 garde une liaison dont le token porte une autre valeur que celle de son variant', () => {
+  const liste = [...STATUTS, ...MARQUES];
+  liste[0] = { ...liste[0], cible: 'Primary/ring' };
+  const sortie = anneaux(liste);
+  sortie.releve.variants[0].valeurs.Color = 'Primary';
+  assert.deepEqual(c21De(sortie).map(({ variants }) => variants), [['v0']]);
+});
+
+test('C21 garde une liaison dont le token n’a aucun segment d’axe', () => {
+  const { releve, catalogue } = anneaux([...STATUTS, ...MARQUES]);
+  const nom = 'Button/Color/ring';
+  catalogue.variables.push({ cle: nom, nom, collection: 'components', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: 'Primary/ring' } } });
+  releve.variants[0].layers[0].liaisons[0].variable = { id: `id:${nom}`, cle: nom, nom, collection: 'components', distante: true };
+  assert.deepEqual(c21De({ releve, catalogue }).map(({ variants }) => variants), [['v0']]);
+});
