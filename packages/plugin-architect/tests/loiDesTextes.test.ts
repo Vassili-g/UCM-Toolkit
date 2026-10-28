@@ -28,8 +28,7 @@ function fichiers(dossier: string): string[] {
   return fs.readdirSync(dossier, { withFileTypes: true }).flatMap((entree) => {
     const chemin = path.join(dossier, entree.name);
     if (entree.isDirectory()) return entree.name === 'textes' ? [] : fichiers(chemin);
-    // `experiences.ts` ne s'affiche que dans le build d'expériences du lot 16, jamais distribué : le designer ne le lit pas.
-    return chemin.endsWith('.ts') && entree.name !== 'experiences.ts' ? [chemin] : [];
+    return chemin.endsWith('.ts') ? [chemin] : [];
   });
 }
 

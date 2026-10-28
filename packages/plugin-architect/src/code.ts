@@ -20,8 +20,6 @@ import { creerLeSuivi, type Contexte } from './sandbox/contexte';
 import { DOMAINES, tableDesTypes } from './sandbox/index';
 import { annoncerLOuverture } from './sandbox/nomenclature';
 import { creerLaPrelecture } from './sandbox/prelecture';
-import { importerParCle, type PortDeLecture } from './lecture';
-import { creerLesExperiences, variablesDeLaSelection, type NoeudDeCollecte, type VariableDExperience } from './sandbox/experiences';
 
 figma.showUI(__html__, { themeColors: false, visible: false, width: TAILLE_PAR_DEFAUT.largeur, height: TAILLE_PAR_DEFAUT.hauteur });
 
@@ -59,34 +57,8 @@ function surveillerLeDocument(page?: PageNode): readonly string[] {
 
 const contexte: Contexte = { figma, envoyer: versUi, surveillerLeDocument, envoyerLaCapture: (message) => figma.ui.postMessage(message) };
 
-// Le build d'expériences (lot 16) : sans `UCM_ARCHITECT_EXPERIENCES` dans la bannière du sandbox, `traiter` rend faux et ne touche à rien.
-const experiences = creerLesExperiences({
-  actif: (globalThis as { UCM_ARCHITECT_EXPERIENCES?: unknown }).UCM_ARCHITECT_EXPERIENCES === true,
-  maintenant: () => Date.now(),
-  attendre: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
-  // La console du sandbox est difficile à trouver dans Figma : le panneau de l'interface affiche aussi chaque objet.
-  sortie: (objet) => { console.log(JSON.stringify(objet)); figma.ui.postMessage({ type: 'experience-sortie', objet }); },
-  variablesDeLaSelection: () => variablesDeLaSelection(figma.currentPage.selection as unknown as readonly NoeudDeCollecte[], (id) => figma.variables.getVariableByIdAsync(id) as Promise<VariableDExperience | null>),
-  getVariableByIdAsync: (id) => figma.variables.getVariableByIdAsync(id) as Promise<VariableDExperience | null>,
-  importerParCle: (cle) => importerParCle(figma.variables as unknown as PortDeLecture, cle) as unknown as Promise<VariableDExperience>,
-  // Comme la vérification de l'analyse : la liste, puis les variables de chaque collection. La liste seule répond en 2 ms.
-  lireLesLibraries: async () => {
-    const collections = await figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync();
-    await Promise.all(collections.map((collection) => figma.teamLibrary.getVariablesInLibraryCollectionAsync(collection.key).catch(() => null)));
-    return collections;
-  },
-  page: {
-    on: (type, rappel) => figma.currentPage.on(type, rappel as unknown as (evenement: NodeChangeEvent) => void),
-    off: (type, rappel) => figma.currentPage.off(type, rappel as unknown as (evenement: NodeChangeEvent) => void),
-  },
-  signaler: (etat) => figma.ui.postMessage({ type: 'experience-signal', etat }),
-});
-
-
-// La prélecture à la sélection (lot 16, 16.16) : sans `UCM_ARCHITECT_PRELECTURE` dans la bannière du sandbox, elle ne se lance jamais.
-// Seul point de lecture du drapeau ; le mainteneur décide de l'activation par défaut après R16.3.
+// La prélecture à la sélection (16.16) : un composant sélectionné, puis 1 s sans événement, lance une analyse discrète.
 const prelecture = creerLaPrelecture({
-  actif: (globalThis as { UCM_ARCHITECT_PRELECTURE?: unknown }).UCM_ARCHITECT_PRELECTURE === true,
   aUnSujet: () => sujetDeLaSelectionCourante(figma).sujet !== null,
   lancer: () => traiterMessage({ type: 'analyser', origine: 'prelecture' }).catch(() => undefined),
   annuler: () => { annulerLaPrelecture(); },
@@ -143,7 +115,6 @@ figma.on('close', () => {
 
 figma.ui.onmessage = async (message: UiRequest) => {
   if (!message || typeof message.type !== 'string') return;
-  if (experiences.traiter(message)) return;
   try {
     await traiterMessage(message);
   } catch (erreur) {

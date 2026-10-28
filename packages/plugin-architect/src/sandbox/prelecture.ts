@@ -6,8 +6,7 @@
  * Ce module ne décide que du moment. Chaque `selectionchange`, `currentpagechange`, `stylechange` et `nodechange` lève le jeton
  * de la prélecture en cours et repart d'un silence de 1 s ; il relance aussi la lecture des libraries toutes les 5 s, pour que
  * la vérification du clic tombe dans la mémoire de Figma (E6), jusqu'à 2 minutes après la sélection, ou jusqu'à la première
- * analyse du designer. Désactivée, une prélecture ne se lance jamais et rien ne se relance : `code.ts` lit le drapeau
- * `UCM_ARCHITECT_PRELECTURE` une seule fois, ici sous `actif`.
+ * analyse du designer.
  */
 
 /** Le silence qui précède une prélecture : le geste d'un designer qui s'est arrêté. */
@@ -18,8 +17,6 @@ export const RELANCE_DES_LIBRARIES_MS = 5000;
 export const BORNE_DE_LA_RELANCE_MS = 120_000;
 
 export interface DependancesDeLaPrelecture {
-  /** Le drapeau du build. Faux : aucune prélecture, aucune relance. */
-  readonly actif: boolean;
   /** Vrai quand la sélection désigne un jeu de variants ou un composant que le mode Composant analyserait. */
   aUnSujet(): boolean;
   /** Lance la demande `analyser` d'origine `prelecture` ; ne rejette jamais. */
@@ -46,7 +43,7 @@ export interface Prelecture {
 }
 
 export function creerLaPrelecture(dependances: DependancesDeLaPrelecture): Prelecture {
-  const { actif, planifier, maintenant } = dependances;
+  const { planifier, maintenant } = dependances;
   let sujetSelectionne = false;
   let finDuSilence: (() => void) | null = null;
   let finDeLaRelance: (() => void) | null = null;
@@ -90,13 +87,11 @@ export function creerLaPrelecture(dependances: DependancesDeLaPrelecture): Prele
 
   return {
     surSelection() {
-      if (!actif) return;
       sujetSelectionne = dependances.aUnSujet();
       relancer();
       armer();
     },
     surChangement() {
-      if (!actif) return;
       armer();
     },
     fermer() {

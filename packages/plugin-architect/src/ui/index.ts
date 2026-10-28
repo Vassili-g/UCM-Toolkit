@@ -36,7 +36,6 @@ import { TEXTES } from './textes';
 import { creerVueComposant } from './vues/composant';
 import { creerAlerteHorsUcm, estHorsUcm } from './vues/horsUcm';
 import { estUneCapture, recevoirLaCapture } from './capture';
-import { installerLesExperiences } from './experiences';
 
 const etat = etatInitial();
 let branchements: Branchements;
@@ -416,11 +415,8 @@ function recevoir(message: PluginMessage): void {
   }
 }
 
-const experiences = installerLesExperiences({ envoyer: (message) => versSandbox(message as unknown as Parameters<typeof versSandbox>[0]) });
-
 window.addEventListener('message', (evenement: MessageEvent) => {
   const brut: unknown = evenement.data?.pluginMessage;
-  if (experiences.recevoir(brut)) return;
   if (estReglesRecues(brut)) {
     nomenclature.poserLesReglesRecues(brut.regles);
     return;

@@ -1,5 +1,5 @@
 /**
- * La prélecture à la sélection (lot 16, 16.16) : le moment (silence de 1 s, annulation par tout événement, drapeau), la relance
+ * La prélecture à la sélection (lot 16, 16.16) : le moment (silence de 1 s, annulation par tout événement), la relance
  * des libraries toutes les 5 s, et l'absence d'import par clé. Le déroulé de l'analyse discrète, sa promotion et la prise au
  * premier plan par un clic ont leurs cas dans `paritesDeSession.test.ts`, qui les compare à Actualiser.
  */
@@ -51,7 +51,6 @@ function planche(surcharge: Partial<DependancesDeLaPrelecture> = {}) {
   const compte: Compte = { lancees: 0, annulees: 0, libraries: 0 };
   const etat = { sujet: true, operation: null as ReturnType<DependancesDeLaPrelecture['operationEnCours']>, analyses: 0 };
   const prelecture = creerLaPrelecture({
-    actif: true,
     aUnSujet: () => etat.sujet,
     lancer: async () => { compte.lancees += 1; },
     annuler: () => { compte.annulees += 1; },
@@ -64,15 +63,6 @@ function planche(surcharge: Partial<DependancesDeLaPrelecture> = {}) {
   });
   return { prelecture, horloge, compte, etat };
 }
-
-test('drapeau absent : aucune prélecture, aucune relance, aucune minuterie', () => {
-  const { prelecture, horloge, compte } = planche({ actif: false });
-  prelecture.surSelection();
-  prelecture.surChangement();
-  horloge.avancer(10 * 60_000);
-  assert.deepEqual(compte, { lancees: 0, annulees: 0, libraries: 0 });
-  assert.equal(horloge.planifierEnCours(), 0);
-});
 
 test('la prélecture part après 1 s sans événement : chaque sélection, changement de nœud ou de style relance le silence', () => {
   const { prelecture, horloge, compte } = planche();

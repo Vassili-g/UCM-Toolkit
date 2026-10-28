@@ -246,43 +246,9 @@ Après un échec de `test:ui` sur `dist/galerie-fixtures.cjs` introuvable,
 relancez `npm run galerie --workspace ucm-architect-plugin` : il compile les
 fixtures que les tests d'interface lisent.
 
-## Build d'expériences
+## Prélecture à la sélection
 
-Un build jamais distribué joue les expériences E1 à E6 du lot 16 de la vitesse de l'analyse (`docs/notes/Recherches/UCM Architect/5 Vitesse de l'analyse/lots/LOT-16.md`, section « Expériences Figma ») et écrit un objet JSON par expérience dans la console de Figma. Les deux bundles portent la bannière `UCM_ARCHITECT_EXPERIENCES=true` ; sans elle, l'interface ne pose pas `ucmExperience` et le sandbox ignore ses messages.
-
-```sh
-npm run build:plugin -- architect
-cd packages/plugin-architect
-npx esbuild src/code.ts --bundle --outfile=dist/code.js --platform=browser --target=chrome80 --sourcemap "--banner:js=globalThis.UCM_ARCHITECT_EXPERIENCES=true;"
-npx esbuild src/ui/index.ts --bundle --outfile=dist/ui.js --format=iife --platform=browser --target=chrome80 --minify "--banner:js=globalThis.UCM_ARCHITECT_EXPERIENCES=true;"
-node scripts/build-ui.cjs
-```
-
-Sélectionnez le jeu de variants du Button, puis cliquez un bouton du panneau posé en bas de la fenêtre ; l'infobulle de chaque bouton dit le geste attendu. Le panneau affiche l'expérience en cours et chaque objet reçu ; **Copier** les copie tous. `ucmExperience('E1')` dans la console de l'interface fait la même chose. Les expériences lisent les variables liées à la sélection, ses descendants compris, et les cibles de leurs alias.
-
-| Commande | Ce qu'elle fait |
-|---|---|
-| `ucmExperience('E1')` | importe les clés avec 1, 4, 8, 16 et 32 imports en vol, trois fois chacun |
-| `ucmExperience('E1-froid')` | importe un groupe de clés distinct par palier, avec 32, 16, 8, 4 puis 1 imports en vol, pour qu'aucun palier ne profite des imports d'un autre ; à lancer juste après l'ouverture du fichier |
-| `ucmExperience('E2')` | compare identifiant et `valuesByMode` entre `getVariableByIdAsync` et l'import, avec leurs durées ; à refaire après une mise à jour de library publiée non acceptée |
-| `ucmExperience('E3')` | l'interface envoie un message toutes les 16 ms pendant 300 `getVariableByIdAsync` à la suite ; le résultat donne les messages reçus et attendus |
-| `ucmExperience('E4')`, puis `ucmExperience('E4-fin')` | journalise les `nodechange` de la page pendant vos gestes ; la sortie de départ liste les six gestes |
-| `ucmExperience('E5')`, puis `ucmExperience('E5-fin')` | même écoute pendant que vous republiez l'icône d'un maître distant et acceptez la mise à jour |
-| `ucmExperience('E6')` | relit la liste des libraries et les variables de chaque collection 0, 5, 10, 20, 30 et 60 s après une lecture, trois séries (environ 7 minutes) |
-
-Aucune expérience n'écrit dans le document. E1 et E2 importent des variables de library par clé, ce que l'analyse fait déjà. Collez les objets copiés dans `_local/vitesse-analyse/`, hors de git.
-
-## Build de prélecture
-
-La prélecture à la sélection (lot 16, case 16.16) est désactivée par défaut : sans `UCM_ARCHITECT_PRELECTURE` dans la bannière du bundle du sandbox, `code.ts` ne lance aucune prélecture et ne relance aucune lecture de libraries. Le mainteneur décide de son activation par défaut après la mesure A/B R16.3. Pour la mesurer, construisez le sandbox avec le drapeau, et l'interface avec la bannière de mesure décrite dans « Vérifier » :
-
-```sh
-npm run build:plugin -- architect
-cd packages/plugin-architect
-npx esbuild src/code.ts --bundle --outfile=dist/code.js --platform=browser --target=chrome80 --sourcemap "--banner:js=globalThis.UCM_ARCHITECT_PRELECTURE=true;"
-```
-
-Sélectionnez un composant et ne touchez plus à rien : au bout d'une seconde, le sandbox lit le composant sans rien afficher. Un clic sur Analyser pendant cette lecture la prend au premier plan. Avec `globalThis.UCM_ARCHITECT_MESURER = true`, les compteurs `prelecturesLancees`, `prelecturesAnnulees`, `prelecturesPromues` et `clicApresPrelecture:repris` ou `clicApresPrelecture:premierPlan` rejoignent la trace de la première analyse mesurée qui suit. Le build d'expériences et celui de prélecture se combinent : `"--banner:js=globalThis.UCM_ARCHITECT_EXPERIENCES=true;globalThis.UCM_ARCHITECT_PRELECTURE=true;"`.
+Sélectionnez un composant et ne touchez plus à rien : au bout d'une seconde, le sandbox lit le composant sans rien afficher. Un clic sur Analyser pendant cette lecture la prend au premier plan. Avec `globalThis.UCM_ARCHITECT_MESURER = true`, les compteurs `prelecturesLancees`, `prelecturesAnnulees`, `prelecturesPromues` et `clicApresPrelecture:repris` ou `clicApresPrelecture:premierPlan` rejoignent la trace de la première analyse mesurée qui suit (bannière décrite dans « Vérifier »).
 
 ## Licence
 
