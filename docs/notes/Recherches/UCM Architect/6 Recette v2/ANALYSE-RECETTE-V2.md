@@ -749,7 +749,7 @@ en premier, dans une seule version du kit :
 | K5 | Sortes de composant imbriqué dans le référentiel, et leur test (7.3) | — |
 | K6 | Pièce partagée : `theme` et `layout` admis dans son composant principal (7.3) | K5 |
 | S1 | Le socle exporte la règle des espacements sans effet ; relevé et vue la lisent (9) | — |
-| A1 | Frontière, Configuration en bascule et à sa place, Actualiser désactivé (1) | R-25 |
+| A1 | Frontière, Configuration en bascule et à sa place, Actualiser désactivé (1) | — |
 | A2 | Fenêtre à 500 px, panneau à 640 px, barre compacte (1) | — |
 | A3 | Changement de variant sans saut, chevron des sections de la liste (2) | — |
 | A4 | Noms de variants en valeurs seules, tableau retiré (3, 5) | — |
