@@ -403,7 +403,7 @@ test('l’intention d’une demande est Analyser par défaut, et seul Analyser p
   assert.equal(reutilisationPermise({ type: 'analyser', intention: 'actualiser' }), false);
 });
 
-test('Actualiser abandonne la lecture anticipée et relit ; Analyser la reprend', async () => {
+test('Actualiser vérifie et reprend la lecture anticipée comme Analyser', async () => {
   const demander = async (intention: 'analyser' | 'actualiser', fini: boolean) => {
     abandonnerLesLibrariesAnticipees();
     reinitialiserLAnalyse();
@@ -417,23 +417,23 @@ test('Actualiser abandonne la lecture anticipée et relit ; Analyser la reprend'
     const finale = envoyes.find((m): m is Extract<PluginMessage, { type: 'analyse' }> => m.type === 'analyse')!;
     return { journal, compteurs: finale.mesure!.compteurs, anticipee: uneLectureAnticipeeExiste(figma), catalogue: finale.statut };
   };
-  // Lecture anticipée finie : Analyser la vérifie et la reprend, Actualiser ne la consulte pas.
+  // Lecture anticipée finie : Analyser et Actualiser la vérifient et la reprennent.
   const reprise = await demander('analyser', true);
   assert.equal(reprise.compteurs.librariesAnticipeesReprises, 1);
   assert.equal(reprise.anticipee, true);
   const relue = await demander('actualiser', true);
-  assert.equal(relue.compteurs.librariesAnticipeesReprises, undefined);
+  assert.equal(relue.compteurs.librariesAnticipeesReprises, 1);
   assert.equal(relue.compteurs.librariesAnticipeesRelues, undefined);
-  assert.equal(relue.compteurs.msVerificationDesLibraries, undefined);
-  assert.equal(relue.anticipee, false);
-  assert.equal(relue.journal.inventaires, 2, 'l’anticipation, puis la relecture de la demande');
-  // Lecture anticipée en cours : Analyser l'attend, Actualiser lit pour son compte.
+  assert.ok(relue.compteurs.msVerificationDesLibraries !== undefined, 'la liste est relue pour la vérification');
+  assert.equal(relue.anticipee, true);
+  assert.equal(relue.journal.inventaires, 2, 'l’anticipation, puis la vérification');
+  // Lecture anticipée en cours : Analyser et Actualiser l'attendent.
   const attendue = await demander('analyser', false);
   assert.equal(attendue.journal.inventaires, 1);
   assert.equal(attendue.compteurs.librariesAnticipeesReprises, 1);
   const actualisee = await demander('actualiser', false);
-  assert.equal(actualisee.journal.inventaires, 2);
-  assert.equal(actualisee.compteurs.librariesAnticipeesReprises, undefined);
+  assert.equal(actualisee.journal.inventaires, 1);
+  assert.equal(actualisee.compteurs.librariesAnticipeesReprises, 1);
   assert.equal(actualisee.catalogue, 'complete');
 });
 

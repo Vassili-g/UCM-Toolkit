@@ -71,7 +71,7 @@ import type { CauseDePeremption, DemandeDAnalyse, IntentionDAnalyse, StatutDAnal
 import type { IdentiteDAnalyse, OrigineDeSelection } from '../messages/commun';
 import { constatsDeRegles, lireLesRegles, retenirLesModeles, type ReleveDesRegles } from '../regles';
 import { lireLeReleve, type IssueDuReleve } from '../releveDuComposant';
-import { abandonnerLesLibrariesAnticipees, lireLesLibrariesAuClic } from './anticipation';
+import { lireLesLibrariesAuClic } from './anticipation';
 import { capturerSiDemande, PROPRIETES_DE_STYLE } from './capture';
 import { lireLaDeclaration } from './commun';
 import { retenirLesLiaisons } from './bibliotheque';
@@ -1443,8 +1443,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     contexte.envoyer({ type: 'occupe', analyse: await operation.identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}) });
     return;
   }
-  // Seule mémoire entre demandes aujourd'hui : les libraries lues à la sélection. Actualiser les abandonne et relit.
-  if (!reutilisationPermise(demande)) abandonnerLesLibrariesAnticipees();
+  // Les libraries lues à la sélection servent aussi à Actualiser : `lireLesLibrariesAuClic` relit la liste et ne reprend
+  // la lecture anticipée que si elle est identique. Aucun résultat d'une demande précédente n'est repris.
   const reception = Date.now();
   let connaitre!: (identite: IdentiteDAnalyse) => void;
   const courant: Operation = { identite: new Promise((resolve) => { connaitre = resolve; }), connue: null, jeton: { leve: false } };

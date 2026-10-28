@@ -273,7 +273,7 @@ La lecture des libraries commence plus tôt encore : la vue Composant la lance
 quand elle lit un composant d'un fichier qui n'est pas hors UCM. Une seule
 lecture court à la fois ; elle a son jeton et sa coopération, hors de toute
 portée d'analyse, et une sélection qui la suit de moins de 60 s ne la relance
-pas. Au clic sur Analyser, une lecture encore en cours s'attend. Une lecture
+pas. Au clic sur Analyser ou Actualiser, une lecture encore en cours s'attend. Une lecture
 finie se vérifie : l'analyse relit les collections, leurs variables, leurs clés,
 leurs noms et leurs types, et reprend la lecture anticipée si cette liste est
 identique, sinon la nouvelle liste, qui remplace l'ancienne. Cette vérification
@@ -288,7 +288,7 @@ du mode Composant envoie `intention: 'analyser'`, y compris quand il se lit
 Actualiser une fois le composant analysé : la reprise validée reste ainsi le
 geste ordinaire. Seul Maj+clic sur Actualiser envoie `intention: 'actualiser'`,
 que l'infobulle annonce. Une demande sans intention vaut Analyser.
-Actualiser abandonne la lecture anticipée et lit seul ; Analyser la reprend.
+Actualiser reprend la lecture anticipée après la même vérification que Analyser ; il ne reprend aucun résultat d'une demande précédente.
 `reutilisationPermise` (`sandbox/analyse.ts`) est le seul point où une mémoire
 entre demandes se branche. Figma ne publie ni version, ni date, ni événement de
 library ; la vérification de la liste est le seul contrôle de fraîcheur, et une
