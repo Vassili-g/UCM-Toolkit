@@ -78,6 +78,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - propagation.ts : `proposerLaPropagation` (C24) : liaisons d'un variant modèle reportées sur les autres variants par substitution des segments d'axe, en correction exacte ou en question
 
 ## src/referentiel/
+- composition.ts : les quatre sortes de composant imbriqué et `sorteDeLImbrique(faits)`, depuis nom, règles trouvées et dimensions liées
 - signes.ts : les signes des sortes d’objets (13 familles, identifiant, libellé, sens, tracé SVG, mot de repli), les reprises entre familles et `svgDuSigne` ; données seules, la tuile se pose dans le socle
 
 ## scripts/

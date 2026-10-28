@@ -23,4 +23,5 @@ export * from './lexique.js';
 export * from './natures.js';
 export * from './signes.js';
 export * from './questions.js';
+export * from './composition.js';
 export type { ReleveDeComposant, CatalogueDeReference, Constat } from '../controles/index.js';

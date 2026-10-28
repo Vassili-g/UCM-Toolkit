@@ -160,7 +160,9 @@ collections and their targets, the naming registers and lexicon, the products
 and their responsibilities, the implementation advice, and the grammar of the
 Figma rules kit (`.componentRules`, `.rulesSection`, `.ruleItem`, their layers
 and the `[À compléter]` marker) with a validator of a portable survey of its
-masters. Like `format`, it depends on nothing.
+masters. It also names the four kinds of nested component (dependency,
+dimension wrapper, internal piece, detail) and classifies one from surveyed
+facts, with `sorteDeLImbrique`. Like `format`, it depends on nothing.
 
 **`@ucm-kit/core/controles`** defines the portable component survey, reference
 catalogue and findings used by UCM Architect. It also looks up catalogue
