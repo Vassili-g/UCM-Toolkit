@@ -242,7 +242,7 @@ function* controlerLesReglesIcones(icones: Map<string, Source[]>, releve: Releve
       const propriete = source.layer.instanceDe?.pilotee ?? null;
       if (propriete !== null && !declarees.has(propriete)) {
         ajouter(groupes, `C67:${nom}:propriete-absente`, source,
-          { calque: nom, motif: 'propriete-absente', propriete }, { code: 'C67', type: 'verifier', famille: 'regles' });
+          { calque: nom, motif: 'propriete-absente', propriete }, { code: 'C67', type: 'corriger', famille: 'regles' });
         continue;
       }
       const faits: Constat['faits'] = propriete === null

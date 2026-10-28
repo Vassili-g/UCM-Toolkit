@@ -104,6 +104,7 @@ test('C67 : une icône pilotée par une propriété absente est signalée, sinon
   const pilotee = icone({ instanceDe: { cle: 'c', nom: 'Info', distante: true, pilotee: 'Icon' } });
   const absente = code(releve([variant('a', [pilotee])]), 'C67');
   assert.equal(absente[0].faits.motif, 'propriete-absente');
+  assert.equal(absente[0].type, 'corriger');
   const declaree = releve([variant('a', [pilotee])], [{ nom: 'Icon', type: 'INSTANCE_SWAP', defaut: 'x' }]);
   assert.equal(code(declaree, 'C67').length, 0);
   const limite = code(declaree, 'C67', true);
