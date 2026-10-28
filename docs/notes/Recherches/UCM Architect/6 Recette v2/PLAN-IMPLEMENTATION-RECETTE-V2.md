@@ -116,9 +116,9 @@ Une majorité demande au moins deux liaisons et plus de la moitié du groupe
 (`mapping.ts:113-121`). Les liaisons justes restent donc dans le groupe et dans
 le compte de la majorité ; elles ne reçoivent simplement jamais C21.
 
-- [ ] **K1.1** Test rouge dans `packages/kit/tests/controles-c21-modes.test.ts` : 12 variants Focus de statut liés à `Button/Color/<Statut>/<Variant>/Focus/ring` qui renvoie à `<Statut>/Vivid/ring`, 6 de marque liés à `Button/Color/<Marque>/<Variant>/Focus/ring` qui renvoie à `<Marque>/ring`. Aucun C21 attendu.
-- [ ] **K1.2** `ecartsDeFratrie` (`packages/kit/src/controles/mapping.ts:87`) : dans la boucle qui émet C21, sauter une liaison dont chaque segment de property du nom de token, lu par `segmentDAxe`, vaut la valeur de son variant. Le groupement et le calcul de la majorité ne changent pas.
-- [ ] **K1.3** Deux tests de plus : un variant `Color=Primary` lié à `Color/Info/…` au milieu de voisins justes garde C21 ; un token sans segment de property, différent de la majorité, garde C21.
+- [x] (e67392ec) **K1.1** Test rouge dans `packages/kit/tests/controles-c21-modes.test.ts` : 12 variants Focus de statut liés à `Button/Color/<Statut>/<Variant>/Focus/ring` qui renvoie à `<Statut>/Vivid/ring`, 6 de marque liés à `Button/Color/<Marque>/<Variant>/Focus/ring` qui renvoie à `<Marque>/ring`. Aucun C21 attendu.
+- [x] (e67392ec) **K1.2** `ecartsDeFratrie` (`packages/kit/src/controles/mapping.ts:87`) : dans la boucle qui émet C21, sauter une liaison dont chaque segment de property du nom de token, lu par `segmentDAxe`, vaut la valeur de son variant. Le groupement et le calcul de la majorité ne changent pas.
+- [x] (e67392ec) **K1.3** Deux tests de plus : un variant `Color=Primary` lié à `Color/Info/…` au milieu de voisins justes garde C21 ; un token sans segment de property, différent de la majorité, garde C21. L'axe `Color` se lit désormais comme un axe de palette (`axeDePropriete`), comme `Severity`.
 
 #### K2 · C10 lit l'écriture des dossiers
 
@@ -132,14 +132,14 @@ Analyse 7.2. Nature : correction d'un défaut.
 
 Analyse 8. Nature : correction d'un défaut.
 
-- [ ] **K3.1** Tests rouges : stroke d'Alert Outlined lié à `Color/Info/Outlined/foreground`, aucun C17 ; stroke lié à un token `background`, C17 ; stroke d'un layer `ring` lié à `foreground`, C17.
-- [ ] **K3.2** `rolesAdmis` (`mapping.ts:47`) : un stroke hors anneau admet `['border', 'foreground']`.
+- [x] (70e93209) **K3.1** Tests rouges : stroke d'Alert Outlined lié à `Color/Info/Outlined/foreground`, aucun C17 ; stroke lié à un token `background`, C17 ; stroke d'un layer `ring` lié à `foreground`, C17.
+- [x] (70e93209) **K3.2** `rolesAdmis` (`mapping.ts:47`) : un stroke hors anneau admet `['border', 'foreground']`.
 
 #### K7 · C67 « propriété absente » devient À corriger
 
 Analyse 7.4. Nature : correction d'un défaut.
 
-- [ ] **K7.1** `packages/kit/src/controles/typographie.ts:245` : le C67 de motif `propriete-absente` passe de `verifier` à `corriger`. Ses deux limites (`icone-non-pilotee`, `icones-permises-non-lues`, lignes 251-252) restent `info` : elles iront dans la section Informations (U5). Test dans `typographie.test.ts`.
+- [x] (04ce6d74) **K7.1** `packages/kit/src/controles/typographie.ts:245` : le C67 de motif `propriete-absente` passe de `verifier` à `corriger`. Ses deux limites (`icone-non-pilotee`, `icones-permises-non-lues`, lignes 251-252) restent `info` : elles iront dans la section Informations (U5). Test dans `typographie.test.ts`.
 
 #### K5 · Les sortes de composant imbriqué
 
@@ -160,7 +160,7 @@ Analyse 4, « La carte ». Nature : code nouveau.
 
 Analyse 7.4. Nature : code nouveau.
 
-- [ ] **K9.1** `packages/kit/src/referentiel/signes.ts` : signe `information`, une note grise (tracé de la maquette, cadre 7f), famille des sortes de proposition. Test dans `signes.test.ts`.
+- [x] (4a5726ca) **K9.1** `packages/kit/src/referentiel/signes.ts` : signe `information`, une note grise (tracé de la maquette, cadre 7f), famille des sortes de proposition. Test dans `signes.test.ts`.
 
 #### K4 · Contraste sur la page et la carte, sévérité selon les garanties
 
@@ -198,8 +198,8 @@ Analyse 10. Dépend de P0 et R-30. Nature : code nouveau.
 
 Analyse 9. Agent : `implementeur-exigeant` (trois lecteurs d'une règle). Nature : correction d'un défaut.
 
-- [ ] **S1.1** `packages/plugin-socle/src/composant/contract/nodeBindings.ts` : exporter `espacementSansEffet(noeud, champ)`, bâti sur `inapplicableReason` (définie ligne 225). Ses deux appels du socle (lignes 315 et 442) restent tels quels ; un test de la fonction s'ajoute.
-- [ ] **S1.2** `plugin-architect/src/releveDuComposant.ts:159` et `src/lectureDuComposant.ts:198` sautent un espacement sans effet. Tests rouges dans `releveDuComposant.test.ts` et `lectureDuComposant.test.ts` : auto layout `SPACE_BETWEEN`, `itemSpacing` 10, aucune valeur en dur.
+- [x] (cfd1b85a, 45e2be4c) **S1.1** `packages/plugin-socle/src/composant/contract/nodeBindings.ts` : exporter `espacementSansEffet(noeud, champ)`, bâti sur `inapplicableReason` (définie ligne 225). Ses deux appels du socle (lignes 315 et 442) restent tels quels ; un test de la fonction s'ajoute.
+- [x] (cfd1b85a, 45e2be4c) **S1.2** `plugin-architect/src/releveDuComposant.ts:159` et `src/lectureDuComposant.ts:198` sautent un espacement sans effet. Tests rouges dans `releveDuComposant.test.ts` et `lectureDuComposant.test.ts` : auto layout `SPACE_BETWEEN`, `itemSpacing` 10, aucune valeur en dur.
 
 #### S2 · Le socle classe les imbriqués par le kit
 
@@ -214,8 +214,8 @@ Dépend de K5 (V2). Agent : `implementeur-exigeant`. Nature : déplacement à so
 
 Analyse 7.6. Agent : `implementeur`. Nature : correction d'un défaut.
 
-- [ ] **B1.1** Test rouge dans `plugin-architect/tests/regles.test.ts`, d'après le rapport de Button : jeu `Color`, `Variant`, `State` ; wrapper `.sizeWrapperButton` à `Size`, `Label`, `Icon-Left`, `Icon-Right` ; règles `size`, `label`, `iconLeft`, `iconRight`. Aucun C45 `sans-propriete`. `State` sans règle garde son C45.
-- [ ] **B1.2** `lireLesRegles` (`src/regles.ts:150`) : ajouter à `surface` les clés des props que le moteur fusionne depuis le wrapper de dimensions, lues dans `ResultatInterne`.
+- [x] (97a60667) **B1.1** Test rouge dans `plugin-architect/tests/regles.test.ts`, d'après le rapport de Button : jeu `Color`, `Variant`, `State` ; wrapper `.sizeWrapperButton` à `Size`, `Label`, `Icon-Left`, `Icon-Right` ; règles `size`, `label`, `iconLeft`, `iconRight`. Aucun C45 `sans-propriete`. `State` sans règle garde son C45.
+- [x] (97a60667) **B1.2** `lireLesRegles` (`src/regles.ts:150`) : ajouter à `surface` les clés des props que le moteur fusionne depuis le wrapper de dimensions, lues dans `ResultatInterne`.
 
 #### B4 · La carte de modèle côté sandbox
 
@@ -246,27 +246,27 @@ Chaque sous-lot U met à jour ses états de galerie et les nomme dans son compte
 rendu. Le mainteneur vérifie l'interface lui-même. Un test DOM suit le modèle
 de `tests/panneauSections.test.ts`, qui emploie `tests/domDeTest.ts`.
 
-#### U1 · Fenêtre, barre et Configuration [~ Claude 1]
+#### U1 · Fenêtre, barre et Configuration
 
 Analyse 1. Nature : correction d'un défaut.
 
-Reste, après Codex : U1.1 à U1.4 écrits sans commit ; manquent le test DOM de la barre (U1.2), le test d'U1.5, la colonne unique sous 640 px (U1.4) et les états de galerie.
+U1.5 passe sans correction : la cause vue en recette reste à reproduire dans Figma. La fenêtre ouverte fait 1144 px : avec la poignée de 7 px, le panneau en reçoit 637.
 
-- [ ] **U1.1** Largeurs : `src/fenetre.ts` (500 px à l'ouverture et en minimum, panneau à 640 px, fenêtre ouverte à 1144 px), `src/sandbox/commun.ts` (taille rangée remontée à 500 px), `src/ui/application.ts` (`basculerLePanneau`), `src/ui/composant/corps.ts` (bornes de la vue et du panneau), `src/ui/styles/composant.css` (`min-width`). Tests `fenetre.test.ts`.
-- [ ] **U1.2** Barre compacte en mode Composant (`src/ui/barre.ts`) : sans logo ni nom, Analyser avec son libellé, Constats en icône et pastille, Configuration en icône. Analyser désactivé quand la sélection est connue et ne contient aucun composant, avec la bulle « Sélectionnez un composant dans Figma ». Une sélection inconnue (`null`, commentaire de `src/ui/composant/analyse.ts:75-77`) garde le comportement actuel : séparer les deux cas dans `selectionSurLAnalyse`. Test DOM.
-- [ ] **U1.3** Frontière (`src/ui/composant/corps.ts:47`) : suivi sur `window` en phase de capture, fin au relâchement ou à la sortie de la fenêtre, sur le modèle de `src/ui/poignee.ts`.
-- [ ] **U1.4** Configuration (`ouvrirLaConfiguration`, `src/ui/application.ts:187` ; `src/ui/nomenclature/coquille.ts`) : bascule `aria-pressed` ; même mode ; à la place du panneau quand il est ouvert, de la vue sinon, en une colonne sous 640 px ; le second clic rend l'écran précédent.
-- [ ] **U1.5** Test : Analyser ne change pas `etat.panneau.ouvert`. S'il passe, le dire : la cause vue en recette reste à reproduire dans Figma.
+- [x] (ad2c05bb) **U1.1** Largeurs : `src/fenetre.ts` (500 px à l'ouverture et en minimum, panneau à 640 px, fenêtre ouverte à 1144 px), `src/sandbox/commun.ts` (taille rangée remontée à 500 px), `src/ui/application.ts` (`basculerLePanneau`), `src/ui/composant/corps.ts` (bornes de la vue et du panneau), `src/ui/styles/composant.css` (`min-width`). Tests `fenetre.test.ts`.
+- [x] (ad2c05bb) **U1.2** Barre compacte en mode Composant (`src/ui/barre.ts`) : sans logo ni nom, Analyser avec son libellé, Constats en icône et pastille, Configuration en icône. Analyser désactivé quand la sélection est connue et ne contient aucun composant, avec la bulle « Sélectionnez un composant dans Figma ». Une sélection inconnue (`null`, commentaire de `src/ui/composant/analyse.ts:75-77`) garde le comportement actuel : séparer les deux cas dans `selectionSurLAnalyse`. Test DOM.
+- [x] (ad2c05bb) **U1.3** Frontière (`src/ui/composant/corps.ts:47`) : suivi sur `window` en phase de capture, fin au relâchement ou à la sortie de la fenêtre, sur le modèle de `src/ui/poignee.ts`.
+- [x] (ad2c05bb) **U1.4** Configuration (`ouvrirLaConfiguration`, `src/ui/application.ts:187` ; `src/ui/nomenclature/coquille.ts`) : bascule `aria-pressed` ; même mode ; à la place du panneau quand il est ouvert, de la vue sinon, en une colonne sous 640 px ; le second clic rend l'écran précédent.
+- [x] (ad2c05bb) **U1.5** Test : Analyser ne change pas `etat.panneau.ouvert`. S'il passe, le dire : la cause vue en recette reste à reproduire dans Figma.
 
 #### U2 · Changer de variant sans saut, chevron des sections
 
 Analyse 2. Nature : correction d'un défaut.
 
-- [ ] **U2.1** `src/ui/vues/composant.ts` : pour un autre variant du même jeu, garder l'ancienne lecture pendant la lecture, avec la barre fine sous l'en-tête. L'écran « Lecture du composant… » reste pour un nouveau composant.
-- [ ] **U2.2** Mise à jour par clé dans `rendre()` : en-tête, section Variants et lignes de tokens gardent leurs nœuds ; sections ouvertes, filtre et défilement gardés ; aperçu à hauteur constante, image remplacée une fois chargée.
-- [ ] **U2.3** Une valeur changée est surlignée 600 ms (classe et style dans `src/ui/styles/composant.css`).
-- [ ] **U2.4** Chevron des en-têtes de section de la liste à droite, après le titre et le nombre.
-- [ ] **U2.5** Test DOM `tests/changementDeVariant.test.ts`, sur le modèle de `panneauSections.test.ts` : après un changement de variant du même jeu, les nœuds des lignes communes sont les mêmes objets.
+- [x] (32d7520d) **U2.1** `src/ui/vues/composant.ts` : pour un autre variant du même jeu, garder l'ancienne lecture pendant la lecture, avec la barre fine sous l'en-tête. L'écran « Lecture du composant… » reste pour un nouveau composant.
+- [x] (32d7520d) **U2.2** Mise à jour par clé dans `rendre()` : en-tête, section Variants et lignes de tokens gardent leurs nœuds ; sections ouvertes, filtre et défilement gardés ; aperçu à hauteur constante, image remplacée une fois chargée.
+- [x] (32d7520d) **U2.3** Une valeur changée est surlignée 600 ms (classe et style dans `src/ui/styles/composant.css`).
+- [x] (32d7520d) **U2.4** Chevron des en-têtes de section de la liste à droite, après le titre et le nombre.
+- [x] (32d7520d) **U2.5** Test DOM `tests/changementDeVariant.test.ts`, sur le modèle de `panneauSections.test.ts` : après un changement de variant du même jeu, les nœuds des lignes communes sont les mêmes objets.
 
 #### U3 · Les variants en valeurs seules, tableau retiré
 
@@ -324,9 +324,9 @@ Analyse 7.5, 7.6. Dépend de K4 (V3) et B1. Agent : `implementeur`, puis `execut
 
 Analyse 10, « Ce que la carte change ». Agent : `implementeur`. Nature : mesure, aucun fichier versionné.
 
-- [x] **P0.1** Script `_local/recette-v2/mesure-carte.ts`, sur `packages/couleur` : pour les quatre combinaisons de texte des boutons, les deux profils et 360 teintes, le contraste en Dark de `solid/default`, `surface/foreground`, `surface/border`, `page/foreground` et `page/border` contre la carte (`couleurDeLaCarte`, `jugement.ts:66`). Rendre le pire cas par variable et le nombre de teintes sous le seuil.
-- [x] **P0.2** Sur les 14 références de la spécification de Palettes, la largeur des curseurs du Color shift et du réglage global avant et après l'ajout de la carte (`limiteDynamique`, `limites.ts:107`).
-- [x] **P0.3** L'orchestrateur reporte les deux tableaux dans l'analyse, section 10, et pose R-30 au mainteneur.
+- [x] (eb4a2ae7) **P0.1** Script `_local/recette-v2/mesure-carte.ts`, sur `packages/couleur` : pour les quatre combinaisons de texte des boutons, les deux profils et 360 teintes, le contraste en Dark de `solid/default`, `surface/foreground`, `surface/border`, `page/foreground` et `page/border` contre la carte (`couleurDeLaCarte`, `jugement.ts:66`). Rendre le pire cas par variable et le nombre de teintes sous le seuil.
+- [x] (eb4a2ae7) **P0.2** Sur les 14 références de la spécification de Palettes, la largeur des curseurs du Color shift et du réglage global avant et après l'ajout de la carte (`limiteDynamique`, `limites.ts:107`).
+- [x] (eb4a2ae7) **P0.3** L'orchestrateur reporte les deux tableaux dans l'analyse, section 10, et pose R-30 au mainteneur.
 
 #### P2 · Palettes montre les garanties sur la carte
 
