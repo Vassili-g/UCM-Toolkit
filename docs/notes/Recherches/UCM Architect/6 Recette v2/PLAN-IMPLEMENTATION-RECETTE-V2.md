@@ -101,10 +101,10 @@ Chemins critiques : P0 → R-30 → P1 → P2, et K5 → K6 → B3. P0 ouvre la 
 
 Agent : orchestrateur.
 
-- [ ] **O0.1** `git status` de l'arbre partagé. Noter dans ce plan les fichiers de §1.5 que d'autres sessions modifient, et les sous-lots qu'ils bloquent.
-- [ ] **O0.2** Mettre le clone de Codex à jour : `git -C A:\UCM-codex pull --rebase partage main`. Lui transmettre le §1.3.
-- [ ] **O0.3** Déplacer le rapport de Button (`ucm-architect-rapport-Button-*.json`, 5 Mo) dans `_local/recette-v2/`. Les tests de K1 et B1 en copient des extraits en fixtures.
-- [ ] **O0.4** Une autre session a modifié sans commit les `package.json`, README et lock du kit, de la CLI et de l'adaptateur, et la spécification de Palettes. V1 attend son commit ; O1.4 aussi.
+- [x] **O0.1** `git status` de l'arbre partagé. Noter dans ce plan les fichiers de §1.5 que d'autres sessions modifient, et les sous-lots qu'ils bloquent. Le 28/10 : la session de Nomenclature écrit `src/ui/nomenclature/ecriture.ts`, `regles.ts`, `src/ui/textes/nomenclature.ts` et `packages/kit/src/nommage/calcul.ts`. Aucun sous-lot ne les touche ; les lots K et V attendent sa publication du kit 0.13.30.
+- [x] **O0.2** ~~Mettre le clone de Codex à jour~~. Codex a atteint sa limite : il a travaillé dans l'arbre partagé (U1, P0). Claude reprend la piste K.
+- [x] **O0.3** Déplacer le rapport de Button (`ucm-architect-rapport-Button-*.json`, 5 Mo) dans `_local/recette-v2/`. Les tests de K1 et B1 en copient des extraits en fixtures.
+- [x] **O0.4** Levé le 28/10 : ces fichiers sont commités. Une autre session a modifié sans commit les `package.json`, README et lock du kit, de la CLI et de l'adaptateur, et la spécification de Palettes. V1 attend son commit ; O1.4 aussi.
 
 ### Piste K · kit et moteur de couleur (Codex)
 
@@ -246,9 +246,11 @@ Chaque sous-lot U met à jour ses états de galerie et les nomme dans son compte
 rendu. Le mainteneur vérifie l'interface lui-même. Un test DOM suit le modèle
 de `tests/panneauSections.test.ts`, qui emploie `tests/domDeTest.ts`.
 
-#### U1 · Fenêtre, barre et Configuration
+#### U1 · Fenêtre, barre et Configuration [~ Claude 1]
 
 Analyse 1. Nature : correction d'un défaut.
+
+Reste, après Codex : U1.1 à U1.4 écrits sans commit ; manquent le test DOM de la barre (U1.2), le test d'U1.5, la colonne unique sous 640 px (U1.4) et les états de galerie.
 
 - [ ] **U1.1** Largeurs : `src/fenetre.ts` (500 px à l'ouverture et en minimum, panneau à 640 px, fenêtre ouverte à 1144 px), `src/sandbox/commun.ts` (taille rangée remontée à 500 px), `src/ui/application.ts` (`basculerLePanneau`), `src/ui/composant/corps.ts` (bornes de la vue et du panneau), `src/ui/styles/composant.css` (`min-width`). Tests `fenetre.test.ts`.
 - [ ] **U1.2** Barre compacte en mode Composant (`src/ui/barre.ts`) : sans logo ni nom, Analyser avec son libellé, Constats en icône et pastille, Configuration en icône. Analyser désactivé quand la sélection est connue et ne contient aucun composant, avec la bulle « Sélectionnez un composant dans Figma ». Une sélection inconnue (`null`, commentaire de `src/ui/composant/analyse.ts:75-77`) garde le comportement actuel : séparer les deux cas dans `selectionSurLAnalyse`. Test DOM.
@@ -322,9 +324,9 @@ Analyse 7.5, 7.6. Dépend de K4 (V3) et B1. Agent : `implementeur`, puis `execut
 
 Analyse 10, « Ce que la carte change ». Agent : `implementeur`. Nature : mesure, aucun fichier versionné.
 
-- [ ] **P0.1** Script `_local/recette-v2/mesure-carte.ts`, sur `packages/couleur` : pour les quatre combinaisons de texte des boutons, les deux profils et 360 teintes, le contraste en Dark de `solid/default`, `surface/foreground`, `surface/border`, `page/foreground` et `page/border` contre la carte (`couleurDeLaCarte`, `jugement.ts:66`). Rendre le pire cas par variable et le nombre de teintes sous le seuil.
-- [ ] **P0.2** Sur les 14 références de la spécification de Palettes, la largeur des curseurs du Color shift et du réglage global avant et après l'ajout de la carte (`limiteDynamique`, `limites.ts:107`).
-- [ ] **P0.3** L'orchestrateur reporte les deux tableaux dans l'analyse, section 10, et pose R-30 au mainteneur.
+- [x] **P0.1** Script `_local/recette-v2/mesure-carte.ts`, sur `packages/couleur` : pour les quatre combinaisons de texte des boutons, les deux profils et 360 teintes, le contraste en Dark de `solid/default`, `surface/foreground`, `surface/border`, `page/foreground` et `page/border` contre la carte (`couleurDeLaCarte`, `jugement.ts:66`). Rendre le pire cas par variable et le nombre de teintes sous le seuil.
+- [x] **P0.2** Sur les 14 références de la spécification de Palettes, la largeur des curseurs du Color shift et du réglage global avant et après l'ajout de la carte (`limiteDynamique`, `limites.ts:107`).
+- [x] **P0.3** L'orchestrateur reporte les deux tableaux dans l'analyse, section 10, et pose R-30 au mainteneur.
 
 #### P2 · Palettes montre les garanties sur la carte
 

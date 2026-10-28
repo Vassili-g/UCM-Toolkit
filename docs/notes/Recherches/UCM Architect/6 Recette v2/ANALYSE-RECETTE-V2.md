@@ -936,6 +936,42 @@ Si la courbe Dark par défaut ne tient pas la carte, trois réponses existent
 2. changer le cran de la variable dans la table des dossiers en Dark (`TABLE_DES_DOSSIERS`) ;
 3. rapprocher la carte de la page en Dark (`[MOT-37]`).
 
+### La mesure du lot P0
+
+Le script `_local/recette-v2/mesure-carte.ts` lit le moteur de
+`packages/couleur`. La carte en Dark vaut `#1C1C1C` (`couleurDeLaCarte`).
+
+**Garantie des courbes contre la carte en Dark.** La mesure couvre les quatre
+combinaisons de texte des boutons, les deux profils et 360 teintes. Aucune
+teinte ne passe sous le seuil.
+
+| Variable | Crans selon le texte des boutons | Seuil | Pire contraste sur la carte | Où | Teintes sous le seuil |
+|---|---|---|---|---|---|
+| `solid/default` | 700 | 3 | 3,20 | texte blanc en Light et en Dark, Vivid, teinte 356 | 0 |
+| `surface/foreground` | 950 | 4,5 | 13,56 | texte blanc en Light, noir en Dark, Vivid, teinte 331 | 0 |
+| `surface/border` | 950 | 3 | 13,56 | idem | 0 |
+| `page/foreground` | 700 avec texte noir en Dark, 800 avec texte blanc | 4,5 | 5,15 | texte blanc en Light, noir en Dark, Vivid, teinte 344 | 0 |
+| `page/border` | idem | 3 | 5,15 | idem | 0 |
+
+**Resserrement des curseurs.** La mesure porte sur les 14 références de la
+spécification, avec 9 curseurs chacune : 6 du Color shift et 3 du réglage
+global. 9 curseurs sur 126 se resserrent, tous sur la luminosité du réglage
+global. Le Color shift ne change pas.
+
+| Référence | Course de la luminosité avant | Après |
+|---|---|---|
+| `#16A34A` | 0,070 | 0,035 |
+| `#D94635` | 0,105 | 0,090 |
+| `#EAB308` | 0,100 | 0,090 |
+| `#808080`, `#F5F5F5`, `#171717` | 0,105 | 0,095 |
+| `#FACC15` | 0,100 | 0,095 |
+| `#06B6D4` | 0,110 | 0,105 |
+| `#8B8178` | 0,105 | 0,100 |
+
+La courbe Dark par défaut tient la carte : aucune des trois réponses de R-30
+n'est nécessaire. Le seul effet visible est la course de la luminosité du
+vert `#16A34A`, réduite de moitié.
+
 ## 11. Questions au mainteneur
 
 | N° | Question | Proposition | État |
@@ -959,7 +995,7 @@ Si la courbe Dark par défaut ne tient pas la carte, trois réponses existent
 | R-27 | Noms de variants | | Décidé : E, valeurs en puces, paire exacte au survol ; la property reste quand deux valeurs se confondent |
 | R-28 | Les garanties de Palettes sur la carte | | Décidé : dans cette recette ; partout où la page est un fond garanti, la carte l'est aussi (section 10) |
 | R-29 | Distinguer une sous-pièce d'une pièce partagée | | Décidé : non ; une seule sorte, « pièce interne », et une seule règle de liaison |
-| R-30 | Si la courbe Dark par défaut ne tient pas la carte : éclaircir la courbe, changer un cran de la table, ou rapprocher la carte de la page | Selon la mesure du lot P0 | Ouvert, après la mesure |
+| R-30 | Si la courbe Dark par défaut ne tient pas la carte : éclaircir la courbe, changer un cran de la table, ou rapprocher la carte de la page | Aucune des trois : la courbe tient la carte sur 360 teintes (section 10, « La mesure du lot P0 ») ; la luminosité du vert `#16A34A` perd la moitié de sa course | Ouvert, mesure faite |
 
 ## 12. Ordre de travail proposé
 
