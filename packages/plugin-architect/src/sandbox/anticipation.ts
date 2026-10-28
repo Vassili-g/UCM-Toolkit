@@ -3,7 +3,8 @@
  *
  * Elle ne vit que dans la mémoire du sandbox : un seul exemplaire, un jeton et une coopération à elle, aucune portée
  * d'analyse. Au clic, l'analyse la reprend si la liste des collections et de leurs variables n'a pas changé. Une
- * lecture encore en cours s'attend sans vérification. Une erreur de l'anticipation n'a aucun effet : le clic relit.
+ * lecture encore en cours s'attend, puis se vérifie de même : partie avant le clic, elle a pu lire la liste avant un
+ * changement. Une erreur de l'anticipation n'a aucun effet : le clic relit.
  */
 import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
@@ -66,9 +67,9 @@ function signature(lecture: Extract<LectureDesLibraries, { etat: 'lue' }>): stri
 
 /**
  * La lecture des libraries d'une analyse. Sans lecture anticipée, elle lit. Avec une lecture en cours, elle l'attend.
- * Avec une lecture finie, elle relit les noms, clés et types, puis rend la lecture anticipée si la liste est
- * identique, la nouvelle sinon, qui remplace alors l'anticipée. La trace compte la reprise ou la relecture et le temps
- * de la vérification.
+ * Une lecture finie, ou attendue, se vérifie : la fonction relit les noms, clés et types, puis rend la lecture anticipée
+ * si la liste est identique, la nouvelle sinon, qui remplace alors l'anticipée. La trace compte la reprise ou la
+ * relecture et le temps de la vérification.
  */
 export async function lireLesLibrariesAuClic(figma: PluginAPI, cooperation?: ContexteCooperatif): Promise<LectureDesLibraries> {
   const port = figma as unknown as PortDeBibliotheque;
@@ -77,11 +78,7 @@ export async function lireLesLibrariesAuClic(figma: PluginAPI, cooperation?: Con
   if (prete.etat === 'en-cours') {
     const lue = await prete.issue;
     cooperation?.verifier();
-    if (lue) {
-      compter('librariesAnticipeesReprises');
-      return lue;
-    }
-    return lireLesLibraries(port, cooperation);
+    if (!lue) return lireLesLibraries(port, cooperation);
   }
   const debut = Date.now();
   let nouvelle: LectureDesLibraries;

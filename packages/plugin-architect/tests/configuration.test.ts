@@ -168,7 +168,7 @@ test('annuler-structure : un fichier qu’on ne peut pas parcourir saute usage-i
 
 test('annuler-structure : une autre opération en cours rend occupe, un fichier hors UCM rend hors-ucm, rien n’est touché', async () => {
   const occupe = banqueDeStructure();
-  const place = prendreLaPlaceDUneEcriture({ sujet: 'autre', generation: 0 });
+  const place = await prendreLaPlaceDUneEcriture({ sujet: 'autre', generation: 0 });
   await traiter({ type: 'annuler-structure', demande: 1 }, occupe.contexte);
   assert.equal(occupe.annulee().refus, 'occupe');
   if ('liberer' in place) place.liberer();

@@ -35,7 +35,7 @@ export function traiterAvec(rangement: (contexte: Contexte) => Rangement): Trait
     const courante = analyseCourante();
     if (!courante || courante.sujet !== demande.analyse.sujet || courante.generation !== demande.analyse.generation) return;
     if (!analyseFinalisee(demande.analyse)) return;
-    const place = prendreLaPlaceDUneEcriture(demande.analyse);
+    const place = await prendreLaPlaceDUneEcriture(demande.analyse);
     if ('occupe' in place) {
       contexte.envoyer({ type: 'occupe', analyse: await place.occupe });
       return;

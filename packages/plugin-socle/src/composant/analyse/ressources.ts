@@ -131,7 +131,8 @@ export interface MemoireDeRessources {
    * Met les variables et collections hors d'atteinte des imports du catalogue, qui rendent lisible ce que le relevé avait
    * vu refusé. L'analyse l'appelle en lançant le catalogue, avec sa fin :
    * - toute lecture qui n'a pas encore eu lieu attend `fin`, puis appelle Figma comme si elle suivait le catalogue ;
-   * - un refus rangé jusqu'ici s'oublie et suit la même règle : une relecture, après `fin`, puis mémorisée ;
+   * - un refus rangé jusqu'ici s'oublie et suit la même règle : une relecture, après `fin`, puis mémorisée ; de même
+   *   pour un refus que rend après l'appel une lecture partie avant lui ;
    * - une ressource acquise avant l'appel reste acquise.
    * Un rejet de `fin` lève l'attente comme une fin normale. Les styles et les maîtres sont hors de cette attente : les
    * imports ne les changent pas.
@@ -236,16 +237,25 @@ export function creerMemoireDeRessources(options: OptionsDeLaMemoire): MemoireDe
 
   /** La fin des imports du catalogue tant qu'ils courent (`attendreLesImports`), sinon `null`. */
   let imports: Promise<void> | null = null;
+  /** Le nombre d'appels de `attendreLesImports` : une lecture qui le voit changer a pu être servie sans les imports. */
+  let appelsDesImports = 0;
 
   async function lire<T extends object>(
     id: string,
     appel: 'getVariableByIdAsync' | 'getVariableCollectionByIdAsync',
     copier: (ressource: object) => Promise<{ table: T; origine: Origine }>,
   ): Promise<FaitDeRessource<T>> {
-    if (imports) await imports;
-    const fait = await lireLaRessource(id, appel, copier);
-    if (fait.etat.etat === 'refuse') (appel === 'getVariableByIdAsync' ? refuses.variables : refuses.collections).add(id);
-    return fait;
+    for (;;) {
+      if (imports) await imports;
+      const avant = appelsDesImports;
+      const fait = await lireLaRessource(id, appel, copier);
+      if (fait.etat.etat !== 'refuse') return fait;
+      // Un refus rendu par une lecture partie avant `attendreLesImports` suit la règle d'un refus rangé avant l'appel : il se
+      // relit après les imports.
+      if (avant !== appelsDesImports) continue;
+      (appel === 'getVariableByIdAsync' ? refuses.variables : refuses.collections).add(id);
+      return fait;
+    }
   }
 
   async function lireLaRessource<T extends object>(
@@ -280,6 +290,7 @@ export function creerMemoireDeRessources(options: OptionsDeLaMemoire): MemoireDe
 
   return {
     attendreLesImports: (fin) => {
+      appelsDesImports += 1;
       const attente = fin.then(() => undefined, () => undefined);
       imports = attente;
       void attente.then(() => { if (imports === attente) imports = null; });

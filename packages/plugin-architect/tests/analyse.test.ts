@@ -578,6 +578,49 @@ test('annuler pendant la découverte des collections de la library arrête le mo
   assert.deepEqual(resultat.constats, []);
 });
 
+test('annuler pendant le chargement des valeurs du catalogue rend `annulee` sans attendre les lectures restantes', async () => {
+  const b = banc();
+  const N = 40;
+  const cles = Array.from({ length: N }, (_, i) => `k${i}`);
+  const teamLibrary = {
+    async getAvailableLibraryVariableCollectionsAsync() { return [{ key: 'ct', name: 'theme', libraryName: 'Lib' }]; },
+    async getVariablesInLibraryCollectionAsync() { return cles.map((cle) => ({ key: cle, name: `surface/${cle}`, resolvedType: 'COLOR' })); },
+  };
+  let lectures = 0;
+  let importees = 0;
+  const contexte: Contexte = {
+    figma: {
+      teamLibrary, root: { getSharedPluginData: () => '' },
+      variables: {
+        async getVariableByIdAsync(id: string) {
+          lectures += 1;
+          if (lectures === 3) await traiter({ type: 'annuler-analyse', analyse: analyseCourante()! }, contexte);
+          await attendre(1);
+          const cle = id.replace('id-', '');
+          return { ...variableFigma(id, 'ct', `surface/${cle}`, 'COLOR', { 'ct:Valeur': { r: 1, g: 1, b: 1, a: 1 } }, true), key: cle };
+        },
+        async getVariableCollectionByIdAsync() { return collectionFigma('ct', 'theme', ['Valeur'], [], true); },
+        async importVariableByKeyAsync() { importees += 1; throw new Error('aucun import attendu'); },
+        async getLocalVariablesAsync() { return []; },
+      },
+    } as unknown as PluginAPI,
+    envoyer: (m) => b.envoyes.push(m), surveillerLeDocument() {},
+  };
+  const releve = releveDe('Alert');
+  releve.variants[0].layers = [{
+    id: 'layer', nom: 'Container', type: 'FRAME', parent: null, visible: true, opacite: 1,
+    dimensions: { x: 0, y: 0, largeur: 100, hauteur: 40 }, peintures: [], valeursEnDur: [],
+    liaisons: cles.map((cle, indice) => ({ champ: 'fills', indice, porteur: 'layer', variable: { id: `id-${cle}`, cle, nom: `surface/${cle}`, collection: 'ct', distante: true } })),
+  }];
+  const traiter = traiterAvec({ ...lecteurs(complete()), releve: async () => ({ statut: 'lu', releve }), catalogue: catalogueDeFigma });
+  await traiter({ type: 'analyser' }, contexte);
+  assert.ok(lectures < N, `${lectures} lectures sur ${N} : celles qui restaient après l’annulation ne partent pas`);
+  assert.equal(importees, 0);
+  const resultat = deType(b, 'analyse')[0];
+  assert.equal(resultat.statut, 'annulee');
+  assert.deepEqual(resultat.constats, []);
+});
+
 test('annuler pendant les tokens du nommage abandonne le catalogue restant', async () => {
   const b = banc();
   const releve = releveDe('Alert');

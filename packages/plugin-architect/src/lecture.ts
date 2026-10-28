@@ -407,7 +407,7 @@ export type ValeurDeLibrary = VariableRelevee | { readonly illisible: string };
  * Importe les variables de `cles` par lots de `IMPORTS_EN_VOL` et les convertit comme le relevé. Une clé que Figma refuse, ou dont
  * le type est inconnu, rend son motif sans arrêter les autres. L'import abonne le fichier à la variable, sans créer de variable locale.
  */
-export async function importerLesValeurs(port: Pick<PortDeLecture, 'importVariableByKeyAsync'>, cles: readonly string[]): Promise<Record<string, ValeurDeLibrary>> {
+export async function importerLesValeurs(port: Pick<PortDeLecture, 'importVariableByKeyAsync'>, cles: readonly string[], annulee: () => boolean = () => false): Promise<Record<string, ValeurDeLibrary>> {
   const rendues: Record<string, ValeurDeLibrary> = {};
   await parLots([...new Set(cles)], IMPORTS_EN_VOL, async (cle) => {
     try {
@@ -416,7 +416,7 @@ export async function importerLesValeurs(port: Pick<PortDeLecture, 'importVariab
     } catch (erreur) {
       rendues[cle] = { illisible: messageDErreur(erreur) };
     }
-  }, () => false);
+  }, annulee);
   return rendues;
 }
 

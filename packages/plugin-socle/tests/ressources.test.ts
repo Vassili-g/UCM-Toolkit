@@ -218,6 +218,46 @@ test('attendreLesImports fait relire après eux un refus rangé, fait attendre t
   assert.deepEqual(appels, ['variable(tard)', 'collection(lib)', 'variable(bonne)', 'variable(tard)', 'collection(lib)', 'variable(neuve)']);
 });
 
+test('un refus rendu après attendreLesImports par une lecture partie avant se relit après les imports, comme un refus rangé', async () => {
+  const lisible = { importee: false };
+  const appels: string[] = [];
+  let rendre!: () => void;
+  const enVol = new Promise<void>((resolve) => { rendre = resolve; });
+  const lectures: LecturesDeRessources = {
+    getVariableByIdAsync: async (id) => {
+      appels.push(`variable(${id})`);
+      // La première lecture part avant les imports et répond après leur début : Figma l'a servie sans eux.
+      if (appels.length === 1) {
+        await enVol;
+        return null;
+      }
+      return lisible.importee ? variable(id, id, 'c') : null;
+    },
+    getVariableCollectionByIdAsync: async () => null,
+  };
+  const memoire = creerMemoireDeRessources({ lectures: () => lectures });
+  const partieAvant = memoire.variable('tard');
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  let finir!: () => void;
+  memoire.attendreLesImports(new Promise<void>((resolve) => { finir = resolve; }));
+  rendre();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  lisible.importee = true;
+  finir();
+  assert.equal((await partieAvant).etat.etat, 'acquis', 'la lecture partie avant les imports les attend pour se refaire');
+  assert.equal((await memoire.variable('tard')).etat.etat, 'acquis', 'le lecteur suivant, le moteur, lit ce qu’Actualiser lirait');
+  assert.deepEqual(appels, ['variable(tard)', 'variable(tard)']);
+});
+
+test('sans attendreLesImports pendant la lecture, un refus reste rangé pour toute la demande', async () => {
+  const appels: string[] = [];
+  const lectures: LecturesDeRessources = { getVariableByIdAsync: async (id) => { appels.push(id); return null; }, getVariableCollectionByIdAsync: async () => null };
+  const memoire = creerMemoireDeRessources({ lectures: () => lectures });
+  assert.equal((await memoire.variable('x')).etat.etat, 'refuse');
+  assert.equal((await memoire.variable('x')).etat.etat, 'refuse');
+  assert.deepEqual(appels, ['x']);
+});
+
 test('un rejet de la fin des imports lève l’attente comme une fin normale', async () => {
   const lectures: LecturesDeRessources = { getVariableByIdAsync: async (id) => variable(id, id, 'c'), getVariableCollectionByIdAsync: async () => null };
   const memoire = creerMemoireDeRessources({ lectures: () => lectures });

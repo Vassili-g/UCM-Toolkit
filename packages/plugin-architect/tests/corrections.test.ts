@@ -327,7 +327,7 @@ test('servir-de-modele : une autre identité est ignorée, une analyse périmée
 test('servir-de-modele pendant une opération rend occupe', async () => {
   const b = banc();
   const analyse = analyseDuModele(b);
-  const place = prendreLaPlaceDUneEcriture(analyse);
+  const place = await prendreLaPlaceDUneEcriture(analyse);
   await traiterAvec(ecritures().doubles)({ type: 'servir-de-modele', analyse, variant: 'm' }, b.contexte);
   assert.deepEqual(deType(b.envoyes, 'occupe'), [{ type: 'occupe', analyse }]);
   assert.deepEqual(deType(b.envoyes, 'modele-propose'), []);

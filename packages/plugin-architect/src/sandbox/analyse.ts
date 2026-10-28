@@ -57,6 +57,7 @@ import { raisonsDInvalidation, type RaisonDInvalidation } from 'ucm-plugin-socle
 import { ouvrirUneRevision, type RevisionDeTravail } from 'ucm-plugin-socle/src/composant/analyse/revisions';
 import { ecartsDesSorties, egalesExactement, egalesExactementParEtapes, type EcartDeSortie } from 'ucm-plugin-socle/src/composant/analyse/validation';
 import { executerAuPlus } from 'ucm-plugin-socle/src/composant/analyse/limiteur';
+import { creerMemoireDeRessources, type LecturesDeRessources } from 'ucm-plugin-socle/src/composant/analyse/ressources';
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
@@ -215,6 +216,21 @@ export interface DependancesDuMoteur {
    * l'ordre du parcours, sans doublon. Figma n'émet aucun `nodechange` quand une mise à jour de library les change.
    */
   readonly calquesDesInstancesDistantes: readonly CalqueDInstanceDistante[];
+  /**
+   * Les variables hors du fichier que nomment les liaisons des maîtres, ces calques et les styles, avec leur collection, relues
+   * par identifiant (`variablesDesDependances`). Absent d'une lecture de `dependancesDeFigma` seul : l'analyse l'ajoute avant la
+   * validation.
+   */
+  readonly variablesLiees?: readonly VariableDeDependance[];
+}
+
+/** Une variable que le moteur lit par identifiant pour nommer un token : les faits de la variable et de sa collection, en valeurs simples. */
+export interface VariableDeDependance {
+  readonly id: string;
+  /** L'état de `MemoireDeRessources.variable` : clé, nom, collection et origine, ou le refus. */
+  readonly variable: unknown;
+  /** L'état de `MemoireDeRessources.collection` pour sa collection ; `null` quand la variable n'en nomme aucune. */
+  readonly collection: unknown;
 }
 
 /** Ce que les lecteurs ont rendu à une analyse complète. */
@@ -754,16 +770,21 @@ export function oublierLAnalyse(): void {
 function perimer(cause: CauseDePeremption, contexte: Contexte): void {
   if (!courante || courante.perimee) return;
   courante.perimee = true;
-  if (operation?.connue && memeIdentite(operation.connue, courante.identite)) operation.cloreMesure?.('perimee');
+  const deLOperation = operation?.connue && memeIdentite(operation.connue, courante.identite);
+  if (deLOperation) operation?.cloreMesure?.('perimee');
+  // Une prélecture périmée en silence ne doit devenir l'analyse d'aucun clic : elle n'annoncerait jamais sa péremption.
+  if (courante.silencieuse && deLOperation && operation?.prelecture?.discrete) operation.jeton.leve = true;
   if (!courante.silencieuse) contexte.envoyer({ type: 'perime', analyse: courante.identite, cause });
 }
 
 /**
  * À appeler quand le plugin vient d'écrire (document) ou de changer effectivement la configuration. L'écriture entre au journal avec le
- * sujet entier pour portée, même sans analyse courante ; l'analyse courante se périme. Un refus ou une valeur identique n'appelle pas.
+ * sujet entier pour portée, même sans analyse courante ; l'analyse courante se périme et la prélecture en cours s'arrête, même
+ * avant d'avoir ouvert son analyse : elle a pu lire l'état d'avant. Un refus ou une valeur identique n'appelle pas.
  */
 export function perimerApresUneEcriture(contexte: Contexte, origine: OrigineDEcriture = 'ecriture'): void {
   ouvrirLeJournal().signalerUneEcriture(origine);
+  annulerLaPrelecture();
   perimer('ecriture', contexte);
 }
 
@@ -1023,7 +1044,7 @@ export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDA
           return (await chargerLesValeurs(
             portDeLecture(figma), catalogue.catalogue, [...liaisons.keys(), ...tailles], identifiantsParCle(releve),
             (nom, n) => compter(nom === 'imports' ? 'catalogueImports' : 'catalogueParIdentifiant', n),
-            options,
+            { ...options, annulee: () => jeton.leve },
           )).catalogue;
         }
       }
@@ -1324,6 +1345,43 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
   };
 }
 
+/** Ajoute à `vers` l'identifiant de chaque alias de variable (`VARIABLE_ALIAS`) que porte `valeur`, à toute profondeur. */
+function noterLesAlias(valeur: unknown, vers: Set<string>): void {
+  if (Array.isArray(valeur)) {
+    for (const element of valeur) noterLesAlias(element, vers);
+    return;
+  }
+  if (typeof valeur !== 'object' || valeur === null) return;
+  const { type, id } = valeur as { type?: unknown; id?: unknown };
+  if (type === 'VARIABLE_ALIAS' && typeof id === 'string') vers.add(id);
+  for (const element of Object.values(valeur)) noterLesAlias(element, vers);
+}
+
+/**
+ * Ajoute aux dépendances `variablesLiees` : la variable et sa collection, relues par identifiant, de chaque alias que les
+ * dépendances relisent déjà (liaisons des maîtres locaux, calques des instances distantes, définitions des styles), hors des
+ * variables locales, que `variablesLocales` compare. Le moteur tire le nom d'un token de ces deux lectures
+ * (`VariableNameResolver`), et une mise à jour de library les change sans événement. Avec `inventaires`, chacune passe par
+ * la mémoire de ressources de la demande, où le moteur lit la même réponse ; elle attend donc la fin des imports du catalogue.
+ */
+export async function variablesDesDependances(dependances: DependancesDuMoteur, { figma }: Contexte, inventaires?: InventairesDeLaDemande, jeton?: JetonDAnnulation): Promise<DependancesDuMoteur> {
+  const alias = new Set<string>();
+  for (const { liaisons } of dependances.maitres) noterLesAlias(liaisons, alias);
+  const rangDesLiaisons = 2 + CHAMPS_SOUS_UNE_INSTANCE.indexOf('boundVariables');
+  for (const calque of dependances.calquesDesInstancesDistantes) noterLesAlias(calque[rangDesLiaisons], alias);
+  for (const { definition } of dependances.styles) noterLesAlias(definition, alias);
+  const locales = new Set(dependances.variablesLocales.map(({ id }) => id));
+  const ids = [...alias].filter((id) => !locales.has(id));
+  const ressources = inventaires?.ressources ?? creerMemoireDeRessources({ lectures: () => figma.variables as unknown as LecturesDeRessources });
+  const { resultats } = await executerAuPlus(ids, async (id) => {
+    const { etat } = await ressources.variable(id);
+    const collection = etat.etat === 'acquis' ? etat.valeur.variableCollectionId : undefined;
+    const lue = collection?.etat === 'acquis' && collection.valeur !== '' ? (await ressources.collection(collection.valeur)).etat : null;
+    return { id, variable: valeurSimple(etat), collection: valeurSimple(lue) };
+  }, { avant: () => !jeton?.leve });
+  return { ...dependances, variablesLiees: resultats.filter((lue) => lue !== undefined) };
+}
+
 /** Le port du relevé ; avec `inventaires`, chaque `getNodeByIdAsync` passe par la mémoire de la demande, que la prélecture remplit. */
 function portDuReleve(contexte: Contexte, inventaires?: InventairesDeLaDemande): PortDuComposant {
   const port = portDuComposant(contexte);
@@ -1391,8 +1449,12 @@ export async function prelireLeReleve(retenu: ReleveDeComposant, sujet: SujetAAn
   const port = portDuComposant(contexte);
   await executerAuPlus([...cibles], async (id) => { await inventaires.noeudParIdentifiant(id, () => port.getNodeByIdAsync(id)); }, { avant });
   const lesInstances = instances.size === 0 ? [] : instancesDuParcours(sujet.noeud as unknown as CalqueDuParcours, inventaires.champs).filter(({ id }) => instances.has(id));
+  // Le même appel mesuré que le moteur (`maitreDe`) : la trace compte cette lecture, que le relevé et le moteur reprennent ensuite.
+  const lireLeMaitre = (instance: CalqueDuParcours) => () => (instance.getMainComponentAsync
+    ? attendrePourLaMesure(() => instance.getMainComponentAsync!(), 'parallele', undefined, 'getMainComponentAsync')
+    : undefined);
   await executerAuPlus(lesInstances, async (instance) => {
-    const lu = await ressources.maitre(instance);
+    const lu = await ressources.maitre(instance, { lire: lireLeMaitre(instance) });
     if (lu.etat === 'lu') await ressources.faitDuMaitre(instance.id, lu.natif);
   }, { avant });
   return variables.size + collections.size + cibles.size + lesInstances.length;
@@ -1733,6 +1795,11 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
   let importsEvites = 0;
   let libraries: LibrariesEnAvance | undefined;
   let librariesEnCours = false;
+  // Les liaisons et les modèles de la dernière analyse, que la Configuration et l'écriture des règles lisent : une prélecture
+  // discrète ne les pose qu'à sa promotion ou quand un clic la prend, jamais pour une prélecture annulée.
+  const retenuesEnAttente: (() => void)[] = [];
+  const retenir = (effet: () => void): void => { if (discrete) retenuesEnAttente.push(effet); else effet(); };
+  const poserLesRetenues = (): void => { for (const effet of retenuesEnAttente.splice(0)) effet(); };
   const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats): void => {
     terminee = true;
     if (statut === 'annulee' && discrete) noterLaPrelecture('prelecturesAnnulees');
@@ -1768,6 +1835,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       adoptable: () => !(catalogueResolu && importsEvites > 0),
       adopter(clic) {
         discrete = false;
+        poserLesRetenues();
         demande = clic;
         courant.demande = clic.demande;
         analysesDuDesigner += 1;
@@ -1861,7 +1929,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
     }
     courant.progresser('releve', releve.variants.length, releve.variants.length + releve.lecture.variantsNonLus.length);
 
-    retenirLesLiaisons(liaisonsParCle(releve));
+    const liaisonsDuReleve = liaisonsParCle(releve);
+    retenir(() => retenirLesLiaisons(liaisonsDuReleve));
     const niveau = await attendrePourLaMesure(async () => await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => { lecturesRefusees.push('niveau'); return 'AA'; }) ?? 'AA');
     phase('catalogue');
     // Une prélecture lit le catalogue sans import par clé, qui abonnerait le fichier à la variable. Si cela a évité un import, ce
@@ -1889,6 +1958,11 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
     const annonces: { ouvert: boolean; vues: PhaseDAnalyse[] } = { ouvert: false, vues: [] };
     const lireLesDependances = lecteurs.dependances;
     const dependancesEnCours = lireLesDependances ? anticiper(() => attendrePourLaMesure(() => lireLesDependances(sujet, contexte, inventaires, cooperation), 'parallele', 'dependances')) : null;
+    // Les variables que nomment les liaisons relues attendent la fin des imports, comme le moteur qui les lit : le moteur part
+    // sans elles, et la validation les attend.
+    const dependancesCompletes = dependancesEnCours
+      ? anticiper(async () => variablesDesDependances(reprendre(await dependancesEnCours), contexte, inventaires, jeton))
+      : null;
     const lancerLeMoteur = (nature: 'attente' | 'parallele') => attendrePourLaMesure(
       () => lecteurs.moteur(sujet, jeton, contexte, (nom) => { if (annonces.ouvert) courant.progresser?.(nom); else annonces.vues.push(nom); }, cooperation, inventaires),
       nature, 'moteur',
@@ -1929,9 +2003,9 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       // Les phases du moteur, tues pendant le catalogue et les contrôles, s'annoncent ici dans l'ordre où il les a rendues.
       annonces.ouvert = true;
       for (const nom of annonces.vues) courant.progresser?.(nom);
-      if (dependancesEnCours) {
+      if (dependancesCompletes) {
         try {
-          dependances = reprendre(await dependancesEnCours);
+          dependances = reprendre(await dependancesCompletes);
         } catch (erreur) {
           if (erreur instanceof AnalyseAnnulee) throw erreur;
           lecturesRefusees.push('dependances');
@@ -1989,7 +2063,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
     }
     actuelles.set('moteur', moteur);
     actuelles.set('regles', reglesLues);
-    retenirLesModeles(reglesLues);
+    const modeles = reglesLues;
+    retenir(() => retenirLesModeles(modeles));
     const tous = await requete('corrections', async () => {
       etape('controle-fusion');
       const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(moteur, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
@@ -2019,6 +2094,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       if (discrete && session.entree(identite.sujet) !== entreeAvant) {
         noterLaPrelecture('prelecturesPromues');
         entreeDeLaPrelecture = session.entree(identite.sujet);
+        poserLesRetenues();
       }
       const retenu = session.mesure();
       retenirLeMaximum('sujetsRetenus', retenu.sujets);
@@ -2051,7 +2127,6 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
     terminee = true;
     courant.cloreMesure?.('arretee');
     enregistrerLesImports(false);
-    // Une écriture a pu prendre la place d'une prélecture annulée : elle ne se libère pas ici.
     if (operation === courant) operation = null;
     terminer();
   }
@@ -2062,12 +2137,15 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
  * écriture demandée pendant ce temps rend `occupe`. Rend `occupe` avec
  * l'identité de l'opération en cours quand la place est prise, sinon la
  * libération à appeler quand l'écriture finit.
+ *
+ * Une prélecture discrète n'a rien montré au designer : l'écriture lève son jeton et attend sa fin effective, son `finally`
+ * compris, avant de prendre la place. La demande qui suit l'écriture ne trouve donc ni les lectures de la prélecture en vol,
+ * ni sa portée ouverte, ni sa garde des événements.
  */
-export function prendreLaPlaceDUneEcriture(identite: IdentiteDAnalyse): { liberer(): void } | { occupe: Promise<IdentiteDAnalyse> } {
-  // Une prélecture n'a rien montré au designer : l'écriture passe avant elle, qui s'arrête sans la retenir.
-  if (operation?.prelecture?.discrete) {
+export async function prendreLaPlaceDUneEcriture(identite: IdentiteDAnalyse): Promise<{ liberer(): void } | { occupe: Promise<IdentiteDAnalyse> }> {
+  while (operation?.prelecture?.discrete && operation.fini) {
     operation.jeton.leve = true;
-    operation = null;
+    await operation.fini;
   }
   if (operation) return { occupe: operation.identite };
   const prise: Operation = { identite: Promise.resolve(identite), connue: identite, jeton: { leve: false } };

@@ -238,7 +238,7 @@ async function creer(demande: Extract<DemandeDePreparation, { type: 'creer-varia
   });
   const preparation = await trouverUnePreparation(stockageDe(contexte), demande.preparation);
   if (!preparation) return rendre({ refus: 'introuvable' });
-  const place = prendreLaPlaceDUneEcriture({ sujet: 'preparation', generation: 0 });
+  const place = await prendreLaPlaceDUneEcriture({ sujet: 'preparation', generation: 0 });
   if ('occupe' in place) return rendre({ refus: 'occupe' });
   let ecrit = false;
   try {

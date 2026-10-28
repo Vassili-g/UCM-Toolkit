@@ -80,6 +80,11 @@ export function catalogueDuFichier(releve: Pick<Releve, 'collections' | 'variabl
 export interface OptionsDeCatalogue {
   readonly sansImport?: boolean;
   readonly importsEvites?: (n: number) => void;
+  /**
+   * Vrai quand l'analyse est annulée : aucune lecture ni aucun import ne part plus, ceux en vol finissent, et le catalogue
+   * rendu est partiel, que l'analyse jette. Absent, le chargement va au bout.
+   */
+  readonly annulee?: () => boolean;
 }
 
 /** Les tours d'import qui suivent les alias d'une library jusqu'à leurs cibles ; au-delà, la cible reste non chargée. */
@@ -112,18 +117,19 @@ export async function chargerLesValeurs(
   /** Les identifiants connus des clés du catalogue, complétés par ceux des cibles d'alias ; absente, tout s'importe par clé. */
   const parId = idsDesCles ? new Map(idsDesCles) : undefined;
   const horsCatalogue: Record<string, ValeurDeLibrary> = {};
+  const annulee = options.annulee ?? (() => false);
   let attendues = new Set(cles.filter((cle) => nonChargees.has(cle)));
-  for (let tour = 0; tour < PROFONDEUR_D_ALIAS && attendues.size > 0; tour += 1) {
+  for (let tour = 0; tour < PROFONDEUR_D_ALIAS && attendues.size > 0 && !annulee(); tour += 1) {
     const lot = [...attendues].filter((cle) => !(cle in importees) && !(cle in horsCatalogue));
     const internes = lot.filter((cle) => nonChargees.has(cle));
-    const { lues, restantes } = await lireParIdentifiant(port, internes, parId);
+    const { lues, restantes } = await lireParIdentifiant(port, internes, parId, annulee);
     compter?.('parIdentifiant', Object.keys(lues).length);
     if (options.sansImport) {
       options.importsEvites?.(restantes.length);
       Object.assign(importees, lues);
     } else {
       compter?.('imports', restantes.length);
-      Object.assign(importees, lues, await importerLesValeurs(port, restantes));
+      Object.assign(importees, lues, await importerLesValeurs(port, restantes, annulee));
     }
     Object.assign(horsCatalogue, await lireHorsCatalogue(port, lot.filter((cle) => !nonChargees.has(cle)), dehors, options));
     attendues = new Set();
@@ -160,12 +166,13 @@ export async function chargerLesValeurs(
       valeurs: Object.fromEntries(Object.entries(lue.valeurs).map(([mode, valeur]) => [mode, valeurDuCatalogue(valeur, true)])),
     };
   });
-  const modes = await lireLesModes(port, identifiants);
+  const modes = await lireLesModes(port, identifiants, annulee);
   const collections = catalogue.collections.map((c) => (modes.has(c.cle) && c.modes.length === 0 ? { ...c, modes: modes.get(c.cle)! } : c));
 
   // Les cibles hors du catalogue y entrent sous la collection qui les range, lue une fois, avec ses modes.
   const ajoutees = new Map<string, CatalogueDeReference['collections'][number]>();
   for (const [cle, lue] of Object.entries(horsCatalogue)) {
+    if (annulee()) break;
     if ('illisible' in lue) continue;
     let collection = ajoutees.get(lue.collection);
     if (!collection) {
@@ -192,11 +199,12 @@ async function lireHorsCatalogue(
   identifiants: ReadonlyMap<string, string>,
   options: OptionsDeCatalogue = {},
 ): Promise<Record<string, ValeurDeLibrary>> {
+  const annulee = options.annulee ?? (() => false);
   const { resultats } = await executerAuPlus(cles, async (cle) => {
     const id = identifiants.get(cle);
     const lue = id && port.getVariableByIdAsync ? await port.getVariableByIdAsync(id).catch(() => null) : null;
     return lue ? convertirVariable(lue) : null;
-  });
+  }, { avant: () => !annulee() });
   const rendues: Record<string, ValeurDeLibrary> = {};
   const parCle: string[] = [];
   cles.forEach((cle, rang) => {
@@ -208,7 +216,7 @@ async function lireHorsCatalogue(
     options.importsEvites?.(parCle.length);
     return rendues;
   }
-  return { ...rendues, ...(await importerLesValeurs(port, parCle)) };
+  return { ...rendues, ...(await importerLesValeurs(port, parCle, annulee)) };
 }
 
 /**
@@ -219,6 +227,7 @@ async function lireParIdentifiant(
   port: Partial<Pick<PortDeLecture, 'getVariableByIdAsync'>>,
   cles: readonly string[],
   identifiants: ReadonlyMap<string, string> | undefined,
+  annulee: () => boolean,
 ): Promise<{ lues: Record<string, ValeurDeLibrary>; restantes: string[] }> {
   const lire = port.getVariableByIdAsync;
   if (!identifiants || !lire) return { lues: {}, restantes: [...cles] };
@@ -227,7 +236,7 @@ async function lireParIdentifiant(
     if (id === undefined) return null;
     const lue = await lire.call(port, id).catch(() => null);
     return lue && lue.key === cle ? convertirVariable(lue) : null;
-  });
+  }, { avant: () => !annulee() });
   const lues: Record<string, ValeurDeLibrary> = {};
   const restantes: string[] = [];
   cles.forEach((cle, rang) => {
@@ -242,6 +251,7 @@ async function lireParIdentifiant(
 async function lireLesModes(
   port: Partial<Pick<PortDeLecture, 'getVariableCollectionByIdAsync'>>,
   identifiants: ReadonlyMap<string, string>,
+  annulee: () => boolean,
 ): Promise<Map<string, { id: string; nom: string }[]>> {
   const rendus = new Map<string, { id: string; nom: string }[]>();
   const lire = port.getVariableCollectionByIdAsync;
@@ -253,6 +263,6 @@ async function lireLesModes(
     } catch {
       // Sans ses modes, la collection reste lue sans mode : le contraste le dit en limite.
     }
-  });
+  }, { avant: () => !annulee() });
   return rendus;
 }

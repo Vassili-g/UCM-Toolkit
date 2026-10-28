@@ -276,17 +276,45 @@ test('une variable ajoutée, renommée ou de type changé fait relire : la nouve
   }
 });
 
-test('une lecture anticipée encore en cours s’attend au clic, sans relire', async () => {
+test('une lecture anticipée encore en cours s’attend au clic, puis se vérifie comme une lecture finie', async () => {
   const journal = neuf();
   const figma = figmaDe(journal, bibliothequeDe(), { delai: 30 });
   anticiperLesLibraries(figma);
   await attendre(5);
   const clic = await avecTrace(() => lireLesLibrariesAuClic(figma));
-  assert.equal(journal.inventaires, 1);
-  assert.equal(journal.lecturesDeCollection, 2);
+  assert.equal(journal.inventaires, 2, 'l’anticipation, puis la vérification');
+  assert.equal(journal.lecturesDeCollection, 4);
   assert.equal(clic.compteurs.librariesAnticipeesReprises, 1);
-  assert.equal(clic.compteurs.msVerificationDesLibraries, undefined);
+  assert.ok(clic.compteurs.msVerificationDesLibraries !== undefined);
   assert.equal(clic.resultat.etat, 'lue');
+});
+
+test('une liste changée pendant une lecture anticipée encore en cours : Analyser et Actualiser lisent la liste fraîche', async () => {
+  for (const intention of ['analyser', 'actualiser'] as const) {
+    abandonnerLesLibrariesAnticipees();
+    reinitialiserLAnalyse();
+    const journal = neuf();
+    const bibliotheque = bibliothequeDe();
+    const figma = figmaDe(journal, bibliotheque, { delai: 30 });
+    anticiperLesLibraries(figma);
+    // La lecture anticipée a son inventaire et lit ses collections : une collection ajoutée maintenant lui échappe.
+    while (journal.lecturesDeCollection === 0) await attendre(1);
+    bibliotheque.push({ key: 'cl', name: 'layout', libraryName: 'Intencial', variables: [{ key: 'v-gap', name: 'gap/m', resolvedType: 'FLOAT' }] });
+    const { contexte, envoyes } = contexteDe(figma);
+    let liste: ListeDeLibraries | null = null;
+    const base = lectures(journal, false, releveLent(journal, 5));
+    await traiterAvec({
+      ...base,
+      bibliotheques: (ctx, cooperation) => lireLesLibrariesAuClic(ctx.figma, cooperation),
+      catalogue: async (releve, jeton, ctx, cooperation, libraries, inventaires) => {
+        const issue = await libraries!;
+        if ('lecture' in issue) liste = issue.lecture;
+        return catalogueDeFigma(releve, jeton, ctx, cooperation, libraries, inventaires);
+      },
+    })({ type: 'analyser', intention }, contexte);
+    assert.deepEqual(liste, await lireLesLibraries(figma as never), intention);
+    assert.equal(envoyes.find((m): m is Extract<PluginMessage, { type: 'analyse' }> => m.type === 'analyse')?.statut, 'complete', intention);
+  }
 });
 
 test('une erreur de la lecture anticipée est sans effet : le clic relit normalement', async () => {
@@ -427,12 +455,12 @@ test('Actualiser vérifie et reprend la lecture anticipée comme Analyser', asyn
   assert.ok(relue.compteurs.msVerificationDesLibraries !== undefined, 'la liste est relue pour la vérification');
   assert.equal(relue.anticipee, true);
   assert.equal(relue.journal.inventaires, 2, 'l’anticipation, puis la vérification');
-  // Lecture anticipée en cours : Analyser et Actualiser l'attendent.
+  // Lecture anticipée en cours : Analyser et Actualiser l'attendent, puis la vérifient.
   const attendue = await demander('analyser', false);
-  assert.equal(attendue.journal.inventaires, 1);
+  assert.equal(attendue.journal.inventaires, 2);
   assert.equal(attendue.compteurs.librariesAnticipeesReprises, 1);
   const actualisee = await demander('actualiser', false);
-  assert.equal(actualisee.journal.inventaires, 1);
+  assert.equal(actualisee.journal.inventaires, 2);
   assert.equal(actualisee.compteurs.librariesAnticipeesReprises, 1);
   assert.equal(actualisee.catalogue, 'complete');
 });

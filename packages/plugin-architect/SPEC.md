@@ -248,7 +248,7 @@ inventaires portent aussi la mémoire de ressources de la demande
 (`MemoireDeRessources`) : le relevé, les dépendances et le moteur y lisent
 chaque variable, collection, style et maître par identifiant une seule fois, le
 premier lecteur faisant l'appel, et `decrireLeMaitre` y lit les noms d'une page
-une fois par page. Les imports du catalogue peuvent rendre lisible une variable que le relevé a vue refusée : l'analyse lance le catalogue puis appelle `attendreLesImports` avec sa fin. Toute lecture de variable ou de collection qui n'a pas eu lieu attend alors cette fin, et les refus déjà rangés s'effacent : le moteur lit chaque identifiant une fois, après les imports, comme s'il suivait le catalogue. Les styles et les maîtres n'attendent pas. Le relevé précède les dépendances, qui précèdent le moteur :
+une fois par page. Les imports du catalogue peuvent rendre lisible une variable que le relevé a vue refusée : l'analyse lance le catalogue puis appelle `attendreLesImports` avec sa fin. Toute lecture de variable ou de collection qui n'a pas eu lieu attend alors cette fin, et les refus déjà rangés s'effacent : le moteur lit chaque identifiant une fois, après les imports, comme s'il suivait le catalogue. Un refus que rend, après cet appel, une lecture partie avant lui suit la même règle : il se relit après les imports. Les styles et les maîtres n'attendent pas. Le relevé précède les dépendances, qui précèdent le moteur :
 la copie que le moteur reprend date du relevé de la même demande. Les
 inventaires s'oublient avec la demande : « Analyser », « Actualiser » et une
 analyse après une correction relisent le fichier. Le compteur
@@ -273,8 +273,9 @@ La lecture des libraries commence plus tôt encore : la vue Composant la lance
 quand elle lit un composant d'un fichier qui n'est pas hors UCM. Une seule
 lecture court à la fois ; elle a son jeton et sa coopération, hors de toute
 portée d'analyse, et une sélection qui la suit de moins de 60 s ne la relance
-pas. Au clic sur Analyser ou Actualiser, une lecture encore en cours s'attend. Une lecture
-finie se vérifie : l'analyse relit les collections, leurs variables, leurs clés,
+pas. Au clic sur Analyser ou Actualiser, une lecture encore en cours s'attend, puis se
+vérifie comme une lecture finie : partie avant le clic, elle a pu lire la liste avant un
+changement. Une lecture finie se vérifie : l'analyse relit les collections, leurs variables, leurs clés,
 leurs noms et leurs types, et reprend la lecture anticipée si cette liste est
 identique, sinon la nouvelle liste, qui remplace l'ancienne. Cette vérification
 court dans la lecture que l'analyse lance avec le relevé : elle ne le précède
@@ -309,6 +310,14 @@ provisoire part quand les contrôles ont fini, que le moteur ait fini ou non. Un
 résultat du moteur de l'analyse complète précédente du même jeu quand
 `validerLEntree` l'accepte : relevé, catalogue, dépendances et règles relus
 égaux à ceux retenus, chaque instance ayant un maître local suivi du journal et sans instance propre, et chaque style se lisant par identifiant.
+Les dépendances comprennent la variable et la collection de chaque alias que
+portent les liaisons des maîtres locaux, les calques des instances de maîtres
+distants et les définitions des styles, hors des variables locales
+(`variablesDesDependances`). Le moteur tire de ces deux lectures le nom des
+tokens, et une mise à jour de library les renomme sans événement. Elles passent
+par la mémoire de ressources de la demande et attendent la fin des imports,
+comme les lectures du moteur ; le moteur lancé avec le catalogue ne les attend
+pas, la validation les attend.
 Sur cette demande, le relevé se relit en entier, puis se compare au relevé de
 l'entrée par tranches coopératives (`egalesExactementParEtapes`). Égal, l'objet
 retenu remplace celui qui vient d'être lu, et les comparaisons suivantes le
@@ -324,7 +333,8 @@ mémoire de la demande ; rien du relevé retenu n'y entre. Les compteurs
 `prelecturesDuReleve` le disent dans la trace. Actualiser ne prélit ni ne
 compare rien. Le message final range les constats comme avant : contrôles du kit,
 règles, moteur. Une annulation pendant le catalogue ou les contrôles du kit
-n'envoie aucun provisoire ; le moteur lancé avec le catalogue reçoit le jeton et s'arrête avant que la demande rende la place. `analyse-provisoire` n'est
+n'envoie aucun provisoire ; le chargement des valeurs du catalogue ne lance plus
+aucune lecture ni aucun import, et seules finissent celles déjà en vol ; le moteur lancé avec le catalogue reçoit le jeton et s'arrête avant que la demande rende la place. `analyse-provisoire` n'est
 pas un statut de `analyse` : seul `analyse` termine la demande. Seul un final
 `complete` ou `partielle` retient les corrections : avant lui, le sandbox
 refuse les réponses, Ignorer, la propagation, la préparation et les
@@ -333,7 +343,7 @@ demandes et désactive leurs cases et boutons ; replier et déplier restent
 permis. Au passage au final, les identifiants des constats, le défilement et les
 sections ouvertes ou fermées par le designer se conservent.
 
-Quand le designer sélectionne un composant et que ni `selectionchange`, ni `currentpagechange`, ni `stylechange`, ni `nodechange` ne se produit pendant 1 s, le sandbox envoie à `analyser` une demande d'origine `prelecture` (`sandbox/prelecture.ts`). Chacun de ces événements lève le jeton de la prélecture en cours et recommence le silence ; une écriture du plugin la lève aussi et prend la place sans recevoir `occupe`. La prélecture est une analyse ordinaire, sauf sur quatre points. Elle ne se lance pas quand une opération court, quand l'interface affiche une analyse non périmée (la prélecture la remplacerait comme analyse courante) ni quand l'entrée du sujet est déjà `utilisable`. Elle ne parle pas à l'interface : ni `analyse-commencee`, ni `analyse-en-cours`, ni `analyse-provisoire`, ni `analyse`, ni `perime`. Elle cède par tranches de 8 ms et une pause de 16 ms, au lieu de 50 ms et d'une pause nulle. Elle ne fait aucun import par clé, car `importVariableByKeyAsync` abonne le fichier à la variable : une clé qui en aurait demandé un reste `non-chargee` dans son catalogue, et la prélecture s'achève `partielle`, donc sans promotion. Une prélecture complète promeut son entrée comme une analyse du designer (révision, curseur et journal des lots 8 et 9) ; le clic suivant la valide par `validerLEntree`, qui relit et compare le relevé et reprend le moteur et les familles de contrôles. Un clic Analyser pendant la prélecture la prend au premier plan : elle passe au budget normal, l'interface reçoit `analyse-commencee` puis les messages d'une analyse ordinaire au nom de la demande du clic, et le clic ne lance aucune seconde analyse. Actualiser et un clic qui demande une capture l'arrêtent, et leur demande court seule. Il en va de même quand le catalogue de la prélecture a évité un import ; un clic arrivé pendant la lecture de ce catalogue la prend et le relit avec les imports. Pendant la sélection, `sandbox/prelecture.ts` relance aussi la lecture des libraries toutes les 5 s (`rafraichirLesLibraries`), parce que Figma garde leurs variables 5 à 10 s : la vérification du clic tombe alors dans sa mémoire. La relance s'arrête 2 minutes après la sélection ou à la première analyse du designer, et se tait pendant une prélecture ou une écriture. Les compteurs `prelecturesLancees`, `prelecturesAnnulees`, `prelecturesPromues` et `clicApresPrelecture:repris` ou `clicApresPrelecture:premierPlan` rejoignent la trace de la première demande mesurée qui suit.
+Quand le designer sélectionne un composant et que ni `selectionchange`, ni `currentpagechange`, ni `stylechange`, ni `nodechange` ne se produit pendant 1 s, le sandbox envoie à `analyser` une demande d'origine `prelecture` (`sandbox/prelecture.ts`). Chacun de ces événements lève le jeton de la prélecture en cours et recommence le silence. Une écriture du plugin la lève aussi, attend sa fin et prend ensuite la place sans recevoir `occupe` : la demande suivante ne trouve ni ses lectures en vol, ni sa portée, ni sa garde des événements. Un changement de library ou de niveau et toute péremption de son analyse la lèvent aussi : elle a pu lire l'état d'avant, et un clic ne la prend plus. La prélecture est une analyse ordinaire, sauf sur quatre points. Elle ne se lance pas quand une opération court, quand l'interface affiche une analyse non périmée (la prélecture la remplacerait comme analyse courante) ni quand l'entrée du sujet est déjà `utilisable`. Sur une analyse périmée, l'interface n'envoie plus aucun geste (`analyseApplicable`) : la prélecture peut la remplacer. Elle ne parle pas à l'interface : ni `analyse-commencee`, ni `analyse-en-cours`, ni `analyse-provisoire`, ni `analyse`, ni `perime`. Elle cède par tranches de 8 ms et une pause de 16 ms, au lieu de 50 ms et d'une pause nulle. Elle ne fait aucun import par clé, car `importVariableByKeyAsync` abonne le fichier à la variable : une clé qui en aurait demandé un reste `non-chargee` dans son catalogue, et la prélecture s'achève `partielle`, donc sans promotion. Une prélecture complète promeut son entrée comme une analyse du designer (révision, curseur et journal des lots 8 et 9) et retient alors ses liaisons et ses modèles, que la Configuration et l'écriture des règles lisent. Un clic qui la prend les retient aussi ; une prélecture annulée n'en retient aucun. Le clic suivant une prélecture promue la valide par `validerLEntree`, qui relit et compare le relevé et reprend le moteur et les familles de contrôles. Un clic Analyser pendant la prélecture la prend au premier plan : elle passe au budget normal, l'interface reçoit `analyse-commencee` puis les messages d'une analyse ordinaire au nom de la demande du clic, et le clic ne lance aucune seconde analyse. Actualiser et un clic qui demande une capture l'arrêtent, et leur demande court seule. Il en va de même quand le catalogue de la prélecture a évité un import ; un clic arrivé pendant la lecture de ce catalogue la prend et le relit avec les imports. Pendant la sélection, `sandbox/prelecture.ts` relance aussi la lecture des libraries toutes les 5 s (`rafraichirLesLibraries`), parce que Figma garde leurs variables 5 à 10 s : la vérification du clic tombe alors dans sa mémoire. La relance s'arrête 2 minutes après la sélection ou à la première analyse du designer, et se tait pendant une prélecture ou une écriture. Les compteurs `prelecturesLancees`, `prelecturesAnnulees`, `prelecturesPromues` et `clicApresPrelecture:repris` ou `clicApresPrelecture:premierPlan` rejoignent la trace de la première demande mesurée qui suit.
 
 Une correction ne se propose que si elle est exacte : une règle écrite donne
 un seul candidat. Sinon le constat devient une question, sans candidat choisi

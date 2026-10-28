@@ -70,7 +70,7 @@ async function annulerLaStructure(demande: number, contexte: Contexte): Promise<
     contexte.envoyer({ type: 'structure-annulee', demande, refus: 'hors-ucm', ...sans });
     return;
   }
-  const place = prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
+  const place = await prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
   if ('occupe' in place) {
     contexte.envoyer({ type: 'structure-annulee', demande, refus: 'occupe', ...sans });
     return;

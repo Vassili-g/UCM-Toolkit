@@ -64,7 +64,7 @@ export function traiterAvec(acces: Acces): Traiter<DemandeDeStructure> {
 
 async function appliquer(demande: Extract<DemandeDeStructure, { type: 'appliquer-structure' }>, acces: Acces, contexte: Contexte): Promise<void> {
   const ids = [...new Set(demande.ids)];
-  const place = prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
+  const place = await prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
   if ('occupe' in place) {
     contexte.envoyer({ type: 'structure-appliquee', demande: demande.demande, ecrites: 0, sautees: ids.map((id) => ({ id, motif: 'occupe' })) });
     return;

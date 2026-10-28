@@ -17,14 +17,20 @@
  * Dans le jeu et la fermeture, un nœud sous une instance dont le maître n'est pas suivi (`sousUneInstance`) suit la même
  * règle que le maître distant : son contenu suit le maître sans `nodechange`.
  *
- * Le moteur et les dépendances se rejouent chacun seul, mémoire des pages vidée avant : une lecture d'un autre lecteur ne
- * s'attribue à aucun des deux, et l'index des noms contractés relit ses pages.
+ * Les appels de ressources du moteur (`getVariableByIdAsync`, `getVariableCollectionByIdAsync`, `getStyleByIdAsync`) suivent
+ * la règle du maître distant : aucun événement ne dit qu'une variable de library a été renommée ou qu'un style a changé.
+ * Chaque appel doit être refait, sur le même identifiant, par un lecteur dont la sortie est comparée : le relevé, ou les
+ * dépendances (`dependancesDeFigma` puis `variablesDesDependances`).
+ *
+ * Le relevé, les dépendances et le moteur se rejouent chacun seul, mémoire des pages vidée avant : une lecture d'un autre
+ * lecteur ne s'attribue à aucun, et l'index des noms contractés relit ses pages. Du relevé, seuls les appels de ressources
+ * comptent.
  */
 import { oublierLIndexDuDocument } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
 
 import type { CaptureArchitect } from '../../src/sandbox/capture';
 import type { Contexte } from '../../src/sandbox/contexte';
-import { LECTEURS_DE_FIGMA, dependancesDeFigma, reinitialiserLAnalyse, sessionDesAnalyses, traiter } from '../../src/sandbox/analyse';
+import { LECTEURS_DE_FIGMA, dependancesDeFigma, reinitialiserLAnalyse, sessionDesAnalyses, traiter, variablesDesDependances } from '../../src/sandbox/analyse';
 import { doubleDepuisCapture } from './capture';
 
 export type RegionDAcces = 'jeu' | 'fermeture' | 'distant' | 'comparee' | 'hors';
@@ -42,7 +48,12 @@ export interface BilanDesAcces {
   readonly sousUneInstance: readonly string[];
   /** Les lectures de nœuds de `dependancesDeFigma` seul, et ses appels de `getMainComponentAsync`. */
   readonly dependances: { readonly lectures: number; readonly maitresLus: number };
+  /** Les appels de ressources distincts du moteur (`getVariableByIdAsync(id)`…) ; ceux que les dépendances ne refont pas sont aussi dans `horsCouverture`. */
+  readonly ressources: readonly string[];
 }
+
+/** Les appels de `figma` qui lisent une ressource par identifiant : une variable, une collection ou un style. */
+const APPEL_DE_RESSOURCE = /^(getVariableByIdAsync|getVariableCollectionByIdAsync|getStyleByIdAsync)\(/;
 
 const globale = globalThis as { figma?: unknown };
 
@@ -57,13 +68,15 @@ const CHAMPS_DE_LIAISON = new Set(['boundVariables', 'explicitVariableModes', 'r
  * leurs lectures. `figma` est posé en global pendant l'appel, comme au runtime.
  */
 export async function enregistrerLesAccesDuMoteur(capture: CaptureArchitect): Promise<BilanDesAcces> {
-  let phase: 'dependances' | 'moteur' | null = null;
+  let phase: 'releve' | 'dependances' | 'moteur' | null = null;
   const parPhase = { dependances: new Map<string, Set<string>>(), moteur: new Map<string, Set<string>>() };
+  const ressourcesParPhase = { releve: new Set<string>(), dependances: new Set<string>(), moteur: new Set<string>() };
   let maitresLus = 0;
   let lecturesDesDependances = 0;
   const double = doubleDepuisCapture(capture, {
     surLecture: ({ noeud, champ }) => {
-      if (!phase || noeud === 'figma' || SANS_DONNEE.has(champ)) return;
+      if (phase && noeud === 'figma' && APPEL_DE_RESSOURCE.test(champ)) ressourcesParPhase[phase].add(champ);
+      if (!phase || phase === 'releve' || noeud === 'figma' || SANS_DONNEE.has(champ)) return;
       if (phase === 'dependances') {
         lecturesDesDependances += 1;
         if (champ === 'getMainComponentAsync') maitresLus += 1;
@@ -86,9 +99,11 @@ export async function enregistrerLesAccesDuMoteur(capture: CaptureArchitect): Pr
     const sujet = await LECTEURS_DE_FIGMA.sujet(contexte);
     if (!sujet) throw new Error('La capture ne désigne aucun sujet.');
 
+    phase = 'releve';
+    await LECTEURS_DE_FIGMA.releve(sujet, { leve: false }, contexte);
     oublierLIndexDuDocument();
     phase = 'dependances';
-    await dependancesDeFigma(sujet, contexte);
+    await variablesDesDependances(await dependancesDeFigma(sujet, contexte), contexte);
     phase = null;
     oublierLIndexDuDocument();
     phase = 'moteur';
@@ -136,7 +151,13 @@ export async function enregistrerLesAccesDuMoteur(capture: CaptureArchitect): Pr
       if (regionDuNoeud === 'distant') lusSurLesDistants[noeud] = [...lus].sort();
       if (regionDuNoeud !== null && sousUneInstanceNonSuivie(noeud)) sousUneInstance.push(`${noeud} : ${[...lus].sort().join(', ')}`);
     }
-    return { noeuds, champs, horsCouverture: horsCouverture.sort(), distants: lusSurLesDistants, sousUneInstance: sousUneInstance.sort(), dependances: { lectures: lecturesDesDependances, maitresLus } };
+    for (const appel of ressourcesParPhase.moteur) {
+      if (!ressourcesParPhase.dependances.has(appel) && !ressourcesParPhase.releve.has(appel)) horsCouverture.push(`figma.${appel}`);
+    }
+    return {
+      noeuds, champs, horsCouverture: horsCouverture.sort(), distants: lusSurLesDistants, sousUneInstance: sousUneInstance.sort(),
+      dependances: { lectures: lecturesDesDependances, maitresLus }, ressources: [...ressourcesParPhase.moteur].sort(),
+    };
   } finally {
     phase = null;
     globale.figma = precedent;

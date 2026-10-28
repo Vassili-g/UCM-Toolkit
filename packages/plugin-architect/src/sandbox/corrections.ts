@@ -91,7 +91,7 @@ export function traiterAvec(ecritures: Ecritures): Traiter<DemandeDeCorrections>
 async function servirDeModele(demande: Extract<DemandeDeCorrections, { type: 'servir-de-modele' }>, contexte: Contexte): Promise<void> {
   const courante = analyseCourante();
   if (!courante || courante.sujet !== demande.analyse.sujet || courante.generation !== demande.analyse.generation) return;
-  const place = prendreLaPlaceDUneEcriture(demande.analyse);
+  const place = await prendreLaPlaceDUneEcriture(demande.analyse);
   if ('occupe' in place) {
     contexte.envoyer({ type: 'occupe', analyse: await place.occupe });
     return;
@@ -108,7 +108,7 @@ async function servirDeModele(demande: Extract<DemandeDeCorrections, { type: 'se
 }
 
 async function appliquer(demande: Extract<DemandeDeCorrections, { type: 'appliquer-corrections' }>, ecritures: Ecritures, contexte: Contexte): Promise<void> {
-  const place = prendreLaPlaceDUneEcriture(demande.analyse);
+  const place = await prendreLaPlaceDUneEcriture(demande.analyse);
   if ('occupe' in place) {
     contexte.envoyer({ type: 'occupe', analyse: await place.occupe });
     return;

@@ -20,6 +20,8 @@ import {
   analyseCourante, annulerLaPrelecture, correctionsDeLAnalyse, dependancesDeFigma, etatDeLEntree, fermerLaSession, fixerLesBornesDeRetention, journalDesChangements, operationEnCours, prendreLaPlaceDUneEcriture, surInterruptionDePage, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDeStyle, surChangementDuDocument, surSelection, traiterAvec,
   type Lecteurs,
 } from '../src/sandbox/analyse';
+import { liaisonsRetenues, retenirLesLiaisons } from '../src/sandbox/bibliotheque';
+import { traiter as traiterLaConfiguration } from '../src/sandbox/configuration';
 import { creerLeSuivi, type Contexte } from '../src/sandbox/contexte';
 import { base, catalogueDe, fichierDeDepart, releveDe, type Fichier } from './aides/fichierDeSession';
 
@@ -1022,6 +1024,7 @@ test('un clic pendant la lecture du relevé prend la prélecture au premier plan
 test('un clic pendant le calcul du moteur prend la prélecture au premier plan et rend le même résultat final qu’Actualiser', async () => {
   const fichier = fichierDeDepart();
   const appels = { moteur: 0 };
+  retenirLesLiaisons(new Map());
   const b = banc(fichier);
   const lecteurs = lecteursDe(fichier, appels);
   const arret = portail();
@@ -1035,12 +1038,15 @@ test('un clic pendant le calcul du moteur prend la prélecture au premier plan e
   assert.equal(types.filter((type) => type === 'analyse').length, 1);
   assert.equal(types[0], 'analyse-commencee');
   const final = b.envoyes.find((message) => message.type === 'analyse');
+  const liaisons = [...liaisonsRetenues()];
+  assert.ok(liaisons.length > 0, 'la prise pose les liaisons que la prélecture avait lues avant elle');
   assert.ok(final && 'mesure' in final && final.mesure, 'la demande du clic était mesurée : la trace s’ouvre à la prise');
   assert.equal(final.mesure.compteurs['clicApresPrelecture:premierPlan'], 1);
   const { mesure, ...sansMesure } = final as PluginMessage & { mesure?: unknown };
   const actualisee = await demandeDuReleve(fichier, { moteur: 0 }, 'actualiser');
   const finalActualise = JSON.parse(actualisee.affiche).messages.find((message: { type: string }) => message.type === 'analyse');
   assert.equal(JSON.stringify({ ...sansMesure, analyse: { sujet: 'Alert' } }), JSON.stringify(finalActualise));
+  assert.deepEqual([...liaisonsRetenues()], liaisons, 'les mêmes liaisons qu’Actualiser');
 });
 
 test('un clic Actualiser pendant la prélecture l’arrête : l’analyse du clic court seule, sans rien reprendre', async () => {
@@ -1137,8 +1143,7 @@ test('un événement qui annule la prélecture ne laisse rien promu ni annoncé,
   await arret.entre;
   // Un changement du jeu périmerait une analyse ordinaire en le disant à l'interface ; la prélecture se tait.
   surChangementDuDocument([noeud('PROPERTY_CHANGE', 'fond', ['v-Alert', 'jeu-Alert'], ['fills'])], b.contexte);
-  assert.equal(annulerLaPrelecture(), true);
-  assert.equal(annulerLaPrelecture(), false, 'une prélecture déjà annulée ne s’annule pas deux fois');
+  assert.equal(annulerLaPrelecture(), false, 'la péremption de son analyse a déjà levé son jeton, et un jeton levé ne se lève pas deux fois');
   arret.liberer();
   await prelecture;
   assert.deepEqual(b.envoyes, []);
@@ -1151,7 +1156,7 @@ test('un événement qui annule la prélecture ne laisse rien promu ni annoncé,
   assert.equal(suivante.mesure.compteurs.prelecturesPromues, undefined);
 });
 
-test('une écriture du plugin passe avant la prélecture, qui s’arrête sans rien promouvoir ni annoncer', async () => {
+test('une écriture du plugin passe avant la prélecture : elle l’arrête, attend sa fin et prend la place sans `occupe`, rien n’est promu ni annoncé', async () => {
   const fichier = fichierDeDepart();
   const appels = { moteur: 0 };
   const b = banc(fichier);
@@ -1160,15 +1165,127 @@ test('une écriture du plugin passe avant la prélecture, qui s’arrête sans r
   const traiter = traiterAvec({ ...lecteurs, releve: async (...args) => { arret.entree(); await arret.ouvert; return lecteurs.releve(...args); } }, SANS_PAUSE);
   const prelecture = traiter({ type: 'analyser', origine: 'prelecture' }, b.contexte);
   await arret.entre;
-  const place = prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
-  assert.ok('liberer' in place, 'l’écriture prend la place sans recevoir `occupe`');
+  const demandee = prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
+  let prise = false;
+  void demandee.then(() => { prise = true; });
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.equal(prise, false, 'la place attend la fin de la prélecture');
   arret.liberer();
   await prelecture;
-  assert.equal(operationEnCours(), 'ecriture', 'la fin de la prélecture ne libère pas la place de l’écriture');
+  const place = await demandee;
+  assert.ok('liberer' in place, 'l’écriture prend la place sans recevoir `occupe`');
+  assert.equal(operationEnCours(), 'ecriture');
   place.liberer();
   assert.equal(operationEnCours(), null);
   assert.deepEqual(b.envoyes, []);
   assert.equal(sessionDesAnalyses().entree('Alert'), null);
+});
+
+test('une écriture qui passe avant la prélecture rend la place après sa fin : le clic qui suit court seul, ses événements jugés ; affichage égal à Actualiser', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const b = banc(fichier);
+  const lecteurs = lecteursDe(fichier, appels);
+  const arret = portail();
+  const sujetDuClic = portail();
+  let sujets = 0;
+  let prelectureEnVol = false;
+  let enVolAuClic: boolean | null = null;
+  const traiter = traiterAvec({
+    ...lecteurs,
+    async sujet(...args) {
+      sujets += 1;
+      if (sujets === 2) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        enVolAuClic = prelectureEnVol;
+        sujetDuClic.entree();
+        await sujetDuClic.ouvert;
+      }
+      return lecteurs.sujet(...args);
+    },
+    async releve(...args) {
+      if (sujets === 1) {
+        prelectureEnVol = true;
+        arret.entree();
+        await arret.ouvert;
+      }
+      return lecteurs.releve(...args);
+    },
+  }, SANS_PAUSE);
+  const prelecture = traiter({ type: 'analyser', origine: 'prelecture' }, b.contexte).then(() => { prelectureEnVol = false; });
+  await arret.entre;
+  setTimeout(() => arret.liberer(), 20);
+  const place = await prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
+  assert.ok('liberer' in place);
+  place.liberer();
+  const clic = traiter({ type: 'analyser', intention: 'analyser', demande: 1 }, b.contexte);
+  await prelecture;
+  await sujetDuClic.entre;
+  // Un changement du jeu reçu avant que le clic connaisse son inventaire : sa garde des événements doit le juger.
+  surChangementDuDocument([noeud('PROPERTY_CHANGE', 'fond', ['v-Alert', 'jeu-Alert'], ['fills'])], b.contexte);
+  sujetDuClic.liberer();
+  await clic;
+  assert.equal(enVolAuClic, false, 'la prélecture a fini avant que le clic lise son sujet');
+  assert.deepEqual(b.envoyes.filter(({ type }) => type === 'perime').map((message) => ('cause' in message ? message.cause : null)), ['document']);
+  const suivante = await demander(fichier, appels, 'analyser');
+  assert.equal(JSON.stringify(suivante), JSON.stringify(await demander(fichier, appels, 'actualiser')));
+});
+
+// Arrêtée au sujet, la prélecture n'a pas encore ouvert son analyse ; arrêtée au catalogue, elle a lu l'ancien niveau.
+for (const arretDeLaPrelecture of ['sujet', 'catalogue'] as const) test(`un changement de niveau pendant la prélecture, arrêtée au ${arretDeLaPrelecture}, l’arrête : le clic lit le nouveau niveau, son analyse est applicable, affichage égal à Actualiser`, async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const b = banc(fichier);
+  const lecteurs = lecteursDe(fichier, appels);
+  const arret = portail();
+  let lectures = 0;
+  const bloquer = async (): Promise<void> => {
+    lectures += 1;
+    if (lectures === 1) { arret.entree(); await arret.ouvert; }
+  };
+  const surcharge: Partial<Lecteurs> = arretDeLaPrelecture === 'sujet'
+    ? { sujet: async (...args) => { await bloquer(); return lecteurs.sujet(...args); } }
+    : { catalogue: async (...args) => { await bloquer(); return lecteurs.catalogue(...args); } };
+  const traiter = traiterAvec({ ...lecteurs, ...surcharge }, SANS_PAUSE);
+  const prelecture = traiter({ type: 'analyser', origine: 'prelecture' }, b.contexte);
+  await arret.entre;
+  const reglages: Contexte = {
+    figma: { clientStorage: { getAsync: async () => fichier.niveau, setAsync: async (_cle: string, niveau: 'AA' | 'AAA') => { fichier.niveau = niveau; } } } as unknown as PluginAPI,
+    envoyer() {},
+    surveillerLeDocument() {},
+  };
+  await traiterLaConfiguration({ type: 'ranger-niveau', niveau: 'AAA' }, reglages);
+  assert.equal(fichier.niveau, 'AAA');
+  const clic = traiter({ type: 'analyser', intention: 'analyser', demande: 1 }, b.contexte);
+  arret.liberer();
+  await Promise.all([prelecture, clic]);
+  const identite = analyseCourante();
+  assert.ok(identite);
+  assert.notEqual(correctionsDeLAnalyse(identite), null, 'l’analyse affichée n’est pas une analyse périmée en silence');
+  assert.equal(typesEnvoyes(b).filter((type) => type === 'analyse').length, 1);
+  assert.equal(JSON.stringify(affichage(b)), JSON.stringify(await demander(fichier, { moteur: 0 }, 'actualiser')));
+});
+
+test('une prélecture annulée ne retient ni ses liaisons ni ses modèles ; une prélecture promue les retient', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await demander(fichier, appels, 'analyser');
+  const liaisons = [...liaisonsRetenues()];
+  const modeles = [...modelesDeLAnalyse()];
+  assert.ok(liaisons.length > 0 && modeles.length > 0);
+  // La prélecture suivante lit d'autres liaisons et un autre modèle, puis s'arrête après les avoir lus.
+  fichier.layers[0] = base('fond', { id: 'VariableID:2', cle: 'k-autre', nom: 'alert/size/other' });
+  const autres = { ...REGLES, modele: { nom: 'Autre', sections: [] } };
+  surSelection('autre-composant', 'figma', banc(fichier).contexte);
+  sessionDesAnalyses().vider();
+  await preluire(fichier, appels, { regles: async () => { annulerLaPrelecture(); return structuredClone(autres); } });
+  assert.equal(sessionDesAnalyses().entree('Alert'), null, 'rien n’est promu');
+  assert.deepEqual([...liaisonsRetenues()], liaisons, 'les liaisons de l’analyse du designer restent');
+  assert.deepEqual([...modelesDeLAnalyse()], modeles, 'ses modèles aussi');
+  await preluire(fichier, appels, { regles: async () => structuredClone(autres) });
+  assert.ok(sessionDesAnalyses().entree('Alert'), 'la prélecture complète est promue');
+  assert.notDeepEqual([...liaisonsRetenues()], liaisons, 'et retient ses liaisons');
+  assert.notDeepEqual([...modelesDeLAnalyse()], modeles, 'et ses modèles');
 });
 
 test('une prélecture ne prend pas la place d’une analyse en cours et ne répond jamais `occupe`', async () => {

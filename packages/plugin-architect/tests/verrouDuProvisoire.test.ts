@@ -68,6 +68,18 @@ test('après le final, les mêmes actions envoient leur demande', () => {
   }
 });
 
+// Une prélecture peut remplacer l'analyse courante du sandbox dès que l'analyse affichée est périmée (`sandbox/analyse.ts`) :
+// aucun geste de l'écran périmé ne doit alors partir, sélection des calques comprise.
+test('après `perime`, aucune action de l’analyse affichée n’envoie de demande au sandbox', () => {
+  for (const phase of ['complete', 'partielle'] as const) {
+    const etat = analyseEn(phase);
+    recevoirUneAnalyse(etat, { type: 'perime', analyse: IDENTITE, cause: 'document' });
+    const envois = envoisDe(etat);
+    creerApplication(etat, () => ({ rendre() {} }) as never).selectionner(['a']);
+    assert.deepEqual(envois, [], phase);
+  }
+});
+
 test('seul un final non périmé est applicable', () => {
   assert.equal(analyseApplicable(null), false);
   assert.equal(analyseApplicable(analyseEn('provisoire').analyse), false);

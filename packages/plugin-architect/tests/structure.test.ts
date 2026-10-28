@@ -384,7 +384,7 @@ test('appliquer-structure : une écriture qui lève saute tout en erreur, une op
   assert.deepEqual(envoyes[1], { type: 'structure-appliquee', demande: 2, ecrites: 0, sautees: [{ id: 'C63:k-defaut:scopes', motif: 'erreur' }] });
 
   await traiter({ type: 'lire-structure', demande: 3 }, contexte);
-  const place = prendreLaPlaceDUneEcriture({ sujet: 'autre', generation: 1 });
+  const place = await prendreLaPlaceDUneEcriture({ sujet: 'autre', generation: 1 });
   assert.ok('liberer' in place);
   await traiter({ type: 'appliquer-structure', demande: 4, ids: ['C63:k-defaut:scopes'] }, contexte);
   assert.deepEqual(envoyes.at(-1), { type: 'structure-appliquee', demande: 4, ecrites: 0, sautees: [{ id: 'C63:k-defaut:scopes', motif: 'occupe' }] });

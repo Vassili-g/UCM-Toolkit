@@ -240,7 +240,7 @@ test('creer-variables : une préparation absente, une autre opération en cours 
   assert.equal(b.dernier('variables-creees').refus, 'introuvable');
 
   await rangerUnePreparation(b.contexte.figma.clientStorage as never, rangee());
-  const place = prendreLaPlaceDUneEcriture({ sujet: 'autre', generation: 0 });
+  const place = await prendreLaPlaceDUneEcriture({ sujet: 'autre', generation: 0 });
   await b.traiter({ type: 'creer-variables', preparation: 'prep-1' }, b.contexte);
   assert.equal(b.dernier('variables-creees').refus, 'occupe');
   assert.equal(b.appels.length, 0);
@@ -263,7 +263,7 @@ test('creer-variables : une écriture qui lève saute tout en lecture, périme l
   analyse(b);
   await b.traiter({ type: 'creer-variables', preparation: 'prep-1' }, b.contexte);
   assert.deepEqual([b.dernier('variables-creees').refus, b.dernier('variables-creees').sautees], ['lecture', 1]);
-  const place = prendreLaPlaceDUneEcriture({ sujet: 'suite', generation: 0 });
+  const place = await prendreLaPlaceDUneEcriture({ sujet: 'suite', generation: 0 });
   assert.ok('liberer' in place);
   if ('liberer' in place) place.liberer();
   reinitialiserLAnalyse();
