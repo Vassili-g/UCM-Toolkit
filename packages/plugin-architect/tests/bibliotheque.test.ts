@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { rangerLaCleDuFichier } from '../src/ecriture/cleDuFichier';
+import { IMPORTS_EN_VOL } from '../src/lecture';
 import type { PluginMessage } from '../src/messages';
 import { traiter } from '../src/sandbox/bibliotheque';
 import type { Contexte } from '../src/sandbox/contexte';
@@ -70,13 +71,13 @@ test('la clé du fichier n’est ni écrite ni rendue quand Figma ne la sert pas
   assert.deepEqual(rangee.ecrits, []);
 });
 
-test('les valeurs s’importent par lots de huit et gardent alias et modes', async () => {
+test('les valeurs s’importent par lots de seize et gardent alias et modes', async () => {
   const cles = Array.from({ length: 20 }, (_, i) => `k${i}`);
   const importables = cles.map((cle, i) => ({ ...variableFigma(`VariableID:${cle}/1:${i}`, 'VariableCollectionId:c/1:0', `v${i}`, 'COLOR', { m1: i === 0 ? { type: 'VARIABLE_ALIAS', id: 'VariableID:z/1:9' } : { r: 0, g: 0, b: 0, a: 1 } }, true), key: cle }));
   const { port, appels, maximumEnVol } = portDeTest([], [], [], [], { importables, delai: 1 });
   const { contexte: c, envoyes } = contexte({ variables: port });
   await traiter({ type: 'lire-valeurs', demande: 9, cles: [...cles, 'absente'] }, c);
-  assert.ok(maximumEnVol() <= 8);
+  assert.ok(maximumEnVol() <= IMPORTS_EN_VOL);
   const message = envoyes[0] as { type: string; valeurs: Record<string, any> };
   assert.equal(message.type, 'valeurs');
   assert.deepEqual(message.valeurs.k0.valeurs.m1, { nature: 'alias', cible: 'VariableID:z/1:9' });

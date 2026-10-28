@@ -45,6 +45,9 @@ import type { ModeDeCalque } from './resolution';
 /** Le nombre de lectures par identifiant en vol au même moment. */
 export const CONCURRENCE = REQUETES_EN_VOL;
 
+/** Le nombre d'imports par clé en vol : dans Figma, le temps par import passe de 10,7 ms à 8 en vol à 7,9 ms à 16 (E1, lot 16). */
+export const IMPORTS_EN_VOL = 16;
+
 /** Ce que la lecture lit d'une variable Figma. */
 export interface VariableFigma {
   readonly id: string;
@@ -394,12 +397,12 @@ export async function lireLesVariables(port: PortDeLecture, departs: readonly st
 export type ValeurDeLibrary = VariableRelevee | { readonly illisible: string };
 
 /**
- * Importe les variables de `cles` par lots de `CONCURRENCE` et les convertit comme le relevé. Une clé que Figma refuse, ou dont
+ * Importe les variables de `cles` par lots de `IMPORTS_EN_VOL` et les convertit comme le relevé. Une clé que Figma refuse, ou dont
  * le type est inconnu, rend son motif sans arrêter les autres. L'import abonne le fichier à la variable, sans créer de variable locale.
  */
 export async function importerLesValeurs(port: Pick<PortDeLecture, 'importVariableByKeyAsync'>, cles: readonly string[]): Promise<Record<string, ValeurDeLibrary>> {
   const rendues: Record<string, ValeurDeLibrary> = {};
-  await parLots([...new Set(cles)], CONCURRENCE, async (cle) => {
+  await parLots([...new Set(cles)], IMPORTS_EN_VOL, async (cle) => {
     try {
       const convertie = convertirVariable(await port.importVariableByKeyAsync(cle));
       rendues[cle] = convertie ?? { illisible: 'Le type de cette variable n’est pas pris en charge.' };

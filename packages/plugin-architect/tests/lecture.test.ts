@@ -5,7 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { indexer } from '../src/indexation';
-import { CONCURRENCE, cleDeBibliotheque, convertirValeur, lireLeReleve } from '../src/lecture';
+import { CONCURRENCE, IMPORTS_EN_VOL, cleDeBibliotheque, convertirValeur, importerLesValeurs, lireLeReleve } from '../src/lecture';
 import { resoudre } from '../src/resolution';
 import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
 
@@ -174,6 +174,23 @@ test(`au plus ${CONCURRENCE} lectures par identifiant sont en vol`, async () => 
   assert.equal(issue.statut, 'lu');
   assert.ok(maximumEnVol() <= CONCURRENCE, `${maximumEnVol()} lectures en vol`);
   assert.ok(maximumEnVol() > 1, 'les lectures ne sont pas parallélisées');
+});
+
+test(`les imports par clé vont jusqu'à ${IMPORTS_EN_VOL} en vol, au-delà de ${CONCURRENCE}`, async () => {
+  let enVol = 0;
+  let pic = 0;
+  const port = {
+    importVariableByKeyAsync: async (cle: string) => {
+      enVol += 1;
+      pic = Math.max(pic, enVol);
+      await new Promise((resolve) => setTimeout(resolve, 2));
+      enVol -= 1;
+      return variableFigma(cle, 'bib', cle, 'FLOAT', { 'bib:M': 1 }, true);
+    },
+  } as unknown as Parameters<typeof importerLesValeurs>[0];
+  const rendues = await importerLesValeurs(port, Array.from({ length: 40 }, (_, rang) => `k${rang}`));
+  assert.equal(Object.keys(rendues).length, 40);
+  assert.equal(pic, IMPORTS_EN_VOL);
 });
 
 test('une annulation rend la main avant la fin et ne publie aucun relevé partiel', async () => {
