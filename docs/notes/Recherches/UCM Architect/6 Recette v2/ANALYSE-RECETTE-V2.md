@@ -11,8 +11,7 @@ R-11 à R-27. La section 10 les réunit avec leur état ; la maquette les repren
 en section 8.
 
 Le mainteneur a relu une première version de la maquette. Ses réponses sont
-reportées dans chaque section. Restent ouverts : la section des informations
-(7.4), la forme des noms de variants (3) et la définition des pièces partagées (7.3).
+reportées dans chaque section. Restent ouverts : R-17, R-21 et R-23 (section 10).
 
 ## 1. Fenêtre, barre et panneau
 
@@ -156,7 +155,7 @@ puce garde sa property.
 
 Avis : E. Elle divise la largeur par deux et garde la forme d'objet de la
 puce. Le texte exact de Figma reste dans la bulle, pour le chercher dans
-Figma. R-27 tranche entre C, E et F.
+Figma. Décidé (R-27) : E.
 
 ## 4. Le bouton « Copier ses liaisons aux autres variants »
 
@@ -499,7 +498,8 @@ Proposition, en trois couches, selon la règle des domiciles d'AGENTS.md :
 
 Le préfixe `.` ou `_` devient alors une convention UCM écrite : le designer
 déclare ainsi qu'une pièce ne sert jamais seule. Figma ne publie déjà pas ces
-composants. R-26 valide la convention et les quatre sortes.
+composants. Décidé (R-26) : la notion est factorisée dans UCM Toolkit, avec la
+convention et les quatre sortes.
 
 ### 7.4 « Les 18 variants State=Disabled ne sont pas mesurés »
 
@@ -514,7 +514,7 @@ ou un seuil propre aux désactivés (R-24, hors de cette recette).
 
 #### La proposition du mainteneur : une section Informations
 
-En discussion (R-19). Une dernière section du panneau, « Informations », réunit
+Décidé (R-19). Une dernière section du panneau, « Informations », réunit
 ce qu'Architect n'a pas pu ou pas voulu mesurer. Ses lignes ne sont pas des
 constats.
 
@@ -725,15 +725,15 @@ corrigé en R-1 : une valeur que Figma garde sans l'appliquer.
 | R-16 | Le bouton Sélectionner | | Décidé : désactivé une fois les layers sélectionnés ; ouvrir une carte ne sélectionne plus ; bouton avant le chevron |
 | R-17 | Mots entiers dans les dossiers, abréviations dans les variables, dans toutes les collections | Oui, comme le plan de Nomenclature | Ouvert |
 | R-18 | `.Ring`, pièce partagée | | Décidé : option 1 ; la couleur reste surchargée par chaque hôte |
-| R-19 | Une section Informations en dernier, hors du compte des constats | Oui, avec tous les constats `info` sans geste ; l'alerte Information quitte les cartes | En discussion |
+| R-19 | Une section Informations en dernier, hors du compte des constats | | Décidé : oui ; l'alerte Information quitte les cartes |
 | R-20 | Le fond d'un variant sans fill | | Décidé : fond d'élévation du thème dans chaque mode, page Figma en repli |
 | R-21 | Envoyer le rapport téléchargeable de Button | Pour établir la cause de C45 et les cibles de C21 | Ouvert |
 | R-22 | « propriété » dans les phrases | | Décidé : oui ; les types de Figma restent en anglais |
 | R-23 | Un composant sans fond se pose-t-il toujours dans une carte (`elevation/raised` seul), ou aussi sur la page (les deux fonds) ? | Les deux fonds, la carte nomme celui qui échoue | Ouvert |
-| R-24 | Un seuil de contraste propre aux variants désactivés | Non : à décider hors de cette recette | Ouvert |
+| R-24 | Un seuil de contraste propre aux variants désactivés | | Décidé : non |
 | R-25 | La Configuration prend la place du panneau quand il est ouvert, celle de la vue quand il est fermé | | Décidé : oui |
-| R-26 | Les quatre sortes de composant imbriqué dans le référentiel du kit, et le préfixe `.` ou `_` comme convention de la pièce partagée | Oui | Ouvert |
-| R-27 | Noms de variants : puces `Color=Info` (C), valeurs en puces (E) ou valeurs en texte (F) | E, avec la property quand deux valeurs se confondent | Ouvert |
+| R-26 | Les quatre sortes de composant imbriqué dans le référentiel du kit, et le préfixe `.` ou `_` comme convention de la pièce partagée | | Décidé : oui, factorisé dans UCM Toolkit |
+| R-27 | Noms de variants | | Décidé : E, valeurs en puces, paire exacte au survol ; la property reste quand deux valeurs se confondent |
 
 ## 11. Ordre de travail proposé
 
@@ -746,14 +746,14 @@ en premier, dans une seule version du kit :
 | K2 | C10 lit l'écriture des dossiers, et le test qui l'impose (7.2) | R-17 |
 | K3 | C17 admet `foreground` sur un stroke (8) | — |
 | K4 | Fond d'élévation du thème pour le contraste (7.5) | R-23 |
-| K5 | Sortes de composant imbriqué dans le référentiel, et leur test (7.3) | R-26 |
+| K5 | Sortes de composant imbriqué dans le référentiel, et leur test (7.3) | — |
 | K6 | Pièce partagée : `theme` et `layout` admis dans son composant principal (7.3) | K5 |
 | S1 | Le socle exporte la règle des espacements sans effet ; relevé et vue la lisent (9) | — |
 | A1 | Frontière, Configuration en bascule et à sa place, Actualiser désactivé (1) | R-25 |
 | A2 | Fenêtre à 500 px, panneau à 640 px, barre compacte (1) | — |
 | A3 | Changement de variant sans saut, chevron des sections de la liste (2) | — |
-| A4 | Noms de variants, tableau retiré (3, 5) | R-27 |
+| A4 | Noms de variants en valeurs seules, tableau retiré (3, 5) | — |
 | A5 | Carte de modèle et cartes de correction qu'elle produit (4) | — |
-| A6 | Bouton Sélectionner, textes des constats, section Informations (6, 7.4, 7.6) | R-19 |
+| A6 | Bouton Sélectionner, textes des constats, section Informations (6, 7.4, 7.6) | — |
 
 Le plan d'implémentation s'écrira après les réponses, dans ce dossier.
