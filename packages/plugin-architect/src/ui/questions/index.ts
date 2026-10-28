@@ -10,7 +10,7 @@ import { creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
 import { creerCheminEnPhrase, creerVariantEnPhrase } from 'ucm-plugin-socle/src/ui/Chemin';
 
 import { analyseApplicable, type AnalyseRecue } from '../composant/analyse';
-import { poserLeTexteEnrichi } from '../ignores/texte';
+import { poserLeLieuEnrichi, poserLeTexteEnrichi } from '../ignores/texte';
 import { TEXTES } from '../textes';
 import { reponsesDuGroupe, type CarteDeQuestion, type GroupeDeQuestions, type MorceauDEffet, type MorceauDeTitre, type ReponseProposee } from './modele';
 
@@ -124,6 +124,8 @@ export function monterLesQuestions(options: OptionsDesQuestions): Questions {
     }
     const meta = document.createElement('span');
     meta.className = 'meta';
+    poserLeLieuEnrichi(meta, carte.lieu, analyse?.variants ?? []);
+    if (carte.lieu.length > 0 && carte.meta !== '') meta.append(', ');
     poserLeTexteEnrichi(meta, carte.meta);
     if (carte.indice !== null) meta.append(` ${carte.indice}`);
     const effet = document.createElement('div');

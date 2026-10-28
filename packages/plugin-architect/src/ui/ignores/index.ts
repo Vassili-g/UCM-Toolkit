@@ -13,7 +13,7 @@ import { creerCarte, creerIntertitre } from '../structure/carte';
 import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION } from '../textes/preparation';
 import { cartesDAFaire, type CarteDAFaire, type ContexteDAFaire, type FaitDeCarte, type MesureDeCarte } from './modele';
-import { poserLeTexteEnrichi } from './texte';
+import { poserLeLieuEnrichi, poserLeTexteEnrichi } from './texte';
 
 const T = TEXTES.aFaireDuComposant;
 
@@ -122,15 +122,15 @@ export function monterAFaire(options: OptionsDeAFaire): AFaire {
     const ciblee = cible === constat.id && constat.layers.length > 0;
     const lieu = document.createElement('span');
     lieu.className = 'constat-lieu';
-    poserLeTexteEnrichi(lieu, carte.lieu);
+    poserLeLieuEnrichi(lieu, carte.lieu, entree?.contexte.variants ?? []);
     if (ciblee) {
-      if (carte.lieu !== '') lieu.append('. ');
+      if (carte.lieu.length > 0) lieu.append('. ');
       const marque = document.createElement('span');
       marque.className = 'constat-selection';
       marque.textContent = TEXTES.correctionsDuComposant.ciblee;
       lieu.append(marque);
     }
-    const meta: Node[] = carte.lieu === '' && !ciblee ? [] : [lieu];
+    const meta: Node[] = carte.lieu.length === 0 && !ciblee ? [] : [lieu];
     if (carte.statut !== null) {
       const statut = document.createElement('span');
       statut.className = 'constat-statut';

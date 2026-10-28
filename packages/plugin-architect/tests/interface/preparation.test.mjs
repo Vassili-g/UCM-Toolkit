@@ -212,7 +212,8 @@ test('une liaison en attente n’a pas de case et dit qu’elle n’est pas publ
     const enAttente = carte.locator('.diff.reste');
     assert.equal(await enAttente.count(), 1);
     assert.equal(await enAttente.locator('input').count(), 0);
-    assert.match(await enAttente.locator('.chemin').innerText(), /^Layer container\s+Severity=warning, Style=outline$/);
+    assert.equal(await enAttente.locator('.chemin').textContent(), 'Layer containerwarningoutline');
+    assert.deepEqual(await enAttente.locator('.chemin .puce-valeur').evaluateAll((puces) => puces.map((puce) => puce.title)), ['Severity=warning', 'Style=outline']);
     assert.match(await enAttente.locator('.chemin-apres').innerText(), /components\/tag\/color\/warning\/outline\/border\s+Créée, pas encore publiée$/);
     assert.match(await carte.locator('.alerte').innerText(), /1 variable créée n’est pas encore dans la library publiée\./);
     assert.match(await page.locator('.corrections-pied').innerText(), /^2 liaisons cochées/);

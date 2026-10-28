@@ -236,7 +236,7 @@ const terminer = async (page) => {
   await page.context().close();
 };
 
-test('la section Variants montre une ligne par property, les valeurs à constat et la valeur affichée, et « +N » replie le reste', async () => {
+test('la section Variants montre une ligne par property, les valeurs à constat et la valeur choisie, et « +N » replie le reste', async () => {
   const { lecture, analyse } = jeuDeVariants();
   const page = await ouvrirComposant(lecture, { image: false });
   try {
@@ -247,7 +247,6 @@ test('la section Variants montre une ligne par property, les valeurs à constat 
     assert.deepEqual(await page.locator('.axe').nth(0).locator('.valeur-axe').allTextContents(), ['info1', 'error1', '+1']);
     assert.deepEqual(await page.locator('.axe').nth(1).locator('.valeur-axe').allTextContents(), ['standard', 'outlined2']);
     assert.equal(await page.locator('.valeur-axe.choisie').count(), 2);
-    assert.equal(await page.locator('.variants-affiche').textContent(), 'AffichéSeverity=info, Variant=standard');
     await page.locator('.valeur-axe.plus').click();
     assert.deepEqual(await page.locator('.axe').nth(0).locator('.valeur-axe').allTextContents(), ['info1', 'error1', 'warning']);
     assert.equal(await page.locator('.vc-sous select').count(), 0);
@@ -265,19 +264,15 @@ test('une puce choisit le variant qui garde le plus de valeurs affichées, sans 
   } finally { await terminer(page); }
 });
 
-test('le lien Tableau croise deux properties ; une cellule sans variant est inactive', async () => {
+test('la section Variants n’a ni ligne « Affiché », ni bouton Tableau, ni bouton de copie ; une puce porte la paire exacte de Figma', async () => {
   const { lecture, analyse } = jeuDeVariants();
   const page = await ouvrirComposant(lecture, { image: false });
   try {
     await envoyer(page, analyse);
-    await page.getByRole('button', { name: 'Tableau' }).click();
-    assert.equal(await page.locator('.tableau-cellule').count(), 6);
-    assert.equal(await page.locator('.tableau-cellule:disabled').count(), 1);
-    await page.getByRole('button', { name: 'Tableau' }).click();
-    assert.equal(await page.locator('.tableau-grille').count(), 0);
-    await page.getByRole('button', { name: 'Tableau' }).click();
-    await page.locator('.tableau-cellule').nth(3).click();
-    assert.deepEqual(await lecturesDemandees(page), [[2, null], [3, 'alert:v3']]);
+    assert.equal(await page.locator('.variants-affiche').count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Tableau' }).count(), 0);
+    assert.equal(await page.locator('[data-action="copier-les-liaisons"]').count(), 0);
+    assert.deepEqual(await page.locator('.axe').nth(0).locator('.valeur-axe').evaluateAll((puces) => puces.map((puce) => puce.title)), ['Severity=info', 'Severity=error', '']);
   } finally { await terminer(page); }
 });
 

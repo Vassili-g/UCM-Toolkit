@@ -72,24 +72,44 @@ const questionsButton = [
   questionDEtat('C16:texte', LABEL_BUTTON, 'fills', 'button/color/primary/text/default/foreground', 'default', 'button/color/primary/text/hover/foreground', avec('Palette=primary', 'Style=text', 'State=hover'), { plageDebut: 0, plageFin: 6 }),
 ];
 
+/*
+ * Button dont la taille « medium » s'appelle « default » : State et Size portent la même valeur, et une puce de valeur seule ne dirait plus
+ * de quelle property elle vient. Deux constats : une taille, puis un état et une taille.
+ */
+const NOMS_BUTTON_DEFAUT = NOMS_BUTTON.map((nom) => nom.replace('Size=medium', 'Size=default'));
+const LU_BUTTON_DEFAUT = LU_BUTTON.replace('Size=medium', 'Size=default');
+const variantsButtonDefaut = donnerDesIds(NOMS_BUTTON_DEFAUT, LU_BUTTON_DEFAUT);
+const buttonDefaut = { ...button, sujet: { ...button.sujet, variant: LU_BUTTON_DEFAUT, variants: variantsButtonDefaut } };
+const avecDefaut = (...paires) => NOMS_BUTTON_DEFAUT.filter((variant) => paires.every((paire) => variant.split(', ').includes(paire)));
+const accessibiliteButtonDefaut = [
+  constat('C52:default', 'C52', 'verifier', 'contraste', { largeur: 120, hauteur: 36, seuil: 44 }, avecDefaut('Size=default')),
+  constat('C49:default', 'C49', 'verifier', 'contraste', { calque: 'label', fontSize: 11, seuil: 12 }, avecDefaut('State=default', 'Size=default')),
+];
+
 const analyseDAlert = message(variantsAlert, constatsDAlert);
 const analyseDeButton = message(variantsButton, [...questionsButton, ...accessibiliteButton]);
+const analyseDeButtonDefaut = message(variantsButtonDefaut, accessibiliteButtonDefaut);
 
 const ETATS = [
   {
     id: 'x-alert', titre: 'Contraste d’Alert', quand: 'Alert est analysé ; le designer choisit la puce Accessibilité, puis ouvre la première carte du contraste.',
-    regarder: 'La section Accessibilité seule, sous sa bande ; la première carte ouverte montre la Mesure : le rapport en gras, puis le seuil et le mode ; le stroke dit son rapport au lieu du seuil dans sa ligne grise ; le dégradé est une information qui dit « n’a pas été mesuré » ; une note dit que ces mesures portent sur le dessin.',
+    regarder: 'La section Accessibilité seule, sous sa bande ; aucune phrase ne nomme de variant : la ligne grise donne leur nombre, puis les puces des seules paires qu’ils partagent (le texte de warning et standard, le stroke de 4 variants outlined) ; la première carte ouverte montre la Mesure : le rapport en gras, puis le seuil et le mode ; le stroke dit son rapport au lieu du seuil dans sa ligne grise ; le dégradé est une information qui dit « n’a pas été mesuré » ; une note dit que ces mesures portent sur le dessin.',
     existe: true, atteinte: [...ouvrirLePanneau(alertCorrections, analyseDAlert), puceAccessibilite, premiereCarte],
   },
   {
     id: 'x-button', titre: 'Accessibilité de Button', quand: 'Button est analysé à 216 variants ; le designer choisit la puce Accessibilité.',
-    regarder: 'Sept cartes dans la section Accessibilité : l’anneau, la zone cliquable et le texte sous 12 px ; les recommandations disent « Recommandation » ; les 54 variants désactivés sont une information, jamais un manquement.',
+    regarder: 'Sept cartes dans la section Accessibilité : l’anneau, la zone cliquable et le texte sous 12 px ; les recommandations disent « Recommandation » ; les 54 variants désactivés sont une information, jamais un manquement, et leur ligne grise dit « 54 variants » suivi de la puce disabled, sans phrase « Tous les variants désactivés ».',
     existe: true, atteinte: [...ouvrirLePanneau(button, analyseDeButton), puceAccessibilite],
   },
   {
     id: 'x-button-corr', titre: 'Questions d’état de Button', quand: 'Button est analysé ; le designer choisit la puce Couleurs.',
-    regarder: 'Deux cartes : le fill ou le texte de State=hover lié au token du repos ; la ligne grise dit ce que font les autres variants State=hover ; l’effet met le segment qui part en rouge et celui qui arrive en vert ; un seul bouton bordé.',
+    regarder: 'Deux cartes : le fill ou le texte de State=hover lié au token du repos ; la ligne grise donne « 3 variants » et les puces primary, contained et hover, puis dit ce que font les autres variants State=hover ; l’effet met le segment qui part en rouge et celui qui arrive en vert ; un seul bouton bordé.',
     existe: true, atteinte: [...ouvrirLePanneau(button, analyseDeButton), puceCouleurs],
+  },
+  {
+    id: 'u3-valeurs-partagees', titre: 'Valeurs partagées par deux properties', quand: 'Button est analysé avec une taille « default » et un état « default » ; le designer choisit la puce Accessibilité.',
+    regarder: 'Deux cartes : la première dit « 72 variants » et une puce qui garde sa property, Size=default, parce que State porte aussi « default » ; la seconde dit « 18 variants » et deux puces qui gardent leur property, State=default et Size=default ; la property est en gris, la valeur en clair ; la bulle d’une puce donne la paire exacte de Figma.',
+    existe: true, atteinte: [...ouvrirLePanneau(buttonDefaut, analyseDeButtonDefaut), puceAccessibilite],
   },
 ].map((etat) => ({ ...etat, disposition: 'etroite' }));
 

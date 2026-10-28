@@ -19,7 +19,7 @@ const ETATS = [
   { id: 'composant-frontiere', titre: 'Composant imbriqué ouvert', quand: 'Button est ouvert depuis StressTest.', regarder: 'Le fil d’Ariane ramène à StressTest ; les tokens sont ceux de Button.', existe: true, atteinte: [...ouvrir(stressTest), { clic: `[data-frontiere="${calqueNomme(stressTest, 'Button')}"]` }, composant(bouton, 3), apercu(bouton, 3)] },
   { id: 'composant-filtre', titre: 'Filtre', quand: 'Le designer filtre StressTest sur « radius ».', regarder: 'Les sections s’ouvrent sur les seules lignes gardées.', existe: true, atteinte: [...ouvrir(stressTest), { clic: '[data-focus="outil:filtre"]' }, { saisie: { dans: '.vc-filtre input', valeur: 'radius' } }] },
   { id: 'composant-filtre-vide', titre: 'Filtre sans résultat', quand: 'Aucun token ne porte le texte cherché.', regarder: '« Aucun token ne correspond. »', existe: true, atteinte: [...ouvrir(alert), { clic: '[data-focus="outil:filtre"]' }, { saisie: { dans: '.vc-filtre input', valeur: 'introuvable-xyz' } }] },
-  { id: 'composant-variants', titre: 'Jeu de variants analysé', quand: 'Le jeu Alert est analysé.', regarder: 'La section Variants remplace le choix du variant dans l’en-tête : une ligne par property, les valeurs à constat et la valeur affichée en puces.', existe: true, atteinte: [...ouvrir(alertEnJeu), { message: analyseAlert }] },
+  { id: 'composant-variants', titre: 'Jeu de variants analysé', quand: 'Le jeu Alert est analysé.', regarder: 'La section Variants remplace le choix du variant dans l’en-tête : une ligne par property, les valeurs à constat et la valeur choisie en puces ; ni ligne « Affiché », ni bouton Tableau, ni bouton de copie sous les lignes ; la bulle d’une puce donne la paire exacte de Figma.', existe: true, atteinte: [...ouvrir(alertEnJeu), { message: analyseAlert }] },
   {
     id: 'c-avant', titre: 'Composant, avant la première analyse', quand: 'Alert est sélectionné dans un jeu de 11 variants ; le designer a ouvert le panneau des constats avant d’analyser.',
     regarder: 'Le bouton Analyser est principal ; le bouton Constats n’a pas de pastille ; le panneau montre le résumé « 11 variants, pas encore analysé » et ce que l’analyse lit ; la vue n’a pas de section Variants.',
@@ -27,7 +27,7 @@ const ETATS = [
   },
   {
     id: 'c-replie', titre: 'Composant, panneau fermé', quand: 'Alert est analysé : 19 constats, 11 variants.',
-    regarder: 'Le bouton Constats porte la pastille 19, dans la couleur du plus grave ; la section Variants montre les valeurs à constat et la valeur affichée ; Actualiser remplace Analyser ; Configuration n’a que son icône.',
+    regarder: 'Le bouton Constats porte la pastille 19, dans la couleur du plus grave ; la section Variants montre les valeurs à constat et la valeur choisie ; Actualiser remplace Analyser ; Configuration n’a que son icône.',
     existe: true, atteinte: [preferences(), etroite, choisir(alertEnJeu), composant(alertEnJeu), apercu(alertEnJeu), { message: analyseAlert }],
   },
   {
@@ -37,7 +37,7 @@ const ETATS = [
   },
   {
     id: 'c-gros', titre: 'Composant à 216 variants', quand: 'Button est analysé : 216 variants, 41 constats.',
-    regarder: 'Quatre lignes de properties ; seules les valeurs à constat et la valeur affichée ont une puce ; « +N » compte les autres ; la pastille dit 41.',
+    regarder: 'Quatre lignes de properties ; seules les valeurs à constat et la valeur choisie ont une puce ; « +N » compte les autres ; la pastille dit 41.',
     existe: true, atteinte: [preferences(), etroite, choisir(enButton()), composant(enButton()), apercu(enButton()), { message: analyseButton }],
   },
   {
@@ -57,12 +57,12 @@ const ETATS = [
   },
   {
     id: 'u2-variant-en-lecture', titre: 'Autre variant, pendant la lecture', quand: 'Alert est analysé et le designer choisit Severity « error » dans la section Variants ; la lecture n’a pas encore répondu.',
-    regarder: 'L’écran ne bouge pas : l’en-tête, l’aperçu, la section Variants et les lignes restent ; une barre fine passe sous l’en-tête ; la puce « error » est choisie, « Affiché » nomme encore le variant lu.',
+    regarder: 'L’écran ne bouge pas : l’en-tête, l’aperçu, la section Variants et les lignes restent ; une barre fine passe sous l’en-tête ; la puce « error » est choisie, seule dans sa ligne Severity.',
     existe: true, atteinte: [...ouvrir(alertEnJeu), { message: analyseAlert }, { clic: '.valeur-axe[data-propriete="Severity"][data-valeur="error"]' }],
   },
   {
     id: 'u2-variant-lu', titre: 'Autre variant, lecture arrivée', quand: 'La lecture du variant « error » arrive, puis son aperçu.',
-    regarder: 'La barre fine a disparu ; « Affiché » nomme « error » ; les lignes gardent leur place et les valeurs changées (fond, icône) sont surlignées 600 ms ; l’aperçu garde son cadre.',
+    regarder: 'La barre fine a disparu ; la puce « error » reste choisie ; les lignes gardent leur place et les valeurs changées (fond, icône) sont surlignées 600 ms ; l’aperçu garde son cadre.',
     existe: true, atteinte: [...ouvrir(alertEnJeu), { message: analyseAlert }, { clic: '.valeur-axe[data-propriete="Severity"][data-valeur="error"]' }, composant(alertEnErreur(), 3), apercu(alertEnErreur(), 3)],
   },
   { id: 'composant-survol', titre: 'Survol d’une ligne', quand: 'Le pointeur est sur la couleur des tuiles de StressTest.', regarder: 'Douze cadres sur les tuiles de l’aperçu.', existe: true, atteinte: [...ouvrir(stressTest), { clic: '[data-section="couleur"]' }, { survol: "[data-focus^='ligne:components/stresstest/info/tilesgrid/colors/tile']" }] },

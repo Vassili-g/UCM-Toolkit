@@ -11,12 +11,12 @@
  */
 import type { Constat, Correction } from '../../messages/commun';
 import { TEXTES } from '../textes';
-import { pairesDuNom } from '../composant/variants';
+import { lieuDesVariants, pairesDuNom, type MorceauDeLieu, type PaireDeVariant } from '../composant/variants';
 
 const T = TEXTES.correctionsDuComposant;
 
-/** Du texte, un variant écrit comme Figma le nomme, un chemin dans une phrase, ou la marque d'une sélection. */
-export type Morceau = string | { readonly variant: string } | { readonly chemin: string } | { readonly selection: string };
+/** Du texte, un variant écrit comme Figma le nomme, un chemin dans une phrase, la marque d'une sélection, ou les puces des paires d'un lieu. */
+export type Morceau = MorceauDeLieu | { readonly variant: string } | { readonly chemin: string } | { readonly selection: string };
 
 export type SectionDeCorrections = 'liaisons' | 'tailles' | 'regles' | 'noms';
 
@@ -30,6 +30,8 @@ export interface LigneDeCarte {
   readonly correction: Correction;
   /** Le nom d'avant, sans préfixe du composant ; un texte comme « couleur en dur » quand rien n'était lié. */
   readonly avant: string;
+  /** Les paires du variant de la ligne, pour une valeur en dur lue dans un seul variant ; vide sinon. Le diff les montre sous la valeur en dur. */
+  readonly variant: readonly PaireDeVariant[];
   readonly apres: string;
   /** Les rangs de segment à marquer, de chaque côté. */
   readonly marquesAvant: readonly number[];
@@ -133,17 +135,18 @@ function ligneDe(constat: Constat, correction: Correction, contexte: ContexteDeC
   const apresSegments = segments(apres);
   if (correction.avant === null) {
     const variant = contexte.variants.find((candidat) => constat.variants.includes(candidat.id) || constat.variants.includes(candidat.nom));
-    const valeurs = new Set(variant ? pairesDuNom(variant.nom).map(([, valeur]) => valeur.toLowerCase()) : []);
+    const paires = variant ? pairesDuNom(variant.nom) : [];
+    const valeurs = new Set(paires.map(([, valeur]) => valeur.toLowerCase()));
     const ajout = texte(constat.faits.ajout);
     return {
-      id: correction.id, constat, correction, avant: T.enDur(correction.cible.champ ?? ''), apres,
+      id: correction.id, constat, correction, avant: T.enDur(correction.cible.champ ?? ''), variant: constat.variants.length === 1 ? paires : [], apres,
       marquesAvant: [], marquesApres: apresSegments.flatMap((segment, rang) => (ajout === segment || (ajout === null && valeurs.has(segment.toLowerCase())) ? [rang] : [])),
     };
   }
   const avant = sansPrefixe(correction.avant, contexte.composant);
   const a = segments(avant);
   const rangs = a.length !== apresSegments.length ? a.map((_, rang) => rang) : a.flatMap((segment, rang) => (segment === apresSegments[rang] ? [] : [rang]));
-  return { id: correction.id, constat, correction, avant, apres, marquesAvant: rangs, marquesApres: a.length !== apresSegments.length ? apresSegments.map((_, rang) => rang) : rangs };
+  return { id: correction.id, constat, correction, avant, variant: [], apres, marquesAvant: rangs, marquesApres: a.length !== apresSegments.length ? apresSegments.map((_, rang) => rang) : rangs };
 }
 
 const uniques = <Type>(valeurs: readonly Type[]): Type[] => [...new Set(valeurs)];
@@ -174,13 +177,6 @@ function nomDuLayer(constat: Constat | null, layer: string, contexte: ContexteDe
   return (constat !== null && constat.layers.length === 1 ? texte(constat.faits.calque) : null) ?? contexte.layers.get(layer) ?? null;
 }
 
-/** Les paires de property que tous les variants partagent : `Variant=outlined`. */
-function pairesCommunes(noms: readonly string[]): string {
-  const listes = noms.map((nom) => pairesDuNom(nom).map(([propriete, valeur]) => `${propriete}=${valeur}`));
-  if (listes.length === 0) return '';
-  return listes[0].filter((paire) => listes.every((liste) => liste.includes(paire))).join(', ');
-}
-
 function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, lignes: readonly LigneDeCarte[], contexte: ContexteDeCartes): CarteDeCorrections {
   const constats = uniques(lignes.flatMap((ligne) => (ligne.constat === null ? [] : [ligne.constat])));
   const nomsDeVariants = uniques(constats.flatMap((constat) => constat.variants.map((id) => contexte.variants.find((variant) => variant.id === id)?.nom ?? id)));
@@ -190,7 +186,7 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
     const nom = layer === undefined ? null : nomDuLayer(ligne.constat, layer, contexte);
     return nom === null ? [] : [nom];
   }));
-  const variantsDeLaMeta: Morceau[] = nomsDeVariants.length === 0 ? [T.tousLesVariants] : nomsDeVariants.length === 1 ? [{ variant: nomsDeVariants[0] }] : [T.nVariants(nomsDeVariants.length)];
+  const variantsDeLaMeta: Morceau[] = lieuDesVariants(nomsDeVariants);
   const premiere = lignes[0];
   const faitsPremiers = premiere.constat?.faits ?? {};
   let phrase: readonly Morceau[] = [];
@@ -202,8 +198,7 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
     const unique = segmentUnique(premiere.avant, premiere.apres);
     jetons = unique ? [unique[1], unique[2]] : null;
   } else if (genre === 'texte') {
-    const communes = pairesCommunes(nomsDeVariants);
-    phrase = communes === '' ? [T.lierLeTexte] : [T.lierLeTexteDe, { variant: communes }, T.auxTokensSansFond];
+    phrase = [T.lierLeTexte];
   } else if (genre === 'tailles') {
     groupes = groupesDeTaille(lignes, contexte);
     phrase = [T.lierLaTaille(T.famille(premiere.correction.cible.champ ?? ''), uniques(groupes.map((groupe) => groupe.layer)), contexte.composant)];

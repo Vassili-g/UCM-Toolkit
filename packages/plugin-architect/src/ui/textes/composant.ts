@@ -50,14 +50,10 @@ export const TEXTES_COMPOSANT = {
   },
   variants: {
     titre: 'Variants',
-    tableau: 'Tableau',
-    tableauAide: 'Croiser deux properties',
-    affiche: 'Affiché',
-    copier: 'Copier ses liaisons aux autres variants',
     autres: (nombre: number) => `+${nombre}`,
     nonLu: 'non lu',
-    lignes: 'Lignes',
-    colonnes: 'Colonnes',
+    tous: 'Tous les variants',
+    nombre: (n: number) => `${n} variant${n > 1 ? 's' : ''}`,
   },
   panneau: {
     resume: (variants: number, etat: string) => `${variants} variant${variants > 1 ? 's' : ''}, ${etat}`,

@@ -11,7 +11,7 @@
  * met en couleur le segment qui change, et l'indice du moteur (ce que font les autres variants du même état) suit la ligne grise.
  */
 import type { Constat, Correction } from '../../messages/commun';
-import { variantsEnPhrase } from '../ignores/modele';
+import { lieuDesVariants, type MorceauDeLieu } from '../composant/variants';
 import { TEXTES } from '../textes';
 
 const T = TEXTES.questionsDuComposant;
@@ -38,6 +38,8 @@ export interface CarteDeQuestion {
   /** Le titre en texte, pour le nom accessible des boutons. */
   readonly titreEnTexte: string;
   readonly origine: string | null;
+  /** Les variants de la question : leur nombre, puis les puces des paires qu'ils partagent ; vide quand la question ne nomme aucun variant. Ils précèdent `meta`. */
+  readonly lieu: readonly MorceauDeLieu[];
   readonly meta: string;
   /** Ce que le moteur a compté chez les autres variants ; posé en texte simple après la ligne grise. */
   readonly indice: string | null;
@@ -114,13 +116,12 @@ function questionDEtat(constat: Constat, id: string, candidats: readonly { reado
   const layer = contexte.layers.get(constat.layers[0] ?? '') ?? 'layer';
   const champ = constat.faits.plageDebut !== undefined ? T.texte : constat.faits.champ === 'strokes' ? T.stroke : T.fill;
   const noms = constat.variants.map((variant) => contexte.variants.find((candidat) => candidat.id === variant)?.nom ?? variant);
-  const lieu = noms.length === 0 ? '' : `${variantsEnPhrase(noms)}, `;
   const variant = `${axe}=${etat}`;
   return {
-    id, constat, origine: null,
+    id, constat, origine: null, lieu: noms.length === 0 ? [] : lieuDesVariants(noms),
     titre: [T.lierLe(champ), { variant }, T.a, { chemin: premier.nom, vus: [etat] }, T.finDeLaQuestion],
     titreEnTexte: `${T.lierLe(champ)}${variant}${T.a}${premier.nom}${T.finDeLaQuestion}`,
-    meta: `${lieu}${T.layerSuivi(layer)}${T.lieAuRepos}`,
+    meta: `${T.layerSuivi(layer)}${T.lieAuRepos}`,
     indice,
     ancien: effetDuSegment(actuel, segment, false),
     nouveau: effetDuSegment(premier.nom, etat, true),
@@ -138,7 +139,7 @@ function questionDeNom(constat: Constat, id: string, candidats: readonly { reado
   const premier = candidats[0];
   const variants = constat.variants.length;
   return {
-    id, constat, origine: propriete, indice: null,
+    id, constat, origine: propriete, lieu: [], indice: null,
     titre: [T.renommer, { retire: avant }, T.en, { retenu: premier.nom }, T.finDeLaQuestion],
     titreEnTexte: `${T.renommer}${avant}${T.en}${premier.nom}${T.finDeLaQuestion}`,
     meta: `${T.lesTokensEmploient(premier.nom)}${T.nVariants(variants)}${T.codeADevoirModifier}`,
@@ -157,16 +158,15 @@ function questionDeLiaison(constat: Constat, id: string, candidats: readonly { r
   const premier = candidats[0];
   const nom = sansPrefixe(premier.nom, contexte.composant);
   const noms = constat.variants.map((variant) => contexte.variants.find((candidat) => candidat.id === variant)?.nom ?? variant);
-  const variants = noms.length === 1 ? noms[0] : noms.length === 0 ? '' : TEXTES.aFaireDuComposant.nVariants(noms.length);
   const lie = texte(constat.faits.token) ?? (constat.code === 'C59' ? texte(constat.faits.variable) : null);
   const autres = candidats.slice(1);
   const suite = autres.length === 0 ? '' : `${autres.map((candidat) => sansPrefixe(candidat.nom, contexte.composant)).join(', ')}${T.convientAussi(autres.length)}`;
   const lieu = lie === null ? T.sansVariable(layer) : T.liePar(layer, sansPrefixe(lie, contexte.composant));
   return {
-    id, constat, origine: null, indice: null,
+    id, constat, origine: null, lieu: noms.length === 0 ? [] : lieuDesVariants(noms), indice: null,
     titre: [T.lier, { olive: layer }, T.a, { chemin: nom, vus: [layer] }, T.finDeLaQuestion],
     titreEnTexte: `${T.lier}${layer}${T.a}${nom}${T.finDeLaQuestion}`,
-    meta: `${variants === '' ? `${lieu.charAt(0).toUpperCase()}${lieu.slice(1)}` : `${variants}, ${lieu}`}${suite}`,
+    meta: `${noms.length === 0 ? `${lieu.charAt(0).toUpperCase()}${lieu.slice(1)}` : lieu}${suite}`,
     ancien: [lie !== null ? sansPrefixe(lie, contexte.composant) : `${layer}, ${TEXTES.correctionsDuComposant.enDur(texte(constat.faits.champ) ?? 'fills')}`],
     nouveau: effetDuChemin(nom, layer),
     principal: { libelle: T.boutonLier, reponse: reponseDe(premier) },
@@ -198,7 +198,7 @@ function questionProche(constat: Constat, id: string, candidats: readonly Candid
     };
   });
   return {
-    id, constat, origine: null, indice: null,
+    id, constat, origine: null, lieu: [], indice: null,
     titre: [T.leDeLayer(propriete), { olive: layer }, T.vautSansToken(valeur, famille)],
     titreEnTexte: `${T.leDeLayer(propriete)}${layer}${T.vautSansToken(valeur, famille)}`,
     meta: T.lierChangeLeRendu,

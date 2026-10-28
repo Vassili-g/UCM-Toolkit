@@ -109,9 +109,9 @@ const ETATS = [
     existe: true, atteinte: [preferences(), etroite, choisir(alertTexteSuccess), composant(alertTexteSuccess), apercu(alertTexteSuccess), ...panneauOuvert.slice(5)],
   },
   {
-    id: 'c-modele', titre: 'Liaisons copiées depuis un variant', quand: 'Le designer clique « Copier ses liaisons aux autres variants » : le variant affiché, info et standard, sert de modèle, et le sandbox propose ses liaisons aux autres variants.',
-    regarder: 'Une carte « Copier les liaisons de Severity=info, Variant=standard » ; le variant copié s’écrit comme Figma le nomme ; le segment qui change d’un variant à l’autre est en vert ; le pied compte les liaisons cochées ; les constats d’avant le geste restent.',
-    existe: true, atteinte: [preferences(), etroite, choisir(alertModele), composant(alertModele), apercu(alertModele), { message: analyseAvantLeModele }, { message: aucunIgnore }, { clic: '[data-action="copier-les-liaisons"]' }, { message: modelePropose }, { clic: '.bouton-panneau' }],
+    id: 'c-modele', titre: 'Liaisons copiées depuis un variant', quand: 'Le sandbox propose les liaisons du variant info et standard aux autres variants. Aucun bouton de la section Variants ne le demande plus : la carte qui le fera est le lot U6.',
+    regarder: 'Une carte « Copier les liaisons de Severity=info, Variant=standard » ; le variant copié s’écrit comme Figma le nomme ; le segment qui change d’un variant à l’autre est en vert ; la ligne qui lie une couleur en dur dit d’abord « couleur en dur », puis le variant en puces de valeurs seules ; le pied compte les liaisons cochées ; les constats d’avant la proposition restent.',
+    existe: true, atteinte: [preferences(), etroite, choisir(alertModele), composant(alertModele), apercu(alertModele), { message: analyseAvantLeModele }, { message: aucunIgnore }, { message: modelePropose }, { clic: '.bouton-panneau' }],
   },
   {
     id: 'c-clic', titre: 'Un constat cliqué', quand: 'Le designer choisit la puce Couleurs et ouvre la carte « info devient success » : le plugin sélectionne ses deux layers dans Figma.',

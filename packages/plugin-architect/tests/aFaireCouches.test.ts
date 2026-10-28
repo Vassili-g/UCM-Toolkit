@@ -1,4 +1,4 @@
-/** La carte C20 d'À faire dans Figma : la phrase dit quelle liaison franchit quelle collection, le lieu ne répète pas le variant. */
+/** La carte C20 d'À faire dans Figma : la phrase dit quelle liaison franchit quelle collection, le lieu donne le nombre de variants et leurs puces sans répéter le layer racine. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -10,6 +10,8 @@ const contexte: ContexteDAFaire = {
   variants: [{ id: 'v1', nom: 'Variant=Info, State=Default' }],
   layers: new Map([['v1', 'Variant=Info, State=Default'], ['l2', 'icon']]),
 };
+
+const PUCES_DU_VARIANT = { puces: [['Variant', 'Info'], ['State', 'Default']] };
 
 const c20 = (faits: Constat['faits'], layer = 'v1'): Constat => ({ id: 'C20:x', code: 'C20', type: 'corriger', famille: 'liaisons', variants: ['v1'], layers: [layer], faits });
 
@@ -23,9 +25,9 @@ test('un layer lié hors de components demande un token de components', () => {
   const carte = carteDAFaire(c20({ token: 'color/blue/500', couche: 'primitives', nature: 'couleur', admises: 'theme' }, 'l2'), contexte);
   assert.equal(carte.phrase, 'Ce layer est lié à `color/blue/500`, de la collection `primitives`.');
   assert.equal(carte.statut, 'Liez-le à un token de components, ou de theme');
-  assert.equal(carte.lieu, 'Variant=Info, State=Default, layer icon');
+  assert.deepEqual(carte.lieu, ['1 variant', PUCES_DU_VARIANT, ', ', 'layer icon']);
 });
 
 test('le layer racine d’un variant ne répète pas son nom dans le lieu', () => {
-  assert.equal(carteDAFaire(c20({ token: 'dimension/40', couche: 'primitives', nature: 'dimension', admises: 'layout' }), contexte).lieu, 'Variant=Info, State=Default');
+  assert.deepEqual(carteDAFaire(c20({ token: 'dimension/40', couche: 'primitives', nature: 'dimension', admises: 'layout' }), contexte).lieu, ['1 variant', PUCES_DU_VARIANT]);
 });

@@ -661,28 +661,6 @@
   padding: 8px 10px;
 }
 
-.variants-pied {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px 8px;
-  padding: 8px 10px;
-  border-top: 1px solid var(--bordure);
-  font-size: 11px;
-}
-
-.variants-pied .meta {
-  color: var(--texte-second);
-}
-
-.variants-affiche {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
 .axes {
   display: grid;
   gap: 8px;
@@ -748,71 +726,37 @@
   cursor: pointer;
 }
 
-/* Le tableau : deux properties croisées, une cellule par variant. */
-.tableau-variants {
-  display: grid;
-  gap: 4px;
-}
-
-.tableau-choix-ligne {
-  display: flex;
+/* La puce d'une paire de variant hors de la section : la valeur seule, la property en gris quand une autre property porte la même valeur. */
+.puces {
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.tableau-choix {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--texte-second);
-  font-size: 11px;
-}
-
-.tableau-choix select {
-  height: 22px;
-  font-size: 11px;
-}
-
-.tableau-grille {
-  display: grid;
-  align-items: center;
   gap: 4px;
+  margin-left: 4px;
+  vertical-align: baseline;
 }
 
-.tableau-tete {
-  color: var(--texte-second);
-  font-size: 11px;
+/* Sous la valeur en dur d'une ligne avant / après, les puces s'alignent à gauche. */
+.diff .puces {
+  margin-left: 0;
 }
 
-.tableau-cellule {
+.puce-valeur {
   display: inline-flex;
-  height: 22px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--bordure);
-  border-radius: 6px;
-  background: none;
+  align-items: baseline;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: var(--fond-survol);
   color: var(--texte);
+  font-family: var(--police-chemin);
   font-size: 11px;
-}
-
-.tableau-cellule:disabled {
-  border-style: dashed;
-  opacity: 0.45;
-}
-
-.tableau-cellule.choisie {
-  border-color: color-mix(in srgb, var(--texte-marque) 60%, var(--bordure));
-  background: var(--fond-selection);
-}
-
-.tableau-cellule .n {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  color: var(--ton);
   font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.puce-propriete {
+  color: var(--texte-second);
+  font-weight: 400;
 }
 
 /* Une valeur dont des variants n'ont pas été lus : son contour est tireté. */

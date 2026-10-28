@@ -80,9 +80,10 @@ test('la lecture d’un autre variant du même jeu garde l’ancien écran et aj
   assert.equal(banc.lignes().length, avant);
   const barre = comme(banc.racine.querySelector('.lecture-fine'));
   assert.equal(barre.getAttribute('role'), 'progressbar');
-  // La valeur cliquée est choisie tout de suite ; le variant affiché garde son nom jusqu'à l'arrivée de la lecture.
+  // La valeur cliquée est choisie tout de suite, avant l'arrivée de la lecture : la section n'a plus de ligne « Affiché ».
   assert.ok(banc.puceErreur().classes.has('choisie'));
-  assert.equal(comme(banc.racine.querySelector('.variants-affiche .ch-variant')).textContent, NOM_INFO);
+  assert.equal(banc.racine.querySelector('.variants-affiche'), null);
+  assert.deepEqual(banc.racine.querySelectorAll('.valeur-axe.choisie').filter((puce) => puce.dataset.propriete === 'Severity').map((puce) => puce.dataset.valeur), ['error']);
   const corps = comme(banc.racine.querySelector('.vc-corps'));
   const parties = corps.children.map((enfant) => enfant.className);
   assert.equal(parties.indexOf('lecture-fine'), parties.indexOf('vc-tete') + 1, 'la barre suit l’en-tête');
@@ -118,7 +119,8 @@ test('l’en-tête, la section Variants et les lignes communes gardent leurs nœ
     assert.equal(ligne, ancien.ligne);
     assert.equal(banc.jeton(ligne), ancien.jeton);
   }
-  assert.equal(comme(banc.racine.querySelector('.variants-affiche .ch-variant')).textContent, NOM_ERREUR);
+  assert.ok(banc.puceErreur().classes.has('choisie'));
+  assert.equal(banc.racine.querySelectorAll('.valeur-axe.choisie').length, 2, 'une puce choisie par property : Severity=error, Variant=standard');
 });
 
 test('une ligne qui n’existe que dans l’un des variants apparaît ou disparaît sans toucher les autres', () => {

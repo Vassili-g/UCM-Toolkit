@@ -23,7 +23,7 @@ export function carteDesLiaisonsPreparees(liaisons: LiaisonsPreparees, appliquee
   if (corrections.length + liaisons.enAttente.length === 0) return null;
 
   const lignes: LigneDeCarte[] = corrections.map((correction) => ({
-    id: correction.id, constat: null, correction, avant: T.enDur(correction.cible.champ ?? ''), apres: correction.apres.nom,
+    id: correction.id, constat: null, correction, avant: T.enDur(correction.cible.champ ?? ''), variant: [], apres: correction.apres.nom,
     marquesAvant: [], marquesApres: [correction.apres.nom.split('/').length - 1],
   }));
   const attente: LigneEnAttente[] = liaisons.enAttente.map((entree) => ({

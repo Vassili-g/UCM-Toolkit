@@ -54,12 +54,14 @@ test('douze constats à faire, chacun de son type, le Bloquant en tête hors des
   } finally { await terminer(page); }
 });
 
-test('un chemin cité dans une phrase prend le style des chemins, et un variant s’écrit comme Figma le nomme', async () => {
+test('un chemin cité dans une phrase prend le style des chemins, et les variants se montrent en puces dans la ligne de lieu', async () => {
   const page = await ouvrirAFaire();
   try {
-    const stroke = cartes(page).filter({ hasText: 'Le stroke de Variant=outlined' });
-    assert.equal((await stroke.locator('.bloc-phrase').innerText()), 'Le stroke de Variant=outlined manque de contraste sur la page.');
-    assert.equal(await stroke.locator('.bloc-phrase .ch-variant').count(), 1);
+    const stroke = cartes(page).filter({ hasText: 'Le stroke manque de contraste sur la page.' });
+    assert.equal((await stroke.locator('.bloc-phrase').innerText()), 'Le stroke manque de contraste sur la page.');
+    assert.equal(await stroke.locator('.bloc-phrase .ch-variant').count(), 0);
+    assert.equal(await stroke.locator('.constat-lieu').textContent(), '4 variantsoutlined, layer container');
+    assert.equal(await stroke.locator('.constat-lieu .puce-valeur').getAttribute('title'), 'Variant=outlined');
     assert.equal(await enTete(page).locator('.constat-lieu .ch-inline:not(.ch-variant)').innerText(), 'colors/info/filled/border');
     assert.equal(await rangement(page).locator('.bloc-phrase code.mot-cite').count(), 2);
   } finally { await terminer(page); }

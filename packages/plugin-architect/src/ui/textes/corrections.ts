@@ -42,8 +42,6 @@ const dontDans = (cachees: { readonly dans: number; readonly element: string } |
 export const TEXTES_CORRECTIONS = {
   correctionsDuComposant: {
     lierLeTexte: 'Lier le texte aux tokens sans fond',
-    lierLeTexteDe: 'Lier le texte de ',
-    auxTokensSansFond: ' aux tokens sans fond',
     lierLaTaille: (famille: string, layers: readonly string[], composant: string): string => `Lier le ${famille} ${layers.length === 0 ? de(composant) : layers.length === 1 ? de(layers[0]) : layers.length === 2 ? `de ${liste(layers)}` : `de ${layers.length} layers`}`,
     enDurEnPixels: (valeur: number): string => `${valeur} px en dur`,
     enPixels: (valeur: number): string => `${valeur} px`,
@@ -59,8 +57,6 @@ export const TEXTES_CORRECTIONS = {
     copier: 'Copier les liaisons de ',
     copieMeta: (variants: number, liaisons: number, questions: number): string => `${variants} variants, ${liaisons} liaisons exactes, ${questions} cas dans Questions`,
     reglesMeta: (regles: number, proprietes: string): string => `${regles} règle${pluriel(regles)}${proprietes === '' ? '' : ` : ${proprietes}`}. Posée à côté du composant.`,
-    tousLesVariants: 'Tous les variants',
-    nVariants: (n: number): string => `${n} variants`,
     layers: (noms: readonly string[], inconnus: number): string => (noms.length === 0 ? `${inconnus} layer${pluriel(inconnus)}` : `layer${pluriel(noms.length)} ${liste(noms)}`),
     champDeLaCarte: (champ: string): string => CHAMPS_DE_LA_CARTE[champ] ?? champ,
     champDeFigma: (champ: string): string => CHAMPS[champ] ?? champ,

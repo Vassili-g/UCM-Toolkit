@@ -16,6 +16,7 @@ import { creerRenommage } from 'ucm-plugin-socle/src/ui/Jeton';
 
 import type { Constat } from '../../messages/commun';
 import { analyseApplicable, type AnalyseRecue } from '../composant/analyse';
+import { creerPuces, pairesDuNom, type VariantDuJeu } from '../composant/variants';
 import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION } from '../textes/preparation';
 import { creerCarte } from '../structure/carte';
@@ -90,7 +91,7 @@ export function noteDeLEcriture(analyse: AnalyseRecue): HTMLElement {
 }
 
 /** Les morceaux de texte qui se suivent ne font qu'un nœud de texte : la ligne grise d'une carte se lit comme une phrase. */
-function poserLesMorceaux(parent: Element | DocumentFragment, morceaux: readonly Morceau[]): void {
+function poserLesMorceaux(parent: Element | DocumentFragment, morceaux: readonly Morceau[], jeu: readonly VariantDuJeu[]): void {
   let texte = '';
   const vider = (): void => {
     if (texte !== '') parent.append(texte);
@@ -102,7 +103,8 @@ function poserLesMorceaux(parent: Element | DocumentFragment, morceaux: readonly
       continue;
     }
     vider();
-    if ('variant' in morceau) parent.append(creerVariantEnPhrase(morceau.variant));
+    if ('puces' in morceau) parent.append(creerPuces(morceau.puces, jeu));
+    else if ('variant' in morceau) parent.append(creerVariantEnPhrase(morceau.variant));
     else if ('chemin' in morceau) parent.append(creerCheminEnPhrase(morceau.chemin));
     else {
       const marque = document.createElement('span');
@@ -157,6 +159,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
   let piedPose: { element: HTMLElement; visible: PartVisible | null; inactif: boolean } | null = null;
 
   const cartesDuPanneau = (): readonly CarteDeCorrections[] => entree?.cartes ?? [];
+  const jeuDuComposant = (): readonly VariantDuJeu[] => entree?.contexte.variants ?? [];
   const cochee = (ligne: LigneDeCarte): boolean => !decochees.has(ligne.id);
   const lignesCochees = (cartes: readonly CarteDeCorrections[] = cartesDuPanneau()): LigneDeCarte[] => cartes.flatMap((carte) => carte.lignes.filter(cochee));
   /** Seule une analyse finale non périmée laisse cocher, appliquer ou écarter ; replier et déplier restent permis. */
@@ -242,7 +245,10 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     const avant = document.createDocumentFragment();
     if (entree.layer !== null) avant.append(T.layerNomme(entree.layer));
     if (entree.layer !== null && entree.variant !== null) avant.append(document.createElement('br'));
-    if (entree.variant !== null) avant.append(creerVariantEnPhrase(entree.variant));
+    if (entree.variant !== null) {
+      const paires = pairesDuNom(entree.variant);
+      avant.append(paires.length > 0 ? creerPuces(paires, jeuDuComposant()) : creerVariantEnPhrase(entree.variant));
+    }
     if (entree.layer === null && entree.variant === null) avant.append(T.layers([], 1));
     const diff = creerLigneDeDiff(avant, dans(cheminAvecSegments(entree.variable, [], 'nouveau', true)), { reste: true });
     diff.classList.add('preparation-liaison');
@@ -315,7 +321,9 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     const preparation = carte.origine === 'preparation';
     for (const groupe of carte.groupes ?? []) corps.append(creerLaLigneDeTaille(groupe));
     for (const ligne of carte.groupes ? [] : carte.lignes) {
-      const diff = creerLigneDeDiff(dans(cheminAvecSegments(ligne.avant, ligne.marquesAvant, 'ancien')), dans(cheminAvecSegments(ligne.apres, ligne.marquesApres, 'nouveau', preparation)), { coche: cochee(ligne) });
+      const avant = dans(cheminAvecSegments(ligne.avant, ligne.marquesAvant, 'ancien'));
+      if (ligne.variant.length > 0) avant.append(document.createElement('br'), creerPuces(ligne.variant, jeuDuComposant()));
+      const diff = creerLigneDeDiff(avant, dans(cheminAvecSegments(ligne.apres, ligne.marquesApres, 'nouveau', preparation)), { coche: cochee(ligne) });
       if (preparation) diff.classList.add('preparation-liaison');
       const caseACocher = diff.querySelector('input') as HTMLInputElement;
       caseACocher.setAttribute('aria-label', TEXTES.caseDeCorrection(ligne.apres));
@@ -343,13 +351,13 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     else {
       const phrase = document.createElement('span');
       phrase.className = 'bloc-phrase';
-      poserLesMorceaux(phrase, carte.phrase);
+      poserLesMorceaux(phrase, carte.phrase, jeuDuComposant());
       tete = [phrase];
     }
     const meta: Node[] = [];
     const morceauxDeLaMeta: Morceau[] = ciblee ? [...carte.meta, '. ', { selection: T.ciblee }] : [...carte.meta];
     const conteneur = document.createDocumentFragment();
-    poserLesMorceaux(conteneur, morceauxDeLaMeta);
+    poserLesMorceaux(conteneur, morceauxDeLaMeta, jeuDuComposant());
     meta.push(...Array.from(conteneur.childNodes));
 
     const ids = carte.lignes.map((ligne) => ligne.id);

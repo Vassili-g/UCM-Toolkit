@@ -45,9 +45,9 @@ import { versSrgb } from '../../espace';
 import type { Resultat } from '../../resolution';
 import type { Application, Composant } from '../application';
 import { constatDeResultat } from '../chaine';
-import { analyseApplicable, analyseDe } from '../composant/analyse';
+import { analyseDe } from '../composant/analyse';
 import { signeDeLigne, signeDuTitre } from '../composant/signes';
-import { creerSectionVariants, proprietesDe } from '../composant/variants';
+import { creerSectionVariants } from '../composant/variants';
 import type { ApercuRecu } from '../etat';
 import { versSandbox } from '../pont';
 import { copierTexte } from '../pressePapiers';
@@ -158,7 +158,6 @@ export function creerVueComposant(app: Application): VueComposant {
   let directesOuvertes = false;
   /** Les choix de la section Variants : ils survivent au changement de variant, pas à celui de jeu. */
   let proprietesDepliees = new Set<string>();
-  let tableau: { lignes: string; colonnes: string } | null = null;
   let corrections: readonly CorrectionAffichee[] = [];
   let selectionDuPlugin: readonly string[] = [];
   let auClicDeCorrection: (calques: readonly string[]) => void = () => {};
@@ -524,7 +523,6 @@ export function creerVueComposant(app: Application): VueComposant {
       affiche: affiche?.nom,
       choisi: c.statut === 'en-cours' && variantDemande ? variantDemande.nom : undefined,
       depliees: proprietesDepliees,
-      tableau,
       choisir: (variant) => {
         focusAttendu = null;
         demander(variant.id, false, variant);
@@ -532,21 +530,6 @@ export function creerVueComposant(app: Application): VueComposant {
       deplier: (propriete) => {
         proprietesDepliees = new Set([...proprietesDepliees, propriete]);
         rendre();
-      },
-      basculerLeTableau: () => {
-        const proprietes = proprietesDe(lecture.sujet.variants, []).map((propriete) => propriete.nom);
-        tableau = tableau || proprietes.length < 2 ? null : { lignes: proprietes[0], colonnes: proprietes[1] };
-        rendre();
-      },
-      croiser: (croisement) => {
-        tableau = croisement;
-        rendre();
-      },
-      copier: {
-        inactif: !analyseApplicable(analyse) || affiche === undefined,
-        envoyer: () => {
-          if (affiche !== undefined) app.servirDeModele(affiche.id);
-        },
       },
     });
   }
@@ -1105,7 +1088,6 @@ export function creerVueComposant(app: Application): VueComposant {
       else liberer(c.apercu);
       if (c.lecture?.sujet.id !== lecture.sujet.id) {
         proprietesDepliees = new Set();
-        tableau = null;
       }
       const voulue = c.deLaSelection ? c.selection?.portee : undefined;
       c.lecture = lecture;

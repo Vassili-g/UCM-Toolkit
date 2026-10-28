@@ -1,7 +1,8 @@
 /**
  * Ce que l'onglet À faire dans Figma montre d'un constat : l'intertitre de sa famille, sa phrase, son lieu et où le régler. Le calcul ne
  * touche pas au DOM. Chaque texte est une chaîne où les mots entre accents graves sont cités en code ; `morceauxDuTexte` y reconnaît
- * aussi les variants (`Severity=info, Variant=standard`) et les chemins de token (`colors/info/filled/border`).
+ * aussi les paires de Figma (`Severity=info, Variant=standard`) et les chemins de token (`colors/info/filled/border`). La phrase ne
+ * nomme pas le variant du constat : la ligne de lieu donne leur nombre, puis les puces des seules paires qu'ils partagent.
  *
  * Les codes du kit dont les faits donnent une phrase précise ont leur phrase ici. Un constat du moteur de l'exporteur dit lui-même ce
  * qu'il y a à faire (`titre`, `action`, `calque`, `elements`) ; un autre garde une phrase générique.
@@ -16,7 +17,7 @@
  * `[étiquette du mode, rapport]`). Sans eux la mesure s'écrit sans échantillon, et les autres modes se réduisent à leur nombre.
  */
 import type { Constat } from '../../messages/commun';
-import { pairesDuNom } from '../composant/variants';
+import { lieuDesVariants, pairesCommunes, paireDeFigma, type MorceauDeLieu } from '../composant/variants';
 import { TEXTES } from '../textes';
 
 const T = TEXTES.aFaireDuComposant;
@@ -60,12 +61,12 @@ export interface CarteDAFaire {
   readonly section: SectionDAFaire;
   readonly phrase: string;
   /** La ligne grise sous la phrase ; vide quand le constat ne désigne aucun lieu. */
-  readonly lieu: string;
+  readonly lieu: readonly MorceauDeLieu[];
   readonly statut: string | null;
   readonly faits: readonly FaitDeCarte[];
 }
 
-type Contenu = Omit<CarteDAFaire, 'constat' | 'section' | 'faits'> & { readonly faits?: readonly FaitDeCarte[] };
+type Contenu = Omit<CarteDAFaire, 'constat' | 'section' | 'faits' | 'lieu'> & { readonly lieu: string | readonly MorceauDeLieu[]; readonly faits?: readonly FaitDeCarte[] };
 
 const PAIRES = '[A-Z][A-Za-z0-9]*=[\\w-]+';
 const MOTIF = new RegExp(`(${PAIRES}(?:, ${PAIRES})*)|((?<![\\w=])[a-z0-9-]+(?:/[a-z0-9,.{}-]+)+)`, 'g');
@@ -101,25 +102,11 @@ function nomsDesVariants(constat: Constat, contexte: ContexteDAFaire): string[] 
   return constat.variants.map((variant) => contexte.variants.find((candidat) => candidat.id === variant)?.nom ?? variant);
 }
 
-/** Les paires `Propriété=valeur` que tous ces variants partagent. */
-function pairesCommunes(noms: readonly string[]): string[] {
-  const listes = noms.map((nom) => pairesDuNom(nom).map(([propriete, valeur]) => `${propriete}=${valeur}`));
-  return listes.length === 0 ? [] : listes[0].filter((paire) => listes.every((liste) => liste.includes(paire)));
-}
-
-/** Les variants d'un constat dans une phrase : le nom d'un seul, les paires qu'ils partagent, ou leur nombre. */
-export function variantsEnPhrase(noms: readonly string[]): string {
+/** Le variant est lui-même le sujet de la phrase : le nom d'un seul, les paires que plusieurs partagent, ou leur nombre. */
+function variantsNommes(noms: readonly string[]): string {
   if (noms.length === 1) return noms[0];
   const communes = pairesCommunes(noms);
-  return communes.length > 0 ? communes.join(', ') : T.nVariants(noms.length);
-}
-
-/** « Tous les variants State=focus » quand ces variants sont tous ceux du jeu qui portent leurs paires communes ; sinon leur nombre. */
-function lieuDesVariants(noms: readonly string[], contexte: ContexteDAFaire): string {
-  const communes = pairesCommunes(noms);
-  if (noms.length < 2 || communes.length === 0) return noms.length === 1 ? noms[0] : T.nVariants(noms.length);
-  const portent = contexte.variants.filter((variant) => communes.every((paire) => pairesDuNom(variant.nom).some(([propriete, valeur]) => `${propriete}=${valeur}` === paire)));
-  return portent.length === noms.length ? T.tousLesVariantsAvec(communes.join(', ')) : T.nVariants(noms.length);
+  return communes.length > 0 ? communes.map(([propriete, valeur]) => paireDeFigma(propriete, valeur)).join(', ') : TEXTES.variants.nombre(noms.length);
 }
 
 function calqueDe(constat: Constat, contexte: ContexteDAFaire): string | null {
@@ -130,15 +117,15 @@ function calqueDe(constat: Constat, contexte: ContexteDAFaire): string | null {
 }
 
 /** Le lieu : les variants (sauf si la phrase les cite), le layer, puis ce que le constat désigne d'autre. */
-function lieuDe(constat: Constat, contexte: ContexteDAFaire, options: { readonly variantsDansLaPhrase: boolean; readonly apres?: readonly string[]; readonly sansLayer?: boolean }): string {
-  const parties: string[] = [];
+function lieuDe(constat: Constat, contexte: ContexteDAFaire, options: { readonly variantsDansLaPhrase?: boolean; readonly apres?: readonly string[]; readonly sansLayer?: boolean } = {}): MorceauDeLieu[] {
+  const parties: MorceauDeLieu[][] = [];
   const noms = nomsDesVariants(constat, contexte);
-  if (!options.variantsDansLaPhrase) parties.push(noms.length === 0 ? T.tousLesVariants : noms.length === 1 ? noms[0] : T.nVariants(noms.length));
+  if (options.variantsDansLaPhrase !== true) parties.push(lieuDesVariants(noms));
   const calque = options.sansLayer === true ? null : calqueDe(constat, contexte);
   // Le layer racine d'un variant porte le nom du variant : le répéter n'apprend rien.
-  if (calque !== null && !noms.includes(calque)) parties.push(T.layer(calque, parties.length === 0));
-  parties.push(...(options.apres ?? []));
-  return parties.join(', ');
+  if (calque !== null && !noms.includes(calque)) parties.push([T.layer(calque, parties.length === 0)]);
+  parties.push(...(options.apres ?? []).map((partie) => [partie]));
+  return parties.flatMap((partie, rang) => (rang === 0 ? partie : [', ', ...partie]));
 }
 
 /** Un rapport à la française, sans arrondi : « 3,9:1 ». */
@@ -166,27 +153,26 @@ function lignesDesAutresModes(valeur: string | null): string[] {
 
 function contraste(constat: Constat, contexte: ContexteDAFaire): Contenu {
   const noms = nomsDesVariants(constat, contexte);
-  const variants = variantsEnPhrase(noms);
   const { faits } = constat;
   if (constat.limite && faits.borne !== undefined) {
     return { phrase: T.combinaisonsNonMesurees(nombre(faits.combinaisonsMesurees) ?? 0, texte(faits.combinaisonsNonMesurees) ?? '0'), lieu: '', statut: null };
   }
   if (constat.limite) {
-    return { phrase: T.contrasteNonMesure(texte(faits.champ) ?? 'fills', variants, texte(faits.cause) ?? ''), lieu: lieuDe(constat, contexte, { variantsDansLaPhrase: true }), statut: null };
+    return { phrase: T.contrasteNonMesure(texte(faits.champ) ?? 'fills', texte(faits.cause) ?? ''), lieu: lieuDe(constat, contexte), statut: null };
   }
   if (faits.anneauVisible === 0) {
-    return { phrase: T.sansAnneau(variants, noms.length > 1 && pairesCommunes(noms).length === 0), lieu: lieuDe(constat, contexte, { variantsDansLaPhrase: true }), statut: T.sansAnneauStatut };
+    return { phrase: T.sansAnneau(noms.length > 1), lieu: lieuDe(constat, contexte), statut: T.sansAnneauStatut };
   }
   const usage = texte(faits.usage) ?? 'texte';
   const rapport = nombre(faits.rapport);
   const seuil = nombre(faits.seuil);
   const mesure = rapport !== null && seuil !== null ? { rapport: rapportEnTexte(rapport), seuil: rapportEnTexte(seuil) } : null;
-  const phrase = T.manqueDeContraste(usage, variants, modesEnPhrase(texte(faits.mode)));
+  const phrase = T.manqueDeContraste(usage, modesEnPhrase(texte(faits.mode)));
   if (usage === 'stroke' || usage === 'anneau') {
     const calque = texte(faits.calque) ?? 'ring';
     return {
       phrase,
-      lieu: lieuDe(constat, contexte, { variantsDansLaPhrase: noms.length === 1 || usage === 'anneau', sansLayer: mesure !== null, apres: mesure === null ? [] : [T.auLieuDe(mesure.rapport, mesure.seuil)] }),
+      lieu: lieuDe(constat, contexte, { sansLayer: mesure !== null, apres: mesure === null ? [] : [T.auLieuDe(mesure.rapport, mesure.seuil)] }),
       statut: usage === 'anneau' ? T.manqueDeContrasteDeLAnneauStatut(calque) : T.manqueDeContrasteDuStrokeStatut,
     };
   }
@@ -198,27 +184,26 @@ function contraste(constat: Constat, contexte: ContexteDAFaire): Contenu {
   const autres = nombre(faits.autresModes);
   if (mesure !== null && lignes.length > 0) detail.push({ libelle: T.autresModes, lignes });
   else if (mesure !== null && autres !== null && autres > 0) detail.push({ libelle: T.autresModes, texte: T.sousLeSeuil(autres) });
-  return { phrase, lieu: lieuDe(constat, contexte, { variantsDansLaPhrase: noms.length === 1 }), statut: T.manqueDeContrasteStatut, faits: detail };
+  return { phrase, lieu: lieuDe(constat, contexte), statut: T.manqueDeContrasteStatut, faits: detail };
 }
 
 /** Ce que l'accessibilité dit d'autre qu'un rapport : le texte sous 12 px (C49), l'anneau (C51), la cible (C52) et les variants exclus (C53). */
 function accessibilite(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
   const { faits } = constat;
   const noms = nomsDesVariants(constat, contexte);
-  const variants = variantsEnPhrase(noms);
   switch (constat.code) {
     case 'C49':
       if (faits.fontSize === undefined) return null;
       return {
-        phrase: T.texteTropPetit(texte(faits.calque) ?? '', variants, nombre(faits.fontSize) ?? 0, nombre(faits.seuil) ?? 12),
-        lieu: lieuDe(constat, contexte, { variantsDansLaPhrase: true }),
+        phrase: T.texteTropPetit(texte(faits.calque) ?? '', nombre(faits.fontSize) ?? 0, nombre(faits.seuil) ?? 12),
+        lieu: lieuDe(constat, contexte),
         statut: T.recommandation,
       };
     case 'C51':
       if (faits.strokeWeight === undefined) return null;
       return {
         phrase: T.anneauTropFin(nombre(faits.strokeWeight) ?? 0, nombre(faits.espaceRecommande) ?? 2, nombre(faits.epaisseurRecommandee) ?? 2),
-        lieu: noms.length > 1 ? lieuDesVariants(noms, contexte) : lieuDe(constat, contexte, { variantsDansLaPhrase: false }),
+        lieu: lieuDe(constat, contexte, { sansLayer: noms.length > 1 }),
         statut: T.recommandation,
       };
     case 'C52': {
@@ -226,14 +211,14 @@ function accessibilite(constat: Constat, contexte: ContexteDAFaire): Contenu | n
       const largeur = nombre(faits.largeur) ?? 0;
       const hauteur = nombre(faits.hauteur) ?? 0;
       const seuil = nombre(faits.seuil) ?? 0;
-      const lieu = lieuDe(constat, contexte, { variantsDansLaPhrase: false, sansLayer: true });
+      const lieu = lieuDe(constat, contexte, { sansLayer: true });
       return constat.type === 'corriger'
-        ? { phrase: T.zoneTropPetite(variants, largeur, hauteur, seuil), lieu, statut: T.zoneTropPetiteStatut }
-        : { phrase: T.cibleTactile(variants, Math.min(largeur, hauteur), hauteur <= largeur, seuil), lieu, statut: T.recommandation };
+        ? { phrase: T.zoneTropPetite(largeur, hauteur, seuil), lieu, statut: T.zoneTropPetiteStatut }
+        : { phrase: T.cibleTactile(Math.min(largeur, hauteur), hauteur <= largeur, seuil, noms.length > 1), lieu, statut: T.recommandation };
     }
     case 'C53':
       if (faits.variantsExclus === undefined) return null;
-      return { phrase: T.variantsExclus(variants, nombre(faits.variantsExclus) ?? noms.length, pairesCommunes(noms).length > 0), lieu: T.variantsDesactives, statut: null };
+      return { phrase: T.variantsExclus(nombre(faits.variantsExclus) ?? noms.length), lieu: lieuDe(constat, contexte, { sansLayer: true }), statut: null };
     default:
       return null;
   }
@@ -247,7 +232,7 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
       const [token, couche, cible] = [texte(faits.token) ?? '', texte(faits.couche) ?? '', texte(faits.cible)];
       const liste = (texte(faits.admises) ?? '').split(',').filter(Boolean);
       const admises = liste.length > 1 ? `${liste.slice(0, -1).join(', ')} ou ${liste[liste.length - 1]}` : liste.join('');
-      const lieu = lieuDe(constat, contexte, { variantsDansLaPhrase: false });
+      const lieu = lieuDe(constat, contexte);
       return cible
         ? { phrase: T.mauvaiseCible(token, cible, couche), lieu, statut: T.mauvaiseCibleStatut(admises) }
         : { phrase: T.mauvaiseCouche(token, couche), lieu, statut: T.mauvaiseCoucheStatut(admises) };
@@ -261,7 +246,7 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
         : { phrase: T.tokenInutilise(token), lieu: T.sectionTokens, statut: T.tokenInutiliseStatut };
     }
     case 'C33':
-      return { phrase: T.variantSansToken(texte(faits.variant) ?? variantsEnPhrase(noms), texte(faits.famille) ?? ''), lieu: T.sectionTokens, statut: T.variantSansTokenStatut };
+      return { phrase: T.variantSansToken(texte(faits.variant) ?? variantsNommes(noms), texte(faits.famille) ?? ''), lieu: T.sectionTokens, statut: T.variantSansTokenStatut };
     case 'C49':
     case 'C50':
       return accessibilite(constat, contexte) ?? contraste(constat, contexte);
@@ -271,8 +256,8 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
       return accessibilite(constat, contexte);
     case 'C64':
       return {
-        phrase: T.sansTextStyle(calqueDe(constat, contexte) ?? '', variantsEnPhrase(noms)),
-        lieu: lieuDe(constat, contexte, { variantsDansLaPhrase: true, apres: texte(faits.styleAttendu) === null ? [] : [T.styleAttendu(texte(faits.styleAttendu) ?? '')] }),
+        phrase: T.sansTextStyle(calqueDe(constat, contexte) ?? ''),
+        lieu: lieuDe(constat, contexte, { apres: texte(faits.styleAttendu) === null ? [] : [T.styleAttendu(texte(faits.styleAttendu) ?? '')] }),
         statut: T.sansTextStyleStatut,
       };
     case 'C66':
@@ -285,21 +270,20 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
 /** C66 : l'icône d'un variant, par motif. */
 function icone(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
   const { faits } = constat;
-  const variants = variantsEnPhrase(nomsDesVariants(constat, contexte));
-  const lieu = lieuDe(constat, contexte, { variantsDansLaPhrase: true });
+  const lieu = lieuDe(constat, contexte);
   const token = texte(faits.variable) ?? '';
   switch (faits.motif) {
     case 'pas-une-instance':
     case 'instance-locale':
-      return { phrase: T.iconeSansLibrary(variants), lieu, statut: T.iconeSansLibraryStatut };
+      return { phrase: T.iconeSansLibrary, lieu, statut: T.iconeSansLibraryStatut };
     case 'taille-sans-variable':
-      return { phrase: T.iconeSansTaille(variants), lieu, statut: T.iconeTailleStatut };
+      return { phrase: T.iconeSansTaille, lieu, statut: T.iconeTailleStatut };
     case 'taille-hors-icone':
-      return { phrase: T.iconeTailleHorsIcon(variants, token), lieu, statut: T.iconeTailleStatut };
+      return { phrase: T.iconeTailleHorsIcon(token), lieu, statut: T.iconeTailleStatut };
     case 'couleur-sans-variable':
-      return { phrase: T.iconeSansCouleur(variants), lieu, statut: T.iconeCouleurStatut };
+      return { phrase: T.iconeSansCouleur, lieu, statut: T.iconeCouleurStatut };
     case 'couleur-hors-premier-plan':
-      return { phrase: T.iconeCouleurHorsPremierPlan(variants, token), lieu, statut: T.iconeCouleurStatut };
+      return { phrase: T.iconeCouleurHorsPremierPlan(token), lieu, statut: T.iconeCouleurStatut };
     default:
       return null;
   }
@@ -314,8 +298,8 @@ const champPeint = (faits: Constat['faits']): string => (faits.plageDebut !== un
  */
 function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
   const { faits } = constat;
-  const surLeLayer = lieuDe(constat, contexte, { variantsDansLaPhrase: false });
-  const sansLayer = lieuDe(constat, contexte, { variantsDansLaPhrase: false, sansLayer: true });
+  const surLeLayer = lieuDe(constat, contexte);
+  const sansLayer = lieuDe(constat, contexte, { sansLayer: true });
   const token = (valeur: string | number | undefined): string => sansPrefixe(texte(valeur) ?? '', contexte.composant);
   const nombreDeTokens = nombre(faits.tokens) ?? 1;
   switch (constat.code) {
@@ -369,11 +353,11 @@ function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | nu
         lieu: sansLayer, statut: T.liaisonHorsDuComposantStatut,
       };
     case 'C43':
-      return { phrase: T.sansRegles, lieu: T.tousLesVariants, statut: T.sansReglesStatut };
+      return { phrase: T.sansRegles, lieu: TEXTES.variants.tous, statut: T.sansReglesStatut };
     case 'C45':
       return faits.ecart === 'sans-propriete'
-        ? { phrase: T.regleSansPropriete(texte(faits.regle) ?? ''), lieu: T.tousLesVariants, statut: T.regleSansProprieteStatut }
-        : { phrase: T.proprieteSansRegle(texte(faits.propriete) ?? ''), lieu: T.tousLesVariants, statut: T.proprieteSansRegleStatut };
+        ? { phrase: T.regleSansPropriete(texte(faits.regle) ?? ''), lieu: TEXTES.variants.tous, statut: T.regleSansProprieteStatut }
+        : { phrase: T.proprieteSansRegle(texte(faits.propriete) ?? ''), lieu: TEXTES.variants.tous, statut: T.proprieteSansRegleStatut };
     case 'C59':
       return { phrase: T.texteSansSurface(calqueDe(constat, contexte) ?? '', token(faits.variable)), lieu: sansLayer, statut: T.texteSansSurfaceStatut };
     case 'C60':
@@ -417,7 +401,7 @@ function structure(constat: Constat): Contenu | null {
 export function carteDAFaire(constat: Constat, contexte: ContexteDAFaire): CarteDAFaire {
   const section = SECTION_DE_LA_FAMILLE[constat.famille];
   const exacte = precise(constat, contexte);
-  if (exacte) return { constat, section, faits: [], ...exacte };
+  if (exacte) return { constat, section, faits: [], ...exacte, lieu: typeof exacte.lieu === 'string' ? (exacte.lieu === '' ? [] : [exacte.lieu]) : exacte.lieu };
   const { faits } = constat;
   const phrase = texte(faits.titre) ?? texte(faits.message) ?? T.sansPhrase(constat.code);
   const elements = texte(faits.elements);
