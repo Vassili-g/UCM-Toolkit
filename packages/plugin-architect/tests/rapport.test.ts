@@ -70,6 +70,15 @@ test('rapport.ts rend la capture du jeu en JSON, sans rien écrire', async () =>
   assert.deepEqual(b.ecritures, []);
 });
 
+test('rapport.ts capture le jeu entier quand on lui donne un de ses variants', async () => {
+  const b = banc();
+  await traiter({ type: 'preparer-le-rapport', demande: 8, sujet: 'repos' }, b.contexte);
+  const message = b.envoyes[0] as Extract<MessageDeRapport, { type: 'rapport-pret' }>;
+  assert.equal(message.type, 'rapport-pret');
+  const capture = JSON.parse(message.capture) as CaptureArchitect;
+  assert.equal(capture.jeu, 'jeu');
+});
+
 test('rapport.ts rend rapport-echoue pour un identifiant absent', async () => {
   const b = banc();
   await traiter({ type: 'preparer-le-rapport', demande: 3, sujet: 'inconnu' }, b.contexte);
@@ -86,7 +95,8 @@ test('rapport.ts rend rapport-echoue quand la lecture du nœud lève', async () 
 
 // L'interface
 
-const IDENTITE = { sujet: 'Alert', generation: 1 };
+// La clé publiée du jeu, qui n'est pas un identifiant de nœud : la demande doit porter celui de la lecture.
+const IDENTITE = { sujet: 'cle-publiee-du-jeu', generation: 1 };
 
 function monter(surcharge: Partial<AnalyseRecue> = {}, constats: readonly Constat[] = constatsAlert) {
   const demandes: Array<{ sujet: string; auRetour: (capture: string | null) => void }> = [];
@@ -131,7 +141,7 @@ test('le lien dit son libellé et son infobulle, et reste un bouton focalisable'
 test('le clic envoie la demande avec le sujet, puis la réponse déclenche le téléchargement', () => {
   const b = monter();
   b.lien()?.clic();
-  assert.deepEqual(b.demandes.map((demande) => demande.sujet), ['Alert']);
+  assert.deepEqual(b.demandes.map((demande) => demande.sujet), ['alert:0']);
   assert.equal(b.lien()?.textContent, 'Préparation du rapport…');
   assert.equal(b.lien()?.disabled, true);
   b.lien()?.clic();
@@ -143,7 +153,7 @@ test('le clic envoie la demande avec le sujet, puis la réponse déclenche le t�
   assert.match(nom, /^ucm-architect-rapport-.+-2026-10-28-09-08-07\.json$/);
   const rapport = JSON.parse(contenu);
   assert.equal(rapport.version, 1);
-  assert.equal(rapport.composant.id, 'Alert');
+  assert.equal(rapport.composant.id, 'alert:0');
   assert.equal(rapport.analyse.statut, 'complete');
   assert.equal(rapport.analyse.constats.length, constatsAlert.length);
   assert.deepEqual(rapport.analyse.ignores, ['C1:x']);

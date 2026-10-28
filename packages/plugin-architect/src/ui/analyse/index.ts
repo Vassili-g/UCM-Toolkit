@@ -252,12 +252,14 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     if (etatDuRapport === 'prepare') return;
     etatDuRapport = 'prepare';
     dessiner();
-    app.preparerLeRapport(analyse.identite.sujet, (capture) => {
+    // `identite.sujet` est la clé publiée du jeu quand il en a une : le sandbox lit le nœud par son identifiant, celui de la lecture.
+    const id = etat.composant.lecture?.sujet.id ?? analyse.identite.sujet;
+    app.preparerLeRapport(id, (capture) => {
       try {
         if (capture === null) throw new Error('rapport illisible');
         const date = (options.maintenant ?? (() => new Date()))();
         const nom = etat.composant.lecture?.sujet.nom ?? analyse.identite.sujet;
-        (options.telecharger ?? telecharger)(nomDuRapport(nom, date), contenuDuRapport({ id: analyse.identite.sujet, nom }, analyse, capture, date), 'application/json');
+        (options.telecharger ?? telecharger)(nomDuRapport(nom, date), contenuDuRapport({ id, nom }, analyse, capture, date), 'application/json');
         etatDuRapport = 'repos';
       } catch {
         etatDuRapport = 'echoue';

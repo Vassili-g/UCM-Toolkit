@@ -20,8 +20,10 @@ async function preparer(demande: number, sujet: string, { figma, envoyer }: Cont
       envoyer({ type: 'rapport-echoue', demande });
       return;
     }
-    const page = pageDuNoeud<PageNode>(noeud, figma.currentPage);
-    const capture = await capturerLeComposant(figma, { jeu: noeud, page, imports: null });
+    // Un variant se capture avec son jeu, comme l'analyse le lit.
+    const jeu = noeud.type === 'COMPONENT' && noeud.parent?.type === 'COMPONENT_SET' ? noeud.parent : noeud;
+    const page = pageDuNoeud<PageNode>(jeu, figma.currentPage);
+    const capture = await capturerLeComposant(figma, { jeu, page, imports: null });
     envoyer({ type: 'rapport-pret', demande, capture: JSON.stringify(capture) });
   } catch {
     envoyer({ type: 'rapport-echoue', demande });
