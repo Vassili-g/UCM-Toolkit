@@ -7,12 +7,13 @@ lue dans le code, et une proposition. Rien n'est implémenté.
 La maquette [MAQUETTE-RECETTE-V2.html](./MAQUETTE-RECETTE-V2.html) montre les
 propositions d'interface sur les écrans réels figés de la galerie d'Architect.
 Les questions au mainteneur sont numérotées à la suite de la recette v1, de
-R-11 à R-27. La section 10 les réunit avec leur état ; la maquette les reprend
+R-11 à R-30. La section 11 les réunit avec leur état ; la maquette les reprend
 en section 8.
 
 Le mainteneur a relu une première version de la maquette. Ses réponses sont
-reportées dans chaque section. Reste ouvert : R-29, la façon de
-distinguer une sous-pièce d'une pièce partagée. R-28 relève de Palettes.
+reportées dans chaque section. Le chantier des garanties de Palettes sur la
+carte entre dans la recette (section 10). Reste ouvert : R-30, qui suit sa
+mesure.
 
 ## 1. Fenêtre, barre et panneau
 
@@ -462,7 +463,7 @@ La règle devient :
 
 | Liaison | Où elle est posée | Ce qu'Architect admet |
 |---|---|---|
-| Radius, stroke weight | Composant principal de la pièce partagée | `theme` ou `layout`, sans constat |
+| Radius, stroke weight | Composant principal de la pièce interne | `theme` ou `layout`, sans constat |
 | Couleur | Surcharge sur l'instance, dans l'hôte | Un token de l'hôte, sinon C80 comme tout layer de l'hôte |
 | Toute propriété | Valeur en dur | Un constat, comme aujourd'hui |
 
@@ -491,35 +492,31 @@ Proposition, en trois couches, selon la règle des domiciles d'AGENTS.md :
    composant imbriqué et la façon de les reconnaître :
 
    Le préfixe `.` ou `_` marque une **pièce interne** : un composant sans
-   collection ni contrat, qui ne sert jamais seul. Il ne dit pas combien de
-   composants l'emploient. Une pièce interne a deux cas :
+   collection ni contrat, qui ne sert jamais seul. Elle peut servir à un seul
+   composant, comme une sous-pièce, ou à plusieurs, comme `.Ring`.
 
    | Sorte | Se reconnaît à | Son contrat | Ses liaisons |
    |---|---|---|---|
    | Dépendance | Une instance de `.componentRules` la nomme, sur la page de son composant principal | Le sien ; l'hôte la cite dans `composes` | Jugées dans son propre contrat |
-   | Wrapper de dimensions | La définition de FORMAT.md, « Layout » ; préfixé ou non, comme `.sizeWrapperButton` | Aucun ; ses props et dimensions entrent dans celles de l'hôte | Tokens de l'hôte |
-   | Sous-pièce | Pièce interne d'un seul hôte | Aucun ; l'hôte publie ce qu'elle dessine | Tokens de l'hôte, composant principal compris |
-   | Pièce partagée | Pièce interne de plusieurs hôtes, comme `.Ring` | Aucun ; chaque hôte publie ce qu'elle dessine | Composant principal : `theme` et `layout`. Surcharges dans l'hôte : tokens de l'hôte |
+   | Wrapper de dimensions | La définition de FORMAT.md, « Layout » ; préfixé ou non, comme `.sizeWrapperButton` | Aucun ; ses props et dimensions entrent dans celles de l'hôte | Comme une pièce interne |
+   | Pièce interne | Préfixe `.` ou `_`, sans `.componentRules` | Aucun ; chaque hôte publie ce qu'elle dessine | Composant principal : `theme`, `layout` ou tokens de l'hôte. Surcharges dans l'hôte : tokens de l'hôte |
    | Détail d'implémentation | Tout autre composant imbriqué, sans préfixe ni règles | Aucun | Tokens de l'hôte |
 
    Une fonction pure, `sorteDeLImbrique(faits)`, rend la sorte depuis des faits
-   sérialisables : nom, règles d'utilisation trouvées, dimensions liées, hôtes.
-   Elle teste les sortes dans l'ordre du tableau : le wrapper de dimensions
-   passe avant la pièce interne.
+   sérialisables : nom, règles d'utilisation trouvées, dimensions liées. Elle
+   teste les sortes dans l'ordre du tableau : le wrapper de dimensions passe
+   avant la pièce interne.
 
-   **Distinguer la sous-pièce de la pièce partagée** demande un fait de plus,
-   le nombre d'hôtes. Deux moyens (R-29) :
-
-   | Moyen | Pour | Contre |
-   |---|---|---|
-   | a. Compter les hôtes dans le fichier : les jeux de variants qui contiennent une instance de la pièce | Automatique, sans geste du designer | La sorte change quand un deuxième hôte apparaît. `.Ring`, prévu pour toutes les interfaces à focus, est une sous-pièce tant que seul Button l'emploie : son radius lié à `layout` redevient un constat |
-   | b. Le designer déclare la pièce partagée, par exemple par un mot dans la description du composant | Suit l'intention : `.Ring` est partagée dès sa création | Un geste à faire dans Figma pour chaque pièce partagée |
-
-   Avis : a, avec une nuance de sévérité. Une sous-pièce liée à `theme` ou
-   `layout` dans son composant principal reçoit un À vérifier, pas un À
-   corriger : « `.Ring` ne sert qu'à Button dans ce fichier. S'il doit servir à
-   d'autres composants, ce lien est juste. » Le designer peut l'ignorer. Aucun
-   geste nouveau n'est demandé.
+   **Pourquoi ne pas distinguer sous-pièce et pièce partagée (R-29).** La
+   distinction ne change qu'une chose : une sous-pièce pourrait lier son
+   composant principal aux tokens de son seul hôte, une pièce partagée ne le
+   peut pas. Exiger ce lien d'une sous-pièce rapporterait peu. Une sous-pièce
+   liée à `layout` reste liée à un token : rien n'est en dur, et le contrat de
+   l'hôte publie la valeur. Le seul manque : l'hôte ne peut pas régler cette
+   valeur par son propre token sans modifier la sous-pièce. C'est un choix du
+   designer, pas une erreur. Les deux moyens de distinguer coûtaient plus que
+   ce gain : compter les hôtes est fragile, une déclaration ajoute un geste.
+   Une seule sorte, « pièce interne », suffit.
 2. **Le socle relève les faits, une fois.** L'exporteur et le relevé
    d'Architect lisent les mêmes faits par la même acquisition, puis appellent
    la fonction du kit. Un test refuse qu'un des deux classe un imbriqué sans
@@ -533,9 +530,9 @@ Proposition, en trois couches, selon la règle des domiciles d'AGENTS.md :
 Le préfixe `.` ou `_` devient alors une convention UCM écrite : le designer
 déclare ainsi qu'une pièce ne sert jamais seule. Figma ne publie déjà pas ces
 composants. Décidé (R-26) : la notion est factorisée dans UCM Toolkit. Le
-mainteneur a précisé qu'une pièce préfixée peut être une sous-pièce d'un seul
-composant ou une pièce partagée : les sortes ci-dessus distinguent les deux,
-et R-29 choisit comment les reconnaître.
+mainteneur a précisé qu'une pièce préfixée peut servir à un seul composant ou
+à plusieurs : la sorte « pièce interne » couvre les deux cas, avec la même
+règle de liaison (R-29).
 
 ### 7.4 « Les 18 variants State=Disabled ne sont pas mesurés »
 
@@ -704,11 +701,10 @@ En Dark, une garantie tenue sur la carte est donc tenue sur la page, pas
 l'inverse. Palettes juge aujourd'hui sur la page dans les deux modes : en Dark,
 il juge sur le fond le plus facile.
 
-Proposition pour Palettes (R-28) : juger les garanties 2 à 6 sur le fond le plus
-exigeant de chaque mode, la page en Light et la carte en Dark, ou sur les deux
-fonds. La garantie 7, l'anneau, le fait déjà. La question relève de Palettes,
-pas de cette recette. Une fois les garanties étendues, la sévérité d'Architect
-suit sans autre lot, puisqu'il lit les mêmes garanties.
+Décidé (R-28) : Palettes juge aussi les garanties 2 à 6 sur la carte, et ce
+chantier entre dans la recette (section 10). Une fois les garanties étendues,
+la sévérité d'Architect suit sans autre lot, puisqu'il lit les mêmes
+garanties.
 
 #### D'où vient la valeur de `elevation/raised`
 
@@ -852,7 +848,61 @@ ou sous un vertical gap Auto. Cette fonction n'est pas exportée : Architect a
 C'est la même famille de défaut que le stroke weight d'un layer sans contour,
 corrigé en R-1 : une valeur que Figma garde sans l'appliquer.
 
-## 10. Questions au mainteneur
+## 10. Le chantier de Palettes : les garanties sur la carte
+
+Décidé : ce chantier entre dans la recette (R-28).
+
+### Ce que Palettes juge aujourd'hui
+
+La spécification de Palettes, section 11.2
+(`docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md`),
+juge les sept garanties contre la page. Seule G7, l'anneau, se juge aussi
+contre la carte (`[VER-21]`). La spécification en donne la raison : « la
+carte, plus claire que la page en Dark, est la plus exigeante ». La même
+raison vaut pour les autres garanties, qui ne l'appliquent pas.
+
+| Garantie | Premier membre | Fonds jugés aujourd'hui | Fonds proposés |
+|---|---|---|---|
+| G1 | `solid/foreground` | `solid/*` | Inchangés : le texte d'un bouton se pose sur le bouton |
+| G2 | `solid/default` | Page | Page et carte |
+| G3 | `surface/foreground` | `surface/*`, page | `surface/*`, page et carte |
+| G4 | `surface/border` | `surface/*`, page | `surface/*`, page et carte |
+| G5 | `page/foreground` | Page | Page et carte |
+| G6 | `page/border` | Page | Page et carte |
+| G7 | `ring` | Page et carte | Inchangés |
+
+Règle proposée : partout où la page est un fond garanti, la carte l'est aussi.
+Elle vaut dans les deux modes. En Light, la carte est blanche et la garantie y
+tient presque toujours. En Dark, c'est elle qui contraint.
+
+### Ce que le changement touche
+
+| Couche | Changement |
+|---|---|
+| Kit, `packages/kit/src/emplois/garanties.ts` | `FOND_DE_LA_CARTE` rejoint les fonds de G2 à G6. Le kit monte de version : Palettes et Architect lisent `GARANTIES` |
+| Moteur, `packages/couleur/src/promesses.ts` et `jugement.ts` | Rien à écrire : il juge déjà chaque fond de la liste, et sait calculer la carte. Le nombre de promesses passe de 16 à 21 par mode et par intensité |
+| Palettes, interface | La carte des garanties et la réglette ont déjà deux colonnes, « sur la page » et « sur la carte », pour G7. Les garanties 2 à 6 les prennent aussi |
+| Palettes, planche et rapport | Les promesses sur la carte s'ajoutent. Les textes qui comptent les contrôles changent : 64 et 32 deviennent 84 et 42 |
+| Spécification de Palettes | Section 11.2 et `[VER-21]` réécrits. Le nombre de contrôles change |
+| Architect | Rien de plus que K4 : la sévérité suit `GARANTIES` |
+
+### Le risque : des palettes qui ne tiennent plus
+
+La spécification a mesuré G2 à G7 sur 14 références et sur 864 références de
+toutes teintes : aucune n'échoue sur la page. Rien n'a été mesuré sur la carte
+en Dark. Le premier lot du chantier refait cette mesure avec la carte, avant
+toute écriture.
+
+Si des palettes échouent sur la carte en Dark, trois réponses existent :
+
+1. accepter : Palettes signale la garantie manquée, comme aujourd'hui sur la page, et propose « Ajuster la référence » ;
+2. changer un cran de la table des dossiers en Dark (`TABLE_DES_DOSSIERS`), pour la variable qui échoue ;
+3. rapprocher la carte de la page en Dark (`[MOT-37]`).
+
+Le choix dépend du nombre de références touchées. R-30 le pose une fois la
+mesure faite.
+
+## 11. Questions au mainteneur
 
 | N° | Question | Proposition | État |
 |---|---|---|---|
@@ -873,10 +923,11 @@ corrigé en R-1 : une valeur que Figma garde sans l'appliquer.
 | R-25 | La Configuration prend la place du panneau quand il est ouvert, celle de la vue quand il est fermé | | Décidé : oui |
 | R-26 | Les quatre sortes de composant imbriqué dans le référentiel du kit, et le préfixe `.` ou `_` comme convention de la pièce partagée | | Décidé : oui, factorisé dans UCM Toolkit |
 | R-27 | Noms de variants | | Décidé : E, valeurs en puces, paire exacte au survol ; la property reste quand deux valeurs se confondent |
-| R-28 | Palettes juge ses garanties 2 à 6 sur le fond le plus exigeant de chaque mode : la page en Light, la carte en Dark | Oui, ou sur les deux fonds | Ouvert, à traiter dans Palettes |
-| R-29 | Distinguer une sous-pièce d'une pièce partagée : compter les hôtes dans le fichier, ou déclaration du designer | Compter, avec un À vérifier pour une sous-pièce liée à `theme` ou `layout` | Ouvert |
+| R-28 | Les garanties de Palettes sur la carte | | Décidé : dans cette recette ; partout où la page est un fond garanti, la carte l'est aussi (section 10) |
+| R-29 | Distinguer une sous-pièce d'une pièce partagée | | Décidé : non ; une seule sorte, « pièce interne », et une seule règle de liaison |
+| R-30 | Si des palettes ne tiennent plus sur la carte en Dark : accepter, changer un cran de la table, ou rapprocher la carte de la page | Selon la mesure du lot P0 | Ouvert, après la mesure |
 
-## 11. Ordre de travail proposé
+## 12. Ordre de travail proposé
 
 Les corrections du kit ne dépendent pas de la maquette. Elles peuvent passer
 en premier, dans une seule version du kit :
@@ -887,8 +938,11 @@ en premier, dans une seule version du kit :
 | K2 | C10 lit l'écriture des dossiers, et le test qui l'impose (7.2) | — |
 | K3 | C17 admet `foreground` sur un stroke (8) | — |
 | K4 | Contraste sur la page et la carte, sévérité selon les garanties de Palettes (7.5) | — |
-| K5 | Sortes de composant imbriqué dans le référentiel, et leur test (7.3) | R-29 |
-| K6 | Pièce partagée : `theme` et `layout` admis dans son composant principal (7.3) | K5 |
+| K5 | Sortes de composant imbriqué dans le référentiel, et leur test (7.3) | — |
+| K6 | Pièce interne : `theme` et `layout` admis dans son composant principal (7.3) | K5 |
+| P0 | Mesure des garanties G2 à G6 sur la carte, sur les références de la spécification (10) | — |
+| P1 | Kit : la carte rejoint les fonds de G2 à G6 ; nouvelle version (10) | P0, R-30 |
+| P2 | Palettes : carte des garanties, réglette, planche, rapport et textes ; spécification (10) | P1 |
 | S1 | Le socle exporte la règle des espacements sans effet ; relevé et vue la lisent (9) | — |
 | A1 | Frontière, Configuration en bascule et à sa place, Actualiser désactivé (1) | — |
 | A2 | Fenêtre à 500 px, panneau à 640 px, barre compacte (1) | — |
