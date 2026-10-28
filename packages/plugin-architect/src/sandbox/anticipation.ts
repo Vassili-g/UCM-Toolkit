@@ -97,3 +97,23 @@ export async function lireLesLibrariesAuClic(figma: PluginAPI, cooperation?: Con
   }
   return nouvelle;
 }
+
+/**
+ * Relit la liste des libraries pour tenir la mémoire de Figma chaude : Figma garde les variables d'une library 5 à 10 s (E6, lot
+ * 16), et la vérification du clic tombe dans cette mémoire. La prélecture l'appelle toutes les 5 s. Sans lecture anticipée, ou
+ * après un échec, elle en lance une, sans attendre `RECENCE_DE_L_ANTICIPATION_MS` ; une lecture en cours s'attend ; une lecture
+ * finie se vérifie comme au clic, et la nouvelle liste la remplace si elle diffère. Ne rejette jamais.
+ */
+export async function rafraichirLesLibraries(figma: PluginAPI): Promise<void> {
+  try {
+    const prete = anticipee && anticipee.figma === figma ? anticipee : null;
+    if (prete === null || prete.etat === 'echec') {
+      abandonnerLesLibrariesAnticipees();
+      anticiperLesLibraries(figma);
+      await anticipee?.issue;
+    } else if (prete.etat === 'en-cours') await prete.issue;
+    else await lireLesLibrariesAuClic(figma);
+  } catch {
+    // Sans cette relecture, la vérification du clic relit seule.
+  }
+}

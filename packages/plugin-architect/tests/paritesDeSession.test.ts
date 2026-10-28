@@ -17,7 +17,7 @@ import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/co
 import type { PluginMessage } from '../src/messages';
 import { modelesDeLAnalyse, type ReleveDesRegles } from '../src/regles';
 import {
-  analyseCourante, correctionsDeLAnalyse, dependancesDeFigma, etatDeLEntree, fermerLaSession, fixerLesBornesDeRetention, journalDesChangements, surInterruptionDePage, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDeStyle, surChangementDuDocument, traiterAvec,
+  analyseCourante, annulerLaPrelecture, correctionsDeLAnalyse, dependancesDeFigma, etatDeLEntree, fermerLaSession, fixerLesBornesDeRetention, journalDesChangements, operationEnCours, prendreLaPlaceDUneEcriture, surInterruptionDePage, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDeStyle, surChangementDuDocument, surSelection, traiterAvec,
   type Lecteurs,
 } from '../src/sandbox/analyse';
 import { creerLeSuivi, type Contexte } from '../src/sandbox/contexte';
@@ -892,4 +892,330 @@ test('un changement du jeu reçu pendant la relecture du relevé périme la dema
   })({ type: 'analyser', demande: 1 }, b.contexte);
   assert.deepEqual(b.envoyes.filter(({ type }) => type === 'perime').map((message) => ('cause' in message ? message.cause : null)), ['document']);
   assert.equal(sessionDesAnalyses().entree('Alert'), retenue, 'l’entrée d’avant reste, rien n’est promu');
+});
+
+// Prélecture à la sélection (16.16) : une analyse discrète, sans message vers l'interface, qui promeut son entrée. Le clic qui
+// la suit valide cette entrée comme n'importe quelle autre ; un clic pendant la prélecture la prend au premier plan.
+
+/** Les lectures de la prélecture sans pause réelle : le mode discret cède par `setTimeout(16)` en production. */
+const SANS_PAUSE = { pauseDiscrete: async () => {} };
+
+async function preluire(fichier: Fichier, appels: { moteur: number }, surcharge: Partial<Lecteurs> = {}): Promise<Banc> {
+  const b = banc(fichier);
+  await traiterAvec({ ...lecteursDe(fichier, appels), ...surcharge }, SANS_PAUSE)({ type: 'analyser', origine: 'prelecture' }, b.contexte);
+  return b;
+}
+
+/** Une lecture qui s'arrête à son entrée jusqu'à `liberer()` : de quoi placer un clic ou un événement pendant la prélecture. */
+function portail() {
+  let entree!: () => void;
+  let liberer!: () => void;
+  const entre = new Promise<void>((resolve) => { entree = resolve; });
+  const ouvert = new Promise<void>((resolve) => { liberer = resolve; });
+  return { entre, entree, ouvert, liberer };
+}
+
+const typesEnvoyes = (b: Banc): string[] => b.envoyes.map(({ type }) => type);
+
+test('une prélecture finie ne parle pas à l’interface et promeut une entrée que le clic suivant reprend, relevé et moteur ; affichage égal à Actualiser', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const b = await preluire(fichier, appels);
+  assert.deepEqual(b.envoyes, [], 'aucun message vers l’interface');
+  assert.equal(appels.moteur, 1);
+  assert.equal(etatDeLEntree('Alert').etat, 'utilisable');
+  const clic = await demandeDuReleve(fichier, appels, 'analyser');
+  assert.deepEqual(clic.releve, ['repriseDuReleve']);
+  assert.equal(appels.moteur, 1, 'le moteur de la prélecture sert');
+  assert.equal(clic.mesure.compteurs.repriseDuMoteur, 1);
+  assert.equal(clic.mesure.compteurs['clicApresPrelecture:repris'], 1);
+  assert.equal(clic.mesure.compteurs.prelecturesLancees, 1, 'la prélecture dépose ses compteurs dans la première trace qui la suit');
+  assert.equal(clic.mesure.compteurs.prelecturesPromues, 1);
+  const actualisee = await demandeDuReleve(fichier, appels, 'actualiser');
+  assert.equal(appels.moteur, 2, 'Actualiser reconstruit');
+  assert.equal(clic.affiche, actualisee.affiche);
+  assert.equal(actualisee.mesure.compteurs.prelecturesLancees, undefined, 'les compteurs ne se versent qu’une fois');
+});
+
+for (const mutation of MUTATIONS) {
+  test(`parité avec Actualiser, entrée promue par une prélecture, après : ${mutation.nom}`, async () => {
+    const fichier = fichierDeDepart();
+    mutation.depart?.(fichier);
+    const appels = { moteur: 0 };
+    await preluire(fichier, appels);
+    assert.equal(appels.moteur, 1);
+    const analysee = await muterPuisAnalyser(mutation, fichier, appels);
+    const moteursAvantActualiser = appels.moteur;
+    const actualisee = await demander(fichier, appels, 'actualiser');
+    assert.equal(appels.moteur, moteursAvantActualiser + 1, 'Actualiser reconstruit sans rien reprendre');
+    assert.equal(JSON.stringify(analysee), JSON.stringify(actualisee), 'même objet affiché, dans le même ordre');
+  });
+}
+
+test('une prélecture sur une entrée utilisable ne fait rien : ni lecture, ni message, ni compteur', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await demander(fichier, appels, 'analyser');
+  const retenue = sessionDesAnalyses().entree('Alert');
+  // Une sélection ailleurs périme l'analyse affichée sans toucher à l'entrée : seule l'entrée utilisable retient alors la prélecture.
+  surSelection('autre-composant', 'figma', banc(fichier).contexte);
+  assert.equal(etatDeLEntree('Alert').etat, 'utilisable');
+  const b = await preluire(fichier, appels);
+  assert.deepEqual(b.envoyes, []);
+  assert.equal(appels.moteur, 1);
+  assert.equal(sessionDesAnalyses().entree('Alert'), retenue);
+  assert.equal(operationEnCours(), null);
+  const suivante = await demandeDuReleve(fichier, appels, 'analyser');
+  assert.equal(suivante.mesure.compteurs.prelecturesLancees, undefined);
+});
+
+test('une prélecture ne remplace pas l’analyse que l’interface affiche : elle ne lit rien tant qu’elle est applicable', async () => {
+  const fichier = fichierDeDepart();
+  fichier.catalogueIncomplet = true;
+  const appels = { moteur: 0 };
+  await demander(fichier, appels, 'analyser');
+  assert.equal(etatDeLEntree('Alert').etat, 'a-relire', 'l’entrée n’est pas utilisable : seule l’analyse affichée retient la prélecture');
+  const identite = analyseCourante();
+  const lues: string[] = [];
+  const lecteurSujet: Partial<Lecteurs> = { sujet: async (...args) => { lues.push('sujet'); return lecteursDe(fichier, appels).sujet(...args); } };
+  const b = await preluire(fichier, appels, lecteurSujet);
+  assert.deepEqual(b.envoyes, []);
+  assert.deepEqual(lues, []);
+  assert.equal(analyseCourante(), identite);
+  // Une fois l'analyse périmée, la prélecture peut la remplacer sans rien annoncer.
+  surChangementDuDocument([noeud('PROPERTY_CHANGE', 'fond', ['v-Alert', 'jeu-Alert'], ['fills'])], b.contexte);
+  const apres = await preluire(fichier, appels, lecteurSujet);
+  assert.deepEqual(lues, ['sujet']);
+  assert.deepEqual(apres.envoyes, []);
+});
+
+test('un clic pendant la lecture du relevé prend la prélecture au premier plan : une seule analyse, annoncée comme une analyse ordinaire, égale à Actualiser', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const b = banc(fichier);
+  const lecteurs = lecteursDe(fichier, appels);
+  const arret = portail();
+  const traiter = traiterAvec({ ...lecteurs, releve: async (...args) => { arret.entree(); await arret.ouvert; return lecteurs.releve(...args); } }, SANS_PAUSE);
+  const prelecture = traiter({ type: 'analyser', origine: 'prelecture' }, b.contexte);
+  await arret.entre;
+  assert.deepEqual(b.envoyes, [], 'rien n’est annoncé pendant la prélecture');
+  assert.equal(operationEnCours(), 'prelecture');
+  const clic = traiter({ type: 'analyser', intention: 'analyser', demande: 1 }, b.contexte);
+  assert.equal(operationEnCours(), 'analyse', 'la prélecture est désormais une analyse du designer');
+  arret.liberer();
+  await Promise.all([prelecture, clic]);
+  assert.equal(operationEnCours(), null);
+  assert.equal(appels.moteur, 1, 'une seule analyse au bout');
+  const types = typesEnvoyes(b);
+  assert.equal(types.filter((type) => type === 'analyse-commencee').length, 1);
+  assert.equal(types.filter((type) => type === 'analyse').length, 1);
+  assert.ok(types.indexOf('analyse-commencee') < types.indexOf('analyse-provisoire') && types.indexOf('analyse-provisoire') < types.indexOf('analyse'));
+  for (const message of b.envoyes) {
+    const { demande } = message as { demande?: number };
+    if (demande !== undefined) assert.equal(demande, 1, 'tout porte la demande du clic');
+  }
+  const analysee = affichage(b);
+  const actualisee = await demander(fichier, { moteur: 0 }, 'actualiser');
+  assert.equal(JSON.stringify(analysee), JSON.stringify(actualisee));
+});
+
+test('un clic pendant le calcul du moteur prend la prélecture au premier plan et rend le même résultat final qu’Actualiser', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const b = banc(fichier);
+  const lecteurs = lecteursDe(fichier, appels);
+  const arret = portail();
+  const traiter = traiterAvec({ ...lecteurs, moteur: async (...args) => { arret.entree(); await arret.ouvert; return lecteurs.moteur(...args); } }, SANS_PAUSE);
+  const prelecture = traiter({ type: 'analyser', origine: 'prelecture' }, b.contexte);
+  await arret.entre;
+  const clic = traiter({ type: 'analyser', intention: 'analyser', demande: 1, mesurer: true }, b.contexte);
+  arret.liberer();
+  await Promise.all([prelecture, clic]);
+  const types = typesEnvoyes(b);
+  assert.equal(types.filter((type) => type === 'analyse').length, 1);
+  assert.equal(types[0], 'analyse-commencee');
+  const final = b.envoyes.find((message) => message.type === 'analyse');
+  assert.ok(final && 'mesure' in final && final.mesure, 'la demande du clic était mesurée : la trace s’ouvre à la prise');
+  assert.equal(final.mesure.compteurs['clicApresPrelecture:premierPlan'], 1);
+  const { mesure, ...sansMesure } = final as PluginMessage & { mesure?: unknown };
+  const actualisee = await demandeDuReleve(fichier, { moteur: 0 }, 'actualiser');
+  const finalActualise = JSON.parse(actualisee.affiche).messages.find((message: { type: string }) => message.type === 'analyse');
+  assert.equal(JSON.stringify({ ...sansMesure, analyse: { sujet: 'Alert' } }), JSON.stringify(finalActualise));
+});
+
+test('un clic Actualiser pendant la prélecture l’arrête : l’analyse du clic court seule, sans rien reprendre', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const b = banc(fichier);
+  const lecteurs = lecteursDe(fichier, appels);
+  const arret = portail();
+  const traiter = traiterAvec({ ...lecteurs, releve: async (...args) => { arret.entree(); await arret.ouvert; return lecteurs.releve(...args); } }, SANS_PAUSE);
+  const prelecture = traiter({ type: 'analyser', origine: 'prelecture' }, b.contexte);
+  await arret.entre;
+  const clic = traiter({ type: 'analyser', intention: 'actualiser', demande: 1 }, b.contexte);
+  arret.liberer();
+  await Promise.all([prelecture, clic]);
+  assert.equal(typesEnvoyes(b).filter((type) => type === 'analyse').length, 1, 'la prélecture annulée ne rend rien');
+  assert.equal(appels.moteur, 1, 'seule l’analyse du clic a lancé le moteur');
+  assert.equal(JSON.stringify(affichage(b)), JSON.stringify(await demander(fichier, { moteur: 0 }, 'actualiser')));
+});
+
+test('un catalogue de prélecture qui a évité un import n’est pas promu, et un clic pendant la prélecture la remplace par une demande ordinaire', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const options: unknown[] = [];
+  const lecteurs = lecteursDe(fichier, appels);
+  const sansImport: Partial<Lecteurs> = {
+    catalogue: async (_releve, _jeton, _contexte, _cooperation, _libraries, _inventaires, opt) => {
+      options.push(opt?.sansImport ?? false);
+      if (opt?.sansImport) opt.importsEvites?.(1);
+      return catalogueDe(fichier);
+    },
+  };
+  // Prélecture seule : l'import évité la rend partielle, rien n'est promu.
+  const seule = await preluire(fichier, appels, sansImport);
+  assert.deepEqual(seule.envoyes, []);
+  assert.deepEqual(options, [true]);
+  assert.equal(sessionDesAnalyses().entree('Alert'), null, 'un catalogue incomplet ne se promeut pas');
+  // Clic pendant la prélecture, une fois le catalogue lu sans import : la prélecture n'est plus prenable.
+  reinitialiserLAnalyse();
+  options.length = 0;
+  appels.moteur = 0;
+  const b = banc(fichier);
+  const arret = portail();
+  const traiter = traiterAvec({ ...lecteurs, ...sansImport, moteur: async (...args) => { arret.entree(); await arret.ouvert; return lecteurs.moteur(...args); } }, SANS_PAUSE);
+  const prelecture = traiter({ type: 'analyser', origine: 'prelecture' }, b.contexte);
+  await arret.entre;
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  const clic = traiter({ type: 'analyser', intention: 'analyser', demande: 1 }, b.contexte);
+  arret.liberer();
+  await Promise.all([prelecture, clic]);
+  assert.deepEqual(options, [true, false], 'la demande du clic lit le catalogue avec ses imports');
+  assert.equal(typesEnvoyes(b).filter((type) => type === 'analyse').length, 1);
+  assert.equal(JSON.stringify(affichage(b)), JSON.stringify(await demander(fichier, { moteur: 0 }, 'actualiser')));
+});
+
+test('un clic qui prend la prélecture pendant son catalogue relit le catalogue avec les imports si le premier en a évité un', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const lecteurs = lecteursDe(fichier, appels);
+  const arret = portail();
+  const options: unknown[] = [];
+  const traiter = traiterAvec({
+    ...lecteurs,
+    catalogue: async (_releve, _jeton, _contexte, _cooperation, _libraries, _inventaires, opt) => {
+      options.push(opt?.sansImport ?? false);
+      if (opt?.sansImport) {
+        arret.entree();
+        await arret.ouvert;
+        opt.importsEvites?.(1);
+      }
+      return catalogueDe(fichier);
+    },
+  }, SANS_PAUSE);
+  const b = banc(fichier);
+  const prelecture = traiter({ type: 'analyser', origine: 'prelecture' }, b.contexte);
+  await arret.entre;
+  const clic = traiter({ type: 'analyser', intention: 'analyser', demande: 1 }, b.contexte);
+  arret.liberer();
+  await Promise.all([prelecture, clic]);
+  assert.deepEqual(options, [true, false]);
+  assert.equal(appels.moteur, 1);
+  assert.equal(typesEnvoyes(b).filter((type) => type === 'analyse').length, 1);
+  assert.equal(etatDeLEntree('Alert').etat, 'utilisable');
+  assert.equal(JSON.stringify(affichage(b)), JSON.stringify(await demander(fichier, { moteur: 0 }, 'actualiser')));
+});
+
+test('un événement qui annule la prélecture ne laisse rien promu ni annoncé, périmée ou non', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const b = banc(fichier);
+  const lecteurs = lecteursDe(fichier, appels);
+  const arret = portail();
+  const traiter = traiterAvec({ ...lecteurs, releve: async (...args) => { arret.entree(); await arret.ouvert; return lecteurs.releve(...args); } }, SANS_PAUSE);
+  const prelecture = traiter({ type: 'analyser', origine: 'prelecture' }, b.contexte);
+  await arret.entre;
+  // Un changement du jeu périmerait une analyse ordinaire en le disant à l'interface ; la prélecture se tait.
+  surChangementDuDocument([noeud('PROPERTY_CHANGE', 'fond', ['v-Alert', 'jeu-Alert'], ['fills'])], b.contexte);
+  assert.equal(annulerLaPrelecture(), true);
+  assert.equal(annulerLaPrelecture(), false, 'une prélecture déjà annulée ne s’annule pas deux fois');
+  arret.liberer();
+  await prelecture;
+  assert.deepEqual(b.envoyes, []);
+  assert.equal(sessionDesAnalyses().entree('Alert'), null);
+  assert.equal(appels.moteur, 0, 'le relevé annulé n’a pas laissé le moteur tourner');
+  assert.equal(operationEnCours(), null);
+  const suivante = await demandeDuReleve(fichier, appels, 'analyser');
+  assert.equal(suivante.mesure.compteurs.prelecturesLancees, 1);
+  assert.equal(suivante.mesure.compteurs.prelecturesAnnulees, 1);
+  assert.equal(suivante.mesure.compteurs.prelecturesPromues, undefined);
+});
+
+test('une écriture du plugin passe avant la prélecture, qui s’arrête sans rien promouvoir ni annoncer', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const b = banc(fichier);
+  const lecteurs = lecteursDe(fichier, appels);
+  const arret = portail();
+  const traiter = traiterAvec({ ...lecteurs, releve: async (...args) => { arret.entree(); await arret.ouvert; return lecteurs.releve(...args); } }, SANS_PAUSE);
+  const prelecture = traiter({ type: 'analyser', origine: 'prelecture' }, b.contexte);
+  await arret.entre;
+  const place = prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
+  assert.ok('liberer' in place, 'l’écriture prend la place sans recevoir `occupe`');
+  arret.liberer();
+  await prelecture;
+  assert.equal(operationEnCours(), 'ecriture', 'la fin de la prélecture ne libère pas la place de l’écriture');
+  place.liberer();
+  assert.equal(operationEnCours(), null);
+  assert.deepEqual(b.envoyes, []);
+  assert.equal(sessionDesAnalyses().entree('Alert'), null);
+});
+
+test('une prélecture ne prend pas la place d’une analyse en cours et ne répond jamais `occupe`', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const b = banc(fichier);
+  const lecteurs = lecteursDe(fichier, appels);
+  const arret = portail();
+  const traiter = traiterAvec({ ...lecteurs, releve: async (...args) => { arret.entree(); await arret.ouvert; return lecteurs.releve(...args); } }, SANS_PAUSE);
+  const analyse = traiter({ type: 'analyser', demande: 1 }, b.contexte);
+  await arret.entre;
+  await traiter({ type: 'analyser', origine: 'prelecture' }, b.contexte);
+  assert.equal(typesEnvoyes(b).includes('occupe'), false);
+  arret.liberer();
+  await analyse;
+  assert.equal(typesEnvoyes(b).filter((type) => type === 'analyse').length, 1);
+});
+
+test('le mode discret cède par tranches de 8 ms avec une pause de 16 ms ; le clic qui prend la prélecture la ramène au budget normal', async () => {
+  const fichier = fichierDeDepart();
+  const mesurer = async (prise: boolean) => {
+    reinitialiserLAnalyse();
+    let temps = 0;
+    const pauses: number[] = [];
+    let normales = 0;
+    const lecteurs = lecteursDe(fichier, { moteur: 0 });
+    const arret = portail();
+    const b = banc(fichier);
+    const traiter = traiterAvec({
+      ...lecteurs,
+      releve: async (...args) => { if (prise) { arret.entree(); await arret.ouvert; } return lecteurs.releve(...args); },
+    }, { horloge: () => (temps += 1), pauseDiscrete: async (ms) => { pauses.push(ms); }, respirer: async () => { normales += 1; } });
+    const prelecture = traiter({ type: 'analyser', origine: 'prelecture' }, b.contexte);
+    if (!prise) {
+      await prelecture;
+      return { pauses, normales };
+    }
+    await arret.entre;
+    const clic = traiter({ type: 'analyser', demande: 1 }, b.contexte);
+    arret.liberer();
+    await Promise.all([prelecture, clic]);
+    return { pauses, normales };
+  };
+  const discret = await mesurer(false);
+  assert.ok(discret.pauses.length > 0 && discret.pauses.every((ms) => ms === 16), 'chaque cession dure 16 ms');
+  assert.equal(discret.normales, 0, 'aucune cession au budget normal pendant la prélecture');
+  const prise = await mesurer(true);
+  assert.ok(prise.normales > 0, 'après la prise, les cessions suivent le budget normal');
+  assert.equal(prise.pauses.length, 0, 'aucune cession discrète avant la prise : la prélecture attendait à l’entrée du relevé');
 });

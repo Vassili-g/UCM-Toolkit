@@ -13,12 +13,13 @@
  */
 import { TAILLE_PAR_DEFAUT } from './fenetre';
 import type { PluginMessage, UiRequest } from './messages';
-import { fermerLaSession, surChangementDeStyle, surInterruptionDePage, surChangementDuDocument, surSelection } from './sandbox/analyse';
-import { declarer, envoyerLaSelection, ouvrirLaFenetre } from './sandbox/commun';
-import { abandonnerLesLibrariesAnticipees } from './sandbox/anticipation';
+import { analysesLanceesParLeDesigner, annulerLaPrelecture, fermerLaSession, operationEnCours, surChangementDeStyle, surInterruptionDePage, surChangementDuDocument, surSelection } from './sandbox/analyse';
+import { declarer, envoyerLaSelection, ouvrirLaFenetre, sujetDeLaSelectionCourante } from './sandbox/commun';
+import { abandonnerLesLibrariesAnticipees, rafraichirLesLibraries } from './sandbox/anticipation';
 import { creerLeSuivi, type Contexte } from './sandbox/contexte';
 import { DOMAINES, tableDesTypes } from './sandbox/index';
 import { annoncerLOuverture } from './sandbox/nomenclature';
+import { creerLaPrelecture } from './sandbox/prelecture';
 import { importerParCle, type PortDeLecture } from './lecture';
 import { creerLesExperiences, variablesDeLaSelection, type NoeudDeCollecte, type VariableDExperience } from './sandbox/experiences';
 
@@ -29,6 +30,7 @@ function versUi(message: PluginMessage): void {
 }
 
 const surLesNoeuds = (evenement: NodeChangeEvent): void => {
+  prelecture.surChangement();
   surChangementDuDocument(evenement.nodeChanges.map((changement) => ({
     type: changement.type,
     id: changement.node.id,
@@ -38,6 +40,7 @@ const surLesNoeuds = (evenement: NodeChangeEvent): void => {
 };
 
 const surLesStyles = (evenement: StyleChangeEvent): void => {
+  prelecture.surChangement();
   surChangementDeStyle(evenement.styleChanges, contexte);
 };
 
@@ -80,12 +83,30 @@ const experiences = creerLesExperiences({
 });
 
 
+// La prélecture à la sélection (lot 16, 16.16) : sans `UCM_ARCHITECT_PRELECTURE` dans la bannière du sandbox, elle ne se lance jamais.
+// Seul point de lecture du drapeau ; le mainteneur décide de l'activation par défaut après R16.3.
+const prelecture = creerLaPrelecture({
+  actif: (globalThis as { UCM_ARCHITECT_PRELECTURE?: unknown }).UCM_ARCHITECT_PRELECTURE === true,
+  aUnSujet: () => sujetDeLaSelectionCourante(figma).sujet !== null,
+  lancer: () => traiterMessage({ type: 'analyser', origine: 'prelecture' }).catch(() => undefined),
+  annuler: () => { annulerLaPrelecture(); },
+  operationEnCours,
+  analysesDuDesigner: analysesLanceesParLeDesigner,
+  relancerLesLibraries: () => rafraichirLesLibraries(figma),
+  planifier: (rappel, ms) => {
+    const minuterie = setTimeout(rappel, ms);
+    return () => clearTimeout(minuterie);
+  },
+  maintenant: () => Date.now(),
+});
+
 const domaineDe = tableDesTypes();
 const ouverture = ouvrirLaFenetre(contexte);
 
 function aLaSelection(): void {
   const { sujetId, origine } = envoyerLaSelection(contexte);
   surSelection(sujetId, origine, contexte);
+  prelecture.surSelection();
 }
 
 async function traiterMessage(message: UiRequest): Promise<void> {
@@ -115,6 +136,7 @@ figma.on('close', () => {
   figma.off('stylechange', surLesStyles);
   figma.off('currentpagechange', aLaPage);
   suivi.fermer();
+  prelecture.fermer();
   abandonnerLesLibrariesAnticipees();
   fermerLaSession();
 });

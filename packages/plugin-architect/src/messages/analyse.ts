@@ -25,8 +25,14 @@ export type RenduDAnalyse = 'premier-affichage' | 'premiers-constats' | 'resulta
  */
 export type IntentionDAnalyse = 'analyser' | 'actualiser';
 
+/**
+ * Qui lance la demande. `prelecture` : le sandbox, après un silence à la sélection (lot 16, 16.16) ; l'analyse ne parle pas à
+ * l'interface. L'interface n'envoie jamais cette origine.
+ */
+export type OrigineDAnalyse = 'prelecture';
+
 export type DemandeDAnalyse =
-  | { type: 'analyser'; demande?: number; intention?: IntentionDAnalyse; mesurer?: boolean; capturer?: boolean }
+  | { type: 'analyser'; demande?: number; intention?: IntentionDAnalyse; origine?: OrigineDAnalyse; mesurer?: boolean; capturer?: boolean }
   | { type: 'annuler-analyse'; analyse?: IdentiteDAnalyse; demande?: number }
   | { type: 'analyse-rendue'; demande: number; analyse: IdentiteDAnalyse; rendu: RenduDAnalyse; depuisClicMs: number; receptionAuRenduMs: number };
 

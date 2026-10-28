@@ -72,6 +72,16 @@ export function catalogueDuFichier(releve: Pick<Releve, 'collections' | 'variabl
   return { version: 1, library: null, collections: collectionsDeReference(brutes, architecture), variables };
 }
 
+/**
+ * Le catalogue de la prélecture (16.16) ne fait aucun import par clé : `importVariableByKeyAsync` abonne le fichier à la variable.
+ * Une clé qui en demanderait un reste `non-chargee`, et `importsEvites` reçoit leur nombre : un catalogue qui en a évité un
+ * n'est pas celui que la demande ordinaire lirait.
+ */
+export interface OptionsDeCatalogue {
+  readonly sansImport?: boolean;
+  readonly importsEvites?: (n: number) => void;
+}
+
 /** Les tours d'import qui suivent les alias d'une library jusqu'à leurs cibles ; au-delà, la cible reste non chargée. */
 const PROFONDEUR_D_ALIAS = 10;
 
@@ -92,6 +102,7 @@ export async function chargerLesValeurs(
   cles: readonly string[],
   idsDesCles?: ReadonlyMap<string, string>,
   compter?: (nom: 'parIdentifiant' | 'imports', n: number) => void,
+  options: OptionsDeCatalogue = {},
 ): Promise<{ catalogue: CatalogueDeReference; motifs: Readonly<Record<string, string>> }> {
   const nonChargees = new Set(catalogue.variables.filter((v) => v.etat === 'non-chargee').map((v) => v.cle));
   const connues = new Set(catalogue.variables.map((v) => v.cle));
@@ -107,9 +118,14 @@ export async function chargerLesValeurs(
     const internes = lot.filter((cle) => nonChargees.has(cle));
     const { lues, restantes } = await lireParIdentifiant(port, internes, parId);
     compter?.('parIdentifiant', Object.keys(lues).length);
-    compter?.('imports', restantes.length);
-    Object.assign(importees, lues, await importerLesValeurs(port, restantes));
-    Object.assign(horsCatalogue, await lireHorsCatalogue(port, lot.filter((cle) => !nonChargees.has(cle)), dehors));
+    if (options.sansImport) {
+      options.importsEvites?.(restantes.length);
+      Object.assign(importees, lues);
+    } else {
+      compter?.('imports', restantes.length);
+      Object.assign(importees, lues, await importerLesValeurs(port, restantes));
+    }
+    Object.assign(horsCatalogue, await lireHorsCatalogue(port, lot.filter((cle) => !nonChargees.has(cle)), dehors, options));
     attendues = new Set();
     for (const cle of lot) {
       const lue = importees[cle] ?? horsCatalogue[cle];
@@ -174,6 +190,7 @@ async function lireHorsCatalogue(
   port: Parameters<typeof importerLesValeurs>[0] & Partial<Pick<PortDeLecture, 'getVariableByIdAsync'>>,
   cles: readonly string[],
   identifiants: ReadonlyMap<string, string>,
+  options: OptionsDeCatalogue = {},
 ): Promise<Record<string, ValeurDeLibrary>> {
   const { resultats } = await executerAuPlus(cles, async (cle) => {
     const id = identifiants.get(cle);
@@ -187,6 +204,10 @@ async function lireHorsCatalogue(
     if (convertie) rendues[cle] = convertie;
     else parCle.push(cle);
   });
+  if (options.sansImport) {
+    options.importsEvites?.(parCle.length);
+    return rendues;
+  }
   return { ...rendues, ...(await importerLesValeurs(port, parCle)) };
 }
 

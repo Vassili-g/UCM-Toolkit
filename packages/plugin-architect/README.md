@@ -272,6 +272,18 @@ Sélectionnez le jeu de variants du Button, puis cliquez un bouton du panneau po
 
 Aucune expérience n'écrit dans le document. E1 et E2 importent des variables de library par clé, ce que l'analyse fait déjà. Collez les objets copiés dans `_local/vitesse-analyse/`, hors de git.
 
+## Build de prélecture
+
+La prélecture à la sélection (lot 16, case 16.16) est désactivée par défaut : sans `UCM_ARCHITECT_PRELECTURE` dans la bannière du bundle du sandbox, `code.ts` ne lance aucune prélecture et ne relance aucune lecture de libraries. Le mainteneur décide de son activation par défaut après la mesure A/B R16.3. Pour la mesurer, construisez le sandbox avec le drapeau, et l'interface avec la bannière de mesure décrite dans « Vérifier » :
+
+```sh
+npm run build:plugin -- architect
+cd packages/plugin-architect
+npx esbuild src/code.ts --bundle --outfile=dist/code.js --platform=browser --target=chrome80 --sourcemap "--banner:js=globalThis.UCM_ARCHITECT_PRELECTURE=true;"
+```
+
+Sélectionnez un composant et ne touchez plus à rien : au bout d'une seconde, le sandbox lit le composant sans rien afficher. Un clic sur Analyser pendant cette lecture la prend au premier plan. Avec `globalThis.UCM_ARCHITECT_MESURER = true`, les compteurs `prelecturesLancees`, `prelecturesAnnulees`, `prelecturesPromues` et `clicApresPrelecture:repris` ou `clicApresPrelecture:premierPlan` rejoignent la trace de la première analyse mesurée qui suit. Le build d'expériences et celui de prélecture se combinent : `"--banner:js=globalThis.UCM_ARCHITECT_EXPERIENCES=true;globalThis.UCM_ARCHITECT_PRELECTURE=true;"`.
+
 ## Licence
 
 [MIT](../../LICENSE).

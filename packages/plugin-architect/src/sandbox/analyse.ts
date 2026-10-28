@@ -34,6 +34,12 @@
  * dépendances du moteur et règles relus égaux à ceux de l'entrée, et rien dans le jeu que la relecture ne couvre pas
  * (maître distant ou hors page écoutée, style illisible). Contrôles, corrections et projection ne dépendent pas de cette validation : chaque requête
  * pure se reprend de l'entrée du sujet quand les entrées qu'elle lit égalent celles que la demande vient de lire (`creerLesRequetes`).
+ *
+ * Une demande d'origine `prelecture` (lot 16, `prelecture.ts`) est une analyse que l'interface ne voit pas : elle n'envoie rien (`emettre`,
+ * et `perime` par `AnalyseCourante.silencieuse`), cède par tranches de `BUDGET_DISCRET_MS`, lit le catalogue sans import par clé et promeut
+ * son entrée quand elle finit complète. Elle ne se lance que sans opération en cours, sans analyse applicable à l'écran et sans entrée
+ * `utilisable` pour le sujet. Un clic Analyser la prend au premier plan (`EtatDeLaPrelecture.adopter`) ; une écriture du plugin ou un
+ * événement du document la lève.
  */
 import {
   controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
@@ -57,16 +63,17 @@ import { analyserLeComposant, type ResultatSansPublication } from 'ucm-plugin-so
 import { nomsDeLaPage } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
 import { extractRules, type ExtractedRules } from 'ucm-plugin-socle/src/composant/contract/extractRules';
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
-import { ouvrirLaMesure, fermerLaMesure, etape, compter, retenirLeMaximum, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
+import { ouvrirLaMesure, fermerLaMesure, etape, compter, retenirLeMaximum, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type Compteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation, type OptionsDeCooperation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
-import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
+import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary, type OptionsDeCatalogue } from '../catalogue';
 import type { NoeudLu } from '../consommateurs';
 import { constatsDuMoteur } from '../constatsDuMoteur';
 import { enregistrerLesImports, lireLesVariables } from '../lecture';
 import { sujetDe, type PortDuComposant } from '../lectureDuComposant';
 import { lireLaLibraryRangee } from '../ecriture/configuration';
 import { lireLesIgnores, separerLesIgnores } from '../ecriture/ignores';
+import type { PluginMessage } from '../messages';
 import type { NiveauDAccessibilite } from '../messages/configuration';
 import type { CauseDePeremption, DemandeDAnalyse, IntentionDAnalyse, StatutDAnalyse, PhaseDAnalyse, ProgressionDAnalyse } from '../messages/analyse';
 import type { IdentiteDAnalyse, OrigineDeSelection } from '../messages/commun';
@@ -112,6 +119,8 @@ interface AnalyseCourante {
   /** Vrai dès que le résultat final complet ou partiel a retenu ses corrections ; ni le provisoire, ni une fin annulée ou arrêtée n'y suffisent. */
   finalisee: boolean;
   perimee: boolean;
+  /** Vrai pour une prélecture que l'interface ne connaît pas : sa péremption ne lui est pas annoncée (`perimer`). */
+  silencieuse: boolean;
 }
 
 let generation = 0;
@@ -610,7 +619,7 @@ export function commencerUneAnalyse(sujet: string, noeuds: Iterable<string>, con
   const nonEcoutees = contexte.surveillerLeDocument(page) ?? [];
   const pages = new Set<string>();
   for (const candidate of [page, contexte.figma.currentPage]) if (typeof candidate?.id === 'string') pages.add(candidate.id);
-  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, couverture: avecLesPagesNonEcoutees(couverture, nonEcoutees), curseur, parents, pages, maitres: new Set(), corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false };
+  courante = { identite, noeuds: tous, admis: admis ? new Set(admis) : tous, couverture: avecLesPagesNonEcoutees(couverture, nonEcoutees), curseur, parents, pages, maitres: new Set(), corrections: new Map(), constats: new Map(), releve: null, catalogue: null, finalisee: false, perimee: false, silencieuse: false };
   return identite;
 }
 
@@ -746,7 +755,7 @@ function perimer(cause: CauseDePeremption, contexte: Contexte): void {
   if (!courante || courante.perimee) return;
   courante.perimee = true;
   if (operation?.connue && memeIdentite(operation.connue, courante.identite)) operation.cloreMesure?.('perimee');
-  contexte.envoyer({ type: 'perime', analyse: courante.identite, cause });
+  if (!courante.silencieuse) contexte.envoyer({ type: 'perime', analyse: courante.identite, cause });
 }
 
 /**
@@ -912,7 +921,7 @@ export interface Lecteurs {
    */
   bibliotheques?(contexte: Contexte, cooperation?: ContexteCooperatif): Promise<LectureDesLibraries>;
   /** `inventaires` est celui de la demande : les libraries et les variables locales s'y lisent une fois pour tous les lecteurs. */
-  catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance, inventaires?: InventairesDeLaDemande): Promise<CatalogueDeReference>;
+  catalogue(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance, inventaires?: InventairesDeLaDemande, options?: OptionsDeCatalogue): Promise<CatalogueDeReference>;
   moteur(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (phase: PhaseDAnalyse) => void, cooperation?: ContexteCooperatif, inventaires?: InventairesDeLaDemande): Promise<ResultatSansPublication>;
   /** Les règles d'usage du composant, lues avec les props, le modèle d'états et les imbriqués du moteur ; sans lecteur, aucun constat C43 ni C45. */
   regles?(sujet: SujetAAnalyser, interne: SurfaceDuMoteurRetenu, contexte: Contexte, inventaires?: InventairesDeLaDemande): Promise<ReleveDesRegles>;
@@ -988,7 +997,7 @@ function identifiantsParCle(releve: ReleveDeComposant): Map<string, string> {
  * le fichier. Avec `inventaires`, la lecture des libraries et celle des variables locales, quand une autre de la
  * demande les a faites, sont reprises.
  */
-export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance, inventaires?: InventairesDeLaDemande): Promise<CatalogueDeReference> {
+export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance, inventaires?: InventairesDeLaDemande, options: OptionsDeCatalogue = {}): Promise<CatalogueDeReference> {
   const { figma } = contexte;
   const liaisons = liaisonsParCle(releve);
   try {
@@ -1014,6 +1023,7 @@ export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDA
           return (await chargerLesValeurs(
             portDeLecture(figma), catalogue.catalogue, [...liaisons.keys(), ...tailles], identifiantsParCle(releve),
             (nom, n) => compter(nom === 'imports' ? 'catalogueImports' : 'catalogueParIdentifiant', n),
+            options,
           )).catalogue;
         }
       }
@@ -1024,7 +1034,10 @@ export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDA
   }
   const port = portDeLecture(figma);
   const locales = await (inventaires ? inventaires.variablesLocales(() => port.getLocalVariablesAsync()) : port.getLocalVariablesAsync());
-  const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => jeton.leve });
+  const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => jeton.leve }, {
+    sansImport: options.sansImport,
+    importEvite: () => options.importsEvites?.(1),
+  });
   const architecture = lireLaDeclaration(figma) === 'ucm' ? 'ucm' : 'libre';
   return catalogueDuFichier({ collections: [...(lues?.collections.values() ?? [])], variables: [...(lues?.variables.values() ?? [])] }, architecture);
 }
@@ -1422,7 +1435,23 @@ export const LECTEURS_DE_FIGMA: Lecteurs = {
   },
 };
 
+/**
+ * Ce qu'une prélecture (16.16) expose à la place d'opération : une analyse discrète, que l'interface ne connaît pas, qu'un clic
+ * peut prendre au premier plan (`adopter`) et qu'une écriture ou un événement du document annule.
+ */
+interface EtatDeLaPrelecture {
+  /** Vrai tant que l'interface ne reçoit rien de cette analyse. */
+  readonly discrete: boolean;
+  /** Vrai dès que le résultat est rendu ou que la demande n'a plus rien à faire : un clic ne la prend plus. */
+  readonly terminee: boolean;
+  /** Faux quand le catalogue lu sans import a évité un import : la demande ordinaire en lirait un autre, le clic la relance. */
+  adoptable(): boolean;
+  /** Passe l'analyse au budget normal et fait parler l'interface, au nom de la demande du clic. */
+  adopter(clic: Extract<DemandeDAnalyse, { type: 'analyser' }>): void;
+}
+
 interface Operation {
+  prelecture?: EtatDeLaPrelecture;
   progresser?: (phase: PhaseDAnalyse, fait?: number, total?: number) => void;
   demande?: number;
   cloreMesure?: (fin: string, contenu?: string) => TraceDeMesure | null;
@@ -1435,6 +1464,36 @@ interface Operation {
 }
 
 let operation: Operation | null = null;
+
+/** Le nombre d'analyses que le designer a lancées : une prélecture ne compte pas. */
+let analysesDuDesigner = 0;
+
+/** L'entrée de session qu'une prélecture a promue en dernier : le clic qui la trouve intacte compte `clicApresPrelecture:repris`. */
+let entreeDeLaPrelecture: EntreeDeSessionDAnalyse | null = null;
+
+/** Les compteurs de la prélecture, versés dans la trace de la première demande mesurée qui suit. */
+const bilanDeLaPrelecture = new Map<Compteur, number>();
+
+/**
+ * Ce qui tient la place d'opération : `prelecture` tant qu'une prélecture discrète court, `ecriture` pour une écriture du plugin,
+ * `analyse` pour toute autre analyse (une prélecture qu'un clic a prise au premier plan en est une), `null` sans opération.
+ */
+export function operationEnCours(): 'prelecture' | 'ecriture' | 'analyse' | null {
+  if (!operation) return null;
+  if (operation.prelecture?.discrete) return 'prelecture';
+  return operation.fini === undefined ? 'ecriture' : 'analyse';
+}
+
+/** Le nombre d'analyses lancées par le designer depuis l'ouverture : il change à chaque Analyser ou Actualiser servi. */
+export const analysesLanceesParLeDesigner = (): number => analysesDuDesigner;
+
+/** Lève le jeton de la prélecture discrète en cours, s'il y en a une ; rend vrai si elle courait. */
+export function annulerLaPrelecture(): boolean {
+  if (!operation?.prelecture?.discrete || operation.jeton.leve) return false;
+  operation.jeton.leve = true;
+  return true;
+}
+
 const mesuresEnvoyees = new Map<number, { reception: number; identite: IdentiteDAnalyse; envois: Partial<Record<import('../messages/analyse').RenduDAnalyse, number>> }>();
 
 const messageDErreur = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
@@ -1537,18 +1596,50 @@ export const reutilisationPermise = (demande: Extract<DemandeDAnalyse, { type: '
  */
 export const BUDGET_DE_CALCUL_DE_L_ANALYSE_MS = 50;
 
-async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract<DemandeDAnalyse, { type: 'analyser' }>, optionsDeCooperation: Omit<OptionsDeCooperation, 'jeton'>): Promise<void> {
+/**
+ * Le mode discret de la prélecture (16.16) : des tranches de 8 ms au plus, rendues au sandbox par une pause de 16 ms, pour que le
+ * fil reste libre plus de 60 % du temps pendant que le designer travaille. Un clic ramène l'analyse au budget normal.
+ */
+export const BUDGET_DISCRET_MS = 8;
+export const PAUSE_DISCRETE_MS = 16;
+
+/** Les réglages de l'analyse que les tests injectent : ceux de la coopération, et la pause du mode discret. */
+export type OptionsDeLAnalyse = Omit<OptionsDeCooperation, 'jeton'> & { readonly pauseDiscrete?: (ms: number) => Promise<void> };
+
+async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Extract<DemandeDAnalyse, { type: 'analyser' }>, optionsDeLAnalyse: OptionsDeLAnalyse): Promise<void> {
+  let demande = demandeRecue;
+  const { pauseDiscrete = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)), ...optionsDeCooperation } = optionsDeLAnalyse;
+  const enPrelecture = demande.origine === 'prelecture';
+  if (enPrelecture) {
+    // Une prélecture annulée finit sa lecture en cours avant de rendre la place : la suivante l'attend.
+    while (operation?.prelecture && operation.jeton.leve && operation.fini) await operation.fini;
+    // Elle ne prend jamais la place d'une opération, ne répond jamais `occupe`, et ne remplace pas l'analyse que l'interface affiche.
+    if (operation || (courante && !courante.perimee && !courante.silencieuse)) return;
+  } else if (operation?.prelecture?.discrete && operation.fini) {
+    // Un clic pendant une prélecture : il la prend au premier plan quand elle peut devenir l'analyse du clic ; sinon elle s'arrête
+    // et la demande du clic court seule.
+    const { prelecture: prise, fini } = operation;
+    if (!prise.terminee && !operation.jeton.leve && intentionDe(demande) === 'analyser' && demande.capturer !== true && prise.adoptable()) {
+      prise.adopter(demande);
+      await fini;
+      return;
+    }
+    operation.jeton.leve = true;
+    await fini;
+    return analyser(contexte, lecteurs, demande, optionsDeLAnalyse);
+  }
   // Une analyse déjà périmée ne sert plus à personne : sa suite annulée, la nouvelle demande est servie. Une opération non périmée,
   // et toute écriture, gardent la réponse `occupe`.
   if (operation?.fini && operation.connue && courante?.perimee && memeIdentite(operation.connue, courante.identite)) {
     operation.jeton.leve = true;
     await operation.fini;
-    return analyser(contexte, lecteurs, demande, optionsDeCooperation);
+    return analyser(contexte, lecteurs, demande, optionsDeLAnalyse);
   }
   if (operation) {
     contexte.envoyer({ type: 'occupe', analyse: await operation.identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}) });
     return;
   }
+  if (!enPrelecture) analysesDuDesigner += 1;
   // Les libraries lues à la sélection servent aussi à Actualiser : `lireLesLibrariesAuClic` relit la liste et ne reprend
   // la lecture anticipée que si elle est identique. Aucun résultat d'une demande précédente n'est repris.
   const reception = Date.now();
@@ -1558,13 +1649,24 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   operation = courant;
   let terminer!: () => void;
   courant.fini = new Promise<void>((resolve) => { terminer = resolve; });
+  // Une prélecture ne parle à l'interface qu'après qu'un clic l'a prise au premier plan, et ne prend le budget normal qu'alors.
+  let discrete = enPrelecture;
+  let terminee = false;
+  const emettre = (message: PluginMessage): void => { if (!discrete) contexte.envoyer(message); };
   // Un seul contexte par analyse : le relevé, le moteur et les contrôles se partagent son budget.
-  const cooperation = creerContexteCooperatif({
+  const normale = creerContexteCooperatif({
     respirer: () => new Promise((resolve) => setTimeout(resolve, 0)),
     budgetDeCalculMs: BUDGET_DE_CALCUL_DE_L_ANALYSE_MS,
     ...optionsDeCooperation,
     jeton: courant.jeton,
   });
+  const reservee = enPrelecture
+    ? creerContexteCooperatif({ ...optionsDeCooperation, respirer: () => pauseDiscrete(PAUSE_DISCRETE_MS), budgetDeCalculMs: BUDGET_DISCRET_MS, jeton: courant.jeton })
+    : null;
+  const actif = (): ContexteCooperatif => (discrete && reservee ? reservee : normale);
+  const cooperation: ContexteCooperatif = reservee
+    ? { verifier: () => actif().verifier(), cederSiBesoin: () => actif().cederSiBesoin(), doitCeder: () => actif().doitCeder(), restantMs: () => actif().restantMs() }
+    : normale;
   // Les inventaires de la demande : ils meurent avec elle, Actualiser et l'analyse suivante relisent.
   // Une seule mémoire de ressources par demande : le relevé, les dépendances et le moteur y lisent chaque variable, style et maître une fois.
   const portDeLaDemande = portDuComposant(contexte);
@@ -1581,9 +1683,19 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       propager: (erreur) => erreur instanceof AnalyseAnnulee,
     },
   });
-  if (demande.mesurer) ouvrirLaMesure();
+  const ouvrirLaTrace = (): void => {
+    ouvrirLaMesure();
+    // Les compteurs d'une prélecture passée n'avaient aucune trace où se poser : la première trace ouverte après elle les reçoit.
+    for (const [nom, n] of bilanDeLaPrelecture) compter(nom, n);
+    bilanDeLaPrelecture.clear();
+  };
+  if (demande.mesurer) ouvrirLaTrace();
   const importsEnregistres = enregistrerLesImports(demande.capturer === true);
   let mesureOuverte = demande.mesurer === true;
+  const noterLaPrelecture = (nom: Compteur): void => {
+    if (mesureOuverte) compter(nom);
+    else bilanDeLaPrelecture.set(nom, (bilanDeLaPrelecture.get(nom) ?? 0) + 1);
+  };
   let mesureClose: TraceDeMesure | null = null;
   courant.cloreMesure = (fin, contenu = '') => {
     if (!mesureOuverte) return mesureClose;
@@ -1601,9 +1713,10 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     const cle = JSON.stringify(progression);
     if (!identite || cle === dernierProgres) return;
     dernierProgres = cle;
-    contexte.envoyer({ type: 'analyse-en-cours', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), variantsLus: phase === 'releve' ? fait ?? 0 : 0, variantsTotal: phase === 'releve' ? total ?? 0 : 0, progression });
+    emettre({ type: 'analyse-en-cours', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), variantsLus: phase === 'releve' ? fait ?? 0 : 0, variantsTotal: phase === 'releve' ? total ?? 0 : 0, progression });
   };
-  const phase = (nom: PhaseDAnalyse): void => { etape(nom); courant.progresser?.(nom); };
+  let phaseCourante: PhaseDAnalyse = 'sujet';
+  const phase = (nom: PhaseDAnalyse): void => { phaseCourante = nom; etape(nom); courant.progresser?.(nom); };
   const lecturesRefusees: string[] = [];
   // Les lectures lancées avant d'être attendues : leur issue se range sans rejet, et l'analyse les reprend à leur place d'avant.
   const anticipees = new Set<Promise<unknown>>();
@@ -1616,9 +1729,13 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   let identite: IdentiteDAnalyse | null = null;
   let revision: RevisionDAnalyse | null = null;
   let catalogueLu: CatalogueDeReference | null = null;
+  let catalogueResolu = false;
+  let importsEvites = 0;
   let libraries: LibrariesEnAvance | undefined;
   let librariesEnCours = false;
   const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats): void => {
+    terminee = true;
+    if (statut === 'annulee' && discrete) noterLaPrelecture('prelecturesAnnulees');
     phase('projection');
     const sansTokens = (lu: ReleveDeComposant | null): boolean => {
       if (lu === null || catalogueLu === null) return false;
@@ -1641,9 +1758,38 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       envoyee.envois['resultat-final'] = Date.now();
       if (tous.length && envoyee.envois['premiers-constats'] === undefined) envoyee.envois['premiers-constats'] = Date.now();
     }
-    contexte.envoyer({ type: 'analyse', analyse: identite as IdentiteDAnalyse, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), statut, ...sortie, progression: { phase: 'projection', fraction: 1 }, ...(mesure ? { mesure } : {}) });
-    if (releve !== null) contexte.envoyer({ type: 'ignores', analyse: identite as IdentiteDAnalyse, constats: ecartes });
+    emettre({ type: 'analyse', analyse: identite as IdentiteDAnalyse, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), statut, ...sortie, progression: { phase: 'projection', fraction: 1 }, ...(mesure ? { mesure } : {}) });
+    if (releve !== null) emettre({ type: 'ignores', analyse: identite as IdentiteDAnalyse, constats: ecartes });
   };
+  if (enPrelecture) {
+    courant.prelecture = {
+      get discrete() { return discrete; },
+      get terminee() { return terminee; },
+      adoptable: () => !(catalogueResolu && importsEvites > 0),
+      adopter(clic) {
+        discrete = false;
+        demande = clic;
+        courant.demande = clic.demande;
+        analysesDuDesigner += 1;
+        if (courante && identite && memeIdentite(courante.identite, identite)) courante.silencieuse = false;
+        if (clic.mesurer) {
+          ouvrirLaTrace();
+          mesureOuverte = true;
+          etape(phaseCourante);
+        }
+        noterLaPrelecture('clicApresPrelecture:premierPlan');
+        if (!identite) return;
+        if (clic.mesurer && clic.demande !== undefined) {
+          mesuresEnvoyees.clear();
+          mesuresEnvoyees.set(clic.demande, { reception: Date.now(), identite, envois: { 'premier-affichage': Date.now() } });
+        }
+        emettre({ type: 'analyse-commencee', analyse: identite, ...(clic.demande !== undefined ? { demande: clic.demande } : {}), ...(clic.mesurer ? { mesure: true } : {}) });
+        // L'interface reçoit l'avancement actuel : le message de progression suit celui que l'ordinaire aurait déjà envoyé.
+        dernierProgres = '';
+        courant.progresser?.(progression.phase, progression.fait, progression.total);
+      },
+    };
+  }
   try {
     phase('sujet');
     // L'écoute de la page courante précède la première lecture du document : l'inventaire n'est connu qu'après le sujet.
@@ -1655,7 +1801,17 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     changementsEnAttente = { noeuds: [], styles: [] };
     contexte.surveillerLeDocument();
     const sujet = await attendrePourLaMesure(() => lecteurs.sujet(contexte).catch(() => null), 'attente', 'sujet');
+    // Une prélecture n'a rien à faire sans sujet, ou quand l'entrée du sujet se valide déjà : le clic la reprendra. Un clic arrivé
+    // pendant la lecture du sujet l'a prise au premier plan : elle court alors comme une analyse ordinaire.
+    if (discrete && (!sujet || etatDeLEntree(sujet.cle).etat === 'utilisable')) {
+      terminee = true;
+      connaitre({ sujet: sujet?.cle ?? '', generation });
+      return;
+    }
+    if (enPrelecture && discrete) noterLaPrelecture('prelecturesLancees');
+    if (!enPrelecture && sujet && entreeDeLaPrelecture !== null && session.entree(sujet.cle) === entreeDeLaPrelecture) noterLaPrelecture('clicApresPrelecture:repris');
     identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined, sujet?.couverture, curseur, sujet?.parents);
+    if (courante && memeIdentite(courante.identite, identite)) courante.silencieuse = discrete;
     courant.connue = identite;
     revision = ouvrirUneRevision(session, identite.sujet);
     connaitre(identite);
@@ -1663,7 +1819,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       mesuresEnvoyees.clear();
       mesuresEnvoyees.set(demande.demande, { reception, identite, envois: { 'premier-affichage': Date.now() } });
     }
-    contexte.envoyer({ type: 'analyse-commencee', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), ...(demande.mesurer ? { mesure: true } : {}) });
+    emettre({ type: 'analyse-commencee', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), ...(demande.mesurer ? { mesure: true } : {}) });
     // `perime` part après `analyse-commencee` : l'interface ignore le message d'une identité qu'elle n'a pas retenue.
     rejouerLesEvenementsRecus(contexte);
     courant.progresser('sujet');
@@ -1708,7 +1864,22 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     retenirLesLiaisons(liaisonsParCle(releve));
     const niveau = await attendrePourLaMesure(async () => await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => { lecturesRefusees.push('niveau'); return 'AA'; }) ?? 'AA');
     phase('catalogue');
-    const catalogueEnCours = attendrePourLaMesure(() => lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries, inventaires), 'attente', 'catalogue');
+    // Une prélecture lit le catalogue sans import par clé, qui abonnerait le fichier à la variable. Si cela a évité un import, ce
+    // catalogue n'est pas celui d'une demande ordinaire : la prélecture ne promeut rien, un clic ne la prend pas, et un clic
+    // arrivé pendant cette lecture la refait avec les imports.
+    const lireLeCatalogue = async (): Promise<CatalogueDeReference> => {
+      const sansImport = discrete;
+      const lu = await lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries, inventaires, sansImport ? { sansImport, importsEvites: (n) => { importsEvites += n; } } : undefined);
+      if (!sansImport || importsEvites === 0 || discrete) {
+        catalogueResolu = true;
+        return lu;
+      }
+      importsEvites = 0;
+      const complet = await lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries, inventaires);
+      catalogueResolu = true;
+      return complet;
+    };
+    const catalogueEnCours = attendrePourLaMesure(lireLeCatalogue, 'attente', 'catalogue');
     // Les imports du catalogue rendent lisible ce que le relevé a vu refusé : la mémoire fait attendre leur fin à toute lecture de
     // variable ou de collection qui n'a pas eu lieu, et le moteur, qui tourne pendant eux, les lit comme s'il les suivait.
     inventaires.ressources?.attendreLesImports(catalogueEnCours);
@@ -1791,7 +1962,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (jeton.leve) return rendre('annulee', [], null);
     const envoyee = demande.demande === undefined ? undefined : mesuresEnvoyees.get(demande.demande);
     if (envoyee && controles.length) envoyee.envois['premiers-constats'] = Date.now();
-    contexte.envoyer({
+    emettre({
       type: 'analyse-provisoire', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}),
       constats: controles, ignores: separerLesIgnores(controles, rangees).ignores, lecture: releve.lecture, variants: releve.variants.map(({ id, nom }) => ({ id, nom })),
     });
@@ -1836,14 +2007,19 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
     if (jeton.leve) return rendre('annulee', [], null);
     verifierLaGeneration(contexte);
     const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
-    const statutFinal: StatutDAnalyse = moteur.couverture.etat === 'partielle' || !lectureComplete ? 'partielle' : 'complete';
+    const statutFinal: StatutDAnalyse = moteur.couverture.etat === 'partielle' || !lectureComplete || (discrete && importsEvites > 0) ? 'partielle' : 'complete';
     // La promotion précède l'envoi du résultat : la trace qu'il porte se ferme à l'envoi et doit déjà compter ce que la session retient.
     if (revision) {
+      const entreeAvant = session.entree(identite.sujet);
       promouvoirLaRevision(revision, identite, statutFinal, { releve, catalogue, moteur, regles: reglesLues, dependances: dependances ?? null, niveau, architectureUcm, ignores: rangees, lecturesRefusees }, {
         ...Object.fromEntries(Object.entries(parFamille).map(([nom, resultat]) => [nom, { resultat, entrees: ENTREES_DES_REQUETES[nom as NomDeFamille] }])) as Record<NomDeFamille, RequeteRetenue<readonly Constat[], NomDEntree>>,
         corrections: { resultat: tous, entrees: ENTREES_DES_REQUETES.corrections },
         projection: { resultat: { visibles, ignores }, entrees: ENTREES_DES_REQUETES.projection },
       });
+      if (discrete && session.entree(identite.sujet) !== entreeAvant) {
+        noterLaPrelecture('prelecturesPromues');
+        entreeDeLaPrelecture = session.entree(identite.sujet);
+      }
       const retenu = session.mesure();
       retenirLeMaximum('sujetsRetenus', retenu.sujets);
       retenirLeMaximum('octetsRetenus', retenu.octets);
@@ -1872,9 +2048,11 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
       courant.jeton.leve = true;
       await Promise.all(anticipees);
     }
+    terminee = true;
     courant.cloreMesure?.('arretee');
     enregistrerLesImports(false);
-    operation = null;
+    // Une écriture a pu prendre la place d'une prélecture annulée : elle ne se libère pas ici.
+    if (operation === courant) operation = null;
     terminer();
   }
 }
@@ -1886,6 +2064,11 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
  * libération à appeler quand l'écriture finit.
  */
 export function prendreLaPlaceDUneEcriture(identite: IdentiteDAnalyse): { liberer(): void } | { occupe: Promise<IdentiteDAnalyse> } {
+  // Une prélecture n'a rien montré au designer : l'écriture passe avant elle, qui s'arrête sans la retenir.
+  if (operation?.prelecture?.discrete) {
+    operation.jeton.leve = true;
+    operation = null;
+  }
   if (operation) return { occupe: operation.identite };
   const prise: Operation = { identite: Promise.resolve(identite), connue: identite, jeton: { leve: false } };
   operation = prise;
@@ -1901,7 +2084,7 @@ function annuler(demande: Extract<DemandeDAnalyse, { type: 'annuler-analyse' }>)
 }
 
 /** Le traitement du domaine sur des lectures données. */
-export function traiterAvec(lecteurs: Lecteurs, optionsDeCooperation: Omit<OptionsDeCooperation, 'jeton'> = {}): Traiter<DemandeDAnalyse> {
+export function traiterAvec(lecteurs: Lecteurs, optionsDeCooperation: OptionsDeLAnalyse = {}): Traiter<DemandeDAnalyse> {
   return async (demande, contexte) => {
     switch (demande.type) {
       case 'analyser':
@@ -1931,6 +2114,8 @@ export const traiter = traiterAvec(LECTEURS_DE_FIGMA);
  */
 export function fermerLaSession(): void {
   if (operation) operation.jeton.leve = true;
+  entreeDeLaPrelecture = null;
+  bilanDeLaPrelecture.clear();
   courante = null;
   changementsEnAttente = null;
   journal = null;
@@ -1940,6 +2125,9 @@ export function fermerLaSession(): void {
 /** Pour les tests : oublie l'opération en cours et l'analyse courante. */
 export function reinitialiserLAnalyse(): void {
   operation = null;
+  entreeDeLaPrelecture = null;
+  bilanDeLaPrelecture.clear();
+  analysesDuDesigner = 0;
   courante = null;
   changementsEnAttente = null;
   journal = null;

@@ -294,6 +294,9 @@ export interface OptionsDeLecture {
   readonly membres?: boolean;
   /** Reçoit chaque variable de départ telle que Figma la rend, avant sa conversion. */
   readonly auDepart?: (id: string, variable: VariableFigma) => void;
+  /** Aucune cible d'alias ne s'importe par sa clé (prélecture) : elle reste manquante, et `importEvite` compte chaque import qui aurait eu lieu. */
+  readonly sansImport?: boolean;
+  readonly importEvite?: () => void;
 }
 
 /**
@@ -358,8 +361,12 @@ export async function lireLesVariables(port: PortDeLecture, departs: readonly st
     } catch (erreur) {
       refus = messageDErreur(erreur);
     }
-    if (importable) variable ??= await importer(id);
-    else if (variable) options.auDepart?.(id, variable);
+    if (importable) {
+      if (variable === null) {
+        if (options.sansImport && cleDeBibliotheque(id) !== null) options.importEvite?.();
+        else variable = await importer(id);
+      }
+    } else if (variable) options.auDepart?.(id, variable);
     if (!variable) {
       manquees.set(id, { id, genre: 'variable', issue: refus === null ? 'introuvable' : 'refusee', message: refus ?? '', ...(depuis ? { depuis } : {}) });
       return;

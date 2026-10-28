@@ -61,6 +61,15 @@ export type Compteur =
   | `nonRepriseDuReleve:${string}`
   | 'msValidationDuReleve'
   | 'prelecturesDuReleve'
+  /**
+   * La prélecture à la sélection (16.16), comptée dans la trace de la première demande mesurée qui la suit : lancée, annulée avant sa fin,
+   * promue en session. `clicApresPrelecture:repris` : le clic a trouvé l'entrée qu'une prélecture a promue ; `:premierPlan` : le clic est
+   * arrivé pendant la prélecture, qui a pris le premier plan.
+   */
+  | 'prelecturesLancees'
+  | 'prelecturesAnnulees'
+  | 'prelecturesPromues'
+  | `clicApresPrelecture:${'repris' | 'premierPlan'}`
   | 'sujetsRetenus'
   | 'octetsRetenus'
   | 'aretesRetenues'
