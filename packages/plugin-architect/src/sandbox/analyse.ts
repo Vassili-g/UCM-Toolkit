@@ -37,7 +37,7 @@
  */
 import {
   controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
-  type CatalogueDeReference, type Constat, type Correction, type ReleveDeComposant,
+  type CatalogueDeReference, type Constat, type Correction, type LiaisonLue, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { acquis, doitEtreRelue, type Couverture, type FaitDeRessource, type MaitreLu } from 'ucm-plugin-socle/src/composant/analyse/faits';
@@ -961,6 +961,21 @@ function liaisonsParCle(releve: ReleveDeComposant): Map<string, number> {
   return comptes;
 }
 
+/** L'identifiant de chaque clé de variable liée, quand le relevé le porte : la valeur se lit par lui, sans import. */
+function identifiantsParCle(releve: ReleveDeComposant): Map<string, string> {
+  const ids = new Map<string, string>();
+  const noter = (liaisons: readonly LiaisonLue[]) => {
+    for (const { variable, illisible } of liaisons) if (!illisible && variable.cle !== '' && variable.id !== '' && !ids.has(variable.cle)) ids.set(variable.cle, variable.id);
+  };
+  for (const variant of releve.variants) {
+    for (const layer of variant.layers) {
+      noter(layer.liaisons);
+      for (const plage of layer.texte?.plages ?? []) noter(plage.liaisons);
+    }
+  }
+  return ids;
+}
+
 /**
  * Le catalogue de référence : la library choisie, sinon les variables du fichier. Avec `libraries`, la lecture des
  * libraries est déjà lancée : la fonction attend son issue au lieu de la relancer, et une erreur y garde le repli sur
@@ -990,7 +1005,10 @@ export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDA
         if (catalogue.etat === 'lu') {
           // C29 compare les valeurs en dur aux tokens de taille du composant : on charge celles-là, et chargerLesValeurs suit leurs alias.
           const tailles = mesurerSousCompteur('msTokensDeTailleCatalogue', () => clesDesTokensDeTailleAttendus(releve, catalogue.catalogue));
-          return (await chargerLesValeurs(portDeLecture(figma), catalogue.catalogue, [...liaisons.keys(), ...tailles])).catalogue;
+          return (await chargerLesValeurs(
+            portDeLecture(figma), catalogue.catalogue, [...liaisons.keys(), ...tailles], identifiantsParCle(releve),
+            (nom, n) => compter(nom === 'imports' ? 'catalogueImports' : 'catalogueParIdentifiant', n),
+          )).catalogue;
         }
       }
     }

@@ -16,7 +16,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 ## src/
 - code.ts : aiguillage des demandes de l'interface vers les domaines de `sandbox/` ; ouverture, déclaration UCM, sélection et panneau périmé
 - lecture.ts : collections et variables locales, cibles d'alias lues par identifiant, huit à la fois (`limiteur.ts` du socle), importées par leur clé quand Figma ne les rend pas
-- catalogue.ts : catalogue de référence du mode Composant : library lue par noms, valeurs importées à la demande par clé (avec leurs cibles d'alias et les modes de leurs collections), variables du fichier
+- catalogue.ts : catalogue de référence du mode Composant : library lue par noms, valeurs lues par identifiant quand le relevé le donne, sinon importées par clé (avec leurs cibles d'alias et les modes de leurs collections), variables du fichier
 - modele.ts : relevé sérialisable : collections, modes, extensions, valeurs typées, lectures manquées
 - groupes.ts : arbre des groupes, des seuls segments `/` des noms Figma
 - indexation.ts : index d'identité, familles de collections et références inverses par mode

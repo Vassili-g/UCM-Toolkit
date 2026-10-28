@@ -90,18 +90,25 @@ export async function chargerLesValeurs(
   port: Parameters<typeof importerLesValeurs>[0] & Partial<Pick<PortDeLecture, 'getVariableCollectionByIdAsync' | 'getVariableByIdAsync'>>,
   catalogue: CatalogueDeReference,
   cles: readonly string[],
+  idsDesCles?: ReadonlyMap<string, string>,
+  compter?: (nom: 'parIdentifiant' | 'imports', n: number) => void,
 ): Promise<{ catalogue: CatalogueDeReference; motifs: Readonly<Record<string, string>> }> {
   const nonChargees = new Set(catalogue.variables.filter((v) => v.etat === 'non-chargee').map((v) => v.cle));
   const connues = new Set(catalogue.variables.map((v) => v.cle));
   const importees: Record<string, ValeurDeLibrary> = {};
   /** Les cibles hors du catalogue, par clé : leur identifiant d'abord, pour les lire sans import. */
   const dehors = new Map<string, string>();
+  /** Les identifiants connus des clés du catalogue, complétés par ceux des cibles d'alias ; absente, tout s'importe par clé. */
+  const parId = idsDesCles ? new Map(idsDesCles) : undefined;
   const horsCatalogue: Record<string, ValeurDeLibrary> = {};
   let attendues = new Set(cles.filter((cle) => nonChargees.has(cle)));
   for (let tour = 0; tour < PROFONDEUR_D_ALIAS && attendues.size > 0; tour += 1) {
     const lot = [...attendues].filter((cle) => !(cle in importees) && !(cle in horsCatalogue));
     const internes = lot.filter((cle) => nonChargees.has(cle));
-    Object.assign(importees, await importerLesValeurs(port, internes));
+    const { lues, restantes } = await lireParIdentifiant(port, internes, parId);
+    compter?.('parIdentifiant', Object.keys(lues).length);
+    compter?.('imports', restantes.length);
+    Object.assign(importees, lues, await importerLesValeurs(port, restantes));
     Object.assign(horsCatalogue, await lireHorsCatalogue(port, lot.filter((cle) => !nonChargees.has(cle)), dehors));
     attendues = new Set();
     for (const cle of lot) {
@@ -111,7 +118,10 @@ export async function chargerLesValeurs(
         if (valeur.nature !== 'alias') continue;
         const cible = cleDeBibliotheque(valeur.cible) ?? valeur.cible;
         if (cible in importees || cible in horsCatalogue) continue;
-        if (nonChargees.has(cible)) attendues.add(cible);
+        if (nonChargees.has(cible)) {
+          parId?.set(cible, valeur.cible);
+          attendues.add(cible);
+        }
         else if (!connues.has(cible)) {
           dehors.set(cible, valeur.cible);
           attendues.add(cible);
@@ -165,16 +175,46 @@ async function lireHorsCatalogue(
   cles: readonly string[],
   identifiants: ReadonlyMap<string, string>,
 ): Promise<Record<string, ValeurDeLibrary>> {
-  const rendues: Record<string, ValeurDeLibrary> = {};
-  const parCle: string[] = [];
-  for (const cle of cles) {
+  const { resultats } = await executerAuPlus(cles, async (cle) => {
     const id = identifiants.get(cle);
     const lue = id && port.getVariableByIdAsync ? await port.getVariableByIdAsync(id).catch(() => null) : null;
-    const convertie = lue ? convertirVariable(lue) : null;
+    return lue ? convertirVariable(lue) : null;
+  });
+  const rendues: Record<string, ValeurDeLibrary> = {};
+  const parCle: string[] = [];
+  cles.forEach((cle, rang) => {
+    const convertie = resultats[rang];
     if (convertie) rendues[cle] = convertie;
     else parCle.push(cle);
-  }
+  });
   return { ...rendues, ...(await importerLesValeurs(port, parCle)) };
+}
+
+/**
+ * Lit par leur identifiant les clés dont `identifiants` donne un, quand le port le permet. Une lecture n'est acceptée que si
+ * la variable existe, porte la clé demandée et se convertit ; les autres clés sont rendues pour l'import par clé.
+ */
+async function lireParIdentifiant(
+  port: Partial<Pick<PortDeLecture, 'getVariableByIdAsync'>>,
+  cles: readonly string[],
+  identifiants: ReadonlyMap<string, string> | undefined,
+): Promise<{ lues: Record<string, ValeurDeLibrary>; restantes: string[] }> {
+  const lire = port.getVariableByIdAsync;
+  if (!identifiants || !lire) return { lues: {}, restantes: [...cles] };
+  const { resultats } = await executerAuPlus(cles, async (cle) => {
+    const id = identifiants.get(cle);
+    if (id === undefined) return null;
+    const lue = await lire.call(port, id).catch(() => null);
+    return lue && lue.key === cle ? convertirVariable(lue) : null;
+  });
+  const lues: Record<string, ValeurDeLibrary> = {};
+  const restantes: string[] = [];
+  cles.forEach((cle, rang) => {
+    const convertie = resultats[rang];
+    if (convertie) lues[cle] = convertie;
+    else restantes.push(cle);
+  });
+  return { lues, restantes };
 }
 
 /** Les modes des collections dont on connaît l'identifiant, par clé de collection du catalogue. Une collection illisible n'en rend pas. */

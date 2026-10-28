@@ -41,6 +41,8 @@ export type Compteur =
   | 'plusLongueTrancheArchitectMs'
   | 'tailleSortieArchitect'
   | 'variablesDuCatalogue'
+  | 'catalogueParIdentifiant'
+  | 'catalogueImports'
   | 'tokensDuComposant'
   | 'requetesNonRejouees'
   | 'requetesRejouees'

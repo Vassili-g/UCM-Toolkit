@@ -89,7 +89,7 @@ chevron replie l'arbre sans changer la table.
 | Modes d'un calque | `resolvedVariableModes`, `explicitVariableModes` | Les modes par défaut d'équipe ne sont pas exposés |
 | Valeur selon Figma | `resolveForConsumer` sur un calque existant | Aucune chaîne, la valeur seule |
 | Library d'un fichier sans variable locale | Noms par `figma.teamLibrary`, valeurs d'un groupe par `importVariableByKeyAsync` à son ouverture, par lots de huit | Modes sans nom avant l'import ; `LIMITE_PAR_GROUPE` variables importées par groupe |
-| Catalogue de référence d'une analyse | `theme`, `layout` et `components` de la library choisie : noms d'abord, valeurs importées à la demande des contrôles | Une entrée est présente, absente, non chargée ou inaccessible |
+| Catalogue de référence d'une analyse | `theme`, `layout` et `components` de la library choisie : noms d'abord ; valeurs lues par l'identifiant que porte une liaison du relevé quand `getVariableByIdAsync` rend la variable de la même clé, importées par clé sinon | Une entrée est présente, absente, non chargée ou inaccessible ; un identifiant refusé ou d'une autre clé retombe sur l'import |
 
 Une cible que ni la lecture ni l'import ne rendent reste « introuvable » ;
 elle reste « refusée », avec son message, quand la lecture a levé. Ni l'une
