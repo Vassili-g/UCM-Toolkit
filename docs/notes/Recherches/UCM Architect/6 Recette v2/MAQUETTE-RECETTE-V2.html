@@ -650,7 +650,7 @@ const LEGENDES = {
   ],
   'c-7f': [
     ['.bloc-constat:nth-of-type(1) .bloc-phrase', 'Sur la page, Palettes garantit le contraste de page/border : un échec est À corriger.'],
-    ['.bloc-constat:nth-of-type(2) .meta', 'Sur une carte, Palettes ne garantit rien pour cette variable : À vérifier, et la carte le dit.'],
+    ['.bloc-constat:nth-of-type(2) .meta', 'Sur une carte, Palettes ne garantit rien pour cette variable aujourd’hui : À vérifier. Après le chantier de Palettes, page/border est garanti aussi sur la carte : À corriger.'],
     ['.section-infos .bande-element', 'La section Informations, en dernier. Signe gris de la note. Elle arrive repliée ; ouverte ici.'],
     ['.section-infos .info-ligne:nth-of-type(2)', 'Une ligne, pas une carte : ni liseré, ni sévérité. Elle ne compte pas dans les constats.'],
   ],
@@ -811,8 +811,8 @@ cadre('c-7e', panneauButton(({ carte, section }) => section('Accessibilité', 2,
   carte('info', { phrase: `Le stroke de ${chv('Variant=Outlined')} est posé sur un fond que le plugin ne détermine pas. Le contraste n’a pas été mesuré.`, meta: ['<span class="constat-lieu">72 variants</span>'] }),
 ].join(''))));
 cadre('c-7f', panneauButton(({ carte, section, informations }) => section('Accessibilité', 2, [
-  carte('corriger', { phrase: `Sur la page, ${chm('elevation/page')}, le stroke a un contraste de 2,4:1 en Dark, sous le seuil de 3:1.`, meta: [`<span class="lieu-pv"><span class="pv-compte">72 variants</span>${pvE([['Variant', 'Outlined']])}</span>`, `UCM Palettes garantit ce contraste pour ${chm('page/border')}.`, 'Vérifiez la palette dans UCM Palettes, ou le token lié'], selection: 'oui' }),
-  carte('verifier', { phrase: `Sur une carte, ${chm('elevation/raised')}, le stroke a un contraste de 2,7:1 en Dark, sous le seuil de 3:1.`, meta: [`<span class="lieu-pv"><span class="pv-compte">72 variants</span>${pvE([['Variant', 'Outlined']])}</span>`, 'UCM Palettes ne garantit pas ce contraste sur une carte.', 'Vérifiez si Button se pose sur une carte'], selection: 'oui' }),
+  carte('corriger', { phrase: `Sur la page, ${chm('elevation/page')}, le stroke a un contraste de 2,7:1 en Dark, sous le seuil de 3:1.`, meta: [`<span class="lieu-pv"><span class="pv-compte">72 variants</span>${pvE([['Variant', 'Outlined']])}</span>`, `UCM Palettes garantit ce contraste pour ${chm('page/border')}.`, 'Vérifiez la palette dans UCM Palettes, ou le token lié'], selection: 'oui' }),
+  carte('verifier', { phrase: `Sur une carte, ${chm('elevation/raised')}, le stroke a un contraste de 2,4:1 en Dark, sous le seuil de 3:1.`, meta: [`<span class="lieu-pv"><span class="pv-compte">72 variants</span>${pvE([['Variant', 'Outlined']])}</span>`, 'UCM Palettes ne garantit pas ce contraste sur une carte.', 'Vérifiez si Button se pose sur une carte'], selection: 'oui' }),
 ].join('')) + informations([
   `<span>Contraste non mesuré sur ${pvE([['State', 'Disabled']])}, que WCAG exempte.</span><span class="info-lieu">18 variants</span>`,
   `<span>Contraste non mesuré : le fill de ${chm('icon')} est un dégradé.</span><span class="info-lieu">12 variants</span>`,

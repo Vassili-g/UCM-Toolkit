@@ -565,9 +565,11 @@ Ce qui y va : tous les constats de type `info` du kit.
 | C49, C50 avec une limite | Contraste non mesuré, avec sa cause : texte sur une image, fond en dégradé, valeur non lue |
 | C49 borne | Nombre de paires non mesurées |
 
-C67, l'icône pilotée par une property que le composant ne déclare pas, est
-de type `info` mais demande un geste : ajouter la property. Il devient une
-carte À corriger.
+C67 a deux formes. Le C67 « propriété absente », l'icône pilotée par une
+propriété que le composant ne déclare pas, est aujourd'hui À vérifier et
+demande un geste : ajouter la propriété. Il devient À corriger. Ses deux
+limites, une icône pilotée par aucune propriété et des icônes permises
+illisibles, sont de type `info` : elles vont dans la section Informations.
 
 L'alerte Information disparaît alors des cartes d'Architect : un constat est
 À corriger, À vérifier ou Bloquant. CONTRIBUTING.md reçoit l'exception : dans
@@ -675,15 +677,21 @@ Il n'y a donc pas de constat dur sur un usage que Palettes ne promet pas. La
 garantie est lue dans le kit, la même source que Palettes : une garantie
 ajoutée à Palettes change la sévérité d'Architect sans autre lot.
 
-Textes proposés (cadre 7f) :
+Textes proposés (cadre 7f). En Dark, la carte est le fond le plus exigeant :
+le même stroke y a un contraste plus bas que sur la page.
 
 > **À corriger** Sur la page, `elevation/page`, le stroke a un contraste de
-> 2,4:1 en Dark, sous le seuil de 3:1. UCM Palettes garantit ce contraste pour
+> 2,7:1 en Dark, sous le seuil de 3:1. UCM Palettes garantit ce contraste pour
 > `page/border`. Vérifiez la palette dans UCM Palettes, ou le token lié.
 
 > **À vérifier** Sur une carte, `elevation/raised`, le stroke a un contraste de
-> 2,7:1 en Dark, sous le seuil de 3:1. UCM Palettes ne garantit pas ce
+> 2,4:1 en Dark, sous le seuil de 3:1. UCM Palettes ne garantit pas ce
 > contraste sur une carte. Vérifiez si Button se pose sur une carte.
+
+Ce second texte vaut avant le chantier de Palettes (section 10). Ensuite,
+`page/border` est garanti aussi sur la carte, et l'échec devient À corriger.
+À vérifier reste pour une variable sans garantie, comme `page/divider`, et
+pour le fond de la page Figma.
 
 #### Une question pour Palettes
 
