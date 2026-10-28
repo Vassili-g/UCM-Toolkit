@@ -19,6 +19,7 @@ import * as ignores from './ignores';
 import * as nomenclature from './nomenclature';
 import * as preparation from './preparation';
 import * as questions from './questions';
+import * as rapport from './rapport';
 import * as recherche from './recherche';
 import * as regles from './regles';
 import * as structure from './structure';
@@ -30,7 +31,7 @@ export interface DomaineDuSandbox {
 
 export const DOMAINES: Readonly<Record<Domaine, DomaineDuSandbox>> = {
   commun, arbre, recherche, fiche, bibliotheque, nomenclature, structure, composant,
-  analyse, corrections, questions, ignores, accessibilite, regles, preparation, configuration,
+  analyse, corrections, questions, ignores, accessibilite, regles, preparation, configuration, rapport,
 };
 
 /** Chaque `type` de demande et le domaine qui le traite ; un `type` partagé par deux domaines est refusé à la construction. */

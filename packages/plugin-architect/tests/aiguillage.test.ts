@@ -21,7 +21,7 @@ const UNIONS: Readonly<Record<string, string>> = {
   commun: 'DemandeDeCommun', arbre: 'DemandeDArbre', recherche: 'DemandeDeRecherche', fiche: 'DemandeDeFiche', bibliotheque: 'DemandeDeBibliotheque',
   nomenclature: 'DemandeDeNomenclature', structure: 'DemandeDeStructure', composant: 'DemandeDeComposant', analyse: 'DemandeDAnalyse',
   corrections: 'DemandeDeCorrections', questions: 'DemandeDeQuestions', ignores: 'DemandeDIgnores', accessibilite: 'DemandeDAccessibilite',
-  regles: 'DemandeDeRegles', preparation: 'DemandeDePreparation', configuration: 'DemandeDeConfiguration',
+  regles: 'DemandeDeRegles', preparation: 'DemandeDePreparation', configuration: 'DemandeDeConfiguration', rapport: 'DemandeDeRapport',
 };
 
 function contexteDeTest(): { contexte: Contexte; envoyes: PluginMessage[]; abonnements: number[] } {

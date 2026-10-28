@@ -25,8 +25,10 @@ import { elementDuConstat, elementsDuPanneau, sansLesBloquants, type ElementDuPa
 import { creerEnTeteDesBloquants, creerSection, creerSectionTenue, creerSommaire } from '../panneau/rendu';
 import { monterLesQuestions } from '../questions';
 import { TEXTES } from '../textes';
+import { telecharger } from '../telechargement';
 import type { VueComposant } from '../vues/composant';
 import { estHorsUcm } from '../vues/horsUcm';
+import { contenuDuRapport, nomDuRapport } from './rapport';
 
 const T = TEXTES.panneauDesConstats;
 const P = TEXTES.panneau;
@@ -64,7 +66,13 @@ function bouton(libelle: string, onClick: () => void): HTMLElement {
 const correctionsDe = (element: Pick<ElementDuPanneau, 'corrections'> & { readonly preparee?: CarteDeCorrections | null }): readonly CarteDeCorrections[] =>
   [...(element.preparee ? [element.preparee] : []), ...element.corrections];
 
-export function monterLePanneau(app: Application, vue: VueComposant): PanneauDesConstats {
+/** Ce que les tests remplacent : le téléchargement et l'horloge. */
+export interface OptionsDuPanneau {
+  readonly telecharger?: typeof telecharger;
+  readonly maintenant?: () => Date;
+}
+
+export function monterLePanneau(app: Application, vue: VueComposant, options: OptionsDuPanneau = {}): PanneauDesConstats {
   const { etat } = app;
   const colonne = document.createElement('div');
   colonne.className = 'container';
@@ -79,6 +87,8 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
   /** Les sections que le designer a ouvertes ou fermées, pour le sujet `sujetDesChoix`. */
   const choixDeSections = new Map<IdDElement, boolean>();
   let sujetDesChoix = '';
+  /** Le rapport : au repos, en préparation chez le sandbox, ou échoué. */
+  let etatDuRapport: 'repos' | 'prepare' | 'echoue' = 'repos';
 
   /** Quand le designer coche ou décoche, la vue Composant montre les liaisons à venir. */
   const corrections = monterLesCorrections({
@@ -180,6 +190,7 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     if (sujet !== sujetDesChoix) {
       sujetDesChoix = sujet;
       choixDeSections.clear();
+      etatDuRapport = 'repos';
     }
     const contexte = contexteDe(lecture, analyse);
     const preparee = analyse.liaisons === null ? null : carteDesLiaisonsPreparees(analyse.liaisons, analyse.appliquees, contexte);
@@ -213,6 +224,46 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
       ...(element.sansTokens ? [aFaire.carteSansTokens()] : []),
       ...aFaire.cartes(element.aFaire),
     ];
+  }
+
+  /** Le lien discret sous la liste, quand une analyse rendue porte des constats. */
+  function pied(analyse: AnalyseRecue): HTMLElement {
+    const hote = document.createElement('div');
+    hote.className = 'pied-rapport';
+    const lien = document.createElement('button');
+    lien.type = 'button';
+    lien.className = 'lien-rapport';
+    const enCours = etatDuRapport === 'prepare';
+    lien.textContent = enCours ? T.rapportEnCours : T.rapport;
+    lien.disabled = enCours;
+    if (!enCours) lien.title = T.rapportInfobulle;
+    lien.addEventListener('click', () => preparerLeRapport(analyse));
+    hote.append(lien);
+    if (etatDuRapport === 'echoue') {
+      const note = document.createElement('span');
+      note.className = 'note-rapport';
+      note.textContent = T.rapportEchoue;
+      hote.append(note);
+    }
+    return hote;
+  }
+
+  function preparerLeRapport(analyse: AnalyseRecue): void {
+    if (etatDuRapport === 'prepare') return;
+    etatDuRapport = 'prepare';
+    dessiner();
+    app.preparerLeRapport(analyse.identite.sujet, (capture) => {
+      try {
+        if (capture === null) throw new Error('rapport illisible');
+        const date = (options.maintenant ?? (() => new Date()))();
+        const nom = etat.composant.lecture?.sujet.nom ?? analyse.identite.sujet;
+        (options.telecharger ?? telecharger)(nomDuRapport(nom, date), contenuDuRapport({ id: analyse.identite.sujet, nom }, analyse, capture, date), 'application/json');
+        etatDuRapport = 'repos';
+      } catch {
+        etatDuRapport = 'echoue';
+      }
+      dessiner();
+    });
   }
 
   function dessiner(): void {
@@ -254,7 +305,7 @@ export function monterLePanneau(app: Application, vue: VueComposant): PanneauDes
     const ignoresMontres = tout ? ignores : ignores.filter((constat) => elementDuConstat(constat) === choisi);
     const visible = tout ? null : { cartes: montres.flatMap(correctionsDe), element: TEXTES.elementsDuPanneau.libelles[choisi] };
     sommaireHote.replaceChildren(...(panneau.elements.length > 0 ? [creerSommaire(panneau.elements, choisi, choisir)] : []));
-    listeHote.replaceChildren(...enTete, ...sections, ...tenus, ...aFaire.ignores(ignoresMontres), ...(cartes.length > 0 && !provisoire ? [corrections.pied(visible)] : []));
+    listeHote.replaceChildren(...enTete, ...sections, ...tenus, ...aFaire.ignores(ignoresMontres), ...(cartes.length > 0 && !provisoire ? [corrections.pied(visible)] : []), ...(!provisoire && analyse.constats.length > 0 ? [pied(analyse)] : []));
   }
 
   /** Le sommaire et la liste d'une analyse rendue. */

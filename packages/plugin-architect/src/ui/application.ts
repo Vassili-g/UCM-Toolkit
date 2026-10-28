@@ -9,6 +9,7 @@ import type { Preferences } from '../preferences';
 import { contexteDeColonne, type Resultat } from '../resolution';
 import type { IntentionDAnalyse } from '../messages/analyse';
 import type { Constat } from '../messages/commun';
+import type { MessageDeRapport } from '../messages/rapport';
 import { analyseApplicable, calculEnCours, noterLEnvoi, noterLaDemandeDAnalyse, demandeDAnalyseEnCours } from './composant/analyse';
 import type { Etat, Filtres } from './etat';
 import { PREFIXE_TERME, retenirLesFormes } from './recherche/requete';
@@ -94,6 +95,10 @@ export interface Application {
   ignorer(constat: Constat): void;
   /** Rend ce constat à À faire dans Figma. */
   nePlusIgnorer(constat: Constat): void;
+  /** Demande la description du composant analysé ; `auRetour` reçoit sa capture en JSON, ou `null` quand le sandbox n'a pu la lire. Une demande plus récente remplace celle-ci, dont la réponse est ignorée. */
+  preparerLeRapport(sujet: string, auRetour: (capture: string | null) => void): void;
+  /** La réponse du sandbox à `preparerLeRapport`. */
+  recevoirLeRapport(message: MessageDeRapport): void;
   /** Ouvre ou ferme le panneau des constats ; la fenêtre prend la taille du mode sans le ranger. */
   basculerLePanneau(): void;
   /** Donne sa largeur à la vue Composant quand la frontière se tire ; la fenêtre ne change pas. */
@@ -116,6 +121,7 @@ export interface Branchements {
 
 export function creerApplication(etat: Etat, branchements: () => Branchements): Application {
   let compteur = 0;
+  let rapportAttendu: { readonly demande: number; readonly auRetour: (capture: string | null) => void } | null = null;
   const toutes: readonly Zone[] = ['barre', 'arbre', 'table', 'fiche', 'vue', 'pied'];
 
   const app: Application = {
@@ -266,6 +272,17 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     nePlusIgnorer(constat) {
       const { analyse } = etat;
       if (analyse && analyseApplicable(analyse)) versSandbox({ type: 'ne-plus-ignorer', analyse: analyse.identite, constat: constat.id });
+    },
+    preparerLeRapport(sujet, auRetour) {
+      const demande = app.nouvelleDemande();
+      rapportAttendu = { demande, auRetour };
+      versSandbox({ type: 'preparer-le-rapport', demande, sujet });
+    },
+    recevoirLeRapport(message) {
+      if (rapportAttendu === null || rapportAttendu.demande !== message.demande) return;
+      const { auRetour } = rapportAttendu;
+      rapportAttendu = null;
+      auRetour(message.type === 'rapport-pret' ? message.capture : null);
     },
     basculerLePanneau() {
       etat.panneau = { ...etat.panneau, ouvert: !etat.panneau.ouvert };

@@ -118,3 +118,37 @@
   width: 14px;
   height: 14px;
 }
+
+/* Le lien du rapport, sous la liste des constats : rang 3, ni surface ni bouton plein. */
+.pied-rapport {
+  margin-top: var(--espace-bloc);
+  color: var(--texte-second);
+  font-size: 11.5px;
+}
+
+.lien-rapport {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.lien-rapport:hover {
+  text-decoration: underline;
+}
+
+.lien-rapport:focus-visible {
+  outline: 2px solid var(--bordure-marque);
+  outline-offset: 2px;
+}
+
+.lien-rapport:disabled {
+  cursor: default;
+  text-decoration: none;
+}
+
+.note-rapport {
+  margin-left: 8px;
+}

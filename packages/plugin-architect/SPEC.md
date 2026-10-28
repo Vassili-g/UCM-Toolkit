@@ -372,6 +372,14 @@ mode, contre le seuil du niveau AA ou AAA de la Configuration. Le rapport
 s'affiche sans arrondi. Un fond ou une peinture que le plugin ne sait pas
 lire donne une limite, jamais un verdict.
 
+Sous la liste des constats d'une analyse rendue qui en porte, un lien discret
+télécharge le rapport d'analyse : un JSON local, `ucm-architect-rapport-<composant>-<date>.json`,
+qui réunit les constats (ignorés compris), la durée et l'heure de l'analyse et
+la capture du composant (`capturerLeComposant`, sans les imports de library),
+de quoi rejouer l'analyse hors de Figma. Rien ne part du poste, mais le fichier
+contient des noms et des valeurs du document : le designer le joint lui-même
+à un signalement. Le sandbox le lit sans rien écrire (`preparer-le-rapport`).
+
 ## Préparation
 
 Une préparation propose les variables `components` qu'un composant devrait

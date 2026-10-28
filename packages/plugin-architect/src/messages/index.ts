@@ -20,6 +20,7 @@ import type { DemandeDeNomenclature, MessageDeNomenclature } from './nomenclatur
 import type { DemandeDePreparation, MessageDePreparation } from './preparation';
 import type { DemandeDeQuestions, MessageDeQuestions } from './questions';
 import type { DemandeDeRecherche, MessageDeRecherche } from './recherche';
+import type { DemandeDeRapport, MessageDeRapport } from './rapport';
 import type { DemandeDeRegles, MessageDeRegles } from './regles';
 import type { DemandeDeStructure, MessageDeStructure } from './structure';
 
@@ -43,6 +44,7 @@ export interface DemandesParDomaine {
   regles: DemandeDeRegles;
   preparation: DemandeDePreparation;
   configuration: DemandeDeConfiguration;
+  rapport: DemandeDeRapport;
 }
 
 /** Les messages de chaque domaine, par identifiant de domaine. */
@@ -63,6 +65,7 @@ export interface MessagesParDomaine {
   regles: MessageDeRegles;
   preparation: MessageDePreparation;
   configuration: MessageDeConfiguration;
+  rapport: MessageDeRapport;
 }
 
 export type Domaine = keyof DemandesParDomaine;

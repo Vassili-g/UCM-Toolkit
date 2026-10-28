@@ -401,6 +401,10 @@ function recevoir(message: PluginMessage): void {
     case 'structure-annulee':
       nomenclature.recevoirConfiguration(message);
       return;
+    case 'rapport-pret':
+    case 'rapport-echoue':
+      app.recevoirLeRapport(message);
+      return;
     case 'non-construit':
       return;
     case 'composant':
