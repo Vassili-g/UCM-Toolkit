@@ -187,6 +187,18 @@ test('chaque ligne du tableau des valeurs sans token : peintures, rayons, épais
   ]);
 });
 
+test('un gap Auto garde son itemSpacing sans effet : la vue n’en fait pas une valeur sans token', async () => {
+  const a = atelierDeCalques();
+  const rangee = { layoutMode: 'HORIZONTAL', itemSpacing: 10 };
+  const auto = a.calque('auto', 'FRAME', { ...rangee, primaryAxisAlignItems: 'SPACE_BETWEEN' });
+  const fixe = a.calque('fixe', 'FRAME', { ...rangee, primaryAxisAlignItems: 'MIN' });
+  const grille = a.calque('grille', 'FRAME', { layoutMode: 'GRID', itemSpacing: 10 });
+  const racine = a.calque('racine', 'COMPONENT', {}, [auto, fixe, grille]);
+
+  const lecture = await lire(a.port(variablesSimples().port), racine, sansAnnulation);
+  assert.deepEqual(lecture.directes.map((directe) => `${directe.calque} ${directe.propriete} ${directe.valeur}`), ['fixe itemSpacing 10']);
+});
+
 test('une variable de départ ne s’importe jamais ; une cible d’alias s’importe par sa clé', async () => {
   const depart = 'VariableID:aaa111/1:1';
   const cible = 'VariableID:bbb222/1:2';

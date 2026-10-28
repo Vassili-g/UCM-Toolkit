@@ -25,6 +25,7 @@ import { copierLaMiseEnPage, copierLesPeinturesParEtapes, lectureNative, lireLes
 import { champDe, type ChampDeSegment, type EtatEcrit, type MaitreLu, type ModeDeCollectionLu, type PeintureLue as PeintureCopiee, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { creerMemoireDeRessources, type MemoireDeRessources } from 'ucm-plugin-socle/src/composant/analyse/ressources';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
+import { espacementSansEffet } from 'ucm-plugin-socle/src/composant/contract/nodeBindings';
 import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
@@ -158,7 +159,10 @@ async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dim
   const mode = champDe(miseEnPage(noeud, ['layoutMode']), 'layoutMode');
   if (mode.etat === 'acquis' && typeof mode.valeur === 'string' && mode.valeur !== 'NONE') {
     const espacements = miseEnPage(noeud, CHAMPS_NUMERIQUES);
-    for (const champ of CHAMPS_NUMERIQUES) ajouter(champ, nombreDe(espacements, champ, noeud.id, manquees));
+    for (const champ of CHAMPS_NUMERIQUES) {
+      if (espacementSansEffet(noeud as unknown as SceneNode, champ)) continue;
+      ajouter(champ, nombreDe(espacements, champ, noeud.id, manquees));
+    }
   }
   const rayon = miseEnPage(noeud, ['cornerRadius']);
   const commun = nombreDe(rayon, 'cornerRadius', noeud.id, manquees);

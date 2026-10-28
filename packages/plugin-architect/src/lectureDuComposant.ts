@@ -20,6 +20,7 @@ import { champDe, natureDe, type CalqueDuComposant, type LectureDeComposant, typ
 import { liaisonsDuNoeudCooperatives, liaisonsDuNoeud, liaisonsDuStyle, modesDuNoeud, type NoeudLu, type StyleLu } from './consommateurs';
 import { convertirValeur, lireLesVariables, separerLesModes, traduireLesModes, type PortDeLecture, type SuiviDeLecture, type VariableFigma } from './lecture';
 import { FORMAT_DU_RELEVE, hexaDeCouleur } from './modele';
+import { espacementSansEffet } from 'ucm-plugin-socle/src/composant/contract/nodeBindings';
 import type { ContexteCooperatif } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 /** Le nombre de calques lus entre deux pauses. */
@@ -198,7 +199,7 @@ function valeursSansToken(noeud: NoeudLu, liaisons: ReadonlyArray<{ propriete: s
   if (typeof noeud.layoutMode === 'string' && noeud.layoutMode !== 'NONE') {
     for (const champ of ESPACEMENTS) {
       const valeur = noeud[champ];
-      if (estUnNombre(valeur) && valeur !== 0 && !liee(champ)) directes.push({ propriete: champ, valeur: String(valeur) });
+      if (estUnNombre(valeur) && valeur !== 0 && !liee(champ) && !espacementSansEffet(noeud as unknown as SceneNode, champ)) directes.push({ propriete: champ, valeur: String(valeur) });
     }
   }
   if (noeud.type === 'TEXT' && !porteUnStyle && estUnNombre(noeud.fontSize) && !liee('fontSize')) directes.push({ propriete: 'fontSize', valeur: String(noeud.fontSize) });

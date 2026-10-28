@@ -177,6 +177,21 @@ test('l’épaisseur d’un layer sans contour visible n’est pas une valeur en
   assert.deepEqual(epaisseurs, ['visible']);
 });
 
+test('un gap Auto garde son itemSpacing sans effet : le relevé n’en fait pas une valeur en dur', async () => {
+  const a = atelierDeCalques();
+  const rangee = (id: string, champs: Record<string, unknown>) => a.calque(id, 'FRAME', { absoluteBoundingBox: boite(0, 0, 10, 10), layoutMode: 'HORIZONTAL', itemSpacing: 10, ...champs });
+  const auto = rangee('auto', { primaryAxisAlignItems: 'SPACE_BETWEEN' });
+  const fixe = rangee('fixe', { primaryAxisAlignItems: 'MIN' });
+  const grille = a.calque('grille', 'FRAME', { absoluteBoundingBox: boite(0, 0, 10, 10), layoutMode: 'GRID', itemSpacing: 10 });
+  const variant = a.calque('v', 'COMPONENT', { name: 'Etat=Repos', absoluteBoundingBox: boite(0, 0, 40, 10) }, [auto, fixe, grille]);
+  const jeu = a.calque('jeu', 'COMPONENT_SET', { name: 'Alert', key: 'cle', defaultVariant: variant, componentPropertyDefinitions: { Etat: { type: 'VARIANT', defaultValue: 'Repos', variantOptions: ['Repos'] } } }, [variant]);
+  const issue = await lireLeReleve(a.port(variables().port), jeu);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  const avecGap = issue.releve.variants[0].layers.filter((layer) => layer.valeursEnDur.some((valeur) => valeur.champ === 'itemSpacing')).map((layer) => layer.id);
+  assert.deepEqual(avecGap, ['fixe']);
+});
+
 test('un budget qui coupe au quatrième variant compte les layers non lus', async () => {
   const { a, jeu } = jeuFactice();
   const { port } = variables();

@@ -248,6 +248,17 @@ function inapplicableReason(
 }
 
 /**
+ * Vrai si Figma garde la valeur de cet espacement sans l'appliquer : `itemSpacing`
+ * sous un gap « Auto » ou une grille, `counterAxisSpacing` sans wrap ou sous un
+ * vertical gap « Auto », tout champ d'espacement hors auto layout. Le contrat,
+ * le relevé et la vue lisent cette seule règle : une valeur sans effet n'est
+ * ni exportée ni signalée comme valeur en dur.
+ */
+export function espacementSansEffet(noeud: SceneNode, champ: string): boolean {
+  return inapplicableReason(noeud, [[champ]]) !== null;
+}
+
+/**
  * Vrai si Figma expose au moins un des champs de cette dimension sur ce node.
  *
  * Trois états, et non deux : la valeur neutre (`IMPLICIT_DEFAULTS`), la valeur
