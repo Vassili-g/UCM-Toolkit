@@ -321,8 +321,8 @@ test('AI10 : une collection renommée theme à côté de ses variables theme/foo
   await s.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'collection', cible: 'theme' } });
   const bilan = s.bilan();
   assert.deepEqual(bilan.bloques, [{
-    avant: 'Colors', apres: 'theme', collection: '',
-    chemin: { motif: 'meme-token', apres: 'theme/foo', autre: 'theme/theme/foo' },
+    avant: 'Colors', apres: 'Theme', collection: '',
+    chemin: { motif: 'meme-token', apres: 'Theme/foo', autre: 'Theme/theme/foo' },
   }]);
   assert.equal(bilan.groupes.some((groupe) => groupe.regle.sorte === 'collection'), false);
 });
@@ -336,8 +336,8 @@ test('AI10 : une collection renommée theme à côté d\'une collection Theme qu
   assert.ok(question);
   await s.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'collection', cible: 'theme' } });
   assert.deepEqual(s.bilan().bloques, [{
-    avant: 'Colors', apres: 'theme', collection: '',
-    chemin: { motif: 'meme-token', apres: 'theme/foo', autre: 'Theme/foo' },
+    avant: 'Colors', apres: 'Theme', collection: '',
+    chemin: { motif: 'meme-token', apres: 'Theme/foo', autre: 'Theme/foo' },
   }]);
 });
 
