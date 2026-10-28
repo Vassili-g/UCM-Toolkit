@@ -7,12 +7,12 @@ lue dans le code, et une proposition. Rien n'est implémenté.
 La maquette [MAQUETTE-RECETTE-V2.html](./MAQUETTE-RECETTE-V2.html) montre les
 propositions d'interface sur les écrans réels figés de la galerie d'Architect.
 Les questions au mainteneur sont numérotées à la suite de la recette v1, de
-R-11 à R-25. La section 10 les réunit avec leur état ; la maquette les reprend
+R-11 à R-27. La section 10 les réunit avec leur état ; la maquette les reprend
 en section 8.
 
 Le mainteneur a relu une première version de la maquette. Ses réponses sont
-reportées dans chaque section. Deux sujets restent en discussion : le radius
-de `.Ring` (7.3) et la section des informations (7.4).
+reportées dans chaque section. Restent ouverts : la section des informations
+(7.4), la forme des noms de variants (3) et la définition des pièces partagées (7.3).
 
 ## 1. Fenêtre, barre et panneau
 
@@ -48,8 +48,7 @@ le panneau des constats prend 640 px par défaut.
 - Panneau ouvert : la Configuration prend la place du panneau, à 640 px. La vue de gauche reste affichée.
 - Panneau fermé : la Configuration prend la place de la vue, à 500 px. Ses formulaires passent sur une colonne.
 
-Dans les deux cas, la largeur de la fenêtre ne change pas. R-25 confirme ce
-partage.
+Dans les deux cas, la largeur de la fenêtre ne change pas. Décidé (R-25).
 
 ## 2. Changer de variant sans que l'écran saute
 
@@ -138,6 +137,27 @@ alertes.
 La règle de CONTRIBUTING.md change : un variant garde les noms et les valeurs
 de Figma, en puces d'une paire chacune.
 
+### Valeurs seules, à l'essai
+
+En voyant la liste avant / après de la carte 4e, le mainteneur juge que les
+puces `Color=Info` prennent encore trop de place. Il propose les valeurs
+seules, avec le nom de la property dans une bulle au survol. La maquette essaie
+trois formes sur la même carte de constat et la même liste (cadres 3h à 3j) :
+
+| Forme | Ce qui s'affiche | Au survol |
+|---|---|---|
+| C, retenue au tour précédent | `Color=Info` `Variant=Contained` `State=Default` | Rien |
+| E. Valeurs en puces | `Info` `Contained` `Default` | La puce montre `Color=Info` |
+| F. Valeurs en texte | Info, Contained, Default, en gris | Chaque valeur montre sa paire |
+
+Une valeur seule perd une information quand deux properties ont la même
+valeur, par exemple `Default` dans `State` et dans `Size`. Dans ce cas seul, la
+puce garde sa property.
+
+Avis : E. Elle divise la largeur par deux et garde la forme d'objet de la
+puce. Le texte exact de Figma reste dans la bulle, pour le chercher dans
+Figma. R-27 tranche entre C, E et F.
+
 ## 4. Le bouton « Copier ses liaisons aux autres variants »
 
 Décidé (R-14) : le bouton quitte la section Variants et devient une carte du
@@ -225,18 +245,36 @@ Cadre 4e.
 2. La carte est remplacée par des cartes de corrections ordinaires, une par
    layer et par champ : « Lier le fill de `container` », 215 variants. Chacune a
    sa case, son bouton Appliquer et sa liste avant / après, ouverte au clic.
+   Dans cette liste, la colonne « Aujourd'hui » montre d'abord la valeur en dur,
+   `#0369A1 en dur`, que la colonne « Après » remplace par le token. Le variant
+   passe en second, en valeurs seules (section 3, « Valeurs seules »).
 3. Un layer dont le token attendu n'existe pas, ou existe en plusieurs
    exemplaires, devient une question dans la même section.
 4. Le designer applique carte par carte, ou avec Appliquer tout. Ctrl+Z défait
    le lot.
 
-### Le chevron des cartes à bouton
+### Le bouton et le chevron d'une carte de constat
 
-Dans la carte 4d de la première version, le chevron se trouvait à gauche du
-bouton. Une carte de correction du plugin place déjà son bouton Appliquer dans
-l'en-tête, suivi du chevron (`bloc-tete avec-action`, puis `bloc-replier`).
-Les cartes à bouton reprennent cette forme : contenu, bouton, puis chevron à
-droite. La règle vaut aussi pour le bouton Sélectionner (section 6).
+Deux tours ont placé le bouton dans l'en-tête de la carte : d'abord avant le
+chevron, puis entre le contenu et le chevron. Les deux formes ont été jugées
+étranges. Sur une carte de trois lignes, le bouton se centre en hauteur et
+flotte au milieu ; le chevron se retrouve loin du titre.
+
+Une carte de correction garde son Appliquer dans l'en-tête : son en-tête tient
+sur deux lignes, et cette forme est validée (R-8). Une carte de constat, plus
+haute, prend une autre forme (cadre 4d) :
+
+- Le chevron reste en haut à droite, sur la ligne de la sévérité, comme sur
+  toutes les cartes de constat.
+- Les boutons vont dans une ligne d'actions en bas de la carte, alignés à
+  gauche sous le texte. Cette ligne remplace la phrase d'action :
+  « Proposer les liaisons » dit déjà le geste.
+- Sélectionner rejoint cette ligne (section 6).
+
+Le chevron déplie la carte. Pour la carte de modèle, il montre les layers
+concernés et le token de chacun dans le modèle (cadre 4f) :
+`container`, fill, `Color/Primary/Contained/Default/background`. Le designer voit
+ce qui sera repris avant de cliquer.
 
 ## 5. Le tableau des variants
 
@@ -257,8 +295,9 @@ redevient actif quand la sélection de Figma change. Ouvrir une carte ne
 sélectionne plus rien : aujourd'hui, l'ouverture d'une carte de correction ou
 de constat sélectionne ses layers sans l'annoncer.
 
-Le bouton se place avant le chevron, comme le bouton Appliquer d'une carte de
-correction (section 4, « Le chevron des cartes à bouton »).
+Sur une carte de constat, le bouton va dans la ligne d'actions en bas de la
+carte, et le chevron reste en haut à droite (section 4, « Le bouton et le
+chevron d'une carte de constat »).
 
 ## 7. Les constats de Button
 
@@ -376,12 +415,12 @@ prévoit pas ce cas : il suppose qu'un layer appartient à un seul composant.
 
 | Propriété | Même valeur pour tous les composants ? | Où la lier |
 |---|---|---|
-| Couleur du stroke | Oui | Le thème : son dossier `ring` existe déjà (`REGISTRE_DOSSIERS_THEME`) |
+| Couleur du stroke | Non : elle dépend du composant, comme dans le fichier aujourd'hui | Un token de l'hôte, en surcharge sur l'instance |
 | Stroke weight, écart | Oui | `layout`, par exemple `Stroke/outline-weight` |
 | Radius | Non : il suit le radius du composant qui l'entoure, plus l'écart de l'anneau. Un Button Small et un Input n'ont pas le même | Dépend du composant hôte |
 
-La couleur et l'épaisseur se lient une fois, dans le composant principal. Le
-radius ne le peut pas, si l'anneau doit épouser la forme de chaque composant.
+L'épaisseur et le radius se lient une fois, dans le composant principal. La
+couleur se surcharge dans chaque hôte.
 
 #### Les options
 
@@ -400,21 +439,67 @@ Pour l'option 2, le relevé doit distinguer une liaison héritée du composant
 principal d'une surcharge posée dans l'instance. Figma l'expose par
 `InstanceNode.overrides`. Le relevé ne le lit pas aujourd'hui.
 
-#### Avis
+#### Décision
 
-L'option 1 tout de suite : elle retire le faux constat et suit la règle de
-l'exporteur. L'option 2 ensuite, si le radius de l'anneau doit suivre celui du
-composant. L'option 3 n'apporte rien de plus pour le radius, et coûte un
-contrat.
+Option 1, avec une précision du mainteneur : la couleur de l'anneau dépend du
+composant, comme le fichier le fait aujourd'hui. Chaque hôte la surcharge sur
+son instance `.Ring`, avec ses propres tokens (`Color/Primary/Contained/Focus/ring`
+pour Button).
 
-Une question décide entre 1 et 2 : le radius de l'anneau doit-il épouser celui
-de chaque composant, ou un seul radius convient-il à tous ?
+La règle devient :
 
-Avec l'option 1, le constat disparaît. Avec l'option 2, une instance sans
-surcharge reçoit (cadre 7b) :
+| Liaison | Où elle est posée | Ce qu'Architect admet |
+|---|---|---|
+| Radius, stroke weight | Composant principal de la pièce partagée | `theme` ou `layout`, sans constat |
+| Couleur | Surcharge sur l'instance, dans l'hôte | Un token de l'hôte, sinon C80 comme tout layer de l'hôte |
+| Toute propriété | Valeur en dur | Un constat, comme aujourd'hui |
 
-> **À vérifier** Le radius de l'instance `.Ring` vient de la pièce partagée.
-> Il ne suit pas celui de Button. Liez-le à un token de Button.
+Pour appliquer la première ligne, le relevé doit savoir qu'une liaison vient du
+composant principal sans changement. Deux moyens : comparer la liaison de
+l'instance à celle du layer correspondant dans le composant principal, ou lire
+`InstanceNode.overrides`. Le lot choisira le moins coûteux, mesuré sur Button.
+
+Le constat du radius de `.Ring` disparaît. Le cadre 7b n'a plus d'objet.
+
+#### Factoriser et documenter la notion
+
+Oui, la notion doit vivre à un seul endroit. Aujourd'hui, trois lecteurs
+classent un composant imbriqué, chacun à sa façon :
+
+| Lecteur | Ce qu'il distingue | Où |
+|---|---|---|
+| Exporteur | Composant unifié déclaré par `.componentRules`, wrapper de dimensions, détail d'implémentation | socle, `composant/contract/`, et FORMAT.md, « Composition et dépendances » |
+| Relevé d'Architect | Liaison d'une instance imbriquée, rattachée à l'hôte (`surcharge`) | `src/releveDuComposant.ts`, kit `controles/releve.ts` |
+| Contrôles du kit | Rien : C80 juge tout layer comme un layer de l'hôte | `controles/couche.ts` |
+
+Proposition, en trois couches, selon la règle des domiciles d'AGENTS.md :
+
+1. **Le kit définit les sortes.** Un fichier du référentiel, par exemple
+   `packages/kit/src/referentiel/composition.ts`, nomme les sortes d'un
+   composant imbriqué et la façon de les reconnaître :
+
+   | Sorte | Se reconnaît à | Son contrat | Ses liaisons |
+   |---|---|---|---|
+   | Dépendance | Une instance de `.componentRules` le nomme, sur la page de son composant principal | Le sien ; l'hôte le cite dans `composes` | Jugées dans son propre contrat |
+   | Pièce partagée | Nom qui commence par `.` ou `_`, sans `.componentRules` | Aucun ; l'hôte publie ce qu'elle dessine | Composant principal : `theme` et `layout` admis. Surcharges : tokens de l'hôte |
+   | Wrapper de dimensions | La définition de FORMAT.md, « Layout » | Aucun ; ses props et dimensions entrent dans celles de l'hôte | Tokens de l'hôte |
+   | Détail d'implémentation | Tout autre composant imbriqué | Aucun | Tokens de l'hôte |
+
+   Une fonction pure, `sorteDeLImbrique(faits)`, rend la sorte depuis des faits
+   sérialisables : nom, règles d'utilisation trouvées, dimensions liées.
+2. **Le socle relève les faits, une fois.** L'exporteur et le relevé
+   d'Architect lisent les mêmes faits par la même acquisition, puis appellent
+   la fonction du kit. Un test refuse qu'un des deux classe un imbriqué sans
+   elle.
+3. **Les documents renvoient au kit.** CONCEPT.md, section 2, ajoute la pièce
+   partagée à côté du composant simple et du composant composé, en une phrase.
+   FORMAT.md, « Composition et dépendances », renvoie à la fonction du kit au
+   lieu de répéter les règles. L'invariant du référentiel
+   (`packages/kit/invariants/referentiel.md`) reçoit la règle.
+
+Le préfixe `.` ou `_` devient alors une convention UCM écrite : le designer
+déclare ainsi qu'une pièce ne sert jamais seule. Figma ne publie déjà pas ces
+composants. R-26 valide la convention et les quatre sortes.
 
 ### 7.4 « Les 18 variants State=Disabled ne sont pas mesurés »
 
@@ -484,11 +569,32 @@ La carte nomme le fond et le mode : « sur `elevation/raised`, en Dark ».
 
 #### Sur quel fond : `elevation/page` ou `elevation/raised`
 
-Le mainteneur précise qu'un composant Outlined, Button comme Alert, se pose sur
-`elevation/raised`, le fond des cartes. R-23 change donc : faut-il mesurer sur
-`elevation/raised` seul, ou sur `elevation/page` et `elevation/raised`, en
-gardant le pire des deux ? Un Button se pose aussi sur la page, dans un
-formulaire. Avis : les deux, et la carte nomme celui qui échoue.
+Un composant sans fond prend la couleur de ce qui est dessous. Dans le
+produit, deux fonds UCM peuvent se trouver dessous :
+
+- `elevation/page`, le fond de la page elle-même ;
+- `elevation/raised`, le fond d'une carte posée sur la page.
+
+Ces deux fonds n'ont pas la même couleur. Le contraste du stroke change donc
+selon l'endroit où le composant est posé. Exemple, en Light, avec un stroke
+`#8A94A6` :
+
+| Le composant est posé | Fond | Contraste du stroke | Seuil 3:1 |
+|---|---|---|---|
+| Dans une carte | `elevation/raised`, `#FFFFFF` | 3,06:1 | Tenu |
+| Directement sur la page | `elevation/page`, `#EEF2F6` | 2,72:1 | Échoue |
+
+Le même Button passe dans une carte et échoue sur la page.
+
+R-23 demande donc où un composant sans fond est censé se poser :
+
+- toujours dans une carte : Architect mesure sur `elevation/raised` seul ;
+- dans une carte ou sur la page : Architect mesure sur les deux fonds. La
+  carte signale un échec sur l'un ou l'autre, et nomme le fond qui échoue.
+
+Le mainteneur indique que les composants Outlined se posent sur
+`elevation/raised`. Un Button se pose aussi sur la page, dans un formulaire.
+Avis : les deux fonds.
 
 #### D'où vient la valeur de `elevation/raised`
 
@@ -618,14 +724,16 @@ corrigé en R-1 : une valeur que Figma garde sans l'appliquer.
 | R-15 | Le tableau des variants | | Décidé : retiré |
 | R-16 | Le bouton Sélectionner | | Décidé : désactivé une fois les layers sélectionnés ; ouvrir une carte ne sélectionne plus ; bouton avant le chevron |
 | R-17 | Mots entiers dans les dossiers, abréviations dans les variables, dans toutes les collections | Oui, comme le plan de Nomenclature | Ouvert |
-| R-18 | `.Ring`, pièce partagée : option 1, 2 ou 3 | 1 tout de suite, 2 si le radius de l'anneau doit suivre celui de chaque composant | En discussion |
+| R-18 | `.Ring`, pièce partagée | | Décidé : option 1 ; la couleur reste surchargée par chaque hôte |
 | R-19 | Une section Informations en dernier, hors du compte des constats | Oui, avec tous les constats `info` sans geste ; l'alerte Information quitte les cartes | En discussion |
 | R-20 | Le fond d'un variant sans fill | | Décidé : fond d'élévation du thème dans chaque mode, page Figma en repli |
 | R-21 | Envoyer le rapport téléchargeable de Button | Pour établir la cause de C45 et les cibles de C21 | Ouvert |
 | R-22 | « propriété » dans les phrases | | Décidé : oui ; les types de Figma restent en anglais |
-| R-23 | Mesurer sur `elevation/raised` seul, ou sur `elevation/page` et `elevation/raised` | Les deux, la carte nomme celui qui échoue | Ouvert |
+| R-23 | Un composant sans fond se pose-t-il toujours dans une carte (`elevation/raised` seul), ou aussi sur la page (les deux fonds) ? | Les deux fonds, la carte nomme celui qui échoue | Ouvert |
 | R-24 | Un seuil de contraste propre aux variants désactivés | Non : à décider hors de cette recette | Ouvert |
-| R-25 | La Configuration prend la place du panneau quand il est ouvert, celle de la vue quand il est fermé | Oui | Ouvert |
+| R-25 | La Configuration prend la place du panneau quand il est ouvert, celle de la vue quand il est fermé | | Décidé : oui |
+| R-26 | Les quatre sortes de composant imbriqué dans le référentiel du kit, et le préfixe `.` ou `_` comme convention de la pièce partagée | Oui | Ouvert |
+| R-27 | Noms de variants : puces `Color=Info` (C), valeurs en puces (E) ou valeurs en texte (F) | E, avec la property quand deux valeurs se confondent | Ouvert |
 
 ## 11. Ordre de travail proposé
 
@@ -638,12 +746,13 @@ en premier, dans une seule version du kit :
 | K2 | C10 lit l'écriture des dossiers, et le test qui l'impose (7.2) | R-17 |
 | K3 | C17 admet `foreground` sur un stroke (8) | — |
 | K4 | Fond d'élévation du thème pour le contraste (7.5) | R-23 |
-| K5 | Pièce partagée : `theme` et `layout` admis dans ses layers (7.3) | R-18 |
+| K5 | Sortes de composant imbriqué dans le référentiel, et leur test (7.3) | R-26 |
+| K6 | Pièce partagée : `theme` et `layout` admis dans son composant principal (7.3) | K5 |
 | S1 | Le socle exporte la règle des espacements sans effet ; relevé et vue la lisent (9) | — |
 | A1 | Frontière, Configuration en bascule et à sa place, Actualiser désactivé (1) | R-25 |
 | A2 | Fenêtre à 500 px, panneau à 640 px, barre compacte (1) | — |
 | A3 | Changement de variant sans saut, chevron des sections de la liste (2) | — |
-| A4 | Variants en puces, tableau retiré (3, 5) | — |
+| A4 | Noms de variants, tableau retiré (3, 5) | R-27 |
 | A5 | Carte de modèle et cartes de correction qu'elle produit (4) | — |
 | A6 | Bouton Sélectionner, textes des constats, section Informations (6, 7.4, 7.6) | R-19 |
 
