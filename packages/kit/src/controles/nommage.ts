@@ -1,6 +1,9 @@
 /** Comparaison des axes du composant avec les noms de ses variables de référence. */
 import { reconnaitreLeChemin, type SegmentReconnu } from '../referentiel/grammaire.js';
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
+import type { NomANormaliser } from '../referentiel/conventions.js';
+import { categorieDuSegment } from '../referentiel/ecriture-des-mots.js';
+import { termePourCategorie } from '../referentiel/termes.js';
 import { FAMILLES_PRIMITIVES, REGISTRE_PALETTES_COMPOSANT } from '../referentiel/architecture.js';
 import { REGISTRE_ETATS, REGISTRE_TAILLES, STATE_AXIS_NAMES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
@@ -160,6 +163,21 @@ function* calculerLesTokensParEtapes(releve: ReleveDeComposant, catalogue: Catal
   return tokens;
 }
 
+/** Les dossiers d'une variable sont de catégorie `groupes`, son dernier segment `variables` : la lecture de Nomenclature. */
+function nomDeVariable(variable: VariableDuCatalogue, segments: readonly string[]): NomANormaliser {
+  return {
+    id: variable.cle, categorie: 'variables', portee: variable.collection, nom: variable.nom,
+    categoriesDesSegments: segments.map((_, rang) => (rang < segments.length - 1 ? 'groupes' : null)),
+  };
+}
+
+/** Le mot de dossier prend la majuscule initiale quand les autres dossiers du nom l'ont tous ; le registre ne porte pas la casse du fichier. */
+function ecritureAttendue(attendu: string, segments: readonly string[], rang: number, categorie: string): string {
+  if (categorie !== 'groupes') return attendu;
+  const autres = segments.slice(0, -1).filter((_, i) => i !== rang);
+  return autres.length && autres.every((autre) => /^\p{Lu}/u.test(autre)) ? attendu.charAt(0).toUpperCase() + attendu.slice(1) : attendu;
+}
+
 export function segmentDAxe(token: TokenDuComposant, axe: AxeDuComposant): string | undefined {
   const rang = token.lecture.findIndex((segment) => segment.role === axe);
   return rang < 0 ? undefined : token.segments[rang];
@@ -229,8 +247,10 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
       const segment = segments[rang];
       const registre = axe === 'etat' ? REGISTRE_ETATS : axe === 'taille' ? REGISTRE_TAILLES : null;
       const terme = registre ? termeReconnu(registre, segment) : undefined;
-      if (terme && formeReconnue(segment) !== formeReconnue(terme.id)) {
-        formeToleree(axe === 'taille' ? 'C10' : 'C8', segment, terme.id, variable.nom);
+      const categorie = categorieDuSegment(nomDeVariable(variable, segments), rang);
+      const ecrit = terme ? termePourCategorie(terme, categorie).id : undefined;
+      if (terme && ecrit !== undefined && formeReconnue(segment) !== formeReconnue(ecrit)) {
+        formeToleree(axe === 'taille' ? 'C10' : 'C8', segment, ecritureAttendue(ecrit, segments, rang, categorie), variable.nom);
         continue;
       }
       let valeur: string | undefined;

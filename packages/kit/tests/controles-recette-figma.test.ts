@@ -103,8 +103,8 @@ test('C21 compare les liaisons d’une instance layer intérieur par layer inté
 
 test('C10 rend un constat par segment à renommer, qui compte ses tokens', () => {
   const composant = releve([], [{ nom: 'Size', type: 'VARIANT', valeurs: ['medium'], defaut: 'medium' }]);
-  const constats = controlerNommage(composant, catalogue('button/size/medium/gap', 'button/size/medium/padding-x', 'button/size/medium/radius'));
-  assert.deepEqual(constats.map(({ code, faits }) => [code, faits.segment, faits.attendu, faits.tokens]), [['C10', 'medium', 'md', 3]]);
+  const constats = controlerNommage(composant, catalogue('button/size/md/gap', 'button/size/md/padding-x', 'button/size/md/radius'));
+  assert.deepEqual(constats.map(({ code, faits }) => [code, faits.segment, faits.attendu, faits.tokens]), [['C10', 'md', 'medium', 3]]);
 });
 
 test('un anneau nommé .Ring, la marque d’un layer privé, compte comme anneau de focus', () => {
