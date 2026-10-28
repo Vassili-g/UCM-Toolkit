@@ -41,24 +41,15 @@
 .lecture-fine { height: 2px; margin: -2px 0 0; background: linear-gradient(90deg, transparent 0%, var(--bordure-marque) 50%, transparent 100%); }
 .vient-de-changer { background: color-mix(in srgb, var(--bordure-marque) 28%, transparent); border-radius: 3px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--bordure-marque) 28%, transparent); }
 
-/* Bouton de modèle : style du socle, phrase d'aide et exemple. */
-.variants-pied.modele { display: block; }
-.modele-aide { margin: 6px 0 0; color: var(--texte-second); font-size: 11px; line-height: 16px; }
-.modele-exemple { display: block; margin: 4px 0 0; font: 400 11px/17px 'JetBrains Mono', Consolas, monospace; color: var(--texte-second); word-break: break-all; }
-.modele-exemple .avant { color: var(--texte-danger); text-decoration: line-through; }
-.modele-exemple .apres { color: var(--texte-succes); font-weight: 600; }
-.modele-resultat { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; font-size: 11px; color: var(--texte-second); }
-.modele-resultat b { color: var(--texte); }
+/* Liste des tokens : le chevron d'une section passe à droite, après le titre et le nombre. */
+.chevron-a-droite .vc-section-tete .chevron-svg { order: 3; margin-left: auto; }
 
-/* Choix segmenté du tableau des variants : la bascule du socle, en petit. */
-.variants-tete .bascule { margin-left: auto; }
-.variants-tete .bascule-choix { font-size: 11px; padding: 2px 8px; }
-
-/* Bouton Sélectionner dans l'en-tête d'une carte de constat. */
-.bloc-tete.avec-selection { display: flex; align-items: flex-start; }
-.bloc-tete.avec-selection > .bloc-bouton { flex: 1 1 auto; min-width: 0; }
-.bouton-selectionner { flex: 0 0 auto; margin: 8px 4px 0 0; display: inline-flex; align-items: center; gap: 4px; }
+/* Bouton Sélectionner ou d'action dans l'en-tête d'une carte : la forme avec-action du plugin, puis le chevron. */
+.bouton-selectionner { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; }
 .bouton-selectionner svg { width: 14px; height: 14px; }
 
-/* Ligne grise sous la bande d'une section : ce que la section ne mesure pas. */
-.section-note { margin: -2px 0 8px 2px; color: var(--texte-second); font-size: 11px; line-height: 16px; }
+/* Section Informations : signe gris de la note, lignes sans liseré ni sévérité, hors du compte des constats. */
+.signe-note { color: var(--texte-second); }
+.info-ligne { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; padding: 7px 12px; border-bottom: 1px solid var(--bordure); color: var(--texte-second); font-size: 12px; line-height: 18px; }
+.info-ligne:last-child { border-bottom: 0; }
+.info-lieu { font-size: 11px; }

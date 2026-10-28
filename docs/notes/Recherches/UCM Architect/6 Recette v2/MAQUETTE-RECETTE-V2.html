@@ -52,8 +52,8 @@
     <a href="#fenetre">1. Fenêtre à 500 px</a>
     <a href="#changement">2. Changer de variant</a>
     <a href="#variants">3. Le langage des variants</a>
-    <a href="#modele">4. Le bouton de modèle</a>
-    <a href="#tableau">5. Le choix du tableau</a>
+    <a href="#modele">4. La carte de modèle</a>
+    <a href="#tableau">5. Le tableau retiré</a>
     <a href="#selection">6. Sélectionner le layer</a>
     <a href="#constats">7. Les constats réécrits</a>
     <a href="#questions">8. Questions au mainteneur</a>
@@ -62,24 +62,35 @@
   <h2 id="fenetre">1. Fenêtre à 500 px <span class="decide">Décidé</span></h2>
   <p>Panneau fermé, la fenêtre prend 500 px, qui est aussi sa largeur minimale. La barre compacte garde la bascule et
   le bouton Analyser avec son libellé, puis Constats et Configuration en boutons à icône.</p>
-  <p>Panneau ouvert, la vue garde sa largeur et le panneau s'ajoute à droite. Rien ne bouge dans la partie gauche.</p>
+  <p>Panneau ouvert, la vue garde ses 500 px et le panneau s'ajoute à droite, à 640 px. Rien ne bouge dans la partie
+  gauche.</p>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette">1a. Aujourd'hui, à 500 px</span><div class="cadre" id="c-1a"></div></div>
     <div class="colonne"><span class="etiquette nouveau">1b. Barre compacte</span><div class="cadre" id="c-1b"></div></div>
     <div class="colonne"><span class="etiquette nouveau">1c. Sans composant sélectionné</span><div class="cadre" id="c-1c"></div></div>
   </div>
   <div class="colonnes">
-    <div class="colonne"><span class="etiquette nouveau">1d. Panneau ouvert : 1060 px, la vue garde 500 px</span><div class="cadre" id="c-1d"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">1d. Panneau ouvert : 1144 px, la vue garde 500 px, le panneau prend 640 px</span><div class="cadre" id="c-1d"></div></div>
   </div>
-  <div class="discussion"><h4>Question ouverte, R-12</h4>Les formulaires de la Configuration ont été validés à 640 px. À 500 px, une
-  ligne à deux colonnes peut ne plus tenir. Proposition : ils passent sur une colonne sous 640 px, sans élargir la fenêtre.</div>
+  <div class="discussion"><h4>La Configuration, R-25 à confirmer</h4>
+    <p>Les formulaires de la Configuration ont été validés à 640 px, la largeur du panneau.</p>
+    <p>Panneau ouvert : la Configuration prend la place du panneau, à 640 px. La vue de gauche reste affichée.</p>
+    <p>Panneau fermé : la Configuration prend la place de la vue, à 500 px. Ses formulaires passent sur une colonne.</p>
+    <p>Dans les deux cas, la fenêtre garde sa largeur.</p>
+  </div>
 
   <h2 id="changement">2. Changer de variant sans que l'écran saute <span class="decide">Décidé</span></h2>
-  <p>Aujourd'hui, un clic sur une valeur vide l'écran, affiche « Lecture du composant… », puis reconstruit tout deux fois.
-  Proposé : l'ancienne lecture reste à l'écran pendant la lecture, puis seules les valeurs changent.</p>
+  <p>L'ancienne lecture reste à l'écran pendant la lecture, puis seules les valeurs changent.</p>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette nouveau">2a. Pendant la lecture</span><div class="cadre" id="c-2a"></div></div>
     <div class="colonne"><span class="etiquette nouveau">2b. Lecture arrivée</span><div class="cadre" id="c-2b"></div></div>
+  </div>
+  <h3>Le chevron des sections de la liste <span class="decide">Décidé</span></h3>
+  <p>Les en-têtes Couleur, Forme, Espacement, Taille et Texte portent leur chevron à droite. À gauche, il se mêlait aux
+  signes des lignes de tokens.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">2c. Aujourd'hui</span><div class="cadre" id="c-2c"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">2d. Chevron à droite</span><div class="cadre" id="c-2d"></div></div>
   </div>
 
   <h2 id="variants">3. Le langage visuel des variants <span class="decide">Décidé : B et C</span></h2>
@@ -101,34 +112,25 @@
     <div class="colonne ecarte"><span class="etiquette nouveau">3g. D : deux colonnes sous la phrase</span><div class="cadre" id="c-3g"></div></div>
   </div>
 
-  <h2 id="modele">4. Le bouton de modèle <span class="ouvert">En discussion, R-14</span></h2>
-  <p>Le bouton prend le variant affiché comme modèle. Pour chaque autre variant, il propose le token de même nom, avec
-  les valeurs de ce variant. Rien n'est écrit avant Appliquer.</p>
+  <h2 id="modele">4. La carte de modèle <span class="decide">Décidé : une carte dans le panneau</span></h2>
+  <p>Le bouton quitte la section Variants. Une carte le remplace dans le panneau, seulement quand elle propose quelque
+  chose : des layers liés dans un variant, en dur dans d'autres. Une carte par section : les couleurs dans Couleurs, les
+  tailles dans Tailles et forme.</p>
+  <p>Le modèle est le variant qui porte le plus de liaisons de cette sorte. Le plugin le choisit et le nomme.</p>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette">4a. Aujourd'hui</span><div class="cadre" id="c-4a"></div></div>
-    <div class="colonne ecarte"><span class="etiquette nouveau">4b. Premier tour : libellé, phrase et exemple</span><div class="cadre" id="c-4b"></div></div>
-    <div class="colonne"><span class="etiquette nouveau">4d. Option a : une carte dans le panneau <span class="recommande">Recommandé</span></span><div class="cadre" id="c-4d"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">4d. La carte</span><div class="cadre" id="c-4d"></div></div>
   </div>
-  <div class="discussion">
-    <h4>À quoi sert ce bouton</h4>
-    <p>Sans lui, Architect ne propose aucune liaison pour une couleur en dur. Seul le fill d'un texte nommé
-    <code>title</code> reçoit une proposition.</p>
-    <p>Le cas qu'il sert : les tokens de Button existent, mais les layers de ses 216 variants ne sont pas liés. Le designer
-    lie un seul variant à la main, une dizaine de liaisons. Le bouton propose les liaisons des 215 autres, soit plus de
-    deux mille gestes épargnés.</p>
-    <p>La préparation des tokens couvre un autre cas : elle crée les tokens qui manquent, puis lie les layers. Le bouton
-    sert quand les tokens existent déjà, créés à la main ou après un renommage.</p>
-    <h4 style="margin-top:12px">Où le mettre</h4>
-    <p>La section Variants sert à choisir le variant affiché. Le bouton y apparaît sur tous les composants, même
-    entièrement liés, où il ne propose rien.</p>
-    <table class="t">
-      <tr><th>Option</th><th>Ce que voit le designer</th></tr>
-      <tr><td>a. Une carte dans le panneau</td><td>Une carte dans Couleurs ou Tailles et forme, seulement quand des layers sont liés dans un variant et en dur dans d'autres. Le plugin prend comme modèle le variant le plus lié, et le nomme. « Proposer les liaisons » ajoute les corrections, à appliquer ensuite.</td></tr>
-      <tr><td>b. Un menu discret</td><td>Un bouton « … » à côté du titre Variants. La phrase et l'exemple vont dans le résultat.</td></tr>
-      <tr><td>c. Retirer la fonction</td><td>Le designer lie chaque variant dans Figma, ou passe par la préparation des tokens.</td></tr>
-    </table>
-    <p class="avis"><b>Avis : a.</b> La fonction apparaît là où le problème est signalé, et seulement quand elle propose
-    quelque chose. Le designer n'a pas à choisir le modèle.</p>
+  <div class="discussion"><h4>Ce que fait « Proposer les liaisons »</h4>
+    <p>1. Architect calcule les liaisons depuis le modèle, sans rien écrire dans Figma.</p>
+    <p>2. La carte est remplacée par des cartes de corrections ordinaires, une par layer et par champ, avec leur case, leur
+    bouton Appliquer et leur liste avant et après (cadre 4e).</p>
+    <p>3. Un layer dont le token attendu n'existe pas, ou existe en plusieurs exemplaires, devient une question dans la
+    même section.</p>
+    <p>4. Le designer applique carte par carte, ou avec Appliquer tout. Ctrl+Z défait le lot.</p>
+  </div>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette nouveau">4e. Après « Proposer les liaisons »</span><div class="cadre" id="c-4e"></div></div>
   </div>
 
   <h2 id="tableau">5. Le tableau des variants <span class="decide">Décidé : retiré</span></h2>
@@ -140,113 +142,117 @@
 
   <h2 id="selection">6. Sélectionner le layer d'un constat <span class="decide">Décidé</span></h2>
   <p>Un bouton Sélectionner sur chaque carte qui vise des layers, questions comprises. Une fois les layers sélectionnés,
-  il se désactive. Ouvrir une carte ne sélectionne plus rien.</p>
+  il se désactive. Ouvrir une carte ne sélectionne plus rien. Le bouton se place avant le chevron, comme le bouton
+  Appliquer d'une carte de correction.</p>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette">6a. Aujourd'hui</span><div class="cadre" id="c-6a"></div></div>
     <div class="colonne"><span class="etiquette nouveau">6b. Bouton Sélectionner</span><div class="cadre" id="c-6b"></div></div>
   </div>
 
   <h2 id="constats">7. Les constats réécrits</h2>
-  <p>Quatre constats de la recette disparaissent, parce que leur règle est fausse :</p>
+  <h3>Les quatre constats faux</h3>
   <table class="t">
-    <tr><th>Constat</th><th>Composant</th><th>Cause</th></tr>
-    <tr><td>Anneau lié autrement dans 12 autres variants (C21)</td><td>Button</td><td>Le contrôle ne reconnaît pas un token qui suit la valeur de <code>Color</code></td></tr>
-    <tr><td>4 tokens écrivent Large (C10)</td><td>Button</td><td><code>Large</code> est la forme d'un dossier ; le contrôle ne regarde pas le rang du segment</td></tr>
-    <tr><td>Stroke lié à un token foreground (C17)</td><td>Alert</td><td><code>foreground</code> couvre texte, icône et bordure dans le registre des rôles</td></tr>
-    <tr><td>Gap de 10 px et de 20 px sans variable (C29)</td><td>Stresstest</td><td>Un gap Auto garde une valeur que Figma n'applique pas</td></tr>
+    <tr><th>Constat</th><th>Pourquoi il apparaît</th><th>Correction</th></tr>
+    <tr><td>Anneau lié autrement dans 12 autres variants (C21), Button</td>
+      <td>C21 réunit les liaisons d'un même layer dans tous les variants. Il compare la variable du thème vers laquelle chaque token renvoie. Le ring de <code>Color=Primary</code> renvoie à une autre variable que celui des autres couleurs : C21 y voit une incohérence. Il ne regarde jamais si le token lié correspond au variant.</td>
+      <td>Avant de comparer, C21 écarte une liaison dont le token porte les valeurs de son propre variant : <code>Primary</code>, <code>Contained</code>, <code>Focus</code> pour ce variant. Elle est juste par construction. Un variant <code>Color=Primary</code> lié à <code>Color/Info/…</code> reste signalé.</td></tr>
+    <tr><td>4 tokens écrivent Large (C10), Button</td>
+      <td>La règle est bien enregistrée dans le registre des tailles : <code>Large</code> pour un dossier, <code>lg</code> pour une variable. Nomenclature la lit. C10 ne la lit pas : il vient des contrôles de l'exporteur, rangés dans le kit avant que le registre ne distingue dossiers et variables, et compare toujours à <code>lg</code>. Aucun test ne lui donnait un dossier en mot entier.</td>
+      <td>C10 lit l'écriture attendue par la fonction de Nomenclature, selon le rang du segment. <code>Size/Large/radius</code> est tenu ; <code>Size/radius/Large</code> et <code>Size/lg/radius</code> restent signalés. Un test du kit refuse qu'un contrôle compare un segment au terme sans passer par cette fonction.</td></tr>
+    <tr><td>Stroke lié à un token foreground (C17), Alert</td>
+      <td>C17 vérifie le rôle du token lié. Sa table admet <code>border</code> pour un stroke, <code>ring</code> pour un anneau. Le registre des rôles définit pourtant <code>foreground</code> comme la couleur commune au texte, à l'icône et à la bordure.</td>
+      <td>Un stroke hors anneau admet <code>border</code> et <code>foreground</code>. Une correction propose toujours <code>border</code> pour un stroke en dur. Un anneau garde <code>ring</code> seul.</td></tr>
+    <tr><td>Gap de 10 px et de 20 px sans variable (C29), Stresstest</td>
+      <td>Sous un gap Auto, Figma répartit l'espace lui-même, mais le champ garde la dernière valeur saisie. Architect la lit sans regarder le mode Auto. L'exporteur a déjà la règle, dans le socle, mais ne la partage pas.</td>
+      <td>Le socle exporte sa règle des espacements sans effet. L'exporteur, le relevé et la vue d'Architect lisent cette seule fonction. Un gap Auto ne donne plus de constat ni de valeur en dur dans la vue.</td></tr>
   </table>
-  <p>Les autres changent de texte ou de forme.</p>
+
   <h3>Le radius de <code>.Ring</code> <span class="ouvert">En discussion, R-18</span></h3>
   <div class="discussion">
-    <h4>Les deux questions de la recette</h4>
-    <p><b><code>.Ring</code> sans collection, est-ce une erreur ?</b> Non. FORMAT.md, « Composition et dépendances » : un set
-    imbriqué sans instance de <code>.componentRules</code> « reste parcouru comme wrapper ou détail d'implémentation du
-    parent ». <code>.Ring</code> est donc une pièce de Button. Le contrat de Button publie l'anneau dans ses propres
-    <code>strokes.ring</code>.</p>
-    <p><b>Faut-il tous les composants dans la collection des tokens ?</b> Non. CONCEPT.md, « La composition ne duplique
-    pas », vise les composants unifiés : ceux qui ont leur propre contrat, parce qu'ils servent seuls. Un composant fait
-    pour servir seul a sa collection. Une pièce interne comme <code>.Ring</code> n'en a pas besoin.</p>
-    <h4 style="margin-top:12px">La question qui reste</h4>
-    <p>Le radius de <code>.Ring</code> appartient donc à Button. La règle R-2 demande qu'il passe par un token de Button.
-    Le kit rattache déjà à Button une liaison posée dans l'instance <code>.Ring</code>. Le constat suit la règle ; la règle
-    est-elle la bonne pour une pièce interne ?</p>
+    <h4>Ce que la relecture a ajouté</h4>
+    <p><code>.Ring</code> servira à toutes les interfaces qui ont un état de focus. Une liaison posée dans le composant principal
+    <code>.Ring</code> vise une seule variable : elle ne peut pas viser à la fois un token de Button et un token d'Input. Lier le
+    composant principal aux tokens de Button ne tient donc pas.</p>
+    <p><code>.Ring</code> est une <b>pièce partagée</b>. Ce n'est pas un composant unifié : il ne sert jamais seul et n'a pas de
+    contrat. Ce n'est pas non plus la pièce d'un seul composant. La règle R-2 ne prévoit pas ce cas : elle suppose qu'un
+    layer appartient à un seul composant.</p>
     <table class="t">
-      <tr><th>Option</th><th>Ce que fait le designer</th><th>Ce qu'on gagne</th><th>Ce qu'on perd</th></tr>
-      <tr><td>1. Tokens d'anneau dans Button</td><td>Crée <code>ring-radius</code> dans les tokens de Button, qui renvoie à <code>Radius/lg</code>, puis le lie sur l'instance <code>.Ring</code> de chaque variant</td><td>R-2 reste sans exception. Button règle son anneau par taille sans toucher <code>.Ring</code></td><td>Une liaison par instance. Le bouton de modèle les propose depuis un variant lié</td></tr>
-      <tr><td>2. Exception pour une pièce interne</td><td>Rien : <code>.Ring</code> garde <code>Radius/lg</code> dans son composant principal</td><td>Aucun geste dans Figma</td><td>Le contrat de Button cite un token de layout en direct. Changer l'anneau de Button oblige à modifier <code>.Ring</code>, et donc tous les composants qui l'emploient</td></tr>
-      <tr><td>3. <code>.Ring</code> devient un composant unifié</td><td>Ajoute une instance de règles, une collection <code>ring</code> et un contrat</td><td><code>.Ring</code> se partage proprement entre composants</td><td>Un contrat et des tokens pour une pièce qui ne sert jamais seule</td></tr>
+      <tr><th>Propriété de l'anneau</th><th>Même valeur partout ?</th><th>Où la lier</th></tr>
+      <tr><td>Couleur du stroke</td><td>Oui</td><td>Le thème : son dossier <code>ring</code> existe déjà</td></tr>
+      <tr><td>Stroke weight, écart</td><td>Oui</td><td><code>layout</code>, par exemple <code>Stroke/outline-weight</code></td></tr>
+      <tr><td>Radius</td><td>Non : il suit le radius du composant entouré, plus l'écart. Un Button Small et un Input n'ont pas le même</td><td>Dépend du composant hôte</td></tr>
     </table>
-    <p class="avis"><b>Avis.</b> L'option 1 si l'anneau de Button doit pouvoir différer de celui d'un autre composant, ou
-    suivre la taille du bouton. L'option 2 si l'anneau est le même partout et ne doit jamais varier : l'exception vise
-    alors les layers d'un composant imbriqué dont le nom commence par <code>.</code> ou <code>_</code>, que Figma ne publie
-    pas. Deux faits décident : <code>.Ring</code> sert-il à d'autres composants que Button ? Son radius doit-il suivre la
-    taille du bouton ?</p>
+    <table class="t">
+      <tr><th>Option</th><th>Ce que fait le designer</th><th>Ce qu'Architect contrôle</th><th>Limite</th></tr>
+      <tr><td>1. Pièce partagée, liée à <code>theme</code> et <code>layout</code></td><td>Rien de plus : <code>.Ring</code> garde ses liaisons dans le composant principal</td><td>Une pièce partagée peut se lier à <code>theme</code> et <code>layout</code>. Le constat disparaît. Une valeur en dur reste un constat</td><td>L'anneau a le même radius partout. Sur un Button Small, il peut ne pas épouser la forme</td></tr>
+      <tr><td>2. Option 1, et le radius surchargé par chaque hôte</td><td>Dans chaque composant hôte, lie le radius de l'instance <code>.Ring</code> à un token de ce composant, par exemple <code>ring-radius</code> par taille</td><td>Une surcharge posée dans l'instance appartient à l'hôte : elle vise un token de l'hôte. Une instance sans surcharge reçoit un À vérifier (cadre 7b)</td><td>Un token de radius d'anneau par taille et par hôte. La carte de modèle propose les surcharges depuis un variant lié</td></tr>
+      <tr><td>3. <code>.Ring</code> devient un composant unifié</td><td>Ajoute des règles d'utilisation, une collection <code>ring</code> et un contrat</td><td>Ses layers se jugent dans son propre contrat</td><td>Un contrat pour une pièce qui ne sert jamais seule. Le radius dépend toujours de l'hôte</td></tr>
+    </table>
+    <p>Une pièce partagée se reconnaît ainsi : un composant imbriqué dont le nom commence par <code>.</code> ou <code>_</code>,
+    sans instance de <code>.componentRules</code>. Figma ne publie pas ces noms, et l'exporteur les traite déjà comme des
+    détails d'implémentation.</p>
+    <p class="avis"><b>Avis : l'option 1 tout de suite</b>, puis l'option 2 si le radius de l'anneau doit suivre celui de
+    chaque composant. L'option 3 coûte un contrat sans régler le radius. Une question décide : le radius de l'anneau
+    doit-il épouser celui de chaque composant, ou un seul radius convient-il à tous ?</p>
   </div>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette">7a. Aujourd'hui</span><div class="cadre" id="c-7a"></div></div>
-    <div class="colonne"><span class="etiquette nouveau">7b. Avec l'option 1 : le constat nomme l'instance</span><div class="cadre" id="c-7b"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">7b. Avec l'option 2 : une instance sans surcharge</span><div class="cadre" id="c-7b"></div></div>
   </div>
+
   <h3>La règle sans propriété <span class="decide">Décidé</span></h3>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette">7c. Aujourd'hui</span><div class="cadre" id="c-7c"></div></div>
     <div class="colonne"><span class="etiquette nouveau">7d. Phrase simple</span><div class="cadre" id="c-7d"></div></div>
   </div>
-  <h3>Accessibilité : variants désactivés et fond de page <span class="ouvert">En discussion, R-19 et R-20</span></h3>
+
+  <h3>Accessibilité <span class="decide">Fond décidé</span> <span class="ouvert">Section Informations en discussion, R-19</span></h3>
   <div class="discussion">
-    <h4>Les variants désactivés</h4>
-    <p>WCAG 2.2, critères 1.4.3 et 1.4.11 : un composant inactif n'a pas d'exigence de contraste. Architect ne mesure donc
-    pas les variants <code>State=Disabled</code>, et le dit dans une carte. CONTRIBUTING.md écarte pourtant tout message
-    sans geste.</p>
-    <table class="t">
-      <tr><th>Option</th><th>Pour</th><th>Contre</th></tr>
-      <tr><td>a. La carte d'aujourd'hui</td><td>Le designer sait pourquoi ces variants n'ont aucun point</td><td>Une carte sans geste, à chaque analyse. Le designer apprend à survoler les cartes Information</td></tr>
-      <tr><td>b. Une ligne grise sous Accessibilité</td><td>L'information reste, au rang 3, sans carte</td><td>Une ligne de plus sous la bande</td></tr>
-      <tr><td>c. Rien</td><td>Suit la règle des messages à la lettre</td><td>Un designer peut croire que les variants désactivés ont passé le contrôle</td></tr>
-      <tr><td>d. Un seuil propre aux désactivés</td><td>Un texte désactivé illisible reste signalé, en À vérifier</td><td>Un seuil que WCAG ne donne pas : UCM devrait le décider et l'écrire dans le kit (R-24)</td></tr>
-    </table>
-    <p class="avis"><b>Avis : b.</b> L'option d serait un choix de produit, à décider à part.</p>
-    <h4 style="margin-top:16px">Le fond d'un variant sans fill</h4>
-    <p>Le kit remonte les fills des parents du layer, dans le variant seulement. Un variant Outlined n'a pas de fill
-    opaque : le fond reste inconnu. En pratique, ce composant se pose sur le fond de la page, qui change avec le mode. UCM
-    nomme ce fond : <code>elevation/page</code> dans le thème.</p>
-    <table class="t">
-      <tr><th>Source du fond</th><th>Pour</th><th>Contre</th></tr>
-      <tr><td>A. <code>elevation/page</code> du thème</td><td>Le fond réel du produit, une valeur par mode. Suit UCM Palettes : le fond de page prévu est <code>#f8fafc</code>, pas <code>#FFFFFF</code></td><td>Demande un thème UCM au catalogue</td></tr>
-      <tr><td>B. Le fond de la page Figma</td><td>Toujours disponible</td><td>Le fond du canvas, choisi pour travailler, pas celui du produit. Une seule valeur, sans mode</td></tr>
-      <tr><td>C. Une valeur fixe par mode</td><td>Simple</td><td>Fausse dès que Palettes change le fond de page</td></tr>
-    </table>
-    <table class="t">
-      <tr><th>Mode mesuré</th><th>Pour</th><th>Contre</th></tr>
-      <tr><td>Le mode affiché dans Figma</td><td>La mesure correspond à ce que le designer voit</td><td>Un défaut en Dark passe inaperçu tant que le designer travaille en Light</td></tr>
-      <tr><td>Chaque mode du thème</td><td>Le composant sert dans les deux modes. La carte dit lequel échoue. Les autres mesures de contraste se font déjà par combinaison de modes</td><td>Deux mesures par paire</td></tr>
-    </table>
-    <p class="avis"><b>Avis : A, dans chaque mode du thème</b>, avec B en repli quand le fichier n'a pas de thème UCM.
-    Une question de plus : un bouton Outlined se pose aussi sur une carte, <code>elevation/raised</code>. Faut-il mesurer
-    aussi sur ce fond (R-23) ?</p>
+    <h4>Une section Informations, en dernier</h4>
+    <p>Elle réunit ce qu'Architect n'a pas pu ou pas voulu mesurer. Ses lignes ne sont pas des constats.</p>
+    <p>Elle vient toujours en dernier, après les éléments tenus. Son signe est gris : une note, distincte du « i » bleu de
+    l'alerte Information. Elle arrive repliée.</p>
+    <p>Ses lignes ne comptent ni dans Tout, ni dans la pastille de Constats, ni dans le sommaire. Une ligne n'a ni liseré,
+    ni mot de sévérité. Elle garde sa ligne de lieu, et le bouton Sélectionner quand elle vise des layers.</p>
+    <p>Y vont : les variants désactivés non mesurés, les contrastes non mesurés avec leur cause, le nombre de paires non
+    mesurées. L'alerte Information quitte alors les cartes d'Architect : un constat est Bloquant, À corriger ou À vérifier.</p>
+    <p class="avis"><b>Avis : oui.</b> L'information reste disponible et ne se mêle plus aux constats.</p>
+    <h4 style="margin-top:16px">Le fond d'un variant sans fill, décidé</h4>
+    <p>Le fond d'élévation du thème, mesuré dans chaque mode, puis le fond de la page Figma en repli. La carte nomme le fond
+    et le mode.</p>
+    <p><b>Où lire <code>elevation/raised</code>.</b> Le kit ne porte aucune palette d'un projet : il ne connaît que le nom et le
+    sens de la variable. La valeur vient du fichier Figma. Architect lit déjà les variables de la library choisie, dont la
+    collection <code>theme</code> qu'UCM Palettes a écrite. Il y trouve <code>elevation/raised</code> par son nom, puis résout
+    sa valeur dans chaque mode en suivant les alias jusqu'aux primitives. Sans cette variable, la mesure prend la page
+    Figma, et une ligne de la section Informations le dit.</p>
+    <p><b>R-23, reformulée.</b> Un composant Outlined se pose sur <code>elevation/raised</code>. Un Button se pose aussi sur la
+    page, dans un formulaire. Faut-il mesurer sur <code>elevation/raised</code> seul, ou sur les deux fonds en gardant le
+    pire ? Avis : les deux, et la carte nomme celui qui échoue.</p>
   </div>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette">7e. Aujourd'hui</span><div class="cadre" id="c-7e"></div></div>
-    <div class="colonne"><span class="etiquette nouveau">7f. Avec les avis b et A</span><div class="cadre" id="c-7f"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">7f. Contraste sur le fond d'élévation, section Informations</span><div class="cadre" id="c-7f"></div></div>
   </div>
 
   <h2 id="questions">8. Questions au mainteneur</h2>
   <p>Le détail de chaque question est dans <a href="./ANALYSE-RECETTE-V2.md">ANALYSE-RECETTE-V2.md</a>, section 10.</p>
   <table class="t">
     <tr><th>N°</th><th>Question</th><th>Proposition</th><th>État</th></tr>
-    <tr><td>R-11</td><td>Largeurs de la fenêtre en mode Composant</td><td></td><td><span class="decide">Décidé</span> 500 px minimum et à l'ouverture, barre compacte ; 1060 px panneau ouvert</td></tr>
-    <tr><td>R-12</td><td>Les formulaires de la Configuration à 500 px</td><td>Une colonne sous 640 px, sans élargir la fenêtre</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>R-11</td><td>Largeurs de la fenêtre en mode Composant</td><td></td><td><span class="decide">Décidé</span> 500 px minimum et à l'ouverture, barre compacte avec Analyser en toutes lettres</td></tr>
+    <tr><td>R-12</td><td>Largeur du panneau</td><td></td><td><span class="decide">Décidé</span> 640 px par défaut, fenêtre ouverte à 1144 px</td></tr>
     <tr><td>R-13</td><td>Forme d'un variant</td><td></td><td><span class="decide">Décidé</span> B dans la section Variants, C dans les constats</td></tr>
-    <tr><td>R-14</td><td>Le bouton de modèle : où le mettre, ou le retirer</td><td>a. Une carte dans le panneau, seulement quand elle propose quelque chose</td><td><span class="ouvert">En discussion</span></td></tr>
+    <tr><td>R-14</td><td>Le bouton de modèle</td><td></td><td><span class="decide">Décidé</span> une carte dans le panneau, par section concernée</td></tr>
     <tr><td>R-15</td><td>Le tableau des variants</td><td></td><td><span class="decide">Décidé</span> retiré</td></tr>
-    <tr><td>R-16</td><td>Le bouton Sélectionner</td><td></td><td><span class="decide">Décidé</span> désactivé une fois les layers sélectionnés ; ouvrir une carte ne sélectionne plus</td></tr>
+    <tr><td>R-16</td><td>Le bouton Sélectionner</td><td></td><td><span class="decide">Décidé</span> désactivé une fois les layers sélectionnés, placé avant le chevron ; ouvrir une carte ne sélectionne plus</td></tr>
     <tr><td>R-17</td><td>Mots entiers dans les dossiers, abréviations dans les variables, dans toutes les collections</td><td>Oui, comme le plan de Nomenclature</td><td><span class="ouvert">Ouvert</span></td></tr>
-    <tr><td>R-18</td><td>Le radius de <code>.Ring</code> : option 1, 2 ou 3</td><td>Selon deux faits : <code>.Ring</code> sert-il ailleurs, son radius suit-il la taille ?</td><td><span class="ouvert">En discussion</span></td></tr>
-    <tr><td>R-19</td><td>Les variants désactivés : carte, ligne grise, rien, ou seuil propre</td><td>b. Une ligne grise</td><td><span class="ouvert">En discussion</span></td></tr>
-    <tr><td>R-20</td><td>Le fond d'un variant sans fill, et les modes mesurés</td><td><code>elevation/page</code> dans chaque mode, la page Figma en repli</td><td><span class="ouvert">En discussion</span></td></tr>
-    <tr><td>R-21</td><td>Envoyer le rapport téléchargeable de Button</td><td>Pour établir la cause de la règle <code>label</code> sans propriété</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>R-18</td><td><code>.Ring</code>, pièce partagée : option 1, 2 ou 3</td><td>1 tout de suite, 2 si le radius de l'anneau doit suivre celui de chaque composant</td><td><span class="ouvert">En discussion</span></td></tr>
+    <tr><td>R-19</td><td>Une section Informations en dernier, hors du compte des constats</td><td>Oui ; l'alerte Information quitte les cartes</td><td><span class="ouvert">En discussion</span></td></tr>
+    <tr><td>R-20</td><td>Le fond d'un variant sans fill</td><td></td><td><span class="decide">Décidé</span> fond d'élévation du thème dans chaque mode, page Figma en repli</td></tr>
+    <tr><td>R-21</td><td>Envoyer le rapport téléchargeable de Button</td><td>Pour établir la cause de la règle <code>label</code> sans propriété, et les cibles de C21</td><td><span class="ouvert">Ouvert</span></td></tr>
     <tr><td>R-22</td><td>« propriété » dans les phrases</td><td></td><td><span class="decide">Décidé</span> oui ; les types de Figma restent en anglais</td></tr>
-    <tr><td>R-23</td><td>Mesurer aussi le contraste sur <code>elevation/raised</code></td><td>Non dans un premier temps</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>R-23</td><td>Mesurer sur <code>elevation/raised</code> seul, ou sur <code>elevation/page</code> et <code>elevation/raised</code></td><td>Les deux, la carte nomme celui qui échoue</td><td><span class="ouvert">Ouvert</span></td></tr>
     <tr><td>R-24</td><td>Un seuil de contraste propre aux variants désactivés</td><td>Non : à décider hors de cette recette</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>R-25</td><td>La Configuration prend la place du panneau quand il est ouvert, celle de la vue quand il est fermé</td><td>Oui</td><td><span class="ouvert">Ouvert</span></td></tr>
   </table>
 </main>
 
@@ -262,7 +268,8 @@ const chm = (texte) => `<span class="ch ch-inline">${texte}</span>`;
 const FOCUS = [['Color', 'Primary'], ['Variant', 'Contained'], ['State', 'Focus']];
 const nomDe = (paires) => paires.map(([p, v]) => `${p}=${v}`).join(', ');
 const SVG_SELECTION = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3.5" y="3.5" width="9" height="9"/><path d="M2 2h3v3H2zM11 2h3v3h-3zM2 11h3v3H2zM11 11h3v3h-3z" fill="currentColor" stroke="none"/></svg>';
-const SVG_COCHE = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.5"/></svg>';
+const SVG_NOTE = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M3.5 2h6.5l2.5 2.5V14h-9z"/><path d="M5.8 7h4.4M5.8 9.5h4.4M5.8 12h2.6"/></svg>';
+const SVG_COCHE ='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.5"/></svg>';
 
 // L'aperçu de la galerie est une image en mémoire, perdue au gel : un dessin HTML la remplace.
 const APERCU_ALERT = (fond = '#F0F9FF', encre = '#0369A1') => `<div style="display:flex;gap:10px;align-items:flex-start;width:250px;padding:10px 14px;border-radius:6px;border:1px solid ${encre};background:${fond};color:${encre};font:13px/1.4 Inter,sans-serif;text-align:left"><span style="flex:0 0 auto;width:18px;height:18px;border-radius:50%;border:2px solid ${encre};display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px">i</span><span style="flex:1"><b style="display:block">Information</b>Le dossier a été partagé.</span></div>`;
@@ -371,18 +378,54 @@ function cartes(doc, construire) {
     const c = modeles[ton].cloneNode(true);
     c.querySelector('.bloc-phrase').innerHTML = phrase;
     c.querySelector('.bloc-pile > .meta').innerHTML = meta.join('<br>');
+    // Une carte à bouton prend la forme d'une carte de correction du plugin : contenu, bouton, puis chevron.
     if (selection || action) {
       const tete = c.querySelector('.bloc-tete');
-      tete.classList.add('avec-selection');
+      tete.classList.add('avec-action');
       const b = doc.createElement('button');
       b.type = 'button';
       b.className = 'btn btn-secondary btn-compact bouton-selectionner';
       if (action) b.innerHTML = `<span>${action}</span>`;
       else if (selection === 'fait') { b.disabled = true; b.innerHTML = `${SVG_SELECTION}<span>Sélectionnés</span>`; }
       else b.innerHTML = `${SVG_SELECTION}<span>Sélectionner</span>`;
-      tete.append(b);
+      tete.append(b, replierDe(c));
     }
     return c.outerHTML;
+  };
+  /** Le chevron sort du bouton de la carte et vient après l'action, comme `bloc-replier` dans le plugin. */
+  const replierDe = (c, ouvert = false) => {
+    const droite = c.querySelector('.bloc-droite');
+    const replier = doc.createElement('button');
+    replier.type = 'button';
+    replier.className = 'bloc-replier';
+    replier.setAttribute('aria-label', ouvert ? 'Replier la carte' : 'Déplier la carte');
+    replier.setAttribute('aria-expanded', String(ouvert));
+    replier.innerHTML = droite.innerHTML;
+    droite.remove();
+    return replier;
+  };
+  /** Une carte de correction, tirée de l'état `i-ouvert` : case, phrase, Appliquer, chevron, et sa liste ouverte. */
+  const correction = ({ phrase, meta, corps = '' }) => {
+    const source = new DOMParser().parseFromString(G['i-ouvert'].corps, 'text/html').querySelector('.bloc-tete.avec-action').closest('.bloc');
+    const c = doc.importNode(source, true);
+    c.querySelector('.bloc-phrase').innerHTML = phrase;
+    c.querySelector('.bloc-pile > .meta').innerHTML = meta;
+    if (corps) {
+      c.querySelector('.bloc-bouton').setAttribute('aria-expanded', 'true');
+      c.querySelector('.bloc-replier').setAttribute('aria-expanded', 'true');
+      c.insertAdjacentHTML('beforeend', `<div class="bloc-corps">${corps}</div>`);
+    }
+    return c.outerHTML;
+  };
+  /** La section Informations : signe gris de la note, lignes sans liseré ni sévérité. */
+  const informations = (lignes) => {
+    const b = bande.cloneNode(true);
+    const signe = b.querySelector('.signe');
+    signe.className = 'signe signe-24 signe-note';
+    signe.innerHTML = SVG_NOTE;
+    b.querySelector('.titre').textContent = 'Informations';
+    b.querySelector('.nombre').textContent = lignes.length;
+    return `<div class="section-element section-infos">${b.outerHTML}${lignes.map((l) => `<div class="info-ligne">${l}</div>`).join('')}</div>`;
   };
   /** `source` : l'état de la galerie dont la bande est reprise, pour garder le signe de l'élément. */
   const section = (titre, nombre, html, note = '', source = null) => {
@@ -396,7 +439,7 @@ function cartes(doc, construire) {
     b.querySelector('.nombre').textContent = nombre;
     return `<div class="section-element">${b.outerHTML}${note ? `<p class="section-note">${note}</p>` : ''}${html}</div>`;
   };
-  liste.innerHTML = construire({ carte, section });
+  liste.innerHTML = construire({ carte, section, correction, informations });
   q(doc, '.arch-resume-titre').innerHTML = 'Button <span class="meta">216 variants, analysé à 12:19</span>';
   q(doc, '.sommaire-elements')?.remove();
   q(doc, '.pied-rapport')?.remove();
@@ -425,6 +468,12 @@ const LEGENDES = {
     ['.vc-apercu', 'L\'aperçu garde la hauteur de son cadre. La nouvelle image remplace l\'ancienne.'],
     ['.vc-token:nth-of-type(1) .vient-de-changer', 'Une valeur qui change est surlignée 600 ms. Les lignes ne bougent pas.'],
   ],
+  'c-2c': [
+    ['.vc-section-tete[data-section="forme"]', 'Le chevron à gauche, juste au-dessus des signes des lignes.'],
+  ],
+  'c-2d': [
+    ['.vc-section-tete[data-section="forme"]', 'Le chevron passe à droite. Le titre et le nombre restent à gauche.'],
+  ],
   'c-3a': [
     ['.variants-affiche', 'Trois paires sur une ligne. La valeur utile se perd.'],
   ],
@@ -433,7 +482,7 @@ const LEGENDES = {
   ],
   'c-3c': [
     ['.axe:nth-child(1) .choisie', 'La valeur choisie de chaque ligne dit le variant affiché.'],
-    ['.variants-pied', 'La ligne Affiché disparaît. Le bouton de modèle reste.'],
+    ['.variants-corps', 'La ligne Affiché disparaît. Le bouton de modèle part dans le panneau (section 4).'],
   ],
   'c-3d': [
     ['.bloc-constat:nth-of-type(1) .ch-variant', 'Le nom complet du variant coupe la phrase.'],
@@ -453,15 +502,15 @@ const LEGENDES = {
   'c-4a': [
     ['.variants-copier', '« ses » ne dit pas à qui sont les liaisons. Le bouton a le style du navigateur.'],
   ],
-  'c-4b': [
-    ['.variants-pied .btn', 'Le libellé dit ce que le bouton fait. Style du socle.'],
-    ['.modele-aide', 'Une phrase explique la substitution.'],
-    ['.modele-exemple', 'L\'exemple vient du variant affiché et d\'un autre variant du jeu.'],
-  ],
   'c-4d': [
-    ['.bloc-constat .bloc-phrase', 'La carte ne paraît que si des layers sont liés dans un variant et en dur dans d\'autres.'],
+    ['.bloc-constat .bloc-phrase', 'Le problème : des couleurs en dur. La carte ne paraît que si un variant lie déjà ces layers.'],
     ['.bloc-constat .lieu-pv', 'Le modèle est le variant le plus lié. Le plugin le choisit et le nomme.'],
-    ['.bloc-constat .bouton-selectionner', 'Le bouton ajoute les corrections à la section. Le designer les applique ensuite.'],
+    ['.bloc-constat .bouton-selectionner', 'Le bouton, puis le chevron à droite, comme une carte de correction.'],
+  ],
+  'c-4e': [
+    ['.bloc:nth-of-type(1) .bloc-phrase', 'Une carte de correction par layer et par champ, dans la section du problème.'],
+    ['.bloc:nth-of-type(1) .bloc-corps .diff:nth-of-type(2)', 'Chaque variant reçoit le token de même nom, avec ses propres valeurs.'],
+    ['.bloc:nth-of-type(1) .appliquer-carte', 'Rien n\'est écrit avant Appliquer.'],
   ],
   'c-5a': [
     ['.variants-tableau', 'Le bouton Tableau disparaît, avec l\'affichage croisé.'],
@@ -477,15 +526,16 @@ const LEGENDES = {
     ['.bloc-constat:nth-of-type(2) .bouton-selectionner', 'Après le clic : Sélectionnés, désactivé. Il redevient actif quand la sélection de Figma change.'],
   ],
   'c-7b': [
-    ['.bloc-phrase', 'La phrase dit que .Ring est un composant imbriqué, et où lier le radius.'],
-    ['.bouton-selectionner', 'Sélectionne le layer dans l\'instance .Ring.'],
+    ['.bloc-phrase', 'Avec l\'option 2 seulement. Avec l\'option 1, aucun constat.'],
+    ['.bouton-selectionner', 'Sélectionne les instances .Ring sans surcharge.'],
   ],
   'c-7d': [
     ['.bloc-phrase', 'Une phrase simple. « propriété » remplace « property » (R-22).'],
   ],
   'c-7f': [
-    ['.section-note', 'La carte Information devient une ligne grise sous la bande. Elle ne demande aucun geste (R-19).'],
-    ['.bloc-constat:nth-of-type(1) .bloc-phrase', 'Le stroke se mesure sur elevation/page, dans chaque mode du thème (R-20).'],
+    ['.bloc-constat:nth-of-type(1) .bloc-phrase', 'Le stroke se mesure sur le fond d\'élévation, dans chaque mode du thème. La carte nomme le fond et le mode.'],
+    ['.section-infos .bande-element', 'La section Informations, en dernier. Signe gris de la note. Elle arrive repliée ; ouverte ici.'],
+    ['.section-infos .info-ligne:nth-of-type(2)', 'Une ligne, pas une carte : ni liseré, ni sévérité. Elle ne compte pas dans les constats.'],
   ],
 };
 
@@ -497,7 +547,7 @@ cadre('c-1c', { etat: 'composant-vide', largeur: 500, hauteur: 360, modifier: (d
   const b = q(doc, '.bouton-lecture');
   if (b) { b.disabled = true; b.title = 'Sélectionnez un composant dans Figma'; }
 } });
-cadre('c-1d', { etat: 'c-modele', largeur: 1060, hauteur: 640, modifier: (doc) => {
+cadre('c-1d', { etat: 'c-modele', largeur: 1144, hauteur: 640, modifier: (doc) => {
   barreCompacte(doc);
   q(doc, '.vc').style.width = '500px';
   // La galerie remplit ces deux cartes d'un code sans phrase ; la maquette leur donne un texte du kit.
@@ -539,15 +589,27 @@ cadre('c-2b', { etat: 'composant-variants', largeur: 500, hauteur: 640, apercu: 
   }
 } });
 
+// La liste des tokens, chevron des sections à droite
+cadre('c-2c', { etat: 'composant-variants', largeur: 500, hauteur: 640, modifier: barreCompacte });
+cadre('c-2d', { etat: 'composant-variants', largeur: 500, hauteur: 640, modifier: (doc) => {
+  barreCompacte(doc);
+  q(doc, '.vc-liste').classList.add('chevron-a-droite');
+} });
+
 // 3. Langage des variants
 const sectionButton = (modifier) => ({ etat: 'composant-variants', largeur: 500, hauteur: 'variants', apercu: APERCU_BUTTON, modifier: (doc) => {
   barreCompacte(doc);
   axesDeButton(doc);
   modifier?.(doc);
 } });
+/** Forme B, avec les décisions R-14 et R-15 : ni ligne Affiché, ni bouton de modèle, ni Tableau. */
+const formeB = (doc) => {
+  q(doc, '.variants-pied')?.remove();
+  q(doc, '.variants-tableau')?.remove();
+};
 cadre('c-3a', sectionButton((doc) => { q(doc, '.variants-affiche .ch-variant').textContent = 'Color=Primary, Variant=Contained, State=Default'; }));
 cadre('c-3b', sectionButton((doc) => affiche(doc, pvs([['Color', 'Primary'], ['Variant', 'Contained'], ['State', 'Default']]))));
-cadre('c-3c', sectionButton((doc) => q(doc, '.variants').classList.add('forme-b')));
+cadre('c-3c', sectionButton(formeB));
 
 const panneauButton = (construire) => ({ etat: 'x-button', largeur: 560, seul: true, modifier: (doc) => cartes(doc, construire) });
 cadre('c-3d', panneauButton(({ carte }) => [
@@ -571,28 +633,30 @@ cadre('c-3g', panneauButton(({ carte }) => [
 // 4. Bouton de modèle
 const modeleAlert = (doc) => { variantInfo(doc); barreCompacte(doc); };
 cadre('c-4a', { etat: 'composant-variants', largeur: 500, hauteur: 'variants', modifier: modeleAlert });
-const piedModele = (doc, resultat) => {
-  const pied = q(doc, '.variants-pied');
-  pied.classList.add('modele');
-  q(doc, '.variants-copier').outerHTML = '<button type="button" class="btn btn-secondary btn-compact">Lier les autres variants sur ce modèle</button>';
-  pied.insertAdjacentHTML('beforeend', resultat ?? `<p class="modele-aide">Chaque autre variant reçoit le token de même nom, avec ses propres valeurs. Par exemple, pour ${chv('Severity=error, Variant=outlined')} :</p>
-    <span class="modele-exemple">colors/<span class="avant">info</span>/<span class="avant">standard</span>/background</span>
-    <span class="modele-exemple">colors/<span class="apres">error</span>/<span class="apres">outlined</span>/background</span>`);
-};
-cadre('c-4b', { etat: 'composant-variants', largeur: 500, hauteur: 'variants', modifier: (doc) => { modeleAlert(doc); piedModele(doc); } });
 const DEFAUT = [['Color', 'Primary'], ['Variant', 'Contained'], ['State', 'Default']];
 cadre('c-4d', panneauButton(({ carte, section }) => section('Couleurs', 1, carte('corriger', {
-  phrase: `Des layers sont liés dans un variant et en dur dans 215 autres.`,
-  meta: [`<span class="lieu-pv"><span class="pv-compte">Modèle, 10 liaisons</span>${pvs(DEFAUT)}</span>`, 'Le plugin reprend le token de chaque layer, avec les valeurs de chaque variant'],
+  phrase: '4 layers ont une couleur en dur dans 215 variants.',
+  meta: [`<span class="lieu-pv"><span class="pv-compte">Un variant les lie déjà :</span>${pvs(DEFAUT)}</span>`, 'Architect peut reprendre ses liaisons dans les autres variants'],
   action: 'Proposer les liaisons',
 }), '', 'x-button-corr')));
+/** Une ligne avant / après : le variant et sa valeur en dur, puis le token proposé, segments de property en vert. */
+const ligneDiff = (paires, enDur, role) => `<div class="diff"><input type="checkbox" class="case" checked aria-label="Lier ce variant"><span class="chemin"><span class="lieu-pv">${pvs(paires)}</span> ${enDur} en dur</span><span class="chemin-apres"><span class="fleche-ligne">→ </span>Color/${paires.map(([, v]) => `<span class="seg-nouveau">${v}</span>/`).join('')}${role}</span></div>`;
+cadre('c-4e', panneauButton(({ section, correction }) => section('Couleurs', 3, [
+  correction({
+    phrase: `Lier le fill de ${chm('container')}`, meta: '215 variants, comme le modèle',
+    corps: `<div class="colonnes-tete"><span></span><span>Aujourd’hui</span><span>Après l’application</span></div>
+      ${ligneDiff([['Color', 'Info'], ['Variant', 'Contained'], ['State', 'Default']], '#0369A1', 'background')}
+      ${ligneDiff([['Color', 'Info'], ['Variant', 'Outlined'], ['State', 'Hover']], '#E0F2FE', 'background')}
+      ${ligneDiff([['Color', 'Error'], ['Variant', 'Text'], ['State', 'Pressed']], '#FEE2E2', 'background')}
+      <p class="meta" style="margin:6px 0 0">Et 212 autres variants.</p>`,
+  }),
+  correction({ phrase: `Lier le fill de ${chm('label')}`, meta: '215 variants, comme le modèle' }),
+  correction({ phrase: `Lier le stroke de ${chm('container')}`, meta: '71 variants, comme le modèle' }),
+].join(''), '', 'x-button-corr')));
 
 // 5. Tableau retiré : la section B, sans le bouton
 cadre('c-5a', sectionButton());
-cadre('c-5b', sectionButton((doc) => {
-  q(doc, '.variants').classList.add('forme-b');
-  q(doc, '.variants-tableau').remove();
-}));
+cadre('c-5b', sectionButton(formeB));
 
 // 6. Sélectionner
 const RING = { phrase: `Le top left radius du layer ${chm('.Ring')} est lié à ${chm('Radius/lg')}, un token de Layout.` };
@@ -604,9 +668,9 @@ cadre('c-6b', panneauButton(({ carte }) => [
 
 // 7. Constats réécrits
 cadre('c-7a', panneauButton(({ carte }) => carte('corriger', { phrase: RING.phrase, meta: [`<span class="constat-lieu">${nomDe(FOCUS)}</span>`, 'Liez-le à un token du composant'] })));
-cadre('c-7b', panneauButton(({ carte }) => carte('corriger', {
-  phrase: `Le top left radius du layer ${chm('.Ring')} est lié à ${chm('Radius/lg')}, un token de layout. ${chm('.Ring')} est un composant imbriqué dans Button.`,
-  meta: [`<span class="lieu-pv"><span class="pv-compte">36 variants</span>${pv('State', 'Focus')}</span>`, 'Liez ce radius à un token de Button, sur l’instance .Ring'], selection: 'oui',
+cadre('c-7b', panneauButton(({ carte }) => carte('verifier', {
+  phrase: `Le radius de l’instance ${chm('.Ring')} vient de la pièce partagée. Il ne suit pas celui de Button.`,
+  meta: [`<span class="lieu-pv"><span class="pv-compte">36 variants</span>${pv('State', 'Focus')}</span>`, 'Liez-le à un token de Button'], selection: 'oui',
 })));
 cadre('c-7c', panneauButton(({ carte }) => carte('corriger', { phrase: 'La règle de label vise une property que le composant n’a pas.', meta: ['Tous les variants', 'Reprenez le nom de la property dans la règle'] })));
 cadre('c-7d', panneauButton(({ carte }) => carte('corriger', { phrase: `La règle ${chm('label')} ne correspond à aucune propriété de Button.`, meta: ['Donnez-lui le nom exact de la propriété, ou supprimez-la'] })));
@@ -614,9 +678,13 @@ cadre('c-7e', panneauButton(({ carte, section }) => section('Accessibilité', 2,
   carte('info', { phrase: `Les 18 variants ${chv('State=Disabled')} ne sont pas mesurés. WCAG ne leur demande pas de contraste.`, meta: ['<span class="constat-lieu">Tous les variants désactivés</span>'] }),
   carte('info', { phrase: `Le stroke de ${chv('Variant=Outlined')} est posé sur un fond que le plugin ne détermine pas. Le contraste n’a pas été mesuré.`, meta: ['<span class="constat-lieu">72 variants</span>'] }),
 ].join(''))));
-cadre('c-7f', panneauButton(({ carte, section }) => section('Accessibilité', 1, [
-  carte('corriger', { phrase: `Le stroke manque de contraste sur le fond de la page, ${chm('elevation/page')}, en Dark : 1,8:1 au lieu de 3:1.`, meta: [`<span class="lieu-pv"><span class="pv-compte">72 variants</span>${pv('Variant', 'Outlined')}</span>`, 'En Light : 4,6:1, tenu.', 'Réglez le token border dans UCM Palettes'], selection: 'oui' }),
-].join(''), `Contraste non mesuré sur ${pv('State', 'Disabled')}, que WCAG exempte.`)));
+cadre('c-7f', panneauButton(({ carte, section, informations }) => section('Accessibilité', 1,
+  carte('corriger', { phrase: `Le stroke manque de contraste sur ${chm('elevation/raised')}, en Dark : 1,8:1 au lieu de 3:1.`, meta: [`<span class="lieu-pv"><span class="pv-compte">72 variants</span>${pv('Variant', 'Outlined')}</span>`, 'En Light : 4,6:1, tenu.', 'Réglez le token border dans UCM Palettes'], selection: 'oui' }),
+) + informations([
+  `<span>Contraste non mesuré sur ${pv('State', 'Disabled')}, que WCAG exempte.</span><span class="info-lieu">18 variants</span>`,
+  `<span>Contraste non mesuré : le fill de ${chm('icon')} est un dégradé.</span><span class="info-lieu">12 variants</span>`,
+  '<span>3 paires de couleurs non mesurées sur 412.</span>',
+])));
 </script>
 </body>
 </html>

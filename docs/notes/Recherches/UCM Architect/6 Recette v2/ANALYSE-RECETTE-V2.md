@@ -7,19 +7,18 @@ lue dans le code, et une proposition. Rien n'est implémenté.
 La maquette [MAQUETTE-RECETTE-V2.html](./MAQUETTE-RECETTE-V2.html) montre les
 propositions d'interface sur les écrans réels figés de la galerie d'Architect.
 Les questions au mainteneur sont numérotées à la suite de la recette v1, de
-R-11 à R-24. La section 10 les réunit avec leur état ; la maquette les reprend
+R-11 à R-25. La section 10 les réunit avec leur état ; la maquette les reprend
 en section 8.
 
 Le mainteneur a relu une première version de la maquette. Ses réponses sont
-reportées dans chaque section. Trois sujets restent en discussion : le bouton
-de modèle (section 4), le radius de `.Ring` (7.3) et l'accessibilité des
-variants désactivés et sans fond (7.4 et 7.5).
+reportées dans chaque section. Deux sujets restent en discussion : le radius
+de `.Ring` (7.3) et la section des informations (7.4).
 
 ## 1. Fenêtre, barre et panneau
 
 | Point de la recette | Ce que fait le code | Décision |
 |---|---|---|
-| La fenêtre s'ouvre trop large en mode Composant | Panneau fermé, la fenêtre prend 520 px (`TAILLE_ETROITE`, `src/fenetre.ts:25`), ou la dernière taille rangée sous `ucm-explorateur/tailleFenetreEtroite`. Panneau ouvert : 1040 px | Panneau fermé : 500 px, qui est aussi la largeur minimale. Panneau ouvert : la vue garde sa largeur et le panneau s'ajoute à droite, 560 px. La fenêtre passe à 1060 px (R-11) |
+| La fenêtre s'ouvre trop large en mode Composant | Panneau fermé, la fenêtre prend 520 px (`TAILLE_ETROITE`, `src/fenetre.ts:25`), ou la dernière taille rangée sous `ucm-explorateur/tailleFenetreEtroite`. Panneau ouvert : 1040 px | Panneau fermé : 500 px, qui est aussi la largeur minimale. Panneau ouvert : la vue garde sa largeur et le panneau s'ajoute à droite, 640 px. La fenêtre passe à 1144 px, poignée comprise (R-11, R-12) |
 | Analyser ouvre aussi le panneau des constats | Le clic n'envoie que `analyser` (`src/ui/application.ts:226`). Seuls le bouton Constats et le collage d'une préparation ouvrent le panneau. La lecture du code n'explique pas ce que la recette a vu | Reproduire dans Figma avec le build courant. Un test d'interface vérifie que le panneau reste fermé après Analyser |
 | La frontière entre la vue et le panneau lâche la souris | Le geste repose sur `setPointerCapture` et écoute la poignée seule (`src/ui/composant/corps.ts:47`). Dans Figma, Chromium retire la capture en cours de geste : le suivi s'arrête dès que la souris quitte la poignée | Reprendre le geste de la poignée des colonnes (`src/ui/poignee.ts`) : suivi sur `window` en phase de capture, fin au relâchement ou quand la souris sort de la fenêtre |
 | Configuration change la largeur de la fenêtre | En mode Composant, `ouvrirLaConfiguration` passe d'abord en mode Tokens, qui redimensionne à 1360 px (`src/ui/application.ts:187`) | La Configuration s'ouvre à la place du contenu de la fenêtre, à sa largeur |
@@ -41,11 +40,16 @@ et pour la vue (`src/ui/composant/corps.ts:19`). Une taille rangée plus grande
 garde la priorité à l'ouverture : le designer qui a agrandi sa fenêtre la
 retrouve. Une taille rangée plus petite que 500 px remonte à 500 px.
 
-### La Configuration à 500 px
+### La largeur de la Configuration
 
-Les formulaires de la Configuration ont été validés à 640 px. À 500 px, une
-ligne à deux colonnes peut ne plus tenir. R-12 demande si ces formulaires
-passent sur une colonne à cette largeur.
+Les formulaires de la Configuration ont été validés à 640 px. Décidé (R-12) :
+le panneau des constats prend 640 px par défaut.
+
+- Panneau ouvert : la Configuration prend la place du panneau, à 640 px. La vue de gauche reste affichée.
+- Panneau fermé : la Configuration prend la place de la vue, à 500 px. Ses formulaires passent sur une colonne.
+
+Dans les deux cas, la largeur de la fenêtre ne change pas. R-25 confirme ce
+partage.
 
 ## 2. Changer de variant sans que l'écran saute
 
@@ -84,6 +88,13 @@ valeurs changent.
 Ce travail touche la fonction de rendu de la vue entière : il revient à un lot
 `implementeur-exigeant`, avec un test d'interface qui compare la position des
 éléments avant et après un changement de variant.
+
+### Le chevron des sections de la liste
+
+Décidé, à la relecture de la maquette. Les en-têtes de section de la liste des
+tokens (Couleur, Forme, Espacement, Taille, Texte) portent leur chevron à
+gauche, juste au-dessus des signes des lignes. Le chevron passe à droite :
+titre et nombre à gauche, chevron à droite (cadre 2c).
 
 ## 3. Le langage visuel des variants
 
@@ -129,9 +140,8 @@ de Figma, en puces d'une paire chacune.
 
 ## 4. Le bouton « Copier ses liaisons aux autres variants »
 
-En discussion (R-14). Le mainteneur a jugé le libellé, la phrase et l'exemple
-plus clairs, mais ne voit pas l'intérêt de la fonction. Il trouve aussi que
-cela fait trop d'information sous la section Variants.
+Décidé (R-14) : le bouton quitte la section Variants et devient une carte du
+panneau des constats, l'option a ci-dessous.
 
 ### Ce qu'il fait
 
@@ -181,9 +191,52 @@ où il ne propose rien.
 | b. Un menu discret dans la section Variants | Un bouton « … » à côté du titre Variants, avec « Lier les autres variants sur ce modèle ». La phrase et l'exemple vont dans le résultat |
 | c. Retirer la fonction | Le designer lie chaque variant dans Figma, ou passe par la préparation des tokens |
 
-Recommandation : a. La fonction apparaît là où le problème est signalé, et
-seulement quand elle propose quelque chose. Le designer n'a pas à choisir le
-modèle. Le cadre 4d de la maquette la montre.
+Retenue : a. La fonction apparaît là où le problème est signalé, et seulement
+quand elle propose quelque chose. Le designer n'a pas à choisir le modèle.
+
+### La carte
+
+Une carte par section concernée. Les couleurs en dur vont dans Couleurs. Les
+tailles en dur (padding, gap, radius, stroke weight) vont dans Tailles et forme.
+Un même modèle peut donc donner deux cartes.
+
+La carte ne paraît que si les trois conditions tiennent :
+
+- un variant porte des liaisons de cette sorte ;
+- les mêmes layers sont en dur dans d'autres variants ;
+- au moins une liaison peut être proposée.
+
+Le modèle est le variant qui porte le plus de liaisons de cette sorte. À
+égalité, le premier variant du jeu.
+
+Texte (cadre 4d), une idée par phrase :
+
+> **À corriger** 4 layers ont une couleur en dur dans 215 variants.
+> Un variant les lie déjà : `Color=Primary` `Variant=Contained` `State=Default`.
+> Architect peut reprendre ses liaisons dans les autres variants.
+> Bouton : « Proposer les liaisons »
+
+### Ce que fait « Proposer les liaisons »
+
+Cadre 4e.
+
+1. Le sandbox calcule les liaisons depuis le modèle, sans rien écrire dans Figma
+   (`servir-de-modele`, `proposerLaPropagation`).
+2. La carte est remplacée par des cartes de corrections ordinaires, une par
+   layer et par champ : « Lier le fill de `container` », 215 variants. Chacune a
+   sa case, son bouton Appliquer et sa liste avant / après, ouverte au clic.
+3. Un layer dont le token attendu n'existe pas, ou existe en plusieurs
+   exemplaires, devient une question dans la même section.
+4. Le designer applique carte par carte, ou avec Appliquer tout. Ctrl+Z défait
+   le lot.
+
+### Le chevron des cartes à bouton
+
+Dans la carte 4d de la première version, le chevron se trouvait à gauche du
+bouton. Une carte de correction du plugin place déjà son bouton Appliquer dans
+l'en-tête, suivi du chevron (`bloc-tete avec-action`, puis `bloc-replier`).
+Les cartes à bouton reprennent cette forme : contenu, bouton, puis chevron à
+droite. La règle vaut aussi pour le bouton Sélectionner (section 6).
 
 ## 5. Le tableau des variants
 
@@ -204,26 +257,51 @@ redevient actif quand la sélection de Figma change. Ouvrir une carte ne
 sélectionne plus rien : aujourd'hui, l'ouverture d'une carte de correction ou
 de constat sélectionne ses layers sans l'annoncer.
 
+Le bouton se place avant le chevron, comme le bouton Appliquer d'une carte de
+correction (section 4, « Le chevron des cartes à bouton »).
+
 ## 7. Les constats de Button
 
 ### 7.1 L'anneau de focus « lié autrement dans 12 autres variants »
 
 Constat C21, À vérifier (`ecartsDeFratrie`, `packages/kit/src/controles/mapping.ts:87`).
 
-Le contrôle range les liaisons de tous les variants par layer et par champ. Il
-donne à chacune une signature tirée du nom de son token. Quand une signature
-domine le groupe, les autres liaisons reçoivent C21. La clé du groupe ignore
-les properties du variant. `Color/Primary/Contained/Focus/ring` et
-`Color/Info/Contained/Focus/ring` ont donc deux signatures, alors que leur
-seul écart est la valeur de `Color`.
+#### Pourquoi il apparaît
 
-Le constat est faux. Les contrôles C15 et C16 du même fichier savent déjà
-reconnaître un segment qui reprend la valeur d'une property du variant.
+C21 cherche un variant lié autrement que ses voisins. Il réunit, pour un même
+layer et un même champ, les liaisons de tous les variants : ici le stroke de
+`.Ring`. Pour chaque liaison, il ne retient pas le token lié mais sa cible :
+la variable du thème vers laquelle l'alias renvoie (`signature`,
+`mapping.ts:76`). Si plus de la moitié des liaisons ont la même cible, toute
+liaison dont la cible diffère reçoit C21.
 
-Correction : C21 compare les signatures après avoir remplacé ces segments par
-le nom de leur property. Un token qui suit les valeurs du variant ne reçoit
-plus de constat. Un vrai écart reste signalé, par exemple un variant
-`Color=Primary` lié à `Color/Info/…`.
+Sur Button, le ring de `Color=Primary` renvoie à une autre variable du thème
+que celui des autres couleurs. C'est un choix de design : la couleur Primary a
+son anneau. C21 le lit comme une incohérence, parce qu'il ne regarde jamais si
+le token lié correspond au variant. Or `Color/Primary/Contained/Focus/ring` est
+exactement le token que le variant `Color=Primary, Variant=Contained,
+State=Focus` doit porter.
+
+Le rapport téléchargeable de Button (R-21) donnera les cibles exactes.
+
+#### Correction
+
+C21 juge la liaison, pas le contenu du token. Avant de comparer, il écarte
+chaque liaison dont le token porte les valeurs de son propre variant : chaque
+segment de property du nom, `Primary`, `Contained`, `Focus`, vaut la valeur du
+variant. Ces segments se lisent avec `segmentDAxe`, que C15 et C16 emploient
+déjà dans le même fichier. Une telle liaison est juste par construction. Ce
+vers quoi son token renvoie relève des tokens, pas des liaisons.
+
+C21 compare ensuite les liaisons restantes, comme aujourd'hui.
+
+| Cas | Avant | Après |
+|---|---|---|
+| `Color=Primary` lié à `Color/Primary/Contained/Focus/ring` | C21 | Aucun constat |
+| `Color=Primary` lié à `Color/Info/Contained/Focus/ring` | C21 | C21, et C16 signale déjà le segment `Info` |
+| Layer lié à un token sans segment de property, différent de ses voisins | C21 | C21 |
+
+Les trois cas entrent dans les tests de C21.
 
 ### 7.2 « 4 tokens écrivent Large. UCM écrit lg »
 
@@ -236,15 +314,32 @@ dossiers, `lg` devient `large` ». Le registre des tailles la porte aussi
 (`packages/kit/src/referentiel/vocabulaire.ts:123`) : chaque cran a son mot de
 dossier, comme `large` pour `lg`.
 
-C10 ne lit pas cette distinction. Il compare chaque segment au seul
-identifiant du terme, `lg`, sans regarder si le segment est un dossier ou le
-nom de la variable. Seul l'outil Nomenclature appelle `termePourCategorie`.
+#### Pourquoi la définition n'a pas suffi
 
-Le défaut est dans C10, pas dans le registre. Correction : C10 prend
-l'écriture attendue par `termePourCategorie(terme, categorieDuSegment(nom,
-rang))`. `Size/Large/radius` est tenu. Une variable nommée `Size/radius/Large`
-recevrait encore C10, avec `lg`. R-17 confirme que la règle vaut pour toutes
-les collections.
+La définition est bien enregistrée, mais un seul des deux lecteurs la lit.
+
+| Lecteur | Ce qu'il lit | Résultat sur `Size/Large/radius` |
+|---|---|---|
+| Nomenclature (`referentiel/vocabulaire-du-fichier.ts:80`) | `termePourCategorie` : le mot de dossier pour un dossier, l'abréviation pour la variable | Tenu |
+| C10 (`controles/nommage.ts:229`) | `terme.id`, toujours `lg` | « UCM écrit lg » |
+
+C10 vient des contrôles de l'exporteur, rangés dans le kit avant que le
+registre ne distingue dossiers et variables. Le mot de dossier est arrivé avec
+Nomenclature, par `identifiantParCategorie`. C10 n'a pas été repris, et aucun
+test ne lui donnait un dossier écrit en mot entier.
+
+#### Correction
+
+1. C10 prend l'écriture attendue par `termePourCategorie(terme,
+   categorieDuSegment(nom, rang))`, la fonction de Nomenclature.
+   `Size/Large/radius` est tenu. `Size/radius/Large` reçoit encore C10, avec
+   `lg`. `Size/lg/radius` reçoit C10, avec `Large`.
+2. Les trois cas entrent dans les tests de C10.
+3. Un test du kit refuse qu'un contrôle compare un segment à `terme.id` sans
+   passer par `termePourCategorie`. Le prochain lecteur de la règle ne pourra
+   pas l'oublier.
+
+R-17 confirme que la règle vaut pour toutes les collections.
 
 ### 7.3 Le radius du layer `.Ring`, lié à un token de layout
 
@@ -265,95 +360,156 @@ une pièce de Button. Le contrat de Button publie l'anneau dans ses propres
 leur propre contrat, parce qu'ils servent seuls. Un composant fait pour servir
 seul a sa collection. Une pièce interne comme `.Ring` n'en a pas besoin.
 
-#### La question qui reste
+#### Ce que la relecture a ajouté
 
-Le radius de `.Ring` appartient donc à Button. La règle R-2 demande qu'il passe
-par un token de Button. Le kit le traite déjà ainsi : une liaison posée dans
-l'instance `.Ring` est rattachée à Button (`surcharge`,
-`packages/kit/src/controles/releve.ts:18`). Le constat suit la règle ; la règle
-est-elle la bonne pour une pièce interne ?
+`.Ring` servira à toutes les interfaces qui ont un état de focus : Button,
+Input, Checkbox, Tabs. Une liaison posée dans le composant principal `.Ring`
+vise une seule variable. Elle ne peut pas viser à la fois un token de Button et
+un token d'Input. Lier le composant principal aux tokens de Button, comme le
+proposait le tour précédent, ne tient donc pas.
 
-| Option | Ce que fait le designer | Ce qu'on gagne | Ce qu'on perd |
+`.Ring` est une **pièce partagée** : ni un composant unifié, puisqu'il ne sert
+jamais seul et n'a pas de contrat, ni la pièce d'un seul composant. R-2 ne
+prévoit pas ce cas : il suppose qu'un layer appartient à un seul composant.
+
+#### Ce que porte l'anneau
+
+| Propriété | Même valeur pour tous les composants ? | Où la lier |
+|---|---|---|
+| Couleur du stroke | Oui | Le thème : son dossier `ring` existe déjà (`REGISTRE_DOSSIERS_THEME`) |
+| Stroke weight, écart | Oui | `layout`, par exemple `Stroke/outline-weight` |
+| Radius | Non : il suit le radius du composant qui l'entoure, plus l'écart de l'anneau. Un Button Small et un Input n'ont pas le même | Dépend du composant hôte |
+
+La couleur et l'épaisseur se lient une fois, dans le composant principal. Le
+radius ne le peut pas, si l'anneau doit épouser la forme de chaque composant.
+
+#### Les options
+
+| Option | Ce que fait le designer | Ce qu'Architect contrôle | Limite |
 |---|---|---|---|
-| 1. Tokens d'anneau dans Button | Crée `ring-radius` dans les tokens de Button, qui renvoie à `Radius/lg`, puis le lie sur l'instance `.Ring` de chaque variant | R-2 reste sans exception. Button règle son anneau par taille sans toucher `.Ring` | Une liaison par instance. Le bouton de modèle (section 4) les propose depuis un variant lié |
-| 2. Exception pour une pièce interne | Rien : `.Ring` garde `Radius/lg` dans son composant principal | Aucun geste dans Figma | Le contrat de Button cite un token de layout en direct. Changer l'anneau de Button oblige à modifier `.Ring`, et donc tous les composants qui l'emploient |
-| 3. `.Ring` devient un composant unifié | Ajoute une instance de règles, une collection `ring` et un contrat | `.Ring` se partage proprement entre composants | Un contrat et des tokens pour une pièce qui ne sert jamais seule |
+| 1. Pièce partagée, liée à `theme` et `layout` | Rien de plus : `.Ring` garde ses liaisons dans le composant principal | Une pièce partagée peut se lier à `theme` et `layout`. C80 ne vise plus ses layers. Une valeur en dur reste un constat | L'anneau a le même radius partout. Sur un Button Small, il peut ne pas épouser la forme |
+| 2. Option 1, et le radius surchargé par chaque hôte | Dans chaque composant hôte, lie le radius de l'instance `.Ring` à un token de ce composant, par exemple `Button/Size/Small/ring-radius`, qui renvoie à `layout` | Option 1 pour le composant principal. Une surcharge posée dans l'instance appartient à l'hôte : elle vise un token de l'hôte, sinon C80. Une instance sans surcharge du radius reçoit un À vérifier | Un token de radius d'anneau par taille et par hôte. La carte de modèle (section 4) propose les surcharges depuis un variant lié |
+| 3. `.Ring` devient un composant unifié | Ajoute une instance de règles, une collection `ring` et un contrat. Chaque hôte le déclare dans `composes` | Les layers de `.Ring` se jugent dans son propre contrat | Un contrat et une collection pour une pièce qui ne sert jamais seule. Le radius pose le même problème : il dépend toujours de l'hôte |
 
-Avis : l'option 1 si l'anneau de Button doit pouvoir différer de celui d'un
-autre composant, ou suivre la taille du bouton. L'option 2 si l'anneau est le
-même partout et ne doit jamais varier. Dans ce cas, l'exception vise les
-layers d'un composant imbriqué dont le nom commence par `.` ou `_`, que Figma
-ne publie pas.
+Une pièce partagée se reconnaît ainsi : un set ou un composant imbriqué, dont
+le nom commence par `.` ou `_`, sans instance de `.componentRules`. Figma ne
+publie pas ces noms. L'exporteur les traite déjà comme des détails
+d'implémentation du parent.
 
-Deux faits décident :
+Pour l'option 2, le relevé doit distinguer une liaison héritée du composant
+principal d'une surcharge posée dans l'instance. Figma l'expose par
+`InstanceNode.overrides`. Le relevé ne le lit pas aujourd'hui.
 
-- `.Ring` sert-il à d'autres composants que Button ?
-- Le radius de l'anneau doit-il suivre la taille du bouton ?
+#### Avis
 
-Quelle que soit l'option, le constat doit nommer l'instance : « `.Ring` est un
-composant imbriqué dans Button ».
+L'option 1 tout de suite : elle retire le faux constat et suit la règle de
+l'exporteur. L'option 2 ensuite, si le radius de l'anneau doit suivre celui du
+composant. L'option 3 n'apporte rien de plus pour le radius, et coûte un
+contrat.
+
+Une question décide entre 1 et 2 : le radius de l'anneau doit-il épouser celui
+de chaque composant, ou un seul radius convient-il à tous ?
+
+Avec l'option 1, le constat disparaît. Avec l'option 2, une instance sans
+surcharge reçoit (cadre 7b) :
+
+> **À vérifier** Le radius de l'instance `.Ring` vient de la pièce partagée.
+> Il ne suit pas celui de Button. Liez-le à un token de Button.
 
 ### 7.4 « Les 18 variants State=Disabled ne sont pas mesurés »
 
-En discussion (R-19). Constat C53, Information
-(`packages/kit/src/controles/accessibilite.ts:133`).
+Constat C53, Information (`packages/kit/src/controles/accessibilite.ts:133`).
 
 WCAG 2.2, critères 1.4.3 et 1.4.11 : un composant inactif n'a pas d'exigence
 de contraste. Architect ne mesure donc pas les variants `State=Disabled`, et
-le dit dans une carte.
+le dit dans une carte. CONTRIBUTING.md écarte tout message sans geste.
 
-CONTRIBUTING.md, « Avertissements de l'export » : « Il n'existe aucun canal
-pour un constat sans geste. » Cette carte ne demande rien au designer.
+Le premier tour proposait une carte, une ligne grise sous Accessibilité, rien,
+ou un seuil propre aux désactivés (R-24, hors de cette recette).
 
-| Option | Ce que voit le designer | Pour | Contre |
-|---|---|---|---|
-| a. La carte d'aujourd'hui | Une carte Information | Le designer sait pourquoi ces variants n'ont aucun point | Une carte sans geste, à chaque analyse. Le designer apprend à survoler les cartes Information |
-| b. Une ligne grise sous Accessibilité | « Contraste non mesuré sur `State=Disabled`, que WCAG exempte. » | L'information reste, au rang 3, sans carte | Une ligne de plus sous la bande |
-| c. Rien | Aucune mention | Suit la règle des messages à la lettre | Un designer peut croire que les variants désactivés ont passé le contrôle |
-| d. Un seuil propre aux désactivés | Une mesure à un seuil plus bas, par exemple 2:1, en À vérifier | Un texte désactivé illisible reste signalé | Un seuil que WCAG ne donne pas : UCM devrait le décider et l'écrire dans le kit |
+#### La proposition du mainteneur : une section Informations
 
-Avis : b. L'option d serait un choix de produit, à décider à part.
+En discussion (R-19). Une dernière section du panneau, « Informations », réunit
+ce qu'Architect n'a pas pu ou pas voulu mesurer. Ses lignes ne sont pas des
+constats.
+
+- La section vient toujours en dernier, après les éléments tenus.
+- Elle a son signe, gris : une note, distincte du « i » bleu de l'alerte Information.
+- Ses lignes ne comptent ni dans « Tout », ni dans la pastille du bouton Constats, ni dans le sommaire.
+- Une ligne n'est pas une carte : ni liseré, ni mot de sévérité, ni chevron. Elle garde la ligne de lieu et le bouton Sélectionner quand elle vise des layers.
+- La section arrive repliée. Sa bande dit le nombre de lignes.
+
+Ce qui y va : tous les constats de type `info` du kit.
+
+| Code | Ligne |
+|---|---|
+| C53 | Contraste non mesuré sur `State=Disabled`, que WCAG exempte |
+| C49, C50 avec une limite | Contraste non mesuré, avec sa cause : texte sur une image, fond en dégradé, valeur non lue |
+| C49 borne | Nombre de paires non mesurées |
+
+C67, l'icône pilotée par une property que le composant ne déclare pas, est
+de type `info` mais demande un geste : ajouter la property. Il devient une
+carte À corriger.
+
+L'alerte Information disparaît alors des cartes d'Architect : un constat est
+À corriger, À vérifier ou Bloquant. CONTRIBUTING.md reçoit l'exception : dans
+Architect, une information sans geste va dans cette section, jamais dans une
+carte.
+
+Avis : oui. La section garde l'information sans la mêler aux constats. Elle
+suit la règle des messages : aucun constat sans geste.
 
 ### 7.5 Le stroke de `Variant=Outlined` sur un fond indéterminé
 
-En discussion (R-20). Constat de contraste non mesuré, cause
+Décidé (R-20) : la source A, `elevation/…` du thème, mesurée dans chaque mode
+du thème, avec la page Figma en repli. Constat de contraste non mesuré, cause
 `fond-indetermine` (`packages/kit/src/controles/accessibilite.ts:474`).
 
-#### Ce que fait le kit
+#### Ce que fait le kit aujourd'hui
 
 Le kit compose les fills des ancêtres du layer, dans le variant seulement. Il
 s'arrête au premier fill opaque. Un variant Outlined n'a pas de fill opaque :
-le fond reste inconnu. Aucun code ne lit le fond de la page de Figma ni le
-mode du thème pour ce calcul. Les autres mesures de contraste se font déjà
-par combinaison de modes.
+le fond reste inconnu. Les autres mesures de contraste se font déjà par
+combinaison de modes.
 
-#### Le raisonnement de la recette
+#### Ce qui est retenu
 
-Il est juste. Un composant sans fond se pose, en pratique, sur le fond de la
-page. Ce fond change avec le mode. UCM le nomme : `elevation/page` dans le
-thème (`packages/kit/src/referentiel/theme.ts:33`).
+| Source | Rang |
+|---|---|
+| A. Le fond d'élévation du thème, dans chaque mode | Premier |
+| B. Le fond de la page Figma (`figma.currentPage.backgrounds`), une seule valeur | Repli, sans thème UCM |
+| C. Une valeur fixe par mode | Écartée : fausse dès que Palettes change le fond |
 
-#### D'où prendre le fond
+La carte nomme le fond et le mode : « sur `elevation/raised`, en Dark ».
 
-| Source | Pour | Contre |
-|---|---|---|
-| A. `elevation/page` du thème | Le fond réel du produit, une valeur par mode. Suit UCM Palettes : le fond de page prévu est `#f8fafc`, pas `#FFFFFF` | Demande un thème UCM au catalogue |
-| B. Le fond de la page Figma (`figma.currentPage.backgrounds`) | Toujours disponible | Le fond du canvas, choisi pour travailler, pas celui du produit. Une seule valeur, sans mode |
-| C. Une valeur fixe : `#FFFFFF` en Light, une autre en Dark | Simple | Fausse dès que Palettes change le fond de page |
+#### Sur quel fond : `elevation/page` ou `elevation/raised`
 
-#### Dans quel mode mesurer
+Le mainteneur précise qu'un composant Outlined, Button comme Alert, se pose sur
+`elevation/raised`, le fond des cartes. R-23 change donc : faut-il mesurer sur
+`elevation/raised` seul, ou sur `elevation/page` et `elevation/raised`, en
+gardant le pire des deux ? Un Button se pose aussi sur la page, dans un
+formulaire. Avis : les deux, et la carte nomme celui qui échoue.
 
-| Mode | Pour | Contre |
-|---|---|---|
-| Le mode affiché | La mesure correspond à ce que le designer voit dans Figma | Un défaut en Dark passe inaperçu tant que le designer travaille en Light |
-| Chaque mode du thème | Le composant sert dans les deux modes. La carte dit lequel échoue | Deux mesures par paire |
+#### D'où vient la valeur de `elevation/raised`
 
-Avis : la source A, mesurée dans chaque mode du thème, avec B en repli quand le
-catalogue n'a pas de thème UCM. La carte nomme le fond et le mode : « sur le
-fond de la page, `elevation/page`, en Dark ».
+Le kit ne porte aucune palette d'un projet. Il porte seulement le nom et le
+sens de la variable (`packages/kit/src/referentiel/theme.ts:34`). La valeur
+vient du fichier Figma, comme celle de tout token lié :
 
-Une question de plus : un bouton Outlined se pose aussi sur une carte,
-`elevation/raised`. Faut-il mesurer aussi sur ce fond ?
+1. Architect lit déjà le catalogue de référence : les variables de la library
+   choisie, dont la collection `theme` qu'UCM Palettes a écrite
+   (`src/catalogue.ts`).
+2. Il y trouve `elevation/raised` par son nom, dans la collection de rôle
+   `theme`.
+3. Il résout sa valeur dans chaque mode, en suivant les alias jusqu'aux
+   primitives, comme il le fait pour une couleur liée.
+
+Si la variable n'est pas dans le catalogue, parce que la library du thème n'est
+pas activée, la mesure passe au repli B. Une ligne de la section Informations
+le dit : « Fond lu sur la page Figma : `elevation/raised` est introuvable. »
+
+La valeur n'est pas lue aujourd'hui, puisqu'aucun layer n'y est lié. Le lot
+ajoute son import, deux variables par analyse, dans la lecture du catalogue.
 
 ### 7.6 « La règle de label vise une property que le composant n'a pas »
 
@@ -384,50 +540,92 @@ phrases concernées : `src/ui/textes/ignores.ts`, lignes 141, 144 et 159.
 
 Constat C17, À corriger (`packages/kit/src/controles/mapping.ts:47`).
 
-La table des rôles admis donne `border` au stroke, ou `ring` sur un layer
-d'anneau. Le registre des rôles définit pourtant `foreground` comme la
-« couleur commune au texte, à l'icône et à la bordure posés sur un fond »
-(`packages/kit/src/referentiel/vocabulaire.ts:159`). Le contrôle contredit le
-registre.
+#### Pourquoi il apparaît
 
-Le constat est faux. Correction : un stroke admet `border` et `foreground`.
-`border` reste le rôle qu'une correction pose quand aucun token n'est lié.
-Le cas d'Alert entre dans les tests de C17.
+C17 vérifie le rôle du token lié, le dernier segment de son nom. La fonction
+`rolesAdmis` donne les rôles qu'un champ accepte :
+
+| Champ lié | Rôles admis aujourd'hui |
+|---|---|
+| stroke d'un layer nommé `ring` ou `focus` | `ring` |
+| autre stroke | `border` |
+| fill d'un texte | `foreground`, `text` |
+| fill d'une icône | `icon`, `foreground` |
+| autre fill | `background` |
+
+Le registre des rôles définit pourtant `foreground` comme la « couleur commune
+au texte, à l'icône et à la bordure posés sur un fond »
+(`packages/kit/src/referentiel/vocabulaire.ts:159`). Le texte et l'icône
+l'admettent ; le stroke l'a oublié. Le contrôle contredit le registre.
+
+#### Correction
+
+Une ligne de `rolesAdmis` change : un stroke hors anneau admet
+`['border', 'foreground']`. Le premier rôle reste celui qu'une correction pose :
+un stroke en dur reçoit toujours une proposition `border`. Le stroke d'un
+anneau garde `['ring']`.
+
+Trois cas entrent dans les tests de C17 :
+
+| Cas | Avant | Après |
+|---|---|---|
+| Stroke d'Alert Outlined lié à `Color/Info/Outlined/foreground` | C17 | Aucun constat |
+| Stroke lié à un token `background` | C17 | C17 |
+| Stroke d'un layer `ring` lié à `foreground` | C17 | C17 |
 
 ## 9. Les constats de Stresstest : un gap Auto lu comme une valeur
 
-Constat C29, À corriger. Le gap d'un auto layout en Auto (`SPACE_BETWEEN`)
-garde dans Figma une valeur `itemSpacing` que Figma n'applique pas. Le relevé
-la lit (`src/releveDuComposant.ts:159`), et la vue aussi
-(`src/lectureDuComposant.ts:198`). Ni l'un ni l'autre ne regarde
-`primaryAxisAlignItems`.
+Constat C29, À corriger.
 
-Le socle sait déjà écarter ce cas pour l'exporteur : `distributesBySpaceBetween`
-(`packages/plugin-socle/src/composant/contract/nodeBindings.ts:211`).
+#### Pourquoi il apparaît
 
-Les deux constats sont faux. Correction : le relevé et la vue sautent
-`itemSpacing` quand le gap est Auto, avec la fonction du socle. Le même test
-couvre les deux lectures. C'est la même famille de défaut que le stroke weight
-d'un layer sans contour, corrigé en R-1.
+Quand le gap d'un auto layout vaut Auto, Figma répartit l'espace lui-même
+(`primaryAxisAlignItems` vaut `SPACE_BETWEEN`). Le champ `itemSpacing` garde
+pourtant la dernière valeur saisie, 10 ou 20 px, sans aucun effet. Le relevé
+lit `itemSpacing` dès que le layer est en auto layout
+(`src/releveDuComposant.ts:159`), sans regarder `primaryAxisAlignItems`. La vue
+fait de même (`src/lectureDuComposant.ts:198`). C29 voit alors une valeur en
+dur et propose d'en faire un token.
+
+L'exporteur a déjà la règle : `inapplicableReason`
+(`packages/plugin-socle/src/composant/contract/nodeBindings.ts:222`) écarte
+`itemSpacing` sous un gap Auto ou une grille, et `counterAxisSpacing` sans wrap
+ou sous un vertical gap Auto. Cette fonction n'est pas exportée : Architect a
+écrit sa propre lecture et n'a pas repris la règle.
+
+#### Correction
+
+1. Le socle exporte la règle sous un nom à lui, par exemple
+   `espacementSansEffet(noeud, champ)`, bâti sur `inapplicableReason`.
+   L'exporteur, le relevé et la vue lisent cette seule fonction.
+2. Le relevé et la vue sautent un espacement sans effet. Les champs dont la
+   règle a besoin, `primaryAxisAlignItems` et `counterAxisAlignContent`, sont
+   déjà lus par l'acquisition du socle.
+3. Tests : un auto layout Auto avec `itemSpacing` à 10 ne donne aucun C29 ; le
+   même en `MIN` en donne un ; la vue n'affiche pas le gap en dur.
+
+C'est la même famille de défaut que le stroke weight d'un layer sans contour,
+corrigé en R-1 : une valeur que Figma garde sans l'appliquer.
 
 ## 10. Questions au mainteneur
 
 | N° | Question | Proposition | État |
 |---|---|---|---|
-| R-11 | Largeurs de la fenêtre en mode Composant | | Décidé : 500 px minimum et à l'ouverture, barre compacte ; 1060 px panneau ouvert |
-| R-12 | Les formulaires de la Configuration à 500 px | Une colonne sous 640 px, sans élargir la fenêtre | Ouvert |
+| R-11 | Largeurs de la fenêtre en mode Composant | | Décidé : 500 px minimum et à l'ouverture, barre compacte avec Analyser en toutes lettres |
+| R-12 | Largeur du panneau et de la Configuration | | Décidé : panneau à 640 px par défaut, fenêtre ouverte à 1144 px |
 | R-13 | Forme d'un variant | | Décidé : B dans la section Variants, C dans les constats |
-| R-14 | Le bouton de modèle : où le mettre, ou le retirer | a. Une carte dans le panneau, seulement quand elle propose quelque chose | En discussion |
+| R-14 | Le bouton de modèle | | Décidé : une carte dans le panneau, par section concernée |
 | R-15 | Le tableau des variants | | Décidé : retiré |
-| R-16 | Le bouton Sélectionner | | Décidé : désactivé une fois les layers sélectionnés ; ouvrir une carte ne sélectionne plus |
+| R-16 | Le bouton Sélectionner | | Décidé : désactivé une fois les layers sélectionnés ; ouvrir une carte ne sélectionne plus ; bouton avant le chevron |
 | R-17 | Mots entiers dans les dossiers, abréviations dans les variables, dans toutes les collections | Oui, comme le plan de Nomenclature | Ouvert |
-| R-18 | Le radius de `.Ring` : option 1, 2 ou 3 | Selon deux faits : `.Ring` sert-il ailleurs, l'anneau suit-il la taille ? | En discussion |
-| R-19 | Les variants désactivés : carte, ligne grise, rien, ou seuil propre | b. Une ligne grise | En discussion |
-| R-20 | Le fond d'un variant sans fill, et les modes mesurés | `elevation/page` dans chaque mode, la page Figma en repli | En discussion |
-| R-21 | Envoyer le rapport téléchargeable de Button | Pour établir la cause de C45 | Ouvert |
+| R-18 | `.Ring`, pièce partagée : option 1, 2 ou 3 | 1 tout de suite, 2 si le radius de l'anneau doit suivre celui de chaque composant | En discussion |
+| R-19 | Une section Informations en dernier, hors du compte des constats | Oui, avec tous les constats `info` sans geste ; l'alerte Information quitte les cartes | En discussion |
+| R-20 | Le fond d'un variant sans fill | | Décidé : fond d'élévation du thème dans chaque mode, page Figma en repli |
+| R-21 | Envoyer le rapport téléchargeable de Button | Pour établir la cause de C45 et les cibles de C21 | Ouvert |
 | R-22 | « propriété » dans les phrases | | Décidé : oui ; les types de Figma restent en anglais |
-| R-23 | Mesurer aussi le contraste sur `elevation/raised` | Non dans un premier temps | Ouvert |
+| R-23 | Mesurer sur `elevation/raised` seul, ou sur `elevation/page` et `elevation/raised` | Les deux, la carte nomme celui qui échoue | Ouvert |
 | R-24 | Un seuil de contraste propre aux variants désactivés | Non : à décider hors de cette recette | Ouvert |
+| R-25 | La Configuration prend la place du panneau quand il est ouvert, celle de la vue quand il est fermé | Oui | Ouvert |
 
 ## 11. Ordre de travail proposé
 
@@ -436,15 +634,17 @@ en premier, dans une seule version du kit :
 
 | Lot | Contenu | Dépend de |
 |---|---|---|
-| K1 | C21 ignore un écart qui suit les properties du variant (7.1) | — |
-| K2 | C10 lit l'écriture des dossiers (7.2) | R-17 |
+| K1 | C21 écarte une liaison qui porte les valeurs de son variant (7.1) | — |
+| K2 | C10 lit l'écriture des dossiers, et le test qui l'impose (7.2) | R-17 |
 | K3 | C17 admet `foreground` sur un stroke (8) | — |
-| K4 | Fond de page pour le contraste (7.5) | R-20 |
-| A1 | Gap Auto sauté par le relevé et la vue (9) | — |
-| A2 | Frontière, Configuration en bascule, Actualiser désactivé (1) | R-12 |
-| A3 | Fenêtre à 500 px et barre compacte (1) | — |
-| A4 | Changement de variant sans saut (2) | — |
-| A5 | Variants en puces, tableau retiré, bouton de modèle (3 à 5) | R-14 |
-| A6 | Textes des constats, bouton Sélectionner, C53 (6, 7.3, 7.4, 7.6) | R-18, R-19 |
+| K4 | Fond d'élévation du thème pour le contraste (7.5) | R-23 |
+| K5 | Pièce partagée : `theme` et `layout` admis dans ses layers (7.3) | R-18 |
+| S1 | Le socle exporte la règle des espacements sans effet ; relevé et vue la lisent (9) | — |
+| A1 | Frontière, Configuration en bascule et à sa place, Actualiser désactivé (1) | R-25 |
+| A2 | Fenêtre à 500 px, panneau à 640 px, barre compacte (1) | — |
+| A3 | Changement de variant sans saut, chevron des sections de la liste (2) | — |
+| A4 | Variants en puces, tableau retiré (3, 5) | — |
+| A5 | Carte de modèle et cartes de correction qu'elle produit (4) | — |
+| A6 | Bouton Sélectionner, textes des constats, section Informations (6, 7.4, 7.6) | R-19 |
 
 Le plan d'implémentation s'écrira après les réponses, dans ce dossier.
