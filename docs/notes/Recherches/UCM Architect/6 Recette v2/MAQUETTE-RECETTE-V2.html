@@ -226,8 +226,8 @@
     <table class="t">
       <tr><th>Sorte</th><th>Se reconnaît à</th><th>Son contrat</th><th>Ses liaisons</th></tr>
       <tr><td>Dépendance</td><td>Une instance de <code>.componentRules</code> la nomme</td><td>Le sien ; l'hôte la cite dans <code>composes</code></td><td>Jugées dans son propre contrat</td></tr>
-      <tr><td>Pièce partagée</td><td>Nom qui commence par <code>.</code> ou <code>_</code>, sans <code>.componentRules</code></td><td>Aucun ; l'hôte publie ce qu'elle dessine</td><td>Composant principal : <code>theme</code> et <code>layout</code>. Surcharges : tokens de l'hôte</td></tr>
       <tr><td>Wrapper de dimensions</td><td>La définition de FORMAT.md, « Layout »</td><td>Aucun ; ses props et dimensions entrent dans celles de l'hôte</td><td>Tokens de l'hôte</td></tr>
+      <tr><td>Pièce partagée</td><td>Nom qui commence par <code>.</code> ou <code>_</code>, sans <code>.componentRules</code></td><td>Aucun ; l'hôte publie ce qu'elle dessine</td><td>Composant principal : <code>theme</code> et <code>layout</code>. Surcharges : tokens de l'hôte</td></tr>
       <tr><td>Détail d'implémentation</td><td>Tout autre composant imbriqué</td><td>Aucun</td><td>Tokens de l'hôte</td></tr>
     </table>
     <p><b>2. Le socle relève les faits, une fois.</b> L'exporteur et Architect lisent les mêmes faits, puis appellent la
@@ -316,7 +316,7 @@
     <tr><td>R-18</td><td><code>.Ring</code>, pièce partagée</td><td></td><td><span class="decide">Décidé</span> option 1 ; la couleur reste surchargée par chaque hôte</td></tr>
     <tr><td>R-19</td><td>Une section Informations en dernier, hors du compte des constats</td><td></td><td><span class="decide">Décidé</span> oui ; l'alerte Information quitte les cartes</td></tr>
     <tr><td>R-20</td><td>Le fond d'un variant sans fill</td><td></td><td><span class="decide">Décidé</span> fond d'élévation du thème dans chaque mode, page Figma en repli</td></tr>
-    <tr><td>R-21</td><td>Envoyer le rapport téléchargeable de Button</td><td>Pour établir la cause de la règle <code>label</code> sans propriété, et les cibles de C21</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>R-21</td><td>Le rapport téléchargeable de Button</td><td></td><td><span class="decide">Reçu</span> il établit les causes de C21 et de C45</td></tr>
     <tr><td>R-22</td><td>« propriété » dans les phrases</td><td></td><td><span class="decide">Décidé</span> oui ; les types de Figma restent en anglais</td></tr>
     <tr><td>R-23</td><td>Le fond d'un composant sans fond</td><td></td><td><span class="decide">Décidé</span> la page et la carte ; À corriger si Palettes garantit ce fond pour la variable, À vérifier sinon</td></tr>
     <tr><td>R-24</td><td>Un seuil de contraste propre aux variants désactivés</td><td></td><td><span class="decide">Décidé</span> non</td></tr>

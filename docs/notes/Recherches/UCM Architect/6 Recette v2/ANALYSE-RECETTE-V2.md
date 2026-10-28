@@ -11,8 +11,8 @@ R-11 à R-27. La section 10 les réunit avec leur état ; la maquette les repren
 en section 8.
 
 Le mainteneur a relu une première version de la maquette. Ses réponses sont
-reportées dans chaque section. Reste ouvert : R-21, le rapport de Button. R-28
-relève de Palettes.
+reportées dans chaque section. Toutes les questions de la recette sont
+tranchées. R-28 relève de Palettes.
 
 ## 1. Fenêtre, barre et panneau
 
@@ -321,7 +321,19 @@ le token lié correspond au variant. Or `Color/Primary/Contained/Focus/ring` est
 exactement le token que le variant `Color=Primary, Variant=Contained,
 State=Focus` doit porter.
 
-Le rapport téléchargeable de Button (R-21) donnera les cibles exactes.
+Le rapport de Button (R-21) donne les cibles exactes :
+
+| Token lié | Cible dans le thème | Signature de C21 |
+|---|---|---|
+| `Button/Color/Info/Contained/Focus/ring`, et Success, Warning, Error | `Info/Vivid/ring` | `vivid/ring` |
+| `Button/Color/Primary/Contained/Focus/ring`, et Secondary | `Primary/ring` | `ring` |
+
+Les palettes de statut ont deux intensités, Soft et Vivid : leur anneau est
+rangé sous `Vivid`. Les palettes de marque, Primary et Secondary, n'en ont
+qu'une : leur anneau n'a pas ce segment. Les 12 variants Focus de statut
+forment la majorité. Les 6 variants Focus de marque reçoivent C21, sur les
+trois valeurs de `Variant`. Le constat vient d'une différence de structure du
+thème, pas d'une erreur de liaison. La correction ci-dessous le retire.
 
 #### Correction
 
@@ -481,12 +493,15 @@ Proposition, en trois couches, selon la règle des domiciles d'AGENTS.md :
    | Sorte | Se reconnaît à | Son contrat | Ses liaisons |
    |---|---|---|---|
    | Dépendance | Une instance de `.componentRules` le nomme, sur la page de son composant principal | Le sien ; l'hôte le cite dans `composes` | Jugées dans son propre contrat |
-   | Pièce partagée | Nom qui commence par `.` ou `_`, sans `.componentRules` | Aucun ; l'hôte publie ce qu'elle dessine | Composant principal : `theme` et `layout` admis. Surcharges : tokens de l'hôte |
    | Wrapper de dimensions | La définition de FORMAT.md, « Layout » | Aucun ; ses props et dimensions entrent dans celles de l'hôte | Tokens de l'hôte |
+   | Pièce partagée | Nom qui commence par `.` ou `_`, sans `.componentRules` | Aucun ; l'hôte publie ce qu'elle dessine | Composant principal : `theme` et `layout` admis. Surcharges : tokens de l'hôte |
    | Détail d'implémentation | Tout autre composant imbriqué | Aucun | Tokens de l'hôte |
 
    Une fonction pure, `sorteDeLImbrique(faits)`, rend la sorte depuis des faits
-   sérialisables : nom, règles d'utilisation trouvées, dimensions liées.
+   sérialisables : nom, règles d'utilisation trouvées, dimensions liées. Elle
+   teste les sortes dans l'ordre du tableau. L'ordre compte : le wrapper de
+   Button s'appelle `.sizeWrapperButton`, avec le préfixe d'une pièce partagée,
+   et doit rester un wrapper de dimensions.
 2. **Le socle relève les faits, une fois.** L'exporteur et le relevé
    d'Architect lisent les mêmes faits par la même acquisition, puis appellent
    la fonction du kit. Un test refuse qu'un des deux classe un imbriqué sans
@@ -614,6 +629,19 @@ presque toutes sur la page, pas sur la carte :
 Palettes prend donc en compte le contraste sur la page. C'est la carte qu'il ne
 garantit pas, sauf pour l'anneau.
 
+Palettes calcule le fond de la carte (`couleurDeLaCarte`, `packages/couleur/src/jugement.ts:66`) :
+blanc en Light, et en Dark le cran juste plus clair que la page. Le risque
+n'est donc pas le même dans les deux modes :
+
+| Mode | La carte, par rapport à la page | Un texte ou un contour, posé sur la carte |
+|---|---|---|
+| Light | Plus claire | Gagne du contraste : il est foncé sur un fond plus clair |
+| Dark | Plus claire | Perd du contraste : il est clair sur un fond moins sombre |
+
+Une garantie tenue sur la page tient donc en général sur la carte en Light,
+mais pas en Dark. C'est en Dark qu'un composant posé sur une carte peut passer
+sous le seuil.
+
 #### La règle retenue
 
 Décidé (R-23) : Architect mesure sur les deux fonds, et la sévérité suit la
@@ -674,10 +702,35 @@ Décidé (R-22) : la phrase simple et « propriété ». Constat C45, écart
 `sans-propriete` (`src/regles.ts:80`).
 
 Le contrôle compare les règles `@prop` et `@boolean` de l'instance de règles
-aux props du contrat. La règle `label` ne trouve aucune prop de ce nom. La
-cause n'est pas établie : Button n'a peut-être pas de propriété `label`, ou sa
-propriété de texte n'entre pas dans les props du contrat. Le rapport
-téléchargeable de Button la tranchera (R-21).
+aux props du contrat.
+
+#### La cause, établie par le rapport de Button
+
+Le rapport de Button (R-21) donne les propriétés du jeu et des composants
+imbriqués :
+
+| Où | Propriétés |
+|---|---|
+| Button | `Color`, `Variant`, `State` |
+| `.sizeWrapperButton`, imbriqué dans chaque variant | `Size`, `Label`, `Icon-Left`, `Icon-Right` |
+
+Les quatre règles signalées, `size`, `label`, `iconLeft` et `iconRight`,
+visent les propriétés de `.sizeWrapperButton`. C'est le wrapper de dimensions
+de Button : l'exporteur fusionne ses propriétés dans l'API de Button (FORMAT.md,
+« Layout »), et le contrat les publie.
+
+C45 ne les voit pas. `lireLesRegles` (`src/regles.ts:150`) restreint les props
+du contrat à celles que le jeu déclare, plus celles des imbriqués rattachés au
+parent. Les props fusionnées du wrapper ne sont dans aucune des deux listes :
+elles sont retirées avant la comparaison.
+
+Les quatre constats sont faux. Correction : C45 compare les règles à toutes les
+props que le contrat publie, wrapper compris. La sorte « wrapper de dimensions »
+de R-26 donne cette liste : la même fonction sert l'exporteur et Architect.
+
+Le cinquième constat est juste : la propriété `State` n'a pas de règle.
+
+#### Le texte du constat
 
 Texte retenu :
 
@@ -778,7 +831,7 @@ corrigé en R-1 : une valeur que Figma garde sans l'appliquer.
 | R-18 | `.Ring`, pièce partagée | | Décidé : option 1 ; la couleur reste surchargée par chaque hôte |
 | R-19 | Une section Informations en dernier, hors du compte des constats | | Décidé : oui ; l'alerte Information quitte les cartes |
 | R-20 | Le fond d'un variant sans fill | | Décidé : fond d'élévation du thème dans chaque mode, page Figma en repli |
-| R-21 | Envoyer le rapport téléchargeable de Button | Pour établir la cause de C45 et les cibles de C21 | Ouvert |
+| R-21 | Le rapport téléchargeable de Button | | Reçu : il établit les causes de C21 (7.1) et de C45 (7.6) |
 | R-22 | « propriété » dans les phrases | | Décidé : oui ; les types de Figma restent en anglais |
 | R-23 | Le fond d'un composant sans fond | | Décidé : la page et la carte ; À corriger si Palettes garantit ce fond pour la variable, À vérifier sinon ; la carte nomme le fond et la garantie |
 | R-24 | Un seuil de contraste propre aux variants désactivés | | Décidé : non |
