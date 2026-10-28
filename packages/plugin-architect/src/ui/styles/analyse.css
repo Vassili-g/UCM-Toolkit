@@ -119,6 +119,11 @@
   height: 14px;
 }
 
+/* La dernière section ne touche pas le bord de la fenêtre. */
+.liste-des-constats {
+  padding-bottom: var(--espace-bloc);
+}
+
 /* Le lien du rapport, sous la liste des constats : rang 3, ni surface ni bouton plein. */
 .pied-rapport {
   margin-top: var(--espace-bloc);

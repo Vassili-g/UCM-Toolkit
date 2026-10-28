@@ -82,7 +82,7 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
 
   const sommaireHote = document.createElement('div');
   const listeHote = document.createElement('div');
-  listeHote.className = 'liste';
+  listeHote.className = 'liste liste-des-constats';
   let rendu: Rendu | null = null;
   /** Les sections que le designer a ouvertes ou fermées, pour le sujet `sujetDesChoix`. */
   const choixDeSections = new Map<IdDElement, boolean>();
