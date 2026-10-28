@@ -23,7 +23,7 @@
 /* Forme B : la valeur choisie de chaque ligne dit le variant, la ligne Affiché disparaît. */
 .forme-b .variants-pied .variants-affiche { display: none; }
 
-/* Barre à 300 px : logo, bascule, trois boutons à icône. */
+/* Barre compacte : bascule, Analyser avec son libellé, Constats et Configuration en icônes. */
 .application-etroite:has(.barre-compacte) { min-width: 300px; }
 .barre-compacte { gap: 4px; padding-inline: 8px; }
 .barre-compacte .produit { display: none; }
@@ -32,8 +32,6 @@
 .barre-compacte .barre-lecture { gap: 4px; margin-left: auto; }
 .barre-compacte .bouton-panneau { padding-inline: 6px; gap: 4px; }
 .barre-compacte .bouton-panneau > span:not(.pastille-compte) { display: none; }
-.bouton-icone-barre { width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
-.bouton-icone-barre svg { width: 14px; height: 14px; }
 .barre-compacte .icon-button.avec-libelle > span { display: none; }
 
 /* Configuration en bascule : le bouton enfoncé prend le fond de la marque. */

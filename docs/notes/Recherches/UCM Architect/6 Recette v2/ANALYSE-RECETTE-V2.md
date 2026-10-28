@@ -32,7 +32,7 @@ variants désactivés et sans fond (7.4 et 7.5).
 La barre compacte vaut à toutes les largeurs du mode Composant (cadre 1b) :
 
 - le logo et le nom « UCM Architect » disparaissent : la bascule vient en tête ;
-- Actualiser devient un bouton à icône, avec sa bulle ;
+- Analyser garde son libellé, qui devient Actualiser après une analyse ;
 - Constats garde son icône et sa pastille, sans son mot ;
 - Configuration reste un bouton à icône.
 

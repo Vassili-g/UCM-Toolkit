@@ -61,7 +61,7 @@
 
   <h2 id="fenetre">1. Fenêtre à 500 px <span class="decide">Décidé</span></h2>
   <p>Panneau fermé, la fenêtre prend 500 px, qui est aussi sa largeur minimale. La barre compacte garde la bascule et
-  trois boutons à icône.</p>
+  le bouton Analyser avec son libellé, puis Constats et Configuration en boutons à icône.</p>
   <p>Panneau ouvert, la vue garde sa largeur et le panneau s'ajoute à droite. Rien ne bouge dans la partie gauche.</p>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette">1a. Aujourd'hui, à 500 px</span><div class="cadre" id="c-1a"></div></div>
@@ -262,7 +262,6 @@ const chm = (texte) => `<span class="ch ch-inline">${texte}</span>`;
 const FOCUS = [['Color', 'Primary'], ['Variant', 'Contained'], ['State', 'Focus']];
 const nomDe = (paires) => paires.map(([p, v]) => `${p}=${v}`).join(', ');
 const SVG_SELECTION = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3.5" y="3.5" width="9" height="9"/><path d="M2 2h3v3H2zM11 2h3v3h-3zM2 11h3v3H2zM11 11h3v3h-3z" fill="currentColor" stroke="none"/></svg>';
-const SVG_ACTUALISER = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.3v3h-3"/></svg>';
 const SVG_COCHE = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.5"/></svg>';
 
 // L'aperçu de la galerie est une image en mémoire, perdue au gel : un dessin HTML la remplace.
@@ -336,12 +335,8 @@ const q = (doc, s) => doc.querySelector(s);
 
 function barreCompacte(doc) {
   q(doc, '.barre').classList.add('barre-compacte');
-  const actualiser = q(doc, '.barre-lecture > .btn:not(.bouton-panneau)');
-  if (actualiser) {
-    actualiser.classList.add('bouton-icone-barre');
-    actualiser.setAttribute('aria-label', 'Actualiser');
-    actualiser.innerHTML = SVG_ACTUALISER;
-  }
+  // Analyser, ou Actualiser après une analyse, garde son libellé.
+  q(doc, '.barre-lecture > .btn:not(.bouton-panneau)')?.classList.add('bouton-lecture');
 }
 
 /** Rend les lignes de property de Button : valeurs à constat, valeur choisie, puis +N. */
@@ -411,11 +406,11 @@ function cartes(doc, construire) {
 const LEGENDES = {
   'c-1b': [
     ['.bascule', 'Le logo et le nom du plugin disparaissent. La bascule vient en tête.'],
-    ['.bouton-icone-barre', 'Actualiser devient un bouton à icône, avec sa bulle.'],
+    ['.bouton-lecture', 'Analyser garde son libellé. Après une analyse, il se lit Actualiser.'],
     ['.bouton-panneau', 'Constats garde son icône et sa pastille.'],
   ],
   'c-1c': [
-    ['.bouton-icone-barre', 'Sans composant sélectionné, Actualiser est désactivé. Sa bulle dit « Sélectionnez un composant dans Figma ».'],
+    ['.bouton-lecture', 'Sans composant sélectionné, Analyser est désactivé. Sa bulle dit « Sélectionnez un composant dans Figma ».'],
   ],
   'c-1d': [
     ['.vc', 'La vue garde 500 px. Le panneau s\'ajoute à droite.'],
@@ -499,7 +494,7 @@ cadre('c-1a', { etat: 'composant-variants', largeur: 500, hauteur: 640 });
 cadre('c-1b', { etat: 'composant-variants', largeur: 500, hauteur: 640, modifier: barreCompacte });
 cadre('c-1c', { etat: 'composant-vide', largeur: 500, hauteur: 360, modifier: (doc) => {
   barreCompacte(doc);
-  const b = q(doc, '.bouton-icone-barre');
+  const b = q(doc, '.bouton-lecture');
   if (b) { b.disabled = true; b.title = 'Sélectionnez un composant dans Figma'; }
 } });
 cadre('c-1d', { etat: 'c-modele', largeur: 1060, hauteur: 640, modifier: (doc) => {
