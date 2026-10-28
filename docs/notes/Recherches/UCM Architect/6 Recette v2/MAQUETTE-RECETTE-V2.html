@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recette v2 d'Architect</title>
+<style>
+  :root { --fond: #161616; --bordure: #333; --texte: #eee; --second: #9a9a9a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 2400px; margin: 0 auto; padding: 32px 16px 96px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 20px; margin: 56px 0 6px; padding-top: 16px; border-top: 1px solid var(--bordure); }
+  h3 { font-size: 16px; margin: 32px 0 6px; }
+  p { margin: 6px 0; max-width: 900px; }
+  .intro { color: var(--second); }
+  code { font-family: Consolas, monospace; font-size: 13px; background: #2a2a2a; padding: 0 4px; border-radius: 3px; }
+  a { color: #9fcfff; }
+  nav.sommaire { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 16px 0; font-size: 13px; }
+  .colonnes { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; margin-top: 16px; }
+  .colonne { flex: 0 0 auto; max-width: 100%; }
+  .cadre { border: 1px solid var(--bordure); border-radius: 8px; overflow: hidden; background: #141414; display: block; width: fit-content; max-width: 100%; overflow-x: auto; }
+  .cadre iframe { display: block; border: 0; }
+  .etiquette { display: table; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 4px; margin-bottom: 6px; background: #333; color: #ddd; }
+  .etiquette.nouveau { background: #1d3a24; color: #a6e3b4; }
+  .recommande { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 4px; background: #1b3550; color: #9fcfff; font-size: 12px; font-weight: 700; }
+  ol.legende { list-style: none; padding: 0; margin: 8px 0 0; font-size: 13px; color: #e6e6e6; max-width: 420px; }
+  ol.legende li { display: flex; gap: 8px; align-items: baseline; margin: 4px 0; }
+  ol.legende .num { flex: 0 0 auto; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #ff8ad8; color: #1a1a1a; font: 700 10px/16px Inter, sans-serif; text-align: center; }
+  table.t { border-collapse: collapse; margin-top: 12px; font-size: 13px; max-width: 1200px; }
+  table.t th, table.t td { text-align: left; vertical-align: top; padding: 6px 12px; border-top: 1px solid var(--bordure); }
+  table.t th { color: var(--second); font-weight: 600; border-top: 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Recette v2 d'Architect</h1>
+  <p class="intro">Chaque cadre part d'un écran réel de la galerie d'Architect, figé par <code>Mesures/extraire-galerie.mjs</code>.
+  Les repères roses renvoient à la légende sous le cadre. Les causes et les questions sont dans
+  <a href="./ANALYSE-RECETTE-V2.md">ANALYSE-RECETTE-V2.md</a>.</p>
+  <p class="intro">Les cadres de Button reprennent les noms du fichier du mainteneur : <code>Color</code>, <code>Variant</code>,
+  <code>State</code>. Leurs nombres sont des exemples.</p>
+  <nav class="sommaire">
+    <a href="#fenetre">1. Fenêtre à 300 px</a>
+    <a href="#changement">2. Changer de variant</a>
+    <a href="#variants">3. Le langage des variants</a>
+    <a href="#modele">4. Le bouton de modèle</a>
+    <a href="#tableau">5. Le choix du tableau</a>
+    <a href="#selection">6. Sélectionner le layer</a>
+    <a href="#constats">7. Les constats réécrits</a>
+  </nav>
+
+  <h2 id="fenetre">1. Fenêtre à 300 px</h2>
+  <p>Panneau fermé, la fenêtre prend 300 px. À cette largeur, la barre actuelle déborde : Constats et Configuration
+  sortent de la fenêtre. La barre proposée garde le logo, la bascule et trois boutons à icône.</p>
+  <p>Panneau ouvert, la vue garde ses 300 px et le panneau s'ajoute à droite. Rien ne bouge dans la partie gauche.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">1a. Aujourd'hui, à 300 px</span><div class="cadre" id="c-1a"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">1b. Barre compacte</span><div class="cadre" id="c-1b"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">1c. Sans composant sélectionné</span><div class="cadre" id="c-1c"></div></div>
+  </div>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette nouveau">1d. Panneau ouvert : 864 px, la vue garde 300 px</span><div class="cadre" id="c-1d"></div></div>
+  </div>
+
+  <h2 id="changement">2. Changer de variant sans que l'écran saute</h2>
+  <p>Aujourd'hui, un clic sur une valeur vide l'écran, affiche « Lecture du composant… », puis reconstruit tout deux fois.
+  Proposé : l'ancienne lecture reste à l'écran pendant la lecture, puis seules les valeurs changent.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette nouveau">2a. Pendant la lecture</span><div class="cadre" id="c-2a"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">2b. Lecture arrivée</span><div class="cadre" id="c-2b"></div></div>
+  </div>
+
+  <h2 id="variants">3. Le langage visuel des variants</h2>
+  <p>Une puce porte une paire, avec le texte exact de Figma : la property et le signe égal en gris, la valeur en clair. Le
+  designer peut chercher ce texte dans Figma. La puce ne prend pas de couleur : la couleur reste aux alertes.</p>
+  <h3>Dans la section Variants</h3>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">3a. Aujourd'hui</span><div class="cadre" id="c-3a"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">3b. A : la ligne Affiché en puces</span><div class="cadre" id="c-3b"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">3c. B : la section suffit <span class="recommande">Recommandé</span></span><div class="cadre" id="c-3c"></div></div>
+  </div>
+  <h3>Dans les constats</h3>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">3d. Aujourd'hui</span><div class="cadre" id="c-3d"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">3e. A : puces dans la phrase</span><div class="cadre" id="c-3e"></div></div>
+  </div>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette nouveau">3f. C : la ligne de lieu porte les variants <span class="recommande">Recommandé</span></span><div class="cadre" id="c-3f"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">3g. D : deux colonnes sous la phrase</span><div class="cadre" id="c-3g"></div></div>
+  </div>
+
+  <h2 id="modele">4. Le bouton de modèle</h2>
+  <p>Le bouton prend le variant affiché comme modèle. Pour chaque autre variant, il propose le token de même nom, avec
+  les valeurs de ce variant. Rien n'est écrit avant Appliquer.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">4a. Aujourd'hui</span><div class="cadre" id="c-4a"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">4b. Libellé, phrase et exemple</span><div class="cadre" id="c-4b"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">4c. Après le clic</span><div class="cadre" id="c-4c"></div></div>
+  </div>
+
+  <h2 id="tableau">5. Le choix du tableau</h2>
+  <p>Le choix change l'affichage d'une même section. Il prend donc le choix segmenté de la bascule Tokens / Composant.
+  Chaque option nomme ce qu'elle montre.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">5a. Aujourd'hui</span><div class="cadre" id="c-5a"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">5b. Choix segmenté, une ligne par property</span><div class="cadre" id="c-5b"></div></div>
+  </div>
+
+  <h2 id="selection">6. Sélectionner le layer d'un constat</h2>
+  <p>Aujourd'hui, ouvrir la carte sélectionne ses layers dans Figma, sans que rien l'annonce. Proposé : un bouton
+  Sélectionner sur chaque carte qui vise des layers, questions comprises.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">6a. Aujourd'hui</span><div class="cadre" id="c-6a"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">6b. Bouton Sélectionner</span><div class="cadre" id="c-6b"></div></div>
+  </div>
+
+  <h2 id="constats">7. Les constats réécrits</h2>
+  <p>Quatre constats de la recette disparaissent, parce que leur règle est fausse :</p>
+  <table class="t">
+    <tr><th>Constat</th><th>Composant</th><th>Cause</th></tr>
+    <tr><td>Anneau lié autrement dans 12 autres variants (C21)</td><td>Button</td><td>Le contrôle ne reconnaît pas un token qui suit la valeur de <code>Color</code></td></tr>
+    <tr><td>4 tokens écrivent Large (C10)</td><td>Button</td><td><code>Large</code> est la forme d'un dossier ; le contrôle ne regarde pas le rang du segment</td></tr>
+    <tr><td>Stroke lié à un token foreground (C17)</td><td>Alert</td><td><code>foreground</code> couvre texte, icône et bordure dans le registre des rôles</td></tr>
+    <tr><td>Gap de 10 px et de 20 px sans variable (C29)</td><td>Stresstest</td><td>Un gap Auto garde une valeur que Figma n'applique pas</td></tr>
+  </table>
+  <p>Les autres changent de texte ou de forme.</p>
+  <h3>Le radius de <code>.Ring</code></h3>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">7a. Aujourd'hui</span><div class="cadre" id="c-7a"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">7b. L'instance nommée</span><div class="cadre" id="c-7b"></div></div>
+  </div>
+  <h3>La règle sans propriété</h3>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">7c. Aujourd'hui</span><div class="cadre" id="c-7c"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">7d. Phrase simple</span><div class="cadre" id="c-7d"></div></div>
+  </div>
+  <h3>Accessibilité : variants désactivés et fond de page</h3>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">7e. Aujourd'hui</span><div class="cadre" id="c-7e"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">7f. Une ligne grise, et le contraste mesuré sur la page</span><div class="cadre" id="c-7f"></div></div>
+  </div>
+</main>
+
+<script src="galerie/etats.js"></script>
+<script>
+const G = window.GALERIE;
+
+// ---------- Petits morceaux ----------
+const pv = (p, v) => `<span class="pv"><span class="pv-p">${p}</span><span class="pv-e">=</span><span class="pv-v">${v}</span></span>`;
+const pvs = (paires) => `<span class="pvs">${paires.map(([p, v]) => pv(p, v)).join('')}</span>`;
+const chv = (texte) => `<span class="ch ch-inline ch-variant">${texte}</span>`;
+const chm = (texte) => `<span class="ch ch-inline">${texte}</span>`;
+const FOCUS = [['Color', 'Primary'], ['Variant', 'Contained'], ['State', 'Focus']];
+const nomDe = (paires) => paires.map(([p, v]) => `${p}=${v}`).join(', ');
+const SVG_SELECTION = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3.5" y="3.5" width="9" height="9"/><path d="M2 2h3v3H2zM11 2h3v3h-3zM2 11h3v3H2zM11 11h3v3h-3z" fill="currentColor" stroke="none"/></svg>';
+const SVG_ACTUALISER = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.3v3h-3"/></svg>';
+const SVG_COCHE = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.5"/></svg>';
+
+// L'aperçu de la galerie est une image en mémoire, perdue au gel : un dessin HTML la remplace.
+const APERCU_ALERT = (fond = '#F0F9FF', encre = '#0369A1') => `<div style="display:flex;gap:10px;align-items:flex-start;width:250px;padding:10px 14px;border-radius:6px;border:1px solid ${encre};background:${fond};color:${encre};font:13px/1.4 Inter,sans-serif;text-align:left"><span style="flex:0 0 auto;width:18px;height:18px;border-radius:50%;border:2px solid ${encre};display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px">i</span><span style="flex:1"><b style="display:block">Information</b>Le dossier a été partagé.</span></div>`;
+const APERCU_BUTTON = '<div style="display:inline-flex;align-items:center;padding:8px 18px;border-radius:8px;background:#2563EB;color:#fff;font:600 13px/1.2 Inter,sans-serif">Button</div>';
+
+// ---------- Cadres ----------
+const STYLE_SEUL = `<style>
+.application > :not(.corps):not(.arch-corps-composant) { display: none !important; }
+.arch-corps-composant { display: block !important; }
+.arch-corps-composant > :not(.panneau-lateral) { display: none !important; }
+.panneau-lateral { height: 100%; border: 0 !important; }
+</style>`;
+function srcdoc(etat, { seul = false, apercu = APERCU_ALERT() }) {
+  const e = G[etat];
+  const corps = e.corps.replace(/<span class="vc-echelle"[^>]*><img[^>]*><\/span>/g, apercu);
+  return `<!doctype html><html lang="fr" class="${e.classe}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/plugin.css"><link rel="stylesheet" href="recette.css">${seul ? STYLE_SEUL : ''}</head><body>${corps}</body></html>`;
+}
+/** `hauteur` : un nombre fixe, `'variants'` pour couper sous la section Variants, ou rien pour la hauteur du contenu du panneau. */
+function cadre(hote, { etat, largeur, hauteur = null, seul = false, apercu, modifier = null }) {
+  const f = document.createElement('iframe');
+  f.style.width = `${largeur}px`;
+  f.style.height = `${typeof hauteur === 'number' ? hauteur : 640}px`;
+  f.srcdoc = srcdoc(etat, { seul, apercu });
+  f.addEventListener('load', () => {
+    const doc = f.contentDocument;
+    if (modifier) modifier(doc);
+    setTimeout(() => {
+      // Le cadre coupe l'écran sans changer la hauteur de l'iframe : la fenêtre du plugin garde sa mise en page.
+      if (hauteur === 'variants') {
+        const section = doc.querySelector('section.variants');
+        document.getElementById(hote).style.height = `${Math.ceil(section.getBoundingClientRect().bottom) + 12}px`;
+      } else if (hauteur === null && seul) {
+        const liste = doc.querySelector('.liste-des-constats');
+        document.getElementById(hote).style.height = `${Math.ceil(liste.getBoundingClientRect().bottom) + 16}px`;
+      }
+      document.getElementById(hote).style.overflowY = 'hidden';
+      annoter(hote, doc);
+    }, 300);
+  });
+  document.getElementById(hote).append(f);
+}
+
+// Les repères : une pastille numérotée par entrée de LEGENDES, et la même ligne sous le cadre.
+function annoter(hote, doc) {
+  const entrees = LEGENDES[hote];
+  if (!entrees) return;
+  const lignes = [];
+  for (const [selecteur, texte] of entrees) {
+    const element = doc.querySelector(selecteur);
+    if (!element) { console.warn(`Repère introuvable : ${hote} ${selecteur}`); continue; }
+    const n = lignes.length + 1;
+    element.classList.add('repere');
+    const r = element.getBoundingClientRect();
+    const pastille = doc.createElement('span');
+    pastille.className = 'repere-n';
+    pastille.textContent = n;
+    pastille.style.left = `${Math.max(0, Math.min(r.right + doc.defaultView.scrollX - 10, doc.documentElement.clientWidth - 18))}px`;
+    pastille.style.top = `${Math.max(0, r.top + doc.defaultView.scrollY - 8)}px`;
+    doc.body.append(pastille);
+    lignes.push(`<li><span class="num">${n}</span><span>${texte}</span></li>`);
+  }
+  const ol = document.createElement('ol');
+  ol.className = 'legende';
+  ol.innerHTML = lignes.join('');
+  document.getElementById(hote).after(ol);
+}
+
+// ---------- Modifications des écrans ----------
+const q = (doc, s) => doc.querySelector(s);
+
+function barreCompacte(doc) {
+  q(doc, '.barre').classList.add('barre-compacte');
+  const actualiser = q(doc, '.barre-lecture > .btn:not(.bouton-panneau)');
+  if (actualiser) {
+    actualiser.classList.add('bouton-icone-barre');
+    actualiser.setAttribute('aria-label', 'Actualiser');
+    actualiser.innerHTML = SVG_ACTUALISER;
+  }
+}
+
+/** Rend les lignes de property de Button : valeurs à constat, valeur choisie, puis +N. */
+function axesDeButton(doc, choix = { Color: 'Primary', Variant: 'Contained', State: 'Default' }) {
+  const ico = (ton) => q(doc, `.valeur-axe .n.ton-${ton} .ico`)?.outerHTML ?? '';
+  const valeur = (p, v, compte) => `<button type="button" class="valeur-axe${choix[p] === v ? ' choisie' : ''}" aria-pressed="${choix[p] === v}">${v}${compte ? `<span class="n ton-${compte[0]}">${ico(compte[0])}${compte[1]}</span>` : ''}</button>`;
+  const ligne = (p, valeurs, autres) => `<div class="axe"><span class="axe-nom">${p}</span><span class="axe-valeurs">${valeurs.map(([v, c]) => valeur(p, v, c)).join('')}${autres ? `<button type="button" class="valeur-axe">+${autres}</button>` : ''}</span></div>`;
+  q(doc, '.variants .axes').innerHTML = [
+    ligne('Color', [['Primary', null], ['Info', ['corriger', 12]]], 4),
+    ligne('Variant', [['Contained', ['corriger', 4]], ['Outlined', ['verifier', 2]]], 1),
+    ligne('State', [['Default', null], ['Focus', ['corriger', 3]]], 3),
+  ].join('');
+  q(doc, '.variants-tete .meta').textContent = '216';
+  q(doc, '.vc-tete h2').lastChild.textContent = 'Button';
+}
+
+const affiche = (doc, html) => {
+  const ch = q(doc, '.variants-affiche .ch-variant');
+  ch.outerHTML = html;
+};
+
+/** Remplace le contenu du panneau par des cartes tirées des modèles de la galerie. */
+function cartes(doc, construire) {
+  const liste = q(doc, '.liste-des-constats');
+  const modeles = {
+    corriger: q(doc, '.bloc-constat.ton-corriger')?.cloneNode(true),
+    verifier: q(doc, '.bloc-constat.ton-verifier')?.cloneNode(true),
+    info: q(doc, '.bloc-constat.ton-info')?.cloneNode(true),
+  };
+  const bande = q(doc, '.bande-element')?.cloneNode(true);
+  const carte = (ton, { phrase, meta = [], selection = null }) => {
+    const c = modeles[ton].cloneNode(true);
+    c.querySelector('.bloc-phrase').innerHTML = phrase;
+    c.querySelector('.bloc-pile > .meta').innerHTML = meta.join('<br>');
+    if (selection) {
+      const tete = c.querySelector('.bloc-tete');
+      tete.classList.add('avec-selection');
+      const b = doc.createElement('button');
+      b.type = 'button';
+      b.className = `btn btn-secondary btn-compact bouton-selectionner${selection === 'fait' ? ' fait' : ''}`;
+      b.innerHTML = selection === 'fait' ? `${SVG_COCHE}<span>Sélectionnés</span>` : `${SVG_SELECTION}<span>Sélectionner</span>`;
+      tete.append(b);
+    }
+    return c.outerHTML;
+  };
+  const section = (titre, nombre, html, note = '') => {
+    const b = bande.cloneNode(true);
+    b.querySelector('.titre').textContent = titre;
+    b.querySelector('.nombre').textContent = nombre;
+    return `<div class="section-element">${b.outerHTML}${note ? `<p class="section-note">${note}</p>` : ''}${html}</div>`;
+  };
+  liste.innerHTML = construire({ carte, section });
+  q(doc, '.arch-resume-titre').innerHTML = 'Button <span class="meta">216 variants, analysé à 12:19</span>';
+  q(doc, '.sommaire-elements')?.remove();
+  q(doc, '.pied-rapport')?.remove();
+}
+
+// ---------- Les cadres ----------
+const LEGENDES = {
+  'c-1a': [
+    ['.barre-lecture', 'Actualiser est coupé. Constats et Configuration sortent de la fenêtre.'],
+    ['.vc-token:nth-of-type(3) .vc-fois', 'La marque ×2 sort à droite.'],
+  ],
+  'c-1b': [
+    ['.bascule', 'Le logo et le nom du plugin disparaissent. La bascule vient en tête.'],
+    ['.bouton-icone-barre', 'Actualiser devient un bouton à icône, avec sa bulle.'],
+    ['.bouton-panneau', 'Constats garde son icône et sa pastille.'],
+    ['.vc-token:nth-of-type(3) .vc-fin', 'Les points d\'étapes disparaissent à cette largeur. La colonne de valeur doit encore se resserrer pour que ×2 tienne.'],
+  ],
+  'c-1c': [
+    ['.bouton-icone-barre', 'Sans composant sélectionné, Actualiser est désactivé. Sa bulle dit « Sélectionnez un composant dans Figma ».'],
+  ],
+  'c-1d': [
+    ['.vc', 'La vue garde 300 px. Le panneau s\'ajoute à droite.'],
+    ['.barre .icon-button', 'Configuration est une bascule : un second clic la ferme et rend cet écran.'],
+  ],
+  'c-2a': [
+    ['.lecture-fine', 'Une barre fine dit que la lecture est en cours.'],
+    ['.valeur-axe[data-valeur="success"]', 'La valeur cliquée est choisie tout de suite.'],
+    ['.vc-liste', 'L\'ancienne lecture reste affichée. Rien ne disparaît.'],
+  ],
+  'c-2b': [
+    ['.vc-apercu', 'L\'aperçu garde la hauteur de son cadre. La nouvelle image remplace l\'ancienne.'],
+    ['.vc-token:nth-of-type(1) .vient-de-changer', 'Une valeur qui change est surlignée 600 ms. Les lignes ne bougent pas.'],
+  ],
+  'c-3a': [
+    ['.variants-affiche', 'Trois paires sur une ligne. La valeur utile se perd.'],
+  ],
+  'c-3b': [
+    ['.variants-affiche .pvs', 'Une puce par paire : property grise, valeur claire.'],
+  ],
+  'c-3c': [
+    ['.axe:nth-child(1) .choisie', 'La valeur choisie de chaque ligne dit le variant affiché.'],
+    ['.variants-pied', 'La ligne Affiché disparaît. Le bouton de modèle reste.'],
+  ],
+  'c-3d': [
+    ['.bloc-constat:nth-of-type(1) .ch-variant', 'Le nom complet du variant coupe la phrase.'],
+    ['.bloc-constat:nth-of-type(2) .constat-lieu', 'Le lieu mêle une phrase et un nom.'],
+  ],
+  'c-3e': [
+    ['.bloc-constat:nth-of-type(1) .pvs', 'Les mêmes puces que la section Variants.'],
+  ],
+  'c-3f': [
+    ['.bloc-constat:nth-of-type(1) .bloc-phrase', 'La phrase ne porte plus le variant.'],
+    ['.bloc-constat:nth-of-type(1) .lieu-pv', 'La ligne de lieu donne le nombre de variants, puis leurs paires.'],
+    ['.bloc-constat:nth-of-type(2) .lieu-pv', 'Pour 36 variants, seule la paire commune : State=Focus.'],
+  ],
+  'c-3g': [
+    ['.bloc-constat:nth-of-type(1) .pv-grille', 'Un bloc de deux colonnes. Il prend trois lignes par carte.'],
+  ],
+  'c-4a': [
+    ['.variants-copier', '« ses » ne dit pas à qui sont les liaisons. Le bouton a le style du navigateur.'],
+  ],
+  'c-4b': [
+    ['.variants-pied .btn', 'Le libellé dit ce que le bouton fait. Style du socle.'],
+    ['.modele-aide', 'Une phrase explique la substitution.'],
+    ['.modele-exemple', 'L\'exemple vient du variant affiché et d\'un autre variant du jeu.'],
+  ],
+  'c-4c': [
+    ['.modele-resultat', 'Le bouton dit le résultat. Le panneau s\'ouvre sur les liaisons proposées.'],
+  ],
+  'c-5a': [
+    ['.variants-tableau', '« Tableau » ne dit pas ce qu\'il croise. C\'est un bouton simple, au style du navigateur.'],
+  ],
+  'c-5b': [
+    ['.variants-tete .bascule', 'Le choix segmenté du socle. La seconde option nomme les deux properties croisées.'],
+  ],
+  'c-6a': [
+    ['.constat-statut', 'Ouvrir la carte a sélectionné le layer. Rien ne l\'annonçait.'],
+  ],
+  'c-6b': [
+    ['.bloc-constat:nth-of-type(1) .bouton-selectionner', 'Le bouton Sélectionner, avec le signe de la sélection de Figma.'],
+    ['.bloc-constat:nth-of-type(2) .bouton-selectionner', 'Après le clic : Sélectionnés.'],
+  ],
+  'c-7b': [
+    ['.bloc-phrase', 'La phrase dit que .Ring est un composant imbriqué, et où lier le radius.'],
+    ['.bouton-selectionner', 'Sélectionne le layer dans l\'instance .Ring.'],
+  ],
+  'c-7d': [
+    ['.bloc-phrase', 'Une phrase simple. « propriété » remplace « property » (R-22).'],
+  ],
+  'c-7f': [
+    ['.section-note', 'La carte Information devient une ligne grise sous la bande. Elle ne demande aucun geste (R-19).'],
+    ['.bloc-constat:nth-of-type(1) .bloc-phrase', 'Le stroke se mesure sur elevation/page, dans chaque mode du thème (R-20).'],
+  ],
+};
+
+// 1. Fenêtre
+cadre('c-1a', { etat: 'composant-variants', largeur: 300, hauteur: 640 });
+cadre('c-1b', { etat: 'composant-variants', largeur: 300, hauteur: 640, modifier: (doc) => {
+  barreCompacte(doc);
+  doc.head.insertAdjacentHTML('beforeend', '<style>.vc-points { display: none !important; }</style>');
+} });
+cadre('c-1c', { etat: 'composant-vide', largeur: 300, hauteur: 360, modifier: (doc) => {
+  barreCompacte(doc);
+  const b = q(doc, '.bouton-icone-barre');
+  if (b) { b.disabled = true; b.title = 'Sélectionnez un composant dans Figma'; }
+} });
+cadre('c-1d', { etat: 'c-modele', largeur: 864, hauteur: 640, modifier: (doc) => {
+  q(doc, '.vc').style.width = '300px';
+  // La galerie remplit ces deux cartes d'un code sans phrase ; la maquette leur donne un texte du kit.
+  for (const phrase of doc.querySelectorAll('.bloc-phrase')) if (phrase.textContent === 'Constat C40.') phrase.textContent = 'Un token d’Alert n’est lié à aucun layer.';
+  const config = q(doc, '.barre .icon-button');
+  config.title = 'Fermer la configuration';
+} });
+
+// 2. Changer de variant
+const variantInfo = (doc) => {
+  for (const b of doc.querySelectorAll('.valeur-axe[data-propriete="Severity"]')) {
+    const choisie = b.dataset.valeur === 'info';
+    b.classList.toggle('choisie', choisie);
+    b.setAttribute('aria-pressed', String(choisie));
+  }
+  q(doc, '.variants-affiche .ch-variant').textContent = 'Severity=info, Variant=standard';
+};
+cadre('c-2a', { etat: 'composant-variants', largeur: 300, hauteur: 640, modifier: (doc) => {
+  barreCompacte(doc);
+  variantInfo(doc);
+  for (const b of doc.querySelectorAll('.valeur-axe[data-propriete="Severity"]')) {
+    const choisie = b.dataset.valeur === 'success';
+    b.classList.toggle('choisie', choisie);
+  }
+  q(doc, '.vc-tete').insertAdjacentHTML('afterend', '<div class="lecture-fine" role="progressbar" aria-label="Lecture du variant"></div>');
+} });
+cadre('c-2b', { etat: 'composant-variants', largeur: 300, hauteur: 640, apercu: APERCU_ALERT('#F0FDF4', '#15803D'), modifier: (doc) => {
+  barreCompacte(doc);
+  const valeurs = { '#F0F9FF': '#F0FDF4', '#0369A1': '#15803D' };
+  for (const ligne of doc.querySelectorAll('.vc-section-tete[data-section="couleur"] ~ .vc-token')) {
+    if (!ligne.querySelector('.signe-valeur')) continue;
+    for (const s of ligne.querySelectorAll('.vc-nom .ch > span')) if (s.textContent === 'info') { s.textContent = 'success'; s.classList.add('vient-de-changer'); }
+    const v = ligne.querySelector('.vc-valeur');
+    if (valeurs[v.textContent]) {
+      ligne.querySelector('.signe-valeur').style.setProperty('--signe-valeur', valeurs[v.textContent]);
+      v.textContent = valeurs[v.textContent];
+      v.classList.add('vient-de-changer');
+    }
+  }
+} });
+
+// 3. Langage des variants
+const sectionButton = (modifier) => ({ etat: 'composant-variants', largeur: 300, hauteur: 'variants', apercu: APERCU_BUTTON, modifier: (doc) => {
+  barreCompacte(doc);
+  axesDeButton(doc);
+  modifier?.(doc);
+} });
+cadre('c-3a', sectionButton((doc) => { q(doc, '.variants-affiche .ch-variant').textContent = 'Color=Primary, Variant=Contained, State=Default'; }));
+cadre('c-3b', sectionButton((doc) => affiche(doc, pvs([['Color', 'Primary'], ['Variant', 'Contained'], ['State', 'Default']]))));
+cadre('c-3c', sectionButton((doc) => q(doc, '.variants').classList.add('forme-b')));
+
+const panneauButton = (construire) => ({ etat: 'x-button', largeur: 560, seul: true, modifier: (doc) => cartes(doc, construire) });
+cadre('c-3d', panneauButton(({ carte }) => [
+  carte('corriger', { phrase: `L’anneau de focus de ${chv(nomDe(FOCUS))} manque de contraste.`, meta: ['2,1:1 au lieu de 3:1', 'Réglez le token ring dans UCM Palettes'] }),
+  carte('verifier', { phrase: 'L’anneau a un stroke weight de 1 px. UCM recommande 2 px d’écart et 2 px de trait.', meta: [`<span class="constat-lieu">Tous les variants ${chv('State=Focus')}</span>`, 'Recommandation'] }),
+].join('')));
+cadre('c-3e', panneauButton(({ carte }) => [
+  carte('corriger', { phrase: `L’anneau de focus de ${pvs(FOCUS)} manque de contraste.`, meta: ['2,1:1 au lieu de 3:1', 'Réglez le token ring dans UCM Palettes'] }),
+  carte('verifier', { phrase: 'L’anneau a un stroke weight de 1 px. UCM recommande 2 px d’écart et 2 px de trait.', meta: [`<span class="constat-lieu">Tous les variants ${pv('State', 'Focus')}</span>`, 'Recommandation'] }),
+].join('')));
+cadre('c-3f', panneauButton(({ carte }) => [
+  carte('corriger', { phrase: 'L’anneau de focus manque de contraste : 2,1:1 au lieu de 3:1.', meta: [`<span class="lieu-pv"><span class="pv-compte">1 variant</span>${pvs(FOCUS)}</span>`, 'Réglez le token ring dans UCM Palettes'] }),
+  carte('verifier', { phrase: 'L’anneau a un stroke weight de 1 px. UCM recommande 2 px d’écart et 2 px de trait.', meta: [`<span class="lieu-pv"><span class="pv-compte">36 variants</span>${pv('State', 'Focus')}</span>`, 'Recommandation'] }),
+].join('')));
+const grille = (paires) => `<dl class="pv-grille">${paires.map(([p, v]) => `<dt>${p}</dt><dd>${v}</dd>`).join('')}</dl>`;
+cadre('c-3g', panneauButton(({ carte }) => [
+  carte('corriger', { phrase: `L’anneau de focus manque de contraste : 2,1:1 au lieu de 3:1.${grille(FOCUS)}`, meta: ['Réglez le token ring dans UCM Palettes'] }),
+  carte('verifier', { phrase: `L’anneau a un stroke weight de 1 px. UCM recommande 2 px d’écart et 2 px de trait.${grille([['State', 'Focus']])}`, meta: ['36 variants', 'Recommandation'] }),
+].join('')));
+
+// 4. Bouton de modèle
+const modeleAlert = (doc) => { variantInfo(doc); barreCompacte(doc); };
+cadre('c-4a', { etat: 'composant-variants', largeur: 300, hauteur: 'variants', modifier: modeleAlert });
+const piedModele = (doc, resultat) => {
+  const pied = q(doc, '.variants-pied');
+  pied.classList.add('modele');
+  q(doc, '.variants-copier').outerHTML = '<button type="button" class="btn btn-secondary btn-compact">Lier les autres variants sur ce modèle</button>';
+  pied.insertAdjacentHTML('beforeend', resultat ?? `<p class="modele-aide">Chaque autre variant reçoit le token de même nom, avec ses propres valeurs. Par exemple, pour ${chv('Severity=error, Variant=outlined')} :</p>
+    <span class="modele-exemple">colors/<span class="avant">info</span>/<span class="avant">standard</span>/background</span>
+    <span class="modele-exemple">colors/<span class="apres">error</span>/<span class="apres">outlined</span>/background</span>`);
+};
+cadre('c-4b', { etat: 'composant-variants', largeur: 300, hauteur: 'variants', modifier: (doc) => { modeleAlert(doc); piedModele(doc); } });
+cadre('c-4c', { etat: 'composant-variants', largeur: 300, hauteur: 'variants', modifier: (doc) => {
+  modeleAlert(doc);
+  piedModele(doc, `<p class="modele-resultat">${SVG_COCHE.replace('aria-hidden', 'width="14" height="14" aria-hidden')}<span><b>27 liaisons proposées</b> dans Constats.</span></p>`);
+} });
+
+// 5. Choix du tableau
+cadre('c-5a', sectionButton());
+cadre('c-5b', sectionButton((doc) => {
+  q(doc, '.variants').classList.add('forme-b');
+  q(doc, '.variants-tableau').outerHTML = '<div class="bascule" role="group" aria-label="Affichage des variants"><button type="button" class="bascule-choix" aria-pressed="true">Par property</button><button type="button" class="bascule-choix" aria-pressed="false">Color × Variant</button></div>';
+}));
+
+// 6. Sélectionner
+const RING = { phrase: `Le top left radius du layer ${chm('.Ring')} est lié à ${chm('Radius/lg')}, un token de Layout.` };
+cadre('c-6a', panneauButton(({ carte }) => carte('corriger', { phrase: RING.phrase, meta: [`<span class="constat-lieu">${nomDe(FOCUS)}</span>`, '<span class="constat-statut">Sélectionnés dans Figma.</span>', 'Liez-le à un token du composant'] })));
+cadre('c-6b', panneauButton(({ carte }) => [
+  carte('corriger', { phrase: `Le gap du layer ${chm('UserInput')} vaut 10 px, sans variable.`, meta: [`<span class="lieu-pv"><span class="pv-compte">1 variant</span>${pv('Variant', 'Info')}</span>`, 'Créez un token du composant de cette valeur, puis liez-le'], selection: 'oui' }),
+  carte('verifier', { phrase: `Le layer ${chm('label')} a un font size de 11 px. UCM recommande au moins 12 px.`, meta: [`<span class="lieu-pv"><span class="pv-compte">72 variants</span>${pv('Size', 'Small')}</span>`, 'Recommandation'], selection: 'fait' }),
+].join('')));
+
+// 7. Constats réécrits
+cadre('c-7a', panneauButton(({ carte }) => carte('corriger', { phrase: RING.phrase, meta: [`<span class="constat-lieu">${nomDe(FOCUS)}</span>`, 'Liez-le à un token du composant'] })));
+cadre('c-7b', panneauButton(({ carte }) => carte('corriger', {
+  phrase: `Le top left radius du layer ${chm('.Ring')} est lié à ${chm('Radius/lg')}, un token de layout. ${chm('.Ring')} est un composant imbriqué dans Button.`,
+  meta: [`<span class="lieu-pv"><span class="pv-compte">36 variants</span>${pv('State', 'Focus')}</span>`, 'Liez ce radius à un token de Button, sur l’instance .Ring'], selection: 'oui',
+})));
+cadre('c-7c', panneauButton(({ carte }) => carte('corriger', { phrase: 'La règle de label vise une property que le composant n’a pas.', meta: ['Tous les variants', 'Reprenez le nom de la property dans la règle'] })));
+cadre('c-7d', panneauButton(({ carte }) => carte('corriger', { phrase: `La règle ${chm('label')} ne correspond à aucune propriété de Button.`, meta: ['Donnez-lui le nom exact de la propriété, ou supprimez-la'] })));
+cadre('c-7e', panneauButton(({ carte, section }) => section('Accessibilité', 2, [
+  carte('info', { phrase: `Les 18 variants ${chv('State=Disabled')} ne sont pas mesurés. WCAG ne leur demande pas de contraste.`, meta: ['<span class="constat-lieu">Tous les variants désactivés</span>'] }),
+  carte('info', { phrase: `Le stroke de ${chv('Variant=Outlined')} est posé sur un fond que le plugin ne détermine pas. Le contraste n’a pas été mesuré.`, meta: ['<span class="constat-lieu">72 variants</span>'] }),
+].join(''))));
+cadre('c-7f', panneauButton(({ carte, section }) => section('Accessibilité', 1, [
+  carte('corriger', { phrase: `Le stroke manque de contraste sur le fond de la page, ${chm('elevation/page')}, en Dark : 1,8:1 au lieu de 3:1.`, meta: [`<span class="lieu-pv"><span class="pv-compte">72 variants</span>${pv('Variant', 'Outlined')}</span>`, 'En Light : 4,6:1, tenu.', 'Réglez le token border dans UCM Palettes'], selection: 'oui' }),
+].join(''), `Contraste non mesuré sur ${pv('State', 'Disabled')}, que WCAG exempte.`)));
+</script>
+</body>
+</html>

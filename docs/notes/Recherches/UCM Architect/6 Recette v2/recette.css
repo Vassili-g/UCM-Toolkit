@@ -1,0 +1,67 @@
+/* Éléments nouveaux de la maquette de la recette v2, posés sur la feuille réelle du plugin (galerie/plugin.css). */
+
+/* Repères de la maquette : contour pointillé de 1 px et pastille numérotée, expliquée sous le cadre. */
+.repere { outline: 1px dashed #ff8ad8 !important; outline-offset: 1px; }
+.repere-n { position: absolute; z-index: 99; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #ff8ad8; color: #1a1a1a; font: 700 10px/16px Inter, sans-serif; text-align: center; pointer-events: none; }
+
+/* Puce d'une paire de variant : le texte exact de Figma, property et signe égal en gris, valeur en clair. */
+.pvs { display: inline-flex; flex-wrap: wrap; gap: 4px; vertical-align: baseline; }
+.pv { display: inline-flex; align-items: baseline; padding: 0 5px; border-radius: 3px; background: var(--fond-survol); font: 400 11px/18px 'JetBrains Mono', Consolas, monospace; white-space: nowrap; }
+.pv-p, .pv-e { color: var(--texte-second); }
+.pv-v { color: var(--texte); font-weight: 600; }
+.pv-compte { color: var(--texte-second); margin-right: 4px; }
+.lieu-pv { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px; }
+
+/* Forme D : les paires en deux colonnes sous la phrase. */
+.pv-grille { display: grid; grid-template-columns: max-content 1fr; gap: 0 12px; margin: 4px 0 0; font: 400 11px/17px 'JetBrains Mono', Consolas, monospace; }
+.pv-grille dt { color: var(--texte-second); }
+.pv-grille dd { margin: 0; color: var(--texte); font-weight: 600; }
+
+/* Forme A dans la section Variants : la ligne Affiché en puces. */
+.variants-affiche .pvs { margin-left: 6px; }
+
+/* Forme B : la valeur choisie de chaque ligne dit le variant, la ligne Affiché disparaît. */
+.forme-b .variants-pied .variants-affiche { display: none; }
+
+/* Barre à 300 px : logo, bascule, trois boutons à icône. */
+.application-etroite:has(.barre-compacte) { min-width: 300px; }
+.barre-compacte { gap: 4px; padding-inline: 8px; }
+.barre-compacte .produit { display: none; }
+.barre-compacte .bascule-choix { padding: 0 7px; }
+.barre-compacte .icon-button { width: 28px; min-width: 28px; padding: 0; }
+.barre-compacte .barre-lecture { gap: 4px; margin-left: auto; }
+.barre-compacte .bouton-panneau { padding-inline: 6px; gap: 4px; }
+.barre-compacte .bouton-panneau > span:not(.pastille-compte) { display: none; }
+.bouton-icone-barre { width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.bouton-icone-barre svg { width: 14px; height: 14px; }
+.barre-compacte .icon-button.avec-libelle > span { display: none; }
+
+/* Configuration en bascule : le bouton enfoncé prend le fond de la marque. */
+.icon-button.config-ouverte { background: var(--fond-marque); color: var(--texte-sur-marque); }
+
+/* Changement de variant : barre fine de lecture, puis valeur changée surlignée. */
+.lecture-fine { height: 2px; margin: -2px 0 0; background: linear-gradient(90deg, transparent 0%, var(--bordure-marque) 50%, transparent 100%); }
+.vient-de-changer { background: color-mix(in srgb, var(--bordure-marque) 28%, transparent); border-radius: 3px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--bordure-marque) 28%, transparent); }
+
+/* Bouton de modèle : style du socle, phrase d'aide et exemple. */
+.variants-pied.modele { display: block; }
+.modele-aide { margin: 6px 0 0; color: var(--texte-second); font-size: 11px; line-height: 16px; }
+.modele-exemple { display: block; margin: 4px 0 0; font: 400 11px/17px 'JetBrains Mono', Consolas, monospace; color: var(--texte-second); word-break: break-all; }
+.modele-exemple .avant { color: var(--texte-danger); text-decoration: line-through; }
+.modele-exemple .apres { color: var(--texte-succes); font-weight: 600; }
+.modele-resultat { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; font-size: 11px; color: var(--texte-second); }
+.modele-resultat b { color: var(--texte); }
+
+/* Choix segmenté du tableau des variants : la bascule du socle, en petit. */
+.variants-tete .bascule { margin-left: auto; }
+.variants-tete .bascule-choix { font-size: 11px; padding: 2px 8px; }
+
+/* Bouton Sélectionner dans l'en-tête d'une carte de constat. */
+.bloc-tete.avec-selection { display: flex; align-items: flex-start; }
+.bloc-tete.avec-selection > .bloc-bouton { flex: 1 1 auto; min-width: 0; }
+.bouton-selectionner { flex: 0 0 auto; margin: 8px 4px 0 0; display: inline-flex; align-items: center; gap: 4px; }
+.bouton-selectionner svg { width: 14px; height: 14px; }
+.bouton-selectionner.fait { color: var(--texte-succes); }
+
+/* Ligne grise sous la bande d'une section : ce que la section ne mesure pas. */
+.section-note { margin: -2px 0 8px 2px; color: var(--texte-second); font-size: 11px; line-height: 16px; }

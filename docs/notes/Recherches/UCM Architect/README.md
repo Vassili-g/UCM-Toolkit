@@ -50,6 +50,15 @@ Tokens affiche Nomenclature à côté de l'arbre des variables.
 | [MAQUETTE-PROGRESSION.html](./5%20Vitesse%20de%20l'analyse/MAQUETTE-PROGRESSION.html) | La barre de progression, la phase en cours et les premiers points avant la fin |
 | [PLAN-IMPLEMENTATION.md](./5%20Vitesse%20de%20l'analyse/PLAN-IMPLEMENTATION.md) | Les lots L0 à L9, chacun avec son agent |
 
+## 6 Recette v2
+
+| Document | Contenu |
+|---|---|
+| [ANALYSE-RECETTE-V2.md](./6%20Recette%20v2/ANALYSE-RECETTE-V2.md) | Les points de la recette Figma de Button, Alert et Stresstest : cause lue dans le code, proposition, questions R-11 à R-22 et ordre de travail |
+| [MAQUETTE-RECETTE-V2.html](./6%20Recette%20v2/MAQUETTE-RECETTE-V2.html) | Fenêtre à 300 px, changement de variant, langage des variants, bouton de modèle, choix du tableau, bouton Sélectionner et constats réécrits, sur les écrans réels figés |
+| [recette.css](./6%20Recette%20v2/recette.css) | La feuille des éléments nouveaux de la maquette |
+| `Mesures/extraire-galerie.mjs` | Fige les états de la galerie étroite dans `galerie/` |
+
 Les recherches antérieures sur Nomenclature et sur le contrôle de structure des
 tokens restent dans [Plugin Architect](../Plugin%20Architect/README.md).
 
