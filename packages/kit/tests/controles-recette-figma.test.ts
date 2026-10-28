@@ -58,17 +58,27 @@ test('C17 garde le fond de l’instance elle-même : un foreground posé sur son
   assert.deepEqual(constats.filter((constat) => constat.code === 'C17').map(({ faits }) => faits.attendu), ['background']);
 });
 
-test('une icône admet icon et foreground, un stroke lié à un foreground attend border', () => {
+test('une icône admet icon et foreground, un stroke admet border et foreground', () => {
   const icone = layer('icone', 'circle-info', 'INSTANCE', 'racine', [liaison('fills', TEXTE, { id: 'I;v', nom: 'circle-info', type: 'VECTOR' })]);
   const racine = layer('racine', 'Alert', 'COMPONENT', null, [liaison('strokes', TEXTE)]);
   const constats = controlerMapping(releve([variant('v', [racine, icone])]), catalogue(TEXTE, 'button/color/primary/border'));
-  assert.deepEqual(constats.filter((constat) => constat.code === 'C17').map(({ layers, faits }) => [layers[0], faits.attendu]), [['racine', 'border']]);
+  assert.deepEqual(constats.filter((constat) => constat.code === 'C17'), []);
+});
+
+test('C17 : un stroke Outlined lié à foreground est admis, un background ou un anneau lié à foreground ne l’est pas', () => {
+  const OUTLINED = 'button/color/info/outlined/foreground';
+  const outlined = layer('racine', 'Alert', 'COMPONENT', null, [liaison('strokes', OUTLINED)]);
+  assert.deepEqual(controlerMapping(releve([variant('v', [outlined])]), catalogue(OUTLINED)).filter((constat) => constat.code === 'C17'), []);
+  const surFond = layer('racine', 'Alert', 'COMPONENT', null, [liaison('strokes', FOND)]);
+  assert.deepEqual(controlerMapping(releve([variant('v', [surFond])]), catalogue(FOND)).filter((constat) => constat.code === 'C17').map(({ faits }) => faits.attendu), ['border']);
+  const anneau = layer('ring', 'ring', 'FRAME', null, [liaison('strokes', TEXTE)]);
+  assert.deepEqual(controlerMapping(releve([variant('v', [anneau])]), catalogue(TEXTE)).filter((constat) => constat.code === 'C17').map(({ faits }) => faits.attendu), ['ring']);
 });
 
 test('C17 cède la place à C24 : un écart de rôle ne se compte qu’une fois', () => {
-  const racine = layer('racine', 'Alert', 'COMPONENT', null, [liaison('strokes', TEXTE)]);
+  const racine = layer('racine', 'Alert', 'COMPONENT', null, [liaison('strokes', FOND)]);
   const lu = releve([variant('v', [racine])]);
-  const cat = catalogue(TEXTE, 'button/color/primary/border');
+  const cat = catalogue(FOND, 'button/color/primary/border');
   const tous = proposerLesCorrections(lu, cat, controlerMapping(lu, cat));
   assert.deepEqual(tous.filter((constat) => constat.code === 'C17' || constat.code === 'C24').map(({ code }) => code), ['C24']);
   assert.equal(tous.find((constat) => constat.code === 'C24')?.correction?.apres.nom, 'button/color/primary/border');

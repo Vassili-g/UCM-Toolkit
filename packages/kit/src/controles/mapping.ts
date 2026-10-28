@@ -46,7 +46,7 @@ function estUneIcone(layer: LayerLu, liaison: LiaisonLue): boolean {
 /** Les rôles admis pour la liaison : le premier est celui qu'une correction pose. Une icône prend `icon` ou `foreground`. */
 function rolesAdmis(layer: LayerLu, liaison: LiaisonLue): readonly string[] | undefined {
   const peint = layerPeint(layer, liaison);
-  if (liaison.champ === 'strokes') return /ring|focus/i.test(peint.nom) ? ['ring'] : ['border'];
+  if (liaison.champ === 'strokes') return /ring|focus/i.test(peint.nom) ? ['ring'] : ['border', 'foreground'];
   if (liaison.champ !== 'fills') return undefined;
   if (peint.type === 'TEXT' || liaison.plage) return ['foreground', 'text'];
   if (estUneIcone(layer, liaison)) return ['icon', 'foreground'];
