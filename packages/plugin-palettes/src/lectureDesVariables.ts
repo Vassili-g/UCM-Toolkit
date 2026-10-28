@@ -104,6 +104,11 @@ export function variableLue(variable: Variable, profil: ProfilDuDocument): Varia
 /** Ce que le calcul des noms lit d'une variable : son alias et sa donnée partagée `palette`. */
 export type LecturesDeNommage = Map<string, { readonly alias?: string; readonly palette?: string }>;
 
+/** Les entrées de nommage rangées dans l'espace d'Architect, y compris sans écriture lisible. */
+export function lireLesCouplesDeNommage(racine: { getSharedPluginDataKeys(espace: string): string[]; getSharedPluginData(espace: string, cle: string): string }): (readonly [string, string])[] {
+  return racine.getSharedPluginDataKeys(ESPACE_ARCHITECT).filter(estCleDeNommage).map((cle) => [cle, racine.getSharedPluginData(ESPACE_ARCHITECT, cle)] as const);
+}
+
 /**
  * Ce que les règles de nommage du fichier lisent : leurs couples (clé, texte) dans `ESPACE_ARCHITECT`, les collections et
  * toutes les variables locales, de tous types. `undefined` quand aucune écriture n'est rangée en v2 : Palettes garde ses
@@ -115,8 +120,9 @@ export function lireLesDonneesDeNommage(
   variables: readonly Variable[],
   memo: LecturesDeNommage = new Map(),
 ): DonneesDeNommage | undefined {
-  const couples = racine.getSharedPluginDataKeys(ESPACE_ARCHITECT).filter(estCleDeNommage).map((cle) => [cle, racine.getSharedPluginData(ESPACE_ARCHITECT, cle)] as const);
-  if (!lireReglesDeNommage(couples)) return undefined;
+  const couples = lireLesCouplesDeNommage(racine);
+  const regles = lireReglesDeNommage(couples);
+  if (!regles) return undefined;
   const lecture = (variable: Variable) => {
     let lue = memo.get(variable.id);
     if (!lue) {

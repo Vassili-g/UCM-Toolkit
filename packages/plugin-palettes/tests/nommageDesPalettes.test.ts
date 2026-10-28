@@ -6,7 +6,7 @@ import { fnv1a, jsonCanonique, lireHexa, octetsUtf8, recetteParDefaut, type Pale
 
 import { inventaireDeLectures } from 'ucm-plugin-socle/src/inventaireDeNoms';
 import { nomsSelonLesReglesSync } from '@ucm-kit/core/nommage';
-import { lireReglesDeNommage } from '@ucm-kit/core/protocoles';
+import { entreeDeNommage, lireReglesDeNommage, rangerLesEcritures } from '@ucm-kit/core/protocoles';
 
 import { ajouter, nouvellePalette, remplacerPalette, renommer, reprendreDuFichier, revenirAuModele } from '../src/edition';
 import { convertirLaReprise, ecrireLesVariables, reprendreLaPalette, type FigmaDesVariablesEcrites } from '../src/ecriture/variables';
@@ -17,7 +17,7 @@ import { palettesDuFichier } from '../src/variables/detection';
 import { ecartsDeLaReprise, restesNommes, tokensDeLaPalette, type TokensDUnePalette } from '../src/variables/gestion';
 import { planDuLot } from '../src/variables/lot';
 import { conversionDeLaReprise } from '../src/variables/conversion';
-import { creerNommeur, nommeurDuFichier, planDeLaPalette, type DonneesDeNommage } from '../src/variables/nommeur';
+import { creerNommeur, nommeurDuFichier, planDeLaPalette, raisonSansNommeur, type DonneesDeNommage } from '../src/variables/nommeur';
 import { cleDuPlan, nommerLePlan, nomsDuPlan, planDesVariables } from '../src/variables/plan';
 import { texteDuSuivi, variablesSuivies } from '../src/variables/suivi';
 import { detailDeLaReprise } from '../src/ui/detailDesTokens';
@@ -115,6 +115,36 @@ test('[VAR-07] sans règles enregistrées, ou avec la seule clé de la v1, le pl
   assert.equal(nommeurDuFichier({}), undefined);
   const brut = planDesVariables(RECETTE, POPPY, destination('colors'));
   assert.deepEqual(planDeLaPalette(undefined, RECETTE, POPPY, destination('colors'), undefined, null, new Map(), new Map()), brut);
+});
+
+test('[VAR-07] la raison sans nommeur couvre l’écriture et la seule collection visée', () => {
+  assert.equal(raisonSansNommeur(donnees([], []), { id: 'c1' }), 'aucune-ecriture');
+  const v1 = JSON.stringify({ version: 1, termesUcm: true, conventions: { groupes: { casse: 'PascalCase', separateur: 'camelCase' }, variables: { casse: 'minuscules', separateur: 'tiret' } } });
+  assert.equal(raisonSansNommeur(donnees([], [['conventions', v1]]), { id: 'c1' }), 'v1-seule');
+  assert.equal(raisonSansNommeur(donnees([], [['ecriture', JSON.stringify({ version: 999 })]]), { id: 'c1' }), 'version-future');
+  assert.equal(raisonSansNommeur(donnees([], [['ecriture', 'illisible']]), { id: 'c1' }), 'ecriture-illisible');
+  const exclue = donnees([], [...COUPLES, ['exclues', JSON.stringify({ version: 1, ids: ['c1'] })]]);
+  assert.equal(raisonSansNommeur(exclue, { id: 'c1' }), 'collection-exclue');
+  assert.equal(raisonSansNommeur(exclue, { id: 'c2' }), undefined);
+  assert.equal(raisonSansNommeur(donnees(), { id: 'absente' }), 'collection-introuvable');
+  assert.equal(raisonSansNommeur(donnees(), { nom: 'Nouvelle' }), undefined);
+});
+
+test('[VAR-07] aller-retour : Palettes relit l’écriture PascalCase rangée par UCM Architect', async () => {
+  const { figma } = fichier({ regles: false });
+  const stockage = {
+    cles: () => figma.root.getSharedPluginDataKeys('ucm_architect'),
+    lire: (cle: string) => figma.root.getSharedPluginData('ucm_architect', cle),
+    ecrire: (cle: string, texte: string) => figma.root.setSharedPluginData('ucm_architect', cle, texte),
+    effacer: (cle: string) => figma.root.setSharedPluginData('ucm_architect', cle, ''),
+  };
+  rangerLesEcritures(stockage, [entreeDeNommage({ type: 'ecriture', ecriture: { groupes: { casse: 'PascalCase', separateur: 'camelCase' }, variables: { casse: 'minuscules', separateur: 'tiret' } } })]);
+  const lu = await lireLesVariablesDuFichier(api(figma));
+  assert.equal(lu.nommage?.couples[0]?.[0], 'ecriture');
+  assert.ok(nommeurDuFichier(lu)?.pour({ id: [...figma.collections.values()][0].id }));
+  assert.deepEqual(await ecrire(figma, [POPPY]), [{ palette: POPPY.id, issue: 'ecrite', creees: 44, ecrites: 44 }]);
+  assert.ok(noms(figma).includes('Color/Poppy/Vivid/Light/50'));
+  assert.equal(tokensDeLaPalette(RECETTE, POPPY, await lireLesVariablesDuFichier(api(figma))).etat, 'a-jour');
 });
 
 test('[VAR-07] dans une collection que les règles excluent, le plan garde ses noms bruts', () => {
@@ -285,6 +315,17 @@ test('[VAR-13] liaison reprise : un fichier dont UCM Architect a déjà écrit l
   await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [] });
   assert.deepEqual(figma.journal.filter((ligne) => ligne.startsWith('créer variable')), []);
   assert.deepEqual(noms(figma), TAILWIND.map((nuance) => `Color/Azur/${nuance}`));
+});
+
+test('[VAR-13] une écriture de nommage différente laisse à UCM Architect les écarts de casse des variables reprises', async () => {
+  const { figma } = fichierAvecUneRampe('Color/Azur');
+  poserLesRegles(figma, [['ecriture', JSON.stringify({ version: 1, groupes: { casse: 'minuscules', separateur: 'tiret' }, variables: { casse: 'minuscules', separateur: 'tiret' } })]]);
+  const { recette, palette } = await reprendre(figma);
+  const avant = noms(figma);
+  const jetons = tokensDeLaPalette(recette, palette, await lireLesVariablesDuFichier(api(figma)));
+  assert.deepEqual(jetons.aRenommer, []);
+  await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [palette.id] });
+  assert.deepEqual(noms(figma), avant);
 });
 
 test('[VAR-13] liaison reprise : un renommage de forme reste à faire sous les règles, vers le nom final', async () => {

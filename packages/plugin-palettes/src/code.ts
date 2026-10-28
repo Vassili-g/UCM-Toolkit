@@ -15,12 +15,13 @@ import { rangerRecette } from './ecriture/recette';
 import { convertirLaReprise, copierLaPalette, ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables } from './ecriture/variables';
 import { TAILLE_PAR_DEFAUT, creerRedimensionnement, lireTaille } from './fenetre';
 import { lireEtat, lireLaPlanche } from './lecture';
-import { lireLesBibliotheques, lireLesVariablesDuFichier } from './lectureDesVariables';
+import { lireLesBibliotheques, lireLesCouplesDeNommage, lireLesVariablesDuFichier } from './lectureDesVariables';
 import type { PluginMessage, UiRequest } from './messages';
 import { voirSurLaPlanche } from './navigation';
 import { creerPreferences } from './preferences';
 import { creerFileDuDocument } from './fileDuDocument';
 import type { Bibliotheques } from './variables/bibliotheques';
+import { raisonSansNommeur } from './variables/nommeur';
 
 rangerLaMarqueDeNommage(figma);
 
@@ -51,10 +52,19 @@ function versUi(message: PluginMessage): void {
  * « Synchroniser », et le sandbox les garde entre deux.
  */
 let bibliotheques: Bibliotheques | null = null;
+const raisonsDeNommageJournalisees = new Set<string>();
 
 async function envoyerEtat(demande: number, toutesLesPages: boolean): Promise<void> {
   if (bibliotheques === null || toutesLesPages) bibliotheques = await lireLesBibliotheques(figma);
-  versUi({ type: 'etat', demande, ...lireEtat(figma.root), planche: await lireLaPlanche(figma, toutesLesPages), variables: await lireLesVariablesDuFichier(figma, bibliotheques) });
+  const variables = await lireLesVariablesDuFichier(figma, bibliotheques);
+  const donnees = variables.nommage ?? { couples: lireLesCouplesDeNommage(figma.root), collections: [], variables: [] };
+  const collection = variables.suivi.destination.collection;
+  const raison = raisonSansNommeur(donnees, collection);
+  if (raison && !raisonsDeNommageJournalisees.has(raison)) {
+    console.info('[UCM Palettes] Nommage ignoré :', raison);
+    raisonsDeNommageJournalisees.add(raison);
+  }
+  versUi({ type: 'etat', demande, ...lireEtat(figma.root), planche: await lireLaPlanche(figma, toutesLesPages), variables });
 }
 
 async function traiterMessage(message: UiRequest): Promise<void> {

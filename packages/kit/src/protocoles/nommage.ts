@@ -1,13 +1,12 @@
 /**
  * Les règles du fichier qui changent un nom : l'écriture des groupes et des variables, les termes du vocabulaire, les termes UCM
  * écartés, les termes ordinaires et les collections exclues. UCM Architect les range dans `ESPACE_ARCHITECT` et UCM Palettes
- * les relit pour nommer ses variables comme lui : ce module porte les clés, leur forme et leur lecture.
+ * les relit pour nommer ses variables comme lui : ce module porte les clés, leur forme, leur écriture et leur lecture.
  *
  * Une entrée est un JSON qui porte `version: 1`. Une entrée illisible se lit comme absente. Une entrée d'une version plus
  * récente n'entre pas dans le calcul, mais `lireLesEntreesDeNommage` la nomme dans `futures`. Une lecture ne réécrit rien.
  *
- * Le module lit des couples (clé, texte) et ne touche à aucun objet Figma ; l'écriture reste dans UCM Architect
- * (`serialiserRegle`), qui construit ses clés avec `cleTerme`, `cleEcart` et `cleOrdinaire`.
+ * Le module lit des couples (clé, texte) et ne touche à aucun objet Figma.
  *
  * Après une modification : relancer `npm test`, relancer les tests d'Architect et de Palettes, et changer la version du kit.
  */
@@ -44,6 +43,57 @@ export const cleEcart = (id: string): string => `${PREFIXES_DE_NOMMAGE.ecart}${i
 export const cleOrdinaire = (cle: string): string => `${PREFIXES_DE_NOMMAGE.ordinaire}${cle}`;
 
 export interface EcritureChoisie { readonly groupes: Convention; readonly variables: Convention }
+
+/** Les cinq règles de nommage rangées par Architect et lues par les deux plugins. */
+export type RegleDeNommage =
+  | { readonly type: 'ecriture'; readonly ecriture: EcritureChoisie }
+  | { readonly type: 'terme'; readonly terme: TermePersonnalise }
+  | { readonly type: 'ecart'; readonly id: string }
+  | { readonly type: 'ordinaire'; readonly cle: string }
+  | { readonly type: 'exclues'; readonly ids: readonly string[] };
+
+export interface EcritureDeRegle { readonly cle: string; readonly texte: string | null }
+
+/** Une règle de nommage devient sa clé et son texte versionné dans `ESPACE_ARCHITECT`. */
+export function entreeDeNommage(regle: RegleDeNommage): { cle: string; texte: string } {
+  const version = VERSION_DES_REGLES;
+  switch (regle.type) {
+    case 'ecriture': return { cle: CLE_ECRITURE, texte: JSON.stringify({ version, groupes: regle.ecriture.groupes, variables: regle.ecriture.variables }) };
+    case 'terme': return { cle: cleTerme(regle.terme.terme), texte: JSON.stringify({ version, terme: regle.terme.terme, remplace: regle.terme.remplace,
+      ...(regle.terme.definition ? { definition: regle.terme.definition } : {}) }) };
+    case 'ecart': return { cle: cleEcart(regle.id), texte: JSON.stringify({ version }) };
+    case 'ordinaire': return { cle: cleOrdinaire(regle.cle), texte: JSON.stringify({ version }) };
+    case 'exclues': return { cle: CLE_EXCLUES, texte: JSON.stringify({ version, ids: trier(regle.ids) }) };
+  }
+}
+
+/** Le port de stockage des règles dans l'espace partagé du fichier. */
+export interface StockageDeRegles {
+  cles(): readonly string[];
+  lire(cle: string): string;
+  ecrire(cle: string, texte: string): void;
+  effacer(cle: string): void;
+}
+
+/** Range dans l'ordre et remet chaque texte d'avant, au mieux, si une écriture échoue. L'erreur d'origine est relancée. */
+export function rangerLesEcritures(stockage: StockageDeRegles, ecritures: readonly EcritureDeRegle[]): void {
+  const touchees = new Map<string, string>();
+  try {
+    for (const { cle, texte } of ecritures) {
+      if (!touchees.has(cle)) touchees.set(cle, stockage.lire(cle));
+      if (texte === null || texte === '') stockage.effacer(cle);
+      else stockage.ecrire(cle, texte);
+    }
+  } catch (cause) {
+    for (const [cle, avant] of touchees) {
+      try {
+        if (avant === '') stockage.effacer(cle);
+        else stockage.ecrire(cle, avant);
+      } catch { /* retour au mieux */ }
+    }
+    throw cause;
+  }
+}
 
 /** La convention du document reste versionnée et validée par les registres du kit. */
 export interface ChoixDeConventions {

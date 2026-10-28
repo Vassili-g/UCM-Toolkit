@@ -4,12 +4,55 @@ import test from 'node:test';
 
 import { cleDeRegleDuTerme } from '../src/referentiel/harmonisation.js';
 import {
-  CLE_ECRITURE, CLE_EXCLUES, PREFIXES_DE_NOMMAGE, cleEcart, cleOrdinaire, cleTerme, estCleDeNommage, lireEntree, lireLesEntreesDeNommage, lireReglesDeNommage,
+  CLE_ECRITURE, CLE_EXCLUES, PREFIXES_DE_NOMMAGE, cleEcart, cleOrdinaire, cleTerme, entreeDeNommage, estCleDeNommage, lireEntree, lireLesEntreesDeNommage, lireReglesDeNommage, rangerLesEcritures, type RegleDeNommage,
 } from '../src/protocoles/nommage.js';
 
 const entree = (contenu: Record<string, unknown>): string => JSON.stringify({ version: 1, ...contenu });
 const ECRITURE = entree({ groupes: { casse: 'PascalCase', separateur: 'camelCase' }, variables: { casse: 'minuscules', separateur: 'tiret' } });
 const V1 = JSON.stringify({ version: 1, termesUcm: true, conventions: { groupes: { casse: 'initiale', separateur: 'espace' }, variables: { casse: 'minuscules', separateur: 'tiret' } } });
+
+test('les cinq sortes de règles passent de leur entrée écrite à la même règle lue', () => {
+  const regles: readonly RegleDeNommage[] = [
+    { type: 'ecriture', ecriture: { groupes: { casse: 'PascalCase', separateur: 'camelCase' }, variables: { casse: 'minuscules', separateur: 'tiret' } } },
+    { type: 'terme', terme: { terme: ['font', 'size'], remplace: [['taille'], ['police']], definition: 'Taille du texte.' } },
+    { type: 'ecart', id: 'ucm-etat-hover' },
+    { type: 'ordinaire', cle: 'dark' },
+    { type: 'exclues', ids: ['c1', 'c9'] },
+  ];
+  for (const regle of regles) {
+    const entree = entreeDeNommage(regle);
+    const lue = lireLesEntreesDeNommage(new Map([[entree.cle, entree.texte]]));
+    switch (regle.type) {
+      case 'ecriture': assert.deepEqual(lue.ecriture, regle.ecriture); break;
+      case 'terme': assert.deepEqual(lue.termes, [regle.terme]); break;
+      case 'ecart': assert.deepEqual(lue.ecartsUcm, [regle.id]); break;
+      case 'ordinaire': assert.deepEqual(lue.ordinaires, [regle.cle]); break;
+      case 'exclues': assert.deepEqual(lue.collectionsExclues, regle.ids); break;
+    }
+  }
+});
+
+test('les textes des règles conservent la version, l’ordre des champs et les ids triés', () => {
+  assert.deepEqual(entreeDeNommage({ type: 'ecriture', ecriture: { groupes: { casse: 'PascalCase', separateur: 'camelCase' }, variables: { casse: 'minuscules', separateur: 'tiret' } } }), { cle: 'ecriture', texte: '{"version":1,"groupes":{"casse":"PascalCase","separateur":"camelCase"},"variables":{"casse":"minuscules","separateur":"tiret"}}' });
+  assert.deepEqual(entreeDeNommage({ type: 'terme', terme: { terme: ['font', 'size'], remplace: [['taille']], definition: 'Taille.' } }), { cle: 'terme:font size', texte: '{"version":1,"terme":["font","size"],"remplace":[["taille"]],"definition":"Taille."}' });
+  assert.deepEqual(entreeDeNommage({ type: 'ecart', id: 'x' }), { cle: 'ecart:x', texte: '{"version":1}' });
+  assert.deepEqual(entreeDeNommage({ type: 'ordinaire', cle: 'dark' }), { cle: 'ordinaire:dark', texte: '{"version":1}' });
+  assert.deepEqual(entreeDeNommage({ type: 'exclues', ids: ['c9', 'c1', 'c9'] }), { cle: 'exclues', texte: '{"version":1,"ids":["c1","c9"]}' });
+});
+
+test('le rangement suit l’ordre et remet les textes d’avant après un échec', () => {
+  const table = new Map([['a', 'A0'], ['b', 'B0']]);
+  const ordre: string[] = [];
+  const stockage = {
+    cles: () => [...table.keys()],
+    lire: (cle: string) => table.get(cle) ?? '',
+    ecrire: (cle: string, texte: string) => { ordre.push(cle); table.set(cle, texte); if (cle === 'b' && texte === 'B1') throw Error('plein'); },
+    effacer: (cle: string) => { ordre.push(cle); table.delete(cle); },
+  };
+  assert.throws(() => rangerLesEcritures(stockage, [{ cle: 'a', texte: 'A1' }, { cle: 'b', texte: 'B1' }]), /plein/u);
+  assert.deepEqual(ordre, ['a', 'b', 'a', 'b']);
+  assert.deepEqual([...table], [['a', 'A0'], ['b', 'B0']]);
+});
 
 test('sans écriture rangée, il n’y a pas de règles de nommage', () => {
   assert.equal(lireReglesDeNommage([]), null);

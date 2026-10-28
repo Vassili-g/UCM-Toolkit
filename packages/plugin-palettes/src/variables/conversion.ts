@@ -31,7 +31,8 @@ export interface ConversionDeLaReprise {
  * Ce que le passage au format du plugin ferait d'une palette reprise. Une
  * palette à deux intensités range sous `unique` l'intensité qui porte les
  * variables d'origine : ses clés reprennent le nom de cette intensité. Avec
- * `nommer`, les noms de la destination sont les noms finaux des règles de nommage du fichier.
+ * `nommer`, les noms de la destination sont les noms finaux des règles de nommage du fichier. Une différence de casse
+ * seule ne renomme pas une variable existante.
  */
 export function conversionDeLaReprise(
   recette: Recette,
@@ -65,7 +66,7 @@ export function conversionDeLaReprise(
   const brut = planDesVariables(recette, palette, destination);
   for (const entree of nommer ? nommerLePlan(brut, nommer, (cle) => cles[cle]?.id) : brut) {
     const lue = lues.get(cles[entree.cle]?.id ?? '');
-    if (lue && lue.nom !== entree.nom && !aRenommer.has(lue.id)) aRenommer.set(lue.id, { id: lue.id, de: lue.nom, vers: entree.nom });
+    if (lue && lue.nom.toLowerCase() !== entree.nom.toLowerCase() && !aRenommer.has(lue.id)) aRenommer.set(lue.id, { id: lue.id, de: lue.nom, vers: entree.nom });
   }
   const propres = new Set(Object.values(cles).map((variable) => variable.id));
   const prises = new Set(variables.filter((variable) => variable.collection === suivie.collection && !propres.has(variable.id)).map((variable) => variable.nom.toLowerCase()));

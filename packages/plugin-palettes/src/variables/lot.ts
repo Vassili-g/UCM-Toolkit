@@ -305,7 +305,7 @@ export function planDuLot(recette: Recette, fichier: InventaireDuLot, demande: D
         cibles.push({ cible: 'creee', rang: reference.rang });
       } else {
         const actuel = nomActuel(reference.id);
-        if (entree.nom !== '' && actuel !== entree.nom) {
+        if (entree.nom !== '' && actuel.toLowerCase() !== entree.nom.toLowerCase()) {
           const deja = renommages.get(reference.id);
           renommages.set(reference.id, deja ? { ...deja, vers: entree.nom } : { id: reference.id, de: actuel, vers: entree.nom, cause: actuel === entree.brut ? 'regles' : 'forme' });
           noms.set(reference.id, entree.nom);

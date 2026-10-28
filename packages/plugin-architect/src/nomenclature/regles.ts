@@ -11,12 +11,15 @@ import { COLLECTIONS, ESPACE_ARCHITECT, CLE_ARCHITECTURE_DU_FICHIER, lireLArchit
 import {
   CLE_CONVENTIONS_V1, CLE_ECRITURE, CLE_EXCLUES, VERSION_DES_REGLES,
   PREFIXES_DE_NOMMAGE, apres, cleEcart, cleOrdinaire, cleTerme, comparer, estCleDeNommage, estListeDeTextes, estMot, estMots, estObjet, estTexte, lireEcriture, lireEntree,
-  lireLesEntreesDeNommage, lireTerme, motsDe, trier, vocabulaireDeNommage,
+  entreeDeNommage, lireLesEntreesDeNommage, lireTerme, motsDe, trier, vocabulaireDeNommage,
+  type EcritureDeRegle, type RegleDeNommage, type StockageDeRegles,
 } from '@ucm-kit/core/protocoles';
 import type { EcritureChoisie } from '../messages/nomenclature';
 
 // Les clés qui changent un nom, leurs constructeurs et leur analyseur vivent dans le kit (`protocoles`), où UCM Palettes les lit aussi.
 export { CLE_CONVENTIONS_V1, CLE_ECRITURE, CLE_EXCLUES, VERSION_DES_REGLES, cleEcart, cleOrdinaire, cleTerme, estMot };
+export { rangerLesEcritures } from '@ucm-kit/core/protocoles';
+export type { StockageDeRegles } from '@ucm-kit/core/protocoles';
 export const CLE_VUS = 'vus';
 /** Clé de la référence du journal : elle nomme le lot courant et le nombre de ses entrées. */
 export const CLE_JOURNAL = 'journal';
@@ -28,7 +31,7 @@ const MARGE_D_UNE_ENTREE = 1_000;
 const ENTREE_ANCIENNE = /^journal:\d+$/u;
 const ENTREE_DU_LOT = /^journal:[^:]+:\d+$/u;
 
-export interface Ecriture { readonly cle: string; readonly texte: string | null }
+export type Ecriture = EcritureDeRegle;
 
 export interface RenommageJournal {
   readonly type: 'variable' | 'collection';
@@ -82,15 +85,11 @@ export interface ReglesDuFichier {
 
 export type Regle =
   | { readonly type: 'architecture'; readonly ucm: boolean }
-  | { readonly type: 'ecriture'; readonly ecriture: EcritureChoisie }
-  | { readonly type: 'terme'; readonly terme: TermePersonnalise }
-  | { readonly type: 'ecart'; readonly id: string }
+  | RegleDeNommage
   | { readonly type: 'distinct'; readonly termes: readonly [string, string] }
   | { readonly type: 'voulu'; readonly mots: Mots }
-  | { readonly type: 'ordinaire'; readonly cle: string }
   | { readonly type: 'plus-tard'; readonly cle: string }
   | { readonly type: 'collection'; readonly id: string; readonly cible?: Collection }
-  | { readonly type: 'exclues'; readonly ids: readonly string[] }
   | { readonly type: 'vus'; readonly groupes: readonly string[] };
 
 // Les clés
@@ -288,16 +287,15 @@ export function serialiserRegle(regle: Regle): Ecriture {
   const v = VERSION_DES_REGLES;
   switch (regle.type) {
     case 'architecture': return { cle: CLE_ARCHITECTURE_DU_FICHIER, texte: texteDeLArchitectureDuFichier(regle.ucm) };
-    case 'ecriture': return { cle: CLE_ECRITURE, texte: JSON.stringify({ version: v, groupes: regle.ecriture.groupes, variables: regle.ecriture.variables }) };
-    case 'terme': return { cle: cleTerme(regle.terme.terme), texte: JSON.stringify({ version: v, terme: regle.terme.terme, remplace: regle.terme.remplace,
-      ...(regle.terme.definition ? { definition: regle.terme.definition } : {}) }) };
-    case 'ecart': return { cle: cleEcart(regle.id), texte: JSON.stringify({ version: v }) };
+    case 'ecriture':
+    case 'terme':
+    case 'ecart':
+    case 'ordinaire':
+    case 'exclues': return entreeDeNommage(regle);
     case 'distinct': return { cle: cleDistinct(regle.termes[0], regle.termes[1]), texte: JSON.stringify({ version: v }) };
     case 'voulu': return { cle: cleVoulu(regle.mots), texte: JSON.stringify({ version: v }) };
-    case 'ordinaire': return { cle: cleOrdinaire(regle.cle), texte: JSON.stringify({ version: v }) };
     case 'plus-tard': return { cle: clePlusTard(regle.cle), texte: JSON.stringify({ version: v }) };
     case 'collection': return { cle: cleCollection(regle.id), texte: JSON.stringify({ version: v, ...(regle.cible ? { cible: regle.cible } : {}) }) };
-    case 'exclues': return { cle: CLE_EXCLUES, texte: JSON.stringify({ version: v, ids: trier(regle.ids) }) };
     case 'vus': return { cle: CLE_VUS, texte: JSON.stringify({ version: v, groupes: trier(regle.groupes) }) };
   }
 }
@@ -563,38 +561,7 @@ export function importerLesRegles(
 
 // Le port de stockage
 
-/** Ce que ces fonctions demandent au port d'`ecriture.ts`. */
-export interface StockageDeRegles {
-  cles(): readonly string[];
-  lire(cle: string): string;
-  ecrire(cle: string, texte: string): void;
-  effacer(cle: string): void;
-}
-
 /** Toutes les entrées de l'espace, sous la forme que `lireLesRegles` attend. */
 export function lireLeStockage(stockage: StockageDeRegles): Map<string, string> {
   return new Map(stockage.cles().map((cle) => [cle, stockage.lire(cle)] as const));
-}
-
-/**
- * Range les écritures dans l'ordre. Si l'une échoue, chaque clé déjà touchée (celle qui échoue comprise) retrouve son texte
- * d'avant, au mieux : chaque retour a son `try`. L'erreur d'origine est relancée.
- */
-export function rangerLesEcritures(stockage: StockageDeRegles, ecritures: readonly Ecriture[]): void {
-  const touchees = new Map<string, string>();
-  try {
-    for (const { cle, texte } of ecritures) {
-      if (!touchees.has(cle)) touchees.set(cle, stockage.lire(cle));
-      if (texte === null || texte === '') stockage.effacer(cle);
-      else stockage.ecrire(cle, texte);
-    }
-  } catch (cause) {
-    for (const [cle, avant] of touchees) {
-      try {
-        if (avant === '') stockage.effacer(cle);
-        else stockage.ecrire(cle, avant);
-      } catch { /* retour au mieux */ }
-    }
-    throw cause;
-  }
 }

@@ -143,7 +143,7 @@ export function etatDesTokens(
       }
       continue;
     }
-    if (entree.nom !== '' && lue.nom !== entree.nom) {
+    if (entree.nom !== '' && lue.nom.toLowerCase() !== entree.nom.toLowerCase()) {
       // Une reprise est renommée par l'écriture ; une palette de la destination garde le nom du fichier (D2).
       if (suivi.liaison === 'reprise') aRenommer.set(lue.id, { id: lue.id, de: lue.nom, vers: entree.nom, cause: lue.nom === entree.brut ? 'regles' : 'forme' });
       else if (!ecarts.has(lue.id)) ecarts.set(lue.id, { id: lue.id, nom: lue.nom, plan: entree.nom });

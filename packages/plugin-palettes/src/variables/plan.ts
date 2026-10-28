@@ -83,6 +83,22 @@ function suffixeDeNuance(nom: string | undefined, nuance: number): string {
     : '';
 }
 
+/** Un nom créé reprend la casse des chemins de la reprise quand leurs segments de même rang s'accordent. */
+function cheminSelonLaReprise(nom: string, origine: OrigineDeLaReprise): string {
+  const segments = nom.split('/');
+  const prefixe = segments.slice(0, -1);
+  const exemples = [...origine.suivies.values()].map((variable) => variable.nom.split('/')).filter((existants) => existants.length === segments.length);
+  const memeRampe = exemples.find((existants) => prefixe.every((segment, rang) => segment.toLowerCase() === existants[rang].toLowerCase()));
+  if (memeRampe) return [...memeRampe.slice(0, -1), segments.at(-1)!].join('/');
+  return segments.map((segment, rang) => {
+    if (rang === segments.length - 1) return segment;
+    const presents = [...new Set(exemples.map((existants) => existants[rang]))];
+    const memeSegment = presents.filter((present) => present.toLowerCase() === segment.toLowerCase());
+    if (memeSegment.length === 1) return memeSegment[0];
+    return segment;
+  }).join('/');
+}
+
 /**
  * Le plan d'une palette, dans l'ordre des intensités, puis des thèmes, puis
  * des nuances. Avec les thèmes dans le chemin, chaque entrée a sa variable.
@@ -101,7 +117,7 @@ function suffixeDeNuance(nom: string | undefined, nuance: number): string {
  * d'origine portent la rampe Light. Leur intensité s'écrit sous la clé
  * `unique` : à deux intensités, celle que le suivi garde, sinon celle qui
  * porte la référence. Une variable suivie dont le nom diffère de celui du
- * plan est à renommer, sauf si le dernier segment ajoute un suffixe non vide
+ * plan est à renommer, sauf si seule la casse diffère ou si le dernier segment ajoute un suffixe non vide
  * après le numéro de nuance : ce suffixe est conservé. Le thème Dark s'écrit
  * en mode quand le suivi garde un mode Dark, ou quand la destination met les
  * thèmes en modes et que le suivi n'a aucune variable Dark ; sinon dans le
@@ -177,9 +193,10 @@ export function planDesVariables(recette: Recette, palette: Palette, destination
       }
     }
     // Les noms se choisissent ensemble : les règles de nommage lisent tout le fichier, et l'occupant d'un nom se cherche sur le nom final.
-    const finals = nommer ? nommer(candidats.map(({ entree, lue, voulu }) => ({ cle: entree.cle, nom: voulu, id: lue?.id }))) : candidats.map(({ voulu }) => voulu);
+    const finals = nommer ? nommer(candidats.map(({ entree, lue, voulu }) => ({ cle: entree.cle, nom: voulu, id: lue?.id }))) : candidats.map(({ lue, voulu }) => lue || destination.groupe !== suivie.groupe ? voulu : cheminSelonLaReprise(voulu, origine));
     candidats.forEach(({ entree, lue, voulu: brut }, rang) => {
-      const voulu = finals[rang];
+      const final = finals[rang];
+      const voulu = lue && lue.nom.toLowerCase() === final.toLowerCase() ? lue.nom : final;
       const occupant = origine.parNom.get(voulu.toLowerCase());
       const cible = suivie.modes[entree.mode];
       const reservePar = reservesDuLot?.get(voulu.toLowerCase());

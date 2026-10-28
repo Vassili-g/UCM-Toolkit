@@ -12,7 +12,7 @@
 import type { Palette, Recette } from 'ucm-couleur';
 import { inventaireDeLectures, type LecteurDeVariable, type ObjetNomme, type VariableLue as VariableDuSocle } from 'ucm-plugin-socle/src/inventaireDeNoms';
 import { nomsSelonLesReglesSync } from '@ucm-kit/core/nommage';
-import { lireReglesDeNommage } from '@ucm-kit/core/protocoles';
+import { CLE_ECRITURE, CLE_EXCLUES, lireLesEntreesDeNommage, lireReglesDeNommage } from '@ucm-kit/core/protocoles';
 
 import type { Destination } from './destination';
 import { destinationChangee } from './etat';
@@ -54,6 +54,19 @@ export interface Nommeur {
 export const COLLECTION_A_CREER = 'ucm-palettes:collection-a-creer';
 const PREFIXE_A_CREER = 'ucm-palettes:a-creer:';
 
+export type RaisonSansNommeur = 'aucune-ecriture' | 'v1-seule' | 'version-future' | 'ecriture-illisible' | 'collection-exclue' | 'collection-introuvable';
+
+/** La raison pour laquelle les règles du fichier ne peuvent pas nommer une collection. */
+export function raisonSansNommeur(donnees: DonneesDeNommage, collectionVisee: CollectionVisee): RaisonSansNommeur | undefined {
+  const lues = lireLesEntreesDeNommage(new Map(donnees.couples));
+  if (lues.futures.includes(CLE_ECRITURE) || lues.futures.includes(CLE_EXCLUES)) return 'version-future';
+  if (lues.ecritureDeLaV1) return 'v1-seule';
+  if (!lues.ecriture) return donnees.couples.some(([cle]) => cle === CLE_ECRITURE) ? 'ecriture-illisible' : 'aucune-ecriture';
+  if ('id' in collectionVisee && lues.collectionsExclues.includes(collectionVisee.id)) return 'collection-exclue';
+  if ('id' in collectionVisee && !donnees.collections.some((collection) => collection.id === collectionVisee.id)) return 'collection-introuvable';
+  return undefined;
+}
+
 /** Le nommeur du fichier ; `undefined` tant qu'aucune écriture n'est rangée par UCM Architect. */
 export function creerNommeur(donnees: DonneesDeNommage): Nommeur | undefined {
   const regles = lireReglesDeNommage(donnees.couples);
@@ -72,7 +85,8 @@ export function creerNommeur(donnees: DonneesDeNommage): Nommeur | undefined {
   const nommeursParCollection = new Map<string, Nommer | undefined>();
   const nommeurDeLaCollection = (visee: CollectionVisee): Nommer | undefined => {
     const collection = 'id' in visee ? visee.id : COLLECTION_A_CREER;
-    if ('id' in visee ? exclues.has(collection) || !donnees.collections.some((candidate) => candidate.id === collection) : false) return undefined;
+    if ('id' in visee && exclues.has(collection)) return undefined;
+    if ('id' in visee && !donnees.collections.some((candidate) => candidate.id === collection)) return undefined;
     const collections = 'id' in visee ? collectionsDuFichier : [...collectionsDuFichier, { id: COLLECTION_A_CREER, name: visee.nom.trim(), remote: false }];
     const deLaCollection = new Set(donnees.variables.filter((variable) => variable.collection === collection).map((variable) => variable.id));
     const memo = new Map<string, string[]>();

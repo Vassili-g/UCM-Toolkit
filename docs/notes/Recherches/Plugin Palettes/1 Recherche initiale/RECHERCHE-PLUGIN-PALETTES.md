@@ -3373,17 +3373,21 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   garde ensuite. Un suffixe non vide après un tiret, placé après le numéro de
   nuance dans le dernier segment, est conservé quand le plan renomme la
   variable. Ce suffixe seul ne demande pas de mise à jour ; un tiret final
-  seul reste un renommage. Toute autre différence de nom est renommée : la
+  seul reste un renommage. Une différence de casse seule conserve le nom du
+  fichier. Toute autre différence de nom est renommée : la
   variable garde son identifiant, donc ses liaisons, et la palette est « À
   mettre à jour » tant qu'un renommage reste à faire. Une différence que
   seules les règles de nommage du fichier créent n'est pas un renommage à
   faire : la variable porte le nom que la forme demande, UCM Nomenclature
   propose le renommage, et la prochaine écriture de la palette reprise donne
-  le nom final. Une palette que le plugin a créée ne renomme jamais ses
+  le nom final, sauf si seule la casse diffère. Une palette que le plugin a créée ne renomme jamais ses
   variables suivies à l'écriture. Elle garde son nom quand
   une autre variable porte déjà celui du plan. Une variable
-  d'origine disparue se recrée, et toute variable créée naît sans portée. Le
-  suivi garde le chemin d'origine dès la première écriture, parce que les
+  d'origine disparue se recrée, et toute variable créée naît sans portée.
+  Sans écriture de nommage, une nuance recréée reprend le chemin de sa rampe ;
+  un segment présent sous une seule casse garde celle du fichier. Un segment
+  absent garde la casse brute du plan.
+  Le suivi garde le chemin d'origine dès la première écriture, parce que les
   noms renommés ne le rendent plus. Une entrée sans variable dont le nom est
   celui d'une variable que la palette ne suit pas, ou qui vise un alias,
   sort du plan : le plugin n'y écrit pas. Une clé d'un plan plus ancien
@@ -3402,7 +3406,8 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   collection de la destination et sous la forme de ses thèmes, elles restent
   les siennes : chacune prend le nom que la destination lui donne et garde
   son identifiant, donc ses liaisons, et le suivi prend la liaison
-  `destination` au groupe de la destination. Un nom déjà porté par une autre
+  `destination` au groupe de la destination. Une différence de casse seule
+  conserve le nom de la variable. Un nom déjà porté par une autre
   variable de la collection, sans casse, refuse le geste avant tout
   renommage. Sinon, ses variables deviennent une sortie ancienne de la
   palette (`[UI-35]`), et la prochaine mise à jour l'écrit dans la

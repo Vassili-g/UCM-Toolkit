@@ -24,7 +24,7 @@ Sous-chemin sans dépendance Node ni Figma.
 - index.ts : ce que le sous-chemin publie
 
 ## src/protocoles/
-- nommage.ts : règles de nommage que Nomenclature range et que Palettes relit : préfixes et constructeurs de clés, lecture versionnée, entrées d'une version future (`futures`)
+- nommage.ts : entrées de nommage que Nomenclature range et que Palettes relit : clés, écriture, lecture versionnée, rangement avec retour au texte d'avant et entrées futures (`futures`)
 
 ## src/nommage/
 Sous-chemin sans Figma : calcul de renommage sur un inventaire portable.

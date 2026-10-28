@@ -5,7 +5,7 @@ import test from 'node:test';
 import { aUneIntensite, couleursFigeesDe, fnv1a, intensitePorteuse, jsonCanonique, lireHexa, octetsUtf8, rampesDe, recetteParDefaut, validerRecette, type Palette, type Recette } from 'ucm-couleur';
 
 import { ajouter, choisirLesIntensites, nomDeLaReprise, remplacerPalette, reprendreDuFichier, revenirAuModele, supprimer } from '../src/edition';
-import { ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables, type FigmaDesVariablesEcrites } from '../src/ecriture/variables';
+import { convertirLaReprise, ecrireLesVariables, rangerLaDestination, reprendreLaPalette, retirerLesVariables, type FigmaDesVariablesEcrites } from '../src/ecriture/variables';
 import { lireLesVariablesDuFichier, lireLeSuiviRange } from '../src/lectureDesVariables';
 import { palettesDuFichier, regrouperLesPalettes, type PaletteDuFichier, type PaletteGroupee } from '../src/variables/detection';
 import { ecartsDeLaReprise, tokensDeLaPalette } from '../src/variables/gestion';
@@ -941,6 +941,15 @@ function fichierDePoppy(): { figma: FauxFigma; collection: FausseCollection } {
   return { figma, collection };
 }
 
+function fichierDePoppyEnPascalCase(): { figma: FauxFigma; collection: FausseCollection } {
+  const fichier = fichierDePoppy();
+  fichier.figma.root.setSharedPluginData('ucm_architect', 'architecture', '{"version":1,"ucm":true}');
+  for (const variable of fichier.figma.locales.values()) {
+    variable.name = variable.name.replace(/^Poppy\//, 'Color/Poppy/').replace(/\/(soft|vivid)\/(light|dark)\//, (_, intensite: string, theme: string) => `/${intensite[0].toUpperCase()}${intensite.slice(1)}/${theme[0].toUpperCase()}${theme.slice(1)}/`);
+  }
+  return fichier;
+}
+
 test('[VAR-13] les quatre groupes de Poppy, repris tels quels, rendent à l’hexa près les couleurs du fichier à deux intensités, « À jour » sans aucune écriture', async () => {
   const { figma, collection } = fichierDePoppy();
   const [groupee] = await groupeesDuFichier(figma);
@@ -981,6 +990,53 @@ test('[VAR-13] les quatre groupes de Poppy, repris tels quels, rendent à l’he
     assert.equal(hexa(figma, nom), couleur, nom);
   }
   assert.equal((await tokens(figma, recette, palette)).etat, 'a-jour');
+});
+
+test('[VAR-13] en full UCM sans écriture de nommage, une reprise et sa conversion conservent les chemins PascalCase du fichier', async () => {
+  const { figma, collection } = fichierDePoppyEnPascalCase();
+  const [groupee] = await groupeesDuFichier(figma);
+  const { recette, palette } = await reprendreLaGroupee(figma, groupee);
+  const avant = nomsEtIdentifiants(figma);
+  const annonce = await tokens(figma, recette, palette);
+  assert.deepEqual(annonce.aRenommer, []);
+  await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [palette.id] });
+  assert.deepEqual(nomsEtIdentifiants(figma), avant);
+  const suivi = lireLeSuiviRange(figma.root);
+  figma.root.setSharedPluginData('ucm_palettes', 'variables', texteDuSuivi({ ...suivi, destination: { collection: { id: collection.id }, groupe: 'Color', themes: 'chemin' }, confirmee: true }));
+  assert.deepEqual(await convertirLaReprise(api(figma), { palette: palette.id, empreinteLue: empreinte(recette) }), { issue: 'convertie', renommees: 0, enPlace: true });
+  assert.deepEqual(nomsEtIdentifiants(figma), avant);
+});
+
+test('[VAR-13] une nuance disparue se recrée sous la casse des autres nuances de la rampe', async () => {
+  const { figma } = fichierDePoppyEnPascalCase();
+  const [groupee] = await groupeesDuFichier(figma);
+  const { recette, palette } = await reprendreLaGroupee(figma, groupee);
+  figma.variable('Color/Poppy/Vivid/Light/950').remove();
+  const annonce = await tokens(figma, recette, palette);
+  assert.ok(annonce.aCreer.includes('Color/Poppy/Vivid/Light/950'));
+  assert.equal(annonce.aRenommer.length, 0);
+  await ecrireLesVariables(api(figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [palette.id] });
+  assert.ok(nomsEtIdentifiants(figma).some(([, nom]) => nom === 'Color/Poppy/Vivid/Light/950'));
+});
+
+test('[VAR-13] un thème absent du fichier garde la casse brute du plan', async () => {
+  const { figma } = fichierDePoppyEnPascalCase();
+  const [groupee] = await groupeesDuFichier(figma);
+  const { recette, palette } = await reprendreLaGroupee(figma, groupee);
+  for (const variable of [...figma.locales.values()]) if (variable.name.includes('/Dark/')) variable.remove();
+  const annonce = await tokens(figma, recette, palette);
+  assert.ok(annonce.aCreer.includes('Color/Poppy/Vivid/dark/50'));
+  assert.ok(annonce.aCreer.every((nom) => nom.includes('/dark/')));
+});
+
+test('[VAR-13] sans règles, une intensité nouvelle garde sa casse brute et reprend les segments présents', async () => {
+  const { figma } = fichierDePoppyEnPascalCase();
+  const [groupee] = await groupeesDuFichier(figma);
+  const { recette, palette } = await reprendreLaGroupee(figma, groupee);
+  for (const variable of [...figma.locales.values()]) if (variable.name.includes('/Vivid/')) variable.remove();
+  const annonce = await tokens(figma, recette, palette);
+  assert.ok(annonce.aCreer.includes('Color/Poppy/vivid/Light/50'));
+  assert.ok(annonce.aCreer.every((nom) => nom.includes('/vivid/')));
 });
 
 test('[VAR-13] deux groupes en modes Light et Dark, repris tels quels, figent les couleurs de chaque mode pour chaque intensité', async () => {
