@@ -11,8 +11,8 @@ R-11 à R-27. La section 10 les réunit avec leur état ; la maquette les repren
 en section 8.
 
 Le mainteneur a relu une première version de la maquette. Ses réponses sont
-reportées dans chaque section. Toutes les questions de la recette sont
-tranchées. R-28 relève de Palettes.
+reportées dans chaque section. Reste ouvert : R-29, la façon de
+distinguer une sous-pièce d'une pièce partagée. R-28 relève de Palettes.
 
 ## 1. Fenêtre, barre et panneau
 
@@ -490,18 +490,36 @@ Proposition, en trois couches, selon la règle des domiciles d'AGENTS.md :
    `packages/kit/src/referentiel/composition.ts`, nomme les sortes d'un
    composant imbriqué et la façon de les reconnaître :
 
+   Le préfixe `.` ou `_` marque une **pièce interne** : un composant sans
+   collection ni contrat, qui ne sert jamais seul. Il ne dit pas combien de
+   composants l'emploient. Une pièce interne a deux cas :
+
    | Sorte | Se reconnaît à | Son contrat | Ses liaisons |
    |---|---|---|---|
-   | Dépendance | Une instance de `.componentRules` le nomme, sur la page de son composant principal | Le sien ; l'hôte le cite dans `composes` | Jugées dans son propre contrat |
-   | Wrapper de dimensions | La définition de FORMAT.md, « Layout » | Aucun ; ses props et dimensions entrent dans celles de l'hôte | Tokens de l'hôte |
-   | Pièce partagée | Nom qui commence par `.` ou `_`, sans `.componentRules` | Aucun ; l'hôte publie ce qu'elle dessine | Composant principal : `theme` et `layout` admis. Surcharges : tokens de l'hôte |
-   | Détail d'implémentation | Tout autre composant imbriqué | Aucun | Tokens de l'hôte |
+   | Dépendance | Une instance de `.componentRules` la nomme, sur la page de son composant principal | Le sien ; l'hôte la cite dans `composes` | Jugées dans son propre contrat |
+   | Wrapper de dimensions | La définition de FORMAT.md, « Layout » ; préfixé ou non, comme `.sizeWrapperButton` | Aucun ; ses props et dimensions entrent dans celles de l'hôte | Tokens de l'hôte |
+   | Sous-pièce | Pièce interne d'un seul hôte | Aucun ; l'hôte publie ce qu'elle dessine | Tokens de l'hôte, composant principal compris |
+   | Pièce partagée | Pièce interne de plusieurs hôtes, comme `.Ring` | Aucun ; chaque hôte publie ce qu'elle dessine | Composant principal : `theme` et `layout`. Surcharges dans l'hôte : tokens de l'hôte |
+   | Détail d'implémentation | Tout autre composant imbriqué, sans préfixe ni règles | Aucun | Tokens de l'hôte |
 
    Une fonction pure, `sorteDeLImbrique(faits)`, rend la sorte depuis des faits
-   sérialisables : nom, règles d'utilisation trouvées, dimensions liées. Elle
-   teste les sortes dans l'ordre du tableau. L'ordre compte : le wrapper de
-   Button s'appelle `.sizeWrapperButton`, avec le préfixe d'une pièce partagée,
-   et doit rester un wrapper de dimensions.
+   sérialisables : nom, règles d'utilisation trouvées, dimensions liées, hôtes.
+   Elle teste les sortes dans l'ordre du tableau : le wrapper de dimensions
+   passe avant la pièce interne.
+
+   **Distinguer la sous-pièce de la pièce partagée** demande un fait de plus,
+   le nombre d'hôtes. Deux moyens (R-29) :
+
+   | Moyen | Pour | Contre |
+   |---|---|---|
+   | a. Compter les hôtes dans le fichier : les jeux de variants qui contiennent une instance de la pièce | Automatique, sans geste du designer | La sorte change quand un deuxième hôte apparaît. `.Ring`, prévu pour toutes les interfaces à focus, est une sous-pièce tant que seul Button l'emploie : son radius lié à `layout` redevient un constat |
+   | b. Le designer déclare la pièce partagée, par exemple par un mot dans la description du composant | Suit l'intention : `.Ring` est partagée dès sa création | Un geste à faire dans Figma pour chaque pièce partagée |
+
+   Avis : a, avec une nuance de sévérité. Une sous-pièce liée à `theme` ou
+   `layout` dans son composant principal reçoit un À vérifier, pas un À
+   corriger : « `.Ring` ne sert qu'à Button dans ce fichier. S'il doit servir à
+   d'autres composants, ce lien est juste. » Le designer peut l'ignorer. Aucun
+   geste nouveau n'est demandé.
 2. **Le socle relève les faits, une fois.** L'exporteur et le relevé
    d'Architect lisent les mêmes faits par la même acquisition, puis appellent
    la fonction du kit. Un test refuse qu'un des deux classe un imbriqué sans
@@ -514,8 +532,10 @@ Proposition, en trois couches, selon la règle des domiciles d'AGENTS.md :
 
 Le préfixe `.` ou `_` devient alors une convention UCM écrite : le designer
 déclare ainsi qu'une pièce ne sert jamais seule. Figma ne publie déjà pas ces
-composants. Décidé (R-26) : la notion est factorisée dans UCM Toolkit, avec la
-convention et les quatre sortes.
+composants. Décidé (R-26) : la notion est factorisée dans UCM Toolkit. Le
+mainteneur a précisé qu'une pièce préfixée peut être une sous-pièce d'un seul
+composant ou une pièce partagée : les sortes ci-dessus distinguent les deux,
+et R-29 choisit comment les reconnaître.
 
 ### 7.4 « Les 18 variants State=Disabled ne sont pas mesurés »
 
@@ -671,9 +691,24 @@ Textes proposés (cadre 7f) :
 #### Une question pour Palettes
 
 Les composants Outlined se posent sur une carte, et Palettes ne garantit pas
-leurs couleurs sur ce fond. Faut-il étendre les garanties 2, 5 et 6 à
-`elevation/raised` ? La question relève de Palettes, pas de cette recette
-(R-28).
+leurs couleurs sur ce fond.
+
+Le fond le plus exigeant n'est pas le même selon le mode :
+
+| Mode | Fond le plus exigeant pour un texte ou un contour |
+|---|---|
+| Light | La page : la carte est blanche, donc plus claire, et un contenu foncé y gagne du contraste |
+| Dark | La carte : elle est plus claire que la page, et un contenu clair y perd du contraste |
+
+En Dark, une garantie tenue sur la carte est donc tenue sur la page, pas
+l'inverse. Palettes juge aujourd'hui sur la page dans les deux modes : en Dark,
+il juge sur le fond le plus facile.
+
+Proposition pour Palettes (R-28) : juger les garanties 2 à 6 sur le fond le plus
+exigeant de chaque mode, la page en Light et la carte en Dark, ou sur les deux
+fonds. La garantie 7, l'anneau, le fait déjà. La question relève de Palettes,
+pas de cette recette. Une fois les garanties étendues, la sévérité d'Architect
+suit sans autre lot, puisqu'il lit les mêmes garanties.
 
 #### D'où vient la valeur de `elevation/raised`
 
@@ -838,7 +873,8 @@ corrigé en R-1 : une valeur que Figma garde sans l'appliquer.
 | R-25 | La Configuration prend la place du panneau quand il est ouvert, celle de la vue quand il est fermé | | Décidé : oui |
 | R-26 | Les quatre sortes de composant imbriqué dans le référentiel du kit, et le préfixe `.` ou `_` comme convention de la pièce partagée | | Décidé : oui, factorisé dans UCM Toolkit |
 | R-27 | Noms de variants | | Décidé : E, valeurs en puces, paire exacte au survol ; la property reste quand deux valeurs se confondent |
-| R-28 | Étendre les garanties 2, 5 et 6 de Palettes à `elevation/raised` | À traiter dans Palettes | Ouvert, hors de cette recette |
+| R-28 | Palettes juge ses garanties 2 à 6 sur le fond le plus exigeant de chaque mode : la page en Light, la carte en Dark | Oui, ou sur les deux fonds | Ouvert, à traiter dans Palettes |
+| R-29 | Distinguer une sous-pièce d'une pièce partagée : compter les hôtes dans le fichier, ou déclaration du designer | Compter, avec un À vérifier pour une sous-pièce liée à `theme` ou `layout` | Ouvert |
 
 ## 11. Ordre de travail proposé
 
@@ -851,7 +887,7 @@ en premier, dans une seule version du kit :
 | K2 | C10 lit l'écriture des dossiers, et le test qui l'impose (7.2) | — |
 | K3 | C17 admet `foreground` sur un stroke (8) | — |
 | K4 | Contraste sur la page et la carte, sévérité selon les garanties de Palettes (7.5) | — |
-| K5 | Sortes de composant imbriqué dans le référentiel, et leur test (7.3) | — |
+| K5 | Sortes de composant imbriqué dans le référentiel, et leur test (7.3) | R-29 |
 | K6 | Pièce partagée : `theme` et `layout` admis dans son composant principal (7.3) | K5 |
 | S1 | Le socle exporte la règle des espacements sans effet ; relevé et vue la lisent (9) | — |
 | A1 | Frontière, Configuration en bascule et à sa place, Actualiser désactivé (1) | — |

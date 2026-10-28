@@ -194,7 +194,7 @@
       <td>Le socle exporte sa règle des espacements sans effet. L'exporteur, le relevé et la vue d'Architect lisent cette seule fonction. Un gap Auto ne donne plus de constat ni de valeur en dur dans la vue.</td></tr>
   </table>
 
-  <h3><code>.Ring</code>, pièce partagée <span class="decide">Décidé : option 1</span> <span class="decide">Factorisé dans UCM Toolkit</span></h3>
+  <h3><code>.Ring</code>, pièce partagée <span class="decide">Décidé : option 1</span> <span class="decide">Factorisé dans UCM Toolkit</span> <span class="ouvert">R-29</span></h3>
   <div class="discussion decidee">
     <h4>La décision</h4>
     <p><code>.Ring</code> sert à toutes les interfaces qui ont un état de focus. Une liaison posée dans son composant principal
@@ -226,18 +226,30 @@
     <table class="t">
       <tr><th>Sorte</th><th>Se reconnaît à</th><th>Son contrat</th><th>Ses liaisons</th></tr>
       <tr><td>Dépendance</td><td>Une instance de <code>.componentRules</code> la nomme</td><td>Le sien ; l'hôte la cite dans <code>composes</code></td><td>Jugées dans son propre contrat</td></tr>
-      <tr><td>Wrapper de dimensions</td><td>La définition de FORMAT.md, « Layout »</td><td>Aucun ; ses props et dimensions entrent dans celles de l'hôte</td><td>Tokens de l'hôte</td></tr>
-      <tr><td>Pièce partagée</td><td>Nom qui commence par <code>.</code> ou <code>_</code>, sans <code>.componentRules</code></td><td>Aucun ; l'hôte publie ce qu'elle dessine</td><td>Composant principal : <code>theme</code> et <code>layout</code>. Surcharges : tokens de l'hôte</td></tr>
-      <tr><td>Détail d'implémentation</td><td>Tout autre composant imbriqué</td><td>Aucun</td><td>Tokens de l'hôte</td></tr>
+      <tr><td>Wrapper de dimensions</td><td>La définition de FORMAT.md, « Layout » ; préfixé ou non, comme <code>.sizeWrapperButton</code></td><td>Aucun ; ses props et dimensions entrent dans celles de l'hôte</td><td>Tokens de l'hôte</td></tr>
+      <tr><td>Sous-pièce</td><td>Pièce interne (préfixe <code>.</code> ou <code>_</code>) d'un seul hôte</td><td>Aucun ; l'hôte publie ce qu'elle dessine</td><td>Tokens de l'hôte, composant principal compris</td></tr>
+      <tr><td>Pièce partagée</td><td>Pièce interne de plusieurs hôtes, comme <code>.Ring</code></td><td>Aucun ; chaque hôte publie ce qu'elle dessine</td><td>Composant principal : <code>theme</code> et <code>layout</code>. Surcharges dans l'hôte : tokens de l'hôte</td></tr>
+      <tr><td>Détail d'implémentation</td><td>Tout autre composant imbriqué, sans préfixe ni règles</td><td>Aucun</td><td>Tokens de l'hôte</td></tr>
     </table>
+    <p>Le préfixe marque une <b>pièce interne</b> : sans collection ni contrat, elle ne sert jamais seule. Il ne dit pas combien
+    de composants l'emploient : une pièce interne est une sous-pièce ou une pièce partagée. Le wrapper de dimensions passe
+    avant elles.</p>
+    <p><b>Distinguer la sous-pièce de la pièce partagée (R-29).</b></p>
+    <table class="t">
+      <tr><th>Moyen</th><th>Pour</th><th>Contre</th></tr>
+      <tr><td>a. Compter les hôtes dans le fichier</td><td>Automatique, sans geste du designer</td><td>La sorte change quand un deuxième hôte apparaît. <code>.Ring</code> est une sous-pièce tant que seul Button l'emploie : son radius lié à <code>layout</code> redevient un constat</td></tr>
+      <tr><td>b. Le designer déclare la pièce partagée, par un mot dans la description du composant</td><td>Suit l'intention : <code>.Ring</code> est partagée dès sa création</td><td>Un geste dans Figma pour chaque pièce partagée</td></tr>
+    </table>
+    <p class="avis"><b>Avis : a</b>, avec une sévérité adoucie. Une sous-pièce liée à <code>theme</code> ou <code>layout</code> dans
+    son composant principal reçoit un À vérifier : « <code>.Ring</code> ne sert qu'à Button dans ce fichier. S'il doit servir à
+    d'autres composants, ce lien est juste. » Le designer peut l'ignorer. Aucun geste nouveau.</p>
     <p><b>2. Le socle relève les faits, une fois.</b> L'exporteur et Architect lisent les mêmes faits, puis appellent la
     fonction du kit. Un test refuse qu'un des deux classe un imbriqué sans elle.</p>
     <p><b>3. Les documents renvoient au kit.</b> CONCEPT.md ajoute la pièce partagée au composant simple et au composant
     composé, en une phrase. FORMAT.md renvoie à la fonction au lieu de répéter les règles. L'invariant du référentiel
     reçoit la règle.</p>
-    <p class="avis">Le préfixe <code>.</code> ou <code>_</code> devient une convention UCM écrite : le designer déclare ainsi
-    qu'une pièce ne sert jamais seule. Figma ne publie déjà pas ces composants. <b>R-26</b> valide la convention et les
-    quatre sortes.</p>
+    <p>Le préfixe <code>.</code> ou <code>_</code> devient une convention UCM écrite : le designer déclare ainsi qu'une pièce ne
+    sert jamais seule. Figma ne publie déjà pas ces composants.</p>
   </div>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette">7a. Aujourd'hui : le constat disparaît</span><div class="cadre" id="c-7a"></div></div>
@@ -294,8 +306,12 @@
     <p>Architect mesure sur les deux fonds, et la sévérité suit cette table. Un échec sur un fond que Palettes garantit pour
     la variable est À corriger : la palette est hors garantie, ou le token lié n'est pas le bon. Un échec sur un fond que
     Palettes ne garantit pas est À vérifier, et la carte le dit. Aucun constat dur sur un usage que Palettes ne promet pas.</p>
-    <p>La table vient du kit, la même source que Palettes. Une question reste pour Palettes : étendre ses garanties à la
-    carte, où se posent les composants Outlined (R-28, hors de cette recette).</p>
+    <p>La table vient du kit, la même source que Palettes.</p>
+    <p><b>Le fond le plus exigeant change avec le mode.</b> En Light, la carte est blanche : un contenu foncé y gagne du
+    contraste, et la page est le fond exigeant. En Dark, la carte est plus claire que la page : un contenu clair y perd du
+    contraste, et la carte est le fond exigeant. Palettes juge aujourd'hui sur la page dans les deux modes, donc sur le fond
+    le plus facile en Dark. Proposition pour Palettes (R-28, hors de cette recette) : juger les garanties 2 à 6 sur la page
+    en Light et sur la carte en Dark, ou sur les deux. Architect suivra sans autre lot.</p>
   </div>
   <div class="colonnes">
     <div class="colonne"><span class="etiquette">7e. Aujourd'hui</span><div class="cadre" id="c-7e"></div></div>
@@ -323,7 +339,8 @@
     <tr><td>R-25</td><td>La Configuration prend la place du panneau quand il est ouvert, celle de la vue quand il est fermé</td><td></td><td><span class="decide">Décidé</span> oui</td></tr>
     <tr><td>R-26</td><td>Les quatre sortes de composant imbriqué dans le référentiel du kit, et le préfixe <code>.</code> ou <code>_</code></td><td></td><td><span class="decide">Décidé</span> oui, factorisé dans UCM Toolkit</td></tr>
     <tr><td>R-27</td><td>Noms de variants</td><td></td><td><span class="decide">Décidé</span> E, valeurs en puces, paire exacte au survol</td></tr>
-    <tr><td>R-28</td><td>Étendre les garanties 2, 5 et 6 de Palettes à <code>elevation/raised</code></td><td>À traiter dans Palettes</td><td><span class="ouvert">Ouvert, hors de cette recette</span></td></tr>
+    <tr><td>R-28</td><td>Palettes juge ses garanties 2 à 6 sur le fond le plus exigeant de chaque mode : la page en Light, la carte en Dark</td><td>Oui, ou sur les deux fonds</td><td><span class="ouvert">Ouvert, à traiter dans Palettes</span></td></tr>
+    <tr><td>R-29</td><td>Distinguer une sous-pièce d'une pièce partagée : compter les hôtes, ou déclaration du designer</td><td>Compter, avec un À vérifier pour une sous-pièce liée à <code>theme</code> ou <code>layout</code></td><td><span class="ouvert">Ouvert</span></td></tr>
   </table>
 </main>
 
